@@ -24,10 +24,11 @@
 #include "APU.h"
 #include "S5B.h"
 #include "emu2149.h"
+#include "s_psg.h"
 
 // Sunsoft 5B (YM2149)
 
-PSG *psg;
+PSGSOUND *psg2;		// // //
 
 float CS5B::AMPLIFY = 2.0f;
 
@@ -37,7 +38,7 @@ CS5B::CS5B(CMixer *pMixer) : m_iRegister(0), m_iTime(0)
 
 	m_fVolume = AMPLIFY;
 
-	psg = NULL;
+	psg2 = NULL;		// // //
 
 	for (int i = 0; i < 16; i++)		// // //
 		m_iLocalReg[i] = 0;
@@ -45,14 +46,14 @@ CS5B::CS5B(CMixer *pMixer) : m_iRegister(0), m_iTime(0)
 
 CS5B::~CS5B()
 {
-	if (psg)
-		PSG_delete(psg);
+	if (psg2)		// // //
+		sndrelease(psg2);
 }
 
 void CS5B::Reset()
 {
 	m_iTime = 0;
-//	PSG_reset(psg);
+//	sndreset(psg2);		// // //
 }
 
 void CS5B::Process(uint32 Time)
@@ -76,7 +77,9 @@ void CS5B::GetMixMono()
 
 	// Generate samples
 	while (m_iBufferPtr < WantSamples) {
-		int32 Sample = int32(float(PSG_calc(psg)) * m_fVolume);
+		int32 Sample2[2] = {0, 0};		// // //
+		sndsynth(psg2, Sample2);
+		int32 Sample = Sample2[1] * m_fVolume / 760;
 		m_pBuffer[m_iBufferPtr++] = int16((Sample + LastSample) >> 1);
 		LastSample = Sample;
 	}
@@ -92,9 +95,10 @@ void CS5B::Write(uint16 Address, uint8 Value)
 	switch (Address) {
 		case 0xC000:
 			m_iRegister = Value & 0xF;
+			sndwrite(psg2, 0, Value);
 			break;
 		case 0xE000:
-			PSG_writeReg(psg, m_iRegister, Value);
+			sndwrite(psg2, 1, Value);		// // //
 			m_iLocalReg[m_iRegister] = Value;		// // //
 			break;
 	}
@@ -105,6 +109,7 @@ uint8 CS5B::Read(uint16 Address, bool &Mapped)
 	// No reads here
 	Mapped = false;
 	return 0;
+	// return sndread(psg2, Address);
 }
 
 uint8 CS5B::GetLocalReg(uint8 Address)		// // //
@@ -114,14 +119,13 @@ uint8 CS5B::GetLocalReg(uint8 Address)		// // //
 
 void CS5B::SetSampleSpeed(uint32 SampleRate, double ClockRate, uint32 FrameRate)
 {
-	if (psg != NULL) {
-		PSG_delete(psg);
+	if (psg2 != NULL) {		// // //
+		sndrelease(psg2);
 	}
 
-	//PSG_init((uint32)ClockRate, SampleRate);
-	psg = PSG_new((uint32)ClockRate, SampleRate);
-	PSG_setVolumeMode(psg, 1);
-	PSG_reset(psg);
+	psg2 = static_cast<PSGSOUND*>(PSGSoundAlloc((uint32)PSG_TYPE_YM2149)->ctx);
+	// sndvolume(psg2, 1);
+	sndreset(psg2, ClockRate, SampleRate);
 
 //	psg = PSG_new();
 
