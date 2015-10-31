@@ -1196,50 +1196,61 @@ IDD_INSTRUMENT_VRC7 DIALOGEX 0, 0, 372, 172
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX        "Patch",IDC_STATIC,7,7,310,30
-    COMBOBOX        IDC_PATCH,15,18,295,128,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Copy",IDC_COPY,322,7,43,14
-    PUSHBUTTON      "Paste",IDC_PASTE,322,23,43,14
-    GROUPBOX        "Modulator settings",IDC_STATIC,7,42,153,123
-    CONTROL         "Amplitude modulation",IDC_M_AM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,54,84,10,WS_EX_TRANSPARENT
-    CONTROL         "Vibrato",IDC_M_VIB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,109,54,39,10,WS_EX_TRANSPARENT
-    CONTROL         "Sustained",IDC_M_EG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,70,47,10,WS_EX_TRANSPARENT
-    CONTROL         "Key scaling",IDC_M_KSR2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,86,51,10,WS_EX_TRANSPARENT
-    CONTROL         "Wave rectification",IDC_M_DM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,74,70,74,10,WS_EX_TRANSPARENT
-    LTEXT           "Level",IDC_STATIC,69,87,18,8
-    CONTROL         "",IDC_M_KSL,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,90,86,58,11,WS_EX_TRANSPARENT
-    LTEXT           "Mult. factor",IDC_STATIC,14,108,38,8
-    CONTROL         "",IDC_M_MUL,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,51,107,105,11,WS_EX_TRANSPARENT
-    LTEXT           "Attack",IDC_STATIC,14,127,22,8
-    CONTROL         "",IDC_M_AR,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,40,126,42,11
-    LTEXT           "Decay",IDC_STATIC,87,127,21,8
-    CONTROL         "",IDC_M_DR,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,114,126,42,11
-    LTEXT           "Sustain",IDC_STATIC,14,144,24,8
-    CONTROL         "",IDC_M_SL,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,39,143,42,11
-    LTEXT           "Release",IDC_STATIC,85,144,26,8
-    CONTROL         "",IDC_M_RR,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,114,143,42,11
-    GROUPBOX        "Carrier settings",IDC_STATIC,166,42,152,123
-    CONTROL         "Amplitude modulation",IDC_C_AM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,171,54,84,10
-    CONTROL         "Vibrato",IDC_C_VIB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,267,54,39,10
-    CONTROL         "Sustained",IDC_C_EG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,171,70,47,10
-    CONTROL         "Key scaling",IDC_C_KSR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,171,86,51,10
-    CONTROL         "Wave rectification",IDC_C_DM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,232,70,74,10
-    LTEXT           "Level",IDC_STATIC,226,87,18,8
-    CONTROL         "",IDC_C_KSL,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,247,86,59,11
-    LTEXT           "Mult. factor",IDC_STATIC,171,108,38,8
-    CONTROL         "",IDC_C_MUL,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,208,107,106,11
-    LTEXT           "Attack",IDC_STATIC,171,127,22,8
-    CONTROL         "",IDC_C_AR,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,199,126,42,11
-    LTEXT           "Decay",IDC_STATIC,247,127,21,8
-    CONTROL         "",IDC_C_DR,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,271,126,43,11
-    LTEXT           "Sustain",IDC_STATIC,171,144,24,8
-    CONTROL         "",IDC_C_SL,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,199,143,42,11
-    LTEXT           "Release",IDC_STATIC,245,144,26,8
-    CONTROL         "",IDC_C_RR,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,271,143,43,11
-    CTEXT           "Modulator\nlevel",IDC_STATIC,322,42,36,17
-    CONTROL         "",IDC_TL,"msctls_trackbar32",TBS_VERT | TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,329,59,16,53
-    CTEXT           "Feedback",IDC_STATIC,322,112,36,9
-    CONTROL         "",IDC_FB,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,325,124,25,41
+    GROUPBOX        "Patch",IDC_STATIC,7,7,133,30
+    COMBOBOX        IDC_PATCH,15,18,118,128,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Copy",IDC_COPY,6,40,43,14
+    PUSHBUTTON      "To MML",IDC_BUTTON_VRC7_MML,52,40,43,14
+    PUSHBUTTON      "Paste",IDC_PASTE,98,40,43,14
+    GROUPBOX        "Macro editor",IDC_STATIC,147,7,178,47
+    LTEXT           "Index: 00",IDC_STATIC_VRC7_INDEX,156,20,31,8
+    CONTROL         "",IDC_SPIN_VRC7_INDEX,"msctls_updown32",UDS_ARROWKEYS | UDS_HORZ,195,18,14,12
+    LTEXT           "Length: 0",IDC_STATIC,268,20,32,8
+    CONTROL         "",IDC_SPIN_VRC7_LENGTH,"msctls_updown32",UDS_ARROWKEYS | UDS_HORZ,305,18,14,12
+    CONTROL         "Retrigger",IDC_CHECK_VRC7_RETRIGGER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,215,20,41,10
+    CONTROL         "Loop: 0",IDC_CHECK_VRC7_LOOP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,156,37,36,10
+    CONTROL         "",IDC_SPIN_VRC7_COPY,"msctls_updown32",UDS_ARROWKEYS | UDS_HORZ,195,35,14,12
+    CONTROL         "Release: 0",IDC_CHECK_VRC7_RELEASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,215,37,45,10
+    CONTROL         "",IDC_SPIN_VRC7_RELEASE,"msctls_updown32",UDS_ARROWKEYS | UDS_HORZ,265,35,14,12
+    GROUPBOX        "Modulator settings",IDC_STATIC,6,56,156,109
+    CONTROL         "Tremolo",IDC_M_AM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,68,41,10
+    CONTROL         "Vibrato",IDC_M_VIB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,64,68,34,10
+    CONTROL         "Sustained",IDC_M_EG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,112,68,42,10
+    CONTROL         "Key rate scaling",IDC_M_KSR2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,84,62,10
+    CONTROL         "Wave rectification",IDC_M_DM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,85,84,69,10
+    LTEXT           "Key scale level",IDC_STATIC,13,101,48,8
+    CONTROL         "",IDC_M_KSL,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,65,100,93,11
+    LTEXT           "Multiplier (1/2)",IDC_STATIC,13,117,47,8
+    CONTROL         "",IDC_M_MUL,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,59,116,99,11
+    LTEXT           "Attack",IDC_STATIC,13,133,21,8
+    CONTROL         "",IDC_M_AR,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,38,132,45,11
+    LTEXT           "Decay",IDC_STATIC,91,133,21,8
+    CONTROL         "",IDC_M_DR,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,113,132,45,11
+    LTEXT           "Sustain",IDC_STATIC,13,149,24,8
+    CONTROL         "",IDC_M_SL,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,38,148,45,11
+    LTEXT           "Release",IDC_STATIC,86,149,25,8
+    CONTROL         "",IDC_M_RR,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,113,148,45,11
+    GROUPBOX        "Carrier settings",IDC_STATIC,170,56,156,109
+    CONTROL         "Tremolo",IDC_C_AM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,177,68,41,10
+    CONTROL         "Vibrato",IDC_C_VIB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,228,68,34,10
+    CONTROL         "Sustained",IDC_C_EG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,276,68,42,10
+    CONTROL         "Key rate scaling",IDC_C_KSR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,177,84,62,10
+    CONTROL         "Wave rectification",IDC_C_DM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,249,84,69,10
+    LTEXT           "Key scale level",IDC_STATIC,177,100,48,8
+    CONTROL         "",IDC_C_KSL,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,229,100,93,11
+    LTEXT           "Multiplier (1/2)",IDC_STATIC,177,117,47,8
+    CONTROL         "",IDC_C_MUL,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,223,116,99,11
+    LTEXT           "Attack",IDC_STATIC,177,133,21,8
+    CONTROL         "",IDC_C_AR,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,202,132,45,11
+    LTEXT           "Decay",IDC_STATIC,255,133,21,8
+    CONTROL         "",IDC_C_DR,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,277,132,45,11
+    LTEXT           "Sustain",IDC_STATIC,177,149,24,8
+    CONTROL         "",IDC_C_SL,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,202,148,45,11
+    LTEXT           "Release",IDC_STATIC,250,149,25,8
+    CONTROL         "",IDC_C_RR,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,277,148,45,11
+    CTEXT           "Modulator\nlevel",IDC_STATIC,330,9,36,17
+    CONTROL         "",IDC_TL,"msctls_trackbar32",TBS_VERT | TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,339,27,17,83
+    CTEXT           "Feedback",IDC_STATIC,331,112,36,9
+    CONTROL         "",IDC_FB,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,334,124,28,41
 END
 
 IDD_CREATEWAV DIALOGEX 0, 0, 151, 208
@@ -1913,6 +1924,11 @@ BEGIN
 END
 
 IDD_GROOVE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_INSTRUMENT_VRC7 AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

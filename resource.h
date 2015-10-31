@@ -450,6 +450,7 @@
 #define IDC_CHECK_COMPACT               1233
 #define IDC_CHECK_BOOKMARK_SORT         1233
 #define IDC_CHECK_SWAP_ALL              1233
+#define IDC_CHECK_VRC7_RETRIGGER        1233
 #define IDC_CHECK_BOOKMARK_HIGH1        1234
 #define IDC_NTSC                        1234
 #define IDC_CHECK_BOOKMARK_HIGH2        1235
@@ -480,15 +481,18 @@
 #define IDC_DELTA_SPIN                  1263
 #define IDC_SPIN_NOTE                   1263
 #define IDC_SPIN_BOOKMARK_FRAME         1263
+#define IDC_SPIN_VRC7_INDEX             1263
 #define IDC_SPIN3                       1264
 #define IDC_SPIN_OFFSET                 1264
 #define IDC_SPIN_BOOKMARK_ROW           1264
+#define IDC_SPIN_VRC7_COPY              1264
 #define IDC_DELTA_COUNTER               1265
 #define IDC_SPIN_BOOKMARK_HIGH1         1265
 #define IDC_BUTTON1                     1266
 #define IDC_ABORT                       1266
 #define IDC_BUTTON_STRETCH_EXPAND       1266
 #define IDC_BUTTON_BOOKMARK_ADD         1266
+#define IDC_BUTTON_VRC7_MML             1266
 #define IDC_CONTINUE                    1267
 #define IDC_BUTTON_BOOKMARK_REMOVE      1267
 #define IDC_SLIDER1                     1268
@@ -641,6 +645,11 @@
 #define IDC_COMBO_SWAP_CHIP2            1429
 #define IDC_EDIT_SWAP_CHAN1             1430
 #define IDC_EDIT_SWAP_CHAN2             1431
+#define IDC_CHECK_VRC7_LOOP             1431
+#define IDC_CHECK_VRC7_RELEASE          1432
+#define IDC_STATIC_VRC7_INDEX           1433
+#define IDC_SPIN_VRC7_LENGTH            1434
+#define IDC_SPIN_VRC7_RELEASE           1435
 #define ID_TRACKER_PLAY                 32771
 #define ID_TRACKER_PLAYPATTERN          32775
 #define ID_TRACKER_STOP                 32776
@@ -831,9 +840,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        334
+#define _APS_NEXT_RESOURCE_VALUE        335
 #define _APS_NEXT_COMMAND_VALUE         33178
-#define _APS_NEXT_CONTROL_VALUE         1431
+#define _APS_NEXT_CONTROL_VALUE         1436
 #define _APS_NEXT_SYMED_VALUE           179
 #endif
 #endif
