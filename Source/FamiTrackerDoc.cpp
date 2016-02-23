@@ -45,8 +45,11 @@
 #include "stdafx.h"
 #include <algorithm>
 #include <vector>		// // //
+#include <string>		// // //
+#include <unordered_map>		// // //
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
+#include "ModuleException.h"		// // //
 #include "TrackerChannel.h"
 #include "MainFrm.h"
 #include "DocumentFile.h"
@@ -318,9 +321,14 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	// Load file
 	if (!OpenDocument(lpszPathName)) {
 		// Loading failed, create empty document
-		//CreateEmpty();
-		// and tell doctemplate that loading failed
 		m_csDocumentLock.Unlock();
+		/*
+		DeleteContents();
+		CreateEmpty();
+		for (int i = UPDATE_TRACK; i <= UPDATE_COLUMNS; ++i)		// // // test
+			UpdateAllViews(NULL, i);
+		*/
+		// and tell doctemplate that loading failed
 		return FALSE;
 	}
 
@@ -653,6 +661,15 @@ void CFamiTrackerDoc::ConvertSequences()
 	m_vSequences.RemoveAll();
 }
 
+void CFamiTrackerDoc::AssertFileData(bool Cond, std::string Msg) const
+{
+	if (!Cond) {
+		CModuleException e = m_pCurrentDocument ? m_pCurrentDocument->GetException() : CModuleException();
+		e.add_string(Msg);
+		e.raise();
+	}
+}
+
 /*** File format description ***
 
 0000: "FamiTracker Module"					id string
@@ -683,6 +700,7 @@ void CFamiTrackerDoc::ConvertSequences()
 BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 {
 	CDocumentFile DocumentFile;
+	m_pCurrentDocument = &DocumentFile;		// // //
 	CFileException ex;
 	TCHAR TempPath[MAX_PATH], TempFile[MAX_PATH];
 	ULONGLONG FileSize;
@@ -698,6 +716,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 		ex.GetErrorMessage(szCause, 255);
 		AfxFormatString1(strFormatted, IDS_SAVE_FILE_ERROR, szCause);
 		AfxMessageBox(strFormatted, MB_OK | MB_ICONERROR);
+		m_pCurrentDocument = nullptr;		// // //
 		return FALSE;
 	}
 
@@ -711,6 +730,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 		CString	ErrorMsg;
 		ErrorMsg.LoadString(IDS_SAVE_ERROR);
 		AfxMessageBox(ErrorMsg, MB_OK | MB_ICONERROR);
+		m_pCurrentDocument = nullptr;		// // //
 		return FALSE;
 	}
 
@@ -719,6 +739,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 	FileSize = DocumentFile.GetLength();
 
 	DocumentFile.Close();
+	m_pCurrentDocument = nullptr;		// // //
 
 	// Save old creation date
 	HANDLE hOldFile;
@@ -761,39 +782,28 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 
 bool CFamiTrackerDoc::WriteBlocks(CDocumentFile *pDocFile) const
 {
-	if (!WriteBlock_Parameters(pDocFile))
-		return false;
-	if (!WriteBlock_SongInfo(pDocFile))
-		return false;
-	if (!WriteBlock_Header(pDocFile))
-		return false;
-	if (!WriteBlock_Instruments(pDocFile))
-		return false;
-	if (!WriteBlock_Sequences(pDocFile))
-		return false;
-	if (!WriteBlock_Frames(pDocFile))
-		return false;
-	if (!WriteBlock_Patterns(pDocFile))
-		return false;
-	if (!WriteBlock_DSamples(pDocFile))
-		return false;
-	if (!WriteBlock_Comments(pDocFile))
-		return false;
+	static bool (CFamiTrackerDoc::*FTM_WRITE_FUNC[])(CDocumentFile*) const = {		// // //
+		&CFamiTrackerDoc::WriteBlock_Parameters,
+		&CFamiTrackerDoc::WriteBlock_SongInfo,
+		&CFamiTrackerDoc::WriteBlock_Header,
+		&CFamiTrackerDoc::WriteBlock_Instruments,
+		&CFamiTrackerDoc::WriteBlock_Sequences,
+		&CFamiTrackerDoc::WriteBlock_Frames,
+		&CFamiTrackerDoc::WriteBlock_Patterns,
+		&CFamiTrackerDoc::WriteBlock_DSamples,
+		&CFamiTrackerDoc::WriteBlock_Comments,
+		&CFamiTrackerDoc::WriteBlock_SequencesVRC6,		// // //
+		&CFamiTrackerDoc::WriteBlock_SequencesN163,
+		&CFamiTrackerDoc::WriteBlock_SequencesS5B,
+		&CFamiTrackerDoc::WriteBlock_DetuneTables,		// // //
+		&CFamiTrackerDoc::WriteBlock_Grooves,			// // //
+		&CFamiTrackerDoc::WriteBlock_Bookmarks,			// // //
+	};
 
-	if (!WriteBlock_SequencesVRC6(pDocFile))		// // //
-		return false;
-	if (!WriteBlock_SequencesN163(pDocFile))
-		return false;
-	if (!WriteBlock_SequencesS5B(pDocFile))
-		return false;
-	
-	if (!WriteBlock_DetuneTables(pDocFile))		// // //
-		return false;
-	if (!WriteBlock_Grooves(pDocFile))		// // //
-		return false;
-	if (!WriteBlock_Bookmarks(pDocFile))		// // //
-		return false;
-
+	for (size_t i = 0; i < sizeof(FTM_WRITE_FUNC) / sizeof(*FTM_WRITE_FUNC); ++i) {
+		if (!CALL_MEMBER_FN(this, FTM_WRITE_FUNC[i])(pDocFile))
+			return false;
+	}
 	return true;
 }
 
@@ -1296,8 +1306,6 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 {
 	CFileException ex;
 	CDocumentFile  OpenFile;
-	unsigned int   iVersion;
-//	bool		   bForceBackup = false;
 
 	m_bBackupDone = false;
 	m_bFileLoadFailed = true;
@@ -1320,49 +1328,44 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 		CreateEmpty();
 		return TRUE;
 	}
+	
+	m_pCurrentDocument = &OpenFile;		// // // closure
+	try {		// // //
+		// Read header ID and version
+		OpenFile.ValidateFile();
 
-	// Read header ID and version
-	if (!OpenFile.ValidateFile()) {
-		AfxMessageBox(IDS_FILE_VALID_ERROR, MB_ICONERROR);
+		m_iFileVersion = OpenFile.GetFileVersion();
+
+		if (m_iFileVersion < 0x0200U) {
+			if (!OpenDocumentOld(&OpenFile))
+				OpenFile.RaiseModuleException("General error");
+
+			// Create a backup of this file, since it's an old version 
+			// and something might go wrong when converting
+			m_bForceBackup = true;
+
+			// Auto-select old style vibrato for old files
+			m_iVibratoStyle = VIBRATO_OLD;
+			m_bLinearPitch = false;
+		}
+		else {
+			if (!OpenDocumentNew(OpenFile))
+				OpenFile.RaiseModuleException("General error");
+
+			// Backup if files was of an older version
+			m_bForceBackup = m_iFileVersion < CDocumentFile::FILE_VER;
+		}
+	}
+	catch (CModuleException &e) {
+		AfxMessageBox(e.get_error().c_str(), MB_ICONERROR);
+		m_pCurrentDocument = nullptr;		// // //
 		return FALSE;
 	}
 
-	iVersion = OpenFile.GetFileVersion();
-
-	if (iVersion < 0x0200) {
-		// Older file version
-		if (iVersion < CDocumentFile::COMPATIBLE_VER) {
-			AfxMessageBox(IDS_FILE_VERSION_ERROR, MB_ICONERROR);
-			return FALSE;
-		}
-
-		if (!OpenDocumentOld(&OpenFile))
-			return FALSE;
-
-		// Create a backup of this file, since it's an old version 
-		// and something might go wrong when converting
-		//bForceBackup = true;
-		m_bForceBackup = true;
-
-		// Auto-select old style vibrato for old files
-		m_iVibratoStyle = VIBRATO_OLD;
-		m_bLinearPitch = false;
-	}
-	else if (iVersion >= 0x0200) {
-		// New file version
-
-		// Try to open file, create new if it fails
-		if (!OpenDocumentNew(OpenFile))
-			return FALSE;
-
-		// Backup if files was of an older version
-		//bForceBackup = m_iFileVersion < CDocumentFile::FILE_VER;
-		m_bForceBackup = m_iFileVersion < CDocumentFile::FILE_VER;
-	}
+	m_pCurrentDocument = nullptr;		// // //
 
 #ifdef WIP
 	// Force backups if compiled as beta
-//	bForceBackup = true;
 //	m_bForceBackup = true;
 #endif
 
@@ -1558,6 +1561,24 @@ BOOL CFamiTrackerDoc::OpenDocumentOld(CFile *pOpenFile)
  */
 BOOL CFamiTrackerDoc::OpenDocumentNew(CDocumentFile &DocumentFile)
 {
+	static std::unordered_map<std::string, bool (CFamiTrackerDoc::*)(CDocumentFile*)> FTM_READ_FUNC;
+	FTM_READ_FUNC[FILE_BLOCK_PARAMS]			= &CFamiTrackerDoc::ReadBlock_Parameters;
+	FTM_READ_FUNC[FILE_BLOCK_INFO]				= &CFamiTrackerDoc::ReadBlock_SongInfo;
+	FTM_READ_FUNC[FILE_BLOCK_INSTRUMENTS]		= &CFamiTrackerDoc::ReadBlock_Instruments;
+	FTM_READ_FUNC[FILE_BLOCK_SEQUENCES]			= &CFamiTrackerDoc::ReadBlock_Sequences;
+	FTM_READ_FUNC[FILE_BLOCK_FRAMES]			= &CFamiTrackerDoc::ReadBlock_Frames;
+	FTM_READ_FUNC[FILE_BLOCK_PATTERNS]			= &CFamiTrackerDoc::ReadBlock_Patterns;
+	FTM_READ_FUNC[FILE_BLOCK_DSAMPLES]			= &CFamiTrackerDoc::ReadBlock_DSamples;
+	FTM_READ_FUNC[FILE_BLOCK_HEADER]			= &CFamiTrackerDoc::ReadBlock_Header;
+	FTM_READ_FUNC[FILE_BLOCK_COMMENTS]			= &CFamiTrackerDoc::ReadBlock_Comments;
+	FTM_READ_FUNC[FILE_BLOCK_SEQUENCES_VRC6]	= &CFamiTrackerDoc::ReadBlock_SequencesVRC6;
+	FTM_READ_FUNC[FILE_BLOCK_SEQUENCES_N163]	= &CFamiTrackerDoc::ReadBlock_SequencesN163;
+	FTM_READ_FUNC[FILE_BLOCK_SEQUENCES_N106]	= &CFamiTrackerDoc::ReadBlock_SequencesN163;	// Backward compatibility
+	FTM_READ_FUNC[FILE_BLOCK_SEQUENCES_S5B]		= &CFamiTrackerDoc::ReadBlock_SequencesS5B;		// // //
+	FTM_READ_FUNC[FILE_BLOCK_DETUNETABLES]		= &CFamiTrackerDoc::ReadBlock_DetuneTables;		// // //
+	FTM_READ_FUNC[FILE_BLOCK_GROOVES]			= &CFamiTrackerDoc::ReadBlock_Grooves;			// // //
+	FTM_READ_FUNC[FILE_BLOCK_BOOKMARKS]			= &CFamiTrackerDoc::ReadBlock_Bookmarks;		// // //
+	
 	const char *BlockID;
 	bool FileFinished = false;
 	bool ErrorFlag = false;
@@ -1573,20 +1594,6 @@ BOOL CFamiTrackerDoc::OpenDocumentNew(CDocumentFile &DocumentFile)
 	// File version checking
 	m_iFileVersion = DocumentFile.GetFileVersion();
 
-	// From version 2.0, all files should be compatible (though individual blocks may not)
-	if (m_iFileVersion < 0x0200) {
-		AfxMessageBox(IDS_FILE_VERSION_ERROR, MB_ICONERROR);
-		DocumentFile.Close();
-		return FALSE;
-	}
-
-	// File version is too new
-	if (m_iFileVersion > CDocumentFile::FILE_VER) {
-		AfxMessageBox(IDS_FILE_VERSION_TOO_NEW, MB_ICONERROR);
-		DocumentFile.Close();
-		return FALSE;
-	}
-
 	// Delete loaded document
 	DeleteContents();
 
@@ -1600,66 +1607,23 @@ BOOL CFamiTrackerDoc::OpenDocumentNew(CDocumentFile &DocumentFile)
 		ErrorFlag = DocumentFile.ReadBlock();
 		BlockID = DocumentFile.GetBlockHeaderID();
 
-		if (!strcmp(BlockID, FILE_BLOCK_PARAMS)) {
-			ErrorFlag = ReadBlock_Parameters(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_INFO)) {
-			DocumentFile.GetBlock(m_strName, 32);
-			DocumentFile.GetBlock(m_strArtist, 32);
-			DocumentFile.GetBlock(m_strCopyright, 32);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_INSTRUMENTS)) {
-			ErrorFlag = ReadBlock_Instruments(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_SEQUENCES)) {
-			ErrorFlag = ReadBlock_Sequences(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_FRAMES)) {
-			ErrorFlag = ReadBlock_Frames(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_PATTERNS)) {
-			ErrorFlag = ReadBlock_Patterns(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_DSAMPLES)) {
-			ErrorFlag = ReadBlock_DSamples(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_HEADER)) {
-			ErrorFlag = ReadBlock_Header(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_COMMENTS)) {
-			ErrorFlag = ReadBlock_Comments(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_SEQUENCES_VRC6)) {
-			ErrorFlag = ReadBlock_SequencesVRC6(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_SEQUENCES_N163) || 
-				 !strcmp(BlockID, FILE_BLOCK_SEQUENCES_N106)) {	// Backward compatibility
-			ErrorFlag = ReadBlock_SequencesN163(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_SEQUENCES_S5B)) {		// // //
-			ErrorFlag = ReadBlock_SequencesS5B(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_DETUNETABLES)) {		// // //
-			ErrorFlag = ReadBlock_DetuneTables(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_GROOVES)) {		// // //
-			ErrorFlag = ReadBlock_Grooves(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, FILE_BLOCK_BOOKMARKS)) {		// // //
-			ErrorFlag = ReadBlock_Bookmarks(&DocumentFile);
-		}
-		else if (!strcmp(BlockID, "END")) {
+		if (!strcmp(BlockID, "END")) {
 			FileFinished = true;
 		}
 		else {
+			try {
+				auto fn = FTM_READ_FUNC.at(BlockID);
+				ErrorFlag = CALL_MEMBER_FN(this, fn)(&DocumentFile);
+			}
+			catch (std::out_of_range) {
 			// This shouldn't show up in release (debug only)
 #ifdef _DEBUG
-			_msgs_++;
-			if (_msgs_ < 5)
-				AfxMessageBox(_T("Unknown file block!"));
+				if (++_msgs_ < 5)
+					AfxMessageBox(_T("Unknown file block!"));
 #endif
-			if (DocumentFile.IsFileIncomplete())
-				ErrorFlag = true;
+				if (DocumentFile.IsFileIncomplete())
+					ErrorFlag = true;
+			}
 		}
 	}
 
@@ -1767,6 +1731,15 @@ bool CFamiTrackerDoc::ReadBlock_Parameters(CDocumentFile *pDocFile)
 	}
 
 	SetupChannels(m_iExpansionChip);
+
+	return false;
+}
+
+bool CFamiTrackerDoc::ReadBlock_SongInfo(CDocumentFile *pDocFile)		// // //
+{
+	pDocFile->GetBlock(m_strName, 32);
+	pDocFile->GetBlock(m_strArtist, 32);
+	pDocFile->GetBlock(m_strCopyright, 32);
 
 	return false;
 }
@@ -2302,9 +2275,7 @@ bool CFamiTrackerDoc::ReadBlock_Patterns(CDocumentFile *pDocFile)
 			if (m_iFileVersion == 0x0200)
 				Row = pDocFile->GetBlockChar();
 			else
-				Row = pDocFile->GetBlockInt();
-
-			ASSERT_FILE_DATA(Row < MAX_PATTERN_LENGTH);
+				Row = AssertRange(pDocFile->GetBlockInt(), 0, 0x100, "Row index");		// // //
 
 			stChanNote *Note = pTrack->GetPatternData(Channel, Pattern, Row);
 			*Note = BLANK_NOTE;		// // //
