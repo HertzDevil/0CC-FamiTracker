@@ -24,6 +24,7 @@
 
 #include "stdafx.h"
 #include <cmath>
+#include <algorithm>
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
 #include "ChannelHandlerInterface.h"

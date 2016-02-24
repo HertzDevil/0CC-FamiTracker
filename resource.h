@@ -189,6 +189,7 @@
 #define IDD_FRAMEBAR                    251
 #define IDD_FRAMECONTROLS               251
 #define IDB_TOOLBAR_256                 257
+#define IDB_TOOLBAR_32BIT               258
 #define IDR_INSTRUMENT_POPUP            262
 #define IDD_SAMPLE_EDITOR               263
 #define IDD_INSTRUMENT_FDS_ENVELOPE     264
@@ -237,6 +238,7 @@
 #define IDD_SWAP                        331
 #define IDD_RECORD_SETTINGS             334
 #define IDD_TRANSPOSE                   337
+#define IDB_BITMAP1                     345
 #define IDC_INSTRUMENTS                 1001
 #define IDC_INSTSETTINGS                1002
 #define IDC_IMPORT_DETUNE               1002
@@ -460,6 +462,8 @@
 #define IDC_CHECK_BOOKMARK_HIGH1        1234
 #define IDC_NTSC                        1234
 #define IDC_CHECK_TRSP_ALL              1234
+#define IDC_BUTTON_TRSP_REVERSE         1234
+#define IDC_BUTTON_TRSP_CLEAR           1234
 #define IDC_CHECK_BOOKMARK_HIGH2        1235
 #define IDC_DUAL                        1236
 #define IDC_VOL_2A03                    1236
@@ -847,9 +851,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        339
+#define _APS_NEXT_RESOURCE_VALUE        346
 #define _APS_NEXT_COMMAND_VALUE         33184
 #define _APS_NEXT_CONTROL_VALUE         1437
-#define _APS_NEXT_SYMED_VALUE           179
+#define _APS_NEXT_SYMED_VALUE           181
 #endif
 #endif

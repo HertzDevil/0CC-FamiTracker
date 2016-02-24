@@ -26,6 +26,7 @@
 // Synchronization objects
 #include <afxmt.h>
 #include <vector>
+#include <memory>
 
 // Get access to some APU constants
 #include "APU/Types.h"

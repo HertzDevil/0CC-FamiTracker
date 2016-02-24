@@ -47,6 +47,7 @@ private:
 // Command line export function
 void CCommandLineExport::CommandLineExport(const CString& fileIn, const CString& fileOut, const CString& fileLog,  const CString& fileDPCM)
 {
+	USES_CONVERSION;
 	// open log
 	bool bLog = false;
 	CStdioFile fLog;

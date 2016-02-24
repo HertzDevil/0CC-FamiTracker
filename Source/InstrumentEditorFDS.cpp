@@ -23,6 +23,7 @@
 #include <string>
 #include <sstream>
 #include <cmath>
+#include <algorithm>
 #include "stdafx.h"
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"

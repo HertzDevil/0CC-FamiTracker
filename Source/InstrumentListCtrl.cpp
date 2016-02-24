@@ -18,6 +18,7 @@
 ** must bear this legend.
 */
 
+//#include <atlbase.h>
 #include "stdafx.h"
 #include "resource.h"
 #include "FamiTrackerDoc.h"
@@ -57,6 +58,7 @@ CInstrumentList::CInstrumentList(CMainFrame *pMainFrame) :
 
 int CInstrumentList::GetInstrumentIndex(int Selection) const
 {
+	USES_CONVERSION;
 	// Get the instrument number from an item in the list (Selection = list index)
 	if (Selection == -1)
 		return -1;
@@ -72,6 +74,7 @@ int CInstrumentList::GetInstrumentIndex(int Selection) const
 
 int CInstrumentList::FindInstrument(int Index) const
 {
+	USES_CONVERSION;
 	// Find the instrument item from the list (Index = instrument number)
 	CString Txt;
 	Txt.Format(_T("%02X"), Index);
@@ -115,6 +118,7 @@ void CInstrumentList::SelectPreviousItem()
 
 void CInstrumentList::InsertInstrument(int Index)
 {
+	USES_CONVERSION;
 	// Inserts an instrument in the list (Index = instrument number)
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 

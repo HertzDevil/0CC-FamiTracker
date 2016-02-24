@@ -44,6 +44,8 @@ IDB_TOOLBAR_INST_256    BITMAP                  "res\\InstrumentToolbar-256.bmp"
 
 IDB_ABOUT               BITMAP                  "res\\About.bmp"
 
+IDB_TOOLBAR_32BIT       BITMAP                  "res\\MainToolbar-32bit.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1839,12 +1841,14 @@ IDI_RIGHT               ICON                    "res\\RightArrow.ico"
 
 ID_MANIFEST             RT_MANIFEST             "res\\FamiTracker.manifest"
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // HTML
 //
 
 IDR_EXPORT_TEST_REPORT  HTML                    "res\\export_report.htm"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2292,7 +2296,7 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_INSTRUMENT_REMOVE    "Remove instrument from module\nRemove Iinstrument"
+    ID_INSTRUMENT_REMOVE    "Remove instrument from module\nRemove Instrument"
     ID_INSTRUMENT_EDIT      "Open instrument edtor\nEdit Instrument"
     ID_INSTRUMENT_CLONE     "Create a copy of selected instrument\nClone Instrument"
     ID_FRAME_COPY           "Copy the selection and put it on the Clipboard\nCopy"
