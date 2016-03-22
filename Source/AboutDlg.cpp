@@ -28,6 +28,7 @@
 // CAboutDlg dialog used for App About
 
 LPCTSTR LINK_WEB  = _T("http://hertzdevil.info/programs/");
+LPCTSTR LINK_BUG  = _T("http://hertzdevil.info/bug/main_page.php");		// // //
 LPCTSTR LINK_MAIL = _T("mailto:nicetas.c@gmail.com");
 
 // CLinkLabel
@@ -119,12 +120,13 @@ END_MESSAGE_MAP()
 
 CAboutDlg::CAboutDlg() : 
 	CDialog(CAboutDlg::IDD), 
-	m_pMail(NULL), 
-	m_pWeb(NULL), 
-	m_pLinkFont(NULL), 
-	m_pBoldFont(NULL),
-	m_pTitleFont(NULL),
-	m_pHead(NULL)
+	m_pMail(nullptr), 
+	m_pWeb(nullptr), 
+	m_pBug(nullptr),
+	m_pLinkFont(nullptr), 
+	m_pBoldFont(nullptr),
+	m_pTitleFont(nullptr),
+	m_pHead(nullptr)
 {
 }
 
@@ -132,6 +134,8 @@ CAboutDlg::~CAboutDlg()
 {
 	SAFE_RELEASE(m_pMail);
 	SAFE_RELEASE(m_pWeb);
+	SAFE_RELEASE(m_pHead);
+	SAFE_RELEASE(m_pBug);
 	SAFE_RELEASE(m_pLinkFont);
 	SAFE_RELEASE(m_pBoldFont);
 	SAFE_RELEASE(m_pTitleFont);
@@ -156,6 +160,7 @@ BOOL CAboutDlg::OnInitDialog()
 
 	SetDlgItemText(IDC_ABOUT1, aboutString);
 	SetDlgItemText(IDC_ABOUT_CONTRIB,
+		_T("- Original software by jsr\r\n")
 		_T("- Export plugin support by Gradualore\r\n")
 		_T("- Icon is made by Kuhneghetz\r\n")
 		_T("- Toolbar icons are made by ilkke\r\n")
@@ -168,34 +173,37 @@ BOOL CAboutDlg::OnInitDialog()
 		_T("- YM2413 && YM2149 emulators are written by Mitsutaka Okazaki\r\n")
 		_T("- FDS sound emulator from nezplug (including a fix by rainwarrior)"));
 
-	m_pMail = new CLinkLabel(LINK_MAIL);
-	m_pWeb = new CLinkLabel(LINK_WEB);
-
-	m_pMail->SubclassDlgItem(IDC_MAIL, this);
-	m_pWeb->SubclassDlgItem(IDC_WEBPAGE, this);
-
 	m_pHead = new CHead();
 	m_pHead->SubclassDlgItem(IDC_HEAD, this);
-
-	LOGFONT LogFont;
-	CFont *pFont;
 	
 	EnableToolTips(TRUE);
 
 	m_wndToolTip.Create(this, TTS_ALWAYSTIP);
 	m_wndToolTip.Activate(TRUE);
 
-	m_wndToolTip.AddTool(m_pMail, IDS_ABOUT_TOOLTIP_MAIL);
-	m_wndToolTip.AddTool(m_pWeb, IDS_ABOUT_TOOLTIP_WEB);
+	m_pMail = new CLinkLabel(LINK_MAIL);
+	m_pMail->SubclassDlgItem(IDC_MAIL, this);
 
+	LOGFONT LogFont;
+	CFont *pFont;
 	pFont = m_pMail->GetFont();
 	pFont->GetLogFont(&LogFont);
 	LogFont.lfUnderline = 1;
 	m_pLinkFont = new CFont();
 	m_pLinkFont->CreateFontIndirect(&LogFont);
-	m_pMail->SetFont(m_pLinkFont);
-	m_pWeb->SetFont(m_pLinkFont);
 
+	m_pMail->SetFont(m_pLinkFont);
+	m_wndToolTip.AddTool(m_pMail, IDS_ABOUT_TOOLTIP_MAIL);
+	
+	m_pWeb = new CLinkLabel(LINK_WEB);
+	m_pWeb->SubclassDlgItem(IDC_WEBPAGE, this);
+	m_pWeb->SetFont(m_pLinkFont);
+	m_wndToolTip.AddTool(m_pWeb, IDS_ABOUT_TOOLTIP_WEB);
+
+	m_pBug = new CLinkLabel(LINK_BUG);		// // //
+	m_pBug->SubclassDlgItem(IDC_BUG, this);
+	m_pBug->SetFont(m_pLinkFont);
+	m_wndToolTip.AddTool(m_pBug, IDS_ABOUT_TOOLTIP_BUG);
 	
 	CStatic *pStatic = static_cast<CStatic*>(GetDlgItem(IDC_ABOUT1));
 	CFont *pOldFont = pStatic->GetFont();

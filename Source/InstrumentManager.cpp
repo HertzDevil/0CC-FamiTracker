@@ -26,7 +26,8 @@
 #include <afxmt.h>
 #include "Instrument.h"
 #include "InstrumentManager.h"
-//#include "SequenceManager.h"
+#include "SequenceCollection.h"
+#include "SequenceManager.h"
 
 const int CInstrumentManager::MAX_INSTRUMENTS = 64;
 const int CInstrumentManager::SEQ_MANAGER_COUNT = 5;
@@ -34,6 +35,9 @@ const int CInstrumentManager::SEQ_MANAGER_COUNT = 5;
 CInstrumentManager::CInstrumentManager()
 {
 	m_pInstruments.resize(MAX_INSTRUMENTS);
+
+	for (int i = 0; i < SEQ_MANAGER_COUNT; i++)
+		m_pSequenceManager.push_back(std::unique_ptr<CSequenceManager>(new CSequenceManager(i == 2 ? 3 : SEQ_COUNT)));
 }
 
 CInstrumentManager::~CInstrumentManager()
@@ -54,25 +58,12 @@ std::shared_ptr<CInstrument> CInstrumentManager::GetInstrument(unsigned int Inde
 
 std::shared_ptr<CInstrument> CInstrumentManager::CreateNew(inst_type_t InstType)
 {
-	switch (InstType) {
-	case INST_2A03: return std::make_shared<CInstrument2A03>(CInstrument2A03());
-	case INST_VRC6: return std::make_shared<CInstrumentVRC6>(CInstrumentVRC6());
-	case INST_VRC7: return std::make_shared<CInstrumentVRC7>(CInstrumentVRC7());
-	case INST_N163: return std::make_shared<CInstrumentN163>(CInstrumentN163());
-	case INST_FDS:  return std::make_shared<CInstrumentFDS>(CInstrumentFDS());
-	case INST_S5B:  return std::make_shared<CInstrumentS5B>(CInstrumentS5B());
-	}
-	return nullptr;
+	return std::shared_ptr<CInstrument>(CInstrument::CreateNew(InstType));
 }
 
 bool CInstrumentManager::InsertInstrument(unsigned int Index, CInstrument *pInst)
 {
-	bool Changed = false;
-	m_InstrumentLock.Lock();
-	if (m_pInstruments[Index].get() != pInst) Changed = true;
-	m_pInstruments[Index].reset(pInst);
-	m_InstrumentLock.Unlock();
-	return Changed;
+	return InsertInstrument(Index, std::shared_ptr<CInstrument>(pInst));
 }
 
 bool CInstrumentManager::InsertInstrument(unsigned int Index, std::shared_ptr<CInstrument> pInst)
@@ -81,6 +72,7 @@ bool CInstrumentManager::InsertInstrument(unsigned int Index, std::shared_ptr<CI
 	m_InstrumentLock.Lock();
 	if (m_pInstruments[Index] != pInst) Changed = true;
 	m_pInstruments[Index] = pInst;
+	pInst->RegisterManager(static_cast<CInstrumentManagerInterface*>(this));
 	m_InstrumentLock.Unlock();
 	return true;
 }
@@ -89,7 +81,10 @@ bool CInstrumentManager::RemoveInstrument(unsigned int Index)
 {
 	bool Changed = false;
 	m_InstrumentLock.Lock();
-	if (m_pInstruments[Index]) Changed = true;
+	if (m_pInstruments[Index]) {
+		Changed = true;
+		m_pInstruments[Index]->RegisterManager(nullptr);
+	}
 	m_pInstruments[Index].reset();
 	m_InstrumentLock.Unlock();
 	return Changed;
@@ -98,8 +93,13 @@ bool CInstrumentManager::RemoveInstrument(unsigned int Index)
 void CInstrumentManager::ClearAll()
 {
 	const auto End = m_pInstruments.end();
-	for (auto it = m_pInstruments.begin(); it < End; ++it)
+	for (auto it = m_pInstruments.begin(); it < End; ++it) {
+		if (*it != nullptr)
+			(*it)->RegisterManager(nullptr);
 		it->reset();
+	}
+	for (int i = 0; i < SEQ_MANAGER_COUNT; i++)
+		m_pSequenceManager[i].reset(new CSequenceManager(i == 2 ? 3 : SEQ_COUNT));
 }
 
 bool CInstrumentManager::IsInstrumentUsed(unsigned int Index) const
@@ -152,5 +152,23 @@ CSequenceManager *const CInstrumentManager::GetSequenceManager(int InstType) con
 	case INST_S5B:  Index = 4; break;
 	default: return nullptr;
 	}
-	return m_pSequenceManager[Index];
+	return m_pSequenceManager[Index].get();
+}
+
+//
+// from interface
+//
+
+CSequence *CInstrumentManager::GetSequence(int InstType, int SeqType, int Index) const
+{
+	auto pManager = GetSequenceManager(InstType);
+	if (!pManager) return nullptr;
+	auto pCol = pManager->GetCollection(SeqType);
+	if (!pCol) return nullptr;
+	return pCol->GetSequence(Index);
+}
+
+CDSample *CInstrumentManager::GetDSample(int Index) const
+{
+	return nullptr;
 }

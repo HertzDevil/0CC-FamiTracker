@@ -20,16 +20,19 @@
 ** must bear this legend.
 */
 
+#include <cstdarg>
 #include "ModuleException.h"
 
-CModuleException::CModuleException(std::string Footer) :
+const int CModuleException::MAX_ERROR_STRLEN = 128;
+
+CModuleException::CModuleException() :
 	std::exception(),
 	m_strError(),
-	m_strFooter(std::make_shared<std::string>(std::move(Footer)))
+	m_strFooter()
 {
 }
 
-const std::string CModuleException::get_error() const
+const std::string CModuleException::GetErrorString() const
 {
 	std::string out;
 	const int COUNT = m_strError.size();
@@ -38,14 +41,25 @@ const std::string CModuleException::get_error() const
 		if (++i == COUNT) break;
 		out += '\n';
 	}
-	if (!m_strFooter->empty()) {
+	if (m_strFooter) {
 		out += '\n';
 		out += *m_strFooter;
 	}
 	return out;
 }
 
-void CModuleException::add_string(std::string line)
+void CModuleException::AppendError(std::string fmt, ...)
 {
-	m_strError.push_back(std::make_shared<std::string>(std::move(line)));
+	va_list argp;
+	va_start(argp, fmt);
+	char *buf = new char[MAX_ERROR_STRLEN]();
+	vsprintf_s(buf, MAX_ERROR_STRLEN, fmt.c_str(), argp);
+	va_end(argp);
+	m_strError.push_back(std::unique_ptr<std::string>(new std::string(buf)));
+	delete[] buf;
+}
+
+void CModuleException::SetFooter(std::string footer)
+{
+	m_strFooter.reset(new std::string(footer));
 }

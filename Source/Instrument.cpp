@@ -20,8 +20,10 @@
 ** must bear this legend.
 */
 
+#include <memory>
 #include "stdafx.h"
 #include "FamiTrackerDoc.h"
+#include "InstrumentManagerInterface.h"		// // //
 #include "Instrument.h"
 #include "DocumentFile.h"
 #include "Compiler.h"
@@ -32,9 +34,22 @@
  *
  */
 
-CInstrument::CInstrument(inst_type_t type) : m_iType(type)		// // //
+CInstrument::CInstrument(inst_type_t type) : m_iType(type), m_pInstManager(nullptr)		// // //
 {
 	memset(m_cName, 0, INST_NAME_MAX);
+}
+
+CInstrument *CInstrument::CreateNew(inst_type_t Type)		// // //
+{
+	switch (Type) {
+	case INST_2A03: return new CInstrument2A03();
+	case INST_VRC6: return new CInstrumentVRC6();
+	case INST_VRC7: return new CInstrumentVRC7();
+	case INST_N163: return new CInstrumentN163();
+	case INST_FDS:  return new CInstrumentFDS();
+	case INST_S5B:  return new CInstrumentS5B();
+	}
+	return nullptr;
 }
 
 CInstrument::~CInstrument()
@@ -43,18 +58,23 @@ CInstrument::~CInstrument()
 
 void CInstrument::SetName(const char *Name)
 {
-	strncpy(m_cName, Name, INST_NAME_MAX);
+	strncpy_s(m_cName, Name, INST_NAME_MAX);
 	InstrumentChanged();		// // //
 }
 
 void CInstrument::GetName(char *Name) const
 {
-	strncpy(Name, m_cName, INST_NAME_MAX);
+	strncpy_s(Name, INST_NAME_MAX, m_cName, INST_NAME_MAX);
 }
 
 const char *CInstrument::GetName() const
 {
 	return m_cName;
+}
+
+void CInstrument::RegisterManager(CInstrumentManagerInterface *pManager)		// // //
+{
+	m_pInstManager = pManager;
 }
 
 inst_type_t CInstrument::GetType() const		// // //
@@ -66,9 +86,9 @@ void CInstrument::InstrumentChanged() const
 {
 	// Set modified flag
 	CFrameWnd *pFrameWnd = dynamic_cast<CFrameWnd*>(AfxGetMainWnd());
-	if (pFrameWnd != NULL) {
+	if (pFrameWnd != nullptr) {
 		CFamiTrackerDoc *pDoc = (CFamiTrackerDoc*)pFrameWnd->GetActiveDocument();		// // //
-		if (pDoc != NULL)
+		if (pDoc != nullptr)
 			pDoc->SetModifiedFlag();
 			pDoc->SetExceededFlag();		// // //
 	}
@@ -115,7 +135,7 @@ CSeqInstrument::CSeqInstrument(inst_type_t type) : CInstrument(type)
 
 CInstrument *CSeqInstrument::Clone() const
 {
-	CSeqInstrument *inst = static_cast<CSeqInstrument*>(CreateNew());		// // //
+	CSeqInstrument *inst = static_cast<CSeqInstrument*>(CInstrument::CreateNew(m_iType));		// // //
 
 	for (int i = 0; i < SEQ_COUNT; i++) {
 		inst->SetSeqEnable(i, GetSeqEnable(i));
@@ -244,19 +264,20 @@ int CSeqInstrument::Compile(CFamiTrackerDoc *pDoc, CChunk *pChunk, int Index)
 {
 	int StoredBytes = 0;
 
-	const char *label = NULL;		// // //
+	const char *label = nullptr;		// // //
 	switch (GetType()) {
 	case INST_2A03: pChunk->StoreByte(0);  label = CCompiler::LABEL_SEQ_2A03; break;
 	case INST_VRC6: pChunk->StoreByte(4);  label = CCompiler::LABEL_SEQ_VRC6; break;
 	case INST_N163: pChunk->StoreByte(9);  label = CCompiler::LABEL_SEQ_N163; break;
 	case INST_S5B:  pChunk->StoreByte(10); label = CCompiler::LABEL_SEQ_S5B;  break;
 	}
-	ASSERT(label != NULL);
+	ASSERT(label != nullptr);
 
 	int ModSwitch = 0;
 	for (unsigned i = 0; i < SEQ_COUNT; ++i) {
-		const CSequence *pSequence = pDoc->GetSequence(m_iType, unsigned(GetSeqIndex(i)), i);
-		ModSwitch = ModSwitch | (GetSeqEnable(i) && pSequence != NULL && pSequence->GetItemCount() > 0 ? (1 << i) : 0);
+		const CSequence *pSequence = GetSequence(i);
+		if (GetSeqEnable(i) && pSequence != nullptr && pSequence->GetItemCount() > 0)
+			ModSwitch |= 1 << i;
 	}
 	pChunk->StoreByte(ModSwitch);
 	StoredBytes += 2;
@@ -293,10 +314,14 @@ void CSeqInstrument::SetSeqEnable(int Index, int Value)
 	m_iSeqEnable[Index] = Value;
 }
 
+CSequence *CSeqInstrument::GetSequence(int SeqType) const		// // //
+{
+	return m_pInstManager->GetSequence(m_iType, SeqType, m_iSeqIndex[SeqType]);
+}
+
 bool CSeqInstrument::CanRelease() const
 {
-	return GetSeqEnable(SEQ_VOLUME) != 0
-		&& CFamiTrackerDoc::GetDoc()->GetSequence(m_iType, GetSeqIndex(SEQ_VOLUME), SEQ_VOLUME)->GetReleasePoint() != -1;
+	return GetSeqEnable(SEQ_VOLUME) != 0 && GetSequence(SEQ_VOLUME)->GetReleasePoint() != -1;
 }
 
 void CSeqInstrument::SetSeqIndex(int Index, int Value)
