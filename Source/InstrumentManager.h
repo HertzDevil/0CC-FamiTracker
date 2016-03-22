@@ -22,7 +22,10 @@
 
 #pragma once
 
+#include "InstrumentManagerInterface.h"
+
 class CInstrument;
+class CDSample;
 class CSequenceManager;
 
 enum inst_type_t;
@@ -32,17 +35,18 @@ enum inst_type_t;
 	\details This class implements common facilities for manipulating a fixed-length array of
 	instrument objects. 
 */
-class CInstrumentManager
+class CInstrumentManager : CInstrumentManagerInterface
 {
 public:
 	CInstrumentManager();
 	~CInstrumentManager();
 
+	void ClearAll();
+
 	std::shared_ptr<CInstrument> GetInstrument(unsigned int Index) const;
 	bool InsertInstrument(unsigned int Index, CInstrument *pInst);
 	bool InsertInstrument(unsigned int Index, std::shared_ptr<CInstrument> pInst);
 	bool RemoveInstrument(unsigned int Index);
-	void ClearAll();
 	
 	bool IsInstrumentUsed(unsigned int Index) const;
 	unsigned int GetInstrumentCount() const;
@@ -55,14 +59,19 @@ public:
 
 	CSequenceManager *const GetSequenceManager(int InstType) const;
 
+	// from interface
+	CSequence *GetSequence(int InstType, int SeqType, int Index) const;
+	CDSample *GetDSample(int Index) const;
+
 public:
 	static std::shared_ptr<CInstrument> CreateNew(inst_type_t InstType);
 	static const int MAX_INSTRUMENTS;
 
 private:
 	std::vector<std::shared_ptr<CInstrument>> m_pInstruments;
+	std::vector<std::unique_ptr<CSequenceManager>> m_pSequenceManager;
+
 	mutable CCriticalSection m_InstrumentLock;
-	CSequenceManager **m_pSequenceManager;
 
 private:
 	static const int SEQ_MANAGER_COUNT;

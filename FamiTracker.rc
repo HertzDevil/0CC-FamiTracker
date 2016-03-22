@@ -537,7 +537,7 @@ BEGIN
         VERTGUIDE, 84
         VERTGUIDE, 221
         TOPMARGIN, 12
-        BOTTOMMARGIN, 307
+        BOTTOMMARGIN, 329
         HORZGUIDE, 49
     END
 
@@ -936,7 +936,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 210
         TOPMARGIN, 7
-        BOTTOMMARGIN, 199
+        BOTTOMMARGIN, 219
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -947,30 +947,31 @@ END
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 285, 312
+IDD_ABOUTBOX DIALOGEX 0, 0, 285, 334
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About FamiTracker"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    LTEXT           "Copyright (C) 2005 - 2015 jsr, 2014 - 2015 HertzDevil",IDC_ABOUT3,54,92,215,11
-    DEFPUSHBUTTON   "OK",IDOK,228,64,50,16,WS_GROUP
-    LTEXT           "E-mail:",IDC_STATIC,54,108,24,10
-    LTEXT           "This software is licensed under the GNU General Public\n License. Source is available on the webpage.",IDC_STATIC,54,167,224,17
-    ICON            IDR_MAINFRAME,IDC_STATIC,7,63,20,20,SS_REALSIZEIMAGE
-    LTEXT           "Contributions:",IDC_STATIC,54,191,224,9
-    LTEXT           "All comments and feedback are welcome\nGreets to everyone who has helped spread information about this mod or contributed with bug reports and suggestions!",IDC_STATIC,54,137,224,26
-    LTEXT           "nicetas.c@gmail.com",IDC_MAIL,84,108,70,10,SS_NOTIFY
-    LTEXT           "http://hertzdevil.info/programs/",IDC_WEBPAGE,84,121,154,9,SS_NOTIFY
-    LTEXT           "Web:",IDC_STATIC,54,121,24,9
-    LTEXT           "Libraries:",IDC_STATIC,54,248,224,8
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,54,259,215,1
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,54,201,211,1
-    LTEXT           "A Famicom/NES music tracker",IDC_ABOUT2,54,76,167,11,SS_NOPREFIX
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,0,49,287,1
-    LTEXT           "0CC-FamiTracker",IDC_ABOUT1,54,58,167,11,SS_NOPREFIX
     CONTROL         "",IDC_HEAD,"Static",SS_OWNERDRAW,0,0,287,49
-    EDITTEXT        IDC_ABOUT_CONTRIB,54,204,225,45,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
-    EDITTEXT        IDC_ABOUT_LIB,54,261,225,45,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,0,49,287,1
+    ICON            IDR_MAINFRAME,IDC_STATIC,7,63,20,20,SS_REALSIZEIMAGE
+    LTEXT           "0CC-FamiTracker",IDC_ABOUT1,54,58,167,11,SS_NOPREFIX
+    LTEXT           "A Famicom/NES music tracker",IDC_ABOUT2,54,76,167,11,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2005 - 2015 jsr, 2014 - 2016 HertzDevil",IDC_ABOUT3,54,92,215,11
+    LTEXT           "E-mail:",IDC_STATIC,54,107,24,10
+    LTEXT           "nicetas.c@gmail.com",IDC_MAIL,84,107,70,10,SS_NOTIFY
+    LTEXT           "Web:",IDC_STATIC,54,117,24,9
+    LTEXT           "http://hertzdevil.info/programs/",IDC_WEBPAGE,84,117,154,9,SS_NOTIFY
+    LTEXT           "http://hertzdevil.info/bug/main_page.php",IDC_BUG,84,127,154,9,SS_NOTIFY
+    LTEXT           "All comments and feedback are welcome\nGreets to everyone who has helped spread information about this mod or contributed with bug reports and suggestions!",IDC_STATIC,54,142,224,26
+    LTEXT           "This software is licensed under the GNU General Public License.\nSource is available on Github.",IDC_STATIC,54,173,224,17
+    LTEXT           "Contributions:",IDC_STATIC,54,196,224,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,54,207,215,1
+    EDITTEXT        IDC_ABOUT_CONTRIB,54,210,225,51,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
+    LTEXT           "Libraries:",IDC_STATIC,54,266,224,8
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,54,277,215,1
+    EDITTEXT        IDC_ABOUT_LIB,54,279,225,45,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,228,64,50,16,WS_GROUP
 END
 
 IDD_MAINFRAME DIALOGEX 0, 0, 518, 126
@@ -1782,12 +1783,12 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,111,85,50,14
 END
 
-IDD_TRANSPOSE DIALOGEX 0, 0, 217, 206
+IDD_TRANSPOSE DIALOGEX 0, 0, 217, 226
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Transpose"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX        "Transpose",IDC_STATIC,7,7,203,172
+    GROUPBOX        "Transpose",IDC_STATIC,7,7,203,193
     LTEXT           "Semitones:",IDC_STATIC,16,20,36,8
     EDITTEXT        IDC_EDIT_TRSP_SEMITONE,56,18,40,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "",IDC_SPIN_TRSP_SEMITONE,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,85,18,11,14
@@ -1795,10 +1796,12 @@ BEGIN
     CONTROL         "Lower",IDC_RADIO_SEMITONE_DEC,"Button",BS_AUTORADIOBUTTON,138,20,32,10
     CONTROL         "Remap DPCM notes",IDC_CHECK_TRSP_DPCM,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,103,36,79,10
     LTEXT           "Exclude these instruments:",IDC_STATIC,15,52,88,8
-    LTEXT           "Warning: Resets undo history!",IDC_STATIC,15,164,99,8
-    DEFPUSHBUTTON   "OK",IDOK,106,185,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,160,185,50,14
+    LTEXT           "Warning: Resets undo history!",IDC_STATIC,15,185,99,8
+    DEFPUSHBUTTON   "OK",IDOK,106,205,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,160,205,50,14
     CONTROL         "Transpose all tracks",IDC_CHECK_TRSP_ALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,36,79,10
+    PUSHBUTTON      "Reverse",IDC_BUTTON_TRSP_REVERSE,47,166,50,14
+    PUSHBUTTON      "Clear All",IDC_BUTTON_TRSP_CLEAR,120,166,50,14
 END
 
 
@@ -1839,12 +1842,14 @@ IDI_RIGHT               ICON                    "res\\RightArrow.ico"
 
 ID_MANIFEST             RT_MANIFEST             "res\\FamiTracker.manifest"
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // HTML
 //
 
 IDR_EXPORT_TEST_REPORT  HTML                    "res\\export_report.htm"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2011,6 +2016,11 @@ BEGIN
     0
 END
 
+IDD_ABOUTBOX AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2019,7 +2029,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDR_MAINFRAME           "FamiTracker\n\nFamiTracker\nFamiTracker files (*.ftm)\n.ftm\nFamiTracker.Module\nFamiTracker.Module"
+    IDR_MAINFRAME           "0CC-FamiTracker\n\n0CC-FamiTracker\n0CC-FamiTracker modules (*.0cc;*.ftm)\n.0cc\n0CCFamiTracker.Document\n0CCFamiTracker.Document"
     IDS_FRAME_DROP_MOVE     "Drop selection to move frames"
     IDS_DPCM_IMPORT_QUALITY_FORMAT "Quality: %1"
     IDS_CLIPBOARD_ERROR     "Could not register clipboard format"
@@ -2056,6 +2066,7 @@ BEGIN
     IDS_IMPORT_SEQUENCE_COUNT 
                             "Could not import all sequences, out of sequence slots!"
     ID_FIND_NEXT            "Find the next result of the search query\nFind Next"
+    IDS_ABOUT_TOOLTIP_BUG   "Report bugs at http://hertzdevil.info/bug/main_page.php"
 END
 
 STRINGTABLE

@@ -34,30 +34,34 @@
 class CModuleException : std::exception
 {
 public:
-	/*! \brief Constructor of the exception object with a footer message.
-		\param Footer The error footer message. Defaults to the empty string.
-	*/
-	CModuleException(std::string Footer = "");
+	/*! \brief Constructor of the exception object with an empty message. */
+	CModuleException();
 
 	/*! \brief Raises the exception object.
 		\details All derived classes must override this method with the exact same function body in order
 		to throw polymorphically.
 		\warning Visual C++ 2010 does not support the `[[noreturn]]` attribute.
 	*/
-	__declspec(noreturn) virtual void raise() { throw *this; }; // microsoft
+	__declspec(noreturn) virtual void Raise() { throw this; }; // microsoft
 
 	/*!	\brief Obtains the error description.
 		\details The description consists of zero or more lines followed by the footer specified in the
-		constructor.
+		constructor. This exception object does not use std::exception::what.
 		\return The error string.
 	*/
-	const std::string get_error() const;
-	/*!	\brief Appends an error string to the exception.
-		\param line A string representing one line of the error description.
+	const std::string GetErrorString() const;
+	/*!	\brief Appends a formatted error string to the exception.
+		\param fmt The format specifier.
+		\param ... Extra arguments for the formatted string.
 	*/
-	void add_string(std::string line);
+	void AppendError(std::string fmt, ...);
+	/*!	\brief Sets the footer string of the error message.
+		\param footer The new footer string.
+	*/
+	void SetFooter(std::string footer);
 
 private:
-	std::vector<std::shared_ptr<std::string>> m_strError;
-	std::shared_ptr<std::string> m_strFooter;
+	std::vector<std::unique_ptr<std::string>> m_strError;
+	std::unique_ptr<std::string> m_strFooter;
+	static const int MAX_ERROR_STRLEN;
 };

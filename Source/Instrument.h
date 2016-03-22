@@ -40,6 +40,7 @@ class CCompiler;
 class CDocumentFile;
 class CSequence;
 class CFamiTrackerDoc;
+class CInstrumentManagerInterface;		// // // break cyclic dependencies
 
 class CChunk;
 
@@ -58,13 +59,14 @@ public:
 class CInstrument {
 public:
 	CInstrument(inst_type_t type);		// // //
+	static CInstrument *CreateNew(inst_type_t Type);		// // // static factory method
 	virtual ~CInstrument();
 	void SetName(const char *Name);
 	void GetName(char *Name) const;
 	const char* GetName() const;
+	void RegisterManager(CInstrumentManagerInterface *pManager);		// // //
 public:
 	virtual inst_type_t GetType() const;											// // // Returns instrument type
-	virtual CInstrument* CreateNew() const = 0;										// Creates a new object
 	virtual CInstrument* Clone() const = 0;											// Creates a copy
 	virtual void Setup() = 0;														// Setup some initial values
 	virtual void Store(CDocumentFile *pDocFile) = 0;								// Saves the instrument to the module
@@ -80,13 +82,13 @@ public:
 protected:
 	char m_cName[INST_NAME_MAX];
 	inst_type_t m_iType;		// // //
+	CInstrumentManagerInterface *m_pInstManager;		// // //
 };
 
 class CSeqInstrument : public CInstrument, public CSeqInstrumentInterface		// // //
 {
 public:
 	CSeqInstrument(inst_type_t type);
-	virtual CInstrument* CreateNew() const { return new CSeqInstrument(m_iType); };
 	virtual CInstrument* Clone() const;
 	virtual void	Setup();
 	virtual void	Store(CDocumentFile *pDocFile);
@@ -101,6 +103,8 @@ public:
 	virtual void	SetSeqIndex(int Index, int Value);
 	virtual void	SetSeqEnable(int Index, int Value);
 
+	virtual CSequence *GetSequence(int SeqType) const;		// // //
+
 	// static const int SEQUENCE_TYPES[] = {SEQ_VOLUME, SEQ_ARPEGGIO, SEQ_PITCH, SEQ_HIPITCH, SEQ_DUTYCYCLE};
 
 protected:
@@ -112,7 +116,6 @@ protected:
 class CInstrument2A03 : public CSeqInstrument, public CInstrument2A03Interface {
 public:
 	CInstrument2A03();
-	CInstrument* CreateNew() const { return new CInstrument2A03(); };
 	CInstrument* Clone() const;
 	void	Store(CDocumentFile *pFile);
 	bool	Load(CDocumentFile *pDocFile);
@@ -148,13 +151,11 @@ private:
 class CInstrumentVRC6 : public CSeqInstrument {
 public:
 	CInstrumentVRC6() : CSeqInstrument(INST_VRC6) {};
-	CInstrument* CreateNew() const { return new CInstrumentVRC6(); };
 };
 
 class CInstrumentVRC7 : public CInstrument {
 public:
 	CInstrumentVRC7();
-	CInstrument* CreateNew() const { return new CInstrumentVRC7(); };
 	CInstrument* Clone() const;
 	void	Setup();
 	void	Store(CDocumentFile *pDocFile);
@@ -175,11 +176,9 @@ private:
 	unsigned char m_iRegs[8];		// // // Custom patch settings
 };
 
-class CInstrumentFDS : public CInstrument {
+class CInstrumentFDS : public CSeqInstrument {
 public:
 	CInstrumentFDS();
-	~CInstrumentFDS();
-	CInstrument* CreateNew() const { return new CInstrumentFDS(); };
 	CInstrument* Clone() const;
 	void	Setup();
 	void	Store(CDocumentFile *pDocFile);
@@ -202,9 +201,6 @@ public:
 	void	SetModulationDelay(int Delay);
 	bool	GetModulationEnable() const;
 	void	SetModulationEnable(bool Enable);
-	CSequence* GetVolumeSeq() const;
-	CSequence* GetArpSeq() const;
-	CSequence* GetPitchSeq() const;
 
 private:
 	void StoreSequence(CDocumentFile *pDocFile, CSequence *pSeq);
@@ -215,25 +211,28 @@ private:
 public:
 	static const int WAVE_SIZE = 64;
 	static const int MOD_SIZE = 32;
+	static const int SEQUENCE_COUNT = 3;		// // //
 
 private:
 	// Instrument data
+	std::unique_ptr<CSequence[]> m_pSequence;
 	unsigned char m_iSamples[64];
 	unsigned char m_iModulation[32];
 	int			  m_iModulationSpeed;
 	int			  m_iModulationDepth;
 	int			  m_iModulationDelay;
 	bool		  m_bModulationEnable;
-
-	CSequence*	  m_pVolume;
-	CSequence*	  m_pArpeggio;
-	CSequence*	  m_pPitch;
+	
+public: // // // porting CSeqInstrument
+	virtual int		GetSeqEnable(int Index) const;
+	virtual int		GetSeqIndex(int Index) const;
+	virtual void	SetSeqIndex(int Index, int Value);
+	CSequence		*GetSequence(int SeqType) const;		// // //
 };
 
 class CInstrumentN163 : public CSeqInstrument {
 public:
 	CInstrumentN163();
-	CInstrument* CreateNew() const { return new CInstrumentN163(); };
 	CInstrument* Clone() const;
 	void	Store(CDocumentFile *pDocFile);
 	bool	Load(CDocumentFile *pDocFile);
@@ -276,5 +275,4 @@ private:
 class CInstrumentS5B : public CSeqInstrument {
 public:
 	CInstrumentS5B() : CSeqInstrument(INST_S5B) {};		// // //
-	CInstrument* CreateNew() const { return new CInstrumentS5B(); };
 };

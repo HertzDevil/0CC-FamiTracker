@@ -400,19 +400,24 @@ private:
 	BOOL			OpenDocumentNew(CDocumentFile &DocumentFile);
 
 	bool			WriteBlocks(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_Parameters(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_SongInfo(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_Header(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_Instruments(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_Sequences(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_Frames(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_Patterns(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_DSamples(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_Comments(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_ChannelLayout(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_SequencesVRC6(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_SequencesN163(CDocumentFile *pDocFile) const;
-	bool			WriteBlock_SequencesS5B(CDocumentFile *pDocFile) const;
+
+	bool			WriteBlock_Parameters(CDocumentFile *pDocFile, const int Version) const;		// // // version
+	bool			WriteBlock_SongInfo(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_Header(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_Instruments(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_Sequences(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_Frames(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_Patterns(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_DSamples(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_Comments(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_ChannelLayout(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_SequencesVRC6(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_SequencesN163(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_SequencesS5B(CDocumentFile *pDocFile, const int Version) const;
+	// // //
+	bool			WriteBlock_DetuneTables(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_Grooves(CDocumentFile *pDocFile, const int Version) const;
+	bool			WriteBlock_Bookmarks(CDocumentFile *pDocFile, const int Version) const;
 
 	bool			ReadBlock_Parameters(CDocumentFile *pDocFile);
 	bool			ReadBlock_SongInfo(CDocumentFile *pDocFile);		// // //
@@ -427,14 +432,11 @@ private:
 	bool			ReadBlock_SequencesVRC6(CDocumentFile *pDocFile);
 	bool			ReadBlock_SequencesN163(CDocumentFile *pDocFile);
 	bool			ReadBlock_SequencesS5B(CDocumentFile *pDocFile);
-
 	// // //
-	bool			WriteBlock_DetuneTables(CDocumentFile *pDocFile) const;
 	bool			ReadBlock_DetuneTables(CDocumentFile *pDocFile);
-	bool			WriteBlock_Grooves(CDocumentFile *pDocFile) const;
 	bool			ReadBlock_Grooves(CDocumentFile *pDocFile);
-	bool			WriteBlock_Bookmarks(CDocumentFile *pDocFile) const;
 	bool			ReadBlock_Bookmarks(CDocumentFile *pDocFile);
+
 	// For file version compability
 	void			ReorderSequences();
 	void			ConvertSequences();
@@ -445,37 +447,42 @@ private:
 		\param Msg The error message.
 	*/
 	void			AssertFileData(bool Cond, std::string Msg) const;		// // //
-	/*!	\brief Validates a numerical value so that it lies within the interval [Min, Max).
+	/*!	\brief Validates a numerical value so that it lies within the interval [Min, Max].
 		\details This method may throw a CModuleException object and automatically supply a suitable
 		error message based on the value description. This method handles signed and unsigned types
 		properly.
 		\param Value The value to check against.
 		\param Min The minimum value permitted, inclusive.
-		\param Max The maximum value permitted, exclusive.
+		\param Max The maximum value permitted, inclusive.
 		\param Desc A description of the checked value.
 		\return The value argument, if the method returns.
 	*/
-	template <typename T> typename std::enable_if<!std::is_unsigned<T>::value, T>::type
-	AssertRange(T Value, T Min, T Max, std::string Desc) const
+	template <typename T, typename U, typename V>
+	typename std::enable_if<std::is_unsigned<T>::value, T>::type
+	AssertRange(T Value, U Min, V Max, std::string Desc) const
 	{
-		if (!(Value >= Min && Value < Max)) {
+		return AssertRangeFmt(Value, Min, Max, Desc, "%u");
+	}
+
+	template <typename T, typename U, typename V>
+	typename std::enable_if<std::is_signed<T>::value, T>::type
+	AssertRange(T Value, U Min, V Max, std::string Desc) const
+	{
+		return AssertRangeFmt(Value, Min, Max, Desc, "%d");
+	}
+
+	template <typename T, typename U, typename V>
+	T AssertRangeFmt(T Value, U Min, V Max, std::string Desc, const char *fmt) const
+	{
+		if (!(Value >= Min && Value <= Max)) {
+			char Format[128];
+			sprintf_s(Format, sizeof(Format), "%%s out of range: expected [%s,%s], got %s", fmt, fmt, fmt);
 			char Buffer[512];
-			sprintf_s(Buffer, sizeof(Buffer), "%s out of range: expected [%d,%d), got %d", Desc.c_str(), Min, Max, Value);
+			sprintf_s(Buffer, sizeof(Buffer), Format, Desc.c_str(), Min, Max, Value);
 			AssertFileData(false, std::string(Buffer));
 		}
 		return Value;
 	}
-	template <typename T> typename std::enable_if<std::is_unsigned<T>::value, T>::type
-	AssertRange(T Value, T Min, T Max, std::string Desc) const
-	{
-		if (!(Value >= Min && Value < Max)) {
-			char Buffer[512];
-			sprintf_s(Buffer, sizeof(Buffer), "%s out of range: expected [%u,%u), got %u", Desc.c_str(), Min, Max, Value);
-			AssertFileData(false, std::string(Buffer));
-		}
-		return Value;
-	}
-	
 #ifdef AUTOSAVE
 	void			SetupAutoSave();
 	void			ClearAutoSave();
@@ -549,7 +556,6 @@ private:
 	// Instruments, samples and sequences
 	CDSample		m_DSamples[MAX_DSAMPLES];					// The DPCM sample list
 	CInstrumentManager *m_pInstrumentManager;					// // //
-	CSequenceManager **m_pSequenceManager;						// // //
 	CGroove			*m_pGrooveTable[MAX_GROOVE];				// // // Grooves
 
 	// Module properties
@@ -573,8 +579,6 @@ private:
 
 	// Row highlight (TODO remove)
 	stHighlight		m_vHighlight;								// // //
-
-	static const int SEQ_MANAGER_COUNT;
 
 	// Things below are for compability with older files
 	CArray<stSequence> m_vTmpSequences;

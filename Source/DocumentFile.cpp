@@ -190,6 +190,8 @@ void CDocumentFile::ValidateFile()
 	// Check ident string
 	Read(Buffer, int(strlen(FILE_HEADER_ID)));
 
+	CModuleException *e = new CModuleException();		// // // blank
+
 	if (memcmp(Buffer, FILE_HEADER_ID, strlen(FILE_HEADER_ID)) != 0)
 		RaiseModuleException("File is not a FamiTracker module");
 
@@ -199,19 +201,18 @@ void CDocumentFile::ValidateFile()
 	
 	// // // Older file version
 	if (GetFileVersion() < COMPATIBLE_VER) {
-		char Buffer[128];
-		sprintf_s(Buffer, sizeof(Buffer), "FamiTracker module version too old (0x%X), expected 0x%X or above", GetFileVersion(), COMPATIBLE_VER);
-		RaiseModuleException(Buffer);
+		e->AppendError("FamiTracker module version too old (0x%X), expected 0x%X or above", GetFileVersion(), COMPATIBLE_VER);
+		e->Raise();
 	}
 	// // // File version is too new
 	if (GetFileVersion() > FILE_VER) {
-		char Buffer[128];
-		sprintf_s(Buffer, sizeof(Buffer), "FamiTracker module version too new (0x%X), expected 0x%X or below", GetFileVersion(), FILE_VER);
-		RaiseModuleException(Buffer);
+		e->AppendError("FamiTracker module version too new (0x%X), expected 0x%X or below", GetFileVersion(), FILE_VER);
+		e->Raise();
 	}
 
 	m_bFileDone = false;
 	m_bIncomplete = false;
+	delete e;
 }
 
 unsigned int CDocumentFile::GetFileVersion() const
@@ -356,20 +357,27 @@ bool CDocumentFile::IsFileIncomplete() const
 	return m_bIncomplete;
 }
 
-CModuleException CDocumentFile::GetException() const		// // //
+CModuleException *CDocumentFile::GetException() const		// // //
+{
+	CModuleException *e = new CModuleException();
+	SetDefaultFooter(e);
+	return e;
+}
+
+void CDocumentFile::SetDefaultFooter(CModuleException *e) const		// // //
 {
 	char Buffer[128] = {};
 	sprintf_s(Buffer, sizeof(Buffer), "At address 0x%X in %s block,\naddress 0x%llX in file",
 			  m_iPreviousPointer, m_cBlockID, m_iPreviousPosition);
 	std::string str(Buffer);
-	return CModuleException(str);
+	e->SetFooter(str);
 }
 
 void CDocumentFile::RaiseModuleException(std::string Msg) const		// // //
 {
-	CModuleException e = GetException();
-	e.add_string(Msg);
-	e.raise();
+	CModuleException *e = GetException();
+	e->AppendError(Msg);
+	e->Raise();
 }
 
 UINT CDocumentFile::Read(void *lpBuf, UINT nCount)		// // //

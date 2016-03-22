@@ -20,37 +20,19 @@
 ** must bear this legend.
 */
 
-#include <memory>
-#include "stdafx.h"
-#include "SequenceManager.h"
-#include "SequenceCollection.h"
+#pragma once
 
-CSequenceManager::CSequenceManager(int Count) :
-	m_iCount(Count)
-{
-	m_pCollection = new CSequenceCollection*[Count]();
-}
 
-CSequenceManager::~CSequenceManager()
-{
-	for (int i = 0; i < m_iCount; i++) {
-		if (m_pCollection[i] != nullptr)
-			m_pCollection[i]->RemoveAll();
-		SAFE_RELEASE(m_pCollection[i]);
-	}
-	SAFE_RELEASE_ARRAY(m_pCollection);
-}
+class CSequence;
+class CDSample;
 
-CSequenceCollection *CSequenceManager::GetCollection(int Index)
+/*
+	\brief A getter-only interface which allows instrument resources to be obtained from themselves,
+	allowing uniform access regardless of the mechanism that actually owns these resources.
+*/
+class CInstrumentManagerInterface
 {
-	if (Index >= m_iCount) return nullptr;
-	if (m_pCollection[Index] == nullptr)
-		m_pCollection[Index] = new CSequenceCollection();
-	return m_pCollection[Index];
-}
-
-const CSequenceCollection *CSequenceManager::GetCollection(int Index) const
-{
-	if (Index >= m_iCount) return nullptr;
-	return m_pCollection[Index];
-}
+public:
+	virtual CSequence *GetSequence(int InstType, int SeqType, int Index) const = 0;
+	virtual CDSample *GetDSample(int Index) const = 0;
+};
