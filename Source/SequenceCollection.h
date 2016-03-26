@@ -23,7 +23,6 @@
 #pragma once
 
 class CSequence;
-class CFamiTrackerDocInterface;
 
 /*!
 	\brief A collection of sequence objects.
@@ -34,8 +33,6 @@ class CSequenceCollection
 public:
 	/*! \brief Constructor of the sequence collection. */
 	CSequenceCollection();
-	/*! \brief Destructor of the sequence collection. */
-	~CSequenceCollection();
 	
 	/*! \brief Obtains a modifiable sequence at a given index, creating the object if it
 		does not exist.
@@ -43,6 +40,11 @@ public:
 		\returns A pointer to the sequence object.
 	*/
 	CSequence *GetSequence(unsigned int Index);
+	/*!	\brief Replaces a sequence in the collection.
+		\param Index The index value of the sequence.
+		\param Seq A pointer to the new sequence object.
+	*/
+	void SetSequence(unsigned int Index, CSequence *Seq);
 	/*! \brief Obtains a constant sequence at a given index.
 		\param Index The index value of the sequence.
 		\returns A pointer to the sequence object, or \b nullptr if it does not exist.
@@ -68,6 +70,5 @@ public:
 	static const int MAX_SEQUENCES;
 
 private:
-	/*! \brief A dynamically allocated array of pointers to sequence objects. */
-	CSequence **m_pSequence;
+	std::vector<std::unique_ptr<CSequence>> m_pSequence;
 };

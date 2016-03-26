@@ -20,14 +20,9 @@
 ** must bear this legend.
 */
 
-#include <memory>
 #include "stdafx.h"
-#include "FamiTrackerDoc.h"
 #include "InstrumentManagerInterface.h"		// // //
 #include "Instrument.h"
-#include "DocumentFile.h"
-#include "Compiler.h"
-#include "Chunk.h"
 
 /*
  * Class CInstrument, base class for instruments
@@ -39,21 +34,14 @@ CInstrument::CInstrument(inst_type_t type) : m_iType(type), m_pInstManager(nullp
 	memset(m_cName, 0, INST_NAME_MAX);
 }
 
-CInstrument *CInstrument::CreateNew(inst_type_t Type)		// // //
-{
-	switch (Type) {
-	case INST_2A03: return new CInstrument2A03();
-	case INST_VRC6: return new CInstrumentVRC6();
-	case INST_VRC7: return new CInstrumentVRC7();
-	case INST_N163: return new CInstrumentN163();
-	case INST_FDS:  return new CInstrumentFDS();
-	case INST_S5B:  return new CInstrumentS5B();
-	}
-	return nullptr;
-}
-
 CInstrument::~CInstrument()
 {
+}
+
+void CInstrument::CloneFrom(const CInstrument *pSeq)
+{
+	SetName(pSeq->GetName());
+	m_iType = pSeq->GetType();
 }
 
 void CInstrument::SetName(const char *Name)
@@ -85,13 +73,8 @@ inst_type_t CInstrument::GetType() const		// // //
 void CInstrument::InstrumentChanged() const
 {
 	// Set modified flag
-	CFrameWnd *pFrameWnd = dynamic_cast<CFrameWnd*>(AfxGetMainWnd());
-	if (pFrameWnd != nullptr) {
-		CFamiTrackerDoc *pDoc = (CFamiTrackerDoc*)pFrameWnd->GetActiveDocument();		// // //
-		if (pDoc != nullptr)
-			pDoc->SetModifiedFlag();
-			pDoc->SetExceededFlag();		// // //
-	}
+	if (m_pInstManager)		// // //
+		m_pInstManager->InstrumentChanged();
 }
 
 // File load / store
@@ -118,216 +101,4 @@ unsigned char CInstrumentFile::ReadChar()
 	unsigned char Value;
 	Read(&Value, sizeof(char));
 	return Value;
-}
-
-// // //
-/*
- * Base class for instruments using sequences
- */
-
-CSeqInstrument::CSeqInstrument(inst_type_t type) : CInstrument(type)
-{
-	for (int i = 0; i < SEQ_COUNT; ++i) {
-		m_iSeqEnable[i] = 0;
-		m_iSeqIndex[i] = 0;
-	}
-}
-
-CInstrument *CSeqInstrument::Clone() const
-{
-	CSeqInstrument *inst = static_cast<CSeqInstrument*>(CInstrument::CreateNew(m_iType));		// // //
-
-	for (int i = 0; i < SEQ_COUNT; i++) {
-		inst->SetSeqEnable(i, GetSeqEnable(i));
-		inst->SetSeqIndex(i, GetSeqIndex(i));
-	}
-
-	inst->SetName(GetName());
-
-	return inst;
-}
-
-void CSeqInstrument::Setup()
-{
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	for (int i = 0; i < SEQ_COUNT; ++i) {
-		SetSeqEnable(i, 0);
-		int Index = pDoc->GetFreeSequence(m_iType, i);
-		if (Index != -1)
-			SetSeqIndex(i, Index);
-	}
-}
-
-void CSeqInstrument::Store(CDocumentFile *pDocFile)
-{
-	pDocFile->WriteBlockInt(SEQ_COUNT);
-
-	for (int i = 0; i < SEQ_COUNT; i++) {
-		pDocFile->WriteBlockChar(GetSeqEnable(i));
-		pDocFile->WriteBlockChar(GetSeqIndex(i));
-	}
-}
-
-bool CSeqInstrument::Load(CDocumentFile *pDocFile)
-{
-	int SeqCnt = pDocFile->GetBlockInt();
-	ASSERT_FILE_DATA(SeqCnt < (SEQ_COUNT + 1));
-	SeqCnt = SEQ_COUNT;
-
-	for (int i = 0; i < SeqCnt; i++) {
-		SetSeqEnable(i, pDocFile->GetBlockChar());
-		int Index = pDocFile->GetBlockChar();
-		ASSERT_FILE_DATA(Index < MAX_SEQUENCES);
-		SetSeqIndex(i, Index);
-	}
-
-	return true;
-}
-
-void CSeqInstrument::SaveFile(CInstrumentFile *pFile, const CFamiTrackerDoc *pDoc)
-{
-	pFile->WriteChar(SEQ_COUNT);
-
-	for (int i = 0; i < SEQ_COUNT; ++i) {
-		unsigned Sequence = GetSeqIndex(i);
-		if (GetSeqEnable(i)) {
-			const CSequence *pSeq = pDoc->GetSequence(m_iType, Sequence, i);
-			pFile->WriteChar(1);
-			pFile->WriteInt(pSeq->GetItemCount());
-			pFile->WriteInt(pSeq->GetLoopPoint());
-			pFile->WriteInt(pSeq->GetReleasePoint());
-			pFile->WriteInt(pSeq->GetSetting());
-			for (unsigned j = 0; j < pSeq->GetItemCount(); j++) {
-				pFile->WriteChar(pSeq->GetItem(j));
-			}
-		}
-		else {
-			pFile->WriteChar(0);
-		}
-	}
-}
-
-bool CSeqInstrument::LoadFile(CInstrumentFile *pFile, int iVersion, CFamiTrackerDoc *pDoc)
-{
-	// Sequences
-	stSequence OldSequence;
-
-	unsigned char SeqCount = pFile->ReadChar();
-
-	// Loop through all instrument effects
-	for (unsigned i = 0; i < SeqCount; ++i) {
-		unsigned char Enabled = pFile->ReadChar();
-		if (Enabled == 1) {
-			// Read the sequence
-			int Count = pFile->ReadInt();
-			if (Count < 0 || Count > MAX_SEQUENCE_ITEMS)
-				return false;
-			
-			// Find a free sequence
-			int Index = pDoc->GetFreeSequence(m_iType, i);
-
-			if (Index != -1) {
-				CSequence *pSeq = pDoc->GetSequence(m_iType, static_cast<unsigned>(Index), i);
-
-				if (iVersion < 20) {
-					OldSequence.Count = Count;
-					for (int j = 0; j < Count; ++j) {
-						OldSequence.Length[j] = pFile->ReadChar();
-						OldSequence.Value[j] = pFile->ReadChar();
-					}
-					CFamiTrackerDoc::ConvertSequence(&OldSequence, pSeq, i);	// convert
-				}
-				else {
-					pSeq->SetItemCount(Count);
-					pSeq->SetLoopPoint(pFile->ReadInt());
-					if (iVersion > 20)
-						pSeq->SetReleasePoint(pFile->ReadInt());
-					if (iVersion >= 22)
-						pSeq->SetSetting(static_cast<seq_setting_t>(pFile->ReadInt()));
-					for (int j = 0; j < Count; ++j)
-						pSeq->SetItem(j, pFile->ReadChar());
-				}
-				SetSeqEnable(i, true);
-				SetSeqIndex(i, Index);
-			}
-		}
-		else {
-			SetSeqEnable(i, false);
-			SetSeqIndex(i, 0);
-		}
-	}
-
-	return true;
-}
-
-int CSeqInstrument::Compile(CFamiTrackerDoc *pDoc, CChunk *pChunk, int Index)
-{
-	int StoredBytes = 0;
-
-	const char *label = nullptr;		// // //
-	switch (GetType()) {
-	case INST_2A03: pChunk->StoreByte(0);  label = CCompiler::LABEL_SEQ_2A03; break;
-	case INST_VRC6: pChunk->StoreByte(4);  label = CCompiler::LABEL_SEQ_VRC6; break;
-	case INST_N163: pChunk->StoreByte(9);  label = CCompiler::LABEL_SEQ_N163; break;
-	case INST_S5B:  pChunk->StoreByte(10); label = CCompiler::LABEL_SEQ_S5B;  break;
-	}
-	ASSERT(label != nullptr);
-
-	int ModSwitch = 0;
-	for (unsigned i = 0; i < SEQ_COUNT; ++i) {
-		const CSequence *pSequence = GetSequence(i);
-		if (GetSeqEnable(i) && pSequence != nullptr && pSequence->GetItemCount() > 0)
-			ModSwitch |= 1 << i;
-	}
-	pChunk->StoreByte(ModSwitch);
-	StoredBytes += 2;
-	
-	for (unsigned i = 0; i < SEQ_COUNT; ++i) {
-		if (ModSwitch & (1 << i)) {
-			CStringA str;
-			str.Format(label, GetSeqIndex(i) * SEQ_COUNT + i);
-			pChunk->StoreReference(str);
-			StoredBytes += 2;
-		}
-	}
-	
-	return StoredBytes;
-}
-
-int	CSeqInstrument::GetSeqEnable(int Index) const
-{
-	ASSERT(Index < SEQ_COUNT);
-	return m_iSeqEnable[Index];
-}
-
-int	CSeqInstrument::GetSeqIndex(int Index) const
-{
-	ASSERT(Index < SEQ_COUNT);
-	return m_iSeqIndex[Index];
-}
-
-void CSeqInstrument::SetSeqEnable(int Index, int Value)
-{
-	ASSERT(Index < SEQ_COUNT);
-	if (m_iSeqEnable[Index] != Value)
-		InstrumentChanged();
-	m_iSeqEnable[Index] = Value;
-}
-
-CSequence *CSeqInstrument::GetSequence(int SeqType) const		// // //
-{
-	return m_pInstManager->GetSequence(m_iType, SeqType, m_iSeqIndex[SeqType]);
-}
-
-bool CSeqInstrument::CanRelease() const
-{
-	return GetSeqEnable(SEQ_VOLUME) != 0 && GetSequence(SEQ_VOLUME)->GetReleasePoint() != -1;
-}
-
-void CSeqInstrument::SetSeqIndex(int Index, int Value)
-{
-	ASSERT(Index < SEQ_COUNT);
-	if (m_iSeqIndex[Index] != Value)
-		InstrumentChanged();
-	m_iSeqIndex[Index] = Value;
 }

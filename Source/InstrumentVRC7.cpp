@@ -20,11 +20,10 @@
 ** must bear this legend.
 */
 
-#include <vector>
 #include "stdafx.h"
-#include "FamiTrackerDoc.h"
 #include "Instrument.h"
-#include "Compiler.h"
+#include "InstrumentVRC7.h"		// // //
+#include "ModuleException.h"		// // //
 #include "Chunk.h"
 #include "DocumentFile.h"
 
@@ -42,16 +41,20 @@ CInstrumentVRC7::CInstrumentVRC7() : CInstrument(INST_VRC7), m_iPatch(0)		// // 
 
 CInstrument *CInstrumentVRC7::Clone() const
 {
-	CInstrumentVRC7 *pNew = new CInstrumentVRC7();
+	CInstrumentVRC7 *inst = new CInstrumentVRC7();		// // //
+	inst->CloneFrom(this);
+	return inst;
+}
 
-	pNew->SetPatch(GetPatch());
-
-	for (int i = 0; i < 8; ++i)
-		pNew->SetCustomReg(i, GetCustomReg(i));
-
-	pNew->SetName(GetName());
-
-	return pNew;
+void CInstrumentVRC7::CloneFrom(const CInstrument *pInst)
+{
+	CInstrument::CloneFrom(pInst);
+	
+	if (auto pNew = dynamic_cast<const CInstrumentVRC7*>(pInst)) {
+		SetPatch(pNew->GetPatch());
+		for (int i = 0; i < 8; ++i)
+			SetCustomReg(i, pNew->GetCustomReg(i));
+	}
 }
 
 void CInstrumentVRC7::Setup()
@@ -68,7 +71,7 @@ void CInstrumentVRC7::Store(CDocumentFile *pDocFile)
 
 bool CInstrumentVRC7::Load(CDocumentFile *pDocFile)
 {
-	m_iPatch = pDocFile->GetBlockInt();
+	m_iPatch = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 0, 0xF, "VRC7 patch number", "%i");
 
 	for (int i = 0; i < 8; ++i)
 		SetCustomReg(i, pDocFile->GetBlockChar());
@@ -76,7 +79,7 @@ bool CInstrumentVRC7::Load(CDocumentFile *pDocFile)
 	return true;
 }
 
-void CInstrumentVRC7::SaveFile(CInstrumentFile *pFile, const CFamiTrackerDoc *pDoc)
+void CInstrumentVRC7::SaveFile(CInstrumentFile *pFile)
 {
 	pFile->WriteInt(m_iPatch);
 
@@ -84,7 +87,7 @@ void CInstrumentVRC7::SaveFile(CInstrumentFile *pFile, const CFamiTrackerDoc *pD
 		pFile->WriteChar(GetCustomReg(i));
 }
 
-bool CInstrumentVRC7::LoadFile(CInstrumentFile *pFile, int iVersion, CFamiTrackerDoc *pDoc)
+bool CInstrumentVRC7::LoadFile(CInstrumentFile *pFile, int iVersion)
 {
 	m_iPatch = pFile->ReadInt();
 
@@ -94,7 +97,7 @@ bool CInstrumentVRC7::LoadFile(CInstrumentFile *pFile, int iVersion, CFamiTracke
 	return true;
 }
 
-int CInstrumentVRC7::Compile(CFamiTrackerDoc *pDoc, CChunk *pChunk, int Index)
+int CInstrumentVRC7::Compile(CChunk *pChunk, int Index)
 {
 	int Patch = GetPatch();
 

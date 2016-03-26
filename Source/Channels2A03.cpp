@@ -145,7 +145,7 @@ void CChannelHandler2A03::HandleNote(int Note, int Octave)
 bool CChannelHandler2A03::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
-	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B:
+	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B: case INST_FDS:
 		SAFE_RELEASE(m_pInstHandler);
 		m_pInstHandler = new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0);
 		return true;
@@ -586,11 +586,8 @@ void CDPCMChan::HandleNote(int Note, int Octave)
 	
 		m_iLoopOffset = pInstrument->GetSampleLoopOffset(Octave, Note - 1);
 
-		const CDSample *pDSample = pDocument->GetSample(SampleIndex - 1);
-
-		int SampleSize = pDSample->GetSize();
-
-		if (SampleSize > 0) {
+		if (const CDSample *pDSample = pDocument->GetSample(SampleIndex - 1)) {
+			int SampleSize = pDSample->GetSize();
 			m_pSampleMem->SetMem(pDSample->GetData(), SampleSize);
 			m_iPeriod = Pitch & 0x0F;
 			m_iSampleLength = (SampleSize >> 4) - (m_iOffset << 2);

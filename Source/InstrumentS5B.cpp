@@ -21,3 +21,9 @@
 */
 
 // // // CInstrumentS5B is a subtype of CSeqInstrument.
+#include "stdafx.h" // CFile
+#include "Instrument.h"
+#include "SeqInstrument.h"
+#include "InstrumentS5B.h"
+
+LPCTSTR CInstrumentS5B::SEQUENCE_NAME[] = {_T("Volume"), _T("Arpeggio"), _T("Pitch"), _T("Hi-pitch"), _T("Noise / Mode")};
