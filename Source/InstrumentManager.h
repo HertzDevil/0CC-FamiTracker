@@ -27,6 +27,8 @@
 class CInstrument;
 class CDSample;
 class CSequenceManager;
+class CDSampleManager;
+class CFTMComponentInterface;
 
 enum inst_type_t;
 
@@ -35,11 +37,10 @@ enum inst_type_t;
 	\details This class implements common facilities for manipulating a fixed-length array of
 	instrument objects. 
 */
-class CInstrumentManager : CInstrumentManagerInterface
+class CInstrumentManager : public CInstrumentManagerInterface
 {
 public:
-	CInstrumentManager();
-	~CInstrumentManager();
+	CInstrumentManager(CFTMComponentInterface *pInterface = nullptr);
 
 	void ClearAll();
 
@@ -51,6 +52,7 @@ public:
 	bool IsInstrumentUsed(unsigned int Index) const;
 	unsigned int GetInstrumentCount() const;
 	unsigned int GetFirstUnused() const;
+	int GetFreeSequenceIndex(inst_type_t InstType, int Type, CSeqInstrument *pInst = nullptr) const;
 
 	inst_type_t GetInstrumentType(unsigned int Index) const;
 	
@@ -58,10 +60,16 @@ public:
 	void CloneInstrumentDeep(unsigned int Old, unsigned int New);
 
 	CSequenceManager *const GetSequenceManager(int InstType) const;
+	CDSampleManager *const GetDSampleManager() const;
 
 	// from interface
-	CSequence *GetSequence(int InstType, int SeqType, int Index) const;
-	CDSample *GetDSample(int Index) const;
+	CSequence *GetSequence(int InstType, int SeqType, int Index) const; // TODO: use SetSequence and provide const getter
+	void SetSequence(int InstType, int SeqType, int Index, CSequence *pSeq);
+	int AddSequence(int InstType, int SeqType, CSequence *pSeq, CSeqInstrument *pInst = nullptr);
+	const CDSample *GetDSample(int Index) const;
+	void SetDSample(int Index, CDSample *pSamp);
+	int AddDSample(CDSample *pSamp);
+	void InstrumentChanged() const;
 
 public:
 	static std::shared_ptr<CInstrument> CreateNew(inst_type_t InstType);
@@ -70,8 +78,10 @@ public:
 private:
 	std::vector<std::shared_ptr<CInstrument>> m_pInstruments;
 	std::vector<std::unique_ptr<CSequenceManager>> m_pSequenceManager;
+	std::unique_ptr<CDSampleManager> m_pDSampleManager;
 
 	mutable CCriticalSection m_InstrumentLock;
+	CFTMComponentInterface *m_pDocInterface;
 
 private:
 	static const int SEQ_MANAGER_COUNT;

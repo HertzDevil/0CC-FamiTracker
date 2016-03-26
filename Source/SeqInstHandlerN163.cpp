@@ -20,9 +20,10 @@
 ** must bear this legend.
 */
 
-#include <memory> // TODO: remove
 #include "stdafx.h"
 #include "Instrument.h"
+#include "SeqInstrument.h"
+#include "InstrumentN163.h"
 #include "ChannelHandlerInterface.h"
 #include "InstHandler.h"
 #include "SeqInstHandler.h"

@@ -24,24 +24,26 @@
 #include <vector>
 #include <memory>
 #include <afxmt.h>
+#include "FTMComponentInterface.h"
 #include "Instrument.h"
+#include "SeqInstrument.h"
+#include "InstrumentFactory.h"
 #include "InstrumentManager.h"
+#include "Sequence.h"
 #include "SequenceCollection.h"
 #include "SequenceManager.h"
+#include "DSampleManager.h"
 
 const int CInstrumentManager::MAX_INSTRUMENTS = 64;
 const int CInstrumentManager::SEQ_MANAGER_COUNT = 5;
 
-CInstrumentManager::CInstrumentManager()
+CInstrumentManager::CInstrumentManager(CFTMComponentInterface *pInterface) :
+	m_pDSampleManager(new CDSampleManager()),
+	m_pInstruments(MAX_INSTRUMENTS),
+	m_pDocInterface(pInterface)
 {
-	m_pInstruments.resize(MAX_INSTRUMENTS);
-
 	for (int i = 0; i < SEQ_MANAGER_COUNT; i++)
 		m_pSequenceManager.push_back(std::unique_ptr<CSequenceManager>(new CSequenceManager(i == 2 ? 3 : SEQ_COUNT)));
-}
-
-CInstrumentManager::~CInstrumentManager()
-{
 }
 
 //
@@ -58,7 +60,7 @@ std::shared_ptr<CInstrument> CInstrumentManager::GetInstrument(unsigned int Inde
 
 std::shared_ptr<CInstrument> CInstrumentManager::CreateNew(inst_type_t InstType)
 {
-	return std::shared_ptr<CInstrument>(CInstrument::CreateNew(InstType));
+	return std::shared_ptr<CInstrument>(CInstrumentFactory::CreateNew(InstType));
 }
 
 bool CInstrumentManager::InsertInstrument(unsigned int Index, CInstrument *pInst)
@@ -100,6 +102,7 @@ void CInstrumentManager::ClearAll()
 	}
 	for (int i = 0; i < SEQ_MANAGER_COUNT; i++)
 		m_pSequenceManager[i].reset(new CSequenceManager(i == 2 ? 3 : SEQ_COUNT));
+	m_pDSampleManager.reset(new CDSampleManager());
 }
 
 bool CInstrumentManager::IsInstrumentUsed(unsigned int Index) const
@@ -121,6 +124,23 @@ unsigned int CInstrumentManager::GetFirstUnused() const
 	for (int i = 0; i < MAX_INSTRUMENTS; i++)
 		if (!m_pInstruments[i])
 			return i;
+	return -1;
+}
+
+int CInstrumentManager::GetFreeSequenceIndex(inst_type_t InstType, int Type, CSeqInstrument *pInst) const
+{
+	// moved from CFamiTrackerDoc
+	std::vector<bool> Used(CSequenceCollection::MAX_SEQUENCES, false);
+	for (int i = 0; i < MAX_INSTRUMENTS; i++) if (GetInstrumentType(i) == InstType) {		// // //
+		auto pInstrument = std::static_pointer_cast<CSeqInstrument>(GetInstrument(i));
+		if (pInstrument->GetSeqEnable(Type) && (pInst->GetSequence(Type)->GetItemCount() || pInst != pInstrument.get()))
+			Used[pInstrument->GetSeqIndex(Type)] = true;
+	}
+	for (int i = 0; i < CSequenceCollection::MAX_SEQUENCES; ++i) if (!Used[i]) {
+		const CSequence *pSeq = GetSequence(InstType, Type, i);
+		if (!pSeq || !pSeq->GetItemCount())
+			return i;
+	}
 	return -1;
 }
 
@@ -155,6 +175,11 @@ CSequenceManager *const CInstrumentManager::GetSequenceManager(int InstType) con
 	return m_pSequenceManager[Index].get();
 }
 
+CDSampleManager *const CInstrumentManager::GetDSampleManager() const
+{
+	return m_pDSampleManager.get();
+}
+
 //
 // from interface
 //
@@ -168,7 +193,39 @@ CSequence *CInstrumentManager::GetSequence(int InstType, int SeqType, int Index)
 	return pCol->GetSequence(Index);
 }
 
-CDSample *CInstrumentManager::GetDSample(int Index) const
+void CInstrumentManager::SetSequence(int InstType, int SeqType, int Index, CSequence *pSeq)
 {
-	return nullptr;
+	if (auto pManager = GetSequenceManager(InstType))
+		if (auto pCol = pManager->GetCollection(SeqType))
+			pCol->SetSequence(Index, pSeq);
+}
+
+int CInstrumentManager::AddSequence(int InstType, int SeqType, CSequence *pSeq, CSeqInstrument *pInst)
+{
+	int Index = GetFreeSequenceIndex(static_cast<inst_type_t>(InstType), SeqType, pInst);
+	if (Index != -1) SetSequence(InstType, SeqType, Index, pSeq);
+	return Index;
+}
+
+const CDSample *CInstrumentManager::GetDSample(int Index) const
+{
+	return m_pDSampleManager->GetDSample(Index);
+}
+
+void CInstrumentManager::SetDSample(int Index, CDSample *pSamp)
+{
+	m_pDSampleManager->SetDSample(Index, pSamp);
+}
+
+int CInstrumentManager::AddDSample(CDSample *pSamp)
+{
+	int Index = m_pDSampleManager->GetFirstFree();
+	if (Index != -1) SetDSample(Index, pSamp);
+	return Index;
+}
+
+void CInstrumentManager::InstrumentChanged() const
+{
+	if (m_pDocInterface)
+		m_pDocInterface->ModifyIrreversible();
 }

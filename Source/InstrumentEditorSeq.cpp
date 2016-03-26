@@ -23,7 +23,8 @@
 #include "stdafx.h"
 #include "resource.h"		// // //
 #include "FamiTrackerDoc.h"
-//#include "Instrument.h"
+#include "Instrument.h"
+#include "SeqInstrument.h"		// // //
 #include "InstrumentEditPanel.h"
 #include "SequenceEditor.h"
 #include "InstrumentEditorSeq.h"
@@ -132,7 +133,6 @@ void CInstrumentEditorSeq::OnLvnItemchangedInstsettings(NMHDR *pNMHDR, LRESULT *
 	if (pNMLV->uChanged & LVIF_STATE && m_pInstrument != NULL) {
 		// Selected new setting
 		if (pNMLV->uNewState & LVIS_SELECTED || pNMLV->uNewState & LCTRL_CHECKBOX_STATE) {
-			TRACE("%i %04X %04X\n", pNMLV->iItem, pNMLV->uOldState, pNMLV->uNewState);
 			m_iSelectedSetting = pNMLV->iItem;
 			int Sequence = m_pInstrument->GetSeqIndex(m_iSelectedSetting);
 			SetDlgItemInt(IDC_SEQ_INDEX, Sequence);
@@ -179,7 +179,7 @@ void CInstrumentEditorSeq::OnEnChangeSeqIndex()
 
 void CInstrumentEditorSeq::OnBnClickedFreeSeq()
 {
-	int FreeIndex = GetDocument()->GetFreeSequence(m_iInstType, m_iSelectedSetting);		// // //
+	int FreeIndex = GetDocument()->GetFreeSequence(m_iInstType, m_iSelectedSetting, m_pInstrument.get());		// // //
 	if (FreeIndex == -1)
 		FreeIndex = 0;
 	SetDlgItemInt(IDC_SEQ_INDEX, FreeIndex, FALSE);	// Things will update automatically by changing this

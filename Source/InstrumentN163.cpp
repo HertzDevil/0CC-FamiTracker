@@ -22,49 +22,54 @@
 
 #include <algorithm>
 #include "stdafx.h"
-#include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
+#include "ModuleException.h"		// // //
 #include "DocumentFile.h"
 #include "Instrument.h"
-#include "Compiler.h"
+#include "SeqInstrument.h"		// // //
+#include "InstrumentN163.h"		// // //
 #include "Chunk.h"
+#include "ChunkRenderText.h"		// // //
 
-CInstrumentN163::CInstrumentN163() : CSeqInstrument(INST_N163)		// // //
+// // // Default wave
+static const char TRIANGLE_WAVE[] = {
+	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 
+	15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+};
+static const int DEFAULT_WAVE_SIZE = sizeof(TRIANGLE_WAVE) / sizeof(char);
+
+LPCTSTR CInstrumentN163::SEQUENCE_NAME[] = {_T("Volume"), _T("Arpeggio"), _T("Pitch"), _T("Hi-pitch"), _T("Wave Index")};
+
+CInstrumentN163::CInstrumentN163() : CSeqInstrument(INST_N163),		// // //
+	m_iSamples(),
+	m_iWaveSize(DEFAULT_WAVE_SIZE),
+	m_iWavePos(0),
+	m_iWaveCount(1)
 {
-	// Default wave
-	static const char TRIANGLE_WAVE[] = {
-		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 
-		15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
-	};
-
-	const int DEFAULT_WAVE_SIZE = 32;
-
-	memset(m_iSamples, 0, sizeof(int) * MAX_WAVE_COUNT * MAX_WAVE_SIZE);		// // //
-	for (int j = 0; j < sizeof(TRIANGLE_WAVE) / sizeof(char); ++j) {
+	for (int j = 0; j < DEFAULT_WAVE_SIZE; ++j)
 		m_iSamples[0][j] = TRIANGLE_WAVE[j];
-	}
-
-	m_iWaveSize = DEFAULT_WAVE_SIZE;
-	m_iWavePos = 0;
-	m_iWaveCount = 1;
 }
 
 CInstrument *CInstrumentN163::Clone() const
 {
-	CInstrumentN163 *pNew = static_cast<CInstrumentN163*>(CSeqInstrument::Clone());		// // //
+	CInstrumentN163 *inst = new CInstrumentN163();		// // //
+	inst->CloneFrom(this);
+	return inst;
+}
 
-	pNew->SetWaveSize(GetWaveSize());
-	pNew->SetWavePos(GetWavePos());
-//	pNew->SetAutoWavePos(GetAutoWavePos());
-	pNew->SetWaveCount(GetWaveCount());
+void CInstrumentN163::CloneFrom(const CInstrument *pInst)
+{
+	CSeqInstrument::CloneFrom(pInst);
+	
+	if (auto pNew = dynamic_cast<const CInstrumentN163*>(pInst)) {
+		SetWaveSize(pNew->GetWaveSize());
+		SetWavePos(pNew->GetWavePos());
+	//	SetAutoWavePos(pInst->GetAutoWavePos());
+		SetWaveCount(pNew->GetWaveCount());
 
-	for (int i = 0; i < MAX_WAVE_COUNT; ++i) {
-		for (int j = 0; j < MAX_WAVE_SIZE; ++j) {
-			pNew->SetSample(i, j, GetSample(i, j));
-		}
+		for (int i = 0; i < MAX_WAVE_COUNT; ++i)
+			for (int j = 0; j < MAX_WAVE_SIZE; ++j)
+				SetSample(i, j, pNew->GetSample(i, j));
 	}
-
-	return pNew;
 }
 
 void CInstrumentN163::Store(CDocumentFile *pDocFile)
@@ -89,30 +94,29 @@ bool CInstrumentN163::Load(CDocumentFile *pDocFile)
 {
 	if (!CSeqInstrument::Load(pDocFile)) return false;		// // //
 
-	m_iWaveSize = pDocFile->GetBlockInt();
-	ASSERT_FILE_DATA(m_iWaveSize >= 0 && m_iWaveSize <= MAX_WAVE_SIZE);
-	m_iWavePos = pDocFile->GetBlockInt();
-	ASSERT_FILE_DATA(m_iWavePos >= 0 && m_iWavePos < MAX_WAVE_SIZE);		// // //
+	m_iWaveSize = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 4, MAX_WAVE_SIZE, "N163 wave size", "%i");
+	m_iWavePos = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 0, MAX_WAVE_SIZE - 1, "N163 wave position", "%i");
 //	m_bAutoWavePos = (pDocFile->GetBlockInt() == 0) ? false : true;
 	//pDocFile->GetBlockInt();
-	m_iWaveCount = pDocFile->GetBlockInt();
-	ASSERT_FILE_DATA(m_iWaveCount >= 1 && m_iWaveCount <= MAX_WAVE_COUNT);
+	m_iWaveCount = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 1, MAX_WAVE_COUNT, "N163 wave count", "%i");
 	
 	for (int i = 0; i < m_iWaveCount; ++i) {
-		for (int j = 0; j < m_iWaveSize; ++j) {
-			unsigned char WaveSample = pDocFile->GetBlockChar();
-			ASSERT_FILE_DATA(WaveSample < 16);
-			m_iSamples[i][j] = WaveSample;
+		for (int j = 0; j < m_iWaveSize; ++j) try {
+			m_iSamples[i][j] = CModuleException::AssertRangeFmt(pDocFile->GetBlockChar(), 0, 15, "N163 wave sample", "%i");
+		}
+		catch (CModuleException *e) {
+			e->AppendError("At wave %i, sample %i,", i, j);
+			throw;
 		}
 	}
 	
 	return true;
 }
 
-void CInstrumentN163::SaveFile(CInstrumentFile *pFile, const CFamiTrackerDoc *pDoc)
+void CInstrumentN163::SaveFile(CInstrumentFile *pFile)
 {
 	// Sequences
-	CSeqInstrument::SaveFile(pFile, pDoc);		// // //
+	CSeqInstrument::SaveFile(pFile);		// // //
 
 	// Write wave config
 	int WaveCount = GetWaveCount();
@@ -129,39 +133,35 @@ void CInstrumentN163::SaveFile(CInstrumentFile *pFile, const CFamiTrackerDoc *pD
 	}
 }
 
-bool CInstrumentN163::LoadFile(CInstrumentFile *pFile, int iVersion, CFamiTrackerDoc *pDoc)
+bool CInstrumentN163::LoadFile(CInstrumentFile *pFile, int iVersion)
 {
 	// Sequences
-	if (!CSeqInstrument::LoadFile(pFile, iVersion, pDoc))		// // //
-		return false;
+	CSeqInstrument::LoadFile(pFile, iVersion);		// // //
 
 	// Read wave config
-	int WaveSize = pFile->ReadInt();
-	int WavePos = pFile->ReadInt();
-	int WaveCount = pFile->ReadInt();
+	int WaveSize = CModuleException::AssertRangeFmt(static_cast<int>(pFile->ReadInt()), 4, MAX_WAVE_SIZE, "N163 wave size", "%i");
+	int WavePos = CModuleException::AssertRangeFmt(static_cast<int>(pFile->ReadInt()), 0, MAX_WAVE_SIZE - 1, "N163 wave position", "%i");
+	int WaveCount = CModuleException::AssertRangeFmt(static_cast<int>(pFile->ReadInt()), 1, MAX_WAVE_COUNT, "N163 wave count", "%i");
 	
-	if (WaveSize <= 0 || WaveSize > MAX_WAVE_SIZE)			// // //
-		return false;
-	if (WaveCount <= 0 || WaveCount > MAX_WAVE_COUNT)
-		return false;
-
 	SetWaveSize(WaveSize);
 	SetWavePos(WavePos);
 	SetWaveCount(WaveCount);
 
-	for (int i = 0; i < WaveCount; ++i) {
-		for (int j = 0; j < WaveSize; ++j) {
-			SetSample(i, j, pFile->ReadChar());
+	for (int i = 0; i < WaveCount; ++i)
+		for (int j = 0; j < WaveSize; ++j) try {
+			SetSample(i, j, CModuleException::AssertRangeFmt(pFile->ReadChar(), 0U, 15U, "N163 wave sample", "%u"));
 		}
+	catch (CModuleException *e) {
+		e->AppendError("At wave %i, sample %i,", i, j);
+		throw;
 	}
 
 	return true;
 }
 
-int CInstrumentN163::Compile(CFamiTrackerDoc *pDoc, CChunk *pChunk, int Index)
+int CInstrumentN163::Compile(CChunk *pChunk, int Index)
 {
-	ASSERT(pDoc != NULL);
-	int StoredBytes = CSeqInstrument::Compile(pDoc, pChunk, Index);		// // //;
+	int StoredBytes = CSeqInstrument::Compile(pChunk, Index);		// // //;
 
 	// Store wave info
 	pChunk->StoreByte(m_iWaveSize >> 1);
@@ -170,7 +170,7 @@ int CInstrumentN163::Compile(CFamiTrackerDoc *pDoc, CChunk *pChunk, int Index)
 
 	// Store reference to wave
 	CStringA waveLabel;
-	waveLabel.Format(CCompiler::LABEL_WAVES, Index);
+	waveLabel.Format(CChunkRenderText::LABEL_WAVES, Index);
 	pChunk->StoreReference(waveLabel);
 	StoredBytes += 2;
 	
@@ -253,17 +253,11 @@ void CInstrumentN163::SetWaveSize(int size)
 
 int CInstrumentN163::GetSample(int wave, int pos) const
 {
-	ASSERT(wave < MAX_WAVE_COUNT);
-	ASSERT(pos < MAX_WAVE_SIZE);
-
 	return m_iSamples[wave][pos];
 }
 
 void CInstrumentN163::SetSample(int wave, int pos, int sample)
 {
-	ASSERT(wave < MAX_WAVE_COUNT);
-	ASSERT(pos < MAX_WAVE_SIZE);
-
 	m_iSamples[wave][pos] = sample;
 	InstrumentChanged();
 }

@@ -29,6 +29,7 @@
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
+#include "SeqInstrument.h"
 #include "InstrumentEditPanel.h"
 #include "SequenceEditor.h"
 

@@ -69,13 +69,6 @@ enum cursor_column_t : unsigned int {
 
 const unsigned int COLUMNS = 7;
 
-// Special assert used when loading files
-#ifdef _DEBUG
-	#define ASSERT_FILE_DATA(Statement) ASSERT(Statement)
-#else
-	#define ASSERT_FILE_DATA(Statement) if (!(Statement)) return true
-#endif
-
 // View update modes (TODO check these and remove inappropriate flags)
 enum {
 	UPDATE_NONE = 0,		// No update
@@ -127,9 +120,11 @@ struct stFullState {
 
 // Access data types used by the document class
 #include "PatternData.h"
-#include "Instrument.h"
+#include "InstrumentFactory.h"		// // // TODO: use Instrument.h
 #include "Sequence.h"
+#include "OldSequence.h"		// // //
 #include "Groove.h"		// // //
+#include "Bookmark.h"		// // //
 
 // External classes
 class CTrackerChannel;
@@ -325,7 +320,6 @@ public:
 	void			SetInstrumentName(unsigned int Index, const char *pName);		// Set the name of an instrument
 	void			GetInstrumentName(unsigned int Index, char *pName) const;		// Get the name of an instrument
 	int				CloneInstrument(unsigned int Index);							// Create a copy of an instrument
-	std::shared_ptr<CInstrument>	CreateInstrument(inst_type_t InstType) const;	// Creates a new instrument of InstType
 	inst_type_t		GetInstrumentType(unsigned int Index) const;
 	int				DeepCloneInstrument(unsigned int Index);
 	void			SaveInstrument(unsigned int Index, CString FileName) const;
@@ -336,12 +330,12 @@ public:
 	CSequence*		GetSequence(inst_type_t InstType, unsigned int Index, int Type);
 	CSequence*		GetSequence(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
 	unsigned int	GetSequenceItemCount(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
-	int				GetFreeSequence(inst_type_t InstType, int Type) const;		// // //
+	int				GetFreeSequence(inst_type_t InstType, int Type, CSeqInstrument *pInst = nullptr) const;		// // //
 	int				GetSequenceCount(inst_type_t InstType, int Type) const;		// // //
 
 	// DPCM samples
-	CDSample*		GetSample(unsigned int Index);
-	const CDSample*	GetSample(unsigned int Index) const;
+	const CDSample*	GetSample(unsigned int Index) const;		// // // non-const getter removed
+	void			SetSample(unsigned int Index, CDSample *pSamp);		// // //
 	bool			IsSampleUsed(unsigned int Index) const;
 	unsigned int	GetSampleCount() const;
 	int				GetFreeSampleSlot() const;
@@ -420,27 +414,26 @@ private:
 	bool			WriteBlock_Grooves(CDocumentFile *pDocFile, const int Version) const;
 	bool			WriteBlock_Bookmarks(CDocumentFile *pDocFile, const int Version) const;
 
-	bool			ReadBlock_Parameters(CDocumentFile *pDocFile);
-	bool			ReadBlock_SongInfo(CDocumentFile *pDocFile);		// // //
-	bool			ReadBlock_Header(CDocumentFile *pDocFile);
-	bool			ReadBlock_Instruments(CDocumentFile *pDocFile);
-	bool			ReadBlock_Sequences(CDocumentFile *pDocFile);
-	bool			ReadBlock_Frames(CDocumentFile *pDocFile);
-	bool			ReadBlock_Patterns(CDocumentFile *pDocFile);
-	bool			ReadBlock_DSamples(CDocumentFile *pDocFile);
-	bool			ReadBlock_Comments(CDocumentFile *pDocFile);
-	bool			ReadBlock_ChannelLayout(CDocumentFile *pDocFile);
-	bool			ReadBlock_SequencesVRC6(CDocumentFile *pDocFile);
-	bool			ReadBlock_SequencesN163(CDocumentFile *pDocFile);
-	bool			ReadBlock_SequencesS5B(CDocumentFile *pDocFile);
+	void			ReadBlock_Parameters(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_SongInfo(CDocumentFile *pDocFile, const int Version);		// // //
+	void			ReadBlock_Header(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_Instruments(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_Sequences(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_Frames(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_Patterns(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_DSamples(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_Comments(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_ChannelLayout(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_SequencesVRC6(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_SequencesN163(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_SequencesS5B(CDocumentFile *pDocFile, const int Version);
 	// // //
-	bool			ReadBlock_DetuneTables(CDocumentFile *pDocFile);
-	bool			ReadBlock_Grooves(CDocumentFile *pDocFile);
-	bool			ReadBlock_Bookmarks(CDocumentFile *pDocFile);
+	void			ReadBlock_DetuneTables(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_Grooves(CDocumentFile *pDocFile, const int Version);
+	void			ReadBlock_Bookmarks(CDocumentFile *pDocFile, const int Version);
 
 	// For file version compability
 	void			ReorderSequences();
-	void			ConvertSequences();
 
 	/*!	\brief Validates a given condition and throws an exception otherwise.
 		\details This method replaces the previous ASSERT_FILE_DATA preprocessor macro.
@@ -448,42 +441,35 @@ private:
 		\param Msg The error message.
 	*/
 	void			AssertFileData(bool Cond, std::string Msg) const;		// // //
-	/*!	\brief Validates a numerical value so that it lies within the interval [Min, Max].
-		\details This method may throw a CModuleException object and automatically supply a suitable
-		error message based on the value description. This method handles signed and unsigned types
-		properly.
-		\param Value The value to check against.
-		\param Min The minimum value permitted, inclusive.
-		\param Max The maximum value permitted, inclusive.
-		\param Desc A description of the checked value.
-		\return The value argument, if the method returns.
-	*/
+	
 	template <typename T, typename U, typename V>
 	typename std::enable_if<std::is_unsigned<T>::value, T>::type
 	AssertRange(T Value, U Min, V Max, std::string Desc) const
 	{
-		return AssertRangeFmt(Value, Min, Max, Desc, "%u");
+		try {
+			return CModuleException::AssertRangeFmt(Value, Min, Max, Desc, "%u");
+		}
+		catch (CModuleException *e) {
+			if (m_pCurrentDocument)
+				m_pCurrentDocument->SetDefaultFooter(e);
+			throw;
+		}
 	}
 
 	template <typename T, typename U, typename V>
 	typename std::enable_if<std::is_signed<T>::value, T>::type
 	AssertRange(T Value, U Min, V Max, std::string Desc) const
 	{
-		return AssertRangeFmt(Value, Min, Max, Desc, "%d");
+		try {
+			return CModuleException::AssertRangeFmt(Value, Min, Max, Desc, "%i");
+		}
+		catch (CModuleException *e) {
+			if (m_pCurrentDocument)
+				m_pCurrentDocument->SetDefaultFooter(e);
+			throw;
+		}
 	}
 
-	template <typename T, typename U, typename V>
-	T AssertRangeFmt(T Value, U Min, V Max, std::string Desc, const char *fmt) const
-	{
-		if (!(Value >= Min && Value <= Max)) {
-			char Format[128];
-			sprintf_s(Format, sizeof(Format), "%%s out of range: expected [%s,%s], got %s", fmt, fmt, fmt);
-			char Buffer[512];
-			sprintf_s(Buffer, sizeof(Buffer), Format, Desc.c_str(), Min, Max, Value);
-			AssertFileData(false, std::string(Buffer));
-		}
-		return Value;
-	}
 #ifdef AUTOSAVE
 	void			SetupAutoSave();
 	void			ClearAutoSave();
@@ -504,6 +490,9 @@ private:
 	// // // from the component interface
 	CSequenceManager *const GetSequenceManager(int InstType) const;
 	CInstrumentManager *const GetInstrumentManager() const;
+	CDSampleManager *const GetDSampleManager() const;
+	void			Modify(bool Change);
+	void			ModifyIrreversible();
 
 	//
 	// Private variables
@@ -555,7 +544,6 @@ private:
 	unsigned int	m_iChannelsAvailable;						// Number of channels added
 
 	// Instruments, samples and sequences
-	CDSample		m_DSamples[MAX_DSAMPLES];					// The DPCM sample list
 	CInstrumentManager *m_pInstrumentManager;					// // //
 	CGroove			*m_pGrooveTable[MAX_GROOVE];				// // // Grooves
 
@@ -582,8 +570,7 @@ private:
 	stHighlight		m_vHighlight;								// // //
 
 	// Things below are for compability with older files
-	CArray<stSequence> m_vTmpSequences;
-	CArray<stSequence[SEQ_COUNT]> m_vSequences;
+	CArray<COldSequence> m_vTmpSequences;		// // //
 
 	mutable CDocumentFile *m_pCurrentDocument;		// // //
 

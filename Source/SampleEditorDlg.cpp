@@ -45,7 +45,6 @@ CSampleEditorDlg::CSampleEditorDlg(CWnd* pParent /*=NULL*/, CDSample *pSample)
 {
 	// Create a copy of the sample
 	m_pSample = new CDSample(*pSample);
-	m_pOriginalSample = pSample;
 	m_pSoundGen = theApp.GetSoundGenerator();
 }
 
@@ -204,8 +203,7 @@ void CSampleEditorDlg::MoveControls()
 
 void CSampleEditorDlg::OnBnClickedPlay()
 {
-	if (m_pSample->GetSize() == 0)
-		return;
+	if (!m_pSample) return;
 
 	int Pitch = static_cast<CSliderCtrl*>(GetDlgItem(IDC_PITCH))->GetPos();
 	m_pSoundGen->WriteAPU(0x4011, IsDlgButtonChecked(IDC_DELTASTART) ? 64 : 0);
@@ -352,11 +350,6 @@ void CSampleEditorDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	}
 
 	CDialog::OnKeyDown(nChar, nRepCnt, nFlags);
-}
-
-void CSampleEditorDlg::CopySample(CDSample *pTarget)
-{
-	pTarget->Allocate(m_pSample->GetSize(), m_pSample->GetData());
 }
 
 void CSampleEditorDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)

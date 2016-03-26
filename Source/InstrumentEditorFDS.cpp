@@ -30,6 +30,7 @@
 #include "FamiTrackerView.h"
 #include "InstrumentEditPanel.h"
 #include "InstrumentEditorFDS.h"
+#include "InstrumentFDS.h"		// // //
 #include "MainFrm.h"
 #include "SoundGen.h"
 #include "Clipboard.h"

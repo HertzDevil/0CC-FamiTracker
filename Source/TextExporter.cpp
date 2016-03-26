@@ -25,6 +25,7 @@
 #include "PatternData.h"		// // //
 #include "TextExporter.h"
 #include "FamiTrackerDoc.h"
+#include "InstrumentFactory.h"		// // //
 #include "../version.h"		// // //
 
 #define DEBUG_OUT(...) { CString s__; s__.Format(__VA_ARGS__); OutputDebugString(s__); }
@@ -677,6 +678,7 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 	int i; // generic integer for reading
 	unsigned int dpcm_index = 0;
 	unsigned int dpcm_pos = 0;
+	CDSample *dpcm_sample = nullptr;
 	unsigned int track = 0;
 	unsigned int pattern = 0;
 	int N163count = -1;		// // //
@@ -795,27 +797,27 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 					dpcm_pos = 0;
 
 					CHECK(t.ReadInt(i,0,CDSample::MAX_SIZE,&sResult));
-					CDSample* pSample = pDoc->GetSample(dpcm_index);
-					pSample->Allocate(i, NULL);
-					::memset(pSample->GetData(), 0, i);
-					pSample->SetName(Charify(t.ReadToken()));
+					dpcm_sample = new CDSample();		// // //
+					pDoc->SetSample(dpcm_index, dpcm_sample);
+					char *blank = new char[i]();
+					dpcm_sample->SetData(i, blank);
+					dpcm_sample->SetName(Charify(t.ReadToken()));
 
 					CHECK(t.ReadEOL(&sResult));
 				}
 				break;
 			case CT_DPCM:
 				{
-					CDSample* pSample = pDoc->GetSample(dpcm_index);
 					CHECK_COLON();
 					while (!t.IsEOL())
 					{
 						CHECK(t.ReadHex(i,0x00,0xFF,&sResult));
-						if (dpcm_pos >= pSample->GetSize())
+						if (dpcm_pos >= dpcm_sample->GetSize())
 						{
 							sResult.Format(_T("Line %d column %d: DPCM sample %d overflow, increase size used in %s."), t.line, t.GetColumn(), dpcm_index, CT[CT_DPCMDEF]);
 							return sResult;
 						}
-						*(pSample->GetData() + dpcm_pos) = (char)(i);
+						*(dpcm_sample->GetData() + dpcm_pos) = (char)(i);
 						++dpcm_pos;
 					}
 				}
@@ -874,7 +876,7 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 					case CT_INSTS5B:  Type = INST_S5B; break;
 					}
 					CHECK(t.ReadInt(i,0,MAX_INSTRUMENTS-1,&sResult));
-					CSeqInstrument *seqInst = std::dynamic_pointer_cast<CSeqInstrument>(pDoc->CreateInstrument(Type)).get();
+					auto seqInst = dynamic_cast<CSeqInstrument*>(CInstrumentFactory::CreateNew(Type));		// // //
 					pDoc->AddInstrument(seqInst, i);
 					for (int s=0; s < SEQ_COUNT; ++s)
 					{
@@ -883,7 +885,7 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 						seqInst->SetSeqIndex(s, (i == -1) ? 0 : i);
 					}
 					if (c == CT_INSTN163) {
-						CInstrumentN163 *pInst = static_cast<CInstrumentN163*>(seqInst);
+						auto pInst = static_cast<CInstrumentN163*>(seqInst);
 						CHECK(t.ReadInt(i,0,256-16*N163count,&sResult));		// // //
 						pInst->SetWaveSize(i);
 						CHECK(t.ReadInt(i,0,256-16*N163count-1,&sResult));		// // //
@@ -1002,7 +1004,8 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 					auto pInst = std::static_pointer_cast<CInstrumentFDS>(pDoc->GetInstrument(i));
 
 					CHECK(t.ReadInt(i,0,CInstrumentFDS::SEQUENCE_COUNT-1,&sResult));
-					CSequence *pSeq = pInst->GetSequence(i);		// // //
+					CSequence *pSeq = new CSequence();		// // //
+					pInst->SetSequence(i, pSeq);
 					CHECK(t.ReadInt(i,-1,MAX_SEQUENCE_ITEMS,&sResult));
 					pSeq->SetLoopPoint(i);
 					CHECK(t.ReadInt(i,-1,MAX_SEQUENCE_ITEMS,&sResult));
@@ -1296,21 +1299,21 @@ const CString& CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 	f.WriteString(_T("# DPCM samples\n"));
 	for (int smp=0; smp < MAX_DSAMPLES; ++smp)
 	{
-		const CDSample* pSample = pDoc->GetSample(smp);
-		if (pSample && pSample->GetSize() > 0)
+		if (const CDSample* pSample = pDoc->GetSample(smp))		// // //
 		{
+			const unsigned int size = pSample->GetSize();
 			s.Format(_T("%s %3d %5d %s\n"),
 				CT[CT_DPCMDEF],
 				smp,
-				pSample->GetSize(),
+				size,
 				ExportString(pSample->GetName()));
 			f.WriteString(s);
 
-			for (unsigned int i=0; i < pSample->GetSize(); i += 32)
+			for (unsigned int i=0; i < size; i += 32)
 			{
 				s.Format(_T("%s :"), CT[CT_DPCM]);
 				f.WriteString(s);
-				for (unsigned int j=0; j<32 && (i+j)<pSample->GetSize(); ++j)
+				for (unsigned int j=0; j<32 && (i+j)<size; ++j)
 				{
 					s.Format(_T(" %02X"), (unsigned char)(*(pSample->GetData() + (i+j))));
 					f.WriteString(s);
@@ -1491,7 +1494,7 @@ const CString& CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 
 				for (int seq=0; seq < 3; ++seq)
 				{
-					CSequence* pSequence = pDI->GetSequence(seq);		// // //
+					const CSequence* pSequence = pDI->GetSequence(seq);		// // //
 					if (!pSequence || pSequence->GetItemCount() < 1) continue;
 
 					s.Format(_T("%-8s %3d %3d %3d %3d %3d :"),
