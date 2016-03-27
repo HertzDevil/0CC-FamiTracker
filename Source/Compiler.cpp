@@ -157,15 +157,11 @@ void CCompiler::Print(LPCTSTR text, ...) const
 {
  	static TCHAR buf[256];
 
-	if (m_pLogger == NULL)
+	if (m_pLogger == NULL || !text)
 		return;
 
 	va_list argp;
 	va_start(argp, text);
-
-	if (!text)
-		return;
-
 	_vsntprintf_s(buf, sizeof(buf), _TRUNCATE, text, argp);
 	va_end(argp);		// // //
 
@@ -831,6 +827,19 @@ char* CCompiler::LoadDriver(const driver_t *pDriver, unsigned short Origin) cons
 
 	if (m_iActualChip == SNDCHIP_N163) {
 		pData[m_iDriverSize - 2 - 0x100 - 0xC0 * 2 - 8 - 1 - 8 + m_iActualNamcoChannels] = 3;
+	}
+	if (m_pDocument->GetExpansionChip() == 0x3F) {		// // // // special processing
+		int FT_UPDATE_EXT_ADR = 0x4D3 + DATA_HEADER_SIZE;
+		for (int i = 0; i < 6; ++i) {
+			ASSERT(pData[FT_UPDATE_EXT_ADR] == 0x20); // jsr
+			if (!(m_iActualChip & (1 << i))) {
+				pData[FT_UPDATE_EXT_ADR++] = 0xEA; // nop
+				pData[FT_UPDATE_EXT_ADR++] = 0xEA;
+				pData[FT_UPDATE_EXT_ADR++] = 0xEA;
+			}
+			else
+				FT_UPDATE_EXT_ADR += 3;
+		}
 	}
 
 	return (char*)pData;

@@ -34,6 +34,7 @@
 #include "VisualizerWnd.h"
 #include "TextExporter.h"
 #include "ConfigGeneral.h"
+#include "ConfigVersion.h"		// // //
 #include "ConfigAppearance.h"
 #include "ConfigMIDI.h"
 #include "ConfigSound.h"
@@ -1563,12 +1564,15 @@ void CMainFrame::OnUpdateSBTempo(CCmdUI *pCmdUI)
 {
 	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 	if (pSoundGen && !pSoundGen->IsBackgroundTask()) {
+		CFamiTrackerDoc *pDoc = static_cast<CFamiTrackerDoc*>(GetActiveDocument());		// // //
 		int Highlight = m_wndOctaveBar.GetDlgItemInt(IDC_HIGHLIGHT1);
+		// Highlight = pDoc->GetHighlight(m_iTrack).First;
 		if (Highlight == 0)
 			Highlight = 4;
-		float BPM = (pSoundGen->GetTempo() * 4.0f) / float(Highlight);
+		float BPM = std::min(pSoundGen->GetTempo(), static_cast<float>(pDoc->GetEngineSpeed() * 15));
+		
 		CString String;
-		String.Format(_T("%.2f BPM"), BPM);
+		String.Format(_T("%.2f BPM"), BPM * 4.f / Highlight);
 		pCmdUI->Enable();
 		pCmdUI->SetText(String);
 	}
@@ -1801,6 +1805,7 @@ void CMainFrame::OnFileGeneralsettings()
 	CPropertySheet ConfigWindow(Title, this, 0);
 
 	CConfigGeneral		TabGeneral;
+	CConfigVersion		TabVersion;		// // //
 	CConfigAppearance	TabAppearance;
 	CConfigMIDI			TabMIDI;
 	CConfigSound		TabSound;
@@ -1809,6 +1814,7 @@ void CMainFrame::OnFileGeneralsettings()
 
 	ConfigWindow.m_psh.dwFlags	&= ~PSH_HASHELP;
 	TabGeneral.m_psp.dwFlags	&= ~PSP_HASHELP;
+	TabVersion.m_psp.dwFlags	&= ~PSP_HASHELP;
 	TabAppearance.m_psp.dwFlags &= ~PSP_HASHELP;
 	TabMIDI.m_psp.dwFlags		&= ~PSP_HASHELP;
 	TabSound.m_psp.dwFlags		&= ~PSP_HASHELP;
@@ -1816,6 +1822,9 @@ void CMainFrame::OnFileGeneralsettings()
 	TabMixer.m_psp.dwFlags		&= ~PSP_HASHELP;
 	
 	ConfigWindow.AddPage(&TabGeneral);
+#ifdef _DEBUG
+	ConfigWindow.AddPage(&TabVersion);
+#endif
 	ConfigWindow.AddPage(&TabAppearance);
 	ConfigWindow.AddPage(&TabMIDI);
 	ConfigWindow.AddPage(&TabSound);
