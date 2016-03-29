@@ -123,7 +123,6 @@ struct stFullState {
 #include "Sequence.h"
 #include "OldSequence.h"		// // //
 #include "Groove.h"		// // //
-#include "Bookmark.h"		// // //
 
 // External classes
 class CTrackerChannel;
@@ -223,6 +222,9 @@ public:
 
 	void			ClearPatterns(unsigned int Track);
 	void			ClearPattern(unsigned int Track, unsigned int Frame, unsigned int Channel);
+	
+	void			MergeDuplicatedPatterns(unsigned int Track);		// // //
+	void			PopulateUniquePatterns(unsigned int Track);
 
 	bool			InsertRow(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row);
 	bool			ClearRow(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row);
@@ -293,10 +295,6 @@ public:
 	CGroove			*GetGroove(int Index) const;		// // //
 	void			SetGroove(int Index, const CGroove* Groove);
 
-	std::vector<stBookmark> *const GetBookmarkList(unsigned int Track);		// // //
-	void			SetBookmarkList(unsigned int Track, std::vector<stBookmark> *const List);
-	void			ClearBookmarkList(unsigned int Track);
-
 	int				GetFrameLength(unsigned int Track, unsigned int Frame) const;
 
 	// Track management functions
@@ -350,8 +348,6 @@ public:
 	void			RemoveUnusedInstruments();
 	void			RemoveUnusedSamples();		// // //
 	void			RemoveUnusedPatterns();
-	void			MergeDuplicatedPatterns();
-	void			PopulateUniquePatterns();		// // //
 	void			SwapInstruments(int First, int Second);
 	stFullState		RetrieveSoundState(unsigned int Track, unsigned int Frame, unsigned int Row, int Channel);		// // //
 
@@ -360,6 +356,14 @@ public:
 
 	bool			GetExceededFlag() { return m_bExceeded; };
 	void			SetExceededFlag(bool Exceed = 1);		// // //
+
+	// // // from the component interface
+	CSequenceManager *const GetSequenceManager(int InstType) const;
+	CInstrumentManager *const GetInstrumentManager() const;
+	CDSampleManager *const GetDSampleManager() const;
+	CBookmarkManager *const GetBookmarkManager() const;
+	void			Modify(bool Change);
+	void			ModifyIrreversible();
 
 	// Constants
 public:
@@ -486,13 +490,6 @@ private:
 	void			SetupChannels(unsigned char Chip);
 	void			ApplyExpansionChip();
 
-	// // // from the component interface
-	CSequenceManager *const GetSequenceManager(int InstType) const;
-	CInstrumentManager *const GetInstrumentManager() const;
-	CDSampleManager *const GetDSampleManager() const;
-	void			Modify(bool Change);
-	void			ModifyIrreversible();
-
 	//
 	// Private variables
 	//
@@ -537,13 +534,13 @@ private:
 	// Patterns and song data
 	CPatternData	*m_pTracks[MAX_TRACKS];						// List of all tracks
 	CString			m_sTrackNames[MAX_TRACKS];
-	std::vector<stBookmark> *m_pBookmarkList[MAX_TRACKS];			// // // Bookmarks
 
 	unsigned int	m_iTrackCount;								// Number of tracks added
 	unsigned int	m_iChannelsAvailable;						// Number of channels added
 
 	// Instruments, samples and sequences
 	CInstrumentManager *m_pInstrumentManager;					// // //
+	CBookmarkManager *m_pBookmarkManager;						// // //
 	CGroove			*m_pGrooveTable[MAX_GROOVE];				// // // Grooves
 
 	// Module properties
