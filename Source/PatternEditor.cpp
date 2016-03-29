@@ -2600,8 +2600,8 @@ cursor_column_t CPatternEditor::GetCursorEndColumn(column_t Column)
 cursor_column_t CPatternEditor::GetChannelColumns(int Channel) const
 {
 	// Return number of available columns in a channel
-	unsigned int Col = m_pDocument->GetEffColumns(GetSelectedTrack(), Channel);
 	if (m_bCompactMode) return C_NOTE;
+	unsigned int Col = m_pDocument->GetEffColumns(GetSelectedTrack(), Channel);
 	switch (Col) {
 	case 0: return C_EFF1_PARAM2;
 	case 1: return C_EFF2_PARAM2;
@@ -2693,6 +2693,18 @@ void CPatternEditor::UpdateSelectionEnd()		// // //
 
 	if (bShift) {
 		SetSelectionEnd(m_cpCursorPos);
+		if (m_bCompactMode) {		// // //
+			m_bCompactMode = false;
+			if (m_selection.m_cpEnd.m_iChannel >= m_selection.m_cpStart.m_iChannel) {
+				m_selection.m_cpEnd.m_iColumn = GetChannelColumns(m_selection.m_cpEnd.m_iChannel);
+				m_selection.m_cpStart.m_iColumn = C_NOTE;
+			}
+			else {
+				m_selection.m_cpEnd.m_iColumn = C_NOTE;
+				m_selection.m_cpStart.m_iColumn = GetChannelColumns(m_selection.m_cpStart.m_iChannel);
+			}
+			m_bCompactMode = true;
+		}
 		m_iSelectionCondition = GetSelectionCondition();		// // //
 	}
 	else {
@@ -2906,22 +2918,27 @@ void CPatternEditor::MoveToFrame(int Frame)
 {
 	const int FrameCount = GetFrameCount();		// // //
 
-	if (m_bSelecting) {		// // //
-		if (Frame < 0)
-			m_iWarpCount--;
-		else if (Frame / FrameCount > m_iCurrentFrame / FrameCount)
-			m_iWarpCount++;
-	}
-	else
-		m_iWarpCount = 0;
+	if (!m_bSelecting)
+		m_iWarpCount = 0;		// // //
 
 	if (theApp.GetSettings()->General.bWrapFrames) {
+		if (m_bSelecting) {		// // //
+			if (theApp.GetSettings()->General.bMultiFrameSel) {		// // //
+				if (Frame < 0)
+					m_iWarpCount--;
+				else if (Frame / FrameCount > m_iCurrentFrame / FrameCount)
+					m_iWarpCount++;
+			}
+		}
 		Frame %= FrameCount;
 		if (Frame < 0)
 			Frame += FrameCount;
 	}
 	else
 		Frame = std::min(std::max(Frame, 0), FrameCount - 1);
+
+	if (m_bSelecting && !theApp.GetSettings()->General.bMultiFrameSel)		// // //
+		m_selection.m_cpStart.m_iFrame = m_selection.m_cpEnd.m_iFrame = Frame;
 	
 	if (theApp.IsPlaying() && m_bFollowMode) {
 		if (m_iPlayFrame != Frame) {
@@ -3301,13 +3318,12 @@ void CPatternEditor::ContinueMouseSelection(const CPoint &point)
 			if (PointPos.m_iChannel >= m_selection.m_cpStart.m_iChannel) {
 				PointPos.m_iColumn = GetChannelColumns(PointPos.m_iChannel);
 				m_selection.m_cpStart.m_iColumn = C_NOTE;
-				m_bSelectionInvalidated = true;
 			}
 			else {
 				PointPos.m_iColumn = C_NOTE;
 				m_selection.m_cpStart.m_iColumn = GetChannelColumns(m_selection.m_cpStart.m_iChannel);
-				m_bSelectionInvalidated = true;
 			}
+			m_bSelectionInvalidated = true;
 			m_bCompactMode = Compact;
 		}
 
@@ -3341,6 +3357,11 @@ void CPatternEditor::ContinueMouseSelection(const CPoint &point)
 		}
 
 		if (!theApp.GetSettings()->General.bMultiFrameSel) {		// // //
+			m_selection.m_cpEnd.m_iFrame %= FrameCount;
+			if (m_selection.m_cpEnd.m_iFrame < 0) m_selection.m_cpEnd.m_iFrame += FrameCount;
+			m_selection.m_cpStart.m_iFrame %= FrameCount;
+			if (m_selection.m_cpStart.m_iFrame < 0) m_selection.m_cpStart.m_iFrame += FrameCount;
+
 			if (m_selection.m_cpEnd.m_iFrame > m_selection.m_cpStart.m_iFrame) {
 				m_selection.m_cpEnd.m_iFrame = m_selection.m_cpStart.m_iFrame;
 				m_selection.m_cpEnd.m_iRow = GetCurrentPatternLength(m_iCurrentFrame) - 1;
@@ -3354,6 +3375,8 @@ void CPatternEditor::ContinueMouseSelection(const CPoint &point)
 		// Selection has changed
 		m_bSelectionInvalidated = true;
 	}
+	TRACE("%d %d; %d %d\n", m_selection.m_cpStart.m_iFrame, m_selection.m_cpStart.m_iRow,
+		  m_selection.m_cpEnd.m_iFrame, m_selection.m_cpEnd.m_iRow);
 }
 
 void CPatternEditor::OnMouseMove(UINT nFlags, const CPoint &point)

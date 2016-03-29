@@ -419,8 +419,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\Bookmark.cpp" />
+    <ClCompile Include="Source\BookmarkCollection.cpp" />
     <ClCompile Include="Source\BookmarkDlg.cpp" />
+    <ClCompile Include="Source\BookmarkManager.cpp" />
     <ClCompile Include="Source\DSampleManager.cpp" />
+    <ClCompile Include="Source\ConfigVersion.cpp" />
     <ClCompile Include="Source\DetuneDlg.cpp" />
     <ClCompile Include="Source\Exception.cpp" />
     <ClCompile Include="Source\FamiTracker.cpp" />
@@ -659,9 +662,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Bookmark.h" />
+    <ClInclude Include="Source\BookmarkCollection.h" />
+    <ClInclude Include="Source\BookmarkManager.h" />
     <ClInclude Include="Source\BookmarkDlg.h" />
     <ClInclude Include="Source\DSampleManager.h" />
     <ClInclude Include="Source\ChannelHandlerInterface.h" />
+    <ClInclude Include="Source\ConfigVersion.h" />
     <ClInclude Include="Source\DetuneDlg.h" />
     <ClInclude Include="Source\Exception.h" />
     <ClInclude Include="Source\FamiTracker.h" />

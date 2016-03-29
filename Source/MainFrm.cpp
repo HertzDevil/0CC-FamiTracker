@@ -34,6 +34,7 @@
 #include "VisualizerWnd.h"
 #include "TextExporter.h"
 #include "ConfigGeneral.h"
+#include "ConfigVersion.h"		// // //
 #include "ConfigAppearance.h"
 #include "ConfigMIDI.h"
 #include "ConfigSound.h"
@@ -1563,12 +1564,18 @@ void CMainFrame::OnUpdateSBTempo(CCmdUI *pCmdUI)
 {
 	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 	if (pSoundGen && !pSoundGen->IsBackgroundTask()) {
+		CFamiTrackerDoc *pDoc = static_cast<CFamiTrackerDoc*>(GetActiveDocument());		// // //
 		int Highlight = m_wndOctaveBar.GetDlgItemInt(IDC_HIGHLIGHT1);
+		// Highlight = pDoc->GetHighlight(m_iTrack).First;
 		if (Highlight == 0)
 			Highlight = 4;
-		float BPM = (pSoundGen->GetTempo() * 4.0f) / float(Highlight);
+		int EngineSpeed = pDoc->GetEngineSpeed();
+		if (EngineSpeed == 0)
+			EngineSpeed = (pDoc->GetMachine() == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
+		float BPM = std::min(pSoundGen->GetTempo(), static_cast<float>(EngineSpeed * 15));
+		
 		CString String;
-		String.Format(_T("%.2f BPM"), BPM);
+		String.Format(_T("%.2f BPM"), BPM * 4.f / Highlight);
 		pCmdUI->Enable();
 		pCmdUI->SetText(String);
 	}
@@ -1801,6 +1808,7 @@ void CMainFrame::OnFileGeneralsettings()
 	CPropertySheet ConfigWindow(Title, this, 0);
 
 	CConfigGeneral		TabGeneral;
+	CConfigVersion		TabVersion;		// // //
 	CConfigAppearance	TabAppearance;
 	CConfigMIDI			TabMIDI;
 	CConfigSound		TabSound;
@@ -1809,6 +1817,7 @@ void CMainFrame::OnFileGeneralsettings()
 
 	ConfigWindow.m_psh.dwFlags	&= ~PSH_HASHELP;
 	TabGeneral.m_psp.dwFlags	&= ~PSP_HASHELP;
+	TabVersion.m_psp.dwFlags	&= ~PSP_HASHELP;
 	TabAppearance.m_psp.dwFlags &= ~PSP_HASHELP;
 	TabMIDI.m_psp.dwFlags		&= ~PSP_HASHELP;
 	TabSound.m_psp.dwFlags		&= ~PSP_HASHELP;
@@ -1816,6 +1825,9 @@ void CMainFrame::OnFileGeneralsettings()
 	TabMixer.m_psp.dwFlags		&= ~PSP_HASHELP;
 	
 	ConfigWindow.AddPage(&TabGeneral);
+#ifdef _DEBUG
+	ConfigWindow.AddPage(&TabVersion);
+#endif
 	ConfigWindow.AddPage(&TabAppearance);
 	ConfigWindow.AddPage(&TabMIDI);
 	ConfigWindow.AddPage(&TabSound);
@@ -1867,6 +1879,7 @@ void CMainFrame::OpenInstrumentEditor()
 
 	if (pDoc->IsInstrumentUsed(Instrument)) {
 		if (m_wndInstEdit.IsOpened() == false) {
+			m_wndInstEdit.SetInstrumentManager(pDoc->GetInstrumentManager());		// // //
 			m_wndInstEdit.Create(IDD_INSTRUMENT, this);
 			m_wndInstEdit.SetCurrentInstrument(Instrument);
 			m_wndInstEdit.ShowWindow(SW_SHOW);
@@ -2074,7 +2087,11 @@ void CMainFrame::OnModuleChannels()
 void CMainFrame::OnModuleComments()
 {
 	CCommentsDlg commentsDlg;
-	commentsDlg.DoModal();
+	CFamiTrackerDoc	*pDoc = static_cast<CFamiTrackerDoc*>(GetActiveDocument());		// // //
+	commentsDlg.SetComment(pDoc->GetComment());
+	commentsDlg.SetShowOnLoad(pDoc->ShowCommentOnOpen());
+	if (commentsDlg.DoModal() == IDOK && commentsDlg.IsChanged())
+		pDoc->SetComment(commentsDlg.GetComment(), commentsDlg.GetShowOnLoad());
 }
 
 void CMainFrame::OnModuleGrooveSettings()		// // //
@@ -2095,11 +2112,11 @@ void CMainFrame::OnModuleBookmarkSettings()		// // //
 		m_pBookmarkDlg = new CBookmarkDlg();
 		m_pBookmarkDlg->Create(IDD_BOOKMARKS, this);
 	}
-	if (!m_pBookmarkDlg->IsWindowVisible()) {
+	if (!m_pBookmarkDlg->IsWindowVisible())
 		m_pBookmarkDlg->CenterWindow();
-	}
 	m_pBookmarkDlg->ShowWindow(SW_SHOW);
 	m_pBookmarkDlg->SetFocus();
+	m_pBookmarkDlg->SetManager(static_cast<CFamiTrackerDoc*>(GetActiveDocument())->GetBookmarkManager());
 	m_pBookmarkDlg->LoadBookmarks(m_iTrack);
 }
 
@@ -2925,7 +2942,6 @@ void CMainFrame::OnEditRemoveUnusedPatterns()
 void CMainFrame::OnEditMergeDuplicatedPatterns()
 {
 	AddAction(new CFrameAction(CFrameAction::ACT_MERGE_DUPLICATED_PATTERNS));
-	ResetUndo();		// // //
 }
 
 void CMainFrame::OnUpdateSelectionEnabled(CCmdUI *pCmdUI)
@@ -3015,7 +3031,7 @@ void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
 	// Add name of subtune
 	title.AppendFormat(_T(" [#%i %s]"), m_iTrack + 1, pDoc->GetTrackTitle(GetSelectedTrack()).GetString());
 
-	title.AppendFormat(_T(" - 0CC-FamiTracker %i.%i.%i"), VERSION_MAJ, VERSION_MIN, VERSION_REV);		// // //
+	title.AppendFormat(_T(" - 0CC-FamiTracker %i.%i.%i.%i"), VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_WIP);		// // //
 	SetWindowText(title);
 	// UpdateFrameTitleForDocument(title);
 }
@@ -3246,7 +3262,7 @@ void CMainFrame::OnEditPopulateUniquePatterns()		// // //
 	if (AfxMessageBox(IDS_POPULATE_PATTERNS, MB_YESNO | MB_ICONINFORMATION) == IDNO)
 		return;
 	
-	pDoc->PopulateUniquePatterns();
+	pDoc->PopulateUniquePatterns(m_iTrack);
 	ResetUndo();
 	pDoc->UpdateAllViews(NULL, UPDATE_FRAME);
 }

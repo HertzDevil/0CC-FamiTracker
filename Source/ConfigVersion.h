@@ -2,6 +2,8 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2014  Jonathan Liss
 **
+** 0CC-FamiTracker is (C) 2014-2015 HertzDevil
+**
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
@@ -19,52 +21,65 @@
 */
 
 #pragma once
+#include "FamiTrackerTypes.h"
 
 
-// CCommentsDlg dialog
+// TODO: put these into FamiTrackerDoc.h maybe?
+enum ft_block_t {
+	BLK_PARAMS,
+	BLK_INFO,
+	BLK_HEADER,
+	BLK_INSTRUMENTS,
+	BLK_SEQUENCES,
+	BLK_FRAMES,
+	BLK_PATTERNS,
+	BLK_DPCM_SAMPLES,
+	BLK_COMMENTS,
+	BLK_SEQUENCES_VRC6,
+	BLK_SEQUENCES_N163,
+	BLK_SEQUENCES_S5B,
+	BLK_DETUNETABLES,
+	BLK_GROOVES,
+	BLK_BOOKMARKS,
+	BLK_COUNT
+};
 
-class CCommentsDlg : public CDialog
+struct stVerInfo {
+	CString  Name;
+	effect_t MaxEffect;
+	unsigned FTMver;
+	int      MaxArpMode;
+	int      Version[BLK_COUNT];
+};
+
+#define VERSION_INFO_COUNT 9
+
+// CConfigVersion dialog
+
+class CConfigVersion : public CPropertyPage
 {
-	DECLARE_DYNAMIC(CCommentsDlg)
+	DECLARE_DYNAMIC(CConfigVersion)
 
 public:
-	CCommentsDlg(CWnd* pParent = NULL);   // standard constructor
-	virtual ~CCommentsDlg();
-	// // //
-	CString GetComment() const;
-	void SetComment(CString Str);
-	bool GetShowOnLoad() const;
-	void SetShowOnLoad(bool Enable);
-	bool IsChanged() const;
+	CConfigVersion();
+	virtual ~CConfigVersion();
 
 // Dialog Data
-	enum { IDD = IDD_COMMENTS };
-
-	static LPCTSTR FONT_FACE;
-	static int FONT_SIZE;
-
-protected:
-	static RECT WinRect;
+	enum { IDD = IDD_CONFIG_VERSION };
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
-	void SaveComment();
+public:
 
 protected:
-	bool m_bChanged;
-	CFont *m_pFont;
-	// // //
-	CString m_sComment;
-	bool m_bShowOnLoad;
+	static const CString VERSION_TEXT[];
+	static const effect_t MAX_EFFECT_INDEX[];
+	static const stVerInfo VERSION_INFO[VERSION_INFO_COUNT];
+
+	CComboBox *m_cComboVersion;
 
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnBnClickedOk();
-	afx_msg void OnSize(UINT nType, int cx, int cy);
 	virtual BOOL OnInitDialog();
-	virtual BOOL DestroyWindow();
-	afx_msg void OnEnChangeComments();
-	afx_msg void OnBnClickedShowonopen();
-	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 };
