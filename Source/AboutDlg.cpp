@@ -151,10 +151,10 @@ BOOL CAboutDlg::OnInitDialog()
 	CString aboutString;
 
 #ifdef WIP
-	aboutString.Format(_T("FamiTracker version %i.%i.%i beta %i"), VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_WIP);
+	aboutString.Format(_T("FamiTracker version %i.%i.%i.%i beta"), VERSION);
 #else
 	CString str;
-	str.Format(_T("%i.%i.%i.%i"), VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_WIP);
+	str.Format(_T("%i.%i.%i.%i"), VERSION);
 	AfxFormatString1(aboutString, IDS_ABOUT_VERSION_FORMAT, str);
 #endif
 
