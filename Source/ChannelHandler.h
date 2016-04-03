@@ -136,20 +136,21 @@ protected:
 		\return Whether the instrument with the given index is loaded to the instrument handler.
 	*/
 	virtual bool	HandleInstrument(int Instrument, bool Trigger, bool NewInstrument);		// // // not pure virtual
+	/*! \brief Processes an effect command.
+		\details Implementations of this method in subclasses should use the return value of the
+		superclass method to determine whether an effect requires handling. Global effects are not
+		handled by this method, but by CSoundGen::EvaluateGlobalEffects.
+		\param EffCmd The effect type to be processed.
+		\param EffParam The effect command parameter.
+		\return Whether the method has processed the effect of the given type.
+	*/
+	virtual bool	HandleEffect(effect_t EffNum, unsigned char EffParam);		// // // not pure virtual either
 	/*! \brief Creates an instrument handler of an appropriate type.
-		\details Implementations of this method may only use the macro CREATE_INST_HANDLER(T, ...) to
-		instantiate new instrument handlers when the instrument type is different from the existing
-		one.
 		\return Whether an instrument handler is created.
 	*/
 	virtual bool	CreateInstHandler(inst_type_t Type);		// // //
 
 	// Pure virtual functions for handling notes
-	/*! \brief Processes effect commands specific to certain sound channels.
-		\param EffCmd The effect type to be processed.
-		\param EffParam The effect command parameter.
-	*/
-	virtual void	HandleCustomEffects(effect_t EffNum, int EffParam) = 0;
 	/*! \brief Processes a blank note from pattern data. */
 	virtual void	HandleEmptyNote() = 0;
 	/*! \brief Processes a cut event from pattern data. */
@@ -181,6 +182,11 @@ protected:
 		\return The current volume register, restricted within the range of the sound channel.
 	*/
 	virtual int		CalculateVolume(bool Subtract = false) const;
+	/*! \brief Restricts the pitch value within the limits of the sound channel.
+		\param Period Input period or frequency register value.
+		\return The restricted period or frequency register value.
+	*/
+	virtual int		LimitPeriod(int Period) const;
 	
 	/*! \brief Retrieves information about common effects of the channel handler.
 		\return A string representing active effects and their parameters.
@@ -216,17 +222,6 @@ protected:
 	*/
 	void	ReleaseNote();
 
-	/*! \brief Restricts the pitch value within the limits of the sound channel.
-		\param Period Input period or frequency register value.
-		\return The restricted period or frequency register value.
-	*/
-	int		LimitPeriod(int Period) const;
-	/*! \brief Restricts the volume within the limits of the sound channel.
-		\param Period Input volume register value.
-		\return The restricted volume register value.
-	*/
-	int		LimitVolume(int Volume) const;
-
 	/*! \brief Notifies the tracker view that the current channel handler is playing a note.
 		\param Note The note value, or -1 if no note is active.
 	*/
@@ -239,14 +234,6 @@ protected:
 	*/
 	int		GetPitch() const;
 	
-	/*! \brief Processes effect commands common to all sound channels.
-		\warning This method is always called by implementations of CChannelHandler::HandleCustomEffects,
-		never by itself.
-		\param EffCmd The effect type to be processed.
-		\param EffParam The effect command parameter.
-		\return Whether the method has processed the effect of the given type.
-	*/
-	bool	CheckCommonEffects(effect_t EffCmd, unsigned char EffParam);
 	/*! \brief Processes the Gxx delay effect in a given note.
 		\details The method caches the note data at CChannelHandler::m_cnDelayed if a Gxx effect
 		command is found. Jump effects are processed immediately and removed from the cached data.
@@ -607,7 +594,8 @@ class CChannelHandlerInverted : public CChannelHandler {
 protected:
 	CChannelHandlerInverted(int MaxPeriod, int MaxVolume) : CChannelHandler(MaxPeriod, MaxVolume) {}
 	// // //
-	virtual int CalculatePeriod() const;
-	virtual CString GetSlideEffectString() const;		// // //
+	virtual bool	HandleEffect(effect_t EffNum, unsigned char EffParam);		// // //
+	virtual int		CalculatePeriod() const;
+	virtual CString	GetSlideEffectString() const;		// // //
 };
 
