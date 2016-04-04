@@ -88,38 +88,9 @@ struct stSequence {
 	signed char Value[MAX_SEQUENCE_ITEMS];
 };
 
-// // // Channel state information
-struct stChannelState {
-	int ChannelIndex;
-	int Instrument;
-	int Volume;
-	int Effect[EF_COUNT];
-	int Effect_LengthCounter;
-	int Effect_AutoFMMult;
-	int Echo[ECHO_BUFFER_LENGTH + 1];
-	stChannelState() :
-		ChannelIndex(-1),
-		Instrument(MAX_INSTRUMENTS),
-		Volume(MAX_VOLUME),
-		Effect_LengthCounter(-1),
-		Effect_AutoFMMult(-1)
-	{
-	}
-};
-struct stFullState {
-	stChannelState *State;
-	int Tempo;
-	int Speed;
-	int GroovePos; // -1: disable groove
-};
-
-#define ECHO_BUFFER_NONE ((int)(-1))
-#define ECHO_BUFFER_HALT 0x7F
-#define ECHO_BUFFER_ECHO 0x80
-
 // Access data types used by the document class
 #include "PatternData.h"
-#include "InstrumentFactory.h"		// // // TODO: use Instrument.h
+#include "Instrument.h"
 #include "Sequence.h"
 #include "OldSequence.h"		// // //
 #include "Groove.h"		// // //
@@ -127,6 +98,8 @@ struct stFullState {
 // External classes
 class CTrackerChannel;
 class CDocumentFile;
+class stFullState;		// // //
+class CSeqInstrument;		// // // TODO: move to instrument manager
 
 //
 // I'll try to organize this class, things are quite messy right now!
@@ -324,7 +297,6 @@ public:
 
 	// Sequences functions
 	// // // take instrument type as parameter rather than chip type
-	CSequence*		GetSequence(inst_type_t InstType, unsigned int Index, int Type);
 	CSequence*		GetSequence(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
 	unsigned int	GetSequenceItemCount(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
 	int				GetFreeSequence(inst_type_t InstType, int Type, CSeqInstrument *pInst = nullptr) const;		// // //
@@ -349,7 +321,7 @@ public:
 	void			RemoveUnusedSamples();		// // //
 	void			RemoveUnusedPatterns();
 	void			SwapInstruments(int First, int Second);
-	stFullState		RetrieveSoundState(unsigned int Track, unsigned int Frame, unsigned int Row, int Channel);		// // //
+	stFullState*	RetrieveSoundState(unsigned int Track, unsigned int Frame, unsigned int Row, int Channel);		// // //
 
 	// For file version compability
 	static void		ConvertSequence(stSequence *pOldSequence, CSequence *pNewSequence, int Type);

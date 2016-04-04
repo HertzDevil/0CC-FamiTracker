@@ -429,6 +429,7 @@
     <ClCompile Include="Source\BookmarkCollection.cpp" />
     <ClCompile Include="Source\BookmarkDlg.cpp" />
     <ClCompile Include="Source\BookmarkManager.cpp" />
+    <ClCompile Include="Source\ChannelState.cpp" />
     <ClCompile Include="Source\DSampleManager.cpp" />
     <ClCompile Include="Source\ConfigVersion.cpp" />
     <ClCompile Include="Source\DetuneDlg.cpp" />
@@ -455,6 +456,7 @@
     <ClCompile Include="Source\Groove.cpp" />
     <ClCompile Include="Source\GrooveDlg.cpp" />
     <ClCompile Include="Source\InstHandler.cpp" />
+    <ClCompile Include="Source\InstHandlerDPCM.cpp" />
     <ClCompile Include="Source\InstHandlerVRC7.cpp" />
     <ClCompile Include="Source\InstrumentEditorSeq.cpp" />
     <ClCompile Include="Source\InstrumentFactory.cpp" />
@@ -672,6 +674,7 @@
     <ClInclude Include="Source\BookmarkCollection.h" />
     <ClInclude Include="Source\BookmarkManager.h" />
     <ClInclude Include="Source\BookmarkDlg.h" />
+    <ClInclude Include="Source\ChannelState.h" />
     <ClInclude Include="Source\drivers\drv_2a03.h" />
     <ClInclude Include="Source\drivers\drv_all.h" />
     <ClInclude Include="Source\drivers\drv_fds.h" />
@@ -695,6 +698,7 @@
     <ClInclude Include="Source\Groove.h" />
     <ClInclude Include="Source\GrooveDlg.h" />
     <ClInclude Include="Source\InstHandler.h" />
+    <ClInclude Include="Source\InstHandlerDPCM.h" />
     <ClInclude Include="Source\InstHandlerVRC7.h" />
     <ClInclude Include="Source\Instrument2A03.h" />
     <ClInclude Include="Source\InstrumentEditorSeq.h" />

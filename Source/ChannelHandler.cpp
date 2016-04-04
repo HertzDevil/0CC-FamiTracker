@@ -27,11 +27,15 @@
 
 #include "stdafx.h"
 #include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
+#include "FamiTrackerTypes.h"		// // //
+#include "ChannelState.h"		// // //
+#include "FTMComponentInterface.h"
+#include "Instrument.h"
+#include "InstrumentManager.h"
 #include "TrackerChannel.h"		// // //
+#include "APU/Types.h"		// // //
 #include "SoundGen.h"
 #include "Settings.h"		// // //
-//#include "ChannelHandlerInterface.h"		// // //
 #include "ChannelHandler.h"
 #include "APU/APU.h"
 #include "InstHandler.h"		// // //
@@ -44,8 +48,7 @@
 CChannelHandler::CChannelHandler(int MaxPeriod, int MaxVolume) : 
 	m_iChannelID(0), 
 	m_iInstTypeCurrent(INST_NONE),		// // //
-	m_iInstrument(0), 
-	m_iLastInstrument(MAX_INSTRUMENTS),
+	m_iInstrument(0),
 	m_pNoteLookupTable(NULL),
 	m_pVibratoTable(NULL),
 	m_pAPU(NULL),
@@ -79,15 +82,17 @@ void CChannelHandler::InitChannel(CAPU *pAPU, int *pVibTable, CSoundGen *pSoundG
 
 	m_bDelayEnabled = false;
 
-	DocumentPropertiesChanged(pSoundGen->GetDocument());
-
 	ResetChannel();
 }
 
-void CChannelHandler::DocumentPropertiesChanged(CFamiTrackerDoc *pDoc)
+void CChannelHandler::SetLinearPitch(bool bEnable)		// // //
 {
-	m_bNewVibratoMode = (pDoc->GetVibratoStyle() == VIBRATO_NEW);
-	m_bLinearPitch = pDoc->GetLinearPitch();
+	m_bLinearPitch = bEnable;
+}
+
+void CChannelHandler::SetVibratoStyle(vibrato_t Style)		// // //
+{
+	m_bNewVibratoMode = Style == VIBRATO_NEW;
 }
 
 void CChannelHandler::SetPitch(int Pitch)
@@ -131,7 +136,6 @@ void CChannelHandler::ResetChannel()
 
 	// Instrument 
 	m_iInstrument		= MAX_INSTRUMENTS;
-	m_iLastInstrument	= MAX_INSTRUMENTS;
 	m_iInstTypeCurrent	= INST_NONE;		// // //
 
 	// Volume 
@@ -142,6 +146,7 @@ void CChannelHandler::ResetChannel()
 	m_iInstVolume		= 0;
 
 	// Period
+	m_iNote				= 0;		// // //
 	m_iPeriod			= 0;
 	m_iPeriodPart		= 0;
 
@@ -392,6 +397,11 @@ void CChannelHandler::HandleNoteData(stChanNote *pNoteData, int EffColumns)
 		// 0CC: retrieve
 		m_iInstrument = m_pSoundGen->GetDefaultInstrument();
 	}
+	
+	switch (pNoteData->Note) {		// // // set note value before loading instrument
+	case NONE: case HALT: case RELEASE: break;
+	default: m_iNote = RunNote(pNoteData->Octave, pNoteData->Note);
+	}
 
 	if (NewInstrument || Trigger) {
 		if (!HandleInstrument(m_iInstrument, Trigger, NewInstrument)) {
@@ -401,23 +411,20 @@ void CChannelHandler::HandleNoteData(stChanNote *pNoteData, int EffColumns)
 	}
 	m_bForceReload = false;		// // //
 
-	// Clear release flag
-	if (pNoteData->Note != RELEASE && pNoteData->Note != NONE) {
-		m_bRelease = false;
-	}
-
 	// Note
 	switch (pNoteData->Note) {
 		case NONE:
 			HandleEmptyNote();
 			break;
 		case HALT:
+			m_bRelease = false;
 			HandleCut();
 			break;
 		case RELEASE:
 			HandleRelease();
 			break;
 		default:
+			m_bRelease = false;
 			HandleNote(pNoteData->Note, pNoteData->Octave);
 			break;
 	}
@@ -428,8 +435,9 @@ void CChannelHandler::HandleNoteData(stChanNote *pNoteData, int EffColumns)
 
 bool CChannelHandler::HandleInstrument(int Instrument, bool Trigger, bool NewInstrument)		// // //
 {
-	CFamiTrackerDoc *pDocument = m_pSoundGen->GetDocument();
-	std::shared_ptr<CInstrument> pInstrument = pDocument->GetInstrument(m_iInstrument);
+	auto pDoc = m_pSoundGen->GetDocumentInterface();
+	if (!pDoc) return false;
+	std::shared_ptr<CInstrument> pInstrument = pDoc->GetInstrumentManager()->GetInstrument(m_iInstrument);
 	if (!pInstrument) return false;
 	
 	// load instrument here

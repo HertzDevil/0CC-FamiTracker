@@ -22,13 +22,12 @@
 
 // MMC5 file
 
-#include <cmath>
 #include "stdafx.h"
-#include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
+#include "FamiTrackerTypes.h"		// // //
+#include "APU/Types.h"		// // //
+#include "Instrument.h"		// // //
 #include "ChannelHandler.h"
 #include "ChannelsMMC5.h"
-#include "SoundGen.h"
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 
@@ -95,7 +94,6 @@ void CChannelHandlerMMC5::HandleRelease()
 
 void CChannelHandlerMMC5::HandleNote(int Note, int Octave)
 {
-	m_iNote		  = RunNote(Octave, Note);
 	m_iDutyPeriod = m_iDefaultDuty;
 	m_iInstVolume  = 0x0F;		// // //
 }

@@ -2,6 +2,8 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2014  Jonathan Liss
 **
+** 0CC-FamiTracker is (C) 2014-2016 HertzDevil
+**
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
@@ -18,32 +20,24 @@
 ** must bear this legend.
 */
 
-#pragma once
+#include <memory>
+#include "ChannelState.h"
 
-class CInstrumentFDS;		// // //
-
-class CModSequenceEditor : public CWnd
+stChannelState::stChannelState() :
+	ChannelIndex(-1),
+	Instrument(MAX_INSTRUMENTS),
+	Volume(MAX_VOLUME),
+	Effect(),
+	Effect_LengthCounter(-1),
+	Effect_AutoFMMult(-1),
+	Echo()
 {
-public:
-	CModSequenceEditor();
-	virtual ~CModSequenceEditor();
-	DECLARE_DYNAMIC(CModSequenceEditor)
+}
 
-public:
-	void SetInstrument(std::shared_ptr<CInstrumentFDS> pInst);
-
-private:
-	void EditSequence(CPoint point);
-
-private:
-	std::shared_ptr<CInstrumentFDS> m_pInstrument;
-
-protected:
-	DECLARE_MESSAGE_MAP()
-
-public:
-	BOOL CreateEx(DWORD dwExStyle, LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd);
-	virtual afx_msg void OnPaint();
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-};
+stFullState::stFullState(int Count) :
+	State(new stChannelState[Count]()),
+	Tempo(-1),
+	Speed(-1),
+	GroovePos(-1)
+{
+}

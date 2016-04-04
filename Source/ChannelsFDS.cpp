@@ -23,13 +23,11 @@
 // Famicom disk sound
 
 #include "stdafx.h"
-#include <cmath>
-#include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
-#include "ChannelHandlerInterface.h"
+#include "FamiTrackerTypes.h"		// // //
+#include "APU/Types.h"		// // //
+#include "Instrument.h"
 #include "ChannelHandler.h"
 #include "ChannelsFDS.h"
-#include "SoundGen.h"
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 #include "SeqInstHandlerFDS.h"		// // //
@@ -132,9 +130,7 @@ void CChannelHandlerFDS::HandleRelease()
 void CChannelHandlerFDS::HandleNote(int Note, int Octave)
 {
 	// Trigger a new note
-	m_iNote	= RunNote(Octave, Note);
 	m_bResetMod = true;
-	m_iLastInstrument = m_iInstrument;
 
 	m_iInstVolume = 0x1F;
 }
@@ -152,8 +148,6 @@ bool CChannelHandlerFDS::CreateInstHandler(inst_type_t Type)
 
 void CChannelHandlerFDS::RefreshChannel()
 {
-	CheckWaveUpdate();	
-
 	int Frequency = CalculatePeriod();
 	unsigned char LoFreq = Frequency & 0xFF;
 	unsigned char HiFreq = (Frequency >> 8) & 0x0F;
@@ -319,41 +313,5 @@ void CChannelHandlerFDS::FillModulationTable(const char *pBuffer)		// // //
 		// Fill the table
 		for (int i = 0; i < 32; ++i)
 			WriteExternalRegister(0x4088, m_iModTable[i]);
-	}
-}
-
-void CChannelHandlerFDS::FillWaveRAM(const CInstrumentFDS *pInstrument)
-{
-	// Fills the 64 byte waveform table
-	char Buffer[sizeof(m_iWaveTable)];		// // //
-	for (int i = 0; i < sizeof(m_iWaveTable); i++)
-		Buffer[i] = pInstrument->GetSample(i);
-	FillWaveRAM(Buffer);
-}
-
-void CChannelHandlerFDS::FillModulationTable(const CInstrumentFDS *pInstrument)
-{
-	// Fills the 32 byte modulation table
-	char Buffer[sizeof(m_iModTable)];		// // //
-	for (int i = 0; i < sizeof(m_iModTable); i++)
-		Buffer[i] = pInstrument->GetModulation(i);
-	FillModulationTable(Buffer);
-}
-
-void CChannelHandlerFDS::CheckWaveUpdate()
-{
-	// Check wave changes
-	CFamiTrackerDoc *pDocument = m_pSoundGen->GetDocument();
-	bool bWaveChanged = theApp.GetSoundGenerator()->HasWaveChanged();
-
-	if (m_iInstrument != MAX_INSTRUMENTS && bWaveChanged) {
-		if (auto pInstrument = std::dynamic_pointer_cast<CInstrumentFDS>(pDocument->GetInstrument(m_iInstrument))) {
-			// Realtime update
-			// TODO: use CChannelHandler::ForceReloadInstrument()
-			m_iModulationSpeed = pInstrument->GetModulationSpeed();
-			m_iModulationDepth = pInstrument->GetModulationDepth();
-			FillWaveRAM(pInstrument.get());
-			FillModulationTable(pInstrument.get());
-		}
 	}
 }

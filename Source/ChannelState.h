@@ -2,6 +2,8 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2014  Jonathan Liss
 **
+** 0CC-FamiTracker is (C) 2014-2016 HertzDevil
+**
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
@@ -19,31 +21,34 @@
 */
 
 #pragma once
+#pragma warning ( disable : 4351 )		// // // "new behaviour: elements of array [...] will be default initialized"
 
-class CInstrumentFDS;		// // //
 
-class CModSequenceEditor : public CWnd
-{
+#include "FamiTrackerTypes.h" // constants
+
+// // // Channel state information
+class stChannelState {
 public:
-	CModSequenceEditor();
-	virtual ~CModSequenceEditor();
-	DECLARE_DYNAMIC(CModSequenceEditor)
+	stChannelState();
 
+	int ChannelIndex;
+	int Instrument;
+	int Volume;
+	int Effect[EF_COUNT];
+	int Effect_LengthCounter;
+	int Effect_AutoFMMult;
+	int Echo[ECHO_BUFFER_LENGTH + 1];
+};
+
+class stFullState {
 public:
-	void SetInstrument(std::shared_ptr<CInstrumentFDS> pInst);
+	stFullState(int Count = MAX_CHANNELS);
 
+	std::unique_ptr<stChannelState[]> State;
+	int Tempo;
+	int Speed;
+	int GroovePos; // -1: disable groove
 private:
-	void EditSequence(CPoint point);
-
-private:
-	std::shared_ptr<CInstrumentFDS> m_pInstrument;
-
-protected:
-	DECLARE_MESSAGE_MAP()
-
-public:
-	BOOL CreateEx(DWORD dwExStyle, LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd);
-	virtual afx_msg void OnPaint();
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	stFullState(const stFullState &other);
+	stFullState& operator=(const stFullState &other);
 };

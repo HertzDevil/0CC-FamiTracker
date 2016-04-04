@@ -2,6 +2,8 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2014  Jonathan Liss
 **
+** 0CC-FamiTracker is (C) 2014-2016 HertzDevil
+**
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
@@ -20,30 +22,17 @@
 
 #pragma once
 
-class CInstrumentFDS;		// // //
 
-class CModSequenceEditor : public CWnd
+class CInstHandler;
+class CChannelHandlerInterface;
+class CInstrument;
+
+class CInstHandlerDPCM : public CInstHandler
 {
 public:
-	CModSequenceEditor();
-	virtual ~CModSequenceEditor();
-	DECLARE_DYNAMIC(CModSequenceEditor)
-
-public:
-	void SetInstrument(std::shared_ptr<CInstrumentFDS> pInst);
-
-private:
-	void EditSequence(CPoint point);
-
-private:
-	std::shared_ptr<CInstrumentFDS> m_pInstrument;
-
-protected:
-	DECLARE_MESSAGE_MAP()
-
-public:
-	BOOL CreateEx(DWORD dwExStyle, LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd);
-	virtual afx_msg void OnPaint();
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	CInstHandlerDPCM(CChannelHandlerInterface *pInterface);
+	void LoadInstrument(CInstrument *pInst);
+	void TriggerInstrument();
+	void ReleaseInstrument();
+	void UpdateInstrument();
 };

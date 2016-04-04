@@ -23,9 +23,9 @@
 // This file handles playing of VRC7 channels
 
 #include "stdafx.h"
-#include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
-#include "ChannelHandlerInterface.h"
+#include "FamiTrackerTypes.h"		// // //
+#include "APU/Types.h"		// // //
+#include "Instrument.h"		// // //
 #include "ChannelHandler.h"
 #include "ChannelsVRC7.h"
 #include "InstHandler.h"		// // //
@@ -143,7 +143,6 @@ void CChannelHandlerVRC7::HandleRelease()
 
 void CChannelHandlerVRC7::HandleNote(int Note, int Octave)
 {
-	int OldNote = m_iNote;
 	int OldOctave = m_iOctave;
 
 	// Portamento fix
@@ -151,7 +150,6 @@ void CChannelHandlerVRC7::HandleNote(int Note, int Octave)
 		m_iPeriod = 0;
 
 	// Trigger note
-	m_iNote	= CChannelHandler::RunNote(Octave, Note);
 	m_bHold	= true;
 
 	if ((m_iEffect != EF_PORTAMENTO || m_iPortaSpeed == 0) || m_iCommand == CMD_NOTE_HALT)

@@ -23,11 +23,11 @@
 // This file handles playing of VRC6 channels
 
 #include "stdafx.h"
-#include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
+#include "FamiTrackerTypes.h"		// // //
+#include "APU/Types.h"		// // //
+#include "Instrument.h"		// // //
 #include "ChannelHandler.h"
 #include "ChannelsVRC6.h"
-#include "SoundGen.h"
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 
@@ -64,7 +64,6 @@ void CChannelHandlerVRC6::HandleRelease()
 
 void CChannelHandlerVRC6::HandleNote(int Note, int Octave)
 {
-	m_iNote		  = RunNote(Octave, Note);
 	m_iInstVolume  = 0x0F;
 	m_iDutyPeriod = m_iDefaultDuty;
 }
