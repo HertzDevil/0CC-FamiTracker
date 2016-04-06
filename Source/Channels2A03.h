@@ -107,6 +107,8 @@ public:
 	CDPCMChan(CSampleMem *pSampleMem);
 	void RefreshChannel();
 
+	void SetSampleMemory(CSampleMem *pSampleMem);		// // //
+
 	void WriteDCOffset(unsigned char Delta);		// // //
 	void SetLoopOffset(unsigned char Loop);		// // //
 	void PlaySample(const CDSample *pSamp, int Pitch);		// // //

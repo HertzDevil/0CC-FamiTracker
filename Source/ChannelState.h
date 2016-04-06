@@ -21,7 +21,6 @@
 */
 
 #pragma once
-#pragma warning ( disable : 4351 )		// // // "new behaviour: elements of array [...] will be default initialized"
 
 
 #include "FamiTrackerTypes.h" // constants
@@ -43,12 +42,11 @@ public:
 class stFullState {
 public:
 	stFullState(int Count = MAX_CHANNELS);
+	stFullState(const stFullState &other) = delete;
+	stFullState& operator=(const stFullState &other) = delete;
 
 	std::unique_ptr<stChannelState[]> State;
 	int Tempo;
 	int Speed;
 	int GroovePos; // -1: disable groove
-private:
-	stFullState(const stFullState &other);
-	stFullState& operator=(const stFullState &other);
 };

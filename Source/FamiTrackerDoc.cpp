@@ -1764,7 +1764,7 @@ void CFamiTrackerDoc::ReadBlock_Instruments(CDocumentFile *pDocFile, const int V
 
 		try {
 			// Load the instrument
-			AssertFileData(pInstrument, "Failed to create instrument");
+			AssertFileData(pInstrument.get() != nullptr, "Failed to create instrument");
 			pInstrument->Load(pDocFile);
 			// Read name
 			int size = AssertRange(pDocFile->GetBlockInt(), 0, CInstrument::INST_NAME_MAX, "Instrument name length");
@@ -3007,7 +3007,7 @@ int CFamiTrackerDoc::LoadInstrument(CString FileName)
 		if (InstType == INST_NONE)
 			InstType = INST_2A03;
 		auto pInstrument = CInstrumentManager::CreateNew(InstType);
-		AssertFileData(pInstrument, "Failed to create instrument");
+		AssertFileData(pInstrument.get() != nullptr, "Failed to create instrument");
 		m_pInstrumentManager->InsertInstrument(Slot, pInstrument);
 		
 		// Name
@@ -4038,15 +4038,12 @@ void CFamiTrackerDoc::RegisterChannel(CTrackerChannel *pChannel, int ChannelType
 
 CTrackerChannel *CFamiTrackerDoc::GetChannel(int Index) const
 {
-	ASSERT(m_iRegisteredChannels != 0 && Index < m_iRegisteredChannels);
-	ASSERT(m_pChannels[Index] != NULL);
 	return m_pChannels[Index];
 }
 
 int CFamiTrackerDoc::GetChannelIndex(int Channel) const
 {
 	// Translate channel ID to index, returns -1 if not found
-	ASSERT(m_iRegisteredChannels != 0);
 	for (int i = 0; i < m_iRegisteredChannels; ++i) {
 		if (m_pChannels[i]->GetID() == Channel)
 			return i;
@@ -4659,11 +4656,8 @@ stFullState *CFamiTrackerDoc::RetrieveSoundState(unsigned int Track, unsigned in
 	stFullState *S = new stFullState(m_iRegisteredChannels);
 
 	for (int c = 0; c < m_iRegisteredChannels; c++) {
-		stChannelState *State = &S->State[c];
-		State->ChannelIndex = GetChannelType(c);
-		memset(State->Effect, -1, EF_COUNT * sizeof(int));
-		memset(State->Echo, -1, ECHO_BUFFER_LENGTH * sizeof(int));
-		// State->Mute = CFamiTrackerView::GetView()->IsChannelMuted(i);
+		S->State[c].ChannelIndex = GetChannelType(c);
+		// S->State[c].Mute = CFamiTrackerView::GetView()->IsChannelMuted(i);
 	}
 	
 	stChanNote Note;

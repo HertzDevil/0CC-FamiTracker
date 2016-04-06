@@ -20,24 +20,16 @@
 ** must bear this legend.
 */
 
-#include <memory>
-#include "ChannelState.h"
 
-stChannelState::stChannelState() :
-	ChannelIndex(-1),
-	Instrument(MAX_INSTRUMENTS),
-	Volume(MAX_VOLUME),
-	Effect_LengthCounter(-1),
-	Effect_AutoFMMult(-1)
-{
-	memset(Effect, -1, EF_COUNT * sizeof(int));
-	memset(Echo, -1, ECHO_BUFFER_LENGTH * sizeof(int));
-}
+#pragma once
 
-stFullState::stFullState(int Count) :
-	State(new stChannelState[Count]()),
-	Tempo(-1),
-	Speed(-1),
-	GroovePos(-1)
+#include "Factory.h"
+#include "APU/Types.h"
+
+class CChannelHandler;
+
+class CChannelFactory : public CFactory<chan_id_t, CChannelHandler>
 {
-}
+public:
+	CChannelFactory();
+};

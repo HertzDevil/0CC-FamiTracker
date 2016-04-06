@@ -31,14 +31,9 @@
 //
 
 #include "stdafx.h"
-#include <memory>		// // //
-#include <cmath>
-#include <afxmt.h>
 #include "FamiTracker.h"
 #include "FTMComponentInterface.h"		// // //
 #include "ChannelState.h"		// // //
-#include <vector>		// // //
-#include "InstrumentManager.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
 #include "VisualizerWnd.h"
@@ -46,18 +41,14 @@
 #include "DirectSound.h"
 #include "APU/APU.h"
 #include "ChannelHandler.h"
-#include "Channels2A03.h"
-#include "ChannelsVRC6.h"
-#include "ChannelsMMC5.h"
-#include "ChannelsVRC7.h"
-#include "ChannelsFDS.h"
-#include "ChannelsN163.h"
-#include "ChannelsS5B.h"
-#include "InstrumentFactory.h"		// // //
+#include "Channels2A03.h" // DPCM sample memory
+#include "ChannelsN163.h" // N163 channel count
 #include "SoundGen.h"
+#include "InstrumentRecorder.h"		// // //
 #include "Settings.h"
 #include "TrackerChannel.h"
 #include "MIDI.h"
+#include "ChannelFactory.h"		// // // test
 
 #ifdef EXPORT_TEST
 #include "ExportTest/ExportTest.h"
@@ -106,391 +97,6 @@ END_MESSAGE_MAP()
 int dither(long size);
 #endif
 
-// // // Nested class for instrument recorder
-
-class CSoundGen::InstrumentRecorder
-{
-public:
-	InstrumentRecorder(CSoundGen *pSG);
-	~InstrumentRecorder();
-
-public:
-	void			StartRecording();
-	void			StopRecording(CFamiTrackerView *pView);
-	void			RecordInstrument(const unsigned Tick, CFamiTrackerView *pView);
-
-	CInstrument		*GetRecordInstrument(unsigned Tick) const;
-	int				GetRecordChannel() const { return m_iRecordChannel; }
-	void			SetRecordChannel(int Channel) { m_iRecordChannel = Channel; };
-	stRecordSetting GetRecordSetting() const { return m_stRecordSetting; };
-	void			SetRecordSetting(stRecordSetting Setting) { m_stRecordSetting = Setting; };
-	void			SetDumpCount(int Count) { m_iDumpCount = Count; };
-
-	void			ResetDumpInstrument();
-	void			ResetRecordCache();
-	void			ReleaseCurrent();
-
-private:
-	void			InitRecordInstrument();
-	void			FinalizeRecordInstrument();
-
-public:
-	CFamiTrackerDoc *m_pDocument;
-
-private:
-	CSoundGen		*m_pSoundGen;
-	int				m_iRecordChannel;
-	int				m_iDumpCount;
-	CInstrument		**m_pDumpInstrument;
-	CInstrument		*m_pDumpCache[MAX_INSTRUMENTS];
-	CSequence		*m_pSequenceCache[SEQ_COUNT];
-	stRecordSetting	m_stRecordSetting;
-	char			*m_iRecordWaveCache;
-	int				m_iRecordWaveSize;
-	int				m_iRecordWaveCount;
-};
-
-CSoundGen::InstrumentRecorder::InstrumentRecorder(CSoundGen *pSG) :
-	m_pSoundGen(pSG),
-	m_iRecordChannel(-1),
-	m_iDumpCount(0),
-	m_iRecordWaveCache(nullptr)
-{
-	m_stRecordSetting.Interval = MAX_SEQUENCE_ITEMS;
-	m_stRecordSetting.InstCount = 1;
-	m_stRecordSetting.Reset = true;
-	for (int i = 0; i < SEQ_COUNT; i++)
-		m_pSequenceCache[i] = new CSequence();
-	memset(m_pDumpCache, 0, sizeof(CInstrument*) * MAX_INSTRUMENTS);
-	ResetRecordCache();
-}
-
-CSoundGen::InstrumentRecorder::~InstrumentRecorder()
-{
-	SAFE_RELEASE(*m_pDumpInstrument);
-	for (int i = 0; i < SEQ_COUNT; i++)
-		SAFE_RELEASE(m_pSequenceCache[i]);
-	for (int i = 0; i < MAX_INSTRUMENTS; i++)
-		SAFE_RELEASE(m_pDumpCache[i]);
-	SAFE_RELEASE_ARRAY(m_iRecordWaveCache);
-}
-
-void CSoundGen::InstrumentRecorder::StartRecording()
-{
-	m_iDumpCount = m_stRecordSetting.InstCount;
-	ResetRecordCache();
-	InitRecordInstrument();
-}
-
-void CSoundGen::InstrumentRecorder::StopRecording(CFamiTrackerView *pView)
-{
-	if (*m_pDumpInstrument != nullptr && pView != nullptr)
-		pView->PostMessage(WM_USER_DUMP_INST);
-	--m_iDumpCount;
-}
-
-#define REG(x) ( m_pSoundGen->GetReg(Chip, (x)) )
-void CSoundGen::InstrumentRecorder::RecordInstrument(const unsigned Tick, CFamiTrackerView *pView)		// // //
-{
-	unsigned int Intv = static_cast<unsigned>(m_stRecordSetting.Interval);
-	if (m_iRecordChannel == -1 || Tick > Intv * m_stRecordSetting.InstCount + 1) return;
-	if (Tick % Intv == 1 && Tick > Intv) {
-		if (*m_pDumpInstrument != nullptr && pView != nullptr) {
-			pView->PostMessage(WM_USER_DUMP_INST);
-			m_pDumpInstrument++;
-		}
-		--m_iDumpCount;
-	}
-	bool Temp = *m_pDumpInstrument == nullptr;
-	int Pos = (Tick - 1) % Intv;
-
-	signed char Val = 0;
-	
-	int PitchReg = 0;
-	int Detune = 0x7FFFFFFF;
-	int ID = m_iRecordChannel;
-	
-	char Chip = m_pDocument->GetChannel(m_pDocument->GetChannelIndex(m_iRecordChannel))->GetChip();
-	switch (Chip) {
-	case SNDCHIP_NONE: case SNDCHIP_MMC5:
-		ID -= Chip == SNDCHIP_MMC5 ? CHANID_MMC5_SQUARE1 : CHANID_SQUARE1;
-		PitchReg = m_iRecordChannel == CHANID_NOISE ? (0x0F & REG(0x0E)) :
-					(0xFF & REG(2 + (ID << 2)) | (0x07 & REG(3 + (ID << 2))) << 8); break;
-	case SNDCHIP_VRC6:
-		ID -= CHANID_VRC6_PULSE1;
-		PitchReg = 0xFF & REG(1 + (ID << 2)) | (0x0F & REG(2 + (ID << 2))) << 8; break;
-	case SNDCHIP_FDS:
-		ID -= CHANID_FDS; // ID = 0;
-		PitchReg = 0xFF & REG(0x42) | (0x0F & REG(0x43)) << 8; break;
-	case SNDCHIP_N163:
-		ID -= CHANID_N163_CH1;
-		PitchReg = (0xFF & REG(0x78 - (ID << 3))
-					| (0xFF & REG(0x7A - (ID << 3))) << 8
-					| (0x03 & REG(0x7C - (ID << 3))) << 16) >> 2; // N163_PITCH_SLIDE_SHIFT;
-		break;
-	case SNDCHIP_S5B:
-		ID -= CHANID_S5B_CH1;
-		PitchReg = (0xFF & REG(ID << 1) | (0x0F & REG(1 + (ID << 1))) << 8); break;
-	}
-
-	int Note = 0;
-	if (m_iRecordChannel == CHANID_NOISE) {
-		Note = PitchReg ^ 0xF; Detune = 0;
-	}
-	else for (int i = 0; i < NOTE_COUNT; i++) {
-		int diff = PitchReg - m_pSoundGen->ReadPeriodTable(i, Chip == SNDCHIP_NONE && m_pDocument->GetMachine() == PAL ? SNDCHIP_2A07 : Chip);
-		if (std::abs(diff) < std::abs(Detune)) {
-			Note = i; Detune = diff;
-		}
-	}
-
-	inst_type_t InstType = INST_NONE; // optimize this
-	switch (Chip) {
-	case SNDCHIP_NONE: case SNDCHIP_MMC5: InstType = INST_2A03; break;
-	case SNDCHIP_VRC6: InstType = INST_VRC6; break;
-	// case SNDCHIP_VRC7: Type = INST_VRC7; break;
-	case SNDCHIP_FDS:  InstType = INST_FDS; break;
-	case SNDCHIP_N163: InstType = INST_N163; break;
-	case SNDCHIP_S5B:  InstType = INST_S5B; break;
-	}
-
-	switch (InstType) {
-	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B:
-		for (int i = 0; i < SEQ_COUNT; i++) {
-			sequence_t s = static_cast<sequence_t>(i);
-			switch (s) {
-			case SEQ_VOLUME:
-				switch (Chip) {
-				case SNDCHIP_NONE: case SNDCHIP_MMC5:
-					Val = m_iRecordChannel == CHANID_TRIANGLE ? ((0x7F & REG(0x08)) ? 15 : 0) : (0x0F & REG(ID << 2)); break;
-				case SNDCHIP_VRC6:
-					Val = m_iRecordChannel == CHANID_VRC6_SAWTOOTH ? (0x0F & REG(0x08) >> 1) : (0x0F & REG(ID << 2)); break;
-				case SNDCHIP_N163:
-					Val = 0x0F & REG(0x7F - (ID << 3)); break;
-				case SNDCHIP_S5B:
-					Val = 0x0F & REG(0x08 + ID); break;
-				}
-				break;
-			case SEQ_ARPEGGIO: Val = static_cast<char>(Note); break;
-			case SEQ_PITCH: Val = static_cast<char>(Detune % 16); break;
-			case SEQ_HIPITCH: Val = static_cast<char>(Detune / 16); break;
-			case SEQ_DUTYCYCLE:
-				switch (Chip) {
-				case SNDCHIP_NONE: case SNDCHIP_MMC5:
-					Val = m_iRecordChannel == CHANID_TRIANGLE ? 0 :
-						m_iRecordChannel == CHANID_NOISE ? (0x01 & REG(0x0E) >> 7) : (0x03 & REG(ID << 2) >> 6); break;
-				case SNDCHIP_VRC6:
-					Val = m_iRecordChannel == CHANID_VRC6_SAWTOOTH ? (0x01 & REG(0x08) >> 5) : (0x07 & REG(ID << 2) >> 4); break;
-				case SNDCHIP_N163:
-					Val = 0;
-					if (m_iRecordWaveCache == NULL) {
-						int Size = 0x100 - (0xFC & REG(0x7C - (ID << 3)));
-						if (Size <= CInstrumentN163::MAX_WAVE_SIZE) {
-							m_iRecordWaveSize = Size;
-							m_iRecordWaveCache = new char[m_iRecordWaveSize * CInstrumentN163::MAX_WAVE_COUNT]();
-							m_iRecordWaveCount = 0;
-						}
-					}
-					if (m_iRecordWaveCache != nullptr) {
-						int Count = 0x100 - (0xFC & REG(0x7C - (ID << 3)));
-						if (Count == m_iRecordWaveSize) {
-							int pos = 0xFF & REG(0x7E - (ID << 3));
-							char *Wave = new char[Count];
-							for (int j = 0; j < Count; j++)
-								Wave[j] = 0x0F & REG((pos + j) >> 1) >> ((j & 0x01) ? 4 : 0);
-							for (int j = 1; j <= m_iRecordWaveCount; j++) {
-								if (!memcmp(Wave, m_iRecordWaveCache + j * Count, Count)) {
-									Val = j; goto outer;
-								}
-							}
-							if (m_iRecordWaveCount < CInstrumentN163::MAX_WAVE_COUNT - 1) {
-								Val = ++m_iRecordWaveCount;
-								memcpy(m_iRecordWaveCache + Val * Count, Wave, Count);
-							}
-							else
-								Val = m_pSequenceCache[i]->GetItem(Pos - 1);
-						outer:
-							SAFE_RELEASE_ARRAY(Wave);
-						}
-					}
-					break;
-				case SNDCHIP_S5B:
-					Val = 0x1F & REG(0x06) | (0x10 & REG(0x08 + ID)) << 1
-						| (0x01 << ID & ~REG(0x07)) << (6 - ID) | (0x08 << ID & ~REG(0x07)) << (4 - ID); break;
-				}
-				break;
-			}
-			m_pSequenceCache[i]->SetItemCount(Pos + 1);
-			m_pSequenceCache[i]->SetItem(Pos, Val);
-		}
-		break;
-	case INST_FDS:
-		for (int k = 0; k <= 2; k++) {
-			switch (k) {
-			case 0: Val = 0x3F & REG(0x40); if (Val > 0x20) Val = 0x20; break;
-			case 1: Val = static_cast<char>(Note); break;
-			case 2: Val = static_cast<char>(Detune); break;
-			}
-			m_pSequenceCache[k]->SetItemCount(Pos + 1);
-			m_pSequenceCache[k]->SetItem(Pos, Val);
-		}
-	}
-	
-	if (!(Tick % Intv))
-		FinalizeRecordInstrument();
-}
-#undef REG
-
-CInstrument* CSoundGen::InstrumentRecorder::GetRecordInstrument(unsigned Tick) const
-{
-	return m_pDumpCache[Tick / m_stRecordSetting.Interval - (m_pSoundGen->IsPlaying() ? 1 : 0)];
-}
-
-void CSoundGen::InstrumentRecorder::ResetDumpInstrument()
-{
-	if (m_iDumpCount < 0) return;
-	if (m_pSoundGen->IsPlaying()) {
-		--m_pDumpInstrument;
-		if (m_pDumpInstrument >= m_pDumpCache)
-			ReleaseCurrent();
-		++m_pDumpInstrument;
-	}
-	if (m_iDumpCount && *m_pDumpInstrument == nullptr) {
-		InitRecordInstrument();
-	}
-	else {
-		if (*m_pDumpInstrument != nullptr)
-			FinalizeRecordInstrument();
-		if (!m_iDumpCount || !m_pSoundGen->IsPlaying()) {
-			m_iRecordChannel = -1;
-			if (m_stRecordSetting.Reset) {
-				m_stRecordSetting.Interval = MAX_SEQUENCE_ITEMS;
-				m_stRecordSetting.InstCount = 1;
-			}
-			ReleaseCurrent();
-		}
-	}
-}
-
-void CSoundGen::InstrumentRecorder::ResetRecordCache()
-{
-	memset(m_pDumpCache, 0, sizeof(CInstrument*) * MAX_INSTRUMENTS);
-	m_pDumpInstrument = &m_pDumpCache[0];
-	for (int i = 0; i < SEQ_COUNT; i++)
-		m_pSequenceCache[i]->Clear();
-}
-
-void CSoundGen::InstrumentRecorder::ReleaseCurrent()
-{
-	if (*m_pDumpInstrument != nullptr) {
-		//(*m_pDumpInstrument)->Release();
-		*m_pDumpInstrument = nullptr;
-	}
-}
-
-void CSoundGen::InstrumentRecorder::InitRecordInstrument()
-{
-	CTrackerChannel *pChan = m_pDocument->GetChannel(m_pDocument->GetChannelIndex(m_iRecordChannel));
-	if (m_pDocument->GetInstrumentCount() >= MAX_INSTRUMENTS) {
-		m_iDumpCount = 0; m_iRecordChannel = -1; return;
-	}
-	inst_type_t Type = INST_NONE; // optimize this
-	switch (pChan->GetChip()) {
-	case SNDCHIP_NONE: case SNDCHIP_MMC5: Type = INST_2A03; break;
-	case SNDCHIP_VRC6: Type = INST_VRC6; break;
-	// case SNDCHIP_VRC7: Type = INST_VRC7; break;
-	case SNDCHIP_FDS:  Type = INST_FDS; break;
-	case SNDCHIP_N163: Type = INST_N163; break;
-	case SNDCHIP_S5B:  Type = INST_S5B; break;
-	}
-	*m_pDumpInstrument = CInstrumentFactory::CreateNew(Type);		// // //
-	if (!*m_pDumpInstrument) return;
-
-	CString str;
-	str.Format(_T("from %s"), pChan->GetChannelName());
-	(*m_pDumpInstrument)->SetName(str);
-	
-	if (Type == INST_FDS) {
-		m_pSequenceCache[SEQ_ARPEGGIO]->SetSetting(SETTING_ARP_FIXED);
-		return;
-	}
-	switch (Type) {
-	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B:
-		CSeqInstrument *Inst = dynamic_cast<CSeqInstrument*>(*m_pDumpInstrument);
-		ASSERT(Inst != NULL);
-		for (int i = 0; i < SEQ_COUNT; i++) {
-			Inst->SetSeqEnable(i, 1);
-			Inst->SetSeqIndex(i, m_pDocument->GetFreeSequence(Type, i));
-		}
-		m_pSequenceCache[SEQ_ARPEGGIO]->SetSetting(SETTING_ARP_FIXED);
-		// m_pSequenceCache[SEQ_PITCH]->SetSetting(SETTING_PITCH_ABSOLUTE);
-		// m_pSequenceCache[SEQ_HIPITCH]->SetSetting(SETTING_PITCH_ABSOLUTE);
-		// VRC6 sawtooth 64-step volume
-		if (m_iRecordChannel == CHANID_TRIANGLE)
-			Inst->SetSeqEnable(SEQ_DUTYCYCLE, 0);
-		break;
-	}
-	m_iRecordWaveSize = 32; // DEFAULT_WAVE_SIZE
-	m_iRecordWaveCount = 0;
-}
-
-void CSoundGen::InstrumentRecorder::FinalizeRecordInstrument()
-{
-	if (*m_pDumpInstrument == NULL) return;
-	inst_type_t InstType = (*m_pDumpInstrument)->GetType();
-	CSeqInstrument *Inst = dynamic_cast<CSeqInstrument*>(*m_pDumpInstrument);
-	CInstrumentFDS *FDSInst = dynamic_cast<CInstrumentFDS*>(*m_pDumpInstrument);
-	CInstrumentN163 *N163Inst = dynamic_cast<CInstrumentN163*>(*m_pDumpInstrument);
-	if (Inst != NULL) for (int i = 0; i < SEQ_COUNT; i++) {
-		if (Inst->GetSeqEnable(i) != 0) {
-			m_pSequenceCache[i]->SetLoopPoint(m_pSequenceCache[i]->GetItemCount() - 1);
-			(*m_pDumpInstrument)->RegisterManager(m_pDocument->GetInstrumentManager());
-			Inst->SetSequence(i, m_pSequenceCache[i]);
-		}
-		m_pSequenceCache[i] = new CSequence();
-	}
-	switch (InstType) {
-	case INST_FDS:
-		ASSERT(FDSInst != NULL);
-		/*
-		for (int i = 0; i < CInstrumentFDS::SEQUENCE_COUNT; i++) {
-			const CSequence *Seq = FDSInst->GetSequence(i);
-			ASSERT(Seq != NULL);
-			m_pSequenceCache[i]->SetLoopPoint(m_pSequenceCache[i]->GetItemCount() - 1);
-			FDSInst->SetSequence(i, m_pSequenceCache[i]);
-			m_pSequenceCache[i] = new CSequence();
-		}
-		*/
-		for (int i = 0; i < CInstrumentFDS::WAVE_SIZE; i++)
-			FDSInst->SetSample(i, 0x3F & m_pSoundGen->GetReg(SNDCHIP_FDS, i));
-		FDSInst->SetModulationDepth(0x3F & m_pSoundGen->GetReg(SNDCHIP_FDS, 0x44));
-		FDSInst->SetModulationSpeed(0xFF & m_pSoundGen->GetReg(SNDCHIP_FDS, 0x46) | (0x0F & m_pSoundGen->GetReg(SNDCHIP_FDS, 0x47)) << 8);
-		break;
-	case INST_N163:
-		ASSERT(N163Inst != NULL);
-		int offs = (m_iRecordChannel - CHANID_N163_CH1) << 3;
-		int pos = 0xFF & m_pSoundGen->GetReg(SNDCHIP_N163, 0x7E - offs);
-		N163Inst->SetWavePos(pos);
-		N163Inst->SetWaveSize(m_iRecordWaveSize);
-		N163Inst->SetWaveCount(m_iRecordWaveCount + 1);
-		if (m_iRecordWaveCache != NULL) {
-			for (int i = 0; i <= m_iRecordWaveCount; i++) for (int j = 0; j < m_iRecordWaveSize; j++)
-				N163Inst->SetSample(i, j, m_iRecordWaveCache[m_iRecordWaveSize * i + j]);
-			SAFE_RELEASE(m_iRecordWaveCache);
-		}
-		else for (int j = 0; j < m_iRecordWaveSize; j++) // fallback for blank recording
-			N163Inst->SetSample(0, j, 0);
-		break;
-	}
-}
-
-CInstrument* CSoundGen::GetRecordInstrument() const { return m_pInstRecorder->GetRecordInstrument(m_iPlayTicks); }
-void CSoundGen::ResetDumpInstrument() { m_pInstRecorder->ResetDumpInstrument(); };
-int CSoundGen::GetRecordChannel() const { return m_pInstRecorder->GetRecordChannel(); }
-void CSoundGen::SetRecordChannel(int Channel) { m_pInstRecorder->SetRecordChannel(Channel); };
-stRecordSetting CSoundGen::GetRecordSetting() const { return m_pInstRecorder->GetRecordSetting(); }
-void CSoundGen::SetRecordSetting(stRecordSetting Setting) { m_pInstRecorder->SetRecordSetting(Setting); };
-
 // CSoundGen
 
 CSoundGen::CSoundGen() : 
@@ -512,7 +118,7 @@ CSoundGen::CSoundGen() :
 	m_iTempo(0),
 	m_iGrooveIndex(-1),		// // //
 	m_iGroovePosition(0),		// // //
-	m_pInstRecorder(new CSoundGen::InstrumentRecorder(this)),		// // //
+	m_pInstRecorder(new CInstrumentRecorder(this)),		// // //
 	m_bWaveChanged(0),
 	m_iMachineType(NTSC),
 	m_bRunning(false),
@@ -580,60 +186,68 @@ void CSoundGen::CreateChannels()
 	// // // Short header names
 #ifdef _DUAL_CH		// // //
 	CSquare1Chan *PU1 = new C2A03Square();
-	AssignChannel(new CTrackerChannel(_T("Pulse 1"), _T("PU1"), SNDCHIP_NONE, CHANID_SQUARE1), PU1);
-	AssignChannel(new CTrackerChannel(_T("Pulse 1 SFX"), _T("PU1*"), SNDCHIP_NONE, CHANID_SQUARE1), PU1);
+	AssignChannel(new CTrackerChannel(_T("Pulse 1"), _T("PU1"), SNDCHIP_NONE, CHANID_SQUARE1));
+	AssignChannel(new CTrackerChannel(_T("Pulse 1 SFX"), _T("PU1*"), SNDCHIP_NONE, CHANID_SQUARE1));
 #else
-	AssignChannel(new CTrackerChannel(_T("Pulse 1"), _T("PU1"), SNDCHIP_NONE, CHANID_SQUARE1), new C2A03Square());
-	AssignChannel(new CTrackerChannel(_T("Pulse 2"), _T("PU2"), SNDCHIP_NONE, CHANID_SQUARE2), new C2A03Square());
+	AssignChannel(new CTrackerChannel(_T("Pulse 1"), _T("PU1"), SNDCHIP_NONE, CHANID_SQUARE1));
+	AssignChannel(new CTrackerChannel(_T("Pulse 2"), _T("PU2"), SNDCHIP_NONE, CHANID_SQUARE2));
 #endif
-	AssignChannel(new CTrackerChannel(_T("Triangle"), _T("TRI"), SNDCHIP_NONE, CHANID_TRIANGLE), new CTriangleChan());
-	AssignChannel(new CTrackerChannel(_T("Noise"), _T("NOI"), SNDCHIP_NONE, CHANID_NOISE), new CNoiseChan());
-	AssignChannel(new CTrackerChannel(_T("DPCM"), _T("DMC"), SNDCHIP_NONE, CHANID_DPCM), new CDPCMChan(m_pSampleMem));
+	AssignChannel(new CTrackerChannel(_T("Triangle"), _T("TRI"), SNDCHIP_NONE, CHANID_TRIANGLE));
+	AssignChannel(new CTrackerChannel(_T("Noise"), _T("NOI"), SNDCHIP_NONE, CHANID_NOISE));
+	AssignChannel(new CTrackerChannel(_T("DPCM"), _T("DMC"), SNDCHIP_NONE, CHANID_DPCM));
 
 	// Konami VRC6
-	AssignChannel(new CTrackerChannel(_T("VRC6 Pulse 1"), _T("V1"), SNDCHIP_VRC6, CHANID_VRC6_PULSE1), new CVRC6Square());		// // //
-	AssignChannel(new CTrackerChannel(_T("VRC6 Pulse 2"), _T("V2"), SNDCHIP_VRC6, CHANID_VRC6_PULSE2), new CVRC6Square());		// // //
-	AssignChannel(new CTrackerChannel(_T("Sawtooth"), _T("SAW"), SNDCHIP_VRC6, CHANID_VRC6_SAWTOOTH), new CVRC6Sawtooth());
-
-	// Konami VRC7
-	AssignChannel(new CTrackerChannel(_T("FM Channel 1"), _T("FM1"), SNDCHIP_VRC7, CHANID_VRC7_CH1), new CVRC7Channel());
-	AssignChannel(new CTrackerChannel(_T("FM Channel 2"), _T("FM2"), SNDCHIP_VRC7, CHANID_VRC7_CH2), new CVRC7Channel());
-	AssignChannel(new CTrackerChannel(_T("FM Channel 3"), _T("FM3"), SNDCHIP_VRC7, CHANID_VRC7_CH3), new CVRC7Channel());
-	AssignChannel(new CTrackerChannel(_T("FM Channel 4"), _T("FM4"), SNDCHIP_VRC7, CHANID_VRC7_CH4), new CVRC7Channel());
-	AssignChannel(new CTrackerChannel(_T("FM Channel 5"), _T("FM5"), SNDCHIP_VRC7, CHANID_VRC7_CH5), new CVRC7Channel());
-	AssignChannel(new CTrackerChannel(_T("FM Channel 6"), _T("FM6"), SNDCHIP_VRC7, CHANID_VRC7_CH6), new CVRC7Channel());
-
-	// Nintendo FDS
-	AssignChannel(new CTrackerChannel(_T("FDS"), _T("FDS"), SNDCHIP_FDS, CHANID_FDS), new CChannelHandlerFDS());
+	AssignChannel(new CTrackerChannel(_T("VRC6 Pulse 1"), _T("V1"), SNDCHIP_VRC6, CHANID_VRC6_PULSE1));
+	AssignChannel(new CTrackerChannel(_T("VRC6 Pulse 2"), _T("V2"), SNDCHIP_VRC6, CHANID_VRC6_PULSE2));
+	AssignChannel(new CTrackerChannel(_T("Sawtooth"), _T("SAW"), SNDCHIP_VRC6, CHANID_VRC6_SAWTOOTH));
 
 	// // // Nintendo MMC5
-	AssignChannel(new CTrackerChannel(_T("MMC5 Pulse 1"), _T("PU3"), SNDCHIP_MMC5, CHANID_MMC5_SQUARE1), new CChannelHandlerMMC5());
-	AssignChannel(new CTrackerChannel(_T("MMC5 Pulse 2"), _T("PU4"), SNDCHIP_MMC5, CHANID_MMC5_SQUARE2), new CChannelHandlerMMC5());
+	AssignChannel(new CTrackerChannel(_T("MMC5 Pulse 1"), _T("PU3"), SNDCHIP_MMC5, CHANID_MMC5_SQUARE1));
+	AssignChannel(new CTrackerChannel(_T("MMC5 Pulse 2"), _T("PU4"), SNDCHIP_MMC5, CHANID_MMC5_SQUARE2));
+	AssignChannel(new CTrackerChannel(_T("MMC5 PCM"), _T("PCM"), SNDCHIP_MMC5, CHANID_MMC5_VOICE)); // null channel handler
 
 	// Namco N163
-	AssignChannel(new CTrackerChannel(_T("Namco 1"), _T("N1"), SNDCHIP_N163, CHANID_N163_CH1), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 2"), _T("N2"), SNDCHIP_N163, CHANID_N163_CH2), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 3"), _T("N3"), SNDCHIP_N163, CHANID_N163_CH3), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 4"), _T("N4"), SNDCHIP_N163, CHANID_N163_CH4), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 5"), _T("N5"), SNDCHIP_N163, CHANID_N163_CH5), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 6"), _T("N6"), SNDCHIP_N163, CHANID_N163_CH6), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 7"), _T("N7"), SNDCHIP_N163, CHANID_N163_CH7), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 8"), _T("N8"), SNDCHIP_N163, CHANID_N163_CH8), new CChannelHandlerN163());
+	AssignChannel(new CTrackerChannel(_T("Namco 1"), _T("N1"), SNDCHIP_N163, CHANID_N163_CH1));
+	AssignChannel(new CTrackerChannel(_T("Namco 2"), _T("N2"), SNDCHIP_N163, CHANID_N163_CH2));
+	AssignChannel(new CTrackerChannel(_T("Namco 3"), _T("N3"), SNDCHIP_N163, CHANID_N163_CH3));
+	AssignChannel(new CTrackerChannel(_T("Namco 4"), _T("N4"), SNDCHIP_N163, CHANID_N163_CH4));
+	AssignChannel(new CTrackerChannel(_T("Namco 5"), _T("N5"), SNDCHIP_N163, CHANID_N163_CH5));
+	AssignChannel(new CTrackerChannel(_T("Namco 6"), _T("N6"), SNDCHIP_N163, CHANID_N163_CH6));
+	AssignChannel(new CTrackerChannel(_T("Namco 7"), _T("N7"), SNDCHIP_N163, CHANID_N163_CH7));
+	AssignChannel(new CTrackerChannel(_T("Namco 8"), _T("N8"), SNDCHIP_N163, CHANID_N163_CH8));
+
+	// Nintendo FDS
+	AssignChannel(new CTrackerChannel(_T("FDS"), _T("FDS"), SNDCHIP_FDS, CHANID_FDS));
+
+	// Konami VRC7
+	AssignChannel(new CTrackerChannel(_T("FM Channel 1"), _T("FM1"), SNDCHIP_VRC7, CHANID_VRC7_CH1));
+	AssignChannel(new CTrackerChannel(_T("FM Channel 2"), _T("FM2"), SNDCHIP_VRC7, CHANID_VRC7_CH2));
+	AssignChannel(new CTrackerChannel(_T("FM Channel 3"), _T("FM3"), SNDCHIP_VRC7, CHANID_VRC7_CH3));
+	AssignChannel(new CTrackerChannel(_T("FM Channel 4"), _T("FM4"), SNDCHIP_VRC7, CHANID_VRC7_CH4));
+	AssignChannel(new CTrackerChannel(_T("FM Channel 5"), _T("FM5"), SNDCHIP_VRC7, CHANID_VRC7_CH5));
+	AssignChannel(new CTrackerChannel(_T("FM Channel 6"), _T("FM6"), SNDCHIP_VRC7, CHANID_VRC7_CH6));
 
 	// // // Sunsoft 5B
-	AssignChannel(new CTrackerChannel(_T("5B Square 1"), _T("5B1"), SNDCHIP_S5B, CHANID_S5B_CH1), new CChannelHandlerS5B());
-	AssignChannel(new CTrackerChannel(_T("5B Square 2"), _T("5B2"), SNDCHIP_S5B, CHANID_S5B_CH2), new CChannelHandlerS5B());
-	AssignChannel(new CTrackerChannel(_T("5B Square 3"), _T("5B3"), SNDCHIP_S5B, CHANID_S5B_CH3), new CChannelHandlerS5B());
+	AssignChannel(new CTrackerChannel(_T("5B Square 1"), _T("5B1"), SNDCHIP_S5B, CHANID_S5B_CH1));
+	AssignChannel(new CTrackerChannel(_T("5B Square 2"), _T("5B2"), SNDCHIP_S5B, CHANID_S5B_CH2));
+	AssignChannel(new CTrackerChannel(_T("5B Square 3"), _T("5B3"), SNDCHIP_S5B, CHANID_S5B_CH3));
 }
 
-void CSoundGen::AssignChannel(CTrackerChannel *pTrackerChannel, CChannelHandler *pRenderer)
+void CSoundGen::AssignChannel(CTrackerChannel *pTrackerChannel)		// // //
 {
-	int ID = pTrackerChannel->GetID();
+	static CChannelFactory F {}; // test
+	chan_id_t ID = pTrackerChannel->GetID();
 
-	pRenderer->SetChannelID(ID);
+	CChannelHandler *pRenderer = F.Produce(ID);
+	if (pRenderer) {
+		if (ID == CHANID_DPCM)
+			static_cast<CDPCMChan*>(pRenderer)->SetSampleMemory(m_pSampleMem);
+		pRenderer->SetChannelID(ID);
+	}
 
-	m_pTrackerChannels[ID] = pTrackerChannel;
-	m_pChannels[ID] = pRenderer;
+	static size_t Pos = 0;		// // // test
+	m_pTrackerChannels[Pos] = pTrackerChannel;
+	m_pChannels[Pos++] = pRenderer;
 }
 
 //
@@ -724,10 +338,11 @@ void CSoundGen::RegisterChannels(int Chip, CFamiTrackerDoc *pDoc)
 
 	// Register the channels in the document
 	// Expansion & internal channels
-	for (int i = 0; i < CHANNELS; ++i) {
-		if (m_pTrackerChannels[i] && ((m_pTrackerChannels[i]->GetChip() & Chip) || (i < 5))			// // //
-								  && (i >= CHANID_FDS || i < CHANID_N163_CH1 + pDoc->GetNamcoChannels())) {
-			pDoc->RegisterChannel(m_pTrackerChannels[i], i, m_pTrackerChannels[i]->GetChip());
+	for (int i = 0; i < sizeof(m_pTrackerChannels) / sizeof(CTrackerChannel*); ++i) {
+		int ID = m_pTrackerChannels[i]->GetID();		// // //
+		if (m_pChannels[i] && ((m_pTrackerChannels[i]->GetChip() & Chip) || (i < 5))			// // //
+						   && (i >= CHANID_FDS || i < CHANID_N163_CH1 + pDoc->GetNamcoChannels())) {
+			pDoc->RegisterChannel(m_pTrackerChannels[i], ID, m_pTrackerChannels[i]->GetChip());
 		}
 	}
 
@@ -1351,8 +966,12 @@ void CSoundGen::ApplyGlobalState()		// // //
 			m_iGrooveIndex = -1;
 		}
 		SetupSpeed();
-		for (int i = 0; i < m_pDocument->GetChannelCount(); i++)
-			m_pChannels[State->State[i].ChannelIndex]->ApplyChannelState(&State->State[i]);
+		for (int i = 0; i < m_pDocument->GetChannelCount(); i++) {
+			for (int j = 0; j < sizeof(m_pTrackerChannels) / sizeof(CTrackerChannel*); ++j)		// // // pick this out later
+				if (m_pChannels[j] && m_pTrackerChannels[j]->GetID() == State->State[i].ChannelIndex) {
+					m_pChannels[j]->ApplyChannelState(&State->State[i]); break;
+				}
+		}
 		delete State;
 	}
 }
@@ -1903,58 +1522,30 @@ void CSoundGen::LoadMachineSettings(machine_t Machine, int Rate, int NamcoChanne
 	m_iUpdateCycles = BaseFreq / Rate;
 	
 	// // // Setup note tables
-	SetLookupTable(Machine == PAL ? SNDCHIP_2A07 : SNDCHIP_NONE);
-	SetLookupTable(SNDCHIP_VRC6);
-	SetLookupTable(SNDCHIP_VRC7);
-	SetLookupTable(SNDCHIP_FDS);
-	SetLookupTable(SNDCHIP_MMC5);
-	SetLookupTable(SNDCHIP_N163);
-	SetLookupTable(SNDCHIP_S5B);
-}
-
-void CSoundGen::SetLookupTable(int Chip)		// // //
-{
-	ASSERT(m_pAPU != NULL);
-
-	switch (Chip) {
-	case SNDCHIP_NONE:
-		m_pChannels[CHANID_SQUARE1]->SetNoteTable(m_iNoteLookupTableNTSC);
-		m_pChannels[CHANID_SQUARE2]->SetNoteTable(m_iNoteLookupTableNTSC);
-		m_pChannels[CHANID_TRIANGLE]->SetNoteTable(m_iNoteLookupTableNTSC); break;
-	case SNDCHIP_2A07:
-		m_pChannels[CHANID_SQUARE1]->SetNoteTable(m_iNoteLookupTablePAL);
-		m_pChannels[CHANID_SQUARE2]->SetNoteTable(m_iNoteLookupTablePAL);
-		m_pChannels[CHANID_TRIANGLE]->SetNoteTable(m_iNoteLookupTablePAL); break;
-	case SNDCHIP_VRC6:
-		m_pChannels[CHANID_VRC6_PULSE1]->SetNoteTable(m_iNoteLookupTableNTSC);
-		m_pChannels[CHANID_VRC6_PULSE2]->SetNoteTable(m_iNoteLookupTableNTSC);
-		m_pChannels[CHANID_VRC6_SAWTOOTH]->SetNoteTable(m_iNoteLookupTableSaw); break;
-	case SNDCHIP_VRC7:
-		m_pChannels[CHANID_VRC7_CH1]->SetNoteTable(m_iNoteLookupTableVRC7);
-		m_pChannels[CHANID_VRC7_CH2]->SetNoteTable(m_iNoteLookupTableVRC7);
-		m_pChannels[CHANID_VRC7_CH3]->SetNoteTable(m_iNoteLookupTableVRC7);
-		m_pChannels[CHANID_VRC7_CH4]->SetNoteTable(m_iNoteLookupTableVRC7);
-		m_pChannels[CHANID_VRC7_CH5]->SetNoteTable(m_iNoteLookupTableVRC7);
-		m_pChannels[CHANID_VRC7_CH6]->SetNoteTable(m_iNoteLookupTableVRC7); break;
-	case SNDCHIP_FDS:
-		m_pChannels[CHANID_FDS]->SetNoteTable(m_iNoteLookupTableFDS); break;
-	case SNDCHIP_MMC5:
-		m_pChannels[CHANID_MMC5_SQUARE1]->SetNoteTable(m_iNoteLookupTableNTSC);
-		m_pChannels[CHANID_MMC5_SQUARE2]->SetNoteTable(m_iNoteLookupTableNTSC); break;
-	case SNDCHIP_N163:
-		m_pChannels[CHANID_N163_CH1]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH2]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH3]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH4]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH5]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH6]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH7]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH8]->SetNoteTable(m_iNoteLookupTableN163); break;
-	case SNDCHIP_S5B:
-		m_pChannels[CHANID_S5B_CH1]->SetNoteTable(m_iNoteLookupTableS5B);
-		m_pChannels[CHANID_S5B_CH2]->SetNoteTable(m_iNoteLookupTableS5B);
-		m_pChannels[CHANID_S5B_CH3]->SetNoteTable(m_iNoteLookupTableS5B); break;
-	default: break;
+	for (int i = 0; i < CHANNELS; ++i) {
+		if (!m_pChannels[i]) continue;
+		const unsigned int *Table = nullptr;
+		switch (m_pTrackerChannels[i]->GetID()) {
+		case CHANID_SQUARE1: case CHANID_SQUARE2: case CHANID_TRIANGLE:
+			Table = Machine == PAL ? m_iNoteLookupTablePAL : m_iNoteLookupTableNTSC; break;
+		case CHANID_VRC6_PULSE1: case CHANID_VRC6_PULSE2:
+		case CHANID_MMC5_SQUARE1: case CHANID_MMC5_SQUARE2:
+			Table = m_iNoteLookupTableNTSC; break;
+		case CHANID_VRC6_SAWTOOTH:
+			Table = m_iNoteLookupTableSaw; break;
+		case CHANID_VRC7_CH1: case CHANID_VRC7_CH2: case CHANID_VRC7_CH3:
+		case CHANID_VRC7_CH4: case CHANID_VRC7_CH5: case CHANID_VRC7_CH6:
+			Table = m_iNoteLookupTableVRC7; break;
+		case CHANID_FDS:
+			Table = m_iNoteLookupTableFDS; break;
+		case CHANID_N163_CH1: case CHANID_N163_CH2: case CHANID_N163_CH3: case CHANID_N163_CH4:
+		case CHANID_N163_CH5: case CHANID_N163_CH6: case CHANID_N163_CH7: case CHANID_N163_CH8:
+			Table = m_iNoteLookupTableN163; break;
+		case CHANID_S5B_CH1: case CHANID_S5B_CH2: case CHANID_S5B_CH3:
+			Table = m_iNoteLookupTableS5B; break;
+		default: continue;
+		}
+		m_pChannels[i]->SetNoteTable(Table);
 	}
 }
 
@@ -2043,7 +1634,12 @@ void CSoundGen::EvaluateGlobalEffects(stChanNote *NoteData, int EffColumns)
 					++m_iFramesPlayed;
 				}
 				break;
+
+			default: continue;		// // //
 		}
+
+		NoteData->EffNumber[i] = EF_NONE;
+		NoteData->EffParam[i] = 0;
 	}
 }
 
@@ -2327,31 +1923,30 @@ BOOL CSoundGen::OnIdle(LONG lCount)
 
 void CSoundGen::PlayChannelNotes()
 {
-	// Feed queued notes into channels
-	const int Channels = m_pDocument->GetChannelCount();
-
 	// Read notes
-	for (int i = 0; i < Channels; ++i) {
-		int Channel = m_pDocument->GetChannelType(i);
+	for (int i = 0; i < CHANNELS; ++i) {		// // //
+		int Index = m_pTrackerChannels[i]->GetID();
+		int Channel = m_pDocument->GetChannelIndex(m_pTrackerChannels[Index]->GetID());
+		if (Channel == -1) continue;
 		
 		// Run auto-arpeggio, if enabled
-		int Arpeggio = m_pTrackerView->GetAutoArpeggio(i);
+		int Arpeggio = m_pTrackerView->GetAutoArpeggio(Channel);
 		if (Arpeggio > 0) {
-			m_pChannels[Channel]->Arpeggiate(Arpeggio);
+			m_pChannels[Index]->Arpeggiate(Arpeggio);
 		}
 
 		// Check if new note data has been queued for playing
-		if (m_pTrackerChannels[Channel]->NewNoteData()) {
-			stChanNote Note = m_pTrackerChannels[Channel]->GetNote();
-			PlayNote(Channel, &Note, m_pDocument->GetEffColumns(m_iPlayTrack, i) + 1);
+		if (m_pTrackerChannels[Index]->NewNoteData()) {
+			stChanNote Note = m_pTrackerChannels[Index]->GetNote();
+			PlayNote(Index, &Note, m_pDocument->GetEffColumns(m_iPlayTrack, Channel) + 1);
 		}
 
 		// Pitch wheel
-		int Pitch = m_pTrackerChannels[Channel]->GetPitch();
-		m_pChannels[Channel]->SetPitch(Pitch);
+		int Pitch = m_pTrackerChannels[Index]->GetPitch();
+		m_pChannels[Index]->SetPitch(Pitch);
 
 		// Update volume meters
-		m_pTrackerChannels[Channel]->SetVolumeMeter(m_pAPU->GetVol(Channel));
+		m_pTrackerChannels[Index]->SetVolumeMeter(m_pAPU->GetVol(m_pTrackerChannels[Index]->GetID()));
 	}
 
 	// Instrument sequence visualization
@@ -2833,4 +2428,36 @@ int CSoundGen::GetSequencePlayPos(const CSequence *pSequence)
 int CSoundGen::GetDefaultInstrument() const
 {
 	return ((CMainFrame*)theApp.m_pMainWnd)->GetSelectedInstrument();
+}
+
+// // // instrument recorder
+
+CInstrument* CSoundGen::GetRecordInstrument() const
+{
+	return m_pInstRecorder->GetRecordInstrument(m_iPlayTicks);
+}
+
+void CSoundGen::ResetDumpInstrument()
+{
+	m_pInstRecorder->ResetDumpInstrument();
+}
+
+int CSoundGen::GetRecordChannel() const
+{
+	return m_pInstRecorder->GetRecordChannel();
+}
+
+void CSoundGen::SetRecordChannel(int Channel)
+{
+	m_pInstRecorder->SetRecordChannel(Channel);
+}
+
+stRecordSetting *CSoundGen::GetRecordSetting() const
+{
+	return m_pInstRecorder->GetRecordSetting();
+}
+
+void CSoundGen::SetRecordSetting(stRecordSetting *Setting)
+{
+	m_pInstRecorder->SetRecordSetting(Setting);
 }

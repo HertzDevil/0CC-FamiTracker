@@ -1758,8 +1758,6 @@ void CFamiTrackerView::SelectChannel(unsigned int Channel)
 
 void CFamiTrackerView::SelectFrameChannel(unsigned int Frame, unsigned int Channel)
 {
-	ASSERT(Frame < MAX_FRAMES);
-	ASSERT(Channel < MAX_CHANNELS);
 	m_pPatternEditor->MoveToFrame(Frame);
 	m_pPatternEditor->MoveToChannel(Channel);
 	// This method does no redrawing
@@ -3420,9 +3418,8 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 void CFamiTrackerView::OnTrackerRecorderSettings()
 {
 	CRecordSettingsDlg dlg;
-	stRecordSetting Setting = dlg.GetRecordSetting();
-	if (Setting.InstCount > 0)
-		theApp.GetSoundGenerator()->SetRecordSetting(Setting);
+	if (dlg.DoModal() == IDOK)
+		theApp.GetSoundGenerator()->SetRecordSetting(dlg.GetRecordSetting());
 }
 
 void CFamiTrackerView::OnNextOctave()
