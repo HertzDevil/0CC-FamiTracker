@@ -187,7 +187,7 @@ CPatternEditor::CPatternEditor() :
 	m_iDrawFrame(0),
 	m_bFollowMode(true),
 	m_bHasFocus(false),
-	m_vHighlight(CFamiTrackerDoc::DEFAULT_HIGHLIGHT),		// // //
+	m_vHighlight(CPatternData::DEFAULT_HIGHLIGHT),		// // //
 	m_iMouseHoverChan(-1),
 	m_iMouseHoverEffArrow(0),
 	m_bSelecting(false),
@@ -268,7 +268,7 @@ void CPatternEditor::ApplyColorScheme()
 	memcpy(LogFont.lfFaceName, FontName, _tcslen(FontName));
 
 	LogFont.lfHeight = -m_iPatternFontSize;
-//	LogFont.lfHeight = -MulDiv(12, _dpiY, 96);
+//	LogFont.lfHeight = -DPI::SY(12);		// // //
 	LogFont.lfQuality = DRAFT_QUALITY;
 	LogFont.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
 

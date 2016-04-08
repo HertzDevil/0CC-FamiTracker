@@ -434,6 +434,7 @@
     <ClCompile Include="Source\ChannelFactory.cpp" />
     <ClCompile Include="Source\ChannelState.cpp" />
     <ClCompile Include="Source\DetuneTable.cpp" />
+    <ClCompile Include="Source\DPI.cpp" />
     <ClCompile Include="Source\DSampleManager.cpp" />
     <ClCompile Include="Source\ConfigVersion.cpp" />
     <ClCompile Include="Source\DetuneDlg.cpp" />
@@ -680,6 +681,7 @@
     <ClInclude Include="Source\BookmarkManager.h" />
     <ClInclude Include="Source\BookmarkDlg.h" />
     <ClInclude Include="Source\DetuneTable.h" />
+    <ClInclude Include="Source\DPI.h" />
     <ClInclude Include="Source\Factory.h" />
     <ClInclude Include="Source\ChannelFactory.h" />
     <ClInclude Include="Source\ChannelState.h" />
@@ -1243,6 +1245,7 @@ echo.
     <None Include="changelog.txt" />
     <None Include="FamiTracker.reg" />
     <None Include="gpl.txt" />
+    <None Include="Source\resampler\resample.inl" />
     <None Include="specs.txt" />
   </ItemGroup>
   <ItemGroup>

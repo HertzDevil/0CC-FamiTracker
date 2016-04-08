@@ -2,7 +2,7 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2014  Jonathan Liss
 **
-** 0CC-FamiTracker is (C) 2014-2015 HertzDevil
+** 0CC-FamiTracker is (C) 2014-2016 HertzDevil
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -20,35 +20,24 @@
 ** must bear this legend.
 */
 
-#include "stdafx.h"
-#include <vector>
-#include <memory>
-#include "Sequence.h"
-#include "SequenceCollection.h"
-#include "SequenceManager.h"
 
-CSequenceManager::CSequenceManager(int Count)
-{
-	m_pCollection.resize(Count);
-	for (int i = 0; i < Count; ++i)
-		m_pCollection[i].reset(new CSequenceCollection());
-}
+#pragma once
 
-int CSequenceManager::GetCount() const
-{
-	return m_pCollection.size();
-}
+class CPoint;
 
-CSequenceCollection *CSequenceManager::GetCollection(unsigned int Index)
+struct DPI		// // //
 {
-	if (Index >= m_pCollection.size()) return nullptr;
-	if (!m_pCollection[Index])
-		m_pCollection[Index].reset(new CSequenceCollection());
-	return m_pCollection[Index].get();
-}
+	// DPI scaling functions
+	static int SX(int pt);
+	static int SY(int pt);
+	static void ScaleMouse(CPoint &pt);
+	static void ScaleRect(CRect &r);		// // //
 
-const CSequenceCollection *CSequenceManager::GetCollection(unsigned int Index) const
-{
-	if (Index >= m_pCollection.size()) return nullptr;
-	return m_pCollection[Index].get();
-}
+	static CRect Rect(int x, int y, int w, int h);		// // //
+
+	static void SetScale(int X, int Y);		// // //
+private:
+	// DPI variables
+	static const int DEFAULT_DPI;
+	static int _dpiX, _dpiY;
+};

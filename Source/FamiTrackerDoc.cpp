@@ -58,7 +58,6 @@
 #include "FamiTrackerDoc.h"
 #include "ModuleException.h"		// // //
 #include "TrackerChannel.h"
-#include "MainFrm.h"
 #include "DocumentFile.h"
 #include "Settings.h"
 #include "SoundGen.h"
@@ -76,18 +75,10 @@
 #define new DEBUG_NEW
 #endif
 
-// Defaults when creating new modules
-const char* CFamiTrackerDoc::DEFAULT_TRACK_NAME = "New song";
-const int	CFamiTrackerDoc::DEFAULT_ROW_COUNT	= 64;
-
 const char* CFamiTrackerDoc::NEW_INST_NAME = "New instrument";
 
 // Make 1 channel default since 8 sounds bad
 const int	CFamiTrackerDoc::DEFAULT_NAMCO_CHANS = 1;
-
-const int	CFamiTrackerDoc::DEFAULT_FIRST_HIGHLIGHT = 4;
-const int	CFamiTrackerDoc::DEFAULT_SECOND_HIGHLIGHT = 16;
-const stHighlight CFamiTrackerDoc::DEFAULT_HIGHLIGHT = {DEFAULT_FIRST_HIGHLIGHT, DEFAULT_SECOND_HIGHLIGHT, 0};		// // //
 
 const bool	CFamiTrackerDoc::DEFAULT_LINEAR_PITCH = false;
 
@@ -190,16 +181,14 @@ CFamiTrackerDoc::~CFamiTrackerDoc()
 	// Clean up
 
 	// Patterns
-	for (int i = 0; i < MAX_TRACKS; ++i) {
+	for (int i = 0; i < MAX_TRACKS; ++i)
 		SAFE_RELEASE(m_pTracks[i]);
-	}
 
 	// // // Grooves
 	for (int i = 0; i < MAX_GROOVE; ++i)
 		SAFE_RELEASE(m_pGrooveTable[i]);
 	
-	m_pInstrumentManager->ClearAll();		// // //
-	SAFE_RELEASE(m_pInstrumentManager);
+	SAFE_RELEASE(m_pInstrumentManager);		// // //
 	SAFE_RELEASE(m_pBookmarkManager);
 }
 
@@ -350,21 +339,19 @@ void CFamiTrackerDoc::DeleteContents()
 
 	UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
 
-	m_pInstrumentManager->ClearAll();		// // //
-	m_pBookmarkManager->ClearAll();		// // //
+	// Delete all patterns
+	for (int i = 0; i < MAX_TRACKS; ++i)
+		SAFE_RELEASE(m_pTracks[i]);
 
 	// // // Grooves
 	for (int i = 0; i < MAX_GROOVE; ++i)
 		SAFE_RELEASE(m_pGrooveTable[i]);
 
+	m_pInstrumentManager->ClearAll();		// // //
+	m_pBookmarkManager->ClearAll();		// // //
+
 	// Clear number of tracks
 	m_iTrackCount = 1;
-
-	// Delete all patterns
-	for (int i = 0; i < MAX_TRACKS; ++i) {
-		SAFE_RELEASE(m_pTracks[i]);
-		m_sTrackNames[i].Empty();
-	}
 
 	// Clear song info
 	memset(m_strName, 0, 32);
@@ -380,7 +367,7 @@ void CFamiTrackerDoc::DeleteContents()
 	m_iChannelsAvailable = CHANNELS_DEFAULT;
 	m_iSpeedSplitPoint	 = DEFAULT_SPEED_SPLIT_POINT;
 
-	m_vHighlight = DEFAULT_HIGHLIGHT;		// // //
+	m_vHighlight = CPatternData::DEFAULT_HIGHLIGHT;		// // //
 
 	ResetDetuneTables();		// // //
 
@@ -609,7 +596,6 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 	m_pCurrentDocument = &DocumentFile;		// // //
 	CFileException ex;
 	TCHAR TempPath[MAX_PATH], TempFile[MAX_PATH];
-	ULONGLONG FileSize;
 
 	// First write to a temp file (if saving fails, the original is not destroyed)
 	GetTempPath(MAX_PATH, TempPath);
@@ -642,7 +628,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 
 	DocumentFile.EndDocument();
 
-	FileSize = DocumentFile.GetLength();
+	ULONGLONG FileSize = DocumentFile.GetLength();
 
 	DocumentFile.Close();
 	m_pCurrentDocument = nullptr;		// // //
@@ -659,6 +645,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 	// Replace the original
 	if (!MoveFileEx(TempFile, lpszPathName, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED)) {
 		// Display message if saving failed
+		AfxDebugBreak();		// // //
 		TCHAR *lpMsgBuf;
 		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
 		CString	strFormatted;
@@ -676,10 +663,10 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 	CloseHandle(hOldFile);
 
 	// Todo: avoid calling the main window from document class
-	CMainFrame *pMainFrame = static_cast<CMainFrame*>(AfxGetMainWnd());
-	if (pMainFrame != NULL) {
+	if (CFrameWnd *pMainFrame = static_cast<CFrameWnd*>(AfxGetMainWnd())) {		// // //
 		CString text;
-		AfxFormatString1(text, IDS_FILE_SAVED, MakeIntString(static_cast<int>(FileSize)));
+		text.Format("%i", FileSize);
+		AfxFormatString1(text, IDS_FILE_SAVED, text);
 		pMainFrame->SetMessageText(text);
 	}
 
@@ -792,7 +779,7 @@ bool CFamiTrackerDoc::WriteBlock_Header(CDocumentFile *pDocFile, const int Versi
 	// Ver 3, store track names
 	if (Version >= 3)
 		for (unsigned int i = 0; i < m_iTrackCount; ++i)
-			pDocFile->WriteString(m_sTrackNames[i]);
+			pDocFile->WriteString(m_pTracks[i]->GetTitle());		// // //
 
 	for (unsigned int i = 0; i < m_iChannelsAvailable; ++i) {
 		// Channel type
@@ -1621,7 +1608,7 @@ void CFamiTrackerDoc::ReadBlock_Parameters(CDocumentFile *pDocFile, const int Ve
 
 	// TODO read m_bLinearPitch
 
-	m_vHighlight = DEFAULT_HIGHLIGHT;		// // //
+	m_vHighlight = CPatternData::DEFAULT_HIGHLIGHT;		// // //
 
 	if (Version > 3) {
 		m_vHighlight.First = pDocFile->GetBlockInt();
@@ -1702,7 +1689,7 @@ void CFamiTrackerDoc::ReadBlock_Header(CDocumentFile *pDocFile, const int Versio
 		// Track names
 		if (Version >= 3)
 			for (unsigned i = 0; i < m_iTrackCount; ++i)
-				m_sTrackNames[i] = pDocFile->ReadString();
+				m_pTracks[i]->SetTitle(pDocFile->ReadString());		// // //
 
 		for (unsigned i = 0; i < m_iChannelsAvailable; ++i) try {
 			AssertRange(pDocFile->GetBlockChar(), 0, CHANNELS - 1, "Channel type index"); // Channel type (unused)
@@ -3616,8 +3603,7 @@ void CFamiTrackerDoc::DeleteFrames(unsigned int Track, unsigned int Frame, int C
 
 CString CFamiTrackerDoc::GetTrackTitle(unsigned int Track) const
 {
-	ASSERT(Track < MAX_TRACKS);
-	return m_sTrackNames[Track];
+	return m_pTracks[Track]->GetTitle();		// // //
 }
 
 int CFamiTrackerDoc::AddTrack()
@@ -3649,10 +3635,8 @@ void CFamiTrackerDoc::RemoveTrack(unsigned int Track)
 	delete m_pTracks[Track];
 	
 	// Move down all other tracks
-	for (unsigned int i = Track; i < m_iTrackCount - 1; ++i) {
-		m_sTrackNames[i] = m_sTrackNames[i + 1];
-		m_pTracks[i] = m_pTracks[i + 1];
-	}
+	for (unsigned int i = Track; i < m_iTrackCount - 1; ++i)
+		m_pTracks[i] = m_pTracks[i + 1];		// // //
 
 	m_pTracks[m_iTrackCount - 1] = NULL;
 
@@ -3670,12 +3654,10 @@ void CFamiTrackerDoc::RemoveTrack(unsigned int Track)
 
 void CFamiTrackerDoc::SetTrackTitle(unsigned int Track, const CString &title)
 {
-	if (m_sTrackNames[Track] == title)
-		return;
-
-	m_sTrackNames[Track] = title;
-	SetModifiedFlag();
-	SetExceededFlag();		// // //
+	if (m_pTracks[Track]->GetTitle() != title) {		// // //
+		m_pTracks[Track]->SetTitle(title);
+		ModifyIrreversible();
+	}
 }
 
 void CFamiTrackerDoc::MoveTrackUp(unsigned int Track)
@@ -3683,7 +3665,6 @@ void CFamiTrackerDoc::MoveTrackUp(unsigned int Track)
 	ASSERT(Track > 0);
 
 	SwapTracks(Track, Track - 1);
-	m_pBookmarkManager->SwapTracks(Track, Track - 1);		// // //
 	SetModifiedFlag();
 	SetExceededFlag();		// // //
 }
@@ -3693,14 +3674,12 @@ void CFamiTrackerDoc::MoveTrackDown(unsigned int Track)
 	ASSERT(Track < MAX_TRACKS);
 
 	SwapTracks(Track, Track + 1);
-	m_pBookmarkManager->SwapTracks(Track, Track + 1);		// // //
 	SetModifiedFlag();
 	SetExceededFlag();		// // //
 }
 
 void CFamiTrackerDoc::SwapTracks(unsigned int Track1, unsigned int Track2)
 {
-	std::swap(m_sTrackNames[Track1], m_sTrackNames[Track2]);		// // //
 	std::swap(m_pTracks[Track1], m_pTracks[Track2]);
 	m_pBookmarkManager->SwapTracks(Track1, Track2);		// // //
 }
@@ -3710,9 +3689,8 @@ void CFamiTrackerDoc::AllocateTrack(unsigned int Track)
 	// Allocate a new song if not already done
 	if (m_pTracks[Track] == NULL) {
 		int Tempo = (m_iMachine == NTSC) ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL;
-		m_pTracks[Track] = new CPatternData(DEFAULT_ROW_COUNT);		// // //
+		m_pTracks[Track] = new CPatternData();		// // //
 		m_pTracks[Track]->SetSongTempo(Tempo);
-		m_sTrackNames[Track] = DEFAULT_TRACK_NAME;
 		m_pBookmarkManager->GetCollection(Track)->ClearBookmarks();
 	}
 }
@@ -4910,7 +4888,7 @@ void CFamiTrackerDoc::MakeKraid()			// // // Easter Egg
 	SetEffColumns(0, 4, 0);
 	SetSpeedSplitPoint(32);
 	SelectExpansionChip(SNDCHIP_NONE);
-	SetHighlight(DEFAULT_HIGHLIGHT);
+	SetHighlight(CPatternData::DEFAULT_HIGHLIGHT);
 	ResetDetuneTables();
 	for (int i = 0; i < MAX_GROOVE; i++)
 		SAFE_RELEASE(m_pGrooveTable[i]);
