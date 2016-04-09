@@ -173,8 +173,7 @@ bool CChannelHandlerVRC7::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_VRC7:
-		SAFE_RELEASE(m_pInstHandler);
-		m_pInstHandler = new CInstHandlerVRC7(this, 0x0F);
+		m_pInstHandler.reset(new CInstHandlerVRC7(this, 0x0F));
 		return true;
 	}
 	return false;
@@ -293,6 +292,6 @@ void CVRC7Channel::ClearRegisters()
 
 void CVRC7Channel::RegWrite(unsigned char Reg, unsigned char Value)
 {
-	WriteExternalRegister(0x9010, Reg);
-	WriteExternalRegister(0x9030, Value);
+	WriteRegister(0x9010, Reg);
+	WriteRegister(0x9030, Value);
 }

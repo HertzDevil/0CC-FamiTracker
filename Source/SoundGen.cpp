@@ -60,6 +60,9 @@
 // Write period tables to files
 //#define WRITE_PERIOD_FILES
 
+// // // Write vibrato table to file
+//#define WRITE_VIBRATO_FILE
+
 // Write a file with the volume table
 //#define WRITE_VOLUME_FILE
 
@@ -135,7 +138,8 @@ CSoundGen::CSoundGen() :
 	m_iClipCounter(0),
 	m_pSequencePlayPos(NULL),
 	m_iSequencePlayPos(0),
-	m_iSequenceTimeout(0)
+	m_iSequenceTimeout(0),
+	m_bUpdatingAPU(false)		// // //
 {
 	TRACE0("SoundGen: Object created\n");
 
@@ -371,6 +375,165 @@ CChannelHandler *CSoundGen::GetChannel(int Index) const
 void CSoundGen::DocumentPropertiesChanged(CFamiTrackerDoc *pDocument)
 {
 	ASSERT(pDocument != NULL);
+	
+	SetupVibratoTable(pDocument->GetVibratoStyle());		// // //
+	
+	machine_t Machine = m_pDocument->GetMachine();
+	const int A440_NOTE = 45;
+	double clock_ntsc = CAPU::BASE_FREQ_NTSC / 16.0;
+	double clock_pal = CAPU::BASE_FREQ_PAL / 16.0;
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		// Frequency (in Hz)
+		double Freq = 440. * pow(2.0, double(i - A440_NOTE) / 12.);
+		double Pitch;
+
+		// 2A07
+		Pitch = (clock_pal / Freq) - 0.5;
+		m_iNoteLookupTablePAL[i] = (unsigned int)(Pitch - m_pDocument->GetDetuneOffset(1, i));		// // //
+		
+		// 2A03 / MMC5 / VRC6
+		Pitch = (clock_ntsc / Freq) - 0.5;
+		m_iNoteLookupTableNTSC[i] = (unsigned int)(Pitch - m_pDocument->GetDetuneOffset(0, i));		// // //
+		m_iNoteLookupTableS5B[i] = m_iNoteLookupTableNTSC[i] + 1;		// correction
+
+		// VRC6 Saw
+		Pitch = ((clock_ntsc * 16.0) / (Freq * 14.0)) - 0.5;
+		m_iNoteLookupTableSaw[i] = (unsigned int)(Pitch - m_pDocument->GetDetuneOffset(2, i));		// // //
+
+		// FDS
+#ifdef TRANSPOSE_FDS
+		Pitch = (Freq * 65536.0) / (clock_ntsc / 1.0) + 0.5;
+#else
+		Pitch = (Freq * 65536.0) / (clock_ntsc / 4.0) + 0.5;
+#endif
+		m_iNoteLookupTableFDS[i] = (unsigned int)(Pitch + m_pDocument->GetDetuneOffset(4, i));		// // //
+
+		// N163
+		Pitch = ((Freq * m_pDocument->GetNamcoChannels() * 983040.0) / clock_ntsc + 0.5) / 4;		// // //
+		m_iNoteLookupTableN163[i] = (unsigned int)(Pitch + m_pDocument->GetDetuneOffset(5, i));		// // //
+
+		if (m_iNoteLookupTableN163[i] > 0xFFFF)	// 0x3FFFF
+			m_iNoteLookupTableN163[i] = 0xFFFF;	// 0x3FFFF
+
+		// // // Sunsoft 5B uses NTSC table
+
+		// // // VRC7
+		if (i < NOTE_RANGE) {
+			Pitch = Freq * 262144.0 / 49716.0 + 0.5;
+			m_iNoteLookupTableVRC7[i] = (unsigned int)(Pitch + m_pDocument->GetDetuneOffset(3, i));		// // //
+		}
+	}
+	
+	// // // Setup note tables
+	for (int i = 0; i < CHANNELS; ++i) {
+		if (!m_pChannels[i]) continue;
+		const unsigned int *Table = nullptr;
+		switch (m_pTrackerChannels[i]->GetID()) {
+		case CHANID_SQUARE1: case CHANID_SQUARE2: case CHANID_TRIANGLE:
+			Table = Machine == PAL ? m_iNoteLookupTablePAL : m_iNoteLookupTableNTSC; break;
+		case CHANID_VRC6_PULSE1: case CHANID_VRC6_PULSE2:
+		case CHANID_MMC5_SQUARE1: case CHANID_MMC5_SQUARE2:
+			Table = m_iNoteLookupTableNTSC; break;
+		case CHANID_VRC6_SAWTOOTH:
+			Table = m_iNoteLookupTableSaw; break;
+		case CHANID_VRC7_CH1: case CHANID_VRC7_CH2: case CHANID_VRC7_CH3:
+		case CHANID_VRC7_CH4: case CHANID_VRC7_CH5: case CHANID_VRC7_CH6:
+			Table = m_iNoteLookupTableVRC7; break;
+		case CHANID_FDS:
+			Table = m_iNoteLookupTableFDS; break;
+		case CHANID_N163_CH1: case CHANID_N163_CH2: case CHANID_N163_CH3: case CHANID_N163_CH4:
+		case CHANID_N163_CH5: case CHANID_N163_CH6: case CHANID_N163_CH7: case CHANID_N163_CH8:
+			Table = m_iNoteLookupTableN163; break;
+		case CHANID_S5B_CH1: case CHANID_S5B_CH2: case CHANID_S5B_CH3:
+			Table = m_iNoteLookupTableS5B; break;
+		default: continue;
+		}
+		m_pChannels[i]->SetNoteTable(Table);
+	}
+
+#ifdef WRITE_PERIOD_FILES
+
+	// Write periods to a single file with assembly formatting
+	CStdioFile period_file("..\\nsf driver\\periods.s", CStdioFile::modeWrite | CStdioFile::modeCreate);
+
+	// One possible optimization is to store the PAL table as the difference from the NTSC table
+
+	period_file.WriteString("; 2A03 NTSC\n");
+	period_file.WriteString(".if .defined(NTSC_PERIOD_TABLE)\n");
+	period_file.WriteString("ft_periods_ntsc: ;; Patch\n\t.word\t");
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		CString str;
+		str.Format("$%04X%s", m_iNoteLookupTableNTSC[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
+		period_file.WriteString(str);
+	}
+
+	period_file.WriteString(".endif\n\n");
+	period_file.WriteString("; 2A03 PAL\n");
+	period_file.WriteString(".if .defined(PAL_PERIOD_TABLE)\n");
+	period_file.WriteString("ft_periods_pal: ;; Patch\n\t.word\t");
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		CString str;
+		str.Format("$%04X%s", m_iNoteLookupTablePAL[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
+		period_file.WriteString(str);
+	}
+
+	period_file.WriteString(".endif\n\n");
+	period_file.WriteString("; VRC6 Sawtooth\n");
+	period_file.WriteString(".if .defined(USE_VRC6)\n");
+	period_file.WriteString("ft_periods_sawtooth: ;; Patch\n\t.word\t");
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		CString str;
+		str.Format("$%04X%s", m_iNoteLookupTableSaw[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
+		period_file.WriteString(str);
+	}
+
+	period_file.WriteString(".endif\n\n");
+	period_file.WriteString("; FDS\n");
+	period_file.WriteString(".if .defined(USE_FDS)\n");
+	period_file.WriteString("ft_periods_fds: ;; Patch\n\t.word\t");
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		CString str;
+		str.Format("$%04X%s", m_iNoteLookupTableFDS[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
+		period_file.WriteString(str);
+	}
+
+	period_file.WriteString(".endif\n\n");
+	period_file.WriteString("; N163\n");
+	period_file.WriteString(".if .defined(USE_N163)\n");
+	period_file.WriteString("ft_periods_n163: ;; Patch\n\t.word\t");
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		CString str;
+		str.Format("$%04X%s", m_iNoteLookupTableN163[i] & 0xFFFF, ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
+		period_file.WriteString(str);
+	}
+
+	period_file.WriteString(".endif\n\n");
+	period_file.WriteString("; VRC7\n");
+	period_file.WriteString(".if .defined(USE_VRC7)\n");
+	period_file.WriteString("; Fnum table, multiplied by 4 for higher resolution\n");
+	period_file.WriteString(".define ft_vrc7_table ");
+
+	for (int i = 0; i < NOTE_RANGE; ++i) {
+		CString str;
+		str.Format("$%04X%s", m_iNoteLookupTableVRC7[i] * 4, (i < 11) ? ", " : "\n\n");
+		period_file.WriteString(str);
+	}
+	
+	period_file.WriteString("ft_note_table_vrc7_l: ;; Patch\n");
+	period_file.WriteString("\t.lobytes ft_vrc7_table\n");
+	period_file.WriteString("ft_note_table_vrc7_h:\n");
+	period_file.WriteString("\t.hibytes ft_vrc7_table\n");
+	period_file.WriteString(".endif\n");
+
+	period_file.Close();
+
+#endif
 
 	for (int i = 0; i < CHANNELS; ++i) {
 		if (m_pChannels[i]) {
@@ -663,7 +826,7 @@ void CSoundGen::ResetBuffer()
 	m_pAPU->Reset();
 }
 
-void CSoundGen::FlushBuffer(int16 *pBuffer, uint32 Size)
+void CSoundGen::FlushBuffer(int16_t *pBuffer, uint32_t Size)
 {
 	// Callback method from emulation
 
@@ -679,9 +842,9 @@ void CSoundGen::FlushBuffer(int16 *pBuffer, uint32 Size)
 #endif /* EXPORT_TEST */
 
 	if (m_iSampleSize == 8)
-		FillBuffer<uint8, 8>(pBuffer, Size);
+		FillBuffer<uint8_t, 8>(pBuffer, Size);
 	else
-		FillBuffer<int16, 0>(pBuffer, Size);
+		FillBuffer<int16_t, 0>(pBuffer, Size);
 
 	if (m_iClipCounter > 50) {
 		// Ignore some clipping to allow the HP-filter adjust itself
@@ -693,7 +856,7 @@ void CSoundGen::FlushBuffer(int16 *pBuffer, uint32 Size)
 }
 
 template <class T, int SHIFT>
-void CSoundGen::FillBuffer(int16 *pBuffer, uint32 Size)
+void CSoundGen::FillBuffer(int16_t *pBuffer, uint32_t Size)
 {
 	// Called when the APU audio buffer is full and
 	// ready for playing
@@ -702,13 +865,13 @@ void CSoundGen::FillBuffer(int16 *pBuffer, uint32 Size)
 
 	T *pConversionBuffer = (T*)m_pAccumBuffer;
 
-	for (uint32 i = 0; i < Size; ++i) {
-		int16 Sample = pBuffer[i];
+	for (uint32_t i = 0; i < Size; ++i) {
+		int16_t Sample = pBuffer[i];
 
 		// 1000 Hz test tone
 #ifdef AUDIO_TEST
 		static double sine_phase = 0;
-		Sample = int32(sin(sine_phase) * 10000.0);
+		Sample = int32_t(sin(sine_phase) * 10000.0);
 
 		static double freq = 1000;
 		// Sweep
@@ -831,23 +994,20 @@ void CSoundGen::GenerateVibratoTable(vibrato_t Type)
 		}
 	}
 
-#ifdef _DEBUG
-/*
-	CFile a("vibrato.txt", CFile::modeWrite | CFile::modeCreate);
-	CString b;
+#ifdef WRITE_VIBRATO_FILE
+	CStdioFile a("..\\nsf driver\\vibrato.s", CFile::modeWrite | CFile::modeCreate);
+	a.WriteString("; Vibrato table (256 bytes)\n"
+				  "ft_vibrato_table: ;; Patch\n");
 	for (int i = 0; i < 16; i++) {	// depth 
-		b = "\t.byte ";
-		a.Write(b.GetBuffer(), b.GetLength());
+		a.WriteString("\t.byte ");
 		for (int j = 0; j < 16; j++) {	// phase
-			int value = m_iVibratoTable[i * 16 + j];
-			b.Format("$%02X, ", value);
-			a.Write(b.GetBuffer(), b.GetLength());
+			CString b;
+			b.Format("$%02X%s", m_iVibratoTable[i * 16 + j], j < 15 ? ", " : "");
+			a.WriteString(b);
 		}
-		b = "\n";
-		a.Write(b.GetBuffer(), b.GetLength());
+		a.WriteString("\n");
 	}
 	a.Close();
-*/
 #endif
 }
 
@@ -1124,7 +1284,7 @@ void CSoundGen::ResetAPU()
 	m_pAPU->Write(0x4017, 0x00);
 
 	// MMC5
-	m_pAPU->ExternalWrite(0x5015, 0x03);
+	m_pAPU->Write(0x5015, 0x03);
 
 	m_pSampleMem->Clear();
 }
@@ -1139,7 +1299,7 @@ void CSoundGen::AddCycles(int Count)
 	m_pAPU->AddTime(Count);
 }
 
-uint16 CSoundGen::GetReg(int Chip, int Reg) const		// // //
+uint16_t CSoundGen::GetReg(int Chip, int Reg) const		// // //
 { 
 	return m_pAPU->GetReg(Chip, Reg);
 }
@@ -1346,152 +1506,15 @@ void CSoundGen::LoadMachineSettings(machine_t Machine, int Rate, int NamcoChanne
 
 	m_iMachineType = Machine;
 
-	m_pAPU->ChangeMachine(Machine == NTSC ? MACHINE_NTSC : MACHINE_PAL);
-
 	// Choose a default rate if not predefined
 	if (Rate == 0)
 		Rate = DefaultRate;
 
-	double clock_ntsc = CAPU::BASE_FREQ_NTSC / 16.0;
-	double clock_pal = CAPU::BASE_FREQ_PAL / 16.0;
+	while (m_bUpdatingAPU);		// // //
+	m_pAPU->ChangeMachineRate(Machine == NTSC ? MACHINE_NTSC : MACHINE_PAL, Rate);		// // //
 
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		// Frequency (in Hz)
-		double Freq = BASE_FREQ * pow(2.0, double(i) / 12.0);
-		double Pitch;
-
-		// 2A07
-		Pitch = (clock_pal / Freq) - 0.5;
-		m_iNoteLookupTablePAL[i] = (unsigned int)(Pitch - m_pDocument->GetDetuneOffset(1, i));		// // //
-		
-		// 2A03 / MMC5 / VRC6
-		Pitch = (clock_ntsc / Freq) - 0.5;
-		m_iNoteLookupTableNTSC[i] = (unsigned int)(Pitch - m_pDocument->GetDetuneOffset(0, i));		// // //
-		m_iNoteLookupTableS5B[i] = m_iNoteLookupTableNTSC[i] + 1;		// correction
-
-		// VRC6 Saw
-		Pitch = ((clock_ntsc * 16.0) / (Freq * 14.0)) - 0.5;
-		m_iNoteLookupTableSaw[i] = (unsigned int)(Pitch - m_pDocument->GetDetuneOffset(2, i));		// // //
-
-		// FDS
-#ifdef TRANSPOSE_FDS
-		Pitch = (Freq * 65536.0) / (clock_ntsc / 1.0) + 0.5;
-#else
-		Pitch = (Freq * 65536.0) / (clock_ntsc / 4.0) + 0.5;
-#endif
-		m_iNoteLookupTableFDS[i] = (unsigned int)(Pitch + m_pDocument->GetDetuneOffset(4, i));		// // //
-
-		// N163
-		Pitch = ((Freq * NamcoChannels * 983040.0) / clock_ntsc + 0.5) / 4;		// // //
-		m_iNoteLookupTableN163[i] = (unsigned int)(Pitch + m_pDocument->GetDetuneOffset(5, i));		// // //
-
-		if (m_iNoteLookupTableN163[i] > 0xFFFF)	// 0x3FFFF
-			m_iNoteLookupTableN163[i] = 0xFFFF;	// 0x3FFFF
-
-		// // // Sunsoft 5B uses NTSC table
-
-		// // // VRC7
-		if (i < NOTE_RANGE) {
-			Pitch = Freq * 262144.0 / 49716.0 + 0.5;
-			m_iNoteLookupTableVRC7[i] = (unsigned int)(Pitch + m_pDocument->GetDetuneOffset(3, i));		// // //
-		}
-	}
-/*
-	CStdioFile period_file("periods.txt", CStdioFile::modeWrite | CStdioFile::modeCreate);
-
-	const char NOTES_A[] = {'C', 'C', 'D', 'D', 'E', 'F', 'F', 'G', 'G', 'A', 'A', 'B'};
-	const char NOTES_B[] = {'-', '#', '-', '#', '-', '-', '#', '-', '#', '-', '#', '-'};
-	const char NOTES_C[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-
-	double total_diff = 0;
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		int period = m_iNoteLookupTableNTSC[i];
-		double freq;
-		if (period > 0x7FF)
-			period = 0x7FF;
-		double real_freq = BASE_FREQ * pow(2.0, double(i) / 12.0);
-
-		freq = clock_ntsc / (1 + period);
-		str.Format("%c%c%c: $%04X (%f Hz),\t%f Hz\t(diff = %f Hz)\n", NOTES_A[i % 12], NOTES_B[i % 12], NOTES_C[i / 12], period, freq, real_freq, (freq - real_freq));
-		period_file.WriteString(str);
-
-		total_diff += abs(freq - real_freq);
-	}
-
-	CString str;
-	str.Format("total diff: %f\n", total_diff);
-	period_file.WriteString(str);
-
-	period_file.Close();
-*/
-#ifdef WRITE_PERIOD_FILES
-
-	// Write periods to a single file with assembly formatting
-	CStdioFile period_file("..\\nsf driver\\periods.s", CStdioFile::modeWrite | CStdioFile::modeCreate);
-
-	// One possible optimization is to store the PAL table as the difference from the NTSC table
-
-	period_file.WriteString("; 2A03 NTSC\n");
-	period_file.WriteString(".ifdef NTSC_PERIOD_TABLE\n");
-	period_file.WriteString("ft_periods_ntsc:\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableNTSC[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
-
-	period_file.WriteString(".endif\n\n");
-	period_file.WriteString("; 2A03 PAL\n");
-	period_file.WriteString(".ifdef PAL_PERIOD_TABLE\n");
-	period_file.WriteString("ft_periods_pal:\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTablePAL[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
-
-	period_file.WriteString(".endif\n\n");
-	period_file.WriteString("; VRC6 Sawtooth\n");
-	period_file.WriteString(".ifdef VRC6_PERIOD_TABLE\n");
-	period_file.WriteString("ft_periods_sawtooth:\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableSaw[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
-
-	period_file.WriteString(".endif\n\n");
-	period_file.WriteString("; FDS\n");
-	period_file.WriteString(".ifdef FDS_PERIOD_TABLE\n");
-	period_file.WriteString("ft_periods_fds:\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableFDS[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
-
-	period_file.WriteString(".endif\n\n");
-	period_file.WriteString("; N163\n");
-	period_file.WriteString(".ifdef N163_PERIOD_TABLE\n");
-	period_file.WriteString("ft_periods_n163:\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableN163[i] & 0xFFFF, ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
-
-	period_file.WriteString(".endif\n\n");
-
-	period_file.Close();
-
-#endif
+	// Number of cycles between each APU update
+	m_iUpdateCycles = BaseFreq / Rate;
 
 #if WRITE_VOLUME_FILE
 	CFile file("vol.txt", CFile::modeWrite | CFile::modeCreate);
@@ -1512,36 +1535,6 @@ void CSoundGen::LoadMachineSettings(machine_t Machine, int Rate, int NamcoChanne
 
 	file.Close();
 #endif /* WRITE_VOLUME_FILE */
-
-	// Number of cycles between each APU update
-	m_iUpdateCycles = BaseFreq / Rate;
-	
-	// // // Setup note tables
-	for (int i = 0; i < CHANNELS; ++i) {
-		if (!m_pChannels[i]) continue;
-		const unsigned int *Table = nullptr;
-		switch (m_pTrackerChannels[i]->GetID()) {
-		case CHANID_SQUARE1: case CHANID_SQUARE2: case CHANID_TRIANGLE:
-			Table = Machine == PAL ? m_iNoteLookupTablePAL : m_iNoteLookupTableNTSC; break;
-		case CHANID_VRC6_PULSE1: case CHANID_VRC6_PULSE2:
-		case CHANID_MMC5_SQUARE1: case CHANID_MMC5_SQUARE2:
-			Table = m_iNoteLookupTableNTSC; break;
-		case CHANID_VRC6_SAWTOOTH:
-			Table = m_iNoteLookupTableSaw; break;
-		case CHANID_VRC7_CH1: case CHANID_VRC7_CH2: case CHANID_VRC7_CH3:
-		case CHANID_VRC7_CH4: case CHANID_VRC7_CH5: case CHANID_VRC7_CH6:
-			Table = m_iNoteLookupTableVRC7; break;
-		case CHANID_FDS:
-			Table = m_iNoteLookupTableFDS; break;
-		case CHANID_N163_CH1: case CHANID_N163_CH2: case CHANID_N163_CH3: case CHANID_N163_CH4:
-		case CHANID_N163_CH5: case CHANID_N163_CH6: case CHANID_N163_CH7: case CHANID_N163_CH8:
-			Table = m_iNoteLookupTableN163; break;
-		case CHANID_S5B_CH1: case CHANID_S5B_CH2: case CHANID_S5B_CH3:
-			Table = m_iNoteLookupTableS5B; break;
-		default: continue;
-		}
-		m_pChannels[i]->SetNoteTable(Table);
-	}
 }
 
 stDPCMState CSoundGen::GetDPCMState() const
@@ -1872,7 +1865,8 @@ BOOL CSoundGen::OnIdle(LONG lCount)
 	}
 
 	// Update APU registers
-	UpdateAPU();
+	if (!m_bUpdatingAPU)		// // //
+		UpdateAPU();
 
 	if (IsPlaying()) {		// // //
 		int Channel = m_pInstRecorder->GetRecordChannel();
@@ -1990,6 +1984,8 @@ void CSoundGen::UpdateAPU()
 	m_bInternalWaveChanged = m_bWaveChanged;
 	m_bWaveChanged = false;
 
+	m_bUpdatingAPU = true;		// // //
+
 	// Update APU channel registers
 	for (int i = 0; i < CHANNELS; ++i) {
 		if (m_pChannels[i] != NULL) {
@@ -2004,6 +2000,8 @@ void CSoundGen::UpdateAPU()
 	// Finish the audio frame
 	m_pAPU->AddTime(m_iUpdateCycles - m_iConsumedCycles);
 	m_pAPU->Process();
+
+	m_bUpdatingAPU = false;		// // //
 
 #ifdef LOGGING
 	if (m_bPlaying)
@@ -2071,7 +2069,7 @@ void CSoundGen::OnPreviewSample(WPARAM wParam, LPARAM lParam)
 
 void CSoundGen::OnWriteAPU(WPARAM wParam, LPARAM lParam)
 {
-	m_pAPU->Write((uint16)wParam, (uint8)lParam);
+	m_pAPU->Write((uint16_t)wParam, (uint8_t)lParam);
 }
 
 void CSoundGen::OnCloseSound(WPARAM wParam, LPARAM lParam)
@@ -2096,7 +2094,7 @@ void CSoundGen::OnSetChip(WPARAM wParam, LPARAM lParam)
 
 	// MMC5
 	if (Chip & SNDCHIP_MMC5)
-		m_pAPU->ExternalWrite(0x5015, 0x03);
+		m_pAPU->Write(0x5015, 0x03);
 }
 
 void CSoundGen::OnVerifyExport(WPARAM wParam, LPARAM lParam)
@@ -2304,15 +2302,12 @@ int CSoundGen::GetQueueFrame() const
 
 static stRegs InternalRegs;
 
-void CSoundGen::WriteRegister(uint16 Reg, uint8 Value)
+void CSoundGen::WriteRegister(uint16_t Reg, uint8_t Value)
 {
-	InternalRegs.R_2A03[Reg & 0x1F] = Value;
-}
-
-void CSoundGen::WriteExternalRegister(uint16 Reg, uint8 Value)
-{
+	if (Reg >= 0x4000 && Reg <= 0x401F)		// // //
+		InternalRegs.R_2A03[Reg & 0x1F] = Value;
 	// VRC6
-	if (Reg >= 0x9000 && Reg < 0x9003)
+	else if (Reg >= 0x9000 && Reg < 0x9003)
 		InternalRegs.R_VRC6[Reg & 0x03] = Value;
 	else if (Reg >= 0xA000 && Reg < 0xA003)
 		InternalRegs.R_VRC6[(Reg & 0x03) + 3] = Value;
@@ -2322,12 +2317,7 @@ void CSoundGen::WriteExternalRegister(uint16 Reg, uint8 Value)
 
 #else /* EXPORT_TEST */
 
-void CSoundGen::WriteRegister(uint16 Reg, uint8 Value)
-{
-	// Empty
-}
-
-void CSoundGen::WriteExternalRegister(uint16 Reg, uint8 Value)
+void CSoundGen::WriteRegister(uint16_t Reg, uint8_t Value)
 {
 	// Empty
 }

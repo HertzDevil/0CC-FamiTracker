@@ -308,16 +308,13 @@ protected:
 	*/
 	void	WriteEchoBuffer(stChanNote *NoteData, int Pos, int EffColumns);		// // //
 
-	/*! \brief Writes to the internal APU.
+	/*! \brief Writes to the APU memory.
+		\details This method no longer considers whether the destination sound chip is internal or
+		external, as 2A03 is handled in the same way as expansion chips in the APU class.
 		\param Reg The register port.
 		\param Value The value to be written.
 	*/
-	void	WriteRegister(uint16 Reg, uint8 Value);
-	/*! \brief Writes to an external sound chip.
-		\param Reg The register port.
-		\param Value The value to be written.
-	*/
-	void	WriteExternalRegister(uint16 Reg, uint8 Value);
+	void	WriteRegister(uint16_t Reg, uint8_t Value);
 	
 	/*! \brief Converts a duty value from the current instrument into an equivalent value for the
 		current sound channel.
@@ -585,8 +582,8 @@ protected:
 	*/
 	inst_type_t		m_iInstTypeCurrent;
 	/*! \brief A pointer to the currently installed instrument handler. */
-	CInstHandler	*m_pInstHandler;				// // //
-
+	std::unique_ptr<CInstHandler>	m_pInstHandler;				// // //
+	
 	// Private variables
 private:
 	int				m_iMaxPeriod;

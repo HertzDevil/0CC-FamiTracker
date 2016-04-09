@@ -98,20 +98,20 @@ void CChannelHandlerS5B::UpdateRegs(CAPU *pAPU)
 		return;
 
 	// Done only once
-	pAPU->ExternalWrite(0xC000, 0x07);
-	pAPU->ExternalWrite(0xE000, m_iModes);
+	WriteRegister(0xC000, 0x07);
+	WriteRegister(0xE000, m_iModes);
 
-	pAPU->ExternalWrite(0xC000, 0x06);
-	pAPU->ExternalWrite(0xE000, m_iNoiseFreq);
+	WriteRegister(0xC000, 0x06);
+	WriteRegister(0xE000, m_iNoiseFreq);
 
-	pAPU->ExternalWrite(0xC000, 0x0B);
-	pAPU->ExternalWrite(0xE000, m_iEnvFreqLo);
+	WriteRegister(0xC000, 0x0B);
+	WriteRegister(0xE000, m_iEnvFreqLo);
 
-	pAPU->ExternalWrite(0xC000, 0x0C);
-	pAPU->ExternalWrite(0xE000, m_iEnvFreqHi);
+	WriteRegister(0xC000, 0x0C);
+	WriteRegister(0xE000, m_iEnvFreqHi);
 
-	pAPU->ExternalWrite(0xC000, 0x0D);
-	pAPU->ExternalWrite(0xE000, m_iEnvType);
+	WriteRegister(0xC000, 0x0D);
+	WriteRegister(0xE000, m_iEnvType);
 
 	m_bRegsDirty = false;
 }
@@ -188,8 +188,7 @@ bool CChannelHandlerS5B::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B: case INST_FDS:
-		SAFE_RELEASE(m_pInstHandler);
-		m_pInstHandler = new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0);
+		m_pInstHandler.reset(new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
 		return true;
 	}
 	return false;
@@ -197,8 +196,8 @@ bool CChannelHandlerS5B::CreateInstHandler(inst_type_t Type)
 
 void CChannelHandlerS5B::WriteReg(int Reg, int Value)
 {
-	m_pAPU->ExternalWrite(0xC000, Reg);
-	m_pAPU->ExternalWrite(0xE000, Value);
+	m_pAPU->Write(0xC000, Reg);
+	m_pAPU->Write(0xE000, Value);
 }
 
 void CChannelHandlerS5B::ResetChannel()

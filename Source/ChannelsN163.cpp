@@ -51,6 +51,7 @@ void CChannelHandlerN163::ResetChannel()
 
 	m_iWavePos = m_iWavePosOld = 0;		// // //
 	m_iWaveLen = 4;
+	m_bLoadWave = false;
 }
 
 bool CChannelHandlerN163::HandleEffect(effect_t EffNum, unsigned char EffParam)
@@ -69,7 +70,8 @@ bool CChannelHandlerN163::HandleEffect(effect_t EffNum, unsigned char EffParam)
 	case EF_DUTY_CYCLE:
 		// Duty effect controls wave
 		m_iDefaultDuty = m_iDutyPeriod = EffParam;
-		if (auto pHandler = dynamic_cast<CSeqInstHandlerN163*>(m_pInstHandler))
+		m_bLoadWave = true;
+		if (auto pHandler = dynamic_cast<CSeqInstHandlerN163*>(m_pInstHandler.get()))
 			pHandler->RequestWaveUpdate();
 		break;
 	case EF_N163_WAVE_BUFFER:		// // //
@@ -82,7 +84,7 @@ bool CChannelHandlerN163::HandleEffect(effect_t EffNum, unsigned char EffParam)
 			m_iWavePos = EffParam << 1;
 			m_bDisableLoad = true;
 		}
-		if (auto pHandler = dynamic_cast<CSeqInstHandlerN163*>(m_pInstHandler))
+		if (auto pHandler = dynamic_cast<CSeqInstHandlerN163*>(m_pInstHandler.get()))
 			pHandler->RequestWaveUpdate();
 		break;
 	default: return CChannelHandlerInverted::HandleEffect(EffNum, EffParam);
@@ -95,6 +97,9 @@ bool CChannelHandlerN163::HandleInstrument(int Instrument, bool Trigger, bool Ne
 {
 	if (!CChannelHandler::HandleInstrument(Instrument, Trigger, NewInstrument))		// // //
 		return false;
+
+	if (!m_bLoadWave && NewInstrument)
+		m_iDefaultDuty = 0;
 
 	if (!m_bDisableLoad) {
 		m_iWavePos = /*pInstrument->GetAutoWavePos() ? GetIndex() * 16 :*/ m_iWavePosOld;
@@ -123,6 +128,8 @@ void CChannelHandlerN163::HandleRelease()
 void CChannelHandlerN163::HandleNote(int Note, int Octave)
 {
 	// New note
+	m_bLoadWave = false;
+	m_iDutyPeriod = m_iDefaultDuty;
 	m_iInstVolume = 0x0F;
 	m_bRelease = false;
 //	m_bResetPhase = true;
@@ -132,12 +139,10 @@ bool CChannelHandlerN163::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_2A03: case INST_VRC6: case INST_S5B: case INST_FDS:
-		SAFE_RELEASE(m_pInstHandler);
-		m_pInstHandler = new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0);
+		m_pInstHandler.reset(new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
 		return true;
 	case INST_N163:
-		SAFE_RELEASE(m_pInstHandler);
-		m_pInstHandler = new CSeqInstHandlerN163(this, 0x0F, 0);
+		m_pInstHandler.reset(new CSeqInstHandlerN163(this, 0x0F, 0));
 		return true;
 	}
 	return false;
@@ -270,18 +275,18 @@ CString CChannelHandlerN163::GetCustomEffectString() const		// // //
 
 void CChannelHandlerN163::WriteReg(int Reg, int Value)
 {
-	WriteExternalRegister(0xF800, Reg);
-	WriteExternalRegister(0x4800, Value);
+	WriteRegister(0xF800, Reg);
+	WriteRegister(0x4800, Value);
 }
 
 void CChannelHandlerN163::SetAddress(char Addr, bool AutoInc)
 {
-	WriteExternalRegister(0xF800, (AutoInc ? 0x80 : 0) | Addr);
+	WriteRegister(0xF800, (AutoInc ? 0x80 : 0) | Addr);
 }
 
 void CChannelHandlerN163::WriteData(char Data)
 {
-	WriteExternalRegister(0x4800, Data);
+	WriteRegister(0x4800, Data);
 }
 
 void CChannelHandlerN163::WriteData(int Addr, char Data)

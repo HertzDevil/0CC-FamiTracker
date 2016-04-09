@@ -2098,10 +2098,16 @@ void CFamiTrackerDoc::ReadBlock_Patterns(CDocumentFile *pDocFile, const int Vers
 				stChanNote *Note = pTrack->GetPatternData(Channel, Pattern, Row);
 				*Note = BLANK_NOTE;		// // //
 
+				/*
 				Note->Note = AssertRange(pDocFile->GetBlockChar(), NONE, ECHO, "Note value");
 				Note->Octave = AssertRange(pDocFile->GetBlockChar(), 0, OCTAVE_RANGE - 1, "Octave value");
 				Note->Instrument = AssertRange(pDocFile->GetBlockChar(), 0, m_pInstrumentManager->MAX_INSTRUMENTS, "Instrument index");
 				Note->Vol = AssertRange(pDocFile->GetBlockChar(), 0, MAX_VOLUME, "Channel volume");
+				*/
+				Note->Note = pDocFile->GetBlockChar();
+				Note->Octave = pDocFile->GetBlockChar();
+				Note->Instrument = pDocFile->GetBlockChar();
+				Note->Vol = pDocFile->GetBlockChar();
 
 				for (int n = 0; n < (pTrack->GetEffectColumnCount(Channel) + 1); ++n) try {
 					unsigned char EffectNumber = pDocFile->GetBlockChar();
@@ -2116,7 +2122,8 @@ void CFamiTrackerDoc::ReadBlock_Patterns(CDocumentFile *pDocFile, const int Vers
 								EffectParam++;
 						}
 					}
-					if (Note->EffNumber[n] = static_cast<effect_t>(AssertRange(EffectNumber, EF_NONE, EF_COUNT - 1, "Effect index")))
+					if (Note->EffNumber[n] = static_cast<effect_t>(EffectNumber))
+//					if (Note->EffNumber[n] = static_cast<effect_t>(AssertRange(EffectNumber, EF_NONE, EF_COUNT - 1, "Effect index")))
 						Note->EffParam[n] = EffectParam; // skip on no effect
 					if (m_iFileVersion == 0x200) break;		// // //
 				}
@@ -2462,7 +2469,7 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 	}
 
 	static const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
-	static const uint8 chip[] = {SNDCHIP_NONE, SNDCHIP_VRC6, SNDCHIP_N163, SNDCHIP_S5B};
+	static const uint8_t chip[] = {SNDCHIP_NONE, SNDCHIP_VRC6, SNDCHIP_N163, SNDCHIP_S5B};
 	int (*seqTable[])[SEQ_COUNT] = {SequenceTable2A03, SequenceTableVRC6, SequenceTableN163, SequenceTableS5B};
 
 	// Copy sequences
@@ -3603,7 +3610,9 @@ void CFamiTrackerDoc::DeleteFrames(unsigned int Track, unsigned int Frame, int C
 
 CString CFamiTrackerDoc::GetTrackTitle(unsigned int Track) const
 {
-	return m_pTracks[Track]->GetTitle();		// // //
+	if (!m_pTracks[Track])		// // //
+		return CPatternData::DEFAULT_TITLE;
+	return m_pTracks[Track]->GetTitle();
 }
 
 int CFamiTrackerDoc::AddTrack()
@@ -4038,8 +4047,9 @@ vibrato_t CFamiTrackerDoc::GetVibratoStyle() const
 
 void CFamiTrackerDoc::SetVibratoStyle(vibrato_t Style)
 {
+	if (m_iVibratoStyle != Style)		// // //
+		ModifyIrreversible();
 	m_iVibratoStyle = Style;
-	theApp.GetSoundGenerator()->SetupVibratoTable(Style);
 }
 
 // Linear pitch slides
@@ -4051,6 +4061,8 @@ bool CFamiTrackerDoc::GetLinearPitch() const
 
 void CFamiTrackerDoc::SetLinearPitch(bool Enable)
 {
+	if (m_bLinearPitch != Enable)		// // //
+		ModifyIrreversible();
 	m_bLinearPitch = Enable;
 }
 
@@ -4190,6 +4202,8 @@ stHighlight CFamiTrackerDoc::GetHighlight(unsigned int Track) const		// // //
 void CFamiTrackerDoc::SetHighlight(stHighlight Hl)		// // //
 {
 	// TODO remove
+	if (memcmp(&Hl, &m_vHighlight, sizeof(stHighlight)) != 0)		// // //
+		ModifyIrreversible();
 	m_vHighlight = Hl;
 }
 
@@ -4425,7 +4439,7 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 	}
 
 	static const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};
-	static const uint8 chip[] = {SNDCHIP_NONE, SNDCHIP_VRC6, SNDCHIP_N163, SNDCHIP_S5B};
+	static const uint8_t chip[] = {SNDCHIP_NONE, SNDCHIP_VRC6, SNDCHIP_N163, SNDCHIP_S5B};
 
 	// Also remove unused sequences
 	for (unsigned int i = 0; i < MAX_SEQUENCES; ++i) for (int j = 0; j < SEQ_COUNT; ++j) {
@@ -4872,7 +4886,7 @@ void CFamiTrackerDoc::MakeKraid()			// // // Easter Egg
 {
 	// Basic info
 	for (int i = GetTrackCount() - 1; i > 0; i--) RemoveTrack(i);
-	SetTrackTitle(0, _T("New song"));
+	SetTrackTitle(0, CPatternData::DEFAULT_TITLE);
 	m_pTracks[0]->ClearEverything();
 	SetEngineSpeed(0);
 	SetMachine(NTSC);

@@ -27,10 +27,7 @@
 #include <memory>
 #include <cmath>
 #include "APU.h"
-#include "Square.h"
-#include "Triangle.h"
-#include "Noise.h"
-#include "DPCM.h"
+#include "2A03.h"		// // //
 #include "VRC6.h"
 #include "MMC5.h"
 #include "FDS.h"
@@ -38,16 +35,15 @@
 #include "VRC7.h"
 #include "S5B.h"
 
-const int	 CAPU::SEQUENCER_PERIOD		= 7458;
-//const int	 CAPU::SEQUENCER_PERIOD_PAL	= 7458;			// ????
-const uint32 CAPU::BASE_FREQ_NTSC		= 1789773;		// 72.667
-const uint32 CAPU::BASE_FREQ_PAL		= 1662607;
-const uint8	 CAPU::FRAME_RATE_NTSC		= 60;
-const uint8	 CAPU::FRAME_RATE_PAL		= 50;
+const int		CAPU::SEQUENCER_FREQUENCY	= 240;		// // //
+const uint32_t	CAPU::BASE_FREQ_NTSC		= 1789773;		// 72.667
+const uint32_t	CAPU::BASE_FREQ_PAL			= 1662607;
+const uint8_t	CAPU::FRAME_RATE_NTSC		= 60;
+const uint8_t	CAPU::FRAME_RATE_PAL		= 50;
 
-const uint8  CAPU::REG_DECAY_RATE		= 15;			// // //
+const uint8_t  CAPU::REG_DECAY_RATE		= 15;			// // //
 
-const uint8 CAPU::LENGTH_TABLE[] = {
+const uint8_t CAPU::LENGTH_TABLE[] = {
 	0x0A, 0xFE, 0x14, 0x02, 0x28, 0x04, 0x50, 0x06,
 	0xA0, 0x08, 0x3C, 0x0A, 0x0E, 0x0C, 0x1A, 0x0E,
 	0x0C, 0x10, 0x18, 0x12, 0x30, 0x14, 0x60, 0x16,
@@ -64,12 +60,7 @@ CAPU::CAPU(IAudioCallback *pCallback, CSampleMem *pSampleMem) :
 	m_iExternalSoundChip(0),
 	m_iCyclesToRun(0)
 {
-	m_pSquare1 = new CSquare(m_pMixer, CHANID_SQUARE1, SNDCHIP_NONE);
-	m_pSquare2 = new CSquare(m_pMixer, CHANID_SQUARE2, SNDCHIP_NONE);
-	m_pTriangle = new CTriangle(m_pMixer, CHANID_TRIANGLE);
-	m_pNoise = new CNoise(m_pMixer, CHANID_NOISE);
-	m_pDPCM = new CDPCM(m_pMixer, pSampleMem, CHANID_DPCM);
-
+	m_p2A03 = new C2A03(m_pMixer);		// // //
 	m_pMMC5 = new CMMC5(m_pMixer);
 	m_pVRC6 = new CVRC6(m_pMixer);
 	m_pVRC7 = new CVRC7(m_pMixer);
@@ -84,10 +75,11 @@ CAPU::CAPU(IAudioCallback *pCallback, CSampleMem *pSampleMem) :
 	memset(m_iRegsMMC5, 0, sizeof(m_iRegsMMC5));
 	memset(m_iRegsN163, 0, sizeof(m_iRegsN163));
 	memset(m_iRegsS5B, 0, sizeof(m_iRegsS5B));
-	m_iPortVRC7 = m_iPortS5B = 0;
 
-	m_fLevelVRC7 = 1.0f;
-	m_fLevelS5B = 1.0f;
+	m_p2A03->SetSampleMemory(pSampleMem);		// // //
+
+	m_iPortVRC7 = m_iPortS5B = 0;
+	m_fLevelVRC7 = m_fLevelS5B = 1.0f;
 
 #ifdef LOGGING
 	m_pLog = new CFile("apu_log.txt", CFile::modeCreate | CFile::modeWrite);
@@ -97,12 +89,7 @@ CAPU::CAPU(IAudioCallback *pCallback, CSampleMem *pSampleMem) :
 
 CAPU::~CAPU()
 {
-	SAFE_RELEASE(m_pSquare1);
-	SAFE_RELEASE(m_pSquare2);
-	SAFE_RELEASE(m_pTriangle);
-	SAFE_RELEASE(m_pNoise);
-	SAFE_RELEASE(m_pDPCM);
-
+	SAFE_RELEASE(m_p2A03);		// // //
 	SAFE_RELEASE(m_pMMC5);
 	SAFE_RELEASE(m_pVRC6);
 	SAFE_RELEASE(m_pVRC7);
@@ -120,95 +107,6 @@ CAPU::~CAPU()
 #endif
 }
 
-inline void CAPU::Clock_240Hz()
-{
-	// 240Hz Frame counter (1/4 frame)
-	//
-
-	m_pSquare1->EnvelopeUpdate();
-	m_pSquare2->EnvelopeUpdate();
-	m_pNoise->EnvelopeUpdate();
-	m_pTriangle->LinearCounterUpdate();
-	m_pMMC5->EnvelopeUpdate();		// // //
-	m_pMMC5->LengthCounterUpdate();		// // //
-}
-
-inline void CAPU::Clock_120Hz()
-{
-	// 120Hz Frame counter (1/2 frame)
-	//
-
-	m_pSquare1->SweepUpdate(1);
-	m_pSquare2->SweepUpdate(0);
-
-	m_pSquare1->LengthCounterUpdate();
-	m_pSquare2->LengthCounterUpdate();
-	m_pTriangle->LengthCounterUpdate();
-	m_pNoise->LengthCounterUpdate();
-}
-
-inline void CAPU::Clock_60Hz()
-{
-	// 60Hz Frame counter (1/1 frame)
-	//
-
-	// No IRQs are generated for NSFs
-}
-
-inline void CAPU::ClockSequence()
-{
-	// The frame sequencer
-	//
-
-	m_iSequencerClock += SEQUENCER_PERIOD;
-
-	if (m_iFrameMode == 0) {
-		m_iFrameSequence = (m_iFrameSequence + 1) % 4;
-		switch (m_iFrameSequence) {
-			case 0: Clock_240Hz(); break;
-			case 1: Clock_240Hz(); Clock_120Hz(); break;
-			case 2: Clock_240Hz(); break;
-			case 3: Clock_240Hz(); Clock_120Hz(); Clock_60Hz(); break;
-		}
-	}
-	else {
-		m_iFrameSequence = (m_iFrameSequence + 1) % 5;
-		switch (m_iFrameSequence) {
-			case 0: Clock_240Hz(); Clock_120Hz(); break;
-			case 1: Clock_240Hz(); break;
-			case 2: Clock_240Hz(); Clock_120Hz(); break;
-			case 3: Clock_240Hz(); break;
-			case 4: break;
-		}
-	}
-}
-
-inline void CAPU::RunAPU1(uint32 Time)
-{
-	// APU pin 1
-	while (Time > 0) {
-		uint32 Period = std::min(m_pSquare1->GetPeriod(), m_pSquare2->GetPeriod());
-		Period = std::min<uint32>(std::max<uint32>(Period, 7), Time);
-		m_pSquare1->Process(Period);
-		m_pSquare2->Process(Period);
-		Time -= Period;
-	}
-}
-
-inline void CAPU::RunAPU2(uint32 Time)
-{
-	// APU pin 2
-	while (Time > 0) {
-		uint32 Period = std::min(m_pTriangle->GetPeriod(), m_pNoise->GetPeriod());
-		Period = std::min<uint32>(Period, m_pDPCM->GetPeriod());
-		Period = std::min<uint32>(std::max<uint32>(Period, 7), Time);
-		m_pTriangle->Process(Period);
-		m_pNoise->Process(Period);
-		m_pDPCM->Process(Period);
-		Time -= Period;
-	}
-}
-
 // The main APU emulation
 //
 // The amount of cycles that will be emulated is added by CAPU::AddCycles
@@ -217,29 +115,33 @@ void CAPU::Process()
 {	
 	while (m_iCyclesToRun > 0) {
 
-		uint32 Time = m_iCyclesToRun;
-		Time = std::min(Time, m_iSequencerClock);
+		uint32_t Time = m_iCyclesToRun;
+		Time = std::min(Time, m_iSequencerNext - m_iSequencerClock);		// // //
 		Time = std::min(Time, m_iFrameClock);
-		
-		// Run internal channels
-		RunAPU1(Time);
-		RunAPU2(Time);
 
-		for (std::vector<CExternal*>::iterator iter = ExChips.begin(); iter != ExChips.end(); ++iter) {
-			(*iter)->Process(Time);
-		}
+		for (auto Chip : ExChips)		// // //
+			Chip->Process(Time);
 
 		m_iFrameCycles	  += Time;
-		m_iSequencerClock -= Time;
+		m_iSequencerClock += Time;
 		m_iFrameClock	  -= Time;
 		m_iCyclesToRun	  -= Time;
 
-		if (m_iSequencerClock == 0)
-			ClockSequence();
+		if (m_iSequencerClock == m_iSequencerNext)
+			StepSequence();		// // //
 
 		if (m_iFrameClock == 0)
 			EndFrame();
 	}
+}
+
+void CAPU::StepSequence()		// // //
+{
+	if (++m_iSequencerCount == SEQUENCER_FREQUENCY)
+		m_iSequencerClock = m_iSequencerCount = 0;
+	m_iSequencerNext = (uint64_t)BASE_FREQ_NTSC * (m_iSequencerCount + 1) / SEQUENCER_FREQUENCY;
+	m_p2A03->ClockSequence();
+	m_pMMC5->ClockSequence();		// // //
 }
 
 // End of audio frame, flush the buffer if enough samples has been produced, and start a new frame
@@ -247,15 +149,8 @@ void CAPU::EndFrame()
 {
 	// The APU will always output audio in 32 bit signed format
 	
-	m_pSquare1->EndFrame();
-	m_pSquare2->EndFrame();
-	m_pTriangle->EndFrame();
-	m_pNoise->EndFrame();
-	m_pDPCM->EndFrame();
-
-	for (std::vector<CExternal*>::iterator iter = ExChips.begin(); iter != ExChips.end(); ++iter) {
-		(*iter)->EndFrame();
-	}
+	for (auto Chip : ExChips)		// // //
+		Chip->EndFrame();
 
 	int SamplesAvail = m_pMixer->FinishBuffer(m_iFrameCycles);
 	int ReadSamples	= m_pMixer->ReadBuffer(SamplesAvail, m_pSoundBuffer, m_bStereoEnabled);
@@ -266,17 +161,17 @@ void CAPU::EndFrame()
 
 	// // //
 	
-	uint16 *REG_ARRAY[] = {m_iRegs2A03, m_iRegsVRC6, m_iRegsVRC7, m_iRegsFDS, m_iRegsMMC5, m_iRegsN163, m_iRegsS5B};
+	uint16_t *REG_ARRAY[] = {m_iRegs2A03, m_iRegsVRC6, m_iRegsVRC7, m_iRegsFDS, m_iRegsMMC5, m_iRegsN163, m_iRegsS5B};
 	static const size_t REG_SIZE[] = {sizeof(m_iRegs2A03), sizeof(m_iRegsVRC6), sizeof(m_iRegsVRC7), sizeof(m_iRegsFDS),
 									  sizeof(m_iRegsMMC5), sizeof(m_iRegsN163), sizeof(m_iRegsS5B)};
-	for (int i = 0; i < sizeof(REG_ARRAY) / sizeof(uint16*); i++) {
-		for (size_t j = 0; j < REG_SIZE[i] / sizeof(uint16); j++) {
+	for (int i = 0; i < sizeof(REG_ARRAY) / sizeof(uint16_t*); i++) {
+		for (size_t j = 0; j < REG_SIZE[i] / sizeof(uint16_t); j++) {
 			if (i == 5 && j >= 0x78U - ((m_iRegsN163[0x7F] & 0x70) >> 1) && (j & 0x01) && (j & 0x07) != 0x07) { // N163 phase registers
 				REG_ARRAY[i][j] = (REG_ARRAY[i][j] & 0xFF) | (CAPU::REG_DECAY_RATE << 8) | (CAPU::REG_DECAY_RATE << 12);
 				continue;
 			}
-			uint16 hi = REG_ARRAY[i][j] & 0x0F00;
-			uint16 upd = REG_ARRAY[i][j] & 0xF000;
+			uint16_t hi = REG_ARRAY[i][j] & 0x0F00;
+			uint16_t upd = REG_ARRAY[i][j] & 0xF000;
 			if (hi) hi -= 0x100;
 			if (upd) upd -= 0x1000;
 			REG_ARRAY[i][j] = (REG_ARRAY[i][j] & 0xFF) | hi | upd;
@@ -293,24 +188,18 @@ void CAPU::Reset()
 	// Reset APU
 	//
 	
+	m_iSequencerCount	= 0;		// // //
+	m_iSequencerClock	= 0;		// // //
+	m_iSequencerNext	= BASE_FREQ_NTSC / SEQUENCER_FREQUENCY;
+	
 	m_iCyclesToRun		= 0;
 	m_iFrameCycles		= 0;
-	m_iSequencerClock	= SEQUENCER_PERIOD;
-	m_iFrameSequence	= 0;
-	m_iFrameMode		= 0;
 	m_iFrameClock		= m_iFrameCycleCount;
 	
 	m_pMixer->ClearBuffer();
-
-	m_pSquare1->Reset();
-	m_pSquare2->Reset();
-	m_pTriangle->Reset();
-	m_pNoise->Reset();
-	m_pDPCM->Reset();
-
-	for (std::vector<CExternal*>::iterator iter = ExChips.begin(); iter != ExChips.end(); ++iter) {
-		(*iter)->Reset();
-	}
+	
+	for (auto Chip : ExChips)		// // //
+		Chip->Reset();
 
 #ifdef LOGGING
 	m_iFrame = 0;
@@ -325,7 +214,7 @@ void CAPU::SetupMixer(int LowCut, int HighCut, int HighDamp, int Volume) const
 	m_pS5B->SetVolume((float(Volume) / 100.0f) * m_fLevelS5B);		// // //
 }
 
-void CAPU::SetExternalSound(uint8 Chip)
+void CAPU::SetExternalSound(uint8_t Chip)
 {
 	// Set expansion chip
 	m_iExternalSoundChip = Chip;
@@ -333,6 +222,7 @@ void CAPU::SetExternalSound(uint8 Chip)
 
 	ExChips.clear();
 
+	ExChips.push_back(m_p2A03);		// // //
 	if (Chip & SNDCHIP_VRC6)
 		ExChips.push_back(m_pVRC6);
 	if (Chip & SNDCHIP_VRC7)
@@ -349,194 +239,85 @@ void CAPU::SetExternalSound(uint8 Chip)
 	Reset();
 }
 
-void CAPU::ChangeMachine(int Machine)
+void CAPU::ChangeMachineRate(int Machine, int Rate)		// // //
 {
 	// Allow to change speed on the fly
 	//
+	
+	uint32_t BaseFreq = (Machine == MACHINE_NTSC) ? BASE_FREQ_NTSC : BASE_FREQ_PAL;
+	m_p2A03->ChangeMachine(Machine);
 
-	switch (Machine) {
-		case MACHINE_NTSC:
-			m_pNoise->PERIOD_TABLE = CNoise::NOISE_PERIODS_NTSC;
-			m_pDPCM->PERIOD_TABLE = CDPCM::DMC_PERIODS_NTSC;			
-			m_pMixer->SetClockRate(BASE_FREQ_NTSC);
-			break;
-		case MACHINE_PAL:
-			m_pNoise->PERIOD_TABLE = CNoise::NOISE_PERIODS_PAL;
-			m_pDPCM->PERIOD_TABLE = CDPCM::DMC_PERIODS_PAL;			
-			m_pMixer->SetClockRate(BASE_FREQ_PAL);
-			break;
-	}
+	m_pVRC7->SetSampleSpeed(m_iSampleRate, BaseFreq, Rate);
+	m_pS5B->SetSampleSpeed(m_iSampleRate, BaseFreq, Rate);
+	m_iFrameCycleCount = BaseFreq / Rate;
 }
 
-bool CAPU::SetupSound(int SampleRate, int NrChannels, int Machine)
+bool CAPU::SetupSound(int SampleRate, int NrChannels, int Machine)		// // //
 {
 	// Allocate a sound buffer
 	//
 	// Returns false if a buffer couldn't be allocated
 	//
 	
-	uint32 BaseFreq = (Machine == MACHINE_NTSC) ? BASE_FREQ_NTSC : BASE_FREQ_PAL;
-	uint8 FrameRate = (Machine == MACHINE_NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
+	uint32_t BaseFreq = (Machine == MACHINE_NTSC) ? BASE_FREQ_NTSC : BASE_FREQ_PAL;
+	uint8_t FrameRate = (Machine == MACHINE_NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
+	m_iSampleRate = SampleRate;		// // //
 
-	m_iSoundBufferSamples = uint32(SampleRate / FRAME_RATE_PAL);	// Samples / frame. Allocate for PAL, since it's more
+	m_iSoundBufferSamples = uint32_t(m_iSampleRate / FRAME_RATE_PAL);	// Samples / frame. Allocate for PAL, since it's more
 	m_bStereoEnabled	  = (NrChannels == 2);	
 	m_iSoundBufferSize	  = m_iSoundBufferSamples * NrChannels;		// Total amount of samples to allocate
 	m_iSampleSizeShift	  = (NrChannels == 2) ? 1 : 0;
 	m_iBufferPointer	  = 0;
 
-	if (!m_pMixer->AllocateBuffer(m_iSoundBufferSamples, SampleRate, NrChannels))
+	if (!m_pMixer->AllocateBuffer(m_iSoundBufferSamples, m_iSampleRate, NrChannels))		// // //
 		return false;
 
 	m_pMixer->SetClockRate(BaseFreq);
 
 	SAFE_RELEASE_ARRAY(m_pSoundBuffer);
 
-	m_pSoundBuffer = new int16[m_iSoundBufferSize << 1];
+	m_pSoundBuffer = new int16_t[m_iSoundBufferSize << 1];
 
 	if (m_pSoundBuffer == NULL)
 		return false;
 
-	ChangeMachine(Machine);
-
-	// VRC7 generates samples on it's own
-	m_pVRC7->SetSampleSpeed(SampleRate, BaseFreq, FrameRate);
-
-	// Same for sunsoft
-	m_pS5B->SetSampleSpeed(SampleRate, BaseFreq, FrameRate);
-
-	// Numbers of cycles/audio frame
-	m_iFrameCycleCount = BaseFreq / FrameRate;
+	ChangeMachineRate(Machine, FrameRate);		// // //
 
 	return true;
 }
 
-void CAPU::AddTime(int32 Cycles)
+void CAPU::AddTime(int32_t Cycles)
 {
 	if (Cycles < 0)
 		return;
 	m_iCyclesToRun += Cycles;
 }
 
-void CAPU::Write(uint16 Address, uint8 Value)
+void CAPU::Write(uint16_t Address, uint8_t Value)
 {
-	// Data was written to an APU register
-	//
-	uint16 old = m_iRegs2A03[Address & 0x1F] & 0xFF;		// // //
-	m_iRegs2A03[Address & 0x1F] = Value | (CAPU::REG_DECAY_RATE << 8) | (m_iRegs2A03[Address & 0x1F] & 0xF000);
-	if (Value != old)
-		m_iRegs2A03[Address & 0x1F] = (m_iRegs2A03[Address & 0x1F] & 0x0FFF) | (CAPU::REG_DECAY_RATE << 12);
-
-#ifdef LOGGING
-	m_iRegs2A03[Address & 0x1F] = Value | (CAPU::REG_DECAY_RATE << 8);
-#endif
-
-	if (Address == 0x4015) {
-		Write4015(Value);
-		return;
-	}
-	else if (Address == 0x4017) {
-		Write4017(Value);
-		return;
-	}
-
-	Process();		// // //
-
-	switch (Address & 0x1C) {
-		case 0x00: m_pSquare1->Write(Address & 0x03, Value); break;
-		case 0x04: m_pSquare2->Write(Address & 0x03, Value); break;
-		case 0x08: m_pTriangle->Write(Address & 0x03, Value); break;
-		case 0x0C: m_pNoise->Write(Address & 0x03, Value); break;
-		case 0x10: m_pDPCM->Write(Address & 0x03, Value); break;
-	}
-}
-
-void CAPU::Write4017(uint8 Value)
-{
-	// The $4017 Control port
-	//
+	// Data was written to an external sound chip
 
 	Process();
-
-	// Reset counter
-	m_iFrameSequence = 0;
-
-	// Mode 1
-	if (Value & 0x80) {
-		m_iFrameMode = 1;
-		// Immediately run all units		
-		Clock_240Hz();
-		Clock_120Hz();
-		Clock_60Hz();
-	}
-	// Mode 0
-	else
-		m_iFrameMode = 0;
-
-	// IRQs are not generated when playing NSFs
-}
-
-void CAPU::Write4015(uint8 Value)
-{
-	//  Sound Control ($4015)
-	//
-
-	Process();
-
-	m_pSquare1->WriteControl(Value);
-	m_pSquare2->WriteControl(Value >> 1);
-	m_pTriangle->WriteControl(Value >> 2);
-	m_pNoise->WriteControl(Value >> 3);
-	m_pDPCM->WriteControl(Value >> 4);
-}
-
-uint8 CAPU::Read4015()
-{
-	// Sound Control ($4015)
-	//
-
-	uint8 RetVal;
-
-	Process();
-
-	RetVal = m_pSquare1->ReadControl();
-	RetVal |= m_pSquare2->ReadControl() << 1;
-	RetVal |= m_pTriangle->ReadControl() << 2;
-	RetVal |= m_pNoise->ReadControl() << 3;
-	RetVal |= m_pDPCM->ReadControl() << 4;
-	RetVal |= m_pDPCM->DidIRQ() << 7;
 	
-	return RetVal;
+	for (auto Chip : ExChips)		// // //
+		Chip->Write(Address, Value);
+
+	LogWrite(Address, Value);
 }
 
-void CAPU::ExternalWrite(uint16 Address, uint8 Value)
-{
-	// Data was written to an external sound chip 
-	// (this doesn't really belong in the APU but are here for convenience)
-	//
-
-	Process();
-
-	for (std::vector<CExternal*>::iterator iter = ExChips.begin(); iter != ExChips.end(); ++iter) {
-		(*iter)->Write(Address, Value);
-	}
-
-	LogExternalWrite(Address, Value);
-}
-
-uint8 CAPU::ExternalRead(uint16 Address)
+uint8_t CAPU::Read(uint16_t Address)
 {
 	// Data read from an external chip
 	//
 
-	uint8 Value(0);
+	uint8_t Value(0);
 	bool Mapped(false);
 
 	Process();
-
-	for (std::vector<CExternal*>::iterator iter = ExChips.begin(); iter != ExChips.end(); ++iter) {
+	
+	for (auto Chip : ExChips)		// // //
 		if (!Mapped)
-			Value = (*iter)->Read(Address, Mapped);
-	}
+			Value = Chip->Read(Address, Mapped);
 
 	if (!Mapped)
 		Value = Address >> 8;	// open bus
@@ -546,24 +327,24 @@ uint8 CAPU::ExternalRead(uint16 Address)
 
 // Expansion for famitracker
 
-int32 CAPU::GetVol(uint8 Chan) const	
+int32_t CAPU::GetVol(uint8_t Chan) const	
 {
 	return m_pMixer->GetChanOutput(Chan);
 }
 
-uint8 CAPU::GetSamplePos() const
+uint8_t CAPU::GetSamplePos() const
 {
-	return m_pDPCM->GetSamplePos();
+	return m_p2A03->GetSamplePos();
 }
 
-uint8 CAPU::GetDeltaCounter() const
+uint8_t CAPU::GetDeltaCounter() const
 {
-	return m_pDPCM->GetDeltaCounter();
+	return m_p2A03->GetDeltaCounter();
 }
 
 bool CAPU::DPCMPlaying() const
 {
-	return m_pDPCM->IsPlaying();
+	return m_p2A03->DPCMPlaying();
 }
 
 #ifdef LOGGING
@@ -631,14 +412,15 @@ void CAPU::SetNamcoMixing(bool bLinear)		// // //
 	m_pN163->SetMixingMethod(bLinear);
 }
 
-void CAPU::LogExternalWrite(uint16 Address, uint8 Value)
+void CAPU::LogWrite(uint16_t Address, uint8_t Value)
 {
-#define UpdateReg(tbl, adr) uint16 old = tbl[adr] & 0xFF; \
+#define UpdateReg(tbl, adr) uint16_t old = tbl[adr] & 0xFF; \
 							tbl[adr] = Value | (CAPU::REG_DECAY_RATE << 8) | (tbl[adr] & 0xF000); \
 							if (Value != old) \
 								tbl[adr] = (tbl[adr] & 0xFFF) | (CAPU::REG_DECAY_RATE << 12);		// // //
-
-		 if (Address >= 0x9000 && Address <= 0x9003) { UpdateReg(m_iRegsVRC6, Address - 0x9000); }
+	
+		 if (Address >= 0x4000 && Address <= 0x401F) { UpdateReg(m_iRegs2A03, Address - 0x4000); }
+	else if (Address >= 0x9000 && Address <= 0x9003) { UpdateReg(m_iRegsVRC6, Address - 0x9000); }
 	else if (Address >= 0xA000 && Address <= 0xA003) { UpdateReg(m_iRegsVRC6, Address - 0xA000 + 4); }
 	else if (Address >= 0xB000 && Address <= 0xB003) { UpdateReg(m_iRegsVRC6, Address - 0xB000 + 8); }
 	else if (Address >= 0x4040 && Address <= 0x408F) { UpdateReg(m_iRegsFDS , Address - 0x4040); }
@@ -655,7 +437,7 @@ void CAPU::LogExternalWrite(uint16 Address, uint8 Value)
 	else if (Address == 0xE000) { UpdateReg(m_iRegsS5B, m_iPortS5B); }
 }
 
-uint16 CAPU::GetReg(int Chip, int Reg) const		// // //
+uint16_t CAPU::GetReg(int Chip, int Reg) const		// // //
 {
 	switch (Chip) {
 		case SNDCHIP_NONE:

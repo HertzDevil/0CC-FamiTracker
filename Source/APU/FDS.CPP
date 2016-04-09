@@ -27,7 +27,7 @@
 
 // FDS interface, actual FDS emulation is in FDSSound.cpp
 
-CFDS::CFDS(CMixer *pMixer) : CExChannel(pMixer, SNDCHIP_FDS, CHANID_FDS)
+CFDS::CFDS(CMixer *pMixer) : CChannel(pMixer, SNDCHIP_FDS, CHANID_FDS)
 {
 	FDSSoundInstall3();
 }
@@ -42,12 +42,12 @@ void CFDS::Reset()
 	FDSSoundVolume(0);
 }
 
-void CFDS::Write(uint16 Address, uint8 Value)
+void CFDS::Write(uint16_t Address, uint8_t Value)
 {
 	FDSSoundWrite(Address, Value);
 }
 
-uint8 CFDS::Read(uint16 Address, bool &Mapped)
+uint8_t CFDS::Read(uint16_t Address, bool &Mapped)
 {
 	Mapped = ((0x4040 <= Address && Address <= 0x407f) || (0x4090 == Address) || (0x4092 == Address));
 	return FDSSoundRead(Address);
@@ -55,10 +55,10 @@ uint8 CFDS::Read(uint16 Address, bool &Mapped)
 
 void CFDS::EndFrame()
 {
-	m_iTime = 0;
+	CChannel::EndFrame();
 }
 
-void CFDS::Process(uint32 Time)
+void CFDS::Process(uint32_t Time)
 {
 	if (!Time)
 		return;

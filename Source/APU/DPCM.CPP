@@ -23,15 +23,17 @@
 #include "APU.h"
 #include "DPCM.h"
 
-const uint16 CDPCM::DMC_PERIODS_NTSC[] = {
+const uint16_t CDPCM::DMC_PERIODS_NTSC[] = {
 	428, 380, 340, 320, 286, 254, 226, 214, 190, 160, 142, 128, 106, 84, 72, 54
 };
 
-const uint16 CDPCM::DMC_PERIODS_PAL[]  = {
+const uint16_t CDPCM::DMC_PERIODS_PAL[]  = {
 	398, 354, 316, 298, 276, 236, 210, 198, 176, 148, 132, 118, 98, 78, 66, 50
 };
 
-CDPCM::CDPCM(CMixer *pMixer, CSampleMem *pSampleMem, int ID) : CChannel(pMixer, ID, SNDCHIP_NONE), m_pSampleMem(pSampleMem)
+CDPCM::CDPCM(CMixer *pMixer, int ID, CSampleMem *pSampleMem) :
+	C2A03Chan(pMixer, SNDCHIP_NONE, ID),		// // //
+	m_pSampleMem(pSampleMem)
 {
 	PERIOD_TABLE = DMC_PERIODS_NTSC;
 
@@ -61,7 +63,7 @@ void CDPCM::Reset()
 	EndFrame();
 }
 
-void CDPCM::Write(uint16 Address, uint8 Value)
+void CDPCM::Write(uint16_t Address, uint8_t Value)
 {
 	switch (Address) {
 		case 0x00:
@@ -83,7 +85,7 @@ void CDPCM::Write(uint16 Address, uint8 Value)
 	}
 }
 
-void CDPCM::WriteControl(uint8 Value)
+void CDPCM::WriteControl(uint8_t Value)
 {
 	if ((Value & 1) == 1) {
 		if (m_iDMA_BytesRemaining == 0)
@@ -96,12 +98,12 @@ void CDPCM::WriteControl(uint8 Value)
 	m_bTriggeredIRQ = false;
 }
 
-uint8 CDPCM::ReadControl() const
+uint8_t CDPCM::ReadControl() const
 {
 	return (m_iDMA_BytesRemaining > 0) ? 1 : 0;
 }
 
-uint8 CDPCM::DidIRQ() const
+uint8_t CDPCM::DidIRQ() const
 {
 	return m_bTriggeredIRQ ? 1 : 0;
 }
@@ -112,7 +114,12 @@ void CDPCM::Reload()
 	m_iDMA_BytesRemaining = (m_iDMA_LengthReg << 4) + 1;
 }
 
-void CDPCM::Process(uint32 Time)
+void CDPCM::SetSampleMemory(CSampleMem *pMem)		 // // //
+{
+	m_pSampleMem = pMem;
+}
+
+void CDPCM::Process(uint32_t Time)
 {
 	while (Time >= m_iCounter) {
 		Time	  -= m_iCounter;

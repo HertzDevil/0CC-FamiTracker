@@ -26,6 +26,7 @@
 #include "FamiTracker.h"
 #include "FamiTrackerTypes.h"		// // //
 #include "APU/Types.h"
+#include "Common.h"		// // //
 #include "Instrument.h"
 #include "ChannelHandler.h"
 #include "Channels2A03.h"
@@ -119,8 +120,7 @@ bool CChannelHandler2A03::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B: case INST_FDS:
-		SAFE_RELEASE(m_pInstHandler);
-		m_pInstHandler = new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0);
+		m_pInstHandler.reset(new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
 		return true;
 	}
 	return false;
@@ -571,8 +571,7 @@ bool CDPCMChan::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_2A03:
-		SAFE_RELEASE(m_pInstHandler);
-		m_pInstHandler = new CInstHandlerDPCM(this);
+		m_pInstHandler.reset(new CInstHandlerDPCM(this));
 		return true;
 	}
 	return false;
@@ -677,7 +676,7 @@ void CDPCMChan::ClearRegisters()
 {
 	WriteRegister(0x4015, 0x0F);
 
-	WriteRegister(0x4010, 0);	
+	WriteRegister(0x4010, 0);
 	WriteRegister(0x4011, 0);
 	WriteRegister(0x4012, 0);
 	WriteRegister(0x4013, 0);

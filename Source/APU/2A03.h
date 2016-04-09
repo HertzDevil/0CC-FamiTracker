@@ -2,6 +2,8 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2014  Jonathan Liss
 **
+** 0CC-FamiTracker is (C) 2014-2016 HertzDevil
+**
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
@@ -18,41 +20,57 @@
 ** must bear this legend.
 */
 
-#ifndef VRC7_H
-#define VRC7_H
 
-#include "external.h"
-#include "emu2413.h"
+#pragma once
 
-class CVRC7 : public CExternal {
+class CMixer;
+
+#include "External.h"
+#include "Channel.h"
+
+class CSquare;
+class CTriangle;
+class CNoise;
+class CDPCM;
+
+class C2A03 : public CExternal
+{
 public:
-	CVRC7(CMixer *pMixer);
-	virtual ~CVRC7();
+	C2A03(CMixer *pMixer);
+	virtual ~C2A03();
 
 	void Reset();
-	void SetSampleSpeed(uint32_t SampleRate, double ClockRate, uint32_t FrameRate);
-	void SetVolume(float Volume);
+	void Process(uint32_t Time);
+	void EndFrame();
+
 	void Write(uint16_t Address, uint8_t Value);
 	uint8_t Read(uint16_t Address, bool &Mapped);
-	void EndFrame();
-	void Process(uint32_t Time);
 
-protected:
-	static const float  AMPLIFY;
-	static const uint32_t OPL_CLOCK;
+public:
+	void	ClockSequence();		// // //
+	
+	void	ChangeMachine(int Machine);
+	
+	void	SetSampleMemory(CSampleMem *pMem) const;		// // //
+	uint8_t	GetSamplePos() const;
+	uint8_t	GetDeltaCounter() const;
+	bool	DPCMPlaying() const;
 
 private:
-	OPLL	*m_pOPLLInt;
-	uint32_t	m_iTime;
-	uint32_t	m_iMaxSamples;
+	inline void Clock_240Hz() const;		// // //
+	inline void Clock_120Hz() const;		// // //
+	inline void Clock_60Hz() const;		// // //
 
-	int16_t	*m_pBuffer;
-	uint32_t	m_iBufferPtr;
+	inline void RunAPU1(uint32_t Time);
+	inline void RunAPU2(uint32_t Time);
 
-	uint8_t	m_iSoundReg;
-
-	float	m_fVolume;
+private:
+	CSquare		*m_pSquare1;
+	CSquare		*m_pSquare2;
+	CTriangle	*m_pTriangle;
+	CNoise		*m_pNoise;
+	CDPCM		*m_pDPCM;
+	
+	uint8_t		m_iFrameSequence;					// Frame sequence
+	uint8_t		m_iFrameMode;						// 4 or 5-steps frame sequence
 };
-
-
-#endif /* VRC7_H */
