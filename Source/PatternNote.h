@@ -20,18 +20,24 @@
 ** must bear this legend.
 */
 
+
 #pragma once
 
+#include "FamiTrackerTypes.h"
 
-// Application version information
+// Channel note struct, holds the data for each row in patterns
+class stChanNote {
+public:
+	CString ToString() const;
 
-// Define this for beta builds
-//#define WIP
+public:
+	unsigned char Note = NONE;
+	unsigned char Octave = 0U;
+	unsigned char Vol = MAX_VOLUME;
+	unsigned char Instrument = MAX_INSTRUMENTS;
+	effect_t      EffNumber[MAX_EFFECT_COLUMNS] = {EF_NONE, EF_NONE, EF_NONE, EF_NONE};		// // //
+	unsigned char EffParam[MAX_EFFECT_COLUMNS] = {0U, 0U, 0U, 0U};
 
-// Version info
-#define VERSION_API  0
-#define VERSION_MAJ  3
-#define VERSION_MIN  14
-#define VERSION_REV  1
-
-#define VERSION VERSION_API,VERSION_MAJ,VERSION_MIN,VERSION_REV
+private:
+	static const CString NOTE_NAME[NOTE_RANGE];
+};

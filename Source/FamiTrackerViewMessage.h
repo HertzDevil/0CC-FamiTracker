@@ -20,18 +20,15 @@
 ** must bear this legend.
 */
 
+
 #pragma once
 
+#include "WinUser.h"
 
-// Application version information
-
-// Define this for beta builds
-//#define WIP
-
-// Version info
-#define VERSION_API  0
-#define VERSION_MAJ  3
-#define VERSION_MIN  14
-#define VERSION_REV  1
-
-#define VERSION VERSION_API,VERSION_MAJ,VERSION_MIN,VERSION_REV
+// Custom window messages for CFamiTrackerView
+enum {
+	WM_USER_PLAYER = WM_USER,		// Pattern play row has changed
+	WM_USER_MIDI_EVENT,				// There is a new MIDI command	
+	WM_USER_NOTE_EVENT,				// There is a new note command (by player)
+	WM_USER_DUMP_INST,				// // // End of track, add instrument
+};

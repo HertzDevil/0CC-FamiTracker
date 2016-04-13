@@ -20,18 +20,16 @@
 ** must bear this legend.
 */
 
-#pragma once
+#include "stdafx.h"
+#include "PatternNote.h"
 
+const CString stChanNote::NOTE_NAME[NOTE_RANGE] = {
+	_T("C-"), _T("C#"), _T("D-"), _T("D#"),
+	_T("E-"), _T("F-"), _T("F#"), _T("G-"),
+	_T("G#"), _T("A-"), _T("A#"), _T("B-"),
+};
 
-// Application version information
-
-// Define this for beta builds
-//#define WIP
-
-// Version info
-#define VERSION_API  0
-#define VERSION_MAJ  3
-#define VERSION_MIN  14
-#define VERSION_REV  1
-
-#define VERSION VERSION_API,VERSION_MAJ,VERSION_MIN,VERSION_REV
+CString stChanNote::ToString() const
+{
+	return _T("...");
+}
