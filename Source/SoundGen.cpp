@@ -31,13 +31,9 @@
 //
 
 #include "stdafx.h"
-#include <memory>		// // //
-#include <cmath>
-#include <afxmt.h>
 #include "FamiTracker.h"
 #include "FTMComponentInterface.h"		// // //
-#include <vector>		// // //
-#include "InstrumentManager.h"		// // //
+#include "ChannelState.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
 #include "VisualizerWnd.h"
@@ -45,18 +41,14 @@
 #include "DirectSound.h"
 #include "APU/APU.h"
 #include "ChannelHandler.h"
-#include "Channels2A03.h"
-#include "ChannelsVRC6.h"
-#include "ChannelsMMC5.h"
-#include "ChannelsVRC7.h"
-#include "ChannelsFDS.h"
-#include "ChannelsN163.h"
-#include "ChannelsS5B.h"
-#include "InstrumentFactory.h"		// // //
+#include "Channels2A03.h" // DPCM sample memory
+#include "ChannelsN163.h" // N163 channel count
 #include "SoundGen.h"
+#include "InstrumentRecorder.h"		// // //
 #include "Settings.h"
 #include "TrackerChannel.h"
 #include "MIDI.h"
+#include "ChannelFactory.h"		// // // test
 
 #ifdef EXPORT_TEST
 #include "ExportTest/ExportTest.h"
@@ -67,6 +59,9 @@
 
 // Write period tables to files
 //#define WRITE_PERIOD_FILES
+
+// // // Write vibrato table to file
+//#define WRITE_VIBRATO_FILE
 
 // Write a file with the volume table
 //#define WRITE_VOLUME_FILE
@@ -105,391 +100,6 @@ END_MESSAGE_MAP()
 int dither(long size);
 #endif
 
-// // // Nested class for instrument recorder
-
-class CSoundGen::InstrumentRecorder
-{
-public:
-	InstrumentRecorder(CSoundGen *pSG);
-	~InstrumentRecorder();
-
-public:
-	void			StartRecording();
-	void			StopRecording(CFamiTrackerView *pView);
-	void			RecordInstrument(const unsigned Tick, CFamiTrackerView *pView);
-
-	CInstrument		*GetRecordInstrument(unsigned Tick) const;
-	int				GetRecordChannel() const { return m_iRecordChannel; }
-	void			SetRecordChannel(int Channel) { m_iRecordChannel = Channel; };
-	stRecordSetting GetRecordSetting() const { return m_stRecordSetting; };
-	void			SetRecordSetting(stRecordSetting Setting) { m_stRecordSetting = Setting; };
-	void			SetDumpCount(int Count) { m_iDumpCount = Count; };
-
-	void			ResetDumpInstrument();
-	void			ResetRecordCache();
-	void			ReleaseCurrent();
-
-private:
-	void			InitRecordInstrument();
-	void			FinalizeRecordInstrument();
-
-public:
-	CFamiTrackerDoc *m_pDocument;
-
-private:
-	CSoundGen		*m_pSoundGen;
-	int				m_iRecordChannel;
-	int				m_iDumpCount;
-	CInstrument		**m_pDumpInstrument;
-	CInstrument		*m_pDumpCache[MAX_INSTRUMENTS];
-	CSequence		*m_pSequenceCache[SEQ_COUNT];
-	stRecordSetting	m_stRecordSetting;
-	char			*m_iRecordWaveCache;
-	int				m_iRecordWaveSize;
-	int				m_iRecordWaveCount;
-};
-
-CSoundGen::InstrumentRecorder::InstrumentRecorder(CSoundGen *pSG) :
-	m_pSoundGen(pSG),
-	m_iRecordChannel(-1),
-	m_iDumpCount(0),
-	m_iRecordWaveCache(nullptr)
-{
-	m_stRecordSetting.Interval = MAX_SEQUENCE_ITEMS;
-	m_stRecordSetting.InstCount = 1;
-	m_stRecordSetting.Reset = true;
-	for (int i = 0; i < SEQ_COUNT; i++)
-		m_pSequenceCache[i] = new CSequence();
-	memset(m_pDumpCache, 0, sizeof(CInstrument*) * MAX_INSTRUMENTS);
-	ResetRecordCache();
-}
-
-CSoundGen::InstrumentRecorder::~InstrumentRecorder()
-{
-	SAFE_RELEASE(*m_pDumpInstrument);
-	for (int i = 0; i < SEQ_COUNT; i++)
-		SAFE_RELEASE(m_pSequenceCache[i]);
-	for (int i = 0; i < MAX_INSTRUMENTS; i++)
-		SAFE_RELEASE(m_pDumpCache[i]);
-	SAFE_RELEASE_ARRAY(m_iRecordWaveCache);
-}
-
-void CSoundGen::InstrumentRecorder::StartRecording()
-{
-	m_iDumpCount = m_stRecordSetting.InstCount;
-	ResetRecordCache();
-	InitRecordInstrument();
-}
-
-void CSoundGen::InstrumentRecorder::StopRecording(CFamiTrackerView *pView)
-{
-	if (*m_pDumpInstrument != nullptr && pView != nullptr)
-		pView->PostMessage(WM_USER_DUMP_INST);
-	--m_iDumpCount;
-}
-
-#define REG(x) ( m_pSoundGen->GetReg(Chip, (x)) )
-void CSoundGen::InstrumentRecorder::RecordInstrument(const unsigned Tick, CFamiTrackerView *pView)		// // //
-{
-	unsigned int Intv = static_cast<unsigned>(m_stRecordSetting.Interval);
-	if (m_iRecordChannel == -1 || Tick > Intv * m_stRecordSetting.InstCount + 1) return;
-	if (Tick % Intv == 1 && Tick > Intv) {
-		if (*m_pDumpInstrument != nullptr && pView != nullptr) {
-			pView->PostMessage(WM_USER_DUMP_INST);
-			m_pDumpInstrument++;
-		}
-		--m_iDumpCount;
-	}
-	bool Temp = *m_pDumpInstrument == nullptr;
-	int Pos = (Tick - 1) % Intv;
-
-	signed char Val = 0;
-	
-	int PitchReg = 0;
-	int Detune = 0x7FFFFFFF;
-	int ID = m_iRecordChannel;
-	
-	char Chip = m_pDocument->GetChannel(m_pDocument->GetChannelIndex(m_iRecordChannel))->GetChip();
-	switch (Chip) {
-	case SNDCHIP_NONE: case SNDCHIP_MMC5:
-		ID -= Chip == SNDCHIP_MMC5 ? CHANID_MMC5_SQUARE1 : CHANID_SQUARE1;
-		PitchReg = m_iRecordChannel == CHANID_NOISE ? (0x0F & REG(0x0E)) :
-					(0xFF & REG(2 + (ID << 2)) | (0x07 & REG(3 + (ID << 2))) << 8); break;
-	case SNDCHIP_VRC6:
-		ID -= CHANID_VRC6_PULSE1;
-		PitchReg = 0xFF & REG(1 + (ID << 2)) | (0x0F & REG(2 + (ID << 2))) << 8; break;
-	case SNDCHIP_FDS:
-		ID -= CHANID_FDS; // ID = 0;
-		PitchReg = 0xFF & REG(0x42) | (0x0F & REG(0x43)) << 8; break;
-	case SNDCHIP_N163:
-		ID -= CHANID_N163_CH1;
-		PitchReg = (0xFF & REG(0x78 - (ID << 3))
-					| (0xFF & REG(0x7A - (ID << 3))) << 8
-					| (0x03 & REG(0x7C - (ID << 3))) << 16) >> 2; // N163_PITCH_SLIDE_SHIFT;
-		break;
-	case SNDCHIP_S5B:
-		ID -= CHANID_S5B_CH1;
-		PitchReg = (0xFF & REG(ID << 1) | (0x0F & REG(1 + (ID << 1))) << 8); break;
-	}
-
-	int Note = 0;
-	if (m_iRecordChannel == CHANID_NOISE) {
-		Note = PitchReg ^ 0xF; Detune = 0;
-	}
-	else for (int i = 0; i < NOTE_COUNT; i++) {
-		int diff = PitchReg - m_pSoundGen->ReadPeriodTable(i, Chip == SNDCHIP_NONE && m_pDocument->GetMachine() == PAL ? SNDCHIP_2A07 : Chip);
-		if (std::abs(diff) < std::abs(Detune)) {
-			Note = i; Detune = diff;
-		}
-	}
-
-	inst_type_t InstType = INST_NONE; // optimize this
-	switch (Chip) {
-	case SNDCHIP_NONE: case SNDCHIP_MMC5: InstType = INST_2A03; break;
-	case SNDCHIP_VRC6: InstType = INST_VRC6; break;
-	// case SNDCHIP_VRC7: Type = INST_VRC7; break;
-	case SNDCHIP_FDS:  InstType = INST_FDS; break;
-	case SNDCHIP_N163: InstType = INST_N163; break;
-	case SNDCHIP_S5B:  InstType = INST_S5B; break;
-	}
-
-	switch (InstType) {
-	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B:
-		for (int i = 0; i < SEQ_COUNT; i++) {
-			sequence_t s = static_cast<sequence_t>(i);
-			switch (s) {
-			case SEQ_VOLUME:
-				switch (Chip) {
-				case SNDCHIP_NONE: case SNDCHIP_MMC5:
-					Val = m_iRecordChannel == CHANID_TRIANGLE ? ((0x7F & REG(0x08)) ? 15 : 0) : (0x0F & REG(ID << 2)); break;
-				case SNDCHIP_VRC6:
-					Val = m_iRecordChannel == CHANID_VRC6_SAWTOOTH ? (0x0F & REG(0x08) >> 1) : (0x0F & REG(ID << 2)); break;
-				case SNDCHIP_N163:
-					Val = 0x0F & REG(0x7F - (ID << 3)); break;
-				case SNDCHIP_S5B:
-					Val = 0x0F & REG(0x08 + ID); break;
-				}
-				break;
-			case SEQ_ARPEGGIO: Val = static_cast<char>(Note); break;
-			case SEQ_PITCH: Val = static_cast<char>(Detune % 16); break;
-			case SEQ_HIPITCH: Val = static_cast<char>(Detune / 16); break;
-			case SEQ_DUTYCYCLE:
-				switch (Chip) {
-				case SNDCHIP_NONE: case SNDCHIP_MMC5:
-					Val = m_iRecordChannel == CHANID_TRIANGLE ? 0 :
-						m_iRecordChannel == CHANID_NOISE ? (0x01 & REG(0x0E) >> 7) : (0x03 & REG(ID << 2) >> 6); break;
-				case SNDCHIP_VRC6:
-					Val = m_iRecordChannel == CHANID_VRC6_SAWTOOTH ? (0x01 & REG(0x08) >> 5) : (0x07 & REG(ID << 2) >> 4); break;
-				case SNDCHIP_N163:
-					Val = 0;
-					if (m_iRecordWaveCache == NULL) {
-						int Size = 0x100 - (0xFC & REG(0x7C - (ID << 3)));
-						if (Size <= CInstrumentN163::MAX_WAVE_SIZE) {
-							m_iRecordWaveSize = Size;
-							m_iRecordWaveCache = new char[m_iRecordWaveSize * CInstrumentN163::MAX_WAVE_COUNT]();
-							m_iRecordWaveCount = 0;
-						}
-					}
-					if (m_iRecordWaveCache != nullptr) {
-						int Count = 0x100 - (0xFC & REG(0x7C - (ID << 3)));
-						if (Count == m_iRecordWaveSize) {
-							int pos = 0xFF & REG(0x7E - (ID << 3));
-							char *Wave = new char[Count];
-							for (int j = 0; j < Count; j++)
-								Wave[j] = 0x0F & REG((pos + j) >> 1) >> ((j & 0x01) ? 4 : 0);
-							for (int j = 1; j <= m_iRecordWaveCount; j++) {
-								if (!memcmp(Wave, m_iRecordWaveCache + j * Count, Count)) {
-									Val = j; goto outer;
-								}
-							}
-							if (m_iRecordWaveCount < CInstrumentN163::MAX_WAVE_COUNT - 1) {
-								Val = ++m_iRecordWaveCount;
-								memcpy(m_iRecordWaveCache + Val * Count, Wave, Count);
-							}
-							else
-								Val = m_pSequenceCache[i]->GetItem(Pos - 1);
-						outer:
-							SAFE_RELEASE_ARRAY(Wave);
-						}
-					}
-					break;
-				case SNDCHIP_S5B:
-					Val = 0x1F & REG(0x06) | (0x10 & REG(0x08 + ID)) << 1
-						| (0x01 << ID & ~REG(0x07)) << (6 - ID) | (0x08 << ID & ~REG(0x07)) << (4 - ID); break;
-				}
-				break;
-			}
-			m_pSequenceCache[i]->SetItemCount(Pos + 1);
-			m_pSequenceCache[i]->SetItem(Pos, Val);
-		}
-		break;
-	case INST_FDS:
-		for (int k = 0; k <= 2; k++) {
-			switch (k) {
-			case 0: Val = 0x3F & REG(0x40); if (Val > 0x20) Val = 0x20; break;
-			case 1: Val = static_cast<char>(Note); break;
-			case 2: Val = static_cast<char>(Detune); break;
-			}
-			m_pSequenceCache[k]->SetItemCount(Pos + 1);
-			m_pSequenceCache[k]->SetItem(Pos, Val);
-		}
-	}
-	
-	if (!(Tick % Intv))
-		FinalizeRecordInstrument();
-}
-#undef REG
-
-CInstrument* CSoundGen::InstrumentRecorder::GetRecordInstrument(unsigned Tick) const
-{
-	return m_pDumpCache[Tick / m_stRecordSetting.Interval - (m_pSoundGen->IsPlaying() ? 1 : 0)];
-}
-
-void CSoundGen::InstrumentRecorder::ResetDumpInstrument()
-{
-	if (m_iDumpCount < 0) return;
-	if (m_pSoundGen->IsPlaying()) {
-		--m_pDumpInstrument;
-		if (m_pDumpInstrument >= m_pDumpCache)
-			ReleaseCurrent();
-		++m_pDumpInstrument;
-	}
-	if (m_iDumpCount && *m_pDumpInstrument == nullptr) {
-		InitRecordInstrument();
-	}
-	else {
-		if (*m_pDumpInstrument != nullptr)
-			FinalizeRecordInstrument();
-		if (!m_iDumpCount || !m_pSoundGen->IsPlaying()) {
-			m_iRecordChannel = -1;
-			if (m_stRecordSetting.Reset) {
-				m_stRecordSetting.Interval = MAX_SEQUENCE_ITEMS;
-				m_stRecordSetting.InstCount = 1;
-			}
-			ReleaseCurrent();
-		}
-	}
-}
-
-void CSoundGen::InstrumentRecorder::ResetRecordCache()
-{
-	memset(m_pDumpCache, 0, sizeof(CInstrument*) * MAX_INSTRUMENTS);
-	m_pDumpInstrument = &m_pDumpCache[0];
-	for (int i = 0; i < SEQ_COUNT; i++)
-		m_pSequenceCache[i]->Clear();
-}
-
-void CSoundGen::InstrumentRecorder::ReleaseCurrent()
-{
-	if (*m_pDumpInstrument != nullptr) {
-		//(*m_pDumpInstrument)->Release();
-		*m_pDumpInstrument = nullptr;
-	}
-}
-
-void CSoundGen::InstrumentRecorder::InitRecordInstrument()
-{
-	CTrackerChannel *pChan = m_pDocument->GetChannel(m_pDocument->GetChannelIndex(m_iRecordChannel));
-	if (m_pDocument->GetInstrumentCount() >= MAX_INSTRUMENTS) {
-		m_iDumpCount = 0; m_iRecordChannel = -1; return;
-	}
-	inst_type_t Type = INST_NONE; // optimize this
-	switch (pChan->GetChip()) {
-	case SNDCHIP_NONE: case SNDCHIP_MMC5: Type = INST_2A03; break;
-	case SNDCHIP_VRC6: Type = INST_VRC6; break;
-	// case SNDCHIP_VRC7: Type = INST_VRC7; break;
-	case SNDCHIP_FDS:  Type = INST_FDS; break;
-	case SNDCHIP_N163: Type = INST_N163; break;
-	case SNDCHIP_S5B:  Type = INST_S5B; break;
-	}
-	*m_pDumpInstrument = CInstrumentFactory::CreateNew(Type);		// // //
-	if (!*m_pDumpInstrument) return;
-
-	CString str;
-	str.Format(_T("from %s"), pChan->GetChannelName());
-	(*m_pDumpInstrument)->SetName(str);
-	
-	if (Type == INST_FDS) {
-		m_pSequenceCache[SEQ_ARPEGGIO]->SetSetting(SETTING_ARP_FIXED);
-		return;
-	}
-	switch (Type) {
-	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B:
-		CSeqInstrument *Inst = dynamic_cast<CSeqInstrument*>(*m_pDumpInstrument);
-		ASSERT(Inst != NULL);
-		for (int i = 0; i < SEQ_COUNT; i++) {
-			Inst->SetSeqEnable(i, 1);
-			Inst->SetSeqIndex(i, m_pDocument->GetFreeSequence(Type, i));
-		}
-		m_pSequenceCache[SEQ_ARPEGGIO]->SetSetting(SETTING_ARP_FIXED);
-		// m_pSequenceCache[SEQ_PITCH]->SetSetting(SETTING_PITCH_ABSOLUTE);
-		// m_pSequenceCache[SEQ_HIPITCH]->SetSetting(SETTING_PITCH_ABSOLUTE);
-		// VRC6 sawtooth 64-step volume
-		if (m_iRecordChannel == CHANID_TRIANGLE)
-			Inst->SetSeqEnable(SEQ_DUTYCYCLE, 0);
-		break;
-	}
-	m_iRecordWaveSize = 32; // DEFAULT_WAVE_SIZE
-	m_iRecordWaveCount = 0;
-}
-
-void CSoundGen::InstrumentRecorder::FinalizeRecordInstrument()
-{
-	if (*m_pDumpInstrument == NULL) return;
-	inst_type_t InstType = (*m_pDumpInstrument)->GetType();
-	CSeqInstrument *Inst = dynamic_cast<CSeqInstrument*>(*m_pDumpInstrument);
-	CInstrumentFDS *FDSInst = dynamic_cast<CInstrumentFDS*>(*m_pDumpInstrument);
-	CInstrumentN163 *N163Inst = dynamic_cast<CInstrumentN163*>(*m_pDumpInstrument);
-	if (Inst != NULL) for (int i = 0; i < SEQ_COUNT; i++) {
-		if (Inst->GetSeqEnable(i) != 0) {
-			m_pSequenceCache[i]->SetLoopPoint(m_pSequenceCache[i]->GetItemCount() - 1);
-			(*m_pDumpInstrument)->RegisterManager(m_pDocument->GetInstrumentManager());
-			Inst->SetSequence(i, m_pSequenceCache[i]);
-		}
-		m_pSequenceCache[i] = new CSequence();
-	}
-	switch (InstType) {
-	case INST_FDS:
-		ASSERT(FDSInst != NULL);
-		/*
-		for (int i = 0; i < CInstrumentFDS::SEQUENCE_COUNT; i++) {
-			const CSequence *Seq = FDSInst->GetSequence(i);
-			ASSERT(Seq != NULL);
-			m_pSequenceCache[i]->SetLoopPoint(m_pSequenceCache[i]->GetItemCount() - 1);
-			FDSInst->SetSequence(i, m_pSequenceCache[i]);
-			m_pSequenceCache[i] = new CSequence();
-		}
-		*/
-		for (int i = 0; i < CInstrumentFDS::WAVE_SIZE; i++)
-			FDSInst->SetSample(i, 0x3F & m_pSoundGen->GetReg(SNDCHIP_FDS, i));
-		FDSInst->SetModulationDepth(0x3F & m_pSoundGen->GetReg(SNDCHIP_FDS, 0x44));
-		FDSInst->SetModulationSpeed(0xFF & m_pSoundGen->GetReg(SNDCHIP_FDS, 0x46) | (0x0F & m_pSoundGen->GetReg(SNDCHIP_FDS, 0x47)) << 8);
-		break;
-	case INST_N163:
-		ASSERT(N163Inst != NULL);
-		int offs = (m_iRecordChannel - CHANID_N163_CH1) << 3;
-		int pos = 0xFF & m_pSoundGen->GetReg(SNDCHIP_N163, 0x7E - offs);
-		N163Inst->SetWavePos(pos);
-		N163Inst->SetWaveSize(m_iRecordWaveSize);
-		N163Inst->SetWaveCount(m_iRecordWaveCount + 1);
-		if (m_iRecordWaveCache != NULL) {
-			for (int i = 0; i <= m_iRecordWaveCount; i++) for (int j = 0; j < m_iRecordWaveSize; j++)
-				N163Inst->SetSample(i, j, m_iRecordWaveCache[m_iRecordWaveSize * i + j]);
-			SAFE_RELEASE(m_iRecordWaveCache);
-		}
-		else for (int j = 0; j < m_iRecordWaveSize; j++) // fallback for blank recording
-			N163Inst->SetSample(0, j, 0);
-		break;
-	}
-}
-
-CInstrument* CSoundGen::GetRecordInstrument() const { return m_pInstRecorder->GetRecordInstrument(m_iPlayTicks); }
-void CSoundGen::ResetDumpInstrument() { m_pInstRecorder->ResetDumpInstrument(); };
-int CSoundGen::GetRecordChannel() const { return m_pInstRecorder->GetRecordChannel(); }
-void CSoundGen::SetRecordChannel(int Channel) { m_pInstRecorder->SetRecordChannel(Channel); };
-stRecordSetting CSoundGen::GetRecordSetting() const { return m_pInstRecorder->GetRecordSetting(); }
-void CSoundGen::SetRecordSetting(stRecordSetting Setting) { m_pInstRecorder->SetRecordSetting(Setting); };
-
 // CSoundGen
 
 CSoundGen::CSoundGen() : 
@@ -504,13 +114,14 @@ CSoundGen::CSoundGen() :
 	m_bRendering(false),
 	m_bPlaying(false),
 	m_bHaltRequest(false),
+	m_bDoHalt(false),		// // //
 	m_pPreviewSample(NULL),
 	m_pVisualizerWnd(NULL),
 	m_iSpeed(0),
 	m_iTempo(0),
 	m_iGrooveIndex(-1),		// // //
 	m_iGroovePosition(0),		// // //
-	m_pInstRecorder(new CSoundGen::InstrumentRecorder(this)),		// // //
+	m_pInstRecorder(new CInstrumentRecorder(this)),		// // //
 	m_bWaveChanged(0),
 	m_iMachineType(NTSC),
 	m_bRunning(false),
@@ -577,61 +188,69 @@ void CSoundGen::CreateChannels()
 	// 2A03/2A07
 	// // // Short header names
 #ifdef _DUAL_CH		// // //
-	CSquare1Chan *PU1 = new CSquare1Chan();
-	AssignChannel(new CTrackerChannel(_T("Pulse 1"), _T("PU1"), SNDCHIP_NONE, CHANID_SQUARE1), PU1);
-	AssignChannel(new CTrackerChannel(_T("Pulse 1 SFX"), _T("PU1*"), SNDCHIP_NONE, CHANID_SQUARE2), PU1);
+	CSquare1Chan *PU1 = new C2A03Square();
+	AssignChannel(new CTrackerChannel(_T("Pulse 1"), _T("PU1"), SNDCHIP_NONE, CHANID_SQUARE1));
+	AssignChannel(new CTrackerChannel(_T("Pulse 1 SFX"), _T("PU1*"), SNDCHIP_NONE, CHANID_SQUARE1));
 #else
-	AssignChannel(new CTrackerChannel(_T("Pulse 1"), _T("PU1"), SNDCHIP_NONE, CHANID_SQUARE1), new CSquare1Chan());
-	AssignChannel(new CTrackerChannel(_T("Pulse 2"), _T("PU2"), SNDCHIP_NONE, CHANID_SQUARE2), new CSquare2Chan());
+	AssignChannel(new CTrackerChannel(_T("Pulse 1"), _T("PU1"), SNDCHIP_NONE, CHANID_SQUARE1));
+	AssignChannel(new CTrackerChannel(_T("Pulse 2"), _T("PU2"), SNDCHIP_NONE, CHANID_SQUARE2));
 #endif
-	AssignChannel(new CTrackerChannel(_T("Triangle"), _T("TRI"), SNDCHIP_NONE, CHANID_TRIANGLE), new CTriangleChan());
-	AssignChannel(new CTrackerChannel(_T("Noise"), _T("NOI"), SNDCHIP_NONE, CHANID_NOISE), new CNoiseChan());
-	AssignChannel(new CTrackerChannel(_T("DPCM"), _T("DMC"), SNDCHIP_NONE, CHANID_DPCM), new CDPCMChan(m_pSampleMem));
+	AssignChannel(new CTrackerChannel(_T("Triangle"), _T("TRI"), SNDCHIP_NONE, CHANID_TRIANGLE));
+	AssignChannel(new CTrackerChannel(_T("Noise"), _T("NOI"), SNDCHIP_NONE, CHANID_NOISE));
+	AssignChannel(new CTrackerChannel(_T("DPCM"), _T("DMC"), SNDCHIP_NONE, CHANID_DPCM));
 
 	// Konami VRC6
-	AssignChannel(new CTrackerChannel(_T("VRC6 Pulse 1"), _T("V1"), SNDCHIP_VRC6, CHANID_VRC6_PULSE1), new CVRC6Square());		// // //
-	AssignChannel(new CTrackerChannel(_T("VRC6 Pulse 2"), _T("V2"), SNDCHIP_VRC6, CHANID_VRC6_PULSE2), new CVRC6Square());		// // //
-	AssignChannel(new CTrackerChannel(_T("Sawtooth"), _T("SAW"), SNDCHIP_VRC6, CHANID_VRC6_SAWTOOTH), new CVRC6Sawtooth());
-
-	// Konami VRC7
-	AssignChannel(new CTrackerChannel(_T("FM Channel 1"), _T("FM1"), SNDCHIP_VRC7, CHANID_VRC7_CH1), new CVRC7Channel());
-	AssignChannel(new CTrackerChannel(_T("FM Channel 2"), _T("FM2"), SNDCHIP_VRC7, CHANID_VRC7_CH2), new CVRC7Channel());
-	AssignChannel(new CTrackerChannel(_T("FM Channel 3"), _T("FM3"), SNDCHIP_VRC7, CHANID_VRC7_CH3), new CVRC7Channel());
-	AssignChannel(new CTrackerChannel(_T("FM Channel 4"), _T("FM4"), SNDCHIP_VRC7, CHANID_VRC7_CH4), new CVRC7Channel());
-	AssignChannel(new CTrackerChannel(_T("FM Channel 5"), _T("FM5"), SNDCHIP_VRC7, CHANID_VRC7_CH5), new CVRC7Channel());
-	AssignChannel(new CTrackerChannel(_T("FM Channel 6"), _T("FM6"), SNDCHIP_VRC7, CHANID_VRC7_CH6), new CVRC7Channel());
-
-	// Nintendo FDS
-	AssignChannel(new CTrackerChannel(_T("FDS"), _T("FDS"), SNDCHIP_FDS, CHANID_FDS), new CChannelHandlerFDS());
+	AssignChannel(new CTrackerChannel(_T("VRC6 Pulse 1"), _T("V1"), SNDCHIP_VRC6, CHANID_VRC6_PULSE1));
+	AssignChannel(new CTrackerChannel(_T("VRC6 Pulse 2"), _T("V2"), SNDCHIP_VRC6, CHANID_VRC6_PULSE2));
+	AssignChannel(new CTrackerChannel(_T("Sawtooth"), _T("SAW"), SNDCHIP_VRC6, CHANID_VRC6_SAWTOOTH));
 
 	// // // Nintendo MMC5
-	AssignChannel(new CTrackerChannel(_T("MMC5 Pulse 1"), _T("PU3"), SNDCHIP_MMC5, CHANID_MMC5_SQUARE1), new CChannelHandlerMMC5());
-	AssignChannel(new CTrackerChannel(_T("MMC5 Pulse 2"), _T("PU4"), SNDCHIP_MMC5, CHANID_MMC5_SQUARE2), new CChannelHandlerMMC5());
+	AssignChannel(new CTrackerChannel(_T("MMC5 Pulse 1"), _T("PU3"), SNDCHIP_MMC5, CHANID_MMC5_SQUARE1));
+	AssignChannel(new CTrackerChannel(_T("MMC5 Pulse 2"), _T("PU4"), SNDCHIP_MMC5, CHANID_MMC5_SQUARE2));
+	AssignChannel(new CTrackerChannel(_T("MMC5 PCM"), _T("PCM"), SNDCHIP_MMC5, CHANID_MMC5_VOICE)); // null channel handler
 
 	// Namco N163
-	AssignChannel(new CTrackerChannel(_T("Namco 1"), _T("N1"), SNDCHIP_N163, CHANID_N163_CH1), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 2"), _T("N2"), SNDCHIP_N163, CHANID_N163_CH2), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 3"), _T("N3"), SNDCHIP_N163, CHANID_N163_CH3), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 4"), _T("N4"), SNDCHIP_N163, CHANID_N163_CH4), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 5"), _T("N5"), SNDCHIP_N163, CHANID_N163_CH5), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 6"), _T("N6"), SNDCHIP_N163, CHANID_N163_CH6), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 7"), _T("N7"), SNDCHIP_N163, CHANID_N163_CH7), new CChannelHandlerN163());
-	AssignChannel(new CTrackerChannel(_T("Namco 8"), _T("N8"), SNDCHIP_N163, CHANID_N163_CH8), new CChannelHandlerN163());
+	AssignChannel(new CTrackerChannel(_T("Namco 1"), _T("N1"), SNDCHIP_N163, CHANID_N163_CH1));
+	AssignChannel(new CTrackerChannel(_T("Namco 2"), _T("N2"), SNDCHIP_N163, CHANID_N163_CH2));
+	AssignChannel(new CTrackerChannel(_T("Namco 3"), _T("N3"), SNDCHIP_N163, CHANID_N163_CH3));
+	AssignChannel(new CTrackerChannel(_T("Namco 4"), _T("N4"), SNDCHIP_N163, CHANID_N163_CH4));
+	AssignChannel(new CTrackerChannel(_T("Namco 5"), _T("N5"), SNDCHIP_N163, CHANID_N163_CH5));
+	AssignChannel(new CTrackerChannel(_T("Namco 6"), _T("N6"), SNDCHIP_N163, CHANID_N163_CH6));
+	AssignChannel(new CTrackerChannel(_T("Namco 7"), _T("N7"), SNDCHIP_N163, CHANID_N163_CH7));
+	AssignChannel(new CTrackerChannel(_T("Namco 8"), _T("N8"), SNDCHIP_N163, CHANID_N163_CH8));
+
+	// Nintendo FDS
+	AssignChannel(new CTrackerChannel(_T("FDS"), _T("FDS"), SNDCHIP_FDS, CHANID_FDS));
+
+	// Konami VRC7
+	AssignChannel(new CTrackerChannel(_T("FM Channel 1"), _T("FM1"), SNDCHIP_VRC7, CHANID_VRC7_CH1));
+	AssignChannel(new CTrackerChannel(_T("FM Channel 2"), _T("FM2"), SNDCHIP_VRC7, CHANID_VRC7_CH2));
+	AssignChannel(new CTrackerChannel(_T("FM Channel 3"), _T("FM3"), SNDCHIP_VRC7, CHANID_VRC7_CH3));
+	AssignChannel(new CTrackerChannel(_T("FM Channel 4"), _T("FM4"), SNDCHIP_VRC7, CHANID_VRC7_CH4));
+	AssignChannel(new CTrackerChannel(_T("FM Channel 5"), _T("FM5"), SNDCHIP_VRC7, CHANID_VRC7_CH5));
+	AssignChannel(new CTrackerChannel(_T("FM Channel 6"), _T("FM6"), SNDCHIP_VRC7, CHANID_VRC7_CH6));
 
 	// // // Sunsoft 5B
-	AssignChannel(new CTrackerChannel(_T("5B Square 1"), _T("5B1"), SNDCHIP_S5B, CHANID_S5B_CH1), new CChannelHandlerS5B());
-	AssignChannel(new CTrackerChannel(_T("5B Square 2"), _T("5B2"), SNDCHIP_S5B, CHANID_S5B_CH2), new CChannelHandlerS5B());
-	AssignChannel(new CTrackerChannel(_T("5B Square 3"), _T("5B3"), SNDCHIP_S5B, CHANID_S5B_CH3), new CChannelHandlerS5B());
+	AssignChannel(new CTrackerChannel(_T("5B Square 1"), _T("5B1"), SNDCHIP_S5B, CHANID_S5B_CH1));
+	AssignChannel(new CTrackerChannel(_T("5B Square 2"), _T("5B2"), SNDCHIP_S5B, CHANID_S5B_CH2));
+	AssignChannel(new CTrackerChannel(_T("5B Square 3"), _T("5B3"), SNDCHIP_S5B, CHANID_S5B_CH3));
 }
 
-void CSoundGen::AssignChannel(CTrackerChannel *pTrackerChannel, CChannelHandler *pRenderer)
+void CSoundGen::AssignChannel(CTrackerChannel *pTrackerChannel)		// // //
 {
-	int ID = pTrackerChannel->GetID();
+	static CChannelFactory F {}; // test
+	chan_id_t ID = pTrackerChannel->GetID();
 
-	pRenderer->SetChannelID(ID);
+	CChannelHandler *pRenderer = F.Produce(ID);
+	if (pRenderer) {
+		if (ID == CHANID_DPCM)
+			static_cast<CDPCMChan*>(pRenderer)->SetSampleMemory(m_pSampleMem);
+		pRenderer->SetChannelID(ID);
+	}
 
-	m_pTrackerChannels[ID] = pTrackerChannel;
-	m_pChannels[ID] = pRenderer;
+	static size_t Pos = 0;		// // // test
+	m_pTrackerChannels[Pos] = pTrackerChannel;
+	m_pChannels[Pos++] = pRenderer;
 }
 
 //
@@ -656,6 +275,7 @@ void CSoundGen::AssignDocument(CFamiTrackerDoc *pDoc)
 		if (m_pChannels[i])
 			m_pChannels[i]->InitChannel(m_pAPU, m_iVibratoTable, this);
 	}
+	DocumentPropertiesChanged(pDoc);		// // //
 }
 
 void CSoundGen::AssignView(CFamiTrackerView *pView)
@@ -721,10 +341,11 @@ void CSoundGen::RegisterChannels(int Chip, CFamiTrackerDoc *pDoc)
 
 	// Register the channels in the document
 	// Expansion & internal channels
-	for (int i = 0; i < CHANNELS; ++i) {
-		if (m_pTrackerChannels[i] && ((m_pTrackerChannels[i]->GetChip() & Chip) || (i < 5))			// // //
-								  && (i >= CHANID_FDS || i < CHANID_N163_CH1 + pDoc->GetNamcoChannels())) {
-			pDoc->RegisterChannel(m_pTrackerChannels[i], i, m_pTrackerChannels[i]->GetChip());
+	for (int i = 0; i < sizeof(m_pTrackerChannels) / sizeof(CTrackerChannel*); ++i) {
+		int ID = m_pTrackerChannels[i]->GetID();		// // //
+		if (m_pChannels[i] && ((m_pTrackerChannels[i]->GetChip() & Chip) || (i < 5))			// // //
+						   && (i >= CHANID_FDS || i < CHANID_N163_CH1 + pDoc->GetNamcoChannels())) {
+			pDoc->RegisterChannel(m_pTrackerChannels[i], ID, m_pTrackerChannels[i]->GetChip());
 		}
 	}
 
@@ -753,10 +374,173 @@ CChannelHandler *CSoundGen::GetChannel(int Index) const
 void CSoundGen::DocumentPropertiesChanged(CFamiTrackerDoc *pDocument)
 {
 	ASSERT(pDocument != NULL);
+	
+	SetupVibratoTable(pDocument->GetVibratoStyle());		// // //
+	
+	machine_t Machine = m_pDocument->GetMachine();
+	const int A440_NOTE = 45;
+	double clock_ntsc = CAPU::BASE_FREQ_NTSC / 16.0;
+	double clock_pal = CAPU::BASE_FREQ_PAL / 16.0;
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		// Frequency (in Hz)
+		double Freq = 440. * pow(2.0, double(i - A440_NOTE) / 12.);
+		double Pitch;
+
+		// 2A07
+		Pitch = (clock_pal / Freq) - 0.5;
+		m_iNoteLookupTablePAL[i] = (unsigned int)(Pitch - m_pDocument->GetDetuneOffset(1, i));		// // //
+		
+		// 2A03 / MMC5 / VRC6
+		Pitch = (clock_ntsc / Freq) - 0.5;
+		m_iNoteLookupTableNTSC[i] = (unsigned int)(Pitch - m_pDocument->GetDetuneOffset(0, i));		// // //
+		m_iNoteLookupTableS5B[i] = m_iNoteLookupTableNTSC[i] + 1;		// correction
+
+		// VRC6 Saw
+		Pitch = ((clock_ntsc * 16.0) / (Freq * 14.0)) - 0.5;
+		m_iNoteLookupTableSaw[i] = (unsigned int)(Pitch - m_pDocument->GetDetuneOffset(2, i));		// // //
+
+		// FDS
+#ifdef TRANSPOSE_FDS
+		Pitch = (Freq * 65536.0) / (clock_ntsc / 1.0) + 0.5;
+#else
+		Pitch = (Freq * 65536.0) / (clock_ntsc / 4.0) + 0.5;
+#endif
+		m_iNoteLookupTableFDS[i] = (unsigned int)(Pitch + m_pDocument->GetDetuneOffset(4, i));		// // //
+
+		// N163
+		Pitch = ((Freq * m_pDocument->GetNamcoChannels() * 983040.0) / clock_ntsc + 0.5) / 4;		// // //
+		m_iNoteLookupTableN163[i] = (unsigned int)(Pitch + m_pDocument->GetDetuneOffset(5, i));		// // //
+
+		if (m_iNoteLookupTableN163[i] > 0xFFFF)	// 0x3FFFF
+			m_iNoteLookupTableN163[i] = 0xFFFF;	// 0x3FFFF
+
+		// // // Sunsoft 5B uses NTSC table
+
+		// // // VRC7
+		if (i < NOTE_RANGE) {
+			Pitch = Freq * 262144.0 / 49716.0 + 0.5;
+			m_iNoteLookupTableVRC7[i] = (unsigned int)(Pitch + m_pDocument->GetDetuneOffset(3, i));		// // //
+		}
+	}
+	
+	// // // Setup note tables
+	for (int i = 0; i < CHANNELS; ++i) {
+		if (!m_pChannels[i]) continue;
+		const unsigned int *Table = nullptr;
+		switch (m_pTrackerChannels[i]->GetID()) {
+		case CHANID_SQUARE1: case CHANID_SQUARE2: case CHANID_TRIANGLE:
+			Table = Machine == PAL ? m_iNoteLookupTablePAL : m_iNoteLookupTableNTSC; break;
+		case CHANID_VRC6_PULSE1: case CHANID_VRC6_PULSE2:
+		case CHANID_MMC5_SQUARE1: case CHANID_MMC5_SQUARE2:
+			Table = m_iNoteLookupTableNTSC; break;
+		case CHANID_VRC6_SAWTOOTH:
+			Table = m_iNoteLookupTableSaw; break;
+		case CHANID_VRC7_CH1: case CHANID_VRC7_CH2: case CHANID_VRC7_CH3:
+		case CHANID_VRC7_CH4: case CHANID_VRC7_CH5: case CHANID_VRC7_CH6:
+			Table = m_iNoteLookupTableVRC7; break;
+		case CHANID_FDS:
+			Table = m_iNoteLookupTableFDS; break;
+		case CHANID_N163_CH1: case CHANID_N163_CH2: case CHANID_N163_CH3: case CHANID_N163_CH4:
+		case CHANID_N163_CH5: case CHANID_N163_CH6: case CHANID_N163_CH7: case CHANID_N163_CH8:
+			Table = m_iNoteLookupTableN163; break;
+		case CHANID_S5B_CH1: case CHANID_S5B_CH2: case CHANID_S5B_CH3:
+			Table = m_iNoteLookupTableS5B; break;
+		default: continue;
+		}
+		m_pChannels[i]->SetNoteTable(Table);
+	}
+
+#ifdef WRITE_PERIOD_FILES
+
+	// Write periods to a single file with assembly formatting
+	CStdioFile period_file("..\\nsf driver\\periods.s", CStdioFile::modeWrite | CStdioFile::modeCreate);
+
+	// One possible optimization is to store the PAL table as the difference from the NTSC table
+
+	period_file.WriteString("; 2A03 NTSC\n");
+	period_file.WriteString(".if .defined(NTSC_PERIOD_TABLE)\n");
+	period_file.WriteString("ft_periods_ntsc: ;; Patch\n\t.word\t");
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		CString str;
+		str.Format("$%04X%s", m_iNoteLookupTableNTSC[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
+		period_file.WriteString(str);
+	}
+
+	period_file.WriteString(".endif\n\n");
+	period_file.WriteString("; 2A03 PAL\n");
+	period_file.WriteString(".if .defined(PAL_PERIOD_TABLE)\n");
+	period_file.WriteString("ft_periods_pal: ;; Patch\n\t.word\t");
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		CString str;
+		str.Format("$%04X%s", m_iNoteLookupTablePAL[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
+		period_file.WriteString(str);
+	}
+
+	period_file.WriteString(".endif\n\n");
+	period_file.WriteString("; VRC6 Sawtooth\n");
+	period_file.WriteString(".if .defined(USE_VRC6)\n");
+	period_file.WriteString("ft_periods_sawtooth: ;; Patch\n\t.word\t");
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		CString str;
+		str.Format("$%04X%s", m_iNoteLookupTableSaw[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
+		period_file.WriteString(str);
+	}
+
+	period_file.WriteString(".endif\n\n");
+	period_file.WriteString("; FDS\n");
+	period_file.WriteString(".if .defined(USE_FDS)\n");
+	period_file.WriteString("ft_periods_fds: ;; Patch\n\t.word\t");
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		CString str;
+		str.Format("$%04X%s", m_iNoteLookupTableFDS[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
+		period_file.WriteString(str);
+	}
+
+	period_file.WriteString(".endif\n\n");
+	period_file.WriteString("; N163\n");
+	period_file.WriteString(".if .defined(USE_N163)\n");
+	period_file.WriteString("ft_periods_n163: ;; Patch\n\t.word\t");
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		CString str;
+		str.Format("$%04X%s", m_iNoteLookupTableN163[i] & 0xFFFF, ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
+		period_file.WriteString(str);
+	}
+
+	period_file.WriteString(".endif\n\n");
+	period_file.WriteString("; VRC7\n");
+	period_file.WriteString(".if .defined(USE_VRC7)\n");
+	period_file.WriteString("; Fnum table, multiplied by 4 for higher resolution\n");
+	period_file.WriteString(".define ft_vrc7_table ");
+
+	for (int i = 0; i < NOTE_RANGE; ++i) {
+		CString str;
+		str.Format("$%04X%s", m_iNoteLookupTableVRC7[i] * 4, (i < 11) ? ", " : "\n\n");
+		period_file.WriteString(str);
+	}
+	
+	period_file.WriteString("ft_note_table_vrc7_l: ;; Patch\n");
+	period_file.WriteString("\t.lobytes ft_vrc7_table\n");
+	period_file.WriteString("ft_note_table_vrc7_h:\n");
+	period_file.WriteString("\t.hibytes ft_vrc7_table\n");
+	period_file.WriteString(".endif\n");
+
+	period_file.Close();
+
+#endif
 
 	for (int i = 0; i < CHANNELS; ++i) {
-		if (m_pChannels[i])
-			m_pChannels[i]->DocumentPropertiesChanged(pDocument);
+		if (m_pChannels[i]) {
+			m_pChannels[i]->SetVibratoStyle(pDocument->GetVibratoStyle());		// // //
+			m_pChannels[i]->SetLinearPitch(pDocument->GetLinearPitch());
+		}
+		if (auto pChan = dynamic_cast<CChannelHandlerN163*>(m_pChannels[i]))
+			pChan->SetChannelCount(pDocument->GetNamcoChannels());
 	}
 	
 	m_iSpeedSplitPoint = pDocument->GetSpeedSplitPoint();
@@ -1041,7 +825,7 @@ void CSoundGen::ResetBuffer()
 	m_pAPU->Reset();
 }
 
-void CSoundGen::FlushBuffer(int16 *pBuffer, uint32 Size)
+void CSoundGen::FlushBuffer(int16_t *pBuffer, uint32_t Size)
 {
 	// Callback method from emulation
 
@@ -1057,9 +841,9 @@ void CSoundGen::FlushBuffer(int16 *pBuffer, uint32 Size)
 #endif /* EXPORT_TEST */
 
 	if (m_iSampleSize == 8)
-		FillBuffer<uint8, 8>(pBuffer, Size);
+		FillBuffer<uint8_t, 8>(pBuffer, Size);
 	else
-		FillBuffer<int16, 0>(pBuffer, Size);
+		FillBuffer<int16_t, 0>(pBuffer, Size);
 
 	if (m_iClipCounter > 50) {
 		// Ignore some clipping to allow the HP-filter adjust itself
@@ -1071,7 +855,7 @@ void CSoundGen::FlushBuffer(int16 *pBuffer, uint32 Size)
 }
 
 template <class T, int SHIFT>
-void CSoundGen::FillBuffer(int16 *pBuffer, uint32 Size)
+void CSoundGen::FillBuffer(int16_t *pBuffer, uint32_t Size)
 {
 	// Called when the APU audio buffer is full and
 	// ready for playing
@@ -1080,13 +864,13 @@ void CSoundGen::FillBuffer(int16 *pBuffer, uint32 Size)
 
 	T *pConversionBuffer = (T*)m_pAccumBuffer;
 
-	for (uint32 i = 0; i < Size; ++i) {
-		int16 Sample = pBuffer[i];
+	for (uint32_t i = 0; i < Size; ++i) {
+		int16_t Sample = pBuffer[i];
 
 		// 1000 Hz test tone
 #ifdef AUDIO_TEST
 		static double sine_phase = 0;
-		Sample = int32(sin(sine_phase) * 10000.0);
+		Sample = int32_t(sin(sine_phase) * 10000.0);
 
 		static double freq = 1000;
 		// Sweep
@@ -1209,23 +993,20 @@ void CSoundGen::GenerateVibratoTable(vibrato_t Type)
 		}
 	}
 
-#ifdef _DEBUG
-/*
-	CFile a("vibrato.txt", CFile::modeWrite | CFile::modeCreate);
-	CString b;
+#ifdef WRITE_VIBRATO_FILE
+	CStdioFile a("..\\nsf driver\\vibrato.s", CFile::modeWrite | CFile::modeCreate);
+	a.WriteString("; Vibrato table (256 bytes)\n"
+				  "ft_vibrato_table: ;; Patch\n");
 	for (int i = 0; i < 16; i++) {	// depth 
-		b = "\t.byte ";
-		a.Write(b.GetBuffer(), b.GetLength());
+		a.WriteString("\t.byte ");
 		for (int j = 0; j < 16; j++) {	// phase
-			int value = m_iVibratoTable[i * 16 + j];
-			b.Format("$%02X, ", value);
-			a.Write(b.GetBuffer(), b.GetLength());
+			CString b;
+			b.Format("$%02X%s", m_iVibratoTable[i * 16 + j], j < 15 ? ", " : "");
+			a.WriteString(b);
 		}
-		b = "\n";
-		a.Write(b.GetBuffer(), b.GetLength());
+		a.WriteString("\n");
 	}
 	a.Close();
-*/
 #endif
 }
 
@@ -1251,11 +1032,6 @@ int CSoundGen::ReadPeriodTable(int index, int Chip) const		// // //
 	case SNDCHIP_2A07: return m_iNoteLookupTablePAL[index]; break;
 	default:           return m_iNoteLookupTableNTSC[index];
 	}
-}
-
-int CSoundGen::ReadNamcoPeriodTable(int index) const
-{
-	return m_iNoteLookupTableN163[index];
 }
 
 void CSoundGen::BeginPlayer(play_mode_t Mode, int Track)
@@ -1297,6 +1073,7 @@ void CSoundGen::BeginPlayer(play_mode_t Mode, int Track)
 
 	m_bPlaying			= true;
 	m_bHaltRequest      = false;
+	m_bDoHalt			= false;		// // //
 	m_iPlayTicks		= 0;
 	m_iFramesPlayed		= 0;
 	m_iRowsPlayed		= 0;		// // //
@@ -1327,25 +1104,30 @@ void CSoundGen::ApplyGlobalState()		// // //
 {
 	int Frame = IsPlaying() ? GetPlayerFrame() : m_pTrackerView->GetSelectedFrame();
 	int Row = IsPlaying() ? GetPlayerRow() : m_pTrackerView->GetSelectedRow();
-	stFullState State = m_pDocument->RetrieveSoundState(GetPlayerTrack(), Frame, Row, -1);
-	if (State.Tempo != -1)
-		m_iTempo = State.Tempo;
-	if (State.GroovePos >= 0) {
-		m_iGroovePosition = State.GroovePos;
-		if (State.Speed >= 0)
-			m_iGrooveIndex = State.Speed;
-		if (m_pDocument->GetGroove(m_iGrooveIndex) != NULL)
-			m_iSpeed = m_pDocument->GetGroove(m_iGrooveIndex)->GetEntry(m_iGroovePosition);
+	if (stFullState *State = m_pDocument->RetrieveSoundState(GetPlayerTrack(), Frame, Row, -1)) {
+		if (State->Tempo != -1)
+			m_iTempo = State->Tempo;
+		if (State->GroovePos >= 0) {
+			m_iGroovePosition = State->GroovePos;
+			if (State->Speed >= 0)
+				m_iGrooveIndex = State->Speed;
+			if (m_pDocument->GetGroove(m_iGrooveIndex) != NULL)
+				m_iSpeed = m_pDocument->GetGroove(m_iGrooveIndex)->GetEntry(m_iGroovePosition);
+		}
+		else {
+			if (State->Speed >= 0)
+				m_iSpeed = State->Speed;
+			m_iGrooveIndex = -1;
+		}
+		SetupSpeed();
+		for (int i = 0; i < m_pDocument->GetChannelCount(); i++) {
+			for (int j = 0; j < sizeof(m_pTrackerChannels) / sizeof(CTrackerChannel*); ++j)		// // // pick this out later
+				if (m_pChannels[j] && m_pTrackerChannels[j]->GetID() == State->State[i].ChannelIndex) {
+					m_pChannels[j]->ApplyChannelState(&State->State[i]); break;
+				}
+		}
+		delete State;
 	}
-	else {
-		if (State.Speed >= 0)
-			m_iSpeed = State.Speed;
-		m_iGrooveIndex = -1;
-	}
-	SetupSpeed();
-	for (int i = 0; i < m_pDocument->GetChannelCount(); i++)
-		m_pChannels[State.State[i].ChannelIndex]->ApplyChannelState(&State.State[i]);
-	SAFE_RELEASE_ARRAY(State.State);
 }
 
 /*! \brief Obtains a human-readable form of a channel state object.
@@ -1435,21 +1217,23 @@ CString CSoundGen::RecallChannelState(int Channel) const		// // //
 	if (IsPlaying()) return m_pChannels[Channel]->GetStateString();
 	int Frame = m_pTrackerView->GetSelectedFrame();
 	int Row = m_pTrackerView->GetSelectedRow();
-	stFullState State = m_pDocument->RetrieveSoundState(GetPlayerTrack(), Frame, Row, Channel);
-	CString str = GetStateString(State.State[m_pDocument->GetChannelIndex(Channel)]);
-	SAFE_RELEASE_ARRAY(State.State);
-	if (State.Tempo >= 0)
-		str.AppendFormat(_T("        Tempo: %d"), State.Tempo);
-	if (State.Speed >= 0) {
-		if (State.GroovePos >= 0) {
-			str.AppendFormat(_T("        Groove: %02X <-"), State.Speed);
-			CGroove *Groove = m_pDocument->GetGroove(State.Speed);
-			const unsigned char Size = Groove->GetSize();
-			for (unsigned char i = 0; i < Size; i++)
-				str.AppendFormat(_T(" %d"), Groove->GetEntry((i + State.GroovePos) % Size));
+	CString str = _T("");
+	if (stFullState *State = m_pDocument->RetrieveSoundState(GetPlayerTrack(), Frame, Row, Channel)) {
+		str = GetStateString(State->State[m_pDocument->GetChannelIndex(Channel)]);
+		if (State->Tempo >= 0)
+			str.AppendFormat(_T("        Tempo: %d"), State->Tempo);
+		if (State->Speed >= 0) {
+			if (State->GroovePos >= 0) {
+				str.AppendFormat(_T("        Groove: %02X <-"), State->Speed);
+				CGroove *Groove = m_pDocument->GetGroove(State->Speed);
+				const unsigned char Size = Groove->GetSize();
+				for (unsigned char i = 0; i < Size; i++)
+					str.AppendFormat(_T(" %d"), Groove->GetEntry((i + State->GroovePos) % Size));
+			}
+			else
+				str.AppendFormat(_T("        Speed: %d"), State->Speed);
 		}
-		else
-			str.AppendFormat(_T("        Speed: %d"), State.Speed);
+		delete State;
 	}
 	return str;
 }
@@ -1462,6 +1246,7 @@ void CSoundGen::HaltPlayer()
 	// Move player to non-playing state
 	m_bPlaying = false;
 	m_bHaltRequest = false;
+	m_bDoHalt = false;		// // //
 
 	MakeSilent();
 
@@ -1498,7 +1283,7 @@ void CSoundGen::ResetAPU()
 	m_pAPU->Write(0x4017, 0x00);
 
 	// MMC5
-	m_pAPU->ExternalWrite(0x5015, 0x03);
+	m_pAPU->Write(0x5015, 0x03);
 
 	m_pSampleMem->Clear();
 }
@@ -1513,7 +1298,7 @@ void CSoundGen::AddCycles(int Count)
 	m_pAPU->AddTime(Count);
 }
 
-uint16 CSoundGen::GetReg(int Chip, int Reg) const		// // //
+uint16_t CSoundGen::GetReg(int Chip, int Reg) const		// // //
 { 
 	return m_pAPU->GetReg(Chip, Reg);
 }
@@ -1615,16 +1400,14 @@ void CSoundGen::RunFrame()
 
 		if (m_bRendering) {
 			if (m_iRenderEndWhen == SONG_TIME_LIMIT) {
-				if (m_iPlayTicks >= (unsigned int)m_iRenderEndParam)
-					m_bRequestRenderStop = true;
+				if (m_iPlayTicks > (unsigned int)m_iRenderEndParam)
+					m_bRequestRenderStop = m_bHaltRequest = true;		// // //
 			}
 			else if (m_iRenderEndWhen == SONG_LOOP_LIMIT) {
 				//if (m_iFramesPlayed >= m_iRenderEndParam)
-				if (m_iRowsPlayed >= m_iRenderEndParam)		// // //
-					m_bRequestRenderStop = true;
+				if (m_iRowsPlayed >= m_iRenderEndParam && m_iTempoAccum <= 0)		// // //
+					m_bRequestRenderStop = m_bHaltRequest = true;
 			}
-			if (m_bRequestRenderStop)
-				m_bHaltRequest = true;
 		}
 
 #ifdef EXPORT_TEST
@@ -1665,14 +1448,15 @@ void CSoundGen::CheckControl()
 	ASSERT(m_pTrackerView != NULL);
 
 	if (IsPlaying()) {
-		// If looping, halt when a jump or skip command are encountered
-		if (m_bPlayLooping) {
+		if (m_bDoHalt) {		// // //
+			++m_iRowsPlayed;
+		}
+		else if (m_bPlayLooping) {
 			if (m_iJumpToPattern != -1 || m_iSkipToRow != -1)
 				m_iPlayRow = 0;
-			else {
+			else
 				while (m_iStepRows--)
 					PlayerStepRow();
-			}
 		}
 		else {
 			// Jump
@@ -1682,10 +1466,9 @@ void CSoundGen::CheckControl()
 			else if (m_iSkipToRow != -1)
 				PlayerSkipTo(m_iSkipToRow);
 			// or just move on
-			else {
+			else
 				while (m_iStepRows--)
 					PlayerStepRow();
-			}
 		}
 
 		m_iJumpToPattern = -1;
@@ -1722,152 +1505,16 @@ void CSoundGen::LoadMachineSettings(machine_t Machine, int Rate, int NamcoChanne
 
 	m_iMachineType = Machine;
 
-	m_pAPU->ChangeMachine(Machine == NTSC ? MACHINE_NTSC : MACHINE_PAL);
-
 	// Choose a default rate if not predefined
 	if (Rate == 0)
 		Rate = DefaultRate;
 
-	double clock_ntsc = CAPU::BASE_FREQ_NTSC / 16.0;
-	double clock_pal = CAPU::BASE_FREQ_PAL / 16.0;
+	m_csAPULock.Lock();		// // //
+	m_pAPU->ChangeMachineRate(Machine == NTSC ? MACHINE_NTSC : MACHINE_PAL, Rate);		// // //
+	m_csAPULock.Unlock();		// // //
 
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		// Frequency (in Hz)
-		double Freq = BASE_FREQ * pow(2.0, double(i) / 12.0);
-		double Pitch;
-
-		// 2A07
-		Pitch = (clock_pal / Freq) - 0.5;
-		m_iNoteLookupTablePAL[i] = (unsigned int)(Pitch - m_pDocument->GetDetuneOffset(1, i));		// // //
-		
-		// 2A03 / MMC5 / VRC6
-		Pitch = (clock_ntsc / Freq) - 0.5;
-		m_iNoteLookupTableNTSC[i] = (unsigned int)(Pitch - m_pDocument->GetDetuneOffset(0, i));		// // //
-		m_iNoteLookupTableS5B[i] = m_iNoteLookupTableNTSC[i] + 1;		// correction
-
-		// VRC6 Saw
-		Pitch = ((clock_ntsc * 16.0) / (Freq * 14.0)) - 0.5;
-		m_iNoteLookupTableSaw[i] = (unsigned int)(Pitch - m_pDocument->GetDetuneOffset(2, i));		// // //
-
-		// FDS
-#ifdef TRANSPOSE_FDS
-		Pitch = (Freq * 65536.0) / (clock_ntsc / 1.0) + 0.5;
-#else
-		Pitch = (Freq * 65536.0) / (clock_ntsc / 4.0) + 0.5;
-#endif
-		m_iNoteLookupTableFDS[i] = (unsigned int)(Pitch + m_pDocument->GetDetuneOffset(4, i));		// // //
-
-		// N163
-		Pitch = ((Freq * NamcoChannels * 983040.0) / clock_ntsc + 0.5) / 4;		// // //
-		m_iNoteLookupTableN163[i] = (unsigned int)(Pitch + m_pDocument->GetDetuneOffset(5, i));		// // //
-
-		if (m_iNoteLookupTableN163[i] > 0xFFFF)	// 0x3FFFF
-			m_iNoteLookupTableN163[i] = 0xFFFF;	// 0x3FFFF
-
-		// // // Sunsoft 5B uses NTSC table
-
-		// // // VRC7
-		if (i < NOTE_RANGE) {
-			Pitch = Freq * 262144.0 / 49716.0 + 0.5;
-			m_iNoteLookupTableVRC7[i] = (unsigned int)(Pitch + m_pDocument->GetDetuneOffset(3, i));		// // //
-		}
-	}
-/*
-	CStdioFile period_file("periods.txt", CStdioFile::modeWrite | CStdioFile::modeCreate);
-
-	const char NOTES_A[] = {'C', 'C', 'D', 'D', 'E', 'F', 'F', 'G', 'G', 'A', 'A', 'B'};
-	const char NOTES_B[] = {'-', '#', '-', '#', '-', '-', '#', '-', '#', '-', '#', '-'};
-	const char NOTES_C[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-
-	double total_diff = 0;
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		int period = m_iNoteLookupTableNTSC[i];
-		double freq;
-		if (period > 0x7FF)
-			period = 0x7FF;
-		double real_freq = BASE_FREQ * pow(2.0, double(i) / 12.0);
-
-		freq = clock_ntsc / (1 + period);
-		str.Format("%c%c%c: $%04X (%f Hz),\t%f Hz\t(diff = %f Hz)\n", NOTES_A[i % 12], NOTES_B[i % 12], NOTES_C[i / 12], period, freq, real_freq, (freq - real_freq));
-		period_file.WriteString(str);
-
-		total_diff += abs(freq - real_freq);
-	}
-
-	CString str;
-	str.Format("total diff: %f\n", total_diff);
-	period_file.WriteString(str);
-
-	period_file.Close();
-*/
-#ifdef WRITE_PERIOD_FILES
-
-	// Write periods to a single file with assembly formatting
-	CStdioFile period_file("..\\nsf driver\\periods.s", CStdioFile::modeWrite | CStdioFile::modeCreate);
-
-	// One possible optimization is to store the PAL table as the difference from the NTSC table
-
-	period_file.WriteString("; 2A03 NTSC\n");
-	period_file.WriteString(".ifdef NTSC_PERIOD_TABLE\n");
-	period_file.WriteString("ft_periods_ntsc:\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableNTSC[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
-
-	period_file.WriteString(".endif\n\n");
-	period_file.WriteString("; 2A03 PAL\n");
-	period_file.WriteString(".ifdef PAL_PERIOD_TABLE\n");
-	period_file.WriteString("ft_periods_pal:\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTablePAL[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
-
-	period_file.WriteString(".endif\n\n");
-	period_file.WriteString("; VRC6 Sawtooth\n");
-	period_file.WriteString(".ifdef VRC6_PERIOD_TABLE\n");
-	period_file.WriteString("ft_periods_sawtooth:\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableSaw[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
-
-	period_file.WriteString(".endif\n\n");
-	period_file.WriteString("; FDS\n");
-	period_file.WriteString(".ifdef FDS_PERIOD_TABLE\n");
-	period_file.WriteString("ft_periods_fds:\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableFDS[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
-
-	period_file.WriteString(".endif\n\n");
-	period_file.WriteString("; N163\n");
-	period_file.WriteString(".ifdef N163_PERIOD_TABLE\n");
-	period_file.WriteString("ft_periods_n163:\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableN163[i] & 0xFFFF, ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
-
-	period_file.WriteString(".endif\n\n");
-
-	period_file.Close();
-
-#endif
+	// Number of cycles between each APU update
+	m_iUpdateCycles = BaseFreq / Rate;
 
 #if WRITE_VOLUME_FILE
 	CFile file("vol.txt", CFile::modeWrite | CFile::modeCreate);
@@ -1888,64 +1535,6 @@ void CSoundGen::LoadMachineSettings(machine_t Machine, int Rate, int NamcoChanne
 
 	file.Close();
 #endif /* WRITE_VOLUME_FILE */
-
-	// Number of cycles between each APU update
-	m_iUpdateCycles = BaseFreq / Rate;
-	
-	// // // Setup note tables
-	SetLookupTable(Machine == PAL ? SNDCHIP_2A07 : SNDCHIP_NONE);
-	SetLookupTable(SNDCHIP_VRC6);
-	SetLookupTable(SNDCHIP_VRC7);
-	SetLookupTable(SNDCHIP_FDS);
-	SetLookupTable(SNDCHIP_MMC5);
-	SetLookupTable(SNDCHIP_N163);
-	SetLookupTable(SNDCHIP_S5B);
-}
-
-void CSoundGen::SetLookupTable(int Chip)		// // //
-{
-	ASSERT(m_pAPU != NULL);
-
-	switch (Chip) {
-	case SNDCHIP_NONE:
-		m_pChannels[CHANID_SQUARE1]->SetNoteTable(m_iNoteLookupTableNTSC);
-		m_pChannels[CHANID_SQUARE2]->SetNoteTable(m_iNoteLookupTableNTSC);
-		m_pChannels[CHANID_TRIANGLE]->SetNoteTable(m_iNoteLookupTableNTSC); break;
-	case SNDCHIP_2A07:
-		m_pChannels[CHANID_SQUARE1]->SetNoteTable(m_iNoteLookupTablePAL);
-		m_pChannels[CHANID_SQUARE2]->SetNoteTable(m_iNoteLookupTablePAL);
-		m_pChannels[CHANID_TRIANGLE]->SetNoteTable(m_iNoteLookupTablePAL); break;
-	case SNDCHIP_VRC6:
-		m_pChannels[CHANID_VRC6_PULSE1]->SetNoteTable(m_iNoteLookupTableNTSC);
-		m_pChannels[CHANID_VRC6_PULSE2]->SetNoteTable(m_iNoteLookupTableNTSC);
-		m_pChannels[CHANID_VRC6_SAWTOOTH]->SetNoteTable(m_iNoteLookupTableSaw); break;
-	case SNDCHIP_VRC7:
-		m_pChannels[CHANID_VRC7_CH1]->SetNoteTable(m_iNoteLookupTableVRC7);
-		m_pChannels[CHANID_VRC7_CH2]->SetNoteTable(m_iNoteLookupTableVRC7);
-		m_pChannels[CHANID_VRC7_CH3]->SetNoteTable(m_iNoteLookupTableVRC7);
-		m_pChannels[CHANID_VRC7_CH4]->SetNoteTable(m_iNoteLookupTableVRC7);
-		m_pChannels[CHANID_VRC7_CH5]->SetNoteTable(m_iNoteLookupTableVRC7);
-		m_pChannels[CHANID_VRC7_CH6]->SetNoteTable(m_iNoteLookupTableVRC7); break;
-	case SNDCHIP_FDS:
-		m_pChannels[CHANID_FDS]->SetNoteTable(m_iNoteLookupTableFDS); break;
-	case SNDCHIP_MMC5:
-		m_pChannels[CHANID_MMC5_SQUARE1]->SetNoteTable(m_iNoteLookupTableNTSC);
-		m_pChannels[CHANID_MMC5_SQUARE2]->SetNoteTable(m_iNoteLookupTableNTSC); break;
-	case SNDCHIP_N163:
-		m_pChannels[CHANID_N163_CH1]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH2]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH3]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH4]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH5]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH6]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH7]->SetNoteTable(m_iNoteLookupTableN163);
-		m_pChannels[CHANID_N163_CH8]->SetNoteTable(m_iNoteLookupTableN163); break;
-	case SNDCHIP_S5B:
-		m_pChannels[CHANID_S5B_CH1]->SetNoteTable(m_iNoteLookupTableS5B);
-		m_pChannels[CHANID_S5B_CH2]->SetNoteTable(m_iNoteLookupTableS5B);
-		m_pChannels[CHANID_S5B_CH3]->SetNoteTable(m_iNoteLookupTableS5B); break;
-	default: break;
-	}
 }
 
 stDPCMState CSoundGen::GetDPCMState() const
@@ -2027,14 +1616,18 @@ void CSoundGen::EvaluateGlobalEffects(stChanNote *NoteData, int EffColumns)
 
 			// Cxx: Halt playback
 			case EF_HALT:
-				m_bHaltRequest = true;
+				m_bDoHalt = true;		// // //
 				if (m_bRendering) {
 					// Unconditional stop
 					++m_iFramesPlayed;
-					m_bRequestRenderStop = true;
 				}
 				break;
+
+			default: continue;		// // //
 		}
+
+		NoteData->EffNumber[i] = EF_NONE;
+		NoteData->EffParam[i] = 0;
 	}
 }
 
@@ -2088,12 +1681,14 @@ void CSoundGen::StopRendering()
 
 	m_bPlaying = false;
 	m_bRendering = false;
+	m_bStoppingRender = false;		// // //
+	m_bRequestRenderStop = false;		// // //
 	m_iPlayFrame = 0;
 	m_iPlayRow = 0;
 	m_wfWaveFile.CloseFile();
 
-	MakeSilent();
 	ResetBuffer();
+	ResetAPU();		// // //
 }
 
 void CSoundGen::GetRenderStat(int &Frame, int &Time, bool &Done, int &FramesToRender, int &Row, int &RowCount) const
@@ -2289,7 +1884,9 @@ BOOL CSoundGen::OnIdle(LONG lCount)
 	}
 
 	// Rendering
-	if (m_bRendering && m_bRequestRenderStop) {
+	if (m_bRendering && m_bRequestRenderStop)
+		m_bStoppingRender = true;
+	if (m_bStoppingRender) {
 		if (!m_iDelayedEnd)
 			StopRendering();
 		else
@@ -2314,31 +1911,30 @@ BOOL CSoundGen::OnIdle(LONG lCount)
 
 void CSoundGen::PlayChannelNotes()
 {
-	// Feed queued notes into channels
-	const int Channels = m_pDocument->GetChannelCount();
-
 	// Read notes
-	for (int i = 0; i < Channels; ++i) {
-		int Channel = m_pDocument->GetChannelType(i);
+	for (int i = 0; i < CHANNELS; ++i) {		// // //
+		int Index = m_pTrackerChannels[i]->GetID();
+		int Channel = m_pDocument->GetChannelIndex(m_pTrackerChannels[Index]->GetID());
+		if (Channel == -1) continue;
 		
 		// Run auto-arpeggio, if enabled
-		int Arpeggio = m_pTrackerView->GetAutoArpeggio(i);
+		int Arpeggio = m_pTrackerView->GetAutoArpeggio(Channel);
 		if (Arpeggio > 0) {
-			m_pChannels[Channel]->Arpeggiate(Arpeggio);
+			m_pChannels[Index]->Arpeggiate(Arpeggio);
 		}
 
 		// Check if new note data has been queued for playing
-		if (m_pTrackerChannels[Channel]->NewNoteData()) {
-			stChanNote Note = m_pTrackerChannels[Channel]->GetNote();
-			PlayNote(Channel, &Note, m_pDocument->GetEffColumns(m_iPlayTrack, i) + 1);
+		if (m_pTrackerChannels[Index]->NewNoteData()) {
+			stChanNote Note = m_pTrackerChannels[Index]->GetNote();
+			PlayNote(Index, &Note, m_pDocument->GetEffColumns(m_iPlayTrack, Channel) + 1);
 		}
 
 		// Pitch wheel
-		int Pitch = m_pTrackerChannels[Channel]->GetPitch();
-		m_pChannels[Channel]->SetPitch(Pitch);
+		int Pitch = m_pTrackerChannels[Index]->GetPitch();
+		m_pChannels[Index]->SetPitch(Pitch);
 
 		// Update volume meters
-		m_pTrackerChannels[Channel]->SetVolumeMeter(m_pAPU->GetVol(Channel));
+		m_pTrackerChannels[Index]->SetVolumeMeter(m_pAPU->GetVol(m_pTrackerChannels[Index]->GetID()));
 	}
 
 	// Instrument sequence visualization
@@ -2387,6 +1983,8 @@ void CSoundGen::UpdateAPU()
 	m_bInternalWaveChanged = m_bWaveChanged;
 	m_bWaveChanged = false;
 
+	m_csAPULock.Lock();		// // //
+
 	// Update APU channel registers
 	for (int i = 0; i < CHANNELS; ++i) {
 		if (m_pChannels[i] != NULL) {
@@ -2401,6 +1999,8 @@ void CSoundGen::UpdateAPU()
 	// Finish the audio frame
 	m_pAPU->AddTime(m_iUpdateCycles - m_iConsumedCycles);
 	m_pAPU->Process();
+
+	m_csAPULock.Unlock();		// // //
 
 #ifdef LOGGING
 	if (m_bPlaying)
@@ -2450,6 +2050,7 @@ void CSoundGen::OnStartRender(WPARAM wParam, LPARAM lParam)
 {
 	ResetBuffer();
 	m_bRequestRenderStop = false;
+	m_bStoppingRender = false;		// // //
 	m_bRendering = true;
 	m_iDelayedStart = 5;	// Wait 5 frames until player starts
 	m_iDelayedEnd = 5;
@@ -2467,7 +2068,7 @@ void CSoundGen::OnPreviewSample(WPARAM wParam, LPARAM lParam)
 
 void CSoundGen::OnWriteAPU(WPARAM wParam, LPARAM lParam)
 {
-	m_pAPU->Write((uint16)wParam, (uint8)lParam);
+	m_pAPU->Write((uint16_t)wParam, (uint8_t)lParam);
 }
 
 void CSoundGen::OnCloseSound(WPARAM wParam, LPARAM lParam)
@@ -2492,7 +2093,7 @@ void CSoundGen::OnSetChip(WPARAM wParam, LPARAM lParam)
 
 	// MMC5
 	if (Chip & SNDCHIP_MMC5)
-		m_pAPU->ExternalWrite(0x5015, 0x03);
+		m_pAPU->Write(0x5015, 0x03);
 }
 
 void CSoundGen::OnVerifyExport(WPARAM wParam, LPARAM lParam)
@@ -2559,6 +2160,9 @@ void CSoundGen::ReadPatternRow()
 	for (int i = 0; i < Channels; ++i) {
 		if (m_pTrackerView->PlayerGetNote(m_iPlayTrack, m_iPlayFrame, i, m_iPlayRow, NoteData))
 			QueueNote(i, NoteData, NOTE_PRIO_1);
+	}
+	if (m_bDoHalt) {		// // //
+		m_bHaltRequest = true;
 	}
 }
 
@@ -2697,15 +2301,12 @@ int CSoundGen::GetQueueFrame() const
 
 static stRegs InternalRegs;
 
-void CSoundGen::WriteRegister(uint16 Reg, uint8 Value)
+void CSoundGen::WriteRegister(uint16_t Reg, uint8_t Value)
 {
-	InternalRegs.R_2A03[Reg & 0x1F] = Value;
-}
-
-void CSoundGen::WriteExternalRegister(uint16 Reg, uint8 Value)
-{
+	if (Reg >= 0x4000 && Reg <= 0x401F)		// // //
+		InternalRegs.R_2A03[Reg & 0x1F] = Value;
 	// VRC6
-	if (Reg >= 0x9000 && Reg < 0x9003)
+	else if (Reg >= 0x9000 && Reg < 0x9003)
 		InternalRegs.R_VRC6[Reg & 0x03] = Value;
 	else if (Reg >= 0xA000 && Reg < 0xA003)
 		InternalRegs.R_VRC6[(Reg & 0x03) + 3] = Value;
@@ -2715,12 +2316,7 @@ void CSoundGen::WriteExternalRegister(uint16 Reg, uint8 Value)
 
 #else /* EXPORT_TEST */
 
-void CSoundGen::WriteRegister(uint16 Reg, uint8 Value)
-{
-	// Empty
-}
-
-void CSoundGen::WriteExternalRegister(uint16 Reg, uint8 Value)
+void CSoundGen::WriteRegister(uint16_t Reg, uint8_t Value)
 {
 	// Empty
 }
@@ -2816,4 +2412,36 @@ int CSoundGen::GetSequencePlayPos(const CSequence *pSequence)
 int CSoundGen::GetDefaultInstrument() const
 {
 	return ((CMainFrame*)theApp.m_pMainWnd)->GetSelectedInstrument();
+}
+
+// // // instrument recorder
+
+CInstrument* CSoundGen::GetRecordInstrument() const
+{
+	return m_pInstRecorder->GetRecordInstrument(m_iPlayTicks);
+}
+
+void CSoundGen::ResetDumpInstrument()
+{
+	m_pInstRecorder->ResetDumpInstrument();
+}
+
+int CSoundGen::GetRecordChannel() const
+{
+	return m_pInstRecorder->GetRecordChannel();
+}
+
+void CSoundGen::SetRecordChannel(int Channel)
+{
+	m_pInstRecorder->SetRecordChannel(Channel);
+}
+
+stRecordSetting *CSoundGen::GetRecordSetting() const
+{
+	return m_pInstRecorder->GetRecordSetting();
+}
+
+void CSoundGen::SetRecordSetting(stRecordSetting *Setting)
+{
+	m_pInstRecorder->SetRecordSetting(Setting);
 }

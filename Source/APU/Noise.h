@@ -26,35 +26,35 @@
 #ifndef NOISE_H
 #define NOISE_H
 
-#include "Channel.h"
+#include "2A03Chan.h"		// // //
 
-class CNoise : public CChannel {
+class CNoise : public C2A03Chan {
 public:
-	CNoise(CMixer *pMixer, int ID);
+	CNoise(CMixer *pMixer, int ID);		// // //
 	~CNoise();
 
 	void	Reset();
-	void	Write(uint16 Address, uint8 Value);
-	void	WriteControl(uint8 Value);
-	uint8	ReadControl();
-	void	Process(uint32 Time);
+	void	Write(uint16_t Address, uint8_t Value);
+	void	WriteControl(uint8_t Value);
+	uint8_t	ReadControl();
+	void	Process(uint32_t Time);
 
 	void	LengthCounterUpdate();
 	void	EnvelopeUpdate();
 
 public:
-	static const uint16	NOISE_PERIODS_NTSC[];
-	static const uint16	NOISE_PERIODS_PAL[];
+	static const uint16_t	NOISE_PERIODS_NTSC[];
+	static const uint16_t	NOISE_PERIODS_PAL[];
 
-	const uint16 *PERIOD_TABLE;
+	const uint16_t *PERIOD_TABLE;
 
 private:
-	uint8	m_iLooping, m_iEnvelopeFix, m_iEnvelopeSpeed;
-	uint8	m_iEnvelopeVolume, m_iFixedVolume;
-	int8	m_iEnvelopeCounter;
+	uint8_t	m_iLooping, m_iEnvelopeFix, m_iEnvelopeSpeed;
+	uint8_t	m_iEnvelopeVolume, m_iFixedVolume;
+	int8_t	m_iEnvelopeCounter;
 	
-	uint8	m_iSampleRate;
-	uint16	m_iShiftReg;
+	uint8_t	m_iSampleRate;
+	uint16_t	m_iShiftReg;
 };
 
 #endif /* NOISE_H */

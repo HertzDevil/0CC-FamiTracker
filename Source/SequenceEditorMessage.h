@@ -22,10 +22,7 @@
 
 #pragma once
 
-#ifndef __INST_EDITOR_MESSAGE_H
-#define __INST_EDITOR_MESSAGE_H
-#include "stdafx.h"
-#endif
+#include "WinUser.h"
 
 enum {
 	WM_SIZE_CHANGE = WM_USER, 

@@ -18,7 +18,6 @@
 ** must bear this legend.
 */
 
-#include <memory>		// // //
 #include <iterator> 
 #include <string>
 #include <sstream>
@@ -26,12 +25,13 @@
 #include <algorithm>
 #include "stdafx.h"
 #include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
-#include "FamiTrackerView.h"
+#include "Instrument.h"		// // //
+#include "SeqInstrument.h"		// // //
+#include "InstrumentFDS.h"		// // //
+#include "DPI.h"		// // //
 #include "InstrumentEditPanel.h"
 #include "InstrumentEditorFDS.h"
-#include "InstrumentFDS.h"		// // //
-#include "MainFrm.h"
+#include "APU/Types.h"		// // //
 #include "SoundGen.h"
 #include "Clipboard.h"
 #include "WaveEditor.h"		// // //
@@ -106,14 +106,14 @@ BOOL CInstrumentEditorFDS::OnInitDialog()
 	CInstrumentEditPanel::OnInitDialog();
 
 	// Create wave editor
-	CRect rect(SX(20), SY(30), 0, 0);
+	CRect rect(20, 30, 0, 0);		// // //
 	m_pWaveEditor = new CWaveEditorFDS(5, 2, 64, 64);
 	m_pWaveEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE, rect, this);
 	m_pWaveEditor->ShowWindow(SW_SHOW);
 	m_pWaveEditor->UpdateWindow();
 
 	// Create modulation sequence editor
-	rect = CRect(SX(10), SY(200), 0, 0);
+	rect.SetRect(10, 200, 0, 0);
 	m_pModSequenceEditor = new CModSequenceEditor();
 	m_pModSequenceEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE, rect, this);
 	m_pModSequenceEditor->ShowWindow(SW_SHOW);
@@ -279,11 +279,6 @@ void CInstrumentEditorFDS::OnModDelayChange()
 		m_pInstrument->SetModulationDelay(ModDelay);
 	}
 	theApp.GetSoundGenerator()->WaveChanged();
-}
-
-void CInstrumentEditorFDS::PreviewNote(unsigned char Key)
-{
-	CFamiTrackerView::GetView()->PreviewNote(Key);
 }
 
 void CInstrumentEditorFDS::OnBnClickedCopyWave()

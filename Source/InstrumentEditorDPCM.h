@@ -21,6 +21,7 @@
 #pragma once
 
 class CFamiTrackerView;
+class CInstrument2A03;		// // //
 
 // CInstrumentDPCM dialog
 
@@ -52,6 +53,7 @@ protected:
 	bool InsertSample(CDSample *pNewSample);
 
 	const CDSample *GetSelectedSample();		// // //
+	void SetSelectedSample(CDSample *pSamp) const;		// // //
 
 protected:
 	std::shared_ptr<CInstrument2A03> m_pInstrument;

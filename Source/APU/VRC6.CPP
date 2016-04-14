@@ -2,6 +2,8 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2014  Jonathan Liss
 **
+** 0CC-FamiTracker is (C) 2014-2016 HertzDevil
+**
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
@@ -24,7 +26,7 @@
 
 // Konami VRC6 external sound chip emulation
 
-CVRC6_Pulse::CVRC6_Pulse(CMixer *pMixer, int ID) : CExChannel(pMixer, SNDCHIP_VRC6, ID) 
+CVRC6_Pulse::CVRC6_Pulse(CMixer *pMixer, int ID) : CChannel(pMixer, SNDCHIP_VRC6, ID) 
 {
 	Reset();
 }
@@ -35,9 +37,12 @@ void CVRC6_Pulse::Reset()
 	m_iPeriod = m_iPeriodLow = m_iPeriodHigh = 0;
 	m_iCounter = 0;
 	m_iDutyCycleCounter = 0;
+	
+	Mix(0);		// // //
+	EndFrame();
 }
 
-void CVRC6_Pulse::Write(uint16 Address, uint8 Value)
+void CVRC6_Pulse::Write(uint16_t Address, uint8_t Value)
 {
 	switch (Address) {
 		case 0x00:
@@ -79,7 +84,7 @@ void CVRC6_Pulse::Process(int Time)
 	m_iTime += Time;
 }
 
-CVRC6_Sawtooth::CVRC6_Sawtooth(CMixer *pMixer, int ID) : CExChannel(pMixer, SNDCHIP_VRC6, ID) 
+CVRC6_Sawtooth::CVRC6_Sawtooth(CMixer *pMixer, int ID) : CChannel(pMixer, SNDCHIP_VRC6, ID) 
 {
 	Reset();
 }
@@ -90,9 +95,12 @@ void CVRC6_Sawtooth::Reset()
 	m_iPeriod = 0;
 	m_iPeriodLow = m_iPeriodHigh = 0;
 	m_iCounter = 0;
+	
+	Mix(0);		// // //
+	EndFrame();
 }
 
-void CVRC6_Sawtooth::Write(uint16 Address, uint8 Value)
+void CVRC6_Sawtooth::Write(uint16_t Address, uint8_t Value)
 {
 	switch (Address) {
 		case 0x00:
@@ -140,11 +148,12 @@ void CVRC6_Sawtooth::Process(int Time)
 	m_iTime += Time;
 }
 
-CVRC6::CVRC6(CMixer *pMixer)
+CVRC6::CVRC6(CMixer *pMixer) :
+	CExternal(pMixer),		// // //
+	m_pPulse1(new CVRC6_Pulse(pMixer, CHANID_VRC6_PULSE1)),
+	m_pPulse2(new CVRC6_Pulse(pMixer, CHANID_VRC6_PULSE2)),
+	m_pSawtooth(new CVRC6_Sawtooth(pMixer, CHANID_VRC6_SAWTOOTH))
 {
-	m_pPulse1 = new CVRC6_Pulse(pMixer, CHANID_VRC6_PULSE1);
-	m_pPulse2 = new CVRC6_Pulse(pMixer, CHANID_VRC6_PULSE2);
-	m_pSawtooth = new CVRC6_Sawtooth(pMixer, CHANID_VRC6_SAWTOOTH);
 }
 
 CVRC6::~CVRC6()
@@ -166,7 +175,7 @@ void CVRC6::Reset()
 	m_pSawtooth->Reset();
 }
 
-void CVRC6::Write(uint16 Address, uint8 Value)
+void CVRC6::Write(uint16_t Address, uint8_t Value)
 {
 	switch (Address) {
 		case 0x9000:
@@ -187,7 +196,7 @@ void CVRC6::Write(uint16 Address, uint8 Value)
 	}
 }
 
-uint8 CVRC6::Read(uint16 Address, bool &Mapped)
+uint8_t CVRC6::Read(uint16_t Address, bool &Mapped)
 {
 	Mapped = false;
 	return 0;
@@ -200,7 +209,7 @@ void CVRC6::EndFrame()
 	m_pSawtooth->EndFrame();
 }
 
-void CVRC6::Process(uint32 Time)
+void CVRC6::Process(uint32_t Time)
 {
 	m_pPulse1->Process(Time);
 	m_pPulse2->Process(Time);

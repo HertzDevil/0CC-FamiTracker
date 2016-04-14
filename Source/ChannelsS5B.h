@@ -34,7 +34,7 @@ public:
 
 protected:
 	// // //
-	virtual void HandleCustomEffects(effect_t EffNum, int EffParam);
+	virtual bool HandleEffect(effect_t EffNum, unsigned char EffParam);		// // //
 	virtual void HandleEmptyNote();
 	virtual void HandleCut();
 	virtual void HandleRelease();
@@ -55,7 +55,7 @@ protected:
 	static void SetEnvelopeType(int Val);
 	static void SetMode(int Chan, int Square, int Noise);
 	static void SetNoiseFreq(int Freq);
-	static void UpdateRegs(CAPU *pAPU);
+	void UpdateRegs(CAPU *pAPU);		// // //
 
 	// Static memebers
 protected:

@@ -64,13 +64,8 @@ enum render_end_t {
 	SONG_LOOP_LIMIT 
 };
 
-struct stRecordSetting {
-	int Interval;
-	int InstCount;
-	bool Reset;
-};
-
-struct stChanNote;
+class stChanNote;		// // //
+struct stRecordSetting;
 
 enum note_prio_t;
 
@@ -86,6 +81,7 @@ class CVisualizerWnd;
 class CDSample;
 class CTrackerChannel;
 class CFTMComponentInterface;		// // //
+class CInstrumentRecorder;		// // //
 
 #ifdef EXPORT_TEST
 class CExportTest;
@@ -102,8 +98,7 @@ public:
 	virtual ~CSoundGen();
 
 private:		// // //
-	class InstrumentRecorder;
-	CSoundGen::InstrumentRecorder *m_pInstRecorder;
+	CInstrumentRecorder *m_pInstRecorder;
 
 	//
 	// Public functions
@@ -123,7 +118,7 @@ public:
 
 	// Sound
 	bool		InitializeSound(HWND hWnd);
-	void		FlushBuffer(int16 *Buffer, uint32 Size);
+	void		FlushBuffer(int16_t *Buffer, uint32_t Size);
 	CDSound		*GetSoundInterface() const { return m_pDSound; };
 
 	void		Interrupt() const;
@@ -144,9 +139,6 @@ public:
 	void		 SetupVibratoTable(vibrato_t Type);
 	int			 ReadVibratoTable(int index) const;
 	int			 ReadPeriodTable(int index, int Chip) const;		// // //
-	void		 SetLookupTable(int Chip);		// // //
-
-	int			 ReadNamcoPeriodTable(int index) const;
 
 	// Player interface
 	void		 StartPlayer(play_mode_t Mode, int Track);	
@@ -188,7 +180,7 @@ public:
 	void		AddCycles(int Count);
 
 	// Other
-	uint16		GetReg(int Chip, int Reg) const;		// // //
+	uint16_t		GetReg(int Chip, int Reg) const;		// // //
 	CString		RecallChannelState(int Channel) const;		// // //
 
 	// FDS & N163 wave preview
@@ -196,8 +188,7 @@ public:
 	bool		HasWaveChanged() const;
 	void		ResetWaveChanged();
 
-	void		WriteRegister(uint16 Reg, uint8 Value);
-	void		WriteExternalRegister(uint16 Reg, uint8 Value);
+	void		WriteRegister(uint16_t Reg, uint8_t Value);
 
 	void		RegisterKeyState(int Channel, int Note);
 	void		SetNamcoMixing(bool bLinear);			// // //
@@ -218,8 +209,8 @@ public:
 	void			ResetDumpInstrument();
 	int				GetRecordChannel() const;
 	void			SetRecordChannel(int Channel);
-	stRecordSetting GetRecordSetting() const;
-	void			SetRecordSetting(stRecordSetting Setting);
+	stRecordSetting *GetRecordSetting() const;
+	void			SetRecordSetting(stRecordSetting *Setting);
 
 #ifdef EXPORT_TEST
 	bool		IsTestingExport() const { return m_bExportTesting; }
@@ -241,7 +232,7 @@ public:
 private:
 	// Internal initialization
 	void		CreateChannels();
-	void		AssignChannel(CTrackerChannel *pTrackerChannel, CChannelHandler *pRenderer);
+	void		AssignChannel(CTrackerChannel *pTrackerChannel);		// // //
 	void		ResetAPU();
 	void		GeneratePeriodTables(int BaseFreq);
 
@@ -249,7 +240,7 @@ private:
 	bool		ResetAudioDevice();
 	void		CloseAudioDevice();
 	void		CloseAudio();
-	template<class T, int SHIFT> void FillBuffer(int16 *pBuffer, uint32 Size);
+	template<class T, int SHIFT> void FillBuffer(int16_t *pBuffer, uint32_t Size);
 	bool		PlayBuffer();
 
 	// Player
@@ -316,6 +307,7 @@ private:
 
 	// Thread synchronization
 private:
+	mutable CCriticalSection m_csAPULock;		// // //
 	mutable CCriticalSection m_csVisualizerWndLock;
 
 	// Handles
@@ -355,9 +347,12 @@ private:
 	unsigned int		m_iSpeedSplitPoint;					// Speed/tempo split point fetched from the module
 	unsigned int		m_iFrameRate;						// Module frame rate
 
+	bool				m_bUpdatingAPU;						// // //
+
 	// Play control
 	int					m_iJumpToPattern;
 	int					m_iSkipToRow;
+	bool				m_bDoHalt;							// // // Cxx effect
 	int					m_iStepRows;						// # of rows skipped last update
 	play_mode_t			m_iPlayMode;
 
@@ -375,6 +370,7 @@ private:
 	// Rendering
 	bool				m_bRendering;
 	bool				m_bRequestRenderStop;
+	bool				m_bStoppingRender;					// // //
 	render_end_t		m_iRenderEndWhen;
 	unsigned int		m_iRenderEndParam;
 	int					m_iDelayedStart;

@@ -25,12 +25,11 @@
 #include "stdafx.h"
 #include <cmath>
 #include <algorithm>
-#include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
-#include "ChannelHandlerInterface.h"
+#include "FamiTrackerTypes.h"		// // //
+#include "APU/Types.h"		// // //
+#include "Instrument.h"
 #include "ChannelHandler.h"
 #include "ChannelsFDS.h"
-#include "SoundGen.h"
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 #include "SeqInstHandlerFDS.h"		// // //
@@ -68,59 +67,50 @@ void CChannelHandlerFDS::HandleNoteData(stChanNote *pNoteData, int EffColumns)
 		m_iModulationSpeed = (m_iModulationSpeed & 0xF00) | m_iEffModSpeedLo;
 }
 
-void CChannelHandlerFDS::HandleCustomEffects(effect_t EffNum, int EffParam)
+bool CChannelHandlerFDS::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
-	if (EffNum == EF_PORTA_DOWN) {
-		m_iPortaSpeed = EffParam;
-		m_iEffect = EF_PORTA_UP;
-	}
-	else if (EffNum == EF_PORTA_UP) {
-		m_iPortaSpeed = EffParam;
-		m_iEffect = EF_PORTA_DOWN;
-	}
-	else if (!CheckCommonEffects(EffNum, EffParam)) {
-		// Custom effects
-		switch (EffNum) {
-			// // //
-			case EF_FDS_MOD_DEPTH:
-				if (EffParam < 0x40)		// // //
-					m_iEffModDepth = EffParam;
-				else if (EffParam >= 0x80 && m_bAutoModulation) {
-					m_iEffModSpeedHi = EffParam - 0x80;
-				}
-				break;
-			case EF_FDS_MOD_SPEED_HI:
-				if (EffParam >= 0x10) {		// // //
-					m_iEffModSpeedHi = EffParam >> 4;
-					m_iEffModSpeedLo = (EffParam & 0x0F) + 1;
-					m_bAutoModulation = true;
-				}
-				else {
-					m_iEffModSpeedHi = EffParam;
-					if (m_bAutoModulation)
-						m_iEffModSpeedLo = 0;
-					m_bAutoModulation = false;
-				}
-				break;
-			case EF_FDS_MOD_SPEED_LO:
-				m_iEffModSpeedLo = EffParam;
-				if (m_bAutoModulation)		// // //
-					m_iEffModSpeedHi = 0;
-				m_bAutoModulation = false;
-				break;
-			case EF_FDS_VOLUME:
-				if (EffParam < 0x80) {
-					m_iVolModRate = EffParam & 0x3F;
-					m_iVolModMode = (EffParam >> 6) + 1;
-				}
-				else if (EffParam == 0xE0)
-					m_iVolModMode = 0;
-				break;
-			case EF_FDS_MOD_BIAS:		// // //
-				m_iModulationOffset = EffParam - 0x80;
-				break;
+	switch (EffNum) {
+	case EF_FDS_MOD_DEPTH:
+		if (EffParam < 0x40)		// // //
+			m_iEffModDepth = EffParam;
+		else if (EffParam >= 0x80 && m_bAutoModulation) {
+			m_iEffModSpeedHi = EffParam - 0x80;
 		}
+		break;
+	case EF_FDS_MOD_SPEED_HI:
+		if (EffParam >= 0x10) {		// // //
+			m_iEffModSpeedHi = EffParam >> 4;
+			m_iEffModSpeedLo = (EffParam & 0x0F) + 1;
+			m_bAutoModulation = true;
+		}
+		else {
+			m_iEffModSpeedHi = EffParam;
+			if (m_bAutoModulation)
+				m_iEffModSpeedLo = 0;
+			m_bAutoModulation = false;
+		}
+		break;
+	case EF_FDS_MOD_SPEED_LO:
+		m_iEffModSpeedLo = EffParam;
+		if (m_bAutoModulation)		// // //
+			m_iEffModSpeedHi = 0;
+		m_bAutoModulation = false;
+		break;
+	case EF_FDS_VOLUME:
+		if (EffParam < 0x80) {
+			m_iVolModRate = EffParam & 0x3F;
+			m_iVolModMode = (EffParam >> 6) + 1;
+		}
+		else if (EffParam == 0xE0)
+			m_iVolModMode = 0;
+		break;
+	case EF_FDS_MOD_BIAS:		// // //
+		m_iModulationOffset = EffParam - 0x80;
+		break;
+	default: return CChannelHandlerInverted::HandleEffect(EffNum, EffParam);
 	}
+
+	return true;
 }
 
 void CChannelHandlerFDS::HandleEmptyNote()
@@ -142,9 +132,7 @@ void CChannelHandlerFDS::HandleRelease()
 void CChannelHandlerFDS::HandleNote(int Note, int Octave)
 {
 	// Trigger a new note
-	m_iNote	= RunNote(Octave, Note);
 	m_bResetMod = true;
-	m_iLastInstrument = m_iInstrument;
 
 	m_iInstVolume = 0x1F;
 }
@@ -153,8 +141,7 @@ bool CChannelHandlerFDS::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_FDS:
-		SAFE_RELEASE(m_pInstHandler);
-		m_pInstHandler = new CSeqInstHandlerFDS(this, 0x1F, 0);
+		m_pInstHandler.reset(new CSeqInstHandlerFDS(this, 0x1F, 0));
 		return true;
 	}
 	return false;
@@ -162,8 +149,6 @@ bool CChannelHandlerFDS::CreateInstHandler(inst_type_t Type)
 
 void CChannelHandlerFDS::RefreshChannel()
 {
-	CheckWaveUpdate();	
-
 	int Frequency = CalculatePeriod();
 	unsigned char LoFreq = Frequency & 0xFF;
 	unsigned char HiFreq = (Frequency >> 8) & 0x0F;
@@ -172,7 +157,8 @@ void CChannelHandlerFDS::RefreshChannel()
 	unsigned char ModFreqHi = (m_iModulationSpeed >> 8) & 0x0F;
 	if (m_bAutoModulation) {		// // //
 		int newFreq = Frequency * m_iEffModSpeedHi / m_iEffModSpeedLo + m_iModulationOffset;
-		newFreq = std::min(0xFFF, std::max(0, newFreq));
+		if (newFreq < 0) newFreq = 0;
+		if (newFreq > 0xFFF) newFreq = 0xFFF;
 		ModFreqLo = newFreq & 0xFF;
 		ModFreqHi = (newFreq >> 8) & 0x0F;
 	}
@@ -180,42 +166,42 @@ void CChannelHandlerFDS::RefreshChannel()
 	unsigned char Volume = CalculateVolume();
 
 	if (!m_bGate) {		// // //
-		WriteExternalRegister(0x4080, 0x80 | Volume);
+		WriteRegister(0x4080, 0x80 | Volume);
 		return;
 	}
 
 	// Write frequency
-	WriteExternalRegister(0x4082, LoFreq);
-	WriteExternalRegister(0x4083, HiFreq);
+	WriteRegister(0x4082, LoFreq);
+	WriteRegister(0x4083, HiFreq);
 
 	// Write volume
 	if (m_iVolModMode) {		// // //
 		if (m_bVolModTrigger) {
 			m_bVolModTrigger = false;
-			WriteExternalRegister(0x4080, 0x80 | Volume);
+			WriteRegister(0x4080, 0x80 | Volume);
 		}
-		WriteExternalRegister(0x4080, ((2 - m_iVolModMode) << 6) | m_iVolModRate);
+		WriteRegister(0x4080, ((2 - m_iVolModMode) << 6) | m_iVolModRate);
 	}
 	else
-		WriteExternalRegister(0x4080, 0x80 | Volume);
+		WriteRegister(0x4080, 0x80 | Volume);
 
 	if (m_bResetMod)
-		WriteExternalRegister(0x4085, 0);
+		WriteRegister(0x4085, 0);
 
 	m_bResetMod = false;
 
 	// Update modulation unit
 	if (m_iModulationDelay == 0) {
 		// Modulation frequency
-		WriteExternalRegister(0x4086, ModFreqLo);
-		WriteExternalRegister(0x4087, ModFreqHi);
+		WriteRegister(0x4086, ModFreqLo);
+		WriteRegister(0x4087, ModFreqHi);
 
 		// Sweep depth, disable sweep envelope
-		WriteExternalRegister(0x4084, 0x80 | m_iModulationDepth); 
+		WriteRegister(0x4084, 0x80 | m_iModulationDepth); 
 	}
 	else {
 		// Delayed modulation
-		WriteExternalRegister(0x4087, 0x80);
+		WriteRegister(0x4087, 0x80);
 		m_iModulationDelay--;
 	}
 
@@ -224,22 +210,22 @@ void CChannelHandlerFDS::RefreshChannel()
 void CChannelHandlerFDS::ClearRegisters()
 {	
 	// Clear gain
-	WriteExternalRegister(0x4090, 0x00);
+	WriteRegister(0x4090, 0x00);
 
 	// Clear volume
-	WriteExternalRegister(0x4080, 0x80);
+	WriteRegister(0x4080, 0x80);
 
 	// Silence channel
-	WriteExternalRegister(0x4082, 0x00);		// // //
-	WriteExternalRegister(0x4083, 0x80);
+	WriteRegister(0x4082, 0x00);		// // //
+	WriteRegister(0x4083, 0x80);
 
 	// Default speed
-	WriteExternalRegister(0x408A, 0xFF);
+	WriteRegister(0x408A, 0xFF);
 
 	// Disable modulation
-	WriteExternalRegister(0x4086, 0x00);		// // //
-	WriteExternalRegister(0x4087, 0x00);
-	WriteExternalRegister(0x4084, 0x00);		// // //
+	WriteRegister(0x4086, 0x00);		// // //
+	WriteRegister(0x4087, 0x00);
+	WriteRegister(0x4084, 0x00);		// // //
 
 	m_iInstVolume = 0x20;
 
@@ -303,17 +289,17 @@ void CChannelHandlerFDS::FillWaveRAM(const char *pBuffer)		// // //
 
 		// Fills the 64 byte waveform table
 		// Enable write for waveform RAM
-		WriteExternalRegister(0x4089, 0x80);
+		WriteRegister(0x4089, 0x80);
 
 		// This is the time the loop takes in NSF code
 		AddCycles(1088);
 
 		// Wave ram
 		for (int i = 0; i < 0x40; ++i)
-			WriteExternalRegister(0x4040 + i, m_iWaveTable[i]);
+			WriteRegister(0x4040 + i, m_iWaveTable[i]);
 
 		// Disable write for waveform RAM, master volume = full
-		WriteExternalRegister(0x4089, 0x00);
+		WriteRegister(0x4089, 0x00);
 	}
 }
 
@@ -323,47 +309,11 @@ void CChannelHandlerFDS::FillModulationTable(const char *pBuffer)		// // //
 		memcpy(m_iModTable, pBuffer, sizeof(m_iModTable));
 
 		// Disable modulation
-		WriteExternalRegister(0x4087, 0x80);
+		WriteRegister(0x4087, 0x80);
 		// Reset modulation table pointer, set bias to zero
-		WriteExternalRegister(0x4085, 0x00);
+		WriteRegister(0x4085, 0x00);
 		// Fill the table
 		for (int i = 0; i < 32; ++i)
-			WriteExternalRegister(0x4088, m_iModTable[i]);
-	}
-}
-
-void CChannelHandlerFDS::FillWaveRAM(const CInstrumentFDS *pInstrument)
-{
-	// Fills the 64 byte waveform table
-	char Buffer[sizeof(m_iWaveTable)];		// // //
-	for (int i = 0; i < sizeof(m_iWaveTable); i++)
-		Buffer[i] = pInstrument->GetSample(i);
-	FillWaveRAM(Buffer);
-}
-
-void CChannelHandlerFDS::FillModulationTable(const CInstrumentFDS *pInstrument)
-{
-	// Fills the 32 byte modulation table
-	char Buffer[sizeof(m_iModTable)];		// // //
-	for (int i = 0; i < sizeof(m_iModTable); i++)
-		Buffer[i] = pInstrument->GetModulation(i);
-	FillModulationTable(Buffer);
-}
-
-void CChannelHandlerFDS::CheckWaveUpdate()
-{
-	// Check wave changes
-	CFamiTrackerDoc *pDocument = m_pSoundGen->GetDocument();
-	bool bWaveChanged = theApp.GetSoundGenerator()->HasWaveChanged();
-
-	if (m_iInstrument != MAX_INSTRUMENTS && bWaveChanged) {
-		if (auto pInstrument = std::dynamic_pointer_cast<CInstrumentFDS>(pDocument->GetInstrument(m_iInstrument))) {
-			// Realtime update
-			// TODO: use CChannelHandler::ForceReloadInstrument()
-			m_iModulationSpeed = pInstrument->GetModulationSpeed();
-			m_iModulationDepth = pInstrument->GetModulationDepth();
-			FillWaveRAM(pInstrument.get());
-			FillModulationTable(pInstrument.get());
-		}
+			WriteRegister(0x4088, m_iModTable[i]);
 	}
 }

@@ -25,8 +25,14 @@
 #include "PatternData.h"		// // //
 #include "TextExporter.h"
 #include "FamiTrackerDoc.h"
-#include "InstrumentFactory.h"		// // //
 #include "../version.h"		// // //
+
+#include "SeqInstrument.h"		// // //
+#include "Instrument2A03.h"
+#include "InstrumentFDS.h"
+#include "InstrumentN163.h"
+#include "InstrumentVRC7.h"
+#include "InstrumentFactory.h"
 
 #define DEBUG_OUT(...) { CString s__; s__.Format(__VA_ARGS__); OutputDebugString(s__); }
 
@@ -398,10 +404,10 @@ bool CTextExport::ImportCellText(		// // //
 	unsigned int row,
 	CString& sResult)
 {
-	stChanNote Cell = BLANK_NOTE;		// // //
+	stChanNote Cell { };		// // //
 
 	CString sNote = t.ReadToken();
-	if      (sNote == _T("...")) { Cell.Note = 0; }
+	if      (sNote == _T("...")) { Cell.Note = NONE; }
 	else if (sNote == _T("---")) { Cell.Note = HALT; }
 	else if (sNote == _T("===")) { Cell.Note = RELEASE; }
 	else
@@ -1204,7 +1210,7 @@ const CString& CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 
 	CString s;
 
-	s.Format(_T("# 0CC-FamiTracker text export %i.%i.%i\n\n"), VERSION_MAJ, VERSION_MIN, VERSION_REV);		// // //
+	s.Format(_T("# 0CC-FamiTracker text export %i.%i.%i.%i\n\n"), VERSION);		// // //
 	f.WriteString(s);
 
 	s.Format(_T("# Song information\n"

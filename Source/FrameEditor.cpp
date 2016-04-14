@@ -38,6 +38,7 @@
 #include "Bookmark.h"		// // //
 #include "BookmarkCollection.h"		// // //
 #include "BookmarkManager.h"		// // //
+#include "DPI.h"		// // //
 
 /*
  * CFrameEditor
@@ -278,7 +279,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	}
 
 	// Draw selected row
-	GradientBar(&m_dcBack, 0, SY(m_iMiddleRow * ROW_HEIGHT + 3), m_iWinWidth, SY(ROW_HEIGHT + 1), RowColor, ColBackground);	
+	GradientBar(&m_dcBack, DPI::Rect(0, m_iMiddleRow * ROW_HEIGHT + 3, m_iWinWidth, ROW_HEIGHT + 1), RowColor, ColBackground);	
 
 	int FirstVisibleFrame = ActiveFrame - m_iMiddleRow;
 	int Frame = 0;
@@ -297,34 +298,34 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	// Draw rows
 	CBookmarkCollection *pCol = m_pDocument->GetBookmarkManager()->GetCollection(Track);		// // //
 	for (int i = Start; i < End; ++i) {
+		CRect RowRect = DPI::Rect(0, i * ROW_HEIGHT + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
+
 		// // // Highlight by bookmarks
 		if (i != m_iMiddleRow) if (const unsigned Count = pCol->GetCount()) for (unsigned j = 0; j < Count; ++j)
 			if (pCol->GetBookmark(j)->m_iFrame == Frame) {
-				GradientBar(&m_dcBack, 0, SY(i * ROW_HEIGHT + 4), SX(m_iWinWidth), SY(ROW_HEIGHT - 1),
-							theApp.GetSettings()->Appearance.iColBackgroundHilite, ColBackground);
+				GradientBar(&m_dcBack, RowRect, theApp.GetSettings()->Appearance.iColBackgroundHilite, ColBackground);
 				break;
 			}
 		
 		// Play cursor
 		if (PlayFrame == Frame && !pView->GetFollowMode() && theApp.IsPlaying()) {
-			GradientBar(&m_dcBack, 0, SY(i * ROW_HEIGHT + 4), SX(m_iWinWidth), SY(ROW_HEIGHT - 1),
-				theApp.GetSettings()->Appearance.iColCurrentRowPlaying, ColBackground);		// // //
+			GradientBar(&m_dcBack, RowRect, theApp.GetSettings()->Appearance.iColCurrentRowPlaying, ColBackground);		// // //
 		}
 
 		// Queue cursor
 		if (theApp.GetSoundGenerator()->GetQueueFrame() == Frame) {
-			GradientBar(&m_dcBack, 0, SY(i * ROW_HEIGHT + 4), SX(m_iWinWidth), SY(ROW_HEIGHT - 1), QUEUE_COLOR, ColBackground);
+			GradientBar(&m_dcBack, RowRect, QUEUE_COLOR, ColBackground);
 		}
 
 		bool bSelectedRow = m_bSelecting && (Frame >= SelectStart) && (Frame <= SelectEnd);
 
 		// Selection
 		if (bSelectedRow) {
-			m_dcBack.FillSolidRect(SX(ROW_COLUMN_WIDTH), SY(i * ROW_HEIGHT + 3), SX(m_iWinWidth - ROW_COLUMN_WIDTH), SY(ROW_HEIGHT), ColSelect);
+			m_dcBack.FillSolidRect(DPI::Rect(ROW_COLUMN_WIDTH, i * ROW_HEIGHT + 3, m_iWinWidth - ROW_COLUMN_WIDTH, ROW_HEIGHT), ColSelect);
 			if (Frame == SelectStart)
-				m_dcBack.FillSolidRect(SX(ROW_COLUMN_WIDTH), SY(i * ROW_HEIGHT + 3), SX(PatternAreaWidth), SY(1), ColSelectEdge);
+				m_dcBack.FillSolidRect(DPI::Rect(ROW_COLUMN_WIDTH, i * ROW_HEIGHT + 3, PatternAreaWidth, 1), ColSelectEdge);
 			if (Frame == SelectEnd) 
-				m_dcBack.FillSolidRect(SX(ROW_COLUMN_WIDTH), SY((i + 1) * ROW_HEIGHT + 3 - 1), SX(PatternAreaWidth), SY(1), ColSelectEdge);
+				m_dcBack.FillSolidRect(DPI::Rect(ROW_COLUMN_WIDTH, (i + 1) * ROW_HEIGHT + 3 - 1, PatternAreaWidth, 1), ColSelectEdge);
 		}
 
 		if (i == m_iMiddleRow) {
@@ -332,17 +333,17 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 			int x = ((ActiveChannel - m_iFirstChannel) * FRAME_ITEM_WIDTH);
 			int y = m_iMiddleRow * ROW_HEIGHT + 3;
 			
-			GradientBar(&m_dcBack, SX(ROW_COLUMN_WIDTH + 2 + x), SY(y), SX(FRAME_ITEM_WIDTH), SY(ROW_HEIGHT + 1), ColCursor, ColBackground);
-			m_dcBack.Draw3dRect(SX(ROW_COLUMN_WIDTH + 2 + x), SY(y), SX(FRAME_ITEM_WIDTH), SY(ROW_HEIGHT + 1), BLEND(ColCursor, 0xFFFFFF, 90), BLEND(ColCursor, ColBackground, 60));
+			GradientBar(&m_dcBack, DPI::Rect(ROW_COLUMN_WIDTH + 2 + x, y, FRAME_ITEM_WIDTH, ROW_HEIGHT + 1), ColCursor, ColBackground);
+			m_dcBack.Draw3dRect(DPI::Rect(ROW_COLUMN_WIDTH + 2 + x, y, FRAME_ITEM_WIDTH, ROW_HEIGHT + 1), BLEND(ColCursor, 0xFFFFFF, 90), BLEND(ColCursor, ColBackground, 60));
 
 			if (m_bInputEnable && m_bCursor) {
 				// Flashing black box indicating that input is active
-				m_dcBack.FillSolidRect(SX(ROW_COLUMN_WIDTH + 4 + x + CURSOR_WIDTH * m_iCursorPos), SY(y + 2), SX(CURSOR_WIDTH), SY(ROW_HEIGHT - 3), ColBackground);
+				m_dcBack.FillSolidRect(DPI::Rect(ROW_COLUMN_WIDTH + 4 + x + CURSOR_WIDTH * m_iCursorPos, y + 2, CURSOR_WIDTH, ROW_HEIGHT - 3), ColBackground);
 			}
 		}
 
 		m_dcBack.SetTextColor(ColTextHilite);
-		m_dcBack.TextOut(SX(5), SY(i * ROW_HEIGHT + 3), MakeIntString(Frame, ROW_FORMAT));
+		m_dcBack.TextOut(DPI::SX(5), DPI::SY(i * ROW_HEIGHT + 3), MakeIntString(Frame, ROW_FORMAT));
 
 		COLORREF CurrentColor = (i == m_iHiglightLine || m_iHiglightLine == -1) ? ColText : ColTextDimmed;
 
@@ -355,8 +356,8 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 			else
 				m_dcBack.SetTextColor(DIM(CurrentColor, 70));
 
-			CRect rect(SX(30 + j * FRAME_ITEM_WIDTH), SY(i * ROW_HEIGHT + 3), SX(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH), SY(i * ROW_HEIGHT + 3 + 20));
-			m_dcBack.DrawText(MakeIntString(pDoc->GetPatternAtFrame(Track, Frame, Chan), _T("%02X")), rect, DT_LEFT | DT_TOP | DT_NOCLIP);
+			m_dcBack.DrawText(MakeIntString(pDoc->GetPatternAtFrame(Track, Frame, Chan), _T("%02X")),		// // //
+							  DPI::Rect(30 + j * FRAME_ITEM_WIDTH, i * ROW_HEIGHT + 3, FRAME_ITEM_WIDTH - 2, 20), DT_LEFT | DT_TOP | DT_NOCLIP);
 		}
 
 		Frame++;
@@ -367,7 +368,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 		if (!m_bSelecting || (m_iDragRow <= SelectStart || m_iDragRow >= (SelectEnd + 1))) {
 			if (m_iDragRow >= FirstVisibleFrame && m_iDragRow <= FirstVisibleFrame + m_iRowsVisible) {
 				int y = m_iDragRow - FirstVisibleFrame;
-				m_dcBack.FillSolidRect(SX(ROW_COLUMN_WIDTH), SY(y * ROW_HEIGHT + 3), SX(m_iWinWidth), SY(2), ColDragCursor);
+				m_dcBack.FillSolidRect(DPI::Rect(ROW_COLUMN_WIDTH, y * ROW_HEIGHT + 3, m_iWinWidth, 2), ColDragCursor);
 			}
 		}
 	}
@@ -375,7 +376,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	COLORREF colSeparator = BLEND(ColBackground, (ColBackground ^ 0xFFFFFF), 75);
 
 	// Row number separator
-	m_dcBack.FillSolidRect(SX(ROW_COLUMN_WIDTH - 1), 0, SY(1), m_iWinHeight, colSeparator);
+	m_dcBack.FillSolidRect(DPI::SX(ROW_COLUMN_WIDTH - 1), 0, DPI::SY(1), m_iWinHeight, colSeparator);
 
 	// Save draw info
 	m_iLastCursorFrame = ActiveFrame;
@@ -739,7 +740,9 @@ int CFrameEditor::GetRowFromPoint(const CPoint &point, bool DropTarget) const
 int CFrameEditor::GetChannelFromPoint(const CPoint &point) const
 {
 	// Translate a point value to a channel
-	return (point.x - ROW_COLUMN_WIDTH - 2) / FRAME_ITEM_WIDTH;
+	int Offs = point.x - ROW_COLUMN_WIDTH - 2;		// // //
+	if (Offs < 0) return -1;
+	return Offs / FRAME_ITEM_WIDTH;
 }
 
 unsigned int CFrameEditor::CalcWidth(int Channels) const
@@ -751,7 +754,7 @@ unsigned int CFrameEditor::CalcWidth(int Channels) const
 
 void CFrameEditor::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	ScaleMouse(point);
+	DPI::ScaleMouse(point);
 
 	int Row = GetRowFromPoint(point, false);
 
@@ -793,7 +796,7 @@ void CFrameEditor::OnLButtonDown(UINT nFlags, CPoint point)
 
 void CFrameEditor::OnLButtonUp(UINT nFlags, CPoint point)
 {
-	ScaleMouse(point);
+	DPI::ScaleMouse(point);
 
 	int Channel	 = GetChannelFromPoint(point);
 	int NewFrame = GetRowFromPoint(point, false);
@@ -823,8 +826,10 @@ void CFrameEditor::OnLButtonUp(UINT nFlags, CPoint point)
 		else {
 			// Switch to frame
 			m_pView->SelectFrame(NewFrame);
-			if (Channel >= 0)
-				m_pView->SelectChannel(Channel);
+			if (Channel >= 0) {
+				if (Channel >= m_pDocument->GetChannelCount()) Channel = m_pDocument->GetChannelCount() - 1;
+				m_pView->SelectChannel(Channel);		// // //
+			}
 		}
 	}
 
@@ -833,7 +838,7 @@ void CFrameEditor::OnLButtonUp(UINT nFlags, CPoint point)
 
 void CFrameEditor::OnMouseMove(UINT nFlags, CPoint point)
 {
-	ScaleMouse(point);
+	DPI::ScaleMouse(point);
 	
 	if (nFlags & MK_LBUTTON) {
 		if (!m_bSelecting) {
@@ -881,7 +886,7 @@ void CFrameEditor::OnNcMouseMove(UINT nHitTest, CPoint point)
 void CFrameEditor::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
 	// Select channel and enable edit mode
-	ScaleMouse(point);
+	DPI::ScaleMouse(point);
 
 	const int Channel  = GetChannelFromPoint(point);
 	const int NewFrame = GetRowFromPoint(point, false);
@@ -901,7 +906,7 @@ void CFrameEditor::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 void CFrameEditor::OnRButtonUp(UINT nFlags, CPoint point)
 {
-	ScaleMouse(point);
+	DPI::ScaleMouse(point);
 /*
 	int Channel	 = GetChannelFromPoint(point);
 	int NewFrame = GetRowFromPoint(point, false);

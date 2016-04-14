@@ -20,14 +20,15 @@
 ** must bear this legend.
 */
 
-#include <cmath>
 #include "stdafx.h"
 #include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
-#include "ChannelHandlerInterface.h"
+#include "FamiTrackerTypes.h"		// // //
+#include "APU/Types.h"		// // //
+#include "Instrument.h"		// // //
+#include "SeqInstrument.h"		// // //
+#include "InstrumentN163.h"		// // // constants
 #include "ChannelHandler.h"
 #include "ChannelsN163.h"
-#include "SoundGen.h"
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 #include "SeqInstHandlerN163.h"		// // //
@@ -36,11 +37,9 @@ const int N163_PITCH_SLIDE_SHIFT = 2;	// Increase amplitude of pitch slides
 
 CChannelHandlerN163::CChannelHandlerN163() : 
 	CChannelHandlerInverted(0xFFFF, 0x0F), 
-	m_bLoadWave(false),
 	m_bDisableLoad(false),		// // //
 	m_bResetPhase(false),
 	m_iWaveLen(4),		// // //
-	m_iWaveIndex(0),
 	m_iWaveCount(0)
 {
 	m_iDutyPeriod = 0;
@@ -50,66 +49,48 @@ void CChannelHandlerN163::ResetChannel()
 {
 	CChannelHandler::ResetChannel();
 
-	m_iWaveIndex = 0;
 	m_iWavePos = m_iWavePosOld = 0;		// // //
 	m_iWaveLen = 4;
-}
-
-void CChannelHandlerN163::HandleNoteData(stChanNote *pNoteData, int EffColumns)
-{
 	m_bLoadWave = false;
-	
-	CChannelHandler::HandleNoteData(pNoteData, EffColumns);
-	// // //
 }
 
-void CChannelHandlerN163::HandleCustomEffects(effect_t EffNum, int EffParam)
+bool CChannelHandlerN163::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
-	if (EffNum == EF_PORTA_DOWN) {
+	switch (EffNum) {
+	case EF_PORTA_DOWN:
 		m_iPortaSpeed = EffParam << N163_PITCH_SLIDE_SHIFT;
 		m_iEffectParam = EffParam;		// // //
 		m_iEffect = EF_PORTA_UP;
-	}
-	else if (EffNum == EF_PORTA_UP) {
+		break;
+	case EF_PORTA_UP:
 		m_iPortaSpeed = EffParam << N163_PITCH_SLIDE_SHIFT;
 		m_iEffectParam = EffParam;		// // //
 		m_iEffect = EF_PORTA_DOWN;
-	}
-	else if (!CheckCommonEffects(EffNum, EffParam)) {
-		// Custom effects
-		switch (EffNum) {
-			case EF_DUTY_CYCLE:
-				// Duty effect controls wave
-				m_iWaveIndex = EffParam;
-				m_bLoadWave = true;
-				break;
-			case EF_N163_WAVE_BUFFER:		// // //
-				if (EffParam == 0x7F) {
-					m_iWavePos = m_iWavePosOld;
-					LoadWave();
-					// m_bLoadWave = true;
-					m_bDisableLoad = false;
-				}
-				else {
-					CFamiTrackerDoc *pDocument = m_pSoundGen->GetDocument();
-					if (EffParam + (m_iWaveLen >> 1) > 0x80 - 8 * pDocument->GetNamcoChannels()) break;
-					m_iWavePos = EffParam << 1;
-					LoadWave();
-					// m_bLoadWave = false;
-					m_bDisableLoad = true;
-				}
-				break;
+		break;
+	case EF_DUTY_CYCLE:
+		// Duty effect controls wave
+		m_iDefaultDuty = m_iDutyPeriod = EffParam;
+		m_bLoadWave = true;
+		if (auto pHandler = dynamic_cast<CSeqInstHandlerN163*>(m_pInstHandler.get()))
+			pHandler->RequestWaveUpdate();
+		break;
+	case EF_N163_WAVE_BUFFER:		// // //
+		if (EffParam == 0x7F) {
+			m_iWavePos = m_iWavePosOld;
+			m_bDisableLoad = false;
 		}
+		else {
+			if (EffParam + (m_iWaveLen >> 1) > 0x80 - 8 * m_iChannels) break;
+			m_iWavePos = EffParam << 1;
+			m_bDisableLoad = true;
+		}
+		if (auto pHandler = dynamic_cast<CSeqInstHandlerN163*>(m_pInstHandler.get()))
+			pHandler->RequestWaveUpdate();
+		break;
+	default: return CChannelHandlerInverted::HandleEffect(EffNum, EffParam);
 	}
 
-	/*
-	switch (m_iEffect) {
-	case EF_PORTA_DOWN: case EF_PORTA_UP: case EF_PORTAMENTO:
-	case EF_SLIDE_UP: case EF_SLIDE_DOWN:
-		m_iPortaSpeed <<= N163_PITCH_SLIDE_SHIFT;
-		break;
-	}
-	*/
+	return true;
 }
 
 bool CChannelHandlerN163::HandleInstrument(int Instrument, bool Trigger, bool NewInstrument)
@@ -117,14 +98,12 @@ bool CChannelHandlerN163::HandleInstrument(int Instrument, bool Trigger, bool Ne
 	if (!CChannelHandler::HandleInstrument(Instrument, Trigger, NewInstrument))		// // //
 		return false;
 
+	if (!m_bLoadWave && NewInstrument)
+		m_iDefaultDuty = 0;
+
 	if (!m_bDisableLoad) {
 		m_iWavePos = /*pInstrument->GetAutoWavePos() ? GetIndex() * 16 :*/ m_iWavePosOld;
 	}
-
-	if (!m_bLoadWave && NewInstrument)
-		m_iWaveIndex = 0;
-
-	m_bLoadWave = true;
 
 	return true;
 }
@@ -149,10 +128,10 @@ void CChannelHandlerN163::HandleRelease()
 void CChannelHandlerN163::HandleNote(int Note, int Octave)
 {
 	// New note
-	m_iNote	= RunNote(Octave, Note);
+	m_bLoadWave = false;
+	m_iDutyPeriod = m_iDefaultDuty;
 	m_iInstVolume = 0x0F;
 	m_bRelease = false;
-
 //	m_bResetPhase = true;
 }
 
@@ -160,12 +139,10 @@ bool CChannelHandlerN163::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_2A03: case INST_VRC6: case INST_S5B: case INST_FDS:
-		SAFE_RELEASE(m_pInstHandler);
-		m_pInstHandler = new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0);
+		m_pInstHandler.reset(new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
 		return true;
 	case INST_N163:
-		SAFE_RELEASE(m_pInstHandler);
-		m_pInstHandler = new CSeqInstHandlerN163(this, 0x0F, 0);
+		m_pInstHandler.reset(new CSeqInstHandlerN163(this, 0x0F, 0));
 		return true;
 	}
 	return false;
@@ -177,27 +154,8 @@ void CChannelHandlerN163::SetupSlide()		// // //
 	m_iPortaSpeed <<= N163_PITCH_SLIDE_SHIFT;
 }
 
-void CChannelHandlerN163::ProcessChannel()
-{
-	// Default effects
-	CChannelHandler::ProcessChannel();
-	
-	CFamiTrackerDoc *pDocument = m_pSoundGen->GetDocument();
-	m_iChannels = pDocument->GetNamcoChannels() - 1;
-	// // //
-	CSeqInstHandler *pHandler = dynamic_cast<CSeqInstHandler*>(m_pInstHandler);
-	if (pHandler != nullptr) {
-		if (pHandler->GetSequenceState(SEQ_DUTYCYCLE) != CSeqInstHandler::SEQ_STATE_DISABLED) {
-			m_iWaveIndex = m_iDutyPeriod;
-			m_bLoadWave = true;
-		}
-	}
-}
-
 void CChannelHandlerN163::RefreshChannel()
 {
-	CheckWaveUpdate();
-
 	int Channel = 7 - GetIndex();		// Channel #
 	int WaveSize = 256 - (m_iWaveLen >> 2);
 	int Frequency = LimitPeriod(GetPeriod() - ((-GetVibrato() + GetFinePitch() + GetPitch()) << 4)) << 2;		// // //
@@ -211,20 +169,9 @@ void CChannelHandlerN163::RefreshChannel()
 	if (!m_bGate)
 		Volume = 0;
 
-	if (m_bLoadWave && m_bGate) {
-		m_bLoadWave = false;
-		LoadWave();
-	}
-
-	if (m_iLastInstrument != m_iInstrument) {		// // //
-		if (m_iInstrument != MAX_INSTRUMENTS)
-			LoadWave();
-		m_iLastInstrument = m_iInstrument;
-	}
-
 	// Update channel
-	if (Channel + m_pSoundGen->GetDocument()->GetNamcoChannels() >= 8) {		// // //
-		WriteData(ChannelAddrBase + 7, (m_iChannels << 4) | Volume);
+	if (Channel + m_iChannels >= 8) {		// // //
+		WriteData(ChannelAddrBase + 7, ((m_iChannels - 1) << 4) | Volume);
 		if (!m_bGate)
 			return;
 		WriteData(ChannelAddrBase + 0, Frequency & 0xFF);
@@ -259,6 +206,18 @@ void CChannelHandlerN163::SetWaveCount(int Count)		// // //
 	m_iWaveCount = Count;
 }
 
+void CChannelHandlerN163::FillWaveRAM(const char *Buffer, int Count)		// // //
+{
+	SetAddress(m_iWavePos >> 1, true);
+	for (int i = 0; i < Count; ++i)
+		WriteData(Buffer[i]);
+}
+
+void CChannelHandlerN163::SetChannelCount(int Count)		// // //
+{
+	m_iChannels = Count;
+}
+
 int CChannelHandlerN163::ConvertDuty(int Duty) const		// // //
 {
 	switch (m_iInstTypeCurrent) {
@@ -280,9 +239,8 @@ void CChannelHandlerN163::ClearRegisters()
 	}
 	
 	if (Channel == 7)		// // //
-		WriteReg(ChannelAddrBase + 7, (m_iChannels << 4) | 0);
+		WriteReg(ChannelAddrBase + 7, (m_iChannels - 1) << 4);
 
-	m_bLoadWave = false;
 	m_bDisableLoad = false;		// // //
 	m_iDutyPeriod = 0;
 }
@@ -317,57 +275,22 @@ CString CChannelHandlerN163::GetCustomEffectString() const		// // //
 
 void CChannelHandlerN163::WriteReg(int Reg, int Value)
 {
-	WriteExternalRegister(0xF800, Reg);
-	WriteExternalRegister(0x4800, Value);
+	WriteRegister(0xF800, Reg);
+	WriteRegister(0x4800, Value);
 }
 
 void CChannelHandlerN163::SetAddress(char Addr, bool AutoInc)
 {
-	WriteExternalRegister(0xF800, (AutoInc ? 0x80 : 0) | Addr);
+	WriteRegister(0xF800, (AutoInc ? 0x80 : 0) | Addr);
 }
 
 void CChannelHandlerN163::WriteData(char Data)
 {
-	WriteExternalRegister(0x4800, Data);
+	WriteRegister(0x4800, Data);
 }
 
 void CChannelHandlerN163::WriteData(int Addr, char Data)
 {
 	SetAddress(Addr, false);
 	WriteData(Data);
-}
-
-void CChannelHandlerN163::LoadWave()
-{
-	CFamiTrackerDoc *pDocument = m_pSoundGen->GetDocument();
-
-	if (m_iInstrument == MAX_INSTRUMENTS || !m_bGate)
-		return;
-	if (m_iWaveIndex < 0) return;		// // //
-
-	// Fill the wave RAM
-	auto pInstrument = std::dynamic_pointer_cast<CInstrumentN163>(pDocument->GetInstrument(m_iInstrument));
-	if (!pInstrument) return;
-
-	// Start of wave in memory
-	int Channel = GetIndex();
-	int StartAddr = m_iWavePos >> 1;
-
-	SetAddress(StartAddr, true);
-
-	if (m_iWaveIndex >= m_iWaveCount)
-		m_iWaveIndex = m_iWaveCount - 1;
-
-	for (int i = 0; i < m_iWaveLen; i += 2) {
-		WriteData((pInstrument->GetSample(m_iWaveIndex, i + 1) << 4) | pInstrument->GetSample(m_iWaveIndex, i));
-	}
-}
-
-void CChannelHandlerN163::CheckWaveUpdate()
-{
-	// Check wave changes
-	if (theApp.GetSoundGenerator()->HasWaveChanged()) {
-		m_bLoadWave = true;
-		m_bDisableLoad = false;
-	}
 }

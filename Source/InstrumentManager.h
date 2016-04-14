@@ -23,6 +23,9 @@
 #pragma once
 
 #include "InstrumentManagerInterface.h"
+#include <vector>
+#include <memory>
+#include <afxmt.h>
 
 class CInstrument;
 class CDSample;
@@ -41,6 +44,7 @@ class CInstrumentManager : public CInstrumentManagerInterface
 {
 public:
 	CInstrumentManager(CFTMComponentInterface *pInterface = nullptr);
+	~CInstrumentManager();
 
 	void ClearAll();
 

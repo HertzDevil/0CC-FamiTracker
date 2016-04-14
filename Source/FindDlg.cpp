@@ -413,8 +413,8 @@ void CFindDlg::GetFindTerm()
 	searchTerm newTerm;
 
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_NOTE)) {
-		bool empty = str.IsEmpty();
 		m_cFindNoteField->GetWindowText(str);
+		bool empty = str.IsEmpty();
 		ParseNote(newTerm, str, false);
 		m_cFindNoteField2->GetWindowText(str);
 		ParseNote(newTerm, str, !empty);
@@ -424,15 +424,15 @@ void CFindDlg::GetFindTerm()
 			_T("Cannot use both notes and echo buffer in a range search query."));
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_INST)) {
-		bool empty = str.IsEmpty();
 		m_cFindInstField->GetWindowText(str);
+		bool empty = str.IsEmpty();
 		ParseInst(newTerm, str, false);
 		m_cFindInstField2->GetWindowText(str);
 		ParseInst(newTerm, str, !empty);
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_VOL)) {
-		bool empty = str.IsEmpty();
 		m_cFindVolField->GetWindowText(str);
+		bool empty = str.IsEmpty();
 		ParseVol(newTerm, str, false);
 		m_cFindVolField2->GetWindowText(str);
 		ParseVol(newTerm, str, !empty);
@@ -558,7 +558,10 @@ bool CFindDlg::CompareFields(const stChanNote Target, bool Noise, int EffCount)
 	}
 	if (m_searchTerm.Definite[WC_INST] && !m_searchTerm.Inst->IsMatch(Target.Instrument)) return Negate;
 	if (m_searchTerm.Definite[WC_VOL] && !m_searchTerm.Vol->IsMatch(Target.Vol)) return Negate;
-	for (int i = EffColumn % MAX_EFFECT_COLUMNS; i <= std::min(std::min(EffColumn, MAX_EFFECT_COLUMNS - 1), EffCount); i++) {
+	int Limit = MAX_EFFECT_COLUMNS - 1;
+	if (EffCount < Limit) Limit = EffCount;
+	if (EffColumn < Limit) Limit = EffColumn;
+	for (int i = EffColumn % MAX_EFFECT_COLUMNS; i <= Limit; i++) {
 		if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[Target.EffNumber[i]])
 		&& (!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.EffParam[i])))
 			EffectMatch = true;

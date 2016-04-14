@@ -28,7 +28,7 @@ public:
 	virtual void RefreshChannel();
 protected:
 	virtual void HandleNoteData(stChanNote *pNoteData, int EffColumns);
-	virtual void HandleCustomEffects(effect_t EffNum, int EffParam);
+	virtual bool HandleEffect(effect_t EffNum, unsigned char EffParam);		// // //
 	virtual void HandleEmptyNote();
 	virtual void HandleCut();
 	virtual void HandleRelease();
@@ -45,11 +45,6 @@ public:		// // //
 	// void SetFMEnable(bool Enable);
 	void FillWaveRAM(const char *pBuffer);		// // //
 	void FillModulationTable(const char *pBuffer);		// // //
-protected:
-	void FillWaveRAM(const CInstrumentFDS *pInst);
-	void FillModulationTable(const CInstrumentFDS *pInst);
-private:
-	void CheckWaveUpdate();
 protected:
 	// FDS control variables
 	int m_iModulationSpeed;

@@ -24,12 +24,15 @@
 #include <algorithm>
 #include "stdafx.h"
 #include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
+#include "APU/Types.h"		// // //
 #include "Instrument.h"
+#include "SeqInstrument.h"
+#include "InstrumentFDS.h"		// // //
+#include "InstrumentN163.h"		// // //
 #include "WaveEditor.h"
-#include "Resource.h"
 #include "Graphics.h"
 #include "SoundGen.h"
+#include "DPI.h"		// // //
 
 /*
  * This is the wave editor for FDS and N163
@@ -73,6 +76,8 @@ BOOL CWaveEditor::CreateEx(DWORD dwExStyle, LPCTSTR lpszClassName, LPCTSTR lpszW
 	newRect.left = rect.left;
 	newRect.bottom = rect.top + m_iLY * m_iSY + 4;
 	newRect.right = rect.left + m_iLX * m_iSX + 4;
+
+	DPI::ScaleRect(newRect);		// // //
 
 	if (CWnd::CreateEx(dwExStyle, lpszClassName, lpszWindowName, dwStyle, newRect, pParentWnd, 0) == -1)
 		return -1;

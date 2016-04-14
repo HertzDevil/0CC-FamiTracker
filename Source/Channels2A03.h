@@ -33,75 +33,54 @@ public:
 
 protected:
 	virtual void HandleNoteData(stChanNote *pNoteData, int EffColumns);
-	virtual void HandleCustomEffects(effect_t EffNum, int EffParam);
+	virtual bool HandleEffect(effect_t EffNum, unsigned char EffParam);		// // //
 	virtual void HandleEmptyNote();
-	virtual void HandleCut();
-	virtual void HandleRelease();
 	virtual void HandleNote(int Note, int Octave);
+	void         HandleCut();
+	void         HandleRelease();
 	bool         CreateInstHandler(inst_type_t Type);		// // //
 
 protected:
-	unsigned char m_cSweep;			// Sweep, used by pulse channels
-
 	// // //
-	bool	m_bSweeping;			// Flag for HW sweep
-	int		m_iSweep;
 	bool	m_bHardwareEnvelope;	// // // (constant volume flag, bit 4)
 	bool	m_bEnvelopeLoop;		// // // (halt length counter flag, bit 5 / triangle bit 7)
 	bool	m_bResetEnvelope;		// // //
 	int		m_iLengthCounter;		// // //
-	int		m_iLastPeriod;			// // // moved to subclass
 };
 
-// Square 1
-class CSquare1Chan : public CChannelHandler2A03 {
+// // // 2A03 Square
+class C2A03Square : public CChannelHandler2A03 {
 public:
-	CSquare1Chan() : CChannelHandler2A03() {		// // //
-		m_iDefaultDuty = 0;
-		m_bHardwareEnvelope = false;
-		m_bEnvelopeLoop = true;
-		m_bResetEnvelope = false;
-		m_iLengthCounter = 1;
-	};
-	virtual void RefreshChannel();
+	C2A03Square();
+	void RefreshChannel();
+	void SetChannelID(int ID);		// // //
 protected:
-	virtual int ConvertDuty(int Duty) const;		// // //
-	virtual void ClearRegisters();
-	virtual CString GetCustomEffectString() const;		// // //
-};
+	int ConvertDuty(int Duty) const;		// // //
+	void ClearRegisters();
 
-// Square 2
-class CSquare2Chan : public CChannelHandler2A03 {
-public:
-	CSquare2Chan() : CChannelHandler2A03() {		// // //
-		m_iDefaultDuty = 0;
-		m_bHardwareEnvelope = false;
-		m_bEnvelopeLoop = true;
-		m_bResetEnvelope = false;
-		m_iLengthCounter = 1;
-	};
-	virtual void RefreshChannel();
-protected:
-	virtual int ConvertDuty(int Duty) const;		// // //
-	virtual void ClearRegisters();
-	virtual CString GetCustomEffectString() const;		// // //
+	void HandleNoteData(stChanNote *pNoteData, int EffColumns);
+	bool HandleEffect(effect_t EffNum, unsigned char EffParam);		// // //
+	void HandleEmptyNote();
+	void HandleNote(int Note, int Octave);
+	CString GetCustomEffectString() const;		// // //
+
+	unsigned char m_iChannel;		// // //
+	unsigned char m_cSweep;
+	bool	m_bSweeping;
+	int		m_iSweep;
+	int		m_iLastPeriod;
 };
 
 // Triangle
 class CTriangleChan : public CChannelHandler2A03 {
 public:
-	CTriangleChan() : CChannelHandler2A03() {		// // //
-		m_bEnvelopeLoop = true;
-		m_iLengthCounter = 1;
-		m_bResetEnvelope = false;
-		m_iLinearCounter = -1;
-	};
-	virtual void RefreshChannel();
-	virtual void ResetChannel();		// // //
+	CTriangleChan();
+	void RefreshChannel();
+	void ResetChannel();		// // //
 protected:
-	virtual void HandleCustomEffects(effect_t EffNum, int EffParam);		// // //
-	virtual void ClearRegisters();
-	virtual CString GetCustomEffectString() const;		// // //
+	bool HandleEffect(effect_t EffNum, unsigned char EffParam);		// // //
+	void ClearRegisters();
+	CString GetCustomEffectString() const;		// // //
 private:
 	int m_iLinearCounter;
 };
@@ -109,38 +88,41 @@ private:
 // Noise
 class CNoiseChan : public CChannelHandler2A03 {
 public:
-	CNoiseChan() : CChannelHandler2A03() {			// // //
-		m_iDefaultDuty = 0;
-		m_bHardwareEnvelope = false;
-		m_bEnvelopeLoop = true;
-		m_bResetEnvelope = false;
-		m_iLengthCounter = 1;
-	};
-	virtual void RefreshChannel();
+	CNoiseChan();
+	void RefreshChannel();
 protected:
-	virtual void ClearRegisters();
-	virtual CString GetCustomEffectString() const;		// // //
-	virtual void HandleNote(int Note, int Octave);
+	void ClearRegisters();
+	CString GetCustomEffectString() const;		// // //
+	void HandleNote(int Note, int Octave);
+	void SetupSlide();		// // //
+
+	int LimitPeriod(int Period) const;		// // //
 
 	int TriggerNote(int Note);
 };
 
 // DPCM
-class CDPCMChan : public CChannelHandler2A03 {
+class CDPCMChan : public CChannelHandler, public CChannelHandlerInterfaceDPCM {		// // //
 public:
 	CDPCMChan(CSampleMem *pSampleMem);
-	virtual void RefreshChannel();
-protected:
-	virtual void HandleNoteData(stChanNote *pNoteData, int EffColumns);
-	virtual void HandleCustomEffects(effect_t EffNum, int EffParam);
-	virtual bool HandleInstrument(int Instrument, bool Trigger, bool NewInstrument);
-	virtual void HandleEmptyNote();
-	virtual void HandleCut();
-	virtual void HandleRelease();
-	virtual void HandleNote(int Note, int Octave);
+	void RefreshChannel();
 
-	virtual void ClearRegisters();
-	virtual CString GetCustomEffectString() const;		// // //
+	void SetSampleMemory(CSampleMem *pSampleMem);		// // //
+
+	void WriteDCOffset(unsigned char Delta);		// // //
+	void SetLoopOffset(unsigned char Loop);		// // //
+	void PlaySample(const CDSample *pSamp, int Pitch);		// // //
+protected:
+	void HandleNoteData(stChanNote *pNoteData, int EffColumns);
+	bool HandleEffect(effect_t EffNum, unsigned char EffParam);		// // //
+	void HandleEmptyNote();
+	void HandleCut();
+	void HandleRelease();
+	void HandleNote(int Note, int Octave);
+	bool CreateInstHandler(inst_type_t Type);		// // //
+
+	void ClearRegisters();
+	CString GetCustomEffectString() const;		// // //
 private:
 	// DPCM variables
 	CSampleMem *m_pSampleMem;

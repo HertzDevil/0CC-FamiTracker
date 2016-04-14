@@ -25,6 +25,13 @@
 #include "stdafx.h"
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
+#include "SeqInstrument.h"		// // //
+#include "Instrument2A03.h"		// // //
+#include "InstrumentVRC6.h"		// // //
+#include "InstrumentN163.h"		// // //
+#include "InstrumentS5B.h"		// // //
+#include "InstrumentFDS.h"		// // //
+#include "InstrumentVRC7.h"		// // //
 #include "FamiTrackerView.h"
 #include "SequenceEditor.h"
 #include "InstrumentEditPanel.h"
@@ -38,6 +45,7 @@
 #include "MainFrm.h"
 #include "SoundGen.h"
 #include "TrackerChannel.h"
+#include "DPI.h"		// // //
 
 // Constants
 const int CInstrumentEditDlg::KEYBOARD_TOP	  = 323;
@@ -118,9 +126,9 @@ void CInstrumentEditDlg::InsertPane(CInstrumentEditPanel *pPanel, bool Show)
 
 	pPanel->Create(pPanel->GetIDD(), this);
 	pPanel->GetWindowRect(&Rect);
-	Rect.MoveToXY(ParentRect.left - Rect.left + SX(1), ParentRect.top - Rect.top + SY(21));
-	Rect.bottom -= SY(2);
-	Rect.right += SX(1);
+	Rect.MoveToXY(ParentRect.left - Rect.left + DPI::SX(1), ParentRect.top - Rect.top + DPI::SY(21));
+	Rect.bottom -= DPI::SY(2);
+	Rect.right += DPI::SX(1);
 	pPanel->MoveWindow(Rect);
 	pPanel->ShowWindow(Show ? SW_SHOW : SW_HIDE);
 
@@ -312,7 +320,7 @@ void CInstrumentEditDlg::OnPaint()
 	WhiteKey.SelectObject(pOldWhite);
 	BlackKey.SelectObject(pOldBlack);
 
-	dc.BitBlt(SX(KEYBOARD_LEFT - 6) + 6, SY(KEYBOARD_TOP - 12) + 12, KEYBOARD_WIDTH, KEYBOARD_HEIGHT, &BackDC, 0, 0, SRCCOPY);
+	dc.BitBlt(DPI::SX(KEYBOARD_LEFT - 6) + 6, DPI::SY(KEYBOARD_TOP - 12) + 12, KEYBOARD_WIDTH, KEYBOARD_HEIGHT, &BackDC, 0, 0, SRCCOPY);
 
 	BackDC.SelectObject(pOldBmp);
 }
@@ -335,7 +343,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 	int Channel = pView->GetSelectedChannel();		// // //
 	int Chip = pDoc->GetExpansionChip();
 
-	stChanNote NoteData;
+	stChanNote NoteData { };
 
 	// TODO: remove hardcoded numbers
 	// // // Send to respective channels whenever cursor is outside instrument chip
@@ -346,17 +354,17 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 			pView->SelectChannel(pDoc->GetChannelIndex(CHANID_DPCM));
 	}
 	else {
-		uint8 Source = SNDCHIP_NONE;
 		chan_id_t First = CHANNELS;
 		switch (m_iSelectedInstType) {
-		case INST_VRC6: Source = SNDCHIP_VRC6; First = CHANID_VRC6_PULSE1; break;
-		case INST_N163: Source = SNDCHIP_N163; First = CHANID_N163_CH1; break;
-		case INST_FDS:  Source = SNDCHIP_FDS;  First = CHANID_FDS; break;
-		case INST_VRC7: Source = SNDCHIP_VRC7; First = CHANID_VRC7_CH1; break;
-		case INST_S5B:  Source = SNDCHIP_S5B;  First = CHANID_S5B_CH1; break;
+		case INST_VRC6: First = CHANID_VRC6_PULSE1; break;
+		case INST_N163: First = CHANID_N163_CH1; break;
+		case INST_FDS:  First = CHANID_FDS; break;
+		case INST_VRC7: First = CHANID_VRC7_CH1; break;
+		case INST_S5B:  First = CHANID_S5B_CH1; break;
 		}
-		if (pDoc->ExpansionEnabled(Source) && pDoc->GetChipType(Channel) != Source)
-			pView->SelectChannel(pDoc->GetChannelIndex(First));
+		int Index = pDoc->GetChannelIndex(First);
+		if (Index != -1)
+			pView->SelectChannel(Index);
 	}
 
 	Channel = pView->GetSelectedChannel();		// // //
@@ -419,7 +427,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 		if (Note + (Octave * NOTE_RANGE) != m_iLastKey) {
 			NoteData.Note			= Note + 1;
 			NoteData.Octave			= Octave;
-			NoteData.Vol			= 0x0F;
+			NoteData.Vol			= MAX_VOLUME - 1;
 			NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();
 			memset(NoteData.EffNumber, 0, 4);
 			memset(NoteData.EffParam, 0, 4);
@@ -432,8 +440,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 	}
 	else {
 		NoteData.Note			= pView->DoRelease() ? RELEASE : HALT;//HALT;
-		NoteData.Octave			= 0;
-		NoteData.Vol			= 0x10;
+		NoteData.Vol			= MAX_VOLUME;
 		NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();;
 		memset(NoteData.EffNumber, 0, 4);
 		memset(NoteData.EffParam, 0, 4);
@@ -446,17 +453,14 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 
 void CInstrumentEditDlg::SwitchOffNote(bool ForceHalt)
 {
-	stChanNote NoteData;
+	stChanNote NoteData { };		// // //
 
 	CFamiTrackerView *pView = CFamiTrackerView::GetView();
 	CMainFrame *pFrameWnd = static_cast<CMainFrame*>(GetParent());
 
 	int Channel = pView->GetSelectedChannel();
 
-	NoteData = BLANK_NOTE;		// // //
-
 	NoteData.Note			= (pView->DoRelease() && !ForceHalt) ? RELEASE : HALT;
-	NoteData.Vol			= 0x10;
 	NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();
 
 	theApp.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
@@ -466,7 +470,7 @@ void CInstrumentEditDlg::SwitchOffNote(bool ForceHalt)
 
 void CInstrumentEditDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	ScaleMouse(point);
+	DPI::ScaleMouse(point);
 	SwitchOnNote(point.x, point.y);
 	CDialog::OnLButtonDown(nFlags, point);
 }
@@ -479,7 +483,7 @@ void CInstrumentEditDlg::OnLButtonUp(UINT nFlags, CPoint point)
 
 void CInstrumentEditDlg::OnMouseMove(UINT nFlags, CPoint point)
 {
-	ScaleMouse(point);
+	DPI::ScaleMouse(point);
 
 	if (nFlags & MK_LBUTTON)
 		SwitchOnNote(point.x, point.y);

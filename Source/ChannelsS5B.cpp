@@ -22,13 +22,13 @@
 
 // Sunsoft 5B (YM2149/AY-3-8910)
 
-#include <cmath>
 #include "stdafx.h"
-#include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
+#include "FamiTrackerTypes.h"		// // //
+#include "APU/Types.h"		// // //
+#include "Sequence.h"		// // //
+#include "Instrument.h"		// // //
 #include "ChannelHandler.h"
 #include "ChannelsS5B.h"
-#include "SoundGen.h"
 #include "APU/APU.h"
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
@@ -98,20 +98,20 @@ void CChannelHandlerS5B::UpdateRegs(CAPU *pAPU)
 		return;
 
 	// Done only once
-	pAPU->ExternalWrite(0xC000, 0x07);
-	pAPU->ExternalWrite(0xE000, m_iModes);
+	WriteRegister(0xC000, 0x07);
+	WriteRegister(0xE000, m_iModes);
 
-	pAPU->ExternalWrite(0xC000, 0x06);
-	pAPU->ExternalWrite(0xE000, m_iNoiseFreq);
+	WriteRegister(0xC000, 0x06);
+	WriteRegister(0xE000, m_iNoiseFreq);
 
-	pAPU->ExternalWrite(0xC000, 0x0B);
-	pAPU->ExternalWrite(0xE000, m_iEnvFreqLo);
+	WriteRegister(0xC000, 0x0B);
+	WriteRegister(0xE000, m_iEnvFreqLo);
 
-	pAPU->ExternalWrite(0xC000, 0x0C);
-	pAPU->ExternalWrite(0xE000, m_iEnvFreqHi);
+	WriteRegister(0xC000, 0x0C);
+	WriteRegister(0xE000, m_iEnvFreqHi);
 
-	pAPU->ExternalWrite(0xC000, 0x0D);
-	pAPU->ExternalWrite(0xE000, m_iEnvType);
+	WriteRegister(0xC000, 0x0D);
+	WriteRegister(0xE000, m_iEnvType);
 
 	m_bRegsDirty = false;
 }
@@ -133,35 +133,27 @@ bool NoteValid(int Note)
 }
 */
 
-void CChannelHandlerS5B::HandleCustomEffects(effect_t EffNum, int EffParam)
+bool CChannelHandlerS5B::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
-	if (!CheckCommonEffects(EffNum, EffParam)) {
-		switch (EffNum) {
-			case EF_SUNSOFT_ENV_HI: // I
-				SetEnvelopeHigh(EffParam);
-				break;
-			case EF_SUNSOFT_ENV_LO: // H
-				SetEnvelopeLow(EffParam);
-				break;
-			case EF_SUNSOFT_ENV_TYPE: // J
-				SetEnvelopeType(EffParam);
-				//m_bEnvEnable = true;
-				//m_bUpdate = true;
-				break;
-			case EF_DUTY_CYCLE:
-				m_iDefaultDuty = m_iDutyPeriod = EffParam;
-				break;
-
-				/*
-			case EF_SLIDE_UP:
-			case EF_SLIDE_DOWN:
-				PostEffect = EffCmd;
-				PostEffectParam = EffParam;
-				SetupSlide(EffCmd, EffParam);
-				break;
-				*/
-		}
+	switch (EffNum) {
+	case EF_SUNSOFT_ENV_HI: // I
+		SetEnvelopeHigh(EffParam);
+		break;
+	case EF_SUNSOFT_ENV_LO: // H
+		SetEnvelopeLow(EffParam);
+		break;
+	case EF_SUNSOFT_ENV_TYPE: // J
+		SetEnvelopeType(EffParam);
+		//m_bEnvEnable = true;
+		//m_bUpdate = true;
+		break;
+	case EF_DUTY_CYCLE:
+		m_iDefaultDuty = m_iDutyPeriod = EffParam;
+		break;
+	default: return CChannelHandler::HandleEffect(EffNum, EffParam);
 	}
+
+	return true;
 }
 
 void CChannelHandlerS5B::HandleEmptyNote()
@@ -185,7 +177,6 @@ void CChannelHandlerS5B::HandleRelease()
 
 void CChannelHandlerS5B::HandleNote(int Note, int Octave)
 {
-	m_iNote	= RunNote(Octave, Note);
 	m_iInstVolume = 0x0F;
 
 	m_iDutyPeriod = m_iDefaultDuty;		// // //
@@ -197,8 +188,7 @@ bool CChannelHandlerS5B::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B: case INST_FDS:
-		SAFE_RELEASE(m_pInstHandler);
-		m_pInstHandler = new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0);
+		m_pInstHandler.reset(new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
 		return true;
 	}
 	return false;
@@ -206,8 +196,8 @@ bool CChannelHandlerS5B::CreateInstHandler(inst_type_t Type)
 
 void CChannelHandlerS5B::WriteReg(int Reg, int Value)
 {
-	m_pAPU->ExternalWrite(0xC000, Reg);
-	m_pAPU->ExternalWrite(0xE000, Value);
+	m_pAPU->Write(0xC000, Reg);
+	m_pAPU->Write(0xE000, Value);
 }
 
 void CChannelHandlerS5B::ResetChannel()

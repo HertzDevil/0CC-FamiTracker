@@ -22,13 +22,12 @@
 
 // MMC5 file
 
-#include <cmath>
 #include "stdafx.h"
-#include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
+#include "FamiTrackerTypes.h"		// // //
+#include "APU/Types.h"		// // //
+#include "Instrument.h"		// // //
 #include "ChannelHandler.h"
 #include "ChannelsMMC5.h"
-#include "SoundGen.h"
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 
@@ -53,29 +52,29 @@ void CChannelHandlerMMC5::HandleNoteData(stChanNote *pNoteData, int EffColumns)
 	}
 }
 
-void CChannelHandlerMMC5::HandleCustomEffects(effect_t EffNum, int EffParam)
+bool CChannelHandlerMMC5::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
-	if (!CheckCommonEffects(EffNum, EffParam)) {
-		switch (EffNum) {
-			case EF_VOLUME:
-				if (EffParam < 0x20) {		// // //
-					m_iLengthCounter = EffParam;
-					m_bEnvelopeLoop = false;
-					m_bResetEnvelope = true;
-				}
-				else if (EffParam >= 0xE0 && EffParam < 0xE4) {
-					if (!m_bEnvelopeLoop || !m_bHardwareEnvelope)
-						m_bResetEnvelope = true;
-					m_bHardwareEnvelope = ((EffParam & 0x01) == 0x01);
-					m_bEnvelopeLoop = ((EffParam & 0x02) != 0x02);
-				}
-				break;
-			case EF_DUTY_CYCLE:
-				m_iDefaultDuty = m_iDutyPeriod = EffParam;
-				break;
-			// // //
+	switch (EffNum) {
+	case EF_VOLUME:
+		if (EffParam < 0x20) {		// // //
+			m_iLengthCounter = EffParam;
+			m_bEnvelopeLoop = false;
+			m_bResetEnvelope = true;
 		}
+		else if (EffParam >= 0xE0 && EffParam < 0xE4) {
+			if (!m_bEnvelopeLoop || !m_bHardwareEnvelope)
+				m_bResetEnvelope = true;
+			m_bHardwareEnvelope = ((EffParam & 0x01) == 0x01);
+			m_bEnvelopeLoop = ((EffParam & 0x02) != 0x02);
+		}
+		break;
+	case EF_DUTY_CYCLE:
+		m_iDefaultDuty = m_iDutyPeriod = EffParam;
+		break;
+	default: return CChannelHandler::HandleEffect(EffNum, EffParam);
 	}
+
+	return true;
 }
 
 void CChannelHandlerMMC5::HandleEmptyNote()
@@ -95,7 +94,6 @@ void CChannelHandlerMMC5::HandleRelease()
 
 void CChannelHandlerMMC5::HandleNote(int Note, int Octave)
 {
-	m_iNote		  = RunNote(Octave, Note);
 	m_iDutyPeriod = m_iDefaultDuty;
 	m_iInstVolume  = 0x0F;		// // //
 }
@@ -104,8 +102,7 @@ bool CChannelHandlerMMC5::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B: case INST_FDS:
-		SAFE_RELEASE(m_pInstHandler);
-		m_pInstHandler = new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0);
+		m_pInstHandler.reset(new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
 		return true;
 	}
 	return false;
@@ -136,18 +133,18 @@ void CChannelHandlerMMC5::RefreshChannel()		// // //
 
 	m_iLastPeriod = Period;
 
-	WriteExternalRegister(0x5015, 0x03);
+	WriteRegister(0x5015, 0x03);
 	
 	if (m_bGate)		// // //
-		WriteExternalRegister(Offs, (DutyCycle << 6) | (m_bEnvelopeLoop << 5) | (!m_bHardwareEnvelope << 4) | Volume);
+		WriteRegister(Offs, (DutyCycle << 6) | (m_bEnvelopeLoop << 5) | (!m_bHardwareEnvelope << 4) | Volume);
 	else {
-		WriteExternalRegister(Offs, 0x30);
+		WriteRegister(Offs, 0x30);
 		m_iLastPeriod = 0xFFFF;
 		return;
 	}
-	WriteExternalRegister(Offs + 2, HiFreq);
+	WriteRegister(Offs + 2, HiFreq);
 	if (LoFreq != LastLoFreq || m_bResetEnvelope)		// // //
-		WriteExternalRegister(Offs + 3, LoFreq + (m_iLengthCounter << 3));
+		WriteRegister(Offs + 3, LoFreq + (m_iLengthCounter << 3));
 
 	m_iLastPeriod = Period;		// // //
 	m_bResetEnvelope = false;
@@ -166,9 +163,9 @@ int CChannelHandlerMMC5::ConvertDuty(int Duty) const		// // //
 void CChannelHandlerMMC5::ClearRegisters()
 {
 	unsigned char Offs = 0x5000 + 4 * (m_iChannelID - CHANID_MMC5_SQUARE1);		// // //
-	WriteExternalRegister(Offs, 0x30);
-	WriteExternalRegister(Offs + 2, 0);
-	WriteExternalRegister(Offs + 3, 0);
+	WriteRegister(Offs, 0x30);
+	WriteRegister(Offs + 2, 0);
+	WriteRegister(Offs + 3, 0);
 }
 
 CString CChannelHandlerMMC5::GetCustomEffectString() const		// // //

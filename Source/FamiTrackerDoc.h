@@ -40,9 +40,6 @@
 // #define DISABLE_SAVE		// // //
 
 // Default song settings
-const unsigned int DEFAULT_TEMPO_NTSC		 = 150;
-const unsigned int DEFAULT_TEMPO_PAL		 = 125;
-const unsigned int DEFAULT_SPEED			 = 6;
 const machine_t    DEFAULT_MACHINE_TYPE		 = NTSC;
 const unsigned int DEFAULT_SPEED_SPLIT_POINT = 32;
 const unsigned int OLD_SPEED_SPLIT_POINT	 = 21;
@@ -89,38 +86,9 @@ struct stSequence {
 	signed char Value[MAX_SEQUENCE_ITEMS];
 };
 
-// // // Channel state information
-struct stChannelState {
-	int ChannelIndex;
-	int Instrument;
-	int Volume;
-	int Effect[EF_COUNT];
-	int Effect_LengthCounter;
-	int Effect_AutoFMMult;
-	int Echo[ECHO_BUFFER_LENGTH + 1];
-	stChannelState() :
-		ChannelIndex(-1),
-		Instrument(MAX_INSTRUMENTS),
-		Volume(MAX_VOLUME),
-		Effect_LengthCounter(-1),
-		Effect_AutoFMMult(-1)
-	{
-	}
-};
-struct stFullState {
-	stChannelState *State;
-	int Tempo;
-	int Speed;
-	int GroovePos; // -1: disable groove
-};
-
-#define ECHO_BUFFER_NONE ((int)(-1))
-#define ECHO_BUFFER_HALT 0x7F
-#define ECHO_BUFFER_ECHO 0x80
-
 // Access data types used by the document class
 #include "PatternData.h"
-#include "InstrumentFactory.h"		// // // TODO: use Instrument.h
+#include "Instrument.h"
 #include "Sequence.h"
 #include "OldSequence.h"		// // //
 #include "Groove.h"		// // //
@@ -128,6 +96,8 @@ struct stFullState {
 // External classes
 class CTrackerChannel;
 class CDocumentFile;
+class stFullState;		// // //
+class CSeqInstrument;		// // // TODO: move to instrument manager
 
 //
 // I'll try to organize this class, things are quite messy right now!
@@ -325,7 +295,6 @@ public:
 
 	// Sequences functions
 	// // // take instrument type as parameter rather than chip type
-	CSequence*		GetSequence(inst_type_t InstType, unsigned int Index, int Type);
 	CSequence*		GetSequence(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
 	unsigned int	GetSequenceItemCount(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
 	int				GetFreeSequence(inst_type_t InstType, int Type, CSeqInstrument *pInst = nullptr) const;		// // //
@@ -350,7 +319,7 @@ public:
 	void			RemoveUnusedSamples();		// // //
 	void			RemoveUnusedPatterns();
 	void			SwapInstruments(int First, int Second);
-	stFullState		RetrieveSoundState(unsigned int Track, unsigned int Frame, unsigned int Row, int Channel);		// // //
+	stFullState*	RetrieveSoundState(unsigned int Track, unsigned int Frame, unsigned int Row, int Channel);		// // //
 
 	// For file version compability
 	static void		ConvertSequence(stSequence *pOldSequence, CSequence *pNewSequence, int Type);
@@ -368,15 +337,9 @@ public:
 
 	// Constants
 public:
-	static const char*	DEFAULT_TRACK_NAME;
-	static const int	DEFAULT_ROW_COUNT;
 	static const char*	NEW_INST_NAME;
 
 	static const int	DEFAULT_NAMCO_CHANS;
-
-	static const int	DEFAULT_FIRST_HIGHLIGHT;
-	static const int	DEFAULT_SECOND_HIGHLIGHT;
-	static const stHighlight DEFAULT_HIGHLIGHT;		// // //
 
 	static const bool	DEFAULT_LINEAR_PITCH;
 
@@ -534,7 +497,6 @@ private:
 
 	// Patterns and song data
 	CPatternData	*m_pTracks[MAX_TRACKS];						// List of all tracks
-	CString			m_sTrackNames[MAX_TRACKS];
 
 	unsigned int	m_iTrackCount;								// Number of tracks added
 	unsigned int	m_iChannelsAvailable;						// Number of channels added

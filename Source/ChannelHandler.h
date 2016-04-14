@@ -28,6 +28,8 @@ static const int DUTY_2A03_FROM_VRC6[] = {0, 0, 1, 1, 1, 1, 2, 2};		// // //
 static const int DUTY_VRC6_FROM_2A03[] = {1, 3, 7, 3};		// // //
 
 class CInstHandler;
+class stChannelState;
+class CSoundGen;		// // //
 
 #include "ChannelHandlerInterface.h"
 
@@ -70,7 +72,14 @@ public:
 	void	ForceReloadInstrument();		// // //
 
 	/*! \brief Updates properties of the channel handler that are obtained from the current module file. */
-	void	DocumentPropertiesChanged(CFamiTrackerDoc *pDoc);
+	/*! \brief Chooses between linear pitch space and the default pitch space provided by the sound chip.
+		\param bEnable Whether linear pitch space is used.
+	*/
+	void	SetLinearPitch(bool bEnable);		// // //
+	/*! \brief Chooses between the new and old vibrato behaviour.
+		\param vibrato_t The vibrato style.
+	*/
+	void	SetVibratoStyle(vibrato_t bEnable);		// // //
 
 	//
 	// Public virtual functions
@@ -97,7 +106,7 @@ public:
 	/*! \brief Sets the channel handler's note lookup table.
 		\param pNoteLookupTable Pointer to the note lookup table.
 	*/
-	virtual void	SetNoteTable(unsigned int *pNoteLookupTable);
+	virtual void	SetNoteTable(const unsigned int *pNoteLookupTable);
 	/*! \brief Sets the MIDI pitch wheel offset.
 		\param Pitch The new offset value.
 	*/
@@ -136,20 +145,21 @@ protected:
 		\return Whether the instrument with the given index is loaded to the instrument handler.
 	*/
 	virtual bool	HandleInstrument(int Instrument, bool Trigger, bool NewInstrument);		// // // not pure virtual
+	/*! \brief Processes an effect command.
+		\details Implementations of this method in subclasses should use the return value of the
+		superclass method to determine whether an effect requires handling. Global effects are not
+		handled by this method, but by CSoundGen::EvaluateGlobalEffects.
+		\param EffCmd The effect type to be processed.
+		\param EffParam The effect command parameter.
+		\return Whether the method has processed the effect of the given type.
+	*/
+	virtual bool	HandleEffect(effect_t EffNum, unsigned char EffParam);		// // // not pure virtual either
 	/*! \brief Creates an instrument handler of an appropriate type.
-		\details Implementations of this method may only use the macro CREATE_INST_HANDLER(T, ...) to
-		instantiate new instrument handlers when the instrument type is different from the existing
-		one.
 		\return Whether an instrument handler is created.
 	*/
 	virtual bool	CreateInstHandler(inst_type_t Type);		// // //
 
 	// Pure virtual functions for handling notes
-	/*! \brief Processes effect commands specific to certain sound channels.
-		\param EffCmd The effect type to be processed.
-		\param EffParam The effect command parameter.
-	*/
-	virtual void	HandleCustomEffects(effect_t EffNum, int EffParam) = 0;
 	/*! \brief Processes a blank note from pattern data. */
 	virtual void	HandleEmptyNote() = 0;
 	/*! \brief Processes a cut event from pattern data. */
@@ -181,6 +191,11 @@ protected:
 		\return The current volume register, restricted within the range of the sound channel.
 	*/
 	virtual int		CalculateVolume(bool Subtract = false) const;
+	/*! \brief Restricts the pitch value within the limits of the sound channel.
+		\param Period Input period or frequency register value.
+		\return The restricted period or frequency register value.
+	*/
+	virtual int		LimitPeriod(int Period) const;
 	
 	/*! \brief Retrieves information about common effects of the channel handler.
 		\return A string representing active effects and their parameters.
@@ -216,17 +231,6 @@ protected:
 	*/
 	void	ReleaseNote();
 
-	/*! \brief Restricts the pitch value within the limits of the sound channel.
-		\param Period Input period or frequency register value.
-		\return The restricted period or frequency register value.
-	*/
-	int		LimitPeriod(int Period) const;
-	/*! \brief Restricts the volume within the limits of the sound channel.
-		\param Period Input volume register value.
-		\return The restricted volume register value.
-	*/
-	int		LimitVolume(int Volume) const;
-
 	/*! \brief Notifies the tracker view that the current channel handler is playing a note.
 		\param Note The note value, or -1 if no note is active.
 	*/
@@ -239,14 +243,6 @@ protected:
 	*/
 	int		GetPitch() const;
 	
-	/*! \brief Processes effect commands common to all sound channels.
-		\warning This method is always called by implementations of CChannelHandler::HandleCustomEffects,
-		never by itself.
-		\param EffCmd The effect type to be processed.
-		\param EffParam The effect command parameter.
-		\return Whether the method has processed the effect of the given type.
-	*/
-	bool	CheckCommonEffects(effect_t EffCmd, unsigned char EffParam);
 	/*! \brief Processes the Gxx delay effect in a given note.
 		\details The method caches the note data at CChannelHandler::m_cnDelayed if a Gxx effect
 		command is found. Jump effects are processed immediately and removed from the cached data.
@@ -312,16 +308,13 @@ protected:
 	*/
 	void	WriteEchoBuffer(stChanNote *NoteData, int Pos, int EffColumns);		// // //
 
-	/*! \brief Writes to the internal APU.
+	/*! \brief Writes to the APU memory.
+		\details This method no longer considers whether the destination sound chip is internal or
+		external, as 2A03 is handled in the same way as expansion chips in the APU class.
 		\param Reg The register port.
 		\param Value The value to be written.
 	*/
-	void	WriteRegister(uint16 Reg, uint8 Value);
-	/*! \brief Writes to an external sound chip.
-		\param Reg The register port.
-		\param Value The value to be written.
-	*/
-	void	WriteExternalRegister(uint16 Reg, uint8 Value);
+	void	WriteRegister(uint16_t Reg, uint8_t Value);
 	
 	/*! \brief Converts a duty value from the current instrument into an equivalent value for the
 		current sound channel.
@@ -416,11 +409,6 @@ protected:
 
 	/*! \brief The current instrument index of the channel. */
 	unsigned int	m_iInstrument;
-	/*! \brief A cache of the previous instrument index of the channel.
-		\details When this value is different from the current instrument index, the instrument handler
-		loads a new instrument.
-	*/
-	unsigned int	m_iLastInstrument;
 	/*! \brief A flag indicating that the current instrument should be reloaded by the instrument handler. */
 	bool			m_bForceReload;					// // //
 
@@ -572,7 +560,7 @@ protected:
 		single octave, all other lookup tables should contain at least as many entries as the number
 		of notes available in the tracker.
 	*/
-	unsigned int	*m_pNoteLookupTable;
+	const unsigned int *m_pNoteLookupTable;
 	/*! \brief A pointer to the channel's vibrato lookup table.
 		\details A vibrato lookup table contains as many rows as the number of vibrato depths
 		available, each row containing the first quarter of the vibrato amplitude values; values for
@@ -594,8 +582,8 @@ protected:
 	*/
 	inst_type_t		m_iInstTypeCurrent;
 	/*! \brief A pointer to the currently installed instrument handler. */
-	CInstHandler	*m_pInstHandler;				// // //
-
+	std::unique_ptr<CInstHandler>	m_pInstHandler;				// // //
+	
 	// Private variables
 private:
 	int				m_iMaxPeriod;
@@ -607,7 +595,8 @@ class CChannelHandlerInverted : public CChannelHandler {
 protected:
 	CChannelHandlerInverted(int MaxPeriod, int MaxVolume) : CChannelHandler(MaxPeriod, MaxVolume) {}
 	// // //
-	virtual int CalculatePeriod() const;
-	virtual CString GetSlideEffectString() const;		// // //
+	virtual bool	HandleEffect(effect_t EffNum, unsigned char EffParam);		// // //
+	virtual int		CalculatePeriod() const;
+	virtual CString	GetSlideEffectString() const;		// // //
 };
 

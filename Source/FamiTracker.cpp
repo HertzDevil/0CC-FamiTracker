@@ -33,6 +33,7 @@
 #include "ChannelMap.h"
 #include "CustomExporters.h"
 #include "CommandLineExport.h"
+#include "VersionHelpers.h"		// // //
 
 #ifdef EXPORT_TEST
 #include "ExportTest/ExportTest.h"
@@ -46,10 +47,6 @@ const DWORD	SHARED_MEM_SIZE			= 256;
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-#ifdef RELEASE_BUILD
-#pragma message("Building SVN release build...")
-#endif /* RELEASE_BUILD */
 
 // CFamiTrackerApp
 
@@ -190,16 +187,8 @@ BOOL CFamiTrackerApp::InitInstance()
 	
 	AddDocTemplate(pDocTemplate);
 
-	// Determine windows version
-	OSVERSIONINFO osvi;
-
-	ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-
-	GetVersionEx(&osvi);
-
 	// Work-around to enable file type registration in windows vista/7
-	if (osvi.dwMajorVersion >= 6) { 
+	if (IsWindowsVistaOrGreater()) {		// // //
 		HKEY HKCU;
 		long res_reg = ::RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Classes"), &HKCU);
 		if(res_reg == ERROR_SUCCESS)
@@ -210,7 +199,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	EnableShellOpen();
 
 	// Skip this if in wip/beta mode
-#if /*!defined(WIP) &&*/ !defined(_DEBUG)
+#if !defined(WIP) && !defined(_DEBUG)
 	// Add shell options
 	RegisterShellFileTypes();		// // //
 	static const LPCTSTR FILE_ASSOC_NAME = _T("0CC-FamiTracker Module");
@@ -244,7 +233,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	}
 
 	// Move root key back to default
-	if (osvi.dwMajorVersion >= 6) { 
+	if (IsWindowsVistaOrGreater()) {		// // //
 		::RegOverridePredefKey(HKEY_CLASSES_ROOT, NULL);
 	}
 
@@ -288,7 +277,6 @@ BOOL CFamiTrackerApp::InitInstance()
 	RegisterSingleInstance();
 
 #ifndef _DEBUG
-	// WIP
 	m_pMainWnd->GetMenu()->GetSubMenu(4)->RemoveMenu(ID_MODULE_CHANNELS, MF_BYCOMMAND);		// // //
 #endif
 
@@ -430,7 +418,7 @@ void CFamiTrackerApp::LoadLocalization()
 	WORD Major, Minor, Build, Revision;
 
 	if (GetFileVersion(DLL_NAME, Major, Minor, Revision, Build)) {
-		if (Major != VERSION_MAJ || Minor != VERSION_MIN || Revision != VERSION_REV)
+		if (Major != VERSION_API || Minor != VERSION_MAJ || Revision != VERSION_MIN || Build != VERSION_REV)		// // //
 			return;
 
 		m_hInstResDLL = ::LoadLibrary(DLL_NAME);
@@ -586,6 +574,13 @@ void CFamiTrackerApp::LoadSoundConfig()
 	GetSoundGenerator()->LoadSettings();
 	GetSoundGenerator()->Interrupt();
 	static_cast<CFrameWnd*>(GetMainWnd())->SetMessageText(IDS_NEW_SOUND_CONFIG);
+}
+
+void CFamiTrackerApp::UpdateMenuShortcuts()		// // //
+{
+	CMainFrame *pMainFrm = dynamic_cast<CMainFrame*>(GetMainWnd());
+	if (pMainFrm != nullptr)
+		pMainFrm->UpdateMenus();
 }
 
 // Silences everything
@@ -987,7 +982,7 @@ void CFTCommandLineInfo::ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLas
 			FILE *f;
 			AttachConsole(ATTACH_PARENT_PROCESS);
 			errno_t err = freopen_s(&f, "CON", "w", stdout);
-			printf("FamiTracker v%i.%i.%i\n", VERSION_MAJ, VERSION_MIN, VERSION_REV);
+			printf("FamiTracker v%i.%i.%i.%i\n", VERSION);		// // //
 			return;
 		}
 	}

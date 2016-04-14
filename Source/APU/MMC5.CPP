@@ -18,14 +18,18 @@
 ** must bear this legend.
 */
 
-#include "APU.h"
+//#include "APU.h"
+#include "../Common.h"
+#include "Types.h"
+#include "Mixer.h"
 #include "MMC5.h"
 #include "Square.h"
 
 // MMC5 external sound
 
-CMMC5::CMMC5(CMixer *pMixer) : 
-	m_pEXRAM(new uint8[0x400]),
+CMMC5::CMMC5(CMixer *pMixer) :
+	CExternal(pMixer),		// // //
+	m_pEXRAM(new uint8_t[0x400]),
 	m_pSquare1(new CSquare(pMixer, CHANID_MMC5_SQUARE1, SNDCHIP_MMC5)),
 	m_pSquare2(new CSquare(pMixer, CHANID_MMC5_SQUARE2, SNDCHIP_MMC5)),
 	m_iMulLow(0),
@@ -54,7 +58,7 @@ void CMMC5::Reset()
 	m_pSquare2->Write(0x01, 0x08);
 }
 
-void CMMC5::Write(uint16 Address, uint8 Value)
+void CMMC5::Write(uint16_t Address, uint8_t Value)
 {
 	if (Address >= 0x5C00 && Address <= 0x5FF5) {
 		m_pEXRAM[Address & 0x3FF] = Value;
@@ -98,7 +102,7 @@ void CMMC5::Write(uint16 Address, uint8 Value)
 	}
 }
 
-uint8 CMMC5::Read(uint16 Address, bool &Mapped)
+uint8_t CMMC5::Read(uint16_t Address, bool &Mapped)
 {
 	if (Address >= 0x5C00 && Address <= 0x5FF5) {
 		Mapped = true;
@@ -123,7 +127,7 @@ void CMMC5::EndFrame()
 	m_pSquare2->EndFrame();
 }
 
-void CMMC5::Process(uint32 Time)
+void CMMC5::Process(uint32_t Time)
 {
 	m_pSquare1->Process(Time);
 	m_pSquare2->Process(Time);
@@ -139,4 +143,10 @@ void CMMC5::EnvelopeUpdate()
 {
 	m_pSquare1->EnvelopeUpdate();
 	m_pSquare2->EnvelopeUpdate();
+}
+
+void CMMC5::ClockSequence()
+{
+	EnvelopeUpdate();		// // //
+	LengthCounterUpdate();		// // //
 }

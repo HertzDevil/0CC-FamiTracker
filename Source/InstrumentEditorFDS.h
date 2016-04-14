@@ -22,6 +22,7 @@
 
 class CWaveEditorFDS;
 class CModSequenceEditor;
+class CInstrumentFDS;
 
 // CInstrumentEditorFDS dialog
 
@@ -42,8 +43,6 @@ public:
 	enum { IDD = IDD_INSTRUMENT_FDS };
 
 protected:
-	virtual	void PreviewNote(unsigned char Key);
-
 	void EnableModControls(bool enable);
 
 	void ParseWaveString(LPCTSTR pString);

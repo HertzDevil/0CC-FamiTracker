@@ -23,11 +23,11 @@
 // This file handles playing of VRC6 channels
 
 #include "stdafx.h"
-#include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
+#include "FamiTrackerTypes.h"		// // //
+#include "APU/Types.h"		// // //
+#include "Instrument.h"		// // //
 #include "ChannelHandler.h"
 #include "ChannelsVRC6.h"
-#include "SoundGen.h"
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 
@@ -35,16 +35,16 @@ CChannelHandlerVRC6::CChannelHandlerVRC6() : CChannelHandler(0xFFF, 0x0F)
 {
 }
 
-void CChannelHandlerVRC6::HandleCustomEffects(effect_t EffNum, int EffParam)
+bool CChannelHandlerVRC6::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
-	if (!CheckCommonEffects(EffNum, EffParam)) {
-		switch (EffNum) {
-			case EF_DUTY_CYCLE:
-				m_iDefaultDuty = m_iDutyPeriod = EffParam;
-				break;
-			// // //
-		}
+	switch (EffNum) {
+	case EF_DUTY_CYCLE:
+		m_iDefaultDuty = m_iDutyPeriod = EffParam;
+		break;
+	default: return CChannelHandler::HandleEffect(EffNum, EffParam);
 	}
+
+	return true;
 }
 
 void CChannelHandlerVRC6::HandleEmptyNote()
@@ -64,7 +64,6 @@ void CChannelHandlerVRC6::HandleRelease()
 
 void CChannelHandlerVRC6::HandleNote(int Note, int Octave)
 {
-	m_iNote		  = RunNote(Octave, Note);
 	m_iInstVolume  = 0x0F;
 	m_iDutyPeriod = m_iDefaultDuty;
 }
@@ -73,8 +72,7 @@ bool CChannelHandlerVRC6::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B: case INST_FDS:
-		SAFE_RELEASE(m_pInstHandler);
-		m_pInstHandler = new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0);
+		m_pInstHandler.reset(new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
 		return true;
 	}
 	return false;
@@ -82,10 +80,10 @@ bool CChannelHandlerVRC6::CreateInstHandler(inst_type_t Type)
 
 void CChannelHandlerVRC6::ClearRegisters()		// // //
 {
-	uint16 Address = ((m_iChannelID - CHANID_VRC6_PULSE1) << 12) + 0x9000;
-	WriteExternalRegister(Address, 0);
-	WriteExternalRegister(Address + 1, 0);
-	WriteExternalRegister(Address + 2, 0);
+	uint16_t Address = ((m_iChannelID - CHANID_VRC6_PULSE1) << 12) + 0x9000;
+	WriteRegister(Address, 0);
+	WriteRegister(Address + 1, 0);
+	WriteRegister(Address + 2, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,7 +92,7 @@ void CChannelHandlerVRC6::ClearRegisters()		// // //
 
 void CVRC6Square::RefreshChannel()
 {
-	uint16 Address = ((m_iChannelID - CHANID_VRC6_PULSE1) << 12) + 0x9000;
+	uint16_t Address = ((m_iChannelID - CHANID_VRC6_PULSE1) << 12) + 0x9000;
 
 	unsigned int Period = CalculatePeriod();
 	unsigned int Volume = CalculateVolume();
@@ -104,13 +102,13 @@ void CVRC6Square::RefreshChannel()
 	unsigned char LoFreq = (Period >> 8);
 	
 	if (!m_bGate) {		// // //
-		WriteExternalRegister(Address, DutyCycle);
+		WriteRegister(Address, DutyCycle);
 		return;
 	}
 
-	WriteExternalRegister(Address, DutyCycle | Volume);
-	WriteExternalRegister(Address + 1, HiFreq);
-	WriteExternalRegister(Address + 2, 0x80 | LoFreq);
+	WriteRegister(Address, DutyCycle | Volume);
+	WriteRegister(Address + 1, HiFreq);
+	WriteRegister(Address + 2, 0x80 | LoFreq);
 }
 
 int CVRC6Square::ConvertDuty(int Duty) const		// // //
@@ -142,11 +140,11 @@ void CVRC6Sawtooth::RefreshChannel()
 		Volume = 63;
 	
 	if (!m_bGate) {		// // //
-		WriteExternalRegister(0xB000, 0);
+		WriteRegister(0xB000, 0);
 		return;
 	}
 
-	WriteExternalRegister(0xB000, Volume);
-	WriteExternalRegister(0xB001, HiFreq);
-	WriteExternalRegister(0xB002, 0x80 | LoFreq);
+	WriteRegister(0xB000, Volume);
+	WriteRegister(0xB001, HiFreq);
+	WriteRegister(0xB002, 0x80 | LoFreq);
 }

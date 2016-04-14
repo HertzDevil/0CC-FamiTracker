@@ -27,14 +27,7 @@
 
 #include <afxmt.h>	// Include synchronization objects
 #include "PatternEditorTypes.h"		// // //
-
-// Custom window messages for CFamiTrackerView
-enum {
-	WM_USER_PLAYER = WM_USER,		// Pattern play row has changed
-	WM_USER_MIDI_EVENT,				// There is a new MIDI command	
-	WM_USER_NOTE_EVENT,				// There is a new note command (by player)
-	WM_USER_DUMP_INST,				// // // End of track, add instrument
-};
+#include "FamiTrackerViewMessage.h"		// // //
 
 // External classes
 class CFamiTrackerDoc;
@@ -109,6 +102,8 @@ public:
 	// Mute methods
 	void		 SoloChannel(unsigned int Channel);
 	void		 ToggleChannel(unsigned int Channel);
+	void		 SoloChip(unsigned int Channel);		// // //
+	void		 ToggleChip(unsigned int Channel);		// // //
 	void		 UnmuteAllChannels();
 	bool		 IsChannelMuted(unsigned int Channel) const;
 	void		 SetChannelMute(int Channel, bool bMute);
@@ -224,6 +219,7 @@ private:
 	
 	// Mute methods
 	bool	IsChannelSolo(unsigned int Channel) const;
+	bool	IsChipSolo(unsigned int Chip) const;		// // //
 
 	// Other
 	bool	AddAction(CAction *pAction) const;
@@ -432,6 +428,8 @@ public:
 	afx_msg void OnBookmarksToggle();
 	afx_msg void OnBookmarksNext();
 	afx_msg void OnBookmarksPrevious();
+	afx_msg void OnTrackerToggleChip();
+	afx_msg void OnTrackerSoloChip();
 	afx_msg void OnTrackerRecordToInst();
 	afx_msg void OnTrackerRecorderSettings();
 	afx_msg void OnRecallChannelState();

@@ -26,11 +26,12 @@
 #include <sstream>
 #include "stdafx.h"
 #include "FamiTracker.h"
+#include "DPI.h"		// // //
 #include "FamiTrackerDoc.h"
+#include "SeqInstrument.h"		// // //
+#include "InstrumentN163.h"		// // //
 #include "InstrumentEditPanel.h"
 #include "InstrumentEditorN163Wave.h"
-#include "InstrumentN163.h"		// // //
-#include "MainFrm.h"
 #include "SoundGen.h"
 #include "Clipboard.h"
 #include "WavegenBuiltin.h" // test
@@ -118,7 +119,7 @@ BOOL CInstrumentEditorN163Wave::OnInitDialog()
 	CInstrumentEditPanel::OnInitDialog();
 
 	// Create wave editor
-	CRect rect(SX(20), SY(30), 0, 0);
+	CRect rect(20, 30, 0, 0);		// // //
 	m_pWaveEditor = new CWaveEditorN163(10, 8, 32, 16);
 	m_pWaveEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE, rect, this);
 	m_pWaveEditor->ShowWindow(SW_SHOW);
@@ -133,8 +134,8 @@ BOOL CInstrumentEditorN163Wave::OnInitDialog()
 	int order[2] = {1, 0};		// // //
 	m_pWaveListCtrl = new CListCtrl();
 	m_pWaveListCtrl->SubclassDlgItem(IDC_N163_WAVES, this);
-	m_pWaveListCtrl->InsertColumn(0, _T("Wave"), LVCFMT_LEFT, 120);
-	m_pWaveListCtrl->InsertColumn(1, _T("#"), LVCFMT_LEFT, 20);
+	m_pWaveListCtrl->InsertColumn(0, _T("Wave"), LVCFMT_LEFT, 114);
+	m_pWaveListCtrl->InsertColumn(1, _T("#"), LVCFMT_LEFT, 26);
 	m_pWaveListCtrl->SetColumnOrderArray(2, order);
 
 	m_WaveImage.Create(CInstrumentN163::MAX_WAVE_SIZE, 16, ILC_COLOR8, 0, CInstrumentN163::MAX_WAVE_COUNT);

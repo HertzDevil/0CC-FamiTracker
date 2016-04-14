@@ -49,6 +49,15 @@ public:
 	virtual bool	IsReleasing() const = 0;
 };
 
+class CDSample;
+class CChannelHandlerInterfaceDPCM
+{
+public:
+	virtual void	WriteDCOffset(unsigned char) = 0;
+	virtual void	SetLoopOffset(unsigned char) = 0;
+	virtual void	PlaySample(const CDSample*, int) = 0;
+};
+
 class CChannelHandlerInterfaceVRC7
 {
 public:
@@ -72,5 +81,5 @@ public:
 	virtual void	SetWaveLength(int) = 0;
 	virtual void	SetWavePosition(int) = 0;
 	virtual void	SetWaveCount(int) = 0;
-	// virtual void	FillWaveRAM(const char*, int, int) = 0;
+	virtual void	FillWaveRAM(const char*, int) = 0;
 };

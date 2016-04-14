@@ -187,7 +187,7 @@ CPatternEditor::CPatternEditor() :
 	m_iDrawFrame(0),
 	m_bFollowMode(true),
 	m_bHasFocus(false),
-	m_vHighlight(CFamiTrackerDoc::DEFAULT_HIGHLIGHT),		// // //
+	m_vHighlight(CPatternData::DEFAULT_HIGHLIGHT),		// // //
 	m_iMouseHoverChan(-1),
 	m_iMouseHoverEffArrow(0),
 	m_bSelecting(false),
@@ -268,7 +268,7 @@ void CPatternEditor::ApplyColorScheme()
 	memcpy(LogFont.lfFaceName, FontName, _tcslen(FontName));
 
 	LogFont.lfHeight = -m_iPatternFontSize;
-//	LogFont.lfHeight = -MulDiv(12, _dpiY, 96);
+//	LogFont.lfHeight = -DPI::SY(12);		// // //
 	LogFont.lfQuality = DRAFT_QUALITY;
 	LogFont.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
 
@@ -542,12 +542,6 @@ void CPatternEditor::DrawScreen(CDC *pDC, CFamiTrackerView *pView)
 	pDC->TextOut(m_iWinWidth - 70, 42, _T("DEBUG"));
 	pDC->TextOut(m_iWinWidth - 70, 62, _T("DEBUG"));
 	pDC->TextOut(m_iWinWidth - 70, 82, _T("DEBUG"));
-#else 
-#ifndef RELEASE_BUILD
-	//pDC->SetBkColor(DEFAULT_COLOR_SCHEME.CURSOR);
-	//pDC->SetTextColor(DEFAULT_COLOR_SCHEME.TEXT_HILITE);
-	//pDC->TextOut(m_iWinWidth - 110, m_iWinHeight - 20 * Line++, _T("Release build"));
-#endif
 #endif
 #ifdef BENCHMARK
 
@@ -600,16 +594,11 @@ void CPatternEditor::DrawScreen(CDC *pDC, CFamiTrackerView *pView)
 	// Display the BETA text
 	CString Text;
 	int line = 0;
-	int offset = m_iWinWidth - 160;
-	Text.Format(_T("BETA %i (%s)"), VERSION_WIP, __DATE__);
+	int offset = m_iWinWidth - 200;		// // //
+	Text.Format(_T("Revision %i beta (%s)"), VERSION_REV, __DATE__);
 	pDC->SetTextColor(0x00FFFF);
 	pDC->SetBkMode(TRANSPARENT);
 	pDC->TextOut(offset, m_iWinHeight - 24 - 18 * line++, Text);
-
-#ifndef RELEASE_BUILD
-	Text.Format(_T("Dev build"));
-	pDC->TextOut(offset, m_iWinHeight - 24 - 18 * line++, Text);
-#endif
 
 #endif
 
@@ -1774,7 +1763,7 @@ void CPatternEditor::DrawRegisters(CDC *pDC)
 	}
 
 	COLORREF *DECAY_COL = new COLORREF[CAPU::REG_DECAY_RATE + 1];		// // //
-	for (uint8 i = 0; i <= CAPU::REG_DECAY_RATE; i++)
+	for (uint8_t i = 0; i <= CAPU::REG_DECAY_RATE; i++)
 		DECAY_COL[i] = i * 3 / 2 >= CAPU::REG_DECAY_RATE
 					 ? BLEND(0xFFFF80, 0x80E0E0, 300 * i / CAPU::REG_DECAY_RATE - 200)
 					 : BLEND(0x80E0E0, 0x80A0FF, 150 * i / CAPU::REG_DECAY_RATE);
@@ -2511,7 +2500,7 @@ cursor_column_t CPatternEditor::GetColumnAtPoint(int PointX) const		// // //
 	const int ChannelCount = GetChannelCount();
 	const int Channel = GetChannelAtPoint(PointX);
 
-	if (Channel < 0)
+	if (Channel < 0 || ChannelCount <= 0)		// // //
 		return C_NOTE;
 	if (Channel >= ChannelCount)
 		return GetChannelColumns(ChannelCount - 1);
@@ -3375,8 +3364,6 @@ void CPatternEditor::ContinueMouseSelection(const CPoint &point)
 		// Selection has changed
 		m_bSelectionInvalidated = true;
 	}
-	TRACE("%d %d; %d %d\n", m_selection.m_cpStart.m_iFrame, m_selection.m_cpStart.m_iRow,
-		  m_selection.m_cpEnd.m_iFrame, m_selection.m_cpEnd.m_iRow);
 }
 
 void CPatternEditor::OnMouseMove(UINT nFlags, const CPoint &point)
@@ -3800,8 +3787,7 @@ void CPatternEditor::PasteRaw(const CPatternClipData *pClipData)		// // //
 	const column_t StartColumn = pClipData->ClipInfo.StartColumn;
 	const column_t EndColumn = pClipData->ClipInfo.EndColumn;
 
-	stChanNote Target = BLANK_NOTE;
-	stChanNote Source = BLANK_NOTE;
+	stChanNote Target { }, Source { };
 	const int PackedPos = (m_selection.GetFrameStart() + GetFrameCount()) * Length + m_selection.GetRowStart();
 	for (int i = 0; i < Channels; ++i) for (int r = 0; r < Rows; r++) {
 		int c = i + m_selection.GetChanStart();
@@ -4326,7 +4312,7 @@ void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
 	// Returns a PPMCK MML translation of copied pattern
 
 	// // // int i, j;
-	stChanNote NoteData = BLANK_NOTE;
+	stChanNote NoteData { };
 
 	str.Empty();
 
@@ -4349,11 +4335,9 @@ void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
 		int o = -1;
 		int len = -1;
 		bool first = true;
-		stChanNote current = BLANK_NOTE;
+		stChanNote current { };
 		current.Note = HALT;
-		stChanNote echo[ECHO_BUFFER_LENGTH + 1];
-		for (int i = 0; i <= ECHO_BUFFER_LENGTH; i++)
-			echo[i] = BLANK_NOTE;
+		stChanNote echo[ECHO_BUFFER_LENGTH + 1] { };
 
 		for (CPatternIterator it = GetStartIterator(); it <= End; it++) {
 			len++;
