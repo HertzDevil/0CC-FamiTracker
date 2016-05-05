@@ -34,11 +34,13 @@
 #define OPL_NOTE_ON 0x10
 #define OPL_SUSTAIN_ON 0x20
 
+const int VRC7_PITCH_RESOLUTION = 2;		// // // extra bits for internal pitch
+
 // True if custom instrument registers needs to be updated, shared among all channels
 bool CChannelHandlerVRC7::m_bRegsDirty = false;
 
 CChannelHandlerVRC7::CChannelHandlerVRC7() : 
-	CChannelHandlerInverted(2047, 15),		// // //
+	CChannelHandlerInverted((1 << (VRC7_PITCH_RESOLUTION + 9)) - 1, 15),		// // //
 	m_iCommand(CMD_NONE),
 	m_iTriggeredNote(0)
 {
@@ -143,37 +145,27 @@ void CChannelHandlerVRC7::HandleRelease()
 
 void CChannelHandlerVRC7::HandleNote(int Note, int Octave)
 {
-	int OldOctave = m_iOctave;
-
 	// Portamento fix
 	if (m_iCommand == CMD_NOTE_HALT)
 		m_iPeriod = 0;
 
 	// Trigger note
-	m_iNote	= CChannelHandler::RunNote(Octave, Note); // m_iPeriod altered
+	m_iNote	= RunNote(Octave, Note); // m_iPeriod altered
 	m_bHold	= true;
 
 	if ((m_iEffect != EF_PORTAMENTO || m_iPortaSpeed == 0) || m_iCommand == CMD_NOTE_HALT)
 		m_iCommand = CMD_NOTE_TRIGGER;
 
-	if (m_iPortaSpeed > 0 && m_iEffect == EF_PORTAMENTO && m_iCommand != CMD_NOTE_HALT) {
-		// Set current frequency to the one with highest octave
-		if (m_iOctave > OldOctave) {
-			m_iPeriod >>= (m_iOctave - OldOctave);
-		}
-		else if (OldOctave > m_iOctave) {
-			// Do nothing
-			m_iPortaTo >>= (OldOctave - m_iOctave);
-			m_iOctave = OldOctave;
-		}
-	}
+	if (m_iPortaSpeed > 0 && m_iEffect == EF_PORTAMENTO && m_iCommand != CMD_NOTE_HALT)
+		CorrectOctave();
 }
 
 bool CChannelHandlerVRC7::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_VRC7:
-		m_pInstHandler.reset(new CInstHandlerVRC7(this, 0x0F));
+		if (m_iInstTypeCurrent != INST_VRC7)
+			m_pInstHandler.reset(new CInstHandlerVRC7(this, 0x0F));
 		return true;
 	}
 	return false;
@@ -181,22 +173,30 @@ bool CChannelHandlerVRC7::CreateInstHandler(inst_type_t Type)
 
 void CChannelHandlerVRC7::SetupSlide()		// // //
 {
-	int OldOctave = m_iOctave;
-
 	CChannelHandler::SetupSlide();		// // //
-
-	if (m_iOctave > OldOctave) {
-		m_iPeriod >>= (m_iOctave - OldOctave);
-	}
-	else if (m_iOctave < OldOctave) {
-		m_iPortaTo >>= (OldOctave - m_iOctave);
-		m_iOctave = OldOctave;
-	}
+	
+	CorrectOctave();
 }
 
-void CChannelHandlerVRC7::ResetChannel()
+void CChannelHandlerVRC7::CorrectOctave()		// // //
 {
-	CChannelHandler::ResetChannel();
+	// Set current frequency to the one with highest octave
+	if (m_bLinearPitch)
+		return;
+	if (m_iOldOctave == -1) {
+		if (m_bGate)
+			m_iOldOctave = m_iOctave;
+		return;
+	}
+	if (m_iOctave > m_iOldOctave) {
+		m_iPeriod >>= m_iOctave - m_iOldOctave;
+		m_iOldOctave = m_iOctave;
+	}
+	else if (m_iOldOctave > m_iOctave) {
+		// Do nothing
+		m_iPortaTo >>= (m_iOldOctave - m_iOctave);
+		m_iOctave = m_iOldOctave;
+	}
 }
 
 int CChannelHandlerVRC7::TriggerNote(int Note)
@@ -206,12 +206,14 @@ int CChannelHandlerVRC7::TriggerNote(int Note)
 	if (m_iCommand != CMD_NOTE_TRIGGER && m_iCommand != CMD_NOTE_HALT)
 		m_iCommand = CMD_NOTE_ON;
 	m_iOctave = Note / NOTE_RANGE;
+	if (m_bLinearPitch)		// // //
+		return Note << LINEAR_PITCH_AMOUNT;
 	return GetFnum(Note);
 }
 
 unsigned int CChannelHandlerVRC7::GetFnum(int Note) const
 {
-	return m_pNoteLookupTable[Note % NOTE_RANGE] << 2;		// // //
+	return m_pNoteLookupTable[Note % NOTE_RANGE] << VRC7_PITCH_RESOLUTION;		// // //
 }
 
 int CChannelHandlerVRC7::CalculateVolume() const
@@ -224,6 +226,22 @@ int CChannelHandlerVRC7::CalculateVolume() const
 	return 15 - Volume;
 }
 
+int CChannelHandlerVRC7::CalculatePeriod() const
+{
+	int Detune = GetVibrato() - GetFinePitch() - GetPitch();
+	int Period = LimitPeriod(GetPeriod() + (Detune << VRC7_PITCH_RESOLUTION));		// // //
+	if (m_bLinearPitch && m_pNoteLookupTable != nullptr) {
+		Period = LimitPeriod(GetPeriod() + Detune);		// // //
+		int Note = (Period >> LINEAR_PITCH_AMOUNT) % NOTE_RANGE;
+		int Sub = Period % (1 << LINEAR_PITCH_AMOUNT);
+		int Offset = (GetFnum(Note + 1) << ((Note < NOTE_RANGE - 1) ? 0 : 1)) - GetFnum(Note);
+		Offset = Offset * Sub >> LINEAR_PITCH_AMOUNT;
+		if (Sub && Offset < (1 << VRC7_PITCH_RESOLUTION)) Offset = 1 << VRC7_PITCH_RESOLUTION;
+		Period = GetFnum(Note) + Offset;
+	}
+	return LimitRawPeriod(Period) >> VRC7_PITCH_RESOLUTION;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // VRC7 Channels
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -233,8 +251,9 @@ void CVRC7Channel::RefreshChannel()
 	int Note = m_iTriggeredNote;
 	int Patch = m_iPatch;
 	int Volume = CalculateVolume();
-	int Bnum = m_iOctave;
-	int Fnum = (m_iPeriod >> 2) - GetVibrato() - GetFinePitch();// (m_iFinePitch - 0x80);
+	int Fnum = CalculatePeriod();		// // //
+	int Bnum = !m_bLinearPitch ? m_iOctave :
+		((GetPeriod() + GetVibrato() - GetFinePitch() - GetPitch()) >> LINEAR_PITCH_AMOUNT) / NOTE_RANGE;
 
 	// Write custom instrument
 	if (Patch == 0 && (m_iCommand == CMD_NOTE_TRIGGER || m_bRegsDirty)) {
@@ -284,10 +303,10 @@ void CVRC7Channel::ClearRegisters()
 	RegWrite(0x30 + m_iChannel, 0x0F);		// // //
 
 	m_iNote = 0;
+	m_iOctave = m_iOldOctave = -1;		// // //
 	m_iEffect = EF_NONE;
 
 	m_iCommand = CMD_NOTE_HALT;
-
 }
 
 void CVRC7Channel::RegWrite(unsigned char Reg, unsigned char Value)

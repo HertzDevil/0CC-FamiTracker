@@ -2,6 +2,8 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2014  Jonathan Liss
 **
+** 0CC-FamiTracker is (C) 2014-2016 HertzDevil
+**
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
@@ -18,26 +20,33 @@
 ** must bear this legend.
 */
 
-#ifndef EXTERNAL_H
-#define EXTERNAL_H
 
-class CMixer;
+#pragma once
 
-class CExternal {
+#include "Action.h"
+#include <vector>
+#include <memory>
+
+/*!
+	\brief A compound action class allowing multiple undoable actions to be chained together.
+	\details The compound uniquely manages the action objects it contains.
+*/
+class CCompoundAction final : public CAction
+{
 public:
-	CExternal() {};
-	CExternal(CMixer *pMixer) : m_pMixer(pMixer) {};
-	virtual ~CExternal() {};
+	CCompoundAction();
 
-	virtual void	Reset() = 0;
-	virtual void	Process(uint32_t Time) = 0;
-	virtual void	EndFrame() = 0;
+	bool SaveState(CMainFrame *pMainFrm);
+	void SaveRedoState(CMainFrame *pMainFrm);		// // //
+	void RestoreState(CMainFrame *pMainFrm);		// // //
+	void RestoreRedoState(CMainFrame *pMainFrm);		// // //
+	void Undo(CMainFrame *pMainFrm);
+	void Redo(CMainFrame *pMainFrm);
 
-	virtual void	Write(uint16_t Address, uint8_t Value) = 0;
-	virtual uint8_t	Read(uint16_t Address, bool &Mapped) = 0;
+	/*!	\brief Adds an action to the compound to be performed last (and undoed first).
+		\param pAction Pointer to the action object. */
+	void JoinAction(CAction *const pAction);
 
-protected:
-	CMixer *m_pMixer;
+private:
+	std::vector<std::unique_ptr<CAction>> m_pActionList;
 };
-
-#endif /* EXTERNAL_H */

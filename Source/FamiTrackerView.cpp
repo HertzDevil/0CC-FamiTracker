@@ -1759,13 +1759,6 @@ void CFamiTrackerView::SelectChannel(unsigned int Channel)
 	InvalidateCursor();
 }
 
-void CFamiTrackerView::SelectFrameChannel(unsigned int Frame, unsigned int Channel)
-{
-	m_pPatternEditor->MoveToFrame(Frame);
-	m_pPatternEditor->MoveToChannel(Channel);
-	// This method does no redrawing
-}
-
 // // // TODO: move these to CMainFrame?
 
 void CFamiTrackerView::OnBookmarksToggle()
@@ -2099,8 +2092,10 @@ void CFamiTrackerView::InsertNote(int Note, int Octave, int Channel, int Velocit
 		pAction->SetNote(Cell);
 		if (AddAction(pAction)) {
 			const CSettings *pSettings = theApp.GetSettings();
-			if (m_pPatternEditor->GetColumn() == C_NOTE && !theApp.IsPlaying() && m_iInsertKeyStepping > 0 && !pSettings->Midi.bMidiMasterSync)
+			if (m_pPatternEditor->GetColumn() == C_NOTE && !theApp.IsPlaying() && m_iInsertKeyStepping > 0 && !pSettings->Midi.bMidiMasterSync) {
 				StepDown();
+				pAction->SaveRedoState(static_cast<CMainFrame*>(GetParentFrame()));		// // //
+			}
 		}
 	}
 }
@@ -2366,6 +2361,10 @@ void CFamiTrackerView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	if (GetFocus() != this)
 		return;
 
+	if (auto pFrame = static_cast<CMainFrame*>(GetParentFrame()))		// // //
+		if (pFrame->TypeInstrumentNumber(ConvertKeyToHex(nChar)))
+			return;
+
 	if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9) {
 		// Switch instrument
 		if (m_pPatternEditor->GetColumn() == C_NOTE) {
@@ -2581,6 +2580,7 @@ void CFamiTrackerView::OnKeyBackspace()
 		if (AddAction(pAction)) {
 			m_pPatternEditor->MoveUp(1);
 			InvalidateCursor();
+			pAction->SaveRedoState(static_cast<CMainFrame*>(GetParentFrame()));		// // //
 		}
 	}
 }
@@ -2604,8 +2604,10 @@ void CFamiTrackerView::OnKeyDelete()
 		bool bPullUp = theApp.GetSettings()->General.bPullUpDelete || bShiftPressed;
 		pAction->SetDelete(bPullUp, false);
 		AddAction(pAction);
-		if (!bPullUp)
+		if (!bPullUp) {
 			StepDown();
+			pAction->SaveRedoState(static_cast<CMainFrame*>(GetParentFrame()));		// // //
+		}
 	}
 }
 
@@ -3022,6 +3024,7 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 			if (bStepDown)
 				StepDown();
 			InvalidateCursor();
+			pAction->SaveRedoState(static_cast<CMainFrame*>(GetParentFrame()));		// // //
 		}
 	}
 }
@@ -3587,10 +3590,8 @@ void CFamiTrackerView::OnEditExpandPatterns()		// // //
 {
 	if (!m_bEditEnable) return;
 
-	std::vector<int> Map(2, 0);
-	Map[0] = 1;
 	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_STRETCH_PATTERN);
-	pAction->SetStretchMap(Map);
+	pAction->SetStretchMap({1, 0});
 	AddAction(pAction);
 }
 
@@ -3599,7 +3600,7 @@ void CFamiTrackerView::OnEditShrinkPatterns()		// // //
 	if (!m_bEditEnable) return;
 
 	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_STRETCH_PATTERN);
-	pAction->SetStretchMap(std::vector<int>(1, 2));
+	pAction->SetStretchMap({2});
 	AddAction(pAction);
 }
 
@@ -3871,6 +3872,7 @@ void CFamiTrackerView::EditReplace(stChanNote &Note)		// // //
 	pAction->SetNote(Note);
 	AddAction(pAction);
 	InvalidateCursor();
+	pAction->SaveRedoState(static_cast<CMainFrame*>(GetParentFrame()));		// // //
 }
 
 void CFamiTrackerView::OnUpdateFindNext(CCmdUI *pCmdUI)		// // //

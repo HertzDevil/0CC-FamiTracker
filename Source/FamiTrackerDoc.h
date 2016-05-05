@@ -25,8 +25,9 @@
 
 // Synchronization objects
 #include <afxmt.h>
+
 #include <vector>
-#include <memory>
+#include <memory>		// // //
 
 // Get access to some APU constants
 #include "APU/Types.h"
@@ -98,6 +99,7 @@ class CTrackerChannel;
 class CDocumentFile;
 class stFullState;		// // //
 class CSeqInstrument;		// // // TODO: move to instrument manager
+class CDSample;		// // //
 
 //
 // I'll try to organize this class, things are quite messy right now!
@@ -150,7 +152,6 @@ public:
 	int				GetChannelType(int Channel) const;
 	int				GetChipType(int Channel) const;
 	int				GetChannelCount() const;
-	int				GetChannelPosition(int Channel, unsigned char Chip);		// // //
 
 	// Synchronization
 	BOOL			LockDocument() const;
@@ -377,6 +378,7 @@ private:
 	bool			WriteBlock_SequencesN163(CDocumentFile *pDocFile, const int Version) const;
 	bool			WriteBlock_SequencesS5B(CDocumentFile *pDocFile, const int Version) const;
 	// // //
+	bool			WriteBlock_ParamsExtra(CDocumentFile *pDocFile, const int Version) const;
 	bool			WriteBlock_DetuneTables(CDocumentFile *pDocFile, const int Version) const;
 	bool			WriteBlock_Grooves(CDocumentFile *pDocFile, const int Version) const;
 	bool			WriteBlock_Bookmarks(CDocumentFile *pDocFile, const int Version) const;
@@ -395,6 +397,7 @@ private:
 	void			ReadBlock_SequencesN163(CDocumentFile *pDocFile, const int Version);
 	void			ReadBlock_SequencesS5B(CDocumentFile *pDocFile, const int Version);
 	// // //
+	void			ReadBlock_ParamsExtra(CDocumentFile *pDocFile, const int Version);
 	void			ReadBlock_DetuneTables(CDocumentFile *pDocFile, const int Version);
 	void			ReadBlock_Grooves(CDocumentFile *pDocFile, const int Version);
 	void			ReadBlock_Bookmarks(CDocumentFile *pDocFile, const int Version);
@@ -453,6 +456,7 @@ private:
 
 	void			SetupChannels(unsigned char Chip);
 	void			ApplyExpansionChip();
+	int				GetChannelPosition(int Channel, unsigned char Chip);		// // //
 
 	//
 	// Private variables

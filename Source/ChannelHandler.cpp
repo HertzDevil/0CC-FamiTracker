@@ -148,7 +148,6 @@ void CChannelHandler::ResetChannel()
 	// Period
 	m_iNote				= 0;		// // //
 	m_iPeriod			= 0;
-	m_iPeriodPart		= 0;
 
 	// Effect states
 	m_iEffect			= EF_NONE;		// // //
@@ -207,7 +206,7 @@ void CChannelHandler::ApplyChannelState(stChannelState *State)
 	m_iDefaultVolume = m_iVolume = (State->Volume == MAX_VOLUME) ? VOL_COLUMN_MAX : (State->Volume << VOL_COLUMN_SHIFT);
 	memcpy(m_iEchoBuffer, State->Echo, sizeof(int) * (ECHO_BUFFER_LENGTH + 1));
 	if (m_iInstrument != MAX_INSTRUMENTS)
-		HandleInstrument(m_iInstrument, true, true);
+		HandleInstrument(true, true);
 	if (State->Effect_LengthCounter >= 0)
 		HandleEffect(EF_VOLUME, State->Effect_LengthCounter);
 	for (unsigned int i = 0; i < EF_COUNT; i++)
@@ -391,10 +390,8 @@ void CChannelHandler::HandleNoteData(stChanNote *pNoteData, int EffColumns)
 
 	bool NewInstrument = (m_iInstrument != LastInstrument) || (m_iInstrument == MAX_INSTRUMENTS) || m_bForceReload;
 
-	if (m_iInstrument == MAX_INSTRUMENTS) {
-		// No instrument selected, default to 0
-		// 0CC: retrieve
-		m_iInstrument = m_pSoundGen->GetDefaultInstrument();
+	if (m_iInstrument == MAX_INSTRUMENTS) {		// // // do nothing
+		// m_iInstrument = m_pSoundGen->GetDefaultInstrument();
 	}
 	
 	switch (pNoteData->Note) {		// // // set note value before loading instrument
@@ -403,7 +400,7 @@ void CChannelHandler::HandleNoteData(stChanNote *pNoteData, int EffColumns)
 	}
 
 	if (NewInstrument || Trigger) {
-		if (!HandleInstrument(m_iInstrument, Trigger, NewInstrument)) {
+		if (m_iInstrument != MAX_INSTRUMENTS && !HandleInstrument(Trigger, NewInstrument)) {
 			m_bForceReload = false;		// // //
 			return;
 		}
@@ -432,7 +429,7 @@ void CChannelHandler::HandleNoteData(stChanNote *pNoteData, int EffColumns)
 		SetupSlide();
 }
 
-bool CChannelHandler::HandleInstrument(int Instrument, bool Trigger, bool NewInstrument)		// // //
+bool CChannelHandler::HandleInstrument(bool Trigger, bool NewInstrument)		// // //
 {
 	auto pDoc = m_pSoundGen->GetDocumentInterface();
 	if (!pDoc) return false;
@@ -441,7 +438,7 @@ bool CChannelHandler::HandleInstrument(int Instrument, bool Trigger, bool NewIns
 	
 	// load instrument here
 	inst_type_t instType = pInstrument->GetType();
-	if (NewInstrument && CInstHandler::GetType(m_iInstTypeCurrent) != CInstHandler::GetType(instType))
+	if (NewInstrument)
 		CreateInstHandler(instType);
 	m_iInstTypeCurrent = instType;
 
@@ -473,6 +470,9 @@ int CChannelHandler::TriggerNote(int Note)
 
 	// Trigger a note, return note period
 	RegisterKeyState(Note);
+
+	if (m_bLinearPitch)		// // //
+		return Note << LINEAR_PITCH_AMOUNT;
 
 	if (!m_pNoteLookupTable)
 		return Note;
@@ -528,18 +528,20 @@ void CChannelHandler::SetupSlide()		// // //
 	switch (m_iEffect) {
 	case EF_PORTAMENTO:
 		m_iPortaSpeed = m_iEffectParam;
+		if (m_bGate)		// // //
+			m_iPortaTo = TriggerNote(m_iNote);
 		break;
 	case EF_SLIDE_UP:
 		m_iNote = m_iNote + (m_iEffectParam & 0xF);
 		m_iPortaSpeed = GET_SLIDE_SPEED(m_iEffectParam);
+		m_iPortaTo = TriggerNote(m_iNote);
 		break;
 	case EF_SLIDE_DOWN:
 		m_iNote = m_iNote - (m_iEffectParam & 0xF);
 		m_iPortaSpeed = GET_SLIDE_SPEED(m_iEffectParam);
+		m_iPortaTo = TriggerNote(m_iNote);
 		break;
 	}
-
-	m_iPortaTo = TriggerNote(m_iNote);
 }
 
 bool CChannelHandler::HandleEffect(effect_t EffCmd, unsigned char EffParam)
@@ -728,42 +730,14 @@ void CChannelHandler::UpdateVibratoTremolo()
 	m_iTremoloPhase = (m_iTremoloPhase + m_iTremoloSpeed) & 63;
 }
 
-void CChannelHandler::LinearAdd(int Step)
-{
-	m_iPeriod = (m_iPeriod << 5) | m_iPeriodPart;
-	int value = (m_iPeriod * Step) / 512;
-	if (value == 0)
-		value = 1;
-	m_iPeriod += value;
-	m_iPeriodPart = m_iPeriod & 0x1F;
-	m_iPeriod >>= 5;
-}
-
-void CChannelHandler::LinearRemove(int Step)
-{
-	m_iPeriod = (m_iPeriod << 5) | m_iPeriodPart;
-	int value = (m_iPeriod * Step) / 512;
-	if (value == 0)
-		value = 1;
-	m_iPeriod -= value;
-	m_iPeriodPart = m_iPeriod & 0x1F;
-	m_iPeriod >>= 5;
-}
-
 void CChannelHandler::PeriodAdd(int Step)
 {
-	if (m_bLinearPitch)
-		LinearAdd(Step);
-	else
-		SetPeriod(GetPeriod() + Step);
+	SetPeriod(GetPeriod() + Step);		// // // uniform
 }
 
 void CChannelHandler::PeriodRemove(int Step)
 {
-	if (m_bLinearPitch)
-		LinearRemove(Step);
-	else
-		SetPeriod(GetPeriod() - Step);
+	SetPeriod(GetPeriod() - Step);		// // //
 }
 
 void CChannelHandler::UpdateEffects()
@@ -842,10 +816,10 @@ void CChannelHandler::UpdateEffects()
 			break;
 			*/
 		case EF_PORTA_DOWN:
-			PeriodAdd(m_iPortaSpeed);
+			m_bLinearPitch ? PeriodRemove(m_iPortaSpeed) : PeriodAdd(m_iPortaSpeed);		// // //
 			break;
 		case EF_PORTA_UP:
-			PeriodRemove(m_iPortaSpeed);
+			m_bLinearPitch ? PeriodAdd(m_iPortaSpeed) : PeriodRemove(m_iPortaSpeed);		// // //
 			break;
 	}
 }
@@ -887,8 +861,8 @@ int CChannelHandler::GetVibrato() const
 		VibFreq >>= 1;
 	}
 
-	if (m_bLinearPitch)
-		VibFreq = (GetPeriod() * VibFreq) / 128;
+//	if (m_bLinearPitch)
+//		VibFreq <<= 1;		// // //
 
 	return VibFreq;
 }
@@ -915,7 +889,18 @@ int CChannelHandler::GetFinePitch() const
 
 int CChannelHandler::CalculatePeriod() const 
 {
-	return LimitPeriod(GetPeriod() - GetVibrato() + GetFinePitch() + GetPitch());
+	int Detune = GetVibrato() - GetFinePitch() - GetPitch();
+	int Period = LimitPeriod(GetPeriod() - Detune);		// // //
+	if (m_bLinearPitch && m_pNoteLookupTable != nullptr) {
+		Period = LimitPeriod(GetPeriod() + Detune);
+		int Note = Period >> LINEAR_PITCH_AMOUNT;
+		int Sub = Period % (1 << LINEAR_PITCH_AMOUNT);
+		int Offset = Note < NOTE_COUNT - 1 ? m_pNoteLookupTable[Note] - m_pNoteLookupTable[Note + 1] : 0;
+		Offset = Offset * Sub >> LINEAR_PITCH_AMOUNT;
+		if (Sub && !Offset) Offset = 1;
+		Period = m_pNoteLookupTable[Note] - Offset;
+	}
+	return LimitRawPeriod(Period);
 }
 
 int CChannelHandler::CalculateVolume(bool Subtract) const
@@ -948,9 +933,13 @@ int CChannelHandler::CalculateVolume(bool Subtract) const
 
 int CChannelHandler::LimitPeriod(int Period) const		// // // virtual
 {
-	Period = std::min(Period, m_iMaxPeriod);
-	Period = std::max(Period, 0);
-	return Period;
+	if (!m_bLinearPitch) return LimitRawPeriod(Period);
+	return std::min(std::max(Period, 0), (NOTE_COUNT - 1) << LINEAR_PITCH_AMOUNT);
+}
+
+int CChannelHandler::LimitRawPeriod(int Period) const
+{
+	return std::min(std::max(Period, 0), m_iMaxPeriod);
 }
 
 void CChannelHandler::AddCycles(int count)
@@ -1031,7 +1020,7 @@ bool CChannelHandler::IsReleasing() const
 
 bool CChannelHandlerInverted::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
-	switch (EffNum) {
+	if (!m_bLinearPitch) switch (EffNum) {		// // //
 	case EF_PORTA_UP: EffNum = EF_PORTA_DOWN; break;
 	case EF_PORTA_DOWN: EffNum = EF_PORTA_UP; break;
 	}
@@ -1040,7 +1029,16 @@ bool CChannelHandlerInverted::HandleEffect(effect_t EffNum, unsigned char EffPar
 
 int CChannelHandlerInverted::CalculatePeriod() const
 {
-	return LimitPeriod(GetPeriod() + GetVibrato() - GetFinePitch() - GetPitch());
+	int Period = LimitPeriod(GetPeriod() + GetVibrato() - GetFinePitch() - GetPitch());		// // //
+	if (m_bLinearPitch && m_pNoteLookupTable != nullptr) {
+		int Note = Period >> LINEAR_PITCH_AMOUNT;
+		int Sub = Period % (1 << LINEAR_PITCH_AMOUNT);
+		int Offset = Note < NOTE_COUNT - 1 ? m_pNoteLookupTable[Note + 1] - m_pNoteLookupTable[Note] : 0;
+		Offset = Offset * Sub >> LINEAR_PITCH_AMOUNT;
+		if (Sub && !Offset) Offset = 1;
+		Period = m_pNoteLookupTable[Note] + Offset;
+	}
+	return LimitRawPeriod(Period);
 }
 
 CString CChannelHandlerInverted::GetSlideEffectString() const		// // //

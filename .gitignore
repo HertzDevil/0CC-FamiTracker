@@ -46,3 +46,5 @@ FamiTracker.vcproj
 FamiTracker.vcxproj
 FamiTracker.vcxproj.filters
 FamiTracker.VC.opendb
+FamiTracker.VC.db
+FamiTracker.VC.VC.opendb

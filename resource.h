@@ -70,6 +70,7 @@
 #define ID_CMD_STEP_DOWN                142
 #define IDS_SAVE_FILE_ERROR             142
 #define IDS_START_ERROR                 143
+#define ID_CMD_INST_NUM                 143
 #define ID_BLOCK_START                  144
 #define IDS_INFO_TITLE                  144
 #define IDD_PERFORMANCE                 145
@@ -145,7 +146,10 @@
 #define IDS_IMPORT_SEQUENCE_COUNT       189
 #define ID_FIND_NEXT                    190
 #define IDS_ABOUT_TOOLTIP_BUG           191
+#define IDS_TYPE_INST_NUM               192
+#define IDS_INVALID_INST_NUM            193
 #define IDD_CONFIG_MIDI                 194
+#define IDS_EXPORT_SAMPLES_FILE         194
 #define IDR_PATTERN_POPUP               198
 #define IDD_CONFIG_SOUND                201
 #define IDS_FILE_LOAD_ERROR             204
@@ -308,6 +312,7 @@
 #define IDC_EXPANSION                   1135
 #define IDC_VIBRATO                     1136
 #define IDC_CLOSE                       1137
+#define IDC_COMBO_LINEARPITCH           1137
 #define IDC_EXPORT                      1142
 #define IDC_OUTPUT                      1143
 #define IDC_ADD                         1146
@@ -719,6 +724,7 @@
 #define ID_TRANSPOSE_CUSTOM             33183
 #define ID_TRACKER_TOGGLECHIP           33184
 #define ID_TRACKER_SOLOCHIP             33185
+#define ID_MODULE_LINEARPITCH           33189
 #define ID_INSTRUMENT_ADD_2A03          36864
 #define ID_INSTRUMENT_ADD_FDS           36865
 #define ID_INSTRUMENT_ADD_MMC5          36866
@@ -738,8 +744,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        340
-#define _APS_NEXT_COMMAND_VALUE         33189
+#define _APS_NEXT_RESOURCE_VALUE        341
+#define _APS_NEXT_COMMAND_VALUE         33190
 #define _APS_NEXT_CONTROL_VALUE         1439
 #define _APS_NEXT_SYMED_VALUE           179
 #endif

@@ -168,17 +168,17 @@
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Template|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Template|x64'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Template|x64'" />
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(DXSDK_DIR)\Include\;C:\Program Files (x86)\Windows Kits\8.1\Include\shared;C:\Program Files (x86)\Windows Kits\8.1\Include\um;$(UniversalCRT_IncludePath);C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\ucrt;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\winrt;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(DXSDK_DIR)\Include\;$(UniversalCRT_IncludePath);$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(DXSDK_DIR)\Include\;C:\Program Files (x86)\Windows Kits\8.1\Include\shared;C:\Program Files (x86)\Windows Kits\8.1\Include\um;$(UniversalCRT_IncludePath);C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\ucrt;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\winrt;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
     <GenerateManifest>false</GenerateManifest>
-    <LibraryPath>$(DXSDK_DIR)\Lib\x86\;$(UniversalCRT_LibraryPath_x86);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
+    <LibraryPath>$(UniversalCRT_LibraryPath_x86);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;</LibraryPath>
+    <IncludePath>$(UniversalCRT_IncludePath);$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <GenerateManifest>false</GenerateManifest>
     <LibraryPath>$(DXSDK_DIR)\Lib\x86\;$(UniversalCRT_LibraryPath_x86);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
-    <ExcludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x86);</ExcludePath>
+    <ExcludePath>$(UniversalCRT_IncludePath);$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x86);</ExcludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
     <GenerateManifest>false</GenerateManifest>
@@ -193,7 +193,6 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\ucrt;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\winrt;$(DXSDK_DIR)\Include\;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -205,6 +204,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <MinimalRebuild>true</MinimalRebuild>
+      <AdditionalIncludeDirectories>C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\ucrt;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\winrt;$(DXSDK_DIR)\Include\;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -436,12 +436,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\APU\2A03.cpp" />
+    <ClCompile Include="Source\APU\SoundChip.cpp" />
     <ClCompile Include="Source\Bookmark.cpp" />
     <ClCompile Include="Source\BookmarkCollection.cpp" />
     <ClCompile Include="Source\BookmarkDlg.cpp" />
     <ClCompile Include="Source\BookmarkManager.cpp" />
     <ClCompile Include="Source\ChannelFactory.cpp" />
     <ClCompile Include="Source\ChannelState.cpp" />
+    <ClCompile Include="Source\RegisterState.cpp" />
+    <ClCompile Include="Source\CompoundAction.cpp" />
     <ClCompile Include="Source\DetuneTable.cpp" />
     <ClCompile Include="Source\DPI.cpp" />
     <ClCompile Include="Source\DSampleManager.cpp" />
@@ -494,6 +497,7 @@
     <ClCompile Include="Source\SeqInstrument.cpp" />
     <ClCompile Include="Source\SequenceCollection.cpp" />
     <ClCompile Include="Source\SequenceManager.cpp" />
+    <ClCompile Include="Source\SimpleFile.cpp" />
     <ClCompile Include="Source\stdafx.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
@@ -692,6 +696,8 @@
     <ClInclude Include="Source\BookmarkCollection.h" />
     <ClInclude Include="Source\BookmarkManager.h" />
     <ClInclude Include="Source\BookmarkDlg.h" />
+    <ClInclude Include="Source\RegisterState.h" />
+    <ClInclude Include="Source\CompoundAction.h" />
     <ClInclude Include="Source\DetuneTable.h" />
     <ClInclude Include="Source\DPI.h" />
     <ClInclude Include="Source\Factory.h" />
@@ -862,6 +868,7 @@ makehm /h /a afxhh.h IDW_,HIDW_,0x50000 "%(Filename)%(Extension)" &gt;&gt; "hlp\
     <ClInclude Include="Source\SeqInstHandlerN163.h" />
     <ClInclude Include="Source\SequenceCollection.h" />
     <ClInclude Include="Source\SequenceManager.h" />
+    <ClInclude Include="Source\SimpleFile.h" />
     <ClInclude Include="Source\stdafx.h" />
     <ClInclude Include="Source\StretchDlg.h" />
     <ClInclude Include="Source\SwapDlg.h" />
@@ -881,7 +888,7 @@ makehm /h /a afxhh.h IDW_,HIDW_,0x50000 "%(Filename)%(Extension)" &gt;&gt; "hlp\
     <ClInclude Include="Source\Apu\Noise.h" />
     <ClInclude Include="Source\Apu\Square.h" />
     <ClInclude Include="Source\Apu\Triangle.h" />
-    <ClInclude Include="Source\Apu\External.h" />
+    <ClInclude Include="Source\Apu\SoundChip.h" />
     <ClInclude Include="Source\APU\FDS.h" />
     <ClInclude Include="Source\APU\MMC5.h" />
     <ClInclude Include="Source\APU\N163.h" />

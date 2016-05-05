@@ -140,9 +140,21 @@ void CChannelHandlerFDS::HandleNote(int Note, int Octave)
 bool CChannelHandlerFDS::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
+	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B:
+		switch (m_iInstTypeCurrent) {
+		case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B: break;
+		default:
+			m_pInstHandler.reset(new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
+			return true;
+		}
+		break;
 	case INST_FDS:
-		m_pInstHandler.reset(new CSeqInstHandlerFDS(this, 0x1F, 0));
-		return true;
+		switch (m_iInstTypeCurrent) {
+		case INST_FDS: break;
+		default:
+			m_pInstHandler.reset(new CSeqInstHandlerFDS(this, 0x1F, 0));
+			return true;
+		}
 	}
 	return false;
 }
@@ -209,9 +221,6 @@ void CChannelHandlerFDS::RefreshChannel()
 
 void CChannelHandlerFDS::ClearRegisters()
 {	
-	// Clear gain
-	WriteRegister(0x4090, 0x00);
-
 	// Clear volume
 	WriteRegister(0x4080, 0x80);
 
@@ -266,13 +275,13 @@ CString CChannelHandlerFDS::GetCustomEffectString() const		// // //
 
 void CChannelHandlerFDS::SetFMSpeed(int Speed)		// // //
 {
-	ASSERT(Speed >= 0 && Speed <= 0x3F);
+	ASSERT(Speed >= 0 && Speed <= 0xFFF);
 	m_iModulationSpeed = Speed;
 }
 
 void CChannelHandlerFDS::SetFMDepth(int Depth)		// // //
 {
-	ASSERT(Depth >= 0 && Depth <= 0xFFF);
+	ASSERT(Depth >= 0 && Depth <= 0x3F);
 	m_iModulationDepth = Depth;
 }
 

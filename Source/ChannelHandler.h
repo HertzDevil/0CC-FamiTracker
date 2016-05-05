@@ -32,6 +32,8 @@ class stChannelState;
 class CSoundGen;		// // //
 
 #include "ChannelHandlerInterface.h"
+#include <memory>		// // //
+#include <cstdint>
 
 /*!
 	\brief An implementation of the channel handler.
@@ -136,15 +138,14 @@ protected:
 		\param EffColumns The number of used effect columns of the note data.
 	*/
 	virtual void	HandleNoteData(stChanNote *pNoteData, int EffColumns);
-	/*! \brief Processes an instrument.
+	/*! \brief Processes the current instrument.
 		\details This method sets up the instrument handler, creating a new one if necessary, then
 		forwards calls to the handler if it exists.
-		\param Instrument The instrument index.
 		\param Trigger Whether the instrument handler needs to trigger the current instrument.
 		\param NewInstrument Whether the instrument handler needs to load an instrument.
 		\return Whether the instrument with the given index is loaded to the instrument handler.
 	*/
-	virtual bool	HandleInstrument(int Instrument, bool Trigger, bool NewInstrument);		// // // not pure virtual
+	virtual bool	HandleInstrument(bool Trigger, bool NewInstrument);		// // // not pure virtual
 	/*! \brief Processes an effect command.
 		\details Implementations of this method in subclasses should use the return value of the
 		superclass method to determine whether an effect requires handling. Global effects are not
@@ -155,6 +156,7 @@ protected:
 	*/
 	virtual bool	HandleEffect(effect_t EffNum, unsigned char EffParam);		// // // not pure virtual either
 	/*! \brief Creates an instrument handler of an appropriate type.
+		\param Type The new instrument type.
 		\return Whether an instrument handler is created.
 	*/
 	virtual bool	CreateInstHandler(inst_type_t Type);		// // //
@@ -192,10 +194,16 @@ protected:
 	*/
 	virtual int		CalculateVolume(bool Subtract = false) const;
 	/*! \brief Restricts the pitch value within the limits of the sound channel.
+		\details Equivalent to CChannelHandler::LimitRawPeriod if linear pitch mode is disabled.
+		\param Period Input pitch value.
+		\return The restricted pitch value.
+	*/
+	virtual int		LimitPeriod(int Period) const;
+	/*! \brief Restricts the raw pitch value within the limits of the sound channel.
 		\param Period Input period or frequency register value.
 		\return The restricted period or frequency register value.
 	*/
-	virtual int		LimitPeriod(int Period) const;
+	virtual int		LimitRawPeriod(int Period) const;
 	
 	/*! \brief Retrieves information about common effects of the channel handler.
 		\return A string representing active effects and their parameters.
@@ -277,28 +285,15 @@ protected:
 	void	AddCycles(int count);
 
 	/*! \brief Increments the channel handler's pitch register value.
-		\details This method directly adds \a Step to the pitch register value, or calls
-		CChannelHandler::LinearAdd if linear pitch slides are enabled.
+		\details This method directly adds \a Step to the pitch register value.
 		\param Step The number of increments.
 	*/
 	void	PeriodAdd(int Step);
 	/*! \brief Decrements the channel handler's pitch register value.
-		\details This method directly subtracts \a Step from the pitch register value, or calls
-		CChannelHandler::LinearRemove if linear pitch slides are enabled.
+		\details This method directly subtracts \a Step from the pitch register value.
 		\param Step The number of decrements.
 	*/
 	void	PeriodRemove(int Step);
-
-	/*! \brief Increments the channel handler's pitch register value proportionately.
-		\param Step The number of increments. One step corresponds to 1/512 of the current pitch
-		register value.
-	*/
-	void	LinearAdd(int Step);
-	/*! \brief Decrements the channel handler's pitch register value proportionately.
-		\param Step The number of decrements. One step corresponds to 1/512 of the current pitch
-		register value.
-	*/
-	void	LinearRemove(int Step);
 
 	/*! \brief Pushes a note into the channel handler's echo buffer.
 		\details Transposing effects in the note data are resolved immediately.
@@ -387,6 +382,8 @@ public:
 	/*! \brief The maximum number of semitones deviating from the normal note value due to the MIDI
 		pitch wheel. */
 	static const int PITCH_WHEEL_RANGE = 6;
+	/*! \brief The number of bits for the sub-note detune when linear pitch mode is enabled. */
+	static const int LINEAR_PITCH_AMOUNT = 5;		// // //
 	/*! \brief The number of bitwise shifts required to convert the channel volume from a note into
 		the channel volume for the channel handler. */
 	static const int VOL_COLUMN_SHIFT = 3;
@@ -444,12 +441,6 @@ protected:
 		ECHO_BUFFER_NONE and ECHO_BUFFER_HALT are defined for use with this echo buffer.
 	*/
 	int				m_iEchoBuffer[ECHO_BUFFER_LENGTH + 1];		// // //
-
-	/*! \brief A sub-integer value used by linear pitch slides for improved resolution.
-		\sa CChannelHandler::LinearAdd
-		\sa CChannelHandler::LinearRemove
-	*/
-	int				m_iPeriodPart;
 
 	/*! \brief A flag indicating the direction of the 4xy vibrato effect. */
 	bool			m_bNewVibratoMode;

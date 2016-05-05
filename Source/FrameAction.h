@@ -57,13 +57,16 @@ public:
 	virtual ~CFrameAction();
 
 	bool SaveState(CMainFrame *pMainFrm);
+	void SaveRedoState(CMainFrame *pMainFrm);		// // //
+	void RestoreState(CMainFrame *pMainFrm);		// // //
+	void RestoreRedoState(CMainFrame *pMainFrm);		// // //
 	void Undo(CMainFrame *pMainFrm);
 	void Redo(CMainFrame *pMainFrm);
 
 public:
 	void SetFrameCount(unsigned int FrameCount);
 	void SetPattern(unsigned int Pattern);
-	void SetPatternDelta(int Delta, bool ChangeAll);
+	void SetPatternDelta(int Delta);		// // //
 	void Update(CMainFrame *pMainFrm);
 	void SetPasteData(CFrameClipData *pClipData);
 	void SetDragInfo(int DragTarget, CFrameClipData *pClipData, bool Remove);
@@ -92,7 +95,6 @@ private:
 	unsigned int m_iOldPattern;
 	
 	int m_iPatternDelta;
-	bool m_bChangeAll;
 
 	unsigned int m_iPatterns[MAX_CHANNELS];
 

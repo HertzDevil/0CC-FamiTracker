@@ -21,6 +21,7 @@
 */
 
 #include <algorithm>
+#include <functional>		// // //
 #include <vector>		// // //
 #include <cmath>
 #include "stdafx.h"
@@ -39,6 +40,7 @@
 #include "APU/APU.h"
 #include "APU/Noise.h"		// // //
 #include "APU/DPCM.h"		// // //
+#include "RegisterState.h"		// // //
 
 /*
  * CPatternEditor
@@ -1744,16 +1746,17 @@ static CString NoteToStr(int Note)
 	return str;
 }
 
+static const COLORREF DECAY_COLOR[CRegisterState::DECAY_RATE + 1] = {		// // //
+	0xFFFF80, 0xE6F993, 0xCCF3A6, 0xB3ECB9, 0x99E6CC, 0x80E0E0, 0x80D9E3, 0x80D3E6,
+	0x80CCE9, 0x80C6EC, 0x80C0F0, 0x80B9F3, 0x80B3F6, 0x80ACF9, 0x80A6FC, 0x80A0FF,
+}; // BLEND has lower precision
+
 void CPatternEditor::DrawRegisters(CDC *pDC)
 {
 	if (!m_pDocument || !pDC) return;		// // //
 
-	// Display 2a03 registers
-	const CSoundGen *pSoundGen = theApp.GetSoundGenerator();
-
 	unsigned char reg[8] = {};
 	unsigned char update[8] = {};
-	int line = 0, vis_line = 0;
 	CFont *pOldFont = pDC->SelectObject(&m_fontCourierNew);
 	pDC->FillSolidRect(0, 0, m_iWinWidth, m_iWinHeight, m_colEmptyBg);		// // //
 
@@ -1762,632 +1765,333 @@ void CPatternEditor::DrawRegisters(CDC *pDC)
 		return;
 	}
 
-	COLORREF *DECAY_COL = new COLORREF[CAPU::REG_DECAY_RATE + 1];		// // //
-	for (uint8_t i = 0; i <= CAPU::REG_DECAY_RATE; i++)
-		DECAY_COL[i] = i * 3 / 2 >= CAPU::REG_DECAY_RATE
-					 ? BLEND(0xFFFF80, 0x80E0E0, 300 * i / CAPU::REG_DECAY_RATE - 200)
-					 : BLEND(0x80E0E0, 0x80A0FF, 150 * i / CAPU::REG_DECAY_RATE);
-
-	CString text(_T("2A03 registers"));
-	pDC->SetBkColor(m_colEmptyBg);
-	pDC->SetTextColor(0xFFAFAF);
 	pDC->SetBkMode(TRANSPARENT);		// // //
-	pDC->TextOut(30, 30 + (line++) * 13, text);		// // //
 
-	vis_line = 15 + m_pDocument->ExpansionEnabled(SNDCHIP_VRC6) * 6
-				  + m_pDocument->ExpansionEnabled(SNDCHIP_MMC5) * 5
-				  + m_pDocument->ExpansionEnabled(SNDCHIP_N163) * 22
-				  + m_pDocument->ExpansionEnabled(SNDCHIP_FDS) * 16
-				  + m_pDocument->ExpansionEnabled(SNDCHIP_VRC7) * 11
-				  + m_pDocument->ExpansionEnabled(SNDCHIP_S5B) * 10;		// // //
+	const CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 
-	// 2A03
-	for (int i = 0; i < 5; ++i) {
-		for (int j = 0; j < 4; j++) {	// // //
-			reg[j] = static_cast<unsigned char>(pSoundGen->GetReg(SNDCHIP_NONE, i * 4 + j));
-			update[j] = pSoundGen->GetReg(SNDCHIP_NONE, i * 4 + j) >> 8;
-		}
+	const int LINE_HEIGHT = 13;
+	int x = 30;		// // //
+	int y = 30 - LINE_HEIGHT * 2;
+	int line = -1;		// // //
+	CString text;
 
+	const int BAR_OFFSET = LINE_HEIGHT * (3 + 8 +
+		m_pDocument->ExpansionEnabled(SNDCHIP_VRC6) * 5 +
+		m_pDocument->ExpansionEnabled(SNDCHIP_MMC5) * 4 +
+		m_pDocument->ExpansionEnabled(SNDCHIP_N163) * 18 +
+		m_pDocument->ExpansionEnabled(SNDCHIP_FDS) * 13 +
+		m_pDocument->ExpansionEnabled(SNDCHIP_VRC7) * 9 +
+		m_pDocument->ExpansionEnabled(SNDCHIP_S5B) * 8);		// // //
+	int vis_line = 0;
+
+	const auto DrawHeaderFunc = [&] (CString Text) {
+		line += 2; y += LINE_HEIGHT * 2;
+		pDC->MoveTo(x, y);
 		pDC->SetBkColor(m_colEmptyBg);
 		pDC->SetTextColor(0xFFAFAF);
+		pDC->TextOut(x, y, Text + _T(" registers"));
+	};
 
-		int x = 30;		// // //
-		int y = 30 + line++ * 13;
-
-		text.Format(_T("$%04X:"), 0x4000 + i * 4);		// // //
+	const auto DrawRegFunc = [&] (CString Header, int Count) {
+		++line; y += LINE_HEIGHT;
+		pDC->SetBkColor(m_colEmptyBg);
+		pDC->SetTextColor(0xFFAFAF);
 		pDC->SetTextAlign(TA_UPDATECP);
 		pDC->MoveTo(x, y);
-		pDC->TextOut(0, 0, text);
-		for (int j = 0; j < 4; j++) {
-			text.Format(_T(" $%02X"), reg[j]);
-			pDC->SetTextColor(BLEND(DECAY_COL[update[j] >> 4], 0xC0C0C0, 100 * (update[j] & 0x0F) / CAPU::REG_DECAY_RATE));
-			pDC->TextOut(0, 0, text);
+		pDC->TextOut(0, 0, Header);
+		for (int j = 0; j < Count; j++) {
+			CString str;
+			str.Format(_T(" $%02X"), reg[j]);
+			pDC->SetTextColor(BLEND(0xC0C0C0, DECAY_COLOR[update[j] >> 4], 100 * (update[j] & 0x0F) / CRegisterState::DECAY_RATE));
+			pDC->TextOut(0, 0, str);
 		}
+	};
 
-		int period = (reg[2] | ((reg[3] & 7) << 8));
-		int vol = (reg[0] & 0x0F);
+	const auto DrawVolFunc = [&] (double Freq, int Volume) {
+		pDC->FillSolidRect(x - 1, BAR_OFFSET + vis_line * 10 - 1, 6 * 108 + 3, 9, 0x808080);
+		pDC->FillSolidRect(x, BAR_OFFSET + vis_line * 10, 6 * 108 + 1, 7, 0);
+		for (int i = 0; i < 10; i++)
+			pDC->SetPixelV(x + 72 * i, BAR_OFFSET + vis_line * 10 + 3, i == 4 ? 0x808080 : 0x303030);
 
-		double freq;		// // //
-		if (i == 4)
-			freq = 236250000.0 / 1056.0 / CDPCM::DMC_PERIODS_NTSC[reg[0] & 0x0F];
-		else if (i == 3)
-			freq = 4 * (m_pDocument->GetMachine() == PAL ? CNoise::NOISE_PERIODS_PAL[0x0F - period] : CNoise::NOISE_PERIODS_NTSC[0x0F - period]);
-		else
-			freq = RegToFreq(period, m_pDocument->GetMachine() == PAL ? SNDCHIP_2A07 : SNDCHIP_NONE);
-		if (i == 2) freq /= 2;
-		double note = NoteFromFreq(freq);
-		int note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);		// // //
-		int cents = int((note - double(note_conv)) * 100.0);
+		const double note = NoteFromFreq(Freq);
+		const int note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);
+		if (Volume > 0xFF) Volume = 0xFF;
+		if (note_conv >= -12 && note_conv <= 96 && Volume)		// // //
+			pDC->FillSolidRect(29 + 6 * (note_conv + 12), BAR_OFFSET + vis_line * 10, 3, 7, RGB(Volume, Volume, Volume));
+		++vis_line;
+	};
 
-//		pDC->FillSolidRect(x + 200, y, x + 400, y + 18, m_colEmptyBg);
+	const auto DrawTextFunc = [&] (int xOffs, CString text) {
 		pDC->SetTextColor(0x808080);
+		pDC->SetTextAlign(TA_NOUPDATECP);
+		pDC->TextOut(x + xOffs, y, text);
+	};
+
+	const auto GetRegsFunc = [&] (unsigned Chip, std::function<int(int)> F, int Count) {
+		for (int j = 0; j < Count; j++) {
+			auto pState = pSoundGen->GetRegState(Chip, F(j));		// // //
+			reg[j] = pState->GetValue();
+			update[j] = pState->GetLastUpdatedTime() | (pState->GetNewValueTime() << 4);
+		}
+	};
+
+	const auto GetGenericPitchText = [] (CString unit, int digits, int period, double freq, bool UsePeriod) {
+		const CString fmt = _T("pitch = $%0*X (%7.2f") + unit + _T(" %s %+03i)");
+		const double note = NoteFromFreq(freq);
+		const int note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);
+		const int cents = int((note - double(note_conv)) * 100.0);
+		
+		CString str;
+		if (UsePeriod)
+			str.Format(fmt, digits, period, freq, NoteToStr(note_conv), cents);
+		else
+			str.Format(fmt, digits, period, 0., _T("---"), 0);
+		return str;
+	};
+	const auto GetPitchTextFunc = std::bind(GetGenericPitchText, _T("Hz"),
+		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+	const auto GetDPCMTextFunc = std::bind(GetGenericPitchText, _T("Bps"),
+		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+
+	// 2A03
+	DrawHeaderFunc(_T("2A03"));		// // //
+
+	for (int i = 0; i < 5; ++i) {
+		GetRegsFunc(SNDCHIP_NONE, [&] (int x) { return 0x4000 + i * 4 + x; }, 4);
+		text.Format(_T("$%04X:"), 0x4000 + i * 4);		// // //
+		DrawRegFunc(text, 4);
+
+		int period, vol;
+		double freq;		// // //
+//		pDC->FillSolidRect(x + 200, y, x + 400, y + 18, m_colEmptyBg);
 
 		switch (i) {
-			case 0:
-			case 1:
-				if (period < 8) {
-					freq = 0;
-					note_conv = 0;
-					cents = 0;
-				}
-				text.Format(_T("pitch = $%03X (%7.2fHz %s %+03i), vol = %02i, duty = %i"),		// // //
-					period, freq, NoteToStr(note_conv), cents, vol, reg[0] >> 6);
-				break;
-			case 2:
-				if (period == 0) {
-					freq = 0;
-					note_conv = 0;
-					cents = 0;
-				}
-				text.Format(_T("pitch = $%03X (%7.2fHz %s %+03i)"),
-					period, freq, NoteToStr(note_conv), cents);
-				break;
-			case 3:
-				text.Format(_T("pitch = $%01X, vol = %02i, mode = %i"), reg[2] & 0x0F, vol, reg[2] >> 7);
-				break;
-			case 4:
-				text.Format(_T("pitch = $%01X"), reg[0] & 0x0F);
-				if (reg[0] & 0x40)
-					text.AppendFormat(_T(" (%7.2fBps %s %+03i)"), freq, NoteToStr(note_conv), cents);
-				text.AppendFormat(_T(", size = %i byte%c"), (reg[3] << 4) | 1, reg[3] ? 's' : ' ');
-				break;
-			default:
-				text.Format(_T(""));
-		}
-		
-		pDC->SetTextAlign(TA_NOUPDATECP);		// // //
-		pDC->TextOut(x + 180, y, text);
-
-		if (i == 2)
-			vol = (reg[0] != 0) ? 15 : 0;
-		else if (i == 3) {
-			period = ((reg[2] & 15) << 4) | ((reg[2] & 0x80) << 1);
-		}
-		else if (i == 4) {
-			period = (reg[0] & 0x0F) << 4;
+		case 0: case 1:
+			period = reg[2] | ((reg[3] & 7) << 8);
+			vol = reg[0] & 0x0F;
+			freq = RegToFreq(period, m_pDocument->GetMachine() == PAL ? SNDCHIP_2A07 : SNDCHIP_NONE);
+			text.Format(_T("%s, vol = %02i, duty = %i"), GetPitchTextFunc(3, period, freq, period >= 8), vol, reg[0] >> 6); break;
+		case 2:
+			period = reg[2] | ((reg[3] & 7) << 8);
+			vol = reg[0] ? 15 : 0;
+			freq = RegToFreq(period, m_pDocument->GetMachine() == PAL ? SNDCHIP_2A07 : SNDCHIP_NONE) / 2.;
+			text.Format(_T("%s"), GetPitchTextFunc(3, period, freq, period > 0)); break;
+		case 3:
+			period = reg[2] & 0x0F;
+			vol = reg[0] & 0x0F;
+			freq = 4 * (m_pDocument->GetMachine() == PAL ? CNoise::NOISE_PERIODS_PAL[0x0F - period] : CNoise::NOISE_PERIODS_NTSC[0x0F - period]);
+			text.Format(_T("pitch = $%01X, vol = %02i, mode = %i"), period, vol, reg[2] >> 7);
+			period = (period << 4) | ((reg[2] & 0x80) >> 4); break;
+		case 4:
+			period = reg[0] & 0x0F;
+			freq = 236250000.0 / 1056.0 / CDPCM::DMC_PERIODS_NTSC[reg[0] & 0x0F];
 			vol = 15 * !pSoundGen->PreviewDone();
+			text.Format(_T("%s, %s, size = %i byte%c"), GetDPCMTextFunc(1, period & 0x0F, freq, vol > 0),
+				(reg[0] & 0x40) ? _T("looped") : _T("once"), (reg[3] << 4) | 1, reg[3] ? 's' : ' '); break;
 		}
 /*
 		pDC->FillSolidRect(250 + i * 30, 0, 20, m_iWinHeight - HEADER_CHAN_HEIGHT, 0);
 		pDC->FillSolidRect(250 + i * 30, (period >> 1), 20, 5, RGB(vol << 4, vol << 4, vol << 4));
 */
-		DrawNoteBar(pDC, 30, vis_line * 10);
-		if (note_conv >= -12 && note_conv <= 96 && vol)		// // //
-			pDC->FillSolidRect(29 + 6 * (note_conv + 12), vis_line++ * 10, 3, 7, RGB(vol << 4, vol << 4, vol << 4));
-		else vis_line++;
+		DrawTextFunc(180, text);
+		DrawVolFunc(freq, vol << 4);
 	}
 
 	text.Format(_T("position: %02i, delta = $%02X"), m_DPCMState.SamplePos, m_DPCMState.DeltaCntr);		// // //
-	pDC->TextOut(30 + 180, 30 + line++ * 13, text);
+	++line; y += LINE_HEIGHT;		// // //
+	DrawTextFunc(180, text);
 
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_VRC6)) {
-
-		line++;
-
-		CString text(_T("VRC6 registers"));
-		pDC->SetBkColor(m_colEmptyBg);
-		pDC->SetTextColor(0xFFAFAF);
-		pDC->TextOut(30, 30 + (line++) * 13, text);
+		DrawHeaderFunc(_T("VRC6"));		// // //
 
 		// VRC6
 		for (int i = 0; i < 3; ++i) {
-			for (int j = 0; j < 3; j++) {
-				reg[j] = static_cast<unsigned char>(pSoundGen->GetReg(SNDCHIP_VRC6, i * 4 + j));		// // //
-				update[j] = pSoundGen->GetReg(SNDCHIP_VRC6, i * 4 + j) >> 8;
-			}
-
-			pDC->SetBkColor(m_colEmptyBg);
-			pDC->SetTextColor(0xFFAFAF);
-
-			int x = 30;		// // //
-			int y = 30 + line++ * 13;
-
+			GetRegsFunc(SNDCHIP_VRC6, [&] (int x) { return 0x9000 + i * 0x1000 + x; }, 3);
 			text.Format(_T("$%04X:"), 0x9000 + i * 0x1000);		// // //
-			pDC->SetTextAlign(TA_UPDATECP);
-			pDC->MoveTo(x, y);
-			pDC->TextOut(0, 0, text);
-			for (int j = 0; j < 3; j++) {
-				text.Format(_T(" $%02X"), reg[j]);
-				pDC->SetTextColor(BLEND(DECAY_COL[update[j] >> 4], 0xC0C0C0, 100 * (update[j] & 0x0F) / CAPU::REG_DECAY_RATE));
-				pDC->TextOut(0, 0, text);
-			}
+			DrawRegFunc(text, 3);
 
 			int period = (reg[1] | ((reg[2] & 15) << 8));
 			int vol = (reg[0] & (i == 2 ? 0x3F : 0x0F));
-
 			double freq = RegToFreq(period, (i == 2) ? SNDCHIP_VRC6 : SNDCHIP_NONE);		// // //
-			double note = NoteFromFreq(freq);
-			int note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);		// // //
-			int cents = int((note - double(note_conv)) * 100.0);
-			pDC->SetTextColor(0x808080);
 
-			if (period == 0) {
-				freq = 0;
-				note_conv = 0;
-				cents = 0;
-			}
-
-			switch (i) {		// // //
-				case 0:
-				case 1:
-					text.Format(_T("pitch = $%03X (%7.2fHz %s %+03i), vol = %02i, duty = %i"),
-						period, freq, NoteToStr(note_conv), cents, vol, (reg[0] >> 4) & 0x07);
-					break;
-				case 2:
-					text.Format(_T("pitch = $%03X (%7.2fHz %s %+03i), vol = %02i"),
-						period, freq, NoteToStr(note_conv), cents, vol);
-					break;
-				default:
-					text.Format(_T(""));
-			}
-			pDC->SetTextAlign(TA_NOUPDATECP);		// // //
-			pDC->TextOut(x + 180, y, text);
-
-			if (i == 2)
-				vol = reg[0] >> 1;
-			
-			DrawNoteBar(pDC, 30, vis_line * 10);
-			if (note_conv >= -12 && note_conv <= 96 && vol)		// // //
-				pDC->FillSolidRect(29 + 6 * (note_conv + 12), vis_line++ * 10, 3, 7, RGB(vol << 4, vol << 4, vol << 4));
-			else vis_line++;
+			text.Format(_T("%s, vol = %02i"), GetPitchTextFunc(3, period, freq, period > 0), vol);
+			if (i != 2)
+				text.AppendFormat(_T(", duty = %i"), (reg[0] >> 4) & 0x07);
+			DrawTextFunc(180, text);
+			DrawVolFunc(freq, vol << (i == 2 ? 3 : 4));
 		}
 	}
 
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_MMC5)) {		// // //
-
-		line++;
-
-		CString text(_T("MMC5 registers"));
-		pDC->SetBkColor(m_colEmptyBg);
-		pDC->SetTextColor(0xFFAFAF);
-		pDC->TextOut(30, 30 + (line++) * 13, text);
+		DrawHeaderFunc(_T("MMC5"));		// // //
 
 		// MMC5
 		for (int i = 0; i < 2; ++i) {
-			for (int j = 0; j < 4; j++) {
-				reg[j] = static_cast<unsigned char>(pSoundGen->GetReg(SNDCHIP_MMC5, i * 4 + j));
-				update[j] = pSoundGen->GetReg(SNDCHIP_MMC5, i * 4 + j) >> 8;
-			}
-
-			pDC->SetBkColor(m_colEmptyBg);
-			pDC->SetTextColor(0xFFAFAF);
-
-			int x = 30;
-			int y = 30 + line++ * 13;
-
+			GetRegsFunc(SNDCHIP_MMC5, [&] (int x) { return 0x5000 + i * 4 + x; }, 4);
 			text.Format(_T("$%04X:"), 0x5000 + i * 4);
-			pDC->SetTextAlign(TA_UPDATECP);
-			pDC->MoveTo(x, y);
-			pDC->TextOut(0, 0, text);
-			for (int j = 0; j < 4; j++) {
-				text.Format(_T(" $%02X"), reg[j]);
-				pDC->SetTextColor(BLEND(DECAY_COL[update[j] >> 4], 0xC0C0C0, 100 * (update[j] & 0x0F) / CAPU::REG_DECAY_RATE));
-				pDC->TextOut(0, 0, text);
-			}
+			DrawRegFunc(text, 4);
 			
 			int period = (reg[2] | ((reg[3] & 7) << 8));
 			int vol = (reg[0] & 0x0F);
-
 			double freq = RegToFreq(period, SNDCHIP_NONE);
-			double note = NoteFromFreq(freq);
-			int note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);
-			int cents = int((note - double(note_conv)) * 100.0);
-			pDC->SetTextColor(0x808080);
 
-			if (period == 0) {
-				freq = 0;
-				note_conv = 0;
-				cents = 0;
-			}
-			text.Format(_T("pitch = $%03X (%7.2fHz %s %+03i), vol = %02i, duty = %i"), 
-				period, freq, NoteToStr(note_conv), cents, vol, reg[0] >> 6);
-			pDC->SetTextAlign(TA_NOUPDATECP);		// // //
-			pDC->TextOut(x + 180, y, text);
-			
-			DrawNoteBar(pDC, 30, vis_line * 10);
-			if (note_conv >= -12 && note_conv <= 96 && vol)
-				pDC->FillSolidRect(29 + 6 * (note_conv + 12), vis_line++ * 10, 3, 7, RGB(vol << 4, vol << 4, vol << 4));
-			else vis_line++;
+			text.Format(_T("%s, vol = %02i, duty = %i"), GetPitchTextFunc(3, period, freq, period > 0), vol, reg[0] >> 6);
+			DrawTextFunc(180, text);
+			DrawVolFunc(freq, vol << 4);
 		}
 	}
 
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_N163)) {
-
-		line++;
-
-		CString text(_T("N163 registers"));
-		pDC->SetBkColor(m_colEmptyBg);
-		pDC->SetTextColor(0xFFAFAF);
-		pDC->TextOut(30, 30 + (line++) * 13, text);
+		DrawHeaderFunc(_T("N163"));		// // //
 
 		// // // N163 wave
-		int Length = 0x80 - 8 * m_pDocument->GetNamcoChannels();
-		int x = 30 + 300;		// // //
-		int y = HEADER_HEIGHT + 30 + line * 13;		// // //
-		pDC->FillSolidRect(x - 1, y - 1, 2 * Length + 2, 17, 0x808080);
-		pDC->FillSolidRect(x, y, 2 * Length, 15, 0);
+		const int N163_CHANS = m_pDocument->GetNamcoChannels();
+		const int Length = 0x80 - 8 * N163_CHANS;
+
+		y += 18;
+		pDC->FillSolidRect(x + 300 - 1, y - 1, 2 * Length + 2, 17, 0x808080);
+		pDC->FillSolidRect(x + 300, y, 2 * Length, 15, 0);
 		for (int i = 0; i < Length; i++) {
-			int Hi = (pSoundGen->GetReg(SNDCHIP_N163, i) >> 4) & 0x0F;
-			int Lo = pSoundGen->GetReg(SNDCHIP_N163, i) & 0x0F;
-			pDC->FillSolidRect(x + i * 2    , y + 15 - Lo, 1, Lo, 0xFFFFFF);
-			pDC->FillSolidRect(x + i * 2 + 1, y + 15 - Hi, 1, Hi, 0xFFFFFF);
+			auto pState = pSoundGen->GetRegState(SNDCHIP_N163, i);
+			const int Hi = (pState->GetValue() >> 4) & 0x0F;
+			const int Lo = pState->GetValue() & 0x0F;
+			COLORREF Col = BLEND(
+				0xC0C0C0, DECAY_COLOR[pState->GetNewValueTime()], 100 * pState->GetLastUpdatedTime() / CRegisterState::DECAY_RATE
+			);
+			pDC->FillSolidRect(x + 300 + i * 2    , y + 15 - Lo, 1, Lo, Col);
+			pDC->FillSolidRect(x + 300 + i * 2 + 1, y + 15 - Hi, 1, Hi, Col);
 		}
-		for (int i = 0; i < m_pDocument->GetNamcoChannels(); i++) {
-			int WavePos = pSoundGen->GetReg(SNDCHIP_N163, 0x78 - i * 8 + 6) & 0xFF;
-			int WaveLen = 0x100 - (pSoundGen->GetReg(SNDCHIP_N163, 0x78 - i * 8 + 4) & 0xFC);
-			pDC->FillSolidRect(x, y + 20 + i * 5, Length * 2, 3, 0);
-			pDC->FillSolidRect(x + WavePos, y + 20 + i * 5, WaveLen, 3, 0xFFFFFF);
+		for (int i = 0; i < N163_CHANS; ++i) {
+			auto pPosState = pSoundGen->GetRegState(SNDCHIP_N163, 0x78 - i * 8 + 6);
+			auto pLenState = pSoundGen->GetRegState(SNDCHIP_N163, 0x78 - i * 8 + 4);
+			const int WavePos = pPosState->GetValue();
+			const int WaveLen = 0x100 - (pLenState->GetValue() & 0xFC);
+			const int NewTime = std::min(pPosState->GetNewValueTime(), pLenState->GetNewValueTime());
+			const int UpdateTime = std::min(pPosState->GetLastUpdatedTime(), pLenState->GetLastUpdatedTime());
+			pDC->FillSolidRect(x + 300, y + 20 + i * 5, Length * 2, 3, 0);
+			pDC->FillSolidRect(x + 300 + WavePos, y + 20 + i * 5, WaveLen, 3,
+							   BLEND(0xC0C0C0, DECAY_COLOR[NewTime], 100 * UpdateTime / CRegisterState::DECAY_RATE));
 		}
+		y -= 18;
+
+		double FreqCache[8] = { };
+		int VolCache[8] = { };
 
 		// N163
 		for (int i = 0; i < 16; ++i) {
-			for (int j = 0; j < 8; j++) {		// // //
-				reg[j] = static_cast<unsigned char>(pSoundGen->GetReg(SNDCHIP_N163, i * 8 + j));
-				update[j] = pSoundGen->GetReg(SNDCHIP_N163, i * 8 + j) >> 8;
-			}
+			GetRegsFunc(SNDCHIP_N163, [&] (int x) { return i * 8 + x; }, 8);
+			text.Format(_T("$%02X:"), i * 8);
+			DrawRegFunc(text, 8);
 
 			int period = (reg[0] | (reg[2] << 8) | ((reg[4] & 0x03) << 16));
 			int vol = (reg[7] & 0x0F);
-
-			pDC->SetBkColor(m_colEmptyBg);
-			pDC->SetTextColor(0xFFAFAF);
-
-			int x = 30;		// // //
-			int y = 30 + line++ * 13;
-
-			text.Format(_T("$%02X:"), i * 8);
-			pDC->SetTextAlign(TA_UPDATECP);
-			pDC->MoveTo(x, y);
-			pDC->TextOut(0, 0, text);
-			for (int j = 0; j < 8; j++) {
-				text.Format(_T(" $%02X"), reg[j]);
-				pDC->SetTextColor(BLEND(DECAY_COL[update[j] >> 4], 0xC0C0C0, 100 * (update[j] & 0x0F) / CAPU::REG_DECAY_RATE));
-				pDC->TextOut(0, 0, text);
+			double freq = RegToFreqN163(period, N163_CHANS * (256 - (reg[4] & 0xFC)));		// // //
+			
+			if (i >= 16 - N163_CHANS) {
+				text.Format(_T("%s, vol = %02i"), GetPitchTextFunc(5, period, freq, period > 0), vol);
+				DrawTextFunc(300, text);
+				FreqCache[15 - i] = freq;
+				VolCache[15 - i] = vol << 4;
 			}
-
-			if (i < 16 - m_pDocument->GetNamcoChannels()) continue;		// // //
-
-			double freq = RegToFreqN163(period, m_pDocument->GetNamcoChannels() * (256 - (reg[4] & 0xFC)));		// // //
-			double note;
-			int note_conv, cents;
-			if (period) {
-				note = NoteFromFreq(freq);
-				note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);		// // //
-				cents = int((note - double(note_conv)) * 100.0);
-			}
-			else {
-				note = note_conv = cents = 0;
-			}
-			pDC->SetTextColor(0x808080);
-			text.Format(_T("pitch = $%05X (%7.2fHz %s %+03i), vol = %02i"),
-				period, freq, NoteToStr(note_conv), cents, vol);
-			pDC->SetTextAlign(TA_NOUPDATECP);		// // //
-			pDC->TextOut(x + 300, y, text);
 		}
 		
-		for (int i = 0; i < m_pDocument->GetNamcoChannels(); ++i) {		// // //
-			for (int j = 0; j < 8; j++) {		// // //
-				reg[j] = static_cast<unsigned char>(pSoundGen->GetReg(SNDCHIP_N163, 0x78 - i * 8 + j));
-				update[j] = pSoundGen->GetReg(SNDCHIP_N163, 0x78 - i * 8 + j) >> 8;
-			}
-			int period = (reg[0] | (reg[2] << 8) | ((reg[4] & 0x03) << 16));
-			int vol = (reg[7] & 0x0F);
-
-			double freq = RegToFreqN163(period, m_pDocument->GetNamcoChannels() * (256 - (reg[4] & 0xFC)));
-			double note;
-			int note_conv, cents;
-			if (period) {
-				note = NoteFromFreq(freq);
-				note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);
-				cents = int((note - double(note_conv)) * 100.0);
-			}
-			else {
-				note = note_conv = cents = 0;
-			}
-				
-			DrawNoteBar(pDC, 30, vis_line * 10);
-			if (note_conv >= -12 && note_conv <= 96 && vol)
-				pDC->FillSolidRect(29 + 6 * (note_conv + 12), vis_line++ * 10, 3, 7, RGB(vol << 4, vol << 4, vol << 4));			
-			else vis_line++;
-		}
+		for (int i = 0; i < N163_CHANS; ++i)		// // //
+			DrawVolFunc(FreqCache[i], VolCache[i]);
 	}
 
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_FDS)) {
+		DrawHeaderFunc(_T("FDS"));		// // //
+		
+		int period = (pSoundGen->GetReg(SNDCHIP_FDS, 0x4082) & 0xFF) | ((pSoundGen->GetReg(SNDCHIP_FDS, 0x4083) & 0x0F) << 8);
+		int vol = (pSoundGen->GetReg(SNDCHIP_FDS, 0x4080) & 0x3F);
+		double freq = RegToFreq(period, SNDCHIP_FDS) / 4.0;		// // //
 
-		line++;
-
-		CString text(_T("FDS registers"));
-		pDC->SetBkColor(m_colEmptyBg);
-		pDC->SetTextColor(0xFFAFAF);
-		pDC->TextOut(30, 30 + (line++) * 13, text);
+		CString FDStext;
+		FDStext.Format(_T("%s, vol = %02i"), GetPitchTextFunc(3, period, freq, period > 0), vol);
 
 		for (int i = 0; i < 11; ++i) {
-			reg[0] = static_cast<unsigned char>(pSoundGen->GetReg(SNDCHIP_FDS, i | 0x40));
-			update[0] = pSoundGen->GetReg(SNDCHIP_FDS, i | 0x40) >> 8;
-
-			pDC->SetBkColor(m_colEmptyBg);
-			pDC->SetTextColor(0xFFAFAF);
-
-			int x = 30;		// // //
-			int y = 30 + line++ * 13;
-
+			GetRegsFunc(SNDCHIP_FDS, [&] (int) { return 0x4080 + i; }, 1);
 			text.Format(_T("$%04X:"), 0x4080 + i);
-			pDC->SetTextAlign(TA_UPDATECP);
-			pDC->MoveTo(x, y);
-			pDC->TextOut(0, 0, text);
-			text.Format(_T(" $%02X"), reg[0]);
-			pDC->SetTextColor(BLEND(DECAY_COL[update[0] >> 4], 0xC0C0C0, 100 * (update[0] & 0x0F) / CAPU::REG_DECAY_RATE));
-			pDC->TextOut(0, 0, text);
+			DrawRegFunc(text, 1);
+			if (!i) DrawTextFunc(180, FDStext);
 		}
-
-		int period = (pSoundGen->GetReg(SNDCHIP_FDS, 0x42) & 0xFF) | ((pSoundGen->GetReg(SNDCHIP_FDS, 0x43) & 0x0F) << 8);
-		int vol = (pSoundGen->GetReg(SNDCHIP_FDS, 0x40) & 0x3F);
-
-		double freq = RegToFreq(period, SNDCHIP_FDS) / 4.0;		// // //
-		double note;
-		int note_conv, cents;
-		if (period) {
-			note = NoteFromFreq(freq);
-			note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);		// // //
-			cents = int((note - double(note_conv)) * 100.0);
-		}
-		else {
-			note = note_conv = cents = 0;
-		}
-		pDC->SetTextColor(0x808080);
-		text.Format(_T("pitch = $%03X (%7.2fHz %s %+03i), vol = %02i"),
-			period, freq, NoteToStr(note_conv), cents, vol);
-		pDC->SetTextAlign(TA_NOUPDATECP);		// // //
-		pDC->TextOut(30 + 180, HEADER_HEIGHT + 30 + (line - 11) * 13, text);
 		
-		DrawNoteBar(pDC, 30, vis_line * 10);		// // //
-		if (note_conv >= -12 && note_conv <= 96 && vol) {
-			if (vol == 32)
-				pDC->FillSolidRect(29 + 6 * (note_conv + 12), vis_line++ * 10, 3, 7, 0xFFFFFF);
-			else
-				pDC->FillSolidRect(29 + 6 * (note_conv + 12), vis_line++ * 10, 3, 7, RGB(vol << 3, vol << 3, vol << 3));
-		}
-		else vis_line++;
+		DrawVolFunc(freq, vol << 3);
 	}
 
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_VRC7)) {		// // //
-
-		line++;
-
-		CString text(_T("VRC7 registers"));
-		pDC->SetBkColor(m_colEmptyBg);
-		pDC->SetTextColor(0xFFAFAF);
-		pDC->TextOut(30, 30 + (line++) * 13, text);
+		DrawHeaderFunc(_T("VRC7"));		// // //
 		
-		for (int j = 0; j < 8; j++) {
-			reg[j] = static_cast<unsigned char>(pSoundGen->GetReg(SNDCHIP_VRC7, j));
-			update[j] = pSoundGen->GetReg(SNDCHIP_VRC7, j) >> 8;
-		}
-
-		pDC->SetBkColor(m_colEmptyBg);
-		pDC->SetTextColor(0xFFAFAF);
-
-		text.Format(_T("$00:"));
-		pDC->SetTextAlign(TA_UPDATECP);
-		pDC->MoveTo(30, 30 + (line++) * 13);
-		pDC->TextOut(0, 0, text);
-		for (int j = 0; j < 8; j++) {
-			text.Format(_T(" $%02X"), reg[j]);
-			pDC->SetTextColor(BLEND(DECAY_COL[update[j] >> 4], 0xC0C0C0, 100 * (update[j] & 0x0F) / CAPU::REG_DECAY_RATE));
-			pDC->TextOut(0, 0, text);
-		}
+		GetRegsFunc(SNDCHIP_VRC7, [] (int x) { return x; }, 8);
+		DrawRegFunc(_T("$00:"), 8);		// // //
 
 		for (int i = 0; i < 6; ++i) {
-			for (int j = 0; j < 3; j++) {
-				reg[j] = static_cast<unsigned char>(pSoundGen->GetReg(SNDCHIP_VRC7, i + 0x10 * (j + 1)));
-				update[j] = pSoundGen->GetReg(SNDCHIP_VRC7, i + 0x10 * (j + 1)) >> 8;
-			}
-
-			pDC->SetBkColor(m_colEmptyBg);
-			pDC->SetTextColor(0xFFAFAF);
-
-			int x = 30;
-			int y = 30 + line++ * 13;
-
-			text.Format(_T("$x%01X:"), i, reg[0]);
-			pDC->SetTextAlign(TA_UPDATECP);
-			pDC->MoveTo(x, y);
-			pDC->TextOut(0, 0, text);
-			for (int j = 0; j < 3; j++) {
-				text.Format(_T(" $%02X"), reg[j]);
-				pDC->SetTextColor(BLEND(DECAY_COL[update[j] >> 4], 0xC0C0C0, 100 * (update[j] & 0x0F) / CAPU::REG_DECAY_RATE));
-				pDC->TextOut(0, 0, text);
-			}
+			GetRegsFunc(SNDCHIP_VRC7, [&] (int x) { return i + (++x << 4); }, 3);
+			text.Format(_T("$x%01X:"), i);
+			DrawRegFunc(text, 3);
 
 			int period = reg[0] | ((reg[1] & 0x01) << 8);
-			int octave = (reg[1] & 0x0E) >> 1;
 			int vol = 0x0F - (pSoundGen->GetReg(SNDCHIP_VRC7, i + 0x30) & 0x0F);
-			int inst = reg[2] >> 4;
+			double freq = RegToFreqVRC7(period, (reg[1] & 0x0E) >> 1);
 
-			double freq = RegToFreqVRC7(period, octave);
-			double note;
-			int note_conv, cents;
-			if (period) {
-				if (!inst) {
-					/* frequency correction
-					const int freqMult[] = {1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 20, 24, 24, 30, 30};
-					int Modulator = freqMult[pSoundGen->GetReg(SNDCHIP_VRC7, 0) & 0x0F];
-					int Carrier = freqMult[pSoundGen->GetReg(SNDCHIP_VRC7, 1) & 0x0F];
-					int c;
-					while ( Modulator != 0 ) {
-						c = Modulator; Modulator = Carrier % Modulator; Carrier = c;
-					}
-					freq *= Carrier / 2.0;
-					*/
-				}
-				note = NoteFromFreq(freq);
-				note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);
-				cents = int((note - double(note_conv)) * 100.0);
-			}
-			else {
-				note = note_conv = cents = 0;
-			}
-			pDC->SetTextColor(0x808080);
-			text.Format(_T("pitch = $%03X (%7.2fHz %s %+03i), vol = %02i, patch = $%01X"),
-				period, freq, NoteToStr(note_conv), cents, vol, inst);
-			pDC->SetTextAlign(TA_NOUPDATECP);		// // //
-			pDC->TextOut(x + 180, y, text);
+			text.Format(_T("%s, vol = %02i, patch = $%01X"), GetPitchTextFunc(3, period, freq, period > 0), vol, reg[2] >> 4);
+			DrawTextFunc(180, text);
 			
-			DrawNoteBar(pDC, 30, vis_line * 10);
-			if (note_conv >= -12 && note_conv <= 96 && vol)
-				pDC->FillSolidRect(29 + 6 * (note_conv + 12), vis_line++ * 10, 3, 7, RGB(vol << 4, vol << 4, vol << 4));
-			else vis_line++;
+			DrawVolFunc(freq, vol << 4);
 		}
 	}
 
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_S5B)) {		// // //
-
-		line++;
-
-		CString text(_T("5B registers"));
-		pDC->SetBkColor(m_colEmptyBg);
-		pDC->SetTextColor(0xFFAFAF);
-		pDC->TextOut(30, 30 + (line++) * 13, text);
+		DrawHeaderFunc(_T("5B"));		// // //
 
 		// S5B
 		for (int i = 0; i < 4; ++i) {
-			reg[0] = static_cast<unsigned char>(pSoundGen->GetReg(SNDCHIP_S5B, i * 2 + 0));
-			reg[1] = static_cast<unsigned char>(pSoundGen->GetReg(SNDCHIP_S5B, i * 2 + 1));
-			update[0] = pSoundGen->GetReg(SNDCHIP_S5B, i * 2 + 0) >> 8;
-			update[1] = pSoundGen->GetReg(SNDCHIP_S5B, i * 2 + 1) >> 8;
-
-			pDC->SetBkColor(m_colEmptyBg);
-			pDC->SetTextColor(0xFFAFAF);
-
-			int x = 30;
-			int y = 30 + line++ * 13;
-
+			GetRegsFunc(SNDCHIP_S5B, [&] (int x) { return i * 2 + x; }, 2);
 			text.Format(_T("$%02X:"), i * 2);
-			pDC->SetTextAlign(TA_UPDATECP);
-			pDC->MoveTo(x, y);
-			pDC->TextOut(0, 0, text);
-			for (int j = 0; j < 2; j++) {
-				text.Format(_T(" $%02X"), reg[j]);
-				pDC->SetTextColor(BLEND(DECAY_COL[update[j] >> 4], 0xC0C0C0, 100 * (update[j] & 0x0F) / CAPU::REG_DECAY_RATE));
-				pDC->TextOut(0, 0, text);
-			}
+			DrawRegFunc(text, 2);
 
-			int period = (reg[0] | ((reg[1] & 0x0F) << 8));
+			int period = reg[0] | ((reg[1] & 0x0F) << 8);
 			int vol = pSoundGen->GetReg(SNDCHIP_S5B, 8 + i) & 0x0F;
-
 			double freq = RegToFreq(period - 1, SNDCHIP_NONE) / 2;
-			double note = NoteFromFreq(freq);
-			int note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);
-			int cents = int((note - double(note_conv)) * 100.0);
-			pDC->SetTextColor(0x808080);
 
-			if (period == 0) {
-				freq = 0;
-				note_conv = 0;
-				cents = 0;
-			}
-
-			if (i < 3) {
-				text.Format(_T("pitch = $%03X (%7.2fHz %s %+03i), vol = %02i, mode = %c%c%c"),
-					period, freq, NoteToStr(note_conv), cents, vol,
+			if (i < 3)
+				text.Format(_T("%s, vol = %02i, mode = %c%c%c"), GetPitchTextFunc(3, period, freq, period > 0), vol,
 					(pSoundGen->GetReg(SNDCHIP_S5B, 7) & (1 << i)) ? _T('-') : _T('T'),
 					(pSoundGen->GetReg(SNDCHIP_S5B, 7) & (8 << i)) ? _T('-') : _T('N'),
 					(pSoundGen->GetReg(SNDCHIP_S5B, 8 + i) & 0x10) ? _T('E') : _T('-'));
-			}
-			else {
+			else
 				text.Format(_T("pitch = $%02X"), reg[0] & 0x1F);
-			}
-			pDC->SetTextAlign(TA_NOUPDATECP);		// // //
-			pDC->TextOut(x + 180, y, text);
-			if (i < 3) {
-				DrawNoteBar(pDC, 30, vis_line * 10);
-				if (note_conv >= -12 && note_conv <= 96 && vol)		// // //
-					pDC->FillSolidRect(29 + 6 * (note_conv + 12), vis_line++ * 10, 3, 7, RGB(vol << 4, vol << 4, vol << 4));
-				else vis_line++;
-			}
+			DrawTextFunc(180, text);
+
+			if (i < 3)
+				DrawVolFunc(freq, vol << 4);
 		}
 
 		for (int i = 0; i < 2; ++i) {
-			for (int j = 0; j < 3; j++) {
-				reg[j] = static_cast<unsigned char>(pSoundGen->GetReg(SNDCHIP_S5B, i * 3 + 8 + j));
-				update[j] = pSoundGen->GetReg(SNDCHIP_S5B, i * 3 + 8 + j) >> 8;
-			}
-
-			pDC->SetBkColor(m_colEmptyBg);
-			pDC->SetTextColor(0xFFAFAF);
-
-			int x = 30;
-			int y = 30 + line++ * 13;
-
+			GetRegsFunc(SNDCHIP_S5B, [&] (int x) { return i * 3 + x + 8; }, 3);
 			text.Format(_T("$%02X:"), i * 3 + 8);
-			pDC->SetTextAlign(TA_UPDATECP);
-			pDC->MoveTo(x, y);
-			pDC->TextOut(0, 0, text);
-			for (int j = 0; j < 3; j++) {
-				text.Format(_T(" $%02X"), reg[j]);
-				pDC->SetTextColor(BLEND(DECAY_COL[update[j] >> 4], 0xC0C0C0, 100 * (update[j] & 0x0F) / CAPU::REG_DECAY_RATE));
-				pDC->TextOut(0, 0, text);
-			}
+			DrawRegFunc(text, 3);
 			
 			if (i == 1) {
-				pDC->SetTextColor(0x808080);
 				int period = (reg[0] | (reg[1] << 8));
-				double freq, note;
-				int note_conv, cents;
-				if ((reg[2] & 0x08) && !(reg[2] & 0x01) && reg[0] && !reg[1]) {
-					freq = RegToFreq(period - 1, SNDCHIP_NONE) / 2;
-					if (reg[2] & 0x02) freq /= 32;	// triangle
-					else freq /= 16;				// sawtooth
-					note = NoteFromFreq(freq);
-					note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);
-					cents = int((note - double(note_conv)) * 100.0);
-
-					text.Format(_T("pitch = $%04X (%7.2fHz %s %+03i), shape = $%01X"),
-						period, freq, NoteToStr(note_conv), cents, reg[2]);
-				}
+				double freq = RegToFreq(period - 1, SNDCHIP_NONE) / 2;
+				if (reg[2] & 0x02) freq /= 32;	// triangle
+				else freq /= 16;				// sawtooth
+				if ((reg[2] & 0x08) && !(reg[2] & 0x01) && reg[0] && !reg[1])
+					text.Format(_T("%s, shape = $%01X"), GetPitchTextFunc(4, period, freq, true), reg[2]);
 				else
 					text.Format(_T("period = $%04X, shape = $%01X"), period, reg[2]);
 				
-				pDC->SetTextAlign(TA_NOUPDATECP);		// // //
-				pDC->TextOut(x + 180, y, text);
+				DrawTextFunc(180, text);
 			}
 		}
 	}
 
-	SAFE_RELEASE_ARRAY(DECAY_COL);
 	pDC->SelectObject(pOldFont);
 
 	// Surrounding frame
 //	pDC->Draw3dRect(20, 20, 200, line * 18 + 20, 0xA0A0A0, 0x505050);		// // //
 
-}
-
-void CPatternEditor::DrawNoteBar(CDC *pDC, int x, int y)		// // //
-{
-	pDC->FillSolidRect(x - 1, y - 1, 6 * 108 + 3, 9, 0x808080);
-	pDC->FillSolidRect(x, y, 6 * 108 + 1, 7, 0);
-	for (int i = 0; i < 10; i++)
-		pDC->SetPixelV(x + 72 * i, y + 3, i == 4 ? 0x808080 : 0x303030);
 }
 
 // Draws a colored character

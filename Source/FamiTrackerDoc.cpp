@@ -107,6 +107,7 @@ static const char *FILE_BLOCK_SEQUENCES_S5B = "SEQUENCES_S5B";
 const char *FILE_BLOCK_DETUNETABLES			= "DETUNETABLES";
 const char *FILE_BLOCK_GROOVES				= "GROOVES";
 const char *FILE_BLOCK_BOOKMARKS			= "BOOKMARKS";
+const char *FILE_BLOCK_PARAMS_EXTRA			= "PARAMS_EXTRA";
 
 // FTI instruments files
 static const char INST_HEADER[] = "FTI";
@@ -466,9 +467,8 @@ void CFamiTrackerDoc::OnFileSaveAs()
 
 	// Overloaded in order to save the ftm-path
 	CString newName = GetPathName();
-
-	if (!theApp.DoPromptFileName(newName, theApp.GetSettings()->GetPath(PATH_FTM) + _T("\\"), AFX_IDS_SAVEFILE,
-		OFN_HIDEREADONLY | OFN_PATHMUSTEXIST, FALSE, NULL))		// // // overridden
+	
+	if (!AfxGetApp()->DoPromptFileName(newName, AFX_IDS_SAVEFILE, OFN_HIDEREADONLY | OFN_PATHMUSTEXIST, FALSE, NULL))
 		return;
 
 	theApp.GetSettings()->SetPath(newName, PATH_FTM);
@@ -681,7 +681,7 @@ bool CFamiTrackerDoc::WriteBlocks(CDocumentFile *pDocFile) const
 		6, 1, 3, 6, 6, 3, 4, 1, 1,
 #endif
 		6, 1, 1,					// expansion
-		1, 1, 1						// 0cc-ft
+		1, 1, 1, 1					// 0cc-ft
 	};
 
 	static bool (CFamiTrackerDoc::*FTM_WRITE_FUNC[])(CDocumentFile*, const int) const = {		// // //
@@ -697,6 +697,7 @@ bool CFamiTrackerDoc::WriteBlocks(CDocumentFile *pDocFile) const
 		&CFamiTrackerDoc::WriteBlock_SequencesVRC6,		// // //
 		&CFamiTrackerDoc::WriteBlock_SequencesN163,
 		&CFamiTrackerDoc::WriteBlock_SequencesS5B,
+		&CFamiTrackerDoc::WriteBlock_ParamsExtra,		// // //
 		&CFamiTrackerDoc::WriteBlock_DetuneTables,		// // //
 		&CFamiTrackerDoc::WriteBlock_Grooves,			// // //
 		&CFamiTrackerDoc::WriteBlock_Bookmarks,			// // //
@@ -1503,6 +1504,7 @@ BOOL CFamiTrackerDoc::OpenDocumentNew(CDocumentFile &DocumentFile)
 	FTM_READ_FUNC[FILE_BLOCK_DETUNETABLES]		= &CFamiTrackerDoc::ReadBlock_DetuneTables;		// // //
 	FTM_READ_FUNC[FILE_BLOCK_GROOVES]			= &CFamiTrackerDoc::ReadBlock_Grooves;			// // //
 	FTM_READ_FUNC[FILE_BLOCK_BOOKMARKS]			= &CFamiTrackerDoc::ReadBlock_Bookmarks;		// // //
+	FTM_READ_FUNC[FILE_BLOCK_PARAMS_EXTRA]		= &CFamiTrackerDoc::ReadBlock_ParamsExtra;		// // //
 	
 	const char *BlockID;
 	bool ErrorFlag = false;
@@ -2422,6 +2424,21 @@ bool CFamiTrackerDoc::WriteBlock_Bookmarks(CDocumentFile *pDocFile, const int Ve
 		}
 	}
 
+	return pDocFile->FlushBlock();
+}
+
+// // // Extra parameters
+
+void CFamiTrackerDoc::ReadBlock_ParamsExtra(CDocumentFile *pDocFile, const int Version)
+{
+	m_bLinearPitch = pDocFile->GetBlockInt() != 0;
+}
+
+bool CFamiTrackerDoc::WriteBlock_ParamsExtra(CDocumentFile *pDocFile, const int Version) const
+{
+	if (!m_bLinearPitch) return true;
+	pDocFile->CreateBlock(FILE_BLOCK_PARAMS_EXTRA, Version);
+	pDocFile->WriteBlockInt(true);
 	return pDocFile->FlushBlock();
 }
 
@@ -3977,6 +3994,7 @@ int CFamiTrackerDoc::GetChannelCount() const
 
 int CFamiTrackerDoc::GetChannelPosition(int Channel, unsigned char Chip)		// // //
 {
+	// TODO: use information from the current channel map instead
 	unsigned int pos = Channel;
 	if (pos == CHANID_MMC5_VOICE) return -1;
 

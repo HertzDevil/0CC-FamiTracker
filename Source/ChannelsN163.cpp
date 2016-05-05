@@ -58,14 +58,16 @@ bool CChannelHandlerN163::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
 	switch (EffNum) {
 	case EF_PORTA_DOWN:
-		m_iPortaSpeed = EffParam << N163_PITCH_SLIDE_SHIFT;
-		m_iEffectParam = EffParam;		// // //
-		m_iEffect = EF_PORTA_UP;
+		m_iPortaSpeed = EffParam;
+		if (!m_bLinearPitch) m_iPortaSpeed <<= N163_PITCH_SLIDE_SHIFT;		// // //
+		m_iEffectParam = EffParam;
+		m_iEffect = m_bLinearPitch ? EF_PORTA_DOWN : EF_PORTA_UP;
 		break;
 	case EF_PORTA_UP:
-		m_iPortaSpeed = EffParam << N163_PITCH_SLIDE_SHIFT;
-		m_iEffectParam = EffParam;		// // //
-		m_iEffect = EF_PORTA_DOWN;
+		m_iPortaSpeed = EffParam;
+		if (!m_bLinearPitch) m_iPortaSpeed <<= N163_PITCH_SLIDE_SHIFT;		// // //
+		m_iEffectParam = EffParam;
+		m_iEffect = m_bLinearPitch ? EF_PORTA_UP : EF_PORTA_DOWN;
 		break;
 	case EF_DUTY_CYCLE:
 		// Duty effect controls wave
@@ -93,9 +95,9 @@ bool CChannelHandlerN163::HandleEffect(effect_t EffNum, unsigned char EffParam)
 	return true;
 }
 
-bool CChannelHandlerN163::HandleInstrument(int Instrument, bool Trigger, bool NewInstrument)
+bool CChannelHandlerN163::HandleInstrument(bool Trigger, bool NewInstrument)
 {
-	if (!CChannelHandler::HandleInstrument(Instrument, Trigger, NewInstrument))		// // //
+	if (!CChannelHandler::HandleInstrument(Trigger, NewInstrument))		// // //
 		return false;
 
 	if (!m_bLoadWave && NewInstrument)
@@ -139,11 +141,20 @@ bool CChannelHandlerN163::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_2A03: case INST_VRC6: case INST_S5B: case INST_FDS:
-		m_pInstHandler.reset(new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
-		return true;
+		switch (m_iInstTypeCurrent) {
+		case INST_2A03: case INST_VRC6: case INST_S5B: case INST_FDS: break;
+		default:
+			m_pInstHandler.reset(new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
+			return true;
+		}
+		break;
 	case INST_N163:
-		m_pInstHandler.reset(new CSeqInstHandlerN163(this, 0x0F, 0));
-		return true;
+		switch (m_iInstTypeCurrent) {
+		case INST_N163: break;
+		default:
+			m_pInstHandler.reset(new CSeqInstHandlerN163(this, 0x0F, 0));
+			return true;
+		}
 	}
 	return false;
 }
@@ -151,14 +162,14 @@ bool CChannelHandlerN163::CreateInstHandler(inst_type_t Type)
 void CChannelHandlerN163::SetupSlide()		// // //
 {
 	CChannelHandler::SetupSlide();
-	m_iPortaSpeed <<= N163_PITCH_SLIDE_SHIFT;
+	if (!m_bLinearPitch) m_iPortaSpeed <<= N163_PITCH_SLIDE_SHIFT;		// // //
 }
 
 void CChannelHandlerN163::RefreshChannel()
 {
 	int Channel = 7 - GetIndex();		// Channel #
 	int WaveSize = 256 - (m_iWaveLen >> 2);
-	int Frequency = LimitPeriod(GetPeriod() - ((-GetVibrato() + GetFinePitch() + GetPitch()) << 4)) << 2;		// // //
+	int Frequency = CalculatePeriod();		// // //
 
 	// Compensate for shorter waves
 //	Frequency >>= 5 - int(log(double(m_iWaveLen)) / log(2.0));
@@ -243,6 +254,22 @@ void CChannelHandlerN163::ClearRegisters()
 
 	m_bDisableLoad = false;		// // //
 	m_iDutyPeriod = 0;
+}
+
+int CChannelHandlerN163::CalculatePeriod() const		// // //
+{
+	int Detune = GetVibrato() - GetFinePitch() - GetPitch();
+	int Period = LimitPeriod(GetPeriod() + (Detune << 4));		// // //
+	if (m_bLinearPitch && m_pNoteLookupTable != nullptr) {
+		Period = LimitPeriod(GetPeriod() + Detune);		// // //
+		int Note = Period >> LINEAR_PITCH_AMOUNT;
+		int Sub = Period % (1 << LINEAR_PITCH_AMOUNT);
+		int Offset = Note < NOTE_COUNT - 1 ? m_pNoteLookupTable[Note + 1] - m_pNoteLookupTable[Note] : 0;
+		Offset = Offset * Sub >> LINEAR_PITCH_AMOUNT;
+		if (Sub && !Offset) Offset = 1;
+		Period = m_pNoteLookupTable[Note] + Offset;
+	}
+	return LimitRawPeriod(Period) << N163_PITCH_SLIDE_SHIFT;
 }
 
 CString CChannelHandlerN163::GetSlideEffectString() const		// // //

@@ -29,17 +29,19 @@
 #include "Noise.h"
 #include "DPCM.h"
 #include "2A03.h"
+#include "../RegisterState.h"		// // //
 
 // // // 2A03 sound chip class
 
 C2A03::C2A03(CMixer *pMixer) :
-	CExternal(pMixer),
+	CSoundChip(pMixer),
 	m_pSquare1(new CSquare(m_pMixer, CHANID_SQUARE1, SNDCHIP_NONE)),
 	m_pSquare2(new CSquare(m_pMixer, CHANID_SQUARE2, SNDCHIP_NONE)),
 	m_pTriangle(new CTriangle(m_pMixer, CHANID_TRIANGLE)),
 	m_pNoise(new CNoise(m_pMixer, CHANID_NOISE)),
-	m_pDPCM(new CDPCM(m_pMixer, CHANID_DPCM, nullptr))
+	m_pDPCM(new CDPCM(m_pMixer, CHANID_DPCM))		// // //
 {
+	m_pRegisterLogger->AddRegisterRange(0x4000, 0x4017);		// // //
 }
 
 C2A03::~C2A03()
@@ -221,9 +223,9 @@ inline void C2A03::RunAPU2(uint32_t Time)
 	}
 }
 
-void C2A03::SetSampleMemory(CSampleMem *pMem) const		// // //
+CSampleMem *C2A03::GetSampleMemory() const		// // //
 {
-	m_pDPCM->SetSampleMemory(pMem);
+	return m_pDPCM->GetSampleMemory();
 }
 
 uint8_t C2A03::GetSamplePos() const

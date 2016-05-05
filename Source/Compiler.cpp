@@ -31,6 +31,7 @@
 #include "InstrumentFDS.h"		// // //
 #include "InstrumentN163.h"		// // //
 #include "PatternCompiler.h"
+#include "DSample.h"		// // //
 #include "Compiler.h"
 #include "Chunk.h"
 #include "ChunkRenderText.h"
@@ -116,6 +117,7 @@ const bool CCompiler::LAST_BANK_FIXED			= true;		// Fix for TNS carts
 // Flag byte flags
 const int CCompiler::FLAG_BANKSWITCHED	= 1 << 0;
 const int CCompiler::FLAG_VIBRATO		= 1 << 1;
+const int CCompiler::FLAG_LINEARPITCH	= 1 << 2;		// // //
 
 CCompiler *CCompiler::pCompiler = NULL;
 
@@ -791,9 +793,12 @@ char* CCompiler::LoadDriver(const driver_t *pDriver, unsigned short Origin) cons
 			} break;
 		case SNDCHIP_VRC7:
 			for (int j = 0; j < NOTE_RANGE; j++) {
-				pData[pDriver->freq_table_reloc[i + 1] + j             ] = pSoundGen->ReadPeriodTable(j, Chip) * 4 & 0xFF;
-				pData[pDriver->freq_table_reloc[i + 1] + j + NOTE_RANGE] = pSoundGen->ReadPeriodTable(j, Chip) * 4 >> 8;
-			} break;
+				pData[pDriver->freq_table_reloc[i + 1] + j                 ] = pSoundGen->ReadPeriodTable(j, Chip) * 4 & 0xFF;
+				pData[pDriver->freq_table_reloc[i + 1] + j + NOTE_RANGE + 1] = pSoundGen->ReadPeriodTable(j, Chip) * 4 >> 8;
+			}
+			pData[pDriver->freq_table_reloc[i + 1] + NOTE_RANGE        ] = pSoundGen->ReadPeriodTable(0, Chip) * 8 & 0xFF;
+			pData[pDriver->freq_table_reloc[i + 1] + NOTE_RANGE * 2 + 1] = pSoundGen->ReadPeriodTable(0, Chip) * 8 >> 8;
+			break;
 		case SNDCHIP_FDS:
 			for (int j = 0; j < NOTE_COUNT; j++) {
 				pData[pDriver->freq_table_reloc[i + 1] + 2 * j    ] = pSoundGen->ReadPeriodTable(j, Chip) & 0xFF;
@@ -1294,35 +1299,35 @@ bool CCompiler::CompileData()
 	const int Chip = m_pDocument->GetExpansionChip(); // 0CC: use m_iActualChip once cc65 is embedded
 	int Channel = 0;
 	for (int i = 0; i < 4; i++) {
-		int Channel = m_pDocument->GetChannelPosition(CHANID_SQUARE1 + i, Chip);
+		int Channel = m_pDocument->GetChannelIndex(CHANID_SQUARE1 + i);
 		m_vChanOrder.push_back(Channel);
 	}
 	if (Chip & SNDCHIP_MMC5) for (int i = 0; i < 2; i++) {
-		int Channel = m_pDocument->GetChannelPosition(CHANID_MMC5_SQUARE1 + i, Chip);
+		int Channel = m_pDocument->GetChannelIndex(CHANID_MMC5_SQUARE1 + i);
 		m_vChanOrder.push_back(Channel);
 	}
 	if (Chip & SNDCHIP_VRC6) for (int i = 0; i < 3; i++) {
-		int Channel = m_pDocument->GetChannelPosition(CHANID_VRC6_PULSE1 + i, Chip);
+		int Channel = m_pDocument->GetChannelIndex(CHANID_VRC6_PULSE1 + i);
 		m_vChanOrder.push_back(Channel);
 	}
 	if (Chip & SNDCHIP_N163) {
 		int lim = m_iActualNamcoChannels;
 		if (Chip & ~SNDCHIP_N163) lim = 8;
 		for (int i = 0; i < lim; i++) { // 0CC: use m_iActualNamcoChannels once cc65 is embedded
-			int Channel = m_pDocument->GetChannelPosition(CHANID_N163_CH1 + i, Chip);
+			int Channel = m_pDocument->GetChannelIndex(CHANID_N163_CH1 + i);
 			m_vChanOrder.push_back(Channel);
 		}
 	}
 	if (Chip & SNDCHIP_FDS) {
-		int Channel = m_pDocument->GetChannelPosition(CHANID_FDS, Chip);
+		int Channel = m_pDocument->GetChannelIndex(CHANID_FDS);
 		m_vChanOrder.push_back(Channel);
 	}
 	if (Chip & SNDCHIP_S5B) for (int i = 0; i < 3; i++) {
-		int Channel = m_pDocument->GetChannelPosition(CHANID_S5B_CH1 + i, Chip);
+		int Channel = m_pDocument->GetChannelIndex(CHANID_S5B_CH1 + i);
 		m_vChanOrder.push_back(Channel);
 	}
 	if (Chip & SNDCHIP_VRC7) for (int i = 0; i < 6; i++) {
-		int Channel = m_pDocument->GetChannelPosition(CHANID_VRC7_CH1 + i, Chip);
+		int Channel = m_pDocument->GetChannelIndex(CHANID_VRC7_CH1 + i);
 		m_vChanOrder.push_back(Channel);
 	}
 	m_vChanOrder.push_back(CHANID_DPCM);
@@ -1540,7 +1545,9 @@ void CCompiler::CreateMainHeader()
 		DividerPAL = TicksPerSec * 60;
 	}
 
-	unsigned char Flags = ((m_pDocument->GetVibratoStyle() == VIBRATO_OLD) ? FLAG_VIBRATO : 0);	// bankswitch flag is set later
+	unsigned char Flags = 0; // bankswitch flag is set later
+	if (m_pDocument->GetVibratoStyle() == VIBRATO_OLD) Flags |= FLAG_VIBRATO;
+	if (m_pDocument->GetLinearPitch()) Flags |= FLAG_LINEARPITCH;		// // //
 
 	// Write header
 
