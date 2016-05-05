@@ -62,6 +62,7 @@ struct stNSFeHeader {		// // //
 struct driver_t;
 class CChunk;
 enum chunk_type_t;
+class CDSample;		 // // //
 class CFamiTrackerDoc;		// // //
 class CSequence;		// // //
 class CInstrumentFDS;		// // //
@@ -177,6 +178,7 @@ public:
 	// Flags
 	static const int FLAG_BANKSWITCHED;
 	static const int FLAG_VIBRATO;
+	static const int FLAG_LINEARPITCH;		// // //
 
 protected:
 	static CCompiler *pCompiler;			// Points to an active CCompiler object

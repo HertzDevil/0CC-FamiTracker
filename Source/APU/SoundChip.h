@@ -2,6 +2,8 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2014  Jonathan Liss
 **
+** 0CC-FamiTracker is (C) 2014-2016 HertzDevil
+**
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
@@ -18,43 +20,30 @@
 ** must bear this legend.
 */
 
-#ifndef VRC7_H
-#define VRC7_H
 
-#include "SoundChip.h"
-#include "emu2413.h"
+#pragma once
 
-class CVRC7 : public CSoundChip {
+#include <cstdint>		// // //
+
+class CMixer;
+class CRegisterLogger;		// // //
+
+class CSoundChip {
 public:
-	CVRC7(CMixer *pMixer);
-	virtual ~CVRC7();
+	CSoundChip(CMixer *pMixer = nullptr);		// // //
+	virtual ~CSoundChip();
 
-	void Reset();
-	void SetSampleSpeed(uint32_t SampleRate, double ClockRate, uint32_t FrameRate);
-	void SetVolume(float Volume);
+	virtual void	Reset() = 0;
+	virtual void	Process(uint32_t Time) = 0;
+	virtual void	EndFrame() = 0;
 
-	void Write(uint16_t Address, uint8_t Value);
-	void Log(uint16_t Address, uint8_t Value);		// // //
-	uint8_t Read(uint16_t Address, bool &Mapped);
-	void EndFrame();
-	void Process(uint32_t Time);
+	virtual void	Write(uint16_t Address, uint8_t Value) = 0;
+	virtual uint8_t	Read(uint16_t Address, bool &Mapped) = 0;
+
+	virtual void	Log(uint16_t Address, uint8_t Value);		// // //
+	CRegisterLogger *GetRegisterLogger() const;		// // //
 
 protected:
-	static const float  AMPLIFY;
-	static const uint32_t OPL_CLOCK;
-
-private:
-	OPLL	*m_pOPLLInt;
-	uint32_t	m_iTime;
-	uint32_t	m_iMaxSamples;
-
-	int16_t	*m_pBuffer;
-	uint32_t	m_iBufferPtr;
-
-	uint8_t	m_iSoundReg;
-
-	float	m_fVolume;
+	CMixer *m_pMixer;
+	CRegisterLogger *m_pRegisterLogger;		// // //
 };
-
-
-#endif /* VRC7_H */

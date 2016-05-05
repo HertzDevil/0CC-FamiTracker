@@ -40,7 +40,6 @@ class CChannelHandlerInterfaceVRC7;
 class CChannelHandlerVRC7 : public CChannelHandlerInverted, public CChannelHandlerInterfaceVRC7 {		// // //
 public:
 	CChannelHandlerVRC7();
-	virtual void ResetChannel();
 	virtual void SetChannelID(int ID);
 
 	void	SetPatch(unsigned char Patch);		// // //
@@ -56,12 +55,14 @@ protected:
 	bool         CreateInstHandler(inst_type_t Type);		// // //
 	virtual void SetupSlide();		// // //
 	virtual int CalculateVolume() const;
+	virtual int CalculatePeriod() const;		// // //
 
 	virtual void UpdateNoteRelease();		// // //
 
 	int TriggerNote(int Note);
 
 protected:
+	void CorrectOctave();		// // //
 	unsigned int GetFnum(int Note) const;
 
 protected:
@@ -79,7 +80,7 @@ protected:
 
 	int		m_iTriggeredNote;
 	int		m_iOctave;
-	// // //
+	int		m_iOldOctave;		// // //
 };
 
 class CVRC7Channel : public CChannelHandlerVRC7 {

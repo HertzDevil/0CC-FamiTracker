@@ -21,10 +21,10 @@
 #ifndef S5B_H
 #define S5B_H
 
-#include "external.h"
+#include "SoundChip.h"
 #include "channel.h"
 
-class CS5B : public CExternal {
+class CS5B : public CSoundChip {
 public:
 	CS5B(CMixer *pMixer);
 	virtual ~CS5B();
@@ -32,6 +32,7 @@ public:
 	void	Process(uint32_t Time);
 	void	EndFrame();
 	void	Write(uint16_t Address, uint8_t Value);
+	void	Log(uint16_t Address, uint8_t Value);		// // //
 	uint8_t 	Read(uint16_t Address, bool &Mapped);
 	void	SetSampleSpeed(uint32_t SampleRate, double ClockRate, uint32_t FrameRate);
 	void	SetVolume(float fVol);

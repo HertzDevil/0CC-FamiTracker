@@ -2,6 +2,8 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2014  Jonathan Liss
 **
+** 0CC-FamiTracker is (C) 2014-2015 HertzDevil
+**
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
@@ -25,7 +27,7 @@
 
 class CDPCM : public C2A03Chan {
 public:
-	CDPCM(CMixer *pMixer, int ID, CSampleMem *pSampleMem);		// // //
+	CDPCM(CMixer *pMixer, int ID);		// // //
 	~CDPCM();
 
 	void	Reset();
@@ -36,7 +38,7 @@ public:
 	void	Process(uint32_t Time);
 	void	Reload();
 
-	void	SetSampleMemory(CSampleMem *pMem);		// // //
+	CSampleMem *GetSampleMemory() const;		// // //
 	uint8_t	GetSamplePos() const { return  (m_iDMA_Address - (m_iDMA_LoadReg << 6 | 0x4000)) >> 6; };
 	uint8_t	GetDeltaCounter() const { return m_iDeltaCounter; };
 	bool	IsPlaying() const { return (m_iDMA_BytesRemaining > 0); };

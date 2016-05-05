@@ -43,7 +43,7 @@ CPatternAction::CPatternAction(int iAction) :
 	m_pClipData(NULL), 
 	m_pUndoClipData(NULL),
 	m_pAuxiliaryClipData(NULL),		// // //
-	m_iStretchMap(std::vector<int>())		// // //
+	m_iStretchMap()		// // //
 {
 }
 
@@ -57,6 +57,13 @@ CPatternAction::~CPatternAction()
 void CPatternAction::SetNote(stChanNote &Note)
 {
 	m_NewNote = Note;
+}
+
+void CPatternAction::SetReplacePosition(int Frame, int Channel, int Row)		// // //
+{
+	m_iReplaceFrame = Frame;
+	m_iReplaceChannel = Channel;
+	m_iReplaceRow = Row;
 }
 
 void CPatternAction::SetDelete(bool PullUp, bool Back)
@@ -792,10 +799,10 @@ bool CPatternAction::SaveState(CMainFrame *pMainFrm)
 
 	// Save undo cursor position
 	m_iUndoTrack	= pMainFrm->GetSelectedTrack();
-	m_iUndoFrame	= m_iRedoFrame	 = pPatternEditor->GetFrame();
-	m_iUndoChannel  = m_iRedoChannel = pPatternEditor->GetChannel();
-	m_iUndoRow		= m_iRedoRow	 = pPatternEditor->GetRow();
-	m_iUndoColumn   = m_iRedoColumn  = pPatternEditor->GetColumn();
+	m_iUndoFrame	= pPatternEditor->GetFrame();
+	m_iUndoChannel  = pPatternEditor->GetChannel();
+	m_iUndoRow		= pPatternEditor->GetRow();
+	m_iUndoColumn   = pPatternEditor->GetColumn();
 
 	m_bSelecting = pPatternEditor->IsSelecting();
 	m_selection = pPatternEditor->GetSelection();
@@ -807,6 +814,10 @@ bool CPatternAction::SaveState(CMainFrame *pMainFrm)
 		case ACT_EDIT_NOTE:
 			// Edit note
 			pDoc->GetNoteData(m_iUndoTrack, m_iUndoFrame, m_iUndoChannel, m_iUndoRow, &m_OldNote);
+			break;
+		case ACT_REPLACE_NOTE:		// // //
+			// Replace note
+			pDoc->GetNoteData(m_iUndoTrack, m_iReplaceFrame, m_iReplaceChannel, m_iReplaceRow, &m_OldNote);
 			break;
 		case ACT_DELETE_ROW:
 			// Delete row
@@ -879,31 +890,34 @@ bool CPatternAction::SaveState(CMainFrame *pMainFrm)
 			// Add / remove effect column
 			m_iUndoColumnCount = pDoc->GetEffColumns(m_iUndoTrack, m_iClickedChannel);
 			break;
-#ifdef _DEBUG_
+#ifdef _DEBUG
 		default:
 			AfxMessageBox(_T("TODO Implement action for this command"));
 #endif
 	}
 
-	// Redo will perform the action
-	Redo(pMainFrm);
-
 	return true;
 }
 
-void CPatternAction::Undo(CMainFrame *pMainFrm)
+void CPatternAction::SaveRedoState(CMainFrame *pMainFrm)		// // //
 {
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(pMainFrm->GetActiveView());
-	CFamiTrackerDoc *pDoc = pView->GetDocument();
 	CPatternEditor *pPatternEditor = pView->GetPatternEditor();
-	int UpdateHint = UPDATE_PATTERN;
 
-	// Save redo-position
-	m_iRedoTrack	= pMainFrm->GetSelectedTrack();		// // //
+	m_iRedoTrack	= pMainFrm->GetSelectedTrack();
 	m_iRedoFrame	= pPatternEditor->GetFrame();
 	m_iRedoChannel  = pPatternEditor->GetChannel();
 	m_iRedoRow		= pPatternEditor->GetRow();
 	m_iRedoColumn   = pPatternEditor->GetColumn();
+	// m_bRedoSelecting = pPatternEditor->IsSelecting();
+	// m_RedoSelection = pPatternEditor->GetSelection();
+}
+
+void CPatternAction::RestoreState(CMainFrame *pMainFrm)		// // //
+{
+	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(pMainFrm->GetActiveView());
+	CFamiTrackerDoc *pDoc = pView->GetDocument();
+	CPatternEditor *pPatternEditor = pView->GetPatternEditor();
 
 	pPatternEditor->MoveToFrame(m_iUndoFrame);
 	pPatternEditor->MoveToChannel(m_iUndoChannel);
@@ -911,11 +925,38 @@ void CPatternAction::Undo(CMainFrame *pMainFrm)
 	pPatternEditor->MoveToColumn(m_iUndoColumn);
 	pPatternEditor->InvalidateCursor();
 
+	pDoc->UpdateAllViews(NULL, m_iAction == ACT_EFFECT_COLUMNS ? UPDATE_COLUMNS : UPDATE_PATTERN);
+}
+
+void CPatternAction::RestoreRedoState(CMainFrame *pMainFrm)		// // //
+{
+	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(pMainFrm->GetActiveView());
+	CFamiTrackerDoc *pDoc = pView->GetDocument();
+	CPatternEditor *pPatternEditor = pView->GetPatternEditor();
+
+	pPatternEditor->MoveToFrame(m_iRedoFrame);
+	pPatternEditor->MoveToChannel(m_iRedoChannel);
+	pPatternEditor->MoveToRow(m_iRedoRow);
+	pPatternEditor->MoveToColumn(m_iRedoColumn);
+	pPatternEditor->InvalidateCursor();
+
+	pDoc->UpdateAllViews(NULL, m_iAction == ACT_EFFECT_COLUMNS ? UPDATE_COLUMNS : UPDATE_PATTERN);
+}
+
+void CPatternAction::Undo(CMainFrame *pMainFrm)
+{
+	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(pMainFrm->GetActiveView());
+	CFamiTrackerDoc *pDoc = pView->GetDocument();
+	CPatternEditor *pPatternEditor = pView->GetPatternEditor();
+
 	switch (m_iAction) {
 		case ACT_EDIT_NOTE:
 		case ACT_INCREASE:		// // //
 		case ACT_DECREASE:		// // //
 			pDoc->SetNoteData(m_iUndoTrack, m_iUndoFrame, m_iUndoChannel, m_iUndoRow, &m_OldNote);
+			break;
+		case ACT_REPLACE_NOTE:		// // //
+			pDoc->SetNoteData(m_iUndoTrack, m_iReplaceFrame, m_iReplaceChannel, m_iReplaceRow, &m_OldNote);
 			break;
 		case ACT_DELETE_ROW:
 			if (m_bPullUp)
@@ -958,16 +999,12 @@ void CPatternAction::Undo(CMainFrame *pMainFrm)
 			break;
 		case ACT_EFFECT_COLUMNS:		// // //
 			pDoc->SetEffColumns(m_iUndoTrack, m_iClickedChannel, m_iUndoColumnCount);
-			UpdateHint = UPDATE_COLUMNS;
 			break;
-
-#ifdef _DEBUG_
+#ifdef _DEBUG
 		default:
 			AfxMessageBox(_T("TODO Undo for this action is not implemented"));
 #endif
 	}
-
-	pDoc->UpdateAllViews(NULL, UpdateHint);
 }
 
 void CPatternAction::Redo(CMainFrame *pMainFrm)
@@ -975,17 +1012,13 @@ void CPatternAction::Redo(CMainFrame *pMainFrm)
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(pMainFrm->GetActiveView());
 	CFamiTrackerDoc *pDoc = pView->GetDocument();
 	CPatternEditor *pPatternEditor = pView->GetPatternEditor();
-	int UpdateHint = UPDATE_PATTERN;
-
-	pPatternEditor->MoveToFrame(m_iUndoFrame);
-	pPatternEditor->MoveToChannel(m_iUndoChannel);
-	pPatternEditor->MoveToRow(m_iUndoRow);
-	pPatternEditor->MoveToColumn(m_iUndoColumn);
-	pPatternEditor->InvalidateCursor();
 
 	switch (m_iAction) {
 		case ACT_EDIT_NOTE:
 			pDoc->SetNoteData(m_iUndoTrack, m_iUndoFrame, m_iUndoChannel, m_iUndoRow, &m_NewNote);
+			break;
+		case ACT_REPLACE_NOTE:		// // //
+			pDoc->SetNoteData(m_iUndoTrack, m_iReplaceFrame, m_iReplaceChannel, m_iReplaceRow, &m_NewNote);
 			break;
 		case ACT_DELETE_ROW:
 			pDoc->ClearRowField(m_iUndoTrack, m_iUndoFrame, m_iUndoChannel, m_iUndoRow - (m_bBack ? 1 : 0), m_iUndoColumn);
@@ -1050,21 +1083,12 @@ void CPatternAction::Redo(CMainFrame *pMainFrm)
 			break;
 		case ACT_EFFECT_COLUMNS:		// // //
 			pDoc->SetEffColumns(m_iUndoTrack, m_iClickedChannel, m_iRedoColumnCount);
-			UpdateHint = UPDATE_COLUMNS;
 			break;
-#ifdef _DEBUG_
+#ifdef _DEBUG
 		default:
 			AfxMessageBox(_T("TODO: Redo for this action is not implemented"));
 #endif
 	}
-
-	pPatternEditor->MoveToFrame(m_iRedoFrame);
-	pPatternEditor->MoveToChannel(m_iRedoChannel);
-	pPatternEditor->MoveToRow(m_iRedoRow);
-	pPatternEditor->MoveToColumn(m_iRedoColumn);
-	pPatternEditor->InvalidateCursor();
-
-	pDoc->UpdateAllViews(NULL, UpdateHint);
 }
 
 void CPatternAction::Update(CMainFrame *pMainFrm)

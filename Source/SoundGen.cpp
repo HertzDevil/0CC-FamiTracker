@@ -41,8 +41,8 @@
 #include "DirectSound.h"
 #include "APU/APU.h"
 #include "ChannelHandler.h"
-#include "Channels2A03.h" // DPCM sample memory
 #include "ChannelsN163.h" // N163 channel count
+#include "DSample.h"		// // //
 #include "SoundGen.h"
 #include "InstrumentRecorder.h"		// // //
 #include "Settings.h"
@@ -65,6 +65,9 @@
 
 // Write a file with the volume table
 //#define WRITE_VOLUME_FILE
+
+// // // Log VGM output (experimental)
+//#define WRITE_VGM
 
 // Enable audio dithering
 //#define DITHERING
@@ -104,7 +107,6 @@ int dither(long size);
 
 CSoundGen::CSoundGen() : 
 	m_pAPU(NULL),
-	m_pSampleMem(NULL),
 	m_pDSound(NULL),
 	m_pDSoundChannel(NULL),
 	m_pAccumBuffer(NULL),
@@ -133,6 +135,7 @@ CSoundGen::CSoundGen() :
 	m_iPlayRow(0),
 	m_iPlayTrack(0),
 	m_iPlayTicks(0),
+	m_iRegisterStream(),		// // //
 	m_bBufferUnderrun(false),
 	m_bAudioClipping(false),
 	m_iClipCounter(0),
@@ -142,11 +145,8 @@ CSoundGen::CSoundGen() :
 {
 	TRACE0("SoundGen: Object created\n");
 
-	// DPCM sample interface
-	m_pSampleMem = new CSampleMem();
-
 	// Create APU
-	m_pAPU = new CAPU(this, m_pSampleMem);
+	m_pAPU = new CAPU(this);		// // //
 
 	// Create all kinds of channels
 	CreateChannels();
@@ -160,7 +160,6 @@ CSoundGen::~CSoundGen()
 {
 	// Delete APU
 	SAFE_RELEASE(m_pAPU);
-	SAFE_RELEASE(m_pSampleMem);
 
 	// Remove channels
 	for (int i = 0; i < CHANNELS; ++i) {
@@ -242,11 +241,8 @@ void CSoundGen::AssignChannel(CTrackerChannel *pTrackerChannel)		// // //
 	chan_id_t ID = pTrackerChannel->GetID();
 
 	CChannelHandler *pRenderer = F.Produce(ID);
-	if (pRenderer) {
-		if (ID == CHANID_DPCM)
-			static_cast<CDPCMChan*>(pRenderer)->SetSampleMemory(m_pSampleMem);
+	if (pRenderer)
 		pRenderer->SetChannelID(ID);
-	}
 
 	static size_t Pos = 0;		// // // test
 	m_pTrackerChannels[Pos] = pTrackerChannel;
@@ -456,61 +452,52 @@ void CSoundGen::DocumentPropertiesChanged(CFamiTrackerDoc *pDocument)
 	// Write periods to a single file with assembly formatting
 	CStdioFile period_file("..\\nsf driver\\periods.s", CStdioFile::modeWrite | CStdioFile::modeCreate);
 
+	const auto DumpFunc = [&period_file] (const unsigned int *Table) {
+		for (int i = 0; i < NOTE_COUNT; ++i) {
+			unsigned int Val = Table[i] & 0xFFFF;
+			CString str;
+			if (i < NOTE_COUNT - 1) {
+				if (i % NOTE_RANGE < NOTE_RANGE - 1)
+					str.Format("$%04X, ", Val);
+				else
+					str.Format("$%04X\n\t.word\t", Val);
+			}
+			else
+				str.Format("$%04X\n", Val);
+			period_file.WriteString(str);
+		}
+	};
+
 	// One possible optimization is to store the PAL table as the difference from the NTSC table
 
 	period_file.WriteString("; 2A03 NTSC\n");
 	period_file.WriteString(".if .defined(NTSC_PERIOD_TABLE)\n");
 	period_file.WriteString("ft_periods_ntsc: ;; Patch\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableNTSC[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
+	DumpFunc(m_iNoteLookupTableNTSC);
 
 	period_file.WriteString(".endif\n\n");
 	period_file.WriteString("; 2A03 PAL\n");
 	period_file.WriteString(".if .defined(PAL_PERIOD_TABLE)\n");
 	period_file.WriteString("ft_periods_pal: ;; Patch\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTablePAL[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
+	DumpFunc(m_iNoteLookupTablePAL);
 
 	period_file.WriteString(".endif\n\n");
 	period_file.WriteString("; VRC6 Sawtooth\n");
 	period_file.WriteString(".if .defined(USE_VRC6)\n");
 	period_file.WriteString("ft_periods_sawtooth: ;; Patch\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableSaw[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
+	DumpFunc(m_iNoteLookupTableSaw);
 
 	period_file.WriteString(".endif\n\n");
 	period_file.WriteString("; FDS\n");
 	period_file.WriteString(".if .defined(USE_FDS)\n");
 	period_file.WriteString("ft_periods_fds: ;; Patch\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableFDS[i], ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
+	DumpFunc(m_iNoteLookupTableFDS);
 
 	period_file.WriteString(".endif\n\n");
 	period_file.WriteString("; N163\n");
 	period_file.WriteString(".if .defined(USE_N163)\n");
 	period_file.WriteString("ft_periods_n163: ;; Patch\n\t.word\t");
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableN163[i] & 0xFFFF, ((i % 12) < 11) && (i < 95) ? ", " : ((i < 95) ? "\n\t.word\t" : "\n"));
-		period_file.WriteString(str);
-	}
+	DumpFunc(m_iNoteLookupTableN163);
 
 	period_file.WriteString(".endif\n\n");
 	period_file.WriteString("; VRC7\n");
@@ -518,9 +505,12 @@ void CSoundGen::DocumentPropertiesChanged(CFamiTrackerDoc *pDocument)
 	period_file.WriteString("; Fnum table, multiplied by 4 for higher resolution\n");
 	period_file.WriteString(".define ft_vrc7_table ");
 
-	for (int i = 0; i < NOTE_RANGE; ++i) {
+	for (int i = 0; i <= NOTE_RANGE; ++i) {		// // // include last item for linear pitch code optimization
 		CString str;
-		str.Format("$%04X%s", m_iNoteLookupTableVRC7[i] * 4, (i < 11) ? ", " : "\n\n");
+		if (i == NOTE_RANGE)
+			str.Format("$%04X\n\n", m_iNoteLookupTableVRC7[0] << 3);
+		else
+			str.Format("$%04X, ", m_iNoteLookupTableVRC7[i] << 2);
 		period_file.WriteString(str);
 	}
 	
@@ -613,7 +603,7 @@ void CSoundGen::CancelPreviewSample()
 {
 	// Remove references to selected sample.
 	// This must be done if a sample is about to be deleted!
-	m_pSampleMem->Clear();
+	m_pAPU->ClearSample();		// // //
 }
 
 bool CSoundGen::IsRunning() const
@@ -1086,6 +1076,10 @@ void CSoundGen::BeginPlayer(play_mode_t Mode, int Track)
 
 	memset(m_bFramePlayed, false, sizeof(bool) * MAX_FRAMES);
 
+#ifdef WRITE_VGM		// // //
+	std::queue<int>().swap(m_iRegisterStream);
+#endif
+
 	ResetTempo();
 	ResetAPU();
 
@@ -1249,8 +1243,8 @@ void CSoundGen::HaltPlayer()
 	m_bDoHalt = false;		// // //
 
 	MakeSilent();
-
-	m_pSampleMem->SetMem(0, 0);
+	
+	m_pAPU->ClearSample();		// // //
 /*
 	for (int i = 0; i < CHANNELS; ++i) {
 		if (m_pChannels[i] != NULL) {
@@ -1268,6 +1262,77 @@ void CSoundGen::HaltPlayer()
 		m_pTrackerView->PostMessage(WM_USER_PLAYER, m_iPlayFrame, m_iPlayRow);
 		m_pInstRecorder->StopRecording(m_pTrackerView);		// // //
 	}
+
+#ifdef WRITE_VGM		// // //
+	CFile vgm("test.vgm", CFile::modeCreate | CFile::modeWrite | CFile::typeBinary);
+	int c = 0;
+	for (int i = 0; i < 0x100; ++i)
+		vgm.Write(&c, 1);
+	int Delay = 0;
+	int DelayTotal = 0;
+	const long long VGM_SAMPLE_RATE = 44100;
+
+	while (!m_iRegisterStream.empty()) { // TODO: move this to a separate thread
+		int Val = m_iRegisterStream.front();
+		m_iRegisterStream.pop();
+		if (Val == 0x62) {
+			++Delay;
+			++DelayTotal;
+		}
+		else {
+			if (Delay) {
+				int Samples = static_cast<int>(VGM_SAMPLE_RATE * Delay / m_iFrameRate);
+				while (Samples > 0xFFFF) {
+					Samples -= 0xFFFF;
+					c = 0xFFFF61;
+					vgm.Write(&c, 3);
+				}
+				if (Samples == static_cast<int>(VGM_SAMPLE_RATE / CAPU::FRAME_RATE_NTSC)) { // 735
+					c = 0x62;
+					vgm.Write(&c, 1);
+				}
+				else if (Samples == static_cast<int>(VGM_SAMPLE_RATE / CAPU::FRAME_RATE_PAL)) { // 882
+					c = 0x63;
+					vgm.Write(&c, 1);
+				}
+				else {
+					c = 0x61 | (Samples << 8);
+					vgm.Write(&c, 3);
+				}
+				Delay = 0;
+			}
+			vgm.Write(&Val, 1);
+			Val = m_iRegisterStream.front();
+			m_iRegisterStream.pop();
+			vgm.Write(&Val, 1);
+			Val = m_iRegisterStream.front();
+			m_iRegisterStream.pop();
+			vgm.Write(&Val, 1);
+		}
+	}
+	c = 0x66;
+	vgm.Write(&c, 1);
+
+	vgm.Seek(0, CFile::begin);
+	char Header[256] = {'V', 'g', 'm', ' '};
+	*reinterpret_cast<int*>(Header + 0x04) = static_cast<int>(vgm.GetLength()) - 4;
+	*reinterpret_cast<int*>(Header + 0x08) = 0x161;
+	*reinterpret_cast<int*>(Header + 0x18) = static_cast<int>(VGM_SAMPLE_RATE * DelayTotal / m_iFrameRate);
+	*reinterpret_cast<int*>(Header + 0x24) = m_iFrameRate;
+	*reinterpret_cast<int*>(Header + 0x34) = 0xCC;
+	*reinterpret_cast<int*>(Header + 0x84) = CAPU::BASE_FREQ_NTSC;
+	if (m_pDocument) { // TODO: do this in BeginPlayer
+		if (m_pDocument->ExpansionEnabled(SNDCHIP_FDS))
+			*reinterpret_cast<int*>(Header + 0x84) |= 0x80000000;
+		if (m_pDocument->ExpansionEnabled(SNDCHIP_S5B)) {
+			*reinterpret_cast<int*>(Header + 0x74) = CAPU::BASE_FREQ_NTSC / 2;
+			*reinterpret_cast<int*>(Header + 0x78) = 0x0110;
+		}
+	}
+	
+	vgm.Write(Header, 256);
+	vgm.Close();
+#endif
 }
 
 void CSoundGen::ResetAPU()
@@ -1281,11 +1346,16 @@ void CSoundGen::ResetAPU()
 	// Enable all channels
 	m_pAPU->Write(0x4015, 0x0F);
 	m_pAPU->Write(0x4017, 0x00);
+	
+	// // // for VGM
+	WriteRegister(0x4015, 0x0F);
+	WriteRegister(0x4017, 0x00);
+	WriteRegister(0x4023, 0x02); // FDS enable
 
 	// MMC5
 	m_pAPU->Write(0x5015, 0x03);
 
-	m_pSampleMem->Clear();
+	m_pAPU->ClearSample();		// // //
 }
 
 void CSoundGen::AddCycles(int Count)
@@ -1298,9 +1368,14 @@ void CSoundGen::AddCycles(int Count)
 	m_pAPU->AddTime(Count);
 }
 
-uint16_t CSoundGen::GetReg(int Chip, int Reg) const		// // //
+uint8_t CSoundGen::GetReg(int Chip, int Reg) const
 { 
 	return m_pAPU->GetReg(Chip, Reg);
+}
+
+CRegisterState *CSoundGen::GetRegState(unsigned Chip, unsigned Reg) const		// // //
+{
+	return m_pAPU->GetRegState(Chip, Reg);
 }
 
 void CSoundGen::MakeSilent()
@@ -1309,7 +1384,7 @@ void CSoundGen::MakeSilent()
 	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
 	m_pAPU->Reset();
-	m_pSampleMem->Clear();
+	m_pAPU->ClearSample();		// // //
 
 	for (int i = 0; i < CHANNELS; ++i) {
 		if (m_pChannels[i])
@@ -1722,7 +1797,7 @@ void CSoundGen::PlaySample(const CDSample *pSample, int Offset, int Pitch)
 	SAFE_RELEASE(m_pPreviewSample);
 
 	// Sample may not be removed when used by the sample memory class!
-	m_pSampleMem->SetMem(pSample->GetData(), pSample->GetSize());
+	m_pAPU->WriteSample(pSample->GetData(), pSample->GetSize());		// // //
 
 	int Loop = 0;
 	int Length = ((pSample->GetSize() - 1) >> 4) - (Offset << 2);
@@ -1995,6 +2070,10 @@ void CSoundGen::UpdateAPU()
 				AddCycles(CHANNEL_DELAY);
 		}
 	}
+#ifdef WRITE_VGM		// // //
+	if (m_bPlaying)
+		m_iRegisterStream.push(0x62);		// // //
+#endif
 
 	// Finish the audio frame
 	m_pAPU->AddTime(m_iUpdateCycles - m_iConsumedCycles);
@@ -2318,7 +2397,38 @@ void CSoundGen::WriteRegister(uint16_t Reg, uint8_t Value)
 
 void CSoundGen::WriteRegister(uint16_t Reg, uint8_t Value)
 {
-	// Empty
+#ifdef WRITE_VGM		// // //
+	static int S5B_Port = 0; // TODO: elevate to full object status
+	if (Reg >= 0x4000U && Reg <= 0x401FU) {
+		m_iRegisterStream.push(0xB4);
+		m_iRegisterStream.push(Reg & 0x1F);
+		m_iRegisterStream.push(Value);
+	}
+
+	else if (Reg >= 0x4040U && Reg <= 0x407FU) {
+		m_iRegisterStream.push(0xB4);
+		m_iRegisterStream.push(Reg & 0x7F);
+		m_iRegisterStream.push(Value);
+	}
+	else if (Reg >= 0x4080U && Reg <= 0x409EU) {
+		m_iRegisterStream.push(0xB4);
+		m_iRegisterStream.push((Reg & 0x1F) | 0x20);
+		m_iRegisterStream.push(Value);
+	}
+	else if (Reg == 0x4023U) {
+		m_iRegisterStream.push(0xB4);
+		m_iRegisterStream.push(0x3F);
+		m_iRegisterStream.push(Value);
+	}
+
+	else if (Reg == 0xC000)
+		S5B_Port = Value;
+	else if (Reg == 0xE000) {
+		m_iRegisterStream.push(0xA0);
+		m_iRegisterStream.push(S5B_Port);
+		m_iRegisterStream.push(Value);
+	}
+#endif
 }
 
 #endif /* EXPORT_TEST */

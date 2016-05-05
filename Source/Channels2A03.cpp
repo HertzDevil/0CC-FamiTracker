@@ -25,8 +25,9 @@
 #include "stdafx.h"
 #include "FamiTracker.h"
 #include "FamiTrackerTypes.h"		// // //
-#include "APU/Types.h"
-#include "Common.h"		// // //
+#include "APU/Types.h"		// // //
+#include "APU/APU.h"		// // // for DPCM
+#include "DSample.h"		// // //
 #include "Instrument.h"
 #include "ChannelHandler.h"
 #include "Channels2A03.h"
@@ -120,8 +121,12 @@ bool CChannelHandler2A03::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B: case INST_FDS:
-		m_pInstHandler.reset(new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
-		return true;
+		switch (m_iInstTypeCurrent) {
+		case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B: case INST_FDS: break;
+		default:
+			m_pInstHandler.reset(new CSeqInstHandler(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
+			return true;
+		}
 	}
 	return false;
 }
@@ -410,6 +415,11 @@ int CNoiseChan::LimitPeriod(int Period) const		// // //
 	return Period; // no limit
 }
 
+int CNoiseChan::LimitRawPeriod(int Period) const		// // //
+{
+	return Period; // no limit
+}
+
 /*
 int CNoiseChan::CalculatePeriod() const
 {
@@ -492,9 +502,8 @@ int CNoiseChan::TriggerNote(int Note)
 // DPCM
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CDPCMChan::CDPCMChan(CSampleMem *pSampleMem) : 
+CDPCMChan::CDPCMChan() :		// // //
 	CChannelHandler(0xF, 0x3F),		// // // does not use these anyway
-	m_pSampleMem(pSampleMem),
 	m_bEnabled(false),
 	m_bTrigger(false),
 	m_cDAC(255),
@@ -571,8 +580,12 @@ bool CDPCMChan::CreateInstHandler(inst_type_t Type)
 {
 	switch (Type) {
 	case INST_2A03:
-		m_pInstHandler.reset(new CInstHandlerDPCM(this));
-		return true;
+		switch (m_iInstTypeCurrent) {
+		case INST_2A03: break;
+		default:
+			m_pInstHandler.reset(new CInstHandlerDPCM(this));
+			return true;
+		}
 	}
 	return false;
 }
@@ -640,11 +653,6 @@ void CDPCMChan::RefreshChannel()
 	}
 }
 
-void CDPCMChan::SetSampleMemory(CSampleMem *pSampleMem)		// // //
-{
-	m_pSampleMem = pSampleMem;
-}
-
 void CDPCMChan::WriteDCOffset(unsigned char Delta)		// // //
 {
 	// Initial delta counter value
@@ -660,8 +668,7 @@ void CDPCMChan::SetLoopOffset(unsigned char Loop)		// // //
 void CDPCMChan::PlaySample(const CDSample *pSamp, int Pitch)		// // //
 {
 	int SampleSize = pSamp->GetSize();
-	if (m_pSampleMem)
-		m_pSampleMem->SetMem(pSamp->GetData(), SampleSize);
+	m_pAPU->WriteSample(pSamp->GetData(), SampleSize);		// // //
 	m_iPeriod = m_iCustomPitch != -1 ? m_iCustomPitch : Pitch;
 	m_iSampleLength = (SampleSize >> 4) - (m_iOffset << 2);
 	m_iLoopLength = SampleSize - m_iLoopOffset;

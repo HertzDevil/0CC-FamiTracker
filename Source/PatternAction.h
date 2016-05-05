@@ -40,6 +40,7 @@ public:
 	enum ACTIONS
 	{
 		ACT_EDIT_NOTE,
+		ACT_REPLACE_NOTE,		// // //
 		ACT_INSERT_ROW,
 		ACT_DELETE_ROW,
 		ACT_INCREASE,
@@ -64,11 +65,15 @@ public:
 	virtual ~CPatternAction();
 
 	bool SaveState(CMainFrame *pMainFrm);
+	void SaveRedoState(CMainFrame *pMainFrm);		// // //
+	void RestoreState(CMainFrame *pMainFrm);		// // //
+	void RestoreRedoState(CMainFrame *pMainFrm);		// // //
 	void Undo(CMainFrame *pMainFrm);
 	void Redo(CMainFrame *pMainFrm);
 
 public:
 	void SetNote(stChanNote &Note);
+	void SetReplacePosition(int Frame, int Channel, int Row);		// // //
 	void SetDelete(bool PullUp, bool Back);
 	void SetPaste(CPatternClipData *pClipData);
 	void SetPasteMode(paste_mode_t Mode);		// // //
@@ -126,6 +131,8 @@ private:
 	int m_iRedoRow;
 	cursor_column_t m_iRedoColumn;
 	int m_iRedoColumnCount;		// // //
+
+	int m_iReplaceFrame, m_iReplaceChannel, m_iReplaceRow;		// // //
 
 	int m_iPatternLen;
 	int m_iActualPatternLen;

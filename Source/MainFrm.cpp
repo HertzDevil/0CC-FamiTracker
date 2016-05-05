@@ -595,7 +595,7 @@ bool CMainFrame::CreateDialogPanels()
 	m_pImageList->Add(theApp.LoadIcon(IDI_INST_VRC7));
 	m_pImageList->Add(theApp.LoadIcon(IDI_INST_FDS));
 	m_pImageList->Add(theApp.LoadIcon(IDI_INST_N163));
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_5B));
+	m_pImageList->Add(theApp.LoadIcon(IDI_INST_S5B));		// // //
 
 	m_pInstrumentList->SetImageList(m_pImageList, LVSIL_NORMAL);
 	m_pInstrumentList->SetImageList(m_pImageList, LVSIL_SMALL);
@@ -1475,7 +1475,7 @@ void CMainFrame::OnBnClickedIncFrame()
 	int Add = (CheckRepeat() ? 4 : 1);
 	bool bChangeAll = ChangeAllPatterns() != 0;
 	CFrameAction *pAction = new CFrameAction(bChangeAll ? CFrameAction::ACT_CHANGE_PATTERN_ALL : CFrameAction::ACT_CHANGE_PATTERN);
-	pAction->SetPatternDelta(Add, bChangeAll);
+	pAction->SetPatternDelta(Add);		// // //
 	AddAction(pAction);
 }
 
@@ -1484,7 +1484,7 @@ void CMainFrame::OnBnClickedDecFrame()
 	int Remove = -(CheckRepeat() ? 4 : 1);
 	bool bChangeAll = ChangeAllPatterns() != 0;
 	CFrameAction *pAction = new CFrameAction(bChangeAll ? CFrameAction::ACT_CHANGE_PATTERN_ALL : CFrameAction::ACT_CHANGE_PATTERN);
-	pAction->SetPatternDelta(Remove, bChangeAll);
+	pAction->SetPatternDelta(Remove);		// // //
 	AddAction(pAction);
 }
 
@@ -2156,8 +2156,14 @@ void CMainFrame::OnModuleEstimateSongLength()		// // //
 
 	CString str = _T("");
 	str.Format(_T("Estimated duration:\nIntro: %d:%02d.%02d (%d ticks)\nLoop: %d:%02d.%02d (%d ticks)\n"),
-		static_cast<int>(Intro + .5 / 6000) / 60, static_cast<int>(Intro + .005) % 60, static_cast<int>(Intro * 100 + .5) % 100, static_cast<int>(Intro * Rate + .5),
-		static_cast<int>(Loop + .5 / 6000) / 60, static_cast<int>(Loop + .005) % 60, static_cast<int>(Loop * 100 + .5) % 100, static_cast<int>(Loop * Rate + .5));
+			   static_cast<int>(Intro + .5 / 6000) / 60,
+			   static_cast<int>(Intro + .005) % 60,
+			   static_cast<int>(Intro * 100 + .5) % 100,
+			   static_cast<int>(Intro * Rate + .5),
+			   static_cast<int>(Loop + .5 / 6000) / 60,
+			   static_cast<int>(Loop + .005) % 60,
+			   static_cast<int>(Loop * 100 + .5) % 100,
+			   static_cast<int>(Loop * Rate + .5));
 	str.Append(_T("Tick counts are subject to rounding errors!"));
 	AfxMessageBox(str);
 }
@@ -2664,9 +2670,11 @@ bool CMainFrame::AddAction(CAction *pAction)
 		SAFE_RELEASE(pAction);
 		return false;
 	}
+	pAction->Redo(this);		// // //
+	pAction->SaveRedoState(this);
 
 	CFamiTrackerDoc	*pDoc = (CFamiTrackerDoc*)GetActiveDocument();			// // //
-	if (m_pActionHandler->GetUndoLevel() == m_pActionHandler->MAX_LEVELS)
+	if (m_pActionHandler->GetUndoLevel() == CActionHandler::MAX_LEVELS)
 		pDoc->SetExceededFlag();
 	
 	// 0CC: merge previous action if possible
@@ -2695,8 +2703,10 @@ void CMainFrame::OnEditUndo()
 
 	CAction *pAction = m_pActionHandler->PopUndo();
 
-	if (pAction != NULL)
+	if (pAction != NULL) {
 		pAction->Undo(this);
+		pAction->RestoreState(this);		// // //
+	}
 
 	CFamiTrackerDoc	*pDoc = (CFamiTrackerDoc*)GetActiveDocument();			// // //
 	if (!m_pActionHandler->CanUndo() && !pDoc->GetExceededFlag())
@@ -2709,8 +2719,10 @@ void CMainFrame::OnEditRedo()
 
 	CAction *pAction = m_pActionHandler->PopRedo();
 
-	if (pAction != NULL)
+	if (pAction != NULL) {
 		pAction->Redo(this);
+		pAction->RestoreRedoState(this);		// // //
+	}
 }
 
 void CMainFrame::OnUpdateEditUndo(CCmdUI *pCmdUI)
@@ -2922,7 +2934,7 @@ void CMainFrame::OnEditClearPatterns()
 	CFamiTrackerDoc *pDoc = static_cast<CFamiTrackerDoc*>(GetActiveDocument());
 	int Track = GetSelectedTrack();
 
-	if (AfxMessageBox(IDS_CLEARPATTERN, MB_OKCANCEL | MB_ICONWARNING) == IDCANCEL)
+	if (AfxMessageBox(IDS_CLEARPATTERN, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
 		return;
 
 	pDoc->ClearPatterns(Track);
@@ -2937,7 +2949,7 @@ void CMainFrame::OnEditRemoveUnusedInstruments()
 
 	CFamiTrackerDoc *pDoc = static_cast<CFamiTrackerDoc*>(GetActiveDocument());
 
-	if (AfxMessageBox(IDS_REMOVE_INSTRUMENTS, MB_YESNO | MB_ICONINFORMATION) == IDNO)
+	if (AfxMessageBox(IDS_REMOVE_INSTRUMENTS, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
 		return;
 
 	// Current instrument might disappear
@@ -2955,7 +2967,7 @@ void CMainFrame::OnEditRemoveUnusedPatterns()
 
 	CFamiTrackerDoc *pDoc = static_cast<CFamiTrackerDoc*>(GetActiveDocument());
 
-	if (AfxMessageBox(IDS_REMOVE_PATTERNS, MB_YESNO | MB_ICONINFORMATION) == IDNO)
+	if (AfxMessageBox(IDS_REMOVE_PATTERNS, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
 		return;
 
 	pDoc->RemoveUnusedPatterns();
@@ -3224,7 +3236,7 @@ void CMainFrame::OnEasterEggKraid4()
 void CMainFrame::OnEasterEggKraid5()
 {
 	if (m_iKraidCounter == 4) {
-		if (AfxMessageBox(IDS_KRAID, MB_YESNO | MB_ICONINFORMATION) == IDNO) {
+		if (AfxMessageBox(IDS_KRAID, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO) {
 			m_iKraidCounter = 0;
 			return;}
 		CFamiTrackerDoc *pDoc = (CFamiTrackerDoc*)GetActiveDocument();
@@ -3272,7 +3284,7 @@ void CMainFrame::OnEditRemoveUnusedSamples()
 {
 	CFamiTrackerDoc *pDoc = static_cast<CFamiTrackerDoc*>(GetActiveDocument());
 
-	if (AfxMessageBox(IDS_REMOVE_SAMPLES, MB_YESNO | MB_ICONINFORMATION) == IDNO)
+	if (AfxMessageBox(IDS_REMOVE_SAMPLES, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
 		return;
 	
 	CloseInstrumentEditor();
@@ -3285,7 +3297,7 @@ void CMainFrame::OnEditPopulateUniquePatterns()		// // //
 {
 	CFamiTrackerDoc *pDoc = static_cast<CFamiTrackerDoc*>(GetActiveDocument());
 
-	if (AfxMessageBox(IDS_POPULATE_PATTERNS, MB_YESNO | MB_ICONINFORMATION) == IDNO)
+	if (AfxMessageBox(IDS_POPULATE_PATTERNS, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
 		return;
 	
 	pDoc->PopulateUniquePatterns(m_iTrack);

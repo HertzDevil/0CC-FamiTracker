@@ -27,6 +27,7 @@
 //
 
 #include <afxmt.h>		// Synchronization objects
+#include <queue>		// // //
 #include "WaveFile.h"
 #include "Common.h"
 
@@ -82,6 +83,7 @@ class CDSample;
 class CTrackerChannel;
 class CFTMComponentInterface;		// // //
 class CInstrumentRecorder;		// // //
+class CRegisterState;		// // //
 
 #ifdef EXPORT_TEST
 class CExportTest;
@@ -180,7 +182,8 @@ public:
 	void		AddCycles(int Count);
 
 	// Other
-	uint16_t		GetReg(int Chip, int Reg) const;		// // //
+	uint8_t		GetReg(int Chip, int Reg) const;
+	CRegisterState *GetRegState(unsigned Chip, unsigned Reg) const;		// // //
 	CString		RecallChannelState(int Channel) const;		// // //
 
 	// FDS & N163 wave preview
@@ -299,7 +302,6 @@ private:
 	CDSoundChannel		*m_pDSoundChannel;
 	CVisualizerWnd		*m_pVisualizerWnd;
 	CAPU				*m_pAPU;
-	CSampleMem			*m_pSampleMem;
 
 	const CDSample		*m_pPreviewSample;
 
@@ -382,6 +384,8 @@ private:
 	int					m_iTempoDecrement;
 	int					m_iTempoRemainder;
 	bool				m_bUpdateRow;
+
+	std::queue<int>		m_iRegisterStream;					// // // vgm export
 
 	CWaveFile			m_wfWaveFile;
 

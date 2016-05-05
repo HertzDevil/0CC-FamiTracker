@@ -34,14 +34,13 @@
 #include "N163.h"
 #include "VRC7.h"
 #include "S5B.h"
+#include "../RegisterState.h"		// // //
 
 const int		CAPU::SEQUENCER_FREQUENCY	= 240;		// // //
 const uint32_t	CAPU::BASE_FREQ_NTSC		= 1789773;		// 72.667
 const uint32_t	CAPU::BASE_FREQ_PAL			= 1662607;
 const uint8_t	CAPU::FRAME_RATE_NTSC		= 60;
 const uint8_t	CAPU::FRAME_RATE_PAL		= 50;
-
-const uint8_t  CAPU::REG_DECAY_RATE		= 15;			// // //
 
 const uint8_t CAPU::LENGTH_TABLE[] = {
 	0x0A, 0xFE, 0x14, 0x02, 0x28, 0x04, 0x50, 0x06,
@@ -50,9 +49,9 @@ const uint8_t CAPU::LENGTH_TABLE[] = {
 	0xC0, 0x18, 0x48, 0x1A, 0x10, 0x1C, 0x20, 0x1E
 };
 
-static std::vector<CExternal*> ExChips;
+static std::vector<CSoundChip*> ExChips;
 
-CAPU::CAPU(IAudioCallback *pCallback, CSampleMem *pSampleMem) : 
+CAPU::CAPU(IAudioCallback *pCallback) :		// // //
 	m_pParent(pCallback),
 	m_iFrameCycles(0),
 	m_pSoundBuffer(NULL),
@@ -65,21 +64,10 @@ CAPU::CAPU(IAudioCallback *pCallback, CSampleMem *pSampleMem) :
 	m_pMMC5 = new CMMC5(m_pMixer);
 	m_pVRC6 = new CVRC6(m_pMixer);
 	m_pVRC7 = new CVRC7(m_pMixer);
-	m_pFDS = new CFDS(m_pMixer);
+	m_pFDS  = new CFDS(m_pMixer);
 	m_pN163 = new CN163(m_pMixer);
-	m_pS5B = new CS5B(m_pMixer);
+	m_pS5B  = new CS5B(m_pMixer);
 
-	memset(m_iRegs2A03, 0, sizeof(m_iRegs2A03));
-	memset(m_iRegsVRC6, 0, sizeof(m_iRegsVRC6));
-	memset(m_iRegsVRC7, 0, sizeof(m_iRegsVRC7));
-	memset(m_iRegsFDS, 0, sizeof(m_iRegsFDS));
-	memset(m_iRegsMMC5, 0, sizeof(m_iRegsMMC5));
-	memset(m_iRegsN163, 0, sizeof(m_iRegsN163));
-	memset(m_iRegsS5B, 0, sizeof(m_iRegsS5B));
-
-	m_p2A03->SetSampleMemory(pSampleMem);		// // //
-
-	m_iPortVRC7 = m_iPortS5B = 0;
 	m_fLevelVRC7 = m_fLevelS5B = 1.0f;
 
 #ifdef LOGGING
@@ -160,24 +148,8 @@ void CAPU::EndFrame()
 	m_iFrameClock /*+*/= m_iFrameCycleCount;
 	m_iFrameCycles = 0;
 
-	// // //
-	
-	uint16_t *REG_ARRAY[] = {m_iRegs2A03, m_iRegsVRC6, m_iRegsVRC7, m_iRegsFDS, m_iRegsMMC5, m_iRegsN163, m_iRegsS5B};
-	static const size_t REG_SIZE[] = {sizeof(m_iRegs2A03), sizeof(m_iRegsVRC6), sizeof(m_iRegsVRC7), sizeof(m_iRegsFDS),
-									  sizeof(m_iRegsMMC5), sizeof(m_iRegsN163), sizeof(m_iRegsS5B)};
-	for (int i = 0; i < sizeof(REG_ARRAY) / sizeof(uint16_t*); i++) {
-		for (size_t j = 0; j < REG_SIZE[i] / sizeof(uint16_t); j++) {
-			if (i == 5 && j >= 0x78U - ((m_iRegsN163[0x7F] & 0x70) >> 1) && (j & 0x01) && (j & 0x07) != 0x07) { // N163 phase registers
-				REG_ARRAY[i][j] = (REG_ARRAY[i][j] & 0xFF) | (CAPU::REG_DECAY_RATE << 8) | (CAPU::REG_DECAY_RATE << 12);
-				continue;
-			}
-			uint16_t hi = REG_ARRAY[i][j] & 0x0F00;
-			uint16_t upd = REG_ARRAY[i][j] & 0xF000;
-			if (hi) hi -= 0x100;
-			if (upd) upd -= 0x1000;
-			REG_ARRAY[i][j] = (REG_ARRAY[i][j] & 0xFF) | hi | upd;
-		}
-	}
+	for (auto &r : ExChips)		// // //
+		r->GetRegisterLogger()->Step();
 		
 #ifdef LOGGING
 	++m_iFrame;
@@ -199,8 +171,10 @@ void CAPU::Reset()
 	
 	m_pMixer->ClearBuffer();
 	
-	for (auto Chip : ExChips)		// // //
+	for (auto Chip : ExChips) {		// // //
+		Chip->GetRegisterLogger()->Reset();
 		Chip->Reset();
+	}
 
 #ifdef LOGGING
 	m_iFrame = 0;
@@ -348,6 +322,16 @@ bool CAPU::DPCMPlaying() const
 	return m_p2A03->DPCMPlaying();
 }
 
+void CAPU::WriteSample(const char *pBuf, int Size)		// // //
+{
+	m_p2A03->GetSampleMemory()->SetMem(pBuf, Size);
+}
+
+void CAPU::ClearSample()		// // //
+{
+	m_p2A03->GetSampleMemory()->Clear();
+}
+
 #ifdef LOGGING
 void CAPU::Log()
 {
@@ -355,36 +339,36 @@ void CAPU::Log()
 	str.Format("Frame %08i: ", m_iFrame - 1);
 	str.Append("2A03 ");
 	for (int i = 0; i < 0x14; ++i)
-		str.AppendFormat("%02X ", GetReg(SNDCHIP_NONE, i) & 0xFF);
+		str.AppendFormat("%02X ", GetReg(SNDCHIP_NONE, i));
 	if (m_iExternalSoundChip & SNDCHIP_VRC6) {		// // //
 		str.Append("VRC6 ");
-		for (int i = 0; i < 0x09; ++i)
-			str.AppendFormat("%02X ", GetReg(SNDCHIP_VRC6, i) & 0xFF);
+		for (int i = 0; i < 0x03; ++i) for (int j = 0; j < 0x03; ++j)
+			str.AppendFormat("%02X ", GetReg(SNDCHIP_VRC6, 0x9000 + i * 0x1000 + j));
 	}
 	if (m_iExternalSoundChip & SNDCHIP_MMC5) {
 		str.Append("MMC5 ");
 		for (int i = 0; i < 0x08; ++i)
-			str.AppendFormat("%02X ", GetReg(SNDCHIP_MMC5, i) & 0xFF);
+			str.AppendFormat("%02X ", GetReg(SNDCHIP_MMC5, 0x5000 + i));
 	}
 	if (m_iExternalSoundChip & SNDCHIP_N163) {
 		str.Append("N163 ");
 		for (int i = 0; i < 0x80; ++i)
-			str.AppendFormat("%02X ", GetReg(SNDCHIP_N163, i) & 0xFF);
+			str.AppendFormat("%02X ", GetReg(SNDCHIP_N163, i));
 	}
 	if (m_iExternalSoundChip & SNDCHIP_FDS) {
 		str.Append("FDS ");
 		for (int i = 0; i < 0x0B; ++i)
-			str.AppendFormat("%02X ", GetReg(SNDCHIP_FDS, i) & 0xFF);
+			str.AppendFormat("%02X ", GetReg(SNDCHIP_FDS, 0x4080 + i));
 	}
 	if (m_iExternalSoundChip & SNDCHIP_VRC7) {
 		str.Append("VRC7 ");
 		for (int i = 0; i < 0x40; ++i)
-			str.AppendFormat("%02X ", GetReg(SNDCHIP_VRC7, i) & 0xFF);
+			str.AppendFormat("%02X ", GetReg(SNDCHIP_VRC7, i));
 	}
 	if (m_iExternalSoundChip & SNDCHIP_S5B) {
 		str.Append("S5B ");
 		for (int i = 0; i < 0x10; ++i)
-			str.AppendFormat("%02X ", GetReg(SNDCHIP_S5B, i) & 0xFF);
+			str.AppendFormat("%02X ", GetReg(SNDCHIP_S5B, i));
 	}
 	str.Append("\r\n");
 	m_pLog->Write(str, str.GetLength());
@@ -415,47 +399,30 @@ void CAPU::SetNamcoMixing(bool bLinear)		// // //
 
 void CAPU::LogWrite(uint16_t Address, uint8_t Value)
 {
-#define UpdateReg(tbl, adr) uint16_t old = tbl[adr] & 0xFF; \
-							tbl[adr] = Value | (CAPU::REG_DECAY_RATE << 8) | (tbl[adr] & 0xF000); \
-							if (Value != old) \
-								tbl[adr] = (tbl[adr] & 0xFFF) | (CAPU::REG_DECAY_RATE << 12);		// // //
-	
-		 if (Address >= 0x4000 && Address <= 0x401F) { UpdateReg(m_iRegs2A03, Address - 0x4000); }
-	else if (Address >= 0x9000 && Address <= 0x9003) { UpdateReg(m_iRegsVRC6, Address - 0x9000); }
-	else if (Address >= 0xA000 && Address <= 0xA003) { UpdateReg(m_iRegsVRC6, Address - 0xA000 + 4); }
-	else if (Address >= 0xB000 && Address <= 0xB003) { UpdateReg(m_iRegsVRC6, Address - 0xB000 + 8); }
-	else if (Address >= 0x4040 && Address <= 0x408F) { UpdateReg(m_iRegsFDS , Address - 0x4040); }
-	else if (Address >= 0x5000 && Address <= 0x501F) { UpdateReg(m_iRegsMMC5, Address - 0x5000); }
-	else if (Address == 0x9010) m_iPortVRC7 = Value & 0x3F;
-	else if (Address == 0xF800) m_iPortN163 = Value;
-	else if (Address == 0xC000) m_iPortS5B = Value & 0x0F;
-	else if (Address == 0x9030) { UpdateReg(m_iRegsVRC7, m_iPortVRC7); }
-	else if (Address == 0x4800) {
-		UpdateReg(m_iRegsN163, m_iPortN163 & 0x7F);
-		if (m_iPortN163 & 0x80)
-			m_iPortN163 = (++m_iPortN163) | 0x80;
-	}
-	else if (Address == 0xE000) { UpdateReg(m_iRegsS5B, m_iPortS5B); }
+	for (auto &r : ExChips)
+		r->Log(Address, Value);
 }
 
-uint16_t CAPU::GetReg(int Chip, int Reg) const		// // //
+uint8_t CAPU::GetReg(int Chip, int Reg) const
 {
+	if (auto r = GetRegState(Chip, Reg))		// // //
+		return r->GetValue();
+	return static_cast<uint8_t>(0);
+}
+
+CRegisterState *CAPU::GetRegState(int Chip, int Reg) const		// // //
+{
+	const CSoundChip *pChip = nullptr;
 	switch (Chip) {
-		case SNDCHIP_NONE:
-			return m_iRegs2A03[Reg & 0x1F];
-		case SNDCHIP_VRC6:
-			return m_iRegsVRC6[Reg & 0x0F];
-		case SNDCHIP_MMC5:
-			return m_iRegsMMC5[Reg & 0x1F];
-		case SNDCHIP_N163:
-			return m_pN163->ReadMem(Reg & 0x7F) | (m_iRegsN163[Reg & 0x7F] & 0xFF00);
-		case SNDCHIP_FDS:
-			return m_iRegsFDS[Reg < 0 ? 0 : Reg % (sizeof(m_iRegsFDS) / 2)];
-		case SNDCHIP_VRC7:
-			return m_iRegsVRC7[Reg & 0x3F];
-		case SNDCHIP_S5B:
-			return m_iRegsS5B[Reg & 0x0F];
+	case SNDCHIP_NONE: pChip = m_p2A03; break;
+	case SNDCHIP_VRC6: pChip = m_pVRC6; break;
+	case SNDCHIP_VRC7: pChip = m_pVRC7; break;
+	case SNDCHIP_FDS:  pChip = m_pFDS; break;
+	case SNDCHIP_MMC5: pChip = m_pMMC5; break;
+	case SNDCHIP_N163: pChip = m_pN163; break;
+	case SNDCHIP_S5B:  pChip = m_pS5B; break;
+	default: AfxDebugBreak();
 	}
 
-	return 0;
+	return pChip->GetRegisterLogger()->GetRegister(Reg);
 }
