@@ -2088,8 +2088,7 @@ void CFamiTrackerView::InsertNote(int Note, int Octave, int Channel, int Velocit
 		else
 			m_iLastNote = (Note - 1) + Octave * 12;
 		
-		CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_EDIT_NOTE);
-		pAction->SetNote(Cell);
+		CPatternAction *pAction = new CPActionEditNote(Cell);		// // //
 		if (AddAction(pAction)) {
 			const CSettings *pSettings = theApp.GetSettings();
 			if (m_pPatternEditor->GetColumn() == C_NOTE && !theApp.IsPlaying() && m_iInsertKeyStepping > 0 && !pSettings->Midi.bMidiMasterSync) {
@@ -2575,8 +2574,7 @@ void CFamiTrackerView::OnKeyBackspace()
 	else {
 		if (PreventRepeat(VK_BACK, true))
 			return;
-		CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_DELETE_ROW);
-		pAction->SetDelete(true, true);
+		CPatternAction *pAction = new CPActionDeleteRow(true, true);		// // //
 		if (AddAction(pAction)) {
 			m_pPatternEditor->MoveUp(1);
 			InvalidateCursor();
@@ -2600,9 +2598,8 @@ void CFamiTrackerView::OnKeyDelete()
 		OnEditDelete();
 	}
 	else {
-		CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_DELETE_ROW);
 		bool bPullUp = theApp.GetSettings()->General.bPullUpDelete || bShiftPressed;
-		pAction->SetDelete(bPullUp, false);
+		CPatternAction *pAction = new CPActionDeleteRow(bPullUp, false);		// // //
 		AddAction(pAction);
 		if (!bPullUp) {
 			StepDown();
@@ -3014,8 +3011,7 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 
 	// Something changed, store pattern data in document and update screen
 	if (m_bEditEnable) {
-		CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_EDIT_NOTE);
-		pAction->SetNote(Note);
+		CPatternAction *pAction = new CPActionEditNote(Note);		// // //
 		if (AddAction(pAction)) {
 			if (bMoveLeft)
 				m_pPatternEditor->MoveLeft();
@@ -3581,9 +3577,7 @@ void CFamiTrackerView::OnEditReverse()
 void CFamiTrackerView::OnEditReplaceInstrument()
 {
 	if (!m_bEditEnable) return;		// // //
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_REPLACE_INSTRUMENT);
-	pAction->SetInstrument(GetInstrument());
-	AddAction(pAction);	
+	AddAction(new CPActionReplaceInst {GetInstrument()});
 }
 
 void CFamiTrackerView::OnEditExpandPatterns()		// // //
@@ -3868,11 +3862,9 @@ bool CFamiTrackerView::IsDragging() const
 
 void CFamiTrackerView::EditReplace(stChanNote &Note)		// // //
 {
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_EDIT_NOTE);
-	pAction->SetNote(Note);
-	AddAction(pAction);
+	AddAction(new CPActionEditNote(Note));
 	InvalidateCursor();
-	pAction->SaveRedoState(static_cast<CMainFrame*>(GetParentFrame()));		// // //
+	// pAction->SaveRedoState(static_cast<CMainFrame*>(GetParentFrame()));		// // //
 }
 
 void CFamiTrackerView::OnUpdateFindNext(CCmdUI *pCmdUI)		// // //

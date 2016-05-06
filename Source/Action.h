@@ -33,31 +33,35 @@ class CMainFrame;		// // //
 class CAction
 {
 public:
-	CAction(int iAction = -1);		// // //
 	virtual ~CAction();
 
-	// Save the undo state and perform the action. This method may reject the action by returning false
-	virtual bool SaveState(CMainFrame *pMainFrm) = 0;
-
-	// // // Save the redo state after performing the action
-	virtual void SaveRedoState(CMainFrame *pMainFrm) = 0;
-
-	// // // Restore the state just before the action
-	virtual void RestoreState(CMainFrame *pMainFrm) = 0;
-
-	// // // Restore the state just after the action
-	virtual void RestoreRedoState(CMainFrame *pMainFrm) = 0;
+	// // // Save the action-specific state information. This method may reject the action by returning false
+	virtual bool SaveState(const CMainFrame *pMainFrm) = 0;
 
 	// Undo the operation
-	virtual void Undo(CMainFrame *pMainFrm) = 0;
+	virtual void Undo(CMainFrame *pMainFrm) const = 0;
 
 	// Redo the operation
-	virtual void Redo(CMainFrame *pMainFrm) = 0;
+	virtual void Redo(CMainFrame *pMainFrm) const = 0;
+
+	// // // Save the undo state before performing the action
+	virtual void SaveUndoState(const CMainFrame *pMainFrm) = 0;
+
+	// // // Save the redo state after performing the action
+	virtual void SaveRedoState(const CMainFrame *pMainFrm) = 0;
+
+	// // // Restore the state just before the action
+	virtual void RestoreUndoState(CMainFrame *pMainFrm) const = 0;
+
+	// // // Restore the state just after the action
+	virtual void RestoreRedoState(CMainFrame *pMainFrm) const = 0;
 
 	// Get the action type
 	int GetAction() const;
 
 protected:
+	CAction(int iAction = -1);		// // //
+
 	int m_iAction;
 };
 

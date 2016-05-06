@@ -73,7 +73,7 @@ void CFrameAction::SaveFrame(CFamiTrackerDoc *pDoc)
 	}
 }
 
-void CFrameAction::RestoreFrame(CFamiTrackerDoc *pDoc)
+void CFrameAction::RestoreFrame(CFamiTrackerDoc *pDoc) const
 {
 	for (unsigned int i = 0; i < pDoc->GetAvailableChannels(); ++i) {
 		pDoc->SetPatternAtFrame(m_iUndoTrack, m_iUndoFramePos, i, m_iPatterns[i]);
@@ -103,7 +103,7 @@ void CFrameAction::SaveAllFrames(CFamiTrackerDoc *pDoc)
 	m_iUndoFrameCount = Frames;
 }
 
-void CFrameAction::RestoreAllFrames(CFamiTrackerDoc *pDoc)
+void CFrameAction::RestoreAllFrames(CFamiTrackerDoc *pDoc) const
 {
 	pDoc->SetFrameCount(m_iUndoTrack, m_iUndoFrameCount);
 
@@ -127,7 +127,7 @@ int CFrameAction::ClipPattern(int Pattern) const
 	return Pattern;
 }
 
-void CFrameAction::ClearPatterns(CFamiTrackerDoc *pDoc, int Target)
+void CFrameAction::ClearPatterns(CFamiTrackerDoc *pDoc, int Target) const
 {
 	const int Rows = m_pClipData->ClipInfo.Rows;
 	const int Channels = m_pClipData->ClipInfo.Channels;
@@ -142,7 +142,7 @@ void CFrameAction::ClearPatterns(CFamiTrackerDoc *pDoc, int Target)
 	pDoc->DeleteFrames(m_iUndoTrack, Target, Rows);
 }
 
-bool CFrameAction::SaveState(CMainFrame *pMainFrm)
+bool CFrameAction::SaveState(const CMainFrame *pMainFrm)
 {
 	// Save action state for undo
 
@@ -150,12 +150,6 @@ bool CFrameAction::SaveState(CMainFrame *pMainFrm)
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(pMainFrm->GetActiveView());
 	CFamiTrackerDoc *pDocument = pView->GetDocument();
 	const int Channels = pDocument->GetAvailableChannels();
-
-	m_iUndoTrack = pMainFrm->GetSelectedTrack();
-	m_iUndoFramePos = pView->GetSelectedFrame();
-	m_iUndoChannelPos = pView->GetSelectedChannel();
-
-	pFrameEditor->GetSelectInfo(m_oSelInfo);
 
 	switch (m_iAction) {
 		case ACT_ADD:
@@ -221,25 +215,35 @@ bool CFrameAction::SaveState(CMainFrame *pMainFrm)
 	return true;
 }
 
-void CFrameAction::SaveRedoState(CMainFrame *pMainFrm)		// // //
+void CFrameAction::SaveUndoState(const CMainFrame *pMainFrm)		// // //
+{
+	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(pMainFrm->GetActiveView());
+	m_iUndoTrack = pMainFrm->GetSelectedTrack();
+	m_iUndoFramePos = pView->GetSelectedFrame();
+	m_iUndoChannelPos = pView->GetSelectedChannel();
+	pMainFrm->GetFrameEditor()->GetSelectInfo(m_oSelInfo);
+}
+
+void CFrameAction::SaveRedoState(const CMainFrame *pMainFrm)		// // //
 {
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(pMainFrm->GetActiveView());
 	m_iRedoFramePos = pView->GetSelectedFrame();
 	m_iRedoChannelPos = pView->GetSelectedChannel();
 }
 
-void CFrameAction::RestoreState(CMainFrame *pMainFrm)		// // //
+void CFrameAction::RestoreUndoState(CMainFrame *pMainFrm) const		// // //
 {
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(pMainFrm->GetActiveView());
 	CFamiTrackerDoc *pDocument = pView->GetDocument();
 
 	pView->SelectFrame(m_iUndoFramePos);
 	pView->SelectChannel(m_iUndoChannelPos);
+	pMainFrm->GetFrameEditor()->SetSelectInfo(m_oSelInfo);
 
 	pDocument->UpdateAllViews(NULL, UPDATE_FRAME);
 }
 
-void CFrameAction::RestoreRedoState(CMainFrame *pMainFrm)		// // //
+void CFrameAction::RestoreRedoState(CMainFrame *pMainFrm) const		// // //
 {
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(pMainFrm->GetActiveView());
 	CFamiTrackerDoc *pDocument = pView->GetDocument();
@@ -250,13 +254,11 @@ void CFrameAction::RestoreRedoState(CMainFrame *pMainFrm)		// // //
 	pDocument->UpdateAllViews(NULL, UPDATE_FRAME);
 }
 
-void CFrameAction::Undo(CMainFrame *pMainFrm)
+void CFrameAction::Undo(CMainFrame *pMainFrm) const
 {
 	CFrameEditor *pFrameEditor = pMainFrm->GetFrameEditor();
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(pMainFrm->GetActiveView());
 	CFamiTrackerDoc *pDocument = pView->GetDocument();
-
-	pFrameEditor->SetSelectInfo(m_oSelInfo);
 
 	switch (m_iAction) {
 		case ACT_ADD:
@@ -325,7 +327,7 @@ void CFrameAction::Undo(CMainFrame *pMainFrm)
 	}
 }
 
-void CFrameAction::Redo(CMainFrame *pMainFrm)
+void CFrameAction::Redo(CMainFrame *pMainFrm) const
 {
 	CFrameEditor *pFrameEditor = pMainFrm->GetFrameEditor();
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(pMainFrm->GetActiveView());

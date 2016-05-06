@@ -99,6 +99,7 @@ public:
 	void OnHomeKey();
 	void OnEndKey();
 
+	void MoveCursor(const CCursorPos &Pos);		// // // primitive cursor setter
 	void MoveToRow(int Row);
 	void MoveToFrame(int Frame);
 	void MoveToChannel(int Channel);
@@ -116,6 +117,7 @@ public:
 	int GetChannel() const;
 	int GetRow() const;
 	cursor_column_t GetColumn() const;
+	CCursorPos GetCursor() const;		// // //
 
 	// Mouse
 	void OnMouseDown(const CPoint &point);
@@ -246,8 +248,14 @@ private:
 	CCursorPos GetCursorAtPoint(const CPoint &point) const;
 
 	// Selection methods
-	void UpdateSelectionBegin();		// // //
-	void UpdateSelectionEnd();		// // //
+	class CSelectionGuard		// // //
+	{
+	public:
+		CSelectionGuard(CPatternEditor *pEditor);
+		~CSelectionGuard();
+	private:
+		CPatternEditor *m_pPatternEditor;
+	};
 
 	void SetSelectionStart(const CCursorPos &start);
 	void SetSelectionEnd(const CCursorPos &end);
@@ -263,8 +271,8 @@ private:
 	void DecreaseEffectColumn(int Channel);
 
 	// Keys
-	bool IsShiftPressed() const;
-	bool IsControlPressed() const;
+	static bool IsShiftPressed();		// // // static
+	static bool IsControlPressed();
 
 	// Mouse
 	void OnMouseDownHeader(const CPoint &point);
