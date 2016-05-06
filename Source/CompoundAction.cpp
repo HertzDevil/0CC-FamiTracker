@@ -30,41 +30,44 @@ CCompoundAction::CCompoundAction() : m_pActionList()
 {
 }
 
-bool CCompoundAction::SaveState(CMainFrame *pMainFrm)
+bool CCompoundAction::SaveState(const CMainFrame *pMainFrm)
 {
 	for (auto it = m_pActionList.begin(); it != m_pActionList.end(); ++it)
-		if (!(*it)->SaveState(pMainFrm))
+		if (!(*it)->SaveState(pMainFrm)) // TODO: check if all compound actions can be undone in any order
 			return false;
 	return true;
 }
 
-void CCompoundAction::SaveRedoState(CMainFrame *pMainFrm)		// // //
-{
-	(*m_pActionList.rbegin())->SaveRedoState(pMainFrm);
-//	for (auto it = m_pActionList.begin(); it != m_pActionList.end(); ++it)
-//		(*it)->SaveRedoState(pMainFrm);
-}
-
-void CCompoundAction::RestoreState(CMainFrame *pMainFrm)		// // //
-{
-	(*m_pActionList.begin())->RestoreState(pMainFrm);
-}
-
-void CCompoundAction::RestoreRedoState(CMainFrame *pMainFrm)		// // //
-{
-	(*m_pActionList.rbegin())->RestoreRedoState(pMainFrm);
-}
-
-void CCompoundAction::Undo(CMainFrame *pMainFrm)
+void CCompoundAction::Undo(CMainFrame *pMainFrm) const
 {
 	for (auto it = m_pActionList.rbegin(); it != m_pActionList.rend(); ++it)
 		(*it)->Undo(pMainFrm);
 }
 
-void CCompoundAction::Redo(CMainFrame *pMainFrm)
+void CCompoundAction::Redo(CMainFrame *pMainFrm) const
 {
 	for (auto it = m_pActionList.begin(); it != m_pActionList.end(); ++it)
 		(*it)->Redo(pMainFrm);
+}
+
+void CCompoundAction::SaveUndoState(const CMainFrame *pMainFrm)		// // //
+{
+	(*m_pActionList.begin())->SaveUndoState(pMainFrm);
+}
+
+void CCompoundAction::SaveRedoState(const CMainFrame *pMainFrm)		// // //
+{
+	(*m_pActionList.rbegin())->SaveRedoState(pMainFrm);
+}
+
+void CCompoundAction::RestoreUndoState(CMainFrame *pMainFrm) const		// // //
+{
+	(*m_pActionList.begin())->RestoreUndoState(pMainFrm);
+}
+
+void CCompoundAction::RestoreRedoState(CMainFrame *pMainFrm) const		// // //
+{
+	(*m_pActionList.rbegin())->RestoreRedoState(pMainFrm);
 }
 
 void CCompoundAction::JoinAction(CAction *const pAction)

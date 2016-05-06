@@ -846,7 +846,7 @@ void CMainFrame::SetRowCount(int Count)
 		else {
 			// Update existing action
 			pAction->SetPatternLength(Count);
-			pAction->Update(this);
+			pAction->Update(this); // TODO: extend this to all CAction objects
 		}
 	}
 
@@ -2664,7 +2664,8 @@ BOOL CMainFrame::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct)
 bool CMainFrame::AddAction(CAction *pAction)
 {
 	ASSERT(m_pActionHandler != NULL);
-
+	
+	pAction->SaveUndoState(this);		// // //
 	if (!pAction->SaveState(this)) {
 		// Operation cancelled
 		SAFE_RELEASE(pAction);
@@ -2701,11 +2702,10 @@ void CMainFrame::OnEditUndo()
 {
 	ASSERT(m_pActionHandler != NULL);
 
-	CAction *pAction = m_pActionHandler->PopUndo();
-
-	if (pAction != NULL) {
+	if (CAction *pAction = m_pActionHandler->PopUndo()) {
+		pAction->RestoreRedoState(this);		// // //
 		pAction->Undo(this);
-		pAction->RestoreState(this);		// // //
+		pAction->RestoreUndoState(this);		// // //
 	}
 
 	CFamiTrackerDoc	*pDoc = (CFamiTrackerDoc*)GetActiveDocument();			// // //
@@ -2717,9 +2717,8 @@ void CMainFrame::OnEditRedo()
 {
 	ASSERT(m_pActionHandler != NULL);
 
-	CAction *pAction = m_pActionHandler->PopRedo();
-
-	if (pAction != NULL) {
+	if (CAction *pAction = m_pActionHandler->PopRedo()) {
+		pAction->RestoreUndoState(this);		// // //
 		pAction->Redo(this);
 		pAction->RestoreRedoState(this);		// // //
 	}

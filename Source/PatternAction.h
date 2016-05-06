@@ -33,6 +33,37 @@ enum transpose_t {
 	TRANSPOSE_INC_OCTAVES
 };
 
+/*
+	\brief A structure responsible for recording the cursor and selection state of the pattern
+	editor for use by pattern actions.
+*/
+struct CPatternEditorState		// // // TODO: might be moved to PatternEditor.h
+{
+	/*!	\brief Constructor of the pattern editor state.
+		\details On construction, the object retrieves the current state of the pattern editor
+		immediately. Once created, a state object remains constant and can be applied back to the
+		pattern editor as many times as desired.
+		\param pEditor Pointer to the pattern editor.
+		\param Track The track number. */
+	CPatternEditorState(const CPatternEditor *pEditor, int Track);
+
+	/*!	\brief Applies the state to a pattern editor.
+		\param pEditor Pointer to the pattern editor. */
+	void ApplyState(CPatternEditor *pEditor) const;
+
+	/*!	\brief The current track number at the time of the state's creation. */
+	const int Track;
+
+	/*!	\brief The current cursor position at the time of the state's creation. */
+	const CCursorPos Cursor;
+
+	/*!	\brief The current selection position at the time of the state's creation. */
+	const CSelection Selection;
+
+	/*!	\brief Whether a selection is active at the time of the state's creation. */
+	const bool IsSelecting;
+};
+
 // Pattern commands
 class CPatternAction : public CAction
 {
@@ -64,23 +95,21 @@ public:
 	CPatternAction(int iAction);
 	virtual ~CPatternAction();
 
-	bool SaveState(CMainFrame *pMainFrm);
-	void SaveRedoState(CMainFrame *pMainFrm);		// // //
-	void RestoreState(CMainFrame *pMainFrm);		// // //
-	void RestoreRedoState(CMainFrame *pMainFrm);		// // //
-	void Undo(CMainFrame *pMainFrm);
-	void Redo(CMainFrame *pMainFrm);
+	virtual bool SaveState(const CMainFrame *pMainFrm);
+	virtual void Undo(CMainFrame *pMainFrm) const;
+	virtual void Redo(CMainFrame *pMainFrm) const;
+
+	void SaveUndoState(const CMainFrame *pMainFrm);		// // //
+	void SaveRedoState(const CMainFrame *pMainFrm);		// // //
+	void RestoreUndoState(CMainFrame *pMainFrm) const;		// // //
+	void RestoreRedoState(CMainFrame *pMainFrm) const;		// // //
 
 public:
-	void SetNote(stChanNote &Note);
-	void SetReplacePosition(int Frame, int Channel, int Row);		// // //
-	void SetDelete(bool PullUp, bool Back);
 	void SetPaste(CPatternClipData *pClipData);
 	void SetPasteMode(paste_mode_t Mode);		// // //
 	void SetPastePos(paste_pos_t Pos);		// // //
 	void SetTranspose(transpose_t Mode);
 	void SetScroll(int Scroll);
-	void SetInstrument(int Instrument);
 	void SetDragAndDrop(const CPatternClipData *pClipData, bool bDelete, bool bMix, const CSelection *pDragTarget);
 	void SetPatternLength(int Length);
 	void Update(CMainFrame *pMainFrm);
@@ -90,47 +119,42 @@ public:
 
 private:
 	void SaveEntire(const CPatternEditor *pPatternEditor);
-	void RestoreEntire(CPatternEditor *pPatternEditor);
+	void RestoreEntire(CPatternEditor *pPatternEditor) const;
 	bool SetTargetSelection(CPatternEditor *pPatternEditor);		// // //
 	void CopySelection(const CPatternEditor *pPatternEditor);		// // //
-	void PasteSelection(CPatternEditor *pPatternEditor);		// // //
+	void PasteSelection(CPatternEditor *pPatternEditor) const;		// // //
 	void CopyAuxiliary(const CPatternEditor *pPatternEditor);		// // //
-	void PasteAuxiliary(CPatternEditor *pPatternEditor);		// // //
+	void PasteAuxiliary(CPatternEditor *pPatternEditor) const;		// // //
 	void IncreaseRowAction(CFamiTrackerDoc *pDoc) const;
 	void DecreaseRowAction(CFamiTrackerDoc *pDoc) const;
 
-	void RestoreSelection(CPatternEditor *pPatternEditor);
+	void RestoreSelection(CPatternEditor *pPatternEditor) const;
 
 	void InsertRows(CFamiTrackerDoc *pDoc) const;
 	void PullUpRows(CFamiTrackerDoc *pDoc) const;
 	void StretchPattern(CFamiTrackerDoc *pDoc) const;		// // //
-	void ReplaceInstrument(CFamiTrackerDoc *pDoc) const;
 	void Transpose(CFamiTrackerDoc *pDoc) const;
 	void Interpolate(CFamiTrackerDoc *pDoc) const;
 	void Reverse(CFamiTrackerDoc *pDoc) const;
 	void ScrollValues(CFamiTrackerDoc *pDoc) const;
 	void DeleteSelection(CFamiTrackerDoc *pDoc) const;
 
+	void UpdateView(CFamiTrackerDoc *pDoc) const;		// // //
+
+protected:
 	CPatternIterator GetStartIterator() const;		// // //
 	CPatternIterator GetEndIterator() const;
+
+protected:
+	CPatternEditorState *m_pUndoState;		// // //
+	CPatternEditorState *m_pRedoState;
 
 private:
 	stChanNote m_NewNote;
 	stChanNote m_OldNote;
 
-	int m_iUndoTrack;
-	int m_iUndoFrame;
-	int m_iUndoChannel;
-	int m_iUndoRow;
-	cursor_column_t m_iUndoColumn;		// // //
-	int m_iUndoColumnCount;
-
-	int m_iRedoTrack;
-	int m_iRedoFrame;
-	int m_iRedoChannel;
-	int m_iRedoRow;
-	cursor_column_t m_iRedoColumn;
-	int m_iRedoColumnCount;		// // //
+	int m_iUndoColumnCount;		// // //
+	int m_iRedoColumnCount;
 
 	int m_iReplaceFrame, m_iReplaceChannel, m_iReplaceRow;		// // //
 
@@ -139,9 +163,6 @@ private:
 
 	int m_iNewPatternLen;
 	int m_iOldPatternLen;
-
-	bool m_bPullUp;
-	bool m_bBack;
 
 	const CPatternClipData *m_pClipData;
 	CPatternClipData *m_pUndoClipData, *m_pAuxiliaryClipData;		// // //
@@ -154,7 +175,6 @@ private:
 
 	transpose_t m_iTransposeMode;
 	int m_iScrollValue;
-	int m_iInstrument;
 
 	bool m_bDragDelete;
 	bool m_bDragMix;
@@ -163,4 +183,65 @@ private:
 	int m_iClickedChannel;
 
 	std::vector<int> m_iStretchMap;		// // //
+};
+
+// // // built-in pattern action subtypes
+
+class CPActionEditNote : public CPatternAction
+{
+public:
+	CPActionEditNote(const stChanNote &Note);
+
+private:
+	bool SaveState(const CMainFrame *pMainFrm);
+	void Undo(CMainFrame *pMainFrm) const;
+	void Redo(CMainFrame *pMainFrm) const;
+
+private:
+	stChanNote m_NewNote, m_OldNote;
+};
+
+class CPActionReplaceNote : public CPatternAction
+{
+public:
+	CPActionReplaceNote(const stChanNote &Note, int Frame, int Row, int Channel);
+
+private:
+	bool SaveState(const CMainFrame *pMainFrm);
+	void Undo(CMainFrame *pMainFrm) const;
+	void Redo(CMainFrame *pMainFrm) const;
+
+private:
+	stChanNote m_NewNote, m_OldNote;
+	int m_iFrame, m_iRow, m_iChannel;
+};
+
+class CPActionDeleteRow : public CPatternAction
+{
+public:
+	CPActionDeleteRow(bool PullUp, bool Backspace);
+
+private:
+	bool SaveState(const CMainFrame *pMainFrm);
+	void Undo(CMainFrame *pMainFrm) const;
+	void Redo(CMainFrame *pMainFrm) const;
+
+private:
+	stChanNote m_OldNote;
+	bool m_bPullUp, m_bBack;
+};
+
+class CPActionReplaceInst : public CPatternAction
+{
+public:
+	CPActionReplaceInst(unsigned Index);
+
+private:
+	bool SaveState(const CMainFrame *pMainFrm);
+	void Undo(CMainFrame *pMainFrm) const;
+	void Redo(CMainFrame *pMainFrm) const;
+
+private:
+	unsigned m_iInstrumentIndex;
+	CPatternClipData *m_pUndoClipData;
 };

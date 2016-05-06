@@ -56,12 +56,14 @@ public:
 	CFrameAction(int iAction);
 	virtual ~CFrameAction();
 
-	bool SaveState(CMainFrame *pMainFrm);
-	void SaveRedoState(CMainFrame *pMainFrm);		// // //
-	void RestoreState(CMainFrame *pMainFrm);		// // //
-	void RestoreRedoState(CMainFrame *pMainFrm);		// // //
-	void Undo(CMainFrame *pMainFrm);
-	void Redo(CMainFrame *pMainFrm);
+	virtual bool SaveState(const CMainFrame *pMainFrm);
+	virtual void Undo(CMainFrame *pMainFrm) const;
+	virtual void Redo(CMainFrame *pMainFrm) const;
+
+	void SaveUndoState(const CMainFrame *pMainFrm);		// // //
+	void SaveRedoState(const CMainFrame *pMainFrm);		// // //
+	void RestoreUndoState(CMainFrame *pMainFrm) const;		// // //
+	void RestoreRedoState(CMainFrame *pMainFrm) const;		// // //
 
 public:
 	void SetFrameCount(unsigned int FrameCount);
@@ -73,14 +75,14 @@ public:
 
 private:
 	void SaveFrame(CFamiTrackerDoc *pDoc);
-	void RestoreFrame(CFamiTrackerDoc *pDoc);
+	void RestoreFrame(CFamiTrackerDoc *pDoc) const;
 
 	void SaveAllFrames(CFamiTrackerDoc *pDoc);
-	void RestoreAllFrames(CFamiTrackerDoc *pDoc);
+	void RestoreAllFrames(CFamiTrackerDoc *pDoc) const;
 
 	int ClipPattern(int Pattern) const;
 
-	void ClearPatterns(CFamiTrackerDoc *pDoc, int Target);
+	void ClearPatterns(CFamiTrackerDoc *pDoc, int Target) const;
 
 private:
 	unsigned int m_iUndoTrack;
