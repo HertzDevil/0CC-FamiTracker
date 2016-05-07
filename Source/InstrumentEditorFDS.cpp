@@ -20,6 +20,8 @@
 
 #include <iterator> 
 #include <sstream>
+#include <cmath>
+#include <algorithm>
 #include "stdafx.h"
 #include "FamiTracker.h"
 #include "Instrument.h"		// // //

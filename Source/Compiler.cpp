@@ -22,6 +22,7 @@
 
 #include <map>
 #include <vector>
+#include <algorithm>
 #include "stdafx.h"
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"

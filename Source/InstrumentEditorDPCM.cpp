@@ -20,6 +20,9 @@
 ** must bear this legend.
 */
 
+#include <memory>		// // //
+#include <string>
+#include <algorithm>
 #include "stdafx.h"
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
@@ -68,6 +71,7 @@ CDMCFileSoundDialog::~CDMCFileSoundDialog()
 
 void CDMCFileSoundDialog::OnFileNameChange()
 {
+	USES_CONVERSION;
 	// Preview DMC file
 	if (!GetFileExt().CompareNoCase(_T("dmc")) && theApp.GetSettings()->General.bWavePreview) {
 		DWORD dwAttrib = GetFileAttributes(GetPathName());
@@ -131,6 +135,7 @@ END_MESSAGE_MAP()
 
 BOOL CInstrumentEditorDPCM::OnInitDialog()
 {
+	USES_CONVERSION;
 	CInstrumentEditPanel::OnInitDialog();
 
 	m_iOctave = 3;
@@ -195,6 +200,7 @@ void CInstrumentEditorDPCM::BuildKeyList()
 
 void CInstrumentEditorDPCM::UpdateKey(int Index)
 {
+	USES_CONVERSION;
 	CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
 	CString NameStr = NO_SAMPLE_STR;
 	CString PitchStr = _T("-");
@@ -213,6 +219,7 @@ void CInstrumentEditorDPCM::UpdateKey(int Index)
 
 void CInstrumentEditorDPCM::BuildSampleList()
 {
+	USES_CONVERSION;
 	CComboBox *pSampleBox = static_cast<CComboBox*>(GetDlgItem(IDC_SAMPLES));
 	CListCtrl *pSampleListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
 
@@ -291,6 +298,7 @@ bool CInstrumentEditorDPCM::LoadSample(const CString &FilePath, const CString &F
 
 bool CInstrumentEditorDPCM::InsertSample(CDSample *pNewSample)
 {	
+	USES_CONVERSION;
 	int FreeSlot = GetDocument()->GetFreeSampleSlot();
 
 	// Out of sample slots
@@ -314,6 +322,7 @@ bool CInstrumentEditorDPCM::InsertSample(CDSample *pNewSample)
 
 void CInstrumentEditorDPCM::OnBnClickedLoad()
 {
+	USES_CONVERSION;
 	CString fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, _T(".dmc"));
 	CDMCFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_ALLOWMULTISELECT | OFN_EXPLORER, fileFilter);
 
@@ -415,6 +424,7 @@ void CInstrumentEditorDPCM::OnCbnSelchangePitch()
 
 void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 {
+	USES_CONVERSION;
 	//CSpinButtonCtrl *pSpinButton;
 	//CComboBox *pSampleBox, *pPitchBox;
 	//CEdit *pDeltaValue;

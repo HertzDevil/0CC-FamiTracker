@@ -22,6 +22,7 @@
 
 #include <iterator>
 #include <sstream>
+#include <algorithm>
 #include "stdafx.h"
 #include "resource.h"		// // //
 #include "Instrument.h"

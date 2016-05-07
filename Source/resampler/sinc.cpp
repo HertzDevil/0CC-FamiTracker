@@ -8,7 +8,7 @@
 //------------------------------------------------------------------------
 #include <limits>
 #include <cmath>
-#include <algorithm>		// // //
+#include <algorithm>
 //------------------------------------------------------------------------
 
 /** Implementation of the sinc class **/

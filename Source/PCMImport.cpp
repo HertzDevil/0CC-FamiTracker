@@ -19,6 +19,7 @@
 */
 
 #include "stdafx.h"
+#include <algorithm>
 #include "FamiTracker.h"
 #include "DSample.h"		// // //
 #include "FamiTrackerTypes.h"		// // //
