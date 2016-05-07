@@ -168,14 +168,12 @@
 #define IDR_FRAME_POPUP                 240
 #define IDI_INST_N163                   245
 #define IDI_INST_FDS                    246
-#define IDI_INST_5B                     247
 #define IDI_INST_S5B                    247
 #define IDD_INSTRUMENT_FDS              248
 #define IDS_KRAID                       250
 #define IDD_FRAMEBAR                    251
 #define IDD_FRAMECONTROLS               251
 #define IDB_TOOLBAR_256                 257
-#define IDB_TOOLBAR_32BIT               258
 #define IDR_INSTRUMENT_POPUP            262
 #define IDD_SAMPLE_EDITOR               263
 #define IDD_INSTRUMENT_FDS_ENVELOPE     264

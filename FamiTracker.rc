@@ -44,8 +44,6 @@ IDB_TOOLBAR_INST_256    BITMAP                  "res\\InstrumentToolbar-256.bmp"
 
 IDB_ABOUT               BITMAP                  "res\\About.bmp"
 
-IDB_TOOLBAR_32BIT       BITMAP                  "res\\MainToolbar-32bit.bmp"
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
