@@ -31,6 +31,13 @@ enum EDIT_STYLES {		// // // renamed
 	EDIT_STYLE_IT = 2		// IT
 };
 
+enum module_error_level_t {		// // //
+	MODULE_ERROR_NONE,		/*!< No error checking at all (warning) */
+	MODULE_ERROR_DEFAULT,	/*!< Usual error checking */
+	MODULE_ERROR_STRICT,	/*!< Extra error checking for some values */
+	MODULE_ERROR_OFFICIAL	/*!< Special bounds checking according to the official build */
+};
+
 enum WIN_STATES {
 	STATE_NORMAL,
 	STATE_MAXIMIZED
@@ -125,7 +132,12 @@ public:
 		bool	bShowSkippedRows;
 		bool	bHexKeypad;
 		bool	bMultiFrameSel;
+		bool	bCheckVersion;		// // //
 	} General;
+
+	struct {
+		int		iErrorLevel;
+	} Version;		// // //
 
 	struct {
 		int		iDevice;

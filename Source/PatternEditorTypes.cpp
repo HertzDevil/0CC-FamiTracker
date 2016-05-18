@@ -77,6 +77,14 @@ bool CCursorPos::IsValid(int RowCount, int ChannelCount) const		// // //
 	return true;
 }
 
+std::pair<CPatternIterator, CPatternIterator> CCursorPos::GetIterators(const CPatternEditor *pEditor, int Track) const
+{
+	return std::make_pair(
+		CPatternIterator {pEditor, Track, *this},
+		CPatternIterator {pEditor, Track, *this}
+	);
+}
+
 // CSelection /////////////////////////////////////////////////////////////////////
 
 int CSelection::GetRowStart() const 
@@ -176,15 +184,23 @@ bool CSelection::IsColumnSelected(column_t Column, int Channel) const
 
 void CSelection::Normalize(CCursorPos &Begin, CCursorPos &End) const		// // //
 {
-	Begin.m_iFrame = GetFrameStart();
-	Begin.m_iRow = GetRowStart();
-	Begin.m_iChannel = GetChanStart();
-	Begin.m_iColumn = GetColStart();
-	
-	End.m_iFrame = m_cpStart.m_iFrame + m_cpEnd.m_iFrame - Begin.m_iFrame;
-	End.m_iRow = m_cpStart.m_iRow + m_cpEnd.m_iRow - Begin.m_iRow;
-	End.m_iChannel = m_cpStart.m_iChannel + m_cpEnd.m_iChannel - Begin.m_iChannel;
-	End.m_iColumn = static_cast<cursor_column_t>(m_cpStart.m_iColumn + m_cpEnd.m_iColumn - Begin.m_iColumn);
+	CCursorPos Temp {GetRowStart(), GetChanStart(), GetColStart(), GetFrameStart()};
+	std::swap(End, CCursorPos {GetRowEnd(), GetChanEnd(), GetColEnd(), GetFrameEnd()});
+	std::swap(Begin, Temp);
+}
+
+CSelection CSelection::GetNormalized() const
+{
+	CSelection Sel;
+	Normalize(Sel.m_cpStart, Sel.m_cpEnd);
+	return Sel;
+}
+
+std::pair<CPatternIterator, CPatternIterator> CSelection::GetIterators(const CPatternEditor *pEditor, int Track) const
+{
+	CCursorPos it, end;
+	Normalize(it, end);
+	return std::make_pair(CPatternIterator {pEditor, Track, it}, CPatternIterator {pEditor, Track, end});
 }
 
 // CPatternClipData ////////////////////////////////////////////////////////////
@@ -255,7 +271,7 @@ CPatternIterator::CPatternIterator(const CPatternIterator &it) :
 {
 }
 
-CPatternIterator::CPatternIterator(CPatternEditor *pEditor, unsigned int Track, const CCursorPos &Pos) :
+CPatternIterator::CPatternIterator(CPatternEditor *pEditor, int Track, const CCursorPos &Pos) :
 	m_iTrack(Track),
 	m_pDocument(CFamiTrackerDoc::GetDoc()),
 	m_pPatternEditor(pEditor),
@@ -264,7 +280,7 @@ CPatternIterator::CPatternIterator(CPatternEditor *pEditor, unsigned int Track, 
 	Warp();
 }
 
-CPatternIterator::CPatternIterator(const CPatternEditor *pEditor, unsigned int Track, const CCursorPos &Pos) :
+CPatternIterator::CPatternIterator(const CPatternEditor *pEditor, int Track, const CCursorPos &Pos) :
 	m_iTrack(Track),
 	m_pDocument(CFamiTrackerDoc::GetDoc()),
 	m_pPatternEditor(pEditor),

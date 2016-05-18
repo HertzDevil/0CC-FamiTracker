@@ -110,6 +110,7 @@ public:
 	// Public functions
 	//
 public:
+	void			CheckNewVersion(bool StartUp) const;		// // //
 	void			LoadSoundConfig();
 	void			UpdateMenuShortcuts();		// // //
 	void			ReloadColorScheme();
@@ -153,11 +154,12 @@ private:
 	bool CheckSingleInstance(CFTCommandLineInfo &cmdInfo);
 	void RegisterSingleInstance();
 	void UnregisterSingleInstance();
-	void CheckNewVersion();
 	void LoadLocalization();
 
 	// Private variables and objects
 private:
+	static const int MAX_RECENT_FILES = 8;		// // //
+
 	// Objects
 	CMIDI			*m_pMIDI;
 	CAccelerator	*m_pAccel;					// Keyboard accelerator
@@ -193,6 +195,8 @@ public:
 	afx_msg void OnFileOpen();
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnTestExport();
+	void OnRecentFilesClear();		// // //
+	void OnUpdateRecentFilesClear(CCmdUI *pCmdUI);		// // //
 };
 
 extern CFamiTrackerApp theApp;

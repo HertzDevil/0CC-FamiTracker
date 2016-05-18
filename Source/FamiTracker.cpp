@@ -18,6 +18,8 @@
 ** must bear this legend.
 */
 
+#include "json.hpp"		// // //
+#include <thread>		// // //
 #include "stdafx.h"
 #include "Exception.h"
 #include "FamiTracker.h"
@@ -34,6 +36,9 @@
 #include "CustomExporters.h"
 #include "CommandLineExport.h"
 #include <VersionHelpers.h>		// // //
+
+#include "WinInet.h"		// // //
+#pragma comment(lib, "wininet.lib")
 
 #ifdef EXPORT_TEST
 #include "ExportTest/ExportTest.h"
@@ -55,12 +60,11 @@ BEGIN_MESSAGE_MAP(CFamiTrackerApp, CWinApp)
 	// Standard file based document commands
 	ON_COMMAND(ID_FILE_NEW, CWinApp::OnFileNew)
 	ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
-#ifdef UPDATE_CHECK
-	ON_COMMAND(ID_HELP_CHECKFORNEWVERSIONS, CheckNewVersion)
-#endif
 #ifdef EXPORT_TEST
 	ON_COMMAND(ID_MODULE_TEST_EXPORT, OnTestExport)
 #endif
+	ON_COMMAND(ID_RECENTFILES_CLEAR, OnRecentFilesClear)		// // //
+	ON_UPDATE_COMMAND_UI(ID_FILE_MRU_FILE1, OnUpdateRecentFilesClear)		// // //
 END_MESSAGE_MAP()
 
 // Include this for windows xp style in visual studio 2005 or later
@@ -125,7 +129,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	// TODO: You should modify this string to be something appropriate
 	// such as the name of your company or organization
 	SetRegistryKey(_T(""));
-	LoadStdProfileSettings(8);  // Load standard INI file options (including MRU)
+	LoadStdProfileSettings(MAX_RECENT_FILES);  // Load standard INI file options (including MRU)
 
 	// Load program settings
 	m_pSettings = CSettings::GetObject();
@@ -282,6 +286,9 @@ BOOL CFamiTrackerApp::InitInstance()
 	m_pMainWnd->GetMenu()->GetSubMenu(4)->RemoveMenu(ID_MODULE_CHANNELS, MF_BYCOMMAND);		// // //
 #endif
 
+	if (m_pSettings->General.bCheckVersion)		// // //
+		CheckNewVersion(true);
+
 	// Initialization is done
 	TRACE0("App: InitInstance done\n");
 
@@ -433,6 +440,22 @@ void CFamiTrackerApp::LoadLocalization()
 }
 #endif
 
+void CFamiTrackerApp::OnRecentFilesClear()		// // //
+{
+	SAFE_RELEASE(m_pRecentFileList);
+}
+
+void CFamiTrackerApp::OnUpdateRecentFilesClear(CCmdUI *pCmdUI)		// // //
+{
+	if (m_pRecentFileList == nullptr) {
+		m_pRecentFileList = new CRecentFileList(0, _T("Recent File List"), _T("File%d"), MAX_RECENT_FILES);
+		for (int i = 0; i < MAX_RECENT_FILES; ++i)
+			pCmdUI->m_pMenu->RemoveMenu(ID_FILE_MRU_FILE1 + i, MF_BYCOMMAND);
+		pCmdUI->m_pMenu->AppendMenu(MF_STRING, ID_FILE_MRU_FILE1, _T("(File)"));
+	}
+	m_pRecentFileList->UpdateMenu(pCmdUI);
+}
+
 void CFamiTrackerApp::ShutDownSynth()
 {
 	// Shut down sound generator
@@ -518,6 +541,82 @@ void CFamiTrackerApp::UnregisterSingleInstance()
 	}
 
 	SAFE_RELEASE(m_pInstanceMutex);
+}
+
+void CFamiTrackerApp::CheckNewVersion(bool StartUp) const		// // //
+{
+	static PCTSTR rgpszAcceptTypes[] = {_T("application/json"), NULL};
+
+	const auto CheckFunc = [&] (bool Start) {
+		HINTERNET hOpen, hConnect, hRequest;
+		CString jsonStr;
+
+		if ((hOpen = InternetOpen(_T("0CC_FamiTracker"), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0)) &&
+			(hConnect = InternetConnect(hOpen, _T("api.github.com"),
+			INTERNET_DEFAULT_HTTPS_PORT, _T(""), _T(""), INTERNET_SERVICE_HTTP, 0, 0)) &&
+			(hRequest = HttpOpenRequest(hConnect, _T("GET"), _T("/repos/HertzDevil/0CC-FamiTracker/releases"),
+			_T("HTTP/1.0"), NULL, rgpszAcceptTypes,
+			INTERNET_FLAG_RELOAD | INTERNET_FLAG_SECURE | INTERNET_FLAG_NO_CACHE_WRITE, NULL))) try {
+			HttpAddRequestHeaders(hRequest, _T("Content-Type: application/json\r\n"), -1, HTTP_ADDREQ_FLAG_ADD);
+
+			if (!HttpSendRequest(hRequest, NULL, 0, NULL, 0)) throw GetLastError();
+			while (true) {
+				DWORD Size;
+				if (!InternetQueryDataAvailable(hRequest, &Size, 0, 0)) throw GetLastError();
+				if (!Size) break;
+				char *Buf = new char[Size + 1]();
+				DWORD Received = 0;
+				for (DWORD i = 0; i < Size; i += 1024) {
+					DWORD Length = (Size - i < 1024) ? Size % 1024 : 1024;
+					if (!InternetReadFile(hRequest, Buf + i, Length, &Received))
+						throw GetLastError();
+				}
+				jsonStr += Buf;
+				SAFE_RELEASE_ARRAY(Buf);
+			}
+			nlohmann::json j = nlohmann::json::parse(jsonStr.GetBuffer());
+			for (const auto &i : j) {
+				int Ver[4] = { };
+				sscanf_s(i["tag_name"].get<std::string>().c_str(),
+						 "v%u.%u.%u%*1[.r]%u", Ver, Ver + 1, Ver + 2, Ver + 3);
+				if (Ver[0] > VERSION_API || Ver[0] == VERSION_API &&
+					(Ver[1] > VERSION_MAJ || Ver[1] == VERSION_MAJ &&
+					(Ver[2] > VERSION_MIN || Ver[2] == VERSION_MIN &&
+					Ver[3] > VERSION_REV))) {
+					int Y = 1970, M = 1, D = 1;
+					sscanf_s(i["published_at"].get<std::string>().c_str(), "%d-%d-%d", &Y, &M, &D);
+					CString msg;
+					static const CString MONTHS[] = {
+						_T("Jan"), _T("Feb"), _T("Mar"), _T("Apr"), _T("May"), _T("Jun"),
+						_T("Jul"), _T("Aug"), _T("Sept"), _T("Oct"), _T("Nov"), _T("Dec"),
+					};
+					msg.Format(_T("A new version of 0CC-FamiTracker is now available:\n"
+							   "Version %d.%d.%d.%d (released %s %d, %d)\n"
+							   "Pressing \"Yes\" will launch the Github web page for this release."),
+							   Ver[0], Ver[1], Ver[2], Ver[3], MONTHS[--M], D, Y);
+					if (Start)
+						msg.Append(_T(" (Version checking on startup may be disabled in the configuration menu.)"));
+					if (AfxMessageBox(msg, MB_YESNO) == IDYES) {
+						CString url;
+						url.Format(_T("https://github.com/HertzDevil/0CC-FamiTracker/releases/tag/v%d.%d.%d.%d"),
+								   Ver[0], Ver[1], Ver[2], Ver[3]);
+						ShellExecute(NULL, _T("open"), url, NULL, NULL, SW_SHOWNORMAL);
+					}
+					break;
+				}
+			}
+		}
+		catch (DWORD &) {
+			AfxMessageBox(_T("Unable to get version information from the source repository."), MB_ICONERROR);
+		}
+
+		if (hRequest) InternetCloseHandle(hRequest);
+		if (hConnect) InternetCloseHandle(hConnect);
+		if (hOpen) InternetCloseHandle(hOpen);
+	};
+
+	std::thread t {CheckFunc, StartUp};
+	t.detach();
 }
 
 bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)

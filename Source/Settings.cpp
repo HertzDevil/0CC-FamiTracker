@@ -105,6 +105,10 @@ void CSettings::SetupSettings()
 	SETTING_BOOL("General", "Show skipped rows", false, &General.bShowSkippedRows);
 	SETTING_BOOL("General", "Hexadecimal keypad", false, &General.bHexKeypad);
 	SETTING_BOOL("General", "Multi-frame selection", false, &General.bMultiFrameSel);
+	SETTING_BOOL("General", "Check for new versions", true, &General.bCheckVersion);
+
+	// // // Version / Compatibility info
+	SETTING_INT("Version", "Module error level", MODULE_ERROR_OFFICIAL, &Version.iErrorLevel);
 
 	// Keys
 	SETTING_INT("Keys", "Note cut",		0x31, &Keys.iKeyNoteCut);

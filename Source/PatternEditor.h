@@ -40,7 +40,7 @@ struct RowColorInfo_t {
 	COLORREF Compact;		// // //
 };
 
-void CopyNoteSection(stChanNote *Target, stChanNote *Source, paste_mode_t Mode, column_t Begin, column_t End);		// // //
+extern void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t Mode, column_t Begin, column_t End);		// // //
 
 // External classes
 class CFamiTrackerDoc;
@@ -147,6 +147,7 @@ public:
 	void PasteEntire(const CPatternClipData *pClipData);
 	void Paste(const CPatternClipData *pClipData, const paste_mode_t PasteMode, const paste_pos_t PastePos);		// // //
 	void PasteRaw(const CPatternClipData *pClipData);		// // //
+	void PasteRaw(const CPatternClipData *pClipData, const CCursorPos &Pos);		// // //
 
 	bool IsSelecting() const;
 	void SelectChannel();
@@ -183,6 +184,7 @@ public:
 
 	int GetSelectionSize() const;		// // //
 	sel_condition_t GetSelectionCondition() const;		// // //
+	sel_condition_t GetSelectionCondition(const CSelection &Sel) const;		// // //
 
 	void DragPaste(const CPatternClipData *pClipData, const CSelection *pDragTarget, bool bMix);
 
@@ -266,6 +268,7 @@ private:
 
 	CPatternIterator GetStartIterator() const;		// // //
 	CPatternIterator GetEndIterator() const;
+	std::pair<CPatternIterator, CPatternIterator> GetIterators() const;		// // //
 
 	// Editing
 	void IncreaseEffectColumn(int Channel);

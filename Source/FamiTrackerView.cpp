@@ -184,7 +184,8 @@ BEGIN_MESSAGE_MAP(CFamiTrackerView, CView)
 	// // //
 	ON_MESSAGE(WM_USER_DUMP_INST, OnUserDumpInst)
 	ON_COMMAND(ID_MODULE_DETUNE, OnTrackerDetune)
-	ON_UPDATE_COMMAND_UI(ID_FIND_NEXT, OnUpdateFindNext)
+	ON_UPDATE_COMMAND_UI(ID_FIND_NEXT, OnUpdateFind)
+	ON_UPDATE_COMMAND_UI(ID_FIND_PREVIOUS, OnUpdateFind)
 	ON_COMMAND(ID_DECREASEVALUESCOARSE, OnCoarseDecreaseValues)
 	ON_COMMAND(ID_INCREASEVALUESCOARSE, OnCoarseIncreaseValues)
 	ON_COMMAND(ID_EDIT_PASTEOVERWRITE, OnEditPasteOverwrite)
@@ -743,26 +744,10 @@ BOOL CFamiTrackerView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 			m_pPatternEditor->PreviousFrame();
 		InvalidateFrameEditor();		// // //
 	}
-	if (bControlPressed) {
-		if (zDelta > 0) {
-			pAction = new CPatternAction(CPatternAction::ACT_TRANSPOSE);
-			pAction->SetTranspose(TRANSPOSE_INC_NOTES);
-		}
-		else {
-			pAction = new CPatternAction(CPatternAction::ACT_TRANSPOSE);
-			pAction->SetTranspose(TRANSPOSE_DEC_NOTES);
-		}
-	}
-	else if (bShiftPressed) {
-		if (zDelta > 0) {
-			pAction = new CPatternAction(CPatternAction::ACT_SCROLL_VALUES);
-			pAction->SetScroll(1);
-		}
-		else {
-			pAction = new CPatternAction(CPatternAction::ACT_SCROLL_VALUES);
-			pAction->SetScroll(-1);
-		}
-	}
+	if (bControlPressed)
+		pAction = new CPActionTranspose {zDelta > 0 ? TRANSPOSE_INC_NOTES : TRANSPOSE_DEC_NOTES};		// // //
+	else if (bShiftPressed)
+		pAction = new CPActionScrollValues {zDelta > 0 ? 1 : -1};		// // //
 	else
 		m_pPatternEditor->OnMouseScroll(zDelta);
 
@@ -1132,65 +1117,49 @@ void CFamiTrackerView::OnTrackerDetune()			// // //
 void CFamiTrackerView::OnTransposeDecreasenote()
 {
 	if (!m_bEditEnable) return;		// // //
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_TRANSPOSE);
-	pAction->SetTranspose(TRANSPOSE_DEC_NOTES);
-	AddAction(pAction);
+	AddAction(new CPActionTranspose {TRANSPOSE_DEC_NOTES});
 }
 
 void CFamiTrackerView::OnTransposeDecreaseoctave()
 {
 	if (!m_bEditEnable) return;		// // //
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_TRANSPOSE);
-	pAction->SetTranspose(TRANSPOSE_DEC_OCTAVES);
-	AddAction(pAction);
+	AddAction(new CPActionTranspose {TRANSPOSE_DEC_OCTAVES});
 }
 
 void CFamiTrackerView::OnTransposeIncreasenote()
 {
 	if (!m_bEditEnable) return;		// // //
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_TRANSPOSE);
-	pAction->SetTranspose(TRANSPOSE_INC_NOTES);
-	AddAction(pAction);
+	AddAction(new CPActionTranspose {TRANSPOSE_INC_NOTES});
 }
 
 void CFamiTrackerView::OnTransposeIncreaseoctave()
 {
 	if (!m_bEditEnable) return;		// // //
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_TRANSPOSE);
-	pAction->SetTranspose(TRANSPOSE_INC_OCTAVES);
-	AddAction(pAction);
+	AddAction(new CPActionTranspose {TRANSPOSE_INC_OCTAVES});
 }
 
 void CFamiTrackerView::OnDecreaseValues()
 {
 	if (!m_bEditEnable) return;		// // //
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_SCROLL_VALUES);
-	pAction->SetScroll(-1);
-	AddAction(pAction);
+	AddAction(new CPActionScrollValues {-1});
 }
 
 void CFamiTrackerView::OnIncreaseValues()
 {
 	if (!m_bEditEnable) return;		// // //
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_SCROLL_VALUES);
-	pAction->SetScroll(1);
-	AddAction(pAction);
+	AddAction(new CPActionScrollValues {1});
 }
 
 void CFamiTrackerView::OnCoarseDecreaseValues()		// // //
 {
 	if (!m_bEditEnable) return;
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_SCROLL_VALUES);
-	pAction->SetScroll(-16);
-	AddAction(pAction);
+	AddAction(new CPActionScrollValues {-16});
 }
 
 void CFamiTrackerView::OnCoarseIncreaseValues()		// // //
 {
 	if (!m_bEditEnable) return;
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_SCROLL_VALUES);
-	pAction->SetScroll(16);
-	AddAction(pAction);
+	AddAction(new CPActionScrollValues {16});
 }
 
 void CFamiTrackerView::OnEditInstrumentMask()
@@ -2949,7 +2918,7 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 				else if (m_iLastNote == NOTE_RELEASE) {
 					Note.Note = RELEASE;
 				}
-				else if (m_iLastNote > NOTE_ECHO && m_iLastNote <= NOTE_ECHO + ECHO_BUFFER_LENGTH) {		// // //
+				else if (m_iLastNote >= NOTE_ECHO && m_iLastNote <= NOTE_ECHO + ECHO_BUFFER_LENGTH) {		// // //
 					Note.Note = ECHO;
 					Note.Octave = m_iLastNote - NOTE_ECHO;
 				}
@@ -3563,13 +3532,13 @@ void CFamiTrackerView::SetStepping(int Step)
 void CFamiTrackerView::OnEditInterpolate()
 {
 	if (!m_bEditEnable) return;		// // //
-	AddAction(new CPatternAction(CPatternAction::ACT_INTERPOLATE));
+	AddAction(new CPActionInterpolate { });
 }
 
 void CFamiTrackerView::OnEditReverse()
 {
 	if (!m_bEditEnable) return;		// // //
-	AddAction(new CPatternAction(CPatternAction::ACT_REVERSE));
+	AddAction(new CPActionReverse { });
 }
 
 void CFamiTrackerView::OnEditReplaceInstrument()
@@ -3581,19 +3550,13 @@ void CFamiTrackerView::OnEditReplaceInstrument()
 void CFamiTrackerView::OnEditExpandPatterns()		// // //
 {
 	if (!m_bEditEnable) return;
-
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_STRETCH_PATTERN);
-	pAction->SetStretchMap({1, 0});
-	AddAction(pAction);
+	AddAction(new CPActionStretch {std::vector<int> {1, 0}});
 }
 
 void CFamiTrackerView::OnEditShrinkPatterns()		// // //
 {
 	if (!m_bEditEnable) return;
-
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_STRETCH_PATTERN);
-	pAction->SetStretchMap({2});
-	AddAction(pAction);
+	AddAction(new CPActionStretch {std::vector<int> {2}});
 }
 
 void CFamiTrackerView::OnEditStretchPatterns()		// // //
@@ -3601,12 +3564,7 @@ void CFamiTrackerView::OnEditStretchPatterns()		// // //
 	if (!m_bEditEnable) return;
 
 	CStretchDlg StretchDlg;
-
-	std::vector<int> Map = StretchDlg.GetStretchMap();
-	if (Map.empty()) return;
-	CPatternAction *pAction = new CPatternAction(CPatternAction::ACT_STRETCH_PATTERN);
-	pAction->SetStretchMap(Map);
-	AddAction(pAction);
+	AddAction(new CPActionStretch {StretchDlg.GetStretchMap()});
 }
 
 void CFamiTrackerView::OnNcMouseMove(UINT nHitTest, CPoint point)
@@ -3864,7 +3822,7 @@ void CFamiTrackerView::EditReplace(stChanNote &Note)		// // //
 	// pAction->SaveRedoState(static_cast<CMainFrame*>(GetParentFrame()));		// // //
 }
 
-void CFamiTrackerView::OnUpdateFindNext(CCmdUI *pCmdUI)		// // //
+void CFamiTrackerView::OnUpdateFind(CCmdUI *pCmdUI)		// // //
 {
 	InvalidateCursor();
 }

@@ -63,7 +63,7 @@ const int CPatternEditor::DEFAULT_HEADER_FONT_SIZE	= 11;
 
 // // //
 
-void CopyNoteSection(stChanNote *Target, stChanNote *Source, paste_mode_t Mode, column_t Begin, column_t End)		// // //
+void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t Mode, column_t Begin, column_t End)		// // //
 {
 	static const char Offset[] = {
 		offsetof(stChanNote, Note),
@@ -77,7 +77,7 @@ void CopyNoteSection(stChanNote *Target, stChanNote *Source, paste_mode_t Mode, 
 	bool Protected[sizeof(Offset)] = {};
 	for (size_t i = 0; i < sizeof(Offset); i++) {
 		const unsigned char TByte = *(reinterpret_cast<unsigned char*>(Target) + Offset[i]); // skip octave byte
-		const unsigned char SByte = *(reinterpret_cast<unsigned char*>(Source) + Offset[i]);
+		const unsigned char SByte = *(reinterpret_cast<const unsigned char*>(Source) + Offset[i]);
 		switch (Mode) {
 		case PASTE_MIX:
 			switch (i) {
@@ -2240,14 +2240,20 @@ CCursorPos CPatternEditor::GetCursorAtPoint(const CPoint &point) const
 
 CPatternIterator CPatternEditor::GetStartIterator() const		// // //
 {
-	const CCursorPos Pos(m_selection.GetRowStart(), m_selection.GetChanStart(), m_selection.GetColStart(), m_selection.GetFrameStart());
-	return CPatternIterator(this, GetSelectedTrack(), m_bSelecting ? Pos : m_cpCursorPos);
+	return GetIterators().first;
 }
 
 CPatternIterator CPatternEditor::GetEndIterator() const
 {
-	const CCursorPos Pos(m_selection.GetRowEnd(), m_selection.GetChanEnd(), m_selection.GetColEnd(), m_selection.GetFrameEnd());
-	return CPatternIterator(this, GetSelectedTrack(), m_bSelecting ? Pos : m_cpCursorPos);
+	return GetIterators().second;
+}
+
+std::pair<CPatternIterator, CPatternIterator> CPatternEditor::GetIterators() const
+{
+	CCursorPos c_it {m_cpCursorPos}, c_end {m_cpCursorPos};
+	return IsSelecting() ?
+		m_selection.GetIterators(this, GetSelectedTrack()) :
+		m_cpCursorPos.GetIterators(this, GetSelectedTrack());
 }
 
 column_t CPatternEditor::GetSelectColumn(cursor_column_t Column)
@@ -3354,7 +3360,7 @@ CPatternClipData *CPatternEditor::CopyRaw() const		// // //
 
 CPatternClipData *CPatternEditor::CopyRaw(const CSelection &Sel) const		// // //
 {
-	const unsigned int Track = GetSelectedTrack();
+	const int Track = GetSelectedTrack();
 	CCursorPos c_it, c_end;
 	Sel.Normalize(c_it, c_end);
 	CPatternIterator it {this, Track, c_it};
@@ -3492,8 +3498,13 @@ void CPatternEditor::Paste(const CPatternClipData *pClipData, const paste_mode_t
 
 void CPatternEditor::PasteRaw(const CPatternClipData *pClipData)		// // //
 {
-	CPatternIterator it = GetStartIterator();
+	PasteRaw(pClipData, GetIterators().first);
+}
+
+void CPatternEditor::PasteRaw(const CPatternClipData *pClipData, const CCursorPos &Pos)		// // //
+{
 	const int Track = GetSelectedTrack();
+	CPatternIterator it {this, Track, Pos};
 	const int Frames = m_pDocument->GetFrameCount(Track);
 	const int Length = m_pDocument->GetPatternLength(Track);
 
@@ -3503,14 +3514,14 @@ void CPatternEditor::PasteRaw(const CPatternClipData *pClipData)		// // //
 	const column_t EndColumn = pClipData->ClipInfo.EndColumn;
 
 	stChanNote Target { }, Source { };
-	const int PackedPos = (m_selection.GetFrameStart() + GetFrameCount()) * Length + m_selection.GetRowStart();
+	const int PackedPos = (Pos.m_iFrame + GetFrameCount()) * Length + Pos.m_iRow;
 	for (int i = 0; i < Channels; ++i) for (int r = 0; r < Rows; r++) {
-		int c = i + m_selection.GetChanStart();
+		int c = i + Pos.m_iChannel;
 		if (c == GetChannelCount()) return;
 		m_pDocument->GetNoteData(Track, (PackedPos + r) / Length % Frames, c, (PackedPos + r) % Length, &Target);
 		Source = *(pClipData->GetPattern(i, r));
 		CopyNoteSection(&Target, &Source, PASTE_DEFAULT, (i == 0) ? StartColumn : COLUMN_NOTE,
-			std::min((i == Channels + m_selection.GetChanStart() - 1) ? EndColumn : COLUMN_EFF4,
+			std::min((i == Channels + Pos.m_iChannel - 1) ? EndColumn : COLUMN_EFF4,
 						static_cast<column_t>(COLUMN_EFF1 + m_pDocument->GetEffColumns(Track, c))));
 		m_pDocument->SetNoteData(Track, (PackedPos + r) / Length % Frames, c, (PackedPos + r) % Length, &Target);
 	}
@@ -3581,22 +3592,28 @@ int CPatternEditor::GetSelectionSize() const		// // //
 
 sel_condition_t CPatternEditor::GetSelectionCondition() const		// // //
 {
+	if (!m_bSelecting)
+		return SEL_CLEAN;
+	return GetSelectionCondition(m_selection);
+}
+
+sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) const
+{
 	const int Track = GetSelectedTrack();
 	const int Frames = GetFrameCount();
 	unsigned char Lo[MAX_PATTERN], Hi[MAX_PATTERN];
 
 	if (!theApp.GetSettings()->General.bShowSkippedRows) {
-		CPatternIterator it = GetStartIterator();
-		const CPatternIterator End = GetEndIterator();
+		auto it = Sel.GetIterators(this, GetSelectedTrack());
 		stChanNote Note;
-		for (; it <= End; it++) {
+		for (; it.first <= it.second; ++it.first) {
 			// bool HasSkip = false;
 			for (int i = 0; i < GetChannelCount(); i++) {
-				it.Get(i, &Note);
+				it.first.Get(i, &Note);
 				for (unsigned int c = 0; c <= m_pDocument->GetEffColumns(Track, i); c++) switch (Note.EffNumber[c]) {
 				case EF_JUMP: case EF_SKIP: case EF_HALT:
-					if (m_selection.IsColumnSelected(static_cast<column_t>(COLUMN_EFF1 + c), i))
-						return (it == End) ? SEL_TERMINAL_SKIP : SEL_NONTERMINAL_SKIP;
+					if (Sel.IsColumnSelected(static_cast<column_t>(COLUMN_EFF1 + c), i))
+						return it.first == it.second ? SEL_TERMINAL_SKIP : SEL_NONTERMINAL_SKIP;
 					/*else if (it != End)
 						HasSkip = true;*/
 				}
@@ -3606,14 +3623,14 @@ sel_condition_t CPatternEditor::GetSelectionCondition() const		// // //
 		}
 	}
 
-	for (int c = m_selection.GetChanStart(); c <= m_selection.GetChanEnd(); c++) {
+	for (int c = Sel.GetChanStart(); c <= Sel.GetChanEnd(); c++) {
 		memset(Lo, 255, MAX_PATTERN);
 		memset(Hi, 0, MAX_PATTERN);
 
-		for (int i = m_selection.GetFrameStart(); i <= m_selection.GetFrameEnd(); i++) {
+		for (int i = Sel.GetFrameStart(); i <= Sel.GetFrameEnd(); i++) {
 			int Pattern = m_pDocument->GetPatternAtFrame(Track, (i + Frames) % Frames, c);
-			int RBegin = (i == m_selection.GetFrameStart()) ? m_selection.GetRowStart() : 0;
-			int REnd = (i == m_selection.GetFrameEnd()) ? m_selection.GetRowEnd() : GetCurrentPatternLength(i) - 1;
+			int RBegin = i == Sel.GetFrameStart() ? Sel.GetRowStart() : 0;
+			int REnd = i == Sel.GetFrameEnd() ? Sel.GetRowEnd() : GetCurrentPatternLength(i) - 1;
 			if (Lo[Pattern] <= Hi[Pattern] && RBegin <= Hi[Pattern] && REnd >= Lo[Pattern])
 				return SEL_REPEATED_ROW;
 			Lo[Pattern] = std::min(Lo[Pattern], static_cast<unsigned char>(RBegin));

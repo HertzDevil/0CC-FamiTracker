@@ -52,16 +52,19 @@ struct CPatternEditorState		// // // TODO: might be moved to PatternEditor.h
 	void ApplyState(CPatternEditor *pEditor) const;
 
 	/*!	\brief The current track number at the time of the state's creation. */
-	const int Track;
+	int Track;
 
 	/*!	\brief The current cursor position at the time of the state's creation. */
-	const CCursorPos Cursor;
+	CCursorPos Cursor;
 
 	/*!	\brief The current selection position at the time of the state's creation. */
-	const CSelection Selection;
+	CSelection Selection;
 
 	/*!	\brief Whether a selection is active at the time of the state's creation. */
-	const bool IsSelecting;
+	bool IsSelecting;
+
+private:
+	CSelection OriginalSelection;
 };
 
 // Pattern commands
@@ -111,34 +114,16 @@ public:
 	void SetPaste(CPatternClipData *pClipData);
 	void SetPasteMode(paste_mode_t Mode);		// // //
 	void SetPastePos(paste_pos_t Pos);		// // //
-	void SetTranspose(transpose_t Mode);
-	void SetScroll(int Scroll);
 	void SetDragAndDrop(const CPatternClipData *pClipData, bool bDelete, bool bMix, const CSelection *pDragTarget);
 	void SetPatternLength(int Length);
-	void Update(CMainFrame *pMainFrm);
-	void SetStretchMap(const std::vector<int> Map);		// // //
 
 private:
-	bool SetTargetSelection(CPatternEditor *pPatternEditor);		// // //
-	void CopySelection(const CPatternEditor *pPatternEditor);		// // //
-	void PasteSelection(CPatternEditor *pPatternEditor) const;		// // //
-	void CopyAuxiliary(const CPatternEditor *pPatternEditor);		// // //
-	void PasteAuxiliary(CPatternEditor *pPatternEditor) const;		// // //
-
-	void RestoreSelection(CPatternEditor *pPatternEditor) const;
-
-	void StretchPattern(CFamiTrackerDoc *pDoc) const;		// // //
-	void Transpose(CFamiTrackerDoc *pDoc) const;
-	void Interpolate(CFamiTrackerDoc *pDoc) const;
-	void Reverse(CFamiTrackerDoc *pDoc) const;
-	void ScrollValues(CFamiTrackerDoc *pDoc) const;
-	void DeleteSelection(CFamiTrackerDoc *pDoc) const;
-
 	virtual void UpdateView(CFamiTrackerDoc *pDoc) const;		// // //
 
 protected:
-	CPatternIterator GetStartIterator() const;		// // //
-	CPatternIterator GetEndIterator() const;
+	bool SetTargetSelection(CPatternEditor *pPatternEditor, CSelection &Sel);		// // //
+	void DeleteSelection(CMainFrame *pMainFrm, const CSelection &Sel) const;		// // //
+	bool ValidateSelection(const CMainFrame *pMainFrm) const;		// // //
 	std::pair<CPatternIterator, CPatternIterator> GetIterators(const CMainFrame *pMainFrm) const;		// // //
 
 protected:
@@ -156,16 +141,25 @@ private:
 	
 	bool m_bSelecting;
 	CSelection m_selection, m_newSelection;		// // //
-	int m_iSelectionSize;		// // //
-
-	transpose_t m_iTransposeMode;
-	int m_iScrollValue;
 
 	bool m_bDragDelete;
 	bool m_bDragMix;
 	CSelection m_dragTarget;
+};
 
-	std::vector<int> m_iStretchMap;		// // //
+/*!
+	\brief Specialization of the pattern action class for actions operating on a selection without
+	modifying its span.
+*/
+class CPSelectionAction : public CPatternAction
+{
+protected:
+	CPSelectionAction(int iAction);
+protected:
+	bool SaveState(const CMainFrame *pMainFrm);
+	void Undo(CMainFrame *pMainFrm) const;
+protected:
+	CPatternClipData *m_pUndoClipData;
 };
 
 // // // built-in pattern action subtypes
@@ -233,16 +227,12 @@ private:
 	int m_iAmount;
 };
 
-class CPActionClearSel : public CPatternAction
+class CPActionClearSel : public CPSelectionAction
 {
 public:
 	CPActionClearSel();
 private:
-	bool SaveState(const CMainFrame *pMainFrm);
-	void Undo(CMainFrame *pMainFrm) const;
 	void Redo(CMainFrame *pMainFrm) const;
-private:
-	CPatternClipData *m_pUndoClipData;
 };
 
 class CPActionDeleteAtSel : public CPatternAction
@@ -254,7 +244,8 @@ private:
 	void Undo(CMainFrame *pMainFrm) const;
 	void Redo(CMainFrame *pMainFrm) const;
 private:
-	CPatternClipData *m_pUndoClipData;
+	CCursorPos m_cpTailPos;
+	CPatternClipData *m_pUndoHead, *m_pUndoTail;
 };
 
 class CPActionInsertAtSel : public CPatternAction
@@ -266,20 +257,100 @@ private:
 	void Undo(CMainFrame *pMainFrm) const;
 	void Redo(CMainFrame *pMainFrm) const;
 private:
-	CPatternClipData *m_pUndoClipData;
+	CCursorPos m_cpHeadPos, m_cpTailPos;
+	CPatternClipData *m_pUndoHead, *m_pUndoTail;
 };
 
-class CPActionReplaceInst : public CPatternAction
+class CPActionTranspose : public CPSelectionAction
+{
+public:
+	CPActionTranspose(transpose_t Type);
+private:
+	void Redo(CMainFrame *pMainFrm) const;
+private:
+	transpose_t m_iTransposeMode;
+};
+
+class CPActionScrollValues : public CPSelectionAction
+{
+public:
+	CPActionScrollValues(int Amount);
+private:
+	void Redo(CMainFrame *pMainFrm) const;
+private:
+	int m_iAmount;
+};
+
+class CPActionInterpolate : public CPSelectionAction
+{
+public:
+	CPActionInterpolate();
+private:
+	bool SaveState(const CMainFrame *pMainFrm);
+	void Redo(CMainFrame *pMainFrm) const;
+private:
+	int m_iSelectionSize;
+};
+
+class CPActionReverse : public CPSelectionAction
+{
+public:
+	CPActionReverse();
+private:
+	bool SaveState(const CMainFrame *pMainFrm);
+	void Redo(CMainFrame *pMainFrm) const;
+};
+
+class CPActionReplaceInst : public CPSelectionAction
 {
 public:
 	CPActionReplaceInst(unsigned Index);
 private:
 	bool SaveState(const CMainFrame *pMainFrm);
-	void Undo(CMainFrame *pMainFrm) const;
 	void Redo(CMainFrame *pMainFrm) const;
 private:
 	unsigned m_iInstrumentIndex;
-	CPatternClipData *m_pUndoClipData;
+};
+
+class CPActionDragDrop : public CPatternAction
+{
+public:
+	CPActionDragDrop(const CPatternClipData *pClipData, bool bDelete, bool bMix, const CSelection &pDragTarget);
+private:
+	bool SaveState(const CMainFrame *pMainFrm);
+	void Undo(CMainFrame *pMainFrm) const;
+	void Redo(CMainFrame *pMainFrm) const;
+private:
+	const CPatternClipData *m_pClipData;
+	CPatternClipData *m_pUndoClipData, *m_pAuxiliaryClipData;
+	bool m_bDragDelete;
+	bool m_bDragMix;
+	CSelection m_newSelection;
+	CSelection m_dragTarget;
+};
+
+class CPActionPatternLen : public CPatternAction
+{
+public:
+	CPActionPatternLen(int Length);
+private:
+	bool SaveState(const CMainFrame *pMainFrm);
+	void Undo(CMainFrame *pMainFrm) const;
+	void Redo(CMainFrame *pMainFrm) const;
+	bool Merge(const CAction *Other);		// // //
+private:
+	int m_iOldPatternLen, m_iNewPatternLen;
+};
+
+class CPActionStretch : public CPSelectionAction
+{
+public:
+	CPActionStretch(std::vector<int> Stretch);
+private:
+	bool SaveState(const CMainFrame *pMainFrm);
+	void Redo(CMainFrame *pMainFrm) const;
+private:
+	std::vector<int> m_iStretchMap;
 };
 
 class CPActionEffColumn : public CPatternAction
@@ -294,4 +365,17 @@ private:
 private:
 	unsigned m_iChannel;
 	unsigned m_iOldColumns, m_iNewColumns;
+};
+
+class CPActionHighlight : public CPatternAction		// // //
+{
+public:
+	CPActionHighlight(stHighlight Hl);
+private:
+	bool SaveState(const CMainFrame *pMainFrm);
+	void Undo(CMainFrame *pMainFrm) const;
+	void Redo(CMainFrame *pMainFrm) const;
+	void UpdateView(CFamiTrackerDoc *pDoc) const;
+private:
+	stHighlight m_OldHighlight, m_NewHighlight;
 };

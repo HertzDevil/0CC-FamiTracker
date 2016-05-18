@@ -120,7 +120,12 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Configuration...",           ID_FILE_GENERALSETTINGS
         MENUITEM SEPARATOR
-        MENUITEM "&Recent File",                ID_FILE_MRU_FILE1
+        POPUP "&Recent Files"
+        BEGIN
+            MENUITEM "&Clear",                      ID_RECENTFILES_CLEAR
+            MENUITEM SEPARATOR
+            MENUITEM "(File)",                      ID_FILE_MRU_FILE1
+        END
         MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
     END
@@ -165,14 +170,19 @@ BEGIN
             MENUITEM "&Track",                      ID_SELECT_TRACK
         END
         MENUITEM SEPARATOR
-        MENUITEM "&Find / Replace",             ID_EDIT_FIND_TOGGLE
-        MENUITEM "Find &Next",                  ID_FIND_NEXT
+        POPUP "&Find / Replace"
+        BEGIN
+            MENUITEM "&Toggle Tab",                 ID_EDIT_FIND_TOGGLE
+            MENUITEM SEPARATOR
+            MENUITEM "Find &Next",                  ID_FIND_NEXT
+            MENUITEM "Find &Previous",              ID_FIND_PREVIOUS
+        END
         MENUITEM "&Go To...",                   ID_EDIT_GOTO
         POPUP "&Bookmarks"
         BEGIN
-            MENUITEM "&Toggle",                     ID_BOOKMARKS_TOGGLE
-            MENUITEM "&Next",                       ID_BOOKMARKS_NEXT
-            MENUITEM "&Previous",                   ID_BOOKMARKS_PREVIOUS
+            MENUITEM "&Toggle Bookmark",            ID_BOOKMARKS_TOGGLE
+            MENUITEM "&Next Bookmark",              ID_BOOKMARKS_NEXT
+            MENUITEM "&Previous Bookmark",          ID_BOOKMARKS_PREVIOUS
         END
         MENUITEM SEPARATOR
         MENUITEM "&Instrument Mask",            ID_EDIT_INSTRUMENTMASK
@@ -901,7 +911,10 @@ BEGIN
 
     IDD_FIND, DIALOG
     BEGIN
-        BOTTOMMARGIN, 208
+        LEFTMARGIN, 8
+        RIGHTMARGIN, 134
+        TOPMARGIN, 9
+        BOTTOMMARGIN, 239
     END
 
     IDD_STRETCH, DIALOG
@@ -975,7 +988,7 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     CONTROL         "",IDC_HEAD,"Static",SS_OWNERDRAW,0,0,287,49
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,0,49,287,1
-    ICON            IDR_MAINFRAME,IDC_STATIC,10,63,21,20,SS_REALSIZEIMAGE
+    ICON            IDR_MAINFRAME,IDC_STATIC,10,63,20,20,SS_REALSIZEIMAGE
     LTEXT           "0CC-FamiTracker",IDC_ABOUT1,54,58,219,11,SS_NOPREFIX
     LTEXT           "A Famicom/NES music tracker",IDC_ABOUT2,54,76,167,11,SS_NOPREFIX
     LTEXT           "Copyright (C) 2005 - 2015 jsr, 2014 - 2016 HertzDevil",IDC_ABOUT3,54,92,215,11
@@ -989,9 +1002,9 @@ BEGIN
     LTEXT           "Contributions:",IDC_STATIC,54,196,224,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,54,207,215,1
     EDITTEXT        IDC_ABOUT_CONTRIB,54,210,225,51,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
-    LTEXT           "Libraries:",IDC_STATIC,54,266,224,8
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,54,277,215,1
-    EDITTEXT        IDC_ABOUT_LIB,54,279,225,45,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
+    LTEXT           "Libraries:",IDC_STATIC,54,264,224,8
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,54,274,215,1
+    EDITTEXT        IDC_ABOUT_LIB,54,277,225,49,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
     DEFPUSHBUTTON   "OK",IDOK,7,105,39,16,WS_GROUP
 END
 
@@ -1218,11 +1231,11 @@ BEGIN
     CONTROL         "Follow-mode",IDC_FOLLOW,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,55,0,52,13
     CONTROL         "Compact view",IDC_CHECK_COMPACT,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,110,0,52,13
     CONTROL         "Row highlight, 1st",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,168,2,58,8
-    EDITTEXT        IDC_HIGHLIGHT1,230,0,27,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "",IDC_HIGHLIGHTSPIN1,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_HOTTRACK,252,2,11,6
+    EDITTEXT        IDC_HIGHLIGHT1,230,0,27,12,ES_AUTOHSCROLL | ES_READONLY | ES_NUMBER
+    CONTROL         "",IDC_HIGHLIGHTSPIN1,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,252,2,11,6
     CONTROL         "2nd",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,264,2,13,8
-    EDITTEXT        IDC_HIGHLIGHT2,280,0,27,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "",IDC_HIGHLIGHTSPIN2,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_HOTTRACK,302,2,11,6
+    EDITTEXT        IDC_HIGHLIGHT2,280,0,27,12,ES_AUTOHSCROLL | ES_READONLY | ES_NUMBER
+    CONTROL         "",IDC_HIGHLIGHTSPIN2,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,302,2,11,6
 END
 
 IDD_EXPORT DIALOGEX 0, 0, 247, 283
@@ -1663,13 +1676,13 @@ BEGIN
     PUSHBUTTON      "Apply",IDAPPLY,232,139,50,14
 END
 
-IDD_FIND DIALOGEX 0, 0, 142, 209
+IDD_FIND DIALOGEX 0, 0, 142, 247
 STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD
 EXSTYLE WS_EX_STATICEDGE
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
-    GROUPBOX        "Find / Replace",IDC_STATIC,7,6,128,194
-    LTEXT           "Find what:",IDC_STATIC,15,20,34,8
+    GROUPBOX        "Find / Replace",IDC_STATIC,8,9,126,121
+    LTEXT           "Find what:",IDC_STATIC,15,21,34,8
     CONTROL         "Note",IDC_CHECK_FIND_NOTE,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,15,34,24,10
     EDITTEXT        IDC_EDIT_FIND_NOTE,15,47,24,14,ES_AUTOHSCROLL | WS_DISABLED
     EDITTEXT        IDC_EDIT_FIND_NOTE2,15,64,24,14,ES_AUTOHSCROLL | WS_DISABLED
@@ -1681,25 +1694,27 @@ BEGIN
     EDITTEXT        IDC_EDIT_FIND_VOL2,73,64,24,14,ES_UPPERCASE | ES_AUTOHSCROLL | WS_DISABLED
     CONTROL         "FX",IDC_CHECK_FIND_EFF,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,102,34,24,10
     EDITTEXT        IDC_EDIT_FIND_EFF,102,47,24,14,ES_UPPERCASE | ES_AUTOHSCROLL | WS_DISABLED
-    LTEXT           "Replace with:",IDC_STATIC,15,87,43,8
-    CONTROL         "Note",IDC_CHECK_REPLACE_NOTE,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,15,101,24,10
-    EDITTEXT        IDC_EDIT_REPLACE_NOTE,15,114,24,14,ES_AUTOHSCROLL | WS_DISABLED
-    CONTROL         "Inst",IDC_CHECK_REPLACE_INST,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,44,101,24,10
-    EDITTEXT        IDC_EDIT_REPLACE_INST,44,114,24,14,ES_UPPERCASE | ES_AUTOHSCROLL | WS_DISABLED
-    CONTROL         "Vol",IDC_CHECK_REPLACE_VOL,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,73,101,24,10
-    EDITTEXT        IDC_EDIT_REPLACE_VOL,73,114,24,14,ES_UPPERCASE | ES_AUTOHSCROLL | WS_DISABLED
-    CONTROL         "FX",IDC_CHECK_REPLACE_EFF,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,102,101,24,10
-    EDITTEXT        IDC_EDIT_REPLACE_EFF,102,114,24,14,ES_UPPERCASE | ES_AUTOHSCROLL | WS_DISABLED
-    LTEXT           "Look in:",IDC_STATIC,15,137,26,8
-    COMBOBOX        IDC_COMBO_FIND_IN,43,135,44,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_COMBO_EFFCOLUMN,95,135,31,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Replace with:",IDC_STATIC,15,83,43,8
+    CONTROL         "Note",IDC_CHECK_REPLACE_NOTE,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,15,96,24,10
+    EDITTEXT        IDC_EDIT_REPLACE_NOTE,15,109,24,14,ES_AUTOHSCROLL | WS_DISABLED
+    CONTROL         "Inst",IDC_CHECK_REPLACE_INST,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,44,96,24,10
+    EDITTEXT        IDC_EDIT_REPLACE_INST,44,109,24,14,ES_UPPERCASE | ES_AUTOHSCROLL | WS_DISABLED
+    CONTROL         "Vol",IDC_CHECK_REPLACE_VOL,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,73,96,24,10
+    EDITTEXT        IDC_EDIT_REPLACE_VOL,73,109,24,14,ES_UPPERCASE | ES_AUTOHSCROLL | WS_DISABLED
+    CONTROL         "FX",IDC_CHECK_REPLACE_EFF,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,102,96,24,10
+    EDITTEXT        IDC_EDIT_REPLACE_EFF,102,109,24,14,ES_UPPERCASE | ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "Look in:",IDC_STATIC,15,147,26,8
+    COMBOBOX        IDC_COMBO_FIND_IN,43,145,44,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_EFFCOLUMN,95,145,31,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Find Next",IDC_BUTTON_FIND_NEXT,11,206,56,14,WS_GROUP
+    PUSHBUTTON      "Replace",IDC_BUTTON_REPLACE,11,225,56,14
+    PUSHBUTTON      "Replace All",IDC_BUTTON_FIND_REPLACEALL,75,225,56,14
     CONTROL         "Vertical-first searching",IDC_CHECK_VERTICAL_SEARCH,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,153,98,10
-    CONTROL         "Replace all (no undo)",IDC_CHECK_REPLACE_ALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,163,98,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,162,98,10
     CONTROL         "Remove original data",IDC_CHECK_FIND_REMOVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,173,98,10
-    CONTROL         "Negate search",IDC_CHECK_FIND_NEGATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,183,98,10
-    PUSHBUTTON      "Find Next",IDC_BUTTON_FIND_NEXT,86,17,40,14,WS_GROUP
-    PUSHBUTTON      "Replace",IDC_BUTTON_REPLACE,86,84,40,14
+    CONTROL         "Negate search",IDC_CHECK_FIND_NEGATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,184,98,10
+    GROUPBOX        "Search Options",IDC_STATIC,8,133,126,67
+    PUSHBUTTON      "Find Previous",IDC_BUTTON_FIND_PREVIOUS,75,206,56,14
 END
 
 IDD_STRETCH DIALOGEX 0, 0, 294, 42
@@ -1811,17 +1826,19 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Version"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    COMBOBOX        IDC_COMBO_VERSION_SELECT,13,20,253,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "FamiTracker Version",IDC_STATIC,7,7,266,35
-    CONTROL         "Enforce FTM version compatibility while loading",IDC_CHECK_VERSION_LOAD,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,106,165,10
-    CONTROL         "Disable unsupported features while editing",IDC_CHECK_VERSION_EDIT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,128,152,10
+    COMBOBOX        IDC_COMBO_VERSION_SELECT,13,20,253,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Compatibility Settings",IDC_STATIC,7,46,148,50
+    CONTROL         "Disallow future features while loading",IDC_CHECK_VERSION_LOAD,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,58,135,10
+    CONTROL         "Disable future features in tracker",IDC_CHECK_VERSION_EDIT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,69,122,10
     CONTROL         "Save in target FTM format version",IDC_CHECK_VERSION_SAVE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,139,125,10
-    CONTROL         "Disallow unknown file blocks",IDC_CHECK_VERSION_BLOCK,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,117,105,10
-    GROUPBOX        "Compatibility Settings",IDC_STATIC,7,92,266,68
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,80,125,10
+    GROUPBOX        "Module Error Level",IDC_STATIC,7,100,148,60
+    CONTROL         "",IDC_SLIDER_VERSION_ERRORLEVEL,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,12,108,26,48
+    LTEXT           "Description",IDC_STATIC_VERSION_ERROR,45,112,98,41
+    LTEXT           "Technical information about the current version setting goes here.",IDC_STATIC,183,88,72,42
 END
 
 IDD_TRANSPOSE DIALOGEX 0, 0, 217, 226
@@ -1994,6 +2011,8 @@ BEGIN
 0x7246, 0x6d61, 0x0065, 
     IDC_COMBO_FIND_IN, 0x403, 8, 0
 0x6150, 0x7474, 0x7265, 0x006e, 
+    IDC_COMBO_FIND_IN, 0x403, 10, 0
+0x6553, 0x656c, 0x7463, 0x6f69, 0x006e, 
     IDC_COMBO_EFFCOLUMN, 0x403, 4, 0
 0x7866, 0x0031, 
     IDC_COMBO_EFFCOLUMN, 0x403, 4, 0
@@ -2083,6 +2102,16 @@ BEGIN
     0
 END
 
+IDD_INSTRUMENT_VRC7 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_OCTAVE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2124,7 +2153,6 @@ BEGIN
     IDS_DUMP_NOT_SUPPORTED  "This channel does not support logging output to create a new instrument."
     IDS_SEQUENCE_LIMIT      "You cannot add more instrument sequences"
     IDS_FIND_NONE           "Could not find the search query in the current search area."
-    IDS_REPLACE_ALL         "Do you want to replace all occurrences of the search query? There is no undo for this command."
     IDS_IMPORT_SEQUENCE_COUNT 
                             "Could not import all sequences, out of sequence slots!"
     ID_FIND_NEXT            "Find the next result of the search query\nFind Next"
@@ -2293,6 +2321,7 @@ BEGIN
     IDS_TYPE_INST_NUM       "Instrument number: %1"
     IDS_INVALID_INST_NUM    "Invalid instrument number!"
     IDS_EXPORT_SAMPLES_FILE """%1"" already exists in the same directory as the music data file. Are you sure you want to overwrite it?"
+    IDS_MODULE_ERROR_NONE   "This build is not allowed to bypass validation of loaded modules."
     IDS_FILE_LOAD_ERROR     "Couldn't load file properly. Make sure you have the latest version of FamiTracker."
     IDS_CONFIG_WINDOW       "FamiTracker configuration"
 END
@@ -2414,7 +2443,7 @@ END
 STRINGTABLE
 BEGIN
     ID_INSTRUMENT_DEEPCLONE "Create a copy of selected instrument including all sequences\nDeep Clone Instrument"
-    ID_EDIT_FIND_TOGGLE     "Bring up the find / replace dialog\nFind / Replace"
+    ID_EDIT_FIND_TOGGLE     "Bring up the find / replace tab\nToggle Find / Replace Tab"
 END
 
 STRINGTABLE
@@ -2599,6 +2628,7 @@ BEGIN
     ID_TRACKER_TOGGLECHIP   "Mute / unmute selected sound chip\nToggle Chip"
     ID_TRACKER_SOLOCHIP     "Mute / unmute all but the selected sound chip\nSolo Chip"
     ID_MODULE_LINEARPITCH   "Enable linear pitch bends\nLinear Pitch Mode"
+    ID_RECENTFILES_CLEAR    "Clear the recent file list\nClear Recent File List"
 END
 
 #endif    // English (United States) resources
