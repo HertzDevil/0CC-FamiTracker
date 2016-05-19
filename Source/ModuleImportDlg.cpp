@@ -20,6 +20,7 @@
 ** must bear this legend.
 */
 
+#include <algorithm>
 #include "stdafx.h"
 #include "resource.h"
 #include "FamiTrackerDoc.h"

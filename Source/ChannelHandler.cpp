@@ -25,6 +25,7 @@
 // translating notes to channel register writes.
 //
 
+#include <algorithm>
 #include "stdafx.h"
 #include "FamiTracker.h"
 #include "FamiTrackerTypes.h"		// // //

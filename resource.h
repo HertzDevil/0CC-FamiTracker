@@ -169,7 +169,6 @@
 #define IDR_FRAME_POPUP                 240
 #define IDI_INST_N163                   245
 #define IDI_INST_FDS                    246
-#define IDI_INST_5B                     247
 #define IDI_INST_S5B                    247
 #define IDD_INSTRUMENT_FDS              248
 #define IDS_KRAID                       250
@@ -222,6 +221,7 @@
 #define IDD_RECORD_SETTINGS             334
 #define IDD_CONFIG_VERSION              335
 #define IDD_TRANSPOSE                   337
+#define IDB_BITMAP1                     345
 #define IDC_INSTRUMENTS                 1001
 #define IDC_INSTSETTINGS                1002
 #define IDC_IMPORT_DETUNE               1002
@@ -421,6 +421,8 @@
 #define IDC_CHECK_BOOKMARK_HIGH1        1234
 #define IDC_NTSC                        1234
 #define IDC_CHECK_TRSP_ALL              1234
+#define IDC_BUTTON_TRSP_REVERSE         1234
+#define IDC_BUTTON_TRSP_CLEAR           1234
 #define IDC_CHECK_BOOKMARK_HIGH2        1235
 #define IDC_DUAL                        1236
 #define IDC_N163_ADD                    1237

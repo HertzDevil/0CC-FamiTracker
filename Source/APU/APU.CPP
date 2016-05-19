@@ -22,6 +22,7 @@
 
 #include <algorithm>		// // //
 #include <vector>
+#include <algorithm>
 #include "../stdafx.h"
 #include <cstdio>
 #include <memory>

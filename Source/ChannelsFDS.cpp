@@ -23,6 +23,8 @@
 // Famicom disk sound
 
 #include "stdafx.h"
+#include <cmath>
+#include <algorithm>
 #include "FamiTrackerTypes.h"		// // //
 #include "APU/Types.h"		// // //
 #include "Instrument.h"

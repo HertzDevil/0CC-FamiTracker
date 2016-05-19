@@ -40,8 +40,7 @@
   - Files are small
 
 */
-
-#include <memory>		// // //
+#include <memory>
 #include "stdafx.h"
 #include <algorithm>
 #include <vector>		// // //
