@@ -162,7 +162,9 @@ public:
 	void		 SetJumpPattern(int Pattern);
 	void		 SetSkipRow(int Row);
 	void		 EvaluateGlobalEffects(stChanNote *NoteData, int EffColumns);
+
 	stDPCMState	 GetDPCMState() const;
+	int			 GetChannelVolume(int Channel) const;		// // //
 
 	// Rendering
 	bool		 RenderToFile(LPTSTR pFile, render_end_t SongEndType, int SongEndParam, int Track);
@@ -184,6 +186,7 @@ public:
 	// Other
 	uint8_t		GetReg(int Chip, int Reg) const;
 	CRegisterState *GetRegState(unsigned Chip, unsigned Reg) const;		// // //
+	double		GetChannelFrequency(unsigned Chip, int Channel) const;		// // //
 	CString		RecallChannelState(int Channel) const;		// // //
 
 	// FDS & N163 wave preview

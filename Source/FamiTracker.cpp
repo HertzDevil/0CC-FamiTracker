@@ -119,7 +119,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	TRACE("App: InitInstance\n");
 
 	if (!AfxOleInit()) {
-		TRACE0("OLE initialization failed\n");
+		TRACE("OLE initialization failed\n");
 	}
 
 	// Standard initialization
@@ -291,7 +291,7 @@ BOOL CFamiTrackerApp::InitInstance()
 		CheckNewVersion(true);
 
 	// Initialization is done
-	TRACE0("App: InitInstance done\n");
+	TRACE("App: InitInstance done\n");
 
 	return TRUE;
 }
@@ -348,7 +348,7 @@ int CFamiTrackerApp::ExitInstance()
 	if (m_thVersionCheck.joinable())		// // //
 		m_thVersionCheck.join();
 
-	TRACE0("App: End ExitInstance\n");
+	TRACE("App: End ExitInstance\n");
 
 	return CWinApp::ExitInstance();
 }
@@ -437,7 +437,7 @@ void CFamiTrackerApp::LoadLocalization()
 		m_hInstResDLL = ::LoadLibrary(DLL_NAME);
 
 		if (m_hInstResDLL != NULL) {
-			TRACE0("App: Loaded localization DLL\n");
+			TRACE("App: Loaded localization DLL\n");
 			AfxSetResourceHandle(m_hInstResDLL);
 		}
 	}
@@ -464,7 +464,7 @@ void CFamiTrackerApp::ShutDownSynth()
 {
 	// Shut down sound generator
 	if (m_pSoundGenerator == NULL) {
-		TRACE0("App: Sound generator object was not available\n");
+		TRACE("App: Sound generator object was not available\n");
 		return;
 	}
 
@@ -475,11 +475,11 @@ void CFamiTrackerApp::ShutDownSynth()
 		// Object was found but thread not created
 		delete m_pSoundGenerator;
 		m_pSoundGenerator = NULL;
-		TRACE0("App: Sound generator object was found but no thread created\n");
+		TRACE("App: Sound generator object was found but no thread created\n");
 		return;
 	}
 
-	TRACE0("App: Waiting for sound player thread to close\n");
+	TRACE("App: Waiting for sound player thread to close\n");
 
 	// Resume if thread was suspended
 	if (m_pSoundGenerator->ResumeThread() == 0) {
@@ -493,7 +493,7 @@ void CFamiTrackerApp::ShutDownSynth()
 	DWORD dwResult = ::WaitForSingleObject(hThread, CSoundGen::AUDIO_TIMEOUT + 1000);
 
 	if (dwResult != WAIT_OBJECT_0 && m_pSoundGenerator != NULL) {
-		TRACE0("App: Closing the sound generator thread failed\n");
+		TRACE("App: Closing the sound generator thread failed\n");
 #ifdef _DEBUG
 		AfxMessageBox(_T("Error: Could not close sound generator thread"));
 #endif
@@ -504,7 +504,7 @@ void CFamiTrackerApp::ShutDownSynth()
 	// Object should be auto-deleted
 	ASSERT(m_pSoundGenerator == NULL);
 
-	TRACE0("App: Sound generator has closed\n");
+	TRACE("App: Sound generator has closed\n");
 }
 
 void CFamiTrackerApp::RemoveSoundGenerator()
@@ -602,12 +602,12 @@ void CFamiTrackerApp::CheckNewVersion(bool StartUp)		// // //
 					int Index = desc.Find(_T("\r\n\r\n"));
 					if (Index >= 0)
 						desc.Delete(0, Index + 4);
-					Index = desc.Find(_T("\r\n\r\n"));
+					Index = desc.Find(_T("\r\n\r\n#"));
 					if (Index >= 0)
 						desc.Truncate(Index);
 
 					m_pVersionMessage.Format(_T("A new version of 0CC-FamiTracker is now available:\n\n"
-											 "Version %d.%d.%d.%d (released %s %d, %d)\n%s\n\n"
+											 "Version %d.%d.%d.%d (released %s %d, %d)\n\n%s\n\n"
 											 "Pressing \"Yes\" will launch the Github web page for this release."),
 											 Ver[0], Ver[1], Ver[2], Ver[3], MONTHS[--M], D, Y, desc);
 					if (Start)

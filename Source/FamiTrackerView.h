@@ -36,6 +36,7 @@ class CFamiTrackerDoc;
 class CPatternEditor;
 class CFrameEditor;
 class CAction;
+class CNoteQueue;		// // //
 
 // TODO move general tracker state variables to the mainframe instead of the view, such as selected octave, instrument etc
 
@@ -60,6 +61,7 @@ public:
 	// Instruments
 	bool		 SwitchToInstrument() const { return m_bSwitchToInstrument; };
 	void		 SwitchToInstrument(bool Switch) { m_bSwitchToInstrument = Switch; };
+	unsigned int GetSplitInstrument() const;		// // //
 
 	// Scrolling/viewing no-editing functions
 	void		 MoveCursorNextChannel();
@@ -184,7 +186,6 @@ private:
 	int		TranslateKey(unsigned char Key) const;
 	int		TranslateKeyDefault(unsigned char Key) const;
 	int		TranslateKeyModplug(unsigned char Key) const;
-	int		TranslateKeyAzerty(unsigned char Key) const;
 	
 	bool	CheckClearKey(unsigned char Key) const;
 	bool	CheckHaltKey(unsigned char Key) const;
@@ -204,6 +205,9 @@ private:
 
 	// MIDI keyboard emulation
 	void	HandleKeyboardNote(char nChar, bool Pressed);
+	bool	IsSplitEnabled(int MidiNote, int Channel) const;		// // //
+	void	SplitKeyboardAdjust(stChanNote &Note) const;		// // //
+	void	SplitAdjustChannel(unsigned int &Channel, const stChanNote &Note) const;		// // //
 
 	// MIDI note functions
 	void	TriggerMIDINote(unsigned int Channel, unsigned int MidiNote, unsigned int Velocity, bool Insert);
@@ -211,12 +215,13 @@ private:
 	void	CutMIDINote(unsigned int Channel, unsigned int MidiNote, bool InsertCut);
 
 	// Note handling
-	void	PlayNote(unsigned int Channel, unsigned int Note, unsigned int Octave, unsigned int Velocity);
-	void	ReleaseNote(unsigned int Channel);
-	void	HaltNote(unsigned int Channel);
-	void	HaltNoteSingle(unsigned int Channel);
+	void	PlayNote(unsigned int Channel, unsigned int Note, unsigned int Octave, unsigned int Velocity) const;
+	void	ReleaseNote(unsigned int Channel, unsigned int Note, unsigned int Octave) const;		// // //
+	void	HaltNote(unsigned int Channel, unsigned int Note, unsigned int Octave) const;		// // //
+	void	HaltNoteSingle(unsigned int Channel) const;		// // //
 	
 	void	UpdateArpDisplay();
+	void	UpdateNoteQueues();		// // //
 	
 	// Mute methods
 	bool	IsChannelSolo(unsigned int Channel) const;
@@ -293,7 +298,14 @@ private:
 	int					m_iLastVolume;							// Last volume added to pattern
 	effect_t			m_iLastEffect;							// Last effect number added to pattern
 	int					m_iLastEffectParam;						// Last effect parameter added to pattern
+
+	int					m_iSplitNote;							// // // Split keyboard settings
+	int					m_iSplitChannel;
+	int					m_iSplitInstrument;
+	int					m_iSplitTranspose;
+
 	std::unordered_map<unsigned char, int> m_iNoteCorrection;	// // // correction from changing octaves
+	CNoteQueue			*m_pNoteQueue;							// // // Note queue for handling note triggers
 
 	// MIDI
 	unsigned int		m_iLastMIDINote;
@@ -430,6 +442,7 @@ public:
 	afx_msg void OnBookmarksToggle();
 	afx_msg void OnBookmarksNext();
 	afx_msg void OnBookmarksPrevious();
+	afx_msg void OnEditSplitKeyboard();
 	afx_msg void OnTrackerToggleChip();
 	afx_msg void OnTrackerSoloChip();
 	afx_msg void OnTrackerRecordToInst();

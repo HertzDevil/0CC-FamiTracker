@@ -39,7 +39,8 @@
     <RootNamespace>FamiTracker</RootNamespace>
     <Keyword>MFCProj</Keyword>
     <TargetPlatformVersion>8.1</TargetPlatformVersion>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>0CC-FamiTracker</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release 64|Win32'" Label="Configuration">
@@ -458,6 +459,7 @@
     <ClCompile Include="Source\BookmarkManager.cpp" />
     <ClCompile Include="Source\ChannelFactory.cpp" />
     <ClCompile Include="Source\ChannelState.cpp" />
+    <ClCompile Include="Source\NoteQueue.cpp" />
     <ClCompile Include="Source\RegisterState.cpp" />
     <ClCompile Include="Source\CompoundAction.cpp" />
     <ClCompile Include="Source\DetuneTable.cpp" />
@@ -512,6 +514,7 @@
     <ClCompile Include="Source\SeqInstrument.cpp" />
     <ClCompile Include="Source\SequenceCollection.cpp" />
     <ClCompile Include="Source\SequenceManager.cpp" />
+    <ClCompile Include="Source\SplitKeyboardDlg.cpp" />
     <ClCompile Include="Source\stdafx.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
@@ -710,6 +713,7 @@
     <ClInclude Include="Source\BookmarkCollection.h" />
     <ClInclude Include="Source\BookmarkManager.h" />
     <ClInclude Include="Source\BookmarkDlg.h" />
+    <ClInclude Include="Source\NoteQueue.h" />
     <ClInclude Include="Source\RegisterState.h" />
     <ClInclude Include="Source\CompoundAction.h" />
     <ClInclude Include="Source\DetuneTable.h" />
@@ -883,6 +887,7 @@ makehm /h /a afxhh.h IDW_,HIDW_,0x50000 "%(Filename)%(Extension)" &gt;&gt; "hlp\
     <ClInclude Include="Source\SequenceCollection.h" />
     <ClInclude Include="Source\SequenceManager.h" />
     <ClInclude Include="Source\SimpleFile.h" />
+    <ClInclude Include="Source\SplitKeyboardDlg.h" />
     <ClInclude Include="Source\stdafx.h" />
     <ClInclude Include="Source\StretchDlg.h" />
     <ClInclude Include="Source\SwapDlg.h" />

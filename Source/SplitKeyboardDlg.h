@@ -2,6 +2,8 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2014  Jonathan Liss
 **
+** 0CC-FamiTracker is (C) 2014-2016 HertzDevil
+**
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
@@ -18,42 +20,39 @@
 ** must bear this legend.
 */
 
-/*
- * Random noise generation
- *
- */
-
 
 #pragma once
 
-#include "2A03Chan.h"		// // //
+// CSplitKeyboardDlg dialog
 
-class CNoise : public C2A03Chan {
-public:
-	CNoise(CMixer *pMixer, int ID);		// // //
-	~CNoise();
-
-	void	Reset();
-	void	Write(uint16_t Address, uint8_t Value);
-	void	WriteControl(uint8_t Value);
-	uint8_t	ReadControl();
-	void	Process(uint32_t Time);
-	double	GetFrequency() const;		// // //
-
-	void	LengthCounterUpdate();
-	void	EnvelopeUpdate();
+class CSplitKeyboardDlg : public CDialog
+{
+	DECLARE_DYNAMIC(CSplitKeyboardDlg)
 
 public:
-	static const uint16_t	NOISE_PERIODS_NTSC[];
-	static const uint16_t	NOISE_PERIODS_PAL[];
+	CSplitKeyboardDlg(CWnd* pParent = NULL);   // standard constructor
+	virtual ~CSplitKeyboardDlg();
 
-	const uint16_t *PERIOD_TABLE;
+	bool m_bSplitEnable;
+	int m_iSplitChannel;
+	int m_iSplitNote;
+	int m_iSplitInstrument;
+	int m_iSplitTranspose;
 
-private:
-	uint8_t	m_iLooping, m_iEnvelopeFix, m_iEnvelopeSpeed;
-	uint8_t	m_iEnvelopeVolume, m_iFixedVolume;
-	int8_t	m_iEnvelopeCounter;
-	
-	uint8_t	m_iSampleRate;
-	uint16_t	m_iShiftReg;
+	static const int MAX_TRANSPOSE;
+
+// Dialog Data
+	enum { IDD = IDD_SPLIT_KEYBOARD };
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+	DECLARE_MESSAGE_MAP()
+public:
+	virtual BOOL OnInitDialog();
+	afx_msg void OnBnClickedCheckSplitEnable();
+	afx_msg void OnCbnSelchangeComboSplitNote();
+	afx_msg void OnCbnSelchangeComboSplitChan();
+	afx_msg void OnCbnSelchangeComboSplitInst();
+	afx_msg void OnCbnSelchangeComboSplitTrsp();
 };

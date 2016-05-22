@@ -89,4 +89,16 @@
 // Calling member function
 #define CALL_MEMBER_FN(obj, ptr) ((obj)->*(ptr))
 
+#ifdef _DEBUG
 #define new DEBUG_NEW
+bool _trace(TCHAR *format, ...);
+#ifdef TRACE
+#undef TRACE
+#endif
+#define TRACE _trace
+#else
+#ifdef TRACE
+#undef TRACE
+#endif
+#define TRACE __noop
+#endif
