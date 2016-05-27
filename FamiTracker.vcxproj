@@ -220,7 +220,6 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <MinimalRebuild>true</MinimalRebuild>
       <AdditionalIncludeDirectories>C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\ucrt;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\winrt;$(DXSDK_DIR)\Include\;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -298,7 +297,6 @@
       </AssemblerOutput>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <ResourceCompile>
