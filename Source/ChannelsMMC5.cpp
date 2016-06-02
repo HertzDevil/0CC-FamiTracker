@@ -94,8 +94,6 @@ void CChannelHandlerMMC5::HandleRelease()
 
 void CChannelHandlerMMC5::HandleNote(int Note, int Octave)
 {
-	m_iDutyPeriod = m_iDefaultDuty;
-	m_iInstVolume  = 0x0F;		// // //
 }
 
 bool CChannelHandlerMMC5::CreateInstHandler(inst_type_t Type)
@@ -155,7 +153,6 @@ int CChannelHandlerMMC5::ConvertDuty(int Duty) const		// // //
 {
 	switch (m_iInstTypeCurrent) {
 	case INST_VRC6:	return DUTY_2A03_FROM_VRC6[Duty & 0x07];
-	case INST_N163:	return Duty;
 	case INST_S5B:	return 0x02;
 	default:		return Duty;
 	}

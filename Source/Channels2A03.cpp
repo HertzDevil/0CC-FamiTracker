@@ -45,7 +45,6 @@ CChannelHandler2A03::CChannelHandler2A03() :
 	m_bResetEnvelope(false),
 	m_iLengthCounter(1)
 {
-	m_iDefaultDuty = 0;
 }
 
 void CChannelHandler2A03::HandleNoteData(stChanNote *pNoteData, int EffColumns)
@@ -113,8 +112,7 @@ void CChannelHandler2A03::HandleRelease()
 
 void CChannelHandler2A03::HandleNote(int Note, int Octave)
 {
-	m_iDutyPeriod	= m_iDefaultDuty;
-	m_iInstVolume	= 0x0F;		// // //
+	// // // nothing
 }
 
 bool CChannelHandler2A03::CreateInstHandler(inst_type_t Type)
@@ -204,7 +202,6 @@ int C2A03Square::ConvertDuty(int Duty) const		// // //
 {
 	switch (m_iInstTypeCurrent) {
 	case INST_VRC6:	return DUTY_2A03_FROM_VRC6[Duty & 0x07];
-	case INST_N163:	return Duty;
 	case INST_S5B:	return 0x02;
 	default:		return Duty;
 	}
@@ -387,8 +384,6 @@ void CNoiseChan::HandleNote(int Note, int Octave)
 	m_bGate = true;
 
 	m_iNote			= NewNote;
-	m_iDutyPeriod	= m_iDefaultDuty;
-	m_iInstVolume	= 0x0F;		// // //
 }
 
 void CNoiseChan::SetupSlide()		// // //

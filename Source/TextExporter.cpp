@@ -52,6 +52,9 @@ enum
 	CT_EXPANSION,      // uint (0=none, 1=VRC6, 2=VRC7, 4=FDS, 8=MMC5, 16=N163, 32=S5B)
 	CT_VIBRATO,        // uint (0=old, 1=new)
 	CT_SPLIT,          // uint (32=default)
+	// // // 050B
+	CT_PLAYBACKRATE,   // uint (0=default, 1=custom, 2=video) uint (us)
+	CT_TUNING,         // uint (semitones) uint (cents)
 	// namco global settings
 	CT_N163CHANNELS,   // uint
 	// macros
@@ -106,6 +109,9 @@ static const TCHAR* CT[CT_COUNT] =
 	_T("EXPANSION"),
 	_T("VIBRATO"),
 	_T("SPLIT"),
+	// // // 050B
+	_T("PLAYBACKRATE"),
+	_T("TUNING"),
 	// namco global settings
 	_T("N163CHANNELS"),
 	// macros
@@ -479,6 +485,7 @@ bool CTextExport::ImportCellText(		// // //
 
 	CString sInst = t.ReadToken();
 	if (sInst == _T("..")) { Cell.Instrument = MAX_INSTRUMENTS; }
+	else if (sInst == _T("&&")) { Cell.Instrument = HOLD_INSTRUMENT; }		// // // 050B
 	else
 	{
 		if (sInst.GetLength() != 2)
@@ -598,7 +605,8 @@ const CString& CTextExport::ExportCellText(const stChanNote& stCell, unsigned in
 	}
 
 	tmp.Format(_T(" %02X"), stCell.Instrument);
-	s += (stCell.Instrument == MAX_INSTRUMENTS) ? _T(" ..") : tmp;
+	s += (stCell.Instrument == MAX_INSTRUMENTS) ? _T(" ..") :
+		(stCell.Instrument == HOLD_INSTRUMENT) ? _T(" &&") : tmp;		// // // 050B
 
 	tmp.Format(_T(" %01X"), stCell.Vol);
 	s += (stCell.Vol == 0x10) ? _T(" .") : tmp;
@@ -751,6 +759,20 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 			case CT_SPLIT:
 				CHECK(t.ReadInt(i,0,255,&sResult));
 				pDoc->SetSpeedSplitPoint(i);
+				CHECK(t.ReadEOL(&sResult));
+				break;
+			case CT_PLAYBACKRATE:		// // // 050B
+				CHECK(t.ReadInt(i,0,2,&sResult));
+
+				CHECK(t.ReadInt(i,0,0xFFFF,&sResult));
+
+				CHECK(t.ReadEOL(&sResult));
+				break;
+			case CT_TUNING:		// // // 050B
+				CHECK(t.ReadInt(i,-12,12,&sResult));
+
+				CHECK(t.ReadInt(i,-100,100,&sResult));
+
 				CHECK(t.ReadEOL(&sResult));
 				break;
 			case CT_N163CHANNELS:
@@ -1179,7 +1201,7 @@ const CString& CTextExport::ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 				for (unsigned int r = 0; r < pDoc->GetPatternLength(t); r++) {
 					pDoc->GetDataAtPattern(t,p,c,r,&stCell);
 					bool isEmpty = true;
-					if (stCell.Note != NONE || stCell.Instrument != MAX_INSTRUMENTS || stCell.Vol != 0x10) isEmpty = false;
+					if (stCell.Note != NONE || stCell.Instrument != MAX_INSTRUMENTS || stCell.Vol != MAX_VOLUME) isEmpty = false;
 					for (int fx = 0; fx < MAX_EFFECT_COLUMNS; fx++)
 						if (stCell.EffNumber[fx] != EF_NONE) isEmpty = false;
 					if (isEmpty) continue;
@@ -1247,17 +1269,22 @@ const CString& CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 	f.WriteString(_T("\n"));
 
 	s.Format(_T("# Global settings\n"
-	            "%-15s %d\n"
-	            "%-15s %d\n"
-	            "%-15s %d\n"
-	            "%-15s %d\n"
-	            "%-15s %d\n"
-	            "\n"),
-	            CT[CT_MACHINE],   pDoc->GetMachine(),
-	            CT[CT_FRAMERATE], pDoc->GetEngineSpeed(),
-	            CT[CT_EXPANSION], pDoc->GetExpansionChip(),
-	            CT[CT_VIBRATO],   pDoc->GetVibratoStyle(),
-	            CT[CT_SPLIT],     pDoc->GetSpeedSplitPoint() );
+				"%-15s %d\n"
+				"%-15s %d\n"
+				"%-15s %d\n"
+				"%-15s %d\n"
+				"%-15s %d\n"
+//				"%-15s %d %d\n"		// // // 050B
+//				"%-15s %d %d\n"
+				"\n"),
+				CT[CT_MACHINE],   pDoc->GetMachine(),
+				CT[CT_FRAMERATE], pDoc->GetEngineSpeed(),
+				CT[CT_EXPANSION], pDoc->GetExpansionChip(),
+				CT[CT_VIBRATO],   pDoc->GetVibratoStyle(),
+				CT[CT_SPLIT],     pDoc->GetSpeedSplitPoint()
+//				,CT[CT_PLAYBACKRATE], pDoc->, pDoc->
+//				,CT[CT_TUNING], pDoc->, pDoc->
+				);
 	f.WriteString(s);
 
 	int N163count = -1;		// // //
