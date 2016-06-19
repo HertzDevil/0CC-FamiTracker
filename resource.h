@@ -607,6 +607,7 @@
 #define IDC_COMBO_SPLIT_TRSP            1452
 #define IDC_CHECK_SPLIT_ENABLE          1453
 #define IDC_COMBO_SPLIT_CHAN            1454
+#define IDC_BUTTON_MIXER_RESET          1454
 #define ID_TRACKER_PLAY                 32771
 #define ID_TRACKER_PLAYPATTERN          32775
 #define ID_TRACKER_STOP                 32776
@@ -743,6 +744,10 @@
 #define ID_RECENTFILES_CLEAR            33190
 #define ID_FIND_PREVIOUS                33192
 #define ID_EDIT_SPLITKEYBOARD           33193
+#define ID_VIEW_AVERAGEBPM              33194
+#define ID_VIEW_CHANNELSTATE            33195
+#define ID_TRACKER_PLAY_MARKER          33196
+#define ID_TRACKER_SET_MARKER           33197
 #define ID_INSTRUMENT_ADD_2A03          36864
 #define ID_INSTRUMENT_ADD_FDS           36865
 #define ID_INSTRUMENT_ADD_MMC5          36866
@@ -762,9 +767,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        351
-#define _APS_NEXT_COMMAND_VALUE         33194
-#define _APS_NEXT_CONTROL_VALUE         1454
+#define _APS_NEXT_RESOURCE_VALUE        352
+#define _APS_NEXT_COMMAND_VALUE         33198
+#define _APS_NEXT_CONTROL_VALUE         1455
 #define _APS_NEXT_SYMED_VALUE           179
 #endif
 #endif

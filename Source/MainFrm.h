@@ -399,6 +399,10 @@ public:
 	afx_msg void OnModuleGrooveSettings();
 	afx_msg void OnModuleBookmarkSettings();
 	afx_msg void OnModuleEstimateSongLength();
+	afx_msg void OnTrackerPlayMarker();		// // // 050B
+	afx_msg void OnTrackerSetMarker();		// // // 050B
+	afx_msg void OnTrackerDisplayAverageBPM();		// // // 050B
+	afx_msg void OnTrackerDisplayChannelState();		// // // 050B
 	afx_msg void OnToggleMultiplexer();
 	afx_msg void OnUpdateEditCopySpecial(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateSelectMultiFrame(CCmdUI *pCmdUI);
@@ -407,6 +411,10 @@ public:
 	afx_msg void OnUpdateToggleFixTempo(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateGrooveEdit(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateEditFindToggle(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateTrackerPlayMarker(CCmdUI *pCmdUI);		// // // 050B
+	afx_msg void OnUpdateDisplayAverageBPM(CCmdUI *pCmdUI);		// // // 050B
+	afx_msg void OnUpdateDisplayChannelState(CCmdUI *pCmdUI);		// // // 050B
+	afx_msg void OnUpdateDisplayRegisterState(CCmdUI *pCmdUI);
 
 	afx_msg void OnEasterEggKraid1();		// Easter Egg
 	afx_msg void OnEasterEggKraid2();

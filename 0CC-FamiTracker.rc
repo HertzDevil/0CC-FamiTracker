@@ -273,16 +273,19 @@ BEGIN
         MENUITEM "Play P&attern",               ID_TRACKER_PLAYPATTERN
         MENUITEM "Play &from Start",            ID_TRACKER_PLAY_START
         MENUITEM "Play from C&ursor",           ID_TRACKER_PLAY_CURSOR
+        MENUITEM "Play from &Marker",           ID_TRACKER_PLAY_MARKER
         MENUITEM "&Stop",                       ID_TRACKER_STOP
+        MENUITEM SEPARATOR
         MENUITEM "Toggle &Edit Mode",           ID_TRACKER_EDIT
+        MENUITEM "Set Ro&w Marker",             ID_TRACKER_SET_MARKER
         MENUITEM SEPARATOR
         MENUITEM "&Toggle Channel",             ID_TRACKER_TOGGLECHANNEL
-        MENUITEM "So&lo Channel",               ID_TRACKER_SOLOCHANNEL
+        MENUITEM "S&olo Channel",               ID_TRACKER_SOLOCHANNEL
         MENUITEM "To&ggle Chip",                ID_TRACKER_TOGGLECHIP
-        MENUITEM "Solo &Chip",                  ID_TRACKER_SOLOCHIP
+        MENUITEM "So&lo Chip",                  ID_TRACKER_SOLOCHIP
         MENUITEM SEPARATOR
-        MENUITEM "Switch to Track &Instrument", ID_TRACKER_SWITCHTOTRACKINSTRUMENT
-        MENUITEM "&Record to Instrument",       ID_TRACKER_RECORDTOINST
+        MENUITEM "Switch To Track &Instrument", ID_TRACKER_SWITCHTOTRACKINSTRUMENT
+        MENUITEM "&Record To Instrument",       ID_TRACKER_RECORDTOINST
         MENUITEM "Re&corder Settings...",       ID_TRACKER_RECORDERSETTINGS
         MENUITEM SEPARATOR
         MENUITEM "&Kill Sound\tF12",            ID_TRACKER_KILLSOUND
@@ -296,6 +299,8 @@ BEGIN
         MENUITEM "&Follow Mode",                IDC_FOLLOW_TOGGLE, CHECKED
         MENUITEM "Co&mpact View",               IDC_COMPACT_TOGGLE
         MENUITEM SEPARATOR
+        MENUITEM "Average &BPM",                ID_VIEW_AVERAGEBPM
+        MENUITEM "C&hannel State",              ID_VIEW_CHANNELSTATE
         MENUITEM "&Register State",             ID_TRACKER_DISPLAYREGISTERSTATE
         MENUITEM SEPARATOR
         POPUP "Frame Editor &Position"
@@ -1441,22 +1446,22 @@ EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Mixer"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    CONTROL         "",IDC_SLIDER_APU1,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,7,30,26,114
-    CTEXT           "APU1",IDC_STATIC,7,22,26,8
-    CONTROL         "",IDC_SLIDER_APU2,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,41,30,26,114
-    CTEXT           "APU2",IDC_STATIC,41,22,26,8
-    CONTROL         "",IDC_SLIDER_VRC6,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,75,30,26,114
-    CTEXT           "VRC6",IDC_STATIC,75,22,26,8
-    CONTROL         "",IDC_SLIDER_VRC7,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,109,30,26,114
-    CTEXT           "VRC7",IDC_STATIC,109,22,26,8
-    CONTROL         "",IDC_SLIDER_MMC5,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,143,30,26,114
-    CTEXT           "MMC5",IDC_STATIC,143,22,26,8
-    CONTROL         "",IDC_SLIDER_FDS,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,177,30,26,114
-    CTEXT           "FDS",IDC_STATIC,177,22,26,8
-    CONTROL         "",IDC_SLIDER_N163,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,211,30,26,114
-    CTEXT           "N163",IDC_STATIC,211,22,26,8
-    CONTROL         "",IDC_SLIDER_S5B,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,245,30,26,114
-    CTEXT           "S5B",IDC_STATIC,245,22,26,8
+    CONTROL         "",IDC_SLIDER_APU1,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,7,34,26,110
+    CTEXT           "APU1",IDC_STATIC,7,26,26,8
+    CONTROL         "",IDC_SLIDER_APU2,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,41,34,26,110
+    CTEXT           "APU2",IDC_STATIC,41,26,26,8
+    CONTROL         "",IDC_SLIDER_VRC6,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,75,34,26,110
+    CTEXT           "VRC6",IDC_STATIC,75,26,26,8
+    CONTROL         "",IDC_SLIDER_VRC7,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,109,34,26,110
+    CTEXT           "VRC7",IDC_STATIC,109,26,26,8
+    CONTROL         "",IDC_SLIDER_MMC5,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,143,34,26,110
+    CTEXT           "MMC5",IDC_STATIC,143,26,26,8
+    CONTROL         "",IDC_SLIDER_FDS,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,177,34,26,110
+    CTEXT           "FDS",IDC_STATIC,177,26,26,8
+    CONTROL         "",IDC_SLIDER_N163,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,211,34,26,110
+    CTEXT           "N163",IDC_STATIC,211,26,26,8
+    CONTROL         "",IDC_SLIDER_S5B,"msctls_trackbar32",TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,245,34,26,110
+    CTEXT           "S5B",IDC_STATIC,245,26,26,8
     CTEXT           "0.0dB",IDC_LEVEL_APU1,7,149,30,8
     CTEXT           "0.0dB",IDC_LEVEL_APU2,40,149,30,8
     CTEXT           "0.0dB",IDC_LEVEL_VRC6,73,149,30,8
@@ -1466,6 +1471,7 @@ BEGIN
     CTEXT           "0.0dB",IDC_LEVEL_N163,209,149,30,8
     CTEXT           "0.0dB",IDC_LEVEL_S5B,243,149,30,8
     LTEXT           "Hardware mixing levels",IDC_STATIC,7,7,74,8
+    PUSHBUTTON      "Reset",IDC_BUTTON_MIXER_RESET,223,7,50,14
 END
 
 IDD_INSTRUMENT_N163_WAVE DIALOGEX 0, 0, 372, 172
@@ -2163,6 +2169,11 @@ BEGIN
     0
 END
 
+IDD_CONFIG_MIXER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2676,6 +2687,10 @@ BEGIN
     ID_MODULE_LINEARPITCH   "Enable linear pitch bends\nLinear Pitch Mode"
     ID_RECENTFILES_CLEAR    "Clear the recent file list\nClear Recent File List"
     ID_EDIT_SPLITKEYBOARD   "Open the split keyboard settings dialog\nSplit Keyboard"
+    ID_VIEW_AVERAGEBPM      "Display average BPM value instead of instant BPM value\nDisplay Average BPM"
+    ID_VIEW_CHANNELSTATE    "Display information about active effects\nDisplay Channel State"
+    ID_TRACKER_PLAY_MARKER  "Play pattern from row marker\nPlay from Marker"
+    ID_TRACKER_SET_MARKER   "Set a row marker for playback\nSet Row Marker"
 END
 
 #endif    // English (United States) resources

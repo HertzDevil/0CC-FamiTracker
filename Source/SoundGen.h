@@ -57,7 +57,8 @@ enum play_mode_t {
 	MODE_PLAY_START,		// Play from start of song
 	MODE_PLAY_REPEAT,		// Play and repeat
 	MODE_PLAY_CURSOR,		// Play from cursor
-	MODE_PLAY_FRAME			// Play frame
+	MODE_PLAY_FRAME,		// Play frame
+	MODE_PLAY_MARKER,		// // // 050B (row marker, aka "bookmark")
 };
 
 enum render_end_t { 
@@ -152,6 +153,7 @@ public:
 	void		 ResetState();
 	void		 ResetTempo();
 	float		 GetTempo() const;
+	float		 GetAverageBPM() const;		// // //
 	bool		 IsPlaying() const { return m_bPlaying; };
 
 	// Stats
@@ -359,6 +361,7 @@ private:
 	int					m_iSkipToRow;
 	bool				m_bDoHalt;							// // // Cxx effect
 	int					m_iStepRows;						// # of rows skipped last update
+	int					m_iRowTickCount;					// // // 050B
 	play_mode_t			m_iPlayMode;
 
 	unsigned int		m_iNoteLookupTableNTSC[96];			// For 2A03
@@ -387,6 +390,11 @@ private:
 	int					m_iTempoDecrement;
 	int					m_iTempoRemainder;
 	bool				m_bUpdateRow;
+
+	static const int	AVERAGE_BPM_SIZE = 24;		// // // 050B
+	float				m_fBPMCacheValue[AVERAGE_BPM_SIZE];
+	int					m_iBPMCacheTicks[AVERAGE_BPM_SIZE];
+	int					m_iBPMCachePosition;
 
 	std::queue<int>		m_iRegisterStream;					// // // vgm export
 
