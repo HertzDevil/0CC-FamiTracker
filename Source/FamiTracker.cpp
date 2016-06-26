@@ -20,7 +20,7 @@
 ** must bear this legend.
 */
 
-#include "json.hpp"		// // //
+#include "json/json.hpp"		// // //
 #include "stdafx.h"
 #include "Exception.h"
 #include "FamiTracker.h"
@@ -36,7 +36,7 @@
 #include "ChannelMap.h"
 #include "CustomExporters.h"
 #include "CommandLineExport.h"
-#include "VersionHelpers.h"		// // //
+#include <VersionHelpers.h>		// // //
 
 #include "WinInet.h"		// // //
 #pragma comment(lib, "wininet.lib")

@@ -203,7 +203,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <MinimalRebuild>true</MinimalRebuild>
-      <AdditionalIncludeDirectories>D:\C++\json;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\ucrt;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\winrt;$(DXSDK_DIR)\Include\;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Windows Kits\10\Include\10.0.10240.0\ucrt;$(WindowsSdkDir_81)Include\um;$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\winrt;$(UCRTContentRoot)Include\10.0.10586.0\ucrt;$(UCRTContentRoot)Include\10.0.10586.0\um;$(UCRTContentRoot)Include\10.0.10586.0\shared;$(UCRTContentRoot)Include\10.0.10586.0\winrt;$(DXSDK_DIR)Include\;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -218,7 +218,7 @@
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\ucrt\x86;C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\um\x86;$(DXSDK_DIR)\Lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\ucrt\x86;C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\um\x86;C:\Program Files\Windows Kits\10\lib\10.0.10240.0\ucrt\x86;C:\Program Files\Windows Kits\8.1\Lib\winv6.3\um\x86;$(DXSDK_DIR)\Lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <Manifest>
@@ -270,7 +270,7 @@
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MinSpace</Optimization>
-      <AdditionalIncludeDirectories>D:\C++\json;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\ucrt;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\winrt;$(DXSDK_DIR)\Include\;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Windows Kits\10\Include\10.0.10240.0\ucrt;$(WindowsSdkDir_81)Include\um;$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\winrt;$(UCRTContentRoot)Include\10.0.10586.0\ucrt;$(UCRTContentRoot)Include\10.0.10586.0\um;$(UCRTContentRoot)Include\10.0.10586.0\shared;$(UCRTContentRoot)Include\10.0.10586.0\winrt;$(DXSDK_DIR)Include\;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -291,7 +291,7 @@
       <AdditionalDependencies>Dbghelp.lib;winmm.lib;comctl32.lib;dsound.lib;dxguid.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Version>
       </Version>
-      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\ucrt\x86;C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\um\x86;$(DXSDK_DIR)\Lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\ucrt\x86;C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\um\x86;C:\Program Files\Windows Kits\10\lib\10.0.10240.0\ucrt\x86;C:\Program Files\Windows Kits\8.1\Lib\winv6.3\um\x86;$(DXSDK_DIR)\Lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
       <SubSystem>Windows</SubSystem>
@@ -430,6 +430,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\APU\2A03.cpp" />
+    <ClCompile Include="Source\APU\S5B.cpp" />
     <ClCompile Include="Source\APU\SoundChip.cpp" />
     <ClCompile Include="Source\Bookmark.cpp" />
     <ClCompile Include="Source\BookmarkCollection.cpp" />
@@ -437,6 +438,7 @@
     <ClCompile Include="Source\BookmarkManager.cpp" />
     <ClCompile Include="Source\ChannelFactory.cpp" />
     <ClCompile Include="Source\ChannelState.cpp" />
+    <ClCompile Include="Source\FrameEditorTypes.cpp" />
     <ClCompile Include="Source\NoteQueue.cpp" />
     <ClCompile Include="Source\RegisterState.cpp" />
     <ClCompile Include="Source\CompoundAction.cpp" />
@@ -636,10 +638,8 @@
     <ClCompile Include="Source\APU\FDS.cpp" />
     <ClCompile Include="Source\APU\MMC5.CPP" />
     <ClCompile Include="Source\APU\N163.CPP" />
-    <ClCompile Include="Source\APU\S5B.cpp" />
     <ClCompile Include="Source\Apu\VRC6.cpp" />
     <ClCompile Include="Source\APU\VRC7.cpp" />
-    <ClCompile Include="Source\APU\emu2149.c" />
     <ClCompile Include="Source\APU\emu2413.c" />
     <ClCompile Include="Source\APU\FDSSound.cpp" />
     <ClCompile Include="Source\Blip_Buffer\Blip_Buffer.cpp" />
@@ -689,10 +689,12 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Source\APU\2A03.h" />
     <ClInclude Include="Source\APU\2A03Chan.h" />
+    <ClInclude Include="Source\APU\S5B.h" />
     <ClInclude Include="Source\Bookmark.h" />
     <ClInclude Include="Source\BookmarkCollection.h" />
     <ClInclude Include="Source\BookmarkManager.h" />
     <ClInclude Include="Source\BookmarkDlg.h" />
+    <ClInclude Include="Source\FrameEditorTypes.h" />
     <ClInclude Include="Source\NoteQueue.h" />
     <ClInclude Include="Source\RegisterState.h" />
     <ClInclude Include="Source\CompoundAction.h" />
@@ -776,11 +778,9 @@
     <ClInclude Include="Source\APU\FDS.h" />
     <ClInclude Include="Source\APU\MMC5.h" />
     <ClInclude Include="Source\APU\N163.h" />
-    <ClInclude Include="Source\APU\S5B.h" />
     <ClInclude Include="Source\Apu\VRC6.h" />
     <ClInclude Include="Source\APU\VRC7.h" />
     <ClInclude Include="Source\APU\2413tone.h" />
-    <ClInclude Include="Source\APU\emu2149.h" />
     <ClInclude Include="Source\APU\emu2413.h" />
     <ClInclude Include="Source\APU\FDSSound.h" />
     <ClInclude Include="Source\APU\vrc7tone.h" />
