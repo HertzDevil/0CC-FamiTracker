@@ -212,7 +212,7 @@ public:
 	bool			InsertFrame(unsigned int Track, unsigned int Frame);
 	bool			RemoveFrame(unsigned int Track, unsigned int Frame);
 	bool			DuplicateFrame(unsigned int Track, unsigned int Frame);
-	bool			DuplicatePatterns(unsigned int Track, unsigned int Frame);
+	bool			CloneFrame(unsigned int Track, unsigned int Frame);		// // // renamed
 	bool			MoveFrameDown(unsigned int Track, unsigned int Frame);
 	bool			MoveFrameUp(unsigned int Track, unsigned int Frame);
 	void			DeleteFrames(unsigned int Track, unsigned int Frame, int Count);
@@ -264,6 +264,9 @@ public:
 	void			SetDetuneOffset(int Chip, int Note, int Detune);		// // //
 	int				GetDetuneOffset(int Chip, int Note) const;
 	void			ResetDetuneTables();
+	void			SetTuning(int Semitone, int Cent);		// // // 050B
+	int				GetTuningSemitone() const;		// // // 050B
+	int				GetTuningCent() const;		// // // 050B
 
 	CGroove			*GetGroove(int Index) const;		// // //
 	void			SetGroove(int Index, const CGroove* Groove);
@@ -521,6 +524,7 @@ private:
 	unsigned int	m_iEngineSpeed;								// Refresh rate
 	unsigned int	m_iSpeedSplitPoint;							// Speed/tempo split-point
 	int				m_iDetuneTable[6][96];						// // // Detune tables
+	int				m_iDetuneSemitone, m_iDetuneCent;			// // // 050B tuning
 
 	// NSF info
 	char			m_strName[32];								// Song name
@@ -535,7 +539,7 @@ private:
 	stHighlight		m_vHighlight;								// // //
 
 	// Things below are for compability with older files
-	CArray<COldSequence> m_vTmpSequences;		// // //
+	std::vector<COldSequence> m_vTmpSequences;		// // //
 
 	mutable CDocumentFile *m_pCurrentDocument;		// // //
 
@@ -545,7 +549,6 @@ private:
 
 	// Thread synchronization
 private:
-	mutable CCriticalSection m_csInstrument;
 	mutable CMutex			 m_csDocumentLock;
 
 // Operations

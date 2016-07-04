@@ -376,7 +376,7 @@ void CSoundGen::DocumentPropertiesChanged(CFamiTrackerDoc *pDocument)
 	SetupVibratoTable(pDocument->GetVibratoStyle());		// // //
 	
 	machine_t Machine = pDocument->GetMachine();
-	const int A440_NOTE = 45;
+	const double A440_NOTE = 45. - pDocument->GetTuningSemitone() - pDocument->GetTuningCent() / 100.;
 	double clock_ntsc = CAPU::BASE_FREQ_NTSC / 16.0;
 	double clock_pal = CAPU::BASE_FREQ_PAL / 16.0;
 
@@ -1604,7 +1604,7 @@ void CSoundGen::CheckControl()
 	}
 }
 
-void CSoundGen::LoadMachineSettings(machine_t Machine, int Rate, int NamcoChannels)
+void CSoundGen::LoadMachineSettings()		// // //
 {
 	// Setup machine-type and speed
 	//
@@ -1615,12 +1615,13 @@ void CSoundGen::LoadMachineSettings(machine_t Machine, int Rate, int NamcoChanne
 
 	ASSERT(m_pAPU != NULL);
 
-	int BaseFreq	= (Machine == NTSC) ? CAPU::BASE_FREQ_NTSC  : CAPU::BASE_FREQ_PAL;
-	int DefaultRate = (Machine == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
+	m_iMachineType = m_pDocument->GetMachine();		// // // 050B
 
-	m_iMachineType = Machine;
+	int BaseFreq	= (m_iMachineType == NTSC) ? CAPU::BASE_FREQ_NTSC  : CAPU::BASE_FREQ_PAL;
+	int DefaultRate = (m_iMachineType == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
 
 	// Choose a default rate if not predefined
+	int Rate = m_pDocument->GetEngineSpeed();		// // //
 	if (Rate == 0)
 		Rate = DefaultRate;
 
@@ -1629,7 +1630,7 @@ void CSoundGen::LoadMachineSettings(machine_t Machine, int Rate, int NamcoChanne
 
 	{
 		CSingleLock l(&m_csAPULock, TRUE);		// // //
-		m_pAPU->ChangeMachineRate(Machine == NTSC ? MACHINE_NTSC : MACHINE_PAL, Rate);		// // //
+		m_pAPU->ChangeMachineRate(m_iMachineType == NTSC ? MACHINE_NTSC : MACHINE_PAL, Rate);		// // //
 	}
 
 #if WRITE_VOLUME_FILE
@@ -1911,8 +1912,6 @@ BOOL CSoundGen::InitInstance()
 		if (m_pVisualizerWnd != NULL)
 			m_pVisualizerWnd->ReportAudioProblem();
 	}
-
-//	LoadMachineSettings(DEFAULT_MACHINE_TYPE, DEFAULT_MACHINE_TYPE == NTSC ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL);
 
 	ResetAPU();
 
@@ -2567,6 +2566,16 @@ int CSoundGen::GetSequencePlayPos(const CSequence *pSequence)
 	int Ret = m_iSequencePlayPos;
 	m_pSequencePlayPos = pSequence;
 	return Ret;
+}
+
+void CSoundGen::SetMeterDecayRate(int Type) const		// // // 050B
+{
+	m_pAPU->SetMeterDecayRate(Type);
+}
+
+int CSoundGen::GetMeterDecayRate() const
+{
+	return m_pAPU->GetMeterDecayRate();
 }
 
 int CSoundGen::GetDefaultInstrument() const

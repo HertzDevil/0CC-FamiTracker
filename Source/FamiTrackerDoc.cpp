@@ -366,13 +366,15 @@ void CFamiTrackerDoc::DeleteContents()
 	m_bLinearPitch		 = DEFAULT_LINEAR_PITCH;
 	m_iChannelsAvailable = CHANNELS_DEFAULT;
 	m_iSpeedSplitPoint	 = DEFAULT_SPEED_SPLIT_POINT;
+	m_iDetuneSemitone	 = 0;		// // // 050B
+	m_iDetuneCent		 = 0;		// // // 050B
 
 	m_vHighlight = CPatternData::DEFAULT_HIGHLIGHT;		// // //
 
 	ResetDetuneTables();		// // //
 
 	// Used for loading older files
-	m_vTmpSequences.RemoveAll();
+	m_vTmpSequences.clear();		// // //
 
 	// Auto save
 #ifdef AUTOSAVE
@@ -532,7 +534,7 @@ void CFamiTrackerDoc::ReorderSequences()
 						pInst->SetSeqIndex(j, Indices[Index][j]);
 					}
 					else {
-						COldSequence Seq(m_vTmpSequences[Index]);		// // //
+						COldSequence &Seq = m_vTmpSequences[Index];		// // //
 						if (j == SEQ_VOLUME)
 							for (unsigned int k = 0; k < Seq.GetLength(); ++k)
 								Seq.Value[k] = std::max(std::min<int>(Seq.Value[k], 15), 0);
@@ -551,7 +553,7 @@ void CFamiTrackerDoc::ReorderSequences()
 	}
 
 	// De-allocate memory
-	m_vTmpSequences.RemoveAll();
+	m_vTmpSequences.clear();		// // //
 }
 
 template <module_error_level_t l>
@@ -683,7 +685,7 @@ bool CFamiTrackerDoc::WriteBlocks(CDocumentFile *pDocFile) const
 		6, 1, 3, 6, 6, 3, 4, 1, 1,
 #endif
 		6, 1, 1,					// expansion
-		1, 1, 1, 1					// 0cc-ft
+		2, 1, 1, 1					// 0cc-ft
 	};
 
 	static bool (CFamiTrackerDoc::*FTM_WRITE_FUNC[])(CDocumentFile*, const int) const = {		// // //
@@ -1387,12 +1389,13 @@ BOOL CFamiTrackerDoc::OpenDocumentOld(CFile *pOpenFile)
 
 			case FB_SEQUENCES:
 				pOpenFile->Read(&ReadCount, sizeof(int));
-				m_vTmpSequences.SetSize(ReadCount);
 				for (i = 0; i < ReadCount; i++) {
+					COldSequence Seq;
 					pOpenFile->Read(&ImportedSequence, sizeof(ImportedSequence));
 					if (ImportedSequence.Count > 0 && ImportedSequence.Count < MAX_SEQUENCE_ITEMS)
 						for (unsigned int i = 0; i < ImportedSequence.Count; ++i)		// // //
-							m_vTmpSequences[i].AddItem(ImportedSequence.Length[i], ImportedSequence.Value[i]);
+							Seq.AddItem(ImportedSequence.Length[i], ImportedSequence.Value[i]);
+					m_vTmpSequences.push_back(Seq);		// // //
 				}
 				break;
 
@@ -1672,8 +1675,8 @@ void CFamiTrackerDoc::ReadBlock_Parameters(CDocumentFile *pDocFile, const int Ve
 	AssertRange<MODULE_ERROR_STRICT>(m_iExpansionChip, 0, 0x3F, "Expansion chip flag");
 
 	if (Version >= 8) {		// // // 050B
-		char Semitones = pDocFile->GetBlockChar();
-		char Cents = pDocFile->GetBlockChar();
+		m_iDetuneSemitone = pDocFile->GetBlockChar();
+		m_iDetuneCent = pDocFile->GetBlockChar();
 	}
 
 	SetupChannels(m_iExpansionChip);
@@ -1805,15 +1808,16 @@ void CFamiTrackerDoc::ReadBlock_Sequences(CDocumentFile *pDocFile, const int Ver
 	unsigned int Count = AssertRange(pDocFile->GetBlockInt(), 0, MAX_SEQUENCES * SEQ_COUNT, "2A03 sequence count");
 
 	if (Version == 1) {
-		m_vTmpSequences.SetSize(MAX_SEQUENCES);
 		for (unsigned int i = 0; i < Count; ++i) {
+			COldSequence Seq;
 			unsigned int Index = AssertRange(pDocFile->GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
 			unsigned int SeqCount = static_cast<unsigned char>(pDocFile->GetBlockChar());
 			AssertRange(SeqCount, 0U, static_cast<unsigned>(MAX_SEQUENCE_ITEMS - 1), "Sequence item count");
 			for (unsigned int j = 0; j < SeqCount; ++j) {
 				char Value = pDocFile->GetBlockChar();
-				m_vTmpSequences[Index].AddItem(pDocFile->GetBlockChar(), Value);
+				Seq.AddItem(pDocFile->GetBlockChar(), Value);
 			}
+			m_vTmpSequences.push_back(Seq);		// // //
 		}
 	}
 	else if (Version == 2) {
@@ -2469,13 +2473,21 @@ bool CFamiTrackerDoc::WriteBlock_Bookmarks(CDocumentFile *pDocFile, const int Ve
 void CFamiTrackerDoc::ReadBlock_ParamsExtra(CDocumentFile *pDocFile, const int Version)
 {
 	m_bLinearPitch = pDocFile->GetBlockInt() != 0;
+	if (Version >= 2) {
+		m_iDetuneSemitone = AssertRange(pDocFile->GetBlockChar(), -12, 12, "Global semitone tuning");
+		m_iDetuneCent = AssertRange(pDocFile->GetBlockChar(), -100, 100, "Global cent tuning");
+	}
 }
 
 bool CFamiTrackerDoc::WriteBlock_ParamsExtra(CDocumentFile *pDocFile, const int Version) const
 {
-	if (!m_bLinearPitch) return true;
+	if (!m_bLinearPitch && !m_iDetuneSemitone && !m_iDetuneCent) return true;
 	pDocFile->CreateBlock(FILE_BLOCK_PARAMS_EXTRA, Version);
-	pDocFile->WriteBlockInt(true);
+	pDocFile->WriteBlockInt(m_bLinearPitch);
+	if (Version >= 2) {
+		pDocFile->WriteBlockChar(m_iDetuneSemitone);
+		pDocFile->WriteBlockChar(m_iDetuneCent);
+	}
 	return pDocFile->FlushBlock();
 }
 
@@ -2637,7 +2649,7 @@ bool CFamiTrackerDoc::ImportDetune(CFamiTrackerDoc *pImported)		// // //
 	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++)
 		m_iDetuneTable[i][j] = pImported->GetDetuneOffset(i, j);
 
-	theApp.GetSoundGenerator()->LoadMachineSettings(m_iMachine, m_iEngineSpeed, m_iNamcoChannels);
+	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
 	return true;
 }
 
@@ -3580,7 +3592,7 @@ bool CFamiTrackerDoc::DuplicateFrame(unsigned int Track, unsigned int Frame)
 	return true;
 }
 
-bool CFamiTrackerDoc::DuplicatePatterns(unsigned int Track, unsigned int Frame)
+bool CFamiTrackerDoc::CloneFrame(unsigned int Track, unsigned int Frame)		// // // renamed
 {
 	ASSERT(Track < MAX_TRACKS);
 
@@ -3847,7 +3859,7 @@ void CFamiTrackerDoc::ApplyExpansionChip()
 	theApp.GetSoundGenerator()->SelectChip(m_iExpansionChip);
 
 	// Change period tables
-	theApp.GetSoundGenerator()->LoadMachineSettings(m_iMachine, m_iEngineSpeed, m_iNamcoChannels);
+	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
 
 	SetModifiedFlag();
 	SetExceededFlag();			// // //
@@ -4755,7 +4767,7 @@ stFullState *CFamiTrackerDoc::RetrieveSoundState(unsigned int Track, unsigned in
 				BufferPos[c] = 0;
 
 			if (State->Instrument == MAX_INSTRUMENTS)
-				if (Note.Instrument != MAX_INSTRUMENTS)
+				if (Note.Instrument != MAX_INSTRUMENTS && Note.Instrument != HOLD_INSTRUMENT)		// // // 050B
 					State->Instrument = Note.Instrument;
 
 			if (State->Volume == MAX_VOLUME)
@@ -4794,15 +4806,23 @@ stFullState *CFamiTrackerDoc::RetrieveSoundState(unsigned int Track, unsigned in
 						State->Effect_LengthCounter = xy;
 					else if (State->Effect[fx] == -1 && xy <= 0x1F) {
 						State->Effect[fx] = xy;
-						if (State->Effect_LengthCounter == -1) State->Effect_LengthCounter = 0xE2;
+						if (State->Effect_LengthCounter == -1)
+							State->Effect_LengthCounter = ch->GetID() == CHANID_TRIANGLE ? 0xE1 : 0xE2;
 					}
 					continue;
 				case EF_NOTE_CUT:
 					if (!ch->IsEffectCompatible(fx, xy)) continue;
-					if (xy <= 0x7F) continue;
+					if (ch->GetID() != CHANID_TRIANGLE) continue;
 					if (State->Effect[fx] == -1) {
-						State->Effect[fx] = xy;
-						if (State->Effect_LengthCounter == -1) State->Effect_LengthCounter = 0xE2;
+						if (xy <= 0x7F) {
+							if (State->Effect_LengthCounter == -1)
+								State->Effect_LengthCounter = 0xE0;
+							continue;
+						}
+						if (State->Effect_LengthCounter != 0xE0) {
+							State->Effect[fx] = xy;
+							if (State->Effect_LengthCounter == -1) State->Effect_LengthCounter = 0xE1;
+						}
 					}
 					continue;
 				case EF_FDS_MOD_DEPTH:
@@ -4879,6 +4899,22 @@ void CFamiTrackerDoc::ResetDetuneTables()		// // //
 {
 	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++)
 		m_iDetuneTable[i][j] = 0;
+}
+
+void CFamiTrackerDoc::SetTuning(int Semitone, int Cent)		// // // 050B
+{
+	m_iDetuneSemitone = Semitone;
+	m_iDetuneCent = Cent;
+}
+
+int CFamiTrackerDoc::GetTuningSemitone() const		// // // 050B
+{
+	return m_iDetuneSemitone;
+}
+
+int CFamiTrackerDoc::GetTuningCent() const		// // // 050B
+{
+	return m_iDetuneCent;
 }
 
 CGroove* CFamiTrackerDoc::GetGroove(int Index) const		// // //

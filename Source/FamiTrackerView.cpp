@@ -211,6 +211,8 @@ BEGIN_MESSAGE_MAP(CFamiTrackerView, CView)
 	ON_UPDATE_COMMAND_UI(ID_TRACKER_RECORDTOINST, OnUpdateDisableWhilePlaying)
 	ON_UPDATE_COMMAND_UI(ID_TRACKER_RECORDERSETTINGS, OnUpdateDisableWhilePlaying)
 	ON_COMMAND(ID_RECALL_CHANNEL_STATE, OnRecallChannelState)
+	ON_COMMAND(ID_DECAY_FAST, CMainFrame::OnDecayFast)		// // //
+	ON_COMMAND(ID_DECAY_SLOW, CMainFrame::OnDecaySlow)		// // //
 END_MESSAGE_MAP()
 
 // Convert keys 0-F to numbers, -1 = invalid key
@@ -643,9 +645,12 @@ void CFamiTrackerView::OnRButtonUp(UINT nFlags, CPoint point)
 		pPopupMenu = PopupMenuBar.GetSubMenu(0);
 		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDTOINST, theApp.IsPlaying() ? MF_ENABLED : MF_DISABLED);		// // //
 		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDERSETTINGS, theApp.IsPlaying() ? MF_ENABLED : MF_DISABLED);		// // //
+		CMenu *pMeterMenu = pPopupMenu->GetSubMenu(6);		// // // 050B
+		int Rate = theApp.GetSoundGenerator()->GetMeterDecayRate();
+		pMeterMenu->CheckMenuItem(Rate == DECAY_FAST ? ID_DECAY_FAST : ID_DECAY_SLOW, MF_CHECKED | MF_BYCOMMAND);
 		pPopupMenu->TrackPopupMenu(TPM_RIGHTBUTTON, point.x + WinRect.left, point.y + WinRect.top, this);
 	}
-	else {
+	else if (m_pPatternEditor->IsOverPattern(point)) {		// // // 050B todo
 		// Pattern area
 		m_iMenuChannel = -1;
 		PopupMenuBar.LoadMenu(IDR_PATTERN_POPUP);
@@ -1126,10 +1131,12 @@ void CFamiTrackerView::OnTrackerDetune()			// // //
 	CFamiTrackerDoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
 	CDetuneDlg DetuneDlg;
-	int *Table = DetuneDlg.GetDetuneTable();
-	if (Table == NULL) return;
+	UINT nResult = DetuneDlg.DoModal();
+	if (nResult != IDOK) return;
+	const int *Table = DetuneDlg.GetDetuneTable();
 	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++)
 		pDoc->SetDetuneOffset(i, j, *(Table + j + i * NOTE_COUNT));
+	pDoc->SetTuning(DetuneDlg.GetDetuneSemitone(), DetuneDlg.GetDetuneCent());		// // // 050B
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(pDoc);
 }
 
@@ -1362,6 +1369,8 @@ void CFamiTrackerView::OnInitialUpdate()
 	// Setup speed/tempo (TODO remove?)
 	theApp.GetSoundGenerator()->ResetState();
 	theApp.GetSoundGenerator()->ResetTempo();
+	theApp.GetSoundGenerator()->SetMeterDecayRate(theApp.GetSettings()->MeterDecayRate);		// // // 050B	
+	theApp.GetSoundGenerator()->DocumentPropertiesChanged(pDoc);		// // //
 
 	// Default
 	SetInstrument(0);
@@ -2090,7 +2099,7 @@ void CFamiTrackerView::InsertNote(int Note, int Octave, int Channel, int Velocit
 	if (Note != HALT && Note != RELEASE) {
 		Cell.Octave	= Octave;
 
-		if (!m_bMaskInstrument)
+		if (!m_bMaskInstrument && Cell.Instrument != HOLD_INSTRUMENT)		// // // 050B
 			Cell.Instrument = GetInstrument();
 
 		if (!m_bMaskVolume) {
@@ -2803,7 +2812,7 @@ bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &Ste
 		Shift = 0;
 	}
 
-	if (Note.Instrument == MAX_INSTRUMENTS)
+	if (Note.Instrument == MAX_INSTRUMENTS || Note.Instrument == HOLD_INSTRUMENT)		// // // 050B
 		Note.Instrument = 0;
 
 	switch (EditStyle) {

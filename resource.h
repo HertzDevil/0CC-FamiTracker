@@ -302,8 +302,10 @@
 #define IDC_COL_ITEM                    1100
 #define IDC_PICK_COL                    1101
 #define IDC_COL_PREVIEW                 1102
+#define IDC_BUTTON_APPEARANCE_SAVE      1103
 #define IDC_SCHEME                      1104
 #define IDC_PREVIEW                     1105
+#define IDC_BUTTON_APPEARANCE_LOAD      1106
 #define IDC_PAL                         1112
 #define IDC_LOOP                        1118
 #define IDC_OUTDEVICES                  1124
@@ -496,6 +498,8 @@
 #define IDC_RADIO_N163                  1306
 #define IDC_CHECK_ENABLE                1307
 #define IDC_SLIDER_OCTAVE               1308
+#define IDC_SLIDER_DETUNE_SEMITONE      1309
+#define IDC_SLIDER_DETUNE_CENT          1310
 #define IDC_BUTTON_TUNE                 1311
 #define IDC_BUTTON_RESET                1312
 #define IDC_BUTTON_IMPORT               1313
@@ -608,6 +612,8 @@
 #define IDC_CHECK_SPLIT_ENABLE          1453
 #define IDC_COMBO_SPLIT_CHAN            1454
 #define IDC_BUTTON_MIXER_RESET          1454
+#define IDC_STATIC_DETUNE_CENT          1455
+#define IDC_STATIC_DETUNE_SEMITONE      1456
 #define ID_TRACKER_PLAY                 32771
 #define ID_TRACKER_PLAYPATTERN          32775
 #define ID_TRACKER_STOP                 32776
@@ -769,7 +775,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        352
 #define _APS_NEXT_COMMAND_VALUE         33198
-#define _APS_NEXT_CONTROL_VALUE         1455
+#define _APS_NEXT_CONTROL_VALUE         1457
 #define _APS_NEXT_SYMED_VALUE           179
 #endif
 #endif

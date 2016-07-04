@@ -354,6 +354,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_AVERAGEBPM, OnUpdateDisplayAverageBPM)		// // // 050B
 	ON_UPDATE_COMMAND_UI(ID_VIEW_CHANNELSTATE, OnUpdateDisplayChannelState)		// // // 050B
 	ON_UPDATE_COMMAND_UI(ID_TRACKER_DISPLAYREGISTERSTATE, OnUpdateDisplayRegisterState)
+	ON_UPDATE_COMMAND_UI(ID_DECAY_FAST, OnUpdateDecayFast)		// // // 050B
+	ON_UPDATE_COMMAND_UI(ID_DECAY_SLOW, OnUpdateDecaySlow)		// // // 050B
 	ON_COMMAND(ID_KRAID1, OnEasterEggKraid1)		// Easter Egg
 	ON_COMMAND(ID_KRAID2, OnEasterEggKraid2)
 	ON_COMMAND(ID_KRAID3, OnEasterEggKraid3)
@@ -489,7 +491,7 @@ bool CMainFrame::CreateToolbars()
 
 	rbi1.cbSize		= sizeof(REBARBANDINFO);
 	rbi1.fMask		= RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_STYLE | RBBIM_SIZE;
-	rbi1.fStyle		= RBBS_NOGRIPPER;
+	rbi1.fStyle		= RBBS_GRIPPERALWAYS;		// // // 050B
 	rbi1.hwndChild	= m_wndToolBar;
 	rbi1.cxMinChild	= DPI::SX(554);
 	rbi1.cyMinChild	= DPI::SY(22);
@@ -502,9 +504,9 @@ bool CMainFrame::CreateToolbars()
 
 	rbi1.cbSize		= sizeof(REBARBANDINFO);
 	rbi1.fMask		= RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_STYLE | RBBIM_SIZE;
-	rbi1.fStyle		= RBBS_NOGRIPPER;
+	rbi1.fStyle		= RBBS_GRIPPERALWAYS;		// // // 050B
 	rbi1.hwndChild	= m_wndOctaveBar;
-	rbi1.cxMinChild	= DPI::SX(120);
+	rbi1.cxMinChild	= DPI::SX(460);		// // //
 	rbi1.cyMinChild	= DPI::SY(22);
 	rbi1.cx			= DPI::SX(100);
 
@@ -869,22 +871,7 @@ void CMainFrame::SetFrameCount(int Count)
 	Count = std::max(Count, 1);
 	Count = std::min(Count, MAX_FRAMES);
 
-	if (Count != pDoc->GetFrameCount(m_iTrack)) {
-
-		CFrameAction *pAction = static_cast<CFrameAction*>(GetLastAction(CFrameAction::ACT_CHANGE_COUNT));
-
-		if (pAction == NULL) {
-			// New action
-			pAction = new CFrameAction(CFrameAction::ACT_CHANGE_COUNT);
-			pAction->SetFrameCount(Count);
-			AddAction(pAction);
-		}
-		else {
-			// Update existing action
-			pAction->SetFrameCount(Count);
-			pAction->Update(this); // TODO: override CAction::Merge there
-		}
-	}
+	AddAction(new CFActionFrameCount {std::min(std::max(Count, 1), MAX_FRAMES)});		// // //
 
 	if (m_wndDialogBar.GetDlgItemInt(IDC_FRAMES) != Count)
 		m_wndDialogBar.SetDlgItemInt(IDC_FRAMES, Count, FALSE);
@@ -1504,19 +1491,19 @@ bool CMainFrame::CheckRepeat() const
 void CMainFrame::OnBnClickedIncFrame()
 {
 	int Add = (CheckRepeat() ? 4 : 1);
-	bool bChangeAll = ChangeAllPatterns() != 0;
-	CFrameAction *pAction = new CFrameAction(bChangeAll ? CFrameAction::ACT_CHANGE_PATTERN_ALL : CFrameAction::ACT_CHANGE_PATTERN);
-	pAction->SetPatternDelta(Add);		// // //
-	AddAction(pAction);
+	if (ChangeAllPatterns())
+		AddAction(new CFActionChangePatternAll {Add});		// // //
+	else
+		AddAction(new CFActionChangePattern {Add});
 }
 
 void CMainFrame::OnBnClickedDecFrame()
 {
 	int Remove = -(CheckRepeat() ? 4 : 1);
-	bool bChangeAll = ChangeAllPatterns() != 0;
-	CFrameAction *pAction = new CFrameAction(bChangeAll ? CFrameAction::ACT_CHANGE_PATTERN_ALL : CFrameAction::ACT_CHANGE_PATTERN);
-	pAction->SetPatternDelta(Remove);		// // //
-	AddAction(pAction);
+	if (ChangeAllPatterns())
+		AddAction(new CFActionChangePatternAll {Remove});		// // //
+	else
+		AddAction(new CFActionChangePattern {Remove});
 }
 
 bool CMainFrame::ChangeAllPatterns() const
@@ -2126,6 +2113,7 @@ BOOL CMainFrame::DestroyWindow()
 		WinRect.top = WinRect.left = 100;
 		WinRect.bottom = 920;
 		WinRect.right = 950;
+		DPI::ScaleRect(WinRect);		// // // 050B
 	}
 
 	// Save window position
@@ -2430,27 +2418,35 @@ void CMainFrame::OnModuleInsertFrame()
 
 void CMainFrame::OnModuleRemoveFrame()
 {
-	AddAction(new CFrameAction(CFrameAction::ACT_REMOVE));
+	AddAction(new CFActionRemoveFrame { });		// // //
 }
 
 void CMainFrame::OnModuleDuplicateFrame()
 {
-	AddAction(new CFrameAction(CFrameAction::ACT_DUPLICATE));
+	AddAction(new CFActionDuplicateFrame { });		// // //
 }
 
 void CMainFrame::OnModuleDuplicateFramePatterns()
 {
-	AddAction(new CFrameAction(CFrameAction::ACT_DUPLICATE_PATTERNS));
+	AddAction(new CFActionCloneFrame { });		// // //
 }
 
 void CMainFrame::OnModuleMoveframedown()
 {
-	AddAction(new CFrameAction(CFrameAction::ACT_MOVE_DOWN));
+	CAction *pAction = new CFActionMoveDown { };		// // //
+	if (AddAction(pAction)) {
+		static_cast<CFamiTrackerView*>(GetActiveView())->SelectNextFrame();
+		pAction->SaveRedoState(this);
+	}
 }
 
 void CMainFrame::OnModuleMoveframeup()
 {
-	AddAction(new CFrameAction(CFrameAction::ACT_MOVE_UP));
+	CAction *pAction = new CFActionMoveUp { };		// // //
+	if (AddAction(pAction)) {
+		static_cast<CFamiTrackerView*>(GetActiveView())->SelectPrevFrame();
+		pAction->SaveRedoState(this);
+	}
 }
 
 void CMainFrame::OnModuleDuplicateCurrentPattern()		// // //
@@ -2993,12 +2989,22 @@ void CMainFrame::OnEditSelecttrack()
 
 void CMainFrame::OnDecayFast()
 {
-	// TODO add this
+	theApp.GetSoundGenerator()->SetMeterDecayRate(theApp.GetSettings()->MeterDecayRate = DECAY_FAST);		// // // 050B
 }
 
 void CMainFrame::OnDecaySlow()
 {
-	// TODO add this
+	theApp.GetSoundGenerator()->SetMeterDecayRate(theApp.GetSettings()->MeterDecayRate = DECAY_SLOW);		// // // 050B
+}
+
+void CMainFrame::OnUpdateDecayFast(CCmdUI *pCmdUI)		// // // 050B
+{
+	pCmdUI->SetCheck(theApp.GetSoundGenerator()->GetMeterDecayRate() == DECAY_FAST ? MF_CHECKED : MF_UNCHECKED);
+}
+
+void CMainFrame::OnUpdateDecaySlow(CCmdUI *pCmdUI)		// // // 050B
+{
+	pCmdUI->SetCheck(theApp.GetSoundGenerator()->GetMeterDecayRate() == DECAY_SLOW ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnEditExpandpatterns()
@@ -3431,7 +3437,7 @@ void CMainFrame::OnTrackerPal()
 
 	machine_t Machine = PAL;
 	pDoc->SetMachine(Machine);
-	theApp.GetSoundGenerator()->LoadMachineSettings(Machine, pDoc->GetEngineSpeed(), pDoc->GetNamcoChannels());
+	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(pDoc);		// // //
 	m_wndInstEdit.SetRefreshRate(static_cast<float>(pDoc->GetFrameRate()));		// // //
 }
@@ -3443,7 +3449,7 @@ void CMainFrame::OnTrackerNtsc()
 
 	machine_t Machine = NTSC;
 	pDoc->SetMachine(Machine);
-	theApp.GetSoundGenerator()->LoadMachineSettings(Machine, pDoc->GetEngineSpeed(), pDoc->GetNamcoChannels());
+	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(pDoc);		// // //
 	m_wndInstEdit.SetRefreshRate(static_cast<float>(pDoc->GetFrameRate()));		// // //
 }
@@ -3455,7 +3461,7 @@ void CMainFrame::OnSpeedDefault()
 
 	int Speed = 0;
 	pDoc->SetEngineSpeed(Speed);
-	theApp.GetSoundGenerator()->LoadMachineSettings(pDoc->GetMachine(), Speed, pDoc->GetNamcoChannels());
+	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
 	m_wndInstEdit.SetRefreshRate(static_cast<float>(pDoc->GetFrameRate()));		// // //
 }
 
@@ -3476,7 +3482,7 @@ void CMainFrame::OnSpeedCustom()
 		return;
 
 	pDoc->SetEngineSpeed(Speed);
-	theApp.GetSoundGenerator()->LoadMachineSettings(Machine, Speed, pDoc->GetNamcoChannels());
+	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
 	m_wndInstEdit.SetRefreshRate(static_cast<float>(pDoc->GetFrameRate()));		// // //
 }
 
