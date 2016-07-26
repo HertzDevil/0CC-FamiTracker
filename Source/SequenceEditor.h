@@ -24,6 +24,7 @@ class CSequence;
 class CGraphEditor;
 class CSizeEditor;
 class CSequenceSetting;
+class CSeqConversionBase;		// // //
 
 // Sequence editor
 class CSequenceEditor : public CWnd
@@ -36,10 +37,8 @@ public:
 	BOOL CreateEditor(CWnd *pParentWnd, const RECT &rect);
 	void SelectSequence(CSequence *pSequence, int Type, int InstrumentType);
 	void SetMaxValues(int MaxVol, int MaxDuty);
+	void SetConversion(const CSeqConversionBase *pConv);		// // //
 
-public:
-	static const int SEQUENCE_EDIT_WIDTH = 540;
-	static const int SEQUENCE_EDIT_HEIGHT = 237;
 private:
 	CWnd			 *m_pParent;
 	CFont			 *m_pFont;
@@ -47,6 +46,7 @@ private:
 	CGraphEditor	 *m_pGraphEditor;
 	CSequence		 *m_pSequence;
 	CSequenceSetting *m_pSetting;
+	const CSeqConversionBase *m_pConversion = nullptr;		// // // does not own
 	
 	int m_iSelectedSetting;
 	int m_iInstrumentType;

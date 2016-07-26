@@ -28,6 +28,8 @@
 #include "FamiTrackerView.h"
 #include "InstrumentEditPanel.h"
 #include "SequenceEditor.h"
+#include "SequenceParser.h"		// // //
+#include "DPI.h"		// // //
 
 // CInstrumentEditPanel dialog
 //
@@ -181,13 +183,15 @@ CSequenceInstrumentEditPanel::CSequenceInstrumentEditPanel(UINT nIDTemplate, CWn
 	m_pSequenceEditor(NULL),
 	m_pSequence(NULL),
 	m_pParentWin(pParent),
-	m_iSelectedSetting(0)
+	m_iSelectedSetting(0),
+	m_pParser {new CSequenceParser { }}		// // //
 {
 }
 
 CSequenceInstrumentEditPanel::~CSequenceInstrumentEditPanel()
 {
 	SAFE_RELEASE(m_pSequenceEditor);
+	SAFE_RELEASE(m_pParser);		// // //
 }
 
 void CSequenceInstrumentEditPanel::DoDataExchange(CDataExchange* pDX)
@@ -203,11 +207,15 @@ void CSequenceInstrumentEditPanel::SetupDialog(LPCTSTR *pListItems)
 {
 	// Instrument settings
 	CListCtrl *pList = static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS));
+
+	CRect r;		// // // 050B
+	pList->GetClientRect(&r);
+	int Width = r.Width();
 	
 	pList->DeleteAllItems();
-	pList->InsertColumn(0, _T(""), LVCFMT_LEFT, 26);
-	pList->InsertColumn(1, _T("#"), LVCFMT_LEFT, 30);
-	pList->InsertColumn(2, _T("Effect name"), LVCFMT_LEFT, 84);
+	pList->InsertColumn(0, _T(""), LVCFMT_LEFT, static_cast<int>(.18 * Width));
+	pList->InsertColumn(1, _T("#"), LVCFMT_LEFT, static_cast<int>(.22 * Width));
+	pList->InsertColumn(2, _T("Effect name"), LVCFMT_LEFT, static_cast<int>(.6 * Width));
 	pList->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
 	
 	for (int i = SEQ_COUNT - 1; i > -1; i--) {
@@ -224,10 +232,10 @@ void CSequenceInstrumentEditPanel::SetupDialog(LPCTSTR *pListItems)
 	CSpinButtonCtrl *pSequenceSpin = static_cast<CSpinButtonCtrl*>(GetDlgItem(IDC_SEQUENCE_SPIN));
 	pSequenceSpin->SetRange(0, MAX_SEQUENCES - 1);
 
-	CRect rect(190 - 2, 30 - 2, CSequenceEditor::SEQUENCE_EDIT_WIDTH, CSequenceEditor::SEQUENCE_EDIT_HEIGHT);
-	
-	m_pSequenceEditor = new CSequenceEditor();		// // //
-	m_pSequenceEditor->CreateEditor(this, rect);
+	GetDlgItem(IDC_INST_SEQUENCE_GRAPH)->GetWindowRect(&r);		// // //
+	GetDesktopWindow()->MapWindowPoints(this, &r);
+	m_pSequenceEditor = new CSequenceEditor();
+	m_pSequenceEditor->CreateEditor(this, r);
 	m_pSequenceEditor->ShowWindow(SW_SHOW);
 }
 
@@ -261,146 +269,11 @@ void CSequenceInstrumentEditPanel::PreviewNote(unsigned char Key)
 		CInstrumentEditPanel::PreviewNote(Key);
 }
 
-void CSequenceInstrumentEditPanel::TranslateMML(CString String, CSequence *pSequence, int Max, int Min) const
+void CSequenceInstrumentEditPanel::TranslateMML(CString String) const
 {
 	// Takes a string and translates it into a sequence
-
-	int AddedItems = 0;
-
-	// Reset loop points
-	pSequence->SetLoopPoint(-1);
-	pSequence->SetReleasePoint(-1);
-
-	std::string str;
-	str.assign(CStringA(String.MakeLower()));		// // //
-	char *str2 = new char[String.GetLength() + 1];
-	strcpy_s(str2, String.GetLength() + 1, str.c_str());
-	char *context = NULL;
-	char *term = strtok_s(str2, " \t", &context);
-
-	bool HexStr = false, ForceHex = false, Invalid = false;		// // //
-	while (term != NULL && AddedItems < MAX_SEQUENCE_ITEMS) {
-		if (ForceHex) HexStr = true;
-		if (term[0] == '$' && term[1] == '$') {
-			term += 2;
-			ForceHex = true;
-			continue;
-		}
-		else if (term[0] == '|' || term[0] == 'l') {		// // //
-			// Set loop point
-			term++;
-			if (term[0]) Invalid = true;
-			else {
-				term = strtok_s(NULL, " ", &context);
-				pSequence->SetLoopPoint(AddedItems);
-				continue;
-			}
-		}
-		else if (term[0] == '/' || term[0] == 'r') {		// // //
-			// Set release point
-			term++;
-			if (term[0]) Invalid = true;
-			else {
-				term = strtok_s(NULL, " ", &context);
-				pSequence->SetReleasePoint(AddedItems);
-				continue;
-			}
-		}
-		else {
-			int Mode = 0;
-			bool HasTerm = false;
-			if (pSequence->GetSetting() == SETTING_ARP_SCHEME) {			// // //
-				// Arp scheme modes
-				if (term[0] == 'x') {
-					HasTerm = true; term += 1; Mode = ARPSCHEME_MODE_X;
-				}
-				else if (term[0] == 'y') {
-					HasTerm = true; term += 1; Mode = ARPSCHEME_MODE_Y;
-				}
-				else if (term[0] == '+' && term[1] == 'x') {
-					HasTerm = true; term += 2; Mode = ARPSCHEME_MODE_X;
-				}
-				else if (term[0] == '+' && term[1] == 'y') {
-					HasTerm = true; term += 2; Mode = ARPSCHEME_MODE_Y;
-				}
-				else if (term[0] == '-' && term[1] == 'y') {
-					HasTerm = true; term += 2; Mode = ARPSCHEME_MODE_NEG_Y;
-				}
-				if (HasTerm) {
-					if (term[0] == '+') term++;
-					else if (!(term[0] == '-' || term[0] == '\0' || term[0] == '\'')) Invalid = true;
-				}
-			}
-			// Convert to number
-			int value;
-			if (!HasTerm && term[0] == '$') {
-				if (!std::strpbrk(term, "xy'")) {
-					HexStr = true;
-					value = ReadStringValue(term, HexStr);
-				}
-				else
-					value = ReadStringValue(term, ForceHex);
-			}
-			else value = ReadStringValue(term, ForceHex);
-			// Check for invalid chars
-			if (!(HasTerm && HexStr) && !Invalid) {
-				if (value < Min) value = Min;
-				if (value > Max) value = Max;
-				if (pSequence->GetSetting() == SETTING_ARP_SCHEME && value < 0)		// // //
-					value += 64;
-				term += std::strspn(term, "$-");
-				if (HexStr) {
-					int Count = std::strspn(term, "0123456789abcdef");
-					term += Count > 2 ? 2 : Count;
-				}
-				else
-					term += std::strspn(term, "0123456789abcdef");
-				if (pSequence->GetSetting() == SETTING_ARP_SCHEME) {
-					// Arp scheme modes
-					if (term[0] == '+') {
-						if (HasTerm || HexStr) Invalid = true;
-						else {
-							if (term[1] == 'x') {
-								term += 2; Mode = ARPSCHEME_MODE_X;
-							}
-							else if (term[1] == 'y') {
-								term += 2; Mode = ARPSCHEME_MODE_Y;
-							}
-						}
-					}
-					if (term[0] == '-' && term[1] == 'y') {
-						if (HasTerm || HexStr) Invalid = true;
-						else {
-							term += 2; Mode = ARPSCHEME_MODE_NEG_Y;
-						}
-					}
-				}
-				value += Mode;
-				int Rep = 1;
-				if (term[0] == '\'') {		// // //
-					term++;
-					HexStr = ForceHex;
-					Rep = ReadStringValue(term, false);
-					if (Rep == 0) Invalid = true;
-				}
-				if (!Invalid) {
-					for (int i = 0; i < Rep; i++) {
-						pSequence->SetItem(AddedItems++, value);
-						if (AddedItems == MAX_SEQUENCE_ITEMS) break;
-					}
-				}
-			}
-		}
-		if (term[0] == '\0')
-			HexStr = false;
-		if (!HexStr || Invalid) {
-			term = strtok_s(NULL, " \t", &context);
-			Invalid = false;
-		}
-	}
-
-	pSequence->SetItemCount(AddedItems);
-	delete[] str2;
+	m_pParser->ParseSequence(String.GetBuffer());		// // //
+	String.ReleaseBuffer();
 	
 	// Update editor
 	if (m_pSequenceEditor != nullptr)

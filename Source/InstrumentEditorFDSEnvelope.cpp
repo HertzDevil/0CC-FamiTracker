@@ -29,14 +29,15 @@
 #include "InstrumentEditPanel.h"
 #include "SequenceEditor.h"
 #include "InstrumentEditorFDSEnvelope.h"
+#include "SequenceParser.h"		// // //
+#include "DPI.h"		// // //
 
 // CInstrumentEditorFDSEnvelope dialog
 
 IMPLEMENT_DYNAMIC(CInstrumentEditorFDSEnvelope, CSequenceInstrumentEditPanel)
 
 CInstrumentEditorFDSEnvelope::CInstrumentEditorFDSEnvelope(CWnd* pParent) :
-	CSequenceInstrumentEditPanel(CInstrumentEditorFDSEnvelope::IDD, pParent),
-	m_iSelectedType(0)
+	CSequenceInstrumentEditPanel(CInstrumentEditorFDSEnvelope::IDD, pParent)
 {
 }
 
@@ -72,7 +73,7 @@ BOOL CInstrumentEditorFDSEnvelope::OnInitDialog()
 
 	CRect rect;
 	GetClientRect(&rect);
-	rect.DeflateRect(10, 10, 10, 45);
+	rect.DeflateRect(DPI::SX(10), DPI::SY(10), DPI::SX(10), DPI::SY(45));		// // //
 
 	m_pSequenceEditor = new CSequenceEditor();		// // //
 	m_pSequenceEditor->CreateEditor(this, rect);
@@ -84,42 +85,57 @@ BOOL CInstrumentEditorFDSEnvelope::OnInitDialog()
 	// EXCEPTION: OCX Property Pages should return FALSE
 }
 
-void CInstrumentEditorFDSEnvelope::SetSequenceString(CString Sequence, bool Changed)
+void CInstrumentEditorFDSEnvelope::UpdateSequenceString(bool Changed)		// // //
 {
-	SetDlgItemText(IDC_SEQUENCE_STRING, Sequence);
+	SetupParser();		// // //
+	SetDlgItemText(IDC_SEQUENCE_STRING, m_pParser->PrintSequence().c_str());		// // //
+}
+
+void CInstrumentEditorFDSEnvelope::SetupParser() const		// // //
+{
+	int Max, Min;
+	CSeqConversionBase *pConv = nullptr;
+	
+	switch (m_iSelectedSetting) {
+	case SEQ_VOLUME:
+		Max = MAX_VOLUME; Min = 0; break;
+	case SEQ_ARPEGGIO:
+		switch (m_pSequence->GetSetting()) {
+		case SETTING_ARP_SCHEME:		// // //
+			pConv = new CSeqConversionArpScheme {ARPSCHEME_MIN}; break;
+		case SETTING_ARP_FIXED:
+			Max = NOTE_COUNT - 1; Min = 0; break;
+		default:
+			Max = NOTE_COUNT; Min = -NOTE_COUNT; break;
+		}
+		break;
+	case SEQ_PITCH: // case SEQ_HIPITCH:
+		Max = 126; Min = -127; break;
+	}
+	if (pConv == nullptr)
+		pConv = new CSeqConversionDefault {Min, Max};
+	m_pParser->SetSequence(m_pSequence);
+	m_pParser->SetConversion(pConv);
+	m_pSequenceEditor->SetConversion(pConv);		// // //
 }
 
 void CInstrumentEditorFDSEnvelope::OnCbnSelchangeType()
 {
 	CComboBox *pTypeBox = static_cast<CComboBox*>(GetDlgItem(IDC_TYPE));
-	m_iSelectedType = pTypeBox->GetCurSel();
+	m_iSelectedSetting = pTypeBox->GetCurSel();
 	LoadSequence();
 }
 
 void CInstrumentEditorFDSEnvelope::LoadSequence()
 {
-	m_pSequenceEditor->SelectSequence(m_pInstrument->GetSequence(m_iSelectedType), m_iSelectedType, INST_FDS);		// // //
+	m_pSequence = m_pInstrument->GetSequence(m_iSelectedSetting);		// // //
+	m_pSequenceEditor->SelectSequence(m_pSequence, m_iSelectedSetting, INST_FDS);
+	SetupParser();		// // //
 }
 
 void CInstrumentEditorFDSEnvelope::OnKeyReturn()
 {
 	CString string;
-
 	GetDlgItemText(IDC_SEQUENCE_STRING, string);
-
-	CSequence *pSeq = m_pInstrument->GetSequence(m_iSelectedType);		// // //
-	switch (m_iSelectedType) {
-		case SEQ_VOLUME:
-			TranslateMML(string, pSeq, MAX_VOLUME, 0);
-			break;
-		case SEQ_ARPEGGIO:
-			if (pSeq->GetSetting() == SETTING_ARP_SCHEME)	// // //
-				TranslateMML(string, pSeq, 36, -27);
-			else
-				TranslateMML(string, pSeq, 96, pSeq->GetSetting()== SETTING_ARP_FIXED ? 0 : -96);
-			break;
-		case SEQ_PITCH:
-			TranslateMML(string, pSeq, 126, -127);
-			break;
-	}
+	TranslateMML(string);		// // //
 }

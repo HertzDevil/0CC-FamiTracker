@@ -28,14 +28,14 @@
 enum EDIT_STYLES {		// // // renamed
 	EDIT_STYLE_FT2 = 0,		// FT2
 	EDIT_STYLE_MPT = 1,		// ModPlug
-	EDIT_STYLE_IT = 2		// IT
+	EDIT_STYLE_IT = 2,		// IT
 };
 
 enum module_error_level_t {		// // //
 	MODULE_ERROR_NONE,		/*!< No error checking at all (warning) */
 	MODULE_ERROR_DEFAULT,	/*!< Usual error checking */
-	MODULE_ERROR_STRICT,	/*!< Extra error checking for some values */
-	MODULE_ERROR_OFFICIAL	/*!< Special bounds checking according to the official build */
+	MODULE_ERROR_OFFICIAL,	/*!< Special bounds checking according to the official build */
+	MODULE_ERROR_STRICT,	/*!< Extra validation for some values */
 };
 
 enum WIN_STATES {
@@ -68,11 +68,13 @@ public:
 	virtual void Load() = 0;
 	virtual void Save() = 0;
 	virtual void Default() = 0;
-	virtual void UpdateDefault(LPCTSTR pSection, LPCTSTR pEntry) = 0;		// // /
+	virtual void UpdateDefault(LPCTSTR pSection, LPCTSTR pEntry);		// // /
 	LPCTSTR GetSection() const { return m_pSection; };
 protected:
 	LPCTSTR m_pSection;
 	LPCTSTR m_pEntry;
+	LPCTSTR m_pSectionSecond = nullptr;		// // //
+	LPCTSTR m_pEntrySecond = nullptr;		// // //
 };
 
 // Templated setting class
@@ -83,7 +85,6 @@ public:
 	virtual void Load();
 	virtual void Save();
 	virtual void Default();
-	virtual void UpdateDefault(LPCTSTR pSection, LPCTSTR pEntry);		// // //
 protected:
 	T *m_pVariable;
 	T m_tDefaultValue;
@@ -103,9 +104,6 @@ public:
 	void	DefaultSettings();
 	void	DeleteSettings();
 	void	SetWindowPos(int Left, int Top, int Right, int Bottom, int State);
-
-	void	StoreSetting(CString Section, CString Name, int Value) const;
-	int		LoadSetting(CString Section, CString Name, int Default) const;
 
 	CString GetPath(unsigned int PathType) const;
 	void	SetPath(CString PathName, unsigned int PathType);

@@ -362,19 +362,22 @@ BOOL CFindResultsBox::OnInitDialog()
 	m_cListResults = new CListCtrl();
 	m_cListResults->SubclassDlgItem(IDC_LIST_FINDRESULTS, this);
 	m_cListResults->SetExtendedStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT);
+	CRect r;
+	m_cListResults->GetClientRect(&r);
+	const int w = r.Width() - ::GetSystemMetrics(SM_CXHSCROLL);
 
-	m_cListResults->InsertColumn(ID, _T("ID"), LVCFMT_LEFT, 35);
-	m_cListResults->InsertColumn(CHANNEL, _T("Channel"), LVCFMT_LEFT, 90);
-	m_cListResults->InsertColumn(PATTERN, _T("Pa."), LVCFMT_LEFT, 32);
-	m_cListResults->InsertColumn(FRAME, _T("Fr."), LVCFMT_LEFT, 32);
-	m_cListResults->InsertColumn(ROW, _T("Ro."), LVCFMT_LEFT, 32);
-	m_cListResults->InsertColumn(NOTE, _T("Note"), LVCFMT_LEFT, 40);
-	m_cListResults->InsertColumn(INST, _T("In."), LVCFMT_LEFT, 32);
-	m_cListResults->InsertColumn(VOL, _T("Vo."), LVCFMT_LEFT, 32);
+	m_cListResults->InsertColumn(ID, _T("ID"), LVCFMT_LEFT, static_cast<int>(.09 * w));
+	m_cListResults->InsertColumn(CHANNEL, _T("Channel"), LVCFMT_LEFT, static_cast<int>(.19 * w));
+	m_cListResults->InsertColumn(PATTERN, _T("Pa."), LVCFMT_LEFT, static_cast<int>(.07 * w));
+	m_cListResults->InsertColumn(FRAME, _T("Fr."), LVCFMT_LEFT, static_cast<int>(.07 * w));
+	m_cListResults->InsertColumn(ROW, _T("Ro."), LVCFMT_LEFT, static_cast<int>(.07 * w));
+	m_cListResults->InsertColumn(NOTE, _T("Note"), LVCFMT_LEFT, static_cast<int>(.09 * w));
+	m_cListResults->InsertColumn(INST, _T("In."), LVCFMT_LEFT, static_cast<int>(.07 * w));
+	m_cListResults->InsertColumn(VOL, _T("Vo."), LVCFMT_LEFT, static_cast<int>(.07 * w));
 	for (int i = MAX_EFFECT_COLUMNS; i > 0; --i) {
 		CString str;
 		str.Format(_T("fx%d"), i);
-		m_cListResults->InsertColumn(EFFECT, str, LVCFMT_LEFT, 32);
+		m_cListResults->InsertColumn(EFFECT, str, LVCFMT_LEFT, static_cast<int>(.07 * w));
 	}
 
 	UpdateCount();
@@ -1060,6 +1063,8 @@ bool CFindDlg::CompareFields(const stChanNote Target, bool Noise, int EffCount)
 		else {
 			if (Noise && Melodic) return false;
 			if (Melodic) {
+				if (Target.Note < NOTE_C || Target.Note > NOTE_B)
+					return Negate;
 				int NoteValue = MIDI_NOTE(Target.Octave, Target.Note);
 				int Low = MIDI_NOTE(m_searchTerm.Oct->Min, m_searchTerm.Note->Min);
 				int High = MIDI_NOTE(m_searchTerm.Oct->Max, m_searchTerm.Note->Max);
@@ -1144,10 +1149,9 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 
 	if (m_bFound) {
 		ASSERT(m_pFindCursor != nullptr);
-		m_pFindCursor->Get(&Target);
 
-		if (IsDlgButtonChecked(IDC_CHECK_FIND_REMOVE))
-			Target = stChanNote { };
+		if (!IsDlgButtonChecked(IDC_CHECK_FIND_REMOVE))
+			m_pFindCursor->Get(&Target);
 
 		if (m_replaceTerm.Definite[WC_NOTE])
 			Target.Note = m_replaceTerm.Note.Note;

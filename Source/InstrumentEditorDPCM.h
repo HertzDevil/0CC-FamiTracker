@@ -2,6 +2,8 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2014  Jonathan Liss
 **
+** 0CC-FamiTracker is (C) 2014-2015 HertzDevil
+**
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
@@ -42,13 +44,11 @@ public:
 	virtual void SelectInstrument(std::shared_ptr<CInstrument> pInst);
 
 protected:
-	static const char *KEY_NAMES[];
-
-protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	void BuildKeyList();
 	void BuildSampleList();
+	void UpdateCurrentKey();		// // //
 	void UpdateKey(int Index);
 	bool LoadSample(const CString &FilePath, const CString &FileName);
 	bool InsertSample(CDSample *pNewSample);
@@ -70,7 +70,6 @@ public:
 	afx_msg void OnBnClickedUnload();
 	afx_msg void OnNMClickSampleList(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedImport();
-	afx_msg void OnCbnSelchangeOctave();
 	afx_msg void OnCbnSelchangePitch();
 	afx_msg void OnLvnItemchangedTable(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult);

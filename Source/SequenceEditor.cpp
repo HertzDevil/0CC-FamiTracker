@@ -33,6 +33,8 @@
 #include "GraphEditor.h"
 #include "SequenceSetting.h"
 #include "SequenceEditorMessage.h"		// // //
+#include "DPI.h"		// // //
+#include "SequenceParser.h"		// // //
 
 // This file contains the sequence editor and sequence size control
 
@@ -89,10 +91,10 @@ BOOL CSequenceEditor::CreateEditor(CWnd *pParentWnd, const RECT &rect)
 
 	m_pSizeEditor = new CSizeEditor(this);
 	
-	if (m_pSizeEditor->CreateEx(NULL, NULL, _T(""), WS_CHILD | WS_VISIBLE, CRect(40, GraphRect.bottom + 5, 104, GraphRect.bottom + 22), this, 0) == -1)
+	if (m_pSizeEditor->CreateEx(NULL, NULL, _T(""), WS_CHILD | WS_VISIBLE, CRect(34, GraphRect.bottom + 5, 94, GraphRect.bottom + 22), this, 0) == -1)
 		return -1;
 
-	menuRect = CRect(GraphRect.right - 80, GraphRect.bottom + 3, GraphRect.right - 10, GraphRect.bottom + 22);
+	menuRect = CRect(GraphRect.right - 72, GraphRect.bottom + 5, GraphRect.right - 2, GraphRect.bottom + 24);
 
 	// Sequence settings editor
 	m_pSetting = new CSequenceSetting(this);
@@ -123,7 +125,7 @@ void CSequenceEditor::OnPaint()
 		m_pSizeEditor->SetValue(m_pSequence->GetItemCount());
 
 	dc.SelectObject(m_pFont);
-	dc.TextOut(10, rect.bottom - 19, _T("Size:"));
+	dc.TextOut(7, rect.bottom - 19, _T("Size:"));
 
 	CString LengthStr;
 	float Rate;		// // //
@@ -154,20 +156,13 @@ LRESULT CSequenceEditor::OnCursorChange(WPARAM wParam, LPARAM lParam)
 	GetClientRect(rect);
 
 	CString Text;
-	// Arpeggio
-	if (m_iSelectedSetting == SEQ_ARPEGGIO && m_pSequence->GetSetting() == SETTING_ARP_FIXED) {
-		Text.Format(_T("{%i, %s}    "), wParam, CArpeggioGraphEditor::GetNoteString(lParam));
-	}
-	else if (m_iSelectedSetting == SEQ_ARPEGGIO && m_pSequence->GetSetting() == SETTING_ARP_SCHEME) {		// // //
-		Text.Format(_T("{%i, %s}    "), wParam, CArpeggioGraphEditor::GetArpSchemeString(lParam));
-	}
-	else {
-		Text.Format(_T("{%i, %i}    "), wParam, lParam);
-	}
-	
+	if (m_pConversion != nullptr)		// // //
+		Text.Format(_T("{%i, %s}        "), wParam, m_pConversion->ToString(static_cast<char>(lParam)).c_str());
+	else
+		Text.Format(_T("{%i, %i}        "), wParam, lParam);
 	pDC->TextOut(170, rect.bottom - 19, Text);
-	ReleaseDC(pDC);
 
+	ReleaseDC(pDC);
 	return TRUE;
 }
 
@@ -204,26 +199,14 @@ void CSequenceEditor::SetMaxValues(int MaxVol, int MaxDuty)
 	m_iMaxDuty = MaxDuty;
 }
 
+void CSequenceEditor::SetConversion(const CSeqConversionBase *pConv)		// // //
+{
+	m_pConversion = pConv;
+}
+
 void CSequenceEditor::SequenceChangedMessage(bool Changed)
 {
-	CString Text;
-
-	// Translate sequence to MML-like string
-	Text = "";
-
-	for (unsigned i = 0; i < m_pSequence->GetItemCount(); ++i) {
-		if (m_pSequence->GetReleasePoint() == i)		// // //
-			Text.Append(_T("/ "));
-		if (m_pSequence->GetLoopPoint() == i)
-			Text.Append(_T("| "));
-		if (m_iSelectedSetting == SEQ_ARPEGGIO && m_pSequence->GetSetting() == SETTING_ARP_SCHEME) {		// // //
-			Text.Append(CArpeggioGraphEditor::GetArpSchemeString(m_pSequence->GetItem(i)));
-			Text.Append(_T(" "));
-		}
-		else Text.AppendFormat(_T("%i "), m_pSequence->GetItem(i));
-	}
-
-	static_cast<CSequenceInstrumentEditPanel*>(m_pParent)->SetSequenceString(Text, Changed);
+	static_cast<CSequenceInstrumentEditPanel*>(m_pParent)->UpdateSequenceString(Changed);		// // //
 
 	// Set flag in document
 	if (Changed)
