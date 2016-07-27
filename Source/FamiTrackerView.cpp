@@ -767,10 +767,14 @@ BOOL CFamiTrackerView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 			m_pPatternEditor->PreviousFrame();
 		InvalidateFrameEditor();		// // //
 	}
-	if (bControlPressed)
-		pAction = new CPActionTranspose {zDelta > 0 ? TRANSPOSE_INC_NOTES : TRANSPOSE_DEC_NOTES};		// // //
-	else if (bShiftPressed)
-		pAction = new CPActionScrollValues {zDelta > 0 ? 1 : -1};		// // //
+	else if (bControlPressed) {
+		if (!(theApp.IsPlaying() && !IsSelecting()))		// // //
+			pAction = new CPActionTranspose {zDelta > 0 ? TRANSPOSE_INC_NOTES : TRANSPOSE_DEC_NOTES};		// // //
+	}
+	else if (bShiftPressed) {
+		if (!(theApp.IsPlaying() && !IsSelecting()))
+			pAction = new CPActionScrollValues {zDelta > 0 ? 1 : -1};		// // //
+	}
 	else
 		m_pPatternEditor->OnMouseScroll(zDelta);
 
@@ -921,21 +925,6 @@ void CFamiTrackerView::DrawExportTestProgress()
 
 void CFamiTrackerView::OnEditCopy()
 {
-	// // // Copy volume values
-	/* disabled, use menu command
-	if (IsShiftPressed()) {
-		OnEditCopyAsVolumeSequence();
-		return;
-	}
-	*/
-
-	CClipboard Clipboard(this, m_iClipboard);
-
-	if (!Clipboard.IsOpened()) {
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return;
-	}
-
 	if (m_pPatternEditor->GetSelectionCondition() == SEL_NONTERMINAL_SKIP) {		// // //
 		CMainFrame *pMainFrm = static_cast<CMainFrame*>(GetParentFrame());
 		ASSERT_VALID(pMainFrm);
@@ -945,6 +934,13 @@ void CFamiTrackerView::OnEditCopy()
 	}
 
 	std::shared_ptr<CPatternClipData> pClipData(m_pPatternEditor->Copy());		// // //
+
+	CClipboard Clipboard(this, m_iClipboard);
+
+	if (!Clipboard.IsOpened()) {
+		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
+		return;
+	}
 
 	SIZE_T Size = pClipData->GetAllocSize();
 	HGLOBAL hMem = Clipboard.AllocMem(Size);
