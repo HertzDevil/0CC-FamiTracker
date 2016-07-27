@@ -39,8 +39,8 @@
     <RootNamespace>0CC-FamiTracker</RootNamespace>
     <Keyword>MFCProj</Keyword>
     <TargetPlatformVersion>8.1</TargetPlatformVersion>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>0CC-FamiTracker</ProjectName>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release 64|Win32'" Label="Configuration">
@@ -128,13 +128,11 @@
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
@@ -202,8 +200,8 @@
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(UniversalCRT_IncludePath);C:\Program Files\Windows Kits\10\Include\10.0.10240.0\ucrt;$(WindowsSdkDir_81)Include\um;$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\winrt;$(UCRTContentRoot)Include\10.0.10586.0\ucrt;$(UCRTContentRoot)Include\10.0.10586.0\um;$(UCRTContentRoot)Include\10.0.10586.0\shared;$(UCRTContentRoot)Include\10.0.10586.0\winrt;$(DXSDK_DIR)Include\;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MinimalRebuild>true</MinimalRebuild>
-      <AdditionalIncludeDirectories>C:\Program Files\Windows Kits\10\Include\10.0.10240.0\ucrt;$(WindowsSdkDir_81)Include\um;$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\winrt;$(UCRTContentRoot)Include\10.0.10586.0\ucrt;$(UCRTContentRoot)Include\10.0.10586.0\um;$(UCRTContentRoot)Include\10.0.10586.0\shared;$(UCRTContentRoot)Include\10.0.10586.0\winrt;$(DXSDK_DIR)Include\;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -218,7 +216,7 @@
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\ucrt\x86;C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\um\x86;C:\Program Files\Windows Kits\10\lib\10.0.10240.0\ucrt\x86;C:\Program Files\Windows Kits\8.1\Lib\winv6.3\um\x86;$(DXSDK_DIR)\Lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(UniversalCRT_LibraryPath_x86);C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\ucrt\x86;C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\um\x86;C:\Program Files\Windows Kits\10\lib\10.0.10240.0\ucrt\x86;C:\Program Files\Windows Kits\8.1\Lib\winv6.3\um\x86;$(DXSDK_DIR)\Lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <Manifest />
@@ -269,10 +267,8 @@
     </Midl>
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>MinSpace</Optimization>
-      <AdditionalIncludeDirectories>C:\Program Files\Windows Kits\10\Include\10.0.10240.0\ucrt;$(WindowsSdkDir_81)Include\um;$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\winrt;$(UCRTContentRoot)Include\10.0.10586.0\ucrt;$(UCRTContentRoot)Include\10.0.10586.0\um;$(UCRTContentRoot)Include\10.0.10586.0\shared;$(UCRTContentRoot)Include\10.0.10586.0\winrt;$(DXSDK_DIR)Include\;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Windows Kits\10\Include\10.0.10240.0\ucrt;$(UniversalCRT_IncludePath);$(WindowsSdkDir_81)Include\um;$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\winrt;$(UCRTContentRoot)Include\10.0.10586.0\ucrt;$(UCRTContentRoot)Include\10.0.10586.0\um;$(UCRTContentRoot)Include\10.0.10586.0\shared;$(UCRTContentRoot)Include\10.0.10586.0\winrt;$(DXSDK_DIR)Include\;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <PrecompiledHeader>
@@ -281,6 +277,8 @@
       </AssemblerOutput>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <StringPooling>true</StringPooling>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -289,14 +287,10 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>Dbghelp.lib;winmm.lib;comctl32.lib;dsound.lib;dxguid.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <Version>
-      </Version>
-      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\ucrt\x86;C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\um\x86;C:\Program Files\Windows Kits\10\lib\10.0.10240.0\ucrt\x86;C:\Program Files\Windows Kits\8.1\Lib\winv6.3\um\x86;$(DXSDK_DIR)\Lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(UniversalCRT_LibraryPath_x86);C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\ucrt\x86;C:\Program Files (x86)\Windows Kits\10\lib\10.0.10586.0\um\x86;C:\Program Files\Windows Kits\10\lib\10.0.10240.0\ucrt\x86;C:\Program Files\Windows Kits\8.1\Lib\winv6.3\um\x86;$(DXSDK_DIR)\Lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
       <SubSystem>Windows</SubSystem>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
