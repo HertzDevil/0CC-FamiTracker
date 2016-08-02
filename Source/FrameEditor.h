@@ -49,6 +49,14 @@ private:
 	CFrameEditor *m_pParent;
 };
 
+struct pairhash {		// // // from http://stackoverflow.com/a/20602159/5756577
+	template <typename T, typename U>
+	std::size_t operator()(const std::pair<T, U> &x) const
+	{
+		return (std::hash<T>()(x.first) * 3) ^ std::hash<U>()(x.second);
+	}
+};
+
 // CFrameEditor
 
 class CFrameEditor : public CWnd
@@ -67,24 +75,33 @@ public:
 	void SetupColors();
 
 	// Input
-	bool Translate(HWND hWnd, MSG *pMsg) const;
 	void EnableInput();
 	bool InputEnabled() const;
 
 	// Selection, copy & paste, drag & drop
+	CFrameSelection GetSelection() const;		// // //
+	bool IsSelecting() const;		// // //
+	void SetSelection(const CFrameSelection &Sel);		// // //
 	void CancelSelection();
-	void GetSelectInfo(stSelectInfo &Info) const;
-	void SetSelectInfo(const stSelectInfo &Info);		// // //
 
 	bool IsClipboardAvailable() const;
 	bool IsCopyValid(COleDataObject* pDataObject) const;
 	void UpdateDrag(const CPoint &point);
 	BOOL DropData(COleDataObject* pDataObject, DROPEFFECT dropEffect);
-	void PerformDragOperation(unsigned int Track, CFrameClipData *pClipData, int DragTarget, bool bDelete, bool bNewPatterns);
+	void MoveSelection(unsigned int Track, const CFrameSelection &Sel, const CFrameCursorPos &Target);		// // //
 
 	// Commands
-	void Paste(unsigned int Track, CFrameClipData *pClipData);
-	void PasteNew(unsigned int Track, CFrameClipData *pClipData);
+	CFrameClipData *Copy() const;		// // //
+	CFrameClipData *Copy(const CFrameSelection &Sel) const;		// // //
+	CFrameClipData *CopyFrame(int Frame) const;		// // //
+	CFrameClipData *CopyEntire(int Track) const;		// // //
+
+	void PasteAt(unsigned int Track, const CFrameClipData *pClipData, const CFrameCursorPos &Pos);		// // //
+	void PasteInsert(unsigned int Track, int Frame, const CFrameClipData *pClipData);		// // //
+	void PasteNew(unsigned int Track, int Frame, const CFrameClipData *pClipData);		// // //
+
+	void ClonePatterns(unsigned int Track, const CFrameSelection &Sel);		// // //
+	void ClearPatterns(unsigned int Track, const CFrameSelection &Sel);		// // //
 
 	// Return window width in pixels
 	unsigned int CalcWidth(int Channels) const;
@@ -101,6 +118,8 @@ private:
 
 	// Drag & drop
 	void InitiateDrag();
+
+	std::pair<CFrameIterator, CFrameIterator> GetIterators() const;		// // //
 
 	void AutoScroll(const CPoint &point);
 
@@ -156,10 +175,7 @@ private:
 	bool	m_bStartDrag;
 	bool	m_bDeletedRows;
 	bool	m_bFullFrameSelect = false;		// // //
-	int		m_iSelStartRow;
-	int		m_iSelEndRow;
-	int		m_iSelStartChan;
-	int		m_iSelEndChan;
+	CFrameSelection m_selection;		// // //
 	int		m_iDragRow;
 
 	int		m_iTopScrollArea;
@@ -209,6 +225,8 @@ public:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	// // //
+	afx_msg void OnEditPasteOverwrite();
+	afx_msg void OnUpdateEditPasteOverwrite(CCmdUI *pCmdUI);
 	afx_msg void OnModuleDuplicateCurrentPattern();
 };
 

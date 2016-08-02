@@ -190,9 +190,9 @@ BEGIN_MESSAGE_MAP(CFamiTrackerView, CView)
 	ON_UPDATE_COMMAND_UI(ID_FIND_PREVIOUS, OnUpdateFind)
 	ON_COMMAND(ID_DECREASEVALUESCOARSE, OnCoarseDecreaseValues)
 	ON_COMMAND(ID_INCREASEVALUESCOARSE, OnCoarseIncreaseValues)
-	ON_COMMAND(ID_EDIT_PASTEOVERWRITE, OnEditPasteOverwrite)
+//	ON_COMMAND(ID_EDIT_PASTEOVERWRITE, OnEditPasteOverwrite)
 	ON_COMMAND(ID_EDIT_PASTEINSERT, OnEditPasteInsert)
-	ON_UPDATE_COMMAND_UI(ID_EDIT_PASTEOVERWRITE, OnUpdateEditPaste)
+//	ON_UPDATE_COMMAND_UI(ID_EDIT_PASTEOVERWRITE, OnUpdateEditPaste)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_PASTEINSERT, OnUpdateEditPaste)
 	ON_COMMAND(ID_PASTESPECIAL_CURSOR, OnEditPasteSpecialCursor)
 	ON_COMMAND(ID_PASTESPECIAL_SELECTION, OnEditPasteSpecialSelection)
@@ -3787,7 +3787,7 @@ void CFamiTrackerView::OnPickupRow()
 	default:      m_iLastNote = (Note.Note - 1) + Note.Octave * 12;
 	}
 
-	column_t Col = m_pPatternEditor->GetSelectColumn(m_pPatternEditor->GetColumn());
+	column_t Col = GetSelectColumn(m_pPatternEditor->GetColumn());		// // //
 	if (Col >= COLUMN_EFF1) {
 		m_iLastEffect = Note.EffNumber[Col - COLUMN_EFF1];
 		m_iLastEffectParam = Note.EffParam[Col - COLUMN_EFF1];

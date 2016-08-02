@@ -311,6 +311,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_COPYAS_TEXT, OnEditCopyAsText)
 	ON_COMMAND(ID_COPYAS_VOLUMESEQUENCE, OnEditCopyAsVolumeSequence)
 	ON_COMMAND(ID_COPYAS_PPMCK, OnEditCopyAsPPMCK)
+	ON_COMMAND(ID_EDIT_PASTEOVERWRITE, OnEditPasteOverwrite)
 	ON_COMMAND(ID_SELECT_NONE, OnEditSelectnone)
 	ON_COMMAND(ID_SELECT_ROW, OnEditSelectrow)
 	ON_COMMAND(ID_SELECT_COLUMN, OnEditSelectcolumn)
@@ -343,6 +344,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_UPDATE_COMMAND_UI(ID_COPYAS_TEXT, OnUpdateEditCopySpecial)
 	ON_UPDATE_COMMAND_UI(ID_COPYAS_VOLUMESEQUENCE, OnUpdateEditCopySpecial)
 	ON_UPDATE_COMMAND_UI(ID_COPYAS_PPMCK, OnUpdateEditCopySpecial)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_PASTEOVERWRITE, OnUpdateEditPasteOverwrite)
 	ON_UPDATE_COMMAND_UI(ID_SELECT_CHANNEL, OnUpdateSelectMultiFrame)
 	ON_UPDATE_COMMAND_UI(ID_SELECT_TRACK, OnUpdateSelectMultiFrame)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_FIND_TOGGLE, OnUpdateEditFindToggle)
@@ -2445,7 +2447,7 @@ void CMainFrame::OnModuleMoveframeup()
 
 void CMainFrame::OnModuleDuplicateCurrentPattern()		// // //
 {
-	AddAction(new CFrameAction(CFrameAction::ACT_DUPLICATE_CURRENT));
+	AddAction(new CFActionClonePatterns { });
 }
 
 // UI updates
@@ -2576,6 +2578,8 @@ void CMainFrame::SelectTrack(unsigned int Track)
 	pTrackBox->SetCurSel(m_iTrack);
 	//pDoc->UpdateAllViews(NULL, CHANGED_TRACK);
 	pView->TrackChanged(m_iTrack);
+	GetFrameEditor()->CancelSelection();		// // //
+	GetFrameEditor()->Invalidate();
 	OnUpdateFrameTitle(TRUE);
 
 	if (m_pBookmarkDlg != NULL)		// // //
@@ -2909,6 +2913,22 @@ void CMainFrame::OnEditPaste()
 		GetFrameEditor()->OnEditPaste();
 }
 
+void CMainFrame::OnEditPasteOverwrite()		// // //
+{
+	if (GetFocus() == GetActiveView())
+		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditPasteOverwrite();
+	else if (GetFocus() == GetFrameEditor())
+		GetFrameEditor()->OnEditPasteOverwrite();
+}
+
+void CMainFrame::OnUpdateEditPasteOverwrite(CCmdUI *pCmdUI)		// // //
+{
+	if (GetFocus() == GetActiveView())
+		static_cast<CFamiTrackerView*>(GetActiveView())->OnUpdateEditPaste(pCmdUI);
+	else if (GetFocus() == GetFrameEditor())
+		GetFrameEditor()->OnUpdateEditPasteOverwrite(pCmdUI);
+}
+
 void CMainFrame::OnEditDelete()
 {
 	if (GetFocus() == GetActiveView())
@@ -3075,7 +3095,7 @@ void CMainFrame::OnEditRemoveUnusedPatterns()
 
 void CMainFrame::OnEditMergeDuplicatedPatterns()
 {
-	AddAction(new CFrameAction(CFrameAction::ACT_MERGE_DUPLICATED_PATTERNS));
+	AddAction(new CFActionMergeDuplicated { });		// // //
 }
 
 void CMainFrame::OnUpdateSelectionEnabled(CCmdUI *pCmdUI)

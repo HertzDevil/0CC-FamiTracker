@@ -198,12 +198,6 @@ public:
 	void DrawLog(CDC *pDC);
 #endif
 
-	// Public class methods
-public:
-	static column_t GetSelectColumn(cursor_column_t Column);		// // //
-	static cursor_column_t GetCursorStartColumn(column_t Column);		// // //
-	static cursor_column_t GetCursorEndColumn(column_t Column);		// // //
-
 	// Private methods
 private:
 
@@ -326,7 +320,6 @@ private:
 
 	// Draw state variables
 	int		m_iCenterRow;					// The row in the middle of the editor, will always point to a valid row in current frame
-	int		m_iCurrentFrame;				// Selected frame
 	
 	int		m_iPatternLength;				// Pattern length of selected frame
 	// // // gone

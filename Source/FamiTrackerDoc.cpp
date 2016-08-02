@@ -742,6 +742,11 @@ bool CFamiTrackerDoc::WriteBlock_Parameters(CDocumentFile *pDocFile, const int V
 
 				if (Version >= 6)
 					pDocFile->WriteBlockInt(m_iSpeedSplitPoint);
+
+				if (Version >= 8) {		// // // 050B
+					pDocFile->WriteBlockChar(m_iDetuneSemitone);
+					pDocFile->WriteBlockChar(m_iDetuneCent);
+				}
 			}
 		}
 	}
@@ -1915,7 +1920,7 @@ void CFamiTrackerDoc::ReadBlock_Sequences(CDocumentFile *pDocFile, const int Ver
 void CFamiTrackerDoc::ReadBlock_SequencesVRC6(CDocumentFile *pDocFile, const int Version)
 {
 	unsigned int Count = AssertRange(pDocFile->GetBlockInt(), 0, MAX_SEQUENCES * SEQ_COUNT, "VRC6 sequence count");
-	AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, MAX_SEQUENCES, "VRC6 sequence count");		// // //
+	AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, static_cast<unsigned>(MAX_SEQUENCES), "VRC6 sequence count");		// // //
 
 	CSequenceManager *pManager = GetSequenceManager(INST_VRC6);		// // //
 
@@ -3184,6 +3189,17 @@ unsigned int CFamiTrackerDoc::GetPatternLength(unsigned int Track) const
 	return GetTrack(Track)->GetPatternLength(); 
 }
 
+unsigned int CFamiTrackerDoc::GetCurrentPatternLength(unsigned int Track, int Frame) const		// // //
+{ 
+	if (theApp.GetSettings()->General.bShowSkippedRows)		// // //
+		return GetPatternLength(Track);
+
+	int Frames = GetFrameCount(Track);
+	Frame %= Frames;
+	if (Frame < 0) Frame += Frames;
+	return GetFrameLength(Track, Frame);
+}
+
 unsigned int CFamiTrackerDoc::GetFrameCount(unsigned int Track) const 
 { 
 	ASSERT(Track < MAX_TRACKS);
@@ -3534,23 +3550,13 @@ bool CFamiTrackerDoc::InsertFrame(unsigned int Track, unsigned int Frame)
 	ASSERT(Track < MAX_TRACKS);
 	ASSERT(Frame < MAX_FRAMES);
 
-	const int FrameCount = GetFrameCount(Track);
-	const int Channels = GetAvailableChannels();
-
-	if (FrameCount == MAX_FRAMES)
+	if (!AddFrames(Track, Frame, 1))
 		return false;
-
-	SetFrameCount(Track, FrameCount + 1);
-
-	for (unsigned int i = FrameCount; i > Frame; --i)
-		for (int j = 0; j < Channels; ++j)
-			SetPatternAtFrame(Track, i, j, GetPatternAtFrame(Track, i - 1, j));
-
 	// Select free patterns 
-	for (int i = 0; i < Channels; ++i)
-		SetPatternAtFrame(Track, Frame, i, GetFirstFreePattern(Track, i));
-
-	m_pBookmarkManager->GetCollection(Track)->InsertFrames(Frame, 1U);		// // //
+	for (int i = 0, Channels = GetChannelCount(); i < Channels; ++i) {
+		unsigned Pattern = GetFirstFreePattern(Track, i);		// // //
+		SetPatternAtFrame(Track, Frame, i, Pattern == -1 ? 0 : Pattern);
+	}
 
 	return true;
 }
@@ -3672,16 +3678,41 @@ bool CFamiTrackerDoc::MoveFrameUp(unsigned int Track, unsigned int Frame)
 	return true;
 }
 
-void CFamiTrackerDoc::DeleteFrames(unsigned int Track, unsigned int Frame, int Count)
+bool CFamiTrackerDoc::AddFrames(unsigned int Track, unsigned int Frame, int Count)		// // //
 {
 	ASSERT(Track < MAX_TRACKS);
 	ASSERT(Frame < MAX_FRAMES);
 
-	for (int i = 0; i < Count; ++i) {
-		RemoveFrame(Track, Frame);
-	}
+	const int FrameCount = GetFrameCount(Track);
+	const int Channels = GetAvailableChannels();
 
-	SetModifiedFlag();
+	if (FrameCount + Count > MAX_FRAMES)
+		return false;
+
+	SetFrameCount(Track, FrameCount + Count);
+
+	for (unsigned int i = FrameCount + Count - 1; i >= Frame + Count; --i)
+		for (int j = 0; j < Channels; ++j)
+			SetPatternAtFrame(Track, i, j, GetPatternAtFrame(Track, i - Count, j));
+
+	for (int i = 0; i < Channels; ++i)
+		for (int f = 0; f < Count; ++f)		// // //
+			SetPatternAtFrame(Track, Frame + f, i, 0);
+
+	m_pBookmarkManager->GetCollection(Track)->InsertFrames(Frame, Count);		// // //
+
+	return true;
+}
+
+bool CFamiTrackerDoc::DeleteFrames(unsigned int Track, unsigned int Frame, int Count)
+{
+	ASSERT(Track < MAX_TRACKS);
+	ASSERT(Frame < MAX_FRAMES);
+
+	for (int i = 0; i < Count; ++i)
+		RemoveFrame(Track, Frame);
+
+	return true;
 }
 
 //// Track functions //////////////////////////////////////////////////////////////////////////////////
@@ -4025,7 +4056,7 @@ unsigned int CFamiTrackerDoc::GetFirstFreePattern(unsigned int Track, unsigned i
 			return i;
 	}
 
-	return 0;
+	return -1;		// // //
 }
 
 bool CFamiTrackerDoc::IsPatternEmpty(unsigned int Track, unsigned int Channel, unsigned int Pattern) const
@@ -4595,55 +4626,14 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 	SetExceededFlag();
 }
 
-void CFamiTrackerDoc::MergeDuplicatedPatterns(unsigned int Track)		// // //
+bool CFamiTrackerDoc::ArePatternsSame(unsigned int Track, unsigned int Channel, unsigned int Pattern1, unsigned int Pattern2) const		// // //
 {
-	for (unsigned int c = 0; c < m_iChannelsAvailable; ++c) {
-		TRACE("Trim: %d, %d\n", Track, c);
-
-		unsigned int uiPatternUsed[MAX_PATTERN];
-
-		// mark all as unused
-		for (unsigned int ui = 0; ui < MAX_PATTERN; ++ui) {
-			uiPatternUsed[ui] = MAX_PATTERN;
-		}
-
-		// map used patterns to themselves
-		for (unsigned int f = 0; f < m_pTracks[Track]->GetFrameCount(); ++f) {
-			unsigned int uiPattern = m_pTracks[Track]->GetFramePattern(f, c);
-			uiPatternUsed[uiPattern] = uiPattern;
-		}
-
-		// remap duplicates
-		for (unsigned int ui = 0; ui < MAX_PATTERN; ++ui) {
-			if (uiPatternUsed[ui] == MAX_PATTERN) continue;
-			for (unsigned int uj = 0; uj < ui; ++uj) {
-				unsigned int uiLen = m_pTracks[Track]->GetPatternLength();
-				bool bSame = true;
-				for (unsigned int uk = 0; uk < uiLen; ++uk) {
-					stChanNote* a = m_pTracks[Track]->GetPatternData(c, ui, uk);
-					stChanNote* b = m_pTracks[Track]->GetPatternData(c, uj, uk);
-					if (0 != ::memcmp(a, b, sizeof(stChanNote))) {
-						bSame = false;
-						break;
-					}
-				}
-				if (bSame) {
-					uiPatternUsed[ui] = uj;
-					TRACE("Duplicate: %d = %d\n", ui, uj);
-					break;
-				}
-			}
-		}
-
-		// apply mapping
-		for (unsigned int f = 0; f < m_pTracks[Track]->GetFrameCount(); ++f) {
-			unsigned int uiPattern = m_pTracks[Track]->GetFramePattern(f, c);
-			m_pTracks[Track]->SetFramePattern(f, c, uiPatternUsed[uiPattern]);
-		}
-	}
-
-	SetModifiedFlag();		// // //
-	SetExceededFlag();
+	for (unsigned int r = 0, Count = m_pTracks[Track]->GetPatternLength(); r < Count; ++r)
+		if (::memcmp(m_pTracks[Track]->GetPatternData(Channel, Pattern1, r),
+					 m_pTracks[Track]->GetPatternData(Channel, Pattern2, r),
+					 sizeof(stChanNote)))
+			return false;
+	return true;
 }
 
 void CFamiTrackerDoc::PopulateUniquePatterns(unsigned int Track)		// // //

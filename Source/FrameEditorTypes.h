@@ -24,32 +24,18 @@
 #pragma once
 
 #include "stdafx.h"
+#include <utility>
 
 // // // common classes for frame editor
 
-struct stSelectInfo {
-	bool bSelecting;
-	int iRowStart;
-	int iRowEnd;
-};
+class CFamiTrackerDoc;		// // //
 
 class CFrameClipData {
 public:
 	// Constructor/desctructor
-	CFrameClipData() : pFrames(NULL), iSize(0) {
-		memset(&ClipInfo, 0, sizeof(ClipInfo));
-	}
-
-	CFrameClipData(int Channels, int Frames) {
-		memset(&ClipInfo, 0, sizeof(ClipInfo));
-		Alloc(Channels * Frames);
-	}
-
-	virtual ~CFrameClipData() {
-		SAFE_RELEASE_ARRAY(pFrames);
-	}
-
-	void Alloc(int Size);
+	CFrameClipData();
+	CFrameClipData(int Channels, int Frames);
+	virtual ~CFrameClipData();
 
 	SIZE_T GetAllocSize() const;	// Get memory size in bytes
 	void ToMem(HGLOBAL hMem);		// Copy structures to memory
@@ -62,7 +48,7 @@ public:
 	// Clip info
 	struct {
 		int Channels;
-		int Rows;
+		int Frames;
 		int FirstChannel;
 		struct {
 			int SourceRowStart;
@@ -71,6 +57,62 @@ public:
 	} ClipInfo;
 	
 	// Clip data
-	int *pFrames;
-	int iSize;
+	int *pFrames = nullptr;
+	int iSize = 0;
+};
+
+// // // Frame editor cursor
+struct CFrameCursorPos
+{
+	CFrameCursorPos() = default;
+	CFrameCursorPos(int Frame, int Channel) : m_iFrame(Frame), m_iChannel(Channel) { }
+
+	int m_iFrame = 0;
+	int m_iChannel = 0;
+};
+
+// // // Frame editor selection
+struct CFrameSelection
+{
+	inline int GetFrameStart() const;
+	inline int GetFrameEnd() const;
+	inline int GetChanStart() const;
+	inline int GetChanEnd() const;
+
+	void Normalize(CFrameCursorPos &Begin, CFrameCursorPos &End) const;		// // //
+	CFrameSelection GetNormalized() const;		// // //
+
+	CFrameCursorPos m_cpStart;
+	CFrameCursorPos m_cpEnd;
+};
+
+struct CFrameIterator : public CFrameCursorPos		// // //
+{
+public:
+	CFrameIterator(const CFrameIterator &it);
+	CFrameIterator(CFamiTrackerDoc *const pDoc, int Track, const CFrameCursorPos &Pos);
+	CFrameIterator(const CFamiTrackerDoc *const pDoc, int Track, const CFrameCursorPos &Pos);
+
+	static std::pair<CFrameIterator, CFrameIterator> FromCursor(const CFrameCursorPos &Pos, CFamiTrackerDoc *const pDoc, int Track);
+	static std::pair<CFrameIterator, CFrameIterator> FromSelection(const CFrameSelection &Sel, CFamiTrackerDoc *const pDoc, int Track);
+	
+	int Get(int Channel) const; // use int& output parameter?
+	void Set(int Channel, int Pattern);
+
+	CFrameIterator &operator+=(const int Frames);
+	CFrameIterator &operator-=(const int Frames);
+	CFrameIterator &operator++();
+	CFrameIterator operator++(int);
+	CFrameIterator &operator--();
+	CFrameIterator operator--(int);
+	bool operator ==(const CFrameIterator &other) const;
+
+private:
+	int NormalizeFrame(int Frame) const;
+
+public:
+	int m_iTrack;
+
+private:
+	CFamiTrackerDoc *m_pDocument;
 };

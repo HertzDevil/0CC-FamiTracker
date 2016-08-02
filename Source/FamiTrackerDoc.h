@@ -46,28 +46,6 @@ const machine_t    DEFAULT_MACHINE_TYPE		 = NTSC;
 const unsigned int DEFAULT_SPEED_SPLIT_POINT = 32;
 const unsigned int OLD_SPEED_SPLIT_POINT	 = 21;
 
-// Cursor columns
-enum cursor_column_t : unsigned int {
-	C_NOTE,
-	C_INSTRUMENT1,
-	C_INSTRUMENT2,
-	C_VOLUME,
-	C_EFF1_NUM,
-	C_EFF1_PARAM1,
-	C_EFF1_PARAM2,
-	C_EFF2_NUM,
-	C_EFF2_PARAM1,
-	C_EFF2_PARAM2,
-	C_EFF3_NUM,
-	C_EFF3_PARAM1,
-	C_EFF3_PARAM2,
-	C_EFF4_NUM,
-	C_EFF4_PARAM1,
-	C_EFF4_PARAM2
-};
-
-const unsigned int COLUMNS = 7;
-
 // View update modes (TODO check these and remove inappropriate flags)
 enum {
 	UPDATE_NONE = 0,		// No update
@@ -94,6 +72,9 @@ struct stSequence {
 #include "Sequence.h"
 #include "OldSequence.h"		// // //
 #include "Groove.h"		// // //
+
+#include "PatternEditorTypes.h"		// // //
+// #include "FrameEditorTypes.h"		// // //
 
 // External classes
 class CTrackerChannel;
@@ -176,6 +157,8 @@ public:
 	unsigned int	GetSongTempo(unsigned int Track) const;
 	bool			GetSongGroove(unsigned int Track) const;		// // //
 
+	unsigned int	GetCurrentPatternLength(unsigned int Track, int Frame) const;		// // // moved from pattern editor
+
 	unsigned int	GetEffColumns(unsigned int Track, unsigned int Channel) const;
 	void			SetEffColumns(unsigned int Track, unsigned int Channel, unsigned int Columns);
 
@@ -183,6 +166,7 @@ public:
 	void			SetPatternAtFrame(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Pattern);
 
 	bool			IsPatternEmpty(unsigned int Track, unsigned int Channel, unsigned int Pattern) const;
+	bool			ArePatternsSame(unsigned int Track, unsigned int Channel, unsigned int Pattern1, unsigned int Pattern2) const;		// // //
 
 	void			MakeKraid();				// // // Easter Egg
 
@@ -196,8 +180,7 @@ public:
 	void			ClearPatterns(unsigned int Track);
 	void			ClearPattern(unsigned int Track, unsigned int Frame, unsigned int Channel);
 	
-	void			MergeDuplicatedPatterns(unsigned int Track);		// // //
-	void			PopulateUniquePatterns(unsigned int Track);
+	void			PopulateUniquePatterns(unsigned int Track);		// // //
 
 	bool			InsertRow(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row);
 	bool			ClearRow(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row);
@@ -215,7 +198,8 @@ public:
 	bool			CloneFrame(unsigned int Track, unsigned int Frame);		// // // renamed
 	bool			MoveFrameDown(unsigned int Track, unsigned int Frame);
 	bool			MoveFrameUp(unsigned int Track, unsigned int Frame);
-	void			DeleteFrames(unsigned int Track, unsigned int Frame, int Count);
+	bool			AddFrames(unsigned int Track, unsigned int Frame, int Count);		// // //
+	bool			DeleteFrames(unsigned int Track, unsigned int Frame, int Count);		// // //
 
 	// Global (module) data
 	void			SetEngineSpeed(unsigned int Speed);
