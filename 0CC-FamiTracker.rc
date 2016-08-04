@@ -166,6 +166,8 @@ BEGIN
             MENUITEM "&Frame",                      ID_SELECT_FRAME
             MENUITEM "C&hannel",                    ID_SELECT_CHANNEL
             MENUITEM "&Track",                      ID_SELECT_TRACK
+            MENUITEM SEPARATOR
+            MENUITEM "In &Other Editor",            ID_SELECT_OTHER
         END
         MENUITEM SEPARATOR
         POPUP "&Find / Replace"
@@ -525,8 +527,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,3,14,2
- PRODUCTVERSION 0,3,14,2
+ FILEVERSION 0,3,14,3
+ PRODUCTVERSION 0,3,14,3
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -542,13 +544,13 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "HertzDevil"
-            VALUE "FileDescription", "Extension of FamiTracker"
-            VALUE "FileVersion", "0.3.14.2"
+            VALUE "FileDescription", "0CC-FamiTracker, Extension of FamiTracker"
+            VALUE "FileVersion", "0.3.14.3"
             VALUE "InternalName", "0CC-FamiTracker.exe"
             VALUE "LegalCopyright", " (c) jsr, HertzDevil 2005-2016 All rights reserved."
             VALUE "OriginalFilename", "0CC-FamiTracker.exe"
             VALUE "ProductName", "0CC-FamiTracker"
-            VALUE "ProductVersion", "0.3.14.2"
+            VALUE "ProductVersion", "0.3.14.3"
         END
     END
     BLOCK "VarFileInfo"
@@ -2790,6 +2792,7 @@ BEGIN
     ID_VIEW_CHANNELSTATE    "Display information about active effects\nDisplay Channel State"
     ID_TRACKER_PLAY_MARKER  "Play pattern from row marker\nPlay from Marker"
     ID_TRACKER_SET_MARKER   "Set a row marker for playback\nSet Row Marker"
+    ID_SELECT_OTHER         "Restore the current selection in the inactive editor window\nSelect in Other Editor"
 END
 
 #endif    // English (United States) resources

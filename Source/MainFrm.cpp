@@ -319,6 +319,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_SELECT_FRAME, OnEditSelectframe)
 	ON_COMMAND(ID_SELECT_CHANNEL, OnEditSelectchannel)
 	ON_COMMAND(ID_SELECT_TRACK, OnEditSelecttrack)
+	ON_COMMAND(ID_SELECT_OTHER, OnEditSelectother)
 	ON_COMMAND(ID_EDIT_FIND_TOGGLE, OnEditFindToggle)
 	ON_COMMAND(ID_FIND_NEXT, OnFindNext)
 	ON_COMMAND(ID_FIND_PREVIOUS, OnFindPrevious)
@@ -345,8 +346,11 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_UPDATE_COMMAND_UI(ID_COPYAS_VOLUMESEQUENCE, OnUpdateEditCopySpecial)
 	ON_UPDATE_COMMAND_UI(ID_COPYAS_PPMCK, OnUpdateEditCopySpecial)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_PASTEOVERWRITE, OnUpdateEditPasteOverwrite)
+	ON_UPDATE_COMMAND_UI(ID_SELECT_ROW, OnUpdatePatternEditorSelected)
+	ON_UPDATE_COMMAND_UI(ID_SELECT_COLUMN, OnUpdatePatternEditorSelected)
 	ON_UPDATE_COMMAND_UI(ID_SELECT_CHANNEL, OnUpdateSelectMultiFrame)
 	ON_UPDATE_COMMAND_UI(ID_SELECT_TRACK, OnUpdateSelectMultiFrame)
+//	ON_UPDATE_COMMAND_UI(ID_SELECT_OTHER, OnUpdateCurrentSelectionEnabled)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_FIND_TOGGLE, OnUpdateEditFindToggle)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_INTERPOLATE, OnUpdateSelectionEnabled)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_REVERSE, OnUpdateSelectionEnabled)
@@ -2466,6 +2470,11 @@ void CMainFrame::OnUpdateEditCopy(CCmdUI *pCmdUI)
 	pCmdUI->Enable((pView->IsSelecting() || GetFocus() == m_pFrameEditor) ? 1 : 0);
 }
 
+void CMainFrame::OnUpdatePatternEditorSelected(CCmdUI *pCmdUI)		// // //
+{
+	pCmdUI->Enable(GetFocus() == GetActiveView() ? 1 : 0);
+}
+
 void CMainFrame::OnUpdateEditCopySpecial(CCmdUI *pCmdUI)		// // //
 {
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
@@ -2941,64 +2950,113 @@ void CMainFrame::OnEditSelectall()
 {
 	if (GetFocus() == GetActiveView())
 		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectall();
-	//else if (GetFocus() == GetFrameEditor())		// // //
-	//	GetFrameEditor()->OnEditSelectall();
+	else if (GetFocus() == GetFrameEditor())		// // //
+		GetFrameEditor()->OnEditSelectall();
 }
 
 void CMainFrame::OnEditSelectnone()		// // //
 {
 	if (GetFocus() == GetActiveView())
 		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectnone();
-	//else if (GetFocus() == GetFrameEditor())
-	//	GetFrameEditor()->OnEditSelectnone();
+	else if (GetFocus() == GetFrameEditor())
+		GetFrameEditor()->CancelSelection();
 }
 
 void CMainFrame::OnEditSelectrow()
 {
 	if (GetFocus() == GetActiveView())
 		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectrow();
-	//else if (GetFocus() == GetFrameEditor())
-	//	GetFrameEditor()->OnEditSelectrow();
 }
 
 void CMainFrame::OnEditSelectcolumn()
 {
 	if (GetFocus() == GetActiveView())
 		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectcolumn();
-	//else if (GetFocus() == GetFrameEditor())
-	//	GetFrameEditor()->OnEditSelectcolumn();
 }
 
 void CMainFrame::OnEditSelectpattern()
 {
 	if (GetFocus() == GetActiveView())
 		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectpattern();
-	//else if (GetFocus() == GetFrameEditor())
-	//	GetFrameEditor()->OnEditSelectsingle();
+	else if (GetFocus() == GetFrameEditor())
+		GetFrameEditor()->OnEditSelectpattern();
 }
 
 void CMainFrame::OnEditSelectframe()
 {
 	if (GetFocus() == GetActiveView())
 		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectframe();
-	//else if (GetFocus() == GetFrameEditor())
-	//	GetFrameEditor()->OnEditSelectrow();
+	else if (GetFocus() == GetFrameEditor())
+		GetFrameEditor()->OnEditSelectframe();
 }
 
 void CMainFrame::OnEditSelectchannel()
 {
 	if (GetFocus() == GetActiveView())
 		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectchannel();
-	//else if (GetFocus() == GetFrameEditor())
-	//	GetFrameEditor()->OnEditSelectcolumn();
+	else if (GetFocus() == GetFrameEditor())
+		GetFrameEditor()->OnEditSelectchannel();
 }
 
 void CMainFrame::OnEditSelecttrack()
 {
 	if (GetFocus() == GetActiveView())
 		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelecttrack();
-	//else if (GetFocus() == GetFrameEditor())
-	//	GetFrameEditor()->OnEditSelectall();
+	else if (GetFocus() == GetFrameEditor())
+		GetFrameEditor()->OnEditSelectall();
+}
+
+void CMainFrame::OnEditSelectother()		// // //
+{
+	auto pView = static_cast<CFamiTrackerView*>(GetActiveView());
+	auto pEditor = pView->GetPatternEditor();
+	auto pDoc = static_cast<const CFamiTrackerDoc*>(GetActiveDocument());
+
+	if (GetFocus() == pView) {
+		if (pEditor->IsSelecting()) {
+			const CSelection Sel = pEditor->GetSelection().GetNormalized();
+			pEditor->CancelSelection();
+
+			CFrameSelection NewSel;
+			int Frames = pDoc->GetFrameCount(m_iTrack);
+			NewSel.m_cpStart.m_iFrame = Sel.m_cpStart.m_iFrame;
+			NewSel.m_cpEnd.m_iFrame = Sel.m_cpEnd.m_iFrame;
+			if (NewSel.m_cpStart.m_iFrame < 0) {
+				NewSel.m_cpStart.m_iFrame += Frames;
+				NewSel.m_cpEnd.m_iFrame += Frames;
+			}
+			NewSel.m_cpEnd.m_iFrame = std::min(NewSel.m_cpEnd.m_iFrame, Frames - 1);
+			NewSel.m_cpStart.m_iChannel = Sel.m_cpStart.m_iChannel;
+			NewSel.m_cpEnd.m_iChannel = Sel.m_cpEnd.m_iChannel;
+
+			m_pFrameEditor->SetSelection(NewSel);
+		}
+		else
+			m_pFrameEditor->CancelSelection();
+		m_pFrameEditor->EnableInput();
+	}
+	else if (GetFocus() == m_pFrameEditor) {
+		if (m_pFrameEditor->IsSelecting()) {
+			const CFrameSelection Sel = m_pFrameEditor->GetSelection().GetNormalized();
+			m_pFrameEditor->CancelSelection();
+
+			CSelection NewSel;
+			NewSel.m_cpStart.m_iFrame = Sel.m_cpStart.m_iFrame;
+			NewSel.m_cpEnd.m_iFrame = Sel.m_cpEnd.m_iFrame;
+			NewSel.m_cpStart.m_iRow = 0;
+			NewSel.m_cpEnd.m_iRow = pDoc->GetCurrentPatternLength(m_iTrack, Sel.m_cpStart.m_iFrame) - 1;
+			NewSel.m_cpStart.m_iChannel = Sel.m_cpStart.m_iChannel;
+			NewSel.m_cpEnd.m_iChannel = Sel.m_cpEnd.m_iChannel;
+			NewSel.m_cpStart.m_iColumn = C_NOTE;
+			NewSel.m_cpEnd.m_iColumn = pEditor->GetChannelColumns(Sel.m_cpEnd.m_iChannel);
+
+			pEditor->SetSelection(NewSel);
+			pEditor->UpdateSelectionCondition();
+		}
+		else
+			pEditor->CancelSelection();
+		pView->SetFocus();
+	}
 }
 
 void CMainFrame::OnDecayFast()
@@ -3101,7 +3159,15 @@ void CMainFrame::OnEditMergeDuplicatedPatterns()
 void CMainFrame::OnUpdateSelectionEnabled(CCmdUI *pCmdUI)
 {
 	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
-	pCmdUI->Enable((pView->IsSelecting()) ? 1 : 0);
+	pCmdUI->Enable(pView->IsSelecting() ? 1 : 0);
+}
+
+void CMainFrame::OnUpdateCurrentSelectionEnabled(CCmdUI *pCmdUI)		// // //
+{
+	if (GetFocus() == GetActiveView())
+		OnUpdateSelectionEnabled(pCmdUI);
+	else if (GetFocus() == GetFrameEditor())
+		pCmdUI->Enable(GetFrameEditor()->IsSelecting() ? 1 : 0);
 }
 
 void CMainFrame::SetFrameEditorPosition(int Position)
