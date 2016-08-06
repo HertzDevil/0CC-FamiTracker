@@ -178,6 +178,7 @@ void CChannelHandler::ResetChannel()
 		m_iEchoBuffer[i] = ECHO_BUFFER_NONE;
 
 	// States
+	m_bTrigger			= false;		// // //
 	m_bRelease			= false;
 	m_bGate				= false;
 
@@ -401,14 +402,6 @@ void CChannelHandler::HandleNoteData(stChanNote *pNoteData, int EffColumns)
 	default: m_iNote = RunNote(pNoteData->Octave, pNoteData->Note);
 	}
 
-	if (NewInstrument || Trigger) {
-		if (m_iInstrument != MAX_INSTRUMENTS && !HandleInstrument(Trigger, NewInstrument)) {
-			m_bForceReload = false;		// // //
-			return;
-		}
-	}
-	m_bForceReload = false;		// // //
-
 	// Note
 	switch (pNoteData->Note) {
 		case NONE:
@@ -422,13 +415,20 @@ void CChannelHandler::HandleNoteData(stChanNote *pNoteData, int EffColumns)
 			HandleRelease();
 			break;
 		default:
-			m_bRelease = false;
 			HandleNote(pNoteData->Note, pNoteData->Octave);
 			break;
 	}
 
 	if (Trigger && (m_iEffect == EF_SLIDE_DOWN || m_iEffect == EF_SLIDE_UP))		// // //
 		SetupSlide();
+
+	if ((NewInstrument || Trigger) && m_iInstrument != MAX_INSTRUMENTS) {
+		if (!HandleInstrument(Trigger, NewInstrument)) {		// // //
+			// m_bForceReload = false;		// // //
+			// return;
+		}
+	}
+	m_bForceReload = false;
 }
 
 bool CChannelHandler::HandleInstrument(bool Trigger, bool NewInstrument)		// // //
@@ -482,6 +482,11 @@ int CChannelHandler::TriggerNote(int Note)
 	return m_pNoteLookupTable[Note];
 }
 
+void CChannelHandler::FinishTick()		// // //
+{
+	m_bTrigger = false;
+}
+
 void CChannelHandler::CutNote()
 {
 	// Cut currently playing note
@@ -510,7 +515,7 @@ int CChannelHandler::RunNote(int Octave, int Note)
 
 	int NesFreq = TriggerNote(NewNote);
 
-	if (m_iPortaSpeed > 0 && m_iEffect == EF_PORTAMENTO) {
+	if (m_iPortaSpeed > 0 && m_iEffect == EF_PORTAMENTO && m_bGate) {		// // //
 		if (m_iPeriod == 0)
 			m_iPeriod = NesFreq;
 		m_iPortaTo = NesFreq;
@@ -521,6 +526,13 @@ int CChannelHandler::RunNote(int Octave, int Note)
 	m_bGate = true;
 
 	return NewNote;
+}
+
+void CChannelHandler::HandleNote(int Note, int Octave)		// // //
+{
+	m_iDutyPeriod = m_iDefaultDuty;
+	m_bTrigger = true;
+	m_bRelease = false;
 }
 
 void CChannelHandler::SetupSlide()		// // //

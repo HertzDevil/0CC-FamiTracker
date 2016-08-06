@@ -127,9 +127,12 @@ void CChannelHandlerVRC7::HandleEmptyNote()
 
 void CChannelHandlerVRC7::HandleCut()
 {
-	m_iCommand = CMD_NOTE_HALT;
-	m_iPortaTo = 0;
 	RegisterKeyState(-1);
+	m_bGate = false;
+//	m_iPeriod = 0;
+//	m_iPortaTo = 0;
+	m_iCommand = CMD_NOTE_HALT;
+//	m_iOldOctave = -1;		// // //
 }
 
 void CChannelHandlerVRC7::UpdateNoteRelease()		// // //
@@ -153,13 +156,10 @@ void CChannelHandlerVRC7::HandleRelease()
 
 void CChannelHandlerVRC7::HandleNote(int Note, int Octave)
 {
-	// Portamento fix
-	if (m_iCommand == CMD_NOTE_HALT || m_iCommand == CMD_NOTE_RELEASE)
-		m_iPeriod = 0;
+	CChannelHandler::HandleNote(Note, Octave);		// // //
 
-	// Trigger note
-	m_iNote	= RunNote(Octave, Note); // m_iPeriod altered
 	m_bHold	= true;
+
 /*
 	if ((m_iEffect != EF_PORTAMENTO || m_iPortaSpeed == 0) ||
 		m_iCommand == CMD_NOTE_HALT || m_iCommand == CMD_NOTE_RELEASE)		// // // 050B
@@ -170,6 +170,34 @@ void CChannelHandlerVRC7::HandleNote(int Note, int Octave)
 		CorrectOctave();
 	else
 		m_iCommand = CMD_NOTE_TRIGGER;
+}
+
+int CChannelHandlerVRC7::RunNote(int Octave, int Note)		// // //
+{
+	// Run the note and handle portamento
+	int NewNote = MIDI_NOTE(Octave, Note);
+
+	int NesFreq = TriggerNote(NewNote);
+
+	if (m_iPortaSpeed > 0 && m_iEffect == EF_PORTAMENTO && m_bGate) {		// // //
+		if (m_iPeriod == 0) {
+			m_iPeriod = NesFreq;
+			m_iOldOctave = m_iOctave = Octave;
+		}
+		m_iPortaTo = NesFreq;
+		
+	}
+	else {
+		m_iPeriod = NesFreq;
+		m_iPortaTo = 0;
+		m_iOldOctave = m_iOctave = Octave;
+	}
+
+	m_bGate = true;
+
+	CorrectOctave();		// // //
+
+	return NewNote;
 }
 
 bool CChannelHandlerVRC7::CreateInstHandler(inst_type_t Type)
@@ -195,18 +223,20 @@ void CChannelHandlerVRC7::CorrectOctave()		// // //
 	// Set current frequency to the one with highest octave
 	if (m_bLinearPitch)
 		return;
+
 	if (m_iOldOctave == -1) {
-		if (m_bGate)
-			m_iOldOctave = m_iOctave;
+		m_iOldOctave = m_iOctave;
 		return;
 	}
-	if (m_iOctave > m_iOldOctave) {
-		m_iPeriod >>= m_iOctave - m_iOldOctave;
+
+	int Offset = m_iOctave - m_iOldOctave;
+	if (Offset > 0) {
+		m_iPeriod >>= Offset;
 		m_iOldOctave = m_iOctave;
 	}
-	else if (m_iOldOctave > m_iOctave) {
+	else if (Offset < 0) {
 		// Do nothing
-		m_iPortaTo >>= (m_iOldOctave - m_iOctave);
+		m_iPortaTo >>= -Offset;
 		m_iOctave = m_iOldOctave;
 	}
 }
@@ -218,9 +248,8 @@ int CChannelHandlerVRC7::TriggerNote(int Note)
 	if (m_iCommand != CMD_NOTE_TRIGGER && m_iCommand != CMD_NOTE_HALT)
 		m_iCommand = CMD_NOTE_ON;
 	m_iOctave = Note / NOTE_RANGE;
-	if (m_bLinearPitch)		// // //
-		return Note << LINEAR_PITCH_AMOUNT;
-	return GetFnum(Note);
+
+	return m_bLinearPitch ? (Note << LINEAR_PITCH_AMOUNT) : GetFnum(Note);		// // //
 }
 
 unsigned int CChannelHandlerVRC7::GetFnum(int Note) const
