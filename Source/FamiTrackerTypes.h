@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "APU/Types.h"		// // //
+
 /*
  * Here are the constants that defines the limits in the tracker
  * change if needed (some might cause side effects)
@@ -156,9 +158,12 @@ enum effect_t : unsigned char {
 	EF_FDS_MOD_SPEED_HI,
 	EF_FDS_MOD_SPEED_LO,
 	EF_DPCM_PITCH,
-	EF_SUNSOFT_ENV_LO,
-	EF_SUNSOFT_ENV_HI,
 	EF_SUNSOFT_ENV_TYPE,
+	EF_SUNSOFT_ENV_HI,
+	EF_SUNSOFT_ENV_LO,
+	EF_SUNSOFT_NOISE,		// // // 050B
+	EF_VRC7_PORT,		// // // 050B
+	EF_VRC7_WRITE,		// // // 050B
 	EF_NOTE_RELEASE,			// // //
 	EF_GROOVE,					// // //
 	EF_TRANSPOSE,				// // //
@@ -185,11 +190,11 @@ enum effect_t : unsigned char {
 //const int EF_RETRIGGER = EF_SWEEPDOWN;
 
 // const effect_t VRC6_EFFECTS[] = {};
-// const effect_t VRC7_EFFECTS[] = {EF_VRC7_MODULATOR, EF_VRC7_CARRIER, EF_VRC7_LEVELS};
+const effect_t VRC7_EFFECTS[] = {EF_VRC7_PORT, EF_VRC7_WRITE};
 const effect_t FDS_EFFECTS[] = {EF_FDS_MOD_DEPTH, EF_FDS_MOD_SPEED_HI, EF_FDS_MOD_SPEED_LO, EF_FDS_VOLUME, EF_FDS_MOD_BIAS};
 // const effect_t MMC5_EFFECTS[] = {};
 const effect_t N163_EFFECTS[] = {EF_N163_WAVE_BUFFER};
-const effect_t S5B_EFFECTS[] = {EF_SUNSOFT_ENV_LO, EF_SUNSOFT_ENV_HI, EF_SUNSOFT_ENV_TYPE};
+const effect_t S5B_EFFECTS[] = {EF_SUNSOFT_ENV_TYPE, EF_SUNSOFT_ENV_HI, EF_SUNSOFT_ENV_LO, EF_SUNSOFT_NOISE};
 
 // Channel effect letters
 const char EFF_CHAR[] = {
@@ -222,9 +227,12 @@ const char EFF_CHAR[] = {
 	'I',	// FDS modulation speed hi
 	'J',	// FDS modulation speed lo
 	'W',	// DPCM Pitch
-	'H',	// Sunsoft envelope low
+	'H',	// Sunsoft envelope type
 	'I',	// Sunsoft envelope high
-	'J',	// Sunsoft envelope type
+	'J',	// Sunsoft envelope low
+	'W',	// // // 050B Sunsoft noise period
+	'H',	// // // 050B VRC7 custom patch port
+	'I',	// // // 050B VRC7 custom patch write
 	'L',	// // // Delayed release
 	'O',	// // // Groove
 	'T',	// // // Delayed transpose
@@ -239,6 +247,7 @@ const char EFF_CHAR[] = {
 	*/
 };
 
+effect_t GetEffectFromChar(char ch, int Chip, bool *bValid = nullptr);		// // //
 
 enum note_t : unsigned char {
 	NONE = 0,	// No note

@@ -92,10 +92,13 @@ const CString EFFECT_TEXTS[] = {		// // //
 	_T("Ixy - Auto FDS modulation, X = multiplier, Y + 1 = divider"),
 	_T("Jxx - FDS modulation rate, low byte"),
 	_T("W0x - DPCM pitch, F = highest"),
-	_T("Hxx - 5B envelope rate, low byte"),
+	_T("H0y - 5B envelope shape, bit 3 = Continue, bit 2 = Attack, bit 1 = Alternate, bit 0 = Hold"),
+	_T("Hxy - Auto 5B envelope, X - 8 = shift amount, Y = shape"),
 	_T("Ixx - 5B envelope rate, high byte"),
-	_T("J0y - 5B envelope shape, bit 3 = Continue, bit 2 = Attack, bit 1 = Alternate, bit 0 = Hold"),
-	_T("Jxy - Auto 5B envelope, X - 8 = shift amount, Y = shape"),
+	_T("Jxx - 5B envelope rate, low byte"),
+	_T("Wxx - 5B noise pitch, 1F = lowest"),
+	_T("Hxx - VRC7 custom patch port, XX = register address"),
+	_T("Ixx - VRC7 custom patch write, XX = register value"),
 	_T("Lxx - Note release, XX = frames to wait"),
 	_T("Oxx - Set groove to XX"),
 	_T("Txy - Delayed transpose (upward), X = frames to wait, Y = semitone offset"),
@@ -2859,47 +2862,11 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 
 	int Chip = pDoc->GetChannel(m_pPatternEditor->GetChannel())->GetChip();
 
-	bool bValidEffect = false;
-	effect_t Effect;		// // //
-
 	if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9)
 		nChar = '0' + nChar - VK_NUMPAD0;
 
-	switch (Chip) {
-	case SNDCHIP_FDS:
-		for (int i = 0; i < sizeof(FDS_EFFECTS) && !bValidEffect; ++i) {
-			if (nChar == EFF_CHAR[FDS_EFFECTS[i] - 1]) {
-				bValidEffect = true;
-				Effect = FDS_EFFECTS[i];
-			}
-		}
-		break;
-	case SNDCHIP_N163:
-		for (int i = 0; i < sizeof(N163_EFFECTS) && !bValidEffect; ++i) {
-			if (nChar == EFF_CHAR[N163_EFFECTS[i] - 1]) {
-				bValidEffect = true;
-				Effect = N163_EFFECTS[i];
-			}
-		}
-		break;
-	case SNDCHIP_S5B:
-		for (int i = 0; i < sizeof(S5B_EFFECTS) && !bValidEffect; ++i) {
-			if (nChar == EFF_CHAR[S5B_EFFECTS[i] - 1]) {
-				bValidEffect = true;
-				Effect = S5B_EFFECTS[i];
-			}
-		}
-		break;
-	// case SNDCHIP_VRC7:
-	}
-
-	// Common effects
-	for (int i = 0; i < EF_COUNT && !bValidEffect; ++i) {
-		if (nChar == EFF_CHAR[i]) {
-			bValidEffect = true;
-			Effect = static_cast<effect_t>(i + 1);
-		}
-	}
+	bool bValidEffect = false;
+	effect_t Effect = GetEffectFromChar(nChar, Chip, &bValidEffect);		// // //
 
 	if (bValidEffect) {
 		Note.EffNumber[EffectIndex] = Effect;
