@@ -1,5 +1,7 @@
 # 0CC-FamiTracker
 
+[![Join the chat at EsperIRC](https://img.shields.io/badge/chat-on%20freenode-brightgreen.svg)](https://kiwiirc.com/client/irc.esper.net/#0ccft)
+
 0CC-FamiTracker is a modified version of FamiTracker that incorporates various bug fixes and new features which work in exported NSFs as well. The name "0CC" comes from the author's favourite arpeggio effect command. The current version includes:
 
 - Partial FamiTracker 0.5.0 beta support
