@@ -67,6 +67,8 @@ std::unique_ptr<CInstrument> CInstrumentManager::CreateNew(inst_type_t InstType)
 bool CInstrumentManager::InsertInstrument(unsigned int Index, std::shared_ptr<CInstrument> pInst)
 {
 	std::lock_guard<std::mutex> lock(m_InstrumentLock);
+	if (Index >= m_pInstruments.size())
+		return false;
 	if (m_pInstruments[Index] != pInst) {
 		if (m_pInstruments[Index])
 			m_pInstruments[Index]->RegisterManager(nullptr);
@@ -80,6 +82,8 @@ bool CInstrumentManager::InsertInstrument(unsigned int Index, std::shared_ptr<CI
 bool CInstrumentManager::RemoveInstrument(unsigned int Index)
 {
 	std::lock_guard<std::mutex> lock(m_InstrumentLock);
+	if (Index >= m_pInstruments.size())
+		return false;
 	if (m_pInstruments[Index]) {
 		m_pInstruments[Index]->RegisterManager(nullptr);
 		m_pInstruments[Index].reset();

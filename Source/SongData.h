@@ -127,8 +127,8 @@ private:
 	template <typename F>
 	void visit_patterns_impl2(F f) {
 		unsigned ch_index = 0;
-		unsigned p_index = 0;
 		for (auto &ch : m_pPatternData) {
+			unsigned p_index = 0;
 			for (auto &p : ch)
 				f(p, ch_index, p_index++);
 			++ch_index;
@@ -137,8 +137,8 @@ private:
 	template <typename F>
 	void visit_patterns_impl2(F f) const {
 		unsigned ch_index = 0;
-		unsigned p_index = 0;
 		for (auto &ch : m_pPatternData) {
+			unsigned p_index = 0;
 			for (auto &p : ch)
 				f(p, ch_index, p_index++);
 			++ch_index;
