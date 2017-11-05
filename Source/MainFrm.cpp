@@ -844,21 +844,28 @@ void CMainFrame::SetSpeed(int Speed)
 {
 	CFamiTrackerDoc *pDoc = static_cast<CFamiTrackerDoc*>(GetActiveDocument());
 	int MaxSpeed = pDoc->GetSongTempo(m_iTrack) ? pDoc->GetSpeedSplitPoint() - 1 : 0xFF;
-	if (pDoc->GetSongGroove(m_iTrack)) {		// // //
-		Speed = std::max(Speed, 0);
-		Speed = std::min(Speed, MAX_GROOVE - 1);
-	}
-	else {
-		Speed = std::max(Speed, MIN_SPEED);
-		Speed = std::min(Speed, MaxSpeed);		// // //
-	}
-	if (Speed != pDoc->GetSongSpeed(m_iTrack))		// // //
+	Speed = std::max(std::min(Speed, MaxSpeed), MIN_SPEED);
+	if (Speed != pDoc->GetSongSpeed(m_iTrack) || pDoc->GetSongGroove(m_iTrack))		// // //
 		pDoc->ModifyIrreversible();
+	pDoc->SetSongGroove(m_iTrack, false);
 	pDoc->SetSongSpeed(m_iTrack, Speed);
 	theApp.GetSoundGenerator()->ResetTempo();
 
 	if (m_wndDialogBar.GetDlgItemInt(IDC_SPEED) != Speed)
 		m_wndDialogBar.SetDlgItemInt(IDC_SPEED, Speed, FALSE);
+}
+
+void CMainFrame::SetGroove(int Groove) {
+	CFamiTrackerDoc *pDoc = static_cast<CFamiTrackerDoc*>(GetActiveDocument());
+	Groove = std::max(std::min(Groove, MAX_GROOVE - 1), 0);
+	if (Groove != pDoc->GetSongSpeed(m_iTrack) || !pDoc->GetSongGroove(m_iTrack))		// // //
+		pDoc->ModifyIrreversible();
+	pDoc->SetSongGroove(m_iTrack, true);
+	pDoc->SetSongSpeed(m_iTrack, Groove);
+	theApp.GetSoundGenerator()->ResetTempo();
+
+	if (m_wndDialogBar.GetDlgItemInt(IDC_SPEED) != Groove)
+		m_wndDialogBar.SetDlgItemInt(IDC_SPEED, Groove, FALSE);
 }
 
 void CMainFrame::SetRowCount(int Count)
@@ -929,13 +936,13 @@ void CMainFrame::Dump(CDumpContext& dc) const
 // CMainFrame message handlers
 
 template <typename... T>
-void CMainFrame::SetStatusText(LPCTSTR Text, T... args)		// // //
+void CMainFrame::SetStatusText(LPCTSTR Text, T&&... args)		// // //
 {
 	if (!Text)
 		return;
 
 	char Buf[512] = { };
-	_sntprintf_s(Buf, sizeof(Buf), _TRUNCATE, Text, args...);
+	_sntprintf_s(Buf, sizeof(Buf), _TRUNCATE, Text, std::forward<T>(args)...);
 	m_wndStatusBar.SetWindowText(Buf);
 }
 
@@ -1433,14 +1440,18 @@ void CMainFrame::OnDeltaposSpeedSpin(NMHDR *pNMHDR, LRESULT *pResult)
 		SetSpeed(NewSpeed);
 		return;
 	}
-	else if (((NMUPDOWN*)pNMHDR)->iDelta < 0) {
-		for (unsigned int i = pDoc->GetSongSpeed(m_iTrack) + 1; i < MAX_GROOVE; i++)
-			if (pDoc->GetGroove(i) != NULL) { SetSpeed(i); return; }
-	}
-	else if (((NMUPDOWN*)pNMHDR)->iDelta > 0) {
-		for (unsigned int i = pDoc->GetSongSpeed(m_iTrack) - 1; i >= 0; i--)
-			if (pDoc->GetGroove(i) != NULL) { SetSpeed(i); return; }
-	}
+	else if (((NMUPDOWN*)pNMHDR)->iDelta < 0)
+		for (int i = pDoc->GetSongSpeed(m_iTrack) + 1; i < MAX_GROOVE; ++i)
+			if (pDoc->GetGroove(i)) {
+				SetGroove(i);
+				return;
+			}
+	else if (((NMUPDOWN*)pNMHDR)->iDelta > 0)
+		for (int i = pDoc->GetSongSpeed(m_iTrack) - 1; i >= 0; --i)
+			if (pDoc->GetGroove(i)) {
+				SetGroove(i);
+				return;
+			}
 }
 
 void CMainFrame::OnDeltaposTempoSpin(NMHDR *pNMHDR, LRESULT *pResult)

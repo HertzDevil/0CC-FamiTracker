@@ -134,13 +134,15 @@ public:
 #endif
 
 private:
+
 	template <typename... T>
-	void	SetStatusText(LPCTSTR Text, T... args);		// // //
+	void	SetStatusText(LPCTSTR Text, T&&... args);		// // //
 	bool	CreateDialogPanels();
 	bool	CreateToolbars();
 	bool	CreateInstrumentToolbar();
 	bool	CreateVisualizerWindow();
 	void	SetSpeed(int Speed);
+	void	SetGroove(int Groove);		// // //
 	void	SetTempo(int Tempo);
 	void	SetRowCount(int Count);
 	void	SetFrameCount(int Count);
