@@ -61,6 +61,7 @@ class CBookmarkDlg;
 class CSwapDlg;
 class CFindDlg;		// // //
 struct stHighlight;		// // //
+class CSongData;		// // //
 
 class CMainFrame : public CFrameWnd
 {
@@ -133,8 +134,15 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 
-private:
+	CFamiTrackerDoc &GetDoc();		// // //
+	const CFamiTrackerDoc &GetDoc() const;		// // //
 
+	CSongData &GetCurrentSong();		// // //
+	const CSongData &GetCurrentSong() const;		// // //
+
+	bool HasDocument() const;		// // //
+
+private:
 	template <typename... T>
 	void	SetStatusText(LPCTSTR Text, T&&... args);		// // //
 	bool	CreateDialogPanels();
