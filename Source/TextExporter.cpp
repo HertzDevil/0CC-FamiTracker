@@ -882,7 +882,8 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 						}
 						return INST_NONE;
 					}();
-					CHECK(t.ReadInt(i,0,MAX_INSTRUMENTS-1,&sResult));
+					int inst_index;		// // //
+					CHECK(t.ReadInt(inst_index,0,MAX_INSTRUMENTS-1,&sResult));
 					auto pInst = FTExt::InstrumentFactory::Make(Type);		// // //
 					auto seqInst = static_cast<CSeqInstrument *>(pInst.get());		// // //
 					for (int s=0; s < SEQ_COUNT; ++s)
@@ -901,7 +902,7 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 						pInst->SetWaveCount(i);
 					}
 					seqInst->SetName(Charify(t.ReadToken()));
-					pDoc->AddInstrument(std::move(pInst), i);
+					pDoc->AddInstrument(std::move(pInst), inst_index);
 					CHECK(t.ReadEOL(&sResult));
 				}
 				break;
