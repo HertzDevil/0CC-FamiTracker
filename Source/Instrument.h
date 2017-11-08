@@ -20,8 +20,10 @@
 ** must bear this legend.
 */
 
+
 #pragma once
-#pragma warning ( disable : 4351 )		// // // "new behaviour: elements of array [...] will be default initialized"
+
+#include <string>
 
 // Instrument types
 enum inst_type_t {
@@ -45,10 +47,9 @@ class CInstrument {
 public:
 	CInstrument(inst_type_t type);										// // // ctor with instrument type
 	virtual CInstrument* Clone() const = 0;								// // // virtual copy ctor
-	virtual ~CInstrument();
-	void SetName(const char *Name);
-	void GetName(char *Name) const;
-	const char *GetName() const;
+	virtual ~CInstrument() noexcept = default;
+	void SetName(std::string_view Name);		// // //
+	std::string_view GetName() const;		// // //
 	void RegisterManager(CInstrumentManagerInterface *pManager);		// // //
 
 	void SaveFTI(CSimpleFile &File) const;								// // // Saves to an FTI file
@@ -73,7 +74,7 @@ public:
 	static const int INST_NAME_MAX = 128;
 
 protected:
-	char m_cName[INST_NAME_MAX];
+	std::string name_;		// // //
 	inst_type_t m_iType;		// // //
 	CInstrumentManagerInterface *m_pInstManager = nullptr;		// // //
 };

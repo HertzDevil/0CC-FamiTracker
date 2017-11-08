@@ -329,7 +329,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 
 	CString str;
 	str.Format(_T("from %s"), Chan.GetChannelName());
-	(*m_pDumpInstrument)->SetName(str);
+	(*m_pDumpInstrument)->SetName((LPCTSTR)str);
 	
 	if (Type == INST_FDS) {
 		m_pSequenceCache[SEQ_ARPEGGIO]->SetSetting(SETTING_ARP_FIXED);

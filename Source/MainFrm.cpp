@@ -75,6 +75,7 @@
 namespace {
 
 const unsigned MAX_UNDO_LEVELS = 64;		// // // moved
+const char DEFAULT_INST_NAME[] = "New instrument";		// // //
 
 const UINT indicators[] =
 {
@@ -997,7 +998,7 @@ void CMainFrame::NewInstrument(int ChipType)
 		return;
 	}
 
-	pInst->SetName(CFamiTrackerDoc::NEW_INST_NAME);
+	pInst->SetName(DEFAULT_INST_NAME);
 	int Index = Doc.AddInstrument(std::move(pInst));		// // //
 
 	if (Index == -1) {
@@ -1042,13 +1043,12 @@ void CMainFrame::SelectInstrument(int Index)
 		return;
 	}
 
-	const CFamiTrackerDoc &Doc = GetDoc();
 	if (auto pInst = GetDoc().GetInstrument(Index)) {
 		// Select instrument in list
 		m_pInstrumentList->SelectInstrument(Index);
 
 		// Set instrument name
-		SetInstrumentEditName(pInst->GetName());
+		SetInstrumentEditName(pInst->GetName().data());
 
 		// Update instrument editor
 		if (m_wndInstEdit.IsOpened())
@@ -1405,17 +1405,15 @@ void CMainFrame::OnSaveInstrument()
 	if (!pInst)
 		return;
 
-	char Name[CInstrument::INST_NAME_MAX];
-	pInst->GetName(Name);
+	auto Name = std::string(pInst->GetName());		// // //
 
 	// Remove bad characters
-	for (char *ptr = Name; *ptr != 0; ++ptr) {
-		if (*ptr == '/')
-			*ptr = ' ';
-	}
+	for (auto &ch : Name)
+		if (ch == '/')
+			ch = ' ';
 
 	CString filter = LoadDefaultFilter(IDS_FILTER_FTI, _T(".fti"));
-	CFileDialog FileDialog(FALSE, _T("fti"), Name, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
+	CFileDialog FileDialog(FALSE, _T("fti"), Name.c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
 
 	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_FTI);
 	if (FileDialog.DoModal() == IDCANCEL)

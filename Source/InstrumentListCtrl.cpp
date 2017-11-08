@@ -124,9 +124,10 @@ void CInstrumentList::InsertInstrument(int Index)
 		int Type = pDoc->GetInstrumentType(Index);
 
 		// Name is of type index - name
-		CString Text;
-		Text.Format(_T("%02X - %s"), Index, (LPCSTR)CA2CT(pInst->GetName()));
-		InsertItem(Index, Text, Type - 1);
+		CStringA Text;
+		auto sv = pInst->GetName();
+		Text.Format("%02X - %.*s", Index, sv.size(), sv.data());
+		InsertItem(Index, CA2CT(Text), Type - 1);
 		SelectInstrument(Index);		// // //
 	}
 }

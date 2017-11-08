@@ -361,8 +361,6 @@ private:
 
 	// Constants
 public:
-	static const char*	NEW_INST_NAME;
-
 	static const int	DEFAULT_NAMCO_CHANS;
 
 	static const bool	DEFAULT_LINEAR_PITCH;

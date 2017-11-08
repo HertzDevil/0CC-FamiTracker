@@ -174,7 +174,8 @@ void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 
 	// Dialog title
 	CString Suffix;
-	Suffix.Format(_T("%02X. %s (%s)"), Index, pInstrument->GetName(), CHIP_NAMES[InstType]);		// // //
+	auto sv = pInstrument->GetName();
+	Suffix.Format(_T("%02X. %.*s (%s)"), Index, sv.size(), sv.data(), CHIP_NAMES[InstType]);		// // //
 	CString Title;
 	AfxFormatString1(Title, IDS_INSTRUMENT_EDITOR_TITLE, Suffix);
 	SetWindowText(Title);

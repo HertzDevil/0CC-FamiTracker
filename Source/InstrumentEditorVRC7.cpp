@@ -448,7 +448,8 @@ void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
 	
 	CString MML;
 	GetDlgItemTextA(IDC_PATCH, MML);
-	MML.Format(_T(";%s\r\n;%s\r\n"), MML, m_pInstrument->GetName());
+	auto sv = m_pInstrument->GetName();
+	MML.Format(_T(";%s\r\n;%.*s\r\n"), MML, sv.size(), sv.data());
 	MML.AppendFormat(_T(";TL FB\r\n %2d,%2d,\r\n;AR DR SL RR KL MT AM VB EG KR DT\r\n"), reg[2] & 0x3F, reg[3] & 0x07);
 	for (int i = 0; i <= 1; i++)
 		MML.AppendFormat(_T(" %2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,\r\n"),

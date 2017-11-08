@@ -1438,7 +1438,7 @@ const CString& CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 			break;
 		}
 
-		f.WriteString(ExportString(pInst->GetName()));
+		f.WriteString(ExportString(pInst->GetName().data()));
 		f.WriteString(_T("\n"));
 
 		switch (pInst->GetType())

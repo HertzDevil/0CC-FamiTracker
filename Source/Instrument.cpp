@@ -40,11 +40,6 @@ const char INST_VERSION[] = "2.4";
 
 CInstrument::CInstrument(inst_type_t type) : m_iType(type)		// // //
 {
-	memset(m_cName, 0, INST_NAME_MAX);
-}
-
-CInstrument::~CInstrument()
-{
 }
 
 void CInstrument::OnRegisterManager() {		// // //
@@ -56,20 +51,15 @@ void CInstrument::CloneFrom(const CInstrument *pSeq)
 	m_iType = pSeq->GetType();
 }
 
-void CInstrument::SetName(const char *Name)
+void CInstrument::SetName(std::string_view Name)		// // //
 {
-	strncpy_s(m_cName, Name, INST_NAME_MAX);
+	name_ = Name.substr(0, INST_NAME_MAX - 1);
 	InstrumentChanged();		// // //
 }
 
-void CInstrument::GetName(char *Name) const
+std::string_view CInstrument::GetName() const		// // //
 {
-	strncpy_s(Name, INST_NAME_MAX, m_cName, INST_NAME_MAX);
-}
-
-const char *CInstrument::GetName() const
-{
-	return m_cName;
+	return name_;
 }
 
 void CInstrument::RegisterManager(CInstrumentManagerInterface *pManager)		// // //

@@ -374,9 +374,8 @@ void CFamiTrackerDocIO::SaveInstruments(const CFamiTrackerDoc &doc, int ver) {
 			pInst->Store(&file_);
 
 			// Store the name
-			pInst->GetName(Name);
-			file_.WriteBlockInt((int)strlen(Name));
-			file_.WriteBlock(Name, (int)strlen(Name));
+			file_.WriteBlockInt(pInst->GetName().size());
+			file_.WriteBlock(pInst->GetName().data(), pInst->GetName().size());
 		}
 	}
 }
