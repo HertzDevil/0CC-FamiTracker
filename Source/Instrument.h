@@ -54,7 +54,6 @@ public:
 	void SaveFTI(CSimpleFile &File) const;								// // // Saves to an FTI file
 
 public:
-	virtual void OnRegisterManager();									// // // Setup some initial values
 	virtual inst_type_t GetType() const;								// // // Returns instrument type
 	virtual void Store(CDocumentFile *pDocFile) const = 0;				// Saves the instrument to the module
 	virtual bool Load(CDocumentFile *pDocFile) = 0;						// Loads the instrument from a module
@@ -67,6 +66,7 @@ protected:
 	void InstrumentChanged() const;
 
 private:
+	virtual void OnRegisterManager();									// // // Setup some initial values
 	virtual void DoSaveFTI(CSimpleFile &File) const = 0;				// // // Saves to an FTI file
 
 public:

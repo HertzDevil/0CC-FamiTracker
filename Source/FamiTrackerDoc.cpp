@@ -1929,7 +1929,7 @@ int CFamiTrackerDoc::LoadInstrument(CString FileName)
 		inst_type_t InstType = static_cast<inst_type_t>(file.ReadChar());
 		if (InstType == INST_NONE)
 			InstType = INST_2A03;
-		auto pInstrument = CInstrumentManager::CreateNew(InstType);
+		auto pInstrument = m_pInstrumentManager->CreateNew(InstType);
 		AssertFileData(pInstrument.get() != nullptr, "Failed to create instrument");
 		
 		// Name
@@ -1937,8 +1937,7 @@ int CFamiTrackerDoc::LoadInstrument(CString FileName)
 		AssertRange(InstName.size(), 0U, static_cast<unsigned>(CInstrument::INST_NAME_MAX), "Instrument name length");
 		pInstrument->SetName(InstName.c_str());
 
-		pInstrument->RegisterManager(m_pInstrumentManager.get());		// // //
-		pInstrument->LoadFTI(file, iInstVer);
+		pInstrument->LoadFTI(file, iInstVer);		// // //
 		m_pInstrumentManager->InsertInstrument(Slot, std::move(pInstrument));
 		m_csDocumentLock.Unlock();
 		return Slot;
@@ -3339,7 +3338,7 @@ struct Kraid {		// // // Easter egg
 
 private:
 	void makeInst(CFamiTrackerDoc &doc, unsigned index, char vol, const char *name) {
-		doc.AddInstrument(CInstrumentManager::CreateNew(INST_2A03), index);
+		doc.AddInstrument(doc.GetInstrumentManager()->CreateNew(INST_2A03), index);
 		auto leadInst = std::dynamic_pointer_cast<CInstrument2A03>(doc.GetInstrument(index));
 		leadInst->SetSeqEnable(SEQ_VOLUME, true);
 		leadInst->SetSeqIndex(SEQ_VOLUME, index);

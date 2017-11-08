@@ -74,7 +74,8 @@ const char *CInstrument::GetName() const
 
 void CInstrument::RegisterManager(CInstrumentManagerInterface *pManager)		// // //
 {
-	m_pInstManager = pManager;
+	if ((m_pInstManager = pManager))
+		OnRegisterManager();
 }
 
 void CInstrument::SaveFTI(CSimpleFile &File) const {

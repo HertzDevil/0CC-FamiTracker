@@ -312,7 +312,7 @@ void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerDoc &doc, int ver) {
 
 		// Read instrument type and create an instrument
 		inst_type_t Type = (inst_type_t)file_.GetBlockChar();
-		auto pInstrument = CInstrumentManager::CreateNew(Type);		// // //
+		auto pInstrument = Manager.CreateNew(Type);		// // //
 
 		try {
 			// Load the instrument

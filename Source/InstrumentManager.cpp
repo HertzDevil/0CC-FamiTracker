@@ -61,21 +61,23 @@ std::shared_ptr<CInstrument> CInstrumentManager::GetInstrument(unsigned int Inde
 
 std::unique_ptr<CInstrument> CInstrumentManager::CreateNew(inst_type_t InstType)
 {
-	return FTExt::InstrumentFactory::Make(InstType);
+	auto pInst = FTExt::InstrumentFactory::Make(InstType);
+	pInst->RegisterManager(this);
+	return pInst;
 }
 
 bool CInstrumentManager::InsertInstrument(unsigned int Index, std::shared_ptr<CInstrument> pInst)
 {
-	std::lock_guard<std::mutex> lock(m_InstrumentLock);
-	if (Index >= m_pInstruments.size())
-		return false;
-	if (m_pInstruments[Index] != pInst) {
+	m_InstrumentLock.lock();
+	if (Index < m_pInstruments.size() && m_pInstruments[Index] != pInst) {
 		if (m_pInstruments[Index])
 			m_pInstruments[Index]->RegisterManager(nullptr);
 		m_pInstruments[Index] = pInst;
+		m_InstrumentLock.unlock();
 		pInst->RegisterManager(this);
 		return true;
 	}
+	m_InstrumentLock.unlock();
 	return false;
 }
 

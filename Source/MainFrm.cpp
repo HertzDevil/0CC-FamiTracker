@@ -66,6 +66,7 @@
 #include "ActionHandler.h"		// // //
 #include "ModuleAction.h"		// // //
 #include "SimpleFile.h"		// // //
+#include "InstrumentManager.h"		// // //
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -985,7 +986,7 @@ void CMainFrame::NewInstrument(int ChipType)
 		};
 		for (const auto &x : INST_MAP)		// // //
 			if (x.first == ChipType)
-				return FTExt::InstrumentFactory::Make(x.second);
+				return Doc.GetInstrumentManager()->CreateNew(x.second);
 		return nullptr;
 	}();
 
@@ -1005,8 +1006,6 @@ void CMainFrame::NewInstrument(int ChipType)
 		AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR);
 		return;
 	}
-
-	Inst.OnRegisterManager();		// // // TODO: uniform setup sequence
 
 	// Add to list and select
 	Doc.ModifyIrreversible();
