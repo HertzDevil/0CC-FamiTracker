@@ -997,7 +997,6 @@ void CMainFrame::NewInstrument(int ChipType)
 		return;
 	}
 
-	auto &Inst = *pInst;
 	pInst->SetName(CFamiTrackerDoc::NEW_INST_NAME);
 	int Index = Doc.AddInstrument(std::move(pInst));		// // //
 

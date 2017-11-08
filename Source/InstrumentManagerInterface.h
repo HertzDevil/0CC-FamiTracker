@@ -45,7 +45,7 @@ public:
 	/*!	\brief Puts a sequence into the resource container.
 		\param InstType The instrument type, which should be a member of inst_type_t.
 		\param SeqType The sequence type.
-		\param Index The sample index.
+		\param Index The sequence index.
 		\param pSeq Pointer to the sequence.
 	*/
 	virtual void SetSequence(int InstType, int SeqType, int Index, CSequence *pSeq) = 0;

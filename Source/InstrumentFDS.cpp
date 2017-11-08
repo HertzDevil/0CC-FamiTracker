@@ -229,6 +229,10 @@ bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
 	return true;
 }
 
+void CInstrumentFDS::OnRegisterManager() {
+	// // //
+}
+
 void CInstrumentFDS::DoSaveFTI(CSimpleFile &File) const
 {
 	// Write wave
