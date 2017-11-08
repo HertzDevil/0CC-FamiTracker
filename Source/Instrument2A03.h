@@ -33,8 +33,6 @@ public:
 	CInstrument* Clone() const;
 	void	Store(CDocumentFile *pFile) const override;
 	bool	Load(CDocumentFile *pDocFile) override;
-	void	SaveFile(CSimpleFile *pFile) const override;
-	bool	LoadFile(CSimpleFile *pFile, int iVersion) override;
 
 private:
 	char	GetSample(int Octave, int Note) const { return GetSampleIndex(Octave, Note); };		// // //
@@ -58,6 +56,10 @@ public:
 
 protected:
 	void	CloneFrom(const CInstrument *pInst) override;		// // //
+
+private:
+	void	DoSaveFTI(CSimpleFile &File) const override;
+	bool	LoadFTI(CSimpleFile &File, int iVersion) override;
 
 public:
 	static const char *SEQUENCE_NAME[];

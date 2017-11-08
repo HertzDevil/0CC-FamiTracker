@@ -33,8 +33,6 @@ public:
 	CInstrument* Clone() const override;
 	void	Store(CDocumentFile *pDocFile) const override;
 	bool	Load(CDocumentFile *pDocFile) override;
-	void	SaveFile(CSimpleFile *pFile) const override;
-	bool	LoadFile(CSimpleFile *pFile, int iVersion) override;
 	int		Compile(CChunk *pChunk, int Index) const override;
 	bool	CanRelease() const override;
 
@@ -56,11 +54,14 @@ protected:
 	void	CloneFrom(const CInstrument *pInst) override;		// // //
 
 private:
-	void StoreSequence(CDocumentFile *pDocFile, const CSequence *pSeq) const;		// // //
-	CSequence *LoadSequence(CDocumentFile *pDocFile) const;
-	void StoreInstSequence(CSimpleFile *pDocFile, const CSequence *pSeq) const;		// // //
-	CSequence *LoadInstSequence(CSimpleFile *pFile) const;		// // //
+	void StoreSequence(CDocumentFile &DocFile, const CSequence &Seq) const;		// // //
+	CSequence *LoadSequence(CDocumentFile &DocFile) const;
+	void StoreInstSequence(CSimpleFile &File, const CSequence &Seq) const;		// // //
+	CSequence *LoadInstSequence(CSimpleFile &File) const;		// // //
 	void DoubleVolume() const;		// // //
+
+	void	DoSaveFTI(CSimpleFile &File) const override;
+	bool	LoadFTI(CSimpleFile &File, int iVersion) override;
 
 public:
 	static const int WAVE_SIZE = 64;

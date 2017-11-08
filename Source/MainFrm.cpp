@@ -65,6 +65,7 @@
 #include "InstrumentFactory.h"		// // //
 #include "ActionHandler.h"		// // //
 #include "ModuleAction.h"		// // //
+#include "SimpleFile.h"		// // //
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -963,7 +964,7 @@ void CMainFrame::ClearInstrumentList()
 {
 	// Remove all items from the instrument list
 	m_pInstrumentList->DeleteAllItems();
-	SetInstrumentName(_T(""));
+	SetInstrumentEditName(_T(""));
 }
 
 void CMainFrame::NewInstrument(int ChipType)
@@ -1039,19 +1040,17 @@ void CMainFrame::SelectInstrument(int Index)
 	// No instruments added
 	if (ListCount == 0) {
 		m_iInstrument = 0;
-		SetInstrumentName(_T(""));
+		SetInstrumentEditName(_T(""));
 		return;
 	}
 
 	const CFamiTrackerDoc &Doc = GetDoc();
-	if (Doc.IsInstrumentUsed(Index)) {
+	if (auto pInst = GetDoc().GetInstrument(Index)) {
 		// Select instrument in list
 		m_pInstrumentList->SelectInstrument(Index);
 
 		// Set instrument name
-		TCHAR Text[CInstrument::INST_NAME_MAX];
-		Doc.GetInstrumentName(Index, Text);
-		SetInstrumentName(Text);
+		SetInstrumentEditName(pInst->GetName());
 
 		// Update instrument editor
 		if (m_wndInstEdit.IsOpened())
@@ -1061,7 +1060,7 @@ void CMainFrame::SelectInstrument(int Index)
 		// Remove selection
 		m_pInstrumentList->SetSelectionMark(-1);
 		m_pInstrumentList->SetItemState(m_iInstrument, 0, LVIS_SELECTED | LVIS_FOCUSED);
-		SetInstrumentName(_T(""));
+		SetInstrumentEditName(_T(""));
 		CloseInstrumentEditor();
 	}
 
@@ -1159,14 +1158,9 @@ void CMainFrame::ShowInstrumentNumberText()
 	SetMessageText(msg);
 }
 
-void CMainFrame::GetInstrumentName(char *pText) const
+void CMainFrame::SetInstrumentEditName(const char *pText)		// // //
 {
-	m_wndDialogBar.GetDlgItem(IDC_INSTNAME)->GetWindowText(pText, CInstrument::INST_NAME_MAX);
-}
-
-void CMainFrame::SetInstrumentName(char *pText)
-{
-	m_wndDialogBar.GetDlgItem(IDC_INSTNAME)->SetWindowText(pText);
+	m_wndDialogBar.SetDlgItemText(IDC_INSTNAME, pText);
 }
 
 void CMainFrame::SetIndicatorTime(int Min, int Sec, int MSec)
@@ -1208,8 +1202,6 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy)
 
 void CMainFrame::OnInstNameChange()
 {
-	CFamiTrackerDoc &Doc = GetDoc();
-
 	int SelIndex = m_pInstrumentList->GetSelectionMark();
 	int SelInstIndex = m_pInstrumentList->GetInstrumentIndex(SelIndex);
 
@@ -1219,15 +1211,14 @@ void CMainFrame::OnInstNameChange()
 	if (SelInstIndex != m_iInstrument)	// Instrument selection out of sync, ignore name change
 		return;
 
-	if (!Doc.IsInstrumentUsed(m_iInstrument))
-		return;
+	if (auto pInst = GetDoc().GetInstrument(m_iInstrument)) {		// // //
+		TCHAR Text[CInstrument::INST_NAME_MAX];
+		m_wndDialogBar.GetDlgItem(IDC_INSTNAME)->GetWindowText(Text, CInstrument::INST_NAME_MAX);
 
-	TCHAR Text[CInstrument::INST_NAME_MAX];
-	GetInstrumentName(Text);
-
-	// Update instrument list & document
-	m_pInstrumentList->SetInstrumentName(m_iInstrument, Text);
-	Doc.SetInstrumentName(m_iInstrument, T2A(Text));
+		// Update instrument list & document
+		m_pInstrumentList->SetInstrumentName(m_iInstrument, Text);
+		pInst->SetName(T2A(Text));
+	}
 }
 
 void CMainFrame::OnAddInstrument2A03()
@@ -1408,18 +1399,16 @@ void CMainFrame::OnSaveInstrument()
 	const CFamiTrackerDoc &Doc = GetDoc();
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 
-	char Name[256];
-	CString String;
-
 	int Index = GetSelectedInstrument();
-
-	if (Index == -1)
+	if (Index == INVALID_INSTRUMENT)
 		return;
 
-	if (!Doc.IsInstrumentUsed(Index))
+	auto pInst = Doc.GetInstrument(Index);		// // //
+	if (!pInst)
 		return;
 
-	Doc.GetInstrumentName(Index, Name);
+	char Name[CInstrument::INST_NAME_MAX];
+	pInst->GetName(Name);
 
 	// Remove bad characters
 	for (char *ptr = Name; *ptr != 0; ++ptr) {
@@ -1431,13 +1420,17 @@ void CMainFrame::OnSaveInstrument()
 	CFileDialog FileDialog(FALSE, _T("fti"), Name, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
 
 	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_FTI);
-
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
-
-	Doc.SaveInstrument(GetSelectedInstrument(), FileDialog.GetPathName());
-
 	theApp.GetSettings()->SetPath(FileDialog.GetPathName(), PATH_FTI);
+
+	CSimpleFile file(FileDialog.GetPathName(), std::ios::out | std::ios::binary);
+	if (!file) {
+		AfxMessageBox(IDS_FILE_OPEN_ERROR, MB_ICONERROR);
+		return;
+	}
+
+	pInst->SaveFTI(file);		// // //
 
 	if (m_pInstrumentFileTree)
 		m_pInstrumentFileTree->Changed();

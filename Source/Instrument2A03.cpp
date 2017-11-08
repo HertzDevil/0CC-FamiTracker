@@ -133,23 +133,23 @@ bool CInstrument2A03::Load(CDocumentFile *pDocFile)
 	return true;
 }
 
-void CInstrument2A03::SaveFile(CSimpleFile *pFile) const
+void CInstrument2A03::DoSaveFTI(CSimpleFile &File) const
 {
 	// Saves an 2A03 instrument
 	// Current version 2.4
 
 	// Sequences
-	CSeqInstrument::SaveFile(pFile);		// // //
+	CSeqInstrument::DoSaveFTI(File);		// // //
 
 	// DPCM
 	if (!m_pInstManager) {		// // //
-		pFile->WriteInt(0);
-		pFile->WriteInt(0);
+		File.WriteInt(0);
+		File.WriteInt(0);
 		return;
 	}
 
 	unsigned int Count = GetSampleCount();		// // // 050B
-	pFile->WriteInt(Count);
+	File.WriteInt(Count);
 
 	bool UsedSamples[MAX_DSAMPLES];
 	memset(UsedSamples, 0, sizeof(bool) * MAX_DSAMPLES);
@@ -159,10 +159,10 @@ void CInstrument2A03::SaveFile(CSimpleFile *pFile) const
 		for (int j = 0; j < NOTE_RANGE; ++j) {	// notes
 			if (unsigned char Sample = GetSampleIndex(i, j)) {
 				unsigned char Index = i * NOTE_RANGE + j;
-				pFile->WriteChar(Index);
-				pFile->WriteChar(Sample);
-				pFile->WriteChar(GetSamplePitch(i, j));
-				pFile->WriteChar(GetSampleDeltaValue(i, j));
+				File.WriteChar(Index);
+				File.WriteChar(Sample);
+				File.WriteChar(GetSamplePitch(i, j));
+				File.WriteChar(GetSampleDeltaValue(i, j));
 				if (!UsedSamples[Sample - 1])
 					++UsedCount;
 				UsedSamples[Sample - 1] = true;
@@ -171,45 +171,45 @@ void CInstrument2A03::SaveFile(CSimpleFile *pFile) const
 	}
 
 	// Write the number
-	pFile->WriteInt(UsedCount);
+	File.WriteInt(UsedCount);
 
 	// List of sample names
 	for (int i = 0; i < MAX_DSAMPLES; ++i) if (UsedSamples[i]) {
 		if (const CDSample *pSample = m_pInstManager->GetDSample(i)) {
-			pFile->WriteInt(i);
+			File.WriteInt(i);
 			const char *pName = pSample->GetName();
 			int NameLen = strlen(pName);
-			pFile->WriteString(pName);
-			pFile->WriteString(std::string_view(pSample->GetData(), pSample->GetSize()));
+			File.WriteString(pName);
+			File.WriteString(std::string_view(pSample->GetData(), pSample->GetSize()));
 		}
 	}
 }
 
-bool CInstrument2A03::LoadFile(CSimpleFile *pFile, int iVersion)
+bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
 {
 	char SampleNames[MAX_DSAMPLES][CDSample::MAX_NAME_SIZE];
 	
-	if (!CSeqInstrument::LoadFile(pFile, iVersion))		// // //
+	if (!CSeqInstrument::LoadFTI(File, iVersion))		// // //
 		return false;
 
-	unsigned int Count = pFile->ReadInt();
+	unsigned int Count = File.ReadInt();
 	CModuleException::AssertRangeFmt(Count, 0U, static_cast<unsigned>(NOTE_COUNT), "DPCM assignment count");
 
 	// DPCM instruments
 	for (unsigned int i = 0; i < Count; ++i) {
-		unsigned char InstNote = pFile->ReadChar();
+		unsigned char InstNote = File.ReadChar();
 		int Octave = InstNote / NOTE_RANGE;
 		int Note = InstNote % NOTE_RANGE;
 		try {
-			unsigned char Sample = CModuleException::AssertRangeFmt(pFile->ReadChar(), 0, 0x7F, "DPCM sample assignment index");
+			unsigned char Sample = CModuleException::AssertRangeFmt(File.ReadChar(), 0, 0x7F, "DPCM sample assignment index");
 			if (Sample > MAX_DSAMPLES)
 				Sample = 0;
-			unsigned char Pitch = pFile->ReadChar();
+			unsigned char Pitch = File.ReadChar();
 			CModuleException::AssertRangeFmt(Pitch & 0x7FU, 0U, 0xFU, "DPCM sample pitch");
 			SetSamplePitch(Octave, Note, Pitch);
 			SetSampleIndex(Octave, Note, Sample);
 			SetSampleDeltaValue(Octave, Note, CModuleException::AssertRangeFmt(
-				static_cast<char>(iVersion >= 24 ? pFile->ReadChar() : -1), -1, 0x7F, "DPCM sample delta value"));
+				static_cast<char>(iVersion >= 24 ? File.ReadChar() : -1), -1, 0x7F, "DPCM sample delta value"));
 		}
 		catch (CModuleException *e) {
 			e->AppendError("At note %i, octave %i,", Note + 1, Octave);
@@ -224,17 +224,17 @@ bool CInstrument2A03::LoadFile(CSimpleFile *pFile, int iVersion)
 		if (const CDSample *pSamp = m_pInstManager->GetDSample(i))
 			TotalSize += pSamp->GetSize();
 
-	unsigned int SampleCount = pFile->ReadInt();
+	unsigned int SampleCount = File.ReadInt();
 	for (unsigned int i = 0; i < SampleCount; ++i) {
 		int Index = CModuleException::AssertRangeFmt(
-			pFile->ReadInt(), 0, MAX_DSAMPLES - 1, "DPCM sample index");
+			File.ReadInt(), 0, MAX_DSAMPLES - 1, "DPCM sample index");
 		int Len = CModuleException::AssertRangeFmt(
-			pFile->ReadInt(), 0, CDSample::MAX_NAME_SIZE - 1, "DPCM sample name length");
-		pFile->ReadBytes(SampleNames[Index], Len);
+			File.ReadInt(), 0, CDSample::MAX_NAME_SIZE - 1, "DPCM sample name length");
+		File.ReadBytes(SampleNames[Index], Len);
 		SampleNames[Index][Len] = 0;
-		int Size = pFile->ReadInt();
+		int Size = File.ReadInt();
 		char *SampleData = new char[Size];
-		pFile->ReadBytes(SampleData, Size);
+		File.ReadBytes(SampleData, Size);
 		bool Found = false;
 		for (int j = 0; j < MAX_DSAMPLES; ++j) if (const CDSample *pSample = m_pInstManager->GetDSample(j)) {		// // //
 			// Compare size and name to see if identical sample exists

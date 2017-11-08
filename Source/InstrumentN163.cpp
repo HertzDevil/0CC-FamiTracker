@@ -114,39 +114,40 @@ bool CInstrumentN163::Load(CDocumentFile *pDocFile)
 	return true;
 }
 
-void CInstrumentN163::SaveFile(CSimpleFile *pFile) const
+void CInstrumentN163::DoSaveFTI(CSimpleFile &File) const
 {
 	// Sequences
-	CSeqInstrument::SaveFile(pFile);		// // //
+	CSeqInstrument::DoSaveFTI(File);		// // //
 
 	// Write wave config
 	int WaveCount = GetWaveCount();
 	int WaveSize = GetWaveSize();
 
-	pFile->WriteInt(WaveSize);
-	pFile->WriteInt(GetWavePos());
-//	pFile->WriteInt(m_bAutoWavePos);		// // // 050B
-	pFile->WriteInt(WaveCount);
+	File.WriteInt(WaveSize);
+	File.WriteInt(GetWavePos());
+//	File.WriteInt(m_bAutoWavePos);		// // // 050B
+	File.WriteInt(WaveCount);
 
 	for (int i = 0; i < WaveCount; ++i) {
 		for (int j = 0; j < WaveSize; ++j) {
-			pFile->WriteChar(GetSample(i, j));
+			File.WriteChar(GetSample(i, j));
 		}
 	}
 }
 
-bool CInstrumentN163::LoadFile(CSimpleFile *pFile, int iVersion)
+bool CInstrumentN163::LoadFTI(CSimpleFile &File, int iVersion)
 {
 	// Sequences
-	CSeqInstrument::LoadFile(pFile, iVersion);		// // //
+	if (!CSeqInstrument::LoadFTI(File, iVersion))
+		return false;		// // //
 
 	// Read wave config
-	int WaveSize = CModuleException::AssertRangeFmt(static_cast<int>(pFile->ReadInt()), 4, MAX_WAVE_SIZE, "N163 wave size");
-	int WavePos = CModuleException::AssertRangeFmt(static_cast<int>(pFile->ReadInt()), 0, MAX_WAVE_SIZE - 1, "N163 wave position");
+	int WaveSize = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), 4, MAX_WAVE_SIZE, "N163 wave size");
+	int WavePos = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), 0, MAX_WAVE_SIZE - 1, "N163 wave position");
 	if (iVersion >= 0x250) {		// // // 050B
-		m_bAutoWavePos = pFile->ReadInt() != 0;
+		m_bAutoWavePos = File.ReadInt() != 0;
 	}
-	int WaveCount = CModuleException::AssertRangeFmt(static_cast<int>(pFile->ReadInt()), 1, MAX_WAVE_COUNT, "N163 wave count");
+	int WaveCount = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), 1, MAX_WAVE_COUNT, "N163 wave count");
 	
 	SetWaveSize(WaveSize);
 	SetWavePos(WavePos);
@@ -154,7 +155,7 @@ bool CInstrumentN163::LoadFile(CSimpleFile *pFile, int iVersion)
 
 	for (int i = 0; i < WaveCount; ++i)
 		for (int j = 0; j < WaveSize; ++j) try {
-			SetSample(i, j, CModuleException::AssertRangeFmt(pFile->ReadChar(), 0, 15, "N163 wave sample"));
+			SetSample(i, j, CModuleException::AssertRangeFmt(File.ReadChar(), 0, 15, "N163 wave sample"));
 		}
 	catch (CModuleException *e) {
 		e->AppendError("At wave %i, sample %i,", i, j);

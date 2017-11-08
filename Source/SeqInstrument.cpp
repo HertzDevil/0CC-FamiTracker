@@ -94,39 +94,39 @@ bool CSeqInstrument::Load(CDocumentFile *pDocFile)
 	return true;
 }
 
-void CSeqInstrument::SaveFile(CSimpleFile *pFile) const
+void CSeqInstrument::DoSaveFTI(CSimpleFile &File) const
 {
-	pFile->WriteChar(SEQ_COUNT);
+	File.WriteChar(SEQ_COUNT);
 
 	for (int i = 0; i < SEQ_COUNT; ++i) {
 		unsigned Sequence = GetSeqIndex(i);
 		if (GetSeqEnable(i)) {
 			const CSequence *pSeq = GetSequence(i);
-			pFile->WriteChar(1);
-			pFile->WriteInt(pSeq->GetItemCount());
-			pFile->WriteInt(pSeq->GetLoopPoint());
-			pFile->WriteInt(pSeq->GetReleasePoint());
-			pFile->WriteInt(pSeq->GetSetting());
+			File.WriteChar(1);
+			File.WriteInt(pSeq->GetItemCount());
+			File.WriteInt(pSeq->GetLoopPoint());
+			File.WriteInt(pSeq->GetReleasePoint());
+			File.WriteInt(pSeq->GetSetting());
 			for (unsigned j = 0; j < pSeq->GetItemCount(); j++) {
-				pFile->WriteChar(pSeq->GetItem(j));
+				File.WriteChar(pSeq->GetItem(j));
 			}
 		}
 		else {
-			pFile->WriteChar(0);
+			File.WriteChar(0);
 		}
 	}
 }
 
-bool CSeqInstrument::LoadFile(CSimpleFile *pFile, int iVersion)
+bool CSeqInstrument::LoadFTI(CSimpleFile &File, int iVersion)
 {
 	// Sequences
 	CSequence *pSeq;
 
-	unsigned char SeqCount = CModuleException::AssertRangeFmt(pFile->ReadChar(), 0, SEQ_COUNT, "Sequence count");
+	unsigned char SeqCount = CModuleException::AssertRangeFmt(File.ReadChar(), 0, SEQ_COUNT, "Sequence count");
 
 	// Loop through all instrument effects
 	for (unsigned i = 0; i < SeqCount; ++i) try {
-		if (pFile->ReadChar() != 1) {
+		if (File.ReadChar() != 1) {
 			SetSeqEnable(i, false);
 			SetSeqIndex(i, 0);
 			continue;
@@ -134,13 +134,13 @@ bool CSeqInstrument::LoadFile(CSimpleFile *pFile, int iVersion)
 		SetSeqEnable(i, true);
 
 		// Read the sequence
-		int Count = CModuleException::AssertRangeFmt(pFile->ReadInt(), 0, 0xFF, "Sequence item count");
+		int Count = CModuleException::AssertRangeFmt(File.ReadInt(), 0, 0xFF, "Sequence item count");
 
 		if (iVersion < 20) {
 			COldSequence OldSeq;
 			for (int j = 0; j < Count; ++j) {
-				char Length = pFile->ReadChar();
-				OldSeq.AddItem(Length, pFile->ReadChar());
+				char Length = File.ReadChar();
+				OldSeq.AddItem(Length, File.ReadChar());
 			}
 			pSeq = OldSeq.Convert(i).release();
 		}
@@ -149,15 +149,15 @@ bool CSeqInstrument::LoadFile(CSimpleFile *pFile, int iVersion)
 			int Count2 = Count > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : Count;
 			pSeq->SetItemCount(Count2);
 			pSeq->SetLoopPoint(CModuleException::AssertRangeFmt(
-				static_cast<int>(pFile->ReadInt()), -1, Count2 - 1, "Sequence loop point"));
+				static_cast<int>(File.ReadInt()), -1, Count2 - 1, "Sequence loop point"));
 			if (iVersion > 20) {
 				pSeq->SetReleasePoint(CModuleException::AssertRangeFmt(
-					static_cast<int>(pFile->ReadInt()), -1, Count2 - 1, "Sequence release point"));
+					static_cast<int>(File.ReadInt()), -1, Count2 - 1, "Sequence release point"));
 				if (iVersion >= 22)
-					pSeq->SetSetting(static_cast<seq_setting_t>(pFile->ReadInt()));
+					pSeq->SetSetting(static_cast<seq_setting_t>(File.ReadInt()));
 			}
 			for (int j = 0; j < Count; ++j)
-				if (j < Count2) pSeq->SetItem(j, pFile->ReadChar());
+				if (j < Count2) pSeq->SetItem(j, File.ReadChar());
 		}
 		int Index = m_pInstManager->AddSequence(m_iType, i, pSeq, this);
 		if (Index == -1) {

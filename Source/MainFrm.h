@@ -158,8 +158,7 @@ private:
 	// Instrument list operations
 	void	NewInstrument(int ChipType);
 	void	ClearInstrumentList();
-	void	GetInstrumentName(char *pText) const;
-	void	SetInstrumentName(char *pText);
+	void	SetInstrumentEditName(const char *pText);		// // //
 
 	void	SetFrameEditorPosition(int Position);
 	void	SetControlPanelPosition(control_panel_pos_t Position);		// // // 050B

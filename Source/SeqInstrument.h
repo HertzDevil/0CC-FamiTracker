@@ -35,8 +35,6 @@ public:
 	CInstrument* Clone() const override;
 	void	Store(CDocumentFile *pDocFile) const override;
 	bool	Load(CDocumentFile *pDocFile) override;
-	void	SaveFile(CSimpleFile *pFile) const override;
-	bool	LoadFile(CSimpleFile *pFile, int iVersion) override;
 	int		Compile(CChunk *pChunk, int Index) const override;
 	bool	CanRelease() const override;
 
@@ -55,6 +53,10 @@ protected:
 	void	OnRegisterManager() override;		// // //
 	void	CloneFrom(const CInstrument *pSeq) override;		// // //
 	CSeqInstrument *CopySequences(const CSeqInstrument *const src);		// // //
+
+	void	DoSaveFTI(CSimpleFile &File) const override;
+	bool	LoadFTI(CSimpleFile &File, int iVersion) override;
+
 	int		m_iSeqEnable[SEQ_COUNT];
 	int		m_iSeqIndex[SEQ_COUNT];
 };

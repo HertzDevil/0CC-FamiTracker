@@ -74,20 +74,20 @@ bool CInstrumentVRC7::Load(CDocumentFile *pDocFile)
 	return true;
 }
 
-void CInstrumentVRC7::SaveFile(CSimpleFile *pFile) const
+void CInstrumentVRC7::DoSaveFTI(CSimpleFile &File) const
 {
-	pFile->WriteInt(m_iPatch);
+	File.WriteInt(m_iPatch);
 
 	for (int i = 0; i < 8; ++i)
-		pFile->WriteChar(GetCustomReg(i));
+		File.WriteChar(GetCustomReg(i));
 }
 
-bool CInstrumentVRC7::LoadFile(CSimpleFile *pFile, int iVersion)
+bool CInstrumentVRC7::LoadFTI(CSimpleFile &File, int iVersion)
 {
-	m_iPatch = pFile->ReadInt();
+	m_iPatch = File.ReadInt();
 
 	for (int i = 0; i < 8; ++i)
-		SetCustomReg(i, pFile->ReadChar());
+		SetCustomReg(i, File.ReadChar());
 
 	return true;
 }

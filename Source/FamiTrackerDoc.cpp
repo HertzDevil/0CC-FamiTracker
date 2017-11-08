@@ -113,10 +113,6 @@ const char *FILE_BLOCK_GROOVES				= "GROOVES";
 const char *FILE_BLOCK_BOOKMARKS			= "BOOKMARKS";
 const char *FILE_BLOCK_PARAMS_EXTRA			= "PARAMS_EXTRA";
 
-// FTI instruments files
-static const char INST_HEADER[] = "FTI";
-static const char INST_VERSION[] = "2.4";
-
 /* 
 	Instrument version history
 	 * 2.1 - Release points for sequences in 2A03 & VRC6
@@ -1859,23 +1855,6 @@ int CFamiTrackerDoc::CloneInstrument(unsigned int Index)
 	return Slot;
 }
 
-void CFamiTrackerDoc::GetInstrumentName(unsigned int Index, char *pName) const
-{
-	if (auto pInst = m_pInstrumentManager->GetInstrument(Index))
-		pInst->GetName(pName);
-}
-
-void CFamiTrackerDoc::SetInstrumentName(unsigned int Index, const char *pName)
-{
-	auto pInst = m_pInstrumentManager->GetInstrument(Index);
-	ASSERT(pInst);
-
-	if (strcmp(pInst->GetName(), pName) != 0) {
-		pInst->SetName(pName);
-		ModifyIrreversible();		// // //
-	}
-}
-
 inst_type_t CFamiTrackerDoc::GetInstrumentType(unsigned int Index) const
 {
 	return m_pInstrumentManager->GetInstrumentType(Index);
@@ -1903,39 +1882,17 @@ int CFamiTrackerDoc::DeepCloneInstrument(unsigned int Index)
 	return Slot;
 }
 
-void CFamiTrackerDoc::SaveInstrument(unsigned int Index, CString FileName) const
+void CFamiTrackerDoc::SaveInstrument(unsigned int Index, CSimpleFile &file) const
 {
-	// Saves an instrument to a file
-	//
-
-	auto pInstrument = GetInstrument(Index);
-	ASSERT(pInstrument);
-	
-	CSimpleFile file(FileName, std::ios::out | std::ios::binary);
-	if (!file) {
-		AfxMessageBox(IDS_FILE_OPEN_ERROR, MB_ICONERROR);
-		return;
-	}
-
-	// Write header
-	file.WriteBytes(INST_HEADER, (UINT)strlen(INST_HEADER));
-	file.WriteBytes(INST_VERSION, (UINT)strlen(INST_VERSION));
-
-	// Write type
-	file.WriteChar(pInstrument->GetType());
-
-	// Write name
-	char Name[256];
-	pInstrument->GetName(Name);
-	int NameLen = (int)strlen(Name);
-	file.WriteString(std::string_view(Name, strlen(Name)));
-
-	// Write instrument data
-	pInstrument->SaveFile(&file);
+	GetInstrument(Index)->SaveFTI(file);
 }
 
 int CFamiTrackerDoc::LoadInstrument(CString FileName)
 {
+	// FTI instruments files
+	static const char INST_HEADER[] = "FTI";
+	static const char INST_VERSION[] = "2.4";
+
 	// Loads an instrument from file, return allocated slot or INVALID_INSTRUMENT if failed
 	//
 	int iInstMaj, iInstMin;
@@ -1980,7 +1937,8 @@ int CFamiTrackerDoc::LoadInstrument(CString FileName)
 		AssertRange(InstName.size(), 0U, static_cast<unsigned>(CInstrument::INST_NAME_MAX), "Instrument name length");
 		pInstrument->SetName(InstName.c_str());
 
-		pInstrument->LoadFile(&file, iInstVer);		// // //
+		pInstrument->RegisterManager(m_pInstrumentManager.get());		// // //
+		pInstrument->LoadFTI(file, iInstVer);
 		m_pInstrumentManager->InsertInstrument(Slot, std::move(pInstrument));
 		m_csDocumentLock.Unlock();
 		return Slot;

@@ -23,6 +23,15 @@
 #include "Instrument.h"
 #include "InstrumentManagerInterface.h"		// // //
 #include <cstring>		// // //
+#include "SimpleFile.h"		// // //
+
+namespace {
+
+// FTI instruments files
+const char INST_HEADER[] = "FTI";		// // // moved
+const char INST_VERSION[] = "2.4";
+
+} // namespace
 
 /*
  * Class CInstrument, base class for instruments
@@ -66,6 +75,21 @@ const char *CInstrument::GetName() const
 void CInstrument::RegisterManager(CInstrumentManagerInterface *pManager)		// // //
 {
 	m_pInstManager = pManager;
+}
+
+void CInstrument::SaveFTI(CSimpleFile &File) const {
+	// Write header
+	File.WriteBytes(INST_HEADER, (size_t)strlen(INST_HEADER));
+	File.WriteBytes(INST_VERSION, (size_t)strlen(INST_VERSION));
+
+	// Write type
+	File.WriteChar(GetType());
+
+	// Write name
+	File.WriteString(GetName());
+
+	// Write instrument data
+	DoSaveFTI(File);
 }
 
 inst_type_t CInstrument::GetType() const		// // //

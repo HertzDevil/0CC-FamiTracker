@@ -50,20 +50,28 @@ public:
 	void GetName(char *Name) const;
 	const char *GetName() const;
 	void RegisterManager(CInstrumentManagerInterface *pManager);		// // //
+
+	void SaveFTI(CSimpleFile &File) const;								// // // Saves to an FTI file
+
 public:
 	virtual void OnRegisterManager();									// // // Setup some initial values
 	virtual inst_type_t GetType() const;								// // // Returns instrument type
 	virtual void Store(CDocumentFile *pDocFile) const = 0;				// Saves the instrument to the module
 	virtual bool Load(CDocumentFile *pDocFile) = 0;						// Loads the instrument from a module
-	virtual void SaveFile(CSimpleFile *pFile) const = 0;				// // // Saves to an FTI file
-	virtual bool LoadFile(CSimpleFile *pFile, int iVersion) = 0;		// // // Loads from an FTI file
+	virtual bool LoadFTI(CSimpleFile &File, int iVersion) = 0;			// // // Loads from an FTI file
 	virtual int Compile(CChunk *pChunk, int Index) const = 0;			// // // Compiles the instrument for NSF generation
 	virtual bool CanRelease() const = 0;
+
 protected:
 	virtual void CloneFrom(const CInstrument *pInst);					// // // virtual copying
 	void InstrumentChanged() const;
+
+private:
+	virtual void DoSaveFTI(CSimpleFile &File) const = 0;				// // // Saves to an FTI file
+
 public:
 	static const int INST_NAME_MAX = 128;
+
 protected:
 	char m_cName[INST_NAME_MAX];
 	inst_type_t m_iType;		// // //

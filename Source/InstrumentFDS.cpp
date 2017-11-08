@@ -79,60 +79,60 @@ void CInstrumentFDS::CloneFrom(const CInstrument *pInst)
 	}
 }
 
-void CInstrumentFDS::StoreInstSequence(CSimpleFile *pFile, const CSequence *pSeq) const		// // //
+void CInstrumentFDS::StoreInstSequence(CSimpleFile &File, const CSequence &Seq) const		// // //
 {
 	// Store number of items in this sequence
-	pFile->WriteInt(pSeq->GetItemCount());
+	File.WriteInt(Seq.GetItemCount());
 	// Store loop point
-	pFile->WriteInt(pSeq->GetLoopPoint());
+	File.WriteInt(Seq.GetLoopPoint());
 	// Store release point (v4)
-	pFile->WriteInt(pSeq->GetReleasePoint());
+	File.WriteInt(Seq.GetReleasePoint());
 	// Store setting (v4)
-	pFile->WriteInt(pSeq->GetSetting());
+	File.WriteInt(Seq.GetSetting());
 	// Store items
-	for (unsigned i = 0; i < pSeq->GetItemCount(); ++i)
-		pFile->WriteChar(pSeq->GetItem(i));
+	for (unsigned i = 0; i < Seq.GetItemCount(); ++i)
+		File.WriteChar(Seq.GetItem(i));
 }
 
-CSequence *CInstrumentFDS::LoadInstSequence(CSimpleFile *pFile) const		// // //
+CSequence *CInstrumentFDS::LoadInstSequence(CSimpleFile &File) const		// // //
 {
-	int SeqCount = CModuleException::AssertRangeFmt(pFile->ReadInt(), 0, 0xFF, "Sequence item count");
-	int Loop = CModuleException::AssertRangeFmt(static_cast<int>(pFile->ReadInt()), -1, SeqCount - 1, "Sequence loop point");
-	int Release = CModuleException::AssertRangeFmt(static_cast<int>(pFile->ReadInt()), -1, SeqCount - 1, "Sequence release point");
+	int SeqCount = CModuleException::AssertRangeFmt(File.ReadInt(), 0, 0xFF, "Sequence item count");
+	int Loop = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), -1, SeqCount - 1, "Sequence loop point");
+	int Release = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), -1, SeqCount - 1, "Sequence release point");
 
 	CSequence *pSeq = new CSequence();
 	pSeq->SetItemCount(SeqCount > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : SeqCount);
 	pSeq->SetLoopPoint(Loop);
 	pSeq->SetReleasePoint(Release);
-	pSeq->SetSetting(static_cast<seq_setting_t>(pFile->ReadInt()));		// // //
+	pSeq->SetSetting(static_cast<seq_setting_t>(File.ReadInt()));		// // //
 
 	for (int i = 0; i < SeqCount; ++i)
-		pSeq->SetItem(i, pFile->ReadChar());
+		pSeq->SetItem(i, File.ReadChar());
 
 	return pSeq;
 }
 
-void CInstrumentFDS::StoreSequence(CDocumentFile *pDocFile, const CSequence *pSeq) const
+void CInstrumentFDS::StoreSequence(CDocumentFile &DocFile, const CSequence &Seq) const
 {
 	// Store number of items in this sequence
-	pDocFile->WriteBlockChar(pSeq->GetItemCount());
+	DocFile.WriteBlockChar(Seq.GetItemCount());
 	// Store loop point
-	pDocFile->WriteBlockInt(pSeq->GetLoopPoint());
+	DocFile.WriteBlockInt(Seq.GetLoopPoint());
 	// Store release point (v4)
-	pDocFile->WriteBlockInt(pSeq->GetReleasePoint());
+	DocFile.WriteBlockInt(Seq.GetReleasePoint());
 	// Store setting (v4)
-	pDocFile->WriteBlockInt(pSeq->GetSetting());
+	DocFile.WriteBlockInt(Seq.GetSetting());
 	// Store items
-	for (unsigned int j = 0; j < pSeq->GetItemCount(); j++) {
-		pDocFile->WriteBlockChar(pSeq->GetItem(j));
+	for (unsigned int j = 0; j < Seq.GetItemCount(); j++) {
+		DocFile.WriteBlockChar(Seq.GetItem(j));
 	}
 }
 
-CSequence *CInstrumentFDS::LoadSequence(CDocumentFile *pDocFile) const
+CSequence *CInstrumentFDS::LoadSequence(CDocumentFile &DocFile) const
 {
-	int SeqCount = static_cast<unsigned char>(pDocFile->GetBlockChar());
-	unsigned int LoopPoint = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), -1, SeqCount - 1, "Sequence loop point");
-	unsigned int ReleasePoint = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), -1, SeqCount - 1, "Sequence release point");
+	int SeqCount = static_cast<unsigned char>(DocFile.GetBlockChar());
+	unsigned int LoopPoint = CModuleException::AssertRangeFmt(DocFile.GetBlockInt(), -1, SeqCount - 1, "Sequence loop point");
+	unsigned int ReleasePoint = CModuleException::AssertRangeFmt(DocFile.GetBlockInt(), -1, SeqCount - 1, "Sequence release point");
 
 	// CModuleException::AssertRangeFmt(SeqCount, 0, MAX_SEQUENCE_ITEMS, "Sequence item count", "%i");
 
@@ -140,10 +140,10 @@ CSequence *CInstrumentFDS::LoadSequence(CDocumentFile *pDocFile) const
 	pSeq->SetItemCount(SeqCount > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : SeqCount);
 	pSeq->SetLoopPoint(LoopPoint);
 	pSeq->SetReleasePoint(ReleasePoint);
-	pSeq->SetSetting(static_cast<seq_setting_t>(pDocFile->GetBlockInt()));		// // //
+	pSeq->SetSetting(static_cast<seq_setting_t>(DocFile.GetBlockInt()));		// // //
 
 	for (int x = 0; x < SeqCount; ++x) {
-		char Value = pDocFile->GetBlockChar();
+		char Value = DocFile.GetBlockChar();
 		pSeq->SetItem(x, Value);
 	}
 
@@ -176,7 +176,7 @@ void CInstrumentFDS::Store(CDocumentFile *pDocFile) const
 
 	// Sequences
 	for (int i = 0; i < SEQUENCE_COUNT; ++i)		// // //
-		StoreSequence(pDocFile, GetSequence(i));
+		StoreSequence(*pDocFile, *GetSequence(i));
 }
 
 bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
@@ -210,15 +210,15 @@ bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
 	if (a < 256 && (b & 0xFF) != 0x00) {
 	}
 	else {
-		SetSequence(SEQ_VOLUME, LoadSequence(pDocFile));
-		SetSequence(SEQ_ARPEGGIO, LoadSequence(pDocFile));
+		SetSequence(SEQ_VOLUME, LoadSequence(*pDocFile));
+		SetSequence(SEQ_ARPEGGIO, LoadSequence(*pDocFile));
 		//
 		// Note: Remove this line when files are unable to load 
 		// (if a file contains FDS instruments but FDS is disabled)
 		// this was a problem in an earlier version.
 		//
 		if (pDocFile->GetBlockVersion() > 2)
-			SetSequence(SEQ_PITCH, LoadSequence(pDocFile));
+			SetSequence(SEQ_PITCH, LoadSequence(*pDocFile));
 	}
 
 //	}
@@ -229,48 +229,48 @@ bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
 	return true;
 }
 
-void CInstrumentFDS::SaveFile(CSimpleFile *pFile) const
+void CInstrumentFDS::DoSaveFTI(CSimpleFile &File) const
 {
 	// Write wave
 	for (int i = 0; i < WAVE_SIZE; ++i) {
-		pFile->WriteChar(GetSample(i));
+		File.WriteChar(GetSample(i));
 	}
 
 	// Write modulation table
 	for (int i = 0; i < MOD_SIZE; ++i) {
-		pFile->WriteChar(GetModulation(i));
+		File.WriteChar(GetModulation(i));
 	}
 
 	// Modulation parameters
-	pFile->WriteInt(GetModulationSpeed());
-	pFile->WriteInt(GetModulationDepth());
-	pFile->WriteInt(GetModulationDelay());
+	File.WriteInt(GetModulationSpeed());
+	File.WriteInt(GetModulationDepth());
+	File.WriteInt(GetModulationDelay());
 
 	// Sequences
 	for (int i = 0; i < SEQUENCE_COUNT; ++i)
-		StoreInstSequence(pFile, GetSequence(i));
+		StoreInstSequence(File, *GetSequence(i));
 }
 
-bool CInstrumentFDS::LoadFile(CSimpleFile *pFile, int iVersion)
+bool CInstrumentFDS::LoadFTI(CSimpleFile &File, int iVersion)
 {
 	// Read wave
 	for (int i = 0; i < WAVE_SIZE; ++i) {
-		SetSample(i, pFile->ReadChar());
+		SetSample(i, File.ReadChar());
 	}
 
 	// Read modulation table
 	for (int i = 0; i < MOD_SIZE; ++i) {
-		SetModulation(i, pFile->ReadChar());
+		SetModulation(i, File.ReadChar());
 	}
 
 	// Modulation parameters
-	SetModulationSpeed(pFile->ReadInt());
-	SetModulationDepth(pFile->ReadInt());
-	SetModulationDelay(pFile->ReadInt());
+	SetModulationSpeed(File.ReadInt());
+	SetModulationDepth(File.ReadInt());
+	SetModulationDelay(File.ReadInt());
 
 	// Sequences
 	for (int i = 0; i < SEQUENCE_COUNT; ++i)		// // //
-		SetSequence(i, LoadInstSequence(pFile));
+		SetSequence(i, LoadInstSequence(File));
 
 	if (iVersion <= 22) DoubleVolume();
 

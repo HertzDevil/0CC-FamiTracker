@@ -31,8 +31,6 @@ public:
 	CInstrument* Clone() const override;
 	void	Store(CDocumentFile *pDocFile) const override;
 	bool	Load(CDocumentFile *pDocFile) override;
-	void	SaveFile(CSimpleFile *pFile) const override;
-	bool	LoadFile(CSimpleFile *pFile, int iVersion) override;
 	int		Compile(CChunk *pChunk, int Index) const override;
 	bool	CanRelease() const override;
 
@@ -44,6 +42,10 @@ public:
 
 protected:
 	void	CloneFrom(const CInstrument *pInst) override;		// // //
+
+private:
+	void	DoSaveFTI(CSimpleFile &pFile) const override;
+	bool	LoadFTI(CSimpleFile &File, int iVersion) override;
 
 private:
 	unsigned int m_iPatch;

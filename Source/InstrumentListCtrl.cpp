@@ -120,18 +120,15 @@ void CInstrumentList::InsertInstrument(int Index)
 	// Inserts an instrument in the list (Index = instrument number)
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
-	if (!pDoc->IsInstrumentUsed(Index))
-		return;
+	if (auto pInst = pDoc->GetInstrument(Index)) {		// // //
+		int Type = pDoc->GetInstrumentType(Index);
 
-	char Name[CInstrument::INST_NAME_MAX];
-	pDoc->GetInstrumentName(Index, Name);
-	int Type = pDoc->GetInstrumentType(Index);
-
-	// Name is of type index - name
-	CString Text;
-	Text.Format(_T("%02X - %s"), Index, A2T(Name));
-	InsertItem(Index, Text, Type - 1);
-	SelectInstrument(Index);		// // //
+		// Name is of type index - name
+		CString Text;
+		Text.Format(_T("%02X - %s"), Index, (LPCSTR)CA2CT(pInst->GetName()));
+		InsertItem(Index, Text, Type - 1);
+		SelectInstrument(Index);		// // //
+	}
 }
 
 void CInstrumentList::RemoveInstrument(int Index)

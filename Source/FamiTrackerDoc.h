@@ -79,6 +79,7 @@ class CDocumentFile;
 class CSeqInstrument;		// // // TODO: move to instrument manager
 class CDSample;		// // //
 class CGroove;		// // //
+class CSimpleFile;		// // //
 
 //
 // I'll try to organize this class, things are quite messy right now!
@@ -271,12 +272,10 @@ public:
 	int				AddInstrument(std::unique_ptr<CInstrument> pInstrument);		// // //
 	bool			AddInstrument(std::unique_ptr<CInstrument> pInstrument, unsigned int Slot);		// // //
 	bool			RemoveInstrument(unsigned int Index);							// // // Remove an instrument
-	void			SetInstrumentName(unsigned int Index, const char *pName);		// Set the name of an instrument
-	void			GetInstrumentName(unsigned int Index, char *pName) const;		// Get the name of an instrument
 	int				CloneInstrument(unsigned int Index);							// Create a copy of an instrument
 	inst_type_t		GetInstrumentType(unsigned int Index) const;
 	int				DeepCloneInstrument(unsigned int Index);
-	void			SaveInstrument(unsigned int Index, CString FileName) const;
+	void			SaveInstrument(unsigned int Index, CSimpleFile &file) const;		// // //
 	int 			LoadInstrument(CString FileName);
 
 	// Sequences functions

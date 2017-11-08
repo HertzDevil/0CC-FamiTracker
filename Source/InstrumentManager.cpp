@@ -93,6 +93,7 @@ bool CInstrumentManager::RemoveInstrument(unsigned int Index)
 }
 
 void CInstrumentManager::SwapInstruments(unsigned int IndexA, unsigned int IndexB) {
+	std::lock_guard<std::mutex> lock(m_InstrumentLock);
 	m_pInstruments[IndexA].swap(m_pInstruments[IndexB]);
 }
 
