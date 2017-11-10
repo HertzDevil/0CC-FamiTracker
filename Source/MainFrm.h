@@ -30,7 +30,6 @@
 #include "PerformanceDlg.h"
 #include "DialogReBar.h"
 #include "ControlPanelDlg.h"
-#include "CustomControls.h"
 #include <memory>		// // //
 
 enum frame_edit_pos_t { 
@@ -62,6 +61,11 @@ class CSwapDlg;
 class CFindDlg;		// // //
 struct stHighlight;		// // //
 class CSongData;		// // //
+enum inst_type_t;		// // //
+
+class CBannerEdit;
+class CLockedEdit;
+class CInstrumentList;
 
 class CMainFrame : public CFrameWnd
 {
@@ -100,6 +104,8 @@ public:
 	void	SelectInstrument(int Index);
 	int		GetSelectedInstrument() const;
 	void	SwapInstruments(int First, int Second);
+
+	void	UpdateInstrumentName() const;		// // //
 
 	// Track
 	int		GetSelectedTrack() const;
@@ -156,7 +162,7 @@ private:
 	void	SetFrameCount(int Count);
 
 	// Instrument list operations
-	void	NewInstrument(int ChipType);
+	void	NewInstrument(inst_type_t Inst);		// // //
 	void	ClearInstrumentList();
 	void	SetInstrumentEditName(const char *pText);		// // //
 

@@ -99,7 +99,6 @@ public:
 	void		 SetFollowMode(bool Mode);
 	bool		 GetFollowMode() const;
 	void		 SetCompactMode(bool Mode);		// // //
-	int			 GetSelectedChipType() const;
 	bool		 GetEditMode() const { return m_bEditEnable; };
 	void		 SetStepping(int Step);
 	unsigned int GetStepping() const { return m_iInsertKeyStepping; };

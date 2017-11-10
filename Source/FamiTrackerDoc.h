@@ -267,9 +267,10 @@ public:
 
 	// Instruments functions
 	std::shared_ptr<CInstrument>	GetInstrument(unsigned int Index) const;
+	std::shared_ptr<CInstrument>	ReleaseInstrument(unsigned int Index);			// // //
 	unsigned int	GetInstrumentCount() const;
+	unsigned		GetFreeInstrumentIndex() const;		// // //
 	bool			IsInstrumentUsed(unsigned int Index) const;
-	int				AddInstrument(std::unique_ptr<CInstrument> pInstrument);		// // //
 	bool			AddInstrument(std::unique_ptr<CInstrument> pInstrument, unsigned int Slot);		// // //
 	bool			RemoveInstrument(unsigned int Index);							// // // Remove an instrument
 	int				CloneInstrument(unsigned int Index);							// Create a copy of an instrument

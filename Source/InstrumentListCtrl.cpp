@@ -140,7 +140,7 @@ void CInstrumentList::RemoveInstrument(int Index)
 		DeleteItem(Selection);
 }
 
-void CInstrumentList::SetInstrumentName(int Index, TCHAR *pName)
+void CInstrumentList::SetInstrumentName(int Index, LPCTSTR pName)		// // //
 {
 	// Update instrument name in the list
 	int ListIndex = GetSelectionMark();

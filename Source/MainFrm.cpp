@@ -31,6 +31,7 @@
 #include "InstrumentEditDlg.h"
 #include "ModulePropertiesDlg.h"
 #include "ChannelsDlg.h"
+#include "CustomControls.h"		// // //
 #include "VisualizerWnd.h"
 #include "TextExporter.h"
 #include "ConfigGeneral.h"
@@ -75,7 +76,6 @@
 namespace {
 
 const unsigned MAX_UNDO_LEVELS = 64;		// // // moved
-const char DEFAULT_INST_NAME[] = "New instrument";		// // //
 
 const UINT indicators[] =
 {
@@ -969,59 +969,69 @@ void CMainFrame::ClearInstrumentList()
 	SetInstrumentEditName(_T(""));
 }
 
-void CMainFrame::NewInstrument(int ChipType)
+void CMainFrame::NewInstrument(inst_type_t Inst)		// // //
 {
 	// Add new instrument to module
 	CFamiTrackerDoc &Doc = GetDoc();
 
-	// // // Get instrument from chip ID
-	auto pInst = [&] () -> std::unique_ptr<CInstrument> {
-		const auto INST_MAP = {		// // //
-			std::make_pair(SNDCHIP_NONE, INST_2A03),
-			std::make_pair(SNDCHIP_VRC6, INST_VRC6),
-			std::make_pair(SNDCHIP_VRC7, INST_VRC7),
-			std::make_pair(SNDCHIP_FDS,  INST_FDS),
-			std::make_pair(SNDCHIP_MMC5, INST_2A03),
-			std::make_pair(SNDCHIP_N163, INST_N163),
-			std::make_pair(SNDCHIP_S5B,  INST_S5B),
-		};
-		for (const auto &x : INST_MAP)		// // //
-			if (x.first == ChipType)
-				return Doc.GetInstrumentManager()->CreateNew(x.second);
-		return nullptr;
-	}();
-
-	if (!pInst) {		// // //
+	if (unsigned Index = Doc.GetFreeInstrumentIndex(); Index != INVALID_INSTRUMENT) {
+		if (auto pInst = Doc.GetInstrumentManager()->CreateNew(Inst)) {
+			pInst->OnBlankInstrument();		// // //
+			AddAction(std::make_unique<ModuleAction::CAddInst>(Index, std::move(pInst)));
+		}
 #ifdef _DEBUG
-		MessageBox(_T("(TODO) add instrument definitions for this chip"), _T("Stop"), MB_OK);
+		else
+			MessageBox(_T("(TODO) add instrument definitions for this chip"), _T("Stop"), MB_OK);
 #endif
-		return;
 	}
-
-	pInst->OnBlankInstrument();
-	pInst->SetName(DEFAULT_INST_NAME);
-	int Index = Doc.AddInstrument(std::move(pInst));		// // //
-
-	if (Index == -1) {
-		// Out of slots
+	else
 		AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR);
-		return;
-	}
+}
 
-	// Add to list and select
-	Doc.ModifyIrreversible();
-	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-	SelectInstrument(Index);
+void CMainFrame::OnAddInstrument2A03()
+{
+	NewInstrument(INST_2A03);
+}
+
+void CMainFrame::OnAddInstrumentVRC6()
+{
+	NewInstrument(INST_VRC6);
+}
+
+void CMainFrame::OnAddInstrumentVRC7()
+{
+	NewInstrument(INST_VRC7);
+}
+
+void CMainFrame::OnAddInstrumentFDS()
+{
+	NewInstrument(INST_FDS);
+}
+
+void CMainFrame::OnAddInstrumentMMC5()
+{
+	NewInstrument(INST_2A03);
+}
+
+void CMainFrame::OnAddInstrumentN163()
+{
+	NewInstrument(INST_N163);
+}
+
+void CMainFrame::OnAddInstrumentS5B()
+{
+	NewInstrument(INST_S5B);
 }
 
 void CMainFrame::UpdateInstrumentList()
 {
 	// Rewrite the instrument list
 	ClearInstrumentList();
-
-	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
+	for (int i = 0; i < MAX_INSTRUMENTS; ++i)
 		m_pInstrumentList->InsertInstrument(i);
-	}
+	m_pInstrumentList->SelectInstrument(GetSelectedInstrument());		// // //
+
+	UpdateInstrumentName();		// // //
 }
 
 void CMainFrame::SelectInstrument(int Index)
@@ -1032,7 +1042,7 @@ void CMainFrame::SelectInstrument(int Index)
 	// set that instrument and clear the selection in the instrument list
 	//
 	
-	if (Index == -1)
+	if (Index == INVALID_INSTRUMENT)
 		return;
 
 	int ListCount = m_pInstrumentList->GetItemCount();
@@ -1084,6 +1094,16 @@ void CMainFrame::SwapInstruments(int First, int Second)
 	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
 
 	SelectInstrument(Second);
+}
+
+void CMainFrame::UpdateInstrumentName() const {		// // //
+	if (auto pInst = GetDoc().GetInstrument(GetSelectedInstrument())) {
+		LPCTSTR pName = (LPCTSTR)CA2CT(pInst->GetName().data());
+		m_pInstrumentList->SetInstrumentName(GetSelectedInstrument(), pName);
+		m_wndDialogBar.GetDlgItem(IDC_INSTNAME)->SetWindowText(pName);
+	}
+	else
+		m_wndDialogBar.GetDlgItem(IDC_INSTNAME)->SetWindowText(_T(""));
 }
 
 void CMainFrame::OnNextInstrument()
@@ -1215,44 +1235,8 @@ void CMainFrame::OnInstNameChange()
 		m_wndDialogBar.GetDlgItem(IDC_INSTNAME)->GetWindowText(Text, CInstrument::INST_NAME_MAX);
 
 		// Update instrument list & document
-		m_pInstrumentList->SetInstrumentName(m_iInstrument, Text);
-		pInst->SetName(T2A(Text));
+		AddAction(std::make_unique<ModuleAction::CInstName>(GetSelectedInstrument(), (LPCTSTR)T2A(Text)));		// // //
 	}
-}
-
-void CMainFrame::OnAddInstrument2A03()
-{
-	NewInstrument(SNDCHIP_NONE);
-}
-
-void CMainFrame::OnAddInstrumentVRC6()
-{
-	NewInstrument(SNDCHIP_VRC6);
-}
-
-void CMainFrame::OnAddInstrumentVRC7()
-{
-	NewInstrument(SNDCHIP_VRC7);
-}
-
-void CMainFrame::OnAddInstrumentFDS()
-{
-	NewInstrument(SNDCHIP_FDS);
-}
-
-void CMainFrame::OnAddInstrumentMMC5()
-{
-	NewInstrument(SNDCHIP_MMC5);
-}
-
-void CMainFrame::OnAddInstrumentN163()
-{
-	NewInstrument(SNDCHIP_N163);
-}
-
-void CMainFrame::OnAddInstrumentS5B()
-{
-	NewInstrument(SNDCHIP_S5B);
 }
 
 void CMainFrame::OnAddInstrument()
@@ -1261,49 +1245,25 @@ void CMainFrame::OnAddInstrument()
 
 	// Chip type depends on selected channel
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
-	int ChipType = pView->GetSelectedChipType();
-	NewInstrument(ChipType);
+	switch (GetDoc().GetChipType(pView->GetSelectedChannel())) {		// // // TODO: remove eventually
+	case SNDCHIP_NONE: return OnAddInstrument2A03();
+	case SNDCHIP_VRC6: return OnAddInstrumentVRC6();
+	case SNDCHIP_VRC7: return OnAddInstrumentVRC7();
+	case SNDCHIP_FDS:  return OnAddInstrumentFDS();
+	case SNDCHIP_MMC5: return OnAddInstrumentMMC5();
+	case SNDCHIP_N163: return OnAddInstrumentN163();
+	case SNDCHIP_S5B:  return OnAddInstrumentS5B();
+	}
 }
 
 void CMainFrame::OnRemoveInstrument()
 {
-	CFamiTrackerDoc &Doc = GetDoc();
-
-	// No instruments in list
-	if (m_pInstrumentList->GetItemCount() == 0)
-		return;
-
-	int Instrument = m_iInstrument;
-	int SelIndex = m_pInstrumentList->GetSelectionMark();
-
-	ASSERT(Doc.IsInstrumentUsed(Instrument));
-
-	CloseInstrumentEditor();
-
 	// Remove from document
-	if (Doc.RemoveInstrument(Instrument))		// // //
-		Doc.ModifyIrreversible();
-	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-
-	// Remove from list
-	m_pInstrumentList->RemoveInstrument(Instrument);
-
-	int Count = m_pInstrumentList->GetItemCount();
-
-	// Select a new instrument
-	int NewSelInst = 0;
-
-	if (Count == 0) {
-		NewSelInst = 0;
+	int prev = GetSelectedInstrument();
+	if (AddAction(std::make_unique<ModuleAction::CRemoveInst>(m_iInstrument))) {		// // //
+//		m_pInstrumentList->RemoveInstrument(prev);
+//		m_pInstrumentList->SelectInstrument(m_iInstrument);
 	}
-	else if (Count == SelIndex) {
-		NewSelInst = m_pInstrumentList->GetInstrumentIndex(SelIndex - 1);
-	}
-	else {
-		NewSelInst = m_pInstrumentList->GetInstrumentIndex(SelIndex);
-	}
-
-	SelectInstrument(NewSelInst);
 }
 
 void CMainFrame::OnCloneInstrument() 
@@ -1323,7 +1283,6 @@ void CMainFrame::OnCloneInstrument()
 
 	Doc.ModifyIrreversible();		// // //
 	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-	SelectInstrument(Slot);
 }
 
 void CMainFrame::OnDeepCloneInstrument()
@@ -1342,8 +1301,7 @@ void CMainFrame::OnDeepCloneInstrument()
 	}
 
 	Doc.ModifyIrreversible();		// // //
-	m_pInstrumentList->InsertInstrument(Slot);
-	SelectInstrument(Slot);
+	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
 }
 
 void CMainFrame::OnBnClickedEditInst()
@@ -3265,9 +3223,8 @@ void CMainFrame::SetControlPanelPosition(control_panel_pos_t Position)		// // //
 	m_iControlPanelPos = Position;
 	if (m_iControlPanelPos)
 		SetFrameEditorPosition(FRAME_EDIT_POS_LEFT);
-	
-	/*
-	CRect Rect {193, 0, 193, 126};
+/*
+	auto Rect = DPI::Rect(193, 0, 193, 126);
 	MapDialogRect(m_wndInstToolBarWnd, &Rect);
 
 	switch (m_iControlPanelPos) {
@@ -3276,17 +3233,16 @@ void CMainFrame::SetControlPanelPosition(control_panel_pos_t Position)		// // //
 		m_wndToolBar.CalcFixedLayout(TRUE, FALSE);
 		break;
 	case CONTROL_PANEL_POS_LEFT:
-		m_wndToolBar.SetBarStyle(0x1430);
+		m_wndToolBar.SetBarStyle(CBRS_ALIGN_LEFT | CBRS_BORDER_RIGHT | CBRS_TOOLTIPS | CBRS_FLYBY);
 		m_wndToolBar.CalcFixedLayout(TRUE, FALSE);
 		break;
 	case CONTROL_PANEL_POS_RIGHT:
-		m_wndToolBar.SetBarStyle(0x4130);
+		m_wndToolBar.SetBarStyle(CBRS_ALIGN_RIGHT | CBRS_BORDER_LEFT | CBRS_TOOLTIPS | CBRS_FLYBY);
 		m_wndToolBar.CalcFixedLayout(TRUE, FALSE);
 		break;
 	}
-
+*/
 	// 0x462575
-	*/
 
 	ResizeFrameWindow();
 	ResizeFrameWindow();

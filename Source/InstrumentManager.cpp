@@ -56,7 +56,7 @@ CInstrumentManager::~CInstrumentManager()
 std::shared_ptr<CInstrument> CInstrumentManager::GetInstrument(unsigned int Index) const
 {
 	std::lock_guard<std::mutex> lock(m_InstrumentLock);
-	return m_pInstruments[Index];
+	return Index < m_pInstruments.size() ? m_pInstruments[Index] : nullptr;
 }
 
 std::shared_ptr<CInstrument> CInstrumentManager::ReleaseInstrument(unsigned int Index) {
@@ -146,7 +146,7 @@ unsigned int CInstrumentManager::GetFirstUnused() const
 	for (int i = 0; i < MAX_INSTRUMENTS; i++)
 		if (!m_pInstruments[i])
 			return i;
-	return -1;
+	return INVALID_INSTRUMENT;
 }
 
 int CInstrumentManager::GetFreeSequenceIndex(inst_type_t InstType, int Type, CSeqInstrument *pInst) const

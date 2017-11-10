@@ -28,7 +28,8 @@
 #include <afxmt.h>	// For CMutex
 #include "APU/Types.h"		// // //
 #include "PatternNote.h"		// // //
-#include "Instrument.h"		// // // inst_type_t
+
+enum inst_type_t;
 
 enum note_prio_t {
 	NOTE_PRIO_0, 

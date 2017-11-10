@@ -25,6 +25,9 @@
 
 #include "Action.h"
 #include <string>
+#include <memory>
+
+class CInstrument;
 
 // // // global document actions
 
@@ -88,6 +91,46 @@ private:
 	void Redo(CMainFrame &MainFrm) override;
 	bool Merge(const CAction &other) override;
 
+	std::string oldStr_;
+	std::string newStr_;
+};
+
+class CAddInst : public ::CModuleAction {
+public:
+	CAddInst(unsigned index, std::shared_ptr<CInstrument> pInst);
+private:
+	bool SaveState(const CMainFrame &MainFrm) override;
+	void Undo(CMainFrame &MainFrm) override;
+	void Redo(CMainFrame &MainFrm) override;
+
+	std::shared_ptr<CInstrument> inst_;
+	unsigned index_;
+	unsigned prev_;
+};
+
+class CRemoveInst : public ::CModuleAction {
+public:
+	CRemoveInst(unsigned index);
+private:
+	bool SaveState(const CMainFrame &MainFrm) override;
+	void Undo(CMainFrame &MainFrm) override;
+	void Redo(CMainFrame &MainFrm) override;
+
+	std::shared_ptr<CInstrument> inst_;
+	unsigned index_;
+	unsigned nextIndex_;
+};
+
+class CInstName : public ::CModuleAction {
+public:
+	CInstName(unsigned index, std::string_view str);
+private:
+	bool SaveState(const CMainFrame &MainFrm) override;
+	void Undo(CMainFrame &MainFrm) override;
+	void Redo(CMainFrame &MainFrm) override;
+	bool Merge(const CAction &other) override;
+
+	unsigned index_;
 	std::string oldStr_;
 	std::string newStr_;
 };

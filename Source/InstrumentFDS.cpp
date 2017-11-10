@@ -229,8 +229,8 @@ bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
 	return true;
 }
 
-void CInstrumentFDS::OnBlankInstrument() {
-	// // //
+void CInstrumentFDS::OnBlankInstrument() {		// // //
+	CInstrument::OnBlankInstrument();
 }
 
 void CInstrumentFDS::DoSaveFTI(CSimpleFile &File) const

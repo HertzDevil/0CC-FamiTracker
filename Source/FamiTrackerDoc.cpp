@@ -1563,7 +1563,8 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 					}
 			}
 
-			int Index = AddInstrument(std::move(pInst));		// // //
+			int Index = GetFreeInstrumentIndex();
+			AddInstrument(std::move(pInst), Index);		// // //
 			// Save a reference to this instrument
 			pInstTable[i] = Index;
 		}
@@ -1812,19 +1813,13 @@ unsigned int CFamiTrackerDoc::GetInstrumentCount() const
 	return m_pInstrumentManager->GetInstrumentCount();
 }
 
+unsigned CFamiTrackerDoc::GetFreeInstrumentIndex() const {		// // //
+	return m_pInstrumentManager->GetFirstUnused();
+}
+
 bool CFamiTrackerDoc::IsInstrumentUsed(unsigned int Index) const
 {
 	return m_pInstrumentManager->IsInstrumentUsed(Index);
-}
-
-int CFamiTrackerDoc::AddInstrument(std::unique_ptr<CInstrument> pInstrument)		// // //
-{
-	const int Slot = m_pInstrumentManager->GetFirstUnused();
-	if (Slot == INVALID_INSTRUMENT)
-		return INVALID_INSTRUMENT;
-	if (!AddInstrument(std::move(pInstrument), Slot))		// // //
-		return INVALID_INSTRUMENT;
-	return Slot;
 }
 
 bool CFamiTrackerDoc::AddInstrument(std::unique_ptr<CInstrument> pInstrument, unsigned int Slot)		// // //
@@ -1839,16 +1834,16 @@ bool CFamiTrackerDoc::RemoveInstrument(unsigned int Index)		// // //
 
 int CFamiTrackerDoc::CloneInstrument(unsigned int Index)
 {
-	ASSERT(Index < MAX_INSTRUMENTS);
-
 	if (!IsInstrumentUsed(Index))
 		return INVALID_INSTRUMENT;
 
 	const int Slot = m_pInstrumentManager->GetFirstUnused();
 
-	if (Slot != INVALID_INSTRUMENT)
-		m_pInstrumentManager->InsertInstrument(Slot,
-			std::unique_ptr<CInstrument>(m_pInstrumentManager->GetInstrument(Index)->Clone()));		// // //
+	if (Slot != INVALID_INSTRUMENT) {
+		auto pInst = std::unique_ptr<CInstrument>(m_pInstrumentManager->GetInstrument(Index)->Clone());
+		if (!AddInstrument(std::move(pInst), Slot))		// // //
+			return INVALID_INSTRUMENT;
+	}
 
 	return Slot;
 }

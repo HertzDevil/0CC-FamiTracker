@@ -27,6 +27,8 @@
 
 namespace {
 
+const char DEFAULT_INST_NAME[] = "New instrument";		// // //
+
 // FTI instruments files
 const char INST_HEADER[] = "FTI";		// // // moved
 const char INST_VERSION[] = "2.4";
@@ -43,6 +45,7 @@ CInstrument::CInstrument(inst_type_t type) : m_iType(type)		// // //
 }
 
 void CInstrument::OnBlankInstrument() {		// // //
+	SetName(DEFAULT_INST_NAME);
 }
 
 void CInstrument::CloneFrom(const CInstrument *pSeq)
@@ -54,7 +57,6 @@ void CInstrument::CloneFrom(const CInstrument *pSeq)
 void CInstrument::SetName(std::string_view Name)		// // //
 {
 	name_ = Name.substr(0, INST_NAME_MAX - 1);
-	InstrumentChanged();		// // //
 }
 
 std::string_view CInstrument::GetName() const		// // //

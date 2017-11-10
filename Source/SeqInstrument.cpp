@@ -60,6 +60,8 @@ void CSeqInstrument::CloneFrom(const CInstrument *pInst)
 
 void CSeqInstrument::OnBlankInstrument()		// // //
 {
+	CInstrument::OnBlankInstrument();
+
 	for (int i = 0; i < SEQ_COUNT; ++i) {
 		SetSeqEnable(i, 0);
 		int Index = m_pInstManager->AddSequence(m_iType, i, nullptr, this);

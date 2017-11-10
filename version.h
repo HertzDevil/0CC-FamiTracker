@@ -26,13 +26,13 @@
 // Application version information
 
 // Define this for beta builds
-//#define WIP
+#define WIP
 
 // Version info
 #define VERSION_API  0
 #define VERSION_MAJ  3
 #define VERSION_MIN  15
-#define VERSION_REV  1
+#define VERSION_REV  2
 
 #define STRINGIFY_IMPL(x) #x
 #define STRINGIFY(x) STRINGIFY_IMPL(x)

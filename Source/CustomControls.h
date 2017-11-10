@@ -42,7 +42,7 @@ public:
 	void SelectPreviousItem();
 	void InsertInstrument(int Index);
 	void RemoveInstrument(int Index);
-	void SetInstrumentName(int Index, TCHAR *pName);
+	void SetInstrumentName(int Index, LPCTSTR pName);		// // //
 
 private:
 	CMainFrame *m_pMainFrame;

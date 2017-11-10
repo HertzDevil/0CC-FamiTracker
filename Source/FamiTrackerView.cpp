@@ -47,6 +47,7 @@
 #include "NoteQueue.h"
 #include "Arpeggiator.h"
 #include "PatternClipData.h"
+#include "ModuleAction.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -968,16 +969,11 @@ LRESULT CFamiTrackerView::OnUserDumpInst(WPARAM wParam, LPARAM lParam)		// // //
 	CFamiTrackerDoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
 	CInstrument *Inst = theApp.GetSoundGenerator()->GetRecordInstrument();
-	int Slot = pDoc->AddInstrument(std::unique_ptr<CInstrument>(Inst));
+	int Slot = pDoc->GetFreeInstrumentIndex();
 	if (Slot != INVALID_INSTRUMENT)
-		pDoc->ModifyIrreversible();
-	CMainFrame *pMainFrm = static_cast<CMainFrame*>(GetParentFrame());
-	ASSERT_VALID(pMainFrm);
-	pMainFrm->UpdateInstrumentList();
+		AddAction(std::make_unique<ModuleAction::CAddInst>(Slot, std::unique_ptr<CInstrument>(Inst)));
 	theApp.GetSoundGenerator()->ResetDumpInstrument();
 	InvalidateHeader();
-	if (Slot != INVALID_INSTRUMENT)
-		pMainFrm->SelectInstrument(Slot);
 
 	return 0;
 }
@@ -3418,14 +3414,6 @@ void CFamiTrackerView::AdjustOctave(int Delta)		// // //
 {
 	for (auto &x : m_iNoteCorrection)
 		x.second -= Delta;
-}
-
-int CFamiTrackerView::GetSelectedChipType() const
-{
-	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
-
-	return pDoc->GetChipType(GetSelectedChannel());
 }
 
 void CFamiTrackerView::OnIncreaseStepSize()
