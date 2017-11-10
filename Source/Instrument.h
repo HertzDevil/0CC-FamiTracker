@@ -51,6 +51,7 @@ public:
 	void SetName(std::string_view Name);		// // //
 	std::string_view GetName() const;		// // //
 	void RegisterManager(CInstrumentManagerInterface *pManager);		// // //
+	virtual void OnBlankInstrument();										// // // Setup some initial values
 
 	void SaveFTI(CSimpleFile &File) const;								// // // Saves to an FTI file
 
@@ -67,7 +68,6 @@ protected:
 	void InstrumentChanged() const;
 
 private:
-	virtual void OnRegisterManager();									// // // Setup some initial values
 	virtual void DoSaveFTI(CSimpleFile &File) const = 0;				// // // Saves to an FTI file
 
 public:

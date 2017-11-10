@@ -60,7 +60,7 @@ private:
 	CSequence *LoadInstSequence(CSimpleFile &File) const;		// // //
 	void DoubleVolume() const;		// // //
 
-	void	OnRegisterManager() override;		// // //
+	void	OnBlankInstrument() override;		// // //
 	void	DoSaveFTI(CSimpleFile &File) const override;
 	bool	LoadFTI(CSimpleFile &File, int iVersion) override;
 

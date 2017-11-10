@@ -59,6 +59,15 @@ std::shared_ptr<CInstrument> CInstrumentManager::GetInstrument(unsigned int Inde
 	return m_pInstruments[Index];
 }
 
+std::shared_ptr<CInstrument> CInstrumentManager::ReleaseInstrument(unsigned int Index) {
+	std::lock_guard<std::mutex> lock(m_InstrumentLock);
+	if (Index >= m_pInstruments.size())
+		return nullptr;
+	if (m_pInstruments[Index])
+		m_pInstruments[Index]->RegisterManager(nullptr);
+	return std::move(m_pInstruments[Index]);
+}
+
 std::unique_ptr<CInstrument> CInstrumentManager::CreateNew(inst_type_t InstType)
 {
 	auto pInst = FTExt::InstrumentFactory::Make(InstType);
@@ -68,13 +77,19 @@ std::unique_ptr<CInstrument> CInstrumentManager::CreateNew(inst_type_t InstType)
 
 bool CInstrumentManager::InsertInstrument(unsigned int Index, std::shared_ptr<CInstrument> pInst)
 {
+	if (!pInst)
+		return false;
 	m_InstrumentLock.lock();
-	if (Index < m_pInstruments.size() && m_pInstruments[Index] != pInst) {
-		if (m_pInstruments[Index])
-			m_pInstruments[Index]->RegisterManager(nullptr);
-		m_pInstruments[Index] = pInst;
-		m_InstrumentLock.unlock();
-		pInst->RegisterManager(this);
+	if (Index < m_pInstruments.size()) {
+		if (m_pInstruments[Index] != pInst) {
+			if (m_pInstruments[Index])
+				m_pInstruments[Index]->RegisterManager(nullptr);
+			m_pInstruments[Index] = pInst;
+			m_InstrumentLock.unlock();
+			pInst->RegisterManager(this);
+		}
+		else
+			m_InstrumentLock.unlock();
 		return true;
 	}
 	m_InstrumentLock.unlock();

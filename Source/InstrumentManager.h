@@ -51,6 +51,7 @@ public:
 
 	std::unique_ptr<CInstrument> CreateNew(inst_type_t InstType);
 	std::shared_ptr<CInstrument> GetInstrument(unsigned int Index) const;
+	std::shared_ptr<CInstrument> ReleaseInstrument(unsigned int Index);
 	bool InsertInstrument(unsigned int Index, std::shared_ptr<CInstrument> pInst);
 	bool RemoveInstrument(unsigned int Index);
 	void SwapInstruments(unsigned int IndexA, unsigned int IndexB);

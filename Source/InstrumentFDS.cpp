@@ -229,7 +229,7 @@ bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
 	return true;
 }
 
-void CInstrumentFDS::OnRegisterManager() {
+void CInstrumentFDS::OnBlankInstrument() {
 	// // //
 }
 

@@ -998,6 +998,7 @@ void CMainFrame::NewInstrument(int ChipType)
 		return;
 	}
 
+	pInst->OnBlankInstrument();
 	pInst->SetName(DEFAULT_INST_NAME);
 	int Index = Doc.AddInstrument(std::move(pInst));		// // //
 
@@ -1315,7 +1316,7 @@ void CMainFrame::OnCloneInstrument()
 
 	int Slot = Doc.CloneInstrument(m_iInstrument);
 
-	if (Slot == -1) {
+	if (Slot == INVALID_INSTRUMENT) {
 		AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR);
 		return;
 	}

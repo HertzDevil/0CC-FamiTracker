@@ -42,7 +42,7 @@ CInstrument::CInstrument(inst_type_t type) : m_iType(type)		// // //
 {
 }
 
-void CInstrument::OnRegisterManager() {		// // //
+void CInstrument::OnBlankInstrument() {		// // //
 }
 
 void CInstrument::CloneFrom(const CInstrument *pSeq)
@@ -64,9 +64,7 @@ std::string_view CInstrument::GetName() const		// // //
 
 void CInstrument::RegisterManager(CInstrumentManagerInterface *pManager)		// // //
 {
-	if (m_pInstManager != pManager)
-		if ((m_pInstManager = pManager))
-			OnRegisterManager();
+	m_pInstManager = pManager;
 }
 
 void CInstrument::SaveFTI(CSimpleFile &File) const {

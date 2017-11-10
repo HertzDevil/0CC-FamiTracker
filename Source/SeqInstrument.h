@@ -50,7 +50,7 @@ public:
 	virtual const char *GetSequenceName(int Index) const { return nullptr; }		// // //
 
 protected:
-	void	OnRegisterManager() override;		// // //
+	void	OnBlankInstrument() override;		// // //
 	void	CloneFrom(const CInstrument *pSeq) override;		// // //
 	CSeqInstrument *CopySequences(const CSeqInstrument *const src);		// // //
 

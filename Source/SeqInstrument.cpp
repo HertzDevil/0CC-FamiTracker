@@ -58,7 +58,7 @@ void CSeqInstrument::CloneFrom(const CInstrument *pInst)
 		}
 }
 
-void CSeqInstrument::OnRegisterManager()		// // //
+void CSeqInstrument::OnBlankInstrument()		// // //
 {
 	for (int i = 0; i < SEQ_COUNT; ++i) {
 		SetSeqEnable(i, 0);

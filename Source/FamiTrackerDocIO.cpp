@@ -353,8 +353,6 @@ void CFamiTrackerDocIO::SaveInstruments(const CFamiTrackerDoc &doc, int ver) {
 			ver = 4;
 	}
 */
-	char Name[CInstrument::INST_NAME_MAX];
-
 	const auto &Manager = *doc.GetInstrumentManager();
 
 	// Instruments block
