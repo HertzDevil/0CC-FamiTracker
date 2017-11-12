@@ -38,9 +38,10 @@ public:
 	static const CString& ExportCellText(const stChanNote& stCell, unsigned int nEffects, bool bNoise);		// // //
 
 	// returns an empty string on success, otherwise returns a descriptive error
-	const CString& ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc);
-	const CString& ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc);
-	const CString& ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc);		// // //
+	CString ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc);
+	CString ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc);
+	CString ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc);		// // //
+
 private:		// // //
 	bool ImportHex(CString& sToken, int& i, int line, int column, CString& sResult);
 	CString ExportString(const CString& s);

@@ -34,7 +34,20 @@
 #include "InstrumentFDS.h"		// // //
 #include "InstrumentN163.h"		// // //
 
-#define DEBUG_OUT(...) { CString s__; s__.Format(__VA_ARGS__); OutputDebugString(s__); }
+namespace {
+
+template <typename... Args>		// // // TODO: pull this up
+CString Formatted(const char *fmt, Args&&... args) {
+	CString str;
+	static_assert(!std::disjunction_v<std::is_same<std::decay_t<Args>, std::string>...>,
+		"std::string not allowed in printf");
+	str.Format(fmt, std::forward<Args>(args)...);
+	return str;
+}
+
+} // namespace
+
+#define DEBUG_OUT(...) { OutputDebugString(Formatted(__VA_ARGS__)); }
 
 // command tokens
 enum
@@ -153,198 +166,154 @@ static const TCHAR* CT[CT_COUNT] =
 class Tokenizer
 {
 public:
-	Tokenizer(const CString* text_)
-		: text(text_), pos(0), line(1), linestart(0)
-	{}
+	explicit Tokenizer(LPCTSTR FileName) : text(ReadFromFile(FileName)) { }
+	~Tokenizer() = default;
 
-	~Tokenizer()
-	{}
-
-	void Reset()
-	{
+	void Reset() {
 		pos = 0;
 		line = 1;
 		linestart = 0;
+		err_msg_ = _T("");		// // //
 	}
 
-	void ConsumeSpace()
-	{
-		if (!text) return;
-		while (pos < text->GetLength())
-		{
-			TCHAR c = text->GetAt(pos);
-			if (c != TCHAR(' ') &&
-				c != TCHAR('\t'))
-			{
+	void ConsumeSpace() {
+		while (pos < text.GetLength()) {
+			if (TCHAR c = text.GetAt(pos); c != TCHAR(' ') && c != TCHAR('\t'))
 				return;
-			}
 			++pos;
 		}
 	}
 
-	void FinishLine()
-	{
-		if (!text) return;
-		while (pos < text->GetLength() && text->GetAt(pos) != TCHAR('\n'))
-		{
+	void FinishLine() {
+		while (pos < text.GetLength() && text.GetAt(pos) != TCHAR('\n')) {
 			++pos;
 		}
-		if (pos < text->GetLength()) ++pos; // skip newline
+		if (pos < text.GetLength()) ++pos; // skip newline
 		++line;
 		linestart = pos;
 	}
 
-	int GetColumn() const
-	{
+	int GetColumn() const {
 		return 1 + pos - linestart;
 	}
 
-	bool Finished() const
-	{
-		if (!text) return true;
-		return pos >= text->GetLength();
+	bool Finished() const {
+		return pos >= text.GetLength();
 	}
 
-	CString ReadToken()
-	{
-		if (!text) return _T("");
-
+	CString ReadToken() {
 		ConsumeSpace();
 		CString t = _T("");
 
 		bool inQuote = false;
 		bool lastQuote = false; // for finding double-quotes
-		do
-		{
-			if (pos >= text->GetLength()) break;
-			TCHAR c = text->GetAt(pos);
+		while (true) {
+			if (pos >= text.GetLength()) break;
+			TCHAR c = text.GetAt(pos);
 			if ((c == TCHAR(' ') && !inQuote) ||
 				c == TCHAR('\t') ||
 				c == TCHAR('\r') ||
-				c == TCHAR('\n'))
-			{
+				c == TCHAR('\n')) {
 				break;
 			}
 
 			// quotes suppress space ending the token
-			if (c == TCHAR('\"'))
-			{
+			if (c == TCHAR('\"')) {
 				if (!inQuote && t.GetLength() == 0) // first quote begins a quoted string
-				{
 					inQuote = true;
+				else if (lastQuote) { // convert "" to "
+					t += c;
+					lastQuote = false;
 				}
 				else
-				{
-					if (lastQuote) // convert "" to "
-					{
-						t += c;
-						lastQuote = false;
-					}
-					else
-					{
-						lastQuote = true;
-					}
-				}
+					lastQuote = true;
 			}
-			else
-			{
+			else {
 				lastQuote = false;
 				t += c;
 			}
 
 			++pos;
-		}
-		while (true);
+		};
 
 		//DEBUG_OUT("ReadToken(%d,%d): '%s'\n", line, GetColumn(), t);
 		return t;
 	}
 
-	bool ReadInt(int& i, int range_min, int range_max, CString* err)
-	{
+	int ReadInt(int range_min, int range_max) {
+		int i = 0;
 		CString t = ReadToken();
 		int c = GetColumn();
-		if (t.GetLength() < 1)
-		{
-			if (err) err->Format(_T("Line %d column %d: expected integer, no token found."), line, c);
-			return false;
+		if (t.GetLength() < 1) {
+			err_msg_.Format(_T("Line %d column %d: expected integer, no token found."), line, c);
+			return i;
 		}
 
 		int result = ::sscanf(t, "%d", &i);
-		if(result == EOF || result == 0)
-		{
-			if (err) err->Format(_T("Line %d column %d: expected integer, '%s' found."), line, c, t);
-			return false;
+		if (result == EOF || result == 0) {
+			err_msg_.Format(_T("Line %d column %d: expected integer, '%s' found."), line, c, t);
+			return i;
 		}
 
-		if (i < range_min || i > range_max)
-		{
-			if (err) err->Format(_T("Line %d column %d: expected integer in range [%d,%d], %d found."), line, c, range_min, range_max, i);
-			return false;
+		if (i < range_min || i > range_max) {
+			err_msg_.Format(_T("Line %d column %d: expected integer in range [%d,%d], %d found."), line, c, range_min, range_max, i);
+			return i;
 		}
 
-		return true;
+		return i;
 	}
 
-	bool ReadHex(int& i, int range_min, int range_max, CString* err)
-	{
+	int ReadHex(int range_min, int range_max) {
+		int i = 0;
 		CString t = ReadToken();
 		int c = GetColumn();
-		if (t.GetLength() < 1)
-		{
-			if (err) err->Format(_T("Line %d column %d: expected hexadecimal, no token found."), line, c);
-			return false;
+		if (t.GetLength() < 1) {
+			err_msg_.Format(_T("Line %d column %d: expected hexadecimal, no token found."), line, c);
+			return i;
 		}
 
 		int result = ::sscanf(t, "%x", &i);
-		if(result == EOF || result == 0)
-		{
-			if (err) err->Format(_T("Line %d column %d: expected hexadecimal, '%s' found."), line, c, t);
-			return false;
+		if (result == EOF || result == 0) {
+			err_msg_.Format(_T("Line %d column %d: expected hexadecimal, '%s' found."), line, c, t);
+			return i;
 		}
 
-		if (i < range_min || i > range_max)
-		{
-			if (err) err->Format(_T("Line %d column %d: expected hexidecmal in range [%X,%X], %X found."), line, c, range_min, range_max, i);
-			return false;
+		if (i < range_min || i > range_max) {
+			err_msg_.Format(_T("Line %d column %d: expected hexidecmal in range [%X,%X], %X found."), line, c, range_min, range_max, i);
+			return i;
 		}
-		return true;
+
+		return i;
 	}
 
 	// note: finishes line if found
-	bool ReadEOL(CString* err)
-	{
+	void ReadEOL() {
 		int c = GetColumn();
 		ConsumeSpace();
 		CString s = ReadToken();
-		if (s.GetLength() > 0)
-		{
-			if (err) err->Format(_T("Line %d column %d: expected end of line, '%s' found."), line, c, s);
-			return false;
+		if (s.GetLength() > 0) {
+			err_msg_.Format(_T("Line %d column %d: expected end of line, '%s' found."), line, c, s);
+			return;
 		}
 
-		if (Finished()) return true;
+		if (Finished()) return;
 
-		TCHAR eol = text->GetAt(pos);
-		if (eol != TCHAR('\r') && eol != TCHAR('\n'))
-		{
-			if (err) err->Format(_T("Line %d column %d: expected end of line, '%c' found."), line, c, eol);
-			return false;
+		TCHAR eol = text.GetAt(pos);
+		if (eol != TCHAR('\r') && eol != TCHAR('\n')) {
+			err_msg_.Format(_T("Line %d column %d: expected end of line, '%c' found."), line, c, eol);
+			return;
 		}
 
 		FinishLine();
-		return true;
 	}
 
 	// note: finishes line if found
-	bool IsEOL()
-	{
+	bool IsEOL() {
 		ConsumeSpace();
 		if (Finished()) return true;
 
-		TCHAR eol = text->GetAt(pos);
-		if (eol == TCHAR('\r') || eol == TCHAR('\n'))
-		{
+		TCHAR eol = text.GetAt(pos);
+		if (eol == TCHAR('\r') || eol == TCHAR('\n')) {
 			FinishLine();
 			return true;
 		}
@@ -352,10 +321,36 @@ public:
 		return false;
 	}
 
-	const CString* text;
-	int pos;
-	int line;
-	int linestart;
+	const CString &GetErrorMessage() const {		// // //
+		return err_msg_;
+	}
+
+private:
+	CString ReadFromFile(LPCTSTR FileName) {
+		CString buf;
+		CFileException oFileException;
+		if (CStdioFile f; f.Open(FileName, CFile::modeRead | CFile::typeText, &oFileException)) {
+			CString line;
+			while (f.ReadString(line))
+				buf += line + TCHAR('\n');
+			f.Close();
+			return buf;
+		}
+
+		TCHAR szError[256];
+		oFileException.GetErrorMessage(szError, std::size(szError));
+		err_msg_.Format(_T("Unable to open file:\n%s"), szError);
+		return _T("");
+	}
+
+public:
+	int line = 1;
+
+private:
+	const CString text;
+	int pos = 0;
+	int linestart = 0;
+	CString err_msg_;
 };
 
 // =============================================================================
@@ -614,57 +609,55 @@ CTextExport::~CTextExport()
 
 // =============================================================================
 
-#define CHECK(x) { if (!(x)) { return sResult; } }
+const char *CTextExport::Charify(CString& s)		// // //
+{
+	return CT2CA((LPCTSTR)s, CP_UTF8);
+}
 
-#define CHECK_SYMBOL(x) \
-	{ \
-		CString symbol_ = t.ReadToken(); \
-		if (symbol_ != _T(x)) \
-		{ \
-			sResult.Format(_T("Line %d column %d: expected '%s', '%s' found."), t.line, t.GetColumn(), _T(x), symbol_); \
-			return sResult; \
-		} \
-	}
+#define CHECK(x) do { \
+		x; \
+		if (const auto &str = t.GetErrorMessage(); !str.IsEmpty()) \
+			return str; \
+	} while (false)
+
+#define CHECK_SYMBOL(x) do { \
+		if (CString symbol_ = t.ReadToken(); symbol_ != _T(x)) \
+			return Formatted(_T("Line %d column %d: expected '%s', '%s' found."), t.line, t.GetColumn(), _T(x), symbol_); \
+	} while (false)
 
 #define CHECK_COLON() CHECK_SYMBOL(":")
 
-const char* CTextExport::Charify(CString& s)		// // //
+CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 {
-	// NOTE if Famitracker is switched to unicode, need to do a conversion here
-	return s.GetString();
-}
-
-const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
-{
-	static CString sResult;
-	sResult = _T("");
+	CString sResult;		// // //
 
 	// read file into "text" CString
-	CString text = _T("");
-	CStdioFile f;
-	CFileException oFileException;
-	if (!f.Open(FileName, CFile::modeRead | CFile::typeText, &oFileException))
-	{
-		TCHAR szError[256];
-		oFileException.GetErrorMessage(szError, 256);
-		
-		sResult.Format(_T("Unable to open file:\n%s"), szError);
+	const CString text = [&sResult, FileName] {		// // //
+		CString buf;
+		CStdioFile f;
+		CFileException oFileException;
+		if (!f.Open(FileName, CFile::modeRead | CFile::typeText, &oFileException)) {
+			TCHAR szError[256];
+			oFileException.GetErrorMessage(szError, std::size(szError));
+			sResult.Format(_T("Unable to open file:\n%s"), szError);
+		}
+		CString line;
+		while (f.ReadString(line))
+			buf += line + TCHAR('\n');
+		f.Close();
+		return buf;
+	}();
+	if (!sResult.IsEmpty())
 		return sResult;
-	}
-	CString line;
-	while (f.ReadString(line))
-		text += line + TCHAR('\n');
-	f.Close();
 
 	// begin a new document
 	if (!pDoc->OnNewDocument())
-	{
-		sResult = _T("Unable to create new Famitracker document.");
-		return sResult;
-	}
+		return _T("Unable to create new Famitracker document.");
 
 	// parse the file
-	Tokenizer t(&text);
+	Tokenizer t(FileName);		// // //
+	CHECK((void)0);
+
 	int i; // generic integer for reading
 	unsigned int dpcm_index = 0;
 	unsigned int dpcm_pos = 0;
@@ -691,15 +684,15 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 				break;
 			case CT_TITLE:
 				pDoc->SetModuleName(Charify(t.ReadToken()));
-				CHECK(t.ReadEOL(&sResult));
+				CHECK(t.ReadEOL());
 				break;
 			case CT_AUTHOR:
 				pDoc->SetModuleArtist(Charify(t.ReadToken()));
-				CHECK(t.ReadEOL(&sResult));
+				CHECK(t.ReadEOL());
 				break;
 			case CT_COPYRIGHT:
 				pDoc->SetModuleCopyright(Charify(t.ReadToken()));
-				CHECK(t.ReadEOL(&sResult));
+				CHECK(t.ReadEOL());
 				break;
 			case CT_COMMENT:
 				{
@@ -708,56 +701,56 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 						sComment += "\r\n";
 					sComment += t.ReadToken();
 					pDoc->SetComment(sComment, pDoc->ShowCommentOnOpen());
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_MACHINE:
-				CHECK(t.ReadInt(i,0,PAL,&sResult));
+				CHECK(i = t.ReadInt(0,PAL));
 				pDoc->SetMachine(static_cast<machine_t>(i));
-				CHECK(t.ReadEOL(&sResult));
+				CHECK(t.ReadEOL());
 				break;
 			case CT_FRAMERATE:
-				CHECK(t.ReadInt(i,0,800,&sResult));
+				CHECK(i = t.ReadInt(0,800));
 				pDoc->SetEngineSpeed(i);
-				CHECK(t.ReadEOL(&sResult));
+				CHECK(t.ReadEOL());
 				break;
 			case CT_EXPANSION:
-				CHECK(t.ReadInt(i,0,255,&sResult));
+				CHECK(i = t.ReadInt(0,255));
 				pDoc->SelectExpansionChip(i);
-				CHECK(t.ReadEOL(&sResult));
+				CHECK(t.ReadEOL());
 				break;
 			case CT_VIBRATO:
-				CHECK(t.ReadInt(i,0,VIBRATO_NEW,&sResult));
+				CHECK(i = t.ReadInt(0,VIBRATO_NEW));
 				pDoc->SetVibratoStyle((vibrato_t)i);
-				CHECK(t.ReadEOL(&sResult));
+				CHECK(t.ReadEOL());
 				break;
 			case CT_SPLIT:
-				CHECK(t.ReadInt(i,0,255,&sResult));
+				CHECK(i = t.ReadInt(0,255));
 				pDoc->SetSpeedSplitPoint(i);
-				CHECK(t.ReadEOL(&sResult));
+				CHECK(t.ReadEOL());
 				break;
 			case CT_PLAYBACKRATE:		// // // 050B
-				CHECK(t.ReadInt(i,0,2,&sResult));
+				CHECK(i = t.ReadInt(0,2));
 
-				CHECK(t.ReadInt(i,0,0xFFFF,&sResult));
+				CHECK(i = t.ReadInt(0,0xFFFF));
 
-				CHECK(t.ReadEOL(&sResult));
+				CHECK(t.ReadEOL());
 				break;
 			case CT_TUNING:		// // // 050B
 			{
-				CHECK(t.ReadInt(i,-12,12,&sResult));
+				CHECK(i = t.ReadInt(-12,12));
 				int cent;
-				CHECK(t.ReadInt(cent,-100,100,&sResult));
+				CHECK(cent = t.ReadInt(-100,100));
 				pDoc->SetTuning(i, cent);
-				CHECK(t.ReadEOL(&sResult));
+				CHECK(t.ReadEOL());
 			}
 				break;
 			case CT_N163CHANNELS:
-				CHECK(t.ReadInt(i,1,8,&sResult));
+				CHECK(i = t.ReadInt(1,8));
 				N163count = i;		// // //
 				pDoc->SetNamcoChannels(8);
 				pDoc->SelectExpansionChip(pDoc->GetExpansionChip());
-				CHECK(t.ReadEOL(&sResult));
+				CHECK(t.ReadEOL());
 				break;
 			case CT_MACRO:
 			case CT_MACROVRC6:
@@ -768,27 +761,24 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 					int chip = c - CT_MACRO;
 
 					int mt;
-					CHECK(t.ReadInt(mt,0,SEQ_COUNT-1,&sResult));
-					CHECK(t.ReadInt(i,0,MAX_SEQUENCES-1,&sResult));
+					CHECK(mt = t.ReadInt(0,SEQ_COUNT-1));
+					CHECK(i = t.ReadInt(0,MAX_SEQUENCES-1));
 					CSequence* pSeq = pDoc->GetSequence(CHIP_MACRO[chip], i, mt);
 
-					CHECK(t.ReadInt(i,-1,MAX_SEQUENCE_ITEMS,&sResult));
+					CHECK(i = t.ReadInt(-1,MAX_SEQUENCE_ITEMS));
 					pSeq->SetLoopPoint(i);
-					CHECK(t.ReadInt(i,-1,MAX_SEQUENCE_ITEMS,&sResult));
+					CHECK(i = t.ReadInt(-1,MAX_SEQUENCE_ITEMS));
 					pSeq->SetReleasePoint(i);
-					CHECK(t.ReadInt(i,0,255,&sResult));
+					CHECK(i = t.ReadInt(0,255));
 					pSeq->SetSetting(static_cast<seq_setting_t>(i));		// // //
 
 					CHECK_COLON();
 
 					int count = 0;
-					while (!t.IsEOL())
-					{
-						CHECK(t.ReadInt(i,-128,127,&sResult));
-						if (count >= MAX_SEQUENCE_ITEMS)
-						{
-							sResult.Format(_T("Line %d column %d: macro overflow, max size: %d."), t.line, t.GetColumn(), MAX_SEQUENCE_ITEMS);
-							return sResult;
+					while (!t.IsEOL()) {
+						CHECK(i = t.ReadInt(-128,127));
+						if (count >= MAX_SEQUENCE_ITEMS) {
+							return Formatted(_T("Line %d column %d: macro overflow, max size: %d."), t.line, t.GetColumn(), MAX_SEQUENCE_ITEMS);
 						}
 						pSeq->SetItem(count, i);
 						++count;
@@ -798,18 +788,18 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 				break;
 			case CT_DPCMDEF:
 				{
-					CHECK(t.ReadInt(i,0,MAX_DSAMPLES-1,&sResult));
+					CHECK(i = t.ReadInt(0,MAX_DSAMPLES-1));
 					dpcm_index = i;
 					dpcm_pos = 0;
 
-					CHECK(t.ReadInt(i,0,CDSample::MAX_SIZE,&sResult));
+					CHECK(i = t.ReadInt(0,CDSample::MAX_SIZE));
 					dpcm_sample = new CDSample();		// // //
 					pDoc->SetSample(dpcm_index, dpcm_sample);
 					char *blank = new char[i]();
 					dpcm_sample->SetData(i, blank);
 					dpcm_sample->SetName(Charify(t.ReadToken()));
 
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_DPCM:
@@ -817,11 +807,10 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 					CHECK_COLON();
 					while (!t.IsEOL())
 					{
-						CHECK(t.ReadHex(i,0x00,0xFF,&sResult));
+						CHECK(i = t.ReadHex(0x00,0xFF));
 						if (dpcm_pos >= dpcm_sample->GetSize())
 						{
-							sResult.Format(_T("Line %d column %d: DPCM sample %d overflow, increase size used in %s."), t.line, t.GetColumn(), dpcm_index, CT[CT_DPCMDEF]);
-							return sResult;
+							return Formatted(_T("Line %d column %d: DPCM sample %d overflow, increase size used in %s."), t.line, t.GetColumn(), dpcm_index, CT[CT_DPCMDEF]);
 						}
 						*(dpcm_sample->GetData() + dpcm_pos) = (char)(i);
 						++dpcm_pos;
@@ -831,28 +820,28 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 			case CT_DETUNE:		// // //
 				{
 					int oct, note, offset;
-					CHECK(t.ReadInt(i,0,5,&sResult));
-					CHECK(t.ReadInt(oct,0,OCTAVE_RANGE-1,&sResult));
-					CHECK(t.ReadInt(note,0,NOTE_RANGE-1,&sResult));
-					CHECK(t.ReadInt(offset,-32768,32767,&sResult));
+					CHECK(i = t.ReadInt(0,5));
+					CHECK(oct = t.ReadInt(0,OCTAVE_RANGE-1));
+					CHECK(note = t.ReadInt(0,NOTE_RANGE-1));
+					CHECK(offset = t.ReadInt(-32768,32767));
 					pDoc->SetDetuneOffset(i, oct * NOTE_RANGE + note, offset);
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_GROOVE:		// // //
 				{
 					int size, entry;
-					CHECK(t.ReadInt(i,0,MAX_GROOVE-1,&sResult));
-					CHECK(t.ReadInt(size,1,MAX_GROOVE_SIZE,&sResult));
+					CHECK(i = t.ReadInt(0,MAX_GROOVE-1));
+					CHECK(size = t.ReadInt(1,MAX_GROOVE_SIZE));
 					auto Groove = std::make_unique<CGroove>();
 					Groove->SetSize(size);
 					CHECK_COLON();
 					for (int j = 0; j < size; j++) {
-						CHECK(t.ReadInt(entry,1,255,&sResult));
+						CHECK(entry = t.ReadInt(1,255));
 						Groove->SetEntry(j, entry);
 					}
 					pDoc->SetGroove(i, std::move(Groove));
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_USEGROOVE:		// // //
@@ -860,7 +849,7 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 					CHECK_COLON();
 					int oldTrack = track;
 					while (!t.IsEOL()) {
-						CHECK(t.ReadInt(i,1,MAX_TRACKS,&sResult));
+						CHECK(i = t.ReadInt(1,MAX_TRACKS));
 						UseGroove[--i] = true;
 						if (static_cast<unsigned int>(i) < pDoc->GetTrackCount()) {
 							pDoc->SetSongGroove(i, true);
@@ -883,143 +872,139 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 						return INST_NONE;
 					}();
 					int inst_index;		// // //
-					CHECK(t.ReadInt(inst_index,0,MAX_INSTRUMENTS-1,&sResult));
+					CHECK(inst_index = t.ReadInt(0,MAX_INSTRUMENTS-1));
 					auto pInst = FTExt::InstrumentFactory::Make(Type);		// // //
 					auto seqInst = static_cast<CSeqInstrument *>(pInst.get());		// // //
 					for (int s=0; s < SEQ_COUNT; ++s)
 					{
-						CHECK(t.ReadInt(i,-1,MAX_SEQUENCES-1,&sResult));
+						CHECK(i = t.ReadInt(-1,MAX_SEQUENCES-1));
 						seqInst->SetSeqEnable(s, (i == -1) ? 0 : 1);
 						seqInst->SetSeqIndex(s, (i == -1) ? 0 : i);
 					}
 					if (c == CT_INSTN163) {
 						auto pInst = static_cast<CInstrumentN163*>(seqInst);
-						CHECK(t.ReadInt(i,0,256-16*N163count,&sResult));		// // //
+						CHECK(i = t.ReadInt(0,256-16*N163count));		// // //
 						pInst->SetWaveSize(i);
-						CHECK(t.ReadInt(i,0,256-16*N163count-1,&sResult));		// // //
+						CHECK(i = t.ReadInt(0,256-16*N163count-1));		// // //
 						pInst->SetWavePos(i);
-						CHECK(t.ReadInt(i,0,CInstrumentN163::MAX_WAVE_COUNT,&sResult));
+						CHECK(i = t.ReadInt(0,CInstrumentN163::MAX_WAVE_COUNT));
 						pInst->SetWaveCount(i);
 					}
 					seqInst->SetName(Charify(t.ReadToken()));
 					pDoc->AddInstrument(std::move(pInst), inst_index);
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_INSTVRC7:
 				{
-					CHECK(t.ReadInt(i,0,MAX_INSTRUMENTS-1,&sResult));
+					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
 					auto pInst = std::make_unique<CInstrumentVRC7>();		// // //
-					CHECK(t.ReadInt(i,0,15,&sResult));
+					CHECK(i = t.ReadInt(0,15));
 					pInst->SetPatch(i);
 					for (int r=0; r < 8; ++r)
 					{
-						CHECK(t.ReadHex(i,0x00,0xFF,&sResult));
+						CHECK(i = t.ReadHex(0x00,0xFF));
 						pInst->SetCustomReg(r, i);
 					}
 					pInst->SetName(Charify(t.ReadToken()));
 					pDoc->AddInstrument(std::move(pInst), i);		// // //
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_INSTFDS:
 				{
-					CHECK(t.ReadInt(i,0,MAX_INSTRUMENTS-1,&sResult));
+					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
 					auto pInst = std::make_unique<CInstrumentFDS>();		// // //
-					CHECK(t.ReadInt(i,0,1,&sResult));
+					CHECK(i = t.ReadInt(0,1));
 					pInst->SetModulationEnable(i==1);
-					CHECK(t.ReadInt(i,0,4095,&sResult));
+					CHECK(i = t.ReadInt(0,4095));
 					pInst->SetModulationSpeed(i);
-					CHECK(t.ReadInt(i,0,63,&sResult));
+					CHECK(i = t.ReadInt(0,63));
 					pInst->SetModulationDepth(i);
-					CHECK(t.ReadInt(i,0,255,&sResult));
+					CHECK(i = t.ReadInt(0,255));
 					pInst->SetModulationDelay(i);
 					pInst->SetName(Charify(t.ReadToken()));
 					pDoc->AddInstrument(std::move(pInst), i);		// // //
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_KEYDPCM:
 				{
-					CHECK(t.ReadInt(i,0,MAX_INSTRUMENTS-1,&sResult));
+					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
 					if (pDoc->GetInstrumentType(i) != INST_2A03)
 					{
-						sResult.Format(_T("Line %d column %d: instrument %d is not defined as a 2A03 instrument."), t.line, t.GetColumn(), i);
-						return sResult;
+						return Formatted(_T("Line %d column %d: instrument %d is not defined as a 2A03 instrument."), t.line, t.GetColumn(), i);
 					}
 					auto pInst = std::static_pointer_cast<CInstrument2A03>(pDoc->GetInstrument(i));
 
 					int io, in;
-					CHECK(t.ReadInt(io,0,OCTAVE_RANGE,&sResult));
-					CHECK(t.ReadInt(in,0,12,&sResult));
+					CHECK(io = t.ReadInt(0,OCTAVE_RANGE));
+					CHECK(in = t.ReadInt(0,12));
 
-					CHECK(t.ReadInt(i,0,MAX_DSAMPLES-1,&sResult));
+					CHECK(i = t.ReadInt(0,MAX_DSAMPLES-1));
 					pInst->SetSampleIndex(io, in, i+1);
-					CHECK(t.ReadInt(i,0,15,&sResult));
+					CHECK(i = t.ReadInt(0,15));
 					pInst->SetSamplePitch(io, in, i);
-					CHECK(t.ReadInt(i,0,1,&sResult));
+					CHECK(i = t.ReadInt(0,1));
 					pInst->SetSampleLoop(io, in, i==1);
-					CHECK(t.ReadInt(i,0,255,&sResult));
+					CHECK(i = t.ReadInt(0,255));
 					pInst->SetSampleLoopOffset(io, in, i);
-					CHECK(t.ReadInt(i,-1,127,&sResult));
+					CHECK(i = t.ReadInt(-1,127));
 					pInst->SetSampleDeltaValue(io, in, i);
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_FDSWAVE:
 				{
-					CHECK(t.ReadInt(i,0,MAX_INSTRUMENTS-1,&sResult));
+					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
 					if (pDoc->GetInstrumentType(i) != INST_FDS)
 					{
-						sResult.Format(_T("Line %d column %d: instrument %d is not defined as an FDS instrument."), t.line, t.GetColumn(), i);
-						return sResult;
+						return Formatted(_T("Line %d column %d: instrument %d is not defined as an FDS instrument."), t.line, t.GetColumn(), i);
 					}
 					auto pInst = std::static_pointer_cast<CInstrumentFDS>(pDoc->GetInstrument(i));
 					CHECK_COLON();
 					for (int s=0; s < CInstrumentFDS::WAVE_SIZE; ++s)
 					{
-						CHECK(t.ReadInt(i,0,63,&sResult));
+						CHECK(i = t.ReadInt(0,63));
 						pInst->SetSample(s, i);
 					}
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_FDSMOD:
 				{
-					CHECK(t.ReadInt(i,0,MAX_INSTRUMENTS-1,&sResult));
+					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
 					if (pDoc->GetInstrumentType(i) != INST_FDS)
 					{
-						sResult.Format(_T("Line %d column %d: instrument %d is not defined as an FDS instrument."), t.line, t.GetColumn(), i);
-						return sResult;
+						return Formatted(_T("Line %d column %d: instrument %d is not defined as an FDS instrument."), t.line, t.GetColumn(), i);
 					}
 					auto pInst = std::static_pointer_cast<CInstrumentFDS>(pDoc->GetInstrument(i));
 					CHECK_COLON();
 					for (int s=0; s < CInstrumentFDS::MOD_SIZE; ++s)
 					{
-						CHECK(t.ReadInt(i,0,7,&sResult));
+						CHECK(i = t.ReadInt(0,7));
 						pInst->SetModulation(s, i);
 					}
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_FDSMACRO:
 				{
-					CHECK(t.ReadInt(i,0,MAX_INSTRUMENTS-1,&sResult));
+					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
 					if (pDoc->GetInstrumentType(i) != INST_FDS)
 					{
-						sResult.Format(_T("Line %d column %d: instrument %d is not defined as an FDS instrument."), t.line, t.GetColumn(), i);
-						return sResult;
+						return Formatted(_T("Line %d column %d: instrument %d is not defined as an FDS instrument."), t.line, t.GetColumn(), i);
 					}
 					auto pInst = std::static_pointer_cast<CInstrumentFDS>(pDoc->GetInstrument(i));
 
-					CHECK(t.ReadInt(i,0,CInstrumentFDS::SEQUENCE_COUNT-1,&sResult));
+					CHECK(i = t.ReadInt(0,CInstrumentFDS::SEQUENCE_COUNT-1));
 					CSequence *pSeq = new CSequence();		// // //
 					pInst->SetSequence(i, pSeq);
-					CHECK(t.ReadInt(i,-1,MAX_SEQUENCE_ITEMS,&sResult));
+					CHECK(i = t.ReadInt(-1,MAX_SEQUENCE_ITEMS));
 					pSeq->SetLoopPoint(i);
-					CHECK(t.ReadInt(i,-1,MAX_SEQUENCE_ITEMS,&sResult));
+					CHECK(i = t.ReadInt(-1,MAX_SEQUENCE_ITEMS));
 					pSeq->SetReleasePoint(i);
-					CHECK(t.ReadInt(i,0,255,&sResult));
+					CHECK(i = t.ReadInt(0,255));
 					pSeq->SetSetting(static_cast<seq_setting_t>(i));		// // //
 
 					CHECK_COLON();
@@ -1027,11 +1012,10 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 					int count = 0;
 					while (!t.IsEOL())
 					{
-						CHECK(t.ReadInt(i,-128,127,&sResult));
+						CHECK(i = t.ReadInt(-128,127));
 						if (count >= MAX_SEQUENCE_ITEMS)
 						{
-							sResult.Format(_T("Line %d column %d: macro overflow, max size: %d."), t.line, t.GetColumn(), MAX_SEQUENCE_ITEMS);
-							return sResult;
+							return Formatted(_T("Line %d column %d: macro overflow, max size: %d."), t.line, t.GetColumn(), MAX_SEQUENCE_ITEMS);
 						}
 						pSeq->SetItem(count, i);
 						++count;
@@ -1041,23 +1025,22 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 				break;
 			case CT_N163WAVE:
 				{
-					CHECK(t.ReadInt(i,0,MAX_INSTRUMENTS-1,&sResult));
+					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
 					if (pDoc->GetInstrumentType(i) != INST_N163)
 					{
-						sResult.Format(_T("Line %d column %d: instrument %d is not defined as an N163 instrument."), t.line, t.GetColumn(), i);
-						return sResult;
+						return Formatted(_T("Line %d column %d: instrument %d is not defined as an N163 instrument."), t.line, t.GetColumn(), i);
 					}
 					auto pInst = std::static_pointer_cast<CInstrumentN163>(pDoc->GetInstrument(i));
 
 					int iw;
-					CHECK(t.ReadInt(iw,0,CInstrumentN163::MAX_WAVE_COUNT-1,&sResult));
+					CHECK(iw = t.ReadInt(0,CInstrumentN163::MAX_WAVE_COUNT-1));
 					CHECK_COLON();
 					for (int s=0; s < pInst->GetWaveSize(); ++s)
 					{
-						CHECK(t.ReadInt(i,0,15,&sResult));
+						CHECK(i = t.ReadInt(0,15));
 						pInst->SetSample(iw, s, i);
 					}
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_TRACK:
@@ -1066,21 +1049,20 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 					{
 						if(pDoc->AddTrack() == -1)
 						{
-							sResult.Format(_T("Line %d column %d: unable to add new track."), t.line, t.GetColumn());
-							return sResult;
+							return Formatted(_T("Line %d column %d: unable to add new track."), t.line, t.GetColumn());
 						}
 					}
 					
-					CHECK(t.ReadInt(i,1,MAX_PATTERN_LENGTH,&sResult));		// // //
+					CHECK(i = t.ReadInt(1,MAX_PATTERN_LENGTH));		// // //
 					pDoc->SetPatternLength(track, i);
 					pDoc->SetSongGroove(track, UseGroove[track]);		// // //
-					CHECK(t.ReadInt(i,0,MAX_TEMPO,&sResult));
+					CHECK(i = t.ReadInt(0,MAX_TEMPO));
 					pDoc->SetSongSpeed(track, i);
-					CHECK(t.ReadInt(i,0,MAX_TEMPO,&sResult));
+					CHECK(i = t.ReadInt(0,MAX_TEMPO));
 					pDoc->SetSongTempo(track, i);
 					pDoc->SetTrackTitle(track, (LPCTSTR)t.ReadToken());		// // //
 
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 					++track;
 				}
 				break;
@@ -1089,16 +1071,16 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 					CHECK_COLON();
 					for (int c=0; c < pDoc->GetChannelCount(); ++c)
 					{
-						CHECK(t.ReadInt(i,1,MAX_EFFECT_COLUMNS,&sResult));
+						CHECK(i = t.ReadInt(1,MAX_EFFECT_COLUMNS));
 						pDoc->SetEffColumns(track-1,c,i-1);
 					}
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_ORDER:
 				{
 					int ifr;
-					CHECK(t.ReadHex(ifr,0,MAX_FRAMES-1,&sResult));
+					CHECK(ifr = t.ReadHex(0,MAX_FRAMES-1));
 					if (ifr >= (int)pDoc->GetFrameCount(track-1)) // expand to accept frames
 					{
 						pDoc->SetFrameCount(track-1,ifr+1);
@@ -1106,26 +1088,25 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 					CHECK_COLON();
 					for (int c=0; c < pDoc->GetChannelCount(); ++c)
 					{
-						CHECK(t.ReadHex(i,0,MAX_PATTERN-1,&sResult));
+						CHECK(i = t.ReadHex(0,MAX_PATTERN-1));
 						pDoc->SetPatternAtFrame(track-1,ifr, c, i);
 					}
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_PATTERN:
-				CHECK(t.ReadHex(i,0,MAX_PATTERN-1,&sResult));
+				CHECK(i = t.ReadHex(0,MAX_PATTERN-1));
 				pattern = i;
-				CHECK(t.ReadEOL(&sResult));
+				CHECK(t.ReadEOL());
 				break;
 			case CT_ROW:
 				{
 					if (track == 0)
 					{
-						sResult.Format(_T("Line %d column %d: no TRACK defined, cannot add ROW data."), t.line, t.GetColumn());
-						return sResult;
+						return Formatted(_T("Line %d column %d: no TRACK defined, cannot add ROW data."), t.line, t.GetColumn());
 					}
 
-					CHECK(t.ReadHex(i,0,MAX_PATTERN_LENGTH-1,&sResult));
+					CHECK(i = t.ReadHex(0,MAX_PATTERN_LENGTH-1));
 					for (int c=0; c < pDoc->GetChannelCount(); ++c)
 					{
 						CHECK_COLON();
@@ -1134,13 +1115,12 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 							return sResult;
 						}
 					}
-					CHECK(t.ReadEOL(&sResult));
+					CHECK(t.ReadEOL());
 				}
 				break;
 			case CT_COUNT:
 			default:
-				sResult.Format(_T("Unrecognized command at line %d: '%s'."), t.line, command);
-				return sResult;
+				return Formatted(_T("Unrecognized command at line %d: '%s'."), t.line, command);
 		}
 	}
 
@@ -1148,16 +1128,12 @@ const CString& CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 		pDoc->SetNamcoChannels(N163count, true);
 		pDoc->SelectExpansionChip(pDoc->GetExpansionChip()); // calls ApplyExpansionChip()
 	}
-	return sResult;
+	return _T("");
 }
 
 // =============================================================================
 
-const CString& CTextExport::ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
-{
-	static CString sResult;
-	sResult = _T("");
-
+CString CTextExport::ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// // //
 	CStdioFile f;
 	CFileException oFileException;
 	if (!f.Open(FileName, CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException))
@@ -1165,40 +1141,33 @@ const CString& CTextExport::ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 		TCHAR szError[256];
 		oFileException.GetErrorMessage(szError, 256);
 		
-		sResult.Format(_T("Unable to open file:\n%s"), szError);
-		return sResult;
+		return Formatted(_T("Unable to open file:\n%s"), szError);
 	}
 
 	f.WriteString(_T("ID,TRACK,CHANNEL,PATTERN,ROW,NOTE,OCTAVE,INST,VOLUME,FX1,FX1PARAM,FX2,FX2PARAM,FX3,FX3PARAM,FX4,FX4PARAM\n"));
 
-	CString l, s = _T("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n");
+	const CString FMT = _T("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n");
 	int id = 0;
-	
-	for (unsigned int t = 0; t < pDoc->GetTrackCount(); t++)
-		for (int c = 0; c < pDoc->GetChannelCount(); c++)
-			for (int p = 0; p < MAX_PATTERN; p++)
-				for (unsigned int r = 0; r < pDoc->GetPatternLength(t); r++) {
-					const auto &stCell = pDoc->GetDataAtPattern(t,p,c,r);		// // //
-					bool isEmpty = true;
-					if (stCell.Note != NONE || stCell.Instrument != MAX_INSTRUMENTS || stCell.Vol != MAX_VOLUME) isEmpty = false;
-					for (int fx = 0; fx < MAX_EFFECT_COLUMNS; fx++)
-						if (stCell.EffNumber[fx] != EF_NONE) isEmpty = false;
-					if (isEmpty) continue;
-					l.Format(s, id++, t, c, p, r, stCell.Note, stCell.Octave, stCell.Instrument, stCell.Vol,
+
+	pDoc->VisitSongs([&] (const CSongData &song, unsigned t) {
+		unsigned rows = song.GetPatternLength();
+		song.VisitPatterns([&] (const CPatternData &pat, unsigned c, unsigned p) {
+			pat.VisitRows(rows, [&] (const stChanNote &stCell, unsigned r) {
+				if (stCell != stChanNote { })
+					f.WriteString(Formatted(FMT, id++, t, c, p, r,
+						stCell.Note, stCell.Octave, stCell.Instrument, stCell.Vol,
 						stCell.EffNumber[0], stCell.EffParam[0],
 						stCell.EffNumber[1], stCell.EffParam[1],
 						stCell.EffNumber[2], stCell.EffParam[2],
-						stCell.EffNumber[3], stCell.EffParam[3]);
-					f.WriteString(l);
-				}
-	return sResult;
+						stCell.EffNumber[3], stCell.EffParam[3]));
+			});
+		});
+	});
+
+	return _T("");
 }
 
-const CString& CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
-{
-	static CString sResult;
-	sResult = _T("");
-
+CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// // //
 	CStdioFile f;
 	CFileException oFileException;
 	if (!f.Open(FileName, CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException))
@@ -1206,8 +1175,7 @@ const CString& CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 		TCHAR szError[256];
 		oFileException.GetErrorMessage(szError, 256);
 		
-		sResult.Format(_T("Unable to open file:\n%s"), szError);
-		return sResult;
+		return Formatted(_T("Unable to open file:\n%s"), szError);
 	}
 
 	CString s;
@@ -1608,7 +1576,7 @@ const CString& CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 	f.WriteString(_T("# End of export\n"));
 	pDoc->UpdateAllViews(NULL, UPDATE_FRAME);
 	pDoc->UpdateAllViews(NULL, UPDATE_PATTERN);
-	return sResult;
+	return _T("");
 }
 
 // end of file
