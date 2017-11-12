@@ -65,7 +65,7 @@ void CWavProgressDlg::OnBnClickedCancel()
 	EndDialog(0);
 }
 
-void CWavProgressDlg::BeginRender(CString &File, std::unique_ptr<CWaveRenderer> pRender)		// // //
+void CWavProgressDlg::BeginRender(const CString &File, std::unique_ptr<CWaveRenderer> pRender)		// // //
 {
 	m_sFile = File;
 	m_pWaveRenderer = std::move(pRender);		// // //

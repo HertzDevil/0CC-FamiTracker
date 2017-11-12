@@ -39,7 +39,7 @@ public:
 	CWavProgressDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CWavProgressDlg();
 
-	void BeginRender(CString &File, std::unique_ptr<CWaveRenderer> pRenderer);		// // //
+	void BeginRender(const CString &File, std::unique_ptr<CWaveRenderer> pRenderer);		// // //
 
 // Dialog Data
 	enum { IDD = IDD_WAVE_PROGRESS };
