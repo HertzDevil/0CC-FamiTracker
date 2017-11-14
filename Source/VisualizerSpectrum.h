@@ -20,12 +20,15 @@
 ** must bear this legend.
 */
 
+
 #pragma once
 
+#include "stdafx.h"
+#include "FFT/FftBuffer.h"		// // //
+#include <memory>
+#include "VisualizerWnd.h"		// // //
 
 // CVisualizerSpectrum, spectrum style visualizer
-
-class Fft;
 
 const int FFT_POINTS = 256;
 
@@ -49,10 +52,9 @@ private:
 	const int m_iBarSize;
 
 	COLORREF *m_pBlitBuffer;
-	Fft	*m_pFftObject;
+	FftBuffer<FFT_POINTS> fft_buffer_;		// // //
 
 	int m_iFillPos;
-	short m_pSampleBuffer[FFT_POINTS];
-	float m_fWindow[FFT_POINTS];
-	float m_fFftPoint[FFT_POINTS];
+	std::array<short, FFT_POINTS> m_pSampleBuffer = { };
+	std::array<float, FFT_POINTS> m_fFftPoint = { };
 };

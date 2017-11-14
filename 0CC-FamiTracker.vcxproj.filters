@@ -486,9 +486,6 @@
     <ClCompile Include="Source\DirectSound.cpp">
       <Filter>Source Files\Sound Driver\Audio</Filter>
     </ClCompile>
-    <ClCompile Include="Source\FFT\Fft.cpp">
-      <Filter>Source Files\Other</Filter>
-    </ClCompile>
     <ClCompile Include="Source\MIDI.cpp">
       <Filter>Source Files\MIDI</Filter>
     </ClCompile>
@@ -992,9 +989,6 @@
     <ClInclude Include="Source\FFT\Complex.h">
       <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\FFT\Fft.h">
-      <Filter>Header Files\Other Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\MIDI.h">
       <Filter>Header Files\MIDI Headers</Filter>
     </ClInclude>
@@ -1342,6 +1336,12 @@
     </ClInclude>
     <ClInclude Include="Source\ClipboardResource.h">
       <Filter>Header Files\Components Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\FFT\FftComplex.hpp">
+      <Filter>Header Files\Other Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\FFT\FftBuffer.h">
+      <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
