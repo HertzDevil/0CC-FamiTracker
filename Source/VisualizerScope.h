@@ -20,8 +20,10 @@
 ** must bear this legend.
 */
 
+
 #pragma once
 
+#include "VisualizerBase.h"		// // //
 
 // CVisualizerScope, scope style visualizer
 
@@ -31,21 +33,19 @@ public:
 	CVisualizerScope(bool bBlur);
 	virtual ~CVisualizerScope();
 
-	void Create(int Width, int Height);
-	void SetSampleRate(int SampleRate);
-	void Draw();
-	void Display(CDC *pDC, bool bPaintMsg);
+	void Create(int Width, int Height) override;
+	void SetSampleRate(int SampleRate) override;
+	void Draw() override;
+	void Display(CDC *pDC, bool bPaintMsg) override;
 
 private:
 	void RenderBuffer();
 	void ClearBackground();
 
 private:
-	COLORREF *m_pBlitBuffer;
-
-	bool m_bBlur;
 	int	 m_iWindowBufPtr;
 	short *m_pWindowBuf;
+	bool m_bBlur;
 
 #ifdef _DEBUG
 	int m_iPeak;

@@ -20,27 +20,26 @@
 ** must bear this legend.
 */
 
+
 #pragma once
 
+#include "VisualizerBase.h"		// // //
 
 // CVisualizerStatic, static picture visualizer
 
 class CVisualizerStatic : public CVisualizerBase
 {
 public:
-	CVisualizerStatic();
-	virtual ~CVisualizerStatic();
+	CVisualizerStatic() = default;
+	~CVisualizerStatic();
 
-	void Create(int Width, int Height);
-	void SetSampleRate(int SampleRate);
-	void Draw();
-	void DrawChar(char n, int xPos, int yPos, const COLORREF &Color);		// // //
-	void Display(CDC *pDC, bool bPaintMsg);
+	void SetSampleRate(int SampleRate) override;
+	void Draw() override;
 
 private:
-	COLORREF *m_pBlitBuffer;		// // //
+	void DrawChar(char n, int xPos, int yPos, const COLORREF &Color);		// // //
 
 	CBitmap m_bmpImage;
-	CBitmap *m_pOldBmp;
+	CBitmap *m_pOldBmp = nullptr;
 	CDC	m_dcImage;
 };

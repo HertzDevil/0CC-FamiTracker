@@ -24,34 +24,30 @@
 #pragma once
 
 #include "stdafx.h"
-#include "FFT/FftBuffer.h"		// // //
-#include <memory>
-#include "VisualizerBase.h"		// // //
+#include <memory>		// // //
 
-// CVisualizerSpectrum, spectrum style visualizer
-
-const int FFT_POINTS = 1024;
-
-class CVisualizerSpectrum : public CVisualizerBase
-{
+class CVisualizerBase {		// // //
 public:
-	CVisualizerSpectrum(int Size);		// // //
+	virtual ~CVisualizerBase() = default;
 
-	void Create(int Width, int Height) override;
-	void SetSampleRate(int SampleRate) override;
-	void SetSampleData(short *iSamples, unsigned int iCount) override;
-	void Draw() override;
+	// Create the visualizer
+	virtual void Create(int Width, int Height);
+	// Set rate of samples
+	virtual void SetSampleRate(int SampleRate) = 0;
+	// Set new sample data
+	virtual void SetSampleData(short *iSamples, unsigned int iCount);
+	// Render an image from the sample data
+	virtual void Draw() = 0;
+	// Display the image
+	virtual void Display(CDC *pDC, bool bPaintMsg);		// // //
 
 protected:
-	void Transform(short *pSamples, unsigned int Count);
+	BITMAPINFO m_bmi;
+	std::unique_ptr<COLORREF[]> m_pBlitBuffer;		// // //
 
-private:
-	static const COLORREF BG_COLOR = 0;
-	const int m_iBarSize;
+	int m_iWidth = 0;
+	int m_iHeight = 0;
 
-	FftBuffer<FFT_POINTS> fft_buffer_;		// // //
-
-	int m_iFillPos;
-	std::array<short, FFT_POINTS> m_pSampleBuffer = { };
-	std::array<float, FFT_POINTS> m_fFftPoint = { };
+	unsigned int m_iSampleCount = 0;
+	short *m_pSamples = nullptr;
 };

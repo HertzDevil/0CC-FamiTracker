@@ -20,38 +20,31 @@
 ** must bear this legend.
 */
 
+#include "VisualizerBase.h"
 
-#pragma once
-
-#include "stdafx.h"
-#include "FFT/FftBuffer.h"		// // //
-#include <memory>
-#include "VisualizerBase.h"		// // //
-
-// CVisualizerSpectrum, spectrum style visualizer
-
-const int FFT_POINTS = 1024;
-
-class CVisualizerSpectrum : public CVisualizerBase
+void CVisualizerBase::Create(int Width, int Height)
 {
-public:
-	CVisualizerSpectrum(int Size);		// // //
+	memset(&m_bmi, 0, sizeof(BITMAPINFO));
+	m_bmi.bmiHeader.biSize	   = sizeof(BITMAPINFOHEADER);
+	m_bmi.bmiHeader.biBitCount = 32;
+	m_bmi.bmiHeader.biHeight   = -Height;
+	m_bmi.bmiHeader.biWidth	   = Width;
+	m_bmi.bmiHeader.biPlanes   = 1;
 
-	void Create(int Width, int Height) override;
-	void SetSampleRate(int SampleRate) override;
-	void SetSampleData(short *iSamples, unsigned int iCount) override;
-	void Draw() override;
+	m_iWidth = Width;
+	m_iHeight = Height;
+	m_pBlitBuffer = std::make_unique<COLORREF[]>(Width * Height);		// // //
+}
 
-protected:
-	void Transform(short *pSamples, unsigned int Count);
+void CVisualizerBase::SetSampleData(short *pSamples, unsigned int iCount)
+{
+	m_pSamples = pSamples;
+	m_iSampleCount = iCount;
+}
 
-private:
-	static const COLORREF BG_COLOR = 0;
-	const int m_iBarSize;
-
-	FftBuffer<FFT_POINTS> fft_buffer_;		// // //
-
-	int m_iFillPos;
-	std::array<short, FFT_POINTS> m_pSampleBuffer = { };
-	std::array<float, FFT_POINTS> m_fFftPoint = { };
-};
+void CVisualizerBase::Display(CDC *pDC, bool bPaintMsg) {		// // //
+	StretchDIBits(pDC->m_hDC,
+		0, 0, m_iWidth, m_iHeight,
+		0, 0, m_iWidth, m_iHeight,
+		m_pBlitBuffer.get(), &m_bmi, DIB_RGB_COLORS, SRCCOPY);
+}

@@ -738,6 +738,9 @@
     <ClCompile Include="Source\ClipboardResource.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
+    <ClCompile Include="Source\VisualizerBase.cpp">
+      <Filter>Source Files\Visualizer\Visualizers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -985,9 +988,6 @@
     </ClInclude>
     <ClInclude Include="Source\TextExporter.h">
       <Filter>Header Files\Export Headers\Text Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\FFT\Complex.h">
-      <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\MIDI.h">
       <Filter>Header Files\MIDI Headers</Filter>
@@ -1342,6 +1342,9 @@
     </ClInclude>
     <ClInclude Include="Source\FFT\FftBuffer.h">
       <Filter>Header Files\Other Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\VisualizerBase.h">
+      <Filter>Header Files\Visualizer Headers\Visualizers Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
