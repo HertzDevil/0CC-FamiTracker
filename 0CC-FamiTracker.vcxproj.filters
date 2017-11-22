@@ -741,6 +741,9 @@
     <ClCompile Include="Source\VisualizerBase.cpp">
       <Filter>Source Files\Visualizer\Visualizers</Filter>
     </ClCompile>
+    <ClCompile Include="Source\RegisterDisplay.cpp">
+      <Filter>Source Files\Pattern Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1345,6 +1348,9 @@
     </ClInclude>
     <ClInclude Include="Source\VisualizerBase.h">
       <Filter>Header Files\Visualizer Headers\Visualizers Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\RegisterDisplay.h">
+      <Filter>Header Files\Pattern Editor Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

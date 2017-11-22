@@ -853,10 +853,6 @@ void CFamiTrackerView::PeriodicUpdate()
 
 			pMainFrm->SetIndicatorPos(Frame, Row);
 
-			// DPCM info
-			stDPCMState DPCMState = pSoundGen->GetDPCMState();
-			m_pPatternEditor->SetDPCMState(DPCMState);
-
 			if (pDoc->IsFileLoaded()) {
 				UpdateMeters();
 				// // //
@@ -865,7 +861,7 @@ void CFamiTrackerView::PeriodicUpdate()
 	}
 
 	// TODO get rid of static variables
-	static int LastNoteState;
+	static int LastNoteState = -1;
 
 	if (LastNoteState != m_iKeyboardNote)
 		pMainFrm->ChangeNoteState(m_iKeyboardNote);

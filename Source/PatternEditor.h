@@ -85,9 +85,6 @@ public:
 	CRect GetUnbufferedRect() const;
 	CRect GetInvalidatedRect() const;
 
-	// DPCM state
-	void SetDPCMState(const stDPCMState &State);
-
 	// Cursor movement
 	void MoveDown(int Step);
 	void MoveUp(int Step);

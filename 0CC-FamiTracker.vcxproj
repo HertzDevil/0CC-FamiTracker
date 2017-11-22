@@ -437,6 +437,7 @@
     <ClCompile Include="Source\ModuleAction.cpp" />
     <ClCompile Include="Source\PatternClipData.cpp" />
     <ClCompile Include="Source\PatternData.cpp" />
+    <ClCompile Include="Source\RegisterDisplay.cpp" />
     <ClCompile Include="Source\SoundDriver.cpp" />
     <ClCompile Include="Source\SongState.cpp" />
     <ClCompile Include="Source\FamiTrackerTypes.cpp" />
@@ -615,6 +616,7 @@
     <ClInclude Include="Source\PatternComponent.h" />
     <ClInclude Include="Source\PatternData.h" />
     <ClInclude Include="Source\PlayerCursor.h" />
+    <ClInclude Include="Source\RegisterDisplay.h" />
     <ClInclude Include="Source\RegisterState.h" />
     <ClInclude Include="Source\CompoundAction.h" />
     <ClInclude Include="Source\DetuneTable.h" />

@@ -157,6 +157,9 @@ public:
 	void		 WriteAPU(int Address, char Value);
 
 	// Other
+	bool		IsExpansionEnabled(int Chip) const;		// // //
+	int			GetNamcoChannelCount() const;		// // //
+
 	uint8_t		GetReg(int Chip, int Reg) const;
 	CRegisterState *GetRegState(unsigned Chip, unsigned Reg) const;		// // //
 	double		GetChannelFrequency(unsigned Chip, int Channel) const;		// // //

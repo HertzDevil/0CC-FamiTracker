@@ -272,6 +272,15 @@ void CSoundGen::WriteAPU(int Address, char Value)
 	PostThreadMessage(WM_USER_WRITE_APU, (WPARAM)Address, (LPARAM)Value);
 }
 
+bool CSoundGen::IsExpansionEnabled(int Chip) const {		// // //
+	return m_pDocument && m_pDocument->ExpansionEnabled(Chip);
+	return false;
+}
+
+int CSoundGen::GetNamcoChannelCount() const {		// // //
+	return m_pDocument ? m_pDocument->GetNamcoChannels() : 0;
+}
+
 void CSoundGen::PreviewSample(const CDSample *pSample, int Offset, int Pitch)		// // //
 {
 	if (!m_hThread)
