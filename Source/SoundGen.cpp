@@ -475,13 +475,16 @@ bool CSoundGen::PlayBuffer()
 {
 	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
-	std::lock_guard<std::mutex> lock {renderer_mtx_};
-	if (is_rendering_impl()) {
-		auto [pBuf, size] = m_pAudioDriver->ReleaseSoundBuffer();		// // //
-		m_pWaveRenderer->FlushBuffer(pBuf, size);		// // //
-		return true;
+	if (m_pWaveRenderer) {		// // //
+		std::lock_guard<std::mutex> lock {renderer_mtx_};
+		if (is_rendering_impl()) {
+			auto[pBuf, size] = m_pAudioDriver->ReleaseSoundBuffer();		// // //
+			m_pWaveRenderer->FlushBuffer(pBuf, size);		// // //
+			return true;
+		}
 	}
-	else if (!m_pAudioDriver->DoPlayBuffer())
+	
+	if (!m_pAudioDriver->DoPlayBuffer())
 		return false;
 
 	// // // Draw graph
