@@ -478,7 +478,7 @@ bool CSoundGen::PlayBuffer()
 	if (m_pWaveRenderer) {		// // //
 		std::lock_guard<std::mutex> lock {renderer_mtx_};
 		if (is_rendering_impl()) {
-			auto[pBuf, size] = m_pAudioDriver->ReleaseSoundBuffer();		// // //
+			auto [pBuf, size] = m_pAudioDriver->ReleaseSoundBuffer();		// // //
 			m_pWaveRenderer->FlushBuffer(pBuf, size);		// // //
 			return true;
 		}
@@ -584,10 +584,10 @@ void CSoundGen::OnStepRow() {
 }
 
 void CSoundGen::OnPlayNote(int chan, const stChanNote &note) {
-	if (m_pTrackerView) {
-		m_pTrackerView->PlayerPlayNote(chan, note);
-		if (!m_pTrackerView->IsChannelMuted(chan))
-			theApp.GetMIDI()->WriteNote(chan, note.Note, note.Octave, note.Vol);
+	if (!IsChannelMuted(chan)) {
+		if (m_pTrackerView)
+			m_pTrackerView->PlayerPlayNote(chan, note);
+		theApp.GetMIDI()->WriteNote(chan, note.Note, note.Octave, note.Vol);
 	}
 }
 
@@ -599,8 +599,12 @@ void CSoundGen::OnUpdateRow(int frame, int row) {
 		m_pTrackerView->PostMessage(WM_USER_PLAYER, frame, row);
 }
 
+void CSoundGen::SetChannelMute(int chan, bool mute) {		// // //
+	muted_[chan] = mute;
+}
+
 bool CSoundGen::IsChannelMuted(int chan) const {
-	return m_pTrackerView && m_pTrackerView->IsChannelMuted(chan);		// // // TODO: move into CChannel
+	return muted_[chan];
 }
 
 bool CSoundGen::ShouldStopPlayer() const {

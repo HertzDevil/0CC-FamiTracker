@@ -32,6 +32,7 @@
 #include "Common.h"
 #include <string>
 #include <vector>		// // //
+#include <array>		// // //
 #include <memory>		// // //
 #include <mutex>		// // //
 #include "FamiTrackerTypes.h"		// // //
@@ -128,6 +129,9 @@ public:
 	void		 ResetPlayer(int Track);
 	void		 LoadSettings();
 	void		 SilentAll();
+
+	void		 SetChannelMute(int chan, bool mute);		// // // TODO: move into CChannel
+	bool		 IsChannelMuted(int chan) const override;
 
 	void		 ResetState();
 	void		 ResetTempo();
@@ -244,7 +248,6 @@ private:
 	void		OnStepRow() override;
 	void		OnPlayNote(int chan, const stChanNote &note) override;
 	void		OnUpdateRow(int frame, int row) override;
-	bool		IsChannelMuted(int chan) const override; // TODO: remove
 	bool		ShouldStopPlayer() const override;
 	int			GetArpNote(int chan) const override; // TODO: remove
 
@@ -295,6 +298,8 @@ private:
 	std::shared_ptr<CWaveRenderer> m_pWaveRenderer;			// // //
 	mutable std::mutex renderer_mtx_;		// // //
 	std::unique_ptr<CInstrumentRecorder> m_pInstRecorder;
+
+	std::array<bool, MAX_CHANNELS> muted_ = { };			// // //
 
 	// FDS & N163 waves
 	volatile bool		m_bWaveChanged;

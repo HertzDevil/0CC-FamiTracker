@@ -296,7 +296,6 @@ CFamiTrackerView::CFamiTrackerView() :
 	m_bDragSource(false),
 	m_pPatternEditor(new CPatternEditor())
 {
-	memset(m_bMuteChannels, 0, sizeof(bool) * MAX_CHANNELS);
 	memset(m_cKeyList, 0, sizeof(char) * 256);
 
 	// Register this object in the sound generator
@@ -1104,11 +1103,9 @@ void CFamiTrackerView::OnTrackerPlayrow()
 	const int Row = GetSelectedRow();
 	const int Channels = pDoc->GetAvailableChannels();
 
-	for (int i = 0; i < Channels; ++i) {
-		stChanNote Note = pDoc->GetActiveNote(Track, Frame, i, Row);		// // //
-		if (!m_bMuteChannels[i])
-			theApp.GetSoundGenerator()->QueueNote(i, Note, NOTE_PRIO_1);
-	}
+	for (int i = 0; i < Channels; ++i)
+		if (!IsChannelMuted(i))
+			theApp.GetSoundGenerator()->QueueNote(i, pDoc->GetActiveNote(Track, Frame, i, Row), NOTE_PRIO_1);		// // //
 
 	m_pPatternEditor->MoveDown(1);
 	InvalidateCursor();
@@ -1440,8 +1437,8 @@ bool CFamiTrackerView::IsMarkerValid() const		// // //
 void CFamiTrackerView::PlayerPlayNote(int Channel, const stChanNote &pNote)
 {
 	// Callback from sound thread
-	if (!IsChannelMuted(Channel) && pNote.Instrument < MAX_INSTRUMENTS && pNote.Note != NONE &&
-		Channel == GetSelectedChannel() && m_bSwitchToInstrument)
+	if (m_bSwitchToInstrument && pNote.Instrument < MAX_INSTRUMENTS && pNote.Note != NONE &&
+		Channel == GetSelectedChannel())
 		m_iSwitchToInstrument = pNote.Instrument;
 }
 
@@ -1833,14 +1830,14 @@ void CFamiTrackerView::SetChannelMute(int Channel, bool bMute)
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
 
-	if (m_bMuteChannels[Channel] != bMute) {		// // //
+	if (IsChannelMuted(Channel) != bMute) {		// // //
 		HaltNoteSingle(Channel);
 //		if (bMute)
 //			m_pNoteQueue->MuteChannel(pDoc->GetChannelType(Channel));
 //		else
 //			m_pNoteQueue->UnmuteChannel(pDoc->GetChannelType(Channel));
 	}
-	m_bMuteChannels[Channel] = bMute;
+	theApp.GetSoundGenerator()->SetChannelMute(Channel, bMute);		// // //
 
 	if (bMute && pDoc->GetChannelType(Channel) == theApp.GetSoundGenerator()->GetRecordChannel())
 		theApp.GetSoundGenerator()->SetRecordChannel(-1);
@@ -1848,8 +1845,7 @@ void CFamiTrackerView::SetChannelMute(int Channel, bool bMute)
 
 bool CFamiTrackerView::IsChannelMuted(unsigned int Channel) const
 {
-	ASSERT(Channel < MAX_CHANNELS);
-	return m_bMuteChannels[Channel];
+	return theApp.GetSoundGenerator()->IsChannelMuted(Channel);
 }
 
 void CFamiTrackerView::SetInstrument(int Instrument)
@@ -1996,11 +1992,10 @@ void CFamiTrackerView::PlayNote(unsigned int Channel, unsigned int Note, unsigne
 		int Row = GetSelectedRow();
 		int Channels = pDoc->GetAvailableChannels();
 
-		for (int i = 0; i < Channels; ++i) {
-			stChanNote ChanNote = pDoc->GetActiveNote(Track, Frame, i, Row);		// // //
-			if (!m_bMuteChannels[i] && i != Channel)
-				theApp.GetSoundGenerator()->QueueNote(i, ChanNote, (i == Channel) ? NOTE_PRIO_2 : NOTE_PRIO_1);
-		}	
+		for (int i = 0; i < Channels; ++i)
+			if (!IsChannelMuted(i) && i != Channel)
+				theApp.GetSoundGenerator()->QueueNote(i, pDoc->GetActiveNote(Track, Frame, i, Row),
+					(i == Channel) ? NOTE_PRIO_2 : NOTE_PRIO_1);		// // //
 	}
 }
 

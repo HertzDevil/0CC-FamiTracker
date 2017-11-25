@@ -291,7 +291,6 @@ private:
 	paste_pos_t			m_iPastePos;							// // // Paste position
 
 	// Playing
-	bool				m_bMuteChannels[MAX_CHANNELS];			// Muted channels
 	int					m_iSwitchToInstrument;
 
 	// // // 050B
