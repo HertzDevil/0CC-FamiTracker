@@ -259,3 +259,33 @@ bool ModuleAction::CInstName::Merge(const CAction &other) {
 	}
 	return false;
 }
+
+
+
+ModuleAction::CSwapInst::CSwapInst(unsigned left, unsigned right) :
+	left_(left), right_(right)
+{
+}
+
+bool ModuleAction::CSwapInst::SaveState(const CMainFrame &MainFrm) {
+	if (left_ == right_)
+		return false;
+	auto &Doc = GET_DOCUMENT();
+	return Doc.IsInstrumentUsed(left_) && Doc.IsInstrumentUsed(right_);
+}
+
+void ModuleAction::CSwapInst::Undo(CMainFrame &MainFrm) {
+	auto &Doc = GET_DOCUMENT();
+	Doc.SwapInstruments(left_, right_);
+	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
+	MainFrm.SelectInstrument(left_);
+	MainFrm.UpdateInstrumentList();
+}
+
+void ModuleAction::CSwapInst::Redo(CMainFrame &MainFrm) {
+	auto &Doc = GET_DOCUMENT();
+	Doc.SwapInstruments(left_, right_);
+	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
+	MainFrm.SelectInstrument(right_);
+	MainFrm.UpdateInstrumentList();
+}

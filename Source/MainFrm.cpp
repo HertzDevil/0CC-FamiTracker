@@ -509,6 +509,8 @@ bool CMainFrame::CreateToolbars()
 		return false;      // fail to create
 	}
 
+	// // // TODO: 050B
+
 	rbi1.cbSize		= sizeof(REBARBANDINFO);
 	rbi1.fMask		= RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_STYLE | RBBIM_SIZE;
 	rbi1.fStyle		= RBBS_GRIPPERALWAYS;		// // // 050B
@@ -1085,15 +1087,7 @@ int CMainFrame::GetSelectedInstrument() const
 
 void CMainFrame::SwapInstruments(int First, int Second)
 {
-	// Swap two instruments
-	CFamiTrackerDoc &Doc = GetDoc();
-
-	Doc.SwapInstruments(First, Second);
-	Doc.ModifyIrreversible();		// // // make this a module action
-	UpdateInstrumentList();
-	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
-
-	SelectInstrument(Second);
+	AddAction(std::make_unique<ModuleAction::CSwapInst>(First, Second));		// // //
 }
 
 void CMainFrame::UpdateInstrumentName() const {		// // //

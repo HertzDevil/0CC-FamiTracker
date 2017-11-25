@@ -1774,29 +1774,17 @@ std::string_view CFamiTrackerDoc::GetModuleCopyright() const
 
 void CFamiTrackerDoc::SetModuleName(std::string_view pName)
 {
-	pName = pName.substr(0, METADATA_FIELD_LENGTH - 1);		// // //
-	if (m_strName != pName) {
-		m_strName = pName;
-//		ModifyIrreversible();
-	}
+	m_strName = pName.substr(0, METADATA_FIELD_LENGTH - 1);		// // //
 }
 
 void CFamiTrackerDoc::SetModuleArtist(std::string_view pArtist)
 {
-	pArtist = pArtist.substr(0, METADATA_FIELD_LENGTH - 1);		// // //
-	if (m_strArtist != pArtist) {
-		m_strArtist = pArtist;
-//		ModifyIrreversible();
-	}
+	m_strArtist = pArtist.substr(0, METADATA_FIELD_LENGTH - 1);		// // //
 }
 
 void CFamiTrackerDoc::SetModuleCopyright(std::string_view pCopyright)
 {
-	pCopyright = pCopyright.substr(0, METADATA_FIELD_LENGTH - 1);		// // //
-	if (m_strCopyright != pCopyright) {
-		m_strCopyright = pCopyright;
-//		ModifyIrreversible();
-	}
+	m_strCopyright = pCopyright.substr(0, METADATA_FIELD_LENGTH - 1);		// // //
 }
 
 //

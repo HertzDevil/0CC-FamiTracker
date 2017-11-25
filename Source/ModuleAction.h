@@ -135,4 +135,16 @@ private:
 	std::string newStr_;
 };
 
+class CSwapInst : public ::CModuleAction {
+public:
+	CSwapInst(unsigned left, unsigned right);
+private:
+	bool SaveState(const CMainFrame &MainFrm) override;
+	void Undo(CMainFrame &MainFrm) override;
+	void Redo(CMainFrame &MainFrm) override;
+
+	unsigned left_;
+	unsigned right_;
+};
+
 } // namespace ModuleAction
