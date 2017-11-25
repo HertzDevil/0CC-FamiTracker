@@ -1164,3 +1164,35 @@ void CPActionUniquePatterns::Redo(CMainFrame &MainFrm) {
 void CPActionUniquePatterns::UpdateView(CFamiTrackerDoc *pDoc) const {
 	pDoc->UpdateAllViews(NULL, UPDATE_FRAME);
 }
+
+
+
+bool CPActionClearAll::SaveState(const CMainFrame &MainFrm) {
+	const auto *pDoc = GET_DOCUMENT();
+	if (index_ >= pDoc->GetTrackCount())
+		return false;
+	const auto &Song = pDoc->GetSongData(index_);
+
+	songNew_ = std::make_unique<CSongData>(Song.GetPatternLength());
+	songNew_->SetSongSpeed(Song.GetSongSpeed());
+	songNew_->SetSongTempo(Song.GetSongTempo());
+	songNew_->SetFrameCount(1);
+	songNew_->SetSongGroove(Song.GetSongGroove());
+	songNew_->SetTitle(Song.GetTitle());
+
+	return true;
+}
+
+void CPActionClearAll::Undo(CMainFrame &MainFrm) {
+	auto pDoc = GET_DOCUMENT();
+	songNew_ = pDoc->ReplaceSong(index_, std::move(song_));
+}
+
+void CPActionClearAll::Redo(CMainFrame &MainFrm) {
+	auto pDoc = GET_DOCUMENT();
+	song_ = pDoc->ReplaceSong(index_, std::move(songNew_));
+}
+
+void CPActionClearAll::UpdateView(CFamiTrackerDoc *pDoc) const {
+	pDoc->UpdateAllViews(NULL, UPDATE_TRACK);
+}

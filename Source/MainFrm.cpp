@@ -3114,18 +3114,7 @@ void CMainFrame::OnEditTransposeCustom()		// // //
 
 void CMainFrame::OnEditClearPatterns()
 {
-	CFamiTrackerDoc &Doc = GetDoc();
-	int Track = GetSelectedTrack();
-
-	if (AfxMessageBox(IDS_CLEARPATTERN, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
-		return;
-
-	Doc.ClearPatterns(Track);
-	Doc.ModifyIrreversible();		// // //
-	ResetUndo();
-	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
-
-	ResetUndo();
+	AddAction(std::make_unique<CPActionClearAll>(GetSelectedTrack()));		// // //
 }
 
 void CMainFrame::OnEditRemoveUnusedInstruments()

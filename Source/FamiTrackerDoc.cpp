@@ -2119,11 +2119,6 @@ bool CFamiTrackerDoc::InsertRow(unsigned int Track, unsigned int Frame, unsigned
 	return true;
 }
 
-void CFamiTrackerDoc::ClearPatterns(unsigned int Track)
-{
-	GetSongData(Track).ClearEverything();		// // //
-}
-
 void CFamiTrackerDoc::ClearPattern(unsigned int Track, unsigned int Frame, unsigned int Channel)
 {
 	// Clear entire pattern

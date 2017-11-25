@@ -357,3 +357,17 @@ private:
 	std::unique_ptr<CSongData> songNew_;
 	unsigned index_ = 0;
 };
+
+class CPActionClearAll : public CPatternAction {
+public:
+	CPActionClearAll(unsigned index) : index_(index) { }
+private:
+	bool SaveState(const CMainFrame &MainFrm) override;
+	void Undo(CMainFrame &MainFrm) override;
+	void Redo(CMainFrame &MainFrm) override;
+	void UpdateView(CFamiTrackerDoc *pDoc) const;
+
+	std::unique_ptr<CSongData> song_;
+	std::unique_ptr<CSongData> songNew_;
+	unsigned index_ = 0;
+};

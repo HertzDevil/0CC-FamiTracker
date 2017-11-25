@@ -101,20 +101,6 @@ const CPatternData &CSongData::GetPatternOnFrame(unsigned Channel, unsigned Fram
 	return GetPattern(Channel, GetFramePattern(Frame, Channel));
 }
 
-void CSongData::ClearEverything()
-{
-	// Release all patterns and clear frame list
-
-	// Frame list
-	m_iFrameList.fill({ });		// // //
-	m_iFrameCount = 1;
-	
-	// Patterns, deallocate everything
-	for (auto &x : m_pPatternData)		// // //
-		for (auto &p : x)
-			p = CPatternData { };
-}
-
 void CSongData::ClearPattern(unsigned int Channel, unsigned int Pattern)
 {
 	// Deletes a specified pattern in a channel

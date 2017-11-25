@@ -54,7 +54,6 @@ public:
 	bool IsPatternInUse(unsigned int Channel, unsigned int Pattern) const;
 	bool ArePatternsSame(unsigned ch1, unsigned pat1, unsigned ch2, unsigned pat2) const;		// // //
 
-	void ClearEverything();
 	void ClearPattern(unsigned int Channel, unsigned int Pattern);
 
 	stChanNote &GetPatternData(unsigned Channel, unsigned Pattern, unsigned Row);		// // //
