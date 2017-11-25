@@ -30,6 +30,68 @@
 #include "BookmarkCollection.h"
 #include "BookmarkManager.h" // TODO: night not need this
 
+
+
+// CListBoxEx
+
+class CListBoxEx : public CListBox {
+	void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) override {
+		ASSERT(lpDrawItemStruct->CtlType == ODT_LISTBOX);
+		if (lpDrawItemStruct->itemID == -1)
+			return;
+
+		auto parent = dynamic_cast<CBookmarkDlg *>(GetParent());
+		bool active = parent && parent->IsBookmarkValid(lpDrawItemStruct->itemID);
+
+		CDC dc;
+		dc.Attach(lpDrawItemStruct->hDC);
+		COLORREF crOldTextColor = dc.GetTextColor();
+		COLORREF crOldBkColor = dc.GetBkColor();
+
+		CString str;
+		GetText(lpDrawItemStruct->itemID, str);
+
+		if ((lpDrawItemStruct->itemAction | ODA_SELECT) &&
+			(lpDrawItemStruct->itemState & ODS_SELECTED)) {
+			dc.SetTextColor(::GetSysColor(COLOR_HIGHLIGHTTEXT));
+			dc.SetBkColor(::GetSysColor(COLOR_HIGHLIGHT));
+			dc.FillSolidRect(&lpDrawItemStruct->rcItem,
+				::GetSysColor(COLOR_HIGHLIGHT));
+		}
+		else
+			dc.FillSolidRect(&lpDrawItemStruct->rcItem, crOldBkColor);
+
+		if (!active)
+			dc.SetTextColor(::GetSysColor(COLOR_GRAYTEXT));
+
+		dc.SetWindowOrg(-2, 0);
+		dc.DrawText(str, (int)_tcslen(str), &lpDrawItemStruct->rcItem, DT_SINGLELINE);
+
+		dc.SetWindowOrg(0, 0);
+		dc.SetTextColor(crOldTextColor);
+		dc.SetBkColor(crOldBkColor);
+
+		if ((lpDrawItemStruct->itemAction | ODA_FOCUS) &&
+			(lpDrawItemStruct->itemState & ODS_FOCUS))
+			dc.DrawFocusRect(&lpDrawItemStruct->rcItem);
+
+		dc.Detach();
+	}
+
+	void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct) override {
+		ASSERT(lpMeasureItemStruct->CtlType == ODT_LISTBOX);
+		CDC *pDC = GetDC();
+
+		TEXTMETRIC tm;
+		pDC->GetTextMetrics(&tm);
+		lpMeasureItemStruct->itemHeight = tm.tmHeight * 3 / 4;
+
+		ReleaseDC(pDC);
+	}
+};
+
+
+
 // CBookmarkDlg dialog
 
 IMPLEMENT_DYNAMIC(CBookmarkDlg, CDialog)
@@ -86,14 +148,10 @@ CBookmark *CBookmarkDlg::MakeBookmark() const
 	pMark->m_bPersist = m_bPersist;
 	pMark->m_sName = std::string(str);
 
-	pMark->m_iFrame %= m_pDocument->GetFrameCount(m_iTrack);
-	while (true) {
-		unsigned int Len = m_pDocument->GetFrameLength(m_iTrack, pMark->m_iFrame);
-		if (pMark->m_iRow < Len) break;
-		pMark->m_iRow -= Len;
-		if (++pMark->m_iFrame >= m_pDocument->GetFrameCount(m_iTrack))
-			pMark->m_iFrame = 0;
-	}
+	if (pMark->m_iFrame >= MAX_FRAMES)
+		pMark->m_iFrame = MAX_FRAMES - 1;
+	if (pMark->m_iRow >= MAX_PATTERN_LENGTH)
+		pMark->m_iRow = MAX_PATTERN_LENGTH - 1;
 
 	return pMark;
 }
@@ -107,16 +165,17 @@ void CBookmarkDlg::UpdateBookmarkList()
 
 void CBookmarkDlg::LoadBookmarks(int Track)
 {
-	m_pCollection = m_pManager->GetCollection(m_iTrack = Track);
-
 	m_cListBookmark->ResetContent();
-	if (m_pCollection) for (unsigned i = 0; i < m_pCollection->GetCount(); ++i) {
-		const CBookmark *pMark = m_pCollection->GetBookmark(i);
-		CString str(pMark->m_sName.c_str());
-		if (str.IsEmpty()) str = _T("Bookmark");
-		str.AppendFormat(_T(" (%02X,%02X)"), pMark->m_iFrame, pMark->m_iRow);
-		m_cListBookmark->AddString(str);
-	}
+	m_iTrack = Track;
+
+	if ((m_pCollection = m_pManager->GetCollection(Track)))
+		for (unsigned i = 0; i < m_pCollection->GetCount(); ++i) {
+			const CBookmark *pMark = m_pCollection->GetBookmark(i);
+			CString str(pMark->m_sName.c_str());
+			if (str.IsEmpty()) str = _T("Bookmark");
+			str.AppendFormat(_T(" (%02X,%02X)"), pMark->m_iFrame, pMark->m_iRow);
+			m_cListBookmark->AddString(str);
+		}
 }
 
 void CBookmarkDlg::SelectBookmark(int Pos)
@@ -132,9 +191,17 @@ void CBookmarkDlg::SetManager(CBookmarkManager *const pManager)
 	m_pManager = pManager;
 }
 
+bool CBookmarkDlg::IsBookmarkValid(unsigned index) const {
+	if (m_pCollection && m_pDocument)
+		if (auto pBookmark = m_pCollection->GetBookmark(index))
+			return pBookmark->m_iFrame < m_pDocument->GetFrameCount(m_iTrack) &&
+				pBookmark->m_iRow < (unsigned)m_pDocument->GetFrameLength(m_iTrack, pBookmark->m_iFrame);
+	return false;
+}
+
 BOOL CBookmarkDlg::OnInitDialog()
 {
-	m_cListBookmark = new CListBox();
+	m_cListBookmark = new CListBoxEx();
 	m_cSpinFrame = new CSpinButtonCtrl();
 	m_cSpinRow = new CSpinButtonCtrl();
 	m_cSpinHighlight1 = new CSpinButtonCtrl();
@@ -333,10 +400,9 @@ void CBookmarkDlg::OnLbnDblclkListBookmarks()
 
 	BOOL is_outside = FALSE;
 	UINT item_index = m_cListBookmark->ItemFromPoint(cursor, is_outside);
-	if (!is_outside) {
+	if (!is_outside && IsBookmarkValid(item_index)) {
 		CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(static_cast<CMainFrame*>(AfxGetMainWnd())->GetActiveView());
 		CBookmark *pMark = m_pCollection->GetBookmark(item_index);
-		
 		pView->SelectFrame(pMark->m_iFrame);
 		pView->SelectRow(pMark->m_iRow);
 		//static_cast<CMainFrame*>(AfxGetMainWnd())->SelectTrack(pMark->m_iTrack);
