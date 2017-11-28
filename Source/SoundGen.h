@@ -146,7 +146,8 @@ public:
 
 	// Tracker playing
 	stDPCMState	 GetDPCMState() const;
-	int			 GetChannelVolume(int Channel) const;		// // //
+	int			 GetChannelNote(int chan) const;		// // //
+	int			 GetChannelVolume(int chan) const;		// // //
 
 	// Rendering
 	bool		 RenderToFile(LPCTSTR pFile, const std::shared_ptr<CWaveRenderer> &pRender);		// // //
@@ -176,7 +177,6 @@ public:
 
 	void		WriteRegister(uint16_t Reg, uint8_t Value);
 
-	void		RegisterKeyState(int Channel, int Note);
 	void		SetNamcoMixing(bool bLinear);			// // //
 
 	// Player

@@ -274,7 +274,6 @@ void CSoundGen::WriteAPU(int Address, char Value)
 
 bool CSoundGen::IsExpansionEnabled(int Chip) const {		// // //
 	return m_pDocument && m_pDocument->ExpansionEnabled(Chip);
-	return false;
 }
 
 int CSoundGen::GetNamcoChannelCount() const {		// // //
@@ -601,6 +600,8 @@ void CSoundGen::OnUpdateRow(int frame, int row) {
 
 void CSoundGen::SetChannelMute(int chan, bool mute) {		// // //
 	muted_[chan] = mute;
+	if (mute && m_pDocument->GetChannelType(chan) == GetRecordChannel())
+		SetRecordChannel(-1);
 }
 
 bool CSoundGen::IsChannelMuted(int chan) const {
@@ -787,9 +788,12 @@ stDPCMState CSoundGen::GetDPCMState() const
 	return m_pAPU ? stDPCMState {m_pAPU->GetSamplePos(), m_pAPU->GetDeltaCounter()} : stDPCMState {0, 0};		// // //
 }
 
-int CSoundGen::GetChannelVolume(int Channel) const
-{
-	return m_pSoundDriver ? m_pSoundDriver->GetChannelVolume(Channel) : 0;
+int CSoundGen::GetChannelNote(int chan) const {		// // //
+	return m_pSoundDriver ? m_pSoundDriver->GetChannelNote(chan) : -1;
+}
+
+int CSoundGen::GetChannelVolume(int chan) const {		// // //
+	return m_pSoundDriver ? m_pSoundDriver->GetChannelVolume(chan) : 0;
 }
 
 // File rendering functions
@@ -1127,12 +1131,6 @@ void CSoundGen::OnRemoveDocument(WPARAM wParam, LPARAM lParam)
 	//	(*m_pDumpInstrument)->Release();
 	m_pInstRecorder->ResetRecordCache();
 	TRACE("SoundGen: Document removed\n");
-}
-
-void CSoundGen::RegisterKeyState(int Channel, int Note)
-{
-	if (m_pTrackerView != NULL)
-		m_pTrackerView->PostMessage(WM_USER_NOTE_EVENT, Channel, Note);
 }
 
 // FDS & N163

@@ -115,7 +115,6 @@ public:
 	void		 PlayerPlayNote(int Channel, const stChanNote &pNote);		// // //
 
 	void		 MakeSilent();
-	void		 RegisterKeyState(int Channel, int Note);
 
 	// Note preview
 	bool		 PreviewNote(unsigned char Key);
@@ -305,7 +304,6 @@ private:
 
 	// Input
 	char				m_cKeyList[256];
-	unsigned int		m_iKeyboardNote;
 	int					m_iLastNote;							// Last note added to pattern
 	int					m_iLastInstrument;						// Last instrument added to pattern
 	int					m_iLastVolume;							// Last volume added to pattern
@@ -415,7 +413,6 @@ public:
 	afx_msg void OnPickupRow();
 	afx_msg LRESULT OnUserMidiEvent(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnUserPlayerEvent(WPARAM wParam, LPARAM lParam);
-	afx_msg LRESULT OnUserNoteEvent(WPARAM wParam, LPARAM lParam);
 	virtual void OnInitialUpdate();
 	virtual DROPEFFECT OnDragEnter(COleDataObject* pDataObject, DWORD dwKeyState, CPoint point);
 	virtual void OnDragLeave();

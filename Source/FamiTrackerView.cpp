@@ -185,7 +185,6 @@ BEGIN_MESSAGE_MAP(CFamiTrackerView, CView)
 	ON_COMMAND(ID_POPUP_PICKUPROW, OnPickupRow)
 	ON_MESSAGE(WM_USER_MIDI_EVENT, OnUserMidiEvent)
 	ON_MESSAGE(WM_USER_PLAYER, OnUserPlayerEvent)
-	ON_MESSAGE(WM_USER_NOTE_EVENT, OnUserNoteEvent)
 	ON_WM_CLOSE()
 	ON_WM_DESTROY()
 	// // //
@@ -291,7 +290,6 @@ CFamiTrackerView::CFamiTrackerView() :
 	m_iNoteCorrection(),		// // //
 	m_pNoteQueue(new CNoteQueue { }),		// // //
 	m_iMenuChannel(-1),
-	m_iKeyboardNote(-1),
 	m_nDropEffect(DROPEFFECT_NONE),
 	m_bDragSource(false),
 	m_pPatternEditor(new CPatternEditor())
@@ -566,16 +564,6 @@ LRESULT CFamiTrackerView::OnUserPlayerEvent(WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-LRESULT CFamiTrackerView::OnUserNoteEvent(WPARAM wParam, LPARAM lParam)
-{
-	int Channel = wParam;
-	int Note = lParam;
-
-	RegisterKeyState(Channel, Note);
-
-	return 0;
-}
-
 void CFamiTrackerView::CalcWindowRect(LPRECT lpClientRect, UINT nAdjustType)
 {
 	// Window size has changed
@@ -832,9 +820,7 @@ void CFamiTrackerView::PeriodicUpdate()
 	CMainFrame *pMainFrm = static_cast<CMainFrame*>(GetParentFrame());
 	ASSERT_VALID(pMainFrm);
 
-	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
-
-	if (pSoundGen != NULL) {
+	if (const CSoundGen *pSoundGen = theApp.GetSoundGenerator()) {
 		// Skip updates when doing background tasks (WAV render for example)
 		if (!pSoundGen->IsBackgroundTask()) {
 
@@ -857,15 +843,16 @@ void CFamiTrackerView::PeriodicUpdate()
 				// // //
 			}
 		}
+
+		// TODO get rid of static variables
+		static int LastNoteState = -1;
+
+		int Note = pSoundGen->GetChannelNote(pDoc->GetChannelType(GetSelectedChannel()));		// // //
+		if (LastNoteState != Note)
+			pMainFrm->ChangeNoteState(Note);
+
+		LastNoteState = Note;
 	}
-
-	// TODO get rid of static variables
-	static int LastNoteState = -1;
-
-	if (LastNoteState != m_iKeyboardNote)
-		pMainFrm->ChangeNoteState(m_iKeyboardNote);
-
-	LastNoteState = m_iKeyboardNote;
 
 	// Switch instrument
 	if (m_iSwitchToInstrument != -1) {
@@ -1511,20 +1498,6 @@ void CFamiTrackerView::SetCompactMode(bool Mode)		// // //
 // General
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CFamiTrackerView::RegisterKeyState(int Channel, int Note)
-{
-	CFamiTrackerDoc *pDoc = GetDocument();
-	const auto &Chan = pDoc->GetChannel(GetSelectedChannel());		// // //
-
-	if (Chan.GetID() == Channel)
-		m_iKeyboardNote = Note;
-
-	/*
-	if (Chan == GetSelectedChannel())
-		m_iKeyboardNote = Note;
-		*/
-}
-
 void CFamiTrackerView::SelectNextFrame()
 {
 	m_pPatternEditor->NextFrame();
@@ -1838,9 +1811,6 @@ void CFamiTrackerView::SetChannelMute(int Channel, bool bMute)
 //			m_pNoteQueue->UnmuteChannel(pDoc->GetChannelType(Channel));
 	}
 	theApp.GetSoundGenerator()->SetChannelMute(Channel, bMute);		// // //
-
-	if (bMute && pDoc->GetChannelType(Channel) == theApp.GetSoundGenerator()->GetRecordChannel())
-		theApp.GetSoundGenerator()->SetRecordChannel(-1);
 }
 
 bool CFamiTrackerView::IsChannelMuted(unsigned int Channel) const

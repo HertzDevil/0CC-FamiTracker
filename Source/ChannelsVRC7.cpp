@@ -321,7 +321,7 @@ void CVRC7Channel::ClearRegisters()
 		RegWrite(i + m_iChannel, 0);
 	RegWrite(0x30 + m_iChannel, 0x0F);		// // //
 
-	m_iNote = 0;
+	m_iNote = -1;
 	m_iOctave = m_iOldOctave = -1;		// // //
 	m_iPatch = -1;
 	m_iEffect = EF_NONE;

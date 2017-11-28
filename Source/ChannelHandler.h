@@ -303,9 +303,11 @@ public:		// // //
 		\param Note The absolute note value. */
 	void	SetNote(int Note);
 	/*!	\brief Obtains the current note value of the channel.
-		\details This includes pitch changes due to transposing effects and the instrument handler.
 		\return The note value. */
 	int		GetNote() const;
+	/*!	\brief Obtains the active note value of the channel.
+		\return The note value. */
+	int		GetActiveNote() const;
 	/*!	\brief Sets the current instrument volume of the channel.
 		\details The channel interface never controls the channel volume.
 		\param Volume The instrument volume level. */
@@ -373,6 +375,10 @@ protected:
 	/*!	\brief The current note value of the channel.
 		\details Its value may be altered by transposing effects and the instrument handler. */
 	int				m_iNote;
+	/*!	\brief The active note value of the channel.
+		\details This may be different from the current note because notes can be triggered without
+		reading a new note. */
+	int				m_iActiveNote = -1;
 	/*!	\brief The current pitch register value of the channel.
 		\details It may represent a period register or a frequency register, depending on the sound
 		channel used. It may also be an internal representation that does not have the same resolution

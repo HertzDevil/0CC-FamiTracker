@@ -393,25 +393,24 @@ void CNoiseChan::HandleNote(int Note, int Octave)
 
 void CNoiseChan::SetupSlide()		// // //
 {
-	#define GET_SLIDE_SPEED(x) (((x & 0xF0) >> 3) + 1)
+	static const auto GetSlideSpeed = [] (unsigned char param) {
+		return ((param & 0xF0) >> 3) + 1;
+	};
 
 	switch (m_iEffect) {
 	case EF_PORTAMENTO:
 		m_iPortaSpeed = m_iEffectParam;
 		break;
 	case EF_SLIDE_UP:
-		m_iNote += (m_iEffectParam & 0xF);
-		m_iPortaSpeed = GET_SLIDE_SPEED(m_iEffectParam);
+		m_iNote += m_iEffectParam & 0xF;
+		m_iPortaSpeed = GetSlideSpeed(m_iEffectParam);
 		break;
 	case EF_SLIDE_DOWN:
-		m_iNote -= (m_iEffectParam & 0xF);
-		m_iPortaSpeed = GET_SLIDE_SPEED(m_iEffectParam);
+		m_iNote -= m_iEffectParam & 0xF;
+		m_iPortaSpeed = GetSlideSpeed(m_iEffectParam);
 		break;
 	}
 
-	#undef GET_SLIDE_SPEED
-
-	RegisterKeyState(m_iNote);
 	m_iPortaTo = m_iNote;
 }
 

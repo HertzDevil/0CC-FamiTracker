@@ -117,7 +117,7 @@ void CChannelHandlerN163::HandleEmptyNote()
 void CChannelHandlerN163::HandleCut()
 {
 	CutNote();
-	m_iNote = 0;
+	m_iNote = -1;
 	m_bRelease = false;
 }
 

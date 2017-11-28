@@ -145,7 +145,7 @@ void CChannelHandlerS5B::HandleCut()
 {
 	CutNote();
 	m_iDutyPeriod = S5B_MODE_SQUARE;
-	m_iNote = 0;
+	m_iNote = -1;
 }
 
 void CChannelHandlerS5B::HandleRelease()

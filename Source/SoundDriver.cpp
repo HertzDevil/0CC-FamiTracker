@@ -367,6 +367,11 @@ CChannelHandler *CSoundDriver::GetChannelHandler(int Index) const {
 	return tracks_[Index].first.get();
 }
 
+int CSoundDriver::GetChannelNote(int chan) const {
+	const auto &ch = GetChannelHandler(chan);
+	return ch ? ch->GetActiveNote() : -1;
+}
+
 int CSoundDriver::GetChannelVolume(int chan) const {
 	const auto &ch = GetChannelHandler(chan);
 	return ch ? ch->GetChannelVolume() : 0;

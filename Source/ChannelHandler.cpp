@@ -31,7 +31,6 @@
 #include "InstrumentManager.h"
 #include "TrackerChannel.h"		// // //
 #include "APU/Types.h"		// // //
-#include "stdafx.h"
 #include "SoundGen.h"
 #include "FamiTracker.h"
 #include "Settings.h"		// // //
@@ -60,7 +59,7 @@ CChannelHandler::CChannelHandler(int MaxPeriod, int MaxVolume) :
 	m_pAPU(NULL),
 	m_pInstHandler(),		// // //
 	m_iPitch(0),
-	m_iNote(0),
+	m_iNote(-1),		// // //
 	m_iInstVolume(0),
 	m_iDefaultDuty(0),
 	m_iDutyPeriod(0),
@@ -109,7 +108,7 @@ void CChannelHandler::SetPitch(int Pitch)
 
 int CChannelHandler::GetPitch() const 
 { 
-	if (m_iPitch != 0 && m_iNote != 0 && m_pNoteLookupTable != NULL) {
+	if (m_iPitch != 0 && m_iNote != -1 && m_pNoteLookupTable != NULL) {
 		// Interpolate pitch
 		int LowNote  = std::max(m_iNote - PITCH_WHEEL_RANGE, 0);
 		int HighNote = std::min(m_iNote + PITCH_WHEEL_RANGE, 95);
@@ -152,7 +151,7 @@ void CChannelHandler::ResetChannel()
 	m_iInstVolume		= 0;
 
 	// Period
-	m_iNote				= 0;		// // //
+	m_iNote				= -1;		// // //
 	m_iPeriod			= 0;
 
 	// Effect states
@@ -188,7 +187,7 @@ void CChannelHandler::ResetChannel()
 	m_bRelease			= false;
 	m_bGate				= false;
 
-	RegisterKeyState(-1);
+	RegisterKeyState(m_iNote);		// // //
 
 	// Clear channel registers
 	ClearRegisters();
@@ -539,7 +538,9 @@ void CChannelHandler::HandleNote(int Note, int Octave)		// // //
 
 void CChannelHandler::SetupSlide()		// // //
 {
-	#define GET_SLIDE_SPEED(x) (((x & 0xF0) >> 3) + 1)
+	static const auto GetSlideSpeed = [] (unsigned char param) {
+		return ((param & 0xF0) >> 3) + 1;
+	};
 
 	switch (m_iEffect) {
 	case EF_PORTAMENTO:
@@ -548,13 +549,13 @@ void CChannelHandler::SetupSlide()		// // //
 			m_iPortaTo = TriggerNote(m_iNote);
 		break;
 	case EF_SLIDE_UP:
-		m_iNote = m_iNote + (m_iEffectParam & 0xF);
-		m_iPortaSpeed = GET_SLIDE_SPEED(m_iEffectParam);
+		m_iNote += m_iEffectParam & 0xF;
+		m_iPortaSpeed = GetSlideSpeed(m_iEffectParam);
 		m_iPortaTo = TriggerNote(m_iNote);
 		break;
 	case EF_SLIDE_DOWN:
-		m_iNote = m_iNote - (m_iEffectParam & 0xF);
-		m_iPortaSpeed = GET_SLIDE_SPEED(m_iEffectParam);
+		m_iNote -= m_iEffectParam & 0xF;
+		m_iPortaSpeed = GetSlideSpeed(m_iEffectParam);
 		m_iPortaTo = TriggerNote(m_iNote);
 		break;
 	}
@@ -701,7 +702,7 @@ void CChannelHandler::UpdateNoteVolume()		// // //
 void CChannelHandler::UpdateTranspose()		// // //
 {
 	// Delayed transpose (Txy)
-	if (m_iTranspose > 0) if (!--m_iTranspose) {
+	if (m_iTranspose > 0) if (!--m_iTranspose && m_iNote != -1) {
 		// trigger note
 		SetNote(m_iNote + m_iTransposeTarget * (m_bTransposeDown ? -1 : 1));
 		SetPeriod(TriggerNote(m_iNote));
@@ -761,19 +762,18 @@ void CChannelHandler::UpdateEffects()
 	switch (m_iEffect) {
 		case EF_ARPEGGIO:
 			if (m_iEffectParam != 0) {
-				switch (m_iArpState) {
-					case 0:
-						SetPeriod(TriggerNote(m_iNote));
-						break;
-					case 1:
-						SetPeriod(TriggerNote(m_iNote + (m_iEffectParam >> 4)));
-						if ((m_iEffectParam & 0x0F) == 0)
-							++m_iArpState;
-						break;
-					case 2:
-						SetPeriod(TriggerNote(m_iNote + (m_iEffectParam & 0x0F)));
-						break;
+				if (m_iNote != -1) {		// // //
+					int offset = [&] {
+						switch (m_iArpState) {
+						case 1: return m_iEffectParam >> 4;
+						case 2: return m_iEffectParam & 0x0F;
+						default: return 0;
+						}
+					}();
+					SetPeriod(TriggerNote(m_iNote + offset));
 				}
+				if (m_iArpState == 1 && !(m_iEffectParam & 0x0F))
+					++m_iArpState;
 				m_iArpState = (m_iArpState + 1) % 3;
 			}
 			break;
@@ -954,7 +954,7 @@ void CChannelHandler::WriteRegister(uint16_t Reg, uint8_t Value)
 
 void CChannelHandler::RegisterKeyState(int Note)
 {
-	m_pSoundGen->RegisterKeyState(m_iChannelID, Note);
+	m_iActiveNote = Note;		// // //
 }
 
 void CChannelHandler::SetPeriod(int Period)
@@ -975,6 +975,10 @@ void CChannelHandler::SetNote(int Note)
 int CChannelHandler::GetNote() const
 {
 	return m_iNote;
+}
+
+int CChannelHandler::GetActiveNote() const {		// // //
+	return m_iActiveNote;
 }
 
 void CChannelHandler::SetVolume(int Volume)

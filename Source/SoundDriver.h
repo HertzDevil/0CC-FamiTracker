@@ -76,6 +76,7 @@ public:
 	unsigned GetPlayerTicks() const;
 	unsigned GetQueuedFrame() const;
 
+	int GetChannelNote(int chan) const;
 	int GetChannelVolume(int chan) const;
 	std::string GetChannelStateString(int chan) const;
 
