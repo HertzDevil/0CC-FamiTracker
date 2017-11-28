@@ -175,8 +175,6 @@ public:
 	bool		HasWaveChanged() const;
 	void		ResetWaveChanged();
 
-	void		WriteRegister(uint16_t Reg, uint8_t Value);
-
 	void		SetNamcoMixing(bool bLinear);			// // //
 
 	// Player
@@ -199,7 +197,6 @@ public:
 
 	bool HasDocument() const { return m_pDocument != NULL; };
 	CFamiTrackerDoc *GetDocument() const { return m_pDocument; };
-	CFTMComponentInterface *GetDocumentInterface() const;
 
 	// Sequence play position
 	void SetSequencePlayPos(const CSequence *pSequence, int Pos);
@@ -244,6 +241,7 @@ private:
 	void		ApplyGlobalState();		// // //
 
 	// // // CSoundGenBase impl
+	CFTMComponentInterface *GetDocumentInterface() const override;
 	void		OnTick() override;
 	void		OnStepRow() override;
 	void		OnPlayNote(int chan, const stChanNote &note) override;

@@ -39,7 +39,6 @@ class CAPU;
 class CSongState;
 class stChanNote;
 class CSoundGenBase;
-class CSoundGen; // TODO: remove
 enum note_prio_t;
 
 class CSoundDriver {
@@ -48,7 +47,7 @@ public:
 	~CSoundDriver();
 
 	void SetupTracks();
-	void LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu, CSoundGen &sound);
+	void LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu);
 	void ConfigureDocument();
 	void RegisterTracks();
 

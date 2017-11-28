@@ -107,14 +107,14 @@ void CSoundDriver::SetupTracks() {
 	AssignTrack(std::make_unique<CTrackerChannel>(_T("5B Square 3"), _T("5B3"), SNDCHIP_S5B, CHANID_S5B_CH3));
 }
 
-void CSoundDriver::LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu, CSoundGen &sound) {
+void CSoundDriver::LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu) {
 	doc_ = &doc;
 	apu_ = &apu;
 
 	// Setup all channels
 	for (auto &x : tracks_)		// // //
 		if (auto &ch = x.first)
-			ch->InitChannel(&apu, m_iVibratoTable, /*this*/ &sound);
+			ch->InitChannel(&apu, m_iVibratoTable, parent_);
 }
 
 void CSoundDriver::ConfigureDocument() {

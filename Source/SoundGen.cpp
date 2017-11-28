@@ -135,7 +135,7 @@ void CSoundGen::AssignDocument(CFamiTrackerDoc *pDoc)
 	m_pInstRecorder->m_pDocument = pDoc;		// // //
 	m_pTempoCounter = std::make_shared<CTempoCounter>(*m_pDocument);		// // //
 
-	m_pSoundDriver->LoadDocument(*pDoc, *m_pAPU, *this);		// // //
+	m_pSoundDriver->LoadDocument(*pDoc, *m_pAPU);		// // //
 	m_pSoundDriver->SetTempoCounter(m_pTempoCounter);		// // //
 	DocumentPropertiesChanged(pDoc);		// // //
 }
@@ -666,11 +666,7 @@ void CSoundGen::ResetAPU()
 	// Enable all channels
 	m_pAPU->Write(0x4015, 0x0F);
 	m_pAPU->Write(0x4017, 0x00);
-	
-	// // // for VGM
-	WriteRegister(0x4015, 0x0F);
-	WriteRegister(0x4017, 0x00);
-	WriteRegister(0x4023, 0x02); // FDS enable
+	m_pAPU->Write(0x4023, 0x02);		// // // FDS enable
 
 	// MMC5
 	m_pAPU->Write(0x5015, 0x03);
@@ -1196,14 +1192,6 @@ unsigned CSoundGen::GetQueueFrame() const
 }
 
 // Verification
-
-void CSoundGen::WriteRegister(uint16_t Reg, uint8_t Value)
-{
-#ifdef WRITE_VGM		// // //
-	uint8_t Port = 0;
-	m_pVGMWriter->WriteRegister(Reg, Value, Port);
-#endif
-}
 
 CFTMComponentInterface *CSoundGen::GetDocumentInterface() const
 {

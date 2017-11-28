@@ -31,7 +31,8 @@
 #include "InstrumentManager.h"
 #include "TrackerChannel.h"		// // //
 #include "APU/Types.h"		// // //
-#include "SoundGen.h"
+#include "SoundGenBase.h"		// // //
+#include "stdafx.h"
 #include "FamiTracker.h"
 #include "Settings.h"		// // //
 #include "APU/APU.h"
@@ -77,7 +78,7 @@ CChannelHandler::~CChannelHandler()
 {
 }
 
-void CChannelHandler::InitChannel(CAPU *pAPU, int *pVibTable, CSoundGen *pSoundGen)
+void CChannelHandler::InitChannel(CAPU *pAPU, int *pVibTable, CSoundGenBase *pSoundGen)		// // //
 {
 	// Called from main thread
 
@@ -949,7 +950,6 @@ int CChannelHandler::LimitVolume(int Volume) const		// // //
 void CChannelHandler::WriteRegister(uint16_t Reg, uint8_t Value)
 {
 	m_pAPU->Write(Reg, Value);
-	m_pSoundGen->WriteRegister(Reg, Value);
 }
 
 void CChannelHandler::RegisterKeyState(int Note)

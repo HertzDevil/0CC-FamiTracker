@@ -29,7 +29,7 @@ static const int DUTY_VRC6_FROM_2A03[] = {1, 3, 7, 3};		// // //
 
 class CInstHandler;
 class stChannelState;
-class CSoundGen;		// // //
+class CSoundGenBase;		// // //
 
 #include "ChannelHandlerInterface.h"
 #include "FamiTrackerTypes.h"		// // //
@@ -62,7 +62,7 @@ public:
 		\param pAPU Pointer to the sound channel object.
 		\param pVibTable Pointer to the vibrato lookup table.
 		\param pSoundGen Pointer to the sound generator object. */
-	void	InitChannel(CAPU *pAPU, int *pVibTable, CSoundGen *pSoundGen);
+	void	InitChannel(CAPU *pAPU, int *pVibTable, CSoundGenBase *pSoundGen);		// // //
 	/*!	\brief Called by the MIDI auto-arpeggio function to play a given note value.
 		\param Note The note value. */
 	void	Arpeggiate(unsigned int Note);
@@ -489,7 +489,7 @@ protected:
 	/*!	\brief A pointer to the underlying sound channel controller object. */
 	CAPU			*m_pAPU;
 	/*!	\brief A pointer to the sound generator object. */
-	CSoundGen		*m_pSoundGen;
+	CSoundGenBase	*m_pSoundGen = nullptr;		// // //
 
 	/*!	\brief A pointer to the channel's note lookup table.
 		\details The lookup table contains either period or frequency register values according to
