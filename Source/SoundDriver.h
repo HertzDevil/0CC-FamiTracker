@@ -56,24 +56,18 @@ public:
 	void ResetTracks();
 
 	void LoadSoundState(const CSongState &state);
-	void SetTempoCounter(const std::shared_ptr<CTempoCounter> &tempo);
+	void SetTempoCounter(std::shared_ptr<CTempoCounter> tempo);
 
 	void Tick();
-	void StepRow();
 	void UpdateAPU(int cycles);
 
 	void QueueNote(int chan, const stChanNote &note, note_prio_t priority);
-	void SetPlayerPos(int Frame, int Row);
-	void EnqueueFrame(int Frame);
 	void ForceReloadInstrument(int chan);
 
 	bool IsPlaying() const;
 	bool ShouldHalt() const;
 
-	int GetCurrentSong() const;
-	std::pair<unsigned, unsigned> GetPlayerPos() const;
-	unsigned GetPlayerTicks() const;
-	unsigned GetQueuedFrame() const;
+	CPlayerCursor *GetPlayerCursor() const;
 
 	int GetChannelNote(int chan) const;
 	int GetChannelVolume(int chan) const;
@@ -90,6 +84,7 @@ private:
 	void SetupPeriodTables();
 
 	void PlayerTick();
+	void StepRow(int chan);
 	void UpdateChannels();
 	void HandleGlobalEffects(stChanNote &note);
 

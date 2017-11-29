@@ -188,8 +188,8 @@ void CSoundDriver::LoadSoundState(const CSongState &state) {
 	}
 }
 
-void CSoundDriver::SetTempoCounter(const std::shared_ptr<CTempoCounter> &tempo) {
-	m_pTempoCounter = tempo;
+void CSoundDriver::SetTempoCounter(std::shared_ptr<CTempoCounter> tempo) {
+	m_pTempoCounter = std::move(tempo);
 	m_pTempoCounter->AssignDocument(*doc_);
 }
 
@@ -203,8 +203,15 @@ void CSoundDriver::Tick() {
 	}
 }
 
-void CSoundDriver::StepRow() {
-	// ???
+void CSoundDriver::StepRow(int chan) {
+	stChanNote NoteData = doc_->GetActiveNote(m_pPlayerCursor->GetCurrentSong(),
+		m_pPlayerCursor->GetCurrentFrame(), chan, m_pPlayerCursor->GetCurrentRow());		// // //
+	HandleGlobalEffects(NoteData);
+	if (!parent_ || !parent_->IsChannelMuted(chan))
+		QueueNote(chan, NoteData, NOTE_PRIO_1);
+	// Let view know what is about to play
+	if (parent_)
+		parent_->OnPlayNote(chan, NoteData);
 }
 
 void CSoundDriver::PlayerTick() {
@@ -223,16 +230,8 @@ void CSoundDriver::PlayerTick() {
 			++SteppedRows;
 		m_pTempoCounter->StepRow();		// // //
 
-		for (int i = 0, Channels = doc_->GetChannelCount(); i < Channels; ++i) {		// // //
-			stChanNote NoteData = doc_->GetActiveNote(m_pPlayerCursor->GetCurrentSong(),
-				m_pPlayerCursor->GetCurrentFrame(), i, m_pPlayerCursor->GetCurrentRow());		// // //
-			HandleGlobalEffects(NoteData);
-			if (!parent_ || !parent_->IsChannelMuted(i))
-				QueueNote(i, NoteData, NOTE_PRIO_1);
-			// Let view know what is about to play
-			if (parent_)
-				parent_->OnPlayNote(i, NoteData);
-		}
+		for (int i = 0, Channels = doc_->GetChannelCount(); i < Channels; ++i)		// // //
+			StepRow(i);
 
 		if (parent_)
 			parent_->OnStepRow();
@@ -323,15 +322,6 @@ void CSoundDriver::QueueNote(int chan, const stChanNote &note, note_prio_t prior
 	doc_->GetChannel(chan).SetNote(note, priority);
 }
 
-void CSoundDriver::SetPlayerPos(int Frame, int Row) {
-	if (m_pPlayerCursor)
-		m_pPlayerCursor->SetPosition(Frame, Row);
-}
-
-void CSoundDriver::EnqueueFrame(int Frame) {
-	m_pPlayerCursor->QueueFrame(Frame);
-}
-
 void CSoundDriver::ForceReloadInstrument(int chan) {
 	if (doc_)
 		tracks_[doc_->GetChannel(chan).GetID()].first->ForceReloadInstrument();
@@ -345,22 +335,8 @@ bool CSoundDriver::ShouldHalt() const {
 	return m_bHaltRequest;
 }
 
-int CSoundDriver::GetCurrentSong() const {
-	return m_pPlayerCursor->GetCurrentSong();
-}
-
-std::pair<unsigned, unsigned> CSoundDriver::GetPlayerPos() const {
-	return std::make_pair(
-		m_pPlayerCursor ? m_pPlayerCursor->GetCurrentFrame() : 0,
-		m_pPlayerCursor ? m_pPlayerCursor->GetCurrentRow() : 0);
-}
-
-unsigned CSoundDriver::GetPlayerTicks() const {
-	return m_pPlayerCursor ? m_pPlayerCursor->GetTotalTicks() : 0;
-}
-
-unsigned CSoundDriver::GetQueuedFrame() const {
-	return m_pPlayerCursor ? m_pPlayerCursor->GetQueuedFrame().value_or(-1) : -1;
+CPlayerCursor *CSoundDriver::GetPlayerCursor() const {
+	return m_pPlayerCursor.get();
 }
 
 CChannelHandler *CSoundDriver::GetChannelHandler(int Index) const {

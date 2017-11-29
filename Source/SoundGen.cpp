@@ -1162,7 +1162,9 @@ void CSoundGen::ForceReloadInstrument(int Channel)		// // //
 }
 
 std::pair<unsigned, unsigned> CSoundGen::GetPlayerPos() const {		// // //
-	return m_pSoundDriver->GetPlayerPos();
+	if (const auto &cursor = m_pSoundDriver->GetPlayerCursor())
+		return std::make_pair(cursor->GetCurrentFrame(), cursor->GetCurrentRow());
+	return std::make_pair(0, 0);
 }
 
 int CSoundGen::GetPlayerTrack() const
@@ -1172,23 +1174,29 @@ int CSoundGen::GetPlayerTrack() const
 
 int CSoundGen::GetPlayerTicks() const
 {
-	return m_pSoundDriver->GetPlayerTicks();
+	if (const auto &cursor = m_pSoundDriver->GetPlayerCursor())		// // //
+		return cursor->GetTotalTicks();
+	return 0;
 }
 
 void CSoundGen::MoveToFrame(int Frame)
 {
 	// Todo: synchronize
-	m_pSoundDriver->SetPlayerPos(Frame, 0);		// // //
+	if (auto cursor = m_pSoundDriver->GetPlayerCursor())
+		cursor->SetPosition(Frame, 0);		// // //
 }
 
 void CSoundGen::SetQueueFrame(unsigned Frame)
 {
-	m_pSoundDriver->EnqueueFrame(Frame);		// // //
+	if (auto cursor = m_pSoundDriver->GetPlayerCursor())
+		cursor->QueueFrame(Frame);		// // //
 }
 
 unsigned CSoundGen::GetQueueFrame() const
 {
-	return m_pSoundDriver->GetQueuedFrame();		// // //
+	if (const auto &cursor = m_pSoundDriver->GetPlayerCursor())
+		return cursor->GetQueuedFrame().value_or(-1);
+	return - 1;
 }
 
 // Verification
