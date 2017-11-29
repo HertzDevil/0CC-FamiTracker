@@ -1881,8 +1881,8 @@ void CFamiTrackerView::InsertNote(int Note, int Octave, int Channel, int Velocit
 				Cell.Octave = Octave = GET_OCTAVE(MidiNote);
 				Cell.Note = Note = GET_NOTE(MidiNote);
 			}
-			else if (IsSplitEnabled(MIDI_NOTE(Octave, Note), Channel))
-				SplitKeyboardAdjust(Cell);
+			else
+				SplitKeyboardAdjust(Cell, Channel);
 
 		}
 	}	
@@ -1942,15 +1942,14 @@ void CFamiTrackerView::PlayNote(unsigned int Channel, unsigned int Note, unsigne
 	else
 		NoteData.Instrument	= GetInstrument();
 */
-	int MidiNote = MIDI_NOTE(Octave, Note);		// // //
 	CFamiTrackerDoc *pDoc = GetDocument();
 
-	SplitAdjustChannel(Channel, NoteData);
+	Channel = SplitAdjustChannel(Channel, NoteData);
 	if (Channel < static_cast<unsigned>(pDoc->GetChannelCount())) {
+		int MidiNote = MIDI_NOTE(NoteData.Octave, NoteData.Note);		// // //
 		int ret = pDoc->GetChannelIndex(m_pNoteQueue->Trigger(MidiNote, pDoc->GetChannelType(Channel)));
 		if (ret != -1) {
-			if (IsSplitEnabled(MidiNote, ret)) 	// // //
-				SplitKeyboardAdjust(NoteData);
+			SplitKeyboardAdjust(NoteData, ret);
 			pDoc->GetChannel(ret).SetNote(NoteData, NOTE_PRIO_2);
 			theApp.GetSoundGenerator()->ForceReloadInstrument(ret);		// // //
 		}
@@ -1977,7 +1976,7 @@ void CFamiTrackerView::ReleaseNote(unsigned int Channel, unsigned int Note, unsi
 	NoteData.Note = RELEASE;
 	NoteData.Instrument = GetInstrument();
 	
-	SplitAdjustChannel(Channel, NoteData);		// // //
+	Channel = SplitAdjustChannel(Channel, NoteData);		// // //
 	CFamiTrackerDoc *pDoc = GetDocument();		// // //
 	if (Channel < static_cast<unsigned>(pDoc->GetChannelCount())) {
 		int ch = pDoc->GetChannelIndex(m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), pDoc->GetChannelType(Channel)));
@@ -2006,7 +2005,7 @@ void CFamiTrackerView::HaltNote(unsigned int Channel, unsigned int Note, unsigne
 	NoteData.Note = HALT;
 	NoteData.Instrument = GetInstrument();
 	
-	SplitAdjustChannel(Channel, NoteData);		// // //
+	Channel = SplitAdjustChannel(Channel, NoteData);		// // //
 	CFamiTrackerDoc *pDoc = GetDocument();		// // //
 	if (Channel < static_cast<unsigned>(pDoc->GetChannelCount())) {
 		int ch = pDoc->GetChannelIndex(m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), pDoc->GetChannelType(Channel)));
@@ -2033,7 +2032,7 @@ void CFamiTrackerView::HaltNoteSingle(unsigned int Channel) const
 	NoteData.Note = HALT;
 	NoteData.Instrument = GetInstrument();
 	
-	SplitAdjustChannel(Channel, NoteData);		// // // ?
+	Channel = SplitAdjustChannel(Channel, NoteData);		// // // ?
 	CFamiTrackerDoc *pDoc = GetDocument();		// // //
 	if (Channel < static_cast<unsigned>(pDoc->GetChannelCount())) {
 		for (const auto &i : m_pNoteQueue->StopChannel(pDoc->GetChannelType(Channel))) {
@@ -2887,9 +2886,8 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 bool CFamiTrackerView::DoRelease() const
 {
 	// Return true if there are a valid release sequence for selected instrument
-	auto pInstrument = GetDocument()->GetInstrument(GetInstrument());
-	if (!pInstrument) return false;
-	return pInstrument->CanRelease();
+	auto pInstrument = GetDocument()->GetInstrument(GetInstrument());		// // //
+	return pInstrument && pInstrument->CanRelease();
 }
 
 void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed) 
@@ -2951,35 +2949,29 @@ void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 	}
 }
 
-bool CFamiTrackerView::IsSplitEnabled(int MidiNote, int Channel) const		// // //
-{
-	if (m_iSplitNote == -1)
-		return false;
-	if (GetDocument()->GetChannel(Channel).GetID() == CHANID_NOISE)
-		return false;
-	return MidiNote <= m_iSplitNote;
-}
-
-void CFamiTrackerView::SplitKeyboardAdjust(stChanNote &Note) const		// // //
+void CFamiTrackerView::SplitKeyboardAdjust(stChanNote &Note, int Channel) const		// // //
 {
 	ASSERT(Note.Note >= NOTE_C && Note.Note <= NOTE_B);
-	int MidiNote = MIDI_NOTE(Note.Octave, Note.Note) + m_iSplitTranspose;
-	if (MidiNote < 0) MidiNote = 0;
-	if (MidiNote >= NOTE_COUNT) MidiNote = NOTE_COUNT - 1;
-	Note.Octave = GET_OCTAVE(MidiNote);
-	Note.Note = GET_NOTE(MidiNote);
+	if (m_iSplitNote != -1 && GetDocument()->GetChannelType(Channel) != CHANID_NOISE) {
+		int MidiNote = MIDI_NOTE(Note.Octave, Note.Note);
+		if (MidiNote <= m_iSplitNote) {
+			MidiNote = std::max(0, std::min(NOTE_COUNT - 1, MidiNote + m_iSplitTranspose));
+			Note.Octave = GET_OCTAVE(MidiNote);
+			Note.Note = GET_NOTE(MidiNote);
 
-	if (m_iSplitInstrument != MAX_INSTRUMENTS)
-		Note.Instrument = m_iSplitInstrument;
+			if (m_iSplitInstrument != MAX_INSTRUMENTS)
+				Note.Instrument = m_iSplitInstrument;
+		}
+	}
 }
 
-void CFamiTrackerView::SplitAdjustChannel(unsigned int &Channel, const stChanNote &Note) const		// // //
+unsigned CFamiTrackerView::SplitAdjustChannel(unsigned int Channel, const stChanNote &Note) const		// // //
 {
-	if (m_bEditEnable || m_iSplitChannel == -1) return;
-	if (m_iSplitNote != -1 && MIDI_NOTE(Note.Octave, Note.Note) <= m_iSplitNote) {
-		int Index = GetDocument()->GetChannelIndex(m_iSplitChannel);
-		if (Index != -1) Channel = Index;
-	}
+	if (!m_bEditEnable && m_iSplitChannel != -1)
+		if (m_iSplitNote != -1 && MIDI_NOTE(Note.Octave, Note.Note) <= m_iSplitNote)
+			if (int Index = GetDocument()->GetChannelIndex(m_iSplitChannel); Index != -1)
+				return Index;
+	return Channel;
 }
 
 bool CFamiTrackerView::CheckClearKey(unsigned char Key) const

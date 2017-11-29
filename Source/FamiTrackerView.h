@@ -224,9 +224,8 @@ private:
 
 	// MIDI keyboard emulation
 	void	HandleKeyboardNote(char nChar, bool Pressed);
-	bool	IsSplitEnabled(int MidiNote, int Channel) const;		// // //
-	void	SplitKeyboardAdjust(stChanNote &Note) const;		// // //
-	void	SplitAdjustChannel(unsigned int &Channel, const stChanNote &Note) const;		// // //
+	void	SplitKeyboardAdjust(stChanNote &Note, int Channel) const;		// // //
+	unsigned SplitAdjustChannel(unsigned int Channel, const stChanNote &Note) const;		// // //
 
 	// MIDI note functions
 	void	TriggerMIDINote(unsigned int Channel, unsigned int MidiNote, unsigned int Velocity, bool Insert);
