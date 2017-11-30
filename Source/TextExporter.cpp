@@ -185,11 +185,10 @@ public:
 		last_pos_ = pos = 0;
 		line = 1;
 		linestart = 0;
-		err_msg_ = _T("");		// // //
 	}
 
 	void FinishLine() {
-		if (int newpos = text.Find(TCHAR('\n'), pos); newpos >= 0) {		// // //
+		if (int newpos = text.Find(_T('\n'), pos); newpos >= 0) {		// // //
 			++line;
 			pos = newpos + 1;
 		}
@@ -210,14 +209,14 @@ public:
 		ConsumeSpace();
 		CString t = _T("");
 
-		bool isQuoted = TrimChar(TCHAR('\"'));		// // //
+		bool isQuoted = TrimChar(_T('\"'));		// // //
 		while (!Finished())
 			switch (TCHAR c = text.GetAt(pos)) {
-			case TCHAR('\r'): case TCHAR('\n'):
+			case _T('\r'): case _T('\n'):
 				if (isQuoted)
-					SetParseError(_T("incomplete quoted string."));
+					throw MakeError(_T("incomplete quoted string."));
 				goto outer;
-			case TCHAR('\"'):
+			case _T('\"'):
 				if (!isQuoted)
 					goto outer;
 				++pos;
@@ -225,7 +224,7 @@ public:
 					goto outer;
 				t += c;
 				break;
-			case TCHAR(' '): case TCHAR('\t'):
+			case _T(' '): case _T('\t'):
 				if (!isQuoted)
 					goto outer;
 				[[fallthrough]];
@@ -244,11 +243,11 @@ public:
 		int i = 0;
 		int c = GetColumn();
 		if (CString t = ReadToken(); t.IsEmpty())
-			SetParseError(_T("expected integer, no token found."));
+			throw MakeError(_T("expected integer, no token found."));
 		else if (::sscanf(t, "%d", &i) != 1)
-			SetParseError(_T("expected integer, '%s' found."), t);
+			throw MakeError(_T("expected integer, '%s' found."), t);
 		else if (i < range_min || i > range_max)
-			SetParseError(_T("expected integer in range [%d,%d], %d found."), range_min, range_max, i);
+			throw MakeError(_T("expected integer in range [%d,%d], %d found."), range_min, range_max, i);
 		last_pos_ = pos;
 		return i;
 	}
@@ -257,11 +256,11 @@ public:
 		int i = 0;
 		int c = GetColumn();
 		if (CString t = ReadToken(); t.IsEmpty())
-			SetParseError(_T("expected hexadecimal, no token found."));
+			throw MakeError(_T("expected hexadecimal, no token found."));
 		else if (::sscanf(t, "%x", &i) != 1)
-			SetParseError(_T("expected hexadecimal, '%s' found."), t);
+			throw MakeError(_T("expected hexadecimal, '%s' found."), t);
 		else if (i < range_min || i > range_max)
-			SetParseError(_T("expected hexidecmal in range [%X,%X], %X found."), range_min, range_max, i);
+			throw MakeError(_T("expected hexidecmal in range [%X,%X], %X found."), range_min, range_max, i);
 		last_pos_ = pos;
 		return i;
 	}
@@ -271,12 +270,12 @@ public:
 		int c = GetColumn();
 		ConsumeSpace();
 		if (CString s = ReadToken(); !s.IsEmpty())
-			SetParseError(_T("expected end of line, '%s' found."), s);
-		else if (!Finished())
-			if (TCHAR eol = text.GetAt(pos); eol != TCHAR('\r') && eol != TCHAR('\n'))
-				SetParseError(_T("expected end of line, '%c' found."), eol);
-			else
-				FinishLine();
+			throw MakeError(_T("expected end of line, '%s' found."), s);
+		if (!Finished()) {
+			if (TCHAR eol = text.GetAt(pos); eol != _T('\r') && eol != _T('\n'))
+				throw MakeError(_T("expected end of line, '%c' found."), eol);
+			FinishLine();
+		}
 		last_pos_ = pos;
 	}
 
@@ -288,7 +287,7 @@ public:
 			return true;
 		}
 
-		if (TrimChar(TCHAR('\n'))) {		// // //
+		if (TrimChar(_T('\n'))) {		// // //
 			++line;
 			last_pos_ = linestart = pos;
 			return true;
@@ -297,28 +296,34 @@ public:
 		return false;
 	}
 
-	const CString &GetErrorMessage() const {		// // //
-		return err_msg_;
-	}
-
-	int ImportHex(CString &sToken) {		// // //
+	int ImportHex(const CString &sToken) {		// // //
 		int i = 0;
 		for (int d=0; d < sToken.GetLength(); ++d)
 		{
-			const TCHAR* HEX_TEXT[16] = {
-				_T("0"), _T("1"), _T("2"), _T("3"), _T("4"), _T("5"), _T("6"), _T("7"),
-				_T("8"), _T("9"), _T("A"), _T("B"), _T("C"), _T("D"), _T("E"), _T("F") };
+			const TCHAR HEX_TEXT[16] = {
+				_T('0'), _T('1'), _T('2'), _T('3'), _T('4'), _T('5'), _T('6'), _T('7'),
+				_T('8'), _T('9'), _T('A'), _T('B'), _T('C'), _T('D'), _T('E'), _T('F'),
+			};
 
 			i <<= 4;
-			CString t = sToken.Mid(d,1).MakeUpper();		// // //
+			TCHAR t = sToken.Mid(d,1).MakeUpper().GetAt(0);		// // //
 			int h = 0;
 			for (h=0; h < 16; ++h)
-				if (t == HEX_TEXT[h]) break;
+				if (t == HEX_TEXT[h]) {
+					i += h;
+					break;
+				}
 			if (h >= 16)
-				SetParseError(_T("hexadecimal number expected, '%s' found."), sToken);
-			i += h;
+				throw MakeError(_T("hexadecimal number expected, '%s' found."), sToken);
 		}
 		return i;
+	}
+
+	template <typename... Args>
+	auto MakeError(LPCTSTR fmt, Args&&... args) const {		// // //
+		CString str = Formatted(_T("Line %d column %d: "), line, GetColumn());
+		str.AppendFormat(fmt, args...);
+		return std::runtime_error {(LPCTSTR)str};
 	}
 
 	stChanNote ImportCellText(unsigned fxMax, unsigned chip, bool isNoise) {		// // //
@@ -329,60 +334,51 @@ public:
 		else if (sNote == _T("---")) { Cell.Note = HALT; }
 		else if (sNote == _T("===")) { Cell.Note = RELEASE; }
 		else {
-			if (sNote.GetLength() != 3) {
-				SetParseError(_T("note column should be 3 characters wide, '%s' found."), sNote);
-				return Cell;
-			}
+			if (sNote.GetLength() != 3)
+				throw MakeError(_T("note column should be 3 characters wide, '%s' found."), sNote);
 
 			if (isNoise) {		// // // noise
 				int h = ImportHex(sNote.Left(1));		// // //
-				if (!GetErrorMessage().IsEmpty())
-					return Cell;
 				Cell.Note = (h % NOTE_RANGE) + 1;
 				Cell.Octave = h / NOTE_RANGE;
 
 				// importer is very tolerant about the second and third characters
 				// in a noise note, they can be anything
 			}
-			else if (sNote.GetAt(0) == TCHAR('^') && sNote.GetAt(1) == TCHAR('-')) {		// // //
-				int o = sNote.GetAt(2) - TCHAR('0');
-				if (o < 0 || o > ECHO_BUFFER_LENGTH) {
-					SetParseError(_T("out-of-bound echo buffer accessed."));
-					return Cell;
-				}
+			else if (sNote.GetAt(0) == _T('^') && sNote.GetAt(1) == _T('-')) {		// // //
+				int o = sNote.GetAt(2) - _T('0');
+				if (o < 0 || o > ECHO_BUFFER_LENGTH)
+					throw MakeError(_T("out-of-bound echo buffer accessed."));
 				Cell.Note = ECHO;
 				Cell.Octave = o;
 			}
 			else {
 				int n = 0;
 				switch (sNote.GetAt(0)) {
-				case TCHAR('c'): case TCHAR('C'): n = 0; break;
-				case TCHAR('d'): case TCHAR('D'): n = 2; break;
-				case TCHAR('e'): case TCHAR('E'): n = 4; break;
-				case TCHAR('f'): case TCHAR('F'): n = 5; break;
-				case TCHAR('g'): case TCHAR('G'): n = 7; break;
-				case TCHAR('a'): case TCHAR('A'): n = 9; break;
-				case TCHAR('b'): case TCHAR('B'): n = 11; break;
+				case _T('c'): case _T('C'): n = 0; break;
+				case _T('d'): case _T('D'): n = 2; break;
+				case _T('e'): case _T('E'): n = 4; break;
+				case _T('f'): case _T('F'): n = 5; break;
+				case _T('g'): case _T('G'): n = 7; break;
+				case _T('a'): case _T('A'): n = 9; break;
+				case _T('b'): case _T('B'): n = 11; break;
 				default:
-					SetParseError(_T("unrecognized note '%s'."), sNote);
-					return Cell;
+					throw MakeError(_T("unrecognized note '%s'."), sNote);
 				}
 				switch (sNote.GetAt(1)) {
-				case TCHAR('-'): case TCHAR('.'): break;
-				case TCHAR('#'): case TCHAR('+'): n += 1; break;
-				case TCHAR('b'): case TCHAR('f'): n -= 1; break;
+				case _T('-'): case _T('.'): break;
+				case _T('#'): case _T('+'): n += 1; break;
+				case _T('b'): case _T('f'): n -= 1; break;
 				default:
-					SetParseError(_T("unrecognized note '%s'."), sNote);
-					return Cell;
+					throw MakeError(_T("unrecognized note '%s'."), sNote);
 				}
 				while (n < 0) n += NOTE_RANGE;
 				while (n >= NOTE_RANGE) n -= NOTE_RANGE;
 				Cell.Note = n + 1;
 
-				int o = sNote.GetAt(2) - TCHAR('0');
+				int o = sNote.GetAt(2) - _T('0');
 				if (o < 0 || o >= OCTAVE_RANGE) {
-					SetParseError(_T("unrecognized octave '%s'."), sNote);
-					return Cell;
+					throw MakeError(_T("unrecognized octave '%s'."), sNote);
 				}
 				Cell.Octave = o;
 			}
@@ -392,17 +388,11 @@ public:
 		if (sInst == _T("..")) { Cell.Instrument = MAX_INSTRUMENTS; }
 		else if (sInst == _T("&&")) { Cell.Instrument = HOLD_INSTRUMENT; }		// // // 050B
 		else {
-			if (sInst.GetLength() != 2) {
-				SetParseError(_T("instrument column should be 2 characters wide, '%s' found."), sInst);
-				return Cell;
-			}
+			if (sInst.GetLength() != 2)
+				throw MakeError(_T("instrument column should be 2 characters wide, '%s' found."), sInst);
 			int h = ImportHex(sInst);		// // //
-			if (!GetErrorMessage().IsEmpty())
-				return Cell;
-			if (h >= MAX_INSTRUMENTS) {
-				SetParseError(_T("instrument '%s' is out of bounds."), sInst);
-				return Cell;
-			}
+			if (h >= MAX_INSTRUMENTS)
+				throw MakeError(_T("instrument '%s' is out of bounds."), sInst);
 			Cell.Instrument = h;
 		}
 
@@ -417,31 +407,22 @@ public:
 			for (; v < std::size(VOL_TEXT); ++v)
 				if (str == VOL_TEXT[v])
 					return v;
-			SetParseError(_T("unrecognized volume token '%s'."), str);
-			return v;
+			throw MakeError(_T("unrecognized volume token '%s'."), str);
 		}(ReadToken().MakeUpper());
-		if (!GetErrorMessage().IsEmpty())
-			return Cell;
 
 		for (unsigned int e = 0; e <= fxMax; ++e) {		// // //
 			CString sEff = ReadToken().MakeUpper();
-			if (sEff.GetLength() != 3) {
-				SetParseError(_T("effect column should be 3 characters wide, '%s' found."), sEff);
-				return Cell;
-			}
+			if (sEff.GetLength() != 3)
+				throw MakeError(_T("effect column should be 3 characters wide, '%s' found."), sEff);
 
 			if (sEff != _T("...")) {
 				bool Valid;		// // //
 				effect_t Eff = GetEffectFromChar(sEff.GetAt(0), chip, &Valid);
-				if (!Valid) {
-					SetParseError(_T("unrecognized effect '%s'."), sEff);
-					return Cell;
-				}
+				if (!Valid)
+					throw MakeError(_T("unrecognized effect '%s'."), sEff);
 				Cell.EffNumber[e] = Eff;
 
 				Cell.EffParam[e] = ImportHex(sEff.Right(2));		// // //
-				if (!GetErrorMessage().IsEmpty())
-					return Cell;
 			}
 		}
 
@@ -460,16 +441,8 @@ private:
 	}
 
 	void ConsumeSpace() {
-		while (TrimChar(TCHAR(' ')) || TrimChar(TCHAR('\t')))		// // //
+		while (TrimChar(_T(' ')) || TrimChar(_T('\t')))		// // //
 			;
-	}
-
-	template <typename... Args>
-	void SetParseError(LPCTSTR fmt, Args&&... args) {		// // //
-		if (err_msg_.IsEmpty()) {
-			err_msg_.Format(_T("Line %d column %d: "), line, GetColumn());
-			err_msg_.AppendFormat(fmt, args...);
-		}
 	}
 
 	CString ReadFromFile(LPCTSTR FileName) {
@@ -478,15 +451,14 @@ private:
 		if (CStdioFile f; f.Open(FileName, CFile::modeRead | CFile::typeText, &oFileException)) {
 			CString line;
 			while (f.ReadString(line))
-				buf += line + TCHAR('\n');
+				buf += line + _T('\n');
 			f.Close();
 			return buf;
 		}
 
 		TCHAR szError[256];
 		oFileException.GetErrorMessage(szError, std::size(szError));
-		err_msg_.Format(_T("Unable to open file:\n%s"), szError);
-		return _T("");
+		throw std::runtime_error {std::string {"Unable to open file:\n"} + szError};
 	}
 
 public:
@@ -497,7 +469,6 @@ private:
 	int pos = 0;
 	int linestart = 0;
 	int last_pos_ = 0;		// // //
-	CString err_msg_;
 };
 
 // =============================================================================
@@ -509,7 +480,7 @@ CString CTextExport::ExportString(const CString& s)
 	for (int i=0; i < s.GetLength(); ++i)
 	{
 		TCHAR c = s.GetAt(i);
-		if (c == TCHAR('\"'))
+		if (c == _T('\"'))
 			r += c;
 		r += c;
 	}	
@@ -570,11 +541,7 @@ CString CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEffe
 
 // =============================================================================
 
-#define CHECK(x) do { \
-		x; \
-		if (const auto &str = t.GetErrorMessage(); !str.IsEmpty()) \
-			return str; \
-	} while (false)
+#define CHECK(x) (x)
 
 #define CHECK_SYMBOL(x) do { \
 		if (CString symbol_ = t.ReadToken(); symbol_ != _T(x)) \
@@ -1045,11 +1012,9 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 					for (int c=0; c < pDoc->GetChannelCount(); ++c)
 					{
 						CHECK_COLON();
-						stChanNote stCell = t.ImportCellText(pDoc->GetEffColumns(track - 1, c),
+						stChanNote &&stCell = t.ImportCellText(pDoc->GetEffColumns(track - 1, c),
 							pDoc->GetChipType(c), pDoc->GetChannelType(c) == CHANID_NOISE);		// // //
-						if (const auto &err = t.GetErrorMessage(); !err.IsEmpty())
-							return err;
-						pDoc->SetDataAtPattern(track - 1, pattern, c, i, stCell);		// // //
+						pDoc->SetDataAtPattern(track - 1, pattern, c, i, std::move(stCell));		// // //
 					}
 					CHECK(t.ReadEOL());
 				}
@@ -1065,6 +1030,9 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 		pDoc->SelectExpansionChip(pDoc->GetExpansionChip()); // calls ApplyExpansionChip()
 	}
 	return _T("");
+}
+catch (std::runtime_error err) {
+	return err.what();
 }
 catch (CString err) {
 	return err;
@@ -1137,7 +1105,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	bool bCommentLines = false;
 	do
 	{
-		int nPos = sComment.Find(TCHAR('\r'));
+		int nPos = sComment.Find(_T('\r'));
 		bCommentLines = (nPos >= 0);
 		if (bCommentLines)
 		{
