@@ -541,11 +541,9 @@ CString CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEffe
 
 // =============================================================================
 
-#define CHECK(x) (x)
-
 #define CHECK_SYMBOL(x) do { \
 		if (CString symbol_ = t.ReadToken(); symbol_ != _T(x)) \
-			return Formatted(_T("Line %d column %d: expected '%s', '%s' found."), t.line, t.GetColumn(), _T(x), symbol_); \
+			throw t.MakeError(_T("expected '%s', '%s' found."), _T(x), symbol_); \
 	} while (false)
 
 #define CHECK_COLON() CHECK_SYMBOL(":")
@@ -557,7 +555,7 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 
 	// parse the file
 	Tokenizer t(FileName);		// // //
-	CHECK((void)0);
+	(void)0;
 
 	int i; // generic integer for reading
 	unsigned int dpcm_index = 0;
@@ -585,15 +583,15 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 				break;
 			case CT_TITLE:
 				pDoc->SetModuleName(Charify(t.ReadToken()));
-				CHECK(t.ReadEOL());
+				t.ReadEOL();
 				break;
 			case CT_AUTHOR:
 				pDoc->SetModuleArtist(Charify(t.ReadToken()));
-				CHECK(t.ReadEOL());
+				t.ReadEOL();
 				break;
 			case CT_COPYRIGHT:
 				pDoc->SetModuleCopyright(Charify(t.ReadToken()));
-				CHECK(t.ReadEOL());
+				t.ReadEOL();
 				break;
 			case CT_COMMENT:
 				{
@@ -602,56 +600,56 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 						sComment += "\r\n";
 					sComment += t.ReadToken();
 					pDoc->SetComment(sComment, pDoc->ShowCommentOnOpen());
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_MACHINE:
-				CHECK(i = t.ReadInt(0,PAL));
+				i = t.ReadInt(0,PAL);
 				pDoc->SetMachine(static_cast<machine_t>(i));
-				CHECK(t.ReadEOL());
+				t.ReadEOL();
 				break;
 			case CT_FRAMERATE:
-				CHECK(i = t.ReadInt(0,800));
+				i = t.ReadInt(0,800);
 				pDoc->SetEngineSpeed(i);
-				CHECK(t.ReadEOL());
+				t.ReadEOL();
 				break;
 			case CT_EXPANSION:
-				CHECK(i = t.ReadInt(0,255));
+				i = t.ReadInt(0,255);
 				pDoc->SelectExpansionChip(i);
-				CHECK(t.ReadEOL());
+				t.ReadEOL();
 				break;
 			case CT_VIBRATO:
-				CHECK(i = t.ReadInt(0,VIBRATO_NEW));
+				i = t.ReadInt(0,VIBRATO_NEW);
 				pDoc->SetVibratoStyle((vibrato_t)i);
-				CHECK(t.ReadEOL());
+				t.ReadEOL();
 				break;
 			case CT_SPLIT:
-				CHECK(i = t.ReadInt(0,255));
+				i = t.ReadInt(0,255);
 				pDoc->SetSpeedSplitPoint(i);
-				CHECK(t.ReadEOL());
+				t.ReadEOL();
 				break;
 			case CT_PLAYBACKRATE:		// // // 050B
-				CHECK(i = t.ReadInt(0,2));
+				i = t.ReadInt(0,2);
 
-				CHECK(i = t.ReadInt(0,0xFFFF));
+				i = t.ReadInt(0,0xFFFF);
 
-				CHECK(t.ReadEOL());
+				t.ReadEOL();
 				break;
 			case CT_TUNING:		// // // 050B
 			{
-				CHECK(i = t.ReadInt(-12,12));
+				i = t.ReadInt(-12,12);
 				int cent;
-				CHECK(cent = t.ReadInt(-100,100));
+				cent = t.ReadInt(-100,100);
 				pDoc->SetTuning(i, cent);
-				CHECK(t.ReadEOL());
+				t.ReadEOL();
 			}
 				break;
 			case CT_N163CHANNELS:
-				CHECK(i = t.ReadInt(1,8));
+				i = t.ReadInt(1,8);
 				N163count = i;		// // //
 				pDoc->SetNamcoChannels(8);
 				pDoc->SelectExpansionChip(pDoc->GetExpansionChip());
-				CHECK(t.ReadEOL());
+				t.ReadEOL();
 				break;
 			case CT_MACRO:
 			case CT_MACROVRC6:
@@ -662,24 +660,23 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 					int chip = c - CT_MACRO;
 
 					int mt;
-					CHECK(mt = t.ReadInt(0,SEQ_COUNT-1));
-					CHECK(i = t.ReadInt(0,MAX_SEQUENCES-1));
+					mt = t.ReadInt(0,SEQ_COUNT-1);
+					i = t.ReadInt(0,MAX_SEQUENCES-1);
 					CSequence* pSeq = pDoc->GetSequence(CHIP_MACRO[chip], i, mt);
 
 					int loop, release;		// // //
-					CHECK(loop = t.ReadInt(-1,MAX_SEQUENCE_ITEMS));
-					CHECK(release = t.ReadInt(-1,MAX_SEQUENCE_ITEMS));
-					CHECK(i = t.ReadInt(0,255));
+					loop = t.ReadInt(-1,MAX_SEQUENCE_ITEMS);
+					release = t.ReadInt(-1,MAX_SEQUENCE_ITEMS);
+					i = t.ReadInt(0,255);
 					pSeq->SetSetting(static_cast<seq_setting_t>(i));		// // //
 
 					CHECK_COLON();
 
 					int count = 0;
 					while (!t.IsEOL()) {
-						CHECK(i = t.ReadInt(-128,127));
-						if (count >= MAX_SEQUENCE_ITEMS) {
-							return Formatted(_T("Line %d column %d: macro overflow, max size: %d."), t.line, t.GetColumn(), MAX_SEQUENCE_ITEMS);
-						}
+						i = t.ReadInt(-128,127);
+						if (count >= MAX_SEQUENCE_ITEMS)
+							throw t.MakeError(_T("macro overflow, max size: %d."), MAX_SEQUENCE_ITEMS);
 						pSeq->SetItem(count, i);
 						++count;
 					}
@@ -690,18 +687,18 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 				break;
 			case CT_DPCMDEF:
 				{
-					CHECK(i = t.ReadInt(0,MAX_DSAMPLES-1));
+					i = t.ReadInt(0,MAX_DSAMPLES-1);
 					dpcm_index = i;
 					dpcm_pos = 0;
 
-					CHECK(i = t.ReadInt(0,CDSample::MAX_SIZE));
+					i = t.ReadInt(0,CDSample::MAX_SIZE);
 					dpcm_sample = new CDSample();		// // //
 					pDoc->SetSample(dpcm_index, dpcm_sample);
 					char *blank = new char[i]();
 					dpcm_sample->SetData(i, blank);
 					dpcm_sample->SetName(Charify(t.ReadToken()));
 
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_DPCM:
@@ -709,11 +706,9 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 					CHECK_COLON();
 					while (!t.IsEOL())
 					{
-						CHECK(i = t.ReadHex(0x00,0xFF));
+						i = t.ReadHex(0x00,0xFF);
 						if (dpcm_pos >= dpcm_sample->GetSize())
-						{
-							return Formatted(_T("Line %d column %d: DPCM sample %d overflow, increase size used in %s."), t.line, t.GetColumn(), dpcm_index, CT[CT_DPCMDEF]);
-						}
+							throw t.MakeError(_T("DPCM sample %d overflow, increase size used in %s."), dpcm_index, CT[CT_DPCMDEF]);
 						*(dpcm_sample->GetData() + dpcm_pos) = (char)(i);
 						++dpcm_pos;
 					}
@@ -722,28 +717,28 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 			case CT_DETUNE:		// // //
 				{
 					int oct, note, offset;
-					CHECK(i = t.ReadInt(0,5));
-					CHECK(oct = t.ReadInt(0,OCTAVE_RANGE-1));
-					CHECK(note = t.ReadInt(0,NOTE_RANGE-1));
-					CHECK(offset = t.ReadInt(-32768,32767));
+					i = t.ReadInt(0,5);
+					oct = t.ReadInt(0,OCTAVE_RANGE-1);
+					note = t.ReadInt(0,NOTE_RANGE-1);
+					offset = t.ReadInt(-32768,32767);
 					pDoc->SetDetuneOffset(i, oct * NOTE_RANGE + note, offset);
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_GROOVE:		// // //
 				{
 					int size, entry;
-					CHECK(i = t.ReadInt(0,MAX_GROOVE-1));
-					CHECK(size = t.ReadInt(1,MAX_GROOVE_SIZE));
+					i = t.ReadInt(0,MAX_GROOVE-1);
+					size = t.ReadInt(1,MAX_GROOVE_SIZE);
 					auto Groove = std::make_unique<CGroove>();
 					Groove->SetSize(size);
 					CHECK_COLON();
 					for (int j = 0; j < size; j++) {
-						CHECK(entry = t.ReadInt(1,255));
+						entry = t.ReadInt(1,255);
 						Groove->SetEntry(j, entry);
 					}
 					pDoc->SetGroove(i, std::move(Groove));
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_USEGROOVE:		// // //
@@ -751,7 +746,7 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 					CHECK_COLON();
 					int oldTrack = track;
 					while (!t.IsEOL()) {
-						CHECK(i = t.ReadInt(1,MAX_TRACKS));
+						i = t.ReadInt(1,MAX_TRACKS);
 						UseGroove[--i] = true;
 						if (static_cast<unsigned int>(i) < pDoc->GetTrackCount()) {
 							pDoc->SetSongGroove(i, true);
@@ -774,139 +769,131 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 						return INST_NONE;
 					}();
 					int inst_index;		// // //
-					CHECK(inst_index = t.ReadInt(0,MAX_INSTRUMENTS-1));
+					inst_index = t.ReadInt(0,MAX_INSTRUMENTS-1);
 					auto pInst = FTExt::InstrumentFactory::Make(Type);		// // //
 					auto seqInst = static_cast<CSeqInstrument *>(pInst.get());		// // //
 					for (int s=0; s < SEQ_COUNT; ++s)
 					{
-						CHECK(i = t.ReadInt(-1,MAX_SEQUENCES-1));
+						i = t.ReadInt(-1,MAX_SEQUENCES-1);
 						seqInst->SetSeqEnable(s, (i == -1) ? 0 : 1);
 						seqInst->SetSeqIndex(s, (i == -1) ? 0 : i);
 					}
 					if (c == CT_INSTN163) {
 						auto pInst = static_cast<CInstrumentN163*>(seqInst);
-						CHECK(i = t.ReadInt(0,256-16*N163count));		// // //
+						i = t.ReadInt(0,256-16*N163count);		// // //
 						pInst->SetWaveSize(i);
-						CHECK(i = t.ReadInt(0,256-16*N163count-1));		// // //
+						i = t.ReadInt(0,256-16*N163count-1);		// // //
 						pInst->SetWavePos(i);
-						CHECK(i = t.ReadInt(0,CInstrumentN163::MAX_WAVE_COUNT));
+						i = t.ReadInt(0,CInstrumentN163::MAX_WAVE_COUNT);
 						pInst->SetWaveCount(i);
 					}
 					seqInst->SetName(Charify(t.ReadToken()));
 					pDoc->AddInstrument(std::move(pInst), inst_index);
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_INSTVRC7:
 				{
-					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
+					i = t.ReadInt(0,MAX_INSTRUMENTS-1);
 					auto pInst = std::make_unique<CInstrumentVRC7>();		// // //
-					CHECK(i = t.ReadInt(0,15));
+					i = t.ReadInt(0,15);
 					pInst->SetPatch(i);
 					for (int r=0; r < 8; ++r)
 					{
-						CHECK(i = t.ReadHex(0x00,0xFF));
+						i = t.ReadHex(0x00,0xFF);
 						pInst->SetCustomReg(r, i);
 					}
 					pInst->SetName(Charify(t.ReadToken()));
 					pDoc->AddInstrument(std::move(pInst), i);		// // //
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_INSTFDS:
 				{
-					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
+					i = t.ReadInt(0,MAX_INSTRUMENTS-1);
 					auto pInst = std::make_unique<CInstrumentFDS>();		// // //
-					CHECK(i = t.ReadInt(0,1));
+					i = t.ReadInt(0,1);
 					pInst->SetModulationEnable(i==1);
-					CHECK(i = t.ReadInt(0,4095));
+					i = t.ReadInt(0,4095);
 					pInst->SetModulationSpeed(i);
-					CHECK(i = t.ReadInt(0,63));
+					i = t.ReadInt(0,63);
 					pInst->SetModulationDepth(i);
-					CHECK(i = t.ReadInt(0,255));
+					i = t.ReadInt(0,255);
 					pInst->SetModulationDelay(i);
 					pInst->SetName(Charify(t.ReadToken()));
 					pDoc->AddInstrument(std::move(pInst), i);		// // //
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_KEYDPCM:
 				{
-					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
+					i = t.ReadInt(0,MAX_INSTRUMENTS-1);
 					if (pDoc->GetInstrumentType(i) != INST_2A03)
-					{
-						return Formatted(_T("Line %d column %d: instrument %d is not defined as a 2A03 instrument."), t.line, t.GetColumn(), i);
-					}
+						throw t.MakeError(_T("instrument %d is not defined as a 2A03 instrument."), i);
 					auto pInst = std::static_pointer_cast<CInstrument2A03>(pDoc->GetInstrument(i));
 
 					int io, in;
-					CHECK(io = t.ReadInt(0,OCTAVE_RANGE));
-					CHECK(in = t.ReadInt(0,12));
+					io = t.ReadInt(0,OCTAVE_RANGE);
+					in = t.ReadInt(0,12);
 
-					CHECK(i = t.ReadInt(0,MAX_DSAMPLES-1));
+					i = t.ReadInt(0,MAX_DSAMPLES-1);
 					pInst->SetSampleIndex(io, in, i+1);
-					CHECK(i = t.ReadInt(0,15));
+					i = t.ReadInt(0,15);
 					pInst->SetSamplePitch(io, in, i);
-					CHECK(i = t.ReadInt(0,1));
+					i = t.ReadInt(0,1);
 					pInst->SetSampleLoop(io, in, i==1);
-					CHECK(i = t.ReadInt(0,255));
+					i = t.ReadInt(0,255);
 					pInst->SetSampleLoopOffset(io, in, i);
-					CHECK(i = t.ReadInt(-1,127));
+					i = t.ReadInt(-1,127);
 					pInst->SetSampleDeltaValue(io, in, i);
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_FDSWAVE:
 				{
-					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
+					i = t.ReadInt(0,MAX_INSTRUMENTS-1);
 					if (pDoc->GetInstrumentType(i) != INST_FDS)
-					{
-						return Formatted(_T("Line %d column %d: instrument %d is not defined as an FDS instrument."), t.line, t.GetColumn(), i);
-					}
+						throw t.MakeError(_T("instrument %d is not defined as an FDS instrument."), i);
 					auto pInst = std::static_pointer_cast<CInstrumentFDS>(pDoc->GetInstrument(i));
 					CHECK_COLON();
 					for (int s=0; s < CInstrumentFDS::WAVE_SIZE; ++s)
 					{
-						CHECK(i = t.ReadInt(0,63));
+						i = t.ReadInt(0,63);
 						pInst->SetSample(s, i);
 					}
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_FDSMOD:
 				{
-					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
+					i = t.ReadInt(0,MAX_INSTRUMENTS-1);
 					if (pDoc->GetInstrumentType(i) != INST_FDS)
-					{
-						return Formatted(_T("Line %d column %d: instrument %d is not defined as an FDS instrument."), t.line, t.GetColumn(), i);
-					}
+						throw t.MakeError(_T("instrument %d is not defined as an FDS instrument."), i);
 					auto pInst = std::static_pointer_cast<CInstrumentFDS>(pDoc->GetInstrument(i));
 					CHECK_COLON();
 					for (int s=0; s < CInstrumentFDS::MOD_SIZE; ++s)
 					{
-						CHECK(i = t.ReadInt(0,7));
+						i = t.ReadInt(0,7);
 						pInst->SetModulation(s, i);
 					}
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_FDSMACRO:
 				{
-					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
+					i = t.ReadInt(0,MAX_INSTRUMENTS-1);
 					if (pDoc->GetInstrumentType(i) != INST_FDS)
-					{
-						return Formatted(_T("Line %d column %d: instrument %d is not defined as an FDS instrument."), t.line, t.GetColumn(), i);
-					}
+						throw t.MakeError(_T("instrument %d is not defined as an FDS instrument."), i);
 					auto pInst = std::static_pointer_cast<CInstrumentFDS>(pDoc->GetInstrument(i));
 
-					CHECK(i = t.ReadInt(0,CInstrumentFDS::SEQUENCE_COUNT-1));
+					i = t.ReadInt(0,CInstrumentFDS::SEQUENCE_COUNT-1);
 					CSequence *pSeq = new CSequence();		// // //
 					pInst->SetSequence(i, pSeq);
-					CHECK(i = t.ReadInt(-1,MAX_SEQUENCE_ITEMS));
+					i = t.ReadInt(-1,MAX_SEQUENCE_ITEMS);
 					pSeq->SetLoopPoint(i);
-					CHECK(i = t.ReadInt(-1,MAX_SEQUENCE_ITEMS));
+					i = t.ReadInt(-1,MAX_SEQUENCE_ITEMS);
 					pSeq->SetReleasePoint(i);
-					CHECK(i = t.ReadInt(0,255));
+					i = t.ReadInt(0,255);
 					pSeq->SetSetting(static_cast<seq_setting_t>(i));		// // //
 
 					CHECK_COLON();
@@ -914,11 +901,9 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 					int count = 0;
 					while (!t.IsEOL())
 					{
-						CHECK(i = t.ReadInt(-128,127));
+						i = t.ReadInt(-128,127);
 						if (count >= MAX_SEQUENCE_ITEMS)
-						{
-							return Formatted(_T("Line %d column %d: macro overflow, max size: %d."), t.line, t.GetColumn(), MAX_SEQUENCE_ITEMS);
-						}
+							throw t.MakeError(_T("macro overflow, max size: %d."), MAX_SEQUENCE_ITEMS);
 						pSeq->SetItem(count, i);
 						++count;
 					}
@@ -927,44 +912,37 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 				break;
 			case CT_N163WAVE:
 				{
-					CHECK(i = t.ReadInt(0,MAX_INSTRUMENTS-1));
+					i = t.ReadInt(0,MAX_INSTRUMENTS-1);
 					if (pDoc->GetInstrumentType(i) != INST_N163)
-					{
-						return Formatted(_T("Line %d column %d: instrument %d is not defined as an N163 instrument."), t.line, t.GetColumn(), i);
-					}
+						throw t.MakeError(_T("instrument %d is not defined as an N163 instrument."), i);
 					auto pInst = std::static_pointer_cast<CInstrumentN163>(pDoc->GetInstrument(i));
 
 					int iw;
-					CHECK(iw = t.ReadInt(0,CInstrumentN163::MAX_WAVE_COUNT-1));
+					iw = t.ReadInt(0,CInstrumentN163::MAX_WAVE_COUNT-1);
 					CHECK_COLON();
 					for (int s=0; s < pInst->GetWaveSize(); ++s)
 					{
-						CHECK(i = t.ReadInt(0,15));
+						i = t.ReadInt(0,15);
 						pInst->SetSample(iw, s, i);
 					}
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_TRACK:
 				{
-					if (track != 0)
-					{
-						if(pDoc->AddTrack() == -1)
-						{
-							return Formatted(_T("Line %d column %d: unable to add new track."), t.line, t.GetColumn());
-						}
-					}
+					if (track != 0 && pDoc->AddTrack() == -1)
+						throw t.MakeError(_T("unable to add new track."));
 					
-					CHECK(i = t.ReadInt(1,MAX_PATTERN_LENGTH));		// // //
+					i = t.ReadInt(1,MAX_PATTERN_LENGTH);		// // //
 					pDoc->SetPatternLength(track, i);
 					pDoc->SetSongGroove(track, UseGroove[track]);		// // //
-					CHECK(i = t.ReadInt(0,MAX_TEMPO));
+					i = t.ReadInt(0,MAX_TEMPO);
 					pDoc->SetSongSpeed(track, i);
-					CHECK(i = t.ReadInt(0,MAX_TEMPO));
+					i = t.ReadInt(0,MAX_TEMPO);
 					pDoc->SetSongTempo(track, i);
 					pDoc->SetTrackTitle(track, (LPCTSTR)t.ReadToken());		// // //
 
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 					++track;
 				}
 				break;
@@ -973,16 +951,16 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 					CHECK_COLON();
 					for (int c=0; c < pDoc->GetChannelCount(); ++c)
 					{
-						CHECK(i = t.ReadInt(1,MAX_EFFECT_COLUMNS));
+						i = t.ReadInt(1,MAX_EFFECT_COLUMNS);
 						pDoc->SetEffColumns(track-1,c,i-1);
 					}
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_ORDER:
 				{
 					int ifr;
-					CHECK(ifr = t.ReadHex(0,MAX_FRAMES-1));
+					ifr = t.ReadHex(0,MAX_FRAMES-1);
 					if (ifr >= (int)pDoc->GetFrameCount(track-1)) // expand to accept frames
 					{
 						pDoc->SetFrameCount(track-1,ifr+1);
@@ -990,25 +968,23 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 					CHECK_COLON();
 					for (int c=0; c < pDoc->GetChannelCount(); ++c)
 					{
-						CHECK(i = t.ReadHex(0,MAX_PATTERN-1));
+						i = t.ReadHex(0,MAX_PATTERN-1);
 						pDoc->SetPatternAtFrame(track-1,ifr, c, i);
 					}
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_PATTERN:
-				CHECK(i = t.ReadHex(0,MAX_PATTERN-1));
+				i = t.ReadHex(0,MAX_PATTERN-1);
 				pattern = i;
-				CHECK(t.ReadEOL());
+				t.ReadEOL();
 				break;
 			case CT_ROW:
 				{
 					if (track == 0)
-					{
-						return Formatted(_T("Line %d column %d: no TRACK defined, cannot add ROW data."), t.line, t.GetColumn());
-					}
+						throw t.MakeError(_T("no TRACK defined, cannot add ROW data."));
 
-					CHECK(i = t.ReadHex(0,MAX_PATTERN_LENGTH-1));
+					i = t.ReadHex(0,MAX_PATTERN_LENGTH-1);
 					for (int c=0; c < pDoc->GetChannelCount(); ++c)
 					{
 						CHECK_COLON();
@@ -1016,7 +992,7 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 							pDoc->GetChipType(c), pDoc->GetChannelType(c) == CHANID_NOISE);		// // //
 						pDoc->SetDataAtPattern(track - 1, pattern, c, i, std::move(stCell));		// // //
 					}
-					CHECK(t.ReadEOL());
+					t.ReadEOL();
 				}
 				break;
 			case CT_COUNT:
