@@ -2045,15 +2045,13 @@ void CMainFrame::OnFileImportText()
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
 
-	CTextExport Exporter;
 	CFamiTrackerDoc &Doc = GetDoc();
 	
-	CString sResult;		// // //
-	do sResult = Exporter.ImportFile(FileDialog.GetPathName(), &Doc);
-	while (sResult == _T("Retry"));
-	if (sResult.GetLength() > 0)
-	{
-		AfxMessageBox(sResult, MB_OK | MB_ICONEXCLAMATION);
+	try {
+		CTextExport { }.ImportFile(FileDialog.GetPathName(), Doc);
+	}
+	catch (std::runtime_error err) {
+		AfxMessageBox(err.what(), MB_OK | MB_ICONEXCLAMATION);
 	}
 
 	SetSongInfo(Doc);		// // //

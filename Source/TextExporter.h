@@ -31,8 +31,9 @@ class stChanNote;		// // //
 struct CTextExport {
 	static CString ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise);		// // //
 
+	void ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc);		// // //
+
 	// returns an empty string on success, otherwise returns a descriptive error
-	CString ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc);
 	CString ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc);
 	CString ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc);		// // //
 
