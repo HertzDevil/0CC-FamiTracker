@@ -699,10 +699,9 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 					CHECK(i = t.ReadInt(0,MAX_SEQUENCES-1));
 					CSequence* pSeq = pDoc->GetSequence(CHIP_MACRO[chip], i, mt);
 
-					CHECK(i = t.ReadInt(-1,MAX_SEQUENCE_ITEMS));
-					pSeq->SetLoopPoint(i);
-					CHECK(i = t.ReadInt(-1,MAX_SEQUENCE_ITEMS));
-					pSeq->SetReleasePoint(i);
+					int loop, release;		// // //
+					CHECK(loop = t.ReadInt(-1,MAX_SEQUENCE_ITEMS));
+					CHECK(release = t.ReadInt(-1,MAX_SEQUENCE_ITEMS));
 					CHECK(i = t.ReadInt(0,255));
 					pSeq->SetSetting(static_cast<seq_setting_t>(i));		// // //
 
@@ -718,6 +717,8 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 						++count;
 					}
 					pSeq->SetItemCount(count);
+					pSeq->SetLoopPoint(loop);		// // //
+					pSeq->SetReleasePoint(release);
 				}
 				break;
 			case CT_DPCMDEF:
@@ -1048,7 +1049,7 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 							pDoc->GetChipType(c), pDoc->GetChannelType(c) == CHANID_NOISE);		// // //
 						if (const auto &err = t.GetErrorMessage(); !err.IsEmpty())
 							return err;
-						pDoc->SetDataAtPattern(track, pattern, c, i, stCell);		// // //
+						pDoc->SetDataAtPattern(track - 1, pattern, c, i, stCell);		// // //
 					}
 					CHECK(t.ReadEOL());
 				}
