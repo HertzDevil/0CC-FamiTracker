@@ -24,18 +24,12 @@
 #pragma once
 
 #include "stdafx.h"		// // //
-#include "PatternNote.h"		// // //
 
 class CFamiTrackerDoc; // forward declaration
-class Tokenizer;
+class stChanNote;		// // //
 
-class CTextExport : public CObject
-{
-public:
-	CTextExport();
-	virtual ~CTextExport();
-
-	static const CString& ExportCellText(const stChanNote& stCell, unsigned int nEffects, bool bNoise);		// // //
+struct CTextExport {
+	static CString ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise);		// // //
 
 	// returns an empty string on success, otherwise returns a descriptive error
 	CString ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc);
@@ -43,8 +37,5 @@ public:
 	CString ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc);		// // //
 
 private:		// // //
-	bool ImportHex(CString& sToken, int& i, int line, int column, CString& sResult);
-	CString ExportString(const CString& s);
-	bool ImportCellText(CFamiTrackerDoc* pDoc, Tokenizer &t, unsigned int track, unsigned int pattern, unsigned int channel, unsigned int row, CString& sResult);
-	const char* Charify(CString& s);
+	CString ExportString(const CString &s);
 };

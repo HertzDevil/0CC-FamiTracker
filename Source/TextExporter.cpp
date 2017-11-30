@@ -34,15 +34,27 @@
 #include "InstrumentFDS.h"		// // //
 #include "InstrumentN163.h"		// // //
 
+#include <type_traits>		// // //
+
 namespace {
 
-template <typename... Args>		// // // TODO: pull this up
+template <typename T>
+struct printf_arg : std::disjunction<
+	std::is_scalar<std::decay_t<T>>,
+	std::is_convertible<T, LPCTSTR>
+> { };
+
+template <typename... Args>		// // // TODO: put this into stdafx.h perhaps
 CString Formatted(const char *fmt, Args&&... args) {
 	CString str;
-	static_assert(!std::disjunction_v<std::is_same<std::decay_t<Args>, std::string>...>,
-		"std::string not allowed in printf");
+	static_assert(std::conjunction_v<printf_arg<Args>...>,
+		"Only scalar types allowed in printf");
 	str.Format(fmt, std::forward<Args>(args)...);
 	return str;
+}
+
+const char *Charify(CString& s) {		// // //
+	return CT2CA((LPCTSTR)s, CP_UTF8);
 }
 
 } // namespace
@@ -170,27 +182,20 @@ public:
 	~Tokenizer() = default;
 
 	void Reset() {
-		pos = 0;
+		last_pos_ = pos = 0;
 		line = 1;
 		linestart = 0;
 		err_msg_ = _T("");		// // //
 	}
 
-	void ConsumeSpace() {
-		while (pos < text.GetLength()) {
-			if (TCHAR c = text.GetAt(pos); c != TCHAR(' ') && c != TCHAR('\t'))
-				return;
-			++pos;
-		}
-	}
-
 	void FinishLine() {
-		while (pos < text.GetLength() && text.GetAt(pos) != TCHAR('\n')) {
-			++pos;
+		if (int newpos = text.Find(TCHAR('\n'), pos); newpos >= 0) {		// // //
+			++line;
+			pos = newpos + 1;
 		}
-		if (pos < text.GetLength()) ++pos; // skip newline
-		++line;
-		linestart = pos;
+		else
+			pos = text.GetLength();
+		last_pos_ = linestart = pos;
 	}
 
 	int GetColumn() const {
@@ -205,84 +210,59 @@ public:
 		ConsumeSpace();
 		CString t = _T("");
 
-		bool inQuote = false;
-		bool lastQuote = false; // for finding double-quotes
-		while (true) {
-			if (pos >= text.GetLength()) break;
-			TCHAR c = text.GetAt(pos);
-			if ((c == TCHAR(' ') && !inQuote) ||
-				c == TCHAR('\t') ||
-				c == TCHAR('\r') ||
-				c == TCHAR('\n')) {
-				break;
-			}
-
-			// quotes suppress space ending the token
-			if (c == TCHAR('\"')) {
-				if (!inQuote && t.GetLength() == 0) // first quote begins a quoted string
-					inQuote = true;
-				else if (lastQuote) { // convert "" to "
-					t += c;
-					lastQuote = false;
-				}
-				else
-					lastQuote = true;
-			}
-			else {
-				lastQuote = false;
+		bool isQuoted = TrimChar(TCHAR('\"'));		// // //
+		while (!Finished())
+			switch (TCHAR c = text.GetAt(pos)) {
+			case TCHAR('\r'): case TCHAR('\n'):
+				if (isQuoted)
+					SetParseError(_T("incomplete quoted string."));
+				goto outer;
+			case TCHAR('\"'):
+				if (!isQuoted)
+					goto outer;
+				++pos;
+				if (!TrimChar('\"'))
+					goto outer;
 				t += c;
+				break;
+			case TCHAR(' '): case TCHAR('\t'):
+				if (!isQuoted)
+					goto outer;
+				[[fallthrough]];
+			default:
+				t += c;
+				++pos;
 			}
-
-			++pos;
-		};
+		outer:
 
 		//DEBUG_OUT("ReadToken(%d,%d): '%s'\n", line, GetColumn(), t);
+		last_pos_ = pos;
 		return t;
 	}
 
 	int ReadInt(int range_min, int range_max) {
 		int i = 0;
-		CString t = ReadToken();
 		int c = GetColumn();
-		if (t.GetLength() < 1) {
-			err_msg_.Format(_T("Line %d column %d: expected integer, no token found."), line, c);
-			return i;
-		}
-
-		int result = ::sscanf(t, "%d", &i);
-		if (result == EOF || result == 0) {
-			err_msg_.Format(_T("Line %d column %d: expected integer, '%s' found."), line, c, t);
-			return i;
-		}
-
-		if (i < range_min || i > range_max) {
-			err_msg_.Format(_T("Line %d column %d: expected integer in range [%d,%d], %d found."), line, c, range_min, range_max, i);
-			return i;
-		}
-
+		if (CString t = ReadToken(); t.IsEmpty())
+			SetParseError(_T("expected integer, no token found."));
+		else if (::sscanf(t, "%d", &i) != 1)
+			SetParseError(_T("expected integer, '%s' found."), t);
+		else if (i < range_min || i > range_max)
+			SetParseError(_T("expected integer in range [%d,%d], %d found."), range_min, range_max, i);
+		last_pos_ = pos;
 		return i;
 	}
 
 	int ReadHex(int range_min, int range_max) {
 		int i = 0;
-		CString t = ReadToken();
 		int c = GetColumn();
-		if (t.GetLength() < 1) {
-			err_msg_.Format(_T("Line %d column %d: expected hexadecimal, no token found."), line, c);
-			return i;
-		}
-
-		int result = ::sscanf(t, "%x", &i);
-		if (result == EOF || result == 0) {
-			err_msg_.Format(_T("Line %d column %d: expected hexadecimal, '%s' found."), line, c, t);
-			return i;
-		}
-
-		if (i < range_min || i > range_max) {
-			err_msg_.Format(_T("Line %d column %d: expected hexidecmal in range [%X,%X], %X found."), line, c, range_min, range_max, i);
-			return i;
-		}
-
+		if (CString t = ReadToken(); t.IsEmpty())
+			SetParseError(_T("expected hexadecimal, no token found."));
+		else if (::sscanf(t, "%x", &i) != 1)
+			SetParseError(_T("expected hexadecimal, '%s' found."), t);
+		else if (i < range_min || i > range_max)
+			SetParseError(_T("expected hexidecmal in range [%X,%X], %X found."), range_min, range_max, i);
+		last_pos_ = pos;
 		return i;
 	}
 
@@ -290,31 +270,27 @@ public:
 	void ReadEOL() {
 		int c = GetColumn();
 		ConsumeSpace();
-		CString s = ReadToken();
-		if (s.GetLength() > 0) {
-			err_msg_.Format(_T("Line %d column %d: expected end of line, '%s' found."), line, c, s);
-			return;
-		}
-
-		if (Finished()) return;
-
-		TCHAR eol = text.GetAt(pos);
-		if (eol != TCHAR('\r') && eol != TCHAR('\n')) {
-			err_msg_.Format(_T("Line %d column %d: expected end of line, '%c' found."), line, c, eol);
-			return;
-		}
-
-		FinishLine();
+		if (CString s = ReadToken(); !s.IsEmpty())
+			SetParseError(_T("expected end of line, '%s' found."), s);
+		else if (!Finished())
+			if (TCHAR eol = text.GetAt(pos); eol != TCHAR('\r') && eol != TCHAR('\n'))
+				SetParseError(_T("expected end of line, '%c' found."), eol);
+			else
+				FinishLine();
+		last_pos_ = pos;
 	}
 
 	// note: finishes line if found
 	bool IsEOL() {
 		ConsumeSpace();
-		if (Finished()) return true;
+		if (Finished()) {
+			last_pos_ = pos;
+			return true;
+		}
 
-		TCHAR eol = text.GetAt(pos);
-		if (eol == TCHAR('\r') || eol == TCHAR('\n')) {
-			FinishLine();
+		if (TrimChar(TCHAR('\n'))) {		// // //
+			++line;
+			last_pos_ = linestart = pos;
 			return true;
 		}
 
@@ -325,7 +301,177 @@ public:
 		return err_msg_;
 	}
 
+	int ImportHex(CString &sToken) {		// // //
+		int i = 0;
+		for (int d=0; d < sToken.GetLength(); ++d)
+		{
+			const TCHAR* HEX_TEXT[16] = {
+				_T("0"), _T("1"), _T("2"), _T("3"), _T("4"), _T("5"), _T("6"), _T("7"),
+				_T("8"), _T("9"), _T("A"), _T("B"), _T("C"), _T("D"), _T("E"), _T("F") };
+
+			i <<= 4;
+			CString t = sToken.Mid(d,1).MakeUpper();		// // //
+			int h = 0;
+			for (h=0; h < 16; ++h)
+				if (t == HEX_TEXT[h]) break;
+			if (h >= 16)
+				SetParseError(_T("hexadecimal number expected, '%s' found."), sToken);
+			i += h;
+		}
+		return i;
+	}
+
+	stChanNote ImportCellText(unsigned fxMax, unsigned chip, bool isNoise) {		// // //
+		stChanNote Cell;		// // //
+
+		CString sNote = ReadToken();
+		if (sNote == _T("...")) { Cell.Note = NONE; }
+		else if (sNote == _T("---")) { Cell.Note = HALT; }
+		else if (sNote == _T("===")) { Cell.Note = RELEASE; }
+		else {
+			if (sNote.GetLength() != 3) {
+				SetParseError(_T("note column should be 3 characters wide, '%s' found."), sNote);
+				return Cell;
+			}
+
+			if (isNoise) {		// // // noise
+				int h = ImportHex(sNote.Left(1));		// // //
+				if (!GetErrorMessage().IsEmpty())
+					return Cell;
+				Cell.Note = (h % NOTE_RANGE) + 1;
+				Cell.Octave = h / NOTE_RANGE;
+
+				// importer is very tolerant about the second and third characters
+				// in a noise note, they can be anything
+			}
+			else if (sNote.GetAt(0) == TCHAR('^') && sNote.GetAt(1) == TCHAR('-')) {		// // //
+				int o = sNote.GetAt(2) - TCHAR('0');
+				if (o < 0 || o > ECHO_BUFFER_LENGTH) {
+					SetParseError(_T("out-of-bound echo buffer accessed."));
+					return Cell;
+				}
+				Cell.Note = ECHO;
+				Cell.Octave = o;
+			}
+			else {
+				int n = 0;
+				switch (sNote.GetAt(0)) {
+				case TCHAR('c'): case TCHAR('C'): n = 0; break;
+				case TCHAR('d'): case TCHAR('D'): n = 2; break;
+				case TCHAR('e'): case TCHAR('E'): n = 4; break;
+				case TCHAR('f'): case TCHAR('F'): n = 5; break;
+				case TCHAR('g'): case TCHAR('G'): n = 7; break;
+				case TCHAR('a'): case TCHAR('A'): n = 9; break;
+				case TCHAR('b'): case TCHAR('B'): n = 11; break;
+				default:
+					SetParseError(_T("unrecognized note '%s'."), sNote);
+					return Cell;
+				}
+				switch (sNote.GetAt(1)) {
+				case TCHAR('-'): case TCHAR('.'): break;
+				case TCHAR('#'): case TCHAR('+'): n += 1; break;
+				case TCHAR('b'): case TCHAR('f'): n -= 1; break;
+				default:
+					SetParseError(_T("unrecognized note '%s'."), sNote);
+					return Cell;
+				}
+				while (n < 0) n += NOTE_RANGE;
+				while (n >= NOTE_RANGE) n -= NOTE_RANGE;
+				Cell.Note = n + 1;
+
+				int o = sNote.GetAt(2) - TCHAR('0');
+				if (o < 0 || o >= OCTAVE_RANGE) {
+					SetParseError(_T("unrecognized octave '%s'."), sNote);
+					return Cell;
+				}
+				Cell.Octave = o;
+			}
+		}
+
+		CString sInst = ReadToken();
+		if (sInst == _T("..")) { Cell.Instrument = MAX_INSTRUMENTS; }
+		else if (sInst == _T("&&")) { Cell.Instrument = HOLD_INSTRUMENT; }		// // // 050B
+		else {
+			if (sInst.GetLength() != 2) {
+				SetParseError(_T("instrument column should be 2 characters wide, '%s' found."), sInst);
+				return Cell;
+			}
+			int h = ImportHex(sInst);		// // //
+			if (!GetErrorMessage().IsEmpty())
+				return Cell;
+			if (h >= MAX_INSTRUMENTS) {
+				SetParseError(_T("instrument '%s' is out of bounds."), sInst);
+				return Cell;
+			}
+			Cell.Instrument = h;
+		}
+
+		Cell.Vol = [&] (const CString &str) -> unsigned {
+			if (str == _T("."))
+				return MAX_VOLUME;
+			const LPCTSTR VOL_TEXT[] = {
+				_T("0"), _T("1"), _T("2"), _T("3"), _T("4"), _T("5"), _T("6"), _T("7"),
+				_T("8"), _T("9"), _T("A"), _T("B"), _T("C"), _T("D"), _T("E"), _T("F"),
+			};
+			unsigned v = 0;
+			for (; v < std::size(VOL_TEXT); ++v)
+				if (str == VOL_TEXT[v])
+					return v;
+			SetParseError(_T("unrecognized volume token '%s'."), str);
+			return v;
+		}(ReadToken().MakeUpper());
+		if (!GetErrorMessage().IsEmpty())
+			return Cell;
+
+		for (unsigned int e = 0; e <= fxMax; ++e) {		// // //
+			CString sEff = ReadToken().MakeUpper();
+			if (sEff.GetLength() != 3) {
+				SetParseError(_T("effect column should be 3 characters wide, '%s' found."), sEff);
+				return Cell;
+			}
+
+			if (sEff != _T("...")) {
+				bool Valid;		// // //
+				effect_t Eff = GetEffectFromChar(sEff.GetAt(0), chip, &Valid);
+				if (!Valid) {
+					SetParseError(_T("unrecognized effect '%s'."), sEff);
+					return Cell;
+				}
+				Cell.EffNumber[e] = Eff;
+
+				Cell.EffParam[e] = ImportHex(sEff.Right(2));		// // //
+				if (!GetErrorMessage().IsEmpty())
+					return Cell;
+			}
+		}
+
+		last_pos_ = pos;
+		return Cell;
+	}
+
 private:
+	bool TrimChar(TCHAR ch) {
+		if (!Finished())
+			if (TCHAR x = text.GetAt(pos); x == ch) {
+				++pos;
+				return true;
+			}
+		return false;
+	}
+
+	void ConsumeSpace() {
+		while (TrimChar(TCHAR(' ')) || TrimChar(TCHAR('\t')))		// // //
+			;
+	}
+
+	template <typename... Args>
+	void SetParseError(LPCTSTR fmt, Args&&... args) {		// // //
+		if (err_msg_.IsEmpty()) {
+			err_msg_.Format(_T("Line %d column %d: "), line, GetColumn());
+			err_msg_.AppendFormat(fmt, args...);
+		}
+	}
+
 	CString ReadFromFile(LPCTSTR FileName) {
 		CString buf;
 		CFileException oFileException;
@@ -347,37 +493,14 @@ public:
 	int line = 1;
 
 private:
-	const CString text;
+	const CString text; // TODO: move outside and use string_view
 	int pos = 0;
 	int linestart = 0;
+	int last_pos_ = 0;		// // //
 	CString err_msg_;
 };
 
 // =============================================================================
-
-bool CTextExport::ImportHex(CString& sToken, int& i, int line, int column, CString& sResult)
-{
-	i = 0;
-	for (int d=0; d < sToken.GetLength(); ++d)
-	{
-		const TCHAR* HEX_TEXT[16] = {
-			_T("0"), _T("1"), _T("2"), _T("3"), _T("4"), _T("5"), _T("6"), _T("7"),
-			_T("8"), _T("9"), _T("A"), _T("B"), _T("C"), _T("D"), _T("E"), _T("F") };
-
-		i <<= 4;
-		CString t = sToken.Mid(d,1);
-		int h = 0;
-		for (h=0; h < 16; ++h)
-			if (0 == t.CompareNoCase(HEX_TEXT[h])) break;
-		if (h >= 16)
-		{
-			sResult.Format(_T("Line %d column %d: hexadecimal number expected, '%s' found."), line, column, sToken);
-			return false;
-		}
-		i += h;
-	}
-	return true;
-}
 
 CString CTextExport::ExportString(const CString& s)
 {
@@ -396,169 +519,17 @@ CString CTextExport::ExportString(const CString& s)
 
 // =============================================================================
 
-bool CTextExport::ImportCellText(		// // //
-	CFamiTrackerDoc* pDoc,
-	Tokenizer &t,
-	unsigned int track,
-	unsigned int pattern,
-	unsigned int channel,
-	unsigned int row,
-	CString& sResult)
+CString CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise)		// // //
 {
-	stChanNote Cell;		// // //
-
-	CString sNote = t.ReadToken();
-	if      (sNote == _T("...")) { Cell.Note = NONE; }
-	else if (sNote == _T("---")) { Cell.Note = HALT; }
-	else if (sNote == _T("===")) { Cell.Note = RELEASE; }
-	else
-	{
-		if (sNote.GetLength() != 3)
-		{
-			sResult.Format(_T("Line %d column %d: note column should be 3 characters wide, '%s' found."), t.line, t.GetColumn(), sNote);
-			return false;
-		}
-
-		if (channel == 3) // noise
-		{
-			int h;
-			if (!ImportHex(sNote.Left(1), h, t.line, t.GetColumn(), sResult))
-				return false;
-			Cell.Note = (h % NOTE_RANGE) + 1;
-			Cell.Octave = h / NOTE_RANGE;
-
-			// importer is very tolerant about the second and third characters
-			// in a noise note, they can be anything
-		}
-		else if (sNote.GetAt(0) == TCHAR('^') && sNote.GetAt(1) == TCHAR('-')) {		// // //
-			int o = sNote.GetAt(2) - TCHAR('0');
-			if (o < 0 || o > ECHO_BUFFER_LENGTH) {
-				sResult.Format(_T("Line %d column %d: out-of-bound echo buffer accessed."), t.line, t.GetColumn());
-				return false;
-			}
-			Cell.Note = ECHO;
-			Cell.Octave = o;
-		}
-		else {
-			int n = 0;
-			switch (sNote.GetAt(0))
-			{
-				case TCHAR('c'): case TCHAR('C'): n = 0; break;
-				case TCHAR('d'): case TCHAR('D'): n = 2; break;
-				case TCHAR('e'): case TCHAR('E'): n = 4; break;
-				case TCHAR('f'): case TCHAR('F'): n = 5; break;
-				case TCHAR('g'): case TCHAR('G'): n = 7; break;
-				case TCHAR('a'): case TCHAR('A'): n = 9; break;
-				case TCHAR('b'): case TCHAR('B'): n = 11; break;
-				default:
-					sResult.Format(_T("Line %d column %d: unrecognized note '%s'."), t.line, t.GetColumn(), sNote);
-					return false;
-			}
-			switch (sNote.GetAt(1))
-			{
-				case TCHAR('-'): case TCHAR('.'): break;
-				case TCHAR('#'): case TCHAR('+'): n += 1; break;
-				case TCHAR('b'): case TCHAR('f'): n -= 1; break;
-				default:
-					sResult.Format(_T("Line %d column %d: unrecognized note '%s'."), t.line, t.GetColumn(), sNote);
-					return false;
-			}
-			while (n < 0) n += NOTE_RANGE;
-			while (n >= NOTE_RANGE) n -= NOTE_RANGE;
-			Cell.Note = n + 1;
-
-			int o = sNote.GetAt(2) - TCHAR('0');
-			if (o < 0 || o >= OCTAVE_RANGE)
-			{
-				sResult.Format(_T("Line %d column %d: unrecognized octave '%s'."), t.line, t.GetColumn(), sNote);
-				return false;
-			}
-			Cell.Octave = o;
-		}
-	}
-
-	CString sInst = t.ReadToken();
-	if (sInst == _T("..")) { Cell.Instrument = MAX_INSTRUMENTS; }
-	else if (sInst == _T("&&")) { Cell.Instrument = HOLD_INSTRUMENT; }		// // // 050B
-	else
-	{
-		if (sInst.GetLength() != 2)
-		{
-			sResult.Format(_T("Line %d column %d: instrument column should be 2 characters wide, '%s' found."), t.line, t.GetColumn(), sInst);
-			return false;
-		}
-		int h;
-		if (!ImportHex(sInst, h, t.line, t.GetColumn(), sResult))
-			return false;
-		if (h >= MAX_INSTRUMENTS)
-		{
-			sResult.Format(_T("Line %d column %d: instrument '%s' is out of bounds."), t.line, t.GetColumn(), sInst);
-			return false;
-		}
-		Cell.Instrument = h;
-	}
-
-	CString sVol  = t.ReadToken();
-	const TCHAR* VOL_TEXT[17] = {
-		_T("0"), _T("1"), _T("2"), _T("3"), _T("4"), _T("5"), _T("6"), _T("7"),
-		_T("8"), _T("9"), _T("A"), _T("B"), _T("C"), _T("D"), _T("E"), _T("F"),
-		_T(".") };
-	int v = 0;
-	for (; v <= 17; ++v)
-		if (0 == sVol.CompareNoCase(VOL_TEXT[v])) break;
-	if (v > 17)
-	{
-		sResult.Format(_T("Line %d column %d: unrecognized volume token '%s'."), t.line, t.GetColumn(), sVol);
-		return false;
-	}
-	Cell.Vol = v;
-
-	for (unsigned int e=0; e <= pDoc->GetEffColumns(track, channel); ++e)
-	{
-		CString sEff = t.ReadToken();
-		if (sEff != _T("..."))
-		{
-			if (sEff.GetLength() != 3)
-			{
-				sResult.Format(_T("Line %d column %d: effect column should be 3 characters wide, '%s' found."), t.line, t.GetColumn(), sEff);
-				return false;
-			}
-
-			TCHAR pC = sEff.GetAt(0);
-			if (pC >= TCHAR('a') && pC <= TCHAR('z')) pC += TCHAR('A') - TCHAR('a');
-
-			bool Valid;		// // //
-			effect_t Eff = GetEffectFromChar(pC, pDoc->GetChipType(channel), &Valid);
-			if (!Valid)
-			{
-				sResult.Format(_T("Line %d column %d: unrecognized effect '%s'."), t.line, t.GetColumn(), sEff);
-				return false;
-			}
-			Cell.EffNumber[e] = Eff;
-
-			int h;
-			if (!ImportHex(sEff.Right(2), h, t.line, t.GetColumn(), sResult))
-				return false;
-			Cell.EffParam[e] = h;
-		}
-	}
-
-	pDoc->SetDataAtPattern(track,pattern,channel,row,Cell);		// // //
-	return true;
-}
-
-const CString& CTextExport::ExportCellText(const stChanNote& stCell, unsigned int nEffects, bool bNoise)		// // //
-{
-	static CString s;
 	CString tmp;
-	
-	static const char* TEXT_NOTE[ECHO+1] = {		// // //
+
+	static LPCTSTR TEXT_NOTE[ECHO+1] = {		// // //
 		_T("..."),
 		_T("C-?"), _T("C#?"), _T("D-?"), _T("D#?"), _T("E-?"), _T("F-?"),
 		_T("F#?"), _T("G-?"), _T("G#?"), _T("A-?"), _T("A#?"), _T("B-?"),
 		_T("==="), _T("---"), _T("^-?") };
-		
-	s = (stCell.Note <= ECHO) ? TEXT_NOTE[stCell.Note] : "...";		// // //
+
+	CString s = (stCell.Note <= ECHO) ? TEXT_NOTE[stCell.Note] : "...";		// // //
 	if (stCell.Note >= NOTE_C && stCell.Note <= NOTE_B || stCell.Note == ECHO)		// // //
 	{
 		if (bNoise)
@@ -599,21 +570,6 @@ const CString& CTextExport::ExportCellText(const stChanNote& stCell, unsigned in
 
 // =============================================================================
 
-CTextExport::CTextExport()
-{
-}
-
-CTextExport::~CTextExport()
-{
-}
-
-// =============================================================================
-
-const char *CTextExport::Charify(CString& s)		// // //
-{
-	return CT2CA((LPCTSTR)s, CP_UTF8);
-}
-
 #define CHECK(x) do { \
 		x; \
 		if (const auto &str = t.GetErrorMessage(); !str.IsEmpty()) \
@@ -627,29 +583,7 @@ const char *CTextExport::Charify(CString& s)		// // //
 
 #define CHECK_COLON() CHECK_SYMBOL(":")
 
-CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
-{
-	CString sResult;		// // //
-
-	// read file into "text" CString
-	const CString text = [&sResult, FileName] {		// // //
-		CString buf;
-		CStdioFile f;
-		CFileException oFileException;
-		if (!f.Open(FileName, CFile::modeRead | CFile::typeText, &oFileException)) {
-			TCHAR szError[256];
-			oFileException.GetErrorMessage(szError, std::size(szError));
-			sResult.Format(_T("Unable to open file:\n%s"), szError);
-		}
-		CString line;
-		while (f.ReadString(line))
-			buf += line + TCHAR('\n');
-		f.Close();
-		return buf;
-	}();
-	if (!sResult.IsEmpty())
-		return sResult;
-
+CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) try {
 	// begin a new document
 	if (!pDoc->OnNewDocument())
 		return _T("Unable to create new Famitracker document.");
@@ -670,11 +604,11 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 	{
 		// read first token on line
 		if (t.IsEOL()) continue; // blank line
-		CString command = t.ReadToken();
+		CString command = t.ReadToken().MakeUpper();		// // //
 
 		int c = 0;
 		for (; c < CT_COUNT; ++c)
-			if (0 == command.CompareNoCase(CT[c])) break;
+			if (command == CT[c]) break;
 
 		//DEBUG_OUT("Command read: %s\n", command);
 		switch (c)
@@ -1110,10 +1044,11 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 					for (int c=0; c < pDoc->GetChannelCount(); ++c)
 					{
 						CHECK_COLON();
-						if (!ImportCellText(pDoc, t, track-1, pattern, c, i, sResult))
-						{
-							return sResult;
-						}
+						stChanNote stCell = t.ImportCellText(pDoc->GetEffColumns(track - 1, c),
+							pDoc->GetChipType(c), pDoc->GetChannelType(c) == CHANID_NOISE);		// // //
+						if (const auto &err = t.GetErrorMessage(); !err.IsEmpty())
+							return err;
+						pDoc->SetDataAtPattern(track, pattern, c, i, stCell);		// // //
 					}
 					CHECK(t.ReadEOL());
 				}
@@ -1129,6 +1064,9 @@ CString CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc)
 		pDoc->SelectExpansionChip(pDoc->GetExpansionChip()); // calls ApplyExpansionChip()
 	}
 	return _T("");
+}
+catch (CString err) {
+	return err;
 }
 
 // =============================================================================
