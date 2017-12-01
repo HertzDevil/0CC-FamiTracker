@@ -20,9 +20,9 @@
 ** must bear this legend.
 */
 
+#include "Square.h"
 #include <memory>
 #include "APU.h"
-#include "Square.h"
 
 // This is also shared with MMC5
 

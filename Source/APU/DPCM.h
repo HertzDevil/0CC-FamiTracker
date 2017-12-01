@@ -25,6 +25,8 @@
 
 #include "2A03Chan.h"		// // //
 
+class CSampleMem;		// // //
+
 class CDPCM : public C2A03Chan {
 public:
 	CDPCM(CMixer *pMixer, int ID);		// // //

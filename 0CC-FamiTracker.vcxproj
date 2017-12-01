@@ -421,6 +421,8 @@
   <ItemGroup>
     <ClCompile Include="Source\ActionHandler.cpp" />
     <ClCompile Include="Source\APU\2A03.cpp" />
+    <ClCompile Include="Source\APU\2A03Chan.cpp" />
+    <ClCompile Include="Source\APU\Channel.cpp" />
     <ClCompile Include="Source\APU\S5B.cpp" />
     <ClCompile Include="Source\APU\SoundChip.cpp" />
     <ClCompile Include="Source\Arpeggiator.cpp" />

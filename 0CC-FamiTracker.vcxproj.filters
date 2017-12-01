@@ -744,6 +744,12 @@
     <ClCompile Include="Source\RegisterDisplay.cpp">
       <Filter>Source Files\Pattern Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Source\APU\Channel.cpp">
+      <Filter>Source Files\Sound Driver\Emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\APU\2A03Chan.cpp">
+      <Filter>Source Files\Sound Driver\Emulation\Internal Channels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">

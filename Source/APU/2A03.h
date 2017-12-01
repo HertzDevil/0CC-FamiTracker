@@ -28,16 +28,15 @@ class CMixer;
 #include "SoundChip.h"
 #include "Channel.h"
 
-class CSquare;
-class CTriangle;
-class CNoise;
-class CDPCM;
+#include "Square.h"		// // //
+#include "Triangle.h"
+#include "Noise.h"
+#include "DPCM.h"
 
 class C2A03 : public CSoundChip
 {
 public:
-	C2A03(CMixer *pMixer);
-	virtual ~C2A03();
+	explicit C2A03(CMixer *pMixer);
 
 	void Reset();
 	void Process(uint32_t Time);
@@ -59,19 +58,19 @@ public:
 	bool	DPCMPlaying() const;
 
 private:
-	inline void Clock_240Hz() const;		// // //
-	inline void Clock_120Hz() const;		// // //
-	inline void Clock_60Hz() const;		// // //
+	inline void Clock_240Hz();		// // //
+	inline void Clock_120Hz();		// // //
+	inline void Clock_60Hz();		// // //
 
 	inline void RunAPU1(uint32_t Time);
 	inline void RunAPU2(uint32_t Time);
 
 private:
-	CSquare		*m_pSquare1;
-	CSquare		*m_pSquare2;
-	CTriangle	*m_pTriangle;
-	CNoise		*m_pNoise;
-	CDPCM		*m_pDPCM;
+	CSquare		m_Square1;		// // //
+	CSquare		m_Square2;
+	CTriangle	m_Triangle;
+	CNoise		m_Noise;
+	CDPCM		m_DPCM;
 	
 	uint8_t		m_iFrameSequence;					// Frame sequence
 	uint8_t		m_iFrameMode;						// 4 or 5-steps frame sequence

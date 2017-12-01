@@ -20,25 +20,16 @@
 ** must bear this legend.
 */
 
+#include "2A03Chan.h"
+#include "Mixer.h"
 
-#pragma once
+uint16_t C2A03Chan::GetPeriod() const {
+	return m_iPeriod;
+}
 
-#include "Channel.h"
-
-class C2A03Chan : public CChannel {		// // //
-public:
-	using CChannel::CChannel;		// // //
-
-	uint16_t GetPeriod() const;
-
-protected:
-	void Mix(int32_t Value) override;
-
-protected:
-	// Variables used by channels
-	uint8_t		m_iControlReg;
-	uint8_t		m_iEnabled;
-	uint16_t	m_iPeriod;
-	uint16_t	m_iLengthCounter;
-	uint32_t	m_iCounter;
-};
+void C2A03Chan::Mix(int32_t Value) {
+	if (m_iLastValue != Value) {
+		m_pMixer->AddValue(m_iChanId, m_iChip, Value, Value, m_iTime);
+		m_iLastValue = Value;
+	}
+}

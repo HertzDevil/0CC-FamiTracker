@@ -20,37 +20,23 @@
 ** must bear this legend.
 */
 
-#include "../stdafx.h"
+#include "2A03.h"
 #include "../common.h"
 #include <algorithm>
 #include "Mixer.h"
-#include "Square.h"
-#include "Triangle.h"
-#include "Noise.h"
-#include "DPCM.h"
-#include "2A03.h"
 #include "../RegisterState.h"		// // //
 
 // // // 2A03 sound chip class
 
 C2A03::C2A03(CMixer *pMixer) :
 	CSoundChip(pMixer),
-	m_pSquare1(new CSquare(m_pMixer, CHANID_SQUARE1, SNDCHIP_NONE)),
-	m_pSquare2(new CSquare(m_pMixer, CHANID_SQUARE2, SNDCHIP_NONE)),
-	m_pTriangle(new CTriangle(m_pMixer, CHANID_TRIANGLE)),
-	m_pNoise(new CNoise(m_pMixer, CHANID_NOISE)),
-	m_pDPCM(new CDPCM(m_pMixer, CHANID_DPCM))		// // //
+	m_Square1(m_pMixer, CHANID_SQUARE1, SNDCHIP_NONE),
+	m_Square2(m_pMixer, CHANID_SQUARE2, SNDCHIP_NONE),
+	m_Triangle(m_pMixer, CHANID_TRIANGLE),
+	m_Noise(m_pMixer, CHANID_NOISE),
+	m_DPCM(m_pMixer, CHANID_DPCM)		// // //
 {
 	m_pRegisterLogger->AddRegisterRange(0x4000, 0x4017);		// // //
-}
-
-C2A03::~C2A03()
-{
-	if (m_pSquare1) delete m_pSquare1;
-	if (m_pSquare2) delete m_pSquare2;
-	if (m_pTriangle) delete m_pTriangle;
-	if (m_pNoise) delete m_pNoise;
-	if (m_pDPCM) delete m_pDPCM;
 }
 
 void C2A03::Reset()
@@ -58,11 +44,11 @@ void C2A03::Reset()
 	m_iFrameSequence	= 0;
 	m_iFrameMode		= 0;
 
-	m_pSquare1->Reset();
-	m_pSquare2->Reset();
-	m_pTriangle->Reset();
-	m_pNoise->Reset();
-	m_pDPCM->Reset();
+	m_Square1.Reset();
+	m_Square2.Reset();
+	m_Triangle.Reset();
+	m_Noise.Reset();
+	m_DPCM.Reset();
 }
 
 void C2A03::Process(uint32_t Time)
@@ -73,11 +59,11 @@ void C2A03::Process(uint32_t Time)
 
 void C2A03::EndFrame()
 {
-	m_pSquare1->EndFrame();
-	m_pSquare2->EndFrame();
-	m_pTriangle->EndFrame();
-	m_pNoise->EndFrame();
-	m_pDPCM->EndFrame();
+	m_Square1.EndFrame();
+	m_Square2.EndFrame();
+	m_Triangle.EndFrame();
+	m_Noise.EndFrame();
+	m_DPCM.EndFrame();
 }
 
 void C2A03::Write(uint16_t Address, uint8_t Value)
@@ -85,11 +71,11 @@ void C2A03::Write(uint16_t Address, uint8_t Value)
 	if (Address < 0x4000U || Address > 0x401FU) return;
 	switch (Address) {
 	case 0x4015:
-		m_pSquare1->WriteControl(Value);
-		m_pSquare2->WriteControl(Value >> 1);
-		m_pTriangle->WriteControl(Value >> 2);
-		m_pNoise->WriteControl(Value >> 3);
-		m_pDPCM->WriteControl(Value >> 4);
+		m_Square1.WriteControl(Value);
+		m_Square2.WriteControl(Value >> 1);
+		m_Triangle.WriteControl(Value >> 2);
+		m_Noise.WriteControl(Value >> 3);
+		m_DPCM.WriteControl(Value >> 4);
 		return;
 	case 0x4017:
 		m_iFrameSequence = 0;
@@ -105,11 +91,11 @@ void C2A03::Write(uint16_t Address, uint8_t Value)
 	}
 
 	switch (Address & 0x1C) {
-		case 0x00: m_pSquare1->Write(Address & 0x03, Value); break;
-		case 0x04: m_pSquare2->Write(Address & 0x03, Value); break;
-		case 0x08: m_pTriangle->Write(Address & 0x03, Value); break;
-		case 0x0C: m_pNoise->Write(Address & 0x03, Value); break;
-		case 0x10: m_pDPCM->Write(Address & 0x03, Value); break;
+		case 0x00: m_Square1.Write(Address & 0x03, Value); break;
+		case 0x04: m_Square2.Write(Address & 0x03, Value); break;
+		case 0x08: m_Triangle.Write(Address & 0x03, Value); break;
+		case 0x0C: m_Noise.Write(Address & 0x03, Value); break;
+		case 0x10: m_DPCM.Write(Address & 0x03, Value); break;
 	}
 }
 
@@ -120,12 +106,12 @@ uint8_t C2A03::Read(uint16_t Address, bool &Mapped)
 	{
 		uint8_t RetVal;
 
-		RetVal = m_pSquare1->ReadControl();
-		RetVal |= m_pSquare2->ReadControl() << 1;
-		RetVal |= m_pTriangle->ReadControl() << 2;
-		RetVal |= m_pNoise->ReadControl() << 3;
-		RetVal |= m_pDPCM->ReadControl() << 4;
-		RetVal |= m_pDPCM->DidIRQ() << 7;
+		RetVal = m_Square1.ReadControl();
+		RetVal |= m_Square2.ReadControl() << 1;
+		RetVal |= m_Triangle.ReadControl() << 2;
+		RetVal |= m_Noise.ReadControl() << 3;
+		RetVal |= m_DPCM.ReadControl() << 4;
+		RetVal |= m_DPCM.DidIRQ() << 7;
 
 		Mapped = true;
 		return RetVal;
@@ -137,11 +123,11 @@ uint8_t C2A03::Read(uint16_t Address, bool &Mapped)
 double C2A03::GetFreq(int Channel) const		// // //
 {
 	switch (Channel) {
-	case 0: return m_pSquare1->GetFrequency();
-	case 1: return m_pSquare2->GetFrequency();
-	case 2: return m_pTriangle->GetFrequency();
-	case 3: return m_pNoise->GetFrequency();
-	case 4: return m_pDPCM->GetFrequency();
+	case 0: return m_Square1.GetFrequency();
+	case 1: return m_Square2.GetFrequency();
+	case 2: return m_Triangle.GetFrequency();
+	case 3: return m_Noise.GetFrequency();
+	case 4: return m_DPCM.GetFrequency();
 	}
 	return 0.0;
 }
@@ -173,44 +159,44 @@ void C2A03::ChangeMachine(int Machine)
 {
 	switch (Machine) {
 		case MACHINE_NTSC:
-			m_pSquare1->CPU_RATE = 1789773;		// // //
-			m_pSquare2->CPU_RATE = 1789773;
-			m_pTriangle->CPU_RATE = 1789773;
-			m_pNoise->PERIOD_TABLE = CNoise::NOISE_PERIODS_NTSC;
-			m_pDPCM->PERIOD_TABLE = CDPCM::DMC_PERIODS_NTSC;			
+			m_Square1.CPU_RATE = 1789773;		// // //
+			m_Square2.CPU_RATE = 1789773;
+			m_Triangle.CPU_RATE = 1789773;
+			m_Noise.PERIOD_TABLE = CNoise::NOISE_PERIODS_NTSC;
+			m_DPCM.PERIOD_TABLE = CDPCM::DMC_PERIODS_NTSC;			
 			m_pMixer->SetClockRate(1789773);
 			break;
 		case MACHINE_PAL:
-			m_pSquare1->CPU_RATE = 1662607;		// // //
-			m_pSquare2->CPU_RATE = 1662607;
-			m_pTriangle->CPU_RATE = 1662607;
-			m_pNoise->PERIOD_TABLE = CNoise::NOISE_PERIODS_PAL;
-			m_pDPCM->PERIOD_TABLE = CDPCM::DMC_PERIODS_PAL;			
+			m_Square1.CPU_RATE = 1662607;		// // //
+			m_Square2.CPU_RATE = 1662607;
+			m_Triangle.CPU_RATE = 1662607;
+			m_Noise.PERIOD_TABLE = CNoise::NOISE_PERIODS_PAL;
+			m_DPCM.PERIOD_TABLE = CDPCM::DMC_PERIODS_PAL;			
 			m_pMixer->SetClockRate(1662607);
 			break;
 	}
 }
 
-inline void C2A03::Clock_240Hz() const
+inline void C2A03::Clock_240Hz()
 {
-	m_pSquare1->EnvelopeUpdate();
-	m_pSquare2->EnvelopeUpdate();
-	m_pNoise->EnvelopeUpdate();
-	m_pTriangle->LinearCounterUpdate();
+	m_Square1.EnvelopeUpdate();
+	m_Square2.EnvelopeUpdate();
+	m_Noise.EnvelopeUpdate();
+	m_Triangle.LinearCounterUpdate();
 }
 
-inline void C2A03::Clock_120Hz() const
+inline void C2A03::Clock_120Hz()
 {
-	m_pSquare1->SweepUpdate(1);
-	m_pSquare2->SweepUpdate(0);
+	m_Square1.SweepUpdate(1);
+	m_Square2.SweepUpdate(0);
 
-	m_pSquare1->LengthCounterUpdate();
-	m_pSquare2->LengthCounterUpdate();
-	m_pTriangle->LengthCounterUpdate();
-	m_pNoise->LengthCounterUpdate();
+	m_Square1.LengthCounterUpdate();
+	m_Square2.LengthCounterUpdate();
+	m_Triangle.LengthCounterUpdate();
+	m_Noise.LengthCounterUpdate();
 }
 
-inline void C2A03::Clock_60Hz() const
+inline void C2A03::Clock_60Hz()
 {
 	// IRQ
 }
@@ -219,10 +205,10 @@ inline void C2A03::RunAPU1(uint32_t Time)
 {
 	// APU pin 1
 	while (Time > 0) {
-		uint32_t Period = std::min(m_pSquare1->GetPeriod(), m_pSquare2->GetPeriod());
+		uint32_t Period = std::min(m_Square1.GetPeriod(), m_Square2.GetPeriod());
 		Period = std::min<uint32_t>(std::max<uint32_t>(Period, 7), Time);
-		m_pSquare1->Process(Period);
-		m_pSquare2->Process(Period);
+		m_Square1.Process(Period);
+		m_Square2.Process(Period);
 		Time -= Period;
 	}
 }
@@ -231,32 +217,32 @@ inline void C2A03::RunAPU2(uint32_t Time)
 {
 	// APU pin 2
 	while (Time > 0) {
-		uint32_t Period = std::min(m_pTriangle->GetPeriod(), m_pNoise->GetPeriod());
-		Period = std::min<uint32_t>(Period, m_pDPCM->GetPeriod());
+		uint32_t Period = std::min(m_Triangle.GetPeriod(), m_Noise.GetPeriod());
+		Period = std::min<uint32_t>(Period, m_DPCM.GetPeriod());
 		Period = std::min<uint32_t>(std::max<uint32_t>(Period, 7), Time);
-		m_pTriangle->Process(Period);
-		m_pNoise->Process(Period);
-		m_pDPCM->Process(Period);
+		m_Triangle.Process(Period);
+		m_Noise.Process(Period);
+		m_DPCM.Process(Period);
 		Time -= Period;
 	}
 }
 
 CSampleMem *C2A03::GetSampleMemory() const		// // //
 {
-	return m_pDPCM->GetSampleMemory();
+	return m_DPCM.GetSampleMemory();
 }
 
 uint8_t C2A03::GetSamplePos() const
 {
-	return m_pDPCM->GetSamplePos();
+	return m_DPCM.GetSamplePos();
 }
 
 uint8_t C2A03::GetDeltaCounter() const
 {
-	return m_pDPCM->GetDeltaCounter();
+	return m_DPCM.GetDeltaCounter();
 }
 
 bool C2A03::DPCMPlaying() const
 {
-	return m_pDPCM->IsPlaying();
+	return m_DPCM.IsPlaying();
 }
