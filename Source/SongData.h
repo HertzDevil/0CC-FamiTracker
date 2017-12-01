@@ -35,7 +35,7 @@ class stChanNote;		// // //
 struct stHighlight {
 	int First;
 	int Second;
-	int Offset;
+	int Offset = 0;
 };
 
 // // // moved from FamiTrackerDoc.h
