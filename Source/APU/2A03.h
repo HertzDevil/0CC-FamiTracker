@@ -52,7 +52,7 @@ public:
 	
 	void	ChangeMachine(int Machine);
 	
-	CSampleMem *GetSampleMemory() const;		// // //
+	CSampleMem &GetSampleMemory();		// // //
 	uint8_t	GetSamplePos() const;
 	uint8_t	GetDeltaCounter() const;
 	bool	DPCMPlaying() const;

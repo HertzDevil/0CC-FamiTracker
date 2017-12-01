@@ -328,12 +328,12 @@ bool CAPU::DPCMPlaying() const
 
 void CAPU::WriteSample(const char *pBuf, int Size)		// // //
 {
-	m_p2A03->GetSampleMemory()->SetMem(pBuf, Size);
+	m_p2A03->GetSampleMemory().SetMem(pBuf, Size);
 }
 
 void CAPU::ClearSample()		// // //
 {
-	m_p2A03->GetSampleMemory()->Clear();
+	m_p2A03->GetSampleMemory().Clear();
 }
 
 #ifdef LOGGING

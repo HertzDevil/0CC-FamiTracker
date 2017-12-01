@@ -24,13 +24,11 @@
 #pragma once
 
 #include "2A03Chan.h"		// // //
-
-class CSampleMem;		// // //
+#include "SampleMem.h"		// // //
 
 class CDPCM : public C2A03Chan {
 public:
 	CDPCM(CMixer *pMixer, int ID);		// // //
-	~CDPCM();
 
 	void	Reset();
 	void	Write(uint16_t Address, uint8_t Value);
@@ -42,7 +40,7 @@ public:
 	uint8_t	DidIRQ() const;
 	void	Reload();
 
-	CSampleMem *GetSampleMemory() const;		// // //
+	CSampleMem &GetSampleMemory();		// // //
 	uint8_t	GetSamplePos() const { return  (m_iDMA_Address - (m_iDMA_LoadReg << 6 | 0x4000)) >> 6; };
 	uint8_t	GetDeltaCounter() const { return m_iDeltaCounter; };
 	bool	IsPlaying() const { return (m_iDMA_BytesRemaining > 0); };
@@ -68,5 +66,5 @@ private:
 	bool	m_bTriggeredIRQ, m_bSampleFilled, m_bSilenceFlag;
 
 	// Needed by FamiTracker 
-	CSampleMem	*m_pSampleMem;
+	CSampleMem	m_SampleMem;		// // //
 };

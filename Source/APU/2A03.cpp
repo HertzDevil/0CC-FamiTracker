@@ -227,7 +227,7 @@ inline void C2A03::RunAPU2(uint32_t Time)
 	}
 }
 
-CSampleMem *C2A03::GetSampleMemory() const		// // //
+CSampleMem &C2A03::GetSampleMemory()		// // //
 {
 	return m_DPCM.GetSampleMemory();
 }

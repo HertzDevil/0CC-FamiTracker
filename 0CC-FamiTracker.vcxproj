@@ -424,6 +424,7 @@
     <ClCompile Include="Source\APU\2A03Chan.cpp" />
     <ClCompile Include="Source\APU\Channel.cpp" />
     <ClCompile Include="Source\APU\S5B.cpp" />
+    <ClCompile Include="Source\APU\SampleMem.cpp" />
     <ClCompile Include="Source\APU\SoundChip.cpp" />
     <ClCompile Include="Source\Arpeggiator.cpp" />
     <ClCompile Include="Source\AudioDriver.cpp" />
@@ -600,6 +601,7 @@
     <ClInclude Include="Source\APU\2A03.h" />
     <ClInclude Include="Source\APU\2A03Chan.h" />
     <ClInclude Include="Source\APU\S5B.h" />
+    <ClInclude Include="Source\APU\SampleMem.h" />
     <ClInclude Include="Source\Arpeggiator.h" />
     <ClInclude Include="Source\AudioDriver.h" />
     <ClInclude Include="Source\Bookmark.h" />

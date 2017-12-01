@@ -25,20 +25,16 @@
 
 #include <cstdint>
 
-enum decay_rate_t {		// // // 050B
-	DECAY_SLOW,
-	DECAY_FAST
-};
-
-// Used to get the DPCM state
-struct stDPCMState {
-	int SamplePos;
-	int DeltaCntr;
-};
-
-// Used to play the audio when the buffer is full
-class IAudioCallback {
+// class for simulating CPU memory, used by the DPCM channel
+class CSampleMem		// // //
+{
 public:
-	virtual void FlushBuffer(int16_t *Buffer, uint32_t Size) = 0;
-	virtual bool PlayBuffer() = 0;		// // // return true if succeeded
+	uint8_t ReadMem(uint16_t Address) const;
+	void SetMem(const void *pPtr, int Size);
+	void Clear();
+
+private:
+	const uint8_t *m_pMemory = nullptr;
+	uint16_t m_iMemSize = 0;
 };
+

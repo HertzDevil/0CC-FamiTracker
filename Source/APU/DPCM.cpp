@@ -32,18 +32,11 @@ const uint16_t CDPCM::DMC_PERIODS_PAL[]  = {
 };
 
 CDPCM::CDPCM(CMixer *pMixer, int ID) :		// // //
-	C2A03Chan(pMixer, SNDCHIP_NONE, ID),
-	m_pSampleMem(new CSampleMem { })
+	C2A03Chan(pMixer, SNDCHIP_NONE, ID)
 {
 	PERIOD_TABLE = DMC_PERIODS_NTSC;
 
 	Reset();
-}
-
-CDPCM::~CDPCM()
-{
-	if (m_pSampleMem)		// // //
-		delete m_pSampleMem;
 }
 
 void CDPCM::Reset()
@@ -116,9 +109,9 @@ void CDPCM::Reload()
 	m_iDMA_BytesRemaining = (m_iDMA_LengthReg << 4) + 1;
 }
 
-CSampleMem *CDPCM::GetSampleMemory() const
+CSampleMem &CDPCM::GetSampleMemory()
 {
-	return m_pSampleMem;
+	return m_SampleMem;
 }
 
 void CDPCM::Process(uint32_t Time)
@@ -132,7 +125,7 @@ void CDPCM::Process(uint32_t Time)
 		// Check if a new byte should be fetched
 		if (!m_bSampleFilled && (m_iDMA_BytesRemaining > 0)) {
 
-			m_iSampleBuffer = m_pSampleMem->Read(m_iDMA_Address | 0x8000);
+			m_iSampleBuffer = m_SampleMem.ReadMem(m_iDMA_Address | 0x8000);
 //			m_pEmulator->ConsumeCycles(4);
 			m_iDMA_Address = (m_iDMA_Address + 1) & 0x7FFF;
 			--m_iDMA_BytesRemaining;

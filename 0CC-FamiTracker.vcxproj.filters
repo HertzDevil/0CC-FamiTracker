@@ -750,6 +750,9 @@
     <ClCompile Include="Source\APU\2A03Chan.cpp">
       <Filter>Source Files\Sound Driver\Emulation\Internal Channels</Filter>
     </ClCompile>
+    <ClCompile Include="Source\APU\SampleMem.cpp">
+      <Filter>Source Files\Sound Driver\Emulation\Internal Channels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1357,6 +1360,9 @@
     </ClInclude>
     <ClInclude Include="Source\RegisterDisplay.h">
       <Filter>Header Files\Pattern Editor Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\APU\SampleMem.h">
+      <Filter>Header Files\Sound Driver Headers\Emulation Headers\Internal Channels Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

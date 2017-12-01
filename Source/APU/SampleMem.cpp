@@ -20,25 +20,23 @@
 ** must bear this legend.
 */
 
+#include "SampleMem.h"
 
-#pragma once
-
-#include <cstdint>
-
-enum decay_rate_t {		// // // 050B
-	DECAY_SLOW,
-	DECAY_FAST
+uint8_t CSampleMem::ReadMem(uint16_t Address) const {
+	if (!m_pMemory)
+		return 0;
+	uint16_t Addr = (Address - 0xC000);// % m_iMemSize;
+	if (Addr >= m_iMemSize)
+		return 0;
+	return m_pMemory[Addr];
 };
 
-// Used to get the DPCM state
-struct stDPCMState {
-	int SamplePos;
-	int DeltaCntr;
+void CSampleMem::SetMem(const void *pPtr, int Size) {
+	m_pMemory = static_cast<const uint8_t *>(pPtr);
+	m_iMemSize = Size;
 };
 
-// Used to play the audio when the buffer is full
-class IAudioCallback {
-public:
-	virtual void FlushBuffer(int16_t *Buffer, uint32_t Size) = 0;
-	virtual bool PlayBuffer() = 0;		// // // return true if succeeded
-};
+void CSampleMem::Clear() {
+	m_pMemory = nullptr;
+	m_iMemSize = 0;
+}
