@@ -83,35 +83,37 @@ const int	CFamiTrackerDoc::DEFAULT_NAMCO_CHANS = 1;
 
 const bool	CFamiTrackerDoc::DEFAULT_LINEAR_PITCH = false;
 
+namespace {
+
 // File I/O constants
-static const char *FILE_HEADER				= "FamiTracker Module";
-static const char *FILE_BLOCK_PARAMS		= "PARAMS";
-static const char *FILE_BLOCK_INFO			= "INFO";
-static const char *FILE_BLOCK_INSTRUMENTS	= "INSTRUMENTS";
-static const char *FILE_BLOCK_SEQUENCES		= "SEQUENCES";
-static const char *FILE_BLOCK_FRAMES		= "FRAMES";
-static const char *FILE_BLOCK_PATTERNS		= "PATTERNS";
-static const char *FILE_BLOCK_DSAMPLES		= "DPCM SAMPLES";
-static const char *FILE_BLOCK_HEADER		= "HEADER";
-static const char *FILE_BLOCK_COMMENTS		= "COMMENTS";
+const char *FILE_HEADER = "FamiTracker Module";
+const char *FILE_BLOCK_PARAMS = "PARAMS";
+const char *FILE_BLOCK_INFO = "INFO";
+const char *FILE_BLOCK_INSTRUMENTS = "INSTRUMENTS";
+const char *FILE_BLOCK_SEQUENCES = "SEQUENCES";
+const char *FILE_BLOCK_FRAMES = "FRAMES";
+const char *FILE_BLOCK_PATTERNS = "PATTERNS";
+const char *FILE_BLOCK_DSAMPLES = "DPCM SAMPLES";
+const char *FILE_BLOCK_HEADER = "HEADER";
+const char *FILE_BLOCK_COMMENTS = "COMMENTS";
 
 // VRC6
-static const char *FILE_BLOCK_SEQUENCES_VRC6 = "SEQUENCES_VRC6";
+const char *FILE_BLOCK_SEQUENCES_VRC6 = "SEQUENCES_VRC6";
 
 // N163
-static const char *FILE_BLOCK_SEQUENCES_N163 = "SEQUENCES_N163";
-static const char *FILE_BLOCK_SEQUENCES_N106 = "SEQUENCES_N106";
+const char *FILE_BLOCK_SEQUENCES_N163 = "SEQUENCES_N163";
+const char *FILE_BLOCK_SEQUENCES_N106 = "SEQUENCES_N106";
 
 // Sunsoft
-static const char *FILE_BLOCK_SEQUENCES_S5B = "SEQUENCES_S5B";
+const char *FILE_BLOCK_SEQUENCES_S5B = "SEQUENCES_S5B";
 
 // // // 0CC-FamiTracker specific
-const char *FILE_BLOCK_DETUNETABLES			= "DETUNETABLES";
-const char *FILE_BLOCK_GROOVES				= "GROOVES";
-const char *FILE_BLOCK_BOOKMARKS			= "BOOKMARKS";
-const char *FILE_BLOCK_PARAMS_EXTRA			= "PARAMS_EXTRA";
+const char *FILE_BLOCK_DETUNETABLES = "DETUNETABLES";
+const char *FILE_BLOCK_GROOVES = "GROOVES";
+const char *FILE_BLOCK_BOOKMARKS = "BOOKMARKS";
+const char *FILE_BLOCK_PARAMS_EXTRA = "PARAMS_EXTRA";
 
-/* 
+/*
 	Instrument version history
 	 * 2.1 - Release points for sequences in 2A03 & VRC6
 	 * 2.2 - FDS volume sequences goes from 0-31 instead of 0-15
@@ -138,9 +140,8 @@ enum {
 };
 
 // // // helper function for effect conversion
-typedef std::array<effect_t, EF_COUNT> EffTable;
-std::pair<EffTable, EffTable> MakeEffectConversion(std::initializer_list<std::pair<effect_t, effect_t>> List)
-{
+using EffTable = std::array<effect_t, EF_COUNT>;
+std::pair<EffTable, EffTable> MakeEffectConversion(std::initializer_list<std::pair<effect_t, effect_t>> List) {
 	EffTable forward, backward;
 	for (int i = 0; i < EF_COUNT; ++i)
 		forward[i] = backward[i] = static_cast<effect_t>(i);
@@ -151,7 +152,7 @@ std::pair<EffTable, EffTable> MakeEffectConversion(std::initializer_list<std::pa
 	return std::make_pair(forward, backward);
 }
 
-static const auto EFF_CONVERSION_050 = MakeEffectConversion({
+const auto EFF_CONVERSION_050 = MakeEffectConversion({
 //	{EF_SUNSOFT_ENV_LO,		EF_SUNSOFT_ENV_TYPE},
 //	{EF_SUNSOFT_ENV_TYPE,	EF_SUNSOFT_ENV_LO},
 	{EF_SUNSOFT_NOISE,		EF_NOTE_RELEASE},
@@ -164,6 +165,8 @@ static const auto EFF_CONVERSION_050 = MakeEffectConversion({
 	{EF_FDS_VOLUME,			EF_VRC7_PORT},
 	{EF_FDS_MOD_BIAS,		EF_VRC7_WRITE},
 });
+
+} // namespace
 
 //
 // CFamiTrackerDoc
@@ -1943,25 +1946,16 @@ int CFamiTrackerDoc::LoadInstrument(CString FileName)
 
 void CFamiTrackerDoc::SetFrameCount(unsigned int Track, unsigned int Count)
 {
-	ASSERT(Track < MAX_TRACKS);
-	ASSERT(Count <= MAX_FRAMES);
+	ASSERT(Count > 0 && Count <= MAX_FRAMES);		// // //
 
-	auto &Song = GetSongData(Track);
-	unsigned int Old = Song.GetFrameCount();
-	if (Old != Count) {
-		Song.SetFrameCount(Count);
-		if (Count < Old)
-			m_pBookmarkManager->GetCollection(Track)->RemoveFrames(Count, Old - Count); // TODO: don't
-		SetExceededFlag();			// // // TODO: is this needed?
-	}
+	GetSongData(Track).SetFrameCount(Count);
 }
 
 void CFamiTrackerDoc::SetPatternLength(unsigned int Track, unsigned int Length)
 { 
 	ASSERT(Length <= MAX_PATTERN_LENGTH);
 
-	auto &Song = GetSongData(Track);
-	Song.SetPatternLength(Length);
+	GetSongData(Track).SetPatternLength(Length);
 }
 
 void CFamiTrackerDoc::SetSongSpeed(unsigned int Track, unsigned int Speed)
@@ -1977,21 +1971,16 @@ void CFamiTrackerDoc::SetSongSpeed(unsigned int Track, unsigned int Speed)
 
 void CFamiTrackerDoc::SetSongTempo(unsigned int Track, unsigned int Tempo)
 {
-	ASSERT(Tempo <= MAX_TEMPO);
-
-	auto &Song = GetSongData(Track);
-	Song.SetSongTempo(Tempo);
+	GetSongData(Track).SetSongTempo(Tempo);
 }
 
 void CFamiTrackerDoc::SetSongGroove(unsigned int Track, bool Groove)		// // //
 {
-	auto &Song = GetSongData(Track);
-	Song.SetSongGroove(Groove);
+	GetSongData(Track).SetSongGroove(Groove);
 }
 
 unsigned int CFamiTrackerDoc::GetPatternLength(unsigned int Track) const
 { 
-	ASSERT(Track < MAX_TRACKS);
 	return GetSongData(Track).GetPatternLength(); 
 }
 

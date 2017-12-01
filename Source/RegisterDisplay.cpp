@@ -39,14 +39,12 @@ const COLORREF DECAY_COLOR[CRegisterState::DECAY_RATE + 1] = {		// // //
 	0x80CCE9, 0x80C6EC, 0x80C0F0, 0x80B9F3, 0x80B3F6, 0x80ACF9, 0x80A6FC, 0x80A0FF,
 }; // BLEND has lower precision
 
-double NoteFromFreq(double Freq)
-{
+double NoteFromFreq(double Freq) {
 	// Convert frequency to note number
 	return 45.0 + 12.0 * (std::log(Freq / 440.0) / log(2.0));
 }
 
-std::string NoteToStr(int Note)
-{
+std::string NoteToStr(int Note) {
 	int Octave = GET_OCTAVE(Note) + 1;		// // //
 	int Index = GET_NOTE(Note) - 1;
 
