@@ -138,7 +138,7 @@ UINT CVisualizerWnd::ThreadProc()
 
 	TRACE("Visualizer: Started thread (0x%04x)\n", nThreadID);
 
-	while (::WaitForSingleObject(m_hNewSamples, INFINITE) == WAIT_OBJECT_0 && m_bThreadRunning) {
+	while (m_bThreadRunning && ::WaitForSingleObject(m_hNewSamples, INFINITE) == WAIT_OBJECT_0) {
 
 		m_bNoAudio = false;
 
