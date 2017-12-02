@@ -2574,17 +2574,13 @@ void CMainFrame::OnDestroy()
 		// Remove visualizer window from sound generator
 		pSoundGen->SetVisualizerWindow(NULL);
 		// Kill the sound interface since the main window is being destroyed
-		CEvent *pSoundEvent = new CEvent(FALSE, FALSE);
-		pSoundGen->PostThreadMessage(WM_USER_CLOSE_SOUND, (WPARAM)pSoundEvent, NULL);
+		CEvent SoundEvent(FALSE, FALSE);		// // //
+		pSoundGen->PostThreadMessage(WM_USER_CLOSE_SOUND, (WPARAM)&SoundEvent, NULL);
 		// Wait for sound to close
-		DWORD dwResult = ::WaitForSingleObject(pSoundEvent->m_hObject, /*CSoundGen::AUDIO_TIMEOUT*/ 2000 + 1000);		// // //
+		DWORD dwResult = ::WaitForSingleObject(SoundEvent.m_hObject, /*CSoundGen::AUDIO_TIMEOUT*/ 2000 + 1000);		// // //
 
-		if (dwResult != WAIT_OBJECT_0) {
-			// The CEvent object will leak if this happens, but the program won't crash
+		if (dwResult != WAIT_OBJECT_0)
 			TRACE(_T("MainFrame: Error while waiting for sound to close!\n"));
-		}
-		else
-			delete pSoundEvent;
 	}
 
 	CFrameWnd::OnDestroy();

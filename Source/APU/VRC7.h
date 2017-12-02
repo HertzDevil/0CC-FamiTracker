@@ -25,11 +25,17 @@
 
 #include "SoundChip.h"
 #include "emu2413.h"
+#include <vector>		// // //
+
+struct OPLL_deleter {
+	void operator()(void *ptr) {
+		OPLL_delete(static_cast<OPLL *>(ptr));
+	}
+};
 
 class CVRC7 : public CSoundChip {
 public:
 	explicit CVRC7(CMixer *pMixer);
-	virtual ~CVRC7();
 
 	void SetSampleSpeed(uint32_t SampleRate, double ClockRate, uint32_t FrameRate);
 	void SetVolume(float Volume);
@@ -48,14 +54,14 @@ protected:
 	static const uint32_t OPL_CLOCK;
 
 private:
-	OPLL	*m_pOPLLInt;
+	std::unique_ptr<OPLL, OPLL_deleter> m_pOPLLInt;		// // //
 	uint32_t	m_iTime;
-	uint32_t	m_iMaxSamples;
 
-	int16_t	*m_pBuffer;
+	uint32_t	m_iMaxSamples = 0;
+	std::vector<int16_t> m_iBuffer;		// // //
 	uint32_t	m_iBufferPtr;
 
-	uint8_t	m_iSoundReg;
+	float		m_fVolume = 1.f;
 
-	float	m_fVolume;
+	uint8_t		m_iSoundReg = 0;
 };

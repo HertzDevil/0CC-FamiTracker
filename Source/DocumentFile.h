@@ -71,9 +71,9 @@ public:
 	bool		IsFileIncomplete() const;
 
 	// // // exception
-	CModuleException *GetException() const;
-	void SetDefaultFooter(CModuleException *e) const;
-	[[noreturn]] void RaiseModuleException(std::string Msg) const;
+	CModuleException GetException() const;
+	void SetDefaultFooter(CModuleException &e) const;
+	[[noreturn]] void RaiseModuleException(const std::string &Msg) const;
 
 	// // // Overrides
 	virtual UINT Read(void* lpBuf, UINT nCount);

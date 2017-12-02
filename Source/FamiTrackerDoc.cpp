@@ -567,9 +567,9 @@ template <module_error_level_t l>
 void CFamiTrackerDoc::AssertFileData(bool Cond, std::string Msg) const
 {
 	if (l <= theApp.GetSettings()->Version.iErrorLevel && !Cond) {
-		CModuleException *e = m_pCurrentDocument ? m_pCurrentDocument->GetException() : new CModuleException();
-		e->AppendError(Msg);
-		e->Raise();
+		CModuleException e = m_pCurrentDocument ? m_pCurrentDocument->GetException() : CModuleException();
+		e.AppendError(Msg);
+		throw e;
 	}
 }
 
@@ -732,10 +732,9 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 			m_bForceBackup = m_iFileVersion < CDocumentFile::FILE_VER;
 		}
 	}
-	catch (CModuleException *e) {
-		AfxMessageBox(e->GetErrorString().c_str(), MB_ICONERROR);
+	catch (CModuleException e) {
+		AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
 		m_pCurrentDocument = nullptr;		// // //
-		delete e;
 		return FALSE;
 	}
 
@@ -1236,8 +1235,8 @@ void CFamiTrackerDoc::ReadBlock_Sequences(CDocumentFile *pDocFile, const int Ver
 				}
 				pManager->GetCollection(Type)->SetSequence(Index, pSeq.release());
 			}
-			catch (CModuleException *e) {
-				e->AppendError("At 2A03 %s sequence %d,", CInstrument2A03::SEQUENCE_NAME[Type], Index);
+			catch (CModuleException e) {
+				e.AppendError("At 2A03 %s sequence %d,", CInstrument2A03::SEQUENCE_NAME[Type], Index);
 				throw;
 			}
 		}
@@ -1256,8 +1255,8 @@ void CFamiTrackerDoc::ReadBlock_Sequences(CDocumentFile *pDocFile, const int Ver
 						pSeq->SetSetting(static_cast<seq_setting_t>(Settings));		// // //
 					}
 				}
-				catch (CModuleException *e) {
-					e->AppendError("At 2A03 %s sequence %d,", CInstrument2A03::SEQUENCE_NAME[j], i);
+				catch (CModuleException e) {
+					e.AppendError("At 2A03 %s sequence %d,", CInstrument2A03::SEQUENCE_NAME[j], i);
 					throw;
 				}
 			}
@@ -1270,8 +1269,8 @@ void CFamiTrackerDoc::ReadBlock_Sequences(CDocumentFile *pDocFile, const int Ver
 					pDocFile->GetBlockInt(), -1, static_cast<int>(pSeq->GetItemCount()) - 1, "Sequence release point"));
 				pSeq->SetSetting(static_cast<seq_setting_t>(pDocFile->GetBlockInt()));		// // //
 			}
-			catch (CModuleException *e) {
-				e->AppendError("At 2A03 %s sequence %d,", CInstrument2A03::SEQUENCE_NAME[Types[i]], Indices[i]);
+			catch (CModuleException e) {
+				e.AppendError("At 2A03 %s sequence %d,", CInstrument2A03::SEQUENCE_NAME[Types[i]], Indices[i]);
 				throw;
 			}
 		}
@@ -1346,8 +1345,8 @@ void CFamiTrackerDoc::ReadBlock_Patterns(CDocumentFile *pDocFile, const int Vers
 					else if (Version < 6)
 						pDocFile->GetBlockChar(); // unused blank parameter
 				}
-				catch (CModuleException *e) {
-					e->AppendError("At effect column fx%d,", n + 1);
+				catch (CModuleException e) {
+					e.AppendError("At effect column fx%d,", n + 1);
 					throw;
 				}
 
@@ -1440,13 +1439,13 @@ void CFamiTrackerDoc::ReadBlock_Patterns(CDocumentFile *pDocFile, const int Vers
 
 				Song.SetPatternData(Channel, Pattern, Row, Note);		// // //
 			}
-			catch (CModuleException *e) {
-				e->AppendError("At row %02X,", Row);
+			catch (CModuleException e) {
+				e.AppendError("At row %02X,", Row);
 				throw;
 			}
 		}
-		catch (CModuleException *e) {
-			e->AppendError("At pattern %02X, channel %d, track %d,", Pattern, Channel, Track + 1);
+		catch (CModuleException e) {
+			e.AppendError("At pattern %02X, channel %d, track %d,", Pattern, Channel, Track + 1);
 			throw;
 		}
 	}
@@ -1931,11 +1930,10 @@ int CFamiTrackerDoc::LoadInstrument(CString FileName)
 		AfxMessageBox(ID, MB_ICONERROR);
 		return INVALID_INSTRUMENT;
 	}
-	catch (CModuleException *e) {
+	catch (CModuleException e) {
 		m_csDocumentLock.Unlock();
 		m_pInstrumentManager->RemoveInstrument(Slot);
-		AfxMessageBox(e->GetErrorString().c_str(), MB_ICONERROR);
-		delete e;
+		AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
 		return INVALID_INSTRUMENT;
 	}
 }

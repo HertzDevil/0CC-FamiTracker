@@ -229,8 +229,8 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 			Song.SetEffectColumnCount(i, AssertRange<MODULE_ERROR_STRICT>(
 				file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count"));
 		}
-		catch (CModuleException *e) {
-			e->AppendError("At channel %d", i + 1);
+		catch (CModuleException e) {
+			e.AppendError("At channel %d", i + 1);
 			throw;
 		}
 	}
@@ -250,14 +250,14 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 					song.SetEffectColumnCount(i, AssertRange<MODULE_ERROR_STRICT>(
 						file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count"));
 				}
-				catch (CModuleException *e) {
-					e->AppendError("At song %d,", index + 1);
+				catch (CModuleException e) {
+					e.AppendError("At song %d,", index + 1);
 					throw;
 				}
 			});
 		}
-		catch (CModuleException *e) {
-			e->AppendError("At channel %d,", i + 1);
+		catch (CModuleException e) {
+			e.AppendError("At channel %d,", i + 1);
 			throw;
 		}
 
@@ -326,9 +326,9 @@ void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerDoc &doc, int ver) {
 			pInstrument->SetName(Name);
 			Manager.InsertInstrument(index, std::move(pInstrument));		// // // this registers the instrument content provider
 		}
-		catch (CModuleException *e) {
+		catch (CModuleException e) {
 			file_.SetDefaultFooter(e);
-			e->AppendError("At instrument %02X,", index);
+			e.AppendError("At instrument %02X,", index);
 			Manager.RemoveInstrument(index);
 			throw;
 		}
@@ -528,8 +528,8 @@ void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerDoc &doc, int ver) {
 			pSample->SetData(TrueSize, pData.release());
 			doc.SetSample(Index, pSample.release());
 		}
-		catch (CModuleException *e) {
-			e->AppendError("At DPCM sample %d,", Index);
+		catch (CModuleException e) {
+			e.AppendError("At DPCM sample %d,", Index);
 			throw;
 		}
 	}
@@ -600,8 +600,8 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 					pSeq->SetItem(j, Value);
 			}
 		}
-		catch (CModuleException *e) {
-			e->AppendError("At VRC6 %s sequence %d,", CInstrumentVRC6::SEQUENCE_NAME[Type], Index);
+		catch (CModuleException e) {
+			e.AppendError("At VRC6 %s sequence %d,", CInstrumentVRC6::SEQUENCE_NAME[Type], Index);
 			throw;
 		}
 	}
@@ -620,8 +620,8 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 					pSeq->SetSetting(static_cast<seq_setting_t>(Settings));		// // //
 				}
 			}
-			catch (CModuleException *e) {
-				e->AppendError("At VRC6 %s sequence %d,", CInstrumentVRC6::SEQUENCE_NAME[j], i);
+			catch (CModuleException e) {
+				e.AppendError("At VRC6 %s sequence %d,", CInstrumentVRC6::SEQUENCE_NAME[j], i);
 				throw;
 			}
 		}
@@ -633,8 +633,8 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 				file_.GetBlockInt(), -1, static_cast<int>(pSeq->GetItemCount()) - 1, "Sequence release point"));
 			pSeq->SetSetting(static_cast<seq_setting_t>(file_.GetBlockInt()));		// // //
 		}
-		catch (CModuleException *e) {
-			e->AppendError("At VRC6 %s sequence %d,", CInstrumentVRC6::SEQUENCE_NAME[Types[i]], Indices[i]);
+		catch (CModuleException e) {
+			e.AppendError("At VRC6 %s sequence %d,", CInstrumentVRC6::SEQUENCE_NAME[Types[i]], Indices[i]);
 			throw;
 		}
 	}
@@ -690,8 +690,8 @@ void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerDoc &doc, int ver) {
 					pSeq->SetItem(j, Value);
 			}
 		}
-		catch (CModuleException *e) {
-			e->AppendError("At N163 %s sequence %d,", CInstrumentN163::SEQUENCE_NAME[Type], Index);
+		catch (CModuleException e) {
+			e.AppendError("At N163 %s sequence %d,", CInstrumentN163::SEQUENCE_NAME[Type], Index);
 			throw;
 		}
 	}
@@ -747,8 +747,8 @@ void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerDoc &doc, int ver) {
 					pSeq->SetItem(j, Value);
 			}
 		}
-		catch (CModuleException *e) {
-			e->AppendError("At 5B %s sequence %d,", CInstrumentS5B::SEQUENCE_NAME[Type], Index);
+		catch (CModuleException e) {
+			e.AppendError("At 5B %s sequence %d,", CInstrumentS5B::SEQUENCE_NAME[Type], Index);
 			throw;
 		}
 	}
@@ -808,8 +808,8 @@ void CFamiTrackerDocIO::LoadDetuneTables(CFamiTrackerDoc &doc, int ver) {
 				doc.SetDetuneOffset(Chip, Note, Offset);
 			}
 		}
-		catch (CModuleException *e) {
-			e->AppendError("At %s detune table,", CDetuneDlg::CHIP_STR[Chip]);
+		catch (CModuleException e) {
+			e.AppendError("At %s detune table,", CDetuneDlg::CHIP_STR[Chip]);
 			throw;
 		}
 	}
@@ -855,14 +855,14 @@ void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerDoc &doc, int ver) {
 				pGroove->SetEntry(j, AssertRange(
 					static_cast<unsigned char>(file_.GetBlockChar()), 1U, 0xFFU, "Groove item"));
 			}
-			catch (CModuleException *e) {
-				e->AppendError("At position %i,", j);
+			catch (CModuleException e) {
+				e.AppendError("At position %i,", j);
 				throw;
 			}
 			doc.SetGroove(Index, std::move(pGroove));
 		}
-		catch (CModuleException *e) {
-			e->AppendError("At groove %i,", Index);
+		catch (CModuleException e) {
+			e.AppendError("At groove %i,", Index);
 			throw;
 		}
 	}
@@ -880,8 +880,8 @@ void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerDoc &doc, int ver) {
 		else
 			AssertRange(Speed, 1, MAX_TEMPO, "Track default speed");
 	}
-	catch (CModuleException *e) {
-		e->AppendError("At track %d,", i + 1);
+	catch (CModuleException e) {
+		e.AppendError("At track %d,", i + 1);
 		throw;
 	}
 }
@@ -952,11 +952,9 @@ void CFamiTrackerDocIO::SaveBookmarks(const CFamiTrackerDoc &doc, int ver) {
 template <module_error_level_t l>
 void CFamiTrackerDocIO::AssertFileData(bool Cond, const std::string &Msg) const {
 	if (l <= theApp.GetSettings()->Version.iErrorLevel && !Cond) {
-		CModuleException *e = file_.GetException();
-//		CModuleException *e = m_pCurrentDocument ? m_pCurrentDocument->GetException() :
-//			std::make_unique<CModuleException>().release();
-		e->AppendError(Msg);
-		e->Raise();
+		CModuleException e = file_.GetException();
+		e.AppendError(Msg);
+		throw e;
 	}
 }
 
@@ -964,7 +962,7 @@ template<module_error_level_t l, typename T, typename U, typename V>
 T CFamiTrackerDocIO::AssertRange(T Value, U Min, V Max, const std::string &Desc) const try {
 	return CModuleException::AssertRangeFmt<l>(Value, Min, Max, Desc);
 }
-catch (CModuleException *e) {
+catch (CModuleException e) {
 	file_.SetDefaultFooter(e);
 //	if (m_pCurrentDocument)
 //		m_pCurrentDocument->SetDefaultFooter(e);

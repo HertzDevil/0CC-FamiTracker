@@ -199,22 +199,18 @@ void CDocumentFile::ValidateFile()
 	Read(Buffer, 4);
 	m_iFileVersion = (Buffer[3] << 24) | (Buffer[2] << 16) | (Buffer[1] << 8) | Buffer[0];
 	
-	CModuleException *e = new CModuleException();		// // // blank
-
 	// // // Older file version
-	if (GetFileVersion() < COMPATIBLE_VER) {
-		e->AppendError("FamiTracker module version too old (0x%X), expected 0x%X or above", GetFileVersion(), COMPATIBLE_VER);
-		e->Raise();
-	}
+	if (GetFileVersion() < COMPATIBLE_VER)
+		throw CModuleException::WithMessage("FamiTracker module version too old (0x%X), expected 0x%X or above",
+			GetFileVersion(), COMPATIBLE_VER);
+
 	// // // File version is too new
-	if (GetFileVersion() > 0x450U /*FILE_VER*/) {		// // // 050B
-		e->AppendError("FamiTracker module version too new (0x%X), expected 0x%X or below", GetFileVersion(), FILE_VER);
-		e->Raise();
-	}
+	if (GetFileVersion() > 0x450U /*FILE_VER*/)		// // // 050B
+		throw CModuleException::WithMessage("FamiTracker module version too new (0x%X), expected 0x%X or below",
+			GetFileVersion(), FILE_VER);
 
 	m_bFileDone = false;
 	m_bIncomplete = false;
-	delete e;
 }
 
 unsigned int CDocumentFile::GetFileVersion() const
@@ -359,27 +355,26 @@ bool CDocumentFile::IsFileIncomplete() const
 	return m_bIncomplete;
 }
 
-CModuleException *CDocumentFile::GetException() const		// // //
+CModuleException CDocumentFile::GetException() const		// // //
 {
-	CModuleException *e = new CModuleException();
+	CModuleException e;
 	SetDefaultFooter(e);
 	return e;
 }
 
-void CDocumentFile::SetDefaultFooter(CModuleException *e) const		// // //
+void CDocumentFile::SetDefaultFooter(CModuleException &e) const		// // //
 {
 	char Buffer[128] = {};
-	sprintf_s(Buffer, sizeof(Buffer), "At address 0x%X in %s block,\naddress 0x%llX in file",
+	sprintf_s(Buffer, std::size(Buffer), "At address 0x%X in %s block,\naddress 0x%llX in file",
 			  m_iPreviousPointer, m_cBlockID, m_iPreviousPosition);
-	std::string str(Buffer);
-	e->SetFooter(str);
+	e.SetFooter(std::string {Buffer});
 }
 
-void CDocumentFile::RaiseModuleException(std::string Msg) const		// // //
+void CDocumentFile::RaiseModuleException(const std::string &Msg) const		// // //
 {
-	CModuleException *e = GetException();
-	e->AppendError(Msg);
-	e->Raise();
+	CModuleException e = GetException();
+	e.AppendError(Msg);
+	throw e;
 }
 
 UINT CDocumentFile::Read(void *lpBuf, UINT nCount)		// // //

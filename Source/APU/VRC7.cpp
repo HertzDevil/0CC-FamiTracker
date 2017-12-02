@@ -28,23 +28,13 @@
 const float  CVRC7::AMPLIFY	  = 4.6f;		// Mixing amplification, VRC7 patch 14 is 4,88 times stronger than a 50% square @ v=15
 const uint32_t CVRC7::OPL_CLOCK = 3579545;	// Clock frequency
 
-CVRC7::CVRC7(CMixer *pMixer) : CSoundChip(pMixer), m_pBuffer(NULL), m_pOPLLInt(NULL), m_fVolume(1.0f), m_iMaxSamples(0), m_iSoundReg(0)
+CVRC7::CVRC7(CMixer *pMixer) : CSoundChip(pMixer)
 {
 	m_pRegisterLogger->AddRegisterRange(0x00, 0x07);		// // //
 	m_pRegisterLogger->AddRegisterRange(0x10, 0x15);
 	m_pRegisterLogger->AddRegisterRange(0x20, 0x25);
 	m_pRegisterLogger->AddRegisterRange(0x30, 0x35);
 	Reset();
-}
-
-CVRC7::~CVRC7()
-{
-	if (m_pOPLLInt != NULL) {
-		OPLL_delete(m_pOPLLInt);
-		m_pOPLLInt = NULL;
-	}
-
-	SAFE_RELEASE_ARRAY(m_pBuffer);
 }
 
 void CVRC7::Reset()
@@ -55,20 +45,14 @@ void CVRC7::Reset()
 
 void CVRC7::SetSampleSpeed(uint32_t SampleRate, double ClockRate, uint32_t FrameRate)
 {
-	if (m_pOPLLInt != NULL) {
-		OPLL_delete(m_pOPLLInt);
-	}
+	m_pOPLLInt.reset(OPLL_new(OPL_CLOCK, SampleRate));		// // //
 
-	m_pOPLLInt = OPLL_new(OPL_CLOCK, SampleRate);
-
-	OPLL_reset(m_pOPLLInt);
-	OPLL_reset_patch(m_pOPLLInt, 1);
+	OPLL_reset(m_pOPLLInt.get());
+	OPLL_reset_patch(m_pOPLLInt.get(), 1);
 
 	m_iMaxSamples = (SampleRate / FrameRate) * 2;	// Allow some overflow
 
-	SAFE_RELEASE_ARRAY(m_pBuffer);
-	m_pBuffer = new int16_t[m_iMaxSamples];
-	memset(m_pBuffer, 0, sizeof(int16_t) * m_iMaxSamples);
+	m_iBuffer = std::vector<int16_t>(m_iMaxSamples);		// // //
 }
 
 void CVRC7::SetVolume(float Volume)
@@ -83,7 +67,7 @@ void CVRC7::Write(uint16_t Address, uint8_t Value)
 			m_iSoundReg = Value;
 			break;
 		case 0x9030:
-			OPLL_writeReg(m_pOPLLInt, m_iSoundReg, Value);
+			OPLL_writeReg(m_pOPLLInt.get(), m_iSoundReg, Value);
 			break;
 	}
 }
@@ -109,7 +93,7 @@ void CVRC7::EndFrame()
 
 	// Generate VRC7 samples
 	while (m_iBufferPtr < WantSamples) {
-		int32_t RawSample = OPLL_calc(m_pOPLLInt);
+		int32_t RawSample = OPLL_calc(m_pOPLLInt.get());
 		
 		// Clipping is slightly asymmetric
 		if (RawSample > 3600)
@@ -125,11 +109,11 @@ void CVRC7::EndFrame()
 		if (Sample < -32768)
 			Sample = -32768;
 
-		m_pBuffer[m_iBufferPtr++] = int16_t((Sample + LastSample) >> 1);
+		m_iBuffer[m_iBufferPtr++] = int16_t((Sample + LastSample) >> 1);
 		LastSample = Sample;
 	}
 
-	m_pMixer->MixSamples((blip_sample_t*)m_pBuffer, WantSamples);
+	m_pMixer->MixSamples((blip_sample_t*)m_iBuffer.data(), WantSamples);		// // //
 
 	m_iBufferPtr -= WantSamples;
 	m_iTime = 0;

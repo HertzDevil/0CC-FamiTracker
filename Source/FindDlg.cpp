@@ -1078,10 +1078,11 @@ bool CFindDlg::CompareFields(const stChanNote &Target, bool Noise, int EffCount)
 template <typename... T>
 void CFindDlg::RaiseIf(bool Check, LPCTSTR Str, T... args)
 {
-	if (!Check) return;
+	if (!Check)
+		return;
 	TCHAR buf[512];
 	_sntprintf_s(buf, sizeof(buf), _TRUNCATE, Str, args...);
-	throw new CFindException(buf);
+	throw CFindException {buf};
 }
 
 bool CFindDlg::Find(bool ShowEnd)
@@ -1194,9 +1195,8 @@ bool CFindDlg::PrepareFind()
 	try {
 		GetFindTerm();
 	}
-	catch (CFindException *e) {
-		AfxMessageBox(e->what(), MB_OK | MB_ICONSTOP);
-		delete e;
+	catch (CFindException e) {
+		AfxMessageBox(e.what(), MB_OK | MB_ICONSTOP);
 		return false;
 	}
 
@@ -1210,9 +1210,8 @@ bool CFindDlg::PrepareReplace()
 	try {
 		GetReplaceTerm();
 	}
-	catch (CFindException *e) {
-		AfxMessageBox(e->what(), MB_OK | MB_ICONSTOP);
-		delete e;
+	catch (CFindException e) {
+		AfxMessageBox(e.what(), MB_OK | MB_ICONSTOP);
 		return false;
 	}
 

@@ -40,27 +40,22 @@ public:
 	/*!	\brief Constructor of the exception object with an empty message. */
 	CModuleException() = default;
 	/*! \brief Virtual destructor. */
-	virtual ~CModuleException() { }
-
-	/*!	\brief Raises the exception object.
-		\details All derived classes must override this method with the exact same function body in order
-		to throw polymorphically. */
-	[[noreturn]] virtual void Raise() { throw this; };
+	virtual ~CModuleException() noexcept = default;
 
 	/*!	\brief Obtains the error description.
 		\details The description consists of zero or more lines followed by the footer specified in the
 		constructor. This exception object does not use std::exception::what.
 		\return The error string. */
-	const std::string GetErrorString() const;
+	std::string GetErrorString() const;
 	/*!	\brief Appends a formatted error string to the exception.
 		\param fmt The format specifier.
 		\param ... Extra arguments for the formatted string. */
 	template <typename... T>
-	void AppendError(const std::string &fmt, T... args)
+	void AppendError(const std::string &fmt, T&&... args)
 	{
 		const size_t MAX_ERROR_STRLEN = 256;
 		char buf[MAX_ERROR_STRLEN] = { };
-		_sntprintf_s(buf, MAX_ERROR_STRLEN, _TRUNCATE, fmt.c_str(), args...);
+		_sntprintf_s(buf, MAX_ERROR_STRLEN, _TRUNCATE, fmt.c_str(), std::forward<T>(args)...);
 		m_strError.emplace_back(buf);
 	}
 	/*!	\brief Sets the footer string of the error message.
@@ -68,6 +63,13 @@ public:
 	void SetFooter(const std::string &footer);
 
 public:
+	template <typename... T>
+	static CModuleException WithMessage(const std::string &fmt, T&&... args) {
+		CModuleException e;
+		e.AppendError(fmt, std::forward<T>(args)...);
+		return e;
+	}
+
 	/*!	\brief Validates a numerical value so that it lies within the interval [Min, Max].
 		\details This method may throw a CModuleException object and automatically supply a suitable
 		error message based on the value description. This method handles signed and unsigned types
@@ -80,7 +82,7 @@ public:
 		\return The value argument, if the method returns.
 	*/
 	template <module_error_level_t l = MODULE_ERROR_DEFAULT, typename T, typename U, typename V>
-	static T AssertRangeFmt(T Value, U Min, V Max, std::string Desc)
+	static T AssertRangeFmt(T Value, U Min, V Max, const std::string &Desc)
 	{
 		if (l > theApp.GetSettings()->Version.iErrorLevel)
 			return Value;
@@ -89,9 +91,7 @@ public:
 				+ std::to_string(Min) + ","
 				+ std::to_string(Max) + "], got "
 				+ std::to_string(Value);
-			CModuleException *e = new CModuleException();
-			e->AppendError(msg);
-			e->Raise();
+			throw WithMessage(msg);
 		}
 		return Value;
 	}

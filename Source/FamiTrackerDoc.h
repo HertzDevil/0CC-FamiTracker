@@ -419,7 +419,7 @@ private:
 		try {
 			return CModuleException::AssertRangeFmt<l>(Value, Min, Max, Desc);
 		}
-		catch (CModuleException *e) {
+		catch (CModuleException e) {
 			if (m_pCurrentDocument)
 				m_pCurrentDocument->SetDefaultFooter(e);
 			throw;
@@ -433,7 +433,7 @@ private:
 		try {
 			return CModuleException::AssertRangeFmt<l>(Value, Min, Max, Desc);
 		}
-		catch (CModuleException *e) {
+		catch (CModuleException e) {
 			if (m_pCurrentDocument)
 				m_pCurrentDocument->SetDefaultFooter(e);
 			throw;

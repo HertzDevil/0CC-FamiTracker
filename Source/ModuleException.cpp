@@ -22,7 +22,7 @@
 
 #include "ModuleException.h"
 
-const std::string CModuleException::GetErrorString() const
+std::string CModuleException::GetErrorString() const
 {
 	std::string out;
 	for (const auto &x : m_strError)

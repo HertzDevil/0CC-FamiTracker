@@ -110,8 +110,8 @@ bool CInstrument2A03::Load(CDocumentFile *pDocFile)
 				SetSampleDeltaValue(Octave, Note, Value);
 			}
 		}
-		catch (CModuleException *e) {
-			e->AppendError("At note %i, octave %i,", Note + 1, Octave);
+		catch (CModuleException e) {
+			e.AppendError("At note %i, octave %i,", Note + 1, Octave);
 			throw;
 		}
 	};
@@ -211,8 +211,8 @@ bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
 			SetSampleDeltaValue(Octave, Note, CModuleException::AssertRangeFmt(
 				static_cast<char>(iVersion >= 24 ? File.ReadChar() : -1), -1, 0x7F, "DPCM sample delta value"));
 		}
-		catch (CModuleException *e) {
-			e->AppendError("At note %i, octave %i,", Note + 1, Octave);
+		catch (CModuleException e) {
+			e.AppendError("At note %i, octave %i,", Note + 1, Octave);
 			throw;
 		}
 	}
@@ -262,9 +262,7 @@ bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
 		
 		if (TotalSize + Size > MAX_SAMPLE_SPACE) {
 			SAFE_RELEASE_ARRAY(SampleData);
-			CModuleException *e = new CModuleException();
-			e->AppendError("Insufficient DPCM sample space (maximum %d KB)", MAX_SAMPLE_SPACE / 1024);
-			e->Raise();
+			throw CModuleException::WithMessage("Insufficient DPCM sample space (maximum %d KB)", MAX_SAMPLE_SPACE / 1024);
 		}
 		CDSample *pSample = new CDSample();		// // //
 		pSample->SetName(SampleNames[Index]);
@@ -272,9 +270,7 @@ bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
 		int FreeSample = m_pInstManager->AddDSample(pSample);
 		if (FreeSample == -1) {
 			SAFE_RELEASE(pSample);
-			CModuleException *e = new CModuleException();
-			e->AppendError("Document has no free DPCM sample slot");
-			e->Raise();
+			throw CModuleException::WithMessage("Document has no free DPCM sample slot");
 		}
 		TotalSize += Size;
 		// Assign it
