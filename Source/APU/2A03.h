@@ -38,14 +38,14 @@ class C2A03 : public CSoundChip
 public:
 	explicit C2A03(CMixer *pMixer);
 
-	void Reset();
-	void Process(uint32_t Time);
-	void EndFrame();
+	void Reset() override;
+	void Process(uint32_t Time) override;
+	void EndFrame() override;
 
-	void Write(uint16_t Address, uint8_t Value);
-	uint8_t Read(uint16_t Address, bool &Mapped);
+	void Write(uint16_t Address, uint8_t Value) override;
+	uint8_t Read(uint16_t Address, bool &Mapped) override;
 
-	double GetFreq(int Channel) const;		// // //
+	double GetFreq(int Channel) const override;		// // //
 
 public:
 	void	ClockSequence();		// // //

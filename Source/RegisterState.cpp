@@ -86,18 +86,20 @@ void CRegisterLogger::Step()
 		r.second.Step();
 }
 
-CRegisterLoggerBlock::CRegisterLoggerBlock(CRegisterLogger *Logger) :
-	m_pLogger(Logger),
-	m_iPort(Logger->m_iPort),
-	m_bAutoIncrement(Logger->m_bAutoIncrement),
-	m_bBlocked(Logger->m_bBlocked)
+
+
+CRegisterLoggerBlock::CRegisterLoggerBlock(CRegisterLogger &Logger) :
+	m_Logger(Logger),
+	m_iPort(Logger.m_iPort),
+	m_bAutoIncrement(Logger.m_bAutoIncrement),
+	m_bBlocked(Logger.m_bBlocked)
 {
-	Logger->m_bBlocked = true;
+	Logger.m_bBlocked = true;
 }
 
 CRegisterLoggerBlock::~CRegisterLoggerBlock()
 {
-	m_pLogger->m_iPort = m_iPort;
-	m_pLogger->m_bAutoIncrement = m_bAutoIncrement;
-	m_pLogger->m_bBlocked = m_bBlocked;
+	m_Logger.m_iPort = m_iPort;
+	m_Logger.m_bAutoIncrement = m_bAutoIncrement;
+	m_Logger.m_bBlocked = m_bBlocked;
 }

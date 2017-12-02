@@ -130,11 +130,11 @@ protected:
 class CRegisterLoggerBlock
 {
 public:
-	CRegisterLoggerBlock(CRegisterLogger *Logger);
+	CRegisterLoggerBlock(CRegisterLogger &Logger);
 	~CRegisterLoggerBlock();
 
 private:
-	CRegisterLogger *m_pLogger;
+	CRegisterLogger &m_Logger;
 	unsigned int m_iPort;
 	bool m_bAutoIncrement;
 	bool m_bBlocked;

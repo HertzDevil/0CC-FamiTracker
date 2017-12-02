@@ -28,6 +28,8 @@
 
 class CMixer;
 
+class CN163;		// // //
+
 class CN163Chan : public CChannel {
 public:
 	CN163Chan(CMixer *pMixer, int ID, uint8_t *pWaveData);
@@ -55,14 +57,14 @@ private:
 
 class CN163 : public CSoundChip {
 public:
-	CN163(CMixer *pMixer);
-	virtual ~CN163();
-	void Reset();
-	void Process(uint32_t Time);
-	void EndFrame();
-	void Write(uint16_t Address, uint8_t Value);
-	void Log(uint16_t Address, uint8_t Value);		// // //
-	double GetFreq(int Channel) const;		// // //
+	explicit CN163(CMixer *pMixer);
+
+	void Reset() override;
+	void Process(uint32_t Time) override;
+	void EndFrame() override;
+	void Write(uint16_t Address, uint8_t Value) override;
+	void Log(uint16_t Address, uint8_t Value) override;		// // //
+	double GetFreq(int Channel) const override;		// // //
 
 	uint8_t Read(uint16_t Address, bool &Mapped);
 	uint8_t ReadMem(uint8_t Reg);
@@ -73,19 +75,19 @@ protected:
 	void ProcessOld(uint32_t Time);		// // //
 
 private:
-	CN163Chan	*m_pChannels[8];
+	CN163Chan	m_Channels[8];		// // //
 
-	uint8_t		*m_pWaveData;
-	uint8_t		m_iExpandAddr;
-	uint8_t		m_iChansInUse;
+	uint8_t		m_iWaveData[0x80] = { };		// // //
+	uint8_t		m_iExpandAddr = 0;
+	uint8_t		m_iChansInUse = 0;
 
-	int32_t		m_iLastValue;
+	int32_t		m_iLastValue = 0;
 
-	uint32_t		m_iGlobalTime;
+	uint32_t	m_iGlobalTime = 0;
 
-	uint32_t		m_iChannelCntr;
-	uint32_t		m_iActiveChan;
-	uint32_t		m_iCycle;
+	uint32_t	m_iChannelCntr = 0;
+	uint32_t	m_iActiveChan = 0;
+	uint32_t	m_iCycle = 0;
 
-	bool		m_bOldMixing;		// // //
+	bool		m_bOldMixing = false;		// // //
 };

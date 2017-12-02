@@ -20,21 +20,16 @@
 ** must bear this legend.
 */
 
-//#include "APU.h"
-#include "../Common.h"
-#include "Types.h"
-#include "Mixer.h"
 #include "MMC5.h"
-#include "Square.h"
+#include "Types.h"
 #include "../RegisterState.h"		// // //
 
 // MMC5 external sound
 
 CMMC5::CMMC5(CMixer *pMixer) :
 	CSoundChip(pMixer),		// // //
-	m_pEXRAM(new uint8_t[0x400]),
-	m_pSquare1(new CSquare(pMixer, CHANID_MMC5_SQUARE1, SNDCHIP_MMC5)),
-	m_pSquare2(new CSquare(pMixer, CHANID_MMC5_SQUARE2, SNDCHIP_MMC5)),
+	m_Square1(pMixer, CHANID_MMC5_SQUARE1, SNDCHIP_MMC5),
+	m_Square2(pMixer, CHANID_MMC5_SQUARE2, SNDCHIP_MMC5),
 	m_iMulLow(0),
 	m_iMulHigh(0)
 {
@@ -42,60 +37,48 @@ CMMC5::CMMC5(CMixer *pMixer) :
 	m_pRegisterLogger->AddRegisterRange(0x5015, 0x5015);
 }
 
-CMMC5::~CMMC5()
-{
-	if (m_pSquare1)
-		delete m_pSquare1;
-
-	if (m_pSquare2)
-		delete m_pSquare2;
-
-	if (m_pEXRAM)
-		delete [] m_pEXRAM;
-}
-
 void CMMC5::Reset()
 {
-	m_pSquare1->Reset();
-	m_pSquare2->Reset();
+	m_Square1.Reset();
+	m_Square2.Reset();
 
-	m_pSquare1->Write(0x01, 0x08);
-	m_pSquare2->Write(0x01, 0x08);
+	m_Square1.Write(0x01, 0x08);
+	m_Square2.Write(0x01, 0x08);
 }
 
 void CMMC5::Write(uint16_t Address, uint8_t Value)
 {
 	if (Address >= 0x5C00 && Address <= 0x5FF5) {
-		m_pEXRAM[Address & 0x3FF] = Value;
+		m_iEXRAM[Address & 0x3FF] = Value;
 		return;
 	}
 
 	switch (Address) {
 		// Channel 1
 		case 0x5000:
-			m_pSquare1->Write(0, Value);
+			m_Square1.Write(0, Value);
 			break;
 		case 0x5002:
-			m_pSquare1->Write(2, Value);
+			m_Square1.Write(2, Value);
 			break;
 		case 0x5003:
-			m_pSquare1->Write(3, Value);
+			m_Square1.Write(3, Value);
 			break;
 		// Channel 2
 		case 0x5004:
-			m_pSquare2->Write(0, Value);
+			m_Square2.Write(0, Value);
 			break;
 		case 0x5006:
-			m_pSquare2->Write(2, Value);
+			m_Square2.Write(2, Value);
 			break;
 		case 0x5007:
-			m_pSquare2->Write(3, Value);
+			m_Square2.Write(3, Value);
 			break;
 		// Channel 3... (doesn't exist)
 		// Control
 		case 0x5015:
-			m_pSquare1->WriteControl(Value & 1);
-			m_pSquare2->WriteControl((Value >> 1) & 1);
+			m_Square1.WriteControl(Value & 1);
+			m_Square2.WriteControl((Value >> 1) & 1);
 			break;
 		// Hardware multiplier
 		case 0x5205:
@@ -111,7 +94,7 @@ uint8_t CMMC5::Read(uint16_t Address, bool &Mapped)
 {
 	if (Address >= 0x5C00 && Address <= 0x5FF5) {
 		Mapped = true;
-		return m_pEXRAM[Address & 0x3FF];
+		return m_iEXRAM[Address & 0x3FF];
 	}
 	
 	switch (Address) {
@@ -128,35 +111,35 @@ uint8_t CMMC5::Read(uint16_t Address, bool &Mapped)
 
 void CMMC5::EndFrame()
 {
-	m_pSquare1->EndFrame();
-	m_pSquare2->EndFrame();
+	m_Square1.EndFrame();
+	m_Square2.EndFrame();
 }
 
 void CMMC5::Process(uint32_t Time)
 {
-	m_pSquare1->Process(Time);
-	m_pSquare2->Process(Time);
+	m_Square1.Process(Time);
+	m_Square2.Process(Time);
 }
 
 double CMMC5::GetFreq(int Channel) const		// // //
 {
 	switch (Channel) {
-	case 0: return m_pSquare1->GetFrequency();
-	case 1: return m_pSquare2->GetFrequency();
+	case 0: return m_Square1.GetFrequency();
+	case 1: return m_Square2.GetFrequency();
 	}
 	return 0.;
 }
 
 void CMMC5::LengthCounterUpdate()
 {
-	m_pSquare1->LengthCounterUpdate();
-	m_pSquare2->LengthCounterUpdate();
+	m_Square1.LengthCounterUpdate();
+	m_Square2.LengthCounterUpdate();
 }
 
 void CMMC5::EnvelopeUpdate()
 {
-	m_pSquare1->EnvelopeUpdate();
-	m_pSquare2->EnvelopeUpdate();
+	m_Square1.EnvelopeUpdate();
+	m_Square2.EnvelopeUpdate();
 }
 
 void CMMC5::ClockSequence()

@@ -438,12 +438,6 @@
     <ClCompile Include="Source\APU\FDS.cpp">
       <Filter>Source Files\Sound Driver\Emulation\Sound Chips</Filter>
     </ClCompile>
-    <ClCompile Include="Source\APU\MMC5.CPP">
-      <Filter>Source Files\Sound Driver\Emulation\Sound Chips</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\APU\N163.CPP">
-      <Filter>Source Files\Sound Driver\Emulation\Sound Chips</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Apu\VRC6.cpp">
       <Filter>Source Files\Sound Driver\Emulation\Sound Chips</Filter>
     </ClCompile>
@@ -752,6 +746,12 @@
     </ClCompile>
     <ClCompile Include="Source\APU\SampleMem.cpp">
       <Filter>Source Files\Sound Driver\Emulation\Internal Channels</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\APU\MMC5.cpp">
+      <Filter>Source Files\Sound Driver\Emulation\Sound Chips</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\APU\N163.cpp">
+      <Filter>Source Files\Sound Driver\Emulation\Sound Chips</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

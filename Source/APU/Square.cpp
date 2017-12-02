@@ -21,7 +21,6 @@
 */
 
 #include "Square.h"
-#include <memory>
 #include "APU.h"
 
 // This is also shared with MMC5

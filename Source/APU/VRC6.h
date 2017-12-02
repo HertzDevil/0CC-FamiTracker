@@ -67,16 +67,17 @@ private:
 
 class CVRC6 : public CSoundChip {
 public:
-	CVRC6(CMixer *pMixer);
-	virtual ~CVRC6();
-	void Reset();
-	void Write(uint16_t Address, uint8_t Value);
-	uint8_t Read(uint16_t Address, bool &Mapped);
-	void EndFrame();
-	void Process(uint32_t Time);
-	double GetFreq(int Channel) const;		// // //
+	explicit CVRC6(CMixer *pMixer);
+
+	void Reset() override;
+	void Write(uint16_t Address, uint8_t Value) override;
+	uint8_t Read(uint16_t Address, bool &Mapped) override;
+	void EndFrame() override;
+	void Process(uint32_t Time) override;
+	double GetFreq(int Channel) const override;		// // //
 
 private:
-	CVRC6_Pulse	*m_pPulse1, *m_pPulse2;
-	CVRC6_Sawtooth *m_pSawtooth;
+	CVRC6_Pulse	m_Pulse1;		// // //
+	CVRC6_Pulse	m_Pulse2;
+	CVRC6_Sawtooth m_Sawtooth;
 };

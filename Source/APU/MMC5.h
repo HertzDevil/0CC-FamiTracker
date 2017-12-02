@@ -24,30 +24,27 @@
 #pragma once
 
 #include "SoundChip.h"
-#include "Channel.h"
-
-class CSquare;		// // //
+#include "Square.h"		// // //
 
 class CMMC5 : public CSoundChip {
 public:
-	CMMC5(CMixer *pMixer);
-	virtual ~CMMC5();
+	explicit CMMC5(CMixer *pMixer);
 
-	void Reset();
-	void Write(uint16_t Address, uint8_t Value);
-	uint8_t Read(uint16_t Address, bool &Mapped);
-	void EndFrame();
-	void Process(uint32_t Time);
-	double GetFreq(int Channel) const;		// // //
+	void Reset() override;
+	void Write(uint16_t Address, uint8_t Value) override;
+	uint8_t Read(uint16_t Address, bool &Mapped) override;
+	void EndFrame() override;
+	void Process(uint32_t Time) override;
+	double GetFreq(int Channel) const override;		// // //
 
 	void LengthCounterUpdate();
 	void EnvelopeUpdate();
 	void ClockSequence();		// // //
 
 private:	
-	CSquare	*m_pSquare1;
-	CSquare	*m_pSquare2;
-	uint8_t	*m_pEXRAM;
+	CSquare	m_Square1;		// // //
+	CSquare	m_Square2;		// // //
+	uint8_t	m_iEXRAM[0x400] = { };		// // //
 	uint8_t	m_iMulLow;
 	uint8_t	m_iMulHigh;
 };

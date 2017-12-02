@@ -20,9 +20,8 @@
 ** must bear this legend.
 */
 
-#include "../Common.h"
-#include "APU.h"
 #include "N163.h"
+#include "APU.h"
 #include "../RegisterState.h"		// // //
 
 /*
@@ -41,34 +40,24 @@
 
 CN163::CN163(CMixer *pMixer) :
 	CSoundChip(pMixer),		// // //
-	m_iChansInUse(0), 
-	m_iExpandAddr(0), 
-	m_iLastValue(0), 
-	m_iGlobalTime(0), 
-	m_iChannelCntr(0),
-	m_iActiveChan(0),
-	m_iCycle(0),
-	m_pWaveData(new uint8_t[0x80]()),		// // //
-	m_bOldMixing(0)		// // //
+	m_Channels {
+		{pMixer, CHANID_N163_CH1, m_iWaveData},
+		{pMixer, CHANID_N163_CH2, m_iWaveData},
+		{pMixer, CHANID_N163_CH3, m_iWaveData},
+		{pMixer, CHANID_N163_CH4, m_iWaveData},
+		{pMixer, CHANID_N163_CH5, m_iWaveData},
+		{pMixer, CHANID_N163_CH6, m_iWaveData},
+		{pMixer, CHANID_N163_CH7, m_iWaveData},
+		{pMixer, CHANID_N163_CH8, m_iWaveData},
+	}
 {
 	m_pRegisterLogger->AddRegisterRange(0x00, 0x7F);		// // //
-	for (int i = 0; i < 8; ++i)
-		m_pChannels[i] = new CN163Chan(pMixer, CHANID_N163_CH1 + i, m_pWaveData);
-}
-
-CN163::~CN163()
-{
-	if (m_pWaveData)
-		delete [] m_pWaveData;
-
-	for (int i = 0; i < 8; ++i)
-		delete m_pChannels[i];
 }
 
 void CN163::Reset()
 {
 	for (int i = 0; i < 8; ++i)
-		m_pChannels[i]->Reset();
+		m_Channels[i].Reset();
 
 	m_iLastValue = 0;
 
@@ -102,7 +91,7 @@ void CN163::Process(uint32_t Time)
 		if (TimeToRun > Time)
 			TimeToRun = Time;
 
-		m_pChannels[m_iActiveChan]->Process(TimeToRun, m_iChansInUse + 1, this);
+		m_Channels[m_iActiveChan].Process(TimeToRun, m_iChansInUse + 1, this);
 
 		Time -= TimeToRun;
 		m_iGlobalTime += TimeToRun;
@@ -122,7 +111,7 @@ void CN163::ProcessOld(uint32_t Time)		// // //
 	m_pMixer->SetNamcoVolume((m_iChansInUse == 0) ? 1.0f : 0.75f);
 
 	for (int i = 7 - m_iChansInUse; i < 8; ++i)
-		m_pChannels[i]->ProcessClean(Time, m_iChansInUse + 1);
+		m_Channels[i].ProcessClean(Time, m_iChansInUse + 1);
 }
 
 void CN163::Mix(int32_t Value, uint32_t Time, uint8_t ChanID)
@@ -142,16 +131,16 @@ void CN163::Mix(int32_t Value, uint32_t Time, uint8_t ChanID)
 
 void CN163::EndFrame()
 {
-	CRegisterLoggerBlock b {m_pRegisterLogger};
+	CRegisterLoggerBlock b {*m_pRegisterLogger};
 	for (int i = 0; i < 8; ++i) {
-		m_pChannels[i]->EndFrame();
+		m_Channels[i].EndFrame();
 		if (i <= m_iChansInUse) for (int j : {1, 3, 5}) {		// // // log phase
 			int Address = 0x78 - i * 8 + j;
 			m_pRegisterLogger->SetPort(Address);
 			m_pRegisterLogger->Write(ReadMem(Address));
 		}
 		if (i != m_iActiveChan)		// // //
-			m_pChannels[i]->ResetCounter();
+			m_Channels[i].ResetCounter();
 	}
 
 	m_iGlobalTime = 0;
@@ -163,11 +152,11 @@ void CN163::Write(uint16_t Address, uint8_t Value)
 
 	switch (Address) {
 		case 0x4800:
-			m_pWaveData[Area] = Value;
+			m_iWaveData[Area] = Value;
 
 			if (Area >= 0x40) {
 				int Channel = (Area & 0x3F) >> 3;
-				m_pChannels[Channel]->Write(Area & 0x07, Value);
+				m_Channels[Channel].Write(Area & 0x07, Value);
 
 				if (Area == 0x7F)
 					m_iChansInUse = (Value >> 4) & 0x07;
@@ -200,7 +189,7 @@ double CN163::GetFreq(int Channel) const		// // //
 {
 	if (Channel < 0 || Channel > m_iChansInUse)
 		return 0.;
-	return m_pChannels[7 - Channel]->GetFrequency() / (m_iChansInUse + 1);
+	return m_Channels[7 - Channel].GetFrequency() / (m_iChansInUse + 1);
 }
 
 uint8_t CN163::Read(uint16_t Address, bool &Mapped)
@@ -213,7 +202,7 @@ uint8_t CN163::Read(uint16_t Address, bool &Mapped)
 			ReadAddr = m_iExpandAddr & 0x7F;
 			if (m_iExpandAddr & 0x80)
 				m_iExpandAddr = ((m_iExpandAddr + 1) & 0x7F) | 0x80;
-			return m_pWaveData[ReadAddr];
+			return m_iWaveData[ReadAddr];
 	}
 
 	return 0;
@@ -225,12 +214,12 @@ uint8_t CN163::ReadMem(uint8_t Reg)
 	int Chan = (Reg & 0x3F) >> 3;
 	
 	if (Reg < ChanArea)
-		return m_pWaveData[Reg & 0x7F];
+		return m_iWaveData[Reg & 0x7F];
 
 	if ((Reg & 7) == 7)
-		return m_pChannels[Chan]->ReadMem(Reg) | (m_pWaveData[Reg] & 0xF0);
+		return m_Channels[Chan].ReadMem(Reg) | (m_iWaveData[Reg] & 0xF0);
 
-	return m_pChannels[Chan]->ReadMem(Reg);
+	return m_Channels[Chan].ReadMem(Reg);
 }
 
 //

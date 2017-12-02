@@ -150,7 +150,7 @@ void CAPU::EndFrame()
 	m_iFrameCycles = 0;
 
 	for (auto &r : ExChips)		// // //
-		r->GetRegisterLogger()->Step();
+		r->GetRegisterLogger().Step();
 		
 #ifdef LOGGING
 	++m_iFrame;
@@ -173,7 +173,7 @@ void CAPU::Reset()
 	m_pMixer->ClearBuffer();
 	
 	for (auto Chip : ExChips) {		// // //
-		Chip->GetRegisterLogger()->Reset();
+		Chip->GetRegisterLogger().Reset();
 		Chip->Reset();
 	}
 
@@ -449,8 +449,8 @@ CRegisterState *CAPU::GetRegState(int Chip, int Reg) const		// // //
 	case SNDCHIP_MMC5: pChip = m_pMMC5; break;
 	case SNDCHIP_N163: pChip = m_pN163; break;
 	case SNDCHIP_S5B:  pChip = m_pS5B; break;
-	default: AfxDebugBreak();
+	default: __debugbreak();
 	}
 
-	return pChip->GetRegisterLogger()->GetRegister(Reg);
+	return pChip->GetRegisterLogger().GetRegister(Reg);
 }

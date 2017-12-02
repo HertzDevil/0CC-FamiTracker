@@ -24,14 +24,15 @@
 #pragma once
 
 #include <cstdint>		// // //
+#include <memory>		// // //
 
 class CMixer;
 class CRegisterLogger;		// // //
 
 class CSoundChip {
 public:
-	CSoundChip(CMixer *pMixer = nullptr);		// // //
-	virtual ~CSoundChip();
+	explicit CSoundChip(CMixer *pMixer);		// // //
+	virtual ~CSoundChip() noexcept = default;
 
 	virtual void	Reset() = 0;
 	virtual void	Process(uint32_t Time) = 0;
@@ -43,9 +44,9 @@ public:
 	virtual double	GetFreq(int Channel) const;		// // //
 
 	virtual void	Log(uint16_t Address, uint8_t Value);		// // //
-	CRegisterLogger *GetRegisterLogger() const;		// // //
+	CRegisterLogger &GetRegisterLogger() const;		// // //
 
 protected:
 	CMixer *m_pMixer;
-	CRegisterLogger *m_pRegisterLogger;		// // //
+	std::unique_ptr<CRegisterLogger> m_pRegisterLogger;		// // //
 };

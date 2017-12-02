@@ -38,7 +38,7 @@ public:
 	void Process(uint32_t Time);
 	void Reset();
 
-	uint32_t GetTime();
+	uint32_t GetTime() const;
 	void Output(uint32_t Noise, uint32_t Envelope);
 
 	double GetFrequency() const;
@@ -56,18 +56,16 @@ private:
 class CS5B : public CSoundChip
 {
 public:
-	CS5B(CMixer *pMixer);
-	virtual ~CS5B();
-	
-	void	Reset();
-	void	Process(uint32_t Time);
-	void	EndFrame();
+	explicit CS5B(CMixer *pMixer);
 
-	void	Write(uint16_t Address, uint8_t Value);
-	uint8_t	Read(uint16_t Address, bool &Mapped);
-	void	Log(uint16_t Address, uint8_t Value);		// // //
+	void	Reset() override;
+	void	Process(uint32_t Time) override;
+	void	EndFrame() override;
+	void	Write(uint16_t Address, uint8_t Value) override;
+	uint8_t	Read(uint16_t Address, bool &Mapped) override;
+	void	Log(uint16_t Address, uint8_t Value) override;		// // //
 
-	double	GetFreq(int Channel) const;		// // //
+	double	GetFreq(int Channel) const override;		// // //
 
 private:
 	void	WriteReg(uint8_t Port, uint8_t Value);
@@ -75,7 +73,7 @@ private:
 	void	RunNoise(uint32_t Time);
 
 private:
-	CS5BChannel *m_pChannel[3];
+	CS5BChannel m_Channel[3];
 
 	uint8_t m_cPort;
 

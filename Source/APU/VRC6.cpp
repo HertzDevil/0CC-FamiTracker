@@ -20,8 +20,8 @@
 ** must bear this legend.
 */
 
-#include "APU.h"
 #include "VRC6.h"
+#include "APU.h"
 #include "../RegisterState.h"		// // //
 
 // Konami VRC6 external sound chip emulation
@@ -164,32 +164,20 @@ double CVRC6_Sawtooth::GetFrequency() const		// // //
 
 CVRC6::CVRC6(CMixer *pMixer) :
 	CSoundChip(pMixer),		// // //
-	m_pPulse1(new CVRC6_Pulse(pMixer, CHANID_VRC6_PULSE1)),
-	m_pPulse2(new CVRC6_Pulse(pMixer, CHANID_VRC6_PULSE2)),
-	m_pSawtooth(new CVRC6_Sawtooth(pMixer, CHANID_VRC6_SAWTOOTH))
+	m_Pulse1(pMixer, CHANID_VRC6_PULSE1),
+	m_Pulse2(pMixer, CHANID_VRC6_PULSE2),
+	m_Sawtooth(pMixer, CHANID_VRC6_SAWTOOTH)
 {
 	m_pRegisterLogger->AddRegisterRange(0x9000, 0x9003);		// // //
 	m_pRegisterLogger->AddRegisterRange(0xA000, 0xA002);
 	m_pRegisterLogger->AddRegisterRange(0xB000, 0xB002);
 }
 
-CVRC6::~CVRC6()
-{
-	if (m_pPulse1)
-		delete m_pPulse1;
-
-	if (m_pPulse2)
-		delete m_pPulse2;
-
-	if (m_pSawtooth)
-		delete m_pSawtooth;
-}
-
 void CVRC6::Reset()
 {
-	m_pPulse1->Reset();
-	m_pPulse2->Reset();
-	m_pSawtooth->Reset();
+	m_Pulse1.Reset();
+	m_Pulse2.Reset();
+	m_Sawtooth.Reset();
 }
 
 void CVRC6::Write(uint16_t Address, uint8_t Value)
@@ -198,17 +186,17 @@ void CVRC6::Write(uint16_t Address, uint8_t Value)
 		case 0x9000:
 		case 0x9001:
 		case 0x9002:
-			m_pPulse1->Write(Address & 3, Value);
+			m_Pulse1.Write(Address & 3, Value);
 			break;			
 		case 0xA000:
 		case 0xA001:
 		case 0xA002:
-			m_pPulse2->Write(Address & 3, Value);
+			m_Pulse2.Write(Address & 3, Value);
 			break;
 		case 0xB000:
 		case 0xB001:
 		case 0xB002:
-			m_pSawtooth->Write(Address & 3, Value);
+			m_Sawtooth.Write(Address & 3, Value);
 			break;
 	}
 }
@@ -221,24 +209,24 @@ uint8_t CVRC6::Read(uint16_t Address, bool &Mapped)
 
 void CVRC6::EndFrame()
 {
-	m_pPulse1->EndFrame();
-	m_pPulse2->EndFrame();
-	m_pSawtooth->EndFrame();
+	m_Pulse1.EndFrame();
+	m_Pulse2.EndFrame();
+	m_Sawtooth.EndFrame();
 }
 
 void CVRC6::Process(uint32_t Time)
 {
-	m_pPulse1->Process(Time);
-	m_pPulse2->Process(Time);
-	m_pSawtooth->Process(Time);
+	m_Pulse1.Process(Time);
+	m_Pulse2.Process(Time);
+	m_Sawtooth.Process(Time);
 }
 
 double CVRC6::GetFreq(int Channel) const		// // //
 {
 	switch (Channel) {
-	case 0: return m_pPulse1->GetFrequency();
-	case 1: return m_pPulse2->GetFrequency();
-	case 2: return m_pSawtooth->GetFrequency();
+	case 0: return m_Pulse1.GetFrequency();
+	case 1: return m_Pulse2.GetFrequency();
+	case 2: return m_Sawtooth.GetFrequency();
 	}
 	return 0.;
 }

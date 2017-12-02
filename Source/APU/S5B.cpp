@@ -20,9 +20,9 @@
 ** must bear this legend.
 */
 
+#include "S5B.h"
 #include <algorithm>
 #include "APU.h"
-#include "S5B.h"
 #include "../RegisterState.h"
 
 // // // 050B
@@ -69,7 +69,7 @@ void CS5BChannel::Reset()
 	m_bNoiseDisable = true;
 }
 
-uint32_t CS5BChannel::GetTime()
+uint32_t CS5BChannel::GetTime() const
 {
 	if (m_iPeriod < 2U || !m_iVolume)
 		return 0xFFFFFU;
@@ -99,22 +99,16 @@ double CS5BChannel::GetFrequency() const		// // //
 // Sunsoft 5B chip class
 
 CS5B::CS5B(CMixer *pMixer) : CSoundChip(pMixer),
+	m_Channel {
+		{pMixer, CHANID_S5B_CH1},
+		{pMixer, CHANID_S5B_CH2},
+		{pMixer, CHANID_S5B_CH3},
+	},
 	m_cPort(0),
 	m_iCounter(0)
 {
 	m_pRegisterLogger->AddRegisterRange(0x00, 0x0F);		// // //
-
-	m_pChannel[0] = new CS5BChannel(pMixer, CHANID_S5B_CH1);
-	m_pChannel[1] = new CS5BChannel(pMixer, CHANID_S5B_CH2);
-	m_pChannel[2] = new CS5BChannel(pMixer, CHANID_S5B_CH3);
 	Reset();
-}
-
-CS5B::~CS5B()
-{
-	for (auto x : m_pChannel)
-		if (x)
-			delete x;
 }
 
 void CS5B::Reset()
@@ -129,8 +123,8 @@ void CS5B::Reset()
 	m_iEnvelopeShape = 0;
 	m_bEnvelopeHold = true;
 	
-	for (auto x : m_pChannel)
-		x->Reset();
+	for (auto &x : m_Channel)
+		x.Reset();
 }
 
 void CS5B::Process(uint32_t Time)
@@ -141,26 +135,26 @@ void CS5B::Process(uint32_t Time)
 			TimeToRun = std::min<uint32_t>(m_iEnvelopePeriod - m_iEnvelopeClock, TimeToRun);
 		if (m_iNoiseClock < m_iNoisePeriod)
 			TimeToRun = std::min<uint32_t>(m_iNoisePeriod - m_iNoiseClock, TimeToRun);
-		for (const auto x : m_pChannel)
-			TimeToRun = std::min<uint32_t>(x->GetTime(), TimeToRun);
+		for (const auto &x : m_Channel)
+			TimeToRun = std::min<uint32_t>(x.GetTime(), TimeToRun);
 
 		m_iCounter += TimeToRun;
 		Time -= TimeToRun;
 
 		RunEnvelope(TimeToRun);
 		RunNoise(TimeToRun);
-		for (auto x : m_pChannel)
-			x->Process(TimeToRun);
+		for (auto &x : m_Channel)
+			x.Process(TimeToRun);
 
-		for (auto x : m_pChannel)
-			x->Output(m_iNoiseState & 0x01, m_iEnvelopeLevel);
+		for (auto &x : m_Channel)
+			x.Output(m_iNoiseState & 0x01, m_iEnvelopeLevel);
 	}
 }
 
 void CS5B::EndFrame()
 {
-	for (auto x : m_pChannel)
-		x->EndFrame();
+	for (auto &x : m_Channel)
+		x.EndFrame();
 	m_iCounter = 0;
 }
 
@@ -186,7 +180,7 @@ double CS5B::GetFreq(int Channel) const		// // //
 {
 	switch (Channel) {
 	case 0: case 1: case 2:
-		return m_pChannel[Channel]->GetFrequency();
+		return m_Channel[Channel].GetFrequency();
 	case 3:
 		if (!m_iEnvelopePeriod)
 			return 0.;
@@ -203,14 +197,14 @@ void CS5B::WriteReg(uint8_t Port, uint8_t Value)
 	switch (Port) {
 	case 0x00: case 0x02: case 0x04:
 	{
-		auto pChan = m_pChannel[Port >> 1];
-		pChan->m_iPeriod = (pChan->m_iPeriod & 0xF000) | (Value << 4);
+		auto &Chan = m_Channel[Port >> 1];
+		Chan.m_iPeriod = (Chan.m_iPeriod & 0xF000) | (Value << 4);
 	}
 		break;
 	case 0x01: case 0x03: case 0x05:
 	{
-		auto pChan = m_pChannel[Port >> 1];
-		pChan->m_iPeriod = (pChan->m_iPeriod & 0x0FF0) | ((Value & 0x0F) << 12);
+		auto &Chan = m_Channel[Port >> 1];
+		Chan.m_iPeriod = (Chan.m_iPeriod & 0x0FF0) | ((Value & 0x0F) << 12);
 	}
 		break;
 	case 0x06:
@@ -218,13 +212,13 @@ void CS5B::WriteReg(uint8_t Port, uint8_t Value)
 		break;
 	case 0x07:
 		for (int i = 0; i < 3; ++i) {
-			auto pChan = m_pChannel[i];
-			pChan->m_bSquareDisable = (Value & (1 << i)) != 0;
-			pChan->m_bNoiseDisable = (Value & (1 << (i + 3))) != 0;
+			auto &Chan = m_Channel[i];
+			Chan.m_bSquareDisable = (Value & (1 << i)) != 0;
+			Chan.m_bNoiseDisable = (Value & (1 << (i + 3))) != 0;
 		}
 		break;
 	case 0x08: case 0x09: case 0x0A:
-		m_pChannel[Port - 0x08]->m_iVolume = Value * 2;
+		m_Channel[Port - 0x08].m_iVolume = Value * 2;
 		break;
 	case 0x0B:
 		m_iEnvelopePeriod = (m_iEnvelopePeriod & 0xFF000) | (Value << 4);

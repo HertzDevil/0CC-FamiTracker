@@ -28,20 +28,20 @@
 
 class CVRC7 : public CSoundChip {
 public:
-	CVRC7(CMixer *pMixer);
+	explicit CVRC7(CMixer *pMixer);
 	virtual ~CVRC7();
 
-	void Reset();
 	void SetSampleSpeed(uint32_t SampleRate, double ClockRate, uint32_t FrameRate);
 	void SetVolume(float Volume);
 
-	void Write(uint16_t Address, uint8_t Value);
-	void Log(uint16_t Address, uint8_t Value);		// // //
-	uint8_t Read(uint16_t Address, bool &Mapped);
-	void EndFrame();
-	void Process(uint32_t Time);
+	void Reset() override;
+	void Write(uint16_t Address, uint8_t Value) override;
+	void Log(uint16_t Address, uint8_t Value) override;		// // //
+	uint8_t Read(uint16_t Address, bool &Mapped) override;
+	void EndFrame() override;
+	void Process(uint32_t Time) override;
 	
-	double GetFreq(int Channel) const;		// // //
+	double GetFreq(int Channel) const override;		// // //
 
 protected:
 	static const float  AMPLIFY;
