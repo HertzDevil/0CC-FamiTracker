@@ -20,11 +20,10 @@
 ** must bear this legend.
 */
 
-#include "json/json.hpp"		// // //
-#include "version.h"		// // //
 #include "stdafx.h"
-#include "Exception.h"
 #include "FamiTracker.h"
+#include "version.h"		// // //
+#include "Exception.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
 #include "MainFrm.h"
@@ -37,10 +36,10 @@
 #include "CommandLineExport.h"
 #include "WinSDK/VersionHelpers.h"		// // //
 #include "WaveRenderer.h"		// // //
+#include "VersionChecker.h"		// // //
+#include <iostream>		// // //
 
 #include <afxadv.h>		// // // CRecentFileList
-#include "WinInet.h"		// // //
-#pragma comment(lib, "wininet.lib")
 #if !defined(WIP) && !defined(_DEBUG)		// // //
 #include <afxpriv.h>
 #endif
@@ -342,8 +341,7 @@ int CFamiTrackerApp::ExitInstance()
 	}
 #endif
 
-	if (m_thVersionCheck.joinable())		// // //
-		m_thVersionCheck.join();
+	m_pVersionChecker.reset();		// // //
 
 	TRACE("App: End ExitInstance\n");
 
@@ -540,90 +538,7 @@ void CFamiTrackerApp::UnregisterSingleInstance()
 
 void CFamiTrackerApp::CheckNewVersion(bool StartUp)		// // //
 {
-	static PCTSTR rgpszAcceptTypes[] = {_T("application/json"), NULL};
-
-	m_bVersionReady = false;
-	m_pVersionMessage = _T("");
-	m_iVersionStyle = 0U;
-
-	const auto CheckFunc = [&] (bool Start) {
-		HINTERNET hOpen, hConnect, hRequest;
-		CString jsonStr;
-
-		try {
-			if ((hOpen = InternetOpen(_T("0CC_FamiTracker"), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0)) &&
-				(hConnect = InternetConnect(hOpen, _T("api.github.com"),
-				INTERNET_DEFAULT_HTTPS_PORT, _T(""), _T(""), INTERNET_SERVICE_HTTP, 0, 0)) &&
-				(hRequest = HttpOpenRequest(hConnect, _T("GET"), _T("/repos/HertzDevil/0CC-FamiTracker/releases"),
-				_T("HTTP/1.0"), NULL, rgpszAcceptTypes,
-				INTERNET_FLAG_RELOAD | INTERNET_FLAG_SECURE | INTERNET_FLAG_NO_CACHE_WRITE, NULL))) {
-				HttpAddRequestHeaders(hRequest, _T("Content-Type: application/json\r\n"), -1, HTTP_ADDREQ_FLAG_ADD);
-
-				if (!HttpSendRequest(hRequest, NULL, 0, NULL, 0)) throw GetLastError();
-				while (true) {
-					DWORD Size;
-					if (!InternetQueryDataAvailable(hRequest, &Size, 0, 0)) throw GetLastError();
-					if (!Size) break;
-					char *Buf = new char[Size + 1]();
-					DWORD Received = 0;
-					for (DWORD i = 0; i < Size; i += 1024) {
-						DWORD Length = (Size - i < 1024) ? Size % 1024 : 1024;
-						if (!InternetReadFile(hRequest, Buf + i, Length, &Received))
-							throw GetLastError();
-					}
-					jsonStr += Buf;
-					SAFE_RELEASE_ARRAY(Buf);
-				}
-				nlohmann::json j = nlohmann::json::parse(jsonStr.GetBuffer());
-				for (const auto &i : j) {
-					int Ver[4] = { };
-					sscanf_s(i["tag_name"].get<std::string>().c_str(),
-							 "v%u.%u.%u%*1[.r]%u", Ver, Ver + 1, Ver + 2, Ver + 3);
-					if (Compare0CCFTVersion(Ver[0], Ver[1], Ver[2], Ver[3]) > 0) {
-						int Y = 1970, M = 1, D = 1;
-						sscanf_s(i["published_at"].get<std::string>().c_str(), "%d-%d-%d", &Y, &M, &D);
-						static const CString MONTHS[] = {
-							_T("Jan"), _T("Feb"), _T("Mar"), _T("Apr"), _T("May"), _T("Jun"),
-							_T("Jul"), _T("Aug"), _T("Sept"), _T("Oct"), _T("Nov"), _T("Dec"),
-						};
-
-						CString desc = i["body"].get<std::string>().c_str();
-						int Index = desc.Find(_T("\r\n\r\n"));
-						if (Index >= 0)
-							desc.Delete(0, Index + 4);
-						Index = desc.Find(_T("\r\n\r\n#"));
-						if (Index >= 0)
-							desc.Truncate(Index);
-
-						m_pVersionMessage.Format(_T("A new version of 0CC-FamiTracker is now available:\n\n"
-												 "Version %d.%d.%d.%d (released %s %d, %d)\n\n%s\n\n"
-												 "Pressing \"Yes\" will launch the Github web page for this release."),
-												 Ver[0], Ver[1], Ver[2], Ver[3], MONTHS[--M], D, Y, desc);
-						if (Start)
-							m_pVersionMessage.Append(_T(" (Version checking on startup may be disabled in the configuration menu.)"));
-						m_pVersionURL.Format(_T("https://github.com/HertzDevil/0CC-FamiTracker/releases/tag/v%d.%d.%d.%d"),
-											 Ver[0], Ver[1], Ver[2], Ver[3]);
-						m_iVersionStyle = MB_YESNO | MB_ICONINFORMATION;
-						m_bVersionReady = true;
-						break;
-					}
-				}
-			}
-		}
-		catch (DWORD &) {
-			m_pVersionMessage = _T("Unable to get version information from the source repository.");
-			m_iVersionStyle = MB_ICONERROR;
-			m_bVersionReady = true;
-		}
-
-		if (hRequest) InternetCloseHandle(hRequest);
-		if (hConnect) InternetCloseHandle(hConnect);
-		if (hOpen) InternetCloseHandle(hOpen);
-	};
-
-	if (m_thVersionCheck.joinable())
-		m_thVersionCheck.join();
-	m_thVersionCheck = std::thread {CheckFunc, StartUp};
+	m_pVersionChecker = std::make_unique<CVersionChecker>(StartUp);		// // //
 }
 
 bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
@@ -747,11 +662,10 @@ BOOL CFamiTrackerApp::OnIdle(LONG lCount)		// // //
 	if (CWinApp::OnIdle(lCount))
 		return TRUE;
 
-	if (m_bVersionReady && !m_pVersionMessage.IsEmpty()) {
-		m_bVersionReady = false;
-		if (AfxMessageBox(m_pVersionMessage, m_iVersionStyle) == IDYES)
-			ShellExecute(NULL, _T("open"), m_pVersionURL, NULL, NULL, SW_SHOWNORMAL);
-	}
+	if (m_pVersionChecker && m_pVersionChecker->IsReady())
+		if (auto result = std::unique_ptr<CVersionChecker> {std::move(m_pVersionChecker)}->GetVersionCheckResult())
+			if (AfxMessageBox(result->Message, result->MessageBoxStyle) == IDYES)
+				ShellExecute(NULL, _T("open"), result->URL, NULL, NULL, SW_SHOWNORMAL);
 
 	return FALSE;
 }

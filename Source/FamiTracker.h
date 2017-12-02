@@ -25,7 +25,6 @@
 
 // FamiTracker.h : main header file for the FamiTracker application
 
-#include <thread>		// // //
 #include <memory>		// // //
 #include "FamiTrackerTypes.h"		// // //
 
@@ -73,6 +72,7 @@ class CSoundGen;
 class CSettings;
 class CAccelerator;
 class CRecentFileList;		// // //
+class CVersionChecker;		// // //
 
 class CMutex;
 
@@ -169,10 +169,7 @@ private:
 
 	bool			m_bThemeActive;
 
-	std::thread		m_thVersionCheck;			// // //
-	CString			m_pVersionMessage, m_pVersionURL;
-	UINT			m_iVersionStyle;
-	bool			m_bVersionReady;
+	std::unique_ptr<CVersionChecker> m_pVersionChecker;		// // //
 
 #ifdef SUPPORT_TRANSLATIONS
 	HINSTANCE		m_hInstResDLL;
