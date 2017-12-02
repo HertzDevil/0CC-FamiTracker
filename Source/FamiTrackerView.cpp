@@ -327,10 +327,12 @@ void CFamiTrackerView::Dump(CDumpContext& dc) const
 	CView::Dump(dc);
 }
 
-CFamiTrackerDoc* CFamiTrackerView::GetDocument() const // non-debug version is inline
+CFamiTrackerDoc *CFamiTrackerView::GetDocument() const // non-debug version is inline
 {
 	ASSERT(m_pDocument->IsKindOf(RUNTIME_CLASS(CFamiTrackerDoc)));
-	return (CFamiTrackerDoc*)m_pDocument;
+	auto pDoc = (CFamiTrackerDoc*)m_pDocument;
+	ASSERT_VALID(pDoc);		// // //
+	return pDoc;
 }
 #endif //_DEBUG
 
@@ -403,7 +405,6 @@ void CFamiTrackerView::OnDraw(CDC* pDC)
 	// How should we protect the DC in this method?
 
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	// Check document
 	if (!pDoc->IsFileLoaded()) {
@@ -426,7 +427,6 @@ void CFamiTrackerView::OnDraw(CDC* pDC)
 BOOL CFamiTrackerView::OnEraseBkgnd(CDC* pDC)
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	// Check document
 	if (!pDoc->IsFileLoaded())
@@ -531,10 +531,20 @@ void CFamiTrackerView::RedrawFrameEditor()
 	pFrameEditor->RedrawFrameEditor();
 }
 
+CMainFrame *CFamiTrackerView::GetMainFrame() const {
+#ifdef _DEBUG
+	ASSERT(GetParentFrame()->IsKindOf(RUNTIME_CLASS(CMainFrame)));
+	auto pMainFrame = (CMainFrame *)GetParentFrame();
+	ASSERT_VALID(pMainFrame);
+	return pMainFrame;
+#else
+	return static_cast<CMainFrame* >(GetParentFrame());
+#endif
+}
+
 CFrameEditor *CFamiTrackerView::GetFrameEditor() const
 {
-	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
-	ASSERT_VALID(pMainFrame);
+	CMainFrame *pMainFrame = GetMainFrame();		// // //
 	CFrameEditor *pFrameEditor = pMainFrame->GetFrameEditor();
 	ASSERT_VALID(pFrameEditor);
 	return pFrameEditor;
@@ -587,7 +597,6 @@ void CFamiTrackerView::CalcWindowRect(LPRECT lpClientRect, UINT nAdjustType)
 void CFamiTrackerView::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	m_pPatternEditor->OnVScroll(nSBCode, nPos);
 	InvalidateCursor();
@@ -598,7 +607,6 @@ void CFamiTrackerView::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar
 void CFamiTrackerView::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	m_pPatternEditor->OnHScroll(nSBCode, nPos);
 	InvalidateCursor();
@@ -724,7 +732,6 @@ void CFamiTrackerView::OnXButtonDown(UINT nFlags, UINT nButton, CPoint point)		/
 void CFamiTrackerView::OnMouseMove(UINT nFlags, CPoint point)
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	if (nFlags & MK_LBUTTON) {
 		// Left button down
@@ -816,10 +823,8 @@ void CFamiTrackerView::PeriodicUpdate()
 	// Called periodically by an background timer
 
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
-	CMainFrame *pMainFrm = static_cast<CMainFrame*>(GetParentFrame());
-	ASSERT_VALID(pMainFrm);
+	CMainFrame *pMainFrm = GetMainFrame();		// // //
 
 	if (const CSoundGen *pSoundGen = theApp.GetSoundGenerator()) {
 		// Skip updates when doing background tasks (WAV render for example)
@@ -869,8 +874,7 @@ void CFamiTrackerView::PeriodicUpdate()
 void CFamiTrackerView::OnEditCopy()
 {
 	if (m_pPatternEditor->GetSelectionCondition() == SEL_NONTERMINAL_SKIP) {		// // //
-		CMainFrame *pMainFrm = static_cast<CMainFrame*>(GetParentFrame());
-		ASSERT_VALID(pMainFrm);
+		CMainFrame *pMainFrm = GetMainFrame();		// // //
 		MessageBeep(MB_ICONWARNING);
 		pMainFrm->SetMessageText(IDS_SEL_NONTERMINAL_SKIP);
 		return;
@@ -950,7 +954,6 @@ void CFamiTrackerView::OnTrackerEdit()
 LRESULT CFamiTrackerView::OnUserDumpInst(WPARAM wParam, LPARAM lParam)		// // //
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 	CInstrument *Inst = theApp.GetSoundGenerator()->GetRecordInstrument();
 	int Slot = pDoc->GetFreeInstrumentIndex();
 	if (Slot != INVALID_INSTRUMENT)
@@ -964,7 +967,6 @@ LRESULT CFamiTrackerView::OnUserDumpInst(WPARAM wParam, LPARAM lParam)		// // //
 void CFamiTrackerView::OnTrackerDetune()			// // //
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 	CDetuneDlg DetuneDlg;
 	UINT nResult = DetuneDlg.DoModal();
 	if (nResult != IDOK) return;
@@ -1084,7 +1086,6 @@ void CFamiTrackerView::OnEditSelecttrack()		// // //
 void CFamiTrackerView::OnTrackerPlayrow()
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	const int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 	const int Frame = GetSelectedFrame();
@@ -1163,10 +1164,8 @@ void CFamiTrackerView::OnInitialUpdate()
 	//
 
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
-	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
-	ASSERT_VALID(pMainFrame);
+	CMainFrame *pMainFrame = GetMainFrame();		// // //
 
 	CFrameEditor *pFrameEditor = GetFrameEditor();
 
@@ -1237,8 +1236,7 @@ void CFamiTrackerView::OnInitialUpdate()
 void CFamiTrackerView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHint*/)
 {
 	// Called when the document has changed
-	CMainFrame *pMainFrm = static_cast<CMainFrame*>(GetParentFrame());
-	ASSERT_VALID(pMainFrm);
+	CMainFrame *pMainFrm = GetMainFrame();		// // //
 
 	// Handle new flags
 	switch (lHint) {
@@ -1312,8 +1310,7 @@ void CFamiTrackerView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHi
 void CFamiTrackerView::TrackChanged(unsigned int Track)
 {
 	// Called when the selected track has changed
-	CMainFrame *pMainFrm = static_cast<CMainFrame*>(GetParentFrame());
-	ASSERT_VALID(pMainFrm);
+	CMainFrame *pMainFrm = GetMainFrame();		// // //
 
 	SetMarker(-1, -1);		// // //
 	m_pPatternEditor->ResetCursor();
@@ -1407,7 +1404,6 @@ bool CFamiTrackerView::IsMarkerValid() const		// // //
 		return false;
 	
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	const int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 	if (m_iMarkerFrame >= static_cast<int>(pDoc->GetFrameCount(Track)))
@@ -1520,7 +1516,6 @@ void CFamiTrackerView::SelectFirstFrame()
 void CFamiTrackerView::SelectLastFrame()
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 	m_pPatternEditor->MoveToFrame(pDoc->GetFrameCount(Track) - 1);
@@ -1568,7 +1563,6 @@ void CFamiTrackerView::OnBookmarksToggle()
 		return;
 
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 	int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 	const int Frame = GetSelectedFrame();
 	const int Row = GetSelectedRow();
@@ -1602,7 +1596,6 @@ void CFamiTrackerView::OnBookmarksNext()
 		return;
 
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
 	CBookmarkCollection *pCol = pDoc->GetBookmarkManager()->GetCollection(pMainFrame->GetSelectedTrack());
 	ASSERT(pCol);
@@ -1632,7 +1625,6 @@ void CFamiTrackerView::OnBookmarksPrevious()
 		return;
 
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
 	CBookmarkCollection *pCol = pDoc->GetBookmarkManager()->GetCollection(pMainFrame->GetSelectedTrack());
 	ASSERT(pCol);
@@ -1684,7 +1676,6 @@ void CFamiTrackerView::OnEditSplitKeyboard()		// // //
 void CFamiTrackerView::ToggleChannel(unsigned int Channel)
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	if (Channel >= pDoc->GetAvailableChannels())
 		return;
@@ -1696,7 +1687,6 @@ void CFamiTrackerView::ToggleChannel(unsigned int Channel)
 void CFamiTrackerView::SoloChannel(unsigned int Channel)
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	int channels = pDoc->GetAvailableChannels();
 
@@ -1716,7 +1706,6 @@ void CFamiTrackerView::SoloChannel(unsigned int Channel)
 void CFamiTrackerView::ToggleChip(unsigned int Channel)		// // //
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	int channels = pDoc->GetAvailableChannels();
 
@@ -1742,7 +1731,6 @@ void CFamiTrackerView::ToggleChip(unsigned int Channel)		// // //
 void CFamiTrackerView::SoloChip(unsigned int Channel)		// // //
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	int channels = pDoc->GetAvailableChannels();
 
@@ -1763,7 +1751,6 @@ void CFamiTrackerView::SoloChip(unsigned int Channel)		// // //
 void CFamiTrackerView::UnmuteAllChannels()
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	int channels = pDoc->GetAvailableChannels();
 
@@ -1777,7 +1764,6 @@ bool CFamiTrackerView::IsChannelSolo(unsigned int Channel) const
 {
 	// Returns true if Channel is the only active channel 
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	int channels = pDoc->GetAvailableChannels();
 
@@ -1790,7 +1776,6 @@ bool CFamiTrackerView::IsChannelSolo(unsigned int Channel) const
 bool CFamiTrackerView::IsChipSolo(unsigned int Chip) const		// // //
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	int channels = pDoc->GetAvailableChannels();
 	
@@ -1821,8 +1806,7 @@ bool CFamiTrackerView::IsChannelMuted(unsigned int Channel) const
 
 void CFamiTrackerView::SetInstrument(int Instrument)
 {
-	CMainFrame *pMainFrm = static_cast<CMainFrame*>(GetParentFrame());
-	ASSERT_VALID(pMainFrm);
+	CMainFrame *pMainFrm = GetMainFrame();		// // //
 
 	if (Instrument >= MAX_INSTRUMENTS)		// // // 050B
 		return; // may be called by emptying inst field or using &&
@@ -1833,8 +1817,7 @@ void CFamiTrackerView::SetInstrument(int Instrument)
 
 unsigned int CFamiTrackerView::GetInstrument() const 
 {
-	CMainFrame *pMainFrm = static_cast<CMainFrame*>(GetParentFrame());
-	ASSERT_VALID(pMainFrm);
+	CMainFrame *pMainFrm = GetMainFrame();		// // //
 	return pMainFrm->GetSelectedInstrument();
 }
 
@@ -2181,7 +2164,6 @@ void CFamiTrackerView::UpdateArpDisplay()
 void CFamiTrackerView::UpdateNoteQueues()		// // //
 {
 	const CFamiTrackerDoc *pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 	const int Channels = pDoc->GetChannelCount();
 
 	m_pNoteQueue->ClearMaps();
@@ -2436,7 +2418,6 @@ void CFamiTrackerView::OnKeyInsert()
 {
 	// Insert row
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	if (PreventRepeat(VK_INSERT, true) || !m_bEditEnable)		// // //
 		return;
@@ -2451,7 +2432,6 @@ void CFamiTrackerView::OnKeyBackspace()
 {
 	// Pull up row
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	if (!m_bEditEnable)		// // //
 		return;
@@ -2476,7 +2456,6 @@ void CFamiTrackerView::OnKeyDelete()
 {
 	// Delete row data
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	bool bShiftPressed = IsShiftPressed();
 
@@ -2651,7 +2630,6 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 	}
 
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	int Chip = pDoc->GetChannel(GetSelectedChannel()).GetChip();		// // //
 
@@ -2756,7 +2734,6 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 	if (theApp.GetAccelerator()->IsKeyUsed(nChar)) return;		// // //
 
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	int EditStyle = theApp.GetSettings()->General.iEditStyle;
 	int Index = 0;
@@ -3004,7 +2981,6 @@ int CFamiTrackerView::TranslateKeyModplug(unsigned char Key) const
 {
 	// Modplug conversion
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	int	KeyNote = 0, KeyOctave = 0;
 	int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
@@ -3482,7 +3458,6 @@ void CFamiTrackerView::OnPickupRow()
 {
 	// Get row info
 	CFamiTrackerDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
 
 	int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 	int Frame = GetSelectedFrame();
