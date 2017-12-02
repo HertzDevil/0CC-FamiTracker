@@ -42,6 +42,7 @@ class CFrameEditor;
 class CAction;
 class CNoteQueue;		// // //
 class CArpeggiator;		// // //
+class CMainFrame;		// // //
 
 // // // Player modes
 enum class play_mode_t {
@@ -155,7 +156,7 @@ public:
 // Private functions
 //
 private:
-
+	CMainFrame *GetMainFrame() const;		// // //
 	CFrameEditor *GetFrameEditor() const;
 
 	// Drawing
