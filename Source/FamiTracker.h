@@ -137,7 +137,7 @@ public:
 
 	// Get-functions
 	CAccelerator	*GetAccelerator() const		{ ASSERT(m_pAccel); return m_pAccel.get(); }
-	CSoundGen		*GetSoundGenerator() const	{ ASSERT(m_pSoundGenerator); return m_pSoundGenerator.get(); }
+	CSoundGen		*GetSoundGenerator() const	{ ASSERT(m_pSoundGenerator); return m_pSoundGenerator; }
 	CMIDI			*GetMIDI() const			{ ASSERT(m_pMIDI); return m_pMIDI.get(); }
 	CSettings		*GetSettings() const		{ ASSERT(m_pSettings); return m_pSettings; }
 
@@ -158,8 +158,8 @@ private:
 
 	// Objects
 	std::unique_ptr<CMIDI>			m_pMIDI;		// // //
-	std::unique_ptr<CAccelerator>	m_pAccel;					// Keyboard accelerator
-	std::unique_ptr<CSoundGen>		m_pSoundGenerator;			// Sound synth & player
+	std::unique_ptr<CAccelerator>	m_pAccel;		// // // Keyboard accelerator
+	CSoundGen		*m_pSoundGenerator = nullptr;		// Sound synth & player
 
 	CSettings		*m_pSettings = nullptr;		// Program settings
 

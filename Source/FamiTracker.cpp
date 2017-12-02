@@ -140,7 +140,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	m_pMIDI = std::make_unique<CMIDI>();
 
 	// Create sound generator
-	m_pSoundGenerator = std::make_unique<CSoundGen>();
+	m_pSoundGenerator = std::make_unique<CSoundGen>().release();
 
 	// Start sound generator thread, initially suspended
 	if (!m_pSoundGenerator->CreateThread(CREATE_SUSPENDED)) {
@@ -470,7 +470,7 @@ void CFamiTrackerApp::ShutDownSynth()
 
 	if (hThread == NULL) {
 		// Object was found but thread not created
-		m_pSoundGenerator.reset();
+		SAFE_RELEASE(m_pSoundGenerator);
 		TRACE("App: Sound generator object was found but no thread created\n");
 		return;
 	}
