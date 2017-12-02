@@ -23,16 +23,15 @@
 
 #pragma once
 
-#include "stdafx.h"
-#include "WinInet.h"
+#include <string>
 #include <thread>
 #include <future>
 #include <optional>
 
 struct stVersionCheckResult {
-	CString Message;
-	CString URL;
-	UINT MessageBoxStyle = 0u;
+	std::string Message;
+	std::string URL;
+	unsigned MessageBoxStyle = 0u;
 };
 
 class CVersionChecker {
@@ -47,7 +46,7 @@ private:
 	static void ThreadFn(bool startup, std::promise<std::optional<stVersionCheckResult>> p) noexcept;
 
 private:
-	std::thread th_;
 	std::promise<std::optional<stVersionCheckResult>> promise_;
 	std::future<std::optional<stVersionCheckResult>> future_ = promise_.get_future();
+	std::thread th_;
 };

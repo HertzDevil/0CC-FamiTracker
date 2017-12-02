@@ -20,16 +20,17 @@
 ** must bear this legend.
 */
 
-#include "json/json.hpp"
 #include "VersionChecker.h"
+#include "json/json.hpp"
+#include <vector>
+#include "stdafx.h"
 #include "version.h"
+#include "WinInet.h"
 #pragma comment(lib, "wininet.lib")
 
 namespace {
 
 LPCTSTR rgpszAcceptTypes[] = {_T("application/json"), NULL};
-
-} // namespace
 
 // // // TODO: cpr maybe
 struct CHttpStringReader {
@@ -64,15 +65,14 @@ struct CHttpStringReader {
 				return nlohmann::json { };
 			if (!Size)
 				break;
-			char *Buf = new char[Size + 1]();
+			std::vector<char> Buf(Size + 1);
 			DWORD Received = 0;
 			for (DWORD i = 0; i < Size; i += 1024) {
 				DWORD Length = (Size - i < 1024) ? Size % 1024 : 1024;
-				if (!InternetReadFile(hRequest, Buf + i, Length, &Received))
+				if (!InternetReadFile(hRequest, Buf.data() + i, Length, &Received))
 					return nlohmann::json { };
 			}
-			jsonStr += Buf;
-			SAFE_RELEASE_ARRAY(Buf);
+			jsonStr += Buf.data();
 		}
 
 		return nlohmann::json::parse(jsonStr);
@@ -83,6 +83,30 @@ private:
 	HINTERNET hConnect;
 	HINTERNET hRequest;
 };
+
+using ft_version_t = std::tuple<int, int, int, int>;
+
+std::pair<nlohmann::json, ft_version_t> FindBestVersion(const nlohmann::json &j) {
+	ft_version_t current = {VERSION_API, VERSION_MAJ, VERSION_MIN, VERSION_REV};
+	const nlohmann::json *jPtr = nullptr;
+
+	for (const auto &i : j) {
+		ft_version_t ver = { };
+		auto &[api, maj, min, rev] = ver;
+		std::string tag = i["tag_name"];
+		::sscanf_s(tag.c_str(), "v%u.%u.%u%*1[.r]%u", &api, &maj, &min, &rev);
+		if (ver > current) {
+			current = ver;
+			jPtr = &i;
+		}
+	}
+
+	return std::make_pair(jPtr ? *jPtr : nlohmann::json { }, current);
+}
+
+} // namespace
+
+
 
 CVersionChecker::CVersionChecker(bool StartUp) : th_ {&ThreadFn, StartUp, std::move(promise_)} {
 }
@@ -101,43 +125,28 @@ std::optional<stVersionCheckResult> CVersionChecker::GetVersionCheckResult() {
 }
 
 void CVersionChecker::ThreadFn(bool startup, std::promise<std::optional<stVersionCheckResult>> p) noexcept try {
-	bool found = false;
-	for (const auto &i : CHttpStringReader { }.ReadJson()) {
-		int Ver[4] = { };
-		sscanf_s(i["tag_name"].get<std::string>().c_str(),
-					"v%u.%u.%u%*1[.r]%u", Ver, Ver + 1, Ver + 2, Ver + 3);
-		if (Ver[2] >= 15) {
-//				if (Compare0CCFTVersion(Ver[0], Ver[1], Ver[2], Ver[3]) > 0) {
-			int Y = 1970, M = 1, D = 1;
-			sscanf_s(i["published_at"].get<std::string>().c_str(), "%d-%d-%d", &Y, &M, &D);
-			static const CString MONTHS[] = {
-				_T("Jan"), _T("Feb"), _T("Mar"), _T("Apr"), _T("May"), _T("Jun"),
-				_T("Jul"), _T("Aug"), _T("Sept"), _T("Oct"), _T("Nov"), _T("Dec"),
-			};
+	if (auto j = FindBestVersion(CHttpStringReader { }.ReadJson()); !j.first.empty()) {
+		auto [api, maj, min, rev] = j.second;
+		std::string verStr = std::to_string(api) + '.' + std::to_string(maj) + '.' + std::to_string(min) + '.' + std::to_string(rev);
 
-			CString desc = i["body"].get<std::string>().c_str();
-			if (int Index = desc.Find(_T("\r\n\r\n")); Index >= 0)
-				desc.Delete(0, Index + 4);
-			if (int Index = desc.Find(_T("\r\n\r\n#")); Index >= 0)
-				desc.Truncate(Index);
+		std::string timeStr = j.first["published_at"];
 
-			CString msg;
-			msg.Format(_T("A new version of 0CC-FamiTracker is now available:\n\n"
-							"Version %d.%d.%d.%d (released %s %d, %d)\n\n%s\n\n"
-							"Pressing \"Yes\" will launch the Github web page for this release."),
-				Ver[0], Ver[1], Ver[2], Ver[3], MONTHS[--M], D, Y, desc);
-			if (startup)
-				msg.Append(_T(" (Version checking on startup may be disabled in the configuration menu.)"));
-			CString url;
-			url.Format(_T("https://github.com/HertzDevil/0CC-FamiTracker/releases/tag/v%d.%d.%d.%d"),
-				Ver[0], Ver[1], Ver[2], Ver[3]);
-			p.set_value(stVersionCheckResult {msg, url, MB_YESNO | MB_ICONINFORMATION});
-			found = true;
-			break;
-		}
+		std::string desc = j.first["body"];
+		if (auto pos = desc.find("\r\n\r\n"); pos != std::string::npos)
+			desc = desc.substr(pos + 4);
+		if (auto pos = desc.find("\r\n\r\n#"); pos != std::string::npos)
+			desc = desc.substr(0, pos);
+
+		std::string msg = "A new version of 0CC-FamiTracker is now available:\n\n";
+		msg += "Version " + verStr + " (released on " + timeStr + " %s)\n\n";
+		msg += "Pressing \"Yes\" will launch the Github web page for this release.";
+		if (startup)
+			msg += " (Version checking on startup may be disabled in the configuration menu.)";
+		std::string url = "https://github.com/HertzDevil/0CC-FamiTracker/releases/tag/v%s" + verStr;
+
+		p.set_value(stVersionCheckResult {std::move(msg), std::move(url), MB_YESNO | MB_ICONINFORMATION});
 	}
-
-	if (!found)
+	else
 		p.set_value(std::nullopt);
 }
 catch (...) {

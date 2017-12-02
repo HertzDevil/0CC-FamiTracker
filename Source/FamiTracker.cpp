@@ -664,8 +664,8 @@ BOOL CFamiTrackerApp::OnIdle(LONG lCount)		// // //
 
 	if (m_pVersionChecker && m_pVersionChecker->IsReady())
 		if (auto result = std::unique_ptr<CVersionChecker> {std::move(m_pVersionChecker)}->GetVersionCheckResult())
-			if (AfxMessageBox(result->Message, result->MessageBoxStyle) == IDYES)
-				ShellExecute(NULL, _T("open"), result->URL, NULL, NULL, SW_SHOWNORMAL);
+			if (AfxMessageBox(result->Message.c_str(), result->MessageBoxStyle) == IDYES)
+				ShellExecute(NULL, _T("open"), result->URL.c_str(), NULL, NULL, SW_SHOWNORMAL);
 
 	return FALSE;
 }
