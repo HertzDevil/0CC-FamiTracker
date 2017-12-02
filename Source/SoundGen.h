@@ -192,8 +192,8 @@ public:
 	void			ResetDumpInstrument();
 	int				GetRecordChannel() const;
 	void			SetRecordChannel(int Channel);
-	stRecordSetting *GetRecordSetting() const;
-	void			SetRecordSetting(stRecordSetting *Setting);
+	const stRecordSetting &GetRecordSetting() const;
+	void			SetRecordSetting(const stRecordSetting &Setting);
 
 	bool HasDocument() const { return m_pDocument != NULL; };
 	CFamiTrackerDoc *GetDocument() const { return m_pDocument; };

@@ -38,7 +38,7 @@ public:
 	CRecordSettingsDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CRecordSettingsDlg();
 
-	stRecordSetting *GetRecordSetting();
+	stRecordSetting GetRecordSetting() const;
 
 // Dialog Data
 	enum { IDD = IDD_RECORD_SETTINGS };

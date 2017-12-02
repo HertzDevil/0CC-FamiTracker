@@ -48,6 +48,7 @@
 #include "Arpeggiator.h"
 #include "PatternClipData.h"
 #include "ModuleAction.h"
+#include "InstrumentRecorder.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -3358,8 +3359,7 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 
 void CFamiTrackerView::OnTrackerRecorderSettings()
 {
-	CRecordSettingsDlg dlg;
-	if (dlg.DoModal() == IDOK)
+	if (CRecordSettingsDlg dlg; dlg.DoModal() == IDOK)
 		theApp.GetSoundGenerator()->SetRecordSetting(dlg.GetRecordSetting());
 }
 

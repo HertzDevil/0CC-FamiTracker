@@ -109,7 +109,7 @@ public:
 	void	SetPath(CString PathName, unsigned int PathType);
 
 public:
-	static CSettings* GetObject();
+	static CSettings &GetInstance();		// // //
 
 public:
 	// Local cache of all settings (all public)

@@ -72,10 +72,6 @@ END_MESSAGE_MAP()
 
 CFamiTrackerApp::CFamiTrackerApp() :
 	m_bThemeActive(false),
-	m_pMIDI(NULL),
-	m_pAccel(NULL),
-	m_pSettings(NULL),
-	m_pSoundGenerator(NULL),
 	m_hWndMapFile(NULL),
 #ifdef SUPPORT_TRANSLATIONS
 	m_hInstResDLL(NULL),
@@ -125,7 +121,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	LoadStdProfileSettings(MAX_RECENT_FILES);  // Load standard INI file options (including MRU)
 
 	// Load program settings
-	m_pSettings = CSettings::GetObject();
+	m_pSettings = &CSettings::GetInstance();		// // //
 	m_pSettings->LoadSettings();
 
 	// Parse command line for standard shell commands, DDE, file open + some custom ones
@@ -136,15 +132,15 @@ BOOL CFamiTrackerApp::InitInstance()
 		return FALSE;
 
 	// Load custom accelerator
-	m_pAccel = new CAccelerator();
+	m_pAccel = std::make_unique<CAccelerator>();		// // //
 	m_pAccel->LoadShortcuts(m_pSettings);
 	m_pAccel->Setup();
 
 	// Create the MIDI interface
-	m_pMIDI = new CMIDI();
+	m_pMIDI = std::make_unique<CMIDI>();
 
 	// Create sound generator
-	m_pSoundGenerator = new CSoundGen();
+	m_pSoundGenerator = std::make_unique<CSoundGen>();
 
 	// Start sound generator thread, initially suspended
 	if (!m_pSoundGenerator->CreateThread(CREATE_SUSPENDED)) {
@@ -322,20 +318,18 @@ int CFamiTrackerApp::ExitInstance()
 
 	if (m_pMIDI) {
 		m_pMIDI->Shutdown();
-		delete m_pMIDI;
-		m_pMIDI = NULL;
+		m_pMIDI.reset();
 	}
 
 	if (m_pAccel) {
 		m_pAccel->SaveShortcuts(m_pSettings);
 		m_pAccel->Shutdown();
-		delete m_pAccel;
-		m_pAccel = NULL;
+		m_pAccel.reset();
 	}
 
 	if (m_pSettings) {
 		m_pSettings->SaveSettings();
-		m_pSettings = NULL;
+		m_pSettings = nullptr;
 	}
 
 #ifdef SUPPORT_TRANSLATIONS
@@ -476,8 +470,7 @@ void CFamiTrackerApp::ShutDownSynth()
 
 	if (hThread == NULL) {
 		// Object was found but thread not created
-		delete m_pSoundGenerator;
-		m_pSoundGenerator = NULL;
+		m_pSoundGenerator.reset();
 		TRACE("App: Sound generator object was found but no thread created\n");
 		return;
 	}

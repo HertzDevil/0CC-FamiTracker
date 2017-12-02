@@ -29,39 +29,24 @@
 #include "common.h"
 #include "resource.h"
 
-// The single CDSound object
-CDSound *CDSound::pThisObject = NULL;
-
 // Class members
 
 BOOL CALLBACK CDSound::DSEnumCallback(LPGUID lpGuid, LPCTSTR lpcstrDescription, LPCTSTR lpcstrModule, LPVOID lpContext)
 {
-	return pThisObject->EnumerateCallback(lpGuid, lpcstrDescription, lpcstrModule, lpContext);
+	return static_cast<CDSound *>(lpContext)->EnumerateCallback(lpGuid, lpcstrDescription, lpcstrModule);		// // //
 }
 
 // Instance members
 
 CDSound::CDSound(HWND hWnd, HANDLE hNotification) :
-	m_iDevices(0),
-	m_lpDirectSound(NULL),
 	m_hWndTarget(hWnd),
 	m_hNotificationHandle(hNotification)
 {
-	ASSERT(pThisObject == NULL);
-	pThisObject = this;
-}
-
-CDSound::~CDSound()
-{
-	for (int i = 0; i < (int)m_iDevices; ++i) {
-		delete [] m_pcDevice[i];
-		delete [] m_pGUIDs[i];
-	}
 }
 
 bool CDSound::SetupDevice(int iDevice)
 {	
-	if (iDevice > (int)m_iDevices)
+	if (iDevice > (int)GetDeviceCount())		// // //
 		iDevice = 0;
 	
 	if (m_lpDirectSound) {
@@ -69,7 +54,7 @@ bool CDSound::SetupDevice(int iDevice)
 		m_lpDirectSound = NULL;
 	}
 
-	if (FAILED(DirectSoundCreate((LPCGUID)m_pGUIDs[iDevice], &m_lpDirectSound, NULL))) {
+	if (FAILED(DirectSoundCreate((LPCGUID)&devices_[iDevice].second, &m_lpDirectSound, NULL))) {
 		m_lpDirectSound = NULL;
 		return false;
 	}
@@ -90,44 +75,25 @@ void CDSound::CloseDevice()
 	m_lpDirectSound->Release();
 	m_lpDirectSound = NULL;
 
-	if (m_iDevices != 0)
-		ClearEnumeration();
+	ClearEnumeration();
 }
 
 void CDSound::ClearEnumeration()
 {
-	for (unsigned i = 0; i < m_iDevices; ++i) {
-		delete [] m_pcDevice[i];
-		if (m_pGUIDs[i] != NULL)
-			delete m_pGUIDs[i];
-	}
-
-	m_iDevices = 0;
+	devices_.clear();
 }
 
-BOOL CDSound::EnumerateCallback(LPGUID lpGuid, LPCTSTR lpcstrDescription, LPCTSTR lpcstrModule, LPVOID lpContext)
+BOOL CDSound::EnumerateCallback(LPGUID lpGuid, LPCTSTR lpcstrDescription, LPCTSTR lpcstrModule)		// // //
 {
-	m_pcDevice[m_iDevices] = new TCHAR[_tcslen(lpcstrDescription) + 1];
-	_tcscpy((TCHAR*)m_pcDevice[m_iDevices], lpcstrDescription);
-
-	if (lpGuid != NULL) {
-		m_pGUIDs[m_iDevices] = new GUID;
-		memcpy(m_pGUIDs[m_iDevices], lpGuid, sizeof(GUID));
-	}
-	else
-		m_pGUIDs[m_iDevices] = NULL;
-
-	++m_iDevices;
-
+	devices_.emplace_back(std::string {lpcstrDescription}, lpGuid ? *lpGuid : GUID { });
 	return TRUE;
 }
 
 void CDSound::EnumerateDevices()
 {
-	if (m_iDevices != 0)
-		ClearEnumeration();
+	ClearEnumeration();
 
-	DirectSoundEnumerate(DSEnumCallback, NULL);
+	DirectSoundEnumerate(DSEnumCallback, this);		// // //
 	
 #ifdef _DEBUG
 	// Add an invalid device for debugging reasons
@@ -137,26 +103,30 @@ void CDSound::EnumerateDevices()
 	g.Data3 = 3;
 	for (int i = 0; i < 8; ++i)
 		g.Data4[i] = i;
-	EnumerateCallback(&g, _T("Invalid device"), NULL, NULL);
+	EnumerateCallback(&g, _T("Invalid device"), NULL);
 #endif
 }
 
 unsigned int CDSound::GetDeviceCount() const
 {
-	return m_iDevices;
+	return devices_.size();		// // //
 }
 
 LPCTSTR CDSound::GetDeviceName(unsigned int iDevice) const
 {
-	ASSERT(iDevice < m_iDevices);
-	return m_pcDevice[iDevice];
+	return devices_[iDevice].first.c_str();		// // //
 }
 
 int CDSound::MatchDeviceID(LPCTSTR Name) const
 {
-	for (unsigned int i = 0; i < m_iDevices; ++i) {
-		if (!_tcscmp(Name, m_pcDevice[i]))
+	CT2CA conv(Name);		// // //
+	auto str = (const char *)conv;
+
+	int i = 0;
+	for (const auto &x : devices_) {
+		if (str == x.first)
 			return i;
+		++i;
 	}
 
 	return 0;

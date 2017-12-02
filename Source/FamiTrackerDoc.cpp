@@ -308,7 +308,7 @@ BOOL CFamiTrackerDoc::OnSaveDocument(LPCTSTR lpszPathName)
 	if ((m_bForceBackup || theApp.GetSettings()->General.bBackups) && !m_bBackupDone) {
 		CString BakName;
 		BakName.Format(_T("%s.bak"), lpszPathName);
-		CopyFile(lpszPathName, BakName.GetBuffer(), FALSE);
+		CopyFile(lpszPathName, BakName.GetString(), FALSE);
 		m_bBackupDone = true;
 	}
 
@@ -487,20 +487,6 @@ void CFamiTrackerDoc::OnFileSaveAs()
 	theApp.GetSettings()->SetPath(newName, PATH_FTM);
 	
 	DoSave(newName);
-}
-
-// CFamiTrackerDoc serialization (never used)
-
-void CFamiTrackerDoc::Serialize(CArchive& ar)
-{
-	if (ar.IsStoring())
-	{
-		// TODO: add storing code here
-	}
-	else
-	{
-		// TODO: add loading code here
-	}
 }
 
 

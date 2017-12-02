@@ -71,7 +71,7 @@ CAPU::CAPU(IAudioCallback *pCallback) :		// // //
 	m_fLevelVRC7 = 1.0f;
 
 #ifdef LOGGING
-	m_pLog = new CFile("apu_log.txt", CFile::modeCreate | CFile::modeWrite);
+	m_pLog = std::make_unique<CFile>("apu_log.txt", CFile::modeCreate | CFile::modeWrite);
 	m_iFrame = 0;
 #endif
 }
@@ -92,7 +92,6 @@ CAPU::~CAPU()
 
 #ifdef LOGGING
 	m_pLog->Close();
-	delete m_pLog;
 #endif
 }
 

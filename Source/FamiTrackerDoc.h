@@ -91,6 +91,8 @@ protected: // create from serialization only
 	CFamiTrackerDoc();
 	DECLARE_DYNCREATE(CFamiTrackerDoc)
 
+	virtual ~CFamiTrackerDoc();
+
 	// Static functions
 public:
 	static CFamiTrackerDoc* GetDoc();
@@ -545,20 +547,18 @@ public:
 
 // Overrides
 public:
-	virtual BOOL OnNewDocument();
-	virtual BOOL OnSaveDocument(LPCTSTR lpszPathName);
-	virtual BOOL OnOpenDocument(LPCTSTR lpszPathName);
-	virtual void OnCloseDocument();
-	virtual void DeleteContents();
-	virtual void SetModifiedFlag(BOOL bModified = 1);
-	virtual void Serialize(CArchive& ar);
+	BOOL OnNewDocument() override;
+	BOOL OnSaveDocument(LPCTSTR lpszPathName) override;
+	BOOL OnOpenDocument(LPCTSTR lpszPathName) override;
+	void OnCloseDocument() override;
+	void DeleteContents() override;
+	void SetModifiedFlag(BOOL bModified = 1) override;
 
 // Implementation
 public:
-	virtual ~CFamiTrackerDoc();
 #ifdef _DEBUG
-	virtual void AssertValid() const;
-	virtual void Dump(CDumpContext& dc) const;
+	void AssertValid() const override;
+	void Dump(CDumpContext& dc) const override;
 #endif
 
 // Generated message map functions

@@ -135,9 +135,7 @@ private:
 	// // // 050B removed
 
 #ifdef LOGGING
-	CFile		  *m_pLog;
+	std::unique_ptr<CFile> m_pLog;		// // //
 	int			  m_iFrame;
-//	unsigned char m_iRegs[32];
 #endif
-
 };

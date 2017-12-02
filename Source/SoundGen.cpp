@@ -1266,12 +1266,12 @@ void CSoundGen::SetRecordChannel(int Channel)
 	m_pInstRecorder->SetRecordChannel(Channel);
 }
 
-stRecordSetting *CSoundGen::GetRecordSetting() const
+const stRecordSetting &CSoundGen::GetRecordSetting() const
 {
 	return m_pInstRecorder->GetRecordSetting();
 }
 
-void CSoundGen::SetRecordSetting(stRecordSetting *Setting)
+void CSoundGen::SetRecordSetting(const stRecordSetting &Setting)
 {
 	m_pInstRecorder->SetRecordSetting(Setting);
 }

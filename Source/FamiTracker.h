@@ -26,6 +26,7 @@
 // FamiTracker.h : main header file for the FamiTracker application
 
 #include <thread>		// // //
+#include <memory>		// // //
 #include "FamiTrackerTypes.h"		// // //
 
 // Support DLL translations
@@ -135,9 +136,9 @@ public:
 	void			WaitUntilStopped() const;
 
 	// Get-functions
-	CAccelerator	*GetAccelerator() const		{ ASSERT(m_pAccel); return m_pAccel; }
-	CSoundGen		*GetSoundGenerator() const	{ ASSERT(m_pSoundGenerator); return m_pSoundGenerator; }
-	CMIDI			*GetMIDI() const			{ ASSERT(m_pMIDI); return m_pMIDI; }
+	CAccelerator	*GetAccelerator() const		{ ASSERT(m_pAccel); return m_pAccel.get(); }
+	CSoundGen		*GetSoundGenerator() const	{ ASSERT(m_pSoundGenerator); return m_pSoundGenerator.get(); }
+	CMIDI			*GetMIDI() const			{ ASSERT(m_pMIDI); return m_pMIDI.get(); }
 	CSettings		*GetSettings() const		{ ASSERT(m_pSettings); return m_pSettings; }
 
 	//
@@ -156,10 +157,11 @@ private:
 	static const int MAX_RECENT_FILES = 8;		// // //
 
 	// Objects
-	CMIDI			*m_pMIDI;
-	CAccelerator	*m_pAccel;					// Keyboard accelerator
-	CSoundGen		*m_pSoundGenerator;			// Sound synth & player
-	CSettings		*m_pSettings;				// Program settings
+	std::unique_ptr<CMIDI>			m_pMIDI;		// // //
+	std::unique_ptr<CAccelerator>	m_pAccel;					// Keyboard accelerator
+	std::unique_ptr<CSoundGen>		m_pSoundGenerator;			// Sound synth & player
+
+	CSettings		*m_pSettings = nullptr;		// Program settings
 
 	// Single instance stuff
 	CMutex			*m_pInstanceMutex;

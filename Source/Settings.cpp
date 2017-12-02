@@ -49,10 +49,10 @@ stOldSettingContext::~stOldSettingContext()
 
 // CSettings
 
-CSettings* CSettings::GetObject()
+CSettings &CSettings::GetInstance()		// // //
 {
 	static CSettings Object;
-	return &Object;
+	return Object;
 }
 
 CSettings::CSettings() : m_iAddedSettings(0)

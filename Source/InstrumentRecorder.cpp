@@ -255,14 +255,14 @@ void CInstrumentRecorder::SetRecordChannel(int Channel)
 	m_iRecordChannel = Channel;
 }
 
-stRecordSetting *CInstrumentRecorder::GetRecordSetting() const
+const stRecordSetting &CInstrumentRecorder::GetRecordSetting() const
 {
-	return new stRecordSetting(m_stRecordSetting);
+	return m_stRecordSetting;
 }
 
-void CInstrumentRecorder::SetRecordSetting(stRecordSetting *Setting)
+void CInstrumentRecorder::SetRecordSetting(const stRecordSetting &Setting)
 {
-	m_stRecordSetting = *Setting; delete Setting;
+	m_stRecordSetting = Setting;
 }
 
 void CInstrumentRecorder::ResetDumpInstrument()

@@ -50,9 +50,9 @@ public:
 
 	CInstrument		*GetRecordInstrument(unsigned Tick) const;
 	int				GetRecordChannel() const;
-	void			SetRecordChannel(int Channel);;
-	stRecordSetting *GetRecordSetting() const;;
-	void			SetRecordSetting(stRecordSetting *Setting);;
+	void			SetRecordChannel(int Channel);
+	const stRecordSetting &GetRecordSetting() const;
+	void			SetRecordSetting(const stRecordSetting &Setting);
 	void			SetDumpCount(int Count) { m_iDumpCount = Count; };
 
 	void			ResetDumpInstrument();
