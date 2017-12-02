@@ -42,13 +42,6 @@
 
 // #define DISABLE_SAVE		// // //
 
-// Default song settings
-const machine_t    DEFAULT_MACHINE_TYPE		 = NTSC;
-const unsigned int DEFAULT_SPEED_SPLIT_POINT = 32;
-const unsigned int OLD_SPEED_SPLIT_POINT	 = 21;
-
-const std::size_t METADATA_FIELD_LENGTH = 32;		// // //
-
 // View update modes (TODO check these and remove inappropriate flags)
 enum {
 	UPDATE_NONE = 0,		// No update
@@ -133,6 +126,8 @@ public:
 	int				GetChipType(int Channel) const;
 	int				GetChannelCount() const;
 
+	void			SetupChannels(unsigned char Chip);		// // // for io
+
 	// Synchronization
 	BOOL			LockDocument() const;
 	BOOL			LockDocument(DWORD dwTimeout) const;
@@ -214,7 +209,8 @@ public:
 	void			SetNamcoChannels(int Channels, bool Move = false);		// // //
 
 	// Todo: remove this, use getchannelcount instead
-	unsigned int	GetAvailableChannels()	const { return m_iChannelsAvailable; };
+	unsigned int	GetAvailableChannels()	const { return m_iChannelsAvailable; }
+	void			SetAvailableChannels(unsigned channels) { m_iChannelsAvailable = channels; }		// // //
 
 	std::string_view GetModuleName() const;		// // //
 	std::string_view GetModuleArtist() const;
@@ -268,7 +264,6 @@ public:
 
 	// Instruments functions
 	std::shared_ptr<CInstrument>	GetInstrument(unsigned int Index) const;
-	std::shared_ptr<CInstrument>	ReleaseInstrument(unsigned int Index);			// // //
 	unsigned int	GetInstrumentCount() const;
 	unsigned		GetFreeInstrumentIndex() const;		// // //
 	bool			IsInstrumentUsed(unsigned int Index) const;
@@ -363,10 +358,14 @@ private:
 
 	// Constants
 public:
-	static const int	DEFAULT_NAMCO_CHANS;
+	// Default song settings
+	static const vibrato_t	 DEFAULT_VIBRATO_STYLE		= vibrato_t::VIBRATO_NEW;		// // //
+	static const bool		 DEFAULT_LINEAR_PITCH		= false;
+	static const machine_t	 DEFAULT_MACHINE_TYPE		= machine_t::NTSC;
+	static const unsigned	 DEFAULT_SPEED_SPLIT_POINT	= 32;
+	static const unsigned	 OLD_SPEED_SPLIT_POINT		= 21;
 
-	static const bool	DEFAULT_LINEAR_PITCH;
-
+	static const std::size_t METADATA_FIELD_LENGTH		= 32;		// // //
 
 	//
 	// Private functions
@@ -385,62 +384,8 @@ private:
 	BOOL			OpenDocumentOld(CFile *pOpenFile);
 	BOOL			OpenDocumentNew(CDocumentFile &DocumentFile);
 
-	void			ReadBlock_Parameters(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_SongInfo(CDocumentFile *pDocFile, const int Version);		// // //
-	void			ReadBlock_Header(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_Instruments(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_Sequences(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_Frames(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_Patterns(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_DSamples(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_Comments(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_SequencesVRC6(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_SequencesN163(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_SequencesS5B(CDocumentFile *pDocFile, const int Version);
-	// // //
-	void			ReadBlock_ParamsExtra(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_DetuneTables(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_Grooves(CDocumentFile *pDocFile, const int Version);
-	void			ReadBlock_Bookmarks(CDocumentFile *pDocFile, const int Version);
-
 	// For file version compability
-	void			ReorderSequences();
-
-	/*!	\brief Validates a given condition and throws an exception otherwise.
-		\details This method replaces the previous ASSERT_FILE_DATA preprocessor macro.
-		\param Cond The condition to check against.
-		\param Msg The error message.
-	*/
-	template <module_error_level_t l = MODULE_ERROR_DEFAULT>
-	void			AssertFileData(bool Cond, std::string Msg) const;		// // //
-	
-	template <module_error_level_t l = MODULE_ERROR_DEFAULT, typename T, typename U, typename V>
-	std::enable_if_t<std::is_unsigned<T>::value, T>
-	AssertRange(T Value, U Min, V Max, std::string Desc) const
-	{
-		try {
-			return CModuleException::AssertRangeFmt<l>(Value, Min, Max, Desc);
-		}
-		catch (CModuleException e) {
-			if (m_pCurrentDocument)
-				m_pCurrentDocument->SetDefaultFooter(e);
-			throw;
-		}
-	}
-	
-	template <module_error_level_t l = MODULE_ERROR_DEFAULT, typename T, typename U, typename V>
-	std::enable_if_t<std::is_signed<T>::value, T>
-	AssertRange(T Value, U Min, V Max, std::string Desc) const
-	{
-		try {
-			return CModuleException::AssertRangeFmt<l>(Value, Min, Max, Desc);
-		}
-		catch (CModuleException e) {
-			if (m_pCurrentDocument)
-				m_pCurrentDocument->SetDefaultFooter(e);
-			throw;
-		}
-	}
+	void			ReorderSequences(std::vector<COldSequence> seqs);		// // //
 
 #ifdef AUTOSAVE
 	void			SetupAutoSave();
@@ -454,7 +399,6 @@ private:
 	void			AllocateSong(unsigned int Index);		// // //
 	void			SwapSongs(unsigned int First, unsigned int Second);		// // //
 
-	void			SetupChannels(unsigned char Chip);
 	void			ApplyExpansionChip();
 	int				GetChannelPosition(int Channel, unsigned char Chip);		// // //
 
@@ -482,9 +426,6 @@ private:
 	bool			m_bForceBackup;
 	bool			m_bBackupDone;
 	bool			m_bExceeded;			// // //
-#ifdef TRANSPOSE_FDS
-	bool			m_bAdjustFDSArpeggio;
-#endif
 
 #ifdef AUTOSAVE
 	// Auto save
@@ -528,11 +469,6 @@ private:
 
 	// Row highlight (TODO remove)
 	stHighlight		m_vHighlight;								// // //
-
-	// Things below are for compability with older files
-	std::vector<COldSequence> m_vTmpSequences;		// // //
-
-	mutable CDocumentFile *m_pCurrentDocument;		// // //
 
 	//
 	// End of document data

@@ -3250,10 +3250,10 @@ void CMainFrame::OnToggleSpeed()
 	CFamiTrackerDoc &Doc = GetDoc();
 	int Speed = Doc.GetSpeedSplitPoint();
 	
-	if (Speed == DEFAULT_SPEED_SPLIT_POINT) 
-		Speed = OLD_SPEED_SPLIT_POINT;
+	if (Speed == CFamiTrackerDoc::DEFAULT_SPEED_SPLIT_POINT)		// // //
+		Speed = CFamiTrackerDoc::OLD_SPEED_SPLIT_POINT;
 	else 
-		Speed = DEFAULT_SPEED_SPLIT_POINT;
+		Speed = CFamiTrackerDoc::DEFAULT_SPEED_SPLIT_POINT;
 
 	Doc.SetSpeedSplitPoint(Speed);
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);

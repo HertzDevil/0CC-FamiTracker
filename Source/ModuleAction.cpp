@@ -65,7 +65,7 @@ void ModuleAction::CComment::Redo(CMainFrame &MainFrm) {
 
 
 ModuleAction::CTitle::CTitle(std::string_view str) :
-	newStr_(str.substr(0, METADATA_FIELD_LENGTH - 1))
+	newStr_(str.substr(0, CFamiTrackerDoc::METADATA_FIELD_LENGTH - 1))
 {
 }
 
@@ -97,7 +97,7 @@ bool ModuleAction::CTitle::Merge(const CAction &other) {
 
 
 ModuleAction::CArtist::CArtist(std::string_view str) :
-	newStr_(str.substr(0, METADATA_FIELD_LENGTH - 1))
+	newStr_(str.substr(0, CFamiTrackerDoc::METADATA_FIELD_LENGTH - 1))
 {
 }
 
@@ -129,7 +129,7 @@ bool ModuleAction::CArtist::Merge(const CAction &other) {
 
 
 ModuleAction::CCopyright::CCopyright(std::string_view str) :
-	newStr_(str.substr(0, METADATA_FIELD_LENGTH - 1))
+	newStr_(str.substr(0, CFamiTrackerDoc::METADATA_FIELD_LENGTH - 1))
 {
 }
 

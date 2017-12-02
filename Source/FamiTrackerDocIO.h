@@ -24,6 +24,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include "OldSequence.h"
 
 class CFamiTrackerDoc;
 class CDocumentFile;
@@ -34,10 +36,13 @@ class CFamiTrackerDocIO {
 public:
 	explicit CFamiTrackerDocIO(CDocumentFile &file);
 
-	void Load(CFamiTrackerDoc &doc);
+	bool Load(CFamiTrackerDoc &doc);
 	bool Save(const CFamiTrackerDoc &doc);
 
-//private:
+private:
+	void PostLoad(CFamiTrackerDoc &doc);
+
+	void LoadParams(CFamiTrackerDoc &doc, int ver);
 	void SaveParams(const CFamiTrackerDoc &doc, int ver);
 
 	void LoadSongInfo(CFamiTrackerDoc &doc, int ver);
@@ -49,11 +54,13 @@ public:
 	void LoadInstruments(CFamiTrackerDoc &doc, int ver);
 	void SaveInstruments(const CFamiTrackerDoc &doc, int ver);
 
+	void LoadSequences(CFamiTrackerDoc &doc, int ver);
 	void SaveSequences(const CFamiTrackerDoc &doc, int ver);
 
 	void LoadFrames(CFamiTrackerDoc &doc, int ver);
 	void SaveFrames(const CFamiTrackerDoc &doc, int ver);
 
+	void LoadPatterns(CFamiTrackerDoc &doc, int ver);
 	void SavePatterns(const CFamiTrackerDoc &doc, int ver);
 
 	void LoadDSamples(CFamiTrackerDoc &doc, int ver);
@@ -91,4 +98,7 @@ private:
 	T AssertRange(T Value, U Min, V Max, const std::string &Desc) const;
 
 	CDocumentFile &file_;
+
+	std::vector<COldSequence> m_vTmpSequences;		// // //
+	bool fds_adjust_arps_ = false;
 };
