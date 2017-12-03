@@ -1394,18 +1394,20 @@ void CMainFrame::OnDeltaposSpeedSpin(NMHDR *pNMHDR, LRESULT *pResult)
 		SetSpeed(NewSpeed);
 		return;
 	}
-	else if (((NMUPDOWN*)pNMHDR)->iDelta < 0)
+	else if (((NMUPDOWN*)pNMHDR)->iDelta < 0) {
 		for (int i = pDoc->GetSongSpeed(m_iTrack) + 1; i < MAX_GROOVE; ++i)
 			if (pDoc->GetGroove(i)) {
 				SetGroove(i);
 				return;
 			}
-	else if (((NMUPDOWN*)pNMHDR)->iDelta > 0)
+	}
+	else if (((NMUPDOWN*)pNMHDR)->iDelta > 0) {
 		for (int i = pDoc->GetSongSpeed(m_iTrack) - 1; i >= 0; --i)
 			if (pDoc->GetGroove(i)) {
 				SetGroove(i);
 				return;
 			}
+	}
 }
 
 void CMainFrame::OnDeltaposTempoSpin(NMHDR *pNMHDR, LRESULT *pResult)
