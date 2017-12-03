@@ -165,12 +165,12 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	theApp.GetSoundGenerator()->ResetDumpInstrument();
 	theApp.GetSoundGenerator()->SetRecordChannel(-1);		// // //
 
-	m_csDocumentLock.Lock();
+	LockDocument();
 
 	// Load file
 	if (!OpenDocument(lpszPathName)) {
 		// Loading failed, create empty document
-		m_csDocumentLock.Unlock();
+		UnlockDocument();
 		/*
 		DeleteContents();
 		CreateEmpty();
@@ -181,7 +181,7 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		return FALSE;
 	}
 
-	m_csDocumentLock.Unlock();
+	UnlockDocument();
 
 	// Update main frame
 	ApplyExpansionChip();
@@ -250,7 +250,7 @@ void CFamiTrackerDoc::DeleteContents()
 	// Make sure player is stopped
 	theApp.StopPlayerAndWait();
 
-	m_csDocumentLock.Lock();
+	LockDocument();
 
 	// Mark file as unloaded
 	m_bFileLoaded = false;
@@ -300,7 +300,7 @@ void CFamiTrackerDoc::DeleteContents()
 	SetModifiedFlag(FALSE);
 	SetExceededFlag(FALSE);		// // //
 
-	m_csDocumentLock.Unlock();
+	UnlockDocument();
 
 	CDocument::DeleteContents();
 }
@@ -326,30 +326,23 @@ void CFamiTrackerDoc::SetModifiedFlag(BOOL bModified)
 
 void CFamiTrackerDoc::CreateEmpty()
 {
-	m_csDocumentLock.Lock();
-
 	DeleteContents();		// // //
 
-	// Auto-select new style vibrato for new modules
-	SetVibratoStyle(DEFAULT_VIBRATO_STYLE);		// // //
-	SetLinearPitch(DEFAULT_LINEAR_PITCH);
-
-	m_iNamcoChannels = 0;		// // //
+	LockDocument();
 
 	// and select 2A03 only
 	SelectExpansionChip(SNDCHIP_NONE);
+	SetModifiedFlag(FALSE);
+	SetExceededFlag(FALSE);		// // //
 
 #ifdef AUTOSAVE
 	SetupAutoSave();
 #endif
 
-	SetModifiedFlag(FALSE);
-	SetExceededFlag(FALSE);		// // //
-
 	// Document is avaliable
 	m_bFileLoaded = true;
 
-	m_csDocumentLock.Unlock();
+	UnlockDocument();
 
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(this);
 }
@@ -626,7 +619,7 @@ CFamiTrackerDoc *CFamiTrackerDoc::LoadImportFile(LPCTSTR lpszPathName)
 	// Import a module as new subtunes
 	CFamiTrackerDoc *pImported = new CFamiTrackerDoc();
 
-	pImported->DeleteContents();
+	pImported->CreateEmpty();
 
 	// Load into a new document
 	if (!pImported->OpenDocument(lpszPathName))
@@ -1018,14 +1011,14 @@ int CFamiTrackerDoc::LoadInstrument(CString FileName)
 		if (iInstVer > I_CURRENT_VER)
 			throw IDS_INST_VERSION_UNSUPPORTED;
 		
-		m_csDocumentLock.Lock();
+		LockDocument();
 
 		inst_type_t InstType = static_cast<inst_type_t>(file.ReadChar());
 		if (InstType == INST_NONE)
 			InstType = INST_2A03;
 		auto pInstrument = m_pInstrumentManager->CreateNew(InstType);
 		if (!pInstrument) {
-			m_csDocumentLock.Unlock();
+			UnlockDocument();
 			AfxMessageBox("Failed to create instrument", MB_ICONERROR);
 			return INVALID_INSTRUMENT;
 		}
@@ -1038,16 +1031,16 @@ int CFamiTrackerDoc::LoadInstrument(CString FileName)
 
 		pInstrument->LoadFTI(file, iInstVer);		// // //
 		m_pInstrumentManager->InsertInstrument(Slot, std::move(pInstrument));
-		m_csDocumentLock.Unlock();
+		UnlockDocument();
 		return Slot;
 	}
 	catch (int ID) {		// // // TODO: put all error messages into string table then add exception ctor
-		m_csDocumentLock.Unlock();
+		UnlockDocument();
 		AfxMessageBox(ID, MB_ICONERROR);
 		return INVALID_INSTRUMENT;
 	}
 	catch (CModuleException e) {
-		m_csDocumentLock.Unlock();
+		UnlockDocument();
 		m_pInstrumentManager->RemoveInstrument(Slot);
 		AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
 		return INVALID_INSTRUMENT;
@@ -1651,7 +1644,7 @@ void CFamiTrackerDoc::SetupChannels(unsigned char Chip)
 	// Must call ApplyExpansionChip after this
 }
 
-void CFamiTrackerDoc::ApplyExpansionChip()
+void CFamiTrackerDoc::ApplyExpansionChip() const
 {
 	// Tell the sound emulator to switch expansion chip
 	theApp.GetSoundGenerator()->SelectChip(m_iExpansionChip);
@@ -2373,119 +2366,4 @@ int CFamiTrackerDoc::GetFrameLength(unsigned int Track, unsigned int Frame) cons
 {
 	// // // moved from PatternEditor.cpp
 	return GetSongData(Track).GetFrameSize(Frame, GetChannelCount());		// // //
-}
-
-struct Kraid {		// // // Easter egg
-	void buildDoc(CFamiTrackerDoc &doc) {
-		// Instruments and sequences
-		makeInst(doc, 0, 6, "Lead ");
-		makeInst(doc, 1, 2, "Echo");
-		makeInst(doc, 2, 15, "Triangle");
-	}
-
-	void buildSong(CSongData &song) {
-		const unsigned FRAMES = 14;
-		const unsigned ROWS = 24;
-		const unsigned PATTERNS[][FRAMES] = {
-			{0, 0, 0, 0, 1, 1, 2, 3, 3, 3, 4, 5, 6, 6},
-			{0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4},
-			{0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4},
-			{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-			{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		};
-
-		song.SetFrameCount(FRAMES);
-		song.SetPatternLength(ROWS);
-		song.SetSongSpeed(8);
-		song.SetEffectColumnCount(0, 1);
-
-		for (int ch = 0; ch < FRAMES; ++ch)
-			for (int f = 0; f < ROWS; ++f)
-				song.SetFramePattern(f, ch, PATTERNS[ch][f]);
-		
-		makePattern(song, 2, 0, "<e.>e...<e.>e...<e.>e...<e.>e...");
-		makePattern(song, 2, 1, "<c.>c...<c.>c...<d.>d...<d.>d...");
-		makePattern(song, 2, 2, "<e.>e.>e.<<F.>F.>F.<<f.>f.>f.<<<b.>b.>b.");
-		makePattern(song, 2, 3, "<e...b.>c...<b.c...g.a...b.");
-		makePattern(song, 2, 4, "<<e");
-
-		makePattern(song, 1, 0, "@e...<b.>a... c. F...d.<b...A.");
-		makePattern(song, 1, 1, "@g... d. e...<b.>F...d. a...e.");
-		makePattern(song, 1, 2, "@g<b>g<b>g<b>AeAeAeacacacaDFDbD");
-		makePattern(song, 1, 3, "Fgab>d<b>Fd<agFb>aFd<agFega>de-");
-		makePattern(song, 1, 4, ">a-g-F-e-F-g-a-g-F-e-F-g-");
-
-		int f = 0;
-		int r = 0;
-		do { // TODO: use CSongIterator
-			auto note = song.GetPatternOnFrame(1, f).GetNoteOn(r);
-			if (++r >= ROWS) {
-				r = 0;
-				if (++f >= FRAMES)
-					f = 0;
-			}
-			if (note != stChanNote { }) {
-				note.Instrument = 1;
-				note.EffNumber[1] = EF_DELAY;
-				note.EffParam[1] = 3;
-				song.GetPatternOnFrame(0, f).SetNoteOn(r, note);
-			}
-		} while (f || r);
-	}
-
-private:
-	void makeInst(CFamiTrackerDoc &doc, unsigned index, char vol, const char *name) {
-		doc.AddInstrument(doc.GetInstrumentManager()->CreateNew(INST_2A03), index);
-		auto leadInst = std::dynamic_pointer_cast<CInstrument2A03>(doc.GetInstrument(index));
-		leadInst->SetSeqEnable(SEQ_VOLUME, true);
-		leadInst->SetSeqIndex(SEQ_VOLUME, index);
-		leadInst->SetName(name);
-
-		CSequence &leadEnv = *leadInst->GetSequence(SEQ_VOLUME);
-		leadEnv.SetItemCount(1);
-		leadEnv.SetItem(0, vol);
-		leadEnv.SetLoopPoint(-1);
-		leadEnv.SetReleasePoint(-1);
-	}
-
-	void makePattern(CSongData &song, unsigned ch, unsigned pat, std::string_view mml) {
-		const uint8_t INST = ch == 1 ? 0 : 2;
-		uint8_t octave = 3;
-		int row = 0;
-		auto &pattern = song.GetPattern(ch, pat);
-
-		for (auto c : mml) {
-			auto &note = pattern.GetNoteOn(row);
-			switch (c) {
-			case '<': --octave; break;
-			case '>': ++octave; break;
-			case '.': ++row; break;
-			case '-': ++row; note.Note = HALT   ; break;
-			case '=': ++row; note.Note = RELEASE; break;
-			case 'c': ++row; note.Note = NOTE_C ; note.Octave = octave, note.Instrument = INST; break;
-			case 'C': ++row; note.Note = NOTE_Cs; note.Octave = octave, note.Instrument = INST; break;
-			case 'd': ++row; note.Note = NOTE_D ; note.Octave = octave, note.Instrument = INST; break;
-			case 'D': ++row; note.Note = NOTE_Ds; note.Octave = octave, note.Instrument = INST; break;
-			case 'e': ++row; note.Note = NOTE_E ; note.Octave = octave, note.Instrument = INST; break;
-			case 'f': ++row; note.Note = NOTE_F ; note.Octave = octave, note.Instrument = INST; break;
-			case 'F': ++row; note.Note = NOTE_Fs; note.Octave = octave, note.Instrument = INST; break;
-			case 'g': ++row; note.Note = NOTE_G ; note.Octave = octave, note.Instrument = INST; break;
-			case 'G': ++row; note.Note = NOTE_Gs; note.Octave = octave, note.Instrument = INST; break;
-			case 'a': ++row; note.Note = NOTE_A ; note.Octave = octave, note.Instrument = INST; break;
-			case 'A': ++row; note.Note = NOTE_As; note.Octave = octave, note.Instrument = INST; break;
-			case 'b': ++row; note.Note = NOTE_B ; note.Octave = octave, note.Instrument = INST; break;
-			case '@': note.EffNumber[0] = EF_DUTY_CYCLE; note.EffParam[0] = 2; break;
-			}
-		}
-	}
-};
-
-void CFamiTrackerDoc::MakeKraid()			// // // Easter Egg
-{
-	// Basic info
-	CreateEmpty();
-
-	Kraid builder;
-	builder.buildDoc(*this);
-	builder.buildSong(GetSongData(0));
 }

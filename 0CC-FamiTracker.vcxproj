@@ -439,6 +439,7 @@
     <ClCompile Include="Source\FamiTrackerDocOldIO.cpp" />
     <ClCompile Include="Source\FrameClipData.cpp" />
     <ClCompile Include="Source\InstrumentFactory.cpp" />
+    <ClCompile Include="Source\Kraid.cpp" />
     <ClCompile Include="Source\ModuleAction.cpp" />
     <ClCompile Include="Source\PatternClipData.cpp" />
     <ClCompile Include="Source\PatternData.cpp" />
@@ -617,6 +618,7 @@
     <ClInclude Include="Source\FrameEditorTypes.h" />
     <ClInclude Include="Source\Highlight.h" />
     <ClInclude Include="Source\IntRange.h" />
+    <ClInclude Include="Source\Kraid.h" />
     <ClInclude Include="Source\ModuleAction.h" />
     <ClInclude Include="Source\NoteQueue.h" />
     <ClInclude Include="Source\PatternClipData.h" />

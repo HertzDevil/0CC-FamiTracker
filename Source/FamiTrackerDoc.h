@@ -110,6 +110,7 @@ public:
 	//
 	bool IsFileLoaded() const;
 	bool HasLastLoadFailed() const;
+	void CreateEmpty();		// // //
 
 	// Import
 	static CFamiTrackerDoc *LoadImportFile(LPCTSTR lpszPathName);		// // //
@@ -165,8 +166,6 @@ public:
 
 	bool			IsPatternEmpty(unsigned int Track, unsigned int Channel, unsigned int Pattern) const;
 	bool			ArePatternsSame(unsigned int Track, unsigned int Channel, unsigned int Pattern1, unsigned int Pattern2) const;		// // //
-
-	void			MakeKraid();				// // // Easter Egg
 
 	// Pattern editing
 	void			SetNoteData(unsigned Track, unsigned Frame, unsigned Channel, unsigned Row, const stChanNote &Data);		// // //
@@ -382,8 +381,6 @@ private:
 	// File management functions (load/save)
 	//
 
-	void			CreateEmpty();
-
 	BOOL			SaveDocument(LPCTSTR lpszPathName) const;
 	BOOL			OpenDocument(LPCTSTR lpszPathName);
 
@@ -405,7 +402,7 @@ private:
 	void			AllocateSong(unsigned int Index);		// // //
 	void			SwapSongs(unsigned int First, unsigned int Second);		// // //
 
-	void			ApplyExpansionChip();
+	void			ApplyExpansionChip() const;
 	int				GetChannelPosition(int Channel, unsigned char Chip);		// // //
 
 	//

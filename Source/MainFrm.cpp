@@ -54,20 +54,22 @@
 #include "PatternEditor.h"
 #include "FrameEditor.h"
 #include "APU/APU.h"
-#include "AudioDriver.h"		// // //
-#include "GrooveDlg.h"		// // //
-#include "GotoDlg.h"		// // //
-#include "BookmarkDlg.h"	// // //
-#include "SwapDlg.h"		// // //
-#include "SpeedDlg.h"		// // //
-#include "FindDlg.h"		// // //
-#include "TransposeDlg.h"	// // //
-#include "DPI.h"		// // //
-#include "InstrumentFactory.h"		// // //
-#include "ActionHandler.h"		// // //
-#include "ModuleAction.h"		// // //
-#include "SimpleFile.h"		// // //
-#include "InstrumentManager.h"		// // //
+// // //
+#include "AudioDriver.h"
+#include "GrooveDlg.h"
+#include "GotoDlg.h"
+#include "BookmarkDlg.h"
+#include "SwapDlg.h"
+#include "SpeedDlg.h"
+#include "FindDlg.h"
+#include "TransposeDlg.h"
+#include "DPI.h"
+#include "InstrumentFactory.h"
+#include "ActionHandler.h"
+#include "ModuleAction.h"
+#include "SimpleFile.h"
+#include "InstrumentManager.h"
+#include "Kraid.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -3456,16 +3458,19 @@ void CMainFrame::OnEasterEggKraid5()
 		if (AfxMessageBox(IDS_KRAID, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO) {
 			m_iKraidCounter = 0;
 			return;}
-		CFamiTrackerDoc &Doc = GetDoc();
-		Doc.MakeKraid();
+		CFamiTrackerDoc &doc = GetDoc();
+		Kraid { }(doc);
 		SelectTrack(0);
-		SetSongInfo(Doc);
+		SetSongInfo(doc);
 		UpdateControls();
 		UpdateInstrumentList();
 		UpdateTrackBox();
 		ResetUndo();
 		ResizeFrameWindow();
-		SetStatusText(_T("Famitracker - Metroid - Kraid's Lair (Uploaded on Jun 9, 2010 http://www.youtube.com/watch?v=9yzCLy-fZVs) The FTM straight from the tutorial. - 8BitDanooct1"));
+		SetStatusText(_T(
+			"Famitracker - Metroid - Kraid's Lair "
+			"(Uploaded on Jun 9, 2010 http://www.youtube.com/watch?v=9yzCLy-fZVs) "
+			"The FTM straight from the tutorial. - 8BitDanooct1"));
 	}
 	m_iKraidCounter = 0;
 }
