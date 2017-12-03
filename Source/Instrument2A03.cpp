@@ -112,7 +112,7 @@ bool CInstrument2A03::Load(CDocumentFile *pDocFile)
 		}
 		catch (CModuleException e) {
 			e.AppendError("At note %i, octave %i,", Note + 1, Octave);
-			throw;
+			throw e;
 		}
 	};
 
@@ -213,7 +213,7 @@ bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
 		}
 		catch (CModuleException e) {
 			e.AppendError("At note %i, octave %i,", Note + 1, Octave);
-			throw;
+			throw e;
 		}
 	}
 

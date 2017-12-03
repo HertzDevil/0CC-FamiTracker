@@ -26,7 +26,7 @@ std::string CModuleException::GetErrorString() const
 {
 	std::string out;
 	for (const auto &x : m_strError)
-		out += x;
+		out += x + '\n';
 	if (m_strFooter.size())
 		out += m_strFooter;
 	else

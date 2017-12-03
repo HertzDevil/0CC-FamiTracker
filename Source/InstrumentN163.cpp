@@ -107,7 +107,7 @@ bool CInstrumentN163::Load(CDocumentFile *pDocFile)
 		}
 		catch (CModuleException e) {
 			e.AppendError("At wave %i, sample %i,", i, j);
-			throw;
+			throw e;
 		}
 	}
 	
@@ -159,7 +159,7 @@ bool CInstrumentN163::LoadFTI(CSimpleFile &File, int iVersion)
 		}
 	catch (CModuleException e) {
 		e.AppendError("At wave %i, sample %i,", i, j);
-		throw;
+		throw e;
 	}
 
 	return true;

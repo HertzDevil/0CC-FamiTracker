@@ -386,7 +386,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 		}
 		catch (CModuleException e) {
 			e.AppendError("At channel %d", i + 1);
-			throw;
+			throw e;
 		}
 	}
 	else if (ver >= 2) {
@@ -407,13 +407,13 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 				}
 				catch (CModuleException e) {
 					e.AppendError("At song %d,", index + 1);
-					throw;
+					throw e;
 				}
 			});
 		}
 		catch (CModuleException e) {
 			e.AppendError("At channel %d,", i + 1);
-			throw;
+			throw e;
 		}
 
 		if (ver >= 4)		// // // 050B
@@ -485,7 +485,7 @@ void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerDoc &doc, int ver) {
 			file_.SetDefaultFooter(e);
 			e.AppendError("At instrument %02X,", index);
 			Manager.RemoveInstrument(index);
-			throw;
+			throw e;
 		}
 	}
 }
@@ -603,7 +603,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 			}
 			catch (CModuleException e) {
 				e.AppendError("At 2A03 %s sequence %d,", CInstrument2A03::SEQUENCE_NAME[Type], Index);
-				throw;
+				throw e;
 			}
 		}
 
@@ -623,7 +623,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 				}
 				catch (CModuleException e) {
 					e.AppendError("At 2A03 %s sequence %d,", CInstrument2A03::SEQUENCE_NAME[j], i);
-					throw;
+					throw e;
 				}
 			}
 		}
@@ -637,7 +637,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 			}
 			catch (CModuleException e) {
 				e.AppendError("At 2A03 %s sequence %d,", CInstrument2A03::SEQUENCE_NAME[Types[i]], Indices[i]);
-				throw;
+				throw e;
 			}
 		}
 	}
@@ -797,7 +797,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 				}
 				catch (CModuleException e) {
 					e.AppendError("At effect column fx%d,", n + 1);
-					throw;
+					throw e;
 				}
 
 	//			if (Note.Vol > MAX_VOLUME)
@@ -889,12 +889,12 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 			}
 			catch (CModuleException e) {
 				e.AppendError("At row %02X,", Row);
-				throw;
+				throw e;
 			}
 		}
 		catch (CModuleException e) {
 			e.AppendError("At pattern %02X, channel %d, track %d,", Pattern, Channel, Track + 1);
-			throw;
+			throw e;
 		}
 	}
 }
@@ -966,7 +966,7 @@ void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerDoc &doc, int ver) {
 		}
 		catch (CModuleException e) {
 			e.AppendError("At DPCM sample %d,", Index);
-			throw;
+			throw e;
 		}
 	}
 }
@@ -1038,7 +1038,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 		}
 		catch (CModuleException e) {
 			e.AppendError("At VRC6 %s sequence %d,", CInstrumentVRC6::SEQUENCE_NAME[Type], Index);
-			throw;
+			throw e;
 		}
 	}
 
@@ -1058,7 +1058,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 			}
 			catch (CModuleException e) {
 				e.AppendError("At VRC6 %s sequence %d,", CInstrumentVRC6::SEQUENCE_NAME[j], i);
-				throw;
+				throw e;
 			}
 		}
 	}
@@ -1071,7 +1071,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 		}
 		catch (CModuleException e) {
 			e.AppendError("At VRC6 %s sequence %d,", CInstrumentVRC6::SEQUENCE_NAME[Types[i]], Indices[i]);
-			throw;
+			throw e;
 		}
 	}
 }
@@ -1128,7 +1128,7 @@ void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerDoc &doc, int ver) {
 		}
 		catch (CModuleException e) {
 			e.AppendError("At N163 %s sequence %d,", CInstrumentN163::SEQUENCE_NAME[Type], Index);
-			throw;
+			throw e;
 		}
 	}
 }
@@ -1185,7 +1185,7 @@ void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerDoc &doc, int ver) {
 		}
 		catch (CModuleException e) {
 			e.AppendError("At 5B %s sequence %d,", CInstrumentS5B::SEQUENCE_NAME[Type], Index);
-			throw;
+			throw e;
 		}
 	}
 }
@@ -1246,7 +1246,7 @@ void CFamiTrackerDocIO::LoadDetuneTables(CFamiTrackerDoc &doc, int ver) {
 		}
 		catch (CModuleException e) {
 			e.AppendError("At %s detune table,", CDetuneDlg::CHIP_STR[Chip]);
-			throw;
+			throw e;
 		}
 	}
 }
@@ -1293,13 +1293,13 @@ void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerDoc &doc, int ver) {
 			}
 			catch (CModuleException e) {
 				e.AppendError("At position %i,", j);
-				throw;
+				throw e;
 			}
 			doc.SetGroove(Index, std::move(pGroove));
 		}
 		catch (CModuleException e) {
 			e.AppendError("At groove %i,", Index);
-			throw;
+			throw e;
 		}
 	}
 
@@ -1318,7 +1318,7 @@ void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerDoc &doc, int ver) {
 	}
 	catch (CModuleException e) {
 		e.AppendError("At track %d,", i + 1);
-		throw;
+		throw e;
 	}
 }
 
@@ -1399,5 +1399,5 @@ catch (CModuleException e) {
 	file_.SetDefaultFooter(e);
 //	if (m_pCurrentDocument)
 //		m_pCurrentDocument->SetDefaultFooter(e);
-	throw;
+	throw e;
 }

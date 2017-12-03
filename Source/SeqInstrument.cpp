@@ -168,7 +168,7 @@ bool CSeqInstrument::LoadFTI(CSimpleFile &File, int iVersion)
 	catch (CModuleException e) {
 		e.AppendError("At %s sequence,", GetSequenceName(i));
 		if (pSeq) delete pSeq;
-		throw;
+		throw e;
 	}
 
 	return true;
