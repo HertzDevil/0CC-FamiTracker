@@ -22,6 +22,7 @@
 
 #include "ModuleImportDlg.h"
 #include "FamiTrackerDoc.h"
+#include "SongData.h"		// // //
 
 // CModuleImportDlg dialog
 

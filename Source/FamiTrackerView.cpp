@@ -39,7 +39,6 @@
 // // //
 #include "Bookmark.h"
 #include "BookmarkCollection.h"
-#include "BookmarkManager.h"
 #include "DetuneDlg.h"
 #include "StretchDlg.h"
 #include "RecordSettingsDlg.h"
@@ -1567,7 +1566,7 @@ void CFamiTrackerView::OnBookmarksToggle()
 	const int Frame = GetSelectedFrame();
 	const int Row = GetSelectedRow();
 
-	CBookmarkCollection *pCol = pDoc->GetBookmarkManager()->GetCollection(Track);
+	CBookmarkCollection *pCol = pDoc->GetBookmarkCollection(Track);
 	ASSERT(pCol);
 	if (CBookmark *pMark = pCol->FindAt(Frame, Row))
 		pCol->RemoveAt(Frame, Row);
@@ -1597,7 +1596,7 @@ void CFamiTrackerView::OnBookmarksNext()
 
 	CFamiTrackerDoc* pDoc = GetDocument();
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
-	CBookmarkCollection *pCol = pDoc->GetBookmarkManager()->GetCollection(pMainFrame->GetSelectedTrack());
+	CBookmarkCollection *pCol = pDoc->GetBookmarkCollection(pMainFrame->GetSelectedTrack());
 	ASSERT(pCol);
 
 	if (CBookmark *pMark = pCol->FindNext(GetSelectedFrame(), GetSelectedRow())) {
@@ -1626,7 +1625,7 @@ void CFamiTrackerView::OnBookmarksPrevious()
 
 	CFamiTrackerDoc* pDoc = GetDocument();
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
-	CBookmarkCollection *pCol = pDoc->GetBookmarkManager()->GetCollection(pMainFrame->GetSelectedTrack());
+	CBookmarkCollection *pCol = pDoc->GetBookmarkCollection(pMainFrame->GetSelectedTrack());
 	ASSERT(pCol);
 
 	if (CBookmark *pMark = pCol->FindPrevious(GetSelectedFrame(), GetSelectedRow())) {

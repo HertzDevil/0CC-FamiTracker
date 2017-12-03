@@ -29,6 +29,7 @@
 
 #include <vector>
 #include <memory>		// // //
+#include <array>		// // //
 
 // Get access to some APU constants
 #include "APU/Types.h"
@@ -73,6 +74,7 @@ class CSeqInstrument;		// // // TODO: move to instrument manager
 class CDSample;		// // //
 class CGroove;		// // //
 class CSimpleFile;		// // //
+class CBookmarkCollection;		// // //
 
 //
 // I'll try to organize this class, things are quite messy right now!
@@ -239,7 +241,11 @@ public:
 	const stHighlight &GetHighlight() const;
 	stHighlight		GetHighlightAt(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
 	unsigned int	GetHighlightState(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
-	CBookmark*		GetBookmarkAt(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
+
+	CBookmarkCollection *GetBookmarkCollection(unsigned track);		// // //
+	const CBookmarkCollection *GetBookmarkCollection(unsigned track) const;		// // //
+	unsigned		GetTotalBookmarkCount() const;		// // //
+	CBookmark		*GetBookmarkAt(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
 
 	void			SetDetuneOffset(int Chip, int Note, int Detune);		// // //
 	int				GetDetuneOffset(int Chip, int Note) const;
@@ -311,7 +317,6 @@ public:
 	CSequenceManager *const GetSequenceManager(int InstType) const override;
 	CInstrumentManager *const GetInstrumentManager() const override;
 	CDSampleManager *const GetDSampleManager() const override;
-	CBookmarkManager *const GetBookmarkManager() const override;
 	void			Modify(bool Change);
 	void			ModifyIrreversible();
 
@@ -444,7 +449,6 @@ private:
 
 	// Instruments, samples and sequences
 	std::unique_ptr<CInstrumentManager> m_pInstrumentManager;	// // //
-	std::unique_ptr<CBookmarkManager> m_pBookmarkManager;		// // //
 	std::array<std::unique_ptr<CGroove>, MAX_GROOVE> m_pGrooveTable;		// // // Grooves
 
 	// Module properties

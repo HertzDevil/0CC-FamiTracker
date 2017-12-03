@@ -23,6 +23,7 @@
 #include "FamiTrackerDocOldIO.h"
 #include "FamiTrackerDocIOCommon.h"
 #include "FamiTrackerDoc.h"
+#include "SongData.h"
 #include "InstrumentManager.h"
 #include <memory>
 #include "Instrument2A03.h"

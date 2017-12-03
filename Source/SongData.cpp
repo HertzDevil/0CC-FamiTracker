@@ -22,6 +22,7 @@
 
 #include "SongData.h"
 #include "PatternData.h"		// // //
+#include "Bookmark.h"		// // //
 
 // Defaults when creating new modules
 const unsigned CSongData::DEFAULT_ROW_COUNT	= 64;
@@ -235,4 +236,22 @@ void CSongData::SwapChannels(unsigned int First, unsigned int Second)		// // //
 	for (int i = 0; i < MAX_FRAMES; i++)
 		std::swap(m_iFrameList[i][First], m_iFrameList[i][Second]);
 	std::swap(m_pPatternData[First], m_pPatternData[Second]);
+}
+
+CBookmarkCollection &CSongData::GetBookmarks() {
+	return bookmarks_;
+}
+
+const CBookmarkCollection &CSongData::GetBookmarks() const {
+	return bookmarks_;
+}
+
+void CSongData::SetBookmarks(const CBookmarkCollection &bookmarks) {
+	bookmarks_.ClearBookmarks();
+	for (const auto &bm : bookmarks)
+		bookmarks_.AddBookmark(std::make_unique<CBookmark>(*bm).release());
+}
+
+void CSongData::SetBookmarks(CBookmarkCollection &&bookmarks) {
+	bookmarks_ = std::move(bookmarks);
 }

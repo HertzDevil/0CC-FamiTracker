@@ -45,7 +45,6 @@
 
 #include "Groove.h"
 
-#include "BookmarkManager.h"
 #include "BookmarkCollection.h"
 
 namespace {
@@ -1346,8 +1345,6 @@ void CFamiTrackerDocIO::SaveGrooves(const CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::LoadBookmarks(CFamiTrackerDoc &doc, int ver) {
-	auto &Manager = *doc.GetBookmarkManager();
-
 	for (int i = 0, n = file_.GetBlockInt(); i < n; ++i) {
 		auto pMark = std::make_unique<CBookmark>();
 		unsigned int Track = AssertRange(
@@ -1360,19 +1357,18 @@ void CFamiTrackerDocIO::LoadBookmarks(CFamiTrackerDoc &doc, int ver) {
 		pMark->m_Highlight.Second = file_.GetBlockInt();
 		pMark->m_bPersist = file_.GetBlockChar() != 0;
 		pMark->m_sName = std::string(file_.ReadString());
-		Manager.GetCollection(Track)->AddBookmark(pMark.release());
+		doc.GetBookmarkCollection(Track)->AddBookmark(pMark.release());
 	}
 }
 
 void CFamiTrackerDocIO::SaveBookmarks(const CFamiTrackerDoc &doc, int ver) {
-	auto &Manager = *doc.GetBookmarkManager();
-	int Count = Manager.GetBookmarkCount();
+	int Count = doc.GetTotalBookmarkCount();
 	if (!Count)
 		return;
 	file_.WriteBlockInt(Count);
-	
+
 	for (unsigned int i = 0, n = doc.GetTrackCount(); i < n; ++i) {
-		for (const auto &pMark : *Manager.GetCollection(i)) {
+		for (const auto &pMark : *doc.GetBookmarkCollection(i)) {
 			file_.WriteBlockChar(i);
 			file_.WriteBlockChar(pMark->m_iFrame);
 			file_.WriteBlockChar(pMark->m_iRow);

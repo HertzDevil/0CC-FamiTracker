@@ -28,7 +28,6 @@
 #include "MainFrm.h"
 #include "Bookmark.h"
 #include "BookmarkCollection.h"
-#include "BookmarkManager.h" // TODO: night not need this
 
 
 
@@ -168,7 +167,7 @@ void CBookmarkDlg::LoadBookmarks(int Track)
 	m_cListBookmark->ResetContent();
 	m_iTrack = Track;
 
-	if ((m_pCollection = m_pManager->GetCollection(Track)))
+	if ((m_pCollection = m_pDocument->GetBookmarkCollection(Track)))
 		for (unsigned i = 0; i < m_pCollection->GetCount(); ++i) {
 			const CBookmark *pMark = m_pCollection->GetBookmark(i);
 			CString str(pMark->m_sName.c_str());
@@ -186,10 +185,6 @@ void CBookmarkDlg::SelectBookmark(int Pos)
 	OnLbnSelchangeListBookmarks();
 }
 
-void CBookmarkDlg::SetManager(CBookmarkManager *const pManager)
-{
-	m_pManager = pManager;
-}
 
 bool CBookmarkDlg::IsBookmarkValid(unsigned index) const {
 	if (m_pCollection && m_pDocument)
@@ -214,7 +209,6 @@ BOOL CBookmarkDlg::OnInitDialog()
 	m_cSpinHighlight2->SubclassDlgItem(IDC_SPIN_BOOKMARK_HIGH2, this);
 
 	m_pDocument = CFamiTrackerDoc::GetDoc();
-	m_pManager = nullptr;
 	m_iTrack = 0U;
 
 	m_cSpinFrame->SetRange(0, MAX_FRAMES - 1);

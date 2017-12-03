@@ -70,11 +70,18 @@ const int MAX_TEMPO	= 255;
 // Min tempo
 //const int MIN_TEMPO	= 21;
 
+// // // Default tempo
+const unsigned int DEFAULT_TEMPO_NTSC = 150;
+const unsigned int DEFAULT_TEMPO_PAL  = 125;
+
 // Max speed
 //const int MAX_SPEED = 20;
 
 // Min speed
 const int MIN_SPEED = 1;
+
+// // // Default speed
+const unsigned int DEFAULT_SPEED = 6;
 
 // // // Maximum number of grooves
 const int MAX_GROOVE = 32;

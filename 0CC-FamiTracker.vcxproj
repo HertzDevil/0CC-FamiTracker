@@ -433,7 +433,6 @@
     <ClCompile Include="Source\Bookmark.cpp" />
     <ClCompile Include="Source\BookmarkCollection.cpp" />
     <ClCompile Include="Source\BookmarkDlg.cpp" />
-    <ClCompile Include="Source\BookmarkManager.cpp" />
     <ClCompile Include="Source\ChannelFactory.cpp" />
     <ClCompile Include="Source\ClipboardResource.cpp" />
     <ClCompile Include="Source\FamiTrackerDocIO.cpp" />
@@ -608,7 +607,6 @@
     <ClInclude Include="Source\AudioDriver.h" />
     <ClInclude Include="Source\Bookmark.h" />
     <ClInclude Include="Source\BookmarkCollection.h" />
-    <ClInclude Include="Source\BookmarkManager.h" />
     <ClInclude Include="Source\BookmarkDlg.h" />
     <ClInclude Include="Source\ClipboardResource.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />
@@ -617,6 +615,7 @@
     <ClInclude Include="Source\FFT\FftComplex.hpp" />
     <ClInclude Include="Source\FrameClipData.h" />
     <ClInclude Include="Source\FrameEditorTypes.h" />
+    <ClInclude Include="Source\Highlight.h" />
     <ClInclude Include="Source\IntRange.h" />
     <ClInclude Include="Source\ModuleAction.h" />
     <ClInclude Include="Source\NoteQueue.h" />

@@ -29,7 +29,6 @@
 class CFamiTrackerDoc;
 class CBookmark;
 class CBookmarkCollection;
-class CBookmarkManager;
 class CListBoxEx;
 
 // CBookmarkDlg dialog
@@ -44,7 +43,6 @@ public:
 
 	void LoadBookmarks(int Track);
 	void SelectBookmark(int Pos);
-	void SetManager(CBookmarkManager *const pManager);
 	bool IsBookmarkValid(unsigned index) const;
 
 // Dialog Data
@@ -63,7 +61,6 @@ protected:
 	CSpinButtonCtrl *m_cSpinHighlight2;
 
 	CFamiTrackerDoc *m_pDocument;
-	CBookmarkManager *m_pManager;
 	unsigned m_iTrack;
 
 	CBookmarkCollection *m_pCollection;

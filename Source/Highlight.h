@@ -20,21 +20,12 @@
 ** must bear this legend.
 */
 
+
 #pragma once
 
-class CChannelMap;
-class CSequenceManager;
-class CInstrumentManager;
-class CDSampleManager;
-
-class CFTMComponentInterface
-{
-public:
-	virtual CChannelMap *const GetChannelMap() const = 0;
-	virtual CSequenceManager *const GetSequenceManager(int InstType) const = 0;
-	virtual CInstrumentManager *const GetInstrumentManager() const = 0;
-	virtual CDSampleManager *const GetDSampleManager() const = 0;
-
-	virtual void Modify(bool Change) = 0;
-	virtual void ModifyIrreversible() = 0;
+// // // Highlight settings
+struct stHighlight {
+	int First;
+	int Second;
+	int Offset = 0;
 };

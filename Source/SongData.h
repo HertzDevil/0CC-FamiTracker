@@ -24,24 +24,13 @@
 #pragma once
 
 #include <array>		// // //
-#include <memory>		// // //
 #include <string>		// // //
 #include "FamiTrackerTypes.h"		// // //
 #include "PatternData.h"		// // //
+#include "Highlight.h"		// // //
+#include "BookmarkCollection.h"		// // //
 
 class stChanNote;		// // //
-
-// // // Highlight settings
-struct stHighlight {
-	int First;
-	int Second;
-	int Offset = 0;
-};
-
-// // // moved from FamiTrackerDoc.h
-const unsigned int DEFAULT_TEMPO_NTSC = 150;
-const unsigned int DEFAULT_TEMPO_PAL  = 125;
-const unsigned int DEFAULT_SPEED      = 6;
 
 // CSongData holds all notes in the patterns
 class CSongData
@@ -91,6 +80,11 @@ public:
 
 	void CopyTrack(unsigned Chan, const CSongData &From, unsigned ChanFrom);		// // //
 	void SwapChannels(unsigned int First, unsigned int Second);		// // //
+
+	CBookmarkCollection &GetBookmarks();		// // //
+	const CBookmarkCollection &GetBookmarks() const;
+	void SetBookmarks(const CBookmarkCollection &bookmarks);
+	void SetBookmarks(CBookmarkCollection &&bookmarks);
 
 	// void (*F)(CPatternData &pat [, unsigned ch, unsigned pat_index])
 	template <typename F>
@@ -162,6 +156,9 @@ private:
 
 	// Row highlight settings
 	stHighlight  m_vRowHighlight;			// // //
+
+	// Bookmarks
+	CBookmarkCollection bookmarks_;		// // //
 
 	// Number of visible effect columns for each channel
 	std::array<unsigned char, MAX_CHANNELS> m_iEffectColumns = { };		// // //

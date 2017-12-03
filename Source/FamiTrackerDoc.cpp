@@ -62,7 +62,6 @@
 #include "InstrumentManager.h"		// // //
 #include "Bookmark.h"		// // //
 #include "BookmarkCollection.h"		// // //
-#include "BookmarkManager.h"		// // //
 #include "APU/APU.h"
 #include "SimpleFile.h"		// // //
 //#include "SongView.h"		// // //
@@ -95,8 +94,7 @@ CFamiTrackerDoc::CFamiTrackerDoc() :
 	m_iNamcoChannels(0),		// // //
 	m_bDisplayComment(false),
 	m_pChannelMap(std::make_unique<CChannelMap>()),		// // //
-	m_pInstrumentManager(std::make_unique<CInstrumentManager>(this)),
-	m_pBookmarkManager(std::make_unique<CBookmarkManager>(MAX_TRACKS))
+	m_pInstrumentManager(std::make_unique<CInstrumentManager>(this))
 {
 	// Initialize document object
 
@@ -269,7 +267,6 @@ void CFamiTrackerDoc::DeleteContents()
 		x.reset();
 
 	m_pInstrumentManager->ClearAll();		// // //
-	m_pBookmarkManager->ClearAll();		// // //
 
 	// Clear song info
 	SetModuleName("");		// // //
@@ -784,9 +781,6 @@ void CFamiTrackerDoc::ImportTrack(int Track, const CFamiTrackerDoc *pImported)		
 	if (NewTrack == -1)
 		return;
 
-	// // // Copy bookmarks
-	m_pBookmarkManager->SetCollection(NewTrack, pImported->GetBookmarkManager()->PopCollection(Track));
-
 	const auto &src = pImported->GetSongData(Track);		// // //
 	auto &dest = GetSongData(NewTrack);		// // //
 
@@ -803,6 +797,9 @@ void CFamiTrackerDoc::ImportTrack(int Track, const CFamiTrackerDoc *pImported)		
 	// // // Copy patterns
 	for (unsigned int c = 0; c < MAX_CHANNELS; ++c)
 		dest.CopyTrack(c, src, c);
+
+	// // // Copy bookmarks
+	dest.SetBookmarks(src.GetBookmarks());
 }
 
 // End of file load/save
@@ -1402,7 +1399,7 @@ bool CFamiTrackerDoc::RemoveFrame(unsigned int Track, unsigned int Frame)
 	for (int i = 0; i < Channels; ++i)
 		SetPatternAtFrame(Track, FrameCount - 1, i, 0);		// // //
 	
-	m_pBookmarkManager->GetCollection(Track)->RemoveFrames(Frame, 1U);		// // //
+	GetBookmarkCollection(Track)->RemoveFrames(Frame, 1U);		// // //
 
 	SetFrameCount(Track, FrameCount - 1);
 
@@ -1430,7 +1427,7 @@ bool CFamiTrackerDoc::DuplicateFrame(unsigned int Track, unsigned int Frame)
 	for (int i = 0; i < Channels; ++i) 
 		SetPatternAtFrame(Track, Frame + 1, i, GetPatternAtFrame(Track, Frame, i));
 
-	m_pBookmarkManager->GetCollection(Track)->InsertFrames(Frame + 1, 1U);		// // //
+	GetBookmarkCollection(Track)->InsertFrames(Frame + 1, 1U);		// // //
 
 	return true;
 }
@@ -1468,7 +1465,7 @@ bool CFamiTrackerDoc::MoveFrameDown(unsigned int Track, unsigned int Frame)
 		SetPatternAtFrame(Track, Frame + 1, i, Pattern);
 	}
 
-	m_pBookmarkManager->GetCollection(Track)->SwapFrames(Frame, Frame + 1);		// // //
+	GetBookmarkCollection(Track)->SwapFrames(Frame, Frame + 1);		// // //
 
 	return true;
 }
@@ -1486,7 +1483,7 @@ bool CFamiTrackerDoc::MoveFrameUp(unsigned int Track, unsigned int Frame)
 		SetPatternAtFrame(Track, Frame - 1, i, Pattern);
 	}
 	
-	m_pBookmarkManager->GetCollection(Track)->SwapFrames(Frame, Frame - 1);		// // //
+	GetBookmarkCollection(Track)->SwapFrames(Frame, Frame - 1);		// // //
 
 	return true;
 }
@@ -1512,7 +1509,7 @@ bool CFamiTrackerDoc::AddFrames(unsigned int Track, unsigned int Frame, int Coun
 		for (int f = 0; f < Count; ++f)		// // //
 			SetPatternAtFrame(Track, Frame + f, i, 0);
 
-	m_pBookmarkManager->GetCollection(Track)->InsertFrames(Frame, Count);		// // //
+	GetBookmarkCollection(Track)->InsertFrames(Frame, Count);		// // //
 
 	return true;
 }
@@ -1547,7 +1544,6 @@ int CFamiTrackerDoc::AddTrack()
 		return -1;
 
 	AllocateSong(NewTrack);
-	m_pBookmarkManager->InsertTrack(NewTrack);		// // //
 
 	return NewTrack;
 }
@@ -1558,7 +1554,6 @@ void CFamiTrackerDoc::RemoveTrack(unsigned int Track)
 
 	// Move down all other tracks
 	m_pTracks.erase(m_pTracks.cbegin() + Track);		// // //
-	m_pBookmarkManager->RemoveTrack(Track);		// // //
 }
 
 void CFamiTrackerDoc::SetTrackTitle(unsigned int Track, const std::string &title)		// // //
@@ -1583,7 +1578,6 @@ void CFamiTrackerDoc::MoveTrackDown(unsigned int Track)
 void CFamiTrackerDoc::SwapSongs(unsigned int First, unsigned int Second)
 {
 	m_pTracks[First].swap(m_pTracks[Second]);		// // //
-	m_pBookmarkManager->SwapTracks(First, Second);		// // //
 }
 
 void CFamiTrackerDoc::AllocateSong(unsigned int Index)
@@ -1593,7 +1587,6 @@ void CFamiTrackerDoc::AllocateSong(unsigned int Index)
 	while (Index >= m_pTracks.size()) {		// // //
 		auto &pSong = m_pTracks.emplace_back(std::make_unique<CSongData>());		// // //
 		pSong->SetSongTempo(m_iMachine == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
-		m_pBookmarkManager->GetCollection(Index)->ClearBookmarks();
 	}
 }
 
@@ -1707,11 +1700,6 @@ CInstrumentManager *const CFamiTrackerDoc::GetInstrumentManager() const
 CDSampleManager *const CFamiTrackerDoc::GetDSampleManager() const
 {
 	return m_pInstrumentManager->GetDSampleManager();
-}
-
-CBookmarkManager *const CFamiTrackerDoc::GetBookmarkManager() const
-{
-	return m_pBookmarkManager.get();
 }
 
 void CFamiTrackerDoc::Modify(bool Change)
@@ -2024,7 +2012,7 @@ stHighlight CFamiTrackerDoc::GetHighlightAt(unsigned int Track, unsigned int Fra
 	stHighlight Hl = m_vHighlight;
 	
 	const CBookmark Zero { };
-	CBookmarkCollection *pCol = m_pBookmarkManager->GetCollection(Track);
+	const CBookmarkCollection *pCol = GetBookmarkCollection(Track);
 	if (const unsigned Count = pCol->GetCount()) {
 		CBookmark tmp(Frame, Row);
 		unsigned int Min = tmp.Distance(Zero);
@@ -2055,9 +2043,25 @@ unsigned int CFamiTrackerDoc::GetHighlightState(unsigned int Track, unsigned int
 	return 0;
 }
 
+CBookmarkCollection *CFamiTrackerDoc::GetBookmarkCollection(unsigned track) {		// // //
+	return track < GetTrackCount() ? &GetSongData(track).GetBookmarks() : nullptr;
+}
+
+const CBookmarkCollection *CFamiTrackerDoc::GetBookmarkCollection(unsigned track) const {		// // //
+	return track < GetTrackCount() ? &GetSongData(track).GetBookmarks() : nullptr;
+}
+
+unsigned CFamiTrackerDoc::GetTotalBookmarkCount() const {		// // //
+	unsigned count = 0;
+	VisitSongs([&] (const CSongData &song) {
+		count += song.GetBookmarks().GetCount();
+	});
+	return count;
+}
+
 CBookmark *CFamiTrackerDoc::GetBookmarkAt(unsigned int Track, unsigned int Frame, unsigned int Row) const		// // //
 {
-	if (CBookmarkCollection *pCol = m_pBookmarkManager->GetCollection(Track)) {
+	if (const CBookmarkCollection *pCol = GetBookmarkCollection(Track)) {
 		for (unsigned i = 0, Count = pCol->GetCount(); i < Count; ++i) {
 			CBookmark *pMark = pCol->GetBookmark(i);
 			if (pMark->m_iFrame == Frame && pMark->m_iRow == Row)

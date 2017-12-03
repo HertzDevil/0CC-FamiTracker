@@ -24,7 +24,7 @@
 #pragma once
 
 #include "FamiTrackerTypes.h" // PatternData
-#include "SongData.h" // stHighlight
+#include "Highlight.h"
 #include <string>
 
 class CBookmark

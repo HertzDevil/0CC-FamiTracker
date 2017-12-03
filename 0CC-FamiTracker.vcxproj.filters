@@ -606,9 +606,6 @@
     <ClCompile Include="Source\OldSequence.cpp">
       <Filter>Source Files\Document Data Types</Filter>
     </ClCompile>
-    <ClCompile Include="Source\BookmarkManager.cpp">
-      <Filter>Source Files\Document Components</Filter>
-    </ClCompile>
     <ClCompile Include="Source\BookmarkCollection.cpp">
       <Filter>Source Files\Document Data Types</Filter>
     </ClCompile>
@@ -1184,9 +1181,6 @@
     <ClInclude Include="Source\OldSequence.h">
       <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\BookmarkManager.h">
-      <Filter>Header Files\Document Component Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\BookmarkCollection.h">
       <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
@@ -1378,6 +1372,9 @@
     </ClInclude>
     <ClInclude Include="Source\FamiTrackerDocIOCommon.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Highlight.h">
+      <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -2240,7 +2240,6 @@ void CMainFrame::OnModuleBookmarkSettings()		// // //
 		m_pBookmarkDlg->CenterWindow();
 	m_pBookmarkDlg->ShowWindow(SW_SHOW);
 	m_pBookmarkDlg->SetFocus();
-	m_pBookmarkDlg->SetManager(GetDoc().GetBookmarkManager());
 	m_pBookmarkDlg->LoadBookmarks(m_iTrack);
 }
 

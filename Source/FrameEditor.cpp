@@ -37,7 +37,6 @@
 #include "Clipboard.h"
 #include "Bookmark.h"		// // //
 #include "BookmarkCollection.h"		// // //
-#include "BookmarkManager.h"		// // //
 #include "DPI.h"		// // //
 #include "FrameClipData.h"		// // //
 
@@ -301,7 +300,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 		End = Start + FrameCount - ((FirstVisibleFrame > 0) ? FirstVisibleFrame : 0);
 
 	// Draw rows
-	CBookmarkCollection *pCol = m_pDocument->GetBookmarkManager()->GetCollection(Track);		// // //
+	CBookmarkCollection *pCol = m_pDocument->GetBookmarkCollection(Track);		// // //
 	for (int i = Start; i <= End; ++i) {
 		CRect RowRect = DPI::Rect(0, i * ROW_HEIGHT + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
 
