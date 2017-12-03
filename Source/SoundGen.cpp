@@ -60,6 +60,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "WaveRenderer.h"		// // //
 #include "SoundDriver.h"		// // //
 #include "PatternNote.h"		// // //
+#include "ChannelMap.h"		// // //
 
 // // // Log VGM output (port from sn7t when necessary)
 //#define WRITE_VGM
@@ -187,7 +188,7 @@ void CSoundGen::SetVisualizerWindow(CVisualizerWnd *pWnd)
 	m_csVisualizerWndLock.Unlock();
 }
 
-void CSoundGen::RegisterChannels()
+CChannelMap CSoundGen::MakeChannelMap(const CFamiTrackerDoc &doc) const
 {
 	// This method will add channels to the document object, depending on the expansion chip used.
 	// Called from the document object (from the main thread)
@@ -195,7 +196,7 @@ void CSoundGen::RegisterChannels()
 	// Called from main thread
 	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
 
-	m_pSoundDriver->RegisterTracks();		// // //
+	return m_pSoundDriver->MakeChannelMap(doc);		// // //
 }
 
 void CSoundGen::SelectChip(int Chip)
@@ -1198,7 +1199,7 @@ unsigned CSoundGen::GetQueueFrame() const
 {
 	if (const auto &cursor = m_pSoundDriver->GetPlayerCursor())
 		return cursor->GetQueuedFrame().value_or(-1);
-	return - 1;
+	return -1;
 }
 
 // Verification

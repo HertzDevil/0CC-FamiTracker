@@ -1649,24 +1649,18 @@ void CFamiTrackerDoc::SelectExpansionChip(unsigned char Chip, bool Move)
 void CFamiTrackerDoc::SetupChannels(unsigned char Chip)
 {
 	// This will select a chip in the sound emulator
+	LockDocument();
 
-	if (Chip != SNDCHIP_NONE) {
-		// Do not allow expansion chips in PAL mode
+	// Do not allow expansion chips in PAL mode
+	if (Chip != SNDCHIP_NONE)
 		SetMachine(NTSC);
-	}
-
-	// Store the chip
 	m_iExpansionChip = Chip;
 
 	// Register the channels
-	theApp.GetSoundGenerator()->RegisterChannels();		// // //
-
+	*m_pChannelMap = theApp.GetSoundGenerator()->MakeChannelMap(*this);		// // //
 	m_iChannelsAvailable = GetChannelCount();
 
-	/*if (Chip & SNDCHIP_N163) {			// // //
-		m_iChannelsAvailable -= (8 - m_iNamcoChannels);
-	}*/
-
+	UnlockDocument();
 	// Must call ApplyExpansionChip after this
 }
 

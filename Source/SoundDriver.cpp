@@ -130,27 +130,24 @@ void CSoundDriver::ConfigureDocument() {
 		}
 }
 
-void CSoundDriver::RegisterTracks() {
+CChannelMap CSoundDriver::MakeChannelMap(const CFamiTrackerDoc &doc) const {
 	// This affects the sound channel interface so it must be synchronized
-	doc_->LockDocument();
-
-	auto &Map = *doc_->GetChannelMap();		// // //
-	Map.ResetChannels();
+	CChannelMap map;		// // //
 
 	// Register the channels in the document
 	// Expansion & internal channels
-	const auto Chip = doc_->GetExpansionChip();
+	const auto Chip = doc.GetExpansionChip();
 	int i = 0;		// // //
 	for (auto &x : tracks_) {
 		int ID = x.second->GetID();		// // //
 		if (x.first && ((x.second->GetChip() & Chip) || (i <= CHANID_DPCM))			// // //
-					&& (i >= CHANID_FDS || i < CHANID_N163_CH1 + doc_->GetNamcoChannels())) {
-			Map.RegisterChannel(*x.second);
+					&& (i >= CHANID_FDS || i < CHANID_N163_CH1 + doc.GetNamcoChannels())) {
+			map.RegisterChannel(*x.second);
 		}
 		++i;
 	}
 
-	doc_->UnlockDocument();
+	return map;
 }
 
 void CSoundDriver::StartPlayer(std::unique_ptr<CPlayerCursor> cur) {

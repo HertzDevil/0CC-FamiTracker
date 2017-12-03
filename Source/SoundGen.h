@@ -79,6 +79,7 @@ class CTempoDisplay;		// // //
 class CTempoCounter;		// // //
 class CPlayerCursor;		// // //
 class CSoundDriver;		// // //
+class CChannelMap;		// // //
 
 // CSoundGen
 
@@ -102,7 +103,7 @@ public:
 	void		SetVisualizerWindow(CVisualizerWnd *pWnd);
 
 	// Multiple times initialization
-	void		RegisterChannels();		// // //
+	CChannelMap	MakeChannelMap(const CFamiTrackerDoc &doc) const;		// // //
 	void		SelectChip(int Chip);
 	void		LoadMachineSettings();		// // // 050B
 

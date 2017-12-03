@@ -31,6 +31,7 @@ const int VIBRATO_LENGTH = 256;
 const int TREMOLO_LENGTH = 256;
 
 class CFamiTrackerDoc;
+class CChannelMap;
 class CTempoCounter;
 class CPlayerCursor;
 class CChannelHandler;
@@ -49,7 +50,7 @@ public:
 	void SetupTracks();
 	void LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu);
 	void ConfigureDocument();
-	void RegisterTracks();
+	CChannelMap MakeChannelMap(const CFamiTrackerDoc &doc) const;
 
 	void StartPlayer(std::unique_ptr<CPlayerCursor> cur);
 	void StopPlayer();
