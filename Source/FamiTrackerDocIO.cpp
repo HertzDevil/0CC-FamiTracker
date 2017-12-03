@@ -21,6 +21,8 @@
 */
 
 #include "FamiTrackerDocIO.h"
+#include "FamiTrackerDocIOCommon.h"
+#include "FamiTrackerDocOldIO.h"
 #include "DocumentFile.h" // stdafx.h
 #include "ModuleException.h"
 #include "FamiTrackerDoc.h"
@@ -73,34 +75,6 @@ const char *FILE_BLOCK_DETUNETABLES		= "DETUNETABLES";
 const char *FILE_BLOCK_GROOVES			= "GROOVES";
 const char *FILE_BLOCK_BOOKMARKS		= "BOOKMARKS";
 const char *FILE_BLOCK_PARAMS_EXTRA		= "PARAMS_EXTRA";
-
-// // // helper function for effect conversion
-typedef std::array<effect_t, EF_COUNT> EffTable;
-std::pair<EffTable, EffTable> MakeEffectConversion(std::initializer_list<std::pair<effect_t, effect_t>> List)
-{
-	EffTable forward, backward;
-	for (int i = 0; i < EF_COUNT; ++i)
-		forward[i] = backward[i] = static_cast<effect_t>(i);
-	for (const auto &p : List) {
-		forward[p.first] = p.second;
-		backward[p.second] = p.first;
-	}
-	return std::make_pair(forward, backward);
-}
-
-static const auto EFF_CONVERSION_050 = MakeEffectConversion({
-//	{EF_SUNSOFT_ENV_LO,		EF_SUNSOFT_ENV_TYPE},
-//	{EF_SUNSOFT_ENV_TYPE,	EF_SUNSOFT_ENV_LO},
-	{EF_SUNSOFT_NOISE,		EF_NOTE_RELEASE},
-	{EF_VRC7_PORT,			EF_GROOVE},
-	{EF_VRC7_WRITE,			EF_TRANSPOSE},
-	{EF_NOTE_RELEASE,		EF_N163_WAVE_BUFFER},
-	{EF_GROOVE,				EF_FDS_VOLUME},
-	{EF_TRANSPOSE,			EF_FDS_MOD_BIAS},
-	{EF_N163_WAVE_BUFFER,	EF_SUNSOFT_NOISE},
-	{EF_FDS_VOLUME,			EF_VRC7_PORT},
-	{EF_FDS_MOD_BIAS,		EF_VRC7_WRITE},
-});
 
 template <typename F> // (const CSequence &seq, int index, int seqType)
 void VisitSequences(const CSequenceManager *manager, F&& f) {
@@ -222,42 +196,8 @@ bool CFamiTrackerDocIO::Save(const CFamiTrackerDoc &doc) {
 }
 
 void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
-	if (file_.GetFileVersion() <= 0x0201) {
-		int Slots[SEQ_COUNT] = {0, 0, 0, 0, 0};
-		int Indices[MAX_SEQUENCES][SEQ_COUNT];
-
-		memset(Indices, 0xFF, MAX_SEQUENCES * SEQ_COUNT * sizeof(int));
-
-		auto &Manager = *doc.GetInstrumentManager();
-
-		// Organize sequences
-		for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-			if (auto pInst = std::dynamic_pointer_cast<CInstrument2A03>(Manager.GetInstrument(i))) {		// // //
-				for (int j = 0; j < SEQ_COUNT; ++j) {
-					if (pInst->GetSeqEnable(j)) {
-						int Index = pInst->GetSeqIndex(j);
-						if (Indices[Index][j] >= 0 && Indices[Index][j] != -1) {
-							pInst->SetSeqIndex(j, Indices[Index][j]);
-						}
-						else {
-							COldSequence &Seq = m_vTmpSequences[Index];		// // //
-							if (j == SEQ_VOLUME)
-								for (unsigned int k = 0; k < Seq.GetLength(); ++k)
-									Seq.Value[k] = std::max(std::min<int>(Seq.Value[k], 15), 0);
-							else if (j == SEQ_DUTYCYCLE)
-								for (unsigned int k = 0; k < Seq.GetLength(); ++k)
-									Seq.Value[k] = std::max(std::min<int>(Seq.Value[k], 3), 0);
-							Indices[Index][j] = Slots[j];
-							pInst->SetSeqIndex(j, Slots[j]);
-							Manager.SetSequence(INST_2A03, j, Slots[j]++, Seq.Convert(j).release());
-						}
-					}
-					else
-						pInst->SetSeqIndex(j, 0);
-				}
-			}
-		}
-	}
+	if (file_.GetFileVersion() <= 0x0201)
+		compat::ReorderSequences(doc, std::move(m_vTmpSequences));
 
 	if (fds_adjust_arps_) {
 		int Channel = doc.GetChannelIndex(CHANID_FDS);
@@ -915,7 +855,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 				if (file_.GetFileVersion() < 0x450) {		// // // 050B
 					for (auto &x : Note.EffNumber)
 						if (x < EF_COUNT)
-							x = EFF_CONVERSION_050.first[x];
+							x = compat::EFF_CONVERSION_050.first[x];
 				}
 				/*
 				if (ver < 6) {
@@ -995,7 +935,7 @@ void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerDoc &doc, int ver) {
 				file_.WriteBlockChar(note.Instrument);
 				file_.WriteBlockChar(note.Vol);
 				for (int n = 0, EffColumns = doc.GetEffColumns(song, ch) + 1; n < EffColumns; ++n) {
-					file_.WriteBlockChar(EFF_CONVERSION_050.second[note.EffNumber[n]]);		// // // 050B
+					file_.WriteBlockChar(compat::EFF_CONVERSION_050.second[note.EffNumber[n]]);		// // // 050B
 					file_.WriteBlockChar(note.EffParam[n]);
 				}
 			});

@@ -437,6 +437,7 @@
     <ClCompile Include="Source\ChannelFactory.cpp" />
     <ClCompile Include="Source\ClipboardResource.cpp" />
     <ClCompile Include="Source\FamiTrackerDocIO.cpp" />
+    <ClCompile Include="Source\FamiTrackerDocOldIO.cpp" />
     <ClCompile Include="Source\FrameClipData.cpp" />
     <ClCompile Include="Source\InstrumentFactory.cpp" />
     <ClCompile Include="Source\ModuleAction.cpp" />
@@ -611,6 +612,8 @@
     <ClInclude Include="Source\BookmarkDlg.h" />
     <ClInclude Include="Source\ClipboardResource.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />
+    <ClInclude Include="Source\FamiTrackerDocIOCommon.h" />
+    <ClInclude Include="Source\FamiTrackerDocOldIO.h" />
     <ClInclude Include="Source\FFT\FftComplex.hpp" />
     <ClInclude Include="Source\FrameClipData.h" />
     <ClInclude Include="Source\FrameEditorTypes.h" />
