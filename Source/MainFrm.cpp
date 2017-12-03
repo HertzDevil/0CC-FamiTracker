@@ -1226,10 +1226,13 @@ void CMainFrame::OnInstNameChange()
 
 	if (auto pInst = GetDoc().GetInstrument(m_iInstrument)) {		// // //
 		TCHAR Text[CInstrument::INST_NAME_MAX];
-		m_wndDialogBar.GetDlgItem(IDC_INSTNAME)->GetWindowText(Text, CInstrument::INST_NAME_MAX);
-
+		auto pEdit = static_cast<CEdit *>(m_wndDialogBar.GetDlgItem(IDC_INSTNAME));
+		pEdit->GetWindowText(Text, CInstrument::INST_NAME_MAX);
 		// Update instrument list & document
-		AddAction(std::make_unique<ModuleAction::CInstName>(GetSelectedInstrument(), (LPCTSTR)T2A(Text)));		// // //
+		auto sel = pEdit->GetSel();
+		CT2CA str(Text);
+		if (AddAction(std::make_unique<ModuleAction::CInstName>(GetSelectedInstrument(), (const char *)str)))		// // //
+			pEdit->SetSel(sel);
 	}
 }
 
