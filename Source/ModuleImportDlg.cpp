@@ -163,27 +163,28 @@ bool CModuleImportDlg::ImportTracks()
 			if (++count + m_pDocument->GetTrackCount() > MAX_TRACKS)
 				return false;
 
-	// // // translate instruments and grooves in imported doc directly
-	m_pImportedDoc->VisitSongs([this] (CSongData &song) {
-		if (song.GetSongGroove())
-			song.SetSongSpeed(m_iGrooveMap[song.GetSongSpeed()]);
-		song.VisitPatterns([this] (CPatternData &pat) {
-			pat.VisitRows([this] (stChanNote &note, unsigned) {
-				// Translate instrument number
-				if (note.Instrument < MAX_INSTRUMENTS)
-					note.Instrument = m_iInstrumentTable[note.Instrument];
-				// // // Translate groove commands
-				for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
-					if (note.EffNumber[i] == EF_GROOVE && note.EffParam[i] < MAX_GROOVE)
-						note.EffParam[i] = m_iGrooveMap[note.EffParam[i]];
-			});
-		});
-	});
-
 	// Import track
 	for (unsigned int i = 0; i < m_pImportedDoc->GetTrackCount(); ++i)
-		if (m_ctlTrackList.GetCheck(i) == BST_CHECKED)
-			m_pDocument->ImportTrack(i, m_pImportedDoc);
+		if (m_ctlTrackList.GetCheck(i) == BST_CHECKED) {
+			auto pSong = m_pImportedDoc->ReleaseTrack(i);		// // //
+			auto &song = *pSong;
+			m_pDocument->AddTrack(std::move(pSong));
+
+			// // // translate instruments and grooves outside modules
+			if (song.GetSongGroove())
+				song.SetSongSpeed(m_iGrooveMap[song.GetSongSpeed()]);
+			song.VisitPatterns([this] (CPatternData &pat) {
+				pat.VisitRows([this] (stChanNote &note, unsigned) {
+					// Translate instrument number
+					if (note.Instrument < MAX_INSTRUMENTS)
+						note.Instrument = m_iInstrumentTable[note.Instrument];
+					// // // Translate groove commands
+					for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
+						if (note.EffNumber[i] == EF_GROOVE && note.EffParam[i] < MAX_GROOVE)
+							note.EffParam[i] = m_iGrooveMap[note.EffParam[i]];
+				});
+			});
+		}
 
 	// Rebuild instrument list
 	m_pDocument->ModifyIrreversible();		// // //

@@ -772,36 +772,6 @@ bool CFamiTrackerDoc::ImportDetune(CFamiTrackerDoc *pImported)		// // //
 	return true;
 }
 
-void CFamiTrackerDoc::ImportTrack(int Track, const CFamiTrackerDoc *pImported)		// // //
-{
-	// Import a selected track from specified source document
-
-	int NewTrack = AddTrack();
-
-	if (NewTrack == -1)
-		return;
-
-	const auto &src = pImported->GetSongData(Track);		// // //
-	auto &dest = GetSongData(NewTrack);		// // //
-
-	// Copy parameters
-	dest.SetPatternLength(src.GetPatternLength());
-	dest.SetFrameCount(src.GetFrameCount());
-	dest.SetSongTempo(src.GetSongTempo());
-	dest.SetSongGroove(src.GetSongGroove());
-	dest.SetSongSpeed(src.GetSongSpeed());
-
-	// Copy track name
-	dest.SetTitle(src.GetTitle());
-
-	// // // Copy patterns
-	for (unsigned int c = 0; c < MAX_CHANNELS; ++c)
-		dest.CopyTrack(c, src, c);
-
-	// // // Copy bookmarks
-	dest.SetBookmarks(src.GetBookmarks());
-}
-
 // End of file load/save
 
 // DMC Stuff
@@ -1537,23 +1507,40 @@ const std::string &CFamiTrackerDoc::GetTrackTitle(unsigned int Track) const		// 
 int CFamiTrackerDoc::AddTrack()
 {
 	// Add new track. Returns -1 on failure, or added track number otherwise
-
 	int NewTrack = GetTrackCount();
-
 	if (NewTrack >= MAX_TRACKS)
 		return -1;
 
 	AllocateSong(NewTrack);
+	return NewTrack;
+}
 
+int CFamiTrackerDoc::AddTrack(std::unique_ptr<CSongData> song) {		// // //
+	int NewTrack = GetTrackCount();
+	if (NewTrack >= MAX_TRACKS)
+		return -1;
+
+	m_pTracks.push_back(std::move(song));
 	return NewTrack;
 }
 
 void CFamiTrackerDoc::RemoveTrack(unsigned int Track)
 {
-	ASSERT(GetTrackCount() > 1);
+	(void)ReleaseTrack(Track);
+}
+
+std::unique_ptr<CSongData> CFamiTrackerDoc::ReleaseTrack(unsigned int Track)		// // //
+{
+	if (Track >= GetTrackCount())
+		return nullptr;
 
 	// Move down all other tracks
+	auto song = std::move(m_pTracks[Track]);
 	m_pTracks.erase(m_pTracks.cbegin() + Track);		// // //
+	if (!GetTrackCount())
+		AllocateSong(0);
+
+	return song;
 }
 
 void CFamiTrackerDoc::SetTrackTitle(unsigned int Track, const std::string &title)		// // //

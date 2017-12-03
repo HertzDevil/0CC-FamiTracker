@@ -116,7 +116,6 @@ public:
 	bool ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTable);
 	bool ImportGrooves(CFamiTrackerDoc *pImported, int *pGrooveMap);		// // //
 	bool ImportDetune(CFamiTrackerDoc *pImported);			// // //
-	void ImportTrack(int Track, const CFamiTrackerDoc *pImported);		// // //
 
 	//
 	// Interface functions (not related to document data) TODO move this?
@@ -261,7 +260,9 @@ public:
 
 	// Track management functions
 	int				AddTrack();
+	int				AddTrack(std::unique_ptr<CSongData> song);		// // //
 	void			RemoveTrack(unsigned int Track);
+	std::unique_ptr<CSongData> ReleaseTrack(unsigned int Track);		// // //
 	unsigned int	GetTrackCount() const;
 	const std::string &GetTrackTitle(unsigned int Track) const;		// // //
 	void			SetTrackTitle(unsigned int Track, const std::string &title);		// // //
