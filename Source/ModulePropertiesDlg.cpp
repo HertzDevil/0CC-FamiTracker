@@ -372,7 +372,7 @@ void CModulePropertiesDlg::OnBnClickedSongImport()
 	if (OpenFileDlg.DoModal() == IDCANCEL)
 		return;
 
-	if (importDlg.LoadFile(OpenFileDlg.GetPathName(), m_pDocument) == false)
+	if (!importDlg.LoadFile(OpenFileDlg.GetPathName()))		// // //
 		return;
 
 	importDlg.DoModal();

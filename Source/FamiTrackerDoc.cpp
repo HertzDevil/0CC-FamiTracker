@@ -624,7 +624,7 @@ BOOL CFamiTrackerDoc::OpenDocumentNew(CDocumentFile &DocumentFile)
 
 // FTM import ////
 
-CFamiTrackerDoc *CFamiTrackerDoc::LoadImportFile(LPCTSTR lpszPathName) const
+CFamiTrackerDoc *CFamiTrackerDoc::LoadImportFile(LPCTSTR lpszPathName)
 {
 	// Import a module as new subtunes
 	CFamiTrackerDoc *pImported = new CFamiTrackerDoc();
@@ -749,16 +749,17 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 bool CFamiTrackerDoc::ImportGrooves(CFamiTrackerDoc *pImported, int *pGrooveMap)		// // //
 {
 	int Index = 0;
-	for (int i = 0; i < MAX_GROOVE; i++) {
-		if (pImported->GetGroove(i) != NULL) {
-			while (GetGroove(Index) != NULL) Index++;
-			if (Index >= MAX_GROOVE) {
-				AfxMessageBox(IDS_IMPORT_GROOVE_SLOTS, MB_ICONEXCLAMATION);
-				return false;
-			}
+	for (int i = 0; i < MAX_GROOVE; ++i) {
+		if (const CGroove *pGroove = pImported->GetGroove(i)) {
+			while (GetGroove(Index))
+				if (++Index >= MAX_GROOVE) {
+					AfxMessageBox(IDS_IMPORT_GROOVE_SLOTS, MB_ICONEXCLAMATION);
+					return false;
+				}
 			pGrooveMap[i] = Index;
-			m_pGrooveTable[Index] = std::make_unique<CGroove>();
-			m_pGrooveTable[Index]->Copy(pImported->GetGroove(i));
+			auto pNewGroove = std::make_unique<CGroove>();
+			pNewGroove->Copy(pGroove);
+			SetGroove(Index, std::move(pNewGroove));
 		}
 	}
 
@@ -774,62 +775,34 @@ bool CFamiTrackerDoc::ImportDetune(CFamiTrackerDoc *pImported)		// // //
 	return true;
 }
 
-bool CFamiTrackerDoc::ImportTrack(int Track, CFamiTrackerDoc *pImported, int *pInstTable, int *pGrooveMap)		// // //
+void CFamiTrackerDoc::ImportTrack(int Track, const CFamiTrackerDoc *pImported)		// // //
 {
 	// Import a selected track from specified source document
 
 	int NewTrack = AddTrack();
 
 	if (NewTrack == -1)
-		return false;
-
-	// Copy parameters
-	SetPatternLength(NewTrack, pImported->GetPatternLength(Track));
-	SetFrameCount(NewTrack, pImported->GetFrameCount(Track));
-	SetSongTempo(NewTrack, pImported->GetSongTempo(Track));
-	SetSongGroove(NewTrack, pImported->GetSongGroove(Track));
-	if (GetSongGroove(NewTrack))
-		SetSongSpeed(NewTrack, pGrooveMap[pImported->GetSongSpeed(Track)]);
-	else
-		SetSongSpeed(NewTrack, pImported->GetSongSpeed(Track));
-
-	// Copy track name
-	SetTrackTitle(NewTrack, pImported->GetTrackTitle(Track));
-
-	// Copy frames
-	for (unsigned int f = 0; f < pImported->GetFrameCount(Track); ++f) {
-		for (unsigned int c = 0; c < GetAvailableChannels(); ++c) {
-			SetPatternAtFrame(NewTrack, f, c, pImported->GetPatternAtFrame(Track, f, c));
-		}
-	}
+		return;
 
 	// // // Copy bookmarks
 	m_pBookmarkManager->SetCollection(NewTrack, pImported->GetBookmarkManager()->PopCollection(Track));
 
-	// Copy patterns
-	for (unsigned int p = 0; p < MAX_PATTERN; ++p) {
-		for (unsigned int c = 0; c < GetAvailableChannels(); ++c) {
-			for (unsigned int r = 0; r < pImported->GetPatternLength(Track); ++r) {
-				// Get note
-				stChanNote data = pImported->GetDataAtPattern(Track, p, c, r);		// // //
-				// Translate instrument number
-				if (data.Instrument < MAX_INSTRUMENTS)
-					data.Instrument = pInstTable[data.Instrument];
-				for (int i = 0; i < MAX_EFFECT_COLUMNS; i++)		// // //
-					if (data.EffNumber[i] == EF_GROOVE && data.EffParam[i] < MAX_GROOVE)
-						data.EffParam[i] = pGrooveMap[data.EffParam[i]];
-				// Store
-				SetDataAtPattern(NewTrack, p, c, r, data);		// // //
-			}
-		}
-	}
+	const auto &src = pImported->GetSongData(Track);		// // //
+	auto &dest = GetSongData(NewTrack);		// // //
 
-	// Effect columns
-	for (unsigned int c = 0; c < GetAvailableChannels(); ++c) {
-		SetEffColumns(NewTrack, c, pImported->GetEffColumns(Track, c));
-	}
+	// Copy parameters
+	dest.SetPatternLength(src.GetPatternLength());
+	dest.SetFrameCount(src.GetFrameCount());
+	dest.SetSongTempo(src.GetSongTempo());
+	dest.SetSongGroove(src.GetSongGroove());
+	dest.SetSongSpeed(src.GetSongSpeed());
 
-	return true;
+	// Copy track name
+	dest.SetTitle(src.GetTitle());
+
+	// // // Copy patterns
+	for (unsigned int c = 0; c < MAX_CHANNELS; ++c)
+		dest.CopyTrack(c, src, c);
 }
 
 // End of file load/save

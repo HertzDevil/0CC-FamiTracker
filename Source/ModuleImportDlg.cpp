@@ -92,9 +92,9 @@ void CModuleImportDlg::OnBnClickedCancel()
 	OnCancel();
 }
 
-bool CModuleImportDlg::LoadFile(CString Path, CFamiTrackerDoc *pDoc)
+bool CModuleImportDlg::LoadFile(CString Path)		// // //
 {	
-	m_pImportedDoc = pDoc->LoadImportFile(Path);
+	m_pImportedDoc = CFamiTrackerDoc::LoadImportFile(Path);
 
 	// Check if load failed
 	if (m_pImportedDoc == NULL)
@@ -122,63 +122,72 @@ bool CModuleImportDlg::LoadFile(CString Path, CFamiTrackerDoc *pDoc)
 
 bool CModuleImportDlg::ImportInstruments()
 {
-	memset(m_iInstrumentTable, 0, sizeof(int) * MAX_INSTRUMENTS);		// // //
-	if (IsDlgButtonChecked(IDC_INSTRUMENTS) == BST_CHECKED) {
-		// Import instruments
+	for (int i = 0; i < MAX_INSTRUMENTS; ++i)		// // //
+		m_iInstrumentTable[i] = i;
+
+	if (IsDlgButtonChecked(IDC_INSTRUMENTS) == BST_CHECKED)
 		if (!m_pDocument->ImportInstruments(m_pImportedDoc, m_iInstrumentTable))
 			return false;
-	}
-	else {
-		// No instrument translation
-		for (int i = 0; i < MAX_INSTRUMENTS; ++i)
-			m_iInstrumentTable[i] = i;
-	}
 
 	return true;
 }
 
 bool CModuleImportDlg::ImportGrooves()		// // //
 {
-	memset(m_iGrooveMap, 0, sizeof(int) * MAX_GROOVE);		// // //
-	if (IsDlgButtonChecked(IDC_IMPORT_GROOVE) == BST_CHECKED) {
-		// Import grooves
+	for (int i = 0; i < MAX_GROOVE; ++i)
+		m_iGrooveMap[i] = i;
+
+	if (IsDlgButtonChecked(IDC_IMPORT_GROOVE) == BST_CHECKED)
 		if (!m_pDocument->ImportGrooves(m_pImportedDoc, m_iGrooveMap))
 			return false;
-	}
-	else {
-		// No groove translation
-		for (int i = 0; i < MAX_GROOVE; ++i)
-			m_iGrooveMap[i] = i;
-	}
 
 	return true;
 }
 
 bool CModuleImportDlg::ImportDetune()		// // //
 {
-	if (IsDlgButtonChecked(IDC_IMPORT_DETUNE) == BST_CHECKED) {
-		// Import detune tables
+	if (IsDlgButtonChecked(IDC_IMPORT_DETUNE) == BST_CHECKED)
 		if (!m_pDocument->ImportDetune(m_pImportedDoc))
 			return false;
-	}
 
 	return true;
 }
 
 bool CModuleImportDlg::ImportTracks()
 {
-	for (unsigned int i = 0; i < m_pImportedDoc->GetTrackCount(); ++i) {
-		if (m_ctlTrackList.GetCheck(i) == 1) {
-			// Import track
-			if (!m_pDocument->ImportTrack(i, m_pImportedDoc, m_iInstrumentTable, m_iGrooveMap))
+	// // // ensure there are enough track slots
+	unsigned count = 0;
+	for (unsigned int i = 0; i < m_pImportedDoc->GetTrackCount(); ++i)
+		if (m_ctlTrackList.GetCheck(i) == BST_CHECKED)
+			if (++count + m_pDocument->GetTrackCount() > MAX_TRACKS)
 				return false;
-		}
-	}
+
+	// // // translate instruments and grooves in imported doc directly
+	m_pImportedDoc->VisitSongs([this] (CSongData &song) {
+		if (song.GetSongGroove())
+			song.SetSongSpeed(m_iGrooveMap[song.GetSongSpeed()]);
+		song.VisitPatterns([this] (CPatternData &pat) {
+			pat.VisitRows([this] (stChanNote &note, unsigned) {
+				// Translate instrument number
+				if (note.Instrument < MAX_INSTRUMENTS)
+					note.Instrument = m_iInstrumentTable[note.Instrument];
+				// // // Translate groove commands
+				for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
+					if (note.EffNumber[i] == EF_GROOVE && note.EffParam[i] < MAX_GROOVE)
+						note.EffParam[i] = m_iGrooveMap[note.EffParam[i]];
+			});
+		});
+	});
+
+	// Import track
+	for (unsigned int i = 0; i < m_pImportedDoc->GetTrackCount(); ++i)
+		if (m_ctlTrackList.GetCheck(i) == BST_CHECKED)
+			m_pDocument->ImportTrack(i, m_pImportedDoc);
 
 	// Rebuild instrument list
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-	m_pDocument->UpdateAllViews(NULL, UPDATE_PATTERN);
+	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);		// // //
 
 	return true;
 }

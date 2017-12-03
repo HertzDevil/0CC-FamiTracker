@@ -214,7 +214,9 @@ void CSoundGen::SelectChip(int Chip)
 
 void CSoundGen::DocumentPropertiesChanged(CFamiTrackerDoc *pDocument)
 {
-	ASSERT(pDocument == m_pDocument);		// // //
+//	ASSERT(pDocument == m_pDocument);		// // //
+	if (pDocument != m_pDocument)
+		return;
 	m_pSoundDriver->ConfigureDocument();
 }
 

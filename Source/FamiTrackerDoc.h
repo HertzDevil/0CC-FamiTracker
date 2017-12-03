@@ -110,11 +110,11 @@ public:
 	bool HasLastLoadFailed() const;
 
 	// Import
-	CFamiTrackerDoc* LoadImportFile(LPCTSTR lpszPathName) const;
+	static CFamiTrackerDoc *LoadImportFile(LPCTSTR lpszPathName);		// // //
 	bool ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTable);
 	bool ImportGrooves(CFamiTrackerDoc *pImported, int *pGrooveMap);		// // //
 	bool ImportDetune(CFamiTrackerDoc *pImported);			// // //
-	bool ImportTrack(int Track, CFamiTrackerDoc *pImported, int *pInstTable, int *pGrooveMap);		// // //
+	void ImportTrack(int Track, const CFamiTrackerDoc *pImported);		// // //
 
 	//
 	// Interface functions (not related to document data) TODO move this?

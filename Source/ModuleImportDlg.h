@@ -44,7 +44,7 @@ public:
 	enum { IDD = IDD_IMPORT };
 
 public:
-	bool LoadFile(CString Path, CFamiTrackerDoc *pDoc);
+	bool LoadFile(CString Path);		// // //
 
 private:
 	CFamiTrackerDoc *m_pDocument;
