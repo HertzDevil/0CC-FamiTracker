@@ -57,7 +57,7 @@
 #include <cmath>
 #include "Mixer.h"
 #include "APU.h"
-#include "emu2413.h"
+#include "ext/emu2413.h"		// // //
 
 //#define LINEAR_MIXING
 

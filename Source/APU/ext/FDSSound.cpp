@@ -1,7 +1,7 @@
 #include <cmath>
 #include <memory>
 #include <cstdint>		// // //
-#include "apu.h"
+//#include "apu.h"
 
 // Code is from nezplug via nintendulator
 
@@ -352,7 +352,7 @@ void __fastcall FDSSoundReset(void)
 	uint32_t i;
 	memset(&fdssound, 0, sizeof(FDSSOUND));
 	// TODO: Fix srate
-	fdssound.srate = CAPU::BASE_FREQ_NTSC; ///NESAudioFrequencyGet();
+	fdssound.srate = 1789773; //CAPU::BASE_FREQ_NTSC; ///NESAudioFrequencyGet();
 	fdssound.envcps = DivFix(NES_BASECYCLES, 12 * fdssound.srate, EGCPS_BITS + 5 - 9 + 1);
 	fdssound.envspd = 0xe8 << EGCPS_BITS;
 	fdssound.envdisable = 1;
