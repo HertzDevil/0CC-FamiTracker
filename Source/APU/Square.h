@@ -46,6 +46,9 @@ public:
 	void	SweepUpdate(int Diff);
 	void	EnvelopeUpdate();
 
+protected:
+	void	Mix(int32_t Value) override;		// // //
+
 public:
 	static const uint8_t DUTY_TABLE[4][16];
 	uint32_t CPU_RATE;		// // //
@@ -60,4 +63,12 @@ private:
 	uint8_t	m_iSweepEnabled, m_iSweepPeriod, m_iSweepMode, m_iSweepShift;
 	int16_t	m_iSweepCounter, m_iSweepResult;
 	bool	m_bSweepWritten;
+};
+
+class CSquareMMC5 : public CSquare {		// // //
+public:
+	using CSquare::CSquare;
+
+protected:
+	void Mix(int32_t Value) override;		// // //
 };

@@ -42,14 +42,14 @@
 CN163::CN163(CMixer *pMixer) :
 	CSoundChip(pMixer),		// // //
 	m_Channels {
-		{pMixer, CHANID_N163_CH1, m_iWaveData},
-		{pMixer, CHANID_N163_CH2, m_iWaveData},
-		{pMixer, CHANID_N163_CH3, m_iWaveData},
-		{pMixer, CHANID_N163_CH4, m_iWaveData},
-		{pMixer, CHANID_N163_CH5, m_iWaveData},
-		{pMixer, CHANID_N163_CH6, m_iWaveData},
-		{pMixer, CHANID_N163_CH7, m_iWaveData},
-		{pMixer, CHANID_N163_CH8, m_iWaveData},
+		{pMixer, *this, CHANID_N163_CH1, m_iWaveData},
+		{pMixer, *this, CHANID_N163_CH2, m_iWaveData},
+		{pMixer, *this, CHANID_N163_CH3, m_iWaveData},
+		{pMixer, *this, CHANID_N163_CH4, m_iWaveData},
+		{pMixer, *this, CHANID_N163_CH5, m_iWaveData},
+		{pMixer, *this, CHANID_N163_CH6, m_iWaveData},
+		{pMixer, *this, CHANID_N163_CH7, m_iWaveData},
+		{pMixer, *this, CHANID_N163_CH8, m_iWaveData},
 	}
 {
 	m_pRegisterLogger->AddRegisterRange(0x00, 0x7F);		// // //
@@ -86,13 +86,12 @@ void CN163::Process(uint32_t Time)
 	m_pMixer->SetNamcoVolume((m_iChansInUse == 0) ? 1.3f : (1.5f + float(m_iChansInUse - 1) / 1.5f));
 
 	while (Time > 0) {
-
 		uint32_t TimeToRun = CHAN_PERIOD - m_iChannelCntr;
 
 		if (TimeToRun > Time)
 			TimeToRun = Time;
 
-		m_Channels[m_iActiveChan].Process(TimeToRun, m_iChansInUse + 1, this);
+		m_Channels[m_iActiveChan].Process(TimeToRun, m_iChansInUse + 1);		// // //
 
 		Time -= TimeToRun;
 		m_iGlobalTime += TimeToRun;
@@ -227,15 +226,11 @@ uint8_t CN163::ReadMem(uint8_t Reg)
 // N163 channels
 //
 
-CN163Chan::CN163Chan(CMixer *pMixer, int ID, uint8_t *pWaveData) : 
+CN163Chan::CN163Chan(CMixer *pMixer, CN163 &parent, int ID, uint8_t *pWaveData) : 
 	CChannel(pMixer, SNDCHIP_N163, ID),
-	m_pWaveData(pWaveData)
+	m_pWaveData(pWaveData), parent_(parent)
 {
 	Reset();
-}
-
-CN163Chan::~CN163Chan()
-{
 }
 
 void CN163Chan::Reset()
@@ -282,11 +277,11 @@ void CN163Chan::Write(uint16_t Address, uint8_t Value)
 	}
 }
 
-void CN163Chan::Process(uint32_t Time, uint8_t ChannelsActive, CN163 *pParent)
+void CN163Chan::Process(uint32_t Time, uint8_t ChannelsActive)		// // //
 {
 	uint32_t TimeStamp = 0;
 
-	pParent->Mix(m_iLastSample, TimeStamp, m_iChanId);
+	parent_.Mix(m_iLastSample, TimeStamp, m_iChanId);
 
 	if (!m_iFrequency || !m_iWaveLength) {
 		m_iLastSample = 0;
@@ -310,7 +305,8 @@ void CN163Chan::Process(uint32_t Time, uint8_t ChannelsActive, CN163 *pParent)
 			Sample >>= 4;
 
 		m_iLastSample = (Sample & 0x0F) * m_iVolume;
-		pParent->Mix(m_iLastSample, TimeStamp, m_iChanId);
+
+		parent_.Mix(m_iLastSample, TimeStamp, m_iChanId);
 	}
 
 	m_iCounter -= Time;

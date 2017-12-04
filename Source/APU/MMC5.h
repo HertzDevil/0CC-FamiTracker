@@ -42,8 +42,8 @@ public:
 	void ClockSequence();		// // //
 
 private:	
-	CSquare	m_Square1;		// // //
-	CSquare	m_Square2;		// // //
+	CSquareMMC5	m_Square1;		// // //
+	CSquareMMC5	m_Square2;		// // //
 	uint8_t	m_iEXRAM[0x400] = { };		// // //
 	uint8_t	m_iMulLow;
 	uint8_t	m_iMulHigh;

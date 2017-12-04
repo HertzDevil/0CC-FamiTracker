@@ -44,8 +44,11 @@ public:
 	CMixer();
 	~CMixer();
 
+	void	AddValue(int ChanID, int Chip, int Delta, int Value, int FrameCycles);
+	void	AddValueTND(int ChanID, int Value, int FrameCycles);		// // //
+	void	AddValueSS(int ChanID, int Value, int FrameCycles);		// // //
+
 	void	ExternalSound(int Chip);
-	void	AddValue(int ChanID, int Chip, int Value, int AbsValue, int FrameCycles);
 	void	UpdateSettings(int LowCut,	int HighCut, int HighDamp, float OverallVol);
 
 	bool	AllocateBuffer(unsigned int Size, uint32_t SampleRate, uint8_t NrChannels);
@@ -69,17 +72,6 @@ public:
 	void	SetMeterDecayRate(int Rate);		// // // 050B
 
 private:
-	inline double CalcPin1(double Val1, double Val2);
-	inline double CalcPin2(double Val1, double Val2, double Val3);
-
-	void MixInternal1(int Time);
-	void MixInternal2(int Time);
-	void MixN163(int Value, int Time);
-	void MixFDS(int Value, int Time);
-	void MixVRC6(int Value, int Time);
-	void MixMMC5(int Value, int Time);
-	void MixS5B(int Value, int Time);
-
 	void StoreChannelLevel(int Channel, int Value);
 	void ClearChannelLevels();
 
@@ -98,15 +90,32 @@ private:
 	// Blip buffer object
 	Blip_Buffer	BlipBuffer;
 
-	double		m_dSumSS;
-	double		m_dSumTND;
+	struct stLevels2A03SS {
+		inline int GetDelta(int ChanID, int Value);
+		inline void ResetDelta();
+	private:
+		int32_t sq1_ = 0;
+		int32_t sq2_ = 0;
+		double lastSum_ = 0.;
+		inline double CalcPin();
+	} levels2A03SS_;
 
-	int32_t		m_iChannels[CHANNELS];
+	struct stLevels2A03TND {
+		inline int GetDelta(int ChanID, int Value);
+		inline void ResetDelta();
+	private:
+		int32_t tri_ = 0;
+		int32_t noi_ = 0;
+		int32_t dmc_ = 0;
+		double lastSum_ = 0.;
+		inline double CalcPin();
+	} levels2A03TND_;
+
 	uint8_t		m_iExternalChip;
 	uint32_t	m_iSampleRate;
 
-	float		m_fChannelLevels[CHANNELS];
-	uint32_t	m_iChanLevelFallOff[CHANNELS];
+	float		m_fChannelLevels[CHANNELS] = { };
+	uint32_t	m_iChanLevelFallOff[CHANNELS] = { };
 
 	int			m_iMeterDecayRate;		// // // 050B
 	int			m_iLowCut;

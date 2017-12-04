@@ -22,7 +22,7 @@
 
 #include "Square.h"
 #include "APU.h"
-#include "Types.h"		// // //
+#include "Mixer.h"		// // //
 
 // This is also shared with MMC5
 
@@ -196,4 +196,17 @@ void CSquare::EnvelopeUpdate()
 				m_iEnvelopeVolume--;
 		}
 	}
+}
+
+void CSquare::Mix(int32_t Value) {
+	if (m_iLastValue != Value) {
+		m_pMixer->AddValueSS(m_iChanId, Value, m_iTime);		// // //
+		m_iLastValue = Value;
+	}
+}
+
+
+
+void CSquareMMC5::Mix(int32_t Value) {		// // //
+	return CChannel::Mix(Value);
 }

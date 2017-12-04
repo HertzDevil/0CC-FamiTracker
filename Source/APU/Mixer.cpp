@@ -68,7 +68,6 @@ static const int   LEVEL_FALL_OFF_DELAY = 3;
 
 CMixer::CMixer()
 {
-	memset(m_iChannels, 0, sizeof(int32_t) * CHANNELS);
 	memset(m_fChannelLevels, 0, sizeof(float) * CHANNELS);
 	memset(m_iChanLevelFallOff, 0, sizeof(uint32_t) * CHANNELS);
 
@@ -87,8 +86,8 @@ CMixer::CMixer()
 	m_iHighDamp = 0;
 	m_fOverallVol = 1.0f;
 
-	m_dSumSS = 0.0;
-	m_dSumTND = 0.0;
+	levels2A03SS_.ResetDelta();		// // //
+	levels2A03TND_.ResetDelta();		// // //
 
 	m_iMeterDecayRate = DECAY_SLOW;		// // // 050B
 	m_bNamcoMixing = false;		// // //
@@ -98,26 +97,55 @@ CMixer::~CMixer()
 {
 }
 
-inline double CMixer::CalcPin1(double Val1, double Val2)
+inline double CMixer::stLevels2A03SS::CalcPin()
 {
-	// Mix the output of APU audio pin 1: square
-	//
-
-	if ((Val1 + Val2) > 0)
-		return 95.88 / ((8128.0 / (Val1 + Val2)) + 100.0);
-
+#ifdef LINEAR_MIXING
+	double SumL = (sq1_.Left  + sq2_.Left ) * 0.00752 * InternalVol;
+	double SumR = (sq1_.Right + sq2_.Right) * 0.00752 * InternalVol;
+#endif
+	if ((sq1_ + sq2_) > 0)
+		return AMP_2A03 * 95.88 / (100.0 + 8128.0 / (sq1_ + sq2_));
 	return 0;
 }
 
-inline double CMixer::CalcPin2(double Val1, double Val2, double Val3)
+inline int CMixer::stLevels2A03SS::GetDelta(int ChanID, int Value) {
+	switch (ChanID) {
+	case CHANID_SQUARE1: sq1_ = Value; break;
+	case CHANID_SQUARE2: sq2_ = Value; break;
+	}
+	double Sum = CalcPin();
+	return static_cast<int>(Sum - std::exchange(lastSum_, Sum));
+}
+
+inline void CMixer::stLevels2A03SS::ResetDelta() {
+	sq1_ = sq2_ = 0;
+	lastSum_ = 0.;
+}
+
+inline double CMixer::stLevels2A03TND::CalcPin()
 {
-	// Mix the output of APU audio pin 2: triangle, noise and DPCM
-	//
-
-	if ((Val1 + Val2 + Val3) > 0)
-		return 159.79 / ((1.0 / ((Val1 / 8227.0) + (Val2 / 12241.0) + (Val3 / 22638.0))) + 100.0);
-
+#ifdef LINEAR_MIXING
+	double SumL = (0.00851 * tri_.Left  + 0.00494 * noi_.Left  + 0.00335 * dmc_.Left ) * InternalVol;
+	double SumR = (0.00851 * tri_.Right + 0.00494 * noi_.Right + 0.00335 * dmc_.Right) * InternalVol;
+#endif
+	if ((tri_ + noi_ + dmc_) > 0)
+		return AMP_2A03 * 159.79 / (100.0 + 1.0 / (tri_ / 8227.0 + noi_ / 12241.0 + dmc_ / 22638.0));
 	return 0;
+}
+
+inline int CMixer::stLevels2A03TND::GetDelta(int ChanID, int Value) {
+	switch (ChanID) {
+	case CHANID_TRIANGLE: tri_ = Value; break;
+	case CHANID_NOISE:    noi_ = Value; break;
+	case CHANID_DPCM:     dmc_ = Value; break;
+	}
+	double Sum = CalcPin();
+	return static_cast<int>(Sum - std::exchange(lastSum_, Sum));
+}
+
+inline void CMixer::stLevels2A03TND::ResetDelta() {
+	tri_ = noi_ = dmc_ = 0;
+	lastSum_ = 0.;
 }
 
 void CMixer::ExternalSound(int Chip)
@@ -287,8 +315,8 @@ void CMixer::ClearBuffer()
 {
 	BlipBuffer.clear();
 
-	m_dSumSS = 0;
-	m_dSumTND = 0;
+	levels2A03SS_.ResetDelta();		// // //
+	levels2A03TND_.ResetDelta();		// // //
 }
 
 int CMixer::SamplesAvail() const
@@ -331,98 +359,33 @@ int CMixer::FinishBuffer(int t)
 // Mixing
 //
 
-void CMixer::MixInternal1(int Time)
-{
-#ifdef LINEAR_MIXING
-	SumL = ((m_iChannels[CHANID_SQUARE1].Left + m_iChannels[CHANID_SQUARE2].Left) * 0.00752) * InternalVol;
-	SumR = ((m_iChannels[CHANID_SQUARE1].Right + m_iChannels[CHANID_SQUARE2].Right) *  0.00752) * InternalVol;
-#else
-	double Sum = CalcPin1(m_iChannels[CHANID_SQUARE1], m_iChannels[CHANID_SQUARE2]);
-#endif
-
-	double Delta = (Sum - m_dSumSS) * AMP_2A03;
-	Synth2A03SS.offset(Time, (int)Delta, &BlipBuffer);
-	m_dSumSS = Sum;
-}
-
-void CMixer::MixInternal2(int Time)
-{
-#ifdef LINEAR_MIXING
-	SumL = ((0.00851 * m_iChannels[CHANID_TRIANGLE].Left + 0.00494 * m_iChannels[CHANID_NOISE].Left + 0.00335 * m_iChannels[CHANID_DPCM].Left)) * InternalVol;
-	SumR = ((0.00851 * m_iChannels[CHANID_TRIANGLE].Right + 0.00494 * m_iChannels[CHANID_NOISE].Right + 0.00335 * m_iChannels[CHANID_DPCM].Right)) * InternalVol;
-#else
-	double Sum = CalcPin2(m_iChannels[CHANID_TRIANGLE], m_iChannels[CHANID_NOISE], m_iChannels[CHANID_DPCM]);
-#endif
-
-	double Delta = (Sum - m_dSumTND) * AMP_2A03;
-	Synth2A03TND.offset(Time, (int)Delta, &BlipBuffer);
-	m_dSumTND = Sum;
-}
-
-void CMixer::MixN163(int Value, int Time)
-{
-	SynthN163.offset(Time, Value, &BlipBuffer);
-}
-
-void CMixer::MixFDS(int Value, int Time)
-{
-	SynthFDS.offset(Time, Value, &BlipBuffer);
-}
-
-void CMixer::MixVRC6(int Value, int Time)
-{
-	SynthVRC6.offset(Time, Value, &BlipBuffer);
-}
-
-void CMixer::MixMMC5(int Value, int Time)
-{
-	SynthMMC5.offset(Time, Value, &BlipBuffer);
-}
-
-void CMixer::MixS5B(int Value, int Time)
-{
-	SynthS5B.offset(Time, Value, &BlipBuffer);
-}
-
-void CMixer::AddValue(int ChanID, int Chip, int Value, int AbsValue, int FrameCycles)
-{
-	// Add sound to mixer
-	//
-	
-	int Delta = Value - m_iChannels[ChanID];
-	StoreChannelLevel(ChanID, AbsValue);
-	m_iChannels[ChanID] = Value;
-
+void CMixer::AddValue(int ChanID, int Chip, int Delta, int Value, int FrameCycles) {
 	switch (Chip) {
-		case SNDCHIP_NONE:
-			switch (ChanID) {
-				case CHANID_SQUARE1:
-				case CHANID_SQUARE2:
-					MixInternal1(FrameCycles);
-					break;
-				case CHANID_TRIANGLE:
-				case CHANID_NOISE:
-				case CHANID_DPCM:
-					MixInternal2(FrameCycles);
-					break;
-			}
-			break;
-		case SNDCHIP_N163:
-			MixN163(Value, FrameCycles);
-			break;
-		case SNDCHIP_FDS:
-			MixFDS(Value, FrameCycles);
-			break;
-		case SNDCHIP_MMC5:
-			MixMMC5(Delta, FrameCycles);
-			break;
-		case SNDCHIP_VRC6:
-			MixVRC6(Value, FrameCycles);
-			break;
-		case SNDCHIP_S5B:		// // // 050B
-			MixS5B(Value, FrameCycles);
-			break;
+	case SNDCHIP_VRC6:
+		SynthVRC6.offset(FrameCycles, Delta, &BlipBuffer); break;
+	case SNDCHIP_FDS:
+		SynthFDS.offset(FrameCycles, Delta, &BlipBuffer); break;
+	case SNDCHIP_MMC5:
+		SynthMMC5.offset(FrameCycles, Delta, &BlipBuffer); break;
+	case SNDCHIP_N163:
+		SynthN163.offset(FrameCycles, Delta, &BlipBuffer); break;
+	case SNDCHIP_S5B:		// // // 050B
+		SynthS5B.offset(FrameCycles, Delta, &BlipBuffer); break;
 	}
+
+	StoreChannelLevel(ChanID, Value);
+}
+
+void CMixer::AddValueTND(int ChanID, int Value, int FrameCycles) {		// // //
+	int Delta = levels2A03TND_.GetDelta(ChanID, Value);
+	Synth2A03TND.offset(FrameCycles, Delta, &BlipBuffer);
+	StoreChannelLevel(ChanID, Value);
+}
+
+void CMixer::AddValueSS(int ChanID, int Value, int FrameCycles) {		// // //
+	int Delta = levels2A03SS_.GetDelta(ChanID, Value);
+	Synth2A03SS.offset(FrameCycles, Delta, &BlipBuffer);
+	StoreChannelLevel(ChanID, Value);
 }
 
 int CMixer::ReadBuffer(int Size, void *Buffer, bool Stereo)
@@ -437,7 +400,7 @@ int32_t CMixer::GetChanOutput(uint8_t Chan) const
 
 void CMixer::StoreChannelLevel(int Channel, int Value)
 {
-	int AbsVol = abs(Value);
+	int AbsVol = std::abs(Value);
 
 	// Adjust channel levels for some channels
 	if (Channel == CHANID_VRC6_SAWTOOTH)
@@ -455,11 +418,11 @@ void CMixer::StoreChannelLevel(int Channel, int Value)
 	}
 
 	if (Channel >= CHANID_VRC7_CH1 && Channel <= CHANID_VRC7_CH6) {
-		AbsVol = (int)(logf((float)AbsVol) * 3.0f);
+		AbsVol = (int)(std::logf((float)AbsVol) * 3.0f);
 	}
 
 	if (Channel >= CHANID_S5B_CH1 && Channel <= CHANID_S5B_CH3) {
-		AbsVol = (int)(logf((float)AbsVol) * 2.8f);
+		AbsVol = (int)(std::logf((float)AbsVol) * 2.8f);
 	}
 
 	if (float(AbsVol) >= m_fChannelLevels[Channel]) {
