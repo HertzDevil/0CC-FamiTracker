@@ -20,13 +20,14 @@
 ** must bear this legend.
 */
 
+#include "APU.h"
 #include <algorithm>		// // //
 #include <vector>
 #include "../stdafx.h"
 #include <cstdio>
 #include <memory>
 #include <cmath>
-#include "APU.h"
+#include "Mixer.h"		// // //
 #include "2A03.h"		// // //
 #include "VRC6.h"
 #include "MMC5.h"

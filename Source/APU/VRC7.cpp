@@ -23,6 +23,7 @@
 #include "VRC7.h"
 #include "../stdafx.h"
 #include "APU.h"
+#include "Mixer.h"		// // //
 #include "../RegisterState.h"		// // //
 
 const float  CVRC7::AMPLIFY	  = 4.6f;		// Mixing amplification, VRC7 patch 14 is 4,88 times stronger than a 50% square @ v=15

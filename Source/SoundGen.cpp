@@ -49,6 +49,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "DirectSound.h"
 #include "WaveFile.h"		// // //
 #include "APU/APU.h"
+#include "APU/Mixer.h"		// // // CHIP_LEVEL_*
 #include "DSample.h"		// // //
 #include "InstrumentRecorder.h"		// // //
 #include "Settings.h"

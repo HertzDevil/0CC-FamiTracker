@@ -26,7 +26,6 @@
 //#define LOGGING
 
 #include "../Common.h"
-#include "Mixer.h"
 
 // External classes
 class C2A03;		// // //
@@ -37,8 +36,10 @@ class CMMC5;
 class CN163;
 class CS5B;
 
+class CMixer;		// // //
 class CSoundChip;		// // //
 class CRegisterState;		// // //
+enum chip_level_t;		// // //
 
 #ifdef LOGGING
 class CFile;

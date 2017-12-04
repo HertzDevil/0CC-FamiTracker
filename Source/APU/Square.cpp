@@ -22,6 +22,7 @@
 
 #include "Square.h"
 #include "APU.h"
+#include "Types.h"		// // //
 
 // This is also shared with MMC5
 

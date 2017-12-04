@@ -23,6 +23,7 @@
 #include "S5B.h"
 #include <algorithm>
 #include "APU.h"
+#include "Types.h"		// // //
 #include "../RegisterState.h"
 
 // // // 050B

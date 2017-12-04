@@ -22,6 +22,7 @@
 
 #include "N163.h"
 #include "APU.h"
+#include "Mixer.h"		// // //
 #include "../RegisterState.h"		// // //
 
 /*
