@@ -86,9 +86,6 @@ CMixer::CMixer()
 	m_iHighDamp = 0;
 	m_fOverallVol = 1.0f;
 
-	levels2A03SS_.ResetDelta();		// // //
-	levels2A03TND_.ResetDelta();		// // //
-
 	m_iMeterDecayRate = DECAY_SLOW;		// // // 050B
 	m_bNamcoMixing = false;		// // //
 }
@@ -97,8 +94,7 @@ CMixer::~CMixer()
 {
 }
 
-inline double CMixer::stLevels2A03SS::CalcPin()
-{
+inline double CMixer::stLevels2A03SS::CalcPin() const {
 #ifdef LINEAR_MIXING
 	double SumL = (sq1_.Left  + sq2_.Left ) * 0.00752 * InternalVol;
 	double SumR = (sq1_.Right + sq2_.Right) * 0.00752 * InternalVol;
@@ -122,8 +118,7 @@ inline void CMixer::stLevels2A03SS::ResetDelta() {
 	lastSum_ = 0.;
 }
 
-inline double CMixer::stLevels2A03TND::CalcPin()
-{
+inline double CMixer::stLevels2A03TND::CalcPin() const {
 #ifdef LINEAR_MIXING
 	double SumL = (0.00851 * tri_.Left  + 0.00494 * noi_.Left  + 0.00335 * dmc_.Left ) * InternalVol;
 	double SumR = (0.00851 * tri_.Right + 0.00494 * noi_.Right + 0.00335 * dmc_.Right) * InternalVol;
@@ -316,7 +311,12 @@ void CMixer::ClearBuffer()
 	BlipBuffer.clear();
 
 	levels2A03SS_.ResetDelta();		// // //
-	levels2A03TND_.ResetDelta();		// // //
+	levels2A03TND_.ResetDelta();
+	levelsVRC6_.ResetDelta();
+	levelsMMC5_.ResetDelta();
+	levelsFDS_.ResetDelta();
+	levelsN163_.ResetDelta();
+	levelsS5B_.ResetDelta();
 }
 
 int CMixer::SamplesAvail() const
@@ -359,32 +359,31 @@ int CMixer::FinishBuffer(int t)
 // Mixing
 //
 
-void CMixer::AddValue(int ChanID, int Chip, int Delta, int Value, int FrameCycles) {
-	switch (Chip) {
-	case SNDCHIP_VRC6:
-		SynthVRC6.offset(FrameCycles, Delta, &BlipBuffer); break;
-	case SNDCHIP_FDS:
-		SynthFDS.offset(FrameCycles, Delta, &BlipBuffer); break;
-	case SNDCHIP_MMC5:
-		SynthMMC5.offset(FrameCycles, Delta, &BlipBuffer); break;
-	case SNDCHIP_N163:
-		SynthN163.offset(FrameCycles, Delta, &BlipBuffer); break;
-	case SNDCHIP_S5B:		// // // 050B
-		SynthS5B.offset(FrameCycles, Delta, &BlipBuffer); break;
+/*
+CMixerChannel<CMixerPin<CHANID_SQUARE1>, CMixerPin<CHANID_SQUARE2>>
+CMixerChannel<CMixerPin<CHANID_TRIANGLE>, CMixerPin<CHANID_NOISE>, CMixerPin<CHANID_DPCM>>
+CMixerChannel<CMixerPin<CHANID_VRC6_PULSE1, CHANID_VRC6_PULSE2, CHANID_VRC6_SAWTOOTH>>
+*/
+
+void CMixer::AddValue(int ChanID, int Value, int FrameCycles) {
+	switch (ChanID) {
+	case CHANID_SQUARE1: case CHANID_SQUARE2:
+		Synth2A03SS.offset(FrameCycles, levels2A03SS_.GetDelta(ChanID, Value), &BlipBuffer); break;
+	case CHANID_TRIANGLE: case CHANID_NOISE: case CHANID_DPCM:
+		Synth2A03TND.offset(FrameCycles, levels2A03TND_.GetDelta(ChanID, Value), &BlipBuffer); break;
+	case CHANID_VRC6_PULSE1: case CHANID_VRC6_PULSE2: case CHANID_VRC6_SAWTOOTH:
+		SynthVRC6.offset(FrameCycles, levelsVRC6_.GetDelta(ChanID, Value), &BlipBuffer); break;
+	case CHANID_FDS:
+		SynthFDS.offset(FrameCycles, levelsFDS_.GetDelta(ChanID, Value), &BlipBuffer); break;
+	case CHANID_MMC5_SQUARE1: case CHANID_MMC5_SQUARE2: case CHANID_MMC5_VOICE:
+		SynthMMC5.offset(FrameCycles, levelsMMC5_.GetDelta(ChanID, Value), &BlipBuffer); break;
+	case CHANID_N163_CH1: case CHANID_N163_CH2: case CHANID_N163_CH3: case CHANID_N163_CH4:
+	case CHANID_N163_CH5: case CHANID_N163_CH6: case CHANID_N163_CH7: case CHANID_N163_CH8:
+		SynthN163.offset(FrameCycles, levelsN163_.GetDelta(ChanID, Value), &BlipBuffer); break;
+	case CHANID_S5B_CH1: case CHANID_S5B_CH2: case CHANID_S5B_CH3:		// // // 050B
+		SynthS5B.offset(FrameCycles, levelsS5B_.GetDelta(ChanID, Value), &BlipBuffer); break;
 	}
 
-	StoreChannelLevel(ChanID, Value);
-}
-
-void CMixer::AddValueTND(int ChanID, int Value, int FrameCycles) {		// // //
-	int Delta = levels2A03TND_.GetDelta(ChanID, Value);
-	Synth2A03TND.offset(FrameCycles, Delta, &BlipBuffer);
-	StoreChannelLevel(ChanID, Value);
-}
-
-void CMixer::AddValueSS(int ChanID, int Value, int FrameCycles) {		// // //
-	int Delta = levels2A03SS_.GetDelta(ChanID, Value);
-	Synth2A03SS.offset(FrameCycles, Delta, &BlipBuffer);
 	StoreChannelLevel(ChanID, Value);
 }
 

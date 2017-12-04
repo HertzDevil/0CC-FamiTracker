@@ -121,12 +121,8 @@ void CN163::Mix(int32_t Value, uint32_t Time, uint8_t ChanID)
 	// Two-eight channels: 800mV P-P
 	// 2A03 triangle: 330mV P-P
 
-	int32_t Delta = Value - m_iLastValue;
-
-	if (Delta)
-		m_pMixer->AddValue(ChanID, SNDCHIP_N163, Delta, Value, Time + m_iGlobalTime);
-
-	m_iLastValue = Value;
+	if (Value != m_iLastValue)
+		m_pMixer->AddValue(ChanID, (m_iLastValue = Value), Time + m_iGlobalTime);
 }
 
 void CN163::EndFrame()

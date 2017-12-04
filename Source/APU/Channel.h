@@ -41,7 +41,7 @@ public:
 	virtual double GetFrequency() const = 0;		// // //
 
 protected:
-	virtual void Mix(int32_t Value);
+	void Mix(int32_t Value);		// // //
 
 protected:
 	CMixer		*m_pMixer;			// The mixer

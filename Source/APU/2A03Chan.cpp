@@ -26,10 +26,3 @@
 uint16_t C2A03Chan::GetPeriod() const {
 	return m_iPeriod;
 }
-
-void C2A03Chan::Mix(int32_t Value) {
-	if (m_iLastValue != Value) {
-		m_pMixer->AddValueTND(m_iChanId, Value, m_iTime);		// // //
-		m_iLastValue = Value;
-	}
-}

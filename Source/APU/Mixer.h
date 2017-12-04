@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <utility>		// // //
 #include "Types.h"
 #include "../Common.h"
 #include "../Blip_Buffer/blip_buffer.h"
@@ -44,9 +45,7 @@ public:
 	CMixer();
 	~CMixer();
 
-	void	AddValue(int ChanID, int Chip, int Delta, int Value, int FrameCycles);
-	void	AddValueTND(int ChanID, int Value, int FrameCycles);		// // //
-	void	AddValueSS(int ChanID, int Value, int FrameCycles);		// // //
+	void	AddValue(int ChanID, int Value, int FrameCycles);		// // //
 
 	void	ExternalSound(int Chip);
 	void	UpdateSettings(int LowCut,	int HighCut, int HighDamp, float OverallVol);
@@ -97,7 +96,7 @@ private:
 		int32_t sq1_ = 0;
 		int32_t sq2_ = 0;
 		double lastSum_ = 0.;
-		inline double CalcPin();
+		inline double CalcPin() const;
 	} levels2A03SS_;
 
 	struct stLevels2A03TND {
@@ -108,8 +107,32 @@ private:
 		int32_t noi_ = 0;
 		int32_t dmc_ = 0;
 		double lastSum_ = 0.;
-		inline double CalcPin();
+		inline double CalcPin() const;
 	} levels2A03TND_;
+
+	struct stLevelsMono {
+		inline int GetDelta(int /*ChanID*/, int Value) {
+			lvl_ = Value;
+			double Sum = CalcPin();
+			return static_cast<int>(Sum - std::exchange(lastSum_, Sum));
+		}
+		inline void ResetDelta() {
+			lvl_ = 0;
+			lastSum_ = 0.;
+		}
+	private:
+		int32_t lvl_ = 0;
+		double lastSum_ = 0.;
+		inline double CalcPin() {
+			return lvl_;
+		}
+	};
+
+	stLevelsMono levelsVRC6_;
+	stLevelsMono levelsMMC5_;
+	stLevelsMono levelsFDS_;
+	stLevelsMono levelsN163_;
+	stLevelsMono levelsS5B_;
 
 	uint8_t		m_iExternalChip;
 	uint32_t	m_iSampleRate;

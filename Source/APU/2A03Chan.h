@@ -32,9 +32,6 @@ public:
 	uint16_t GetPeriod() const;
 
 protected:
-	void Mix(int32_t Value) override;
-
-protected:
 	// Variables used by channels
 	uint8_t		m_iControlReg;
 	uint8_t		m_iEnabled;

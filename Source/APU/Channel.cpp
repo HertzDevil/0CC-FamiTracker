@@ -32,7 +32,6 @@ void CChannel::EndFrame() {
 }
 
 void CChannel::Mix(int32_t Value) {
-	if (int32_t Delta = Value - m_iLastValue)
-		m_pMixer->AddValue(m_iChanId, m_iChip, Delta, Value, m_iTime);
-	m_iLastValue = Value;
+	if (Value != m_iLastValue)
+		m_pMixer->AddValue(m_iChanId, (m_iLastValue = Value), m_iTime);
 }
