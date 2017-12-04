@@ -34,7 +34,6 @@
 #include <vector>		// // //
 #include <array>		// // //
 #include <memory>		// // //
-#include <mutex>		// // //
 #include "FamiTrackerTypes.h"		// // //
 #include "SoundGenBase.h"		// // //
 
@@ -272,6 +271,7 @@ private:
 private:
 	mutable CCriticalSection m_csAPULock;		// // //
 	mutable CCriticalSection m_csVisualizerWndLock;
+	mutable CCriticalSection m_csRenderer;		// // //
 
 	// Handles
 	HANDLE				m_hInterruptEvent;					// Used to interrupt sound buffer syncing
@@ -295,7 +295,6 @@ private:
 	std::unique_ptr<CArpeggiator> m_pArpeggiator;			// // //
 
 	std::shared_ptr<CWaveRenderer> m_pWaveRenderer;			// // //
-	mutable std::mutex renderer_mtx_;		// // //
 	std::unique_ptr<CInstrumentRecorder> m_pInstRecorder;
 
 	std::array<bool, MAX_CHANNELS> muted_ = { };			// // //

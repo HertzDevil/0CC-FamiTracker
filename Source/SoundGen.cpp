@@ -479,7 +479,7 @@ bool CSoundGen::PlayBuffer()
 	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
 	if (m_pWaveRenderer) {		// // //
-		std::lock_guard<std::mutex> lock {renderer_mtx_};
+		CSingleLock l(&m_csRenderer); l.Lock();
 		if (is_rendering_impl()) {
 			auto [pBuf, size] = m_pAudioDriver->ReleaseSoundBuffer();		// // //
 			m_pWaveRenderer->FlushBuffer(pBuf, size);		// // //
@@ -569,7 +569,7 @@ void CSoundGen::ApplyGlobalState()		// // //
 
 // // //
 void CSoundGen::OnTick() {
-	std::lock_guard<std::mutex> lock {renderer_mtx_};
+	CSingleLock l(&m_csRenderer); l.Lock();
 	if (is_rendering_impl())
 		m_pWaveRenderer->Tick();
 	if (m_pTempoDisplay)		// // // 050B
@@ -581,7 +581,7 @@ void CSoundGen::OnTick() {
 void CSoundGen::OnStepRow() {
 	if (m_pTempoDisplay)		// // // 050B
 		m_pTempoDisplay->StepRow();
-	std::lock_guard<std::mutex> lock {renderer_mtx_};
+	CSingleLock l(&m_csRenderer); l.Lock();
 	if (is_rendering_impl())
 		m_pWaveRenderer->StepRow();		// // //
 }
@@ -613,7 +613,7 @@ bool CSoundGen::IsChannelMuted(int chan) const {
 }
 
 bool CSoundGen::ShouldStopPlayer() const {
-	std::lock_guard<std::mutex> lock {renderer_mtx_};		// // //
+	CSingleLock l(&m_csRenderer); l.Lock();		// // //
 	return is_rendering_impl() && m_pWaveRenderer->ShouldStopPlayer();
 }
 
@@ -813,7 +813,7 @@ bool CSoundGen::RenderToFile(LPCTSTR pFile, const std::shared_ptr<CWaveRenderer>
 		WaitForStop();
 	}
 
-	std::lock_guard<std::mutex> lock {renderer_mtx_};
+	CSingleLock l(&m_csRenderer); l.Lock();
 	m_pWaveRenderer = pRender;		// // //
 
 	if (auto pWave = std::make_unique<CWaveFile>(); pWave &&		// // //
@@ -831,7 +831,7 @@ bool CSoundGen::RenderToFile(LPCTSTR pFile, const std::shared_ptr<CWaveRenderer>
 // // //
 void CSoundGen::StartRendering() {
 	ResetBuffer();
-	std::lock_guard<std::mutex> lock {renderer_mtx_};
+	CSingleLock l(&m_csRenderer); l.Lock();
 	m_pWaveRenderer->Start();
 }
 
@@ -840,7 +840,7 @@ void CSoundGen::StopRendering()
 	// Called from player thread
 	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
-//	std::lock_guard<std::mutex> lock {renderer_mtx_};
+//	CSingleLock l(&m_csRenderer); l.Lock();
 	if (!is_rendering_impl())
 		return;
 
@@ -852,7 +852,7 @@ void CSoundGen::StopRendering()
 
 bool CSoundGen::IsRendering() const
 {
-	std::lock_guard<std::mutex> lock {renderer_mtx_};		// // //
+	CSingleLock l(&m_csRenderer); l.Lock();		// // //
 	return is_rendering_impl();
 }
 
@@ -986,7 +986,7 @@ BOOL CSoundGen::IdleLoop() {
 	m_pSoundDriver->Tick();		// // //
 
 	// Rendering
-	if (std::lock_guard<std::mutex> lock {renderer_mtx_}; m_pWaveRenderer)		// // //
+	if (CSingleLock l(&m_csRenderer); l.Lock() && m_pWaveRenderer)		// // //
 		if (m_pWaveRenderer->ShouldStopRender())
 			StopRendering();
 		else if (m_pWaveRenderer->ShouldStartPlayer())
@@ -1080,7 +1080,7 @@ void CSoundGen::OnStartRender(WPARAM wParam, LPARAM lParam)
 
 void CSoundGen::OnStopRender(WPARAM wParam, LPARAM lParam)
 {
-	std::lock_guard<std::mutex> lock {renderer_mtx_};
+	CSingleLock l(&m_csRenderer); l.Lock();
 	StopRendering();
 }
 
