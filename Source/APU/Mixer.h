@@ -78,13 +78,13 @@ private:
 
 private:
 	// Blip buffer synths
-	Blip_Synth<blip_good_quality, -500>		Synth2A03SS;
-	Blip_Synth<blip_good_quality, -500>		Synth2A03TND;
-	Blip_Synth<blip_good_quality, -500>		SynthVRC6;
-	Blip_Synth<blip_good_quality, -130>		SynthMMC5;	
-	Blip_Synth<blip_good_quality, -1600>	SynthN163;
-	Blip_Synth<blip_good_quality, -3500>	SynthFDS;
-	Blip_Synth<blip_good_quality, -1200>	SynthS5B;		// // // 050B
+	Blip_Synth<blip_good_quality>	Synth2A03SS {500};
+	Blip_Synth<blip_good_quality>	Synth2A03TND {500};
+	Blip_Synth<blip_good_quality>	SynthVRC6 {500};
+	Blip_Synth<blip_good_quality>	SynthMMC5 {130};
+	Blip_Synth<blip_good_quality>	SynthN163 {1600};
+	Blip_Synth<blip_good_quality>	SynthFDS {3500};
+	Blip_Synth<blip_good_quality>	SynthS5B {1200};		// // // 050B
 	
 	// Blip buffer object
 	Blip_Buffer	BlipBuffer;

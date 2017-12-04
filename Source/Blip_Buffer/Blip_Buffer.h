@@ -158,11 +158,11 @@ const int blip_high_quality = 16;
 // Range specifies the greatest expected change in amplitude. Calculate it
 // by finding the difference between the maximum and minimum expected
 // amplitudes (max - min).
-template<int quality,int range>
+template<int quality>		// // //
 class Blip_Synth {
 public:
 	// Set overall volume of waveform
-	void volume( double v ) { impl.volume_unit( v * (1.0 / (range < 0 ? -range : range)) ); }
+	void volume( double v ) { impl.volume_unit( v * (1.0 / range_) ); }
 	
 	// Configure low-pass filter (see notes.txt)
 	void treble_eq( blip_eq_t const& eq )       { impl.treble_eq( eq ); }
@@ -195,11 +195,12 @@ public:
 	}
 	
 public:
-	Blip_Synth() : impl( impulses, quality ) { }
+	explicit Blip_Synth(int range) : impl( impulses, quality ), range_( range < 0 ? -range : range ) { }		// // //
 private:
 	typedef short imp_t;
 	imp_t impulses [blip_res * (quality / 2) + 1];
 	Blip_Synth_ impl;
+	int range_;
 };
 
 // Low-pass equalization parameters
@@ -273,8 +274,8 @@ const int blip_best_quality = blip_high_quality;
 	buf [rev - r] = t0;                     \
 	buf [rev + 1 - r] = t1; }
 
-template<int quality,int range>
-inline void Blip_Synth<quality,range>::offset_resampled( blip_resampled_time_t time,
+template<int quality>		// // //
+inline void Blip_Synth<quality>::offset_resampled( blip_resampled_time_t time,
 		int delta, Blip_Buffer* blip_buf ) const
 {
 	// Fails if time is beyond end of Blip_Buffer, due to a bug in caller code or the
@@ -314,14 +315,14 @@ inline void Blip_Synth<quality,range>::offset_resampled( blip_resampled_time_t t
 #undef BLIP_FWD
 #undef BLIP_REV
 
-template<int quality,int range>
-void Blip_Synth<quality,range>::offset( blip_time_t t, int delta, Blip_Buffer* buf ) const
+template<int quality>		// // //
+void Blip_Synth<quality>::offset( blip_time_t t, int delta, Blip_Buffer* buf ) const
 {
 	offset_resampled( t * buf->factor_ + buf->offset_, delta, buf );
 }
 
-template<int quality,int range>
-void Blip_Synth<quality,range>::update( blip_time_t t, int amp )
+template<int quality>		// // //
+void Blip_Synth<quality>::update( blip_time_t t, int amp )
 {
 	int delta = amp - impl.last_amp;
 	impl.last_amp = amp;
