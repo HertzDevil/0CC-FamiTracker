@@ -33,7 +33,7 @@ class CS5BChannel : public CChannel
 public:
 	friend class CS5B;
 
-	CS5BChannel(CMixer *pMixer, uint8_t ID);
+	CS5BChannel(CMixer *pMixer, chan_id_t ID);		// // //
 	
 	void Process(uint32_t Time);
 	void Reset();

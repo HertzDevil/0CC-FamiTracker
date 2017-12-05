@@ -759,6 +759,9 @@
     <ClCompile Include="Source\APU\ext\FDSSound.cpp">
       <Filter>Source Files\Sound Driver\Emulation\Sound Chips\External</Filter>
     </ClCompile>
+    <ClCompile Include="Source\APU\MixerChannel.cpp">
+      <Filter>Source Files\Sound Driver</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1381,6 +1384,9 @@
     </ClInclude>
     <ClInclude Include="Source\APU\ext\vrc7tone.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers\External</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\APU\MixerChannel.h">
+      <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

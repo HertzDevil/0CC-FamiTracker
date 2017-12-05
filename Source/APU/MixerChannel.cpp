@@ -20,35 +20,17 @@
 ** must bear this legend.
 */
 
+#include "MixerChannel.h"
 
-#pragma once
+CMixerChannelBase::CMixerChannelBase(unsigned maxVol) :
+	synth_ {maxVol}
+{
+}
 
-#include <cstdint>		// // //
-#include "Types.h"		// // //
+void CMixerChannelBase::SetVolume(double vol) {
+	synth_.volume(vol);
+}
 
-class CMixer;
-
-//
-// This class is used to derive the audio channels
-//
-
-class CChannel {
-public:
-	CChannel(CMixer *pMixer, uint8_t Chip, chan_id_t ID);
-
-	virtual ~CChannel() noexcept = default;
-	virtual void EndFrame();
-
-	virtual double GetFrequency() const = 0;		// // //
-
-protected:
-	void Mix(int32_t Value);		// // //
-
-protected:
-	CMixer		*m_pMixer;			// The mixer
-
-	uint32_t	m_iTime = 0;		// Cycle counter, resets every new frame
-	chan_id_t	m_iChanId;			// // // This channels unique ID
-	uint8_t		m_iChip;			// Chip
-	int32_t		m_iLastValue = 0;	// Last value sent to mixer
-};
+void CMixerChannelBase::SetLowPass(const blip_eq_t &eq) {
+	synth_.treble_eq(eq);
+}

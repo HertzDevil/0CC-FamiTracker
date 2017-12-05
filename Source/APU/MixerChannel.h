@@ -23,32 +23,40 @@
 
 #pragma once
 
-#include <cstdint>		// // //
-#include "Types.h"		// // //
+#include "Types.h"
+#include "../Blip_Buffer/blip_buffer.h"
 
-class CMixer;
-
-//
-// This class is used to derive the audio channels
-//
-
-class CChannel {
+class CMixerChannelBase {
 public:
-	CChannel(CMixer *pMixer, uint8_t Chip, chan_id_t ID);
+	explicit CMixerChannelBase(unsigned maxVol);
 
-	virtual ~CChannel() noexcept = default;
-	virtual void EndFrame();
+	void SetVolume(double vol);
+	void SetLowPass(const blip_eq_t &eq);
 
-	virtual double GetFrequency() const = 0;		// // //
+private:
+	template <typename> friend class CMixerChannel;
+	Blip_Synth<blip_good_quality> synth_;
+	double lastSum_ = 0.;
+};
 
-protected:
-	void Mix(int32_t Value);		// // //
+template <typename T>
+class CMixerChannel : public CMixerChannelBase {
+public:
+	using CMixerChannelBase::CMixerChannelBase;
 
-protected:
-	CMixer		*m_pMixer;			// The mixer
+	void AddValue(chan_id_t ChanID, int Value, int FrameCycles, Blip_Buffer &bb) {
+		levels_.UpdateLevel(ChanID, Value);
+		const double prev = lastSum_;
+		lastSum_ = levels_.CalcPin();
+		const double Delta = lastSum_ - prev;
+		synth_.offset(FrameCycles, static_cast<int>(Delta), &bb);
+	}
 
-	uint32_t	m_iTime = 0;		// Cycle counter, resets every new frame
-	chan_id_t	m_iChanId;			// // // This channels unique ID
-	uint8_t		m_iChip;			// Chip
-	int32_t		m_iLastValue = 0;	// Last value sent to mixer
+	void ResetDelta() {
+		lastSum_ = 0;
+		levels_ = T { };
+	}
+
+private:
+	T levels_;
 };

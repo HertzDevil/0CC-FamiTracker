@@ -32,7 +32,7 @@
 
 class CTriangle : public C2A03Chan {
 public:
-	CTriangle(CMixer *pMixer, int ID);
+	CTriangle(CMixer *pMixer, chan_id_t ID);		// // //
 	~CTriangle();
 
 	void	Reset();

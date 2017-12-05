@@ -32,7 +32,7 @@ class CN163;		// // //
 
 class CN163Chan : public CChannel {
 public:
-	CN163Chan(CMixer *pMixer, CN163 &parent, int ID, uint8_t *pWaveData);		// // //
+	CN163Chan(CMixer *pMixer, CN163 &parent, chan_id_t ID, uint8_t *pWaveData);		// // //
 
 	void Reset();
 	void Write(uint16_t Address, uint8_t Value);
@@ -71,7 +71,7 @@ public:
 
 	uint8_t Read(uint16_t Address, bool &Mapped);
 	uint8_t ReadMem(uint8_t Reg);
-	void Mix(int32_t Value, uint32_t Time, uint8_t ChanID);
+	void Mix(int32_t Value, uint32_t Time, chan_id_t ChanID);		// // //
 	void SetMixingMethod(bool bLinear);		// // //
 
 protected:

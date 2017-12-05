@@ -28,7 +28,7 @@
 
 class CVRC6_Pulse : public CChannel {
 public:
-	CVRC6_Pulse(CMixer *pMixer, int ID);
+	CVRC6_Pulse(CMixer *pMixer, chan_id_t ID);		// // //
 	void Reset();
 	void Write(uint16_t Address, uint8_t Value);
 	void Process(int Time);
@@ -48,7 +48,7 @@ private:
 
 class CVRC6_Sawtooth : public CChannel {
 public:
-	CVRC6_Sawtooth(CMixer *pMixer, int ID);
+	CVRC6_Sawtooth(CMixer *pMixer, chan_id_t ID);		// // //
 	void Reset();
 	void Write(uint16_t Address, uint8_t Value);
 	void Process(int Time);

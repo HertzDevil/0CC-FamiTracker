@@ -32,7 +32,7 @@
 
 class CNoise : public C2A03Chan {
 public:
-	CNoise(CMixer *pMixer, int ID);		// // //
+	CNoise(CMixer *pMixer, chan_id_t ID);		// // //
 	~CNoise();
 
 	void	Reset();

@@ -32,7 +32,7 @@ const uint16_t CNoise::NOISE_PERIODS_PAL[] = {
 	4, 8, 14, 30, 60, 88, 118, 148, 188, 236, 354, 472, 708,  944, 1890, 3778
 };
 
-CNoise::CNoise(CMixer *pMixer, int ID) : C2A03Chan(pMixer, SNDCHIP_NONE, ID)		// // //
+CNoise::CNoise(CMixer *pMixer, chan_id_t ID) : C2A03Chan(pMixer, SNDCHIP_NONE, ID)		// // //
 {
 	m_iLooping = 0;
 	m_iEnvelopeFix = 0;

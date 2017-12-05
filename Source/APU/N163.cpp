@@ -114,7 +114,7 @@ void CN163::ProcessOld(uint32_t Time)		// // //
 		m_Channels[i].ProcessClean(Time, m_iChansInUse + 1);
 }
 
-void CN163::Mix(int32_t Value, uint32_t Time, uint8_t ChanID)
+void CN163::Mix(int32_t Value, uint32_t Time, chan_id_t ChanID)		// // //
 {
 	// N163 amplitude:
 	// One channel: 1.1V P-P
@@ -222,7 +222,7 @@ uint8_t CN163::ReadMem(uint8_t Reg)
 // N163 channels
 //
 
-CN163Chan::CN163Chan(CMixer *pMixer, CN163 &parent, int ID, uint8_t *pWaveData) : 
+CN163Chan::CN163Chan(CMixer *pMixer, CN163 &parent, chan_id_t ID, uint8_t *pWaveData) :		// // //
 	CChannel(pMixer, SNDCHIP_N163, ID),
 	m_pWaveData(pWaveData), parent_(parent)
 {

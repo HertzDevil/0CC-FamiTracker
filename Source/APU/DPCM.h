@@ -28,7 +28,7 @@
 
 class CDPCM : public C2A03Chan {
 public:
-	CDPCM(CMixer *pMixer, int ID);		// // //
+	CDPCM(CMixer *pMixer, chan_id_t ID);		// // //
 
 	void	Reset();
 	void	Write(uint16_t Address, uint8_t Value);
