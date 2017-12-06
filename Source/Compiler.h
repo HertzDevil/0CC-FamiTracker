@@ -70,7 +70,7 @@ struct stNSFeHeader {		// // //
 
 struct driver_t;
 class CChunk;
-enum chunk_type_t;
+enum chunk_type_t : int;
 struct stChunkLabel;		// // //
 class CDSample;		 // // //
 class CFamiTrackerDoc;		// // //

@@ -40,7 +40,7 @@ class CAPU;
 class CSongState;
 class stChanNote;
 class CSoundGenBase;
-enum note_prio_t;
+enum note_prio_t : int;
 
 class CSoundDriver {
 public:

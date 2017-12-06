@@ -34,7 +34,7 @@
 class CChunkRenderText;
 class CChunk;		// // //
 class CDSample;		// // //
-enum chunk_type_t;		// // //
+enum chunk_type_t : int;		// // //
 struct stChunkLabel;		// // //
 
 typedef void (CChunkRenderText::*renderFunc_t)(CChunk *pChunk, CFile *pFile);

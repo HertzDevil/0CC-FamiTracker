@@ -29,7 +29,7 @@
 #include "APU/Types.h"		// // //
 #include "PatternNote.h"		// // //
 
-enum inst_type_t;
+enum inst_type_t : int;
 
 enum note_prio_t {
 	NOTE_PRIO_0, 

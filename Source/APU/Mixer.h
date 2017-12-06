@@ -39,7 +39,7 @@ enum chip_level_t {
 	CHIP_LEVEL_S5B
 };
 
-enum chan_id_t;		// // //
+enum chan_id_t : int;		// // //
 
 class CMixer
 {

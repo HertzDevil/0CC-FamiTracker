@@ -54,38 +54,36 @@ public:
 	unsigned GetNoteCount(int maxrows = max_size) const;
 	bool IsEmpty() const;
 
-	// void (*F)(stChanNote &note, unsigned row)
+	// void (*F)(stChanNote &note p [, unsigned row])
 	template <typename F>
 	void VisitRows(F f) {
-		if (data_) {
-			unsigned row = 0;
-			for (auto &x : *data_)
-				f(x, row++);
-		}
+		return VisitRows(max_size, f);
 	}
-	// void (*F)(const stChanNote &note, unsigned row)
+	// void (*F)(const stChanNote &note [, unsigned row])
 	template <typename F>
 	void VisitRows(F f) const {
-		if (data_) {
-			unsigned row = 0;
-			for (auto &x : *data_)
-				f(x, row++);
-		}
+		return VisitRows(max_size, f);
 	}
 
-	// void (*F)(stChanNote &note, unsigned row)
+	// void (*F)(stChanNote &note [, unsigned row])
 	template <typename F>
 	void VisitRows(unsigned rows, F f) {
 		if (data_)
 			for (unsigned row = 0; row < rows; ++row)
-				f((*data_)[row], row);
+				if constexpr (std::is_invocable_v<F, stChanNote &>)
+					f((*data_)[row]);
+				else
+					f((*data_)[row], row);
 	}
-	// void (*F)(const stChanNote &note, unsigned row)
+	// void (*F)(const stChanNote &note [, unsigned row])
 	template <typename F>
 	void VisitRows(unsigned rows, F f) const {
 		if (data_)
 			for (unsigned row = 0; row < rows; ++row)
-				f((*data_)[row], row);
+				if constexpr (std::is_invocable_v<F, stChanNote &>)
+					f((*data_)[row]);
+				else
+					f((*data_)[row], row);
 	}
 
 private:

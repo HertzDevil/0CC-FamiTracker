@@ -90,51 +90,35 @@ public:
 	template <typename F>
 	void VisitPatterns(F f) {		// // //
 		if constexpr (std::is_invocable_v<F, CPatternData &>)
-			visit_patterns_impl(f);
-		else
-			visit_patterns_impl2(f);
+			for (auto &ch : m_pPatternData)
+				for (auto &p : ch)
+					f(p);
+		else {
+			unsigned ch_index = 0;
+			for (auto &ch : m_pPatternData) {
+				unsigned p_index = 0;
+				for (auto &p : ch)
+					f(p, ch_index, p_index++);
+				++ch_index;
+			}
+		}
 	}
 
 	// void (*F)(const CPatternData &pat [, unsigned ch, unsigned pat_index])
 	template <typename F>
 	void VisitPatterns(F f) const {
 		if constexpr (std::is_invocable_v<F, const CPatternData &>)
-			visit_patterns_impl(f);
-		else
-			visit_patterns_impl2(f);
-	}
-
-private:
-	template <typename F>
-	void visit_patterns_impl(F f) {
-		for (auto &ch : m_pPatternData)
-			for (auto &p : ch)
-				f(p);
-	}
-	template <typename F>
-	void visit_patterns_impl(F f) const {
-		for (auto &ch : m_pPatternData)
-			for (auto &p : ch)
-				f(p);
-	}
-	template <typename F>
-	void visit_patterns_impl2(F f) {
-		unsigned ch_index = 0;
-		for (auto &ch : m_pPatternData) {
-			unsigned p_index = 0;
-			for (auto &p : ch)
-				f(p, ch_index, p_index++);
-			++ch_index;
-		}
-	}
-	template <typename F>
-	void visit_patterns_impl2(F f) const {
-		unsigned ch_index = 0;
-		for (auto &ch : m_pPatternData) {
-			unsigned p_index = 0;
-			for (auto &p : ch)
-				f(p, ch_index, p_index++);
-			++ch_index;
+			for (auto &ch : m_pPatternData)
+				for (auto &p : ch)
+					f(p);
+		else {
+			unsigned ch_index = 0;
+			for (auto &ch : m_pPatternData) {
+				unsigned p_index = 0;
+				for (auto &p : ch)
+					f(p, ch_index, p_index++);
+				++ch_index;
+			}
 		}
 	}
 

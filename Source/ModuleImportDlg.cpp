@@ -174,7 +174,7 @@ bool CModuleImportDlg::ImportTracks()
 			if (song.GetSongGroove())
 				song.SetSongSpeed(m_iGrooveMap[song.GetSongSpeed()]);
 			song.VisitPatterns([this] (CPatternData &pat) {
-				pat.VisitRows([this] (stChanNote &note, unsigned) {
+				pat.VisitRows([this] (stChanNote &note) {
 					// Translate instrument number
 					if (note.Instrument < MAX_INSTRUMENTS)
 						note.Instrument = m_iInstrumentTable[note.Instrument];

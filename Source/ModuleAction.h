@@ -40,7 +40,7 @@ class CModuleAction : public CAction {
 
 namespace ModuleAction {
 
-class CComment : public ::CModuleAction {
+class CComment : public CModuleAction {
 public:
 	CComment(const std::string &comment, bool show) :
 		newComment_(comment), newShow_(show) {
@@ -56,7 +56,7 @@ private:
 	bool newShow_ = false;
 };
 
-class CTitle : public ::CModuleAction {
+class CTitle : public CModuleAction {
 public:
 	CTitle(std::string_view str);
 private:
@@ -69,7 +69,7 @@ private:
 	std::string newStr_;
 };
 
-class CArtist : public ::CModuleAction {
+class CArtist : public CModuleAction {
 public:
 	CArtist(std::string_view str);
 private:
@@ -82,7 +82,7 @@ private:
 	std::string newStr_;
 };
 
-class CCopyright : public ::CModuleAction {
+class CCopyright : public CModuleAction {
 public:
 	CCopyright(std::string_view str);
 private:
@@ -95,7 +95,7 @@ private:
 	std::string newStr_;
 };
 
-class CAddInst : public ::CModuleAction {
+class CAddInst : public CModuleAction {
 public:
 	CAddInst(unsigned index, std::shared_ptr<CInstrument> pInst);
 private:
@@ -108,7 +108,7 @@ private:
 	unsigned prev_;
 };
 
-class CRemoveInst : public ::CModuleAction {
+class CRemoveInst : public CModuleAction {
 public:
 	CRemoveInst(unsigned index);
 private:
@@ -121,7 +121,7 @@ private:
 	unsigned nextIndex_;
 };
 
-class CInstName : public ::CModuleAction {
+class CInstName : public CModuleAction {
 public:
 	CInstName(unsigned index, std::string_view str);
 private:
@@ -135,7 +135,7 @@ private:
 	std::string newStr_;
 };
 
-class CSwapInst : public ::CModuleAction {
+class CSwapInst : public CModuleAction {
 public:
 	CSwapInst(unsigned left, unsigned right);
 private:
