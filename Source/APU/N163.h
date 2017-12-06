@@ -90,6 +90,7 @@ private:
 
 	uint32_t	m_iChannelCntr = 0;
 	uint32_t	m_iActiveChan = 0;
+	uint32_t	m_iLastChan = 0;		// // //
 	uint32_t	m_iCycle = 0;
 
 	bool		m_bOldMixing = false;		// // //

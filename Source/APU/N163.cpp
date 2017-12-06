@@ -24,6 +24,7 @@
 #include "APU.h"
 #include "Mixer.h"		// // //
 #include "../RegisterState.h"		// // //
+#include <algorithm>		// // //
 
 /*
 
@@ -65,7 +66,7 @@ void CN163::Reset()
 	m_iGlobalTime = 0;
 
 	m_iChannelCntr = 0;
-	m_iActiveChan = 7;
+	m_iLastChan = m_iActiveChan = 7;		// // //
 	m_iCycle = 0;
 }
 
@@ -86,12 +87,11 @@ void CN163::Process(uint32_t Time)
 	m_pMixer->SetNamcoVolume((m_iChansInUse == 0) ? 1.3f : (1.5f + float(m_iChansInUse - 1) / 1.5f));
 
 	while (Time > 0) {
-		uint32_t TimeToRun = CHAN_PERIOD - m_iChannelCntr;
+		uint32_t TimeToRun = std::min(Time, CHAN_PERIOD - m_iChannelCntr);		// // //
 
-		if (TimeToRun > Time)
-			TimeToRun = Time;
-
+		Mix(0, 0, m_Channels[m_iLastChan].GetChannelType());		// // //
 		m_Channels[m_iActiveChan].Process(TimeToRun, m_iChansInUse + 1);		// // //
+		m_iLastChan = m_iActiveChan;
 
 		Time -= TimeToRun;
 		m_iGlobalTime += TimeToRun;
