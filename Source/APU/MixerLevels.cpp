@@ -29,11 +29,12 @@ const double AMP_2A03 = 400.0;
 
 } // namespace
 
-void stLevels2A03SS::Offset(chan_id_t ChanID, int Value) {
+int stLevels2A03SS::Offset(chan_id_t ChanID, int Value) {
 	switch (ChanID) {
-	case CHANID_SQUARE1: sq1_ += Value; break;
-	case CHANID_SQUARE2: sq2_ += Value; break;
+	case CHANID_SQUARE1: return sq1_ += Value;
+	case CHANID_SQUARE2: return sq2_ += Value;
 	}
+	return 0;
 }
 
 double stLevels2A03SS::CalcPin() const {
@@ -43,17 +44,18 @@ double stLevels2A03SS::CalcPin() const {
 #endif
 	if ((sq1_ + sq2_) > 0)
 		return AMP_2A03 * 95.88 / (100.0 + 8128.0 / (sq1_ + sq2_));
-	return 0;
+	return 0.;
 }
 
 
 
-void stLevels2A03TND::Offset(chan_id_t ChanID, int Value) {
+int stLevels2A03TND::Offset(chan_id_t ChanID, int Value) {
 	switch (ChanID) {
-	case CHANID_TRIANGLE: tri_ += Value; break;
-	case CHANID_NOISE:    noi_ += Value; break;
-	case CHANID_DPCM:     dmc_ += Value; break;
+	case CHANID_TRIANGLE: return tri_ += Value;
+	case CHANID_NOISE:    return noi_ += Value;
+	case CHANID_DPCM:     return dmc_ += Value;
 	}
+	return 0;
 }
 
 double stLevels2A03TND::CalcPin() const {
@@ -63,13 +65,13 @@ double stLevels2A03TND::CalcPin() const {
 #endif
 	if ((tri_ + noi_ + dmc_) > 0)
 		return AMP_2A03 * 159.79 / (100.0 + 1.0 / (tri_ / 8227.0 + noi_ / 12241.0 + dmc_ / 22638.0));
-	return 0;
+	return 0.;
 }
 
 
 
-void stLevelsMono::Offset(chan_id_t /*ChanID*/, int Value) {
-	lvl_ += Value;
+int stLevelsMono::Offset(chan_id_t /*ChanID*/, int Value) {
+	return lvl_ += Value;
 }
 
 double stLevelsMono::CalcPin() const {

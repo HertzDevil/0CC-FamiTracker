@@ -23,12 +23,13 @@
 
 #pragma once
 
+#include <type_traits>
+#include "Types.h"
+
 //#define LINEAR_MIXING
 
-enum chan_id_t;
-
 struct stLevels2A03SS {
-	void Offset(chan_id_t ChanID, int Value);
+	int Offset(chan_id_t ChanID, int Value);
 	double CalcPin() const;
 
 private:
@@ -36,8 +37,10 @@ private:
 	int sq2_ = 0;
 };
 
+
+
 struct stLevels2A03TND {
-	void Offset(chan_id_t ChanID, int Value);
+	int Offset(chan_id_t ChanID, int Value);
 	double CalcPin() const;
 
 private:
@@ -46,10 +49,54 @@ private:
 	int dmc_ = 0;
 };
 
+
+
 struct stLevelsMono {
-	void Offset(chan_id_t ChanID, int Value);
+	int Offset(chan_id_t ChanID, int Value);
 	double CalcPin() const;
 
 private:
 	int lvl_ = 0;
 };
+
+
+
+template <chan_id_t... ChanIDs>
+struct stLevelsLinear {
+	int Offset(chan_id_t ChanID, int Value) {
+		return Offset(ChanID, Value,
+			std::index_sequence<(std::size_t)ChanIDs...> { },
+			std::make_index_sequence<sizeof...(ChanIDs)> { });
+	}
+
+	double CalcPin() const {
+		return tot_;
+	}
+
+private:
+	int Offset(chan_id_t ChanID, int Value, std::index_sequence<>, std::index_sequence<>) {
+		return 0;
+	}
+
+	template <std::size_t I, std::size_t... Is, std::size_t J, std::size_t... Js>
+	int Offset(chan_id_t ChanID, int Value, std::index_sequence<I, Is...>, std::index_sequence<J, Js...>) {
+		if (ChanID == I) {
+			tot_ += Value;
+			return lvl_[J] += Value;
+		}
+		return Offset(ChanID, Value,
+			std::index_sequence<Is...> { },
+			std::index_sequence<Js...> { });
+	}
+
+private:
+	int lvl_[sizeof...(ChanIDs)] = { };
+	int tot_ = 0;
+};
+
+using stLevelsVRC6 = stLevelsLinear<CHANID_VRC6_PULSE1, CHANID_VRC6_PULSE2, CHANID_VRC6_SAWTOOTH>;
+using stLevelsFDS = stLevelsLinear<CHANID_FDS>;
+using stLevelsMMC5 = stLevelsLinear<CHANID_MMC5_SQUARE1, CHANID_MMC5_SQUARE2, CHANID_MMC5_VOICE>;
+using stLevelsN163 = stLevelsLinear<CHANID_N163_CH1, CHANID_N163_CH2, CHANID_N163_CH3, CHANID_N163_CH4,
+	CHANID_N163_CH5, CHANID_N163_CH6, CHANID_N163_CH7, CHANID_N163_CH8>;
+using stLevelsS5B = stLevelsLinear<CHANID_S5B_CH1, CHANID_S5B_CH2, CHANID_S5B_CH3>;

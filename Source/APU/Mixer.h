@@ -80,18 +80,19 @@ private:
 	// Blip buffer object
 	Blip_Buffer	BlipBuffer;
 
-	CMixerChannel<stLevels2A03SS> levels2A03SS_ {500};
+	CMixerChannel<stLevels2A03SS>  levels2A03SS_  {500};		// // //
 	CMixerChannel<stLevels2A03TND> levels2A03TND_ {500};
-	CMixerChannel<stLevelsMono> levelsVRC6_ {500};
-	CMixerChannel<stLevelsMono> levelsFDS_ {3500};
-	CMixerChannel<stLevelsMono> levelsMMC5_ {130};
-	CMixerChannel<stLevelsMono> levelsN163_ {1600};
-	CMixerChannel<stLevelsMono> levelsS5B_ {1200};
+	CMixerChannel<stLevelsVRC6>    levelsVRC6_    {500};
+	CMixerChannel<stLevelsFDS>     levelsFDS_     {3500};
+	CMixerChannel<stLevelsMMC5>    levelsMMC5_    {130};
+	CMixerChannel<stLevelsN163>    levelsN163_    {1600};
+	CMixerChannel<stLevelsS5B>     levelsS5B_     {1200};
 
 	uint8_t		m_iExternalChip = 0;
 	uint32_t	m_iSampleRate = 0;
 
 	float		m_fChannelLevels[CHANNELS] = { };
+	float		m_fChannelLevelsLast[CHANNELS] = { };		// // //
 	uint32_t	m_iChanLevelFallOff[CHANNELS] = { };
 
 	decay_rate_t m_iMeterDecayRate = DECAY_SLOW;		// // // 050B

@@ -46,17 +46,22 @@ class CMixerChannel : public CMixerChannelBase {
 public:
 	using CMixerChannelBase::CMixerChannelBase;
 
-	void AddValue(chan_id_t ChanID, int Value, int FrameCycles, Blip_Buffer &bb) {
-		levels_.Offset(ChanID, Value);
+	int AddValue(chan_id_t ChanID, int Value, int FrameCycles, Blip_Buffer &bb) {
+		const int level = levels_.Offset(ChanID, Value);
 		const double prev = lastSum_;
 		lastSum_ = levels_.CalcPin();
 		const double Delta = lastSum_ - prev;
 		synth_.offset(FrameCycles, static_cast<int>(Delta), &bb);
+		return level;
 	}
 
 	void ResetDelta() {
 		lastSum_ = 0;
 		levels_ = T { };
+	}
+
+	double GetLevel(chan_id_t ChanID) const {
+		return levels_.GetLevel(ChanID);
 	}
 
 private:
