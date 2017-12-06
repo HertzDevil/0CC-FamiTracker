@@ -26,7 +26,6 @@
 // CFamiTrackerView, the document view class
 
 #include "stdafx.h"		// // //
-#include <afxmt.h>	// Include synchronization objects
 #include <memory>		// // //
 #include <unordered_map>		// // //
 

@@ -25,7 +25,6 @@
 
 #include "stdafx.h"		// // //
 #include <mmsystem.h>
-#include <afxmt.h>
 
 const int MIDI_MSG_NOTE_OFF			= 0x08;
 const int MIDI_MSG_NOTE_ON			= 0x09;

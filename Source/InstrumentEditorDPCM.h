@@ -38,8 +38,8 @@ class CInstrumentEditorDPCM : public CInstrumentEditPanel
 public:
 	CInstrumentEditorDPCM(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CInstrumentEditorDPCM();
-	virtual int GetIDD() const { return IDD; };
-	virtual TCHAR *GetTitle() const { return _T("DPCM samples"); };
+	int GetIDD() const override { return IDD; }
+	LPCTSTR GetTitle() const override { return _T("DPCM samples"); }		// // //
 
 // Dialog Data
 	enum { IDD = IDD_INSTRUMENT_DPCM };

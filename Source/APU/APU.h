@@ -39,7 +39,7 @@ class CS5B;
 class CMixer;		// // //
 class CSoundChip;		// // //
 class CRegisterState;		// // //
-enum chip_level_t;		// // //
+enum chip_level_t : int;		// // //
 
 #ifdef LOGGING
 class CFile;

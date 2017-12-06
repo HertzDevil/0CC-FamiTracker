@@ -147,10 +147,9 @@ class CCursorPos {
 public:
 	CCursorPos();
 	CCursorPos(int Row, int Channel, cursor_column_t Column, int Frame);		// // //
-	const CCursorPos& operator=(const CCursorPos &pos);
-	bool operator !=(const CCursorPos &other) const;
-	bool operator <(const CCursorPos &other) const;
-	bool operator <=(const CCursorPos &other) const;
+	bool operator!=(const CCursorPos &other) const;
+	bool operator<(const CCursorPos &other) const;
+	bool operator<=(const CCursorPos &other) const;
 	bool IsValid(int RowCount, int ChannelCount) const;		// // //
 
 public:

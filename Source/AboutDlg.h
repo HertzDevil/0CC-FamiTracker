@@ -51,7 +51,7 @@ public:
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
-	virtual void CHead::DrawItem(LPDRAWITEMSTRUCT);
+	virtual void DrawItem(LPDRAWITEMSTRUCT);		// // //
 };
 
 

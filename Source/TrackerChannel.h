@@ -25,7 +25,7 @@
 
 // CTrackerChannel
 
-#include <afxmt.h>	// For CMutex
+#include "stdafx.h"		// // //
 #include "APU/Types.h"		// // //
 #include "PatternNote.h"		// // //
 

@@ -30,7 +30,7 @@
 class CFamiTrackerDoc;
 class CDocumentFile;
 
-enum module_error_level_t; // Settings.h
+enum module_error_level_t : int; // Settings.h
 
 class CFamiTrackerDocIO {
 public:

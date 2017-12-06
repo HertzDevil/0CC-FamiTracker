@@ -28,7 +28,6 @@
 //
 
 #include "stdafx.h"		// // //
-#include <afxmt.h>		// Synchronization objects
 #include "Common.h"
 #include <string>
 #include <vector>		// // //
@@ -57,7 +56,7 @@ enum {
 class stChanNote;		// // //
 struct stRecordSetting;
 
-enum note_prio_t;
+enum note_prio_t : int;		// // //
 
 class CFamiTrackerView;
 class CFamiTrackerDoc;

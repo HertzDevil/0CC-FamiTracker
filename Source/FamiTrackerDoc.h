@@ -24,8 +24,6 @@
 #pragma once
 
 #include "stdafx.h"		// // //
-// Synchronization objects
-#include <afxmt.h>
 
 #include <vector>
 #include <memory>		// // //

@@ -35,7 +35,7 @@
 #include "MainFrm.h"
 
 // Define internal exporters
-const LPTSTR CExportDialog::DEFAULT_EXPORT_NAMES[] = {
+const LPCTSTR CExportDialog::DEFAULT_EXPORT_NAMES[] = {		// // //
 	_T("NSF - Nintendo Sound File"),
 	_T("NES - iNES ROM image"),
 	_T("BIN - Raw music data"),
@@ -385,7 +385,7 @@ void CExportDialog::OnBnClickedPlay()
 //	if (m_strFile.GetLength() == 0)
 //		return;
 
-	char *file = "d:\\test.nsf";
+	const char *file = "d:\\test.nsf";		// // //
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 	CCompiler Compiler(pDoc, new CEditLog(static_cast<CEdit*>(GetDlgItem(IDC_OUTPUT))));

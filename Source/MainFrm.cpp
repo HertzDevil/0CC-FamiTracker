@@ -734,12 +734,14 @@ bool CMainFrame::CreateInstrumentToolbar()
 	m_ilInstToolBar.Add(&m_bmInstToolbar, RGB(255, 0, 255));
 	m_wndInstToolBar.GetToolBarCtrl().SetImageList(&m_ilInstToolBar);
 
+	char name = '\0';		// // //
+
 	rbi.cbSize		= sizeof(REBARBANDINFO);
 	rbi.fMask		= RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_STYLE | RBBIM_TEXT;
 	rbi.fStyle		= RBBS_NOGRIPPER;
 	rbi.cxMinChild	= DPI::SX(300);
 	rbi.cyMinChild	= DPI::SY(30);
-	rbi.lpText		= "";
+	rbi.lpText		= &name;
 	rbi.cch			= 7;
 	rbi.cx			= DPI::SX(300);
 	rbi.hwndChild	= m_wndInstToolBar;

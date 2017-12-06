@@ -34,8 +34,8 @@ class CInstrumentEditorVRC7 : public CInstrumentEditPanel
 public:
 	CInstrumentEditorVRC7(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CInstrumentEditorVRC7();
-	virtual int GetIDD() const { return IDD; };
-	virtual TCHAR *GetTitle() const { return _T("Konami VRC7"); };
+	int GetIDD() const override { return IDD; }
+	LPCTSTR GetTitle() const { return _T("Konami VRC7"); }		// // //
 
 	virtual void SelectInstrument(std::shared_ptr<CInstrument> pInst);
 

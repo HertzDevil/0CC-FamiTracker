@@ -37,7 +37,7 @@ const inst_type_t CInstrumentEditorSeq::INST_TYPE = INST_NONE;
 */
 
 IMPLEMENT_DYNAMIC(CInstrumentEditorSeq, CSequenceInstrumentEditPanel)
-CInstrumentEditorSeq::CInstrumentEditorSeq(CWnd* pParent, TCHAR *Title, LPCTSTR *SeqName, int Vol, int Duty, inst_type_t Type) : 
+CInstrumentEditorSeq::CInstrumentEditorSeq(CWnd* pParent, LPCTSTR Title, LPCTSTR *SeqName, int Vol, int Duty, inst_type_t Type) : 
 	CSequenceInstrumentEditPanel(CInstrumentEditorSeq::IDD, pParent),
 	m_pTitle(Title),
 	m_pSequenceName(SeqName),

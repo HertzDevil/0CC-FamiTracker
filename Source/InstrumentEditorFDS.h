@@ -38,8 +38,8 @@ class CInstrumentEditorFDS : public CInstrumentEditPanel
 public:
 	CInstrumentEditorFDS(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CInstrumentEditorFDS();
-	virtual int GetIDD() const { return IDD; };
-	virtual TCHAR *GetTitle() const { return _T("Nintendo FDS"); };
+	int GetIDD() const override { return IDD; }
+	LPCTSTR GetTitle() const { return _T("Nintendo FDS"); }		// // //
 
 	// Public
 	virtual void SelectInstrument(std::shared_ptr<CInstrument> pInst);

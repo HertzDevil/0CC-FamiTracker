@@ -35,16 +35,6 @@ CCursorPos::CCursorPos(int Row, int Channel, cursor_column_t Column, int Frame) 
 {
 }
 
-const CCursorPos& CCursorPos::operator=(const CCursorPos &pos) 
-{
-	// Copy position
-	m_iRow = pos.m_iRow;
-	m_iColumn = pos.m_iColumn;
-	m_iChannel = pos.m_iChannel;
-	m_iFrame = pos.m_iFrame;		// // //
-	return *this;
-}
-
 bool CCursorPos::operator!=(const CCursorPos &other) const
 {
 	// Unequality check
@@ -177,8 +167,8 @@ bool CSelection::IsColumnSelected(column_t Column, int Channel) const
 void CSelection::Normalize(CCursorPos &Begin, CCursorPos &End) const		// // //
 {
 	CCursorPos Temp {GetRowStart(), GetChanStart(), GetColStart(), GetFrameStart()};
-	std::swap(End, CCursorPos {GetRowEnd(), GetChanEnd(), GetColEnd(), GetFrameEnd()});
-	std::swap(Begin, Temp);
+	End = CCursorPos {GetRowEnd(), GetChanEnd(), GetColEnd(), GetFrameEnd()};
+	Begin = Temp;
 }
 
 CSelection CSelection::GetNormalized() const

@@ -771,7 +771,7 @@ BOOL CFamiTrackerView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	else
 		m_pPatternEditor->OnMouseScroll(zDelta);
 
-	pAction ? AddAction(std::move(pAction)) : InvalidateCursor();
+	pAction ? (void)AddAction(std::move(pAction)) : InvalidateCursor();
 	
 	return CView::OnMouseWheel(nFlags, zDelta, pt);
 }

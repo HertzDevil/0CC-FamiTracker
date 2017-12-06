@@ -26,7 +26,6 @@
 // Visualizer classes
 
 #include "stdafx.h"		// // //
-#include <afxmt.h>		// Synchronization objects
 
 class CVisualizerBase;		// // //
 

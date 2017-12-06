@@ -122,9 +122,9 @@ void CInstrumentManager::ClearAll()
 			ptr->RegisterManager(nullptr);
 		ptr.reset();
 	}
-	for (int i = 0; i < SEQ_MANAGER_COUNT; i++)
-		m_pSequenceManager[i].swap(std::make_unique<CSequenceManager>(i == 2 ? 3 : SEQ_COUNT));
-	m_pDSampleManager.swap(std::make_unique<CDSampleManager>());
+	for (int i = 0; i < SEQ_MANAGER_COUNT; ++i)
+		m_pSequenceManager[i] = std::make_unique<CSequenceManager>(i == 2 ? 3 : SEQ_COUNT);
+	m_pDSampleManager = std::make_unique<CDSampleManager>();
 }
 
 bool CInstrumentManager::IsInstrumentUsed(unsigned int Index) const

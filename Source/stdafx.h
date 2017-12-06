@@ -62,6 +62,8 @@
 
 #define NO_WARN_MBCS_MFC_DEPRECATION		// // // MBCS
 
+struct IUnknown;		// // // /permissive-
+
 #include <afx.h>
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
@@ -70,6 +72,7 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 #include <afxdlgs.h>
 #include <afxole.h>        // MFC OLE support
+#include <afxmt.h>		// // // For CMutex
 
 // // // Releasing pointers
 // TODO: remove
@@ -99,10 +102,10 @@ inline void SAFE_RELEASE_ARRAY(T *&p) {
 #ifdef _DEBUG
 #define new DEBUG_NEW
 template <typename... T>
-bool _trace(TCHAR *format, T... args)
+bool _trace(const TCHAR *format, T&&... args)
 {
 	TCHAR buffer[1000];
-	_sntprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, args...);
+	_sntprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, static_cast<T&&>(args)...);
 	OutputDebugString(buffer);
 
 	return true;

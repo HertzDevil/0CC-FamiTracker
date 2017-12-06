@@ -53,7 +53,7 @@ CString Formatted(const char *fmt, Args&&... args) {
 	return str;
 }
 
-const char *Charify(CString& s) {		// // //
+const char *Charify(const CString &s) {		// // //
 	return CT2CA((LPCTSTR)s, CP_UTF8);
 }
 
@@ -517,11 +517,11 @@ CString CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEffe
 	}
 
 	tmp.Format(_T(" %02X"), stCell.Instrument);
-	s += (stCell.Instrument == MAX_INSTRUMENTS) ? _T(" ..") :
-		(stCell.Instrument == HOLD_INSTRUMENT) ? _T(" &&") : tmp;		// // // 050B
+	s += (stCell.Instrument == MAX_INSTRUMENTS) ? CString(_T(" ..")) :
+		(stCell.Instrument == HOLD_INSTRUMENT) ? CString(_T(" &&")) : tmp;		// // // 050B
 
 	tmp.Format(_T(" %01X"), stCell.Vol);
-	s += (stCell.Vol == 0x10) ? _T(" .") : tmp;
+	s += (stCell.Vol == 0x10) ? CString(_T(" .")) : tmp;		// // //
 
 	for (unsigned int e=0; e < nEffects; ++e)
 	{

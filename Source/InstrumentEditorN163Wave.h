@@ -38,8 +38,8 @@ class CInstrumentEditorN163Wave : public CInstrumentEditPanel
 public:
 	CInstrumentEditorN163Wave(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CInstrumentEditorN163Wave();
-	virtual int GetIDD() const { return IDD; };
-	virtual TCHAR *GetTitle() const { return _T("Wave"); };
+	int GetIDD() const override { return IDD; }
+	LPCTSTR GetTitle() const { return _T("Wave"); }		// // //
 
 	// Public
 	virtual void SelectInstrument(std::shared_ptr<CInstrument> pInst);

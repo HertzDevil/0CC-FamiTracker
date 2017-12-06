@@ -48,7 +48,7 @@ protected:
 
 protected:
 	static const exportFunc_t DEFAULT_EXPORT_FUNCS[];
-	static const LPTSTR		  DEFAULT_EXPORT_NAMES[];
+	static const LPCTSTR	  DEFAULT_EXPORT_NAMES[];		// // //
 	static const int		  DEFAULT_EXPORTERS;
 
 	static LPCTSTR NSF_FILTER[2];

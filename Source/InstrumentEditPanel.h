@@ -44,7 +44,7 @@ public:
 	CInstrumentEditPanel(UINT nIDTemplate, CWnd* pParent = NULL);   // standard constructor
 	virtual ~CInstrumentEditPanel();
 	virtual int GetIDD() const = 0;
-	virtual TCHAR *GetTitle() const = 0;
+	virtual LPCTSTR GetTitle() const = 0;		// // //
 
 	// Select instrument for the editing
 	virtual void SelectInstrument(std::shared_ptr<CInstrument> pInst) = 0;		// // //
