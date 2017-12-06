@@ -39,6 +39,8 @@ public:
 	virtual ~CChannel() noexcept = default;
 	virtual void EndFrame();
 
+	chan_id_t GetChannelType() const;		// // //
+
 	virtual double GetFrequency() const = 0;		// // //
 
 protected:

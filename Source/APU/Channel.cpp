@@ -31,6 +31,10 @@ void CChannel::EndFrame() {
 	m_iTime = 0;
 }
 
+chan_id_t CChannel::GetChannelType() const {		// // //
+	return m_iChanId;
+}
+
 void CChannel::Mix(int32_t Value) {
 	if (Value != m_iLastValue) {
 		m_pMixer->AddValue(m_iChanId, Value - m_iLastValue, m_iTime);

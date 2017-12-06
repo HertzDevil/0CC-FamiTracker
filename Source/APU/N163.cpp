@@ -58,8 +58,8 @@ CN163::CN163(CMixer *pMixer) :
 
 void CN163::Reset()
 {
-	for (int i = 0; i < 8; ++i)
-		m_Channels[i].Reset();
+	for (auto &ch : m_Channels)		// // //
+		ch.Reset();
 
 	m_iLastValue = 0;
 
@@ -73,6 +73,8 @@ void CN163::Reset()
 void CN163::SetMixingMethod(bool bLinear)		// // //
 {
 	m_bOldMixing = bLinear;
+	for (auto &ch : m_Channels)
+		ch.Reset();
 }
 
 void CN163::Process(uint32_t Time)
@@ -240,6 +242,8 @@ void CN163Chan::Reset()
 	m_iLastSample = 0;
 	m_iPhase	  = 0;
 	m_iFrequency  = 0;
+
+	Mix(0);		// // //
 
 	EndFrame();
 }
