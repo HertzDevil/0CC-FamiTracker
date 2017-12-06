@@ -426,6 +426,7 @@
     <ClCompile Include="Source\APU\ext\emu2413.c" />
     <ClCompile Include="Source\APU\ext\FDSSound.cpp" />
     <ClCompile Include="Source\APU\MixerChannel.cpp" />
+    <ClCompile Include="Source\APU\MixerLevels.cpp" />
     <ClCompile Include="Source\APU\MMC5.cpp" />
     <ClCompile Include="Source\APU\N163.cpp" />
     <ClCompile Include="Source\APU\S5B.cpp" />
@@ -608,6 +609,7 @@
     <ClInclude Include="Source\APU\ext\FDSSound.h" />
     <ClInclude Include="Source\APU\ext\vrc7tone.h" />
     <ClInclude Include="Source\APU\MixerChannel.h" />
+    <ClInclude Include="Source\APU\MixerLevels.h" />
     <ClInclude Include="Source\APU\S5B.h" />
     <ClInclude Include="Source\APU\SampleMem.h" />
     <ClInclude Include="Source\Arpeggiator.h" />

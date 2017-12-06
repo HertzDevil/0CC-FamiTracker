@@ -23,42 +23,33 @@
 
 #pragma once
 
-#include "Types.h"
-#include "../Blip_Buffer/blip_buffer.h"
+//#define LINEAR_MIXING
 
-class CMixerChannelBase {
-public:
-	explicit CMixerChannelBase(unsigned maxVol);
+enum chan_id_t;
 
-	void SetVolume(double vol);
-	void SetMixerLevel(double level);
-	void SetLowPass(const blip_eq_t &eq);
+struct stLevels2A03SS {
+	void Offset(chan_id_t ChanID, int Value);
+	double CalcPin() const;
 
 private:
-	template <typename> friend class CMixerChannel;
-	Blip_Synth<blip_good_quality> synth_;
-	double level_ = 1.;
-	double lastSum_ = 0.;
+	int sq1_ = 0;
+	int sq2_ = 0;
 };
 
-template <typename T>
-class CMixerChannel : public CMixerChannelBase {
-public:
-	using CMixerChannelBase::CMixerChannelBase;
-
-	void AddValue(chan_id_t ChanID, int Value, int FrameCycles, Blip_Buffer &bb) {
-		levels_.Offset(ChanID, Value);
-		const double prev = lastSum_;
-		lastSum_ = levels_.CalcPin();
-		const double Delta = lastSum_ - prev;
-		synth_.offset(FrameCycles, static_cast<int>(Delta), &bb);
-	}
-
-	void ResetDelta() {
-		lastSum_ = 0;
-		levels_ = T { };
-	}
+struct stLevels2A03TND {
+	void Offset(chan_id_t ChanID, int Value);
+	double CalcPin() const;
 
 private:
-	T levels_;
+	int tri_ = 0;
+	int noi_ = 0;
+	int dmc_ = 0;
+};
+
+struct stLevelsMono {
+	void Offset(chan_id_t ChanID, int Value);
+	double CalcPin() const;
+
+private:
+	int lvl_ = 0;
 };

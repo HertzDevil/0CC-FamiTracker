@@ -32,6 +32,8 @@ void CChannel::EndFrame() {
 }
 
 void CChannel::Mix(int32_t Value) {
-	if (Value != m_iLastValue)
-		m_pMixer->AddValue(m_iChanId, (m_iLastValue = Value), m_iTime);
+	if (Value != m_iLastValue) {
+		m_pMixer->AddValue(m_iChanId, Value - m_iLastValue, m_iTime);
+		m_iLastValue = Value;
+	}
 }

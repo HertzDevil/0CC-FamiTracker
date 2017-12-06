@@ -52,68 +52,15 @@
 
 */
 
-#include "../stdafx.h"
+#include "Mixer.h"
+#include <algorithm>		// // //
 #include <memory>
 #include <cmath>
-#include "Mixer.h"
 #include "APU.h"
 #include "ext/emu2413.h"		// // //
 
-//#define LINEAR_MIXING
-
-static const double AMP_2A03 = 400.0;
-
 static const float LEVEL_FALL_OFF_RATE	= 0.6f;
 static const int   LEVEL_FALL_OFF_DELAY = 3;
-
-
-
-double CMixer::stLevels2A03SS::CalcPin() const {
-#ifdef LINEAR_MIXING
-	double SumL = (sq1_.Left  + sq2_.Left ) * 0.00752 * InternalVol;
-	double SumR = (sq1_.Right + sq2_.Right) * 0.00752 * InternalVol;
-#endif
-	if ((sq1_ + sq2_) > 0)
-		return AMP_2A03 * 95.88 / (100.0 + 8128.0 / (sq1_ + sq2_));
-	return 0;
-}
-
-void CMixer::stLevels2A03SS::UpdateLevel(chan_id_t ChanID, int Value) {
-	switch (ChanID) {
-	case CHANID_SQUARE1: sq1_ = Value; break;
-	case CHANID_SQUARE2: sq2_ = Value; break;
-	}
-}
-
-
-
-double CMixer::stLevels2A03TND::CalcPin() const {
-#ifdef LINEAR_MIXING
-	double SumL = (0.00851 * tri_.Left  + 0.00494 * noi_.Left  + 0.00335 * dmc_.Left ) * InternalVol;
-	double SumR = (0.00851 * tri_.Right + 0.00494 * noi_.Right + 0.00335 * dmc_.Right) * InternalVol;
-#endif
-	if ((tri_ + noi_ + dmc_) > 0)
-		return AMP_2A03 * 159.79 / (100.0 + 1.0 / (tri_ / 8227.0 + noi_ / 12241.0 + dmc_ / 22638.0));
-	return 0;
-}
-
-void CMixer::stLevels2A03TND::UpdateLevel(chan_id_t ChanID, int Value) {
-	switch (ChanID) {
-	case CHANID_TRIANGLE: tri_ = Value; break;
-	case CHANID_NOISE:    noi_ = Value; break;
-	case CHANID_DPCM:     dmc_ = Value; break;
-	}
-}
-
-
-
-void CMixer::stLevelsMono::UpdateLevel(chan_id_t /*ChanID*/, int Value) {
-	lvl_ = Value;
-}
-
-double CMixer::stLevelsMono::CalcPin() {
-	return lvl_;
-}
 
 
 
@@ -131,27 +78,20 @@ void CMixer::SetNamcoMixing(bool bLinear)		// // //
 void CMixer::SetChipLevel(chip_level_t Chip, float Level)
 {
 	switch (Chip) {
-		case CHIP_LEVEL_APU1:
-			m_fLevelAPU1 = Level;
-			break;
-		case CHIP_LEVEL_APU2:
-			m_fLevelAPU2 = Level;
-			break;
-		case CHIP_LEVEL_VRC6:
-			m_fLevelVRC6 = Level;
-			break;
-		case CHIP_LEVEL_MMC5:
-			m_fLevelMMC5 = Level;
-			break;
-		case CHIP_LEVEL_FDS:
-			m_fLevelFDS = Level;
-			break;
-		case CHIP_LEVEL_N163:
-			m_fLevelN163 = Level;
-			break;
-		case CHIP_LEVEL_S5B:		// // // 050B
-			m_fLevelS5B = Level;
-			break;
+	case CHIP_LEVEL_APU1:
+		levels2A03SS_.SetMixerLevel(Level); break;
+	case CHIP_LEVEL_APU2:
+		levels2A03TND_.SetMixerLevel(Level); break;
+	case CHIP_LEVEL_VRC6:
+		levelsVRC6_.SetMixerLevel(Level); break;
+	case CHIP_LEVEL_MMC5:
+		levelsMMC5_.SetMixerLevel(Level); break;
+	case CHIP_LEVEL_FDS:
+		levelsFDS_.SetMixerLevel(Level); break;
+	case CHIP_LEVEL_N163:
+		levelsN163_.SetMixerLevel(Level); break;
+	case CHIP_LEVEL_S5B:		// // // 050B
+		levelsS5B_.SetMixerLevel(Level); break;
 	}
 }
 
@@ -207,16 +147,8 @@ void CMixer::UpdateSettings(int LowCut,	int HighCut, int HighDamp, float Overall
 	levelsMMC5_.SetLowPass(eq);
 	levelsS5B_.SetLowPass(eq);
 
-	// N163 special filtering
-	double n163_treble = 24;
-	if (m_iHighDamp > n163_treble)
-		n163_treble = m_iHighDamp;
-
-	long n163_rolloff = 12000;
-	if (n163_rolloff > m_iHighCut)
-		n163_rolloff = m_iHighCut;
-
-	levelsN163_.SetLowPass({-n163_treble, n163_rolloff, (long)m_iSampleRate});
+	// // // N163 special filtering
+	levelsN163_.SetLowPass({-(double)std::max(24, m_iHighDamp), std::min(m_iHighCut, 12000), (long)m_iSampleRate});
 
 	// FDS special filtering (TODO fix this for high sample rates)
 	levelsFDS_.SetLowPass({-48, 1000, (long)m_iSampleRate});
@@ -224,22 +156,22 @@ void CMixer::UpdateSettings(int LowCut,	int HighCut, int HighDamp, float Overall
 	float Volume = m_fOverallVol * GetAttenuation();
 
 	// Volume levels
-	levels2A03SS_.SetVolume(Volume * m_fLevelAPU1);
-	levels2A03TND_.SetVolume(Volume * m_fLevelAPU2);
-	levelsVRC6_.SetVolume(Volume * 3.98333f * m_fLevelVRC6);
-	levelsFDS_.SetVolume(Volume * 1.00f * m_fLevelFDS);
-	levelsMMC5_.SetVolume(Volume * 1.18421f * m_fLevelMMC5);
+	levels2A03SS_.SetVolume(Volume);
+	levels2A03TND_.SetVolume(Volume);
+	levelsVRC6_.SetVolume(Volume * 3.98333f);
+	levelsFDS_.SetVolume(Volume * 1.00f);
+	levelsMMC5_.SetVolume(Volume * 1.18421f);
 	
 	// Not checked
-	levelsS5B_.SetVolume(Volume * m_fLevelS5B);		// // // 050B
-	levelsN163_.SetVolume(Volume * 1.1f * m_fLevelN163);
+	levelsS5B_.SetVolume(Volume);		// // // 050B
+	levelsN163_.SetVolume(Volume * 1.1f);
 }
 
 void CMixer::SetNamcoVolume(float fVol)
 {
 	float fVolume = fVol * m_fOverallVol * GetAttenuation();
 
-	levelsN163_.SetVolume(fVolume * 1.1f * m_fLevelN163);
+	levelsN163_.SetVolume(fVolume * 1.1f);
 }
 
 int CMixer::GetMeterDecayRate() const		// // // 050B
@@ -329,12 +261,6 @@ int CMixer::FinishBuffer(int t)
 // Mixing
 //
 
-/*
-CMixerChannel<CMixerPin<CHANID_SQUARE1>, CMixerPin<CHANID_SQUARE2>>
-CMixerChannel<CMixerPin<CHANID_TRIANGLE>, CMixerPin<CHANID_NOISE>, CMixerPin<CHANID_DPCM>>
-CMixerChannel<CMixerPin<CHANID_VRC6_PULSE1, CHANID_VRC6_PULSE2, CHANID_VRC6_SAWTOOTH>>
-*/
-
 void CMixer::AddValue(chan_id_t ChanID, int Value, int FrameCycles) {		// // //
 	switch (ChanID) {
 	case CHANID_SQUARE1: case CHANID_SQUARE2:
@@ -352,6 +278,8 @@ void CMixer::AddValue(chan_id_t ChanID, int Value, int FrameCycles) {		// // //
 		levelsN163_.AddValue(ChanID, Value, FrameCycles, BlipBuffer); break;
 	case CHANID_S5B_CH1: case CHANID_S5B_CH2: case CHANID_S5B_CH3:		// // // 050B
 		levelsS5B_.AddValue(ChanID, Value, FrameCycles, BlipBuffer); break;
+	default:
+		return;
 	}
 
 	StoreChannelLevel(ChanID, Value);

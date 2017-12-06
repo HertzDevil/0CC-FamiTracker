@@ -28,7 +28,11 @@ CMixerChannelBase::CMixerChannelBase(unsigned maxVol) :
 }
 
 void CMixerChannelBase::SetVolume(double vol) {
-	synth_.volume(vol);
+	synth_.volume(level_ * vol);
+}
+
+void CMixerChannelBase::SetMixerLevel(double level) {
+	level_ = level;
 }
 
 void CMixerChannelBase::SetLowPass(const blip_eq_t &eq) {

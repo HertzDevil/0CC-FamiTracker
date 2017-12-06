@@ -23,9 +23,8 @@
 
 #pragma once
 
-#include <utility>		// // //
-#include "Types.h"
 #include "MixerChannel.h"		// // //
+#include "MixerLevels.h"		// // //
 #include "../Common.h"
 #include "../Blip_Buffer/blip_buffer.h"
 
@@ -39,6 +38,8 @@ enum chip_level_t {
 	CHIP_LEVEL_N163,
 	CHIP_LEVEL_S5B
 };
+
+enum chan_id_t;		// // //
 
 class CMixer
 {
@@ -78,33 +79,6 @@ private:
 	// Blip buffer object
 	Blip_Buffer	BlipBuffer;
 
-	struct stLevels2A03SS {
-		void UpdateLevel(chan_id_t ChanID, int Value);
-		double CalcPin() const;
-
-	private:
-		int32_t sq1_ = 0;
-		int32_t sq2_ = 0;
-	};
-
-	struct stLevels2A03TND {
-		void UpdateLevel(chan_id_t ChanID, int Value);
-		double CalcPin() const;
-
-	private:
-		int32_t tri_ = 0;
-		int32_t noi_ = 0;
-		int32_t dmc_ = 0;
-	};
-
-	struct stLevelsMono {
-		void UpdateLevel(chan_id_t ChanID, int Value);
-		double CalcPin();
-
-	private:
-		int32_t lvl_ = 0;
-	};
-
 	CMixerChannel<stLevels2A03SS> levels2A03SS_ {500};
 	CMixerChannel<stLevels2A03TND> levels2A03TND_ {500};
 	CMixerChannel<stLevelsMono> levelsVRC6_ {500};
@@ -124,14 +98,6 @@ private:
 	int			m_iHighCut = 0;
 	int			m_iHighDamp = 0;
 	float		m_fOverallVol = 1.f;
-
-	float		m_fLevelAPU1 = 1.f;
-	float		m_fLevelAPU2 = 1.f;
-	float		m_fLevelVRC6 = 1.f;
-	float		m_fLevelMMC5 = 1.f;
-	float		m_fLevelFDS  = 1.f;
-	float		m_fLevelN163 = 1.f;
-	float		m_fLevelS5B  = 1.f;		// // // 050B
 
 	bool		m_bNamcoMixing = false;		// // //
 };

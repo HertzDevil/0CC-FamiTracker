@@ -59,9 +59,6 @@
     <Filter Include="Source Files\Sound Driver\Emulation">
       <UniqueIdentifier>{e93ebf97-6cad-454c-bc8e-d640f86cd266}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Sound Driver\Emulation\Blip_Buffer">
-      <UniqueIdentifier>{b8dcf07e-2ab4-4484-bc8c-3d621cabc475}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Sound Driver\Channels">
       <UniqueIdentifier>{b110f709-fbbc-4650-ab08-83c932118b03}</UniqueIdentifier>
     </Filter>
@@ -95,9 +92,6 @@
     </Filter>
     <Filter Include="Header Files\Sound Driver Headers\Emulation Headers">
       <UniqueIdentifier>{5c52a1c6-b7f6-4738-966a-360aea51831d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Sound Driver Headers\Blip_Buffer Headers">
-      <UniqueIdentifier>{acdc884a-b8a0-4fe3-9890-d0ecbdcbeb52}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Sound Driver Headers\Channels Headers">
       <UniqueIdentifier>{4ae5bef7-3b31-4788-9cf0-78d12b7300f9}</UniqueIdentifier>
@@ -225,6 +219,12 @@
     </Filter>
     <Filter Include="Source Files\Document Utilities">
       <UniqueIdentifier>{af9b230a-5b56-49e5-a408-836b2bcc9ca1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Sound Driver\Audio\Blip_Buffer">
+      <UniqueIdentifier>{b8dcf07e-2ab4-4484-bc8c-3d621cabc475}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Sound Driver Headers\Audio Headers\Blip_Buffer Headers">
+      <UniqueIdentifier>{acdc884a-b8a0-4fe3-9890-d0ecbdcbeb52}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -420,9 +420,6 @@
     <ClCompile Include="Source\Apu\APU.cpp">
       <Filter>Source Files\Sound Driver\Emulation</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Apu\Mixer.cpp">
-      <Filter>Source Files\Sound Driver\Emulation</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Apu\DPCM.cpp">
       <Filter>Source Files\Sound Driver\Emulation\Internal Channels</Filter>
     </ClCompile>
@@ -445,7 +442,7 @@
       <Filter>Source Files\Sound Driver\Emulation\Sound Chips</Filter>
     </ClCompile>
     <ClCompile Include="Source\Blip_Buffer\Blip_Buffer.cpp">
-      <Filter>Source Files\Sound Driver\Emulation\Blip_Buffer</Filter>
+      <Filter>Source Files\Sound Driver\Audio\Blip_Buffer</Filter>
     </ClCompile>
     <ClCompile Include="Source\ChannelHandler.cpp">
       <Filter>Source Files\Sound Driver\Channels</Filter>
@@ -636,9 +633,6 @@
     <ClCompile Include="Source\RegisterState.cpp">
       <Filter>Source Files\Sound Driver\Emulation</Filter>
     </ClCompile>
-    <ClCompile Include="Source\APU\SoundChip.cpp">
-      <Filter>Source Files\Sound Driver\Emulation</Filter>
-    </ClCompile>
     <ClCompile Include="Source\NoteQueue.cpp">
       <Filter>Source Files\Sound Driver</Filter>
     </ClCompile>
@@ -732,9 +726,6 @@
     <ClCompile Include="Source\RegisterDisplay.cpp">
       <Filter>Source Files\Pattern Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Source\APU\Channel.cpp">
-      <Filter>Source Files\Sound Driver\Emulation</Filter>
-    </ClCompile>
     <ClCompile Include="Source\APU\2A03Chan.cpp">
       <Filter>Source Files\Sound Driver\Emulation\Internal Channels</Filter>
     </ClCompile>
@@ -761,6 +752,18 @@
     </ClCompile>
     <ClCompile Include="Source\APU\MixerChannel.cpp">
       <Filter>Source Files\Sound Driver</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\APU\MixerLevels.cpp">
+      <Filter>Source Files\Sound Driver</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\APU\Channel.cpp">
+      <Filter>Source Files\Sound Driver\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\APU\SoundChip.cpp">
+      <Filter>Source Files\Sound Driver\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Apu\Mixer.cpp">
+      <Filter>Source Files\Sound Driver\Audio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -797,12 +800,6 @@
     <ClInclude Include="Source\Apu\APU.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Apu\Channel.h">
-      <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Apu\Mixer.h">
-      <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\APU\Types.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
     </ClInclude>
@@ -834,7 +831,7 @@
       <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\Blip_Buffer\Blip_Buffer.h">
-      <Filter>Header Files\Sound Driver Headers\Blip_Buffer Headers</Filter>
+      <Filter>Header Files\Sound Driver Headers\Audio Headers\Blip_Buffer Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\ChannelHandler.h">
       <Filter>Header Files\Sound Driver Headers\Channels Headers</Filter>
@@ -1241,9 +1238,6 @@
     <ClInclude Include="Source\CompoundAction.h">
       <Filter>Header Files\Components Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Apu\SoundChip.h">
-      <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\RegisterState.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
     </ClInclude>
@@ -1385,8 +1379,20 @@
     <ClInclude Include="Source\APU\ext\vrc7tone.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers\External</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Apu\Channel.h">
+      <Filter>Header Files\Sound Driver Headers\Audio Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Apu\Mixer.h">
+      <Filter>Header Files\Sound Driver Headers\Audio Headers</Filter>
+    </ClInclude>
     <ClInclude Include="Source\APU\MixerChannel.h">
-      <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
+      <Filter>Header Files\Sound Driver Headers\Audio Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\APU\MixerLevels.h">
+      <Filter>Header Files\Sound Driver Headers\Audio Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Apu\SoundChip.h">
+      <Filter>Header Files\Sound Driver Headers\Audio Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
