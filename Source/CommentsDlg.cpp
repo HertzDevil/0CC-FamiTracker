@@ -25,7 +25,7 @@
 // CCommentsDlg dialog
 
 // Font
-LPCTSTR CCommentsDlg::FONT_FACE = _T("Courier");
+const LPCTSTR CCommentsDlg::FONT_FACE = _T("Courier");		// // //
 int		CCommentsDlg::FONT_SIZE = 12;
 
 RECT CCommentsDlg::WinRect;

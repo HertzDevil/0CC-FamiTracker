@@ -31,7 +31,7 @@
 
 // Sequence setting menu
 
-static LPCTSTR SEQ_SETTING_TEXT[][SEQ_COUNT] = {		// // // 050B
+static const LPCTSTR SEQ_SETTING_TEXT[][SEQ_COUNT] = {		// // // 050B
 	{_T("16 steps"), _T("Absolute"), _T("Relative"), nullptr, nullptr},
 	{_T("64 steps"),    _T("Fixed"), _T("Absolute"), nullptr, nullptr},
 #ifdef _DEBUG

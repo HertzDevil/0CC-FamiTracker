@@ -71,12 +71,14 @@ END_MESSAGE_MAP()
 
 // CDetuneDlg message handlers
 
-const TCHAR *CDetuneDlg::m_pNote[12]	 = {_T("C") , _T("C#"), _T("D") , _T("D#")
-										  , _T("E") , _T("F") , _T("F#"), _T("G")
-										  , _T("G#"), _T("A") , _T("A#"), _T("B")};
-const TCHAR *CDetuneDlg::m_pNoteFlat[12] = {_T("C") , _T("D-"), _T("D") , _T("E-")
-										  , _T("E") , _T("F") , _T("G-"), _T("G")
-										  , _T("A-"), _T("A") , _T("B-"), _T("B")};
+const LPCTSTR CDetuneDlg::m_pNote[12]	 = {
+	_T("C") , _T("C#"), _T("D") , _T("D#"), _T("E") , _T("F"),
+	_T("F#"), _T("G") , _T("G#"), _T("A") , _T("A#"), _T("B"),
+};
+const LPCTSTR CDetuneDlg::m_pNoteFlat[12] = {
+	_T("C") , _T("D-"), _T("D") , _T("E-"), _T("E") , _T("F"),
+	_T("G-"), _T("G") , _T("A-"), _T("A") , _T("B-"), _T("B"),
+};
 const CString CDetuneDlg::CHIP_STR[6] = {_T("NTSC"), _T("PAL"), _T("Saw"), _T("VRC7"), _T("FDS"), _T("N163")};
 
 BOOL CDetuneDlg::OnInitDialog()

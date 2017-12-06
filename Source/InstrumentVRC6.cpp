@@ -23,4 +23,4 @@
 // // // CInstrumentVRC6 is a subtype of CSeqInstrument.
 #include "InstrumentVRC6.h"
 
-const char *CInstrumentVRC6::SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "Pulse Width"};
+const char *const CInstrumentVRC6::SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "Pulse Width"};

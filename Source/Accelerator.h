@@ -72,10 +72,10 @@ public:
 
 public:
 	// Class member constants
-	static LPCTSTR			  MOD_NAMES[];							// Strings for modifiers
+	static const LPCTSTR	  MOD_NAMES[];							// Strings for modifiers
 	static const std::vector<stAccelEntry> DEFAULT_TABLE;			// // // List of default shortcuts
 	static const int		  ACCEL_COUNT;							// Number of shortcuts
-	static LPCTSTR			  SHORTCUTS_SECTION;					// Registry section
+	static const LPCTSTR	  SHORTCUTS_SECTION;					// Registry section
 
 private:
 	HACCEL	m_hAccel = nullptr;

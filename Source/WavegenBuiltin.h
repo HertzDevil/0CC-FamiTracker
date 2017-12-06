@@ -41,10 +41,10 @@ protected:
 protected:
 	bool m_bSuccess;
 	const char *m_pName;
-	const char **m_pError;
+	const char *const *m_pError;
 
 private:
-	static const char *DEFAULT_ERROR;
+	static const char *const DEFAULT_ERROR;
 };
 
 class CWavegenSingle : public CWavegenImp {
@@ -53,7 +53,7 @@ public:
 	virtual bool CreateWaves(float *const Dest, unsigned int Size, unsigned int Index);
 	unsigned int GetCount() const;
 private:
-	static const char *COUNT_ERROR;
+	static const char *const COUNT_ERROR;
 };
 
 class CWavegenSine : public CWavegenSingle {
@@ -89,5 +89,5 @@ protected:
 	const char *CreateWavesInternal(float *const Dest, unsigned int Size, unsigned int Index) const;
 private:
 	CWavegenParamFloat *m_pPulseWidth;
-	static const char *PULSE_WIDTH_ERROR;
+	static const char *const PULSE_WIDTH_ERROR;
 };

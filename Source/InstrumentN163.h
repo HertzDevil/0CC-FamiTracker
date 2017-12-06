@@ -65,7 +65,7 @@ public:
 	static const int MAX_WAVE_COUNT = 64;		// Number of waves
 
 public:
-	static const char *SEQUENCE_NAME[];
+	static const char *const SEQUENCE_NAME[];
 	const char *GetSequenceName(int Index) const override { return SEQUENCE_NAME[Index]; }		// // //
 
 private:

@@ -84,8 +84,8 @@ public:
 	static const unsigned int FILE_VER;
 	static const unsigned int COMPATIBLE_VER;
 
-	static const char *FILE_HEADER_ID;
-	static const char *FILE_END_ID;
+	static const char *const FILE_HEADER_ID;		// // //
+	static const char *const FILE_END_ID;
 
 	static const unsigned int MAX_BLOCK_SIZE;
 	static const unsigned int BLOCK_SIZE;

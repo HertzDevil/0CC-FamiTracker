@@ -29,7 +29,7 @@
 
 // 2A03 instruments
 
-const char *CInstrument2A03::SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "Duty / Noise"};
+const char *const CInstrument2A03::SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "Duty / Noise"};
 
 CInstrument2A03::CInstrument2A03() : CSeqInstrument(INST_2A03),		// // //
 	m_cSamples(),

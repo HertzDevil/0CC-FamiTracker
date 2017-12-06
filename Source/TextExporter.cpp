@@ -494,7 +494,7 @@ CString CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEffe
 {
 	CString tmp;
 
-	static LPCTSTR TEXT_NOTE[ECHO+1] = {		// // //
+	static const LPCTSTR TEXT_NOTE[ECHO+1] = {		// // //
 		_T("..."),
 		_T("C-?"), _T("C#?"), _T("D-?"), _T("D#?"), _T("E-?"), _T("F-?"),
 		_T("F#?"), _T("G-?"), _T("G#?"), _T("A-?"), _T("A#?"), _T("B-?"),
@@ -1159,7 +1159,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 		auto pInst = pDoc->GetInstrument(i);
 		if (!pInst) continue;
 
-		const TCHAR *CTstr = nullptr;		// // //
+		LPCTSTR CTstr = nullptr;		// // //
 		switch (pInst->GetType()) {
 		case INST_2A03:	CTstr = CT[CT_INST2A03]; break;
 		case INST_VRC6:	CTstr = CT[CT_INSTVRC6]; break;

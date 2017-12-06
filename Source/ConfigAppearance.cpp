@@ -29,7 +29,7 @@
 #include <string>
 #include <sstream>
 
-const TCHAR *CConfigAppearance::COLOR_ITEMS[] = {
+const LPCTSTR CConfigAppearance::COLOR_ITEMS[] = {		// // //
 	_T("Background"), 
 	_T("Highlighted background"),
 	_T("Highlighted background 2"),
@@ -46,8 +46,8 @@ const TCHAR *CConfigAppearance::COLOR_ITEMS[] = {
 	_T("Current row (playing)")
 };
 
-const char *CConfigAppearance::SETTING_SEPARATOR = " : ";		// // // 050B
-const char *CConfigAppearance::HEX_PREFIX = "0x";		// // // 050B
+const char *const CConfigAppearance::SETTING_SEPARATOR = " : ";		// // // 050B
+const char *const CConfigAppearance::HEX_PREFIX = "0x";		// // // 050B
 
 // Pre-defined color schemes
 const COLOR_SCHEME *CConfigAppearance::COLOR_SCHEMES[] = {

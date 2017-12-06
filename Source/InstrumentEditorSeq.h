@@ -36,7 +36,7 @@ class CInstrumentEditorSeq : public CSequenceInstrumentEditPanel
 	DECLARE_DYNAMIC(CInstrumentEditorSeq)
 
 public:
-	CInstrumentEditorSeq(CWnd* pParent, LPCTSTR Title, LPCTSTR *SeqName, int Vol, int Duty, inst_type_t Type);
+	CInstrumentEditorSeq(CWnd* pParent, LPCTSTR Title, const LPCTSTR *SeqName, int Vol, int Duty, inst_type_t Type);
 	int GetIDD() const override { return IDD; }
 	LPCTSTR GetTitle() const override { return m_pTitle; }
 
@@ -54,7 +54,7 @@ protected:
 	void SetupParser() const override;		// // //
 
 protected:
-	LPCTSTR *m_pSequenceName;
+	const LPCTSTR *m_pSequenceName;
 	LPCTSTR m_pTitle;
 	const int m_iMaxVolume;
 	const int m_iMaxDuty;

@@ -28,7 +28,7 @@
 
 // Used to handle channels in a future version. Not finished.
 
-const TCHAR *ROOT_ITEMS[] = {
+const LPCTSTR ROOT_ITEMS[] = {		// // //
 	_T("2A03/2A07"), 
 	_T("Konami VRC6"), 
 	_T("Konami VRC7"), 
@@ -55,7 +55,7 @@ const int CHILD_ITEMS_ID[ROOT_ITEM_COUNT][9] = {
 	{CHANID_S5B_CH1, CHANID_S5B_CH2, CHANID_S5B_CH3}
 };
 
-const TCHAR *CHILD_ITEMS[ROOT_ITEM_COUNT][9] = {
+const LPCTSTR CHILD_ITEMS[ROOT_ITEM_COUNT][9] = {		// // //
 	// 2A03
 	{_T("Square 1"), _T("Square 2"), _T("Triangle"), _T("Noise"), _T("DPCM")},
 	// VRC 6

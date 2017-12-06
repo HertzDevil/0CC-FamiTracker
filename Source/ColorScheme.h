@@ -26,8 +26,8 @@
 #include "stdafx.h"
 
 // Default font
-const static TCHAR *FONT_FACE = _T("Verdana");
-const static int FONT_SIZE	  = 12;
+const LPCTSTR FONT_FACE = _T("Verdana");		// // //
+const int FONT_SIZE	  = 12;
 
 // Static colors
 const struct {

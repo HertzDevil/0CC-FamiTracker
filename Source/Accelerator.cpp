@@ -31,7 +31,7 @@
  */
 
 // List of modifier strings
-LPCTSTR CAccelerator::MOD_NAMES[] = {
+const LPCTSTR CAccelerator::MOD_NAMES[] = {		// // //
 	_T("None"), 
 	_T("Alt"), 
 	_T("Ctrl"), 
@@ -130,7 +130,7 @@ const std::vector<stAccelEntry> CAccelerator::DEFAULT_TABLE {
 const int CAccelerator::ACCEL_COUNT = DEFAULT_TABLE.size();
 
 // Registry key
-LPCTSTR CAccelerator::SHORTCUTS_SECTION = _T("Shortcuts");
+const LPCTSTR CAccelerator::SHORTCUTS_SECTION = _T("Shortcuts");		// // //
 
 // Translate internal modifier -> windows modifier
 static BYTE GetMod(int Mod) 

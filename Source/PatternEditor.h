@@ -287,7 +287,7 @@ public:
 	// // //
 private:
 	// Private consts
-	static LPCTSTR DEFAULT_HEADER_FONT;
+	static const LPCTSTR DEFAULT_HEADER_FONT;		// // //
 	static const int DEFAULT_FONT_SIZE;
 	static const int DEFAULT_HEADER_FONT_SIZE;
 

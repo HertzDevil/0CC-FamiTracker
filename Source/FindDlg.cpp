@@ -990,9 +990,9 @@ void CFindDlg::GetReplaceTerm()
 }
 
 unsigned CFindDlg::GetHex(const CString &str) {
-	TCHAR *e = nullptr;
+	LPTSTR e = nullptr;
 	unsigned val = _tcstoul((LPCTSTR)str, &e, 16);
-	RaiseIf(errno == ERANGE || e != (LPCTSTR)str + str.GetLength(),
+	RaiseIf(errno || e != (LPCTSTR)str + str.GetLength(),
 		_T("Invalid hexadecimal \"%s\"."), str);
 	return val;
 }

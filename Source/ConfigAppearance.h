@@ -61,7 +61,7 @@ public:
 protected:
 	static int CALLBACK EnumFontFamExProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD FontType, LPARAM lParam);
 
-	static const TCHAR *COLOR_ITEMS[];
+	static const LPCTSTR COLOR_ITEMS[];		// // //
 	static const int NUM_COLOR_SCHEMES;
 
 	static const COLOR_SCHEME *COLOR_SCHEMES[];
@@ -69,7 +69,7 @@ protected:
 	static const int FONT_SIZES[];
 	static const int FONT_SIZE_COUNT;
 
-	static const char *SETTING_SEPARATOR, *HEX_PREFIX;		// // // 050B
+	static const char *const SETTING_SEPARATOR, *const HEX_PREFIX;		// // // 050B
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

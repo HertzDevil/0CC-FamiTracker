@@ -27,7 +27,7 @@
 // CWavegenImp class
 //
 
-const char *CWavegenImp::DEFAULT_ERROR = "Waveform generation failed.";
+const char *const CWavegenImp::DEFAULT_ERROR = "Waveform generation failed.";
 
 CWavegenImp::CWavegenImp(const char *Name) :
 	m_bSuccess(false),
@@ -58,7 +58,7 @@ const char *CWavegenImp::GetStatus() const
 // CWavegenSingle class
 //
 
-const char *CWavegenSingle::COUNT_ERROR = "Wave count of this waveform generator must be 1.";
+const char *const CWavegenSingle::COUNT_ERROR = "Wave count of this waveform generator must be 1.";
 
 CWavegenSingle::CWavegenSingle(const char *Name) :
 	CWavegenImp(Name)
@@ -156,7 +156,7 @@ CWavegenParam *CWavegenTriangle::GetParameter(unsigned int Index) const
 // CWavegenPulse class
 //
 
-const char *CWavegenPulse::PULSE_WIDTH_ERROR = "Pulse width must be between 0 and 1.";
+const char *const CWavegenPulse::PULSE_WIDTH_ERROR = "Pulse width must be between 0 and 1.";
 
 CWavegenPulse::CWavegenPulse() :
 	CWavegenSingle("Pulse wave")

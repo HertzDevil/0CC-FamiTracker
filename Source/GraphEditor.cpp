@@ -82,7 +82,7 @@ BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCTSTR lpszClassName, LPCTSTR lpsz
 
 	LOGFONT LogFont;
 
-	const TCHAR *SMALL_FONT_FACE = _T("Verdana");
+	const LPCTSTR SMALL_FONT_FACE = _T("Verdana");		// // //
 
 	m_pSmallFont = new CFont();
 

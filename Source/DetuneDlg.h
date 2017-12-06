@@ -54,8 +54,8 @@ protected:
 	CSliderCtrl *m_cSliderOctave, *m_cSliderNote, *m_cSliderOffset;
 	CEdit *m_cEditOctave, *m_cEditNote, *m_cEditOffset;
 	
-	static const TCHAR *m_pNote[12];
-	static const TCHAR *m_pNoteFlat[12];
+	static const LPCTSTR m_pNote[12];
+	static const LPCTSTR m_pNoteFlat[12];
 
 	int    m_iOctave;
 	int    m_iNote;

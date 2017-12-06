@@ -34,7 +34,7 @@ static const char TRIANGLE_WAVE[] = {
 };
 static const int DEFAULT_WAVE_SIZE = sizeof(TRIANGLE_WAVE) / sizeof(char);
 
-const char *CInstrumentN163::SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "Wave Index"};
+const char *const CInstrumentN163::SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "Wave Index"};
 
 CInstrumentN163::CInstrumentN163() : CSeqInstrument(INST_N163),		// // //
 	m_iSamples(),

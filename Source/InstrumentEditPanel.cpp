@@ -202,7 +202,7 @@ BEGIN_MESSAGE_MAP(CSequenceInstrumentEditPanel, CInstrumentEditPanel)
 	ON_NOTIFY(NM_RCLICK, IDC_INSTSETTINGS, OnRClickInstSettings)
 END_MESSAGE_MAP()
 
-void CSequenceInstrumentEditPanel::SetupDialog(LPCTSTR *pListItems)
+void CSequenceInstrumentEditPanel::SetupDialog(const LPCTSTR *pListItems)		// // //
 {
 	// Instrument settings
 	CListCtrl *pList = static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS));

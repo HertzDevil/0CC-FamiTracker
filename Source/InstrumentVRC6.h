@@ -30,6 +30,6 @@ public:
 	CInstrumentVRC6() : CSeqInstrument(INST_VRC6) { }
 
 public:
-	static const char *SEQUENCE_NAME[];
+	static const char *const SEQUENCE_NAME[];
 	const char *GetSequenceName(int Index) const override { return SEQUENCE_NAME[Index]; }		// // //
 };

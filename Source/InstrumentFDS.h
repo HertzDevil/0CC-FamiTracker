@@ -68,7 +68,7 @@ public:
 	static const int WAVE_SIZE = 64;
 	static const int MOD_SIZE = 32;
 	static const int SEQUENCE_COUNT = 3;		// // //
-	static const char *SEQUENCE_NAME[];
+	static const char *const SEQUENCE_NAME[];
 	const char *GetSequenceName(int Index) const override { return SEQUENCE_NAME[Index]; }		// // //
 
 private:

@@ -53,7 +53,7 @@ const int CPatternEditor::HEADER_CHAN_HEIGHT = 36;
 const int CPatternEditor::ROW_HEIGHT		 = 12;
 
 // Pattern header font
-LPCTSTR CPatternEditor::DEFAULT_HEADER_FONT = _T("Tahoma");
+const LPCTSTR CPatternEditor::DEFAULT_HEADER_FONT = _T("Tahoma");		// // //
 
 const int CPatternEditor::DEFAULT_FONT_SIZE			= 12;
 const int CPatternEditor::DEFAULT_HEADER_FONT_SIZE	= 11;

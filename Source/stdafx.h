@@ -102,7 +102,7 @@ inline void SAFE_RELEASE_ARRAY(T *&p) {
 #ifdef _DEBUG
 #define new DEBUG_NEW
 template <typename... T>
-bool _trace(const TCHAR *format, T&&... args)
+bool _trace(LPCTSTR format, T&&... args)
 {
 	TCHAR buffer[1000];
 	_sntprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, static_cast<T&&>(args)...);

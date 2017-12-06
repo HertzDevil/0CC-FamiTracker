@@ -50,7 +50,7 @@
 const int CInstrumentEditDlg::KEYBOARD_WIDTH  = 561;
 const int CInstrumentEditDlg::KEYBOARD_HEIGHT = 58;
 
-const TCHAR *CInstrumentEditDlg::CHIP_NAMES[] = {
+const LPCTSTR CInstrumentEditDlg::CHIP_NAMES[] = {		// // //
 	_T(""), 
 	_T("2A03"), 
 	_T("VRC6"), 

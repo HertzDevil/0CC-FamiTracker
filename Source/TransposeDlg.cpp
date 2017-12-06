@@ -93,7 +93,7 @@ END_MESSAGE_MAP()
 BOOL CTransposeDlg::OnInitDialog()
 {
 	LOGFONT LogFont;
-	const TCHAR *SMALL_FONT_FACE = _T("Verdana");
+	const LPCTSTR SMALL_FONT_FACE = _T("Verdana");		// // //
 	m_pFont = new CFont();
 
 	memset(&LogFont, 0, sizeof LOGFONT);
