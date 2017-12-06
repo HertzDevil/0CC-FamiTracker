@@ -313,6 +313,7 @@ void CSoundDriver::UpdateAPU(int cycles) {
 	// Finish the audio frame
 	apu_->AddTime(cycles);
 	apu_->Process();
+	apu_->EndFrame();		// // //
 }
 
 void CSoundDriver::QueueNote(int chan, const stChanNote &note, note_prio_t priority) {

@@ -104,23 +104,17 @@ void CAPU::Process()
 {	
 	while (m_iCyclesToRun > 0) {
 
-		uint32_t Time = m_iCyclesToRun;
-		Time = std::min(Time, m_iSequencerNext - m_iSequencerClock);		// // //
-		Time = std::min(Time, m_iFrameClock);
+		uint32_t Time = std::min(m_iCyclesToRun, m_iSequencerNext - m_iSequencerClock);		// // //
 
 		for (auto Chip : ExChips)		// // //
 			Chip->Process(Time);
 
 		m_iFrameCycles	  += Time;
 		m_iSequencerClock += Time;
-		m_iFrameClock	  -= Time;
 		m_iCyclesToRun	  -= Time;
 
 		if (m_iSequencerClock == m_iSequencerNext)
 			StepSequence();		// // //
-
-		if (m_iFrameClock == 0)
-			EndFrame();
 	}
 }
 
@@ -146,7 +140,6 @@ void CAPU::EndFrame()
 	if (m_pParent)		// // //
 		m_pParent->FlushBuffer(m_pSoundBuffer, ReadSamples);
 	
-	m_iFrameClock /*+*/= m_iFrameCycleCount;
 	m_iFrameCycles = 0;
 
 	for (auto &r : ExChips)		// // //
@@ -168,7 +161,6 @@ void CAPU::Reset()
 	
 	m_iCyclesToRun		= 0;
 	m_iFrameCycles		= 0;
-	m_iFrameClock		= m_iFrameCycleCount;
 	
 	m_pMixer->ClearBuffer();
 	
@@ -228,7 +220,6 @@ void CAPU::ChangeMachineRate(int Machine, int Rate)		// // //
 	m_p2A03->ChangeMachine(Machine);
 
 	m_pVRC7->SetSampleSpeed(m_iSampleRate, BaseFreq, Rate);
-	m_iFrameCycleCount = BaseFreq / Rate;
 }
 
 bool CAPU::SetupSound(int SampleRate, int NrChannels, int Machine)		// // //
@@ -399,12 +390,12 @@ void CAPU::SetNamcoMixing(bool bLinear)		// // //
 	m_pN163->SetMixingMethod(bLinear);
 }
 
-void CAPU::SetMeterDecayRate(int Type) const		// // // 050B
+void CAPU::SetMeterDecayRate(decay_rate_t Type) const		// // // 050B
 {
 	m_pMixer->SetMeterDecayRate(Type);
 }
 
-int CAPU::GetMeterDecayRate() const		// // // 050B
+decay_rate_t CAPU::GetMeterDecayRate() const		// // // 050B
 {
 	return m_pMixer->GetMeterDecayRate();
 }

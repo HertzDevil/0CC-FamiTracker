@@ -66,11 +66,12 @@ public:
 	void	SetNamcoMixing(bool bLinear);		// // //
 	void	SetNamcoVolume(float fVol);
 
-	int		GetMeterDecayRate() const;		// // // 050B
-	void	SetMeterDecayRate(int Rate);		// // // 050B
+	decay_rate_t GetMeterDecayRate() const;		// // // 050B
+	void	SetMeterDecayRate(decay_rate_t Rate);		// // // 050B
 
 private:
-	void StoreChannelLevel(chan_id_t Channel, int Value);		// // //
+	void UpdateMeters();		// // //
+	void StoreChannelLevel(chan_id_t Channel, int Level);		// // //
 	void ClearChannelLevels();
 
 	float GetAttenuation() const;
@@ -93,7 +94,7 @@ private:
 	float		m_fChannelLevels[CHANNELS] = { };
 	uint32_t	m_iChanLevelFallOff[CHANNELS] = { };
 
-	int			m_iMeterDecayRate = DECAY_SLOW;		// // // 050B
+	decay_rate_t m_iMeterDecayRate = DECAY_SLOW;		// // // 050B
 	int			m_iLowCut = 0;
 	int			m_iHighCut = 0;
 	int			m_iHighDamp = 0;

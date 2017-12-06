@@ -1233,12 +1233,12 @@ int CSoundGen::GetSequencePlayPos(const CSequence *pSequence)
 	return Ret;
 }
 
-void CSoundGen::SetMeterDecayRate(int Type) const		// // // 050B
+void CSoundGen::SetMeterDecayRate(decay_rate_t Type) const		// // // 050B
 {
 	m_pAPU->SetMeterDecayRate(Type);
 }
 
-int CSoundGen::GetMeterDecayRate() const
+decay_rate_t CSoundGen::GetMeterDecayRate() const
 {
 	return m_pAPU->GetMeterDecayRate();
 }

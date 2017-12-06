@@ -1405,10 +1405,10 @@ calc (OPLL * opll)
 
   for (i = 0; i < 6; i++)
 	  if (!(opll->mask & OPLL_MASK_CH (i)) && (CAR(opll,i)->eg_mode != FINISH)) {
-		int32_t absval, val = calc_slot_car (CAR(opll,i), calc_slot_mod(MOD(opll,i)));
+		int32_t val = calc_slot_car (CAR(opll,i), calc_slot_mod(MOD(opll,i)));
 		inst += val;
-		absval = abs(val);
-		if (absval > opll_volumes[i])
+		int32_t absval = abs(val);		// // //
+		if (absval > abs(opll_volumes[i]))		// // //
 			opll_volumes[i] = val;
 	  }
 

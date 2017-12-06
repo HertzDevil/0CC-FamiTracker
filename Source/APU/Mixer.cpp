@@ -174,12 +174,28 @@ void CMixer::SetNamcoVolume(float fVol)
 	levelsN163_.SetVolume(fVolume * 1.1f);
 }
 
-int CMixer::GetMeterDecayRate() const		// // // 050B
+void CMixer::UpdateMeters() {		// // //
+	for (int i = 0; i < CHANNELS; ++i) {
+		m_fChannelLevelsLast[i] = m_fChannelLevels[i];		// // //
+		if (m_iMeterDecayRate == DECAY_FAST)		// // // 050B
+			m_fChannelLevels[i] = 0;
+		else if (m_iChanLevelFallOff[i] > 0)
+			--m_iChanLevelFallOff[i];
+		else {
+			m_fChannelLevels[i] -= LEVEL_FALL_OFF_RATE;
+			if (m_fChannelLevels[i] < 0)
+				m_fChannelLevels[i] = 0;
+		}
+	}
+
+}
+
+decay_rate_t CMixer::GetMeterDecayRate() const		// // // 050B
 {
 	return m_iMeterDecayRate;
 }
 
-void CMixer::SetMeterDecayRate(int Rate)		// // // 050B
+void CMixer::SetMeterDecayRate(decay_rate_t Rate)		// // // 050B
 {
 	m_iMeterDecayRate = Rate;
 }
@@ -230,28 +246,11 @@ int CMixer::FinishBuffer(int t)
 {
 	BlipBuffer.end_frame(t);
 
-	for (int i = 0; i < CHANNELS; ++i) {
-		// TODO: this is more complicated than 0.5.0 beta's implementation
-		if (m_iChanLevelFallOff[i] > 0) {
-			if (m_iMeterDecayRate == DECAY_FAST)		// // // 050B
-				m_iChanLevelFallOff[i] = 0;
-			else
-				--m_iChanLevelFallOff[i];
-		}
-		else if (m_fChannelLevels[i] > 0) {
-			if (m_iMeterDecayRate == DECAY_FAST)		// // // 050B
-				m_fChannelLevels[i] = 0;
-			else {
-				m_fChannelLevels[i] -= LEVEL_FALL_OFF_RATE;
-				if (m_fChannelLevels[i] < 0)
-					m_fChannelLevels[i] = 0;
-			}
-		}
-	}
-
 	// Get channel levels for VRC7
 	for (int i = 0; i < 6; ++i)
 		StoreChannelLevel(static_cast<chan_id_t>(CHANID_VRC7_CH1 + i), OPLL_getchanvol(i));
+
+	UpdateMeters();		// // //
 
 	// Return number of samples available
 	return BlipBuffer.samples_avail();
@@ -331,6 +330,7 @@ void CMixer::StoreChannelLevel(chan_id_t Channel, int Value)		// // //
 void CMixer::ClearChannelLevels()
 {
 	memset(m_fChannelLevels, 0, sizeof(float) * CHANNELS);
+	memset(m_fChannelLevelsLast, 0, sizeof(float) * CHANNELS);		// // //
 	memset(m_iChanLevelFallOff, 0, sizeof(uint32_t) * CHANNELS);
 }
 

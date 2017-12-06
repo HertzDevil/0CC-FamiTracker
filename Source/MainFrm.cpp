@@ -3068,12 +3068,14 @@ void CMainFrame::OnEditSelectother()		// // //
 
 void CMainFrame::OnDecayFast()
 {
-	theApp.GetSoundGenerator()->SetMeterDecayRate(theApp.GetSettings()->MeterDecayRate = DECAY_FAST);		// // // 050B
+	theApp.GetSettings()->MeterDecayRate = DECAY_FAST;
+	theApp.GetSoundGenerator()->SetMeterDecayRate(DECAY_FAST);		// // // 050B
 }
 
 void CMainFrame::OnDecaySlow()
 {
-	theApp.GetSoundGenerator()->SetMeterDecayRate(theApp.GetSettings()->MeterDecayRate = DECAY_SLOW);		// // // 050B
+	theApp.GetSettings()->MeterDecayRate = DECAY_SLOW;
+	theApp.GetSoundGenerator()->SetMeterDecayRate(DECAY_SLOW);		// // // 050B
 }
 
 void CMainFrame::OnUpdateDecayFast(CCmdUI *pCmdUI)		// // // 050B

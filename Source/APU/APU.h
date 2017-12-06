@@ -53,6 +53,7 @@ public:
 	void	Reset();
 	void	Process();
 	void	AddTime(int32_t Cycles);
+	void	EndFrame();		// // // public
 
 	void	SetExternalSound(uint8_t Chip);
 	void	Write(uint16_t Address, uint8_t Value);		// // //
@@ -77,8 +78,9 @@ public:
 	void	SetChipLevel(chip_level_t Chip, float Level);
 
 	void	SetNamcoMixing(bool bLinear);		// // //
-	void	SetMeterDecayRate(int Type) const;		// // // 050B
-	int		GetMeterDecayRate() const;		// // // 050B
+
+	void	SetMeterDecayRate(decay_rate_t Type) const;		// // // 050B
+	decay_rate_t GetMeterDecayRate() const;		// // // 050B
 
 #ifdef LOGGING
 	void	Log();
@@ -93,10 +95,9 @@ public:
 
 private:
 	static const int SEQUENCER_FREQUENCY;		// // //
-	
+
 	void StepSequence();		// // //
-	void EndFrame();
-	
+
 	void LogWrite(uint16_t Address, uint8_t Value);
 
 private:
@@ -115,7 +116,6 @@ private:
 	uint8_t		m_iExternalSoundChip;				// External sound chip, if used
 
 	uint32_t	m_iSampleRate;						// // //
-	uint32_t	m_iFrameCycleCount;
 	uint32_t	m_iFrameClock;
 	uint32_t	m_iCyclesToRun;						// Number of cycles to process
 

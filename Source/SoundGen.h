@@ -202,8 +202,8 @@ public:
 	void SetSequencePlayPos(const CSequence *pSequence, int Pos);
 	int GetSequencePlayPos(const CSequence *pSequence);
 
-	void SetMeterDecayRate(int Type) const;		// // // 050B
-	int GetMeterDecayRate() const;		// // // 050B
+	void SetMeterDecayRate(decay_rate_t Type) const;		// // // 050B
+	decay_rate_t GetMeterDecayRate() const;		// // // 050B
 
 	int GetDefaultInstrument() const;
 
