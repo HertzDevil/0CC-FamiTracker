@@ -209,10 +209,10 @@ bool CPatternAction::ValidateSelection(const CPatternEditor &Editor) const		// /
 	return false;
 }
 
-void CPatternAction::UpdateView(CFamiTrackerDoc *pDoc) const		// // //
+void CPatternAction::UpdateViews(CMainFrame &MainFrm) const		// // //
 {
-	pDoc->UpdateAllViews(NULL, UPDATE_PATTERN);
-	pDoc->UpdateAllViews(NULL, UPDATE_FRAME); // cursor might have moved to different channel
+//	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_PATTERN);
+	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_FRAME); // cursor might have moved to different channel
 }
 
 std::pair<CPatternIterator, CPatternIterator> CPatternAction::GetIterators(CFamiTrackerDoc &doc) const
@@ -228,7 +228,7 @@ void CPatternAction::SaveUndoState(const CMainFrame &MainFrm)		// // //
 {
 	// Save undo cursor position
 	CFamiTrackerView *pView = GET_VIEW();
-	const CPatternEditor *pPatternEditor = pView->GetPatternEditor(); // TODO: remove
+	const CPatternEditor *pPatternEditor = pView->GetPatternEditor();
 
 	m_pUndoState = std::make_unique<CPatternEditorState>(pPatternEditor, GET_SELECTED_TRACK());
 	m_bSelecting = pPatternEditor->IsSelecting();
@@ -237,25 +237,19 @@ void CPatternAction::SaveUndoState(const CMainFrame &MainFrm)		// // //
 
 void CPatternAction::SaveRedoState(const CMainFrame &MainFrm)		// // //
 {
-	CFamiTrackerView *pView = GET_VIEW();
-	m_pRedoState = std::make_unique<CPatternEditorState>(pView->GetPatternEditor(), GET_SELECTED_TRACK());
-	UpdateView(pView->GetDocument());
+	m_pRedoState = std::make_unique<CPatternEditorState>(GET_PATTERN_EDITOR(), GET_SELECTED_TRACK());
 }
 
 void CPatternAction::RestoreUndoState(CMainFrame &MainFrm) const		// // //
 {
-	if (!m_pUndoState) return;
-	CFamiTrackerView *pView = GET_VIEW();
-	m_pUndoState->ApplyState(pView->GetPatternEditor());
-	UpdateView(pView->GetDocument());
+	if (m_pUndoState)
+		m_pUndoState->ApplyState(GET_PATTERN_EDITOR());
 }
 
 void CPatternAction::RestoreRedoState(CMainFrame &MainFrm) const		// // //
 {
-	if (!m_pRedoState) return;
-	CFamiTrackerView *pView = GET_VIEW();
-	m_pRedoState->ApplyState(pView->GetPatternEditor());
-	UpdateView(pView->GetDocument());
+	if (m_pRedoState)
+		m_pRedoState->ApplyState(GET_PATTERN_EDITOR());
 }
 
 
@@ -1087,9 +1081,9 @@ void CPActionEffColumn::Redo(CMainFrame &MainFrm)
 	pDoc->SetEffColumns(m_pUndoState->Track, m_iChannel, m_iNewColumns);
 }
 
-void CPActionEffColumn::UpdateView(CFamiTrackerDoc *pDoc) const		// // //
+void CPActionEffColumn::UpdateViews(CMainFrame &MainFrm) const		// // //
 {
-	pDoc->UpdateAllViews(NULL, UPDATE_COLUMNS);
+	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_COLUMNS);
 }
 
 
@@ -1118,9 +1112,9 @@ void CPActionHighlight::Redo(CMainFrame &MainFrm)
 	pDoc->SetHighlight(m_NewHighlight);
 }
 
-void CPActionHighlight::UpdateView(CFamiTrackerDoc *pDoc) const
+void CPActionHighlight::UpdateViews(CMainFrame &MainFrm) const
 {
-	pDoc->UpdateAllViews(NULL, UPDATE_HIGHLIGHT);
+	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_HIGHLIGHT);
 }
 
 
@@ -1161,8 +1155,8 @@ void CPActionUniquePatterns::Redo(CMainFrame &MainFrm) {
 	song_ = pDoc->ReplaceSong(index_, std::move(songNew_));
 }
 
-void CPActionUniquePatterns::UpdateView(CFamiTrackerDoc *pDoc) const {
-	pDoc->UpdateAllViews(NULL, UPDATE_FRAME);
+void CPActionUniquePatterns::UpdateViews(CMainFrame &MainFrm) const {
+	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_FRAME);
 }
 
 
@@ -1193,6 +1187,6 @@ void CPActionClearAll::Redo(CMainFrame &MainFrm) {
 	song_ = pDoc->ReplaceSong(index_, std::move(songNew_));
 }
 
-void CPActionClearAll::UpdateView(CFamiTrackerDoc *pDoc) const {
-	pDoc->UpdateAllViews(NULL, UPDATE_TRACK);
+void CPActionClearAll::UpdateViews(CMainFrame &MainFrm) const {
+	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_TRACK);
 }

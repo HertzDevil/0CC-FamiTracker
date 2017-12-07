@@ -34,7 +34,6 @@
 #define GET_DOCUMENT() GET_VIEW()->GetDocument()
 #define GET_FRAME_EDITOR() MainFrm.GetFrameEditor()
 #define GET_SELECTED_TRACK() MainFrm.GetSelectedTrack()
-#define UPDATE_CONTROLS() MainFrm.UpdateControls()
 
 // // // Frame editor state class
 
@@ -112,21 +111,22 @@ void CFrameAction::SaveRedoState(const CMainFrame &MainFrm)		// // //
 {
 	CFamiTrackerView *pView = GET_VIEW();
 	m_pRedoState = new CFrameEditorState {pView, GET_SELECTED_TRACK()};		// // //
-	pView->GetDocument()->UpdateAllViews(NULL, UPDATE_FRAME);
 }
 
 void CFrameAction::RestoreUndoState(CMainFrame &MainFrm) const		// // //
 {
 	CFamiTrackerView *pView = GET_VIEW();
 	m_pUndoState->ApplyState(pView);
-	pView->GetDocument()->UpdateAllViews(NULL, UPDATE_FRAME);
 }
 
 void CFrameAction::RestoreRedoState(CMainFrame &MainFrm) const		// // //
 {
 	CFamiTrackerView *pView = GET_VIEW();
 	m_pRedoState->ApplyState(pView);
-	pView->GetDocument()->UpdateAllViews(NULL, UPDATE_FRAME);
+}
+
+void CFrameAction::UpdateViews(CMainFrame &MainFrm) const {		// // //
+	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_FRAME);
 }
 
 
@@ -237,14 +237,12 @@ void CFActionFrameCount::Undo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	pDoc->SetFrameCount(m_pUndoState->Track, m_iOldFrameCount);
-	UPDATE_CONTROLS();
 }
 
 void CFActionFrameCount::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	pDoc->SetFrameCount(m_pUndoState->Track, m_iNewFrameCount);
-	UPDATE_CONTROLS();
 }
 
 bool CFActionFrameCount::Merge(const CAction &Other)		// // //
@@ -258,6 +256,11 @@ bool CFActionFrameCount::Merge(const CAction &Other)		// // //
 	*m_pRedoState = *pAction->m_pRedoState;
 	m_iNewFrameCount = pAction->m_iNewFrameCount;
 	return true;
+}
+
+void CFActionFrameCount::UpdateViews(CMainFrame &MainFrm) const {
+	CFrameAction::UpdateViews(MainFrm);
+	MainFrm.UpdateControls();
 }
 
 
@@ -448,12 +451,14 @@ void CFActionMoveDown::Undo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	pDoc->MoveFrameUp(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame + 1);
+	GET_VIEW()->SelectFrame(m_pUndoState->Cursor.m_iFrame);
 }
 
 void CFActionMoveDown::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	pDoc->MoveFrameDown(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame);
+	GET_VIEW()->SelectFrame(m_pUndoState->Cursor.m_iFrame + 1);
 }
 
 
@@ -467,12 +472,14 @@ void CFActionMoveUp::Undo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	pDoc->MoveFrameDown(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame - 1);
+	GET_VIEW()->SelectFrame(m_pUndoState->Cursor.m_iFrame);
 }
 
 void CFActionMoveUp::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	pDoc->MoveFrameUp(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame);
+	GET_VIEW()->SelectFrame(m_pUndoState->Cursor.m_iFrame - 1);
 }
 
 
@@ -495,7 +502,6 @@ void CFActionPaste::Undo(CMainFrame &MainFrm)
 	if (m_bClone)
 		GET_FRAME_EDITOR()->ClearPatterns(m_pUndoState->Track, m_pRedoState->Selection);		// // //
 	pDoc->DeleteFrames(m_pUndoState->Track, m_iTargetFrame, m_pClipData->ClipInfo.Frames);
-	UPDATE_CONTROLS();
 }
 
 void CFActionPaste::Redo(CMainFrame &MainFrm)
@@ -505,7 +511,11 @@ void CFActionPaste::Redo(CMainFrame &MainFrm)
 		pFrameEditor->PasteNew(m_pUndoState->Track, m_iTargetFrame, m_pClipData);
 	else
 		pFrameEditor->PasteInsert(m_pUndoState->Track, m_iTargetFrame, m_pClipData);
-	UPDATE_CONTROLS();
+}
+
+void CFActionPaste::UpdateViews(CMainFrame &MainFrm) const {
+	CFrameAction::UpdateViews(MainFrm);
+	MainFrm.UpdateControls();
 }
 
 
@@ -639,7 +649,6 @@ void CFActionDeleteSel::Undo(CMainFrame &MainFrm)
 {
 	CFrameEditor *pFrameEditor = GET_FRAME_EDITOR();
 	pFrameEditor->PasteInsert(m_pUndoState->Track, m_pUndoState->Selection.m_cpStart.m_iFrame, m_pClipData);
-	UPDATE_CONTROLS();
 }
 
 void CFActionDeleteSel::Redo(CMainFrame &MainFrm)
@@ -651,7 +660,11 @@ void CFActionDeleteSel::Redo(CMainFrame &MainFrm)
 		m_pUndoState->Selection.m_cpEnd.m_iFrame - m_pUndoState->Selection.m_cpStart.m_iFrame + 1);		// // //
 	pView->SelectFrame(m_pUndoState->Selection.m_cpStart.m_iFrame);
 	GET_FRAME_EDITOR()->CancelSelection();
-	UPDATE_CONTROLS();
+}
+
+void CFActionDeleteSel::UpdateViews(CMainFrame &MainFrm) const {
+	CFrameAction::UpdateViews(MainFrm);
+	MainFrm.UpdateControls();
 }
 
 

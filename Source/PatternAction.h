@@ -88,7 +88,7 @@ public:
 	void RestoreRedoState(CMainFrame &MainFrm) const override;		// // //
 
 private:
-	virtual void UpdateView(CFamiTrackerDoc *pDoc) const;		// // //
+	void UpdateViews(CMainFrame &MainFrm) const override;		// // //
 
 protected:
 	bool SetTargetSelection(CPatternEditor *pPatternEditor, CSelection &Sel);		// // //
@@ -325,7 +325,7 @@ private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
-	void UpdateView(CFamiTrackerDoc *pDoc) const;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 
 	unsigned m_iChannel;
 	unsigned m_iOldColumns, m_iNewColumns;
@@ -339,7 +339,7 @@ private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
-	void UpdateView(CFamiTrackerDoc *pDoc) const;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 
 	stHighlight m_OldHighlight, m_NewHighlight;
 };
@@ -351,7 +351,7 @@ private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
-	void UpdateView(CFamiTrackerDoc *pDoc) const;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 
 	std::unique_ptr<CSongData> song_;
 	std::unique_ptr<CSongData> songNew_;
@@ -365,7 +365,7 @@ private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
-	void UpdateView(CFamiTrackerDoc *pDoc) const;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 
 	std::unique_ptr<CSongData> song_;
 	std::unique_ptr<CSongData> songNew_;

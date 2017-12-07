@@ -78,9 +78,13 @@ void CCompoundAction::RestoreUndoState(CMainFrame &MainFrm) const
 	m_pActionList.front()->RestoreUndoState(MainFrm);
 }
 
-void CCompoundAction::RestoreRedoState(CMainFrame &pMainFrm) const
+void CCompoundAction::RestoreRedoState(CMainFrame &MainFrm) const
 {
-	m_pActionList.back()->RestoreRedoState(pMainFrm);
+	m_pActionList.back()->RestoreRedoState(MainFrm);
+}
+
+void CCompoundAction::UpdateViews(CMainFrame &MainFrm) const {
+	m_pActionList.back()->UpdateViews(MainFrm); // temp
 }
 
 void CCompoundAction::JoinAction(std::unique_ptr<CAction> pAction)

@@ -37,6 +37,7 @@ bool CAction::Commit(CMainFrame &cxt) {
 		return false; // Operation cancelled
 	Redo(cxt);
 	SaveRedoState(cxt);
+	UpdateViews(cxt);
 	return done_ = true;
 }
 
@@ -46,6 +47,7 @@ void CAction::PerformUndo(CMainFrame &cxt) {
 		RestoreRedoState(cxt);
 		Undo(cxt);
 		RestoreUndoState(cxt);
+		UpdateViews(cxt);
 	}
 }
 void CAction::PerformRedo(CMainFrame &cxt) {
@@ -53,5 +55,6 @@ void CAction::PerformRedo(CMainFrame &cxt) {
 		RestoreUndoState(cxt);
 		Redo(cxt);
 		RestoreRedoState(cxt);
+		UpdateViews(cxt);
 	}
 }

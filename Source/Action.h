@@ -52,17 +52,20 @@ protected:
 	// Redo the operation
 	virtual void Redo(CMainFrame &cxt) = 0;
 
-	// Save the undo state before performing the action
+	// // // Save the undo state before performing the action
 	virtual void SaveUndoState(const CMainFrame &cxt) = 0;
 
-	// Save the redo state after performing the action
+	// // // Save the redo state after performing the action
 	virtual void SaveRedoState(const CMainFrame &cxt) = 0;
 
-	// Restore the state just before the action
+	// // // Restore the state just before the action
 	virtual void RestoreUndoState(CMainFrame &cxt) const = 0;
 
-	// Restore the state just after the action
+	// // // Restore the state just after the action
 	virtual void RestoreRedoState(CMainFrame &cxt) const = 0;
+
+	// // // Update views after every action
+	virtual void UpdateViews(CMainFrame &cxt) const = 0;
 
 	bool done_ = false;
 };

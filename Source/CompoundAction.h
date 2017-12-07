@@ -50,5 +50,7 @@ private:
 	void RestoreUndoState(CMainFrame &MainFrm) const override;
 	void RestoreRedoState(CMainFrame &MainFrm) const override;
 
+	void UpdateViews(CMainFrame &MainFrm) const override;
+
 	std::vector<std::unique_ptr<CAction>> m_pActionList;
 };

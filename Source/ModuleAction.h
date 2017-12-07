@@ -49,6 +49,7 @@ private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 
 	std::string oldComment_;
 	std::string newComment_;
@@ -64,6 +65,7 @@ private:
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 	bool Merge(const CAction &other) override;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 
 	std::string oldStr_;
 	std::string newStr_;
@@ -77,6 +79,7 @@ private:
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 	bool Merge(const CAction &other) override;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 
 	std::string oldStr_;
 	std::string newStr_;
@@ -90,6 +93,7 @@ private:
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 	bool Merge(const CAction &other) override;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 
 	std::string oldStr_;
 	std::string newStr_;
@@ -102,6 +106,7 @@ private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 
 	std::shared_ptr<CInstrument> inst_;
 	unsigned index_;
@@ -115,6 +120,7 @@ private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 
 	std::shared_ptr<CInstrument> inst_;
 	unsigned index_;
@@ -129,6 +135,7 @@ private:
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 	bool Merge(const CAction &other) override;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 
 	unsigned index_;
 	std::string oldStr_;
@@ -142,6 +149,7 @@ private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 
 	unsigned left_;
 	unsigned right_;

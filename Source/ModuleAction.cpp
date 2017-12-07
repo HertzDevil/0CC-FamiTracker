@@ -53,12 +53,14 @@ bool ModuleAction::CComment::SaveState(const CMainFrame &MainFrm) {
 void ModuleAction::CComment::Undo(CMainFrame &MainFrm) {
 	auto &doc = GET_DOCUMENT();
 	doc.SetComment(oldComment_, oldShow_);
-	MainFrm.SetMessageText(_T("Comment settings changed"));
 }
 
 void ModuleAction::CComment::Redo(CMainFrame &MainFrm) {
 	auto &doc = GET_DOCUMENT();
 	doc.SetComment(newComment_, newShow_);
+}
+
+void ModuleAction::CComment::UpdateViews(CMainFrame &MainFrm) const {
 	MainFrm.SetMessageText(_T("Comment settings changed"));
 }
 
@@ -77,13 +79,11 @@ bool ModuleAction::CTitle::SaveState(const CMainFrame &MainFrm) {
 void ModuleAction::CTitle::Undo(CMainFrame &MainFrm) {
 	auto &doc = GET_DOCUMENT();
 	doc.SetModuleName(oldStr_);
-	MainFrm.SetSongInfo(doc);
 }
 
 void ModuleAction::CTitle::Redo(CMainFrame &MainFrm) {
 	auto &doc = GET_DOCUMENT();
 	doc.SetModuleName(newStr_);
-	MainFrm.SetSongInfo(doc);
 }
 
 bool ModuleAction::CTitle::Merge(const CAction &other) {
@@ -92,6 +92,10 @@ bool ModuleAction::CTitle::Merge(const CAction &other) {
 		return true;
 	}
 	return false;
+}
+
+void ModuleAction::CTitle::UpdateViews(CMainFrame &MainFrm) const {
+	MainFrm.SetSongInfo(MainFrm.GetDoc());
 }
 
 
@@ -109,13 +113,11 @@ bool ModuleAction::CArtist::SaveState(const CMainFrame &MainFrm) {
 void ModuleAction::CArtist::Undo(CMainFrame &MainFrm) {
 	auto &doc = GET_DOCUMENT();
 	doc.SetModuleArtist(oldStr_);
-	MainFrm.SetSongInfo(doc);
 }
 
 void ModuleAction::CArtist::Redo(CMainFrame &MainFrm) {
 	auto &doc = GET_DOCUMENT();
 	doc.SetModuleArtist(newStr_);
-	MainFrm.SetSongInfo(doc);
 }
 
 bool ModuleAction::CArtist::Merge(const CAction &other) {
@@ -124,6 +126,10 @@ bool ModuleAction::CArtist::Merge(const CAction &other) {
 		return true;
 	}
 	return false;
+}
+
+void ModuleAction::CArtist::UpdateViews(CMainFrame &MainFrm) const {
+	MainFrm.SetSongInfo(MainFrm.GetDoc());
 }
 
 
@@ -141,13 +147,11 @@ bool ModuleAction::CCopyright::SaveState(const CMainFrame &MainFrm) {
 void ModuleAction::CCopyright::Undo(CMainFrame &MainFrm) {
 	auto &doc = GET_DOCUMENT();
 	doc.SetModuleCopyright(oldStr_);
-	MainFrm.SetSongInfo(doc);
 }
 
 void ModuleAction::CCopyright::Redo(CMainFrame &MainFrm) {
 	auto &doc = GET_DOCUMENT();
 	doc.SetModuleCopyright(newStr_);
-	MainFrm.SetSongInfo(doc);
 }
 
 bool ModuleAction::CCopyright::Merge(const CAction &other) {
@@ -156,6 +160,10 @@ bool ModuleAction::CCopyright::Merge(const CAction &other) {
 		return true;
 	}
 	return false;
+}
+
+void ModuleAction::CCopyright::UpdateViews(CMainFrame &MainFrm) const {
+	MainFrm.SetSongInfo(MainFrm.GetDoc());
 }
 
 
@@ -175,14 +183,16 @@ void ModuleAction::CAddInst::Undo(CMainFrame &MainFrm) {
 	Doc.RemoveInstrument(index_);
 	if (prev_ != INVALID_INSTRUMENT)
 		MainFrm.SelectInstrument(prev_);
-	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
 }
 
 void ModuleAction::CAddInst::Redo(CMainFrame &MainFrm) {
 	auto &Doc = GET_DOCUMENT();
 	Doc.GetInstrumentManager()->InsertInstrument(index_, inst_);
 	MainFrm.SelectInstrument(index_);
-	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
+}
+
+void ModuleAction::CAddInst::UpdateViews(CMainFrame &MainFrm) const {
+	GET_DOCUMENT().UpdateAllViews(NULL, UPDATE_INSTRUMENT);
 }
 
 
@@ -208,7 +218,6 @@ void ModuleAction::CRemoveInst::Undo(CMainFrame &MainFrm) {
 	auto &Doc = GET_DOCUMENT();
 	Doc.GetInstrumentManager()->InsertInstrument(index_, inst_);
 	MainFrm.SelectInstrument(index_);
-	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
 }
 
 void ModuleAction::CRemoveInst::Redo(CMainFrame &MainFrm) {
@@ -218,7 +227,10 @@ void ModuleAction::CRemoveInst::Redo(CMainFrame &MainFrm) {
 		MainFrm.SelectInstrument(nextIndex_);
 	else
 		MainFrm.CloseInstrumentEditor();
-	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
+}
+
+void ModuleAction::CRemoveInst::UpdateViews(CMainFrame &MainFrm) const {
+	GET_DOCUMENT().UpdateAllViews(NULL, UPDATE_INSTRUMENT);
 }
 
 
@@ -239,15 +251,11 @@ bool ModuleAction::CInstName::SaveState(const CMainFrame &MainFrm) {
 void ModuleAction::CInstName::Undo(CMainFrame &MainFrm) {
 	auto pInst = GET_DOCUMENT().GetInstrument(index_);
 	pInst->SetName(oldStr_);
-	MainFrm.SelectInstrument(index_);
-	MainFrm.UpdateInstrumentName();
 }
 
 void ModuleAction::CInstName::Redo(CMainFrame &MainFrm) {
 	auto pInst = GET_DOCUMENT().GetInstrument(index_);
 	pInst->SetName(newStr_);
-	MainFrm.SelectInstrument(index_);
-	MainFrm.UpdateInstrumentName();
 }
 
 bool ModuleAction::CInstName::Merge(const CAction &other) {
@@ -258,6 +266,11 @@ bool ModuleAction::CInstName::Merge(const CAction &other) {
 		}
 	}
 	return false;
+}
+
+void ModuleAction::CInstName::UpdateViews(CMainFrame &MainFrm) const {
+	MainFrm.SelectInstrument(index_);
+	MainFrm.UpdateInstrumentName();
 }
 
 
@@ -279,7 +292,6 @@ void ModuleAction::CSwapInst::Undo(CMainFrame &MainFrm) {
 	Doc.SwapInstruments(left_, right_);
 	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
 	MainFrm.SelectInstrument(left_);
-	MainFrm.UpdateInstrumentList();
 }
 
 void ModuleAction::CSwapInst::Redo(CMainFrame &MainFrm) {
@@ -287,5 +299,8 @@ void ModuleAction::CSwapInst::Redo(CMainFrame &MainFrm) {
 	Doc.SwapInstruments(left_, right_);
 	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
 	MainFrm.SelectInstrument(right_);
+}
+
+void ModuleAction::CSwapInst::UpdateViews(CMainFrame &MainFrm) const {
 	MainFrm.UpdateInstrumentList();
 }

@@ -2461,22 +2461,12 @@ void CMainFrame::OnModuleDuplicateFramePatterns()
 
 void CMainFrame::OnModuleMoveframedown()
 {
-	auto pAction = std::make_unique<CFActionMoveDown>();		// // //
-	auto &Action = *pAction; // TODO: remove
-	if (AddAction(std::move(pAction))) {
-		static_cast<CFamiTrackerView*>(GetActiveView())->SelectNextFrame();
-		Action.SaveRedoState(*this);
-	}
+	AddAction(std::make_unique<CFActionMoveDown>());		// // //
 }
 
 void CMainFrame::OnModuleMoveframeup()
 {
-	auto pAction = std::make_unique<CFActionMoveUp>();		// // //
-	auto &Action = *pAction; // TODO: remove
-	if (AddAction(std::move(pAction))) {
-		static_cast<CFamiTrackerView*>(GetActiveView())->SelectPrevFrame();
-		Action.SaveRedoState(*this);
-	}
+	AddAction(std::make_unique<CFActionMoveUp>());		// // //
 }
 
 void CMainFrame::OnModuleDuplicateCurrentPattern()		// // //
@@ -2801,20 +2791,14 @@ bool CMainFrame::AddAction(std::unique_ptr<CAction> pAction)		// // //
 {
 	ASSERT(m_pActionHandler);
 
-	try {
-		if (!m_pActionHandler->AddAction(*this, std::move(pAction)))
-			return false;		// // //
-	}
-	catch (std::runtime_error *e) {
-		AfxMessageBox(e->what());
-		SAFE_RELEASE(e);
-		return false;
-	}
+	if (!m_pActionHandler->AddAction(*this, std::move(pAction)))
+		return false;		// // //
 
 	auto pDoc = dynamic_cast<CFTMComponentInterface *>(GetActiveDocument());		// // //
 	pDoc->Modify(true);
 	if (m_pActionHandler->ActionsLost())		// // //
 		pDoc->ModifyIrreversible();
+
 	return true;
 }
 

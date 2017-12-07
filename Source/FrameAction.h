@@ -86,14 +86,13 @@ class CFrameAction : public CAction
 {
 protected:
 	CFrameAction() = default;		// // //
-
-public:
 	virtual ~CFrameAction();
 
 	void SaveUndoState(const CMainFrame &MainFrm) override;		// // //
 	void SaveRedoState(const CMainFrame &MainFrm) override;		// // //
 	void RestoreUndoState(CMainFrame &MainFrm) const override;		// // //
 	void RestoreRedoState(CMainFrame &MainFrm) const override;		// // //
+	void UpdateViews(CMainFrame &MainFrm) const override;		// // //
 
 protected:
 	static int ClipPattern(int Pattern);
@@ -158,6 +157,7 @@ private:
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 	bool Merge(const CAction &Other) override;		// // //
+	void UpdateViews(CMainFrame &MainFrm) const override;
 private:
 	int m_iOldFrameCount, m_iNewFrameCount;
 };
@@ -267,6 +267,7 @@ private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 private:
 	CFrameClipData *m_pClipData = nullptr;
 	int m_iTargetFrame;
@@ -310,6 +311,7 @@ private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
+	void UpdateViews(CMainFrame &MainFrm) const override;
 private:
 	CFrameClipData *m_pClipData = nullptr;
 };
