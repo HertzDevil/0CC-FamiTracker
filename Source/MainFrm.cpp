@@ -70,6 +70,7 @@
 #include "SimpleFile.h"
 #include "InstrumentManager.h"
 #include "Kraid.h"
+#include "NumConv.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -1163,15 +1164,17 @@ bool CMainFrame::TypeInstrumentNumber(int Digit)		// // //
 	return true;
 }
 
-void CMainFrame::ShowInstrumentNumberText()
+void CMainFrame::ShowInstrumentNumberText()		// // //
 {
-	CString msg, digit;
+	std::string digit;
 	for (int i = 0; i < INST_DIGITS; ++i)
 		if (i >= m_iInstNumDigit - 1)
-			digit.AppendChar(_T('_'));
+			digit += '_';
 		else
-			digit.AppendFormat("%X", (m_iInstNumCurrent >> (4 * (INST_DIGITS - i - 1))) & 0xF);
-	AfxFormatString1(msg, IDS_TYPE_INST_NUM, digit);
+			digit += conv::to_digit((m_iInstNumCurrent >> (4 * (INST_DIGITS - i - 1))) & 0xF);
+
+	CString msg;
+	AfxFormatString1(msg, IDS_TYPE_INST_NUM, digit.c_str());
 	SetMessageText(msg);
 }
 
@@ -1196,12 +1199,10 @@ void CMainFrame::SetIndicatorTime(int Min, int Sec, int MSec)
 
 void CMainFrame::SetIndicatorPos(int Frame, int Row)
 {
-	CString String;
-	if (theApp.GetSettings()->General.bRowInHex)		// // //
-		String.Format(_T("%02X / %02X"), Row, Frame);
-	else
-		String.Format(_T("%02i / %02i"), Row, Frame);
-	m_wndStatusBar.SetPaneText(7, String);
+	std::string String = theApp.GetSettings()->General.bRowInHex ?		// // //
+		(conv::from_int_hex(Row, 2) + " / " + conv::from_int_hex(Frame, 2)) :
+		(conv::from_int(Row, 3) + " / " + conv::from_int(Frame, 3));
+	m_wndStatusBar.SetPaneText(7, String.c_str());
 }
 
 void CMainFrame::OnSize(UINT nType, int cx, int cy)
@@ -1608,13 +1609,12 @@ void CMainFrame::OnHelpPerformance()
 
 void CMainFrame::OnUpdateSBInstrument(CCmdUI *pCmdUI)
 {
-	CString String;
-	String.Format(_T("%02X"), GetSelectedInstrument());		// // //
+	auto String = conv::from_uint_hex(GetSelectedInstrument(), 2);		// // //
 	unsigned int Split = static_cast<CFamiTrackerView*>(GetActiveView())->GetSplitInstrument();
 	if (Split != MAX_INSTRUMENTS)
-		String.Format(_T("%02X / %s"), Split, String);
+		String = conv::from_int_hex(Split, 2) + " / " + String;
 	CString msg;
-	AfxFormatString1(msg, ID_INDICATOR_INSTRUMENT, String);
+	AfxFormatString1(msg, ID_INDICATOR_INSTRUMENT, String.c_str());
 	pCmdUI->Enable(); 
 	pCmdUI->SetText(msg);
 }

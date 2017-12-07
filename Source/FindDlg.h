@@ -211,7 +211,7 @@ protected:
 
 	template <typename... T>
 	void RaiseIf(bool Check, LPCTSTR Str, T... args);
-	unsigned GetHex(const CString &str);
+	unsigned GetHex(LPCTSTR str);
 
 	replaceTerm toReplace(const searchTerm &x) const;
 

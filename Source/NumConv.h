@@ -110,6 +110,12 @@ constexpr auto to_uint32(std::string_view sv, unsigned radix = 10) noexcept {
 	return details::to_unsigned<uint32_t>(sv, radix);
 }
 
+// converts a complete string to an unsigned integer
+// returns empty value if parse failed or value is out of range
+constexpr auto to_uint(std::string_view sv, unsigned radix = 10) noexcept {
+	return details::to_unsigned<unsigned int>(sv, radix);
+}
+
 // converts a complete string to a signed 8-bit integer
 // returns empty value if parse failed or value is out of range
 constexpr auto to_int8(std::string_view sv, unsigned radix = 10) noexcept {
@@ -126,6 +132,12 @@ constexpr auto to_int16(std::string_view sv, unsigned radix = 10) noexcept {
 // returns empty value if parse failed or value is out of range
 constexpr auto to_int32(std::string_view sv, unsigned radix = 10) noexcept {
 	return details::to_signed<int32_t, uint32_t>(sv, radix);
+}
+
+// converts a complete string to a signed integer
+// returns empty value if parse failed or value is out of range
+constexpr auto to_int(std::string_view sv, unsigned radix = 10) noexcept {
+	return details::to_signed<int, unsigned int>(sv, radix);
 }
 
 

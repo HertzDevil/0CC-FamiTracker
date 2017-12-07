@@ -31,6 +31,7 @@
 #include "PatternEditor.h"
 #include "PatternAction.h"
 #include "CompoundAction.h"
+#include "NumConv.h"
 
 namespace {
 
@@ -205,19 +206,15 @@ void CFindResultsBox::DoDataExchange(CDataExchange* pDX)
 void CFindResultsBox::AddResult(const stChanNote *pNote, const CFindCursor *pCursor, bool Noise) const
 {
 	int Pos = m_cListResults->GetItemCount();
-	CString str;
-	str.Format(_T("%d"), Pos + 1);
-	m_cListResults->InsertItem(Pos, str);
+	m_cListResults->InsertItem(Pos, conv::sv_from_int(Pos + 1).data());
 
 	const auto pDoc = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
 	m_cListResults->SetItemText(Pos, CHANNEL, pDoc->GetChannel(pCursor->m_iChannel).GetChannelName());
-	str.Format(_T("%02X"), pDoc->GetPatternAtFrame(pCursor->m_iTrack, pCursor->m_iFrame, pCursor->m_iChannel));
-	m_cListResults->SetItemText(Pos, PATTERN, str);
+	m_cListResults->SetItemText(Pos, PATTERN, conv::sv_from_int_hex(pDoc->GetPatternAtFrame(
+		pCursor->m_iTrack, pCursor->m_iFrame, pCursor->m_iChannel), 2).data());
 
-	str.Format(_T("%02X"), pCursor->m_iFrame);
-	m_cListResults->SetItemText(Pos, FRAME, str);
-	str.Format(_T("%02X"), pCursor->m_iRow);
-	m_cListResults->SetItemText(Pos, ROW, str);
+	m_cListResults->SetItemText(Pos, FRAME, conv::sv_from_int_hex(pCursor->m_iFrame, 2).data());
+	m_cListResults->SetItemText(Pos, ROW, conv::sv_from_int_hex(pCursor->m_iRow, 2).data());
 
 	switch (pNote->Note) {
 	case NONE:
@@ -227,32 +224,26 @@ void CFindResultsBox::AddResult(const stChanNote *pNote, const CFindCursor *pCur
 	case RELEASE:
 		m_cListResults->SetItemText(Pos, NOTE, _T("===")); break;
 	case ECHO:
-		str.Format(_T("^-%d"), pNote->Octave);
-		m_cListResults->SetItemText(Pos, NOTE, str); break;
+		m_cListResults->SetItemText(Pos, NOTE, ("^-" + conv::from_int(pNote->Octave)).data()); break;
 	default:
-		if (Noise) {
-			str.Format(_T("%X-#"), MIDI_NOTE(pNote->Octave, pNote->Note) & 0x0F);
-			m_cListResults->SetItemText(Pos, NOTE, str);
-		}
+		if (Noise)
+			m_cListResults->SetItemText(Pos, NOTE, (conv::from_int_hex(MIDI_NOTE(pNote->Octave, pNote->Note) & 0x0F) + "-#").data());
 		else
 			m_cListResults->SetItemText(Pos, NOTE, pNote->ToString().c_str());
 	}
 
 	if (pNote->Instrument == HOLD_INSTRUMENT)		// // // 050B
 		m_cListResults->SetItemText(Pos, INST, _T("&&"));
-	else if (pNote->Instrument != MAX_INSTRUMENTS) {
-		str.Format(_T("%02X"), pNote->Instrument);
-		m_cListResults->SetItemText(Pos, INST, str);
-	}
-	if (pNote->Vol != MAX_VOLUME) {
-		str.Format(_T("%X"), pNote->Vol);
-		m_cListResults->SetItemText(Pos, VOL, str);
-	}
+	else if (pNote->Instrument != MAX_INSTRUMENTS)
+		m_cListResults->SetItemText(Pos, INST, conv::sv_from_int_hex(pNote->Instrument, 2).data());
+
+	if (pNote->Vol != MAX_VOLUME)
+		m_cListResults->SetItemText(Pos, VOL, conv::sv_from_int_hex(pNote->Vol).data());
 
 	for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
 		if (pNote->EffNumber[i] != EF_NONE) {
-			str.Format(_T("%c%02X"), EFF_CHAR[pNote->EffNumber[i] - 1], pNote->EffParam[i]);
-			m_cListResults->SetItemText(Pos, EFFECT + i, str);
+			auto str = EFF_CHAR[pNote->EffNumber[i] - 1] + conv::from_int_hex(pNote->EffParam[i], 2);
+			m_cListResults->SetItemText(Pos, EFFECT + i, str.data());
 		}
 
 	UpdateCount();
@@ -743,9 +734,10 @@ void CFindDlg::ParseNote(searchTerm &Term, CString str, bool Half)
 		if (str.Delete(0)) {
 			if (str.GetAt(0) == _T('-'))
 				str.Delete(0);
-			RaiseIf(atoi(str) > ECHO_BUFFER_LENGTH,
+			int BufPos = conv::to_int((LPCTSTR)str).value_or(ECHO_BUFFER_LENGTH + 1);
+			RaiseIf(BufPos > ECHO_BUFFER_LENGTH,
 				_T("Echo buffer access \"^%s\" is out of range, maximum is %d."), str, ECHO_BUFFER_LENGTH);
-			Term.Oct->Set(atoi(str), Half);
+			Term.Oct->Set(BufPos, Half);
 		}
 		else {
 			Term.Oct->Min = 0; Term.Oct->Max = ECHO_BUFFER_LENGTH;
@@ -765,7 +757,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CString str, bool Half)
 			if (str.Delete(0)) {
 				Term.Definite[WC_OCT] = true;
 				RaiseIf(str.SpanIncluding("0123456789") != str, _T("Unknown note octave."));
-				Oct = atoi(str);
+				Oct = conv::to_int((LPCTSTR)str).value_or(-1);
 				RaiseIf(Oct >= OCTAVE_RANGE || Oct < 0,
 					_T("Note octave \"%s\" is out of range, maximum is %d."), str, OCTAVE_RANGE - 1);
 				Term.Oct->Set(Oct, Half);
@@ -797,7 +789,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CString str, bool Half)
 	}
 
 	if (str.SpanIncluding("0123456789") == str) {
-		int NoteValue = atoi(str);
+		int NoteValue = conv::to_int((LPCTSTR)str).value_or(-1);
 		RaiseIf(NoteValue == 0 && str.GetAt(0) != _T('0'), _T("Invalid note \"%s\"."), str);
 		RaiseIf(NoteValue >= NOTE_COUNT || NoteValue < 0,
 			_T("Note value \"%s\" is out of range, maximum is %d."), str, NOTE_COUNT - 1);
@@ -989,12 +981,10 @@ void CFindDlg::GetReplaceTerm()
 	m_replaceTerm = toReplace(newTerm);
 }
 
-unsigned CFindDlg::GetHex(const CString &str) {
-	LPTSTR e = nullptr;
-	unsigned val = _tcstoul((LPCTSTR)str, &e, 16);
-	RaiseIf(errno || e != (LPCTSTR)str + str.GetLength(),
-		_T("Invalid hexadecimal \"%s\"."), str);
-	return val;
+unsigned CFindDlg::GetHex(LPCTSTR str) {
+	auto val = conv::to_int(str, 16);
+	RaiseIf(!val, _T("Invalid hexadecimal \"%s\"."), str);
+	return *val;
 }
 
 replaceTerm CFindDlg::toReplace(const searchTerm &x) const
