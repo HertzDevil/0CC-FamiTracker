@@ -1394,6 +1394,9 @@
     <ClInclude Include="Source\Apu\SoundChip.h">
       <Filter>Header Files\Sound Driver Headers\Audio Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Source\NumConv.h">
+      <Filter>Header Files\Other Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="0CC-FamiTracker.rc">

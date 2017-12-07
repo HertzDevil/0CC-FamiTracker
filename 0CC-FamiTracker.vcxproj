@@ -631,6 +631,7 @@
     <ClInclude Include="Source\Kraid.h" />
     <ClInclude Include="Source\ModuleAction.h" />
     <ClInclude Include="Source\NoteQueue.h" />
+    <ClInclude Include="Source\NumConv.h" />
     <ClInclude Include="Source\PatternClipData.h" />
     <ClInclude Include="Source\PatternComponent.h" />
     <ClInclude Include="Source\PatternData.h" />
