@@ -372,8 +372,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 			//m_dcBack.SetTextColor(CurrentColor);
 			m_dcBack.SetTextColor(DIM(CurrentColor, 70));
 
-			m_dcBack.DrawText(_T("--"), DPI::Rect(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2,
-				ypos + 3, FRAME_ITEM_WIDTH - 2, 20), DT_LEFT | DT_TOP | DT_NOCLIP);
+			m_dcBack.TextOut(DPI::SX(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3), _T("--"));
 		}
 	}
 
@@ -398,9 +397,8 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 				else
 					m_dcBack.SetTextColor(DIM(CurrentColor, 70));
 
-				m_dcBack.DrawText(MakeIntString(pDoc->GetPatternAtFrame(Track, Frame, Chan), _T("%02X")),		// // //
-								  DPI::Rect(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2,
-											ypos + 3, FRAME_ITEM_WIDTH - 2, 20), DT_LEFT | DT_TOP | DT_NOCLIP);
+				m_dcBack.TextOut(DPI::SX(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3),
+					MakeIntString(pDoc->GetPatternAtFrame(Track, Frame, Chan), _T("%02X")));		// // //
 			}
 		}
 	}
