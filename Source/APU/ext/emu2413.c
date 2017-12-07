@@ -1408,8 +1408,8 @@ calc (OPLL * opll)
 		int32_t val = calc_slot_car (CAR(opll,i), calc_slot_mod(MOD(opll,i)));
 		inst += val;
 		int32_t absval = abs(val);		// // //
-		if (absval > abs(opll_volumes[i]))		// // //
-			opll_volumes[i] = val;
+		if (absval > opll_volumes[i])
+			opll_volumes[i] = absval;		// // //
 	  }
 
   /* CH6 */

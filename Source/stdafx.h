@@ -63,6 +63,7 @@
 #define NO_WARN_MBCS_MFC_DEPRECATION		// // // MBCS
 
 struct IUnknown;		// // // /permissive-
+class CRenderTarget;		// // //
 
 #include <afx.h>
 #include <afxwin.h>         // MFC core and standard components
