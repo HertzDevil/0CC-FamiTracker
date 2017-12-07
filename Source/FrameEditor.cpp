@@ -250,19 +250,12 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	const int SelectEnd		= m_selection.GetFrameEnd();
 	const int CBegin		= m_selection.GetChanStart();
 	const int CEnd			= m_selection.GetChanEnd();
-	int PatternAreaWidth	= m_iWinWidth - ROW_COLUMN_WIDTH;
 
-	if (ActiveChannel < m_iFirstChannel)
-		m_iFirstChannel = ActiveChannel;
-	if (ActiveChannel >= (m_iFirstChannel + (ChannelCount - 1)))
-		m_iFirstChannel = ActiveChannel - (ChannelCount - 1);
+	m_iFirstChannel = std::max(ActiveChannel - (ChannelCount - 1), std::min(ActiveChannel, m_iFirstChannel));
 
 	if (m_bLastRow)		// // //
 		++ActiveFrame;
-	if (ActiveFrame > FrameCount)		// // //
-		ActiveFrame = FrameCount;
-	if (ActiveFrame < 0)
-		ActiveFrame = 0;
+	ActiveFrame = std::max(0, std::min(FrameCount, ActiveFrame));
 
 	CFont *pOldFont = m_dcBack.SelectObject(&m_Font);
 
@@ -285,95 +278,115 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	// Draw selected row
 	GradientBar(&m_dcBack, DPI::Rect(0, m_iMiddleRow * ROW_HEIGHT + 3, m_iWinWidth, ROW_HEIGHT + 1), RowColor, ColBackground);	
 
-	int FirstVisibleFrame = ActiveFrame - m_iMiddleRow;
-	int Frame = 0;
-	int Start = 0;
-	int End = m_iRowsVisible;
-
-	int PlayFrame = theApp.GetSoundGenerator()->GetPlayerPos().first;		// // //
-
-	if (ActiveFrame > m_iMiddleRow)
-		Frame = ActiveFrame - m_iMiddleRow;
-	if (FirstVisibleFrame + Start < 0)
-		Start = -FirstVisibleFrame;
-	if (FirstVisibleFrame + End >= FrameCount)
-		End = Start + FrameCount - ((FirstVisibleFrame > 0) ? FirstVisibleFrame : 0);
+	const int FirstVisibleFrame = ActiveFrame - m_iMiddleRow;
+	const int BeginFrame = std::max(0, FirstVisibleFrame);		// // //
+	const int EndFrame = std::min(FrameCount, m_iRowsVisible + FirstVisibleFrame);		// // //
 
 	// Draw rows
-	CBookmarkCollection *pCol = m_pDocument->GetBookmarkCollection(Track);		// // //
-	for (int i = Start; i <= End; ++i) {
-		CRect RowRect = DPI::Rect(0, i * ROW_HEIGHT + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
 
-		// // // Highlight by bookmarks
-		if (i != m_iMiddleRow) if (const unsigned Count = pCol->GetCount()) for (unsigned j = 0; j < Count; ++j)
-			if (pCol->GetBookmark(j)->m_iFrame == Frame) {
-				GradientBar(&m_dcBack, RowRect, theApp.GetSettings()->Appearance.iColBackgroundHilite, ColBackground);
-				break;
-			}
+	// // // Highlight by bookmarks
+	const CBookmarkCollection *pCol = m_pDocument->GetBookmarkCollection(Track);		// // //
+	for (int Frame = BeginFrame; Frame <= EndFrame; ++Frame) {
+		int line = Frame - FirstVisibleFrame;
+		const int ypos = line * ROW_HEIGHT;
+		CRect RowRect = DPI::Rect(0, ypos + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
 
-		// // // 050B row marker
-		if (Frame == pView->GetMarkerFrame())
-			GradientBar(&m_dcBack, DPI::Rect(2, i * ROW_HEIGHT + 4, ROW_COLUMN_WIDTH - 5, ROW_HEIGHT - 1), ColCursor, DIM(ColCursor, 30));
-		
-		// Play cursor
-		if (PlayFrame == Frame && !pView->GetFollowMode() && theApp.IsPlaying())
+		if (line != m_iMiddleRow)
+			for (unsigned j = 0, Count = pCol->GetCount(); j < Count; ++j)
+				if (pCol->GetBookmark(j)->m_iFrame == Frame) {
+					GradientBar(&m_dcBack, RowRect, theApp.GetSettings()->Appearance.iColBackgroundHilite, ColBackground);
+					break;
+				}
+	}
+
+	// // // 050B row marker
+	if (int Marker = pView->GetMarkerFrame(); Marker >= BeginFrame && Marker <= EndFrame) {
+		int line = Marker - FirstVisibleFrame;
+		const int ypos = line * ROW_HEIGHT;
+		GradientBar(&m_dcBack, DPI::Rect(2, ypos + 4, ROW_COLUMN_WIDTH - 5, ROW_HEIGHT - 1), ColCursor, DIM(ColCursor, 30));
+	}
+
+	// Play cursor
+	const int PlayFrame = theApp.GetSoundGenerator()->GetPlayerPos().first;		// // //
+	if (!pView->GetFollowMode() && theApp.IsPlaying())
+		if (PlayFrame >= BeginFrame && PlayFrame <= EndFrame) {
+			int line = PlayFrame - FirstVisibleFrame;
+			const int ypos = line * ROW_HEIGHT;
+			CRect RowRect = DPI::Rect(0, ypos + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
 			GradientBar(&m_dcBack, RowRect, theApp.GetSettings()->Appearance.iColCurrentRowPlaying, ColBackground);		// // //
+		}
 
-		// Queue cursor
-		if (theApp.GetSoundGenerator()->GetQueueFrame() == Frame)
-			GradientBar(&m_dcBack, RowRect, QUEUE_COLOR, ColBackground);
+	// Queue cursor
+	if (int Queue = theApp.GetSoundGenerator()->GetQueueFrame(); Queue >= BeginFrame && Queue <= EndFrame) {
+		int line = Queue - FirstVisibleFrame;
+		const int ypos = line * ROW_HEIGHT;
+		CRect RowRect = DPI::Rect(0, ypos + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
+		GradientBar(&m_dcBack, RowRect, QUEUE_COLOR, ColBackground);
+	}
 
-		bool bSelectedRow = m_bSelecting && (Frame >= SelectStart) && (Frame <= SelectEnd);
-
-		// Selection
-		if (bSelectedRow) {
-			CRect RowRect = DPI::Rect(ROW_COLUMN_WIDTH + FRAME_ITEM_WIDTH * CBegin, i * ROW_HEIGHT + 3, FRAME_ITEM_WIDTH * (CEnd - CBegin + 1), ROW_HEIGHT);		// // //
+	// Selection
+	if (m_bSelecting) {
+		for (int Frame = std::max(SelectStart, BeginFrame); Frame <= std::min(SelectEnd, EndFrame); ++Frame) {
+			int line = Frame - FirstVisibleFrame;
+			const int ypos = line * ROW_HEIGHT;
+			CRect RowRect = DPI::Rect(ROW_COLUMN_WIDTH + FRAME_ITEM_WIDTH * CBegin, ypos + 3, FRAME_ITEM_WIDTH * (CEnd - CBegin + 1), ROW_HEIGHT);		// // //
 			RowRect.OffsetRect(2, 0);
 			RowRect.InflateRect(1, 0);
 			m_dcBack.FillSolidRect(RowRect, ColSelect);
 			if (Frame == SelectStart)
 				m_dcBack.FillSolidRect(RowRect.left, RowRect.top, RowRect.Width(), 1, ColSelectEdge);
-			if (Frame == SelectEnd) 
+			if (Frame == SelectEnd)
 				m_dcBack.FillSolidRect(RowRect.left, RowRect.bottom - 1, RowRect.Width(), 1, ColSelectEdge);
 			m_dcBack.FillSolidRect(RowRect.left, RowRect.top, 1, RowRect.Height(), ColSelectEdge);		// // //
 			m_dcBack.FillSolidRect(RowRect.right - 1, RowRect.top, 1, RowRect.Height(), ColSelectEdge);		// // //
 		}
+	}
 
-		if (i == m_iMiddleRow) {
-			// Cursor box
-			int x = ((ActiveChannel - m_iFirstChannel) * FRAME_ITEM_WIDTH);
-			int y = m_iMiddleRow * ROW_HEIGHT + 3;
-			
-			GradientBar(&m_dcBack, DPI::Rect(ROW_COLUMN_WIDTH + 2 + x, y, FRAME_ITEM_WIDTH, ROW_HEIGHT + 1), ColCursor, ColBackground);
-			m_dcBack.Draw3dRect(DPI::Rect(ROW_COLUMN_WIDTH + 2 + x, y, FRAME_ITEM_WIDTH, ROW_HEIGHT + 1), BLEND(ColCursor, 0xFFFFFF, 90), BLEND(ColCursor, ColBackground, 60));
+	// Cursor box
+	if (int Frame = m_iMiddleRow + FirstVisibleFrame; Frame >= BeginFrame && Frame <= EndFrame) {
+		const int ypos = m_iMiddleRow * ROW_HEIGHT;
+		int x = ((ActiveChannel - m_iFirstChannel) * FRAME_ITEM_WIDTH);
+		int y = m_iMiddleRow * ROW_HEIGHT + 3;
+		CRect CursorRect = DPI::Rect(ROW_COLUMN_WIDTH + 2 + x, y, FRAME_ITEM_WIDTH, ROW_HEIGHT + 1);
 
-			if (m_bInputEnable && m_bCursor) {
-				// Flashing black box indicating that input is active
-				m_dcBack.FillSolidRect(DPI::Rect(ROW_COLUMN_WIDTH + 4 + x + CURSOR_WIDTH * m_iCursorPos, y + 2, CURSOR_WIDTH, ROW_HEIGHT - 3), ColBackground);
-			}
+		GradientBar(&m_dcBack, CursorRect, ColCursor, ColBackground);
+		m_dcBack.Draw3dRect(CursorRect, BLEND(ColCursor, 0xFFFFFF, 90), BLEND(ColCursor, ColBackground, 60));
+
+		// Flashing black box indicating that input is active
+		if (m_bInputEnable && m_bCursor)
+			m_dcBack.FillSolidRect(DPI::Rect(ROW_COLUMN_WIDTH + 4 + x + CURSOR_WIDTH * m_iCursorPos, y + 2, CURSOR_WIDTH, ROW_HEIGHT - 3), ColBackground);
+	}
+
+	// // // Extra input frame
+	if (FrameCount <= EndFrame) {
+		int line = FrameCount - FirstVisibleFrame;
+		const int ypos = line * ROW_HEIGHT;
+		m_dcBack.SetTextColor(ColTextHilite);
+		m_dcBack.TextOut(DPI::SX(3 + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3), _T(">>"));
+
+		COLORREF CurrentColor = (line == m_iHiglightLine || m_iHiglightLine == -1) ? ColText : ColTextDimmed;
+
+		for (int j = 0; j < ChannelCount; ++j) {
+			int Chan = j + m_iFirstChannel;
+
+			//m_dcBack.SetTextColor(CurrentColor);
+			m_dcBack.SetTextColor(DIM(CurrentColor, 70));
+
+			m_dcBack.DrawText(_T("--"), DPI::Rect(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2,
+				ypos + 3, FRAME_ITEM_WIDTH - 2, 20), DT_LEFT | DT_TOP | DT_NOCLIP);
 		}
+	}
 
-		if (i == End) {
+	// Frame patterns
+	for (int Frame = BeginFrame; Frame <= EndFrame; ++Frame) {
+		if (Frame != FrameCount) {
+			int line = Frame - FirstVisibleFrame;
+			const int ypos = line * ROW_HEIGHT;
+			bool bSelectedRow = m_bSelecting && (Frame >= SelectStart) && (Frame <= SelectEnd);		// // //
 			m_dcBack.SetTextColor(ColTextHilite);
-			m_dcBack.TextOut(DPI::SX(3 + FRAME_ITEM_WIDTH / 2), DPI::SY(i * ROW_HEIGHT + 3), _T(">>"));
+			m_dcBack.TextOut(DPI::SX(3 + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3), MakeIntString(Frame, ROW_FORMAT));
 
-			COLORREF CurrentColor = (i == m_iHiglightLine || m_iHiglightLine == -1) ? ColText : ColTextDimmed;
-
-			for (int j = 0; j < ChannelCount; ++j) {
-				int Chan = j + m_iFirstChannel;
-
-				//m_dcBack.SetTextColor(CurrentColor);
-				m_dcBack.SetTextColor(DIM(CurrentColor, 70));
-
-				m_dcBack.DrawText(_T("--"), DPI::Rect(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2,
-													  i * ROW_HEIGHT + 3, FRAME_ITEM_WIDTH - 2, 20), DT_LEFT | DT_TOP | DT_NOCLIP);
-			}
-		}
-		else {
-			m_dcBack.SetTextColor(ColTextHilite);
-			m_dcBack.TextOut(DPI::SX(3 + FRAME_ITEM_WIDTH / 2), DPI::SY(i * ROW_HEIGHT + 3), MakeIntString(Frame, ROW_FORMAT));
-
-			COLORREF CurrentColor = (i == m_iHiglightLine || m_iHiglightLine == -1) ? ColText : ColTextDimmed;
+			COLORREF CurrentColor = (line == m_iHiglightLine || m_iHiglightLine == -1) ? ColText : ColTextDimmed;
 
 			for (int j = 0; j < ChannelCount; ++j) {
 				int Chan = j + m_iFirstChannel;
@@ -387,10 +400,9 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 
 				m_dcBack.DrawText(MakeIntString(pDoc->GetPatternAtFrame(Track, Frame, Chan), _T("%02X")),		// // //
 								  DPI::Rect(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2,
-											i * ROW_HEIGHT + 3, FRAME_ITEM_WIDTH - 2, 20), DT_LEFT | DT_TOP | DT_NOCLIP);
+											ypos + 3, FRAME_ITEM_WIDTH - 2, 20), DT_LEFT | DT_TOP | DT_NOCLIP);
 			}
 		}
-		++Frame;
 	}
 
 	if (m_DropTarget.IsDragging()) {
@@ -933,9 +945,12 @@ void CFrameEditor::OnMouseMove(UINT nFlags, CPoint point)
 
 void CFrameEditor::OnNcMouseMove(UINT nHitTest, CPoint point)
 {
+	int LastHighlightLine = m_iHiglightLine;		// // //
 	m_iHiglightLine = -1;
-	InvalidateFrameData();
-	Invalidate();
+	if (LastHighlightLine != m_iHiglightLine) {
+		InvalidateFrameData();
+		Invalidate();
+	}
 	CWnd::OnNcMouseMove(nHitTest, point);
 }
 
