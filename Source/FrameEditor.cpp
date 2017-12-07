@@ -385,7 +385,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 			bool bSelectedRow = m_bSelecting && (Frame >= SelectStart) && (Frame <= SelectEnd);		// // //
 			m_dcBack.SetTextColor(ColTextHilite);
 			m_dcBack.TextOut(DPI::SX(3 + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3),
-				(bHexRows ? conv::from_uint_hex(Frame, 2) : conv::from_uint(Frame, 3)).c_str());
+				(bHexRows ? conv::sv_from_uint_hex(Frame, 2) : conv::sv_from_uint(Frame, 3)).data());
 
 			COLORREF CurrentColor = (line == m_iHiglightLine || m_iHiglightLine == -1) ? ColText : ColTextDimmed;
 
@@ -400,7 +400,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 					m_dcBack.SetTextColor(DIM(CurrentColor, 70));
 
 				m_dcBack.TextOut(DPI::SX(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3),
-					conv::from_uint_hex(pDoc->GetPatternAtFrame(Track, Frame, Chan), 2).c_str());		// // //
+					conv::sv_from_uint_hex(pDoc->GetPatternAtFrame(Track, Frame, Chan), 2).data());		// // //
 			}
 		}
 	}

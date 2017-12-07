@@ -92,26 +92,38 @@ to_signed(std::string_view sv, unsigned radix) noexcept {
 
 } // namespace details
 
+// converts a complete string to an unsigned 8-bit integer
+// returns empty value if parse failed or value is out of range
 constexpr auto to_uint8(std::string_view sv, unsigned radix = 10) noexcept {
 	return details::to_unsigned<uint8_t>(sv, radix);
 }
 
+// converts a complete string to an unsigned 16-bit integer
+// returns empty value if parse failed or value is out of range
 constexpr auto to_uint16(std::string_view sv, unsigned radix = 10) noexcept {
 	return details::to_unsigned<uint16_t>(sv, radix);
 }
 
+// converts a complete string to an unsigned 32-bit integer
+// returns empty value if parse failed or value is out of range
 constexpr auto to_uint32(std::string_view sv, unsigned radix = 10) noexcept {
 	return details::to_unsigned<uint32_t>(sv, radix);
 }
 
+// converts a complete string to a signed 8-bit integer
+// returns empty value if parse failed or value is out of range
 constexpr auto to_int8(std::string_view sv, unsigned radix = 10) noexcept {
 	return details::to_signed<int8_t, uint8_t>(sv, radix);
 }
 
+// converts a complete string to a signed 16-bit integer
+// returns empty value if parse failed or value is out of range
 constexpr auto to_int16(std::string_view sv, unsigned radix = 10) noexcept {
 	return details::to_signed<int16_t, uint16_t>(sv, radix);
 }
 
+// converts a complete string to a signed 32-bit integer
+// returns empty value if parse failed or value is out of range
 constexpr auto to_int32(std::string_view sv, unsigned radix = 10) noexcept {
 	return details::to_signed<int32_t, uint32_t>(sv, radix);
 }
@@ -181,7 +193,7 @@ char *from_uint_impl(uintmax_t x, unsigned places) noexcept {
 }
 
 template <unsigned Radix>
-std::string from_uint(uintmax_t x, unsigned places) noexcept {
+std::string_view from_uint(uintmax_t x, unsigned places) noexcept {
 	return from_uint_impl<Radix>(x, places);
 }
 
@@ -190,9 +202,9 @@ std::string from_uint(uintmax_t x, unsigned places) noexcept {
 #pragma warning (disable : 4146) // unary minus operator applied to unsigned type, result still unsigned
 #endif
 template <unsigned Radix>
-std::string from_int(intmax_t x, unsigned places) noexcept {
+std::string_view from_int(intmax_t x, unsigned places) noexcept {
 	if (x >= 0)
-		return from_uint<Radix>(x, places);
+		return from_uint_impl<Radix>(x, places);
 	char *it = from_uint_impl<Radix>(-static_cast<uintmax_t>(x), places);
 	*--it = '-';
 	return it;
@@ -203,36 +215,100 @@ std::string from_int(intmax_t x, unsigned places) noexcept {
 
 } // namespace details
 
-auto from_uint(uintmax_t x, unsigned places = (unsigned)-1) noexcept {
+// converts an unsigned integer to a decimal string
+// every sv_* function shares the same buffer in each thread
+inline std::string_view sv_from_uint(uintmax_t x, unsigned places = (unsigned)-1) noexcept {
 	return details::from_uint<10>(x, places);
 }
 
-auto from_uint_bin(uintmax_t x, unsigned places = (unsigned)-1) noexcept {
+// converts an unsigned integer to a binary string
+// every sv_* function shares the same buffer in each thread
+inline std::string_view sv_from_uint_bin(uintmax_t x, unsigned places = (unsigned)-1) noexcept {
 	return details::from_uint<2>(x, places);
 }
 
-auto from_uint_oct(uintmax_t x, unsigned places = (unsigned)-1) noexcept {
+// converts an unsigned integer to an octal string
+// every sv_* function shares the same buffer in each thread
+inline std::string_view sv_from_uint_oct(uintmax_t x, unsigned places = (unsigned)-1) noexcept {
 	return details::from_uint<8>(x, places);
 }
 
-auto from_uint_hex(uintmax_t x, unsigned places = (unsigned)-1) noexcept {
+// converts an unsigned integer to a hexadecimal string
+// every sv_* function shares the same buffer in each thread
+inline std::string_view sv_from_uint_hex(uintmax_t x, unsigned places = (unsigned)-1) noexcept {
 	return details::from_uint<16>(x, places);
 }
 
-auto from_int(intmax_t x, unsigned places = (unsigned)-1) noexcept {
+// converts a signed integer to a decimal string
+// every sv_* function shares the same buffer in each thread
+inline std::string_view sv_from_int(intmax_t x, unsigned places = (unsigned)-1) noexcept {
 	return details::from_int<10>(x, places);
 }
 
-auto from_int_bin(intmax_t x, unsigned places = (unsigned)-1) noexcept {
+// converts a signed integer to a binary string
+// every sv_* function shares the same buffer in each thread
+inline std::string_view sv_from_int_bin(intmax_t x, unsigned places = (unsigned)-1) noexcept {
 	return details::from_int<2>(x, places);
 }
 
-auto from_int_oct(intmax_t x, unsigned places = (unsigned)-1) noexcept {
+// converts a signed integer to an octal string
+// every sv_* function shares the same buffer in each thread
+inline std::string_view sv_from_int_oct(intmax_t x, unsigned places = (unsigned)-1) noexcept {
 	return details::from_int<8>(x, places);
 }
 
-auto from_int_hex(intmax_t x, unsigned places = (unsigned)-1) noexcept {
+// converts a signed integer to a hexadecimal string
+// every sv_* function shares the same buffer in each thread
+inline std::string_view sv_from_int_hex(intmax_t x, unsigned places = (unsigned)-1) noexcept {
 	return details::from_int<16>(x, places);
+}
+
+// converts an unsigned integer to a decimal string
+// constructs a std::string immediately
+inline auto from_uint(uintmax_t x, unsigned places = (unsigned)-1) {
+	return std::string {sv_from_uint(x, places)};
+}
+
+// converts an unsigned integer to a binary string
+// constructs a std::string immediately
+inline auto from_uint_bin(uintmax_t x, unsigned places = (unsigned)-1) {
+	return std::string {sv_from_uint_bin(x, places)};
+}
+
+// converts an unsigned integer to an octal string
+// constructs a std::string immediately
+inline auto from_uint_oct(uintmax_t x, unsigned places = (unsigned)-1) {
+	return std::string {sv_from_uint_oct(x, places)};
+}
+
+// converts an unsigned integer to a hexadecimal string
+// constructs a std::string immediately
+inline auto from_uint_hex(uintmax_t x, unsigned places = (unsigned)-1) {
+	return std::string {sv_from_uint_hex(x, places)};
+}
+
+// converts a signed integer to a decimal string
+// constructs a std::string immediately
+inline auto from_int(intmax_t x, unsigned places = (unsigned)-1) {
+	return std::string {sv_from_int(x, places)};
+}
+
+// converts a signed integer to a binary string
+// constructs a std::string immediately
+inline auto from_int_bin(intmax_t x, unsigned places = (unsigned)-1) {
+	return std::string {sv_from_int_bin(x, places)};
+}
+
+// converts a signed integer to an octal string
+// constructs a std::string immediately
+inline auto from_int_oct(intmax_t x, unsigned places = (unsigned)-1) {
+	return std::string {sv_from_int_oct(x, places)};
+}
+
+// converts a signed integer to a hexadecimal string
+// constructs a std::string immediately
+inline auto from_int_hex(intmax_t x, unsigned places = (unsigned)-1) {
+	return std::string {sv_from_int_hex(x, places)};
 }
 
 } // namespace conv
