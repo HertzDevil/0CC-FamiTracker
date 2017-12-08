@@ -24,6 +24,7 @@
 #pragma once
 
 #include "FrameEditorTypes.h"		// // //
+#include <memory>		// // //
 
 class CFamiTrackerDoc;
 class CFamiTrackerView;
@@ -98,14 +99,14 @@ public:
 	void MoveSelection(unsigned int Track, const CFrameSelection &Sel, const CFrameCursorPos &Target);		// // //
 
 	// Commands
-	CFrameClipData *Copy() const;		// // //
-	CFrameClipData *Copy(const CFrameSelection &Sel) const;		// // //
-	CFrameClipData *CopyFrame(int Frame) const;		// // //
-	CFrameClipData *CopyEntire(int Track) const;		// // //
+	std::unique_ptr<CFrameClipData> Copy() const;		// // //
+	std::unique_ptr<CFrameClipData> Copy(const CFrameSelection &Sel) const;		// // //
+	std::unique_ptr<CFrameClipData> CopyFrame(int Frame) const;		// // //
+	std::unique_ptr<CFrameClipData> CopyEntire(int Track) const;		// // //
 
-	void PasteAt(unsigned int Track, const CFrameClipData *pClipData, const CFrameCursorPos &Pos);		// // //
-	void PasteInsert(unsigned int Track, int Frame, const CFrameClipData *pClipData);		// // //
-	void PasteNew(unsigned int Track, int Frame, const CFrameClipData *pClipData);		// // //
+	void PasteAt(unsigned int Track, const CFrameClipData &ClipData, const CFrameCursorPos &Pos);		// // //
+	void PasteInsert(unsigned int Track, int Frame, const CFrameClipData &ClipData);		// // //
+	void PasteNew(unsigned int Track, int Frame, const CFrameClipData &ClipData);		// // //
 
 	void ClonePatterns(unsigned int Track, const CFrameSelection &Sel);		// // //
 	void ClearPatterns(unsigned int Track, const CFrameSelection &Sel);		// // //
