@@ -507,10 +507,12 @@ CFActionPaste::~CFActionPaste() {
 
 bool CFActionPaste::SaveState(const CMainFrame &MainFrm)
 {
+	if (!m_pClipData)
+		return false;
+
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	return m_pClipData->ClipInfo.Channels <= pDoc->GetChannelCount() &&
 		m_pClipData->ClipInfo.Frames + pDoc->GetFrameCount(m_pUndoState->Track) <= MAX_FRAMES;
-
 }
 
 void CFActionPaste::Undo(CMainFrame &MainFrm)
@@ -547,6 +549,9 @@ CFActionPasteOverwrite::~CFActionPasteOverwrite() {
 
 bool CFActionPasteOverwrite::SaveState(const CMainFrame &MainFrm)		// // //
 {
+	if (!m_pClipData)
+		return false;
+
 	m_TargetSelection.m_cpStart.m_iFrame = m_pUndoState->Cursor.m_iFrame;
 	m_TargetSelection.m_cpEnd.m_iFrame = m_TargetSelection.m_cpStart.m_iFrame + m_pClipData->ClipInfo.Frames - 1;
 	m_TargetSelection.m_cpStart.m_iChannel = m_pClipData->ClipInfo.FirstChannel;
@@ -587,7 +592,7 @@ CFActionDropMove::~CFActionDropMove() {
 
 bool CFActionDropMove::SaveState(const CMainFrame &MainFrm)
 {
-	return true;
+	return m_pClipData != nullptr;
 }
 
 void CFActionDropMove::Undo(CMainFrame &MainFrm)

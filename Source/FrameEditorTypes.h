@@ -23,12 +23,10 @@
 
 #pragma once
 
-#include "stdafx.h"
-#include <utility>
-
 // // // common classes for frame editor
 
 class CFamiTrackerDoc;		// // //
+class CFrameClipData;		// // //
 
 // // // Frame editor cursor
 struct CFrameCursorPos
@@ -46,6 +44,7 @@ struct CFrameSelection
 	CFrameSelection() = default;
 	CFrameSelection(const CFrameCursorPos &cursor);
 	CFrameSelection(const CFrameCursorPos &b, const CFrameCursorPos &e);
+	CFrameSelection(const CFrameClipData &clipdata, int frame);
 
 	int GetFrameStart() const;
 	int GetFrameEnd() const;
@@ -78,7 +77,7 @@ public:
 	CFrameIterator operator++(int);
 	CFrameIterator &operator--();
 	CFrameIterator operator--(int);
-	bool operator ==(const CFrameIterator &other) const;
+	bool operator==(const CFrameIterator &other) const;
 
 private:
 	int NormalizeFrame(int Frame) const;

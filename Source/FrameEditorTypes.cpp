@@ -23,6 +23,7 @@
 #include "FrameEditorTypes.h"
 #include <algorithm>
 #include "FamiTrackerDoc.h"
+#include "FrameClipData.h"
 
 // // // CFrameSelection class
 
@@ -33,6 +34,12 @@ CFrameSelection::CFrameSelection(const CFrameCursorPos &cursor) :
 
 CFrameSelection::CFrameSelection(const CFrameCursorPos &b, const CFrameCursorPos &e) :
 	m_cpStart(b), m_cpEnd(e)
+{
+}
+
+CFrameSelection::CFrameSelection(const CFrameClipData &clipdata, int frame) :
+	m_cpStart {frame, clipdata.ClipInfo.FirstChannel},
+	m_cpEnd {frame + clipdata.ClipInfo.Frames - 1, clipdata.ClipInfo.FirstChannel + clipdata.ClipInfo.Channels - 1}
 {
 }
 

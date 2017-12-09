@@ -25,6 +25,7 @@
 
 #include "FrameEditorTypes.h"		// // //
 #include <memory>		// // //
+#include "stdafx.h"		// // //
 
 class CFamiTrackerDoc;
 class CFamiTrackerView;
@@ -119,17 +120,22 @@ private:
 	// Drawing
 	void DrawFrameEditor(CDC *pDC);
 	bool NeedUpdate() const;
+	void UpdateHighlightLine(int frame);		// // //
+	bool IsLineDimmed(int line) const;		// // //
 
 	// Translation
 	int GetRowFromPoint(const CPoint &point, bool DropTarget) const;
 	int GetChannelFromPoint(const CPoint &point) const;
 	bool IsOverFrameColumn(const CPoint &point) const;		// // //
+	CFrameCursorPos TranslateFramePos(const CPoint &point, bool DropTarget) const;		// // //
 
 	// Drag & drop
 	void InitiateDrag();
 
 	CFrameCursorPos GetFrameCursor() const;		// // //
 	std::pair<CFrameIterator, CFrameIterator> GetIterators() const;		// // //
+
+	std::unique_ptr<CFrameClipData> RestoreFrameClipData();		// // //
 
 	void AutoScroll(const CPoint &point);
 
@@ -164,7 +170,7 @@ private:
 	int		m_iWinHeight;
 
 	// Cursor
-	int		m_iHiglightLine;
+	int		m_iHighlightLine = -1;
 	int		m_iFirstChannel;
 	int		m_iCursorEditDigit;		// // //
 	int		m_iRowsVisible;
