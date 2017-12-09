@@ -765,6 +765,9 @@
     <ClCompile Include="Source\Apu\Mixer.cpp">
       <Filter>Source Files\Sound Driver\Audio</Filter>
     </ClCompile>
+    <ClCompile Include="Source\FrameEditorModel.cpp">
+      <Filter>Source Files\Frame Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1396,6 +1399,9 @@
     </ClInclude>
     <ClInclude Include="Source\NumConv.h">
       <Filter>Header Files\Other Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\FrameEditorModel.h">
+      <Filter>Header Files\Frame Editor Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

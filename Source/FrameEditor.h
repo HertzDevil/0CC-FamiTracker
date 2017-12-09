@@ -31,6 +31,7 @@ class CFamiTrackerView;
 class CFrameEditor;
 class CMainFrame;		// // //
 class CFrameClipData;		// // //
+class CFrameEditorModel;		// // //
 
 class CFrameEditorDropTarget : public COleDropTarget
 {
@@ -149,6 +150,8 @@ private:
 	CFamiTrackerDoc  *m_pDocument;
 	CFamiTrackerView *m_pView;
 
+	std::unique_ptr<CFrameEditorModel> model_;		// // //
+
 	// GDI objects
 	CFont	m_Font;
 	CBitmap m_bmpBack;
@@ -163,7 +166,7 @@ private:
 	// Cursor
 	int		m_iHiglightLine;
 	int		m_iFirstChannel;
-	int		m_iCursorPos;
+	int		m_iCursorEditDigit;		// // //
 	int		m_iRowsVisible;
 	int		m_iMiddleRow;
 	bool	m_bInputEnable;
@@ -179,11 +182,9 @@ private:
 	HACCEL	m_hAccel;
 
 	// Select/drag
-	bool	m_bSelecting;
 	bool	m_bStartDrag;
 	bool	m_bDropped;
 	bool	m_bFullFrameSelect = false;		// // //
-	CFrameSelection m_selection;		// // //
 	int		m_iDragRow;
 	mutable bool	m_bLastRow;		// // //
 
@@ -191,6 +192,7 @@ private:
 	int		m_iBottomScrollArea;
 
 	CPoint	m_ButtonPoint;
+	CFrameCursorPos m_LastClickPos;		// // //
 
 	CFrameEditorDropTarget m_DropTarget;
 

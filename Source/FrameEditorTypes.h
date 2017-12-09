@@ -43,6 +43,10 @@ struct CFrameCursorPos
 // // // Frame editor selection
 struct CFrameSelection
 {
+	CFrameSelection() = default;
+	CFrameSelection(const CFrameCursorPos &cursor);
+	CFrameSelection(const CFrameCursorPos &b, const CFrameCursorPos &e);
+
 	int GetFrameStart() const;
 	int GetFrameEnd() const;
 	int GetChanStart() const;

@@ -40,6 +40,7 @@
 #include "DPI.h"		// // //
 #include "FrameClipData.h"		// // //
 #include "NumConv.h"		// // //
+#include "FrameEditorModel.h"		// // //
 #include "SongData.h"		// // //
 
 /*
@@ -56,12 +57,13 @@ CFrameEditor::CFrameEditor(CMainFrame *pMainFrm) :
 	m_pMainFrame(pMainFrm),
 	m_pDocument(NULL),
 	m_pView(NULL),
+	model_(std::make_unique<CFrameEditorModel>()),		// // //
 	m_iClipboard(0),
 	m_iWinWidth(0),
 	m_iWinHeight(0),
 	m_iHiglightLine(0),
 	m_iFirstChannel(0),
-	m_iCursorPos(0),
+	m_iCursorEditDigit(0),
 	m_iRowsVisible(0),
 	m_iMiddleRow(0),
 	m_bInputEnable(false),
@@ -71,7 +73,6 @@ CFrameEditor::CFrameEditor(CMainFrame *pMainFrm) :
 	m_iLastCursorChannel(0),
 	m_iLastPlayFrame(0),
 	m_hAccel(0),
-	m_bSelecting(false),
 	m_bStartDrag(false),
 	m_bDropped(false),
 	m_iDragRow(0),
@@ -130,6 +131,7 @@ void CFrameEditor::AssignDocument(CFamiTrackerDoc *pDoc, CFamiTrackerView *pView
 {
 	m_pDocument = pDoc;
 	m_pView		= pView;
+	model_->AssignDocument(*pDoc, *pView);		// // //
 }
 
 // CFrameEditor message handlers
@@ -177,9 +179,6 @@ void CFrameEditor::OnPaint()
 		return;
 	else if (pSoundGen->IsBackgroundTask())
 		return;
-
-	unsigned int Width = WinRect.Width();
-	unsigned int Height = WinRect.Height();
 
 	// Check if width has changed, delete objects then
 	if (m_bmpBack.m_hObject != NULL) {
@@ -236,22 +235,14 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	const COLORREF ColSelectEdge	= BLEND(ColSelect, 0xFFFFFF, 70);
 	const COLORREF ColTextDimmed	= DIM(theApp.GetSettings()->Appearance.iColPatternText, 90);
 
-	const bool bHexRows				= theApp.GetSettings()->General.bRowInHex;
+	const CFamiTrackerDoc *pDoc = m_pDocument;		// // //
+	const CFamiTrackerView *pView = m_pView;
+	const auto &song = m_pMainFrame->GetCurrentSong();		// // //
 
-	LPCTSTR ROW_FORMAT = bHexRows ? _T("%02X") : _T("%03i");
-
-	const CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	const CFamiTrackerView *pView = CFamiTrackerView::GetView();
-
-	const int Track			= m_pMainFrame->GetSelectedTrack();
-	const int FrameCount	= pDoc->GetFrameCount(Track);
+	const int FrameCount	= song.GetFrameCount();
 	const int ChannelCount	= pDoc->GetChannelCount();
 	int ActiveFrame			= GetEditFrame();		// // //
 	int ActiveChannel		= pView->GetSelectedChannel();
-	const int SelectStart	= m_selection.GetFrameStart();		// // //
-	const int SelectEnd		= m_selection.GetFrameEnd();
-	const int CBegin		= m_selection.GetChanStart();
-	const int CEnd			= m_selection.GetChanEnd();
 
 	m_iFirstChannel = std::max(ActiveChannel - (ChannelCount - 1), std::min(ActiveChannel, m_iFirstChannel));
 
@@ -287,15 +278,15 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	// Draw rows
 
 	// // // Highlight by bookmarks
-	const CBookmarkCollection *pCol = m_pDocument->GetBookmarkCollection(Track);		// // //
+	const CBookmarkCollection &Col = song.GetBookmarks();		// // //
 	for (int Frame = BeginFrame; Frame <= EndFrame; ++Frame) {
 		int line = Frame - FirstVisibleFrame;
 		const int ypos = line * ROW_HEIGHT;
 		CRect RowRect = DPI::Rect(0, ypos + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
 
 		if (line != m_iMiddleRow)
-			for (unsigned j = 0, Count = pCol->GetCount(); j < Count; ++j)
-				if (pCol->GetBookmark(j)->m_iFrame == Frame) {
+			for (unsigned j = 0, Count = Col.GetCount(); j < Count; ++j)
+				if (Col.GetBookmark(j)->m_iFrame == Frame) {
 					GradientBar(&m_dcBack, RowRect, theApp.GetSettings()->Appearance.iColBackgroundHilite, ColBackground);
 					break;
 				}
@@ -327,11 +318,16 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	}
 
 	// Selection
-	if (m_bSelecting) {
+	if (auto pSel = model_->GetSelection()) {		// // //
+		const int SelectStart	= pSel->GetFrameStart();
+		const int SelectEnd		= pSel->GetFrameEnd();
+		const int CBegin		= pSel->GetChanStart();
+		const int CEnd			= pSel->GetChanEnd();
 		for (int Frame = std::max(SelectStart, BeginFrame); Frame <= std::min(SelectEnd, EndFrame); ++Frame) {
 			int line = Frame - FirstVisibleFrame;
 			const int ypos = line * ROW_HEIGHT;
-			CRect RowRect = DPI::Rect(ROW_COLUMN_WIDTH + FRAME_ITEM_WIDTH * CBegin, ypos + 3, FRAME_ITEM_WIDTH * (CEnd - CBegin + 1), ROW_HEIGHT);		// // //
+			CRect RowRect = DPI::Rect(ROW_COLUMN_WIDTH + FRAME_ITEM_WIDTH * CBegin, ypos + 3,
+				FRAME_ITEM_WIDTH * (CEnd - CBegin + 1), ROW_HEIGHT);		// // //
 			RowRect.OffsetRect(2, 0);
 			RowRect.InflateRect(1, 0);
 			m_dcBack.FillSolidRect(RowRect, ColSelect);
@@ -356,7 +352,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 
 		// Flashing black box indicating that input is active
 		if (m_bInputEnable && m_bCursor)
-			m_dcBack.FillSolidRect(DPI::Rect(ROW_COLUMN_WIDTH + 4 + x + CURSOR_WIDTH * m_iCursorPos, y + 2, CURSOR_WIDTH, ROW_HEIGHT - 3), ColBackground);
+			m_dcBack.FillSolidRect(DPI::Rect(ROW_COLUMN_WIDTH + 4 + x + CURSOR_WIDTH * m_iCursorEditDigit, y + 2, CURSOR_WIDTH, ROW_HEIGHT - 3), ColBackground);
 	}
 
 	// // // Extra input frame
@@ -379,11 +375,12 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	}
 
 	// Frame patterns
+	const bool bHexRows = theApp.GetSettings()->General.bRowInHex;
 	for (int Frame = BeginFrame; Frame <= EndFrame; ++Frame) {
 		if (Frame != FrameCount) {
 			int line = Frame - FirstVisibleFrame;
 			const int ypos = line * ROW_HEIGHT;
-			bool bSelectedRow = m_bSelecting && (Frame >= SelectStart) && (Frame <= SelectEnd);		// // //
+			bool bSelectedRow = model_->IsFrameSelected(Frame);		// // //
 			m_dcBack.SetTextColor(ColTextHilite);
 			m_dcBack.TextOut(DPI::SX(3 + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3),
 				(bHexRows ? conv::sv_from_uint_hex(Frame, 2) : conv::sv_from_uint(Frame, 3)).data());
@@ -393,23 +390,28 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 			for (int j = 0; j < ChannelCount; ++j) {
 				int Chan = j + m_iFirstChannel;
 
+				unsigned index = song.GetFramePattern(Frame, Chan);		// // //
+				unsigned activeIndex = song.GetFramePattern(ActiveFrame, Chan);
+
 				// Dim patterns that are different from current
-				if (!m_bLastRow && pDoc->GetPatternAtFrame(Track, Frame, Chan) == pDoc->GetPatternAtFrame(Track, ActiveFrame, Chan)
-								|| bSelectedRow)
+				if ((!m_bLastRow && index == activeIndex) || bSelectedRow)
 					m_dcBack.SetTextColor(CurrentColor);
 				else
 					m_dcBack.SetTextColor(DIM(CurrentColor, 70));
 
 				m_dcBack.TextOut(DPI::SX(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3),
-					conv::sv_from_uint_hex(pDoc->GetPatternAtFrame(Track, Frame, Chan), 2).data());		// // //
+					conv::sv_from_uint_hex(index, 2).data());		// // //
 			}
 		}
 	}
 
+	// Draw cursor when dragging
 	if (m_DropTarget.IsDragging()) {
-		// Draw cursor when dragging
-		if (!m_bSelecting || (m_iDragRow <= SelectStart || m_iDragRow >= (SelectEnd + 1))) {
+		auto pSel = model_->GetSelection();		// // //
+		if (!pSel || (m_iDragRow <= pSel->GetFrameStart() || m_iDragRow >= (pSel->GetFrameEnd() + 1))) {
 			if (m_iDragRow >= FirstVisibleFrame && m_iDragRow <= FirstVisibleFrame + m_iRowsVisible) {
+				const int CBegin = pSel->GetChanStart();
+				const int CEnd = pSel->GetChanEnd();
 				int x = ROW_COLUMN_WIDTH + CBegin * FRAME_ITEM_WIDTH + 2;		// // //
 				int y = m_iDragRow - FirstVisibleFrame;
 				m_dcBack.FillSolidRect(DPI::Rect(x, y * ROW_HEIGHT + 3, FRAME_ITEM_WIDTH * (CEnd - CBegin + 1) + 1, 2), ColDragCursor);
@@ -592,11 +594,8 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 			case VK_HOME:
 			case VK_END:
 				if (bShift && !m_bLastRow) {		// // //
-					if (!m_bSelecting) {
-						m_bSelecting = true;
-						m_selection.m_cpStart.m_iFrame = m_selection.m_cpEnd.m_iFrame = Frame;		// // //
-						m_selection.m_cpStart.m_iChannel = m_selection.m_cpEnd.m_iChannel = Channel;		// // //
-					}
+					if (!model_->IsSelecting())
+						model_->StartSelection(Frame, Channel);
 				}
 				else
 					CancelSelection();
@@ -610,7 +609,7 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				else
 					Channel -= 1;
 				m_pView->SelectChannel(Channel);
-				m_iCursorPos = 0;
+				m_iCursorEditDigit = 0;
 				break;
 			case VK_RIGHT:
 				if (Channel == ChannelCount - 1)
@@ -618,23 +617,23 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				else
 					Channel += 1;
 				m_pView->SelectChannel(Channel);
-				m_iCursorPos = 0;
+				m_iCursorEditDigit = 0;
 				break;
 			case VK_UP:
 				if (Frame == 0)
-					Frame = FrameCount - (m_bSelecting ? 1 : 0);
+					Frame = FrameCount - (IsSelecting() ? 1 : 0);
 				else
 					Frame -= 1;
 				SetEditFrame(Frame);		// // //
-				m_iCursorPos = 0;
+				m_iCursorEditDigit = 0;
 				break;
 			case VK_DOWN:
-				if (Frame == FrameCount - (m_bSelecting ? 1 : 0))
+				if (Frame == FrameCount - (IsSelecting() ? 1 : 0))
 					Frame = 0;
 				else 
 					Frame += 1;
 				SetEditFrame(Frame);		// // //
-				m_iCursorPos = 0;
+				m_iCursorEditDigit = 0;
 				break;
 			case VK_RETURN:
 				m_pView->SetFocus();
@@ -647,11 +646,11 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				break;
 			case VK_NEXT:
 				if (Frame + PAGE_SIZE >= FrameCount)
-					Frame = FrameCount - (m_bSelecting ? 1 : 0);
+					Frame = FrameCount - (IsSelecting() ? 1 : 0);
 				else
 					Frame += PAGE_SIZE;
 				SetEditFrame(Frame);		// // //
-				m_iCursorPos = 0;
+				m_iCursorEditDigit = 0;
 				break;
 			case VK_PRIOR:
 				if ((signed)Frame - PAGE_SIZE < 0)
@@ -659,17 +658,17 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				else
 					Frame -= PAGE_SIZE;
 				SetEditFrame(Frame);		// // //
-				m_iCursorPos = 0;
+				m_iCursorEditDigit = 0;
 				break;
 			case VK_HOME:
 				Frame = 0;
 				SetEditFrame(Frame);		// // //
-				m_iCursorPos = 0;
+				m_iCursorEditDigit = 0;
 				break;
 			case VK_END:
-				Frame = FrameCount - (m_bSelecting ? 1 : 0);
+				Frame = FrameCount - (IsSelecting() ? 1 : 0);
 				SetEditFrame(Frame);		// // //
-				m_iCursorPos = 0;
+				m_iCursorEditDigit = 0;
 				break;
 		}
 
@@ -682,10 +681,8 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 			case VK_PRIOR:
 			case VK_HOME:
 			case VK_END:
-				if (bShift) {
-					m_selection.m_cpEnd.m_iFrame = Frame;
-					m_selection.m_cpEnd.m_iChannel = Channel;		// // //
-				}
+				if (bShift)
+					model_->ContinueSelection(Frame, Channel);		// // //
 				// // //
 				InvalidateFrameData();
 				Invalidate();
@@ -695,21 +692,21 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		if (Num != -1) {
 			if (IsSelecting()) {		// // //
 				int Pattern;
-				if (m_iCursorPos == 0) {
+				if (m_iCursorEditDigit == 0) {
 					Pattern = Num << 4;
-					m_iCursorPos = 1;
+					m_iCursorEditDigit = 1;
 				}
-				else if (m_iCursorPos == 1) {
+				else if (m_iCursorEditDigit == 1) {
 					Pattern = m_pDocument->GetPatternAtFrame(Track, GetSelection().GetFrameStart(), GetSelection().GetChanStart()) | Num;
-					m_iCursorPos = 0;
+					m_iCursorEditDigit = 0;
 				}
 				m_pMainFrame->AddAction(std::make_unique<CFActionSetPattern>(Pattern));
 			}
 			else if (!m_bLastRow || FrameCount < MAX_FRAMES) {		// // //
 				int Pattern = m_bLastRow ? 0 : m_pDocument->GetPatternAtFrame(Track, Frame, Channel);		// // //
-				if (m_iCursorPos == 0)
+				if (m_iCursorEditDigit == 0)
 					Pattern = (Pattern & 0x0F) | (Num << 4);
-				else if (m_iCursorPos == 1)
+				else if (m_iCursorEditDigit == 1)
 					Pattern = (Pattern & 0xF0) | Num;
 				Pattern = std::min(Pattern, MAX_PATTERN - 1);
 
@@ -723,13 +720,13 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				const int SelectedChannel = (m_pView->GetSelectedChannel() + 1) % m_pDocument->GetAvailableChannels();		// // //
 				const int SelectedFrame = m_pView->GetSelectedFrame();
 
-				if (m_iCursorPos == 1) {
-					m_iCursorPos = 0;
+				if (m_iCursorEditDigit == 1) {
+					m_iCursorEditDigit = 0;
 					m_bCursor = true;
 					m_pView->SelectChannel(SelectedChannel);		// // //
 				}
 				else
-					m_iCursorPos = 1;
+					m_iCursorEditDigit = 1;
 			}
 		}
 	}
@@ -805,32 +802,26 @@ unsigned int CFrameEditor::CalcWidth(int Channels) const
 
 void CFrameEditor::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	int Row = GetRowFromPoint(point, false);
-	int Chan = GetChannelFromPoint(point);		// // //
-
 	m_ButtonPoint = point;
+	m_LastClickPos = {GetRowFromPoint(point, false), GetChannelFromPoint(point)};		// // //
 
-	if (m_bSelecting) {
-		int SelectStart = m_selection.GetFrameStart(), SelectEnd = m_selection.GetFrameEnd();		// // //
-		int ChanStart = m_selection.GetChanStart(), ChanEnd = m_selection.GetChanEnd();		// // //
+	if (auto pSel = model_->GetSelection()) {
+		int SelectStart = pSel->GetFrameStart(), SelectEnd = pSel->GetFrameEnd();		// // //
+		int ChanStart = pSel->GetChanStart(), ChanEnd = pSel->GetChanEnd();		// // //
 
-		if (Row < SelectStart || Row > SelectEnd || Chan < ChanStart || Chan > ChanEnd) {		// // //
+		if (!model_->IsFrameSelected(m_LastClickPos.m_iFrame) || !model_->IsChannelSelected(m_LastClickPos.m_iChannel)) {		// // //
 			if (nFlags & MK_SHIFT) {
-				m_selection.m_cpEnd.m_iFrame = Row;
-				m_selection.m_cpEnd.m_iChannel = Chan;		// // //
+				model_->ContinueSelection(m_LastClickPos.m_iFrame, m_LastClickPos.m_iChannel);		// // //
 				InvalidateFrameData();
 				Invalidate();
 			}
 			else {
-				m_selection.m_cpStart.m_iFrame = m_selection.m_cpEnd.m_iFrame = Row;
-				m_bFullFrameSelect = Chan < 0;		// // //
-				if (m_bFullFrameSelect) {
-					m_selection.m_cpStart.m_iChannel = 0;
-					m_selection.m_cpEnd.m_iChannel = m_pDocument->GetChannelCount() - 1;
-				}
-				else
-					m_selection.m_cpStart.m_iChannel = m_selection.m_cpEnd.m_iChannel = Chan;
-				m_bSelecting = false;
+//				m_bFullFrameSelect = Chan < 0;		// // //
+//				if (m_bFullFrameSelect)
+//					m_selection = model_->MakeFrameSelection(m_LastClickPos.m_iFrame);
+//				else
+//					*pSel = m_LastClickPos;
+				model_->Deselect();
 				// m_pView->SetFocus();
 			}
 		}
@@ -840,21 +831,15 @@ void CFrameEditor::OnLButtonDown(UINT nFlags, CPoint point)
 	}
 	else {
 		if (nFlags & MK_SHIFT) {
-			m_selection.m_cpStart = GetFrameCursor();		// // //
-			m_selection.m_cpEnd.m_iFrame = Row;
-			m_selection.m_cpEnd.m_iChannel = Chan;		// // //
+			model_->Select({GetFrameCursor(), m_LastClickPos});
 			m_bFullFrameSelect = false;		// // //
-			m_bSelecting = true;
 		}
 		else {
-			m_selection.m_cpStart.m_iFrame = m_selection.m_cpEnd.m_iFrame = Row;
-			m_bFullFrameSelect = Chan < 0;		// // //
-			if (m_bFullFrameSelect) {
-				m_selection.m_cpStart.m_iChannel = 0;
-				m_selection.m_cpEnd.m_iChannel = m_pDocument->GetChannelCount() - 1;
-			}
-			else
-				m_selection.m_cpStart.m_iChannel = m_selection.m_cpEnd.m_iChannel = Chan;
+//			m_bFullFrameSelect = m_LastClickPos.m_iChannel < 0;		// // //
+//			if (m_bFullFrameSelect)
+//				m_selection = model_->MakeFrameSelection(m_LastClickPos.m_iFrame);
+//			else
+//				m_selection = m_LastClickPos;
 		}
 	}
 	
@@ -866,9 +851,9 @@ void CFrameEditor::OnLButtonUp(UINT nFlags, CPoint point)
 	int Channel	 = GetChannelFromPoint(point);
 	int NewFrame = GetRowFromPoint(point, false);
 
-	if (m_bSelecting) {
+	if (IsSelecting()) {
 		if (m_bStartDrag) {
-			m_bSelecting = false;
+			model_->Deselect();
 			m_bStartDrag = false;
 			m_pView->SetFocus();
 		}
@@ -904,28 +889,30 @@ void CFrameEditor::OnLButtonUp(UINT nFlags, CPoint point)
 void CFrameEditor::OnMouseMove(UINT nFlags, CPoint point)
 {
 	if (nFlags & MK_LBUTTON) {
-		if (!m_bSelecting) {
-			if (abs(m_ButtonPoint.x - point.x) > m_iDragThresholdX || abs(m_ButtonPoint.y - point.y) > m_iDragThresholdY) {
-				m_bSelecting = true;
+		bool mouseMoved = std::abs(m_ButtonPoint.x - point.x) > m_iDragThresholdX ||
+			std::abs(m_ButtonPoint.y - point.y) > m_iDragThresholdY;
+
+		if (!IsSelecting()) {
+			if (mouseMoved) {
+				m_bFullFrameSelect = m_LastClickPos.m_iChannel < 0;		// // //
+				if (m_bFullFrameSelect)
+					model_->Select(model_->MakeFrameSelection(m_LastClickPos.m_iFrame));
+				else
+					model_->Select(m_LastClickPos);
 				EnableInput();		// // //
 			}
 		}
+
 		if (m_bStartDrag) {
-			if (abs(m_ButtonPoint.x - point.x) > m_iDragThresholdX || abs(m_ButtonPoint.y - point.y) > m_iDragThresholdY) {
+			if (mouseMoved)
 				InitiateDrag();
-			}
 		}
-		else if (m_bSelecting) {
+		else if (IsSelecting()) {
 			AutoScroll(point);
-			m_selection.m_cpEnd.m_iFrame = GetRowFromPoint(point, false);
-			if (m_bFullFrameSelect) {		// // //
-				m_selection.m_cpStart.m_iChannel = 0;
-				m_selection.m_cpEnd.m_iChannel = m_pDocument->GetChannelCount() - 1;
-			}
-			else {
-				m_selection.m_cpEnd.m_iChannel = GetChannelFromPoint(point);
-				if (m_selection.m_cpEnd.m_iChannel < 0) m_selection.m_cpEnd.m_iChannel = 0;
-			}
+			if (m_bFullFrameSelect)		// // //
+				model_->ContinueFrameSelection(GetRowFromPoint(point, false));
+			else
+				model_->ContinueSelection(GetRowFromPoint(point, false), std::max(0, GetChannelFromPoint(point)));
 			InvalidateFrameData();
 			Invalidate();
 		}
@@ -1025,7 +1012,7 @@ void CFrameEditor::EnableInput()
 
 	m_bInputEnable = true;
 	m_bCursor = true;
-	m_iCursorPos = 0;
+	m_iCursorEditDigit = 0;
 
 	SetTimer(0, 500, NULL);	// Cursor timer
 
@@ -1081,11 +1068,7 @@ void CFrameEditor::OnEditPasteNewPatterns()
 
 void CFrameEditor::OnEditDelete()
 {
-	if (!m_bSelecting) {
-		m_selection.m_cpStart.m_iFrame = m_selection.m_cpEnd.m_iFrame = m_pView->GetSelectedFrame();		// // //
-		m_selection.m_cpStart.m_iChannel = 0;		// // //
-		m_selection.m_cpEnd.m_iChannel = m_pDocument->GetChannelCount() - 1;		// // //
-	}
+	model_->Select(model_->GetActiveSelection());		// // //
 
 	m_pMainFrame->AddAction(std::make_unique<CFActionDeleteSel>( ));		// // //
 }
@@ -1101,37 +1084,20 @@ CFrameCursorPos CFrameEditor::GetFrameCursor() const		// // //
 std::pair<CFrameIterator, CFrameIterator> CFrameEditor::GetIterators() const		// // //
 {
 	int Track = m_pMainFrame->GetSelectedTrack();
-	return m_bSelecting ?
-		CFrameIterator::FromSelection(m_selection, m_pDocument, Track) :
+	auto pSel = model_->GetSelection();
+	return pSel ?
+		CFrameIterator::FromSelection(*pSel, m_pDocument, Track) :
 		CFrameIterator::FromCursor(GetFrameCursor(), m_pDocument, Track);
 }
 
 std::unique_ptr<CFrameClipData> CFrameEditor::Copy() const		// // //
 {
-	return m_bSelecting ? Copy(m_selection) : CopyFrame(m_pView->GetSelectedFrame());
+	return Copy(GetSelection());
 }
 
 std::unique_ptr<CFrameClipData> CFrameEditor::Copy(const CFrameSelection &Sel) const		// // //
 {
-	const int Track = m_pMainFrame->GetSelectedTrack();
-	auto it = CFrameIterator::FromSelection(Sel, m_pDocument, Track);
-	const int Frames = it.second.m_iFrame - it.first.m_iFrame + 1;
-	const int Channels = it.second.m_iChannel - it.first.m_iChannel + 1;		// // //
-	const int ChanStart = it.first.m_iChannel;
-
-	auto pData = std::make_unique<CFrameClipData>(Channels, Frames);
-	pData->ClipInfo.FirstChannel = ChanStart;		// // //
-	pData->ClipInfo.OleInfo.SourceRowStart = it.first.m_iFrame;
-	pData->ClipInfo.OleInfo.SourceRowEnd = it.second.m_iFrame;
-
-	for (int f = 0; f < Frames; ++f) {
-		for (int c = 0; c < Channels; ++c)
-			pData->SetFrame(f, c, it.first.Get(c + ChanStart));
-		++it.first;
-	}
-
-	return pData;
-//	return CFrameEditorModel::Copy(*m_pDocument, Sel, m_pMainFrame->GetSelectedTrack()).release();
+	return CFrameEditorModel::Copy(*m_pDocument, Sel, m_pMainFrame->GetSelectedTrack());
 }
 
 std::unique_ptr<CFrameClipData> CFrameEditor::CopyFrame(int Frame) const		// // //
@@ -1290,17 +1256,12 @@ void CFrameEditor::OnModuleDuplicateCurrentPattern()		// // //
 
 void CFrameEditor::OnEditSelectpattern()		// // //
 {
-	CFrameSelection Sel;
-	Sel.m_cpStart = Sel.m_cpEnd = GetFrameCursor();
-	SetSelection(Sel);
+	SetSelection(model_->MakePosSelection(m_pView->GetSelectedFrame(), m_pView->GetSelectedChannel()));
 }
 
 void CFrameEditor::OnEditSelectframe()		// // //
 {
-	CFrameSelection Sel;
-	Sel.m_cpStart.m_iFrame = Sel.m_cpEnd.m_iFrame = m_pView->GetSelectedFrame();
-	Sel.m_cpEnd.m_iChannel = m_pDocument->GetChannelCount() - 1;
-	SetSelection(Sel);
+	SetSelection(model_->MakeFrameSelection(m_pView->GetSelectedFrame()));
 }
 
 void CFrameEditor::OnEditSelectchannel()		// // //
@@ -1343,36 +1304,19 @@ void CFrameEditor::OnSize(UINT nType, int cx, int cy)
 
 void CFrameEditor::CancelSelection()
 {
-	if (m_bSelecting) {		// // //
+	if (IsSelecting()) {		// // //
 		InvalidateFrameData();
 		Invalidate();
 	}
-	m_bSelecting = false;
+	model_->Deselect();		// // //
 	m_bStartDrag = false;
 }
 
 void CFrameEditor::InitiateDrag()
 {
-	const int SelectStart = m_selection.GetFrameStart();		// // //
-	const int SelectEnd	  = m_selection.GetFrameEnd();
-	const int ChanStart	  = m_selection.GetChanStart();		// // //
-	const int Channels	  = m_selection.GetChanEnd() - ChanStart + 1;		// // // m_pDocument->GetChannelCount();
-	const int Rows		  = SelectEnd - SelectStart + 1;
+	auto pClipData = CFrameEditorModel::Copy(*m_pDocument, *model_->GetSelection(), m_pMainFrame->GetSelectedTrack());		// // //
 
-	// Create clipboard structure
-	CFrameClipData ClipData(Channels, Rows);
-	ClipData.ClipInfo.FirstChannel = ChanStart;		// // //
-	ClipData.ClipInfo.OleInfo.SourceRowStart = SelectStart;
-	ClipData.ClipInfo.OleInfo.SourceRowEnd = SelectEnd;
-
-	const int Track = m_pMainFrame->GetSelectedTrack();		// // //
-	for (int i = 0; i < Rows; ++i)
-		for (int j = 0; j < Channels; ++j)
-			ClipData.SetFrame(i, j, m_pDocument->GetPatternAtFrame(Track, i + SelectStart, j + ChanStart));
-
-	m_bDropped = false;
-
-	DROPEFFECT res = ClipData.DragDropTransfer(m_iClipboard, DROPEFFECT_COPY | DROPEFFECT_MOVE);		// // // calls DropData
+	DROPEFFECT res = pClipData->DragDropTransfer(m_iClipboard, DROPEFFECT_COPY | DROPEFFECT_MOVE);		// // // calls DropData
 
 	if (!m_bDropped) { // Target was another window
 		if (res & DROPEFFECT_MOVE)
@@ -1442,7 +1386,7 @@ BOOL CFrameEditor::DropData(COleDataObject* pDataObject, DROPEFFECT dropEffect)
 	const int SelectStart = pClipData->ClipInfo.OleInfo.SourceRowStart;
 	const int SelectEnd	  = pClipData->ClipInfo.OleInfo.SourceRowEnd;
 
-	if (m_bSelecting && (m_iDragRow > SelectStart && m_iDragRow < (SelectEnd + 1)))
+	if (IsSelecting() && (m_iDragRow > SelectStart && m_iDragRow < (SelectEnd + 1)))
 		return FALSE;
 
 	// Add action
@@ -1506,25 +1450,17 @@ void CFrameEditor::MoveSelection(unsigned int Track, const CFrameSelection &Sel,
 
 CFrameSelection CFrameEditor::GetSelection() const		// // //
 {
-	if (!m_bSelecting) {
-		CFrameSelection Sel;
-		Sel.m_cpStart.m_iFrame = Sel.m_cpEnd.m_iFrame = m_pView->GetSelectedFrame();
-		Sel.m_cpStart.m_iChannel = 0;
-		Sel.m_cpEnd.m_iChannel = m_pDocument->GetChannelCount() - 1;
-		return Sel;
-	}
-	return m_selection;
+	return model_->GetActiveSelection();
 }
 
 bool CFrameEditor::IsSelecting() const		// // //
 {
-	return m_bSelecting;
+	return model_->IsSelecting();
 }
 
 void CFrameEditor::SetSelection(const CFrameSelection &Sel)		// // //
 {
-	m_selection = Sel;
-	m_bSelecting = true;
+	model_->Select(Sel);
 	InvalidateFrameData();
 	Invalidate();
 }

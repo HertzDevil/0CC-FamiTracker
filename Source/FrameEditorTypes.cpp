@@ -26,6 +26,16 @@
 
 // // // CFrameSelection class
 
+CFrameSelection::CFrameSelection(const CFrameCursorPos &cursor) :
+	m_cpStart(cursor), m_cpEnd(cursor)
+{
+}
+
+CFrameSelection::CFrameSelection(const CFrameCursorPos &b, const CFrameCursorPos &e) :
+	m_cpStart(b), m_cpEnd(e)
+{
+}
+
 int CFrameSelection::GetFrameStart() const
 {
 	return (m_cpEnd.m_iFrame > m_cpStart.m_iFrame) ? m_cpStart.m_iFrame : m_cpEnd.m_iFrame;
