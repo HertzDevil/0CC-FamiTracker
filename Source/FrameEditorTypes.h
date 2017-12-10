@@ -67,7 +67,6 @@ public:
 	CFrameIterator(CFamiTrackerDoc *const pDoc, int Track, const CFrameCursorPos &Pos);
 	CFrameIterator(const CFamiTrackerDoc *const pDoc, int Track, const CFrameCursorPos &Pos);
 
-	static std::pair<CFrameIterator, CFrameIterator> FromCursor(const CFrameCursorPos &Pos, CFamiTrackerDoc *const pDoc, int Track);
 	static std::pair<CFrameIterator, CFrameIterator> FromSelection(const CFrameSelection &Sel, CFamiTrackerDoc *const pDoc, int Track);
 	
 	int Get(int Channel) const; // use int& output parameter?
@@ -80,6 +79,7 @@ public:
 	CFrameIterator &operator--();
 	CFrameIterator operator--(int);
 	bool operator==(const CFrameIterator &other) const;
+	bool operator!=(const CFrameIterator &other) const;
 
 private:
 	int NormalizeFrame(int Frame) const;

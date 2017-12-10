@@ -58,10 +58,6 @@ const CFrameSelection *CFrameEditorModel::GetSelection() const {
 	return m_bSelecting ? &m_selection : nullptr;
 }
 
-CFrameSelection CFrameEditorModel::MakePosSelection(int frame, int channel) const {
-	return {{frame, channel}, {frame, channel}};
-}
-
 CFrameSelection CFrameEditorModel::MakeFrameSelection(int frame) const {
 	CFrameSelection Sel;
 	Sel.m_cpStart.m_iFrame = Sel.m_cpEnd.m_iFrame = frame;
@@ -118,20 +114,16 @@ bool CFrameEditorModel::IsChannelSelected(int channel) const {
 
 std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSelection &sel, int track) const {
 	auto [b, e] = CFrameIterator::FromSelection(sel, const_cast<CFamiTrackerDoc *>(doc_), track); // TODO: remove cast
-	const int Frames = e.m_iFrame - b.m_iFrame + 1;
-	const int Channels = e.m_iChannel - b.m_iChannel + 1;		// // //
-	const int ChanStart = b.m_iChannel;
+	const int Frames = e.m_iFrame - b.m_iFrame;
 
-	auto pData = std::make_unique<CFrameClipData>(Channels, Frames);
-	pData->ClipInfo.FirstChannel = ChanStart;		// // //
+	auto pData = std::make_unique<CFrameClipData>(e.m_iChannel - b.m_iChannel, e.m_iFrame - b.m_iFrame);
+	pData->ClipInfo.FirstChannel = b.m_iChannel;		// // //
 	pData->ClipInfo.OleInfo.SourceRowStart = b.m_iFrame;
-	pData->ClipInfo.OleInfo.SourceRowEnd = e.m_iFrame;
+	pData->ClipInfo.OleInfo.SourceRowEnd = e.m_iFrame - 1;
 
-	for (int f = 0; f < Frames; ++f) {
-		for (int c = 0; c < Channels; ++c)
-			pData->SetFrame(f, c, b.Get(c + ChanStart));
-		++b;
-	}
+	for (; b != e; ++b)
+		for (int c = b.m_iChannel; c < e.m_iChannel; ++c)
+			pData->SetFrame(b.m_iFrame, c - b.m_iChannel, b.Get(c));
 
 	return pData;
 }

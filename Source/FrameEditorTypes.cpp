@@ -90,18 +90,12 @@ CFrameIterator::CFrameIterator(CFamiTrackerDoc *pDoc, int Track, const CFrameCur
 	m_iFrame = NormalizeFrame(m_iFrame);
 }
 
-std::pair<CFrameIterator, CFrameIterator> CFrameIterator::FromCursor(const CFrameCursorPos &Pos, CFamiTrackerDoc *const pDoc, int Track)
-{
-	return std::make_pair(
-		CFrameIterator {pDoc, Track, Pos},
-		CFrameIterator {pDoc, Track, Pos}
-	);
-}
-
 std::pair<CFrameIterator, CFrameIterator> CFrameIterator::FromSelection(const CFrameSelection &Sel, CFamiTrackerDoc *const pDoc, int Track)
 {
 	CFrameCursorPos it, end;
 	Sel.Normalize(it, end);
+	++end.m_iFrame; // one-past-the-end
+	++end.m_iChannel;
 	return std::make_pair(
 		CFrameIterator {pDoc, Track, it},
 		CFrameIterator {pDoc, Track, end}
@@ -156,6 +150,11 @@ CFrameIterator CFrameIterator::operator--(int)
 bool CFrameIterator::operator==(const CFrameIterator &other) const
 {
 	return m_iFrame == other.m_iFrame;
+}
+
+bool CFrameIterator::operator!=(const CFrameIterator &other) const
+{
+	return m_iFrame != other.m_iFrame;
 }
 
 int CFrameIterator::NormalizeFrame(int Frame) const

@@ -43,7 +43,6 @@ public:
 
 	bool IsSelecting() const;
 	const CFrameSelection *GetSelection() const;
-	CFrameSelection MakePosSelection(int frame, int channel) const;
 	CFrameSelection MakeFrameSelection(int frame) const;
 	CFrameSelection MakeFullSelection(int track) const;
 	CFrameSelection GetActiveSelection() const;

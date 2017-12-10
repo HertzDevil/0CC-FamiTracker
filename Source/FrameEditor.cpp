@@ -1013,9 +1013,7 @@ std::pair<CFrameIterator, CFrameIterator> CFrameEditor::GetIterators() const		//
 {
 	int Track = m_pMainFrame->GetSelectedTrack();
 	auto pSel = model_->GetSelection();
-	return pSel ?
-		CFrameIterator::FromSelection(*pSel, m_pDocument, Track) :
-		CFrameIterator::FromCursor(model_->GetCurrentPos(), m_pDocument, Track);
+	return CFrameIterator::FromSelection(pSel ? *pSel : model_->GetCurrentPos(), m_pDocument, Track);
 }
 
 std::unique_ptr<CFrameClipData> CFrameEditor::CopySelection(const CFrameSelection &Sel) const		// // //
@@ -1083,35 +1081,27 @@ void CFrameEditor::PasteNew(unsigned int Track, int Frame, const CFrameClipData 
 void CFrameEditor::ClonePatterns(unsigned int Track, const CFrameSelection &_Sel)		// // //
 {
 	CFrameSelection Sel = _Sel.GetNormalized();
-	auto it = CFrameIterator::FromSelection(Sel, m_pDocument, Track);
 	std::unordered_map<std::pair<int, int>, int, pairhash> NewPatterns;
 
-	while (true) {
-		for (int c = it.first.m_iChannel; c <= it.second.m_iChannel; ++c) {
-			int OldPattern = it.first.Get(c);
+	for (auto [b, e] = CFrameIterator::FromSelection(Sel, m_pDocument, Track); b != e; ++b) {
+		for (int c = b.m_iChannel; c < e.m_iChannel; ++c) {
+			int OldPattern = b.Get(c);
 			auto Index = std::make_pair(c, OldPattern);
 			auto p = NewPatterns.find(Index);		// // // share common patterns
 			if (p == NewPatterns.end()) {
 				NewPatterns[Index] = m_pDocument->GetFirstFreePattern(Track, c);
 				m_pDocument->CopyPattern(Track, NewPatterns[Index], OldPattern, c);
 			}
-			m_pDocument->SetPatternAtFrame(Track, it.first.m_iFrame, c, NewPatterns[Index]);
+			b.Set(c, NewPatterns[Index]);
 		}
-		if (it.first == it.second) break;
-		++it.first;
 	}
 }
 
 void CFrameEditor::ClearPatterns(unsigned int Track, const CFrameSelection &Sel)		// // //
 {
-	auto it = CFrameIterator::FromSelection(Sel, m_pDocument, Track);
-	
-	while (true) {
-		for (int c = it.first.m_iChannel; c <= it.second.m_iChannel; ++c)
-			m_pDocument->ClearPattern(Track, it.first.m_iFrame, c);
-		if (it.first == it.second) break;
-		++it.first;
-	}
+	for (auto [b, e] = CFrameIterator::FromSelection(Sel, m_pDocument, Track); b != e; ++b)
+		for (int c = b.m_iChannel; c < e.m_iChannel; ++c)
+			m_pDocument->ClearPattern(Track, b.m_iFrame, c);
 }
 
 bool CFrameEditor::InputEnabled() const
