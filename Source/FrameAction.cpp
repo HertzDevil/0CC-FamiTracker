@@ -272,7 +272,7 @@ CFActionSetPattern::~CFActionSetPattern() {
 
 bool CFActionSetPattern::SaveState(const CMainFrame &MainFrm)
 {
-	m_pClipData = GET_FRAME_EDITOR()->Copy();
+	m_pClipData = GET_FRAME_EDITOR()->CopySelection(GET_FRAME_EDITOR()->GetSelection());
 	return true;
 }
 
@@ -358,7 +358,7 @@ bool CFActionChangePattern::SaveState(const CMainFrame &MainFrm)
 {
 	if (!m_iPatternOffset)
 		return false;
-	m_pClipData = GET_FRAME_EDITOR()->Copy();
+	m_pClipData = GET_FRAME_EDITOR()->CopySelection(GET_FRAME_EDITOR()->GetSelection());
 	return true;
 }
 
@@ -564,7 +564,7 @@ bool CFActionPasteOverwrite::SaveState(const CMainFrame &MainFrm)		// // //
 	if (m_TargetSelection.m_cpEnd.m_iFrame < m_TargetSelection.m_cpStart.m_iFrame)
 		return false;
 
-	m_pOldClipData = GET_FRAME_EDITOR()->Copy(m_TargetSelection);
+	m_pOldClipData = GET_FRAME_EDITOR()->CopySelection(m_TargetSelection);
 	return true;
 }
 
@@ -617,7 +617,7 @@ CFActionClonePatterns::~CFActionClonePatterns() {
 bool CFActionClonePatterns::SaveState(const CMainFrame &MainFrm)		// // //
 {
 	if (m_pUndoState->IsSelecting) {
-		m_pClipData = GET_FRAME_EDITOR()->Copy();
+		m_pClipData = GET_FRAME_EDITOR()->CopySelection(GET_FRAME_EDITOR()->GetSelection());
 		return true; // TODO: check this when all patterns are used up
 	}
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
@@ -669,7 +669,7 @@ bool CFActionDeleteSel::SaveState(const CMainFrame &MainFrm)
 	if (Frames == pDoc->GetFrameCount(m_pUndoState->Track))
 		if (!Sel.m_cpEnd.m_iFrame--)
 			return false;
-	m_pClipData = GET_FRAME_EDITOR()->Copy(Sel);
+	m_pClipData = GET_FRAME_EDITOR()->CopySelection(Sel);
 	return true;
 }
 

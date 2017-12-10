@@ -572,53 +572,48 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	const int PAGE_SIZE = 4;
 
-	int Track = m_pMainFrame->GetSelectedTrack();
-	
-	bool bShift = (::GetKeyState(VK_SHIFT) & 0x80) == 0x80;
-
-	int Num = -1;
-
 	if (m_bInputEnable) {
 		// Keyboard input is active
-
-		if (nChar > 47 && nChar < 58)		// 0 - 9
-			Num = nChar - 48;
-		else if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9)
-			Num = nChar - VK_NUMPAD0;
-		else if (nChar > 64 && nChar < 71)	// A - F
-			Num = nChar - 65 + 0x0A;
+		int Track = m_pMainFrame->GetSelectedTrack();
+		bool bShift = (::GetKeyState(VK_SHIFT) & 0x80) == 0x80;
 
 		unsigned int ChannelCount = m_pDocument->GetChannelCount();
 		unsigned int FrameCount = m_pDocument->GetFrameCount(Track);
-		unsigned int Channel = m_pView->GetSelectedChannel();
+		unsigned int Channel = model_->GetCurrentChannel();
 		unsigned int Frame = GetEditFrame();		// // //
 
 		switch (nChar) {
-			case VK_UP:
-			case VK_DOWN:
-			case VK_LEFT:
-			case VK_RIGHT:
-			case VK_NEXT:
-			case VK_PRIOR:
-			case VK_HOME:
-			case VK_END:
-				if (bShift && !m_bLastRow) {		// // //
-					if (!model_->IsSelecting())
-						model_->StartSelection(Frame, Channel);
-				}
-				else
-					CancelSelection();
-				break;
-		}
+		case VK_RETURN:
+			m_pView->SetFocus();
+			break;
+		case VK_INSERT:
+			OnModuleInsertFrame();
+			break;
+		case VK_DELETE:
+			OnModuleRemoveFrame();
+			break;
+		case VK_UP:
+		case VK_DOWN:
+		case VK_LEFT:
+		case VK_RIGHT:
+		case VK_NEXT:
+		case VK_PRIOR:
+		case VK_HOME:
+		case VK_END:
+			if (bShift && !m_bLastRow) {		// // //
+				if (!model_->IsSelecting())
+					model_->StartSelection(Frame, Channel);
+			}
+			else
+				CancelSelection();
 
-		switch (nChar) {
+			switch (nChar) {
 			case VK_LEFT:
 				if (Channel == 0)
 					Channel = ChannelCount - 1;
 				else
 					Channel -= 1;
 				m_pView->SelectChannel(Channel);
-				m_iCursorEditDigit = 0;
 				break;
 			case VK_RIGHT:
 				if (Channel == ChannelCount - 1)
@@ -626,7 +621,6 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				else
 					Channel += 1;
 				m_pView->SelectChannel(Channel);
-				m_iCursorEditDigit = 0;
 				break;
 			case VK_UP:
 				if (Frame == 0)
@@ -634,7 +628,6 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				else
 					Frame -= 1;
 				SetEditFrame(Frame);		// // //
-				m_iCursorEditDigit = 0;
 				break;
 			case VK_DOWN:
 				if (Frame == FrameCount - (IsSelecting() ? 1 : 0))
@@ -642,16 +635,6 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				else 
 					Frame += 1;
 				SetEditFrame(Frame);		// // //
-				m_iCursorEditDigit = 0;
-				break;
-			case VK_RETURN:
-				m_pView->SetFocus();
-				break;
-			case VK_INSERT:
-				OnModuleInsertFrame();
-				break;
-			case VK_DELETE:
-				OnModuleRemoveFrame();
 				break;
 			case VK_NEXT:
 				if (Frame + PAGE_SIZE >= FrameCount)
@@ -659,7 +642,6 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				else
 					Frame += PAGE_SIZE;
 				SetEditFrame(Frame);		// // //
-				m_iCursorEditDigit = 0;
 				break;
 			case VK_PRIOR:
 				if ((signed)Frame - PAGE_SIZE < 0)
@@ -667,37 +649,34 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				else
 					Frame -= PAGE_SIZE;
 				SetEditFrame(Frame);		// // //
-				m_iCursorEditDigit = 0;
 				break;
 			case VK_HOME:
 				Frame = 0;
 				SetEditFrame(Frame);		// // //
-				m_iCursorEditDigit = 0;
 				break;
 			case VK_END:
 				Frame = FrameCount - (IsSelecting() ? 1 : 0);
 				SetEditFrame(Frame);		// // //
-				m_iCursorEditDigit = 0;
 				break;
-		}
+			}
 
-		switch (nChar) {
-			case VK_UP:
-			case VK_DOWN:
-			case VK_LEFT:
-			case VK_RIGHT:
-			case VK_NEXT:
-			case VK_PRIOR:
-			case VK_HOME:
-			case VK_END:
-				if (bShift)
-					model_->ContinueSelection(Frame, Channel);		// // //
-				// // //
+			m_iCursorEditDigit = 0;
+			if (bShift) {
+				model_->ContinueSelection(Frame, Channel);		// // //
 				InvalidateFrameData();
+			}
+			break;
+		default:
+			int Num = -1;
+			if (nChar >= '0' && nChar <= '9')
+				Num = nChar - '0';
+			else if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9)
+				Num = nChar - VK_NUMPAD0;
+			else if (nChar >= 'A' && nChar <= 'F')
+				Num = nChar - 'A' + 10;
+			if (Num == -1)
 				break;
-		}
 
-		if (Num != -1) {
 			if (IsSelecting()) {		// // //
 				int Pattern;
 				if (m_iCursorEditDigit == 0) {
@@ -725,8 +704,8 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				else
 					m_pMainFrame->AddAction(std::make_unique<CFActionSetPattern>(Pattern));
 
-				const int SelectedChannel = (m_pView->GetSelectedChannel() + 1) % m_pDocument->GetAvailableChannels();		// // //
-				const int SelectedFrame = m_pView->GetSelectedFrame();
+				const int SelectedChannel = (model_->GetCurrentChannel() + 1) % m_pDocument->GetAvailableChannels();		// // //
+				const int SelectedFrame = model_->GetCurrentFrame();
 
 				if (m_iCursorEditDigit == 1) {
 					m_iCursorEditDigit = 0;
@@ -781,18 +760,15 @@ int CFrameEditor::GetRowFromPoint(const CPoint &point, bool DropTarget) const
 int CFrameEditor::GetChannelFromPoint(const CPoint &point) const
 {
 	// Translate a point value to a channel
+	if (IsOverFrameColumn(point))
+		return -1;
 	int Offs = point.x - DPI::SX(ROW_COLUMN_WIDTH) - 2;		// // //
-	if (Offs < 0) return -1;
-	int Channels = m_pDocument->GetChannelCount();		// // //
-	Offs /= DPI::SX(FRAME_ITEM_WIDTH);
-	if (Offs >= Channels)
-		Offs = Channels - 1;
-	return Offs;
+	return std::min(m_pDocument->GetChannelCount() - 1, Offs / DPI::SX(FRAME_ITEM_WIDTH));
 }
 
 bool CFrameEditor::IsOverFrameColumn(const CPoint &point) const		// // //
 {
-	return point.x < DPI::SX(ROW_COLUMN_WIDTH);
+	return point.x < DPI::SX(ROW_COLUMN_WIDTH) + 2;
 }
 
 CFrameCursorPos CFrameEditor::TranslateFramePos(const CPoint &point, bool DropTarget) const {		// // //
@@ -822,7 +798,7 @@ void CFrameEditor::OnLButtonDown(UINT nFlags, CPoint point)
 			model_->Deselect();
 	}
 	else if (nFlags & MK_SHIFT) {
-		model_->Select({GetFrameCursor(), m_LastClickPos});
+		model_->Select({model_->GetCurrentPos(), m_LastClickPos});
 		m_bFullFrameSelect = false;		// // //
 	}
 	
@@ -998,7 +974,7 @@ void CFrameEditor::OnEditCopy()
 		return;
 	}
 
-	Clipboard.TryCopy(*Copy());		// // //
+	Clipboard.TryCopy(*CopySelection(GetSelection()));		// // //
 }
 
 std::unique_ptr<CFrameClipData> CFrameEditor::RestoreFrameClipData() {		// // //
@@ -1033,44 +1009,28 @@ void CFrameEditor::OnEditDelete()
 	m_pMainFrame->AddAction(std::make_unique<CFActionDeleteSel>( ));		// // //
 }
 
-CFrameCursorPos CFrameEditor::GetFrameCursor() const		// // //
-{
-	return CFrameCursorPos {
-		static_cast<int>(m_pView->GetSelectedFrame()),
-		static_cast<int>(m_pView->GetSelectedChannel())
-	};
-}
-
 std::pair<CFrameIterator, CFrameIterator> CFrameEditor::GetIterators() const		// // //
 {
 	int Track = m_pMainFrame->GetSelectedTrack();
 	auto pSel = model_->GetSelection();
 	return pSel ?
 		CFrameIterator::FromSelection(*pSel, m_pDocument, Track) :
-		CFrameIterator::FromCursor(GetFrameCursor(), m_pDocument, Track);
+		CFrameIterator::FromCursor(model_->GetCurrentPos(), m_pDocument, Track);
 }
 
-std::unique_ptr<CFrameClipData> CFrameEditor::Copy() const		// // //
+std::unique_ptr<CFrameClipData> CFrameEditor::CopySelection(const CFrameSelection &Sel) const		// // //
 {
-	return Copy(GetSelection());
-}
-
-std::unique_ptr<CFrameClipData> CFrameEditor::Copy(const CFrameSelection &Sel) const		// // //
-{
-	return CFrameEditorModel::Copy(*m_pDocument, Sel, m_pMainFrame->GetSelectedTrack());
+	return model_->CopySelection(Sel, m_pMainFrame->GetSelectedTrack());
 }
 
 std::unique_ptr<CFrameClipData> CFrameEditor::CopyFrame(int Frame) const		// // //
 {
-	return Copy(model_->MakeFrameSelection(Frame));
+	return CopySelection(model_->MakeFrameSelection(Frame));
 }
 
 std::unique_ptr<CFrameClipData> CFrameEditor::CopyEntire(int Track) const		// // //
 {
-	CFrameSelection Sel;
-	Sel.m_cpEnd.m_iFrame = m_pDocument->GetFrameCount(Track) - 1;
-	Sel.m_cpEnd.m_iChannel = m_pDocument->GetChannelCount() - 1;
-	return Copy(Sel);
+	return CopySelection(model_->MakeFullSelection(Track));
 }
 
 void CFrameEditor::PasteInsert(unsigned int Track, int Frame, const CFrameClipData &ClipData)		// // //
@@ -1079,11 +1039,11 @@ void CFrameEditor::PasteInsert(unsigned int Track, int Frame, const CFrameClipDa
 	const int Channels = ClipData.ClipInfo.Channels;
 	const int Count = m_pDocument->GetChannelCount();
 
-	CFrameSelection Sel {ClipData, Frame};		// // //
-	CFrameIterator it {m_pDocument, static_cast<int>(Track), Sel.m_cpStart};
-
 	for (int f = 0; f < Frames; ++f)
 		m_pDocument->InsertFrame(Track, Frame);
+
+	CFrameSelection Sel {ClipData, Frame};		// // //
+	CFrameIterator it {m_pDocument, static_cast<int>(Track), Sel.m_cpStart};
 	for (int f = 0; f < Frames; ++f) {
 		for (int c = 0; c < it.m_iChannel; ++c)
 			it.Set(c, 0);
@@ -1205,28 +1165,25 @@ void CFrameEditor::OnModuleDuplicateCurrentPattern()		// // //
 
 void CFrameEditor::OnEditSelectpattern()		// // //
 {
-	SetSelection(model_->MakePosSelection(m_pView->GetSelectedFrame(), m_pView->GetSelectedChannel()));
+	SetSelection(model_->GetCurrentPos());
 }
 
 void CFrameEditor::OnEditSelectframe()		// // //
 {
-	SetSelection(model_->MakeFrameSelection(m_pView->GetSelectedFrame()));
+	SetSelection(model_->MakeFrameSelection(model_->GetCurrentFrame()));
 }
 
 void CFrameEditor::OnEditSelectchannel()		// // //
 {
 	CFrameSelection Sel;
 	Sel.m_cpEnd.m_iFrame = m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) - 1;
-	Sel.m_cpStart.m_iChannel = Sel.m_cpEnd.m_iChannel = m_pView->GetSelectedChannel();
+	Sel.m_cpStart.m_iChannel = Sel.m_cpEnd.m_iChannel = model_->GetCurrentChannel();
 	SetSelection(Sel);
 }
 
 void CFrameEditor::OnEditSelectall()		// // //
 {
-	CFrameSelection Sel;
-	Sel.m_cpEnd.m_iFrame = m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) - 1;
-	Sel.m_cpEnd.m_iChannel = m_pDocument->GetChannelCount() - 1;
-	SetSelection(Sel);
+	SetSelection(model_->MakeFullSelection(m_pMainFrame->GetSelectedTrack()));
 }
 
 void CFrameEditor::OnSize(UINT nType, int cx, int cy)
@@ -1261,7 +1218,7 @@ void CFrameEditor::CancelSelection()
 
 void CFrameEditor::InitiateDrag()
 {
-	auto pClipData = CFrameEditorModel::Copy(*m_pDocument, *model_->GetSelection(), m_pMainFrame->GetSelectedTrack());		// // //
+	auto pClipData = CopySelection(GetSelection());		// // //
 
 	DROPEFFECT res = pClipData->DragDropTransfer(m_iClipboard, DROPEFFECT_COPY | DROPEFFECT_MOVE);		// // // calls DropData
 
@@ -1276,7 +1233,7 @@ void CFrameEditor::InitiateDrag()
 
 int CFrameEditor::GetEditFrame() const		// // //
 {
-	int Frame = m_pView->GetSelectedFrame();
+	int Frame = model_->GetCurrentFrame();
 	if (m_bLastRow)
 		if (Frame != m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) - 1) {
 			m_bLastRow = false;
@@ -1366,7 +1323,7 @@ void CFrameEditor::MoveSelection(unsigned int Track, const CFrameSelection &Sel,
 {
 	if (Target.m_iFrame == Sel.GetFrameStart()) return;
 	CFrameSelection Normal = Sel.GetNormalized();
-	auto pData = Copy(Normal);
+	auto pData = model_->CopySelection(Normal, m_pMainFrame->GetSelectedTrack());
 	const int Frames = Normal.m_cpEnd.m_iFrame - Normal.m_cpStart.m_iFrame + 1;
 
 	int Delta = Target.m_iFrame - Normal.m_cpStart.m_iFrame;
@@ -1374,7 +1331,7 @@ void CFrameEditor::MoveSelection(unsigned int Track, const CFrameSelection &Sel,
 		CFrameSelection Tail = Normal;
 		Tail.m_cpStart.m_iFrame += Frames;
 		Tail.m_cpEnd.m_iFrame = Target.m_iFrame - 1;
-		auto pRest = Copy(Tail);
+		auto pRest = model_->CopySelection(Tail, m_pMainFrame->GetSelectedTrack());
 		PasteAt(Track, *pRest, Normal.m_cpStart);
 		Delta -= Frames;
 		PasteAt(Track, *pData, {Normal.m_cpStart.m_iFrame + Delta, Normal.m_cpStart.m_iChannel});
@@ -1383,7 +1340,7 @@ void CFrameEditor::MoveSelection(unsigned int Track, const CFrameSelection &Sel,
 		CFrameSelection Head = Normal;
 		Head.m_cpEnd.m_iFrame -= Frames;
 		Head.m_cpStart.m_iFrame = Target.m_iFrame;
-		auto pRest = Copy(Head);
+		auto pRest = model_->CopySelection(Head, m_pMainFrame->GetSelectedTrack());
 		PasteAt(Track, *pData, Head.m_cpStart);
 		Head.m_cpStart.m_iFrame += Frames;
 		PasteAt(Track, *pRest, Head.m_cpStart);

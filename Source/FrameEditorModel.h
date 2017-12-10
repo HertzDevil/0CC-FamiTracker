@@ -35,10 +35,17 @@ class CFrameEditorModel {
 public:
 	void AssignDocument(CFamiTrackerDoc &doc, CFamiTrackerView &view);
 
+	int GetCurrentFrame() const;
+	int GetCurrentChannel() const;
+	CFrameCursorPos GetCurrentPos() const;
+	void SetCurrentFrame(int frame);
+	void SetCurrentChannel(int channel);
+
 	bool IsSelecting() const;
 	const CFrameSelection *GetSelection() const;
 	CFrameSelection MakePosSelection(int frame, int channel) const;
 	CFrameSelection MakeFrameSelection(int frame) const;
+	CFrameSelection MakeFullSelection(int track) const;
 	CFrameSelection GetActiveSelection() const;
 
 	void Select(const CFrameSelection &sel);
@@ -50,8 +57,7 @@ public:
 	bool IsFrameSelected(int frame) const;
 	bool IsChannelSelected(int channel) const;
 
-	static std::unique_ptr<CFrameClipData>
-	Copy(/*const*/ CFamiTrackerDoc &doc, const CFrameSelection &sel, int track);
+	std::unique_ptr<CFrameClipData> CopySelection(const CFrameSelection &sel, int track) const;
 
 private:
 	bool m_bSelecting = false;

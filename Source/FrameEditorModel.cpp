@@ -24,11 +24,30 @@
 #include "FrameClipData.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
-#include "SongData.h"
 
 void CFrameEditorModel::AssignDocument(CFamiTrackerDoc &doc, CFamiTrackerView &view) {
 	doc_ = &doc;
 	view_ = &view;
+}
+
+int CFrameEditorModel::GetCurrentFrame() const {
+	return view_->GetSelectedFrame();
+}
+
+int CFrameEditorModel::GetCurrentChannel() const {
+	return view_->GetSelectedChannel();
+}
+
+CFrameCursorPos CFrameEditorModel::GetCurrentPos() const {
+	return {GetCurrentFrame(), GetCurrentChannel()};
+}
+
+void CFrameEditorModel::SetCurrentFrame(int frame) {
+	view_->SelectFrame(frame);
+}
+
+void CFrameEditorModel::SetCurrentChannel(int channel) {
+	view_->SelectChannel(channel);
 }
 
 bool CFrameEditorModel::IsSelecting() const {
@@ -46,7 +65,13 @@ CFrameSelection CFrameEditorModel::MakePosSelection(int frame, int channel) cons
 CFrameSelection CFrameEditorModel::MakeFrameSelection(int frame) const {
 	CFrameSelection Sel;
 	Sel.m_cpStart.m_iFrame = Sel.m_cpEnd.m_iFrame = frame;
-	Sel.m_cpStart.m_iChannel = 0;
+	Sel.m_cpEnd.m_iChannel = doc_->GetChannelCount() - 1;
+	return Sel;
+}
+
+CFrameSelection CFrameEditorModel::MakeFullSelection(int track) const {
+	CFrameSelection Sel;
+	Sel.m_cpEnd.m_iFrame = doc_->GetFrameCount(track) - 1;
 	Sel.m_cpEnd.m_iChannel = doc_->GetChannelCount() - 1;
 	return Sel;
 }
@@ -91,9 +116,8 @@ bool CFrameEditorModel::IsChannelSelected(int channel) const {
 	return IsSelecting() && channel >= m_selection.GetChanStart() && channel <= m_selection.GetChanEnd();
 }
 
-std::unique_ptr<CFrameClipData>
-CFrameEditorModel::Copy(CFamiTrackerDoc &doc, const CFrameSelection &sel, int track) {
-	auto [b, e] = CFrameIterator::FromSelection(sel, &doc, track);
+std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSelection &sel, int track) const {
+	auto [b, e] = CFrameIterator::FromSelection(sel, const_cast<CFamiTrackerDoc *>(doc_), track); // TODO: remove cast
 	const int Frames = e.m_iFrame - b.m_iFrame + 1;
 	const int Channels = e.m_iChannel - b.m_iChannel + 1;		// // //
 	const int ChanStart = b.m_iChannel;

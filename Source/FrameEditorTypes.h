@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <utility>		// // //
+
 // // // common classes for frame editor
 
 class CFamiTrackerDoc;		// // //

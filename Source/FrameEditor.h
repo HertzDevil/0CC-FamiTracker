@@ -101,8 +101,7 @@ public:
 	void MoveSelection(unsigned int Track, const CFrameSelection &Sel, const CFrameCursorPos &Target);		// // //
 
 	// Commands
-	std::unique_ptr<CFrameClipData> Copy() const;		// // //
-	std::unique_ptr<CFrameClipData> Copy(const CFrameSelection &Sel) const;		// // //
+	std::unique_ptr<CFrameClipData> CopySelection(const CFrameSelection &Sel) const;		// // //
 	std::unique_ptr<CFrameClipData> CopyFrame(int Frame) const;		// // //
 	std::unique_ptr<CFrameClipData> CopyEntire(int Track) const;		// // //
 
@@ -132,7 +131,6 @@ private:
 	// Drag & drop
 	void InitiateDrag();
 
-	CFrameCursorPos GetFrameCursor() const;		// // //
 	std::pair<CFrameIterator, CFrameIterator> GetIterators() const;		// // //
 
 	std::unique_ptr<CFrameClipData> RestoreFrameClipData();		// // //
