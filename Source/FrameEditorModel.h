@@ -35,6 +35,10 @@ class CFrameEditorModel {
 public:
 	void AssignDocument(CFamiTrackerDoc &doc, CFamiTrackerView &view);
 
+	void DoClick(int frame, int channel);
+	void DoMove(int frame, int channel);
+	void DoUnclick(int frame, int channel);
+
 	int GetCurrentFrame() const;
 	int GetCurrentChannel() const;
 	CFrameCursorPos GetCurrentPos() const;
@@ -49,8 +53,8 @@ public:
 
 	void Select(const CFrameSelection &sel);
 	void Deselect();
-	void StartSelection(int frame, int channel);
-	void ContinueSelection(int frame, int channel);
+	void StartSelection(const CFrameCursorPos &pos);
+	void ContinueSelection(const CFrameCursorPos &pos);
 	void ContinueFrameSelection(int frame);
 
 	bool IsFrameSelected(int frame) const;
@@ -59,9 +63,13 @@ public:
 	std::unique_ptr<CFrameClipData> CopySelection(const CFrameSelection &sel, int track) const;
 
 private:
-	bool m_bSelecting = false;
-	CFrameSelection m_selection;		// // //
-
 	CFamiTrackerDoc *doc_ = nullptr;
 	CFamiTrackerView *view_ = nullptr;
+
+	CFrameSelection m_selection;
+	CFrameCursorPos selStart_;
+	CFrameCursorPos selEnd_;
+
+	bool m_bSelecting = false;
+	bool clicking_ = false;
 };

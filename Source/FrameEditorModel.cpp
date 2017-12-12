@@ -30,6 +30,25 @@ void CFrameEditorModel::AssignDocument(CFamiTrackerDoc &doc, CFamiTrackerView &v
 	view_ = &view;
 }
 
+void CFrameEditorModel::DoClick(int frame, int channel) {
+	clicking_ = true;
+
+
+}
+
+void CFrameEditorModel::DoMove(int frame, int channel) {
+	if (!clicking_)
+		return;
+
+
+}
+
+void CFrameEditorModel::DoUnclick(int frame, int channel) {
+
+
+	clicking_ = false;
+}
+
 int CFrameEditorModel::GetCurrentFrame() const {
 	return view_->GetSelectedFrame();
 }
@@ -59,17 +78,17 @@ const CFrameSelection *CFrameEditorModel::GetSelection() const {
 }
 
 CFrameSelection CFrameEditorModel::MakeFrameSelection(int frame) const {
-	CFrameSelection Sel;
-	Sel.m_cpStart.m_iFrame = Sel.m_cpEnd.m_iFrame = frame;
-	Sel.m_cpEnd.m_iChannel = doc_->GetChannelCount() - 1;
-	return Sel;
+	return {
+		{frame, 0},
+		{frame + 1, doc_->GetChannelCount()},
+	};
 }
 
 CFrameSelection CFrameEditorModel::MakeFullSelection(int track) const {
-	CFrameSelection Sel;
-	Sel.m_cpEnd.m_iFrame = doc_->GetFrameCount(track) - 1;
-	Sel.m_cpEnd.m_iChannel = doc_->GetChannelCount() - 1;
-	return Sel;
+	return {
+		{0, 0},
+		{(int)doc_->GetFrameCount(track), doc_->GetChannelCount()},
+	};
 }
 
 CFrameSelection CFrameEditorModel::GetActiveSelection() const {
@@ -85,45 +104,46 @@ void CFrameEditorModel::Deselect() {
 	m_bSelecting = false;
 }
 
-void CFrameEditorModel::StartSelection(int frame, int channel) {
-	m_bSelecting = true;
-	m_selection.m_cpStart.m_iFrame = m_selection.m_cpEnd.m_iFrame = frame;		// // //
-	m_selection.m_cpStart.m_iChannel = m_selection.m_cpEnd.m_iChannel = channel;		// // //
+void CFrameEditorModel::StartSelection(const CFrameCursorPos &pos) {
+	selStart_ = selEnd_ = pos;
+	Select(selStart_);		// // //
 }
 
-void CFrameEditorModel::ContinueSelection(int frame, int channel) {
-	if (IsSelecting())
-		m_selection.m_cpEnd = CFrameCursorPos(frame, channel);
+void CFrameEditorModel::ContinueSelection(const CFrameCursorPos &pos) {
+	if (IsSelecting()) {
+		selEnd_ = pos;
+		m_selection = CFrameSelection::Including(selStart_, selEnd_);
+	}
 }
 
 void CFrameEditorModel::ContinueFrameSelection(int frame) {
 	if (IsSelecting()) {
-		m_selection.m_cpEnd.m_iFrame = frame;
-		m_selection.m_cpStart.m_iChannel = 0;
-		m_selection.m_cpEnd.m_iChannel = doc_->GetChannelCount() - 1;
+		selStart_.m_iChannel = 0;
+		selEnd_ = {frame, doc_->GetChannelCount()};
+		m_selection = CFrameSelection::Including(selStart_, selEnd_);
 	}
 }
 
 bool CFrameEditorModel::IsFrameSelected(int frame) const {
-	return IsSelecting() && frame >= m_selection.GetFrameStart() && frame <= m_selection.GetFrameEnd();
+	return IsSelecting() && m_selection.IncludesFrame(frame);
 }
 
 bool CFrameEditorModel::IsChannelSelected(int channel) const {
-	return IsSelecting() && channel >= m_selection.GetChanStart() && channel <= m_selection.GetChanEnd();
+	return IsSelecting() && m_selection.IncludesChannel(channel);
 }
 
 std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSelection &sel, int track) const {
 	auto [b, e] = CFrameIterator::FromSelection(sel, const_cast<CFamiTrackerDoc *>(doc_), track); // TODO: remove cast
-	const int Frames = e.m_iFrame - b.m_iFrame;
 
-	auto pData = std::make_unique<CFrameClipData>(e.m_iChannel - b.m_iChannel, e.m_iFrame - b.m_iFrame);
+	auto pData = std::make_unique<CFrameClipData>(sel.GetSelectedChanCount(), sel.GetSelectedFrameCount());
 	pData->ClipInfo.FirstChannel = b.m_iChannel;		// // //
 	pData->ClipInfo.OleInfo.SourceRowStart = b.m_iFrame;
 	pData->ClipInfo.OleInfo.SourceRowEnd = e.m_iFrame - 1;
 
-	for (; b != e; ++b)
+	int f = 0;
+	for (; b != e; ++b, ++f)
 		for (int c = b.m_iChannel; c < e.m_iChannel; ++c)
-			pData->SetFrame(b.m_iFrame, c - b.m_iChannel, b.Get(c));
+			pData->SetFrame(f, c - b.m_iChannel, b.Get(c));
 
 	return pData;
 }

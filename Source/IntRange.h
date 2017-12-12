@@ -35,7 +35,7 @@ private:
 	struct it;
 public:
 	constexpr CIntRange() = default;
-	/*constexpr*/ CIntRange(T b, T e) : _b(b), _e(++e) { }
+	/*constexpr*/ CIntRange(T b, T e) : _b(b), _e(e) { }
 	constexpr T operator[](size_t x) const {
 		return _b + x;
 	}

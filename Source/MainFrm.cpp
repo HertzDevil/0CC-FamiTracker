@@ -3034,14 +3034,15 @@ void CMainFrame::OnEditSelectother()		// // //
 			m_pFrameEditor->CancelSelection();
 
 			CSelection NewSel;
-			NewSel.m_cpStart.m_iFrame = Sel.m_cpStart.m_iFrame;
-			NewSel.m_cpEnd.m_iFrame = Sel.m_cpEnd.m_iFrame;
+			NewSel.m_cpStart.m_iFrame = Sel.GstFirstSelectedFrame();
+			NewSel.m_cpStart.m_iChannel = Sel.GetFirstSelectedChannel();
+			NewSel.m_cpEnd.m_iFrame = Sel.GetLastSelectedFrame();
+			NewSel.m_cpEnd.m_iChannel = Sel.GetLastSelectedChannel();
+
 			NewSel.m_cpStart.m_iRow = 0;
-			NewSel.m_cpEnd.m_iRow = pDoc->GetCurrentPatternLength(m_iTrack, Sel.m_cpStart.m_iFrame) - 1;
-			NewSel.m_cpStart.m_iChannel = Sel.m_cpStart.m_iChannel;
-			NewSel.m_cpEnd.m_iChannel = Sel.m_cpEnd.m_iChannel;
 			NewSel.m_cpStart.m_iColumn = C_NOTE;
-			NewSel.m_cpEnd.m_iColumn = pEditor->GetChannelColumns(Sel.m_cpEnd.m_iChannel);
+			NewSel.m_cpEnd.m_iRow = pDoc->GetCurrentPatternLength(m_iTrack, NewSel.m_cpEnd.m_iFrame) - 1;
+			NewSel.m_cpEnd.m_iColumn = pEditor->GetChannelColumns(NewSel.m_cpEnd.m_iChannel);
 
 			pEditor->SetSelection(NewSel);
 			pEditor->UpdateSelectionCondition();

@@ -318,10 +318,10 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 
 	// Selection
 	if (auto pSel = model_->GetSelection()) {		// // //
-		const int SelectStart	= pSel->GetFrameStart();
-		const int SelectEnd		= pSel->GetFrameEnd();
-		const int CBegin		= pSel->GetChanStart();
-		const int CEnd			= pSel->GetChanEnd();
+		const int SelectStart	= pSel->GstFirstSelectedFrame();
+		const int SelectEnd		= pSel->GetLastSelectedFrame();
+		const int CBegin		= pSel->GetFirstSelectedChannel();
+		const int CEnd			= pSel->GetLastSelectedChannel();
 		for (int Frame = std::max(SelectStart, BeginFrame); Frame <= std::min(SelectEnd, EndFrame); ++Frame) {
 			int line = Frame - FirstVisibleFrame;
 			const int ypos = line * ROW_HEIGHT;
@@ -407,10 +407,10 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	// Draw cursor when dragging
 	if (m_DropTarget.IsDragging()) {
 		auto pSel = model_->GetSelection();		// // //
-		if (!pSel || (m_iDragRow <= pSel->GetFrameStart() || m_iDragRow >= (pSel->GetFrameEnd() + 1))) {
+		if (!pSel || (m_iDragRow <= pSel->GstFirstSelectedFrame() || m_iDragRow >= (pSel->GetLastSelectedFrame() + 1))) {
 			if (m_iDragRow >= FirstVisibleFrame && m_iDragRow <= FirstVisibleFrame + m_iRowsVisible) {
-				const int CBegin = pSel->GetChanStart();
-				const int CEnd = pSel->GetChanEnd();
+				const int CBegin = pSel->GetFirstSelectedChannel();
+				const int CEnd = pSel->GetLastSelectedChannel();
 				int x = ROW_COLUMN_WIDTH + CBegin * FRAME_ITEM_WIDTH + 2;		// // //
 				int y = m_iDragRow - FirstVisibleFrame;
 				m_dcBack.FillSolidRect(DPI::Rect(x, y * ROW_HEIGHT + 3, FRAME_ITEM_WIDTH * (CEnd - CBegin + 1) + 1, 2), ColDragCursor);
@@ -577,10 +577,10 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		int Track = m_pMainFrame->GetSelectedTrack();
 		bool bShift = (::GetKeyState(VK_SHIFT) & 0x80) == 0x80;
 
-		unsigned int ChannelCount = m_pDocument->GetChannelCount();
-		unsigned int FrameCount = m_pDocument->GetFrameCount(Track);
-		unsigned int Channel = model_->GetCurrentChannel();
-		unsigned int Frame = GetEditFrame();		// // //
+		const int ChannelCount = m_pDocument->GetChannelCount();
+		const int FrameCount = m_pDocument->GetFrameCount(Track);
+		int Channel = model_->GetCurrentChannel();
+		int Frame = GetEditFrame();		// // //
 
 		switch (nChar) {
 		case VK_RETURN:
@@ -602,7 +602,7 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		case VK_END:
 			if (bShift && !m_bLastRow) {		// // //
 				if (!model_->IsSelecting())
-					model_->StartSelection(Frame, Channel);
+					model_->StartSelection({Frame, Channel});
 			}
 			else
 				CancelSelection();
@@ -662,7 +662,7 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 			m_iCursorEditDigit = 0;
 			if (bShift) {
-				model_->ContinueSelection(Frame, Channel);		// // //
+				model_->ContinueSelection({Frame, Channel});		// // //
 				InvalidateFrameData();
 			}
 			break;
@@ -684,7 +684,7 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 					m_iCursorEditDigit = 1;
 				}
 				else if (m_iCursorEditDigit == 1) {
-					Pattern = m_pDocument->GetPatternAtFrame(Track, GetSelection().GetFrameStart(), GetSelection().GetChanStart()) | Num;
+					Pattern = m_pDocument->GetPatternAtFrame(Track, GetSelection().GstFirstSelectedFrame(), GetSelection().GetFirstSelectedChannel()) | Num;
 					m_iCursorEditDigit = 0;
 				}
 				m_pMainFrame->AddAction(std::make_unique<CFActionSetPattern>(Pattern));
@@ -791,14 +791,15 @@ void CFrameEditor::OnLButtonDown(UINT nFlags, CPoint point)
 		if (model_->IsFrameSelected(m_LastClickPos.m_iFrame) && model_->IsChannelSelected(m_LastClickPos.m_iChannel))		// // //
 			m_bStartDrag = true;
 		else if (nFlags & MK_SHIFT) {
-			model_->ContinueSelection(m_LastClickPos.m_iFrame, m_LastClickPos.m_iChannel);		// // //
+			model_->ContinueSelection(m_LastClickPos);		// // //
 			InvalidateFrameData();
 		}
 		else
 			model_->Deselect();
 	}
 	else if (nFlags & MK_SHIFT) {
-		model_->Select({model_->GetCurrentPos(), m_LastClickPos});
+		model_->StartSelection(model_->GetCurrentPos());
+		model_->ContinueSelection(m_LastClickPos);
 		m_bFullFrameSelect = false;		// // //
 	}
 	
@@ -848,10 +849,7 @@ void CFrameEditor::OnMouseMove(UINT nFlags, CPoint point)
 		if (!IsSelecting()) {
 			if (mouseMoved) {
 				m_bFullFrameSelect = m_LastClickPos.m_iChannel < 0;		// // //
-				if (m_bFullFrameSelect)
-					model_->Select(model_->MakeFrameSelection(m_LastClickPos.m_iFrame));
-				else
-					model_->Select(m_LastClickPos);
+				model_->StartSelection(m_LastClickPos);
 				EnableInput();		// // //
 			}
 		}
@@ -864,9 +862,9 @@ void CFrameEditor::OnMouseMove(UINT nFlags, CPoint point)
 			CFrameCursorPos pos = TranslateFramePos(point, false);		// // //
 			AutoScroll(point);
 			if (m_bFullFrameSelect)		// // //
-				model_->ContinueFrameSelection(GetRowFromPoint(point, false));
+				model_->ContinueFrameSelection(pos.m_iFrame);
 			else
-				model_->ContinueSelection(GetRowFromPoint(point, false), std::max(0, GetChannelFromPoint(point)));
+				model_->ContinueSelection({pos.m_iFrame, std::max(0, pos.m_iChannel)});
 			InvalidateFrameData();
 		}
 	}
@@ -1041,15 +1039,13 @@ void CFrameEditor::PasteInsert(unsigned int Track, int Frame, const CFrameClipDa
 		m_pDocument->InsertFrame(Track, Frame);
 
 	CFrameSelection Sel {ClipData, Frame};		// // //
-	CFrameIterator it {m_pDocument, static_cast<int>(Track), Sel.m_cpStart};
-	for (int f = 0; f < Frames; ++f) {
-		for (int c = 0; c < it.m_iChannel; ++c)
-			it.Set(c, 0);
+	for (auto [b, e] = CFrameIterator::FromSelection(Sel, m_pDocument, Track); b != e; ++b) {
+		for (int c = 0; c < b.m_iChannel; ++c)
+			b.Set(c, 0);
 		for (int c = 0; c < Channels; ++c)
-			it.Set(c + it.m_iChannel, ClipData.GetFrame(f, c));
-		for (int c = it.m_iChannel + Channels; c < Count; ++c)
-			it.Set(c, 0);
-		++it;
+			b.Set(c + b.m_iChannel, ClipData.GetFrame(b.m_iFrame, c));
+		for (int c = b.m_iChannel + Channels; c < Count; ++c)
+			b.Set(c, 0);
 	}
 
 	SetSelection(Sel);
@@ -1087,8 +1083,7 @@ void CFrameEditor::ClonePatterns(unsigned int Track, const CFrameSelection &_Sel
 		for (int c = b.m_iChannel; c < e.m_iChannel; ++c) {
 			int OldPattern = b.Get(c);
 			auto Index = std::make_pair(c, OldPattern);
-			auto p = NewPatterns.find(Index);		// // // share common patterns
-			if (p == NewPatterns.end()) {
+			if (auto p = NewPatterns.find(Index); p == NewPatterns.end()) {		// // // share common patterns
 				NewPatterns[Index] = m_pDocument->GetFirstFreePattern(Track, c);
 				m_pDocument->CopyPattern(Track, NewPatterns[Index], OldPattern, c);
 			}
@@ -1165,10 +1160,9 @@ void CFrameEditor::OnEditSelectframe()		// // //
 
 void CFrameEditor::OnEditSelectchannel()		// // //
 {
-	CFrameSelection Sel;
-	Sel.m_cpEnd.m_iFrame = m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) - 1;
-	Sel.m_cpStart.m_iChannel = Sel.m_cpEnd.m_iChannel = model_->GetCurrentChannel();
-	SetSelection(Sel);
+	int maxframe = m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) - 1;
+	int channel = model_->GetCurrentChannel();
+	SetSelection(CFrameSelection::Including({0, channel}, {maxframe, channel}));
 }
 
 void CFrameEditor::OnEditSelectall()		// // //
@@ -1279,27 +1273,25 @@ BOOL CFrameEditor::DropData(COleDataObject* pDataObject, DROPEFFECT dropEffect)
 	const int SelectStart = pClipData->ClipInfo.OleInfo.SourceRowStart;
 	const int SelectEnd	  = pClipData->ClipInfo.OleInfo.SourceRowEnd;
 
-	if (IsSelecting() && (m_iDragRow > SelectStart && m_iDragRow < (SelectEnd + 1)))
-		return FALSE;
-
 	// Add action
 	switch (dropEffect) {
-		case DROPEFFECT_MOVE:
-			// Move
-			if (m_bStartDrag) {		// // // same window
-				// Disallow dragging to the same area
-				if (m_iDragRow >= SelectStart && m_iDragRow <= (SelectEnd + 1))		// // //
-					return FALSE;
-				m_pMainFrame->AddAction(std::make_unique<CFActionDropMove>(std::move(pClipData), m_iDragRow));		// // //
-				break;
-			}
-			[[fallthrough]];
-		case DROPEFFECT_COPY:
-			// Copy
-			if (!m_pMainFrame->AddAction(std::make_unique<CFActionPaste>(
-				std::move(pClipData), m_iDragRow, m_DropTarget.CopyToNewPatterns())))		// // //
+	case DROPEFFECT_MOVE:
+		// Move
+		if (m_bStartDrag) {		// // // same window
+			// Disallow dragging to the same area
+			if (m_iDragRow >= SelectStart && m_iDragRow <= (SelectEnd + 1))		// // //
 				return FALSE;
+			int target = m_iDragRow - (m_iDragRow > SelectStart ? pClipData->ClipInfo.Frames : 0);
+			m_pMainFrame->AddAction(std::make_unique<CFActionDropMove>(std::move(pClipData), target));
 			break;
+		}
+		[[fallthrough]];
+	case DROPEFFECT_COPY:
+		// Copy
+		if (!m_pMainFrame->AddAction(std::make_unique<CFActionPaste>(
+			std::move(pClipData), m_iDragRow, m_DropTarget.CopyToNewPatterns())))		// // //
+			return FALSE;
+		break;
 	}
 
 	m_bDropped = true;
@@ -1311,29 +1303,36 @@ BOOL CFrameEditor::DropData(COleDataObject* pDataObject, DROPEFFECT dropEffect)
 
 void CFrameEditor::MoveSelection(unsigned int Track, const CFrameSelection &Sel, const CFrameCursorPos &Target)		// // //
 {
-	if (Target.m_iFrame == Sel.GetFrameStart()) return;
+	if (Target.m_iFrame == Sel.GstFirstSelectedFrame())
+		return;
 	CFrameSelection Normal = Sel.GetNormalized();
-	auto pData = model_->CopySelection(Normal, m_pMainFrame->GetSelectedTrack());
-	const int Frames = Normal.m_cpEnd.m_iFrame - Normal.m_cpStart.m_iFrame + 1;
+	CFrameCursorPos startPos = Sel.GetCursorStart();
+	auto pData = model_->CopySelection(Sel, Track);
+	const int Frames = Sel.GetSelectedFrameCount();
 
-	int Delta = Target.m_iFrame - Normal.m_cpStart.m_iFrame;
+	int Delta = Target.m_iFrame - Sel.GstFirstSelectedFrame();
 	if (Delta > 0) {
+		// [Sel           ]                       [Target
 		CFrameSelection Tail = Normal;
-		Tail.m_cpStart.m_iFrame += Frames;
-		Tail.m_cpEnd.m_iFrame = Target.m_iFrame - 1;
-		auto pRest = model_->CopySelection(Tail, m_pMainFrame->GetSelectedTrack());
+		Tail.m_cpStart.m_iFrame = startPos.m_iFrame + Frames;
+		Tail.m_cpEnd.m_iFrame = Target.m_iFrame + Frames;
+		//                [Tail                   ]
+		auto pRest = model_->CopySelection(Tail, Track);
 		PasteAt(Track, *pRest, Normal.m_cpStart);
-		Delta -= Frames;
-		PasteAt(Track, *pData, {Normal.m_cpStart.m_iFrame + Delta, Normal.m_cpStart.m_iChannel});
+		// <Tail                   >
+		startPos.m_iFrame += Delta;
+		PasteAt(Track, *pData, startPos);
+		//                         <Sel           >
 	}
 	else {
+		//    [Target              [Sel    ]
 		CFrameSelection Head = Normal;
-		Head.m_cpEnd.m_iFrame -= Frames;
+		Head.m_cpEnd.m_iFrame = startPos.m_iFrame;
 		Head.m_cpStart.m_iFrame = Target.m_iFrame;
-		auto pRest = model_->CopySelection(Head, m_pMainFrame->GetSelectedTrack());
+		//    [Head                ]
+		auto pRest = model_->CopySelection(Head, Track);
 		PasteAt(Track, *pData, Head.m_cpStart);
-		Head.m_cpStart.m_iFrame += Frames;
-		PasteAt(Track, *pRest, Head.m_cpStart);
+		PasteAt(Track, *pRest, {Head.m_cpStart.m_iFrame + Frames, Head.m_cpStart.m_iChannel});
 	}
 	Normal.m_cpStart.m_iFrame += Delta;
 	Normal.m_cpEnd.m_iFrame += Delta;

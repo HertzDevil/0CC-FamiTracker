@@ -48,11 +48,22 @@ struct CFrameSelection
 	CFrameSelection(const CFrameCursorPos &b, const CFrameCursorPos &e);
 	CFrameSelection(const CFrameClipData &clipdata, int frame);
 
-	int GetFrameStart() const;
-	int GetFrameEnd() const;
-	int GetChanStart() const;
-	int GetChanEnd() const;
+	static CFrameSelection Including(const CFrameCursorPos &lhs, const CFrameCursorPos &rhs);
 
+	int GstFirstSelectedFrame() const;
+	int GetLastSelectedFrame() const;
+	int GetSelectedFrameCount() const;
+	int GetFirstSelectedChannel() const;
+	int GetLastSelectedChannel() const;
+	int GetSelectedChanCount() const;
+
+	CFrameCursorPos GetCursorStart() const;
+	CFrameCursorPos GetCursorEnd() const;
+
+	bool IncludesFrame(int frame) const;
+	bool IncludesChannel(int channel) const;
+
+	void Normalize();
 	void Normalize(CFrameCursorPos &Begin, CFrameCursorPos &End) const;		// // //
 	CFrameSelection GetNormalized() const;		// // //
 

@@ -28,7 +28,7 @@
 // // // CFrameSelection class
 
 CFrameSelection::CFrameSelection(const CFrameCursorPos &cursor) :
-	m_cpStart(cursor), m_cpEnd(cursor)
+	m_cpStart(cursor), m_cpEnd {cursor.m_iFrame + 1, cursor.m_iChannel + 1}
 {
 }
 
@@ -39,35 +39,78 @@ CFrameSelection::CFrameSelection(const CFrameCursorPos &b, const CFrameCursorPos
 
 CFrameSelection::CFrameSelection(const CFrameClipData &clipdata, int frame) :
 	m_cpStart {frame, clipdata.ClipInfo.FirstChannel},
-	m_cpEnd {frame + clipdata.ClipInfo.Frames - 1, clipdata.ClipInfo.FirstChannel + clipdata.ClipInfo.Channels - 1}
+	m_cpEnd {frame + clipdata.ClipInfo.Frames, clipdata.ClipInfo.FirstChannel + clipdata.ClipInfo.Channels}
 {
 }
 
-int CFrameSelection::GetFrameStart() const
-{
-	return (m_cpEnd.m_iFrame > m_cpStart.m_iFrame) ? m_cpStart.m_iFrame : m_cpEnd.m_iFrame;
+CFrameSelection CFrameSelection::Including(const CFrameCursorPos &lhs, const CFrameCursorPos &rhs) {
+	return {
+		{
+			std::min(lhs.m_iFrame, rhs.m_iFrame),
+			std::min(lhs.m_iChannel, rhs.m_iChannel),
+		},
+		{
+			std::max(lhs.m_iFrame, rhs.m_iFrame) + 1,
+			std::max(lhs.m_iChannel, rhs.m_iChannel) + 1,
+		},
+	};
 }
 
-int CFrameSelection::GetFrameEnd() const
+int CFrameSelection::GstFirstSelectedFrame() const
 {
-	return (m_cpEnd.m_iFrame > m_cpStart.m_iFrame) ? m_cpEnd.m_iFrame : m_cpStart.m_iFrame;
+	return std::min(m_cpStart.m_iFrame, m_cpEnd.m_iFrame);
 }
 
-int CFrameSelection::GetChanStart() const
+int CFrameSelection::GetLastSelectedFrame() const
 {
-	return (m_cpEnd.m_iChannel > m_cpStart.m_iChannel) ? m_cpStart.m_iChannel : m_cpEnd.m_iChannel;
+	return std::max(m_cpStart.m_iFrame, m_cpEnd.m_iFrame) - 1;
 }
 
-int CFrameSelection::GetChanEnd() const
+int CFrameSelection::GetSelectedFrameCount() const {
+	return std::abs(m_cpEnd.m_iFrame - m_cpStart.m_iFrame);
+}
+
+int CFrameSelection::GetFirstSelectedChannel() const
 {
-	return (m_cpEnd.m_iChannel > m_cpStart.m_iChannel) ? m_cpEnd.m_iChannel : m_cpStart.m_iChannel;
+	return std::min(m_cpStart.m_iChannel, m_cpEnd.m_iChannel);
+}
+
+int CFrameSelection::GetLastSelectedChannel() const
+{
+	return std::max(m_cpStart.m_iChannel, m_cpEnd.m_iChannel) - 1;
+}
+
+int CFrameSelection::GetSelectedChanCount() const {
+	return std::abs(m_cpEnd.m_iChannel - m_cpStart.m_iChannel);
+}
+
+CFrameCursorPos CFrameSelection::GetCursorStart() const {
+	return {GstFirstSelectedFrame(), GetFirstSelectedChannel()};
+}
+
+CFrameCursorPos CFrameSelection::GetCursorEnd() const {
+	return {GetLastSelectedFrame(), GetLastSelectedChannel()};
+}
+
+bool CFrameSelection::IncludesFrame(int frame) const {
+	return frame >= GstFirstSelectedFrame() && frame <= GetLastSelectedFrame();
+}
+
+bool CFrameSelection::IncludesChannel(int channel) const {
+	return channel >= GetFirstSelectedChannel() && channel <= GetLastSelectedChannel();
+}
+
+void CFrameSelection::Normalize() {
+	if (m_cpStart.m_iFrame > m_cpEnd.m_iFrame)
+		std::swap(m_cpStart.m_iFrame, m_cpEnd.m_iFrame);
+	if (m_cpStart.m_iChannel > m_cpEnd.m_iChannel)
+		std::swap(m_cpStart.m_iChannel, m_cpEnd.m_iChannel);
 }
 
 void CFrameSelection::Normalize(CFrameCursorPos &Begin, CFrameCursorPos &End) const
 {
-	CFrameCursorPos Temp {GetFrameStart(), GetChanStart()};
-	End = CFrameCursorPos {GetFrameEnd(), GetChanEnd()};
-	Begin = Temp;
+	Begin = {GstFirstSelectedFrame(), GetFirstSelectedChannel()};
+	End = {GetLastSelectedFrame() + 1, GetLastSelectedChannel() + 1};
 }
 
 CFrameSelection CFrameSelection::GetNormalized() const
@@ -94,8 +137,6 @@ std::pair<CFrameIterator, CFrameIterator> CFrameIterator::FromSelection(const CF
 {
 	CFrameCursorPos it, end;
 	Sel.Normalize(it, end);
-	++end.m_iFrame; // one-past-the-end
-	++end.m_iChannel;
 	return std::make_pair(
 		CFrameIterator {pDoc, Track, it},
 		CFrameIterator {pDoc, Track, end}
@@ -160,7 +201,5 @@ bool CFrameIterator::operator!=(const CFrameIterator &other) const
 int CFrameIterator::NormalizeFrame(int Frame) const
 {
 	int Frames = m_pDocument->GetFrameCount(m_iTrack);
-	Frame %= Frames;
-	if (Frame < 0) Frame += Frames;
-	return Frame;
+	return (Frame % Frames + Frames) % Frames;
 }

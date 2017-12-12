@@ -55,22 +55,22 @@ void CFrameEditorState::ApplyState(CFamiTrackerView *pView) const
 
 int CFrameEditorState::GetFrameStart() const
 {
-	return IsSelecting ? Selection.GetFrameStart() : Cursor.m_iFrame;
+	return IsSelecting ? Selection.GstFirstSelectedFrame() : Cursor.m_iFrame;
 }
 
 int CFrameEditorState::GetFrameEnd() const
 {
-	return IsSelecting ? Selection.GetFrameEnd() : Cursor.m_iFrame;
+	return IsSelecting ? Selection.GetLastSelectedFrame() : Cursor.m_iFrame;
 }
 
 int CFrameEditorState::GetChanStart() const
 {
-	return IsSelecting ? Selection.GetChanStart() : Cursor.m_iChannel;
+	return IsSelecting ? Selection.GetFirstSelectedChannel() : Cursor.m_iChannel;
 }
 
 int CFrameEditorState::GetChanEnd() const
 {
-	return IsSelecting ? Selection.GetChanEnd() : Cursor.m_iChannel;
+	return IsSelecting ? Selection.GetLastSelectedChannel() : Cursor.m_iChannel;
 }
 
 #define STATE_EXPAND(st) (st)->Track, (st)->Cursor.m_iFrame, (st)->Cursor.m_iChannel
@@ -552,16 +552,13 @@ bool CFActionPasteOverwrite::SaveState(const CMainFrame &MainFrm)		// // //
 	if (!m_pClipData)
 		return false;
 
-	m_TargetSelection.m_cpStart.m_iFrame = m_pUndoState->Cursor.m_iFrame;
-	m_TargetSelection.m_cpEnd.m_iFrame = m_TargetSelection.m_cpStart.m_iFrame + m_pClipData->ClipInfo.Frames - 1;
-	m_TargetSelection.m_cpStart.m_iChannel = m_pClipData->ClipInfo.FirstChannel;
-	m_TargetSelection.m_cpEnd.m_iChannel = m_TargetSelection.m_cpStart.m_iChannel + m_pClipData->ClipInfo.Channels - 1;
+	m_TargetSelection = CFrameSelection(*m_pClipData, m_pUndoState->Cursor.m_iFrame);
 
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	int Frames = pDoc->GetFrameCount(GET_SELECTED_TRACK());
-	if (m_TargetSelection.m_cpEnd.m_iFrame >= Frames)
-		m_TargetSelection.m_cpEnd.m_iFrame = Frames - 1;
-	if (m_TargetSelection.m_cpEnd.m_iFrame < m_TargetSelection.m_cpStart.m_iFrame)
+	if (m_TargetSelection.m_cpEnd.m_iFrame > Frames)
+		m_TargetSelection.m_cpEnd.m_iFrame = Frames;
+	if (m_TargetSelection.m_cpEnd.m_iFrame <= m_TargetSelection.m_cpStart.m_iFrame)
 		return false;
 
 	m_pOldClipData = GET_FRAME_EDITOR()->CopySelection(m_TargetSelection);
@@ -597,16 +594,14 @@ bool CFActionDropMove::SaveState(const CMainFrame &MainFrm)
 
 void CFActionDropMove::Undo(CMainFrame &MainFrm)
 {
-	CFrameCursorPos Orig(m_pUndoState->Selection.m_cpStart);
-	if (m_pRedoState->Selection.m_cpStart.m_iFrame < Orig.m_iFrame)
-		Orig.m_iFrame += m_pRedoState->Selection.m_cpEnd.m_iFrame - m_pRedoState->Selection.m_cpStart.m_iFrame + 1;
-	GET_FRAME_EDITOR()->MoveSelection(m_pUndoState->Track, m_pRedoState->Selection, Orig);
+	GET_FRAME_EDITOR()->MoveSelection(m_pUndoState->Track, m_pRedoState->Selection,
+		m_pUndoState->Selection.m_cpStart);
 }
 
 void CFActionDropMove::Redo(CMainFrame &MainFrm)
 {
 	GET_FRAME_EDITOR()->MoveSelection(m_pUndoState->Track, m_pUndoState->Selection,
-											  {m_iTargetFrame, m_pUndoState->Cursor.m_iChannel});
+		 {m_iTargetFrame, m_pUndoState->Cursor.m_iChannel});
 }
 
 
@@ -664,10 +659,9 @@ bool CFActionDeleteSel::SaveState(const CMainFrame &MainFrm)
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	CFrameSelection Sel(m_pUndoState->Selection);
 	Sel.m_cpStart.m_iChannel = 0;
-	Sel.m_cpEnd.m_iChannel = pDoc->GetChannelCount() - 1;
-	int Frames = Sel.m_cpEnd.m_iFrame - Sel.m_cpStart.m_iFrame + 1;
-	if (Frames == pDoc->GetFrameCount(m_pUndoState->Track))
-		if (!Sel.m_cpEnd.m_iFrame--)
+	Sel.m_cpEnd.m_iChannel = pDoc->GetChannelCount();
+	if (Sel.GetSelectedFrameCount() == pDoc->GetFrameCount(m_pUndoState->Track))
+		if (!--Sel.m_cpEnd.m_iFrame)
 			return false;
 	m_pClipData = GET_FRAME_EDITOR()->CopySelection(Sel);
 	return true;
@@ -685,7 +679,7 @@ void CFActionDeleteSel::Redo(CMainFrame &MainFrm)
 	pView->GetDocument()->DeleteFrames(
 		m_pUndoState->Track,
 		m_pUndoState->Selection.m_cpStart.m_iFrame,
-		m_pUndoState->Selection.m_cpEnd.m_iFrame - m_pUndoState->Selection.m_cpStart.m_iFrame + 1);		// // //
+		m_pUndoState->Selection.GetSelectedFrameCount() + 1);		// // //
 	pView->SelectFrame(m_pUndoState->Selection.m_cpStart.m_iFrame);
 	GET_FRAME_EDITOR()->CancelSelection();
 }
