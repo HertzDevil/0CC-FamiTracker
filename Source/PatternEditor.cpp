@@ -1919,7 +1919,7 @@ CPatternEditor::CSelectionGuard::~CSelectionGuard()		// // //
 		if (m_pPatternEditor->m_bCompactMode) {		// // //
 			m_pPatternEditor->m_bCompactMode = false;
 			if (Sel.m_cpEnd.m_iChannel >= Sel.m_cpStart.m_iChannel) {
-				Sel.m_cpEnd.m_iColumn = m_pPatternEditor->	GetChannelColumns(Sel.m_cpEnd.m_iChannel);
+				Sel.m_cpEnd.m_iColumn = m_pPatternEditor->GetChannelColumns(Sel.m_cpEnd.m_iChannel);
 				Sel.m_cpStart.m_iColumn = C_NOTE;
 			}
 			else {
@@ -2204,7 +2204,7 @@ void CPatternEditor::NextFrame()
 {
 	CSelectionGuard Guard {this};		// // //
 
-	MoveToFrame(m_cpCursorPos.m_iFrame + 1);
+	MoveToFrame(GetFrame() + 1);
 	CancelSelection();
 }
 
@@ -2212,7 +2212,7 @@ void CPatternEditor::PreviousFrame()
 {
 	CSelectionGuard Guard {this};		// // //
 
-	MoveToFrame(m_cpCursorPos.m_iFrame - 1);
+	MoveToFrame(GetFrame() - 1);
 	CancelSelection();
 }
 

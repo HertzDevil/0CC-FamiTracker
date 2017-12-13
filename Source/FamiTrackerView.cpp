@@ -478,8 +478,7 @@ void CFamiTrackerView::InvalidateCursor()
 
 	static CCursorPos LastPosition { };		// // //
 	CCursorPos p = m_pPatternEditor->GetCursor();
-	if (memcmp(&p, &LastPosition, sizeof(CCursorPos)))
-	{
+	if (LastPosition != p) {
 		LastPosition = p;
 		static_cast<CMainFrame*>(GetParentFrame())->ResetFind();		// // //
 	}
@@ -1494,33 +1493,6 @@ void CFamiTrackerView::SetCompactMode(bool Mode)		// // //
 // General
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CFamiTrackerView::SelectNextFrame()
-{
-	m_pPatternEditor->NextFrame();
-	InvalidateFrameEditor();
-}
-
-void CFamiTrackerView::SelectPrevFrame()
-{
-	m_pPatternEditor->PreviousFrame();
-	InvalidateFrameEditor();
-}
-
-void CFamiTrackerView::SelectFirstFrame()
-{
-	m_pPatternEditor->MoveToFrame(0);
-	InvalidateFrameEditor();
-}
-
-void CFamiTrackerView::SelectLastFrame()
-{
-	CFamiTrackerDoc* pDoc = GetDocument();
-
-	int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
-	m_pPatternEditor->MoveToFrame(pDoc->GetFrameCount(Track) - 1);
-	InvalidateFrameEditor();
-}
-
 void CFamiTrackerView::MoveCursorNextChannel()
 {
 	m_pPatternEditor->NextChannel();
@@ -1531,6 +1503,18 @@ void CFamiTrackerView::MoveCursorPrevChannel()
 {
 	m_pPatternEditor->PreviousChannel();
 	InvalidateCursor();
+}
+
+void CFamiTrackerView::SelectNextFrame()
+{
+	m_pPatternEditor->NextFrame();
+	InvalidateFrameEditor();
+}
+
+void CFamiTrackerView::SelectPrevFrame()
+{
+	m_pPatternEditor->PreviousFrame();
+	InvalidateFrameEditor();
 }
 
 void CFamiTrackerView::SelectFrame(unsigned int Frame)

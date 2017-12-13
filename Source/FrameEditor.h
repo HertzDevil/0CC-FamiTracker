@@ -55,14 +55,6 @@ private:
 	CFrameEditor *m_pParent;
 };
 
-struct pairhash {		// // // from http://stackoverflow.com/a/20602159/5756577
-	template <typename T, typename U>
-	std::size_t operator()(const std::pair<T, U> &x) const
-	{
-		return (std::hash<T>()(x.first) * 3) ^ std::hash<U>()(x.second);
-	}
-};
-
 // CFrameEditor
 
 class CFrameEditor : public CWnd
@@ -101,15 +93,13 @@ public:
 	void MoveSelection(unsigned int Track, const CFrameSelection &Sel, const CFrameCursorPos &Target);		// // //
 
 	// Commands
-	std::unique_ptr<CFrameClipData> CopySelection(const CFrameSelection &Sel) const;		// // //
-	std::unique_ptr<CFrameClipData> CopyFrame(int Frame) const;		// // //
-	std::unique_ptr<CFrameClipData> CopyEntire(int Track) const;		// // //
+	std::unique_ptr<CFrameClipData> CopySelection(const CFrameSelection &Sel, unsigned song) const;		// // //
+	std::unique_ptr<CFrameClipData> CopyFrame(unsigned frame, unsigned song) const;		// // //
+	std::unique_ptr<CFrameClipData> CopyEntire(unsigned song) const;		// // //
 
 	void PasteAt(unsigned int Track, const CFrameClipData &ClipData, const CFrameCursorPos &Pos);		// // //
 	void PasteInsert(unsigned int Track, int Frame, const CFrameClipData &ClipData);		// // //
-	void PasteNew(unsigned int Track, int Frame, const CFrameClipData &ClipData);		// // //
 
-	void ClonePatterns(unsigned int Track, const CFrameSelection &Sel);		// // //
 	void ClearPatterns(unsigned int Track, const CFrameSelection &Sel);		// // //
 
 	// Return window width in pixels

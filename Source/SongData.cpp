@@ -71,6 +71,14 @@ bool CSongData::ArePatternsSame(unsigned ch1, unsigned pat1, unsigned ch2, unsig
 	return GetPattern(ch1, pat1) == GetPattern(ch2, pat2);
 }
 
+unsigned CSongData::GetFreePatternIndex(unsigned Channel, unsigned Whence) const {		// // //
+	while (++Whence < MAX_PATTERN)
+		if (!IsPatternInUse(Channel, Whence) && IsPatternEmpty(Channel, Whence))
+			return Whence;
+
+	return -1;
+}
+
 stChanNote &CSongData::GetPatternData(unsigned Channel, unsigned Pattern, unsigned Row)		// // //
 {
 	return GetPattern(Channel, Pattern).GetNoteOn(Row);

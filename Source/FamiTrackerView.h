@@ -83,8 +83,6 @@ public:
 
 	void		 SelectNextFrame();
 	void		 SelectPrevFrame();
-	void		 SelectFirstFrame();
-	void		 SelectLastFrame();
 	void		 SelectFrame(unsigned int Frame);
 	void		 SelectRow(unsigned int Row);		// // //
 	void		 SelectChannel(unsigned int Channel);

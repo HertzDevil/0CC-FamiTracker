@@ -84,10 +84,10 @@ CFrameSelection CFrameEditorModel::MakeFrameSelection(int frame) const {
 	};
 }
 
-CFrameSelection CFrameEditorModel::MakeFullSelection(int track) const {
+CFrameSelection CFrameEditorModel::MakeFullSelection(unsigned song) const {
 	return {
 		{0, 0},
-		{(int)doc_->GetFrameCount(track), doc_->GetChannelCount()},
+		{(int)doc_->GetFrameCount(song), doc_->GetChannelCount()},
 	};
 }
 
@@ -112,7 +112,7 @@ void CFrameEditorModel::StartSelection(const CFrameCursorPos &pos) {
 void CFrameEditorModel::ContinueSelection(const CFrameCursorPos &pos) {
 	if (IsSelecting()) {
 		selEnd_ = pos;
-		m_selection = CFrameSelection::Including(selStart_, selEnd_);
+		Select(CFrameSelection::Including(selStart_, selEnd_));
 	}
 }
 
@@ -120,7 +120,7 @@ void CFrameEditorModel::ContinueFrameSelection(int frame) {
 	if (IsSelecting()) {
 		selStart_.m_iChannel = 0;
 		selEnd_ = {frame, doc_->GetChannelCount()};
-		m_selection = CFrameSelection::Including(selStart_, selEnd_);
+		Select(CFrameSelection::Including(selStart_, selEnd_));
 	}
 }
 
@@ -132,8 +132,8 @@ bool CFrameEditorModel::IsChannelSelected(int channel) const {
 	return IsSelecting() && m_selection.IncludesChannel(channel);
 }
 
-std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSelection &sel, int track) const {
-	auto [b, e] = CFrameIterator::FromSelection(sel, const_cast<CFamiTrackerDoc *>(doc_), track); // TODO: remove cast
+std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSelection &sel, unsigned song) const {
+	auto [b, e] = CFrameIterator::FromSelection(sel, const_cast<CFamiTrackerDoc *>(doc_), song); // TODO: remove cast
 
 	auto pData = std::make_unique<CFrameClipData>(sel.GetSelectedChanCount(), sel.GetSelectedFrameCount());
 	pData->ClipInfo.FirstChannel = b.m_iChannel;		// // //
@@ -146,4 +146,15 @@ std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSel
 			pData->SetFrame(f, c - b.m_iChannel, b.Get(c));
 
 	return pData;
+}
+
+void CFrameEditorModel::PasteSelection(const CFrameClipData &clipdata, const CFrameCursorPos &pos, unsigned song) {
+	CFrameIterator it {doc_, (int)song, pos};
+	for (int f = 0; f < clipdata.ClipInfo.Frames; ++f) {
+		for (int c = 0; c < clipdata.ClipInfo.Channels; ++c)
+			it.Set(c + /*it.m_iChannel*/ clipdata.ClipInfo.FirstChannel, clipdata.GetFrame(f, c));
+		++it;
+		if (it.m_iFrame == 0)
+			break;
+	}
 }

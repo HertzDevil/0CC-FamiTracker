@@ -500,27 +500,27 @@ void CFrameEditor::InvalidateFrameData()
 void CFrameEditor::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	switch (nSBCode) {
-		case SB_ENDSCROLL:
-			return;
-		case SB_LINEDOWN:
-		case SB_PAGEDOWN:
-			m_pView->SelectNextFrame();
-			break;
-		case SB_PAGEUP:
-		case SB_LINEUP:
-			m_pView->SelectPrevFrame();
-			break;
-		case SB_TOP:
-			m_pView->SelectFirstFrame();
-			break;
-		case SB_BOTTOM:
-			m_pView->SelectLastFrame();
-			break;
-		case SB_THUMBPOSITION:
-		case SB_THUMBTRACK:
-			if (m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) > 1)
-				SetEditFrame(nPos);		// // //
-			break;
+	case SB_ENDSCROLL:
+		return;
+	case SB_LINEDOWN:
+	case SB_PAGEDOWN:
+		m_pView->SelectNextFrame();
+		break;
+	case SB_PAGEUP:
+	case SB_LINEUP:
+		m_pView->SelectPrevFrame();
+		break;
+	case SB_TOP:
+		m_pView->SelectFrame(0);		// // //
+		break;
+	case SB_BOTTOM:
+		m_pView->SelectFrame(m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) - 1);
+		break;
+	case SB_THUMBPOSITION:
+	case SB_THUMBTRACK:
+		if (m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) > 1)
+			SetEditFrame(nPos);		// // //
+		break;
 	}
 
 	CWnd::OnVScroll(nSBCode, nPos, pScrollBar);
@@ -529,20 +529,20 @@ void CFrameEditor::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 void CFrameEditor::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	switch (nSBCode) {
-		case SB_ENDSCROLL:
-			return;
-		case SB_LINERIGHT:
-		case SB_PAGERIGHT:
-			m_pView->MoveCursorNextChannel();
-			break;
-		case SB_PAGELEFT:
-		case SB_LINELEFT:
-			m_pView->MoveCursorPrevChannel();
-			break;
-		case SB_THUMBPOSITION:
-		case SB_THUMBTRACK:
-			m_pView->SelectChannel(nPos);
-			break;	
+	case SB_ENDSCROLL:
+		return;
+	case SB_LINERIGHT:
+	case SB_PAGERIGHT:
+		m_pView->MoveCursorNextChannel();
+		break;
+	case SB_PAGELEFT:
+	case SB_LINELEFT:
+		m_pView->MoveCursorPrevChannel();
+		break;
+	case SB_THUMBPOSITION:
+	case SB_THUMBTRACK:
+		m_pView->SelectChannel(nPos);
+		break;
 	}
 
 	CWnd::OnHScroll(nSBCode, nPos, pScrollBar);
@@ -577,10 +577,11 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		int Track = m_pMainFrame->GetSelectedTrack();
 		bool bShift = (::GetKeyState(VK_SHIFT) & 0x80) == 0x80;
 
-		const int ChannelCount = m_pDocument->GetChannelCount();
+		const int MaxChannel = m_pDocument->GetChannelCount() - 1;		// // //
 		const int FrameCount = m_pDocument->GetFrameCount(Track);
-		int Channel = model_->GetCurrentChannel();
-		int Frame = GetEditFrame();		// // //
+		const int Channel = model_->GetCurrentChannel();
+		const int Frame = GetEditFrame();		// // //
+		const int MaxFrame = FrameCount - (IsSelecting() ? 1 : 0);
 
 		switch (nChar) {
 		case VK_RETURN:
@@ -602,67 +603,41 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		case VK_END:
 			if (bShift && !m_bLastRow) {		// // //
 				if (!model_->IsSelecting())
-					model_->StartSelection({Frame, Channel});
+					model_->StartSelection(CFrameCursorPos {GetEditFrame(), Channel});
 			}
 			else
 				CancelSelection();
 
 			switch (nChar) {
 			case VK_LEFT:
-				if (Channel == 0)
-					Channel = ChannelCount - 1;
-				else
-					Channel -= 1;
-				m_pView->SelectChannel(Channel);
+				m_pView->SelectChannel(Channel ? Channel - 1 : MaxChannel);
 				break;
 			case VK_RIGHT:
-				if (Channel == ChannelCount - 1)
-					Channel = 0;
-				else
-					Channel += 1;
-				m_pView->SelectChannel(Channel);
+				m_pView->SelectChannel(Channel == MaxChannel ? 0 : Channel + 1);
 				break;
 			case VK_UP:
-				if (Frame == 0)
-					Frame = FrameCount - (IsSelecting() ? 1 : 0);
-				else
-					Frame -= 1;
-				SetEditFrame(Frame);		// // //
+				SetEditFrame(Frame ? Frame - 1 : MaxFrame);		// // //
 				break;
 			case VK_DOWN:
-				if (Frame == FrameCount - (IsSelecting() ? 1 : 0))
-					Frame = 0;
-				else 
-					Frame += 1;
-				SetEditFrame(Frame);		// // //
+				SetEditFrame(Frame == MaxFrame ? 0 : Frame + 1);		// // //
 				break;
 			case VK_NEXT:
-				if (Frame + PAGE_SIZE >= FrameCount)
-					Frame = FrameCount - (IsSelecting() ? 1 : 0);
-				else
-					Frame += PAGE_SIZE;
-				SetEditFrame(Frame);		// // //
+				SetEditFrame(std::min(MaxFrame, Frame + PAGE_SIZE));		// // //
 				break;
 			case VK_PRIOR:
-				if ((signed)Frame - PAGE_SIZE < 0)
-					Frame = 0;
-				else
-					Frame -= PAGE_SIZE;
-				SetEditFrame(Frame);		// // //
+				SetEditFrame(std::max(0, Frame - PAGE_SIZE));		// // //
 				break;
 			case VK_HOME:
-				Frame = 0;
-				SetEditFrame(Frame);		// // //
+				SetEditFrame(0);		// // //
 				break;
 			case VK_END:
-				Frame = FrameCount - (IsSelecting() ? 1 : 0);
-				SetEditFrame(Frame);		// // //
+				SetEditFrame(MaxFrame);		// // //
 				break;
 			}
 
 			m_iCursorEditDigit = 0;
-			if (bShift) {
-				model_->ContinueSelection({Frame, Channel});		// // //
+			if (bShift && !m_bLastRow) {
+				model_->ContinueSelection(CFrameCursorPos {GetEditFrame(), Channel});		// // //
 				InvalidateFrameData();
 			}
 			break;
@@ -972,7 +947,7 @@ void CFrameEditor::OnEditCopy()
 		return;
 	}
 
-	Clipboard.TryCopy(*CopySelection(GetSelection()));		// // //
+	Clipboard.TryCopy(*CopySelection(GetSelection(), m_pMainFrame->GetSelectedTrack()));		// // //
 }
 
 std::unique_ptr<CFrameClipData> CFrameEditor::RestoreFrameClipData() {		// // //
@@ -1003,7 +978,7 @@ void CFrameEditor::OnEditPasteNewPatterns()
 
 void CFrameEditor::OnEditDelete()
 {
-	model_->Select(model_->GetActiveSelection());		// // //
+	SetSelection(model_->GetActiveSelection());		// // //
 	m_pMainFrame->AddAction(std::make_unique<CFActionDeleteSel>( ));		// // //
 }
 
@@ -1014,82 +989,30 @@ std::pair<CFrameIterator, CFrameIterator> CFrameEditor::GetIterators() const		//
 	return CFrameIterator::FromSelection(pSel ? *pSel : model_->GetCurrentPos(), m_pDocument, Track);
 }
 
-std::unique_ptr<CFrameClipData> CFrameEditor::CopySelection(const CFrameSelection &Sel) const		// // //
+std::unique_ptr<CFrameClipData> CFrameEditor::CopySelection(const CFrameSelection &Sel, unsigned song) const		// // //
 {
-	return model_->CopySelection(Sel, m_pMainFrame->GetSelectedTrack());
+	return model_->CopySelection(Sel, song);
 }
 
-std::unique_ptr<CFrameClipData> CFrameEditor::CopyFrame(int Frame) const		// // //
+std::unique_ptr<CFrameClipData> CFrameEditor::CopyFrame(unsigned frame, unsigned song) const		// // //
 {
-	return CopySelection(model_->MakeFrameSelection(Frame));
+	return CopySelection(model_->MakeFrameSelection(frame), song);
 }
 
-std::unique_ptr<CFrameClipData> CFrameEditor::CopyEntire(int Track) const		// // //
+std::unique_ptr<CFrameClipData> CFrameEditor::CopyEntire(unsigned song) const		// // //
 {
-	return CopySelection(model_->MakeFullSelection(Track));
+	return CopySelection(model_->MakeFullSelection(song), song);
 }
 
 void CFrameEditor::PasteInsert(unsigned int Track, int Frame, const CFrameClipData &ClipData)		// // //
 {
-	const int Frames = ClipData.ClipInfo.Frames;
-	const int Channels = ClipData.ClipInfo.Channels;
-	const int Count = m_pDocument->GetChannelCount();
-
-	for (int f = 0; f < Frames; ++f)
-		m_pDocument->InsertFrame(Track, Frame);
-
-	CFrameSelection Sel {ClipData, Frame};		// // //
-	for (auto [b, e] = CFrameIterator::FromSelection(Sel, m_pDocument, Track); b != e; ++b) {
-		for (int c = 0; c < b.m_iChannel; ++c)
-			b.Set(c, 0);
-		for (int c = 0; c < Channels; ++c)
-			b.Set(c + b.m_iChannel, ClipData.GetFrame(b.m_iFrame, c));
-		for (int c = b.m_iChannel + Channels; c < Count; ++c)
-			b.Set(c, 0);
-	}
-
-	SetSelection(Sel);
+	m_pDocument->AddFrames(Track, Frame, ClipData.ClipInfo.Frames);
+	PasteAt(Track, ClipData, CFrameSelection {ClipData, Frame}.GetCursorStart());
 }
 
 void CFrameEditor::PasteAt(unsigned int Track, const CFrameClipData &ClipData, const CFrameCursorPos &Pos)		// // //
 {
-	CFrameIterator it {m_pDocument, static_cast<int>(Track), Pos};
-	for (int f = 0; f < ClipData.ClipInfo.Frames; ++f) {
-		for (int c = 0; c < ClipData.ClipInfo.Channels; ++c)
-			it.Set(c + /*it.m_iChannel*/ ClipData.ClipInfo.FirstChannel, ClipData.GetFrame(f, c));
-		++it;
-		if (it.m_iFrame == 0) break;
-	}
-}
-
-void CFrameEditor::PasteNew(unsigned int Track, int Frame, const CFrameClipData &ClipData)		// // //
-{
-	int Count = m_pDocument->GetChannelCount();
-	m_pDocument->AddFrames(Track, Frame, ClipData.ClipInfo.Frames);
-
-	CFrameSelection Sel {ClipData, Frame};
-
-	PasteAt(Track, ClipData, Sel.m_cpStart);
-	ClonePatterns(Track, Sel);
-	SetSelection(Sel);
-}
-
-void CFrameEditor::ClonePatterns(unsigned int Track, const CFrameSelection &_Sel)		// // //
-{
-	CFrameSelection Sel = _Sel.GetNormalized();
-	std::unordered_map<std::pair<int, int>, int, pairhash> NewPatterns;
-
-	for (auto [b, e] = CFrameIterator::FromSelection(Sel, m_pDocument, Track); b != e; ++b) {
-		for (int c = b.m_iChannel; c < e.m_iChannel; ++c) {
-			int OldPattern = b.Get(c);
-			auto Index = std::make_pair(c, OldPattern);
-			if (auto p = NewPatterns.find(Index); p == NewPatterns.end()) {		// // // share common patterns
-				NewPatterns[Index] = m_pDocument->GetFirstFreePattern(Track, c);
-				m_pDocument->CopyPattern(Track, NewPatterns[Index], OldPattern, c);
-			}
-			b.Set(c, NewPatterns[Index]);
-		}
-	}
+	model_->PasteSelection(ClipData, Pos, Track);
 }
 
 void CFrameEditor::ClearPatterns(unsigned int Track, const CFrameSelection &Sel)		// // //
@@ -1106,7 +1029,7 @@ bool CFrameEditor::InputEnabled() const
 
 void CFrameEditor::ResetCursor()		// // //
 {
-	m_pView->SelectFirstFrame();
+	m_pView->SelectFrame(0);
 	m_pView->SelectChannel(0);
 	m_bLastRow = false;
 	CancelSelection();
@@ -1202,7 +1125,7 @@ void CFrameEditor::CancelSelection()
 
 void CFrameEditor::InitiateDrag()
 {
-	auto pClipData = CopySelection(GetSelection());		// // //
+	auto pClipData = CopySelection(GetSelection(), m_pMainFrame->GetSelectedTrack());		// // //
 
 	DROPEFFECT res = pClipData->DragDropTransfer(m_iClipboard, DROPEFFECT_COPY | DROPEFFECT_MOVE);		// // // calls DropData
 
