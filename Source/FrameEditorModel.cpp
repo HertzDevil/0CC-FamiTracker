@@ -24,6 +24,7 @@
 #include "FrameClipData.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
+#include "SongData.h"
 
 void CFrameEditorModel::AssignDocument(CFamiTrackerDoc &doc, CFamiTrackerView &view) {
 	doc_ = &doc;
@@ -133,7 +134,7 @@ bool CFrameEditorModel::IsChannelSelected(int channel) const {
 }
 
 std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSelection &sel, unsigned song) const {
-	auto [b, e] = CFrameIterator::FromSelection(sel, const_cast<CFamiTrackerDoc *>(doc_), song); // TODO: remove cast
+	auto [b, e] = CFrameIterator::FromSelection(sel, const_cast<CFamiTrackerDoc *>(doc_)->GetSongData(song)); // TODO: remove cast
 
 	auto pData = std::make_unique<CFrameClipData>(sel.GetSelectedChanCount(), sel.GetSelectedFrameCount());
 	pData->ClipInfo.FirstChannel = b.m_iChannel;		// // //
@@ -149,7 +150,7 @@ std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSel
 }
 
 void CFrameEditorModel::PasteSelection(const CFrameClipData &clipdata, const CFrameCursorPos &pos, unsigned song) {
-	CFrameIterator it {doc_, (int)song, pos};
+	CFrameIterator it {doc_->GetSongData(song), pos};
 	for (int f = 0; f < clipdata.ClipInfo.Frames; ++f) {
 		for (int c = 0; c < clipdata.ClipInfo.Channels; ++c)
 			it.Set(c + /*it.m_iChannel*/ clipdata.ClipInfo.FirstChannel, clipdata.GetFrame(f, c));

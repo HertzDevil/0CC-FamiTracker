@@ -45,17 +45,16 @@ struct pairhash {		// // // from http://stackoverflow.com/a/20602159/5756577
 	}
 };
 
-void ClonePatterns(const CFrameSelection &Sel, CFamiTrackerDoc &doc, unsigned song) {		// // //
+void ClonePatterns(const CFrameSelection &Sel, CSongData &song) {		// // //
 	std::unordered_map<std::pair<int, int>, int, pairhash> NewPatterns;
-	auto &songdata = doc.GetSongData(song);
 
-	for (auto [b, e] = CFrameIterator::FromSelection(Sel, &doc, song); b != e; ++b) {
+	for (auto [b, e] = CFrameIterator::FromSelection(Sel, song); b != e; ++b) {
 		for (int c = b.m_iChannel; c < e.m_iChannel; ++c) {
 			int OldPattern = b.Get(c);
 			auto Index = std::make_pair(c, OldPattern);
 			if (auto p = NewPatterns.find(Index); p == NewPatterns.end()) {		// // // share common patterns
-				NewPatterns[Index] = songdata.GetFreePatternIndex(c);
-				songdata.GetPattern(c, NewPatterns[Index]) = songdata.GetPattern(c, OldPattern);
+				NewPatterns[Index] = song.GetFreePatternIndex(c);
+				song.GetPattern(c, NewPatterns[Index]) = song.GetPattern(c, OldPattern);
 			}
 			b.Set(c, NewPatterns[Index]);
 		}
@@ -560,7 +559,7 @@ void CFActionPaste::Redo(CMainFrame &MainFrm)
 	CFrameSelection sel {*m_pClipData, m_iTargetFrame};
 	pFrameEditor->PasteInsert(m_pUndoState->Track, m_iTargetFrame, *m_pClipData);
 	if (m_bClone)
-		ClonePatterns(sel, *GET_DOCUMENT(), m_pUndoState->Track);
+		ClonePatterns(sel, GET_DOCUMENT()->GetSongData(m_pUndoState->Track));
 	pFrameEditor->SetSelection(sel);
 }
 
@@ -672,10 +671,10 @@ void CFActionClonePatterns::Undo(CMainFrame &MainFrm)		// // //
 
 void CFActionClonePatterns::Redo(CMainFrame &MainFrm)		// // //
 {
+	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	if (m_pUndoState->IsSelecting)
-		ClonePatterns(m_pUndoState->Selection, *GET_DOCUMENT(), m_pUndoState->Track);
+		ClonePatterns(m_pUndoState->Selection, pDoc->GetSongData(m_pUndoState->Track));
 	else {
-		CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 		pDoc->SetPatternAtFrame(STATE_EXPAND(m_pUndoState), m_iNewPattern);
 		pDoc->CopyPattern(m_pUndoState->Track, m_iNewPattern, m_iOldPattern, m_pUndoState->Cursor.m_iChannel);
 	}

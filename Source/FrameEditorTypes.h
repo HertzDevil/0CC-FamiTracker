@@ -27,7 +27,7 @@
 
 // // // common classes for frame editor
 
-class CFamiTrackerDoc;		// // //
+class CSongData;		// // //
 class CFrameClipData;		// // //
 
 // // // Frame editor cursor
@@ -74,13 +74,11 @@ struct CFrameSelection
 struct CFrameIterator : public CFrameCursorPos		// // //
 {
 public:
-	CFrameIterator(const CFrameIterator &it);
-	CFrameIterator(CFamiTrackerDoc *const pDoc, int Track, const CFrameCursorPos &Pos);
-	CFrameIterator(const CFamiTrackerDoc *const pDoc, int Track, const CFrameCursorPos &Pos);
+	CFrameIterator(CSongData &song, const CFrameCursorPos &Pos);
 
-	static std::pair<CFrameIterator, CFrameIterator> FromSelection(const CFrameSelection &Sel, CFamiTrackerDoc *const pDoc, int Track);
-	
-	int Get(int Channel) const; // use int& output parameter?
+	static std::pair<CFrameIterator, CFrameIterator> FromSelection(const CFrameSelection &sel, CSongData &song);
+
+	int Get(int Channel) const;
 	void Set(int Channel, int Pattern);
 
 	CFrameIterator &operator+=(const int Frames);
@@ -95,9 +93,5 @@ public:
 private:
 	int NormalizeFrame(int Frame) const;
 
-public:
-	int m_iTrack;
-
-private:
-	CFamiTrackerDoc *m_pDocument;
+	CSongData &song_;
 };
