@@ -459,12 +459,15 @@ void CFrameEditor::SetupColors()
 	InvalidateFrameData();
 }
 
+void CFrameEditor::DrawScreen(CDC *pDC) {		// // //
+	if (NeedUpdate())
+		RedrawWindow();
+}
+
 void CFrameEditor::RedrawFrameEditor()
 {
 	// Public method for redrawing this editor
 
-	if (NeedUpdate())
-		RedrawWindow();
 }
 
 bool CFrameEditor::NeedUpdate() const

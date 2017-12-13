@@ -421,6 +421,7 @@ void CFamiTrackerView::OnDraw(CDC* pDC)
 		return;
 
 	m_pPatternEditor->DrawScreen(pDC, this);
+	GetMainFrame()->GetFrameEditor()->DrawScreen(pDC);		// // //
 }
 
 BOOL CFamiTrackerView::OnEraseBkgnd(CDC* pDC)

@@ -68,6 +68,7 @@ public:
 	void AssignDocument(CFamiTrackerDoc *pDoc, CFamiTrackerView *pView);
 
 	// Drawing
+	void DrawScreen(CDC *pDC);		// // //
 	void RedrawFrameEditor();
 	void InvalidateFrameData();
 	void SetupColors();
