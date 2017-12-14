@@ -42,12 +42,8 @@
 */
 
 #include "FamiTrackerDoc.h"
-#include <memory>		// // //
 #include <algorithm>
-#include <vector>		// // //
-#include <string>		// // //
-#include <array>		// // //
-#include <unordered_map>		// // //
+#include <bitset>		// // //
 #include "FamiTracker.h"
 #include "Instrument.h"		// // //
 #include "SeqInstrument.h"		// // //
@@ -2038,69 +2034,82 @@ CBookmark *CFamiTrackerDoc::GetBookmarkAt(unsigned int Track, unsigned int Frame
 	return nullptr;
 }
 
+class loop_visitor {
+public:
+	loop_visitor(const CSongData &song, int channels) : song_(song), channels_(channels) { }
+
+	template <typename F>
+	void Visit(F cb) {
+		unsigned FrameCount = song_.GetFrameCount();
+		unsigned Rows = song_.GetPatternLength();
+
+		std::bitset<MAX_PATTERN_LENGTH> RowVisited[MAX_FRAMES] = { };		// // //
+		while (!RowVisited[f_][r_]) {
+			RowVisited[f_][r_] = true;
+
+			int Bxx = -1;
+			int Dxx = -1;
+			bool Cxx = false;
+			for (int ch = 0; ch < channels_; ++ch) {
+				const auto &Note = song_.GetPatternOnFrame(ch, f_).GetNoteOn(r_);		// // //
+				for (int l = 0; l <= song_.GetEffectColumnCount(ch); ++l) {
+					switch (Note.EffNumber[l]) {
+					case EF_JUMP:
+						Bxx = Note.EffParam[l];
+						break;
+					case EF_SKIP:
+						Dxx = Note.EffParam[l];
+						break;
+					case EF_HALT:
+						if (!first_)
+							return;
+						first_ = false;
+						Cxx = true;
+					}
+				}
+			}
+
+			cb();
+
+			if (Cxx)
+				return;
+			if (Bxx != -1) {
+				f_ = std::min(static_cast<unsigned int>(Bxx), FrameCount - 1);
+				r_ = 0;
+			}
+			else if (Dxx != -1)
+				r_ = std::min(static_cast<unsigned int>(Dxx), Rows - 1);
+			else if (++r_ >= Rows) {		// // //
+				r_ = 0;
+				if (++f_ >= FrameCount)
+					f_ = 0;
+			}
+		}
+	}
+
+private:
+	const CSongData &song_;
+	int channels_;
+	unsigned f_ = 0;
+	unsigned r_ = 0;
+	bool first_ = true;
+};
+
 unsigned int CFamiTrackerDoc::ScanActualLength(unsigned int Track, unsigned int Count) const		// // //
 {
 	// Return number for frames played for a certain number of loops
+	const auto visit = [] (const CSongData &song, int channels, auto f1, auto f2) {
+		loop_visitor visitor(song, channels);
+		visitor.Visit(f1);
+		visitor.Visit(f2);
+	};
 
-	char RowVisited[MAX_FRAMES][MAX_PATTERN_LENGTH] = { };		// // //
-	int JumpTo = -1;
-	int SkipTo = -1;
 	int FirstLoop = 0;
 	int SecondLoop = 0;
-	unsigned int f = 0;		// // //
-	unsigned int r = 0;		// // //
-	bool bScanning = true;
-	unsigned int FrameCount = GetFrameCount(Track);
-	int RowCount = 0;
-	// // //
 
-	while (bScanning) {
-		bool hasJump = false;
-		for (int j = 0; j < GetChannelCount(); ++j) {
-			const auto &Note = GetNoteData(Track, f, j, r);		// // //
-			for (unsigned l = 0; l < GetEffColumns(Track, j) + 1; ++l) {
-				switch (Note.EffNumber[l]) {
-					case EF_JUMP:
-						JumpTo = Note.EffParam[l];
-						SkipTo = 0;
-						hasJump = true;
-						break;
-					case EF_SKIP:
-						if (hasJump) break;
-						JumpTo = (f + 1) % FrameCount;
-						SkipTo = Note.EffParam[l];
-						break;
-					case EF_HALT:
-						Count = 1;
-						bScanning = false;
-						break;
-				}
-			}
-		}
-
-		switch (RowVisited[f][r]) {
-		case 0: ++FirstLoop; break;
-		case 1: ++SecondLoop; break;
-		case 2: bScanning = false; break;
-		}
-		
-		++RowVisited[f][r++];
-
-		if (JumpTo > -1) {
-			f = std::min(static_cast<unsigned int>(JumpTo), FrameCount - 1);
-			JumpTo = -1;
-		}
-		if (SkipTo > -1) {
-			r = std::min(static_cast<unsigned int>(SkipTo), GetPatternLength(Track) - 1);
-			SkipTo = -1;
-		}
-		if (r >= GetPatternLength(Track)) {		// // //
-			++f;
-			r = 0;
-		}
-		if (f >= FrameCount)
-			f = 0;
-	}
+	loop_visitor visitor(GetSongData(Track), GetChannelCount());
+	visitor.Visit([&] { ++FirstLoop; });
+	visitor.Visit([&] { ++SecondLoop; });
 
 	return FirstLoop + SecondLoop * (Count - 1);		// // //
 }

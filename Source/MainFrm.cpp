@@ -2258,17 +2258,25 @@ void CMainFrame::OnModuleEstimateSongLength()		// // //
 	Intro = Intro - Loop;
 	int Rate = Doc.GetFrameRate();
 
-	CString str = _T("");
-	str.Format(_T("Estimated duration:\nIntro: %lld:%02lld.%02lld (%lld ticks)\nLoop: %lld:%02lld.%02lld (%lld ticks)\n"),
-			   static_cast<long long>(Intro + .5 / 6000) / 60,
-			   static_cast<long long>(Intro + .005) % 60,
-			   static_cast<long long>(Intro * 100 + .5) % 100,
-			   static_cast<long long>(Intro * Rate + .5),
-			   static_cast<long long>(Loop + .5 / 6000) / 60,
-			   static_cast<long long>(Loop + .005) % 60,
-			   static_cast<long long>(Loop * 100 + .5) % 100,
-			   static_cast<long long>(Loop * Rate + .5));
-	str.Append(_T("Tick counts are subject to rounding errors!"));
+	int IntroRows = Doc.ScanActualLength(m_iTrack, 0);
+	int LoopRows = Doc.ScanActualLength(m_iTrack, 1) - IntroRows;
+
+	const TCHAR *fmt = _T("Estimated duration:\n"
+		"Intro: %lld:%02lld.%02lld (%d rows, %lld ticks)\n"
+		"Loop: %lld:%02lld.%02lld (%d rows, %lld ticks)\n"
+		"Tick counts are subject to rounding errors!");
+	CString str;
+	str.Format(fmt,
+		static_cast<long long>(Intro + .5 / 6000) / 60,
+		static_cast<long long>(Intro + .005) % 60,
+		static_cast<long long>(Intro * 100 + .5) % 100,
+		IntroRows,
+		static_cast<long long>(Intro * Rate + .5),
+		static_cast<long long>(Loop + .5 / 6000) / 60,
+		static_cast<long long>(Loop + .005) % 60,
+		static_cast<long long>(Loop * 100 + .5) % 100,
+		LoopRows,
+		static_cast<long long>(Loop * Rate + .5));
 	AfxMessageBox(str);
 }
 
