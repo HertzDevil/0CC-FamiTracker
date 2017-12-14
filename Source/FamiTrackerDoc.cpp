@@ -1740,14 +1740,7 @@ int CFamiTrackerDoc::GetNamcoChannels() const
 
 unsigned int CFamiTrackerDoc::GetFirstFreePattern(unsigned int Track, unsigned int Channel) const
 {
-	auto &Song = GetSongData(Track);
-
-	for (int i = 0; i < MAX_PATTERN; ++i) {
-		if (!Song.IsPatternInUse(Channel, i) && Song.IsPatternEmpty(Channel, i))
-			return i;
-	}
-
-	return -1;		// // //
+	return GetSongData(Track).GetFreePatternIndex(Channel);		// // //
 }
 
 bool CFamiTrackerDoc::IsPatternEmpty(unsigned int Track, unsigned int Channel, unsigned int Pattern) const
@@ -2206,44 +2199,41 @@ double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) co
 
 void CFamiTrackerDoc::RemoveUnusedInstruments()
 {
-	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-		if (IsInstrumentUsed(i)) {
-			bool Used = false;
-			for (const auto &pSong : m_pTracks) {		// // //
-				for (unsigned int Channel = 0; Channel < m_iChannelsAvailable; ++Channel) {
-					for (unsigned int Frame = 0; Frame < pSong->GetFrameCount(); ++Frame) {
-						unsigned int Pattern = pSong->GetFramePattern(Frame, Channel);
-						for (unsigned int Row = 0; Row < pSong->GetPatternLength(); ++Row) {
-							if (pSong->GetPatternData(Channel, Pattern, Row).Instrument == i)		// // //
-								Used = true;
-						}
-					}
-				}
-			}
-			if (!Used)
-				RemoveInstrument(i);
-		}
+	bool used[MAX_INSTRUMENTS] = { };		// // //
+
+	for (const auto &pSong : m_pTracks) {		// // //
+		int length = pSong->GetPatternLength();
+		for (unsigned int Channel = 0; Channel < m_iChannelsAvailable; ++Channel)
+			for (unsigned int Frame = 0; Frame < pSong->GetFrameCount(); ++Frame)
+				pSong->GetPatternOnFrame(Channel, Frame).VisitRows(length, [&] (const stChanNote &note) {
+					if (note.Instrument < MAX_INSTRUMENTS)
+						used[note.Instrument] = true;
+				});
 	}
+
+	for (int i = 0; i < MAX_INSTRUMENTS; ++i)
+		if (IsInstrumentUsed(i) && !used[i])
+			RemoveInstrument(i);
 
 	static const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};
-	static const uint8_t chip[] = {SNDCHIP_NONE, SNDCHIP_VRC6, SNDCHIP_N163, SNDCHIP_S5B};
 
 	// Also remove unused sequences
-	for (unsigned int i = 0; i < MAX_SEQUENCES; ++i) for (int j = 0; j < SEQ_COUNT; ++j) {
-		for (size_t c = 0; c < sizeof(chip); c++) if (GetSequenceItemCount(inst[c], i, j) > 0) {		// // //
-			bool Used = false;
-			for (int k = 0; k < MAX_INSTRUMENTS; ++k) {
-				if (IsInstrumentUsed(k) && GetInstrumentType(k) == inst[c]) {
-					auto pInstrument = std::static_pointer_cast<CSeqInstrument>(GetInstrument(k));
-					if (pInstrument->GetSeqIndex(j) == i && pInstrument->GetSeqEnable(j)) {		// // //
-						Used = true; break;
+	for (unsigned int i = 0; i < MAX_SEQUENCES; ++i)
+		for (int j = 0; j < SEQ_COUNT; ++j)
+			for (size_t c = 0; c < std::size(inst); ++c)
+				if (GetSequenceItemCount(inst[c], i, j) > 0) {		// // //
+					bool Used = false;
+					for (int k = 0; k < MAX_INSTRUMENTS; ++k) {
+						if (IsInstrumentUsed(k) && GetInstrumentType(k) == inst[c]) {
+							auto pInstrument = std::static_pointer_cast<CSeqInstrument>(GetInstrument(k));
+							if (pInstrument->GetSeqIndex(j) == i && pInstrument->GetSeqEnable(j)) {		// // //
+								Used = true; break;
+							}
+						}
 					}
+					if (!Used)
+						GetSequence(inst[c], i, j)->Clear();
 				}
-			}
-			if (!Used)
-				GetSequence(inst[c], i, j)->Clear();
-		}
-	}
 }
 
 void CFamiTrackerDoc::RemoveUnusedPatterns()
