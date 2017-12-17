@@ -132,7 +132,6 @@ private:
 	void	ScanSong();
 	int		GetSampleIndex(int SampleNumber);
 	bool	IsPatternAddressed(unsigned int Track, int Pattern, int Channel) const;
-	bool	IsInstrumentInPattern(int index) const;
 
 	void	CreateMainHeader();
 	void	CreateSequenceList();

@@ -1329,15 +1329,32 @@ void CCompiler::ScanSong()
 	static const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
 	bool *used[] = {*m_bSequencesUsed2A03, *m_bSequencesUsedVRC6, *m_bSequencesUsedN163, *m_bSequencesUsedS5B};
 
+	bool inst_used[MAX_INSTRUMENTS] = { };		// // //
+
+	const int TrackCount = m_pDocument->GetTrackCount();
+	const int Channels = m_pDocument->GetAvailableChannels();
+
+	// // // Scan patterns in entire module
+	for (int i = 0; i < TrackCount; ++i) {
+		int PatternLength = m_pDocument->GetPatternLength(i);
+		for (int j = 0; j < Channels; ++j)
+			for (int k = 0; k < MAX_PATTERN; ++k)
+				for (int l = 0; l < PatternLength; ++l) {
+					const auto &note = m_pDocument->GetDataAtPattern(i, k, j, l);
+					if (note.Instrument < std::size(inst_used))		// // //
+						inst_used[note.Instrument] = true;
+				}
+	}	
+
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-		if (m_pDocument->IsInstrumentUsed(i) && IsInstrumentInPattern(i)) {
+		if (m_pDocument->IsInstrumentUsed(i) && inst_used[i]) {		// // //
 			
 			// List of used instruments
 			m_iAssignedInstruments[m_iInstruments++] = i;
 			
 			// Create a list of used sequences
 			inst_type_t it = m_pDocument->GetInstrumentType(i);		// // //
-			for (size_t z = 0; z < sizeof(used) / sizeof(bool*); z++) if (it == inst[z]) {
+			for (size_t z = 0; z < std::size(used); z++) if (it == inst[z]) {
 				auto pInstrument = std::static_pointer_cast<CSeqInstrument>(m_pDocument->GetInstrument(i));
 				for (int j = 0; j < SEQ_COUNT; ++j) if (pInstrument->GetSeqEnable(j))
 					*(used[z] + pInstrument->GetSeqIndex(j) * SEQ_COUNT + j) = true;
@@ -1353,7 +1370,6 @@ void CCompiler::ScanSong()
 
 	// Get DPCM channel index
 	const int DpcmChannel = m_pDocument->GetChannelIndex(CHANID_DPCM);
-	const int TrackCount = m_pDocument->GetTrackCount();
 	unsigned int Instrument = 0;
 
 	for (int i = 0; i < TrackCount; ++i) {
@@ -1365,32 +1381,11 @@ void CCompiler::ScanSong()
 				const auto &Note = m_pDocument->GetDataAtPattern(i, p, DpcmChannel, k);		// // //
 				if (Note.Instrument < MAX_INSTRUMENTS)
 					Instrument = Note.Instrument;
-				if (Note.Note > 0) {
+				if (Note.Note >= NOTE_C && Note.Note <= NOTE_B)		// // //
 					m_bSamplesAccessed[Instrument][Note.Octave][Note.Note - 1] = true;
-				}
 			}
 		}
 	}
-}
-
-bool CCompiler::IsInstrumentInPattern(int index) const
-{
-	// Returns true if the instrument is used in a pattern
-
-	const int TrackCount = m_pDocument->GetTrackCount();
-	const int Channels = m_pDocument->GetAvailableChannels();
-
-	// Scan patterns in entire module
-	for (int i = 0; i < TrackCount; ++i) {
-		int PatternLength = m_pDocument->GetPatternLength(i);
-		for (int j = 0; j < Channels; ++j)
-			for (int k = 0; k < MAX_PATTERN; ++k)
-				for (int l = 0; l < PatternLength; ++l)
-					if (m_pDocument->GetDataAtPattern(i, k, j, l).Instrument == index)		// // //
-						return true;
-	}	
-
-	return false;
 }
 
 void CCompiler::CreateMainHeader()
