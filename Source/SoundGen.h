@@ -101,7 +101,7 @@ public:
 	void		SetVisualizerWindow(CVisualizerWnd *pWnd);
 
 	// Multiple times initialization
-	CChannelMap	MakeChannelMap(const CFamiTrackerDoc &doc) const;		// // //
+	CChannelMap	MakeChannelMap(unsigned chips, unsigned n163chs) const;		// // //
 	void		SelectChip(int Chip);
 	void		LoadMachineSettings();		// // // 050B
 

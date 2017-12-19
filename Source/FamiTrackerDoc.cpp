@@ -631,17 +631,11 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 	// pInstTable must point to an int array of size MAX_INSTRUMENTS
 	//
 
-	int SamplesTable[MAX_DSAMPLES];
-	int SequenceTable2A03[MAX_SEQUENCES][SEQ_COUNT];
-	int SequenceTableVRC6[MAX_SEQUENCES][SEQ_COUNT];
-	int SequenceTableN163[MAX_SEQUENCES][SEQ_COUNT];
-	int SequenceTableS5B[MAX_SEQUENCES][SEQ_COUNT];		// // //
-
-	memset(SamplesTable, 0, sizeof(int) * MAX_DSAMPLES);
-	memset(SequenceTable2A03, 0, sizeof(int) * MAX_SEQUENCES * SEQ_COUNT);
-	memset(SequenceTableVRC6, 0, sizeof(int) * MAX_SEQUENCES * SEQ_COUNT);
-	memset(SequenceTableN163, 0, sizeof(int) * MAX_SEQUENCES * SEQ_COUNT);
-	memset(SequenceTableS5B, 0, sizeof(int) * MAX_SEQUENCES * SEQ_COUNT);		// // //
+	int SamplesTable[MAX_DSAMPLES] = { };
+	int SequenceTable2A03[MAX_SEQUENCES][SEQ_COUNT] = { };
+	int SequenceTableVRC6[MAX_SEQUENCES][SEQ_COUNT] = { };
+	int SequenceTableN163[MAX_SEQUENCES][SEQ_COUNT] = { };
+	int SequenceTableS5B[MAX_SEQUENCES][SEQ_COUNT] = { };		// // //
 
 	// Check instrument count
 	if (GetInstrumentCount() + pImported->GetInstrumentCount() > MAX_INSTRUMENTS) {
@@ -651,11 +645,10 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 	}
 
 	static const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
-	static const uint8_t chip[] = {SNDCHIP_NONE, SNDCHIP_VRC6, SNDCHIP_N163, SNDCHIP_S5B};
 	int (*seqTable[])[SEQ_COUNT] = {SequenceTable2A03, SequenceTableVRC6, SequenceTableN163, SequenceTableS5B};
 
 	// Copy sequences
-	for (size_t i = 0; i < sizeof(chip); i++) for (int t = 0; t < SEQ_COUNT; ++t) {
+	for (size_t i = 0; i < std::size(inst); i++) for (int t = 0; t < SEQ_COUNT; ++t) {
 		if (GetSequenceCount(inst[i], t) + pImported->GetSequenceCount(inst[i], t) > MAX_SEQUENCES) {		// // //
 			AfxMessageBox(IDS_IMPORT_SEQUENCE_COUNT, MB_ICONERROR);
 			return false;
@@ -707,7 +700,7 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 			if (auto pSeq = dynamic_cast<CSeqInstrument *>(pInst.get())) {
 				for (int t = 0; t < SEQ_COUNT; ++t)
 					if (pSeq->GetSeqEnable(t)) {
-						for (size_t j = 0; j < sizeof(chip); j++)
+						for (size_t j = 0; j < std::size(inst); j++)
 							if (inst[j] == pInst->GetType()) {
 								pSeq->SetSeqIndex(t, seqTable[j][pSeq->GetSeqIndex(t)][t]);
 								break;
@@ -1595,7 +1588,7 @@ void CFamiTrackerDoc::SelectExpansionChip(unsigned char Chip, bool Move)
 		int oldIndex[CHANNELS] = {};
 		int newIndex[CHANNELS] = {};
 		for (int j = 0; j < CHANNELS; j++) {
-			oldIndex[j] = GetChannelPosition(j, m_iExpansionChip);
+			oldIndex[j] = GetChannelPosition(j, GetExpansionChip());
 			newIndex[j] = GetChannelPosition(j, Chip);
 		}
 		auto it = m_pTracks.begin();
@@ -1622,6 +1615,12 @@ void CFamiTrackerDoc::SelectExpansionChip(unsigned char Chip, bool Move)
 		m_iNamcoChannels = 0;
 }
 
+// // //
+
+unsigned char CFamiTrackerDoc::GetExpansionChip() const {
+	return m_iExpansionChip;
+}
+
 void CFamiTrackerDoc::SetupChannels(unsigned char Chip)
 {
 	// This will select a chip in the sound emulator
@@ -1630,11 +1629,12 @@ void CFamiTrackerDoc::SetupChannels(unsigned char Chip)
 	// Do not allow expansion chips in PAL mode
 	if (Chip != SNDCHIP_NONE)
 		SetMachine(NTSC);
-	m_iExpansionChip = Chip;
 
 	// Register the channels
-	*m_pChannelMap = theApp.GetSoundGenerator()->MakeChannelMap(*this);		// // //
+	*m_pChannelMap = theApp.GetSoundGenerator()->MakeChannelMap(Chip, GetNamcoChannels());		// // //
 	m_iChannelsAvailable = GetChannelCount();
+
+	m_iExpansionChip = Chip;
 
 	UnlockDocument();
 	// Must call ApplyExpansionChip after this
@@ -1643,7 +1643,7 @@ void CFamiTrackerDoc::SetupChannels(unsigned char Chip)
 void CFamiTrackerDoc::ApplyExpansionChip() const
 {
 	// Tell the sound emulator to switch expansion chip
-	theApp.GetSoundGenerator()->SelectChip(m_iExpansionChip);
+	theApp.GetSoundGenerator()->SelectChip(GetExpansionChip());
 
 	// Change period tables
 	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
@@ -1692,11 +1692,11 @@ bool CFamiTrackerDoc::ExpansionEnabled(int Chip) const
 void CFamiTrackerDoc::SetNamcoChannels(int Channels, bool Move)
 {
 	if (Channels == 0) {		// // //
-		SelectExpansionChip(m_iExpansionChip & ~SNDCHIP_N163, true);
+		SelectExpansionChip(GetExpansionChip() & ~SNDCHIP_N163, true);
 		return;
 	}
 	if (!ExpansionEnabled(SNDCHIP_N163))
-		SelectExpansionChip(m_iExpansionChip | SNDCHIP_N163, true);
+		SelectExpansionChip(GetExpansionChip() | SNDCHIP_N163, true);
 
 	ASSERT(Channels <= 8);
 	m_iNamcoChannels = Channels;
@@ -1707,7 +1707,7 @@ void CFamiTrackerDoc::SetNamcoChannels(int Channels, bool Move)
 		int newIndex[CHANNELS] = {};
 		for (int j = 0; j < CHANNELS; j++) {
 			oldIndex[j] = GetChannelIndex(j);
-			newIndex[j] = GetChannelPosition(j, m_iExpansionChip);
+			newIndex[j] = GetChannelPosition(j, GetExpansionChip());
 		}
 		auto it = m_pTracks.begin();
 		for (const auto &pSong : m_pTracks) {
@@ -1725,7 +1725,7 @@ void CFamiTrackerDoc::SetNamcoChannels(int Channels, bool Move)
 		}
 	}
 
-	SelectExpansionChip(m_iExpansionChip, false);		// // //
+	SelectExpansionChip(GetExpansionChip(), false);		// // //
 }
 
 int CFamiTrackerDoc::GetNamcoChannels() const
@@ -2069,7 +2069,10 @@ public:
 				}
 			}
 
-			cb();
+			if constexpr (std::is_invocable_v<F, unsigned, unsigned>)
+				cb(f_, r_);
+			else
+				cb();
 
 			if (Cxx)
 				return;

@@ -50,7 +50,7 @@ public:
 	void SetupTracks();
 	void LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu);
 	void ConfigureDocument();
-	CChannelMap MakeChannelMap(const CFamiTrackerDoc &doc) const;
+	CChannelMap MakeChannelMap(unsigned chips, unsigned n163chs) const;
 
 	void StartPlayer(std::unique_ptr<CPlayerCursor> cur);
 	void StopPlayer();

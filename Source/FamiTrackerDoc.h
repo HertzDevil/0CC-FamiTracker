@@ -196,12 +196,12 @@ public:
 	// Global (module) data
 	void			SetEngineSpeed(unsigned int Speed);
 	void			SetMachine(machine_t Machine);		// // //
-	machine_t		GetMachine() const		{ return m_iMachine; };		// // //
-	unsigned int	GetEngineSpeed() const	{ return m_iEngineSpeed; };
+	machine_t		GetMachine() const		{ return m_iMachine; }		// // //
+	unsigned int	GetEngineSpeed() const	{ return m_iEngineSpeed; }
 	unsigned int	GetFrameRate() const;
 
 	void			SelectExpansionChip(unsigned char Chip, bool Move = false);		// // //
-	unsigned char	GetExpansionChip() const { return m_iExpansionChip; };
+	unsigned char	GetExpansionChip() const;
 	bool			ExpansionEnabled(int Chip) const;
 	int				GetNamcoChannels() const;
 	void			SetNamcoChannels(int Channels, bool Move = false);		// // //

@@ -130,22 +130,15 @@ void CSoundDriver::ConfigureDocument() {
 		}
 }
 
-CChannelMap CSoundDriver::MakeChannelMap(const CFamiTrackerDoc &doc) const {
+CChannelMap CSoundDriver::MakeChannelMap(unsigned chips, unsigned n163chs) const {
 	// This affects the sound channel interface so it must be synchronized
 	CChannelMap map;		// // //
 
 	// Register the channels in the document
 	// Expansion & internal channels
-	const auto Chip = doc.GetExpansionChip();
-	int i = 0;		// // //
-	for (auto &x : tracks_) {
-		int ID = x.second->GetID();		// // //
-		if (x.first && ((x.second->GetChip() & Chip) || (i <= CHANID_DPCM))			// // //
-					&& (i >= CHANID_FDS || i < CHANID_N163_CH1 + doc.GetNamcoChannels())) {
-			map.RegisterChannel(*x.second);
-		}
-		++i;
-	}
+	for (auto &x : tracks_)
+		if (x.first && x.second)
+			x.second->AddToMap(map, chips, n163chs);
 
 	return map;
 }

@@ -189,7 +189,7 @@ void CSoundGen::SetVisualizerWindow(CVisualizerWnd *pWnd)
 	m_csVisualizerWndLock.Unlock();
 }
 
-CChannelMap CSoundGen::MakeChannelMap(const CFamiTrackerDoc &doc) const
+CChannelMap CSoundGen::MakeChannelMap(unsigned chips, unsigned n163chs) const
 {
 	// This method will add channels to the document object, depending on the expansion chip used.
 	// Called from the document object (from the main thread)
@@ -197,7 +197,7 @@ CChannelMap CSoundGen::MakeChannelMap(const CFamiTrackerDoc &doc) const
 	// Called from main thread
 	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
 
-	return m_pSoundDriver->MakeChannelMap(doc);		// // //
+	return m_pSoundDriver->MakeChannelMap(chips, n163chs);		// // //
 }
 
 void CSoundGen::SelectChip(int Chip)
