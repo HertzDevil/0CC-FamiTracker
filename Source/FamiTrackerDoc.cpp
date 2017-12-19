@@ -120,11 +120,7 @@ END_MESSAGE_MAP()
 
 // CFamiTrackerDoc construction/destruction
 
-CFamiTrackerDoc::CFamiTrackerDoc() : 
-	m_bFileLoaded(false), 
-	m_bFileLoadFailed(false), 
-	m_iNamcoChannels(0),		// // //
-	m_bDisplayComment(false),
+CFamiTrackerDoc::CFamiTrackerDoc() :
 	m_pChannelMap(std::make_unique<CChannelMap>()),		// // //
 	m_pInstrumentManager(std::make_unique<CInstrumentManager>(this))
 {
@@ -306,7 +302,7 @@ void CFamiTrackerDoc::DeleteContents()
 	SetModuleCopyright("");
 
 	// Reset variables to default
-	m_iExpansionChip = SNDCHIP_NONE;
+	m_pChannelMap = std::make_unique<CChannelMap>();		// // //
 	m_iChannelsAvailable = CHANNELS_DEFAULT;
 	SetMachine(DEFAULT_MACHINE_TYPE);
 	SetEngineSpeed(0);
@@ -363,7 +359,7 @@ void CFamiTrackerDoc::CreateEmpty()
 	LockDocument();
 
 	// and select 2A03 only
-	SelectExpansionChip(SNDCHIP_NONE);
+	SelectExpansionChip(SNDCHIP_NONE, 0, false);		// // //
 	SetModifiedFlag(FALSE);
 	SetExceededFlag(FALSE);		// // //
 
@@ -1617,22 +1613,9 @@ unsigned int CFamiTrackerDoc::GetTrackCount() const
 	return m_pTracks.size();
 }
 
-void CFamiTrackerDoc::SelectExpansionChip(unsigned Chip, bool Move)
-{
-	SelectExpansionChip(Chip, GetNamcoChannels(), Move);
-}
-
-void CFamiTrackerDoc::SetNamcoChannels(int Channels, bool Move)
-{
-	ASSERT(Channels <= 8);
-
-	if (Channels)
-		SelectExpansionChip(GetExpansionChip() | SNDCHIP_N163, Channels, Move);
-	else
-		SelectExpansionChip(GetExpansionChip() & ~SNDCHIP_N163, 0, Move);
-}
-
 void CFamiTrackerDoc::SelectExpansionChip(unsigned chips, unsigned n163chs, bool Move) {		// // //
+	ASSERT(n163chs <= 8 && !(chips & SNDCHIP_N163) == !n163chs);
+
 	// // // Move pattern data upon removing expansion chips
 	if (Move) {
 		int oldIndex[CHANNELS] = {};
@@ -1656,32 +1639,29 @@ void CFamiTrackerDoc::SelectExpansionChip(unsigned chips, unsigned n163chs, bool
 			*it++ = std::move(pNew);
 		}
 	}
+
 	// Complete sound chip setup
-	//m_iExpansionChip = chips;
-	m_iNamcoChannels = n163chs;
-	SetupChannels(chips);
+	SetupChannels(chips, n163chs);
 	ApplyExpansionChip();
 	ModifyIrreversible();
 }
 
 unsigned char CFamiTrackerDoc::GetExpansionChip() const {
-	return m_iExpansionChip;
+	return m_pChannelMap->GetExpansionFlag();		// // //
 }
 
-void CFamiTrackerDoc::SetupChannels(unsigned char Chip)
+void CFamiTrackerDoc::SetupChannels(unsigned chips, unsigned n163chs)
 {
 	// This will select a chip in the sound emulator
 	LockDocument();
 
 	// Do not allow expansion chips in PAL mode
-	if (Chip != SNDCHIP_NONE)
+	if (chips != SNDCHIP_NONE)
 		SetMachine(NTSC);
 
 	// Register the channels
-	*m_pChannelMap = theApp.GetSoundGenerator()->MakeChannelMap(Chip, GetNamcoChannels());		// // //
+	m_pChannelMap = theApp.GetSoundGenerator()->MakeChannelMap(chips, n163chs);		// // //
 	m_iChannelsAvailable = GetChannelCount();
-
-	m_iExpansionChip = Chip;
 
 	UnlockDocument();
 	// Must call ApplyExpansionChip after this
@@ -1730,16 +1710,12 @@ void CFamiTrackerDoc::ModifyIrreversible()
 	SetExceededFlag(TRUE);
 }
 
-bool CFamiTrackerDoc::ExpansionEnabled(int Chip) const
-{
-	// Returns true if a specified chip is enabled
-	return (GetExpansionChip() & Chip) == Chip; 
+bool CFamiTrackerDoc::ExpansionEnabled(int Chip) const {
+	return m_pChannelMap->HasExpansionChip(Chip);		// // //
 }
 
-int CFamiTrackerDoc::GetNamcoChannels() const
-{
-	if (!ExpansionEnabled(SNDCHIP_N163)) return 0;		// // //
-	return m_iNamcoChannels;
+int CFamiTrackerDoc::GetNamcoChannels() const {
+	return m_pChannelMap->GetChipChannelCount(SNDCHIP_N163);		// // //
 }
 
 unsigned int CFamiTrackerDoc::GetFirstFreePattern(unsigned int Track, unsigned int Channel) const
@@ -2225,11 +2201,12 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 
 void CFamiTrackerDoc::RemoveUnusedPatterns()
 {
-	for (auto &pSong : m_pTracks)
-		for (unsigned int c = 0; c < m_iChannelsAvailable; ++c)
-			for (unsigned int p = 0; p < MAX_PATTERN; ++p)
-				if (!pSong->IsPatternInUse(c, p))
-					pSong->ClearPattern(c, p);
+	VisitSongs([] (CSongData &song) {
+		song.VisitPatterns([&song] (CPatternData &, unsigned c, unsigned p) {
+			if (!song.IsPatternInUse(c, p))
+				song.ClearPattern(c, p);
+		});
+	});
 }
 
 void CFamiTrackerDoc::RemoveUnusedSamples()		// // //

@@ -608,7 +608,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			t.ReadEOL();
 			break;
 		case CT_EXPANSION:
-			Doc.SelectExpansionChip(t.ReadInt(0, 255));
+			Doc.SelectExpansionChip(t.ReadInt(0, 63), Doc.GetNamcoChannels(), false);		// // //
 			t.ReadEOL();
 			break;
 		case CT_VIBRATO:
@@ -630,15 +630,14 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		{
 			int octave = t.ReadInt(-12, 12);
 			int cent = t.ReadInt(-100, 100);
-			Doc.SetTuning(octave, cent);
 			t.ReadEOL();
+			Doc.SetTuning(octave, cent);
 		}
 		break;
 		case CT_N163CHANNELS:
 			N163count = t.ReadInt(1, 8);		// // //
-			Doc.SetNamcoChannels(8);
-			Doc.SelectExpansionChip(Doc.GetExpansionChip());
 			t.ReadEOL();
+			Doc.SelectExpansionChip(Doc.GetExpansionChip(), 8, false);
 			break;
 		case CT_MACRO:
 		case CT_MACROVRC6:
@@ -933,10 +932,8 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		}
 	}
 
-	if (N163count != -1) {		// // //
-		Doc.SetNamcoChannels(N163count, true);
-		Doc.SelectExpansionChip(Doc.GetExpansionChip()); // calls ApplyExpansionChip()
-	}
+	if (N163count != -1)		// // //
+		Doc.SelectExpansionChip(Doc.GetExpansionChip(), N163count, true); // calls ApplyExpansionChip()
 }
 
 // =============================================================================
@@ -1047,8 +1044,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	if (pDoc->ExpansionEnabled(SNDCHIP_N163))
 	{
 		N163count = pDoc->GetNamcoChannels();
-		pDoc->SetNamcoChannels(8, true);
-		pDoc->SelectExpansionChip(pDoc->GetExpansionChip()); // calls ApplyExpansionChip()
+		pDoc->SelectExpansionChip(pDoc->GetExpansionChip(), 8, true); // calls ApplyExpansionChip()
 		s.Format(_T("# Namco 163 global settings\n"
 		            "%-15s %d\n"
 		            "\n"),
@@ -1377,10 +1373,8 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 		}
 	}
 
-	if (N163count != -1) {		// // //
-		pDoc->SetNamcoChannels(N163count, true);
-		pDoc->SelectExpansionChip(pDoc->GetExpansionChip()); // calls ApplyExpansionChip()
-	}
+	if (N163count != -1)		// // //
+		pDoc->SelectExpansionChip(pDoc->GetExpansionChip(), N163count, true); // calls ApplyExpansionChip()
 	f.WriteString(_T("# End of export\n"));
 	pDoc->UpdateAllViews(NULL, UPDATE_FRAME);
 	pDoc->UpdateAllViews(NULL, UPDATE_PATTERN);

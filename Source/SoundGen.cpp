@@ -189,8 +189,7 @@ void CSoundGen::SetVisualizerWindow(CVisualizerWnd *pWnd)
 	m_csVisualizerWndLock.Unlock();
 }
 
-CChannelMap CSoundGen::MakeChannelMap(unsigned chips, unsigned n163chs) const
-{
+std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(unsigned chips, unsigned n163chs) const {		// // //
 	// This method will add channels to the document object, depending on the expansion chip used.
 	// Called from the document object (from the main thread)
 

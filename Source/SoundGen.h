@@ -101,7 +101,7 @@ public:
 	void		SetVisualizerWindow(CVisualizerWnd *pWnd);
 
 	// Multiple times initialization
-	CChannelMap	MakeChannelMap(unsigned chips, unsigned n163chs) const;		// // //
+	std::unique_ptr<CChannelMap>	MakeChannelMap(unsigned chips, unsigned n163chs) const;		// // //
 	void		SelectChip(int Chip);
 	void		LoadMachineSettings();		// // // 050B
 

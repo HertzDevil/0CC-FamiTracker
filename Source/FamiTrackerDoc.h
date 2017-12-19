@@ -126,7 +126,7 @@ public:
 	int				GetChipType(int Channel) const;
 	int				GetChannelCount() const;
 
-	void			SetupChannels(unsigned char Chip);		// // // for io
+	void			SetupChannels(unsigned chips, unsigned n163chs);		// // // for io
 
 	// Synchronization
 	BOOL			LockDocument() const;
@@ -200,12 +200,10 @@ public:
 	unsigned int	GetEngineSpeed() const	{ return m_iEngineSpeed; }
 	unsigned int	GetFrameRate() const;
 
-	void			SelectExpansionChip(unsigned Chip, bool Move = false);		// // //
 	void			SelectExpansionChip(unsigned chips, unsigned n163chs, bool Move);		// // //
 	unsigned char	GetExpansionChip() const;
 	bool			ExpansionEnabled(int Chip) const;
 	int				GetNamcoChannels() const;
-	void			SetNamcoChannels(int Channels, bool Move = false);		// // //
 
 	// Todo: remove this, use getchannelcount instead
 	unsigned int	GetAvailableChannels()	const { return m_iChannelsAvailable; }
@@ -404,9 +402,9 @@ private:
 	// State variables
 	//
 
-	bool			m_bFileLoaded;			// Is a file loaded?
-	bool			m_bFileLoadFailed;		// Last file load operation failed
-	unsigned int	m_iFileVersion;			// Loaded file version
+	bool			m_bFileLoaded = false;			// Is a file loaded?
+	bool			m_bFileLoadFailed = false;		// Last file load operation failed
+	unsigned int	m_iFileVersion;					// Loaded file version
 
 	bool			m_bForceBackup;
 	bool			m_bBackupDone;
@@ -432,8 +430,6 @@ private:
 	std::array<std::unique_ptr<CGroove>, MAX_GROOVE> m_pGrooveTable;		// // // Grooves
 
 	// Module properties
-	unsigned char	m_iExpansionChip;							// Expansion chip
-	unsigned int	m_iNamcoChannels;
 	vibrato_t		m_iVibratoStyle;							// 0 = old style, 1 = new style
 	bool			m_bLinearPitch;
 	machine_t		m_iMachine;									// // // NTSC / PAL
@@ -449,7 +445,7 @@ private:
 
 	// Comments
 	std::string		m_strComment;								// // //
-	bool			m_bDisplayComment;
+	bool			m_bDisplayComment = false;
 
 	// Row highlight (TODO remove)
 	stHighlight		m_vHighlight;								// // //

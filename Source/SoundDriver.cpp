@@ -130,15 +130,15 @@ void CSoundDriver::ConfigureDocument() {
 		}
 }
 
-CChannelMap CSoundDriver::MakeChannelMap(unsigned chips, unsigned n163chs) const {
+std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(unsigned chips, unsigned n163chs) const {
 	// This affects the sound channel interface so it must be synchronized
-	CChannelMap map;		// // //
+	auto map = std::make_unique<CChannelMap>(chips, n163chs);		// // //
 
 	// Register the channels in the document
 	// Expansion & internal channels
 	for (auto &x : tracks_)
-		if (x.first && x.second)
-			x.second->AddToMap(map, chips, n163chs);
+		if (x.first && x.second && map->SupportsChannel(*x.second))
+			map->RegisterChannel(*x.second);
 
 	return map;
 }

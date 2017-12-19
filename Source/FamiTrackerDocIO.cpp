@@ -312,9 +312,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 		doc.SetTuning(semitones, file_.GetBlockChar());
 	}
 
-	doc.SetupChannels(Expansion);
-	if (n163chans)
-		doc.SetNamcoChannels(n163chans);
+	doc.SelectExpansionChip(Expansion, n163chans, false);		// // //
 }
 
 void CFamiTrackerDocIO::SaveParams(const CFamiTrackerDoc &doc, int ver) {

@@ -49,8 +49,6 @@ public:
 	const char GetChip() const;
 	chan_id_t GetID() const;		// // //
 
-	void AddToMap(CChannelMap &map, unsigned chips, unsigned n163chs);		// // //
-
 	stChanNote GetNote();
 	void SetNote(const stChanNote &Note, note_prio_t Priority);		// // //
 	bool NewNoteData() const;

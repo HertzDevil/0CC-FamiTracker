@@ -162,8 +162,7 @@ void CModulePropertiesDlg::OnBnClickedOk()
 		if (Gone)
 			if (AfxMessageBox(str, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
 				return;
-		m_pDocument->SetNamcoChannels(m_iN163Channels, true);
-		m_pDocument->SelectExpansionChip(m_iExpansions, true);
+		m_pDocument->SelectExpansionChip(m_iExpansions, m_iN163Channels, true);
 		m_pDocument->UpdateAllViews(NULL, UPDATE_PROPERTIES);
 	}
 

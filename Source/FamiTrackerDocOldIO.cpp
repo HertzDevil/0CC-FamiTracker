@@ -239,7 +239,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 		}
 	}
 
-	doc.SetupChannels(doc.GetExpansionChip());
+	doc.SetupChannels(SNDCHIP_NONE, 0);		// // //
 
 	ReorderSequences(doc, std::move(TmpSequences));		// // //
 

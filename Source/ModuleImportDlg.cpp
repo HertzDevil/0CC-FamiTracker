@@ -23,6 +23,7 @@
 #include "ModuleImportDlg.h"
 #include "FamiTrackerDoc.h"
 #include "SongData.h"		// // //
+//#include <algorithm>
 
 // CModuleImportDlg dialog
 
@@ -103,19 +104,13 @@ bool CModuleImportDlg::LoadFile(CString Path)		// // //
 
 	// Check expansion chip match
 	// // // import as superset of expansion chip configurations
-	if (m_pImportedDoc->GetNamcoChannels() != m_pDocument->GetNamcoChannels()) {
-		int Max = m_pImportedDoc->GetNamcoChannels();
-		if (m_pDocument->GetNamcoChannels() > Max) Max = m_pDocument->GetNamcoChannels();
-		m_pImportedDoc->SetNamcoChannels(Max, true);
-		m_pDocument->SetNamcoChannels(Max, true);
-		unsigned char Chip = m_pImportedDoc->GetExpansionChip() | m_pDocument->GetExpansionChip();
-		m_pImportedDoc->SelectExpansionChip(Chip, true);
-		m_pDocument->SelectExpansionChip(Chip, true);
-	}
-	if (m_pImportedDoc->GetExpansionChip() != m_pDocument->GetExpansionChip()) {
-		unsigned char Chip = m_pImportedDoc->GetExpansionChip() | m_pDocument->GetExpansionChip();
-		m_pImportedDoc->SelectExpansionChip(Chip, true);
-		m_pDocument->SelectExpansionChip(Chip, true);
+	unsigned c1 = m_pImportedDoc->GetExpansionChip();
+	unsigned c2 = m_pDocument->GetExpansionChip();
+	unsigned n1 = m_pImportedDoc->GetNamcoChannels();
+	unsigned n2 = m_pDocument->GetNamcoChannels();
+	if (n1 != n2 || c1 != c2) {
+		m_pImportedDoc->SelectExpansionChip(c1 | c2, std::max(n1, n2), true);
+		m_pDocument->SelectExpansionChip(c1 | c2, std::max(n1, n2), true);
 	}
 
 	return true;

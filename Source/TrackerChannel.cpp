@@ -22,7 +22,6 @@
 
 #include "TrackerChannel.h"
 #include "Instrument.h"		// // //
-#include "ChannelMap.h"		// // //
 
 /*
  * This class serves as the interface between the UI and the sound player for each channel
@@ -64,12 +63,6 @@ const char CTrackerChannel::GetChip() const
 chan_id_t CTrackerChannel::GetID() const		// // //
 {
 	return m_iChannelID;
-}
-
-void CTrackerChannel::AddToMap(CChannelMap &map, unsigned chips, unsigned n163chs) {		// // //
-	if ((m_iChip == SNDCHIP_NONE || (m_iChip & chips)) &&
-		!(m_iChip == SNDCHIP_N163 && m_iChannelID - CHANID_N163_CH1 >= n163chs))
-		map.RegisterChannel(*this);
 }
 
 void CTrackerChannel::SetNote(const stChanNote &Note, note_prio_t Priority)		// // //

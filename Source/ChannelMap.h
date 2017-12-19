@@ -25,6 +25,7 @@
 
 #include <vector>		// // //
 #include <unordered_map>		// // //
+#include "APU/Types.h"		// // //
 
 class CTrackerChannel;		// // //
 
@@ -33,8 +34,12 @@ class CTrackerChannel;		// // //
 class CChannelMap
 {
 public:
+	CChannelMap();		// // //
+	CChannelMap(unsigned chips, unsigned n163chs);
+
 	void			ResetChannels();
 	void			RegisterChannel(CTrackerChannel &Channel);		// // //
+	bool			SupportsChannel(const CTrackerChannel &ch) const;		// // //
 
 	CTrackerChannel	&GetChannel(int Index) const;		// // //
 	int				GetChannelIndex(int Channel) const;
@@ -42,7 +47,14 @@ public:
 	int				GetChannelType(int Channel) const;
 	int				GetChipType(int Channel) const;
 
+	unsigned		GetExpansionFlag() const noexcept;		// // //
+	unsigned		GetChipChannelCount(unsigned chip) const;
+	bool			HasExpansionChip(unsigned chips) const noexcept; // all
+
 private:		// // //
 	std::vector<CTrackerChannel *> m_pChannels;		// // //
 	std::unordered_map<int, int> m_iChannelIndices;		// // //
+
+	unsigned chips_;		// // //
+	unsigned n163chs_;		// // //
 };
