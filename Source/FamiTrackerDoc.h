@@ -200,7 +200,8 @@ public:
 	unsigned int	GetEngineSpeed() const	{ return m_iEngineSpeed; }
 	unsigned int	GetFrameRate() const;
 
-	void			SelectExpansionChip(unsigned char Chip, bool Move = false);		// // //
+	void			SelectExpansionChip(unsigned Chip, bool Move = false);		// // //
+	void			SelectExpansionChip(unsigned chips, unsigned n163chs, bool Move);		// // //
 	unsigned char	GetExpansionChip() const;
 	bool			ExpansionEnabled(int Chip) const;
 	int				GetNamcoChannels() const;
@@ -385,7 +386,6 @@ private:
 	void			SwapSongs(unsigned int First, unsigned int Second);		// // //
 
 	void			ApplyExpansionChip() const;
-	int				GetChannelPosition(int Channel, unsigned char Chip);		// // //
 
 	//
 	// Private variables

@@ -71,6 +71,42 @@
 #define new DEBUG_NEW
 #endif
 
+namespace {
+
+int GetChannelPosition(int Channel, unsigned char chips, unsigned n163chs) {		// // //
+	// TODO: use information from the current channel map instead
+	unsigned int pos = Channel;
+	if (pos == CHANID_MMC5_VOICE) return -1;
+
+	if (!(chips & SNDCHIP_S5B)) {
+		if (pos > CHANID_S5B_CH3) pos -= 3;
+		else if (pos >= CHANID_S5B_CH1) return -1;
+	}
+	if (!(chips & SNDCHIP_VRC7)) {
+		if (pos > CHANID_VRC7_CH6) pos -= 6;
+		else if (pos >= CHANID_VRC7_CH1) return -1;
+	}
+	if (!(chips & SNDCHIP_FDS)) {
+		if (pos > CHANID_FDS) pos -= 1;
+		else if (pos >= CHANID_FDS) return -1;
+	}
+	if (pos > CHANID_N163_CH8) pos -= 8 - (!(chips & SNDCHIP_N163) ? 0 : n163chs);
+	else if (pos > CHANID_MMC5_VOICE + (!(chips & SNDCHIP_N163) ? 0 : n163chs)) return -1;
+	if (pos > CHANID_MMC5_VOICE) pos -= 1;
+	if (!(chips & SNDCHIP_MMC5)) {
+		if (pos > CHANID_MMC5_SQUARE2) pos -= 2;
+		else if (pos >= CHANID_MMC5_SQUARE1) return -1;
+	}
+	if (!(chips & SNDCHIP_VRC6)) {
+		if (pos > CHANID_VRC6_SAWTOOTH) pos -= 3;
+		else if (pos >= CHANID_VRC6_PULSE1) return -1;
+	}
+
+	return pos;
+}
+
+} // namespace
+
 //
 // CFamiTrackerDoc
 //
@@ -1581,15 +1617,29 @@ unsigned int CFamiTrackerDoc::GetTrackCount() const
 	return m_pTracks.size();
 }
 
-void CFamiTrackerDoc::SelectExpansionChip(unsigned char Chip, bool Move)
+void CFamiTrackerDoc::SelectExpansionChip(unsigned Chip, bool Move)
 {
+	SelectExpansionChip(Chip, GetNamcoChannels(), Move);
+}
+
+void CFamiTrackerDoc::SetNamcoChannels(int Channels, bool Move)
+{
+	ASSERT(Channels <= 8);
+
+	if (Channels)
+		SelectExpansionChip(GetExpansionChip() | SNDCHIP_N163, Channels, Move);
+	else
+		SelectExpansionChip(GetExpansionChip() & ~SNDCHIP_N163, 0, Move);
+}
+
+void CFamiTrackerDoc::SelectExpansionChip(unsigned chips, unsigned n163chs, bool Move) {		// // //
 	// // // Move pattern data upon removing expansion chips
 	if (Move) {
 		int oldIndex[CHANNELS] = {};
 		int newIndex[CHANNELS] = {};
-		for (int j = 0; j < CHANNELS; j++) {
-			oldIndex[j] = GetChannelPosition(j, GetExpansionChip());
-			newIndex[j] = GetChannelPosition(j, Chip);
+		for (int j = 0; j < CHANNELS; ++j) {
+			oldIndex[j] = GetChannelPosition(j, GetExpansionChip(), GetNamcoChannels());
+			newIndex[j] = GetChannelPosition(j, chips, n163chs);
 		}
 		auto it = m_pTracks.begin();
 		for (const auto &pSong : m_pTracks) {
@@ -1607,15 +1657,12 @@ void CFamiTrackerDoc::SelectExpansionChip(unsigned char Chip, bool Move)
 		}
 	}
 	// Complete sound chip setup
-	SetupChannels(Chip);
+	//m_iExpansionChip = chips;
+	m_iNamcoChannels = n163chs;
+	SetupChannels(chips);
 	ApplyExpansionChip();
 	ModifyIrreversible();
-
-	if (!(Chip & SNDCHIP_N163))		// // //
-		m_iNamcoChannels = 0;
 }
-
-// // //
 
 unsigned char CFamiTrackerDoc::GetExpansionChip() const {
 	return m_iExpansionChip;
@@ -1689,45 +1736,6 @@ bool CFamiTrackerDoc::ExpansionEnabled(int Chip) const
 	return (GetExpansionChip() & Chip) == Chip; 
 }
 
-void CFamiTrackerDoc::SetNamcoChannels(int Channels, bool Move)
-{
-	if (Channels == 0) {		// // //
-		SelectExpansionChip(GetExpansionChip() & ~SNDCHIP_N163, true);
-		return;
-	}
-	if (!ExpansionEnabled(SNDCHIP_N163))
-		SelectExpansionChip(GetExpansionChip() | SNDCHIP_N163, true);
-
-	ASSERT(Channels <= 8);
-	m_iNamcoChannels = Channels;
-	
-	// // // Move pattern data upon removing N163 channels
-	if (Move) {
-		int oldIndex[CHANNELS] = {};		// // //
-		int newIndex[CHANNELS] = {};
-		for (int j = 0; j < CHANNELS; j++) {
-			oldIndex[j] = GetChannelIndex(j);
-			newIndex[j] = GetChannelPosition(j, GetExpansionChip());
-		}
-		auto it = m_pTracks.begin();
-		for (const auto &pSong : m_pTracks) {
-			auto pNew = std::make_unique<CSongData>(pSong->GetPatternLength());
-			pNew->SetHighlight(pSong->GetRowHighlight());
-			pNew->SetSongTempo(pSong->GetSongTempo());
-			pNew->SetSongSpeed(pSong->GetSongSpeed());
-			pNew->SetSongGroove(pSong->GetSongGroove());
-			pNew->SetFrameCount(pSong->GetFrameCount());
-			pNew->SetTitle(pSong->GetTitle());
-			for (int j = 0; j < CHANNELS; ++j)
-				if (oldIndex[j] != -1 && newIndex[j] != -1)
-					pNew->CopyTrack(newIndex[j], *pSong, oldIndex[j]);
-			*it++ = std::move(pNew);
-		}
-	}
-
-	SelectExpansionChip(GetExpansionChip(), false);		// // //
-}
-
 int CFamiTrackerDoc::GetNamcoChannels() const
 {
 	if (!ExpansionEnabled(SNDCHIP_N163)) return 0;		// // //
@@ -1759,39 +1767,6 @@ int CFamiTrackerDoc::GetChipType(int Channel) const
 int CFamiTrackerDoc::GetChannelCount() const
 {
 	return m_pChannelMap->GetChannelCount();		// // //
-}
-
-int CFamiTrackerDoc::GetChannelPosition(int Channel, unsigned char Chip)		// // //
-{
-	// TODO: use information from the current channel map instead
-	unsigned int pos = Channel;
-	if (pos == CHANID_MMC5_VOICE) return -1;
-
-	if (!(Chip & SNDCHIP_S5B)) {
-		if (pos > CHANID_S5B_CH3) pos -= 3;
-		else if (pos >= CHANID_S5B_CH1) return -1;
-	}
-	if (!(Chip & SNDCHIP_VRC7)) {
-		if (pos > CHANID_VRC7_CH6) pos -= 6;
-		else if (pos >= CHANID_VRC7_CH1) return -1;
-	}
-	if (!(Chip & SNDCHIP_FDS)) {
-		if (pos > CHANID_FDS) pos -= 1;
-		else if (pos >= CHANID_FDS) return -1;
-	}
-		if (pos > CHANID_N163_CH8) pos -= 8 - (!(Chip & SNDCHIP_N163) ? 0 : m_iNamcoChannels);
-		else if (pos > CHANID_MMC5_VOICE + (!(Chip & SNDCHIP_N163) ? 0 : m_iNamcoChannels)) return -1;
-	if (pos > CHANID_MMC5_VOICE) pos -= 1;
-	if (!(Chip & SNDCHIP_MMC5)) {
-		if (pos > CHANID_MMC5_SQUARE2) pos -= 2;
-		else if (pos >= CHANID_MMC5_SQUARE1) return -1;
-	}
-	if (!(Chip & SNDCHIP_VRC6)) {
-		if (pos > CHANID_VRC6_SAWTOOTH) pos -= 3;
-		else if (pos >= CHANID_VRC6_PULSE1) return -1;
-	}
-
-	return pos;
 }
 
 CTrackerChannel &CFamiTrackerDoc::GetChannel(int Index) const		// // //
