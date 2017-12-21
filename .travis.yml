@@ -16,16 +16,17 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
       after_success:
-        - coveralls --gcov gcov-7 --root libft0cc --include src --include include
+        - coveralls --gcov gcov-7 --root .. --include src --include include
 
 before_install:
   - eval "${MATRIX_EVAL}"
   - pip install --user cpp-coveralls
 
 script:
+  - cd libft0cc
   - mkdir build
   - cd build
-  - cmake -DCOVERAGE=1 ../libft0cc
+  - cmake -DCOVERAGE=1 ..
   - cmake --build . -- -j4
   - GTEST_COLOR=1 ctest -V
 
