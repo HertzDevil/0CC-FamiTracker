@@ -18,13 +18,17 @@ matrix:
 
 before_install:
   - eval "${MATRIX_EVAL}"
+  - pip install --user cpp-coveralls
 
 script:
   - mkdir build
   - cd build
-  - cmake ../libft0cc
+  - cmake -DCOVERAGE=1 ../libft0cc
   - cmake --build . -- -j4
   - ctest -V
+
+after_success:
+  - coveralls --root . -E ".*gtest.*" -E ".*CMakeFiles.*"
 
 notifications:
   email:

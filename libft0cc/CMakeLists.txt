@@ -11,6 +11,8 @@ enable_testing()
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL
 	"A flag specifying whether compiler specific extensions should be used." FORCE)
 
+SET(COVERAGE OFF CACHE BOOL "Enables coverage reports.")
+
 if(MSVC)
 	add_compile_options(/std:c++17 /permissive- /Zc:forScope /Zc:inline /Zc:rvalueCast /Za)
 	add_compile_options(/W4 /WX /sdl)
