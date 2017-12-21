@@ -126,8 +126,6 @@ public:
 	int				GetChipType(int Channel) const;
 	int				GetChannelCount() const;
 
-	void			SetupChannels(unsigned chips, unsigned n163chs);		// // // for io
-
 	// Synchronization
 	BOOL			LockDocument() const;
 	BOOL			LockDocument(DWORD dwTimeout) const;
@@ -177,7 +175,6 @@ public:
 	
 	bool			InsertRow(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row);
 	bool			ClearRowField(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row, cursor_column_t Column);
-	bool			RemoveNote(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row);
 	bool			PullUp(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row);
 	void			CopyPattern(unsigned int Track, int Target, int Source, int Channel);
 
@@ -190,8 +187,8 @@ public:
 	bool			CloneFrame(unsigned int Track, unsigned int Frame);		// // // renamed
 	bool			MoveFrameDown(unsigned int Track, unsigned int Frame);
 	bool			MoveFrameUp(unsigned int Track, unsigned int Frame);
-	bool			AddFrames(unsigned int Track, unsigned int Frame, int Count);		// // //
-	bool			DeleteFrames(unsigned int Track, unsigned int Frame, int Count);		// // //
+	bool			AddFrames(unsigned int Track, unsigned int Frame, unsigned Count);		// // //
+	bool			DeleteFrames(unsigned int Track, unsigned int Frame, unsigned Count);		// // //
 
 	// Global (module) data
 	void			SetEngineSpeed(unsigned int Speed);

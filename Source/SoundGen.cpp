@@ -761,6 +761,8 @@ void CSoundGen::LoadMachineSettings()		// // //
 	// Rate = frame rate (0 means machine default)
 	//
 
+	// Called from main thread
+	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
 	ASSERT(m_pAPU != NULL);
 
 	m_iMachineType = m_pDocument->GetMachine();		// // // 050B

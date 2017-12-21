@@ -711,7 +711,7 @@ void CFActionDeleteSel::Redo(CMainFrame &MainFrm)
 	pView->GetDocument()->DeleteFrames(
 		m_pUndoState->Track,
 		m_pUndoState->Selection.m_cpStart.m_iFrame,
-		m_pUndoState->Selection.GetSelectedFrameCount() + 1);		// // //
+		m_pUndoState->Selection.GetSelectedFrameCount());		// // //
 	pView->SelectFrame(m_pUndoState->Selection.m_cpStart.m_iFrame);
 	GET_FRAME_EDITOR()->CancelSelection();
 }

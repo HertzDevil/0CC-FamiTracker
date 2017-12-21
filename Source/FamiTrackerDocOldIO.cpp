@@ -57,6 +57,8 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 	// Only single track files
 	auto &Song = doc.GetSongData(0);
 
+	doc.SelectExpansionChip(SNDCHIP_NONE, 0, false);		// // //
+	doc.SetMachine(NTSC);		// // //
 	doc.SetVibratoStyle(VIBRATO_OLD);
 	doc.SetLinearPitch(false);
 
@@ -238,8 +240,6 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 			FileBlock = FB_EOF;
 		}
 	}
-
-	doc.SetupChannels(SNDCHIP_NONE, 0);		// // //
 
 	ReorderSequences(doc, std::move(TmpSequences));		// // //
 
