@@ -23,21 +23,20 @@
 
 #pragma once
 
+#include "ft0cc/doc/groove.hpp"
+
 #define MAX_GROOVE_SIZE 128
 
-class CGroove
+class CGroove : public ft0cc::doc::groove
 {
 public:
-	CGroove(int Speed = 0);
+	CGroove(int Speed = 0) : groove(Speed) { }
 
-	void Copy(const CGroove *Source);
-	void Clear(unsigned char Speed);
-	unsigned char GetEntry(int Index) const;
-	void SetEntry(unsigned char Index, unsigned char Value);
-	unsigned char GetSize() const;
-	void SetSize(unsigned char Size);
-	float GetAverage() const;
-private:
-	unsigned char m_iLength;
-	unsigned char m_iEntry[MAX_GROOVE_SIZE];
+	void Copy(const CGroove *Source) { return groove::copy(Source); }
+	void Clear(unsigned char Speed) { return groove::clear(Speed); }
+	unsigned char GetEntry(int Index) const { return groove::entry(Index); }
+	void SetEntry(unsigned char Index, unsigned char Value) { return groove::set_entry(Index, Value); }
+	unsigned char GetSize() const { return groove::size(); }
+	void SetSize(unsigned char Size) { return groove::resize(Size); }
+	float GetAverage() const { return groove::average(); }
 };

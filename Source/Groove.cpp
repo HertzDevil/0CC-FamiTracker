@@ -21,6 +21,7 @@
 */
 
 #include "Groove.h"
+/*
 #include <cstring>
 
 CGroove::CGroove(int Speed)
@@ -77,3 +78,4 @@ float CGroove::GetAverage() const
 		return Total / m_iLength;
 	}
 }
+*/
