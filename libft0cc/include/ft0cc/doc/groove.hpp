@@ -25,6 +25,7 @@
 
 #include <array>
 #include <cstdint>
+#include <initializer_list>
 
 namespace ft0cc::doc {
 
@@ -34,12 +35,22 @@ public:
 	static constexpr uint8_t default_speed = 6u;
 
 	constexpr groove() = default;
+	groove(std::initializer_list<uint8_t> entries);
 
 	uint8_t entry(std::size_t index) const;
 	void set_entry(std::size_t index, uint8_t value);
 	std::size_t size() const;
+	std::size_t compiled_size() const;
 	void resize(std::size_t size);
 	double average() const;
+
+	int compare(const groove &other) const;
+	bool operator==(const groove &other) const { return compare(other) == 0; }
+	bool operator!=(const groove &other) const { return compare(other) != 0; }
+	bool operator< (const groove &other) const { return compare(other) <  0; }
+	bool operator<=(const groove &other) const { return compare(other) <= 0; }
+	bool operator> (const groove &other) const { return compare(other) >  0; }
+	bool operator>=(const groove &other) const { return compare(other) >= 0; }
 
 	auto begin() { return entries_.begin(); }
 	auto end() { return entries_.begin() + len_; }

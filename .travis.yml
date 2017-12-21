@@ -25,3 +25,8 @@ script:
   - cmake ../libft0cc
   - cmake --build . -- -j4
   - ctest -V
+
+notifications:
+  email:
+    on_success: change
+    on_failure: change

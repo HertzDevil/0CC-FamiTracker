@@ -1764,8 +1764,8 @@ void CCompiler::StoreSongs()
 		if (m_pDocument->GetSongGroove(i) && m_pDocument->GetGroove(m_pDocument->GetSongSpeed(i)) != NULL) {		// // //
 			int Pos = 1;
 			for (unsigned int j = 0; j < m_pDocument->GetSongSpeed(i); j++)
-				if (m_pDocument->GetGroove(j) != nullptr)
-					Pos += m_pDocument->GetGroove(j)->size() + 2;
+				if (const auto *pGroove = m_pDocument->GetGroove(j))
+					Pos += pGroove->compiled_size();
 			Chunk.StoreByte(Pos);
 		}
 		else

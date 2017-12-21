@@ -241,12 +241,12 @@ void CGrooveDlg::UpdateIndicators()
 
 	String.Format(_T("Speed: %.3f"), Groove->average());
 	SetDlgItemText(IDC_STATIC_GROOVE_AVERAGE, String);
-	String.Format(_T("Size: %d bytes"), Groove->size() ? Groove->size() + 2 : 0);
+	String.Format(_T("Size: %d bytes"), Groove->size() ? Groove->compiled_size() : 0);
 	SetDlgItemText(IDC_STATIC_GROOVE_SIZE, String);
 	int Total = 0;
-	for (int i = 0; i < MAX_GROOVE; i++)
+	for (int i = 0; i < MAX_GROOVE; ++i)
 		if (GrooveTable[i]->size())
-			Total += GrooveTable[i]->size() + 2;
+			Total += GrooveTable[i]->compiled_size();
 	String.Format(_T("Total size: %d / 255 bytes"), Total);
 	SetDlgItemText(IDC_STATIC_GROOVE_TOTAL, String);
 

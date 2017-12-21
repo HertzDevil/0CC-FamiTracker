@@ -533,8 +533,8 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 
 						int Pos = 1;
 						for (int i = 0; i < EffParam; i++)
-							if (m_pDocument->GetGroove(i) != NULL)
-								Pos += m_pDocument->GetGroove(i)->size() + 2; // TODO: use groove manager instead
+							if (const auto *pGroove = m_pDocument->GetGroove(i))
+								Pos += pGroove->compiled_size(); // TODO: use groove manager instead
 						WriteData(Pos);
 					}
 					break;

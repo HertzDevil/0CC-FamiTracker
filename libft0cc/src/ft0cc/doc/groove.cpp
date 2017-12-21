@@ -26,6 +26,16 @@
 
 using namespace ft0cc::doc;
 
+ft0cc::doc::groove::groove(std::initializer_list<uint8_t> entries) {
+	std::size_t i = 0;
+	len_ = std::min(entries.size(), max_size);
+	for (uint8_t x : entries) {
+		if (i >= len_)
+			break;
+		entries_[i++] = x;
+	}
+}
+
 uint8_t groove::entry(std::size_t index) const {
 	return len_ ? entries_[index % len_] : default_speed;
 }
@@ -39,6 +49,10 @@ std::size_t groove::size() const {
 	return len_;
 }
 
+std::size_t ft0cc::doc::groove::compiled_size() const {
+	return size() + 2;
+}
+
 void groove::resize(std::size_t size) {
 	if (size <= max_size) {
 		if (size > len_)
@@ -50,4 +64,22 @@ void groove::resize(std::size_t size) {
 double groove::average() const {
 	return !len_ ? default_speed :
 		std::accumulate(entries_.begin(), entries_.begin() + len_, 0.) / len_;
+}
+
+int ft0cc::doc::groove::compare(const groove &other) const {
+	auto b1 = begin();
+	auto e1 = end();
+	auto b2 = other.begin();
+	auto e2 = other.end();
+
+	while (b1 != e1 && b2 != e2) {
+		if (*b1 < *b2)
+			return -1;
+		if (*b1 > *b2)
+			return 1;
+		++b1;
+		++b2;
+	}
+	return b2 != e2 ? -1 : (b1 != e1 ? 1 : 0);
+//	return std::lexicographical_compare_3way(begin(), end(), other.begin(), other.end());
 }
