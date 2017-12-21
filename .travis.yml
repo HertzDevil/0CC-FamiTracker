@@ -25,10 +25,10 @@ script:
   - cd build
   - cmake -DCOVERAGE=1 ../libft0cc
   - cmake --build . -- -j4
-  - ctest -V
+  - GTEST_COLOR=1 ctest -V
 
 after_success:
-  - coveralls --root . -E ".*gtest.*" -E ".*CMakeFiles.*"
+  - coveralls --root . -E ".*gtest.*" -E ".*CMakeFiles.*" --gcov gcov-7
 
 notifications:
   email:
