@@ -5,7 +5,7 @@ matrix:
   include:
     - os: linux
       env:
-        - MATRIX_EVAL="CC=clang-5.0.0 && CXX=clang++-5.0.0"
+        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang-5.0"
     - os: linux
       addons:
         apt:
