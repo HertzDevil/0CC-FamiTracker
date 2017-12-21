@@ -9,5 +9,5 @@ add_test(NAME ft0cctest COMMAND
 
 if(COVERAGE)
 	target_compile_options(ft0cctest PRIVATE --coverage)
-	target_link_libraries(ft0cctest PRIVATE --coverage)
+	target_link_libraries(ft0cctest --coverage)
 endif()
