@@ -15,6 +15,18 @@ TEST(Groove, ListCtor) {
 	EXPECT_EQ(grv.entry(0), 4u);
 	EXPECT_EQ(grv.entry(1), 7u);
 	EXPECT_EQ(grv.entry(2), 11u);
+
+	auto grv2 = groove { // 129 entries
+		0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 
+		0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 
+		0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 
+		0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 
+		0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 
+		0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 
+		0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 
+		0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+	};
+	EXPECT_LE(grv2.size(), 128u);
 }
 
 TEST(Groove, RelOps) {
@@ -34,6 +46,13 @@ TEST(Groove, RelOps) {
 	ASSERT_EQ(grv2.compare(grv2), 0);
 	EXPECT_EQ(grv3.compare(grv3), 0);
 	EXPECT_EQ(grv4.compare(grv4), 0);
+
+	ASSERT_GT(grv2.compare(grv1), 0);
+	EXPECT_GT(grv3.compare(grv1), 0);
+	EXPECT_GT(grv4.compare(grv1), 0);
+	EXPECT_GT(grv3.compare(grv2), 0);
+	EXPECT_GT(grv4.compare(grv2), 0);
+	EXPECT_GT(grv4.compare(grv3), 0);
 
 	EXPECT_EQ(grv1, grv1);
 	EXPECT_NE(grv1, grv2);
