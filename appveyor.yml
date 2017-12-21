@@ -4,7 +4,7 @@ configuration: Release
 build_script:
   - mkdir build_ms
   - cd build_ms
-  - cmake .. -G "Visual Studio 2017"
+  - cmake .. -G "Visual Studio 15 2017"
   - "cmake --build . --config Release -- /maxcpucount:2"
 
 test_script:
