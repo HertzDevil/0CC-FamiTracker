@@ -63,9 +63,10 @@
 //#include "SongView.h"		// // //
 #include "ChannelMap.h"		// // //
 #include "FamiTrackerDocIO.h"		// // //
-#include "Groove.h"		// // //
 #include "SongData.h"		// // //
 #include "FamiTrackerDocOldIO.h"		// // //
+
+#include "ft0cc/doc/groove.hpp"		// // //
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -761,16 +762,14 @@ bool CFamiTrackerDoc::ImportGrooves(CFamiTrackerDoc *pImported, int *pGrooveMap)
 {
 	int Index = 0;
 	for (int i = 0; i < MAX_GROOVE; ++i) {
-		if (const CGroove *pGroove = pImported->GetGroove(i)) {
+		if (const groove *pGroove = pImported->GetGroove(i)) {
 			while (GetGroove(Index))
 				if (++Index >= MAX_GROOVE) {
 					AfxMessageBox(IDS_IMPORT_GROOVE_SLOTS, MB_ICONEXCLAMATION);
 					return false;
 				}
 			pGrooveMap[i] = Index;
-			auto pNewGroove = std::make_unique<CGroove>();
-			pNewGroove->Copy(pGroove);
-			SetGroove(Index, std::move(pNewGroove));
+			SetGroove(Index, std::make_unique<groove>(*pGroove));
 		}
 	}
 
@@ -2041,12 +2040,12 @@ double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) co
 	loop_visitor visitor(song, GetChannelCount());
 	visitor.Visit([&] {
 		if (GrooveIndex != -1)
-			Speed = m_pGrooveTable[GrooveIndex]->GetEntry(GroovePointer++);
+			Speed = m_pGrooveTable[GrooveIndex]->entry(GroovePointer++);
 		FirstLoop += Speed / Tempo;
 	}, fxhandler);
 	visitor.Visit([&] {
 		if (GrooveIndex != -1)
-			Speed = m_pGrooveTable[GrooveIndex]->GetEntry(GroovePointer++);
+			Speed = m_pGrooveTable[GrooveIndex]->entry(GroovePointer++);
 		SecondLoop += Speed / Tempo;
 	}, fxhandler);
 
@@ -2196,12 +2195,12 @@ int CFamiTrackerDoc::GetTuningCent() const		// // // 050B
 	return m_iDetuneCent;
 }
 
-CGroove *CFamiTrackerDoc::GetGroove(unsigned Index) const		// // //
+ft0cc::doc::groove *CFamiTrackerDoc::GetGroove(unsigned Index) const		// // //
 {
 	return Index < MAX_GROOVE ? m_pGrooveTable[Index].get() : nullptr;
 }
 
-void CFamiTrackerDoc::SetGroove(unsigned Index, std::unique_ptr<CGroove> Groove)
+void CFamiTrackerDoc::SetGroove(unsigned Index, std::unique_ptr<groove> Groove)
 {
 	m_pGrooveTable[Index] = std::move(Groove);
 }

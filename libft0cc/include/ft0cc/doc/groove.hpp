@@ -33,19 +33,22 @@ public:
 	static constexpr std::size_t max_size = 128u;
 	static constexpr uint8_t default_speed = 6u;
 
-	explicit groove(uint8_t speed = 0u);
+	constexpr groove() = default;
 
-	void copy(const groove *source);
-	void clear(uint8_t speed);
 	uint8_t entry(std::size_t index) const;
 	void set_entry(std::size_t index, uint8_t value);
 	std::size_t size() const;
 	void resize(std::size_t size);
 	double average() const;
 
+	auto begin() { return entries_.begin(); }
+	auto end() { return entries_.begin() + len_; }
+	auto begin() const { return entries_.cbegin(); }
+	auto end() const { return entries_.cbegin() + len_; }
+
 private:
 	std::size_t len_ = 0;
-	std::array<uint8_t, max_size> entries_;
+	std::array<uint8_t, max_size> entries_ = { };
 };
 
 } // namespace ft0cc::doc

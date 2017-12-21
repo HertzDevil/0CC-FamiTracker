@@ -43,7 +43,7 @@
 #include "DSampleManager.h"
 #include "DSample.h"
 
-#include "Groove.h"
+#include "ft0cc/doc/groove.hpp"
 
 #include "BookmarkCollection.h"
 
@@ -1282,11 +1282,11 @@ void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerDoc &doc, int ver) {
 	for (int i = 0; i < Count; i++) {
 		int Index = AssertRange(file_.GetBlockChar(), 0, MAX_GROOVE - 1, "Groove index");
 		try {
-			int Size = AssertRange(file_.GetBlockChar(), 1, MAX_GROOVE_SIZE, "Groove size");
-			auto pGroove = std::make_unique<CGroove>();
-			pGroove->SetSize(Size);
+			int Size = AssertRange(file_.GetBlockChar(), 1, ft0cc::doc::groove::max_size, "Groove size");
+			auto pGroove = std::make_unique<ft0cc::doc::groove>();
+			pGroove->resize(Size);
 			for (int j = 0; j < Size; ++j) try {
-				pGroove->SetEntry(j, AssertRange(
+				pGroove->set_entry(j, AssertRange(
 					static_cast<unsigned char>(file_.GetBlockChar()), 1U, 0xFFU, "Groove item"));
 			}
 			catch (CModuleException e) {
@@ -1331,11 +1331,11 @@ void CFamiTrackerDocIO::SaveGrooves(const CFamiTrackerDoc &doc, int ver) {
 	file_.WriteBlockChar(Count);
 	for (int i = 0; i < MAX_GROOVE; ++i)
 		if (const auto pGroove = doc.GetGroove(i)) {
-			int Size = pGroove->GetSize();
+			int Size = pGroove->size();
 			file_.WriteBlockChar(i);
 			file_.WriteBlockChar(Size);
 			for (int j = 0; j < Size; ++j)
-				file_.WriteBlockChar(pGroove->GetEntry(j));
+				file_.WriteBlockChar(pGroove->entry(j));
 		}
 
 	file_.WriteBlockChar(doc.GetTrackCount());

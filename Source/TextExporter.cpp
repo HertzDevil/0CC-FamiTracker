@@ -27,7 +27,7 @@
 #include "../version.h"		// // //
 
 #include "DSample.h"		// // //
-#include "Groove.h"		// // //
+#include "ft0cc/doc/groove.hpp"		// // //
 #include "InstrumentFactory.h"		// // //
 #include "Instrument2A03.h"		// // //
 #include "InstrumentVRC7.h"		// // //
@@ -710,13 +710,13 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_GROOVE:		// // //
 		{
 			int index = t.ReadInt(0, MAX_GROOVE - 1);
-			int size = t.ReadInt(1, MAX_GROOVE_SIZE);
-			auto Groove = std::make_unique<CGroove>();
-			Groove->SetSize(size);
+			int size = t.ReadInt(1, ft0cc::doc::groove::max_size);
+			auto pGroove = std::make_unique<ft0cc::doc::groove>();
+			pGroove->resize(size);
 			CHECK_COLON();
-			for (int j = 0; j < size; j++)
-				Groove->SetEntry(j, t.ReadInt(1, 255));
-			Doc.SetGroove(index, std::move(Groove));
+			for (uint8_t &x : *pGroove)
+				x = t.ReadInt(1, 255);
+			Doc.SetGroove(index, std::move(pGroove));
 			t.ReadEOL();
 		}
 		break;
@@ -1122,12 +1122,11 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	
 	f.WriteString(_T("# Grooves\n"));		// // //
 	for (int i = 0; i < MAX_GROOVE; i++) {
-		CGroove *Groove = pDoc->GetGroove(i);
-		if (Groove != NULL) {
-			s.Format(_T("%s %3d %3d :"), CT[CT_GROOVE], i, Groove->GetSize());
+		if (const auto *pGroove = pDoc->GetGroove(i)) {
+			s.Format(_T("%s %3d %3d :"), CT[CT_GROOVE], i, pGroove->size());
 			f.WriteString(s);
-			for (int j = 0; j < Groove->GetSize(); j++) {
-				s.Format(" %d", Groove->GetEntry(j));
+			for (uint8_t entry : *pGroove) {
+				s.Format(" %d", entry);
 				f.WriteString(s);
 			}
 			f.WriteString(_T("\n"));

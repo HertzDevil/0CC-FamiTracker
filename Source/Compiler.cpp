@@ -32,7 +32,7 @@
 #include "InstrumentN163.h"		// // //
 #include "PatternCompiler.h"
 #include "DSample.h"		// // //
-#include "Groove.h"		// // //
+#include "ft0cc/doc/groove.hpp"		// // //
 #include "Chunk.h"
 #include "ChunkRenderText.h"
 #include "ChunkRenderBinary.h"
@@ -1711,18 +1711,16 @@ void CCompiler::StoreGrooves()
 	GrooveListChunk.StoreByte(0); // padding; possibly used to disable groove
 
 	for (unsigned i = 0; i < MAX_GROOVE; i++) {
-		CGroove *Groove = m_pDocument->GetGroove(i);
-		if (!Groove)
-			continue;
-		
-		unsigned int Pos = Size;
-		CChunk &Chunk = CreateChunk({CHUNK_GROOVE, i});
-		for (int j = 0, n = Groove->GetSize(); j < n; ++j)
-			Chunk.StoreByte(Groove->GetEntry(j));
-		Chunk.StoreByte(0);
-		Chunk.StoreByte(Pos);
-		Size += Chunk.CountDataSize();
-		++Count;
+		if (const auto *pGroove = m_pDocument->GetGroove(i)) {
+			unsigned int Pos = Size;
+			CChunk &Chunk = CreateChunk({CHUNK_GROOVE, i});
+			for (uint8_t entry : *pGroove)
+				Chunk.StoreByte(entry);
+			Chunk.StoreByte(0);
+			Chunk.StoreByte(Pos);
+			Size += Chunk.CountDataSize();
+			++Count;
+		}
 	}
 
 	Print(" * Grooves used: %i (%i bytes)\n", Count, Size);
@@ -1766,8 +1764,8 @@ void CCompiler::StoreSongs()
 		if (m_pDocument->GetSongGroove(i) && m_pDocument->GetGroove(m_pDocument->GetSongSpeed(i)) != NULL) {		// // //
 			int Pos = 1;
 			for (unsigned int j = 0; j < m_pDocument->GetSongSpeed(i); j++)
-				if (m_pDocument->GetGroove(j) != NULL)
-					Pos += m_pDocument->GetGroove(j)->GetSize() + 2;
+				if (m_pDocument->GetGroove(j) != nullptr)
+					Pos += m_pDocument->GetGroove(j)->size() + 2;
 			Chunk.StoreByte(Pos);
 		}
 		else

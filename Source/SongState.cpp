@@ -23,7 +23,7 @@
 #include "SongState.h"
 #include "FamiTrackerDoc.h"
 #include "TrackerChannel.h"
-#include "Groove.h"
+#include "ft0cc/doc/groove.hpp"
 #include <algorithm>
 
 
@@ -330,12 +330,12 @@ std::string CSongState::GetChannelStateString(const CFamiTrackerDoc &doc, int ch
 	if (Tempo >= 0)
 		str += "        Tempo: " + std::to_string(Tempo);
 	if (Speed >= 0) {
-		if (const CGroove *Groove = doc.GetGroove(Speed); Groove && GroovePos >= 0) {
+		if (const auto *pGroove = doc.GetGroove(Speed); pGroove && GroovePos >= 0) {
 			str += "        Groove: ";
 			str += {hex(Speed >> 4), hex(Speed), ' ', '<', '-'};
-			const unsigned char Size = Groove->GetSize();
-			for (unsigned char i = 0; i < Size; i++)
-				str += ' ' + std::to_string(Groove->GetEntry((i + GroovePos) % Size));
+			unsigned Size = pGroove->size();
+			for (unsigned i = 0; i < Size; ++i)
+				str += ' ' + std::to_string(pGroove->entry((i + GroovePos) % Size));
 		}
 		else
 			str += "        Speed: " + std::to_string(Speed);

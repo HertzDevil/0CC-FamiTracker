@@ -33,7 +33,9 @@ class CFamiTrackerDoc;
 
 // CGrooveDlg dialog
 
-class CGroove;
+namespace ft0cc::doc {
+class groove;
+} // namespace ft0cc::doc
 
 class CGrooveDlg : public CDialog
 {
@@ -53,8 +55,8 @@ protected:
 
 	CFamiTrackerDoc *m_pDocument;
 
-	std::array<std::unique_ptr<CGroove>, MAX_GROOVE> GrooveTable;
-	CGroove *Groove = nullptr;
+	std::array<std::unique_ptr<ft0cc::doc::groove>, MAX_GROOVE> GrooveTable;
+	ft0cc::doc::groove *Groove = nullptr;
 	int m_iGrooveIndex, m_iGroovePos;
 
 	CListBox *m_cGrooveTable, *m_cCurrentGroove;

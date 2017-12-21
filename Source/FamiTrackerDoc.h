@@ -70,9 +70,12 @@ class CTrackerChannel;
 class CDocumentFile;
 class CSeqInstrument;		// // // TODO: move to instrument manager
 class CDSample;		// // //
-class CGroove;		// // //
 class CSimpleFile;		// // //
 class CBookmarkCollection;		// // //
+
+namespace ft0cc::doc {		// // //
+class groove;
+} // namespace ft0cc::doc
 
 //
 // I'll try to organize this class, things are quite messy right now!
@@ -80,6 +83,8 @@ class CBookmarkCollection;		// // //
 
 class CFamiTrackerDoc : public CDocument, public CFTMComponentInterface
 {
+	using groove = ft0cc::doc::groove;
+
 protected: // create from serialization only
 	CFamiTrackerDoc();
 	DECLARE_DYNCREATE(CFamiTrackerDoc)
@@ -246,8 +251,8 @@ public:
 	int				GetTuningSemitone() const;		// // // 050B
 	int				GetTuningCent() const;		// // // 050B
 
-	CGroove			*GetGroove(unsigned Index) const;		// // //
-	void			SetGroove(unsigned Index, std::unique_ptr<CGroove> Groove);
+	groove			*GetGroove(unsigned Index) const;		// // //
+	void			SetGroove(unsigned Index, std::unique_ptr<groove> Groove);
 
 	int				GetFrameLength(unsigned int Track, unsigned int Frame) const;
 
@@ -424,7 +429,7 @@ private:
 
 	// Instruments, samples and sequences
 	std::unique_ptr<CInstrumentManager> m_pInstrumentManager;	// // //
-	std::array<std::unique_ptr<CGroove>, MAX_GROOVE> m_pGrooveTable;		// // // Grooves
+	std::array<std::unique_ptr<groove>, MAX_GROOVE> m_pGrooveTable;		// // // Grooves
 
 	// Module properties
 	vibrato_t		m_iVibratoStyle;							// 0 = old style, 1 = new style

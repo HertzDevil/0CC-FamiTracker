@@ -23,7 +23,7 @@
 #include "TempoCounter.h"
 #include "FamiTrackerDoc.h"
 #include "SongState.h"
-#include "Groove.h"
+#include "ft0cc/doc/groove.hpp"
 
 // // // CTempoCounter
 
@@ -58,7 +58,7 @@ void CTempoCounter::LoadTempo(unsigned Track) {
 
 double CTempoCounter::GetTempo() const {
 	auto Tempo = m_iTempo ? static_cast<double>(m_iTempo) : 2.5 * m_pDocument->GetFrameRate();		// // //
-	auto Speed = m_pCurrentGroove ? m_pCurrentGroove->GetAverage() : static_cast<double>(m_iSpeed);
+	auto Speed = m_pCurrentGroove ? m_pCurrentGroove->average() : static_cast<double>(m_iSpeed);
 	return !m_iSpeed ? 0. : Tempo * 6. / Speed;
 }
 
@@ -126,17 +126,17 @@ void CTempoCounter::SetupSpeed() {
 	}
 }
 
-void CTempoCounter::LoadGroove(const CGroove &Groove) {
+void CTempoCounter::LoadGroove(const ft0cc::doc::groove &Groove) {
 	m_pCurrentGroove = &Groove;
 	m_iGroovePosition = 0;
 }
 
 void CTempoCounter::UpdateGrooveSpeed() {
-	m_iSpeed = m_pCurrentGroove->GetEntry(m_iGroovePosition);
+	m_iSpeed = m_pCurrentGroove->entry(m_iGroovePosition);
 	SetupSpeed();
 }
 
 void CTempoCounter::StepGroove() {
 	UpdateGrooveSpeed();
-	++m_iGroovePosition %= m_pCurrentGroove->GetSize();
+	++m_iGroovePosition %= m_pCurrentGroove->size();
 }

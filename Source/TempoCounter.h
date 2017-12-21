@@ -26,8 +26,11 @@
 #include <cstdint>
 
 class CFamiTrackerDoc;
-class CGroove;
 class CSongState;
+
+namespace ft0cc::doc {
+class groove;
+} // namespace ft0cc::doc
 
 class CTempoCounter {
 public:
@@ -47,13 +50,13 @@ public:
 
 private:
 	void SetupSpeed();
-	void LoadGroove(const CGroove &Groove);
+	void LoadGroove(const ft0cc::doc::groove &Groove);
 	void UpdateGrooveSpeed();
 	void StepGroove();
 
 private:
 	const CFamiTrackerDoc *m_pDocument = nullptr;
-	const CGroove *m_pCurrentGroove = nullptr;
+	const ft0cc::doc::groove *m_pCurrentGroove = nullptr;
 
 	unsigned int m_iTempo;
 	unsigned int m_iSpeed;

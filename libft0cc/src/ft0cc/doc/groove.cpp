@@ -26,19 +26,6 @@
 
 using namespace ft0cc::doc;
 
-groove::groove(uint8_t Speed) {
-	clear(Speed);
-}
-
-void groove::copy(const groove *Source) { // TODO: remove
-	*this = *Source;
-}
-
-void groove::clear(uint8_t Speed) {
-	resize(Speed > 0 ? 1 : 0);
-	set_entry(0, Speed);
-}
-
 uint8_t groove::entry(std::size_t index) const {
 	return len_ ? entries_[index % len_] : default_speed;
 }
@@ -55,12 +42,12 @@ std::size_t groove::size() const {
 void groove::resize(std::size_t size) {
 	if (size <= max_size) {
 		if (size > len_)
-			std::fill(begin(entries_) + len_, begin(entries_) + size, (uint8_t)0);
+			std::fill(entries_.begin() + len_, entries_.begin() + size, (uint8_t)0);
 		len_ = size;
 	}
 }
 
 double groove::average() const {
 	return !len_ ? default_speed :
-		std::accumulate(begin(entries_), begin(entries_) + len_, 0.) / len_;
+		std::accumulate(entries_.begin(), entries_.begin() + len_, 0.) / len_;
 }

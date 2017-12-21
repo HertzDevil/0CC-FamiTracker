@@ -519,9 +519,6 @@
     <ClCompile Include="Source\WaveFile.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Groove.cpp">
-      <Filter>Source Files\Document Data Types</Filter>
-    </ClCompile>
     <ClCompile Include="Source\DetuneDlg.cpp">
       <Filter>Source Files\Dialog Boxes</Filter>
     </ClCompile>
@@ -1054,9 +1051,6 @@
     </ClInclude>
     <ClInclude Include="Source\WaveFile.h">
       <Filter>Header Files\Components Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Groove.h">
-      <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\FindDlg.h">
       <Filter>Header Files\Dialog Boxes Headers</Filter>

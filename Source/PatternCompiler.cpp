@@ -27,7 +27,7 @@
 #include "InstrumentFDS.h"		// // //
 #include "TrackerChannel.h"
 #include "Compiler.h"
-#include "Groove.h"		// // //
+#include "ft0cc/doc/groove.hpp"		// // //
 
 /**
  * CPatternCompiler - Compress patterns to strings for the NSF code
@@ -534,7 +534,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 						int Pos = 1;
 						for (int i = 0; i < EffParam; i++)
 							if (m_pDocument->GetGroove(i) != NULL)
-								Pos += m_pDocument->GetGroove(i)->GetSize() + 2;
+								Pos += m_pDocument->GetGroove(i)->size() + 2; // TODO: use groove manager instead
 						WriteData(Pos);
 					}
 					break;

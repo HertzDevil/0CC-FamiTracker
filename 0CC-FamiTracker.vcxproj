@@ -471,7 +471,6 @@
     <ClCompile Include="Source\FamiTrackerView.cpp" />
     <ClCompile Include="Source\FindDlg.cpp" />
     <ClCompile Include="Source\GotoDlg.cpp" />
-    <ClCompile Include="Source\Groove.cpp" />
     <ClCompile Include="Source\GrooveDlg.cpp" />
     <ClCompile Include="Source\InstHandlerDPCM.cpp" />
     <ClCompile Include="Source\InstHandlerVRC7.cpp" />
@@ -668,7 +667,6 @@
     <ClInclude Include="Source\FindDlg.h" />
     <ClInclude Include="Source\FTMComponentInterface.h" />
     <ClInclude Include="Source\GotoDlg.h" />
-    <ClInclude Include="Source\Groove.h" />
     <ClInclude Include="Source\GrooveDlg.h" />
     <ClInclude Include="Source\InstHandler.h" />
     <ClInclude Include="Source\InstHandlerDPCM.h" />
