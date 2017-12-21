@@ -5,7 +5,7 @@ matrix:
   include:
     - os: linux
       env:
-        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++"
     - os: linux
       addons:
         apt:
@@ -18,9 +18,6 @@ matrix:
 
 before_install:
   - eval "${MATRIX_EVAL}"
-  - ls /usr/local
-  - ls /usr/local/clang-5.0.0
-  - ls /usr/local/clang-5.0.0/bin
 
 script:
   - mkdir build
