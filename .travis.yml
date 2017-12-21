@@ -20,5 +20,5 @@ script:
   - mkdir build
   - cd build
   - cmake ../libft0cc
-  - cmake --build . -- j4
-  - ctest
+  - cmake --build . -- -j4
+  - ctest -V

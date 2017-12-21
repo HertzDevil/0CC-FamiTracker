@@ -8,4 +8,4 @@ build_script:
   - "cmake --build . --config Release -- /maxcpucount:2"
 
 test_script:
-  - ctest -C Release
+  - ctest -C Release -V

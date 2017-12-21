@@ -14,7 +14,3 @@ TEST(Groove, DefaultCtorWithSpeed) {
 	EXPECT_EQ(grv.size(), 1u);
 	EXPECT_DOUBLE_EQ(grv.average(), 2.);
 }
-
-TEST(Groove, Fail) {
-	FAIL();
-}
