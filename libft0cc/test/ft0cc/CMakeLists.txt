@@ -1,7 +1,7 @@
 set(TEST_SOURCES
-	ft0cc/doc/groove.cpp)
+	ft0cc/doc/groove_test.cpp)
 
-add_executable(ft0cctest main.cpp ${TEST_SOURCES})
+add_executable(ft0cctest test_main.cpp ${TEST_SOURCES})
 target_link_libraries(ft0cctest libgtest libgmock
 	ft0cc)
 add_test(NAME ft0cctest COMMAND
