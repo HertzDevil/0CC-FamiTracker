@@ -5,7 +5,7 @@ matrix:
   include:
     - os: linux
       env:
-        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++"
+        - MATRIX_EVAL="CC=clang && CXX=clang++"
     - os: linux
       addons:
         apt:
@@ -16,7 +16,7 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
       after_success:
-        - coveralls --root . --gcov gcov-7
+        - coveralls --gcov gcov-7 --root .. --include src --include include
 
 before_install:
   - eval "${MATRIX_EVAL}"
