@@ -325,7 +325,7 @@ void CSequenceParser::SetConversion(CSeqConversionBase *pConv)
 void CSequenceParser::ParseSequence(const std::string &String)
 {
 	auto Setting = static_cast<seq_setting_t>(m_pSequence->GetSetting());
-	m_pSequence->Clear();
+	*m_pSequence = CSequence { };
 	m_pSequence->SetSetting(Setting);
 	m_iPushedCount = 0;
 	static const std::regex SPLIT_RE {R"(\S+)"};

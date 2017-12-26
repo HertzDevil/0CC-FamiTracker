@@ -296,7 +296,7 @@ void CInstrumentRecorder::ResetRecordCache()
 	memset(m_pDumpCache, 0, sizeof(CInstrument*) * MAX_INSTRUMENTS);
 	m_pDumpInstrument = &m_pDumpCache[0];
 	for (int i = 0; i < SEQ_COUNT; i++)
-		m_pSequenceCache[i]->Clear();
+		*m_pSequenceCache[i] = CSequence { };
 }
 
 void CInstrumentRecorder::ReleaseCurrent()

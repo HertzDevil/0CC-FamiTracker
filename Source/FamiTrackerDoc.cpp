@@ -693,7 +693,7 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 				if (GetSequenceItemCount(inst[i], j, t)) continue;
 				// TODO: continue if blank sequence is used by some instrument
 				CSequence *pSeq = GetSequence(inst[i], j, t);
-				pSeq->Copy(pImportSeq);
+				*pSeq = *pImportSeq;		// // //
 				// Save a reference to this sequence
 				seqTable[i][s][t] = j;
 				break;
@@ -979,7 +979,7 @@ int CFamiTrackerDoc::DeepCloneInstrument(unsigned int Index)
 				int freeSeq = m_pInstrumentManager->GetFreeSequenceIndex(it, i, pInstrument.get());
 				if (freeSeq != -1) {
 					if (pInstrument->GetSeqEnable(i))
-						GetSequence(it, unsigned(freeSeq), i)->Copy(pInstrument->GetSequence(i));
+						*GetSequence(it, unsigned(freeSeq), i) = *pInstrument->GetSequence(i);		// // //
 					pInstrument->SetSeqIndex(i, freeSeq);
 				}
 			}
@@ -2089,7 +2089,7 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 						}
 					}
 					if (!Used)
-						GetSequence(inst[c], i, j)->Clear();
+						*GetSequence(inst[c], i, j) = CSequence { };		// // //
 				}
 }
 

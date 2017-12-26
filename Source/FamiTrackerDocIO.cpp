@@ -1015,7 +1015,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
 			CSequence *pSeq = pManager->GetCollection(Type)->GetSequence(Index);
-			pSeq->Clear();
+			*pSeq = CSequence { };
 			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
 
 			pSeq->SetLoopPoint(AssertRange<MODULE_ERROR_STRICT>(
@@ -1108,7 +1108,7 @@ void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerDoc &doc, int ver) {
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
 			CSequence *pSeq = pManager->GetCollection(Type)->GetSequence(Index);
-			pSeq->Clear();
+			*pSeq = CSequence { };
 			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
 
 			pSeq->SetLoopPoint(AssertRange<MODULE_ERROR_STRICT>(
@@ -1165,7 +1165,7 @@ void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerDoc &doc, int ver) {
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
 			CSequence *pSeq = pManager->GetCollection(Type)->GetSequence(Index);
-			pSeq->Clear();
+			*pSeq = CSequence { };
 			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
 
 			pSeq->SetLoopPoint(AssertRange<MODULE_ERROR_STRICT>(
@@ -1282,10 +1282,10 @@ void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerDoc &doc, int ver) {
 	for (int i = 0; i < Count; i++) {
 		int Index = AssertRange(file_.GetBlockChar(), 0, MAX_GROOVE - 1, "Groove index");
 		try {
-			int Size = AssertRange(file_.GetBlockChar(), 1, ft0cc::doc::groove::max_size, "Groove size");
+			std::size_t Size = AssertRange((uint8_t)file_.GetBlockChar(), 1u, ft0cc::doc::groove::max_size, "Groove size");
 			auto pGroove = std::make_unique<ft0cc::doc::groove>();
 			pGroove->resize(Size);
-			for (int j = 0; j < Size; ++j) try {
+			for (std::size_t j = 0; j < Size; ++j) try {
 				pGroove->set_entry(j, AssertRange(
 					static_cast<unsigned char>(file_.GetBlockChar()), 1U, 0xFFU, "Groove item"));
 			}

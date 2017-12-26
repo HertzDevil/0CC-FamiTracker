@@ -23,23 +23,7 @@
 #include "Sequence.h"
 #include <cstring>		// // //
 #include <stdexcept>		// // //
-
-CSequence::CSequence()
-{
-	Clear();
-}
-
-void CSequence::Clear()
-{
-	m_iItemCount = 0;
-	m_iLoopPoint = -1;
-	m_iReleasePoint = -1;
-	m_iSetting = SETTING_DEFAULT;		// // //
-
-	memset(m_cValues, 0, sizeof(char) * MAX_SEQUENCE_ITEMS);
-
-	m_iPlaying = -1;
-}
+#include <algorithm>		// // //
 
 bool CSequence::operator==(const CSequence &other)		// // //
 {
@@ -47,10 +31,11 @@ bool CSequence::operator==(const CSequence &other)		// // //
 		m_iLoopPoint == other.m_iLoopPoint &&
 		m_iReleasePoint == other.m_iReleasePoint &&
 		m_iSetting == other.m_iSetting &&
-		memcmp(m_cValues, other.m_cValues, m_iItemCount * sizeof(*m_cValues)) == 0;
+		std::equal(m_cValues.cbegin(), m_cValues.cbegin() + m_iItemCount,
+			other.m_cValues.cbegin(), other.m_cValues.cbegin() + m_iItemCount);
 }
 
-void CSequence::SetItem(int Index, signed char Value)
+void CSequence::SetItem(int Index, int8_t Value)		// // //
 {
 	m_cValues[Index] = Value;
 }
@@ -89,7 +74,7 @@ void CSequence::SetSetting(seq_setting_t Setting)		// // //
 	m_iSetting = Setting;
 }
 
-signed char CSequence::GetItem(int Index) const
+int8_t CSequence::GetItem(int Index) const		// // //
 {
 	return m_cValues[Index];
 }
@@ -112,15 +97,4 @@ unsigned int CSequence::GetReleasePoint() const
 seq_setting_t CSequence::GetSetting() const		// // //
 {
 	return m_iSetting;
-}
-
-void CSequence::Copy(const CSequence *pSeq)
-{
-	// Copy all values from pSeq
-	m_iItemCount = pSeq->m_iItemCount;
-	m_iLoopPoint = pSeq->m_iLoopPoint;
-	m_iReleasePoint = pSeq->m_iReleasePoint;
-	m_iSetting = pSeq->m_iSetting;
-
-	memcpy(m_cValues, pSeq->m_cValues, MAX_SEQUENCE_ITEMS);
 }

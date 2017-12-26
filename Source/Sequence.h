@@ -24,6 +24,8 @@
 #pragma once
 
 #include "FamiTrackerTypes.h"		// // //
+#include <array>		// // //
+#include <cstdint>		// // //
 
 // // // Settings
 enum seq_setting_t : unsigned int {
@@ -72,29 +74,26 @@ const int ARPSCHEME_MIN = ARPSCHEME_MAX - 0x3F;		// // //
 */
 class CSequence {
 public:
-	CSequence();
+	constexpr CSequence() = default;		// // //
 
 	bool         operator==(const CSequence &other);		// // //
 
-	void		 Clear();
-	signed char	 GetItem(int Index) const;
+	int8_t		 GetItem(int Index) const;		// // //
 	unsigned int GetItemCount() const;
 	unsigned int GetLoopPoint() const;
 	unsigned int GetReleasePoint() const;
 	seq_setting_t GetSetting() const;		// // //
-	void		 SetItem(int Index, signed char Value);
+	void		 SetItem(int Index, int8_t Value);		// / ///
 	void		 SetItemCount(unsigned int Count);
 	void		 SetLoopPoint(unsigned int Point);
 	void		 SetReleasePoint(unsigned int Point);
 	void		 SetSetting(seq_setting_t Setting);		// // //
-	void		 Copy(const CSequence *pSeq);
 
 private:
 	// Sequence data
-	unsigned int m_iItemCount;
-	unsigned int m_iLoopPoint;
-	unsigned int m_iReleasePoint;
-	seq_setting_t m_iSetting;		// // //
-	signed char	 m_cValues[MAX_SEQUENCE_ITEMS];
-	int			 m_iPlaying; // unused
+	unsigned int m_iItemCount = 0;
+	unsigned int m_iLoopPoint = -1;
+	unsigned int m_iReleasePoint = -1;
+	seq_setting_t m_iSetting = SETTING_DEFAULT;		// // //
+	std::array<int8_t, MAX_SEQUENCE_ITEMS> m_cValues = { };		// // //
 };
