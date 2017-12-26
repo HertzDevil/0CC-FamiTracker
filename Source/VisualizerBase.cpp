@@ -36,7 +36,7 @@ void CVisualizerBase::Create(int Width, int Height)
 	m_pBlitBuffer = std::make_unique<COLORREF[]>(Width * Height);		// // //
 }
 
-void CVisualizerBase::SetSampleData(short *pSamples, unsigned int iCount)
+void CVisualizerBase::SetSampleData(const int16_t *pSamples, unsigned int iCount)		// // //
 {
 	m_pSamples = pSamples;
 	m_iSampleCount = iCount;

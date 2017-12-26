@@ -26,6 +26,8 @@
 // Visualizer classes
 
 #include "stdafx.h"		// // //
+#include <memory>		// // //
+#include <array>		// // //
 
 class CVisualizerBase;		// // //
 
@@ -40,7 +42,7 @@ public:
 	virtual ~CVisualizerWnd();
 
 	void SetSampleRate(int SampleRate);
-	void FlushSamples(short *Samples, int Count);
+	void FlushSamples(const int16_t *Samples, int Count);		// // //
 	void ReportAudioProblem();
 
 private:
@@ -54,13 +56,13 @@ private:
 	static const int STATE_COUNT = 5;		// // //
 
 private:
-	CVisualizerBase *m_pStates[STATE_COUNT];
+	std::array<std::unique_ptr<CVisualizerBase>, STATE_COUNT> m_pStates;		// // //
 	unsigned int m_iCurrentState;
 
 	int	m_iBufferSize;
-	short *m_pBuffer1;
-	short *m_pBuffer2;
-	short *m_pFillBuffer;
+	std::unique_ptr<int16_t[]> m_pBuffer1;		// // //
+	std::unique_ptr<int16_t[]> m_pBuffer2;
+	std::unique_ptr<int16_t[]> *m_pFillBuffer = nullptr;
 
 	HANDLE m_hNewSamples;
 

@@ -35,7 +35,7 @@ public:
 	// Set rate of samples
 	virtual void SetSampleRate(int SampleRate) = 0;
 	// Set new sample data
-	virtual void SetSampleData(short *iSamples, unsigned int iCount);
+	virtual void SetSampleData(const int16_t *iSamples, unsigned int iCount);		// // //
 	// Render an image from the sample data
 	virtual void Draw() = 0;
 	// Display the image
@@ -49,5 +49,5 @@ protected:
 	int m_iHeight = 0;
 
 	unsigned int m_iSampleCount = 0;
-	short *m_pSamples = nullptr;
+	const int16_t *m_pSamples = nullptr;
 };

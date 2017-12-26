@@ -44,31 +44,24 @@ UINT CVisualizerWnd::ThreadProcFunc(LPVOID pParam)
 IMPLEMENT_DYNAMIC(CVisualizerWnd, CWnd)
 
 CVisualizerWnd::CVisualizerWnd() :
+	m_pStates {
+		std::make_unique<CVisualizerScope>(false),
+		std::make_unique<CVisualizerScope>(true),
+		std::make_unique<CVisualizerSpectrum>(4),		// // //
+		std::make_unique<CVisualizerSpectrum>(1),
+		std::make_unique<CVisualizerStatic>(),
+	},
 	m_iCurrentState(0),
 	m_bThreadRunning(false),
 	m_pWorkerThread(NULL),
 	m_iBufferSize(0),
-	m_pBuffer1(NULL),
-	m_pBuffer2(NULL),
-	m_pFillBuffer(NULL),
 	m_hNewSamples(NULL),
 	m_bNoAudio(false)
 {
-	m_pStates[0] = new CVisualizerScope(false);
-	m_pStates[1] = new CVisualizerScope(true);
-	m_pStates[2] = new CVisualizerSpectrum(4);		// // //
-	m_pStates[3] = new CVisualizerSpectrum(1);
-	m_pStates[4] = new CVisualizerStatic();
 }
 
 CVisualizerWnd::~CVisualizerWnd()
 {
-	for (int i = 0; i < STATE_COUNT; ++i) {		// // //
-		SAFE_RELEASE(m_pStates[i]);
-	}
-
-	SAFE_RELEASE_ARRAY(m_pBuffer1);
-	SAFE_RELEASE_ARRAY(m_pBuffer2);
 }
 
 BEGIN_MESSAGE_MAP(CVisualizerWnd, CWnd)
@@ -85,7 +78,7 @@ END_MESSAGE_MAP()
 void CVisualizerWnd::NextState()
 {
 	m_csBuffer.Lock();
-	m_iCurrentState = (m_iCurrentState + 1) % STATE_COUNT;
+	m_iCurrentState = (m_iCurrentState + 1) % std::size(m_pStates);
 	m_csBuffer.Unlock();
 
 	Invalidate();
@@ -102,24 +95,22 @@ void CVisualizerWnd::SetSampleRate(int SampleRate)
 			state->SetSampleRate(SampleRate);
 }
 
-void CVisualizerWnd::FlushSamples(short *pSamples, int Count)
+void CVisualizerWnd::FlushSamples(const int16_t *pSamples, int Count)		// // //
 {
 	if (!m_bThreadRunning)
 		return;
 
 	if (Count != m_iBufferSize) {
 		m_csBuffer.Lock();
-		SAFE_RELEASE_ARRAY(m_pBuffer1);
-		SAFE_RELEASE_ARRAY(m_pBuffer2);
-		m_pBuffer1 = new short[Count];
-		m_pBuffer2 = new short[Count];
+		m_pBuffer1 = std::make_unique<short[]>(Count);		// // //s
+		m_pBuffer2 = std::make_unique<short[]>(Count);
 		m_iBufferSize = Count;
-		m_pFillBuffer = m_pBuffer1;
+		m_pFillBuffer = &m_pBuffer1;
 		m_csBuffer.Unlock();
 	}
 
 	m_csBufferSelect.Lock();
-	memcpy(m_pFillBuffer, pSamples, sizeof(short) * Count);
+	memcpy(m_pFillBuffer->get(), pSamples, sizeof(int16_t) * Count);
 	m_csBufferSelect.Unlock();
 
 	SetEvent(m_hNewSamples);
@@ -145,12 +136,12 @@ UINT CVisualizerWnd::ThreadProc()
 		// Switch buffers
 		m_csBufferSelect.Lock();
 
-		short *pDrawBuffer = m_pFillBuffer;
+		auto pDrawBuffer = m_pFillBuffer->get();
 
-		if (m_pFillBuffer == m_pBuffer1)
-			m_pFillBuffer = m_pBuffer2;
+		if (m_pFillBuffer == &m_pBuffer1)
+			m_pFillBuffer = &m_pBuffer2;
 		else
-			m_pFillBuffer = m_pBuffer1;
+			m_pFillBuffer = &m_pBuffer1;
 
 		m_csBufferSelect.Unlock();
 

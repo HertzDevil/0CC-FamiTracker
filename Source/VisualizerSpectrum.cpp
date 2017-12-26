@@ -51,13 +51,13 @@ void CVisualizerSpectrum::SetSampleRate(int SampleRate)
 	m_iFillPos = 0;
 }
 
-void CVisualizerSpectrum::Transform(short *pSamples, unsigned int Count)
+void CVisualizerSpectrum::Transform(const int16_t *pSamples, unsigned int Count)
 {
 	fft_buffer_.CopyIn(pSamples, Count);
 	fft_buffer_.Transform();
 }
 
-void CVisualizerSpectrum::SetSampleData(short *pSamples, unsigned int iCount)
+void CVisualizerSpectrum::SetSampleData(const int16_t *pSamples, unsigned int iCount)		// // //
 {
 	CVisualizerBase::SetSampleData(pSamples, iCount);
 
