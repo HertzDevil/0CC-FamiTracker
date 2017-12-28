@@ -1,10 +1,12 @@
 dist: trusty
-sudo: required
+sudo: false
 language: cpp
 
 matrix:
   include:
-    - os: linux
+#    - os: linux
+#      env:
+#        - MATRIX_EVAL="CC=clang && CXX=clang++"
     - os: linux
       addons:
         apt:
@@ -13,25 +15,19 @@ matrix:
           packages:
             - g++-7
       env:
-        - USE_GCC=1
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
       after_success:
         - coveralls --gcov gcov-7 --root .. --include src --include include
 
 before_install:
-  - |
-    if [ "$USE_GCC" = "1" ]; then
-      export CC=gcc-7 CXX=g++-7
-    else
-      sudo CXX="$CXX" CC="$CC"
-      sudo ./travis/install_libcxx.sh -v 5.0.0
-    fi
-  - sudo pip install cpp-coveralls
+  - eval "${MATRIX_EVAL}"
+  - pip install --user cpp-coveralls
 
 script:
   - cd libft0cc
   - mkdir build
   - cd build
-  - cmake -DCOVERAGE=$USE_GCC ..
+  - cmake -DCOVERAGE=1 ..
   - cmake --build . -- -j4
   - GTEST_COLOR=1 ctest -V
 
