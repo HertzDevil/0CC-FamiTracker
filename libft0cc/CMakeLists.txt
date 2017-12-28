@@ -33,14 +33,5 @@ else()
 	add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
 
-set(SOURCES
-	src/ft0cc/doc/groove.cpp)
-
-add_library(ft0cc STATIC ${SOURCES})
-target_include_directories(ft0cc PUBLIC include)
-if(COVERAGE)
-	target_compile_options(ft0cc PRIVATE --coverage)
-	target_link_libraries(ft0cc --coverage)
-endif()
-
+add_subdirectory(src)
 add_subdirectory(test)

@@ -19,11 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\ft0cc\doc\inst_sequence.hpp" />
     <ClInclude Include="..\include\ft0cc\fs.h" />
     <ClInclude Include="..\include\ft0cc\doc\groove.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ft0cc\doc\groove.cpp" />
+    <ClCompile Include="..\src\ft0cc\doc\inst_sequence.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

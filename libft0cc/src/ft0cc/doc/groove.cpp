@@ -66,7 +66,7 @@ double groove::average() const {
 		std::accumulate(entries_.begin(), entries_.begin() + len_, 0.) / len_;
 }
 
-int ft0cc::doc::groove::compare(const groove &other) const {
+int groove::compare(const groove &other) const {
 	auto b1 = begin();
 	auto e1 = end();
 	auto b2 = other.begin();
@@ -81,5 +81,5 @@ int ft0cc::doc::groove::compare(const groove &other) const {
 		++b2;
 	}
 	return b2 != e2 ? -1 : (b1 != e1 ? 1 : 0);
-//	return std::lexicographical_compare_3way(begin(), end(), other.begin(), other.end());
+//	return std::lexicographical_compare_3way(begin(), begin() + len_, other.begin(), other.begin() + len_);
 }
