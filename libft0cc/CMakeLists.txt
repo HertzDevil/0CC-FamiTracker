@@ -13,7 +13,7 @@ endif()
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL
 	"A flag specifying whether compiler specific extensions should be used." FORCE)
 
-SET(COVERAGE OFF CACHE BOOL "Enables coverage reports.")
+set(COVERAGE OFF CACHE BOOL "Enables coverage reports.")
 
 if(MSVC)
 	add_compile_options(/std:c++17 /permissive- /Zc:forScope /Zc:inline /Zc:rvalueCast /Za)
@@ -31,6 +31,9 @@ if(MSVC)
 		endif()
 	endforeach()
 else()
+	if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+		set(CLANG_DEFAULT_CXX_STDLIB libc++)
+	endif()
 	add_compile_options(-std=c++17)
 	add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
