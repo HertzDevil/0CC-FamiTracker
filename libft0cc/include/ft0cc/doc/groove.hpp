@@ -31,17 +31,21 @@ namespace ft0cc::doc {
 
 class groove {
 public:
+	using entry_type = std::uint8_t;
+
 	static constexpr std::size_t max_size = 128u;
-	static constexpr uint8_t default_speed = 6u;
+	static constexpr entry_type default_speed = 6u;
 
 	constexpr groove() = default;
-	groove(std::initializer_list<uint8_t> entries);
+	groove(std::initializer_list<entry_type> entries);
 
-	uint8_t entry(std::size_t index) const;
-	void set_entry(std::size_t index, uint8_t value);
+	entry_type entry(std::size_t index) const;
+	void set_entry(std::size_t index, entry_type value);
+
 	std::size_t size() const;
 	std::size_t compiled_size() const;
 	void resize(std::size_t size);
+
 	double average() const;
 
 	int compare(const groove &other) const;
@@ -59,7 +63,7 @@ public:
 
 private:
 	std::size_t len_ = 0;
-	std::array<uint8_t, max_size> entries_ = { };
+	std::array<entry_type, max_size> entries_ = { };
 };
 
 } // namespace ft0cc::doc

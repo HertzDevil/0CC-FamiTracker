@@ -26,21 +26,21 @@
 
 using namespace ft0cc::doc;
 
-ft0cc::doc::groove::groove(std::initializer_list<uint8_t> entries) {
+ft0cc::doc::groove::groove(std::initializer_list<entry_type> entries) {
 	std::size_t i = 0;
 	len_ = std::min(entries.size(), max_size);
-	for (uint8_t x : entries) {
+	for (entry_type x : entries) {
 		if (i >= len_)
 			break;
 		entries_[i++] = x;
 	}
 }
 
-uint8_t groove::entry(std::size_t index) const {
+groove::entry_type groove::entry(std::size_t index) const {
 	return len_ ? entries_[index % len_] : default_speed;
 }
 
-void groove::set_entry(std::size_t index, uint8_t value) {
+void groove::set_entry(std::size_t index, entry_type value) {
 	if (len_)
 		entries_[index % len_] = value;
 }

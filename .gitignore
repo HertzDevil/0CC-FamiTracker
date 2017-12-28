@@ -42,7 +42,9 @@ apu_log.txt
 0CC-FamiTracker.vcproj
 *.db
 *.opendb
+
 .vs/*
+.editorconfig
 commit_hash.h
 
 libft0cc/build
