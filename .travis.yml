@@ -22,6 +22,7 @@ before_install:
     if [ "$USE_GCC" = "1" ]; then
       export CC=gcc-7 CXX=g++-7
     else
+      sudo CXX="$CXX" CC="$CC"
       sudo ./travis/install_libcxx.sh -v 5.0.0
     fi
   - sudo pip install cpp-coveralls
