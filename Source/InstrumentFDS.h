@@ -55,9 +55,9 @@ protected:
 
 private:
 	void StoreSequence(CDocumentFile &DocFile, const CSequence &Seq) const;		// // //
-	CSequence *LoadSequence(CDocumentFile &DocFile) const;
+	std::shared_ptr<CSequence> LoadSequence(CDocumentFile &DocFile) const;
 	void StoreInstSequence(CSimpleFile &File, const CSequence &Seq) const;		// // //
-	CSequence *LoadInstSequence(CSimpleFile &File) const;		// // //
+	std::shared_ptr<CSequence> LoadInstSequence(CSimpleFile &File) const;		// // //
 	void DoubleVolume() const;		// // //
 
 	void	OnBlankInstrument() override;		// // //
@@ -73,7 +73,7 @@ public:
 
 private:
 	// Instrument data
-	std::vector<std::unique_ptr<CSequence>> m_pSequence;
+	std::vector<std::shared_ptr<CSequence>> m_pSequence;
 	unsigned char m_iSamples[64];
 	unsigned char m_iModulation[32];
 	int			  m_iModulationSpeed;
@@ -82,9 +82,9 @@ private:
 	bool		  m_bModulationEnable;
 	
 public: // // // porting CSeqInstrument
-	virtual int		GetSeqEnable(int Index) const;
-	virtual int		GetSeqIndex(int Index) const;
-	virtual void	SetSeqIndex(int Index, int Value);
-	CSequence		*GetSequence(int SeqType) const;		// // //
-	virtual void	SetSequence(int SeqType, CSequence *pSeq);		// // //
+	int		GetSeqEnable(int Index) const override;
+	int		GetSeqIndex(int Index) const override;
+	void	SetSeqIndex(int Index, int Value) override;
+	std::shared_ptr<CSequence> GetSequence(int SeqType) const override;		// // //
+	void	SetSequence(int SeqType, std::shared_ptr<CSequence> pSeq) override;		// // //
 };

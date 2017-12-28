@@ -223,7 +223,7 @@ void CSequenceEditor::SequenceChangedMessage(bool Changed)
 
 //const int SEQ_SUNSOFT_NOISE = SEQ_DUTYCYCLE + 1;
 
-void CSequenceEditor::SelectSequence(CSequence *pSequence, int Type, int InstrumentType)
+void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int Type, int InstrumentType)		// // //
 {
 	// Select a sequence to edit
 	m_pSequence = pSequence;

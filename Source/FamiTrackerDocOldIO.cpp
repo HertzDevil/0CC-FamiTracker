@@ -276,7 +276,7 @@ void compat::ReorderSequences(CFamiTrackerDoc &doc, std::vector<COldSequence> se
 								Seq.Value[k] = std::max(std::min<int>(Seq.Value[k], 3), 0);
 						Indices[Index][j] = Slots[j];
 						pInst->SetSeqIndex(j, Slots[j]);
-						Manager.SetSequence(INST_2A03, j, Slots[j]++, Seq.Convert(j).release());
+						Manager.SetSequence(INST_2A03, j, Slots[j]++, Seq.Convert(j));
 					}
 				}
 				else

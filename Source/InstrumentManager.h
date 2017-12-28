@@ -70,9 +70,9 @@ public:
 	CDSampleManager *const GetDSampleManager() const;
 
 	// from interface
-	CSequence *GetSequence(int InstType, int SeqType, int Index) const override; // TODO: use SetSequence and provide const getter
-	void SetSequence(int InstType, int SeqType, int Index, CSequence *pSeq) override;
-	int AddSequence(int InstType, int SeqType, CSequence *pSeq, CSeqInstrument *pInst = nullptr) override;
+	std::shared_ptr<CSequence> GetSequence(int InstType, int SeqType, int Index) const override; // TODO: use SetSequence and provide const getter
+	void SetSequence(int InstType, int SeqType, int Index, std::shared_ptr<CSequence> pSeq) override;
+	int AddSequence(int InstType, int SeqType, std::shared_ptr<CSequence> pSeq, CSeqInstrument *pInst = nullptr) override;
 	const CDSample *GetDSample(int Index) const override;
 	void SetDSample(int Index, CDSample *pSamp) override;
 	int AddDSample(CDSample *pSamp) override;

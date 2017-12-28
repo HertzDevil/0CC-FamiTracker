@@ -50,14 +50,14 @@ BEGIN_MESSAGE_MAP(CGraphEditor, CWnd)
 END_MESSAGE_MAP()
 
 
-CGraphEditor::CGraphEditor(CSequence *pSequence) : 
-	m_pBackDC(NULL), 
-	m_pBitmap(NULL), 
+CGraphEditor::CGraphEditor(std::shared_ptr<CSequence> pSequence) :		// // //
+	m_pBackDC(NULL),
+	m_pBitmap(NULL),
 	m_pSmallFont(NULL),
 	m_iHighlightedItem(-1),
 	m_iHighlightedValue(0),
 	m_bButtonState(false),
-	m_pSequence(pSequence),
+	m_pSequence(std::move(pSequence)),
 	m_iLastPlayPos(0)
 {
 	m_ptLineStart = m_ptLineEnd = CPoint(0, 0);
@@ -713,7 +713,7 @@ BEGIN_MESSAGE_MAP(CArpeggioGraphEditor, CGraphEditor)
 	ON_WM_MOUSEWHEEL()
 END_MESSAGE_MAP()
 
-CArpeggioGraphEditor::CArpeggioGraphEditor(CSequence *pSequence) : 
+CArpeggioGraphEditor::CArpeggioGraphEditor(std::shared_ptr<CSequence> pSequence) :		// // //
 	CGraphEditor(pSequence), 
 	m_iScrollOffset(0), 
 	m_pScrollBar(NULL)

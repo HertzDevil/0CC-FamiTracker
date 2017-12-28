@@ -24,6 +24,7 @@
 #pragma once
 
 #include "stdafx.h"		// // //
+#include <memory>		// // //
 
 enum edit_t {
 	EDIT_NONE, 
@@ -39,7 +40,7 @@ class CSequence;		// // //
 class CGraphEditor : public CWnd
 {
 public:
-	CGraphEditor(CSequence *pSequence);
+	explicit CGraphEditor(std::shared_ptr<CSequence> pSequence);		// // //
 	virtual ~CGraphEditor();
 	DECLARE_DYNAMIC(CGraphEditor)
 
@@ -83,7 +84,7 @@ protected:
 
 protected:
 	CWnd *m_pParentWnd;
-	CSequence *const m_pSequence;
+	const std::shared_ptr<CSequence> m_pSequence;		// // //
 	CFont *m_pSmallFont;
 	CRect m_GraphRect;
 	CRect m_BottomRect;
@@ -122,7 +123,7 @@ class CBarGraphEditor : public CGraphEditor
 private:
 	int m_iLevels;
 public:
-	CBarGraphEditor(CSequence *pSequence, int Levels) : CGraphEditor(pSequence), m_iLevels(Levels) { };
+	CBarGraphEditor(std::shared_ptr<CSequence> pSequence, int Levels) : CGraphEditor(pSequence), m_iLevels(Levels) { }		// // //
 	afx_msg void OnPaint();
 	void HighlightItem(CPoint point);
 	void ModifyItem(CPoint point, bool Redraw);
@@ -137,7 +138,7 @@ class CArpeggioGraphEditor : public CGraphEditor
 {
 public:
 	DECLARE_DYNAMIC(CArpeggioGraphEditor)
-	CArpeggioGraphEditor(CSequence *pSequence);
+	explicit CArpeggioGraphEditor(std::shared_ptr<CSequence> pSequence);		// // //
 	virtual ~CArpeggioGraphEditor();
 	void ChangeSetting();
 private:
@@ -168,7 +169,7 @@ class CPitchGraphEditor : public CGraphEditor
 private:
 	static const int ITEMS = 20;
 public:
-	CPitchGraphEditor(CSequence *pSequence) : CGraphEditor(pSequence) { };
+	explicit CPitchGraphEditor(std::shared_ptr<CSequence> pSequence) : CGraphEditor(pSequence) { }		// // //
 	afx_msg void OnPaint();
 	void ModifyItem(CPoint point, bool Redraw);
 	void HighlightItem(CPoint point);
@@ -187,7 +188,7 @@ private:
 protected:
 	void ModifyReleased();
 public:
-	CNoiseEditor(CSequence *pSequence, int Items) : CGraphEditor(pSequence), m_iItems(Items), m_iLastIndex(-1) { };
+	explicit CNoiseEditor(std::shared_ptr<CSequence> pSequence, int Items) : CGraphEditor(pSequence), m_iItems(Items), m_iLastIndex(-1) { }		// // //
 	afx_msg void OnPaint();
 	void ModifyItem(CPoint point, bool Redraw);
 	void HighlightItem(CPoint point);

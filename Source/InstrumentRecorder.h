@@ -25,6 +25,7 @@
 
 #include "stdafx.h"
 #include "FamiTrackerTypes.h"
+#include <memory>
 
 class CSequence;
 class CInstrument;
@@ -72,7 +73,7 @@ private:
 	int				m_iDumpCount;
 	CInstrument		**m_pDumpInstrument;
 	CInstrument		*m_pDumpCache[MAX_INSTRUMENTS];
-	CSequence		*m_pSequenceCache[SEQ_COUNT];
+	std::shared_ptr<CSequence> m_pSequenceCache[SEQ_COUNT] = { };
 	stRecordSetting	m_stRecordSetting;
 	char			*m_iRecordWaveCache;
 	int				m_iRecordWaveSize;

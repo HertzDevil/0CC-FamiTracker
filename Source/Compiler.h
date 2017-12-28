@@ -139,7 +139,7 @@ private:
 	void	CreateSampleList();
 	void	CreateFrameList(unsigned int Track);
 
-	int		StoreSequence(const CSequence *pSeq, const stChunkLabel &label);		// // //
+	int		StoreSequence(const CSequence &Seq, const stChunkLabel &label);		// // //
 	void	StoreSamples();
 	void	StoreGrooves();		// // //
 	void	StoreSongs();

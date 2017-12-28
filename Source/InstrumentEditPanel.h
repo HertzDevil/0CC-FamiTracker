@@ -93,7 +93,7 @@ public:
 	// Member variables
 protected:
 	CSequenceEditor	*m_pSequenceEditor;
-	CSequence *m_pSequence;
+	std::shared_ptr<CSequence> m_pSequence;		// // //
 	CWnd *m_pParentWin;
 	std::shared_ptr<CSeqInstrument> m_pInstrument;		// // //
 	CSequenceParser *m_pParser;		// // //

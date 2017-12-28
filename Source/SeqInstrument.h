@@ -25,6 +25,7 @@
 
 #include "Instrument.h"
 #include "FamiTrackerTypes.h"
+#include <memory>
 
 class CSequence;
 
@@ -43,8 +44,8 @@ public:
 	virtual void	SetSeqIndex(int Index, int Value);
 	virtual void	SetSeqEnable(int Index, int Value);
 
-	virtual CSequence *GetSequence(int SeqType) const;		// // //
-	virtual void	SetSequence(int SeqType, CSequence *pSeq);		// // // register sequence in document
+	virtual std::shared_ptr<CSequence> GetSequence(int SeqType) const;		// // //
+	virtual void	SetSequence(int SeqType, std::shared_ptr<CSequence> pSeq);		// // // register sequence in document
 
 	// static const int SEQUENCE_TYPES[] = {SEQ_VOLUME, SEQ_ARPEGGIO, SEQ_PITCH, SEQ_HIPITCH, SEQ_DUTYCYCLE};
 	virtual const char *GetSequenceName(int Index) const { return nullptr; }		// // //

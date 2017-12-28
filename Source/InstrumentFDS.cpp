@@ -49,7 +49,7 @@ CInstrumentFDS::CInstrumentFDS() : CSeqInstrument(INST_FDS),		// // //
 	memcpy(m_iSamples, TEST_WAVE, WAVE_SIZE);	
 	m_pSequence.resize(SEQ_COUNT);
 	for (int i = 0; i < SEQ_COUNT; ++i)
-		m_pSequence[i].reset(new CSequence());
+		m_pSequence[i] = std::make_shared<CSequence>();
 }
 
 CInstrument *CInstrumentFDS::Clone() const
@@ -75,7 +75,7 @@ void CInstrumentFDS::CloneFrom(const CInstrument *pInst)
 
 		// Copy sequences
 		for (int i = 0; i < SEQUENCE_COUNT; ++i)		// // //
-			SetSequence(i, new CSequence(*pNew->GetSequence(i)));
+			SetSequence(i, pNew->GetSequence(i));
 	}
 }
 
@@ -94,13 +94,13 @@ void CInstrumentFDS::StoreInstSequence(CSimpleFile &File, const CSequence &Seq) 
 		File.WriteChar(Seq.GetItem(i));
 }
 
-CSequence *CInstrumentFDS::LoadInstSequence(CSimpleFile &File) const		// // //
+std::shared_ptr<CSequence> CInstrumentFDS::LoadInstSequence(CSimpleFile &File) const		// // //
 {
 	int SeqCount = CModuleException::AssertRangeFmt(File.ReadInt(), 0, 0xFF, "Sequence item count");
 	int Loop = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), -1, SeqCount - 1, "Sequence loop point");
 	int Release = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), -1, SeqCount - 1, "Sequence release point");
 
-	CSequence *pSeq = new CSequence();
+	auto pSeq = std::make_shared<CSequence>();
 	pSeq->SetItemCount(SeqCount > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : SeqCount);
 	pSeq->SetLoopPoint(Loop);
 	pSeq->SetReleasePoint(Release);
@@ -128,7 +128,7 @@ void CInstrumentFDS::StoreSequence(CDocumentFile &DocFile, const CSequence &Seq)
 	}
 }
 
-CSequence *CInstrumentFDS::LoadSequence(CDocumentFile &DocFile) const
+std::shared_ptr<CSequence> CInstrumentFDS::LoadSequence(CDocumentFile &DocFile) const
 {
 	int SeqCount = static_cast<unsigned char>(DocFile.GetBlockChar());
 	unsigned int LoopPoint = CModuleException::AssertRangeFmt(DocFile.GetBlockInt(), -1, SeqCount - 1, "Sequence loop point");
@@ -136,7 +136,7 @@ CSequence *CInstrumentFDS::LoadSequence(CDocumentFile &DocFile) const
 
 	// CModuleException::AssertRangeFmt(SeqCount, 0, MAX_SEQUENCE_ITEMS, "Sequence item count", "%i");
 
-	CSequence *pSeq = new CSequence();
+	auto pSeq = std::make_shared<CSequence>();
 	pSeq->SetItemCount(SeqCount > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : SeqCount);
 	pSeq->SetLoopPoint(LoopPoint);
 	pSeq->SetReleasePoint(ReleasePoint);
@@ -319,7 +319,7 @@ int CInstrumentFDS::Compile(CChunk *pChunk, int Index) const
 
 bool CInstrumentFDS::CanRelease() const
 {
-	const CSequence *pVol = GetSequence(SEQ_VOLUME);
+	CSequence *pVol = m_pSequence[SEQ_VOLUME].get();
 	return pVol && pVol->GetItemCount() && pVol->GetReleasePoint() != -1;
 }
 
@@ -413,12 +413,12 @@ void CInstrumentFDS::SetSeqIndex(int Index, int Value)
 	ASSERT(false);
 }
 
-CSequence *CInstrumentFDS::GetSequence(int SeqType) const		// // //
+std::shared_ptr<CSequence> CInstrumentFDS::GetSequence(int SeqType) const		// // //
 {
-	return m_pSequence[SeqType].get();
+	return m_pSequence[SeqType];
 }
 
-void CInstrumentFDS::SetSequence(int SeqType, CSequence *pSeq)
+void CInstrumentFDS::SetSequence(int SeqType, std::shared_ptr<CSequence> pSeq)
 {
-	m_pSequence[SeqType].reset(pSeq);
+	m_pSequence[SeqType] = std::move(pSeq);
 }

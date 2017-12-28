@@ -24,6 +24,7 @@
 #pragma once
 
 #include "stdafx.h"		// // //
+#include <memory>		// // //
 
 class CSequence;		// // //
 
@@ -34,13 +35,13 @@ class CSequenceSetting : public CWnd
 	virtual ~CSequenceSetting();
 public:
 	void Setup(CFont *pFont);
-	void SelectSequence(CSequence *pSequence, int Type, int InstrumentType);
+	void SelectSequence(std::shared_ptr<CSequence> pSequence, int Type, int InstrumentType);		// // //
 
 private:
 	CWnd *m_pParent;
 	CMenu m_menuPopup;
 	CFont *m_pFont;
-	CSequence *m_pSequence;
+	std::shared_ptr<CSequence> m_pSequence;
 
 	static const UINT MENU_ID_BASE, MENU_ID_MAX;		// // //
 

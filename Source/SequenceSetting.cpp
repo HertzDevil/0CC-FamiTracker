@@ -118,7 +118,7 @@ void CSequenceSetting::OnLButtonDown(UINT nFlags, CPoint point)
 	CWnd::OnLButtonDown(nFlags, point);
 }
 
-void CSequenceSetting::SelectSequence(CSequence *pSequence, int Type, int InstrumentType)
+void CSequenceSetting::SelectSequence(std::shared_ptr<CSequence> pSequence, int Type, int InstrumentType)		// // //
 {
 	m_pSequence = pSequence;
 	m_iType		= Type;

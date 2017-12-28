@@ -649,7 +649,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 
 			int mt = t.ReadInt(0, SEQ_COUNT - 1);
 			int index = t.ReadInt(0, MAX_SEQUENCES - 1);
-			CSequence* pSeq = Doc.GetSequence(CHIP_MACRO[chip], index, mt);
+			const auto pSeq = Doc.GetSequence(CHIP_MACRO[chip], index, mt);
 
 			int loop = t.ReadInt(-1, MAX_SEQUENCE_ITEMS);		// // //
 			int release = t.ReadInt(-1, MAX_SEQUENCE_ITEMS);
@@ -838,7 +838,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 				throw t.MakeError(_T("instrument %d is not defined as an FDS instrument."), inst_index);
 			auto pInst = std::static_pointer_cast<CInstrumentFDS>(Doc.GetInstrument(inst_index));
 
-			CSequence *pSeq = new CSequence();		// // //
+			auto pSeq = std::make_shared<CSequence>();		// // //
 			pInst->SetSequence(t.ReadInt(0, CInstrumentFDS::SEQUENCE_COUNT - 1), pSeq);
 			int loop = t.ReadInt(-1, MAX_SEQUENCE_ITEMS);
 			int release = t.ReadInt(-1, MAX_SEQUENCE_ITEMS);
@@ -1060,7 +1060,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 		for (int st=0; st < SEQ_COUNT; ++st)
 		for (int seq=0; seq < MAX_SEQUENCES; ++seq)
 		{
-			CSequence* pSequence = pDoc->GetSequence(CHIP_MACRO[c], seq, st);
+			const auto pSequence = pDoc->GetSequence(CHIP_MACRO[c], seq, st);
 			if (pSequence && pSequence->GetItemCount() > 0)
 			{
 				s.Format(_T("%-9s %3d %3d %3d %3d %3d :"),
@@ -1279,7 +1279,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 
 				for (int seq=0; seq < 3; ++seq)
 				{
-					const CSequence* pSequence = pDI->GetSequence(seq);		// // //
+					const auto pSequence = pDI->GetSequence(seq);		// // //
 					if (!pSequence || pSequence->GetItemCount() < 1) continue;
 
 					s.Format(_T("%-8s %3d %3d %3d %3d %3d :"),

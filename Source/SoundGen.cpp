@@ -768,12 +768,9 @@ void CSoundGen::LoadMachineSettings()		// // //
 	m_iMachineType = m_pDocument->GetMachine();		// // // 050B
 
 	int BaseFreq	= (m_iMachineType == NTSC) ? CAPU::BASE_FREQ_NTSC  : CAPU::BASE_FREQ_PAL;
-	int DefaultRate = (m_iMachineType == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
 
 	// Choose a default rate if not predefined
-	int Rate = m_pDocument->GetEngineSpeed();		// // //
-	if (Rate == 0)
-		Rate = DefaultRate;
+	int Rate = m_pDocument->GetFrameRate();		// // //
 
 	// Number of cycles between each APU update
 	m_iUpdateCycles = BaseFreq / Rate;
@@ -1211,15 +1208,14 @@ CFTMComponentInterface *CSoundGen::GetDocumentInterface() const
 	return static_cast<CFTMComponentInterface*>(m_pDocument);
 }
 
-void CSoundGen::SetSequencePlayPos(const CSequence *pSequence, int Pos)
-{
+void CSoundGen::SetSequencePlayPos(std::shared_ptr<const CSequence> pSequence, int Pos) {		// // //
 	if (pSequence == m_pSequencePlayPos) {
 		m_iSequencePlayPos = Pos;
 		m_iSequenceTimeout = 5;
 	}
 }
 
-int CSoundGen::GetSequencePlayPos(const CSequence *pSequence)
+int CSoundGen::GetSequencePlayPos(std::shared_ptr<const CSequence> pSequence)		// // //
 {
 	if (m_pSequencePlayPos != pSequence)
 		m_iSequencePlayPos = -1;
@@ -1230,7 +1226,7 @@ int CSoundGen::GetSequencePlayPos(const CSequence *pSequence)
 		--m_iSequenceTimeout;
 
 	int Ret = m_iSequencePlayPos;
-	m_pSequencePlayPos = pSequence;
+	m_pSequencePlayPos = std::move(pSequence);
 	return Ret;
 }
 

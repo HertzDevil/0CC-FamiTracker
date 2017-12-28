@@ -101,9 +101,8 @@ void CSeqInstrument::DoSaveFTI(CSimpleFile &File) const
 	File.WriteChar(SEQ_COUNT);
 
 	for (int i = 0; i < SEQ_COUNT; ++i) {
-		unsigned Sequence = GetSeqIndex(i);
 		if (GetSeqEnable(i)) {
-			const CSequence *pSeq = GetSequence(i);
+			const auto pSeq = GetSequence(i);
 			File.WriteChar(1);
 			File.WriteInt(pSeq->GetItemCount());
 			File.WriteInt(pSeq->GetLoopPoint());
@@ -122,7 +121,7 @@ void CSeqInstrument::DoSaveFTI(CSimpleFile &File) const
 bool CSeqInstrument::LoadFTI(CSimpleFile &File, int iVersion)
 {
 	// Sequences
-	CSequence *pSeq;
+	std::shared_ptr<CSequence> pSeq;		// // //
 
 	unsigned char SeqCount = CModuleException::AssertRangeFmt(File.ReadChar(), 0, SEQ_COUNT, "Sequence count");
 
@@ -144,10 +143,10 @@ bool CSeqInstrument::LoadFTI(CSimpleFile &File, int iVersion)
 				char Length = File.ReadChar();
 				OldSeq.AddItem(Length, File.ReadChar());
 			}
-			pSeq = OldSeq.Convert(i).release();
+			pSeq = OldSeq.Convert(i);
 		}
 		else {
-			pSeq = new CSequence();
+			pSeq = std::make_shared<CSequence>();
 			int Count2 = Count > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : Count;
 			pSeq->SetItemCount(Count2);
 			pSeq->SetLoopPoint(CModuleException::AssertRangeFmt(
@@ -167,7 +166,6 @@ bool CSeqInstrument::LoadFTI(CSimpleFile &File, int iVersion)
 	}
 	catch (CModuleException e) {
 		e.AppendError("At %s sequence,", GetSequenceName(i));
-		if (pSeq) delete pSeq;
 		throw e;
 	}
 
@@ -187,8 +185,8 @@ int CSeqInstrument::Compile(CChunk *pChunk, int Index) const
 
 	int ModSwitch = 0;
 	for (unsigned i = 0; i < SEQ_COUNT; ++i) {
-		const CSequence *pSequence = GetSequence(i);
-		if (GetSeqEnable(i) && pSequence != nullptr && pSequence->GetItemCount() > 0)
+		const auto pSequence = GetSequence(i);
+		if (GetSeqEnable(i) && pSequence && pSequence->GetItemCount() > 0)
 			ModSwitch |= 1 << i;
 	}
 	pChunk->StoreByte(ModSwitch);
@@ -224,14 +222,14 @@ void CSeqInstrument::SetSeqEnable(int Index, int Value)
 	m_iSeqEnable[Index] = Value;
 }
 
-CSequence *CSeqInstrument::GetSequence(int SeqType) const		// // //
+std::shared_ptr<CSequence> CSeqInstrument::GetSequence(int SeqType) const		// // //
 {
 	return m_pInstManager->GetSequence(m_iType, SeqType, m_iSeqIndex[SeqType]);
 }
 
-void CSeqInstrument::SetSequence(int SeqType, CSequence *pSeq)		// // //
+void CSeqInstrument::SetSequence(int SeqType, std::shared_ptr<CSequence> pSeq)		// // //
 {
-	m_pInstManager->SetSequence(m_iType, SeqType, m_iSeqIndex[SeqType], pSeq);
+	m_pInstManager->SetSequence(m_iType, SeqType, m_iSeqIndex[SeqType], std::move(pSeq));
 }
 
 bool CSeqInstrument::CanRelease() const

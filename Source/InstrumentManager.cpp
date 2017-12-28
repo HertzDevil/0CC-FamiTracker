@@ -158,11 +158,10 @@ int CInstrumentManager::GetFreeSequenceIndex(inst_type_t InstType, int Type, CSe
 		if (pInstrument->GetSeqEnable(Type) && (pInst && pInst->GetSequence(Type)->GetItemCount() || pInst != pInstrument.get()))
 			Used[pInstrument->GetSeqIndex(Type)] = true;
 	}
-	for (int i = 0; i < CSequenceCollection::MAX_SEQUENCES; ++i) if (!Used[i]) {
-		const CSequence *pSeq = GetSequence(InstType, Type, i);
-		if (!pSeq || !pSeq->GetItemCount())
-			return i;
-	}
+	for (int i = 0; i < CSequenceCollection::MAX_SEQUENCES; ++i)
+		if (!Used[i])
+			if (auto pSeq = GetSequence(InstType, Type, i); !pSeq || !pSeq->GetItemCount())
+				return i;
 	return -1;
 }
 
@@ -206,7 +205,7 @@ CDSampleManager *const CInstrumentManager::GetDSampleManager() const
 // from interface
 //
 
-CSequence *CInstrumentManager::GetSequence(int InstType, int SeqType, int Index) const
+std::shared_ptr<CSequence> CInstrumentManager::GetSequence(int InstType, int SeqType, int Index) const
 {
 	if (auto pManager = GetSequenceManager(InstType))
 		if (auto pCol = pManager->GetCollection(SeqType))
@@ -214,18 +213,18 @@ CSequence *CInstrumentManager::GetSequence(int InstType, int SeqType, int Index)
 	return nullptr;
 }
 
-void CInstrumentManager::SetSequence(int InstType, int SeqType, int Index, CSequence *pSeq)
+void CInstrumentManager::SetSequence(int InstType, int SeqType, int Index, std::shared_ptr<CSequence> pSeq)
 {
 	if (auto pManager = GetSequenceManager(InstType))
 		if (auto pCol = pManager->GetCollection(SeqType))
-			pCol->SetSequence(Index, pSeq);
+			pCol->SetSequence(Index, std::move(pSeq));
 }
 
-int CInstrumentManager::AddSequence(int InstType, int SeqType, CSequence *pSeq, CSeqInstrument *pInst)
+int CInstrumentManager::AddSequence(int InstType, int SeqType, std::shared_ptr<CSequence> pSeq, CSeqInstrument *pInst)
 {
 	int Index = GetFreeSequenceIndex(static_cast<inst_type_t>(InstType), SeqType, pInst);
 	if (Index != -1)
-		SetSequence(InstType, SeqType, Index, pSeq);
+		SetSequence(InstType, SeqType, Index, std::move(pSeq));
 	return Index;
 }
 

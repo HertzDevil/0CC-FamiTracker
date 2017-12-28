@@ -461,7 +461,7 @@ void CFamiTrackerDoc::ReorderSequences(std::vector<COldSequence> seqs)		// // //
 								Seq.Value[k] = std::max(std::min<int>(Seq.Value[k], 3), 0);
 						Indices[Index][j] = Slots[j];
 						pInst->SetSeqIndex(j, Slots[j]);
-						m_pInstrumentManager->SetSequence(INST_2A03, j, Slots[j]++, Seq.Convert(j).release());
+						m_pInstrumentManager->SetSequence(INST_2A03, j, Slots[j]++, Seq.Convert(j));
 					}
 				}
 				else
@@ -687,12 +687,13 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 			return false;
 		}
 		for (unsigned int s = 0; s < MAX_SEQUENCES; ++s) if (pImported->GetSequenceItemCount(inst[i], s, t) > 0) {
-			CSequence *pImportSeq = pImported->GetSequence(inst[i], s, t);
+			auto pImportSeq = pImported->GetSequence(inst[i], s, t);
 			int index = -1;
 			for (unsigned j = 0; j < MAX_SEQUENCES; ++j) {
-				if (GetSequenceItemCount(inst[i], j, t)) continue;
+				if (GetSequenceItemCount(inst[i], j, t))
+					continue;
 				// TODO: continue if blank sequence is used by some instrument
-				CSequence *pSeq = GetSequence(inst[i], j, t);
+				auto pSeq = GetSequence(inst[i], j, t);
 				*pSeq = *pImportSeq;		// // //
 				// Save a reference to this sequence
 				seqTable[i][s][t] = j;
@@ -837,7 +838,7 @@ unsigned int CFamiTrackerDoc::GetTotalSampleSize() const
 // Sequences
 //
 
-CSequence *CFamiTrackerDoc::GetSequence(inst_type_t InstType, unsigned int Index, int Type) const		// // //
+std::shared_ptr<CSequence> CFamiTrackerDoc::GetSequence(inst_type_t InstType, unsigned int Index, int Type) const		// // //
 {
 	return m_pInstrumentManager->GetSequence(InstType, Type, Index);
 }
@@ -847,10 +848,9 @@ unsigned int CFamiTrackerDoc::GetSequenceItemCount(inst_type_t InstType, unsigne
 	ASSERT(Index < MAX_SEQUENCES);
 	ASSERT(Type >= 0 && Type < SEQ_COUNT);
 
-	const CSequence *pSeq = GetSequence(InstType, Index, Type);
-	if (pSeq == NULL)
-		return 0;
-	return pSeq->GetItemCount();
+	if (const auto pSeq = GetSequence(InstType, Index, Type))
+		return pSeq->GetItemCount();
+	return 0;
 }
 
 int CFamiTrackerDoc::GetFreeSequence(inst_type_t InstType, int Type, CSeqInstrument *pInst) const		// // //

@@ -230,10 +230,8 @@ void CInstrumentEditorSeq::OnKeyReturn()
 
 void CInstrumentEditorSeq::OnCloneSequence()
 {
-	CSequence *pSeq = new CSequence(*m_pSequence);		// // // default copy ctor
-	int FreeIndex = m_pInstManager->AddSequence(m_iInstType, m_iSelectedSetting, pSeq, m_pInstrument.get());
+	auto pSeq = std::make_shared<CSequence>(*m_pSequence);		// // //
+	int FreeIndex = m_pInstManager->AddSequence(m_iInstType, m_iSelectedSetting, std::move(pSeq), m_pInstrument.get());
 	if (FreeIndex != -1)
 		SetDlgItemInt(IDC_SEQ_INDEX, FreeIndex, FALSE);
-	else if (pSeq)
-		delete pSeq;
 }

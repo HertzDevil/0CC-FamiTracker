@@ -312,9 +312,9 @@ bool CSeqConversionArpFixed::GetNextTerm(std::string::const_iterator &b, std::st
 
 
 
-void CSequenceParser::SetSequence(CSequence *pSeq)
+void CSequenceParser::SetSequence(std::shared_ptr<CSequence> pSeq)
 {
-	m_pSequence = pSeq;
+	m_pSequence = std::move(pSeq);
 }
 
 void CSequenceParser::SetConversion(CSeqConversionBase *pConv)

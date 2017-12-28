@@ -82,7 +82,7 @@ void VisitSequences(const CSequenceManager *manager, F&& f) {
 	for (int j = 0, n = manager->GetCount(); j < n; ++j) {
 		const auto &col = *manager->GetCollection(j);
 		for (int i = 0; i < MAX_SEQUENCES; ++i) {
-			if (const CSequence *pSeq = col.GetSequence(i); pSeq && pSeq->GetItemCount())
+			if (auto pSeq = col.GetSequence(i); pSeq && pSeq->GetItemCount())
 				f(*pSeq, i, j);
 		}
 	}
@@ -214,7 +214,7 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
 		}
 		for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
 			if (doc.GetInstrumentType(i) == INST_FDS) {
-				CSequence *pSeq = std::static_pointer_cast<CSeqInstrument>(doc.GetInstrument(i))->GetSequence(SEQ_ARPEGGIO);
+				auto pSeq = std::static_pointer_cast<CSeqInstrument>(doc.GetInstrument(i))->GetSequence(SEQ_ARPEGGIO);
 				if (pSeq != nullptr && pSeq->GetItemCount() > 0 && pSeq->GetSetting() == SETTING_ARP_FIXED)
 					for (unsigned int j = 0; j < pSeq->GetItemCount(); ++j) {
 						int Trsp = pSeq->GetItem(j) + NOTE_RANGE * 2;
@@ -561,7 +561,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 				char Value = file_.GetBlockChar();
 				Seq.AddItem(file_.GetBlockChar(), Value);
 			}
-			Manager.SetSequence(INST_2A03, Type, Index, Seq.Convert(Type).release());		// // //
+			Manager.SetSequence(INST_2A03, Type, Index, Seq.Convert(Type));		// // //
 		}
 	}
 	else if (ver >= 3) {
@@ -597,7 +597,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 					if (j < MAX_SEQUENCE_ITEMS)		// // //
 						pSeq->SetItem(j, Value);
 				}
-				pManager->GetCollection(Type)->SetSequence(Index, pSeq.release());
+				pManager->GetCollection(Type)->SetSequence(Index, std::move(pSeq));
 			}
 			catch (CModuleException e) {
 				e.AppendError("At 2A03 %s sequence %d,", CInstrument2A03::SEQUENCE_NAME[Type], Index);
@@ -611,7 +611,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 				for (int j = 0; j < SEQ_COUNT; ++j) try {
 					int ReleasePoint = file_.GetBlockInt();
 					int Settings = file_.GetBlockInt();
-					CSequence *pSeq = pManager->GetCollection(j)->GetSequence(i);
+					auto pSeq = pManager->GetCollection(j)->GetSequence(i);
 					int Length = pSeq->GetItemCount();
 					if (Length > 0) {
 						pSeq->SetReleasePoint(AssertRange<MODULE_ERROR_STRICT>(
@@ -628,7 +628,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 		else if (ver >= 6) {
 			// Read release points correctly stored
 			for (unsigned int i = 0; i < Count; ++i) try {
-				CSequence *pSeq = pManager->GetCollection(Types[i])->GetSequence(Indices[i]);
+				auto pSeq = pManager->GetCollection(Types[i])->GetSequence(Indices[i]);
 				pSeq->SetReleasePoint(AssertRange<MODULE_ERROR_STRICT>(
 					file_.GetBlockInt(), -1, static_cast<int>(pSeq->GetItemCount()) - 1, "Sequence release point"));
 				pSeq->SetSetting(static_cast<seq_setting_t>(file_.GetBlockInt()));		// // //
@@ -1014,7 +1014,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 		unsigned int Type = Types[i] = AssertRange(file_.GetBlockInt(), 0, SEQ_COUNT - 1, "Sequence type");
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
-			CSequence *pSeq = pManager->GetCollection(Type)->GetSequence(Index);
+			auto pSeq = pManager->GetCollection(Type)->GetSequence(Index);
 			*pSeq = CSequence { };
 			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
 
@@ -1046,7 +1046,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 			for (int j = 0; j < SEQ_COUNT; ++j) try {
 				int ReleasePoint = file_.GetBlockInt();
 				int Settings = file_.GetBlockInt();
-				CSequence *pSeq = pManager->GetCollection(j)->GetSequence(i);
+				auto pSeq = pManager->GetCollection(j)->GetSequence(i);
 				int Length = pSeq->GetItemCount();
 				if (Length > 0) {
 					pSeq->SetReleasePoint(AssertRange<MODULE_ERROR_STRICT>(
@@ -1062,7 +1062,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 	}
 	else if (ver >= 6) {
 		for (unsigned int i = 0; i < Count; ++i) try {
-			CSequence *pSeq = pManager->GetCollection(Types[i])->GetSequence(Indices[i]);
+			auto pSeq = pManager->GetCollection(Types[i])->GetSequence(Indices[i]);
 			pSeq->SetReleasePoint(AssertRange<MODULE_ERROR_STRICT>(
 				file_.GetBlockInt(), -1, static_cast<int>(pSeq->GetItemCount()) - 1, "Sequence release point"));
 			pSeq->SetSetting(static_cast<seq_setting_t>(file_.GetBlockInt()));		// // //
@@ -1107,7 +1107,7 @@ void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerDoc &doc, int ver) {
 		unsigned int  Type		   = AssertRange(file_.GetBlockInt(), 0, SEQ_COUNT - 1, "Sequence type");
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
-			CSequence *pSeq = pManager->GetCollection(Type)->GetSequence(Index);
+			auto pSeq = pManager->GetCollection(Type)->GetSequence(Index);
 			*pSeq = CSequence { };
 			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
 
@@ -1164,7 +1164,7 @@ void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerDoc &doc, int ver) {
 		unsigned int  Type		   = AssertRange(file_.GetBlockInt(), 0, SEQ_COUNT - 1, "Sequence type");
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
-			CSequence *pSeq = pManager->GetCollection(Type)->GetSequence(Index);
+			auto pSeq = pManager->GetCollection(Type)->GetSequence(Index);
 			*pSeq = CSequence { };
 			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
 

@@ -24,6 +24,7 @@
 #pragma once
 
 #include "stdafx.h"		// // //
+#include <memory>		// // //
 
 class CSequence;
 class CGraphEditor;
@@ -40,7 +41,7 @@ public:
 	virtual ~CSequenceEditor();
 	
 	BOOL CreateEditor(CWnd *pParentWnd, const RECT &rect);
-	void SelectSequence(CSequence *pSequence, int Type, int InstrumentType);
+	void SelectSequence(std::shared_ptr<CSequence> pSequence, int Type, int InstrumentType);		// // //
 	void SetMaxValues(int MaxVol, int MaxDuty);
 	void SetConversion(const CSeqConversionBase *pConv);		// // //
 
@@ -49,7 +50,7 @@ private:
 	CFont			 *m_pFont;
 	CSizeEditor		 *m_pSizeEditor;
 	CGraphEditor	 *m_pGraphEditor;
-	CSequence		 *m_pSequence;
+	std::shared_ptr<CSequence> m_pSequence;		// // //
 	CSequenceSetting *m_pSetting;
 	const CSeqConversionBase *m_pConversion = nullptr;		// // // does not own
 	

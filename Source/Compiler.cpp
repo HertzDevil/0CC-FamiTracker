@@ -1435,12 +1435,12 @@ void CCompiler::CreateSequenceList()
 
 	// TODO: use the CSeqInstrument::GetSequence
 	// TODO: merge identical sequences from all chips
-	for (size_t c = 0; c < sizeof(inst) / sizeof(inst_type_t); c++) {
+	for (size_t c = 0; c < std::size(inst); c++) {
 		for (int i = 0; i < MAX_SEQUENCES; ++i) for (int j = 0; j < SEQ_COUNT; ++j) {
-			CSequence* pSeq = m_pDocument->GetSequence(inst[c], i, j);
+			const auto pSeq = m_pDocument->GetSequence(inst[c], i, j);
 			unsigned Index = i * SEQ_COUNT + j;
 			if (*(used[c] + Index) && pSeq->GetItemCount() > 0) {
-				Size += StoreSequence(pSeq, {CHUNK_SEQUENCE, Index, (unsigned)inst[c]});
+				Size += StoreSequence(*pSeq, {CHUNK_SEQUENCE, Index, (unsigned)inst[c]});
 				++StoredCount;
 			}
 		}
@@ -1449,10 +1449,10 @@ void CCompiler::CreateSequenceList()
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
 		if (auto pInstrument = std::dynamic_pointer_cast<CInstrumentFDS>(m_pDocument->GetInstrument(i))) {
 			for (int j = 0; j < CInstrumentFDS::SEQUENCE_COUNT; ++j) {
-				const CSequence* pSeq = pInstrument->GetSequence(j);		// // //
-				if (pSeq->GetItemCount() > 0) {
+				const auto pSeq = pInstrument->GetSequence(j);		// // //
+				if (pSeq && pSeq->GetItemCount() > 0) {
 					unsigned Index = i * SEQ_COUNT + j;
-					Size += StoreSequence(pSeq, {CHUNK_SEQUENCE, Index, INST_FDS});		// // //
+					Size += StoreSequence(*pSeq, {CHUNK_SEQUENCE, Index, INST_FDS});		// // //
 					++StoredCount;
 				}
 			}
@@ -1462,15 +1462,15 @@ void CCompiler::CreateSequenceList()
 	Print(_T(" * Sequences used: %i (%i bytes)\n"), StoredCount, Size);
 }
 
-int CCompiler::StoreSequence(const CSequence *pSeq, const stChunkLabel &label)		// // //
+int CCompiler::StoreSequence(const CSequence &Seq, const stChunkLabel &label)		// // //
 {
 	CChunk &Chunk = CreateChunk(label);		// // //
 
 	// Store the sequence
-	int iItemCount	  = pSeq->GetItemCount();
-	int iLoopPoint	  = pSeq->GetLoopPoint();
-	int iReleasePoint = pSeq->GetReleasePoint();
-	int iSetting	  = pSeq->GetSetting();
+	int iItemCount	  = Seq.GetItemCount();
+	int iLoopPoint	  = Seq.GetLoopPoint();
+	int iReleasePoint = Seq.GetReleasePoint();
+	int iSetting	  = Seq.GetSetting();
 
 	if (iReleasePoint != -1)
 		iReleasePoint += 1;
@@ -1486,7 +1486,7 @@ int CCompiler::StoreSequence(const CSequence *pSeq, const stChunkLabel &label)		
 	Chunk.StoreByte((unsigned char)iSetting);
 
 	for (int i = 0; i < iItemCount; ++i) {
-		Chunk.StoreByte(pSeq->GetItem(i));
+		Chunk.StoreByte(Seq.GetItem(i));
 	}
 
 	// Return size of this chunk

@@ -135,12 +135,9 @@ protected:
 class CSequenceParser
 {
 public:
-	/*!	\brief Constructor of the sequence parser. */
-	CSequenceParser() { }
-
 	/*!	\brief Changes the instrument sequence used by the parser.
 		\param pSeq Pointer to the new sequence. */
-	void SetSequence(CSequence *pSeq);
+	void SetSequence(std::shared_ptr<CSequence> pSeq);
 	/*!	\brief Changes the conversion algorithm.
 		\details The sequence parser owns the conversion object and handles its deletion.
 		\param pConv Pointer to the new sequence conversion object. */
@@ -154,6 +151,6 @@ public:
 
 private:
 	unsigned int m_iPushedCount = 0;
-	CSequence *m_pSequence = nullptr;
-	std::unique_ptr<CSeqConversionBase> m_pConversion = nullptr;
+	std::shared_ptr<CSequence> m_pSequence;
+	std::unique_ptr<CSeqConversionBase> m_pConversion;
 };

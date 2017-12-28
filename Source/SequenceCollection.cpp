@@ -30,24 +30,25 @@ CSequenceCollection::CSequenceCollection() :
 {
 }
 
-CSequenceCollection::~CSequenceCollection() {
-}
-
-CSequence *CSequenceCollection::GetSequence(unsigned int Index)
+std::shared_ptr<CSequence> CSequenceCollection::GetSequence(unsigned int Index)
 {
+	if (Index >= m_pSequence.size())
+		return nullptr;
 	if (!m_pSequence[Index])
-		m_pSequence[Index] = std::make_unique<CSequence>();
-	return m_pSequence[Index].get();
+		m_pSequence[Index] = std::make_shared<CSequence>();
+	return m_pSequence[Index];
 }
 
-void CSequenceCollection::SetSequence(unsigned int Index, CSequence *Seq)
+void CSequenceCollection::SetSequence(unsigned int Index, std::shared_ptr<CSequence> Seq)
 {
-	m_pSequence[Index].reset(Seq);
+	m_pSequence[Index] = Seq;
 }
 
-const CSequence *CSequenceCollection::GetSequence(unsigned int Index) const
+std::shared_ptr<const CSequence> CSequenceCollection::GetSequence(unsigned int Index) const
 {
-	return m_pSequence[Index].get();
+	if (Index >= m_pSequence.size())
+		return nullptr;
+	return m_pSequence[Index];
 }
 
 unsigned int CSequenceCollection::GetFirstFree() const
@@ -58,8 +59,7 @@ unsigned int CSequenceCollection::GetFirstFree() const
 	return -1;
 }
 
-void CSequenceCollection::RemoveAll()
+void CSequenceCollection::RemoveAll() // TODO: remove
 {
-	for (auto &ptr : m_pSequence)
-		ptr.reset();
+	*this = CSequenceCollection { };
 }

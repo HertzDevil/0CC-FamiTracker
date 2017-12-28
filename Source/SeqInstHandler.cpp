@@ -40,7 +40,7 @@ CSeqInstHandler::CSeqInstHandler(CChannelHandlerInterface *pInterface, int Vol, 
 	CInstHandler(pInterface, Vol),
 	m_iDefaultDuty(Duty)
 {
-	for (size_t i = 0; i < sizeof(m_pSequence) / sizeof(CSequence*); i++)
+	for (size_t i = 0; i < std::size(m_pSequence); ++i)
 		ClearSequence(i);
 }
 
@@ -50,21 +50,22 @@ void CSeqInstHandler::LoadInstrument(std::shared_ptr<CInstrument> pInst)
 	auto pSeqInst = std::dynamic_pointer_cast<CSeqInstrument>(pInst);
 	if (pSeqInst == nullptr) return;
 	for (size_t i = 0; i < sizeof(m_pSequence) / sizeof(CSequence*); i++) {
-		const CSequence *pSequence = pSeqInst->GetSequence(i);
+		const auto pSequence = pSeqInst->GetSequence(i);
 		bool Enable = pSeqInst->GetSeqEnable(i) == SEQ_STATE_RUNNING;
 		if (!Enable)
 			ClearSequence(i);
 		else if (pSequence != m_pSequence[i] || m_iSeqState[i] == SEQ_STATE_DISABLED)
-			SetupSequence(i, pSequence);
+			SetupSequence(i, std::move(pSequence));
 	}
 }
 
 void CSeqInstHandler::TriggerInstrument()
 {
-	for (size_t i = 0; i < sizeof(m_pSequence) / sizeof(CInstrument*); i++) if (m_pSequence[i] != nullptr) {
-		m_iSeqState[i] = SEQ_STATE_RUNNING;
-		m_iSeqPointer[i] = 0;
-	}
+	for (size_t i = 0; i < std::size(m_pSequence); ++i)
+		if (m_pSequence[i] != nullptr) {
+			m_iSeqState[i] = SEQ_STATE_RUNNING;
+			m_iSeqPointer[i] = 0;
+		}
 	m_iVolume = m_iDefaultVolume;
 	m_iNoteOffset = 0;
 	m_iPitchOffset = 0;
@@ -204,7 +205,7 @@ bool CSeqInstHandler::ProcessSequence(int Index, unsigned Setting, int Value)
 	return false;
 }
 
-void CSeqInstHandler::SetupSequence(int Index, const CSequence *pSequence)
+void CSeqInstHandler::SetupSequence(int Index, std::shared_ptr<const CSequence> pSequence)		// // //
 {
 	m_iSeqState[Index]	 = SEQ_STATE_RUNNING;
 	m_iSeqPointer[Index] = 0;

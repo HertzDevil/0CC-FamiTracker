@@ -198,8 +198,8 @@ public:
 	CFamiTrackerDoc *GetDocument() const { return m_pDocument; };
 
 	// Sequence play position
-	void SetSequencePlayPos(const CSequence *pSequence, int Pos);
-	int GetSequencePlayPos(const CSequence *pSequence);
+	void SetSequencePlayPos(std::shared_ptr<const CSequence> pSequence, int Pos);		// // //
+	int GetSequencePlayPos(std::shared_ptr<const CSequence> pSequence);		// // //
 
 	void SetMeterDecayRate(decay_rate_t Type) const;		// // // 050B
 	decay_rate_t GetMeterDecayRate() const;		// // // 050B
@@ -303,7 +303,7 @@ private:
 	volatile bool		m_bInternalWaveChanged;
 
 	// Sequence play visualization
-	const CSequence		*m_pSequencePlayPos;
+	std::shared_ptr<const CSequence> m_pSequencePlayPos;		// // //
 	int					m_iSequencePlayPos;
 	int					m_iSequenceTimeout;
 

@@ -282,7 +282,7 @@ public:
 
 	// Sequences functions
 	// // // take instrument type as parameter rather than chip type
-	CSequence*		GetSequence(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
+	std::shared_ptr<CSequence> GetSequence(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
 	unsigned int	GetSequenceItemCount(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
 	int				GetFreeSequence(inst_type_t InstType, int Type, CSeqInstrument *pInst = nullptr) const;		// // //
 	int				GetSequenceCount(inst_type_t InstType, int Type) const;		// // //

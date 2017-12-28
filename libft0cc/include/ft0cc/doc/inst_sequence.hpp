@@ -48,10 +48,10 @@ public:
 		pitch_relative = 0,
 		pitch_absolute,
 		pitch_sweep,		// // // 050B
-#ifdef _DEBUG
-		pitch_count,
-#else
+#ifdef NDEBUG
 		pitch_count = 2,
+#else
+		pitch_count,
 #endif
 		hipitch_default = 0,
 		hipitch_count,
