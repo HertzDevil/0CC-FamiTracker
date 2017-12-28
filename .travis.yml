@@ -21,7 +21,7 @@ matrix:
 
 before_install:
   - eval "${MATRIX_EVAL}"
-  - sudo ./travis/install_libcxx.sh -v 5.0.0
+  - ./travis/install_libcxx.sh -v 5.0.0
   - pip install --user cpp-coveralls
 
 script:
