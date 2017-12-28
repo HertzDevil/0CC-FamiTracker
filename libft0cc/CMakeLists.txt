@@ -4,10 +4,12 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 project(libft0cc)
 enable_testing()
 
-#set(CMAKE_CXX_STANDARD 17 CACHE STRING
-#	"The C++ standard whose features are requested to build this target." FORCE)
-#set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL
-#	"Boolean describing whether the value of CXX_STANDARD is a requirement." FORCE)
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.8.2")
+	set(CMAKE_CXX_STANDARD 17 CACHE STRING
+		"The C++ standard whose features are requested to build this target." FORCE)
+	set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL
+		"Boolean describing whether the value of CXX_STANDARD is a requirement." FORCE)
+endif()
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL
 	"A flag specifying whether compiler specific extensions should be used." FORCE)
 
