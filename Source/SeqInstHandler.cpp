@@ -49,7 +49,7 @@ void CSeqInstHandler::LoadInstrument(std::shared_ptr<CInstrument> pInst)
 	m_pInstrument = pInst;
 	auto pSeqInst = std::dynamic_pointer_cast<CSeqInstrument>(pInst);
 	if (pSeqInst == nullptr) return;
-	for (size_t i = 0; i < sizeof(m_pSequence) / sizeof(CSequence*); i++) {
+	for (size_t i = 0; i < std::size(m_pSequence); i++) {
 		const auto pSequence = pSeqInst->GetSequence(i);
 		bool Enable = pSeqInst->GetSeqEnable(i) == SEQ_STATE_RUNNING;
 		if (!Enable)
@@ -80,7 +80,7 @@ void CSeqInstHandler::TriggerInstrument()
 void CSeqInstHandler::ReleaseInstrument()
 {
 	if (m_pInterface->IsReleasing()) return;
-	for (size_t i = 0; i < sizeof(m_pSequence) / sizeof(CInstrument*); i++)
+	for (size_t i = 0; i < std::size(m_pSequence); i++)
 		if (m_pSequence[i] != nullptr && (m_iSeqState[i] == SEQ_STATE_RUNNING || m_iSeqState[i] == SEQ_STATE_END)) {
 			int ReleasePoint = m_pSequence[i]->GetReleasePoint();
 			if (ReleasePoint != -1) {
@@ -93,7 +93,7 @@ void CSeqInstHandler::ReleaseInstrument()
 void CSeqInstHandler::UpdateInstrument()
 {
 	if (!m_pInterface->IsActive()) return;
-	for (size_t i = 0; i < sizeof(m_pSequence) / sizeof(CSequence*); i++) {
+	for (size_t i = 0; i < std::size(m_pSequence); i++) {
 		if (m_pSequence[i] == nullptr || m_pSequence[i]->GetItemCount() == 0) continue;
 		int Value = m_pSequence[i]->GetItem(m_iSeqPointer[i]);
 		switch (m_iSeqState[i]) {

@@ -1722,9 +1722,9 @@ CString CFamiTrackerDoc::GetFileTitle() const
 	static const LPCSTR EXT[] = {_T(".ftm"), _T(".0cc"), _T(".ftm.bak"), _T(".0cc.bak")};		// // //
 	// Remove extension
 
-	for (size_t i = 0; i < sizeof(EXT) / sizeof(LPCSTR); ++i) {
-		int Len = lstrlen(EXT[i]);
-		if (FileName.Right(Len).CompareNoCase(EXT[i]) == 0)
+	for (const auto &str : EXT) {
+		int Len = lstrlen(str);
+		if (FileName.Right(Len).CompareNoCase(str) == 0)
 			return FileName.Left(FileName.GetLength() - Len);
 	}
 

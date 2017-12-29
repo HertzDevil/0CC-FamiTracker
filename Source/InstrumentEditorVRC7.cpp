@@ -162,10 +162,8 @@ void CInstrumentEditorVRC7::EnableControls(bool bEnable)
 		IDC_TL, IDC_FB
 	};
 
-	const int SLIDERS = sizeof(SLIDER_IDS) / sizeof(SLIDER_IDS[0]);
-
-	for (int i = 0; i < SLIDERS; ++i)
-		GetDlgItem(SLIDER_IDS[i])->EnableWindow(bEnable ? TRUE : FALSE);
+	for (auto id : SLIDER_IDS)		// // //
+		GetDlgItem(id)->EnableWindow(bEnable ? TRUE : FALSE);
 }
 
 void CInstrumentEditorVRC7::SelectInstrument(std::shared_ptr<CInstrument> pInst)

@@ -274,7 +274,7 @@ void CFindResultsBox::SelectItem(int Index)
 			CHANID_VRC6_PULSE1, CHANID_VRC6_SAWTOOTH,
 			CHANID_MMC5_SQUARE1, CHANID_N163_CH1, CHANID_FDS, CHANID_VRC7_CH1, CHANID_S5B_CH1,
 		};
-		for (int i = 0; i < sizeof(HEADER_ID) / sizeof(int); ++i) {
+		for (int i = 0; i < std::size(HEADER_ID); ++i) {
 			const auto &n = HEADER_STR[i];
 			int Size = n.GetLength();
 			if (x.Left(Size) == n) {

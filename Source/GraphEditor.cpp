@@ -1290,7 +1290,7 @@ void CNoiseEditor::OnPaint()
 		static const int BAR_MODE[] = {S5B_MODE_ENVELOPE, S5B_MODE_SQUARE, S5B_MODE_NOISE};		// // //
 		static const COLORREF BAR_COLOR[] = {0x00A0A0, 0xA0A000, 0xA000A0};
 
-		for (int i = 0; i < sizeof(BAR_MODE) / sizeof(int); ++i) {
+		for (int i = 0; i < std::size(BAR_MODE); ++i) {
 			int y = m_GraphRect.bottom - BUTTON_MARGIN + i * BUTTON_HEIGHT + 1;
 			int h = BUTTON_HEIGHT - 1;
 			const COLORREF Color = (item & BAR_MODE[i]) ? BAR_COLOR[i] : 0x505050;

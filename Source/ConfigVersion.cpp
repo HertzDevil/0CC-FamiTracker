@@ -155,8 +155,8 @@ BOOL CConfigVersion::OnInitDialog()
 	m_cComboVersion = new CComboBox();
 	m_cComboVersion->SubclassDlgItem(IDC_COMBO_VERSION_SELECT, this);
 
-	for (size_t i = 0; i < sizeof(VERSION_TEXT) / sizeof(CString); i++)
-		m_cComboVersion->AddString(VERSION_TEXT[i]);
+	for (const auto &str : VERSION_TEXT)
+		m_cComboVersion->AddString(str);
 	m_cComboVersion->SetCurSel(m_cComboVersion->GetCount() - 1); // TODO: add to registry
 
 	m_cSliderErrorLevel = new CSliderCtrl();

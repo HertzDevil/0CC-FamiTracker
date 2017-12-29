@@ -58,10 +58,10 @@ const COLOR_SCHEME *CConfigAppearance::COLOR_SCHEMES[] = {
 	&SATURDAY_COLOR_SCHEME		// // //
 };
 
-const int CConfigAppearance::NUM_COLOR_SCHEMES = sizeof(COLOR_SCHEMES) / sizeof(COLOR_SCHEME*);
+const int CConfigAppearance::NUM_COLOR_SCHEMES = std::size(COLOR_SCHEMES);
 
 const int CConfigAppearance::FONT_SIZES[] = {10, 11, 12, 14, 16, 18, 20, 22};
-const int CConfigAppearance::FONT_SIZE_COUNT = sizeof(FONT_SIZES) / sizeof(int);
+const int CConfigAppearance::FONT_SIZE_COUNT = std::size(FONT_SIZES);
 
 int CALLBACK CConfigAppearance::EnumFontFamExProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD FontType, LPARAM lParam)
 {
@@ -479,7 +479,7 @@ void CConfigAppearance::ExportSettings(const char *Path) const		// // // 050B
 	if (!file.good())
 		return;
 	file << "# 0CC-FamiTracker appearance" << std::endl << std::hex;
-	for (size_t i = 0; i < sizeof(m_iColors) / sizeof(*m_iColors); ++i)
+	for (size_t i = 0; i < std::size(m_iColors); ++i)
 		file << COLOR_ITEMS[i] << SETTING_SEPARATOR << HEX_PREFIX << m_iColors[i] << std::endl;
 	file << std::dec;
 	file << "Pattern colors" << SETTING_SEPARATOR << m_bPatternColors << std::endl;
@@ -501,7 +501,7 @@ void CConfigAppearance::ImportSettings(const char *Path)		// // // 050B
 		size_t Pos = Line.find(SETTING_SEPARATOR);
 		if (Pos == std::string::npos) continue;
 		
-		for (size_t i = 0; i < sizeof(m_iColors) / sizeof(*m_iColors); ++i) {
+		for (size_t i = 0; i < std::size(m_iColors); ++i) {
 			if (Line.find(COLOR_ITEMS[i]) == std::string::npos) continue;
 			size_t n = Line.find(HEX_PREFIX);
 			if (n == std::string::npos) continue;

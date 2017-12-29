@@ -110,7 +110,7 @@ BOOL CChannelsDlg::OnInitDialog()
 	m_pAvailableTree = static_cast<CTreeCtrl*>(GetDlgItem(IDC_AVAILABLE_TREE));
 	m_pAddedChannels = static_cast<CListCtrl*>(GetDlgItem(IDC_ADDED_LIST));
 
-	int RootItems = sizeof(ROOT_ITEMS) / sizeof(TCHAR);
+	int RootItems = std::size(ROOT_ITEMS);		// // //
 
 //	m_pAddedChannels->GetWIndowLon
 

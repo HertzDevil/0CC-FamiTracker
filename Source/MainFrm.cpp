@@ -426,7 +426,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (!CreateToolbars())
 		return -1;
 
-	if (!m_wndStatusBar.Create(this) || !m_wndStatusBar.SetIndicators(indicators, sizeof(indicators) / sizeof(UINT))) {
+	if (!m_wndStatusBar.Create(this) || !m_wndStatusBar.SetIndicators(indicators, std::size(indicators))) {		// // //
 		TRACE("Failed to create status bar\n");
 		return -1;      // fail to create
 	}

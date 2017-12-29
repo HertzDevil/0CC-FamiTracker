@@ -90,7 +90,7 @@ BOOL CSampleEditorDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	if (!m_wndInfoStatusBar.Create(this) ||
-		!m_wndInfoStatusBar.SetIndicators(indicators, sizeof(indicators) / sizeof(*indicators)))		// // // 050B
+		!m_wndInfoStatusBar.SetIndicators(indicators, std::size(indicators)))		// // // 050B
 		return FALSE;
 	m_wndInfoStatusBar.SetPaneInfo(0, ID_INDICATOR_DPCM_SEGMENT, SBPS_STRETCH, 0);
 	m_wndInfoStatusBar.SetPaneInfo(1, ID_INDICATOR_DPCM_SIZE, SBPS_NORMAL, 150);
