@@ -125,8 +125,8 @@ void CFrameAction::SaveUndoState(const CMainFrame &MainFrm)		// // //
 {
 	CFamiTrackerView *pView = GET_VIEW();
 	m_pUndoState = std::make_unique<CFrameEditorState>(pView, GET_SELECTED_TRACK());		// // //
-	m_itFrames = make_int_range(m_pUndoState->GetFrameStart(), m_pUndoState->GetFrameEnd());
-	m_itChannels = make_int_range(m_pUndoState->GetChanStart(), m_pUndoState->GetChanEnd());
+	m_itFrames = make_int_range(m_pUndoState->GetFrameStart(), m_pUndoState->GetFrameEnd() + 1);
+	m_itChannels = make_int_range(m_pUndoState->GetChanStart(), m_pUndoState->GetChanEnd() + 1);
 }
 
 void CFrameAction::SaveRedoState(const CMainFrame &MainFrm)		// // //

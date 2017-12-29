@@ -142,9 +142,13 @@ std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSel
 	pData->ClipInfo.OleInfo.SourceRowEnd = e.m_iFrame - 1;
 
 	int f = 0;
-	for (; b != e; ++b, ++f)
+	for (; b != e; ++f) {
 		for (int c = b.m_iChannel; c < e.m_iChannel; ++c)
 			pData->SetFrame(f, c - b.m_iChannel, b.Get(c));
+		++b;
+		if (b.m_iFrame == 0)
+			break;
+	}
 
 	return pData;
 }
