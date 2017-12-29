@@ -162,12 +162,12 @@ void CAPU::Reset()
 	m_iCyclesToRun		= 0;
 	m_iFrameCycles		= 0;
 	
-	m_pMixer->ClearBuffer();
-	
 	for (auto Chip : ExChips) {		// // //
 		Chip->GetRegisterLogger().Reset();
 		Chip->Reset();
 	}
+	
+	m_pMixer->ClearBuffer();
 
 #ifdef LOGGING
 	m_iFrame = 0;

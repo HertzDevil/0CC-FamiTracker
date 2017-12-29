@@ -747,12 +747,6 @@
     <ClCompile Include="Source\APU\ext\FDSSound.cpp">
       <Filter>Source Files\Sound Driver\Emulation\Sound Chips\External</Filter>
     </ClCompile>
-    <ClCompile Include="Source\APU\MixerChannel.cpp">
-      <Filter>Source Files\Sound Driver</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\APU\MixerLevels.cpp">
-      <Filter>Source Files\Sound Driver</Filter>
-    </ClCompile>
     <ClCompile Include="Source\APU\Channel.cpp">
       <Filter>Source Files\Sound Driver\Audio</Filter>
     </ClCompile>
@@ -764,6 +758,12 @@
     </ClCompile>
     <ClCompile Include="Source\FrameEditorModel.cpp">
       <Filter>Source Files\Frame Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\APU\MixerLevels.cpp">
+      <Filter>Source Files\Sound Driver\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\APU\MixerChannel.cpp">
+      <Filter>Source Files\Sound Driver\Audio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
