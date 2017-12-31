@@ -169,12 +169,12 @@ void CChunkRenderText::StoreSamples(const std::vector<std::shared_ptr<const CDSa
 	unsigned int Address = CCompiler::PAGE_SAMPLES;
 	for (size_t i = 0; i < Samples.size(); ++i) if (const auto &pDSample = Samples[i]) {		// // //
 		const unsigned int SampleSize = pDSample->GetSize();
-		const char *pData = pDSample->GetData();
+		const unsigned char *pData = pDSample->GetData();
 
 		CStringA label;
 		label.Format("ft_sample_%i", i);		// // //
 		str.Format("%s: ; %s\n", LPCSTR(label), pDSample->GetName());
-		StoreByteString(pData, SampleSize, str, DEFAULT_LINE_BREAK);
+		StoreByteString((const char *)pData, SampleSize, str, DEFAULT_LINE_BREAK);
 		Address += SampleSize;
 
 		// Adjust if necessary

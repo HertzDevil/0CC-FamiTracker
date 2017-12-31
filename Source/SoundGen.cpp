@@ -997,10 +997,6 @@ BOOL CSoundGen::IdleLoop() {
 		HaltPlayer();
 	}
 
-	// Check if a previewed sample should be removed
-	if (m_pPreviewSample && PreviewDone())
-		m_pPreviewSample.reset();		// // //
-
 	return TRUE;
 }
 

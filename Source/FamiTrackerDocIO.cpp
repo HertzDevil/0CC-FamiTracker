@@ -983,7 +983,7 @@ void CFamiTrackerDocIO::SaveDSamples(const CFamiTrackerDoc &doc, int ver) {
 				file_.WriteBlockInt(Length);
 				file_.WriteBlock(pSamp->GetName(), Length);
 				file_.WriteBlockInt(pSamp->GetSize());
-				file_.WriteBlock(pSamp->GetData(), pSamp->GetSize());
+				file_.WriteBlock((const char *)pSamp->GetData(), pSamp->GetSize());
 			}
 		}
 	}

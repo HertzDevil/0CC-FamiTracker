@@ -26,6 +26,8 @@
 #include <memory>		// // //
 #include <string>		// // //
 
+#include "ft0cc/doc/dpcm_sample.hpp"		// // //
+
 // DPCM sample class
 
 class CDSample {
@@ -33,12 +35,6 @@ public:
 	// Constructor
 	explicit CDSample(unsigned int Size = 0U);		// // //
 	CDSample(unsigned int Size, std::unique_ptr<char[]> pData);		// // //
-
-	// Copy constructor
-	CDSample(const CDSample &sample);
-	CDSample(CDSample &&sample) = default;
-	CDSample &operator=(const CDSample &sample);
-	CDSample &operator=(CDSample &&sample);		// // //
 
 	bool operator==(const CDSample &other) const;		// // //
 	bool operator!=(const CDSample &other) const { return !(*this == other); }
@@ -50,7 +46,7 @@ public:
 	unsigned int GetSize() const;
 
 	// Get sample data
-	const char *GetData() const;
+	const unsigned char *GetData() const;
 
 	// Set sample name
 	void SetName(const char *pName);
@@ -63,13 +59,10 @@ public:
 
 public:
 	// Max size of a sample as supported by the NES, in bytes
-	static const int MAX_SIZE = 0x0FF1;
+	static const int MAX_SIZE = ft0cc::doc::dpcm_sample::max_size;
 	// Size of sample name
-	static const int MAX_NAME_SIZE = 256;
+	static const int MAX_NAME_SIZE = ft0cc::doc::dpcm_sample::max_name_length + 1;
 
 private:
-	// Sample data
-	unsigned int m_iSampleSize;
-	std::unique_ptr<char[]> m_pSampleData;		// // //
-	std::string m_sName;		// // //
+	ft0cc::doc::dpcm_sample s_;
 };

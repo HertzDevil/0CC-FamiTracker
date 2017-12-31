@@ -22,6 +22,8 @@
 
 #include "DSample.h"
 
+using dpcm_sample = ft0cc::doc::dpcm_sample;
+
 /*
  * CDSample
  *
@@ -30,102 +32,50 @@
  */
 
 CDSample::CDSample(unsigned int Size) :
-	m_iSampleSize(Size),
-	m_pSampleData(std::make_unique<char[]>(Size))
+	s_(Size)
 {
 }
 
 CDSample::CDSample(unsigned int Size, std::unique_ptr<char[]> pData) :
-	m_iSampleSize(Size),
-	m_pSampleData(std::move(pData))
+	s_(Size)
 {
-}
-
-CDSample::CDSample(const CDSample &sample) :		// // //
-	m_iSampleSize(sample.m_iSampleSize),
-	m_pSampleData(std::make_unique<char[]>(sample.m_iSampleSize)),
-	m_sName(sample.m_sName)
-{
-	memcpy(m_pSampleData.get(), sample.m_pSampleData.get(), m_iSampleSize);
-}
-
-CDSample &CDSample::operator=(const CDSample &sample)
-{
-	/*
-	m_iSampleSize = sample.m_iSampleSize;
-	m_pSampleData.reset(new char[sample.m_iSampleSize]);
-	memcpy(m_pSampleData.get(), sample.m_pSampleData.get(), m_iSampleSize);
-	strncpy(m_sName.get(), sample.m_sName.get(), MAX_NAME_SIZE);
-	*/
-	CDSample temp(sample);
-	*this = std::move(temp);
-	return *this;
-}
-
-CDSample &CDSample::operator=(CDSample &&sample)		// // //
-{
-	m_iSampleSize = sample.m_iSampleSize;
-	m_pSampleData.swap(sample.m_pSampleData);
-	m_sName.swap(sample.m_sName);
-	return *this;
+	for (unsigned i = 0; i < Size; ++i)
+		s_.set_sample_at(i, pData[i]);
 }
 
 bool CDSample::operator==(const CDSample &other) const {		// // //
-	return m_iSampleSize == other.m_iSampleSize &&
-		m_sName == other.m_sName &&
-		((!m_pSampleData && !other.m_pSampleData) || (m_pSampleData && other.m_pSampleData &&
-			0 == std::memcmp(m_pSampleData.get(), other.m_pSampleData.get(), m_iSampleSize)));
+	return s_ == other.s_;
 }
 
 void CDSample::SetData(unsigned int Size, std::unique_ptr<char[]> pData)		// // //
 {
-	m_pSampleData = std::move(pData);		// // //
-	m_iSampleSize = Size;
+	*this = CDSample(Size, std::move(pData));
 }
 
 unsigned int CDSample::GetSize() const
 {
-	return m_iSampleSize;
+	return s_.size();
 }
 
-const char *CDSample::GetData() const
+const unsigned char *CDSample::GetData() const
 {
-	return m_pSampleData.get();
+	return s_.data();
 }
 
 void CDSample::SetName(const char *pName)
 {
-	m_sName = pName;
-	if (m_sName.size() >= MAX_NAME_SIZE)
-		m_sName.resize(MAX_NAME_SIZE - 1); // null character
+	s_.rename(pName);
 }
 
 const char *CDSample::GetName() const
 {
-	return m_sName.c_str();
+	return s_.name().data();
 }
 
 void CDSample::RemoveData(int startsample, int endsample) {		// // //
-	auto pBuf = std::make_unique<char[]>(GetSize() - (endsample - startsample));
-	memcpy(pBuf.get(), m_pSampleData.get(), startsample);
-	memcpy(pBuf.get() + startsample, m_pSampleData.get() + endsample, GetSize() - endsample);
-	m_iSampleSize = GetSize() - (endsample - startsample);
-	m_pSampleData = std::move(pBuf);
+	s_.cut_samples(startsample, endsample);
 }
 
 void CDSample::Tilt(int startsample, int endsample) {		// // //
-	int Diff = endsample - startsample;
-
-	int Nr = 10;
-	int Step = (Diff * 8) / Nr;
-	int Cntr = rand() % Step;
-
-	for (int i = startsample; i < endsample; ++i) {
-		for (int j = 0; j < 8; ++j) {
-			if (++Cntr == Step) {
-				m_pSampleData[i] &= (0xFF ^ (1 << j));
-				Cntr = 0;
-			}
-		}
-	}
+	s_.tilt(startsample, endsample);
 }

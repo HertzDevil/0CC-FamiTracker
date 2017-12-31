@@ -325,7 +325,7 @@ void CSampleEditorView::ExpandSample(const CDSample &Sample, int Start)		// // /
 	m_pSamples = std::make_unique<int[]>(Size);		// // //
 	m_iSize = Size;
 
-	const char *pData = Sample.GetData();
+	const unsigned char *pData = Sample.GetData();
 	int Delta = Start;
 
 	for (int i = 0; i < Size; ++i) {
