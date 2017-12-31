@@ -2,7 +2,7 @@
 ** FamiTracker - NES/Famicom sound tracker
 ** Copyright (C) 2005-2015 Jonathan Liss
 **
-** 0CC-FamiTracker is (C) 2014-2017 HertzDevil
+** 0CC-FamiTracker is (C) 2014-2018 HertzDevil
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ namespace ft0cc::doc {
 class inst_sequence {
 public:
 	using entry_type = std::int8_t;
-	
+
 	enum class setting {
 		def = 0,
 
