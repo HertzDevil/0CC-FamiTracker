@@ -24,6 +24,7 @@
 #include "../common.h"
 #include <algorithm>
 #include "Mixer.h"
+#include "../DSample.h"		// // //
 #include "../RegisterState.h"		// // //
 
 // // // 2A03 sound chip class
@@ -225,6 +226,12 @@ inline void C2A03::RunAPU2(uint32_t Time)
 		m_DPCM.Process(Period);
 		Time -= Period;
 	}
+}
+
+void C2A03::WriteSample(std::shared_ptr<const CDSample> pSample) {		// // //
+	// Sample may not be removed when used by the sample memory class!
+	preview_sample_ = std::move(pSample);
+	GetSampleMemory().SetMem(preview_sample_->GetData(), preview_sample_->GetSize());
 }
 
 CSampleMem &C2A03::GetSampleMemory()		// // //

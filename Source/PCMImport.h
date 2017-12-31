@@ -24,6 +24,7 @@
 
 #include "stdafx.h"		// // //
 #include "resource.h"		// // //
+#include <memory>		// // //
 
 class CDSample;		// // //
 
@@ -42,11 +43,11 @@ public:
 // Dialog Data
 	enum { IDD = IDD_PCMIMPORT };
 
-	CDSample *ShowDialog();
+	std::shared_ptr<CDSample> ShowDialog();		// // //
 
 protected:
-	CDSample *m_pImported;
-	CDSample *m_pCachedSample;
+	std::shared_ptr<CDSample> m_pImported;		// // //
+	std::shared_ptr<CDSample> m_pCachedSample;
 
 	CString		m_strPath, m_strFileName;
 	CFile		m_fSampleFile;
@@ -63,15 +64,15 @@ protected:
 	int m_iCachedVolume;
 	unsigned int m_iWaveSize;
 
-	jarh::sinc *m_psinc;
+	std::unique_ptr<jarh::sinc> m_psinc;		// // //
 
 protected:
 	static const int QUALITY_RANGE;
 	static const int VOLUME_RANGE;
 
 protected:
-	CDSample *GetSample();
-	CDSample *ConvertFile();
+	std::shared_ptr<CDSample> GetSample();		// // //
+	std::shared_ptr<CDSample> ConvertFile();
 
 	bool OpenWaveFile();
 	void UpdateFileInfo();

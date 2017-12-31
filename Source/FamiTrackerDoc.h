@@ -289,8 +289,9 @@ public:
 	int				GetTotalSequenceCount(inst_type_t InstType) const;		// // //
 
 	// DPCM samples
-	const CDSample*	GetSample(unsigned int Index) const;		// // // non-const getter removed
-	void			SetSample(unsigned int Index, CDSample *pSamp);		// // //
+	std::shared_ptr<CDSample>	GetSample(unsigned int Index);		// // //
+	std::shared_ptr<const CDSample>	GetSample(unsigned int Index) const;		// // //
+	void			SetSample(unsigned int Index, std::shared_ptr<CDSample> pSamp);		// // //
 	bool			IsSampleUsed(unsigned int Index) const;
 	unsigned int	GetSampleCount() const;
 	int				GetFreeSampleSlot() const;

@@ -24,37 +24,43 @@
 
 const unsigned int CDSampleManager::MAX_DSAMPLES = 64;
 
-CDSampleManager::CDSampleManager() : m_pDSample(), m_iTotalSize(0U)
+CDSampleManager::CDSampleManager() : m_pDSample(MAX_DSAMPLES)
 {
-	m_pDSample.resize(MAX_DSAMPLES);
 }
 
-const CDSample *CDSampleManager::GetDSample(unsigned Index) const
+std::shared_ptr<CDSample> CDSampleManager::GetDSample(unsigned Index)
 {
-	return m_pDSample[Index].get();
+	return Index < m_pDSample.size() ? m_pDSample[Index] : nullptr;
 }
 
-bool CDSampleManager::SetDSample(unsigned Index, CDSample *pSamp)
+std::shared_ptr<CDSample> CDSampleManager::ReleaseDSample(unsigned Index) {
+	return Index < m_pDSample.size() ? std::move(m_pDSample[Index]) : nullptr;
+}
+
+std::shared_ptr<const CDSample> CDSampleManager::GetDSample(unsigned Index) const
 {
-	bool Changed = m_pDSample[Index].get() != pSamp;
-	if (m_pDSample[Index])
-		m_iTotalSize -= m_pDSample[Index]->GetSize();
-	if (pSamp)
-		m_iTotalSize += pSamp->GetSize();
-	m_pDSample[Index].reset(pSamp);
+	return Index < m_pDSample.size() ? m_pDSample[Index] : nullptr;
+}
+
+bool CDSampleManager::SetDSample(unsigned Index, std::shared_ptr<CDSample> pSamp)
+{
+	if (Index >= m_pDSample.size())
+		return false;
+	bool Changed = m_pDSample[Index] != pSamp;
+	m_pDSample[Index] = std::move(pSamp);
 	return Changed;
 }
 
 bool CDSampleManager::IsSampleUsed(unsigned Index) const
 {
-	return m_pDSample[Index] != nullptr;
+	return Index < m_pDSample.size() && m_pDSample[Index] != nullptr;
 }
 
 unsigned int CDSampleManager::GetSampleCount() const
 {
 	unsigned int Count = 0;
-	for (size_t i = 0; i < MAX_DSAMPLES; ++i)
-		if (m_pDSample[i])
+	for (const auto &x : m_pDSample)
+		if (x)
 			++Count;
 	return Count;
 }
@@ -69,6 +75,10 @@ unsigned int CDSampleManager::GetFirstFree() const
 
 unsigned int CDSampleManager::GetTotalSize() const
 {
-	return m_iTotalSize;
+	unsigned int Size = 0;
+	for (const auto &x : m_pDSample)
+		if (x)
+			Size += x->GetSize();
+	return Size;
 }
 

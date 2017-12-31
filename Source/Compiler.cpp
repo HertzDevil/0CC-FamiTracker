@@ -1651,7 +1651,7 @@ void CCompiler::StoreSamples()
 
 		unsigned int iIndex = m_iSampleBank[i];
 		ASSERT(iIndex != 0xFF);
-		const CDSample *pDSample = m_pDocument->GetSample(iIndex);
+		auto pDSample = m_pDocument->GetSample(iIndex);
 		unsigned int iSize = pDSample->GetSize();
 
 		if (iSize > 0) {

@@ -54,10 +54,10 @@ protected:
 	void UpdateCurrentKey();		// // //
 	void UpdateKey(int Index);
 	bool LoadSample(const CString &FilePath, const CString &FileName);
-	bool InsertSample(CDSample *pNewSample);
+	bool InsertSample(std::shared_ptr<CDSample> pNewSample);		// // //
 
-	const CDSample *GetSelectedSample();		// // //
-	void SetSelectedSample(CDSample *pSamp) const;		// // //
+	std::shared_ptr<const CDSample> GetSelectedSample();		// // //
+	void SetSelectedSample(std::shared_ptr<CDSample> pSample) const;		// // //
 
 protected:
 	std::shared_ptr<CInstrument2A03> m_pInstrument;

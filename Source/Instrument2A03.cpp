@@ -175,7 +175,7 @@ void CInstrument2A03::DoSaveFTI(CSimpleFile &File) const
 
 	// List of sample names
 	for (int i = 0; i < MAX_DSAMPLES; ++i) if (UsedSamples[i]) {
-		if (const CDSample *pSample = m_pInstManager->GetDSample(i)) {
+		if (auto pSample = m_pInstManager->GetDSample(i)) {		// // //
 			File.WriteInt(i);
 			const char *pName = pSample->GetName();
 			int NameLen = strlen(pName);
@@ -221,7 +221,7 @@ bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
 	bool bAssigned[OCTAVE_RANGE][NOTE_RANGE] = {};
 	int TotalSize = 0;		// // // ???
 	for (int i = 0; i < MAX_DSAMPLES; ++i)
-		if (const CDSample *pSamp = m_pInstManager->GetDSample(i))
+		if (auto pSamp = m_pInstManager->GetDSample(i))
 			TotalSize += pSamp->GetSize();
 
 	unsigned int SampleCount = File.ReadInt();
@@ -231,15 +231,17 @@ bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
 		int Len = CModuleException::AssertRangeFmt(
 			File.ReadInt(), 0, CDSample::MAX_NAME_SIZE - 1, "DPCM sample name length");
 		File.ReadBytes(SampleNames[Index], Len);
-		SampleNames[Index][Len] = 0;
+		SampleNames[Index][Len] = '\0';
 		int Size = File.ReadInt();
-		char *SampleData = new char[Size];
-		File.ReadBytes(SampleData, Size);
+		auto SampleData = std::make_unique<char[]>(Size);		// // //
+		File.ReadBytes(SampleData.get(), Size);
+		auto pSample = std::make_shared<CDSample>(Size, std::move(SampleData));		// // //
+		pSample->SetName(SampleNames[Index]);
+
 		bool Found = false;
-		for (int j = 0; j < MAX_DSAMPLES; ++j) if (const CDSample *pSample = m_pInstManager->GetDSample(j)) {		// // //
+		for (int j = 0; j < MAX_DSAMPLES; ++j) if (auto s = m_pInstManager->GetDSample(j)) {		// // //
 			// Compare size and name to see if identical sample exists
-			if (pSample->GetSize() == Size && !memcmp(pSample->GetData(), SampleData, Size) &&		// // //
-				!strcmp(pSample->GetName(), SampleNames[Index])) {
+			if (*pSample == *s) {
 				Found = true;
 				// Assign sample
 				for (int o = 0; o < OCTAVE_RANGE; ++o) {
@@ -253,25 +255,16 @@ bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
 				break;
 			}
 		}
-		if (Found) {
-			SAFE_RELEASE_ARRAY(SampleData);
+		if (Found)
 			continue;
-		}
 
 		// Load sample
 		
-		if (TotalSize + Size > MAX_SAMPLE_SPACE) {
-			SAFE_RELEASE_ARRAY(SampleData);
+		if (TotalSize + Size > MAX_SAMPLE_SPACE)
 			throw CModuleException::WithMessage("Insufficient DPCM sample space (maximum %d KB)", MAX_SAMPLE_SPACE / 1024);
-		}
-		CDSample *pSample = new CDSample();		// // //
-		pSample->SetName(SampleNames[Index]);
-		pSample->SetData(Size, SampleData);
 		int FreeSample = m_pInstManager->AddDSample(pSample);
-		if (FreeSample == -1) {
-			SAFE_RELEASE(pSample);
+		if (FreeSample == -1)
 			throw CModuleException::WithMessage("Document has no free DPCM sample slot");
-		}
 		TotalSize += Size;
 		// Assign it
 		for (int o = 0; o < OCTAVE_RANGE; ++o) {
@@ -367,7 +360,7 @@ bool CInstrument2A03::AssignedSamples() const
 	return false;
 }
 
-const CDSample *CInstrument2A03::GetDSample(int Octave, int Note) const		// // //
+std::shared_ptr<CDSample> CInstrument2A03::GetDSample(int Octave, int Note) const		// // //
 {
 	if (!m_pInstManager) return nullptr;
 	char Index = GetSampleIndex(Octave, Note);

@@ -47,9 +47,9 @@ enum {
 
 IMPLEMENT_DYNAMIC(CSampleEditorDlg, CDialog)
 
-CSampleEditorDlg::CSampleEditorDlg(CWnd* pParent /*=NULL*/, CDSample *pSample)
+CSampleEditorDlg::CSampleEditorDlg(CWnd* pParent /*=NULL*/, std::shared_ptr<CDSample> pSample)		// // //
 	: CDialog(CSampleEditorDlg::IDD, pParent), m_pSampleEditorView(NULL),
-	m_pSample(pSample)		// // //
+	m_pSample(std::move(pSample))		// // //
 {
 	m_pSoundGen = theApp.GetSoundGenerator();
 }
@@ -57,10 +57,9 @@ CSampleEditorDlg::CSampleEditorDlg(CWnd* pParent /*=NULL*/, CDSample *pSample)
 CSampleEditorDlg::~CSampleEditorDlg()
 {
 	SAFE_RELEASE(m_pSampleEditorView);
-	SAFE_RELEASE(m_pSample);
 }
 
-CDSample *CSampleEditorDlg::GetDSample() const		// // //
+std::shared_ptr<CDSample> CSampleEditorDlg::GetDSample() const		// // //
 {
 	return m_pSample;
 }
@@ -185,22 +184,13 @@ void CSampleEditorDlg::OnBnClickedDelete()
 	unsigned int StartSample = m_pSampleEditorView->GetSelStart() * 16;
 	unsigned int EndSample = m_pSampleEditorView->GetSelEnd() * 16;
 
-	ASSERT(StartSample <= 4081);
-	ASSERT(EndSample <= 4081);
+	ASSERT(StartSample <= CDSample::MAX_SIZE);
+	ASSERT(EndSample <= CDSample::MAX_SIZE);
 
 	if (EndSample >= m_pSample->GetSize())
 		EndSample = m_pSample->GetSize() - 1;
 
-	TRACE(_T("Removing selected part from sample, start: %i, end %i (diff: %i)\n"), StartSample, EndSample, EndSample - StartSample);
-
-	// Remove the selected part
-	memcpy(m_pSample->GetData() + StartSample, m_pSample->GetData() + EndSample, m_pSample->GetSize() - EndSample);
-	int NewSize = m_pSample->GetSize() - (EndSample - StartSample);
-
-	// Reallocate
-	char *pData = new char[NewSize];
-	memcpy(pData, m_pSample->GetData(), NewSize);
-	m_pSample->SetData(NewSize, pData);
+	m_pSample->RemoveData(StartSample, EndSample);		// // //
 
 	UpdateSampleView();
 	SelectionChanged();
@@ -213,22 +203,7 @@ void CSampleEditorDlg::OnBnClickedTilt()
 
 	int StartSample = m_pSampleEditorView->GetSelStart() * 16;
 	int EndSample = m_pSampleEditorView->GetSelEnd() * 16;
-
-	int Diff = EndSample - StartSample;
-
-	int Nr = 10;
-	int Step = (Diff * 8) / Nr;
-	int Cntr = rand() % Step;
-	char *pData = m_pSample->GetData();
-
-	for (int i = StartSample; i < EndSample; ++i) {
-		for (int j = 0; j < 8; ++j) {
-			if (++Cntr == Step) {
-				pData[i] &= (0xFF ^ (1 << j));
-				Cntr = 0;
-			}
-		}
-	}
+	m_pSample->Tilt(StartSample, EndSample);		// // //
 
 	UpdateSampleView();
 	SelectionChanged();
@@ -241,7 +216,7 @@ void CSampleEditorDlg::OnBnClickedDeltastart()
 
 void CSampleEditorDlg::UpdateSampleView()
 {
-	m_pSampleEditorView->ExpandSample(m_pSample, IsDlgButtonChecked(IDC_DELTASTART) ? 64 : 0);
+	m_pSampleEditorView->ExpandSample(*m_pSample, IsDlgButtonChecked(IDC_DELTASTART) ? 64 : 0);		// // //
 	m_pSampleEditorView->UpdateInfo();
 	m_pSampleEditorView->Invalidate();
 	m_pSampleEditorView->RedrawWindow();

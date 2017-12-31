@@ -76,11 +76,6 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 		unsigned int Count;
 	} ImportedSequence;
 	struct {
-		char *SampleData;
-		int	 SampleSize;
-		char Name[256];
-	} ImportedDSample;
-	struct {
 		int	Note;
 		int	Octave;
 		int	Vol;
@@ -204,23 +199,28 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 			}
 			break;
 		}
-		case FB_DSAMPLES:
+		case FB_DSAMPLES: {
+			struct {
+				char *SampleData; // TODO: verify
+				int	 SampleSize;
+				char Name[256];
+			} ImportedDSample;
+
 			pOpenFile->Read(&ReadCount, sizeof(int));
 			for (i = 0; i < ReadCount; i++) {
+				std::unique_ptr<char[]> pBuf;		// // //
 				pOpenFile->Read(&ImportedDSample, sizeof(ImportedDSample));
 				if (ImportedDSample.SampleSize != 0 && ImportedDSample.SampleSize < 0x4000) {
-					ImportedDSample.SampleData = new char[ImportedDSample.SampleSize];
-					pOpenFile->Read(ImportedDSample.SampleData, ImportedDSample.SampleSize);
+					pBuf = std::make_unique<char[]>(ImportedDSample.SampleSize);		// // //
+					pOpenFile->Read(pBuf.get(), ImportedDSample.SampleSize);
 				}
-				else
-					ImportedDSample.SampleData = NULL;
-				CDSample *pSamp = new CDSample();		// // //
+
+				auto pSamp = std::make_shared<CDSample>(ImportedDSample.SampleSize, std::move(pBuf));
 				pSamp->SetName(ImportedDSample.Name);
-				pSamp->SetData(ImportedDSample.SampleSize, ImportedDSample.SampleData);
-				doc.SetSample(i, pSamp);
+				doc.SetSample(i, std::move(pSamp));
 			}
 			break;
-
+		}
 		case FB_SONGNAME:
 			pOpenFile->Read(pBuf, std::size(pBuf));		// // //
 			doc.SetModuleName(pBuf);

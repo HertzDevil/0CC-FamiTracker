@@ -45,7 +45,7 @@ void CInstHandlerDPCM::TriggerInstrument()
 		const int Val = m_pInterface->GetNote();
 		const int Octave = GET_OCTAVE(Val);
 		const int Note = GET_NOTE(Val) - 1;
-		if (const CDSample *pSamp = pDPCMInst->GetDSample(Octave, Note)) {
+		if (auto pSamp = pDPCMInst->GetDSample(Octave, Note)) {
 			pInterface->WriteDCOffset(pDPCMInst->GetSampleDeltaValue(Octave, Note));
 			pInterface->SetLoopOffset(pDPCMInst->GetSampleLoopOffset(Octave, Note));
 			pInterface->PlaySample(pSamp, pDPCMInst->GetSamplePitch(Octave, Note));

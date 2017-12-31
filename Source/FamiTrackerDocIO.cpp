@@ -959,8 +959,8 @@ void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerDoc &doc, int ver) {
 			auto pData = std::make_unique<char[]>(TrueSize);
 			file_.GetBlock(pData.get(), Size);
 			memset(pData.get() + Size, 0xAA, TrueSize - Size);
-			pSample->SetData(TrueSize, pData.release());
-			doc.SetSample(Index, pSample.release());
+			pSample->SetData(TrueSize, std::move(pData));
+			doc.SetSample(Index, std::move(pSample));
 		}
 		catch (CModuleException e) {
 			e.AppendError("At DPCM sample %d,", Index);
@@ -976,7 +976,7 @@ void CFamiTrackerDocIO::SaveDSamples(const CFamiTrackerDoc &doc, int ver) {
 		file_.WriteBlockChar(Count);
 
 		for (unsigned int i = 0; i < CDSampleManager::MAX_DSAMPLES; ++i) {
-			if (const CDSample *pSamp = manager.GetDSample(i)) {
+			if (auto pSamp = manager.GetDSample(i)) {
 				// Write sample
 				file_.WriteBlockChar(i);
 				int Length = strlen(pSamp->GetName());

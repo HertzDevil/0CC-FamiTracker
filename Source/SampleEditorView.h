@@ -39,7 +39,7 @@ public:
 
 	void	DrawPlayCursor(int Pos);
 	void	DrawStartCursor();
-	void	ExpandSample(CDSample *pSample, int Start);
+	void	ExpandSample(const CDSample &Sample, int Start);		// // //
 	void	UpdateInfo();
 	void	OnHome();
 	void	OnEnd();

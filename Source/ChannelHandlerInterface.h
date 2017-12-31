@@ -20,8 +20,10 @@
 ** must bear this legend.
 */
 
+
 #pragma once
 
+#include <memory>
 
 /*!
 	\brief A pure virtual interface for channel handlers.
@@ -56,7 +58,7 @@ class CChannelHandlerInterfaceDPCM
 public:
 	virtual void	WriteDCOffset(unsigned char) = 0;
 	virtual void	SetLoopOffset(unsigned char) = 0;
-	virtual void	PlaySample(const CDSample*, int) = 0;
+	virtual void	PlaySample(std::shared_ptr<const CDSample>, int) = 0;
 };
 
 class CChannelHandlerInterfaceVRC7

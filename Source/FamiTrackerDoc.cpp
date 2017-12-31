@@ -703,14 +703,14 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 	}
 
 	bool bOutOfSampleSpace = false;
+	auto &Manager = *pImported->GetDSampleManager();		// // //
 
 	// Copy DPCM samples
 	for (int i = 0; i < MAX_DSAMPLES; ++i) {
-		if (const CDSample *pImportDSample = pImported->GetSample(i)) {		// // //
+		if (auto pImportDSample = Manager.ReleaseDSample(i)) {		// // //
 			int Index = GetFreeSampleSlot();
 			if (Index != -1) {
-				CDSample *pDSample = new CDSample(*pImportDSample);		// // //
-				SetSample(Index, pDSample);
+				SetSample(Index, pImportDSample);
 				// Save a reference to this DPCM sample
 				SamplesTable[i] = Index;
 			}
@@ -790,44 +790,45 @@ bool CFamiTrackerDoc::ImportDetune(CFamiTrackerDoc *pImported)		// // //
 
 // DMC Stuff
 
-const CDSample *CFamiTrackerDoc::GetSample(unsigned int Index) const
+std::shared_ptr<CDSample> CFamiTrackerDoc::GetSample(unsigned int Index)
 {
-	ASSERT(Index < MAX_DSAMPLES);
-	return m_pInstrumentManager->GetDSampleManager()->GetDSample(Index);		// // //
+	return GetDSampleManager()->GetDSample(Index);		// // //
 }
 
-void CFamiTrackerDoc::SetSample(unsigned int Index, CDSample *pSamp)		// // //
+std::shared_ptr<const CDSample> CFamiTrackerDoc::GetSample(unsigned int Index) const
 {
-	ASSERT(Index < MAX_DSAMPLES);
-	if (m_pInstrumentManager->GetDSampleManager()->SetDSample(Index, pSamp)) {
+	return GetDSampleManager()->GetDSample(Index);		// // //
+}
+
+void CFamiTrackerDoc::SetSample(unsigned int Index, std::shared_ptr<CDSample> pSamp)		// // //
+{
+	if (GetDSampleManager()->SetDSample(Index, std::move(pSamp)))
 		ModifyIrreversible();		// // //
-	}
 }
 
 bool CFamiTrackerDoc::IsSampleUsed(unsigned int Index) const
 {
-	ASSERT(Index < MAX_DSAMPLES);
-	return m_pInstrumentManager->GetDSampleManager()->IsSampleUsed(Index);		// // //
+	return GetDSampleManager()->IsSampleUsed(Index);		// // //
 }
 
 unsigned int CFamiTrackerDoc::GetSampleCount() const
 {
-	return m_pInstrumentManager->GetDSampleManager()->GetSampleCount();
+	return GetDSampleManager()->GetSampleCount();
 }
 
 int CFamiTrackerDoc::GetFreeSampleSlot() const
 {
-	return m_pInstrumentManager->GetDSampleManager()->GetFirstFree();
+	return GetDSampleManager()->GetFirstFree();
 }
 
 void CFamiTrackerDoc::RemoveSample(unsigned int Index)
 {
-	SetSample(Index, nullptr);		// // //
+	(void)GetDSampleManager()->ReleaseDSample(Index);		// // //
 }
 
 unsigned int CFamiTrackerDoc::GetTotalSampleSize() const
 {
-	return m_pInstrumentManager->GetDSampleManager()->GetTotalSize();
+	return GetDSampleManager()->GetTotalSize();
 }
 
 // ---------------------------------------------------------------------------------------------------------

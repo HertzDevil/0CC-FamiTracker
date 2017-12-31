@@ -154,7 +154,7 @@ public:
 	bool		 IsBackgroundTask() const;
 
 	// Sample previewing
-	void		 PreviewSample(const CDSample *pSample, int Offset, int Pitch);		// // //
+	void		 PreviewSample(std::shared_ptr<const CDSample> pSample, int Offset, int Pitch);		// // //
 	void		 CancelPreviewSample();
 	bool		 PreviewDone() const;
 
@@ -232,7 +232,7 @@ private:
 	bool		is_rendering_impl() const;		// // //
 
 	// Misc
-	void		PlaySample(const CDSample *pSample, int Offset, int Pitch);
+	void		PlayPreviewSample(int Offset, int Pitch);		// // //
 	
 	// Player
 	double		GetAverageBPM() const;		// // //
@@ -261,7 +261,7 @@ private:
 	std::unique_ptr<CAudioDriver>	m_pAudioDriver;			// // //
 	std::unique_ptr<CAPU>			m_pAPU;
 
-	std::unique_ptr<const CDSample> m_pPreviewSample;
+	std::shared_ptr<const CDSample> m_pPreviewSample;
 	CVisualizerWnd					*m_pVisualizerWnd = nullptr;
 
 	bool				m_bRunning;

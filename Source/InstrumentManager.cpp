@@ -228,21 +228,26 @@ int CInstrumentManager::AddSequence(int InstType, int SeqType, std::shared_ptr<C
 	return Index;
 }
 
-const CDSample *CInstrumentManager::GetDSample(int Index) const
+std::shared_ptr<CDSample> CInstrumentManager::GetDSample(int Index)
 {
 	return m_pDSampleManager->GetDSample(Index);
 }
 
-void CInstrumentManager::SetDSample(int Index, CDSample *pSamp)
+std::shared_ptr<const CDSample> CInstrumentManager::GetDSample(int Index) const
 {
-	m_pDSampleManager->SetDSample(Index, pSamp);
+	return m_pDSampleManager->GetDSample(Index);
 }
 
-int CInstrumentManager::AddDSample(CDSample *pSamp)
+void CInstrumentManager::SetDSample(int Index, std::shared_ptr<CDSample> pSamp)
+{
+	m_pDSampleManager->SetDSample(Index, std::move(pSamp));
+}
+
+int CInstrumentManager::AddDSample(std::shared_ptr<CDSample> pSamp)
 {
 	int Index = m_pDSampleManager->GetFirstFree();
 	if (Index != -1)
-		SetDSample(Index, pSamp);
+		SetDSample(Index, std::move(pSamp));
 	return Index;
 }
 

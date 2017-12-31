@@ -49,7 +49,7 @@ class CChunkRenderText
 public:
 	CChunkRenderText(CFile *pFile);
 	void StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks);		// // //
-	void StoreSamples(const std::vector<const CDSample*> &Samples);
+	void StoreSamples(const std::vector<std::shared_ptr<const CDSample>> &Samples);		// // //
 
 private:
 	static const stChunkRenderFunc RENDER_FUNCTIONS[];

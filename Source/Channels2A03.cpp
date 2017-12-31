@@ -675,10 +675,10 @@ void CDPCMChan::SetLoopOffset(unsigned char Loop)		// // //
 	m_iLoopOffset = Loop;
 }
 
-void CDPCMChan::PlaySample(const CDSample *pSamp, int Pitch)		// // //
+void CDPCMChan::PlaySample(std::shared_ptr<const CDSample> pSamp, int Pitch)		// // //
 {
 	int SampleSize = pSamp->GetSize();
-	m_pAPU->WriteSample(pSamp->GetData(), SampleSize);		// // //
+	m_pAPU->WriteSample(std::move(pSamp));		// // //
 	m_iPeriod = m_iCustomPitch != -1 ? m_iCustomPitch : Pitch;
 	m_iSampleLength = (SampleSize >> 4) - (m_iOffset << 2);
 	m_iLoopLength = SampleSize - m_iLoopOffset;

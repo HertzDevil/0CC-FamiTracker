@@ -73,9 +73,10 @@ public:
 	std::shared_ptr<CSequence> GetSequence(int InstType, int SeqType, int Index) const override; // TODO: use SetSequence and provide const getter
 	void SetSequence(int InstType, int SeqType, int Index, std::shared_ptr<CSequence> pSeq) override;
 	int AddSequence(int InstType, int SeqType, std::shared_ptr<CSequence> pSeq, CSeqInstrument *pInst = nullptr) override;
-	const CDSample *GetDSample(int Index) const override;
-	void SetDSample(int Index, CDSample *pSamp) override;
-	int AddDSample(CDSample *pSamp) override;
+	std::shared_ptr<CDSample> GetDSample(int Index) override;
+	std::shared_ptr<const CDSample> GetDSample(int Index) const override;
+	void SetDSample(int Index, std::shared_ptr<CDSample> pSamp) override;
+	int AddDSample(std::shared_ptr<CDSample> pSamp) override;
 	void InstrumentChanged() const override;
 
 public:

@@ -31,7 +31,8 @@
 class CDSample {
 public:
 	// Constructor
-	CDSample(unsigned int Size = 0U);		// // //
+	explicit CDSample(unsigned int Size = 0U);		// // //
+	CDSample(unsigned int Size, std::unique_ptr<char[]> pData);		// // //
 
 	// Copy constructor
 	CDSample(const CDSample &sample);
@@ -39,20 +40,26 @@ public:
 	CDSample &operator=(const CDSample &sample);
 	CDSample &operator=(CDSample &&sample);		// // //
 
+	bool operator==(const CDSample &other) const;		// // //
+	bool operator!=(const CDSample &other) const { return !(*this == other); }
+
 	// Set sample data and size, the object will own the memory area assigned
-	void SetData(unsigned int Size, char *pData);
+	void SetData(unsigned int Size, std::unique_ptr<char[]> pData);		// // //
 
 	// Get sample size
 	unsigned int GetSize() const;
 
 	// Get sample data
-	char *GetData() const;
+	const char *GetData() const;
 
 	// Set sample name
 	void SetName(const char *pName);
 
 	// Get sample name
 	const char *GetName() const;
+
+	void RemoveData(int startsample, int endsample);		// // //
+	void Tilt(int startsample, int endsample);		// // //
 
 public:
 	// Max size of a sample as supported by the NES, in bytes

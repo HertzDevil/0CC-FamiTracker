@@ -70,10 +70,10 @@ void CChunkRenderBinary::StoreChunks(const std::vector<std::shared_ptr<CChunk>> 
 		StoreChunk(*ptr);
 }
 
-void CChunkRenderBinary::StoreSamples(const std::vector<const CDSample*> &Samples)
+void CChunkRenderBinary::StoreSamples(const std::vector<std::shared_ptr<const CDSample>> &Samples)
 {
 	for (auto ptr : Samples)		// // //
-		StoreSample(ptr);
+		StoreSample(*ptr);
 }
 
 void CChunkRenderBinary::StoreChunk(const CChunk &Chunk)		// // //
@@ -91,11 +91,11 @@ void CChunkRenderBinary::StoreChunk(const CChunk &Chunk)		// // //
 	}
 }
 
-void CChunkRenderBinary::StoreSample(const CDSample *pDSample)
+void CChunkRenderBinary::StoreSample(const CDSample &DSample)
 {
-	unsigned int SampleSize = pDSample->GetSize();
+	unsigned int SampleSize = DSample.GetSize();
 
-	Store(pDSample->GetData(), SampleSize);
+	Store(DSample.GetData(), SampleSize);
 	m_iSampleAddress += SampleSize;
 
 	// Adjust size
@@ -139,7 +139,7 @@ void CChunkRenderNSF::StoreChunksBankswitched(const std::vector<std::shared_ptr<
 		StoreChunkBankswitched(*ptr);
 }
 
-void CChunkRenderNSF::StoreSamples(const std::vector<const CDSample*> &Samples)
+void CChunkRenderNSF::StoreSamples(const std::vector<std::shared_ptr<const CDSample>> &Samples)
 {
 	// Align samples to $C000
 	while (GetAbsoluteAddr() < CCompiler::PAGE_SAMPLES)
@@ -148,10 +148,10 @@ void CChunkRenderNSF::StoreSamples(const std::vector<const CDSample*> &Samples)
 	// Align first sample to valid address
 	Fill(CCompiler::AdjustSampleAddress(GetAbsoluteAddr()));
 	for (auto ptr : Samples)		// // //
-		StoreSample(ptr);
+		StoreSample(*ptr);
 }
 
-void CChunkRenderNSF::StoreSamplesBankswitched(const std::vector<const CDSample*> &Samples)
+void CChunkRenderNSF::StoreSamplesBankswitched(const std::vector<std::shared_ptr<const CDSample>> &Samples)
 {
 	// Start samples on a clean bank
 	if ((GetAbsoluteAddr() & 0xFFF) != 0)
@@ -159,19 +159,19 @@ void CChunkRenderNSF::StoreSamplesBankswitched(const std::vector<const CDSample*
 
 	m_iSampleAddr = CCompiler::PAGE_SAMPLES;
 	for (auto ptr : Samples)		// // //
-		StoreSampleBankswitched(ptr);
+		StoreSampleBankswitched(*ptr);
 }
 
-void CChunkRenderNSF::StoreSample(const CDSample *pDSample)
+void CChunkRenderNSF::StoreSample(const CDSample &DSample)
 {
 	// Store sample and fill with zeros
-	Store(pDSample->GetData(), pDSample->GetSize());
+	Store(DSample.GetData(), DSample.GetSize());
 	Fill(CCompiler::AdjustSampleAddress(GetAbsoluteAddr()));
 }
 
-void CChunkRenderNSF::StoreSampleBankswitched(const CDSample *pDSample)
+void CChunkRenderNSF::StoreSampleBankswitched(const CDSample &DSample)
 {
-	unsigned int SampleSize = pDSample->GetSize();
+	unsigned int SampleSize = DSample.GetSize();
 
 	if (m_iSampleAddr + SampleSize >= (unsigned)CCompiler::DPCM_SWITCH_ADDRESS) {
 		// Allocate new bank
@@ -181,7 +181,7 @@ void CChunkRenderNSF::StoreSampleBankswitched(const CDSample *pDSample)
 	}
 
 	int Adjust = CCompiler::AdjustSampleAddress(m_iSampleAddr + SampleSize);
-	Store(pDSample->GetData(), SampleSize);
+	Store(DSample.GetData(), SampleSize);
 	Fill(Adjust);
 	m_iSampleAddr += SampleSize + Adjust;
 }

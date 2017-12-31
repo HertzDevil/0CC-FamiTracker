@@ -317,9 +317,9 @@ bool CAPU::DPCMPlaying() const
 	return m_p2A03->DPCMPlaying();
 }
 
-void CAPU::WriteSample(const char *pBuf, int Size)		// // //
+void CAPU::WriteSample(std::shared_ptr<const CDSample> pSample)		// // //
 {
-	m_p2A03->GetSampleMemory().SetMem(pBuf, Size);
+	m_p2A03->WriteSample(std::move(pSample));
 }
 
 void CAPU::ClearSample()		// // //

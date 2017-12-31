@@ -310,16 +310,16 @@ void CSampleEditorView::DrawStartCursor()
 	ReleaseDC(pDC);
 }
 
-void CSampleEditorView::ExpandSample(CDSample *pSample, int Start)
+void CSampleEditorView::ExpandSample(const CDSample &Sample, int Start)		// // //
 {
 	// Expand DPCM to PCM
 	//
 
-	int Size = pSample->GetSize() * 8;
+	int Size = Sample.GetSize() * 8;
 
 	SAFE_RELEASE_ARRAY(m_pSamples);
 
-	if (pSample->GetSize() == 0) {
+	if (Sample.GetSize() == 0) {
 		m_iSize = 0;
 		m_iStartCursor = 0;
 		m_iSelStart = m_iSelEnd = -1;
@@ -330,7 +330,7 @@ void CSampleEditorView::ExpandSample(CDSample *pSample, int Start)
 	m_pSamples = new int[Size];
 	m_iSize = Size;
 
-	const char *pData = pSample->GetData();
+	const char *pData = Sample.GetData();
 	int Delta = Start;
 
 	for (int i = 0; i < Size; ++i) {

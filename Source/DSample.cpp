@@ -31,13 +31,19 @@
 
 CDSample::CDSample(unsigned int Size) :
 	m_iSampleSize(Size),
-	m_pSampleData(new char[Size])
+	m_pSampleData(std::make_unique<char[]>(Size))
+{
+}
+
+CDSample::CDSample(unsigned int Size, std::unique_ptr<char[]> pData) :
+	m_iSampleSize(Size),
+	m_pSampleData(std::move(pData))
 {
 }
 
 CDSample::CDSample(const CDSample &sample) :		// // //
 	m_iSampleSize(sample.m_iSampleSize),
-	m_pSampleData(new char[sample.m_iSampleSize]),
+	m_pSampleData(std::make_unique<char[]>(sample.m_iSampleSize)),
 	m_sName(sample.m_sName)
 {
 	memcpy(m_pSampleData.get(), sample.m_pSampleData.get(), m_iSampleSize);
@@ -64,9 +70,16 @@ CDSample &CDSample::operator=(CDSample &&sample)		// // //
 	return *this;
 }
 
-void CDSample::SetData(unsigned int Size, char *pData)
+bool CDSample::operator==(const CDSample &other) const {		// // //
+	return m_iSampleSize == other.m_iSampleSize &&
+		m_sName == other.m_sName &&
+		((!m_pSampleData && !other.m_pSampleData) || (m_pSampleData && other.m_pSampleData &&
+			0 == std::memcmp(m_pSampleData.get(), other.m_pSampleData.get(), m_iSampleSize)));
+}
+
+void CDSample::SetData(unsigned int Size, std::unique_ptr<char[]> pData)		// // //
 {
-	m_pSampleData.reset(pData);		// // //
+	m_pSampleData = std::move(pData);		// // //
 	m_iSampleSize = Size;
 }
 
@@ -75,7 +88,7 @@ unsigned int CDSample::GetSize() const
 	return m_iSampleSize;
 }
 
-char *CDSample::GetData() const
+const char *CDSample::GetData() const
 {
 	return m_pSampleData.get();
 }
@@ -90,4 +103,29 @@ void CDSample::SetName(const char *pName)
 const char *CDSample::GetName() const
 {
 	return m_sName.c_str();
+}
+
+void CDSample::RemoveData(int startsample, int endsample) {		// // //
+	auto pBuf = std::make_unique<char[]>(GetSize() - (endsample - startsample));
+	memcpy(pBuf.get(), m_pSampleData.get(), startsample);
+	memcpy(pBuf.get() + startsample, m_pSampleData.get() + endsample, GetSize() - endsample);
+	m_iSampleSize = GetSize() - (endsample - startsample);
+	m_pSampleData = std::move(pBuf);
+}
+
+void CDSample::Tilt(int startsample, int endsample) {		// // //
+	int Diff = endsample - startsample;
+
+	int Nr = 10;
+	int Step = (Diff * 8) / Nr;
+	int Cntr = rand() % Step;
+
+	for (int i = startsample; i < endsample; ++i) {
+		for (int j = 0; j < 8; ++j) {
+			if (++Cntr == Step) {
+				m_pSampleData[i] &= (0xFF ^ (1 << j));
+				Cntr = 0;
+			}
+		}
+	}
 }

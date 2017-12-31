@@ -58,19 +58,20 @@ public:
 	/*!	\brief Accesses a DPCM sample resource.
 		\param Index The sample index.
 		\return Pointer to the sample. */
-	virtual const CDSample *GetDSample(int Index) const = 0;
+	virtual std::shared_ptr<CDSample> GetDSample(int Index) = 0;
+	/*!	\brief Accesses a DPCM sample resource.
+		\param Index The sample index.
+		\return Pointer to the sample. */
+	virtual std::shared_ptr<const CDSample> GetDSample(int Index) const = 0;
 	/*!	\brief Puts a DPCM sample into the resource container.
 		\param Index The sample index.
-		\param pSamp Pointer to the sample.
-	*/
-	virtual void SetDSample(int Index, CDSample *pSamp) = 0;
+		\param pSamp Pointer to the sample. */
+	virtual void SetDSample(int Index, std::shared_ptr<CDSample> pSamp) = 0;
 	/*!	\brief Adds a DPCM sample into the resource container.
 		\param pSamp Pointer to the sample.
-		\return The index of the sample, or -1 if it is not insered.
-	*/
-	virtual int AddDSample(CDSample *pSamp) = 0;
+		\return The index of the sample, or -1 if it is not inserted. */
+	virtual int AddDSample(std::shared_ptr<CDSample> pSamp) = 0;
 	/*!	\brief Notifies that an instrument has been changed.
-		\details This method does nothing if the instrument manager is not linked to a document.
-	*/
+		\details This method does nothing if the instrument manager is not linked to a document. */
 	virtual void InstrumentChanged() const = 0;
 };

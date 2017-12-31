@@ -208,7 +208,7 @@ private:
 	CChunk			*m_pHeaderChunk;
 
 	// Samples
-	std::vector<const CDSample*> m_vSamples;
+	std::vector<std::shared_ptr<const CDSample>> m_vSamples;		// // //
 
 	// Flags
 	bool			m_bBankSwitched;

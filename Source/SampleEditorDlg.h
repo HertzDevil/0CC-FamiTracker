@@ -25,6 +25,7 @@
 
 #include "stdafx.h"		// // //
 #include "resource.h"		// // //
+#include <memory>		// // //
 
 // CSampleEditorDlg dialog
 
@@ -37,9 +38,9 @@ class CSampleEditorDlg : public CDialog
 	DECLARE_DYNAMIC(CSampleEditorDlg)
 
 public:
-	CSampleEditorDlg(CWnd* pParent = NULL, CDSample *pSample = NULL);   // standard constructor
+	CSampleEditorDlg(CWnd* pParent = NULL, std::shared_ptr<CDSample> pSample = nullptr);		// // // standard constructor
 	virtual ~CSampleEditorDlg();
-	CDSample *GetDSample() const;
+	std::shared_ptr<CDSample> GetDSample() const;		// // //
 
 	void SelectionChanged();
 	void UpdateStatus(int Index, LPCTSTR Text);		// // //
@@ -52,7 +53,7 @@ protected:
 
 	void UpdateSampleView();
 
-	CDSample		  *m_pSample;
+	std::shared_ptr<CDSample> m_pSample;
 	CSampleEditorView *m_pSampleEditorView;
 	CSoundGen		  *m_pSoundGen;
 

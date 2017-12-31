@@ -558,7 +558,8 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 
 	unsigned int dpcm_index = 0;
 	unsigned int dpcm_pos = 0;
-	CDSample *dpcm_sample = nullptr;
+	std::shared_ptr<CDSample> dpcm_sample;
+	std::unique_ptr<char[]> dpcm_buf;		// // //
 	unsigned int track = 0;
 	unsigned int pattern = 0;
 	int N163count = -1;		// // //
@@ -672,14 +673,16 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		break;
 		case CT_DPCMDEF:
 		{
+			if (dpcm_sample)
+				dpcm_sample->SetData(dpcm_pos, std::move(dpcm_buf));
+
 			dpcm_index = t.ReadInt(0, MAX_DSAMPLES - 1);
 			dpcm_pos = 0;
 
 			int dpcmsize = t.ReadInt(0, CDSample::MAX_SIZE);
-			dpcm_sample = new CDSample();		// // //
+			dpcm_buf = std::make_unique<char[]>(dpcmsize);		// // //
+			dpcm_sample = std::make_shared<CDSample>(dpcmsize);		// // //
 			Doc.SetSample(dpcm_index, dpcm_sample);
-			char *blank = new char[dpcmsize]();
-			dpcm_sample->SetData(dpcmsize, blank);
 			dpcm_sample->SetName(Charify(t.ReadToken()));
 
 			t.ReadEOL();
@@ -692,8 +695,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 				int sample = t.ReadHex(0x00, 0xFF);
 				if (dpcm_pos >= dpcm_sample->GetSize())
 					throw t.MakeError(_T("DPCM sample %d overflow, increase size used in %s."), dpcm_index, CT[CT_DPCMDEF]);
-				*(dpcm_sample->GetData() + dpcm_pos) = (char)(sample);
-				++dpcm_pos;
+				dpcm_buf[dpcm_pos++] = static_cast<char>(sample);		// // //
 			}
 		}
 		break;
@@ -932,6 +934,8 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		}
 	}
 
+	if (dpcm_sample)		// // //
+		dpcm_sample->SetData(dpcm_pos, std::move(dpcm_buf));
 	if (N163count != -1)		// // //
 		Doc.SelectExpansionChip(Doc.GetExpansionChip(), N163count, true); // calls ApplyExpansionChip()
 }
@@ -1085,8 +1089,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	f.WriteString(_T("# DPCM samples\n"));
 	for (int smp=0; smp < MAX_DSAMPLES; ++smp)
 	{
-		if (const CDSample* pSample = pDoc->GetSample(smp))		// // //
-		{
+		if (auto pSample = pDoc->GetSample(smp)) {		// // //
 			const unsigned int size = pSample->GetSize();
 			s.Format(_T("%s %3d %5d %s\n"),
 				CT[CT_DPCMDEF],

@@ -283,14 +283,15 @@ int CSoundGen::GetNamcoChannelCount() const {		// // //
 	return m_pDocument ? m_pDocument->GetNamcoChannels() : 0;
 }
 
-void CSoundGen::PreviewSample(const CDSample *pSample, int Offset, int Pitch)		// // //
+void CSoundGen::PreviewSample(std::shared_ptr<const CDSample> pSample, int Offset, int Pitch)		// // //
 {
 	if (!m_hThread)
 		return;
 
+	m_pPreviewSample = std::move(pSample);
 	// Preview a DPCM sample. If the name of sample is null, 
 	// the sample will be removed after played
-	PostThreadMessage(WM_USER_PREVIEW_SAMPLE, (WPARAM)pSample, MAKELPARAM(Offset, Pitch));
+	PostThreadMessage(WM_USER_PREVIEW_SAMPLE, Offset, Pitch);
 }
 
 void CSoundGen::CancelPreviewSample()
@@ -865,25 +866,17 @@ bool CSoundGen::IsBackgroundTask() const
 
 // DPCM handling
 
-void CSoundGen::PlaySample(const CDSample *pSample, int Offset, int Pitch)
-{
-	m_pPreviewSample.reset();		// // //
-
-	// Sample may not be removed when used by the sample memory class!
-	m_pAPU->WriteSample(pSample->GetData(), pSample->GetSize());		// // //
-
+void CSoundGen::PlayPreviewSample(int Offset, int Pitch) {		// // //
 	int Loop = 0;
-	int Length = ((pSample->GetSize() - 1) >> 4) - (Offset << 2);
+	int Length = ((m_pPreviewSample->GetSize() - 1) >> 4) - (Offset << 2);
+
+	m_pAPU->WriteSample(std::move(m_pPreviewSample));		// // //
 
 	m_pAPU->Write(0x4010, Pitch | Loop);
 	m_pAPU->Write(0x4012, Offset);			// load address, start at $C000
 	m_pAPU->Write(0x4013, Length);			// length
 	m_pAPU->Write(0x4015, 0x0F);
 	m_pAPU->Write(0x4015, 0x1F);			// fire sample
-	
-	// Auto-delete samples with no name
-	if (*pSample->GetName() == 0)
-		m_pPreviewSample.reset(pSample);		// // //
 }
 
 bool CSoundGen::PreviewDone() const
@@ -1084,7 +1077,7 @@ void CSoundGen::OnStopRender(WPARAM wParam, LPARAM lParam)
 
 void CSoundGen::OnPreviewSample(WPARAM wParam, LPARAM lParam)
 {
-	PlaySample(reinterpret_cast<CDSample*>(wParam), LOWORD(lParam), HIWORD(lParam));
+	PlayPreviewSample(wParam, lParam);
 }
 
 void CSoundGen::OnWriteAPU(WPARAM wParam, LPARAM lParam)

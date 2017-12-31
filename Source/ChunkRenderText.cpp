@@ -154,7 +154,7 @@ void CChunkRenderText::StoreChunks(const std::vector<std::shared_ptr<CChunk>> &C
 	// Actual DPCM samples are stored later
 }
 
-void CChunkRenderText::StoreSamples(const std::vector<const CDSample*> &Samples)
+void CChunkRenderText::StoreSamples(const std::vector<std::shared_ptr<const CDSample>> &Samples)		// // //
 {
 	// Store DPCM samples in file, assembly format
 	CStringA str;
@@ -167,7 +167,7 @@ void CChunkRenderText::StoreSamples(const std::vector<const CDSample*> &Samples)
 	}
 
 	unsigned int Address = CCompiler::PAGE_SAMPLES;
-	for (size_t i = 0; i < Samples.size(); ++i) if (const CDSample *pDSample = Samples[i]) {		// // //
+	for (size_t i = 0; i < Samples.size(); ++i) if (const auto &pDSample = Samples[i]) {		// // //
 		const unsigned int SampleSize = pDSample->GetSize();
 		const char *pData = pDSample->GetData();
 		

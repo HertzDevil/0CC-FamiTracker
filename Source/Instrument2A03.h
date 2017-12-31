@@ -52,7 +52,7 @@ public:
 	void	SetSampleDeltaValue(int Octave, int Note, char Offset);
 
 	bool	AssignedSamples() const;
-	const CDSample *GetDSample(int Octave, int Note) const;		// // //
+	std::shared_ptr<CDSample> GetDSample(int Octave, int Note) const;		// // //
 
 protected:
 	void	CloneFrom(const CInstrument *pInst) override;		// // //

@@ -114,9 +114,9 @@ public:
 	void	RefreshChannel() override;
 	int		GetChannelVolume() const override;		// // //
 
-	void WriteDCOffset(unsigned char Delta);		// // //
-	void SetLoopOffset(unsigned char Loop);		// // //
-	void PlaySample(const CDSample *pSamp, int Pitch);		// // //
+	void	WriteDCOffset(unsigned char Delta) override;		// // //
+	void	SetLoopOffset(unsigned char Loop) override;		// // //
+	void	PlaySample(std::shared_ptr<const CDSample> pSamp, int Pitch) override;		// // //
 protected:
 	void	HandleNoteData(stChanNote &pNoteData) override;		// // //
 	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //

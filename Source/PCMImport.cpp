@@ -177,14 +177,12 @@ CPCMImport::CPCMImport(CWnd* pParent /*=NULL*/)
 	m_pCachedSample(NULL),
 	m_iCachedQuality(0),
 	m_iCachedVolume(0),
-	m_psinc(new jarh::sinc(512, 32)) // sinc object. TODO: parametrise
+	m_psinc(std::make_unique<jarh::sinc>(512, 32)) // sinc object. TODO: parametrise
 {
 }
 
 CPCMImport::~CPCMImport()
 {
-	SAFE_RELEASE(m_psinc);
-	SAFE_RELEASE(m_pCachedSample);
 }
 
 void CPCMImport::DoDataExchange(CDataExchange* pDX)
@@ -200,17 +198,15 @@ BEGIN_MESSAGE_MAP(CPCMImport, CDialog)
 	ON_BN_CLICKED(IDC_PREVIEW, &CPCMImport::OnBnClickedPreview)
 END_MESSAGE_MAP()
 
-CDSample *CPCMImport::ShowDialog()
-{
+std::shared_ptr<CDSample> CPCMImport::ShowDialog() {		// // //
 	// Return imported sample, or NULL if cancel/error
 
 	CString fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, _T(".wav"));	
 	CFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY, fileFilter);
 
 	OpenFileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_WAV);
-
 	if (OpenFileDialog.DoModal() == IDCANCEL)
-		return NULL;
+		return nullptr;
 
 	// Stop any preview
 	PlaySound(NULL, NULL, SND_NODEFAULT | SND_SYNC);
@@ -219,7 +215,7 @@ CDSample *CPCMImport::ShowDialog()
 
 	m_strPath	  = OpenFileDialog.GetPathName();
 	m_strFileName = OpenFileDialog.GetFileName();
-	m_pImported	  = NULL;
+	m_pImported.reset();		// // //
 
 	// Open file and read header
 	if (!OpenWaveFile())
@@ -305,36 +301,30 @@ void CPCMImport::OnBnClickedCancel()
 
 void CPCMImport::OnBnClickedOk()
 {
-	CDSample *pSample = GetSample();
+	if (auto pSample = GetSample()) {		// // //
+		// remove .wav
+		m_strFileName.Truncate(m_strFileName.GetLength() - 4);
 
-	if (pSample == NULL)
-		return;
+		// Set the name
+		pSample->SetName((LPCSTR)m_strFileName);
 
-	// remove .wav
-	m_strFileName.Truncate(m_strFileName.GetLength() - 4);
+		m_pImported = std::move(pSample);
+		m_pCachedSample.reset();
 
-	// Set the name
-	pSample->SetName((LPCSTR)m_strFileName);
-
-	m_pImported = pSample;
-	m_pCachedSample = NULL;
-
-	OnOK();
+		OnOK();
+	}
 }
 
 void CPCMImport::OnBnClickedPreview()
 {
-	CDSample *pSample = GetSample();
+	if (auto pSample = GetSample()) {		// // //
+		CString text;
+		AfxFormatString1(text, IDS_DPCM_IMPORT_SIZE_FORMAT, MakeIntString(pSample->GetSize()));
+		SetDlgItemText(IDC_SAMPLESIZE, text);
 
-	if (!pSample)
-		return;
-
-	CString text;
-	AfxFormatString1(text, IDS_DPCM_IMPORT_SIZE_FORMAT, MakeIntString(pSample->GetSize()));
-	SetDlgItemText(IDC_SAMPLESIZE, text);
-
-	// Preview the sample
-	theApp.GetSoundGenerator()->PreviewSample(pSample, 0, m_iQuality);
+		// Preview the sample
+		theApp.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, m_iQuality);
+	}
 }
 
 void CPCMImport::UpdateFileInfo()
@@ -355,14 +345,9 @@ void CPCMImport::UpdateFileInfo()
 	SetDlgItemText(IDC_RESAMPLING, Resampling);
 }
 
-CDSample *CPCMImport::GetSample()
-{
-	if (m_pCachedSample == NULL || m_iCachedQuality != m_iQuality || m_iCachedVolume != m_iVolume) {
-		SAFE_RELEASE(m_pCachedSample);
-		m_pCachedSample = ConvertFile();
-		// This sample may not be auto-deleted, so give it a name
-		m_pCachedSample->SetName("cached");
-	}
+std::shared_ptr<CDSample> CPCMImport::GetSample() {		// // //
+	if (!m_pCachedSample || m_iCachedQuality != m_iQuality || m_iCachedVolume != m_iVolume)
+		m_pCachedSample = ConvertFile();		// // //
 
 	m_iCachedQuality = m_iQuality;
 	m_iCachedVolume = m_iVolume;
@@ -370,8 +355,7 @@ CDSample *CPCMImport::GetSample()
 	return m_pCachedSample;
 }
 
-CDSample *CPCMImport::ConvertFile()
-{
+std::shared_ptr<CDSample> CPCMImport::ConvertFile() {		// // //
 	// Converts a WAV file to a DPCM sample
 	static const int DMC_BIAS = 32;
 
@@ -388,7 +372,7 @@ CDSample *CPCMImport::ConvertFile()
 	m_fSampleFile.Seek(m_ullSampleStart, CFile::begin);
 
 	// Allocate space
-	char *pSamples = new char[CDSample::MAX_SIZE];		// // //
+	auto pSamples = std::make_unique<char[]>(CDSample::MAX_SIZE);		// // //
 	int iSamples = 0;
 
 	// Determine resampling factor
@@ -459,9 +443,7 @@ CDSample *CPCMImport::ConvertFile()
 #endif
 
 	// Return a sample object
-	CDSample *pSamp = new CDSample();
-	pSamp->SetData(iSamples, pSamples);
-	return pSamp;
+	return std::make_shared<CDSample>(iSamples, std::move(pSamples));		// // //
 }
 
 bool CPCMImport::OpenWaveFile()
