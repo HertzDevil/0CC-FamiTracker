@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -28,16 +28,16 @@
 
  Mixing of external channles are based on my own research:
 
- VRC6 (Madara): 
+ VRC6 (Madara):
 	Pulse channels has the same amplitude as internal-
 	pulse channels on equal volume levels.
 
- FDS: 
+ FDS:
 	Square wave @ v = $1F: 2.4V
 	  			  v = $0F: 1.25V
 	(internal square wave: 1.0V)
 
- MMC5 (just breed): 
+ MMC5 (just breed):
 	2A03 square @ v = $0F: 760mV (the cart attenuates internal channels a little)
 	MMC5 square @ v = $0F: 900mV
 
@@ -161,7 +161,7 @@ void CMixer::UpdateSettings(int LowCut,	int HighCut, int HighDamp, float Overall
 	levelsVRC6_.SetVolume(Volume * 3.98333f);
 	levelsFDS_.SetVolume(Volume * 1.00f);
 	levelsMMC5_.SetVolume(Volume * 1.18421f);
-	
+
 	// Not checked
 	levelsS5B_.SetVolume(Volume);		// // // 050B
 	levelsN163_.SetVolume(Volume * 1.1f);
@@ -238,7 +238,7 @@ void CMixer::ClearBuffer()
 }
 
 int CMixer::SamplesAvail() const
-{	
+{
 	return (int)BlipBuffer.samples_avail();
 }
 

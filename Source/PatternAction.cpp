@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -92,7 +92,7 @@ bool CPatternAction::SetTargetSelection(CPatternEditor *pPatternEditor, CSelecti
 	}
 
 	CPatternIterator End(CFamiTrackerDoc::GetDoc(), m_pUndoState->Track, Start);
-	
+
 	if (m_iPasteMode == PASTE_INSERT) {
 		End.m_iFrame = Start.m_iFrame;
 		End.m_iRow = pPatternEditor->GetCurrentPatternLength(End.m_iFrame) - 1;
@@ -140,7 +140,7 @@ bool CPatternAction::SetTargetSelection(CPatternEditor *pPatternEditor, CSelecti
 				End.m_iColumn = C_EFF4_PARAM2;
 		}
 	}
-	
+
 	CSelection New;
 	New.m_cpStart = Start;
 	New.m_cpEnd = End;
@@ -392,7 +392,7 @@ bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 {
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	m_OldNote = pDoc->GetNoteData(STATE_EXPAND(m_pUndoState));		// // //
-	
+
 	switch (m_pUndoState->Cursor.m_iColumn) {
 	case C_INSTRUMENT1: case C_INSTRUMENT2:
 		return m_OldNote.Instrument < MAX_INSTRUMENTS && m_OldNote.Instrument != HOLD_INSTRUMENT;		// // // 050B
@@ -610,7 +610,7 @@ void CPActionInsertAtSel::Undo(CMainFrame &MainFrm)
 void CPActionInsertAtSel::Redo(CMainFrame &MainFrm)
 {
 	CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
-	
+
 	CSelection Sel(m_pUndoState->Selection);
 	Sel.m_cpEnd.m_iRow = pPatternEditor->GetCurrentPatternLength(Sel.m_cpEnd.m_iFrame) - 1;
 	DeleteSelection(*GET_DOCUMENT(), GET_SELECTED_TRACK(), Sel);
@@ -635,7 +635,7 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 		(m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).m_iColumn);
 	column_t ColEnd   = GetSelectColumn(
 		(m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iColumn);
-	
+
 	const bool bSingular = it.first == it.second && !m_pUndoState->IsSelecting;
 	const unsigned Length = pDoc->GetPatternLength(m_pUndoState->Track);
 
@@ -710,7 +710,7 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 		}
 		x = static_cast<unsigned char>(Val);
 	};
-	
+
 	int Row = 0;
 	int oldRow = -1;
 	do {
@@ -838,18 +838,18 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 				auto Note = r.Get(i);
 				switch (j) {
 				case COLUMN_NOTE:
-					Note.Note = GET_NOTE((int)StartValLo); 
-					Note.Octave = GET_OCTAVE((int)StartValLo); 
+					Note.Note = GET_NOTE((int)StartValLo);
+					Note.Octave = GET_OCTAVE((int)StartValLo);
 					break;
 				case COLUMN_INSTRUMENT:
-					Note.Instrument = (int)StartValLo; 
+					Note.Instrument = (int)StartValLo;
 					break;
 				case COLUMN_VOLUME:
-					Note.Vol = (int)StartValLo; 
+					Note.Vol = (int)StartValLo;
 					break;
 				case COLUMN_EFF1: case COLUMN_EFF2: case COLUMN_EFF3: case COLUMN_EFF4:
 					Note.EffNumber[j - 3] = Effect;
-					Note.EffParam[j - 3] = (int)StartValLo + ((int)StartValHi << 4); 
+					Note.EffParam[j - 3] = (int)StartValLo + ((int)StartValHi << 4);
 					break;
 				}
 				r.Set(i, Note);

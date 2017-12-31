@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -35,12 +35,12 @@ public:
 	double GetFrequency() const;		// // //
 
 private:
-	uint8_t	m_iDutyCycle, 
-			m_iVolume, 
-			m_iGate, 
+	uint8_t	m_iDutyCycle,
+			m_iVolume,
+			m_iGate,
 			m_iEnabled;
 	uint32_t	m_iPeriod;
-	uint8_t	m_iPeriodLow, 
+	uint8_t	m_iPeriodLow,
 			m_iPeriodHigh;
 	int32_t	m_iCounter;
 	uint8_t	m_iDutyCycleCounter;
@@ -55,12 +55,12 @@ public:
 	double GetFrequency() const;		// // //
 
 private:
-	uint8_t	m_iPhaseAccumulator, 
-			m_iPhaseInput, 
-			m_iEnabled, 
+	uint8_t	m_iPhaseAccumulator,
+			m_iPhaseInput,
+			m_iEnabled,
 			m_iResetReg;
 	uint32_t	m_iPeriod;
-	uint8_t	m_iPeriodLow, 
+	uint8_t	m_iPeriodLow,
 			m_iPeriodHigh;
 	int32_t	m_iCounter;
 };

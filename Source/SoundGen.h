@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -37,7 +37,7 @@
 #include "SoundGenBase.h"		// // //
 
 // Custom messages
-enum { 
+enum {
 	WM_USER_SILENT_ALL = WM_USER + 1,
 	WM_USER_LOAD_SETTINGS,
 	WM_USER_PLAY,
@@ -94,7 +94,7 @@ public:
 	//
 public:
 
-	// One time initialization 
+	// One time initialization
 	void		AssignDocument(CFamiTrackerDoc *pDoc);
 	void		AssignView(CFamiTrackerView *pView);
 	void		RemoveDocument();
@@ -150,7 +150,7 @@ public:
 
 	// Rendering
 	bool		 RenderToFile(LPCTSTR pFile, const std::shared_ptr<CWaveRenderer> &pRender);		// // //
-	bool		 IsRendering() const;	
+	bool		 IsRendering() const;
 	bool		 IsBackgroundTask() const;
 
 	// Sample previewing
@@ -206,7 +206,7 @@ public:
 
 	int GetDefaultInstrument() const;
 
-	// 
+	//
 	// Private functions
 	//
 private:
@@ -233,7 +233,7 @@ private:
 
 	// Misc
 	void		PlayPreviewSample(int Offset, int Pitch);		// // //
-	
+
 	// Player
 	double		GetAverageBPM() const;		// // //
 
@@ -274,7 +274,7 @@ private:
 
 	// Handles
 	HANDLE				m_hInterruptEvent;					// Used to interrupt sound buffer syncing
-	
+
 // Tracker playing variables
 private:
 	std::shared_ptr<CTempoCounter> m_pTempoCounter;			// // // tempo calculation

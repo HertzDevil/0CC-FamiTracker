@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -170,7 +170,7 @@ void CChunkRenderText::StoreSamples(const std::vector<std::shared_ptr<const CDSa
 	for (size_t i = 0; i < Samples.size(); ++i) if (const auto &pDSample = Samples[i]) {		// // //
 		const unsigned int SampleSize = pDSample->GetSize();
 		const char *pData = pDSample->GetData();
-		
+
 		CStringA label;
 		label.Format("ft_sample_%i", i);		// // //
 		str.Format("%s: ; %s\n", LPCSTR(label), pDSample->GetName());
@@ -313,9 +313,9 @@ void CChunkRenderText::StoreSamplePointersChunk(CChunk *pChunk, CFile *pFile)
 void CChunkRenderText::StoreGrooveListChunk(CChunk *pChunk, CFile *pFile)		// // //
 {
 	CStringA str;
-	
+
 	str.Format("%s:\n", GetLabelString(pChunk->GetLabel()));
-	
+
 	for (int i = 0; i < pChunk->GetLength(); ++i) {
 		str.AppendFormat("\t.byte $%02X\n", pChunk->GetData(i));
 	}
@@ -326,7 +326,7 @@ void CChunkRenderText::StoreGrooveListChunk(CChunk *pChunk, CFile *pFile)		// //
 void CChunkRenderText::StoreGrooveChunk(CChunk *pChunk, CFile *pFile)		// // //
 {
 	CStringA str;
-	
+
 	// str.Format("%s:\n", GetLabelString(pChunk->GetLabel()));
 	StoreByteString(pChunk, str, DEFAULT_LINE_BREAK);
 
@@ -474,7 +474,7 @@ void CChunkRenderText::StoreWavesChunk(CChunk *pChunk, CFile *pFile)
 	// Namco waves
 	str.Format("%s:\n", GetLabelString(pChunk->GetLabel()));
 //				str.AppendFormat("\t.byte %i\n", waves);
-	
+
 	str.Append("\t.byte ");
 
 	for (int i = 0; i < len; ++i) {
@@ -498,7 +498,7 @@ void CChunkRenderText::WriteFileString(const CStringA &str, CFile *pFile) const
 }
 
 void CChunkRenderText::StoreByteString(const char *pData, int Len, CStringA &str, int LineBreak) const
-{	
+{
 	str.Append("\t.byte ");
 
 	for (int i = 0; i < Len; ++i) {
@@ -516,7 +516,7 @@ void CChunkRenderText::StoreByteString(const char *pData, int Len, CStringA &str
 void CChunkRenderText::StoreByteString(const CChunk *pChunk, CStringA &str, int LineBreak) const
 {
 	int len = pChunk->GetLength();
-	
+
 	str.Append("\t.byte ");
 
 	for (int i = 0; i < len; ++i) {

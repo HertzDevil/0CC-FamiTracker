@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -77,7 +77,7 @@ void CSettings::SetupSettings()
 	// All settings are loaded on program start and saved when closing the program
 	//
 
-	// The SETTING macros takes four arguments: 
+	// The SETTING macros takes four arguments:
 	//
 	//  1. Registry section
 	//  2. Registry key name
@@ -188,7 +188,7 @@ void CSettings::SetupSettings()
 		->UpdateDefault("Appearance", "Pattern colors");
 	SETTING_BOOL("Appearance", "Display flats", false, &Appearance.bDisplayFlats)
 		->UpdateDefault("Appearance", "Display flats");
-	
+
 	// Window position
 	SETTING_INT("Window position", "Left", 100, &WindowPos.iLeft);
 	SETTING_INT("Window position", "Top", 100, &WindowPos.iTop);

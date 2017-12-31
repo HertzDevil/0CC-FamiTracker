@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -62,7 +62,7 @@ CString GetPitchText(int digits, int period, double freq) {
 	const double note = NoteFromFreq(freq);
 	const int note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);
 	const int cents = int((note - double(note_conv)) * 100.0);
-		
+
 	CString str;
 	if (freq != 0.)
 		str.Format(fmt, digits, period, freq, NoteToStr(note_conv).c_str(), cents);
@@ -182,7 +182,7 @@ void CRegisterDisplay::Draw() {
 			GetRegs(SNDCHIP_MMC5, [&] (int x) { return 0x5000 + i * 4 + x; }, 4);
 			text.Format(_T("$%04X:"), 0x5000 + i * 4);
 			DrawReg(text, 4);
-			
+
 			int period = (reg[2] | ((reg[3] & 7) << 8));
 			int vol = (reg[0] & 0x0F);
 			double freq = pSoundGen->GetChannelFrequency(SNDCHIP_MMC5, i);		// // //
@@ -238,7 +238,7 @@ void CRegisterDisplay::Draw() {
 			int period = (reg[0] | (reg[2] << 8) | ((reg[4] & 0x03) << 16));
 			int vol = (reg[7] & 0x0F);
 			double freq = pSoundGen->GetChannelFrequency(SNDCHIP_N163, 15 - i);		// // //
-			
+
 			if (i >= 16 - N163_CHANS) {
 				text.Format(_T("%s, vol = %02i"), GetPitchText(5, period, freq), vol);
 				DrawText_(300, text);
@@ -246,14 +246,14 @@ void CRegisterDisplay::Draw() {
 				VolCache[15 - i] = vol << 4;
 			}
 		}
-		
+
 		for (int i = 0; i < N163_CHANS; ++i)		// // //
 			DrawVolFunc(FreqCache[i], VolCache[i]);
 	}
 
 	if (pSoundGen->IsExpansionEnabled(SNDCHIP_FDS)) {
 		DrawHeader(_T("FDS"));		// // //
-		
+
 		int period = (pSoundGen->GetReg(SNDCHIP_FDS, 0x4082) & 0xFF) | ((pSoundGen->GetReg(SNDCHIP_FDS, 0x4083) & 0x0F) << 8);
 		int vol = (pSoundGen->GetReg(SNDCHIP_FDS, 0x4080) & 0x3F);
 		double freq = pSoundGen->GetChannelFrequency(SNDCHIP_FDS, 0);		// // //
@@ -267,13 +267,13 @@ void CRegisterDisplay::Draw() {
 			DrawReg(text, 1);
 			if (!i) DrawText_(180, FDStext);
 		}
-		
+
 		DrawVolFunc(freq, vol << 3);
 	}
 
 	if (pSoundGen->IsExpansionEnabled(SNDCHIP_VRC7)) {		// // //
 		DrawHeader(_T("VRC7"));		// // //
-		
+
 		GetRegs(SNDCHIP_VRC7, [] (int x) { return x; }, 8);
 		DrawReg(_T("$00:"), 8);		// // //
 
@@ -288,7 +288,7 @@ void CRegisterDisplay::Draw() {
 
 			text.Format(_T("%s, vol = %02i, patch = $%01X"), GetPitchText(3, period, freq), vol, reg[2] >> 4);
 			DrawText_(180, text);
-			
+
 			DrawVolFunc(freq, vol << 4);
 		}
 	}
@@ -323,7 +323,7 @@ void CRegisterDisplay::Draw() {
 			GetRegs(SNDCHIP_S5B, [&] (int x) { return i * 3 + x + 8; }, 3);
 			text.Format(_T("$%02X:"), i * 3 + 8);
 			DrawReg(text, 3);
-			
+
 			if (i == 1) {
 				int period = (reg[0] | (reg[1] << 8));
 				double freq = pSoundGen->GetChannelFrequency(SNDCHIP_S5B, 3);		// // //
@@ -331,7 +331,7 @@ void CRegisterDisplay::Draw() {
 					text.Format(_T("%s, shape = $%01X"), GetPitchText(4, period, freq), reg[2]);
 				else
 					text.Format(_T("period = $%04X, shape = $%01X"), period, reg[2]);
-				
+
 				DrawText_(180, text);
 			}
 		}

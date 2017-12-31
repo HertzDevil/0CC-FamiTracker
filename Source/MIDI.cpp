@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -52,11 +52,11 @@ void CALLBACK CMIDI::MidiInProc(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, DW
 
 // Instance stuff
 
-CMIDI::CMIDI() : 
-	m_bInStarted(false), 
+CMIDI::CMIDI() :
+	m_bInStarted(false),
 	m_iInDevice(0),
 	m_iOutDevice(0),
-	m_iQueueHead(0), 
+	m_iQueueHead(0),
 	m_iQueueTail(0),
 	m_hMIDIIn(NULL),
 	m_hMIDIOut(NULL),
@@ -212,7 +212,7 @@ void CMIDI::SetOutputDevice(int Device)
 void CMIDI::Enqueue(unsigned char MsgType, unsigned char MsgChannel, unsigned char Data1, unsigned char Data2)
 {
 	m_csQueue.Lock();
-	
+
 	m_iMsgTypeQueue[m_iQueueHead] = MsgType;
 	m_iMsgChanQueue[m_iQueueHead] = MsgChannel;
 	m_iData1Queue[m_iQueueHead]   = Data1;
@@ -254,7 +254,7 @@ void CMIDI::Event(unsigned char Status, unsigned char Data1, unsigned char Data2
 	default:
 		switch (MsgType) {
 			case MIDI_MSG_NOTE_OFF:
-			case MIDI_MSG_NOTE_ON: 
+			case MIDI_MSG_NOTE_ON:
 			case MIDI_MSG_PITCH_WHEEL:
 				Enqueue(MsgType, MsgChannel, Data1, Data2);
 				pView->PostMessage(WM_USER_MIDI_EVENT);
@@ -266,7 +266,7 @@ void CMIDI::Event(unsigned char Status, unsigned char Data1, unsigned char Data2
 bool CMIDI::ReadMessage(unsigned char & Message, unsigned char & Channel, unsigned char & Data1, unsigned char & Data2)
 {
 	bool Result = false;
-	
+
 	m_csQueue.Lock();
 
 	if (m_iQueueHead != m_iQueueTail) {
@@ -365,12 +365,12 @@ bool CMIDI::IsAvailable() const
 	return m_hMIDIIn != NULL;
 }
 
-int CMIDI::GetInputDevice() const 
-{ 
-	return m_iInDevice; 
+int CMIDI::GetInputDevice() const
+{
+	return m_iInDevice;
 }
 
-int CMIDI::GetOutputDevice() const 
-{ 
-	return m_iOutDevice; 
+int CMIDI::GetOutputDevice() const
+{
+	return m_iOutDevice;
 }

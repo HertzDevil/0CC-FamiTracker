@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -259,7 +259,7 @@ BOOL CFamiTrackerDoc::OnSaveDocument(LPCTSTR lpszPathName)
 }
 
 void CFamiTrackerDoc::OnCloseDocument()
-{	
+{
 	// Document object is about to be deleted
 
 	// Remove itself from sound generator
@@ -344,7 +344,7 @@ void CFamiTrackerDoc::SetModifiedFlag(BOOL bModified)
 
 	BOOL bWasModified = IsModified();
 	CDocument::SetModifiedFlag(bModified);
-	
+
 	CFrameWnd *pFrameWnd = dynamic_cast<CFrameWnd*>(theApp.m_pMainWnd);
 	if (pFrameWnd != NULL) {
 		if (pFrameWnd->GetActiveDocument() == this && bWasModified != bModified) {
@@ -402,12 +402,12 @@ void CFamiTrackerDoc::OnFileSaveAs()
 
 	// Overloaded in order to save the ftm-path
 	CString newName = GetPathName();
-	
+
 	if (!AfxGetApp()->DoPromptFileName(newName, AFX_IDS_SAVEFILE, OFN_HIDEREADONLY | OFN_PATHMUSTEXIST, FALSE, NULL))
 		return;
 
 	theApp.GetSettings()->SetPath(newName, PATH_FTM);
-	
+
 	DoSave(newName);
 }
 
@@ -578,7 +578,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 		CreateEmpty();
 		return TRUE;
 	}
-	
+
 	try {		// // //
 		// Read header ID and version
 		OpenFile.ValidateFile();
@@ -590,7 +590,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 			if (!OpenDocumentOld(&OpenFile))
 				OpenFile.RaiseModuleException("General error");
 
-			// Create a backup of this file, since it's an old version 
+			// Create a backup of this file, since it's an old version
 			// and something might go wrong when converting
 			m_bForceBackup = true;
 		}
@@ -618,7 +618,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 }
 
 /**
- * This function reads the old obsolete file version. 
+ * This function reads the old obsolete file version.
  */
 BOOL CFamiTrackerDoc::OpenDocumentOld(CFile *pOpenFile)
 {
@@ -886,17 +886,17 @@ int CFamiTrackerDoc::GetTotalSequenceCount(inst_type_t InstType) const {		// // 
 
 std::string_view CFamiTrackerDoc::GetModuleName() const		// // //
 {
-	return m_strName; 
+	return m_strName;
 }
 
 std::string_view CFamiTrackerDoc::GetModuleArtist() const
-{ 
-	return m_strArtist; 
+{
+	return m_strArtist;
 }
 
 std::string_view CFamiTrackerDoc::GetModuleCopyright() const
-{ 
-	return m_strCopyright; 
+{
+	return m_strCopyright;
 }
 
 void CFamiTrackerDoc::SetModuleName(std::string_view pName)
@@ -968,7 +968,7 @@ inst_type_t CFamiTrackerDoc::GetInstrumentType(unsigned int Index) const
 	return m_pInstrumentManager->GetInstrumentType(Index);
 }
 
-int CFamiTrackerDoc::DeepCloneInstrument(unsigned int Index) 
+int CFamiTrackerDoc::DeepCloneInstrument(unsigned int Index)
 {
 	int Slot = CloneInstrument(Index);
 
@@ -1080,7 +1080,7 @@ void CFamiTrackerDoc::SetFrameCount(unsigned int Track, unsigned int Count)
 }
 
 void CFamiTrackerDoc::SetPatternLength(unsigned int Track, unsigned int Length)
-{ 
+{
 	ASSERT(Length <= MAX_PATTERN_LENGTH);
 
 	GetSongData(Track).SetPatternLength(Length);
@@ -1108,12 +1108,12 @@ void CFamiTrackerDoc::SetSongGroove(unsigned int Track, bool Groove)		// // //
 }
 
 unsigned int CFamiTrackerDoc::GetPatternLength(unsigned int Track) const
-{ 
-	return GetSongData(Track).GetPatternLength(); 
+{
+	return GetSongData(Track).GetPatternLength();
 }
 
 unsigned int CFamiTrackerDoc::GetCurrentPatternLength(unsigned int Track, int Frame) const		// // //
-{ 
+{
 	if (theApp.GetSettings()->General.bShowSkippedRows)		// // //
 		return GetPatternLength(Track);
 
@@ -1123,23 +1123,23 @@ unsigned int CFamiTrackerDoc::GetCurrentPatternLength(unsigned int Track, int Fr
 	return GetFrameLength(Track, Frame);
 }
 
-unsigned int CFamiTrackerDoc::GetFrameCount(unsigned int Track) const 
-{ 
-	return GetSongData(Track).GetFrameCount(); 
+unsigned int CFamiTrackerDoc::GetFrameCount(unsigned int Track) const
+{
+	return GetSongData(Track).GetFrameCount();
 }
 
 unsigned int CFamiTrackerDoc::GetSongSpeed(unsigned int Track) const
-{ 
-	return GetSongData(Track).GetSongSpeed(); 
+{
+	return GetSongData(Track).GetSongSpeed();
 }
 
 unsigned int CFamiTrackerDoc::GetSongTempo(unsigned int Track) const
-{ 
-	return GetSongData(Track).GetSongTempo(); 
+{
+	return GetSongData(Track).GetSongTempo();
 }
 
 bool CFamiTrackerDoc::GetSongGroove(unsigned int Track) const		// // //
-{ 
+{
 	return GetSongData(Track).GetSongGroove();
 }
 
@@ -1189,7 +1189,7 @@ unsigned int CFamiTrackerDoc::GetFrameRate() const
 {
 	if (m_iEngineSpeed == 0)
 		return (m_iMachine == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
-	
+
 	return m_iEngineSpeed;
 }
 
@@ -1328,7 +1328,7 @@ bool CFamiTrackerDoc::InsertFrame(unsigned int Track, unsigned int Frame)
 	if (!AddFrames(Track, Frame, 1))
 		return false;
 
-	// Select free patterns 
+	// Select free patterns
 	auto &Song = GetSongData(Track);		// // //
 	for (int i = 0, Channels = GetChannelCount(); i < Channels; ++i) {
 		unsigned Pattern = Song.GetFreePatternIndex(i);		// // //
@@ -1350,7 +1350,7 @@ bool CFamiTrackerDoc::DuplicateFrame(unsigned int Track, unsigned int Frame)
 		return false;
 
 	auto &Song = GetSongData(Track);		// // //
-	for (unsigned j = 0; j < GetAvailableChannels(); ++j) 
+	for (unsigned j = 0; j < GetAvailableChannels(); ++j)
 		Song.SetFramePattern(Frame + 1, j, Song.GetFramePattern(Frame, j));
 
 	return true;
@@ -1715,7 +1715,7 @@ void CFamiTrackerDoc::SetLinearPitch(bool Enable)
 
 // Attributes
 
-CString CFamiTrackerDoc::GetFileTitle() const 
+CString CFamiTrackerDoc::GetFileTitle() const
 {
 	// Return file name without extension
 	CString FileName = GetTitle();
@@ -1858,7 +1858,7 @@ stHighlight CFamiTrackerDoc::GetHighlightAt(unsigned int Track, unsigned int Fra
 	Frame %= GetFrameCount(Track);
 
 	stHighlight Hl = m_vHighlight;
-	
+
 	const CBookmark Zero { };
 	const CBookmarkCollection *pCol = GetBookmarkCollection(Track);
 	if (const unsigned Count = pCol->GetCount()) {
@@ -2150,7 +2150,7 @@ void CFamiTrackerDoc::SwapInstruments(int First, int Second)
 {
 	// Swap instruments
 	m_pInstrumentManager->SwapInstruments(First, Second);		// // //
-	
+
 	// Scan patterns
 	VisitSongs([&] (CSongData &song) {
 		song.VisitPatterns([&] (CPatternData &pat) {

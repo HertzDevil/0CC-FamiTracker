@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -37,14 +37,14 @@ class CFrameEditorModel;		// // //
 class CFrameEditorDropTarget : public COleDropTarget
 {
 public:
-	CFrameEditorDropTarget(CFrameEditor *pParent) 
+	CFrameEditorDropTarget(CFrameEditor *pParent)
 		: m_iClipboard(0), m_nDropEffect(DROPEFFECT_NONE), m_bCopyNewPatterns(false), m_pParent(pParent) {};
 	void SetClipBoardFormat(UINT iClipboard);
 	DROPEFFECT OnDragEnter(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point);
 	DROPEFFECT OnDragOver(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point);
 	BOOL OnDrop(CWnd* pWnd, COleDataObject* pDataObject, DROPEFFECT dropEffect, CPoint point);
 	void OnDragLeave(CWnd* pWnd);
-	
+
 	bool IsDragging() const;
 	bool CopyToNewPatterns() const;
 
@@ -131,7 +131,7 @@ private:
 public:
 	// Window layout
 	static const int ROW_COLUMN_WIDTH	= 26;	// The left-most column width
-	static const int FRAME_ITEM_WIDTH	= 20;	// Pattern item width 
+	static const int FRAME_ITEM_WIDTH	= 20;	// Pattern item width
 	static const int ROW_HEIGHT			= 15;	// Height of rows
 	static const int TOP_OFFSET			= 3;	// Top offset
 	static const int DEFAULT_HEIGHT		= 161;	// Window height at top position
@@ -234,7 +234,7 @@ public:
 	afx_msg void OnEditPasteOverwrite();
 	afx_msg void OnUpdateEditPasteOverwrite(CCmdUI *pCmdUI);
 	afx_msg void OnModuleDuplicateCurrentPattern();
-	
+
 	/*afx_msg*/ void OnEditSelectpattern();
 	/*afx_msg*/ void OnEditSelectframe();
 	/*afx_msg*/ void OnEditSelectchannel();

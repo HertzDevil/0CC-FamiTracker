@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -118,7 +118,7 @@ const std::vector<char> &CChunk::GetStringData(int index) const
 }
 
 stChunkLabel CChunk::GetDataPointerTarget(int index) const		// // //
-{	
+{
 	auto pChunkData = dynamic_cast<CChunkDataPointer *>(m_vChunkData[index].get());
 	return pChunkData ? pChunkData->m_Label : stChunkLabel { };
 }
@@ -129,7 +129,7 @@ void CChunk::SetDataPointerTarget(int index, const stChunkLabel &label)		// // /
 		pChunkData->m_Label = label;
 }
 
-bool CChunk::IsDataPointer(int index) const 
+bool CChunk::IsDataPointer(int index) const
 {
 	return dynamic_cast<CChunkDataPointer *>(m_vChunkData[index].get()) != nullptr;
 }

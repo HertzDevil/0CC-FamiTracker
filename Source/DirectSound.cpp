@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -45,10 +45,10 @@ CDSound::CDSound(HWND hWnd, HANDLE hNotification) :
 }
 
 bool CDSound::SetupDevice(int iDevice)
-{	
+{
 	if (iDevice > (int)GetDeviceCount())		// // //
 		iDevice = 0;
-	
+
 	if (m_lpDirectSound) {
 		m_lpDirectSound->Release();
 		m_lpDirectSound = NULL;
@@ -94,7 +94,7 @@ void CDSound::EnumerateDevices()
 	ClearEnumeration();
 
 	DirectSoundEnumerate(DSEnumCallback, this);		// // //
-	
+
 #ifdef _DEBUG
 	// Add an invalid device for debugging reasons
 	GUID g;
@@ -156,14 +156,14 @@ std::unique_ptr<CDSoundChannel> CDSound::OpenChannel(int SampleRate, int SampleS
 	// Adjust buffer length in case a buffer would end up in half samples
 	while ((SampleRate * BufferLength / (Blocks * 1000) != (double)SampleRate * BufferLength / (Blocks * 1000)))
 		++BufferLength;
- 
+
 	auto pChannel = std::make_unique<CDSoundChannel>();
 
 	HANDLE hBufferEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	int SoundBufferSize = CalculateBufferLength(BufferLength, SampleRate, SampleSize, Channels);
 	int BlockSize = SoundBufferSize / Blocks;
-	
+
 	pChannel->m_iBufferLength		= BufferLength;			// in ms
 	pChannel->m_iSoundBufferSize	= SoundBufferSize;		// in bytes
 	pChannel->m_iBlockSize			= BlockSize;			// in bytes
@@ -208,7 +208,7 @@ std::unique_ptr<CDSoundChannel> CDSound::OpenChannel(int SampleRate, int SampleS
 		return nullptr;
 
 	pChannel->ClearBuffer();
-	
+
 	return pChannel;
 }
 
@@ -262,7 +262,7 @@ bool CDSoundChannel::ClearBuffer()
 
 	if (FAILED(m_lpDirectSoundBuffer->Lock(0, m_iSoundBufferSize, (void**)&pAudioPtr1, &AudioBytes1, (void**)&pAudioPtr2, &AudioBytes2, 0)))
 		return false;
-	
+
 	if (m_iSampleSize == 8) {
 		memset(pAudioPtr1, 0x80, AudioBytes1);
 		if (pAudioPtr2)
@@ -296,7 +296,7 @@ bool CDSoundChannel::WriteBuffer(char *pBuffer, unsigned int Samples)
 	int	  Block = m_iCurrentWriteBlock;
 
 	ASSERT(Samples == m_iBlockSize);
-	
+
 	if (FAILED(m_lpDirectSoundBuffer->Lock(Block * m_iBlockSize, m_iBlockSize, (void**)&pAudioPtr1, &AudioBytes1, (void**)&pAudioPtr2, &AudioBytes2, 0)))
 		return false;
 

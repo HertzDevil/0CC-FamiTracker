@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -150,7 +150,7 @@ void CGraphEditor::OnPaint()
 void CGraphEditor::PaintBuffer(CDC *pBackDC, CDC *pFrontDC)
 {
 	if (this == GetFocus()) {
-		CRect focusRect = m_ClientRect;		
+		CRect focusRect = m_ClientRect;
 		pBackDC->SetBkColor(0);
 		pBackDC->DrawFocusRect(focusRect);
 	}
@@ -199,7 +199,7 @@ void CGraphEditor::DrawBackground(CDC *pDC, int Lines, bool DrawMarks, int MarkO
 			int y = Top + StepHeight * i;
 			int w = m_GraphRect.Width() - 2;
 			int h = 1;
-	
+
 			if (DrawMarks) {
 				if ((++marker + 1) % 12 == 0) {
 					pDC->FillSolidRect(x, y, w, StepHeight, COL_HORZ_BAR);
@@ -226,7 +226,7 @@ void CGraphEditor::DrawRange(CDC *pDC, int Max, int Min) const
 
 	CRect textRect(2, 0, GRAPH_LEFT - 5, 10);
 	CRect topRect = textRect, bottomRect = textRect;
-	
+
 	topRect.MoveToY(Top - 3);
 	line.Format(_T("%02i"), Max);
 	pDC->DrawText(line, topRect, DT_RIGHT);
@@ -353,7 +353,7 @@ void CGraphEditor::DrawCursorRect(CDC *pDC, int x, int y, int w, int h) const
 }
 
 void CGraphEditor::DrawShadowRect(CDC *pDC, int x, int y, int w, int h) const
-{	
+{
 	if (h == 0)
 		h = 1;
 
@@ -593,7 +593,7 @@ void CBarGraphEditor::OnPaint()
 	ASSERT(m_pBackDC != NULL);
 
 	CPaintDC dc(this);
-	
+
 	DrawBackground(m_pBackDC, m_iLevels, false, 0);
 	DrawRange(m_pBackDC, m_iLevels, 0);
 
@@ -637,7 +637,7 @@ void CBarGraphEditor::OnPaint()
 		else
 			DrawRect(m_pBackDC, x, y, w, h);
 	}
-	
+
 	DrawLoopRelease(m_pBackDC, StepWidth);		// // //
 	DrawLine(m_pBackDC);
 
@@ -660,7 +660,7 @@ void CBarGraphEditor::HighlightItem(CPoint point)
 		m_iHighlightedItem = -1;
 		m_iHighlightedValue = 0;
 	}
-	
+
 	if (LastItem != m_iHighlightedItem || LastValue != m_iHighlightedValue)
 		RedrawWindow(NULL);
 }
@@ -714,8 +714,8 @@ BEGIN_MESSAGE_MAP(CArpeggioGraphEditor, CGraphEditor)
 END_MESSAGE_MAP()
 
 CArpeggioGraphEditor::CArpeggioGraphEditor(std::shared_ptr<CSequence> pSequence) :		// // //
-	CGraphEditor(pSequence), 
-	m_iScrollOffset(0), 
+	CGraphEditor(pSequence),
+	m_iScrollOffset(0),
 	m_pScrollBar(NULL)
 {
 }
@@ -929,7 +929,7 @@ void CArpeggioGraphEditor::OnPaint()
 				DrawCursorRect(m_pBackDC, x, y, w, h);
 			else
 				DrawRect(m_pBackDC, x, y, w, h);
-			
+
 			if (m_pSequence->GetSetting() == SETTING_ARP_SCHEME) {
 				static const CString HEAD[] = {_T(""), _T("x"), _T("y"), _T("-y")};
 				m_pBackDC->TextOut(x + w / 2, y - 2 * h, HEAD[(m_pSequence->GetItem(i) & 0xFF) >> 6]);
@@ -938,7 +938,7 @@ void CArpeggioGraphEditor::OnPaint()
 	}
 	m_pBackDC->SetTextAlign(TA_LEFT);
 	m_pBackDC->SelectObject(pOldFont);
-	
+
 	DrawLoopRelease(m_pBackDC, StepWidth);		// // //
 	DrawLine(m_pBackDC);
 
@@ -956,7 +956,7 @@ void CArpeggioGraphEditor::ModifyItem(CPoint point, bool Redraw)
 
 	m_iHighlightedItem = ItemIndex;
 	m_iHighlightedValue = ItemValue;
-	
+
 	if (m_pSequence->GetSetting() == SETTING_ARP_SCHEME) {		// // //
 		int value = m_pSequence->GetItem(ItemIndex);
 		if (value < 0) value += 0x100;
@@ -986,7 +986,7 @@ void CArpeggioGraphEditor::HighlightItem(CPoint point)
 	m_iHighlightedItem = ItemIndex;
 	m_iHighlightedValue = ItemValue;
 
-	if (m_GraphRect.PtInRect(point) == 0 || unsigned(ItemIndex) >= m_pSequence->GetItemCount()) { 
+	if (m_GraphRect.PtInRect(point) == 0 || unsigned(ItemIndex) >= m_pSequence->GetItemCount()) {
 		m_iHighlightedItem = -1;
 		m_iHighlightedValue = 0;
 	}
@@ -1041,7 +1041,7 @@ int CArpeggioGraphEditor::GetItemTop() const		// // //
 void CArpeggioGraphEditor::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	switch (nSBCode) {
-		case SB_LINEDOWN: 
+		case SB_LINEDOWN:
 			--m_iScrollOffset;
 			break;
 		case SB_LINEUP:
@@ -1056,7 +1056,7 @@ void CArpeggioGraphEditor::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 		case SB_TOP:
 			m_iScrollOffset = m_iScrollMax;
 			break;
-		case SB_BOTTOM:	
+		case SB_BOTTOM:
 			m_iScrollOffset = (m_pSequence->GetSetting() != SETTING_ARP_FIXED) ? -m_iScrollMax : 0;
 			break;
 		case SB_THUMBPOSITION:
@@ -1169,7 +1169,7 @@ void CPitchGraphEditor::OnPaint()
 		else
 			DrawRect(m_pBackDC, x, y, w, h);
 	}
-	
+
 	DrawLoopRelease(m_pBackDC, StepWidth);		// // //
 	DrawLine(m_pBackDC);
 
@@ -1232,7 +1232,7 @@ void CPitchGraphEditor::HighlightItem(CPoint point)
 		m_iHighlightedItem = -1;
 		m_iHighlightedValue = 0;
 	}
-	
+
 	if (m_iHighlightedItem != LastItem || m_iHighlightedValue != LastValue) {
 		RedrawWindow(NULL);
 	}
@@ -1245,7 +1245,7 @@ void CNoiseEditor::OnPaint()
 	ASSERT(m_pBackDC != NULL);
 
 	CPaintDC dc(this);
-	
+
 	DrawBackground(m_pBackDC, m_iItems, false, 0);
 	DrawRange(m_pBackDC, m_iItems, 0);
 
@@ -1278,7 +1278,7 @@ void CNoiseEditor::OnPaint()
 		int y = Top + StepHeight * (m_iItems - item);
 		int w = StepWidth;
 		int h = StepHeight;//* item;
-		
+
 		if (m_iCurrentPlayPos == i)
 			DrawPlayRect(m_pBackDC, x, y, w, h);
 		else
@@ -1298,7 +1298,7 @@ void CNoiseEditor::OnPaint()
 			m_pBackDC->Draw3dRect(x, y, w, h, BLEND(Color, 0xFFFFFF, 80), BLEND(Color, 0x000000, 80));
 		}
 	}
-	
+
 	DrawLoopRelease(m_pBackDC, StepWidth);		// // //
 	DrawLine(m_pBackDC);
 

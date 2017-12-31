@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -94,7 +94,7 @@ void CSquare::Write(uint16_t Address, uint8_t Value)
 	case 0x01:
 		m_iSweepEnabled  = Value & 0x80;
 		m_iSweepPeriod	 = ((Value >> 4) & 0x07) + 1;
-		m_iSweepMode	 = Value & 0x08;		
+		m_iSweepMode	 = Value & 0x08;
 		m_iSweepShift	 = Value & 0x07;
 		m_bSweepWritten	 = true;
 		break;
@@ -160,7 +160,7 @@ double CSquare::GetFrequency() const		// // //
 
 void CSquare::LengthCounterUpdate()
 {
-	if ((m_iLooping == 0) && (m_iLengthCounter > 0)) 
+	if ((m_iLooping == 0) && (m_iLengthCounter > 0))
 		--m_iLengthCounter;
 }
 

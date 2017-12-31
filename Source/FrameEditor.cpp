@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -256,7 +256,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 
 	// Draw background
 	m_dcBack.FillSolidRect(0, 0, m_iWinWidth, m_iWinHeight, ColBackground);
-	
+
 	// Selected row
 	COLORREF RowColor = BLEND(ColCursor, ColBackground, 50);
 
@@ -268,7 +268,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	}
 
 	// Draw selected row
-	GradientBar(&m_dcBack, DPI::Rect(0, m_iMiddleRow * ROW_HEIGHT + 3, m_iWinWidth, ROW_HEIGHT + 1), RowColor, ColBackground);	
+	GradientBar(&m_dcBack, DPI::Rect(0, m_iMiddleRow * ROW_HEIGHT + 3, m_iWinWidth, ROW_HEIGHT + 1), RowColor, ColBackground);
 
 	const int FirstVisibleFrame = ActiveFrame - m_iMiddleRow;
 	const int BeginFrame = std::max(0, FirstVisibleFrame);		// // //
@@ -436,7 +436,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 		SetScrollRange(SB_VERT, 0, 1);
 	else
 		SetScrollRange(SB_VERT, 0, FrameCount - 1);
-	
+
 	SetScrollPos(SB_VERT, ActiveFrame);
 	SetScrollRange(SB_HORZ, 0, ChannelCount - 1);
 	SetScrollPos(SB_HORZ, ActiveChannel);
@@ -780,7 +780,7 @@ void CFrameEditor::OnLButtonDown(UINT nFlags, CPoint point)
 		model_->ContinueSelection(m_LastClickPos);
 		m_bFullFrameSelect = false;		// // //
 	}
-	
+
 	CWnd::OnLButtonDown(nFlags, point);
 }
 

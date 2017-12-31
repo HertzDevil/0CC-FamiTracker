@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -60,7 +60,7 @@ public:
 	void	SetExternalSound(uint8_t Chip);
 	void	Write(uint16_t Address, uint8_t Value);		// // //
 	uint8_t	Read(uint16_t Address);
-	
+
 	void	ChangeMachineRate(int Machine, int Rate);		// // //
 	bool	SetupSound(int SampleRate, int NrChannels, int Speed);
 	void	SetupMixer(int LowCut, int HighCut, int HighDamp, int Volume) const;
@@ -70,7 +70,7 @@ public:
 	uint8_t	GetReg(int Chip, int Reg) const;
 	double	GetFreq(int Chip, int Chan) const;		// // //
 	CRegisterState *GetRegState(int Chip, int Reg) const;		// // //
-	
+
 	uint8_t	GetSamplePos() const;
 	uint8_t	GetDeltaCounter() const;
 	bool	DPCMPlaying() const;

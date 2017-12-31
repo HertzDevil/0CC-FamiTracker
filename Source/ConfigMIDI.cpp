@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -104,10 +104,10 @@ BOOL CConfigMIDI::OnApply()
 	CComboBox	*pInDevices	 = static_cast<CComboBox*>(GetDlgItem(IDC_INDEVICES));
 	CComboBox	*pOutDevices = static_cast<CComboBox*>(GetDlgItem(IDC_OUTDEVICES));
 	CMIDI		*pMIDI		 = theApp.GetMIDI();
-	
+
 	pMIDI->SetInputDevice(pInDevices->GetCurSel(), IsDlgButtonChecked(IDC_MASTER_SYNC) != 0);
 	pMIDI->SetOutputDevice(pOutDevices->GetCurSel());
-	
+
 	theApp.GetSettings()->Midi.bMidiMasterSync	= IsDlgButtonChecked(IDC_MASTER_SYNC)	== 1;
 	theApp.GetSettings()->Midi.bMidiKeyRelease	= IsDlgButtonChecked(IDC_KEY_RELEASE)	== 1;
 	theApp.GetSettings()->Midi.bMidiChannelMap	= IsDlgButtonChecked(IDC_CHANMAP)		== 1;

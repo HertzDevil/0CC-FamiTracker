@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -39,7 +39,7 @@ char CChannelHandlerVRC7::m_cPatchFlag = 0;		// // // 050B
 // Custom instrument patch
 unsigned char CChannelHandlerVRC7::m_iPatchRegs[8] = { };		// // // 050B
 
-CChannelHandlerVRC7::CChannelHandlerVRC7() : 
+CChannelHandlerVRC7::CChannelHandlerVRC7() :
 	CChannelHandlerInverted((1 << (VRC7_PITCH_RESOLUTION + 9)) - 1, 15),		// // //
 	m_iCommand(CMD_NONE),
 	m_iTriggeredNote(0)
@@ -156,7 +156,7 @@ int CChannelHandlerVRC7::RunNote(int Octave, int Note)		// // //
 			m_iOldOctave = m_iOctave = Octave;
 		}
 		m_iPortaTo = NesFreq;
-		
+
 	}
 	else {
 		m_iPeriod = NesFreq;
@@ -185,7 +185,7 @@ bool CChannelHandlerVRC7::CreateInstHandler(inst_type_t Type)
 void CChannelHandlerVRC7::SetupSlide()		// // //
 {
 	CChannelHandler::SetupSlide();		// // //
-	
+
 	CorrectOctave();
 }
 
@@ -259,7 +259,7 @@ int CChannelHandlerVRC7::CalculatePeriod() const
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CVRC7Channel::RefreshChannel()
-{	
+{
 //	int Note = m_iTriggeredNote;
 	int Volume = CalculateVolume();
 	int Fnum = CalculatePeriod();		// // //
@@ -300,10 +300,10 @@ void CVRC7Channel::RefreshChannel()
 			Cmd = OPL_SUSTAIN_ON;
 			break;
 	}
-	
+
 	// Write frequency
 	RegWrite(0x10 + m_iChannel, Fnum & 0xFF);
-	
+
 	if (m_iCommand != CMD_NOTE_HALT) {
 		// Select volume & patch
 		RegWrite(0x30 + m_iChannel, (m_iDutyPeriod << 4) | (Volume ^ 0x0F));		// // //

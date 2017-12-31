@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -38,7 +38,7 @@ public:
 	/*!	\brief Constructor of the note queue for a single track.
 		\param Ch List of channel indices for this queue. */
 	CNoteChannelQueue(const std::vector<unsigned> &Ch);
-	
+
 	/*!	\brief Triggers a note on a given channel.
 		\param Note The note number.
 		\param Channel The channel index. */
@@ -51,13 +51,13 @@ public:
 		\param Note The note number.
 		\param Channel The channel index. */
 	virtual unsigned Cut(int Note, unsigned Channel);
-	/*!	\brief Stops whatever is played from a specific channel. 
+	/*!	\brief Stops whatever is played from a specific channel.
 		\param Channel The channel index.
 		\return A vector containing the physical channel indices that have a note halted. */
 	std::vector<unsigned> StopChannel(unsigned Channel);
 	/*!	\brief Stops all currently playing notes. */
 	void StopAll();
-	
+
 	/*!	\brief Stops accepting notes from a given channel.
 		\param Channel The channel index. */
 	void MuteChannel(unsigned Channel);
@@ -96,7 +96,7 @@ public:
 	unsigned Cut(int Note, unsigned Channel);
 	std::vector<unsigned> StopChannel(unsigned Channel);
 	void StopAll();
-	
+
 	void MuteChannel(unsigned Channel);
 	void UnmuteChannel(unsigned Channel);
 

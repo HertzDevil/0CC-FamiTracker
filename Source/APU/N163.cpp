@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -212,7 +212,7 @@ uint8_t CN163::ReadMem(uint8_t Reg)
 {
 	int ChanArea = 0x80 - ((m_iChansInUse + 1) << 3);
 	int Chan = (Reg & 0x3F) >> 3;
-	
+
 	if (Reg < ChanArea)
 		return m_iWaveData[Reg & 0x7F];
 
@@ -328,7 +328,7 @@ void CN163Chan::ProcessClean(uint32_t Time, uint8_t ChannelsActive)
 		Time	-= m_iCounter;
 		m_iTime += m_iCounter;
 		m_iCounter = 15 * ChannelsActive;
-		
+
 		m_iPhase = (m_iPhase + m_iFrequency) % m_iWaveLength;
 
 		int WavePtr = m_iPhase >> 16;
@@ -340,7 +340,7 @@ void CN163Chan::ProcessClean(uint32_t Time, uint8_t ChannelsActive)
 
 		Mix((Sample & 0x0F) * m_iVolume);
 	}
-	
+
 	m_iCounter -= Time;
 	m_iTime += Time;
 }

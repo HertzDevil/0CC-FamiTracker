@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -164,7 +164,7 @@ void C2A03::ChangeMachine(int Machine)
 			m_Square2.CPU_RATE = 1789773;
 			m_Triangle.CPU_RATE = 1789773;
 			m_Noise.PERIOD_TABLE = CNoise::NOISE_PERIODS_NTSC;
-			m_DPCM.PERIOD_TABLE = CDPCM::DMC_PERIODS_NTSC;			
+			m_DPCM.PERIOD_TABLE = CDPCM::DMC_PERIODS_NTSC;
 			m_pMixer->SetClockRate(1789773);
 			break;
 		case MACHINE_PAL:
@@ -172,7 +172,7 @@ void C2A03::ChangeMachine(int Machine)
 			m_Square2.CPU_RATE = 1662607;
 			m_Triangle.CPU_RATE = 1662607;
 			m_Noise.PERIOD_TABLE = CNoise::NOISE_PERIODS_PAL;
-			m_DPCM.PERIOD_TABLE = CDPCM::DMC_PERIODS_PAL;			
+			m_DPCM.PERIOD_TABLE = CDPCM::DMC_PERIODS_PAL;
 			m_pMixer->SetClockRate(1662607);
 			break;
 	}

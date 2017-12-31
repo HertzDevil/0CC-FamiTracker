@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -99,7 +99,7 @@ CAPU::~CAPU()
 // The amount of cycles that will be emulated is added by CAPU::AddCycles
 //
 void CAPU::Process()
-{	
+{
 	while (m_iCyclesToRun > 0) {
 
 		uint32_t Time = std::min(m_iCyclesToRun, m_iSequencerNext - m_iSequencerClock);		// // //
@@ -129,7 +129,7 @@ void CAPU::StepSequence()		// // //
 void CAPU::EndFrame()
 {
 	// The APU will always output audio in 32 bit signed format
-	
+
 	for (auto Chip : ExChips)		// // //
 		Chip->EndFrame();
 
@@ -137,12 +137,12 @@ void CAPU::EndFrame()
 	int ReadSamples	= m_pMixer->ReadBuffer(SamplesAvail, m_pSoundBuffer.get(), m_bStereoEnabled);
 	if (m_pParent)		// // //
 		m_pParent->FlushBuffer(m_pSoundBuffer.get(), ReadSamples);
-	
+
 	m_iFrameCycles = 0;
 
 	for (auto &r : ExChips)		// // //
 		r->GetRegisterLogger().Step();
-		
+
 #ifdef LOGGING
 	++m_iFrame;
 #endif
@@ -152,19 +152,19 @@ void CAPU::Reset()
 {
 	// Reset APU
 	//
-	
+
 	m_iSequencerCount	= 0;		// // //
 	m_iSequencerClock	= 0;		// // //
 	m_iSequencerNext	= BASE_FREQ_NTSC / SEQUENCER_FREQUENCY;
-	
+
 	m_iCyclesToRun		= 0;
 	m_iFrameCycles		= 0;
-	
+
 	for (auto Chip : ExChips) {		// // //
 		Chip->GetRegisterLogger().Reset();
 		Chip->Reset();
 	}
-	
+
 	m_pMixer->ClearBuffer();
 
 #ifdef LOGGING
@@ -213,7 +213,7 @@ void CAPU::ChangeMachineRate(int Machine, int Rate)		// // //
 {
 	// Allow to change speed on the fly
 	//
-	
+
 	uint32_t BaseFreq = (Machine == MACHINE_NTSC) ? BASE_FREQ_NTSC : BASE_FREQ_PAL;
 	m_p2A03->ChangeMachine(Machine);
 
@@ -226,13 +226,13 @@ bool CAPU::SetupSound(int SampleRate, int NrChannels, int Machine)		// // //
 	//
 	// Returns false if a buffer couldn't be allocated
 	//
-	
+
 	uint32_t BaseFreq = (Machine == MACHINE_NTSC) ? BASE_FREQ_NTSC : BASE_FREQ_PAL;
 	uint8_t FrameRate = (Machine == MACHINE_NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
 	m_iSampleRate = SampleRate;		// // //
 
 	m_iSoundBufferSamples = uint32_t(m_iSampleRate / FRAME_RATE_PAL);	// Samples / frame. Allocate for PAL, since it's more
-	m_bStereoEnabled	  = (NrChannels == 2);	
+	m_bStereoEnabled	  = (NrChannels == 2);
 	m_iSoundBufferSize	  = m_iSoundBufferSamples * NrChannels;		// Total amount of samples to allocate
 	m_iSampleSizeShift	  = (NrChannels == 2) ? 1 : 0;
 	m_iBufferPointer	  = 0;
@@ -263,7 +263,7 @@ void CAPU::Write(uint16_t Address, uint8_t Value)
 	// Data was written to an external sound chip
 
 	Process();
-	
+
 	for (auto Chip : ExChips)		// // //
 		Chip->Write(Address, Value);
 
@@ -279,7 +279,7 @@ uint8_t CAPU::Read(uint16_t Address)
 	bool Mapped(false);
 
 	Process();
-	
+
 	for (auto Chip : ExChips)		// // //
 		if (!Mapped)
 			Value = Chip->Read(Address, Mapped);
@@ -292,7 +292,7 @@ uint8_t CAPU::Read(uint16_t Address)
 
 // Expansion for famitracker
 
-int32_t CAPU::GetVol(uint8_t Chan) const	
+int32_t CAPU::GetVol(uint8_t Chan) const
 {
 	return m_pMixer->GetChanOutput(Chan);
 }

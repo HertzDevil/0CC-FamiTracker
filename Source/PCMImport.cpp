@@ -201,7 +201,7 @@ END_MESSAGE_MAP()
 std::shared_ptr<CDSample> CPCMImport::ShowDialog() {		// // //
 	// Return imported sample, or NULL if cancel/error
 
-	CString fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, _T(".wav"));	
+	CString fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, _T(".wav"));
 	CFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY, fileFilter);
 
 	OpenFileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_WAV);
@@ -330,9 +330,9 @@ void CPCMImport::OnBnClickedPreview()
 void CPCMImport::UpdateFileInfo()
 {
 	CString SampleRate;
-	
-	AfxFormatString3(SampleRate, IDS_DPCM_IMPORT_WAVE_FORMAT, 
-		MakeIntString(m_iSamplesPerSec), 
+
+	AfxFormatString3(SampleRate, IDS_DPCM_IMPORT_WAVE_FORMAT,
+		MakeIntString(m_iSamplesPerSec),
 		MakeIntString(m_iSampleSize * 8),
 		(m_iChannels == 2) ? _T("Stereo") : _T("Mono"));
 

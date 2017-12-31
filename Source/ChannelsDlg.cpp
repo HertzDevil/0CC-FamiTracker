@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -29,12 +29,12 @@
 // Used to handle channels in a future version. Not finished.
 
 const LPCTSTR ROOT_ITEMS[] = {		// // //
-	_T("2A03/2A07"), 
-	_T("Konami VRC6"), 
-	_T("Konami VRC7"), 
-	_T("Nintendo FDS"), 
-	_T("Nintendo MMC5"), 
-	_T("Namco 106"), 
+	_T("2A03/2A07"),
+	_T("Konami VRC6"),
+	_T("Konami VRC7"),
+	_T("Nintendo FDS"),
+	_T("Nintendo MMC5"),
+	_T("Namco 106"),
 	_T("Sunsoft 5B")
 };
 
@@ -50,7 +50,7 @@ const int CHILD_ITEMS_ID[ROOT_ITEM_COUNT][9] = {
 	// MMC5
 	{CHANID_MMC5_SQUARE1, CHANID_MMC5_SQUARE2},
 	// N163
-	{CHANID_N163_CH1, CHANID_N163_CH2, CHANID_N163_CH3, CHANID_N163_CH4, CHANID_N163_CH5, CHANID_N163_CH6, CHANID_N163_CH7, CHANID_N163_CH8}, 
+	{CHANID_N163_CH1, CHANID_N163_CH2, CHANID_N163_CH3, CHANID_N163_CH4, CHANID_N163_CH5, CHANID_N163_CH6, CHANID_N163_CH7, CHANID_N163_CH8},
 	 // S5B
 	{CHANID_S5B_CH1, CHANID_S5B_CH2, CHANID_S5B_CH3}
 };
@@ -145,7 +145,7 @@ BOOL CChannelsDlg::OnInitDialog()
 
 void CChannelsDlg::OnClickAvailable(NMHDR *pNMHDR, LRESULT *result)
 {
-	
+
 }
 
 void CChannelsDlg::OnDblClickAvailable(NMHDR *pNMHDR, LRESULT *result)

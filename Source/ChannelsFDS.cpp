@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -32,9 +32,9 @@
 #include "Settings.h"		// // //
 #include "SongState.h"		// // //
 
-CChannelHandlerFDS::CChannelHandlerFDS() : 
+CChannelHandlerFDS::CChannelHandlerFDS() :
 	CChannelHandlerInverted(0xFFF, 32)
-{ 
+{
 	memset(m_iModTable, 0, 32);
 	memset(m_iWaveTable, 0, 64);
 }
@@ -202,7 +202,7 @@ void CChannelHandlerFDS::RefreshChannel()
 		WriteRegister(0x4087, ModFreqHi);
 
 		// Sweep depth, disable sweep envelope
-		WriteRegister(0x4084, 0x80 | m_iModulationDepth); 
+		WriteRegister(0x4084, 0x80 | m_iModulationDepth);
 	}
 	else {
 		// Delayed modulation
@@ -213,7 +213,7 @@ void CChannelHandlerFDS::RefreshChannel()
 }
 
 void CChannelHandlerFDS::ClearRegisters()
-{	
+{
 	// Clear volume
 	WriteRegister(0x4080, 0x80);
 

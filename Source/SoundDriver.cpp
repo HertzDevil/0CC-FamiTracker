@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -262,7 +262,7 @@ void CSoundDriver::UpdateChannels() {
 			continue;
 		auto &pChan = tracks_[Index].first;
 		auto &pTrackerChan = tracks_[Index].second;
-		
+
 		// Run auto-arpeggio, if enabled
 		if (int Arpeggio = parent_ ? parent_->GetArpNote(Channel) : -1; Arpeggio > 0)		// // //
 			pChan->Arpeggiate(Arpeggio);
@@ -381,7 +381,7 @@ void CSoundDriver::AssignTrack(std::unique_ptr<CTrackerChannel> track) {
 void CSoundDriver::SetupVibrato() {
 	const vibrato_t style = doc_->GetVibratoStyle();
 
-	for (int i = 0; i < 16; ++i) {	// depth 
+	for (int i = 0; i < 16; ++i) {	// depth
 		for (int j = 0; j < 16; ++j) {	// phase
 			int value = 0;
 			double angle = (double(j) / 16.0) * (3.1415 / 2.0);
@@ -484,7 +484,7 @@ void CSoundDriver::HandleGlobalEffects(stChanNote &note) {
 			case EF_SPEED:
 				m_pTempoCounter->DoFxx(EffParam ? EffParam : 1);		// // //
 				break;
-				
+
 			// Oxx: Sets groove to xx
 			case EF_GROOVE:		// // //
 				m_pTempoCounter->DoOxx(EffParam % MAX_GROOVE);		// // //

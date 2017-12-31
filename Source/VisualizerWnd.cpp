@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -165,7 +165,7 @@ UINT CVisualizerWnd::ThreadProc()
 }
 
 BOOL CVisualizerWnd::CreateEx(DWORD dwExStyle, LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, CCreateContext* pContext)
-{	
+{
 	// This is saved
 	m_iCurrentState = theApp.GetSettings()->SampleWinState;
 
@@ -266,7 +266,7 @@ void CVisualizerWnd::OnDestroy()
 	// Shut down worker thread
 	if (m_pWorkerThread != NULL) {
 		HANDLE hThread = m_pWorkerThread->m_hThread;
-		
+
 		m_bThreadRunning = false;
 		::SetEvent(m_hNewSamples);
 

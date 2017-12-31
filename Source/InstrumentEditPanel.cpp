@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -21,7 +21,7 @@
 */
 
 #include "InstrumentEditPanel.h"
-#include <iterator> 
+#include <iterator>
 #include <sstream>
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
@@ -74,7 +74,7 @@ HBRUSH CInstrumentEditPanel::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 	if (!theApp.IsThemeActive())
 		return hbr;
-	
+
 	switch (nCtlColor) {
 		case CTLCOLOR_STATIC:
 //		case CTLCOLOR_DLG:
@@ -142,7 +142,7 @@ void CInstrumentEditPanel::OnKeyReturn()
 }
 
 void CInstrumentEditPanel::OnSetFocus(CWnd* pOldWnd)
-{	
+{
 	// Kill the default handler to avoid setting focus to a child control
 	//Invalidate();
 	CDialog::OnSetFocus(pOldWnd);
@@ -171,14 +171,14 @@ void CInstrumentEditPanel::PreviewRelease(unsigned char Key)
 
 //
 // CSequenceInstrumentEditPanel
-// 
-// For dialog panels with sequence editors. Can translate MML strings 
+//
+// For dialog panels with sequence editors. Can translate MML strings
 //
 
 IMPLEMENT_DYNAMIC(CSequenceInstrumentEditPanel, CInstrumentEditPanel)
 
-CSequenceInstrumentEditPanel::CSequenceInstrumentEditPanel(UINT nIDTemplate, CWnd* pParent) : 
-	CInstrumentEditPanel(nIDTemplate, pParent), 
+CSequenceInstrumentEditPanel::CSequenceInstrumentEditPanel(UINT nIDTemplate, CWnd* pParent) :
+	CInstrumentEditPanel(nIDTemplate, pParent),
 	m_pSequenceEditor(NULL),
 	m_pSequence(NULL),
 	m_pParentWin(pParent),
@@ -210,20 +210,20 @@ void CSequenceInstrumentEditPanel::SetupDialog(const LPCTSTR *pListItems)		// //
 	CRect r;		// // // 050B
 	pList->GetClientRect(&r);
 	int Width = r.Width();
-	
+
 	pList->DeleteAllItems();
 	pList->InsertColumn(0, _T(""), LVCFMT_LEFT, static_cast<int>(.18 * Width));
 	pList->InsertColumn(1, _T("#"), LVCFMT_LEFT, static_cast<int>(.22 * Width));
 	pList->InsertColumn(2, _T("Effect name"), LVCFMT_LEFT, static_cast<int>(.6 * Width));
 	pList->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
-	
+
 	for (int i = SEQ_COUNT - 1; i > -1; i--) {
 		pList->InsertItem(0, _T(""), 0);
 		pList->SetCheck(0, 0);
 		pList->SetItemText(0, 1, _T("0"));
 		pList->SetItemText(0, 2, pListItems[i]);
 	}
-	
+
 	pList->SetItemState(m_iSelectedSetting, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
 	SetDlgItemInt(IDC_SEQ_INDEX, m_iSelectedSetting);
@@ -273,7 +273,7 @@ void CSequenceInstrumentEditPanel::TranslateMML(CString String) const
 	// Takes a string and translates it into a sequence
 	m_pParser->ParseSequence(String.GetBuffer());		// // //
 	String.ReleaseBuffer();
-	
+
 	// Update editor
 	if (m_pSequenceEditor != nullptr)
 		m_pSequenceEditor->RedrawWindow();

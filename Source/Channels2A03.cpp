@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -36,7 +36,7 @@
 
 //#define NOISE_PITCH_SCALE
 
-CChannelHandler2A03::CChannelHandler2A03() : 
+CChannelHandler2A03::CChannelHandler2A03() :
 	CChannelHandler(0x7FF, 0x0F),
 	m_bHardwareEnvelope(false),
 	m_bEnvelopeLoop(true),
@@ -150,7 +150,7 @@ void C2A03Square::RefreshChannel()
 
 	unsigned char HiFreq = (Period & 0xFF);
 	unsigned char LoFreq = (Period >> 8);
-	
+
 	int Address = 0x4000 + m_iChannel * 4;		// // //
 	if (m_bGate)		// // //
 		WriteRegister(Address, (DutyCycle << 6) | (m_bEnvelopeLoop << 5) | (!m_bHardwareEnvelope << 4) | Volume);		// // //
@@ -176,7 +176,7 @@ void C2A03Square::RefreshChannel()
 		//WriteRegister(0x4017, 0x80);	// Manually execute one APU frame sequence to kill the sweep unit
 		//WriteRegister(0x4017, 0x00);
 		WriteRegister(Address + 2, HiFreq);
-		
+
 		if (LoFreq != (m_iLastPeriod >> 8) || m_bResetEnvelope)		// // //
 			WriteRegister(Address + 3, LoFreq + (m_iLengthCounter << 3));
 	}
@@ -270,7 +270,7 @@ std::string C2A03Square::GetCustomEffectString() const		// // //
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Triangle 
+// Triangle
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CTriangleChan::CTriangleChan() :		// // //
@@ -285,7 +285,7 @@ void CTriangleChan::RefreshChannel()
 
 	unsigned char HiFreq = (Freq & 0xFF);
 	unsigned char LoFreq = (Freq >> 8);
-	
+
 	if (m_iInstVolume > 0 && m_iVolume > 0 && m_bGate) {
 		WriteRegister(0x4008, (m_bEnvelopeLoop << 7) | (m_iLinearCounter & 0x7F));		// // //
 		WriteRegister(0x400A, HiFreq);
@@ -352,7 +352,7 @@ void CTriangleChan::ClearRegisters()
 std::string CTriangleChan::GetCustomEffectString() const		// // //
 {
 	std::string str;
-	
+
 	if (m_iLinearCounter > -1)
 		str += MakeCommandString(EF_NOTE_CUT, m_iLinearCounter | 0x80);
 	if (!m_bEnvelopeLoop)
@@ -448,7 +448,7 @@ void CNoiseChan::RefreshChannel()
 #endif
 
 	Period ^= 0x0F;
-	
+
 	if (m_bGate)		// // //
 		WriteRegister(0x400C, (m_bEnvelopeLoop << 5) | (!m_bHardwareEnvelope << 4) | Volume);		// // //
 	else {
@@ -513,7 +513,7 @@ CDPCMChan::CDPCMChan() :		// // //
 	m_cDAC(255),
 	m_iRetrigger(0),
 	m_iRetriggerCntr(0)
-{ 
+{
 }
 
 void CDPCMChan::HandleNoteData(stChanNote &NoteData)		// // //
@@ -618,14 +618,14 @@ void CDPCMChan::RefreshChannel()
 		m_bRelease = false;
 	}
 
-/*	
+/*
 	if (m_bRelease) {
 		// Release loop flag
 		m_bRelease = false;
 		WriteRegister(0x4010, 0x00 | (m_iPeriod & 0x0F));
 		return;
 	}
-*/	
+*/
 
 	if (!m_bEnabled)
 		return;

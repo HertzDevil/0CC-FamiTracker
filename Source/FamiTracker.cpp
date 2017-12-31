@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -157,14 +157,14 @@ BOOL CFamiTrackerApp::InitInstance()
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views
 	CDocTemplate0CC* pDocTemplate = new CDocTemplate0CC(		// // //
-		IDR_MAINFRAME, 
-		RUNTIME_CLASS(CFamiTrackerDoc), 
-		RUNTIME_CLASS(CMainFrame), 
+		IDR_MAINFRAME,
+		RUNTIME_CLASS(CFamiTrackerDoc),
+		RUNTIME_CLASS(CMainFrame),
 		RUNTIME_CLASS(CFamiTrackerView));
 
 	if (!pDocTemplate)
 		return FALSE;
-	
+
 	if (m_pDocManager == NULL)		// // //
 		m_pDocManager = new CDocManager0CC { };
 	m_pDocManager->AddDocTemplate(pDocTemplate);
@@ -271,7 +271,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	//  In an SDI app, this should occur after ProcessShellCommand
 	// Enable drag/drop open
 	m_pMainWnd->DragAcceptFiles();
-	
+
 	// Initialize the sound interface, also resumes the thread
 	if (!m_pSoundGenerator->InitializeSound(m_pMainWnd->m_hWnd)) {
 		// If failed, restore and save default settings
@@ -281,10 +281,10 @@ BOOL CFamiTrackerApp::InitInstance()
 		AfxMessageBox(IDS_START_ERROR, MB_ICONERROR);
 		return FALSE;
 	}
-	
+
 	// Initialize midi unit
 	m_pMIDI->Init();
-	
+
 	if (cmdInfo.m_bPlay)
 		theApp.StartPlayer(play_mode_t::Frame);
 
@@ -365,7 +365,7 @@ BOOL CFamiTrackerApp::PreTranslateMessage(MSG* pMsg)
 void CFamiTrackerApp::CheckAppThemed()
 {
 	HMODULE hinstDll = ::LoadLibrary(_T("UxTheme.dll"));
-	
+
 	if (hinstDll) {
 		typedef BOOL (*ISAPPTHEMEDPROC)();
 		ISAPPTHEMEDPROC pIsAppThemed;
@@ -379,7 +379,7 @@ void CFamiTrackerApp::CheckAppThemed()
 }
 
 bool CFamiTrackerApp::IsThemeActive() const
-{ 
+{
 	return m_bThemeActive;
 }
 
@@ -504,7 +504,7 @@ void CFamiTrackerApp::RegisterSingleInstance()
 
 	if (m_hWndMapFile != NULL) {
 		LPTSTR pBuf = (LPTSTR) MapViewOfFile(m_hWndMapFile, FILE_MAP_ALL_ACCESS, 0, 0, SHARED_MEM_SIZE);
-		if (pBuf != NULL) { 
+		if (pBuf != NULL) {
 			// Create a string of main window handle
 			_itot_s((int)GetMainWnd()->m_hWnd, pBuf, SHARED_MEM_SIZE, 10);
 			UnmapViewOfFile(pBuf);
@@ -513,7 +513,7 @@ void CFamiTrackerApp::RegisterSingleInstance()
 }
 
 void CFamiTrackerApp::UnregisterSingleInstance()
-{	
+{
 	// Close shared memory area
 	if (m_hWndMapFile) {
 		CloseHandle(m_hWndMapFile);
@@ -529,9 +529,9 @@ void CFamiTrackerApp::CheckNewVersion(bool StartUp)		// // //
 }
 
 bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
-{	
+{
 	// Returns true if program should close
-	
+
 	if (!GetSettings()->General.bSingleInstance)
 		return false;
 
@@ -543,7 +543,7 @@ bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
 	if (GetLastError() == ERROR_ALREADY_EXISTS) {
 		// Another instance detected, get window handle
 		HANDLE hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, FT_SHARED_MEM_NAME);
-		if (hMapFile != NULL) {	
+		if (hMapFile != NULL) {
 			LPCTSTR pBuf = (LPTSTR) MapViewOfFile(hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, SHARED_MEM_SIZE);
 			if (pBuf != NULL) {
 				// Get window handle
@@ -570,7 +570,7 @@ bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
 			CloseHandle(hMapFile);
 		}
 	}
-	
+
 	return false;
 }
 
@@ -722,7 +722,7 @@ void CFamiTrackerApp::ResetPlayer()
 
 // File load/save
 
-void CFamiTrackerApp::OnFileOpen() 
+void CFamiTrackerApp::OnFileOpen()
 {
 	CString newName = _T("");		// // //
 
@@ -730,10 +730,10 @@ void CFamiTrackerApp::OnFileOpen()
 		return; // open cancelled
 
 	CFrameWnd *pFrameWnd = (CFrameWnd*)GetMainWnd();
-	
+
 	if (pFrameWnd)
 		pFrameWnd->SetMessageText(IDS_LOADING_FILE);
-	
+
 	AfxGetApp()->OpenDocumentFile(newName);
 
 	if (pFrameWnd)
@@ -834,7 +834,7 @@ void CFTCommandLineInfo::ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLas
 			return;
 		}
 		// Disable crash dumps (/nodump)
-		else if (!_tcsicmp(pszParam, _T("nodump"))) { 
+		else if (!_tcsicmp(pszParam, _T("nodump"))) {
 #ifdef ENABLE_CRASH_HANDLER
 			UninstallExceptionHandler();
 #endif

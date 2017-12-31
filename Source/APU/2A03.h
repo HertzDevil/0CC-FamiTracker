@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -51,9 +51,9 @@ public:
 
 public:
 	void	ClockSequence();		// // //
-	
+
 	void	ChangeMachine(int Machine);
-	
+
 	void	WriteSample(std::shared_ptr<const CDSample> pSample);		// // //
 	CSampleMem &GetSampleMemory();		// // //
 	uint8_t	GetSamplePos() const;
@@ -74,7 +74,7 @@ private:
 	CTriangle	m_Triangle;
 	CNoise		m_Noise;
 	CDPCM		m_DPCM;
-	
+
 	uint8_t		m_iFrameSequence;					// Frame sequence
 	uint8_t		m_iFrameMode;						// 4 or 5-steps frame sequence
 

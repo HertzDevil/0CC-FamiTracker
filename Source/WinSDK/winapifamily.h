@@ -116,7 +116,7 @@ Abstract:
 #   error Unknown WINAPI_FAMILY value. Was it defined in terms of a WINAPI_PARTITION_* value?
 #endif
 #define WINAPI_PARTITION_DESKTOP   (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
-#define WINAPI_PARTITION_APP       1  /* active for all current families */ 
+#define WINAPI_PARTITION_APP       1  /* active for all current families */
 #define WINAPI_PARTITION_PC_APP    (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP || WINAPI_FAMILY == WINAPI_FAMILY_PC_APP)
 #define WINAPI_PARTITION_PHONE_APP (WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)
 
@@ -148,7 +148,7 @@ Abstract:
  *
  * Usages of WINAPI_FAMILY_PARTITION may be combined, when the partitition definitions are
  * related.  In particular one might use declarations like
- * 
+ *
  *     #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP) && !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
  *
  * or
@@ -157,7 +157,7 @@ Abstract:
  *
  * Direct references to WINAPI_PARTITION_ values (eg #if !WINAPI_FAMILY_PARTITION_...)
  * should not be used.
- */ 
+ */
 #define WINAPI_FAMILY_PARTITION(Partitions)     (Partitions)
 
 /*

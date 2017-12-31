@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -94,7 +94,7 @@ BOOL CDetuneDlg::OnInitDialog()
 		m_iDetuneTable[i][j] = m_pDocument->GetDetuneOffset(i, j);
 	m_iGlobalSemitone = m_pDocument->GetTuningSemitone();		// // // 050B
 	m_iGlobalCent = m_pDocument->GetTuningCent();
-	
+
 	m_cSliderOctave = (CSliderCtrl*)GetDlgItem(IDC_SLIDER_OCTAVE);
 	m_cSliderNote = (CSliderCtrl*)GetDlgItem(IDC_SLIDER_NOTE);
 	m_cSliderOffset = (CSliderCtrl*)GetDlgItem(IDC_SLIDER_OFFSET);
@@ -102,21 +102,21 @@ BOOL CDetuneDlg::OnInitDialog()
 	m_cEditOctave = (CEdit*)GetDlgItem(IDC_EDIT_OCTAVE);
 	m_cEditNote = (CEdit*)GetDlgItem(IDC_EDIT_NOTE);
 	m_cEditOffset = (CEdit*)GetDlgItem(IDC_EDIT_OFFSET);
-	
+
 	auto SpinOctave = (CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_OCTAVE);
 	m_cSliderOctave->SetRange(0, OCTAVE_RANGE - 1);
 	SpinOctave->SetRange(0, OCTAVE_RANGE - 1);
 	m_cSliderOctave->SetPos(m_iOctave);
 	SpinOctave->SetPos(m_iOctave);
 	m_cSliderOctave->SetTicFreq(1);
-	
+
 	auto SpinNote = (CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_NOTE);
 	m_cSliderNote->SetRange(0, NOTE_RANGE - 1);
 	SpinNote->SetRange(0, NOTE_RANGE - 1);
 	m_cSliderNote->SetPos(m_iNote % NOTE_RANGE);
 	SpinNote->SetPos(m_iNote % NOTE_RANGE);
 	m_cSliderNote->SetTicFreq(1);
-	
+
 	auto SpinOffset = (CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_OFFSET);
 	m_cSliderOffset->SetRange(-16, 16);
 	SpinOffset->SetRange(-16, 16);
@@ -308,7 +308,7 @@ void CDetuneDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 void CDetuneDlg::OnDeltaposSpinOctave(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	
+
 	m_iOctave += pNMUpDown->iDelta;
 	UpdateOctave();
 
@@ -328,7 +328,7 @@ void CDetuneDlg::OnDeltaposSpinNote(NMHDR *pNMHDR, LRESULT *pResult)
 void CDetuneDlg::OnDeltaposSpinOffset(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	
+
 	m_iDetuneTable[m_iCurrentChip][m_iNote] += pNMUpDown->iDelta;
 	UpdateOffset();
 

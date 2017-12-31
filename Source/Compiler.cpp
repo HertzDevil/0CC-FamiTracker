@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -44,7 +44,7 @@
 // This is the new NSF data compiler, music is compiled to an object list instead of a binary chunk
 //
 // The list can be translated to both a binary chunk and an assembly file
-// 
+//
 
 /*
  * TODO:
@@ -79,7 +79,7 @@
  * Non-bankswitched, compressed layout:
  *
  * - Music data, driver, DPCM samples
- * 
+ *
  * Non-bankswitched + bankswitched, default layout:
  *
  * - Driver, music data, DPCM samples
@@ -127,8 +127,8 @@ unsigned int CCompiler::AdjustSampleAddress(unsigned int Address)
 
 // CCompiler
 
-CCompiler::CCompiler(const CFamiTrackerDoc &Doc, std::shared_ptr<CCompilerLog> pLogger) : 
-	m_pDocument(&Doc), 
+CCompiler::CCompiler(const CFamiTrackerDoc &Doc, std::shared_ptr<CCompilerLog> pLogger) :
+	m_pDocument(&Doc),
 	m_pLogger(std::move(pLogger)),
 	m_iWaveTables(0),
 	m_pSamplePointersChunk(NULL),
@@ -385,7 +385,7 @@ void CCompiler::ExportNES_PRG(LPCTSTR lpszFileName, bool EnablePAL, bool isPRG) 
 
 	// Write header
 	static const char NES_HEADER[] = { // 32kb NROM, no CHR
-		0x4E, 0x45, 0x53, 0x1A, 0x02, 0x00, 0x00, 0x00, 
+		0x4E, 0x45, 0x53, 0x1A, 0x02, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 	};
 	if (!isPRG)		// // //
@@ -524,7 +524,7 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 	// Copy embedded driver
 	auto pData = std::make_unique<unsigned char[]>(Driver.driver_size);
 	memcpy(pData.get(), Driver.driver, Driver.driver_size);
-	
+
 	// // // Custom pitch tables
 	const CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 	for (size_t i = 0; i < Driver.freq_table_size; i += 2) {		// // //
@@ -1075,7 +1075,7 @@ void CCompiler::ScanSong()
 	memset(m_bSequencesUsedVRC6, false, sizeof(bool) * MAX_SEQUENCES * SEQ_COUNT);
 	memset(m_bSequencesUsedN163, false, sizeof(bool) * MAX_SEQUENCES * SEQ_COUNT);
 	memset(m_bSequencesUsedS5B, false, sizeof(bool) * MAX_SEQUENCES * SEQ_COUNT);		// // //
-	
+
 	static const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
 	bool *used[] = {*m_bSequencesUsed2A03, *m_bSequencesUsedVRC6, *m_bSequencesUsedN163, *m_bSequencesUsedS5B};
 
@@ -1094,14 +1094,14 @@ void CCompiler::ScanSong()
 					if (note.Instrument < std::size(inst_used))		// // //
 						inst_used[note.Instrument] = true;
 				}
-	}	
+	}
 
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
 		if (m_pDocument->IsInstrumentUsed(i) && inst_used[i]) {		// // //
-			
+
 			// List of used instruments
 			m_iAssignedInstruments[m_iInstruments++] = i;
-			
+
 			// Create a list of used sequences
 			inst_type_t it = m_pDocument->GetInstrumentType(i);		// // //
 			for (size_t z = 0; z < std::size(used); z++) if (it == inst[z]) {
@@ -1153,7 +1153,7 @@ void CCompiler::CreateMainHeader()
 	Chunk.StorePointer({CHUNK_SAMPLE_LIST});
 	Chunk.StorePointer({CHUNK_SAMPLE_POINTERS});
 	Chunk.StorePointer({CHUNK_GROOVE_LIST});		// // //
-	
+
 	m_iHeaderFlagOffset = Chunk.GetLength();		// Save the flags offset
 	Chunk.StoreByte(Flags);
 
@@ -1254,13 +1254,13 @@ void CCompiler::CreateInstrumentList()
 	 *
 	 */
 
-	unsigned int iTotalSize = 0;	
+	unsigned int iTotalSize = 0;
 	CChunk *pWavetableChunk = NULL;	// FDS
 	CChunk *pWavesChunk = NULL;		// N163
 	int iWaveSize = 0;				// N163 waves size
 
 	CChunk &InstListChunk = CreateChunk({CHUNK_INSTRUMENT_LIST});		// // //
-	
+
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_FDS))
 		pWavetableChunk = &CreateChunk({CHUNK_WAVETABLE});		// // //
 
@@ -1310,7 +1310,7 @@ void CCompiler::CreateInstrumentList()
 			iIndex = m_iWaveBanks[i];
 		}
 
-		// Returns number of bytes 
+		// Returns number of bytes
 		iTotalSize += pInstrument->Compile(&Chunk, iIndex);		// // //
 
 		// // // Check if FDS
@@ -1342,7 +1342,7 @@ void CCompiler::CreateSampleList()
 
 	// Clear the sample list
 	memset(m_iSampleBank, 0xFF, MAX_DSAMPLES);
-	
+
 	CChunk &Chunk = CreateChunk({CHUNK_SAMPLE_LIST});		// // //
 
 	// Store sample instruments
@@ -1456,7 +1456,7 @@ void CCompiler::StoreGrooves()
 	 */
 
 	unsigned int Size = 1, Count = 0;
-	
+
 	CChunk &GrooveListChunk = CreateChunk({CHUNK_GROOVE_LIST});
 	GrooveListChunk.StoreByte(0); // padding; possibly used to disable groove
 
@@ -1482,7 +1482,7 @@ void CCompiler::StoreSongs()
 {
 	/*
 	 * Store patterns and frames for each song
-	 * 
+	 *
 	 */
 
 	const unsigned TrackCount = m_pDocument->GetTrackCount();		// // //
@@ -1537,7 +1537,7 @@ void CCompiler::StoreSongs()
 
 	if (m_iDuplicatePatterns > 0)
 		Print(_T(" * %i duplicated pattern(s) removed\n"), m_iDuplicatePatterns);
-	
+
 #ifdef _DEBUG
 	Print(_T("Hash collisions: %i (of %i items)\r\n"), m_iHashCollisions, m_PatternMap.GetCount());
 #endif
@@ -1565,7 +1565,7 @@ void CCompiler::CreateFrameList(unsigned int Track)
 	 * ---------------------
 	 *
 	 */
-	
+
 	const unsigned FrameCount   = m_pDocument->GetFrameCount(Track);		// // //
 	const unsigned ChannelCount = m_pDocument->GetAvailableChannels();
 
@@ -1599,9 +1599,9 @@ void CCompiler::CreateFrameList(unsigned int Track)
 
 void CCompiler::StorePatterns(unsigned int Track)
 {
-	/* 
+	/*
 	 * Store patterns and save references to them for the frame list
-	 * 
+	 *
 	 */
 
 	const unsigned iChannels = m_pDocument->GetAvailableChannels();		// // //
@@ -1626,7 +1626,7 @@ void CCompiler::StorePatterns(unsigned int Track)
 
 #ifdef REMOVE_DUPLICATE_PATTERNS
 				unsigned int Hash = PatternCompiler.GetHash();
-				
+
 				// Check for duplicate patterns
 				CChunk *pDuplicate = m_PatternMap[Hash];
 
@@ -1650,7 +1650,7 @@ void CCompiler::StorePatterns(unsigned int Track)
 						m_iHashCollisions++;
 					m_PatternMap[Hash] = &Chunk;
 #endif /* REMOVE_DUPLICATE_PATTERNS */
-					
+
 					// Store pattern data as string
 					Chunk.StoreString(PatternCompiler.GetData());
 
@@ -1682,7 +1682,7 @@ bool CCompiler::IsPatternAddressed(unsigned int Track, int Pattern, int Channel)
 {
 	// Scan the frame list to see if a pattern is accessed for that frame
 	const int FrameCount = m_pDocument->GetFrameCount(Track);
-	
+
 	for (int i = 0; i < FrameCount; ++i) {
 		if (m_pDocument->GetPatternAtFrame(Track, i, Channel) == Pattern)
 			return true;
@@ -1743,7 +1743,7 @@ CChunk *CCompiler::GetObjectByLabel(const stChunkLabel &Label) const		// // //
 void CCompiler::WriteChannelMap()
 {
 	CChunk &Chunk = CreateChunk(CHUNK_CHANNEL_MAP, "");
-	
+
 	pChunk->StoreByte(CHANID_SQUARE1 + 1);
 	pChunk->StoreByte(CHANID_SQUARE2 + 1);
 	pChunk->StoreByte(CHANID_TRIANGLE + 1);
@@ -1793,7 +1793,7 @@ void CCompiler::WriteChannelTypes()
 	const int TYPE_S5B	= 12;
 
 	CChunk &Chunk = CreateChunk(CHUNK_CHANNEL_TYPES, "");
-	
+
 	for (int i = 0; i < 4; ++i)
 		pChunk->StoreByte(TYPE_2A03);
 

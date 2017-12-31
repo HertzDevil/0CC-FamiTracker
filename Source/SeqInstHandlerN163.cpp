@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -62,7 +62,7 @@ void CSeqInstHandlerN163::TriggerInstrument()
 void CSeqInstHandlerN163::UpdateInstrument()
 {
 	CSeqInstHandler::UpdateInstrument();
-	
+
 	if (auto pInterface = dynamic_cast<CChannelHandlerInterfaceN163*>(m_pInterface)) {
 		if (auto pN163Inst = std::dynamic_pointer_cast<const CInstrumentN163>(m_pInstrument)) {
 			UpdateWave(pN163Inst.get());
@@ -81,7 +81,7 @@ void CSeqInstHandlerN163::UpdateWave(const CInstrumentN163 *pInst)
 	char *Temp = m_pBufferPrevious;
 	m_pBufferPrevious = m_pBufferCurrent;
 	m_pBufferCurrent = Temp;
-	
+
 	// raw position and count
 	// int Duty = m_pInterface->GetDutyPeriod();
 	// if (Duty < 0) return;

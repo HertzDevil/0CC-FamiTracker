@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -151,7 +151,7 @@ CSongState::CSongState(int Count) :
 
 void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned Frame, unsigned Row) {
 	const int Chans = doc.GetChannelCount();
-	
+
 	int totalRows = 0;
 	auto BufferPos = std::make_unique<int[]>(Chans);
 	auto Transpose = std::make_unique<int[][ECHO_BUFFER_LENGTH + 1]>(Chans);
@@ -172,7 +172,7 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 			stChannelState &chState = State[c];
 			int EffColumns = doc.GetEffColumns(Track, c);
 			const auto &Note = doc.GetNoteData(Track, Frame, c, Row);		// // //
-		
+
 			if (Note.Note != NONE && Note.Note != RELEASE) {
 				for (int i = 0; i < std::min(BufferPos[c], ECHO_BUFFER_LENGTH + 1); i++) {
 					if (chState.Echo[i] == ECHO_BUFFER_ECHO) {
@@ -215,7 +215,7 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 			if (chState.Volume == MAX_VOLUME)
 				if (Note.Vol != MAX_VOLUME)
 					chState.Volume = Note.Vol;
-		
+
 			CTrackerChannel &ch = doc.GetChannel(c);
 			for (int k = EffColumns; k >= 0; k--) {
 				unsigned char fx = Note.EffNumber[k], xy = Note.EffParam[k];

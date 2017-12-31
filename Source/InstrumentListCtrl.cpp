@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -30,7 +30,7 @@
 /// CInstrumentList
 ///
 
-// This class takes care of handling the instrument list, since mapping 
+// This class takes care of handling the instrument list, since mapping
 // between instruments list and instruments are not necessarily 1:1
 
 IMPLEMENT_DYNAMIC(CInstrumentList, CListCtrl)
@@ -48,7 +48,7 @@ BEGIN_MESSAGE_MAP(CInstrumentList, CListCtrl)
 	ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
-CInstrumentList::CInstrumentList(CMainFrame *pMainFrame) : 
+CInstrumentList::CInstrumentList(CMainFrame *pMainFrame) :
 	m_pMainFrame(pMainFrame),
 	m_pDragImage(NULL),
 	m_nDragIndex(-1),
@@ -87,7 +87,7 @@ int CInstrumentList::FindInstrument(int Index) const
 
 void CInstrumentList::SelectInstrument(int Index)
 {
-	// Highlight a specified instrument (Index = instrument number)	
+	// Highlight a specified instrument (Index = instrument number)
 	int ListIndex = FindInstrument(Index);
 	SetSelectionMark(ListIndex);
 	SetItemState(ListIndex, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
@@ -171,7 +171,7 @@ void CInstrumentList::OnContextMenu(CWnd* pWnd, CPoint point)
 void CInstrumentList::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
-	
+
 	// Selection changed
 //	if (pNMLV->uNewState & LVIS_SELECTED)
 //		m_pMainFrame->SelectInstrument(GetInstrumentIndex(pNMLV->iItem));
@@ -200,7 +200,7 @@ void CInstrumentList::OnNMClick(NMHDR *pNMHDR, LRESULT *pResult)
 	// Select instrument
 	m_pMainFrame->SelectInstrument(GetInstrumentIndex(pNMItemActivate->iItem));
 
-	// Move focus to pattern editor 
+	// Move focus to pattern editor
 	m_pMainFrame->GetActiveView()->SetFocus();
 
 	*pResult = 0;
@@ -218,7 +218,7 @@ void CInstrumentList::OnLvnKeydown(NMHDR *pNMHDR, LRESULT *pResult)
 void CInstrumentList::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-	
+
 	// Double-click = instrument editor
 	m_pMainFrame->OpenInstrumentEditor();
 
@@ -245,7 +245,7 @@ void CInstrumentList::OnLvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 
 	m_pDragImage->BeginDrag(0, CPoint(nOffset, nOffset));
 	m_pDragImage->DragEnter(this, pNMLV->ptAction);
-	
+
 	// Capture all mouse messages
 	SetCapture();
 

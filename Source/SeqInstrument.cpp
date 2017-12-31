@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -50,7 +50,7 @@ CInstrument *CSeqInstrument::Clone() const
 void CSeqInstrument::CloneFrom(const CInstrument *pInst)
 {
 	CInstrument::CloneFrom(pInst);
-	
+
 	if (auto pNew = dynamic_cast<const CSeqInstrument*>(pInst))
 		for (int i = 0; i < SEQ_COUNT; i++) {
 			SetSeqEnable(i, pNew->GetSeqEnable(i));
@@ -191,14 +191,14 @@ int CSeqInstrument::Compile(CChunk *pChunk, int Index) const
 	}
 	pChunk->StoreByte(ModSwitch);
 	StoredBytes += 2;
-	
+
 	for (unsigned i = 0; i < SEQ_COUNT; ++i) {
 		if (ModSwitch & (1 << i)) {
 			pChunk->StorePointer({CHUNK_SEQUENCE, GetSeqIndex(i) * SEQ_COUNT + i, (unsigned)GetType()});		// // //
 			StoredBytes += 2;
 		}
 	}
-	
+
 	return StoredBytes;
 }
 

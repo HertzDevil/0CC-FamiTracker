@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -102,7 +102,7 @@ void CCreateWaveDlg::OnBnClickedBegin()
 	}
 
 	CWavProgressDlg ProgressDlg;
-	CString fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, _T(".wav"));	
+	CString fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, _T(".wav"));
 	CFileDialog SaveDialog(FALSE, _T("wav"), FileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
 
 	// Close this dialog
@@ -111,7 +111,7 @@ void CCreateWaveDlg::OnBnClickedBegin()
 	// Ask for file location
 	if (SaveDialog.DoModal() == IDCANCEL)
 		return;
-	
+
 	auto pRenderer = [&] () -> std::unique_ptr<CWaveRenderer> {		// // //
 		if (IsDlgButtonChecked(IDC_RADIO_LOOP))
 			return std::make_unique<CWaveRendererRow>(pDoc->ScanActualLength(Track, GetFrameLoopCount()));		// // //

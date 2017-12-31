@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -324,7 +324,7 @@ void CFamiTrackerDocIO::SaveParams(const CFamiTrackerDoc &doc, int ver) {
 	file_.WriteBlockInt(doc.GetChannelCount());
 	file_.WriteBlockInt(doc.GetMachine());
 	file_.WriteBlockInt(doc.GetEngineSpeed());
-	
+
 	if (ver >= 3) {
 		file_.WriteBlockInt(doc.GetVibratoStyle());
 
@@ -701,7 +701,7 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
 
 			unsigned PatternLength = AssertRange(file_.GetBlockInt(), 1, MAX_PATTERN_LENGTH, "Track default row count");
 			song.SetPatternLength(PatternLength);
-			
+
 			for (unsigned i = 0; i < FrameCount; ++i) {
 				for (int j = 0; j < doc.GetChannelCount(); ++j) {
 					// Read pattern index
@@ -899,7 +899,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 
 void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerDoc &doc, int ver) {
 	/*
-	 * Version changes: 
+	 * Version changes:
 	 *
 	 *  2: Support multiple tracks
 	 *  3: Changed portamento effect
@@ -907,7 +907,7 @@ void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerDoc &doc, int ver) {
 	 *  5: Adjusted FDS octave
 	 *  (6: Noise pitch slide effects fix)
 	 *
-	 */ 
+	 */
 
 	doc.VisitSongs([&] (const CSongData &x, unsigned song) {
 		x.VisitPatterns([&] (const CPatternData &pattern, unsigned ch, unsigned index) {
@@ -1132,9 +1132,9 @@ void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::SaveSequencesN163(const CFamiTrackerDoc &doc, int ver) {
-	/* 
+	/*
 	 * Store N163 sequences
-	 */ 
+	 */
 
 	int Count = doc.GetTotalSequenceCount(INST_N163);
 	if (!Count)
@@ -1374,7 +1374,7 @@ void CFamiTrackerDocIO::SaveBookmarks(const CFamiTrackerDoc &doc, int ver) {
 			file_.WriteBlockInt(pMark->m_Highlight.Second);
 			file_.WriteBlockChar(pMark->m_bPersist);
 			//file_.WriteBlockInt(pMark->m_sName.size());
-			//file_.WriteBlock(pMark->m_sName, (int)strlen(Name));	
+			//file_.WriteBlock(pMark->m_sName, (int)strlen(Name));
 			file_.WriteString(pMark->m_sName.c_str());
 		}
 	}

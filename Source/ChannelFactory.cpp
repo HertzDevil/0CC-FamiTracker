@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -45,7 +45,7 @@ CChannelFactory::CChannelFactory() : CFactory()
 	AddProduct<CTriangleChan>(CHANID_TRIANGLE);
 	AddProduct<CNoiseChan>(CHANID_NOISE);
 	AddProduct<CDPCMChan>(CHANID_DPCM);
-	
+
 	Func = MakeCtor<CVRC6Square>();
 	m_pMakeFunc[CHANID_VRC6_PULSE1] = Func;
 	m_pMakeFunc[CHANID_VRC6_PULSE2] = Func;
@@ -60,11 +60,11 @@ CChannelFactory::CChannelFactory() : CFactory()
 	m_pMakeFunc[CHANID_VRC7_CH6] = Func;
 
 	AddProduct<CChannelHandlerFDS>(CHANID_FDS);
-	
+
 	Func = MakeCtor<CChannelHandlerMMC5>();
 	m_pMakeFunc[CHANID_MMC5_SQUARE1] = Func;
 	m_pMakeFunc[CHANID_MMC5_SQUARE2] = Func;
-	
+
 	Func = MakeCtor<CChannelHandlerN163>();
 	m_pMakeFunc[CHANID_N163_CH1] = Func;
 	m_pMakeFunc[CHANID_N163_CH2] = Func;
@@ -74,7 +74,7 @@ CChannelFactory::CChannelFactory() : CFactory()
 	m_pMakeFunc[CHANID_N163_CH6] = Func;
 	m_pMakeFunc[CHANID_N163_CH7] = Func;
 	m_pMakeFunc[CHANID_N163_CH8] = Func;
-	
+
 	Func = MakeCtor<CChannelHandlerS5B>();
 	m_pMakeFunc[CHANID_S5B_CH1] = Func;
 	m_pMakeFunc[CHANID_S5B_CH2] = Func;

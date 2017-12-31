@@ -1,9 +1,9 @@
-/* 
+/*
  * Free FFT and convolution (C++)
- * 
+ *
  * Copyright (c) 2017 Project Nayuki. (MIT License)
  * https://www.nayuki.io/page/free-small-fft-in-multiple-languages
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
@@ -111,7 +111,7 @@ public:
 		// Bit-reversed addressing permutation
 		for (std::size_t i = 0; i < Points; ++i)
 			d_first[details::reverseBits(i, Levels)] = (*first++) * (*window++);
-	
+
 		// Cooley-Tukey decimation-in-time radix-2 FFT
 		std::size_t size = 2;
 		while (true) {
@@ -133,7 +133,7 @@ public:
 
 } // namespace details
 
-/* 
+/*
  * Computes the discrete Fourier transform (DFT) of the given complex vector, storing the result into `out`.
  * The vector's length must be a power of 2. Uses the Cooley-Tukey decimation-in-time radix-2 algorithm.
  */

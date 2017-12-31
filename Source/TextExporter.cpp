@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -483,7 +483,7 @@ CString CTextExport::ExportString(const CString& s)
 		if (c == _T('\"'))
 			r += c;
 		r += c;
-	}	
+	}
 	r += _T("\"");
 	return r;
 }
@@ -949,7 +949,7 @@ CString CTextExport::ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	{
 		TCHAR szError[256];
 		oFileException.GetErrorMessage(szError, 256);
-		
+
 		return Formatted(_T("Unable to open file:\n%s"), szError);
 	}
 
@@ -983,7 +983,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	{
 		TCHAR szError[256];
 		oFileException.GetErrorMessage(szError, 256);
-		
+
 		return Formatted(_T("Unable to open file:\n%s"), szError);
 	}
 
@@ -1122,7 +1122,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 		}
 	}
 	f.WriteString(_T("\n"));
-	
+
 	f.WriteString(_T("# Grooves\n"));		// // //
 	for (int i = 0; i < MAX_GROOVE; i++) {
 		if (const auto *pGroove = pDoc->GetGroove(i)) {
@@ -1136,7 +1136,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 		}
 	}
 	f.WriteString(_T("\n"));
-	
+
 	f.WriteString(_T("# Tracks using default groove\n"));		// // //
 	bool UsedGroove = false;
 	for (unsigned int i = 0; i < pDoc->GetTrackCount(); i++)
@@ -1150,7 +1150,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 		}
 		f.WriteString(_T("\n\n"));
 	}
-	
+
 	f.WriteString(_T("# Instruments\n"));
 	for (unsigned int i=0; i<MAX_INSTRUMENTS; ++i)
 	{

@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -42,11 +42,11 @@
 IMPLEMENT_DYNAMIC(CSequenceEditor, CWnd)
 
 CSequenceEditor::CSequenceEditor() : CWnd(),		// // //
-	m_pGraphEditor(NULL), 
+	m_pGraphEditor(NULL),
 	m_pSizeEditor(NULL),
 	m_pSetting(NULL),
 	m_pFont(NULL),
-	m_iMaxVol(15), 
+	m_iMaxVol(15),
 	m_iMaxDuty(3),
 	m_pParent(NULL),
 	m_pSequence(NULL),
@@ -89,7 +89,7 @@ BOOL CSequenceEditor::CreateEditor(CWnd *pParentWnd, const RECT &rect)
 	GraphRect.bottom -= 25;
 
 	m_pSizeEditor = new CSizeEditor(this);
-	
+
 	if (m_pSizeEditor->CreateEx(NULL, NULL, _T(""), WS_CHILD | WS_VISIBLE, CRect(34, GraphRect.bottom + 5, 94, GraphRect.bottom + 22), this, 0) == -1)
 		return -1;
 
@@ -169,7 +169,7 @@ LRESULT CSequenceEditor::OnSequenceChanged(WPARAM wParam, LPARAM lParam)
 {
 	if (this == NULL)	// TODO: is this needed?
 		return FALSE;
-	
+
 	SequenceChangedMessage(wParam == 1);
 
 	return TRUE;
@@ -252,7 +252,7 @@ void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int T
 				m_pGraphEditor = new CNoiseEditor(pSequence, 31);
 			else
 				m_pGraphEditor = new CBarGraphEditor(pSequence, m_iMaxDuty);
-			break;		
+			break;
 	}
 
 	m_pSetting->SelectSequence(pSequence, Type, InstrumentType);

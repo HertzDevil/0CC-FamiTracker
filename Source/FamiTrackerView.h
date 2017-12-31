@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -86,7 +86,7 @@ public:
 	void		 SelectFrame(unsigned int Frame);
 	void		 SelectRow(unsigned int Row);		// // //
 	void		 SelectChannel(unsigned int Channel);
-	 
+
 	unsigned int GetSelectedFrame() const;
 	unsigned int GetSelectedChannel() const;
 	unsigned int GetSelectedRow() const;
@@ -158,7 +158,7 @@ private:
 
 	// Drawing
 	void	UpdateMeters();
-	
+
 	void	InvalidateCursor();
 	void	InvalidateHeader();
 	void	InvalidatePatternEditor();
@@ -197,11 +197,11 @@ private:
 	// Input handling
 	void	KeyIncreaseAction();
 	void	KeyDecreaseAction();
-	
+
 	int		TranslateKey(unsigned char Key) const;
 	int		TranslateKeyDefault(unsigned char Key) const;
 	int		TranslateKeyModplug(unsigned char Key) const;
-	
+
 	bool	CheckClearKey(unsigned char Key) const;
 	bool	CheckHaltKey(unsigned char Key) const;
 	bool	CheckReleaseKey(unsigned char Key) const;
@@ -235,9 +235,9 @@ private:
 	void	ReleaseNote(unsigned int Channel, unsigned int Note, unsigned int Octave) const;		// // //
 	void	HaltNote(unsigned int Channel, unsigned int Note, unsigned int Octave) const;		// // //
 	void	HaltNoteSingle(unsigned int Channel) const;		// // //
-	
+
 	void	UpdateArpDisplay();
-	
+
 	// Mute methods
 	bool	IsChannelSolo(unsigned int Channel) const;
 	bool	IsChipSolo(unsigned int Chip) const;		// // //

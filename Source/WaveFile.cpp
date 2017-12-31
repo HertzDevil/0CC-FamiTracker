@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -48,7 +48,7 @@ bool CWaveFile::OpenFile(LPCTSTR Filename, int SampleRate, int SampleSize, int C
 	if (nError != MMSYSERR_NOERROR)
 		return false;
 
-	ckOut.ckid	 = mmioFOURCC('f', 'm', 't', ' ');     
+	ckOut.ckid	 = mmioFOURCC('f', 'm', 't', ' ');
 	ckOut.cksize = sizeof(PCMWAVEFORMAT);
 
 	nError = mmioCreateChunk(hmmioOut, &ckOut, 0);
@@ -67,7 +67,7 @@ bool CWaveFile::OpenFile(LPCTSTR Filename, int SampleRate, int SampleSize, int C
 	if (nError != MMSYSERR_NOERROR)
 		return false;
 
-	mmioGetInfo(hmmioOut, &mmioinfoOut, 0);	
+	mmioGetInfo(hmmioOut, &mmioinfoOut, 0);
 
 	return true;
 }
@@ -83,7 +83,7 @@ void CWaveFile::CloseFile()
 	mmioAscend(hmmioOut, &ckOut, 0);
 	mmioAscend(hmmioOut, &ckOutRIFF, 0);
 
-	mmioSeek(hmmioOut, 0, SEEK_SET); 
+	mmioSeek(hmmioOut, 0, SEEK_SET);
 	mmioDescend(hmmioOut, &ckOutRIFF, NULL, 0);
 
 	mmioClose(hmmioOut, 0);
@@ -95,14 +95,14 @@ void CWaveFile::WriteWave(char *Data, int Size)
 	//
 
 	int cT;
-	
+
 	for (cT = 0; cT < Size; cT++) {
-		if (mmioinfoOut.pchNext == mmioinfoOut.pchEndWrite) { 
-			mmioinfoOut.dwFlags |= MMIO_DIRTY; 
+		if (mmioinfoOut.pchNext == mmioinfoOut.pchEndWrite) {
+			mmioinfoOut.dwFlags |= MMIO_DIRTY;
 			mmioAdvance(hmmioOut, &mmioinfoOut, MMIO_WRITE);
 		}
 
-		*((BYTE*)mmioinfoOut.pchNext) = *((BYTE*)Data + cT); 
+		*((BYTE*)mmioinfoOut.pchNext) = *((BYTE*)Data + cT);
 		mmioinfoOut.pchNext++;
 	}
 }

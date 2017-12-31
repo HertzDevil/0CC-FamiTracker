@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -46,7 +46,7 @@ CInstrumentFDS::CInstrumentFDS() : CSeqInstrument(INST_FDS),		// // //
 	m_bModulationEnable(true),
 	m_iModulation()
 {
-	memcpy(m_iSamples, TEST_WAVE, WAVE_SIZE);	
+	memcpy(m_iSamples, TEST_WAVE, WAVE_SIZE);
 	m_pSequence.resize(SEQ_COUNT);
 	for (int i = 0; i < SEQ_COUNT; ++i)
 		m_pSequence[i] = std::make_shared<CSequence>();
@@ -62,7 +62,7 @@ CInstrument *CInstrumentFDS::Clone() const
 void CInstrumentFDS::CloneFrom(const CInstrument *pInst)
 {
 	CInstrument::CloneFrom(pInst);
-	
+
 	if (auto pNew = dynamic_cast<const CInstrumentFDS*>(pInst)) {
 	// Copy parameters
 		for (int i = 0; i < WAVE_SIZE; ++i)
@@ -213,7 +213,7 @@ bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
 		SetSequence(SEQ_VOLUME, LoadSequence(*pDocFile));
 		SetSequence(SEQ_ARPEGGIO, LoadSequence(*pDocFile));
 		//
-		// Note: Remove this line when files are unable to load 
+		// Note: Remove this line when files are unable to load
 		// (if a file contains FDS instruments but FDS is disabled)
 		// this was a problem in an earlier version.
 		//
@@ -309,7 +309,7 @@ int CInstrumentFDS::Compile(CChunk *pChunk, int Index) const
 		char Data = GetModulation(i << 1) | (GetModulation((i << 1) + 1) << 3);
 		pChunk->StoreByte(Data);
 	}
-	
+
 	pChunk->StoreByte(GetModulationDelay());
 	pChunk->StoreByte(GetModulationDepth());
 	pChunk->StoreWord(GetModulationSpeed());

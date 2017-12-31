@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -82,7 +82,7 @@ inline column_t GetSelectColumn(cursor_column_t Column)
 {
 	// Return first column for a specific column field
 	static const column_t COLUMNS[] = {
-		COLUMN_NOTE, 
+		COLUMN_NOTE,
 		COLUMN_INSTRUMENT, COLUMN_INSTRUMENT,
 		COLUMN_VOLUME,
 		COLUMN_EFF1, COLUMN_EFF1, COLUMN_EFF1,
@@ -189,7 +189,7 @@ public:
 
 	static std::pair<CPatternIterator, CPatternIterator> FromCursor(const CCursorPos &Pos, CFamiTrackerDoc *const pDoc, int Track);
 	static std::pair<CPatternIterator, CPatternIterator> FromSelection(const CSelection &Sel, CFamiTrackerDoc *const pDoc, int Track);
-	
+
 	const stChanNote &Get(int Channel) const;
 	void Set(int Channel, const stChanNote &Note);
 	void Step();

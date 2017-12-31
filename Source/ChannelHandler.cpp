@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -21,7 +21,7 @@
 */
 
 //
-// This is the base class for all classes that takes care of 
+// This is the base class for all classes that takes care of
 // translating notes to channel register writes.
 //
 
@@ -51,8 +51,8 @@
  *
  */
 
-CChannelHandler::CChannelHandler(int MaxPeriod, int MaxVolume) : 
-	m_iChannelID(0), 
+CChannelHandler::CChannelHandler(int MaxPeriod, int MaxVolume) :
+	m_iChannelID(0),
 	m_iInstTypeCurrent(INST_NONE),		// // //
 	m_iInstrument(0),
 	m_pNoteLookupTable(NULL),
@@ -107,8 +107,8 @@ void CChannelHandler::SetPitch(int Pitch)
 		m_iPitch = 511;
 }
 
-int CChannelHandler::GetPitch() const 
-{ 
+int CChannelHandler::GetPitch() const
+{
 	if (m_iPitch != 0 && m_iNote != -1 && m_pNoteLookupTable != NULL) {
 		// Interpolate pitch
 		int LowNote  = std::max(m_iNote - PITCH_WHEEL_RANGE, 0);
@@ -138,12 +138,12 @@ void CChannelHandler::ResetChannel()
 	// Resets the channel states (volume, instrument & duty)
 	// Clears channel registers
 
-	// Instrument 
+	// Instrument
 	m_iInstrument		= MAX_INSTRUMENTS;
 	m_iInstTypeCurrent	= INST_NONE;		// // //
 	m_pInstHandler.reset();		// // //
 
-	// Volume 
+	// Volume
 	m_iVolume			= VOL_COLUMN_MAX;
 	m_iDefaultVolume	= (VOL_COLUMN_MAX >> VOL_COLUMN_SHIFT) << VOL_COLUMN_SHIFT;		// // //
 
@@ -228,7 +228,7 @@ void CChannelHandler::ApplyChannelState(const stChannelState &State)
 std::string CChannelHandler::GetEffectString() const		// // //
 {
 	std::string str = GetSlideEffectString();
-	
+
 	if (m_iVibratoSpeed)
 		str += MakeCommandString(EF_VIBRATO, (m_iVibratoSpeed << 4) | (m_iVibratoDepth >> 4));
 	if (m_iTremoloSpeed)
@@ -351,7 +351,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 			m_iEchoBuffer[i] = m_iEchoBuffer[i - 1];
 		WriteEchoBuffer(NoteData, 0);
 	}
-	
+
 	// Clear the note cut effect
 	if (NoteData.Note != NONE) {
 		m_iNoteCut = 0;
@@ -371,7 +371,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 		effect_t      EffNum   = NoteData.EffNumber[n];
 		unsigned char EffParam = NoteData.EffParam[n];
 		HandleEffect(EffNum, EffParam);		// // // single method
-		
+
 		// 0CC: remove this eventually like how the asm handles it
 		if (EffNum == EF_VOLUME_SLIDE && !EffParam && Trigger && m_iNoteVolume == 0) {		// // //
 			m_iVolume = m_iDefaultVolume;
@@ -398,7 +398,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 	if (m_iInstrument == MAX_INSTRUMENTS) {		// // // do nothing
 		// m_iInstrument = m_pSoundGen->GetDefaultInstrument();
 	}
-	
+
 	switch (NoteData.Note) {		// // // set note value before loading instrument
 	case NONE: case HALT: case RELEASE: break;
 	default: m_iNote = RunNote(NoteData.Octave, NoteData.Note);
@@ -642,7 +642,7 @@ bool CChannelHandler::HandleEffect(effect_t EffCmd, unsigned char EffParam)
 	default:
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -654,7 +654,7 @@ bool CChannelHandler::HandleDelay(stChanNote &NoteData)
 		m_bDelayEnabled = false;
 		HandleNoteData(m_cnDelayed);		// // //
 	}
-	
+
 	// Check delay
 	for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i) {
 		if (NoteData.EffNumber[i] == EF_DELAY && NoteData.EffParam[i] > 0) {
@@ -668,7 +668,7 @@ bool CChannelHandler::HandleDelay(stChanNote &NoteData)
 					NoteData.EffParam[j] = 0;
 				}
 			}
-			
+
 			m_cnDelayed = NoteData;		// // //
 			return true;
 		}
@@ -845,7 +845,7 @@ void CChannelHandler::ProcessChannel()
 	// Run all default and common channel processing
 	// This gets called each frame
 	//
-	
+
 	UpdateDelay();
 	UpdateNoteCut();
 	UpdateNoteRelease();		// // //
@@ -903,7 +903,7 @@ int CChannelHandler::GetFinePitch() const
 	return (0x80 - m_iFinePitch);
 }
 
-int CChannelHandler::CalculatePeriod() const 
+int CChannelHandler::CalculatePeriod() const
 {
 	int Detune = GetVibrato() - GetFinePitch() - GetPitch();
 	int Period = LimitPeriod(GetPeriod() - Detune);		// // //

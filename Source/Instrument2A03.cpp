@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -89,7 +89,7 @@ void CInstrument2A03::Store(CDocumentFile *pDocFile) const
 bool CInstrument2A03::Load(CDocumentFile *pDocFile)
 {
 	if (!CSeqInstrument::Load(pDocFile)) return false;		// // //
-	
+
 	const int Version = pDocFile->GetBlockVersion();
 	const int Octaves = (Version == 1) ? 6 : OCTAVE_RANGE;
 
@@ -348,7 +348,7 @@ void CInstrument2A03::SetSampleDeltaValue(int Octave, int Note, char Value)
 
 bool CInstrument2A03::AssignedSamples() const
 {
-	// Returns true if there are assigned samples in this instrument	
+	// Returns true if there are assigned samples in this instrument
 
 	for (int i = 0; i < OCTAVE_RANGE; ++i) {
 		for (int j = 0; j < NOTE_RANGE; ++j) {

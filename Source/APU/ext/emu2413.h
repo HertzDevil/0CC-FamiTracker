@@ -25,7 +25,7 @@ typedef struct __OPLL_PATCH {
 /* slot */
 typedef struct __OPLL_SLOT {
 
-  OPLL_PATCH *patch;  
+  OPLL_PATCH *patch;
 
   int32_t type ;          /* 0 : modulator 1 : carrier */
 
@@ -78,7 +78,7 @@ typedef struct __OPLL {
 #endif
 
   /* Register */
-  uint8_t reg[0x40] ; 
+  uint8_t reg[0x40] ;
   int32_t slot_on_flag[18] ;
 
   /* Pitch Modulator */

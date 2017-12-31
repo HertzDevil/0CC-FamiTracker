@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -651,7 +651,7 @@ BOOL CFindDlg::OnInitDialog()
 	m_cReplaceInstField->SetLimitText(2);
 	m_cReplaceVolField ->SetLimitText(1);
 	m_cReplaceEffField ->SetLimitText(3);
-	
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 }
 
@@ -668,7 +668,7 @@ void CFindDlg::UpdateFields()
 	m_cReplaceInstField->EnableWindow(IsDlgButtonChecked(IDC_CHECK_REPLACE_INST));
 	m_cReplaceVolField->EnableWindow(IsDlgButtonChecked(IDC_CHECK_REPLACE_VOL));
 	m_cReplaceEffField->EnableWindow(IsDlgButtonChecked(IDC_CHECK_REPLACE_EFF));
-	
+
 	Reset();
 	m_bFound = false;
 	m_bReplacing = false;
@@ -762,7 +762,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CString str, bool Half)
 					_T("Note octave \"%s\" is out of range, maximum is %d."), str, OCTAVE_RANGE - 1);
 				Term.Oct->Set(Oct, Half);
 			}
-			else RaiseIf(Half, _T("Cannot use wildcards in a range search query.")); 
+			else RaiseIf(Half, _T("Cannot use wildcards in a range search query."));
 			while (Note > NOTE_RANGE) { Note -= NOTE_RANGE; if (Term.Definite[WC_OCT]) Term.Oct->Set(++Oct, Half); }
 			while (Note < NOTE_C) { Note += NOTE_RANGE; if (Term.Definite[WC_OCT]) Term.Oct->Set(--Oct, Half); }
 			Term.Note->Set(Note, Half);
@@ -968,7 +968,7 @@ void CFindDlg::GetReplaceTerm()
 			newTerm.Definite[WC_VOL] && !newTerm.Vol->IsSingle() ||
 			newTerm.Definite[WC_PARAM] && !newTerm.EffParam->IsSingle(),
 			_T("Replacement query cannot contain wildcards."));
-		
+
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_REMOVE)) {
 		RaiseIf(newTerm.Definite[WC_NOTE] && !newTerm.Definite[WC_OCT],
 				_T("Replacement query cannot contain a note with an unspecified octave if ")
@@ -1181,7 +1181,7 @@ bool CFindDlg::PrepareFind()
 	if (!m_pDocument || !m_pView) {
 		AfxMessageBox(_T("Unknown error."), MB_ICONERROR); return false;
 	}
-	
+
 	try {
 		GetFindTerm();
 	}
@@ -1196,7 +1196,7 @@ bool CFindDlg::PrepareFind()
 bool CFindDlg::PrepareReplace()
 {
 	if (!PrepareFind()) return false;
-	
+
 	try {
 		GetReplaceTerm();
 	}
@@ -1213,7 +1213,7 @@ void CFindDlg::PrepareCursor(bool ReplaceAll)
 	if (ReplaceAll)
 		Reset();
 	if (m_pFindCursor != nullptr) return;
-	
+
 	const int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
 	const int Frames = m_pDocument->GetFrameCount(Track);
 	const CPatternEditor *pEditor = m_pView->GetPatternEditor();
@@ -1292,7 +1292,7 @@ void CFindDlg::OnBnClickedButtonReplaceNext()
 void CFindDlg::OnBnClickedButtonReplacePrevious()
 {
 	if (!PrepareReplace()) return;
-	
+
 	m_iSearchDirection = IsDlgButtonChecked(IDC_CHECK_VERTICAL_SEARCH) ?
 		CFindCursor::direction_t::UP : CFindCursor::direction_t::LEFT;
 	if (!m_bReplacing)
@@ -1311,7 +1311,7 @@ void CFindDlg::OnBnClickedButtonReplacePrevious()
 void CFindDlg::OnBnClickedButtonFindAll()
 {
 	if (!PrepareFind()) return;
-	
+
 	const int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
 	m_iSearchDirection = IsDlgButtonChecked(IDC_CHECK_VERTICAL_SEARCH) ?
 		CFindCursor::direction_t::DOWN : CFindCursor::direction_t::RIGHT;
@@ -1336,7 +1336,7 @@ void CFindDlg::OnBnClickedButtonFindAll()
 void CFindDlg::OnBnClickedButtonReplaceall()
 {
 	if (!PrepareReplace()) return;
-	
+
 	const int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
 	unsigned int Count = 0;
 

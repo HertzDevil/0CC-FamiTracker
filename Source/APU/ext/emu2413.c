@@ -9,7 +9,7 @@
              : Version 0.32 -- LPF implemented.
   2001 01-18 : Version 0.33 -- Fixed the drum problem, refine the mix-down method.
                             -- Fixed the LFO bug.
-  2001 01-24 : Version 0.35 -- Fixed the drum problem, 
+  2001 01-24 : Version 0.35 -- Fixed the drum problem,
                                support undocumented EG behavior.
   2001 02-02 : Version 0.38 -- Improved the performance.
                                Fixed the hi-hat and cymbal model.
@@ -34,7 +34,7 @@
   2002 05-30 : Version 0.60 -- Fixed HH&CYM generator and all voice datas.
   2004 04-10 : Version 0.61 -- Added YMF281B tone (defined by Chabin).
 
-  References: 
+  References:
     fmopl.c        -- 1999,2000 written by Tatsuyuki Satoh (MAME development).
     fmopl.c(fixed) -- (C) 2002 Jarek Burczynski.
     s_opl.c        -- 2001 written by Mamiya (NEZplug development).
@@ -64,8 +64,8 @@ static unsigned char default_inst[OPLL_TONE_NUM][(16 + 3) * 16] = {
 #else
 #define OPLL_TONE_NUM 3
 static unsigned char default_inst[OPLL_TONE_NUM][(16 + 3) * 16] = {
-  { 
-#include "2413tone.h" 
+  {
+#include "2413tone.h"
   },
   {
 #include "vrc7tone.h"
@@ -194,7 +194,7 @@ static OPLL_PATCH null_patch = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 static OPLL_PATCH default_patch[OPLL_TONE_NUM][(16 + 3) * 2];
 
 /* Definition of envelope mode */
-enum OPLL_EG_STATE 
+enum OPLL_EG_STATE
 { READY, ATTACK, DECAY, SUSHOLD, SUSTINE, RELEASE, SETTLE, FINISH };
 
 /* Phase incr table for Attack */
@@ -213,9 +213,9 @@ static uint32_t dphaseTable[512][8][16];
 int32_t opll_volumes[10];
 
 /***************************************************
- 
+
                   Create tables
- 
+
 ****************************************************/
 INLINE static int32_t
 Min (int32_t i, int32_t j)
@@ -444,7 +444,7 @@ makeDphaseARTable (void)
         dphaseARTable[AR][Rks] = 0;
         break;
       case 15:
-        dphaseARTable[AR][Rks] = 0;/*EG_DP_WIDTH;*/ 
+        dphaseARTable[AR][Rks] = 0;/*EG_DP_WIDTH;*/
         break;
       default:
 #ifdef USE_SPEC_ENV_SPEED
@@ -1259,7 +1259,7 @@ calc_envelope (OPLL_SLOT * slot, int32_t lfo)
 
   if (egout >= DB_MUTE)
     egout = DB_MUTE - 1;
-  
+
   slot->egout = egout | 3;
 }
 
@@ -1325,24 +1325,24 @@ calc_slot_snare (OPLL_SLOT * slot, uint32_t noise)
 {
   if(slot->egout>=(DB_MUTE-1))
     return 0;
-  
+
   if(BIT(slot->pgout,7))
     return DB2LIN_TABLE[(noise?DB_POS(0.0):DB_POS(15.0))+slot->egout];
   else
     return DB2LIN_TABLE[(noise?DB_NEG(0.0):DB_NEG(15.0))+slot->egout];
 }
 
-/* 
-  TOP-CYM 
+/*
+  TOP-CYM
  */
 INLINE static int32_t
 calc_slot_cym (OPLL_SLOT * slot, uint32_t pgout_hh)
 {
   uint32_t dbout;
 
-  if (slot->egout >= (DB_MUTE - 1)) 
+  if (slot->egout >= (DB_MUTE - 1))
     return 0;
-  else if( 
+  else if(
       /* the same as fmopl.c */
       ((BIT(pgout_hh,PG_BITS-8)^BIT(pgout_hh,PG_BITS-1))|BIT(pgout_hh,PG_BITS-7)) ^
       /* different from fmopl.c */
@@ -1355,17 +1355,17 @@ calc_slot_cym (OPLL_SLOT * slot, uint32_t pgout_hh)
   return DB2LIN_TABLE[dbout + slot->egout];
 }
 
-/* 
-  HI-HAT 
+/*
+  HI-HAT
 */
 INLINE static int32_t
 calc_slot_hat (OPLL_SLOT *slot, int32_t pgout_cym, uint32_t noise)
 {
   uint32_t dbout;
 
-  if (slot->egout >= (DB_MUTE - 1)) 
+  if (slot->egout >= (DB_MUTE - 1))
     return 0;
-  else if( 
+  else if(
       /* the same as fmopl.c */
       ((BIT(slot->pgout,PG_BITS-8)^BIT(slot->pgout,PG_BITS-1))|BIT(slot->pgout,PG_BITS-7)) ^
       /* different from fmopl.c */

@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -29,7 +29,7 @@
 
 // // // Default wave
 static const char TRIANGLE_WAVE[] = {
-	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 
+	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
 	15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
 };
 static const int DEFAULT_WAVE_SIZE = std::size(TRIANGLE_WAVE);
@@ -57,7 +57,7 @@ CInstrument *CInstrumentN163::Clone() const
 void CInstrumentN163::CloneFrom(const CInstrument *pInst)
 {
 	CSeqInstrument::CloneFrom(pInst);
-	
+
 	if (auto pNew = dynamic_cast<const CInstrumentN163*>(pInst)) {
 		SetWaveSize(pNew->GetWaveSize());
 		SetWavePos(pNew->GetWavePos());
@@ -100,7 +100,7 @@ bool CInstrumentN163::Load(CDocumentFile *pDocFile)
 	}
 	m_iWaveCount = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 1, MAX_WAVE_COUNT, "N163 wave count");
 	CModuleException::AssertRangeFmt<MODULE_ERROR_OFFICIAL>(m_iWaveCount, 1, 0x10, "N163 wave count");
-	
+
 	for (int i = 0; i < m_iWaveCount; ++i) {
 		for (int j = 0; j < m_iWaveSize; ++j) try {
 			m_iSamples[i][j] = CModuleException::AssertRangeFmt(pDocFile->GetBlockChar(), 0, 15, "N163 wave sample");
@@ -110,7 +110,7 @@ bool CInstrumentN163::Load(CDocumentFile *pDocFile)
 			throw e;
 		}
 	}
-	
+
 	return true;
 }
 
@@ -148,7 +148,7 @@ bool CInstrumentN163::LoadFTI(CSimpleFile &File, int iVersion)
 		m_bAutoWavePos = File.ReadInt() != 0;
 	}
 	int WaveCount = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), 1, MAX_WAVE_COUNT, "N163 wave count");
-	
+
 	SetWaveSize(WaveSize);
 	SetWavePos(WavePos);
 	SetWaveCount(WaveCount);
@@ -177,7 +177,7 @@ int CInstrumentN163::Compile(CChunk *pChunk, int Index) const
 	// Store reference to wave
 	pChunk->StorePointer({CHUNK_WAVES, (unsigned)Index});		// // //
 	StoredBytes += 2;
-	
+
 	return StoredBytes;
 }
 
@@ -237,7 +237,7 @@ bool CInstrumentN163::RemoveWave(int Index)		// // //
 		return false;
 	if (Index < 0 || Index >= m_iWaveCount)
 		return false;
-	
+
 	memmove(m_iSamples[Index], m_iSamples[Index + 1], CInstrumentN163::MAX_WAVE_SIZE * (m_iWaveCount - Index - 1) * sizeof(int));
 	m_iWaveCount--;
 	InstrumentChanged();

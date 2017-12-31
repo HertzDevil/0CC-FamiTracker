@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -92,7 +92,7 @@ void CChannelHandlerS5B::UpdateRegs()		// // //
 
 // Instance functions
 
-CChannelHandlerS5B::CChannelHandlerS5B() : 
+CChannelHandlerS5B::CChannelHandlerS5B() :
 	CChannelHandler(0xFFF, 0x0F),
 	m_bEnvelopeEnabled(false),		// // // 050B
 	m_iAutoEnvelopeShift(0),		// // // 050B
@@ -239,7 +239,7 @@ void CChannelHandlerS5B::RefreshChannel()
 
 	UpdateAutoEnvelope(Period);		// // // 050B
 	SetMode(m_iChannelID, Square, Noise);
-	
+
 	WriteReg((m_iChannelID - CHANID_S5B_CH1) * 2    , LoPeriod);
 	WriteReg((m_iChannelID - CHANID_S5B_CH1) * 2 + 1, HiPeriod);
 	WriteReg((m_iChannelID - CHANID_S5B_CH1) + 8    , Volume | Envelope);

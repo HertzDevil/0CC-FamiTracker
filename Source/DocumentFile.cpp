@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -69,7 +69,7 @@ bool CDocumentFile::EndDocument()
 		e->Delete();
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -180,7 +180,7 @@ void CDocumentFile::ValidateFile()
 	// Read file version
 	Read(Buffer, 4);
 	m_iFileVersion = (Buffer[3] << 24) | (Buffer[2] << 16) | (Buffer[1] << 8) | Buffer[0];
-	
+
 	// // // Older file version
 	if (GetFileVersion() < COMPATIBLE_VER)
 		throw CModuleException::WithMessage("FamiTracker module version too old (0x%X), expected 0x%X or above",
@@ -203,7 +203,7 @@ unsigned int CDocumentFile::GetFileVersion() const
 bool CDocumentFile::ReadBlock()
 {
 	m_iBlockPointer = 0;
-	
+
 	memset(m_cBlockID, 0, 16);
 
 	int BytesRead = Read(m_cBlockID, 16);
@@ -297,7 +297,7 @@ CString CDocumentFile::ReadString()
 	while (str_ptr++ < 65536 && (c = GetBlockChar()))
 		str.AppendChar(c);
 	m_iPreviousPointer = Previous;
-	
+
 	return str;
 }
 

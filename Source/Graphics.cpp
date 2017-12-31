@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -170,11 +170,11 @@ void BlurBuffer(COLORREF *pBuffer, int Width, int Height, const int *pColorDecay
 			int r = (RED(Col1) + RED(Col2) + RED(Col3) + RED(Col4) + RED(Col5) + RED(Col6) + RED(Col7) + RED(Col8)) >> 3;
 			int g = (GREEN(Col1) + GREEN(Col2) + GREEN(Col3) + GREEN(Col4) + GREEN(Col5) + GREEN(Col6) + GREEN(Col7) + GREEN(Col8)) >> 3;
 			int b = (BLUE(Col1) + BLUE(Col2) + BLUE(Col3) + BLUE(Col4) + BLUE(Col5) + BLUE(Col6) + BLUE(Col7) + BLUE(Col8)) >> 3;
-			
+
 			r -= pColorDecay[0];
 			g -= pColorDecay[1];
 			b -= pColorDecay[2];
-			
+
 			if (r < 0) r = 0;
 			if (g < 0) g = 0;
 			if (b < 0) b = 0;

@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -116,12 +116,12 @@ void CHead::DrawItem(LPDRAWITEMSTRUCT lpDraw)
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
 END_MESSAGE_MAP()
 
-CAboutDlg::CAboutDlg() : 
-	CDialog(CAboutDlg::IDD), 
-	m_pMail(nullptr), 
-	m_pWeb(nullptr), 
+CAboutDlg::CAboutDlg() :
+	CDialog(CAboutDlg::IDD),
+	m_pMail(nullptr),
+	m_pWeb(nullptr),
 	m_pBug(nullptr),
-	m_pLinkFont(nullptr), 
+	m_pLinkFont(nullptr),
 	m_pBoldFont(nullptr),
 	m_pTitleFont(nullptr),
 	m_pHead(nullptr)
@@ -171,7 +171,7 @@ BOOL CAboutDlg::OnInitDialog()
 
 	m_pHead = new CHead();
 	m_pHead->SubclassDlgItem(IDC_HEAD, this);
-	
+
 	EnableToolTips(TRUE);
 
 	m_wndToolTip.Create(this, TTS_ALWAYSTIP);
@@ -190,7 +190,7 @@ BOOL CAboutDlg::OnInitDialog()
 
 	m_pMail->SetFont(m_pLinkFont);
 	m_wndToolTip.AddTool(m_pMail, IDS_ABOUT_TOOLTIP_MAIL);
-	
+
 	m_pWeb = new CLinkLabel(LINK_WEB);
 	m_pWeb->SubclassDlgItem(IDC_WEBPAGE, this);
 	m_pWeb->SetFont(m_pLinkFont);
@@ -200,7 +200,7 @@ BOOL CAboutDlg::OnInitDialog()
 	m_pBug->SubclassDlgItem(IDC_BUG, this);
 	m_pBug->SetFont(m_pLinkFont);
 	m_wndToolTip.AddTool(m_pBug, IDS_ABOUT_TOOLTIP_BUG);
-	
+
 	CStatic *pStatic = static_cast<CStatic*>(GetDlgItem(IDC_ABOUT1));
 	CFont *pOldFont = pStatic->GetFont();
 	LOGFONT NewLogFont;
@@ -215,7 +215,7 @@ BOOL CAboutDlg::OnInitDialog()
 	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT1))->SetFont(m_pTitleFont);
 	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT2))->SetFont(m_pBoldFont);
 	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT3))->SetFont(m_pBoldFont);
-	
+
 	return TRUE;
 }
 

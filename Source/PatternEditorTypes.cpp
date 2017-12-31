@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -69,7 +69,7 @@ bool CCursorPos::IsValid(int RowCount, int ChannelCount) const		// // //
 
 // CSelection /////////////////////////////////////////////////////////////////////
 
-int CSelection::GetRowStart() const 
+int CSelection::GetRowStart() const
 {
 	if (m_cpEnd.m_iFrame > m_cpStart.m_iFrame)		// // //
 		return m_cpStart.m_iRow;
@@ -79,7 +79,7 @@ int CSelection::GetRowStart() const
 	return (m_cpEnd.m_iRow > m_cpStart.m_iRow ?  m_cpStart.m_iRow : m_cpEnd.m_iRow);
 }
 
-int CSelection::GetRowEnd() const 
+int CSelection::GetRowEnd() const
 {
 	if (m_cpEnd.m_iFrame > m_cpStart.m_iFrame)		// // //
 		return m_cpEnd.m_iRow;
@@ -89,14 +89,14 @@ int CSelection::GetRowEnd() const
 	return (m_cpEnd.m_iRow > m_cpStart.m_iRow ? m_cpEnd.m_iRow : m_cpStart.m_iRow);
 }
 
-cursor_column_t CSelection::GetColStart() const 
+cursor_column_t CSelection::GetColStart() const
 {
 	cursor_column_t Col = C_NOTE;
 	if (m_cpStart.m_iChannel == m_cpEnd.m_iChannel)
-		Col = (m_cpEnd.m_iColumn > m_cpStart.m_iColumn ? m_cpStart.m_iColumn : m_cpEnd.m_iColumn); 
+		Col = (m_cpEnd.m_iColumn > m_cpStart.m_iColumn ? m_cpStart.m_iColumn : m_cpEnd.m_iColumn);
 	else if (m_cpEnd.m_iChannel > m_cpStart.m_iChannel)
 		Col = m_cpStart.m_iColumn;
-	else 
+	else
 		Col = m_cpEnd.m_iColumn;
 	switch (Col) {
 		case C_INSTRUMENT2: Col = C_INSTRUMENT1; break;
@@ -108,11 +108,11 @@ cursor_column_t CSelection::GetColStart() const
 	return Col;
 }
 
-cursor_column_t CSelection::GetColEnd() const 
+cursor_column_t CSelection::GetColEnd() const
 {
 	cursor_column_t Col = C_NOTE;
 	if (m_cpStart.m_iChannel == m_cpEnd.m_iChannel)
-		Col = (m_cpEnd.m_iColumn > m_cpStart.m_iColumn ? m_cpEnd.m_iColumn : m_cpStart.m_iColumn); 
+		Col = (m_cpEnd.m_iColumn > m_cpStart.m_iColumn ? m_cpEnd.m_iColumn : m_cpStart.m_iColumn);
 	else if (m_cpEnd.m_iChannel > m_cpStart.m_iChannel)
 		Col = m_cpEnd.m_iColumn;
 	else
@@ -124,15 +124,15 @@ cursor_column_t CSelection::GetColEnd() const
 		case C_EFF3_NUM: case C_EFF3_PARAM1: Col = C_EFF3_PARAM2; break;	// Eff 3
 		case C_EFF4_NUM: case C_EFF4_PARAM1: Col = C_EFF4_PARAM2; break;	// Eff 4
 	}
-	return Col;	
+	return Col;
 }
 
-int CSelection::GetChanStart() const 
+int CSelection::GetChanStart() const
 {
 	return (m_cpEnd.m_iChannel > m_cpStart.m_iChannel) ? m_cpStart.m_iChannel : m_cpEnd.m_iChannel;
 }
 
-int CSelection::GetChanEnd() const 
+int CSelection::GetChanEnd() const
 {
 	return (m_cpEnd.m_iChannel > m_cpStart.m_iChannel) ? m_cpEnd.m_iChannel : m_cpStart.m_iChannel;
 }

@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -42,7 +42,7 @@ using namespace std;
 IMPLEMENT_DYNAMIC(CInstrumentEditorN163Wave, CInstrumentEditPanel)
 
 CInstrumentEditorN163Wave::CInstrumentEditorN163Wave(CWnd* pParent) : CInstrumentEditPanel(CInstrumentEditorN163Wave::IDD, pParent),
-	m_pWaveEditor(NULL), 
+	m_pWaveEditor(NULL),
 	m_iWaveIndex(0)
 {
 }
@@ -120,13 +120,13 @@ BOOL CInstrumentEditorN163Wave::OnInitDialog()
 	m_pWaveEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE, DPI::Rect(20, 30, 0, 0), this);		// // //
 	m_pWaveEditor->ShowWindow(SW_SHOW);
 	m_pWaveEditor->UpdateWindow();
-	
+
 	CComboBox *pWaveSize = static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE));
 
 	for (int i = 0; i < WAVE_SIZE_AVAILABLE; i += 4) {
 		pWaveSize->AddString(MakeIntString(i + 4));
 	}
-	
+
 	int order[2] = {1, 0};		// // //
 	CRect r;
 	m_pWaveListCtrl = new CListCtrl();
@@ -296,7 +296,7 @@ void CInstrumentEditorN163Wave::OnWaveSizeChange()
 	BOOL trans;
 	int size = GetDlgItemInt(IDC_WAVE_SIZE, &trans, FALSE);
 	size = size & 0xFC;
-	
+
 	if (size > WAVE_SIZE_AVAILABLE)
 		size = WAVE_SIZE_AVAILABLE;
 	if (size < 4)
@@ -315,7 +315,7 @@ void CInstrumentEditorN163Wave::OnWavePosChange()
 {
 	BOOL trans;
 	int pos = GetDlgItemInt(IDC_WAVE_POS, &trans, FALSE);
-	
+
 	if (pos > 255)
 		pos = 255;
 	if (pos < 0)

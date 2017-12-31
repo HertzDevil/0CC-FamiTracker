@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -51,12 +51,12 @@ const int CInstrumentEditDlg::KEYBOARD_WIDTH  = 561;
 const int CInstrumentEditDlg::KEYBOARD_HEIGHT = 58;
 
 const LPCTSTR CInstrumentEditDlg::CHIP_NAMES[] = {		// // //
-	_T(""), 
-	_T("2A03"), 
-	_T("VRC6"), 
-	_T("VRC7"), 
-	_T("FDS"), 
-	_T("Namco"), 
+	_T(""),
+	_T("2A03"),
+	_T("VRC6"),
+	_T("VRC7"),
+	_T("FDS"),
+	_T("Namco"),
 	_T("Sunsoft")
 };
 
@@ -302,7 +302,7 @@ void CInstrumentEditDlg::OnPaint()
 	CDC BlackKey;
 	BlackKey.CreateCompatibleDC(&dc);
 	CDCObjectContext c3 {BlackKey, &BlackKeyBmp};		// // //
-	
+
 	const int WHITE[]	= {NOTE_C, NOTE_D, NOTE_E, NOTE_F, NOTE_G, NOTE_A, NOTE_B};
 	const int BLACK_1[] = {NOTE_Cs, NOTE_Ds};
 	const int BLACK_2[] = {NOTE_Fs, NOTE_Gs, NOTE_As};
@@ -481,13 +481,13 @@ void CInstrumentEditDlg::OnLButtonDblClk(UINT nFlags, CPoint point)
 }
 
 BOOL CInstrumentEditDlg::DestroyWindow()
-{	
+{
 	ClearPanels();
 
 	m_iSelectedInstType = -1;
 	m_iInstrument = -1;
 	m_bOpened = false;
-	
+
 	return CDialog::DestroyWindow();
 }
 

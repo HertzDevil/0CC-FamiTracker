@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -29,11 +29,11 @@
 // CConfigShortcuts dialog
 
 IMPLEMENT_DYNAMIC(CConfigShortcuts, CPropertyPage)
-CConfigShortcuts::CConfigShortcuts() : 
-	CPropertyPage(CConfigShortcuts::IDD), 
-	m_bShift(false), 
-	m_bControl(false), 
-	m_bAlt(false), 
+CConfigShortcuts::CConfigShortcuts() :
+	CPropertyPage(CConfigShortcuts::IDD),
+	m_bShift(false),
+	m_bControl(false),
+	m_bAlt(false),
 	m_iSelectedItem(0),
 	m_iKeys(CAccelerator::ACCEL_COUNT),
 	m_iMods(CAccelerator::ACCEL_COUNT)
@@ -80,7 +80,7 @@ BOOL CConfigShortcuts::OnInitDialog()
 		m_iKeys[i] = pAccel->GetItemKey(i);
 		m_iMods[i] = pAccel->GetItemMod(i);
 	}
-	
+
 	pListView->SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 	pListView->SetSelectionMark(0);
 
@@ -103,7 +103,7 @@ void CConfigShortcuts::OnNMClickShortcuts(NMHDR *pNMHDR, LRESULT *pResult)
 void CConfigShortcuts::OnBnClickedDefault()
 {
 	CAccelerator *pAccel = theApp.GetAccelerator();
-	
+
 	int Key = pAccel->GetDefaultKey(m_iSelectedItem);
 	int Mod = pAccel->GetDefaultMod(m_iSelectedItem);
 
@@ -118,7 +118,7 @@ void CConfigShortcuts::OnBnClickedDefault()
 BOOL CConfigShortcuts::OnApply()
 {
 	CAccelerator *pAccel = theApp.GetAccelerator();
-	
+
 	std::unordered_map<int, int> m;		// // // check for conflicts
 	for (int i = 0; i < CAccelerator::ACCEL_COUNT; ++i) {
 		int KeyVal = (m_iKeys[i] & 0xFF) | (m_iMods[i] << 8);
@@ -132,7 +132,7 @@ BOOL CConfigShortcuts::OnApply()
 					   AssembleKeyString(m_iMods[i], m_iKeys[i]),
 					   CAccelerator::DEFAULT_TABLE[it->second].name,
 					   CAccelerator::DEFAULT_TABLE[i].name);
-			
+
 			AfxMessageBox(msg, MB_ICONERROR);
 			return FALSE;
 		}
@@ -231,7 +231,7 @@ void CConfigShortcuts::StoreKey(int Item, int Key, int Mod)
 void CConfigShortcuts::OnBnClickedClear()
 {
 	CListCtrl *pListView = static_cast<CListCtrl*>(GetDlgItem(IDC_SHORTCUTS));
-	
+
 	pListView->SetItemText(m_iSelectedItem, 1, CAccelerator::MOD_NAMES[MOD_NONE]);
 	pListView->SetItemText(m_iSelectedItem, 2, _T("None"));
 

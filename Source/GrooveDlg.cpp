@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -211,7 +211,7 @@ void CGrooveDlg::UpdateCurrentGroove()
 {
 	CString String;
 	CString disp = "";
-	
+
 	Groove = GrooveTable[m_iGrooveIndex].get();
 	m_cCurrentGroove->ResetContent();
 	unsigned i = 0;
@@ -335,11 +335,11 @@ void CGrooveDlg::OnBnClickedButtonGrooveCopyFxx()
 		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
 		return;
 	}
-	
+
 	CPatternClipData Fxx(1, size);
 	Fxx.ClipInfo.StartColumn = COLUMN_EFF1;
 	Fxx.ClipInfo.EndColumn   = COLUMN_EFF1;
-	
+
 	unsigned char prev = 0;
 	for (unsigned char i = 0; i < Groove->size(); i++) {
 		stChanNote row;
@@ -373,7 +373,7 @@ void CGrooveDlg::ParseGrooveField()
 		if (m_iGroovePos == groove::max_size || Str.FindOneOf(_T("0123456789")) == -1 || Str.Find(_T(' ')) == -1) break;
 		Str.Delete(0, Str.Find(_T(' ')) + 1);
 	}
-	
+
 	m_iGroovePos = 0;
 	UpdateCurrentGroove();
 }

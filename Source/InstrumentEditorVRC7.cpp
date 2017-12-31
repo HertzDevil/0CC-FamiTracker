@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -27,7 +27,7 @@
 #include "InstrumentVRC7.h"		// // //
 #include "Clipboard.h"
 
-static unsigned char default_inst[(16+3)*16] = 
+static unsigned char default_inst[(16+3)*16] =
 {
 #include "apu/ext/vrc7tone.h"
 };
@@ -147,17 +147,17 @@ void CInstrumentEditorVRC7::SelectPatch(int Patch)
 void CInstrumentEditorVRC7::EnableControls(bool bEnable)
 {
 	const int SLIDER_IDS[] = {
-		IDC_M_AM, IDC_M_AR, 
-		IDC_M_DM, IDC_M_DR, 
-		IDC_M_EG, IDC_M_KSL, 
-		IDC_M_KSR2, IDC_M_MUL, 
-		IDC_M_RR, IDC_M_SL, 
+		IDC_M_AM, IDC_M_AR,
+		IDC_M_DM, IDC_M_DR,
+		IDC_M_EG, IDC_M_KSL,
+		IDC_M_KSR2, IDC_M_MUL,
+		IDC_M_RR, IDC_M_SL,
 		IDC_M_SL, IDC_M_VIB,
-		IDC_C_AM, IDC_C_AR, 
-		IDC_C_DM, IDC_C_DR, 
-		IDC_C_EG, IDC_C_KSL, 
-		IDC_C_KSR, IDC_C_MUL, 
-		IDC_C_RR, IDC_C_SL, 
+		IDC_C_AM, IDC_C_AR,
+		IDC_C_DM, IDC_C_DR,
+		IDC_C_EG, IDC_C_KSL,
+		IDC_C_KSR, IDC_C_MUL,
+		IDC_C_RR, IDC_C_SL,
 		IDC_C_SL, IDC_C_VIB,
 		IDC_TL, IDC_FB
 	};
@@ -176,12 +176,12 @@ void CInstrumentEditorVRC7::SelectInstrument(std::shared_ptr<CInstrument> pInst)
 	int Patch = m_pInstrument->GetPatch();
 
 	pPatchBox->SetCurSel(Patch);
-	
+
 	if (Patch == 0)
 		LoadCustomPatch();
 	else
 		LoadInternalPatch(Patch);
-	
+
 	EnableControls(Patch == 0);
 }
 
@@ -373,7 +373,7 @@ void CInstrumentEditorVRC7::SaveCustomPatch()
 	// Register 7
 	Reg = GetSliderVal(IDC_C_SL) << 4;
 	Reg |= GetSliderVal(IDC_C_RR);
-	m_pInstrument->SetCustomReg(7, Reg);	
+	m_pInstrument->SetCustomReg(7, Reg);
 }
 
 void CInstrumentEditorVRC7::OnBnClickedCheckbox()
@@ -399,7 +399,7 @@ void CInstrumentEditorVRC7::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScro
 void CInstrumentEditorVRC7::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 {
 	CMenu menu;
-	
+
 	menu.CreatePopupMenu();
 	menu.AppendMenu(MF_STRING, 1, _T("&Copy"));
 	menu.AppendMenu(MF_STRING, 2, _T("Copy as Plain &Text"));		// // //
@@ -426,7 +426,7 @@ void CInstrumentEditorVRC7::OnCopy()
 	// Assemble a MML string
 	for (int i = 0; i < 8; ++i)
 		MML.AppendFormat(_T("$%02X "), (patch == 0) ? (unsigned char)(m_pInstrument->GetCustomReg(i)) : default_inst[patch * 16 + i]);
-	
+
 	CClipboard Clipboard(this, CF_TEXT);
 
 	if (!Clipboard.IsOpened()) {
@@ -443,7 +443,7 @@ void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
 	unsigned char reg[8] = {};
 	for (int i = 0; i < 8; ++i)
 		reg[i] = patch == 0 ? m_pInstrument->GetCustomReg(i) : default_inst[patch * 16 + i];
-	
+
 	CString MML;
 	GetDlgItemTextA(IDC_PATCH, MML);
 	auto sv = m_pInstrument->GetName();
@@ -455,7 +455,7 @@ void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
 			(reg[2 + i] >> 6) & 0x03, reg[i] & 0x0F,
 			(reg[i] >> 7) & 0x01, (reg[i] >> 6) & 0x01, (reg[i] >> 5) & 0x01, (reg[i] >> 4) & 0x01,
 			(reg[3] >> (4 - i)) & 0x01);
-	
+
 	CClipboard Clipboard(this, CF_TEXT);
 
 	if (!Clipboard.IsOpened()) {

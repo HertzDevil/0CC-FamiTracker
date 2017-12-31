@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -91,7 +91,7 @@ const int ECHO_BUFFER_LENGTH = 3;
 
 // Number of available channels (max) TODO: should not be used anymore!
 // instead, check the channelsavailable variable and allocate dynamically
-const int MAX_CHANNELS	 = 5 + 3 + 2 + 6 + 1 + 8 + 3;		
+const int MAX_CHANNELS	 = 5 + 3 + 2 + 6 + 1 + 8 + 3;
 
 const int CHANNELS_DEFAULT = 5;
 const int CHANNELS_VRC6	   = 3;
@@ -177,7 +177,7 @@ enum effect_t : unsigned char {
 	EF_N163_WAVE_BUFFER,		// // //
 	EF_FDS_VOLUME,				// // //
 	EF_FDS_MOD_BIAS,				// // //
-//	EF_TARGET_VOLUME_SLIDE, 
+//	EF_TARGET_VOLUME_SLIDE,
 /*
 	EF_VRC7_MODULATOR,
 	EF_VRC7_CARRIER,
@@ -206,8 +206,8 @@ const effect_t S5B_EFFECTS[] = {EF_SUNSOFT_ENV_TYPE, EF_SUNSOFT_ENV_HI, EF_SUNSO
 // Channel effect letters
 const char EFF_CHAR[] = {
 	'F',	// Speed
-	'B',	// Jump 
-	'D',	// Skip 
+	'B',	// Jump
+	'D',	// Skip
 	'C',	// Halt
 	'E',	// Volume
 	'3',	// Porta on
@@ -228,7 +228,7 @@ const char EFF_CHAR[] = {
 	'R',	// Slide down
 	'A',	// Volume slide
 	'S',	// Note cut
-	'X',	// DPCM retrigger						 
+	'X',	// DPCM retrigger
 	'M',	// // // Delayed channel volume
 	'H',	// FDS modulation depth
 	'I',	// FDS modulation speed hi

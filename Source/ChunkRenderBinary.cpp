@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -64,7 +64,7 @@ CChunkRenderBinary::CChunkRenderBinary(CFile *pFile) : CBinaryFileWriter(pFile),
 {
 }
 
-void CChunkRenderBinary::StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks) 
+void CChunkRenderBinary::StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks)
 {
 	for (auto &ptr : Chunks)		// // //
 		StoreChunk(*ptr);
@@ -112,7 +112,7 @@ void CChunkRenderBinary::StoreSample(const CDSample &DSample)
  *
  */
 
-CChunkRenderNSF::CChunkRenderNSF(CFile *pFile, unsigned int StartAddr) : 
+CChunkRenderNSF::CChunkRenderNSF(CFile *pFile, unsigned int StartAddr) :
 	CBinaryFileWriter(pFile),
 	m_iStartAddr(StartAddr),
 	m_iSampleAddr(0)
@@ -193,7 +193,7 @@ int CChunkRenderNSF::GetBankCount() const
 
 void CChunkRenderNSF::StoreChunkBankswitched(const CChunk &Chunk)		// // //
 {
-	switch (Chunk.GetType()) {			
+	switch (Chunk.GetType()) {
 		case CHUNK_FRAME_LIST:
 		case CHUNK_FRAME:
 		case CHUNK_PATTERN:
@@ -211,7 +211,7 @@ void CChunkRenderNSF::StoreChunk(const CChunk &Chunk)		// // //
 	for (int i = 0, n = Chunk.GetLength(); i < n; ++i) {
 		if (Chunk.GetType() == CHUNK_PATTERN) {
 			const std::vector<char> &vec = Chunk.GetStringData(CCompiler::PATTERN_CHUNK_INDEX);
-			Store(&vec.front(), vec.size());			
+			Store(&vec.front(), vec.size());
 		}
 		else {
 			unsigned short data = Chunk.GetData(i);

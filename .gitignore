@@ -44,6 +44,8 @@ apu_log.txt
 *.opendb
 
 .vs/*
+.vscode/*
+.leu
 .editorconfig
 commit_hash.h
 

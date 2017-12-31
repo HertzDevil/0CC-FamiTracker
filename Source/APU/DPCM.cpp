@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -49,12 +49,12 @@ void CDPCM::Reset()
 	m_iDMA_LengthReg = 0;
 	m_iDMA_Address = 0;
 	m_iDMA_BytesRemaining = 0;
-	
+
 	m_bTriggeredIRQ = m_bSampleFilled = false;
 
 	// loaded with 0 on power-up.
 	m_iDeltaCounter = 0;
-	
+
 	Mix(0);		// // //
 	EndFrame();
 }
@@ -65,7 +65,7 @@ void CDPCM::Write(uint16_t Address, uint8_t Value)
 		case 0x00:
 			m_iPlayMode = Value & 0xC0;
 			m_iPeriod = PERIOD_TABLE[Value & 0x0F];
-			if ((Value & 0x80) == 0x00) 
+			if ((Value & 0x80) == 0x00)
 				m_bTriggeredIRQ = false;
 			break;
 		case 0x01:

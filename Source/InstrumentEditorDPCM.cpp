@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -54,7 +54,7 @@ protected:
 
 //	CFileSoundDialog
 
-CDMCFileSoundDialog::CDMCFileSoundDialog(BOOL bOpenFileDialog, LPCTSTR lpszDefExt, LPCTSTR lpszFileName, DWORD dwFlags, LPCTSTR lpszFilter, CWnd* pParentWnd, DWORD dwSize) 
+CDMCFileSoundDialog::CDMCFileSoundDialog(BOOL bOpenFileDialog, LPCTSTR lpszDefExt, LPCTSTR lpszFileName, DWORD dwFlags, LPCTSTR lpszFilter, CWnd* pParentWnd, DWORD dwSize)
 	: CFileDialog(bOpenFileDialog, lpszDefExt, lpszFileName, dwFlags, lpszFilter, pParentWnd, dwSize)
 {
 }
@@ -83,7 +83,7 @@ void CDMCFileSoundDialog::OnFileNameChange()
 			m_strLastFile = GetPathName();
 		}
 	}
-	
+
 	CFileDialog::OnFileNameChange();
 }
 
@@ -154,14 +154,14 @@ BOOL CInstrumentEditorDPCM::OnInitDialog()
 	pSampleListCtrl->InsertColumn(1, _T("Name"), LVCFMT_LEFT, static_cast<int>(.55 * Width));
 	pSampleListCtrl->InsertColumn(2, _T("Size"), LVCFMT_LEFT, static_cast<int>(.25 * Width));
 	pSampleListCtrl->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
-	
+
 	CComboBox *pPitch = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
 	for (int i = 0; i < 16; ++i)
 		pPitch->AddString(std::to_string(i).c_str());
 	pPitch->SetCurSel(15);
 
 	CheckDlgButton(IDC_LOOP, 0);
-	
+
 	CString text;		// // //
 	pTableListCtrl->DeleteAllItems();
 	for (int i = 0; i < NOTE_COUNT; ++i) {
@@ -203,7 +203,7 @@ void CInstrumentEditorDPCM::UpdateKey(int Index)
 	CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
 	CString NameStr = NO_SAMPLE_STR;
 	CString PitchStr = _T("-");
-	
+
 	int Octave = GET_OCTAVE(Index);		// // //
 	int Note = GET_NOTE(Index) - 1;
 	if (m_pInstrument->GetSampleIndex(Octave, Note) > 0) {
@@ -245,11 +245,11 @@ void CInstrumentEditorDPCM::BuildSampleList()
 		}
 	}
 
-	AfxFormatString3(Text, IDS_DPCM_SPACE_FORMAT, 
-		MakeIntString(Size / 0x400), 
+	AfxFormatString3(Text, IDS_DPCM_SPACE_FORMAT,
+		MakeIntString(Size / 0x400),
 		MakeIntString((MAX_SAMPLE_SPACE - Size) / 0x400),
 		MakeIntString(MAX_SAMPLE_SPACE / 0x400));
-	
+
 	SetDlgItemText(IDC_SPACE, Text);
 }
 
@@ -269,10 +269,10 @@ bool CInstrumentEditorDPCM::LoadSample(const CString &FilePath, const CString &F
 
 	int Size = (int)SampleFile.GetLength();
 	int AddSize = 0;
-	
+
 	// Clip file if too large
 	Size = std::min(Size, CDSample::MAX_SIZE);
-	
+
 	// Make sure size is compatible with DPCM hardware
 	if ((Size & 0xF) != 1) {
 		AddSize = 0x10 - ((Size + 0x0F) & 0x0F);
@@ -290,14 +290,14 @@ bool CInstrumentEditorDPCM::LoadSample(const CString &FilePath, const CString &F
 	pNewSample->SetName(FileName);
 	if (!InsertSample(std::move(pNewSample)))
 		return false;
-	
+
 	BuildSampleList();
 
 	return true;
 }
 
 bool CInstrumentEditorDPCM::InsertSample(std::shared_ptr<CDSample> pNewSample)		// // //
-{	
+{
 	int FreeSlot = GetDocument()->GetFreeSampleSlot();
 
 	// Out of sample slots
@@ -305,7 +305,7 @@ bool CInstrumentEditorDPCM::InsertSample(std::shared_ptr<CDSample> pNewSample)		
 		return false;
 
 	int Size = GetDocument()->GetTotalSampleSize();
-	
+
 	if ((Size + pNewSample->GetSize()) > MAX_SAMPLE_SPACE) {
 		CString message;
 		AfxFormatString1(message, IDS_OUT_OF_SAMPLEMEM_FORMAT, MakeIntString(MAX_SAMPLE_SPACE / 1024));
@@ -354,7 +354,7 @@ void CInstrumentEditorDPCM::OnBnClickedUnload()
 
 	if (m_iSelectedSample == MAX_DSAMPLES)
 		return;
-	
+
 	if (!(SelCount = pListBox->GetSelectedCount()))
 		return;
 
@@ -378,7 +378,7 @@ void CInstrumentEditorDPCM::OnNMClickSampleList(NMHDR *pNMHDR, LRESULT *pResult)
 		return;
 
 	int Index = pSampleListCtrl->GetSelectionMark();
-	
+
 	TCHAR ItemName[256];
 	pSampleListCtrl->GetItemText(Index, 0, ItemName, 256);
 	m_iSelectedSample = _ttoi(ItemName);
@@ -439,7 +439,7 @@ void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 		pSampleBox->SelectString(0, Text);
 	else
 		pSampleBox->SetCurSel(0);
-	
+
 	if (Sample >= 0) {
 		pPitchBox->SetCurSel(Pitch & 0x0F);
 
@@ -463,14 +463,14 @@ void CInstrumentEditorDPCM::OnCbnSelchangeSamples()
 {
 	CComboBox *pSampleBox = static_cast<CComboBox*>(GetDlgItem(IDC_SAMPLES));
 	CComboBox *pPitchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
-	
+
 	int PrevSample = m_pInstrument->GetSampleIndex(m_iOctave, m_iSelectedKey);
 	int Sample = pSampleBox->GetCurSel();
 
 	if (Sample > 0) {
 		char Name[256];
 		pSampleBox->GetLBText(Sample, Name);
-		
+
 		Name[2] = 0;
 		if (Name[0] == _T('0')) {
 			Name[0] = Name[1];
@@ -499,7 +499,7 @@ std::shared_ptr<const CDSample> CInstrumentEditorDPCM::GetSelectedSample() {		//
 	TCHAR Text[256];
 	pSampleListCtrl->GetItemText(Index, 0, Text, 256);
 	Index = _tstoi(Text);
-	
+
 	return GetDocument()->GetSample(Index);
 }
 
@@ -514,7 +514,7 @@ void CInstrumentEditorDPCM::SetSelectedSample(std::shared_ptr<CDSample> pSample)
 	TCHAR Text[256];
 	pSampleListCtrl->GetItemText(Index, 0, Text, 256);
 	Index = _tstoi(Text);
-	
+
 	GetDocument()->SetSample(Index, std::move(pSample));
 }
 
@@ -533,14 +533,14 @@ void CInstrumentEditorDPCM::OnBnClickedSave()
 
 	pSampleListCtrl->GetItemText(Index, 0, Text, 256);
 	Index = _tstoi(Text);
-	
+
 	auto pDSample = GetDocument()->GetSample(Index);		// // //
 	if (!pDSample)
 		return;
 
 	CString fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, _T(".dmc"));
 	CFileDialog SaveFileDialog(FALSE, _T("dmc"), (LPCSTR)pDSample->GetName(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
-	
+
 	SaveFileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_DMC);
 
 	if (SaveFileDialog.DoModal() == IDCANCEL)
@@ -607,7 +607,7 @@ BOOL CInstrumentEditorDPCM::PreTranslateMessage(MSG* pMsg)
 
 void CInstrumentEditorDPCM::OnBnClickedAdd()
 {
-	// Add sample to key list	
+	// Add sample to key list
 	CComboBox *pPitchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
 
 	int Pitch = pPitchBox->GetCurSel();
@@ -675,7 +675,7 @@ void CInstrumentEditorDPCM::OnBnClickedEdit()
 	CSampleEditorDlg Editor(this, std::make_shared<CDSample>(*pSample));		// // // copy sample here
 
 	INT_PTR nRes = Editor.DoModal();
-	
+
 	if (nRes == IDOK) {
 		// Save edited sample
 		SetSelectedSample(std::make_shared<CDSample>(*Editor.GetDSample()));		// // //
@@ -702,7 +702,7 @@ void CInstrumentEditorDPCM::OnBnClickedPreview()
 void CInstrumentEditorDPCM::OnNMRClickSampleList(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-	
+
 	CMenu *pPopupMenu, PopupMenuBar;
 	CPoint point;
 
@@ -721,7 +721,7 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 
 	// Create a popup menu for key list with samples
 	CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
-	
+
 	m_iSelectedKey = GET_NOTE(pTableListCtrl->GetSelectionMark()) - 1;		// // //
 	m_iOctave = GET_OCTAVE(pTableListCtrl->GetSelectionMark());
 

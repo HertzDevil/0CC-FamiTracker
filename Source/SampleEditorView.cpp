@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -42,9 +42,9 @@ BEGIN_MESSAGE_MAP(CSampleEditorView, CStatic)
 	ON_WM_HSCROLL()
 END_MESSAGE_MAP()
 
-CSampleEditorView::CSampleEditorView() : 
-	m_iSelStart(-1), 
-	m_iSelEnd(-1), 
+CSampleEditorView::CSampleEditorView() :
+	m_iSelStart(-1),
+	m_iSelEnd(-1),
 	m_iStartCursor(0),
 	m_bClicked(false),
 	m_pScrollBar(NULL),
@@ -339,7 +339,7 @@ void CSampleEditorView::ExpandSample(const CDSample &Sample, int Start)		// // /
 				Delta -= 2;
 		}
 		m_pSamples[i] = Delta;
-	}	
+	}
 
 	m_iSelStart = m_iSelEnd = -1;
 	m_iStartCursor = 0;
@@ -433,7 +433,7 @@ void CSampleEditorView::OnRight()
 void CSampleEditorView::OnLeft()
 {
 	m_iStartCursor--;
-	
+
 	if (m_iStartCursor < 0)
 		m_iStartCursor = 0;
 
@@ -464,7 +464,7 @@ void CSampleEditorView::PreSubclassWindow()
 		CRect rect;
 		GetClientRect(&rect);
 		m_pScrollBar->Create(SBS_HORZ | SBS_BOTTOMALIGN | WS_CHILD | WS_VISIBLE, rect, this, 1);
-		
+
 	}
 
 	CStatic::PreSubclassWindow();
@@ -542,7 +542,7 @@ void CSampleEditorView::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBa
 		case SB_LINERIGHT:
 			SetScroll(pScrollBar->GetScrollPos() + 1);
 			break;
-		case SB_LINELEFT: 
+		case SB_LINELEFT:
 			SetScroll(pScrollBar->GetScrollPos() - 1);
 			break;
 		case SB_THUMBPOSITION:

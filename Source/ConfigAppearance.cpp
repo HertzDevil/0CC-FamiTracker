@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -30,10 +30,10 @@
 #include <sstream>
 
 const LPCTSTR CConfigAppearance::COLOR_ITEMS[] = {		// // //
-	_T("Background"), 
+	_T("Background"),
 	_T("Highlighted background"),
 	_T("Highlighted background 2"),
-	_T("Pattern text"), 
+	_T("Pattern text"),
 	_T("Highlighted pattern text"),
 	_T("Highlighted pattern text 2"),
 	_T("Instrument column"),
@@ -375,7 +375,7 @@ void CConfigAppearance::OnCbnSelchangeColItem()
 void CConfigAppearance::OnCbnSelchangeScheme()
 {
 	CComboBox *pList = static_cast<CComboBox*>(GetDlgItem(IDC_SCHEME));
-	
+
 	SelectColorScheme(COLOR_SCHEMES[pList->GetCurSel()]);
 
 	SetModified();
@@ -500,7 +500,7 @@ void CConfigAppearance::ImportSettings(const char *Path)		// // // 050B
 		if (!file) break;
 		size_t Pos = Line.find(SETTING_SEPARATOR);
 		if (Pos == std::string::npos) continue;
-		
+
 		for (size_t i = 0; i < std::size(m_iColors); ++i) {
 			if (Line.find(COLOR_ITEMS[i]) == std::string::npos) continue;
 			size_t n = Line.find(HEX_PREFIX);

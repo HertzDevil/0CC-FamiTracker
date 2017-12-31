@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -83,11 +83,11 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 	int Pos = (Tick - 1) % Intv;
 
 	signed char Val = 0;
-	
+
 	int PitchReg = 0;
 	int Detune = 0x7FFFFFFF;
 	int ID = m_iRecordChannel;
-	
+
 	char Chip = m_pDocument->GetChipType(m_pDocument->GetChannelIndex(m_iRecordChannel));
 	const auto REG = [&] (int x) { return m_pSoundGen->GetReg(Chip, x); };
 
@@ -232,7 +232,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 			m_pSequenceCache[k]->SetItem(Pos, Val);
 		}
 	}
-	
+
 	if (!(Tick % Intv))
 		FinalizeRecordInstrument();
 }
@@ -327,7 +327,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 	CString str;
 	str.Format(_T("from %s"), Chan.GetChannelName());
 	(*m_pDumpInstrument)->SetName((LPCTSTR)str);
-	
+
 	if (Type == INST_FDS) {
 		m_pSequenceCache[SEQ_ARPEGGIO]->SetSetting(SETTING_ARP_FIXED);
 		return;

@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -99,7 +99,7 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 	((CButton*)GetDlgItem(IDC_EXPANSION_N163))->SetCheck((m_iExpansions & SNDCHIP_N163) != 0);
 	((CButton*)GetDlgItem(IDC_EXPANSION_S5B))->SetCheck((m_iExpansions & SNDCHIP_S5B) != 0);
 
-	// Vibrato 
+	// Vibrato
 	CComboBox *pVibratoBox = static_cast<CComboBox*>(GetDlgItem(IDC_VIBRATO));
 	pVibratoBox->SetCurSel((m_pDocument->GetVibratoStyle() == VIBRATO_NEW) ? 0 : 1);
 	CComboBox *pPitchBox = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_LINEARPITCH));		// // //
@@ -166,7 +166,7 @@ void CModulePropertiesDlg::OnBnClickedOk()
 		m_pDocument->UpdateAllViews(NULL, UPDATE_PROPERTIES);
 	}
 
-	// Vibrato 
+	// Vibrato
 	vibrato_t newVib = static_cast<CComboBox*>(GetDlgItem(IDC_VIBRATO))->GetCurSel() == 0 ? VIBRATO_NEW : VIBRATO_OLD;		// // //
 	bool newLinear = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_LINEARPITCH))->GetCurSel() == 1;
 	if (newVib != m_pDocument->GetVibratoStyle() || newLinear != m_pDocument->GetLinearPitch())
@@ -193,7 +193,7 @@ void CModulePropertiesDlg::OnBnClickedSongAdd()
 
 	if (NewTrack == -1)
 		return;
-	
+
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
@@ -212,7 +212,7 @@ void CModulePropertiesDlg::OnBnClickedSongInsert()		// // //
 
 	if (NewTrack == -1)
 		return;
-	
+
 	while (NewTrack > m_iSelectedSong + 1)
 		m_pDocument->MoveTrackUp(NewTrack--);
 	m_pDocument->ModifyIrreversible();		// // //
@@ -546,7 +546,7 @@ void CModulePropertiesDlg::OnBnClickedExpansionN163()
 	if (pCheckBox->GetCheck() == BST_CHECKED)
 	{
 		m_iExpansions |= SNDCHIP_N163;
-		
+
 		if (!m_iN163Channels) m_iN163Channels = 1;		// // //
 		pChanSlider->SetPos(m_iN163Channels);
 		pChanSlider->EnableWindow(TRUE);
@@ -556,7 +556,7 @@ void CModulePropertiesDlg::OnBnClickedExpansionN163()
 	else
 	{
 		m_iExpansions &= ~SNDCHIP_N163;
-		
+
 		pChanSlider->SetPos(m_iN163Channels = 0);
 		pChanSlider->EnableWindow(FALSE);
 		pChannelsLabel->EnableWindow(FALSE);

@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -23,7 +23,7 @@
 //
 // This file takes care of the NES sound playback
 //
-// TODO: 
+// TODO:
 //  - Create new interface for CFamiTrackerView with thread-safe functions
 //  - Same for CFamiTrackerDoc
 //  - Perhaps this should be a worker thread and not GUI thread?
@@ -289,7 +289,7 @@ void CSoundGen::PreviewSample(std::shared_ptr<const CDSample> pSample, int Offse
 		return;
 
 	m_pPreviewSample = std::move(pSample);
-	// Preview a DPCM sample. If the name of sample is null, 
+	// Preview a DPCM sample. If the name of sample is null,
 	// the sample will be removed after played
 	PostThreadMessage(WM_USER_PREVIEW_SAMPLE, Offset, Pitch);
 }
@@ -416,7 +416,7 @@ bool CSoundGen::ResetAudioDevice()
 //	m_pAPU->SetChipLevel(SNDCHIP_N163, pSettings->ChipLevels.iLevelN163);
 //	m_pAPU->SetChipLevel(SNDCHIP_S5B, pSettings->ChipLevels.iLevelS5B);
 */
-	// Update blip-buffer filtering 
+	// Update blip-buffer filtering
 	m_pAPU->SetupMixer(pSettings->Sound.iBassFilter, pSettings->Sound.iTrebleFilter,
 					   pSettings->Sound.iTrebleDamping, pSettings->Sound.iMixVolume);
 
@@ -486,7 +486,7 @@ bool CSoundGen::PlayBuffer()
 			return true;
 		}
 	}
-	
+
 	if (!m_pAudioDriver->DoPlayBuffer())
 		return false;
 
@@ -679,7 +679,7 @@ void CSoundGen::ResetAPU()
 }
 
 uint8_t CSoundGen::GetReg(int Chip, int Reg) const
-{ 
+{
 	return m_pAPU->GetReg(Chip, Reg);
 }
 
@@ -914,7 +914,7 @@ BOOL CSoundGen::InitInstance()
 
 	// First check if thread creation should be cancelled
 	// This will occur when no sound object is available
-	
+
 	if (m_pDSound == NULL)
 		return FALSE;
 
@@ -1009,7 +1009,7 @@ void CSoundGen::UpdateAPU()
 	// Copy wave changed flag
 	m_bInternalWaveChanged = m_bWaveChanged;
 	m_bWaveChanged = false;
-	
+
 	if (CSingleLock l(&m_csAPULock); l.Lock()) {
 		// Update APU channel registers
 		m_pSoundDriver->UpdateAPU(m_iUpdateCycles);

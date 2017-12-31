@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -38,7 +38,7 @@ void CVRC6_Pulse::Reset()
 	m_iPeriod = m_iPeriodLow = m_iPeriodHigh = 0;
 	m_iCounter = 0;
 	m_iDutyCycleCounter = 0;
-	
+
 	Mix(0);		// // //
 	EndFrame();
 }
@@ -76,7 +76,7 @@ void CVRC6_Pulse::Process(int Time)
 		Time      -= m_iCounter;
 		m_iTime	  += m_iCounter;
 		m_iCounter = m_iPeriod + 1;
-	
+
 		m_iDutyCycleCounter = (m_iDutyCycleCounter + 1) & 0x0F;
 		Mix((m_iGate || m_iDutyCycleCounter >= m_iDutyCycle) ? m_iVolume : 0);
 	}
@@ -103,7 +103,7 @@ void CVRC6_Sawtooth::Reset()
 	m_iPeriod = 0;
 	m_iPeriodLow = m_iPeriodHigh = 0;
 	m_iCounter = 0;
-	
+
 	Mix(0);		// // //
 	EndFrame();
 }
@@ -188,7 +188,7 @@ void CVRC6::Write(uint16_t Address, uint8_t Value)
 		case 0x9001:
 		case 0x9002:
 			m_Pulse1.Write(Address & 3, Value);
-			break;			
+			break;
 		case 0xA000:
 		case 0xA001:
 		case 0xA002:

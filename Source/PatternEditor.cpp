@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -456,7 +456,7 @@ void CPatternEditor::DrawScreen(CDC *pDC, CFamiTrackerView *pView)
 		// Wrap arounds
 		if (abs(m_iCenterRow - m_iLastCenterRow) >= (m_iLinesVisible / 2))
 			bQuickRedraw = false;
-		
+
 		// Todo: fix this
 		if (theApp.GetSettings()->General.bFreeCursorEdit)
 			bQuickRedraw = false;
@@ -505,7 +505,7 @@ void CPatternEditor::DrawScreen(CDC *pDC, CFamiTrackerView *pView)
 	//
 	// Blit to visible surface
 	//
-	
+
 	const int iBlitHeight = m_iWinHeight - HEADER_HEIGHT;
 	const int iBlitWidth = m_iPatternWidth + m_iRowColumnWidth;
 
@@ -743,7 +743,7 @@ bool CPatternEditor::CursorUpdated()
 		const CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 		// Store a synchronized copy of frame & row position from player
 		std::tie(m_iPlayFrame, m_iPlayRow) = pSoundGen->GetPlayerPos();		// // //
-		
+
 		if (m_bFollowMode) {
 			m_cpCursorPos.m_iRow = m_iPlayRow;
 			m_cpCursorPos.m_iFrame = m_iPlayFrame;		// // //
@@ -855,14 +855,14 @@ void CPatternEditor::DrawUnbufferedArea(CDC *pDC)
 		// pDC->Draw3dRect(m_iPatternWidth + m_iRowColumnWidth, HEADER_CHAN_START, Width, HEADER_HEIGHT, STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK);
 
 		// The big empty area
-		pDC->FillSolidRect(m_iPatternWidth + m_iRowColumnWidth, HEADER_HEIGHT, Width, m_iWinHeight - HEADER_HEIGHT, m_colEmptyBg);	
+		pDC->FillSolidRect(m_iPatternWidth + m_iRowColumnWidth, HEADER_HEIGHT, Width, m_iWinHeight - HEADER_HEIGHT, m_colEmptyBg);
 	}
 }
 
 void CPatternEditor::PerformFullRedraw(CDC *pDC)
 {
 	// Draw entire pattern area
-	
+
 	const int Channels = GetChannelCount();
 	const int FrameCount = GetFrameCount();		// // //
 	int Row = m_iCenterRow - m_iLinesVisible / 2;
@@ -881,7 +881,7 @@ void CPatternEditor::PerformFullRedraw(CDC *pDC)
 
 	// Lines between channels
 	int Offset = m_iChannelWidths[m_iFirstChannel];
-	
+
 	for (int i = m_iFirstChannel; i < Channels; ++i) {
 		pDC->FillSolidRect(Offset - 1, 0, 1, m_iPatternHeight, m_colSeparator);
 		Offset += m_iChannelWidths[i + 1];
@@ -911,13 +911,13 @@ void CPatternEditor::PerformQuickRedraw(CDC *pDC)
 
 	// Play cursor
 	if (theApp.IsPlaying() && !m_bFollowMode) {
-		//PrintRow(pDC, m_iPlayRow, 
+		//PrintRow(pDC, m_iPlayRow,
 	}
 	else if (!theApp.IsPlaying() && m_iLastPlayRow != -1) {
 		if (m_iPlayFrame == m_cpCursorPos.m_iFrame) {
 			int Line = RowToLine(m_iLastPlayRow);
 			if (Line >= 0 && Line <= m_iLinesVisible) {
-				// Erase 
+				// Erase
 				PrintRow(pDC, m_iLastPlayRow, Line, m_cpCursorPos.m_iFrame);
 			}
 		}
@@ -972,7 +972,7 @@ void CPatternEditor::MovePatternArea(CDC *pDC, int FromRow, int ToRow, int NumRo
 	const int SrcY = FromRow * m_iRowHeight;
 	const int DestY = ToRow * m_iRowHeight;
 	const int Height = NumRows * m_iRowHeight;
-	pDC->BitBlt(1, DestY, Width, Height, pDC, 1, SrcY, SRCCOPY); 
+	pDC->BitBlt(1, DestY, Width, Height, pDC, 1, SrcY, SRCCOPY);
 }
 
 void CPatternEditor::ScrollPatternArea(CDC *pDC, int Rows) const
@@ -1035,7 +1035,7 @@ void CPatternEditor::ScrollPatternArea(CDC *pDC, int Rows) const
 
 void CPatternEditor::ClearRow(CDC *pDC, int Line) const
 {
-	pDC->SetWindowOrg(0, 0);	
+	pDC->SetWindowOrg(0, 0);
 
 	int Offset = m_iRowColumnWidth;
 	for (int i = m_iFirstChannel; i < m_iFirstChannel + m_iChannelsVisible; ++i) {
@@ -1311,7 +1311,7 @@ void CPatternEditor::DrawCell(CDC *pDC, int PosX, cursor_column_t Column, int Ch
 	// Detect invalid note data
 	if (NoteData.Note > ECHO ||		// // //
 		NoteData.Octave > 8 ||
-		EffNumber >= EF_COUNT || 
+		EffNumber >= EF_COUNT ||
 		NoteData.Instrument > MAX_INSTRUMENTS && NoteData.Instrument != HOLD_INSTRUMENT) {		// // // 050B
 		if (Column == C_NOTE/* || Column == 4*/) {
 			CString Text;
@@ -1330,7 +1330,7 @@ void CPatternEditor::DrawCell(CDC *pDC, int PosX, cursor_column_t Column, int Ch
 	const auto &TrackerChannel = m_pDocument->GetChannel(Channel);		// // //
 
 	// Make non-available instruments red in the pattern editor
-	if (NoteData.Instrument < MAX_INSTRUMENTS && 
+	if (NoteData.Instrument < MAX_INSTRUMENTS &&
 		(!m_pDocument->IsInstrumentUsed(NoteData.Instrument) ||
 		!TrackerChannel.IsInstrumentCompatible(NoteData.Instrument, m_pDocument->GetInstrumentType(NoteData.Instrument)))) { // // //
 		DimInst = InstColor = RGB(255, 0, 0);
@@ -1441,11 +1441,11 @@ void CPatternEditor::DrawCell(CDC *pDC, int PosX, cursor_column_t Column, int Ch
 			else
 				DrawChar(pDC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.Instrument & 0x0F], InstColor);		// // //
 			break;
-		case C_VOLUME: 
+		case C_VOLUME:
 			// Volume
 			if (NoteData.Vol == MAX_VOLUME || TrackerChannel.GetID() == CHANID_DPCM)
 				BAR(PosX, PosY);
-			else 
+			else
 				DrawChar(pDC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.Vol & 0x0F], ColorInfo.Volume);		// // //
 			break;
 		case C_EFF1_NUM: case C_EFF2_NUM: case C_EFF3_NUM: case C_EFF4_NUM:
@@ -1512,7 +1512,7 @@ void CPatternEditor::DrawHeader(CDC *pDC)
 		if (Pushed) {
 			GradientRectTriple(pDC, Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT,
 							   m_colHead1, m_colHead1, m_pView->GetEditMode() ? m_colHead4 : m_colHead3);
-			pDC->Draw3dRect(Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT, BLEND(STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK, 50), STATIC_COLOR_SCHEME.FRAME_DARK); 
+			pDC->Draw3dRect(Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT, BLEND(STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK, 50), STATIC_COLOR_SCHEME.FRAME_DARK);
 		}
 		else {
 			if (m_pDocument->GetChannelType(Channel) == theApp.GetSoundGenerator()->GetRecordChannel())		// // //
@@ -1534,13 +1534,13 @@ void CPatternEditor::DrawHeader(CDC *pDC)
 
 		pDC->SetTextColor(BLEND(HeadTextCol, 0x00FFFFFF, SHADE_LEVEL.TEXT_SHADOW));
 		pDC->TextOut(Offset + (m_bCompactMode ? GetColumnSpace(C_NOTE) / 2 + 1 : 10) + 1, HEADER_CHAN_START + 6 + (bMuted ? 1 : 0), pChanName);
-		
+
 		// Foreground
 		if (m_iMouseHoverChan == Channel)
 			HeadTextCol = BLEND(HeadTextCol, 0x0000FFFF, SHADE_LEVEL.HOVER);
 		pDC->SetTextColor(HeadTextCol);
 		pDC->TextOut(Offset + (m_bCompactMode ? GetColumnSpace(C_NOTE) / 2 + 1 : 10), HEADER_CHAN_START + 5, pChanName);		// // //
-		
+
 		if (!m_bCompactMode) {		// // //
 			// Effect columns
 			pDC->SetTextColor(TEXT_COLOR);
@@ -1584,7 +1584,7 @@ void CPatternEditor::DrawHeader(CDC *pDC)
 		Offset += m_iChannelWidths[Channel];
 		pDC->SetTextAlign(TA_LEFT);		// // //
 	}
-	
+
 	pDC->SelectObject(pOldFont);
 }
 
@@ -1799,7 +1799,7 @@ CCursorPos CPatternEditor::GetCursorAtPoint(const CPoint &point) const
 	// // // Removed GetRowAtPoint and GetFrameAtPoint
 	int Frame = m_cpCursorPos.m_iFrame;
 	int Row = (point.y - HEADER_HEIGHT) / m_iRowHeight - (m_iLinesVisible / 2) + m_iCenterRow;
-	
+
 	if (theApp.GetSettings()->General.bFramePreview) {		// // // guarantees valid cursor position
 		while (Row < 0) {
 			Row += GetCurrentPatternLength(--Frame);
@@ -2159,7 +2159,7 @@ void CPatternEditor::MoveToFrame(int Frame)
 
 	if (m_bSelecting && !theApp.GetSettings()->General.bMultiFrameSel)		// // //
 		m_selection.m_cpStart.m_iFrame = m_selection.m_cpEnd.m_iFrame = Frame;
-	
+
 	if (theApp.IsPlaying() && m_bFollowMode) {
 		if (m_iPlayFrame != Frame) {
 			theApp.GetSoundGenerator()->MoveToFrame(Frame);
@@ -2442,7 +2442,7 @@ void CPatternEditor::OnMouseUp(const CPoint &point)
 
 		// Pattern area
 		CCursorPos PointPos = GetCursorAtPoint(point);
-		PointPos.m_iFrame %= GetFrameCount(); 
+		PointPos.m_iFrame %= GetFrameCount();
 		if (PointPos.m_iFrame < 0) PointPos.m_iFrame += GetFrameCount();		// // //
 		const int PatternLength = GetCurrentPatternLength(PointPos.m_iFrame);		// // //
 
@@ -2787,7 +2787,7 @@ bool CPatternEditor::OnMouseNcMove()
 	bool bRedraw = (m_iMouseHoverEffArrow != 0) || (m_iMouseHoverChan != -1) || m_bChannelPushed;
 	m_iMouseHoverEffArrow = 0;
 	m_iMouseHoverChan = -1;
-	return bRedraw;	
+	return bRedraw;
 }
 
 bool CPatternEditor::CancelDragging()
@@ -2833,7 +2833,7 @@ std::unique_ptr<CPatternClipData> CPatternEditor::CopyEntire() const
 	const int ChannelCount = GetChannelCount();
 	const int Rows = m_pDocument->GetPatternLength(Track);
 	const int Frame = m_cpCursorPos.m_iFrame;		// // //
-	
+
 	auto pClipData = std::make_unique<CPatternClipData>(ChannelCount, Rows);
 
 	pClipData->ClipInfo.Channels = ChannelCount;
@@ -2842,7 +2842,7 @@ std::unique_ptr<CPatternClipData> CPatternEditor::CopyEntire() const
 	for (int i = 0; i < ChannelCount; ++i)
 		for (int j = 0; j < Rows; ++j)
 			*pClipData->GetPattern(i, j) = m_pDocument->GetNoteData(Track, Frame, i, j);		// // //
-	
+
 	return pClipData;
 }
 
@@ -2858,7 +2858,7 @@ std::unique_ptr<CPatternClipData> CPatternEditor::Copy() const
 	pClipData->ClipInfo.Rows		= Rows;
 	pClipData->ClipInfo.StartColumn	= GetSelectColumn(m_selection.GetColStart());		// // //
 	pClipData->ClipInfo.EndColumn	= GetSelectColumn(m_selection.GetColEnd());		// // //
-	
+
 	for (int r = 0; r < Rows; r++) {		// // //
 		for (int i = 0; i < Channels; ++i) {
 			stChanNote *Target = pClipData->GetPattern(i, r);
@@ -2899,7 +2899,7 @@ std::unique_ptr<CPatternClipData> CPatternEditor::CopyRaw(const CSelection &Sel)
 	pClipData->ClipInfo.Rows		= Rows;
 	pClipData->ClipInfo.StartColumn	= GetSelectColumn(it.m_iColumn);
 	pClipData->ClipInfo.EndColumn	= GetSelectColumn(end.m_iColumn);
-	
+
 	const int PackedPos = (it.m_iFrame + Frames) * Length + it.m_iRow;
 	for (int r = 0; r < Rows; r++) for (int i = 0; i < Channels; ++i)
 		*pClipData->GetPattern(i, r) = m_pDocument->GetNoteData(Track, (PackedPos + r) / Length % Frames, i + cBegin, (PackedPos + r) % Length);
@@ -2928,7 +2928,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t 
 	const unsigned int Rows		   = (PastePos == PASTE_FILL) ? GetSelectionSize() : ClipData.ClipInfo.Rows;
 	const column_t StartColumn = ClipData.ClipInfo.StartColumn;
 	const column_t EndColumn   = ClipData.ClipInfo.EndColumn;
-	
+
 	bool AtSel = (PastePos == PASTE_SELECTION || PastePos == PASTE_FILL);
 	const int f = AtSel ? m_selection.GetFrameStart() : (PastePos == PASTE_DRAG ? m_selDrag.GetFrameStart() : m_cpCursorPos.m_iFrame);
 	const unsigned int r = AtSel ? m_selection.GetRowStart() : (PastePos == PASTE_DRAG ? m_selDrag.GetRowStart() : m_cpCursorPos.m_iRow);
@@ -3213,7 +3213,7 @@ bool CPatternEditor::IsPlayCursorVisible() const
 		return false;
 
 	if (m_iPlayFrame != (m_cpCursorPos.m_iFrame + 1) && m_iPlayFrame != (m_cpCursorPos.m_iFrame - 1)) {
-		
+
 		if (m_iPlayRow > (m_iCenterRow + (m_iLinesFullVisible / 2) + 1))
 			return false;
 
@@ -3312,7 +3312,7 @@ void CPatternEditor::OnVScroll(UINT nSBCode, UINT nPos)
 	int PageSize = theApp.GetSettings()->General.iPageStepSize;
 
 	switch (nSBCode) {
-		case SB_LINEDOWN: 
+		case SB_LINEDOWN:
 			MoveToRow(m_cpCursorPos.m_iRow + 1);
 			break;
 		case SB_LINEUP:
@@ -3327,7 +3327,7 @@ void CPatternEditor::OnVScroll(UINT nSBCode, UINT nPos)
 		case SB_TOP:
 			MoveToRow(0);
 			break;
-		case SB_BOTTOM:	
+		case SB_BOTTOM:
 			MoveToRow(m_iPatternLength - 1);
 			break;
 		case SB_THUMBPOSITION:
@@ -3346,23 +3346,23 @@ void CPatternEditor::OnHScroll(UINT nSBCode, UINT nPos)
 	unsigned int count = 0;
 
 	switch (nSBCode) {
-		case SB_LINERIGHT: 
+		case SB_LINERIGHT:
 			ScrollRight();
 			break;
-		case SB_LINELEFT: 
+		case SB_LINELEFT:
 			ScrollLeft();
 			break;
-		case SB_PAGERIGHT: 
-			ScrollNextChannel(); 
+		case SB_PAGERIGHT:
+			ScrollNextChannel();
 			break;
-		case SB_PAGELEFT: 
-			ScrollPreviousChannel(); 
+		case SB_PAGELEFT:
+			ScrollPreviousChannel();
 			break;
-		case SB_RIGHT: 
-			LastChannel(); 
+		case SB_RIGHT:
+			LastChannel();
 			break;
-		case SB_LEFT: 
-			FirstChannel(); 
+		case SB_LEFT:
+			FirstChannel();
 			break;
 		case SB_THUMBPOSITION:
 		case SB_THUMBTRACK:
@@ -3455,7 +3455,7 @@ void CPatternEditor::GetVolumeColumn(CString &str) const
 	auto it = GetIterators();
 	if (Channel < 0 || Channel >= GetChannelCount())
 		return;
-	
+
 	int vol = MAX_VOLUME - 1;		// // //
 	CPatternIterator s {it.first};
 	do {
@@ -3466,7 +3466,7 @@ void CPatternEditor::GetVolumeColumn(CString &str) const
 			break;
 		}
 	} while (s.m_iFrame > 0 || s.m_iRow > 0);
-	
+
 	str.Empty();
 	for (; it.first <= it.second; ++it.first) {
 		const auto &NoteData = it.first.Get(Channel);
@@ -3506,7 +3506,7 @@ void CPatternEditor::GetSelectionAsText(CString &str) const		// // //
 			Header.AppendFormat(_T("fx%d "), j + 2);
 	}
 	str = Header.TrimRight() + _T("\r\n");
-	
+
 	static const int COLUMN_CHAR_POS[] = {0, 4, 7, 9, 13, 17, 21};
 	static const int COLUMN_CHAR_LEN[] = {3, 2, 1, 3, 3, 3, 3};
 	const int Last = m_pDocument->GetEffColumns(Track, it.second.m_iChannel) + 3;

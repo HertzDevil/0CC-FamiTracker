@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -21,7 +21,7 @@
 */
 
 #include "WaveEditor.h"
-#include <iterator> 
+#include <iterator>
 #include <string>
 #include <sstream>
 #include "FamiTracker.h"
@@ -59,7 +59,7 @@ BEGIN_MESSAGE_MAP(CWaveEditor, CWnd)
 	ON_WM_MBUTTONDOWN()
 END_MESSAGE_MAP()
 
-CWaveEditor::CWaveEditor(int sx, int sy, int lx, int ly) 
+CWaveEditor::CWaveEditor(int sx, int sy, int lx, int ly)
  : m_iSX(sx), m_iSY(sy), m_iLX(lx), m_iLY(ly)
 {
 	m_bDrawLine = false;
@@ -166,7 +166,7 @@ void CWaveEditor::OnPaint()
 
 void CWaveEditor::OnMouseMove(UINT nFlags, CPoint point)
 {
-	static CPoint last_point; 
+	static CPoint last_point;
 
 	if (nFlags & MK_LBUTTON) {
 		// Draw a line
@@ -249,7 +249,7 @@ void CWaveEditor::EditWave(CPoint pt1, CPoint pt2)
 
 void CWaveEditor::EditWave(CPoint point)
 {
-	int index = (point.x ) / m_iSX;	
+	int index = (point.x ) / m_iSX;
 	int sample = (m_iLY - 1) - (point.y / m_iSY);
 
 	if (sample < 0)
@@ -268,9 +268,9 @@ void CWaveEditor::EditWave(CPoint point)
 			// Erase old sample
 			int s = (m_iLY - 1) - GetSample(index);
 			pDC->FillSolidRect(index * m_iSX, s * m_iSY, m_iSX, m_iSY, (s & 1) ? 0xA0A0A0 : 0xB0B0B0);
-		
+
 			SetSample(index, sample);
-		
+
 			// New sample
 			s = (m_iLY - 1) - GetSample(index);
 			DrawRect(pDC, index * m_iSX, s * m_iSY, m_iSX, m_iSY);
@@ -307,7 +307,7 @@ void CWaveEditor::WaveChanged()
 void CWaveEditor::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 {
 	CMenu menu;
-	
+
 	menu.CreatePopupMenu();
 	menu.AppendMenu(MF_STRING, 1, _T("&Steps"));
 	menu.AppendMenu(MF_STRING, 2, _T("&Lines"));
@@ -318,10 +318,10 @@ void CWaveEditor::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 		menu.CheckMenuItem(0, MF_BYPOSITION | MF_CHECKED);
 
 	switch (menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD, point.x, point.y, this)) {
-		case 1: 
+		case 1:
 			SetLineMode(false);
 			break;
-		case 2: 
+		case 2:
 			SetLineMode(true);
 			break;
 	}

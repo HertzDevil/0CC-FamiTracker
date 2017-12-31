@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -32,7 +32,7 @@
 
 // This won't be called when running with a debugger attached
 
-// Todo: Recover files should not be created if the crash occurred 
+// Todo: Recover files should not be created if the crash occurred
 // during the file save operation, this could be fixed with a flag.
 
 const TCHAR FTM_DUMP[] = _T("recover");
@@ -47,7 +47,7 @@ static CString GetDumpFilename(int counter)
 	//
 	CString filename;
 	CTime t = CTime::GetCurrentTime();
-	
+
 	filename = MINIDUMP_FILE_PRE;
 
 	// Date
@@ -85,13 +85,13 @@ static LONG WINAPI ExceptionHandler(__in struct _EXCEPTION_POINTERS *ep)
 
 	while (GetFileAttributes(MinidumpFile) != 0xFFFFFFFF)
 		MinidumpFile = GetDumpFilename(dump_counter++);
-	
-	HANDLE hFile = CreateFile(MinidumpFile, GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); 
+
+	HANDLE hFile = CreateFile(MinidumpFile, GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	// Save the memory dump file
 	if ((hFile != NULL) && (hFile != INVALID_HANDLE_VALUE))  {
-		// Create the minidump 
-		MINIDUMP_EXCEPTION_INFORMATION mdei; 
+		// Create the minidump
+		MINIDUMP_EXCEPTION_INFORMATION mdei;
 		mdei.ThreadId			= GetCurrentThreadId();
 		mdei.ExceptionPointers	= ep;
 		mdei.ClientPointers		= FALSE;
@@ -104,7 +104,7 @@ static LONG WINAPI ExceptionHandler(__in struct _EXCEPTION_POINTERS *ep)
 		CloseHandle(hFile);
 	}
 
-	// Find a free filename. 
+	// Find a free filename.
 	// Start with "recover" and append a number if file exists.
 	CString DocDumpFile = FTM_DUMP;
 	int counter = 1;
@@ -141,7 +141,7 @@ static LONG WINAPI ExceptionHandler(__in struct _EXCEPTION_POINTERS *ep)
 	ExitProcess(0);
 
 	// (never called)
-	return EXCEPTION_CONTINUE_SEARCH; 
+	return EXCEPTION_CONTINUE_SEARCH;
 }
 
 void InstallExceptionHandler()

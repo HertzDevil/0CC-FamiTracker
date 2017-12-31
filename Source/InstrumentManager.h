@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -39,7 +39,7 @@ enum inst_type_t : int;
 /*!
 	\brief A container of FamiTracker instruments.
 	\details This class implements common facilities for manipulating a fixed-length array of
-	instrument objects. 
+	instrument objects.
 */
 class CInstrumentManager : public CInstrumentManagerInterface
 {
@@ -55,14 +55,14 @@ public:
 	bool InsertInstrument(unsigned int Index, std::shared_ptr<CInstrument> pInst);
 	bool RemoveInstrument(unsigned int Index);
 	void SwapInstruments(unsigned int IndexA, unsigned int IndexB);
-	
+
 	bool IsInstrumentUsed(unsigned int Index) const;
 	unsigned int GetInstrumentCount() const;
 	unsigned int GetFirstUnused() const;
 	int GetFreeSequenceIndex(inst_type_t InstType, int Type, CSeqInstrument *pInst = nullptr) const;
 
 	inst_type_t GetInstrumentType(unsigned int Index) const;
-	
+
 	void CloneInstrumentShallow(unsigned int Old, unsigned int New);
 	void CloneInstrumentDeep(unsigned int Old, unsigned int New);
 

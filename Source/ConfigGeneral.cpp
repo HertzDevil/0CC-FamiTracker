@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -124,7 +124,7 @@ BOOL CConfigGeneral::OnApply()
 	BOOL Trans;
 
 	m_iPageStepSize = GetDlgItemInt(IDC_PAGELENGTH, &Trans, FALSE);
-	
+
 	if (Trans == FALSE)
 		m_iPageStepSize = 4;
 	else if (m_iPageStepSize > 256 /*MAX_PATTERN_LENGTH*/)
@@ -202,9 +202,9 @@ BOOL CConfigGeneral::OnInitDialog()
 	m_bMultiFrameSel	= theApp.GetSettings()->General.bMultiFrameSel;
 	m_bCheckVersion		= theApp.GetSettings()->General.bCheckVersion;
 
-	m_iKeyNoteCut		= theApp.GetSettings()->Keys.iKeyNoteCut; 
-	m_iKeyNoteRelease	= theApp.GetSettings()->Keys.iKeyNoteRelease; 
-	m_iKeyClear			= theApp.GetSettings()->Keys.iKeyClear; 
+	m_iKeyNoteCut		= theApp.GetSettings()->Keys.iKeyNoteCut;
+	m_iKeyNoteRelease	= theApp.GetSettings()->Keys.iKeyNoteRelease;
+	m_iKeyClear			= theApp.GetSettings()->Keys.iKeyClear;
 	m_iKeyRepeat		= theApp.GetSettings()->Keys.iKeyRepeat;
 	m_iKeyEchoBuffer	= theApp.GetSettings()->Keys.iKeyEchoBuffer;		// // //
 
@@ -269,7 +269,7 @@ BOOL CConfigGeneral::OnInitDialog()
 	pList->InsertColumn(1, _T("Option"), LVCFMT_LEFT, r.Width() - 20 - ::GetSystemMetrics(SM_CXHSCROLL));
 	pList->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
 	pList->SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-	
+
 	for (int i = SETTINGS_BOOL_COUNT - 1; i > -1; i--) {
 		pList->InsertItem(0, _T(""), 0);
 		pList->SetCheck(0, CONFIG_BOOL[i]);
@@ -331,13 +331,13 @@ void CConfigGeneral::OnLvnItemchangedConfigList(NMHDR *pNMHDR, LRESULT *pResult)
 		&CConfigGeneral::m_bMultiFrameSel,
 		&CConfigGeneral::m_bCheckVersion,
 	};
-	
+
 	if (pNMLV->uChanged & LVIF_STATE) {
 		if (pNMLV->uNewState & LVNI_SELECTED || pNMLV->uNewState & 0x3000) {
 			CString str;
 			str.Format(_T("Description: %s"), CONFIG_DESC[pNMLV->iItem]);
 			SetDlgItemText(IDC_EDIT_CONFIG_DESC, str);
-			
+
 			if (pNMLV->iItem >= 0 && pNMLV->iItem < SETTINGS_BOOL_COUNT)
 				pList->SetItemState(pNMLV->iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 		}

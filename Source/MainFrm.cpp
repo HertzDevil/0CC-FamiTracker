@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -114,8 +114,8 @@ IMPLEMENT_DYNCREATE(CMainFrame, CFrameWnd)
 
 // CMainFrame construction/destruction
 
-CMainFrame::CMainFrame() : 
-	m_pVisualizerWnd(NULL), 
+CMainFrame::CMainFrame() :
+	m_pVisualizerWnd(NULL),
 	m_pFrameEditor(NULL),
 	m_pGrooveDlg(NULL),			// // //
 	m_pFindDlg(NULL),			// // //
@@ -447,7 +447,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	EnableDocking(CBRS_ALIGN_ANY);
 	DockControlBar(&m_wndToolBar);
 	*/
-	
+
 	if (!CreateVisualizerWindow()) {
 		TRACE("Failed to create sample window\n");
 		return -1;      // fail to create
@@ -543,8 +543,8 @@ bool CMainFrame::CreateToolbars()
 	m_wndToolBarReBar.GetReBarCtrl().MinimizeBand(0);
 
 	HBITMAP hbm = (HBITMAP)::LoadImage(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_TOOLBAR_256), IMAGE_BITMAP, DPI::SX(352), DPI::SY(16), LR_CREATEDIBSECTION);
-	m_bmToolbar.Attach(hbm); 
-	
+	m_bmToolbar.Attach(hbm);
+
 	m_ilToolBar.Create(DPI::SX(16), DPI::SY(16), ILC_COLOR8 | ILC_MASK, 4, 4);
 	m_ilToolBar.Add(&m_bmToolbar, RGB(192, 192, 192));
 	m_wndToolBar.GetToolBarCtrl().SetImageList(&m_ilToolBar);
@@ -586,7 +586,7 @@ bool CMainFrame::CreateDialogPanels()
 		TRACE("Failed to create pattern window\n");
 		return false;
 	}
-	
+
 	// // // Find / replace panel
 	m_pFindDlg = new CFindDlg();
 	if (!m_wndFindControlBar.Create(this, IDD_MAINBAR, CBRS_RIGHT | CBRS_TOOLTIPS | CBRS_FLYBY, IDD_MAINBAR)) {
@@ -606,7 +606,7 @@ bool CMainFrame::CreateDialogPanels()
 		TRACE("Failed to create dialog bar\n");
 		return false;
 	}
-	
+
 	m_wndDialogBar.ShowWindow(SW_SHOW);
 
 	// Subclass edit boxes
@@ -631,7 +631,7 @@ bool CMainFrame::CreateDialogPanels()
 	m_pButtonFixTempo->SubclassDlgItem(IDC_BUTTON_FIXTEMPO, &m_wndDialogBar);		// // //
 
 	// Subclass and setup the instrument list
-	
+
 	m_pInstrumentList = new CInstrumentList(this);
 	m_pInstrumentList->SubclassDlgItem(IDC_INSTRUMENTS, &m_wndDialogBar);
 
@@ -684,7 +684,7 @@ bool CMainFrame::CreateDialogPanels()
 	if (!m_wndFrameBar.Create(this, IDD_FRAMEBAR, CBRS_LEFT | CBRS_TOOLTIPS | CBRS_FLYBY, IDD_FRAMEBAR)) {
 		TRACE("Failed to create frame bar\n");
 	}
-	
+
 	m_wndFrameBar.ShowWindow(SW_SHOW);
 */
 
@@ -705,7 +705,7 @@ bool CMainFrame::CreateVisualizerWindow()
 
 	// Assign this to the sound generator
 	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
-	
+
 	if (pSoundGen)
 		pSoundGen->SetVisualizerWindow(m_pVisualizerWnd);
 
@@ -812,7 +812,7 @@ void CMainFrame::ResizeFrameWindow()
 	CRect ParentRect;
 	m_wndControlBar.GetClientRect(&ParentRect);
 	m_wndDialogBar.MoveWindow(DialogStartPos, DPI::SY(2), ParentRect.Width() - DialogStartPos, ParentRect.Height() - DPI::SY(4));		// // //
-	
+
 	CRect ControlRect;		// // //
 	m_wndDialogBar.GetDlgItem(IDC_MAINFRAME_INST_TOOLBAR)->GetWindowRect(&ControlRect);
 	GetDesktopWindow()->MapWindowPoints(&m_wndDialogBar, ControlRect);
@@ -1048,7 +1048,7 @@ void CMainFrame::SelectInstrument(int Index)
 	// This might get called with non-existing instruments, in that case
 	// set that instrument and clear the selection in the instrument list
 	//
-	
+
 	if (Index == INVALID_INSTRUMENT)
 		return;
 
@@ -1268,10 +1268,10 @@ void CMainFrame::OnRemoveInstrument()
 	}
 }
 
-void CMainFrame::OnCloneInstrument() 
+void CMainFrame::OnCloneInstrument()
 {
 	CFamiTrackerDoc &Doc = GetDoc();
-	
+
 	// No instruments in list
 	if (m_pInstrumentList->GetItemCount() == 0)
 		return;
@@ -1290,7 +1290,7 @@ void CMainFrame::OnCloneInstrument()
 void CMainFrame::OnDeepCloneInstrument()
 {
 	CFamiTrackerDoc &Doc = GetDoc();
-	
+
 	// No instruments in list
 	if (m_pInstrumentList->GetItemCount() == 0)
 		return;
@@ -1615,7 +1615,7 @@ void CMainFrame::OnUpdateSBInstrument(CCmdUI *pCmdUI)
 		String = conv::from_int_hex(Split, 2) + " / " + String;
 	CString msg;
 	AfxFormatString1(msg, ID_INDICATOR_INSTRUMENT, String.c_str());
-	pCmdUI->Enable(); 
+	pCmdUI->Enable();
 	pCmdUI->SetText(msg);
 }
 
@@ -1623,7 +1623,7 @@ void CMainFrame::OnUpdateSBOctave(CCmdUI *pCmdUI)
 {
 	CString String;
 	AfxFormatString1(String, ID_INDICATOR_OCTAVE, MakeIntString(GetSelectedOctave()));		// // //
-	pCmdUI->Enable(); 
+	pCmdUI->Enable();
 	pCmdUI->SetText(String);
 }
 
@@ -1639,7 +1639,7 @@ void CMainFrame::OnUpdateSBFrequency(CCmdUI *pCmdUI)
 
 	String.Format(_T("%i Hz"), EngineSpeed);
 
-	pCmdUI->Enable(); 
+	pCmdUI->Enable();
 	pCmdUI->SetText(String);
 }
 
@@ -1659,7 +1659,7 @@ void CMainFrame::OnUpdateSBTempo(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 {
 	CString String;
-	
+
 	int Chip = GetDoc().GetExpansionChip();
 
 	if (!Chip)		// // //
@@ -1709,7 +1709,7 @@ void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 		String.Delete(0, 3);
 	}
 
-	pCmdUI->Enable(); 
+	pCmdUI->Enable();
 	pCmdUI->SetText(String);
 }
 
@@ -1838,7 +1838,7 @@ void CMainFrame::OnUpdateSpeedEdit(CCmdUI *pCmdUI)
 		else {
 			pCmdUI->SetText(MakeIntString(GetDoc().GetSongSpeed(m_iTrack)));
 		}
-	}	
+	}
 }
 
 void CMainFrame::OnUpdateTempoEdit(CCmdUI *pCmdUI)
@@ -1926,7 +1926,7 @@ void CMainFrame::OnFileGeneralsettings()
 	TabSound.m_psp.dwFlags		&= ~PSP_HASHELP;
 	TabShortcuts.m_psp.dwFlags	&= ~PSP_HASHELP;
 	TabMixer.m_psp.dwFlags		&= ~PSP_HASHELP;
-	
+
 	ConfigWindow.AddPage(&TabGeneral);
 	ConfigWindow.AddPage(&TabVersion);
 	ConfigWindow.AddPage(&TabAppearance);
@@ -2045,7 +2045,7 @@ void CMainFrame::OnUpdateKeyRepeat(CCmdUI *pCmdUI)
 
 void CMainFrame::OnFileImportText()
 {
-	CString fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, _T(".txt"));		
+	CString fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, _T(".txt"));
 	CFileDialog FileDialog(TRUE, 0, 0, OFN_HIDEREADONLY, fileFilter);
 
 	if (GetActiveDocument()->SaveModified() == 0)
@@ -2055,7 +2055,7 @@ void CMainFrame::OnFileImportText()
 		return;
 
 	CFamiTrackerDoc &Doc = GetDoc();
-	
+
 	try {
 		CTextExport { }.ImportFile(FileDialog.GetPathName(), Doc);
 	}
@@ -2079,7 +2079,7 @@ void CMainFrame::OnFileExportText()
 	SetMessageText(IDS_DISABLE_SAVE);
 	return;
 #endif
-	
+
 	CFamiTrackerDoc &Doc = GetDoc();
 	CString	DefFileName = Doc.GetFileTitle();
 
@@ -2572,7 +2572,7 @@ void CMainFrame::OnDestroy()
 	TRACE("FrameWnd: Destroying main frame window\n");
 
 	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
-	
+
 	KillTimer(TMR_AUDIO_CHECK);
 
 	// Clean up sound stuff
@@ -2604,7 +2604,7 @@ void CMainFrame::SelectTrack(unsigned int Track)
 
 	CComboBox *pTrackBox = static_cast<CComboBox*>(m_wndDialogBar.GetDlgItem(IDC_SUBTUNE));
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
-	
+
 	m_iTrack = Track;
 
 	if (theApp.IsPlaying() && Track != theApp.GetSoundGenerator()->GetPlayerTrack())		// // // 050B
@@ -2640,7 +2640,7 @@ void CMainFrame::SelectOctave(int Octave)		// // // 050B
 BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
 	LPNMTOOLBAR lpnmtb = (LPNMTOOLBAR) lParam;
-	
+
 	// Handle new instrument menu
 	switch (((LPNMHDR)lParam)->code) {
 		case TBN_DROPDOWN:
@@ -2664,10 +2664,10 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 
 	CMenu menu;
 	menu.CreatePopupMenu();
-	
+
 	const CFamiTrackerDoc &Doc = GetDoc();
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
-	
+
 	int Chip = Doc.GetExpansionChip();
 	int SelectedChip = Doc.GetChipType(pView->GetSelectedChannel());		// // // where the cursor is located
 
@@ -2709,7 +2709,7 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 			menu.SetDefaultItem(ID_INSTRUMENT_ADD_S5B);
 			break;
 	}
-	
+
 	menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, rect.left, rect.bottom, this);
 }
 
@@ -2739,11 +2739,9 @@ void CMainFrame::OnLoadInstrumentMenu(NMHDR * pNotifyStruct, LRESULT * result)
 	}
 	else if (retValue >= CInstrumentFileTree::MENU_BASE + 2) {
 		// A file
-		int Index = GetDoc().LoadInstrument(m_pInstrumentFileTree->GetFile(retValue));
-
+		int Index = LoadInstrument(m_pInstrumentFileTree->GetFile(retValue));		// // //
 		if (Index == -1)
 			return;
-		
 		SelectInstrument(Index);
 		m_pInstrumentList->InsertInstrument(Index);
 	}
@@ -2751,7 +2749,7 @@ void CMainFrame::OnLoadInstrumentMenu(NMHDR * pNotifyStruct, LRESULT * result)
 
 void CMainFrame::SelectInstrumentFolder()
 {
-	BROWSEINFOA Browse;	
+	BROWSEINFOA Browse;
 	LPITEMIDLIST lpID;
 	char Path[MAX_PATH];
 	CString Title;
@@ -3117,7 +3115,7 @@ void CMainFrame::OnEditClearPatterns()
 void CMainFrame::OnEditRemoveUnusedInstruments()
 {
 	// Removes unused instruments in the module
-	
+
 	CFamiTrackerDoc &Doc = GetDoc();
 
 	if (AfxMessageBox(IDS_REMOVE_INSTRUMENTS, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
@@ -3135,7 +3133,7 @@ void CMainFrame::OnEditRemoveUnusedInstruments()
 void CMainFrame::OnEditRemoveUnusedPatterns()
 {
 	// Removes unused patterns in the module
-	
+
 	CFamiTrackerDoc &Doc = GetDoc();
 
 	if (AfxMessageBox(IDS_REMOVE_PATTERNS, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
@@ -3252,10 +3250,10 @@ void CMainFrame::OnToggleSpeed()
 {
 	CFamiTrackerDoc &Doc = GetDoc();
 	int Speed = Doc.GetSpeedSplitPoint();
-	
+
 	if (Speed == CFamiTrackerDoc::DEFAULT_SPEED_SPLIT_POINT)		// // //
 		Speed = CFamiTrackerDoc::OLD_SPEED_SPLIT_POINT;
-	else 
+	else
 		Speed = CFamiTrackerDoc::DEFAULT_SPEED_SPLIT_POINT;
 
 	Doc.SetSpeedSplitPoint(Speed);
@@ -3269,7 +3267,7 @@ void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
 	CFamiTrackerDoc &Doc = GetDoc();
 
 	CString title = Doc.GetTitle();
-	
+
 	// Add a star (*) for unsaved documents
 	if (Doc.IsModified())
 		title.Append(_T("*"));
@@ -3303,7 +3301,7 @@ void CMainFrame::CheckAudioStatus()
 	// TODO remove static variables
 	static BOOL DisplayedError;
 	static DWORD MessageTimeout;
-	
+
 	if (!theApp.GetSoundGenerator()) {
 		// Should really never be displayed (only during debugging)
 		SetMessageText(_T("Audio is not working"));
@@ -3510,7 +3508,7 @@ void CMainFrame::OnEditRemoveUnusedSamples()
 
 	if (AfxMessageBox(IDS_REMOVE_SAMPLES, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
 		return;
-	
+
 	CloseInstrumentEditor();
 	Doc.RemoveUnusedSamples();
 	Doc.ModifyIrreversible();		// // //

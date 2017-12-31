@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -36,7 +36,7 @@
 
 /*
 
- Pattern byte layout: 
+ Pattern byte layout:
 
  00h - 7Fh : Notes, where 00h = rest, 7Fh = Note cut
  80h - DFh : Commands, defined in the command table
@@ -152,7 +152,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 		unsigned char Octave = ChanNote.Octave;
 		unsigned char Instrument = FindInstrument(ChanNote.Instrument);
 		unsigned char Volume = ChanNote.Vol;
-		
+
 		bool Action = false;
 
 		const auto &TrackerChannel = m_pDocument->GetChannel(Channel);		// // //
@@ -216,7 +216,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 				WriteData(Command(CMD_RESET_DURATION));
 			}
 		}
-		
+
 #endif /* OPTIMIZE_DURATIONS */
 /*
 		if (SpaceInfo.SpaceCount > 2 && SpaceInfo.SpaceSize != CurrentDefaultDuration) {
@@ -226,7 +226,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 		}
 		else if (SpaceInfo.SpaceCount < 2 && SpaceInfo.SpaceSize == CurrentDefaultDuration) {
 		}
-		else 
+		else
 */
 		if (Note != HALT && Note != RELEASE) {		// // //
 			if (Instrument != LastInstrument && Instrument < MAX_INSTRUMENTS) {
@@ -310,7 +310,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 
 			unsigned char Effect   = ChanNote.EffNumber[j];
 			unsigned char EffParam = ChanNote.EffParam[j];
-			
+
 			if (Effect > 0) {
 				WriteDuration();
 				Action = true;
@@ -634,7 +634,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 			WriteDuration();
 			WriteData(0xF0 | Volume);
 			Action = true;			// Terminate command
-		} 
+		}
 
 		if (NESNote == 0xFF) {
 			if (Action) {
@@ -904,7 +904,7 @@ void CPatternCompiler::OptimizeString()
 			i += size;
 		}
 	}
-}	
+}
 
 unsigned int CPatternCompiler::GetHash() const
 {

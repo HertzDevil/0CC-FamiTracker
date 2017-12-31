@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -32,8 +32,8 @@
 #include "ControlPanelDlg.h"
 #include <memory>		// // //
 
-enum frame_edit_pos_t { 
-	FRAME_EDIT_POS_TOP, 
+enum frame_edit_pos_t {
+	FRAME_EDIT_POS_TOP,
 	FRAME_EDIT_POS_LEFT
 };
 
@@ -80,7 +80,7 @@ public:
 // Operations
 public:
 	void	ChangeNoteState(int Note);
-	
+
 	// Indicators & controls
 	void	SetIndicatorTime(int Min, int Sec, int MSec);
 	void	SetIndicatorPos(int Frame, int Row);
@@ -120,7 +120,7 @@ public:
 	void	ResetUndo();
 
 	bool	ChangeAllPatterns() const;
-	
+
 	void	CloseGrooveSettings();		// // //
 	void	CloseBookmarkSettings();		// // //
 	void	UpdateBookmarkList(int Pos = -1);		// // //

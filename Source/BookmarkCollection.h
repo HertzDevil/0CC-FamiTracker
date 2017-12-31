@@ -9,11 +9,11 @@
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -36,7 +36,7 @@ class CBookmarkCollection
 public:
 	/*!	\brief Constructor of the bookmark collection. */
 	CBookmarkCollection();
-	
+
 	/*!	\brief Gets the number of bookmarks in the collection.
 		\return The number of bookmarks stored.
 	*/
@@ -81,7 +81,7 @@ public:
 		\return Whether the position of any bookmark is changed.
 	*/
 	bool SwapBookmarks(unsigned A, unsigned B);
-	
+
 	/*!	\brief Inserts frames into the current track, shifting the positions of all bookmarks below.
 		\details This method does not perform validation on the frame values.
 		\param Frame The frame index.
@@ -100,7 +100,7 @@ public:
 		\param B Frame index.
 	*/
 	void SwapFrames(unsigned A, unsigned B);
-	
+
 	/*!	\brief Locates a bookmark in the collection.
 		\param pMark Pointer to the bookmark.
 		\return The bookmark index, or -1 if the bookmark is not contained by the collection.
