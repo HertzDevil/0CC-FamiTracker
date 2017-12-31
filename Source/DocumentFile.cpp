@@ -41,18 +41,6 @@ const unsigned int CDocumentFile::BLOCK_SIZE = 0x10000;
 
 // CDocumentFile
 
-CDocumentFile::CDocumentFile() : 
-	m_pBlockData(NULL),
-	m_cBlockID(new char[16])
-{
-}
-
-CDocumentFile::~CDocumentFile()
-{
-	SAFE_RELEASE_ARRAY(m_pBlockData);
-	SAFE_RELEASE_ARRAY(m_cBlockID);
-}
-
 bool CDocumentFile::Finished() const
 {
 	return m_bFileDone;
@@ -87,8 +75,8 @@ bool CDocumentFile::EndDocument()
 
 void CDocumentFile::CreateBlock(const char *ID, int Version)
 {
-	memset(m_cBlockID, 0, 16);
-	strcpy(m_cBlockID, ID);
+	ASSERT(strlen(ID) < BLOCK_HEADER_SIZE);		// // //
+	strncpy_s(m_cBlockID, ID, BLOCK_HEADER_SIZE);
 
 	m_iBlockPointer = 0;
 	m_iBlockSize	= 0;
@@ -96,25 +84,19 @@ void CDocumentFile::CreateBlock(const char *ID, int Version)
 
 	m_iMaxBlockSize = BLOCK_SIZE;
 
-	m_pBlockData = new char[m_iMaxBlockSize];
-
-	ASSERT(m_pBlockData != NULL);
+	m_pBlockData = std::vector<char>(m_iMaxBlockSize);		// // //
 }
 
 void CDocumentFile::ReallocateBlock()
 {
 	int OldSize = m_iMaxBlockSize;
 	m_iMaxBlockSize += BLOCK_SIZE;
-	char *pData = new char[m_iMaxBlockSize];
-	ASSERT(pData != NULL);
-	memcpy(pData, m_pBlockData, OldSize);
-	SAFE_RELEASE_ARRAY(m_pBlockData);
-	m_pBlockData = pData;
+	m_pBlockData.resize(m_iMaxBlockSize);		// // //
 }
 
 void CDocumentFile::WriteBlock(const char *pData, unsigned int Size)
 {
-	ASSERT(m_pBlockData != NULL);
+	ASSERT(!m_pBlockData.empty());		// // //
 
 	unsigned int WritePtr = 0;
 
@@ -127,7 +109,7 @@ void CDocumentFile::WriteBlock(const char *pData, unsigned int Size)
 		if ((m_iBlockPointer + WriteSize) >= m_iMaxBlockSize)
 			ReallocateBlock();
 
-		memcpy(m_pBlockData + m_iBlockPointer, pData + WritePtr, WriteSize);
+		memcpy(m_pBlockData.data() + m_iBlockPointer, pData + WritePtr, WriteSize);		// // //
 		m_iBlockPointer += WriteSize;
 		Size -= WriteSize;
 		WritePtr += WriteSize;
@@ -163,7 +145,7 @@ void CDocumentFile::WriteString(CString String)
 
 bool CDocumentFile::FlushBlock()
 {
-	if (!m_pBlockData)
+	if (m_pBlockData.empty())
 		return false;
 
 	if (m_iBlockPointer)		// // //
@@ -171,14 +153,14 @@ bool CDocumentFile::FlushBlock()
 			Write(m_cBlockID, 16);
 			Write(&m_iBlockVersion, sizeof(m_iBlockVersion));
 			Write(&m_iBlockPointer, sizeof(m_iBlockPointer));
-			Write(m_pBlockData, m_iBlockPointer);
+			Write(m_pBlockData.data(), m_iBlockPointer);		// // //
 		}
 		catch (CFileException *e) {
 			e->Delete();
 			return false;
 		}
 
-	SAFE_RELEASE_ARRAY(m_pBlockData);
+	m_pBlockData.clear();		// // //
 
 	return true;
 }
@@ -220,13 +202,11 @@ unsigned int CDocumentFile::GetFileVersion() const
 
 bool CDocumentFile::ReadBlock()
 {
-	int BytesRead;
-
 	m_iBlockPointer = 0;
 	
 	memset(m_cBlockID, 0, 16);
 
-	BytesRead = Read(m_cBlockID, 16);
+	int BytesRead = Read(m_cBlockID, 16);
 	Read(&m_iBlockVersion, sizeof(int));
 	Read(&m_iBlockSize, sizeof(int));
 
@@ -236,12 +216,10 @@ bool CDocumentFile::ReadBlock()
 		return true;
 	}
 
-	SAFE_RELEASE_ARRAY(m_pBlockData);
-	m_pBlockData = new char[m_iBlockSize];
+	m_pBlockData = std::vector<char>(m_iBlockSize);		// // //
+	Read(m_pBlockData.data(), m_iBlockSize);
 
-	Read(m_pBlockData, m_iBlockSize);
-
-	if (strcmp(m_cBlockID, FILE_END_ID) == 0)
+	if (strncmp(m_cBlockID, FILE_END_ID, BLOCK_HEADER_SIZE) == 0)		// // //
 		m_bFileDone = true;
 
 	if (BytesRead == 0)
@@ -257,7 +235,7 @@ bool CDocumentFile::ReadBlock()
 	return false;
 }
 
-char *CDocumentFile::GetBlockHeaderID() const
+const char *CDocumentFile::GetBlockHeaderID() const		// // //
 {
 	return m_cBlockID;
 }
@@ -278,7 +256,7 @@ void CDocumentFile::RollbackPointer(int count)
 int CDocumentFile::GetBlockInt()
 {
 	int Value;
-	memcpy(&Value, m_pBlockData + m_iBlockPointer, sizeof(Value));
+	memcpy(&Value, m_pBlockData.data() + m_iBlockPointer, sizeof(Value));		// // //
 	m_iPreviousPointer = m_iBlockPointer;
 	m_iBlockPointer += sizeof(Value);
 	m_iPreviousPosition = m_iFilePosition;		// // //
@@ -289,7 +267,7 @@ int CDocumentFile::GetBlockInt()
 char CDocumentFile::GetBlockChar()
 {
 	char Value;
-	memcpy(&Value, m_pBlockData + m_iBlockPointer, sizeof(Value));
+	memcpy(&Value, m_pBlockData.data() + m_iBlockPointer, sizeof(Value));		// // //
 	m_iPreviousPointer = m_iBlockPointer;
 	m_iBlockPointer += sizeof(Value);
 	m_iPreviousPosition = m_iFilePosition;		// // //
@@ -328,7 +306,7 @@ void CDocumentFile::GetBlock(void *Buffer, int Size)
 	ASSERT(Size < MAX_BLOCK_SIZE);
 	ASSERT(Buffer != NULL);
 
-	memcpy(Buffer, m_pBlockData + m_iBlockPointer, Size);
+	memcpy(Buffer, m_pBlockData.data() + m_iBlockPointer, Size);		// // //
 	m_iPreviousPointer = m_iBlockPointer;
 	m_iBlockPointer += Size;
 	m_iPreviousPosition = m_iFilePosition;		// // //
@@ -365,8 +343,8 @@ CModuleException CDocumentFile::GetException() const		// // //
 void CDocumentFile::SetDefaultFooter(CModuleException &e) const		// // //
 {
 	char Buffer[128] = {};
-	sprintf_s(Buffer, std::size(Buffer), "At address 0x%X in %s block,\naddress 0x%llX in file",
-			  m_iPreviousPointer, m_cBlockID, m_iPreviousPosition);
+	sprintf_s(Buffer, std::size(Buffer), "At address 0x%X in %.*s block,\naddress 0x%llX in file",
+			  m_iPreviousPointer, BLOCK_HEADER_SIZE, m_cBlockID, m_iPreviousPosition);		// // //
 	e.SetFooter(std::string {Buffer});
 }
 

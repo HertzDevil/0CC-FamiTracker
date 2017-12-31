@@ -279,8 +279,6 @@ bool CInstrumentEditorDPCM::LoadSample(const CString &FilePath, const CString &F
 	}
 
 	auto pBuf = std::make_unique<char[]>(Size + AddSize);		// // //
-	auto pNewSample = std::make_shared<CDSample>();
-	pNewSample->SetName(FileName);
 
 	SampleFile.Read(pBuf.get(), Size);
 	// Pad uneven sizes with AAh
@@ -288,7 +286,8 @@ bool CInstrumentEditorDPCM::LoadSample(const CString &FilePath, const CString &F
 
 	SampleFile.Close();
 
-	pNewSample->SetData(Size + AddSize, std::move(pBuf));
+	auto pNewSample = std::make_shared<CDSample>(Size + AddSize, std::move(pBuf));
+	pNewSample->SetName(FileName);
 	if (!InsertSample(std::move(pNewSample)))
 		return false;
 	

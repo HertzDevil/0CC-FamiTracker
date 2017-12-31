@@ -34,23 +34,16 @@ CVisualizerScope::CVisualizerScope(bool bBlur) :
 #ifdef _DEBUG		// // //
 	m_iPeak(0),
 #endif
-	m_pWindowBuf(NULL),
 	m_bBlur(bBlur),
 	m_iWindowBufPtr(0)
 {
-}
-
-CVisualizerScope::~CVisualizerScope()
-{
-	SAFE_RELEASE_ARRAY(m_pWindowBuf);
 }
 
 void CVisualizerScope::Create(int Width, int Height)
 {
 	CVisualizerBase::Create(Width, Height);
 
-	SAFE_RELEASE_ARRAY(m_pWindowBuf);
-	m_pWindowBuf = new short[Width];
+	m_pWindowBuf = std::make_unique<short[]>(Width);		// // //
 	m_iWindowBufPtr = 0;
 }
 

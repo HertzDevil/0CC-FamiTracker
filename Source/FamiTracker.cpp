@@ -383,43 +383,30 @@ bool CFamiTrackerApp::IsThemeActive() const
 	return m_bThemeActive;
 }
 
-bool GetFileVersion(LPCTSTR Filename, WORD &Major, WORD &Minor, WORD &Revision, WORD &Build)
-{
+#ifdef SUPPORT_TRANSLATIONS
+bool GetFileVersion(LPCTSTR Filename, WORD &Major, WORD &Minor, WORD &Revision, WORD &Build) {
 	DWORD Handle;
 	DWORD Size = GetFileVersionInfoSize(Filename, &Handle);
-	bool Success = true;
 
-	Major = 0;
-	Minor = 0;
-	Revision = 0;
-	Build = 0;
+	Major = Minor = Revision = Build = 0;
 
 	if (Size > 0) {
-		TCHAR *pData = new TCHAR[Size];
-		if (GetFileVersionInfo(Filename, NULL, Size, pData) != 0) {
+		if (std::vector<TCHAR> pData(Size); GetFileVersionInfo(Filename, NULL, Size, pData.data()) != 0) {		// // //
 			UINT size;
 			VS_FIXEDFILEINFO *pFileinfo;
-			if (VerQueryValue(pData, _T("\\"), (LPVOID*)&pFileinfo, &size) != 0) {
+			if (VerQueryValue(pData.data(), _T("\\"), (LPVOID*)&pFileinfo, &size) != 0) {
 				Major = pFileinfo->dwProductVersionMS >> 16;
 				Minor = pFileinfo->dwProductVersionMS & 0xFFFF;
 				Revision = pFileinfo->dwProductVersionLS >> 16;
 				Build = pFileinfo->dwProductVersionLS & 0xFFFF;
+				return true;
 			}
-			else
-				Success = false;
 		}
-		else 
-			Success = false;
-
-		SAFE_RELEASE_ARRAY(pData);
 	}
-	else
-		Success = false;
 
-	return Success;
+	return false;
 }
 
-#ifdef SUPPORT_TRANSLATIONS
 void CFamiTrackerApp::LoadLocalization()
 {
 	LPCTSTR DLL_NAME = _T("language.dll");

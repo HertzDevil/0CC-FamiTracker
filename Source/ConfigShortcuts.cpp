@@ -35,15 +35,9 @@ CConfigShortcuts::CConfigShortcuts() :
 	m_bControl(false), 
 	m_bAlt(false), 
 	m_iSelectedItem(0),
-	m_iKeys(new int[CAccelerator::ACCEL_COUNT]),
-	m_iMods(new int[CAccelerator::ACCEL_COUNT])
+	m_iKeys(CAccelerator::ACCEL_COUNT),
+	m_iMods(CAccelerator::ACCEL_COUNT)
 {
-}
-
-CConfigShortcuts::~CConfigShortcuts()
-{
-	SAFE_RELEASE_ARRAY(m_iKeys);
-	SAFE_RELEASE_ARRAY(m_iMods);
 }
 
 void CConfigShortcuts::DoDataExchange(CDataExchange* pDX)

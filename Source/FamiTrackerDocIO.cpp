@@ -948,18 +948,18 @@ void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerDoc &doc, int ver) {
 		unsigned int Index = AssertRange(
 			static_cast<unsigned char>(file_.GetBlockChar()), 0U, CDSampleManager::MAX_DSAMPLES - 1, "DPCM sample index");
 		try {
-			auto pSample = std::make_unique<CDSample>();		// // //
 			unsigned int Len = AssertRange(file_.GetBlockInt(), 0, CDSample::MAX_NAME_SIZE - 1, "DPCM sample name length");
 			char Name[CDSample::MAX_NAME_SIZE] = { };
 			file_.GetBlock(Name, Len);
-			pSample->SetName(Name);
 			int Size = AssertRange(file_.GetBlockInt(), 0, 0x7FFF, "DPCM sample size");
 			AssertFileData<MODULE_ERROR_STRICT>(Size <= 0xFF1 && Size % 0x10 == 1, "Bad DPCM sample size");
 			int TrueSize = Size + ((1 - Size) & 0x0F);		// // //
 			auto pData = std::make_unique<char[]>(TrueSize);
 			file_.GetBlock(pData.get(), Size);
 			memset(pData.get() + Size, 0xAA, TrueSize - Size);
-			pSample->SetData(TrueSize, std::move(pData));
+
+			auto pSample = std::make_unique<CDSample>(TrueSize, std::move(pData));		// // //
+			pSample->SetName(Name);
 			doc.SetSample(Index, std::move(pSample));
 		}
 		catch (CModuleException e) {

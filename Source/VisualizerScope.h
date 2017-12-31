@@ -31,7 +31,6 @@ class CVisualizerScope : public CVisualizerBase
 {
 public:
 	CVisualizerScope(bool bBlur);
-	virtual ~CVisualizerScope();
 
 	void Create(int Width, int Height) override;
 	void SetSampleRate(int SampleRate) override;
@@ -44,7 +43,7 @@ private:
 
 private:
 	int	 m_iWindowBufPtr;
-	short *m_pWindowBuf;
+	std::unique_ptr<short[]> m_pWindowBuf;		// // //
 	bool m_bBlur;
 
 #ifdef _DEBUG

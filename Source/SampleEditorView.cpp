@@ -46,7 +46,6 @@ CSampleEditorView::CSampleEditorView() :
 	m_iSelStart(-1), 
 	m_iSelEnd(-1), 
 	m_iStartCursor(0),
-	m_pSamples(NULL),
 	m_bClicked(false),
 	m_pScrollBar(NULL),
 	m_fZoom(1.0f),
@@ -61,8 +60,6 @@ CSampleEditorView::CSampleEditorView() :
 
 CSampleEditorView::~CSampleEditorView()
 {
-	SAFE_RELEASE_ARRAY(m_pSamples);
-
 	SAFE_RELEASE(m_pSolidPen);
 	SAFE_RELEASE(m_pDashedPen);
 	SAFE_RELEASE(m_pGrayDashedPen);
@@ -315,9 +312,7 @@ void CSampleEditorView::ExpandSample(const CDSample &Sample, int Start)		// // /
 	// Expand DPCM to PCM
 	//
 
-	int Size = Sample.GetSize() * 8;
-
-	SAFE_RELEASE_ARRAY(m_pSamples);
+	m_pSamples.reset();
 
 	if (Sample.GetSize() == 0) {
 		m_iSize = 0;
@@ -326,8 +321,8 @@ void CSampleEditorView::ExpandSample(const CDSample &Sample, int Start)		// // /
 		return;
 	}
 
-	SAFE_RELEASE_ARRAY(m_pSamples);
-	m_pSamples = new int[Size];
+	int Size = Sample.GetSize() * 8;
+	m_pSamples = std::make_unique<int[]>(Size);		// // //
 	m_iSize = Size;
 
 	const char *pData = Sample.GetData();

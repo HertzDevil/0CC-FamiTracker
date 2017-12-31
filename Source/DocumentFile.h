@@ -25,6 +25,7 @@
 
 #include "stdafx.h"
 #include <string>
+#include <vector>		// // //
 
 // CDocumentFile, class for reading/writing document files
 
@@ -33,9 +34,6 @@ class CModuleException;
 class CDocumentFile : public CFile
 {
 public:
-	CDocumentFile();
-	virtual ~CDocumentFile();
-
 	bool		Finished() const;
 
 	// Write functions
@@ -57,7 +55,7 @@ public:
 	void		GetBlock(void *Buffer, int Size);
 	int			GetBlockVersion() const;
 	bool		BlockDone() const;
-	char		*GetBlockHeaderID() const;
+	const char	*GetBlockHeaderID() const;		// // //
 	int			GetBlockInt();
 	char		GetBlockChar();
 
@@ -89,6 +87,7 @@ public:
 
 	static const unsigned int MAX_BLOCK_SIZE;
 	static const unsigned int BLOCK_SIZE;
+	static const unsigned int BLOCK_HEADER_SIZE = 16;		// // //
 
 private:
 	template<class T> void WriteBlockData(T Value);
@@ -101,10 +100,10 @@ protected:
 	bool			m_bFileDone;
 	bool			m_bIncomplete;
 
-	char			*m_cBlockID;
+	char			m_cBlockID[BLOCK_HEADER_SIZE] = { };		// // //
 	unsigned int	m_iBlockSize;
 	unsigned int	m_iBlockVersion;
-	char			*m_pBlockData;
+	std::vector<char> m_pBlockData;		// // //
 
 	unsigned int	m_iMaxBlockSize;
 

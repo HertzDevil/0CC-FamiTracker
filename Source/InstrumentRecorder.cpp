@@ -52,7 +52,6 @@ CInstrumentRecorder::~CInstrumentRecorder()
 	SAFE_RELEASE(*m_pDumpInstrument);
 	for (int i = 0; i < MAX_INSTRUMENTS; i++)
 		SAFE_RELEASE(m_pDumpCache[i]);
-	SAFE_RELEASE_ARRAY(m_iRecordWaveCache);
 }
 
 void CInstrumentRecorder::StartRecording()
@@ -185,7 +184,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 						int Size = 0x100 - (0xFC & REG(0x7C - (ID << 3)));
 						if (Size <= CInstrumentN163::MAX_WAVE_SIZE) {
 							m_iRecordWaveSize = Size;
-							m_iRecordWaveCache = new char[m_iRecordWaveSize * CInstrumentN163::MAX_WAVE_COUNT]();
+							m_iRecordWaveCache = std::make_unique<char[]>(m_iRecordWaveSize * CInstrumentN163::MAX_WAVE_COUNT);
 							m_iRecordWaveCount = 0;
 						}
 					}
@@ -193,22 +192,22 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 						int Count = 0x100 - (0xFC & REG(0x7C - (ID << 3)));
 						if (Count == m_iRecordWaveSize) {
 							int pos = REG(0x7E - (ID << 3));
-							char *Wave = new char[Count];
+							auto Wave = std::make_unique<char[]>(Count);
 							for (int j = 0; j < Count; j++)
 								Wave[j] = 0x0F & REG((pos + j) >> 1) >> ((j & 0x01) ? 4 : 0);
 							for (int j = 1; j <= m_iRecordWaveCount; j++) {
-								if (!memcmp(Wave, m_iRecordWaveCache + j * Count, Count)) {
+								if (!memcmp(Wave.get(), m_iRecordWaveCache.get() + j * Count, Count)) {
 									Val = j; goto outer;
 								}
 							}
 							if (m_iRecordWaveCount < CInstrumentN163::MAX_WAVE_COUNT - 1) {
 								Val = ++m_iRecordWaveCount;
-								memcpy(m_iRecordWaveCache + Val * Count, Wave, Count);
+								memcpy(m_iRecordWaveCache.get() + Val * Count, Wave.get(), Count);
 							}
 							else
 								Val = m_pSequenceCache[i]->GetItem(Pos - 1);
 						outer:
-							SAFE_RELEASE_ARRAY(Wave);
+							;
 						}
 					}
 					break;
@@ -390,10 +389,10 @@ void CInstrumentRecorder::FinalizeRecordInstrument()
 		N163Inst->SetWavePos(pos);
 		N163Inst->SetWaveSize(m_iRecordWaveSize);
 		N163Inst->SetWaveCount(m_iRecordWaveCount + 1);
-		if (m_iRecordWaveCache != NULL) {
+		if (m_iRecordWaveCache) {
 			for (int i = 0; i <= m_iRecordWaveCount; i++) for (int j = 0; j < m_iRecordWaveSize; j++)
 				N163Inst->SetSample(i, j, m_iRecordWaveCache[m_iRecordWaveSize * i + j]);
-			SAFE_RELEASE(m_iRecordWaveCache);
+			m_iRecordWaveCache.reset();
 		}
 		else for (int j = 0; j < m_iRecordWaveSize; j++) // fallback for blank recording
 			N163Inst->SetSample(0, j, 0);

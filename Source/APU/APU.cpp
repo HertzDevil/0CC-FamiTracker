@@ -89,8 +89,6 @@ CAPU::~CAPU()
 
 	SAFE_RELEASE(m_pMixer);
 
-	SAFE_RELEASE(m_pSoundBuffer);
-
 #ifdef LOGGING
 	m_pLog->Close();
 #endif
@@ -136,9 +134,9 @@ void CAPU::EndFrame()
 		Chip->EndFrame();
 
 	int SamplesAvail = m_pMixer->FinishBuffer(m_iFrameCycles);
-	int ReadSamples	= m_pMixer->ReadBuffer(SamplesAvail, m_pSoundBuffer, m_bStereoEnabled);
+	int ReadSamples	= m_pMixer->ReadBuffer(SamplesAvail, m_pSoundBuffer.get(), m_bStereoEnabled);
 	if (m_pParent)		// // //
-		m_pParent->FlushBuffer(m_pSoundBuffer, ReadSamples);
+		m_pParent->FlushBuffer(m_pSoundBuffer.get(), ReadSamples);
 	
 	m_iFrameCycles = 0;
 
@@ -244,11 +242,8 @@ bool CAPU::SetupSound(int SampleRate, int NrChannels, int Machine)		// // //
 
 	m_pMixer->SetClockRate(BaseFreq);
 
-	SAFE_RELEASE_ARRAY(m_pSoundBuffer);
-
-	m_pSoundBuffer = new int16_t[m_iSoundBufferSize << 1];
-
-	if (m_pSoundBuffer == NULL)
+	m_pSoundBuffer = std::make_unique<int16_t[]>(m_iSoundBufferSize << 1);
+	if (!m_pSoundBuffer)
 		return false;
 
 	ChangeMachineRate(Machine, FrameRate);		// // //

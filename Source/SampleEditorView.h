@@ -24,6 +24,7 @@
 #pragma once
 
 #include "stdafx.h"		// // //
+#include <memory>		// // //
 
 class CDSample;		// // //
 
@@ -64,7 +65,7 @@ private:
 private:
 	static const float MAX_FACTOR, MIN_FACTOR;		// // //
 
-	int *m_pSamples;
+	std::unique_ptr<int[]> m_pSamples;		// // //
 
 	int m_iSize;
 	int m_iBlockSize;

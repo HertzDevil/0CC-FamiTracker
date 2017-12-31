@@ -127,7 +127,7 @@ private:
 	uint32_t	m_iSampleSizeShift;					// To convert samples to bytes
 	uint32_t	m_iSoundBufferSize;					// Size of buffer, in samples
 	uint32_t	m_iBufferPointer;					// Fill pos in buffer
-	int16_t		*m_pSoundBuffer;					// Sound transfer buffer
+	std::unique_ptr<int16_t[]> m_pSoundBuffer;			// // // Sound transfer buffer
 
 	uint32_t	m_iFrameCycles;						// Cycles emulated from start of frame
 	uint32_t	m_iSequencerClock;					// Clock for frame sequencer

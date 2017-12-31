@@ -25,6 +25,7 @@
 
 #include "stdafx.h"		// // //
 #include "resource.h"		// // //
+#include <vector>		// // //
 
 // CConfigShortcuts dialog
 
@@ -34,7 +35,6 @@ class CConfigShortcuts : public CPropertyPage
 
 public:
 	CConfigShortcuts();   // standard constructor
-	virtual ~CConfigShortcuts();
 
 // Dialog Data
 	enum { IDD = IDD_CONFIG_SHORTCUTS };
@@ -45,8 +45,8 @@ private:
 	bool m_bControl;
 	bool m_bAlt;
 
-	int *m_iKeys;
-	int *m_iMods;
+	std::vector<int> m_iKeys;		// // //
+	std::vector<int> m_iMods;
 
 protected:
 	void SetupKey(int Key);

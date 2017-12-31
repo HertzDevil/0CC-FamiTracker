@@ -75,7 +75,7 @@ private:
 	CInstrument		*m_pDumpCache[MAX_INSTRUMENTS];
 	std::shared_ptr<CSequence> m_pSequenceCache[SEQ_COUNT] = { };
 	stRecordSetting	m_stRecordSetting;
-	char			*m_iRecordWaveCache;
+	std::unique_ptr<char[]> m_iRecordWaveCache;
 	int				m_iRecordWaveSize;
 	int				m_iRecordWaveCount;
 };

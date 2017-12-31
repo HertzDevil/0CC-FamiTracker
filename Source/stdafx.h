@@ -86,14 +86,6 @@ inline void SAFE_RELEASE(T *&p) {
 	}
 }
 
-template <typename T>
-inline void SAFE_RELEASE_ARRAY(T *&p) {
-	if (p != nullptr) {
-		delete[] p;
-		p = nullptr;
-	}
-}
-
 // Calling member function
 #define CALL_MEMBER_FN(obj, ptr) ((obj)->*(ptr))
 

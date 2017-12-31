@@ -88,21 +88,23 @@ void CWaveEditor::PhaseShift(int x)		// // //
 {
 	const int Length = GetMaxSamples();
 	x %= Length;
-	if (x < 0) x += Length;
-	int *buffer = new int[Length];
-	for (int i = 0; i < Length; i++)
+	if (x < 0)
+		x += Length;
+
+	std::vector<int> buffer(Length);
+	for (int i = 0; i < Length; ++i)
 		buffer[i] = GetSample(i);
-	for (int i = 0; i < Length; i++)
-		SetSample(i, buffer[(i + x) % Length]);
-	SAFE_RELEASE_ARRAY(buffer);
+	std::rotate(buffer.begin(), buffer.begin() + x, buffer.end());
+	for (int i = 0; i < Length; ++i)
+		SetSample(i, buffer[i]);
+
 	Invalidate();
 	RedrawWindow();
 }
 
 void CWaveEditor::Invert(int x)		// // //
 {
-	const int Length = GetMaxSamples();
-	for (int i = GetMaxSamples() - 1; i >= 0; i--)
+	for (int i = GetMaxSamples() - 1; i >= 0; --i)
 		SetSample(i, x - GetSample(i));
 	Invalidate();
 	RedrawWindow();
@@ -332,7 +334,7 @@ void CWaveEditor::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 
 void CWaveEditorFDS::SetInstrument(std::shared_ptr<CInstrumentFDS> pInst)
 {
-	m_pInstrument = pInst;
+	m_pInstrument = std::move(pInst);
 	WaveChanged();
 }
 
@@ -363,7 +365,7 @@ void CWaveEditorFDS::DrawRect(CDC *pDC, int x, int y, int sx, int sy) const
 
 void CWaveEditorN163::SetInstrument(std::shared_ptr<CInstrumentN163> pInst)
 {
-	m_pInstrument = pInst;
+	m_pInstrument = std::move(pInst);
 	WaveChanged();
 }
 
