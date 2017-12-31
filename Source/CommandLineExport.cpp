@@ -97,7 +97,7 @@ void CCommandLineExport::CommandLineExport(const CString& fileIn, const CString&
 	// export
 	if      (0 == ext.CompareNoCase(_T(".nsf")))
 	{
-		CCompiler compiler(pExportDoc, bLog ? new CCommandLineLog(&fLog) : NULL);
+		CCompiler compiler(*pExportDoc, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
 		compiler.ExportNSF(fileOut, pExportDoc->GetMachine() );
 		if (bLog)
 		{
@@ -107,7 +107,7 @@ void CCommandLineExport::CommandLineExport(const CString& fileIn, const CString&
 	}
 	else if (0 == ext.CompareNoCase(_T(".nes")))
 	{
-		CCompiler compiler(pExportDoc, bLog ? new CCommandLineLog(&fLog) : NULL);
+		CCompiler compiler(*pExportDoc, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
 		compiler.ExportNES(fileOut, pExportDoc->GetMachine() == PAL);
 		if (bLog)
 		{
@@ -118,7 +118,7 @@ void CCommandLineExport::CommandLineExport(const CString& fileIn, const CString&
 	// BIN export requires two files
 	else if (0 == ext.CompareNoCase(_T(".bin")))
 	{
-		CCompiler compiler(pExportDoc, bLog ? new CCommandLineLog(&fLog) : NULL);
+		CCompiler compiler(*pExportDoc, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
 		compiler.ExportBIN(fileOut, fileDPCM);
 		if (bLog)
 		{
@@ -128,7 +128,7 @@ void CCommandLineExport::CommandLineExport(const CString& fileIn, const CString&
 	}
 	else if (0 == ext.CompareNoCase(_T(".prg")))
 	{
-		CCompiler compiler(pExportDoc, bLog ? new CCommandLineLog(&fLog) : NULL);
+		CCompiler compiler(*pExportDoc, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
 		compiler.ExportPRG(fileOut, pExportDoc->GetMachine() == PAL);
 		if (bLog)
 		{
@@ -138,7 +138,7 @@ void CCommandLineExport::CommandLineExport(const CString& fileIn, const CString&
 	}
 	else if (0 == ext.CompareNoCase(_T(".asm")))
 	{
-		CCompiler compiler(pExportDoc, bLog ? new CCommandLineLog(&fLog) : NULL);
+		CCompiler compiler(*pExportDoc, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
 		compiler.ExportASM(fileOut);
 		if (bLog)
 		{
@@ -148,7 +148,7 @@ void CCommandLineExport::CommandLineExport(const CString& fileIn, const CString&
 	}
 	else if (0 == ext.CompareNoCase(_T(".nsfe")))		// // //
 	{
-		CCompiler compiler(pExportDoc, bLog ? new CCommandLineLog(&fLog) : NULL);
+		CCompiler compiler(*pExportDoc, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
 		compiler.ExportNSFE(fileOut, pExportDoc->GetMachine());
 		if (bLog)
 		{

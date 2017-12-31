@@ -26,6 +26,7 @@
 #include "stdafx.h"		// // //
 #include <vector>		// // //
 #include "FamiTrackerTypes.h"		// // //
+#include <memory>		// // //
 
 class CFamiTrackerDoc;
 class CCompilerLog;
@@ -35,7 +36,7 @@ typedef unsigned char DPCM_List_t[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE];
 class CPatternCompiler
 {
 public:
-	CPatternCompiler(const CFamiTrackerDoc *pDoc, unsigned int *pInstList, DPCM_List_t *pDPCMList, CCompilerLog *pLogger);		// // //
+	CPatternCompiler(const CFamiTrackerDoc &Doc, unsigned int *pInstList, DPCM_List_t *pDPCMList, std::shared_ptr<CCompilerLog> pLogger);		// // //
 	~CPatternCompiler();
 
 	void			CompileData(int Track, int Pattern, int Channel);
@@ -84,5 +85,5 @@ private:
 	DPCM_List_t		*m_pDPCMList;
 
 	const CFamiTrackerDoc *m_pDocument = nullptr;		// // //
-	CCompilerLog	*m_pLogger;
+	std::shared_ptr<CCompilerLog> m_pLogger;		// // //
 };

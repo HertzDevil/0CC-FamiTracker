@@ -189,7 +189,7 @@ void CExportDialog::CreateNSF()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 	CString	DefFileName = pDoc->GetFileTitle();
-	CCompiler Compiler(pDoc, new CEditLog(GetDlgItem(IDC_OUTPUT)));
+	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 	CString Name, Artist, Copyright;
 	CString filter = LoadDefaultFilter(NSF_FILTER[0], NSF_FILTER[1]);
 	int MachineType = 0;
@@ -231,7 +231,7 @@ void CExportDialog::CreateNSFe()		// // //
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 	CString	DefFileName = pDoc->GetFileTitle();
-	CCompiler Compiler(pDoc, new CEditLog(GetDlgItem(IDC_OUTPUT)));
+	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 	CString Name, Artist, Copyright;
 	CString filter = LoadDefaultFilter(NSFE_FILTER[0], NSFE_FILTER[1]);
 	int MachineType = 0;
@@ -273,7 +273,7 @@ void CExportDialog::CreateNES()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 	CString	DefFileName = pDoc->GetFileTitle();
-	CCompiler Compiler(pDoc, new CEditLog(GetDlgItem(IDC_OUTPUT)));
+	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 	CString filter = LoadDefaultFilter(NES_FILTER[0], NES_FILTER[1]);
 
 	CFileDialog FileDialog(FALSE, NES_FILTER[1], DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
@@ -294,7 +294,7 @@ void CExportDialog::CreateNES()
 void CExportDialog::CreateBIN()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	CCompiler Compiler(pDoc, new CEditLog(GetDlgItem(IDC_OUTPUT)));
+	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 	CString MusicFilter = LoadDefaultFilter(RAW_FILTER[0], RAW_FILTER[1]);
 	CString DPCMFilter = LoadDefaultFilter(DPCMS_FILTER[0], DPCMS_FILTER[1]);
 
@@ -338,7 +338,7 @@ void CExportDialog::CreateBIN()
 void CExportDialog::CreatePRG()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	CCompiler Compiler(pDoc, new CEditLog(GetDlgItem(IDC_OUTPUT)));
+	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 	CString Filter = LoadDefaultFilter(PRG_FILTER[0], PRG_FILTER[1]);
 
 	CFileDialog FileDialog(FALSE, PRG_FILTER[1], _T("music.prg"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, Filter);
@@ -360,7 +360,7 @@ void CExportDialog::CreateASM()
 {
 	// Currently not included
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	CCompiler Compiler(pDoc, new CEditLog(GetDlgItem(IDC_OUTPUT)));
+	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 
 	CString Filter = LoadDefaultFilter(ASM_FILTER[0], ASM_FILTER[1]);
 	CFileDialog FileDialogMusic(FALSE, ASM_FILTER[1], _T("music.asm"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, Filter);
@@ -388,7 +388,7 @@ void CExportDialog::OnBnClickedPlay()
 	const char *file = "d:\\test.nsf";		// // //
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	CCompiler Compiler(pDoc, new CEditLog(static_cast<CEdit*>(GetDlgItem(IDC_OUTPUT))));
+	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 
 	Compiler.ExportNSF(file, (IsDlgButtonChecked(IDC_PAL) != 0));
 

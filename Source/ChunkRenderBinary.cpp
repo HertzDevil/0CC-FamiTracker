@@ -119,7 +119,7 @@ CChunkRenderNSF::CChunkRenderNSF(CFile *pFile, unsigned int StartAddr) :
 {
 }
 
-void CChunkRenderNSF::StoreDriver(const char *pDriver, unsigned int Size)
+void CChunkRenderNSF::StoreDriver(const unsigned char *pDriver, unsigned int Size)		// // //
 {
 	// Store NSF driver
 	Store(pDriver, Size);

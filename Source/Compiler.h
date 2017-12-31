@@ -83,7 +83,7 @@ class CInstrumentFDS;		// // //
 class CCompilerLog
 {
 public:
-	virtual ~CCompilerLog() {}
+	virtual ~CCompilerLog() noexcept = default;
 	virtual void WriteLog(LPCTSTR text) = 0;
 	virtual void Clear() = 0;
 };
@@ -94,9 +94,9 @@ public:
 class CCompiler
 {
 public:
-	CCompiler(CFamiTrackerDoc *pDoc, CCompilerLog *pLogger);
+	CCompiler(const CFamiTrackerDoc &Doc, std::shared_ptr<CCompilerLog> pLogger);		// // //
 	~CCompiler();
-	
+
 	void	ExportNSF(LPCTSTR lpszFileName, int MachineType);
 	void	ExportNSFE(LPCTSTR lpszFileName, int MachineType);		// // //
 	void	ExportNES(LPCTSTR lpszFileName, bool EnablePAL);
@@ -105,19 +105,21 @@ public:
 	void	ExportASM(LPCTSTR lpszFileName);
 
 private:
+	void	ExportNSF_NSFE(LPCTSTR lpszFileName, int MachineType, bool isNSFE);		// // //
+	void	ExportNES_PRG(LPCTSTR lpszFileName, bool EnablePAL, bool isPRG);		// // //
+	void	ExportBIN_ASM(LPCTSTR lpszFileName, LPCTSTR lpszDPCM_File, bool isASM);		// // //
+
 	bool	OpenFile(LPCTSTR lpszFileName, CFile &file) const;
 
 	stNSFHeader CreateHeader(int MachineType) const;		// // //
 	stNSFeHeader CreateNSFeHeader(int MachineType);		// // //
-	void	SetDriverSongAddress(char *pDriver, unsigned short Address) const;
+	void	SetDriverSongAddress(unsigned char *pDriver, unsigned short Address) const;		// // //
 #if 0
 	void	WriteChannelMap();
 	void	WriteChannelTypes();
 #endif
 
-	void	PatchVibratoTable(char *pDriver) const;
-
-	char*	LoadDriver(const driver_t *pDriver, unsigned short Origin) const;
+	std::unique_ptr<unsigned char[]> LoadDriver(const driver_t &Driver, unsigned short Origin) const;		// // //
 
 	// Compiler
 	bool	CompileData();
@@ -127,7 +129,6 @@ private:
 	bool	CollectLabelsBankswitched(std::map<stChunkLabel, int> &labelMap);
 	void	AssignLabels(std::map<stChunkLabel, int> &labelMap);
 	void	AddBankswitching();
-	void	Cleanup();
 
 	void	ScanSong();
 	int		GetSampleIndex(int SampleNumber);
@@ -154,11 +155,6 @@ private:
 
 	// FDS
 	void	AddWavetable(CInstrumentFDS *pInstrument, CChunk *pChunk);
-
-	// File writing
-	void	WriteAssembly(CFile *pFile);
-	void	WriteBinary(CFile *pFile);
-	void	WriteSamplesBinary(CFile *pFile);
 
 	// Object list functions
 	CChunk	&CreateChunk(const stChunkLabel &Label);		// // //
@@ -271,7 +267,7 @@ private:
 	std::map<stChunkLabel, stChunkLabel> m_DuplicateMap;		// // //
 
 	// Debugging
-	CCompilerLog	*m_pLogger;
+	std::shared_ptr<CCompilerLog> m_pLogger;		// // //
 
 	// Diagnostics
 	unsigned int	m_iHashCollisions;

@@ -70,7 +70,7 @@ class CChunkRenderNSF : public CBinaryFileWriter
 public:
 	CChunkRenderNSF(CFile *pFile, unsigned int StartAddr);
 
-	void StoreDriver(const char *pDriver, unsigned int Size);
+	void StoreDriver(const unsigned char *pDriver, unsigned int Size);		// // //
 	void StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks);		// // //
 	void StoreChunksBankswitched(const std::vector<std::shared_ptr<CChunk>> &Chunks);
 	void StoreSamples(const std::vector<std::shared_ptr<const CDSample>> &Samples);
