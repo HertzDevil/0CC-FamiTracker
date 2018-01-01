@@ -225,10 +225,10 @@ protected:
 	CFamiTrackerDoc *m_pDocument;
 	CFamiTrackerView *m_pView;
 
-	CEdit *m_cFindNoteField, *m_cFindInstField, *m_cFindVolField, *m_cFindEffField;
-	CEdit *m_cFindNoteField2, *m_cFindInstField2, *m_cFindVolField2;
-	CEdit *m_cReplaceNoteField, *m_cReplaceInstField, *m_cReplaceVolField, *m_cReplaceEffField;
-	CComboBox *m_cSearchArea, *m_cEffectColumn;
+	CEdit m_cFindNoteField, m_cFindInstField, m_cFindVolField, m_cFindEffField;
+	CEdit m_cFindNoteField2, m_cFindInstField2, m_cFindVolField2;
+	CEdit m_cReplaceNoteField, m_cReplaceInstField, m_cReplaceVolField, m_cReplaceEffField;
+	CComboBox m_cSearchArea, m_cEffectColumn;
 
 	searchTerm m_searchTerm;
 	replaceTerm m_replaceTerm;

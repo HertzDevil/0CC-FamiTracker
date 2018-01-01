@@ -554,20 +554,6 @@ CFindDlg::CFindDlg(CWnd* pParent /*=NULL*/) : CDialog(CFindDlg::IDD, pParent),
 
 CFindDlg::~CFindDlg()
 {
-	SAFE_RELEASE(m_cFindNoteField);
-	SAFE_RELEASE(m_cFindNoteField2);
-	SAFE_RELEASE(m_cFindInstField);
-	SAFE_RELEASE(m_cFindInstField2);
-	SAFE_RELEASE(m_cFindVolField);
-	SAFE_RELEASE(m_cFindVolField2);
-	SAFE_RELEASE(m_cFindEffField);
-	SAFE_RELEASE(m_cReplaceNoteField);
-	SAFE_RELEASE(m_cReplaceInstField);
-	SAFE_RELEASE(m_cReplaceVolField);
-	SAFE_RELEASE(m_cReplaceEffField);
-
-	SAFE_RELEASE(m_cSearchArea);
-	SAFE_RELEASE(m_cEffectColumn);
 	SAFE_RELEASE(m_pFindCursor);
 	SAFE_RELEASE(m_cResultsBox);
 }
@@ -609,65 +595,50 @@ BOOL CFindDlg::OnInitDialog()
 	m_cResultsBox = new CFindResultsBox(this);
 	m_cResultsBox->Create(IDD_FINDRESULTS, this);
 
-	m_cFindNoteField     = new CEdit();
-	m_cFindNoteField2    = new CEdit();
-	m_cFindInstField     = new CEdit();
-	m_cFindInstField2    = new CEdit();
-	m_cFindVolField      = new CEdit();
-	m_cFindVolField2     = new CEdit();
-	m_cFindEffField      = new CEdit();
-	m_cReplaceNoteField  = new CEdit();
-	m_cReplaceInstField  = new CEdit();
-	m_cReplaceVolField   = new CEdit();
-	m_cReplaceEffField   = new CEdit();
+	m_cFindNoteField   .SubclassDlgItem(IDC_EDIT_FIND_NOTE, this);
+	m_cFindNoteField2  .SubclassDlgItem(IDC_EDIT_FIND_NOTE2, this);
+	m_cFindInstField   .SubclassDlgItem(IDC_EDIT_FIND_INST, this);
+	m_cFindInstField2  .SubclassDlgItem(IDC_EDIT_FIND_INST2, this);
+	m_cFindVolField    .SubclassDlgItem(IDC_EDIT_FIND_VOL, this);
+	m_cFindVolField2   .SubclassDlgItem(IDC_EDIT_FIND_VOL2, this);
+	m_cFindEffField    .SubclassDlgItem(IDC_EDIT_FIND_EFF, this);
+	m_cReplaceNoteField.SubclassDlgItem(IDC_EDIT_REPLACE_NOTE, this);
+	m_cReplaceInstField.SubclassDlgItem(IDC_EDIT_REPLACE_INST, this);
+	m_cReplaceVolField .SubclassDlgItem(IDC_EDIT_REPLACE_VOL, this);
+	m_cReplaceEffField .SubclassDlgItem(IDC_EDIT_REPLACE_EFF, this);
+	m_cSearchArea      .SubclassDlgItem(IDC_COMBO_FIND_IN, this);
+	m_cEffectColumn    .SubclassDlgItem(IDC_COMBO_EFFCOLUMN, this);
 
-	m_cFindNoteField    ->SubclassDlgItem(IDC_EDIT_FIND_NOTE, this);
-	m_cFindNoteField2   ->SubclassDlgItem(IDC_EDIT_FIND_NOTE2, this);
-	m_cFindInstField    ->SubclassDlgItem(IDC_EDIT_FIND_INST, this);
-	m_cFindInstField2   ->SubclassDlgItem(IDC_EDIT_FIND_INST2, this);
-	m_cFindVolField     ->SubclassDlgItem(IDC_EDIT_FIND_VOL, this);
-	m_cFindVolField2    ->SubclassDlgItem(IDC_EDIT_FIND_VOL2, this);
-	m_cFindEffField     ->SubclassDlgItem(IDC_EDIT_FIND_EFF, this);
-	m_cReplaceNoteField ->SubclassDlgItem(IDC_EDIT_REPLACE_NOTE, this);
-	m_cReplaceInstField ->SubclassDlgItem(IDC_EDIT_REPLACE_INST, this);
-	m_cReplaceVolField  ->SubclassDlgItem(IDC_EDIT_REPLACE_VOL, this);
-	m_cReplaceEffField  ->SubclassDlgItem(IDC_EDIT_REPLACE_EFF, this);
-
-	m_cSearchArea = new CComboBox();
-	m_cEffectColumn = new CComboBox();
-	m_cSearchArea->SubclassDlgItem(IDC_COMBO_FIND_IN, this);
-	m_cEffectColumn->SubclassDlgItem(IDC_COMBO_EFFCOLUMN, this);
-	m_cSearchArea->SetCurSel(0);
-	m_cEffectColumn->SetCurSel(0);
-
-	m_cFindNoteField   ->SetLimitText(3);
-	m_cFindNoteField2  ->SetLimitText(3);
-	m_cFindInstField   ->SetLimitText(2);
-	m_cFindInstField2  ->SetLimitText(2);
-	m_cFindVolField    ->SetLimitText(1);
-	m_cFindVolField2   ->SetLimitText(1);
-	m_cFindEffField    ->SetLimitText(3);
-	m_cReplaceNoteField->SetLimitText(3);
-	m_cReplaceInstField->SetLimitText(2);
-	m_cReplaceVolField ->SetLimitText(1);
-	m_cReplaceEffField ->SetLimitText(3);
+	m_cFindNoteField   .SetLimitText(3);
+	m_cFindNoteField2  .SetLimitText(3);
+	m_cFindInstField   .SetLimitText(2);
+	m_cFindInstField2  .SetLimitText(2);
+	m_cFindVolField    .SetLimitText(1);
+	m_cFindVolField2   .SetLimitText(1);
+	m_cFindEffField    .SetLimitText(3);
+	m_cReplaceNoteField.SetLimitText(3);
+	m_cReplaceInstField.SetLimitText(2);
+	m_cReplaceVolField .SetLimitText(1);
+	m_cReplaceEffField .SetLimitText(3);
+	m_cSearchArea      .SetCurSel(0);
+	m_cEffectColumn    .SetCurSel(0);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 }
 
 void CFindDlg::UpdateFields()
 {
-	m_cFindNoteField->EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_NOTE));
-	m_cFindNoteField2->EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_NOTE));
-	m_cFindInstField->EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_INST));
-	m_cFindInstField2->EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_INST));
-	m_cFindVolField->EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_VOL));
-	m_cFindVolField2->EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_VOL));
-	m_cFindEffField->EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_EFF));
-	m_cReplaceNoteField->EnableWindow(IsDlgButtonChecked(IDC_CHECK_REPLACE_NOTE));
-	m_cReplaceInstField->EnableWindow(IsDlgButtonChecked(IDC_CHECK_REPLACE_INST));
-	m_cReplaceVolField->EnableWindow(IsDlgButtonChecked(IDC_CHECK_REPLACE_VOL));
-	m_cReplaceEffField->EnableWindow(IsDlgButtonChecked(IDC_CHECK_REPLACE_EFF));
+	m_cFindNoteField   .EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_NOTE));
+	m_cFindNoteField2  .EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_NOTE));
+	m_cFindInstField   .EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_INST));
+	m_cFindInstField2  .EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_INST));
+	m_cFindVolField    .EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_VOL));
+	m_cFindVolField2   .EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_VOL));
+	m_cFindEffField    .EnableWindow(IsDlgButtonChecked(IDC_CHECK_FIND_EFF));
+	m_cReplaceNoteField.EnableWindow(IsDlgButtonChecked(IDC_CHECK_REPLACE_NOTE));
+	m_cReplaceInstField.EnableWindow(IsDlgButtonChecked(IDC_CHECK_REPLACE_INST));
+	m_cReplaceVolField .EnableWindow(IsDlgButtonChecked(IDC_CHECK_REPLACE_VOL));
+	m_cReplaceEffField .EnableWindow(IsDlgButtonChecked(IDC_CHECK_REPLACE_EFF));
 
 	Reset();
 	m_bFound = false;
@@ -888,17 +859,17 @@ void CFindDlg::ParseEff(searchTerm &Term, CString str, bool Half)
 
 void CFindDlg::GetFindTerm()
 {
-	RaiseIf(m_cSearchArea->GetCurSel() == 4 && !m_pView->GetPatternEditor()->IsSelecting(),
+	RaiseIf(m_cSearchArea.GetCurSel() == 4 && !m_pView->GetPatternEditor()->IsSelecting(),
 			_T("Cannot use \"Selection\" as the search scope if there is no active pattern selection."));
 
 	CString str = _T("");
 	searchTerm newTerm;
 
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_NOTE)) {
-		m_cFindNoteField->GetWindowText(str);
+		m_cFindNoteField.GetWindowText(str);
 		bool empty = str.IsEmpty();
 		ParseNote(newTerm, str, false);
-		m_cFindNoteField2->GetWindowText(str);
+		m_cFindNoteField2.GetWindowText(str);
 		ParseNote(newTerm, str, !empty);
 		RaiseIf((newTerm.Note->Min == ECHO && newTerm.Note->Max >= NOTE_C && newTerm.Note->Max <= NOTE_B ||
 			newTerm.Note->Max == ECHO && newTerm.Note->Min >= NOTE_C && newTerm.Note->Min <= NOTE_B) &&
@@ -906,21 +877,21 @@ void CFindDlg::GetFindTerm()
 			_T("Cannot use both notes and echo buffer in a range search query."));
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_INST)) {
-		m_cFindInstField->GetWindowText(str);
+		m_cFindInstField.GetWindowText(str);
 		bool empty = str.IsEmpty();
 		ParseInst(newTerm, str, false);
-		m_cFindInstField2->GetWindowText(str);
+		m_cFindInstField2.GetWindowText(str);
 		ParseInst(newTerm, str, !empty);
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_VOL)) {
-		m_cFindVolField->GetWindowText(str);
+		m_cFindVolField.GetWindowText(str);
 		bool empty = str.IsEmpty();
 		ParseVol(newTerm, str, false);
-		m_cFindVolField2->GetWindowText(str);
+		m_cFindVolField2.GetWindowText(str);
 		ParseVol(newTerm, str, !empty);
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_EFF)) {
-		m_cFindEffField->GetWindowText(str);
+		m_cFindEffField.GetWindowText(str);
 		ParseEff(newTerm, str, false);
 	}
 
@@ -938,19 +909,19 @@ void CFindDlg::GetReplaceTerm()
 	searchTerm newTerm;
 
 	if (IsDlgButtonChecked(IDC_CHECK_REPLACE_NOTE)) {
-		m_cReplaceNoteField->GetWindowText(str);
+		m_cReplaceNoteField.GetWindowText(str);
 		ParseNote(newTerm, str, false);
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_REPLACE_INST)) {
-		m_cReplaceInstField->GetWindowText(str);
+		m_cReplaceInstField.GetWindowText(str);
 		ParseInst(newTerm, str, false);
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_REPLACE_VOL)) {
-		m_cReplaceVolField->GetWindowText(str);
+		m_cReplaceVolField.GetWindowText(str);
 		ParseVol(newTerm, str, false);
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_REPLACE_EFF)) {
-		m_cReplaceEffField->GetWindowText(str);
+		m_cReplaceEffField.GetWindowText(str);
 		ParseEff(newTerm, str, false);
 	}
 
@@ -1008,7 +979,7 @@ replaceTerm CFindDlg::toReplace(const searchTerm &x) const
 
 bool CFindDlg::CompareFields(const stChanNote &Target, bool Noise, int EffCount)
 {
-	int EffColumn = m_cEffectColumn->GetCurSel();
+	int EffColumn = m_cEffectColumn.GetCurSel();
 	if (EffColumn > EffCount && EffColumn != 4) EffColumn = EffCount;
 	bool Negate = IsDlgButtonChecked(IDC_CHECK_FIND_NEGATE) == BST_CHECKED;
 	bool EffectMatch = false;
@@ -1138,8 +1109,8 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 
 		if (m_replaceTerm.Definite[WC_EFF] || m_replaceTerm.Definite[WC_PARAM]) {
 			std::vector<int> MatchedColumns;
-			if (m_cEffectColumn->GetCurSel() < MAX_EFFECT_COLUMNS)
-				MatchedColumns.push_back(m_cEffectColumn->GetCurSel());
+			if (m_cEffectColumn.GetCurSel() < MAX_EFFECT_COLUMNS)
+				MatchedColumns.push_back(m_cEffectColumn.GetCurSel());
 			else {
 				const int c = m_pDocument->GetEffColumns(m_pFindCursor->m_iTrack, m_pFindCursor->m_iChannel);
 				for (int i = 0; i <= c; ++i)
@@ -1220,7 +1191,7 @@ void CFindDlg::PrepareCursor(bool ReplaceAll)
 	CCursorPos Cursor = pEditor->GetCursor();
 	CSelection Scope;
 
-	if (m_cSearchArea->GetCurSel() == 4) { // Selection
+	if (m_cSearchArea.GetCurSel() == 4) { // Selection
 		Scope = pEditor->GetSelection().GetNormalized();
 		if (Scope.m_cpStart.m_iFrame < 0 || Scope.m_cpEnd.m_iFrame < 0) {
 			Scope.m_cpStart.m_iFrame += Frames;
@@ -1228,7 +1199,7 @@ void CFindDlg::PrepareCursor(bool ReplaceAll)
 		}
 	}
 	else {
-		switch (m_cSearchArea->GetCurSel()) {
+		switch (m_cSearchArea.GetCurSel()) {
 		case 0: case 1: // Track, Channel
 			Scope.m_cpStart.m_iFrame = 0;
 			Scope.m_cpEnd.m_iFrame = Frames - 1; break;
@@ -1236,7 +1207,7 @@ void CFindDlg::PrepareCursor(bool ReplaceAll)
 			Scope.m_cpStart.m_iFrame = Scope.m_cpEnd.m_iFrame = Cursor.m_iFrame; break;
 		}
 
-		switch (m_cSearchArea->GetCurSel()) {
+		switch (m_cSearchArea.GetCurSel()) {
 		case 0: case 2: // Track, Frame
 			Scope.m_cpStart.m_iChannel = 0;
 			Scope.m_cpEnd.m_iChannel = m_pDocument->GetChannelCount() - 1; break;
