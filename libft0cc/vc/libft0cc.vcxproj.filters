@@ -13,10 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\Module">
+    <Filter Include="Source Files\doc">
       <UniqueIdentifier>{39fb50df-2d1f-49bf-8318-c02b7b0ce42e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Module">
+    <Filter Include="Header Files\doc">
       <UniqueIdentifier>{5f1c729d-1c82-4aa3-81e8-018ead87b6ad}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -25,24 +25,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\ft0cc\doc\groove.hpp">
-      <Filter>Header Files\Module</Filter>
+      <Filter>Header Files\doc</Filter>
     </ClInclude>
     <ClInclude Include="..\include\ft0cc\doc\dpcm_sample.hpp">
-      <Filter>Header Files\Module</Filter>
+      <Filter>Header Files\doc</Filter>
     </ClInclude>
     <ClInclude Include="..\include\ft0cc\doc\inst_sequence.hpp">
-      <Filter>Header Files\Module</Filter>
+      <Filter>Header Files\doc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ft0cc\doc\groove.cpp">
-      <Filter>Source Files\Module</Filter>
+      <Filter>Source Files\doc</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ft0cc\doc\dpcm_sample.cpp">
-      <Filter>Source Files\Module</Filter>
+      <Filter>Source Files\doc</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ft0cc\doc\inst_sequence.cpp">
-      <Filter>Source Files\Module</Filter>
+      <Filter>Source Files\doc</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
