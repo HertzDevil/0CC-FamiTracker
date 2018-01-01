@@ -43,7 +43,7 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	void CheckDestination() const;
-	static int GetChipFromString(const CString str);
+	static int GetChipFromString(const CString &str);
 	int GetFinalChannel() const;
 
 	unsigned int m_iDestFrame;
@@ -51,7 +51,7 @@ protected:
 	unsigned int m_iDestChip;
 	unsigned int m_iDestChannel;
 
-	CComboBox *m_cChipEdit;
+	CComboBox m_cChipEdit;
 
 	DECLARE_MESSAGE_MAP()
 public:

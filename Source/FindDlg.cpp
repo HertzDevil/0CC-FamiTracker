@@ -193,57 +193,52 @@ CFindResultsBox::CFindResultsBox(CWnd* pParent) : CDialog(IDD_FINDRESULTS, pPare
 	m_iChannelPositionCache.clear();
 }
 
-CFindResultsBox::~CFindResultsBox()
-{
-	SAFE_RELEASE(m_cListResults);
-}
-
 void CFindResultsBox::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 }
 
-void CFindResultsBox::AddResult(const stChanNote *pNote, const CFindCursor *pCursor, bool Noise) const
+void CFindResultsBox::AddResult(const stChanNote *pNote, const CFindCursor *pCursor, bool Noise)
 {
-	int Pos = m_cListResults->GetItemCount();
-	m_cListResults->InsertItem(Pos, conv::sv_from_int(Pos + 1).data());
+	int Pos = m_cListResults.GetItemCount();
+	m_cListResults.InsertItem(Pos, conv::sv_from_int(Pos + 1).data());
 
 	const auto pDoc = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
-	m_cListResults->SetItemText(Pos, CHANNEL, pDoc->GetChannel(pCursor->m_iChannel).GetChannelName());
-	m_cListResults->SetItemText(Pos, PATTERN, conv::sv_from_int_hex(pDoc->GetPatternAtFrame(
+	m_cListResults.SetItemText(Pos, CHANNEL, pDoc->GetChannel(pCursor->m_iChannel).GetChannelName());
+	m_cListResults.SetItemText(Pos, PATTERN, conv::sv_from_int_hex(pDoc->GetPatternAtFrame(
 		pCursor->m_iTrack, pCursor->m_iFrame, pCursor->m_iChannel), 2).data());
 
-	m_cListResults->SetItemText(Pos, FRAME, conv::sv_from_int_hex(pCursor->m_iFrame, 2).data());
-	m_cListResults->SetItemText(Pos, ROW, conv::sv_from_int_hex(pCursor->m_iRow, 2).data());
+	m_cListResults.SetItemText(Pos, FRAME, conv::sv_from_int_hex(pCursor->m_iFrame, 2).data());
+	m_cListResults.SetItemText(Pos, ROW, conv::sv_from_int_hex(pCursor->m_iRow, 2).data());
 
 	switch (pNote->Note) {
 	case NONE:
 		break;
 	case HALT:
-		m_cListResults->SetItemText(Pos, NOTE, _T("---")); break;
+		m_cListResults.SetItemText(Pos, NOTE, _T("---")); break;
 	case RELEASE:
-		m_cListResults->SetItemText(Pos, NOTE, _T("===")); break;
+		m_cListResults.SetItemText(Pos, NOTE, _T("===")); break;
 	case ECHO:
-		m_cListResults->SetItemText(Pos, NOTE, ("^-" + conv::from_int(pNote->Octave)).data()); break;
+		m_cListResults.SetItemText(Pos, NOTE, ("^-" + conv::from_int(pNote->Octave)).data()); break;
 	default:
 		if (Noise)
-			m_cListResults->SetItemText(Pos, NOTE, (conv::from_int_hex(MIDI_NOTE(pNote->Octave, pNote->Note) & 0x0F) + "-#").data());
+			m_cListResults.SetItemText(Pos, NOTE, (conv::from_int_hex(MIDI_NOTE(pNote->Octave, pNote->Note) & 0x0F) + "-#").data());
 		else
-			m_cListResults->SetItemText(Pos, NOTE, pNote->ToString().c_str());
+			m_cListResults.SetItemText(Pos, NOTE, pNote->ToString().c_str());
 	}
 
 	if (pNote->Instrument == HOLD_INSTRUMENT)		// // // 050B
-		m_cListResults->SetItemText(Pos, INST, _T("&&"));
+		m_cListResults.SetItemText(Pos, INST, _T("&&"));
 	else if (pNote->Instrument != MAX_INSTRUMENTS)
-		m_cListResults->SetItemText(Pos, INST, conv::sv_from_int_hex(pNote->Instrument, 2).data());
+		m_cListResults.SetItemText(Pos, INST, conv::sv_from_int_hex(pNote->Instrument, 2).data());
 
 	if (pNote->Vol != MAX_VOLUME)
-		m_cListResults->SetItemText(Pos, VOL, conv::sv_from_int_hex(pNote->Vol).data());
+		m_cListResults.SetItemText(Pos, VOL, conv::sv_from_int_hex(pNote->Vol).data());
 
 	for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
 		if (pNote->EffNumber[i] != EF_NONE) {
 			auto str = EFF_CHAR[pNote->EffNumber[i] - 1] + conv::from_int_hex(pNote->EffParam[i], 2);
-			m_cListResults->SetItemText(Pos, EFFECT + i, str.data());
+			m_cListResults.SetItemText(Pos, EFFECT + i, str.data());
 		}
 
 	UpdateCount();
@@ -251,7 +246,7 @@ void CFindResultsBox::AddResult(const stChanNote *pNote, const CFindCursor *pCur
 
 void CFindResultsBox::ClearResults()
 {
-	m_cListResults->DeleteAllItems();
+	m_cListResults.DeleteAllItems();
 	m_iLastsortColumn = ID;
 	m_bLastSortDescending = false;
 	m_iChannelPositionCache.clear();
@@ -293,16 +288,16 @@ void CFindResultsBox::SelectItem(int Index)
 	};
 
 	auto pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
-	int Channel = Cache(m_cListResults->GetItemText(Index, CHANNEL).GetString());
+	int Channel = Cache(m_cListResults.GetItemText(Index, CHANNEL).GetString());
 	if (Channel != -1) pView->SelectChannel(Channel);
-	pView->SelectFrame(strtol(m_cListResults->GetItemText(Index, FRAME), nullptr, 16));
-	pView->SelectRow(strtol(m_cListResults->GetItemText(Index, ROW), nullptr, 16));
+	pView->SelectFrame(strtol(m_cListResults.GetItemText(Index, FRAME), nullptr, 16));
+	pView->SelectRow(strtol(m_cListResults.GetItemText(Index, ROW), nullptr, 16));
 	AfxGetMainWnd()->SetFocus();
 }
 
 void CFindResultsBox::UpdateCount() const
 {
-	int Count = m_cListResults->GetItemCount();
+	int Count = m_cListResults.GetItemCount();
 	CString str;
 	str.Format(_T("%d"), Count);
 	AfxFormatString2(str, IDS_FINDRESULT_COUNT, str, Count == 1 ? _T("result") : _T("results"));
@@ -322,25 +317,24 @@ BOOL CFindResultsBox::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	m_cListResults = new CListCtrl();
-	m_cListResults->SubclassDlgItem(IDC_LIST_FINDRESULTS, this);
-	m_cListResults->SetExtendedStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT);
+	m_cListResults.SubclassDlgItem(IDC_LIST_FINDRESULTS, this);
+	m_cListResults.SetExtendedStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT);
 	CRect r;
-	m_cListResults->GetClientRect(&r);
+	m_cListResults.GetClientRect(&r);
 	const int w = r.Width() - ::GetSystemMetrics(SM_CXHSCROLL);
 
-	m_cListResults->InsertColumn(ID, _T("ID"), LVCFMT_LEFT, static_cast<int>(.085 * w));
-	m_cListResults->InsertColumn(CHANNEL, _T("Channel"), LVCFMT_LEFT, static_cast<int>(.19 * w));
-	m_cListResults->InsertColumn(PATTERN, _T("Pa."), LVCFMT_LEFT, static_cast<int>(.065 * w));
-	m_cListResults->InsertColumn(FRAME, _T("Fr."), LVCFMT_LEFT, static_cast<int>(.065 * w));
-	m_cListResults->InsertColumn(ROW, _T("Ro."), LVCFMT_LEFT, static_cast<int>(.065 * w));
-	m_cListResults->InsertColumn(NOTE, _T("Note"), LVCFMT_LEFT, static_cast<int>(.08 * w));
-	m_cListResults->InsertColumn(INST, _T("In."), LVCFMT_LEFT, static_cast<int>(.065 * w));
-	m_cListResults->InsertColumn(VOL, _T("Vo."), LVCFMT_LEFT, static_cast<int>(.065 * w));
+	m_cListResults.InsertColumn(ID, _T("ID"), LVCFMT_LEFT, static_cast<int>(.085 * w));
+	m_cListResults.InsertColumn(CHANNEL, _T("Channel"), LVCFMT_LEFT, static_cast<int>(.19 * w));
+	m_cListResults.InsertColumn(PATTERN, _T("Pa."), LVCFMT_LEFT, static_cast<int>(.065 * w));
+	m_cListResults.InsertColumn(FRAME, _T("Fr."), LVCFMT_LEFT, static_cast<int>(.065 * w));
+	m_cListResults.InsertColumn(ROW, _T("Ro."), LVCFMT_LEFT, static_cast<int>(.065 * w));
+	m_cListResults.InsertColumn(NOTE, _T("Note"), LVCFMT_LEFT, static_cast<int>(.08 * w));
+	m_cListResults.InsertColumn(INST, _T("In."), LVCFMT_LEFT, static_cast<int>(.065 * w));
+	m_cListResults.InsertColumn(VOL, _T("Vo."), LVCFMT_LEFT, static_cast<int>(.065 * w));
 	for (int i = MAX_EFFECT_COLUMNS; i > 0; --i) {
 		CString str;
 		str.Format(_T("fx%d"), i);
-		m_cListResults->InsertColumn(EFFECT, str, LVCFMT_LEFT, static_cast<int>(.08 * w));
+		m_cListResults.InsertColumn(EFFECT, str, LVCFMT_LEFT, static_cast<int>(.08 * w));
 	}
 
 	UpdateCount();
@@ -350,32 +344,32 @@ BOOL CFindResultsBox::OnInitDialog()
 
 BOOL CFindResultsBox::PreTranslateMessage(MSG *pMsg)
 {
-	if (GetFocus() == m_cListResults) {
+	if (GetFocus() == &m_cListResults) {
 		if (pMsg->message == WM_KEYDOWN) {
 			switch (pMsg->wParam) {
 			case 'A':
 				if ((::GetKeyState(VK_CONTROL) & 0x80) == 0x80) {
-					m_cListResults->SetRedraw(FALSE);
-					for (int i = m_cListResults->GetItemCount() - 1; i >= 0; --i)
-						m_cListResults->SetItemState(i, LVIS_SELECTED, LVIS_SELECTED);
-					m_cListResults->SetRedraw();
-					m_cListResults->RedrawWindow();
+					m_cListResults.SetRedraw(FALSE);
+					for (int i = m_cListResults.GetItemCount() - 1; i >= 0; --i)
+						m_cListResults.SetItemState(i, LVIS_SELECTED, LVIS_SELECTED);
+					m_cListResults.SetRedraw();
+					m_cListResults.RedrawWindow();
 				}
 				break;
 			case VK_DELETE:
-				m_cListResults->SetRedraw(FALSE);
-				for (int i = m_cListResults->GetItemCount() - 1; i >= 0; --i)
-					if (m_cListResults->GetItemState(i, LVIS_SELECTED) == LVIS_SELECTED)
-						m_cListResults->DeleteItem(i);
-				m_cListResults->SetRedraw();
-				m_cListResults->RedrawWindow();
+				m_cListResults.SetRedraw(FALSE);
+				for (int i = m_cListResults.GetItemCount() - 1; i >= 0; --i)
+					if (m_cListResults.GetItemState(i, LVIS_SELECTED) == LVIS_SELECTED)
+						m_cListResults.DeleteItem(i);
+				m_cListResults.SetRedraw();
+				m_cListResults.RedrawWindow();
 				UpdateCount();
 				break;
 			case VK_RETURN:
-				if (m_cListResults->GetSelectedCount() == 1) {
-					POSITION p = m_cListResults->GetFirstSelectedItemPosition();
+				if (m_cListResults.GetSelectedCount() == 1) {
+					POSITION p = m_cListResults.GetFirstSelectedItemPosition();
 					ASSERT(p != nullptr);
-					SelectItem(m_cListResults->GetNextSelectedItem(p));
+					SelectItem(m_cListResults.GetNextSelectedItem(p));
 				}
 				return TRUE;
 			}
@@ -392,9 +386,9 @@ void CFindResultsBox::OnNMDblclkListFindresults(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 	LVHITTESTINFO lvhti;
 	lvhti.pt = pNMItemActivate->ptAction;
-	m_cListResults->SubItemHitTest(&lvhti);
+	m_cListResults.SubItemHitTest(&lvhti);
 	if (lvhti.iItem == -1) return;
-	m_cListResults->SetItemState(lvhti.iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+	m_cListResults.SetItemState(lvhti.iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 	SelectItem(lvhti.iItem);
 }
 
@@ -411,16 +405,16 @@ void CFindResultsBox::OnLvnColumnClickFindResults(NMHDR *pNMHDR, LRESULT *pResul
 
 	switch (m_iLastsortColumn) {
 	case ID:
-		m_cListResults->SortItemsEx(IntCompareFunc, (LPARAM)m_cListResults); break;
+		m_cListResults.SortItemsEx(IntCompareFunc, (LPARAM)&m_cListResults); break;
 	case CHANNEL:
-		m_cListResults->SortItemsEx(ChannelCompareFunc, (LPARAM)m_cListResults); break;
+		m_cListResults.SortItemsEx(ChannelCompareFunc, (LPARAM)&m_cListResults); break;
 	case NOTE:
-		m_cListResults->SortItemsEx(NoteCompareFunc, (LPARAM)m_cListResults); break;
+		m_cListResults.SortItemsEx(NoteCompareFunc, (LPARAM)&m_cListResults); break;
 //	case PATTERN: case FRAME: case ROW: case INST: case VOL:
-//		m_cListResults->SortItemsEx(HexCompareFunc, (LPARAM)m_cListResults); break;
+//		m_cListResults.SortItemsEx(HexCompareFunc, (LPARAM)m_cListResults); break;
 	default:
 		if (m_iLastsortColumn >= ID && m_iLastsortColumn < EFFECT + MAX_EFFECT_COLUMNS)
-			m_cListResults->SortItemsEx(StringCompareFunc, (LPARAM)m_cListResults);
+			m_cListResults.SortItemsEx(StringCompareFunc, (LPARAM)&m_cListResults);
 	}
 }
 

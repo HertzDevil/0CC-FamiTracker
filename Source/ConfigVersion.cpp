@@ -110,14 +110,8 @@ const CString MODULE_ERROR_DESC[] = {
 
 IMPLEMENT_DYNAMIC(CConfigVersion, CPropertyPage)
 CConfigVersion::CConfigVersion()
-	: CPropertyPage(CConfigVersion::IDD), m_cComboVersion(nullptr), m_cSliderErrorLevel(nullptr)
+	: CPropertyPage(CConfigVersion::IDD)
 {
-}
-
-CConfigVersion::~CConfigVersion()
-{
-	SAFE_RELEASE(m_cComboVersion);
-	SAFE_RELEASE(m_cSliderErrorLevel);
 }
 
 void CConfigVersion::DoDataExchange(CDataExchange* pDX)
@@ -152,17 +146,15 @@ BOOL CConfigVersion::OnInitDialog()
 
 	m_iModuleErrorLevel = theApp.GetSettings()->Version.iErrorLevel;
 
-	m_cComboVersion = new CComboBox();
-	m_cComboVersion->SubclassDlgItem(IDC_COMBO_VERSION_SELECT, this);
+	m_cComboVersion.SubclassDlgItem(IDC_COMBO_VERSION_SELECT, this);
 
 	for (const auto &str : VERSION_TEXT)
-		m_cComboVersion->AddString(str);
-	m_cComboVersion->SetCurSel(m_cComboVersion->GetCount() - 1); // TODO: add to registry
+		m_cComboVersion.AddString(str);
+	m_cComboVersion.SetCurSel(m_cComboVersion.GetCount() - 1); // TODO: add to registry
 
-	m_cSliderErrorLevel = new CSliderCtrl();
-	m_cSliderErrorLevel->SubclassDlgItem(IDC_SLIDER_VERSION_ERRORLEVEL, this);
-	m_cSliderErrorLevel->SetRange(MODULE_ERROR_NONE, MODULE_ERROR_STRICT);
-	m_cSliderErrorLevel->SetPos(MODULE_ERROR_STRICT - m_iModuleErrorLevel);
+	m_cSliderErrorLevel.SubclassDlgItem(IDC_SLIDER_VERSION_ERRORLEVEL, this);
+	m_cSliderErrorLevel.SetRange(MODULE_ERROR_NONE, MODULE_ERROR_STRICT);
+	m_cSliderErrorLevel.SetPos(MODULE_ERROR_STRICT - m_iModuleErrorLevel);
 
 	UpdateInfo();
 
@@ -197,7 +189,7 @@ void CConfigVersion::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar *pScrollBar)
 
 void CConfigVersion::OnNMCustomdrawSliderVersionErrorlevel(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	int NewLevel = MODULE_ERROR_STRICT - m_cSliderErrorLevel->GetPos();
+	int NewLevel = MODULE_ERROR_STRICT - m_cSliderErrorLevel.GetPos();
 	if (m_iModuleErrorLevel != NewLevel) {
 		m_iModuleErrorLevel = NewLevel;
 		SetModified();

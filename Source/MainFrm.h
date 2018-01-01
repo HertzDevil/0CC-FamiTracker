@@ -208,19 +208,19 @@ private:  // control bar embedded members
 	CBookmarkDlg		*m_pBookmarkDlg;		// // //
 	CPerformanceDlg		*m_pPerformanceDlg;		// // //
 
-	CLockedEdit			*m_pLockedEditSpeed;
-	CLockedEdit			*m_pLockedEditTempo;
-	CLockedEdit			*m_pLockedEditLength;
-	CLockedEdit			*m_pLockedEditFrames;
-	CLockedEdit			*m_pLockedEditStep;
-	CLockedEdit			*m_pLockedEditHighlight1;		// // //
-	CLockedEdit			*m_pLockedEditHighlight2;		// // //
-	CButton				*m_pButtonGroove;		// // //
-	CButton				*m_pButtonFixTempo;		// // //
+	CLockedEdit			m_cLockedEditSpeed;
+	CLockedEdit			m_cLockedEditTempo;
+	CLockedEdit			m_cLockedEditLength;
+	CLockedEdit			m_cLockedEditFrames;
+	CLockedEdit			m_cLockedEditStep;
+	CLockedEdit			m_cLockedEditHighlight1;		// // //
+	CLockedEdit			m_cLockedEditHighlight2;		// // //
+	CButton				m_cButtonGroove;		// // //
+	CButton				m_cButtonFixTempo;		// // //
 
-	CBannerEdit			*m_pBannerEditName;
-	CBannerEdit			*m_pBannerEditArtist;
-	CBannerEdit			*m_pBannerEditCopyright;
+	CBannerEdit			m_cBannerEditName;
+	CBannerEdit			m_cBannerEditArtist;
+	CBannerEdit			m_cBannerEditCopyright;
 
 	std::unique_ptr<CActionHandler> m_pActionHandler;		// // //
 

@@ -42,12 +42,6 @@ CGrooveDlg::CGrooveDlg(CWnd* pParent /*=NULL*/)
 
 }
 
-CGrooveDlg::~CGrooveDlg()
-{
-	SAFE_RELEASE(m_cGrooveTable);
-	SAFE_RELEASE(m_cCurrentGroove);
-}
-
 void CGrooveDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
@@ -83,10 +77,8 @@ BOOL CGrooveDlg::OnInitDialog()
 
 	m_pDocument = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
 
-	m_cGrooveTable = new CListBox;
-	m_cCurrentGroove = new CListBox;
-	m_cGrooveTable->SubclassDlgItem(IDC_LIST_GROOVE_TABLE, this);
-	m_cCurrentGroove->SubclassDlgItem(IDC_LIST_GROOVE_EDITOR, this);
+	m_cGrooveTable.SubclassDlgItem(IDC_LIST_GROOVE_TABLE, this);
+	m_cCurrentGroove.SubclassDlgItem(IDC_LIST_GROOVE_EDITOR, this);
 
 	CSpinButtonCtrl *SpinPad = (CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_PAD);
 	SpinPad->SetRange(1, 255);
@@ -138,8 +130,8 @@ void CGrooveDlg::SetGrooveIndex(int Index)
 	m_iGrooveIndex = Index;
 	m_iGroovePos = 0;
 	Groove = GrooveTable[m_iGrooveIndex].get();
-	m_cGrooveTable->SetCurSel(Index);
-	m_cCurrentGroove->SetCurSel(0);
+	m_cGrooveTable.SetCurSel(Index);
+	m_cCurrentGroove.SetCurSel(0);
 	UpdateCurrentGroove();
 }
 
@@ -177,21 +169,21 @@ void CGrooveDlg::OnBnClickedApply()
 
 void CGrooveDlg::OnLbnSelchangeListGrooveTable()
 {
-	m_iGrooveIndex = m_cGrooveTable->GetCurSel();
+	m_iGrooveIndex = m_cGrooveTable.GetCurSel();
 	UpdateCurrentGroove();
 }
 
 void CGrooveDlg::OnLbnSelchangeListCurrentGroove()
 {
-	m_iGroovePos = m_cCurrentGroove->GetCurSel();
+	m_iGroovePos = m_cCurrentGroove.GetCurSel();
 }
 
 void CGrooveDlg::ReloadGrooves()
 {
 	SetDlgItemText(IDC_EDIT_GROOVE_FIELD, _T(""));
 
-	m_cGrooveTable->ResetContent();
-	m_cCurrentGroove->ResetContent();
+	m_cGrooveTable.ResetContent();
+	m_cCurrentGroove.ResetContent();
 	for (int i = 0; i < MAX_GROOVE; i++) {
 		bool Used = false;
 		if (const groove *orig = m_pDocument->GetGroove(i)) {
@@ -203,7 +195,7 @@ void CGrooveDlg::ReloadGrooves()
 
 		CString String;
 		String.Format(_T("%02X%s"), i, Used ? _T(" *") : _T(""));
-		m_cGrooveTable->AddString(String);
+		m_cGrooveTable.AddString(String);
 	}
 }
 
@@ -213,24 +205,24 @@ void CGrooveDlg::UpdateCurrentGroove()
 	CString disp = "";
 
 	Groove = GrooveTable[m_iGrooveIndex].get();
-	m_cCurrentGroove->ResetContent();
+	m_cCurrentGroove.ResetContent();
 	unsigned i = 0;
 	for (uint8_t entry : *Groove) {
 		String.Format(_T("%02X: %d"), i++, entry);
 		disp.AppendFormat(_T("%d "), entry);
-		m_cCurrentGroove->InsertString(-1, String);
+		m_cCurrentGroove.InsertString(-1, String);
 	}
-	m_cCurrentGroove->InsertString(-1, _T("--"));
+	m_cCurrentGroove.InsertString(-1, _T("--"));
 
-	m_cCurrentGroove->SetCurSel(m_iGroovePos);
+	m_cCurrentGroove.SetCurSel(m_iGroovePos);
 	SetDlgItemText(IDC_EDIT_GROOVE_FIELD, disp);
 
 	String.Format(_T("%02X%s"), m_iGrooveIndex, Groove->size() ? _T(" *") : _T(""));
-	m_cGrooveTable->SetRedraw(FALSE);
-	m_cGrooveTable->DeleteString(m_iGrooveIndex);
-	m_cGrooveTable->InsertString(m_iGrooveIndex, String);
-	m_cGrooveTable->SetCurSel(m_iGrooveIndex);
-	m_cGrooveTable->SetRedraw(TRUE);
+	m_cGrooveTable.SetRedraw(FALSE);
+	m_cGrooveTable.DeleteString(m_iGrooveIndex);
+	m_cGrooveTable.InsertString(m_iGrooveIndex, String);
+	m_cGrooveTable.SetCurSel(m_iGrooveIndex);
+	m_cGrooveTable.SetRedraw(TRUE);
 
 	UpdateIndicators();
 }
@@ -286,15 +278,15 @@ void CGrooveDlg::OnBnClickedButtonGroovelClear()
 
 void CGrooveDlg::OnBnClickedButtonGroovelClearall()
 {
-	m_cGrooveTable->SetRedraw(FALSE);
-	m_cGrooveTable->ResetContent();
+	m_cGrooveTable.SetRedraw(FALSE);
+	m_cGrooveTable.ResetContent();
 	CString str;
 	for (int i = 0; i < MAX_GROOVE - 1; i++) {
 		*GrooveTable[i] = groove { };
 		str.Format(_T("%02X"), i);
-		m_cGrooveTable->AddString(str);
+		m_cGrooveTable.AddString(str);
 	}
-	m_cGrooveTable->SetRedraw(TRUE);
+	m_cGrooveTable.SetRedraw(TRUE);
 	UpdateCurrentGroove();
 }
 

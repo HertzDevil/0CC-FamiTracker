@@ -38,7 +38,6 @@ CGotoDlg::CGotoDlg(CWnd* pParent /*=NULL*/)
 
 CGotoDlg::~CGotoDlg()
 {
-	SAFE_RELEASE(m_cChipEdit);
 }
 
 void CGotoDlg::DoDataExchange(CDataExchange* pDX)
@@ -60,53 +59,52 @@ END_MESSAGE_MAP()
 
 BOOL CGotoDlg::OnInitDialog()
 {
-	m_cChipEdit = new CComboBox();
-	m_cChipEdit->SubclassDlgItem(IDC_COMBO_GOTO_CHIP, this);
+	m_cChipEdit.SubclassDlgItem(IDC_COMBO_GOTO_CHIP, this);
 
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
 	CFamiTrackerDoc *pDoc = pView->GetDocument();
 
-	m_cChipEdit->AddString(_T("2A03"));
+	m_cChipEdit.AddString(_T("2A03"));
 	if (pDoc->ExpansionEnabled(SNDCHIP_VRC6))
-		m_cChipEdit->AddString(_T("VRC6"));
+		m_cChipEdit.AddString(_T("VRC6"));
 	if (pDoc->ExpansionEnabled(SNDCHIP_VRC7))
-		m_cChipEdit->AddString(_T("VRC7"));
+		m_cChipEdit.AddString(_T("VRC7"));
 	if (pDoc->ExpansionEnabled(SNDCHIP_FDS))
-		m_cChipEdit->AddString(_T("FDS"));
+		m_cChipEdit.AddString(_T("FDS"));
 	if (pDoc->ExpansionEnabled(SNDCHIP_MMC5))
-		m_cChipEdit->AddString(_T("MMC5"));
+		m_cChipEdit.AddString(_T("MMC5"));
 	if (pDoc->ExpansionEnabled(SNDCHIP_N163))
-		m_cChipEdit->AddString(_T("N163"));
+		m_cChipEdit.AddString(_T("N163"));
 	if (pDoc->ExpansionEnabled(SNDCHIP_S5B))
-		m_cChipEdit->AddString(_T("5B"));
+		m_cChipEdit.AddString(_T("5B"));
 
 	int Channel = pDoc->GetChannelType(pView->GetSelectedChannel());
 	if (Channel >= CHANID_S5B_CH1) {
 		Channel -= CHANID_S5B_CH1;
-		m_cChipEdit->SelectString(-1, _T("5B"));
+		m_cChipEdit.SelectString(-1, _T("5B"));
 	}
 	else if (Channel >= CHANID_VRC7_CH1) {
 		Channel -= CHANID_VRC7_CH1;
-		m_cChipEdit->SelectString(-1, _T("VRC7"));
+		m_cChipEdit.SelectString(-1, _T("VRC7"));
 	}
 	else if (Channel >= CHANID_FDS) {
 		Channel -= CHANID_FDS;
-		m_cChipEdit->SelectString(-1, _T("FDS"));
+		m_cChipEdit.SelectString(-1, _T("FDS"));
 	}
 	else if (Channel >= CHANID_N163_CH1) {
 		Channel -= CHANID_N163_CH1;
-		m_cChipEdit->SelectString(-1, _T("N163"));
+		m_cChipEdit.SelectString(-1, _T("N163"));
 	}
 	else if (Channel >= CHANID_MMC5_SQUARE1) {
 		Channel -= CHANID_MMC5_SQUARE1;
-		m_cChipEdit->SelectString(-1, _T("MMC5"));
+		m_cChipEdit.SelectString(-1, _T("MMC5"));
 	}
 	else if (Channel >= CHANID_VRC6_PULSE1) {
 		Channel -= CHANID_VRC6_PULSE1;
-		m_cChipEdit->SelectString(-1, _T("VRC6"));
+		m_cChipEdit.SelectString(-1, _T("VRC6"));
 	}
 	else
-		m_cChipEdit->SelectString(-1, _T("2A03"));
+		m_cChipEdit.SelectString(-1, _T("2A03"));
 
 	SetDlgItemInt(IDC_EDIT_GOTO_FRAME, pView->GetSelectedFrame());
 	SetDlgItemInt(IDC_EDIT_GOTO_ROW, pView->GetSelectedRow());
@@ -139,7 +137,7 @@ void CGotoDlg::CheckDestination() const
 	GetDlgItem(IDOK)->EnableWindow(Valid);
 }
 
-int CGotoDlg::GetChipFromString(const CString str)
+int CGotoDlg::GetChipFromString(const CString &str)
 {
 	if (str == _T("2A03"))
 		return SNDCHIP_NONE;
@@ -197,7 +195,7 @@ void CGotoDlg::OnEnChangeEditGotoChannel()
 void CGotoDlg::OnCbnSelchangeComboGotoChip()
 {
 	CString str;
-	m_cChipEdit->GetWindowText(str);
+	m_cChipEdit.GetWindowText(str);
 	m_iDestChip = GetChipFromString(str);
 	CheckDestination();
 }

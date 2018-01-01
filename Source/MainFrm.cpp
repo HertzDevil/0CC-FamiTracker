@@ -122,18 +122,9 @@ CMainFrame::CMainFrame() :
 	m_pBookmarkDlg(NULL),		// // //
 	m_pPerformanceDlg(NULL),	// // //
 	m_pImageList(NULL),
-	m_pLockedEditSpeed(NULL),
-	m_pLockedEditTempo(NULL),
-	m_pLockedEditLength(NULL),
-	m_pLockedEditFrames(NULL),
-	m_pLockedEditStep(NULL),
-	m_pLockedEditHighlight1(NULL),		// // //
-	m_pLockedEditHighlight2(NULL),		// // //
-	m_pButtonGroove(NULL),		// // //
-	m_pButtonFixTempo(NULL),		// // //
-	m_pBannerEditName(NULL),
-	m_pBannerEditArtist(NULL),
-	m_pBannerEditCopyright(NULL),
+	m_cBannerEditName(IDS_INFO_TITLE),		// // //
+	m_cBannerEditArtist(IDS_INFO_AUTHOR),		// // //
+	m_cBannerEditCopyright(IDS_INFO_COPYRIGHT),		// // //
 	m_pInstrumentList(NULL),
 	m_iFrameEditorPos(FRAME_EDIT_POS_TOP),
 	m_pInstrumentFileTree(NULL),
@@ -148,18 +139,6 @@ CMainFrame::CMainFrame() :
 
 CMainFrame::~CMainFrame()
 {
-	SAFE_RELEASE(m_pLockedEditSpeed);
-	SAFE_RELEASE(m_pLockedEditTempo);
-	SAFE_RELEASE(m_pLockedEditLength);
-	SAFE_RELEASE(m_pLockedEditFrames);
-	SAFE_RELEASE(m_pLockedEditStep);
-	SAFE_RELEASE(m_pLockedEditHighlight1);		// // //
-	SAFE_RELEASE(m_pLockedEditHighlight2);		// // //
-	SAFE_RELEASE(m_pButtonGroove);		// // //
-	SAFE_RELEASE(m_pButtonFixTempo);		// // //
-	SAFE_RELEASE(m_pBannerEditName);
-	SAFE_RELEASE(m_pBannerEditArtist);
-	SAFE_RELEASE(m_pBannerEditCopyright);
 	SAFE_RELEASE(m_pFrameEditor);
 	SAFE_RELEASE(m_pGrooveDlg);			// // //
 	SAFE_RELEASE(m_pFindDlg);			// // //
@@ -610,25 +589,15 @@ bool CMainFrame::CreateDialogPanels()
 	m_wndDialogBar.ShowWindow(SW_SHOW);
 
 	// Subclass edit boxes
-	m_pLockedEditSpeed	= new CLockedEdit();
-	m_pLockedEditTempo	= new CLockedEdit();
-	m_pLockedEditLength = new CLockedEdit();
-	m_pLockedEditFrames = new CLockedEdit();
-	m_pLockedEditStep	= new CLockedEdit();
-	m_pLockedEditHighlight1 = new CLockedEdit();		// // //
-	m_pLockedEditHighlight2 = new CLockedEdit();		// // //
-	m_pButtonGroove		= new CButton();		// // //
-	m_pButtonFixTempo	= new CButton();		// // //
-
-	m_pLockedEditSpeed->SubclassDlgItem(IDC_SPEED, &m_wndDialogBar);
-	m_pLockedEditTempo->SubclassDlgItem(IDC_TEMPO, &m_wndDialogBar);
-	m_pLockedEditLength->SubclassDlgItem(IDC_ROWS, &m_wndDialogBar);
-	m_pLockedEditFrames->SubclassDlgItem(IDC_FRAMES, &m_wndDialogBar);
-	m_pLockedEditStep->SubclassDlgItem(IDC_KEYSTEP, &m_wndDialogBar);
-	m_pLockedEditHighlight1->SubclassDlgItem(IDC_HIGHLIGHT1, &m_wndOctaveBar);		// // //
-	m_pLockedEditHighlight2->SubclassDlgItem(IDC_HIGHLIGHT2, &m_wndOctaveBar);		// // //
-	m_pButtonGroove->SubclassDlgItem(IDC_BUTTON_GROOVE, &m_wndDialogBar);		// // //
-	m_pButtonFixTempo->SubclassDlgItem(IDC_BUTTON_FIXTEMPO, &m_wndDialogBar);		// // //
+	m_cLockedEditSpeed.SubclassDlgItem(IDC_SPEED, &m_wndDialogBar);
+	m_cLockedEditTempo.SubclassDlgItem(IDC_TEMPO, &m_wndDialogBar);
+	m_cLockedEditLength.SubclassDlgItem(IDC_ROWS, &m_wndDialogBar);
+	m_cLockedEditFrames.SubclassDlgItem(IDC_FRAMES, &m_wndDialogBar);
+	m_cLockedEditStep.SubclassDlgItem(IDC_KEYSTEP, &m_wndDialogBar);
+	m_cLockedEditHighlight1.SubclassDlgItem(IDC_HIGHLIGHT1, &m_wndOctaveBar);		// // //
+	m_cLockedEditHighlight2.SubclassDlgItem(IDC_HIGHLIGHT2, &m_wndOctaveBar);		// // //
+	m_cButtonGroove.SubclassDlgItem(IDC_BUTTON_GROOVE, &m_wndDialogBar);		// // //
+	m_cButtonFixTempo.SubclassDlgItem(IDC_BUTTON_FIXTEMPO, &m_wndDialogBar);		// // //
 
 	// Subclass and setup the instrument list
 
@@ -652,17 +621,13 @@ bool CMainFrame::CreateDialogPanels()
 	m_pInstrumentList->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
 
 	// Title, author & copyright
-	m_pBannerEditName = new CBannerEdit(IDS_INFO_TITLE);
-	m_pBannerEditArtist = new CBannerEdit(IDS_INFO_AUTHOR);
-	m_pBannerEditCopyright = new CBannerEdit(IDS_INFO_COPYRIGHT);
+	m_cBannerEditName.SubclassDlgItem(IDC_SONG_NAME, &m_wndDialogBar);
+	m_cBannerEditArtist.SubclassDlgItem(IDC_SONG_ARTIST, &m_wndDialogBar);
+	m_cBannerEditCopyright.SubclassDlgItem(IDC_SONG_COPYRIGHT, &m_wndDialogBar);
 
-	m_pBannerEditName->SubclassDlgItem(IDC_SONG_NAME, &m_wndDialogBar);
-	m_pBannerEditArtist->SubclassDlgItem(IDC_SONG_ARTIST, &m_wndDialogBar);
-	m_pBannerEditCopyright->SubclassDlgItem(IDC_SONG_COPYRIGHT, &m_wndDialogBar);
-
-	m_pBannerEditName->SetLimitText(31);
-	m_pBannerEditArtist->SetLimitText(31);
-	m_pBannerEditCopyright->SetLimitText(31);
+	m_cBannerEditName.SetLimitText(31);
+	m_cBannerEditArtist.SetLimitText(31);
+	m_cBannerEditCopyright.SetLimitText(31);
 
 	CEdit *pInstName = static_cast<CEdit*>(m_wndDialogBar.GetDlgItem(IDC_INSTNAME));
 	pInstName->SetLimitText(CInstrument::INST_NAME_MAX - 1);
@@ -1352,7 +1317,6 @@ void CMainFrame::OnLoadInstrument()
 		if (Index == INVALID_INSTRUMENT)
 			return;
 		SelectInstrument(Index);		// // //
-		m_pInstrumentList->InsertInstrument(Index);
 	}
 	UpdateInstrumentList();
 
@@ -1847,9 +1811,9 @@ void CMainFrame::OnUpdateKeyStepEdit(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateSpeedEdit(CCmdUI *pCmdUI)
 {
-	if (!m_pLockedEditSpeed->IsEditable()) {
-		if (m_pLockedEditSpeed->Update())
-			SetSpeed(m_pLockedEditSpeed->GetValue());
+	if (!m_cLockedEditSpeed.IsEditable()) {
+		if (m_cLockedEditSpeed.Update())
+			SetSpeed(m_cLockedEditSpeed.GetValue());
 		else {
 			pCmdUI->SetText(MakeIntString(GetDoc().GetSongSpeed(m_iTrack)));
 		}
@@ -1858,9 +1822,9 @@ void CMainFrame::OnUpdateSpeedEdit(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateTempoEdit(CCmdUI *pCmdUI)
 {
-	if (!m_pLockedEditTempo->IsEditable()) {
-		if (m_pLockedEditTempo->Update())
-			SetTempo(m_pLockedEditTempo->GetValue());
+	if (!m_cLockedEditTempo.IsEditable()) {
+		if (m_cLockedEditTempo.Update())
+			SetTempo(m_cLockedEditTempo.GetValue());
 		else {
 			pCmdUI->SetText(MakeIntString(GetDoc().GetSongTempo(m_iTrack)));
 		}
@@ -1869,9 +1833,9 @@ void CMainFrame::OnUpdateTempoEdit(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateRowsEdit(CCmdUI *pCmdUI)
 {
-	if (!m_pLockedEditLength->IsEditable()) {
-		if (m_pLockedEditLength->Update())
-			SetRowCount(m_pLockedEditLength->GetValue());
+	if (!m_cLockedEditLength.IsEditable()) {
+		if (m_cLockedEditLength.Update())
+			SetRowCount(m_cLockedEditLength.GetValue());
 		else {
 			pCmdUI->SetText(MakeIntString(GetDoc().GetPatternLength(m_iTrack)));
 		}
@@ -1880,9 +1844,9 @@ void CMainFrame::OnUpdateRowsEdit(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateFramesEdit(CCmdUI *pCmdUI)
 {
-	if (!m_pLockedEditFrames->IsEditable()) {
-		if (m_pLockedEditFrames->Update())
-			SetFrameCount(m_pLockedEditFrames->GetValue());
+	if (!m_cLockedEditFrames.IsEditable()) {
+		if (m_cLockedEditFrames.Update())
+			SetFrameCount(m_cLockedEditFrames.GetValue());
 		else {
 			pCmdUI->SetText(MakeIntString(GetDoc().GetFrameCount(m_iTrack)));
 		}
@@ -1891,11 +1855,11 @@ void CMainFrame::OnUpdateFramesEdit(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateHighlight1(CCmdUI *pCmdUI)		// // //
 {
-	if (!m_pLockedEditHighlight1->IsEditable()) {
+	if (!m_cLockedEditHighlight1.IsEditable()) {
 		const CFamiTrackerDoc &Doc = GetDoc();
-		if (m_pLockedEditHighlight1->Update())
+		if (m_cLockedEditHighlight1.Update())
 			AddAction(std::make_unique<CPActionHighlight>(stHighlight {
-				std::max(0, std::min(MAX_PATTERN_LENGTH, m_pLockedEditHighlight1->GetValue())),
+				std::max(0, std::min(MAX_PATTERN_LENGTH, m_cLockedEditHighlight1.GetValue())),
 				Doc.GetHighlight().Second,
 				0
 			}));
@@ -1906,12 +1870,12 @@ void CMainFrame::OnUpdateHighlight1(CCmdUI *pCmdUI)		// // //
 
 void CMainFrame::OnUpdateHighlight2(CCmdUI *pCmdUI)		// // //
 {
-	if (!m_pLockedEditHighlight2->IsEditable()) {
+	if (!m_cLockedEditHighlight2.IsEditable()) {
 		const CFamiTrackerDoc &Doc = GetDoc();
-		if (m_pLockedEditHighlight2->Update())
+		if (m_cLockedEditHighlight2.Update())
 			AddAction(std::make_unique<CPActionHighlight>(stHighlight {
 				Doc.GetHighlight().First,
-				std::max(0, std::min(MAX_PATTERN_LENGTH, m_pLockedEditHighlight2->GetValue())),
+				std::max(0, std::min(MAX_PATTERN_LENGTH, m_cLockedEditHighlight2.GetValue())),
 				0
 			}));
 		else
@@ -2734,31 +2698,28 @@ void CMainFrame::OnLoadInstrumentMenu(NMHDR * pNotifyStruct, LRESULT * result)
 	::GetWindowRect(pNotifyStruct->hwndFrom, &rect);
 
 	// Build menu tree
-	if (!m_pInstrumentFileTree) {
+	if (!m_pInstrumentFileTree)
 		m_pInstrumentFileTree = new CInstrumentFileTree();
+	if (m_pInstrumentFileTree->ShouldRebuild())
 		m_pInstrumentFileTree->BuildMenuTree(theApp.GetSettings()->InstrumentMenuPath);
-	}
-	else if (m_pInstrumentFileTree->ShouldRebuild()) {
-		m_pInstrumentFileTree->BuildMenuTree(theApp.GetSettings()->InstrumentMenuPath);
-	}
 
-	UINT retValue = m_pInstrumentFileTree->GetMenu()->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, rect.left, rect.bottom, this);
-
-	if (retValue == CInstrumentFileTree::MENU_BASE) {
-		// Open file
+	UINT retValue = m_pInstrumentFileTree->GetMenu()->TrackPopupMenu(
+		TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, rect.left, rect.bottom, this);
+	switch (retValue) {
+	case CInstrumentFileTree::MENU_BASE: // Open file
 		OnLoadInstrument();
-	}
-	else if (retValue == CInstrumentFileTree::MENU_BASE + 1) {
-		// Select dir
+		break;
+	case CInstrumentFileTree::MENU_BASE + 1: // Select dir
 		SelectInstrumentFolder();
-	}
-	else if (retValue >= CInstrumentFileTree::MENU_BASE + 2) {
-		// A file
-		int Index = LoadInstrument(m_pInstrumentFileTree->GetFile(retValue));		// // //
-		if (Index == -1)
-			return;
-		SelectInstrument(Index);
-		m_pInstrumentList->InsertInstrument(Index);
+		break;
+	default:
+		if (retValue >= CInstrumentFileTree::MENU_BASE + 2) { // A file
+			int Index = LoadInstrument(m_pInstrumentFileTree->GetFile(retValue));		// // //
+			if (Index == INVALID_INSTRUMENT)
+				return;
+			SelectInstrument(Index);
+			UpdateInstrumentList();
+		}
 	}
 }
 
@@ -3396,12 +3357,12 @@ void CMainFrame::OnUpdateGrooveEdit(CCmdUI *pCmdUI)
 	CFamiTrackerDoc &Doc = GetDoc();
 	int Speed = Doc.GetSongSpeed(m_iTrack);
 	if (Doc.GetSongGroove(m_iTrack)) {
-		m_pButtonGroove->SetWindowText(_T("Groove"));
+		m_pButtonGroove.SetWindowText(_T("Groove"));
 		if (Speed > MAX_GROOVE - 1) Speed = MAX_GROOVE - 1;
 		if (Speed < 0) Speed = 0;
 	}
 	else {
-		m_pButtonGroove->SetWindowText(_T("Speed"));
+		m_pButtonGroove.SetWindowText(_T("Speed"));
 		int MaxSpeed = Doc.GetSongTempo(m_iTrack) ? Doc.GetSpeedSplitPoint() - 1 : 0xFF;
 		if (Speed > MaxSpeed) Speed = MaxSpeed;
 		if (Speed < MIN_SPEED) Speed = MIN_SPEED;
@@ -3424,17 +3385,17 @@ void CMainFrame::OnUpdateToggleFixTempo(CCmdUI *pCmdUI)
 	const CFamiTrackerDoc &Doc = GetDoc();
 
 	if (int Tempo = Doc.GetSongTempo(m_iTrack)) {
-		m_pButtonFixTempo->SetWindowText(_T("Tempo"));
-		m_pLockedEditTempo->EnableWindow(true);
+		m_pButtonFixTempo.SetWindowText(_T("Tempo"));
+		m_cLockedEditTempo.EnableWindow(true);
 		m_wndDialogBar.GetDlgItem(IDC_TEMPO_SPIN)->EnableWindow(true);
 	}
 	else {
-		m_pButtonFixTempo->SetWindowText(_T("Fixed"));
-		m_pLockedEditTempo->EnableWindow(false);
+		m_pButtonFixTempo.SetWindowText(_T("Fixed"));
+		m_cLockedEditTempo.EnableWindow(false);
 		m_wndDialogBar.GetDlgItem(IDC_TEMPO_SPIN)->EnableWindow(false);
 		CString str;
 		str.Format(_T("%.2f"), static_cast<float>(Doc.GetFrameRate()) * 2.5);
-		m_pLockedEditTempo->SetWindowText(str);
+		m_cLockedEditTempo.SetWindowText(str);
 	}
 }
 

@@ -40,14 +40,6 @@ CTransposeDlg::CTransposeDlg(CWnd* pParent /*=NULL*/)
 
 }
 
-CTransposeDlg::~CTransposeDlg()
-{
-	for (int i = 0; i < MAX_INSTRUMENTS; ++i)
-		SAFE_RELEASE(m_cInstButton[i]);
-	SAFE_RELEASE(m_cInstButton);
-	SAFE_RELEASE(m_pFont);
-}
-
 void CTransposeDlg::SetTrack(unsigned int Track)
 {
 	m_iTrack = Track;
@@ -94,30 +86,27 @@ BOOL CTransposeDlg::OnInitDialog()
 {
 	LOGFONT LogFont;
 	const LPCTSTR SMALL_FONT_FACE = _T("Verdana");		// // //
-	m_pFont = new CFont();
 
 	memset(&LogFont, 0, sizeof LOGFONT);
 	_tcscpy_s(LogFont.lfFaceName, 32, SMALL_FONT_FACE);
 	LogFont.lfHeight = -DPI::SY(10);
 	LogFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
-	m_pFont->CreateFontIndirect(&LogFont);
+	m_cFont.CreateFontIndirect(&LogFont);
 
 	m_pDocument = CFamiTrackerDoc::GetDoc();
 	CRect r;
 	GetClientRect(&r);
 
-	m_cInstButton = new CButton*[MAX_INSTRUMENTS];
 	CString Name;
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
 		Name.Format(_T("%02X"), i);
-		m_cInstButton[i] = new CButton();
 		int x = DPI::SX(20) + i % 8 * ((r.Width() - DPI::SX(30)) / 8);
 		int y = DPI::SY(104) + i / 8 * DPI::SY(20);
-		m_cInstButton[i]->Create(Name, WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX,
-								 CRect(x, y, x + DPI::SX(30), y + DPI::SY(18)), this, BUTTON_ID + i);
-		m_cInstButton[i]->SetCheck(s_bDisableInst[i] ? BST_CHECKED : BST_UNCHECKED);
-		m_cInstButton[i]->SetFont(m_pFont);
-		m_cInstButton[i]->EnableWindow(m_pDocument->IsInstrumentUsed(i));
+		m_cInstButton[i].Create(Name, WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX,
+								CRect(x, y, x + DPI::SX(30), y + DPI::SY(18)), this, BUTTON_ID + i);
+		m_cInstButton[i].SetCheck(s_bDisableInst[i] ? BST_CHECKED : BST_UNCHECKED);
+		m_cInstButton[i].SetFont(&m_cFont);
+		m_cInstButton[i].EnableWindow(m_pDocument->IsInstrumentUsed(i));
 	}
 
 	CSpinButtonCtrl *pSpin = static_cast<CSpinButtonCtrl*>(GetDlgItem(IDC_SPIN_TRSP_SEMITONE));

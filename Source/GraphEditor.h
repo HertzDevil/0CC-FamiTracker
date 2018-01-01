@@ -139,7 +139,6 @@ class CArpeggioGraphEditor : public CGraphEditor
 public:
 	DECLARE_DYNAMIC(CArpeggioGraphEditor)
 	explicit CArpeggioGraphEditor(std::shared_ptr<CSequence> pSequence);		// // //
-	virtual ~CArpeggioGraphEditor();
 	void ChangeSetting();
 private:
 	int GetItemValue(int pos);
@@ -147,7 +146,7 @@ private:
 	static const int ITEMS = 20;
 	int m_iScrollOffset;
 	int m_iScrollMax;
-	CScrollBar *m_pScrollBar;
+	CScrollBar m_cScrollBar;		// // //
 protected:
 	void Initialize();
 	void DrawRange(CDC *pDC, int Max, int Min);

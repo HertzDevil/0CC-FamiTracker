@@ -145,11 +145,11 @@ public:
 
 	virtual void DoDataExchange(CDataExchange* pDX);
 
-	void AddResult(const stChanNote *pNote, const CFindCursor *pCursor, bool Noise) const;
+	void AddResult(const stChanNote *pNote, const CFindCursor *pCursor, bool Noise);
 	void ClearResults();
 
 protected:
-	CListCtrl *m_cListResults;
+	CListCtrl m_cListResults;
 
 	enum result_column_t
 	{

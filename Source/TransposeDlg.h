@@ -37,7 +37,6 @@ class CTransposeDlg : public CDialog
 
 public:
 	CTransposeDlg(CWnd* pParent = NULL);   // standard constructor
-	virtual ~CTransposeDlg();
 
 	void SetTrack(unsigned int Track);
 
@@ -58,8 +57,8 @@ private:
 	static bool s_bDisableInst[MAX_INSTRUMENTS];
 	static const UINT BUTTON_ID;
 
-	CButton **m_cInstButton;
-	CFont *m_pFont;
+	CButton m_cInstButton[MAX_INSTRUMENTS] = { };
+	CFont m_cFont;
 
 protected:
 	DECLARE_MESSAGE_MAP()

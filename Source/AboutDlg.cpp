@@ -118,25 +118,10 @@ END_MESSAGE_MAP()
 
 CAboutDlg::CAboutDlg() :
 	CDialog(CAboutDlg::IDD),
-	m_pMail(nullptr),
-	m_pWeb(nullptr),
-	m_pBug(nullptr),
-	m_pLinkFont(nullptr),
-	m_pBoldFont(nullptr),
-	m_pTitleFont(nullptr),
-	m_pHead(nullptr)
+	m_cMail(LINK_MAIL),
+	m_cWeb(LINK_WEB),
+	m_cBug(LINK_BUG)
 {
-}
-
-CAboutDlg::~CAboutDlg()
-{
-	SAFE_RELEASE(m_pMail);
-	SAFE_RELEASE(m_pWeb);
-	SAFE_RELEASE(m_pHead);
-	SAFE_RELEASE(m_pBug);
-	SAFE_RELEASE(m_pLinkFont);
-	SAFE_RELEASE(m_pBoldFont);
-	SAFE_RELEASE(m_pTitleFont);
 }
 
 void CAboutDlg::DoDataExchange(CDataExchange* pDX)
@@ -169,52 +154,45 @@ BOOL CAboutDlg::OnInitDialog()
 		_T("- FDS sound emulator from nezplug (including a fix by rainwarrior)\r\n")
 		_T("- JSON for Modern C++ is Copyright (C) Niels Lohmann"));
 
-	m_pHead = new CHead();
-	m_pHead->SubclassDlgItem(IDC_HEAD, this);
+	m_cHead.SubclassDlgItem(IDC_HEAD, this);
 
 	EnableToolTips(TRUE);
 
 	m_wndToolTip.Create(this, TTS_ALWAYSTIP);
 	m_wndToolTip.Activate(TRUE);
 
-	m_pMail = new CLinkLabel(LINK_MAIL);
-	m_pMail->SubclassDlgItem(IDC_MAIL, this);
+	m_cMail.SubclassDlgItem(IDC_MAIL, this);
 
 	LOGFONT LogFont;
 	CFont *pFont;
-	pFont = m_pMail->GetFont();
+	pFont = m_cMail.GetFont();
 	pFont->GetLogFont(&LogFont);
 	LogFont.lfUnderline = 1;
-	m_pLinkFont = new CFont();
-	m_pLinkFont->CreateFontIndirect(&LogFont);
+	m_cLinkFont.CreateFontIndirect(&LogFont);
 
-	m_pMail->SetFont(m_pLinkFont);
-	m_wndToolTip.AddTool(m_pMail, IDS_ABOUT_TOOLTIP_MAIL);
+	m_cMail.SetFont(&m_cLinkFont);
+	m_wndToolTip.AddTool(&m_cMail, IDS_ABOUT_TOOLTIP_MAIL);
 
-	m_pWeb = new CLinkLabel(LINK_WEB);
-	m_pWeb->SubclassDlgItem(IDC_WEBPAGE, this);
-	m_pWeb->SetFont(m_pLinkFont);
-	m_wndToolTip.AddTool(m_pWeb, IDS_ABOUT_TOOLTIP_WEB);
+	m_cWeb.SubclassDlgItem(IDC_WEBPAGE, this);
+	m_cWeb.SetFont(&m_cLinkFont);
+	m_wndToolTip.AddTool(&m_cWeb, IDS_ABOUT_TOOLTIP_WEB);
 
-	m_pBug = new CLinkLabel(LINK_BUG);		// // //
-	m_pBug->SubclassDlgItem(IDC_BUG, this);
-	m_pBug->SetFont(m_pLinkFont);
-	m_wndToolTip.AddTool(m_pBug, IDS_ABOUT_TOOLTIP_BUG);
+	m_cBug.SubclassDlgItem(IDC_BUG, this);
+	m_cBug.SetFont(&m_cLinkFont);
+	m_wndToolTip.AddTool(&m_cBug, IDS_ABOUT_TOOLTIP_BUG);
 
 	CStatic *pStatic = static_cast<CStatic*>(GetDlgItem(IDC_ABOUT1));
 	CFont *pOldFont = pStatic->GetFont();
 	LOGFONT NewLogFont;
 	pOldFont->GetLogFont(&NewLogFont);
 	NewLogFont.lfWeight = FW_BOLD;
-	m_pBoldFont = new CFont();
-	m_pTitleFont = new CFont();
-	m_pBoldFont->CreateFontIndirect(&NewLogFont);
+	m_cBoldFont.CreateFontIndirect(&NewLogFont);
 	NewLogFont.lfHeight = 18;
 //	NewLogFont.lfUnderline = TRUE;
-	m_pTitleFont->CreateFontIndirect(&NewLogFont);
-	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT1))->SetFont(m_pTitleFont);
-	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT2))->SetFont(m_pBoldFont);
-	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT3))->SetFont(m_pBoldFont);
+	m_cTitleFont.CreateFontIndirect(&NewLogFont);
+	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT1))->SetFont(&m_cTitleFont);
+	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT2))->SetFont(&m_cBoldFont);
+	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT3))->SetFont(&m_cBoldFont);
 
 	return TRUE;
 }

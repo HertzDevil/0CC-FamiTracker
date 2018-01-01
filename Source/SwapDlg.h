@@ -35,7 +35,6 @@ class CSwapDlg : public CDialog
 public:
 	CSwapDlg(CWnd* pParent = NULL);   // standard constructor
 	void SetTrack(unsigned int Track);
-	virtual ~CSwapDlg();
 
 // Dialog Data
 	enum { IDD = IDD_SWAP };
@@ -44,15 +43,15 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	void CheckDestination() const;
-	static int GetChipFromString(const CString str);
+	static int GetChipFromString(const CString &str);
 	int GetFinalChannel(unsigned int Channel, unsigned int Chip) const;
 
 	unsigned int m_iDestChannel1, m_iDestChannel2;
 	unsigned int m_iDestChip1, m_iDestChip2;
 	unsigned int m_iTrack;
 
-	CEdit *m_cChannelFirst, *m_cChannelSecond;
-	CComboBox *m_cChipFirst, *m_cChipSecond;
+	CEdit m_cChannelFirst, m_cChannelSecond;
+	CComboBox m_cChipFirst, m_cChipSecond;
 
 	DECLARE_MESSAGE_MAP()
 public:

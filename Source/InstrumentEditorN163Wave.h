@@ -64,7 +64,7 @@ protected:
 	CWaveEditorN163	*m_pWaveEditor;
 	int m_iWaveIndex;
 	CImageList m_WaveImage;		// // //
-	CListCtrl *m_pWaveListCtrl;		// // //
+	CListCtrl m_cWaveListCtrl;		// // //
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

@@ -37,14 +37,6 @@ void CSwapDlg::SetTrack(unsigned int Track)
 	m_iTrack = Track;
 }
 
-CSwapDlg::~CSwapDlg()
-{
-	SAFE_RELEASE(m_cChannelFirst);
-	SAFE_RELEASE(m_cChannelSecond);
-	SAFE_RELEASE(m_cChipFirst);
-	SAFE_RELEASE(m_cChipSecond);
-}
-
 void CSwapDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
@@ -64,44 +56,39 @@ END_MESSAGE_MAP()
 
 BOOL CSwapDlg::OnInitDialog()
 {
-	m_cChannelFirst = new CEdit();
-	m_cChannelSecond = new CEdit();
-	m_cChipFirst = new CComboBox();
-	m_cChipSecond = new CComboBox();
-
-	m_cChannelFirst->SubclassDlgItem(IDC_EDIT_SWAP_CHAN1, this);
-	m_cChannelSecond->SubclassDlgItem(IDC_EDIT_SWAP_CHAN2, this);
-	m_cChipFirst->SubclassDlgItem(IDC_COMBO_SWAP_CHIP1, this);
-	m_cChipSecond->SubclassDlgItem(IDC_COMBO_SWAP_CHIP2, this);
+	m_cChannelFirst.SubclassDlgItem(IDC_EDIT_SWAP_CHAN1, this);
+	m_cChannelSecond.SubclassDlgItem(IDC_EDIT_SWAP_CHAN2, this);
+	m_cChipFirst.SubclassDlgItem(IDC_COMBO_SWAP_CHIP1, this);
+	m_cChipSecond.SubclassDlgItem(IDC_COMBO_SWAP_CHIP2, this);
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	m_cChipFirst->AddString(_T("2A03"));
+	m_cChipFirst.AddString(_T("2A03"));
 	if (pDoc->ExpansionEnabled(SNDCHIP_VRC6))
-		m_cChipFirst->AddString(_T("VRC6"));
+		m_cChipFirst.AddString(_T("VRC6"));
 	if (pDoc->ExpansionEnabled(SNDCHIP_VRC7))
-		m_cChipFirst->AddString(_T("VRC7"));
+		m_cChipFirst.AddString(_T("VRC7"));
 	if (pDoc->ExpansionEnabled(SNDCHIP_FDS))
-		m_cChipFirst->AddString(_T("FDS"));
+		m_cChipFirst.AddString(_T("FDS"));
 	if (pDoc->ExpansionEnabled(SNDCHIP_MMC5))
-		m_cChipFirst->AddString(_T("MMC5"));
+		m_cChipFirst.AddString(_T("MMC5"));
 	if (pDoc->ExpansionEnabled(SNDCHIP_N163))
-		m_cChipFirst->AddString(_T("N163"));
+		m_cChipFirst.AddString(_T("N163"));
 	if (pDoc->ExpansionEnabled(SNDCHIP_S5B))
-		m_cChipFirst->AddString(_T("5B"));
+		m_cChipFirst.AddString(_T("5B"));
 
 	CString str;
-	for (int i = 0; i < m_cChipFirst->GetCount(); i++)
+	for (int i = 0; i < m_cChipFirst.GetCount(); i++)
 	{
-	   m_cChipFirst->GetLBText(i, str);
-	   m_cChipSecond->AddString(str);
+	   m_cChipFirst.GetLBText(i, str);
+	   m_cChipSecond.AddString(str);
 	}
-	m_cChannelFirst->SetWindowText(_T("1"));
-	m_cChannelSecond->SetWindowText(_T("2"));
-	m_cChipFirst->SetCurSel(0);
-	m_cChipSecond->SetCurSel(0);
+	m_cChannelFirst.SetWindowText(_T("1"));
+	m_cChannelSecond.SetWindowText(_T("2"));
+	m_cChipFirst.SetCurSel(0);
+	m_cChipSecond.SetCurSel(0);
 	CheckDlgButton(IDC_CHECK_SWAP_ALL, BST_UNCHECKED);
 
-	m_cChannelFirst->SetFocus();
+	m_cChannelFirst.SetFocus();
 
 	return CDialog::OnInitDialog();
 }
@@ -113,7 +100,7 @@ void CSwapDlg::CheckDestination() const
 								   (m_iDestChannel1 != m_iDestChannel2 || m_iDestChip1 != m_iDestChip2));
 }
 
-int CSwapDlg::GetChipFromString(const CString str)
+int CSwapDlg::GetChipFromString(const CString &str)
 {
 	if (str == _T("2A03"))
 		return SNDCHIP_NONE;
@@ -152,7 +139,7 @@ int CSwapDlg::GetFinalChannel(unsigned int Channel, unsigned int Chip) const
 void CSwapDlg::OnEnChangeEditSwapChan1()
 {
 	CString str;
-	m_cChannelFirst->GetWindowText(str);
+	m_cChannelFirst.GetWindowText(str);
 	m_iDestChannel1 = atoi(str) - 1;
 	CheckDestination();
 }
@@ -160,7 +147,7 @@ void CSwapDlg::OnEnChangeEditSwapChan1()
 void CSwapDlg::OnEnChangeEditSwapChan2()
 {
 	CString str;
-	m_cChannelSecond->GetWindowText(str);
+	m_cChannelSecond.GetWindowText(str);
 	m_iDestChannel2 = atoi(str) - 1;
 	CheckDestination();
 }
@@ -168,7 +155,7 @@ void CSwapDlg::OnEnChangeEditSwapChan2()
 void CSwapDlg::OnCbnSelchangeComboSwapChip1()
 {
 	CString str;
-	m_cChipFirst->GetWindowText(str);
+	m_cChipFirst.GetWindowText(str);
 	m_iDestChip1 = GetChipFromString(str);
 	CheckDestination();
 }
@@ -176,7 +163,7 @@ void CSwapDlg::OnCbnSelchangeComboSwapChip1()
 void CSwapDlg::OnCbnSelchangeComboSwapChip2()
 {
 	CString str;
-	m_cChipSecond->GetWindowText(str);
+	m_cChipSecond.GetWindowText(str);
 	m_iDestChip2 = GetChipFromString(str);
 	CheckDestination();
 }

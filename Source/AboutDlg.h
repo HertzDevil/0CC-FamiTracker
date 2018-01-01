@@ -59,7 +59,6 @@ class CAboutDlg : public CDialog
 {
 public:
 	CAboutDlg();
-	~CAboutDlg();
 
 // Dialog Data
 	enum { IDD = IDD_ABOUTBOX };
@@ -67,11 +66,11 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
-	CLinkLabel *m_pMail, *m_pMail2, *m_pWeb, *m_pBug;		// // //
+	CLinkLabel m_cMail, m_cWeb, m_cBug;		// // //
 	CToolTipCtrl m_wndToolTip;
 
-	CFont *m_pLinkFont, *m_pBoldFont, *m_pTitleFont;
-	CHead *m_pHead;
+	CFont m_cLinkFont, m_cBoldFont, m_cTitleFont;
+	CHead m_cHead;
 
 // Implementation
 protected:

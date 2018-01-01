@@ -43,7 +43,6 @@ class CGrooveDlg : public CDialog
 
 public:
 	CGrooveDlg(CWnd* pParent = NULL);   // standard constructor
-	virtual ~CGrooveDlg();
 
 	void SetGrooveIndex(int Index);
 
@@ -59,7 +58,7 @@ protected:
 	ft0cc::doc::groove *Groove = nullptr;
 	int m_iGrooveIndex, m_iGroovePos;
 
-	CListBox *m_cGrooveTable, *m_cCurrentGroove;
+	CListBox m_cGrooveTable, m_cCurrentGroove;
 
 	void ReloadGrooves();
 	void UpdateCurrentGroove();

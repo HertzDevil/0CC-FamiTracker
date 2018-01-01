@@ -35,7 +35,6 @@ class CCommentsDlg : public CDialog
 
 public:
 	CCommentsDlg(CWnd* pParent = NULL);   // standard constructor
-	virtual ~CCommentsDlg();
 	// // //
 	const std::string &GetComment() const;		// // //
 	void SetComment(const std::string &Str);		// // //
@@ -59,7 +58,7 @@ protected:
 
 protected:
 	bool m_bChanged;
-	CFont *m_pFont;
+	CFont m_cFont;		// // //
 
 	std::string m_sComment;		// // //
 	bool m_bShowOnLoad;

@@ -715,14 +715,8 @@ END_MESSAGE_MAP()
 
 CArpeggioGraphEditor::CArpeggioGraphEditor(std::shared_ptr<CSequence> pSequence) :		// // //
 	CGraphEditor(pSequence),
-	m_iScrollOffset(0),
-	m_pScrollBar(NULL)
+	m_iScrollOffset(0)
 {
-}
-
-CArpeggioGraphEditor::~CArpeggioGraphEditor()
-{
-	SAFE_RELEASE(m_pScrollBar);
 }
 
 void CArpeggioGraphEditor::Initialize()
@@ -731,10 +725,8 @@ void CArpeggioGraphEditor::Initialize()
 	const int SCROLLBAR_WIDTH = ::GetSystemMetrics(SM_CXHSCROLL);		// // //
 	SCROLLINFO info;
 
-	m_pScrollBar = new CScrollBar();
-
 	m_GraphRect.right -= SCROLLBAR_WIDTH;
-	m_pScrollBar->Create(SBS_VERT | SBS_LEFTALIGN | WS_CHILD | WS_VISIBLE, CRect(m_GraphRect.right, m_GraphRect.top, m_GraphRect.right + SCROLLBAR_WIDTH, m_GraphRect.bottom), this, 0);
+	m_cScrollBar.Create(SBS_VERT | SBS_LEFTALIGN | WS_CHILD | WS_VISIBLE, CRect(m_GraphRect.right, m_GraphRect.top, m_GraphRect.right + SCROLLBAR_WIDTH, m_GraphRect.bottom), this, 0);
 
 	info.cbSize = sizeof(SCROLLINFO);
 	info.fMask = SIF_ALL;
@@ -777,9 +769,9 @@ void CArpeggioGraphEditor::Initialize()
 	else
 		m_iScrollOffset = 0;
 
-	m_pScrollBar->SetScrollInfo(&info);
-	m_pScrollBar->ShowScrollBar(TRUE);
-	m_pScrollBar->EnableScrollBar(ESB_ENABLE_BOTH);
+	m_cScrollBar.SetScrollInfo(&info);
+	m_cScrollBar.ShowScrollBar(TRUE);
+	m_cScrollBar.EnableScrollBar(ESB_ENABLE_BOTH);
 
 	m_ClientRect.right -= SCROLLBAR_WIDTH;
 
@@ -813,7 +805,7 @@ void CArpeggioGraphEditor::ChangeSetting()
 	}
 
 	m_iScrollOffset = 0;
-	m_pScrollBar->SetScrollInfo(&info);
+	m_cScrollBar.SetScrollInfo(&info);
 }
 
 void CArpeggioGraphEditor::DrawRange(CDC *pDC, int Max, int Min)
@@ -1090,9 +1082,9 @@ void CArpeggioGraphEditor::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 BOOL CArpeggioGraphEditor::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
 	if (zDelta < 0)
-		OnVScroll(SB_LINEDOWN, 0, m_pScrollBar);
+		OnVScroll(SB_LINEDOWN, 0, &m_cScrollBar);
 	else
-		OnVScroll(SB_LINEUP, 0, m_pScrollBar);
+		OnVScroll(SB_LINEUP, 0, &m_cScrollBar);
 	return CWnd::OnMouseWheel(nFlags, zDelta, pt);
 }
 

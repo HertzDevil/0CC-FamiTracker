@@ -33,14 +33,9 @@ RECT CCommentsDlg::WinRect;
 IMPLEMENT_DYNAMIC(CCommentsDlg, CDialog)
 
 CCommentsDlg::CCommentsDlg(CWnd* pParent /*=NULL*/) :
-	CDialog(CCommentsDlg::IDD, pParent), m_pFont(NULL),
+	CDialog(CCommentsDlg::IDD, pParent),
 	m_sComment(""), m_bShowOnLoad(false)		// // //
 {
-}
-
-CCommentsDlg::~CCommentsDlg()
-{
-	SAFE_RELEASE(m_pFont);
 }
 
 const std::string &CCommentsDlg::GetComment() const		// // //
@@ -138,11 +133,8 @@ BOOL CCommentsDlg::OnInitDialog()
 	CheckDlgButton(IDC_SHOWONOPEN, m_bShowOnLoad ? BST_CHECKED : BST_UNCHECKED);
 	m_bChanged = false;
 
-	m_pFont = new CFont();
-	m_pFont->CreateFont(FONT_SIZE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, FONT_FACE);
-
-	CEdit *pEdit = (CEdit*)GetDlgItem(IDC_COMMENTS);
-	pEdit->SetFont(m_pFont);
+	m_cFont.CreateFont(FONT_SIZE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, FONT_FACE);		// // //
+	GetDlgItem(IDC_COMMENTS)->SetFont(&m_cFont);
 
 	if (WinRect.top == 0 && WinRect.bottom == 0)
 		GetWindowRect(&WinRect);

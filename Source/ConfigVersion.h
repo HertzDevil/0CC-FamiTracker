@@ -66,7 +66,6 @@ class CConfigVersion : public CPropertyPage
 
 public:
 	CConfigVersion();
-	virtual ~CConfigVersion();
 
 // Dialog Data
 	enum { IDD = IDD_CONFIG_VERSION };
@@ -83,8 +82,8 @@ protected:
 
 	int m_iModuleErrorLevel;
 
-	CComboBox *m_cComboVersion;
-	CSliderCtrl *m_cSliderErrorLevel;
+	CComboBox m_cComboVersion;
+	CSliderCtrl m_cSliderErrorLevel;
 
 	DECLARE_MESSAGE_MAP()
 public:

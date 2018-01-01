@@ -39,7 +39,6 @@ class CBookmarkDlg : public CDialog
 
 public:
 	CBookmarkDlg(CWnd* pParent = NULL);   // standard constructor
-	virtual ~CBookmarkDlg();
 
 	void LoadBookmarks(int Track);
 	void SelectBookmark(int Pos);
@@ -54,11 +53,11 @@ protected:
 	CBookmark *MakeBookmark() const;
 	void UpdateBookmarkList();
 
-	CListBoxEx *m_cListBookmark;
-	CSpinButtonCtrl *m_cSpinFrame;
-	CSpinButtonCtrl *m_cSpinRow;
-	CSpinButtonCtrl *m_cSpinHighlight1;
-	CSpinButtonCtrl *m_cSpinHighlight2;
+	CListBoxEx m_cListBookmark;
+	CSpinButtonCtrl m_cSpinFrame;
+	CSpinButtonCtrl m_cSpinRow;
+	CSpinButtonCtrl m_cSpinHighlight1;
+	CSpinButtonCtrl m_cSpinHighlight2;
 
 	CFamiTrackerDoc *m_pDocument;
 	unsigned m_iTrack;
