@@ -26,7 +26,9 @@
 #include "stdafx.h"		// // //
 #include <memory>		// // //
 
-class CDSample;		// // //
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 
 // CSampleView control
 
@@ -40,7 +42,7 @@ public:
 
 	void	DrawPlayCursor(int Pos);
 	void	DrawStartCursor();
-	void	ExpandSample(const CDSample &Sample, int Start);		// // //
+	void	ExpandSample(const ft0cc::doc::dpcm_sample &Sample, int Start);		// // //
 	void	UpdateInfo();
 	void	OnHome();
 	void	OnEnd();

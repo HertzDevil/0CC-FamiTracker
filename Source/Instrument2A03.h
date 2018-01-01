@@ -25,7 +25,9 @@
 
 #include "SeqInstrument.h"		// // //
 
-class CDSample;
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 
 class CInstrument2A03 : public CSeqInstrument {
 public:
@@ -52,7 +54,7 @@ public:
 	void	SetSampleDeltaValue(int Octave, int Note, char Offset);
 
 	bool	AssignedSamples() const;
-	std::shared_ptr<CDSample> GetDSample(int Octave, int Note) const;		// // //
+	std::shared_ptr<ft0cc::doc::dpcm_sample> GetDSample(int Octave, int Note) const;		// // //
 
 protected:
 	void	CloneFrom(const CInstrument *pInst) override;		// // //

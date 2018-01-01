@@ -312,7 +312,7 @@ bool CAPU::DPCMPlaying() const
 	return m_p2A03->DPCMPlaying();
 }
 
-void CAPU::WriteSample(std::shared_ptr<const CDSample> pSample)		// // //
+void CAPU::WriteSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSample)		// // //
 {
 	m_p2A03->WriteSample(std::move(pSample));
 }

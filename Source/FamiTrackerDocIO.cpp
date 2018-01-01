@@ -41,9 +41,9 @@
 #include "PatternNote.h"
 
 #include "DSampleManager.h"
-#include "DSample.h"
 
 #include "ft0cc/doc/groove.hpp"
+#include "ft0cc/doc/dpcm_sample.hpp"
 
 #include "BookmarkCollection.h"
 
@@ -948,19 +948,16 @@ void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerDoc &doc, int ver) {
 		unsigned int Index = AssertRange(
 			static_cast<unsigned char>(file_.GetBlockChar()), 0U, CDSampleManager::MAX_DSAMPLES - 1, "DPCM sample index");
 		try {
-			unsigned int Len = AssertRange(file_.GetBlockInt(), 0, CDSample::MAX_NAME_SIZE - 1, "DPCM sample name length");
-			char Name[CDSample::MAX_NAME_SIZE] = { };
+			unsigned int Len = AssertRange(file_.GetBlockInt(), 0, ft0cc::doc::dpcm_sample::max_name_length, "DPCM sample name length");
+			char Name[ft0cc::doc::dpcm_sample::max_name_length + 1] = { };
 			file_.GetBlock(Name, Len);
 			int Size = AssertRange(file_.GetBlockInt(), 0, 0x7FFF, "DPCM sample size");
 			AssertFileData<MODULE_ERROR_STRICT>(Size <= 0xFF1 && Size % 0x10 == 1, "Bad DPCM sample size");
 			int TrueSize = Size + ((1 - Size) & 0x0F);		// // //
-			auto pData = std::make_unique<char[]>(TrueSize);
-			file_.GetBlock(pData.get(), Size);
-			memset(pData.get() + Size, 0xAA, TrueSize - Size);
+			std::vector<uint8_t> samples(TrueSize);
+			file_.GetBlock(samples.data(), Size);
 
-			auto pSample = std::make_unique<CDSample>(TrueSize, std::move(pData));		// // //
-			pSample->SetName(Name);
-			doc.SetSample(Index, std::move(pSample));
+			doc.SetSample(Index, std::make_unique<ft0cc::doc::dpcm_sample>(samples, Name));		// // //
 		}
 		catch (CModuleException e) {
 			e.AppendError("At DPCM sample %d,", Index);
@@ -979,11 +976,11 @@ void CFamiTrackerDocIO::SaveDSamples(const CFamiTrackerDoc &doc, int ver) {
 			if (auto pSamp = manager.GetDSample(i)) {
 				// Write sample
 				file_.WriteBlockChar(i);
-				int Length = strlen(pSamp->GetName());
+				int Length = pSamp->name().size();
 				file_.WriteBlockInt(Length);
-				file_.WriteBlock(pSamp->GetName(), Length);
-				file_.WriteBlockInt(pSamp->GetSize());
-				file_.WriteBlock((const char *)pSamp->GetData(), pSamp->GetSize());
+				file_.WriteBlock(pSamp->name().data(), Length);
+				file_.WriteBlockInt(pSamp->size());
+				file_.WriteBlock(pSamp->data(), pSamp->size());
 			}
 		}
 	}

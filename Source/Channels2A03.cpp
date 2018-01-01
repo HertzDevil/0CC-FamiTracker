@@ -25,7 +25,7 @@
 #include "Channels2A03.h"
 #include "APU/Types.h"		// // //
 #include "APU/APU.h"		// // // for DPCM
-#include "DSample.h"		// // //
+#include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "stdafx.h"
 #include "FamiTracker.h"
 #include "Settings.h"
@@ -675,9 +675,9 @@ void CDPCMChan::SetLoopOffset(unsigned char Loop)		// // //
 	m_iLoopOffset = Loop;
 }
 
-void CDPCMChan::PlaySample(std::shared_ptr<const CDSample> pSamp, int Pitch)		// // //
+void CDPCMChan::PlaySample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSamp, int Pitch)		// // //
 {
-	int SampleSize = pSamp->GetSize();
+	int SampleSize = pSamp->size();
 	m_pAPU->WriteSample(std::move(pSamp));		// // //
 	m_iPeriod = m_iCustomPitch != -1 ? m_iCustomPitch : Pitch;
 	m_iSampleLength = (SampleSize >> 4) - (m_iOffset << 2);

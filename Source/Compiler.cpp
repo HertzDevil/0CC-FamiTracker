@@ -31,7 +31,7 @@
 #include "InstrumentFDS.h"		// // //
 #include "InstrumentN163.h"		// // //
 #include "PatternCompiler.h"
-#include "DSample.h"		// // //
+#include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "ft0cc/doc/groove.hpp"		// // //
 #include "Chunk.h"
 #include "ChunkRenderText.h"
@@ -708,7 +708,7 @@ void CCompiler::UpdateSamplePointers(unsigned int Origin)
 	// The list is stored in the same order as the samples vector
 
 	for (auto pDSample : m_vSamples) {
-		unsigned int Size = pDSample->GetSize();
+		unsigned int Size = pDSample->size();
 
 		if (m_bBankSwitched) {
 			if ((Address + Size) >= DPCM_SWITCH_ADDRESS) {
@@ -723,7 +723,8 @@ void CCompiler::UpdateSamplePointers(unsigned int Origin)
 		m_pSamplePointersChunk->StoreByte(Bank);
 
 #ifdef _DEBUG
-		Print(_T(" * DPCM sample %s: $%04X, bank %i (%i bytes)\n"), pDSample->GetName(), Address, Bank, Size);
+		Print(_T(" * DPCM sample %.*s: $%04X, bank %i (%i bytes)\n"),
+			pDSample->name().size(), pDSample->name().data(), Address, Bank, Size);
 #endif
 		Address += Size;
 		Address += AdjustSampleAddress(Address);
@@ -1402,7 +1403,7 @@ void CCompiler::StoreSamples()
 		unsigned int iIndex = m_iSampleBank[i];
 		ASSERT(iIndex != 0xFF);
 		auto pDSample = m_pDocument->GetSample(iIndex);
-		unsigned int iSize = pDSample->GetSize();
+		unsigned int iSize = pDSample->size();
 
 		if (iSize > 0) {
 			// Fill sample list

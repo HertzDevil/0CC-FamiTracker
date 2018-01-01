@@ -24,6 +24,7 @@
 #pragma once
 
 #include "stdafx.h"		// // //
+#include <string_view>		// // //
 
 class CFamiTrackerDoc; // forward declaration
 class stChanNote;		// // //
@@ -38,5 +39,6 @@ struct CTextExport {
 	CString ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc);		// // //
 
 private:		// // //
-	CString ExportString(const CString &s);
+	static CString ExportString(const CString &s);
+	static CString ExportString(std::string_view s);
 };

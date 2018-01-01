@@ -41,7 +41,7 @@ public:
 	bool		EndDocument();
 
 	void		CreateBlock(const char *ID, int Version);
-	void		WriteBlock(const char *pData, unsigned int Size);
+	void		WriteBlock(const void *pData, unsigned int Size);		// // //
 	void		WriteBlockInt(int Value);
 	void		WriteBlockChar(char Value);
 	void		WriteString(CString String);

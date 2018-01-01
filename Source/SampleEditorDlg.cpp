@@ -22,7 +22,7 @@
 
 #include "SampleEditorDlg.h"
 #include "FamiTracker.h"
-#include "DSample.h"
+#include "ft0cc/doc/dpcm_sample.hpp"
 #include "FamiTrackerTypes.h"
 #include "APU/Types.h"
 #include "SoundGen.h"
@@ -47,7 +47,7 @@ enum {
 
 IMPLEMENT_DYNAMIC(CSampleEditorDlg, CDialog)
 
-CSampleEditorDlg::CSampleEditorDlg(CWnd* pParent /*=NULL*/, std::shared_ptr<CDSample> pSample)		// // //
+CSampleEditorDlg::CSampleEditorDlg(CWnd* pParent /*=NULL*/, std::shared_ptr<ft0cc::doc::dpcm_sample> pSample)		// // //
 	: CDialog(CSampleEditorDlg::IDD, pParent), m_pSampleEditorView(NULL),
 	m_pSample(std::move(pSample))		// // //
 {
@@ -59,7 +59,7 @@ CSampleEditorDlg::~CSampleEditorDlg()
 	SAFE_RELEASE(m_pSampleEditorView);
 }
 
-std::shared_ptr<CDSample> CSampleEditorDlg::GetDSample() const		// // //
+std::shared_ptr<ft0cc::doc::dpcm_sample> CSampleEditorDlg::GetDSample() const		// // //
 {
 	return m_pSample;
 }
@@ -108,7 +108,7 @@ BOOL CSampleEditorDlg::OnInitDialog()
 
 	CString title;
 	GetWindowText(title);
-	title.AppendFormat(_T(" [%s]"), m_pSample->GetName());
+	title.AppendFormat(_T(" [%.*s]"), m_pSample->name().size(), m_pSample->name().data());
 	SetWindowText(title);
 
 	UpdateSampleView();
@@ -184,13 +184,13 @@ void CSampleEditorDlg::OnBnClickedDelete()
 	unsigned int StartSample = m_pSampleEditorView->GetSelStart() * 16;
 	unsigned int EndSample = m_pSampleEditorView->GetSelEnd() * 16;
 
-	ASSERT(StartSample <= CDSample::MAX_SIZE);
-	ASSERT(EndSample <= CDSample::MAX_SIZE);
+	ASSERT(StartSample <= ft0cc::doc::dpcm_sample::max_size);
+	ASSERT(EndSample <= ft0cc::doc::dpcm_sample::max_size);
 
-	if (EndSample >= m_pSample->GetSize())
-		EndSample = m_pSample->GetSize() - 1;
+	if (EndSample >= m_pSample->size())
+		EndSample = m_pSample->size() - 1;
 
-	m_pSample->RemoveData(StartSample, EndSample);		// // //
+	m_pSample->cut_samples(StartSample, EndSample);		// // //
 
 	UpdateSampleView();
 	SelectionChanged();
@@ -203,7 +203,7 @@ void CSampleEditorDlg::OnBnClickedTilt()
 
 	int StartSample = m_pSampleEditorView->GetSelStart() * 16;
 	int EndSample = m_pSampleEditorView->GetSelEnd() * 16;
-	m_pSample->Tilt(StartSample, EndSample);		// // //
+	m_pSample->tilt(StartSample, EndSample);		// // //
 
 	UpdateSampleView();
 	SelectionChanged();

@@ -24,7 +24,7 @@
 #include "../common.h"
 #include <algorithm>
 #include "Mixer.h"
-#include "../DSample.h"		// // //
+#include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "../RegisterState.h"		// // //
 
 // // // 2A03 sound chip class
@@ -228,10 +228,10 @@ inline void C2A03::RunAPU2(uint32_t Time)
 	}
 }
 
-void C2A03::WriteSample(std::shared_ptr<const CDSample> pSample) {		// // //
+void C2A03::WriteSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSample) {		// // //
 	// Sample may not be removed when used by the sample memory class!
 	preview_sample_ = std::move(pSample);
-	GetSampleMemory().SetMem(preview_sample_->GetData(), preview_sample_->GetSize());
+	GetSampleMemory().SetMem(preview_sample_->data(), preview_sample_->size());
 }
 
 CSampleMem &C2A03::GetSampleMemory()		// // //

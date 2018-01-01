@@ -50,7 +50,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "WaveFile.h"		// // //
 #include "APU/APU.h"
 #include "APU/Mixer.h"		// // // CHIP_LEVEL_*
-#include "DSample.h"		// // //
+#include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "InstrumentRecorder.h"		// // //
 #include "Settings.h"
 #include "MIDI.h"
@@ -283,7 +283,7 @@ int CSoundGen::GetNamcoChannelCount() const {		// // //
 	return m_pDocument ? m_pDocument->GetNamcoChannels() : 0;
 }
 
-void CSoundGen::PreviewSample(std::shared_ptr<const CDSample> pSample, int Offset, int Pitch)		// // //
+void CSoundGen::PreviewSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSample, int Offset, int Pitch)		// // //
 {
 	if (!m_hThread)
 		return;
@@ -868,7 +868,7 @@ bool CSoundGen::IsBackgroundTask() const
 
 void CSoundGen::PlayPreviewSample(int Offset, int Pitch) {		// // //
 	int Loop = 0;
-	int Length = ((m_pPreviewSample->GetSize() - 1) >> 4) - (Offset << 2);
+	int Length = ((m_pPreviewSample->size() - 1) >> 4) - (Offset << 2);
 
 	m_pAPU->WriteSample(std::move(m_pPreviewSample));		// // //
 

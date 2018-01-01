@@ -52,13 +52,15 @@ public:
 	virtual bool	IsReleasing() const = 0;
 };
 
-class CDSample;
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 class CChannelHandlerInterfaceDPCM
 {
 public:
 	virtual void	WriteDCOffset(unsigned char) = 0;
 	virtual void	SetLoopOffset(unsigned char) = 0;
-	virtual void	PlaySample(std::shared_ptr<const CDSample>, int) = 0;
+	virtual void	PlaySample(std::shared_ptr<const ft0cc::doc::dpcm_sample>, int) = 0;
 };
 
 class CChannelHandlerInterfaceVRC7

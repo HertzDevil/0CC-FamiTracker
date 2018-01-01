@@ -21,7 +21,7 @@
 */
 
 #include "SampleEditorView.h"
-#include "DSample.h"
+#include "ft0cc/doc/dpcm_sample.hpp"
 #include "SampleEditorDlg.h"
 
 // CSampleEditorView control
@@ -307,28 +307,28 @@ void CSampleEditorView::DrawStartCursor()
 	ReleaseDC(pDC);
 }
 
-void CSampleEditorView::ExpandSample(const CDSample &Sample, int Start)		// // //
+void CSampleEditorView::ExpandSample(const ft0cc::doc::dpcm_sample &Sample, int Start)		// // //
 {
 	// Expand DPCM to PCM
 	//
 
 	m_pSamples.reset();
 
-	if (Sample.GetSize() == 0) {
+	if (Sample.size() == 0) {
 		m_iSize = 0;
 		m_iStartCursor = 0;
 		m_iSelStart = m_iSelEnd = -1;
 		return;
 	}
 
-	int Size = Sample.GetSize() * 8;
-	m_pSamples = std::make_unique<int[]>(Size);		// // //
-	m_iSize = Size;
+	int Bytes = Sample.size() * 8;
+	m_pSamples = std::make_unique<int[]>(Bytes);		// // //
+	m_iSize = Bytes;
 
-	const unsigned char *pData = Sample.GetData();
+	const uint8_t *pData = Sample.data();
 	int Delta = Start;
 
-	for (int i = 0; i < Size; ++i) {
+	for (int i = 0; i < Bytes; ++i) {
 		int BitPos = (i & 0x07);
 		if (pData[i >> 3] & (1 << BitPos)) {
 			if (Delta < 126)

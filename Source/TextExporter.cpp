@@ -26,8 +26,9 @@
 #include "FamiTrackerDoc.h"
 #include "../version.h"		// // //
 
-#include "DSample.h"		// // //
+#include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "ft0cc/doc/groove.hpp"		// // //
+#include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "InstrumentFactory.h"		// // //
 #include "Instrument2A03.h"		// // //
 #include "InstrumentVRC7.h"		// // //
@@ -488,6 +489,19 @@ CString CTextExport::ExportString(const CString& s)
 	return r;
 }
 
+CString CTextExport::ExportString(std::string_view s)		// // //
+{
+	// puts " at beginning and end of string, replace " with ""
+	CString r = _T("\"");
+	for (char c : s) {
+		if (c == _T('\"'))
+			r += c;
+		r += c;
+	}
+	r += _T("\"");
+	return r;
+}
+
 // =============================================================================
 
 CString CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise)		// // //
@@ -557,9 +571,8 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 	Tokenizer t(FileName);		// // //
 
 	unsigned int dpcm_index = 0;
-	unsigned int dpcm_pos = 0;
-	std::shared_ptr<CDSample> dpcm_sample;
-	std::unique_ptr<char[]> dpcm_buf;		// // //
+	unsigned int dpcm_size = 0;
+	std::shared_ptr<ft0cc::doc::dpcm_sample> dpcm_sample;		// // //
 	unsigned int track = 0;
 	unsigned int pattern = 0;
 	int N163count = -1;		// // //
@@ -673,17 +686,16 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		break;
 		case CT_DPCMDEF:
 		{
-			if (dpcm_sample)
-				dpcm_sample->SetData(dpcm_pos, std::move(dpcm_buf));
+			if (dpcm_sample) {
+				if (dpcm_sample->size() < dpcm_size)
+					dpcm_sample->resize(dpcm_size);
+				Doc.SetSample(dpcm_index, std::move(dpcm_sample));
+			}
 
 			dpcm_index = t.ReadInt(0, MAX_DSAMPLES - 1);
-			dpcm_pos = 0;
-
-			int dpcmsize = t.ReadInt(0, CDSample::MAX_SIZE);
-			dpcm_buf = std::make_unique<char[]>(dpcmsize);		// // //
-			dpcm_sample = std::make_shared<CDSample>(dpcmsize);		// // //
-			Doc.SetSample(dpcm_index, dpcm_sample);
-			dpcm_sample->SetName(Charify(t.ReadToken()));
+			dpcm_size = t.ReadInt(0, ft0cc::doc::dpcm_sample::max_size);
+			dpcm_sample = std::make_shared<ft0cc::doc::dpcm_sample>();		// // //
+			dpcm_sample->rename(Charify(t.ReadToken()));
 
 			t.ReadEOL();
 		}
@@ -692,23 +704,24 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		{
 			CHECK_COLON();
 			while (!t.IsEOL()) {
-				int sample = t.ReadHex(0x00, 0xFF);
-				if (dpcm_pos >= dpcm_sample->GetSize())
+				auto sample = static_cast<ft0cc::doc::dpcm_sample::sample_t>(t.ReadHex(0x00, 0xFF));
+				std::size_t pos = dpcm_sample->size();
+				if (pos >= dpcm_size)
 					throw t.MakeError(_T("DPCM sample %d overflow, increase size used in %s."), dpcm_index, CT[CT_DPCMDEF]);
-				dpcm_buf[dpcm_pos++] = static_cast<char>(sample);		// // //
+				dpcm_sample->resize(pos + 1);		// // //
+				dpcm_sample->set_sample_at(pos, sample);
 			}
 		}
 		break;
-		case CT_DETUNE:		// // //
-		{
+		case CT_DETUNE: {		// // //
 			int table = t.ReadInt(0, 5);
 			int oct = t.ReadInt(0, OCTAVE_RANGE - 1);
 			int note = t.ReadInt(0, NOTE_RANGE - 1);
 			int offset = t.ReadInt(-32768, 32767);
 			Doc.SetDetuneOffset(table, oct * NOTE_RANGE + note, offset);
 			t.ReadEOL();
+			break;
 		}
-		break;
 		case CT_GROOVE:		// // //
 		{
 			int index = t.ReadInt(0, MAX_GROOVE - 1);
@@ -934,8 +947,11 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		}
 	}
 
-	if (dpcm_sample)		// // //
-		dpcm_sample->SetData(dpcm_pos, std::move(dpcm_buf));
+	if (dpcm_sample) {
+		if (dpcm_sample->size() < dpcm_size)
+			dpcm_sample->resize(dpcm_size);
+		Doc.SetSample(dpcm_index, std::move(dpcm_sample));
+	}
 	if (N163count != -1)		// // //
 		Doc.SelectExpansionChip(Doc.GetExpansionChip(), N163count, true); // calls ApplyExpansionChip()
 }
@@ -997,9 +1013,9 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	            "%-15s %s\n"
 	            "%-15s %s\n"
 	            "\n"),
-	            CT[CT_TITLE],     ExportString(pDoc->GetModuleName().data()),
-	            CT[CT_AUTHOR],    ExportString(pDoc->GetModuleArtist().data()),
-	            CT[CT_COPYRIGHT], ExportString(pDoc->GetModuleCopyright().data()));
+	            CT[CT_TITLE],     ExportString(pDoc->GetModuleName()),
+	            CT[CT_AUTHOR],    ExportString(pDoc->GetModuleArtist()),
+	            CT[CT_COPYRIGHT], ExportString(pDoc->GetModuleCopyright()));
 	f.WriteString(s);
 
 	f.WriteString(_T("# Module comment\n"));
@@ -1090,12 +1106,12 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	for (int smp=0; smp < MAX_DSAMPLES; ++smp)
 	{
 		if (auto pSample = pDoc->GetSample(smp)) {		// // //
-			const unsigned int size = pSample->GetSize();
+			const unsigned int size = pSample->size();
 			s.Format(_T("%s %3d %5d %s\n"),
 				CT[CT_DPCMDEF],
 				smp,
 				size,
-				ExportString(pSample->GetName()));
+				ExportString(pSample->name()));
 			f.WriteString(s);
 
 			for (unsigned int i=0; i < size; i += 32)
@@ -1104,7 +1120,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 				f.WriteString(s);
 				for (unsigned int j=0; j<32 && (i+j)<size; ++j)
 				{
-					s.Format(_T(" %02X"), (unsigned char)(*(pSample->GetData() + (i+j))));
+					s.Format(_T(" %02X"), pSample->sample_at(i + j));		// // //
 					f.WriteString(s);
 				}
 				f.WriteString(_T("\n"));
@@ -1212,7 +1228,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 			break;
 		}
 
-		f.WriteString(ExportString(pInst->GetName().data()));
+		f.WriteString(ExportString(pInst->GetName()));
 		f.WriteString(_T("\n"));
 
 		switch (pInst->GetType())
@@ -1310,8 +1326,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 
 	for (unsigned int t=0; t < pDoc->GetTrackCount(); ++t)
 	{
-		const char* zpTitle = pDoc->GetTrackTitle(t).c_str();		// // //
-		if (zpTitle == NULL) zpTitle = "";
+		const auto &zpTitle = pDoc->GetTrackTitle(t);		// // //
 
 		s.Format(_T("%s %3d %3d %3d %s\n"),
 			CT[CT_TRACK],

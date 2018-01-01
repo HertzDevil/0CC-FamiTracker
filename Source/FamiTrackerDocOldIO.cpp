@@ -27,7 +27,7 @@
 #include "InstrumentManager.h"
 #include <memory>
 #include "Instrument2A03.h"
-#include "DSample.h"
+#include "ft0cc/doc/dpcm_sample.hpp"
 
 namespace {
 
@@ -208,16 +208,14 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 
 			pOpenFile->Read(&ReadCount, sizeof(int));
 			for (i = 0; i < ReadCount; i++) {
-				std::unique_ptr<char[]> pBuf;		// // //
+				std::vector<uint8_t> pBuf;		// // //
 				pOpenFile->Read(&ImportedDSample, sizeof(ImportedDSample));
 				if (ImportedDSample.SampleSize != 0 && ImportedDSample.SampleSize < 0x4000) {
-					pBuf = std::make_unique<char[]>(ImportedDSample.SampleSize);		// // //
-					pOpenFile->Read(pBuf.get(), ImportedDSample.SampleSize);
+					pBuf.resize(ImportedDSample.SampleSize);		// // //
+					pOpenFile->Read(pBuf.data(), ImportedDSample.SampleSize);
 				}
 
-				auto pSamp = std::make_shared<CDSample>(ImportedDSample.SampleSize, std::move(pBuf));
-				pSamp->SetName(ImportedDSample.Name);
-				doc.SetSample(i, std::move(pSamp));
+				doc.SetSample(i, std::make_shared<ft0cc::doc::dpcm_sample>(pBuf, ImportedDSample.Name));
 			}
 			break;
 		}

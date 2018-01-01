@@ -790,17 +790,17 @@ bool CFamiTrackerDoc::ImportDetune(CFamiTrackerDoc *pImported)		// // //
 
 // DMC Stuff
 
-std::shared_ptr<CDSample> CFamiTrackerDoc::GetSample(unsigned int Index)
+std::shared_ptr<ft0cc::doc::dpcm_sample> CFamiTrackerDoc::GetSample(unsigned int Index)
 {
 	return GetDSampleManager()->GetDSample(Index);		// // //
 }
 
-std::shared_ptr<const CDSample> CFamiTrackerDoc::GetSample(unsigned int Index) const
+std::shared_ptr<const ft0cc::doc::dpcm_sample> CFamiTrackerDoc::GetSample(unsigned int Index) const
 {
 	return GetDSampleManager()->GetDSample(Index);		// // //
 }
 
-void CFamiTrackerDoc::SetSample(unsigned int Index, std::shared_ptr<CDSample> pSamp)		// // //
+void CFamiTrackerDoc::SetSample(unsigned int Index, std::shared_ptr<dpcm_sample> pSamp)		// // //
 {
 	if (GetDSampleManager()->SetDSample(Index, std::move(pSamp)))
 		ModifyIrreversible();		// // //

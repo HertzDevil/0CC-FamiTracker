@@ -69,12 +69,12 @@ class CChannelMap;		// // //
 class CTrackerChannel;
 class CDocumentFile;
 class CSeqInstrument;		// // // TODO: move to instrument manager
-class CDSample;		// // //
 class CSimpleFile;		// // //
 class CBookmarkCollection;		// // //
 
 namespace ft0cc::doc {		// // //
 class groove;
+class dpcm_sample;
 } // namespace ft0cc::doc
 
 //
@@ -84,6 +84,7 @@ class groove;
 class CFamiTrackerDoc : public CDocument, public CFTMComponentInterface
 {
 	using groove = ft0cc::doc::groove;
+	using dpcm_sample = ft0cc::doc::dpcm_sample;
 
 protected: // create from serialization only
 	CFamiTrackerDoc();
@@ -289,9 +290,9 @@ public:
 	int				GetTotalSequenceCount(inst_type_t InstType) const;		// // //
 
 	// DPCM samples
-	std::shared_ptr<CDSample>	GetSample(unsigned int Index);		// // //
-	std::shared_ptr<const CDSample>	GetSample(unsigned int Index) const;		// // //
-	void			SetSample(unsigned int Index, std::shared_ptr<CDSample> pSamp);		// // //
+	std::shared_ptr<dpcm_sample> GetSample(unsigned int Index);		// // //
+	std::shared_ptr<const dpcm_sample> GetSample(unsigned int Index) const;		// // //
+	void			SetSample(unsigned int Index, std::shared_ptr<dpcm_sample> pSamp);		// // //
 	bool			IsSampleUsed(unsigned int Index) const;
 	unsigned int	GetSampleCount() const;
 	int				GetFreeSampleSlot() const;

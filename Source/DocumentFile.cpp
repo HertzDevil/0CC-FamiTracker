@@ -94,7 +94,7 @@ void CDocumentFile::ReallocateBlock()
 	m_pBlockData.resize(m_iMaxBlockSize);		// // //
 }
 
-void CDocumentFile::WriteBlock(const char *pData, unsigned int Size)
+void CDocumentFile::WriteBlock(const void *pData, unsigned int Size)
 {
 	ASSERT(!m_pBlockData.empty());		// // //
 
@@ -109,7 +109,7 @@ void CDocumentFile::WriteBlock(const char *pData, unsigned int Size)
 		if ((m_iBlockPointer + WriteSize) >= m_iMaxBlockSize)
 			ReallocateBlock();
 
-		memcpy(m_pBlockData.data() + m_iBlockPointer, pData + WritePtr, WriteSize);		// // //
+		memcpy(m_pBlockData.data() + m_iBlockPointer, (const unsigned char *)pData + WritePtr, WriteSize);		// // //
 		m_iBlockPointer += WriteSize;
 		Size -= WriteSize;
 		WritePtr += WriteSize;

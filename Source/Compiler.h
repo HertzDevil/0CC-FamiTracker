@@ -72,7 +72,9 @@ struct driver_t;
 class CChunk;
 enum chunk_type_t : int;
 struct stChunkLabel;		// // //
-class CDSample;		 // // //
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 class CFamiTrackerDoc;		// // //
 class CSequence;		// // //
 class CInstrumentFDS;		// // //
@@ -204,7 +206,7 @@ private:
 	CChunk			*m_pHeaderChunk;
 
 	// Samples
-	std::vector<std::shared_ptr<const CDSample>> m_vSamples;		// // //
+	std::vector<std::shared_ptr<const ft0cc::doc::dpcm_sample>> m_vSamples;		// // //
 
 	// Flags
 	bool			m_bBankSwitched;

@@ -33,7 +33,9 @@
 
 class CChunkRenderText;
 class CChunk;		// // //
-class CDSample;		// // //
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 enum chunk_type_t : int;		// // //
 struct stChunkLabel;		// // //
 
@@ -49,7 +51,7 @@ class CChunkRenderText
 public:
 	CChunkRenderText(CFile *pFile);
 	void StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks);		// // //
-	void StoreSamples(const std::vector<std::shared_ptr<const CDSample>> &Samples);		// // //
+	void StoreSamples(const std::vector<std::shared_ptr<const ft0cc::doc::dpcm_sample>> &Samples);		// // //
 
 private:
 	static const stChunkRenderFunc RENDER_FUNCTIONS[];

@@ -59,9 +59,9 @@ void CSimpleFile::WriteInt(int Value)
 	m_fFile.put(static_cast<char>(Value >> 24));
 }
 
-void CSimpleFile::WriteBytes(const char *pBuf, size_t count)
+void CSimpleFile::WriteBytes(const void *pBuf, size_t count)
 {
-	m_fFile.write(pBuf, count);
+	m_fFile.write(reinterpret_cast<const char *>(pBuf), count);
 }
 
 void CSimpleFile::WriteString(std::string_view sv)
@@ -98,8 +98,8 @@ int CSimpleFile::ReadInt()
 	return buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24);
 }
 
-void CSimpleFile::ReadBytes(char *pBuf, size_t count) {
-	m_fFile.read(pBuf, count);
+void CSimpleFile::ReadBytes(void *pBuf, size_t count) {
+	m_fFile.read(reinterpret_cast<char *>(pBuf), count);
 }
 
 std::string CSimpleFile::ReadString()

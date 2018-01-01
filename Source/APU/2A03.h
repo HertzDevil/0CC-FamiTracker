@@ -24,7 +24,9 @@
 #pragma once
 
 class CMixer;
-class CDSample;		// // //
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 
 #include <memory>		// // //
 #include "SoundChip.h"
@@ -54,7 +56,7 @@ public:
 
 	void	ChangeMachine(int Machine);
 
-	void	WriteSample(std::shared_ptr<const CDSample> pSample);		// // //
+	void	WriteSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSample);		// // //
 	CSampleMem &GetSampleMemory();		// // //
 	uint8_t	GetSamplePos() const;
 	uint8_t	GetDeltaCounter() const;
@@ -78,5 +80,5 @@ private:
 	uint8_t		m_iFrameSequence;					// Frame sequence
 	uint8_t		m_iFrameMode;						// 4 or 5-steps frame sequence
 
-	std::shared_ptr<const CDSample> preview_sample_;		// // //
+	std::shared_ptr<const ft0cc::doc::dpcm_sample> preview_sample_;		// // //
 };

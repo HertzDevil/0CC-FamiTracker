@@ -37,7 +37,9 @@ class CMMC5;
 class CN163;
 class CS5B;
 
-class CDSample;		// // //
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 class CMixer;		// // //
 class CSoundChip;		// // //
 class CRegisterState;		// // //
@@ -74,7 +76,7 @@ public:
 	uint8_t	GetSamplePos() const;
 	uint8_t	GetDeltaCounter() const;
 	bool	DPCMPlaying() const;
-	void	WriteSample(std::shared_ptr<const CDSample> pSample);		// // //
+	void	WriteSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSample);		// // //
 	void	ClearSample();		// // //
 
 	void	SetChipLevel(chip_level_t Chip, float Level);

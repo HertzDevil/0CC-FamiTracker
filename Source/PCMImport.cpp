@@ -22,7 +22,7 @@
 
 #include "PCMImport.h"
 #include "FamiTracker.h"
-#include "DSample.h"		// // //
+#include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "FamiTrackerTypes.h"		// // //
 #include "APU/Types.h"		// // //
 #include "Settings.h"
@@ -198,7 +198,7 @@ BEGIN_MESSAGE_MAP(CPCMImport, CDialog)
 	ON_BN_CLICKED(IDC_PREVIEW, &CPCMImport::OnBnClickedPreview)
 END_MESSAGE_MAP()
 
-std::shared_ptr<CDSample> CPCMImport::ShowDialog() {		// // //
+std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ShowDialog() {		// // //
 	// Return imported sample, or NULL if cancel/error
 
 	CString fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, _T(".wav"));
@@ -306,7 +306,7 @@ void CPCMImport::OnBnClickedOk()
 		m_strFileName.Truncate(m_strFileName.GetLength() - 4);
 
 		// Set the name
-		pSample->SetName((LPCSTR)m_strFileName);
+		pSample->rename((LPCSTR)m_strFileName);
 
 		m_pImported = std::move(pSample);
 		m_pCachedSample.reset();
@@ -319,7 +319,7 @@ void CPCMImport::OnBnClickedPreview()
 {
 	if (auto pSample = GetSample()) {		// // //
 		CString text;
-		AfxFormatString1(text, IDS_DPCM_IMPORT_SIZE_FORMAT, MakeIntString(pSample->GetSize()));
+		AfxFormatString1(text, IDS_DPCM_IMPORT_SIZE_FORMAT, MakeIntString(pSample->size()));
 		SetDlgItemText(IDC_SAMPLESIZE, text);
 
 		// Preview the sample
@@ -345,7 +345,7 @@ void CPCMImport::UpdateFileInfo()
 	SetDlgItemText(IDC_RESAMPLING, Resampling);
 }
 
-std::shared_ptr<CDSample> CPCMImport::GetSample() {		// // //
+std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::GetSample() {		// // //
 	if (!m_pCachedSample || m_iCachedQuality != m_iQuality || m_iCachedVolume != m_iVolume)
 		m_pCachedSample = ConvertFile();		// // //
 
@@ -355,7 +355,7 @@ std::shared_ptr<CDSample> CPCMImport::GetSample() {		// // //
 	return m_pCachedSample;
 }
 
-std::shared_ptr<CDSample> CPCMImport::ConvertFile() {		// // //
+std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ConvertFile() {		// // //
 	// Converts a WAV file to a DPCM sample
 	static const int DMC_BIAS = 32;
 
@@ -372,8 +372,7 @@ std::shared_ptr<CDSample> CPCMImport::ConvertFile() {		// // //
 	m_fSampleFile.Seek(m_ullSampleStart, CFile::begin);
 
 	// Allocate space
-	auto pSamples = std::make_unique<char[]>(CDSample::MAX_SIZE);		// // //
-	int iSamples = 0;
+	std::vector<uint8_t> pSamples(ft0cc::doc::dpcm_sample::max_size);		// // //
 
 	// Determine resampling factor
 	float base_freq = (float)CAPU::BASE_FREQ_NTSC / (float)CDPCM::DMC_PERIODS_NTSC[m_iQuality];
@@ -382,7 +381,7 @@ std::shared_ptr<CDSample> CPCMImport::ConvertFile() {		// // //
 	resampler resmpler(*m_psinc, resample_factor, m_iChannels, m_iSampleSize, m_iWaveSize, m_fSampleFile);
 	float val;
 	// Conversion
-	while (resmpler.get(val) && (iSamples < CDSample::MAX_SIZE)) {		// // //
+	while (resmpler.get(val) && (pSamples.size() < ft0cc::doc::dpcm_sample::max_size)) {		// // //
 
 		// when resampling we must clip because of possible ringing.
 		static const int MAX_AMP =  (1 << 16) - 1;
@@ -409,7 +408,7 @@ std::shared_ptr<CDSample> CPCMImport::ConvertFile() {		// // //
 
 		if (--AccReady == 0) {
 			// Store sample
-			pSamples[iSamples++] = DeltaAcc;
+			pSamples.push_back(DeltaAcc);
 			AccReady = 8;
 		}
 	}
@@ -419,8 +418,8 @@ std::shared_ptr<CDSample> CPCMImport::ConvertFile() {		// // //
 	//      throw ?? or something else.
 
 	// Adjust sample until size is x * $10 + 1 bytes
-	while (iSamples < CDSample::MAX_SIZE && ((iSamples & 0x0F) - 1) != 0)		// // //
-		pSamples[iSamples++] = 0x55;
+	while (pSamples.size() < ft0cc::doc::dpcm_sample::max_size && ((pSamples.size() & 0x0F) - 1) != 0)		// // //
+		pSamples.push_back(0x55);
 
 	// Center end of sample (not yet working)
 #if 0
@@ -443,7 +442,7 @@ std::shared_ptr<CDSample> CPCMImport::ConvertFile() {		// // //
 #endif
 
 	// Return a sample object
-	return std::make_shared<CDSample>(iSamples, std::move(pSamples));		// // //
+	return std::make_shared<ft0cc::doc::dpcm_sample>(pSamples, "");		// // //
 }
 
 bool CPCMImport::OpenWaveFile()

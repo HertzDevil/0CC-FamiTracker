@@ -30,7 +30,9 @@
 // Binary chunk renderers
 //
 
-class CDSample;		// // //
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 class CChunk;		// // //
 class CFile;		// // //
 
@@ -54,11 +56,11 @@ class CChunkRenderBinary : public CBinaryFileWriter
 public:
 	CChunkRenderBinary(CFile *pFile);
 	void StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks);		// // //
-	void StoreSamples(const std::vector<std::shared_ptr<const CDSample>> &Samples);		// // //
+	void StoreSamples(const std::vector<std::shared_ptr<const ft0cc::doc::dpcm_sample>> &Samples);		// // //
 
 private:
 	void StoreChunk(const CChunk &Chunk);		// // //
-	void StoreSample(const CDSample &DSample);		// // //
+	void StoreSample(const ft0cc::doc::dpcm_sample &DSample);		// // //
 
 private:
 	int m_iSampleAddress;
@@ -73,15 +75,15 @@ public:
 	void StoreDriver(const unsigned char *pDriver, unsigned int Size);		// // //
 	void StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks);		// // //
 	void StoreChunksBankswitched(const std::vector<std::shared_ptr<CChunk>> &Chunks);
-	void StoreSamples(const std::vector<std::shared_ptr<const CDSample>> &Samples);
-	void StoreSamplesBankswitched(const std::vector<std::shared_ptr<const CDSample>> &Samples);
+	void StoreSamples(const std::vector<std::shared_ptr<const ft0cc::doc::dpcm_sample>> &Samples);
+	void StoreSamplesBankswitched(const std::vector<std::shared_ptr<const ft0cc::doc::dpcm_sample>> &Samples);
 	int  GetBankCount() const;
 
 protected:
 	void StoreChunk(const CChunk &Chunk);		// // //
 	void StoreChunkBankswitched(const CChunk &Chunk);
-	void StoreSample(const CDSample &DSample);
-	void StoreSampleBankswitched(const CDSample &DSample);
+	void StoreSample(const ft0cc::doc::dpcm_sample &DSample);
+	void StoreSampleBankswitched(const ft0cc::doc::dpcm_sample &DSample);
 
 	int  GetRemainingSize() const;
 	void AllocateNewBank();

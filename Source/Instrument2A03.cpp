@@ -23,7 +23,7 @@
 #include "Instrument2A03.h"
 #include "ModuleException.h"		// // //
 #include "InstrumentManagerInterface.h"		// // //
-#include "DSample.h"		// // //
+#include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "DocumentFile.h"
 #include "SimpleFile.h"
 
@@ -177,18 +177,16 @@ void CInstrument2A03::DoSaveFTI(CSimpleFile &File) const
 	for (int i = 0; i < MAX_DSAMPLES; ++i) if (UsedSamples[i]) {
 		if (auto pSample = m_pInstManager->GetDSample(i)) {		// // //
 			File.WriteInt(i);
-			const char *pName = pSample->GetName();
-			int NameLen = strlen(pName);
-			File.WriteString(pName);
-			File.WriteString(std::string_view(pSample->GetData(), pSample->GetSize()));
+			File.WriteString(pSample->name());
+			File.WriteString(std::string_view((const char *)pSample->data(), pSample->size()));
 		}
 	}
 }
 
 bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
 {
-	char SampleNames[MAX_DSAMPLES][CDSample::MAX_NAME_SIZE];
-	
+	char SampleNames[MAX_DSAMPLES][ft0cc::doc::dpcm_sample::max_name_length + 1];
+
 	if (!CSeqInstrument::LoadFTI(File, iVersion))		// // //
 		return false;
 
@@ -222,21 +220,20 @@ bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
 	int TotalSize = 0;		// // // ???
 	for (int i = 0; i < MAX_DSAMPLES; ++i)
 		if (auto pSamp = m_pInstManager->GetDSample(i))
-			TotalSize += pSamp->GetSize();
+			TotalSize += pSamp->size();
 
 	unsigned int SampleCount = File.ReadInt();
 	for (unsigned int i = 0; i < SampleCount; ++i) {
 		int Index = CModuleException::AssertRangeFmt(
 			File.ReadInt(), 0, MAX_DSAMPLES - 1, "DPCM sample index");
 		int Len = CModuleException::AssertRangeFmt(
-			File.ReadInt(), 0, CDSample::MAX_NAME_SIZE - 1, "DPCM sample name length");
+			File.ReadInt(), 0, (int)ft0cc::doc::dpcm_sample::max_name_length, "DPCM sample name length");
 		File.ReadBytes(SampleNames[Index], Len);
 		SampleNames[Index][Len] = '\0';
 		int Size = File.ReadInt();
-		auto SampleData = std::make_unique<char[]>(Size);		// // //
-		File.ReadBytes(SampleData.get(), Size);
-		auto pSample = std::make_shared<CDSample>(Size, std::move(SampleData));		// // //
-		pSample->SetName(SampleNames[Index]);
+		std::vector<uint8_t> SampleData(Size);		// // //
+		File.ReadBytes(SampleData.data(), Size);
+		auto pSample = std::make_shared<ft0cc::doc::dpcm_sample>(SampleData, SampleNames[Index]);		// // //
 
 		bool Found = false;
 		for (int j = 0; j < MAX_DSAMPLES; ++j) if (auto s = m_pInstManager->GetDSample(j)) {		// // //
@@ -259,7 +256,7 @@ bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
 			continue;
 
 		// Load sample
-		
+
 		if (TotalSize + Size > MAX_SAMPLE_SPACE)
 			throw CModuleException::WithMessage("Insufficient DPCM sample space (maximum %d KB)", MAX_SAMPLE_SPACE / 1024);
 		int FreeSample = m_pInstManager->AddDSample(pSample);
@@ -360,7 +357,7 @@ bool CInstrument2A03::AssignedSamples() const
 	return false;
 }
 
-std::shared_ptr<CDSample> CInstrument2A03::GetDSample(int Octave, int Note) const		// // //
+std::shared_ptr<ft0cc::doc::dpcm_sample> CInstrument2A03::GetDSample(int Octave, int Note) const		// // //
 {
 	if (!m_pInstManager) return nullptr;
 	char Index = GetSampleIndex(Octave, Note);

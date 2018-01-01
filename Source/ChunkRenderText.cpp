@@ -22,7 +22,7 @@
 
 #include "ChunkRenderText.h"
 #include <vector>
-#include "DSample.h"		// // //
+#include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "FamiTrackerDoc.h"		// // // output title
 #include "Compiler.h"
 #include "Chunk.h"
@@ -154,7 +154,7 @@ void CChunkRenderText::StoreChunks(const std::vector<std::shared_ptr<CChunk>> &C
 	// Actual DPCM samples are stored later
 }
 
-void CChunkRenderText::StoreSamples(const std::vector<std::shared_ptr<const CDSample>> &Samples)		// // //
+void CChunkRenderText::StoreSamples(const std::vector<std::shared_ptr<const ft0cc::doc::dpcm_sample>> &Samples)		// // //
 {
 	// Store DPCM samples in file, assembly format
 	CStringA str;
@@ -168,12 +168,12 @@ void CChunkRenderText::StoreSamples(const std::vector<std::shared_ptr<const CDSa
 
 	unsigned int Address = CCompiler::PAGE_SAMPLES;
 	for (size_t i = 0; i < Samples.size(); ++i) if (const auto &pDSample = Samples[i]) {		// // //
-		const unsigned int SampleSize = pDSample->GetSize();
-		const unsigned char *pData = pDSample->GetData();
+		const unsigned int SampleSize = pDSample->size();
+		const unsigned char *pData = pDSample->data();
 
 		CStringA label;
 		label.Format("ft_sample_%i", i);		// // //
-		str.Format("%s: ; %s\n", LPCSTR(label), pDSample->GetName());
+		str.Format("%s: ; %.*s\n", LPCSTR(label), pDSample->name().size(), pDSample->name().data());
 		StoreByteString((const char *)pData, SampleSize, str, DEFAULT_LINE_BREAK);
 		Address += SampleSize;
 

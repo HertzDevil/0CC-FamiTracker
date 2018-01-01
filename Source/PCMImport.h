@@ -26,7 +26,9 @@
 #include "resource.h"		// // //
 #include <memory>		// // //
 
-class CDSample;		// // //
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 
 namespace jarh {
 	class sinc;
@@ -43,11 +45,11 @@ public:
 // Dialog Data
 	enum { IDD = IDD_PCMIMPORT };
 
-	std::shared_ptr<CDSample> ShowDialog();		// // //
+	std::shared_ptr<ft0cc::doc::dpcm_sample> ShowDialog();		// // //
 
 protected:
-	std::shared_ptr<CDSample> m_pImported;		// // //
-	std::shared_ptr<CDSample> m_pCachedSample;
+	std::shared_ptr<ft0cc::doc::dpcm_sample> m_pImported;		// // //
+	std::shared_ptr<ft0cc::doc::dpcm_sample> m_pCachedSample;
 
 	CString		m_strPath, m_strFileName;
 	CFile		m_fSampleFile;
@@ -71,8 +73,8 @@ protected:
 	static const int VOLUME_RANGE;
 
 protected:
-	std::shared_ptr<CDSample> GetSample();		// // //
-	std::shared_ptr<CDSample> ConvertFile();
+	std::shared_ptr<ft0cc::doc::dpcm_sample> GetSample();		// // //
+	std::shared_ptr<ft0cc::doc::dpcm_sample> ConvertFile();
 
 	bool OpenWaveFile();
 	void UpdateFileInfo();

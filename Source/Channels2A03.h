@@ -105,7 +105,9 @@ protected:
 	int		TriggerNote(int Note) override;
 };
 
-class CDSample;		// // //
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 
 // DPCM
 class CDPCMChan : public CChannelHandler, public CChannelHandlerInterfaceDPCM {		// // //
@@ -116,7 +118,7 @@ public:
 
 	void	WriteDCOffset(unsigned char Delta) override;		// // //
 	void	SetLoopOffset(unsigned char Loop) override;		// // //
-	void	PlaySample(std::shared_ptr<const CDSample> pSamp, int Pitch) override;		// // //
+	void	PlaySample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSamp, int Pitch) override;		// // //
 protected:
 	void	HandleNoteData(stChanNote &pNoteData) override;		// // //
 	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //

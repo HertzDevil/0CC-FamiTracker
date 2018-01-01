@@ -29,7 +29,9 @@
 
 // CSampleEditorDlg dialog
 
-class CDSample;		// // //
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 class CSoundGen;
 class CSampleEditorView;		// // //
 
@@ -38,9 +40,9 @@ class CSampleEditorDlg : public CDialog
 	DECLARE_DYNAMIC(CSampleEditorDlg)
 
 public:
-	CSampleEditorDlg(CWnd* pParent = NULL, std::shared_ptr<CDSample> pSample = nullptr);		// // // standard constructor
+	CSampleEditorDlg(CWnd* pParent = NULL, std::shared_ptr<ft0cc::doc::dpcm_sample> pSample = nullptr);		// // // standard constructor
 	virtual ~CSampleEditorDlg();
-	std::shared_ptr<CDSample> GetDSample() const;		// // //
+	std::shared_ptr<ft0cc::doc::dpcm_sample> GetDSample() const;		// // //
 
 	void SelectionChanged();
 	void UpdateStatus(int Index, LPCTSTR Text);		// // //
@@ -53,7 +55,7 @@ protected:
 
 	void UpdateSampleView();
 
-	std::shared_ptr<CDSample> m_pSample;
+	std::shared_ptr<ft0cc::doc::dpcm_sample> m_pSample;
 	CSampleEditorView *m_pSampleEditorView;
 	CSoundGen		  *m_pSoundGen;
 

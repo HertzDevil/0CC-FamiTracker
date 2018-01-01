@@ -27,7 +27,9 @@
 
 class CFamiTrackerView;
 class CInstrument2A03;		// // //
-class CDSample;		// // //
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 
 // CInstrumentDPCM dialog
 
@@ -54,10 +56,10 @@ protected:
 	void UpdateCurrentKey();		// // //
 	void UpdateKey(int Index);
 	bool LoadSample(const CString &FilePath, const CString &FileName);
-	bool InsertSample(std::shared_ptr<CDSample> pNewSample);		// // //
+	bool InsertSample(std::shared_ptr<ft0cc::doc::dpcm_sample> pNewSample);		// // //
 
-	std::shared_ptr<const CDSample> GetSelectedSample();		// // //
-	void SetSelectedSample(std::shared_ptr<CDSample> pSample) const;		// // //
+	std::shared_ptr<const ft0cc::doc::dpcm_sample> GetSelectedSample();		// // //
+	void SetSelectedSample(std::shared_ptr<ft0cc::doc::dpcm_sample> pSample) const;		// // //
 
 protected:
 	std::shared_ptr<CInstrument2A03> m_pInstrument;

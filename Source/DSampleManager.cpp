@@ -21,6 +21,7 @@
 */
 
 #include "DSampleManager.h"
+#include "ft0cc/doc/dpcm_sample.hpp"
 
 const unsigned int CDSampleManager::MAX_DSAMPLES = 64;
 
@@ -28,21 +29,21 @@ CDSampleManager::CDSampleManager() : m_pDSample(MAX_DSAMPLES)
 {
 }
 
-std::shared_ptr<CDSample> CDSampleManager::GetDSample(unsigned Index)
+std::shared_ptr<ft0cc::doc::dpcm_sample> CDSampleManager::GetDSample(unsigned Index)
 {
 	return Index < m_pDSample.size() ? m_pDSample[Index] : nullptr;
 }
 
-std::shared_ptr<CDSample> CDSampleManager::ReleaseDSample(unsigned Index) {
+std::shared_ptr<ft0cc::doc::dpcm_sample> CDSampleManager::ReleaseDSample(unsigned Index) {
 	return Index < m_pDSample.size() ? std::move(m_pDSample[Index]) : nullptr;
 }
 
-std::shared_ptr<const CDSample> CDSampleManager::GetDSample(unsigned Index) const
+std::shared_ptr<const ft0cc::doc::dpcm_sample> CDSampleManager::GetDSample(unsigned Index) const
 {
 	return Index < m_pDSample.size() ? m_pDSample[Index] : nullptr;
 }
 
-bool CDSampleManager::SetDSample(unsigned Index, std::shared_ptr<CDSample> pSamp)
+bool CDSampleManager::SetDSample(unsigned Index, std::shared_ptr<dpcm_sample> pSamp)
 {
 	if (Index >= m_pDSample.size())
 		return false;
@@ -78,7 +79,6 @@ unsigned int CDSampleManager::GetTotalSize() const
 	unsigned int Size = 0;
 	for (const auto &x : m_pDSample)
 		if (x)
-			Size += x->GetSize();
+			Size += x->size();
 	return Size;
 }
-

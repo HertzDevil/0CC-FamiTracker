@@ -66,7 +66,6 @@ class CAPU;
 class CDSound;
 class CDSoundChannel;
 class CVisualizerWnd;
-class CDSample;
 class CFTMComponentInterface;		// // //
 class CInstrumentRecorder;		// // //
 class CRegisterState;		// // //
@@ -78,6 +77,10 @@ class CTempoCounter;		// // //
 class CPlayerCursor;		// // //
 class CSoundDriver;		// // //
 class CChannelMap;		// // //
+
+namespace ft0cc::doc {
+class dpcm_sample;
+} // namespace ft0cc::doc
 
 // CSoundGen
 
@@ -154,7 +157,7 @@ public:
 	bool		 IsBackgroundTask() const;
 
 	// Sample previewing
-	void		 PreviewSample(std::shared_ptr<const CDSample> pSample, int Offset, int Pitch);		// // //
+	void		 PreviewSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSample, int Offset, int Pitch);		// // //
 	void		 CancelPreviewSample();
 	bool		 PreviewDone() const;
 
@@ -261,7 +264,7 @@ private:
 	std::unique_ptr<CAudioDriver>	m_pAudioDriver;			// // //
 	std::unique_ptr<CAPU>			m_pAPU;
 
-	std::shared_ptr<const CDSample> m_pPreviewSample;
+	std::shared_ptr<const ft0cc::doc::dpcm_sample> m_pPreviewSample;
 	CVisualizerWnd					*m_pVisualizerWnd = nullptr;
 
 	bool				m_bRunning;

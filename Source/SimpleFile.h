@@ -24,14 +24,15 @@
 #pragma once
 
 #include <fstream>
+#include <cstdint>
 
 class CSimpleFile
 {
 public:
+	static_assert(sizeof(char) == sizeof(uint8_t));
+
 	template <typename... Arg>
-	CSimpleFile(Arg... args) : m_fFile(std::forward<Arg>(args)...)
-	{
-	}
+	CSimpleFile(Arg&&... args) : m_fFile(std::forward<Arg>(args)...) { }
 	~CSimpleFile();
 
 	explicit operator bool() const;
@@ -41,14 +42,14 @@ public:
 	void	WriteChar(char Value);
 	void	WriteShort(short Value);
 	void	WriteInt(int Value);
-	void	WriteBytes(const char *pBuf, size_t count);
+	void	WriteBytes(const void *pBuf, size_t count);
 	void	WriteString(std::string_view sv);
 	void	WriteStringNull(std::string_view sv);
 
 	char	ReadChar();
 	short	ReadShort();
 	int		ReadInt();
-	void	ReadBytes(char *pBuf, size_t count);
+	void	ReadBytes(void *pBuf, size_t count);
 	std::string	ReadString();
 	std::string ReadStringNull();
 

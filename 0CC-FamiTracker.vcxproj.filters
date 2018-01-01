@@ -369,9 +369,6 @@
     <ClCompile Include="Source\ChunkRenderText.cpp">
       <Filter>Source Files\Exporter\Chunk</Filter>
     </ClCompile>
-    <ClCompile Include="Source\DSample.cpp">
-      <Filter>Source Files\Document Data Types</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Sequence.cpp">
       <Filter>Source Files\Document Data Types</Filter>
     </ClCompile>
@@ -997,9 +994,6 @@
     </ClInclude>
     <ClInclude Include="Source\MIDI.h">
       <Filter>Header Files\MIDI Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\DSample.h">
-      <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\Sequence.h">
       <Filter>Header Files\Document Data Type Headers</Filter>
