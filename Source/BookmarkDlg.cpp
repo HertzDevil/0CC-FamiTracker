@@ -33,61 +33,59 @@
 
 // CListBoxEx
 
-class CListBoxEx : public CListBox {
-	void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) override {
-		ASSERT(lpDrawItemStruct->CtlType == ODT_LISTBOX);
-		if (lpDrawItemStruct->itemID == -1)
-			return;
+void CListBoxEx::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) {
+	ASSERT(lpDrawItemStruct->CtlType == ODT_LISTBOX);
+	if (lpDrawItemStruct->itemID == -1)
+		return;
 
-		auto parent = dynamic_cast<CBookmarkDlg *>(GetParent());
-		bool active = parent && parent->IsBookmarkValid(lpDrawItemStruct->itemID);
+	auto parent = dynamic_cast<CBookmarkDlg *>(GetParent());
+	bool active = parent && parent->IsBookmarkValid(lpDrawItemStruct->itemID);
 
-		CDC dc;
-		dc.Attach(lpDrawItemStruct->hDC);
-		COLORREF crOldTextColor = dc.GetTextColor();
-		COLORREF crOldBkColor = dc.GetBkColor();
+	CDC dc;
+	dc.Attach(lpDrawItemStruct->hDC);
+	COLORREF crOldTextColor = dc.GetTextColor();
+	COLORREF crOldBkColor = dc.GetBkColor();
 
-		CString str;
-		GetText(lpDrawItemStruct->itemID, str);
+	CString str;
+	GetText(lpDrawItemStruct->itemID, str);
 
-		if ((lpDrawItemStruct->itemAction | ODA_SELECT) &&
-			(lpDrawItemStruct->itemState & ODS_SELECTED)) {
-			dc.SetTextColor(::GetSysColor(COLOR_HIGHLIGHTTEXT));
-			dc.SetBkColor(::GetSysColor(COLOR_HIGHLIGHT));
-			dc.FillSolidRect(&lpDrawItemStruct->rcItem,
-				::GetSysColor(COLOR_HIGHLIGHT));
-		}
-		else
-			dc.FillSolidRect(&lpDrawItemStruct->rcItem, crOldBkColor);
-
-		if (!active)
-			dc.SetTextColor(::GetSysColor(COLOR_GRAYTEXT));
-
-		dc.SetWindowOrg(-2, 0);
-		dc.DrawText(str, (int)_tcslen(str), &lpDrawItemStruct->rcItem, DT_SINGLELINE);
-
-		dc.SetWindowOrg(0, 0);
-		dc.SetTextColor(crOldTextColor);
-		dc.SetBkColor(crOldBkColor);
-
-		if ((lpDrawItemStruct->itemAction | ODA_FOCUS) &&
-			(lpDrawItemStruct->itemState & ODS_FOCUS))
-			dc.DrawFocusRect(&lpDrawItemStruct->rcItem);
-
-		dc.Detach();
+	if ((lpDrawItemStruct->itemAction | ODA_SELECT) &&
+		(lpDrawItemStruct->itemState & ODS_SELECTED)) {
+		dc.SetTextColor(::GetSysColor(COLOR_HIGHLIGHTTEXT));
+		dc.SetBkColor(::GetSysColor(COLOR_HIGHLIGHT));
+		dc.FillSolidRect(&lpDrawItemStruct->rcItem,
+			::GetSysColor(COLOR_HIGHLIGHT));
 	}
+	else
+		dc.FillSolidRect(&lpDrawItemStruct->rcItem, crOldBkColor);
 
-	void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct) override {
-		ASSERT(lpMeasureItemStruct->CtlType == ODT_LISTBOX);
-		CDC *pDC = GetDC();
+	if (!active)
+		dc.SetTextColor(::GetSysColor(COLOR_GRAYTEXT));
 
-		TEXTMETRIC tm;
-		pDC->GetTextMetrics(&tm);
-		lpMeasureItemStruct->itemHeight = tm.tmHeight * 3 / 4;
+	dc.SetWindowOrg(-2, 0);
+	dc.DrawText(str, (int)_tcslen(str), &lpDrawItemStruct->rcItem, DT_SINGLELINE);
 
-		ReleaseDC(pDC);
-	}
-};
+	dc.SetWindowOrg(0, 0);
+	dc.SetTextColor(crOldTextColor);
+	dc.SetBkColor(crOldBkColor);
+
+	if ((lpDrawItemStruct->itemAction | ODA_FOCUS) &&
+		(lpDrawItemStruct->itemState & ODS_FOCUS))
+		dc.DrawFocusRect(&lpDrawItemStruct->rcItem);
+
+	dc.Detach();
+}
+
+void CListBoxEx::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct) {
+	ASSERT(lpMeasureItemStruct->CtlType == ODT_LISTBOX);
+	CDC *pDC = GetDC();
+
+	TEXTMETRIC tm;
+	pDC->GetTextMetrics(&tm);
+	lpMeasureItemStruct->itemHeight = tm.tmHeight * 3 / 4;
+
+	ReleaseDC(pDC);
+}
 
 
 

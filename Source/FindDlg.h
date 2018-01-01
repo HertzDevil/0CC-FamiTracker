@@ -141,7 +141,6 @@ class CFindResultsBox : public CDialog
 	DECLARE_DYNAMIC(CFindResultsBox)
 public:
 	CFindResultsBox(CWnd* pParent = NULL); // standard constructor
-	virtual ~CFindResultsBox();
 
 	virtual void DoDataExchange(CDataExchange* pDX);
 

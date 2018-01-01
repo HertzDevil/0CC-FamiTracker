@@ -26,6 +26,7 @@
 // CMainFrame, the main window class
 
 #include "stdafx.h"		// // //
+#include "CustomControls.h"		// // //
 #include "InstrumentEditDlg.h"
 #include "PerformanceDlg.h"
 #include "DialogReBar.h"

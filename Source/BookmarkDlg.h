@@ -29,7 +29,11 @@
 class CFamiTrackerDoc;
 class CBookmark;
 class CBookmarkCollection;
-class CListBoxEx;
+
+class CListBoxEx : public CListBox {
+	void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) override;
+	void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct) override;
+};
 
 // CBookmarkDlg dialog
 

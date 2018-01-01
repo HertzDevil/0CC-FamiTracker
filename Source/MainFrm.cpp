@@ -31,7 +31,6 @@
 #include "InstrumentEditDlg.h"
 #include "ModulePropertiesDlg.h"
 #include "ChannelsDlg.h"
-#include "CustomControls.h"		// // //
 #include "VisualizerWnd.h"
 #include "TextExporter.h"
 #include "ConfigGeneral.h"
