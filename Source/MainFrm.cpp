@@ -3357,12 +3357,12 @@ void CMainFrame::OnUpdateGrooveEdit(CCmdUI *pCmdUI)
 	CFamiTrackerDoc &Doc = GetDoc();
 	int Speed = Doc.GetSongSpeed(m_iTrack);
 	if (Doc.GetSongGroove(m_iTrack)) {
-		m_pButtonGroove.SetWindowText(_T("Groove"));
+		m_cButtonGroove.SetWindowText(_T("Groove"));
 		if (Speed > MAX_GROOVE - 1) Speed = MAX_GROOVE - 1;
 		if (Speed < 0) Speed = 0;
 	}
 	else {
-		m_pButtonGroove.SetWindowText(_T("Speed"));
+		m_cButtonGroove.SetWindowText(_T("Speed"));
 		int MaxSpeed = Doc.GetSongTempo(m_iTrack) ? Doc.GetSpeedSplitPoint() - 1 : 0xFF;
 		if (Speed > MaxSpeed) Speed = MaxSpeed;
 		if (Speed < MIN_SPEED) Speed = MIN_SPEED;
@@ -3385,12 +3385,12 @@ void CMainFrame::OnUpdateToggleFixTempo(CCmdUI *pCmdUI)
 	const CFamiTrackerDoc &Doc = GetDoc();
 
 	if (int Tempo = Doc.GetSongTempo(m_iTrack)) {
-		m_pButtonFixTempo.SetWindowText(_T("Tempo"));
+		m_cButtonFixTempo.SetWindowText(_T("Tempo"));
 		m_cLockedEditTempo.EnableWindow(true);
 		m_wndDialogBar.GetDlgItem(IDC_TEMPO_SPIN)->EnableWindow(true);
 	}
 	else {
-		m_pButtonFixTempo.SetWindowText(_T("Fixed"));
+		m_cButtonFixTempo.SetWindowText(_T("Fixed"));
 		m_cLockedEditTempo.EnableWindow(false);
 		m_wndDialogBar.GetDlgItem(IDC_TEMPO_SPIN)->EnableWindow(false);
 		CString str;
