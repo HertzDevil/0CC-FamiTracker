@@ -65,6 +65,7 @@
 #include "FamiTrackerDocIO.h"		// // //
 #include "SongData.h"		// // //
 #include "FamiTrackerDocOldIO.h"		// // //
+#include "NumConv.h"		// // //
 
 #include "ft0cc/doc/groove.hpp"		// // //
 
@@ -995,74 +996,54 @@ void CFamiTrackerDoc::SaveInstrument(unsigned int Index, CSimpleFile &file) cons
 	GetInstrument(Index)->SaveFTI(file);
 }
 
-int CFamiTrackerDoc::LoadInstrument(CString FileName)
-{
+int CFamiTrackerDoc::LoadInstrument(CSimpleFile &File) {		// / //
+	// Loads an instrument from file, return allocated slot or INVALID_INSTRUMENT if failed
+
 	// FTI instruments files
 	static const char INST_HEADER[] = "FTI";
-	static const char INST_VERSION[] = "2.4";
+//	static const char INST_VERSION[] = "2.4";
 
-	// Loads an instrument from file, return allocated slot or INVALID_INSTRUMENT if failed
-	//
-	int iInstMaj, iInstMin;
-	// // // sscanf_s(INST_VERSION, "%i.%i", &iInstMaj, &iInstMin);
-	static const int I_CURRENT_VER = 2 * 10 + 5;		// // // 050B
-	
-	int Slot = m_pInstrumentManager->GetFirstUnused();
+	static const unsigned I_CURRENT_VER_MAJ = 2;		// // // 050B
+	static const unsigned I_CURRENT_VER_MIN = 5;		// // // 050B
+
+	// Signature
+	char Text[256] = { };
+	for (std::size_t i = 0; i < std::size(INST_HEADER) - 1; ++i)
+		if (File.ReadChar() != INST_HEADER[i]) {
+			AfxMessageBox(IDS_INSTRUMENT_FILE_FAIL, MB_ICONERROR);
+			return INVALID_INSTRUMENT;
+		}
+
+	// Version
+	unsigned iInstMaj = conv::from_digit(File.ReadChar());
+	if (File.ReadChar() != '.') {
+		AfxMessageBox(IDS_INST_VERSION_UNSUPPORTED, MB_ICONERROR);
+		return INVALID_INSTRUMENT;
+	}
+	unsigned iInstMin = conv::from_digit(File.ReadChar());
+	if (std::tie(iInstMaj, iInstMin) > std::tie(I_CURRENT_VER_MAJ, I_CURRENT_VER_MIN)) {
+		AfxMessageBox(IDS_INST_VERSION_UNSUPPORTED, MB_ICONERROR);
+		return INVALID_INSTRUMENT;
+	}
+
 	try {
-		if (Slot == INVALID_INSTRUMENT)
-			throw IDS_INST_LIMIT;
-
-		// Open file
-		// // // CFile implements RAII
-		CSimpleFile file(FileName, std::ios::in | std::ios::binary);
-		if (!file)
-			throw IDS_FILE_OPEN_ERROR;
-
-		// Signature
-		const UINT HEADER_LEN = strlen(INST_HEADER);
-		char Text[256] = {};
-		file.ReadBytes(Text, HEADER_LEN);
-		if (strcmp(Text, INST_HEADER) != 0)
-			throw IDS_INSTRUMENT_FILE_FAIL;
-		
-		// Version
-		file.ReadBytes(Text, static_cast<UINT>(strlen(INST_VERSION)));
-		sscanf_s(Text, "%i.%i", &iInstMaj, &iInstMin);		// // //
-		int iInstVer = iInstMaj * 10 + iInstMin;
-		if (iInstVer > I_CURRENT_VER)
-			throw IDS_INST_VERSION_UNSUPPORTED;
-		
 		LockDocument();
 
-		inst_type_t InstType = static_cast<inst_type_t>(file.ReadChar());
-		if (InstType == INST_NONE)
-			InstType = INST_2A03;
-		auto pInstrument = m_pInstrumentManager->CreateNew(InstType);
+		inst_type_t InstType = static_cast<inst_type_t>(File.ReadChar());
+		auto pInstrument = m_pInstrumentManager->CreateNew(InstType != INST_NONE ? InstType : INST_2A03);
 		if (!pInstrument) {
 			UnlockDocument();
 			AfxMessageBox("Failed to create instrument", MB_ICONERROR);
 			return INVALID_INSTRUMENT;
 		}
-		
-		// Name
-		std::string InstName = file.ReadString();
-		if (InstName.size() > static_cast<unsigned>(CInstrument::INST_NAME_MAX))
-			InstName = InstName.substr(0, CInstrument::INST_NAME_MAX);
-		pInstrument->SetName(InstName.c_str());
 
-		pInstrument->LoadFTI(file, iInstVer);		// // //
-		m_pInstrumentManager->InsertInstrument(Slot, std::move(pInstrument));
+		pInstrument->LoadFTI(File, iInstMaj * 10 + iInstMin);		// // //
+		int Slot = AddInstrument(std::move(pInstrument), GetFreeInstrumentIndex());
 		UnlockDocument();
 		return Slot;
 	}
-	catch (int ID) {		// // // TODO: put all error messages into string table then add exception ctor
-		UnlockDocument();
-		AfxMessageBox(ID, MB_ICONERROR);
-		return INVALID_INSTRUMENT;
-	}
 	catch (CModuleException e) {
 		UnlockDocument();
-		m_pInstrumentManager->RemoveInstrument(Slot);
 		AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
 		return INVALID_INSTRUMENT;
 	}

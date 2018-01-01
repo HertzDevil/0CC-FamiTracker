@@ -396,7 +396,7 @@ void CCompiler::ExportNES_PRG(LPCTSTR lpszFileName, bool EnablePAL, bool isPRG) 
 	Render.StoreDriver(pDriver, m_iDriverSize);
 	Render.StoreChunks(m_vChunks);
 	Render.StoreSamples(m_vSamples);
-	Render.StoreCaller(NSF_CALLER_BIN, NSF_CALLER_SIZE);
+	Render.StoreCaller(NSF_CALLER_BIN, std::size(NSF_CALLER_BIN));
 
 	int Percent = (100 * m_iMusicDataSize) / (0x8000 - m_iDriverSize - m_iSamplesSize);
 	Print(_T(" * Driver size: %i bytes\n"), m_iDriverSize);

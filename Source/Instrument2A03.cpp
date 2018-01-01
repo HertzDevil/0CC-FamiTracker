@@ -183,12 +183,11 @@ void CInstrument2A03::DoSaveFTI(CSimpleFile &File) const
 	}
 }
 
-bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
+void CInstrument2A03::DoLoadFTI(CSimpleFile &File, int iVersion)
 {
 	char SampleNames[MAX_DSAMPLES][ft0cc::doc::dpcm_sample::max_name_length + 1];
 
-	if (!CSeqInstrument::LoadFTI(File, iVersion))		// // //
-		return false;
+	CSeqInstrument::DoLoadFTI(File, iVersion);		// // //
 
 	unsigned int Count = File.ReadInt();
 	CModuleException::AssertRangeFmt(Count, 0U, static_cast<unsigned>(NOTE_COUNT), "DPCM assignment count");
@@ -273,8 +272,6 @@ bool CInstrument2A03::LoadFTI(CSimpleFile &File, int iVersion)
 			}
 		}
 	}
-
-	return true;
 }
 
 int CInstrument2A03::GetSampleCount() const		// // // 050B

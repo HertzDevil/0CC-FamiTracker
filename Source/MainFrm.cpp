@@ -1316,12 +1316,27 @@ void CMainFrame::OnEditInstrument()
 	OpenInstrumentEditor();
 }
 
+int CMainFrame::LoadInstrument(const CString &filename) {		// // //
+	const auto err = [this] (int ID) {
+		AfxMessageBox(ID, MB_ICONERROR);
+		return INVALID_INSTRUMENT;
+	};
+
+	auto &Doc = GetDoc();
+	if (Doc.GetFreeInstrumentIndex() != INVALID_INSTRUMENT) {
+		if (CSimpleFile file(filename, std::ios::in | std::ios::binary); file) {
+			return Doc.LoadInstrument(file);
+		}
+		return err(IDS_FILE_OPEN_ERROR);
+	}
+	return err(IDS_INST_LIMIT);
+}
+
 void CMainFrame::OnLoadInstrument()
 {
 	// Loads an instrument from a file
 
 	CString filter = LoadDefaultFilter(IDS_FILTER_FTI, _T(".fti"));
-	CFamiTrackerDoc &Doc = GetDoc();
 	CFileDialog FileDialog(TRUE, _T("fti"), 0, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, filter);
 
 	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_FTI);
@@ -1333,14 +1348,14 @@ void CMainFrame::OnLoadInstrument()
 
 	// Load multiple files
 	while (pos) {
-		CString csFileName(FileDialog.GetNextPathName(pos));
-		int Index = Doc.LoadInstrument(csFileName);
-		if (Index == -1)
+		int Index = LoadInstrument(FileDialog.GetNextPathName(pos));		// // //
+		if (Index == INVALID_INSTRUMENT)
 			return;
 		SelectInstrument(Index);		// // //
 		m_pInstrumentList->InsertInstrument(Index);
 	}
-	
+	UpdateInstrumentList();
+
 	if (FileDialog.GetFileName().GetLength() == 0)		// // //
 		theApp.GetSettings()->SetPath(FileDialog.GetPathName() + _T("\\"), PATH_FTI);
 	else
@@ -1354,7 +1369,7 @@ void CMainFrame::OnSaveInstrument()
 	return;
 #endif
 	// Saves instrument to a file
-	
+
 	const CFamiTrackerDoc &Doc = GetDoc();
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 

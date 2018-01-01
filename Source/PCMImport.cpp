@@ -419,7 +419,7 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ConvertFile() {		// // //
 
 	// Adjust sample until size is x * $10 + 1 bytes
 	while (pSamples.size() < ft0cc::doc::dpcm_sample::max_size && ((pSamples.size() & 0x0F) - 1) != 0)		// // //
-		pSamples.push_back(0x55);
+		pSamples.push_back(0xAA);
 
 	// Center end of sample (not yet working)
 #if 0

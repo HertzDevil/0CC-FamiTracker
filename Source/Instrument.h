@@ -54,12 +54,12 @@ public:
 	virtual void OnBlankInstrument();										// // // Setup some initial values
 
 	void SaveFTI(CSimpleFile &File) const;								// // // Saves to an FTI file
+	void LoadFTI(CSimpleFile &File, int iVersion);						// // // Loads from an FTI file
 
 public:
 	virtual inst_type_t GetType() const;								// // // Returns instrument type
 	virtual void Store(CDocumentFile *pDocFile) const = 0;				// Saves the instrument to the module
 	virtual bool Load(CDocumentFile *pDocFile) = 0;						// Loads the instrument from a module
-	virtual bool LoadFTI(CSimpleFile &File, int iVersion) = 0;			// // // Loads from an FTI file
 	virtual int Compile(CChunk *pChunk, int Index) const = 0;			// // // Compiles the instrument for NSF generation
 	virtual bool CanRelease() const = 0;
 
@@ -68,7 +68,8 @@ protected:
 	void InstrumentChanged() const;
 
 private:
-	virtual void DoSaveFTI(CSimpleFile &File) const = 0;				// // // Saves to an FTI file
+	virtual void DoSaveFTI(CSimpleFile &File) const = 0;				// // //
+	virtual void DoLoadFTI(CSimpleFile &File, int iVersion) = 0;		// // //
 
 public:
 	static const int INST_NAME_MAX = 128;

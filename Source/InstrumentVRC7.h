@@ -45,7 +45,7 @@ protected:
 
 private:
 	void	DoSaveFTI(CSimpleFile &pFile) const override;
-	bool	LoadFTI(CSimpleFile &File, int iVersion) override;
+	void	DoLoadFTI(CSimpleFile &File, int iVersion) override;
 
 private:
 	unsigned int m_iPatch;

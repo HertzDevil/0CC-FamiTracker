@@ -62,7 +62,7 @@ private:
 
 	void	OnBlankInstrument() override;		// // //
 	void	DoSaveFTI(CSimpleFile &File) const override;
-	bool	LoadFTI(CSimpleFile &File, int iVersion) override;
+	void	DoLoadFTI(CSimpleFile &File, int iVersion) override;
 
 public:
 	static const int WAVE_SIZE = 64;

@@ -56,7 +56,7 @@ protected:
 	CSeqInstrument *CopySequences(const CSeqInstrument *const src);		// // //
 
 	void	DoSaveFTI(CSimpleFile &File) const override;
-	bool	LoadFTI(CSimpleFile &File, int iVersion) override;
+	void	DoLoadFTI(CSimpleFile &File, int iVersion) override;
 
 	int		m_iSeqEnable[SEQ_COUNT];
 	int		m_iSeqIndex[SEQ_COUNT];

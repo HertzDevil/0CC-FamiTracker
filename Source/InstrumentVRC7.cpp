@@ -82,14 +82,12 @@ void CInstrumentVRC7::DoSaveFTI(CSimpleFile &File) const
 		File.WriteChar(GetCustomReg(i));
 }
 
-bool CInstrumentVRC7::LoadFTI(CSimpleFile &File, int iVersion)
+void CInstrumentVRC7::DoLoadFTI(CSimpleFile &File, int iVersion)
 {
 	m_iPatch = File.ReadInt();
 
 	for (int i = 0; i < 8; ++i)
 		SetCustomReg(i, File.ReadChar());
-
-	return true;
 }
 
 int CInstrumentVRC7::Compile(CChunk *pChunk, int Index) const

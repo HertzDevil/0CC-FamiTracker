@@ -58,7 +58,7 @@ protected:
 
 private:
 	void	DoSaveFTI(CSimpleFile &File) const override;
-	bool	LoadFTI(CSimpleFile &File, int iVersion) override;
+	void	DoLoadFTI(CSimpleFile &File, int iVersion) override;
 
 public:
 	static const int MAX_WAVE_SIZE = 240;		// Wave size (240 samples)		// // //

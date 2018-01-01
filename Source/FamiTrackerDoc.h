@@ -279,7 +279,7 @@ public:
 	inst_type_t		GetInstrumentType(unsigned int Index) const;
 	int				DeepCloneInstrument(unsigned int Index);
 	void			SaveInstrument(unsigned int Index, CSimpleFile &file) const;		// // //
-	int 			LoadInstrument(CString FileName);
+	int 			LoadInstrument(CSimpleFile &File);		// / ///
 
 	// Sequences functions
 	// // // take instrument type as parameter rather than chip type

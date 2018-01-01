@@ -948,7 +948,7 @@ void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerDoc &doc, int ver) {
 		unsigned int Index = AssertRange(
 			static_cast<unsigned char>(file_.GetBlockChar()), 0U, CDSampleManager::MAX_DSAMPLES - 1, "DPCM sample index");
 		try {
-			unsigned int Len = AssertRange(file_.GetBlockInt(), 0, ft0cc::doc::dpcm_sample::max_name_length, "DPCM sample name length");
+			unsigned int Len = AssertRange(file_.GetBlockInt(), 0, (int)ft0cc::doc::dpcm_sample::max_name_length, "DPCM sample name length");
 			char Name[ft0cc::doc::dpcm_sample::max_name_length + 1] = { };
 			file_.GetBlock(Name, Len);
 			int Size = AssertRange(file_.GetBlockInt(), 0, 0x7FFF, "DPCM sample size");

@@ -135,11 +135,10 @@ void CInstrumentN163::DoSaveFTI(CSimpleFile &File) const
 	}
 }
 
-bool CInstrumentN163::LoadFTI(CSimpleFile &File, int iVersion)
+void CInstrumentN163::DoLoadFTI(CSimpleFile &File, int iVersion)
 {
 	// Sequences
-	if (!CSeqInstrument::LoadFTI(File, iVersion))
-		return false;		// // //
+	CSeqInstrument::DoLoadFTI(File, iVersion);		// // //
 
 	// Read wave config
 	int WaveSize = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), 4, MAX_WAVE_SIZE, "N163 wave size");
@@ -161,8 +160,6 @@ bool CInstrumentN163::LoadFTI(CSimpleFile &File, int iVersion)
 		e.AppendError("At wave %i, sample %i,", i, j);
 		throw e;
 	}
-
-	return true;
 }
 
 int CInstrumentN163::Compile(CChunk *pChunk, int Index) const

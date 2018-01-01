@@ -165,6 +165,7 @@ private:
 	void	NewInstrument(inst_type_t Inst);		// // //
 	void	ClearInstrumentList();
 	void	SetInstrumentEditName(const char *pText);		// // //
+	int		LoadInstrument(const CString &filename);		// // //
 
 	void	SetFrameEditorPosition(int Position);
 	void	SetControlPanelPosition(control_panel_pos_t Position);		// // // 050B

@@ -22,7 +22,6 @@
 
 #include "Instrument.h"
 #include "InstrumentManagerInterface.h"		// // //
-#include <cstring>		// // //
 #include "SimpleFile.h"		// // //
 
 namespace {
@@ -71,8 +70,8 @@ void CInstrument::RegisterManager(CInstrumentManagerInterface *pManager)		// // 
 
 void CInstrument::SaveFTI(CSimpleFile &File) const {
 	// Write header
-	File.WriteBytes(INST_HEADER, (size_t)strlen(INST_HEADER));
-	File.WriteBytes(INST_VERSION, (size_t)strlen(INST_VERSION));
+	File.WriteBytes(INST_HEADER, std::size(INST_HEADER) - 1);
+	File.WriteBytes(INST_VERSION, std::size(INST_VERSION) - 1);
 
 	// Write type
 	File.WriteChar(GetType());
@@ -82,6 +81,11 @@ void CInstrument::SaveFTI(CSimpleFile &File) const {
 
 	// Write instrument data
 	DoSaveFTI(File);
+}
+
+void CInstrument::LoadFTI(CSimpleFile &File, int iVersion) {		// // //
+	SetName(File.ReadString());		// // //
+	DoLoadFTI(File, iVersion);
 }
 
 inst_type_t CInstrument::GetType() const		// // //

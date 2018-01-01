@@ -255,7 +255,7 @@ void CInstrumentFDS::DoSaveFTI(CSimpleFile &File) const
 		StoreInstSequence(File, *GetSequence(i));
 }
 
-bool CInstrumentFDS::LoadFTI(CSimpleFile &File, int iVersion)
+void CInstrumentFDS::DoLoadFTI(CSimpleFile &File, int iVersion)
 {
 	// Read wave
 	for (int i = 0; i < WAVE_SIZE; ++i) {
@@ -276,9 +276,8 @@ bool CInstrumentFDS::LoadFTI(CSimpleFile &File, int iVersion)
 	for (int i = 0; i < SEQUENCE_COUNT; ++i)		// // //
 		SetSequence(i, LoadInstSequence(File));
 
-	if (iVersion <= 22) DoubleVolume();
-
-	return true;
+	if (iVersion <= 22)
+		DoubleVolume();
 }
 
 int CInstrumentFDS::Compile(CChunk *pChunk, int Index) const

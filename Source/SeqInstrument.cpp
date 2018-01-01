@@ -118,7 +118,7 @@ void CSeqInstrument::DoSaveFTI(CSimpleFile &File) const
 	}
 }
 
-bool CSeqInstrument::LoadFTI(CSimpleFile &File, int iVersion)
+void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
 {
 	// Sequences
 	std::shared_ptr<CSequence> pSeq;		// // //
@@ -168,8 +168,6 @@ bool CSeqInstrument::LoadFTI(CSimpleFile &File, int iVersion)
 		e.AppendError("At %s sequence,", GetSequenceName(i));
 		throw e;
 	}
-
-	return true;
 }
 
 int CSeqInstrument::Compile(CChunk *pChunk, int Index) const
