@@ -87,12 +87,12 @@ private:
 	CDC		m_dcCopy;
 	CBitmap m_bmpCopy;
 
-	CPen *m_pSolidPen;
-	CPen *m_pDashedPen;
-	CPen *m_pGrayDashedPen;
-	CPen *m_pDarkGrayDashedPen;
+	CPen m_cSolidPen;		// // //
+	CPen m_cDashedPen;
+	CPen m_cGrayDashedPen;
+	CPen m_cDarkGrayDashedPen;
 
-	CScrollBar *m_pScrollBar;
+	CScrollBar m_cScrollBar;
 
 protected:
 	afx_msg void OnPaint();

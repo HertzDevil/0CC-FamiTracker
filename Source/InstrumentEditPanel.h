@@ -92,11 +92,11 @@ public:
 
 	// Member variables
 protected:
-	CSequenceEditor	*m_pSequenceEditor;
+	std::unique_ptr<CSequenceEditor> m_pSequenceEditor;
 	std::shared_ptr<CSequence> m_pSequence;		// // //
 	CWnd *m_pParentWin;
 	std::shared_ptr<CSeqInstrument> m_pInstrument;		// // //
-	CSequenceParser *m_pParser;		// // //
+	std::unique_ptr<CSequenceParser> m_pParser;		// // //
 
 	unsigned int m_iSelectedSetting;
 

@@ -42,14 +42,13 @@ using namespace std;
 IMPLEMENT_DYNAMIC(CInstrumentEditorN163Wave, CInstrumentEditPanel)
 
 CInstrumentEditorN163Wave::CInstrumentEditorN163Wave(CWnd* pParent) : CInstrumentEditPanel(CInstrumentEditorN163Wave::IDD, pParent),
-	m_pWaveEditor(NULL),
+	m_pWaveEditor(std::make_unique<CWaveEditorN163>(10, 8, 32, 16)),
 	m_iWaveIndex(0)
 {
 }
 
 CInstrumentEditorN163Wave::~CInstrumentEditorN163Wave()
 {
-	SAFE_RELEASE(m_pWaveEditor);
 }
 
 void CInstrumentEditorN163Wave::DoDataExchange(CDataExchange* pDX)
@@ -115,7 +114,6 @@ BOOL CInstrumentEditorN163Wave::OnInitDialog()
 	CInstrumentEditPanel::OnInitDialog();
 
 	// Create wave editor
-	m_pWaveEditor = new CWaveEditorN163(10, 8, 32, 16);
 	m_pWaveEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE, DPI::Rect(20, 30, 0, 0), this);		// // //
 	m_pWaveEditor->ShowWindow(SW_SHOW);
 	m_pWaveEditor->UpdateWindow();

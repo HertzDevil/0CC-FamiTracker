@@ -47,24 +47,18 @@ CSampleEditorView::CSampleEditorView() :
 	m_iSelEnd(-1),
 	m_iStartCursor(0),
 	m_bClicked(false),
-	m_pScrollBar(NULL),
 	m_fZoom(1.0f),
 	m_iViewStart(0),
-	m_iViewEnd(0)
+	m_iViewEnd(0),
+	m_cSolidPen(PS_SOLID, 1, RGB(0, 0, 0)),		// // //
+	m_cDashedPen(PS_DASH, 1, RGB(0, 0, 0)),
+	m_cGrayDashedPen(PS_DASHDOT, 1, RGB(240, 240, 240)),
+	m_cDarkGrayDashedPen(PS_DASHDOT, 1, RGB(224, 224, 224))
 {
-	m_pSolidPen = new CPen(PS_SOLID, 1, (COLORREF)0x00);
-	m_pDashedPen = new CPen(PS_DASH, 1, (COLORREF)0x00);
-	m_pGrayDashedPen = new CPen(PS_DASHDOT, 1, (COLORREF)0xF0F0F0);
-	m_pDarkGrayDashedPen = new CPen(PS_DASHDOT, 1, (COLORREF)0xE0E0E0);
 }
 
 CSampleEditorView::~CSampleEditorView()
 {
-	SAFE_RELEASE(m_pSolidPen);
-	SAFE_RELEASE(m_pDashedPen);
-	SAFE_RELEASE(m_pGrayDashedPen);
-	SAFE_RELEASE(m_pDarkGrayDashedPen);
-	SAFE_RELEASE(m_pScrollBar);
 }
 
 void CSampleEditorView::OnPaint()
@@ -72,7 +66,7 @@ void CSampleEditorView::OnPaint()
 	CPaintDC dc(this); // device context for painting
 
 	CRect sbRect;
-	m_pScrollBar->GetClientRect(&sbRect);
+	m_cScrollBar.GetClientRect(&sbRect);
 	int ScrollBarHeight = sbRect.bottom - sbRect.top;
 
 	GetClientRect(&m_clientRect);
@@ -110,10 +104,10 @@ void CSampleEditorView::OnPaint()
 	m_dSampleStep = Step;
 	m_iBlockSize = (Width * (8 * 16)) / Size;
 
-	CPen *oldPen = m_dcCopy.SelectObject(m_pSolidPen);
+	CPen *oldPen = m_dcCopy.SelectObject(&m_cSolidPen);
 
 	// Block markers
-	m_dcCopy.SelectObject(m_pGrayDashedPen);
+	m_dcCopy.SelectObject(&m_cGrayDashedPen);
 	m_dcCopy.SetBkMode(TRANSPARENT);
 	int StartBlock = (m_iViewStart / (8 * 16));
 	int Blocks = (Size / (8 * 16));
@@ -122,9 +116,9 @@ void CSampleEditorView::OnPaint()
 		for (int i = 1; i < Blocks + 2; ++i) {
 			int x = int((i * 128 - Offset) / m_dSampleStep) - 1;
 			if ((i + StartBlock) % 4 == 0)
-				m_dcCopy.SelectObject(m_pDarkGrayDashedPen);
+				m_dcCopy.SelectObject(&m_cDarkGrayDashedPen);
 			else
-				m_dcCopy.SelectObject(m_pGrayDashedPen);
+				m_dcCopy.SelectObject(&m_cGrayDashedPen);
 			m_dcCopy.MoveTo(x, 0);
 			m_dcCopy.LineTo(x, Height);
 		}
@@ -142,7 +136,7 @@ void CSampleEditorView::OnPaint()
 	// Draw the sample
 	int y = (m_pSamples[m_iViewStart] * Height) / 127;
 	m_dcCopy.MoveTo(0, y);
-	m_dcCopy.SelectObject(m_pSolidPen);
+	m_dcCopy.SelectObject(&m_cSolidPen);
 
 	float Step2 = float(Width) / float(Size);
 	float Pos = 0.0f;
@@ -281,7 +275,7 @@ void CSampleEditorView::DrawPlayCursor(int Pos)
 	pDC->BitBlt(0, 0, m_clientRect.Width(), m_clientRect.Height(), &m_dcCopy, 0, 0, SRCCOPY);
 
 	if (Pos != -1) {
-		CPen *oldPen = pDC->SelectObject(m_pDashedPen);
+		CPen *oldPen = pDC->SelectObject(&m_cDashedPen);
 		pDC->MoveTo(x, 0);
 		pDC->LineTo(x, m_clientRect.bottom);
 		pDC->SelectObject(oldPen);
@@ -298,7 +292,7 @@ void CSampleEditorView::DrawStartCursor()
 	pDC->BitBlt(0, 0, m_clientRect.Width(), m_clientRect.Height(), &m_dcCopy, 0, 0, SRCCOPY);
 
 	if (m_iStartCursor != -1) {
-		CPen *oldPen = pDC->SelectObject(m_pDashedPen);
+		CPen *oldPen = pDC->SelectObject(&m_cDashedPen);
 		pDC->MoveTo(x, 0);
 		pDC->LineTo(x, m_clientRect.bottom);
 		pDC->SelectObject(oldPen);
@@ -394,15 +388,15 @@ void CSampleEditorView::OnSize(UINT nType, int cx, int cy)
 {
 	CStatic::OnSize(nType, cx, cy);
 
-	if (m_pScrollBar->m_hWnd != NULL) {
+	if (m_cScrollBar.m_hWnd != NULL) {
 		CRect clientRect, scrollRect;
 		GetClientRect(&clientRect);
-		m_pScrollBar->GetClientRect(&scrollRect);
+		m_cScrollBar.GetClientRect(&scrollRect);
 		scrollRect.right = clientRect.right;
 		int height = scrollRect.Height();
 		scrollRect.top = clientRect.bottom - height;
 		scrollRect.bottom = scrollRect.top + height;
-		m_pScrollBar->MoveWindow(&scrollRect);
+		m_cScrollBar.MoveWindow(&scrollRect);
 	}
 }
 
@@ -455,15 +449,11 @@ bool CSampleEditorView::HasSelection() const
 
 void CSampleEditorView::PreSubclassWindow()
 {
-	if (m_pScrollBar == NULL) {
-		m_pScrollBar = new CScrollBar();
-	}
-
 	// Create scroll bar
-	if (m_pScrollBar->m_hWnd == NULL) {
+	if (m_cScrollBar.m_hWnd == NULL) {
 		CRect rect;
 		GetClientRect(&rect);
-		m_pScrollBar->Create(SBS_HORZ | SBS_BOTTOMALIGN | WS_CHILD | WS_VISIBLE, rect, this, 1);
+		m_cScrollBar.Create(SBS_HORZ | SBS_BOTTOMALIGN | WS_CHILD | WS_VISIBLE, rect, this, 1);
 
 	}
 
@@ -493,13 +483,13 @@ void CSampleEditorView::SetZoom(float Factor)
 		m_iViewStart = 0;
 
 	if (Factor == 1.0f) {
-		m_pScrollBar->EnableWindow(FALSE);
+		m_cScrollBar.EnableWindow(FALSE);
 	}
 	else {
-		m_pScrollBar->EnableWindow(TRUE);
+		m_cScrollBar.EnableWindow(TRUE);
 		m_iScrollMax = int(1000.0f * (1.0f - m_fZoom));
-		m_pScrollBar->SetScrollRange(0, m_iScrollMax);
-		m_pScrollBar->SetScrollPos((m_iViewStart * m_iScrollMax) / (m_iSize - NewViewSize));
+		m_cScrollBar.SetScrollRange(0, m_iScrollMax);
+		m_cScrollBar.SetScrollPos((m_iViewStart * m_iScrollMax) / (m_iSize - NewViewSize));
 
 		SCROLLINFO ScrollInfo;
 		ScrollInfo.cbSize = sizeof(SCROLLINFO);
@@ -508,7 +498,7 @@ void CSampleEditorView::SetZoom(float Factor)
 		ScrollInfo.nMin = 0;
 		ScrollInfo.nMax = m_iScrollMax;
 		ScrollInfo.nPos = (m_iViewStart * m_iScrollMax) / (m_iSize - NewViewSize);
-		m_pScrollBar->SetScrollInfo(&ScrollInfo);
+		m_cScrollBar.SetScrollInfo(&ScrollInfo);
 	}
 }
 
@@ -527,7 +517,7 @@ void CSampleEditorView::SetScroll(UINT nPos)
 	if (nPos < 0 || nPos > (unsigned)m_iScrollMax)
 		return;
 
-	m_pScrollBar->SetScrollPos(nPos);
+	m_cScrollBar.SetScrollPos(nPos);
 
 	int ViewSize = m_iViewEnd - m_iViewStart;
 	m_iViewStart = ((m_iSize - ViewSize) * nPos) / m_iScrollMax;

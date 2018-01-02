@@ -198,20 +198,20 @@ void CFindResultsBox::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 }
 
-void CFindResultsBox::AddResult(const stChanNote *pNote, const CFindCursor *pCursor, bool Noise)
+void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Cursor, bool Noise)
 {
 	int Pos = m_cListResults.GetItemCount();
 	m_cListResults.InsertItem(Pos, conv::sv_from_int(Pos + 1).data());
 
 	const auto pDoc = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
-	m_cListResults.SetItemText(Pos, CHANNEL, pDoc->GetChannel(pCursor->m_iChannel).GetChannelName());
+	m_cListResults.SetItemText(Pos, CHANNEL, pDoc->GetChannel(Cursor.m_iChannel).GetChannelName());
 	m_cListResults.SetItemText(Pos, PATTERN, conv::sv_from_int_hex(pDoc->GetPatternAtFrame(
-		pCursor->m_iTrack, pCursor->m_iFrame, pCursor->m_iChannel), 2).data());
+		Cursor.m_iTrack, Cursor.m_iFrame, Cursor.m_iChannel), 2).data());
 
-	m_cListResults.SetItemText(Pos, FRAME, conv::sv_from_int_hex(pCursor->m_iFrame, 2).data());
-	m_cListResults.SetItemText(Pos, ROW, conv::sv_from_int_hex(pCursor->m_iRow, 2).data());
+	m_cListResults.SetItemText(Pos, FRAME, conv::sv_from_int_hex(Cursor.m_iFrame, 2).data());
+	m_cListResults.SetItemText(Pos, ROW, conv::sv_from_int_hex(Cursor.m_iRow, 2).data());
 
-	switch (pNote->Note) {
+	switch (Note.Note) {
 	case NONE:
 		break;
 	case HALT:
@@ -219,25 +219,25 @@ void CFindResultsBox::AddResult(const stChanNote *pNote, const CFindCursor *pCur
 	case RELEASE:
 		m_cListResults.SetItemText(Pos, NOTE, _T("===")); break;
 	case ECHO:
-		m_cListResults.SetItemText(Pos, NOTE, ("^-" + conv::from_int(pNote->Octave)).data()); break;
+		m_cListResults.SetItemText(Pos, NOTE, ("^-" + conv::from_int(Note.Octave)).data()); break;
 	default:
 		if (Noise)
-			m_cListResults.SetItemText(Pos, NOTE, (conv::from_int_hex(MIDI_NOTE(pNote->Octave, pNote->Note) & 0x0F) + "-#").data());
+			m_cListResults.SetItemText(Pos, NOTE, (conv::from_int_hex(MIDI_NOTE(Note.Octave, Note.Note) & 0x0F) + "-#").data());
 		else
-			m_cListResults.SetItemText(Pos, NOTE, pNote->ToString().c_str());
+			m_cListResults.SetItemText(Pos, NOTE, Note.ToString().c_str());
 	}
 
-	if (pNote->Instrument == HOLD_INSTRUMENT)		// // // 050B
+	if (Note.Instrument == HOLD_INSTRUMENT)		// // // 050B
 		m_cListResults.SetItemText(Pos, INST, _T("&&"));
-	else if (pNote->Instrument != MAX_INSTRUMENTS)
-		m_cListResults.SetItemText(Pos, INST, conv::sv_from_int_hex(pNote->Instrument, 2).data());
+	else if (Note.Instrument != MAX_INSTRUMENTS)
+		m_cListResults.SetItemText(Pos, INST, conv::sv_from_int_hex(Note.Instrument, 2).data());
 
-	if (pNote->Vol != MAX_VOLUME)
-		m_cListResults.SetItemText(Pos, VOL, conv::sv_from_int_hex(pNote->Vol).data());
+	if (Note.Vol != MAX_VOLUME)
+		m_cListResults.SetItemText(Pos, VOL, conv::sv_from_int_hex(Note.Vol).data());
 
 	for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
-		if (pNote->EffNumber[i] != EF_NONE) {
-			auto str = EFF_CHAR[pNote->EffNumber[i] - 1] + conv::from_int_hex(pNote->EffParam[i], 2);
+		if (Note.EffNumber[i] != EF_NONE) {
+			auto str = EFF_CHAR[Note.EffNumber[i] - 1] + conv::from_int_hex(Note.EffParam[i], 2);
 			m_cListResults.SetItemText(Pos, EFFECT + i, str.data());
 		}
 
@@ -548,8 +548,6 @@ CFindDlg::CFindDlg(CWnd* pParent /*=NULL*/) : CDialog(CFindDlg::IDD, pParent),
 
 CFindDlg::~CFindDlg()
 {
-	SAFE_RELEASE(m_pFindCursor);
-	SAFE_RELEASE(m_cResultsBox);
 }
 
 void CFindDlg::DoDataExchange(CDataExchange* pDX)
@@ -586,8 +584,7 @@ BOOL CFindDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	m_cResultsBox = new CFindResultsBox(this);
-	m_cResultsBox->Create(IDD_FINDRESULTS, this);
+	m_cResultsBox.Create(IDD_FINDRESULTS, this);
 
 	m_cFindNoteField   .SubclassDlgItem(IDC_EDIT_FIND_NOTE, this);
 	m_cFindNoteField2  .SubclassDlgItem(IDC_EDIT_FIND_NOTE2, this);
@@ -1046,7 +1043,7 @@ bool CFindDlg::Find(bool ShowEnd)
 	const int Frames = m_pDocument->GetFrameCount(Track);
 
 	if (ShowEnd)
-		SAFE_RELEASE(m_pFindCursor);
+		m_pFindCursor.reset();
 	PrepareCursor(false);
 	if (!m_bFound) {
 		if (!m_pFindCursor->Contains())
@@ -1062,12 +1059,11 @@ bool CFindDlg::Find(bool ShowEnd)
 		const auto &Target = m_pFindCursor->Get();
 		if (CompareFields(Target, m_pFindCursor->m_iChannel == CHANID_NOISE,
 							m_pDocument->GetEffColumns(Track, m_pFindCursor->m_iChannel))) {
-			CFindCursor *pCursor = nullptr;
-			std::swap(pCursor, m_pFindCursor);
+			auto pCursor = std::move(m_pFindCursor);
 			m_pView->SelectFrame(pCursor->m_iFrame % Frames);
 			m_pView->SelectRow(pCursor->m_iRow);
 			m_pView->SelectChannel(pCursor->m_iChannel);
-			std::swap(pCursor, m_pFindCursor);
+			m_pFindCursor = std::move(pCursor);
 			m_bSkipFirst = true;
 			return m_bFound = true;
 		}
@@ -1177,7 +1173,8 @@ void CFindDlg::PrepareCursor(bool ReplaceAll)
 {
 	if (ReplaceAll)
 		Reset();
-	if (m_pFindCursor != nullptr) return;
+	if (m_pFindCursor)
+		return;
 
 	const int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
 	const int Frames = m_pDocument->GetFrameCount(Track);
@@ -1212,7 +1209,7 @@ void CFindDlg::PrepareCursor(bool ReplaceAll)
 		Scope.m_cpStart.m_iRow = 0;
 		Scope.m_cpEnd.m_iRow = pEditor->GetCurrentPatternLength(Scope.m_cpEnd.m_iFrame) - 1;
 	}
-	m_pFindCursor = new CFindCursor {m_pDocument, Track, ReplaceAll ? Scope.m_cpStart : Cursor, Scope};
+	m_pFindCursor = std::make_unique<CFindCursor>(m_pDocument, Track, ReplaceAll ? Scope.m_cpStart : Cursor, Scope);
 }
 
 void CFindDlg::OnBnClickedButtonFindNext()
@@ -1247,10 +1244,9 @@ void CFindDlg::OnBnClickedButtonReplaceNext()
 	bool Found = Find(false);
 	m_bReplacing = true;
 
-	CFindCursor *pCursor = nullptr;
-	std::swap(pCursor, m_pFindCursor);
+	auto pCursor = std::move(m_pFindCursor);
 	m_pView->SetFocus();
-	std::swap(pCursor, m_pFindCursor);
+	m_pFindCursor = std::move(pCursor);
 	m_bFound = Found;
 }
 
@@ -1266,10 +1262,9 @@ void CFindDlg::OnBnClickedButtonReplacePrevious()
 	bool Found = Find(false);
 	m_bReplacing = true;
 
-	CFindCursor *pCursor = nullptr;
-	std::swap(pCursor, m_pFindCursor);
+	auto pCursor = std::move(m_pFindCursor);
 	m_pView->SetFocus();
-	std::swap(pCursor, m_pFindCursor);
+	m_pFindCursor = std::move(pCursor);
 	m_bFound = Found;
 }
 
@@ -1282,20 +1277,20 @@ void CFindDlg::OnBnClickedButtonFindAll()
 		CFindCursor::direction_t::DOWN : CFindCursor::direction_t::RIGHT;
 
 	PrepareCursor(true);
-	m_cResultsBox->SetRedraw(FALSE);
-	m_cResultsBox->ClearResults();
+	m_cResultsBox.SetRedraw(FALSE);
+	m_cResultsBox.ClearResults();
 	do {
 		const auto &Target = m_pFindCursor->Get();
 		if (CompareFields(Target, m_pFindCursor->m_iChannel == CHANID_NOISE,
 							m_pDocument->GetEffColumns(Track, m_pFindCursor->m_iChannel)))
-			m_cResultsBox->AddResult(&Target, m_pFindCursor, m_pFindCursor->m_iChannel == CHANID_NOISE);
+			m_cResultsBox.AddResult(Target, *m_pFindCursor, m_pFindCursor->m_iChannel == CHANID_NOISE);
 		m_pFindCursor->Move(m_iSearchDirection);
 	} while (!m_pFindCursor->AtStart());
 
-	m_cResultsBox->SetRedraw();
-	m_cResultsBox->ShowWindow(SW_SHOW);
-	m_cResultsBox->RedrawWindow();
-	m_cResultsBox->SetFocus();
+	m_cResultsBox.SetRedraw();
+	m_cResultsBox.ShowWindow(SW_SHOW);
+	m_cResultsBox.RedrawWindow();
+	m_cResultsBox.SetFocus();
 }
 
 void CFindDlg::OnBnClickedButtonReplaceall()
@@ -1331,5 +1326,5 @@ void CFindDlg::OnBnClickedButtonReplaceall()
 void CFindDlg::Reset()
 {
 	m_bFound = false;
-	SAFE_RELEASE(m_pFindCursor);
+	m_pFindCursor.reset();
 }

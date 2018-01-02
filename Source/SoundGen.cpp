@@ -306,6 +306,19 @@ bool CSoundGen::IsRunning() const
 	return (m_hThread != NULL) && m_bRunning;
 }
 
+bool CSoundGen::Shutdown() {		// // //
+	if (ResumeThread() == 0) {
+		// Thread was not suspended, send quit message
+		// Note that this object may be deleted now!
+		PostThreadMessage(WM_QUIT, 0, 0);
+	}
+	// If thread was suspended then it will auto-terminate, because sound hasn't been initialized
+
+	// Wait for thread to exit
+	DWORD dwResult = ::WaitForSingleObject(m_hThread, 3000); // calls CFamiTrackerApp::DetachSoundGenerator
+	return dwResult == WAIT_OBJECT_0;
+}
+
 //// Sound buffer handling /////////////////////////////////////////////////////////////////////////////////
 
 bool CSoundGen::InitializeSound(HWND hWnd)
@@ -949,7 +962,7 @@ int CSoundGen::ExitInstance()
 	// Make sure sound interface is shut down
 	CloseAudio();
 
-	theApp.RemoveSoundGenerator();
+	theApp.DetachSoundGenerator();
 
 	m_bRunning = false;
 

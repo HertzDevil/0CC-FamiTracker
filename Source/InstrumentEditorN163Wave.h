@@ -61,7 +61,7 @@ protected:
 
 protected:
 	std::shared_ptr<CInstrumentN163> m_pInstrument;
-	CWaveEditorN163	*m_pWaveEditor;
+	std::unique_ptr<CWaveEditorN163> m_pWaveEditor;
 	int m_iWaveIndex;
 	CImageList m_WaveImage;		// // //
 	CListCtrl m_cWaveListCtrl;		// // //

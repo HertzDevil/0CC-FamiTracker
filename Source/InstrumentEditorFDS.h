@@ -55,8 +55,8 @@ protected:
 
 protected:
 	std::shared_ptr<CInstrumentFDS> m_pInstrument;
-	CWaveEditorFDS		*m_pWaveEditor;
-	CModSequenceEditor	*m_pModSequenceEditor;
+	std::unique_ptr<CWaveEditorFDS> m_pWaveEditor;		// // //
+	std::unique_ptr<CModSequenceEditor> m_pModSequenceEditor;
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

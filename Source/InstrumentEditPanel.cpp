@@ -179,18 +179,16 @@ IMPLEMENT_DYNAMIC(CSequenceInstrumentEditPanel, CInstrumentEditPanel)
 
 CSequenceInstrumentEditPanel::CSequenceInstrumentEditPanel(UINT nIDTemplate, CWnd* pParent) :
 	CInstrumentEditPanel(nIDTemplate, pParent),
-	m_pSequenceEditor(NULL),
+	m_pSequenceEditor(std::make_unique<CSequenceEditor>()),
 	m_pSequence(NULL),
 	m_pParentWin(pParent),
 	m_iSelectedSetting(0),
-	m_pParser {new CSequenceParser { }}		// // //
+	m_pParser(std::make_unique<CSequenceParser>())		// // //
 {
 }
 
 CSequenceInstrumentEditPanel::~CSequenceInstrumentEditPanel()
 {
-	SAFE_RELEASE(m_pSequenceEditor);
-	SAFE_RELEASE(m_pParser);		// // //
 }
 
 void CSequenceInstrumentEditPanel::DoDataExchange(CDataExchange* pDX)
@@ -233,7 +231,6 @@ void CSequenceInstrumentEditPanel::SetupDialog(const LPCTSTR *pListItems)		// //
 
 	GetDlgItem(IDC_INST_SEQUENCE_GRAPH)->GetWindowRect(&r);		// // //
 	GetDesktopWindow()->MapWindowPoints(this, &r);
-	m_pSequenceEditor = new CSequenceEditor();
 	m_pSequenceEditor->CreateEditor(this, r);
 	m_pSequenceEditor->ShowWindow(SW_SHOW);
 }

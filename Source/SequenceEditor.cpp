@@ -42,10 +42,8 @@
 IMPLEMENT_DYNAMIC(CSequenceEditor, CWnd)
 
 CSequenceEditor::CSequenceEditor() : CWnd(),		// // //
-	m_pGraphEditor(NULL),
-	m_pSizeEditor(NULL),
-	m_pSetting(NULL),
-	m_pFont(NULL),
+	m_pSizeEditor(std::make_unique<CSizeEditor>(this)),
+	m_pSetting(std::make_unique<CSequenceSetting>(this)),
 	m_iMaxVol(15),
 	m_iMaxDuty(3),
 	m_pParent(NULL),
@@ -57,10 +55,6 @@ CSequenceEditor::CSequenceEditor() : CWnd(),		// // //
 
 CSequenceEditor::~CSequenceEditor()
 {
-	SAFE_RELEASE(m_pFont);
-	SAFE_RELEASE(m_pSizeEditor);
-	SAFE_RELEASE(m_pGraphEditor);
-	SAFE_RELEASE(m_pSetting);
 }
 
 BEGIN_MESSAGE_MAP(CSequenceEditor, CWnd)
@@ -79,8 +73,7 @@ BOOL CSequenceEditor::CreateEditor(CWnd *pParentWnd, const RECT &rect)
 	if (CWnd::CreateEx(WS_EX_STATICEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE, rect, pParentWnd, 0) == -1)
 		return -1;
 
-	m_pFont = new CFont();
-	m_pFont->CreateFont(-11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, _T("Tahoma"));
+	m_cFont.CreateFont(-11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, _T("Tahoma"));
 
 	m_pParent = pParentWnd;
 
@@ -88,20 +81,16 @@ BOOL CSequenceEditor::CreateEditor(CWnd *pParentWnd, const RECT &rect)
 	GetClientRect(GraphRect);
 	GraphRect.bottom -= 25;
 
-	m_pSizeEditor = new CSizeEditor(this);
-
 	if (m_pSizeEditor->CreateEx(NULL, NULL, _T(""), WS_CHILD | WS_VISIBLE, CRect(34, GraphRect.bottom + 5, 94, GraphRect.bottom + 22), this, 0) == -1)
 		return -1;
 
 	menuRect = CRect(GraphRect.right - 72, GraphRect.bottom + 5, GraphRect.right - 2, GraphRect.bottom + 24);
 
 	// Sequence settings editor
-	m_pSetting = new CSequenceSetting(this);
-
 	if (m_pSetting->CreateEx(NULL, NULL, _T(""), WS_CHILD | WS_VISIBLE, menuRect, this, 0) == -1)
 		return -1;
 
-	m_pSetting->Setup(m_pFont);
+	m_pSetting->Setup(&m_cFont);
 
 	return 0;
 }
@@ -123,7 +112,7 @@ void CSequenceEditor::OnPaint()
 	if (m_pSequence)
 		m_pSizeEditor->SetValue(m_pSequence->GetItemCount());
 
-	dc.SelectObject(m_pFont);
+	dc.SelectObject(&m_cFont);
 	dc.TextOut(7, rect.bottom - 19, _T("Size:"));
 
 	CString LengthStr;
@@ -149,7 +138,7 @@ LRESULT CSequenceEditor::OnCursorChange(WPARAM wParam, LPARAM lParam)
 {
 	// Graph cursor has changed
 	CDC *pDC = GetDC();
-	pDC->SelectObject(m_pFont);
+	pDC->SelectObject(&m_cFont);
 
 	CRect rect;
 	GetClientRect(rect);
@@ -183,14 +172,14 @@ LRESULT CSequenceEditor::OnSettingChanged(WPARAM wParam, LPARAM lParam)		// // /
 	switch (m_iSelectedSetting) {
 	case SEQ_VOLUME:		// // //
 		if (m_iInstrumentType == INST_VRC6) {
-			ASSERT(dynamic_cast<CBarGraphEditor*>(m_pGraphEditor));
-			static_cast<CBarGraphEditor*>(m_pGraphEditor)->SetMaxItems(
+			ASSERT(dynamic_cast<CBarGraphEditor*>(m_pGraphEditor.get()));
+			static_cast<CBarGraphEditor*>(m_pGraphEditor.get())->SetMaxItems(
 				m_pSequence->GetSetting() == SETTING_VOL_64_STEPS ? 0x3F : 0x0F);
 		}
 		break;
 	case SEQ_ARPEGGIO:
-		ASSERT(dynamic_cast<CArpeggioGraphEditor*>(m_pGraphEditor));
-		static_cast<CArpeggioGraphEditor*>(m_pGraphEditor)->ChangeSetting();
+		ASSERT(dynamic_cast<CArpeggioGraphEditor*>(m_pGraphEditor.get()));
+		static_cast<CArpeggioGraphEditor*>(m_pGraphEditor.get())->ChangeSetting();
 		break;
 	}
 
@@ -236,22 +225,22 @@ void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int T
 	switch (Type) {
 		case SEQ_VOLUME:
 			if (m_iInstrumentType == INST_VRC6 && m_iSelectedSetting == SEQ_VOLUME && pSequence->GetSetting() == SETTING_VOL_64_STEPS)
-				m_pGraphEditor = new CBarGraphEditor(pSequence, 0x3F);		// // //
+				m_pGraphEditor = std::make_unique<CBarGraphEditor>(pSequence, 0x3F);		// // //
 			else
-				m_pGraphEditor = new CBarGraphEditor(pSequence, m_iMaxVol);
+				m_pGraphEditor = std::make_unique<CBarGraphEditor>(pSequence, m_iMaxVol);
 			break;
 		case SEQ_ARPEGGIO:
-			m_pGraphEditor = new CArpeggioGraphEditor(pSequence);
+			m_pGraphEditor = std::make_unique<CArpeggioGraphEditor>(pSequence);
 			break;
 		case SEQ_PITCH:
 		case SEQ_HIPITCH:
-			m_pGraphEditor = new CPitchGraphEditor(pSequence);
+			m_pGraphEditor = std::make_unique<CPitchGraphEditor>(pSequence);
 			break;
 		case SEQ_DUTYCYCLE:
 			if (InstrumentType == INST_S5B)
-				m_pGraphEditor = new CNoiseEditor(pSequence, 31);
+				m_pGraphEditor = std::make_unique<CNoiseEditor>(pSequence, 31);
 			else
-				m_pGraphEditor = new CBarGraphEditor(pSequence, m_iMaxDuty);
+				m_pGraphEditor = std::make_unique<CBarGraphEditor>(pSequence, m_iMaxDuty);
 			break;
 	}
 
@@ -287,7 +276,7 @@ void CSequenceEditor::DestroyGraphEditor()
 	if (m_pGraphEditor) {
 		m_pGraphEditor->ShowWindow(SW_HIDE);
 		m_pGraphEditor->DestroyWindow();
-		SAFE_RELEASE(m_pGraphEditor);
+		m_pGraphEditor.reset();		// // //
 	}
 }
 

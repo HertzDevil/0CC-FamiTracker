@@ -121,7 +121,7 @@ public:
 	void			ReloadColorScheme();
 	int				GetCPUUsage() const;
 	bool			IsThemeActive() const;
-	void			RemoveSoundGenerator();
+	void			DetachSoundGenerator();
 	void			ThreadDisplayMessage(LPCTSTR lpszText, UINT nType = 0, UINT nIDHelp = 0);
 	void			ThreadDisplayMessage(UINT nIDPrompt, UINT nType = 0, UINT nIDHelp = 0);
 
@@ -137,7 +137,7 @@ public:
 
 	// Get-functions
 	CAccelerator	*GetAccelerator() const		{ ASSERT(m_pAccel); return m_pAccel.get(); }
-	CSoundGen		*GetSoundGenerator() const	{ ASSERT(m_pSoundGenerator); return m_pSoundGenerator; }
+	CSoundGen		*GetSoundGenerator() const	{ ASSERT(m_pSoundGenerator); return m_pSoundGenerator.get(); }
 	CMIDI			*GetMIDI() const			{ ASSERT(m_pMIDI); return m_pMIDI.get(); }
 	CSettings		*GetSettings() const		{ ASSERT(m_pSettings); return m_pSettings; }
 
@@ -159,20 +159,20 @@ private:
 	// Objects
 	std::unique_ptr<CMIDI>			m_pMIDI;		// // //
 	std::unique_ptr<CAccelerator>	m_pAccel;		// // // Keyboard accelerator
-	CSoundGen		*m_pSoundGenerator = nullptr;		// Sound synth & player
+	std::unique_ptr<CSoundGen>		m_pSoundGenerator;		// // // Sound synth & player
 
 	CSettings		*m_pSettings = nullptr;		// Program settings
 
 	// Single instance stuff
-	CMutex			*m_pInstanceMutex;
-	HANDLE			m_hWndMapFile;
+	std::unique_ptr<CMutex>			m_pInstanceMutex;
+	HANDLE			m_hWndMapFile = NULL;
 
-	bool			m_bThemeActive;
+	bool			m_bThemeActive = false;
 
 	std::unique_ptr<CVersionChecker> m_pVersionChecker;		// // //
 
 #ifdef SUPPORT_TRANSLATIONS
-	HINSTANCE		m_hInstResDLL;
+	HINSTANCE		m_hInstResDLL = NULL;
 #endif
 
 	// Overrides

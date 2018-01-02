@@ -69,13 +69,7 @@ END_MESSAGE_MAP()
 
 // CFamiTrackerApp construction
 
-CFamiTrackerApp::CFamiTrackerApp() :
-	m_bThemeActive(false),
-	m_hWndMapFile(NULL),
-#ifdef SUPPORT_TRANSLATIONS
-	m_hInstResDLL(NULL),
-#endif
-	m_pInstanceMutex(NULL)
+CFamiTrackerApp::CFamiTrackerApp()
 {
 	// Place all significant initialization in InitInstance
 	EnableHtmlHelp();
@@ -139,7 +133,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	m_pMIDI = std::make_unique<CMIDI>();
 
 	// Create sound generator
-	m_pSoundGenerator = std::make_unique<CSoundGen>().release();
+	m_pSoundGenerator = std::make_unique<CSoundGen>();		// // //
 
 	// Start sound generator thread, initially suspended
 	if (!m_pSoundGenerator->CreateThread(CREATE_SUSPENDED)) {
@@ -450,48 +444,24 @@ void CFamiTrackerApp::ShutDownSynth()
 		return;
 	}
 
-	// Save a handle to the thread since the object will delete itself
-	HANDLE hThread = m_pSoundGenerator->m_hThread;
-
-	if (hThread == NULL) {
+	if (!m_pSoundGenerator->m_hThread) {		// // //
 		// Object was found but thread not created
-		SAFE_RELEASE(m_pSoundGenerator);
 		TRACE("App: Sound generator object was found but no thread created\n");
 		return;
 	}
 
 	TRACE("App: Waiting for sound player thread to close\n");
 
-	// Resume if thread was suspended
-	if (m_pSoundGenerator->ResumeThread() == 0) {
-		// Thread was not suspended, send quit message
-		// Note that this object may be deleted now!
-		m_pSoundGenerator->PostThreadMessage(WM_QUIT, 0, 0);
-	}
-	// If thread was suspended then it will auto-terminate, because sound hasn't been initialized
-
-	// Wait for thread to exit
-	DWORD dwResult = ::WaitForSingleObject(hThread, /*CSoundGen::AUDIO_TIMEOUT*/ 2000 + 1000);
-
-	if (dwResult != WAIT_OBJECT_0 && m_pSoundGenerator != NULL) {
+	if (!m_pSoundGenerator || m_pSoundGenerator->Shutdown())		// // //
+		TRACE("App: Sound generator has closed\n");
+	else
 		TRACE("App: Closing the sound generator thread failed\n");
-#ifdef _DEBUG
-		AfxMessageBox(_T("Error: Could not close sound generator thread"));
-#endif
-		// Unclean exit
-		return;
-	}
-
-	// Object should be auto-deleted
-	ASSERT(m_pSoundGenerator == NULL);
-
-	TRACE("App: Sound generator has closed\n");
 }
 
-void CFamiTrackerApp::RemoveSoundGenerator()
+void CFamiTrackerApp::DetachSoundGenerator()
 {
 	// Sound generator object has been deleted, remove reference
-	m_pSoundGenerator = NULL;
+	(void)m_pSoundGenerator.release();
 }
 
 void CFamiTrackerApp::RegisterSingleInstance()
@@ -520,7 +490,7 @@ void CFamiTrackerApp::UnregisterSingleInstance()
 		m_hWndMapFile = NULL;
 	}
 
-	SAFE_RELEASE(m_pInstanceMutex);
+	m_pInstanceMutex.reset();		// // //
 }
 
 void CFamiTrackerApp::CheckNewVersion(bool StartUp)		// // //
@@ -538,7 +508,7 @@ bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
 	if (cmdInfo.m_bExport || cmdInfo.m_bRender)		// // //
 		return false;
 
-	m_pInstanceMutex = new CMutex(FALSE, FT_SHARED_MUTEX_NAME);
+	m_pInstanceMutex = std::make_unique<CMutex>(FALSE, FT_SHARED_MUTEX_NAME);		// // //
 
 	if (GetLastError() == ERROR_ALREADY_EXISTS) {
 		// Another instance detected, get window handle

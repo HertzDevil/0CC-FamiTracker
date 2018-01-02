@@ -56,7 +56,7 @@ protected:
 	void UpdateSampleView();
 
 	std::shared_ptr<ft0cc::doc::dpcm_sample> m_pSample;
-	CSampleEditorView *m_pSampleEditorView;
+	std::unique_ptr<CSampleEditorView> m_pSampleEditorView;		// // //
 	CSoundGen		  *m_pSoundGen;
 
 	CStatusBar		  m_wndInfoStatusBar;		// // // 050B

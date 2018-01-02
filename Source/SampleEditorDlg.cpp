@@ -48,7 +48,8 @@ enum {
 IMPLEMENT_DYNAMIC(CSampleEditorDlg, CDialog)
 
 CSampleEditorDlg::CSampleEditorDlg(CWnd* pParent /*=NULL*/, std::shared_ptr<ft0cc::doc::dpcm_sample> pSample)		// // //
-	: CDialog(CSampleEditorDlg::IDD, pParent), m_pSampleEditorView(NULL),
+	: CDialog(CSampleEditorDlg::IDD, pParent),
+	m_pSampleEditorView(std::make_unique<CSampleEditorView>()),		// / ///
 	m_pSample(std::move(pSample))		// // //
 {
 	m_pSoundGen = theApp.GetSoundGenerator();
@@ -56,7 +57,6 @@ CSampleEditorDlg::CSampleEditorDlg(CWnd* pParent /*=NULL*/, std::shared_ptr<ft0c
 
 CSampleEditorDlg::~CSampleEditorDlg()
 {
-	SAFE_RELEASE(m_pSampleEditorView);
 }
 
 std::shared_ptr<ft0cc::doc::dpcm_sample> CSampleEditorDlg::GetDSample() const		// // //
@@ -96,7 +96,6 @@ BOOL CSampleEditorDlg::OnInitDialog()
 	m_wndInfoStatusBar.SetPaneInfo(2, ID_INDICATOR_DPCM_ENDPOS, SBPS_NORMAL, 150);
 	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, ID_INDICATOR_DPCM_SEGMENT);
 
-	m_pSampleEditorView = new CSampleEditorView();
 	m_pSampleEditorView->SubclassDlgItem(IDC_SAMPLE, this);
 
 	CSliderCtrl *pitch = static_cast<CSliderCtrl*>(GetDlgItem(IDC_PITCH));

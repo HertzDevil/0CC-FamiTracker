@@ -118,6 +118,7 @@ public:
 
 	bool		WaitForStop() const;
 	bool		IsRunning() const;
+	bool		Shutdown();		// // //
 
 	void		DocumentPropertiesChanged(CFamiTrackerDoc *pDocument);
 

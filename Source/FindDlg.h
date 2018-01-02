@@ -144,7 +144,7 @@ public:
 
 	virtual void DoDataExchange(CDataExchange* pDX);
 
-	void AddResult(const stChanNote *pNote, const CFindCursor *pCursor, bool Noise);
+	void AddResult(const stChanNote &Note, const CFindCursor &Cursor, bool Noise);
 	void ClearResults();
 
 protected:
@@ -233,10 +233,10 @@ protected:
 	replaceTerm m_replaceTerm;
 	bool m_bFound, m_bSkipFirst, m_bReplacing;
 
-	CFindCursor *m_pFindCursor;
+	std::unique_ptr<CFindCursor> m_pFindCursor;
 	CFindCursor::direction_t m_iSearchDirection;
 
-	CFindResultsBox *m_cResultsBox;
+	CFindResultsBox m_cResultsBox;
 
 	static const CString m_pNoteName[7];
 	static const CString m_pNoteSign[3];

@@ -46,12 +46,12 @@ public:
 	void SetConversion(const CSeqConversionBase *pConv);		// // //
 
 private:
-	CWnd			 *m_pParent;
-	CFont			 *m_pFont;
-	CSizeEditor		 *m_pSizeEditor;
-	CGraphEditor	 *m_pGraphEditor;
+	CWnd *m_pParent = nullptr;
+	CFont m_cFont;		// // //
+	std::unique_ptr<CSizeEditor> m_pSizeEditor;
+	std::unique_ptr<CGraphEditor> m_pGraphEditor;
 	std::shared_ptr<CSequence> m_pSequence;		// // //
-	CSequenceSetting *m_pSetting;
+	std::unique_ptr<CSequenceSetting> m_pSetting;
 	const CSeqConversionBase *m_pConversion = nullptr;		// // // does not own
 
 	int m_iSelectedSetting;

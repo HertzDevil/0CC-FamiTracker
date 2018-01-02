@@ -40,15 +40,13 @@
 IMPLEMENT_DYNAMIC(CInstrumentEditorFDS, CInstrumentEditPanel)
 
 CInstrumentEditorFDS::CInstrumentEditorFDS(CWnd* pParent) : CInstrumentEditPanel(CInstrumentEditorFDS::IDD, pParent),
-	m_pWaveEditor(NULL),
-	m_pModSequenceEditor(NULL)
+	m_pWaveEditor(std::make_unique<CWaveEditorFDS>(5, 2, 64, 64)),
+	m_pModSequenceEditor(std::make_unique<CModSequenceEditor>())
 {
 }
 
 CInstrumentEditorFDS::~CInstrumentEditorFDS()
 {
-	SAFE_RELEASE(m_pModSequenceEditor);
-	SAFE_RELEASE(m_pWaveEditor);
 }
 
 void CInstrumentEditorFDS::DoDataExchange(CDataExchange* pDX)
@@ -104,13 +102,11 @@ BOOL CInstrumentEditorFDS::OnInitDialog()
 	CInstrumentEditPanel::OnInitDialog();
 
 	// Create wave editor
-	m_pWaveEditor = new CWaveEditorFDS(5, 2, 64, 64);
 	m_pWaveEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE, DPI::Rect(20, 30, 0, 0), this);		// // //
 	m_pWaveEditor->ShowWindow(SW_SHOW);
 	m_pWaveEditor->UpdateWindow();
 
 	// Create modulation sequence editor
-	m_pModSequenceEditor = new CModSequenceEditor();
 	m_pModSequenceEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE, DPI::Rect(10, 200, 0, 0), this);		// // //
 	m_pModSequenceEditor->ShowWindow(SW_SHOW);
 	m_pModSequenceEditor->UpdateWindow();
