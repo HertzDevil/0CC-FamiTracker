@@ -40,7 +40,7 @@ class dpcm_sample;
 class C2A03 : public CSoundChip
 {
 public:
-	explicit C2A03(CMixer *pMixer);
+	explicit C2A03(CMixer &Mixer);
 
 	void Reset() override;
 	void Process(uint32_t Time) override;

@@ -35,7 +35,7 @@ struct OPLL_deleter {
 
 class CVRC7 : public CSoundChip {
 public:
-	explicit CVRC7(CMixer *pMixer);
+	explicit CVRC7(CMixer &Mixer);
 
 	void SetSampleSpeed(uint32_t SampleRate, double ClockRate, uint32_t FrameRate);
 	void SetVolume(float Volume);

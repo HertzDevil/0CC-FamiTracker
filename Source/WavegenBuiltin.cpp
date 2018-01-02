@@ -159,24 +159,18 @@ CWavegenParam *CWavegenTriangle::GetParameter(unsigned int Index) const
 const char *const CWavegenPulse::PULSE_WIDTH_ERROR = "Pulse width must be between 0 and 1.";
 
 CWavegenPulse::CWavegenPulse() :
-	CWavegenSingle("Pulse wave")
+	CWavegenSingle("Pulse wave"),
+	m_PulseWidth("Pulse width")
 {
-	m_pPulseWidth = new CWavegenParamFloat("Pulse width");
-}
-
-CWavegenPulse::~CWavegenPulse()
-{
-	if (m_pPulseWidth != nullptr)
-		delete m_pPulseWidth;
 }
 
 const char *CWavegenPulse::CreateWavesInternal(float *const Dest, unsigned int Size, unsigned int Index) const
 {
-	float width = m_pPulseWidth->GetValue();
+	float width = m_PulseWidth.GetValue();
 	if (width > 1 || width < 0)
 		return PULSE_WIDTH_ERROR;
 	float *t = Dest;
-	const float thresh = Size - m_pPulseWidth->GetValue() * Size;
+	const float thresh = Size - m_PulseWidth.GetValue() * Size;
 	for (unsigned int i = 0; i < Size; ++i)
 		*t++ = i >= thresh ? 1.f : -1.f;
 
@@ -186,7 +180,7 @@ const char *CWavegenPulse::CreateWavesInternal(float *const Dest, unsigned int S
 CWavegenParam *CWavegenPulse::GetParameter(unsigned int Index) const
 {
 	switch (Index) {
-	case 0U: return m_pPulseWidth;
+	case 0U: return const_cast<CWavegenParamFloat *>(&m_PulseWidth); // TODO: remove (everything)
 	}
 	return nullptr;
 }

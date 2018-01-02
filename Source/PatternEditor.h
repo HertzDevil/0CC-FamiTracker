@@ -26,7 +26,7 @@
 // CPatternEditor, the pattern editor class
 
 #include "stdafx.h"		// // //
-
+#include <memory>		// // //
 #include "Common.h"
 #include "PatternEditorTypes.h"
 #include "SongData.h"		// // //
@@ -57,7 +57,6 @@ class CPatternEditor {
 	// Public methods
 public:
 	CPatternEditor();
-	~CPatternEditor();
 
 	void ApplyColorScheme();
 	void SetDocument(CFamiTrackerDoc *pDoc, CFamiTrackerView *pView);
@@ -71,9 +70,9 @@ public:
 	void InvalidateHeader();
 
 	// Drawing
-	void DrawScreen(CDC *pDC, CFamiTrackerView *pView);	// Draw pattern area
-	void DrawMeters(CDC *pDC);							// Draw channel meters
-	void CreateBackground(CDC *pDC);					// Create off-screen buffers
+	void DrawScreen(CDC &DC, CFamiTrackerView *pView);	// Draw pattern area
+	void DrawMeters(CDC &DC);							// Draw channel meters
+	void CreateBackground(CDC &DC);					// Create off-screen buffers
 
 	bool CursorUpdated();								// Update cursor state, returns true if erase is needed
 	void UpdatePatternLength();							// Read pattern length
@@ -215,25 +214,25 @@ private:
 	unsigned int GetChannelWidth(int EffColumns) const;
 
 	// Main draw methods
-	void PerformFullRedraw(CDC *pDC);
-	void PerformQuickRedraw(CDC *pDC);
-	void DrawUnbufferedArea(CDC *pDC);
-	void DrawHeader(CDC *pDC);
+	void PerformFullRedraw(CDC &DC);		// // //
+	void PerformQuickRedraw(CDC &DC);
+	void DrawUnbufferedArea(CDC &DC);
+	void DrawHeader(CDC &DC);
 
 	// Helper draw methods
-	void MovePatternArea(CDC *pDC, int FromRow, int ToRow, int NumRows) const;
-	void ScrollPatternArea(CDC *pDC, int Rows) const;
-	void ClearRow(CDC *pDC, int Line) const;
-	void PrintRow(CDC *pDC, int Row, int Line, int Frame) const;
-	void DrawRow(CDC *pDC, int Row, int Line, int Frame, bool bPreview) const;
+	void MovePatternArea(CDC &DC, int FromRow, int ToRow, int NumRows) const;
+	void ScrollPatternArea(CDC &DC, int Rows) const;
+	void ClearRow(CDC &DC, int Line) const;
+	void PrintRow(CDC &DC, int Row, int Line, int Frame) const;
+	void DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPreview) const;
 	// // //
-	void DrawCell(CDC *pDC, int PosX, cursor_column_t Column, int Channel, bool bInvert,
+	void DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Channel, bool bInvert,
 		const stChanNote &NoteData, const RowColorInfo_t &ColorInfo) const;		// // //
-	void DrawChar(CDC *pDC, int x, int y, TCHAR c, COLORREF Color) const;
+	void DrawChar(CDC &DC, int x, int y, TCHAR c, COLORREF Color) const;
 
 	// Other drawing
-	void DrawChannelStates(CDC *pDC);
-	void DrawRegisters(CDC *pDC);
+	void DrawChannelStates(CDC &DC);
+	void DrawRegisters(CDC &DC);		// // //
 
 	// Scrolling
 	void UpdateVerticalScroll();
@@ -301,12 +300,12 @@ private:
 	CFamiTrackerView *m_pView;
 
 	// GDI objects
-	CDC		*m_pPatternDC;
-	CDC		*m_pHeaderDC;
-	CDC		*m_pRegisterDC;		// // //
-	CBitmap *m_pPatternBmp;
-	CBitmap	*m_pHeaderBmp;
-	CBitmap	*m_pRegisterBmp;		// // //
+	std::unique_ptr<CDC>	 m_pPatternDC;
+	std::unique_ptr<CDC>	 m_pHeaderDC;
+	std::unique_ptr<CDC>	 m_pRegisterDC;		// // //
+	std::unique_ptr<CBitmap> m_pPatternBmp;
+	std::unique_ptr<CBitmap> m_pHeaderBmp;
+	std::unique_ptr<CBitmap> m_pRegisterBmp;		// // //
 	CFont	m_fontHeader;
 	CFont	m_fontPattern;
 	CFont	m_fontCourierNew;

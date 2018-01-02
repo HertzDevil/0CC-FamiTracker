@@ -32,7 +32,7 @@ class CN163;		// // //
 
 class CN163Chan : public CChannel {
 public:
-	CN163Chan(CMixer *pMixer, CN163 &parent, chan_id_t ID, uint8_t *pWaveData);		// // //
+	CN163Chan(CMixer &Mixer, CN163 &parent, chan_id_t ID, uint8_t *pWaveData);		// // //
 
 	void Reset();
 	void Write(uint16_t Address, uint8_t Value);
@@ -60,7 +60,7 @@ private:
 
 class CN163 : public CSoundChip {
 public:
-	explicit CN163(CMixer *pMixer);
+	explicit CN163(CMixer &Mixer);
 
 	void Reset() override;
 	void Process(uint32_t Time) override;

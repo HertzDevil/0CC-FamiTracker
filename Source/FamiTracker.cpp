@@ -428,8 +428,8 @@ void CFamiTrackerApp::LoadLocalization()
 
 void CFamiTrackerApp::OnRecentFilesClear()		// // //
 {
-	SAFE_RELEASE(m_pRecentFileList);
-	m_pRecentFileList = new CRecentFileList(0, _T("Recent File List"), _T("File%d"), MAX_RECENT_FILES);
+	std::unique_ptr<CRecentFileList> {m_pRecentFileList} = std::make_unique<CRecentFileList>(
+		0, _T("Recent File List"), _T("File%d"), MAX_RECENT_FILES);		// // //
 
 	auto pMenu = m_pMainWnd->GetMenu()->GetSubMenu(0)->GetSubMenu(14);
 	for (int i = 0; i < MAX_RECENT_FILES; ++i)
@@ -445,7 +445,7 @@ void CFamiTrackerApp::OnUpdateRecentFilesClear(CCmdUI *pCmdUI)		// // //
 void CFamiTrackerApp::ShutDownSynth()
 {
 	// Shut down sound generator
-	if (m_pSoundGenerator == NULL) {
+	if (!m_pSoundGenerator) {
 		TRACE("App: Sound generator object was not available\n");
 		return;
 	}

@@ -66,7 +66,7 @@ enum inst_type_t : int;		// // //
 
 class CBannerEdit;
 class CLockedEdit;
-class CInstrumentList;
+class CInstrumentListCtrl;
 
 class CMainFrame : public CFrameWnd
 {
@@ -201,7 +201,7 @@ private:  // control bar embedded members
 	CInstrumentEditDlg	m_wndInstEdit;
 
 	CFrameEditor		*m_pFrameEditor;
-	CInstrumentList		*m_pInstrumentList;
+	CInstrumentListCtrl		*m_pInstrumentList;
 	CImageList			*m_pImageList;
 	CVisualizerWnd		*m_pVisualizerWnd;
 	CGrooveDlg			*m_pGrooveDlg;			// // //
@@ -228,7 +228,7 @@ private:  // control bar embedded members
 	int					m_iFrameEditorPos;
 	control_panel_pos_t	m_iControlPanelPos;		// // // 050B
 
-	CInstrumentFileTree	*m_pInstrumentFileTree;
+	std::unique_ptr<CInstrumentFileTree> m_pInstrumentFileTree;		// // //
 
 	// State variables
 	int					m_iOctave;					// Selected octave

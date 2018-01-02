@@ -105,17 +105,17 @@ private:
 	void LogWrite(uint16_t Address, uint8_t Value);
 
 private:
-	CMixer		*m_pMixer;
+	std::unique_ptr<CMixer> m_pMixer;		// // //
 	IAudioCallback *m_pParent;
 
 	// Expansion chips
-	C2A03		*m_p2A03;		// // //
-	CVRC6		*m_pVRC6;
-	CMMC5		*m_pMMC5;
-	CFDS		*m_pFDS;
-	CN163		*m_pN163;
-	CVRC7		*m_pVRC7;
-	CS5B		*m_pS5B;
+	std::unique_ptr<C2A03> m_p2A03;		// // //
+	std::unique_ptr<CVRC6> m_pVRC6;
+	std::unique_ptr<CMMC5> m_pMMC5;
+	std::unique_ptr<CFDS> m_pFDS;
+	std::unique_ptr<CN163> m_pN163;
+	std::unique_ptr<CVRC7> m_pVRC7;
+	std::unique_ptr<CS5B> m_pS5B;
 
 	uint8_t		m_iExternalSoundChip;				// External sound chip, if used
 

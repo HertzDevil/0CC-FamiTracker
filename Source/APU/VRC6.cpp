@@ -27,7 +27,7 @@
 
 // Konami VRC6 external sound chip emulation
 
-CVRC6_Pulse::CVRC6_Pulse(CMixer *pMixer, chan_id_t ID) : CChannel(pMixer, SNDCHIP_VRC6, ID)		// // //
+CVRC6_Pulse::CVRC6_Pulse(CMixer &Mixer, chan_id_t ID) : CChannel(Mixer, SNDCHIP_VRC6, ID)		// // //
 {
 	Reset();
 }
@@ -92,7 +92,7 @@ double CVRC6_Pulse::GetFrequency() const		// // //
 	return CAPU::BASE_FREQ_NTSC / 16. / (m_iPeriod + 1.);
 }
 
-CVRC6_Sawtooth::CVRC6_Sawtooth(CMixer *pMixer, chan_id_t ID) : CChannel(pMixer, SNDCHIP_VRC6, ID)		// // //
+CVRC6_Sawtooth::CVRC6_Sawtooth(CMixer &Mixer, chan_id_t ID) : CChannel(Mixer, SNDCHIP_VRC6, ID)		// // //
 {
 	Reset();
 }
@@ -163,11 +163,11 @@ double CVRC6_Sawtooth::GetFrequency() const		// // //
 	return CAPU::BASE_FREQ_NTSC / 14. / (m_iPeriod + 1.);
 }
 
-CVRC6::CVRC6(CMixer *pMixer) :
-	CSoundChip(pMixer),		// // //
-	m_Pulse1(pMixer, CHANID_VRC6_PULSE1),
-	m_Pulse2(pMixer, CHANID_VRC6_PULSE2),
-	m_Sawtooth(pMixer, CHANID_VRC6_SAWTOOTH)
+CVRC6::CVRC6(CMixer &Mixer) :
+	CSoundChip(Mixer),		// // //
+	m_Pulse1(Mixer, CHANID_VRC6_PULSE1),
+	m_Pulse2(Mixer, CHANID_VRC6_PULSE2),
+	m_Sawtooth(Mixer, CHANID_VRC6_SAWTOOTH)
 {
 	m_pRegisterLogger->AddRegisterRange(0x9000, 0x9003);		// // //
 	m_pRegisterLogger->AddRegisterRange(0xA000, 0xA002);

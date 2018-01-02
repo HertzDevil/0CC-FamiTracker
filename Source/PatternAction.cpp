@@ -228,7 +228,7 @@ void CPatternAction::SaveUndoState(const CMainFrame &MainFrm)		// // //
 {
 	// Save undo cursor position
 	CFamiTrackerView *pView = GET_VIEW();
-	const CPatternEditor *pPatternEditor = pView->GetPatternEditor();
+	const CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 
 	m_pUndoState = std::make_unique<CPatternEditorState>(pPatternEditor, GET_SELECTED_TRACK());
 	m_bSelecting = pPatternEditor->IsSelecting();
@@ -459,7 +459,6 @@ void CPActionScrollField::Redo(CMainFrame &MainFrm)
 /*
 CPSelectionAction::~CPSelectionAction()
 {
-	SAFE_RELEASE(m_pUndoClipData);
 }
 
 bool CPSelectionAction::SaveState(const CMainFrame &MainFrm)

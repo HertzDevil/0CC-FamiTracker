@@ -34,7 +34,7 @@ class CMixer;
 
 class CChannel {
 public:
-	CChannel(CMixer *pMixer, uint8_t Chip, chan_id_t ID);
+	CChannel(CMixer &Mixer, uint8_t Chip, chan_id_t ID);
 
 	virtual ~CChannel() noexcept = default;
 	virtual void EndFrame();

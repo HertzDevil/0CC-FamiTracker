@@ -41,7 +41,6 @@ class CGraphEditor : public CWnd
 {
 public:
 	explicit CGraphEditor(std::shared_ptr<CSequence> pSequence);		// // //
-	virtual ~CGraphEditor();
 	DECLARE_DYNAMIC(CGraphEditor)
 
 protected:
@@ -55,26 +54,26 @@ protected:
 	virtual void ModifyLoopPoint(CPoint point, bool Redraw);
 	virtual void ModifyReleasePoint(CPoint point, bool Redraw);
 	virtual void ModifyReleased();
-	void PaintBuffer(CDC *pBackDC, CDC *pFrontDC);
+	void PaintBuffer(CDC &BackDC, CDC &FrontDC);
 	void CursorChanged(int x);
 	bool IsEditLine() const;
 
 	// Drawing
-	virtual void DrawRange(CDC *pDC, int Max, int Min) const;
-	void DrawBackground(CDC *pDC, int Lines, bool DrawMarks, int MarkOffset) const;
-	void DrawLoopPoint(CDC *pDC, int StepWidth) const;
-	void DrawReleasePoint(CDC *pDC, int StepWidth) const;
-	void DrawLoopRelease(CDC *pDC, int StepWidth) const;		// // //
-	void DrawLine(CDC *pDC) const;
+	virtual void DrawRange(CDC &DC, int Max, int Min);
+	void DrawBackground(CDC &DC, int Lines, bool DrawMarks, int MarkOffset);		// // //
+	void DrawLoopPoint(CDC &DC, int StepWidth);
+	void DrawReleasePoint(CDC &DC, int StepWidth);
+	void DrawLoopRelease(CDC &DC, int StepWidth);		// // //
+	void DrawLine(CDC &DC);
 
-	void DrawRect(CDC *pDC, int x, int y, int w, int h) const;
-	void DrawPlayRect(CDC *pDC, int x, int y, int w, int h) const;
-	void DrawCursorRect(CDC *pDC, int x, int y, int w, int h) const;
-	void DrawShadowRect(CDC *pDC, int x, int y, int w, int h) const;
+	void DrawRect(CDC &DC, int x, int y, int w, int h);
+	void DrawPlayRect(CDC &DC, int x, int y, int w, int h);
+	void DrawCursorRect(CDC &DC, int x, int y, int w, int h);
+	void DrawShadowRect(CDC &DC, int x, int y, int w, int h);
 
 private:
 	template<COLORREF COL_BG1, COLORREF COL_BG2, COLORREF COL_EDGE1, COLORREF COL_EDGE2>
-	void DrawRect(CDC *pDC, int x, int y, int w, int h, bool flat) const;
+	void DrawRect(CDC &DC, int x, int y, int w, int h, bool flat);
 
 protected:
 	static const int GRAPH_LEFT = 28;			// Left side marigin
@@ -85,12 +84,12 @@ protected:
 protected:
 	CWnd *m_pParentWnd;
 	const std::shared_ptr<CSequence> m_pSequence;		// // //
-	CFont *m_pSmallFont;
+	CFont m_SmallFont;		// // //
 	CRect m_GraphRect;
 	CRect m_BottomRect;
 	CRect m_ClientRect;
-	CBitmap *m_pBitmap;
-	CDC *m_pBackDC;
+	CBitmap m_Bitmap;		// // //
+	CDC m_BackDC;		// // //
 	int m_iLastPlayPos;
 	int m_iCurrentPlayPos;
 	int m_iHighlightedItem;
@@ -149,7 +148,7 @@ private:
 	CScrollBar m_cScrollBar;		// // //
 protected:
 	void Initialize();
-	void DrawRange(CDC *pDC, int Max, int Min);
+	void DrawRange(CDC &DC, int Max, int Min) override;
 	afx_msg void OnPaint();
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	void ModifyItem(CPoint point, bool Redraw);

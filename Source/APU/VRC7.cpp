@@ -29,7 +29,7 @@
 const float  CVRC7::AMPLIFY	  = 4.6f;		// Mixing amplification, VRC7 patch 14 is 4,88 times stronger than a 50% square @ v=15
 const uint32_t CVRC7::OPL_CLOCK = 3579545;	// Clock frequency
 
-CVRC7::CVRC7(CMixer *pMixer) : CSoundChip(pMixer)
+CVRC7::CVRC7(CMixer &Mixer) : CSoundChip(Mixer)
 {
 	m_pRegisterLogger->AddRegisterRange(0x00, 0x07);		// // //
 	m_pRegisterLogger->AddRegisterRange(0x10, 0x15);

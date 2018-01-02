@@ -1391,6 +1391,9 @@
     <ClInclude Include="Source\FrameEditorModel.h">
       <Filter>Header Files\Frame Editor Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Source\InstrumentListCtrl.h">
+      <Filter>Header Files\Custom Control Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="0CC-FamiTracker.rc">

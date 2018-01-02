@@ -20,12 +20,11 @@
 ** must bear this legend.
 */
 
-#include "../stdafx.h"
 #include "SoundChip.h"
 #include "../RegisterState.h"
 
-CSoundChip::CSoundChip(CMixer *pMixer) :
-	m_pMixer(pMixer),
+CSoundChip::CSoundChip(CMixer &Mixer) :
+	m_pMixer(&Mixer),
 	m_pRegisterLogger(std::make_unique<CRegisterLogger>())
 {
 }

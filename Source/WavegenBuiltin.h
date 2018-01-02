@@ -83,11 +83,10 @@ protected:
 class CWavegenPulse : public CWavegenSingle {
 public:
 	CWavegenPulse();
-	virtual ~CWavegenPulse();
 	CWavegenParam *GetParameter(unsigned int Index) const;
 protected:
 	const char *CreateWavesInternal(float *const Dest, unsigned int Size, unsigned int Index) const;
 private:
-	CWavegenParamFloat *m_pPulseWidth;
+	CWavegenParamFloat m_PulseWidth;
 	static const char *const PULSE_WIDTH_ERROR;
 };

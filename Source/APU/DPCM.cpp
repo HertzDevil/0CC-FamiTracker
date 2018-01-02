@@ -32,8 +32,8 @@ const uint16_t CDPCM::DMC_PERIODS_PAL[]  = {
 	398, 354, 316, 298, 276, 236, 210, 198, 176, 148, 132, 118, 98, 78, 66, 50
 };
 
-CDPCM::CDPCM(CMixer *pMixer, chan_id_t ID) :		// // //
-	C2A03Chan(pMixer, SNDCHIP_NONE, ID)
+CDPCM::CDPCM(CMixer &Mixer, chan_id_t ID) :		// // //
+	C2A03Chan(Mixer, SNDCHIP_NONE, ID)
 {
 	PERIOD_TABLE = DMC_PERIODS_NTSC;
 

@@ -20,44 +20,42 @@
 ** must bear this legend.
 */
 
-#include "stdafx.h"
-#include "CustomControls.h"
+#include "InstrumentListCtrl.h"		// // //
 #include "resource.h"
 #include "FamiTrackerDoc.h"
 #include "MainFrm.h"
 
 ///
-/// CInstrumentList
+/// CInstrumentListCtrl
 ///
 
 // This class takes care of handling the instrument list, since mapping
 // between instruments list and instruments are not necessarily 1:1
 
-IMPLEMENT_DYNAMIC(CInstrumentList, CListCtrl)
+IMPLEMENT_DYNAMIC(CInstrumentListCtrl, CListCtrl)
 
-BEGIN_MESSAGE_MAP(CInstrumentList, CListCtrl)
+BEGIN_MESSAGE_MAP(CInstrumentListCtrl, CListCtrl)
 	ON_WM_CONTEXTMENU()
-	ON_NOTIFY_REFLECT(LVN_BEGINLABELEDIT, &CInstrumentList::OnLvnBeginlabeledit)
-	ON_NOTIFY_REFLECT(NM_CLICK, &CInstrumentList::OnNMClick)
-	ON_NOTIFY_REFLECT(LVN_KEYDOWN, &CInstrumentList::OnLvnKeydown)
-	ON_NOTIFY_REFLECT(LVN_ENDLABELEDIT, &CInstrumentList::OnLvnEndlabeledit)
-	ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, &CInstrumentList::OnLvnItemchanged)
-	ON_NOTIFY_REFLECT(NM_DBLCLK, &CInstrumentList::OnNMDblclk)
-	ON_NOTIFY_REFLECT(LVN_BEGINDRAG, &CInstrumentList::OnLvnBegindrag)
+	ON_NOTIFY_REFLECT(LVN_BEGINLABELEDIT, &CInstrumentListCtrl::OnLvnBeginlabeledit)
+	ON_NOTIFY_REFLECT(NM_CLICK, &CInstrumentListCtrl::OnNMClick)
+	ON_NOTIFY_REFLECT(LVN_KEYDOWN, &CInstrumentListCtrl::OnLvnKeydown)
+	ON_NOTIFY_REFLECT(LVN_ENDLABELEDIT, &CInstrumentListCtrl::OnLvnEndlabeledit)
+	ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, &CInstrumentListCtrl::OnLvnItemchanged)
+	ON_NOTIFY_REFLECT(NM_DBLCLK, &CInstrumentListCtrl::OnNMDblclk)
+	ON_NOTIFY_REFLECT(LVN_BEGINDRAG, &CInstrumentListCtrl::OnLvnBegindrag)
 	ON_WM_MOUSEMOVE()
 	ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
-CInstrumentList::CInstrumentList(CMainFrame *pMainFrame) :
+CInstrumentListCtrl::CInstrumentListCtrl(CMainFrame *pMainFrame) :
 	m_pMainFrame(pMainFrame),
-	m_pDragImage(NULL),
 	m_nDragIndex(-1),
 	m_nDropIndex(-1),
 	m_bDragging(false)
 {
 }
 
-int CInstrumentList::GetInstrumentIndex(int Selection) const
+int CInstrumentListCtrl::GetInstrumentIndex(int Selection) const
 {
 	// Get the instrument number from an item in the list (Selection = list index)
 	if (Selection == -1)
@@ -72,7 +70,7 @@ int CInstrumentList::GetInstrumentIndex(int Selection) const
 	return Instrument;
 }
 
-int CInstrumentList::FindInstrument(int Index) const
+int CInstrumentListCtrl::FindInstrument(int Index) const
 {
 	// Find the instrument item from the list (Index = instrument number)
 	CString Txt;
@@ -85,7 +83,7 @@ int CInstrumentList::FindInstrument(int Index) const
 	return FindItem(&info);
 }
 
-void CInstrumentList::SelectInstrument(int Index)
+void CInstrumentListCtrl::SelectInstrument(int Index)
 {
 	// Highlight a specified instrument (Index = instrument number)
 	int ListIndex = FindInstrument(Index);
@@ -94,7 +92,7 @@ void CInstrumentList::SelectInstrument(int Index)
 	EnsureVisible(ListIndex, FALSE);
 }
 
-void CInstrumentList::SelectNextItem()
+void CInstrumentListCtrl::SelectNextItem()
 {
 	// Select next instrument
 	int SelIndex = GetSelectionMark();
@@ -105,7 +103,7 @@ void CInstrumentList::SelectNextItem()
 	}
 }
 
-void CInstrumentList::SelectPreviousItem()
+void CInstrumentListCtrl::SelectPreviousItem()
 {
 	// Select previous instrument
 	int SelIndex = GetSelectionMark();
@@ -115,7 +113,7 @@ void CInstrumentList::SelectPreviousItem()
 	}
 }
 
-void CInstrumentList::InsertInstrument(int Index)
+void CInstrumentListCtrl::InsertInstrument(int Index)
 {
 	// Inserts an instrument in the list (Index = instrument number)
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
@@ -132,7 +130,7 @@ void CInstrumentList::InsertInstrument(int Index)
 	}
 }
 
-void CInstrumentList::RemoveInstrument(int Index)
+void CInstrumentListCtrl::RemoveInstrument(int Index)
 {
 	// Remove an instrument from the list (Index = instrument number)
 	int Selection = FindInstrument(Index);
@@ -140,7 +138,7 @@ void CInstrumentList::RemoveInstrument(int Index)
 		DeleteItem(Selection);
 }
 
-void CInstrumentList::SetInstrumentName(int Index, LPCTSTR pName)		// // //
+void CInstrumentListCtrl::SetInstrumentName(int Index, LPCTSTR pName)		// // //
 {
 	// Update instrument name in the list
 	int ListIndex = GetSelectionMark();
@@ -149,7 +147,7 @@ void CInstrumentList::SetInstrumentName(int Index, LPCTSTR pName)		// // //
 	SetItemText(ListIndex, 0, Name);
 }
 
-void CInstrumentList::OnContextMenu(CWnd* pWnd, CPoint point)
+void CInstrumentListCtrl::OnContextMenu(CWnd* pWnd, CPoint point)
 {
 	int Instrument = GetInstrumentIndex(GetSelectionMark());
 
@@ -168,7 +166,7 @@ void CInstrumentList::OnContextMenu(CWnd* pWnd, CPoint point)
 	m_pMainFrame->GetActiveView()->SetFocus();
 }
 
-void CInstrumentList::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
+void CInstrumentListCtrl::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
 
@@ -179,21 +177,21 @@ void CInstrumentList::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 }
 
-void CInstrumentList::OnLvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
+void CInstrumentListCtrl::OnLvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	NMLVDISPINFO *pDispInfo = reinterpret_cast<NMLVDISPINFO*>(pNMHDR);
 	// TODO: Add your control notification handler code here
 	*pResult = 0;
 }
 
-void CInstrumentList::OnLvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
+void CInstrumentListCtrl::OnLvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	NMLVDISPINFO *pDispInfo = reinterpret_cast<NMLVDISPINFO*>(pNMHDR);
 	// TODO: Add your control notification handler code here
 	*pResult = 0;
 }
 
-void CInstrumentList::OnNMClick(NMHDR *pNMHDR, LRESULT *pResult)
+void CInstrumentListCtrl::OnNMClick(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 
@@ -206,7 +204,7 @@ void CInstrumentList::OnNMClick(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 }
 
-void CInstrumentList::OnLvnKeydown(NMHDR *pNMHDR, LRESULT *pResult)
+void CInstrumentListCtrl::OnLvnKeydown(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMLVKEYDOWN pLVKeyDow = reinterpret_cast<LPNMLVKEYDOWN>(pNMHDR);
 
@@ -215,7 +213,7 @@ void CInstrumentList::OnLvnKeydown(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 }
 
-void CInstrumentList::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
+void CInstrumentListCtrl::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 
@@ -225,7 +223,7 @@ void CInstrumentList::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 }
 
-void CInstrumentList::OnLvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
+void CInstrumentListCtrl::OnLvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
 
@@ -240,7 +238,7 @@ void CInstrumentList::OnLvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 	pt.x = nOffset;
 	pt.y = nOffset;
 
-	m_pDragImage = CreateDragImage(m_nDragIndex, &pt);	// Delete this later
+	m_pDragImage.reset(CreateDragImage(m_nDragIndex, &pt));		// // // Delete this later
 	ASSERT(m_pDragImage);
 
 	m_pDragImage->BeginDrag(0, CPoint(nOffset, nOffset));
@@ -252,7 +250,7 @@ void CInstrumentList::OnLvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 }
 
-void CInstrumentList::OnMouseMove(UINT nFlags, CPoint point)
+void CInstrumentListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 {
 	// Handle drag operation
 	if (m_bDragging) {
@@ -282,7 +280,7 @@ void CInstrumentList::OnMouseMove(UINT nFlags, CPoint point)
 	CListCtrl::OnMouseMove(nFlags, point);
 }
 
-void CInstrumentList::OnLButtonUp(UINT nFlags, CPoint point)
+void CInstrumentListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	// End a drag operation
 	if (m_bDragging) {
@@ -291,7 +289,7 @@ void CInstrumentList::OnLButtonUp(UINT nFlags, CPoint point)
 
 		m_pDragImage->DragLeave(this);
 		m_pDragImage->EndDrag();
-		SAFE_RELEASE(m_pDragImage);
+		m_pDragImage.reset();		// // //
 
 		// Remove highlight
 		SetItemState(-1, 0, LVIS_DROPHILITED);

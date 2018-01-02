@@ -25,7 +25,7 @@
 
 #include "stdafx.h"		// // //
 #include "resource.h"		// // //
-
+#include <memory>		// // //
 #include "FamiTrackerTypes.h"
 
 class CFamiTrackerDoc;
@@ -48,7 +48,7 @@ public:
 
 private:
 	CFamiTrackerDoc *m_pDocument;
-	CFamiTrackerDoc *m_pImportedDoc;
+	std::unique_ptr<CFamiTrackerDoc> m_pImportedDoc;		// // //
 
 	int m_iInstrumentTable[MAX_INSTRUMENTS];
 	int m_iGrooveMap[MAX_GROOVE];		 // // //

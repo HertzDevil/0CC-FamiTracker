@@ -40,8 +40,8 @@ const int32_t EXP_VOLUME[32] = {
 	180, 212, 255, 255
 };
 
-CS5BChannel::CS5BChannel(CMixer *pMixer, chan_id_t ID) :		// // //
-	CChannel(pMixer, SNDCHIP_S5B, ID),
+CS5BChannel::CS5BChannel(CMixer &Mixer, chan_id_t ID) :		// // //
+	CChannel(Mixer, SNDCHIP_S5B, ID),
 	m_iVolume(0),
 	m_iPeriod(0),
 	m_iPeriodClock(0),
@@ -100,11 +100,11 @@ double CS5BChannel::GetFrequency() const		// // //
 
 // Sunsoft 5B chip class
 
-CS5B::CS5B(CMixer *pMixer) : CSoundChip(pMixer),
+CS5B::CS5B(CMixer &Mixer) : CSoundChip(Mixer),
 	m_Channel {
-		{pMixer, CHANID_S5B_CH1},
-		{pMixer, CHANID_S5B_CH2},
-		{pMixer, CHANID_S5B_CH3},
+		{Mixer, CHANID_S5B_CH1},
+		{Mixer, CHANID_S5B_CH2},
+		{Mixer, CHANID_S5B_CH3},
 	},
 	m_cPort(0),
 	m_iCounter(0)

@@ -31,7 +31,7 @@ class CRegisterLogger;		// // //
 
 class CSoundChip {
 public:
-	explicit CSoundChip(CMixer *pMixer);		// // //
+	explicit CSoundChip(CMixer &Mixer);		// // //
 	virtual ~CSoundChip() noexcept = default;
 
 	virtual void	Reset() = 0;

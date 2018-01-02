@@ -25,6 +25,8 @@
 
 #include "stdafx.h"		// // //
 #include "resource.h"		// // //
+#include <memory>		// // //
+#include <vector>		// // //
 
 class CInstrumentEditPanel;
 class CInstrumentManager;		// // //
@@ -53,7 +55,7 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
-	void InsertPane(CInstrumentEditPanel *pPanel, bool Show);
+	void InsertPane(std::unique_ptr<CInstrumentEditPanel> pPanel, bool Show);		// // //
 	void ClearPanels();
 
 	void SwitchOnNote(int x, int y);
@@ -61,8 +63,6 @@ protected:
 
 protected:
 	// Constants
-	static const int PANEL_COUNT = 2;
-
 	static const int KEYBOARD_WIDTH;
 	static const int KEYBOARD_HEIGHT;
 
@@ -74,14 +74,14 @@ protected:
 	int m_iActiveKey;
 
 	// Variables for windows
-	CInstrumentEditPanel *m_pPanels[PANEL_COUNT];
+	std::vector<std::unique_ptr<CInstrumentEditPanel>> m_pPanels;		// // //
+
 	CInstrumentEditPanel *m_pFocusPanel;
 	CInstrumentManager *m_pInstManager;		// // //
 	CRect m_KeyboardRect;		// // //
 
 	bool m_bOpened;
 	int m_iSelectedInstType;
-	int m_iPanels;
 	int	m_iInstrument;
 	float m_fRefreshRate;		// // //
 
@@ -100,5 +100,4 @@ public:
 	virtual void OnOK();
 	virtual void OnCancel();
 	afx_msg void OnNcLButtonUp(UINT nHitTest, CPoint point);
-	virtual void PostNcDestroy();
 };

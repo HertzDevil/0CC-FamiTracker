@@ -26,10 +26,10 @@
 
 // MMC5 external sound
 
-CMMC5::CMMC5(CMixer *pMixer) :
-	CSoundChip(pMixer),		// // //
-	m_Square1(pMixer, CHANID_MMC5_SQUARE1, SNDCHIP_MMC5),
-	m_Square2(pMixer, CHANID_MMC5_SQUARE2, SNDCHIP_MMC5),
+CMMC5::CMMC5(CMixer &Mixer) :
+	CSoundChip(Mixer),		// // //
+	m_Square1(Mixer, CHANID_MMC5_SQUARE1, SNDCHIP_MMC5),
+	m_Square2(Mixer, CHANID_MMC5_SQUARE2, SNDCHIP_MMC5),
 	m_iMulLow(0),
 	m_iMulHigh(0)
 {

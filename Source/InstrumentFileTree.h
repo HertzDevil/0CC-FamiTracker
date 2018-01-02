@@ -20,19 +20,20 @@
 ** must bear this legend.
 */
 
+
 #pragma once
 
+#include "stdafx.h"		// // //
+#include <vector>		// // //
+#include <memory>		// // //
 
 // CInstrumentFileTree
 
 class CInstrumentFileTree
 {
 public:
-	CInstrumentFileTree();
-	~CInstrumentFileTree();
-
-	bool BuildMenuTree(CString instrumentPath);
-	CMenu *GetMenu() const;
+	bool BuildMenuTree(const CString &instrumentPath);		// // //
+	CMenu &GetMenu();		// // //
 	CString GetFile(int Index) const;
 	bool ShouldRebuild() const;
 	void Changed();
@@ -47,15 +48,14 @@ public:
 	static const int CACHE_TIMEOUT = 60000;	// 1 minute
 
 protected:
-	bool ScanDirectory(CString path, CMenu *pMenu, int level);
-	void DeleteMenuObjects();
+	bool ScanDirectory(const CString &path, CMenu &Menu, int level);		// // //
 
 private:
-	CMenu *m_pRootMenu;
-	int m_iFileIndex;
-	CArray<CString, CString> m_fileList;
-	CArray<CMenu*, CMenu*> m_menuArray;
+	CMenu m_RootMenu;		// // //
+	int m_iFileIndex = 0;
+	std::vector<CString> m_fileList;		// // //
+	std::vector<std::unique_ptr<CMenu>> m_menuArray;		// // //
 	DWORD m_iTimeout;
-	bool m_bShouldRebuild;
+	bool m_bShouldRebuild = true;
 	int m_iTotalMenusAdded;
 };

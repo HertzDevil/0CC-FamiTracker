@@ -102,10 +102,8 @@ BOOL CInstrumentEditDlg::OnInitDialog()
 	m_iSelectedInstType = -1;
 	m_iLastKey = -1;
 	m_bOpened = true;
-	m_iPanels = 0;
 
-	for (int i = 0; i < PANEL_COUNT; ++i)
-		m_pPanels[i] = NULL;
+	m_pPanels.clear();		// // //
 
 	CRect r;		// // //
 	GetClientRect(&r);
@@ -124,15 +122,14 @@ BOOL CInstrumentEditDlg::OnInitDialog()
 	// EXCEPTION: OCX Property Pages should return FALSE
 }
 
-void CInstrumentEditDlg::InsertPane(CInstrumentEditPanel *pPanel, bool Show)
-{
+void CInstrumentEditDlg::InsertPane(std::unique_ptr<CInstrumentEditPanel> pPanel, bool Show) {		// // //
 	CRect Rect, ParentRect;
 	CTabCtrl *pTabControl = static_cast<CTabCtrl*>(GetDlgItem(IDC_INST_TAB));
 
 	pPanel->SetInstrumentManager(m_pInstManager);		// // //
 
 	pTabControl->GetWindowRect(&ParentRect);
-	pTabControl->InsertItem(m_iPanels, pPanel->GetTitle());
+	pTabControl->InsertItem(m_pPanels.size(), pPanel->GetTitle());		// // //
 
 	pPanel->Create(pPanel->GetIDD(), this);
 	pPanel->GetWindowRect(&Rect);
@@ -143,26 +140,23 @@ void CInstrumentEditDlg::InsertPane(CInstrumentEditPanel *pPanel, bool Show)
 	pPanel->ShowWindow(Show ? SW_SHOW : SW_HIDE);
 
 	if (Show) {
-		pTabControl->SetCurSel(m_iPanels);
+		pTabControl->SetCurSel(m_pPanels.size());
 		pPanel->SetFocus();
-		m_pFocusPanel = pPanel;
+		m_pFocusPanel = pPanel.get();
 	}
 
-	m_pPanels[m_iPanels++] = pPanel;
+	m_pPanels.push_back(std::move(pPanel));		// // //
 }
 
 void CInstrumentEditDlg::ClearPanels()
 {
 	static_cast<CTabCtrl*>(GetDlgItem(IDC_INST_TAB))->DeleteAllItems();
 
-	for (int i = 0; i < PANEL_COUNT; i++) {
-		if (m_pPanels[i] != NULL) {
-			m_pPanels[i]->DestroyWindow();
-			SAFE_RELEASE(m_pPanels[i]);
-		}
-	}
+	for (auto &x : m_pPanels)		// // //
+		if (x)
+			x->DestroyWindow();
+	m_pPanels.clear();
 
-	m_iPanels = 0;
 	m_iInstrument = -1;
 }
 
@@ -189,39 +183,39 @@ void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 					int Channel = CFamiTrackerView::GetView()->GetSelectedChannel();
 					int Type = pDoc->GetChannelType(Channel);
 					bool bShowDPCM = (Type == CHANID_DPCM) || (std::static_pointer_cast<CInstrument2A03>(pInstrument)->AssignedSamples());
-					InsertPane(new CInstrumentEditorSeq(NULL, _T("2A03 settings"), CInstrument2A03::SEQUENCE_NAME, 15, 3, INST_2A03), !bShowDPCM); // // //
-					InsertPane(new CInstrumentEditorDPCM(), bShowDPCM);
+					InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, _T("2A03 settings"),
+						CInstrument2A03::SEQUENCE_NAME, 15, 3, INST_2A03), !bShowDPCM);		// // //
+					InsertPane(std::make_unique<CInstrumentEditorDPCM>(), bShowDPCM);
 				}
 				break;
 			case INST_VRC6:
-				InsertPane(new CInstrumentEditorSeq(NULL, _T("Konami VRC6"), CInstrumentVRC6::SEQUENCE_NAME, 15, 7, INST_VRC6), true);
+				InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, _T("Konami VRC6"),
+					CInstrumentVRC6::SEQUENCE_NAME, 15, 7, INST_VRC6), true);
 				break;
 			case INST_VRC7:
-				InsertPane(new CInstrumentEditorVRC7(), true);
+				InsertPane(std::make_unique<CInstrumentEditorVRC7>(), true);
 				break;
 			case INST_FDS:
-				InsertPane(new CInstrumentEditorFDS(), true);
-				InsertPane(new CInstrumentEditorFDSEnvelope(), false);
+				InsertPane(std::make_unique<CInstrumentEditorFDS>(), true);
+				InsertPane(std::make_unique<CInstrumentEditorFDSEnvelope>(), false);
 				break;
 			case INST_N163:
-				InsertPane(new CInstrumentEditorSeq(
-					NULL, _T("Envelopes"), CInstrumentN163::SEQUENCE_NAME, 15, CInstrumentN163::MAX_WAVE_COUNT - 1, INST_N163
-				), true);
-				InsertPane(new CInstrumentEditorN163Wave(), false);
+				InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, _T("Envelopes"),
+					CInstrumentN163::SEQUENCE_NAME, 15, CInstrumentN163::MAX_WAVE_COUNT - 1, INST_N163), true);
+				InsertPane(std::make_unique<CInstrumentEditorN163Wave>(), false);
 				break;
 			case INST_S5B:
-				InsertPane(new CInstrumentEditorSeq(NULL, _T("Sunsoft 5B"), CInstrumentS5B::SEQUENCE_NAME, 15, 255, INST_S5B), true);
+				InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, _T("Sunsoft 5B"),
+					CInstrumentS5B::SEQUENCE_NAME, 15, 255, INST_S5B), true);
 				break;
 		}
 
 		m_iSelectedInstType = InstType;
 	}
 
-	for (int i = 0; i < PANEL_COUNT; ++i) {
-		if (m_pPanels[i] != NULL) {
-			m_pPanels[i]->SelectInstrument(pInstrument);
-		}
-	}
+	for (const auto &x : m_pPanels)		// // //
+		if (x)
+			x->SelectInstrument(pInstrument);
 
 	ShowWindow(SW_SHOW);
 	UpdateWindow();
@@ -244,15 +238,11 @@ void CInstrumentEditDlg::OnTcnSelchangeInstTab(NMHDR *pNMHDR, LRESULT *pResult)
 	CTabCtrl *pTabControl = static_cast<CTabCtrl*>(GetDlgItem(IDC_INST_TAB));
 	int Selection = pTabControl->GetCurSel();
 
-	for (int i = 0; i < PANEL_COUNT; i++) {
-		if (m_pPanels[i] != NULL && i != Selection) {
-			m_pPanels[i]->ShowWindow(SW_HIDE);
-		}
-	}
+	for (std::size_t i = 0; i < std::size(m_pPanels); ++i)		// // //
+		if (m_pPanels[i])
+			m_pPanels[i]->ShowWindow(i == Selection ? SW_SHOW : SW_HIDE);
 
-	m_pPanels[Selection]->ShowWindow(SW_SHOW);
-
-	m_pFocusPanel = m_pPanels[Selection];
+	m_pFocusPanel = m_pPanels[Selection].get();
 
 	*pResult = 0;
 }
@@ -517,11 +507,4 @@ bool CInstrumentEditDlg::IsOpened() const
 void CInstrumentEditDlg::SetInstrumentManager(CInstrumentManager *pManager)
 {
 	m_pInstManager = pManager;
-}
-
-void CInstrumentEditDlg::PostNcDestroy()
-{
-	for (int i = 0; i < PANEL_COUNT; i++)		// // //
-		SAFE_RELEASE(m_pPanels[i]);
-	CDialog::PostNcDestroy();
 }

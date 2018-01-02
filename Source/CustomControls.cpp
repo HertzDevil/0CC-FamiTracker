@@ -20,16 +20,12 @@
 ** must bear this legend.
 */
 
-#include "stdafx.h"
 #include "CustomControls.h"
 #include "DPI.h"		// // //
 
 /*
 
  Contains some custom GUI controls.
-
- * CInstrumentList
-   - The instrument list (moved to separate file)
 
  * CBannerEdit
    - An edit box that displays a banner when no text is present

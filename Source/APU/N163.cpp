@@ -40,17 +40,17 @@
 // Namco 163 (previously called N106)
 //
 
-CN163::CN163(CMixer *pMixer) :
-	CSoundChip(pMixer),		// // //
+CN163::CN163(CMixer &Mixer) :
+	CSoundChip(Mixer),		// // //
 	m_Channels {
-		{pMixer, *this, CHANID_N163_CH1, m_iWaveData},
-		{pMixer, *this, CHANID_N163_CH2, m_iWaveData},
-		{pMixer, *this, CHANID_N163_CH3, m_iWaveData},
-		{pMixer, *this, CHANID_N163_CH4, m_iWaveData},
-		{pMixer, *this, CHANID_N163_CH5, m_iWaveData},
-		{pMixer, *this, CHANID_N163_CH6, m_iWaveData},
-		{pMixer, *this, CHANID_N163_CH7, m_iWaveData},
-		{pMixer, *this, CHANID_N163_CH8, m_iWaveData},
+		{Mixer, *this, CHANID_N163_CH1, m_iWaveData},
+		{Mixer, *this, CHANID_N163_CH2, m_iWaveData},
+		{Mixer, *this, CHANID_N163_CH3, m_iWaveData},
+		{Mixer, *this, CHANID_N163_CH4, m_iWaveData},
+		{Mixer, *this, CHANID_N163_CH5, m_iWaveData},
+		{Mixer, *this, CHANID_N163_CH6, m_iWaveData},
+		{Mixer, *this, CHANID_N163_CH7, m_iWaveData},
+		{Mixer, *this, CHANID_N163_CH8, m_iWaveData},
 	}
 {
 	m_pRegisterLogger->AddRegisterRange(0x00, 0x7F);		// // //
@@ -226,8 +226,8 @@ uint8_t CN163::ReadMem(uint8_t Reg)
 // N163 channels
 //
 
-CN163Chan::CN163Chan(CMixer *pMixer, CN163 &parent, chan_id_t ID, uint8_t *pWaveData) :		// // //
-	CChannel(pMixer, SNDCHIP_N163, ID),
+CN163Chan::CN163Chan(CMixer &Mixer, CN163 &parent, chan_id_t ID, uint8_t *pWaveData) :		// // //
+	CChannel(Mixer, SNDCHIP_N163, ID),
 	m_pWaveData(pWaveData), parent_(parent)
 {
 	Reset();

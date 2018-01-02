@@ -32,7 +32,7 @@
 
 class CSquare : public C2A03Chan {
 public:
-	CSquare(CMixer *pMixer, chan_id_t ID, int Chip);		// // //
+	CSquare(CMixer &Mixer, chan_id_t ID, int Chip);		// // //
 	~CSquare();
 
 	void	Reset();

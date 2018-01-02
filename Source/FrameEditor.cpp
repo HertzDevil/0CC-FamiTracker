@@ -268,7 +268,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	}
 
 	// Draw selected row
-	GradientBar(&m_dcBack, DPI::Rect(0, m_iMiddleRow * ROW_HEIGHT + 3, m_iWinWidth, ROW_HEIGHT + 1), RowColor, ColBackground);
+	GradientBar(m_dcBack, DPI::Rect(0, m_iMiddleRow * ROW_HEIGHT + 3, m_iWinWidth, ROW_HEIGHT + 1), RowColor, ColBackground);		// // //
 
 	const int FirstVisibleFrame = ActiveFrame - m_iMiddleRow;
 	const int BeginFrame = std::max(0, FirstVisibleFrame);		// // //
@@ -286,7 +286,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 		if (line != m_iMiddleRow)
 			for (unsigned j = 0, Count = Col.GetCount(); j < Count; ++j)
 				if (Col.GetBookmark(j)->m_iFrame == Frame) {
-					GradientBar(&m_dcBack, RowRect, theApp.GetSettings()->Appearance.iColBackgroundHilite, ColBackground);
+					GradientBar(m_dcBack, RowRect, theApp.GetSettings()->Appearance.iColBackgroundHilite, ColBackground);		// // //
 					break;
 				}
 	}
@@ -295,7 +295,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	if (int Marker = pView->GetMarkerFrame(); Marker >= BeginFrame && Marker <= EndFrame) {
 		int line = Marker - FirstVisibleFrame;
 		const int ypos = line * ROW_HEIGHT;
-		GradientBar(&m_dcBack, DPI::Rect(2, ypos + 4, ROW_COLUMN_WIDTH - 5, ROW_HEIGHT - 1), ColCursor, DIM(ColCursor, 30));
+		GradientBar(m_dcBack, DPI::Rect(2, ypos + 4, ROW_COLUMN_WIDTH - 5, ROW_HEIGHT - 1), ColCursor, DIM(ColCursor, 30));		// // //
 	}
 
 	// Play cursor
@@ -305,7 +305,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 			int line = PlayFrame - FirstVisibleFrame;
 			const int ypos = line * ROW_HEIGHT;
 			CRect RowRect = DPI::Rect(0, ypos + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
-			GradientBar(&m_dcBack, RowRect, theApp.GetSettings()->Appearance.iColCurrentRowPlaying, ColBackground);		// // //
+			GradientBar(m_dcBack, RowRect, theApp.GetSettings()->Appearance.iColCurrentRowPlaying, ColBackground);		// // //
 		}
 
 	// Queue cursor
@@ -313,7 +313,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 		int line = Queue - FirstVisibleFrame;
 		const int ypos = line * ROW_HEIGHT;
 		CRect RowRect = DPI::Rect(0, ypos + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
-		GradientBar(&m_dcBack, RowRect, QUEUE_COLOR, ColBackground);
+		GradientBar(m_dcBack, RowRect, QUEUE_COLOR, ColBackground);
 	}
 
 	// Selection
@@ -346,7 +346,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 		int y = m_iMiddleRow * ROW_HEIGHT + 3;
 		CRect CursorRect = DPI::Rect(ROW_COLUMN_WIDTH + 2 + x, y, FRAME_ITEM_WIDTH, ROW_HEIGHT + 1);
 
-		GradientBar(&m_dcBack, CursorRect, ColCursor, ColBackground);
+		GradientBar(m_dcBack, CursorRect, ColCursor, ColBackground);		// // //
 		m_dcBack.Draw3dRect(CursorRect, BLEND(ColCursor, 0xFFFFFF, 90), BLEND(ColCursor, ColBackground, 60));
 
 		// Flashing black box indicating that input is active

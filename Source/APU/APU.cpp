@@ -53,21 +53,21 @@ const uint8_t CAPU::LENGTH_TABLE[] = {
 static std::vector<CSoundChip*> ExChips;
 
 CAPU::CAPU(IAudioCallback *pCallback) :		// // //
+	m_pMixer(std::make_unique<CMixer>()),		// // //
 	m_pParent(pCallback),
+	m_p2A03(std::make_unique<C2A03>(*m_pMixer)),		// // //
+	m_pMMC5(std::make_unique<CMMC5>(*m_pMixer)),
+	m_pVRC6(std::make_unique<CVRC6>(*m_pMixer)),
+	m_pVRC7(std::make_unique<CVRC7>(*m_pMixer)),
+	m_pFDS (std::make_unique<CFDS>(*m_pMixer)),
+	m_pN163(std::make_unique<CN163>(*m_pMixer)),
+	m_pS5B (std::make_unique<CS5B>(*m_pMixer)),
 	m_iFrameCycles(0),
 	m_pSoundBuffer(NULL),
-	m_pMixer(new CMixer()),
 	m_iExternalSoundChip(0),
 	m_iCyclesToRun(0),
 	m_iSampleRate(44100)		// // //
 {
-	m_p2A03 = new C2A03(m_pMixer);		// // //
-	m_pMMC5 = new CMMC5(m_pMixer);
-	m_pVRC6 = new CVRC6(m_pMixer);
-	m_pVRC7 = new CVRC7(m_pMixer);
-	m_pFDS  = new CFDS(m_pMixer);
-	m_pN163 = new CN163(m_pMixer);
-	m_pS5B  = new CS5B(m_pMixer);
 
 	m_fLevelVRC7 = 1.0f;
 
@@ -79,16 +79,6 @@ CAPU::CAPU(IAudioCallback *pCallback) :		// // //
 
 CAPU::~CAPU()
 {
-	SAFE_RELEASE(m_p2A03);		// // //
-	SAFE_RELEASE(m_pMMC5);
-	SAFE_RELEASE(m_pVRC6);
-	SAFE_RELEASE(m_pVRC7);
-	SAFE_RELEASE(m_pFDS);
-	SAFE_RELEASE(m_pN163);
-	SAFE_RELEASE(m_pS5B);
-
-	SAFE_RELEASE(m_pMixer);
-
 #ifdef LOGGING
 	m_pLog->Close();
 #endif
@@ -192,19 +182,19 @@ void CAPU::SetExternalSound(uint8_t Chip)
 
 	ExChips.clear();
 
-	ExChips.push_back(m_p2A03);		// // //
+	ExChips.push_back(m_p2A03.get());		// // //
 	if (Chip & SNDCHIP_VRC6)
-		ExChips.push_back(m_pVRC6);
+		ExChips.push_back(m_pVRC6.get());
 	if (Chip & SNDCHIP_VRC7)
-		ExChips.push_back(m_pVRC7);
+		ExChips.push_back(m_pVRC7.get());
 	if (Chip & SNDCHIP_FDS)
-		ExChips.push_back(m_pFDS);
+		ExChips.push_back(m_pFDS.get());
 	if (Chip & SNDCHIP_MMC5)
-		ExChips.push_back(m_pMMC5);
+		ExChips.push_back(m_pMMC5.get());
 	if (Chip & SNDCHIP_N163)
-		ExChips.push_back(m_pN163);
+		ExChips.push_back(m_pN163.get());
 	if (Chip & SNDCHIP_S5B)
-		ExChips.push_back(m_pS5B);
+		ExChips.push_back(m_pS5B.get());
 
 	Reset();
 }
@@ -412,14 +402,14 @@ double CAPU::GetFreq(int Chip, int Chan) const
 {
 	const CSoundChip *pChip = nullptr;
 	switch (Chip) {
-	case SNDCHIP_NONE: pChip = m_p2A03; break;
-	case SNDCHIP_VRC6: pChip = m_pVRC6; break;
-	case SNDCHIP_VRC7: pChip = m_pVRC7; break;
-	case SNDCHIP_FDS:  pChip = m_pFDS; break;
-	case SNDCHIP_MMC5: pChip = m_pMMC5; break;
-	case SNDCHIP_N163: pChip = m_pN163; break;
-	case SNDCHIP_S5B:  pChip = m_pS5B; break;
-	default: AfxDebugBreak(); return 0.;
+	case SNDCHIP_NONE: pChip = m_p2A03.get(); break;
+	case SNDCHIP_VRC6: pChip = m_pVRC6.get(); break;
+	case SNDCHIP_VRC7: pChip = m_pVRC7.get(); break;
+	case SNDCHIP_FDS:  pChip = m_pFDS.get(); break;
+	case SNDCHIP_MMC5: pChip = m_pMMC5.get(); break;
+	case SNDCHIP_N163: pChip = m_pN163.get(); break;
+	case SNDCHIP_S5B:  pChip = m_pS5B.get(); break;
+	default: __debugbreak(); return 0.;
 	}
 	return pChip->GetFreq(Chan);
 }
@@ -428,14 +418,14 @@ CRegisterState *CAPU::GetRegState(int Chip, int Reg) const		// // //
 {
 	const CSoundChip *pChip = nullptr;
 	switch (Chip) {
-	case SNDCHIP_NONE: pChip = m_p2A03; break;
-	case SNDCHIP_VRC6: pChip = m_pVRC6; break;
-	case SNDCHIP_VRC7: pChip = m_pVRC7; break;
-	case SNDCHIP_FDS:  pChip = m_pFDS; break;
-	case SNDCHIP_MMC5: pChip = m_pMMC5; break;
-	case SNDCHIP_N163: pChip = m_pN163; break;
-	case SNDCHIP_S5B:  pChip = m_pS5B; break;
-	default: __debugbreak();
+	case SNDCHIP_NONE: pChip = m_p2A03.get(); break;
+	case SNDCHIP_VRC6: pChip = m_pVRC6.get(); break;
+	case SNDCHIP_VRC7: pChip = m_pVRC7.get(); break;
+	case SNDCHIP_FDS:  pChip = m_pFDS.get(); break;
+	case SNDCHIP_MMC5: pChip = m_pMMC5.get(); break;
+	case SNDCHIP_N163: pChip = m_pN163.get(); break;
+	case SNDCHIP_S5B:  pChip = m_pS5B.get(); break;
+	default: __debugbreak(); return nullptr;
 	}
 
 	return pChip->GetRegisterLogger().GetRegister(Reg);

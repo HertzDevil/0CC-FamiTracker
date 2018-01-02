@@ -140,7 +140,7 @@ public:
 
 	void		 EditReplace(stChanNote &Note);		// // //
 
-	CPatternEditor *GetPatternEditor() const { return m_pPatternEditor; }
+	CPatternEditor *GetPatternEditor() const;		// // //
 
 	// OLE
 	void		 BeginDragData(int ChanOffset, int RowOffset);
@@ -313,13 +313,13 @@ private:
 	int					m_iSplitTranspose;
 
 	std::unordered_map<unsigned char, int> m_iNoteCorrection;	// // // correction from changing octaves
-	CNoteQueue			*m_pNoteQueue;							// // // Note queue for handling note triggers
+	std::unique_ptr<CNoteQueue> m_pNoteQueue;					// // // Note queue for handling note triggers
 
 	// MIDI
 	unsigned int		m_iLastMIDINote;
 
 	// Drawing
-	CPatternEditor		*m_pPatternEditor;						// Pointer to the pattern editor object
+	std::unique_ptr<CPatternEditor> m_pPatternEditor;			// // // Pointer to the pattern editor object
 
 	// OLE support
 	COleDropTarget		m_DropTarget;

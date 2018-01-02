@@ -28,7 +28,7 @@
 
 class CMMC5 : public CSoundChip {
 public:
-	explicit CMMC5(CMixer *pMixer);
+	explicit CMMC5(CMixer &Mixer);
 
 	void Reset() override;
 	void Write(uint16_t Address, uint8_t Value) override;

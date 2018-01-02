@@ -70,6 +70,7 @@
 #include "InstrumentManager.h"
 #include "Kraid.h"
 #include "NumConv.h"
+#include "InstrumentListCtrl.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -126,7 +127,6 @@ CMainFrame::CMainFrame() :
 	m_cBannerEditCopyright(IDS_INFO_COPYRIGHT),		// // //
 	m_pInstrumentList(NULL),
 	m_iFrameEditorPos(FRAME_EDIT_POS_TOP),
-	m_pInstrumentFileTree(NULL),
 	m_iInstrument(0),
 	m_iTrack(0),
 	m_iOctave(3),
@@ -145,7 +145,6 @@ CMainFrame::~CMainFrame()
 	SAFE_RELEASE(m_pPerformanceDlg);		// // //
 	SAFE_RELEASE(m_pInstrumentList);
 	SAFE_RELEASE(m_pVisualizerWnd);
-	SAFE_RELEASE(m_pInstrumentFileTree);
 	SAFE_RELEASE(m_pImageList);
 }
 
@@ -600,7 +599,7 @@ bool CMainFrame::CreateDialogPanels()
 
 	// Subclass and setup the instrument list
 
-	m_pInstrumentList = new CInstrumentList(this);
+	m_pInstrumentList = new CInstrumentListCtrl(this);
 	m_pInstrumentList->SubclassDlgItem(IDC_INSTRUMENTS, &m_wndDialogBar);
 
 	SetupColors();
@@ -2698,11 +2697,11 @@ void CMainFrame::OnLoadInstrumentMenu(NMHDR * pNotifyStruct, LRESULT * result)
 
 	// Build menu tree
 	if (!m_pInstrumentFileTree)
-		m_pInstrumentFileTree = new CInstrumentFileTree();
+		m_pInstrumentFileTree = std::make_unique<CInstrumentFileTree>();		// // //
 	if (m_pInstrumentFileTree->ShouldRebuild())
 		m_pInstrumentFileTree->BuildMenuTree(theApp.GetSettings()->InstrumentMenuPath);
 
-	UINT retValue = m_pInstrumentFileTree->GetMenu()->TrackPopupMenu(
+	UINT retValue = m_pInstrumentFileTree->GetMenu().TrackPopupMenu(
 		TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, rect.left, rect.bottom, this);
 	switch (retValue) {
 	case CInstrumentFileTree::MENU_BASE: // Open file

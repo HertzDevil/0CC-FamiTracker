@@ -288,11 +288,11 @@ CFamiTrackerView::CFamiTrackerView() :
 	m_iSplitInstrument(MAX_INSTRUMENTS),		// // //
 	m_iSplitTranspose(0),		// // //
 	m_iNoteCorrection(),		// // //
-	m_pNoteQueue(new CNoteQueue { }),		// // //
+	m_pNoteQueue(std::make_unique<CNoteQueue>()),		// // //
 	m_iMenuChannel(-1),
 	m_nDropEffect(DROPEFFECT_NONE),
 	m_bDragSource(false),
-	m_pPatternEditor(new CPatternEditor())
+	m_pPatternEditor(std::make_unique<CPatternEditor>())		// // //
 {
 	memset(m_cKeyList, 0, sizeof(char) * 256);
 
@@ -306,9 +306,6 @@ CFamiTrackerView::CFamiTrackerView() :
 
 CFamiTrackerView::~CFamiTrackerView()
 {
-	// Release allocated objects
-	SAFE_RELEASE(m_pPatternEditor);
-	SAFE_RELEASE(m_pNoteQueue);		// // //
 }
 
 
@@ -420,7 +417,7 @@ void CFamiTrackerView::OnDraw(CDC* pDC)
 	if (pSoundGen == NULL || pSoundGen->IsBackgroundTask())
 		return;
 
-	m_pPatternEditor->DrawScreen(pDC, this);
+	m_pPatternEditor->DrawScreen(*pDC, this);		// // //
 	GetMainFrame()->GetFrameEditor()->DrawScreen(pDC);		// // //
 }
 
@@ -433,7 +430,7 @@ BOOL CFamiTrackerView::OnEraseBkgnd(CDC* pDC)
 		return FALSE;
 
 	// Called when the background should be erased
-	m_pPatternEditor->CreateBackground(pDC);
+	m_pPatternEditor->CreateBackground(*pDC);		// // //
 
 	return FALSE;
 }
@@ -463,7 +460,7 @@ void CFamiTrackerView::UpdateMeters()
 
 	CDC *pDC = GetDC();
 	if (pDC && pDC->m_hDC) {
-		m_pPatternEditor->DrawMeters(pDC);
+		m_pPatternEditor->DrawMeters(*pDC);		// // //
 		ReleaseDC(pDC);
 	}
 
@@ -3610,6 +3607,11 @@ void CFamiTrackerView::EditReplace(stChanNote &Note)		// // //
 	AddAction(std::make_unique<CPActionEditNote>(Note));
 	InvalidateCursor();
 	// pAction->SaveRedoState(static_cast<CMainFrame*>(GetParentFrame()));		// // //
+}
+
+CPatternEditor *CFamiTrackerView::GetPatternEditor() const {		// // //
+	ASSERT(m_pPatternEditor);
+	return m_pPatternEditor.get();
 }
 
 void CFamiTrackerView::OnUpdateFind(CCmdUI *pCmdUI)		// // //

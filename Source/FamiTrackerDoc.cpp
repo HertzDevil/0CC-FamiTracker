@@ -644,21 +644,20 @@ BOOL CFamiTrackerDoc::OpenDocumentNew(CDocumentFile &DocumentFile)
 
 // FTM import ////
 
-CFamiTrackerDoc *CFamiTrackerDoc::LoadImportFile(LPCTSTR lpszPathName)
-{
+std::unique_ptr<CFamiTrackerDoc> CFamiTrackerDoc::LoadImportFile(LPCTSTR lpszPathName) {		// // //
 	// Import a module as new subtunes
-	CFamiTrackerDoc *pImported = new CFamiTrackerDoc();
+	auto pImported = std::make_unique<CFamiTrackerDoc>(ctor_t { });
 
 	pImported->CreateEmpty();
 
 	// Load into a new document
 	if (!pImported->OpenDocument(lpszPathName))
-		SAFE_RELEASE(pImported);
+		return nullptr;
 
 	return pImported;
 }
 
-bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTable)
+bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc &Imported, int *pInstTable)
 {
 	// Copy instruments to current module
 	//
@@ -672,7 +671,7 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 	int SequenceTableS5B[MAX_SEQUENCES][SEQ_COUNT] = { };		// // //
 
 	// Check instrument count
-	if (GetInstrumentCount() + pImported->GetInstrumentCount() > MAX_INSTRUMENTS) {
+	if (GetInstrumentCount() + Imported.GetInstrumentCount() > MAX_INSTRUMENTS) {
 		// Out of instrument slots
 		AfxMessageBox(IDS_IMPORT_INSTRUMENT_COUNT, MB_ICONERROR);
 		return false;
@@ -683,12 +682,12 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 
 	// Copy sequences
 	for (size_t i = 0; i < std::size(inst); i++) for (int t = 0; t < SEQ_COUNT; ++t) {
-		if (GetSequenceCount(inst[i], t) + pImported->GetSequenceCount(inst[i], t) > MAX_SEQUENCES) {		// // //
+		if (GetSequenceCount(inst[i], t) + Imported.GetSequenceCount(inst[i], t) > MAX_SEQUENCES) {		// // //
 			AfxMessageBox(IDS_IMPORT_SEQUENCE_COUNT, MB_ICONERROR);
 			return false;
 		}
-		for (unsigned int s = 0; s < MAX_SEQUENCES; ++s) if (pImported->GetSequenceItemCount(inst[i], s, t) > 0) {
-			auto pImportSeq = pImported->GetSequence(inst[i], s, t);
+		for (unsigned int s = 0; s < MAX_SEQUENCES; ++s) if (Imported.GetSequenceItemCount(inst[i], s, t) > 0) {
+			auto pImportSeq = Imported.GetSequence(inst[i], s, t);
 			int index = -1;
 			for (unsigned j = 0; j < MAX_SEQUENCES; ++j) {
 				if (GetSequenceItemCount(inst[i], j, t))
@@ -704,7 +703,7 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 	}
 
 	bool bOutOfSampleSpace = false;
-	auto &Manager = *pImported->GetDSampleManager();		// // //
+	auto &Manager = *Imported.GetDSampleManager();		// // //
 
 	// Copy DPCM samples
 	for (int i = 0; i < MAX_DSAMPLES; ++i) {
@@ -728,8 +727,8 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 
 	// Copy instruments
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-		if (pImported->IsInstrumentUsed(i)) {
-			auto pInst = std::unique_ptr<CInstrument>(pImported->GetInstrument(i)->Clone());		// // //
+		if (Imported.IsInstrumentUsed(i)) {
+			auto pInst = std::unique_ptr<CInstrument>(Imported.GetInstrument(i)->Clone());		// // //
 
 			// Update references
 			if (auto pSeq = dynamic_cast<CSeqInstrument *>(pInst.get())) {
@@ -760,11 +759,11 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTa
 	return true;
 }
 
-bool CFamiTrackerDoc::ImportGrooves(CFamiTrackerDoc *pImported, int *pGrooveMap)		// // //
+bool CFamiTrackerDoc::ImportGrooves(CFamiTrackerDoc &Imported, int *pGrooveMap)		// // //
 {
 	int Index = 0;
 	for (int i = 0; i < MAX_GROOVE; ++i) {
-		if (const groove *pGroove = pImported->GetGroove(i)) {
+		if (const groove *pGroove = Imported.GetGroove(i)) {
 			while (GetGroove(Index))
 				if (++Index >= MAX_GROOVE) {
 					AfxMessageBox(IDS_IMPORT_GROOVE_SLOTS, MB_ICONEXCLAMATION);
@@ -778,10 +777,10 @@ bool CFamiTrackerDoc::ImportGrooves(CFamiTrackerDoc *pImported, int *pGrooveMap)
 	return true;
 }
 
-bool CFamiTrackerDoc::ImportDetune(CFamiTrackerDoc *pImported)		// // //
+bool CFamiTrackerDoc::ImportDetune(CFamiTrackerDoc &Imported)		// // //
 {
 	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++)
-		m_iDetuneTable[i][j] = pImported->GetDetuneOffset(i, j);
+		m_iDetuneTable[i][j] = Imported.GetDetuneOffset(i, j);
 
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(this);		// // //
 	return true;

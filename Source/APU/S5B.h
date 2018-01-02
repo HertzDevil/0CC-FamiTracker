@@ -33,7 +33,7 @@ class CS5BChannel : public CChannel
 public:
 	friend class CS5B;
 
-	CS5BChannel(CMixer *pMixer, chan_id_t ID);		// // //
+	CS5BChannel(CMixer &Mixer, chan_id_t ID);		// // //
 
 	void Process(uint32_t Time);
 	void Reset();
@@ -56,7 +56,7 @@ private:
 class CS5B : public CSoundChip
 {
 public:
-	explicit CS5B(CMixer *pMixer);
+	explicit CS5B(CMixer &Mixer);
 
 	void	Reset() override;
 	void	Process(uint32_t Time) override;

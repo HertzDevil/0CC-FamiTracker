@@ -30,13 +30,12 @@
 IMPLEMENT_DYNAMIC(CModuleImportDlg, CDialog)
 
 CModuleImportDlg::CModuleImportDlg(CFamiTrackerDoc *pDoc)
-	: CDialog(CModuleImportDlg::IDD, NULL), m_pImportedDoc(NULL), m_pDocument(pDoc)
+	: CDialog(CModuleImportDlg::IDD, NULL), m_pDocument(pDoc)
 {
 }
 
 CModuleImportDlg::~CModuleImportDlg()
 {
-	SAFE_RELEASE(m_pImportedDoc);
 }
 
 void CModuleImportDlg::DoDataExchange(CDataExchange* pDX)
@@ -99,7 +98,7 @@ bool CModuleImportDlg::LoadFile(CString Path)		// // //
 	m_pImportedDoc = CFamiTrackerDoc::LoadImportFile(Path);
 
 	// Check if load failed
-	if (m_pImportedDoc == NULL)
+	if (m_pImportedDoc == nullptr)
 		return false;
 
 	// Check expansion chip match
@@ -122,7 +121,7 @@ bool CModuleImportDlg::ImportInstruments()
 		m_iInstrumentTable[i] = i;
 
 	if (IsDlgButtonChecked(IDC_INSTRUMENTS) == BST_CHECKED)
-		if (!m_pDocument->ImportInstruments(m_pImportedDoc, m_iInstrumentTable))
+		if (!m_pDocument->ImportInstruments(*m_pImportedDoc, m_iInstrumentTable))
 			return false;
 
 	return true;
@@ -134,7 +133,7 @@ bool CModuleImportDlg::ImportGrooves()		// // //
 		m_iGrooveMap[i] = i;
 
 	if (IsDlgButtonChecked(IDC_IMPORT_GROOVE) == BST_CHECKED)
-		if (!m_pDocument->ImportGrooves(m_pImportedDoc, m_iGrooveMap))
+		if (!m_pDocument->ImportGrooves(*m_pImportedDoc, m_iGrooveMap))
 			return false;
 
 	return true;
@@ -143,7 +142,7 @@ bool CModuleImportDlg::ImportGrooves()		// // //
 bool CModuleImportDlg::ImportDetune()		// // //
 {
 	if (IsDlgButtonChecked(IDC_IMPORT_DETUNE) == BST_CHECKED)
-		if (!m_pDocument->ImportDetune(m_pImportedDoc))
+		if (!m_pDocument->ImportDetune(*m_pImportedDoc))
 			return false;
 
 	return true;

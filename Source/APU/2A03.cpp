@@ -29,13 +29,13 @@
 
 // // // 2A03 sound chip class
 
-C2A03::C2A03(CMixer *pMixer) :
-	CSoundChip(pMixer),
-	m_Square1(m_pMixer, CHANID_SQUARE1, SNDCHIP_NONE),
-	m_Square2(m_pMixer, CHANID_SQUARE2, SNDCHIP_NONE),
-	m_Triangle(m_pMixer, CHANID_TRIANGLE),
-	m_Noise(m_pMixer, CHANID_NOISE),
-	m_DPCM(m_pMixer, CHANID_DPCM)		// // //
+C2A03::C2A03(CMixer &Mixer) :
+	CSoundChip(Mixer),
+	m_Square1(Mixer, CHANID_SQUARE1, SNDCHIP_NONE),
+	m_Square2(Mixer, CHANID_SQUARE2, SNDCHIP_NONE),
+	m_Triangle(Mixer, CHANID_TRIANGLE),
+	m_Noise(Mixer, CHANID_NOISE),
+	m_DPCM(Mixer, CHANID_DPCM)		// // //
 {
 	m_pRegisterLogger->AddRegisterRange(0x4000, 0x4017);		// // //
 }

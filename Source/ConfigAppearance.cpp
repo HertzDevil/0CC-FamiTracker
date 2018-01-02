@@ -183,13 +183,13 @@ void CConfigAppearance::OnPaint()
 
 		if ((i & 3) == 0) {
 			if ((i & 6) == 0)
-				GradientBar(&dc, Rect.left, OffsetTop, Rect.right - Rect.left, iRowSize, Hilight2BgCol, BgCol);
+				GradientBar(dc, Rect.left, OffsetTop, Rect.right - Rect.left, iRowSize, Hilight2BgCol, BgCol);		// // //
 			else
-				GradientBar(&dc, Rect.left, OffsetTop, Rect.right - Rect.left, iRowSize, HilightBgCol, BgCol);
+				GradientBar(dc, Rect.left, OffsetTop, Rect.right - Rect.left, iRowSize, HilightBgCol, BgCol);
 
 			if (i == 0) {
 				dc.SetTextColor(GetColor(COL_PATTERN_TEXT_HILITE));
-				GradientBar(&dc, Rect.left + 5, OffsetTop, 40, iRowSize, CursorCol, GetColor(COL_BACKGROUND));
+				GradientBar(dc, Rect.left + 5, OffsetTop, 40, iRowSize, CursorCol, GetColor(COL_BACKGROUND));
 				dc.Draw3dRect(Rect.left + 5, OffsetTop, 40, iRowSize, CursorCol, CursorShadedCol);
 			}
 			else

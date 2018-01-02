@@ -251,7 +251,7 @@ void CBookmarkDlg::OnBnClickedButtonBookmarkAdd()
 	if (m_pCollection->AddBookmark(pMark))
 		m_pDocument->ModifyIrreversible();
 	else
-		delete pMark;
+		SAFE_RELEASE(pMark);
 	UpdateBookmarkList();
 	m_cListBookmark.SetCurSel(m_pCollection->GetCount() - 1);
 }
@@ -265,7 +265,7 @@ void CBookmarkDlg::OnBnClickedButtonBookmarkUpdate()
 	if (m_pCollection->SetBookmark(pos, pMark))
 		m_pDocument->ModifyIrreversible();
 	else
-		delete pMark;
+		SAFE_RELEASE(pMark);
 	UpdateBookmarkList();
 	m_cListBookmark.SetCurSel(pos);
 }

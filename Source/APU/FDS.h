@@ -28,7 +28,7 @@
 
 class CFDS : public CSoundChip, public CChannel {
 public:
-	explicit CFDS(CMixer *pMixer);
+	explicit CFDS(CMixer &Mixer);
 	virtual ~CFDS();
 	void	Reset() override;
 	void	Write(uint16_t Address, uint8_t Value) override;

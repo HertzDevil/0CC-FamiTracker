@@ -86,6 +86,11 @@ class CFamiTrackerDoc : public CDocument, public CFTMComponentInterface
 	using groove = ft0cc::doc::groove;
 	using dpcm_sample = ft0cc::doc::dpcm_sample;
 
+	struct ctor_t { };		// // //
+
+public:
+	CFamiTrackerDoc(ctor_t) : CFamiTrackerDoc() { }
+
 protected: // create from serialization only
 	CFamiTrackerDoc();
 	DECLARE_DYNCREATE(CFamiTrackerDoc)
@@ -117,10 +122,10 @@ public:
 	void CreateEmpty();		// // //
 
 	// Import
-	static CFamiTrackerDoc *LoadImportFile(LPCTSTR lpszPathName);		// // //
-	bool ImportInstruments(CFamiTrackerDoc *pImported, int *pInstTable);
-	bool ImportGrooves(CFamiTrackerDoc *pImported, int *pGrooveMap);		// // //
-	bool ImportDetune(CFamiTrackerDoc *pImported);			// // //
+	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCTSTR lpszPathName);		// // //
+	bool ImportInstruments(CFamiTrackerDoc &Imported, int *pInstTable);
+	bool ImportGrooves(CFamiTrackerDoc &Imported, int *pGrooveMap);		// // //
+	bool ImportDetune(CFamiTrackerDoc &Imported);			// // //
 
 	//
 	// Interface functions (not related to document data) TODO move this?
