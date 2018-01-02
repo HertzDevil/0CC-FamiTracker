@@ -34,6 +34,7 @@
 #include "SoundGen.h"
 #include "Settings.h"
 #include "Graphics.h"
+#include "Color.h"		// // //
 #include "Clipboard.h"
 #include "Bookmark.h"		// // //
 #include "BookmarkCollection.h"		// // //
@@ -230,9 +231,9 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	const COLORREF ColTextHilite	= theApp.GetSettings()->Appearance.iColPatternTextHilite;
 	const COLORREF ColCursor		= theApp.GetSettings()->Appearance.iColCursor;
 	const COLORREF ColSelect		= theApp.GetSettings()->Appearance.iColSelection;
-	const COLORREF ColDragCursor	= INTENSITY(ColBackground) > 0x80 ? 0x000000 : 0xFFFFFF;
-	const COLORREF ColSelectEdge	= BLEND(ColSelect, 0xFFFFFF, 70);
-	const COLORREF ColTextDimmed	= DIM(theApp.GetSettings()->Appearance.iColPatternText, 90);
+	const COLORREF ColDragCursor	= INTENSITY(ColBackground) > 0x80 ? BLACK : WHITE;
+	const COLORREF ColSelectEdge	= BLEND(ColSelect, WHITE, .7);
+	const COLORREF ColTextDimmed	= DIM(theApp.GetSettings()->Appearance.iColPatternText, .9);
 
 	const CFamiTrackerDoc *pDoc = m_pDocument;		// // //
 	const CFamiTrackerView *pView = m_pView;
@@ -258,13 +259,13 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	m_dcBack.FillSolidRect(0, 0, m_iWinWidth, m_iWinHeight, ColBackground);
 
 	// Selected row
-	COLORREF RowColor = BLEND(ColCursor, ColBackground, 50);
+	COLORREF RowColor = BLEND(ColCursor, ColBackground, .5);
 
 	if (GetFocus() == this) {
 		if (m_bInputEnable)
-			RowColor = BLEND(RED_BAR_COLOR, 0, 80);
+			RowColor = BLEND(RED_BAR_COLOR, 0, .8);
 		else
-			RowColor = BLEND(BLUE_BAR_COLOR, ColBackground, 80);
+			RowColor = BLEND(BLUE_BAR_COLOR, ColBackground, .8);
 	}
 
 	// Draw selected row
@@ -295,7 +296,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	if (int Marker = pView->GetMarkerFrame(); Marker >= BeginFrame && Marker <= EndFrame) {
 		int line = Marker - FirstVisibleFrame;
 		const int ypos = line * ROW_HEIGHT;
-		GradientBar(m_dcBack, DPI::Rect(2, ypos + 4, ROW_COLUMN_WIDTH - 5, ROW_HEIGHT - 1), ColCursor, DIM(ColCursor, 30));		// // //
+		GradientBar(m_dcBack, DPI::Rect(2, ypos + 4, ROW_COLUMN_WIDTH - 5, ROW_HEIGHT - 1), ColCursor, DIM(ColCursor, .3));		// // //
 	}
 
 	// Play cursor
@@ -347,7 +348,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 		CRect CursorRect = DPI::Rect(ROW_COLUMN_WIDTH + 2 + x, y, FRAME_ITEM_WIDTH, ROW_HEIGHT + 1);
 
 		GradientBar(m_dcBack, CursorRect, ColCursor, ColBackground);		// // //
-		m_dcBack.Draw3dRect(CursorRect, BLEND(ColCursor, 0xFFFFFF, 90), BLEND(ColCursor, ColBackground, 60));
+		m_dcBack.Draw3dRect(CursorRect, BLEND(ColCursor, WHITE, .9), BLEND(ColCursor, ColBackground, .6));
 
 		// Flashing black box indicating that input is active
 		if (m_bInputEnable && m_bCursor)
@@ -367,7 +368,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 			int Chan = j + m_iFirstChannel;
 
 			//m_dcBack.SetTextColor(CurrentColor);
-			m_dcBack.SetTextColor(DIM(CurrentColor, 70));
+			m_dcBack.SetTextColor(DIM(CurrentColor, .7));
 
 			m_dcBack.TextOut(DPI::SX(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3), _T("--"));
 		}
@@ -396,7 +397,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 				if ((!m_bLastRow && index == activeIndex) || bSelectedRow)
 					m_dcBack.SetTextColor(CurrentColor);
 				else
-					m_dcBack.SetTextColor(DIM(CurrentColor, 70));
+					m_dcBack.SetTextColor(DIM(CurrentColor, .7));
 
 				m_dcBack.TextOut(DPI::SX(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3),
 					conv::sv_from_uint_hex(index, 2).data());		// // //
@@ -418,7 +419,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 		}
 	}
 
-	COLORREF colSeparator = BLEND(ColBackground, (ColBackground ^ 0xFFFFFF), 75);
+	COLORREF colSeparator = BLEND(ColBackground, Invert(ColBackground), .75);
 
 	// Row number separator
 	m_dcBack.FillSolidRect(DPI::SX(ROW_COLUMN_WIDTH - 1), 0, DPI::SY(1), m_iWinHeight, colSeparator);

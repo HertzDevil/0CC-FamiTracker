@@ -29,6 +29,7 @@
 #include "APU/DPCM.h"		// // //
 #include "RegisterState.h"
 #include "Graphics.h"
+#include "Color.h"		// // //
 #include "PatternNote.h"
 #include <algorithm>
 
@@ -102,7 +103,7 @@ void CRegisterDisplay::Draw() {
 		const int note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);
 		if (Volume > 0xFF) Volume = 0xFF;
 		if (note_conv >= -12 && note_conv <= 96 && Volume)		// // //
-			dc_.FillSolidRect(29 + 6 * (note_conv + 12), BAR_OFFSET + vis_line * 10, 3, 7, RGB(Volume, Volume, Volume));
+			dc_.FillSolidRect(29 + 6 * (note_conv + 12), BAR_OFFSET + vis_line * 10, 3, 7, GREY(Volume));
 		++vis_line;
 	};
 
@@ -207,9 +208,8 @@ void CRegisterDisplay::Draw() {
 			auto pState = pSoundGen->GetRegState(SNDCHIP_N163, i);
 			const int Hi = (pState->GetValue() >> 4) & 0x0F;
 			const int Lo = pState->GetValue() & 0x0F;
-			COLORREF Col = BLEND(
-				0xC0C0C0, DECAY_COLOR[pState->GetNewValueTime()], 100 * pState->GetLastUpdatedTime() / CRegisterState::DECAY_RATE
-			);
+			COLORREF Col = BLEND(GREY(192), DECAY_COLOR[pState->GetNewValueTime()],
+				(double)pState->GetLastUpdatedTime() / CRegisterState::DECAY_RATE);
 			dc_.FillSolidRect(x + 300 + i * 2    , y + 15 - Lo, 1, Lo, Col);
 			dc_.FillSolidRect(x + 300 + i * 2 + 1, y + 15 - Hi, 1, Hi, Col);
 		}
@@ -222,7 +222,7 @@ void CRegisterDisplay::Draw() {
 			const int UpdateTime = std::min(pPosState->GetLastUpdatedTime(), pLenState->GetLastUpdatedTime());
 			dc_.FillSolidRect(x + 300, y + 20 + i * 5, Length * 2, 3, 0);
 			dc_.FillSolidRect(x + 300 + WavePos, y + 20 + i * 5, WaveLen, 3,
-							   BLEND(0xC0C0C0, DECAY_COLOR[NewTime], 100 * UpdateTime / CRegisterState::DECAY_RATE));
+							   BLEND(GREY(192), DECAY_COLOR[NewTime], (double)UpdateTime / CRegisterState::DECAY_RATE));
 		}
 		y -= 18;
 
@@ -359,7 +359,7 @@ void CRegisterDisplay::DrawReg(const CString &header, int count) {
 	for (int j = 0; j < count; j++) {
 		CString str;
 		str.Format(_T(" $%02X"), reg[j]);
-		dc_.SetTextColor(BLEND(0xC0C0C0, DECAY_COLOR[update[j] >> 4], 100 * (update[j] & 0x0F) / CRegisterState::DECAY_RATE));
+		dc_.SetTextColor(BLEND(GREY(192), DECAY_COLOR[update[j] >> 4], (double)(update[j] & 0x0F) / CRegisterState::DECAY_RATE));
 		dc_.TextOut(0, 0, str);
 	}
 }

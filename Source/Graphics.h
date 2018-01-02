@@ -20,31 +20,12 @@
 ** must bear this legend.
 */
 
+
 #pragma once
 
+#include "stdafx.h"		// // //
 
 // Various graphics helpers
-
-// Color macros
-
-#define RED(x)	 (x & 255)
-#define GREEN(x) ((x >> 8) & 255)
-#define BLUE(x)	 ((x >> 16) & 255)
-#define ALPHA(x) ((x >> 24) & 255)
-
-#define COMBINE(r, g, b) (((b) << 16) | ((g) << 8) | r)
-
-#define DIM(c, l) (COMBINE((RED(c) * l) / 100, (GREEN(c) * l) / 100, (BLUE(c) * l) / 100))
-
-#define BLEND_COLOR(c1, c2, level) ((c1 * level) / 100 + (c2 * (100 - level)) / 100)
-
-#define BLEND(c1, c2, level) (COMBINE(BLEND_COLOR(RED(c1), RED(c2), (level)), \
-									  BLEND_COLOR(GREEN(c1), GREEN(c2), (level)), \
-									  BLEND_COLOR(BLUE(c1), BLUE(c2), (level))))
-
-#define INTENSITY(c) ((((c >> 16) & 0xFF) + ((c >> 8) & 0xFF) + (c & 0xFF)) / 3)
-
-// Functions
 
 void GradientRectTriple(CDC &DC, int x, int y, int w, int h, COLORREF c1, COLORREF c2, COLORREF c3);		// // //
 void GradientBar(CDC &DC, int x, int y, int w, int h, COLORREF col_fg, COLORREF col_bg);

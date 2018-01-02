@@ -35,6 +35,7 @@
 #include "PatternAction.h"
 #include "ColorScheme.h"
 #include "Graphics.h"
+#include "Color.h"		// // //
 #include "TextExporter.h"		// // //
 #include "PatternClipData.h"		// // //
 #include "RegisterDisplay.h"		// // //
@@ -282,14 +283,14 @@ void CPatternEditor::ApplyColorScheme()
 		m_fontCourierNew.CreateFont(14, 0, 0, 0, 0, FALSE, FALSE, FALSE, 0, 0, 0, DRAFT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, _T("Courier New"));
 
 	// Cache some colors
-	m_colSeparator	= BLEND(ColBackground, (ColBackground ^ 0xFFFFFF), SHADE_LEVEL.SEPARATOR);
-	m_colEmptyBg	= DIM(theApp.GetSettings()->Appearance.iColBackground, SHADE_LEVEL.EMPTY_BG);
+	m_colSeparator	= BLEND(ColBackground, Invert(ColBackground), SHADE_LEVEL::SEPARATOR);
+	m_colEmptyBg	= DIM(theApp.GetSettings()->Appearance.iColBackground, SHADE_LEVEL::EMPTY_BG);
 
 	m_colHead1 = GetSysColor(COLOR_3DFACE);
 	m_colHead2 = GetSysColor(COLOR_BTNHIGHLIGHT);
 	m_colHead3 = GetSysColor(COLOR_APPWORKSPACE);
-	m_colHead4 = BLEND(m_colHead3, 0x4040F0, 80);
-	m_colHead5 = BLEND(m_colHead3, 0x40F040, 60);		// // //
+	m_colHead4 = BLEND(m_colHead3, MakeRGB(240, 64, 64), .8);
+	m_colHead5 = BLEND(m_colHead3, MakeRGB(64, 240, 64), .6);		// // //
 
 	InvalidateBackground();
 	InvalidatePatternData();
@@ -1056,10 +1057,10 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 	// Row is row from pattern to display
 	// Line is (absolute) screen line
 
-	const COLORREF GRAY_BAR_COLOR = 0x606060;
-	const COLORREF SEL_DRAG_COL	  = 0xA08080;
+	const COLORREF GRAY_BAR_COLOR = GREY(96);
+	const COLORREF SEL_DRAG_COL	  = MakeRGB(128, 128, 160);
 
-	const unsigned int PREVIEW_SHADE_LEVEL = 70;
+	const double PREVIEW_SHADE_LEVEL = .7;		// // //
 
 	const CSettings *pSettings = theApp.GetSettings();		// // //
 
@@ -1104,13 +1105,13 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 		ColHiBg2 = DIM(ColHiBg2, PREVIEW_SHADE_LEVEL);
 		ColHiBg = DIM(ColHiBg, PREVIEW_SHADE_LEVEL);
 		ColBg = DIM(ColBg, PREVIEW_SHADE_LEVEL);
-		TextColor = DIM(TextColor, 70);
+		TextColor = DIM(TextColor, PREVIEW_SHADE_LEVEL);
 	}
 
 	// // // 050B
 	// Draw row marker
 	if (!((Frame - m_pView->GetMarkerFrame()) % GetFrameCount()) && Row == m_pView->GetMarkerRow())
-		GradientBar(DC, 2, Line * m_iRowHeight, m_iRowColumnWidth - 5, m_iRowHeight, ColCursor, DIM(ColCursor, 30));
+		GradientBar(DC, 2, Line * m_iRowHeight, m_iRowColumnWidth - 5, m_iRowHeight, ColCursor, DIM(ColCursor, .3));
 
 	// Draw row number
 	DC.SetTextAlign(TA_CENTER | TA_BASELINE);		// // //
@@ -1144,20 +1145,19 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 	if (!bPreview && Row == m_iDrawCursorRow) {
 		// Cursor row
 		if (!m_bHasFocus)
-			BackColor = BLEND(GRAY_BAR_COLOR, BackColor, SHADE_LEVEL.UNFOCUSED);	// Gray
+			BackColor = BLEND(GRAY_BAR_COLOR, BackColor, SHADE_LEVEL::UNFOCUSED);	// Gray
 		else if (bEditMode)
-			BackColor = BLEND(pSettings->Appearance.iColCurrentRowEdit, BackColor, SHADE_LEVEL.FOCUSED);		// Red
+			BackColor = BLEND(pSettings->Appearance.iColCurrentRowEdit, BackColor, SHADE_LEVEL::FOCUSED);		// Red
 		else
-			BackColor = BLEND(pSettings->Appearance.iColCurrentRowNormal, BackColor, SHADE_LEVEL.FOCUSED);		// Blue
+			BackColor = BLEND(pSettings->Appearance.iColCurrentRowNormal, BackColor, SHADE_LEVEL::FOCUSED);		// Blue
 	}
 
-	const COLORREF SelectColor = DIM(BLEND(ColSelect, BackColor, SHADE_LEVEL.SELECT),		// // //
-		((Frame == m_cpCursorPos.m_iFrame) ? 100 : PREVIEW_SHADE_LEVEL));
-	const COLORREF DragColor = DIM(BLEND(SEL_DRAG_COL, BackColor, SHADE_LEVEL.SELECT),
-		((Frame == m_cpCursorPos.m_iFrame) ? 100 : PREVIEW_SHADE_LEVEL));
+	const double BlendLv = Frame == m_cpCursorPos.m_iFrame ? 1. : PREVIEW_SHADE_LEVEL;
+	const COLORREF SelectColor = DIM(BLEND(ColSelect, BackColor, SHADE_LEVEL::SELECT), BlendLv);		// // //
+	const COLORREF DragColor = DIM(BLEND(SEL_DRAG_COL, BackColor, SHADE_LEVEL::SELECT), BlendLv);
 	const COLORREF SelectEdgeCol = (m_iSelectionCondition == SEL_CLEAN /* || m_iSelectionCondition == SEL_UNKNOWN_SIZE*/ ) ?
-		DIM(BLEND(SelectColor, 0xFFFFFF, SHADE_LEVEL.SELECT_EDGE), ((Frame == m_cpCursorPos.m_iFrame) ? 100 : PREVIEW_SHADE_LEVEL)) :
-		0x0000FF;
+		DIM(BLEND(SelectColor, WHITE, SHADE_LEVEL::SELECT_EDGE), BlendLv) :
+		MakeRGB(255, 0, 0);
 
 	RowColorInfo_t colorInfo;
 
@@ -1170,8 +1170,8 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 	else
 		colorInfo.Back = pSettings->Appearance.iColBackground;
 
-	colorInfo.Shaded = BLEND(TextColor, colorInfo.Back, SHADE_LEVEL.UNUSED);
-	colorInfo.Compact = BLEND(TextColor, colorInfo.Back, SHADE_LEVEL.PREVIEW);		// // //
+	colorInfo.Shaded = BLEND(TextColor, colorInfo.Back, SHADE_LEVEL::UNUSED);
+	colorInfo.Compact = BLEND(TextColor, colorInfo.Back, SHADE_LEVEL::PREVIEW);		// // //
 
 	if (!pSettings->Appearance.bPatternColor) {		// // //
 		colorInfo.Instrument = colorInfo.Volume = colorInfo.Effect = colorInfo.Note;
@@ -1183,12 +1183,12 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 	}
 
 	if (bPreview) {
-		colorInfo.Shaded	 = BLEND(colorInfo.Shaded, colorInfo.Back, SHADE_LEVEL.PREVIEW);
-		colorInfo.Note		 = BLEND(colorInfo.Note, colorInfo.Back, SHADE_LEVEL.PREVIEW);
-		colorInfo.Instrument = BLEND(colorInfo.Instrument, colorInfo.Back, SHADE_LEVEL.PREVIEW);
-		colorInfo.Volume	 = BLEND(colorInfo.Volume, colorInfo.Back, SHADE_LEVEL.PREVIEW);
-		colorInfo.Effect	 = BLEND(colorInfo.Effect, colorInfo.Back, SHADE_LEVEL.PREVIEW);
-		colorInfo.Compact	 = BLEND(colorInfo.Compact, colorInfo.Back, SHADE_LEVEL.PREVIEW);		// // //
+		colorInfo.Shaded	 = BLEND(colorInfo.Shaded, colorInfo.Back, SHADE_LEVEL::PREVIEW);
+		colorInfo.Note		 = BLEND(colorInfo.Note, colorInfo.Back, SHADE_LEVEL::PREVIEW);
+		colorInfo.Instrument = BLEND(colorInfo.Instrument, colorInfo.Back, SHADE_LEVEL::PREVIEW);
+		colorInfo.Volume	 = BLEND(colorInfo.Volume, colorInfo.Back, SHADE_LEVEL::PREVIEW);
+		colorInfo.Effect	 = BLEND(colorInfo.Effect, colorInfo.Back, SHADE_LEVEL::PREVIEW);
+		colorInfo.Compact	 = BLEND(colorInfo.Compact, colorInfo.Back, SHADE_LEVEL::PREVIEW);		// // //
 	}
 
 	// Draw channels
@@ -1248,8 +1248,8 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 			// Draw cursor box
 			if (i == m_cpCursorPos.m_iChannel && j == m_cpCursorPos.m_iColumn && Row == m_iDrawCursorRow && !bPreview) {
 				GradientBar(DC, PosX - m_iColumnSpacing / 2, 0, GetColumnWidth(j), m_iRowHeight, ColCursor, ColBg);		// // //
-				DC.Draw3dRect(PosX - m_iColumnSpacing / 2, 0, GetColumnWidth(j), m_iRowHeight, ColCursor, DIM(ColCursor, 50));
-				//DC.Draw3dRect(PosX - m_iColumnSpacing / 2 - 1, -1, GetColumnWidth(j) + 2, m_iRowHeight + 2, ColCursor, DIM(ColCursor, 50));
+				DC.Draw3dRect(PosX - m_iColumnSpacing / 2, 0, GetColumnWidth(j), m_iRowHeight, ColCursor, DIM(ColCursor, .5));
+				//DC.Draw3dRect(PosX - m_iColumnSpacing / 2 - 1, -1, GetColumnWidth(j) + 2, m_iRowHeight + 2, ColCursor, DIM(ColCursor, .5));
 				bInvert = true;
 			}
 
@@ -1293,7 +1293,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		if (Column == C_NOTE/* || Column == 4*/) {
 			CString Text;
 			Text.Format(_T("(invalid)"));
-			DC.SetTextColor(RGB(255, 0, 0));
+			DC.SetTextColor(MakeRGB(255, 0, 0));
 			DC.TextOut(PosX, -1, Text);
 		}
 		return;
@@ -1310,12 +1310,12 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	if (NoteData.Instrument < MAX_INSTRUMENTS &&
 		(!m_pDocument->IsInstrumentUsed(NoteData.Instrument) ||
 		!TrackerChannel.IsInstrumentCompatible(NoteData.Instrument, m_pDocument->GetInstrumentType(NoteData.Instrument)))) { // // //
-		DimInst = InstColor = RGB(255, 0, 0);
+		DimInst = InstColor = MakeRGB(255, 0, 0);
 	}
 
 	// // // effects too
 	if (EffNumber != EF_NONE) if (!TrackerChannel.IsEffectCompatible(EffNumber, EffParam))
-		DimEff = EffColor = RGB(255, 0, 0);		// // //
+		DimEff = EffColor = MakeRGB(255, 0, 0);		// // //
 
 	int PosY = m_iRowHeight - m_iRowHeight / 8;		// // //
 	// // // PosX -= 1;
@@ -1489,7 +1489,7 @@ void CPatternEditor::DrawHeader(CDC &DC)
 		if (Pushed) {
 			GradientRectTriple(DC, Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT,
 							   m_colHead1, m_colHead1, m_pView->GetEditMode() ? m_colHead4 : m_colHead3);
-			DC.Draw3dRect(Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT, BLEND(STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK, 50), STATIC_COLOR_SCHEME.FRAME_DARK);
+			DC.Draw3dRect(Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT, BLEND(STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK, .5), STATIC_COLOR_SCHEME.FRAME_DARK);
 		}
 		else {
 			if (m_pDocument->GetChannelType(Channel) == theApp.GetSoundGenerator()->GetRecordChannel())		// // //
@@ -1509,12 +1509,12 @@ void CPatternEditor::DrawHeader(CDC &DC)
 		if (m_bCompactMode)		// // //
 			DC.SetTextAlign(TA_CENTER);
 
-		DC.SetTextColor(BLEND(HeadTextCol, 0x00FFFFFF, SHADE_LEVEL.TEXT_SHADOW));
+		DC.SetTextColor(BLEND(HeadTextCol, WHITE, SHADE_LEVEL::TEXT_SHADOW));
 		DC.TextOut(Offset + (m_bCompactMode ? GetColumnSpace(C_NOTE) / 2 + 1 : 10) + 1, HEADER_CHAN_START + 6 + (bMuted ? 1 : 0), pChanName);
 
 		// Foreground
 		if (m_iMouseHoverChan == Channel)
-			HeadTextCol = BLEND(HeadTextCol, 0x0000FFFF, SHADE_LEVEL.HOVER);
+			HeadTextCol = BLEND(HeadTextCol, MakeRGB(255, 255, 0), SHADE_LEVEL::HOVER);
 		DC.SetTextColor(HeadTextCol);
 		DC.TextOut(Offset + (m_bCompactMode ? GetColumnSpace(C_NOTE) / 2 + 1 : 10), HEADER_CHAN_START + 5, pChanName);		// // //
 
@@ -1565,12 +1565,39 @@ void CPatternEditor::DrawHeader(CDC &DC)
 	DC.SelectObject(pOldFont);
 }
 
+namespace details {
+
+template <typename T, T... Is>
+constexpr std::array<T, sizeof...(Is)>
+index_array(std::integer_sequence<T, Is...>) noexcept {
+	return {Is...};
+}
+
+template <typename T, typename F, std::size_t N, std::size_t... Is>
+constexpr std::array<std::invoke_result_t<F, T>, N>
+array_fmap_impl(const std::array<T, N> &arr, F f, std::index_sequence<Is...>) {
+	return {f(arr[Is])...};
+}
+
+template <typename T, typename F, std::size_t N>
+constexpr std::array<std::invoke_result_t<F, T>, N>
+array_fmap(const std::array<T, N> &arr, F f) {
+	return array_fmap_impl(arr, f, std::make_index_sequence<N>());
+}
+
+constexpr COLORREF MeterCol(unsigned vol) noexcept {		// // //
+	const COLORREF COL_MIN = MakeRGB(64, 240, 32);
+	const COLORREF COL_MAX = MakeRGB(240, 240, 0);
+	return BlendColors(COL_MAX, vol * vol, COL_MIN, 300 - vol * vol);
+}
+
+} // namespace details
+
 void CPatternEditor::DrawMeters(CDC &DC)
 {
-	const COLORREF COL_DARK			= 0x989C98;
-	const COLORREF COL_LIGHT		= 0x20F040;
-	const COLORREF COL_DARK_SHADOW  = DIM(COL_DARK, 80);
-	const COLORREF DPCM_STATE_COLOR = 0x00404040;
+	const COLORREF COL_DARK = MakeRGB(152, 156, 152);
+
+	const std::size_t CELL_COUNT = 15;		// // //
 
 	const int BAR_TOP	 = 5 + 18 + HEADER_CHAN_START;
 	const int BAR_SIZE	 = m_bCompactMode ? (GetColumnSpace(C_NOTE) - 2) / 16 : (GetChannelWidth(0) - 6) / 16;		// // //
@@ -1578,9 +1605,9 @@ void CPatternEditor::DrawMeters(CDC &DC)
 	const int BAR_SPACE	 = 1;
 	const int BAR_HEIGHT = 5;
 
-	static COLORREF colors[15];
-	static COLORREF colors_dim[15];
-	static COLORREF colors_shadow[15];
+	static const auto colors = details::array_fmap(details::index_array(std::make_index_sequence<CELL_COUNT>()), details::MeterCol);
+	static const auto colors_dim = details::array_fmap(colors, [] (COLORREF c) { return DIM(c, .6); });
+	static const auto colors_shadow = details::array_fmap(colors, [] (COLORREF c) { return DIM(c, .9); });
 
 	// // //
 
@@ -1591,32 +1618,24 @@ void CPatternEditor::DrawMeters(CDC &DC)
 
 	CFont *pOldFont = DC.SelectObject(&m_fontHeader);
 
-	if (colors[0] == 0) {
-		for (int i = 0; i < 15; ++i) {
-			// Cache colors
-			colors[i] = BLEND(COL_LIGHT, 0x00F0F0, (100 - (i * i) / 3));
-			colors_shadow[i] = DIM(colors[i], 60);
-			colors_dim[i] = DIM(colors[i], 90);
-		}
-	}
-
 	for (int i = 0; i < m_iChannelsVisible; ++i) {
 		int Channel = i + m_iFirstChannel;
-		int level = m_pDocument->GetChannel(Channel).GetVolumeMeter();		// // //
+		unsigned level = m_pDocument->GetChannel(Channel).GetVolumeMeter();		// // //
 
-		for (int j = 0; j < 15; ++j) {
+		for (std::size_t j = 0; j < CELL_COUNT; ++j) {
+			bool Active = j < level;
 			int x = Offset + (j * BAR_SIZE);
-			COLORREF shadowCol = j < level ? colors_shadow[j] : COL_DARK_SHADOW;		// // //
+			COLORREF shadowCol = Active ? colors_shadow[j] : DIM(COL_DARK, .8);		// // //
 			if (BAR_SIZE > 2) {
 				DC.FillSolidRect(x + BAR_SIZE - 1, BAR_TOP + 1, BAR_SPACE, BAR_HEIGHT, shadowCol);
 				DC.FillSolidRect(x + 1, BAR_TOP + BAR_HEIGHT, BAR_SIZE - 1, 1, shadowCol);
-				DC.FillSolidRect(x, BAR_TOP, BAR_SIZE - BAR_SPACE, BAR_HEIGHT, j < level ? colors[j] : COL_DARK);
+				DC.FillSolidRect(x, BAR_TOP, BAR_SIZE - BAR_SPACE, BAR_HEIGHT, Active ? colors[j] : COL_DARK);
 			}
 			else {
 				DC.FillSolidRect(x, BAR_TOP, BAR_SIZE, BAR_HEIGHT + 1, shadowCol);
-				DC.FillSolidRect(x, BAR_TOP, BAR_SIZE, BAR_HEIGHT, j < level ? colors[j] : COL_DARK);
+				DC.FillSolidRect(x, BAR_TOP, BAR_SIZE, BAR_HEIGHT, Active ? colors[j] : COL_DARK);
 			}
-			if (j < level && BAR_SIZE > 2)
+			if (Active && BAR_SIZE > 2)
 				DC.Draw3dRect(x, BAR_TOP, BAR_SIZE - BAR_SPACE, BAR_HEIGHT, colors[j], colors_dim[j]);
 		}
 

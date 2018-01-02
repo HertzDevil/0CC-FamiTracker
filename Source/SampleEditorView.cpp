@@ -23,6 +23,7 @@
 #include "SampleEditorView.h"
 #include "ft0cc/doc/dpcm_sample.hpp"
 #include "SampleEditorDlg.h"
+#include "Color.h"		// // //
 
 // CSampleEditorView control
 
@@ -50,10 +51,10 @@ CSampleEditorView::CSampleEditorView() :
 	m_fZoom(1.0f),
 	m_iViewStart(0),
 	m_iViewEnd(0),
-	m_cSolidPen(PS_SOLID, 1, RGB(0, 0, 0)),		// // //
-	m_cDashedPen(PS_DASH, 1, RGB(0, 0, 0)),
-	m_cGrayDashedPen(PS_DASHDOT, 1, RGB(240, 240, 240)),
-	m_cDarkGrayDashedPen(PS_DASHDOT, 1, RGB(224, 224, 224))
+	m_cSolidPen(PS_SOLID, 1, (COLORREF)BLACK),		// // //
+	m_cDashedPen(PS_DASH, 1, (COLORREF)BLACK),
+	m_cGrayDashedPen(PS_DASHDOT, 1, GREY(240)),
+	m_cDarkGrayDashedPen(PS_DASHDOT, 1, GREY(224))
 {
 }
 

@@ -37,20 +37,20 @@ const struct {
 	static const COLORREF FRAME_DARK		= 0x00808080;	// 3D frame
 } STATIC_COLOR_SCHEME;
 
-// Blending levels
-const struct {
-	static const int SEPARATOR		= 75;	// Channel separators
-	static const int EMPTY_BG		= 70;	// Empty background
-	static const int UNFOCUSED		= 50;	// Unfocused cursor
-	static const int FOCUSED		= 80;	// Focused cursor
-	static const int SELECT			= 80;	// Selection box
-	static const int SELECT_EDGE	= 70;	// Edge of selection box
-	static const int UNUSED			= 30;	// Empty pattern
-	static const int PREVIEW		= 50;	// Pattern preview
-	static const int TEXT_SHADOW	= 20;
-	static const int HOVER			= 80;
-	static const int EDIT_MODE		= 80;
-} SHADE_LEVEL;
+// // // Blending levels
+namespace SHADE_LEVEL {
+	const double SEPARATOR		= .75;	// Channel separators
+	const double EMPTY_BG		= .70;	// Empty background
+	const double UNFOCUSED		= .50;	// Unfocused cursor
+	const double FOCUSED		= .80;	// Focused cursor
+	const double SELECT			= .80;	// Selection box
+	const double SELECT_EDGE	= .70;	// Edge of selection box
+	const double UNUSED			= .30;	// Empty pattern
+	const double PREVIEW		= .50;	// Pattern preview
+	const double TEXT_SHADOW	= .20;
+	const double HOVER			= .80;
+	const double EDIT_MODE		= .80;
+} // namespace SHADE_LEVEL
 
 // Custom colors
 struct COLOR_SCHEME {

@@ -619,6 +619,7 @@
     <ClInclude Include="Source\BookmarkCollection.h" />
     <ClInclude Include="Source\BookmarkDlg.h" />
     <ClInclude Include="Source\ClipboardResource.h" />
+    <ClInclude Include="Source\Color.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />
     <ClInclude Include="Source\FamiTrackerDocIOCommon.h" />
     <ClInclude Include="Source\FamiTrackerDocOldIO.h" />

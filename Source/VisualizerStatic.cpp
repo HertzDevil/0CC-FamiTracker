@@ -24,6 +24,7 @@
 #include <cmath>		// // //
 #include "FamiTracker.h"		// // //
 #include "Settings.h"		// // //
+#include "Color.h"		// // //
 
 static const char LOGO_FONT[][7] = {		// // //
 	{0x3C, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3C}, // 0
@@ -55,7 +56,7 @@ void CVisualizerStatic::Draw()
 	static const size_t COUNT = std::size(STR);
 	static long long t = 0;
 
-	const auto FixRGB = [] (int x) { return RGB(GetBValue(x), GetGValue(x), GetRValue(x)); };
+	const auto FixRGB = [] (int x) { return MakeRGB(GetB(x), GetG(x), GetR(x)); };
 
 	const COLORREF Back[] = {
 		FixRGB(theApp.GetSettings()->Appearance.iColBackground),
@@ -63,9 +64,7 @@ void CVisualizerStatic::Draw()
 		FixRGB(theApp.GetSettings()->Appearance.iColBackgroundHilite2)
 	};
 	const COLORREF Color = FixRGB(theApp.GetSettings()->Appearance.iColPatternText);
-	const COLORREF Shadow = RGB((GetRValue(Color) + GetRValue(Back[0]) * 2) / 3,
-								(GetGValue(Color) + GetGValue(Back[0]) * 2) / 3,
-								(GetBValue(Color) + GetBValue(Back[0]) * 2) / 3);
+	const COLORREF Shadow = BlendColors(Color, 1, Back[0], 2);
 
 	for (int y = m_iHeight - 1; y >= 0; --y)
 		for (int x = m_iWidth - 1; x >= 0; --x) {

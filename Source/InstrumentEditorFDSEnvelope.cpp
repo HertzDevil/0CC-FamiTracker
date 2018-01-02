@@ -72,7 +72,6 @@ BOOL CInstrumentEditorFDSEnvelope::OnInitDialog()
 	GetClientRect(&rect);
 	rect.DeflateRect(DPI::SX(10), DPI::SY(10), DPI::SX(10), DPI::SY(45));		// // //
 
-	m_pSequenceEditor = new CSequenceEditor();		// // //
 	m_pSequenceEditor->CreateEditor(this, rect);
 	m_pSequenceEditor->SetMaxValues(MAX_VOLUME, 0);
 

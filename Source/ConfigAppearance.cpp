@@ -25,6 +25,7 @@
 #include "Settings.h"
 #include "ColorScheme.h"
 #include "Graphics.h"
+#include "Color.h"		// // //
 #include <fstream>
 #include <string>
 #include <sstream>
@@ -161,14 +162,14 @@ void CConfigAppearance::OnPaint()
 	dc.FillSolidRect(Rect, GetColor(COL_BACKGROUND));
 	dc.SetBkMode(TRANSPARENT);
 
-	COLORREF ShadedCol = DIM(GetColor(COL_PATTERN_TEXT), 50);
-	COLORREF ShadedHiCol = DIM(GetColor(COL_PATTERN_TEXT_HILITE), 50);
+	COLORREF ShadedCol = DIM(GetColor(COL_PATTERN_TEXT), .5);
+	COLORREF ShadedHiCol = DIM(GetColor(COL_PATTERN_TEXT_HILITE), .5);
 
 	int iRowSize = m_iFontSize;
 	int iRows = (WinHeight - 12) / iRowSize;// 12;
 
 	COLORREF CursorCol = GetColor(COL_CURSOR);
-	COLORREF CursorShadedCol = DIM(CursorCol, 50);
+	COLORREF CursorShadedCol = DIM(CursorCol, .5);
 	COLORREF BgCol = GetColor(COL_BACKGROUND);
 	COLORREF HilightBgCol = GetColor(COL_BACKGROUND_HILITE);
 	COLORREF Hilight2BgCol = GetColor(COL_BACKGROUND_HILITE2);

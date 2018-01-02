@@ -29,6 +29,7 @@
 #include "SequenceEditorMessage.h"		// // //
 #include "DPI.h"		// // //
 #include "PatternNote.h"		// // //
+#include "Color.h"		// // //
 
 // CGraphEditor
 
@@ -325,17 +326,17 @@ void CGraphEditor::DrawRect(CDC &DC, int x, int y, int w, int h, bool flat)
 
 void CGraphEditor::DrawRect(CDC &DC, int x, int y, int w, int h)
 {
-	DrawRect<0xF0F0F0, 0xD0D0D0, 0xFFFFFF, 0xA0A0A0>(DC, x, y, w, h, false);
+	DrawRect<GREY(240), GREY(208), WHITE, GREY(160)>(DC, x, y, w, h, false);
 }
 
 void CGraphEditor::DrawPlayRect(CDC &DC, int x, int y, int w, int h)
 {
-	DrawRect<0xA0F0A0, 0x86DC86, RGB(198, 242, 198), RGB(106, 223, 106)>(DC, x, y, w, h, false);
+	DrawRect<MakeRGB(160, 240, 160), MakeRGB(134, 220, 134), MakeRGB(198, 242, 198), MakeRGB(106, 223, 106)>(DC, x, y, w, h, false);
 }
 
 void CGraphEditor::DrawCursorRect(CDC &DC, int x, int y, int w, int h)
 {
-	DrawRect<0xFFE0C0, 0xE5C699, RGB(215, 235, 253), RGB(120, 182, 226)>(DC, x, y, w, h, m_bButtonState);
+	DrawRect<MakeRGB(192, 224, 255), MakeRGB(153, 198, 229), MakeRGB(215, 235, 253), MakeRGB(120, 182, 226)>(DC, x, y, w, h, m_bButtonState);
 }
 
 void CGraphEditor::DrawShadowRect(CDC &DC, int x, int y, int w, int h)
@@ -1265,7 +1266,7 @@ void CNoiseEditor::OnPaint()
 			int h = BUTTON_HEIGHT - 1;
 			const COLORREF Color = (item & BAR_MODE[i]) ? BAR_COLOR[i] : 0x505050;
 			m_BackDC.FillSolidRect(x, y, w, h, Color);
-			m_BackDC.Draw3dRect(x, y, w, h, BLEND(Color, 0xFFFFFF, 80), BLEND(Color, 0x000000, 80));
+			m_BackDC.Draw3dRect(x, y, w, h, BLEND(Color, WHITE, .8), BLEND(Color, BLACK, .8));
 		}
 	}
 

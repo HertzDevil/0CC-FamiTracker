@@ -23,6 +23,7 @@
 #include "VisualizerSpectrum.h"
 #include "FamiTracker.h"
 #include "Graphics.h"
+#include "Color.h"		// // //
 
 /*
  * Displays a spectrum analyzer
@@ -126,14 +127,14 @@ void CVisualizerSpectrum::Draw()
 		level = m_fFftPoint[iStep];
 
 		for (int y = 0; y < m_iHeight; ++y) {
-			COLORREF Color = BLEND(0x6060FF, 0xFFFFFF, (y * 100) / int(level + 1));
+			COLORREF Color = BLEND(MakeRGB(255, 96, 96), WHITE, y / (level + 1));
 			if (y == 0)
-				Color = DIM(Color, 90);
+				Color = DIM(Color, .9);
 			if (m_iBarSize > 1 && (y & 1))		// // //
-				Color = DIM(Color, 40);
+				Color = DIM(Color, .4);
 			for (int x = 0; x < m_iBarSize; ++x) {		// // //
 				if (m_iBarSize > 1 && x == m_iBarSize - 1)
-					Color = DIM(Color, 50);
+					Color = DIM(Color, .5);
 				m_pBlitBuffer[(m_iHeight - 1 - y) * m_iWidth + i * m_iBarSize + x + OFFSET] = y < level ? Color : BG_COLOR;
 			}
 		}
