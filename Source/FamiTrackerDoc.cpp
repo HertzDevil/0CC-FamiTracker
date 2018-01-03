@@ -1031,8 +1031,11 @@ int CFamiTrackerDoc::LoadInstrument(CSimpleFile &File) {		// / //
 			return INVALID_INSTRUMENT;
 		}
 
+		pInstrument->OnBlankInstrument();
 		pInstrument->LoadFTI(File, iInstMaj * 10 + iInstMin);		// // //
-		int Slot = AddInstrument(std::move(pInstrument), GetFreeInstrumentIndex());
+		int Slot = GetFreeInstrumentIndex();
+		if (!AddInstrument(std::move(pInstrument), Slot))
+			Slot = INVALID_INSTRUMENT;
 		UnlockDocument();
 		return Slot;
 	}

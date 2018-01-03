@@ -157,8 +157,11 @@ void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
 				if (iVersion >= 22)
 					pSeq->SetSetting(static_cast<seq_setting_t>(File.ReadInt()));
 			}
-			for (int j = 0; j < Count; ++j)
-				if (j < Count2) pSeq->SetItem(j, File.ReadChar());
+			for (int j = 0; j < Count; ++j) {
+				char item = File.ReadChar();
+				if (j < Count2)
+					pSeq->SetItem(j, item);
+			}
 		}
 		if (GetSequence(i) && GetSequence(i)->GetItemCount() > 0)
 			throw CModuleException::WithMessage("Document has no free sequence slot");

@@ -230,7 +230,7 @@ bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
 }
 
 void CInstrumentFDS::OnBlankInstrument() {		// // //
-	CInstrument::OnBlankInstrument();
+	CInstrument::OnBlankInstrument(); // skip CSeqInstrument
 }
 
 void CInstrumentFDS::DoSaveFTI(CSimpleFile &File) const
