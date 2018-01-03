@@ -1111,16 +1111,14 @@ void CPitchGraphEditor::OnPaint()
 		DrawShadowRect(m_BackDC, x, y, w, h);
 	}
 
-	int Value = m_pSequence->GetItem(m_iHighlightedItem);
-	bool bHighlight = !IsEditLine();
-	if (m_iHighlightedValue > 0) {
-		if (m_iHighlightedValue > Value || Value < 0) {
-			bHighlight = false;
+	bool bHighlight = !IsEditLine() && m_iHighlightedItem >= 0 && m_iHighlightedItem < Count;		// // //
+	if (bHighlight) {
+		int Value = m_pSequence->GetItem(m_iHighlightedItem);
+		if (m_iHighlightedValue > 0) {
+			bHighlight = m_iHighlightedValue <= Value && Value >= 0;
 		}
-	}
-	else {
-		if (m_iHighlightedValue < Value || Value > 0) {
-			bHighlight = false;
+		else {
+			bHighlight = m_iHighlightedValue >= Value && Value <= 0;
 		}
 	}
 
