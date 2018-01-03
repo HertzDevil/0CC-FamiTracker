@@ -24,6 +24,7 @@
 #include "resource.h"
 #include "FamiTrackerDoc.h"
 #include "MainFrm.h"
+#include "FamiTracker.h"		// // //
 
 ///
 /// CInstrumentListCtrl
@@ -53,6 +54,20 @@ CInstrumentListCtrl::CInstrumentListCtrl(CMainFrame *pMainFrame) :
 	m_nDropIndex(-1),
 	m_bDragging(false)
 {
+}
+
+void CInstrumentListCtrl::CreateImageList() {
+	m_pImageList = std::make_unique<CImageList>();
+	m_pImageList->Create(16, 16, ILC_COLOR32, 1, 1);
+	m_pImageList->Add(theApp.LoadIcon(IDI_INST_2A03));
+	m_pImageList->Add(theApp.LoadIcon(IDI_INST_VRC6));
+	m_pImageList->Add(theApp.LoadIcon(IDI_INST_VRC7));
+	m_pImageList->Add(theApp.LoadIcon(IDI_INST_FDS));
+	m_pImageList->Add(theApp.LoadIcon(IDI_INST_N163));
+	m_pImageList->Add(theApp.LoadIcon(IDI_INST_S5B));		// // //
+
+	SetImageList(m_pImageList.get(), LVSIL_NORMAL);
+	SetImageList(m_pImageList.get(), LVSIL_SMALL);
 }
 
 int CInstrumentListCtrl::GetInstrumentIndex(int Selection) const

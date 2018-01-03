@@ -26,6 +26,7 @@
 #include "stdafx.h"
 #include "FamiTrackerTypes.h"
 #include <memory>
+#include <array>
 
 class CSequence;
 class CInstrument;
@@ -49,7 +50,7 @@ public:
 	void			StopRecording(CWnd *pView);
 	void			RecordInstrument(const unsigned Tick, CWnd *pView);
 
-	CInstrument		*GetRecordInstrument(unsigned Tick) const;
+	std::unique_ptr<CInstrument> GetRecordInstrument(unsigned Tick);
 	int				GetRecordChannel() const;
 	void			SetRecordChannel(int Channel);
 	const stRecordSetting &GetRecordSetting() const;
@@ -71,8 +72,8 @@ private:
 	CSoundGen		*m_pSoundGen;
 	int				m_iRecordChannel;
 	int				m_iDumpCount;
-	CInstrument		**m_pDumpInstrument;
-	CInstrument		*m_pDumpCache[MAX_INSTRUMENTS];
+	std::unique_ptr<CInstrument> *m_pDumpInstrument = nullptr;
+	std::array<std::unique_ptr<CInstrument>, MAX_INSTRUMENTS> m_pDumpCache = { };
 	std::shared_ptr<CSequence> m_pSequenceCache[SEQ_COUNT] = { };
 	stRecordSetting	m_stRecordSetting;
 	std::unique_ptr<char[]> m_iRecordWaveCache;

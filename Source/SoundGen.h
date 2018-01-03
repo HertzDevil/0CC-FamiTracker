@@ -191,7 +191,7 @@ public:
 	unsigned	GetQueueFrame() const;		// // //
 
 	// // // Instrument recorder
-	CInstrument		*GetRecordInstrument() const;
+	std::unique_ptr<CInstrument> GetRecordInstrument() const;
 	void			ResetDumpInstrument();
 	int				GetRecordChannel() const;
 	void			SetRecordChannel(int Channel);

@@ -1352,7 +1352,7 @@ void CFamiTrackerDocIO::LoadBookmarks(CFamiTrackerDoc &doc, int ver) {
 		pMark->m_Highlight.Second = file_.GetBlockInt();
 		pMark->m_bPersist = file_.GetBlockChar() != 0;
 		pMark->m_sName = std::string(file_.ReadString());
-		doc.GetBookmarkCollection(Track)->AddBookmark(pMark.release());
+		doc.GetBookmarkCollection(Track)->AddBookmark(std::move(pMark));
 	}
 }
 

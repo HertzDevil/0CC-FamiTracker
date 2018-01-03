@@ -950,10 +950,10 @@ void CFamiTrackerView::OnTrackerEdit()
 LRESULT CFamiTrackerView::OnUserDumpInst(WPARAM wParam, LPARAM lParam)		// // //
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	CInstrument *Inst = theApp.GetSoundGenerator()->GetRecordInstrument();
+	auto Inst = theApp.GetSoundGenerator()->GetRecordInstrument();
 	int Slot = pDoc->GetFreeInstrumentIndex();
 	if (Slot != INVALID_INSTRUMENT)
-		AddAction(std::make_unique<ModuleAction::CAddInst>(Slot, std::unique_ptr<CInstrument>(Inst)));
+		AddAction(std::make_unique<ModuleAction::CAddInst>(Slot, std::move(Inst)));
 	theApp.GetSoundGenerator()->ResetDumpInstrument();
 	InvalidateHeader();
 
@@ -1550,16 +1550,16 @@ void CFamiTrackerView::OnBookmarksToggle()
 
 	CBookmarkCollection *pCol = pDoc->GetBookmarkCollection(Track);
 	ASSERT(pCol);
-	if (CBookmark *pMark = pCol->FindAt(Frame, Row))
+	if (pCol->FindAt(Frame, Row) != nullptr)
 		pCol->RemoveAt(Frame, Row);
 	else {
-		pMark = new CBookmark(Frame, Row);
+		auto pMark = std::make_unique<CBookmark>(Frame, Row);
 		pMark->m_Highlight.First = pMark->m_Highlight.Second = -1;
 		pMark->m_bPersist = false;
 		char buf[32] = {};
 		sprintf_s(buf, sizeof(buf), _T("Bookmark %i"), pCol->GetCount() + 1);
 		pMark->m_sName = buf;
-		pCol->AddBookmark(pMark);
+		pCol->AddBookmark(std::move(pMark));
 	}
 
 	static_cast<CMainFrame*>(GetParentFrame())->UpdateBookmarkList();

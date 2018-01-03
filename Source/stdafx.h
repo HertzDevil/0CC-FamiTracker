@@ -76,19 +76,6 @@ class CRenderTarget;		// // //
 #include <afxole.h>        // MFC OLE support
 #include <afxmt.h>		// // // For CMutex
 
-// // // Releasing pointers
-// TODO: remove
-template <typename T>
-inline void SAFE_RELEASE(T *&p) {
-	if (p != nullptr) {
-		delete p;
-		p = nullptr;
-	}
-}
-
-// Calling member function
-#define CALL_MEMBER_FN(obj, ptr) ((obj)->*(ptr))
-
 #ifdef TRACE
 #undef TRACE
 #endif

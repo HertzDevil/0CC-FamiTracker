@@ -124,12 +124,12 @@ END_MESSAGE_MAP()
 
 // CBookmarkDlg message handlers
 
-CBookmark *CBookmarkDlg::MakeBookmark() const
+std::unique_ptr<CBookmark> CBookmarkDlg::MakeBookmark() const
 {
 	CString str;
 	GetDlgItem(IDC_EDIT_BOOKMARK_NAME)->GetWindowText(str);
 
-	CBookmark *pMark = new CBookmark(m_cSpinFrame.GetPos(), m_cSpinRow.GetPos());
+	auto pMark = std::make_unique<CBookmark>(m_cSpinFrame.GetPos(), m_cSpinRow.GetPos());
 	pMark->m_Highlight.First = m_bEnableHighlight1 ? m_cSpinHighlight1.GetPos() : -1;
 	pMark->m_Highlight.Second = m_bEnableHighlight2 ? m_cSpinHighlight2.GetPos() : -1;
 	pMark->m_Highlight.Offset = 0;
@@ -247,11 +247,8 @@ BOOL CBookmarkDlg::PreTranslateMessage(MSG* pMsg)
 
 void CBookmarkDlg::OnBnClickedButtonBookmarkAdd()
 {
-	CBookmark *pMark = MakeBookmark();
-	if (m_pCollection->AddBookmark(pMark))
+	if (m_pCollection->AddBookmark(MakeBookmark()))
 		m_pDocument->ModifyIrreversible();
-	else
-		SAFE_RELEASE(pMark);
 	UpdateBookmarkList();
 	m_cListBookmark.SetCurSel(m_pCollection->GetCount() - 1);
 }
@@ -261,11 +258,8 @@ void CBookmarkDlg::OnBnClickedButtonBookmarkUpdate()
 	int pos = m_cListBookmark.GetCurSel();
 	if (pos == LB_ERR) return;
 
-	CBookmark *pMark = MakeBookmark();
-	if (m_pCollection->SetBookmark(pos, pMark))
+	if (m_pCollection->SetBookmark(pos, MakeBookmark()))
 		m_pDocument->ModifyIrreversible();
-	else
-		SAFE_RELEASE(pMark);
 	UpdateBookmarkList();
 	m_cListBookmark.SetCurSel(pos);
 }

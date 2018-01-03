@@ -116,17 +116,9 @@ IMPLEMENT_DYNCREATE(CMainFrame, CFrameWnd)
 // CMainFrame construction/destruction
 
 CMainFrame::CMainFrame() :
-	m_pVisualizerWnd(NULL),
-	m_pFrameEditor(NULL),
-	m_pGrooveDlg(NULL),			// // //
-	m_pFindDlg(NULL),			// // //
-	m_pBookmarkDlg(NULL),		// // //
-	m_pPerformanceDlg(NULL),	// // //
-	m_pImageList(NULL),
 	m_cBannerEditName(IDS_INFO_TITLE),		// // //
 	m_cBannerEditArtist(IDS_INFO_AUTHOR),		// // //
 	m_cBannerEditCopyright(IDS_INFO_COPYRIGHT),		// // //
-	m_pInstrumentList(NULL),
 	m_iFrameEditorPos(FRAME_EDIT_POS_TOP),
 	m_iInstrument(0),
 	m_iTrack(0),
@@ -139,14 +131,6 @@ CMainFrame::CMainFrame() :
 
 CMainFrame::~CMainFrame()
 {
-	SAFE_RELEASE(m_pFrameEditor);
-	SAFE_RELEASE(m_pGrooveDlg);			// // //
-	SAFE_RELEASE(m_pFindDlg);			// // //
-	SAFE_RELEASE(m_pBookmarkDlg);			// // //
-	SAFE_RELEASE(m_pPerformanceDlg);		// // //
-	SAFE_RELEASE(m_pInstrumentList);
-	SAFE_RELEASE(m_pVisualizerWnd);
-	SAFE_RELEASE(m_pImageList);
 }
 
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
@@ -555,20 +539,20 @@ bool CMainFrame::CreateDialogPanels()
 	m_wndFrameControls.ShowWindow(SW_SHOW);
 
 	// Create frame editor
-	m_pFrameEditor = new CFrameEditor(this);
+	m_pFrameEditor = std::make_unique<CFrameEditor>(this);		// // //
 
 	CRect rect(12, 12, m_pFrameEditor->CalcWidth(CHANNELS_DEFAULT), 162);
 	DPI::ScaleRect(rect);		// // //
 
 	if (!m_pFrameEditor->CreateEx(WS_EX_STATICEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL, rect, (CWnd*)&m_wndControlBar, 0)) {
-		TRACE("Failed to create pattern window\n");
+		TRACE("Failed to create frame editor\n");
 		return false;
 	}
 
 	// // // Find / replace panel
-	m_pFindDlg = new CFindDlg();
+	m_pFindDlg = std::make_unique<CFindDlg>();
 	if (!m_wndFindControlBar.Create(this, IDD_MAINBAR, CBRS_RIGHT | CBRS_TOOLTIPS | CBRS_FLYBY, IDD_MAINBAR)) {
-		TRACE("Failed to create frame main bar\n");
+		TRACE("Failed to create find dialog\n");
 		return false;
 	}
 	m_wndFindControlBar.ShowWindow(SW_HIDE);
@@ -600,23 +584,12 @@ bool CMainFrame::CreateDialogPanels()
 
 	// Subclass and setup the instrument list
 
-	m_pInstrumentList = new CInstrumentListCtrl(this);
+	m_pInstrumentList = std::make_unique<CInstrumentListCtrl>(this);		// // //
 	m_pInstrumentList->SubclassDlgItem(IDC_INSTRUMENTS, &m_wndDialogBar);
 
 	SetupColors();
 
-	m_pImageList = new CImageList();
-	m_pImageList->Create(16, 16, ILC_COLOR32, 1, 1);
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_2A03));
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_VRC6));
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_VRC7));
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_FDS));
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_N163));
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_S5B));		// // //
-
-	m_pInstrumentList->SetImageList(m_pImageList, LVSIL_NORMAL);
-	m_pInstrumentList->SetImageList(m_pImageList, LVSIL_SMALL);
-
+	m_pInstrumentList->CreateImageList();		// // //
 	m_pInstrumentList->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
 
 	// Title, author & copyright
@@ -624,9 +597,9 @@ bool CMainFrame::CreateDialogPanels()
 	m_cBannerEditArtist.SubclassDlgItem(IDC_SONG_ARTIST, &m_wndDialogBar);
 	m_cBannerEditCopyright.SubclassDlgItem(IDC_SONG_COPYRIGHT, &m_wndDialogBar);
 
-	m_cBannerEditName.SetLimitText(31);
-	m_cBannerEditArtist.SetLimitText(31);
-	m_cBannerEditCopyright.SetLimitText(31);
+	m_cBannerEditName.SetLimitText(CFamiTrackerDoc::METADATA_FIELD_LENGTH - 1);
+	m_cBannerEditArtist.SetLimitText(CFamiTrackerDoc::METADATA_FIELD_LENGTH - 1);
+	m_cBannerEditCopyright.SetLimitText(CFamiTrackerDoc::METADATA_FIELD_LENGTH - 1);
 
 	CEdit *pInstName = static_cast<CEdit*>(m_wndDialogBar.GetDlgItem(IDC_INSTNAME));
 	pInstName->SetLimitText(CInstrument::INST_NAME_MAX - 1);
@@ -662,7 +635,7 @@ bool CMainFrame::CreateVisualizerWindow()
 	GetDesktopWindow()->MapWindowPoints(&m_wndDialogBar, &rect);
 
 	// Create the sample graph window
-	m_pVisualizerWnd = new CVisualizerWnd();
+	m_pVisualizerWnd = std::make_unique<CVisualizerWnd>();
 
 	if (!m_pVisualizerWnd->CreateEx(WS_EX_STATICEDGE, NULL, _T("Samples"), WS_CHILD | WS_VISIBLE, rect, (CWnd*)&m_wndDialogBar, 0))
 		return false;
@@ -671,7 +644,7 @@ bool CMainFrame::CreateVisualizerWindow()
 	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 
 	if (pSoundGen)
-		pSoundGen->SetVisualizerWindow(m_pVisualizerWnd);
+		pSoundGen->SetVisualizerWindow(m_pVisualizerWnd.get());
 
 	return true;
 }
@@ -1575,8 +1548,8 @@ void CMainFrame::OnPrevFrame()
 
 void CMainFrame::OnHelpPerformance()
 {
-	if (m_pPerformanceDlg == NULL)		// // //
-		m_pPerformanceDlg = new CPerformanceDlg();
+	if (!m_pPerformanceDlg)		// // //
+		m_pPerformanceDlg = std::make_unique<CPerformanceDlg>();
 	if (!m_pPerformanceDlg->m_hWnd)
 		m_pPerformanceDlg->Create(IDD_PERFORMANCE, this);
 	if (!m_pPerformanceDlg->IsWindowVisible())
@@ -1989,23 +1962,23 @@ void CMainFrame::CloseInstrumentEditor()
 
 void CMainFrame::CloseGrooveSettings()		// // //
 {
-	if (m_pGrooveDlg != NULL) {
+	if (m_pGrooveDlg) {
 		m_pGrooveDlg->DestroyWindow();
-		SAFE_RELEASE(m_pGrooveDlg);
+		m_pGrooveDlg.reset();
 	}
 }
 
 void CMainFrame::CloseBookmarkSettings()		// // //
 {
-	if (m_pBookmarkDlg != NULL) {
+	if (m_pBookmarkDlg) {
 		m_pBookmarkDlg->DestroyWindow();
-		SAFE_RELEASE(m_pBookmarkDlg);
+		m_pBookmarkDlg.reset();
 	}
 }
 
 void CMainFrame::UpdateBookmarkList(int Pos)		// // //
 {
-	if (m_pBookmarkDlg != NULL) {
+	if (m_pBookmarkDlg) {
 		if (m_pBookmarkDlg->IsWindowVisible()) {
 			m_pBookmarkDlg->LoadBookmarks(m_iTrack);
 			m_pBookmarkDlg->SelectBookmark(Pos);
@@ -2205,8 +2178,8 @@ void CMainFrame::OnModuleComments()
 
 void CMainFrame::OnModuleGrooveSettings()		// // //
 {
-	if (m_pGrooveDlg == NULL) {
-		m_pGrooveDlg = new CGrooveDlg();
+	if (!m_pGrooveDlg) {
+		m_pGrooveDlg = std::make_unique<CGrooveDlg>();
 		m_pGrooveDlg->Create(IDD_GROOVE, this);
 	}
 	if (!m_pGrooveDlg->IsWindowVisible())
@@ -2217,8 +2190,8 @@ void CMainFrame::OnModuleGrooveSettings()		// // //
 
 void CMainFrame::OnModuleBookmarkSettings()		// // //
 {
-	if (m_pBookmarkDlg == NULL) {
-		m_pBookmarkDlg = new CBookmarkDlg();
+	if (!m_pBookmarkDlg) {
+		m_pBookmarkDlg = std::make_unique<CBookmarkDlg>();
 		m_pBookmarkDlg->Create(IDD_BOOKMARKS, this);
 	}
 	if (!m_pBookmarkDlg->IsWindowVisible())
@@ -2473,7 +2446,7 @@ void CMainFrame::OnUpdateEditCut(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateEditCopy(CCmdUI *pCmdUI)
 {
 	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
-	pCmdUI->Enable((pView->IsSelecting() || GetFocus() == m_pFrameEditor) ? 1 : 0);
+	pCmdUI->Enable((pView->IsSelecting() || GetFocus() == m_pFrameEditor.get()) ? 1 : 0);
 }
 
 void CMainFrame::OnUpdatePatternEditorSelected(CCmdUI *pCmdUI)		// // //
@@ -2503,7 +2476,7 @@ void CMainFrame::OnUpdateEditPaste(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateEditDelete(CCmdUI *pCmdUI)
 {
 	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
-	pCmdUI->Enable((pView->IsSelecting() || GetFocus() == m_pFrameEditor) ? 1 : 0);
+	pCmdUI->Enable((pView->IsSelecting() || GetFocus() == m_pFrameEditor.get()) ? 1 : 0);
 }
 
 void CMainFrame::OnHelpEffecttable()
@@ -2520,7 +2493,8 @@ void CMainFrame::OnHelpFAQ()
 
 CFrameEditor *CMainFrame::GetFrameEditor() const
 {
-	return m_pFrameEditor;
+	ASSERT(m_pFrameEditor);		// // //
+	return m_pFrameEditor.get();
 }
 
 void CMainFrame::OnEditEnableMIDI()
@@ -3009,7 +2983,7 @@ void CMainFrame::OnEditSelectother()		// // //
 			m_pFrameEditor->CancelSelection();
 		m_pFrameEditor->EnableInput();
 	}
-	else if (GetFocus() == m_pFrameEditor) {
+	else if (GetFocus() == m_pFrameEditor.get()) {		// // //
 		if (m_pFrameEditor->IsSelecting()) {
 			const CFrameSelection Sel = m_pFrameEditor->GetSelection().GetNormalized();
 			m_pFrameEditor->CancelSelection();

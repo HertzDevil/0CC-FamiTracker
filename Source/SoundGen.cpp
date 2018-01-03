@@ -1249,7 +1249,7 @@ int CSoundGen::GetDefaultInstrument() const
 
 // // // instrument recorder
 
-CInstrument* CSoundGen::GetRecordInstrument() const
+std::unique_ptr<CInstrument> CSoundGen::GetRecordInstrument() const
 {
 	return m_pInstRecorder->GetRecordInstrument(GetPlayerTicks());
 }

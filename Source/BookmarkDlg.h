@@ -25,6 +25,7 @@
 
 #include "stdafx.h"
 #include "resource.h"
+#include <memory>
 
 class CFamiTrackerDoc;
 class CBookmark;
@@ -54,7 +55,7 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
-	CBookmark *MakeBookmark() const;
+	std::unique_ptr<CBookmark> MakeBookmark() const;
 	void UpdateBookmarkList();
 
 	CListBoxEx m_cListBookmark;

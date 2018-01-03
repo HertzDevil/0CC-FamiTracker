@@ -41,10 +41,10 @@ CBookmark *CBookmarkCollection::GetBookmark(unsigned Index) const
 	return Index < m_pBookmark.size() ? m_pBookmark[Index].get() : nullptr;
 }
 
-bool CBookmarkCollection::AddBookmark(CBookmark *const pMark)
+bool CBookmarkCollection::AddBookmark(std::unique_ptr<CBookmark> pMark)
 {
 	try {
-		m_pBookmark.emplace_back(pMark);
+		m_pBookmark.push_back(std::move(pMark));
 		return true;
 	}
 	catch (std::exception) {
@@ -52,37 +52,42 @@ bool CBookmarkCollection::AddBookmark(CBookmark *const pMark)
 	}
 }
 
-bool CBookmarkCollection::SetBookmark(unsigned Index, CBookmark *const pMark)
+bool CBookmarkCollection::SetBookmark(unsigned Index, std::unique_ptr<CBookmark> pMark)
 {
-	if (m_pBookmark[Index].get()->IsEqual(*pMark)) return false;
-	m_pBookmark[Index].reset(pMark);
+	if (m_pBookmark[Index] && m_pBookmark[Index]->IsEqual(*pMark))
+		return false;
+	m_pBookmark[Index] = std::move(pMark);
 	return true;
 }
 
-bool CBookmarkCollection::InsertBookmark(unsigned Index, CBookmark *const pMark)
+bool CBookmarkCollection::InsertBookmark(unsigned Index, std::unique_ptr<CBookmark> pMark)
 {
-	if (Index > m_pBookmark.size()) return false;
-	m_pBookmark.emplace(m_pBookmark.begin() + Index, pMark);
+	if (Index > m_pBookmark.size())
+		return false;
+	m_pBookmark.emplace(m_pBookmark.begin() + Index, std::move(pMark));
 	return true;
 }
 
 bool CBookmarkCollection::RemoveBookmark(unsigned Index)
 {
-	if (Index >= m_pBookmark.size()) return false;
+	if (Index >= m_pBookmark.size())
+		return false;
 	m_pBookmark.erase(m_pBookmark.begin() + Index);
 	return true;
 }
 
 bool CBookmarkCollection::ClearBookmarks()
 {
-	if (m_pBookmark.empty()) return false;
+	if (m_pBookmark.empty())
+		return false;
 	m_pBookmark.clear();
 	return true;
 }
 
 bool CBookmarkCollection::SwapBookmarks(unsigned A, unsigned B)
 {
-	if (A == B) return false;
+	if (A == B)
+		return false;
 	m_pBookmark[A].swap(m_pBookmark[B]);
 	return true;
 }

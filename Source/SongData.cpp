@@ -257,7 +257,7 @@ const CBookmarkCollection &CSongData::GetBookmarks() const {
 void CSongData::SetBookmarks(const CBookmarkCollection &bookmarks) {
 	bookmarks_.ClearBookmarks();
 	for (const auto &bm : bookmarks)
-		bookmarks_.AddBookmark(std::make_unique<CBookmark>(*bm).release());
+		bookmarks_.AddBookmark(std::make_unique<CBookmark>(*bm));
 }
 
 void CSongData::SetBookmarks(CBookmarkCollection &&bookmarks) {

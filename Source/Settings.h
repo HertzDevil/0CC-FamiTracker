@@ -20,8 +20,11 @@
 ** must bear this legend.
 */
 
+
 #pragma once
 
+#include <memory>		// // //
+#include <vector>		// // //
 
 // CSettings command target
 
@@ -97,8 +100,6 @@ private:
 	CSettings();
 
 public:
-	virtual ~CSettings();
-
 	void	LoadSettings();
 	void	SaveSettings();
 	void	DefaultSettings();
@@ -242,12 +243,9 @@ private:
 	static const int MAX_SETTINGS = 128;
 
 private:
-	CSettingBase *m_pSettings[MAX_SETTINGS];
-	int m_iAddedSettings;
+	std::vector<std::unique_ptr<CSettingBase>> m_pSettings;		// // //
 
 private:
 	// Paths
 	CString Paths[PATH_COUNT];
 };
-
-

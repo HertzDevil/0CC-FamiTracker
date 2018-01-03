@@ -34,7 +34,9 @@ class CInstrumentListCtrl : public CListCtrl {
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
-	CInstrumentListCtrl(CMainFrame *pMainFrame);
+	explicit CInstrumentListCtrl(CMainFrame *pMainFrame);
+
+	void CreateImageList();		// // //
 
 	int GetInstrumentIndex(int Selection) const;
 	int FindInstrument(int Index) const;
@@ -46,7 +48,8 @@ public:
 	void SetInstrumentName(int Index, LPCTSTR pName);		// // //
 
 private:
-	CMainFrame *m_pMainFrame;
+	CMainFrame *m_pMainFrame = nullptr;
+	std::unique_ptr<CImageList> m_pImageList;		// // // moved from CMainFrame
 	std::unique_ptr<CImageList> m_pDragImage;		// // //
 	UINT m_nDragIndex;
 	UINT m_nDropIndex;

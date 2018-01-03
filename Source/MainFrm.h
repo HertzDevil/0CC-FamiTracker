@@ -200,14 +200,13 @@ private:  // control bar embedded members
 	CReBarCtrl			m_wndInstToolReBar;
 	CInstrumentEditDlg	m_wndInstEdit;
 
-	CFrameEditor		*m_pFrameEditor;
-	CInstrumentListCtrl		*m_pInstrumentList;
-	CImageList			*m_pImageList;
-	CVisualizerWnd		*m_pVisualizerWnd;
-	CGrooveDlg			*m_pGrooveDlg;			// // //
-	CFindDlg			*m_pFindDlg;			// // //
-	CBookmarkDlg		*m_pBookmarkDlg;		// // //
-	CPerformanceDlg		*m_pPerformanceDlg;		// // //
+	std::unique_ptr<CFrameEditor> m_pFrameEditor;
+	std::unique_ptr<CInstrumentListCtrl> m_pInstrumentList;
+	std::unique_ptr<CVisualizerWnd> m_pVisualizerWnd;
+	std::unique_ptr<CGrooveDlg> m_pGrooveDlg;			// // //
+	std::unique_ptr<CFindDlg> m_pFindDlg;			// // //
+	std::unique_ptr<CBookmarkDlg> m_pBookmarkDlg;		// // //
+	std::unique_ptr<CPerformanceDlg> m_pPerformanceDlg;		// // //
 
 	CLockedEdit			m_cLockedEditSpeed;
 	CLockedEdit			m_cLockedEditTempo;

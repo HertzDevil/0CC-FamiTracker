@@ -55,19 +55,9 @@ CSettings &CSettings::GetInstance()		// // //
 	return Object;
 }
 
-CSettings::CSettings() : m_iAddedSettings(0)
-{
-	memset(m_pSettings, 0, sizeof(CSettingBase*) * MAX_SETTINGS);
+CSettings::CSettings() {
 	SetupSettings();
-	TRACE(_T("Settings: Added %i settings\n"), m_iAddedSettings);
-}
-
-CSettings::~CSettings()
-{
-	// Release all settings
-	for (int i = 0; i < m_iAddedSettings; ++i) {
-		SAFE_RELEASE(m_pSettings[i]);
-	}
+	TRACE(_T("Settings: Added %u settings\n"), m_pSettings.size());
 }
 
 void CSettings::SetupSettings()
@@ -231,31 +221,27 @@ void CSettings::SetupSettings()
 template<class T>
 CSettingBase *CSettings::AddSetting(LPCTSTR pSection, LPCTSTR pEntry, T tDefault, T *pVariable)
 {
-	ASSERT(m_iAddedSettings < MAX_SETTINGS);
-	return m_pSettings[m_iAddedSettings++] = new CSettingType<T>(pSection, pEntry, tDefault, pVariable);		// // //
+	return m_pSettings.emplace_back(std::make_unique<CSettingType<T>>(pSection, pEntry, tDefault, pVariable)).get();		// // //
 }
 
 // CSettings member functions
 
 void CSettings::LoadSettings()
 {
-	for (int i = 0; i < m_iAddedSettings; ++i) {
-		m_pSettings[i]->Load();
-	}
+	for (auto &x : m_pSettings)		// // //
+		x->Load();
 }
 
 void CSettings::SaveSettings()
 {
-	for (int i = 0; i < m_iAddedSettings; ++i) {
-		m_pSettings[i]->Save();
-	}
+	for (auto &x : m_pSettings)		// // //
+		x->Save();
 }
 
 void CSettings::DefaultSettings()
 {
-	for (int i = 0; i < m_iAddedSettings; ++i) {
-		m_pSettings[i]->Default();
-	}
+	for (auto &x : m_pSettings)		// // //
+		x->Default();
 }
 
 void CSettings::DeleteSettings()

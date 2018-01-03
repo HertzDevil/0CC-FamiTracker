@@ -43,15 +43,11 @@ CInstrumentRecorder::CInstrumentRecorder(CSoundGen *pSG) :
 	m_stRecordSetting.Reset = true;
 	for (int i = 0; i < SEQ_COUNT; i++)
 		m_pSequenceCache[i] = std::make_shared<CSequence>();
-	memset(m_pDumpCache, 0, sizeof(CInstrument*) * MAX_INSTRUMENTS);
 	ResetRecordCache();
 }
 
 CInstrumentRecorder::~CInstrumentRecorder()
 {
-	SAFE_RELEASE(*m_pDumpInstrument);
-	for (int i = 0; i < MAX_INSTRUMENTS; i++)
-		SAFE_RELEASE(m_pDumpCache[i]);
 }
 
 void CInstrumentRecorder::StartRecording()
@@ -237,9 +233,9 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 		FinalizeRecordInstrument();
 }
 
-CInstrument* CInstrumentRecorder::GetRecordInstrument(unsigned Tick) const
+std::unique_ptr<CInstrument> CInstrumentRecorder::GetRecordInstrument(unsigned Tick)
 {
-	return m_pDumpCache[Tick / m_stRecordSetting.Interval - (m_pSoundGen->IsPlaying() ? 1 : 0)];
+	return std::move(m_pDumpCache[Tick / m_stRecordSetting.Interval - (m_pSoundGen->IsPlaying() ? 1 : 0)]);
 }
 
 int CInstrumentRecorder::GetRecordChannel() const
@@ -267,7 +263,7 @@ void CInstrumentRecorder::ResetDumpInstrument()
 	if (m_iDumpCount < 0) return;
 	if (m_pSoundGen->IsPlaying()) {
 		--m_pDumpInstrument;
-		if (m_pDumpInstrument >= m_pDumpCache)
+		if (m_pDumpInstrument >= m_pDumpCache.data())
 			ReleaseCurrent();
 		++m_pDumpInstrument;
 	}
@@ -290,7 +286,8 @@ void CInstrumentRecorder::ResetDumpInstrument()
 
 void CInstrumentRecorder::ResetRecordCache()
 {
-	memset(m_pDumpCache, 0, sizeof(CInstrument*) * MAX_INSTRUMENTS);
+	for (auto &x : m_pDumpCache)
+		x.reset();
 	m_pDumpInstrument = &m_pDumpCache[0];
 	for (int i = 0; i < SEQ_COUNT; i++)
 		*m_pSequenceCache[i] = CSequence { };
@@ -298,10 +295,8 @@ void CInstrumentRecorder::ResetRecordCache()
 
 void CInstrumentRecorder::ReleaseCurrent()
 {
-	if (*m_pDumpInstrument != nullptr) {
-		//(*m_pDumpInstrument)->Release();
-		*m_pDumpInstrument = nullptr;
-	}
+	if (*m_pDumpInstrument)
+		m_pDumpInstrument->reset();
 }
 
 void CInstrumentRecorder::InitRecordInstrument()
@@ -321,7 +316,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 		}
 		return INST_NONE;
 	}();
-	*m_pDumpInstrument = FTExt::InstrumentFactory::Make(Type).release();		// // //
+	*m_pDumpInstrument = FTExt::InstrumentFactory::Make(Type);		// // //
 	if (!*m_pDumpInstrument) return;
 
 	CString str;
@@ -332,7 +327,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 		m_pSequenceCache[SEQ_ARPEGGIO]->SetSetting(SETTING_ARP_FIXED);
 		return;
 	}
-	if (auto Inst = dynamic_cast<CSeqInstrument*>(*m_pDumpInstrument)) {
+	if (auto Inst = dynamic_cast<CSeqInstrument *>(m_pDumpInstrument->get())) {
 		for (int i = 0; i < SEQ_COUNT; i++) {
 			Inst->SetSeqEnable(i, 1);
 			Inst->SetSeqIndex(i, m_pDocument->GetFreeSequence((inst_type_t)Type, i));
@@ -352,9 +347,9 @@ void CInstrumentRecorder::FinalizeRecordInstrument()
 {
 	if (*m_pDumpInstrument == NULL) return;
 	inst_type_t InstType = (*m_pDumpInstrument)->GetType();
-	CSeqInstrument *Inst = dynamic_cast<CSeqInstrument*>(*m_pDumpInstrument);
-	CInstrumentFDS *FDSInst = dynamic_cast<CInstrumentFDS*>(*m_pDumpInstrument);
-	CInstrumentN163 *N163Inst = dynamic_cast<CInstrumentN163*>(*m_pDumpInstrument);
+	CSeqInstrument *Inst = dynamic_cast<CSeqInstrument *>(m_pDumpInstrument->get());
+	CInstrumentFDS *FDSInst = dynamic_cast<CInstrumentFDS *>(m_pDumpInstrument->get());
+	CInstrumentN163 *N163Inst = dynamic_cast<CInstrumentN163 *>(m_pDumpInstrument->get());
 	if (Inst != NULL) {
 		(*m_pDumpInstrument)->RegisterManager(m_pDocument->GetInstrumentManager());
 		for (int i = 0; i < SEQ_COUNT; i++) {
