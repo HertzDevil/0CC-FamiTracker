@@ -69,10 +69,6 @@
 
 #include "ft0cc/doc/groove.hpp"		// // //
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 namespace {
 
 int GetChannelPosition(int Channel, unsigned char chips, unsigned n163chs) {		// // //
@@ -728,7 +724,7 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc &Imported, int *pInstTab
 	// Copy instruments
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
 		if (Imported.IsInstrumentUsed(i)) {
-			auto pInst = std::unique_ptr<CInstrument>(Imported.GetInstrument(i)->Clone());		// // //
+			auto pInst = Imported.GetInstrument(i)->Clone();		// // //
 
 			// Update references
 			if (auto pSeq = dynamic_cast<CSeqInstrument *>(pInst.get())) {
@@ -955,8 +951,7 @@ int CFamiTrackerDoc::CloneInstrument(unsigned int Index)
 	const int Slot = m_pInstrumentManager->GetFirstUnused();
 
 	if (Slot != INVALID_INSTRUMENT) {
-		auto pInst = std::unique_ptr<CInstrument>(m_pInstrumentManager->GetInstrument(Index)->Clone());
-		if (!AddInstrument(std::move(pInst), Slot))		// // //
+		if (!AddInstrument(m_pInstrumentManager->GetInstrument(Index)->Clone(), Slot))		// // //
 			return INVALID_INSTRUMENT;
 	}
 

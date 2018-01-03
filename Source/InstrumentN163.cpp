@@ -47,9 +47,9 @@ CInstrumentN163::CInstrumentN163() : CSeqInstrument(INST_N163),		// // //
 		m_iSamples[0][j] = TRIANGLE_WAVE[j];
 }
 
-CInstrument *CInstrumentN163::Clone() const
+std::unique_ptr<CInstrument> CInstrumentN163::Clone() const
 {
-	CInstrumentN163 *inst = new CInstrumentN163();		// // //
+	auto inst = std::make_unique<std::decay_t<decltype(*this)>>();		// // //
 	inst->CloneFrom(this);
 	return inst;
 }

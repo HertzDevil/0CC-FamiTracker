@@ -73,10 +73,6 @@
 #include "NumConv.h"
 #include "InstrumentListCtrl.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 namespace {
 
 const unsigned MAX_UNDO_LEVELS = 64;		// // // moved

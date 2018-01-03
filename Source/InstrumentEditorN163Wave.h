@@ -57,7 +57,7 @@ protected:
 	void UpdateWaveBox(int Index);		// // //
 	void CreateWaveImage(char *const Pos, int Index) const;		// // //
 
-	void GenerateWaves(CWaveformGenerator *pWaveGen);		// // // test
+	void GenerateWaves(std::unique_ptr<CWaveformGenerator> pWaveGen);		// // // test
 
 protected:
 	std::shared_ptr<CInstrumentN163> m_pInstrument;

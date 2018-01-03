@@ -89,30 +89,29 @@ void CInstrumentEditorFDSEnvelope::UpdateSequenceString(bool Changed)		// // //
 
 void CInstrumentEditorFDSEnvelope::SetupParser() const		// // //
 {
-	int Max, Min;
-	CSeqConversionBase *pConv = nullptr;
-
-	switch (m_iSelectedSetting) {
-	case SEQ_VOLUME:
-		Max = MAX_VOLUME; Min = 0; break;
-	case SEQ_ARPEGGIO:
-		switch (m_pSequence->GetSetting()) {
-		case SETTING_ARP_SCHEME:		// // //
-			pConv = new CSeqConversionArpScheme {ARPSCHEME_MIN}; break;
-		case SETTING_ARP_FIXED:
-			pConv = new CSeqConversionArpFixed { }; break;		// // //
-		default:
-			Max = NOTE_COUNT; Min = -NOTE_COUNT; break;
+	const auto MakeParser = [] (unsigned typ, seq_setting_t setting) -> std::unique_ptr<CSeqConversionBase> {
+		switch (static_cast<sequence_t>(typ)) {
+		case SEQ_VOLUME:
+			return std::make_unique<CSeqConversionDefault>(0, CInstrumentEditorFDSEnvelope::MAX_VOLUME);
+		case SEQ_ARPEGGIO:
+			switch (setting) {
+			case SETTING_ARP_SCHEME:		// // //
+				return std::make_unique<CSeqConversionArpScheme>(ARPSCHEME_MIN);
+			case SETTING_ARP_FIXED:
+				return std::make_unique<CSeqConversionArpFixed>();
+			default:
+				return std::make_unique<CSeqConversionDefault>(-NOTE_COUNT, NOTE_COUNT);
+			}
+		case SEQ_PITCH:
+			return std::make_unique<CSeqConversionDefault>(-128, 127);
 		}
-		break;
-	case SEQ_PITCH: // case SEQ_HIPITCH:
-		Max = 126; Min = -127; break;
-	}
-	if (pConv == nullptr)
-		pConv = new CSeqConversionDefault {Min, Max};
+		__debugbreak(); return nullptr;
+	};
+
+	auto pConv = MakeParser(m_iSelectedSetting, m_pSequence->GetSetting());
+	m_pSequenceEditor->SetConversion(*pConv);		// // //
 	m_pParser->SetSequence(m_pSequence);
-	m_pParser->SetConversion(pConv);
-	m_pSequenceEditor->SetConversion(pConv);		// // //
+	m_pParser->SetConversion(std::move(pConv));
 }
 
 void CInstrumentEditorFDSEnvelope::OnCbnSelchangeType()

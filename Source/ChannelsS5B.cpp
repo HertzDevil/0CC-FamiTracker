@@ -161,7 +161,7 @@ bool CChannelHandlerS5B::CreateInstHandler(inst_type_t Type)
 		switch (m_iInstTypeCurrent) {
 		case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B: case INST_FDS: break;
 		default:
-			m_pInstHandler.reset(new CSeqInstHandlerS5B(this, 0x0F, Type == INST_S5B ? 0x40 : 0));
+			m_pInstHandler = std::make_unique<CSeqInstHandlerS5B>(this, 0x0F, Type == INST_S5B ? 0x40 : 0);
 			return true;
 		}
 	}

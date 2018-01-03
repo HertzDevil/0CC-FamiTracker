@@ -24,6 +24,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 // Instrument types
 enum inst_type_t {
@@ -46,7 +47,7 @@ class CInstrumentManagerInterface;		// // // break cyclic dependencies
 class CInstrument {
 public:
 	CInstrument(inst_type_t type);										// // // ctor with instrument type
-	virtual CInstrument* Clone() const = 0;								// // // virtual copy ctor
+	virtual std::unique_ptr<CInstrument> Clone() const = 0;				// // // virtual copy ctor
 	virtual ~CInstrument() noexcept = default;
 	void SetName(std::string_view Name);		// // //
 	std::string_view GetName() const;		// // //

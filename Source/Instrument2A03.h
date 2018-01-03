@@ -32,7 +32,7 @@ class dpcm_sample;
 class CInstrument2A03 : public CSeqInstrument {
 public:
 	CInstrument2A03();
-	CInstrument* Clone() const;
+	std::unique_ptr<CInstrument> Clone() const override;
 	void	Store(CDocumentFile *pFile) const override;
 	bool	Load(CDocumentFile *pDocFile) override;
 

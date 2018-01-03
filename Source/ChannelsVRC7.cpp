@@ -176,7 +176,7 @@ bool CChannelHandlerVRC7::CreateInstHandler(inst_type_t Type)
 	switch (Type) {
 	case INST_VRC7:
 		if (m_iInstTypeCurrent != INST_VRC7)
-			m_pInstHandler.reset(new CInstHandlerVRC7(this, 0x0F));
+			m_pInstHandler = std::make_unique<CInstHandlerVRC7>(this, 0x0F);
 		return true;
 	}
 	return false;

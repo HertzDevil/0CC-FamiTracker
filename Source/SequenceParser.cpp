@@ -317,9 +317,9 @@ void CSequenceParser::SetSequence(std::shared_ptr<CSequence> pSeq)
 	m_pSequence = std::move(pSeq);
 }
 
-void CSequenceParser::SetConversion(CSeqConversionBase *pConv)
+void CSequenceParser::SetConversion(std::unique_ptr<CSeqConversionBase> pConv)
 {
-	m_pConversion.reset(pConv);
+	m_pConversion = std::move(pConv);
 }
 
 void CSequenceParser::ParseSequence(const std::string &String)

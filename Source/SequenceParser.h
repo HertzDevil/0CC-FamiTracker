@@ -141,7 +141,7 @@ public:
 	/*!	\brief Changes the conversion algorithm.
 		\details The sequence parser owns the conversion object and handles its deletion.
 		\param pConv Pointer to the new sequence conversion object. */
-	void SetConversion(CSeqConversionBase *pConv);
+	void SetConversion(std::unique_ptr<CSeqConversionBase> pConv);
 	/*!	\brief Updates the current instrument sequence from an MML string.
 		\param String the input string. */
 	void ParseSequence(const std::string &String);

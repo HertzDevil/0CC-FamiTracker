@@ -397,7 +397,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 			doc.VisitSongs([&] (CSongData &song) { song.SetTitle((LPCTSTR)file_.ReadString()); });
 
 		for (int i = 0; i < doc.GetChannelCount(); ++i) try {
-			AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, CHANNELS - 1, "Channel type index"); // Channel type (unused)
+			AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANNELS - 1, "Channel type index"); // Channel type (unused)
 			doc.VisitSongs([&] (CSongData &song, unsigned index) {
 				try {
 					song.SetEffectColumnCount(i, AssertRange<MODULE_ERROR_STRICT>(

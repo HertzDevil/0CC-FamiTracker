@@ -41,9 +41,9 @@ CInstrument2A03::CInstrument2A03() : CSeqInstrument(INST_2A03),		// // //
 			m_cSampleDelta[i][j] = -1;
 }
 
-CInstrument *CInstrument2A03::Clone() const
+std::unique_ptr<CInstrument> CInstrument2A03::Clone() const
 {
-	CInstrument2A03 *inst = new CInstrument2A03();		// // //
+	auto inst = std::make_unique<std::decay_t<decltype(*this)>>();		// // //
 	inst->CloneFrom(this);
 	return inst;
 }

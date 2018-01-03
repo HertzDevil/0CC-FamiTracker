@@ -28,7 +28,7 @@
 class CInstrumentVRC7 : public CInstrument {
 public:
 	CInstrumentVRC7();
-	CInstrument* Clone() const override;
+	std::unique_ptr<CInstrument> Clone() const override;
 	void	Store(CDocumentFile *pDocFile) const override;
 	bool	Load(CDocumentFile *pDocFile) override;
 	int		Compile(CChunk *pChunk, int Index) const override;

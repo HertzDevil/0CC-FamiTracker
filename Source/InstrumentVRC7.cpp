@@ -38,9 +38,9 @@ CInstrumentVRC7::CInstrumentVRC7() : CInstrument(INST_VRC7), m_iPatch(0)		// // 
 	memcpy(m_iRegs, VRC7_SINE_PATCH, sizeof(VRC7_SINE_PATCH));
 }
 
-CInstrument *CInstrumentVRC7::Clone() const
+std::unique_ptr<CInstrument> CInstrumentVRC7::Clone() const
 {
-	CInstrumentVRC7 *inst = new CInstrumentVRC7();		// // //
+	auto inst = std::make_unique<std::decay_t<decltype(*this)>>();		// // //
 	inst->CloneFrom(this);
 	return inst;
 }

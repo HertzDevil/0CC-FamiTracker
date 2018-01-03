@@ -43,7 +43,7 @@ public:
 	BOOL CreateEditor(CWnd *pParentWnd, const RECT &rect);
 	void SelectSequence(std::shared_ptr<CSequence> pSequence, int Type, int InstrumentType);		// // //
 	void SetMaxValues(int MaxVol, int MaxDuty);
-	void SetConversion(const CSeqConversionBase *pConv);		// // //
+	void SetConversion(const CSeqConversionBase &Conv);		// // //
 
 private:
 	CWnd *m_pParent = nullptr;

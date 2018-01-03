@@ -195,9 +195,9 @@ void CSequenceEditor::SetMaxValues(int MaxVol, int MaxDuty)
 	m_iMaxDuty = MaxDuty;
 }
 
-void CSequenceEditor::SetConversion(const CSeqConversionBase *pConv)		// // //
+void CSequenceEditor::SetConversion(const CSeqConversionBase &Conv)		// // //
 {
-	m_pConversion = pConv;
+	m_pConversion = &Conv;
 }
 
 void CSequenceEditor::SequenceChangedMessage(bool Changed)

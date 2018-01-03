@@ -28,7 +28,7 @@
 class CInstrumentN163 : public CSeqInstrument {
 public:
 	CInstrumentN163();
-	CInstrument* Clone() const override;
+	std::unique_ptr<CInstrument> Clone() const override;
 	void	Store(CDocumentFile *pDocFile) const override;
 	bool	Load(CDocumentFile *pDocFile) override;
 	int		Compile(CChunk *pChunk, int Index) const override;

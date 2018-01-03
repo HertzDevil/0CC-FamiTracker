@@ -369,7 +369,7 @@ void CInstrumentRecorder::FinalizeRecordInstrument()
 			ASSERT(Seq != NULL);
 			m_pSequenceCache[i]->SetLoopPoint(m_pSequenceCache[i]->GetItemCount() - 1);
 			FDSInst->SetSequence(i, m_pSequenceCache[i]);
-			m_pSequenceCache[i] = new CSequence();
+			m_pSequenceCache[i] = std::make_shared<CSequence>();
 		}
 		*/
 		for (int i = 0; i < CInstrumentFDS::WAVE_SIZE; i++)

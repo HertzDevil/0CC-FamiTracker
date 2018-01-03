@@ -52,9 +52,9 @@ CInstrumentFDS::CInstrumentFDS() : CSeqInstrument(INST_FDS),		// // //
 		m_pSequence[i] = std::make_shared<CSequence>();
 }
 
-CInstrument *CInstrumentFDS::Clone() const
+std::unique_ptr<CInstrument> CInstrumentFDS::Clone() const
 {
-	CInstrumentFDS *inst = new CInstrumentFDS();		// // //
+	auto inst = std::make_unique<std::decay_t<decltype(*this)>>();		// // //
 	inst->CloneFrom(this);
 	return inst;
 }

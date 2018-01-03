@@ -40,9 +40,9 @@ CSeqInstrument::CSeqInstrument(inst_type_t type) : CInstrument(type),
 {
 }
 
-CInstrument *CSeqInstrument::Clone() const
+std::unique_ptr<CInstrument> CSeqInstrument::Clone() const
 {
-	CSeqInstrument *inst = new CSeqInstrument(m_iType);		// // //
+	auto inst = std::make_unique<std::decay_t<decltype(*this)>>(m_iType);		// // //
 	inst->CloneFrom(this);
 	return inst;
 }

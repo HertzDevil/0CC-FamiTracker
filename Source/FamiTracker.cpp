@@ -49,9 +49,20 @@ const TCHAR FT_SHARED_MUTEX_NAME[]	= _T("FamiTrackerMutex");	// Name of global m
 const TCHAR FT_SHARED_MEM_NAME[]	= _T("FamiTrackerWnd");		// Name of global memory area
 const DWORD	SHARED_MEM_SIZE			= 256;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
+namespace {
+
+template <class T, typename... Args>
+inline std::unique_ptr<T>
+make_unique_nothrow(Args&&... args) {
+	try {
+		return std::make_unique<T>(std::forward<Args>(args)...);
+	}
+	catch (std::bad_alloc) {
+		return nullptr;
+	}
+}
+
+} // namespace
 
 // CFamiTrackerApp
 
@@ -125,15 +136,21 @@ BOOL CFamiTrackerApp::InitInstance()
 		return FALSE;
 
 	// Load custom accelerator
-	m_pAccel = std::make_unique<CAccelerator>();		// // //
+	m_pAccel = make_unique_nothrow<CAccelerator>();		// // //
+	if (!m_pAccel)
+		return FALSE;
 	m_pAccel->LoadShortcuts(m_pSettings);
 	m_pAccel->Setup();
 
 	// Create the MIDI interface
-	m_pMIDI = std::make_unique<CMIDI>();
+	m_pMIDI = make_unique_nothrow<CMIDI>();
+	if (!m_pMIDI)
+		return FALSE;
 
 	// Create sound generator
-	m_pSoundGenerator = std::make_unique<CSoundGen>();		// // //
+	m_pSoundGenerator = make_unique_nothrow<CSoundGen>();		// // //
+	if (!m_pSoundGenerator)
+		return FALSE;
 
 	// Start sound generator thread, initially suspended
 	if (!m_pSoundGenerator->CreateThread(CREATE_SUSPENDED)) {
@@ -150,17 +167,17 @@ BOOL CFamiTrackerApp::InitInstance()
 
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views
-	CDocTemplate0CC* pDocTemplate = new CDocTemplate0CC(		// // //
+	auto pDocTemplate = make_unique_nothrow<CDocTemplate0CC>(		// // //
 		IDR_MAINFRAME,
 		RUNTIME_CLASS(CFamiTrackerDoc),
 		RUNTIME_CLASS(CMainFrame),
-		RUNTIME_CLASS(CFamiTrackerView));
+		RUNTIME_CLASS(CFamiTrackerView)).release(); // owned by CDocManager
 
 	if (!pDocTemplate)
 		return FALSE;
 
-	if (m_pDocManager == NULL)		// // //
-		m_pDocManager = new CDocManager0CC { };
+	if (!m_pDocManager)		// // //
+		m_pDocManager = make_unique_nothrow<CDocManager0CC>().release(); // owned by CWinApp
 	m_pDocManager->AddDocTemplate(pDocTemplate);
 
 	// Work-around to enable file type registration in windows vista/7
@@ -423,7 +440,7 @@ void CFamiTrackerApp::LoadLocalization()
 void CFamiTrackerApp::OnRecentFilesClear()		// // //
 {
 	std::unique_ptr<CRecentFileList> {m_pRecentFileList} = std::make_unique<CRecentFileList>(
-		0, _T("Recent File List"), _T("File%d"), MAX_RECENT_FILES);		// // //
+		0, _T("Recent File List"), _T("File%d"), MAX_RECENT_FILES);		// // // owned by CWinApp
 
 	auto pMenu = m_pMainWnd->GetMenu()->GetSubMenu(0)->GetSubMenu(14);
 	for (int i = 0; i < MAX_RECENT_FILES; ++i)

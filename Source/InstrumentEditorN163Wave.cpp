@@ -162,13 +162,11 @@ BOOL CInstrumentEditorN163Wave::PreTranslateMessage(MSG* pMsg)		// // //
 	return CInstrumentEditPanel::PreTranslateMessage(pMsg);
 }
 
-void CInstrumentEditorN163Wave::GenerateWaves(CWaveformGenerator *pWaveGen)		// // // test
+void CInstrumentEditorN163Wave::GenerateWaves(std::unique_ptr<CWaveformGenerator> pWaveGen)		// // // test
 {
-	// invalidates the pointer after function returns
-	auto Generator = std::unique_ptr<CWaveformGenerator>(pWaveGen);
 	int size = m_pInstrument->GetWaveSize();
-	auto Buffer = std::unique_ptr<float[]>(new float[size]); // test
-	Generator->CreateWaves(Buffer.get(), size, Generator->GetCount());
+	auto Buffer = std::make_unique<float[]>(size); // test
+	pWaveGen->CreateWaves(Buffer.get(), size, pWaveGen->GetCount());
 	for (int i = 0; i < size; ++i) {
 		float Sample = Buffer[i] * 7.5f + 8;
 		Sample = Sample < 0.f ? 0.f : Sample > 15.f ? 15.f : Sample;
@@ -181,33 +179,33 @@ void CInstrumentEditorN163Wave::GenerateWaves(CWaveformGenerator *pWaveGen)		// 
 
 void CInstrumentEditorN163Wave::OnPresetSine()
 {
-	GenerateWaves(new CWavegenSine());
+	GenerateWaves(std::make_unique<CWavegenSine>());
 }
 
 void CInstrumentEditorN163Wave::OnPresetTriangle()
 {
-	GenerateWaves(new CWavegenTriangle());
+	GenerateWaves(std::make_unique<CWavegenTriangle>());
 }
 
 void CInstrumentEditorN163Wave::OnPresetPulse50()
 {
 	float PulseWidth = .5f;
-	CWaveformGenerator *pWaveGen = new CWavegenPulse();
+	auto pWaveGen = std::make_unique<CWavegenPulse>();
 	pWaveGen->GetParameter(0)->SetValue(&PulseWidth);
-	GenerateWaves(pWaveGen);
+	GenerateWaves(std::move(pWaveGen));
 }
 
 void CInstrumentEditorN163Wave::OnPresetPulse25()
 {
 	float PulseWidth = .25f;
-	CWaveformGenerator *pWaveGen = new CWavegenPulse();
+	auto pWaveGen = std::make_unique<CWavegenPulse>();
 	pWaveGen->GetParameter(0)->SetValue(&PulseWidth);
-	GenerateWaves(pWaveGen);
+	GenerateWaves(std::move(pWaveGen));
 }
 
 void CInstrumentEditorN163Wave::OnPresetSawtooth()
 {
-	GenerateWaves(new CWavegenSawtooth());
+	GenerateWaves(std::make_unique<CWavegenSawtooth>());
 }
 
 void CInstrumentEditorN163Wave::OnBnClickedCopy()

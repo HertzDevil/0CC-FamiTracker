@@ -49,10 +49,6 @@
 #include "ModuleAction.h"
 #include "InstrumentRecorder.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 // Clipboard ID
 const TCHAR CFamiTrackerView::CLIPBOARD_ID[] = _T("FamiTracker Pattern");
 
