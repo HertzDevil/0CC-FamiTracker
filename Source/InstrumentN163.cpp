@@ -143,7 +143,7 @@ void CInstrumentN163::DoLoadFTI(CSimpleFile &File, int iVersion)
 	// Read wave config
 	int WaveSize = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), 4, MAX_WAVE_SIZE, "N163 wave size");
 	int WavePos = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), 0, MAX_WAVE_SIZE - 1, "N163 wave position");
-	if (iVersion >= 0x250) {		// // // 050B
+	if (iVersion >= 25) {		// // // 050B
 		m_bAutoWavePos = File.ReadInt() != 0;
 	}
 	int WaveCount = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), 1, MAX_WAVE_COUNT, "N163 wave count");
