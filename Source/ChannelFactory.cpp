@@ -20,11 +20,7 @@
 ** must bear this legend.
 */
 
-#include "stdafx.h"
-#include "Instrument.h" // TODO: remove
-#include "ChannelHandler.h"
 #include "ChannelFactory.h"
-
 #include "Channels2A03.h"
 #include "ChannelsVRC6.h"
 #include "ChannelsVRC7.h"
@@ -35,48 +31,46 @@
 
 // // // Default implementation for channel factory
 
-CChannelFactory::CChannelFactory() : CFactory()
-{
-	FuncType Func;
+std::unique_ptr<CChannelHandler> CChannelFactory::Make(chan_id_t id) {
+	auto chan = MakeImpl(id);
+	if (chan)
+		chan->SetChannelID(id);
+	return chan;
+}
 
-	Func = MakeCtor<C2A03Square>();
-	m_pMakeFunc[CHANID_SQUARE1] = Func;
-	m_pMakeFunc[CHANID_SQUARE2] = Func;
-	AddProduct<CTriangleChan>(CHANID_TRIANGLE);
-	AddProduct<CNoiseChan>(CHANID_NOISE);
-	AddProduct<CDPCMChan>(CHANID_DPCM);
+std::unique_ptr<CChannelHandler> CChannelFactory::MakeImpl(chan_id_t id) {
+	switch (id) {
+	case CHANID_SQUARE1: case CHANID_SQUARE2:
+		return std::make_unique<C2A03Square>();
+	case CHANID_TRIANGLE:
+		return std::make_unique<CTriangleChan>();
+	case CHANID_NOISE:
+		return std::make_unique<CNoiseChan>();
+	case CHANID_DPCM:
+		return std::make_unique<CDPCMChan>();
 
-	Func = MakeCtor<CVRC6Square>();
-	m_pMakeFunc[CHANID_VRC6_PULSE1] = Func;
-	m_pMakeFunc[CHANID_VRC6_PULSE2] = Func;
-	AddProduct<CVRC6Sawtooth>(CHANID_VRC6_SAWTOOTH);
+	case CHANID_VRC6_PULSE1: case CHANID_VRC6_PULSE2:
+		return std::make_unique<CVRC6Square>();
+	case CHANID_VRC6_SAWTOOTH:
+		return std::make_unique<CVRC6Sawtooth>();
 
-	Func = MakeCtor<CVRC7Channel>();
-	m_pMakeFunc[CHANID_VRC7_CH1] = Func;
-	m_pMakeFunc[CHANID_VRC7_CH2] = Func;
-	m_pMakeFunc[CHANID_VRC7_CH3] = Func;
-	m_pMakeFunc[CHANID_VRC7_CH4] = Func;
-	m_pMakeFunc[CHANID_VRC7_CH5] = Func;
-	m_pMakeFunc[CHANID_VRC7_CH6] = Func;
+	case CHANID_VRC7_CH1: case CHANID_VRC7_CH2: case CHANID_VRC7_CH3:
+	case CHANID_VRC7_CH4: case CHANID_VRC7_CH5: case CHANID_VRC7_CH6:
+		return std::make_unique<CVRC7Channel>();
 
-	AddProduct<CChannelHandlerFDS>(CHANID_FDS);
+	case CHANID_FDS:
+		return std::make_unique<CChannelHandlerFDS>();
 
-	Func = MakeCtor<CChannelHandlerMMC5>();
-	m_pMakeFunc[CHANID_MMC5_SQUARE1] = Func;
-	m_pMakeFunc[CHANID_MMC5_SQUARE2] = Func;
+	case CHANID_MMC5_SQUARE1: case CHANID_MMC5_SQUARE2:
+		return std::make_unique<CChannelHandlerMMC5>();
 
-	Func = MakeCtor<CChannelHandlerN163>();
-	m_pMakeFunc[CHANID_N163_CH1] = Func;
-	m_pMakeFunc[CHANID_N163_CH2] = Func;
-	m_pMakeFunc[CHANID_N163_CH3] = Func;
-	m_pMakeFunc[CHANID_N163_CH4] = Func;
-	m_pMakeFunc[CHANID_N163_CH5] = Func;
-	m_pMakeFunc[CHANID_N163_CH6] = Func;
-	m_pMakeFunc[CHANID_N163_CH7] = Func;
-	m_pMakeFunc[CHANID_N163_CH8] = Func;
+	case CHANID_N163_CH1: case CHANID_N163_CH2: case CHANID_N163_CH3: case CHANID_N163_CH4:
+	case CHANID_N163_CH5: case CHANID_N163_CH6: case CHANID_N163_CH7: case CHANID_N163_CH8:
+		return std::make_unique<CChannelHandlerN163>();
 
-	Func = MakeCtor<CChannelHandlerS5B>();
-	m_pMakeFunc[CHANID_S5B_CH1] = Func;
-	m_pMakeFunc[CHANID_S5B_CH2] = Func;
-	m_pMakeFunc[CHANID_S5B_CH3] = Func;
+	case CHANID_S5B_CH1: case CHANID_S5B_CH2: case CHANID_S5B_CH3:
+		return std::make_unique<CChannelHandlerS5B>();
+	}
+
+	return nullptr;
 }

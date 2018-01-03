@@ -377,7 +377,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 		auto &Song = doc.GetSongData(0);
 		for (int i = 0; i < doc.GetChannelCount(); ++i) try {
 			// Channel type (unused)
-			AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, CHANNELS - 1, "Channel type index");
+			AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANNELS - 1, "Channel type index");
 			// Effect columns
 			Song.SetEffectColumnCount(i, AssertRange<MODULE_ERROR_STRICT>(
 				file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count"));

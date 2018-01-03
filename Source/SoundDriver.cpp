@@ -25,7 +25,7 @@
 #include "FamiTrackerDoc.h"
 #include "TempoCounter.h"
 #include "ChannelHandler.h"
-#include "ChannelFactory.h"		// // // test
+#include "ChannelFactory.h"
 #include "TrackerChannel.h"
 #include "PlayerCursor.h"
 #include "DetuneTable.h"
@@ -368,14 +368,8 @@ int CSoundDriver::ReadVibratoTable(int index) const {
 }
 
 void CSoundDriver::AssignTrack(std::unique_ptr<CTrackerChannel> track) {
-	static CChannelFactory F {}; // test
-	chan_id_t ID = track->GetID();
-
-	CChannelHandler *ch = F.Produce(ID);
-	if (ch)
-		ch->SetChannelID(ID);
-
-	tracks_.emplace_back(std::unique_ptr<CChannelHandler>(ch), std::move(track));		// // //
+	auto ch = CChannelFactory::Make(track->GetID());		// // //
+	tracks_.emplace_back(std::move(ch), std::move(track));
 }
 
 void CSoundDriver::SetupVibrato() {

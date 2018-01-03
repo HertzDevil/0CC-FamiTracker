@@ -643,7 +643,6 @@
     <ClInclude Include="Source\CompoundAction.h" />
     <ClInclude Include="Source\DetuneTable.h" />
     <ClInclude Include="Source\DPI.h" />
-    <ClInclude Include="Source\Factory.h" />
     <ClInclude Include="Source\ChannelFactory.h" />
     <ClInclude Include="Source\SoundDriver.h" />
     <ClInclude Include="Source\SongState.h" />

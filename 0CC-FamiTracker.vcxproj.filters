@@ -1193,9 +1193,6 @@
     <ClInclude Include="Source\InstHandlerDPCM.h">
       <Filter>Header Files\Sound Driver Headers\Instruments Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Factory.h">
-      <Filter>Header Files\Components Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\ChannelFactory.h">
       <Filter>Header Files\Sound Driver Headers\Channels Headers</Filter>
     </ClInclude>

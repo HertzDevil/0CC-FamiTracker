@@ -23,13 +23,13 @@
 
 #pragma once
 
-#include "Factory.h"
-#include "APU/Types.h"
+#include <memory>
 
 class CChannelHandler;
+enum chan_id_t : unsigned;
 
-class CChannelFactory : public CFactory<chan_id_t, CChannelHandler>
-{
-public:
-	CChannelFactory();
+struct CChannelFactory {
+	static std::unique_ptr<CChannelHandler> Make(chan_id_t id);
+private:
+	static std::unique_ptr<CChannelHandler> MakeImpl(chan_id_t id);
 };

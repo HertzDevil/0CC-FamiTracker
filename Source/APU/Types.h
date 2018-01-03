@@ -32,7 +32,7 @@ const uint8_t SNDCHIP_MMC5 = 8;			// Nintendo MMC5
 const uint8_t SNDCHIP_N163 = 16;		// Namco N-106
 const uint8_t SNDCHIP_S5B  = 32;		// Sunsoft 5B
 
-enum chan_id_t {
+enum chan_id_t : unsigned {
 	CHANID_SQUARE1,
 	CHANID_SQUARE2,
 	CHANID_TRIANGLE,
