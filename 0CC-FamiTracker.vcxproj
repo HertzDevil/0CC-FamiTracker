@@ -715,7 +715,7 @@
     <ClInclude Include="Source\WaveRenderer.h" />
     <ClInclude Include="Source\WinSDK\VersionHelpers.h" />
     <ClInclude Include="Source\WinSDK\winapifamily.h" />
-    <ClInclude Include="version.h" />
+    <ClInclude Include="Source\version.h" />
     <ClInclude Include="Source\ChannelMap.h" />
     <ClInclude Include="Source\Common.h" />
     <ClInclude Include="Source\SoundGen.h" />

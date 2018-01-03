@@ -779,9 +779,6 @@
     <ClInclude Include="Source\MainFrm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="version.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\ChannelMap.h">
       <Filter>Header Files\Sound Driver Headers</Filter>
     </ClInclude>
@@ -1396,6 +1393,9 @@
     </ClInclude>
     <ClInclude Include="Source\Color.h">
       <Filter>Header Files\Components Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\version.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

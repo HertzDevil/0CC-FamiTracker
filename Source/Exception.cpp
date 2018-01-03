@@ -23,7 +23,7 @@
 #include "stdafx.h"
 #include <Dbghelp.h>
 #include "Exception.h"
-#include "../version.h"
+#include "version.h"
 
 //
 // This file contains an unhandled exception handler

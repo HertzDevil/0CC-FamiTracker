@@ -24,7 +24,7 @@
 #include "FamiTrackerTypes.h"		// // //
 #include "SongData.h"		// // //
 #include "FamiTrackerDoc.h"
-#include "../version.h"		// // //
+#include "version.h"		// // //
 
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "ft0cc/doc/groove.hpp"		// // //
