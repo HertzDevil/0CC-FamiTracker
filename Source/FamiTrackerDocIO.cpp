@@ -131,8 +131,8 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerDoc &doc) {
 	bool ErrorFlag = false;
 	while (!file_.Finished() && !ErrorFlag) {
 		ErrorFlag = file_.ReadBlock();
-		const char *BlockID = file_.GetBlockHeaderID();
-		if (!strcmp(BlockID, "END"))
+		std::string BlockID = file_.GetBlockHeaderID();		// // //
+		if (BlockID == "END")
 			break;
 
 		try {

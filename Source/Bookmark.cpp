@@ -44,7 +44,7 @@ unsigned CBookmark::Distance(const CBookmark &other) const
 bool CBookmark::IsEqual(const CBookmark &other) const
 {
 	return *this == other && m_bPersist == other.m_bPersist && m_sName == other.m_sName &&
-		!memcmp(&m_Highlight, &other.m_Highlight, sizeof(stHighlight));
+		m_Highlight == other.m_Highlight;
 }
 
 bool CBookmark::operator==(const CBookmark &other) const

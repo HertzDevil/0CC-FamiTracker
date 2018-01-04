@@ -1096,7 +1096,7 @@ bool CPActionHighlight::SaveState(const CMainFrame &MainFrm)
 {
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	m_OldHighlight = pDoc->GetHighlight();
-	return memcmp(&m_NewHighlight, &m_OldHighlight, sizeof(stHighlight)) != 0;
+	return m_NewHighlight != m_OldHighlight;
 }
 
 void CPActionHighlight::Undo(CMainFrame &MainFrm)

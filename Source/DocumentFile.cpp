@@ -33,8 +33,8 @@
 const unsigned int CDocumentFile::FILE_VER		 = 0x0440;			// Current file version (4.40)
 const unsigned int CDocumentFile::COMPATIBLE_VER = 0x0100;			// Compatible file version (1.0)
 
-const char *const CDocumentFile::FILE_HEADER_ID  = "FamiTracker Module";		// // //
-const char *const CDocumentFile::FILE_END_ID	 = "END";
+const char CDocumentFile::FILE_HEADER_ID[] = "FamiTracker Module";		// // //
+const char CDocumentFile::FILE_END_ID[] = "END";
 
 const unsigned int CDocumentFile::MAX_BLOCK_SIZE = 0x80000;
 const unsigned int CDocumentFile::BLOCK_SIZE = 0x10000;
@@ -49,7 +49,7 @@ bool CDocumentFile::Finished() const
 bool CDocumentFile::BeginDocument()
 {
 	try {
-		Write(FILE_HEADER_ID, int(strlen(FILE_HEADER_ID)));
+		Write(FILE_HEADER_ID, std::size(FILE_HEADER_ID) - 1);		// // //
 		Write(&FILE_VER, sizeof(int));
 	}
 	catch (CFileException *e) {
@@ -63,7 +63,7 @@ bool CDocumentFile::BeginDocument()
 bool CDocumentFile::EndDocument()
 {
 	try {
-		Write(FILE_END_ID, int(strlen(FILE_END_ID)));
+		Write(FILE_END_ID, std::size(FILE_END_ID) - 1);		// // //
 	}
 	catch (CFileException *e) {
 		e->Delete();
@@ -169,12 +169,12 @@ void CDocumentFile::ValidateFile()
 {
 	// Checks if loaded file is valid
 
-	char Buffer[256];
+	char Buffer[256] = { };
 
 	// Check ident string
-	Read(Buffer, int(strlen(FILE_HEADER_ID)));
+	Read(Buffer, std::size(FILE_HEADER_ID) - 1);		// // //
 
-	if (memcmp(Buffer, FILE_HEADER_ID, strlen(FILE_HEADER_ID)) != 0)
+	if (memcmp(Buffer, FILE_HEADER_ID, std::size(FILE_HEADER_ID) - 1) != 0)
 		RaiseModuleException("File is not a FamiTracker module");
 
 	// Read file version

@@ -512,7 +512,7 @@ int CFindResultsBox::NoteCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lPar
 			return 0x100 + x.GetAt(0);
 		for (int i = 0; i < NOTE_RANGE; ++i) {
 			const auto &n = stChanNote::NOTE_NAME[i];
-			if (!strcmp(x.Left(n.size()), n.c_str()))
+			if (n == (LPCTSTR)x.Left(n.size()))
 				return MIDI_NOTE(x.GetAt(x.GetLength() - 1) - '0', ++i);
 		}
 		return -1;

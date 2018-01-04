@@ -28,4 +28,12 @@ struct stHighlight {
 	int First;
 	int Second;
 	int Offset = 0;
+
+	constexpr bool operator==(const stHighlight &other) const noexcept {
+		return First == other.First && Second == other.Second && Offset == other.Offset;
+	}
+
+	constexpr bool operator!=(const stHighlight &other) const noexcept {
+		return !(*this == other);
+	}
 };

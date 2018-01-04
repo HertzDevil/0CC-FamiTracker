@@ -28,7 +28,7 @@
 class CChannelHandlerFDS : public CChannelHandlerInverted, public CChannelHandlerInterfaceFDS {
 public:
 	CChannelHandlerFDS();
-	virtual void RefreshChannel();
+	void	RefreshChannel() override;
 protected:
 	void	HandleNoteData(stChanNote &pNoteData) override;		// // //
 	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //
@@ -42,12 +42,12 @@ protected:
 
 public:		// // //
 	// FDS functions
-	void SetFMSpeed(int Speed);
-	void SetFMDepth(int Depth);
-	void SetFMDelay(int Delay);
+	void SetFMSpeed(int Speed) override;
+	void SetFMDepth(int Depth) override;
+	void SetFMDelay(int Delay) override;
 	// void SetFMEnable(bool Enable);
-	void FillWaveRAM(const char *pBuffer);		// // //
-	void FillModulationTable(const char *pBuffer);		// // //
+	void FillWaveRAM(const char *pBuffer) override;		// // //
+	void FillModulationTable(const char *pBuffer) override;		// // //
 protected:
 	// FDS control variables
 	int m_iModulationSpeed;
