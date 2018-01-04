@@ -39,6 +39,8 @@
 #include "Driver.h"
 #include "SoundGen.h"
 #include "APU/APU.h"
+#include "DSampleManager.h"		// // //
+#include "InstrumentManager.h"		// // //
 
 //
 // This is the new NSF data compiler, music is compiled to an object list instead of a binary chunk
@@ -1344,19 +1346,22 @@ void CCompiler::CreateSampleList()
 	// Clear the sample list
 	memset(m_iSampleBank, 0xFF, MAX_DSAMPLES);
 
+	auto &Im = *m_pDocument->GetInstrumentManager();		// // //
+	auto &Dm = *m_pDocument->GetDSampleManager();		// // //
+
 	CChunk &Chunk = CreateChunk({CHUNK_SAMPLE_LIST});		// // //
 
 	// Store sample instruments
 	unsigned int Item = 0;
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-		if (m_pDocument->IsInstrumentUsed(i) && m_pDocument->GetInstrumentType(i) == INST_2A03) {
-			auto pInstrument = std::static_pointer_cast<CInstrument2A03>(m_pDocument->GetInstrument(i));
+		if (Im.IsInstrumentUsed(i) && Im.GetInstrumentType(i) == INST_2A03) {
+			auto pInstrument = std::static_pointer_cast<CInstrument2A03>(Im.GetInstrument(i));
 
 			for (int j = 0; j < OCTAVE_RANGE; ++j) {
 				for (int k = 0; k < NOTE_RANGE; ++k) {
 					// Get sample
 					unsigned char iSample = pInstrument->GetSampleIndex(j, k);
-					if ((iSample > 0) && m_bSamplesAccessed[i][j][k] && m_pDocument->IsSampleUsed(iSample - 1)) {
+					if ((iSample > 0) && m_bSamplesAccessed[i][j][k] && Dm.IsSampleUsed(iSample - 1)) {
 
 						unsigned char SamplePitch = pInstrument->GetSamplePitch(j, k);
 						unsigned char SampleIndex = GetSampleIndex(iSample - 1);
@@ -1391,6 +1396,8 @@ void CCompiler::StoreSamples()
 	unsigned int iAddedSamples = 0;
 	unsigned int iSampleAddress = 0x0000;
 
+	auto &Dm = *m_pDocument->GetDSampleManager();		// // //
+
 	// Get sample start address
 	m_iSamplesSize = 0;
 
@@ -1402,7 +1409,7 @@ void CCompiler::StoreSamples()
 
 		unsigned int iIndex = m_iSampleBank[i];
 		ASSERT(iIndex != 0xFF);
-		auto pDSample = m_pDocument->GetSample(iIndex);
+		auto pDSample = Dm.GetDSample(iIndex);
 		unsigned int iSize = pDSample->size();
 
 		if (iSize > 0) {

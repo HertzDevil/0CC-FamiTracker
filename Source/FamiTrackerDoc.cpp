@@ -850,10 +850,10 @@ unsigned int CFamiTrackerDoc::GetSequenceItemCount(inst_type_t InstType, unsigne
 	return 0;
 }
 
-int CFamiTrackerDoc::GetFreeSequence(inst_type_t InstType, int Type, CSeqInstrument *pInst) const		// // //
+int CFamiTrackerDoc::GetFreeSequence(inst_type_t InstType, int Type) const		// // //
 {
 	ASSERT(Type >= 0 && Type < SEQ_COUNT);
-	return m_pInstrumentManager->GetFreeSequenceIndex(InstType, Type, pInst);
+	return m_pInstrumentManager->GetFreeSequenceIndex(InstType, Type, nullptr);
 }
 
 int CFamiTrackerDoc::GetSequenceCount(inst_type_t InstType, int Type) const		// // //
@@ -943,46 +943,9 @@ bool CFamiTrackerDoc::RemoveInstrument(unsigned int Index)		// // //
 	return m_pInstrumentManager->RemoveInstrument(Index);
 }
 
-int CFamiTrackerDoc::CloneInstrument(unsigned int Index)
-{
-	if (!IsInstrumentUsed(Index))
-		return INVALID_INSTRUMENT;
-
-	const int Slot = m_pInstrumentManager->GetFirstUnused();
-
-	if (Slot != INVALID_INSTRUMENT) {
-		if (!AddInstrument(m_pInstrumentManager->GetInstrument(Index)->Clone(), Slot))		// // //
-			return INVALID_INSTRUMENT;
-	}
-
-	return Slot;
-}
-
 inst_type_t CFamiTrackerDoc::GetInstrumentType(unsigned int Index) const
 {
 	return m_pInstrumentManager->GetInstrumentType(Index);
-}
-
-int CFamiTrackerDoc::DeepCloneInstrument(unsigned int Index)
-{
-	int Slot = CloneInstrument(Index);
-
-	if (Slot != INVALID_INSTRUMENT) {
-		auto newInst = m_pInstrumentManager->GetInstrument(Slot);
-		const inst_type_t it = newInst->GetType();
-		if (auto pInstrument = std::dynamic_pointer_cast<CSeqInstrument>(newInst)) {
-			for (int i = 0; i < SEQ_COUNT; i++) {
-				int freeSeq = m_pInstrumentManager->GetFreeSequenceIndex(it, i, pInstrument.get());
-				if (freeSeq != -1) {
-					if (pInstrument->GetSeqEnable(i))
-						*GetSequence(it, unsigned(freeSeq), i) = *pInstrument->GetSequence(i);		// // //
-					pInstrument->SetSeqIndex(i, freeSeq);
-				}
-			}
-		}
-	}
-
-	return Slot;
 }
 
 void CFamiTrackerDoc::SaveInstrument(unsigned int Index, CSimpleFile &file) const
@@ -990,7 +953,7 @@ void CFamiTrackerDoc::SaveInstrument(unsigned int Index, CSimpleFile &file) cons
 	GetInstrument(Index)->SaveFTI(file);
 }
 
-int CFamiTrackerDoc::LoadInstrument(CSimpleFile &File) {		// / //
+bool CFamiTrackerDoc::LoadInstrument(unsigned Index, CSimpleFile &File) {		// / //
 	// Loads an instrument from file, return allocated slot or INVALID_INSTRUMENT if failed
 
 	// FTI instruments files
@@ -1000,24 +963,27 @@ int CFamiTrackerDoc::LoadInstrument(CSimpleFile &File) {		// / //
 	static const unsigned I_CURRENT_VER_MAJ = 2;		// // // 050B
 	static const unsigned I_CURRENT_VER_MIN = 5;		// // // 050B
 
+	if (Index >= MAX_INSTRUMENTS)		// // //
+		return false;
+
 	// Signature
 	char Text[256] = { };
 	for (std::size_t i = 0; i < std::size(INST_HEADER) - 1; ++i)
 		if (File.ReadChar() != INST_HEADER[i]) {
 			AfxMessageBox(IDS_INSTRUMENT_FILE_FAIL, MB_ICONERROR);
-			return INVALID_INSTRUMENT;
+			return false;
 		}
 
 	// Version
 	unsigned iInstMaj = conv::from_digit(File.ReadChar());
 	if (File.ReadChar() != '.') {
 		AfxMessageBox(IDS_INST_VERSION_UNSUPPORTED, MB_ICONERROR);
-		return INVALID_INSTRUMENT;
+		return false;
 	}
 	unsigned iInstMin = conv::from_digit(File.ReadChar());
 	if (std::tie(iInstMaj, iInstMin) > std::tie(I_CURRENT_VER_MAJ, I_CURRENT_VER_MIN)) {
 		AfxMessageBox(IDS_INST_VERSION_UNSUPPORTED, MB_ICONERROR);
-		return INVALID_INSTRUMENT;
+		return false;
 	}
 
 	try {
@@ -1028,21 +994,19 @@ int CFamiTrackerDoc::LoadInstrument(CSimpleFile &File) {		// / //
 		if (!pInstrument) {
 			UnlockDocument();
 			AfxMessageBox("Failed to create instrument", MB_ICONERROR);
-			return INVALID_INSTRUMENT;
+			return false;
 		}
 
 		pInstrument->OnBlankInstrument();
 		pInstrument->LoadFTI(File, iInstMaj * 10 + iInstMin);		// // //
-		int Slot = GetFreeInstrumentIndex();
-		if (!AddInstrument(std::move(pInstrument), Slot))
-			Slot = INVALID_INSTRUMENT;
+		bool res = AddInstrument(std::move(pInstrument), Index);
 		UnlockDocument();
-		return Slot;
+		return res;
 	}
 	catch (CModuleException e) {
 		UnlockDocument();
 		AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
-		return INVALID_INSTRUMENT;
+		return false;
 	}
 }
 
@@ -1123,14 +1087,11 @@ bool CFamiTrackerDoc::GetSongGroove(unsigned int Track) const		// // //
 
 unsigned int CFamiTrackerDoc::GetEffColumns(unsigned int Track, unsigned int Channel) const
 {
-	ASSERT(Channel < MAX_CHANNELS);
 	return GetSongData(Track).GetEffectColumnCount(Channel);
 }
 
 void CFamiTrackerDoc::SetEffColumns(unsigned int Track, unsigned int Channel, unsigned int Columns)
 {
-	ASSERT(Track < MAX_TRACKS);
-	ASSERT(Channel < MAX_CHANNELS);
 	ASSERT(Columns < MAX_EFFECT_COLUMNS);
 
 	GetSongData(Track).SetEffectColumnCount(Channel, Columns);
@@ -1150,14 +1111,11 @@ void CFamiTrackerDoc::SetMachine(machine_t Machine)
 
 unsigned int CFamiTrackerDoc::GetPatternAtFrame(unsigned int Track, unsigned int Frame, unsigned int Channel) const
 {
-	ASSERT(Frame < MAX_FRAMES && Channel < MAX_CHANNELS);
 	return GetSongData(Track).GetFramePattern(Frame, Channel);
 }
 
 void CFamiTrackerDoc::SetPatternAtFrame(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Pattern)
 {
-	ASSERT(Frame < MAX_FRAMES);
-	ASSERT(Channel < MAX_CHANNELS);
 	ASSERT(Pattern < MAX_PATTERN);
 
 	GetSongData(Track).SetFramePattern(Frame, Channel, Pattern);
@@ -1291,9 +1249,6 @@ void CFamiTrackerDoc::CopyPattern(unsigned int Track, int Target, int Source, in
 
 void CFamiTrackerDoc::SwapChannels(unsigned int Track, unsigned int First, unsigned int Second)		// // //
 {
-	ASSERT(First < MAX_CHANNELS);
-	ASSERT(Second < MAX_CHANNELS);
-
 	GetSongData(Track).SwapChannels(First, Second);
 }
 
@@ -2087,7 +2042,7 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 	bool AssignUsed[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE] = { };
 
 	for (int i = 0; i < MAX_DSAMPLES; ++i) {
-		if (IsSampleUsed(i)) {
+		if (GetDSampleManager()->IsSampleUsed(i)) {
 			bool Used = false;
 			for (const auto &pSong : m_pTracks) {
 				for (unsigned int Frame = 0; Frame < pSong->GetFrameCount(); ++Frame) {

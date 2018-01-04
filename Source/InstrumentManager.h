@@ -53,17 +53,16 @@ public:
 	std::shared_ptr<CInstrument> ReleaseInstrument(unsigned int Index);
 	bool InsertInstrument(unsigned int Index, std::shared_ptr<CInstrument> pInst);
 	bool RemoveInstrument(unsigned int Index);
+	int CloneInstrument(unsigned OldIndex, unsigned NewIndex);		// // //
+	bool DeepCloneInstrument(unsigned OldIndex, unsigned NewIndex);		// // //
 	void SwapInstruments(unsigned int IndexA, unsigned int IndexB);
 
 	bool IsInstrumentUsed(unsigned int Index) const;
 	unsigned int GetInstrumentCount() const;
 	unsigned int GetFirstUnused() const;
-	int GetFreeSequenceIndex(inst_type_t InstType, int Type, CSeqInstrument *pInst = nullptr) const;
+	int GetFreeSequenceIndex(inst_type_t InstType, int Type, const CSeqInstrument *pInst = nullptr) const;
 
 	inst_type_t GetInstrumentType(unsigned int Index) const;
-
-	void CloneInstrumentShallow(unsigned int Old, unsigned int New);
-	void CloneInstrumentDeep(unsigned int Old, unsigned int New);
 
 	CSequenceManager *const GetSequenceManager(int InstType) const;
 	CDSampleManager *const GetDSampleManager() const;

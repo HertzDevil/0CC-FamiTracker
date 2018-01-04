@@ -1209,15 +1209,13 @@ void CMainFrame::OnCloneInstrument()
 	if (m_pInstrumentList->GetItemCount() == 0)
 		return;
 
-	int Slot = Doc.CloneInstrument(m_iInstrument);
-
-	if (Slot == INVALID_INSTRUMENT) {
-		AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR);
-		return;
+	auto Manager = Doc.GetInstrumentManager();		// // //
+	if (Manager->CloneInstrument(m_iInstrument, Manager->GetFirstUnused())) {
+		Doc.ModifyIrreversible();		// // //
+		Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
 	}
-
-	Doc.ModifyIrreversible();		// // //
-	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
+	else
+		AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR);
 }
 
 void CMainFrame::OnDeepCloneInstrument()
@@ -1228,15 +1226,13 @@ void CMainFrame::OnDeepCloneInstrument()
 	if (m_pInstrumentList->GetItemCount() == 0)
 		return;
 
-	int Slot = Doc.DeepCloneInstrument(m_iInstrument);
-
-	if (Slot == INVALID_INSTRUMENT) {
-		AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR);
-		return;
+	auto Manager = Doc.GetInstrumentManager();		// // //
+	if (Manager->DeepCloneInstrument(m_iInstrument, Manager->GetFirstUnused())) {
+		Doc.ModifyIrreversible();		// // //
+		Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
 	}
-
-	Doc.ModifyIrreversible();		// // //
-	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
+	else
+		AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR);
 }
 
 void CMainFrame::OnBnClickedEditInst()
@@ -1249,17 +1245,16 @@ void CMainFrame::OnEditInstrument()
 	OpenInstrumentEditor();
 }
 
-int CMainFrame::LoadInstrument(const CString &filename) {		// // //
+bool CMainFrame::LoadInstrument(unsigned Index, const CString &filename) {		// // //
 	const auto err = [this] (int ID) {
 		AfxMessageBox(ID, MB_ICONERROR);
-		return INVALID_INSTRUMENT;
+		return false;
 	};
 
 	auto &Doc = GetDoc();
-	if (Doc.GetFreeInstrumentIndex() != INVALID_INSTRUMENT) {
-		if (CSimpleFile file(filename, std::ios::in | std::ios::binary); file) {
-			return Doc.LoadInstrument(file);
-		}
+	if (Index != INVALID_INSTRUMENT) {
+		if (CSimpleFile file(filename, std::ios::in | std::ios::binary); file)
+			return Doc.LoadInstrument(Index, file);
 		return err(IDS_FILE_OPEN_ERROR);
 	}
 	return err(IDS_INST_LIMIT);
@@ -1279,11 +1274,13 @@ void CMainFrame::OnLoadInstrument()
 
 	POSITION pos (FileDialog.GetStartPosition());
 
+	auto &Im = *GetDoc().GetInstrumentManager();		// // //
+
 	// Load multiple files
 	while (pos) {
-		int Index = LoadInstrument(FileDialog.GetNextPathName(pos));		// // //
-		if (Index == INVALID_INSTRUMENT)
-			return;
+		int Index = Im.GetFirstUnused();		// // //
+		if (!LoadInstrument(Index, FileDialog.GetNextPathName(pos)))
+			return UpdateInstrumentList();
 		SelectInstrument(Index);		// // //
 	}
 	UpdateInstrumentList();
@@ -2683,8 +2680,9 @@ void CMainFrame::OnLoadInstrumentMenu(NMHDR * pNotifyStruct, LRESULT * result)
 		break;
 	default:
 		if (retValue >= CInstrumentFileTree::MENU_BASE + 2) { // A file
-			int Index = LoadInstrument(m_pInstrumentFileTree->GetFile(retValue));		// // //
-			if (Index == INVALID_INSTRUMENT)
+			auto &Im = *GetDoc().GetInstrumentManager();		// // //
+			int Index = Im.GetFirstUnused();
+			if (!LoadInstrument(Index, m_pInstrumentFileTree->GetFile(retValue)))
 				return;
 			SelectInstrument(Index);
 			UpdateInstrumentList();

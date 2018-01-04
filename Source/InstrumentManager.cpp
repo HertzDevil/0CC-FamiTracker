@@ -109,6 +109,30 @@ bool CInstrumentManager::RemoveInstrument(unsigned int Index)
 	return false;
 }
 
+int CInstrumentManager::CloneInstrument(unsigned OldIndex, unsigned NewIndex) {		// // //
+	return IsInstrumentUsed(OldIndex) && NewIndex != INVALID_INSTRUMENT && !IsInstrumentUsed(NewIndex) &&
+		InsertInstrument(NewIndex, GetInstrument(OldIndex)->Clone());		// // //
+}
+
+bool CInstrumentManager::DeepCloneInstrument(unsigned OldIndex, unsigned NewIndex) {		// // //
+	if (CloneInstrument(OldIndex, NewIndex)) {
+		if (auto pInstrument = std::dynamic_pointer_cast<CSeqInstrument>(GetInstrument(NewIndex))) {
+			const inst_type_t it = pInstrument->GetType();
+			for (int i = 0; i < SEQ_COUNT; i++) {
+				int freeSeq = GetFreeSequenceIndex(it, i, pInstrument.get());
+				if (freeSeq != -1) {
+					if (pInstrument->GetSeqEnable(i))
+						*GetSequence(it, i, unsigned(freeSeq)) = *pInstrument->GetSequence(i);		// // //
+					pInstrument->SetSeqIndex(i, freeSeq);
+				}
+			}
+		}
+		return true;
+	}
+
+	return false;
+}
+
 void CInstrumentManager::SwapInstruments(unsigned int IndexA, unsigned int IndexB) {
 	std::lock_guard<std::mutex> lock(m_InstrumentLock);
 	m_pInstruments[IndexA].swap(m_pInstruments[IndexB]);
@@ -149,7 +173,7 @@ unsigned int CInstrumentManager::GetFirstUnused() const
 	return INVALID_INSTRUMENT;
 }
 
-int CInstrumentManager::GetFreeSequenceIndex(inst_type_t InstType, int Type, CSeqInstrument *pInst) const
+int CInstrumentManager::GetFreeSequenceIndex(inst_type_t InstType, int Type, const CSeqInstrument *pInst) const
 {
 	// moved from CFamiTrackerDoc
 	std::vector<bool> Used(CSequenceCollection::MAX_SEQUENCES, false);
@@ -168,14 +192,6 @@ int CInstrumentManager::GetFreeSequenceIndex(inst_type_t InstType, int Type, CSe
 inst_type_t CInstrumentManager::GetInstrumentType(unsigned int Index) const
 {
 	return !IsInstrumentUsed(Index) ? INST_NONE : m_pInstruments[Index]->GetType();
-}
-
-void CInstrumentManager::CloneInstrumentShallow(unsigned int Old, unsigned int New)
-{
-}
-
-void CInstrumentManager::CloneInstrumentDeep(unsigned int Old, unsigned int New)
-{
 }
 
 //

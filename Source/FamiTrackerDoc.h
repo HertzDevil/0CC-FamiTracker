@@ -280,17 +280,15 @@ public:
 	bool			IsInstrumentUsed(unsigned int Index) const;
 	bool			AddInstrument(std::unique_ptr<CInstrument> pInstrument, unsigned int Slot);		// // //
 	bool			RemoveInstrument(unsigned int Index);							// // // Remove an instrument
-	int				CloneInstrument(unsigned int Index);							// Create a copy of an instrument
 	inst_type_t		GetInstrumentType(unsigned int Index) const;
-	int				DeepCloneInstrument(unsigned int Index);
 	void			SaveInstrument(unsigned int Index, CSimpleFile &file) const;		// // //
-	int 			LoadInstrument(CSimpleFile &File);		// / ///
+	bool 			LoadInstrument(unsigned Index, CSimpleFile &File);		// // //
 
 	// Sequences functions
 	// // // take instrument type as parameter rather than chip type
 	std::shared_ptr<CSequence> GetSequence(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
 	unsigned int	GetSequenceItemCount(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
-	int				GetFreeSequence(inst_type_t InstType, int Type, CSeqInstrument *pInst = nullptr) const;		// // //
+	int				GetFreeSequence(inst_type_t InstType, int Type) const;		// // //
 	int				GetSequenceCount(inst_type_t InstType, int Type) const;		// // //
 	int				GetTotalSequenceCount(inst_type_t InstType) const;		// // //
 
