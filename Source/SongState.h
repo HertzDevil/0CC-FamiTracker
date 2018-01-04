@@ -53,10 +53,10 @@ public:
 	int ChannelIndex = -1;
 	int Instrument = MAX_INSTRUMENTS;
 	int Volume = MAX_VOLUME;
-	int Effect[EF_COUNT];
+	int Effect[EF_COUNT] = { };
 	int Effect_LengthCounter = -1;
 	int Effect_AutoFMMult = -1;
-	int Echo[ECHO_BUFFER_LENGTH + 1];
+	int Echo[ECHO_BUFFER_LENGTH + 1] = { };
 };
 
 class CSongState {

@@ -60,8 +60,8 @@ std::string MakeCommandString(effect_t Effect, unsigned char Param) {		// // //
 
 stChannelState::stChannelState()
 {
-	memset(Effect, -1, EF_COUNT * sizeof(int));
-	memset(Echo, -1, ECHO_BUFFER_LENGTH * sizeof(int));
+	memset(Effect, -1, std::size(Effect) * sizeof(int));
+	memset(Echo, -1, std::size(Echo) * sizeof(int));
 }
 
 std::string stChannelState::GetStateString() const {
@@ -160,8 +160,6 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 						  // may not be the case in future additions
 
 	for (int c = 0; c < Chans; ++c) {
-		for (int i = 0; i <= ECHO_BUFFER_LENGTH; ++i)
-			Transpose[c][i] = -1;
 		State[c].ChannelIndex = doc.GetChannelType(c);
 		// State[c].Mute = CFamiTrackerView::GetView()->IsChannelMuted(i);
 	}
