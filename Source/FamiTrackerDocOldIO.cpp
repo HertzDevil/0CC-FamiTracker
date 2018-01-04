@@ -268,10 +268,10 @@ void compat::ReorderSequences(CFamiTrackerDoc &doc, std::vector<COldSequence> se
 						COldSequence &Seq = seqs[Index];		// // //
 						if (j == SEQ_VOLUME)
 							for (unsigned int k = 0; k < Seq.GetLength(); ++k)
-								Seq.Value[k] = std::max(std::min<int>(Seq.Value[k], 15), 0);
+								Seq.Value[k] = std::clamp(Seq.Value[k], (char)0, (char)15);
 						else if (j == SEQ_DUTYCYCLE)
 							for (unsigned int k = 0; k < Seq.GetLength(); ++k)
-								Seq.Value[k] = std::max(std::min<int>(Seq.Value[k], 3), 0);
+								Seq.Value[k] = std::clamp(Seq.Value[k], (char)0, (char)3);
 						Indices[Index][j] = Slots[j];
 						pInst->SetSeqIndex(j, Slots[j]);
 						Manager.SetSequence(INST_2A03, j, Slots[j]++, Seq.Convert(j));

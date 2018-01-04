@@ -180,7 +180,7 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 						case ECHO: chState.Echo[i] = ECHO_BUFFER_ECHO + Note.Octave; break;
 						default:
 							int NewNote = MIDI_NOTE(Note.Octave, Note.Note) + Transpose[c][i];
-							NewNote = std::max(std::min(NewNote, NOTE_COUNT - 1), 0);
+							NewNote = std::clamp(NewNote, 0, NOTE_COUNT - 1);
 							chState.Echo[i] = NewNote;
 						}
 					}
@@ -196,7 +196,7 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 					default:
 						Value = MIDI_NOTE(Note.Octave, Note.Note);
 						UpdateEchoTranspose(Note, Value, EffColumns);
-						Value = std::max(std::min(Value, NOTE_COUNT - 1), 0);
+						Value = std::clamp(Value, 0, NOTE_COUNT - 1);
 					}
 					chState.Echo[BufferPos[c]] = Value;
 					UpdateEchoTranspose(Note, Transpose[c][BufferPos[c]], EffColumns);

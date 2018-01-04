@@ -2125,7 +2125,7 @@ void CPatternEditor::MoveToRow(int Row)
 		if (Row < 0) Row += m_iPatternLength;
 	}
 	else
-		Row = std::min(std::max(Row, 0), m_iPatternLength - 1);
+		Row = std::clamp(Row, 0, m_iPatternLength - 1);
 
 	m_cpCursorPos.m_iRow = Row;
 }
@@ -2151,7 +2151,7 @@ void CPatternEditor::MoveToFrame(int Frame)
 			Frame += FrameCount;
 	}
 	else
-		Frame = std::min(std::max(Frame, 0), FrameCount - 1);
+		Frame = std::clamp(Frame, 0, FrameCount - 1);
 
 	if (m_bSelecting && !theApp.GetSettings()->General.bMultiFrameSel)		// // //
 		m_selection.m_cpStart.m_iFrame = m_selection.m_cpEnd.m_iFrame = Frame;
@@ -2341,8 +2341,7 @@ void CPatternEditor::OnMouseDownPattern(const CPoint &point)
 		if (IsInsideRowColumn(point)) {
 			// Row number column
 			CancelSelection();
-			PointPos.m_iRow = std::max(PointPos.m_iRow, 0);
-			PointPos.m_iRow = std::min(PointPos.m_iRow, PatternLength - 1);		// // //
+			PointPos.m_iRow = std::clamp(PointPos.m_iRow, 0, PatternLength - 1);		// // //
 			m_selection.m_cpStart = CCursorPos(PointPos.m_iRow, 0, C_NOTE, PointPos.m_iFrame);		// // //
 			m_selection.m_cpEnd = CCursorPos(PointPos.m_iRow, ChannelCount - 1, GetChannelColumns(ChannelCount - 1), PointPos.m_iFrame);
 			m_bFullRowSelect = true;
@@ -2501,10 +2500,8 @@ void CPatternEditor::ContinueMouseSelection(const CPoint &point)
 	CCursorPos PointPos = GetCursorAtPoint(point);
 
 	// Selecting or dragging
-	PointPos.m_iRow = std::max(PointPos.m_iRow, 0);
-	PointPos.m_iRow = std::min(PointPos.m_iRow, GetCurrentPatternLength(PointPos.m_iFrame) - 1);		// // //
-	PointPos.m_iChannel = std::max(PointPos.m_iChannel, 0);
-	PointPos.m_iChannel = std::min(PointPos.m_iChannel, ChannelCount - 1);
+	PointPos.m_iRow = std::clamp(PointPos.m_iRow, 0, GetCurrentPatternLength(PointPos.m_iFrame) - 1);		// // //
+	PointPos.m_iChannel = std::clamp(PointPos.m_iChannel, 0, ChannelCount - 1);
 
 	if (m_bDragStart) {
 		// Dragging
@@ -2689,7 +2686,8 @@ void CPatternEditor::OnMouseScroll(int Delta)
 				if (m_cpCursorPos.m_iFrame == 0 && m_bSelecting) --m_iDragBeginWarp;
 			}
 		}
-		else m_cpCursorPos.m_iRow = std::min(std::max(m_cpCursorPos.m_iRow, 0), m_iPatternLength - 1);
+		else
+			m_cpCursorPos.m_iRow = std::clamp(m_cpCursorPos.m_iRow, 0, m_iPatternLength - 1);		// // //
 
 		m_iCenterRow = m_cpCursorPos.m_iRow;
 		if (theApp.GetSettings()->General.iEditStyle != EDIT_STYLE_IT && m_bSelecting == false)
@@ -3091,7 +3089,7 @@ int CPatternEditor::GetSelectionSize() const		// // //
 		const int PatternLength = GetCurrentPatternLength(i);
 		Rows += PatternLength;
 		if (i == FrameBegin)
-			Rows -= std::max(std::min(m_selection.GetRowStart(), PatternLength), 0);
+			Rows -= std::clamp(m_selection.GetRowStart(), 0, PatternLength);
 		if (i == FrameEnd)
 			Rows -= std::max(PatternLength - m_selection.GetRowEnd() - 1, 0);
 	}
@@ -3495,10 +3493,10 @@ void CPatternEditor::GetSelectionAsText(CString &str) const		// // //
 	Header.Append(_T("# "));
 	for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
 		Header.AppendFormat(_T(": %-13s"), m_pDocument->GetChannel(i).GetChannelName());
-		unsigned Columns = m_pDocument->GetEffColumns(Track, i);
+		int Columns = m_pDocument->GetEffColumns(Track, i);
 		if (i == it.second.m_iChannel)
-			Columns = std::min(Columns, static_cast<unsigned>(std::max(0, static_cast<int>(GetSelectColumn(it.second.m_iColumn)) - 3)));
-		for (unsigned j = 0; j < Columns; j++)
+			Columns = std::clamp(static_cast<int>(GetSelectColumn(it.second.m_iColumn)) - 3, 0, Columns);
+		for (int j = 0; j < Columns; j++)
 			Header.AppendFormat(_T("fx%d "), j + 2);
 	}
 	str = Header.TrimRight() + _T("\r\n");

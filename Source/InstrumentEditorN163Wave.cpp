@@ -33,8 +33,6 @@
 #include "Clipboard.h"
 #include "WavegenBuiltin.h" // test
 
-using namespace std;
-
 #define WAVE_SIZE_AVAILABLE (256 - 16 * GetDocument()->GetNamcoChannels())		// // //
 
 // CInstrumentEditorN163Wave dialog
@@ -246,23 +244,21 @@ void CInstrumentEditorN163Wave::OnBnClickedPaste()
 
 void CInstrumentEditorN163Wave::ParseString(LPCTSTR pString)
 {
-	string str(pString);
+	std::string str(pString);
 
 	// Convert to register values
-	istringstream values(str);
-	istream_iterator<int> begin(values);
-	istream_iterator<int> end;
+	std::istringstream values(str);
+	std::istream_iterator<int> b(values);
+	std::istream_iterator<int> e;
 
 	int i;
-	for (i = 0; (i < WAVE_SIZE_AVAILABLE) && (begin != end); ++i) {		// // //
-		int value = *begin++;
+	for (i = 0; (i < WAVE_SIZE_AVAILABLE) && (b != e); ++i) {		// // //
+		int value = *b++;
 		if (value >= 0 && value <= 15)
 			m_pInstrument->SetSample(m_iWaveIndex, i, value);
 	}
 
-	int size = i & 0xFC;
-	if (size < 4)
-		size = 4;
+	int size = std::clamp(i & 0xFC, 4, WAVE_SIZE_AVAILABLE);
 	m_pInstrument->SetWaveSize(size);
 
 	static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE))->SelectString(0, MakeIntString(size));
@@ -289,12 +285,7 @@ void CInstrumentEditorN163Wave::OnWaveSizeChange()
 {
 	BOOL trans;
 	int size = GetDlgItemInt(IDC_WAVE_SIZE, &trans, FALSE);
-	size = size & 0xFC;
-
-	if (size > WAVE_SIZE_AVAILABLE)
-		size = WAVE_SIZE_AVAILABLE;
-	if (size < 4)
-		size = 4;
+	size = std::clamp(size & 0xFC, 4, WAVE_SIZE_AVAILABLE);		// // //
 
 	m_pInstrument->SetWaveSize(size);
 
@@ -310,12 +301,7 @@ void CInstrumentEditorN163Wave::OnWavePosChange()
 	BOOL trans;
 	int pos = GetDlgItemInt(IDC_WAVE_POS, &trans, FALSE);
 
-	if (pos > 255)
-		pos = 255;
-	if (pos < 0)
-		pos = 0;
-
-	m_pInstrument->SetWavePos(pos);
+	m_pInstrument->SetWavePos(std::clamp(pos, 0, 255));		// // //
 }
 
 void CInstrumentEditorN163Wave::OnWavePosSelChange()
@@ -326,12 +312,7 @@ void CInstrumentEditorN163Wave::OnWavePosSelChange()
 
 	int pos = _ttoi(str);
 
-	if (pos > 255)
-		pos = 255;
-	if (pos < 0)
-		pos = 0;
-
-	m_pInstrument->SetWavePos(pos);
+	m_pInstrument->SetWavePos(std::clamp(pos, 0, 255));		// // //
 }
 
 void CInstrumentEditorN163Wave::FillPosBox(int size)

@@ -40,8 +40,6 @@
  *
  */
 
-using namespace std;
-
 bool CWaveEditorFDS::m_bLineMode = true;
 bool CWaveEditorN163::m_bLineMode = false;
 
@@ -225,8 +223,7 @@ void CWaveEditor::OnMButtonUp(UINT nFlags, CPoint point)
 
 void CWaveEditor::EditWave(CPoint pt1, CPoint pt2)
 {
-	int x1 = min(pt2.x, pt1.x);
-	int x2 = max(pt2.x, pt1.x);
+	auto [x1, x2] = std::minmax(pt2.x, pt1.x);		// // //
 
 	float dx = float(pt2.x - pt1.x);
 	float dy = float(pt2.y - pt1.y) / dx;

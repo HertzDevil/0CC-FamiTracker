@@ -244,11 +244,11 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	int ActiveFrame			= GetEditFrame();		// // //
 	int ActiveChannel		= pView->GetSelectedChannel();
 
-	m_iFirstChannel = std::max(ActiveChannel - (ChannelCount - 1), std::min(ActiveChannel, m_iFirstChannel));
+	m_iFirstChannel = std::clamp(m_iFirstChannel, ActiveChannel - (ChannelCount - 1), ActiveChannel);
 
 	if (m_bLastRow)		// // //
 		++ActiveFrame;
-	ActiveFrame = std::max(0, std::min(FrameCount, ActiveFrame));
+	ActiveFrame = std::clamp(ActiveFrame, 0, FrameCount);
 
 	CFont *pOldFont = m_dcBack.SelectObject(&m_Font);
 
@@ -733,7 +733,7 @@ int CFrameEditor::GetRowFromPoint(const CPoint &point, bool DropTarget) const
 	int NewFrame = GetEditFrame() - m_iMiddleRow + Delta;
 	int MaxFrame = m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) - (DropTarget ? 0 : 1);
 
-	return std::max(0, std::min(MaxFrame, NewFrame));
+	return std::clamp(NewFrame, 0, MaxFrame);		// // //
 }
 
 int CFrameEditor::GetChannelFromPoint(const CPoint &point) const

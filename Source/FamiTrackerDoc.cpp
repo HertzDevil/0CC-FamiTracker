@@ -427,48 +427,6 @@ void CFamiTrackerDoc::Dump(CDumpContext& dc) const
 // CFamiTrackerDoc commands
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// File load / save routines
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Functions for compability with older file versions
-
-void CFamiTrackerDoc::ReorderSequences(std::vector<COldSequence> seqs)		// // //
-{
-	int Slots[SEQ_COUNT] = {0, 0, 0, 0, 0};
-	int Indices[MAX_SEQUENCES][SEQ_COUNT];
-
-	memset(Indices, 0xFF, MAX_SEQUENCES * SEQ_COUNT * sizeof(int));
-
-	// Organize sequences
-	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-		if (auto pInst = std::dynamic_pointer_cast<CInstrument2A03>(m_pInstrumentManager->GetInstrument(i))) {		// // //
-			for (int j = 0; j < SEQ_COUNT; ++j) {
-				if (pInst->GetSeqEnable(j)) {
-					int Index = pInst->GetSeqIndex(j);
-					if (Indices[Index][j] >= 0 && Indices[Index][j] != -1) {
-						pInst->SetSeqIndex(j, Indices[Index][j]);
-					}
-					else {
-						COldSequence &Seq = seqs[Index];		// // //
-						if (j == SEQ_VOLUME)
-							for (unsigned int k = 0; k < Seq.GetLength(); ++k)
-								Seq.Value[k] = std::max(std::min<int>(Seq.Value[k], 15), 0);
-						else if (j == SEQ_DUTYCYCLE)
-							for (unsigned int k = 0; k < Seq.GetLength(); ++k)
-								Seq.Value[k] = std::max(std::min<int>(Seq.Value[k], 3), 0);
-						Indices[Index][j] = Slots[j];
-						pInst->SetSeqIndex(j, Slots[j]);
-						m_pInstrumentManager->SetSequence(INST_2A03, j, Slots[j]++, Seq.Convert(j));
-					}
-				}
-				else
-					pInst->SetSeqIndex(j, 0);
-			}
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Document store functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

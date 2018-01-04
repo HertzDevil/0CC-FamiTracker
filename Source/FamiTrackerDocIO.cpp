@@ -303,7 +303,9 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 		n163chans = AssertRange(file_.GetBlockInt(), 1, 8, "N163 channel count");
 
 	// Determine if new or old split point is preferred
-	doc.SetSpeedSplitPoint(ver >= 6 ? file_.GetBlockInt() : CFamiTrackerDoc::OLD_SPEED_SPLIT_POINT);
+	int Split = AssertRange<MODULE_ERROR_STRICT>(ver >= 6 ? file_.GetBlockInt() : CFamiTrackerDoc::OLD_SPEED_SPLIT_POINT,
+		0, 255, "Speed / tempo split point");
+	doc.SetSpeedSplitPoint(Split);
 
 	AssertRange<MODULE_ERROR_STRICT>(Expansion, 0u, 0x3Fu, "Expansion chip flag");
 

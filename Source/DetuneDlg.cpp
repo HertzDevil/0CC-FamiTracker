@@ -202,7 +202,7 @@ double CDetuneDlg::NoteToFreq(double Note)
 void CDetuneDlg::UpdateOctave()
 {
 	CString String;
-	m_iOctave = std::max(std::min(m_iOctave, OCTAVE_RANGE - 1), 0);
+	m_iOctave = std::clamp(m_iOctave, 0, OCTAVE_RANGE - 1);
 	m_cSliderOctave->SetPos(m_iOctave);
 	String.Format(_T("%i"), m_iOctave);
 	m_cEditOctave->SetWindowText(String);
@@ -212,7 +212,7 @@ void CDetuneDlg::UpdateOctave()
 
 void CDetuneDlg::UpdateNote()
 {
-	m_iNote = std::max(std::min(m_iNote, NOTE_COUNT - 1), 0);
+	m_iNote = std::clamp(m_iNote, 0, NOTE_COUNT - 1);
 	m_cSliderNote->SetPos(m_iNote % NOTE_RANGE);
 	m_cEditNote->SetWindowText(_T(m_pNote[m_iNote % NOTE_RANGE]));
 	m_iOctave = m_iNote / NOTE_RANGE;

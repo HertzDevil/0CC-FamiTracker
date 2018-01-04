@@ -2910,7 +2910,7 @@ void CFamiTrackerView::SplitKeyboardAdjust(stChanNote &Note, int Channel) const	
 	if (m_iSplitNote != -1 && GetDocument()->GetChannelType(Channel) != CHANID_NOISE) {
 		int MidiNote = MIDI_NOTE(Note.Octave, Note.Note);
 		if (MidiNote <= m_iSplitNote) {
-			MidiNote = std::max(0, std::min(NOTE_COUNT - 1, MidiNote + m_iSplitTranspose));
+			MidiNote = std::clamp(MidiNote + m_iSplitTranspose, 0, NOTE_COUNT - 1);
 			Note.Octave = GET_OCTAVE(MidiNote);
 			Note.Note = GET_NOTE(MidiNote);
 

@@ -244,9 +244,7 @@ void CInstrumentEditorFDS::OnModRateChange()
 {
 	if (m_pInstrument) {
 		int ModSpeed = GetDlgItemInt(IDC_MOD_RATE);
-		ModSpeed = std::max(ModSpeed, 0);
-		ModSpeed = std::min(ModSpeed, 4095);
-		m_pInstrument->SetModulationSpeed(ModSpeed);
+		m_pInstrument->SetModulationSpeed(std::clamp(ModSpeed, 0, 4095));		// // //
 	}
 	theApp.GetSoundGenerator()->WaveChanged();
 }
@@ -255,9 +253,7 @@ void CInstrumentEditorFDS::OnModDepthChange()
 {
 	if (m_pInstrument) {
 		int ModDepth = GetDlgItemInt(IDC_MOD_DEPTH);
-		ModDepth = std::max(ModDepth, 0);
-		ModDepth = std::min(ModDepth, 63);
-		m_pInstrument->SetModulationDepth(ModDepth);
+		m_pInstrument->SetModulationDepth(std::clamp(ModDepth, 0, 63));		// // //
 	}
 	theApp.GetSoundGenerator()->WaveChanged();
 }
@@ -266,9 +262,7 @@ void CInstrumentEditorFDS::OnModDelayChange()
 {
 	if (m_pInstrument) {
 		int ModDelay = GetDlgItemInt(IDC_MOD_DELAY);
-		ModDelay = std::max(ModDelay, 0);
-		ModDelay = std::min(ModDelay, 255);
-		m_pInstrument->SetModulationDelay(ModDelay);
+		m_pInstrument->SetModulationDelay(std::clamp(ModDelay, 0, 255));		// // //
 	}
 	theApp.GetSoundGenerator()->WaveChanged();
 }
@@ -319,7 +313,7 @@ void CInstrumentEditorFDS::ParseWaveString(LPCTSTR pString)
 
 	for (int i = 0; (i < 64) && (begin != end); ++i) {
 		int value = CSequenceInstrumentEditPanel::ReadStringValue(*begin++, false);
-		value = std::min<int>(std::max<int>(value, 0), 63);
+		value = std::clamp(value, 0, 63);		// // //
 		m_pInstrument->SetSample(i, value);
 	}
 
@@ -373,7 +367,7 @@ void CInstrumentEditorFDS::ParseTableString(LPCTSTR pString)
 
 	for (int i = 0; (i < 32) && (begin != end); ++i) {
 		int value = CSequenceInstrumentEditPanel::ReadStringValue(*begin++, false);
-		value = std::min<int>(std::max<int>(value, 0), 7);
+		value = std::clamp(value, 0, 7);		// // //
 		m_pInstrument->SetModulation(i, value);
 	}
 

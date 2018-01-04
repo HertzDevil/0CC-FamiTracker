@@ -375,9 +375,6 @@ private:
 	BOOL			OpenDocumentOld(CFile *pOpenFile);
 	BOOL			OpenDocumentNew(CDocumentFile &DocumentFile);
 
-	// For file version compability
-	void			ReorderSequences(std::vector<COldSequence> seqs);		// // //
-
 #ifdef AUTOSAVE
 	void			SetupAutoSave();
 	void			ClearAutoSave();

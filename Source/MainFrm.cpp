@@ -769,43 +769,45 @@ void CMainFrame::SetTempo(int Tempo)
 {
 	CFamiTrackerDoc &Doc = GetDoc();
 	int MinTempo = Doc.GetSpeedSplitPoint();
-	Tempo = std::max(Tempo, MinTempo);
-	Tempo = std::min(Tempo, MAX_TEMPO);
-	if (Tempo != Doc.GetSongTempo(m_iTrack))		// // //
+	Tempo = std::clamp(Tempo, MinTempo, MAX_TEMPO);
+	if (Tempo != Doc.GetSongTempo(m_iTrack)) {		// // //
 		Doc.ModifyIrreversible();
-	Doc.SetSongTempo(m_iTrack, Tempo);
-	theApp.GetSoundGenerator()->ResetTempo();
+		Doc.SetSongTempo(m_iTrack, Tempo);
+		theApp.GetSoundGenerator()->ResetTempo();
 
-	if (m_wndDialogBar.GetDlgItemInt(IDC_TEMPO) != Tempo)
-		m_wndDialogBar.SetDlgItemInt(IDC_TEMPO, Tempo, FALSE);
+		if (m_wndDialogBar.GetDlgItemInt(IDC_TEMPO) != Tempo)
+			m_wndDialogBar.SetDlgItemInt(IDC_TEMPO, Tempo, FALSE);
+	}
 }
 
 void CMainFrame::SetSpeed(int Speed)
 {
 	CFamiTrackerDoc &Doc = GetDoc();
 	int MaxSpeed = Doc.GetSongTempo(m_iTrack) ? Doc.GetSpeedSplitPoint() - 1 : 0xFF;
-	Speed = std::max(std::min(Speed, MaxSpeed), MIN_SPEED);
-	if (Speed != Doc.GetSongSpeed(m_iTrack) || Doc.GetSongGroove(m_iTrack))		// // //
+	Speed = std::clamp(Speed, MIN_SPEED, MaxSpeed);
+	if (Speed != Doc.GetSongSpeed(m_iTrack) || Doc.GetSongGroove(m_iTrack)) {		// // //
 		Doc.ModifyIrreversible();
-	Doc.SetSongGroove(m_iTrack, false);
-	Doc.SetSongSpeed(m_iTrack, Speed);
-	theApp.GetSoundGenerator()->ResetTempo();
+		Doc.SetSongGroove(m_iTrack, false);
+		Doc.SetSongSpeed(m_iTrack, Speed);
+		theApp.GetSoundGenerator()->ResetTempo();
 
-	if (m_wndDialogBar.GetDlgItemInt(IDC_SPEED) != Speed)
-		m_wndDialogBar.SetDlgItemInt(IDC_SPEED, Speed, FALSE);
+		if (m_wndDialogBar.GetDlgItemInt(IDC_SPEED) != Speed)
+			m_wndDialogBar.SetDlgItemInt(IDC_SPEED, Speed, FALSE);
+	}
 }
 
 void CMainFrame::SetGroove(int Groove) {
 	CFamiTrackerDoc &Doc = GetDoc();
-	Groove = std::max(std::min(Groove, MAX_GROOVE - 1), 0);
-	if (Groove != Doc.GetSongSpeed(m_iTrack) || !Doc.GetSongGroove(m_iTrack))		// // //
+	Groove = std::clamp(Groove, 0, MAX_GROOVE - 1);
+	if (Groove != Doc.GetSongSpeed(m_iTrack) || !Doc.GetSongGroove(m_iTrack)) {		// // //
 		Doc.ModifyIrreversible();
-	Doc.SetSongGroove(m_iTrack, true);
-	Doc.SetSongSpeed(m_iTrack, Groove);
-	theApp.GetSoundGenerator()->ResetTempo();
+		Doc.SetSongGroove(m_iTrack, true);
+		Doc.SetSongSpeed(m_iTrack, Groove);
+		theApp.GetSoundGenerator()->ResetTempo();
 
-	if (m_wndDialogBar.GetDlgItemInt(IDC_SPEED) != Groove)
-		m_wndDialogBar.SetDlgItemInt(IDC_SPEED, Groove, FALSE);
+		if (m_wndDialogBar.GetDlgItemInt(IDC_SPEED) != Groove)
+			m_wndDialogBar.SetDlgItemInt(IDC_SPEED, Groove, FALSE);
+	}
 }
 
 void CMainFrame::SetRowCount(int Count)
@@ -813,10 +815,10 @@ void CMainFrame::SetRowCount(int Count)
 	if (!GetDoc().IsFileLoaded())
 		return;
 
-	AddAction(std::make_unique<CPActionPatternLen>(std::min(std::max(Count, 1), MAX_PATTERN_LENGTH)));		// // //
-
-	if (m_wndDialogBar.GetDlgItemInt(IDC_ROWS) != Count)
-		m_wndDialogBar.SetDlgItemInt(IDC_ROWS, Count, FALSE);
+	Count = std::clamp(Count, 1, MAX_PATTERN_LENGTH);		// // //
+	if (AddAction(std::make_unique<CPActionPatternLen>(Count)))		// // //
+		if (m_wndDialogBar.GetDlgItemInt(IDC_ROWS) != Count)
+			m_wndDialogBar.SetDlgItemInt(IDC_ROWS, Count, FALSE);
 }
 
 void CMainFrame::SetFrameCount(int Count)
@@ -824,13 +826,10 @@ void CMainFrame::SetFrameCount(int Count)
 	if (!GetDoc().IsFileLoaded())
 		return;
 
-	Count = std::max(Count, 1);
-	Count = std::min(Count, MAX_FRAMES);
-
-	AddAction(std::make_unique<CFActionFrameCount>(std::min(std::max(Count, 1), MAX_FRAMES)));		// // //
-
-	if (m_wndDialogBar.GetDlgItemInt(IDC_FRAMES) != Count)
-		m_wndDialogBar.SetDlgItemInt(IDC_FRAMES, Count, FALSE);
+	Count = std::clamp(Count, 1, MAX_FRAMES);		// // //
+	if (AddAction(std::make_unique<CFActionFrameCount>(Count)))		// // //
+		if (m_wndDialogBar.GetDlgItemInt(IDC_FRAMES) != Count)
+			m_wndDialogBar.SetDlgItemInt(IDC_FRAMES, Count, FALSE);
 }
 
 void CMainFrame::UpdateControls()
@@ -1499,17 +1498,13 @@ void CMainFrame::OnKeyRepeat()
 void CMainFrame::OnDeltaposKeyStepSpin(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	int Pos = m_wndDialogBar.GetDlgItemInt(IDC_KEYSTEP) - ((NMUPDOWN*)pNMHDR)->iDelta;
-	Pos = std::max(Pos, 0);
-	Pos = std::min(Pos, MAX_PATTERN_LENGTH);
-	m_wndDialogBar.SetDlgItemInt(IDC_KEYSTEP, Pos);
+	m_wndDialogBar.SetDlgItemInt(IDC_KEYSTEP, std::clamp(Pos, 0, MAX_PATTERN_LENGTH));		// // //
 }
 
 void CMainFrame::OnEnKeyStepChange()
 {
 	int Step = m_wndDialogBar.GetDlgItemInt(IDC_KEYSTEP);
-	Step = std::max(Step, 0);
-	Step = std::min(Step, MAX_PATTERN_LENGTH);
-	static_cast<CFamiTrackerView*>(GetActiveView())->SetStepping(Step);
+	static_cast<CFamiTrackerView*>(GetActiveView())->SetStepping(std::clamp(Step, 0, MAX_PATTERN_LENGTH));		// // //
 }
 
 void CMainFrame::OnCreateNSF()
@@ -1824,10 +1819,7 @@ void CMainFrame::OnUpdateHighlight1(CCmdUI *pCmdUI)		// // //
 		const CFamiTrackerDoc &Doc = GetDoc();
 		if (m_cLockedEditHighlight1.Update())
 			AddAction(std::make_unique<CPActionHighlight>(stHighlight {
-				std::max(0, std::min(MAX_PATTERN_LENGTH, m_cLockedEditHighlight1.GetValue())),
-				Doc.GetHighlight().Second,
-				0
-			}));
+				std::clamp(m_cLockedEditHighlight1.GetValue(), 0, MAX_PATTERN_LENGTH), Doc.GetHighlight().Second, 0}));
 		else
 			pCmdUI->SetText(MakeIntString(Doc.GetHighlight().First));
 	}
@@ -1839,10 +1831,7 @@ void CMainFrame::OnUpdateHighlight2(CCmdUI *pCmdUI)		// // //
 		const CFamiTrackerDoc &Doc = GetDoc();
 		if (m_cLockedEditHighlight2.Update())
 			AddAction(std::make_unique<CPActionHighlight>(stHighlight {
-				Doc.GetHighlight().First,
-				std::max(0, std::min(MAX_PATTERN_LENGTH, m_cLockedEditHighlight2.GetValue())),
-				0
-			}));
+				Doc.GetHighlight().First, std::clamp(m_cLockedEditHighlight2.GetValue(), 0, MAX_PATTERN_LENGTH), 0}));
 		else
 			pCmdUI->SetText(MakeIntString(Doc.GetHighlight().Second));
 	}
@@ -2366,7 +2355,7 @@ void CMainFrame::OnDeltaposHighlightSpin1(NMHDR *pNMHDR, LRESULT *pResult)		// /
 {
 	if (HasDocument()) {
 		stHighlight Hl = GetDoc().GetHighlight();
-		Hl.First = std::max(0, std::min(MAX_PATTERN_LENGTH, Hl.First - ((NMUPDOWN*)pNMHDR)->iDelta));
+		Hl.First = std::clamp(Hl.First - ((NMUPDOWN*)pNMHDR)->iDelta, 0, MAX_PATTERN_LENGTH);
 		AddAction(std::make_unique<CPActionHighlight>(Hl));
 		theApp.GetSoundGenerator()->SetHighlightRows(Hl.First);		// // //
 	}
@@ -2376,7 +2365,7 @@ void CMainFrame::OnDeltaposHighlightSpin2(NMHDR *pNMHDR, LRESULT *pResult)		// /
 {
 	if (HasDocument()) {
 		stHighlight Hl = GetDoc().GetHighlight();
-		Hl.Second = std::max(0, std::min(MAX_PATTERN_LENGTH, Hl.Second - ((NMUPDOWN*)pNMHDR)->iDelta));
+		Hl.Second = std::clamp(Hl.Second - ((NMUPDOWN*)pNMHDR)->iDelta, 0, MAX_PATTERN_LENGTH);
 		AddAction(std::make_unique<CPActionHighlight>(Hl));
 	}
 }

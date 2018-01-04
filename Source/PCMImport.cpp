@@ -384,9 +384,9 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ConvertFile() {		// // //
 	while (resmpler.get(val) && (pSamples.size() < ft0cc::doc::dpcm_sample::max_size)) {		// // //
 
 		// when resampling we must clip because of possible ringing.
-		static const int MAX_AMP =  (1 << 16) - 1;
-		static const int MIN_AMP = -(1 << 16) + 1; // just being symetric
-		val = (std::max<float>(std::min<float>(val, (float)MAX_AMP), (float)MIN_AMP));
+		static const float MAX_AMP =  (1 << 16) - 1;
+		static const float MIN_AMP = -(1 << 16) + 1; // just being symetric
+		val = std::clamp(val, MIN_AMP, MAX_AMP);
 
 		// Volume done this way so it acts as before
 		int Sample = (int)((val * volume) / 1024.f) + DMC_BIAS;

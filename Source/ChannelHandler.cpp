@@ -38,12 +38,6 @@
 #include "APU/APU.h"
 #include "InstHandler.h"		// // //
 
-#ifdef max
-#undef max
-#endif
-#ifdef min
-#undef min
-#endif
 #include <algorithm>		// // //
 
 /*
@@ -111,8 +105,8 @@ int CChannelHandler::GetPitch() const
 {
 	if (m_iPitch != 0 && m_iNote != -1 && m_pNoteLookupTable != NULL) {
 		// Interpolate pitch
-		int LowNote  = std::max(m_iNote - PITCH_WHEEL_RANGE, 0);
-		int HighNote = std::min(m_iNote + PITCH_WHEEL_RANGE, 95);
+		int LowNote  = std::clamp(m_iNote - PITCH_WHEEL_RANGE, 0, NOTE_COUNT - 1);		// // //
+		int HighNote = std::clamp(m_iNote + PITCH_WHEEL_RANGE, 0, NOTE_COUNT - 1);
 		int Freq	 = m_pNoteLookupTable[m_iNote];
 		int Lower	 = m_pNoteLookupTable[LowNote];
 		int Higher	 = m_pNoteLookupTable[HighNote];
@@ -317,7 +311,7 @@ void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, int Pos)
 				break;
 			}
 		}
-		Value = std::max(std::min(Value, NOTE_COUNT - 1), 0);
+		Value = std::clamp(Value, 0, NOTE_COUNT - 1);
 	}
 
 	m_iEchoBuffer[Pos] = Value;
@@ -469,8 +463,7 @@ void CChannelHandler::SetNoteTable(const unsigned int *pNoteLookupTable)
 
 int CChannelHandler::TriggerNote(int Note)
 {
-	Note = std::min(Note, NOTE_COUNT - 1);
-	Note = std::max(Note, 0);
+	Note = std::clamp(Note, 0, NOTE_COUNT - 1);		// // //
 
 	// Trigger a note, return note period
 	RegisterKeyState(Note);
@@ -928,12 +921,12 @@ int CChannelHandler::CalculateVolume() const
 int CChannelHandler::LimitPeriod(int Period) const		// // // virtual
 {
 	if (!m_bLinearPitch) return LimitRawPeriod(Period);
-	return std::min(std::max(Period, 0), (NOTE_COUNT - 1) << LINEAR_PITCH_AMOUNT);
+	return std::clamp(Period, 0, (NOTE_COUNT - 1) << LINEAR_PITCH_AMOUNT);
 }
 
 int CChannelHandler::LimitRawPeriod(int Period) const
 {
-	return std::min(std::max(Period, 0), m_iMaxPeriod);
+	return std::clamp(Period, 0, m_iMaxPeriod);
 }
 
 int CChannelHandler::LimitVolume(int Volume) const		// // //
@@ -941,7 +934,7 @@ int CChannelHandler::LimitVolume(int Volume) const		// // //
 	if (!m_bGate)
 		return 0;
 
-	Volume = std::max(0, std::min(m_iMaxVolume, Volume));
+	Volume = std::clamp(Volume, 0, m_iMaxVolume);
 	if (Volume == 0 && !theApp.GetSettings()->General.bCutVolume && m_iInstVolume > 0 && m_iVolume > 0)		// // //
 		return 1;
 	return Volume;

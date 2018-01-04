@@ -206,8 +206,8 @@ inline void C2A03::RunAPU1(uint32_t Time)
 {
 	// APU pin 1
 	while (Time > 0) {
-		uint32_t Period = std::min(m_Square1.GetPeriod(), m_Square2.GetPeriod());
-		Period = std::min<uint32_t>(std::max<uint32_t>(Period, 7), Time);
+		uint32_t Period = std::max((uint32_t)std::min(m_Square1.GetPeriod(), m_Square2.GetPeriod()), 7u);
+		Period = std::min(Period, Time);
 		m_Square1.Process(Period);
 		m_Square2.Process(Period);
 		Time -= Period;
@@ -218,9 +218,8 @@ inline void C2A03::RunAPU2(uint32_t Time)
 {
 	// APU pin 2
 	while (Time > 0) {
-		uint32_t Period = std::min(m_Triangle.GetPeriod(), m_Noise.GetPeriod());
-		Period = std::min<uint32_t>(Period, m_DPCM.GetPeriod());
-		Period = std::min<uint32_t>(std::max<uint32_t>(Period, 7), Time);
+		uint32_t Period = std::max((uint32_t)std::min(std::min(m_Triangle.GetPeriod(), m_Noise.GetPeriod()), m_DPCM.GetPeriod()), 7u);
+		Period = std::min(Period, Time);
 		m_Triangle.Process(Period);
 		m_Noise.Process(Period);
 		m_DPCM.Process(Period);
