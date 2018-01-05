@@ -20,12 +20,8 @@
 ** must bear this legend.
 */
 
-#include "stdafx.h"
-#include "Instrument.h"
-#include "SeqInstrument.h"
-#include "InstrumentN163.h"
-#include "ChannelHandlerInterface.h"
 #include "SeqInstHandlerN163.h"
+#include "ChannelHandlerInterface.h"
 
 /*
  * Class CSeqInstHandlerN163
@@ -65,7 +61,7 @@ void CSeqInstHandlerN163::UpdateInstrument()
 
 	if (auto pInterface = dynamic_cast<CChannelHandlerInterfaceN163*>(m_pInterface)) {
 		if (auto pN163Inst = std::dynamic_pointer_cast<const CInstrumentN163>(m_pInstrument)) {
-			UpdateWave(pN163Inst.get());
+			UpdateWave(*pN163Inst);
 		}
 	}
 	m_bForceUpdate = false;
@@ -76,7 +72,7 @@ void CSeqInstHandlerN163::RequestWaveUpdate()
 	m_bForceUpdate = true;
 }
 
-void CSeqInstHandlerN163::UpdateWave(const CInstrumentN163 *pInst)
+void CSeqInstHandlerN163::UpdateWave(const CInstrumentN163 &Inst)
 {
 	char *Temp = m_pBufferPrevious;
 	m_pBufferPrevious = m_pBufferCurrent;
@@ -86,13 +82,13 @@ void CSeqInstHandlerN163::UpdateWave(const CInstrumentN163 *pInst)
 	// int Duty = m_pInterface->GetDutyPeriod();
 	// if (Duty < 0) return;
 	int Index = m_pInterface->GetDutyPeriod();
-	if (Index >= pInst->GetWaveCount())
-		Index = pInst->GetWaveCount() - 1;
-	const int Count = pInst->GetWaveSize() >> 1;
+	if (Index >= Inst.GetWaveCount())
+		Index = Inst.GetWaveCount() - 1;
+	const int Count = Inst.GetWaveSize() >> 1;
 	for (int i = 0; i < Count; ++i)
-		m_pBufferCurrent[i] = pInst->GetSample(Index, 2 * i) | (pInst->GetSample(Index, 2 * i + 1) << 4);
+		m_pBufferCurrent[i] = Inst.GetSample(Index, 2 * i) | (Inst.GetSample(Index, 2 * i + 1) << 4);
 
 	if (auto pInterface = dynamic_cast<CChannelHandlerInterfaceN163*>(m_pInterface))
 		if (memcmp(m_pBufferCurrent, m_pBufferPrevious, Count) != 0 || m_bForceUpdate)
-			pInterface->FillWaveRAM(m_pBufferCurrent, pInst->GetWaveSize() >> 1);
+			pInterface->FillWaveRAM(m_pBufferCurrent, Inst.GetWaveSize() >> 1);
 }

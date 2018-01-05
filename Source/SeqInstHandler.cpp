@@ -20,17 +20,15 @@
 ** must bear this legend.
 */
 
+#include "SeqInstHandler.h"
 #include "stdafx.h"
 #include "FamiTracker.h" // theApp.getSoundGenerator()
 #include "APU/Types.h"
 #include "FamiTrackerTypes.h"
 #include "SoundGen.h"
 
-#include "Instrument.h"
 #include "SeqInstrument.h"
-#include "Sequence.h"
 #include "ChannelHandlerInterface.h"
-#include "SeqInstHandler.h"
 
 /*
  * Class CSeqInstHandler

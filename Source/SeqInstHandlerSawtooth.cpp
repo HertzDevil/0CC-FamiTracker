@@ -20,10 +20,8 @@
 ** must bear this legend.
 */
 
-#include "stdafx.h"
-#include "Sequence.h"
-#include "ChannelHandlerInterface.h"
 #include "SeqInstHandlerSawtooth.h"
+#include "ChannelHandlerInterface.h"
 
 void CSeqInstHandlerSawtooth::TriggerInstrument()
 {

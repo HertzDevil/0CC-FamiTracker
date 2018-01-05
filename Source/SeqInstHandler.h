@@ -24,8 +24,8 @@
 #pragma once
 
 #include "InstHandler.h"
+#include "Sequence.h"
 
-class CSequence;
 class CSeqInstrument;
 
 /*!

@@ -20,9 +20,9 @@
 ** must bear this legend.
 */
 
+#include "Exception.h"
 #include "stdafx.h"
 #include <Dbghelp.h>
-#include "Exception.h"
 #include "version.h"
 
 //

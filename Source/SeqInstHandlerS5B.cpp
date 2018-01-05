@@ -20,10 +20,8 @@
 ** must bear this legend.
 */
 
-#include "stdafx.h"
-#include "Sequence.h"
-#include "ChannelHandlerInterface.h"
 #include "SeqInstHandlerS5B.h"
+#include "ChannelHandlerInterface.h"
 
 bool CSeqInstHandlerS5B::ProcessSequence(int Index, unsigned Setting, int Value)
 {

@@ -20,8 +20,8 @@
 ** must bear this legend.
 */
 
-#pragma once
 
+#pragma once
 
 #ifndef _DEBUG
 // Enable crash handler

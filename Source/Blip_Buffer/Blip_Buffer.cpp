@@ -1,8 +1,6 @@
 
 // Blip_Buffer 0.4.0. http://www.slack.net/~ant/
 
-#include "../stdafx.h"
-
 #include "Blip_Buffer.h"
 
 #include <assert.h>

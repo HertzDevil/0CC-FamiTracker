@@ -20,13 +20,9 @@
 ** must bear this legend.
 */
 
-#include "stdafx.h"
-#include "Sequence.h"
-#include "Instrument.h"
-#include "SeqInstrument.h"
+#include "SeqInstHandlerFDS.h"
 #include "InstrumentFDS.h"
 #include "ChannelHandlerInterface.h"
-#include "SeqInstHandlerFDS.h"
 
 /*
  * Class CSeqInstHandlerFDS

@@ -23,9 +23,7 @@
 
 #pragma once
 
-#include "stdafx.h"
 #include "FFT/FftBuffer.h"		// // //
-#include <memory>
 #include "VisualizerBase.h"		// // //
 
 // CVisualizerSpectrum, spectrum style visualizer

@@ -20,11 +20,9 @@
 ** must bear this legend.
 */
 
-#include "stdafx.h"
-#include "Instrument.h"
+#include "InstHandlerVRC7.h"
 #include "InstrumentVRC7.h"
 #include "ChannelHandlerInterface.h"
-#include "InstHandlerVRC7.h"
 
 void CInstHandlerVRC7::LoadInstrument(std::shared_ptr<CInstrument> pInst)
 {

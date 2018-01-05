@@ -20,12 +20,9 @@
 ** must bear this legend.
 */
 
-#include "stdafx.h"
-#include "Instrument.h"
-#include "SeqInstrument.h"
+#include "InstHandlerDPCM.h"
 #include "Instrument2A03.h"
 #include "ChannelHandlerInterface.h"
-#include "InstHandlerDPCM.h"
 
 CInstHandlerDPCM::CInstHandlerDPCM(CChannelHandlerInterface *pInterface) :
 	CInstHandler(pInterface, 0)

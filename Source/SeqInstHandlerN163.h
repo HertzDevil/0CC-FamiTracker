@@ -23,8 +23,7 @@
 #pragma once
 
 #include "SeqInstHandler.h"
-
-class CInstrumentN163;
+#include "InstrumentN163.h"
 
 /*!
 	\brief Class for N163 sequence instrument handlers.
@@ -56,7 +55,7 @@ public:
 	void RequestWaveUpdate();
 
 private:
-	void UpdateWave(const CInstrumentN163 *pInst);
+	void UpdateWave(const CInstrumentN163 &Inst);
 
 private:
 	char m_cBuffer[CInstrumentN163::MAX_WAVE_SIZE * 2];

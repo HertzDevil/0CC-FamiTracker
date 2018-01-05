@@ -20,8 +20,6 @@
 ** must bear this legend.
 */
 
-
-#include "stdafx.h"
 #include "NoteQueue.h"
 
 enum class CNoteChannelQueue::note_state_t {HOLD, RELEASE};

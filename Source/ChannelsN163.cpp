@@ -20,9 +20,6 @@
 ** must bear this legend.
 */
 
-#ifdef _DEBUG
-#include "stdafx.h"
-#endif
 #include "ChannelsN163.h"
 //#include "FamiTracker.h"
 #include "APU/Types.h"		// // //
@@ -32,6 +29,9 @@
 #include "SeqInstHandler.h"		// // //
 #include "SeqInstHandlerN163.h"		// // //
 #include "SongState.h"		// // //
+#ifdef _DEBUG
+#include "stdafx.h"
+#endif
 
 const int N163_PITCH_SLIDE_SHIFT = 2;	// Increase amplitude of pitch slides
 
