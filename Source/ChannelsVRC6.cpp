@@ -27,8 +27,7 @@
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 #include "SeqInstHandlerSawtooth.h"		// // //
-#include "stdafx.h"
-#include "FamiTracker.h"		// // //
+#include "FamiTrackerEnv.h"		// // //
 #include "Settings.h"		// // //
 
 CChannelHandlerVRC6::CChannelHandlerVRC6(int MaxPeriod, int MaxVolume) :		// // //
@@ -159,7 +158,7 @@ int CVRC6Sawtooth::CalculateVolume() const		// // //
 		_64_step = pHandler->IsDutyIgnored();
 
 	if (_64_step) {
-		if (!theApp.GetSettings()->General.bFDSOldVolume)		// // // match NSF setting
+		if (!Env.GetSettings()->General.bFDSOldVolume)		// // // match NSF setting
 			return LimitVolume(((m_iInstVolume + 1) * ((m_iVolume >> VOL_COLUMN_SHIFT) + 1) - 1) / 16 - GetTremolo());
 		return CChannelHandler::CalculateVolume();
 	}

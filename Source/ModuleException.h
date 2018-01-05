@@ -27,8 +27,7 @@
 #include <vector>
 #include <exception>
 
-#include "stdafx.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"
 #include "Settings.h"
 
 /*!
@@ -84,7 +83,7 @@ public:
 	template <module_error_level_t l = MODULE_ERROR_DEFAULT, typename T, typename U, typename V>
 	static T AssertRangeFmt(T Value, U Min, V Max, const std::string &Desc)
 	{
-		if (l > theApp.GetSettings()->Version.iErrorLevel)
+		if (l > Env.GetSettings()->Version.iErrorLevel)
 			return Value;
 		if (!(Value >= Min && Value <= Max)) {
 			std::string msg = Desc + " out of range: expected ["

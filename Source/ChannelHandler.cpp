@@ -32,8 +32,7 @@
 #include "TrackerChannel.h"		// // //
 #include "APU/Types.h"		// // //
 #include "SoundGenBase.h"		// // //
-#include "stdafx.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "Settings.h"		// // //
 #include "APU/APU.h"
 #include "InstHandler.h"		// // //
@@ -935,7 +934,7 @@ int CChannelHandler::LimitVolume(int Volume) const		// // //
 		return 0;
 
 	Volume = std::clamp(Volume, 0, m_iMaxVolume);
-	if (Volume == 0 && !theApp.GetSettings()->General.bCutVolume && m_iInstVolume > 0 && m_iVolume > 0)		// // //
+	if (Volume == 0 && !Env.GetSettings()->General.bCutVolume && m_iInstVolume > 0 && m_iVolume > 0)		// // //
 		return 1;
 	return Volume;
 }

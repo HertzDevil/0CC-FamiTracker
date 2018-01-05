@@ -22,6 +22,7 @@
 
 #include "InstrumentEditorDPCM.h"
 #include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
 #include "SampleEditorView.h"
@@ -34,6 +35,7 @@
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "PatternNote.h"		// // // note names
 #include <algorithm>		// // //
+#include "NumConv.h"		// // //
 
 LPCTSTR NO_SAMPLE_STR = _T("(no sample)");
 
@@ -68,14 +70,14 @@ CDMCFileSoundDialog::~CDMCFileSoundDialog()
 void CDMCFileSoundDialog::OnFileNameChange()
 {
 	// Preview DMC file
-	if (!GetFileExt().CompareNoCase(_T("dmc")) && theApp.GetSettings()->General.bWavePreview) {
+	if (!GetFileExt().CompareNoCase(_T("dmc")) && Env.GetSettings()->General.bWavePreview) {
 		DWORD dwAttrib = GetFileAttributes(GetPathName());
 		if (!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY) && GetPathName() != m_strLastFile) {
 			CFile file(GetPathName(), CFile::modeRead);
 			auto size = std::min<unsigned>(static_cast<unsigned>(file.GetLength()), ft0cc::doc::dpcm_sample::max_size);
 			std::vector<uint8_t> pBuf(size);
 			file.Read(pBuf.data(), size);
-			theApp.GetSoundGenerator()->PreviewSample(std::make_shared<ft0cc::doc::dpcm_sample>(pBuf, ""),
+			Env.GetSoundGenerator()->PreviewSample(std::make_shared<ft0cc::doc::dpcm_sample>(pBuf, ""),
 				0, DEFAULT_PREVIEW_PITCH);		// // //
 			file.Close();
 			m_strLastFile = GetPathName();
@@ -231,7 +233,7 @@ void CInstrumentEditorDPCM::BuildSampleList()
 
 	for (int i = 0; i < MAX_DSAMPLES; ++i) {
 		if (auto pDSample = GetDocument()->GetSample(i)) {		// // //
-			pSampleListCtrl->InsertItem(Index, MakeIntString(i));
+			pSampleListCtrl->InsertItem(Index, conv::sv_from_int(i).data());
 			Text.Format(_T("%.*s"), pDSample->name().size(), pDSample->name().data());
 			pSampleListCtrl->SetItemText(Index, 1, Text);
 			Text.Format(_T("%u"), pDSample->size());
@@ -244,9 +246,9 @@ void CInstrumentEditorDPCM::BuildSampleList()
 	}
 
 	AfxFormatString3(Text, IDS_DPCM_SPACE_FORMAT,
-		MakeIntString(Size / 0x400),
-		MakeIntString((MAX_SAMPLE_SPACE - Size) / 0x400),
-		MakeIntString(MAX_SAMPLE_SPACE / 0x400));
+		conv::from_int(Size / 0x400).c_str(),		// // //
+		conv::from_int((MAX_SAMPLE_SPACE - Size) / 0x400).c_str(),
+		conv::from_int(MAX_SAMPLE_SPACE / 0x400).c_str());
 
 	SetDlgItemText(IDC_SPACE, Text);
 }
@@ -298,7 +300,7 @@ bool CInstrumentEditorDPCM::InsertSample(std::shared_ptr<ft0cc::doc::dpcm_sample
 
 	if ((Size + pNewSample->size()) > MAX_SAMPLE_SPACE) {
 		CString message;
-		AfxFormatString1(message, IDS_OUT_OF_SAMPLEMEM_FORMAT, MakeIntString(MAX_SAMPLE_SPACE / 1024));
+		AfxFormatString1(message, IDS_OUT_OF_SAMPLEMEM_FORMAT, conv::sv_from_int(MAX_SAMPLE_SPACE / 1024).data());
 		AfxMessageBox(message, MB_ICONERROR);
 	}
 	else
@@ -312,15 +314,15 @@ void CInstrumentEditorDPCM::OnBnClickedLoad()
 	CString fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, _T(".dmc"));
 	CDMCFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_ALLOWMULTISELECT | OFN_EXPLORER, fileFilter);
 
-	OpenFileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_DMC);
+	OpenFileDialog.m_pOFN->lpstrInitialDir = Env.GetSettings()->GetPath(PATH_DMC);
 
 	if (OpenFileDialog.DoModal() == IDCANCEL)
 		return;
 
-	theApp.GetSettings()->SetPath(OpenFileDialog.GetPathName(), PATH_DMC);
+	Env.GetSettings()->SetPath(OpenFileDialog.GetPathName(), PATH_DMC);
 
 	if (OpenFileDialog.GetFileName().GetLength() == 0) {
-		theApp.GetSettings()->SetPath(OpenFileDialog.GetPathName() + _T("\\"), PATH_DMC);		// // //
+		Env.GetSettings()->SetPath(OpenFileDialog.GetPathName() + _T("\\"), PATH_DMC);		// // //
 		// Multiple files
 		POSITION Pos = OpenFileDialog.GetStartPosition();
 		while (Pos) {
@@ -353,7 +355,7 @@ void CInstrumentEditorDPCM::OnBnClickedUnload()
 		ASSERT(nItem != -1);
 		pListBox->GetItemText(nItem, 0, ItemName, 256);
 		int Index = atoi(ItemName);
-		theApp.GetSoundGenerator()->CancelPreviewSample();
+		Env.GetSoundGenerator()->CancelPreviewSample();
 		GetDocument()->RemoveSample(Index);
 	}
 
@@ -531,12 +533,12 @@ void CInstrumentEditorDPCM::OnBnClickedSave()
 	CString fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, _T(".dmc"));
 	CFileDialog SaveFileDialog(FALSE, _T("dmc"), pDSample->name().data(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
 
-	SaveFileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_DMC);
+	SaveFileDialog.m_pOFN->lpstrInitialDir = Env.GetSettings()->GetPath(PATH_DMC);
 
 	if (SaveFileDialog.DoModal() == IDCANCEL)
 		return;
 
-	theApp.GetSettings()->SetPath(SaveFileDialog.GetPathName(), PATH_DMC);
+	Env.GetSettings()->SetPath(SaveFileDialog.GetPathName(), PATH_DMC);
 
 	Path = SaveFileDialog.GetPathName();
 
@@ -686,7 +688,7 @@ void CInstrumentEditorDPCM::OnNMDblclkSampleList(NMHDR *pNMHDR, LRESULT *pResult
 void CInstrumentEditorDPCM::OnBnClickedPreview()
 {
 	if (auto pSample = GetSelectedSample())		// // //
-		theApp.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, 15);
+		Env.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, 15);
 }
 
 void CInstrumentEditorDPCM::OnNMRClickSampleList(NMHDR *pNMHDR, LRESULT *pResult)
@@ -760,7 +762,7 @@ void CInstrumentEditorDPCM::OnNMDblclkTable(NMHDR *pNMHDR, LRESULT *pResult)
 
 		auto pSample = GetDocument()->GetSample(Sample - 1);
 		if (pSample && pSample->size() > 0u && sampleName != NO_SAMPLE_STR)
-			theApp.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, Pitch);
+			Env.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, Pitch);
 	}
 
 	*pResult = 0;

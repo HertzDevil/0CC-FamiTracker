@@ -21,7 +21,7 @@
 */
 
 #include "RegisterDisplay.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "SoundGen.h"
 #include "Settings.h"
 #include "APU/APU.h"
@@ -50,7 +50,7 @@ std::string NoteToStr(int Note) {
 	int Index = GET_NOTE(Note) - 1;
 
 	std::string str;
-	if (theApp.GetSettings()->Appearance.bDisplayFlats)
+	if (Env.GetSettings()->Appearance.bDisplayFlats)
 		str = stChanNote::NOTE_NAME_FLAT[Index];
 	else
 		str = stChanNote::NOTE_NAME[Index];
@@ -80,7 +80,7 @@ CRegisterDisplay::CRegisterDisplay(CDC &dc, COLORREF bgColor) : dc_(dc), bgColor
 void CRegisterDisplay::Draw() {
 	dc_.SetBkMode(TRANSPARENT);		// // //
 
-	const CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	const CSoundGen *pSoundGen = Env.GetSoundGenerator();
 
 	CString text;
 
@@ -373,7 +373,7 @@ void CRegisterDisplay::DrawText_(int xOffs, const CString &text) {
 template <typename F>
 void CRegisterDisplay::GetRegs(unsigned Chip, F f, int count) {
 	for (int j = 0; j < count; ++j) {
-		auto pState = theApp.GetSoundGenerator()->GetRegState(Chip, f(j));		// // //
+		auto pState = Env.GetSoundGenerator()->GetRegState(Chip, f(j));		// // //
 		reg[j] = pState->GetValue();
 		update[j] = pState->GetLastUpdatedTime() | (pState->GetNewValueTime() << 4);
 	}

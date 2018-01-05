@@ -21,7 +21,8 @@
 */
 
 #include "VisualizerWnd.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
+#include "resource.h"		// // //
 #include "Settings.h"
 #include "VisualizerScope.h"
 #include "VisualizerSpectrum.h"
@@ -83,7 +84,7 @@ void CVisualizerWnd::NextState()
 
 	Invalidate();
 
-	theApp.GetSettings()->SampleWinState = m_iCurrentState;
+	Env.GetSettings()->SampleWinState = m_iCurrentState;
 }
 
 // CSampleWindow message handlers
@@ -167,7 +168,7 @@ UINT CVisualizerWnd::ThreadProc()
 BOOL CVisualizerWnd::CreateEx(DWORD dwExStyle, LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, CCreateContext* pContext)
 {
 	// This is saved
-	m_iCurrentState = theApp.GetSettings()->SampleWinState;
+	m_iCurrentState = Env.GetSettings()->SampleWinState;
 
 	// Create an event used to signal that new samples are available
 	m_hNewSamples = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -256,7 +257,7 @@ void CVisualizerWnd::OnRButtonUp(UINT nFlags, CPoint point)
 	m_csBuffer.Unlock();
 
 	Invalidate();
-	theApp.GetSettings()->SampleWinState = m_iCurrentState;
+	Env.GetSettings()->SampleWinState = m_iCurrentState;
 
 	CWnd::OnRButtonUp(nFlags, point);
 }

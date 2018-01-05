@@ -23,7 +23,7 @@
 #include "InstrumentEditDlg.h"
 #include <memory>		// // //
 #include <string>
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "SeqInstrument.h"		// // //
 #include "Instrument2A03.h"		// // //
@@ -410,8 +410,8 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 			memset(NoteData.EffNumber, 0, 4);
 			memset(NoteData.EffParam, 0, 4);
 
-			theApp.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
-			theApp.GetSoundGenerator()->ForceReloadInstrument(Channel);		// // //
+			Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
+			Env.GetSoundGenerator()->ForceReloadInstrument(Channel);		// // //
 			m_iLastKey = NewNote;
 		}
 	}
@@ -422,7 +422,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 		memset(NoteData.EffNumber, 0, 4);
 		memset(NoteData.EffParam, 0, 4);
 
-		theApp.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
+		Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 
 		m_iLastKey = -1;
 	}
@@ -439,7 +439,7 @@ void CInstrumentEditDlg::SwitchOffNote(bool ForceHalt)
 	NoteData.Note			= (pView->DoRelease() && !ForceHalt) ? RELEASE : HALT;
 	NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();
 
-	theApp.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
+	Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 
 	m_iLastKey = -1;
 }

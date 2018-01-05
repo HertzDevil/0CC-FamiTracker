@@ -21,8 +21,7 @@
 */
 
 #include "PatternAction.h"
-#include "stdafx.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
 #include "Settings.h"		// // //
@@ -122,7 +121,7 @@ bool CPatternAction::SetTargetSelection(CPatternEditor *pPatternEditor, CSelecti
 		End.m_iColumn = GetCursorEndColumn(m_pClipData->ClipInfo.EndColumn);
 	}
 
-	const bool bOverflow = theApp.GetSettings()->General.bOverflowPaste;
+	const bool bOverflow = Env.GetSettings()->General.bOverflowPaste;
 	if (!bOverflow && End.m_iFrame > Start.m_iFrame) {
 		End.m_iFrame = Start.m_iFrame;
 		End.m_iRow = pPatternEditor->GetCurrentPatternLength(End.m_iFrame) - 1;
@@ -424,7 +423,7 @@ void CPActionScrollField::Redo(CMainFrame &MainFrm)
 
 	const auto ScrollFunc = [&] (unsigned char &Old, int Limit) {
 		int New = static_cast<int>(Old) + m_iAmount;
-		if (theApp.GetSettings()->General.bWrapPatternValue) {
+		if (Env.GetSettings()->General.bWrapPatternValue) {
 			New %= Limit;
 			if (New < 0) New += Limit;
 		}
@@ -699,7 +698,7 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 
 	const auto WarpFunc = [this] (unsigned char &x, int Lim) {
 		int Val = x + m_iAmount;
-		if (theApp.GetSettings()->General.bWrapPatternValue) {
+		if (Env.GetSettings()->General.bWrapPatternValue) {
 			Val %= Lim;
 			if (Val < 0) Val += Lim;
 		}

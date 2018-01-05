@@ -443,6 +443,7 @@
     <ClCompile Include="Source\ClipboardResource.cpp" />
     <ClCompile Include="Source\FamiTrackerDocIO.cpp" />
     <ClCompile Include="Source\FamiTrackerDocOldIO.cpp" />
+    <ClCompile Include="Source\FamiTrackerEnv.cpp" />
     <ClCompile Include="Source\FrameClipData.cpp" />
     <ClCompile Include="Source\FrameEditorModel.cpp" />
     <ClCompile Include="Source\InstrumentFactory.cpp" />
@@ -483,7 +484,6 @@
     <ClCompile Include="Source\PatternNote.cpp" />
     <ClCompile Include="Source\RecordSettingsDlg.cpp" />
     <ClCompile Include="Source\SeqInstHandler.cpp" />
-    <ClCompile Include="Source\SeqInstHandler2A03Pulse.cpp" />
     <ClCompile Include="Source\SeqInstHandlerFDS.cpp" />
     <ClCompile Include="Source\SeqInstHandlerN163.cpp" />
     <ClCompile Include="Source\SeqInstHandlerS5B.cpp" />
@@ -623,6 +623,7 @@
     <ClInclude Include="Source\FamiTrackerDocIO.h" />
     <ClInclude Include="Source\FamiTrackerDocIOCommon.h" />
     <ClInclude Include="Source\FamiTrackerDocOldIO.h" />
+    <ClInclude Include="Source\FamiTrackerEnv.h" />
     <ClInclude Include="Source\FFT\FftComplex.hpp" />
     <ClInclude Include="Source\FrameClipData.h" />
     <ClInclude Include="Source\FrameEditorModel.h" />

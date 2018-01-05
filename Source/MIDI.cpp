@@ -21,7 +21,8 @@
 */
 
 #include "MIDI.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
+#include "resource.h"		// // //
 #include "PatternNote.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
 #include "Settings.h"
@@ -77,10 +78,10 @@ CMIDI::~CMIDI()
 bool CMIDI::Init(void)
 {
 	// Load from settings
-	m_iInDevice = theApp.GetSettings()->Midi.iMidiDevice;
-	m_iOutDevice = theApp.GetSettings()->Midi.iMidiOutDevice;
+	m_iInDevice = Env.GetSettings()->Midi.iMidiDevice;
+	m_iOutDevice = Env.GetSettings()->Midi.iMidiOutDevice;
 
-	m_bMasterSync = theApp.GetSettings()->Midi.bMidiMasterSync;
+	m_bMasterSync = Env.GetSettings()->Midi.bMidiMasterSync;
 
 	// Open devices
 	OpenDevices();
@@ -91,8 +92,8 @@ bool CMIDI::Init(void)
 void CMIDI::Shutdown(void)
 {
 	// Store settings
-	theApp.GetSettings()->Midi.iMidiDevice = m_iInDevice;
-	theApp.GetSettings()->Midi.iMidiOutDevice = m_iOutDevice;
+	Env.GetSettings()->Midi.iMidiDevice = m_iInDevice;
+	Env.GetSettings()->Midi.iMidiOutDevice = m_iOutDevice;
 
 	CloseDevices();
 }

@@ -1382,7 +1382,7 @@ void CFamiTrackerDocIO::SaveBookmarks(const CFamiTrackerDoc &doc, int ver) {
 
 template <module_error_level_t l>
 void CFamiTrackerDocIO::AssertFileData(bool Cond, const std::string &Msg) const {
-	if (l <= theApp.GetSettings()->Version.iErrorLevel && !Cond) {
+	if (l <= Env.GetSettings()->Version.iErrorLevel && !Cond) {
 		CModuleException e = file_.GetException();
 		e.AppendError(Msg);
 		throw e;

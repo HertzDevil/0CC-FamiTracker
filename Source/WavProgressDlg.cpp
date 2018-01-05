@@ -21,7 +21,7 @@
 */
 
 #include "WavProgressDlg.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerTypes.h"
 #include "APU\Types.h"
 #include "SoundGen.h"
@@ -55,7 +55,7 @@ END_MESSAGE_MAP()
 
 void CWavProgressDlg::OnBnClickedCancel()
 {
-	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	CSoundGen *pSoundGen = Env.GetSoundGenerator();
 
 	if (pSoundGen->IsRendering()) {
 		//pSoundGen->StopRendering();
@@ -80,7 +80,7 @@ BOOL CWavProgressDlg::OnInitDialog()
 
 	static_cast<CProgressCtrl*>(GetDlgItem(IDC_PROGRESS_BAR))->SetRange(0, 100);
 	CView *pView = static_cast<CFrameWnd*>(AfxGetMainWnd())->GetActiveView();		// // //
-	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	CSoundGen *pSoundGen = Env.GetSoundGenerator();
 
 	pView->Invalidate();
 	pView->RedrawWindow();
@@ -104,7 +104,7 @@ void CWavProgressDlg::OnTimer(UINT_PTR nIDEvent)
 {
 	// Update progress status
 	CProgressCtrl *pProgressBar = static_cast<CProgressCtrl*>(GetDlgItem(IDC_PROGRESS_BAR));
-	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	CSoundGen *pSoundGen = Env.GetSoundGenerator();
 
 	SetDlgItemText(IDC_PROGRESS_LBL, m_pWaveRenderer->GetProgressString().c_str());
 	pProgressBar->SetPos(m_pWaveRenderer->GetProgressPercent());		// // //

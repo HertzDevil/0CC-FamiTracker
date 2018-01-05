@@ -23,7 +23,7 @@
 #include "GraphEditor.h"
 #include "Sequence.h"		// // //
 #include "Graphics.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "APU/Types.h"		// // //
 #include "SoundGen.h"
 #include "SequenceEditorMessage.h"		// // //
@@ -119,7 +119,7 @@ void CGraphEditor::Initialize()
 void CGraphEditor::OnTimer(UINT nIDEvent)
 {
 	if (m_pSequence) {
-		int Pos = theApp.GetSoundGenerator()->GetSequencePlayPos(m_pSequence);
+		int Pos = Env.GetSoundGenerator()->GetSequencePlayPos(m_pSequence);
 		//int Pos = m_pSequence->GetPlayPos();
 		if (Pos != m_iLastPlayPos) {
 			m_iCurrentPlayPos = Pos;

@@ -21,7 +21,7 @@
 */
 
 #include "ConfigMIDI.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "MIDI.h"
 #include "Settings.h"
 
@@ -60,7 +60,7 @@ BOOL CConfigMIDI::OnInitDialog()
 {
 	CPropertyPage::OnInitDialog();
 
-	CMIDI	*pMIDI = theApp.GetMIDI();
+	CMIDI	*pMIDI = Env.GetMIDI();		// // //
 	int		NumDev, i;
 	CString Text;
 
@@ -89,11 +89,11 @@ BOOL CConfigMIDI::OnInitDialog()
 	pInDevices->SetCurSel(pMIDI->GetInputDevice());
 	pOutDevices->SetCurSel(pMIDI->GetOutputDevice());
 
-	CheckDlgButton(IDC_MASTER_SYNC, theApp.GetSettings()->Midi.bMidiMasterSync	? 1 : 0);
-	CheckDlgButton(IDC_KEY_RELEASE, theApp.GetSettings()->Midi.bMidiKeyRelease	? 1 : 0);
-	CheckDlgButton(IDC_CHANMAP,		theApp.GetSettings()->Midi.bMidiChannelMap	? 1 : 0);
-	CheckDlgButton(IDC_VELOCITY,	theApp.GetSettings()->Midi.bMidiVelocity	? 1 : 0);
-	CheckDlgButton(IDC_ARPEGGIATE,	theApp.GetSettings()->Midi.bMidiArpeggio	? 1 : 0);
+	CheckDlgButton(IDC_MASTER_SYNC, Env.GetSettings()->Midi.bMidiMasterSync	? 1 : 0);
+	CheckDlgButton(IDC_KEY_RELEASE, Env.GetSettings()->Midi.bMidiKeyRelease	? 1 : 0);
+	CheckDlgButton(IDC_CHANMAP,		Env.GetSettings()->Midi.bMidiChannelMap	? 1 : 0);
+	CheckDlgButton(IDC_VELOCITY,	Env.GetSettings()->Midi.bMidiVelocity	? 1 : 0);
+	CheckDlgButton(IDC_ARPEGGIATE,	Env.GetSettings()->Midi.bMidiArpeggio	? 1 : 0);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
@@ -103,16 +103,16 @@ BOOL CConfigMIDI::OnApply()
 {
 	CComboBox	*pInDevices	 = static_cast<CComboBox*>(GetDlgItem(IDC_INDEVICES));
 	CComboBox	*pOutDevices = static_cast<CComboBox*>(GetDlgItem(IDC_OUTDEVICES));
-	CMIDI		*pMIDI		 = theApp.GetMIDI();
+	CMIDI		*pMIDI		 = Env.GetMIDI();
 
 	pMIDI->SetInputDevice(pInDevices->GetCurSel(), IsDlgButtonChecked(IDC_MASTER_SYNC) != 0);
 	pMIDI->SetOutputDevice(pOutDevices->GetCurSel());
 
-	theApp.GetSettings()->Midi.bMidiMasterSync	= IsDlgButtonChecked(IDC_MASTER_SYNC)	== 1;
-	theApp.GetSettings()->Midi.bMidiKeyRelease	= IsDlgButtonChecked(IDC_KEY_RELEASE)	== 1;
-	theApp.GetSettings()->Midi.bMidiChannelMap	= IsDlgButtonChecked(IDC_CHANMAP)		== 1;
-	theApp.GetSettings()->Midi.bMidiVelocity	= IsDlgButtonChecked(IDC_VELOCITY)		== 1;
-	theApp.GetSettings()->Midi.bMidiArpeggio	= IsDlgButtonChecked(IDC_ARPEGGIATE)	== 1;
+	Env.GetSettings()->Midi.bMidiMasterSync	= IsDlgButtonChecked(IDC_MASTER_SYNC)	== 1;
+	Env.GetSettings()->Midi.bMidiKeyRelease	= IsDlgButtonChecked(IDC_KEY_RELEASE)	== 1;
+	Env.GetSettings()->Midi.bMidiChannelMap	= IsDlgButtonChecked(IDC_CHANMAP)		== 1;
+	Env.GetSettings()->Midi.bMidiVelocity	= IsDlgButtonChecked(IDC_VELOCITY)		== 1;
+	Env.GetSettings()->Midi.bMidiArpeggio	= IsDlgButtonChecked(IDC_ARPEGGIATE)	== 1;
 
 	return CPropertyPage::OnApply();
 }

@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "stdafx.h"		// // //
 #include <memory>		// // //
 #include <vector>		// // //
 

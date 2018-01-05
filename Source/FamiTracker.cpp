@@ -297,7 +297,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	m_pMIDI->Init();
 
 	if (cmdInfo.m_bPlay)
-		theApp.StartPlayer(play_mode_t::Frame);
+		StartPlayer(play_mode_t::Frame);
 
 	// Save the main window handle
 	RegisterSingleInstance();

@@ -24,7 +24,7 @@
 #include "WaveEditor.h"		// // //
 #include <iterator>
 #include <sstream>
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "DPI.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "SeqInstrument.h"		// // //
@@ -32,6 +32,7 @@
 #include "SoundGen.h"
 #include "Clipboard.h"
 #include "WavegenBuiltin.h" // test
+#include "NumConv.h"		// // //
 
 #define WAVE_SIZE_AVAILABLE (256 - 16 * GetDocument()->GetNamcoChannels())		// // //
 
@@ -62,9 +63,9 @@ void CInstrumentEditorN163Wave::SelectInstrument(std::shared_ptr<CInstrument> pI
 	CComboBox *pSizeBox = static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE));
 	CComboBox *pPosBox = static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_POS));
 
-	pSizeBox->SelectString(-1, MakeIntString(m_pInstrument->GetWaveSize()));		// // //
+	pSizeBox->SelectString(-1, conv::sv_from_int(m_pInstrument->GetWaveSize()).data());		// // //
 	FillPosBox(m_pInstrument->GetWaveSize());
-	pPosBox->SetWindowText(MakeIntString(m_pInstrument->GetWavePos()));
+	pPosBox->SetWindowText(conv::sv_from_int(m_pInstrument->GetWavePos()).data());
 
 	/*
 	if (m_pInstrument->GetAutoWavePos()) {
@@ -119,7 +120,7 @@ BOOL CInstrumentEditorN163Wave::OnInitDialog()
 	CComboBox *pWaveSize = static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE));
 
 	for (int i = 0; i < WAVE_SIZE_AVAILABLE; i += 4) {
-		pWaveSize->AddString(MakeIntString(i + 4));
+		pWaveSize->AddString(conv::sv_from_int(i + 4).data());
 	}
 
 	int order[2] = {1, 0};		// // //
@@ -172,7 +173,7 @@ void CInstrumentEditorN163Wave::GenerateWaves(std::unique_ptr<CWaveformGenerator
 	}
 
 	m_pWaveEditor->WaveChanged();
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorN163Wave::OnPresetSine()
@@ -261,7 +262,7 @@ void CInstrumentEditorN163Wave::ParseString(LPCTSTR pString)
 	int size = std::clamp(i & 0xFC, 4, WAVE_SIZE_AVAILABLE);
 	m_pInstrument->SetWaveSize(size);
 
-	static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE))->SelectString(0, MakeIntString(size));
+	static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE))->SelectString(0, conv::sv_from_int(size).data());
 
 	FillPosBox(size);
 
@@ -321,7 +322,7 @@ void CInstrumentEditorN163Wave::FillPosBox(int size)
 	pPosBox->ResetContent();
 
 	for (int i = 0; i <= WAVE_SIZE_AVAILABLE - size; i += size) {		// // // prevent reading non-wave n163 registers
-		pPosBox->AddString(MakeIntString(i));
+		pPosBox->AddString(conv::sv_from_int(i).data());
 	}
 }
 

@@ -21,7 +21,8 @@
 */
 
 #include "PCMImport.h"
-#include "FamiTracker.h"
+#include "FamiTracker.h" // LoadDefaultFilter
+#include "FamiTrackerEnv.h"
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "FamiTrackerTypes.h"		// // //
 #include "APU/Types.h"		// // //
@@ -163,7 +164,7 @@ void CFileSoundDialog::OnFileNameChange()
 {
 	// Preview wave file
 
-	if (!GetFileExt().CompareNoCase(_T("wav")) && theApp.GetSettings()->General.bWavePreview)
+	if (!GetFileExt().CompareNoCase(_T("wav")) && Env.GetSettings()->General.bWavePreview)
 		PlaySound(GetPathName(), NULL, SND_FILENAME | SND_NODEFAULT | SND_ASYNC | SND_NOWAIT);
 
 	CFileDialog::OnFileNameChange();
@@ -204,14 +205,14 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ShowDialog() {		// // //
 	CString fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, _T(".wav"));
 	CFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY, fileFilter);
 
-	OpenFileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_WAV);
+	OpenFileDialog.m_pOFN->lpstrInitialDir = Env.GetSettings()->GetPath(PATH_WAV);
 	if (OpenFileDialog.DoModal() == IDCANCEL)
 		return nullptr;
 
 	// Stop any preview
 	PlaySound(NULL, NULL, SND_NODEFAULT | SND_SYNC);
 
-	theApp.GetSettings()->SetPath(OpenFileDialog.GetPathName(), PATH_WAV);
+	Env.GetSettings()->SetPath(OpenFileDialog.GetPathName(), PATH_WAV);
 
 	m_strPath	  = OpenFileDialog.GetPathName();
 	m_strFileName = OpenFileDialog.GetFileName();
@@ -294,7 +295,7 @@ void CPCMImport::OnBnClickedCancel()
 	m_iVolume = 0;
 	m_pImported = NULL;
 
-	theApp.GetSoundGenerator()->CancelPreviewSample();
+	Env.GetSoundGenerator()->CancelPreviewSample();
 
 	OnCancel();
 }
@@ -323,7 +324,7 @@ void CPCMImport::OnBnClickedPreview()
 		SetDlgItemText(IDC_SAMPLESIZE, text);
 
 		// Preview the sample
-		theApp.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, m_iQuality);
+		Env.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, m_iQuality);
 	}
 }
 

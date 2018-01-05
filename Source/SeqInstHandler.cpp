@@ -21,8 +21,7 @@
 */
 
 #include "SeqInstHandler.h"
-#include "stdafx.h"
-#include "FamiTracker.h" // theApp.getSoundGenerator()
+#include "FamiTrackerEnv.h"
 #include "APU/Types.h"
 #include "FamiTrackerTypes.h"
 #include "SoundGen.h"
@@ -120,7 +119,7 @@ void CSeqInstHandler::UpdateInstrument()
 						--m_iSeqPointer[i];
 					}
 				}
-				theApp.GetSoundGenerator()->SetSequencePlayPos(m_pSequence[i], m_iSeqPointer[i]);
+				Env.GetSoundGenerator()->SetSequencePlayPos(m_pSequence[i], m_iSeqPointer[i]);
 			}
 			break;
 
@@ -132,7 +131,7 @@ void CSeqInstHandler::UpdateInstrument()
 				break;
 			}
 			m_iSeqState[i] = SEQ_STATE_HALT;
-			theApp.GetSoundGenerator()->SetSequencePlayPos(m_pSequence[i], -1);
+			Env.GetSoundGenerator()->SetSequencePlayPos(m_pSequence[i], -1);
 			break;
 
 		case SEQ_STATE_HALT:

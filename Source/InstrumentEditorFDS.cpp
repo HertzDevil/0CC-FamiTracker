@@ -23,7 +23,7 @@
 #include "InstrumentEditorFDS.h"
 #include <iterator>
 #include <sstream>
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "Instrument.h"		// // //
 #include "SeqInstrument.h"		// // //
 #include "InstrumentFDS.h"		// // //
@@ -153,7 +153,7 @@ void CInstrumentEditorFDS::OnPresetSine()
 	}
 
 	m_pWaveEditor->RedrawWindow();
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorFDS::OnPresetTriangle()
@@ -164,7 +164,7 @@ void CInstrumentEditorFDS::OnPresetTriangle()
 	}
 
 	m_pWaveEditor->RedrawWindow();
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorFDS::OnPresetPulse50()
@@ -175,7 +175,7 @@ void CInstrumentEditorFDS::OnPresetPulse50()
 	}
 
 	m_pWaveEditor->RedrawWindow();
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorFDS::OnPresetPulse25()
@@ -186,7 +186,7 @@ void CInstrumentEditorFDS::OnPresetPulse25()
 	}
 
 	m_pWaveEditor->RedrawWindow();
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorFDS::OnPresetSawtooth()
@@ -197,7 +197,7 @@ void CInstrumentEditorFDS::OnPresetSawtooth()
 	}
 
 	m_pWaveEditor->RedrawWindow();
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorFDS::OnModPresetFlat()
@@ -207,7 +207,7 @@ void CInstrumentEditorFDS::OnModPresetFlat()
 	}
 
 	m_pModSequenceEditor->RedrawWindow();
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorFDS::OnModPresetSine()
@@ -228,7 +228,7 @@ void CInstrumentEditorFDS::OnModPresetSine()
 	m_pInstrument->SetModulation(25, 0);
 
 	m_pModSequenceEditor->RedrawWindow();
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorFDS::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
@@ -246,7 +246,7 @@ void CInstrumentEditorFDS::OnModRateChange()
 		int ModSpeed = GetDlgItemInt(IDC_MOD_RATE);
 		m_pInstrument->SetModulationSpeed(std::clamp(ModSpeed, 0, 4095));		// // //
 	}
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorFDS::OnModDepthChange()
@@ -255,7 +255,7 @@ void CInstrumentEditorFDS::OnModDepthChange()
 		int ModDepth = GetDlgItemInt(IDC_MOD_DEPTH);
 		m_pInstrument->SetModulationDepth(std::clamp(ModDepth, 0, 63));		// // //
 	}
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorFDS::OnModDelayChange()
@@ -264,7 +264,7 @@ void CInstrumentEditorFDS::OnModDelayChange()
 		int ModDelay = GetDlgItemInt(IDC_MOD_DELAY);
 		m_pInstrument->SetModulationDelay(std::clamp(ModDelay, 0, 255));		// // //
 	}
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorFDS::OnBnClickedCopyWave()
@@ -318,7 +318,7 @@ void CInstrumentEditorFDS::ParseWaveString(LPCTSTR pString)
 	}
 
 	m_pWaveEditor->RedrawWindow();
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorFDS::OnBnClickedCopyTable()
@@ -372,7 +372,7 @@ void CInstrumentEditorFDS::ParseTableString(LPCTSTR pString)
 	}
 
 	m_pModSequenceEditor->RedrawWindow();
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 void CInstrumentEditorFDS::OnBnClickedEnableFm()
@@ -402,6 +402,6 @@ void CInstrumentEditorFDS::EnableModControls(bool enable)
 
 LRESULT CInstrumentEditorFDS::OnModChanged(WPARAM wParam, LPARAM lParam)
 {
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 	return 0;
 }

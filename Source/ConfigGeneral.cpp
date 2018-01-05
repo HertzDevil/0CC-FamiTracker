@@ -133,38 +133,39 @@ BOOL CConfigGeneral::OnApply()
 	if (m_bCheckVersion && !theApp.GetSettings()->General.bCheckVersion)		// // //
 		theApp.CheckNewVersion(false);
 
-	theApp.GetSettings()->General.bWrapCursor		= m_bWrapCursor;
-	theApp.GetSettings()->General.bWrapFrames		= m_bWrapFrames;
-	theApp.GetSettings()->General.bFreeCursorEdit	= m_bFreeCursorEdit;
-	theApp.GetSettings()->General.bWavePreview		= m_bPreviewWAV;
-	theApp.GetSettings()->General.bKeyRepeat		= m_bKeyRepeat;
-	theApp.GetSettings()->General.bRowInHex			= m_bRowInHex;
-	theApp.GetSettings()->General.iEditStyle		= m_iEditStyle;
-	theApp.GetSettings()->General.bFramePreview		= m_bFramePreview;
-	theApp.GetSettings()->General.bNoDPCMReset		= m_bNoDPCMReset;
-	theApp.GetSettings()->General.bNoStepMove		= m_bNoStepMove;
-	theApp.GetSettings()->General.iPageStepSize		= m_iPageStepSize;
-	theApp.GetSettings()->General.bPullUpDelete		= m_bPullUpDelete;
-	theApp.GetSettings()->General.bBackups			= m_bBackups;
-	theApp.GetSettings()->General.bSingleInstance	= m_bSingleInstance;
-	theApp.GetSettings()->General.bPreviewFullRow	= m_bPreviewFullRow;
-	theApp.GetSettings()->General.bDblClickSelect	= m_bDisableDblClick;
+	auto *pSettings = theApp.GetSettings();		// // //
+	pSettings->General.bWrapCursor			= m_bWrapCursor;
+	pSettings->General.bWrapFrames			= m_bWrapFrames;
+	pSettings->General.bFreeCursorEdit		= m_bFreeCursorEdit;
+	pSettings->General.bWavePreview			= m_bPreviewWAV;
+	pSettings->General.bKeyRepeat			= m_bKeyRepeat;
+	pSettings->General.bRowInHex			= m_bRowInHex;
+	pSettings->General.iEditStyle			= m_iEditStyle;
+	pSettings->General.bFramePreview		= m_bFramePreview;
+	pSettings->General.bNoDPCMReset			= m_bNoDPCMReset;
+	pSettings->General.bNoStepMove			= m_bNoStepMove;
+	pSettings->General.iPageStepSize		= m_iPageStepSize;
+	pSettings->General.bPullUpDelete		= m_bPullUpDelete;
+	pSettings->General.bBackups				= m_bBackups;
+	pSettings->General.bSingleInstance		= m_bSingleInstance;
+	pSettings->General.bPreviewFullRow		= m_bPreviewFullRow;
+	pSettings->General.bDblClickSelect		= m_bDisableDblClick;
 	// // //
-	theApp.GetSettings()->General.bWrapPatternValue	= m_bWrapPatternValue;
-	theApp.GetSettings()->General.bCutVolume		= m_bCutVolume;
-	theApp.GetSettings()->General.bFDSOldVolume		= m_bFDSOldVolume;
-	theApp.GetSettings()->General.bRetrieveChanState = m_bRetrieveChanState;
-	theApp.GetSettings()->General.bOverflowPaste	= m_bOverflowPaste;
-	theApp.GetSettings()->General.bShowSkippedRows	= m_bShowSkippedRows;
-	theApp.GetSettings()->General.bHexKeypad		= m_bHexKeypad;
-	theApp.GetSettings()->General.bMultiFrameSel	= m_bMultiFrameSel;
-	theApp.GetSettings()->General.bCheckVersion		= m_bCheckVersion;
+	pSettings->General.bWrapPatternValue	= m_bWrapPatternValue;
+	pSettings->General.bCutVolume			= m_bCutVolume;
+	pSettings->General.bFDSOldVolume		= m_bFDSOldVolume;
+	pSettings->General.bRetrieveChanState	= m_bRetrieveChanState;
+	pSettings->General.bOverflowPaste		= m_bOverflowPaste;
+	pSettings->General.bShowSkippedRows		= m_bShowSkippedRows;
+	pSettings->General.bHexKeypad			= m_bHexKeypad;
+	pSettings->General.bMultiFrameSel		= m_bMultiFrameSel;
+	pSettings->General.bCheckVersion		= m_bCheckVersion;
 
-	theApp.GetSettings()->Keys.iKeyNoteCut			= m_iKeyNoteCut;
-	theApp.GetSettings()->Keys.iKeyNoteRelease		= m_iKeyNoteRelease;
-	theApp.GetSettings()->Keys.iKeyClear			= m_iKeyClear;
-	theApp.GetSettings()->Keys.iKeyRepeat			= m_iKeyRepeat;
-	theApp.GetSettings()->Keys.iKeyEchoBuffer		= m_iKeyEchoBuffer;		// // //
+	pSettings->Keys.iKeyNoteCut				= m_iKeyNoteCut;
+	pSettings->Keys.iKeyNoteRelease			= m_iKeyNoteRelease;
+	pSettings->Keys.iKeyClear				= m_iKeyClear;
+	pSettings->Keys.iKeyRepeat				= m_iKeyRepeat;
+	pSettings->Keys.iKeyEchoBuffer			= m_iKeyEchoBuffer;		// // //
 
 	return CPropertyPage::OnApply();
 }
@@ -175,38 +176,40 @@ BOOL CConfigGeneral::OnInitDialog()
 
 	CPropertyPage::OnInitDialog();
 
-	m_bWrapCursor		= theApp.GetSettings()->General.bWrapCursor;
-	m_bWrapFrames		= theApp.GetSettings()->General.bWrapFrames;
-	m_bFreeCursorEdit	= theApp.GetSettings()->General.bFreeCursorEdit;
-	m_bPreviewWAV		= theApp.GetSettings()->General.bWavePreview;
-	m_bKeyRepeat		= theApp.GetSettings()->General.bKeyRepeat;
-	m_bRowInHex			= theApp.GetSettings()->General.bRowInHex;
-	m_iEditStyle		= theApp.GetSettings()->General.iEditStyle;
-	m_bFramePreview		= theApp.GetSettings()->General.bFramePreview;
-	m_bNoDPCMReset		= theApp.GetSettings()->General.bNoDPCMReset;
-	m_bNoStepMove		= theApp.GetSettings()->General.bNoStepMove;
-	m_iPageStepSize		= theApp.GetSettings()->General.iPageStepSize;
-	m_bPullUpDelete		= theApp.GetSettings()->General.bPullUpDelete;
-	m_bBackups			= theApp.GetSettings()->General.bBackups;
-	m_bSingleInstance	= theApp.GetSettings()->General.bSingleInstance;
-	m_bPreviewFullRow	= theApp.GetSettings()->General.bPreviewFullRow;
-	m_bDisableDblClick	= theApp.GetSettings()->General.bDblClickSelect;
-	// // //
-	m_bWrapPatternValue = theApp.GetSettings()->General.bWrapPatternValue;
-	m_bCutVolume		= theApp.GetSettings()->General.bCutVolume;
-	m_bFDSOldVolume		= theApp.GetSettings()->General.bFDSOldVolume;
-	m_bRetrieveChanState = theApp.GetSettings()->General.bRetrieveChanState;
-	m_bOverflowPaste	= theApp.GetSettings()->General.bOverflowPaste;
-	m_bShowSkippedRows	= theApp.GetSettings()->General.bShowSkippedRows;
-	m_bHexKeypad		= theApp.GetSettings()->General.bHexKeypad;
-	m_bMultiFrameSel	= theApp.GetSettings()->General.bMultiFrameSel;
-	m_bCheckVersion		= theApp.GetSettings()->General.bCheckVersion;
+	const auto *pSettings = theApp.GetSettings();		// // //
 
-	m_iKeyNoteCut		= theApp.GetSettings()->Keys.iKeyNoteCut;
-	m_iKeyNoteRelease	= theApp.GetSettings()->Keys.iKeyNoteRelease;
-	m_iKeyClear			= theApp.GetSettings()->Keys.iKeyClear;
-	m_iKeyRepeat		= theApp.GetSettings()->Keys.iKeyRepeat;
-	m_iKeyEchoBuffer	= theApp.GetSettings()->Keys.iKeyEchoBuffer;		// // //
+	m_bWrapCursor			= pSettings->General.bWrapCursor;
+	m_bWrapFrames			= pSettings->General.bWrapFrames;
+	m_bFreeCursorEdit		= pSettings->General.bFreeCursorEdit;
+	m_bPreviewWAV			= pSettings->General.bWavePreview;
+	m_bKeyRepeat			= pSettings->General.bKeyRepeat;
+	m_bRowInHex				= pSettings->General.bRowInHex;
+	m_iEditStyle			= pSettings->General.iEditStyle;
+	m_bFramePreview			= pSettings->General.bFramePreview;
+	m_bNoDPCMReset			= pSettings->General.bNoDPCMReset;
+	m_bNoStepMove			= pSettings->General.bNoStepMove;
+	m_iPageStepSize			= pSettings->General.iPageStepSize;
+	m_bPullUpDelete			= pSettings->General.bPullUpDelete;
+	m_bBackups				= pSettings->General.bBackups;
+	m_bSingleInstance		= pSettings->General.bSingleInstance;
+	m_bPreviewFullRow		= pSettings->General.bPreviewFullRow;
+	m_bDisableDblClick		= pSettings->General.bDblClickSelect;
+	// // //
+	m_bWrapPatternValue		= pSettings->General.bWrapPatternValue;
+	m_bCutVolume			= pSettings->General.bCutVolume;
+	m_bFDSOldVolume			= pSettings->General.bFDSOldVolume;
+	m_bRetrieveChanState	= pSettings->General.bRetrieveChanState;
+	m_bOverflowPaste		= pSettings->General.bOverflowPaste;
+	m_bShowSkippedRows		= pSettings->General.bShowSkippedRows;
+	m_bHexKeypad			= pSettings->General.bHexKeypad;
+	m_bMultiFrameSel		= pSettings->General.bMultiFrameSel;
+	m_bCheckVersion			= pSettings->General.bCheckVersion;
+
+	m_iKeyNoteCut			= pSettings->Keys.iKeyNoteCut;
+	m_iKeyNoteRelease		= pSettings->Keys.iKeyNoteRelease;
+	m_iKeyClear				= pSettings->Keys.iKeyClear;
+	m_iKeyRepeat			= pSettings->Keys.iKeyRepeat;
+	m_iKeyEchoBuffer		= pSettings->Keys.iKeyEchoBuffer;		// // //
 
 	GetKeyNameText(MapVirtualKey(m_iKeyNoteCut, MAPVK_VK_TO_VSC) << 16, Text, 64);
 	SetDlgItemText(IDC_KEY_NOTE_CUT, Text);

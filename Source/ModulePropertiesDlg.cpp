@@ -21,7 +21,7 @@
 */
 
 #include "ModulePropertiesDlg.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "MainFrm.h"
 #include "ModuleImportDlg.h"
@@ -179,7 +179,7 @@ void CModulePropertiesDlg::OnBnClickedOk()
 
 	pMainFrame->UpdateControls();
 
-	theApp.GetSoundGenerator()->DocumentPropertiesChanged(m_pDocument);
+	Env.GetSoundGenerator()->DocumentPropertiesChanged(m_pDocument);
 
 	OnOK();
 }
@@ -366,7 +366,7 @@ void CModulePropertiesDlg::OnBnClickedSongImport()
 	// TODO use string table
 	CFileDialog OpenFileDlg(TRUE, _T("0cc"), 0, OFN_HIDEREADONLY,
 							_T("0CC-FamiTracker modules (*.0cc;*.ftm)|*.0cc; *.ftm|All files (*.*)|*.*||"),		// // //
-							theApp.GetMainWnd(), 0);
+							AfxGetMainWnd(), 0);
 
 	if (OpenFileDlg.DoModal() == IDCANCEL)
 		return;

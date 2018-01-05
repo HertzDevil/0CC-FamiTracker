@@ -28,6 +28,7 @@
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "stdafx.h"
 #include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "Settings.h"
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
@@ -634,7 +635,7 @@ void CDPCMChan::RefreshChannel()
 		// Cut sample
 		WriteRegister(0x4015, 0x0F);
 
-		if (!theApp.GetSettings()->General.bNoDPCMReset || theApp.IsPlaying()) {
+		if (!Env.GetSettings()->General.bNoDPCMReset || theApp.IsPlaying()) {
 			WriteRegister(0x4011, 0);	// regain full volume for TN
 		}
 

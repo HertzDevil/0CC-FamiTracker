@@ -24,7 +24,7 @@
 #include <iterator>
 #include <string>
 #include <sstream>
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "APU/Types.h"		// // //
 #include "Instrument.h"
 #include "SeqInstrument.h"
@@ -345,7 +345,7 @@ void CWaveEditorFDS::SetSample(int i, int s)
 {
 	ASSERT(m_pInstrument != NULL);
 	m_pInstrument->SetSample(i, s);
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 int CWaveEditorFDS::GetMaxSamples() const
@@ -381,7 +381,7 @@ void CWaveEditorN163::SetSample(int i, int s)
 {
 	ASSERT(m_pInstrument != NULL);
 	m_pInstrument->SetSample(m_iWaveIndex, i, s);
-	theApp.GetSoundGenerator()->WaveChanged();
+	Env.GetSoundGenerator()->WaveChanged();
 }
 
 int CWaveEditorN163::GetMaxSamples() const

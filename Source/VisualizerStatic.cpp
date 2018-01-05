@@ -22,7 +22,7 @@
 
 #include "VisualizerStatic.h"
 #include <cmath>		// // //
-#include "FamiTracker.h"		// // //
+#include "FamiTrackerEnv.h"		// // //
 #include "Settings.h"		// // //
 #include "Color.h"		// // //
 
@@ -59,11 +59,11 @@ void CVisualizerStatic::Draw()
 	const auto FixRGB = [] (int x) { return MakeRGB(GetB(x), GetG(x), GetR(x)); };
 
 	const COLORREF Back[] = {
-		FixRGB(theApp.GetSettings()->Appearance.iColBackground),
-		FixRGB(theApp.GetSettings()->Appearance.iColBackgroundHilite),
-		FixRGB(theApp.GetSettings()->Appearance.iColBackgroundHilite2)
+		FixRGB(Env.GetSettings()->Appearance.iColBackground),
+		FixRGB(Env.GetSettings()->Appearance.iColBackgroundHilite),
+		FixRGB(Env.GetSettings()->Appearance.iColBackgroundHilite2)
 	};
-	const COLORREF Color = FixRGB(theApp.GetSettings()->Appearance.iColPatternText);
+	const COLORREF Color = FixRGB(Env.GetSettings()->Appearance.iColPatternText);
 	const COLORREF Shadow = BlendColors(Color, 1, Back[0], 2);
 
 	for (int y = m_iHeight - 1; y >= 0; --y)

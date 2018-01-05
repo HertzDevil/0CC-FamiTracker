@@ -27,7 +27,6 @@
  *
  */
 
-#include "stdafx.h"
 #include "Settings.h"
 #include "FamiTracker.h"
 #include "ColorScheme.h"

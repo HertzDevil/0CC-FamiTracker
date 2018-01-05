@@ -21,8 +21,8 @@
 */
 
 #include "SampleEditorDlg.h"
-#include "FamiTracker.h"
-#include "ft0cc/doc/dpcm_sample.hpp"
+#include "FamiTrackerEnv.h"		// // //
+#include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "FamiTrackerTypes.h"
 #include "APU/Types.h"
 #include "SoundGen.h"
@@ -52,7 +52,7 @@ CSampleEditorDlg::CSampleEditorDlg(CWnd* pParent /*=NULL*/, std::shared_ptr<ft0c
 	m_pSampleEditorView(std::make_unique<CSampleEditorView>()),		// / ///
 	m_pSample(std::move(pSample))		// // //
 {
-	m_pSoundGen = theApp.GetSoundGenerator();
+	m_pSoundGen = Env.GetSoundGenerator();
 }
 
 CSampleEditorDlg::~CSampleEditorDlg()

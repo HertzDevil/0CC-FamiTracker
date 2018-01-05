@@ -23,7 +23,8 @@
 #include "Compiler.h"
 #include <map>
 #include "version.h"		// // //
-#include "FamiTracker.h"
+#include "resource.h"		// // //
+#include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "PatternNote.h"		// // //
 #include "SeqInstrument.h"		// // //
@@ -528,7 +529,7 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 	memcpy(pData.get(), Driver.driver, Driver.driver_size);
 
 	// // // Custom pitch tables
-	const CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	const CSoundGen *pSoundGen = Env.GetSoundGenerator();		// // //
 	for (size_t i = 0; i < Driver.freq_table_size; i += 2) {		// // //
 		int Table = Driver.freq_table[i + 1];
 		switch (Table) {

@@ -20,4 +20,24 @@
 ** must bear this legend.
 */
 
+#include "FamiTrackerEnv.h"
 #include "stdafx.h"
+#include "FamiTracker.h"
+
+CFamiTrackerEnv Env;
+
+CAccelerator *CFamiTrackerEnv::GetAccelerator() {
+	return theApp.GetAccelerator();
+}
+
+CSoundGen *CFamiTrackerEnv::GetSoundGenerator() {
+	return theApp.GetSoundGenerator();
+}
+
+CMIDI *CFamiTrackerEnv::GetMIDI() {
+	return theApp.GetMIDI();
+}
+
+CSettings *CFamiTrackerEnv::GetSettings() {
+	return theApp.GetSettings();
+}

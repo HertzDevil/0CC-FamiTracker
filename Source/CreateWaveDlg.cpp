@@ -21,7 +21,7 @@
 */
 
 #include "CreateWaveDlg.h"
-#include "FamiTracker.h"
+#include "FamiTracker.h" // LoadDefaultFilter
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
 #include "MainFrm.h"
@@ -166,7 +166,7 @@ BOOL CCreateWaveDlg::OnInitDialog()
 		m_ctlTracks.AddString(text);
 	}
 
-	CMainFrame *pMainFrm = static_cast<CMainFrame*>(theApp.GetMainWnd());
+	CMainFrame *pMainFrm = static_cast<CMainFrame*>(AfxGetMainWnd());		// // //
 	m_ctlTracks.SetCurSel(pMainFrm->GetSelectedTrack());
 
 	return TRUE;  // return TRUE unless you set the focus to a control

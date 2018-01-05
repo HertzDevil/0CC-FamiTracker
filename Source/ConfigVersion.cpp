@@ -21,7 +21,7 @@
 */
 
 #include "ConfigVersion.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"
 #include "FamiTrackerTypes.h"
 #include "Settings.h"
 
@@ -144,7 +144,7 @@ BOOL CConfigVersion::OnInitDialog()
 	GetDlgItem(IDC_CHECK_VERSION_SAVE)->EnableWindow(FALSE);
 #endif
 
-	m_iModuleErrorLevel = theApp.GetSettings()->Version.iErrorLevel;
+	m_iModuleErrorLevel = Env.GetSettings()->Version.iErrorLevel;
 
 	m_cComboVersion.SubclassDlgItem(IDC_COMBO_VERSION_SELECT, this);
 
@@ -170,7 +170,7 @@ BOOL CConfigVersion::OnApply()
 		return false;
 	}
 #endif
-	theApp.GetSettings()->Version.iErrorLevel = m_iModuleErrorLevel;
+	Env.GetSettings()->Version.iErrorLevel = m_iModuleErrorLevel;
 
 	return CPropertyPage::OnApply();
 }

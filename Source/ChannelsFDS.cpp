@@ -27,8 +27,7 @@
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 #include "SeqInstHandlerFDS.h"		// // //
-#include "stdafx.h"
-#include "FamiTracker.h"		// // //
+#include "FamiTrackerEnv.h"		// // //
 #include "Settings.h"		// // //
 #include "SongState.h"		// // //
 
@@ -127,7 +126,7 @@ void CChannelHandlerFDS::HandleRelease()
 
 int CChannelHandlerFDS::CalculateVolume() const		// // //
 {
-	if (!theApp.GetSettings()->General.bFDSOldVolume)		// // // match NSF setting
+	if (!Env.GetSettings()->General.bFDSOldVolume)		// // // match NSF setting
 		return LimitVolume(((m_iInstVolume + 1) * ((m_iVolume >> VOL_COLUMN_SHIFT) + 1) - 1) / 16 - GetTremolo());
 	return CChannelHandler::CalculateVolume();
 }
