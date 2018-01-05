@@ -128,11 +128,11 @@ public:
 class CChunkDataString : public CChunkData
 {
 public:
-	CChunkDataString(const std::vector<char> &data) : CChunkData(), m_vData(data) {}
+	CChunkDataString(const std::vector<unsigned char> &data) : CChunkData(), m_vData(data) {}
 	int GetSize() const override { return m_vData.size(); }
 	unsigned short GetData() const override { return 0; };	// Invalid for this type
 
-	std::vector<char> m_vData;
+	std::vector<unsigned char> m_vData;		// // //
 };
 
 //
@@ -160,7 +160,7 @@ public:
 	void			StoreWord(unsigned short data);
 	void			StorePointer(const stChunkLabel &label);		// // //
 	void			StoreBankReference(const stChunkLabel &label, int bank);		// // //
-	void			StoreString(const std::vector<char> &data);
+	void			StoreString(const std::vector<unsigned char> &data);		// // //
 
 	void			ChangeByte(int index, unsigned char data);
 	void			SetupBankData(int index, unsigned char bank);
@@ -172,7 +172,7 @@ public:
 	bool			IsDataBank(int index) const;
 
 	unsigned char	GetStringData(int index, int pos) const;
-	const std::vector<char> &GetStringData(int index) const;
+	const std::vector<unsigned char> &GetStringData(int index) const;
 
 	void			AssignLabels(std::map<stChunkLabel, int> &labelMap);		// // //
 

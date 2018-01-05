@@ -42,10 +42,10 @@ public:
 	void			CompileData(int Track, int Pattern, int Channel);
 
 	unsigned int	GetHash() const;
-	bool			CompareData(const std::vector<char> &data) const;
+	bool			CompareData(const std::vector<unsigned char> &data) const;		// // //
 
-	const std::vector<char> &GetData() const;
-	const std::vector<char> &GetCompressedData() const;
+	const std::vector<unsigned char> &GetData() const;		// // //
+	const std::vector<unsigned char> &GetCompressedData() const;
 
 	unsigned int	GetDataSize() const;
 	unsigned int	GetCompressedDataSize() const;
@@ -73,8 +73,8 @@ private:
 	void			Print(LPCTSTR text) const;
 
 private:
-	std::vector<char> m_vData;
-	std::vector<char> m_vCompressedData;
+	std::vector<unsigned char> m_vData;		// // //
+	std::vector<unsigned char> m_vCompressedData;
 
 	unsigned int	m_iDuration;
 	unsigned int	m_iCurrentDefaultDuration;

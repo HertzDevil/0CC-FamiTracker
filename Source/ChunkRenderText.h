@@ -25,11 +25,13 @@
 
 #include <vector>
 #include <memory>		// // //
-#include "stdafx.h"
+#include <string>		// // //
 
 //
 // Text chunk renderer
 //
+
+class CFile;		// // //
 
 class CChunkRenderText;
 class CChunk;		// // //
@@ -39,61 +41,61 @@ class dpcm_sample;
 enum chunk_type_t : int;		// // //
 struct stChunkLabel;		// // //
 
-typedef void (CChunkRenderText::*renderFunc_t)(CChunk *pChunk, CFile *pFile);
-
-struct stChunkRenderFunc {
-	chunk_type_t type;
-	renderFunc_t function;
-};
-
 class CChunkRenderText
 {
+	using renderFunc_t = void (CChunkRenderText::*)(const CChunk *);
+	struct stChunkRenderFunc {
+		chunk_type_t type;
+		renderFunc_t function;
+	};
+
 public:
-	CChunkRenderText(CFile *pFile);
+	explicit CChunkRenderText(CFile &File);		// // //
+
 	void StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks);		// // //
 	void StoreSamples(const std::vector<std::shared_ptr<const ft0cc::doc::dpcm_sample>> &Samples);		// // //
 
 private:
 	static const stChunkRenderFunc RENDER_FUNCTIONS[];
-	static CStringA GetLabelString(const stChunkLabel &label);		// // //
+	static std::string GetLabelString(const stChunkLabel &label);		// // //
+	static std::string GetByteString(const unsigned char *pData, int Len, int LineBreak);		// // //
+	static std::string GetByteString(const CChunk *pChunk, int LineBreak);		// // //
 
 private:
-	void DumpStrings(const CStringA &preStr, const CStringA &postStr, CStringArray &stringArray, CFile *pFile) const;
-	void WriteFileString(const CStringA &str, CFile *pFile) const;
-	void StoreByteString(const char *pData, int Len, CStringA &str, int LineBreak) const;
-	void StoreByteString(const CChunk *pChunk, CStringA &str, int LineBreak) const;
+	void DumpStrings(std::string_view preStr, std::string_view postStr, const std::vector<std::string> &stringArray) const;		// // //
+	void WriteFileString(std::string_view sv) const;		// // //
 
 private:
-	void StoreHeaderChunk(CChunk *pChunk, CFile *pFile);
-	void StoreInstrumentListChunk(CChunk *pChunk, CFile *pFile);
-	void StoreInstrumentChunk(CChunk *pChunk, CFile *pFile);
-	void StoreSequenceChunk(CChunk *pChunk, CFile *pFile);
-	void StoreSampleListChunk(CChunk *pChunk, CFile *pFile);
-	void StoreSamplePointersChunk(CChunk *pChunk, CFile *pFile);
-	void StoreGrooveListChunk(CChunk *pChunk, CFile *pFile);		// // //
-	void StoreGrooveChunk(CChunk *pChunk, CFile *pFile);		// // //
-	void StoreSongListChunk(CChunk *pChunk, CFile *pFile);
-	void StoreSongChunk(CChunk *pChunk, CFile *pFile);
-	void StoreFrameListChunk(CChunk *pChunk, CFile *pFile);
-	void StoreFrameChunk(CChunk *pChunk, CFile *pFile);
-	void StorePatternChunk(CChunk *pChunk, CFile *pFile);
-	void StoreWavetableChunk(CChunk *pChunk, CFile *pFile);
-	void StoreWavesChunk(CChunk *pChunk, CFile *pFile);
+	void StoreHeaderChunk(const CChunk *pChunk);
+	void StoreInstrumentListChunk(const CChunk *pChunk);
+	void StoreInstrumentChunk(const CChunk *pChunk);
+	void StoreSequenceChunk(const CChunk *pChunk);
+	void StoreSampleListChunk(const CChunk *pChunk);
+	void StoreSamplePointersChunk(const CChunk *pChunk);
+	void StoreGrooveListChunk(const CChunk *pChunk);		// // //
+	void StoreGrooveChunk(const CChunk *pChunk);		// // //
+	void StoreSongListChunk(const CChunk *pChunk);
+	void StoreSongChunk(const CChunk *pChunk);
+	void StoreFrameListChunk(const CChunk *pChunk);
+	void StoreFrameChunk(const CChunk *pChunk);
+	void StorePatternChunk(const CChunk *pChunk);
+	void StoreWavetableChunk(const CChunk *pChunk);
+	void StoreWavesChunk(const CChunk *pChunk);
 
 private:
-	CStringArray m_headerStrings;
-	CStringArray m_instrumentListStrings;
-	CStringArray m_instrumentStrings;
-	CStringArray m_sequenceStrings;
-	CStringArray m_sampleListStrings;
-	CStringArray m_samplePointersStrings;
-	CStringArray m_grooveListStrings;		// // //
-	CStringArray m_grooveStrings;		// // //
-	CStringArray m_songListStrings;
-	CStringArray m_songStrings;
-	CStringArray m_songDataStrings;
-	CStringArray m_wavetableStrings;
-	CStringArray m_wavesStrings;
+	std::vector<std::string> m_headerStrings;		// // //
+	std::vector<std::string> m_instrumentListStrings;
+	std::vector<std::string> m_instrumentStrings;
+	std::vector<std::string> m_sequenceStrings;
+	std::vector<std::string> m_sampleListStrings;
+	std::vector<std::string> m_samplePointersStrings;
+	std::vector<std::string> m_grooveListStrings;		// // //
+	std::vector<std::string> m_grooveStrings;		// // //
+	std::vector<std::string> m_songListStrings;
+	std::vector<std::string> m_songStrings;
+	std::vector<std::string> m_songDataStrings;
+	std::vector<std::string> m_wavetableStrings;
+	std::vector<std::string> m_wavesStrings;
 
-	CFile *m_pFile;
+	CFile &m_File;
 };

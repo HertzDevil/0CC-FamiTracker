@@ -20,12 +20,13 @@
 ** must bear this legend.
 */
 
+#include "stdafx.h"
 #include "ChunkRenderText.h"
-#include <vector>
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "FamiTrackerDoc.h"		// // // output title
 #include "Compiler.h"
 #include "Chunk.h"
+#include "NumConv.h"		// // //
 
 /**
  * Text chunk render, these methods will always output single byte strings
@@ -35,18 +36,18 @@
 static const int DEFAULT_LINE_BREAK = 20;
 
 // // // TODO: remove
-CStringA CChunkRenderText::GetLabelString(const stChunkLabel &label) {
-	const auto APPEND0 = [&] (const char *text) {
-		return CStringA(text);
+std::string CChunkRenderText::GetLabelString(const stChunkLabel &label) {
+	const auto APPEND0 = [&] (std::string_view text) -> std::string {
+		return std::string(text);
 	};
-	const auto APPEND1 = [&] (const char *text) {
-		CStringA str; str.AppendFormat(text, label.Param1); return str;
+	const auto APPEND1 = [&] (std::string_view text) -> std::string {
+		CStringA str; str.AppendFormat(text.data(), label.Param1); return (LPCTSTR)str;
 	};
-	const auto APPEND2 = [&] (const char *text) {
-		CStringA str; str.AppendFormat(text, label.Param1, label.Param2); return str;
+	const auto APPEND2 = [&] (std::string_view text) -> std::string {
+		CStringA str; str.AppendFormat(text.data(), label.Param1, label.Param2); return (LPCTSTR)str;
 	};
-	const auto APPEND3 = [&] (const char *text) {
-		CStringA str; str.AppendFormat(text, label.Param1, label.Param2, label.Param3); return str;
+	const auto APPEND3 = [&] (std::string_view text) -> std::string {
+		CStringA str; str.AppendFormat(text.data(), label.Param1, label.Param2, label.Param3); return (LPCTSTR)str;
 	};
 
 	switch (label.Type) {
@@ -82,7 +83,7 @@ CStringA CChunkRenderText::GetLabelString(const stChunkLabel &label) {
 }
 
 // String render functions
-const stChunkRenderFunc CChunkRenderText::RENDER_FUNCTIONS[] = {
+const CChunkRenderText::stChunkRenderFunc CChunkRenderText::RENDER_FUNCTIONS[] = {
 	{CHUNK_HEADER,			&CChunkRenderText::StoreHeaderChunk},
 	{CHUNK_SEQUENCE,		&CChunkRenderText::StoreSequenceChunk},
 	{CHUNK_INSTRUMENT_LIST,	&CChunkRenderText::StoreInstrumentListChunk},
@@ -100,7 +101,7 @@ const stChunkRenderFunc CChunkRenderText::RENDER_FUNCTIONS[] = {
 	{CHUNK_WAVES,			&CChunkRenderText::StoreWavesChunk}
 };
 
-CChunkRenderText::CChunkRenderText(CFile *pFile) : m_pFile(pFile)
+CChunkRenderText::CChunkRenderText(CFile &File) : m_File(File)
 {
 }
 
@@ -110,46 +111,44 @@ void CChunkRenderText::StoreChunks(const std::vector<std::shared_ptr<CChunk>> &C
 	for (auto &pChunk : Chunks)
 		for (const auto &f : RENDER_FUNCTIONS)
 			if (pChunk->GetType() == f.type)
-				(this->*(f.function))(pChunk.get(), m_pFile);
+				(this->*(f.function))(pChunk.get());
 
 	// Write strings to file
-	WriteFileString(CStringA("; 0CC-FamiTracker exported music data: "), m_pFile);
-	WriteFileString(CFamiTrackerDoc::GetDoc()->GetTitle(), m_pFile);
-	WriteFileString(CStringA("\n;\n\n"), m_pFile);
+	WriteFileString("; 0CC-FamiTracker exported music data: ");
+	WriteFileString((LPCTSTR)CFamiTrackerDoc::GetDoc()->GetTitle());
+	WriteFileString("\n;\n\n");
 
 	// Module header
-	DumpStrings(CStringA("; Module header\n"), CStringA("\n"), m_headerStrings, m_pFile);
+	DumpStrings("; Module header\n", "\n", m_headerStrings);
 
 	// Instrument list
-	DumpStrings(CStringA("; Instrument pointer list\n"), CStringA("\n"), m_instrumentListStrings, m_pFile);
-	DumpStrings(CStringA("; Instruments\n"), CStringA(""), m_instrumentStrings, m_pFile);
+	DumpStrings("; Instrument pointer list\n", "\n", m_instrumentListStrings);
+	DumpStrings("; Instruments\n", "", m_instrumentStrings);
 
 	// Sequences
-	DumpStrings(CStringA("; Sequences\n"), CStringA("\n"), m_sequenceStrings, m_pFile);
+	DumpStrings("; Sequences\n", "\n", m_sequenceStrings);
 
 	// Waves (FDS & N163)
-	if (m_wavetableStrings.IsEmpty() == FALSE) {
-		DumpStrings(CStringA("; FDS waves\n"), CStringA("\n"), m_wavetableStrings, m_pFile);
-	}
+	if (!m_wavetableStrings.empty())
+		DumpStrings("; FDS waves\n", "\n", m_wavetableStrings);
 
-	if (m_wavesStrings.IsEmpty() == FALSE) {
-		DumpStrings(CStringA("; N163 waves\n"), CStringA("\n"), m_wavesStrings, m_pFile);
-	}
+	if (!m_wavesStrings.empty())
+		DumpStrings("; N163 waves\n", "\n", m_wavesStrings);
 
 	// Samples
-	DumpStrings(CStringA("; DPCM instrument list (pitch, sample index)\n"), CStringA("\n"), m_sampleListStrings, m_pFile);
-	DumpStrings(CStringA("; DPCM samples list (location, size, bank)\n"), CStringA("\n"), m_samplePointersStrings, m_pFile);
+	DumpStrings("; DPCM instrument list (pitch, sample index)\n", "\n", m_sampleListStrings);
+	DumpStrings("; DPCM samples list (location, size, bank)\n", "\n", m_samplePointersStrings);
 
 	// // // Grooves
-	DumpStrings(CStringA("; Groove list\n"), CStringA(""), m_grooveListStrings, m_pFile);
-	DumpStrings(CStringA("; Grooves (size, terms)\n"), CStringA("\n"), m_grooveStrings, m_pFile);
+	DumpStrings("; Groove list\n", "", m_grooveListStrings);
+	DumpStrings("; Grooves (size, terms)\n", "\n", m_grooveStrings);
 
 	// Songs
-	DumpStrings(CStringA("; Song pointer list\n"), CStringA("\n"), m_songListStrings, m_pFile);
-	DumpStrings(CStringA("; Song info\n"), CStringA("\n"), m_songStrings, m_pFile);
+	DumpStrings("; Song pointer list\n", "\n", m_songListStrings);
+	DumpStrings("; Song info\n", "\n", m_songStrings);
 
 	// Song data
-	DumpStrings(CStringA(";\n; Pattern and frame data for all songs below\n;\n\n"), CStringA(""), m_songDataStrings, m_pFile);
+	DumpStrings(";\n; Pattern and frame data for all songs below\n;\n\n", "", m_songDataStrings);
 
 	// Actual DPCM samples are stored later
 }
@@ -158,13 +157,10 @@ void CChunkRenderText::StoreSamples(const std::vector<std::shared_ptr<const ft0c
 {
 	// Store DPCM samples in file, assembly format
 	CStringA str;
-	str.Format("\n; DPCM samples (located at DPCM segment)\n");
-	WriteFileString(str, m_pFile);
+	WriteFileString("\n; DPCM samples (located at DPCM segment)\n");
 
-	if (Samples.size() > 0) {
-		str.Format("\n\t.segment \"DPCM\"\n");
-		WriteFileString(str, m_pFile);
-	}
+	if (!Samples.empty())
+		WriteFileString("\n\t.segment \"DPCM\"\n");
 
 	unsigned int Address = CCompiler::PAGE_SAMPLES;
 	for (size_t i = 0; i < Samples.size(); ++i) if (const auto &pDSample = Samples[i]) {		// // //
@@ -173,8 +169,8 @@ void CChunkRenderText::StoreSamples(const std::vector<std::shared_ptr<const ft0c
 
 		CStringA label;
 		label.Format("ft_sample_%i", i);		// // //
-		str.Format("%s: ; %.*s\n", LPCSTR(label), pDSample->name().size(), pDSample->name().data());
-		StoreByteString((const char *)pData, SampleSize, str, DEFAULT_LINE_BREAK);
+		str.Format("%s: ; %.*s\n", LPCTSTR(label), pDSample->name().size(), pDSample->name().data());
+		str += GetByteString(pData, SampleSize, DEFAULT_LINE_BREAK).c_str();
 		Address += SampleSize;
 
 		// Adjust if necessary
@@ -185,22 +181,21 @@ void CChunkRenderText::StoreSamples(const std::vector<std::shared_ptr<const ft0c
 		}
 
 		str.Append("\n");
-		WriteFileString(str, m_pFile);
+		WriteFileString((LPCTSTR)str);
 	}
 }
 
-void CChunkRenderText::DumpStrings(const CStringA &preStr, const CStringA &postStr, CStringArray &stringArray, CFile *pFile) const
+void CChunkRenderText::DumpStrings(std::string_view preStr, std::string_view postStr, const std::vector<std::string> &stringArray) const		// // //
 {
-	WriteFileString(preStr, pFile);
+	WriteFileString(preStr);
 
-	for (int i = 0; i < stringArray.GetCount(); ++i) {
-		WriteFileString(stringArray[i], pFile);
-	}
+	for (auto &str : stringArray)
+		WriteFileString(str);
 
-	WriteFileString(postStr, pFile);
+	WriteFileString(postStr);
 }
 
-void CChunkRenderText::StoreHeaderChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StoreHeaderChunk(const CChunk *pChunk)
 {
 	CStringA str;
 	int len = pChunk->GetLength();
@@ -219,10 +214,10 @@ void CChunkRenderText::StoreHeaderChunk(CChunk *pChunk, CFile *pFile)
 	if (i < pChunk->GetLength())
 		str.AppendFormat("\t.word %i ; N163 channels\n", pChunk->GetData(i++));	// N163 channels
 
-	m_headerStrings.Add(str);
+	m_headerStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreInstrumentListChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StoreInstrumentListChunk(const CChunk *pChunk)
 {
 	CString str;
 
@@ -233,10 +228,10 @@ void CChunkRenderText::StoreInstrumentListChunk(CChunk *pChunk, CFile *pFile)
 		str.AppendFormat(_T("\t.word %s\n"), GetLabelString(pChunk->GetDataPointerTarget(i)));
 	}
 
-	m_instrumentListStrings.Add(str);
+	m_instrumentListStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreInstrumentChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StoreInstrumentChunk(const CChunk *pChunk)
 {
 	CStringA str;
 	int len = pChunk->GetLength();
@@ -259,20 +254,20 @@ void CChunkRenderText::StoreInstrumentChunk(CChunk *pChunk, CFile *pFile)
 
 	str.Append("\n");
 
-	m_instrumentStrings.Add(str);
+	m_instrumentStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreSequenceChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StoreSequenceChunk(const CChunk *pChunk)
 {
 	CStringA str;
 
 	str.Format("%s:\n", GetLabelString(pChunk->GetLabel()));
-	StoreByteString(pChunk, str, DEFAULT_LINE_BREAK);
+	str += GetByteString(pChunk, DEFAULT_LINE_BREAK).c_str();		// // //
 
-	m_sequenceStrings.Add(str);
+	m_sequenceStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreSampleListChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StoreSampleListChunk(const CChunk *pChunk)
 {
 	CStringA str;
 
@@ -283,10 +278,10 @@ void CChunkRenderText::StoreSampleListChunk(CChunk *pChunk, CFile *pFile)
 		str.AppendFormat("\t.byte %i, %i, %i\n", pChunk->GetData(i + 0), pChunk->GetData(i + 1), pChunk->GetData(i + 2));
 	}
 
-	m_sampleListStrings.Add(str);
+	m_sampleListStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreSamplePointersChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StoreSamplePointersChunk(const CChunk *pChunk)
 {
 	CStringA str;
 	int len = pChunk->GetLength();
@@ -307,10 +302,10 @@ void CChunkRenderText::StoreSamplePointersChunk(CChunk *pChunk, CFile *pFile)
 
 	str.Append("\n");
 
-	m_samplePointersStrings.Add(str);
+	m_samplePointersStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreGrooveListChunk(CChunk *pChunk, CFile *pFile)		// // //
+void CChunkRenderText::StoreGrooveListChunk(const CChunk *pChunk)		// // //
 {
 	CStringA str;
 
@@ -320,20 +315,20 @@ void CChunkRenderText::StoreGrooveListChunk(CChunk *pChunk, CFile *pFile)		// //
 		str.AppendFormat("\t.byte $%02X\n", pChunk->GetData(i));
 	}
 
-	m_grooveListStrings.Add(str);
+	m_grooveListStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreGrooveChunk(CChunk *pChunk, CFile *pFile)		// // //
+void CChunkRenderText::StoreGrooveChunk(const CChunk *pChunk)		// // //
 {
 	CStringA str;
 
 	// str.Format("%s:\n", GetLabelString(pChunk->GetLabel()));
-	StoreByteString(pChunk, str, DEFAULT_LINE_BREAK);
+	str += GetByteString(pChunk, DEFAULT_LINE_BREAK).c_str();
 
-	m_grooveStrings.Add(str);
+	m_grooveStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreSongListChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StoreSongListChunk(const CChunk *pChunk)
 {
 	CStringA str;
 
@@ -343,10 +338,10 @@ void CChunkRenderText::StoreSongListChunk(CChunk *pChunk, CFile *pFile)
 		str.AppendFormat("\t.word %s\n", GetLabelString(pChunk->GetDataPointerTarget(i)));
 	}
 
-	m_songListStrings.Add(str);
+	m_songListStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreSongChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StoreSongChunk(const CChunk *pChunk)
 {
 	CStringA str;
 
@@ -364,10 +359,10 @@ void CChunkRenderText::StoreSongChunk(CChunk *pChunk, CFile *pFile)
 
 	str.Append("\n");
 
-	m_songStrings.Add(str);
+	m_songStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreFrameListChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StoreFrameListChunk(const CChunk *pChunk)
 {
 	CStringA str;
 
@@ -379,10 +374,10 @@ void CChunkRenderText::StoreFrameListChunk(CChunk *pChunk, CFile *pFile)
 		str.AppendFormat("\t.word %s\n", GetLabelString(pChunk->GetDataPointerTarget(i)));
 	}
 
-	m_songDataStrings.Add(str);
+	m_songDataStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreFrameChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StoreFrameChunk(const CChunk *pChunk)
 {
 	CStringA str;
 	int len = pChunk->GetLength();
@@ -407,10 +402,10 @@ void CChunkRenderText::StoreFrameChunk(CChunk *pChunk, CFile *pFile)
 
 	str.Append("\n");
 
-	m_songDataStrings.Add(str);
+	m_songDataStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StorePatternChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StorePatternChunk(const CChunk *pChunk)
 {
 	CStringA str;
 	int len = pChunk->GetLength();
@@ -419,11 +414,10 @@ void CChunkRenderText::StorePatternChunk(CChunk *pChunk, CFile *pFile)
 	str.Format("; Bank %i\n", pChunk->GetBank());
 	str.AppendFormat("%s:\n", GetLabelString(pChunk->GetLabel()));
 
-	const std::vector<char> &vec = pChunk->GetStringData(0);
-	len = vec.size();
-
-	StoreByteString(&vec.front(), vec.size(), str, DEFAULT_LINE_BREAK);
+	const std::vector<unsigned char> &vec = pChunk->GetStringData(0);		// // //
+	str += GetByteString(&vec.front(), vec.size(), DEFAULT_LINE_BREAK).c_str();
 /*
+	len = vec.size();
 	for (int i = 0; i < len; ++i) {
 		str.AppendFormat("$%02X", (unsigned char)vec[i]);
 		if ((i % 20 == 19) && (i < len - 1))
@@ -436,10 +430,10 @@ void CChunkRenderText::StorePatternChunk(CChunk *pChunk, CFile *pFile)
 */
 	str.Append("\n");
 
-	m_songDataStrings.Add(str);
+	m_songDataStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreWavetableChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StoreWavetableChunk(const CChunk *pChunk)
 {
 	CStringA str;
 	int len = pChunk->GetLength();
@@ -460,10 +454,10 @@ void CChunkRenderText::StoreWavetableChunk(CChunk *pChunk, CFile *pFile)
 
 	str.Append("\n");
 
-	m_wavetableStrings.Add(str);
+	m_wavetableStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::StoreWavesChunk(CChunk *pChunk, CFile *pFile)
+void CChunkRenderText::StoreWavesChunk(const CChunk *pChunk)
 {
 	CStringA str;
 	int len = pChunk->GetLength();
@@ -489,44 +483,46 @@ void CChunkRenderText::StoreWavesChunk(CChunk *pChunk, CFile *pFile)
 
 	str.Append("\n");
 
-	m_wavesStrings.Add(str);
+	m_wavesStrings.push_back((LPCTSTR)str);
 }
 
-void CChunkRenderText::WriteFileString(const CStringA &str, CFile *pFile) const
+void CChunkRenderText::WriteFileString(std::string_view sv) const		// // //
 {
-	pFile->Write(const_cast<CStringA&>(str).GetBuffer(), str.GetLength());
+	m_File.Write(sv.data(), sv.size());		// // //
 }
 
-void CChunkRenderText::StoreByteString(const char *pData, int Len, CStringA &str, int LineBreak) const
-{
-	str.Append("\t.byte ");
+std::string CChunkRenderText::GetByteString(const unsigned char *pData, int Len, int LineBreak) {		// // //
+	std::string str = "\t.byte ";
 
 	for (int i = 0; i < Len; ++i) {
-		str.AppendFormat("$%02X", (unsigned char)pData[i]);
+		str += '$';
+		str += conv::sv_from_uint_hex(pData[i], 2);
 
 		if ((i % LineBreak == (LineBreak - 1)) && (i < Len - 1))
-			str.Append("\n\t.byte ");
+			str += "\n\t.byte ";
 		else if (i < Len - 1)
-			str.Append(", ");
+			str += ", ";
 	}
 
-	str.Append("\n");
+	str += '\n';
+	return str;
 }
 
-void CChunkRenderText::StoreByteString(const CChunk *pChunk, CStringA &str, int LineBreak) const
-{
+std::string CChunkRenderText::GetByteString(const CChunk *pChunk, int LineBreak) {		// // //
 	int len = pChunk->GetLength();
 
-	str.Append("\t.byte ");
+	std::string str = "\t.byte ";
 
 	for (int i = 0; i < len; ++i) {
-		str.AppendFormat("$%02X", pChunk->GetData(i));
+		str += '$';
+		str += conv::sv_from_uint_hex(pChunk->GetData(i), 2);
 
 		if ((i % LineBreak == (LineBreak - 1)) && (i < len - 1))
-			str.Append("\n\t.byte ");
+			str += "\n\t.byte ";
 		else if (i < len - 1)
-			str.Append(", ");
+			str += ", ";
 	}
 
-	str.Append("\n");
+	str += '\n';
+	return str;
 }

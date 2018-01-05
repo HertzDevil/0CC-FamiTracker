@@ -92,7 +92,7 @@ void CChunk::StoreBankReference(const stChunkLabel &label, int bank)		// // //
 	DoAddChunk<CChunkDataBank>(label, bank);
 }
 
-void CChunk::StoreString(const std::vector<char> &data)
+void CChunk::StoreString(const std::vector<unsigned char> &data)		// // //
 {
 	DoAddChunk<CChunkDataString>(data);		// // //
 }
@@ -112,7 +112,7 @@ unsigned char CChunk::GetStringData(int index, int pos) const
 	return GetChunkData<const CChunkDataString>(index).m_vData[pos];
 }
 
-const std::vector<char> &CChunk::GetStringData(int index) const
+const std::vector<unsigned char> &CChunk::GetStringData(int index) const
 {
 	return GetChunkData<const CChunkDataString>(index).m_vData;
 }

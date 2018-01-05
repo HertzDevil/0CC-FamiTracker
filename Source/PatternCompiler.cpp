@@ -917,17 +917,17 @@ void CPatternCompiler::Print(LPCTSTR text) const
 		m_pLogger->WriteLog(text);
 }
 
-bool CPatternCompiler::CompareData(const std::vector<char> &data) const
+bool CPatternCompiler::CompareData(const std::vector<unsigned char> &data) const		// // //
 {
 	return m_vData == data;
 }
 
-const std::vector<char> &CPatternCompiler::GetData() const
+const std::vector<unsigned char> &CPatternCompiler::GetData() const		// // //
 {
 	return m_vData;
 }
 
-const std::vector<char> &CPatternCompiler::GetCompressedData() const
+const std::vector<unsigned char> &CPatternCompiler::GetCompressedData() const		// // //
 {
 	return m_vCompressedData;
 }

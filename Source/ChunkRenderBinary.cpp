@@ -80,7 +80,7 @@ void CChunkRenderBinary::StoreChunk(const CChunk &Chunk)		// // //
 {
 	for (int i = 0, n = Chunk.GetLength(); i < n; ++i) {
 		if (Chunk.GetType() == CHUNK_PATTERN) {
-			const std::vector<char> &vec = Chunk.GetStringData(CCompiler::PATTERN_CHUNK_INDEX);
+			const std::vector<unsigned char> &vec = Chunk.GetStringData(CCompiler::PATTERN_CHUNK_INDEX);
 			Store(&vec.front(), vec.size());
 		}
 		else {
@@ -210,7 +210,7 @@ void CChunkRenderNSF::StoreChunk(const CChunk &Chunk)		// // //
 {
 	for (int i = 0, n = Chunk.GetLength(); i < n; ++i) {
 		if (Chunk.GetType() == CHUNK_PATTERN) {
-			const std::vector<char> &vec = Chunk.GetStringData(CCompiler::PATTERN_CHUNK_INDEX);
+			const std::vector<unsigned char> &vec = Chunk.GetStringData(CCompiler::PATTERN_CHUNK_INDEX);
 			Store(&vec.front(), vec.size());
 		}
 		else {

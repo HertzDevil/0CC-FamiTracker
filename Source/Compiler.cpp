@@ -438,7 +438,7 @@ void CCompiler::ExportBIN_ASM(LPCTSTR lpszFileName, LPCTSTR lpszDPCM_File, bool 
 	Print(_T("Writing output files...\n"));
 
 	if (isASM) {
-		CChunkRenderText Render(&OutputFile);
+		CChunkRenderText Render(OutputFile);		// // //
 		Render.StoreChunks(m_vChunks);
 		Render.StoreSamples(m_vSamples);
 	}
