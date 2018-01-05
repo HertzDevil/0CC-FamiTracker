@@ -1419,23 +1419,33 @@ void CFamiTrackerDoc::SwapSongs(unsigned int First, unsigned int Second)
 void CFamiTrackerDoc::AllocateSong(unsigned int Index)
 {
 	// Allocate a new song if not already done
-	ASSERT(Index < MAX_TRACKS);
-	while (Index >= m_pTracks.size()) {		// // //
+	while (Index >= m_pTracks.size() && m_pTracks.size() < MAX_TRACKS) {		// // //
 		auto &pSong = m_pTracks.emplace_back(std::make_unique<CSongData>());		// // //
 		pSong->SetSongTempo(GetMachine() == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
 	}
 }
 
-CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index)		// // //
+CSongData *CFamiTrackerDoc::GetSong(unsigned int Index)		// // //
 {
 	// Ensure track is allocated
 	AllocateSong(Index);
-	return *m_pTracks[Index];
+	return Index < m_pTracks.size() ? m_pTracks[Index].get() : nullptr;
+}
+
+const CSongData *CFamiTrackerDoc::GetSong(unsigned int Index) const		// // //
+{
+	return Index < m_pTracks.size() ? m_pTracks[Index].get() : nullptr;
+}
+
+CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index)		// // //
+{
+	// Ensure track is allocated
+	return *GetSong(Index);
 }
 
 const CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index) const		// // //
 {
-	return *m_pTracks[Index];
+	return *GetSong(Index);
 }
 
 std::unique_ptr<CSongData> CFamiTrackerDoc::ReplaceSong(unsigned Index, std::unique_ptr<CSongData> pSong) {		// // //

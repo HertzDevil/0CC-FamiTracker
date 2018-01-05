@@ -144,8 +144,8 @@ public:
 	CFamiTrackerDoc &GetDoc();		// // //
 	const CFamiTrackerDoc &GetDoc() const;		// // //
 
-	CSongData &GetCurrentSong();		// // //
-	const CSongData &GetCurrentSong() const;		// // //
+	CSongData *GetCurrentSong();		// // //
+	const CSongData *GetCurrentSong() const;		// // //
 
 	bool HasDocument() const;		// // //
 

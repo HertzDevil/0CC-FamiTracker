@@ -125,7 +125,7 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerDoc &doc) {
 
 	// This has to be done for older files
 	if (file_.GetFileVersion() < 0x0210)
-		doc.GetSongData(0);
+		(void)doc.GetSong(0);
 
 	// Read all blocks
 	bool ErrorFlag = false;
@@ -227,7 +227,7 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
 
 void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 	// Get first track for module versions that require that
-	auto &Song = doc.GetSongData(0);
+	auto &Song = *doc.GetSong(0);
 
 	unsigned Expansion = SNDCHIP_NONE;		// // //
 
@@ -303,7 +303,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 		n163chans = AssertRange(file_.GetBlockInt(), 1, 8, "N163 channel count");
 
 	// Determine if new or old split point is preferred
-	int Split = AssertRange<MODULE_ERROR_STRICT>(ver >= 6 ? file_.GetBlockInt() : CFamiTrackerDoc::OLD_SPEED_SPLIT_POINT,
+	int Split = AssertRange<MODULE_ERROR_STRICT>(ver >= 6 ? file_.GetBlockInt() : (int)CFamiTrackerDoc::OLD_SPEED_SPLIT_POINT,
 		0, 255, "Speed / tempo split point");
 	doc.SetSpeedSplitPoint(Split);
 
@@ -321,7 +321,7 @@ void CFamiTrackerDocIO::SaveParams(const CFamiTrackerDoc &doc, int ver) {
 	if (ver >= 2)
 		file_.WriteBlockChar(doc.GetExpansionChip());		// ver 2 change
 	else
-		file_.WriteBlockInt(doc.GetSongData(0).GetSongSpeed());
+		file_.WriteBlockInt(doc.GetSong(0)->GetSongSpeed());
 
 	file_.WriteBlockInt(doc.GetChannelCount());
 	file_.WriteBlockInt(doc.GetMachine());
@@ -376,7 +376,7 @@ void CFamiTrackerDocIO::SaveSongInfo(const CFamiTrackerDoc &doc, int ver) {
 void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 	if (ver == 1) {
 		// Single track
-		auto &Song = doc.GetSongData(0);
+		auto &Song = *doc.GetSong(0);
 		for (int i = 0; i < doc.GetChannelCount(); ++i) try {
 			// Channel type (unused)
 			AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANNELS - 1, "Channel type index");
@@ -392,7 +392,8 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 	else if (ver >= 2) {
 		// Multiple tracks
 		unsigned Tracks = AssertRange(file_.GetBlockChar() + 1, 1, static_cast<int>(MAX_TRACKS), "Track count");	// 0 means one track
-		doc.GetSongData(Tracks - 1); // allocate
+		if (!doc.GetSong(Tracks - 1)) // allocate
+			throw CModuleException::WithMessage("Unable to allocate song");
 
 		// Track names
 		if (ver >= 3)
@@ -441,7 +442,7 @@ void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerDoc &doc, int ver) {
 		file_.WriteBlockChar(doc.GetChannelType(i));		// // //
 		for (unsigned int j = 0; j < doc.GetTrackCount(); ++j) {
 			// Effect columns
-			file_.WriteBlockChar(doc.GetSongData(j).GetEffectColumnCount(i));
+			file_.WriteBlockChar(doc.GetSong(j)->GetEffectColumnCount(i));
 			if (ver <= 1)
 				break;
 		}
@@ -669,7 +670,7 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
 	if (ver == 1) {
 		unsigned int FrameCount = AssertRange(file_.GetBlockInt(), 1, MAX_FRAMES, "Track frame count");
 		/*m_iChannelsAvailable =*/ AssertRange(file_.GetBlockInt(), 0, MAX_CHANNELS, "Channel count");
-		auto &Song = doc.GetSongData(0);
+		auto &Song = *doc.GetSong(0);
 		Song.SetFrameCount(FrameCount);
 		for (unsigned i = 0; i < FrameCount; ++i) {
 			for (int j = 0; j < doc.GetChannelCount(); ++j) {
@@ -735,7 +736,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 
 	if (ver == 1) {
 		int PatternLen = AssertRange(file_.GetBlockInt(), 0, MAX_PATTERN_LENGTH, "Pattern data count");
-		auto &Song = doc.GetSongData(0);
+		auto &Song = *doc.GetSong(0);
 		Song.SetPatternLength(PatternLen);
 	}
 
@@ -750,7 +751,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 		unsigned Pattern = AssertRange(file_.GetBlockInt(), 0, MAX_PATTERN - 1, "Pattern index");
 		unsigned Items	= AssertRange(file_.GetBlockInt(), 0, MAX_PATTERN_LENGTH, "Pattern data count");
 
-		auto &Song = doc.GetSongData(Track);
+		auto pSong = doc.GetSong(Track);
 
 		for (unsigned i = 0; i < Items; ++i) try {
 			unsigned Row;
@@ -774,7 +775,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 					file_.GetBlockChar(), 0, MAX_VOLUME, "Channel volume");
 
 				int FX = compat200 ? 1 : ver >= 6 ? MAX_EFFECT_COLUMNS :
-					(Song.GetEffectColumnCount(Channel) + 1);		// // // 050B
+					(pSong->GetEffectColumnCount(Channel) + 1);		// // // 050B
 				for (int n = 0; n < FX; ++n) try {
 					unsigned char EffectNumber = file_.GetBlockChar();
 					if (Note.EffNumber[n] = static_cast<effect_t>(EffectNumber)) {
@@ -885,7 +886,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 				}
 				*/
 
-				Song.SetPatternData(Channel, Pattern, Row, Note);		// // //
+				pSong->SetPatternData(Channel, Pattern, Row, Note);		// // //
 			}
 			catch (CModuleException e) {
 				e.AppendError("At row %02X,", Row);

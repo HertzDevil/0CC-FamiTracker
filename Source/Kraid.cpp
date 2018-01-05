@@ -29,7 +29,7 @@
 void Kraid::operator()(CFamiTrackerDoc &doc) {
 	doc.CreateEmpty();
 	buildDoc(doc);
-	buildSong(doc.GetSongData(0));
+	buildSong(*doc.GetSong(0));
 }
 
 void Kraid::buildDoc(CFamiTrackerDoc &doc) {

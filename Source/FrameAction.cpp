@@ -559,7 +559,7 @@ void CFActionPaste::Redo(CMainFrame &MainFrm)
 	CFrameSelection sel {*m_pClipData, m_iTargetFrame};
 	pFrameEditor->PasteInsert(m_pUndoState->Track, m_iTargetFrame, *m_pClipData);
 	if (m_bClone)
-		ClonePatterns(sel, GET_DOCUMENT()->GetSongData(m_pUndoState->Track));
+		ClonePatterns(sel, *GET_DOCUMENT()->GetSong(m_pUndoState->Track));
 	pFrameEditor->SetSelection(sel);
 }
 
@@ -673,7 +673,7 @@ void CFActionClonePatterns::Redo(CMainFrame &MainFrm)		// // //
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	if (m_pUndoState->IsSelecting)
-		ClonePatterns(m_pUndoState->Selection, pDoc->GetSongData(m_pUndoState->Track));
+		ClonePatterns(m_pUndoState->Selection, *pDoc->GetSong(m_pUndoState->Track));
 	else {
 		pDoc->SetPatternAtFrame(STATE_EXPAND(m_pUndoState), m_iNewPattern);
 		pDoc->CopyPattern(m_pUndoState->Track, m_iNewPattern, m_iOldPattern, m_pUndoState->Cursor.m_iChannel);

@@ -875,11 +875,11 @@ const CFamiTrackerDoc &CMainFrame::GetDoc() const {		// // //
 	return const_cast<CMainFrame *>(this)->GetDoc();
 }
 
-CSongData &CMainFrame::GetCurrentSong() {
-	return GetDoc().GetSongData(GetSelectedTrack());
+CSongData *CMainFrame::GetCurrentSong() {
+	return GetDoc().GetSong(GetSelectedTrack());
 }
 
-const CSongData &CMainFrame::GetCurrentSong() const {
+const CSongData *CMainFrame::GetCurrentSong() const {
 	return const_cast<CMainFrame *>(this)->GetCurrentSong();
 }
 

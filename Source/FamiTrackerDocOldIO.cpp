@@ -55,7 +55,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 	FileBlock = 0;
 
 	// Only single track files
-	auto &Song = doc.GetSongData(0);
+	auto &Song = *doc.GetSong(0);
 
 	doc.SelectExpansionChip(SNDCHIP_NONE, 0, false);		// // //
 	doc.SetMachine(NTSC);		// // //

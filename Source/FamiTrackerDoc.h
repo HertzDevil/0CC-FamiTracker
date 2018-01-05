@@ -147,8 +147,8 @@ public:
 	//
 
 	// Local (song) data
-	CSongData		&GetSongData(unsigned int Index);		// // //
-	const CSongData	&GetSongData(unsigned int Index) const;		// // //
+	CSongData		*GetSong(unsigned int Index);		// // //
+	const CSongData	*GetSong(unsigned int Index) const;		// // //
 	std::unique_ptr<CSongData> ReplaceSong(unsigned Index, std::unique_ptr<CSongData> pSong);		// // // returns old song
 
 	void			SetPatternLength(unsigned int Track, unsigned int Length);
@@ -386,6 +386,9 @@ private:
 
 	void			AllocateSong(unsigned int Index);		// // //
 	void			SwapSongs(unsigned int First, unsigned int Second);		// // //
+
+	CSongData		&GetSongData(unsigned int Index);		// // //
+	const CSongData	&GetSongData(unsigned int Index) const;		// // //
 
 	void			ApplyExpansionChip() const;
 
