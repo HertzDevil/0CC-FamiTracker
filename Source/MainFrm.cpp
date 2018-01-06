@@ -2541,7 +2541,7 @@ void CMainFrame::SelectTrack(unsigned int Track)
 
 	m_iTrack = Track;
 
-	if (theApp.IsPlaying() && Track != theApp.GetSoundGenerator()->GetPlayerTrack())		// // // 050B
+	if (theApp.GetSoundGenerator()->IsPlaying() && Track != theApp.GetSoundGenerator()->GetPlayerTrack())		// // // 050B
 		theApp.ResetPlayer();
 
 	pTrackBox->SetCurSel(m_iTrack);
@@ -3527,7 +3527,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 {
 	const CFamiTrackerDoc &Doc = GetDoc();
 
-	pCmdUI->Enable(Doc.GetExpansionChip() == SNDCHIP_NONE && !theApp.IsPlaying());		// // //
+	pCmdUI->Enable(Doc.GetExpansionChip() == SNDCHIP_NONE && !theApp.GetSoundGenerator()->IsPlaying());		// // //
 	UINT item = Doc.GetMachine() == PAL ? ID_TRACKER_PAL : ID_TRACKER_NTSC;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);
@@ -3535,7 +3535,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateTrackerNtsc(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!theApp.IsPlaying());		// // //
+	pCmdUI->Enable(!theApp.GetSoundGenerator()->IsPlaying());		// // //
 	UINT item = GetDoc().GetMachine() == NTSC ? ID_TRACKER_NTSC : ID_TRACKER_PAL;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);
@@ -3543,12 +3543,12 @@ void CMainFrame::OnUpdateTrackerNtsc(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateSpeedDefault(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!theApp.IsPlaying());		// // //
+	pCmdUI->Enable(!theApp.GetSoundGenerator()->IsPlaying());		// // //
 	pCmdUI->SetCheck(GetDoc().GetEngineSpeed() == 0);
 }
 
 void CMainFrame::OnUpdateSpeedCustom(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!theApp.IsPlaying());		// // //
+	pCmdUI->Enable(!theApp.GetSoundGenerator()->IsPlaying());		// // //
 	pCmdUI->SetCheck(GetDoc().GetEngineSpeed() != 0);
 }

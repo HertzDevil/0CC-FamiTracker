@@ -575,7 +575,7 @@ void CFamiTrackerApp::LoadSoundConfig()
 
 void CFamiTrackerApp::UpdateMenuShortcuts()		// // //
 {
-	CMainFrame *pMainFrm = dynamic_cast<CMainFrame*>(GetMainWnd());
+	CMainFrame *pMainFrm = GetMainFrame();		// // //
 	if (pMainFrm != nullptr)
 		pMainFrm->UpdateMenus();
 }
@@ -585,6 +585,12 @@ void CFamiTrackerApp::SilentEverything()
 {
 	GetSoundGenerator()->SilentAll();
 	CFamiTrackerView::GetView()->MakeSilent();
+}
+
+// Get-functions
+
+CMainFrame *CFamiTrackerApp::GetMainFrame() {		// // //
+	return dynamic_cast<CMainFrame *>(GetMainWnd());
 }
 
 int CFamiTrackerApp::GetCPUUsage() const
@@ -691,20 +697,11 @@ void CFamiTrackerApp::TogglePlayer()
 
 // Player interface
 
-bool CFamiTrackerApp::IsPlaying() const
-{
-	if (m_pSoundGenerator)
-		return m_pSoundGenerator->IsPlaying();
-
-	return false;
-}
-
 void CFamiTrackerApp::ResetPlayer()
 {
 	// Called when changing track
-	int Track = static_cast<CMainFrame*>(GetMainWnd())->GetSelectedTrack();
 	if (m_pSoundGenerator)
-		m_pSoundGenerator->ResetPlayer(Track);
+		m_pSoundGenerator->ResetPlayer(GetMainFrame()->GetSelectedTrack());		// // //
 }
 
 // File load/save
@@ -725,17 +722,6 @@ void CFamiTrackerApp::OnFileOpen()
 
 	if (pFrameWnd)
 		pFrameWnd->SetMessageText(IDS_LOADING_DONE);
-}
-
-// Used to display a messagebox on the main thread
-void CFamiTrackerApp::ThreadDisplayMessage(LPCTSTR lpszText, UINT nType, UINT nIDHelp)
-{
-	m_pMainWnd->SendMessage(WM_USER_DISPLAY_MESSAGE_STRING, (WPARAM)lpszText, (LPARAM)nType);
-}
-
-void CFamiTrackerApp::ThreadDisplayMessage(UINT nIDPrompt, UINT nType, UINT nIDHelp)
-{
-	m_pMainWnd->SendMessage(WM_USER_DISPLAY_MESSAGE_ID, (WPARAM)nIDPrompt, (LPARAM)nType);
 }
 
 // Various global helper functions
@@ -759,19 +745,9 @@ CString LoadDefaultFilter(LPCTSTR Name, LPCTSTR Ext)
 
 CString LoadDefaultFilter(UINT nID, LPCTSTR Ext)
 {
-	// Loads a single filter string including the all files option
-	CString filter;
-	CString allFilter;
-	VERIFY(allFilter.LoadString(AFX_IDS_ALLFILTER));
-
-	filter.LoadString(nID);
-	filter += _T("|*");
-	filter += Ext;
-	filter += _T("|");
-	filter += allFilter;
-	filter += _T("|*.*||");
-
-	return filter;
+	CString str;		// // //
+	VERIFY(str.LoadString(nID));
+	return LoadDefaultFilter((LPCTSTR)str, Ext);
 }
 
 void AfxFormatString3(CString &rString, UINT nIDS, LPCTSTR lpsz1, LPCTSTR lpsz2, LPCTSTR lpsz3)

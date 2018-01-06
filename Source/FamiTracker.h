@@ -66,7 +66,7 @@ public:
 	unsigned render_param_ = 1;		// // //
 };
 
-
+class CMainFrame;		// // //
 class CMIDI;
 class CSoundGen;
 class CSettings;
@@ -122,24 +122,21 @@ public:
 	int				GetCPUUsage() const;
 	bool			IsThemeActive() const;
 	void			DetachSoundGenerator();
-	void			ThreadDisplayMessage(LPCTSTR lpszText, UINT nType = 0, UINT nIDHelp = 0);
-	void			ThreadDisplayMessage(UINT nIDPrompt, UINT nType = 0, UINT nIDHelp = 0);
 
 	// Tracker player functions
 	void			StartPlayer(play_mode_t Mode);
 	void			StopPlayer();
 	void			StopPlayerAndWait();
 	void			TogglePlayer();
-	bool			IsPlaying() const;
 	void			ResetPlayer();
 	void			SilentEverything();
-	void			WaitUntilStopped() const;
 
 	// Get-functions
-	CAccelerator	*GetAccelerator() const		{ ASSERT(m_pAccel); return m_pAccel.get(); }
-	CSoundGen		*GetSoundGenerator() const	{ ASSERT(m_pSoundGenerator); return m_pSoundGenerator.get(); }
-	CMIDI			*GetMIDI() const			{ ASSERT(m_pMIDI); return m_pMIDI.get(); }
-	CSettings		*GetSettings() const		{ ASSERT(m_pSettings); return m_pSettings; }
+	CMainFrame		*GetMainFrame();		// // //
+	CAccelerator	*GetAccelerator()		{ ASSERT(m_pAccel); return m_pAccel.get(); }
+	CSoundGen		*GetSoundGenerator()	{ ASSERT(m_pSoundGenerator); return m_pSoundGenerator.get(); }
+	CMIDI			*GetMIDI()				{ ASSERT(m_pMIDI); return m_pMIDI.get(); }
+	CSettings		*GetSettings()			{ ASSERT(m_pSettings); return m_pSettings; }
 
 	//
 	// Private functions

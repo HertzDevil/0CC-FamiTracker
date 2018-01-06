@@ -26,6 +26,14 @@
 
 CFamiTrackerEnv Env;
 
+CWinApp *CFamiTrackerEnv::GetMainApp() {
+	return &theApp;
+}
+
+CMainFrame *CFamiTrackerEnv::GetMainFrame() {
+	return theApp.GetMainFrame();
+}
+
 CAccelerator *CFamiTrackerEnv::GetAccelerator() {
 	return theApp.GetAccelerator();
 }

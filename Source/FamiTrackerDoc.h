@@ -442,7 +442,7 @@ private:
 	machine_t		m_iMachine;									// // // NTSC / PAL
 	unsigned int	m_iEngineSpeed;								// Refresh rate
 	unsigned int	m_iSpeedSplitPoint;							// Speed/tempo split-point
-	int				m_iDetuneTable[6][96];						// // // Detune tables
+	int				m_iDetuneTable[6][96] = { };				// // // Detune tables
 	int				m_iDetuneSemitone, m_iDetuneCent;			// // // 050B tuning
 
 	// NSF info

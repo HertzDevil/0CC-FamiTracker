@@ -424,7 +424,7 @@ void CPatternEditor::DrawScreen(CDC &DC, CFamiTrackerView *pView)
 	}
 
 	if (m_iLastPlayRow != m_iPlayRow) {
-		if (theApp.IsPlaying() && !m_bFollowMode) {
+		if (theApp.GetSoundGenerator()->IsPlaying() && !m_bFollowMode) {
 			bDrawPattern = true;		// // //
 			bQuickRedraw = false;
 		}
@@ -723,7 +723,7 @@ bool CPatternEditor::CursorUpdated()
 		m_cpCursorPos.m_iFrame = Frames - 1;
 
 	// Ignore user cursor moves if the player is playing
-	if (theApp.IsPlaying()) {
+	if (theApp.GetSoundGenerator()->IsPlaying()) {
 
 		const CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 		// Store a synchronized copy of frame & row position from player
@@ -888,10 +888,10 @@ void CPatternEditor::PerformQuickRedraw(CDC &DC)
 	ScrollPatternArea(DC, DiffRows);
 
 	// Play cursor
-	if (theApp.IsPlaying() && !m_bFollowMode) {
+	if (theApp.GetSoundGenerator()->IsPlaying() && !m_bFollowMode) {
 		//PrintRow(DC, m_iPlayRow,
 	}
-	else if (!theApp.IsPlaying() && m_iLastPlayRow != -1) {
+	else if (!theApp.GetSoundGenerator()->IsPlaying() && m_iLastPlayRow != -1) {
 		if (m_iPlayFrame == m_cpCursorPos.m_iFrame) {
 			int Line = RowToLine(m_iLastPlayRow);
 			if (Line >= 0 && Line <= m_iLinesVisible) {
@@ -913,7 +913,7 @@ void CPatternEditor::PerformQuickRedraw(CDC &DC)
 void CPatternEditor::PrintRow(CDC &DC, int Row, int Line, int Frame) const
 {
 	const int FrameCount = GetFrameCount();		// // //
-	const int rEnd = (theApp.IsPlaying() && m_bFollowMode) ? std::max(m_iPlayRow + 1, m_iPatternLength) : m_iPatternLength;
+	const int rEnd = (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode) ? std::max(m_iPlayRow + 1, m_iPatternLength) : m_iPatternLength;
 	if (Row >= 0 && Row < rEnd) {
 		DrawRow(DC, Row, Line, Frame, false);
 	}
@@ -1208,7 +1208,7 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 		else
 			GradientBar(DC, 0, 0, Width, m_iRowHeight, BackColor, ColBg);
 
-		if (!m_bFollowMode && Row == m_iPlayRow && f == m_iPlayFrame && theApp.IsPlaying()) {
+		if (!m_bFollowMode && Row == m_iPlayRow && f == m_iPlayFrame && theApp.GetSoundGenerator()->IsPlaying()) {
 			// Play row
 			GradientBar(DC, 0, 0, Width, m_iRowHeight, pSettings->Appearance.iColCurrentRowPlaying, ColBg);		// // //
 		}
@@ -2107,7 +2107,7 @@ void CPatternEditor::MoveCursor(const CCursorPos &Pos)		// // //
 
 void CPatternEditor::MoveToRow(int Row)
 {
-	if (theApp.IsPlaying() && m_bFollowMode)
+	if (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
 		return;
 
 	if (theApp.GetSettings()->General.bWrapFrames) {		// // //
@@ -2156,7 +2156,7 @@ void CPatternEditor::MoveToFrame(int Frame)
 	if (m_bSelecting && !theApp.GetSettings()->General.bMultiFrameSel)		// // //
 		m_selection.m_cpStart.m_iFrame = m_selection.m_cpEnd.m_iFrame = Frame;
 
-	if (theApp.IsPlaying() && m_bFollowMode) {
+	if (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode) {
 		if (m_iPlayFrame != Frame) {
 			theApp.GetSoundGenerator()->MoveToFrame(Frame);
 			theApp.GetSoundGenerator()->ResetTempo();
@@ -2667,7 +2667,7 @@ void CPatternEditor::OnMouseDblClk(const CPoint &point)
 void CPatternEditor::OnMouseScroll(int Delta)
 {
 	// Mouse scroll wheel
-	if (theApp.IsPlaying() && m_bFollowMode)
+	if (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
 		return;
 
 	if (Delta != 0) {

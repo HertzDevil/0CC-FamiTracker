@@ -304,7 +304,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 
 	// Play cursor
 	const int PlayFrame = theApp.GetSoundGenerator()->GetPlayerPos().first;		// // //
-	if (!pView->GetFollowMode() && theApp.IsPlaying())
+	if (!pView->GetFollowMode() && theApp.GetSoundGenerator()->IsPlaying())
 		if (PlayFrame >= BeginFrame && PlayFrame <= EndFrame) {
 			int line = PlayFrame - FirstVisibleFrame;
 			const int ypos = line * ROW_HEIGHT;
@@ -800,7 +800,7 @@ void CFrameEditor::OnLButtonUp(UINT nFlags, CPoint point)
 	}
 	else {
 		CFrameCursorPos pos = TranslateFramePos(point, false);		// // //
-		if ((nFlags & MK_CONTROL) && theApp.IsPlaying()) {
+		if ((nFlags & MK_CONTROL) && theApp.GetSoundGenerator()->IsPlaying()) {
 			// Queue this frame
 			if (pos.m_iFrame == theApp.GetSoundGenerator()->GetQueueFrame())
 				// Remove

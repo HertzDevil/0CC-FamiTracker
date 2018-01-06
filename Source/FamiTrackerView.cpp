@@ -630,8 +630,8 @@ void CFamiTrackerView::OnRButtonUp(UINT nFlags, CPoint point)
 		PopupMenuBar.LoadMenu(IDR_PATTERN_HEADER_POPUP);
 		static_cast<CMainFrame*>(theApp.GetMainWnd())->UpdateMenu(&PopupMenuBar);
 		pPopupMenu = PopupMenuBar.GetSubMenu(0);
-		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDTOINST, theApp.IsPlaying() ? MF_DISABLED : MF_ENABLED);		// // //
-		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDERSETTINGS, theApp.IsPlaying() ? MF_DISABLED : MF_ENABLED);		// // //
+		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDTOINST, theApp.GetSoundGenerator()->IsPlaying() ? MF_DISABLED : MF_ENABLED);		// // //
+		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDERSETTINGS, theApp.GetSoundGenerator()->IsPlaying() ? MF_DISABLED : MF_ENABLED);		// // //
 		CMenu *pMeterMenu = pPopupMenu->GetSubMenu(6);		// // // 050B
 		int Rate = theApp.GetSoundGenerator()->GetMeterDecayRate();
 		pMeterMenu->CheckMenuItem(Rate == DECAY_FAST ? ID_DECAY_FAST : ID_DECAY_SLOW, MF_CHECKED | MF_BYCOMMAND);
@@ -754,11 +754,11 @@ BOOL CFamiTrackerView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 		InvalidateFrameEditor();		// // //
 	}
 	else if (bControlPressed) {
-		if (!(theApp.IsPlaying() && !IsSelecting() && m_bFollowMode))		// // //
+		if (!(theApp.GetSoundGenerator()->IsPlaying() && !IsSelecting() && m_bFollowMode))		// // //
 			pAction = std::make_unique<CPActionTranspose>(zDelta > 0 ? TRANSPOSE_INC_NOTES : TRANSPOSE_DEC_NOTES);		// // //
 	}
 	else if (bShiftPressed) {
-		if (!(theApp.IsPlaying() && !IsSelecting() && m_bFollowMode))
+		if (!(theApp.GetSoundGenerator()->IsPlaying() && !IsSelecting() && m_bFollowMode))
 			pAction = std::make_unique<CPActionScrollValues>(zDelta > 0 ? 1 : -1);		// // //
 	}
 	else
@@ -1234,7 +1234,7 @@ void CFamiTrackerView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHi
 	switch (lHint) {
 	// Track has been added, removed or changed
 	case UPDATE_TRACK:
-		if (theApp.IsPlaying())
+		if (theApp.GetSoundGenerator()->IsPlaying())
 			theApp.StopPlayer();
 		pMainFrm->UpdateTrackBox();
 		m_pPatternEditor->InvalidateBackground();
@@ -1377,7 +1377,7 @@ void CFamiTrackerView::OnUpdatePasteSpecial(CCmdUI *pCmdUI)
 
 void CFamiTrackerView::OnUpdateDisableWhilePlaying(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!theApp.IsPlaying());
+	pCmdUI->Enable(!theApp.GetSoundGenerator()->IsPlaying());
 }
 
 void CFamiTrackerView::SetMarker(int Frame, int Row)		// // // 050B
@@ -1536,7 +1536,7 @@ void CFamiTrackerView::SelectChannel(unsigned int Channel)
 
 void CFamiTrackerView::OnBookmarksToggle()
 {
-	if ((theApp.IsPlaying() && m_bFollowMode) || !m_bEditEnable)
+	if ((theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode) || !m_bEditEnable)
 		return;
 
 	CFamiTrackerDoc* pDoc = GetDocument();
@@ -1569,7 +1569,7 @@ void CFamiTrackerView::OnBookmarksToggle()
 
 void CFamiTrackerView::OnBookmarksNext()
 {
-	if (theApp.IsPlaying() && m_bFollowMode)
+	if (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
 		return;
 
 	CFamiTrackerDoc* pDoc = GetDocument();
@@ -1598,7 +1598,7 @@ void CFamiTrackerView::OnBookmarksNext()
 
 void CFamiTrackerView::OnBookmarksPrevious()
 {
-	if (theApp.IsPlaying() && m_bFollowMode)
+	if (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
 		return;
 
 	CFamiTrackerDoc* pDoc = GetDocument();
@@ -1875,7 +1875,7 @@ void CFamiTrackerView::InsertNote(int Note, int Octave, int Channel, int Velocit
 		auto &Action = *pAction; // TODO: remove
 		if (AddAction(std::move(pAction))) {
 			const CSettings *pSettings = theApp.GetSettings();
-			if (m_pPatternEditor->GetColumn() == C_NOTE && !theApp.IsPlaying() && m_iInsertKeyStepping > 0 && !pSettings->Midi.bMidiMasterSync) {
+			if (m_pPatternEditor->GetColumn() == C_NOTE && !theApp.GetSoundGenerator()->IsPlaying() && m_iInsertKeyStepping > 0 && !pSettings->Midi.bMidiMasterSync) {
 				StepDown();
 				Action.SaveRedoState(static_cast<CMainFrame &>(*GetParentFrame()));		// // //
 			}
@@ -2042,7 +2042,7 @@ void CFamiTrackerView::TriggerMIDINote(unsigned int Channel, unsigned int MidiNo
 		}
 	}
 
-	if (!(theApp.IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
+	if (!(theApp.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		PlayNote(Channel, Note, Octave, Velocity);
 
 	if (Insert)
@@ -2077,7 +2077,7 @@ void CFamiTrackerView::CutMIDINote(unsigned int Channel, unsigned int MidiNote, 
 	}
 
 	// Cut note
-	if (!(theApp.IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
+	if (!(theApp.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		if (m_bEditEnable) {
 			if (m_iLastMIDINote == MidiNote)
 				HaltNote(Channel, Note, Octave);
@@ -2114,7 +2114,7 @@ void CFamiTrackerView::ReleaseMIDINote(unsigned int Channel, unsigned int MidiNo
 	}
 
 	// Cut note
-	if (!(theApp.IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
+	if (!(theApp.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		if (m_bEditEnable) {
 			if (m_iLastMIDINote == MidiNote)
 				ReleaseNote(Channel, Note, Octave);

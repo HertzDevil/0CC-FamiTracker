@@ -28,6 +28,7 @@
 #include "FamiTrackerView.h"
 #include "TrackerChannel.h"
 #include "MainFrm.h"
+#include "SoundGen.h"
 #include "PatternEditor.h"
 #include "PatternAction.h"
 #include "CompoundAction.h"
@@ -1166,7 +1167,7 @@ bool CFindDlg::PrepareReplace()
 		return false;
 	}
 
-	return (m_pView->GetEditMode() && !(theApp.IsPlaying() && m_pView->GetFollowMode()));
+	return (m_pView->GetEditMode() && !(theApp.GetSoundGenerator()->IsPlaying() && m_pView->GetFollowMode()));
 }
 
 void CFindDlg::PrepareCursor(bool ReplaceAll)

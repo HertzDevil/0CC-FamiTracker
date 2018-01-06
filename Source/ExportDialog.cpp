@@ -33,6 +33,7 @@
 #include "Compiler.h"
 #include "Settings.h"
 #include "MainFrm.h"
+#include <optional>		// // //
 
 // Define internal exporters
 const LPCTSTR CExportDialog::DEFAULT_EXPORT_NAMES[] = {		// // //
@@ -66,6 +67,21 @@ const LPCTSTR CExportDialog::DPCMS_FILTER[] = { _T("DPCM sample bank (*.bin)"), 
 const LPCTSTR CExportDialog::PRG_FILTER[]   = { _T("NES program bank (*.prg)"), _T(".prg") };
 const LPCTSTR CExportDialog::ASM_FILTER[]	  = { _T("Assembly text (*.asm)"), _T(".asm") };
 const LPCTSTR CExportDialog::NSFE_FILTER[]  = { _T("NSFe file (*.nsfe)"), _T(".nsfe") };		// // //
+
+namespace {		// // //
+
+std::optional<CString> GetSavePath(const CString &initFName, const CString &initPath, const CString &FilterName, const CString &FilterExt) {
+	CString filter = LoadDefaultFilter(FilterName, FilterExt);
+	CFileDialog FileDialog(FALSE, FilterExt, initFName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
+	FileDialog.m_pOFN->lpstrInitialDir = initPath;
+
+	if (FileDialog.DoModal() != IDOK)
+		return std::nullopt;
+
+	return FileDialog.GetPathName();
+}
+
+} // namespace
 
 // Compiler logger
 
@@ -188,194 +204,133 @@ void CExportDialog::OnBnClickedExport()
 void CExportDialog::CreateNSF()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	CString	DefFileName = pDoc->GetFileTitle();
-	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
-	CString Name, Artist, Copyright;
-	CString filter = LoadDefaultFilter(NSF_FILTER[0], NSF_FILTER[1]);
-	int MachineType = 0;
 
-	// Collect header info
-	GetDlgItemText(IDC_NAME, Name);
-	GetDlgItemText(IDC_ARTIST, Artist);
-	GetDlgItemText(IDC_COPYRIGHT, Copyright);
+	if (auto path = GetSavePath(pDoc->GetFileTitle(), theApp.GetSettings()->GetPath(PATH_NSF), NSF_FILTER[0], NSF_FILTER[1])) {		// // //
+		CWaitCursor wait;
 
-	if (IsDlgButtonChecked(IDC_NTSC) != 0)
-		MachineType = 0;
-	else if (IsDlgButtonChecked(IDC_PAL) != 0)
-		MachineType = 1;
-	else if (IsDlgButtonChecked(IDC_DUAL) != 0)
-		MachineType = 2;
+		// Collect header info
+		CString Name, Artist, Copyright;
+		GetDlgItemText(IDC_NAME, Name);
+		GetDlgItemText(IDC_ARTIST, Artist);
+		GetDlgItemText(IDC_COPYRIGHT, Copyright);
+		pDoc->SetModuleName((LPCTSTR)Name);
+		pDoc->SetModuleArtist((LPCTSTR)Artist);
+		pDoc->SetModuleCopyright((LPCTSTR)Copyright);
 
-	USES_CONVERSION;
+		int MachineType = 0;
+		if (IsDlgButtonChecked(IDC_NTSC) == BST_CHECKED)
+			MachineType = 0;
+		else if (IsDlgButtonChecked(IDC_PAL) == BST_CHECKED)
+			MachineType = 1;
+		else if (IsDlgButtonChecked(IDC_DUAL) == BST_CHECKED)
+			MachineType = 2;
 
-	pDoc->SetModuleName(T2A(Name.GetBuffer()));
-	pDoc->SetModuleArtist(T2A(Artist.GetBuffer()));
-	pDoc->SetModuleCopyright(T2A(Copyright.GetBuffer()));
-
-	CFileDialog FileDialog(FALSE, NSF_FILTER[1], DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
-
-	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_NSF);
-
-	if (FileDialog.DoModal() == IDCANCEL)
-		return;
-
-	// Display wait cursor
-	CWaitCursor wait;
-
-	Compiler.ExportNSF(FileDialog.GetPathName(), MachineType);
-
-	theApp.GetSettings()->SetPath(FileDialog.GetPathName(), PATH_NSF);
+		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		Compiler.ExportNSF(*path, MachineType);
+		theApp.GetSettings()->SetPath(*path, PATH_NSF);
+	}
 }
 
 void CExportDialog::CreateNSFe()		// // //
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	CString	DefFileName = pDoc->GetFileTitle();
-	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
-	CString Name, Artist, Copyright;
-	CString filter = LoadDefaultFilter(NSFE_FILTER[0], NSFE_FILTER[1]);
-	int MachineType = 0;
 
-	// Collect header info
-	GetDlgItemText(IDC_NAME, Name);
-	GetDlgItemText(IDC_ARTIST, Artist);
-	GetDlgItemText(IDC_COPYRIGHT, Copyright);
+	if (auto path = GetSavePath(pDoc->GetFileTitle(), theApp.GetSettings()->GetPath(PATH_NSF), NSFE_FILTER[0], NSFE_FILTER[1])) {		// // //
+		CWaitCursor wait;
 
-	if (IsDlgButtonChecked(IDC_NTSC) != 0)
-		MachineType = 0;
-	else if (IsDlgButtonChecked(IDC_PAL) != 0)
-		MachineType = 1;
-	else if (IsDlgButtonChecked(IDC_DUAL) != 0)
-		MachineType = 2;
+		// Collect header info
+		CString Name, Artist, Copyright;
+		GetDlgItemText(IDC_NAME, Name);
+		GetDlgItemText(IDC_ARTIST, Artist);
+		GetDlgItemText(IDC_COPYRIGHT, Copyright);
+		pDoc->SetModuleName((LPCTSTR)Name);
+		pDoc->SetModuleArtist((LPCTSTR)Artist);
+		pDoc->SetModuleCopyright((LPCTSTR)Copyright);
 
-	USES_CONVERSION;
+		int MachineType = 0;
+		if (IsDlgButtonChecked(IDC_NTSC) == BST_CHECKED)
+			MachineType = 0;
+		else if (IsDlgButtonChecked(IDC_PAL) == BST_CHECKED)
+			MachineType = 1;
+		else if (IsDlgButtonChecked(IDC_DUAL) == BST_CHECKED)
+			MachineType = 2;
 
-	pDoc->SetModuleName(T2A(Name.GetBuffer()));
-	pDoc->SetModuleArtist(T2A(Artist.GetBuffer()));
-	pDoc->SetModuleCopyright(T2A(Copyright.GetBuffer()));
-
-	CFileDialog FileDialog(FALSE, NSF_FILTER[1], DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
-
-	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_NSF);
-
-	if (FileDialog.DoModal() == IDCANCEL)
-		return;
-
-	// Display wait cursor
-	CWaitCursor wait;
-
-	Compiler.ExportNSFE(FileDialog.GetPathName(), MachineType);
-
-	theApp.GetSettings()->SetPath(FileDialog.GetPathName(), PATH_NSF);
+		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		Compiler.ExportNSFE(*path, MachineType);
+		theApp.GetSettings()->SetPath(*path, PATH_NSF);
+	}
 }
 
 void CExportDialog::CreateNES()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	CString	DefFileName = pDoc->GetFileTitle();
-	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
-	CString filter = LoadDefaultFilter(NES_FILTER[0], NES_FILTER[1]);
 
-	CFileDialog FileDialog(FALSE, NES_FILTER[1], DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
+	if (auto path = GetSavePath(pDoc->GetFileTitle(), theApp.GetSettings()->GetPath(PATH_NSF), NES_FILTER[0], NES_FILTER[1])) {		// // //
+		CWaitCursor wait;
 
-	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_NSF);
-
-	if (FileDialog.DoModal() == IDCANCEL)
-		return;
-
-	// Display wait cursor
-	CWaitCursor wait;
-
-	Compiler.ExportNES(FileDialog.GetPathName(), (IsDlgButtonChecked(IDC_PAL) != 0));
-
-	theApp.GetSettings()->SetPath(FileDialog.GetPathName(), PATH_NSF);
+		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		Compiler.ExportNES(*path, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
+		theApp.GetSettings()->SetPath(*path, PATH_NSF);
+	}
 }
 
 void CExportDialog::CreateBIN()
 {
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
-	CString MusicFilter = LoadDefaultFilter(RAW_FILTER[0], RAW_FILTER[1]);
-	CString DPCMFilter = LoadDefaultFilter(DPCMS_FILTER[0], DPCMS_FILTER[1]);
+	if (auto path = GetSavePath(_T("music.bin"), theApp.GetSettings()->GetPath(PATH_NSF), RAW_FILTER[0], RAW_FILTER[1])) {		// // //
+		CString SampleDir = *path;		// // //
 
-	const CString DEFAULT_MUSIC_NAME = _T("music.bin");		// // //
-	const CString DEFAULT_SAMPLE_NAME = _T("samples.bin");
+		const CString DEFAULT_SAMPLE_NAME = _T("samples.bin");		// // //
 
-	CFileDialog FileDialogMusic(FALSE, RAW_FILTER[1], DEFAULT_MUSIC_NAME, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, MusicFilter);
-	CFileDialog FileDialogSamples(FALSE, DPCMS_FILTER[1], DEFAULT_SAMPLE_NAME, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, DPCMFilter);
-
-	FileDialogMusic.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_NSF);
-
-	if (FileDialogMusic.DoModal() == IDCANCEL)
-		return;
-
-	CString SampleDir = FileDialogMusic.GetPathName();		// // //
-	if (pDoc->GetSampleCount() > 0) {
-		if (FileDialogSamples.DoModal() == IDCANCEL)
-			return;
-		SampleDir = FileDialogSamples.GetPathName();
-	}
-	else {
-		int Pos = SampleDir.ReverseFind(_T('\\'));
-		ASSERT(Pos != -1);
-		SampleDir = SampleDir.Left(Pos + 1) + DEFAULT_SAMPLE_NAME;
-		if (PathFileExists(SampleDir)) {
-			CString msg;
-			AfxFormatString1(msg, IDS_EXPORT_SAMPLES_FILE, DEFAULT_SAMPLE_NAME);
-			if (AfxMessageBox(msg, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
+		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
+		if (pDoc->GetSampleCount() > 0) {
+			if (auto sampPath = GetSavePath(DEFAULT_SAMPLE_NAME, *path, DPCMS_FILTER[0], DPCMS_FILTER[1]))
+				SampleDir = *sampPath;
+			else
 				return;
 		}
+		else {
+			int Pos = SampleDir.ReverseFind(_T('\\'));
+			ASSERT(Pos != -1);
+			SampleDir = SampleDir.Left(Pos + 1) + DEFAULT_SAMPLE_NAME;
+			if (PathFileExists(SampleDir)) {
+				CString msg;
+				AfxFormatString1(msg, IDS_EXPORT_SAMPLES_FILE, DEFAULT_SAMPLE_NAME);
+				if (AfxMessageBox(msg, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
+					return;
+			}
+		}
+
+		// Display wait cursor
+		CWaitCursor wait;
+
+		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		Compiler.ExportBIN(*path, SampleDir);
+		theApp.GetSettings()->SetPath(*path, PATH_NSF);
 	}
-
-	// Display wait cursor
-	CWaitCursor wait;
-
-	Compiler.ExportBIN(FileDialogMusic.GetPathName(), SampleDir);
-
-	theApp.GetSettings()->SetPath(FileDialogMusic.GetPathName(), PATH_NSF);
 }
 
 void CExportDialog::CreatePRG()
 {
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
-	CString Filter = LoadDefaultFilter(PRG_FILTER[0], PRG_FILTER[1]);
+	if (auto path = GetSavePath(_T("music.prg"), theApp.GetSettings()->GetPath(PATH_NSF), PRG_FILTER[0], PRG_FILTER[1])) {		// // //
+		CWaitCursor wait;
 
-	CFileDialog FileDialog(FALSE, PRG_FILTER[1], _T("music.prg"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, Filter);
-
-	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_NSF);
-
-	if (FileDialog.DoModal() == IDCANCEL)
-		return;
-
-	// Display wait cursor
-	CWaitCursor wait;
-
-	Compiler.ExportPRG(FileDialog.GetPathName(), (IsDlgButtonChecked(IDC_PAL) != 0));
-
-	theApp.GetSettings()->SetPath(FileDialog.GetPathName(), PATH_NSF);
+		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
+		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		Compiler.ExportPRG(*path, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
+		theApp.GetSettings()->SetPath(*path, PATH_NSF);
+	}
 }
 
 void CExportDialog::CreateASM()
 {
-	// Currently not included
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+	if (auto path = GetSavePath(_T("music.asm"), theApp.GetSettings()->GetPath(PATH_NSF), ASM_FILTER[0], ASM_FILTER[1])) {		// // //
+		CWaitCursor wait;
 
-	CString Filter = LoadDefaultFilter(ASM_FILTER[0], ASM_FILTER[1]);
-	CFileDialog FileDialogMusic(FALSE, ASM_FILTER[1], _T("music.asm"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, Filter);
-
-	FileDialogMusic.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_NSF);
-
-	if (FileDialogMusic.DoModal() == IDCANCEL)
-		return;
-
-	// Display wait cursor
-	CWaitCursor wait;
-
-	Compiler.ExportASM(FileDialogMusic.GetPathName());
-
-	theApp.GetSettings()->SetPath(FileDialogMusic.GetPathName(), PATH_NSF);
+		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
+		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		Compiler.ExportASM(*path);
+		theApp.GetSettings()->SetPath(*path, PATH_NSF);
+	}
 }
 
 void CExportDialog::OnBnClickedPlay()
@@ -389,8 +344,7 @@ void CExportDialog::OnBnClickedPlay()
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
-
-	Compiler.ExportNSF(file, (IsDlgButtonChecked(IDC_PAL) != 0));
+	Compiler.ExportNSF(file, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
 
 	// Play exported file (available in debug)
 	ShellExecute(NULL, _T("open"), file, NULL, NULL, SW_SHOWNORMAL);

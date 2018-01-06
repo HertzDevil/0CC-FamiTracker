@@ -23,6 +23,8 @@
 
 #pragma once
 
+class CWinApp;
+class CMainFrame;
 class CAccelerator;
 class CSoundGen;
 class CMIDI;
@@ -31,6 +33,8 @@ class CSettings;
 // global tracker environment
 
 struct CFamiTrackerEnv {
+	static CWinApp		*GetMainApp();
+	static CMainFrame	*GetMainFrame();
 	static CAccelerator	*GetAccelerator();
 	static CSoundGen	*GetSoundGenerator();
 	static CMIDI		*GetMIDI();

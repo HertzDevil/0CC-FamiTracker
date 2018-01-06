@@ -21,8 +21,9 @@
 */
 
 #include "Accelerator.h"
-#include "FamiTracker.h"
-#include "Settings.h"
+#include "FamiTrackerEnv.h"		// // //
+#include "resource.h"		// // //
+#include "Settings.h" // stOldSettingContext
 
 /*
  * This class is used to translate key shortcuts -> command messages
@@ -249,13 +250,15 @@ bool CAccelerator::IsKeyUsed(int nChar) const		// // //
 void CAccelerator::SaveShortcuts(CSettings *pSettings) const
 {
 	// Save values
-	for (const auto &x : m_pEntriesTable) {		// // //
-		theApp.WriteProfileInt(SHORTCUTS_SECTION, x.name, (x.mod << 8) | x.key);
-	}
+	auto *App = Env.GetMainApp();		// // //
+	for (const auto &x : m_pEntriesTable)		// // //
+		App->WriteProfileInt(SHORTCUTS_SECTION, x.name, (x.mod << 8) | x.key);
 }
 
 void CAccelerator::LoadShortcuts(CSettings *pSettings)
 {
+	auto *App = Env.GetMainApp();		// // //
+
 	// Set up names and default values
 	LoadDefaults();
 
@@ -275,12 +278,12 @@ void CAccelerator::LoadShortcuts(CSettings *pSettings)
 		{		// // //
 			stOldSettingContext s;
 			if (x.orig_name != nullptr)		// // //
-				Setting = theApp.GetProfileInt(SHORTCUTS_SECTION, x.orig_name, Setting);
-			Setting = theApp.GetProfileInt(SHORTCUTS_SECTION, x.name, Setting);
+				Setting = App->GetProfileInt(SHORTCUTS_SECTION, x.orig_name, Setting);
+			Setting = App->GetProfileInt(SHORTCUTS_SECTION, x.name, Setting);
 		}
 		if (x.orig_name != nullptr)		// // //
-			Setting = theApp.GetProfileInt(SHORTCUTS_SECTION, x.orig_name, Setting);
-		Setting = theApp.GetProfileInt(SHORTCUTS_SECTION, x.name, Setting);
+			Setting = App->GetProfileInt(SHORTCUTS_SECTION, x.orig_name, Setting);
+		Setting = App->GetProfileInt(SHORTCUTS_SECTION, x.name, Setting);
 
 		x.key = Setting & 0xFF;
 		x.mod = Setting >> 8;

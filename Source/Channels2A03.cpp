@@ -26,14 +26,13 @@
 #include "APU/Types.h"		// // //
 #include "APU/APU.h"		// // // for DPCM
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
-#include "stdafx.h"
-#include "FamiTracker.h"
 #include "FamiTrackerEnv.h"		// // //
 #include "Settings.h"
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 #include "InstHandlerDPCM.h"		// // //
 #include "SongState.h"		// // //
+#include "SoundGen.h"		// // //
 
 //#define NOISE_PITCH_SCALE
 
@@ -635,9 +634,8 @@ void CDPCMChan::RefreshChannel()
 		// Cut sample
 		WriteRegister(0x4015, 0x0F);
 
-		if (!Env.GetSettings()->General.bNoDPCMReset || theApp.IsPlaying()) {
+		if (!Env.GetSettings()->General.bNoDPCMReset || Env.GetSoundGenerator()->IsPlaying())		// // //
 			WriteRegister(0x4011, 0);	// regain full volume for TN
-		}
 
 		m_bEnabled = false;		// don't write to this channel anymore
 	}

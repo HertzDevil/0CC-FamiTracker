@@ -69,42 +69,6 @@
 
 #include "ft0cc/doc/groove.hpp"		// // //
 
-namespace {
-
-int GetChannelPosition(int Channel, unsigned char chips, unsigned n163chs) {		// // //
-	// TODO: use information from the current channel map instead
-	unsigned int pos = Channel;
-	if (pos == CHANID_MMC5_VOICE) return -1;
-
-	if (!(chips & SNDCHIP_S5B)) {
-		if (pos > CHANID_S5B_CH3) pos -= 3;
-		else if (pos >= CHANID_S5B_CH1) return -1;
-	}
-	if (!(chips & SNDCHIP_VRC7)) {
-		if (pos > CHANID_VRC7_CH6) pos -= 6;
-		else if (pos >= CHANID_VRC7_CH1) return -1;
-	}
-	if (!(chips & SNDCHIP_FDS)) {
-		if (pos > CHANID_FDS) pos -= 1;
-		else if (pos >= CHANID_FDS) return -1;
-	}
-	if (pos > CHANID_N163_CH8) pos -= 8 - (!(chips & SNDCHIP_N163) ? 0 : n163chs);
-	else if (pos > CHANID_MMC5_VOICE + (!(chips & SNDCHIP_N163) ? 0 : n163chs)) return -1;
-	if (pos > CHANID_MMC5_VOICE) pos -= 1;
-	if (!(chips & SNDCHIP_MMC5)) {
-		if (pos > CHANID_MMC5_SQUARE2) pos -= 2;
-		else if (pos >= CHANID_MMC5_SQUARE1) return -1;
-	}
-	if (!(chips & SNDCHIP_VRC6)) {
-		if (pos > CHANID_VRC6_SAWTOOTH) pos -= 3;
-		else if (pos >= CHANID_VRC6_PULSE1) return -1;
-	}
-
-	return pos;
-}
-
-} // namespace
-
 //
 // CFamiTrackerDoc
 //
@@ -122,14 +86,9 @@ CFamiTrackerDoc::CFamiTrackerDoc() :
 	m_pChannelMap(std::make_unique<CChannelMap>()),		// // //
 	m_pInstrumentManager(std::make_unique<CInstrumentManager>(this))
 {
-	// Initialize document object
-
-	ResetDetuneTables();		// // //
-
 	// Register this object to the sound generator
 	if (CSoundGen *pSoundGen = theApp.GetSoundGenerator())
 		pSoundGen->AssignDocument(this);
-
 	AllocateSong(0);		// // //
 }
 
@@ -144,7 +103,7 @@ CFamiTrackerDoc::~CFamiTrackerDoc()
 
 CFamiTrackerDoc *CFamiTrackerDoc::GetDoc()
 {
-	CFrameWnd *pFrame = static_cast<CFrameWnd*>(AfxGetApp()->m_pMainWnd);
+	CFrameWnd *pFrame = static_cast<CFrameWnd *>(AfxGetMainWnd());
 	ASSERT_VALID(pFrame);
 
 	return static_cast<CFamiTrackerDoc*>(pFrame->GetActiveDocument());
@@ -925,7 +884,6 @@ bool CFamiTrackerDoc::LoadInstrument(unsigned Index, CSimpleFile &File) {		// / 
 		return false;
 
 	// Signature
-	char Text[256] = { };
 	for (std::size_t i = 0; i < std::size(INST_HEADER) - 1; ++i)
 		if (File.ReadChar() != INST_HEADER[i]) {
 			AfxMessageBox(IDS_INSTRUMENT_FILE_FAIL, MB_ICONERROR);
@@ -1621,7 +1579,7 @@ CString CFamiTrackerDoc::GetFileTitle() const
 	// Return file name without extension
 	CString FileName = GetTitle();
 
-	static const LPCSTR EXT[] = {_T(".ftm"), _T(".0cc"), _T(".ftm.bak"), _T(".0cc.bak")};		// // //
+	static const LPCTSTR EXT[] = {_T(".ftm"), _T(".0cc"), _T(".ftm.bak"), _T(".0cc.bak")};		// // //
 	// Remove extension
 
 	for (const auto &str : EXT) {
