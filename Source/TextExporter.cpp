@@ -751,7 +751,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_INSTN163:
 		case CT_INSTS5B:
 		{
-			size_t Type = [c] {
+			inst_type_t Type = [c] {
 				switch (c) {
 				case CT_INST2A03: return INST_2A03;
 				case CT_INSTVRC6: return INST_VRC6;

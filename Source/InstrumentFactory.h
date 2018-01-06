@@ -26,11 +26,12 @@
 #include <memory>
 
 class CInstrument;
+enum inst_type_t : unsigned;
 
 namespace FTExt {
 
 struct InstrumentFactory {
-	static std::unique_ptr<CInstrument> Make(std::size_t index);
+	static std::unique_ptr<CInstrument> Make(inst_type_t index);
 };
 
 } // namespace FTExt

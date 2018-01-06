@@ -29,9 +29,9 @@
 #include "APU/Types.h"		// // //
 #include "PatternNote.h"		// // //
 
-enum inst_type_t : int;
+enum inst_type_t : unsigned;
 
-enum note_prio_t {
+enum note_prio_t : unsigned {
 	NOTE_PRIO_0,
 	NOTE_PRIO_1,
 	NOTE_PRIO_2

@@ -33,7 +33,7 @@ class CSequenceManager;
 class CDSampleManager;
 class CFTMComponentInterface;
 
-enum inst_type_t : int;
+enum inst_type_t : unsigned;
 
 /*!
 	\brief A container of FamiTracker instruments.

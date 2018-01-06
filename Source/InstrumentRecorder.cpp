@@ -305,7 +305,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 	if (m_pDocument->GetInstrumentCount() >= MAX_INSTRUMENTS) {
 		m_iDumpCount = 0; m_iRecordChannel = -1; return;
 	}
-	size_t Type = [&] { // optimize this
+	inst_type_t Type = [&] { // optimize this
 		switch (Chan.GetChip()) {
 		case SNDCHIP_NONE: case SNDCHIP_MMC5: return INST_2A03;
 		case SNDCHIP_VRC6: return INST_VRC6;
@@ -330,7 +330,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 	if (auto Inst = dynamic_cast<CSeqInstrument *>(m_pDumpInstrument->get())) {
 		for (int i = 0; i < SEQ_COUNT; i++) {
 			Inst->SetSeqEnable(i, 1);
-			Inst->SetSeqIndex(i, m_pDocument->GetFreeSequence((inst_type_t)Type, i));
+			Inst->SetSeqIndex(i, m_pDocument->GetFreeSequence(Type, i));
 		}
 		m_pSequenceCache[SEQ_ARPEGGIO]->SetSetting(SETTING_ARP_FIXED);
 		// m_pSequenceCache[SEQ_PITCH]->SetSetting(SETTING_PITCH_ABSOLUTE);

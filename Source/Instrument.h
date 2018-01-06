@@ -27,7 +27,7 @@
 #include <memory>
 
 // Instrument types
-enum inst_type_t {
+enum inst_type_t : unsigned {
 	INST_NONE = 0,
 	INST_2A03 = 1,
 	INST_VRC6,
@@ -47,22 +47,24 @@ class CInstrumentManagerInterface;		// // // break cyclic dependencies
 class CInstrument {
 public:
 	CInstrument(inst_type_t type);										// // // ctor with instrument type
-	virtual std::unique_ptr<CInstrument> Clone() const = 0;				// // // virtual copy ctor
+
 	virtual ~CInstrument() noexcept = default;
-	void SetName(std::string_view Name);		// // //
+	virtual std::unique_ptr<CInstrument> Clone() const = 0;				// // // virtual copy ctor
+
 	std::string_view GetName() const;		// // //
+	void SetName(std::string_view Name);		// // //
+
 	void RegisterManager(CInstrumentManagerInterface *pManager);		// // //
-	virtual void OnBlankInstrument();										// // // Setup some initial values
+	virtual void OnBlankInstrument();									// // // Setup some initial values
 
-	void SaveFTI(CSimpleFile &File) const;								// // // Saves to an FTI file
-	void LoadFTI(CSimpleFile &File, int iVersion);						// // // Loads from an FTI file
+	inst_type_t GetType() const;										// // // Returns instrument type
+	virtual bool CanRelease() const = 0;
 
-public:
-	virtual inst_type_t GetType() const;								// // // Returns instrument type
 	virtual void Store(CDocumentFile *pDocFile) const = 0;				// Saves the instrument to the module
 	virtual bool Load(CDocumentFile *pDocFile) = 0;						// Loads the instrument from a module
+	void SaveFTI(CSimpleFile &File) const;								// // // Saves to an FTI file
+	void LoadFTI(CSimpleFile &File, int iVersion);						// // // Loads from an FTI file
 	virtual int Compile(CChunk *pChunk, int Index) const = 0;			// // // Compiles the instrument for NSF generation
-	virtual bool CanRelease() const = 0;
 
 protected:
 	virtual void CloneFrom(const CInstrument *pInst);					// // // virtual copying

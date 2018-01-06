@@ -26,7 +26,7 @@
 #include "InstrumentEditPanel.h"		// // //
 
 class CInstrument;		// // //
-enum inst_type_t : int;		// // //
+enum inst_type_t : unsigned;		// // //
 
 /*!
 	\brief Specialization of the instrument sequence editor panel class for CSeqInstrument.

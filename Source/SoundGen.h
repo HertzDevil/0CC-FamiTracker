@@ -56,7 +56,7 @@ enum {
 class stChanNote;		// // //
 struct stRecordSetting;
 
-enum note_prio_t : int;		// // //
+enum note_prio_t : unsigned;		// // //
 
 class CFamiTrackerView;
 class CFamiTrackerDoc;

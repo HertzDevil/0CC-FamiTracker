@@ -62,7 +62,7 @@ class CSwapDlg;
 class CFindDlg;		// // //
 struct stHighlight;		// // //
 class CSongData;		// // //
-enum inst_type_t : int;		// // //
+enum inst_type_t : unsigned;		// // //
 
 class CBannerEdit;
 class CLockedEdit;

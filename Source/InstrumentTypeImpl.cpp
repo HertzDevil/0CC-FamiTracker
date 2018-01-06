@@ -20,23 +20,18 @@
 ** must bear this legend.
 */
 
-#include "InstrumentFactory.h"
+#include "InstrumentTypeImpl.h"
+
 #include "Instrument2A03.h"
 #include "InstrumentVRC6.h"
 #include "InstrumentFDS.h"
 #include "InstrumentVRC7.h"
 #include "InstrumentN163.h"
 #include "InstrumentS5B.h"
-#include "InstrumentTypeImpl.h"
 
-std::unique_ptr<CInstrument> FTExt::InstrumentFactory::Make(inst_type_t index) {
-	switch (index) {
-	case INST_2A03: return CInstrumentType2A03().MakeInstrument();
-	case INST_VRC6: return CInstrumentTypeVRC6().MakeInstrument();
-	case INST_VRC7: return CInstrumentTypeVRC7().MakeInstrument();
-	case INST_FDS : return CInstrumentTypeFDS().MakeInstrument();
-	case INST_N163: return CInstrumentTypeN163().MakeInstrument();
-	case INST_S5B : return CInstrumentTypeS5B().MakeInstrument();
-	}
-	return nullptr;
-}
+template class CInstrumentTypeImpl<CInstrument2A03, INST_2A03>;
+template class CInstrumentTypeImpl<CInstrumentVRC6, INST_VRC6>;
+template class CInstrumentTypeImpl<CInstrumentVRC7, INST_VRC7>;
+template class CInstrumentTypeImpl<CInstrumentFDS , INST_FDS >;
+template class CInstrumentTypeImpl<CInstrumentN163, INST_N163>;
+template class CInstrumentTypeImpl<CInstrumentS5B , INST_S5B >;
