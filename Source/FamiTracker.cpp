@@ -475,12 +475,6 @@ void CFamiTrackerApp::ShutDownSynth()
 		TRACE("App: Closing the sound generator thread failed\n");
 }
 
-void CFamiTrackerApp::DetachSoundGenerator()
-{
-	// Sound generator object has been deleted, remove reference
-	(void)m_pSoundGenerator.release();
-}
-
 void CFamiTrackerApp::RegisterSingleInstance()
 {
 	// Create a memory area with this app's window handle

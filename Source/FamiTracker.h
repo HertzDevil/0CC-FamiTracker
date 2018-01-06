@@ -121,7 +121,6 @@ public:
 	void			ReloadColorScheme();
 	int				GetCPUUsage() const;
 	bool			IsThemeActive() const;
-	void			DetachSoundGenerator();
 
 	// Tracker player functions
 	void			StartPlayer(play_mode_t Mode);

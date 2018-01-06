@@ -307,11 +307,10 @@ bool CSoundGen::IsRunning() const
 }
 
 bool CSoundGen::Shutdown() {		// // //
-	if (ResumeThread() == 0) {
-		// Thread was not suspended, send quit message
-		// Note that this object may be deleted now!
+	// Thread was not suspended, send quit message
+	if (ResumeThread() == 0)
 		PostThreadMessage(WM_QUIT, 0, 0);
-	}
+
 	// If thread was suspended then it will auto-terminate, because sound hasn't been initialized
 
 	// Wait for thread to exit
@@ -329,6 +328,8 @@ bool CSoundGen::InitializeSound(HWND hWnd)
 	// Called from main thread
 	ASSERT(GetCurrentThread() == theApp.m_hThread);
 	ASSERT(!m_pDSound);
+
+	m_bAutoDelete = FALSE;		// // //
 
 	// Event used to interrupt the sound buffer synchronization
 	m_hInterruptEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -961,8 +962,6 @@ int CSoundGen::ExitInstance()
 
 	// Make sure sound interface is shut down
 	CloseAudio();
-
-	theApp.DetachSoundGenerator();
 
 	m_bRunning = false;
 
