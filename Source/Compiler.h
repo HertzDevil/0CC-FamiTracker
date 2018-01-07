@@ -223,7 +223,7 @@ private:
 	bool			m_bSequencesUsedN163[MAX_SEQUENCES][SEQ_COUNT];
 	bool			m_bSequencesUsedS5B[MAX_SEQUENCES][SEQ_COUNT];		// // //
 
-	int				m_iWaveBanks[MAX_INSTRUMENTS];	// N163 waves
+	unsigned		m_iWaveBanks[MAX_INSTRUMENTS];		// // // N163 waves
 
 	// Sample variables
 	unsigned char	m_iSamplesLookUp[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE];

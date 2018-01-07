@@ -30,6 +30,7 @@ enum inst_type_t : unsigned;
 
 class CInstrumentType {
 public:
+	virtual ~CInstrumentType() noexcept = default;
 	virtual inst_type_t GetID() const = 0;
 	virtual std::unique_ptr<CInstrument> MakeInstrument() = 0;
 };

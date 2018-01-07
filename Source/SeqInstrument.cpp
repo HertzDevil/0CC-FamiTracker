@@ -26,8 +26,6 @@
 #include "InstrumentManagerInterface.h"
 #include "Sequence.h"
 #include "OldSequence.h"		// // //
-#include "Chunk.h"
-#include "ChunkRenderText.h"
 #include "SimpleFile.h"
 
 /*
@@ -171,36 +169,6 @@ void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
 		e.AppendError("At %s sequence,", GetSequenceName(i));
 		throw e;
 	}
-}
-
-int CSeqInstrument::Compile(CChunk *pChunk, int Index) const
-{
-	int StoredBytes = 0;
-
-	switch (GetType()) {		// // //
-	case INST_2A03: pChunk->StoreByte(0);  break;
-	case INST_VRC6: pChunk->StoreByte(4);  break;
-	case INST_N163: pChunk->StoreByte(9);  break;
-	case INST_S5B:  pChunk->StoreByte(10); break;
-	}
-
-	int ModSwitch = 0;
-	for (unsigned i = 0; i < SEQ_COUNT; ++i) {
-		const auto pSequence = GetSequence(i);
-		if (GetSeqEnable(i) && pSequence && pSequence->GetItemCount() > 0)
-			ModSwitch |= 1 << i;
-	}
-	pChunk->StoreByte(ModSwitch);
-	StoredBytes += 2;
-
-	for (unsigned i = 0; i < SEQ_COUNT; ++i) {
-		if (ModSwitch & (1 << i)) {
-			pChunk->StorePointer({CHUNK_SEQUENCE, GetSeqIndex(i) * SEQ_COUNT + i, (unsigned)GetType()});		// // //
-			StoredBytes += 2;
-		}
-	}
-
-	return StoredBytes;
 }
 
 int	CSeqInstrument::GetSeqEnable(int Index) const

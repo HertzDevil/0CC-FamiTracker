@@ -64,7 +64,6 @@ public:
 	virtual bool Load(CDocumentFile *pDocFile) = 0;						// Loads the instrument from a module
 	void SaveFTI(CSimpleFile &File) const;								// // // Saves to an FTI file
 	void LoadFTI(CSimpleFile &File, int iVersion);						// // // Loads from an FTI file
-	virtual int Compile(CChunk *pChunk, int Index) const = 0;			// // // Compiles the instrument for NSF generation
 
 protected:
 	virtual void CloneFrom(const CInstrument *pInst);					// // // virtual copying

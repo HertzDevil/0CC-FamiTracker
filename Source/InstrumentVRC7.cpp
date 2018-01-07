@@ -22,7 +22,6 @@
 
 #include "InstrumentVRC7.h"		// // //
 #include "ModuleException.h"		// // //
-#include "Chunk.h"
 #include "DocumentFile.h"
 #include "SimpleFile.h"
 
@@ -88,23 +87,6 @@ void CInstrumentVRC7::DoLoadFTI(CSimpleFile &File, int iVersion)
 
 	for (int i = 0; i < 8; ++i)
 		SetCustomReg(i, File.ReadChar());
-}
-
-int CInstrumentVRC7::Compile(CChunk *pChunk, int Index) const
-{
-	int Patch = GetPatch();
-
-	pChunk->StoreByte(6);		// // // CHAN_VRC7
-	pChunk->StoreByte(Patch << 4);	// Shift up by 4 to make room for volume
-
-	if (Patch == 0) {
-		// Write custom patch settings
-		for (int i = 0; i < 8; ++i) {
-			pChunk->StoreByte(GetCustomReg(i));
-		}
-	}
-
-	return (Patch == 0) ? 10 : 2;		// // //
 }
 
 bool CInstrumentVRC7::CanRelease() const

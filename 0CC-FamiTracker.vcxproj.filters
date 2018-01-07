@@ -765,6 +765,9 @@
     <ClCompile Include="Source\InstrumentTypeImpl.cpp">
       <Filter>Source Files\Document Data Types\Instruments</Filter>
     </ClCompile>
+    <ClCompile Include="Source\InstCompiler.cpp">
+      <Filter>Source Files\Exporter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1405,6 +1408,9 @@
     </ClInclude>
     <ClInclude Include="Source\InstrumentTypeImpl.h">
       <Filter>Header Files\Document Data Type Headers\Instrument Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\InstCompiler.h">
+      <Filter>Header Files\Export Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

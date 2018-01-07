@@ -22,8 +22,6 @@
 
 #include "InstrumentFDS.h"		// // //
 #include "Sequence.h"		// // //
-#include "Chunk.h"
-#include "ChunkRenderText.h"		// // //
 #include "DocumentFile.h"
 #include "SimpleFile.h"
 #include "ModuleException.h"		// // //
@@ -34,8 +32,6 @@ const char TEST_WAVE[] = {
 	35, 35, 41, 47, 48, 51, 53, 56, 59, 63, 63, 61, 52, 50, 49, 55,
 	54, 58, 54, 51, 48, 50, 47, 47, 42, 39, 39, 36, 32, 22, 12, 01
 };
-
-const int FIXED_FDS_INST_SIZE = 2 + 16 + 4 + 1;		// // //
 
 const char *const CInstrumentFDS::SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "(N/A)"};
 
@@ -278,42 +274,6 @@ void CInstrumentFDS::DoLoadFTI(CSimpleFile &File, int iVersion)
 
 	if (iVersion <= 22)
 		DoubleVolume();
-}
-
-int CInstrumentFDS::Compile(CChunk *pChunk, int Index) const
-{
-	// Store wave
-//	int Table = pCompiler->AddWavetable(m_iSamples);
-//	int Table = 0;
-//	pChunk->StoreByte(Table);
-
-	pChunk->StoreByte(7);		// // // CHAN_FDS
-
-	// Store sequences
-	char Switch = 0;		// // //
-	int size = FIXED_FDS_INST_SIZE;
-	for (int i = 0; i < SEQUENCE_COUNT; ++i)
-		if (GetSequence(i)->GetItemCount() > 0) {
-			Switch |= 1 << i;
-			size += 2;
-		}
-	pChunk->StoreByte(Switch);
-
-	for (unsigned i = 0; i < SEQUENCE_COUNT; ++i)
-		if (Switch & (1 << i))
-			pChunk->StorePointer({CHUNK_SEQUENCE, Index * 5 + i, INST_FDS});		// // //
-
-	// // // Store modulation table, two entries/byte
-	for (int i = 0; i < 16; ++i) {
-		char Data = GetModulation(i << 1) | (GetModulation((i << 1) + 1) << 3);
-		pChunk->StoreByte(Data);
-	}
-
-	pChunk->StoreByte(GetModulationDelay());
-	pChunk->StoreByte(GetModulationDepth());
-	pChunk->StoreWord(GetModulationSpeed());
-
-	return size;
 }
 
 bool CInstrumentFDS::CanRelease() const

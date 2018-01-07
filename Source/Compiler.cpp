@@ -42,6 +42,7 @@
 #include "APU/APU.h"
 #include "DSampleManager.h"		// // //
 #include "InstrumentManager.h"		// // //
+#include "InstCompiler.h"		// // //
 
 //
 // This is the new NSF data compiler, music is compiled to an object list instead of a binary chunk
@@ -1268,26 +1269,26 @@ void CCompiler::CreateInstrumentList()
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_FDS))
 		pWavetableChunk = &CreateChunk({CHUNK_WAVETABLE});		// // //
 
-	memset(m_iWaveBanks, -1, MAX_INSTRUMENTS * sizeof(int));
+	memset(m_iWaveBanks, -1, std::size(m_iWaveBanks) * sizeof(int));
 
 	// Collect N163 waves
+	CInstCompilerN163 n163_c;		// // // TODO: get from CFamiTrackerEnv
 	for (unsigned int i = 0; i < m_iInstruments; ++i) {
-		int iIndex = m_iAssignedInstruments[i];
-		if (m_pDocument->GetInstrumentType(iIndex) == INST_N163 && m_iWaveBanks[i] == -1) {
+		unsigned iIndex = m_iAssignedInstruments[i];
+		if (m_pDocument->GetInstrumentType(iIndex) == INST_N163 && m_iWaveBanks[i] == (unsigned)-1) {
 			auto pInstrument = std::static_pointer_cast<CInstrumentN163>(m_pDocument->GetInstrument(iIndex));
 			for (unsigned int j = i + 1; j < m_iInstruments; ++j) {
-				int inst = m_iAssignedInstruments[j];
-				if (m_pDocument->GetInstrumentType(inst) == INST_N163 && m_iWaveBanks[j] == -1) {
+				unsigned inst = m_iAssignedInstruments[j];
+				if (m_pDocument->GetInstrumentType(inst) == INST_N163 && m_iWaveBanks[j] == (unsigned)-1) {
 					auto pNewInst = std::static_pointer_cast<CInstrumentN163>(m_pDocument->GetInstrument(inst));
-					if (pInstrument->IsWaveEqual(pNewInst.get())) {
+					if (pInstrument->IsWaveEqual(*pNewInst))
 						m_iWaveBanks[j] = iIndex;
-					}
 				}
 			}
-			if (m_iWaveBanks[i] == -1) {
+			if (m_iWaveBanks[i] == (unsigned)-1) {
 				m_iWaveBanks[i] = iIndex;
-				pWavesChunk = &CreateChunk({CHUNK_WAVES, (unsigned)iIndex});		// // //
-				iWaveSize += pInstrument->StoreWave(pWavesChunk);
+				pWavesChunk = &CreateChunk({CHUNK_WAVES, iIndex});		// // //
+				n163_c.StoreWaves(*pInstrument, *pWavesChunk);		// // //
 			}
 		}
 	}
@@ -1297,7 +1298,7 @@ void CCompiler::CreateInstrumentList()
 		CChunk &Chunk = AddChunkToList(InstListChunk, {CHUNK_INSTRUMENT, i});		// // //
 		iTotalSize += 2;
 
-		int iIndex = m_iAssignedInstruments[i];
+		unsigned iIndex = m_iAssignedInstruments[i];
 		auto pInstrument = m_pDocument->GetInstrument(iIndex);
 /*
 		if (pInstrument->GetType() == INST_N163) {
@@ -1314,8 +1315,24 @@ void CCompiler::CreateInstrumentList()
 			iIndex = m_iWaveBanks[i];
 		}
 
+		const auto GetChunkCompiler = [] (inst_type_t Type) -> CInstCompiler & {		// // // TODO: put this into CInstrumentType
+			static CInstCompilerSeq seq_c;
+			static CInstCompilerVRC7 vrc7_c;
+			static CInstCompilerFDS fds_c;
+			static CInstCompilerN163 n163_c;
+			static CInstCompilerNull null_c;
+
+			switch (Type) {
+			case INST_2A03: case INST_VRC6: case INST_S5B: return seq_c;
+			case INST_VRC7: return vrc7_c;
+			case INST_FDS: return fds_c;
+			case INST_N163: return n163_c;
+			}
+			return null_c;
+		};
+
 		// Returns number of bytes
-		iTotalSize += pInstrument->Compile(&Chunk, iIndex);		// // //
+		iTotalSize += GetChunkCompiler(pInstrument->GetType()).CompileChunk(*pInstrument, Chunk, iIndex);		// // //
 
 		// // // Check if FDS
 		if (pInstrument->GetType() == INST_FDS && pWavetableChunk != NULL) {

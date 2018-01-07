@@ -31,7 +31,6 @@ public:
 	std::unique_ptr<CInstrument> Clone() const override;
 	void	Store(CDocumentFile *pDocFile) const override;
 	bool	Load(CDocumentFile *pDocFile) override;
-	int		Compile(CChunk *pChunk, int Index) const override;
 
 public:
 	int		GetWaveSize() const;
@@ -47,8 +46,7 @@ public:
 	void	SetWaveCount(int count);
 	int		GetWaveCount() const;
 
-	int		StoreWave(CChunk *pChunk) const;
-	bool	IsWaveEqual(CInstrumentN163 *pInstrument);
+	bool	IsWaveEqual(const CInstrumentN163 &Instrument) const;		// // //
 
 	bool	InsertNewWave(int Index);		// // //
 	bool	RemoveWave(int Index);		// // //

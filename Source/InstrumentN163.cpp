@@ -23,8 +23,6 @@
 #include "InstrumentN163.h"		// // //
 #include "ModuleException.h"		// // //
 #include "DocumentFile.h"
-#include "Chunk.h"
-#include "ChunkRenderText.h"		// // //
 #include "SimpleFile.h"
 
 // // // Default wave
@@ -162,51 +160,19 @@ void CInstrumentN163::DoLoadFTI(CSimpleFile &File, int iVersion)
 	}
 }
 
-int CInstrumentN163::Compile(CChunk *pChunk, int Index) const
-{
-	int StoredBytes = CSeqInstrument::Compile(pChunk, Index);		// // //
-
-	// Store wave info
-	pChunk->StoreByte(m_iWaveSize >> 1);
-	pChunk->StoreByte(/*m_bAutoWavePos ? 0xFF :*/ m_iWavePos);
-	StoredBytes += 2;
-
-	// Store reference to wave
-	pChunk->StorePointer({CHUNK_WAVES, (unsigned)Index});		// // //
-	StoredBytes += 2;
-
-	return StoredBytes;
-}
-
-int CInstrumentN163::StoreWave(CChunk *pChunk) const
-{
-	// Number of waves
-//	pChunk->StoreByte(m_iWaveCount);
-
-	// Pack samples
-	for (int i = 0; i < m_iWaveCount; ++i) {
-		for (int j = 0; j < m_iWaveSize; j += 2) {
-			pChunk->StoreByte((m_iSamples[i][j + 1] << 4) | m_iSamples[i][j]);
-		}
-	}
-
-	return m_iWaveCount * (m_iWaveSize >> 1);
-}
-
-bool CInstrumentN163::IsWaveEqual(CInstrumentN163 *pInstrument)
-{
+bool CInstrumentN163::IsWaveEqual(const CInstrumentN163 &Instrument) const {		// // //
 	int Count = GetWaveCount();
 	int Size = GetWaveSize();
 
-	if (pInstrument->GetWaveCount() != Count)
+	if (Instrument.GetWaveCount() != Count)
 		return false;
 
-	if (pInstrument->GetWaveSize() != Size)
+	if (Instrument.GetWaveSize() != Size)
 		return false;
 
 	for (int i = 0; i < Count; ++i) {
 		for (int j = 0; j < Size; ++j) {
-			if (GetSample(i, j) != pInstrument->GetSample(i, j))
+			if (GetSample(i, j) != Instrument.GetSample(i, j))
 				return false;
 		}
 	}

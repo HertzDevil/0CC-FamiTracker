@@ -31,7 +31,6 @@ public:
 	std::unique_ptr<CInstrument> Clone() const override;
 	void	Store(CDocumentFile *pDocFile) const override;
 	bool	Load(CDocumentFile *pDocFile) override;
-	int		Compile(CChunk *pChunk, int Index) const override;
 	bool	CanRelease() const override;
 
 public:
