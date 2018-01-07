@@ -48,6 +48,8 @@
 #include "PatternClipData.h"
 #include "ModuleAction.h"
 #include "InstrumentRecorder.h"
+#include "Instrument.h"
+#include "Sequence.h"
 
 // Clipboard ID
 const TCHAR CFamiTrackerView::CLIPBOARD_ID[] = _T("FamiTracker Pattern");
@@ -3298,10 +3300,11 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 		case SNDCHIP_N163: Type = INST_N163; break;
 		case SNDCHIP_S5B:  Type = INST_S5B; break;
 		}
-		if (Type != INST_NONE) for (int i = 0; i < SEQ_COUNT; i++)
+		if (Type != INST_NONE) foreachSeq([&] (sequence_t i) {
 			if (pDoc->GetFreeSequence(Type, i) == -1) {
 				AfxMessageBox(IDS_SEQUENCE_LIMIT, MB_ICONERROR); return;
 			}
+		});
 	}
 
 	if (IsChannelMuted(GetSelectedChannel()))

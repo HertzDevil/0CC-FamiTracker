@@ -34,6 +34,13 @@
  */
 
 CSeqInstHandler::CSeqInstHandler(CChannelHandlerInterface *pInterface, int Vol, int Duty) :
+	m_SequenceInfo {
+		{SEQ_VOLUME, { }},
+		{SEQ_ARPEGGIO, { }},
+		{SEQ_PITCH, { }},
+		{SEQ_HIPITCH, { }},
+		{SEQ_DUTYCYCLE, { }},
+	},
 	CInstHandler(pInterface, Vol),
 	m_iDefaultDuty(Duty)
 {
@@ -43,20 +50,22 @@ void CSeqInstHandler::LoadInstrument(std::shared_ptr<CInstrument> pInst)
 {
 	m_pInstrument = pInst;
 	auto pSeqInst = std::dynamic_pointer_cast<CSeqInstrument>(pInst);
-	if (pSeqInst == nullptr) return;
-	for (size_t i = 0; i < std::size(m_SequenceInfo); ++i)
-		if (pSeqInst->GetSeqEnable(i) != SEQ_STATE_RUNNING)
-			ClearSequence(i);
+	if (!pSeqInst)
+		return;
+
+	for (auto &[seqType, info] : m_SequenceInfo)
+		if (pSeqInst->GetSeqEnable(seqType) != SEQ_STATE_RUNNING)
+			ClearSequence(seqType);
 		else {
-			const auto pSequence = pSeqInst->GetSequence(i);
-			if (pSequence != m_SequenceInfo[i].m_pSequence || m_SequenceInfo[i].m_iSeqState == SEQ_STATE_DISABLED)
-				SetupSequence(i, std::move(pSequence));
+			const auto pSequence = pSeqInst->GetSequence(seqType);
+			if (pSequence != info.m_pSequence || info.m_iSeqState == SEQ_STATE_DISABLED)
+				SetupSequence(seqType, std::move(pSequence));
 		}
 }
 
 void CSeqInstHandler::TriggerInstrument()
 {
-	for (auto &info : m_SequenceInfo)
+	for (auto &[_, info] : m_SequenceInfo)
 		info.Trigger();
 
 	m_iVolume = m_iDefaultVolume;
@@ -73,7 +82,7 @@ void CSeqInstHandler::TriggerInstrument()
 void CSeqInstHandler::ReleaseInstrument()
 {
 	if (!m_pInterface->IsReleasing())
-		for (auto &info : m_SequenceInfo)
+		for (auto &[_, info] : m_SequenceInfo)
 			info.Release();
 }
 
@@ -81,7 +90,7 @@ void CSeqInstHandler::UpdateInstrument()
 {
 	if (!m_pInterface->IsActive())
 		return;
-	for (auto &info : m_SequenceInfo) {
+	for (auto &[seq_type, info] : m_SequenceInfo) {
 		const auto &pSeq = info.m_pSequence;
 		if (!pSeq || pSeq->GetItemCount() == 0)
 			continue;
@@ -109,8 +118,10 @@ void CSeqInstHandler::UpdateInstrument()
 	}
 }
 
-CSeqInstHandler::seq_state_t CSeqInstHandler::GetSequenceState(int Index) const {
-	return m_SequenceInfo[Index].m_iSeqState;
+CSeqInstHandler::seq_state_t CSeqInstHandler::GetSequenceState(sequence_t Index) const {
+	if (auto it = m_SequenceInfo.find(Index); it != m_SequenceInfo.end())
+		return it->second.m_iSeqState;
+	return SEQ_STATE_DISABLED;
 }
 
 bool CSeqInstHandler::ProcessSequence(const CSequence &Seq, int Pos)
@@ -177,12 +188,12 @@ bool CSeqInstHandler::ProcessSequence(const CSequence &Seq, int Pos)
 	return false;
 }
 
-void CSeqInstHandler::SetupSequence(int Index, std::shared_ptr<const CSequence> pSequence)		// // //
+void CSeqInstHandler::SetupSequence(sequence_t Index, std::shared_ptr<const CSequence> pSequence)		// // //
 {
 	m_SequenceInfo[Index] = {std::move(pSequence), SEQ_STATE_RUNNING, 0};
 }
 
-void CSeqInstHandler::ClearSequence(int Index)
+void CSeqInstHandler::ClearSequence(sequence_t Index)
 {
 	m_SequenceInfo[Index] = seq_info_t { };		// // //
 }

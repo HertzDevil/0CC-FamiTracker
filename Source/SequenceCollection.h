@@ -28,6 +28,7 @@
 #include "FamiTrackerTypes.h" // sequence_t
 
 class CSequence;
+enum sequence_t : unsigned;
 
 /*!
 	\brief A collection of sequence objects.

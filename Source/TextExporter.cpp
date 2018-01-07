@@ -29,7 +29,7 @@
 
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "ft0cc/doc/groove.hpp"		// // //
-#include "ft0cc/doc/dpcm_sample.hpp"		// // //
+#include "Sequence.h"		// // //
 #include "InstrumentService.h"		// // //
 #include "Instrument2A03.h"		// // //
 #include "InstrumentVRC7.h"		// // //
@@ -662,7 +662,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			static const inst_type_t CHIP_MACRO[4] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
 			int chip = c - CT_MACRO;
 
-			int mt = t.ReadInt(0, SEQ_COUNT - 1);
+			auto mt = (sequence_t)t.ReadInt(0, SEQ_COUNT - 1);
 			int index = t.ReadInt(0, MAX_SEQUENCES - 1);
 			const auto pSeq = Doc.GetSequence(CHIP_MACRO[chip], index, mt);
 
@@ -764,11 +764,11 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			int inst_index = t.ReadInt(0, MAX_INSTRUMENTS - 1);		// // //
 			auto pInst = Env.GetInstrumentService()->Make(Type);
 			auto seqInst = static_cast<CSeqInstrument *>(pInst.get());
-			for (int s = 0; s < SEQ_COUNT; ++s) {
+			foreachSeq([&] (sequence_t s) {
 				int seqindex = t.ReadInt(-1, MAX_SEQUENCES - 1);
-				seqInst->SetSeqEnable(s, (seqindex == -1) ? 0 : 1);
-				seqInst->SetSeqIndex(s, (seqindex == -1) ? 0 : seqindex);
-			}
+				seqInst->SetSeqEnable(s, seqindex != -1);
+				seqInst->SetSeqIndex(s, seqindex != -1 ? seqindex : 0);
+			});
 			if (c == CT_INSTN163) {
 				auto pInst = static_cast<CInstrumentN163*>(seqInst);
 				pInst->SetWaveSize(t.ReadInt(0, 256 - 16 * N163count));		// // //
@@ -854,7 +854,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 				throw t.MakeError(_T("instrument %d is not defined as an FDS instrument."), inst_index);
 			auto pInst = std::static_pointer_cast<CInstrumentFDS>(Doc.GetInstrument(inst_index));
 
-			unsigned SeqType = t.ReadInt(0, CInstrumentFDS::SEQUENCE_COUNT - 1);		// // //
+			auto SeqType = (sequence_t)t.ReadInt(0, CInstrumentFDS::SEQUENCE_COUNT - 1);		// // //
 			auto pSeq = std::make_shared<CSequence>(SeqType);
 			pInst->SetSequence(SeqType, pSeq);
 			int loop = t.ReadInt(-1, MAX_SEQUENCE_ITEMS);
@@ -1079,28 +1079,26 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	{
 		const inst_type_t CHIP_MACRO[4] = { INST_2A03, INST_VRC6, INST_N163, INST_S5B };
 
-		for (int st=0; st < SEQ_COUNT; ++st)
-		for (int seq=0; seq < MAX_SEQUENCES; ++seq)
-		{
-			const auto pSequence = pDoc->GetSequence(CHIP_MACRO[c], seq, st);
-			if (pSequence && pSequence->GetItemCount() > 0)
-			{
-				s.Format(_T("%-9s %3d %3d %3d %3d %3d :"),
-					CT[CT_MACRO+c],
-					st,
-					seq,
-					pSequence->GetLoopPoint(),
-					pSequence->GetReleasePoint(),
-					pSequence->GetSetting());
-				f.WriteString(s);
-				for (unsigned int i=0; i < pSequence->GetItemCount(); ++i)
-				{
-					s.Format(_T(" %d"), pSequence->GetItem(i));
+		foreachSeq([&] (sequence_t st) {
+			for (int seq = 0; seq < MAX_SEQUENCES; ++seq) {
+				const auto pSequence = pDoc->GetSequence(CHIP_MACRO[c], seq, st);
+				if (pSequence && pSequence->GetItemCount() > 0) {
+					s.Format(_T("%-9s %3d %3d %3d %3d %3d :"),
+						CT[CT_MACRO + c],
+						st,
+						seq,
+						pSequence->GetLoopPoint(),
+						pSequence->GetReleasePoint(),
+						pSequence->GetSetting());
 					f.WriteString(s);
+					for (unsigned int i = 0; i < pSequence->GetItemCount(); ++i) {
+						s.Format(_T(" %d"), pSequence->GetItem(i));
+						f.WriteString(s);
+					}
+					f.WriteString(_T("\n"));
 				}
-				f.WriteString(_T("\n"));
 			}
-		}
+		});
 	}
 	f.WriteString(_T("\n"));
 
@@ -1191,8 +1189,9 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 
 		if (auto seqInst = std::dynamic_pointer_cast<CSeqInstrument>(pInst)) {
 			s.Empty();
-			for (int j = 0; j < SEQ_COUNT; j++)
+			foreachSeq([&] (sequence_t j) {
 				s.AppendFormat(_T("%3d "), seqInst->GetSeqEnable(j) ? seqInst->GetSeqIndex(j) : -1);
+			});
 			f.WriteString(s);
 		}
 
@@ -1298,10 +1297,10 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 				}
 				f.WriteString(_T("\n"));
 
-				for (int seq=0; seq < 3; ++seq)
-				{
+				foreachSeq([&] (sequence_t seq) {
 					const auto pSequence = pDI->GetSequence(seq);		// // //
-					if (!pSequence || pSequence->GetItemCount() < 1) continue;
+					if (!pSequence || pSequence->GetItemCount() < 1)
+						return;
 
 					s.Format(_T("%-8s %3d %3d %3d %3d %3d :"),
 						CT[CT_FDSMACRO],
@@ -1317,7 +1316,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 						f.WriteString(s);
 					}
 					f.WriteString(_T("\n"));
-				}
+				});
 			}
 			break;
 		}

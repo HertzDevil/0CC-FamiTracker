@@ -30,6 +30,7 @@
 #include <map>		// // //
 #include <cstdint>		// // //
 #include "FamiTrackerTypes.h"
+#include "Sequence.h"		// // // TODO: remove
 
 // NSF file header
 struct stNSFHeader {

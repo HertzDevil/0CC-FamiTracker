@@ -23,9 +23,30 @@
 
 #pragma once
 
-#include "FamiTrackerTypes.h"		// // //
+#include "FamiTrackerTypes.h"		// // // MAX_SEQUENCE_ITEMS
 #include <array>		// // //
 #include <cstdint>		// // //
+#include "ft0cc/doc/inst_sequence.hpp"		// // //
+
+enum sequence_t : unsigned {
+	SEQ_VOLUME,
+	SEQ_ARPEGGIO,
+	SEQ_PITCH,
+	SEQ_HIPITCH,		// TODO: remove this eventually
+	SEQ_DUTYCYCLE,
+
+	SEQ_COUNT
+};
+
+
+template <typename F>
+void foreachSeq(F f) {
+	f(SEQ_VOLUME);
+	f(SEQ_ARPEGGIO);
+	f(SEQ_PITCH);
+	f(SEQ_HIPITCH);
+	f(SEQ_DUTYCYCLE);
+}
 
 // // // Settings
 enum seq_setting_t : unsigned int {

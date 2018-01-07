@@ -26,6 +26,7 @@
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
+#include "Sequence.h"		// // //
 #include "SequenceEditor.h"
 #include "SequenceParser.h"		// // //
 #include "DPI.h"		// // //
@@ -182,7 +183,7 @@ CSequenceInstrumentEditPanel::CSequenceInstrumentEditPanel(UINT nIDTemplate, CWn
 	m_pSequenceEditor(std::make_unique<CSequenceEditor>()),
 	m_pSequence(NULL),
 	m_pParentWin(pParent),
-	m_iSelectedSetting(0),
+	m_iSelectedSetting(SEQ_VOLUME),		// // //
 	m_pParser(std::make_unique<CSequenceParser>())		// // //
 {
 }
@@ -215,12 +216,12 @@ void CSequenceInstrumentEditPanel::SetupDialog(const LPCTSTR *pListItems)		// //
 	pList->InsertColumn(2, _T("Effect name"), LVCFMT_LEFT, static_cast<int>(.6 * Width));
 	pList->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
 
-	for (int i = SEQ_COUNT - 1; i > -1; i--) {
-		pList->InsertItem(0, _T(""), 0);
+	foreachSeq([&] (sequence_t i) {
+		pList->InsertItem(i, _T(""), 0);
 		pList->SetCheck(0, 0);
 		pList->SetItemText(0, 1, _T("0"));
 		pList->SetItemText(0, 2, pListItems[i]);
-	}
+	});
 
 	pList->SetItemState(m_iSelectedSetting, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 

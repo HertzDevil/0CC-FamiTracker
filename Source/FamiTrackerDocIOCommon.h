@@ -30,7 +30,7 @@ namespace compat {
 
 // // // helper function for effect conversion
 using EffTable = std::array<effect_t, EF_COUNT>;
-inline constexpr std::pair<EffTable, EffTable>
+constexpr std::pair<EffTable, EffTable>
 MakeEffectConversion(std::initializer_list<std::pair<effect_t, effect_t>> List) {
 	EffTable forward = { }, backward = { };
 	for (int i = 0; i < EF_COUNT; ++i)

@@ -117,7 +117,7 @@ void CInstrumentEditorFDSEnvelope::SetupParser() const		// // //
 void CInstrumentEditorFDSEnvelope::OnCbnSelchangeType()
 {
 	CComboBox *pTypeBox = static_cast<CComboBox*>(GetDlgItem(IDC_TYPE));
-	m_iSelectedSetting = pTypeBox->GetCurSel();
+	m_iSelectedSetting = (sequence_t)pTypeBox->GetCurSel();
 	LoadSequence();
 }
 

@@ -27,11 +27,13 @@
 #include "FamiTrackerTypes.h"
 #include <memory>
 #include <array>
+#include <unordered_map>
 
 class CSequence;
 class CInstrument;
 class CFamiTrackerDoc;
 class CSoundGen;
+enum sequence_t : unsigned;
 
 struct stRecordSetting {
 	int Interval;
@@ -74,7 +76,7 @@ private:
 	int				m_iDumpCount;
 	std::unique_ptr<CInstrument> *m_pDumpInstrument = nullptr;
 	std::array<std::unique_ptr<CInstrument>, MAX_INSTRUMENTS> m_pDumpCache = { };
-	std::shared_ptr<CSequence> m_pSequenceCache[SEQ_COUNT] = { };
+	std::unordered_map<sequence_t, std::shared_ptr<CSequence>> m_pSequenceCache;
 	stRecordSetting	m_stRecordSetting;
 	std::unique_ptr<char[]> m_iRecordWaveCache;
 	int				m_iRecordWaveSize;

@@ -25,6 +25,7 @@
 
 #include "InstHandler.h"
 #include "Sequence.h"
+#include <unordered_map>
 
 class CSeqInstrument;
 
@@ -57,9 +58,9 @@ public:
 	void UpdateInstrument() override;
 
 	/*!	\brief Obtains the current sequence state of a given sequence type.
-		\param Index The sequence type, which should be a member of sequence_t.
+		\param Index The sequence type.
 		\return The sequence state of the given sequence type. */
-	seq_state_t GetSequenceState(int Index) const;
+	seq_state_t GetSequenceState(sequence_t Index) const;
 
 protected:
 	/*!	\brief Processes the value retrieved from a sequence.
@@ -71,11 +72,11 @@ protected:
 	/*!	\brief Prepares a sequence type for use by CSeqInstHandler::UpdateInstrument.
 		\param Index The sequence type.
 		\param pSequence Pointer to the sequence. */
-	virtual void SetupSequence(int Index, std::shared_ptr<const CSequence> pSequence);
+	void SetupSequence(sequence_t Index, std::shared_ptr<const CSequence> pSequence);
 
 	/*!	\brief Clears a sequence type from use.
 		\param Index The sequence type. */
-	virtual void ClearSequence(int Index);
+	void ClearSequence(sequence_t Index);
 
 protected:
 	/*! \brief A struct containing runtime state of a given sequence type. */
@@ -92,7 +93,7 @@ protected:
 		int m_iSeqPointer = 0;
 	};
 	/*! \brief Sequence states for the default sequence types. */
-	seq_info_t m_SequenceInfo[SEQ_COUNT];
+	std::unordered_map<sequence_t, seq_info_t> m_SequenceInfo;
 
 	/*!	\brief The current duty cycle of the instrument.
 		\details The exact interpretation of this member may not be identical across sound channels.

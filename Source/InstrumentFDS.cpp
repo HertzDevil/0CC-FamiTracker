@@ -43,9 +43,8 @@ CInstrumentFDS::CInstrumentFDS() : CSeqInstrument(INST_FDS),		// // //
 	m_iModulation()
 {
 	memcpy(m_iSamples, TEST_WAVE, WAVE_SIZE);
-	m_pSequence.resize(SEQ_COUNT);
 	for (int i = 0; i < SEQ_COUNT; ++i)
-		m_pSequence[i] = std::make_shared<CSequence>(i);
+		m_pSequence.push_back(std::make_shared<CSequence>(i));
 }
 
 std::unique_ptr<CInstrument> CInstrumentFDS::Clone() const
@@ -70,8 +69,9 @@ void CInstrumentFDS::CloneFrom(const CInstrument *pInst)
 		SetModulationSpeed(pNew->GetModulationSpeed());
 
 		// Copy sequences
-		for (int i = 0; i < SEQUENCE_COUNT; ++i)		// // //
-			SetSequence(i, pNew->GetSequence(i));
+		SetSequence(SEQ_VOLUME, pNew->GetSequence(SEQ_VOLUME));
+		SetSequence(SEQ_ARPEGGIO, pNew->GetSequence(SEQ_ARPEGGIO));
+		SetSequence(SEQ_PITCH, pNew->GetSequence(SEQ_PITCH));
 	}
 }
 
@@ -171,8 +171,9 @@ void CInstrumentFDS::Store(CDocumentFile *pDocFile) const
 	pDocFile->WriteBlockInt(GetModulationDelay());
 
 	// Sequences
-	for (int i = 0; i < SEQUENCE_COUNT; ++i)		// // //
-		StoreSequence(*pDocFile, *GetSequence(i));
+	StoreSequence(*pDocFile, *GetSequence(SEQ_VOLUME));		// // //
+	StoreSequence(*pDocFile, *GetSequence(SEQ_ARPEGGIO));
+	StoreSequence(*pDocFile, *GetSequence(SEQ_PITCH));
 }
 
 bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
@@ -220,7 +221,8 @@ bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
 //	}
 
 	// Older files was 0-15, new is 0-31
-	if (pDocFile->GetBlockVersion() <= 3) DoubleVolume();
+	if (pDocFile->GetBlockVersion() <= 3)
+		DoubleVolume();
 
 	return true;
 }
@@ -247,8 +249,9 @@ void CInstrumentFDS::DoSaveFTI(CSimpleFile &File) const
 	File.WriteInt(GetModulationDelay());
 
 	// Sequences
-	for (int i = 0; i < SEQUENCE_COUNT; ++i)
-		StoreInstSequence(File, *GetSequence(i));
+	StoreInstSequence(File, *GetSequence(SEQ_VOLUME));
+	StoreInstSequence(File, *GetSequence(SEQ_ARPEGGIO));
+	StoreInstSequence(File, *GetSequence(SEQ_PITCH));
 }
 
 void CInstrumentFDS::DoLoadFTI(CSimpleFile &File, int iVersion)
@@ -269,8 +272,9 @@ void CInstrumentFDS::DoLoadFTI(CSimpleFile &File, int iVersion)
 	SetModulationDelay(File.ReadInt());
 
 	// Sequences
-	for (int i = 0; i < SEQUENCE_COUNT; ++i)		// // //
-		SetSequence(i, LoadInstSequence(File, i));
+	SetSequence(SEQ_VOLUME, LoadInstSequence(File, SEQ_VOLUME));
+	SetSequence(SEQ_ARPEGGIO, LoadInstSequence(File, SEQ_ARPEGGIO));
+	SetSequence(SEQ_PITCH, LoadInstSequence(File, SEQ_PITCH));
 
 	if (iVersion <= 22)
 		DoubleVolume();
@@ -356,28 +360,36 @@ void CInstrumentFDS::SetModulationEnable(bool Enable)
 	m_bModulationEnable = Enable;
 }
 
-int	CInstrumentFDS::GetSeqEnable(int Index) const
+bool CInstrumentFDS::GetSeqEnable(sequence_t SeqType) const
 {
-	return Index < SEQUENCE_COUNT; // && m_iSeqEnable[Index];
+	switch (SeqType) {
+	case SEQ_VOLUME: case SEQ_ARPEGGIO: case SEQ_PITCH:
+		return true;
+	}
+	return false;
 }
 
-int	CInstrumentFDS::GetSeqIndex(int Index) const
-{
-	ASSERT(false);
-	return 0;
+void CInstrumentFDS::SetSeqEnable(sequence_t, bool) {
 }
 
-void CInstrumentFDS::SetSeqIndex(int Index, int Value)
+int	CInstrumentFDS::GetSeqIndex(sequence_t SeqType) const
 {
-	ASSERT(false);
+	__debugbreak();
+	return -1;
 }
 
-std::shared_ptr<CSequence> CInstrumentFDS::GetSequence(int SeqType) const		// // //
+void CInstrumentFDS::SetSeqIndex(sequence_t SeqType, int Value)
 {
-	return m_pSequence[SeqType];
+	__debugbreak();
 }
 
-void CInstrumentFDS::SetSequence(int SeqType, std::shared_ptr<CSequence> pSeq)
+std::shared_ptr<CSequence> CInstrumentFDS::GetSequence(sequence_t SeqType) const		// // //
 {
-	m_pSequence[SeqType] = std::move(pSeq);
+	return GetSeqEnable(SeqType) ? m_pSequence[SeqType] : nullptr;
+}
+
+void CInstrumentFDS::SetSequence(sequence_t SeqType, std::shared_ptr<CSequence> pSeq)
+{
+	if (GetSeqEnable(SeqType))
+		m_pSequence[SeqType] = std::move(pSeq);
 }

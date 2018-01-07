@@ -26,8 +26,10 @@
 #include "Instrument.h"
 #include "FamiTrackerTypes.h"
 #include <memory>
+#include <unordered_map>
 
 class CSequence;
+enum sequence_t : unsigned;
 
 class CSeqInstrument : public CInstrument		// // //
 {
@@ -38,13 +40,13 @@ public:
 	bool	Load(CDocumentFile *pDocFile) override;
 	bool	CanRelease() const override;
 
-	virtual int		GetSeqEnable(int Index) const;
-	virtual int		GetSeqIndex(int Index) const;
-	virtual void	SetSeqIndex(int Index, int Value);
-	virtual void	SetSeqEnable(int Index, int Value);
+	virtual bool	GetSeqEnable(sequence_t SeqType) const;		// // //
+	virtual void	SetSeqEnable(sequence_t SeqType, bool Enable);
+	virtual int		GetSeqIndex(sequence_t SeqType) const;
+	virtual void	SetSeqIndex(sequence_t SeqType, int Value);
 
-	virtual std::shared_ptr<CSequence> GetSequence(int SeqType) const;		// // //
-	virtual void	SetSequence(int SeqType, std::shared_ptr<CSequence> pSeq);		// // // register sequence in document
+	virtual std::shared_ptr<CSequence> GetSequence(sequence_t SeqType) const;		// // //
+	virtual void	SetSequence(sequence_t SeqType, std::shared_ptr<CSequence> pSeq);		// // // register sequence in document
 
 	// static const int SEQUENCE_TYPES[] = {SEQ_VOLUME, SEQ_ARPEGGIO, SEQ_PITCH, SEQ_HIPITCH, SEQ_DUTYCYCLE};
 	virtual const char *GetSequenceName(int Index) const { return nullptr; }		// // //
@@ -57,6 +59,6 @@ protected:
 	void	DoSaveFTI(CSimpleFile &File) const override;
 	void	DoLoadFTI(CSimpleFile &File, int iVersion) override;
 
-	int		m_iSeqEnable[SEQ_COUNT];
-	int		m_iSeqIndex[SEQ_COUNT];
+private:
+	std::unordered_map<sequence_t, std::pair<bool, int>> seq_indices_;		// // //
 };

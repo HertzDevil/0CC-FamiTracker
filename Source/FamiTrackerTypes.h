@@ -106,33 +106,6 @@ const int INVALID_INSTRUMENT = -1;
 // Max allowed value in volume column. The actual meaning is no specific volume information, rather than max volume.
 const int MAX_VOLUME = 0x10;
 
-// Sequence types (shared with VRC6)
-
-enum sequence_t {
-	SEQ_VOLUME,
-	SEQ_ARPEGGIO,
-	SEQ_PITCH,
-	SEQ_HIPITCH,		// TODO: remove this eventually
-	SEQ_DUTYCYCLE,
-
-	SEQ_COUNT
-};
-
-// New sequence types
-/*
-enum {
-	SEQ_VOLUME,
-	SEQ_ARPEGGIO,
-	SEQ_PITCH,
-	SEQ_HIPITCH,		// TODO: remove this eventually
-	SEQ_DUTYCYCLE,
-	SEQ_SUNSOFT_NOISE,
-
-	SEQ_COUNT
-};
-*/
-//const int SEQ_SUNSOFT_NOISE = SEQ_DUTYCYCLE + 1;
-
 // Channel effects
 enum effect_t : unsigned char {
 	EF_NONE = 0,

@@ -28,6 +28,7 @@
 #include <memory>
 #include "Instrument2A03.h"
 #include "ft0cc/doc/dpcm_sample.hpp"
+#include "Sequence.h"
 
 namespace {
 
@@ -123,10 +124,10 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 				pOpenFile->Read(&ImportedInstruments, sizeof(ImportedInstruments));
 				if (ImportedInstruments.Free == false) {
 					auto pInst = std::make_unique<CInstrument2A03>();
-					for (int j = 0; j < SEQ_COUNT; j++) {
+					foreachSeq([&] (sequence_t j) {
 						pInst->SetSeqEnable(j, ImportedInstruments.ModEnable[j]);
 						pInst->SetSeqIndex(j, ImportedInstruments.ModIndex[j]);
-					}
+						});
 					pInst->SetName(ImportedInstruments.Name);
 
 					if (ImportedInstruments.AssignedSample > 0) {
@@ -258,7 +259,7 @@ void compat::ReorderSequences(CFamiTrackerDoc &doc, std::vector<COldSequence> se
 	// Organize sequences
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
 		if (auto pInst = std::dynamic_pointer_cast<CInstrument2A03>(Manager.GetInstrument(i))) {		// // //
-			for (int j = 0; j < SEQ_COUNT; ++j) {
+			foreachSeq([&] (sequence_t j) {
 				if (pInst->GetSeqEnable(j)) {
 					int Index = pInst->GetSeqIndex(j);
 					if (Indices[Index][j] >= 0 && Indices[Index][j] != -1) {
@@ -279,7 +280,7 @@ void compat::ReorderSequences(CFamiTrackerDoc &doc, std::vector<COldSequence> se
 				}
 				else
 					pInst->SetSeqIndex(j, 0);
-			}
+			});
 		}
 	}
 }

@@ -27,6 +27,7 @@
 #include "Compiler.h"
 #include "Chunk.h"
 #include "NumConv.h"		// // //
+#include "Instrument.h"		// // //
 
 /**
  * Text chunk render, these methods will always output single byte strings

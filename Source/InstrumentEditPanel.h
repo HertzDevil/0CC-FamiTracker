@@ -75,6 +75,7 @@ class CSequence;
 class CSeqInstrument;
 class CSequenceEditor;
 class CSequenceParser;		// // //
+enum sequence_t : unsigned;		// // //
 
 // Adds some functions for sequences
 class CSequenceInstrumentEditPanel : public CInstrumentEditPanel
@@ -98,7 +99,7 @@ protected:
 	std::shared_ptr<CSeqInstrument> m_pInstrument;		// // //
 	std::unique_ptr<CSequenceParser> m_pParser;		// // //
 
-	unsigned int m_iSelectedSetting;
+	sequence_t m_iSelectedSetting;		// // //
 
 protected:
 	// Setup default sequence dialog

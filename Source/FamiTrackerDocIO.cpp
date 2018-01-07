@@ -36,6 +36,7 @@
 
 #include "SequenceManager.h"
 #include "SequenceCollection.h"
+#include "Sequence.h"
 
 #include "SongData.h"
 #include "PatternNote.h"
@@ -564,7 +565,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 				char Value = file_.GetBlockChar();
 				Seq.AddItem(file_.GetBlockChar(), Value);
 			}
-			Manager.SetSequence(INST_2A03, Type, Index, Seq.Convert(Type));		// // //
+			Manager.SetSequence(INST_2A03, (sequence_t)Type, Index, Seq.Convert(Type));		// // //
 		}
 	}
 	else if (ver >= 3) {

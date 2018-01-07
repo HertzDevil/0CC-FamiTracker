@@ -68,6 +68,7 @@
 #include "ActionHandler.h"
 #include "ModuleAction.h"
 #include "SimpleFile.h"
+#include "Instrument.h"
 #include "InstrumentManager.h"
 #include "Kraid.h"
 #include "NumConv.h"

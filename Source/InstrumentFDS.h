@@ -81,9 +81,10 @@ private:
 	bool		  m_bModulationEnable;
 
 public: // // // porting CSeqInstrument
-	int		GetSeqEnable(int Index) const override;
-	int		GetSeqIndex(int Index) const override;
-	void	SetSeqIndex(int Index, int Value) override;
-	std::shared_ptr<CSequence> GetSequence(int SeqType) const override;		// // //
-	void	SetSequence(int SeqType, std::shared_ptr<CSequence> pSeq) override;		// // //
+	bool	GetSeqEnable(sequence_t SeqType) const override;
+	void	SetSeqEnable(sequence_t SeqType, bool Enable) override;
+	int		GetSeqIndex(sequence_t SeqType) const override;
+	void	SetSeqIndex(sequence_t SeqType, int Value) override;
+	std::shared_ptr<CSequence> GetSequence(sequence_t SeqType) const override;		// // //
+	void	SetSequence(sequence_t SeqType, std::shared_ptr<CSequence> pSeq) override;		// // //
 };

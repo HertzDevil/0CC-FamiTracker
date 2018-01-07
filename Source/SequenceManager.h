@@ -27,6 +27,7 @@
 #include <memory>
 
 class CSequenceCollection;
+enum sequence_t : unsigned;
 
 class CSequenceManager
 {

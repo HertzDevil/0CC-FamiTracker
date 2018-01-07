@@ -33,8 +33,13 @@
  */
 
 CSeqInstrument::CSeqInstrument(inst_type_t type) : CInstrument(type),
-	m_iSeqEnable(),
-	m_iSeqIndex()
+	seq_indices_ {
+		{SEQ_VOLUME, { }},
+		{SEQ_ARPEGGIO, { }},
+		{SEQ_PITCH, { }},
+		{SEQ_HIPITCH, { }},
+		{SEQ_DUTYCYCLE, { }},
+	}
 {
 }
 
@@ -49,56 +54,52 @@ void CSeqInstrument::CloneFrom(const CInstrument *pInst)
 {
 	CInstrument::CloneFrom(pInst);
 
-	if (auto pNew = dynamic_cast<const CSeqInstrument*>(pInst))
-		for (int i = 0; i < SEQ_COUNT; i++) {
-			SetSeqEnable(i, pNew->GetSeqEnable(i));
-			SetSeqIndex(i, pNew->GetSeqIndex(i));
-		}
+	if (auto pNew = dynamic_cast<const CSeqInstrument *>(pInst))
+		seq_indices_ = pNew->seq_indices_;
 }
 
 void CSeqInstrument::OnBlankInstrument()		// // //
 {
 	CInstrument::OnBlankInstrument();
 
-	for (int i = 0; i < SEQ_COUNT; ++i) {
-		SetSeqEnable(i, 0);
-		int Index = m_pInstManager->AddSequence(m_iType, i, nullptr, this);
-		if (Index != -1)
-			SetSeqIndex(i, Index);
+	for (auto &[seqType, v] : seq_indices_) {
+		auto &[enable, index] = v;
+		enable = false;
+		int newIndex = m_pInstManager->AddSequence(m_iType, seqType, nullptr, this);
+		if (newIndex != -1)
+			index = newIndex;
 	}
 }
 
 void CSeqInstrument::Store(CDocumentFile *pDocFile) const
 {
-	pDocFile->WriteBlockInt(SEQ_COUNT);
+	pDocFile->WriteBlockInt(seq_indices_.size());
 
-	for (int i = 0; i < SEQ_COUNT; i++) {
-		pDocFile->WriteBlockChar(GetSeqEnable(i));
-		pDocFile->WriteBlockChar(GetSeqIndex(i));
+	for (const auto &[_, v] : seq_indices_) {
+		pDocFile->WriteBlockChar(v.first ? 1 : 0);
+		pDocFile->WriteBlockChar(v.second);
 	}
 }
 
 bool CSeqInstrument::Load(CDocumentFile *pDocFile)
 {
-	int SeqCnt = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 0, SEQ_COUNT, "Instrument sequence count");
-	SeqCnt = SEQ_COUNT;
+	CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 0, SEQ_COUNT, "Instrument sequence count"); // unused right now
 
-	for (int i = 0; i < SeqCnt; ++i) {
-		int Enable = CModuleException::AssertRangeFmt<MODULE_ERROR_STRICT>(
-			pDocFile->GetBlockChar(), 0, 1, "Instrument sequence enable flag");
-		SetSeqEnable(i, Enable != 0);
+	foreachSeq([&] (sequence_t i) {
+		SetSeqEnable(i, 0 != CModuleException::AssertRangeFmt<MODULE_ERROR_STRICT>(
+			pDocFile->GetBlockChar(), 0, 1, "Instrument sequence enable flag"));
 		int Index = static_cast<unsigned char>(pDocFile->GetBlockChar());		// // //
 		SetSeqIndex(i, CModuleException::AssertRangeFmt(Index, 0, MAX_SEQUENCES - 1, "Instrument sequence index"));
-	}
+	});
 
 	return true;
 }
 
 void CSeqInstrument::DoSaveFTI(CSimpleFile &File) const
 {
-	File.WriteChar(SEQ_COUNT);
+	File.WriteChar(seq_indices_.size());
 
-	for (int i = 0; i < SEQ_COUNT; ++i) {
+	foreachSeq([&] (sequence_t i) {
 		if (GetSeqEnable(i)) {
 			const auto pSeq = GetSequence(i);
 			File.WriteChar(1);
@@ -113,7 +114,7 @@ void CSeqInstrument::DoSaveFTI(CSimpleFile &File) const
 		else {
 			File.WriteChar(0);
 		}
-	}
+	});
 }
 
 void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
@@ -121,95 +122,102 @@ void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
 	// Sequences
 	std::shared_ptr<CSequence> pSeq;		// // //
 
-	unsigned char SeqCount = CModuleException::AssertRangeFmt(File.ReadChar(), 0, SEQ_COUNT, "Sequence count");
+	CModuleException::AssertRangeFmt(File.ReadChar(), 0, SEQ_COUNT, "Sequence count"); // unused right now
 
 	// Loop through all instrument effects
-	for (unsigned i = 0; i < SeqCount; ++i) try {
-		if (File.ReadChar() != 1) {
-			SetSeqEnable(i, false);
-			SetSeqIndex(i, 0);
-			continue;
-		}
-		SetSeqEnable(i, true);
+	foreachSeq([&] (sequence_t i) {
+		try {
+			if (File.ReadChar() != 1) {
+				SetSeqEnable(i, false);
+				SetSeqIndex(i, 0);
+				return;
+			}
+			SetSeqEnable(i, true);
 
-		// Read the sequence
-		int Count = CModuleException::AssertRangeFmt(File.ReadInt(), 0, 0xFF, "Sequence item count");
+			// Read the sequence
+			int Count = CModuleException::AssertRangeFmt(File.ReadInt(), 0, 0xFF, "Sequence item count");
 
-		if (iVersion < 20) {
-			COldSequence OldSeq;
-			for (int j = 0; j < Count; ++j) {
-				char Length = File.ReadChar();
-				OldSeq.AddItem(Length, File.ReadChar());
+			if (iVersion < 20) {
+				COldSequence OldSeq;
+				for (int j = 0; j < Count; ++j) {
+					char Length = File.ReadChar();
+					OldSeq.AddItem(Length, File.ReadChar());
+				}
+				pSeq = OldSeq.Convert(i);
 			}
-			pSeq = OldSeq.Convert(i);
+			else {
+				pSeq = std::make_shared<CSequence>(i);		// // //
+				int Count2 = Count > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : Count;
+				pSeq->SetItemCount(Count2);
+				pSeq->SetLoopPoint(CModuleException::AssertRangeFmt(
+					static_cast<int>(File.ReadInt()), -1, Count2 - 1, "Sequence loop point"));
+				if (iVersion > 20) {
+					pSeq->SetReleasePoint(CModuleException::AssertRangeFmt(
+						static_cast<int>(File.ReadInt()), -1, Count2 - 1, "Sequence release point"));
+					if (iVersion >= 22)
+						pSeq->SetSetting(static_cast<seq_setting_t>(File.ReadInt()));
+				}
+				for (int j = 0; j < Count; ++j) {
+					char item = File.ReadChar();
+					if (j < Count2)
+						pSeq->SetItem(j, item);
+				}
+			}
+			if (GetSequence(i) && GetSequence(i)->GetItemCount() > 0)
+				throw CModuleException::WithMessage("Document has no free sequence slot");
+			m_pInstManager->SetSequence(m_iType, i, GetSeqIndex(i), pSeq);
 		}
-		else {
-			pSeq = std::make_shared<CSequence>(i);		// // //
-			int Count2 = Count > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : Count;
-			pSeq->SetItemCount(Count2);
-			pSeq->SetLoopPoint(CModuleException::AssertRangeFmt(
-				static_cast<int>(File.ReadInt()), -1, Count2 - 1, "Sequence loop point"));
-			if (iVersion > 20) {
-				pSeq->SetReleasePoint(CModuleException::AssertRangeFmt(
-					static_cast<int>(File.ReadInt()), -1, Count2 - 1, "Sequence release point"));
-				if (iVersion >= 22)
-					pSeq->SetSetting(static_cast<seq_setting_t>(File.ReadInt()));
-			}
-			for (int j = 0; j < Count; ++j) {
-				char item = File.ReadChar();
-				if (j < Count2)
-					pSeq->SetItem(j, item);
-			}
+		catch (CModuleException e) {
+			e.AppendError("At %s sequence,", GetSequenceName(i));
+			throw e;
 		}
-		if (GetSequence(i) && GetSequence(i)->GetItemCount() > 0)
-			throw CModuleException::WithMessage("Document has no free sequence slot");
-		m_pInstManager->SetSequence(m_iType, i, GetSeqIndex(i), pSeq);
+	});
+}
+
+bool CSeqInstrument::GetSeqEnable(sequence_t SeqType) const
+{
+	auto it = seq_indices_.find(SeqType);
+	return it != seq_indices_.end() && it->second.first;
+}
+
+void CSeqInstrument::SetSeqEnable(sequence_t SeqType, bool Enable)
+{
+	if (auto it = seq_indices_.find(SeqType); it != seq_indices_.end()) {
+		if (Enable != it->second.first)
+			InstrumentChanged();
+		it->second.first = Enable;
 	}
-	catch (CModuleException e) {
-		e.AppendError("At %s sequence,", GetSequenceName(i));
-		throw e;
+}
+
+int	CSeqInstrument::GetSeqIndex(sequence_t SeqType) const
+{
+	auto it = seq_indices_.find(SeqType);
+	return it != seq_indices_.end() ? it->second.second : -1;
+}
+
+void CSeqInstrument::SetSeqIndex(sequence_t SeqType, int Value)
+{
+	if (auto it = seq_indices_.find(SeqType); it != seq_indices_.end()) {
+		if (Value != it->second.second)
+			InstrumentChanged();
+		it->second.second = Value;
 	}
 }
 
-int	CSeqInstrument::GetSeqEnable(int Index) const
+std::shared_ptr<CSequence> CSeqInstrument::GetSequence(sequence_t SeqType) const		// // //
 {
-	ASSERT(Index < SEQ_COUNT);
-	return m_iSeqEnable[Index];
+	auto it = seq_indices_.find(SeqType);
+	return it == seq_indices_.end() ? nullptr :
+		m_pInstManager->GetSequence(m_iType, SeqType, it->second.second);
 }
 
-int	CSeqInstrument::GetSeqIndex(int Index) const
+void CSeqInstrument::SetSequence(sequence_t SeqType, std::shared_ptr<CSequence> pSeq)		// // //
 {
-	ASSERT(Index < SEQ_COUNT);
-	return m_iSeqIndex[Index];
-}
-
-void CSeqInstrument::SetSeqEnable(int Index, int Value)
-{
-	ASSERT(Index < SEQ_COUNT);
-	if (m_iSeqEnable[Index] != Value)
-		InstrumentChanged();
-	m_iSeqEnable[Index] = Value;
-}
-
-std::shared_ptr<CSequence> CSeqInstrument::GetSequence(int SeqType) const		// // //
-{
-	return m_pInstManager->GetSequence(m_iType, SeqType, m_iSeqIndex[SeqType]);
-}
-
-void CSeqInstrument::SetSequence(int SeqType, std::shared_ptr<CSequence> pSeq)		// // //
-{
-	m_pInstManager->SetSequence(m_iType, SeqType, m_iSeqIndex[SeqType], std::move(pSeq));
+	if (auto it = seq_indices_.find(SeqType); it != seq_indices_.end())
+		m_pInstManager->SetSequence(m_iType, SeqType, it->second.second, std::move(pSeq));
 }
 
 bool CSeqInstrument::CanRelease() const
 {
-	return GetSeqEnable(SEQ_VOLUME) != 0 && GetSequence(SEQ_VOLUME)->GetReleasePoint() != -1;
-}
-
-void CSeqInstrument::SetSeqIndex(int Index, int Value)
-{
-	ASSERT(Index < SEQ_COUNT);
-	if (m_iSeqIndex[Index] != Value)
-		InstrumentChanged();
-	m_iSeqIndex[Index] = Value;
+	return GetSeqEnable(SEQ_VOLUME) && GetSequence(SEQ_VOLUME)->GetReleasePoint() != -1;
 }

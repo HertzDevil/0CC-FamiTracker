@@ -34,6 +34,7 @@ class CDSampleManager;
 class CFTMComponentInterface;
 
 enum inst_type_t : unsigned;
+enum sequence_t : unsigned;
 
 /*!
 	\brief A container of FamiTracker instruments.
@@ -60,7 +61,7 @@ public:
 	bool IsInstrumentUsed(unsigned int Index) const;
 	unsigned int GetInstrumentCount() const;
 	unsigned int GetFirstUnused() const;
-	int GetFreeSequenceIndex(inst_type_t InstType, int Type, const CSeqInstrument *pInst = nullptr) const;
+	int GetFreeSequenceIndex(inst_type_t InstType, sequence_t Type, const CSeqInstrument *pInst = nullptr) const;
 
 	inst_type_t GetInstrumentType(unsigned int Index) const;
 
@@ -68,9 +69,9 @@ public:
 	CDSampleManager *const GetDSampleManager() const;
 
 	// from interface
-	std::shared_ptr<CSequence> GetSequence(int InstType, int SeqType, int Index) const override; // TODO: use SetSequence and provide const getter
-	void SetSequence(int InstType, int SeqType, int Index, std::shared_ptr<CSequence> pSeq) override;
-	int AddSequence(int InstType, int SeqType, std::shared_ptr<CSequence> pSeq, CSeqInstrument *pInst = nullptr) override;
+	std::shared_ptr<CSequence> GetSequence(inst_type_t InstType, sequence_t SeqType, int Index) const override; // TODO: use SetSequence and provide const getter
+	void SetSequence(inst_type_t InstType, sequence_t SeqType, int Index, std::shared_ptr<CSequence> pSeq) override;
+	int AddSequence(inst_type_t InstType, sequence_t SeqType, std::shared_ptr<CSequence> pSeq, CSeqInstrument *pInst = nullptr) override;
 	std::shared_ptr<ft0cc::doc::dpcm_sample> GetDSample(int Index) override;
 	std::shared_ptr<const ft0cc::doc::dpcm_sample> GetDSample(int Index) const override;
 	void SetDSample(int Index, std::shared_ptr<ft0cc::doc::dpcm_sample> pSamp) override;

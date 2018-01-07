@@ -28,6 +28,9 @@
 class CSequence;
 class CSeqInstrument;
 
+enum inst_type_t : unsigned;
+enum sequence_t : unsigned;
+
 namespace ft0cc::doc {
 class dpcm_sample;
 } // namespace ft0cc::doc
@@ -44,20 +47,20 @@ public:
 		\param SeqType The sequence type.
 		\param Index The sequence index.
 		\return Pointer to the sequence. */
-	virtual std::shared_ptr<CSequence> GetSequence(int InstType, int SeqType, int Index) const = 0;
+	virtual std::shared_ptr<CSequence> GetSequence(inst_type_t InstType, sequence_t SeqType, int Index) const = 0;
 	/*!	\brief Puts a sequence into the resource container.
 		\param InstType The instrument type, which should be a member of inst_type_t.
 		\param SeqType The sequence type.
 		\param Index The sequence index.
 		\param pSeq Pointer to the sequence. */
-	virtual void SetSequence(int InstType, int SeqType, int Index, std::shared_ptr<CSequence> pSeq) = 0;
+	virtual void SetSequence(inst_type_t InstType, sequence_t SeqType, int Index, std::shared_ptr<CSequence> pSeq) = 0;
 	/*!	\brief Adds a sequence into the resource container.
 		\param InstType The instrument type, which should be a member of inst_type_t.
 		\param SeqType The sequence type.
 		\param pSeq Pointer to the sequence.
 		\param pInst Pointer to the current instrument, required to return the correct sequence index.
 		\return The index of the sequence, or -1 if it is not inserted. */
-	virtual int AddSequence(int InstType, int SeqType, std::shared_ptr<CSequence> pSeq, CSeqInstrument *pInst) = 0;
+	virtual int AddSequence(inst_type_t InstType, sequence_t SeqType, std::shared_ptr<CSequence> pSeq, CSeqInstrument *pInst) = 0;
 	/*!	\brief Accesses a DPCM sample resource.
 		\param Index The sample index.
 		\return Pointer to the sample. */

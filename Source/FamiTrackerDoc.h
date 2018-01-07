@@ -55,8 +55,6 @@ enum {
 };
 
 // Access data types used by the document class
-#include "Instrument.h"
-#include "Sequence.h"
 #include "OldSequence.h"		// // //
 #include "Bookmark.h"		// // //
 
@@ -71,6 +69,11 @@ class CDocumentFile;
 class CSeqInstrument;		// // // TODO: move to instrument manager
 class CSimpleFile;		// // //
 class CBookmarkCollection;		// // //
+class CInstrument;		// // //
+class CSequence;		// // //
+
+enum inst_type_t : unsigned;
+enum sequence_t : unsigned;
 
 namespace ft0cc::doc {		// // //
 class groove;
@@ -286,10 +289,10 @@ public:
 
 	// Sequences functions
 	// // // take instrument type as parameter rather than chip type
-	std::shared_ptr<CSequence> GetSequence(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
-	unsigned int	GetSequenceItemCount(inst_type_t InstType, unsigned int Index, int Type) const;		// // //
-	int				GetFreeSequence(inst_type_t InstType, int Type) const;		// // //
-	int				GetSequenceCount(inst_type_t InstType, int Type) const;		// // //
+	std::shared_ptr<CSequence> GetSequence(inst_type_t InstType, unsigned Index, sequence_t Type) const;		// // //
+	unsigned int	GetSequenceItemCount(inst_type_t InstType, unsigned Index, sequence_t Type) const;		// // //
+	int				GetFreeSequence(inst_type_t InstType, sequence_t Type) const;		// // //
+	int				GetSequenceCount(inst_type_t InstType, sequence_t Type) const;		// // //
 	int				GetTotalSequenceCount(inst_type_t InstType) const;		// // //
 
 	// DPCM samples

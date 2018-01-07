@@ -25,6 +25,7 @@
 #include "FamiTrackerView.h"
 #include "FamiTrackerDoc.h"
 #include "InstrumentManager.h"
+#include "Instrument.h"
 
 #define GET_VIEW() static_cast<CFamiTrackerView *>(MainFrm.GetActiveView())
 #define GET_DOCUMENT() MainFrm.GetDoc()

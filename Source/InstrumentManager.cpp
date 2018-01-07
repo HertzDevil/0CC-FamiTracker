@@ -119,14 +119,14 @@ bool CInstrumentManager::DeepCloneInstrument(unsigned OldIndex, unsigned NewInde
 	if (CloneInstrument(OldIndex, NewIndex)) {
 		if (auto pInstrument = std::dynamic_pointer_cast<CSeqInstrument>(GetInstrument(NewIndex))) {
 			const inst_type_t it = pInstrument->GetType();
-			for (int i = 0; i < SEQ_COUNT; i++) {
+			foreachSeq([&] (sequence_t i) {
 				int freeSeq = GetFreeSequenceIndex(it, i, pInstrument.get());
 				if (freeSeq != -1) {
 					if (pInstrument->GetSeqEnable(i))
 						*GetSequence(it, i, unsigned(freeSeq)) = *pInstrument->GetSequence(i);		// // //
 					pInstrument->SetSeqIndex(i, freeSeq);
 				}
-			}
+			});
 		}
 		return true;
 	}
@@ -174,7 +174,7 @@ unsigned int CInstrumentManager::GetFirstUnused() const
 	return INVALID_INSTRUMENT;
 }
 
-int CInstrumentManager::GetFreeSequenceIndex(inst_type_t InstType, int Type, const CSeqInstrument *pInst) const
+int CInstrumentManager::GetFreeSequenceIndex(inst_type_t InstType, sequence_t Type, const CSeqInstrument *pInst) const
 {
 	// moved from CFamiTrackerDoc
 	std::vector<bool> Used(CSequenceCollection::MAX_SEQUENCES, false);
@@ -222,7 +222,7 @@ CDSampleManager *const CInstrumentManager::GetDSampleManager() const
 // from interface
 //
 
-std::shared_ptr<CSequence> CInstrumentManager::GetSequence(int InstType, int SeqType, int Index) const
+std::shared_ptr<CSequence> CInstrumentManager::GetSequence(inst_type_t InstType, sequence_t SeqType, int Index) const
 {
 	if (auto pManager = GetSequenceManager(InstType))
 		if (auto pCol = pManager->GetCollection(SeqType))
@@ -230,16 +230,16 @@ std::shared_ptr<CSequence> CInstrumentManager::GetSequence(int InstType, int Seq
 	return nullptr;
 }
 
-void CInstrumentManager::SetSequence(int InstType, int SeqType, int Index, std::shared_ptr<CSequence> pSeq)
+void CInstrumentManager::SetSequence(inst_type_t InstType, sequence_t SeqType, int Index, std::shared_ptr<CSequence> pSeq)
 {
 	if (auto pManager = GetSequenceManager(InstType))
 		if (auto pCol = pManager->GetCollection(SeqType))
 			pCol->SetSequence(Index, std::move(pSeq));
 }
 
-int CInstrumentManager::AddSequence(int InstType, int SeqType, std::shared_ptr<CSequence> pSeq, CSeqInstrument *pInst)
+int CInstrumentManager::AddSequence(inst_type_t InstType, sequence_t SeqType, std::shared_ptr<CSequence> pSeq, CSeqInstrument *pInst)
 {
-	int Index = GetFreeSequenceIndex(static_cast<inst_type_t>(InstType), SeqType, pInst);
+	int Index = GetFreeSequenceIndex(InstType, SeqType, pInst);
 	if (Index != -1)
 		SetSequence(InstType, SeqType, Index, std::move(pSeq));
 	return Index;

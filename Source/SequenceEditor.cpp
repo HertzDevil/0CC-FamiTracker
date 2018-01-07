@@ -215,7 +215,7 @@ void CSequenceEditor::SequenceChangedMessage(bool Changed)
 void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int Type, int InstrumentType)		// // //
 {
 	// Select a sequence to edit
-	m_pSequence = pSequence;
+	m_pSequence = std::move(pSequence);
 	m_iSelectedSetting = Type;
 	m_iInstrumentType = InstrumentType;
 
@@ -224,27 +224,27 @@ void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int T
 	// Create the graph
 	switch (Type) {
 		case SEQ_VOLUME:
-			if (m_iInstrumentType == INST_VRC6 && m_iSelectedSetting == SEQ_VOLUME && pSequence->GetSetting() == SETTING_VOL_64_STEPS)
-				m_pGraphEditor = std::make_unique<CBarGraphEditor>(pSequence, 0x3F);		// // //
+			if (m_iInstrumentType == INST_VRC6 && m_iSelectedSetting == SEQ_VOLUME && m_pSequence->GetSetting() == SETTING_VOL_64_STEPS)
+				m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, 0x3F);		// // //
 			else
-				m_pGraphEditor = std::make_unique<CBarGraphEditor>(pSequence, m_iMaxVol);
+				m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, m_iMaxVol);
 			break;
 		case SEQ_ARPEGGIO:
-			m_pGraphEditor = std::make_unique<CArpeggioGraphEditor>(pSequence);
+			m_pGraphEditor = std::make_unique<CArpeggioGraphEditor>(m_pSequence);
 			break;
 		case SEQ_PITCH:
 		case SEQ_HIPITCH:
-			m_pGraphEditor = std::make_unique<CPitchGraphEditor>(pSequence);
+			m_pGraphEditor = std::make_unique<CPitchGraphEditor>(m_pSequence);
 			break;
 		case SEQ_DUTYCYCLE:
 			if (InstrumentType == INST_S5B)
-				m_pGraphEditor = std::make_unique<CNoiseEditor>(pSequence, 31);
+				m_pGraphEditor = std::make_unique<CNoiseEditor>(m_pSequence, 31);
 			else
-				m_pGraphEditor = std::make_unique<CBarGraphEditor>(pSequence, m_iMaxDuty);
+				m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, m_iMaxDuty);
 			break;
 	}
 
-	m_pSetting->SelectSequence(pSequence, Type, InstrumentType);
+	m_pSetting->SelectSequence(m_pSequence, Type, InstrumentType);
 
 	CRect GraphRect;
 	GetClientRect(GraphRect);
@@ -256,7 +256,7 @@ void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int T
 	m_pGraphEditor->UpdateWindow();
 	m_pGraphEditor->ShowWindow(SW_SHOW);
 
-	m_pSizeEditor->SetValue(pSequence->GetItemCount());
+	m_pSizeEditor->SetValue(m_pSequence->GetItemCount());
 
 	Invalidate();
 	RedrawWindow();

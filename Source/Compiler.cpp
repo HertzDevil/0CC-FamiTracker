@@ -1112,8 +1112,10 @@ void CCompiler::ScanSong()
 			inst_type_t it = m_pDocument->GetInstrumentType(i);		// // //
 			for (size_t z = 0; z < std::size(used); z++) if (it == inst[z]) {
 				auto pInstrument = std::static_pointer_cast<CSeqInstrument>(m_pDocument->GetInstrument(i));
-				for (int j = 0; j < SEQ_COUNT; ++j) if (pInstrument->GetSeqEnable(j))
-					*(used[z] + pInstrument->GetSeqIndex(j) * SEQ_COUNT + j) = true;
+				foreachSeq([&] (sequence_t j) {
+					if (pInstrument->GetSeqEnable(j))
+						*(used[z] + pInstrument->GetSeqIndex(j) * SEQ_COUNT + j) = true;
+				});
 				break;
 			}
 		}
@@ -1192,26 +1194,26 @@ void CCompiler::CreateSequenceList()
 	// TODO: use the CSeqInstrument::GetSequence
 	// TODO: merge identical sequences from all chips
 	for (size_t c = 0; c < std::size(inst); c++) {
-		for (int i = 0; i < MAX_SEQUENCES; ++i) for (int j = 0; j < SEQ_COUNT; ++j) {
+		for (int i = 0; i < MAX_SEQUENCES; ++i) foreachSeq([&] (sequence_t j) {
 			const auto pSeq = m_pDocument->GetSequence(inst[c], i, j);
 			unsigned Index = i * SEQ_COUNT + j;
 			if (*(used[c] + Index) && pSeq->GetItemCount() > 0) {
 				Size += StoreSequence(*pSeq, {CHUNK_SEQUENCE, Index, (unsigned)inst[c]});
 				++StoredCount;
 			}
-		}
+		});
 	}
 
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
 		if (auto pInstrument = std::dynamic_pointer_cast<CInstrumentFDS>(m_pDocument->GetInstrument(i))) {
-			for (int j = 0; j < CInstrumentFDS::SEQUENCE_COUNT; ++j) {
+			foreachSeq([&] (sequence_t j) {
 				const auto pSeq = pInstrument->GetSequence(j);		// // //
 				if (pSeq && pSeq->GetItemCount() > 0) {
 					unsigned Index = i * SEQ_COUNT + j;
 					Size += StoreSequence(*pSeq, {CHUNK_SEQUENCE, Index, INST_FDS});		// // //
 					++StoredCount;
 				}
-			}
+			});
 		}
 	}
 

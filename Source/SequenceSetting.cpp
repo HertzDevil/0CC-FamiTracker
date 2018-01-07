@@ -120,7 +120,7 @@ void CSequenceSetting::OnLButtonDown(UINT nFlags, CPoint point)
 
 void CSequenceSetting::SelectSequence(std::shared_ptr<CSequence> pSequence, int Type, int InstrumentType)		// // //
 {
-	m_pSequence = pSequence;
+	m_pSequence = std::move(pSequence);
 	m_iType		= Type;
 	m_iInstType = InstrumentType;
 

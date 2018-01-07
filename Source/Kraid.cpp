@@ -25,6 +25,7 @@
 #include "InstrumentManager.h"
 #include "Instrument2A03.h"
 #include "SongData.h"
+#include "Sequence.h"
 
 void Kraid::operator()(CFamiTrackerDoc &doc) {
 	doc.CreateEmpty();

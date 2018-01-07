@@ -25,6 +25,7 @@
 #include "FamiTrackerDoc.h"
 #include "MainFrm.h"
 #include "FamiTracker.h"		// // //
+#include "Instrument.h"		// // //
 
 ///
 /// CInstrumentListCtrl

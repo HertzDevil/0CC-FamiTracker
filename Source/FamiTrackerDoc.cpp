@@ -68,6 +68,7 @@
 #include "NumConv.h"		// // //
 
 #include "ft0cc/doc/groove.hpp"		// // //
+#include "Sequence.h"		// // //
 
 //
 // CFamiTrackerDoc
@@ -595,10 +596,12 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc &Imported, int *pInstTab
 
 	// Copy sequences
 	for (size_t i = 0; i < std::size(inst); i++) for (int t = 0; t < SEQ_COUNT; ++t) {
-		if (GetSequenceCount(inst[i], t) + Imported.GetSequenceCount(inst[i], t) > MAX_SEQUENCES) {		// // //
+		if (GetSequenceCount(inst[i], (sequence_t)t) + Imported.GetSequenceCount(inst[i], (sequence_t)t) > MAX_SEQUENCES) {		// // //
 			AfxMessageBox(IDS_IMPORT_SEQUENCE_COUNT, MB_ICONERROR);
 			return false;
 		}
+	}
+	for (size_t i = 0; i < std::size(inst); i++) foreachSeq([&] (sequence_t t) {
 		for (unsigned int s = 0; s < MAX_SEQUENCES; ++s) if (Imported.GetSequenceItemCount(inst[i], s, t) > 0) {
 			auto pImportSeq = Imported.GetSequence(inst[i], s, t);
 			int index = -1;
@@ -613,7 +616,7 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc &Imported, int *pInstTab
 				break;
 			}
 		}
-	}
+	});
 
 	bool bOutOfSampleSpace = false;
 	auto &Manager = *Imported.GetDSampleManager();		// // //
@@ -645,7 +648,7 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc &Imported, int *pInstTab
 
 			// Update references
 			if (auto pSeq = dynamic_cast<CSeqInstrument *>(pInst.get())) {
-				for (int t = 0; t < SEQ_COUNT; ++t)
+				foreachSeq([&] (sequence_t t) {
 					if (pSeq->GetSeqEnable(t)) {
 						for (size_t j = 0; j < std::size(inst); j++)
 							if (inst[j] == pInst->GetType()) {
@@ -653,6 +656,7 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc &Imported, int *pInstTab
 								break;
 							}
 					}
+				});
 				// Update DPCM samples
 				if (auto p2A03 = dynamic_cast<CInstrument2A03 *>(pSeq))
 					for (int o = 0; o < OCTAVE_RANGE; ++o) for (int n = 0; n < NOTE_RANGE; ++n) {
@@ -752,31 +756,26 @@ unsigned int CFamiTrackerDoc::GetTotalSampleSize() const
 // Sequences
 //
 
-std::shared_ptr<CSequence> CFamiTrackerDoc::GetSequence(inst_type_t InstType, unsigned int Index, int Type) const		// // //
+std::shared_ptr<CSequence> CFamiTrackerDoc::GetSequence(inst_type_t InstType, unsigned Index, sequence_t Type) const		// // //
 {
 	return m_pInstrumentManager->GetSequence(InstType, Type, Index);
 }
 
-unsigned int CFamiTrackerDoc::GetSequenceItemCount(inst_type_t InstType, unsigned int Index, int Type) const		// // //
+unsigned int CFamiTrackerDoc::GetSequenceItemCount(inst_type_t InstType, unsigned Index, sequence_t Type) const		// // //
 {
-	ASSERT(Index < MAX_SEQUENCES);
-	ASSERT(Type >= 0 && Type < SEQ_COUNT);
-
 	if (const auto pSeq = GetSequence(InstType, Index, Type))
 		return pSeq->GetItemCount();
 	return 0;
 }
 
-int CFamiTrackerDoc::GetFreeSequence(inst_type_t InstType, int Type) const		// // //
+int CFamiTrackerDoc::GetFreeSequence(inst_type_t InstType, sequence_t Type) const		// // //
 {
-	ASSERT(Type >= 0 && Type < SEQ_COUNT);
 	return m_pInstrumentManager->GetFreeSequenceIndex(InstType, Type, nullptr);
 }
 
-int CFamiTrackerDoc::GetSequenceCount(inst_type_t InstType, int Type) const		// // //
+int CFamiTrackerDoc::GetSequenceCount(inst_type_t InstType, sequence_t Type) const		// // //
 {
 	// Return number of allocated sequences of Type
-	ASSERT(Type >= 0 && Type < SEQ_COUNT);
 
 	int Count = 0;
 	for (int i = 0; i < MAX_SEQUENCES; ++i) {
@@ -788,8 +787,9 @@ int CFamiTrackerDoc::GetSequenceCount(inst_type_t InstType, int Type) const		// 
 
 int CFamiTrackerDoc::GetTotalSequenceCount(inst_type_t InstType) const {		// // //
 	int Count = 0;
-	for (int i = 0; i < SEQ_COUNT; ++i)
+	foreachSeq([&] (sequence_t i) {
 		Count += GetSequenceCount(InstType, i);
+	});
 	return Count;
 }
 
@@ -1936,7 +1936,7 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 
 	// Also remove unused sequences
 	for (unsigned int i = 0; i < MAX_SEQUENCES; ++i)
-		for (int j = 0; j < SEQ_COUNT; ++j)
+		foreachSeq([&] (sequence_t j) {		// // //
 			for (size_t c = 0; c < std::size(inst); ++c)
 				if (GetSequenceItemCount(inst[c], i, j) > 0) {		// // //
 					bool Used = false;
@@ -1951,6 +1951,7 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 					if (!Used)
 						GetSequence(inst[c], i, j)->Clear();		// // //
 				}
+	});
 }
 
 void CFamiTrackerDoc::RemoveUnusedPatterns()

@@ -52,17 +52,17 @@ void CInstrumentEditorSeq::SelectInstrument(std::shared_ptr<CInstrument> pInst)
 	m_pInstrument = std::dynamic_pointer_cast<CSeqInstrument>(pInst);
 	ASSERT(m_pInstrument && m_pInstrument->GetType() == m_iInstType);
 
-	int Sel = m_iSelectedSetting;
+	sequence_t Sel = m_iSelectedSetting;
 
 	// Update instrument setting list
 	if (CListCtrl *pList = static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS))) {		// // //
 		pList->SetRedraw(FALSE);
 		CString str;
-		for (int i = 0; i < SEQ_COUNT; ++i) {
+		foreachSeq([&] (sequence_t i) {
 			pList->SetCheck(i, m_pInstrument->GetSeqEnable(i));
 			str.Format(_T("%i"), m_pInstrument->GetSeqIndex(i));
 			pList->SetItemText(i, 1, str);
-		}
+		});
 		pList->SetRedraw();
 		pList->RedrawWindow();
 	}
@@ -75,7 +75,7 @@ void CInstrumentEditorSeq::SelectInstrument(std::shared_ptr<CInstrument> pInst)
 	SetFocus();
 }
 
-void CInstrumentEditorSeq::SelectSequence(int Sequence, int Type)
+void CInstrumentEditorSeq::SelectSequence(int Sequence, sequence_t Type)
 {
 	// Selects the current sequence in the sequence editor
 	m_pSequence = m_pInstrument->GetSequence(Type);		// // //
@@ -158,7 +158,7 @@ void CInstrumentEditorSeq::OnLvnItemchangedInstsettings(NMHDR *pNMHDR, LRESULT *
 	if (pNMLV->uChanged & LVIF_STATE && m_pInstrument != NULL) {
 		// Selected new setting
 		if (pNMLV->uNewState & LVIS_SELECTED || pNMLV->uNewState & LCTRL_CHECKBOX_STATE) {
-			m_iSelectedSetting = pNMLV->iItem;
+			m_iSelectedSetting = (sequence_t)pNMLV->iItem;
 			int Sequence = m_pInstrument->GetSeqIndex(m_iSelectedSetting);
 			SetDlgItemInt(IDC_SEQ_INDEX, Sequence);
 			SelectSequence(Sequence, m_iSelectedSetting);
