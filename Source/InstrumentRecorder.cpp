@@ -97,7 +97,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 					(REG(0x4002 | (ID << 2)) | (0x07 & REG(0x4003 | (ID << 2))) << 8); break;
 	case SNDCHIP_VRC6:
 		ID -= CHANID_VRC6_PULSE1;
-		PitchReg = REG(0x9001 + (ID << 12)) | (0x0F & REG(0x9002 | (ID << 12))) << 8; break;
+		PitchReg = REG(0x9001 + (ID << 12)) | ((0x0F & REG(0x9002 + (ID << 12))) << 8); break;
 	case SNDCHIP_FDS:
 		ID -= CHANID_FDS; // ID = 0;
 		PitchReg = REG(0x4082) | (0x0F & REG(0x4083)) << 8; break;
@@ -155,7 +155,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 				case SNDCHIP_NONE:
 					Val = m_iRecordChannel == CHANID_TRIANGLE ? ((0x7F & REG(0x4008)) ? 15 : 0) : (0x0F & REG(0x4000 | (ID << 2))); break;
 				case SNDCHIP_VRC6:
-					Val = m_iRecordChannel == CHANID_VRC6_SAWTOOTH ? (0x0F & REG(0xB000) >> 1) : (0x0F & REG(0x9000 | (ID << 12))); break;
+					Val = m_iRecordChannel == CHANID_VRC6_SAWTOOTH ? (0x0F & (REG(0xB000) >> 1)) : (0x0F & REG(0x9000 + (ID << 12))); break;
 				case SNDCHIP_MMC5:
 					Val = 0x0F & REG(0x5000 | (ID << 2)); break;
 				case SNDCHIP_N163:
@@ -173,7 +173,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 					Val = m_iRecordChannel == CHANID_TRIANGLE ? 0 :
 						m_iRecordChannel == CHANID_NOISE ? (0x01 & REG(0x400E) >> 7) : (0x03 & REG(0x4000 | (ID << 2)) >> 6); break;
 				case SNDCHIP_VRC6:
-					Val = m_iRecordChannel == CHANID_VRC6_SAWTOOTH ? (0x01 & REG(0xB000) >> 5) : (0x07 & REG(0x9000 | (ID << 12)) >> 4); break;
+					Val = m_iRecordChannel == CHANID_VRC6_SAWTOOTH ? (0x01 & (REG(0xB000) >> 5)) : (0x07 & REG(0x9000 + (ID << 12)) >> 4); break;
 				case SNDCHIP_MMC5:
 					Val = 0x03 & REG(0x5000 | (ID << 2)) >> 6; break;
 				case SNDCHIP_N163:
