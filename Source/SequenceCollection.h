@@ -25,6 +25,7 @@
 
 #include <vector>
 #include <memory>
+#include "FamiTrackerTypes.h" // sequence_t
 
 class CSequence;
 
@@ -35,8 +36,9 @@ class CSequence;
 class CSequenceCollection
 {
 public:
-	/*!	\brief Constructor of the sequence collection. */
-	CSequenceCollection();
+	/*!	\brief Constructor of the sequence collection.
+		\param SeqType Seqeunce type. */
+	explicit CSequenceCollection(sequence_t SeqType);
 
 	/*!	\brief Obtains a modifiable sequence at a given index, creating the object if it
 		does not exist.
@@ -61,12 +63,11 @@ public:
 		sequence instrument, or -1 if all of the sequences are used. */
 	// unsigned int GetFirstUnused(CFamiTrackerDocInterface *pDoc) const;
 
-	/*!	\brief Removes all sequence objects contained in the collection. */
-	void RemoveAll();
 	/*!	\brief The maximum number of sequences a collection can contain.
 		\todo Replace MAX_SEQUENCES defined in FamiTrackerTypes.h with this */
 	static const int MAX_SEQUENCES;
 
 private:
 	std::vector<std::shared_ptr<CSequence>> m_pSequence;
+	sequence_t seq_type_;
 };

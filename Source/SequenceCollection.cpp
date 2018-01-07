@@ -25,8 +25,8 @@
 
 const int CSequenceCollection::MAX_SEQUENCES = 128;
 
-CSequenceCollection::CSequenceCollection() :
-	m_pSequence(MAX_SEQUENCES)
+CSequenceCollection::CSequenceCollection(sequence_t SeqType) :
+	m_pSequence(MAX_SEQUENCES), seq_type_(SeqType)
 {
 }
 
@@ -35,13 +35,19 @@ std::shared_ptr<CSequence> CSequenceCollection::GetSequence(unsigned int Index)
 	if (Index >= m_pSequence.size())
 		return nullptr;
 	if (!m_pSequence[Index])
-		m_pSequence[Index] = std::make_shared<CSequence>();
+		m_pSequence[Index] = std::make_shared<CSequence>(seq_type_);
 	return m_pSequence[Index];
 }
 
 void CSequenceCollection::SetSequence(unsigned int Index, std::shared_ptr<CSequence> Seq)
 {
-	m_pSequence[Index] = Seq;
+	if (!Seq || Seq->GetSequenceType() == seq_type_)
+		m_pSequence[Index] = std::move(Seq);
+	else {
+		__debugbreak();
+		m_pSequence[Index] = std::make_shared<CSequence>(*Seq);
+		m_pSequence[Index]->SetSequenceType((sequence_t)Index);
+	}
 }
 
 std::shared_ptr<const CSequence> CSequenceCollection::GetSequence(unsigned int Index) const
@@ -57,9 +63,4 @@ unsigned int CSequenceCollection::GetFirstFree() const
 		if (!m_pSequence[i] || !m_pSequence[i]->GetItemCount())
 			return i;
 	return -1;
-}
-
-void CSequenceCollection::RemoveAll() // TODO: remove
-{
-	*this = CSequenceCollection { };
 }

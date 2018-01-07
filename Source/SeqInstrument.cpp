@@ -144,7 +144,7 @@ void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
 			pSeq = OldSeq.Convert(i);
 		}
 		else {
-			pSeq = std::make_shared<CSequence>();
+			pSeq = std::make_shared<CSequence>(i);		// // //
 			int Count2 = Count > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : Count;
 			pSeq->SetItemCount(Count2);
 			pSeq->SetLoopPoint(CModuleException::AssertRangeFmt(

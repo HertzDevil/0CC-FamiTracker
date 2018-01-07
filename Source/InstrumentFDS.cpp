@@ -45,7 +45,7 @@ CInstrumentFDS::CInstrumentFDS() : CSeqInstrument(INST_FDS),		// // //
 	memcpy(m_iSamples, TEST_WAVE, WAVE_SIZE);
 	m_pSequence.resize(SEQ_COUNT);
 	for (int i = 0; i < SEQ_COUNT; ++i)
-		m_pSequence[i] = std::make_shared<CSequence>();
+		m_pSequence[i] = std::make_shared<CSequence>(i);
 }
 
 std::unique_ptr<CInstrument> CInstrumentFDS::Clone() const
@@ -90,13 +90,13 @@ void CInstrumentFDS::StoreInstSequence(CSimpleFile &File, const CSequence &Seq) 
 		File.WriteChar(Seq.GetItem(i));
 }
 
-std::shared_ptr<CSequence> CInstrumentFDS::LoadInstSequence(CSimpleFile &File) const		// // //
+std::shared_ptr<CSequence> CInstrumentFDS::LoadInstSequence(CSimpleFile &File, unsigned SeqType) const		// // //
 {
 	int SeqCount = CModuleException::AssertRangeFmt(File.ReadInt(), 0, 0xFF, "Sequence item count");
 	int Loop = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), -1, SeqCount - 1, "Sequence loop point");
 	int Release = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), -1, SeqCount - 1, "Sequence release point");
 
-	auto pSeq = std::make_shared<CSequence>();
+	auto pSeq = std::make_shared<CSequence>(SeqType);
 	pSeq->SetItemCount(SeqCount > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : SeqCount);
 	pSeq->SetLoopPoint(Loop);
 	pSeq->SetReleasePoint(Release);
@@ -124,7 +124,7 @@ void CInstrumentFDS::StoreSequence(CDocumentFile &DocFile, const CSequence &Seq)
 	}
 }
 
-std::shared_ptr<CSequence> CInstrumentFDS::LoadSequence(CDocumentFile &DocFile) const
+std::shared_ptr<CSequence> CInstrumentFDS::LoadSequence(CDocumentFile &DocFile, unsigned SeqType) const
 {
 	int SeqCount = static_cast<unsigned char>(DocFile.GetBlockChar());
 	unsigned int LoopPoint = CModuleException::AssertRangeFmt(DocFile.GetBlockInt(), -1, SeqCount - 1, "Sequence loop point");
@@ -132,7 +132,7 @@ std::shared_ptr<CSequence> CInstrumentFDS::LoadSequence(CDocumentFile &DocFile) 
 
 	// CModuleException::AssertRangeFmt(SeqCount, 0, MAX_SEQUENCE_ITEMS, "Sequence item count", "%i");
 
-	auto pSeq = std::make_shared<CSequence>();
+	auto pSeq = std::make_shared<CSequence>(SeqType);
 	pSeq->SetItemCount(SeqCount > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : SeqCount);
 	pSeq->SetLoopPoint(LoopPoint);
 	pSeq->SetReleasePoint(ReleasePoint);
@@ -148,9 +148,9 @@ std::shared_ptr<CSequence> CInstrumentFDS::LoadSequence(CDocumentFile &DocFile) 
 
 void CInstrumentFDS::DoubleVolume() const
 {
-	CSequence *pVol = m_pSequence[SEQ_VOLUME].get();
-	for (unsigned int i = 0; i < pVol->GetItemCount(); ++i)
-		pVol->SetItem(i, pVol->GetItem(i) * 2);
+	auto &Vol = *m_pSequence[SEQ_VOLUME];
+	for (unsigned int i = 0; i < Vol.GetItemCount(); ++i)
+		Vol.SetItem(i, Vol.GetItem(i) * 2);
 }
 
 void CInstrumentFDS::Store(CDocumentFile *pDocFile) const
@@ -206,15 +206,15 @@ bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
 	if (a < 256 && (b & 0xFF) != 0x00) {
 	}
 	else {
-		SetSequence(SEQ_VOLUME, LoadSequence(*pDocFile));
-		SetSequence(SEQ_ARPEGGIO, LoadSequence(*pDocFile));
+		SetSequence(SEQ_VOLUME, LoadSequence(*pDocFile, SEQ_VOLUME));		// // //
+		SetSequence(SEQ_ARPEGGIO, LoadSequence(*pDocFile, SEQ_ARPEGGIO));
 		//
 		// Note: Remove this line when files are unable to load
 		// (if a file contains FDS instruments but FDS is disabled)
 		// this was a problem in an earlier version.
 		//
 		if (pDocFile->GetBlockVersion() > 2)
-			SetSequence(SEQ_PITCH, LoadSequence(*pDocFile));
+			SetSequence(SEQ_PITCH, LoadSequence(*pDocFile, SEQ_PITCH));
 	}
 
 //	}
@@ -270,7 +270,7 @@ void CInstrumentFDS::DoLoadFTI(CSimpleFile &File, int iVersion)
 
 	// Sequences
 	for (int i = 0; i < SEQUENCE_COUNT; ++i)		// // //
-		SetSequence(i, LoadInstSequence(File));
+		SetSequence(i, LoadInstSequence(File, i));
 
 	if (iVersion <= 22)
 		DoubleVolume();
@@ -278,7 +278,7 @@ void CInstrumentFDS::DoLoadFTI(CSimpleFile &File, int iVersion)
 
 bool CInstrumentFDS::CanRelease() const
 {
-	CSequence *pVol = m_pSequence[SEQ_VOLUME].get();
+	const auto &pVol = m_pSequence[SEQ_VOLUME];
 	return pVol && pVol->GetItemCount() && pVol->GetReleasePoint() != -1;
 }
 

@@ -26,7 +26,7 @@
 CSequenceManager::CSequenceManager(int Count)
 {
 	for (int i = 0; i < Count; ++i)
-		m_pCollection.push_back(std::make_unique<CSequenceCollection>());
+		m_pCollection.push_back(std::make_unique<CSequenceCollection>((sequence_t)i));
 }
 
 int CSequenceManager::GetCount() const
@@ -38,7 +38,7 @@ CSequenceCollection *CSequenceManager::GetCollection(unsigned int Index)
 {
 	if (Index >= m_pCollection.size()) return nullptr;
 	if (!m_pCollection[Index])
-		m_pCollection[Index] = std::make_unique<CSequenceCollection>();
+		m_pCollection[Index] = std::make_unique<CSequenceCollection>((sequence_t)Index);
 	return m_pCollection[Index].get();
 }
 

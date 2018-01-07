@@ -54,9 +54,9 @@ protected:
 
 private:
 	void StoreSequence(CDocumentFile &DocFile, const CSequence &Seq) const;		// // //
-	std::shared_ptr<CSequence> LoadSequence(CDocumentFile &DocFile) const;
+	std::shared_ptr<CSequence> LoadSequence(CDocumentFile &DocFile, unsigned SeqType) const;
 	void StoreInstSequence(CSimpleFile &File, const CSequence &Seq) const;		// // //
-	std::shared_ptr<CSequence> LoadInstSequence(CSimpleFile &File) const;		// // //
+	std::shared_ptr<CSequence> LoadInstSequence(CSimpleFile &File, unsigned SeqType) const;		// // //
 	void DoubleVolume() const;		// // //
 
 	void	OnBlankInstrument() override;		// // //

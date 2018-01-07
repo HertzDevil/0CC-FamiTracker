@@ -578,7 +578,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 			try {
 				unsigned char SeqCount = file_.GetBlockChar();
 				// AssertRange(SeqCount, 0, MAX_SEQUENCE_ITEMS, "Sequence item count");
-				auto pSeq = std::make_unique<CSequence>();
+				auto pSeq = std::make_unique<CSequence>(Type);
 				pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
 
 				unsigned int LoopPoint = AssertRange<MODULE_ERROR_STRICT>(
@@ -1015,7 +1015,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
 			auto pSeq = pManager->GetCollection(Type)->GetSequence(Index);
-			*pSeq = CSequence { };
+			pSeq->Clear();
 			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
 
 			pSeq->SetLoopPoint(AssertRange<MODULE_ERROR_STRICT>(
@@ -1108,7 +1108,7 @@ void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerDoc &doc, int ver) {
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
 			auto pSeq = pManager->GetCollection(Type)->GetSequence(Index);
-			*pSeq = CSequence { };
+			pSeq->Clear();
 			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
 
 			pSeq->SetLoopPoint(AssertRange<MODULE_ERROR_STRICT>(
@@ -1165,7 +1165,7 @@ void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerDoc &doc, int ver) {
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
 			auto pSeq = pManager->GetCollection(Type)->GetSequence(Index);
-			*pSeq = CSequence { };
+			pSeq->Clear();
 			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
 
 			pSeq->SetLoopPoint(AssertRange<MODULE_ERROR_STRICT>(

@@ -74,23 +74,28 @@ const int ARPSCHEME_MIN = ARPSCHEME_MAX - 0x3F;		// // //
 */
 class CSequence {
 public:
-	constexpr CSequence() = default;		// // //
+	explicit constexpr CSequence(unsigned SeqType) : seq_type_((sequence_t)SeqType) { }		// // //
 
 	bool         operator==(const CSequence &other);		// // //
+
+	void		 Clear();
 
 	int8_t		 GetItem(int Index) const;		// // //
 	unsigned int GetItemCount() const;
 	unsigned int GetLoopPoint() const;
 	unsigned int GetReleasePoint() const;
 	seq_setting_t GetSetting() const;		// // //
+	sequence_t	 GetSequenceType() const;		// // //
 	void		 SetItem(int Index, int8_t Value);		// / ///
 	void		 SetItemCount(unsigned int Count);
 	void		 SetLoopPoint(unsigned int Point);
 	void		 SetReleasePoint(unsigned int Point);
 	void		 SetSetting(seq_setting_t Setting);		// // //
+	void		 SetSequenceType(sequence_t SeqType);		// // //
 
 private:
 	// Sequence data
+	sequence_t seq_type_;		// // //
 	unsigned int m_iItemCount = 0;
 	unsigned int m_iLoopPoint = -1;
 	unsigned int m_iReleasePoint = -1;

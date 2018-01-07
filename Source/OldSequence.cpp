@@ -50,7 +50,7 @@ std::unique_ptr<CSequence> COldSequence::Convert(int Type) const
 	int iLength = 0;
 	int ValPtr = 0;
 
-	auto pSeq = std::make_unique<CSequence>();
+	auto pSeq = std::make_unique<CSequence>(Type);
 
 	for (int i = 0; i < Count; ++i) {
 		if (Length[i] < 0) {

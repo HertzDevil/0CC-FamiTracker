@@ -854,8 +854,9 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 				throw t.MakeError(_T("instrument %d is not defined as an FDS instrument."), inst_index);
 			auto pInst = std::static_pointer_cast<CInstrumentFDS>(Doc.GetInstrument(inst_index));
 
-			auto pSeq = std::make_shared<CSequence>();		// // //
-			pInst->SetSequence(t.ReadInt(0, CInstrumentFDS::SEQUENCE_COUNT - 1), pSeq);
+			unsigned SeqType = t.ReadInt(0, CInstrumentFDS::SEQUENCE_COUNT - 1);		// // //
+			auto pSeq = std::make_shared<CSequence>(SeqType);
+			pInst->SetSequence(SeqType, pSeq);
 			int loop = t.ReadInt(-1, MAX_SEQUENCE_ITEMS);
 			int release = t.ReadInt(-1, MAX_SEQUENCE_ITEMS);
 			pSeq->SetSetting(static_cast<seq_setting_t>(t.ReadInt(0, 255)));		// // //

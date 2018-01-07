@@ -43,7 +43,7 @@ CInstrumentRecorder::CInstrumentRecorder(CSoundGen *pSG) :
 	m_stRecordSetting.InstCount = 1;
 	m_stRecordSetting.Reset = true;
 	for (int i = 0; i < SEQ_COUNT; i++)
-		m_pSequenceCache[i] = std::make_shared<CSequence>();
+		m_pSequenceCache[i] = std::make_shared<CSequence>(i);
 	ResetRecordCache();
 }
 
@@ -291,7 +291,7 @@ void CInstrumentRecorder::ResetRecordCache()
 		x.reset();
 	m_pDumpInstrument = &m_pDumpCache[0];
 	for (int i = 0; i < SEQ_COUNT; i++)
-		*m_pSequenceCache[i] = CSequence { };
+		m_pSequenceCache[i]->Clear();
 }
 
 void CInstrumentRecorder::ReleaseCurrent()
@@ -358,7 +358,7 @@ void CInstrumentRecorder::FinalizeRecordInstrument()
 				m_pSequenceCache[i]->SetLoopPoint(m_pSequenceCache[i]->GetItemCount() - 1);
 				Inst->SetSequence(i, m_pSequenceCache[i]);
 			}
-			m_pSequenceCache[i] = std::make_shared<CSequence>();
+			m_pSequenceCache[i] = std::make_shared<CSequence>(i);
 		}
 	}
 	switch (InstType) {
@@ -370,7 +370,7 @@ void CInstrumentRecorder::FinalizeRecordInstrument()
 			ASSERT(Seq != NULL);
 			m_pSequenceCache[i]->SetLoopPoint(m_pSequenceCache[i]->GetItemCount() - 1);
 			FDSInst->SetSequence(i, m_pSequenceCache[i]);
-			m_pSequenceCache[i] = std::make_shared<CSequence>();
+			m_pSequenceCache[i] = std::make_shared<CSequence>(i);
 		}
 		*/
 		for (int i = 0; i < CInstrumentFDS::WAVE_SIZE; i++)

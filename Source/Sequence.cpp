@@ -35,6 +35,12 @@ bool CSequence::operator==(const CSequence &other)		// // //
 			other.m_cValues.cbegin(), other.m_cValues.cbegin() + m_iItemCount);
 }
 
+void CSequence::Clear() {
+	SetItemCount(0);		// // //
+	m_cValues.fill(0);
+	SetSetting(SETTING_DEFAULT);
+}
+
 void CSequence::SetItem(int Index, int8_t Value)		// // //
 {
 	m_cValues[Index] = Value;
@@ -49,29 +55,33 @@ void CSequence::SetItemCount(unsigned int Count)
 
 	m_iItemCount = Count;
 
-	if (m_iLoopPoint > m_iItemCount)
+	if (m_iLoopPoint >= m_iItemCount)
 		m_iLoopPoint = -1;
-	if (m_iReleasePoint > m_iItemCount)
+	if (m_iReleasePoint >= m_iItemCount)
 		m_iReleasePoint = -1;
 }
 
 void CSequence::SetLoopPoint(unsigned int Point)
 {
 	m_iLoopPoint = Point;
-	if (m_iLoopPoint > m_iItemCount)		// // //
+	if (m_iLoopPoint >= m_iItemCount)		// // //
 		m_iLoopPoint = -1;
 }
 
 void CSequence::SetReleasePoint(unsigned int Point)
 {
 	m_iReleasePoint = Point;
-	if (m_iReleasePoint > m_iItemCount)		// // //
+	if (m_iReleasePoint >= m_iItemCount)		// // //
 		m_iReleasePoint = -1;
 }
 
 void CSequence::SetSetting(seq_setting_t Setting)		// // //
 {
 	m_iSetting = Setting;
+}
+
+void CSequence::SetSequenceType(sequence_t SeqType) {		// // //
+	seq_type_ = SeqType;
 }
 
 int8_t CSequence::GetItem(int Index) const		// // //
@@ -97,4 +107,8 @@ unsigned int CSequence::GetReleasePoint() const
 seq_setting_t CSequence::GetSetting() const		// // //
 {
 	return m_iSetting;
+}
+
+sequence_t CSequence::GetSequenceType() const {		// // //
+	return seq_type_;
 }

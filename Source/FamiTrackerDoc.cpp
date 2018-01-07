@@ -1949,7 +1949,7 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 						}
 					}
 					if (!Used)
-						*GetSequence(inst[c], i, j) = CSequence { };		// // //
+						GetSequence(inst[c], i, j)->Clear();		// // //
 				}
 }
 

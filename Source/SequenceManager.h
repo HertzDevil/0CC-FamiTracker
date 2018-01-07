@@ -31,7 +31,7 @@ class CSequenceCollection;
 class CSequenceManager
 {
 public:
-	CSequenceManager(int Count);
+	explicit CSequenceManager(int Count);
 	int GetCount() const;
 	CSequenceCollection *GetCollection(unsigned int Type);
 	const CSequenceCollection *GetCollection(unsigned int Type) const;
