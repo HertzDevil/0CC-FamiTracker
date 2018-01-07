@@ -26,26 +26,17 @@
 #include "InstrumentType.h"
 #include "Instrument.h" // inst_type_t
 
-template <typename Inst, inst_type_t ID>
+template <typename Inst, typename CompileT, inst_type_t ID>
 class CInstrumentTypeImpl : public CInstrumentType {
-public:
-	inst_type_t GetID() const override {
-		return ID;
-	}
-
-	std::unique_ptr<CInstrument> MakeInstrument() override {
-		return std::make_unique<Inst>();
-	}
+	inst_type_t GetID() const override;
+	std::unique_ptr<CInstrument> MakeInstrument() const override;
+	const CInstCompiler &GetChunkCompiler() const override;
 };
 
 class CInstrumentTypeNull final : public CInstrumentType {
-	inst_type_t GetID() const override {
-		return INST_NONE;
-	}
-
-	std::unique_ptr<CInstrument> MakeInstrument() override {
-		return nullptr;
-	}
+	inst_type_t GetID() const override;
+	std::unique_ptr<CInstrument> MakeInstrument() const override;
+	const CInstCompiler &GetChunkCompiler() const override;
 };
 
 class CInstrument2A03;
@@ -55,16 +46,21 @@ class CInstrumentFDS ;
 class CInstrumentN163;
 class CInstrumentS5B ;
 
-extern template class CInstrumentTypeImpl<CInstrument2A03, INST_2A03>;
-extern template class CInstrumentTypeImpl<CInstrumentVRC6, INST_VRC6>;
-extern template class CInstrumentTypeImpl<CInstrumentVRC7, INST_VRC7>;
-extern template class CInstrumentTypeImpl<CInstrumentFDS , INST_FDS >;
-extern template class CInstrumentTypeImpl<CInstrumentN163, INST_N163>;
-extern template class CInstrumentTypeImpl<CInstrumentS5B , INST_S5B >;
+class CInstCompilerSeq;
+class CInstCompilerVRC7;
+class CInstCompilerFDS;
+class CInstCompilerN163;
 
-using CInstrumentType2A03 = CInstrumentTypeImpl<CInstrument2A03, INST_2A03>;
-using CInstrumentTypeVRC6 = CInstrumentTypeImpl<CInstrumentVRC6, INST_VRC6>;
-using CInstrumentTypeVRC7 = CInstrumentTypeImpl<CInstrumentVRC7, INST_VRC7>;
-using CInstrumentTypeFDS  = CInstrumentTypeImpl<CInstrumentFDS , INST_FDS >;
-using CInstrumentTypeN163 = CInstrumentTypeImpl<CInstrumentN163, INST_N163>;
-using CInstrumentTypeS5B  = CInstrumentTypeImpl<CInstrumentS5B , INST_S5B >;
+extern template class CInstrumentTypeImpl<CInstrument2A03, CInstCompilerSeq , INST_2A03>;
+extern template class CInstrumentTypeImpl<CInstrumentVRC6, CInstCompilerSeq , INST_VRC6>;
+extern template class CInstrumentTypeImpl<CInstrumentVRC7, CInstCompilerVRC7, INST_VRC7>;
+extern template class CInstrumentTypeImpl<CInstrumentFDS , CInstCompilerFDS , INST_FDS >;
+extern template class CInstrumentTypeImpl<CInstrumentN163, CInstCompilerN163, INST_N163>;
+extern template class CInstrumentTypeImpl<CInstrumentS5B , CInstCompilerSeq , INST_S5B >;
+
+using CInstrumentType2A03 = CInstrumentTypeImpl<CInstrument2A03, CInstCompilerSeq , INST_2A03>;
+using CInstrumentTypeVRC6 = CInstrumentTypeImpl<CInstrumentVRC6, CInstCompilerSeq , INST_VRC6>;
+using CInstrumentTypeVRC7 = CInstrumentTypeImpl<CInstrumentVRC7, CInstCompilerVRC7, INST_VRC7>;
+using CInstrumentTypeFDS  = CInstrumentTypeImpl<CInstrumentFDS , CInstCompilerFDS , INST_FDS >;
+using CInstrumentTypeN163 = CInstrumentTypeImpl<CInstrumentN163, CInstCompilerN163, INST_N163>;
+using CInstrumentTypeS5B  = CInstrumentTypeImpl<CInstrumentS5B , CInstCompilerSeq , INST_S5B >;

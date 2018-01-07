@@ -28,7 +28,11 @@
 #include "Chunk.h"
 #include "Sequence.h"
 
-int CInstCompilerSeq::CompileChunk(const CInstrument &inst_, CChunk &chunk, unsigned instIndex) {
+int CInstCompilerNull::CompileChunk(const CInstrument &, CChunk &, unsigned) const {
+	return 0;
+}
+
+int CInstCompilerSeq::CompileChunk(const CInstrument &inst_, CChunk &chunk, unsigned instIndex) const {
 	auto &inst = dynamic_cast<const CSeqInstrument &>(inst_);
 
 	int StoredBytes = 0;
@@ -60,7 +64,7 @@ int CInstCompilerSeq::CompileChunk(const CInstrument &inst_, CChunk &chunk, unsi
 	return StoredBytes;
 }
 
-int CInstCompilerVRC7::CompileChunk(const CInstrument &inst_, CChunk &chunk, unsigned instIndex) {
+int CInstCompilerVRC7::CompileChunk(const CInstrument &inst_, CChunk &chunk, unsigned instIndex) const {
 	auto &inst = dynamic_cast<const CInstrumentVRC7 &>(inst_);
 
 	int Patch = inst.GetPatch();
@@ -76,7 +80,7 @@ int CInstCompilerVRC7::CompileChunk(const CInstrument &inst_, CChunk &chunk, uns
 	return (Patch == 0) ? 10 : 2;		// // //
 }
 
-int CInstCompilerFDS::CompileChunk(const CInstrument &inst_, CChunk &chunk, unsigned instIndex) {
+int CInstCompilerFDS::CompileChunk(const CInstrument &inst_, CChunk &chunk, unsigned instIndex) const {
 	auto &inst = dynamic_cast<const CInstrumentFDS &>(inst_);
 
 	// Store wave
@@ -115,7 +119,7 @@ int CInstCompilerFDS::CompileChunk(const CInstrument &inst_, CChunk &chunk, unsi
 	return size;
 }
 
-int CInstCompilerN163::CompileChunk(const CInstrument &inst_, CChunk &chunk, unsigned instIndex) {
+int CInstCompilerN163::CompileChunk(const CInstrument &inst_, CChunk &chunk, unsigned instIndex) const {
 	auto &inst = dynamic_cast<const CInstrumentN163 &>(inst_);
 
 	int StoredBytes = CInstCompilerSeq::CompileChunk(inst, chunk, instIndex);		// // //
@@ -132,7 +136,7 @@ int CInstCompilerN163::CompileChunk(const CInstrument &inst_, CChunk &chunk, uns
 	return StoredBytes;
 }
 
-int CInstCompilerN163::StoreWaves(const CInstrumentN163 &inst, CChunk &chunk) {
+int CInstCompilerN163::StoreWaves(const CInstrumentN163 &inst, CChunk &chunk) const {
 	int Count = inst.GetWaveCount();
 	int Size = inst.GetWaveSize();
 

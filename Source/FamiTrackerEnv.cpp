@@ -23,7 +23,7 @@
 #include "FamiTrackerEnv.h"
 #include "stdafx.h"
 #include "FamiTracker.h"
-#include "InstrumentFactory.h"		// // //
+#include "InstrumentService.h"		// // //
 
 CFamiTrackerEnv Env;
 
@@ -51,9 +51,9 @@ CSettings *CFamiTrackerEnv::GetSettings() {
 	return theApp.GetSettings();
 }
 
-CInstrumentFactory *CFamiTrackerEnv::GetInstrumentFactory() {
+CInstrumentService *CFamiTrackerEnv::GetInstrumentService() {
 	static auto factory = [] {
-		CInstrumentFactory f;
+		CInstrumentService f;
 		f.AddDefaultTypes();
 		return f;
 	}();

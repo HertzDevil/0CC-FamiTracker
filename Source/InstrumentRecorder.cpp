@@ -29,7 +29,7 @@
 #include "SeqInstrument.h"
 #include "InstrumentFDS.h"
 #include "InstrumentN163.h"
-#include "InstrumentFactory.h"
+#include "InstrumentService.h"
 #include "DetuneTable.h"
 #include "FamiTrackerEnv.h"
 
@@ -317,7 +317,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 		}
 		return INST_NONE;
 	}();
-	*m_pDumpInstrument = Env.GetInstrumentFactory()->Make(Type);		// // //
+	*m_pDumpInstrument = Env.GetInstrumentService()->Make(Type);		// // //
 	if (!*m_pDumpInstrument) return;
 
 	CString str;

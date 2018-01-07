@@ -42,6 +42,7 @@
 #include "APU/APU.h"
 #include "DSampleManager.h"		// // //
 #include "InstrumentManager.h"		// // //
+#include "InstrumentService.h"		// // //
 #include "InstCompiler.h"		// // //
 
 //
@@ -1272,7 +1273,7 @@ void CCompiler::CreateInstrumentList()
 	memset(m_iWaveBanks, -1, std::size(m_iWaveBanks) * sizeof(int));
 
 	// Collect N163 waves
-	CInstCompilerN163 n163_c;		// // // TODO: get from CFamiTrackerEnv
+	const CInstCompilerN163 n163_c;		// // //
 	for (unsigned int i = 0; i < m_iInstruments; ++i) {
 		unsigned iIndex = m_iAssignedInstruments[i];
 		if (m_pDocument->GetInstrumentType(iIndex) == INST_N163 && m_iWaveBanks[i] == (unsigned)-1) {
@@ -1315,24 +1316,9 @@ void CCompiler::CreateInstrumentList()
 			iIndex = m_iWaveBanks[i];
 		}
 
-		const auto GetChunkCompiler = [] (inst_type_t Type) -> CInstCompiler & {		// // // TODO: put this into CInstrumentType
-			static CInstCompilerSeq seq_c;
-			static CInstCompilerVRC7 vrc7_c;
-			static CInstCompilerFDS fds_c;
-			static CInstCompilerN163 n163_c;
-			static CInstCompilerNull null_c;
-
-			switch (Type) {
-			case INST_2A03: case INST_VRC6: case INST_S5B: return seq_c;
-			case INST_VRC7: return vrc7_c;
-			case INST_FDS: return fds_c;
-			case INST_N163: return n163_c;
-			}
-			return null_c;
-		};
-
 		// Returns number of bytes
-		iTotalSize += GetChunkCompiler(pInstrument->GetType()).CompileChunk(*pInstrument, Chunk, iIndex);		// // //
+		const auto &compiler = Env.GetInstrumentService()->GetChunkCompiler(pInstrument->GetType());		// // //
+		iTotalSize += compiler.CompileChunk(*pInstrument, Chunk, iIndex);
 
 		// // // Check if FDS
 		if (pInstrument->GetType() == INST_FDS && pWavetableChunk != NULL) {

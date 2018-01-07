@@ -29,36 +29,34 @@ class CInstrument;
 class CInstCompiler {
 public:
 	virtual ~CInstCompiler() noexcept = default;
-	virtual int CompileChunk(const CInstrument &inst, CChunk &chunk, unsigned instIndex) = 0;
+	virtual int CompileChunk(const CInstrument &inst, CChunk &chunk, unsigned instIndex) const = 0;
 };
 
 class CInstCompilerNull final : public CInstCompiler {
-	int CompileChunk(const CInstrument &, CChunk &, unsigned) override {
-		return 0;
-	}
+	int CompileChunk(const CInstrument &inst, CChunk &chunk, unsigned instIndex) const override;
 };
 
 class CInstCompilerSeq : public CInstCompiler {
 protected:
-	int CompileChunk(const CInstrument &inst, CChunk &chunk, unsigned instIndex) override;
+	int CompileChunk(const CInstrument &inst, CChunk &chunk, unsigned instIndex) const override;
 };
 
 class CInstCompilerVRC7 : public CInstCompiler {
 protected:
-	int CompileChunk(const CInstrument &inst, CChunk &chunk, unsigned instIndex) override;
+	int CompileChunk(const CInstrument &inst, CChunk &chunk, unsigned instIndex) const override;
 };
 
 class CInstCompilerFDS : public CInstCompiler {
 protected:
-	int CompileChunk(const CInstrument &inst, CChunk &chunk, unsigned instIndex) override;
+	int CompileChunk(const CInstrument &inst, CChunk &chunk, unsigned instIndex) const override;
 };
 
 class CInstrumentN163;
 
 class CInstCompilerN163 : public CInstCompilerSeq {
 public:
-	int StoreWaves(const CInstrumentN163 &inst, CChunk &chunk);
+	int StoreWaves(const CInstrumentN163 &inst, CChunk &chunk) const;
 
 protected:
-	int CompileChunk(const CInstrument &inst, CChunk &chunk, unsigned instIndex) override;
+	int CompileChunk(const CInstrument &inst, CChunk &chunk, unsigned instIndex) const override;
 };

@@ -64,7 +64,7 @@
 #include "TransposeDlg.h"
 #include "DPI.h"
 #include "Color.h"
-#include "InstrumentFactory.h"
+#include "InstrumentService.h"
 #include "ActionHandler.h"
 #include "ModuleAction.h"
 #include "SimpleFile.h"

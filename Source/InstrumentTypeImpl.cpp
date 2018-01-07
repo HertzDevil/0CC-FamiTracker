@@ -29,9 +29,40 @@
 #include "InstrumentN163.h"
 #include "InstrumentS5B.h"
 
-template class CInstrumentTypeImpl<CInstrument2A03, INST_2A03>;
-template class CInstrumentTypeImpl<CInstrumentVRC6, INST_VRC6>;
-template class CInstrumentTypeImpl<CInstrumentVRC7, INST_VRC7>;
-template class CInstrumentTypeImpl<CInstrumentFDS , INST_FDS >;
-template class CInstrumentTypeImpl<CInstrumentN163, INST_N163>;
-template class CInstrumentTypeImpl<CInstrumentS5B , INST_S5B >;
+#include "InstCompiler.h"
+
+template <typename Inst, typename CompileT, inst_type_t ID>
+inst_type_t CInstrumentTypeImpl<Inst, CompileT, ID>::GetID() const {
+	return ID;
+}
+
+template<typename Inst, typename CompileT, inst_type_t ID>
+std::unique_ptr<CInstrument> CInstrumentTypeImpl<Inst, CompileT, ID>::MakeInstrument() const {
+	return std::make_unique<Inst>();
+}
+
+template<typename Inst, typename CompileT, inst_type_t ID>
+const CInstCompiler &CInstrumentTypeImpl<Inst, CompileT, ID>::GetChunkCompiler() const {
+	static CompileT compiler_ = { };
+	return compiler_;
+}
+
+template class CInstrumentTypeImpl<CInstrument2A03, CInstCompilerSeq , INST_2A03>;
+template class CInstrumentTypeImpl<CInstrumentVRC6, CInstCompilerSeq , INST_VRC6>;
+template class CInstrumentTypeImpl<CInstrumentVRC7, CInstCompilerVRC7, INST_VRC7>;
+template class CInstrumentTypeImpl<CInstrumentFDS , CInstCompilerFDS , INST_FDS >;
+template class CInstrumentTypeImpl<CInstrumentN163, CInstCompilerN163, INST_N163>;
+template class CInstrumentTypeImpl<CInstrumentS5B , CInstCompilerSeq , INST_S5B >;
+
+inst_type_t CInstrumentTypeNull::GetID() const {
+	return INST_NONE;
+}
+
+std::unique_ptr<CInstrument> CInstrumentTypeNull::MakeInstrument() const {
+	return nullptr;
+}
+
+const CInstCompiler &CInstrumentTypeNull::GetChunkCompiler() const {
+	static CInstCompilerNull compiler_ = { };
+	return compiler_;
+}

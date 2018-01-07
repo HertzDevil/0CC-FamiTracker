@@ -28,10 +28,14 @@
 #include "InstrumentType.h"
 
 class CInstrument;
+class CInstCompiler;
 enum inst_type_t : unsigned;
 
-struct CInstrumentFactory {
+class CInstrumentService {
+public:
 	std::unique_ptr<CInstrument> Make(inst_type_t index) const;
+	const CInstCompiler &GetChunkCompiler(inst_type_t index) const;
+
 	void AddType(std::unique_ptr<CInstrumentType> itype);
 	void AddDefaultTypes();
 

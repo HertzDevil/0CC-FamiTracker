@@ -29,7 +29,7 @@ class CAccelerator;
 class CSoundGen;
 class CMIDI;
 class CSettings;
-struct CInstrumentFactory;
+class CInstrumentService;
 
 // global tracker environment
 
@@ -40,7 +40,7 @@ struct CFamiTrackerEnv {
 	static CSoundGen	*GetSoundGenerator();
 	static CMIDI		*GetMIDI();
 	static CSettings	*GetSettings();
-	static CInstrumentFactory *GetInstrumentFactory();		// // //
+	static CInstrumentService *GetInstrumentService();		// // //
 };
 
 extern CFamiTrackerEnv Env; // saves some typing

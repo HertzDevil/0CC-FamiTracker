@@ -20,25 +20,23 @@
 ** must bear this legend.
 */
 
-#include "InstrumentFactory.h"
-#include "Instrument2A03.h"
-#include "InstrumentVRC6.h"
-#include "InstrumentFDS.h"
-#include "InstrumentVRC7.h"
-#include "InstrumentN163.h"
-#include "InstrumentS5B.h"
+#include "InstrumentService.h"
 #include "InstrumentTypeImpl.h"
 
-std::unique_ptr<CInstrument> CInstrumentFactory::Make(inst_type_t index) const {
+std::unique_ptr<CInstrument> CInstrumentService::Make(inst_type_t index) const {
 	return GetInstrumentType(index).MakeInstrument();
 }
 
-void CInstrumentFactory::AddType(std::unique_ptr<CInstrumentType> itype) {
+const CInstCompiler &CInstrumentService::GetChunkCompiler(inst_type_t index) const {
+	return GetInstrumentType(index).GetChunkCompiler();
+}
+
+void CInstrumentService::AddType(std::unique_ptr<CInstrumentType> itype) {
 	inst_type_t t = itype->GetID();
 	types_.try_emplace(t, std::move(itype));
 }
 
-void CInstrumentFactory::AddDefaultTypes() {
+void CInstrumentService::AddDefaultTypes() {
 	AddType(std::make_unique<CInstrumentType2A03>());
 	AddType(std::make_unique<CInstrumentTypeVRC6>());
 	AddType(std::make_unique<CInstrumentTypeVRC7>());
@@ -47,7 +45,7 @@ void CInstrumentFactory::AddDefaultTypes() {
 	AddType(std::make_unique<CInstrumentTypeS5B >());
 }
 
-CInstrumentType &CInstrumentFactory::GetInstrumentType(inst_type_t index) const {
+CInstrumentType &CInstrumentService::GetInstrumentType(inst_type_t index) const {
 	if (auto it = types_.find(index); it != types_.end())
 		return *it->second;
 

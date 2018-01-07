@@ -30,7 +30,7 @@
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "ft0cc/doc/groove.hpp"		// // //
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
-#include "InstrumentFactory.h"		// // //
+#include "InstrumentService.h"		// // //
 #include "Instrument2A03.h"		// // //
 #include "InstrumentVRC7.h"		// // //
 #include "InstrumentFDS.h"		// // //
@@ -762,7 +762,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 				return INST_NONE;
 			}();
 			int inst_index = t.ReadInt(0, MAX_INSTRUMENTS - 1);		// // //
-			auto pInst = Env.GetInstrumentFactory()->Make(Type);
+			auto pInst = Env.GetInstrumentService()->Make(Type);
 			auto seqInst = static_cast<CSeqInstrument *>(pInst.get());
 			for (int s = 0; s < SEQ_COUNT; ++s) {
 				int seqindex = t.ReadInt(-1, MAX_SEQUENCES - 1);

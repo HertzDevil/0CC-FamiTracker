@@ -24,7 +24,7 @@
 #include "FTMComponentInterface.h"
 #include "Instrument.h"
 #include "SeqInstrument.h"
-#include "InstrumentFactory.h"
+#include "InstrumentService.h"
 #include "Sequence.h"
 #include "SequenceCollection.h"
 #include "SequenceManager.h"
@@ -71,7 +71,7 @@ std::shared_ptr<CInstrument> CInstrumentManager::ReleaseInstrument(unsigned int 
 
 std::unique_ptr<CInstrument> CInstrumentManager::CreateNew(inst_type_t InstType)
 {
-	auto pInst = Env.GetInstrumentFactory()->Make(InstType);
+	auto pInst = Env.GetInstrumentService()->Make(InstType);
 	pInst->RegisterManager(this);
 	return pInst;
 }
