@@ -23,6 +23,7 @@
 #include "FamiTrackerEnv.h"
 #include "stdafx.h"
 #include "FamiTracker.h"
+#include "InstrumentFactory.h"		// // //
 
 CFamiTrackerEnv Env;
 
@@ -48,4 +49,13 @@ CMIDI *CFamiTrackerEnv::GetMIDI() {
 
 CSettings *CFamiTrackerEnv::GetSettings() {
 	return theApp.GetSettings();
+}
+
+CInstrumentFactory *CFamiTrackerEnv::GetInstrumentFactory() {
+	static auto factory = [] {
+		CInstrumentFactory f;
+		f.AddDefaultTypes();
+		return f;
+	}();
+	return &factory;
 }

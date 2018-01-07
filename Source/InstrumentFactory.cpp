@@ -29,14 +29,29 @@
 #include "InstrumentS5B.h"
 #include "InstrumentTypeImpl.h"
 
-std::unique_ptr<CInstrument> FTExt::InstrumentFactory::Make(inst_type_t index) {
-	switch (index) {
-	case INST_2A03: return CInstrumentType2A03().MakeInstrument();
-	case INST_VRC6: return CInstrumentTypeVRC6().MakeInstrument();
-	case INST_VRC7: return CInstrumentTypeVRC7().MakeInstrument();
-	case INST_FDS : return CInstrumentTypeFDS().MakeInstrument();
-	case INST_N163: return CInstrumentTypeN163().MakeInstrument();
-	case INST_S5B : return CInstrumentTypeS5B().MakeInstrument();
-	}
-	return nullptr;
+std::unique_ptr<CInstrument> CInstrumentFactory::Make(inst_type_t index) const {
+	return GetInstrumentType(index).MakeInstrument();
+}
+
+void CInstrumentFactory::AddType(std::unique_ptr<CInstrumentType> itype) {
+	inst_type_t t = itype->GetID();
+	types_.try_emplace(t, std::move(itype));
+}
+
+void CInstrumentFactory::AddDefaultTypes() {
+	AddType(std::make_unique<CInstrumentType2A03>());
+	AddType(std::make_unique<CInstrumentTypeVRC6>());
+	AddType(std::make_unique<CInstrumentTypeVRC7>());
+	AddType(std::make_unique<CInstrumentTypeFDS >());
+	AddType(std::make_unique<CInstrumentTypeN163>());
+	AddType(std::make_unique<CInstrumentTypeS5B >());
+}
+
+CInstrumentType &CInstrumentFactory::GetInstrumentType(inst_type_t index) const {
+	if (auto it = types_.find(index); it != types_.end())
+		return *it->second;
+
+	static CInstrumentTypeNull null_inst;
+	__debugbreak();
+	return null_inst;
 }

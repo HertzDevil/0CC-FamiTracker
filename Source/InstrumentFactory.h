@@ -24,14 +24,19 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
+#include "InstrumentType.h"
 
 class CInstrument;
 enum inst_type_t : unsigned;
 
-namespace FTExt {
+struct CInstrumentFactory {
+	std::unique_ptr<CInstrument> Make(inst_type_t index) const;
+	void AddType(std::unique_ptr<CInstrumentType> itype);
+	void AddDefaultTypes();
 
-struct InstrumentFactory {
-	static std::unique_ptr<CInstrument> Make(inst_type_t index);
+private:
+	CInstrumentType &GetInstrumentType(inst_type_t index) const;
+
+	std::unordered_map<inst_type_t, std::unique_ptr<CInstrumentType>> types_;
 };
-
-} // namespace FTExt

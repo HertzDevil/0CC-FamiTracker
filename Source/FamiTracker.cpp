@@ -637,7 +637,7 @@ BOOL CFamiTrackerApp::OnIdle(LONG lCount)		// // //
 		return TRUE;
 
 	if (m_pVersionChecker && m_pVersionChecker->IsReady())
-		if (auto result = std::unique_ptr<CVersionChecker> {std::move(m_pVersionChecker)}->GetVersionCheckResult())
+		if (auto pChecker = std::move(m_pVersionChecker); auto result = pChecker->GetVersionCheckResult())
 			if (AfxMessageBox(result->Message.c_str(), result->MessageBoxStyle) == IDYES)
 				ShellExecute(NULL, _T("open"), result->URL.c_str(), NULL, NULL, SW_SHOWNORMAL);
 
@@ -727,13 +727,7 @@ CString LoadDefaultFilter(LPCTSTR Name, LPCTSTR Ext)
 	CString allFilter;
 	VERIFY(allFilter.LoadString(AFX_IDS_ALLFILTER));
 
-	filter = Name;
-	filter += _T("|*");
-	filter += Ext;
-	filter += _T("|");
-	filter += allFilter;
-	filter += _T("|*.*||");
-
+	filter.Format(_T("%s|*%s|%s|*.*||"), Name, Ext, allFilter);
 	return filter;
 }
 

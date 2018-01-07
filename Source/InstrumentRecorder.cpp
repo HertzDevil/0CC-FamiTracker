@@ -31,6 +31,7 @@
 #include "InstrumentN163.h"
 #include "InstrumentFactory.h"
 #include "DetuneTable.h"
+#include "FamiTrackerEnv.h"
 
 CInstrumentRecorder::CInstrumentRecorder(CSoundGen *pSG) :
 	m_pSoundGen(pSG),
@@ -316,7 +317,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 		}
 		return INST_NONE;
 	}();
-	*m_pDumpInstrument = FTExt::InstrumentFactory::Make(Type);		// // //
+	*m_pDumpInstrument = Env.GetInstrumentFactory()->Make(Type);		// // //
 	if (!*m_pDumpInstrument) return;
 
 	CString str;

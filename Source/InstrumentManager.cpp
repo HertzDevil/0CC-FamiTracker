@@ -29,6 +29,7 @@
 #include "SequenceCollection.h"
 #include "SequenceManager.h"
 #include "DSampleManager.h"
+#include "FamiTrackerEnv.h"
 
 const int CInstrumentManager::MAX_INSTRUMENTS = 64;
 const int CInstrumentManager::SEQ_MANAGER_COUNT = 5;
@@ -70,7 +71,7 @@ std::shared_ptr<CInstrument> CInstrumentManager::ReleaseInstrument(unsigned int 
 
 std::unique_ptr<CInstrument> CInstrumentManager::CreateNew(inst_type_t InstType)
 {
-	auto pInst = FTExt::InstrumentFactory::Make(InstType);
+	auto pInst = Env.GetInstrumentFactory()->Make(InstType);
 	pInst->RegisterManager(this);
 	return pInst;
 }
