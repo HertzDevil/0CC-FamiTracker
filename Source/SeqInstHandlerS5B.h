@@ -35,10 +35,5 @@ public:
 	using CSeqInstHandler::CSeqInstHandler;
 
 private:
-	/*!	\brief Processes the value retrieved from a sequence.
-		\return True if the sequence has finished processing.
-		\param Index The sequence type.
-		\param Setting The sequence setting.
-		\param Value The sequence value to be processed. */
-	virtual bool ProcessSequence(int Index, unsigned Setting, int Value);
+	virtual bool ProcessSequence(const CSequence &Seq, int Pos);
 };

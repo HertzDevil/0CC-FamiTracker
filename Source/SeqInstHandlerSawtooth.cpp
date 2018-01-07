@@ -26,8 +26,8 @@
 void CSeqInstHandlerSawtooth::TriggerInstrument()
 {
 	CSeqInstHandler::TriggerInstrument();
-	m_bIgnoreDuty = m_pSequence[SEQ_VOLUME] != nullptr &&
-					m_pSequence[SEQ_VOLUME]->GetSetting() == SETTING_VOL_64_STEPS;
+	const auto &pVolSeq = m_SequenceInfo[SEQ_VOLUME].m_pSequence;
+	m_bIgnoreDuty = pVolSeq && pVolSeq->GetSetting() == SETTING_VOL_64_STEPS;
 }
 
 bool CSeqInstHandlerSawtooth::IsDutyIgnored() const

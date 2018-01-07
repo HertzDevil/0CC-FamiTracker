@@ -37,8 +37,6 @@ CSeqInstHandler::CSeqInstHandler(CChannelHandlerInterface *pInterface, int Vol, 
 	CInstHandler(pInterface, Vol),
 	m_iDefaultDuty(Duty)
 {
-	for (size_t i = 0; i < std::size(m_pSequence); ++i)
-		ClearSequence(i);
 }
 
 void CSeqInstHandler::LoadInstrument(std::shared_ptr<CInstrument> pInst)
@@ -46,23 +44,21 @@ void CSeqInstHandler::LoadInstrument(std::shared_ptr<CInstrument> pInst)
 	m_pInstrument = pInst;
 	auto pSeqInst = std::dynamic_pointer_cast<CSeqInstrument>(pInst);
 	if (pSeqInst == nullptr) return;
-	for (size_t i = 0; i < std::size(m_pSequence); i++) {
-		const auto pSequence = pSeqInst->GetSequence(i);
-		bool Enable = pSeqInst->GetSeqEnable(i) == SEQ_STATE_RUNNING;
-		if (!Enable)
+	for (size_t i = 0; i < std::size(m_SequenceInfo); ++i)
+		if (pSeqInst->GetSeqEnable(i) != SEQ_STATE_RUNNING)
 			ClearSequence(i);
-		else if (pSequence != m_pSequence[i] || m_iSeqState[i] == SEQ_STATE_DISABLED)
-			SetupSequence(i, std::move(pSequence));
-	}
+		else {
+			const auto pSequence = pSeqInst->GetSequence(i);
+			if (pSequence != m_SequenceInfo[i].m_pSequence || m_SequenceInfo[i].m_iSeqState == SEQ_STATE_DISABLED)
+				SetupSequence(i, std::move(pSequence));
+		}
 }
 
 void CSeqInstHandler::TriggerInstrument()
 {
-	for (size_t i = 0; i < std::size(m_pSequence); ++i)
-		if (m_pSequence[i] != nullptr) {
-			m_iSeqState[i] = SEQ_STATE_RUNNING;
-			m_iSeqPointer[i] = 0;
-		}
+	for (auto &info : m_SequenceInfo)
+		info.Trigger();
+
 	m_iVolume = m_iDefaultVolume;
 	m_iNoteOffset = 0;
 	m_iPitchOffset = 0;
@@ -76,62 +72,34 @@ void CSeqInstHandler::TriggerInstrument()
 
 void CSeqInstHandler::ReleaseInstrument()
 {
-	if (m_pInterface->IsReleasing()) return;
-	for (size_t i = 0; i < std::size(m_pSequence); i++)
-		if (m_pSequence[i] != nullptr && (m_iSeqState[i] == SEQ_STATE_RUNNING || m_iSeqState[i] == SEQ_STATE_END)) {
-			int ReleasePoint = m_pSequence[i]->GetReleasePoint();
-			if (ReleasePoint != -1) {
-				m_iSeqPointer[i] = ReleasePoint;
-				m_iSeqState[i] = SEQ_STATE_RUNNING;
-			}
-		}
+	if (!m_pInterface->IsReleasing())
+		for (auto &info : m_SequenceInfo)
+			info.Release();
 }
 
 void CSeqInstHandler::UpdateInstrument()
 {
-	if (!m_pInterface->IsActive()) return;
-	for (size_t i = 0; i < std::size(m_pSequence); i++) {
-		if (m_pSequence[i] == nullptr || m_pSequence[i]->GetItemCount() == 0) continue;
-		int Value = m_pSequence[i]->GetItem(m_iSeqPointer[i]);
-		switch (m_iSeqState[i]) {
+	if (!m_pInterface->IsActive())
+		return;
+	for (auto &info : m_SequenceInfo) {
+		const auto &pSeq = info.m_pSequence;
+		if (!pSeq || pSeq->GetItemCount() == 0)
+			continue;
+		switch (info.m_iSeqState) {
 		case SEQ_STATE_RUNNING:
-			ProcessSequence(i, m_pSequence[i]->GetSetting(), Value);
-
-			{
-				++m_iSeqPointer[i];
-				int Release = m_pSequence[i]->GetReleasePoint();
-				int Items = m_pSequence[i]->GetItemCount();
-				int Loop = m_pSequence[i]->GetLoopPoint();
-				if (m_iSeqPointer[i] == (Release + 1) || m_iSeqPointer[i] >= Items) {
-					// End point reached
-					if (Loop != -1 && !(m_pInterface->IsReleasing() && Release != -1) && Loop < Release) {		// // //
-						m_iSeqPointer[i] = Loop;
-					}
-					else if (m_iSeqPointer[i] >= Items) {
-						// End of sequence
-						if (Loop >= Release && Loop != -1)		// // //
-							m_iSeqPointer[i] = Loop;
-						else
-							m_iSeqState[i] = SEQ_STATE_END;
-					}
-					else if (!m_pInterface->IsReleasing()) {
-						// Waiting for release
-						--m_iSeqPointer[i];
-					}
-				}
-				Env.GetSoundGenerator()->SetSequencePlayPos(m_pSequence[i], m_iSeqPointer[i]);
-			}
+			ProcessSequence(*pSeq, info.m_iSeqPointer);
+			info.Step(m_pInterface->IsReleasing());
 			break;
 
 		case SEQ_STATE_END:
-			switch (i) {
+			switch (pSeq->GetSequenceType()) {
 			case SEQ_ARPEGGIO:
-				if (m_pSequence[i]->GetSetting() == SETTING_ARP_FIXED)
+				if (pSeq->GetSetting() == SETTING_ARP_FIXED)
 					m_pInterface->SetPeriod(m_pInterface->TriggerNote(m_pInterface->GetNote()));
 				break;
 			}
-			m_iSeqState[i] = SEQ_STATE_HALT;
-			Env.GetSoundGenerator()->SetSequencePlayPos(m_pSequence[i], -1);
+			info.m_iSeqState = SEQ_STATE_HALT;
+			Env.GetSoundGenerator()->SetSequencePlayPos(pSeq, -1);
 			break;
 
 		case SEQ_STATE_HALT:
@@ -141,9 +109,16 @@ void CSeqInstHandler::UpdateInstrument()
 	}
 }
 
-bool CSeqInstHandler::ProcessSequence(int Index, unsigned Setting, int Value)
+CSeqInstHandler::seq_state_t CSeqInstHandler::GetSequenceState(int Index) const {
+	return m_SequenceInfo[Index].m_iSeqState;
+}
+
+bool CSeqInstHandler::ProcessSequence(const CSequence &Seq, int Pos)
 {
-	switch (Index) {
+	int Value = Seq.GetItem(Pos);
+	seq_setting_t Setting = Seq.GetSetting();
+
+	switch (Seq.GetSequenceType()) {
 	// Volume modifier
 	case SEQ_VOLUME:
 		m_pInterface->SetVolume(Value);
@@ -161,7 +136,7 @@ bool CSeqInstHandler::ProcessSequence(int Index, unsigned Setting, int Value)
 			m_pInterface->SetNote(m_pInterface->GetNote() + Value);
 			m_pInterface->SetPeriod(m_pInterface->TriggerNote(m_pInterface->GetNote()));
 			return true;
-		case SETTING_ARP_SCHEME: // // //
+		case SETTING_ARP_SCHEME:		// // //
 			if (Value < 0) Value += 256;
 			int lim = Value % 0x40, scheme = Value / 0x40;
 			if (lim > ARPSCHEME_MAX)
@@ -204,14 +179,52 @@ bool CSeqInstHandler::ProcessSequence(int Index, unsigned Setting, int Value)
 
 void CSeqInstHandler::SetupSequence(int Index, std::shared_ptr<const CSequence> pSequence)		// // //
 {
-	m_iSeqState[Index]	 = SEQ_STATE_RUNNING;
-	m_iSeqPointer[Index] = 0;
-	m_pSequence[Index]	 = pSequence;
+	m_SequenceInfo[Index] = {std::move(pSequence), SEQ_STATE_RUNNING, 0};
 }
 
 void CSeqInstHandler::ClearSequence(int Index)
 {
-	m_iSeqState[Index]	 = SEQ_STATE_DISABLED;
-	m_iSeqPointer[Index] = 0;
-	m_pSequence[Index]	 = nullptr;
+	m_SequenceInfo[Index] = seq_info_t { };		// // //
+}
+
+void CSeqInstHandler::seq_info_t::Trigger() {
+	if (m_pSequence) {
+		m_iSeqState = SEQ_STATE_RUNNING;
+		m_iSeqPointer = 0;
+	}
+}
+
+void CSeqInstHandler::seq_info_t::Release() {
+	if (m_pSequence && (m_iSeqState == SEQ_STATE_RUNNING || m_iSeqState == SEQ_STATE_END)) {
+		int ReleasePoint = m_pSequence->GetReleasePoint();
+		if (ReleasePoint != -1) {
+			m_iSeqPointer = ReleasePoint;
+			m_iSeqState = SEQ_STATE_RUNNING;
+		}
+	}
+}
+
+void CSeqInstHandler::seq_info_t::Step(bool isReleasing) {
+	++m_iSeqPointer;
+	int Release = m_pSequence->GetReleasePoint();
+	int Items = m_pSequence->GetItemCount();
+	int Loop = m_pSequence->GetLoopPoint();
+	if (m_iSeqPointer == (Release + 1) || m_iSeqPointer >= Items) {
+		// End point reached
+		if (Loop != -1 && !(isReleasing && Release != -1) && Loop < Release) {		// // //
+			m_iSeqPointer = Loop;
+		}
+		else if (m_iSeqPointer >= Items) {
+			// End of sequence
+			if (Loop >= Release && Loop != -1)		// // //
+				m_iSeqPointer = Loop;
+			else
+				m_iSeqState = SEQ_STATE_END;
+		}
+		else if (!isReleasing) {
+			// Waiting for release
+			--m_iSeqPointer;
+		}
+	}
+	Env.GetSoundGenerator()->SetSequencePlayPos(m_pSequence, m_iSeqPointer);
 }

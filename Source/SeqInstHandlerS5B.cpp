@@ -22,16 +22,17 @@
 
 #include "SeqInstHandlerS5B.h"
 #include "ChannelHandlerInterface.h"
+#include "Sequence.h"
 
-bool CSeqInstHandlerS5B::ProcessSequence(int Index, unsigned Setting, int Value)
+bool CSeqInstHandlerS5B::ProcessSequence(const CSequence &Seq, int Pos)
 {
-	switch (Index) {
+	switch (Seq.GetSetting()) {
 	case SEQ_DUTYCYCLE:
-		if (auto pChan = dynamic_cast<CChannelHandlerInterfaceS5B*>(m_pInterface)) {
-			m_pInterface->SetDutyPeriod(Value & 0xE0);
-			pChan->SetNoiseFreq(Value & 0x1F);
+		if (auto pChan = dynamic_cast<CChannelHandlerInterfaceS5B *>(m_pInterface)) {
+			m_pInterface->SetDutyPeriod(Seq.GetItem(Pos) & 0xE0);
+			pChan->SetNoiseFreq(Seq.GetItem(Pos) & 0x1F);
 			return true;
 		}
 	}
-	return CSeqInstHandler::ProcessSequence(Index, Setting, Value);
+	return CSeqInstHandler::ProcessSequence(Seq, Pos);
 }

@@ -59,15 +59,14 @@ public:
 	/*!	\brief Obtains the current sequence state of a given sequence type.
 		\param Index The sequence type, which should be a member of sequence_t.
 		\return The sequence state of the given sequence type. */
-	seq_state_t GetSequenceState(int Index) const { return m_iSeqState[Index]; }
+	seq_state_t GetSequenceState(int Index) const;
 
 protected:
 	/*!	\brief Processes the value retrieved from a sequence.
 		\return True if the sequence has finished processing.
-		\param Index The sequence type.
-		\param Setting The sequence setting.
-		\param Value The sequence value to be processed. */
-	virtual bool ProcessSequence(int Index, unsigned Setting, int Value);
+		\param Seq Reference to the sequence.
+		\param Pos Sequence position. */
+	virtual bool ProcessSequence(const CSequence &Seq, int Pos);
 
 	/*!	\brief Prepares a sequence type for use by CSeqInstHandler::UpdateInstrument.
 		\param Index The sequence type.
@@ -79,12 +78,22 @@ protected:
 	virtual void ClearSequence(int Index);
 
 protected:
-	/*!	\brief An array holding pointers to the sequences used by the current instrument. */
-	std::shared_ptr<const CSequence> m_pSequence[SEQ_COUNT];
-	/*!	\brief An array holding the states of each sequence type used in sequence instruments. */
-	seq_state_t		m_iSeqState[SEQ_COUNT];
-	/*!	\brief An array holding the tick index of each sequence type used in sequence instruments. */
-	int				m_iSeqPointer[SEQ_COUNT];
+	/*! \brief A struct containing runtime state of a given sequence type. */
+	struct seq_info_t {
+		void Trigger();
+		void Release();
+		void Step(bool isReleasing);
+
+		/*!	\brief Pointer to the sequence used by the current instrument. */
+		std::shared_ptr<const CSequence> m_pSequence;
+		/*!	\brief State of the current sequence type. */
+		seq_state_t m_iSeqState = SEQ_STATE_DISABLED;
+		/*!	\brief Tick index of the current sequence type. */
+		int m_iSeqPointer = 0;
+	};
+	/*! \brief Sequence states for the default sequence types. */
+	seq_info_t m_SequenceInfo[SEQ_COUNT];
+
 	/*!	\brief The current duty cycle of the instrument.
 		\details The exact interpretation of this member may not be identical across sound channels.
 		\warning Currently unused. */
