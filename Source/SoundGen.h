@@ -132,6 +132,7 @@ public:
 	void		 ResetPlayer(int Track);
 	void		 LoadSettings();
 	void		 SilentAll();
+	void		 PlaySingleRow(int track);		// // //
 
 	void		 SetChannelMute(int chan, bool mute);		// // // TODO: move into CChannel
 	bool		 IsChannelMuted(int chan) const override;
@@ -286,6 +287,7 @@ private:
 
 	std::unique_ptr<CTempoDisplay> m_pTempoDisplay;			// // // 050B
 	bool				m_bHaltRequest;						// True when a halt is requested
+	bool				m_bPlayingSingleRow = false;		// // //
 	int					m_iFrameCounter;
 
 	int					m_iUpdateCycles;					// Number of cycles/APU update

@@ -28,6 +28,7 @@
 #include <memory>
 #include <array>
 #include <unordered_map>
+#include "Instrument.h"
 
 class CSequence;
 class CInstrument;

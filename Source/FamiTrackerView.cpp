@@ -1079,19 +1079,11 @@ void CFamiTrackerView::OnEditSelecttrack()		// // //
 
 void CFamiTrackerView::OnTrackerPlayrow()
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
-
-	const int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
-	const int Frame = GetSelectedFrame();
-	const int Row = GetSelectedRow();
-	const int Channels = pDoc->GetAvailableChannels();
-
-	for (int i = 0; i < Channels; ++i)
-		if (!IsChannelMuted(i))
-			theApp.GetSoundGenerator()->QueueNote(i, pDoc->GetActiveNote(Track, Frame, i, Row), NOTE_PRIO_1);		// // //
-
-	m_pPatternEditor->MoveDown(1);
-	InvalidateCursor();
+	if (auto *pSoundGen = theApp.GetSoundGenerator(); pSoundGen && !pSoundGen->IsPlaying()) {		// // //
+		pSoundGen->PlaySingleRow(static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack());
+		m_pPatternEditor->MoveDown(1);
+		InvalidateCursor();
+	}
 }
 
 void CFamiTrackerView::OnEditCopyAsVolumeSequence()		// // //

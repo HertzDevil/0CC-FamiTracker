@@ -34,7 +34,6 @@ CSoundGen depends on CFamiTrackerView for:
  - MakeSilent
  - GetSelectedPos
  - GetSelectedChannel
- - IsChannelMuted
  - PlayerPlayNote
 // // /*/
 
@@ -62,6 +61,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "SoundDriver.h"		// // //
 #include "PatternNote.h"		// // //
 #include "ChannelMap.h"		// // //
+#include "TrackerChannel.h" // NOTE_PRIO_1
 
 // // // Log VGM output (port from sn7t when necessary)
 //#define WRITE_VGM
@@ -264,6 +264,21 @@ void CSoundGen::SilentAll()
 		return;
 
 	PostThreadMessage(WM_USER_SILENT_ALL, 0, 0);
+}
+
+void CSoundGen::PlaySingleRow(int track) {		// // //
+	m_iLastTrack = track;
+
+	if (!m_bPlayingSingleRow) {
+		ApplyGlobalState();
+		m_bPlayingSingleRow = true;
+	}
+
+	int Channels = m_pDocument->GetChannelCount();
+	auto [frame, row] = m_pTrackerView->GetSelectedPos();
+	for (int i = 0; i < Channels; ++i)
+		if (!IsChannelMuted(i))
+			QueueNote(i, m_pDocument->GetActiveNote(track, frame, i, row), NOTE_PRIO_1);
 }
 
 void CSoundGen::WriteAPU(int Address, char Value)
@@ -548,6 +563,7 @@ void CSoundGen::BeginPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 	m_pSoundDriver->StartPlayer(std::move(Pos));		// // //
 
 	m_bHaltRequest		= false;
+	m_bPlayingSingleRow = false;		// // //
 	m_iLastTrack		= cur.GetCurrentSong();		// // //
 
 #ifdef WRITE_VGM		// // //
@@ -571,6 +587,7 @@ void CSoundGen::BeginPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 
 void CSoundGen::ApplyGlobalState()		// // //
 {
+	CSingleLock l(&m_csAPULock, TRUE);		// // //
 	auto [Frame, Row] = IsPlaying() ? GetPlayerPos() : m_pTrackerView->GetSelectedPos();		// // //
 
 	CSongState state;
@@ -663,6 +680,7 @@ void CSoundGen::HaltPlayer() {
 
 	m_pSoundDriver->StopPlayer();		// // //
 	m_bHaltRequest = false;
+	m_bPlayingSingleRow = false;		// // //
 	m_pTempoDisplay.reset();		// // //
 
 #ifdef WRITE_VGM		// // //
