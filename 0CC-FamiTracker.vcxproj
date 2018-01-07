@@ -447,7 +447,7 @@
     <ClCompile Include="Source\FrameClipData.cpp" />
     <ClCompile Include="Source\FrameEditorModel.cpp" />
     <ClCompile Include="Source\InstCompiler.cpp" />
-    <ClCompile Include="Source\InstrumentFactory.cpp" />
+    <ClCompile Include="Source\InstrumentService.cpp" />
     <ClCompile Include="Source\InstrumentTypeImpl.cpp" />
     <ClCompile Include="Source\Kraid.cpp" />
     <ClCompile Include="Source\ModuleAction.cpp" />
@@ -679,7 +679,7 @@
     <ClInclude Include="Source\InstHandlerVRC7.h" />
     <ClInclude Include="Source\Instrument2A03.h" />
     <ClInclude Include="Source\InstrumentEditorSeq.h" />
-    <ClInclude Include="Source\InstrumentFactory.h" />
+    <ClInclude Include="Source\InstrumentService.h" />
     <ClInclude Include="Source\InstrumentFDS.h" />
     <ClInclude Include="Source\InstrumentManager.h" />
     <ClInclude Include="Source\InstrumentManagerInterface.h" />

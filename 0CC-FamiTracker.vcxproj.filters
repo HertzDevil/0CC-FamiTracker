@@ -678,9 +678,6 @@
     <ClCompile Include="Source\SoundDriver.cpp">
       <Filter>Source Files\Sound Driver</Filter>
     </ClCompile>
-    <ClCompile Include="Source\InstrumentFactory.cpp">
-      <Filter>Source Files\Document Data Types\Instruments</Filter>
-    </ClCompile>
     <ClCompile Include="Source\FamiTrackerDocIO.cpp">
       <Filter>Source Files\Document Utilities</Filter>
     </ClCompile>
@@ -767,6 +764,9 @@
     </ClCompile>
     <ClCompile Include="Source\InstCompiler.cpp">
       <Filter>Source Files\Exporter</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\InstrumentService.cpp">
+      <Filter>Source Files\Document Data Types\Instruments</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1160,9 +1160,6 @@
     <ClInclude Include="Source\SeqInstrument.h">
       <Filter>Header Files\Document Data Type Headers\Instrument Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\InstrumentFactory.h">
-      <Filter>Header Files\Document Data Type Headers\Instrument Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\OldSequence.h">
       <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
@@ -1411,6 +1408,9 @@
     </ClInclude>
     <ClInclude Include="Source\InstCompiler.h">
       <Filter>Header Files\Export Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\InstrumentService.h">
+      <Filter>Header Files\Document Data Type Headers\Instrument Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
