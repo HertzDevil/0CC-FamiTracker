@@ -218,9 +218,9 @@ void CSequenceInstrumentEditPanel::SetupDialog(const LPCTSTR *pListItems)		// //
 
 	foreachSeq([&] (sequence_t i) {
 		pList->InsertItem(i, _T(""), 0);
-		pList->SetCheck(0, 0);
-		pList->SetItemText(0, 1, _T("0"));
-		pList->SetItemText(0, 2, pListItems[i]);
+		pList->SetCheck(i, 0);
+		pList->SetItemText(i, 1, _T("0"));
+		pList->SetItemText(i, 2, pListItems[i]);
 	});
 
 	pList->SetItemState(m_iSelectedSetting, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
