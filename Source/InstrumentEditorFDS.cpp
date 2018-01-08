@@ -21,8 +21,6 @@
 */
 
 #include "InstrumentEditorFDS.h"
-#include <iterator>
-#include <sstream>
 #include "FamiTrackerEnv.h"		// // //
 #include "Instrument.h"		// // //
 #include "SeqInstrument.h"		// // //
@@ -34,6 +32,7 @@
 #include "WaveEditor.h"		// // //
 #include "ModSequenceEditor.h"
 #include <algorithm>		// // //
+#include "sv_regex.h"		// // //
 
 // CInstrumentEditorFDS dialog
 
@@ -282,7 +281,7 @@ void CInstrumentEditorFDS::OnBnClickedCopyWave()
 		return;
 	}
 
-	Clipboard.SetDataPointer(Str.GetBuffer(), Str.GetLength() + 1);
+	Clipboard.SetDataPointer((LPCTSTR)Str, Str.GetLength() + 1);
 }
 
 void CInstrumentEditorFDS::OnBnClickedPasteWave()
@@ -304,16 +303,12 @@ void CInstrumentEditorFDS::OnBnClickedPasteWave()
 
 void CInstrumentEditorFDS::ParseWaveString(LPCTSTR pString)
 {
-	std::string str(pString);
-
-	// Convert to register values
-	std::istringstream values(str);
-	std::istream_iterator<std::string> begin(values);
-	std::istream_iterator<std::string> end;
-
-	for (int i = 0; (i < 64) && (begin != end); ++i) {
-		int value = CSequenceInstrumentEditPanel::ReadStringValue(*begin++);
+	int i = 0;
+	for (auto x : re::tokens(pString)) {		// // //
+		int value = CSequenceInstrumentEditPanel::ReadStringValue(x.str());
 		m_pInstrument->SetSample(i, std::clamp(value, 0, 63));		// // //
+		if (++i >= 64)
+			break;
 	}
 
 	m_pWaveEditor->RedrawWindow();
@@ -335,7 +330,7 @@ void CInstrumentEditorFDS::OnBnClickedCopyTable()
 		return;
 	}
 
-	Clipboard.SetDataPointer(Str.GetBuffer(), Str.GetLength() + 1);
+	Clipboard.SetDataPointer((LPCTSTR)Str, Str.GetLength() + 1);
 }
 
 void CInstrumentEditorFDS::OnBnClickedPasteTable()
@@ -357,16 +352,12 @@ void CInstrumentEditorFDS::OnBnClickedPasteTable()
 
 void CInstrumentEditorFDS::ParseTableString(LPCTSTR pString)
 {
-	std::string str(pString);
-
-	// Convert to register values
-	std::istringstream values(str);
-	std::istream_iterator<std::string> begin(values);
-	std::istream_iterator<std::string> end;
-
-	for (int i = 0; (i < 32) && (begin != end); ++i) {
-		int value = CSequenceInstrumentEditPanel::ReadStringValue(*begin++);
+	int i = 0;
+	for (auto x : re::tokens(pString)) {		// // //
+		int value = CSequenceInstrumentEditPanel::ReadStringValue(x.str());
 		m_pInstrument->SetModulation(i, std::clamp(value, 0, 7));		// // //
+		if (++i >= 32)
+			break;
 	}
 
 	m_pModSequenceEditor->RedrawWindow();

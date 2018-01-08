@@ -106,7 +106,7 @@ void CSeqConversionDefault::OnFinish()
 
 bool CSeqConversionDefault::GetNextInteger(std::string_view &sv, int &Out, bool Signed) const
 {
-	svmatch m;
+	re::svmatch m;
 
 	try {
 		if (m_bHex) {
@@ -180,7 +180,7 @@ bool CSeqConversion5B::GetNextTerm(std::string_view &sv, int &Out)
 		return false;
 
 	static const std::regex S5B_FLAGS_RE {R"(^[TtNnEe]*)"};
-	svmatch m;
+	re::svmatch m;
 	if (std::regex_search(sv.begin(), sv.end(), m, S5B_FLAGS_RE)) {
 		if (m_iEnableFlags == -1) {
 			m_iEnableFlags = 0;
@@ -244,7 +244,7 @@ bool CSeqConversionArpScheme::GetNextTerm(std::string_view &sv, int &Out)
 			m_iArpSchemeFlag = static_cast<unsigned char>(ARPSCHEME_MODE_NEG_Y);
 	};
 
-	svmatch m;
+	re::svmatch m;
 	static const std::regex SCHEME_HEAD_RE {R"(^(x|y|-y))"};
 	static const std::regex SCHEME_TAIL_RE {R"(^(\+x|\+y|-y)?)"};
 
@@ -283,7 +283,7 @@ bool CSeqConversionArpFixed::GetNextTerm(std::string_view &sv, int &Out)
 		return true;
 	}
 
-	svmatch m;
+	re::svmatch m;
 	static const std::regex FIXED_RE {R"(([A-Ga-g])([+\-#b]*)([0-9]+))"};
 	static const int NOTE_OFFSET[] = {9, 11, 0, 2, 4, 5, 7};
 	if (!std::regex_match(sv.begin(), sv.end(), m, FIXED_RE))

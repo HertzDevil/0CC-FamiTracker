@@ -58,6 +58,7 @@ protected:
 	void CreateWaveImage(char *const Pos, int Index) const;		// // //
 
 	void GenerateWaves(std::unique_ptr<CWaveformGenerator> pWaveGen);		// // // test
+	int WaveSizeAvailable() const;		// // //
 
 protected:
 	std::shared_ptr<CInstrumentN163> m_pInstrument;

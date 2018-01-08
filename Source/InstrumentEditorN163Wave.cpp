@@ -22,8 +22,6 @@
 
 #include "InstrumentEditorN163Wave.h"
 #include "WaveEditor.h"		// // //
-#include <iterator>
-#include <sstream>
 #include "FamiTrackerEnv.h"		// // //
 #include "DPI.h"		// // //
 #include "FamiTrackerDoc.h"
@@ -33,8 +31,7 @@
 #include "Clipboard.h"
 #include "WavegenBuiltin.h" // test
 #include "NumConv.h"		// // //
-
-#define WAVE_SIZE_AVAILABLE (256 - 16 * GetDocument()->GetNamcoChannels())		// // //
+#include "sv_regex.h"		// // //
 
 // CInstrumentEditorN163Wave dialog
 
@@ -119,9 +116,8 @@ BOOL CInstrumentEditorN163Wave::OnInitDialog()
 
 	CComboBox *pWaveSize = static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE));
 
-	for (int i = 0; i < WAVE_SIZE_AVAILABLE; i += 4) {
-		pWaveSize->AddString(conv::sv_from_int(i + 4).data());
-	}
+	for (int i = 4, im = WaveSizeAvailable(); i <= im; i += 4)
+		pWaveSize->AddString(conv::sv_from_int(i).data());
 
 	int order[2] = {1, 0};		// // //
 	CRect r;
@@ -167,12 +163,18 @@ void CInstrumentEditorN163Wave::GenerateWaves(std::unique_ptr<CWaveformGenerator
 	auto Buffer = std::make_unique<float[]>(size); // test
 	pWaveGen->CreateWaves(Buffer.get(), size, pWaveGen->GetCount());
 	for (int i = 0; i < size; ++i) {
-		float Sample = Buffer[i] * 7.5f + 8;
-		m_pInstrument->SetSample(m_iWaveIndex, i, static_cast<int>(std::clamp(Sample, 0.f, 15.f)));
+		float Sample = std::clamp(Buffer[i] * 8.f + 8.f, 0.f, 15.f);
+		m_pInstrument->SetSample(m_iWaveIndex, i, static_cast<int>(Sample));
 	}
 
 	m_pWaveEditor->WaveChanged();
 	Env.GetSoundGenerator()->WaveChanged();
+}
+
+// // // test
+
+int CInstrumentEditorN163Wave::WaveSizeAvailable() const {		// // //
+	return 256 - 16 * GetDocument()->GetNamcoChannels();
 }
 
 void CInstrumentEditorN163Wave::OnPresetSine()
@@ -222,7 +224,7 @@ void CInstrumentEditorN163Wave::OnBnClickedCopy()
 		return;
 	}
 
-	Clipboard.SetDataPointer(Str.GetBuffer(), Str.GetLength() + 1);
+	Clipboard.SetDataPointer((LPCTSTR)Str, Str.GetLength() + 1);
 }
 
 void CInstrumentEditorN163Wave::OnBnClickedPaste()
@@ -244,21 +246,16 @@ void CInstrumentEditorN163Wave::OnBnClickedPaste()
 
 void CInstrumentEditorN163Wave::ParseString(LPCTSTR pString)
 {
-	std::string str(pString);
-
-	// Convert to register values
-	std::istringstream values(str);
-	std::istream_iterator<int> b(values);
-	std::istream_iterator<int> e;
-
-	int i;
-	for (i = 0; (i < WAVE_SIZE_AVAILABLE) && (b != e); ++i) {		// // //
-		int value = *b++;
-		if (value >= 0 && value <= 15)
-			m_pInstrument->SetSample(m_iWaveIndex, i, value);
+	int i = 0;
+	int im = WaveSizeAvailable();
+	for (auto x : re::tokens(pString)) {		// // //
+		int value = CSequenceInstrumentEditPanel::ReadStringValue(x.str());
+		m_pInstrument->SetSample(m_iWaveIndex, i, std::clamp(value, 0, 15));		// // //
+		if (++i >= im)
+			break;
 	}
 
-	int size = std::clamp(i & 0xFC, 4, WAVE_SIZE_AVAILABLE);
+	int size = std::clamp(i & 0xFC, 4, WaveSizeAvailable());
 	m_pInstrument->SetWaveSize(size);
 
 	static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE))->SelectString(0, conv::sv_from_int(size).data());
@@ -285,7 +282,7 @@ void CInstrumentEditorN163Wave::OnWaveSizeChange()
 {
 	BOOL trans;
 	int size = GetDlgItemInt(IDC_WAVE_SIZE, &trans, FALSE);
-	size = std::clamp(size & 0xFC, 4, WAVE_SIZE_AVAILABLE);		// // //
+	size = std::clamp(size & 0xFC, 4, WaveSizeAvailable());		// // //
 
 	m_pInstrument->SetWaveSize(size);
 
@@ -320,7 +317,7 @@ void CInstrumentEditorN163Wave::FillPosBox(int size)
 	CComboBox *pPosBox = static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_POS));
 	pPosBox->ResetContent();
 
-	for (int i = 0; i <= WAVE_SIZE_AVAILABLE - size; i += size) {		// // // prevent reading non-wave n163 registers
+	for (int i = 0; i <= WaveSizeAvailable() - size; i += size) {		// // // prevent reading non-wave n163 registers
 		pPosBox->AddString(conv::sv_from_int(i).data());
 	}
 }

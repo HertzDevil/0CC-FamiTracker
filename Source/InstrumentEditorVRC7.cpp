@@ -21,12 +21,11 @@
 */
 
 #include "InstrumentEditorVRC7.h"
-#include <iterator>
-#include <sstream>
 #include "Instrument.h"
 #include "InstrumentVRC7.h"		// // //
 #include "Clipboard.h"
 #include <algorithm>		// // //
+#include "sv_regex.h"		// // //
 
 static unsigned char default_inst[(16+3)*16] =
 {
@@ -435,7 +434,7 @@ void CInstrumentEditorVRC7::OnCopy()
 		return;
 	}
 
-	Clipboard.SetDataPointer(MML.GetBuffer(), MML.GetLength() + 1);
+	Clipboard.SetDataPointer((LPCTSTR)MML, MML.GetLength() + 1);
 }
 
 void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
@@ -464,7 +463,7 @@ void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
 		return;
 	}
 
-	Clipboard.SetDataPointer(MML.GetBuffer(), MML.GetLength() + 1);
+	Clipboard.SetDataPointer((LPCTSTR)MML, MML.GetLength() + 1);
 }
 
 void CInstrumentEditorVRC7::OnPaste()
@@ -486,19 +485,13 @@ void CInstrumentEditorVRC7::OnPaste()
 
 void CInstrumentEditorVRC7::PasteSettings(LPCTSTR pString)
 {
-	std::string str(pString);
-
-	// Convert to register values
-	std::istringstream values(str);
-	std::istream_iterator<std::string> begin(values);
-	std::istream_iterator<std::string> end;
-
-	for (int i = 0; (i < 8) && (begin != end); ++i) {
-		int value = CSequenceInstrumentEditPanel::ReadStringValue(*begin++);		// // //
-		m_pInstrument->SetCustomReg(i, std::clamp(value, 0, 0xFF));
+	int i = 0;
+	for (auto x : re::tokens(pString)) {		// // //
+		int value = CSequenceInstrumentEditPanel::ReadStringValue(x.str());
+		m_pInstrument->SetCustomReg(i, std::clamp(value, 0, 0xFF));		// // //
+		if (++i >= 8)
+			break;
 	}
-
-	LoadCustomPatch();
 }
 
 BOOL CInstrumentEditorVRC7::PreTranslateMessage(MSG* pMsg)

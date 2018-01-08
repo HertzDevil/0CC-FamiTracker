@@ -52,7 +52,7 @@ void CClipboard::SetData(HGLOBAL hMemory) const
 	::SetClipboardData(m_iClipboard, hMemory);
 }
 
-bool CClipboard::SetDataPointer(LPVOID pData, UINT Size) const
+bool CClipboard::SetDataPointer(LPCVOID pData, UINT Size) const
 {
 	ASSERT(m_bOpened);
 

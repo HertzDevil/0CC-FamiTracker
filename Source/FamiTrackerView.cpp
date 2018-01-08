@@ -1098,7 +1098,7 @@ void CFamiTrackerView::OnEditCopyAsVolumeSequence()		// // //
 		return;
 	}
 
-	if (!Clipboard.SetDataPointer(str.GetBuffer(), str.GetLength() + 1)) {
+	if (!Clipboard.SetDataPointer((LPCTSTR)str, str.GetLength() + 1)) {
 		AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
 	}
 }
@@ -1115,7 +1115,7 @@ void CFamiTrackerView::OnEditCopyAsText()		// // //
 		return;
 	}
 
-	if (!Clipboard.SetDataPointer(str.GetBuffer(), str.GetLength() + 1)) {
+	if (!Clipboard.SetDataPointer((LPCTSTR)str, str.GetLength() + 1)) {
 		AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
 	}
 }
@@ -1132,7 +1132,7 @@ void CFamiTrackerView::OnEditCopyAsPPMCK()		// // //
 		return;
 	}
 
-	if (!Clipboard.SetDataPointer(str.GetBuffer(), str.GetLength() + 1)) {
+	if (!Clipboard.SetDataPointer((LPCTSTR)str, str.GetLength() + 1)) {
 		AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
 	}
 }
