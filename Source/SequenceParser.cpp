@@ -23,7 +23,8 @@
 #include "SequenceParser.h"
 #include "Sequence.h"
 #include "PatternNote.h"
-#include <regex>
+#include "sv_regex.h"
+#include "NumConv.h"
 
 // // //
 
@@ -32,40 +33,39 @@ std::string CSeqConversionDefault::ToString(char Value) const
 	return std::to_string(Value);
 }
 
-bool CSeqConversionDefault::ToValue(const std::string &String)
+bool CSeqConversionDefault::ToValue(std::string_view sv)
 {
 	m_bReady = false;
-	if (String == "$$") {
+	if (sv == "$$") {
 		m_bHex = true;
 		return true;
 	}
-	auto b = String.begin(), e = String.end();
 
-	if (!GetNextTerm(b, e, m_iCurrentValue))
+	if (!GetNextTerm(sv, m_iCurrentValue))
 		return false;
 	m_iTargetValue = m_iCurrentValue;
 	m_iRepeat = m_iValueDiv = 1;
-	if (b != e && *b == ':') {
-		if (++b == e)
+	if (!sv.empty() && sv.front() == ':') {
+		if (sv.remove_prefix(1), sv.empty())
 			return false;
-		if (!GetNextInteger(b, e, m_iValueDiv))
+		if (!GetNextInteger(sv, m_iValueDiv))
 			return false;
 		if (m_iValueDiv <= 0)
 			return false;
-		if (b != e && *b == ':') {
-			if (++b == e)
+		if (!sv.empty() && sv.front() == ':') {
+			if (sv.remove_prefix(1), sv.empty())
 				return false;
-			if (!GetNextTerm(b, e, m_iTargetValue))
+			if (!GetNextTerm(sv, m_iTargetValue))
 				return false;
 		}
 	}
-	if (b != e && *b == '\'') {
-		if (++b == e)
+	if (!sv.empty() && sv.front() == '\'') {
+		if (sv.remove_prefix(1), sv.empty())
 			return false;
-		if (!GetNextInteger(b, e, m_iRepeat))
+		if (!GetNextInteger(sv, m_iRepeat))
 			return false;
 	}
-	if (b != e || m_iRepeat <= 0)
+	if (!sv.empty() || m_iRepeat <= 0)
 		return false;
 	m_iValueInc = m_iTargetValue - m_iCurrentValue;
 	m_iRepeatCounter = m_iCounter = m_iValueMod = 0;
@@ -104,14 +104,14 @@ void CSeqConversionDefault::OnFinish()
 	m_bReady = false;
 }
 
-bool CSeqConversionDefault::GetNextInteger(std::string::const_iterator &b, std::string::const_iterator &e, int &Out, bool Signed) const
+bool CSeqConversionDefault::GetNextInteger(std::string_view &sv, int &Out, bool Signed) const
 {
-	std::smatch m;
+	svmatch m;
 
 	try {
 		if (m_bHex) {
 			static const std::regex HEX_RE {R"(^([\+-]?)[0-9A-Fa-f]+)"};
-			if (!std::regex_search(b, e, m, HEX_RE))
+			if (!std::regex_search(sv.begin(), sv.end(), m, HEX_RE))
 				return false;
 			if (Signed && !m[1].length())
 				return false;
@@ -120,14 +120,14 @@ bool CSeqConversionDefault::GetNextInteger(std::string::const_iterator &b, std::
 		else {
 			static const std::regex NUMBER_RE {R"(^([\+-]?)[0-9]+)"};
 			static const std::regex HEX_PREFIX_RE {R"(([\+-]?)[\$x]([0-9A-Fa-f]+))"}; // do not allow 0x prefix
-			if (std::regex_search(b, e, m, HEX_PREFIX_RE)) {
+			if (std::regex_search(sv.begin(), sv.end(), m, HEX_PREFIX_RE)) {
 				if (Signed && !m[1].length())
 					return false;
 				Out = std::stoi(m.str(2), nullptr, 16);
 				if (m.str(1) == "-")
 					Out = -Out;
 			}
-			else if (std::regex_search(b, e, m, NUMBER_RE)) {
+			else if (std::regex_search(sv.begin(), sv.end(), m, NUMBER_RE)) {
 				if (Signed && !m[1].length())
 					return false;
 				Out = std::stoi(m.str());
@@ -140,13 +140,13 @@ bool CSeqConversionDefault::GetNextInteger(std::string::const_iterator &b, std::
 		return false;
 	}
 
-	b = m.suffix().first;
+	sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
 	return true;
 }
 
-bool CSeqConversionDefault::GetNextTerm(std::string::const_iterator &b, std::string::const_iterator &e, int &Out)
+bool CSeqConversionDefault::GetNextTerm(std::string_view &sv, int &Out)
 {
-	return GetNextInteger(b, e, Out);
+	return GetNextInteger(sv, Out);
 }
 
 
@@ -163,10 +163,10 @@ std::string CSeqConversion5B::ToString(char Value) const
 	return Str;
 }
 
-bool CSeqConversion5B::ToValue(const std::string &String)
+bool CSeqConversion5B::ToValue(std::string_view sv)
 {
 	m_iEnableFlags = -1;
-	return CSeqConversionDefault::ToValue(String);
+	return CSeqConversionDefault::ToValue(sv);
 }
 
 char CSeqConversion5B::GetValue()
@@ -174,14 +174,14 @@ char CSeqConversion5B::GetValue()
 	return CSeqConversionDefault::GetValue() | m_iEnableFlags;
 }
 
-bool CSeqConversion5B::GetNextTerm(std::string::const_iterator &b, std::string::const_iterator &e, int &Out)
+bool CSeqConversion5B::GetNextTerm(std::string_view &sv, int &Out)
 {
-	if (!GetNextInteger(b, e, Out))
+	if (!GetNextInteger(sv, Out))
 		return false;
 
 	static const std::regex S5B_FLAGS_RE {R"(^[TtNnEe]*)"};
-	std::smatch m;
-	if (std::regex_search(b, e, m, S5B_FLAGS_RE)) {
+	svmatch m;
+	if (std::regex_search(sv.begin(), sv.end(), m, S5B_FLAGS_RE)) {
 		if (m_iEnableFlags == -1) {
 			m_iEnableFlags = 0;
 			if (m.str().find_first_of("Tt") != std::string::npos)
@@ -191,7 +191,7 @@ bool CSeqConversion5B::GetNextTerm(std::string::const_iterator &b, std::string::
 			if (m.str().find_first_of("Ee") != std::string::npos)
 				m_iEnableFlags |= S5B_MODE_ENVELOPE;
 		}
-		b = m.suffix().first;
+		sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
 	}
 	return true;
 }
@@ -219,10 +219,10 @@ std::string CSeqConversionArpScheme::ToString(char Value) const		// // //
 	return Str;
 }
 
-bool CSeqConversionArpScheme::ToValue(const std::string &String)
+bool CSeqConversionArpScheme::ToValue(std::string_view sv)
 {
 	m_iArpSchemeFlag = -1;
-	return CSeqConversionDefault::ToValue(String);
+	return CSeqConversionDefault::ToValue(sv);
 }
 
 char CSeqConversionArpScheme::GetValue()
@@ -230,10 +230,11 @@ char CSeqConversionArpScheme::GetValue()
 	return (CSeqConversionDefault::GetValue() & 0x3F) | m_iArpSchemeFlag;
 }
 
-bool CSeqConversionArpScheme::GetNextTerm(std::string::const_iterator &b, std::string::const_iterator &e, int &Out)
+bool CSeqConversionArpScheme::GetNextTerm(std::string_view &sv, int &Out)
 {
-	const auto SchemeFunc = [&] (const std::string &str) {
-		if (m_iArpSchemeFlag != -1) return;
+	const auto SchemeFunc = [&] (std::string_view str) {
+		if (m_iArpSchemeFlag != -1)
+			return;
 		m_iArpSchemeFlag = 0;
 		if (str == "x" || str == "+x")
 			m_iArpSchemeFlag = static_cast<unsigned char>(ARPSCHEME_MODE_X);
@@ -243,22 +244,22 @@ bool CSeqConversionArpScheme::GetNextTerm(std::string::const_iterator &b, std::s
 			m_iArpSchemeFlag = static_cast<unsigned char>(ARPSCHEME_MODE_NEG_Y);
 	};
 
-	std::smatch m;
+	svmatch m;
 	static const std::regex SCHEME_HEAD_RE {R"(^(x|y|-y))"};
 	static const std::regex SCHEME_TAIL_RE {R"(^(\+x|\+y|-y)?)"};
 
-	if (std::regex_search(b, e, m, SCHEME_HEAD_RE)) {
+	if (std::regex_search(sv.begin(), sv.end(), m, SCHEME_HEAD_RE)) {
 		SchemeFunc(m.str());
-		b = m.suffix().first;
+		sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
 		Out = 0;
-		GetNextInteger(b, e, Out, true); // optional
+		GetNextInteger(sv, Out, true); // optional
 	}
 	else {
-		if (!GetNextInteger(b, e, Out))
+		if (!GetNextInteger(sv, Out))
 			return false;
-		if (std::regex_search(b, e, m, SCHEME_TAIL_RE)) {
+		if (std::regex_search(sv.begin(), sv.end(), m, SCHEME_TAIL_RE)) {
 			SchemeFunc(m.str()); // optional
-			b = m.suffix().first;
+			sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
 		}
 	}
 	return true;
@@ -274,19 +275,18 @@ std::string CSeqConversionArpFixed::ToString(char Value) const
 	return Note.ToString();
 }
 
-bool CSeqConversionArpFixed::GetNextTerm(std::string::const_iterator &b, std::string::const_iterator &e, int &Out)
+bool CSeqConversionArpFixed::GetNextTerm(std::string_view &sv, int &Out)
 {
-	auto _b(b), _e(e);
-	if (CSeqConversionDefault::GetNextTerm(_b, _e, Out)) {
-		b = _b;
-		e = _e;
+	std::string_view _sv(sv);
+	if (CSeqConversionDefault::GetNextTerm(_sv, Out)) {
+		sv = _sv;
 		return true;
 	}
 
-	std::smatch m;
+	svmatch m;
 	static const std::regex FIXED_RE {R"(([A-Ga-g])([+\-#b]*)([0-9]+))"};
 	static const int NOTE_OFFSET[] = {9, 11, 0, 2, 4, 5, 7};
-	if (!std::regex_match(b, e, m, FIXED_RE))
+	if (!std::regex_match(sv.begin(), sv.end(), m, FIXED_RE))
 		return false;
 
 	char ch = m.str(1)[0];
@@ -306,7 +306,8 @@ bool CSeqConversionArpFixed::GetNextTerm(std::string::const_iterator &b, std::st
 	}
 
 	Out = Note;
-	b = m.suffix().first;
+
+	sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
 	return true;
 }
 

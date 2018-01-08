@@ -1412,6 +1412,9 @@
     <ClInclude Include="Source\InstrumentService.h">
       <Filter>Header Files\Document Data Type Headers\Instrument Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Source\sv_regex.h">
+      <Filter>Header Files\Other Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="0CC-FamiTracker.rc">

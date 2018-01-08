@@ -709,6 +709,7 @@
     <ClInclude Include="Source\SplitKeyboardDlg.h" />
     <ClInclude Include="Source\stdafx.h" />
     <ClInclude Include="Source\StretchDlg.h" />
+    <ClInclude Include="Source\sv_regex.h" />
     <ClInclude Include="Source\SwapDlg.h" />
     <ClInclude Include="Source\TempoCounter.h" />
     <ClInclude Include="Source\TempoDisplay.h" />

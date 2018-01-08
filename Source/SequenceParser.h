@@ -26,6 +26,7 @@
 // // // 050B
 
 #include <string>
+#include <string_view>
 #include <memory>
 
 class CSequence;
@@ -46,7 +47,7 @@ public:
 		\details A string term may represent any number of sequence values, including zero.
 		\param String A single MML string term.
 		\return True if the string is a valid representation. */
-	virtual bool ToValue(const std::string &String) = 0;
+	virtual bool ToValue(std::string_view sv) = 0;
 	/*!	\brief Checks the availability of the current string conversion.
 		\details For each valid MML string term, **as well as before and after converting an MML
 		string**, a new value is expected as long as this method returns true.
@@ -70,15 +71,15 @@ public:
 
 public:
 	std::string ToString(char Value) const override;
-	bool ToValue(const std::string &String) override;
+	bool ToValue(std::string_view sv) override;
 	bool IsReady() const override;
 	char GetValue() override;
 	void OnStart() override;
 	void OnFinish() override;
 
 protected:
-	bool GetNextInteger(std::string::const_iterator &b, std::string::const_iterator &e, int &Out, bool Signed = false) const;
-	virtual bool GetNextTerm(std::string::const_iterator &b, std::string::const_iterator &e, int &Out);
+	bool GetNextInteger(std::string_view &sv, int &Out, bool Signed = false) const;
+	virtual bool GetNextTerm(std::string_view &sv, int &Out);
 
 protected:
 	const int m_iMinValue = INT32_MIN;
@@ -98,10 +99,10 @@ class CSeqConversion5B : public CSeqConversionDefault
 public:
 	CSeqConversion5B() : CSeqConversionDefault(0, 0x1F) { }
 	std::string ToString(char Value) const override;
-	bool ToValue(const std::string &String) override;
+	bool ToValue(std::string_view sv) override;
 	char GetValue() override;
 protected:
-	bool GetNextTerm(std::string::const_iterator &b, std::string::const_iterator &e, int &Out) override;
+	bool GetNextTerm(std::string_view &sv, int &Out) override;
 private:
 	char m_iEnableFlags;
 };
@@ -111,10 +112,10 @@ class CSeqConversionArpScheme : public CSeqConversionDefault		// // //
 public:
 	CSeqConversionArpScheme(int Min) : CSeqConversionDefault(Min, Min + 63) { }
 	std::string ToString(char Value) const override;
-	bool ToValue(const std::string &String) override;
+	bool ToValue(std::string_view sv) override;
 	char GetValue() override;
 protected:
-	bool GetNextTerm(std::string::const_iterator &b, std::string::const_iterator &e, int &Out) override;
+	bool GetNextTerm(std::string_view &sv, int &Out) override;
 private:
 	char m_iArpSchemeFlag;
 };
@@ -125,7 +126,7 @@ public:
 	CSeqConversionArpFixed() : CSeqConversionDefault(0, 95) { }
 	std::string ToString(char Value) const override;
 protected:
-	bool GetNextTerm(std::string::const_iterator &b, std::string::const_iterator &e, int &Out) override;
+	bool GetNextTerm(std::string_view &sv, int &Out) override;
 };
 
 /*!
