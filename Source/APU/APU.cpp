@@ -24,7 +24,6 @@
 #include <algorithm>		// // //
 #include <vector>
 #include "../stdafx.h"
-#include <cstdio>
 #include <memory>
 #include <cmath>
 #include "Mixer.h"		// // //

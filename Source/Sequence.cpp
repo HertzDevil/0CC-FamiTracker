@@ -21,7 +21,6 @@
 */
 
 #include "Sequence.h"
-#include <cstring>		// // //
 #include <stdexcept>		// // //
 #include <algorithm>		// // //
 

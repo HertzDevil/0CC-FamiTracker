@@ -21,7 +21,6 @@
 */
 
 #include "FindDlg.h"
-#include <cstdarg>
 #include <map>
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"

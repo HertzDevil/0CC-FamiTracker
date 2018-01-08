@@ -21,9 +21,6 @@
 */
 
 #include "WaveEditor.h"
-#include <iterator>
-#include <string>
-#include <sstream>
 #include "FamiTrackerEnv.h"		// // //
 #include "APU/Types.h"		// // //
 #include "Instrument.h"

@@ -22,7 +22,6 @@
 
 #include "PatternEditor.h"
 #include <algorithm>
-#include <functional>		// // //
 #include <vector>		// // //
 #include <cmath>
 #include "FamiTracker.h"

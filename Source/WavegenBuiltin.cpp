@@ -21,7 +21,7 @@
 */
 
 #include "WavegenBuiltin.h"
-#include <math.h> // sine
+#include <cmath> // sine
 
 //
 // CWavegenImp class

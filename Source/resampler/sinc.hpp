@@ -28,7 +28,6 @@
 #include <vector>
 #include <cstddef>
 //------------------------------------------------------------------------
-#include <xutility>
 
 namespace jarh
 {
