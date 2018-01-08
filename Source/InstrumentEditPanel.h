@@ -89,7 +89,7 @@ public:
 
 	// Static methods
 public:
-	static int ReadStringValue(const std::string &str, bool Signed);		// // //
+	static int ReadStringValue(std::string_view sv);		// // //
 
 	// Member variables
 protected:

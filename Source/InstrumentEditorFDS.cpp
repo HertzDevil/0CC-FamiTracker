@@ -312,9 +312,8 @@ void CInstrumentEditorFDS::ParseWaveString(LPCTSTR pString)
 	std::istream_iterator<std::string> end;
 
 	for (int i = 0; (i < 64) && (begin != end); ++i) {
-		int value = CSequenceInstrumentEditPanel::ReadStringValue(*begin++, false);
-		value = std::clamp(value, 0, 63);		// // //
-		m_pInstrument->SetSample(i, value);
+		int value = CSequenceInstrumentEditPanel::ReadStringValue(*begin++);
+		m_pInstrument->SetSample(i, std::clamp(value, 0, 63));		// // //
 	}
 
 	m_pWaveEditor->RedrawWindow();
@@ -366,9 +365,8 @@ void CInstrumentEditorFDS::ParseTableString(LPCTSTR pString)
 	std::istream_iterator<std::string> end;
 
 	for (int i = 0; (i < 32) && (begin != end); ++i) {
-		int value = CSequenceInstrumentEditPanel::ReadStringValue(*begin++, false);
-		value = std::clamp(value, 0, 7);		// // //
-		m_pInstrument->SetModulation(i, value);
+		int value = CSequenceInstrumentEditPanel::ReadStringValue(*begin++);
+		m_pInstrument->SetModulation(i, std::clamp(value, 0, 7));		// // //
 	}
 
 	m_pModSequenceEditor->RedrawWindow();

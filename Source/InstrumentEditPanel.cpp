@@ -21,8 +21,6 @@
 */
 
 #include "InstrumentEditPanel.h"
-#include <iterator>
-#include <sstream>
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
@@ -30,6 +28,7 @@
 #include "SequenceEditor.h"
 #include "SequenceParser.h"		// // //
 #include "DPI.h"		// // //
+#include "NumConv.h"		// // //
 
 // CInstrumentEditPanel dialog
 //
@@ -236,27 +235,16 @@ void CSequenceInstrumentEditPanel::SetupDialog(const LPCTSTR *pListItems)		// //
 	m_pSequenceEditor->ShowWindow(SW_SHOW);
 }
 
-int CSequenceInstrumentEditPanel::ReadStringValue(const std::string &str, bool Signed)		// // //
+int CSequenceInstrumentEditPanel::ReadStringValue(std::string_view str)		// // //
 {
 	// Translate a string number to integer, accepts '$' for hexadecimal notation
 	// // // 'x' has been disabled due to arp scheme support
-	std::stringstream ss;
-	if (Signed) {
-		if (str[0] == '$')
-			ss << std::hex << str.substr(1, 2);
-		else
-			ss << std::hex << str.substr(0, 2);
-	}
-	else if (str[0] == '$')
-		ss << std::hex << str.substr(1);
-	else
-		ss << str;
-	int value = 0;
-	ss >> value;
-	if (Signed)
-		return static_cast<signed char>(value);
-	else
-		return value;
+	if (str[0] == '$')
+		if (auto x = conv::to_int(str.substr(1), 16))
+			return *x;
+	if (auto x = conv::to_int(str))
+		return *x;
+	return 0;
 }
 
 void CSequenceInstrumentEditPanel::PreviewNote(unsigned char Key)

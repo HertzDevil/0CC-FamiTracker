@@ -26,6 +26,7 @@
 #include "Instrument.h"
 #include "InstrumentVRC7.h"		// // //
 #include "Clipboard.h"
+#include <algorithm>		// // //
 
 static unsigned char default_inst[(16+3)*16] =
 {
@@ -493,10 +494,8 @@ void CInstrumentEditorVRC7::PasteSettings(LPCTSTR pString)
 	std::istream_iterator<std::string> end;
 
 	for (int i = 0; (i < 8) && (begin != end); ++i) {
-		int value = CSequenceInstrumentEditPanel::ReadStringValue(*begin++, false);		// // //
-		if (value < 0) value = 0;
-		if (value > 0xFF) value = 0xFF;
-		m_pInstrument->SetCustomReg(i, value);
+		int value = CSequenceInstrumentEditPanel::ReadStringValue(*begin++);		// // //
+		m_pInstrument->SetCustomReg(i, std::clamp(value, 0, 0xFF));
 	}
 
 	LoadCustomPatch();

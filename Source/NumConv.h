@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <string>
 #include <string_view>
 #include <cstdint>
 #include <optional>
@@ -179,9 +180,10 @@ struct str_buf_ {
 template <unsigned Radix>
 thread_local char str_buf_<Radix>::data[maxlen + 1] = { };
 
-template <unsigned Radix>
-char *from_uint_impl(uintmax_t x, unsigned places) noexcept {
-	char *it = std::end(details::str_buf_<Radix>::data) - 1;
+template <unsigned Radix, unsigned BufLen>
+char *from_uint_impl(char (&data)[BufLen], uintmax_t x, unsigned places) noexcept {
+	char *it = std::end(data) - 1;
+	*it = '\0';
 
 	if (places == (unsigned)-1) {
 		if (!x) {
@@ -195,8 +197,8 @@ char *from_uint_impl(uintmax_t x, unsigned places) noexcept {
 		return it;
 	}
 
-	if (places >= details::str_buf_<Radix>::maxlen)
-		places = details::str_buf_<Radix>::maxlen - 1;
+	if (places > BufLen - 2)
+		places = BufLen - 2;
 	while (places--) {
 		*--it = to_digit(x % Radix);
 		x /= Radix;
@@ -204,20 +206,20 @@ char *from_uint_impl(uintmax_t x, unsigned places) noexcept {
 	return it;
 }
 
-template <unsigned Radix>
-std::string_view from_uint(uintmax_t x, unsigned places) noexcept {
-	return from_uint_impl<Radix>(x, places);
+template <unsigned Radix, unsigned BufLen>
+std::string_view from_uint(char (&data)[BufLen], uintmax_t x, unsigned places) noexcept {
+	return from_uint_impl<Radix>(data, x, places);
 }
 
 #ifdef _MSC_VER
 #pragma warning (push)
 #pragma warning (disable : 4146) // unary minus operator applied to unsigned type, result still unsigned
 #endif
-template <unsigned Radix>
-std::string_view from_int(intmax_t x, unsigned places) noexcept {
+template <unsigned Radix, unsigned BufLen>
+std::string_view from_int(char (&data)[BufLen], intmax_t x, unsigned places) noexcept {
 	if (x >= 0)
-		return from_uint_impl<Radix>(x, places);
-	char *it = from_uint_impl<Radix>(-static_cast<uintmax_t>(x), places);
+		return from_uint_impl<Radix>(data, x, places);
+	char *it = from_uint_impl<Radix>(data, -static_cast<uintmax_t>(x), places);
 	*--it = '-';
 	return it;
 }
@@ -230,97 +232,115 @@ std::string_view from_int(intmax_t x, unsigned places) noexcept {
 // converts an unsigned integer to a decimal string
 // every sv_* function shares the same buffer in each thread
 inline std::string_view sv_from_uint(uintmax_t x, unsigned places = (unsigned)-1) noexcept {
-	return details::from_uint<10>(x, places);
+	return details::from_uint<10>(details::str_buf_<10>::data, x, places);
 }
 
 // converts an unsigned integer to a binary string
 // every sv_* function shares the same buffer in each thread
 inline std::string_view sv_from_uint_bin(uintmax_t x, unsigned places = (unsigned)-1) noexcept {
-	return details::from_uint<2>(x, places);
+	return details::from_uint<2>(details::str_buf_<2>::data, x, places);
 }
 
 // converts an unsigned integer to an octal string
 // every sv_* function shares the same buffer in each thread
 inline std::string_view sv_from_uint_oct(uintmax_t x, unsigned places = (unsigned)-1) noexcept {
-	return details::from_uint<8>(x, places);
+	return details::from_uint<8>(details::str_buf_<8>::data, x, places);
 }
 
 // converts an unsigned integer to a hexadecimal string
 // every sv_* function shares the same buffer in each thread
 inline std::string_view sv_from_uint_hex(uintmax_t x, unsigned places = (unsigned)-1) noexcept {
-	return details::from_uint<16>(x, places);
+	return details::from_uint<16>(details::str_buf_<16>::data, x, places);
 }
 
 // converts a signed integer to a decimal string
 // every sv_* function shares the same buffer in each thread
 inline std::string_view sv_from_int(intmax_t x, unsigned places = (unsigned)-1) noexcept {
-	return details::from_int<10>(x, places);
+	return details::from_int<10>(details::str_buf_<10>::data, x, places);
 }
 
 // converts a signed integer to a binary string
 // every sv_* function shares the same buffer in each thread
 inline std::string_view sv_from_int_bin(intmax_t x, unsigned places = (unsigned)-1) noexcept {
-	return details::from_int<2>(x, places);
+	return details::from_int<2>(details::str_buf_<2>::data, x, places);
 }
 
 // converts a signed integer to an octal string
 // every sv_* function shares the same buffer in each thread
 inline std::string_view sv_from_int_oct(intmax_t x, unsigned places = (unsigned)-1) noexcept {
-	return details::from_int<8>(x, places);
+	return details::from_int<8>(details::str_buf_<8>::data, x, places);
 }
 
 // converts a signed integer to a hexadecimal string
 // every sv_* function shares the same buffer in each thread
 inline std::string_view sv_from_int_hex(intmax_t x, unsigned places = (unsigned)-1) noexcept {
-	return details::from_int<16>(x, places);
+	return details::from_int<16>(details::str_buf_<16>::data, x, places);
 }
 
 // converts an unsigned integer to a decimal string
 // constructs a std::string immediately
-inline auto from_uint(uintmax_t x, unsigned places = (unsigned)-1) {
-	return std::string {sv_from_uint(x, places)};
+inline std::string from_uint(uintmax_t x, unsigned places = (unsigned)-1) {
+	char buf[details::max_places<uintmax_t, 10>() + 1] = { };
+	return std::string {details::from_uint<10>(buf, x, places)};
 }
 
 // converts an unsigned integer to a binary string
 // constructs a std::string immediately
-inline auto from_uint_bin(uintmax_t x, unsigned places = (unsigned)-1) {
-	return std::string {sv_from_uint_bin(x, places)};
+inline std::string from_uint_bin(uintmax_t x, unsigned places = (unsigned)-1) {
+	char buf[details::max_places<uintmax_t, 2>() + 1] = { };
+	return std::string {details::from_uint<2>(buf, x, places)};
 }
 
 // converts an unsigned integer to an octal string
 // constructs a std::string immediately
-inline auto from_uint_oct(uintmax_t x, unsigned places = (unsigned)-1) {
-	return std::string {sv_from_uint_oct(x, places)};
+inline std::string from_uint_oct(uintmax_t x, unsigned places = (unsigned)-1) {
+	char buf[details::max_places<uintmax_t, 8>() + 1] = { };
+	return std::string {details::from_uint<8>(buf, x, places)};
 }
 
 // converts an unsigned integer to a hexadecimal string
 // constructs a std::string immediately
-inline auto from_uint_hex(uintmax_t x, unsigned places = (unsigned)-1) {
-	return std::string {sv_from_uint_hex(x, places)};
+inline std::string from_uint_hex(uintmax_t x, unsigned places = (unsigned)-1) {
+	char buf[details::max_places<uintmax_t, 16>() + 1] = { };
+	return std::string {details::from_uint<16>(buf, x, places)};
 }
 
 // converts a signed integer to a decimal string
 // constructs a std::string immediately
-inline auto from_int(intmax_t x, unsigned places = (unsigned)-1) {
-	return std::string {sv_from_int(x, places)};
+inline std::string from_int(intmax_t x, unsigned places = (unsigned)-1) {
+	char buf[details::max_places<uintmax_t, 10>() + 1] = { };
+	return std::string {details::from_int<10>(buf, x, places)};
 }
 
 // converts a signed integer to a binary string
 // constructs a std::string immediately
-inline auto from_int_bin(intmax_t x, unsigned places = (unsigned)-1) {
-	return std::string {sv_from_int_bin(x, places)};
+inline std::string from_int_bin(intmax_t x, unsigned places = (unsigned)-1) {
+	char buf[details::max_places<uintmax_t, 2>() + 1] = { };
+	return std::string {details::from_int<2>(buf, x, places)};
 }
 
 // converts a signed integer to an octal string
 // constructs a std::string immediately
-inline auto from_int_oct(intmax_t x, unsigned places = (unsigned)-1) {
-	return std::string {sv_from_int_oct(x, places)};
+inline std::string from_int_oct(intmax_t x, unsigned places = (unsigned)-1) {
+	char buf[details::max_places<uintmax_t, 8>() + 1] = { };
+	return std::string {details::from_int<8>(buf, x, places)};
 }
 
 // converts a signed integer to a hexadecimal string
 // constructs a std::string immediately
-inline auto from_int_hex(intmax_t x, unsigned places = (unsigned)-1) {
-	return std::string {sv_from_int_hex(x, places)};
+inline std::string from_int_hex(intmax_t x, unsigned places = (unsigned)-1) {
+	char buf[details::max_places<uintmax_t, 16>() + 1] = { };
+	return std::string {details::from_int<16>(buf, x, places)};
+}
+
+// converts an unsigned number into a time string
+inline std::string time_from_uint(uintmax_t seconds) {
+	return from_uint(seconds / 60u) + ':' + from_uint(seconds % 60u, 2);
+}
+
+// converts a signed number into a time string
+inline std::string time_from_int(intmax_t seconds) {
+	return seconds >= 0 ? time_from_uint(seconds) : ('-' + time_from_uint(-seconds));
 }
 
 } // namespace conv

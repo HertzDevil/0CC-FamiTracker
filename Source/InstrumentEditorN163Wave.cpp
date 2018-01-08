@@ -168,8 +168,7 @@ void CInstrumentEditorN163Wave::GenerateWaves(std::unique_ptr<CWaveformGenerator
 	pWaveGen->CreateWaves(Buffer.get(), size, pWaveGen->GetCount());
 	for (int i = 0; i < size; ++i) {
 		float Sample = Buffer[i] * 7.5f + 8;
-		Sample = Sample < 0.f ? 0.f : Sample > 15.f ? 15.f : Sample;
-		m_pInstrument->SetSample(m_iWaveIndex, i, static_cast<int>(Sample));
+		m_pInstrument->SetSample(m_iWaveIndex, i, static_cast<int>(std::clamp(Sample, 0.f, 15.f)));
 	}
 
 	m_pWaveEditor->WaveChanged();

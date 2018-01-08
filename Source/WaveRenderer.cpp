@@ -22,8 +22,7 @@
 
 #include "WaveRenderer.h"
 #include "WaveFile.h"
-#include <sstream>
-#include <iomanip>
+#include "NumConv.h"
 
 CWaveRenderer::~CWaveRenderer() {
 	CloseOutputFile();
@@ -104,13 +103,9 @@ void CWaveRendererTick::Tick() {
 }
 
 std::string CWaveRendererTick::GetProgressString() const {
-	auto [cur_m, cur_s] = std::div(static_cast<int>(m_iRenderTick / m_fFrameRate), 60);
-	auto [tot_m, tot_s] = std::div(static_cast<int>(m_iTicksToRender / m_fFrameRate), 60);
-	std::stringstream ss;
-	ss << std::setfill('0') << "Time: " << cur_m << ':' << std::setw(2) << std::setfill('0') << cur_s <<
-		" / " << tot_m << ':' << std::setw(2) << std::setfill('0') << tot_s <<
-		(" (" + std::to_string(GetProgressPercent()) + "% done)");
-	return ss.str();
+	return "Time: " + conv::time_from_uint(static_cast<unsigned>(m_iRenderTick / m_fFrameRate)) +
+		" / " + conv::time_from_uint(static_cast<unsigned>(m_iTicksToRender / m_fFrameRate)) +
+		" (" + conv::from_int(GetProgressPercent()) + "% done)";
 }
 
 int CWaveRendererTick::GetProgressPercent() const {
