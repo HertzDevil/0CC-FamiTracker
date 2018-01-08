@@ -24,7 +24,6 @@
 
 void CVisualizerBase::Create(int Width, int Height)
 {
-	memset(&m_bmi, 0, sizeof(BITMAPINFO));
 	m_bmi.bmiHeader.biSize	   = sizeof(BITMAPINFOHEADER);
 	m_bmi.bmiHeader.biBitCount = 32;
 	m_bmi.bmiHeader.biHeight   = -Height;

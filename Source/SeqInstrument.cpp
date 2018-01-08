@@ -76,6 +76,7 @@ void CSeqInstrument::Store(CDocumentFile *pDocFile) const
 	pDocFile->WriteBlockInt(seq_indices_.size());
 
 	for (const auto &[_, v] : seq_indices_) {
+		(void)_;
 		pDocFile->WriteBlockChar(v.first ? 1 : 0);
 		pDocFile->WriteBlockChar(v.second);
 	}
@@ -83,7 +84,7 @@ void CSeqInstrument::Store(CDocumentFile *pDocFile) const
 
 bool CSeqInstrument::Load(CDocumentFile *pDocFile)
 {
-	CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 0, SEQ_COUNT, "Instrument sequence count"); // unused right now
+	CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 0, (int)SEQ_COUNT, "Instrument sequence count"); // unused right now
 
 	foreachSeq([&] (sequence_t i) {
 		SetSeqEnable(i, 0 != CModuleException::AssertRangeFmt<MODULE_ERROR_STRICT>(
@@ -97,7 +98,7 @@ bool CSeqInstrument::Load(CDocumentFile *pDocFile)
 
 void CSeqInstrument::DoSaveFTI(CSimpleFile &File) const
 {
-	File.WriteChar(seq_indices_.size());
+	File.WriteChar(static_cast<char>(seq_indices_.size()));
 
 	foreachSeq([&] (sequence_t i) {
 		if (GetSeqEnable(i)) {
@@ -122,7 +123,7 @@ void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
 	// Sequences
 	std::shared_ptr<CSequence> pSeq;		// // //
 
-	CModuleException::AssertRangeFmt(File.ReadChar(), 0, SEQ_COUNT, "Sequence count"); // unused right now
+	CModuleException::AssertRangeFmt(File.ReadChar(), 0, (int)SEQ_COUNT, "Sequence count"); // unused right now
 
 	// Loop through all instrument effects
 	foreachSeq([&] (sequence_t i) {

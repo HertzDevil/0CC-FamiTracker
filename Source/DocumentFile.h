@@ -25,6 +25,7 @@
 
 #include "stdafx.h"
 #include <string>
+#include <array>		// // //
 #include <vector>		// // //
 
 // CDocumentFile, class for reading/writing document files
@@ -100,7 +101,7 @@ protected:
 	bool			m_bFileDone;
 	bool			m_bIncomplete;
 
-	char			m_cBlockID[BLOCK_HEADER_SIZE] = { };		// // //
+	std::array<char, BLOCK_HEADER_SIZE> m_cBlockID = { };		// // //
 	unsigned int	m_iBlockSize;
 	unsigned int	m_iBlockVersion;
 	std::vector<char> m_pBlockData;		// // //

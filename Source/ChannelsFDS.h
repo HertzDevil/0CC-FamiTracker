@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <array>		// // //
 #include "ChannelHandler.h"
 
 class CChannelHandlerFDS : public CChannelHandlerInverted, public CChannelHandlerInterfaceFDS {
@@ -54,10 +55,10 @@ protected:
 	int m_iModulationDepth;
 	int m_iModulationDelay;
 	// Modulation table
-	char m_iModTable[32];
-	char m_iWaveTable[64];
+	std::array<char, 32> m_iModTable = { };		// // //
+	std::array<char, 64> m_iWaveTable = { };		// // //
 protected:
-	int m_iVolModMode;		// // // 0CC: make an enum for this
+	int m_iVolModMode;		// // // TODO: make an enum for this
 	int m_iVolModRate;
 	bool m_bVolModTrigger;
 

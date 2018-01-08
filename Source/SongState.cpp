@@ -25,6 +25,7 @@
 #include "TrackerChannel.h"
 #include "ft0cc/doc/groove.hpp"
 #include <algorithm>
+#include "NumConv.h"
 
 
 
@@ -53,15 +54,15 @@ void UpdateEchoTranspose(const stChanNote &Note, int &Value, unsigned int EffCol
 
 
 std::string MakeCommandString(effect_t Effect, unsigned char Param) {		// // //
-	return {' ', EFF_CHAR[Effect - 1], hex(Param >> 4), hex(Param)};
+	return {' ', EFF_CHAR[Effect - 1], conv::to_digit(Param >> 4), conv::to_digit(Param)};
 }
 
 
 
 stChannelState::stChannelState()
 {
-	memset(Effect, -1, std::size(Effect) * sizeof(int));
-	memset(Echo, -1, std::size(Echo) * sizeof(int));
+	Effect.fill(-1);
+	Echo.fill(-1);
 }
 
 std::string stChannelState::GetStateString() const {
@@ -69,9 +70,9 @@ std::string stChannelState::GetStateString() const {
 	if (Instrument == MAX_INSTRUMENTS)
 		log += "None";
 	else
-		log += {hex(Instrument >> 4), hex(Instrument)};
+		log += conv::sv_from_int_hex(Instrument, 2);
 	log += "        Vol.: ";
-	log += hex(Volume >= MAX_VOLUME ? 0xF : Volume);
+	log += conv::to_digit(Volume >= MAX_VOLUME ? 0xF : Volume);
 	log += "        Active effects:";
 
 	std::string effStr;
@@ -330,7 +331,7 @@ std::string CSongState::GetChannelStateString(const CFamiTrackerDoc &doc, int ch
 	if (Speed >= 0) {
 		if (const auto *pGroove = doc.GetGroove(Speed); pGroove && GroovePos >= 0) {
 			str += "        Groove: ";
-			str += {hex(Speed >> 4), hex(Speed), ' ', '<', '-'};
+			str += {conv::to_digit(Speed >> 4), conv::to_digit(Speed), ' ', '<', '-'};
 			unsigned Size = pGroove->size();
 			for (unsigned i = 0; i < Size; ++i)
 				str += ' ' + std::to_string(pGroove->entry((i + GroovePos) % Size));

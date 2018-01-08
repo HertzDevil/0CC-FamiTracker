@@ -78,7 +78,7 @@ private:
 
 	unsigned int	m_iDuration;
 	unsigned int	m_iCurrentDefaultDuration;
-	bool			m_bDSamplesAccessed[OCTAVE_RANGE * NOTE_RANGE]; // <- check the range, its not optimal right now
+	bool			m_bDSamplesAccessed[OCTAVE_RANGE * NOTE_RANGE] = { }; // <- check the range, its not optimal right now
 	unsigned int	m_iHash;
 	unsigned int	*m_pInstrumentList;
 

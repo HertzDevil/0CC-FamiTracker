@@ -146,9 +146,8 @@ void CConfigAppearance::OnPaint()
 	int WinWidth = Rect.right - Rect.left;
 
 	CFont Font, *OldFont;
-	LOGFONT LogFont;
+	LOGFONT LogFont = { };		// // //
 
-	memset(&LogFont, 0, sizeof(LOGFONT));
 	strcpy_s(LogFont.lfFaceName, LF_FACESIZE, m_strFont.GetBuffer());
 
 	LogFont.lfHeight = -m_iFontSize;
@@ -240,8 +239,7 @@ BOOL CConfigAppearance::OnInitDialog()
 
 	CDC *pDC = GetDC();
 	if (pDC != NULL) {
-		LOGFONT LogFont;
-		memset(&LogFont, 0, sizeof(LOGFONT));
+		LOGFONT LogFont = { };		// // //
 		LogFont.lfCharSet = DEFAULT_CHARSET;
 		EnumFontFamiliesEx(pDC->m_hDC, &LogFont, (FONTENUMPROC)EnumFontFamExProc, (LPARAM)this, 0);
 		ReleaseDC(pDC);

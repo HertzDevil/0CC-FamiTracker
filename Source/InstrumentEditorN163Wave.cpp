@@ -32,6 +32,7 @@
 #include "WavegenBuiltin.h" // test
 #include "NumConv.h"		// // //
 #include "sv_regex.h"		// // //
+#include <array>		// // //
 
 // CInstrumentEditorN163Wave dialog
 
@@ -349,23 +350,20 @@ void CInstrumentEditorN163Wave::PopulateWaveBox()		// // //
 void CInstrumentEditorN163Wave::UpdateWaveBox(int Index)		// // //
 {
 	CBitmap Waveform;
-	char WaveBits[CInstrumentN163::MAX_WAVE_SIZE * 2];
-	CreateWaveImage(WaveBits, Index);
-	Waveform.CreateBitmap(m_pInstrument->GetWaveSize(), 16, 1, 1, WaveBits);
-	m_WaveImage.Replace(Index, &Waveform, &Waveform);
-	m_cWaveListCtrl.SetImageList(&m_WaveImage, LVSIL_SMALL);
-	m_cWaveListCtrl.RedrawItems(Index, Index);
-}
+	std::array<unsigned char, CInstrumentN163::MAX_WAVE_SIZE * 2> WaveBits;
 
-void CInstrumentEditorN163Wave::CreateWaveImage(char *const Pos, int Index) const		// // //
-{
-	memset(Pos, 0xFF, CInstrumentN163::MAX_WAVE_SIZE * 2);
+	WaveBits.fill(0xFFu);
 	int Width = m_pInstrument->GetWaveSize();
 	if (Width % 16) Width += 16 - Width % 16;
 	for (int j = 0; j < Width; j++) {
 		int b = Width * (15 - m_pInstrument->GetSample(Index, j)) + j;
-		Pos[b / 8] &= ~static_cast<char>(1 << (7 - b % 8));
+		WaveBits[b / 8] &= ~static_cast<char>(1 << (7 - b % 8));
 	}
+
+	Waveform.CreateBitmap(m_pInstrument->GetWaveSize(), 16, 1, 1, WaveBits.data());
+	m_WaveImage.Replace(Index, &Waveform, &Waveform);
+	m_cWaveListCtrl.SetImageList(&m_WaveImage, LVSIL_SMALL);
+	m_cWaveListCtrl.RedrawItems(Index, Index);
 }
 
 /*

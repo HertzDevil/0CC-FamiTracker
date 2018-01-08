@@ -66,7 +66,7 @@ void CTransposeDlg::Transpose(int Trsp, unsigned int Track)
 				else if (MIDI >= NOTE_COUNT) MIDI = NOTE_COUNT - 1;
 				Note.Octave = GET_OCTAVE(MIDI);
 				Note.Note = GET_NOTE(MIDI);
-				m_pDocument->SetDataAtPattern(Track, p, c, r, Note);		// // //
+				m_pDocument->SetDataAtPattern(Track, p, c, r, Note);
 			}
 		}
 	}
@@ -84,10 +84,9 @@ END_MESSAGE_MAP()
 
 BOOL CTransposeDlg::OnInitDialog()
 {
-	LOGFONT LogFont;
-	const LPCTSTR SMALL_FONT_FACE = _T("Verdana");		// // //
+	LOGFONT LogFont = { };
+	const LPCTSTR SMALL_FONT_FACE = _T("Verdana");
 
-	memset(&LogFont, 0, sizeof LOGFONT);
 	_tcscpy_s(LogFont.lfFaceName, 32, SMALL_FONT_FACE);
 	LogFont.lfHeight = -DPI::SY(10);
 	LogFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;

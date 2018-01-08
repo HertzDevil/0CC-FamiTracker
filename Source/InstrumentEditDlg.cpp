@@ -407,8 +407,6 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 			NoteData.Octave			= Octave;
 			NoteData.Vol			= MAX_VOLUME - 1;
 			NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();
-			memset(NoteData.EffNumber, 0, 4);
-			memset(NoteData.EffParam, 0, 4);
 
 			Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 			Env.GetSoundGenerator()->ForceReloadInstrument(Channel);		// // //
@@ -417,10 +415,6 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 	}
 	else {
 		NoteData.Note			= pView->DoRelease() ? RELEASE : HALT;//HALT;
-		NoteData.Vol			= MAX_VOLUME;
-		NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();;
-		memset(NoteData.EffNumber, 0, 4);
-		memset(NoteData.EffParam, 0, 4);
 
 		Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 

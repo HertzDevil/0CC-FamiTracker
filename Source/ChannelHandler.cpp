@@ -36,7 +36,7 @@
 #include "Settings.h"		// // //
 #include "APU/APU.h"
 #include "InstHandler.h"		// // //
-
+#include "NumConv.h"		// // //
 #include <algorithm>		// // //
 
 /*
@@ -173,8 +173,7 @@ void CChannelHandler::ResetChannel()
 	m_iVibratoDepth		= 0;
 	m_iTremoloDepth		= 0;
 
-	for (int i = 0; i <= ECHO_BUFFER_LENGTH; i++)		// // //
-		m_iEchoBuffer[i] = ECHO_BUFFER_NONE;
+	m_iEchoBuffer.fill(ECHO_BUFFER_NONE);		// // //
 
 	// States
 	m_bTrigger			= false;		// // //
@@ -193,9 +192,9 @@ std::string CChannelHandler::GetStateString() const		// // //
 	if (m_iInstrument == MAX_INSTRUMENTS) // never happens because famitracker will switch to selected inst
 		log += "None";
 	else
-		log += {hex(m_iInstrument >> 4), hex(m_iInstrument)};
+		log += conv::sv_from_uint_hex(m_iInstrument, 2);
 	log += "        Vol.: ";
-	log += hex(m_iDefaultVolume >> VOL_COLUMN_SHIFT);
+	log += conv::to_digit(m_iDefaultVolume >> VOL_COLUMN_SHIFT);
 	log += "        Active effects:";
 	return log + GetEffectString();
 }
@@ -204,7 +203,7 @@ void CChannelHandler::ApplyChannelState(const stChannelState &State)
 {
 	m_iInstrument = State.Instrument;
 	m_iDefaultVolume = m_iVolume = (State.Volume == MAX_VOLUME) ? VOL_COLUMN_MAX : (State.Volume << VOL_COLUMN_SHIFT);
-	memcpy(m_iEchoBuffer, State.Echo, sizeof(int) * (ECHO_BUFFER_LENGTH + 1));
+	m_iEchoBuffer = State.Echo;
 	if (m_iInstrument != MAX_INSTRUMENTS)
 		HandleInstrument(true, true);
 	if (State.Effect_LengthCounter >= 0)

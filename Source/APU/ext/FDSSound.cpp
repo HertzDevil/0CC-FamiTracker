@@ -350,7 +350,7 @@ static uint32_t DivFix(uint32_t p1, uint32_t p2, uint32_t fix)
 void __fastcall FDSSoundReset(void)
 {
 	uint32_t i;
-	memset(&fdssound, 0, sizeof(FDSSOUND));
+	fdssound = FDSSOUND { };		// // //
 	// TODO: Fix srate
 	fdssound.srate = 1789773; //CAPU::BASE_FREQ_NTSC; ///NESAudioFrequencyGet();
 	fdssound.envcps = DivFix(NES_BASECYCLES, 12 * fdssound.srate, EGCPS_BITS + 5 - 9 + 1);

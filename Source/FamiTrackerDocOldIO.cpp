@@ -26,6 +26,7 @@
 #include "SongData.h"
 #include "InstrumentManager.h"
 #include <memory>
+#include <array>
 #include "Instrument2A03.h"
 #include "ft0cc/doc/dpcm_sample.hpp"
 #include "Sequence.h"
@@ -250,9 +251,9 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 void compat::ReorderSequences(CFamiTrackerDoc &doc, std::vector<COldSequence> seqs)		// // //
 {
 	int Slots[SEQ_COUNT] = {0, 0, 0, 0, 0};
-	int Indices[MAX_SEQUENCES][SEQ_COUNT];
-
-	memset(Indices, 0xFF, MAX_SEQUENCES * SEQ_COUNT * sizeof(int));
+	std::array<std::array<int, SEQ_COUNT>, MAX_SEQUENCES> Indices;
+	for (auto &x : Indices)
+		x.fill(-1);
 
 	auto &Manager = *doc.GetInstrumentManager();
 

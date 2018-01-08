@@ -229,8 +229,8 @@ protected:
 	CEdit m_cReplaceNoteField, m_cReplaceInstField, m_cReplaceVolField, m_cReplaceEffField;
 	CComboBox m_cSearchArea, m_cEffectColumn;
 
-	searchTerm m_searchTerm;
-	replaceTerm m_replaceTerm;
+	searchTerm m_searchTerm = { };
+	replaceTerm m_replaceTerm = { };
 	bool m_bFound, m_bSkipFirst, m_bReplacing;
 
 	std::unique_ptr<CFindCursor> m_pFindCursor;

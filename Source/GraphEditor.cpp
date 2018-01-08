@@ -71,11 +71,10 @@ BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCTSTR lpszClassName, LPCTSTR lpsz
 	if (CWnd::CreateEx(dwExStyle, lpszClassName, lpszWindowName, dwStyle, rect, pParentWnd, nID, lpParam) == -1)
 		return -1;
 
-	LOGFONT LogFont;
+	LOGFONT LogFont = { };		// // //
 
 	const LPCTSTR SMALL_FONT_FACE = _T("Verdana");		// // //
 
-	memset(&LogFont, 0, sizeof LOGFONT);
 	_tcscpy_s(LogFont.lfFaceName, 32, SMALL_FONT_FACE);
 	LogFont.lfHeight = -10;
 	LogFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;

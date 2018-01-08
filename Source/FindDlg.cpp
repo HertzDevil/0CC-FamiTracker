@@ -542,8 +542,6 @@ CFindDlg::CFindDlg(CWnd* pParent /*=NULL*/) : CDialog(CFindDlg::IDD, pParent),
 	m_pFindCursor(nullptr),
 	m_iSearchDirection(CFindCursor::direction_t::RIGHT)
 {
-	//memset(&m_searchTerm, 0, sizeof(searchTerm));
-	//memset(&m_replaceTerm, 0, sizeof(replaceTerm));
 }
 
 CFindDlg::~CFindDlg()

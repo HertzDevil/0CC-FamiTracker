@@ -76,7 +76,7 @@ bool CDocumentFile::EndDocument()
 void CDocumentFile::CreateBlock(const char *ID, int Version)
 {
 	ASSERT(strlen(ID) < BLOCK_HEADER_SIZE);		// // //
-	strncpy_s(m_cBlockID, ID, BLOCK_HEADER_SIZE);
+	strncpy_s(m_cBlockID.data(), std::size(m_cBlockID), ID, BLOCK_HEADER_SIZE);
 
 	m_iBlockPointer = 0;
 	m_iBlockSize	= 0;
@@ -150,7 +150,7 @@ bool CDocumentFile::FlushBlock()
 
 	if (m_iBlockPointer)		// // //
 		try {
-			Write(m_cBlockID, 16);
+			Write(m_cBlockID.data(), std::size(m_cBlockID) * sizeof(char));
 			Write(&m_iBlockVersion, sizeof(m_iBlockVersion));
 			Write(&m_iBlockPointer, sizeof(m_iBlockPointer));
 			Write(m_pBlockData.data(), m_iBlockPointer);		// // //
@@ -204,22 +204,22 @@ bool CDocumentFile::ReadBlock()
 {
 	m_iBlockPointer = 0;
 
-	memset(m_cBlockID, 0, 16);
+	m_cBlockID.fill(0);		// // //
 
-	int BytesRead = Read(m_cBlockID, 16);
+	int BytesRead = Read(m_cBlockID.data(), std::size(m_cBlockID) * sizeof(char));
 	Read(&m_iBlockVersion, sizeof(int));
 	Read(&m_iBlockSize, sizeof(int));
 
 	if (m_iBlockSize > 50000000) {
 		// File is probably corrupt
-		memset(m_cBlockID, 0, 16);
+		m_cBlockID.fill(0);		// // //
 		return true;
 	}
 
 	m_pBlockData = std::vector<char>(m_iBlockSize);		// // //
 	Read(m_pBlockData.data(), m_iBlockSize);
 
-	if (strncmp(m_cBlockID, FILE_END_ID, BLOCK_HEADER_SIZE) == 0)		// // //
+	if (0 == strncmp(m_cBlockID.data(), FILE_END_ID, BLOCK_HEADER_SIZE))		// // //
 		m_bFileDone = true;
 
 	if (BytesRead == 0)
@@ -228,7 +228,7 @@ bool CDocumentFile::ReadBlock()
 	if (GetPosition() == GetLength() && !m_bFileDone) {
 		// Parts of file is missing
 		m_bIncomplete = true;
-		memset(m_cBlockID, 0, 16);
+		m_cBlockID.fill(0);
 		return true;
 	}
 */
@@ -237,7 +237,7 @@ bool CDocumentFile::ReadBlock()
 
 const char *CDocumentFile::GetBlockHeaderID() const		// // //
 {
-	return m_cBlockID;
+	return m_cBlockID.data();
 }
 
 int CDocumentFile::GetBlockVersion() const
@@ -344,7 +344,7 @@ void CDocumentFile::SetDefaultFooter(CModuleException &e) const		// // //
 {
 	char Buffer[128] = {};
 	sprintf_s(Buffer, std::size(Buffer), "At address 0x%X in %.*s block,\naddress 0x%llX in file",
-			  m_iPreviousPointer, BLOCK_HEADER_SIZE, m_cBlockID, m_iPreviousPosition);		// // //
+			  m_iPreviousPointer, m_cBlockID.size(), m_cBlockID.data(), m_iPreviousPosition);		// // //
 	e.SetFooter(std::string {Buffer});
 }
 

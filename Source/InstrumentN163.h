@@ -24,6 +24,7 @@
 #pragma once
 
 #include "SeqInstrument.h"
+#include <array>
 
 class CInstrumentN163 : public CSeqInstrument {
 public:
@@ -67,7 +68,7 @@ public:
 	const char *GetSequenceName(int Index) const override { return SEQUENCE_NAME[Index]; }		// // //
 
 private:
-	int		m_iSamples[MAX_WAVE_COUNT][MAX_WAVE_SIZE];
+	std::array<std::array<int, MAX_WAVE_SIZE>, MAX_WAVE_COUNT> m_iSamples = { };		// // //
 	int		m_iWaveSize;
 	int		m_iWavePos;
 	bool	m_bAutoWavePos;		// // // 050B

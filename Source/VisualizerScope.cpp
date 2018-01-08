@@ -24,6 +24,7 @@
 #include <cmath>
 #include "FamiTracker.h"
 #include "Graphics.h"
+#include "Color.h"		// // //
 
 /*
  * Displays a sample scope
@@ -54,8 +55,9 @@ void CVisualizerScope::SetSampleRate(int SampleRate)
 void CVisualizerScope::ClearBackground()
 {
 	for (int y = 0; y < m_iHeight; ++y) {
-		unsigned char intensity = (unsigned char)(sinf((float(y) * 3.14f) / float(m_iHeight)) * 40.0f);		// // //
-		memset(&m_pBlitBuffer[y * m_iWidth], intensity, sizeof(COLORREF) * m_iWidth);
+		COLORREF col = GREY((unsigned char)(std::sinf((float(y) * 3.14f) / float(m_iHeight)) * 40.0f));		// // //
+		for (int x = 0; x < m_iWidth; ++x)
+			m_pBlitBuffer[y * m_iWidth + x] = col;
 	}
 }
 

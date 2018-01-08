@@ -27,6 +27,7 @@
 #include "MixerLevels.h"		// // //
 #include "../Common.h"
 #include "../Blip_Buffer/blip_buffer.h"
+#include <array>		// // //
 
 enum chip_level_t {
 	CHIP_LEVEL_APU1,
@@ -91,9 +92,9 @@ private:
 	uint8_t		m_iExternalChip = 0;
 	uint32_t	m_iSampleRate = 0;
 
-	float		m_fChannelLevels[CHANNELS] = { };
-	float		m_fChannelLevelsLast[CHANNELS] = { };		// // //
-	uint32_t	m_iChanLevelFallOff[CHANNELS] = { };
+	std::array<float, CHANNELS>		m_fChannelLevels = { };
+	std::array<float, CHANNELS>		m_fChannelLevelsLast = { };		// // //
+	std::array<uint32_t, CHANNELS>	m_iChanLevelFallOff = { };
 
 	decay_rate_t m_iMeterDecayRate = DECAY_SLOW;		// // // 050B
 	int			m_iLowCut = 0;

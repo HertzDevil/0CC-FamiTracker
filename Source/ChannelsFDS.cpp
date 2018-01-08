@@ -34,8 +34,6 @@
 CChannelHandlerFDS::CChannelHandlerFDS() :
 	CChannelHandlerInverted(0xFFF, 32)
 {
-	memset(m_iModTable, 0, 32);
-	memset(m_iWaveTable, 0, 64);
 }
 
 void CChannelHandlerFDS::HandleNoteData(stChanNote &NoteData)		// // //
@@ -234,8 +232,8 @@ void CChannelHandlerFDS::ClearRegisters()
 	m_iVolModRate = 0;
 	m_bVolModTrigger = false;
 
-	memset(m_iModTable, 0, 32);
-	memset(m_iWaveTable, 0, 64);
+	m_iModTable.fill(0);		// // //
+	m_iWaveTable.fill(0);
 }
 
 std::string CChannelHandlerFDS::GetCustomEffectString() const		// // //
@@ -280,8 +278,8 @@ void CChannelHandlerFDS::SetFMDelay(int Delay)		// // //
 
 void CChannelHandlerFDS::FillWaveRAM(const char *pBuffer)		// // //
 {
-	if (memcmp(m_iWaveTable, pBuffer, sizeof(m_iWaveTable))) {
-		memcpy(m_iWaveTable, pBuffer, sizeof(m_iWaveTable));
+	if (memcmp(m_iWaveTable.data(), pBuffer, sizeof(m_iWaveTable))) {
+		memcpy(m_iWaveTable.data(), pBuffer, sizeof(m_iWaveTable));
 
 		// Fills the 64 byte waveform table
 		// Enable write for waveform RAM
@@ -298,8 +296,8 @@ void CChannelHandlerFDS::FillWaveRAM(const char *pBuffer)		// // //
 
 void CChannelHandlerFDS::FillModulationTable(const char *pBuffer)		// // //
 {
-	if (memcmp(m_iModTable, pBuffer, sizeof(m_iModTable))) {
-		memcpy(m_iModTable, pBuffer, sizeof(m_iModTable));
+	if (memcmp(m_iModTable.data(), pBuffer, sizeof(m_iModTable))) {
+		memcpy(m_iModTable.data(), pBuffer, sizeof(m_iModTable));
 
 		// Disable modulation
 		WriteRegister(0x4087, 0x80);

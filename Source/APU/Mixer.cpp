@@ -325,9 +325,9 @@ void CMixer::StoreChannelLevel(chan_id_t Channel, int Level)		// // //
 
 void CMixer::ClearChannelLevels()
 {
-	memset(m_fChannelLevels, 0, sizeof(float) * CHANNELS);
-	memset(m_fChannelLevelsLast, 0, sizeof(float) * CHANNELS);		// // //
-	memset(m_iChanLevelFallOff, 0, sizeof(uint32_t) * CHANNELS);
+	m_fChannelLevels.fill(0.f);		// // //
+	m_fChannelLevelsLast.fill(0.f);
+	m_iChanLevelFallOff.fill(0u);
 }
 
 uint32_t CMixer::ResampleDuration(uint32_t Time) const

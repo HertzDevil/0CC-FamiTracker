@@ -27,6 +27,7 @@
 
 #include "stdafx.h"		// // //
 #include <memory>		// // //
+#include <array>		// // //
 #include <unordered_map>		// // //
 
 #include "FamiTrackerTypes.h"		// // //
@@ -300,7 +301,7 @@ private:
 	unsigned int		m_iWindowHeight;						// Height of view area
 
 	// Input
-	char				m_cKeyList[256];
+	std::array<char, 256> m_cKeyList = { };						// // //
 	int					m_iLastNote;							// Last note added to pattern
 	int					m_iLastInstrument;						// Last instrument added to pattern
 	int					m_iLastVolume;							// Last volume added to pattern

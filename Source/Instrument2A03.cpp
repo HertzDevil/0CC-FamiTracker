@@ -151,8 +151,7 @@ void CInstrument2A03::DoSaveFTI(CSimpleFile &File) const
 	unsigned int Count = GetSampleCount();		// // // 050B
 	File.WriteInt(Count);
 
-	bool UsedSamples[MAX_DSAMPLES];
-	memset(UsedSamples, 0, sizeof(bool) * MAX_DSAMPLES);
+	bool UsedSamples[MAX_DSAMPLES] = { };
 
 	int UsedCount = 0;
 	for (int i = 0; i < OCTAVE_RANGE; ++i) {	// octaves

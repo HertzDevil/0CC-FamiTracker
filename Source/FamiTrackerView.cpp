@@ -292,8 +292,6 @@ CFamiTrackerView::CFamiTrackerView() :
 	m_bDragSource(false),
 	m_pPatternEditor(std::make_unique<CPatternEditor>())		// // //
 {
-	memset(m_cKeyList, 0, sizeof(char) * 256);
-
 	// Register this object in the sound generator
 	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 	ASSERT_VALID(pSoundGen);
@@ -3106,7 +3104,7 @@ bool CFamiTrackerView::PreventRepeat(unsigned char Key, bool Insert)
 
 void CFamiTrackerView::RepeatRelease(unsigned char Key)
 {
-	memset(m_cKeyList, 0, 256);
+	m_cKeyList.fill(0);		// // //
 }
 
 //
@@ -3132,7 +3130,7 @@ bool CFamiTrackerView::PreviewNote(unsigned char Key)
 
 void CFamiTrackerView::PreviewRelease(unsigned char Key)
 {
-	memset(m_cKeyList, 0, 256);
+	m_cKeyList.fill(0);		// // //
 
 	int Note = TranslateKey(Key);
 
@@ -3401,7 +3399,7 @@ void CFamiTrackerView::OnOneStepDown()
 
 void CFamiTrackerView::MakeSilent()
 {
-	memset(m_cKeyList, 0, sizeof(char) * 256);
+	m_cKeyList.fill(0);		// // //
 }
 
 bool CFamiTrackerView::IsSelecting() const

@@ -220,9 +220,6 @@ CPatternEditor::CPatternEditor() :
 	// Get drag info from OS
 	m_iDragThresholdX = ::GetSystemMetrics(SM_CXDRAG);
 	m_iDragThresholdY = ::GetSystemMetrics(SM_CYDRAG);
-
-	memset(m_iChannelWidths, 0, sizeof(int) * MAX_CHANNELS);
-	memset(m_iColumns, 0, sizeof(int) * MAX_CHANNELS);
 }
 
 // Drawing
@@ -234,7 +231,6 @@ void CPatternEditor::ApplyColorScheme()
 
 	const CSettings *pSettings = theApp.GetSettings();
 
-	LOGFONT LogFont;
 	LPCTSTR	FontName = pSettings->Appearance.strFont;		// // //
 	LPCTSTR	HeaderFace = DEFAULT_HEADER_FONT;
 
@@ -250,7 +246,7 @@ void CPatternEditor::ApplyColorScheme()
 	CalcLayout();
 
 	// Create pattern font
-	memset(&LogFont, 0, sizeof LOGFONT);
+	LOGFONT LogFont = { };		// // //
 	memcpy(LogFont.lfFaceName, FontName, _tcslen(FontName));
 
 	LogFont.lfHeight = -m_iPatternFontSize;
@@ -265,7 +261,7 @@ void CPatternEditor::ApplyColorScheme()
 	m_fontPattern.CreateFontIndirect(&LogFont);
 
 	// Create header font
-	memset(&LogFont, 0, sizeof LOGFONT);
+	LogFont = { };		// // //
 	memcpy(LogFont.lfFaceName, HeaderFace, _tcslen(HeaderFace));
 
 	LogFont.lfHeight = -DEFAULT_HEADER_FONT_SIZE;
@@ -3107,7 +3103,6 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 {
 	const int Track = GetSelectedTrack();
 	const int Frames = GetFrameCount();
-	unsigned char Lo[MAX_PATTERN], Hi[MAX_PATTERN];
 
 	if (!theApp.GetSettings()->General.bShowSkippedRows) {
 		auto it = CPatternIterator::FromSelection(Sel, m_pDocument, GetSelectedTrack());
@@ -3128,9 +3123,11 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 		}
 	}
 
+	std::array<unsigned char, MAX_PATTERN> Lo;
+	std::array<unsigned char, MAX_PATTERN> Hi;
 	for (int c = Sel.GetChanStart(); c <= Sel.GetChanEnd(); c++) {
-		memset(Lo, 255, MAX_PATTERN);
-		memset(Hi, 0, MAX_PATTERN);
+		Lo.fill(255u);
+		Hi.fill(0u);
 
 		for (int i = Sel.GetFrameStart(); i <= Sel.GetFrameEnd(); i++) {
 			int Pattern = m_pDocument->GetPatternAtFrame(Track, (i + Frames) % Frames, c);

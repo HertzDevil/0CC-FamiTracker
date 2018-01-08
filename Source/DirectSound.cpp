@@ -144,8 +144,6 @@ std::unique_ptr<CDSoundChannel> CDSound::OpenChannel(int SampleRate, int SampleS
 	//
 
 	DSBPOSITIONNOTIFY	dspn[MAX_BLOCKS];
-	WAVEFORMATEX		wfx;
-	DSBUFFERDESC		dsbd;
 
 	ASSERT(Blocks > 1);
 
@@ -176,7 +174,7 @@ std::unique_ptr<CDSoundChannel> CDSound::OpenChannel(int SampleRate, int SampleS
 	pChannel->m_hEventList[0]		= m_hNotificationHandle;
 	pChannel->m_hEventList[1]		= hBufferEvent;
 
-	memset(&wfx, 0x00, sizeof(WAVEFORMATEX));
+	WAVEFORMATEX wfx = { };		// // //
 	wfx.cbSize				= sizeof(WAVEFORMATEX);
 	wfx.nChannels			= Channels;
 	wfx.nSamplesPerSec		= SampleRate;
@@ -185,8 +183,7 @@ std::unique_ptr<CDSoundChannel> CDSound::OpenChannel(int SampleRate, int SampleS
 	wfx.nAvgBytesPerSec		= wfx.nSamplesPerSec * wfx.nBlockAlign;
 	wfx.wFormatTag			= WAVE_FORMAT_PCM;
 
-	memset(&dsbd, 0x00, sizeof(DSBUFFERDESC));
-	dsbd.dwSize			= sizeof(DSBUFFERDESC);
+	DSBUFFERDESC dsbd = {sizeof(DSBUFFERDESC)};		// // //
 	dsbd.dwBufferBytes	= SoundBufferSize;
 	dsbd.dwFlags		= DSBCAPS_LOCSOFTWARE | DSBCAPS_GLOBALFOCUS | DSBCAPS_CTRLPOSITIONNOTIFY | DSBCAPS_GETCURRENTPOSITION2;
 	dsbd.lpwfxFormat	= &wfx;
@@ -259,18 +256,18 @@ bool CDSoundChannel::ClearBuffer()
 		if (!Stop())
 			return false;
 
-	if (FAILED(m_lpDirectSoundBuffer->Lock(0, m_iSoundBufferSize, (void**)&pAudioPtr1, &AudioBytes1, (void**)&pAudioPtr2, &AudioBytes2, 0)))
+	if (FAILED(m_lpDirectSoundBuffer->Lock(0, m_iSoundBufferSize, &pAudioPtr1, &AudioBytes1, &pAudioPtr2, &AudioBytes2, 0)))
 		return false;
 
 	if (m_iSampleSize == 8) {
-		memset(pAudioPtr1, 0x80, AudioBytes1);
+		std::memset(pAudioPtr1, 0x80, AudioBytes1);
 		if (pAudioPtr2)
-			memset(pAudioPtr2, 0x80, AudioBytes2);
+			std::memset(pAudioPtr2, 0x80, AudioBytes2);
 	}
 	else {
-		memset(pAudioPtr1, 0x00, AudioBytes1);
+		std::memset(pAudioPtr1, 0x00, AudioBytes1);
 		if (pAudioPtr2)
-			memset(pAudioPtr2, 0x00, AudioBytes2);
+			std::memset(pAudioPtr2, 0x00, AudioBytes2);
 	}
 
 	if (FAILED(m_lpDirectSoundBuffer->Unlock((void*)pAudioPtr1, AudioBytes1, (void*)pAudioPtr2, AudioBytes2)))

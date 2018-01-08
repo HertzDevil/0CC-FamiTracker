@@ -65,8 +65,8 @@ void CSeqInstHandler::LoadInstrument(std::shared_ptr<CInstrument> pInst)
 
 void CSeqInstHandler::TriggerInstrument()
 {
-	for (auto &[_, info] : m_SequenceInfo)
-		info.Trigger();
+	for (auto &x : m_SequenceInfo)
+		x.second.Trigger();
 
 	m_iVolume = m_iDefaultVolume;
 	m_iNoteOffset = 0;
@@ -82,15 +82,16 @@ void CSeqInstHandler::TriggerInstrument()
 void CSeqInstHandler::ReleaseInstrument()
 {
 	if (!m_pInterface->IsReleasing())
-		for (auto &[_, info] : m_SequenceInfo)
-			info.Release();
+		for (auto &x : m_SequenceInfo)
+			x.second.Release();
 }
 
 void CSeqInstHandler::UpdateInstrument()
 {
 	if (!m_pInterface->IsActive())
 		return;
-	for (auto &[seq_type, info] : m_SequenceInfo) {
+	for (auto &[_, info] : m_SequenceInfo) {
+		(void)_;
 		const auto &pSeq = info.m_pSequence;
 		if (!pSeq || pSeq->GetItemCount() == 0)
 			continue;

@@ -47,7 +47,7 @@ auto string_gmatch(std::basic_string_view<CharT, Traits> sv, const std::basic_re
 	return rng {sv, re};
 }
 
-inline const std::regex words {R"(\S+)", std::regex_constants::optimize};
+static inline const std::regex words {R"(\S+)", std::regex_constants::optimize};
 
 template <typename T>
 auto tokens(T sv) {

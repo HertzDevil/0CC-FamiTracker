@@ -118,7 +118,6 @@ CPatternCompiler::CPatternCompiler(const CFamiTrackerDoc &Doc, unsigned int *pIn
 	m_pDPCMList(pDPCMList),
 	m_pLogger(std::move(pLogger))
 {
-	memset(m_bDSamplesAccessed, 0, sizeof(bool) * MAX_DSAMPLES);
 }
 
 CPatternCompiler::~CPatternCompiler()

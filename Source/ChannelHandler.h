@@ -37,6 +37,7 @@ class CSoundGenBase;		// // //
 #include "PatternNote.h"		// // //
 #include <memory>		// // //
 #include <string>		// // //
+#include <array>		// // //
 #include <cstdint>
 
 /*!
@@ -401,7 +402,7 @@ protected:
 	/*!	\brief A queue of the most recent notes triggered by the channel.
 		\details In order to represent the blank note and the note cut, the special constants
 		ECHO_BUFFER_NONE and ECHO_BUFFER_HALT are defined for use with this echo buffer. */
-	int				m_iEchoBuffer[ECHO_BUFFER_LENGTH + 1];		// // //
+	std::array<int, ECHO_BUFFER_LENGTH + 1> m_iEchoBuffer;		// // //
 
 	/*!	\brief A flag indicating the direction of the 4xy vibrato effect. */
 	bool			m_bNewVibratoMode;

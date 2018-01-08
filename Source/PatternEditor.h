@@ -353,8 +353,8 @@ private:
 	int		m_iColumnSpacing;				// // //
 	int		m_iRowColumnWidth;				// // //
 
-	int		m_iChannelWidths[MAX_CHANNELS];	// Cached width in pixels of each channel
-	int		m_iChannelOffsets[MAX_CHANNELS];// Cached x position of channels
+	int		m_iChannelWidths[MAX_CHANNELS] = { };		// // // Cached width in pixels of each channel
+	int		m_iChannelOffsets[MAX_CHANNELS] = { };		// Cached x position of channels
 	cursor_column_t	m_iColumns[MAX_CHANNELS]; // // // Cached *index of rightmost column* in each channel
 
 	// Drawing (TODO remove these)

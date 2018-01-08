@@ -1075,15 +1075,15 @@ void CCompiler::ScanSong()
 	// Re-assign instruments
 	m_iInstruments = 0;
 
-	memset(m_iAssignedInstruments, 0, sizeof(int) * MAX_INSTRUMENTS);
+	m_iAssignedInstruments.fill(0);		// // //
 	// TODO: remove these
-	memset(m_bSequencesUsed2A03, false, sizeof(bool) * MAX_SEQUENCES * SEQ_COUNT);
-	memset(m_bSequencesUsedVRC6, false, sizeof(bool) * MAX_SEQUENCES * SEQ_COUNT);
-	memset(m_bSequencesUsedN163, false, sizeof(bool) * MAX_SEQUENCES * SEQ_COUNT);
-	memset(m_bSequencesUsedS5B, false, sizeof(bool) * MAX_SEQUENCES * SEQ_COUNT);		// // //
+	m_bSequencesUsed2A03.fill({ });
+	m_bSequencesUsedVRC6.fill({ });
+	m_bSequencesUsedN163.fill({ });
+	m_bSequencesUsedS5B.fill({ });
 
 	static const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
-	bool *used[] = {*m_bSequencesUsed2A03, *m_bSequencesUsedVRC6, *m_bSequencesUsedN163, *m_bSequencesUsedS5B};
+	decltype(m_bSequencesUsed2A03) *used[] = {&m_bSequencesUsed2A03, &m_bSequencesUsedVRC6, &m_bSequencesUsedN163, &m_bSequencesUsedS5B};
 
 	bool inst_used[MAX_INSTRUMENTS] = { };		// // //
 
@@ -1114,7 +1114,7 @@ void CCompiler::ScanSong()
 				auto pInstrument = std::static_pointer_cast<CSeqInstrument>(m_pDocument->GetInstrument(i));
 				foreachSeq([&] (sequence_t j) {
 					if (pInstrument->GetSeqEnable(j))
-						*(used[z] + pInstrument->GetSeqIndex(j) * SEQ_COUNT + j) = true;
+						(*used[z])[pInstrument->GetSeqIndex(j)][j] = true;
 				});
 				break;
 			}
@@ -1124,7 +1124,7 @@ void CCompiler::ScanSong()
 	// See which samples are used
 	m_iSamplesUsed = 0;
 
-	memset(m_bSamplesAccessed, 0, MAX_INSTRUMENTS * OCTAVE_RANGE * NOTE_RANGE * sizeof(bool));
+	m_bSamplesAccessed.fill({ });		// // //
 
 	// Get DPCM channel index
 	const int DpcmChannel = m_pDocument->GetChannelIndex(CHANID_DPCM);
@@ -1189,16 +1189,15 @@ void CCompiler::CreateSequenceList()
 
 	unsigned int Size = 0, StoredCount = 0;
 	const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};
-	const bool *used[] = {*m_bSequencesUsed2A03, *m_bSequencesUsedVRC6, *m_bSequencesUsedN163, *m_bSequencesUsedS5B};
+	decltype(m_bSequencesUsed2A03) *used[] = {&m_bSequencesUsed2A03, &m_bSequencesUsedVRC6, &m_bSequencesUsedN163, &m_bSequencesUsedS5B};
 
 	// TODO: use the CSeqInstrument::GetSequence
 	// TODO: merge identical sequences from all chips
 	for (size_t c = 0; c < std::size(inst); c++) {
 		for (int i = 0; i < MAX_SEQUENCES; ++i) foreachSeq([&] (sequence_t j) {
 			const auto pSeq = m_pDocument->GetSequence(inst[c], i, j);
-			unsigned Index = i * SEQ_COUNT + j;
-			if (*(used[c] + Index) && pSeq->GetItemCount() > 0) {
-				Size += StoreSequence(*pSeq, {CHUNK_SEQUENCE, Index, (unsigned)inst[c]});
+			if ((*used[c])[i][j] && pSeq->GetItemCount() > 0) {
+				Size += StoreSequence(*pSeq, {CHUNK_SEQUENCE, i * SEQ_COUNT + j, (unsigned)inst[c]});
 				++StoredCount;
 			}
 		});
@@ -1272,7 +1271,7 @@ void CCompiler::CreateInstrumentList()
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_FDS))
 		pWavetableChunk = &CreateChunk({CHUNK_WAVETABLE});		// // //
 
-	memset(m_iWaveBanks, -1, std::size(m_iWaveBanks) * sizeof(int));
+	m_iWaveBanks.fill(-1);		// // //
 
 	// Collect N163 waves
 	const CInstCompilerN163 n163_c;		// // //
@@ -1350,7 +1349,7 @@ void CCompiler::CreateSampleList()
 	const int SAMPLE_ITEM_WIDTH = 3;	// 3 bytes / sample item
 
 	// Clear the sample list
-	memset(m_iSampleBank, 0xFF, MAX_DSAMPLES);
+	m_iSampleBank.fill(0xFFu);		// // //
 
 	auto &Im = *m_pDocument->GetInstrumentManager();		// // //
 	auto &Dm = *m_pDocument->GetDSampleManager();		// // //
@@ -1620,7 +1619,7 @@ void CCompiler::StorePatterns(unsigned int Track)
 
 	const unsigned iChannels = m_pDocument->GetAvailableChannels();		// // //
 
-	CPatternCompiler PatternCompiler(*m_pDocument, m_iAssignedInstruments, (DPCM_List_t*)&m_iSamplesLookUp, m_pLogger);		// // //
+	CPatternCompiler PatternCompiler(*m_pDocument, m_iAssignedInstruments.data(), (DPCM_List_t*)&m_iSamplesLookUp, m_pLogger);		// // //
 
 	int PatternCount = 0;
 	int PatternSize = 0;

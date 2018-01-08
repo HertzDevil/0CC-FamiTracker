@@ -42,7 +42,7 @@ public:
 	virtual void Display(CDC *pDC, bool bPaintMsg);		// // //
 
 protected:
-	BITMAPINFO m_bmi;
+	BITMAPINFO m_bmi = { };
 	std::unique_ptr<COLORREF[]> m_pBlitBuffer;		// // //
 
 	int m_iWidth = 0;

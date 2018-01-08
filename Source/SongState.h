@@ -26,13 +26,9 @@
 #include "FamiTrackerTypes.h" // constants
 #include <memory>
 #include <string>
+#include <array>
 
 class CFamiTrackerDoc;
-
-template <typename T>
-constexpr char hex(T x) noexcept {
-	return (x & 0x0F) + ((x & 0x0F) > 0x09 ? '7' : '0');
-}
 
 std::string MakeCommandString(effect_t Effect, unsigned char Param);		// // //
 
@@ -53,10 +49,10 @@ public:
 	int ChannelIndex = -1;
 	int Instrument = MAX_INSTRUMENTS;
 	int Volume = MAX_VOLUME;
-	int Effect[EF_COUNT] = { };
+	std::array<int, EF_COUNT> Effect;
 	int Effect_LengthCounter = -1;
 	int Effect_AutoFMMult = -1;
-	int Echo[ECHO_BUFFER_LENGTH + 1] = { };
+	std::array<int, ECHO_BUFFER_LENGTH + 1> Echo;
 };
 
 class CSongState {

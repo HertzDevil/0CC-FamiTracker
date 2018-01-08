@@ -25,6 +25,7 @@
 
 #include "stdafx.h"		// // //
 #include <vector>		// // //
+#include <array>		// // //
 #include <memory>
 #include <string>		// // //
 #include <map>		// // //
@@ -218,18 +219,18 @@ private:
 
 	// Sequences and instruments
 	unsigned int	m_iInstruments;
-	unsigned int	m_iAssignedInstruments[MAX_INSTRUMENTS];
-	bool			m_bSequencesUsed2A03[MAX_SEQUENCES][SEQ_COUNT];
-	bool			m_bSequencesUsedVRC6[MAX_SEQUENCES][SEQ_COUNT];
-	bool			m_bSequencesUsedN163[MAX_SEQUENCES][SEQ_COUNT];
-	bool			m_bSequencesUsedS5B[MAX_SEQUENCES][SEQ_COUNT];		// // //
+	std::array<unsigned, MAX_INSTRUMENTS> m_iAssignedInstruments = { };		// // //
+	std::array<std::array<bool, SEQ_COUNT>, MAX_SEQUENCES> m_bSequencesUsed2A03 = { };
+	std::array<std::array<bool, SEQ_COUNT>, MAX_SEQUENCES> m_bSequencesUsedVRC6 = { };
+	std::array<std::array<bool, SEQ_COUNT>, MAX_SEQUENCES> m_bSequencesUsedN163 = { };
+	std::array<std::array<bool, SEQ_COUNT>, MAX_SEQUENCES> m_bSequencesUsedS5B  = { };		// // //
 
-	unsigned		m_iWaveBanks[MAX_INSTRUMENTS];		// // // N163 waves
+	std::array<unsigned, MAX_INSTRUMENTS> m_iWaveBanks = { };		// // // N163 waves
 
 	// Sample variables
-	unsigned char	m_iSamplesLookUp[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE];
-	bool			m_bSamplesAccessed[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE];
-	unsigned char	m_iSampleBank[MAX_DSAMPLES];
+	std::array<std::array<std::array<unsigned char, NOTE_RANGE>, OCTAVE_RANGE>, MAX_INSTRUMENTS> m_iSamplesLookUp = { };
+	std::array<std::array<std::array<bool, NOTE_RANGE>, OCTAVE_RANGE>, MAX_INSTRUMENTS> m_bSamplesAccessed = { };
+	std::array<unsigned char, MAX_DSAMPLES> m_iSampleBank = { };
 	unsigned int	m_iSampleStart;
 	unsigned int	m_iSamplesUsed;
 

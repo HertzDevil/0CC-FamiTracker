@@ -536,7 +536,7 @@ void CFamiTrackerDocIO::SaveInstruments(const CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
-	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * SEQ_COUNT, "2A03 sequence count");
+	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * (int)SEQ_COUNT, "2A03 sequence count");
 	AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, static_cast<unsigned>(MAX_SEQUENCES * SEQ_COUNT - 1), "2A03 sequence count");		// // //
 
 	auto &Manager = *doc.GetInstrumentManager();
@@ -558,7 +558,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 		for (unsigned int i = 0; i < Count; ++i) {
 			COldSequence Seq;		// // //
 			unsigned int Index = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
-			unsigned int Type = AssertRange(file_.GetBlockInt(), 0, SEQ_COUNT - 1, "Sequence type");
+			unsigned int Type = AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type");
 			unsigned int SeqCount = static_cast<unsigned char>(file_.GetBlockChar());
 			AssertRange(SeqCount, 0U, static_cast<unsigned>(MAX_SEQUENCE_ITEMS - 1), "Sequence item count");
 			for (unsigned int j = 0; j < SeqCount; ++j) {
@@ -575,7 +575,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 
 		for (unsigned int i = 0; i < Count; ++i) {
 			unsigned int Index = Indices[i] = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
-			unsigned int Type = Types[i] = AssertRange(file_.GetBlockInt(), 0, SEQ_COUNT - 1, "Sequence type");
+			unsigned int Type = Types[i] = AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type");
 			try {
 				unsigned char SeqCount = file_.GetBlockChar();
 				// AssertRange(SeqCount, 0, MAX_SEQUENCE_ITEMS, "Sequence item count");
@@ -1003,7 +1003,7 @@ void CFamiTrackerDocIO::SaveComments(const CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
-	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * SEQ_COUNT, "VRC6 sequence count");
+	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * (int)SEQ_COUNT, "VRC6 sequence count");
 	AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, static_cast<unsigned>(MAX_SEQUENCES), "VRC6 sequence count");		// // //
 
 	CSequenceManager *pManager = doc.GetSequenceManager(INST_VRC6);		// // //
@@ -1012,7 +1012,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 	int Types[MAX_SEQUENCES * SEQ_COUNT];
 	for (unsigned int i = 0; i < Count; ++i) {
 		unsigned int Index = Indices[i] = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
-		unsigned int Type = Types[i] = AssertRange(file_.GetBlockInt(), 0, SEQ_COUNT - 1, "Sequence type");
+		unsigned int Type = Types[i] = AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type");
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
 			auto pSeq = pManager->GetCollection(Type)->GetSequence(Index);
@@ -1098,14 +1098,14 @@ void CFamiTrackerDocIO::SaveSequencesVRC6(const CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerDoc &doc, int ver) {
-	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * SEQ_COUNT, "N163 sequence count");
+	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * (int)SEQ_COUNT, "N163 sequence count");
 	AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, static_cast<unsigned>(MAX_SEQUENCES * SEQ_COUNT - 1), "N163 sequence count");		// // //
 
 	CSequenceManager *pManager = doc.GetSequenceManager(INST_N163);		// // //
 
 	for (unsigned int i = 0; i < Count; i++) {
 		unsigned int  Index		   = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
-		unsigned int  Type		   = AssertRange(file_.GetBlockInt(), 0, SEQ_COUNT - 1, "Sequence type");
+		unsigned int  Type		   = AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type");
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
 			auto pSeq = pManager->GetCollection(Type)->GetSequence(Index);
@@ -1155,14 +1155,14 @@ void CFamiTrackerDocIO::SaveSequencesN163(const CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerDoc &doc, int ver) {
-	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * SEQ_COUNT, "5B sequence count");
+	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * (int)SEQ_COUNT, "5B sequence count");
 	AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, static_cast<unsigned>(MAX_SEQUENCES * SEQ_COUNT - 1), "5B sequence count");		// // //
 
 	CSequenceManager *pManager = doc.GetSequenceManager(INST_S5B);		// // //
 
 	for (unsigned int i = 0; i < Count; i++) {
 		unsigned int  Index		   = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
-		unsigned int  Type		   = AssertRange(file_.GetBlockInt(), 0, SEQ_COUNT - 1, "Sequence type");
+		unsigned int  Type		   = AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type");
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
 			auto pSeq = pManager->GetCollection(Type)->GetSequence(Index);

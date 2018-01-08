@@ -55,7 +55,6 @@ protected:
 	void FillPosBox(int size);
 	void PopulateWaveBox();		// // //
 	void UpdateWaveBox(int Index);		// // //
-	void CreateWaveImage(char *const Pos, int Index) const;		// // //
 
 	void GenerateWaves(std::unique_ptr<CWaveformGenerator> pWaveGen);		// // // test
 	int WaveSizeAvailable() const;		// // //
