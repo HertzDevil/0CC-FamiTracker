@@ -26,7 +26,7 @@
 void CSeqInstHandlerSawtooth::TriggerInstrument()
 {
 	CSeqInstHandler::TriggerInstrument();
-	const auto &pVolSeq = m_SequenceInfo[SEQ_VOLUME].m_pSequence;
+	const auto &pVolSeq = m_SequenceInfo[sequence_t::Volume].m_pSequence;
 	m_bIgnoreDuty = pVolSeq && pVolSeq->GetSetting() == SETTING_VOL_64_STEPS;
 }
 

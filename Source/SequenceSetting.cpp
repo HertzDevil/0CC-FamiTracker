@@ -77,10 +77,10 @@ void CSequenceSetting::OnPaint()
 	GetClientRect(&rect);
 
 	unsigned mode = m_pSequence->GetSetting();		// // //
-	if (mode > SEQ_SETTING_COUNT[m_iType] || SEQ_SETTING_TEXT[mode][m_iType] == nullptr) {
+	if (mode > SEQ_SETTING_COUNT[(unsigned)m_pSequence->GetSequenceType()] || SEQ_SETTING_TEXT[mode][(unsigned)m_pSequence->GetSequenceType()] == nullptr) {
 		dc.FillSolidRect(rect, 0xFFFFFF); return;
 	}
-	LPCTSTR str = SEQ_SETTING_TEXT[mode][m_iType];
+	LPCTSTR str = SEQ_SETTING_TEXT[mode][(unsigned)m_pSequence->GetSequenceType()];
 
 	int BgColor = m_bMouseOver ? 0x303030 : 0x101010;
 
@@ -99,17 +99,21 @@ void CSequenceSetting::OnLButtonDown(UINT nFlags, CPoint point)
 	CRect rect;
 	GetWindowRect(rect);
 
+	if (!m_pSequence->GetSequenceType())
+		return;
+	std::size_t seqType = value_cast(m_pSequence->GetSequenceType());		// // //
+
 	unsigned Setting = m_pSequence->GetSetting();		// // //
-	if (SEQ_SETTING_COUNT[m_iType] < 2) return;
+	if (SEQ_SETTING_COUNT[seqType] < 2) return;
 
 	m_menuPopup.CreatePopupMenu();
-	for (unsigned i = 0; i < SEQ_SETTING_COUNT[m_iType]; ++i)
-		m_menuPopup.AppendMenu(MF_STRING, MENU_ID_BASE + i, SEQ_SETTING_TEXT[i][m_iType]);
+	for (unsigned i = 0; i < SEQ_SETTING_COUNT[seqType]; ++i)
+		m_menuPopup.AppendMenu(MF_STRING, MENU_ID_BASE + i, SEQ_SETTING_TEXT[i][seqType]);
 	m_menuPopup.CheckMenuRadioItem(MENU_ID_BASE, MENU_ID_MAX, MENU_ID_BASE + Setting, MF_BYCOMMAND);
 #ifndef _DEBUG
-	if (m_iType == SEQ_VOLUME && m_iInstType != INST_VRC6)
+	if (m_iType == sequence_t::Volume && m_iInstType != INST_VRC6)
 		m_menuPopup.EnableMenuItem(MENU_ID_BASE + SETTING_VOL_64_STEPS, MF_DISABLED);		// // // 050B
-//	else if (m_iType == SEQ_PITCH && m_iInstType != INST_2A03)
+//	else if (m_iType == sequence_t::Pitch && m_iInstType != INST_2A03)
 //		m_menuPopup.EnableMenuItem(MENU_ID_BASE + SETTING_PITCH_SWEEP, MF_DISABLED);
 #endif
 	m_menuPopup.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x + rect.left, point.y + rect.top, this);
@@ -118,10 +122,9 @@ void CSequenceSetting::OnLButtonDown(UINT nFlags, CPoint point)
 	CWnd::OnLButtonDown(nFlags, point);
 }
 
-void CSequenceSetting::SelectSequence(std::shared_ptr<CSequence> pSequence, int Type, int InstrumentType)		// // //
+void CSequenceSetting::SelectSequence(std::shared_ptr<CSequence> pSequence, int InstrumentType)		// // //
 {
 	m_pSequence = std::move(pSequence);
-	m_iType		= Type;
 	m_iInstType = InstrumentType;
 
 	UpdateWindow();
@@ -132,21 +135,21 @@ void CSequenceSetting::OnMenuSettingChanged(UINT ID)		// // //
 {
 	unsigned Setting = m_pSequence->GetSetting();
 	unsigned New = ID - MENU_ID_BASE;
-	ASSERT(New < SEQ_SETTING_COUNT[m_iType]);
+	ASSERT(New < SEQ_SETTING_COUNT[value_cast(m_pSequence->GetSequenceType())]);
 
 	const auto MapFunc = [&] (signed char(*f) (signed char)) {
 		for (unsigned int i = 0, Count = m_pSequence->GetItemCount(); i < Count; ++i)
 			m_pSequence->SetItem(i, f(m_pSequence->GetItem(i)));
 	};
 
-	if (New != Setting) switch (m_iType) {
-	case SEQ_VOLUME:
+	if (New != Setting) switch (m_pSequence->GetSequenceType()) {
+	case sequence_t::Volume:
 		switch (New) {
 		case SETTING_VOL_16_STEPS: MapFunc([] (signed char x) -> signed char { return x / 4; }); break;
 		case SETTING_VOL_64_STEPS: MapFunc([] (signed char x) -> signed char { return x * 4; }); break;
 		}
 		break;
-	case SEQ_ARPEGGIO:
+	case sequence_t::Arpeggio:
 		switch (Setting) {
 		case SETTING_ARP_SCHEME: MapFunc([] (signed char x) -> signed char {
 			signed char Item = x & 0x3F;

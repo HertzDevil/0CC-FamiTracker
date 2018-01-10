@@ -40,7 +40,7 @@ unsigned int COldSequence::GetLength() const
 
 // // // moved from CFamiTrackerDoc::ConvertSequence
 
-std::unique_ptr<CSequence> COldSequence::Convert(int Type) const
+std::unique_ptr<CSequence> COldSequence::Convert(sequence_t SeqType) const
 {
 	const int Count = GetLength();
 	if (Count == 0 || Count >= MAX_SEQUENCE_ITEMS)
@@ -50,7 +50,7 @@ std::unique_ptr<CSequence> COldSequence::Convert(int Type) const
 	int iLength = 0;
 	int ValPtr = 0;
 
-	auto pSeq = std::make_unique<CSequence>(Type);
+	auto pSeq = std::make_unique<CSequence>(SeqType);
 
 	for (int i = 0; i < Count; ++i) {
 		if (Length[i] < 0) {
@@ -60,7 +60,7 @@ std::unique_ptr<CSequence> COldSequence::Convert(int Type) const
 		}
 		else {
 			for (int l = 0; l < Length[i] + 1; l++) {
-				pSeq->SetItem(ValPtr++, (Type == SEQ_PITCH || Type == SEQ_HIPITCH) && l ? 0 : Value[i]);
+				pSeq->SetItem(ValPtr++, (SeqType == sequence_t::Pitch || SeqType == sequence_t::HiPitch) && l ? 0 : Value[i]);
 				iLength++;
 			}
 		}
@@ -76,7 +76,7 @@ std::unique_ptr<CSequence> COldSequence::Convert(int Type) const
 	pSeq->SetLoopPoint(iLoopPoint);
 
 	/*
-	if (Type == SEQ_PITCH || Type == SEQ_HIPITCH) {		// // // (not how they work)
+	if (SeqType == sequence_t::Pitch || SeqType == sequence_t::HiPitch) {		// // // (not how they work)
 		if (iLoopPoint != -1) {
 			pSeq->SetItemCount(++ValPtr);
 			pSeq->SetItem(ValPtr, pSeq->GetItem(iLoopPoint));

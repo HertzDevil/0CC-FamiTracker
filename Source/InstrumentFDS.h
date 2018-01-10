@@ -24,7 +24,7 @@
 #pragma once
 
 #include "SeqInstrument.h"		// // //
-#include <vector>
+#include <unordered_map>		// // //
 #include <memory>
 
 class CInstrumentFDS : public CSeqInstrument {
@@ -54,9 +54,9 @@ protected:
 
 private:
 	void StoreSequence(CDocumentFile &DocFile, const CSequence &Seq) const;		// // //
-	std::shared_ptr<CSequence> LoadSequence(CDocumentFile &DocFile, unsigned SeqType) const;
+	std::shared_ptr<CSequence> LoadSequence(CDocumentFile &DocFile, sequence_t SeqType) const;
 	void StoreInstSequence(CSimpleFile &File, const CSequence &Seq) const;		// // //
-	std::shared_ptr<CSequence> LoadInstSequence(CSimpleFile &File, unsigned SeqType) const;		// // //
+	std::shared_ptr<CSequence> LoadInstSequence(CSimpleFile &File, sequence_t SeqType) const;		// // //
 	void DoubleVolume() const;		// // //
 
 	void	OnBlankInstrument() override;		// // //
@@ -72,7 +72,7 @@ public:
 
 private:
 	// Instrument data
-	std::vector<std::shared_ptr<CSequence>> m_pSequence;
+	std::unordered_map<sequence_t, std::shared_ptr<CSequence>> m_pSequence;
 	unsigned char m_iSamples[64];
 	unsigned char m_iModulation[32];
 	int			  m_iModulationSpeed;

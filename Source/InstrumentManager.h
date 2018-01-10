@@ -34,7 +34,7 @@ class CDSampleManager;
 class CFTMComponentInterface;
 
 enum inst_type_t : unsigned;
-enum sequence_t : unsigned;
+enum class sequence_t : unsigned;
 
 /*!
 	\brief A container of FamiTracker instruments.

@@ -27,25 +27,29 @@
 #include <array>		// // //
 #include <cstdint>		// // //
 #include "ft0cc/doc/inst_sequence.hpp"		// // //
+#include "ft0cc/enum_traits.h"		// // //
 
-enum sequence_t : unsigned {
-	SEQ_VOLUME,
-	SEQ_ARPEGGIO,
-	SEQ_PITCH,
-	SEQ_HIPITCH,		// TODO: remove this eventually
-	SEQ_DUTYCYCLE,
-
-	SEQ_COUNT
+ENUM_CLASS_STANDARD(sequence_t, unsigned) {
+	Volume,
+	Arpeggio,
+	Pitch,
+	HiPitch,		// TODO: remove this eventually
+	DutyCycle,
+	None = (unsigned)-1,
+	none = None,
+	min = Volume,
+	max = DutyCycle,
 };
 
+constexpr std::size_t SEQ_COUNT = 5;
 
 template <typename F>
 void foreachSeq(F f) {
-	f(SEQ_VOLUME);
-	f(SEQ_ARPEGGIO);
-	f(SEQ_PITCH);
-	f(SEQ_HIPITCH);
-	f(SEQ_DUTYCYCLE);
+	f(sequence_t::Volume);
+	f(sequence_t::Arpeggio);
+	f(sequence_t::Pitch);
+	f(sequence_t::HiPitch);
+	f(sequence_t::DutyCycle);
 }
 
 // // // Settings
@@ -95,7 +99,7 @@ const int ARPSCHEME_MIN = ARPSCHEME_MAX - 0x3F;		// // //
 */
 class CSequence {
 public:
-	explicit constexpr CSequence(unsigned SeqType) : seq_type_((sequence_t)SeqType) { }		// // //
+	explicit constexpr CSequence(sequence_t SeqType) : seq_type_(SeqType) { }		// // //
 
 	bool         operator==(const CSequence &other);		// // //
 

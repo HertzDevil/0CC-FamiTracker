@@ -34,11 +34,11 @@
 
 CSeqInstrument::CSeqInstrument(inst_type_t type) : CInstrument(type),
 	seq_indices_ {
-		{SEQ_VOLUME, { }},
-		{SEQ_ARPEGGIO, { }},
-		{SEQ_PITCH, { }},
-		{SEQ_HIPITCH, { }},
-		{SEQ_DUTYCYCLE, { }},
+		{sequence_t::Volume, { }},
+		{sequence_t::Arpeggio, { }},
+		{sequence_t::Pitch, { }},
+		{sequence_t::HiPitch, { }},
+		{sequence_t::DutyCycle, { }},
 	}
 {
 }
@@ -169,7 +169,7 @@ void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
 			m_pInstManager->SetSequence(m_iType, i, GetSeqIndex(i), pSeq);
 		}
 		catch (CModuleException e) {
-			e.AppendError("At %s sequence,", GetSequenceName(i));
+			e.AppendError("At %s sequence,", GetSequenceName(value_cast(i)));
 			throw e;
 		}
 	});
@@ -220,5 +220,5 @@ void CSeqInstrument::SetSequence(sequence_t SeqType, std::shared_ptr<CSequence> 
 
 bool CSeqInstrument::CanRelease() const
 {
-	return GetSeqEnable(SEQ_VOLUME) && GetSequence(SEQ_VOLUME)->GetReleasePoint() != -1;
+	return GetSeqEnable(sequence_t::Volume) && GetSequence(sequence_t::Volume)->GetReleasePoint() != -1;
 }

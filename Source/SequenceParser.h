@@ -145,7 +145,7 @@ public:
 	void SetConversion(std::unique_ptr<CSeqConversionBase> pConv);
 	/*!	\brief Updates the current instrument sequence from an MML string.
 		\param String the input string. */
-	void ParseSequence(const std::string &String);
+	void ParseSequence(std::string_view sv);
 	/*!	\brief Obtains a string representation of the current instrument sequence.
 		\return An MML string which represents the sequence. */
 	std::string PrintSequence() const;

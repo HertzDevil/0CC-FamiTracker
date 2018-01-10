@@ -612,7 +612,7 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc &Imported, int *pInstTab
 				auto pSeq = GetSequence(inst[i], j, t);
 				*pSeq = *pImportSeq;		// // //
 				// Save a reference to this sequence
-				seqTable[i][s][t] = j;
+				seqTable[i][s][value_cast(t)] = j;
 				break;
 			}
 		}
@@ -652,7 +652,7 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerDoc &Imported, int *pInstTab
 					if (pSeq->GetSeqEnable(t)) {
 						for (size_t j = 0; j < std::size(inst); j++)
 							if (inst[j] == pInst->GetType()) {
-								pSeq->SetSeqIndex(t, seqTable[j][pSeq->GetSeqIndex(t)][t]);
+								pSeq->SetSeqIndex(t, seqTable[j][pSeq->GetSeqIndex(t)][value_cast(t)]);
 								break;
 							}
 					}

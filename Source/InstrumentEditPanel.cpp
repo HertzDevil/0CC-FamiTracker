@@ -182,7 +182,7 @@ CSequenceInstrumentEditPanel::CSequenceInstrumentEditPanel(UINT nIDTemplate, CWn
 	m_pSequenceEditor(std::make_unique<CSequenceEditor>()),
 	m_pSequence(NULL),
 	m_pParentWin(pParent),
-	m_iSelectedSetting(SEQ_VOLUME),		// // //
+	m_iSelectedSetting(sequence_t::Volume),		// // //
 	m_pParser(std::make_unique<CSequenceParser>())		// // //
 {
 }
@@ -216,15 +216,16 @@ void CSequenceInstrumentEditPanel::SetupDialog(const LPCTSTR *pListItems)		// //
 	pList->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
 
 	foreachSeq([&] (sequence_t i) {
-		pList->InsertItem(i, _T(""), 0);
-		pList->SetCheck(i, 0);
-		pList->SetItemText(i, 1, _T("0"));
-		pList->SetItemText(i, 2, pListItems[i]);
+		int nItem = value_cast(i);
+		pList->InsertItem(nItem, _T(""), 0);
+		pList->SetCheck(nItem, 0);
+		pList->SetItemText(nItem, 1, _T("0"));
+		pList->SetItemText(nItem, 2, pListItems[nItem]);
 	});
 
-	pList->SetItemState(m_iSelectedSetting, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+	pList->SetItemState(value_cast(m_iSelectedSetting), LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
-	SetDlgItemInt(IDC_SEQ_INDEX, m_iSelectedSetting);
+	SetDlgItemInt(IDC_SEQ_INDEX, value_cast(m_iSelectedSetting));
 
 	CSpinButtonCtrl *pSequenceSpin = static_cast<CSpinButtonCtrl*>(GetDlgItem(IDC_SEQUENCE_SPIN));
 	pSequenceSpin->SetRange(0, MAX_SEQUENCES - 1);
@@ -257,8 +258,7 @@ void CSequenceInstrumentEditPanel::PreviewNote(unsigned char Key)
 void CSequenceInstrumentEditPanel::TranslateMML(CString String) const
 {
 	// Takes a string and translates it into a sequence
-	m_pParser->ParseSequence(String.GetBuffer());		// // //
-	String.ReleaseBuffer();
+	m_pParser->ParseSequence((LPCTSTR)String);		// // //
 
 	// Update editor
 	if (m_pSequenceEditor != nullptr)

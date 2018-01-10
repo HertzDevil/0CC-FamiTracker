@@ -59,9 +59,9 @@ void CInstrumentEditorSeq::SelectInstrument(std::shared_ptr<CInstrument> pInst)
 		pList->SetRedraw(FALSE);
 		CString str;
 		foreachSeq([&] (sequence_t i) {
-			pList->SetCheck(i, m_pInstrument->GetSeqEnable(i));
+			pList->SetCheck(value_cast(i), m_pInstrument->GetSeqEnable(i));
 			str.Format(_T("%i"), m_pInstrument->GetSeqIndex(i));
-			pList->SetItemText(i, 1, str);
+			pList->SetItemText(value_cast(i), 1, str);
 		});
 		pList->SetRedraw();
 		pList->RedrawWindow();
@@ -70,28 +70,28 @@ void CInstrumentEditorSeq::SelectInstrument(std::shared_ptr<CInstrument> pInst)
 	// Setting text box
 	SetDlgItemInt(IDC_SEQ_INDEX, m_pInstrument->GetSeqIndex(m_iSelectedSetting = Sel));
 
-	SelectSequence(m_pInstrument->GetSeqIndex(m_iSelectedSetting), m_iSelectedSetting);
+	SelectSequence(m_iSelectedSetting);
 
 	SetFocus();
 }
 
-void CInstrumentEditorSeq::SelectSequence(int Sequence, sequence_t Type)
+void CInstrumentEditorSeq::SelectSequence(sequence_t Type)
 {
 	// Selects the current sequence in the sequence editor
 	m_pSequence = m_pInstrument->GetSequence(Type);		// // //
 	if (CListCtrl *pList = static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS)))
-		pList->SetItemState(Type, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-	m_pSequenceEditor->SelectSequence(m_pSequence, Type, m_iInstType);
+		pList->SetItemState(value_cast(Type), LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+	m_pSequenceEditor->SelectSequence(m_pSequence, m_iInstType);
 	SetupParser();		// // //
 }
 
 void CInstrumentEditorSeq::SetupParser() const		// // //
 {
-	const auto MakeParser = [this] (unsigned typ, seq_setting_t setting) -> std::unique_ptr<CSeqConversionBase> {
-		switch (static_cast<sequence_t>(typ)) {
-		case SEQ_VOLUME:
+	const auto MakeParser = [this] (sequence_t typ, seq_setting_t setting) -> std::unique_ptr<CSeqConversionBase> {
+		switch (typ) {
+		case sequence_t::Volume:
 			return std::make_unique<CSeqConversionDefault>(0, setting == SETTING_VOL_64_STEPS ? 0x3F : this->m_iMaxVolume);
-		case SEQ_ARPEGGIO:
+		case sequence_t::Arpeggio:
 			switch (setting) {
 			case SETTING_ARP_SCHEME:		// // //
 				return std::make_unique<CSeqConversionArpScheme>(ARPSCHEME_MIN);
@@ -100,9 +100,9 @@ void CInstrumentEditorSeq::SetupParser() const		// // //
 			default:
 				return std::make_unique<CSeqConversionDefault>(-NOTE_COUNT, NOTE_COUNT);
 			}
-		case SEQ_PITCH: case SEQ_HIPITCH:
+		case sequence_t::Pitch: case sequence_t::HiPitch:
 			return std::make_unique<CSeqConversionDefault>(-128, 127);
-		case SEQ_DUTYCYCLE:
+		case sequence_t::DutyCycle:
 			if (this->m_iInstType == INST_S5B)
 				return std::make_unique<CSeqConversion5B>();
 			return std::make_unique<CSeqConversionDefault>(0, this->m_iMaxDuty);
@@ -110,7 +110,7 @@ void CInstrumentEditorSeq::SetupParser() const		// // //
 		__debugbreak(); return nullptr;
 	};
 
-	auto pConv = MakeParser(m_iSelectedSetting, m_pSequence->GetSetting());
+	auto pConv = MakeParser(m_pSequence->GetSequenceType(), m_pSequence->GetSetting());
 	m_pSequenceEditor->SetConversion(*pConv);		// // //
 	m_pParser->SetSequence(m_pSequence);
 	m_pParser->SetConversion(std::move(pConv));
@@ -123,7 +123,7 @@ void CInstrumentEditorSeq::UpdateSequenceString(bool Changed)		// // //
 	SetDlgItemText(IDC_SEQUENCE_STRING, m_pParser->PrintSequence().c_str());		// // //
 	// If the sequence was changed, assume the user wants to enable it
 	if (Changed) {
-		static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS))->SetCheck(m_iSelectedSetting, 1);
+		static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS))->SetCheck(value_cast(m_iSelectedSetting), 1);
 	}
 }
 
@@ -158,12 +158,12 @@ void CInstrumentEditorSeq::OnLvnItemchangedInstsettings(NMHDR *pNMHDR, LRESULT *
 	if (pNMLV->uChanged & LVIF_STATE && m_pInstrument != NULL) {
 		// Selected new setting
 		if (pNMLV->uNewState & LVIS_SELECTED || pNMLV->uNewState & LCTRL_CHECKBOX_STATE) {
-			m_iSelectedSetting = (sequence_t)pNMLV->iItem;
+			m_iSelectedSetting = enum_cast<sequence_t>((unsigned)pNMLV->iItem);		// // //
 			int Sequence = m_pInstrument->GetSeqIndex(m_iSelectedSetting);
 			SetDlgItemInt(IDC_SEQ_INDEX, Sequence);
-			SelectSequence(Sequence, m_iSelectedSetting);
-			pList->SetSelectionMark(m_iSelectedSetting);
-			pList->SetItemState(m_iSelectedSetting, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+			SelectSequence(m_iSelectedSetting);
+			pList->SetSelectionMark(value_cast(m_iSelectedSetting));
+			pList->SetItemState(value_cast(m_iSelectedSetting), LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 		}
 
 		// Changed checkbox
@@ -184,21 +184,16 @@ void CInstrumentEditorSeq::OnEnChangeSeqIndex()
 {
 	// Selected sequence changed
 	CListCtrl *pList = static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS));
-	int Index = GetDlgItemInt(IDC_SEQ_INDEX);
-
-	if (Index < 0)
-		Index = 0;
-	if (Index > (MAX_SEQUENCES - 1))
-		Index = (MAX_SEQUENCES - 1);
+	int Index = std::clamp((int)GetDlgItemInt(IDC_SEQ_INDEX), 0, MAX_SEQUENCES - 1);		// // //
 
 	if (m_pInstrument != nullptr) {
 		// Update list
 		CString str;		// // //
 		str.Format(_T("%i"), Index);
-		pList->SetItemText(m_iSelectedSetting, 1, str);
+		pList->SetItemText(value_cast(m_iSelectedSetting), 1, str);
 		if (m_pInstrument->GetSeqIndex(m_iSelectedSetting) != Index)
 			m_pInstrument->SetSeqIndex(m_iSelectedSetting, Index);
-		SelectSequence(Index, m_iSelectedSetting);
+		SelectSequence(m_iSelectedSetting);
 	}
 }
 
@@ -224,7 +219,7 @@ void CInstrumentEditorSeq::OnKeyReturn()
 	TranslateMML(Text);		// // //
 
 	// Enable setting
-	static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS))->SetCheck(m_iSelectedSetting, 1);
+	static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS))->SetCheck(value_cast(m_iSelectedSetting), 1);
 }
 
 void CInstrumentEditorSeq::OnCloneSequence()

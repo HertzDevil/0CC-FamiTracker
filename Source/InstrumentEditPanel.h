@@ -75,7 +75,7 @@ class CSequence;
 class CSeqInstrument;
 class CSequenceEditor;
 class CSequenceParser;		// // //
-enum sequence_t : unsigned;		// // //
+enum class sequence_t : unsigned;		// // //
 
 // Adds some functions for sequences
 class CSequenceInstrumentEditPanel : public CInstrumentEditPanel

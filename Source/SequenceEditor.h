@@ -41,7 +41,7 @@ public:
 	virtual ~CSequenceEditor();
 
 	BOOL CreateEditor(CWnd *pParentWnd, const RECT &rect);
-	void SelectSequence(std::shared_ptr<CSequence> pSequence, int Type, int InstrumentType);		// // //
+	void SelectSequence(std::shared_ptr<CSequence> pSequence, int InstrumentType);		// // //
 	void SetMaxValues(int MaxVol, int MaxDuty);
 	void SetConversion(const CSeqConversionBase &Conv);		// // //
 
@@ -54,7 +54,6 @@ private:
 	std::unique_ptr<CSequenceSetting> m_pSetting;
 	const CSeqConversionBase *m_pConversion = nullptr;		// // // does not own
 
-	int m_iSelectedSetting;
 	int m_iInstrumentType;
 	int m_iMaxVol;
 	int m_iMaxDuty;

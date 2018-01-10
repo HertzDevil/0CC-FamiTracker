@@ -1114,7 +1114,7 @@ void CCompiler::ScanSong()
 				auto pInstrument = std::static_pointer_cast<CSeqInstrument>(m_pDocument->GetInstrument(i));
 				foreachSeq([&] (sequence_t j) {
 					if (pInstrument->GetSeqEnable(j))
-						(*used[z])[pInstrument->GetSeqIndex(j)][j] = true;
+						(*used[z])[pInstrument->GetSeqIndex(j)][(unsigned)j] = true;
 				});
 				break;
 			}
@@ -1196,8 +1196,8 @@ void CCompiler::CreateSequenceList()
 	for (size_t c = 0; c < std::size(inst); c++) {
 		for (int i = 0; i < MAX_SEQUENCES; ++i) foreachSeq([&] (sequence_t j) {
 			const auto pSeq = m_pDocument->GetSequence(inst[c], i, j);
-			if ((*used[c])[i][j] && pSeq->GetItemCount() > 0) {
-				Size += StoreSequence(*pSeq, {CHUNK_SEQUENCE, i * SEQ_COUNT + j, (unsigned)inst[c]});
+			if ((*used[c])[i][(unsigned)j] && pSeq->GetItemCount() > 0) {
+				Size += StoreSequence(*pSeq, {CHUNK_SEQUENCE, i * SEQ_COUNT + (unsigned)j, (unsigned)inst[c]});
 				++StoredCount;
 			}
 		});
@@ -1208,7 +1208,7 @@ void CCompiler::CreateSequenceList()
 			foreachSeq([&] (sequence_t j) {
 				const auto pSeq = pInstrument->GetSequence(j);		// // //
 				if (pSeq && pSeq->GetItemCount() > 0) {
-					unsigned Index = i * SEQ_COUNT + j;
+					unsigned Index = i * SEQ_COUNT + (unsigned)j;
 					Size += StoreSequence(*pSeq, {CHUNK_SEQUENCE, Index, INST_FDS});		// // //
 					++StoredCount;
 				}

@@ -150,7 +150,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B:
 		foreachSeq([&] (sequence_t s) {
 			switch (s) {
-			case SEQ_VOLUME:
+			case sequence_t::Volume:
 				switch (Chip) {
 				case SNDCHIP_NONE:
 					Val = m_iRecordChannel == CHANID_TRIANGLE ? ((0x7F & REG(0x4008)) ? 15 : 0) : (0x0F & REG(0x4000 | (ID << 2))); break;
@@ -164,10 +164,10 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 					Val = 0x0F & REG(0x08 + ID); break;
 				}
 				break;
-			case SEQ_ARPEGGIO: Val = static_cast<char>(Note); break;
-			case SEQ_PITCH: Val = static_cast<char>(Detune % 16); break;
-			case SEQ_HIPITCH: Val = static_cast<char>(Detune / 16); break;
-			case SEQ_DUTYCYCLE:
+			case sequence_t::Arpeggio: Val = static_cast<char>(Note); break;
+			case sequence_t::Pitch: Val = static_cast<char>(Detune % 16); break;
+			case sequence_t::HiPitch: Val = static_cast<char>(Detune / 16); break;
+			case sequence_t::DutyCycle:
 				switch (Chip) {
 				case SNDCHIP_NONE:
 					Val = m_iRecordChannel == CHANID_TRIANGLE ? 0 :
@@ -222,9 +222,9 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 	case INST_FDS:
 		foreachSeq([&] (sequence_t k) {
 			switch (k) {
-			case SEQ_VOLUME: Val = 0x3F & REG(0x4080); if (Val > 0x20) Val = 0x20; break;
-			case SEQ_ARPEGGIO: Val = static_cast<char>(Note); break;
-			case SEQ_PITCH: Val = static_cast<char>(Detune); break;
+			case sequence_t::Volume: Val = 0x3F & REG(0x4080); if (Val > 0x20) Val = 0x20; break;
+			case sequence_t::Arpeggio: Val = static_cast<char>(Note); break;
+			case sequence_t::Pitch: Val = static_cast<char>(Detune); break;
 			default: return;
 			}
 			m_pSequenceCache[k]->SetItemCount(Pos + 1);
@@ -328,7 +328,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 	(*m_pDumpInstrument)->SetName((LPCTSTR)str);
 
 	if (Type == INST_FDS) {
-		m_pSequenceCache[SEQ_ARPEGGIO]->SetSetting(SETTING_ARP_FIXED);
+		m_pSequenceCache[sequence_t::Arpeggio]->SetSetting(SETTING_ARP_FIXED);
 		return;
 	}
 	if (auto Inst = dynamic_cast<CSeqInstrument *>(m_pDumpInstrument->get())) {
@@ -336,12 +336,12 @@ void CInstrumentRecorder::InitRecordInstrument()
 			Inst->SetSeqEnable(i, 1);
 			Inst->SetSeqIndex(i, m_pDocument->GetFreeSequence(Type, i));
 		});
-		m_pSequenceCache[SEQ_ARPEGGIO]->SetSetting(SETTING_ARP_FIXED);
-		// m_pSequenceCache[SEQ_PITCH]->SetSetting(SETTING_PITCH_ABSOLUTE);
-		// m_pSequenceCache[SEQ_HIPITCH]->SetSetting(SETTING_PITCH_ABSOLUTE);
+		m_pSequenceCache[sequence_t::Arpeggio]->SetSetting(SETTING_ARP_FIXED);
+		// m_pSequenceCache[sequence_t::Pitch]->SetSetting(SETTING_PITCH_ABSOLUTE);
+		// m_pSequenceCache[sequence_t::HiPitch]->SetSetting(SETTING_PITCH_ABSOLUTE);
 		// VRC6 sawtooth 64-step volume
 		if (m_iRecordChannel == CHANID_TRIANGLE)
-			Inst->SetSeqEnable(SEQ_DUTYCYCLE, 0);
+			Inst->SetSeqEnable(sequence_t::DutyCycle, 0);
 	}
 	m_iRecordWaveSize = 32; // DEFAULT_WAVE_SIZE
 	m_iRecordWaveCount = 0;

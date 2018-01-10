@@ -50,7 +50,7 @@ public:
 protected:
 	virtual void OnKeyReturn();
 
-	void SelectSequence(int Sequence, sequence_t Type);
+	void SelectSequence(sequence_t Type);
 	void SetupParser() const override;		// // //
 
 protected:

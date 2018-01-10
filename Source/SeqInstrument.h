@@ -29,7 +29,7 @@
 #include <unordered_map>
 
 class CSequence;
-enum sequence_t : unsigned;
+enum class sequence_t : unsigned;
 
 class CSeqInstrument : public CInstrument		// // //
 {
@@ -48,7 +48,7 @@ public:
 	virtual std::shared_ptr<CSequence> GetSequence(sequence_t SeqType) const;		// // //
 	virtual void	SetSequence(sequence_t SeqType, std::shared_ptr<CSequence> pSeq);		// // // register sequence in document
 
-	// static const int SEQUENCE_TYPES[] = {SEQ_VOLUME, SEQ_ARPEGGIO, SEQ_PITCH, SEQ_HIPITCH, SEQ_DUTYCYCLE};
+	// static const int SEQUENCE_TYPES[] = {sequence_t::Volume, sequence_t::Arpeggio, sequence_t::Pitch, sequence_t::HiPitch, sequence_t::DutyCycle};
 	virtual const char *GetSequenceName(int Index) const { return nullptr; }		// // //
 
 protected:

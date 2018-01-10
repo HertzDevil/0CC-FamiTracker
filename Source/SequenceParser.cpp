@@ -323,7 +323,7 @@ void CSequenceParser::SetConversion(std::unique_ptr<CSeqConversionBase> pConv)
 	m_pConversion = std::move(pConv);
 }
 
-void CSequenceParser::ParseSequence(const std::string &String)
+void CSequenceParser::ParseSequence(std::string_view sv)
 {
 	auto Setting = static_cast<seq_setting_t>(m_pSequence->GetSetting());
 	m_pSequence->Clear();
@@ -343,15 +343,13 @@ void CSequenceParser::ParseSequence(const std::string &String)
 
 	m_pConversion->OnStart();
 	PushFunc();
-	for (auto it = std::sregex_iterator {String.begin(), String.end(), SPLIT_RE},
-			  end = std::sregex_iterator { }; it != end; ++it) {
-		if (it->str() == "|") {
-			Loop = m_iPushedCount; continue;
-		}
-		if (it->str() == "/") {
-			Release = m_iPushedCount; continue;
-		}
-		if (m_pConversion->ToValue(it->str()))
+	for (auto x : re::string_gmatch(sv, SPLIT_RE)) {
+		auto str = x.str();
+		if (str == "|")
+			Loop = m_iPushedCount;
+		else if (str == "/")
+			Release = m_iPushedCount;
+		else if (m_pConversion->ToValue(str))
 			PushFunc();
 	}
 	m_pConversion->OnFinish();

@@ -35,7 +35,7 @@ class CSequenceSetting : public CWnd
 	virtual ~CSequenceSetting();
 public:
 	void Setup(CFont *pFont);
-	void SelectSequence(std::shared_ptr<CSequence> pSequence, int Type, int InstrumentType);		// // //
+	void SelectSequence(std::shared_ptr<CSequence> pSequence, int InstrumentType);		// // //
 
 private:
 	CWnd *m_pParent;
@@ -46,7 +46,6 @@ private:
 	static const UINT MENU_ID_BASE, MENU_ID_MAX;		// // //
 
 	int m_iInstType;
-	int m_iType;
 	bool m_bMouseOver;
 
 protected:

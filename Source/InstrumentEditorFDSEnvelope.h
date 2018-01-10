@@ -51,7 +51,7 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	virtual void OnKeyReturn();
-	void LoadSequence();
+	void LoadSequence(sequence_t seqType);		// // //
 
 protected:
 	static const int MAX_VOLUME = 32;

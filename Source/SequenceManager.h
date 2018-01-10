@@ -23,19 +23,19 @@
 
 #pragma once
 
-#include <vector>
+#include <unordered_map>
 #include <memory>
 
 class CSequenceCollection;
-enum sequence_t : unsigned;
+enum class sequence_t : unsigned;
 
 class CSequenceManager
 {
 public:
 	explicit CSequenceManager(int Count);
 	int GetCount() const;
-	CSequenceCollection *GetCollection(unsigned int Type);
-	const CSequenceCollection *GetCollection(unsigned int Type) const;
+	CSequenceCollection *GetCollection(sequence_t Type);
+	const CSequenceCollection *GetCollection(sequence_t Type) const;
 private:
-	std::vector<std::unique_ptr<CSequenceCollection>> m_pCollection;
+	std::unordered_map<sequence_t, std::unique_ptr<CSequenceCollection>> m_pCollection;
 };

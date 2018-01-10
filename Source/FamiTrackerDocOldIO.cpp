@@ -126,9 +126,9 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 				if (ImportedInstruments.Free == false) {
 					auto pInst = std::make_unique<CInstrument2A03>();
 					foreachSeq([&] (sequence_t j) {
-						pInst->SetSeqEnable(j, ImportedInstruments.ModEnable[j]);
-						pInst->SetSeqIndex(j, ImportedInstruments.ModIndex[j]);
-						});
+						pInst->SetSeqEnable(j, ImportedInstruments.ModEnable[value_cast(j)]);
+						pInst->SetSeqIndex(j, ImportedInstruments.ModIndex[value_cast(j)]);
+					});
 					pInst->SetName(ImportedInstruments.Name);
 
 					if (ImportedInstruments.AssignedSample > 0) {
@@ -261,22 +261,23 @@ void compat::ReorderSequences(CFamiTrackerDoc &doc, std::vector<COldSequence> se
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
 		if (auto pInst = std::dynamic_pointer_cast<CInstrument2A03>(Manager.GetInstrument(i))) {		// // //
 			foreachSeq([&] (sequence_t j) {
+				auto s = value_cast(j);
 				if (pInst->GetSeqEnable(j)) {
 					int Index = pInst->GetSeqIndex(j);
-					if (Indices[Index][j] >= 0 && Indices[Index][j] != -1) {
-						pInst->SetSeqIndex(j, Indices[Index][j]);
+					if (Indices[Index][s] >= 0 && Indices[Index][s] != -1) {
+						pInst->SetSeqIndex(j, Indices[Index][s]);
 					}
 					else {
 						COldSequence &Seq = seqs[Index];		// // //
-						if (j == SEQ_VOLUME)
+						if (j == sequence_t::Volume)
 							for (unsigned int k = 0; k < Seq.GetLength(); ++k)
 								Seq.Value[k] = std::clamp(Seq.Value[k], (char)0, (char)15);
-						else if (j == SEQ_DUTYCYCLE)
+						else if (j == sequence_t::DutyCycle)
 							for (unsigned int k = 0; k < Seq.GetLength(); ++k)
 								Seq.Value[k] = std::clamp(Seq.Value[k], (char)0, (char)3);
-						Indices[Index][j] = Slots[j];
-						pInst->SetSeqIndex(j, Slots[j]);
-						Manager.SetSequence(INST_2A03, j, Slots[j]++, Seq.Convert(j));
+						Indices[Index][s] = Slots[s];
+						pInst->SetSeqIndex(j, Slots[s]);
+						Manager.SetSequence(INST_2A03, j, Slots[s]++, Seq.Convert(j));
 					}
 				}
 				else

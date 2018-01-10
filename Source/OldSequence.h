@@ -29,6 +29,7 @@
 // moved from stSequence
 
 class CSequence;
+enum class sequence_t : unsigned;
 
 class COldSequence
 {
@@ -36,7 +37,7 @@ public:
 	COldSequence();
 	void AddItem(char len, char val);
 	unsigned int GetLength() const;
-	std::unique_ptr<CSequence> Convert(int Type) const;
+	std::unique_ptr<CSequence> Convert(sequence_t SeqType) const;
 	std::vector<char> Length;
 	std::vector<char> Value;
 };

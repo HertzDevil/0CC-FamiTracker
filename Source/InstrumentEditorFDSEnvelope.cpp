@@ -52,7 +52,7 @@ void CInstrumentEditorFDSEnvelope::SelectInstrument(std::shared_ptr<CInstrument>
 	m_pInstrument = std::dynamic_pointer_cast<CInstrumentFDS>(pInst);
 	ASSERT(m_pInstrument);
 
-	LoadSequence();
+	LoadSequence(m_pSequence->GetSequenceType());		// // //
 
 	SetFocus();
 }
@@ -89,11 +89,11 @@ void CInstrumentEditorFDSEnvelope::UpdateSequenceString(bool Changed)		// // //
 
 void CInstrumentEditorFDSEnvelope::SetupParser() const		// // //
 {
-	const auto MakeParser = [] (unsigned typ, seq_setting_t setting) -> std::unique_ptr<CSeqConversionBase> {
-		switch (static_cast<sequence_t>(typ)) {
-		case SEQ_VOLUME:
+	const auto MakeParser = [] (sequence_t seqType, seq_setting_t setting) -> std::unique_ptr<CSeqConversionBase> {
+		switch (seqType) {
+		case sequence_t::Volume:
 			return std::make_unique<CSeqConversionDefault>(0, CInstrumentEditorFDSEnvelope::MAX_VOLUME);
-		case SEQ_ARPEGGIO:
+		case sequence_t::Arpeggio:
 			switch (setting) {
 			case SETTING_ARP_SCHEME:		// // //
 				return std::make_unique<CSeqConversionArpScheme>(ARPSCHEME_MIN);
@@ -102,13 +102,13 @@ void CInstrumentEditorFDSEnvelope::SetupParser() const		// // //
 			default:
 				return std::make_unique<CSeqConversionDefault>(-NOTE_COUNT, NOTE_COUNT);
 			}
-		case SEQ_PITCH:
+		case sequence_t::Pitch:
 			return std::make_unique<CSeqConversionDefault>(-128, 127);
 		}
 		__debugbreak(); return nullptr;
 	};
 
-	auto pConv = MakeParser(m_iSelectedSetting, m_pSequence->GetSetting());
+	auto pConv = MakeParser(m_pSequence->GetSequenceType(), m_pSequence->GetSetting());
 	m_pSequenceEditor->SetConversion(*pConv);		// // //
 	m_pParser->SetSequence(m_pSequence);
 	m_pParser->SetConversion(std::move(pConv));
@@ -117,14 +117,14 @@ void CInstrumentEditorFDSEnvelope::SetupParser() const		// // //
 void CInstrumentEditorFDSEnvelope::OnCbnSelchangeType()
 {
 	CComboBox *pTypeBox = static_cast<CComboBox*>(GetDlgItem(IDC_TYPE));
-	m_iSelectedSetting = (sequence_t)pTypeBox->GetCurSel();
-	LoadSequence();
+	if (auto seqType = enum_cast<sequence_t>((unsigned)pTypeBox->GetCurSel()); !!seqType)		// // //
+		LoadSequence(seqType);
 }
 
-void CInstrumentEditorFDSEnvelope::LoadSequence()
+void CInstrumentEditorFDSEnvelope::LoadSequence(sequence_t seqType)		// // //
 {
-	m_pSequence = m_pInstrument->GetSequence(m_iSelectedSetting);		// // //
-	m_pSequenceEditor->SelectSequence(m_pSequence, m_iSelectedSetting, INST_FDS);
+	m_pSequence = m_pInstrument->GetSequence(seqType);		// // //
+	m_pSequenceEditor->SelectSequence(m_pSequence, INST_FDS);
 	SetupParser();		// // //
 }
 

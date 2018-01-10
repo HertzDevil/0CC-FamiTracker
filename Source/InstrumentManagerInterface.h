@@ -29,7 +29,7 @@ class CSequence;
 class CSeqInstrument;
 
 enum inst_type_t : unsigned;
-enum sequence_t : unsigned;
+enum class sequence_t : unsigned;
 
 namespace ft0cc::doc {
 class dpcm_sample;

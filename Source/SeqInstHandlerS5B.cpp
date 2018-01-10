@@ -26,8 +26,8 @@
 
 bool CSeqInstHandlerS5B::ProcessSequence(const CSequence &Seq, int Pos)
 {
-	switch (Seq.GetSetting()) {
-	case SEQ_DUTYCYCLE:
+	switch (Seq.GetSequenceType()) {
+	case sequence_t::DutyCycle:
 		if (auto pChan = dynamic_cast<CChannelHandlerInterfaceS5B *>(m_pInterface)) {
 			m_pInterface->SetDutyPeriod(Seq.GetItem(Pos) & 0xE0);
 			pChan->SetNoiseFreq(Seq.GetItem(Pos) & 0x1F);

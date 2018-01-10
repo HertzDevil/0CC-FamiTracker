@@ -73,7 +73,7 @@ class CInstrument;		// // //
 class CSequence;		// // //
 
 enum inst_type_t : unsigned;
-enum sequence_t : unsigned;
+enum class sequence_t : unsigned;
 
 namespace ft0cc::doc {		// // //
 class groove;

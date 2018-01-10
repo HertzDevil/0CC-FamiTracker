@@ -35,11 +35,11 @@
 
 CSeqInstHandler::CSeqInstHandler(CChannelHandlerInterface *pInterface, int Vol, int Duty) :
 	m_SequenceInfo {
-		{SEQ_VOLUME, { }},
-		{SEQ_ARPEGGIO, { }},
-		{SEQ_PITCH, { }},
-		{SEQ_HIPITCH, { }},
-		{SEQ_DUTYCYCLE, { }},
+		{sequence_t::Volume, { }},
+		{sequence_t::Arpeggio, { }},
+		{sequence_t::Pitch, { }},
+		{sequence_t::HiPitch, { }},
+		{sequence_t::DutyCycle, { }},
 	},
 	CInstHandler(pInterface, Vol),
 	m_iDefaultDuty(Duty)
@@ -103,7 +103,7 @@ void CSeqInstHandler::UpdateInstrument()
 
 		case SEQ_STATE_END:
 			switch (pSeq->GetSequenceType()) {
-			case SEQ_ARPEGGIO:
+			case sequence_t::Arpeggio:
 				if (pSeq->GetSetting() == SETTING_ARP_FIXED)
 					m_pInterface->SetPeriod(m_pInterface->TriggerNote(m_pInterface->GetNote()));
 				break;
@@ -132,11 +132,11 @@ bool CSeqInstHandler::ProcessSequence(const CSequence &Seq, int Pos)
 
 	switch (Seq.GetSequenceType()) {
 	// Volume modifier
-	case SEQ_VOLUME:
+	case sequence_t::Volume:
 		m_pInterface->SetVolume(Value);
 		return true;
 	// Arpeggiator
-	case SEQ_ARPEGGIO:
+	case sequence_t::Arpeggio:
 		switch (Setting) {
 		case SETTING_ARP_ABSOLUTE:
 			m_pInterface->SetPeriod(m_pInterface->TriggerNote(m_pInterface->GetNote() + Value));
@@ -167,7 +167,7 @@ bool CSeqInstHandler::ProcessSequence(const CSequence &Seq, int Pos)
 		}
 		return false;
 	// Pitch
-	case SEQ_PITCH:
+	case sequence_t::Pitch:
 		switch (Setting) {		// // //
 		case SETTING_PITCH_RELATIVE:
 			m_pInterface->SetPeriod(m_pInterface->GetPeriod() + Value);
@@ -178,11 +178,11 @@ bool CSeqInstHandler::ProcessSequence(const CSequence &Seq, int Pos)
 		}
 		return false;
 	// Hi-pitch
-	case SEQ_HIPITCH:
+	case sequence_t::HiPitch:
 		m_pInterface->SetPeriod(m_pInterface->GetPeriod() + (Value << 4));
 		return true;
 	// Duty cycling
-	case SEQ_DUTYCYCLE:
+	case sequence_t::DutyCycle:
 		m_pInterface->SetDutyPeriod(Value);
 		return true;
 	}

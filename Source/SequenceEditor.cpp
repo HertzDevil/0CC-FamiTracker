@@ -48,7 +48,6 @@ CSequenceEditor::CSequenceEditor() : CWnd(),		// // //
 	m_iMaxDuty(3),
 	m_pParent(NULL),
 	m_pSequence(NULL),
-	m_iSelectedSetting(0),
 	m_iInstrumentType(0)
 {
 }
@@ -167,17 +166,17 @@ LRESULT CSequenceEditor::OnSequenceChanged(WPARAM wParam, LPARAM lParam)
 LRESULT CSequenceEditor::OnSettingChanged(WPARAM wParam, LPARAM lParam)		// // //
 {
 	// Called when the setting selector has changed
-	SelectSequence(m_pSequence, m_iSelectedSetting, m_iInstrumentType);
+	SelectSequence(m_pSequence, m_iInstrumentType);
 
-	switch (m_iSelectedSetting) {
-	case SEQ_VOLUME:		// // //
+	switch (m_pSequence->GetSequenceType()) {
+	case sequence_t::Volume:		// // //
 		if (m_iInstrumentType == INST_VRC6) {
 			ASSERT(dynamic_cast<CBarGraphEditor*>(m_pGraphEditor.get()));
 			static_cast<CBarGraphEditor*>(m_pGraphEditor.get())->SetMaxItems(
 				m_pSequence->GetSetting() == SETTING_VOL_64_STEPS ? 0x3F : 0x0F);
 		}
 		break;
-	case SEQ_ARPEGGIO:
+	case sequence_t::Arpeggio:
 		ASSERT(dynamic_cast<CArpeggioGraphEditor*>(m_pGraphEditor.get()));
 		static_cast<CArpeggioGraphEditor*>(m_pGraphEditor.get())->ChangeSetting();
 		break;
@@ -210,41 +209,40 @@ void CSequenceEditor::SequenceChangedMessage(bool Changed)
 			pMainFrame->GetActiveDocument()->SetModifiedFlag();
 }
 
-//const int SEQ_SUNSOFT_NOISE = SEQ_DUTYCYCLE + 1;
+//const int SEQ_SUNSOFT_NOISE = sequence_t::DutyCycle + 1;
 
-void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int Type, int InstrumentType)		// // //
+void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int InstrumentType)		// // //
 {
 	// Select a sequence to edit
 	m_pSequence = std::move(pSequence);
-	m_iSelectedSetting = Type;
 	m_iInstrumentType = InstrumentType;
 
 	DestroyGraphEditor();
 
 	// Create the graph
-	switch (Type) {
-		case SEQ_VOLUME:
-			if (m_iInstrumentType == INST_VRC6 && m_iSelectedSetting == SEQ_VOLUME && m_pSequence->GetSetting() == SETTING_VOL_64_STEPS)
-				m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, 0x3F);		// // //
-			else
-				m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, m_iMaxVol);
-			break;
-		case SEQ_ARPEGGIO:
-			m_pGraphEditor = std::make_unique<CArpeggioGraphEditor>(m_pSequence);
-			break;
-		case SEQ_PITCH:
-		case SEQ_HIPITCH:
-			m_pGraphEditor = std::make_unique<CPitchGraphEditor>(m_pSequence);
-			break;
-		case SEQ_DUTYCYCLE:
-			if (InstrumentType == INST_S5B)
-				m_pGraphEditor = std::make_unique<CNoiseEditor>(m_pSequence, 31);
-			else
-				m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, m_iMaxDuty);
-			break;
+	switch (m_pSequence->GetSequenceType()) {
+	case sequence_t::Volume:
+		if (m_iInstrumentType == INST_VRC6 && m_pSequence->GetSetting() == SETTING_VOL_64_STEPS)
+			m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, 0x3F);		// // //
+		else
+			m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, m_iMaxVol);
+		break;
+	case sequence_t::Arpeggio:
+		m_pGraphEditor = std::make_unique<CArpeggioGraphEditor>(m_pSequence);
+		break;
+	case sequence_t::Pitch:
+	case sequence_t::HiPitch:
+		m_pGraphEditor = std::make_unique<CPitchGraphEditor>(m_pSequence);
+		break;
+	case sequence_t::DutyCycle:
+		if (InstrumentType == INST_S5B)
+			m_pGraphEditor = std::make_unique<CNoiseEditor>(m_pSequence, 31);
+		else
+			m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, m_iMaxDuty);
+		break;
 	}
 
-	m_pSetting->SelectSequence(m_pSequence, Type, InstrumentType);
+	m_pSetting->SelectSequence(m_pSequence, InstrumentType);
 
 	CRect GraphRect;
 	GetClientRect(GraphRect);

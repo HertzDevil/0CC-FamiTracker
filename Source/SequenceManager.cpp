@@ -25,8 +25,10 @@
 
 CSequenceManager::CSequenceManager(int Count)
 {
-	for (int i = 0; i < Count; ++i)
-		m_pCollection.push_back(std::make_unique<CSequenceCollection>((sequence_t)i));
+	for (int i = 0; i < Count; ++i) {
+		auto s = static_cast<sequence_t>(i); // TODO: remove
+		m_pCollection.emplace(s, std::make_unique<CSequenceCollection>(s));
+	}
 }
 
 int CSequenceManager::GetCount() const
@@ -34,16 +36,13 @@ int CSequenceManager::GetCount() const
 	return m_pCollection.size();
 }
 
-CSequenceCollection *CSequenceManager::GetCollection(unsigned int Index)
+CSequenceCollection *CSequenceManager::GetCollection(sequence_t Index)
 {
-	if (Index >= m_pCollection.size()) return nullptr;
-	if (!m_pCollection[Index])
-		m_pCollection[Index] = std::make_unique<CSequenceCollection>((sequence_t)Index);
 	return m_pCollection[Index].get();
 }
 
-const CSequenceCollection *CSequenceManager::GetCollection(unsigned int Index) const
+const CSequenceCollection *CSequenceManager::GetCollection(sequence_t Index) const
 {
-	if (Index >= m_pCollection.size()) return nullptr;
-	return m_pCollection[Index].get();
+	auto it = m_pCollection.find(Index);
+	return it != m_pCollection.end() ? it->second.get() : nullptr;
 }
