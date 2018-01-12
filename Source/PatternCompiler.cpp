@@ -910,7 +910,7 @@ unsigned int CPatternCompiler::GetHash() const
 	return m_iHash;
 }
 
-void CPatternCompiler::Print(LPCTSTR text) const
+void CPatternCompiler::Print(const char *text) const		// // //
 {
 	if (m_pLogger != NULL)
 		m_pLogger->WriteLog(text);

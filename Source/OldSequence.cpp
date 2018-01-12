@@ -21,7 +21,6 @@
 */
 
 #include "OldSequence.h"
-#include "stdafx.h"
 // #include "ModuleException.h"
 #include "Sequence.h"
 

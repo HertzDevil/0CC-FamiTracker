@@ -23,7 +23,6 @@
 #include "APU.h"
 #include <algorithm>		// // //
 #include <vector>
-#include "../stdafx.h"
 #include <memory>
 #include <cmath>
 #include "Mixer.h"		// // //

@@ -21,7 +21,6 @@
 */
 
 #include "VRC7.h"
-#include "../stdafx.h"
 #include "APU.h"
 #include "Mixer.h"		// // //
 #include "../RegisterState.h"		// // //

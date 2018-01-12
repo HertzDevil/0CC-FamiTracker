@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include "stdafx.h"
 #include "FamiTrackerTypes.h"
 #include <memory>
 #include <array>
@@ -34,6 +33,7 @@ class CSequence;
 class CInstrument;
 class CFamiTrackerDoc;
 class CSoundGen;
+class CWnd;
 enum class sequence_t : unsigned;
 
 struct stRecordSetting {

@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include "stdafx.h"		// // //
 #include <vector>		// // //
 #include "FamiTrackerTypes.h"		// // //
 #include <memory>		// // //
@@ -70,7 +69,7 @@ private:
 	void			ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned int StartRow, int Pattern, int Channel);
 
 	// Debugging
-	void			Print(LPCTSTR text) const;
+	void			Print(const char *text) const;		// // //
 
 private:
 	std::vector<unsigned char> m_vData;		// // //
