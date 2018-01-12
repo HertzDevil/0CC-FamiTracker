@@ -35,8 +35,7 @@ ENUM_CLASS_STANDARD(sequence_t, unsigned) {
 	Pitch,
 	HiPitch,		// TODO: remove this eventually
 	DutyCycle,
-	None = (unsigned)-1,
-	none = None,
+	none = (unsigned)-1,
 	min = Volume,
 	max = DutyCycle,
 };
@@ -78,17 +77,24 @@ static const unsigned int SEQ_SETTING_COUNT[] = {2, 4, 2, 1, 1};
 #endif
 
 // // // Sunsoft modes
-enum s5b_mode_t {
-	S5B_MODE_ENVELOPE = 0x20,
-	S5B_MODE_SQUARE   = 0x40,
-	S5B_MODE_NOISE    = 0x80
+ENUM_CLASS_BITMASK(s5b_mode_t, unsigned char) {
+	Envelope = 0x20u,
+	Square   = 0x40u,
+	Noise    = 0x80u,
+	min      = 0x00u,
+	max      = 0xE0u,
 };
 
 // // // Arpeggio scheme modes
-enum arp_scheme_mode_t {
-	ARPSCHEME_MODE_X     = 0x40,
-	ARPSCHEME_MODE_Y     = 0x80,
-	ARPSCHEME_MODE_NEG_Y = 0xC0
+enum class arp_scheme_mode_t : unsigned char {
+	X    = 0x40u,
+	Y    = 0x80u,
+	NegY = 0xC0u,
+	none = 0x00u,
+};
+template <>
+struct enum_traits<arp_scheme_mode_t> {
+	using category = enum_discrete<arp_scheme_mode_t, arp_scheme_mode_t::X, arp_scheme_mode_t::Y, arp_scheme_mode_t::NegY>;
 };
 
 const int ARPSCHEME_MAX = 36;		// // // highest note offset for arp schemes

@@ -98,7 +98,7 @@ CChannelHandlerS5B::CChannelHandlerS5B() :
 	m_iAutoEnvelopeShift(0),		// // // 050B
 	m_bUpdate(false)
 {
-	m_iDefaultDuty = S5B_MODE_SQUARE;		// // //
+	m_iDefaultDuty = value_cast(s5b_mode_t::Square);		// // //
 	m_iDefaultNoise = 0;		// // //
 }
 
@@ -144,7 +144,7 @@ void CChannelHandlerS5B::HandleEmptyNote()
 void CChannelHandlerS5B::HandleCut()
 {
 	CutNote();
-	m_iDutyPeriod = S5B_MODE_SQUARE;
+	m_iDutyPeriod = value_cast(s5b_mode_t::Square);
 	m_iNote = -1;
 }
 
@@ -178,7 +178,7 @@ void CChannelHandlerS5B::ResetChannel()
 {
 	CChannelHandler::ResetChannel();
 
-	m_iDefaultDuty = m_iDutyPeriod = S5B_MODE_SQUARE;
+	m_iDefaultDuty = m_iDutyPeriod = value_cast(s5b_mode_t::Square);
 	m_iDefaultNoise = m_iNoiseFreq = 0;		// // //
 	m_iNoisePrev = -1;		// // //
 	m_bEnvelopeEnabled = false;
@@ -199,7 +199,7 @@ int CChannelHandlerS5B::ConvertDuty(int Duty) const		// // //
 {
 	switch (m_iInstTypeCurrent) {
 	case INST_2A03: case INST_VRC6: case INST_N163:
-		return S5B_MODE_SQUARE;
+		return value_cast(s5b_mode_t::Square);
 	default:
 		return Duty;
 	}
@@ -233,9 +233,9 @@ void CChannelHandlerS5B::RefreshChannel()
 	unsigned char HiPeriod = Period >> 8;
 	int Volume = CalculateVolume();
 
-	unsigned char Noise = (m_bGate && (m_iDutyPeriod & S5B_MODE_NOISE)) ? 0 : 1;
-	unsigned char Square = (m_bGate && (m_iDutyPeriod & S5B_MODE_SQUARE)) ? 0 : 1;
-	unsigned char Envelope = (m_bGate && (m_iDutyPeriod & S5B_MODE_ENVELOPE)) ? 0x10 : 0; // m_bEnvelopeEnabled ? 0x10 : 0;
+	unsigned char Noise = (m_bGate && (m_iDutyPeriod & value_cast(s5b_mode_t::Noise))) ? 0 : 1;
+	unsigned char Square = (m_bGate && (m_iDutyPeriod & value_cast(s5b_mode_t::Square))) ? 0 : 1;
+	unsigned char Envelope = (m_bGate && (m_iDutyPeriod & value_cast(s5b_mode_t::Envelope))) ? 0x10 : 0; // m_bEnvelopeEnabled ? 0x10 : 0;
 
 	UpdateAutoEnvelope(Period);		// // // 050B
 	SetMode(m_iChannelID, Square, Noise);

@@ -182,11 +182,12 @@ private:
 	static const int BUTTON_HEIGHT = 9;		// // //
 	static const int BUTTON_MARGIN = 26;		// // //
 	int m_iItems;
-	int m_iLastIndex;
+	int m_iLastIndexX = -1;		// // //
+	int m_iLastIndexY = -1;		// // //
 protected:
 	void ModifyReleased();
 public:
-	explicit CNoiseEditor(std::shared_ptr<CSequence> pSequence, int Items) : CGraphEditor(pSequence), m_iItems(Items), m_iLastIndex(-1) { }		// // //
+	CNoiseEditor(std::shared_ptr<CSequence> pSequence, int Items) : CGraphEditor(pSequence), m_iItems(Items) { }		// // //
 	afx_msg void OnPaint();
 	void ModifyItem(CPoint point, bool Redraw);
 	void HighlightItem(CPoint point);

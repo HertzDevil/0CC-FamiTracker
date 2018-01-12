@@ -738,9 +738,10 @@ void CArpeggioGraphEditor::Initialize()
 
 	if (m_pSequence != NULL && m_pSequence->GetItemCount() > 0) {
 		m_iScrollOffset = m_pSequence->GetItem(0);
-		if (m_pSequence->GetSetting() == SETTING_ARP_SCHEME){			// // //
-			m_iScrollOffset = (m_iScrollOffset + 0x80) % 0x40;
-			m_iScrollOffset -= 0x40 * (m_iScrollOffset % 0x40 > ARPSCHEME_MAX);
+		if (m_pSequence->GetSetting() == SETTING_ARP_SCHEME) {		// // //
+			m_iScrollOffset &= 0x3F;
+			if (m_iScrollOffset > ARPSCHEME_MAX)
+				m_iScrollOffset -= 0x40;
 		}
 
 		info.nPos = m_iScrollMax - m_iScrollOffset;		// // //
@@ -932,17 +933,16 @@ void CArpeggioGraphEditor::ModifyItem(CPoint point, bool Redraw)
 	m_iHighlightedValue = ItemValue;
 
 	if (m_pSequence->GetSetting() == SETTING_ARP_SCHEME) {		// // //
-		int value = m_pSequence->GetItem(ItemIndex);
-		if (value < 0) value += 0x100;
+		auto value = enum_cast<arp_scheme_mode_t>((uint8_t)(m_pSequence->GetItem(ItemIndex) & 0xC0));
 		if (::GetKeyState(VK_NUMPAD0) & 0x80)
-			value = 0;
+			value = arp_scheme_mode_t::none;
 		else if (::GetKeyState(VK_NUMPAD1) & 0x80)
-			value = ARPSCHEME_MODE_X;
+			value = arp_scheme_mode_t::X;
 		else if (::GetKeyState(VK_NUMPAD2) & 0x80)
-			value = ARPSCHEME_MODE_Y;
+			value = arp_scheme_mode_t::Y;
 		else if (::GetKeyState(VK_NUMPAD3) & 0x80)
-			value = ARPSCHEME_MODE_NEG_Y;
-		ItemValue = (ItemValue & 0x3F) | (value & 0xC0);
+			value = arp_scheme_mode_t::NegY;
+		ItemValue = (ItemValue & 0x3F) | value_cast(value);
 	}
 	m_pSequence->SetItem(ItemIndex, ItemValue);
 
@@ -1253,15 +1253,15 @@ void CNoiseEditor::OnPaint()
 			DrawRect(m_BackDC, x, y, w, h);
 
 		// Draw switches
-		item = m_pSequence->GetItem(i);
+		auto flags = enum_cast<s5b_mode_t>((uint8_t)m_pSequence->GetItem(i));		// // //
 
-		static const int BAR_MODE[] = {S5B_MODE_ENVELOPE, S5B_MODE_SQUARE, S5B_MODE_NOISE};		// // //
+		static const s5b_mode_t BAR_MODE[] = {s5b_mode_t::Envelope, s5b_mode_t::Square, s5b_mode_t::Noise};		// // //
 		static const COLORREF BAR_COLOR[] = {0x00A0A0, 0xA0A000, 0xA000A0};
 
 		for (std::size_t i = 0; i < std::size(BAR_MODE); ++i) {
 			int y = m_GraphRect.bottom - BUTTON_MARGIN + i * BUTTON_HEIGHT + 1;
 			int h = BUTTON_HEIGHT - 1;
-			const COLORREF Color = (item & BAR_MODE[i]) ? BAR_COLOR[i] : 0x505050;
+			const COLORREF Color = (flags & BAR_MODE[i]) == BAR_MODE[i] ? BAR_COLOR[i] : 0x505050;
 			m_BackDC.FillSolidRect(x, y, w, h, Color);
 			m_BackDC.Draw3dRect(x, y, w, h, BLEND(Color, WHITE, .8), BLEND(Color, BLACK, .8));
 		}
@@ -1285,14 +1285,16 @@ void CNoiseEditor::ModifyItem(CPoint point, bool Redraw)
 	int Offset = m_GraphRect.bottom - BUTTON_MARGIN;		// // //
 
 	if (point.y >= Offset) {
-		if (m_iLastIndex == ItemIndex)
+		int x = (point.y - Offset) / BUTTON_HEIGHT;		// // //
+		if (m_iLastIndexY == ItemIndex && m_iLastIndexX == x)
 			return;
-		m_iLastIndex = ItemIndex;
+		m_iLastIndexY = ItemIndex;
+		m_iLastIndexX = x;
 
-		switch ((point.y - Offset) / BUTTON_HEIGHT) {		// // //
-		case 0: ItemValue = m_pSequence->GetItem(ItemIndex) ^ S5B_MODE_ENVELOPE; break;
-		case 1: ItemValue = m_pSequence->GetItem(ItemIndex) ^ S5B_MODE_SQUARE; break;
-		case 2: ItemValue = m_pSequence->GetItem(ItemIndex) ^ S5B_MODE_NOISE; break;
+		switch (x) {		// // //
+		case 0: ItemValue = m_pSequence->GetItem(ItemIndex) ^ value_cast(s5b_mode_t::Envelope); break;
+		case 1: ItemValue = m_pSequence->GetItem(ItemIndex) ^ value_cast(s5b_mode_t::Square); break;
+		case 2: ItemValue = m_pSequence->GetItem(ItemIndex) ^ value_cast(s5b_mode_t::Noise); break;
 		default: return;
 		}
 	}
@@ -1305,7 +1307,8 @@ void CNoiseEditor::ModifyItem(CPoint point, bool Redraw)
 		if (ItemValue > m_iItems)
 			ItemValue = m_iItems;
 
-		ItemValue |= m_pSequence->GetItem(ItemIndex) & 0xE0;
+		ItemValue |= 0xE0 & value_cast<s5b_mode_t>((uint8_t)m_pSequence->GetItem(ItemIndex));		// // //
+//		ItemValue |= value_cast<s5b_mode_t>((uint8_t)m_pSequence->GetItem(ItemIndex));		// // //
 	}
 
 	if (ItemIndex < 0 || ItemIndex >= (int)m_pSequence->GetItemCount())
@@ -1338,5 +1341,5 @@ int CNoiseEditor::GetItemBottom() const		// // //
 
 void CNoiseEditor::ModifyReleased()
 {
-	m_iLastIndex = -1;
+	m_iLastIndexX = m_iLastIndexY = -1;		// // //
 }

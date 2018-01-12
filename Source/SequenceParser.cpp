@@ -154,11 +154,12 @@ bool CSeqConversionDefault::GetNextTerm(std::string_view &sv, int &Out)
 std::string CSeqConversion5B::ToString(char Value) const
 {
 	std::string Str = std::to_string(Value & 0x1F);
-	if (Value & S5B_MODE_SQUARE)
+	auto m = enum_cast<s5b_mode_t>((unsigned char)Value);
+	if ((m & s5b_mode_t::Square) == s5b_mode_t::Square)
 		Str.push_back('t');
-	if (Value & S5B_MODE_NOISE)
+	if ((m & s5b_mode_t::Noise) == s5b_mode_t::Noise)
 		Str.push_back('n');
-	if (Value & S5B_MODE_ENVELOPE)
+	if ((m & s5b_mode_t::Envelope) == s5b_mode_t::Envelope)
 		Str.push_back('e');
 	return Str;
 }
@@ -185,11 +186,11 @@ bool CSeqConversion5B::GetNextTerm(std::string_view &sv, int &Out)
 		if (m_iEnableFlags == -1) {
 			m_iEnableFlags = 0;
 			if (m.str().find_first_of("Tt") != std::string::npos)
-				m_iEnableFlags |= S5B_MODE_SQUARE;
+				m_iEnableFlags |= value_cast(s5b_mode_t::Square);
 			if (m.str().find_first_of("Nn") != std::string::npos)
-				m_iEnableFlags |= S5B_MODE_NOISE;
+				m_iEnableFlags |= value_cast(s5b_mode_t::Noise);
 			if (m.str().find_first_of("Ee") != std::string::npos)
-				m_iEnableFlags |= S5B_MODE_ENVELOPE;
+				m_iEnableFlags |= value_cast(s5b_mode_t::Envelope);
 		}
 		sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
 	}
@@ -201,20 +202,21 @@ bool CSeqConversion5B::GetNextTerm(std::string_view &sv, int &Out)
 std::string CSeqConversionArpScheme::ToString(char Value) const		// // //
 {
 	int Offset = m_iMinValue + ((Value - m_iMinValue) & 0x3F);
-	unsigned char Scheme = Value & 0xC0;
+	auto Scheme = enum_cast<arp_scheme_mode_t>((unsigned char)(Value & 0xC0));
 	if (!Offset) {
 		switch (Scheme) {
-		case ARPSCHEME_MODE_X: return "x";
-		case ARPSCHEME_MODE_Y: return "y";
-		case ARPSCHEME_MODE_NEG_Y: return "-y";
-		default: return "0";
+		case arp_scheme_mode_t::X: return "x";
+		case arp_scheme_mode_t::Y: return "y";
+		case arp_scheme_mode_t::NegY: return "-y";
+		case arp_scheme_mode_t::none: return "0";
 		}
 	}
 	std::string Str = std::to_string(Offset);
 	switch (Scheme) {
-	case ARPSCHEME_MODE_X: Str += "+x"; break;
-	case ARPSCHEME_MODE_Y: Str += "+y"; break;
-	case ARPSCHEME_MODE_NEG_Y: Str += "-y"; break;
+	case arp_scheme_mode_t::X: Str += "+x"; break;
+	case arp_scheme_mode_t::Y: Str += "+y"; break;
+	case arp_scheme_mode_t::NegY: Str += "-y"; break;
+	case arp_scheme_mode_t::none: break;
 	}
 	return Str;
 }
@@ -237,11 +239,11 @@ bool CSeqConversionArpScheme::GetNextTerm(std::string_view &sv, int &Out)
 			return;
 		m_iArpSchemeFlag = 0;
 		if (str == "x" || str == "+x")
-			m_iArpSchemeFlag = static_cast<unsigned char>(ARPSCHEME_MODE_X);
+			m_iArpSchemeFlag = static_cast<unsigned char>(arp_scheme_mode_t::X);
 		else if (str == "y" || str == "+y")
-			m_iArpSchemeFlag = static_cast<unsigned char>(ARPSCHEME_MODE_Y);
+			m_iArpSchemeFlag = static_cast<unsigned char>(arp_scheme_mode_t::Y);
 		else if (str == "-y")
-			m_iArpSchemeFlag = static_cast<unsigned char>(ARPSCHEME_MODE_NEG_Y);
+			m_iArpSchemeFlag = static_cast<unsigned char>(arp_scheme_mode_t::NegY);
 	};
 
 	re::svmatch m;

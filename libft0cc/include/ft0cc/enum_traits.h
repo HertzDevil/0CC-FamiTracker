@@ -309,7 +309,7 @@ constexpr EnumT operator|(const EnumT &lhs, const EnumT &rhs) noexcept {
 	if constexpr (enum_has_none<EnumT>())
 		if (!lhs || !rhs)
 			return enum_none<EnumT>();
-	return enum_cast<EnumT>(value_cast(lhs) | value_cast(rhs));
+	return enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) | value_cast(rhs)));
 }
 
 // If neither operand is EnumT::None, assigns (lhs | rhs) to lhs. The operands
@@ -321,10 +321,10 @@ template <typename EnumT,
 constexpr EnumT &operator|=(EnumT &lhs, const EnumT &rhs) noexcept {
 	if constexpr (enum_has_none<EnumT>()) {
 		if (!(!lhs || !rhs))
-			lhs = enum_cast<EnumT>(value_cast(lhs) | value_cast(rhs));
+			lhs = enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) | value_cast(rhs)));
 	}
 	else
-		lhs = enum_cast<EnumT>(value_cast(lhs) | value_cast(rhs));
+		lhs = enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) | value_cast(rhs)));
 	return lhs;
 }
 
@@ -337,7 +337,7 @@ constexpr EnumT operator&(const EnumT &lhs, const EnumT &rhs) noexcept {
 	if constexpr (enum_has_none<EnumT>())
 		if (!lhs || !rhs)
 			return enum_none<EnumT>();
-	return enum_cast<EnumT>(value_cast(lhs) & value_cast(rhs));
+	return enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) & value_cast(rhs)));
 }
 
 // If neither operand is EnumT::None, assigns (lhs & rhs) to lhs. The operands
@@ -349,10 +349,10 @@ template <typename EnumT,
 constexpr EnumT &operator&=(EnumT &lhs, const EnumT &rhs) noexcept {
 	if constexpr (enum_has_none<EnumT>()) {
 		if (!(!lhs || !rhs))
-			lhs = enum_cast<EnumT>(value_cast(lhs) & value_cast(rhs));
+			lhs = enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) & value_cast(rhs)));
 	}
 	else
-		lhs = enum_cast<EnumT>(value_cast(lhs) & value_cast(rhs));
+		lhs = enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) & value_cast(rhs)));
 	return lhs;
 }
 
@@ -366,7 +366,7 @@ constexpr EnumT operator^(const EnumT &lhs, const EnumT &rhs) noexcept {
 	if constexpr (enum_has_none<EnumT>())
 		if (!lhs || !rhs)
 			return enum_none<EnumT>();
-	return enum_cast<EnumT>(value_cast(lhs) ^ value_cast(rhs));
+	return enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) ^ value_cast(rhs)));
 }
 
 // If neither operand is EnumT::None, assigns (lhs ^ rhs) to lhs. The operands
@@ -378,10 +378,10 @@ template <typename EnumT,
 constexpr EnumT &operator^=(EnumT &lhs, const EnumT &rhs) noexcept {
 	if constexpr (enum_has_none<EnumT>()) {
 		if (!(!lhs || !rhs))
-			lhs = enum_cast<EnumT>(value_cast(lhs) ^ value_cast(rhs));
+			lhs = enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) ^ value_cast(rhs)));
 	}
 	else
-		lhs = enum_cast<EnumT>(value_cast(lhs) ^ value_cast(rhs));
+		lhs = enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) ^ value_cast(rhs)));
 	return lhs;
 }
 
