@@ -26,6 +26,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include "FamiTrackerTypes.h"
 
 const int VIBRATO_LENGTH = 256;
 const int TREMOLO_LENGTH = 256;
@@ -105,13 +106,13 @@ private:
 	int					m_iSkipToRow = -1;
 	bool				m_bDoHalt = false;					// // // Cxx effect
 
-	unsigned int		m_iNoteLookupTableNTSC[96];			// For 2A03
-	unsigned int		m_iNoteLookupTablePAL[96];			// For 2A07
-	unsigned int		m_iNoteLookupTableSaw[96];			// For VRC6 sawtooth
-	unsigned int		m_iNoteLookupTableVRC7[12];			// // // For VRC7
-	unsigned int		m_iNoteLookupTableFDS[96];			// For FDS
-	unsigned int		m_iNoteLookupTableN163[96];			// For N163
-	unsigned int		m_iNoteLookupTableS5B[96];			// // // For 5B, internal use only
+	unsigned int		m_iNoteLookupTableNTSC[NOTE_COUNT];			// For 2A03
+	unsigned int		m_iNoteLookupTablePAL[NOTE_COUNT];			// For 2A07
+	unsigned int		m_iNoteLookupTableSaw[NOTE_COUNT];			// For VRC6 sawtooth
+	unsigned int		m_iNoteLookupTableVRC7[NOTE_COUNT];			// // // For VRC7
+	unsigned int		m_iNoteLookupTableFDS[NOTE_COUNT];			// For FDS
+	unsigned int		m_iNoteLookupTableN163[NOTE_COUNT];			// For N163
+	unsigned int		m_iNoteLookupTableS5B[NOTE_COUNT];			// // // For 5B, internal use only
 	int					m_iVibratoTable[VIBRATO_LENGTH];
 
 	std::shared_ptr<CTempoCounter> m_pTempoCounter;			// // // tempo calculation

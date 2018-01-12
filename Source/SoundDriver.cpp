@@ -315,7 +315,7 @@ void CSoundDriver::QueueNote(int chan, const stChanNote &note, note_prio_t prior
 
 void CSoundDriver::ForceReloadInstrument(int chan) {
 	if (doc_)
-		tracks_[doc_->GetChannel(chan).GetID()].first->ForceReloadInstrument();
+		tracks_[doc_->GetChannelType(chan)].first->ForceReloadInstrument();
 }
 
 bool CSoundDriver::IsPlaying() const {
@@ -392,31 +392,30 @@ void CSoundDriver::SetupVibrato() {
 }
 
 void CSoundDriver::SetupPeriodTables() {
-
 	machine_t Machine = doc_->GetMachine();
 	const double A440_NOTE = 45. - doc_->GetTuningSemitone() - doc_->GetTuningCent() / 100.;
-	double clock_ntsc = CAPU::BASE_FREQ_NTSC / 16.0;
-	double clock_pal = CAPU::BASE_FREQ_PAL / 16.0;
+	const double clock_ntsc = CAPU::BASE_FREQ_NTSC / 16.0;
+	const double clock_pal = CAPU::BASE_FREQ_PAL / 16.0;
 
 	for (int i = 0; i < NOTE_COUNT; ++i) {
 		// Frequency (in Hz)
-		double Freq = 440. * pow(2.0, double(i - A440_NOTE) / 12.);
+		double Freq = 440. * std::pow(2.0, (i - A440_NOTE) / 12.);
 		double Pitch;
 
 		// 2A07
 		Pitch = (clock_pal / Freq) - 0.5;
 		m_iNoteLookupTablePAL[i] = (unsigned int)(Pitch - doc_->GetDetuneOffset(1, i));		// // //
 
-																							// 2A03 / MMC5 / VRC6
+		// 2A03 / MMC5 / VRC6
 		Pitch = (clock_ntsc / Freq) - 0.5;
 		m_iNoteLookupTableNTSC[i] = (unsigned int)(Pitch - doc_->GetDetuneOffset(0, i));		// // //
 		m_iNoteLookupTableS5B[i] = m_iNoteLookupTableNTSC[i] + 1;		// correction
 
-																		// VRC6 Saw
+		// VRC6 Saw
 		Pitch = ((clock_ntsc * 16.0) / (Freq * 14.0)) - 0.5;
 		m_iNoteLookupTableSaw[i] = (unsigned int)(Pitch - doc_->GetDetuneOffset(2, i));		// // //
 
-																							// FDS
+		// FDS
 #ifdef TRANSPOSE_FDS
 		Pitch = (Freq * 65536.0) / (clock_ntsc / 1.0) + 0.5;
 #else
@@ -424,19 +423,21 @@ void CSoundDriver::SetupPeriodTables() {
 #endif
 		m_iNoteLookupTableFDS[i] = (unsigned int)(Pitch + doc_->GetDetuneOffset(4, i));		// // //
 
-																							// N163
+		// N163
 		Pitch = ((Freq * doc_->GetNamcoChannels() * 983040.0) / clock_ntsc + 0.5) / 4;		// // //
 		m_iNoteLookupTableN163[i] = (unsigned int)(Pitch + doc_->GetDetuneOffset(5, i));		// // //
 
 		if (m_iNoteLookupTableN163[i] > 0xFFFF)	// 0x3FFFF
 			m_iNoteLookupTableN163[i] = 0xFFFF;	// 0x3FFFF
 
-												// // // Sunsoft 5B uses NTSC table
+		// // // Sunsoft 5B uses NTSC table
 
-												// // // VRC7
+		// // // VRC7
 		if (i < NOTE_RANGE) {
 			Pitch = Freq * 262144.0 / 49716.0 + 0.5;
-			m_iNoteLookupTableVRC7[i] = (unsigned int)(Pitch + doc_->GetDetuneOffset(3, i));		// // //
+			unsigned Reg = (unsigned int)(Pitch + doc_->GetDetuneOffset(3, i));
+			for (int j = 0; j < OCTAVE_RANGE; ++j)
+				m_iNoteLookupTableVRC7[i + j * NOTE_RANGE] = Reg;		// // //
 		}
 	}
 

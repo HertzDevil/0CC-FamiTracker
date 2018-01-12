@@ -72,12 +72,12 @@ int CChannelMap::GetChannelCount() const {		// // //
 
 int CChannelMap::GetChannelType(int Channel) const
 {
-	return m_pChannels[Channel]->GetID();
+	return GetChannel(Channel).GetID();
 }
 
 int CChannelMap::GetChipType(int Channel) const
 {
-	return m_pChannels[Channel]->GetChip();
+	return GetChannel(Channel).GetChip();
 }
 
 unsigned CChannelMap::GetExpansionFlag() const noexcept {		// // //
