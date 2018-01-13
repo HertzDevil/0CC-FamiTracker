@@ -209,10 +209,6 @@ public:
 	bool			DeleteFrames(unsigned int Track, unsigned int Frame, unsigned Count);		// // //
 
 	// Global (module) data
-	void			SetEngineSpeed(unsigned int Speed);
-	void			SetMachine(machine_t Machine);		// // //
-	machine_t		GetMachine() const		{ return m_iMachine; }		// // //
-	unsigned int	GetEngineSpeed() const	{ return m_iEngineSpeed; }
 	unsigned int	GetFrameRate() const;
 
 	void			SelectExpansionChip(unsigned chips, unsigned n163chs, bool Move);		// // //
@@ -231,18 +227,21 @@ public:
 	void			SetModuleArtist(std::string_view pArtist);
 	void			SetModuleCopyright(std::string_view pCopyright);
 
+	machine_t		GetMachine() const;
+	unsigned int	GetEngineSpeed() const;
 	vibrato_t		GetVibratoStyle() const;
-	void			SetVibratoStyle(vibrato_t Style);
-
 	bool			GetLinearPitch() const;
+	int				GetSpeedSplitPoint() const;
+
+	void			SetMachine(machine_t Machine);		// // //
+	void			SetEngineSpeed(unsigned int Speed);
+	void			SetVibratoStyle(vibrato_t Style);
 	void			SetLinearPitch(bool Enable);
+	void			SetSpeedSplitPoint(int SplitPoint);
 
 	void			SetComment(std::string_view comment, bool bShowOnLoad);		// // //
 	std::string_view GetComment() const;		// // //
 	bool			ShowCommentOnOpen() const;
-
-	void			SetSpeedSplitPoint(int SplitPoint);
-	int				GetSpeedSplitPoint() const;
 
 	void			SetHighlight(unsigned int Track, const stHighlight &Hl);		// // //
 	const stHighlight &GetHighlight(unsigned int Track) const;
@@ -443,15 +442,6 @@ private:
 	// Instruments, samples and sequences
 	std::unique_ptr<CInstrumentManager> m_pInstrumentManager;	// // //
 	std::array<std::unique_ptr<groove>, MAX_GROOVE> m_pGrooveTable;		// // // Grooves
-
-	// Module properties
-	vibrato_t		m_iVibratoStyle;							// 0 = old style, 1 = new style
-	bool			m_bLinearPitch;
-	machine_t		m_iMachine;									// // // NTSC / PAL
-	unsigned int	m_iEngineSpeed;								// Refresh rate
-	unsigned int	m_iSpeedSplitPoint;							// Speed/tempo split-point
-	int				m_iDetuneTable[6][96] = { };				// // // Detune tables
-	int				m_iDetuneSemitone, m_iDetuneCent;			// // // 050B tuning
 
 	// Row highlight (TODO remove)
 	stHighlight		m_vHighlight;								// // //

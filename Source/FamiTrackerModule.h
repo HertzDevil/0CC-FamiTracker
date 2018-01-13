@@ -24,6 +24,7 @@
 #pragma once
 
 #include <string>
+#include "FamiTrackerTypes.h"
 
 class CFamiTrackerModule {
 public:
@@ -45,7 +46,36 @@ public:
 	bool ShowsCommentOnOpen() const;
 	void SetComment(std::string_view comment, bool showOnOpen);
 
+	// global info
+	machine_t GetMachine() const;
+	unsigned int GetEngineSpeed() const;
+	vibrato_t GetVibratoStyle() const;
+	bool GetLinearPitch() const;
+	int GetSpeedSplitPoint() const;
+
+	void SetMachine(machine_t Machine);
+	void SetEngineSpeed(unsigned int Speed);
+	void SetVibratoStyle(vibrato_t Style);
+	void SetLinearPitch(bool Enable);
+	void SetSpeedSplitPoint(int SplitPoint);
+
+	// detune
+	int GetDetuneOffset(int Chip, int Note) const;
+	void SetDetuneOffset(int Chip, int Note, int Detune);
+	void ResetDetuneTables();
+	int GetTuningSemitone() const;		// // // 050B
+	int GetTuningCent() const;		// // // 050B
+	void SetTuning(int Semitone, int Cent);		// // // 050B
+
 private:
+	machine_t		m_iMachine;
+	unsigned int	m_iEngineSpeed;
+	vibrato_t		m_iVibratoStyle;
+	bool			m_bLinearPitch;
+	unsigned int	m_iSpeedSplitPoint;
+	int				m_iDetuneTable[6][96] = { };		// // // Detune tables
+	int				m_iDetuneSemitone, m_iDetuneCent;		// // // 050B tuning
+
 	std::string m_strName;
 	std::string m_strArtist;
 	std::string m_strCopyright;

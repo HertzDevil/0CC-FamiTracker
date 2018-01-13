@@ -699,7 +699,7 @@ bool CFamiTrackerDoc::ImportGrooves(CFamiTrackerDoc &Imported, int *pGrooveMap)	
 bool CFamiTrackerDoc::ImportDetune(CFamiTrackerDoc &Imported)		// // //
 {
 	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++)
-		m_iDetuneTable[i][j] = Imported.GetDetuneOffset(i, j);
+		SetDetuneOffset(i, j, Imported.GetDetuneOffset(i, j));
 
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(this);		// // //
 	return true;
@@ -981,18 +981,6 @@ void CFamiTrackerDoc::SetEffColumns(unsigned int Track, unsigned int Channel, un
 	GetSongData(Track).SetEffectColumnCount(Channel, Columns);
 }
 
-void CFamiTrackerDoc::SetEngineSpeed(unsigned int Speed)
-{
-	ASSERT(Speed >= 16 || Speed == 0);		// // //
-	m_iEngineSpeed = Speed;
-}
-
-void CFamiTrackerDoc::SetMachine(machine_t Machine)
-{
-	ASSERT(Machine == PAL || Machine == NTSC);
-	m_iMachine = Machine;
-}
-
 unsigned int CFamiTrackerDoc::GetPatternAtFrame(unsigned int Track, unsigned int Frame, unsigned int Channel) const
 {
 	return GetSongData(Track).GetFramePattern(Frame, Channel);
@@ -1007,10 +995,10 @@ void CFamiTrackerDoc::SetPatternAtFrame(unsigned int Track, unsigned int Frame, 
 
 unsigned int CFamiTrackerDoc::GetFrameRate() const
 {
-	if (m_iEngineSpeed == 0)
-		return (m_iMachine == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
-
-	return m_iEngineSpeed;
+	unsigned Rate = GetEngineSpeed();		// // //
+	if (Rate == 0)
+		return (GetMachine() == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
+	return Rate;
 }
 
 //// Pattern functions ////////////////////////////////////////////////////////////////////////////////
@@ -1516,30 +1504,6 @@ int CFamiTrackerDoc::GetChannelIndex(int Channel) const
 	return m_pChannelMap->GetChannelIndex(Channel);		// // //
 }
 
-// Vibrato functions
-
-vibrato_t CFamiTrackerDoc::GetVibratoStyle() const
-{
-	return m_iVibratoStyle;
-}
-
-void CFamiTrackerDoc::SetVibratoStyle(vibrato_t Style)
-{
-	m_iVibratoStyle = Style;
-}
-
-// Linear pitch slides
-
-bool CFamiTrackerDoc::GetLinearPitch() const
-{
-	return m_bLinearPitch;
-}
-
-void CFamiTrackerDoc::SetLinearPitch(bool Enable)
-{
-	m_bLinearPitch = Enable;
-}
-
 // Attributes
 
 CFamiTrackerModule *CFamiTrackerDoc::GetModule() noexcept {		// // //
@@ -1640,16 +1604,6 @@ void CFamiTrackerDoc::AutoSave()
 //
 // Comment functions
 //
-
-void CFamiTrackerDoc::SetSpeedSplitPoint(int SplitPoint)
-{
-	m_iSpeedSplitPoint = SplitPoint;
-}
-
-int CFamiTrackerDoc::GetSpeedSplitPoint() const
-{
-	return m_iSpeedSplitPoint;
-}
 
 void CFamiTrackerDoc::SetHighlight(unsigned int Track, const stHighlight &Hl)		// // //
 {
@@ -1984,38 +1938,6 @@ void CFamiTrackerDoc::SwapInstruments(int First, int Second)
 	});
 }
 
-void CFamiTrackerDoc::SetDetuneOffset(int Chip, int Note, int Detune)		// // //
-{
-	m_iDetuneTable[Chip][Note] = Detune;
-}
-
-int CFamiTrackerDoc::GetDetuneOffset(int Chip, int Note) const		// // //
-{
-	return m_iDetuneTable[Chip][Note];
-}
-
-void CFamiTrackerDoc::ResetDetuneTables()		// // //
-{
-	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++)
-		m_iDetuneTable[i][j] = 0;
-}
-
-void CFamiTrackerDoc::SetTuning(int Semitone, int Cent)		// // // 050B
-{
-	m_iDetuneSemitone = Semitone;
-	m_iDetuneCent = Cent;
-}
-
-int CFamiTrackerDoc::GetTuningSemitone() const		// // // 050B
-{
-	return m_iDetuneSemitone;
-}
-
-int CFamiTrackerDoc::GetTuningCent() const		// // // 050B
-{
-	return m_iDetuneCent;
-}
-
 ft0cc::doc::groove *CFamiTrackerDoc::GetGroove(unsigned Index) const		// // //
 {
 	return Index < MAX_GROOVE ? m_pGrooveTable[Index].get() : nullptr;
@@ -2043,49 +1965,104 @@ int CFamiTrackerDoc::GetFrameLength(unsigned int Track, unsigned int Frame) cons
 
 #pragma region delegates to CFamiTrackerModule
 
-std::string_view CFamiTrackerDoc::GetModuleName() const		// // //
-{
-	return module_->GetModuleName();
+std::string_view CFamiTrackerDoc::GetModuleName() const {
+	return GetModule()->GetModuleName();
 }
 
-std::string_view CFamiTrackerDoc::GetModuleArtist() const
-{
-	return module_->GetModuleArtist();
+std::string_view CFamiTrackerDoc::GetModuleArtist() const {
+	return GetModule()->GetModuleArtist();
 }
 
-std::string_view CFamiTrackerDoc::GetModuleCopyright() const
-{
-	return module_->GetModuleCopyright();
+std::string_view CFamiTrackerDoc::GetModuleCopyright() const {
+	return GetModule()->GetModuleCopyright();
 }
 
-void CFamiTrackerDoc::SetModuleName(std::string_view pName)
-{
-	module_->SetModuleName(pName);
+void CFamiTrackerDoc::SetModuleName(std::string_view pName) {
+	GetModule()->SetModuleName(pName);
 }
 
-void CFamiTrackerDoc::SetModuleArtist(std::string_view pArtist)
-{
-	module_->SetModuleArtist(pArtist);
+void CFamiTrackerDoc::SetModuleArtist(std::string_view pArtist) {
+	GetModule()->SetModuleArtist(pArtist);
 }
 
-void CFamiTrackerDoc::SetModuleCopyright(std::string_view pCopyright)
-{
-	module_->SetModuleCopyright(pCopyright);
+void CFamiTrackerDoc::SetModuleCopyright(std::string_view pCopyright) {
+	GetModule()->SetModuleCopyright(pCopyright);
 }
 
-void CFamiTrackerDoc::SetComment(std::string_view comment, bool bShowOnLoad)		// // //
-{
-	module_->SetComment(comment, bShowOnLoad);
+machine_t CFamiTrackerDoc::GetMachine() const {
+	return GetModule()->GetMachine();
 }
 
-std::string_view CFamiTrackerDoc::GetComment() const		// // //
-{
-	return module_->GetComment();
+unsigned int CFamiTrackerDoc::GetEngineSpeed() const {
+	return GetModule()->GetEngineSpeed();
 }
 
-bool CFamiTrackerDoc::ShowCommentOnOpen() const
-{
-	return module_->ShowsCommentOnOpen();;
+vibrato_t CFamiTrackerDoc::GetVibratoStyle() const {
+	return GetModule()->GetVibratoStyle();
+}
+
+bool CFamiTrackerDoc::GetLinearPitch() const {
+	return GetModule()->GetLinearPitch();
+}
+
+int CFamiTrackerDoc::GetSpeedSplitPoint() const {
+	return GetModule()->GetSpeedSplitPoint();
+}
+
+void CFamiTrackerDoc::SetMachine(machine_t Machine) {
+	GetModule()->SetMachine(Machine);
+}
+
+void CFamiTrackerDoc::SetEngineSpeed(unsigned int Speed) {
+	GetModule()->SetEngineSpeed(Speed);
+}
+
+void CFamiTrackerDoc::SetVibratoStyle(vibrato_t Style) {
+	GetModule()->SetVibratoStyle(Style);
+}
+
+void CFamiTrackerDoc::SetLinearPitch(bool Enable) {
+	GetModule()->SetLinearPitch(Enable);
+}
+
+void CFamiTrackerDoc::SetSpeedSplitPoint(int SplitPoint) {
+	GetModule()->SetSpeedSplitPoint(SplitPoint);
+}
+
+void CFamiTrackerDoc::SetComment(std::string_view comment, bool bShowOnLoad) {
+	GetModule()->SetComment(comment, bShowOnLoad);
+}
+
+std::string_view CFamiTrackerDoc::GetComment() const {
+	return GetModule()->GetComment();
+}
+
+bool CFamiTrackerDoc::ShowCommentOnOpen() const {
+	return GetModule()->ShowsCommentOnOpen();;
+}
+
+int CFamiTrackerDoc::GetDetuneOffset(int Chip, int Note) const {
+	return GetModule()->GetDetuneOffset(Chip, Note);
+}
+
+void CFamiTrackerDoc::SetDetuneOffset(int Chip, int Note, int Detune) {
+	GetModule()->SetDetuneOffset(Chip, Note, Detune);
+}
+
+void CFamiTrackerDoc::ResetDetuneTables() {
+	GetModule()->ResetDetuneTables();
+}
+
+int CFamiTrackerDoc::GetTuningSemitone() const {
+	return GetModule()->GetTuningSemitone();
+}
+
+int CFamiTrackerDoc::GetTuningCent() const {
+	return GetModule()->GetTuningCent();
+}
+
+void CFamiTrackerDoc::SetTuning(int Semitone, int Cent) {
+	GetModule()->SetTuning(Semitone, Cent);
 }
 
 #pragma endregion
