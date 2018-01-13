@@ -37,7 +37,7 @@ public:
 	CCommentsDlg(CWnd* pParent = NULL);   // standard constructor
 	// // //
 	const std::string &GetComment() const;		// // //
-	void SetComment(const std::string &Str);		// // //
+	void SetComment(std::string_view Str);		// // //
 	bool GetShowOnLoad() const;
 	void SetShowOnLoad(bool Enable);
 	bool IsChanged() const;

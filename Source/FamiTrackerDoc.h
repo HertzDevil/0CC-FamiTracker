@@ -62,6 +62,7 @@ enum {
 // #include "FrameEditorTypes.h"		// // //
 
 // External classes
+class CFamiTrackerModule;		// // //
 class CSongData;		// // //
 class CChannelMap;		// // //
 class CTrackerChannel;
@@ -114,6 +115,9 @@ public:
 	// Public functions
 	//
 public:
+	// // // implementation
+	CFamiTrackerModule *GetModule() noexcept;
+	const CFamiTrackerModule *GetModule() const noexcept;
 
 	CString GetFileTitle() const;
 
@@ -233,8 +237,8 @@ public:
 	bool			GetLinearPitch() const;
 	void			SetLinearPitch(bool Enable);
 
-	void			SetComment(const std::string &comment, bool bShowOnLoad);		// // //
-	const std::string &GetComment() const;		// // //
+	void			SetComment(std::string_view comment, bool bShowOnLoad);		// // //
+	std::string_view GetComment() const;		// // //
 	bool			ShowCommentOnOpen() const;
 
 	void			SetSpeedSplitPoint(int SplitPoint);
@@ -407,6 +411,7 @@ private:
 	// Channels (TODO: run-time state, remove or move these?)
 	std::unique_ptr<CChannelMap> m_pChannelMap;		// // //
 
+	std::unique_ptr<CFamiTrackerModule> module_;		// // //
 
 	//
 	// State variables
@@ -447,15 +452,6 @@ private:
 	unsigned int	m_iSpeedSplitPoint;							// Speed/tempo split-point
 	int				m_iDetuneTable[6][96] = { };				// // // Detune tables
 	int				m_iDetuneSemitone, m_iDetuneCent;			// // // 050B tuning
-
-	// NSF info
-	std::string		m_strName;									// Song name
-	std::string		m_strArtist;								// Song artist
-	std::string		m_strCopyright;								// Song copyright
-
-	// Comments
-	std::string		m_strComment;								// // //
-	bool			m_bDisplayComment = false;
 
 	// Row highlight (TODO remove)
 	stHighlight		m_vHighlight;								// // //

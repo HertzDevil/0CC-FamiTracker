@@ -999,9 +999,9 @@ void CFamiTrackerDocIO::LoadComments(CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::SaveComments(const CFamiTrackerDoc &doc, int ver) {
-	if (const auto &str = doc.GetComment(); !str.empty()) {
+	if (auto str = doc.GetComment(); !str.empty()) {
 		file_.WriteBlockInt(doc.ShowCommentOnOpen() ? 1 : 0);
-		file_.WriteString(str.c_str());
+		file_.WriteStringView(str);
 	}
 }
 

@@ -768,6 +768,9 @@
     <ClCompile Include="Source\InstrumentService.cpp">
       <Filter>Source Files\Document Data Types\Instruments</Filter>
     </ClCompile>
+    <ClCompile Include="Source\FamiTrackerModule.cpp">
+      <Filter>Source Files\Document Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1414,6 +1417,9 @@
     </ClInclude>
     <ClInclude Include="Source\sv_regex.h">
       <Filter>Header Files\Other Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\FamiTrackerModule.h">
+      <Filter>Header Files\Document Component Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

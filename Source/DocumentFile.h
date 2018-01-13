@@ -46,6 +46,7 @@ public:
 	void		WriteBlockInt(int Value);
 	void		WriteBlockChar(char Value);
 	void		WriteString(CString String);
+	void		WriteStringView(std::string_view sv);		// // //
 	bool		FlushBlock();
 
 	// Read functions

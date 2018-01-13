@@ -119,7 +119,7 @@ void CDocumentFile::WriteBlock(const void *pData, unsigned int Size)
 
 template<class T> void CDocumentFile::WriteBlockData(T Value)
 {
-	WriteBlock(reinterpret_cast<const char*>(&Value), sizeof(Value));
+	WriteBlock(&Value, sizeof(Value));
 }
 
 void CDocumentFile::WriteBlockInt(int Value)
@@ -140,6 +140,11 @@ void CDocumentFile::WriteString(CString String)
 		WriteBlockChar(String.GetAt(i));
 
 	// End of string
+	WriteBlockChar(0);
+}
+
+void CDocumentFile::WriteStringView(std::string_view sv) {		// // //
+	WriteBlock(sv.data(), sv.size());
 	WriteBlockChar(0);
 }
 

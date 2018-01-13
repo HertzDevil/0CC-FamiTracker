@@ -43,7 +43,7 @@ const std::string &CCommentsDlg::GetComment() const		// // //
 	return m_sComment;
 }
 
-void CCommentsDlg::SetComment(const std::string &Str)		// // //
+void CCommentsDlg::SetComment(std::string_view Str)		// // //
 {
 	m_sComment = Str;
 }

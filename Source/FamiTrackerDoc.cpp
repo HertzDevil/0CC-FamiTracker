@@ -42,6 +42,7 @@
 */
 
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"		// // //
 #include <algorithm>
 #include <bitset>		// // //
 #include "FamiTracker.h"
@@ -85,6 +86,7 @@ END_MESSAGE_MAP()
 
 CFamiTrackerDoc::CFamiTrackerDoc() :
 	m_pChannelMap(std::make_unique<CChannelMap>()),		// // //
+	module_(std::make_unique<CFamiTrackerModule>()),		// // //
 	m_pInstrumentManager(std::make_unique<CInstrumentManager>(this))
 {
 	// Register this object to the sound generator
@@ -791,40 +793,6 @@ int CFamiTrackerDoc::GetTotalSequenceCount(inst_type_t InstType) const {		// // 
 		Count += GetSequenceCount(InstType, i);
 	});
 	return Count;
-}
-
-//
-// Song info
-//
-
-std::string_view CFamiTrackerDoc::GetModuleName() const		// // //
-{
-	return m_strName;
-}
-
-std::string_view CFamiTrackerDoc::GetModuleArtist() const
-{
-	return m_strArtist;
-}
-
-std::string_view CFamiTrackerDoc::GetModuleCopyright() const
-{
-	return m_strCopyright;
-}
-
-void CFamiTrackerDoc::SetModuleName(std::string_view pName)
-{
-	m_strName = pName.substr(0, METADATA_FIELD_LENGTH - 1);		// // //
-}
-
-void CFamiTrackerDoc::SetModuleArtist(std::string_view pArtist)
-{
-	m_strArtist = pArtist.substr(0, METADATA_FIELD_LENGTH - 1);		// // //
-}
-
-void CFamiTrackerDoc::SetModuleCopyright(std::string_view pCopyright)
-{
-	m_strCopyright = pCopyright.substr(0, METADATA_FIELD_LENGTH - 1);		// // //
 }
 
 //
@@ -1574,6 +1542,14 @@ void CFamiTrackerDoc::SetLinearPitch(bool Enable)
 
 // Attributes
 
+CFamiTrackerModule *CFamiTrackerDoc::GetModule() noexcept {		// // //
+	return module_.get();
+}
+
+const CFamiTrackerModule *CFamiTrackerDoc::GetModule() const noexcept {
+	return module_.get();
+}
+
 CString CFamiTrackerDoc::GetFileTitle() const
 {
 	// Return file name without extension
@@ -1664,22 +1640,6 @@ void CFamiTrackerDoc::AutoSave()
 //
 // Comment functions
 //
-
-void CFamiTrackerDoc::SetComment(const std::string &comment, bool bShowOnLoad)		// // //
-{
-	m_strComment = comment;
-	m_bDisplayComment = bShowOnLoad;
-}
-
-const std::string &CFamiTrackerDoc::GetComment() const		// // //
-{
-	return m_strComment;
-}
-
-bool CFamiTrackerDoc::ShowCommentOnOpen() const
-{
-	return m_bDisplayComment;
-}
 
 void CFamiTrackerDoc::SetSpeedSplitPoint(int SplitPoint)
 {
@@ -2076,3 +2036,56 @@ int CFamiTrackerDoc::GetFrameLength(unsigned int Track, unsigned int Frame) cons
 	// // // moved from PatternEditor.cpp
 	return GetSongData(Track).GetFrameSize(Frame, GetChannelCount());		// // //
 }
+
+
+
+// // // delegates to CFamiTrackerModule
+
+#pragma region delegates to CFamiTrackerModule
+
+std::string_view CFamiTrackerDoc::GetModuleName() const		// // //
+{
+	return module_->GetModuleName();
+}
+
+std::string_view CFamiTrackerDoc::GetModuleArtist() const
+{
+	return module_->GetModuleArtist();
+}
+
+std::string_view CFamiTrackerDoc::GetModuleCopyright() const
+{
+	return module_->GetModuleCopyright();
+}
+
+void CFamiTrackerDoc::SetModuleName(std::string_view pName)
+{
+	module_->SetModuleName(pName);
+}
+
+void CFamiTrackerDoc::SetModuleArtist(std::string_view pArtist)
+{
+	module_->SetModuleArtist(pArtist);
+}
+
+void CFamiTrackerDoc::SetModuleCopyright(std::string_view pCopyright)
+{
+	module_->SetModuleCopyright(pCopyright);
+}
+
+void CFamiTrackerDoc::SetComment(std::string_view comment, bool bShowOnLoad)		// // //
+{
+	module_->SetComment(comment, bShowOnLoad);
+}
+
+std::string_view CFamiTrackerDoc::GetComment() const		// // //
+{
+	return module_->GetComment();
+}
+
+bool CFamiTrackerDoc::ShowCommentOnOpen() const
+{
+	return module_->ShowsCommentOnOpen();;
+}
+
+#pragma endregion

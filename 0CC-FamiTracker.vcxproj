@@ -444,6 +444,7 @@
     <ClCompile Include="Source\FamiTrackerDocIO.cpp" />
     <ClCompile Include="Source\FamiTrackerDocOldIO.cpp" />
     <ClCompile Include="Source\FamiTrackerEnv.cpp" />
+    <ClCompile Include="Source\FamiTrackerModule.cpp" />
     <ClCompile Include="Source\FrameClipData.cpp" />
     <ClCompile Include="Source\FrameEditorModel.cpp" />
     <ClCompile Include="Source\InstCompiler.cpp" />
@@ -626,6 +627,7 @@
     <ClInclude Include="Source\FamiTrackerDocIOCommon.h" />
     <ClInclude Include="Source\FamiTrackerDocOldIO.h" />
     <ClInclude Include="Source\FamiTrackerEnv.h" />
+    <ClInclude Include="Source\FamiTrackerModule.h" />
     <ClInclude Include="Source\FFT\FftComplex.hpp" />
     <ClInclude Include="Source\FrameClipData.h" />
     <ClInclude Include="Source\FrameEditorModel.h" />

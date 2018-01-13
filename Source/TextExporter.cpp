@@ -606,7 +606,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			break;
 		case CT_COMMENT:
 		{
-			std::string sComment = Doc.GetComment();		// // //
+			auto sComment = std::string {Doc.GetComment()};		// // //
 			if (!sComment.empty())
 				sComment += "\r\n";
 			sComment += t.ReadToken();
@@ -1021,7 +1021,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	f.WriteString(s);
 
 	f.WriteString(_T("# Module comment\n"));
-	CString sComment = pDoc->GetComment().c_str();		// // //
+	CString sComment = pDoc->GetComment().data();		// // //
 	bool bCommentLines = false;
 	do
 	{
