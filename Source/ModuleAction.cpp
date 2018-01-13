@@ -24,6 +24,7 @@
 #include "MainFrm.h"
 #include "FamiTrackerView.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
 #include "InstrumentManager.h"
 #include "Instrument.h"
 
@@ -46,19 +47,19 @@ void CModuleAction::RestoreRedoState(CMainFrame &MainFrm) const {
 
 bool ModuleAction::CComment::SaveState(const CMainFrame &MainFrm) {
 	auto &doc = GET_DOCUMENT();
-	oldComment_ = doc.GetComment();
-	oldShow_ = doc.ShowCommentOnOpen();
+	oldComment_ = doc.GetModule()->GetComment();
+	oldShow_ = doc.GetModule()->ShowsCommentOnOpen();
 	return true; // no merge because the comment dialog is modal
 }
 
 void ModuleAction::CComment::Undo(CMainFrame &MainFrm) {
 	auto &doc = GET_DOCUMENT();
-	doc.SetComment(oldComment_, oldShow_);
+	doc.GetModule()->SetComment(oldComment_, oldShow_);
 }
 
 void ModuleAction::CComment::Redo(CMainFrame &MainFrm) {
 	auto &doc = GET_DOCUMENT();
-	doc.SetComment(newComment_, newShow_);
+	doc.GetModule()->SetComment(newComment_, newShow_);
 }
 
 void ModuleAction::CComment::UpdateViews(CMainFrame &MainFrm) const {

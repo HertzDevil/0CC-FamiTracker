@@ -85,6 +85,13 @@ class dpcm_sample;
 // I'll try to organize this class, things are quite messy right now!
 //
 
+// // // TODO:
+// // // - move core data fields into CFamiTrackerModule
+// // // - move high-level pattern operations to CSongView
+// // // - remove these delegations
+// // // - use these classes directly in other classes
+// // // - move action handler into CFamiTrackerDoc
+
 class CFamiTrackerDoc : public CDocument, public CFTMComponentInterface
 {
 	using groove = ft0cc::doc::groove;
@@ -238,10 +245,6 @@ public:
 	void			SetVibratoStyle(vibrato_t Style);
 	void			SetLinearPitch(bool Enable);
 	void			SetSpeedSplitPoint(int SplitPoint);
-
-	void			SetComment(std::string_view comment, bool bShowOnLoad);		// // //
-	std::string_view GetComment() const;		// // //
-	bool			ShowCommentOnOpen() const;
 
 	void			SetHighlight(unsigned int Track, const stHighlight &Hl);		// // //
 	const stHighlight &GetHighlight(unsigned int Track) const;

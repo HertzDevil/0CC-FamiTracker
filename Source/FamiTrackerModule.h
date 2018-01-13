@@ -33,17 +33,17 @@ public:
 	CFamiTrackerModule() = default;
 	~CFamiTrackerModule();
 
+	void DeleteContents();
+
 	// module metadata
 	std::string_view GetModuleName() const;
 	std::string_view GetModuleArtist() const;
 	std::string_view GetModuleCopyright() const;
+	std::string_view GetComment() const;
+	bool ShowsCommentOnOpen() const;
 	void SetModuleName(std::string_view sv);
 	void SetModuleArtist(std::string_view sv);
 	void SetModuleCopyright(std::string_view sv);
-
-	// comments
-	std::string_view GetComment() const;
-	bool ShowsCommentOnOpen() const;
 	void SetComment(std::string_view comment, bool showOnOpen);
 
 	// global info

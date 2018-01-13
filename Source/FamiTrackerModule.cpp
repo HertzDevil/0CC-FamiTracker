@@ -21,8 +21,25 @@
 */
 
 #include "FamiTrackerModule.h"
+#include "FamiTrackerDoc.h" // temp
 
 CFamiTrackerModule::~CFamiTrackerModule() {
+}
+
+void CFamiTrackerModule::DeleteContents() {
+	SetModuleName("");
+	SetModuleArtist("");
+	SetModuleCopyright("");
+	SetComment("", false);
+
+	SetMachine(CFamiTrackerDoc::DEFAULT_MACHINE_TYPE);
+	SetEngineSpeed(0);
+	SetVibratoStyle(CFamiTrackerDoc::DEFAULT_VIBRATO_STYLE);
+	SetLinearPitch(CFamiTrackerDoc::DEFAULT_LINEAR_PITCH);
+	SetSpeedSplitPoint(CFamiTrackerDoc::DEFAULT_SPEED_SPLIT_POINT);
+
+	ResetDetuneTables();
+	SetTuning(0, 0);
 }
 
 std::string_view CFamiTrackerModule::GetModuleName() const {
@@ -37,6 +54,14 @@ std::string_view CFamiTrackerModule::GetModuleCopyright() const {
 	return m_strCopyright;
 }
 
+std::string_view CFamiTrackerModule::GetComment() const {
+	return m_strComment;
+}
+
+bool CFamiTrackerModule::ShowsCommentOnOpen() const {
+	return m_bDisplayComment;
+}
+
 void CFamiTrackerModule::SetModuleName(std::string_view sv) {
 	m_strName = sv.substr(0, METADATA_FIELD_LENGTH - 1);		// // //
 }
@@ -47,14 +72,6 @@ void CFamiTrackerModule::SetModuleArtist(std::string_view sv) {
 
 void CFamiTrackerModule::SetModuleCopyright(std::string_view sv) {
 	m_strCopyright = sv.substr(0, METADATA_FIELD_LENGTH - 1);		// // //
-}
-
-std::string_view CFamiTrackerModule::GetComment() const {
-	return m_strComment;
-}
-
-bool CFamiTrackerModule::ShowsCommentOnOpen() const {
-	return m_bDisplayComment;
 }
 
 void CFamiTrackerModule::SetComment(std::string_view comment, bool showOnOpen) {

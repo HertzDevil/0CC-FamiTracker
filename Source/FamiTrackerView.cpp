@@ -37,6 +37,7 @@
 #include "Clipboard.h"
 #include "APU/APU.h"
 // // //
+#include "FamiTrackerModule.h"
 #include "Bookmark.h"
 #include "BookmarkCollection.h"
 #include "DetuneDlg.h"
@@ -1210,7 +1211,7 @@ void CFamiTrackerView::OnInitialUpdate()
 		SetFocus();
 
 	// Display comment box
-	if (pDoc->ShowCommentOnOpen())
+	if (pDoc->GetModule()->ShowsCommentOnOpen())		// // //
 		pMainFrame->PostMessage(WM_COMMAND, ID_MODULE_COMMENTS);
 
 	// Call OnUpdate

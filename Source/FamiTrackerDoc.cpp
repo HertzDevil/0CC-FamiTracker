@@ -256,30 +256,17 @@ void CFamiTrackerDoc::DeleteContents()
 
 	m_pInstrumentManager->ClearAll();		// // //
 
-	// Clear song info
-	SetModuleName("");		// // //
-	SetModuleArtist("");
-	SetModuleCopyright("");
+	module_->DeleteContents();		// // //
 
 	// Reset variables to default
 	m_pChannelMap = std::make_unique<CChannelMap>();		// // //
 	m_iChannelsAvailable = CHANNELS_DEFAULT;
-	SetMachine(DEFAULT_MACHINE_TYPE);
-	SetEngineSpeed(0);
-	SetVibratoStyle(DEFAULT_VIBRATO_STYLE);
-	SetLinearPitch(DEFAULT_LINEAR_PITCH);
-	SetSpeedSplitPoint(DEFAULT_SPEED_SPLIT_POINT);
-	SetTuning(0, 0);		// // // 050B
 	SetHighlight(CSongData::DEFAULT_HIGHLIGHT);		// // //
-
-	ResetDetuneTables();		// // //
 
 	// Auto save
 #ifdef AUTOSAVE
 	ClearAutoSave();
 #endif
-
-	SetComment("", false);		// // //
 
 	// // // Allocate first song
 	AllocateSong(0);
@@ -1780,6 +1767,7 @@ double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) co
 	if (!Tempo)
 		Tempo = 2.5 * GetFrameRate();
 	const bool AllowTempo = song.GetSongTempo() != 0;
+	const int Split = GetSpeedSplitPoint();
 	int Speed = song.GetSongSpeed();
 	int GrooveIndex = song.GetSongGroove() ? Speed : -1;
 	int GroovePointer = 0;
@@ -1792,7 +1780,7 @@ double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) co
 	const auto fxhandler = [&] (int ch, effect_t fx, uint8_t param) {
 		switch (fx) {
 		case EF_SPEED:
-			if (AllowTempo && param >= GetSpeedSplitPoint())
+			if (AllowTempo && param >= Split)
 				Tempo = param;
 			else {
 				GrooveIndex = -1;
@@ -2027,18 +2015,6 @@ void CFamiTrackerDoc::SetLinearPitch(bool Enable) {
 
 void CFamiTrackerDoc::SetSpeedSplitPoint(int SplitPoint) {
 	GetModule()->SetSpeedSplitPoint(SplitPoint);
-}
-
-void CFamiTrackerDoc::SetComment(std::string_view comment, bool bShowOnLoad) {
-	GetModule()->SetComment(comment, bShowOnLoad);
-}
-
-std::string_view CFamiTrackerDoc::GetComment() const {
-	return GetModule()->GetComment();
-}
-
-bool CFamiTrackerDoc::ShowCommentOnOpen() const {
-	return GetModule()->ShowsCommentOnOpen();;
 }
 
 int CFamiTrackerDoc::GetDetuneOffset(int Chip, int Note) const {

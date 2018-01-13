@@ -54,6 +54,7 @@
 #include "FrameEditor.h"
 #include "APU/APU.h"
 // // //
+#include "FamiTrackerModule.h"
 #include "AudioDriver.h"
 #include "GrooveDlg.h"
 #include "GotoDlg.h"
@@ -2153,8 +2154,8 @@ void CMainFrame::OnModuleComments()
 {
 	CCommentsDlg commentsDlg;
 	const CFamiTrackerDoc &Doc = GetDoc();
-	commentsDlg.SetComment(Doc.GetComment());
-	commentsDlg.SetShowOnLoad(Doc.ShowCommentOnOpen());
+	commentsDlg.SetComment(Doc.GetModule()->GetComment());		// // //
+	commentsDlg.SetShowOnLoad(Doc.GetModule()->ShowsCommentOnOpen());
 	if (commentsDlg.DoModal() == IDOK && commentsDlg.IsChanged())
 		AddAction(std::make_unique<ModuleAction::CComment>(commentsDlg.GetComment(), commentsDlg.GetShowOnLoad()));		// // //
 }

@@ -26,6 +26,7 @@
 #include "DocumentFile.h" // stdafx.h
 #include "ModuleException.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
 #include "Settings.h"
 
 #include "InstrumentManager.h"
@@ -995,12 +996,12 @@ void CFamiTrackerDocIO::SaveDSamples(const CFamiTrackerDoc &doc, int ver) {
 
 void CFamiTrackerDocIO::LoadComments(CFamiTrackerDoc &doc, int ver) {
 	bool disp = file_.GetBlockInt() == 1;
-	doc.SetComment(file_.ReadString().GetString(), disp);
+	doc.GetModule()->SetComment(file_.ReadString().GetString(), disp);
 }
 
 void CFamiTrackerDocIO::SaveComments(const CFamiTrackerDoc &doc, int ver) {
-	if (auto str = doc.GetComment(); !str.empty()) {
-		file_.WriteBlockInt(doc.ShowCommentOnOpen() ? 1 : 0);
+	if (auto str = doc.GetModule()->GetComment(); !str.empty()) {
+		file_.WriteBlockInt(doc.GetModule()->ShowsCommentOnOpen() ? 1 : 0);
 		file_.WriteStringView(str);
 	}
 }

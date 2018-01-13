@@ -24,6 +24,7 @@
 #include "FamiTrackerTypes.h"		// // //
 #include "SongData.h"		// // //
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"		// // //
 #include "version.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
 
@@ -606,11 +607,11 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			break;
 		case CT_COMMENT:
 		{
-			auto sComment = std::string {Doc.GetComment()};		// // //
+			auto sComment = std::string {Doc.GetModule()->GetComment()};		// // //
 			if (!sComment.empty())
 				sComment += "\r\n";
 			sComment += t.ReadToken();
-			Doc.SetComment(sComment, Doc.ShowCommentOnOpen());
+			Doc.GetModule()->SetComment(sComment, Doc.GetModule()->ShowsCommentOnOpen());
 			t.ReadEOL();
 		}
 		break;
@@ -1021,7 +1022,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	f.WriteString(s);
 
 	f.WriteString(_T("# Module comment\n"));
-	CString sComment = pDoc->GetComment().data();		// // //
+	CString sComment = pDoc->GetModule()->GetComment().data();		// // //
 	bool bCommentLines = false;
 	do
 	{
