@@ -24,16 +24,24 @@
 #pragma once
 
 #include <string>
+#include <memory>
+#include <vector>
 #include "FamiTrackerTypes.h"
+
+class CSongData;
 
 class CFamiTrackerModule {
 public:
-	static constexpr std::size_t METADATA_FIELD_LENGTH = 32;
+	static constexpr std::size_t METADATA_FIELD_LENGTH		= 32;
 
-	CFamiTrackerModule() = default;
+	static constexpr machine_t	 DEFAULT_MACHINE_TYPE		= machine_t::NTSC;
+	static constexpr vibrato_t	 DEFAULT_VIBRATO_STYLE		= vibrato_t::VIBRATO_NEW;
+	static constexpr bool		 DEFAULT_LINEAR_PITCH		= false;
+	static constexpr unsigned	 DEFAULT_SPEED_SPLIT_POINT	= 32;
+	static constexpr unsigned	 OLD_SPEED_SPLIT_POINT		= 21;
+
+	CFamiTrackerModule();
 	~CFamiTrackerModule();
-
-	void DeleteContents();
 
 	// module metadata
 	std::string_view GetModuleName() const;
@@ -53,28 +61,76 @@ public:
 	bool GetLinearPitch() const;
 	int GetSpeedSplitPoint() const;
 
-	void SetMachine(machine_t Machine);
-	void SetEngineSpeed(unsigned int Speed);
-	void SetVibratoStyle(vibrato_t Style);
-	void SetLinearPitch(bool Enable);
-	void SetSpeedSplitPoint(int SplitPoint);
+	void SetMachine(machine_t machine);
+	void SetEngineSpeed(unsigned int speed);
+	void SetVibratoStyle(vibrato_t style);
+	void SetLinearPitch(bool enable);
+	void SetSpeedSplitPoint(int splitPoint);
 
 	// detune
-	int GetDetuneOffset(int Chip, int Note) const;
-	void SetDetuneOffset(int Chip, int Note, int Detune);
+	int GetDetuneOffset(int chip, int note) const;
+	void SetDetuneOffset(int chip, int note, int offset);
 	void ResetDetuneTables();
 	int GetTuningSemitone() const;		// // // 050B
 	int GetTuningCent() const;		// // // 050B
-	void SetTuning(int Semitone, int Cent);		// // // 050B
+	void SetTuning(int semitone, int cent);		// // // 050B
+
+	// songs
+	CSongData *GetSong(unsigned index);
+	const CSongData *GetSong(unsigned index) const;
+	std::size_t GetSongCount() const;
+	bool AllocateSong(unsigned index);
+	int AddSong();
+	int AddSong(std::unique_ptr<CSongData> pSong);
+	bool InsertSong(unsigned index, std::unique_ptr<CSongData> pSong);
+	std::unique_ptr<CSongData> ReplaceSong(unsigned index, std::unique_ptr<CSongData> pSong);
+	std::unique_ptr<CSongData> ReleaseSong(unsigned index);
+	void RemoveSong(unsigned index);
+	void SwapSongs(unsigned lhs, unsigned rhs);
+
+	// void (*F)(CSongData &song [, unsigned index])
+	template <typename F>
+	void VisitSongs(F f) {
+		if constexpr (std::is_invocable_v<F, CSongData &, unsigned>) {
+			unsigned index = 0;
+			for (auto &song : m_pTracks)
+				f(*song, index++);
+		}
+		else if constexpr (std::is_invocable_v<F, CSongData &>) {
+			for (auto &song : m_pTracks)
+				f(*song);
+		}
+		else
+			static_assert(false, "Unknown function signature");
+	}
+	// void (*F)(const CSongData &song [, unsigned index])
+	template <typename F>
+	void VisitSongs(F f) const {
+		if constexpr (std::is_invocable_v<F, const CSongData &, unsigned>) {
+			unsigned index = 0;
+			for (auto &song : m_pTracks)
+				f(*song, index++);
+		}
+		else if constexpr (std::is_invocable_v<F, const CSongData &>) {
+			for (auto &song : m_pTracks)
+				f(*song);
+		}
+		else
+			static_assert(false, "Unknown function signature");
+	}
 
 private:
-	machine_t		m_iMachine;
-	unsigned int	m_iEngineSpeed;
-	vibrato_t		m_iVibratoStyle;
-	bool			m_bLinearPitch;
-	unsigned int	m_iSpeedSplitPoint;
+	std::unique_ptr<CSongData> MakeNewSong() const;
+
+private:
+	machine_t		m_iMachine = DEFAULT_MACHINE_TYPE;
+	unsigned int	m_iEngineSpeed = 0;
+	vibrato_t		m_iVibratoStyle = DEFAULT_VIBRATO_STYLE;
+	bool			m_bLinearPitch = DEFAULT_LINEAR_PITCH;
+	unsigned int	m_iSpeedSplitPoint = DEFAULT_SPEED_SPLIT_POINT;
 	int				m_iDetuneTable[6][96] = { };		// // // Detune tables
-	int				m_iDetuneSemitone, m_iDetuneCent;		// // // 050B tuning
+	int				m_iDetuneSemitone = 0;		// // // 050B tuning
+	int				m_iDetuneCent = 0;		// // // 050B tuning
 
 	std::string m_strName;
 	std::string m_strArtist;
@@ -82,4 +138,6 @@ private:
 
 	std::string m_strComment;
 	bool m_bDisplayComment = false;
+
+	std::vector<std::unique_ptr<CSongData>> m_pTracks;
 };

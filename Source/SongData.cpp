@@ -46,6 +46,9 @@ CSongData::CSongData(unsigned int PatternLength) :		// // //
 //		m_pPatternData[i][0].Allocate();		// // //
 }
 
+CSongData::~CSongData() {
+}
+
 bool CSongData::IsCellFree(unsigned int Channel, unsigned int Pattern, unsigned int Row) const
 {
 	const auto &Note = GetPatternData(Channel, Pattern, Row);		// // //

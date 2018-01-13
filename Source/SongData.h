@@ -37,6 +37,7 @@ class CSongData
 {
 public:
 	CSongData(unsigned int PatternLength = DEFAULT_ROW_COUNT);		// // //
+	~CSongData();
 
 	bool IsCellFree(unsigned int Channel, unsigned int Pattern, unsigned int Row) const;
 	bool IsPatternEmpty(unsigned int Channel, unsigned int Pattern) const;

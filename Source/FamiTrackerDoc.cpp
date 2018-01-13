@@ -92,7 +92,6 @@ CFamiTrackerDoc::CFamiTrackerDoc() :
 	// Register this object to the sound generator
 	if (CSoundGen *pSoundGen = theApp.GetSoundGenerator())
 		pSoundGen->AssignDocument(this);
-	AllocateSong(0);		// // //
 }
 
 CFamiTrackerDoc::~CFamiTrackerDoc()
@@ -247,16 +246,13 @@ void CFamiTrackerDoc::DeleteContents()
 
 	UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
 
-	// Delete all patterns
-	m_pTracks.clear();		// // //
-
 	// // // Grooves
 	for (auto &x : m_pGrooveTable)		// // //
 		x.reset();
 
 	m_pInstrumentManager->ClearAll();		// // //
 
-	module_->DeleteContents();		// // //
+	module_ = std::make_unique<CFamiTrackerModule>();		// // //
 
 	// Reset variables to default
 	m_pChannelMap = std::make_unique<CChannelMap>();		// // //
@@ -267,9 +263,6 @@ void CFamiTrackerDoc::DeleteContents()
 #ifdef AUTOSAVE
 	ClearAutoSave();
 #endif
-
-	// // // Allocate first song
-	AllocateSong(0);
 
 	// Remove modified flag
 	SetModifiedFlag(FALSE);
@@ -1254,45 +1247,6 @@ const std::string &CFamiTrackerDoc::GetTrackTitle(unsigned int Track) const		// 
 	return CSongData::DEFAULT_TITLE;
 }
 
-int CFamiTrackerDoc::AddTrack()
-{
-	// Add new track. Returns -1 on failure, or added track number otherwise
-	int NewTrack = GetTrackCount();
-	if (NewTrack >= MAX_TRACKS)
-		return -1;
-
-	AllocateSong(NewTrack);
-	return NewTrack;
-}
-
-int CFamiTrackerDoc::AddTrack(std::unique_ptr<CSongData> song) {		// // //
-	int NewTrack = GetTrackCount();
-	if (NewTrack >= MAX_TRACKS)
-		return -1;
-
-	m_pTracks.push_back(std::move(song));
-	return NewTrack;
-}
-
-void CFamiTrackerDoc::RemoveTrack(unsigned int Track)
-{
-	(void)ReleaseTrack(Track);
-}
-
-std::unique_ptr<CSongData> CFamiTrackerDoc::ReleaseTrack(unsigned int Track)		// // //
-{
-	if (Track >= GetTrackCount())
-		return nullptr;
-
-	// Move down all other tracks
-	auto song = std::move(m_pTracks[Track]);
-	m_pTracks.erase(m_pTracks.cbegin() + Track);		// // //
-	if (!GetTrackCount())
-		AllocateSong(0);
-
-	return song;
-}
-
 void CFamiTrackerDoc::SetTrackTitle(unsigned int Track, const std::string &title)		// // //
 {
 	GetSongData(Track).SetTitle(title);
@@ -1300,42 +1254,12 @@ void CFamiTrackerDoc::SetTrackTitle(unsigned int Track, const std::string &title
 
 void CFamiTrackerDoc::MoveTrackUp(unsigned int Track)
 {
-	ASSERT(Track > 0);
-
-	SwapSongs(Track, Track - 1);
+	GetModule()->SwapSongs(Track, Track - 1);
 }
 
 void CFamiTrackerDoc::MoveTrackDown(unsigned int Track)
 {
-	ASSERT(Track < MAX_TRACKS);
-
-	SwapSongs(Track, Track + 1);
-}
-
-void CFamiTrackerDoc::SwapSongs(unsigned int First, unsigned int Second)
-{
-	m_pTracks[First].swap(m_pTracks[Second]);		// // //
-}
-
-void CFamiTrackerDoc::AllocateSong(unsigned int Index)
-{
-	// Allocate a new song if not already done
-	while (Index >= m_pTracks.size() && m_pTracks.size() < MAX_TRACKS) {		// // //
-		auto &pSong = m_pTracks.emplace_back(std::make_unique<CSongData>());		// // //
-		pSong->SetSongTempo(GetMachine() == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
-	}
-}
-
-CSongData *CFamiTrackerDoc::GetSong(unsigned int Index)		// // //
-{
-	// Ensure track is allocated
-	AllocateSong(Index);
-	return Index < m_pTracks.size() ? m_pTracks[Index].get() : nullptr;
-}
-
-const CSongData *CFamiTrackerDoc::GetSong(unsigned int Index) const		// // //
-{
-	return Index < m_pTracks.size() ? m_pTracks[Index].get() : nullptr;
+	GetModule()->SwapSongs(Track, Track + 1);
 }
 
 CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index)		// // //
@@ -1349,16 +1273,6 @@ const CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index) const		// // /
 	return *GetSong(Index);
 }
 
-std::unique_ptr<CSongData> CFamiTrackerDoc::ReplaceSong(unsigned Index, std::unique_ptr<CSongData> pSong) {		// // //
-	m_pTracks[Index].swap(pSong);
-	return std::move(pSong);
-}
-
-unsigned int CFamiTrackerDoc::GetTrackCount() const
-{
-	return m_pTracks.size();
-}
-
 void CFamiTrackerDoc::SelectExpansionChip(unsigned chips, unsigned n163chs, bool Move) {		// // //
 	ASSERT(n163chs <= 8 && !(chips & SNDCHIP_N163) == !n163chs);
 
@@ -1370,20 +1284,19 @@ void CFamiTrackerDoc::SelectExpansionChip(unsigned chips, unsigned n163chs, bool
 		for (int j = 0; j < CHANNELS; ++j)
 			perm[j] = {m_pChannelMap->GetChannelIndex(j), newMap->GetChannelIndex(j)};
 
-		auto it = m_pTracks.begin();
-		for (const auto &pSong : m_pTracks) {
-			auto pNew = std::make_unique<CSongData>(pSong->GetPatternLength());
-			pNew->SetHighlight(pSong->GetRowHighlight());
-			pNew->SetSongTempo(pSong->GetSongTempo());
-			pNew->SetSongSpeed(pSong->GetSongSpeed());
-			pNew->SetSongGroove(pSong->GetSongGroove());
-			pNew->SetFrameCount(pSong->GetFrameCount());
-			pNew->SetTitle(pSong->GetTitle());
+		VisitSongs([&] (const CSongData &song, unsigned index) {
+			auto pNew = std::make_unique<CSongData>(song.GetPatternLength());
+			pNew->SetHighlight(song.GetRowHighlight());
+			pNew->SetSongTempo(song.GetSongTempo());
+			pNew->SetSongSpeed(song.GetSongSpeed());
+			pNew->SetSongGroove(song.GetSongGroove());
+			pNew->SetFrameCount(song.GetFrameCount());
+			pNew->SetTitle(song.GetTitle());
 			for (const auto [oldIndex, newIndex] : perm)
 				if (oldIndex != -1 && newIndex != -1)
-					pNew->CopyTrack(newIndex, *pSong, oldIndex);
-			*it++ = std::move(pNew);
-		}
+					pNew->CopyTrack(newIndex, song, oldIndex);
+			(void)ReplaceSong(index, std::move(pNew));
+		});
 	}
 
 	// // // Complete sound chip setup
@@ -1820,15 +1733,15 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 {
 	bool used[MAX_INSTRUMENTS] = { };		// // //
 
-	for (const auto &pSong : m_pTracks) {		// // //
-		int length = pSong->GetPatternLength();
+	VisitSongs([&] (const CSongData &song) {		// // //
+		int length = song.GetPatternLength();
 		for (unsigned int Channel = 0; Channel < m_iChannelsAvailable; ++Channel)
-			for (unsigned int Frame = 0; Frame < pSong->GetFrameCount(); ++Frame)
-				pSong->GetPatternOnFrame(Channel, Frame).VisitRows(length, [&] (const stChanNote &note) {
+			for (unsigned int Frame = 0; Frame < song.GetFrameCount(); ++Frame)
+				song.GetPatternOnFrame(Channel, Frame).VisitRows(length, [&] (const stChanNote &note) {
 					if (note.Instrument < MAX_INSTRUMENTS)
 						used[note.Instrument] = true;
 				});
-	}
+	});
 
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i)
 		if (IsInstrumentUsed(i) && !used[i])
@@ -1873,11 +1786,11 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 	for (int i = 0; i < MAX_DSAMPLES; ++i) {
 		if (GetDSampleManager()->IsSampleUsed(i)) {
 			bool Used = false;
-			for (const auto &pSong : m_pTracks) {
-				for (unsigned int Frame = 0; Frame < pSong->GetFrameCount(); ++Frame) {
-					unsigned int Pattern = pSong->GetFramePattern(Frame, CHANID_DPCM);
-					for (unsigned int Row = 0; Row < pSong->GetPatternLength(); ++Row) {
-						const auto &Note = pSong->GetPatternData(CHANID_DPCM, Pattern, Row);		// // //
+			VisitSongs([&] (const CSongData &song) {
+				for (unsigned int Frame = 0; Frame < song.GetFrameCount(); ++Frame) {
+					unsigned int Pattern = song.GetFramePattern(Frame, CHANID_DPCM);
+					for (unsigned int Row = 0; Row < song.GetPatternLength(); ++Row) {
+						const auto &Note = song.GetPatternData(CHANID_DPCM, Pattern, Row);		// // //
 						int Index = Note.Instrument;
 						if (Note.Note < NOTE_C || Note.Note > NOTE_B || Index == MAX_INSTRUMENTS)
 							continue;		// // //
@@ -1889,7 +1802,7 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 							Used = true;
 					}
 				}
-			}
+			});
 			if (!Used)
 				RemoveSample(i);
 		}
@@ -2039,6 +1952,38 @@ int CFamiTrackerDoc::GetTuningCent() const {
 
 void CFamiTrackerDoc::SetTuning(int Semitone, int Cent) {
 	GetModule()->SetTuning(Semitone, Cent);
+}
+
+CSongData *CFamiTrackerDoc::GetSong(unsigned int Index) {		// // //
+	return GetModule()->GetSong(Index);
+}
+
+const CSongData *CFamiTrackerDoc::GetSong(unsigned int Index) const {		// // //
+	return GetModule()->GetSong(Index);
+}
+
+unsigned int CFamiTrackerDoc::GetTrackCount() const {
+	return GetModule()->GetSongCount();
+}
+
+int CFamiTrackerDoc::AddTrack() {
+	return GetModule()->AddSong();
+}
+
+int CFamiTrackerDoc::AddTrack(std::unique_ptr<CSongData> song) {		// // //
+	return GetModule()->AddSong(std::move(song));
+}
+
+void CFamiTrackerDoc::RemoveTrack(unsigned int Track) {
+	GetModule()->RemoveSong(Track);
+}
+
+std::unique_ptr<CSongData> CFamiTrackerDoc::ReleaseTrack(unsigned int Track) {		// // //
+	return GetModule()->ReleaseSong(Track);
+}
+
+std::unique_ptr<CSongData> CFamiTrackerDoc::ReplaceSong(unsigned Index, std::unique_ptr<CSongData> pSong) {		// // //
+	return GetModule()->ReplaceSong(Index, std::move(pSong));
 }
 
 #pragma endregion

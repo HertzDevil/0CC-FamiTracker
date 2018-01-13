@@ -336,36 +336,18 @@ public:
 	// void (*F)(CSongData &song [, unsigned index])
 	template <typename F>
 	void VisitSongs(F f) {
-		if constexpr (std::is_invocable_v<F, CSongData &>)
-			for (auto &song : m_pTracks)
-				f(*song);
-		else {
-			unsigned index = 0;
-			for (auto &song : m_pTracks)
-				f(*song, index++);
-		}
+		module_->VisitSongs(f);
 	}
 	// void (*F)(const CSongData &song [, unsigned index])
 	template <typename F>
 	void VisitSongs(F f) const {
-		if constexpr (std::is_invocable_v<F, const CSongData &>)
-			for (auto &song : m_pTracks)
-				f(*song);
-		else {
-			unsigned index = 0;
-			for (auto &song : m_pTracks)
-				f(*song, index++);
-		}
+		module_->VisitSongs(f);
 	}
 
 	// Constants
 public:
 	// Default song settings
-	static const vibrato_t	 DEFAULT_VIBRATO_STYLE		= vibrato_t::VIBRATO_NEW;		// // //
-	static const bool		 DEFAULT_LINEAR_PITCH		= false;
 	static const machine_t	 DEFAULT_MACHINE_TYPE		= machine_t::NTSC;
-	static const unsigned	 DEFAULT_SPEED_SPLIT_POINT	= 32;
-	static const unsigned	 OLD_SPEED_SPLIT_POINT		= 21;
 
 	static const std::size_t METADATA_FIELD_LENGTH		= 32;		// // //
 
@@ -392,9 +374,6 @@ private:
 	//
 	// Internal module operations
 	//
-
-	void			AllocateSong(unsigned int Index);		// // //
-	void			SwapSongs(unsigned int First, unsigned int Second);		// // //
 
 	CSongData		&GetSongData(unsigned int Index);		// // //
 	const CSongData	&GetSongData(unsigned int Index) const;		// // //
@@ -436,9 +415,6 @@ private:
 	//
 	// Document data
 	//
-
-	// Patterns and song data
-	std::vector<std::unique_ptr<CSongData>> m_pTracks;		// // // List of all tracks
 
 	unsigned int	m_iChannelsAvailable;						// Number of channels added
 

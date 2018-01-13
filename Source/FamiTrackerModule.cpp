@@ -21,25 +21,13 @@
 */
 
 #include "FamiTrackerModule.h"
-#include "FamiTrackerDoc.h" // temp
+#include "SongData.h"
 
-CFamiTrackerModule::~CFamiTrackerModule() {
+CFamiTrackerModule::CFamiTrackerModule() {
+	AllocateSong(0);
 }
 
-void CFamiTrackerModule::DeleteContents() {
-	SetModuleName("");
-	SetModuleArtist("");
-	SetModuleCopyright("");
-	SetComment("", false);
-
-	SetMachine(CFamiTrackerDoc::DEFAULT_MACHINE_TYPE);
-	SetEngineSpeed(0);
-	SetVibratoStyle(CFamiTrackerDoc::DEFAULT_VIBRATO_STYLE);
-	SetLinearPitch(CFamiTrackerDoc::DEFAULT_LINEAR_PITCH);
-	SetSpeedSplitPoint(CFamiTrackerDoc::DEFAULT_SPEED_SPLIT_POINT);
-
-	ResetDetuneTables();
-	SetTuning(0, 0);
+CFamiTrackerModule::~CFamiTrackerModule() {
 }
 
 std::string_view CFamiTrackerModule::GetModuleName() const {
@@ -99,34 +87,34 @@ int CFamiTrackerModule::GetSpeedSplitPoint() const {
 	return m_iSpeedSplitPoint;
 }
 
-void CFamiTrackerModule::SetMachine(machine_t Machine) {
-	m_iMachine = Machine; // enum_cast<machine_t>(Machine);
+void CFamiTrackerModule::SetMachine(machine_t machine) {
+	m_iMachine = machine; // enum_cast<machine_t>(machine);
 }
 
-void CFamiTrackerModule::SetEngineSpeed(unsigned int Speed) {
-	if (Speed > 0 && Speed < 16)
-		Speed = 16;
-	m_iEngineSpeed = Speed;
+void CFamiTrackerModule::SetEngineSpeed(unsigned int speed) {
+	if (speed > 0 && speed < 16)
+		speed = 16;
+	m_iEngineSpeed = speed;
 }
 
-void CFamiTrackerModule::SetVibratoStyle(vibrato_t Style) {
-	m_iVibratoStyle = Style;
+void CFamiTrackerModule::SetVibratoStyle(vibrato_t style) {
+	m_iVibratoStyle = style;
 }
 
-void CFamiTrackerModule::SetLinearPitch(bool Enable) {
-	m_bLinearPitch = Enable;
+void CFamiTrackerModule::SetLinearPitch(bool enable) {
+	m_bLinearPitch = enable;
 }
 
-void CFamiTrackerModule::SetSpeedSplitPoint(int SplitPoint) {
-	m_iSpeedSplitPoint = SplitPoint;
+void CFamiTrackerModule::SetSpeedSplitPoint(int splitPoint) {
+	m_iSpeedSplitPoint = splitPoint;
 }
 
-int CFamiTrackerModule::GetDetuneOffset(int Chip, int Note) const {		// // //
-	return m_iDetuneTable[Chip][Note];
+int CFamiTrackerModule::GetDetuneOffset(int chip, int note) const {		// // //
+	return m_iDetuneTable[chip][note];
 }
 
-void CFamiTrackerModule::SetDetuneOffset(int Chip, int Note, int Detune) {		// // //
-	m_iDetuneTable[Chip][Note] = Detune;
+void CFamiTrackerModule::SetDetuneOffset(int chip, int note, int offset) {		// // //
+	m_iDetuneTable[chip][note] = offset;
 }
 
 void CFamiTrackerModule::ResetDetuneTables() {		// // //
@@ -143,7 +131,84 @@ int CFamiTrackerModule::GetTuningCent() const {		// // // 050B
 	return m_iDetuneCent;
 }
 
-void CFamiTrackerModule::SetTuning(int Semitone, int Cent) {		// // // 050B
-	m_iDetuneSemitone = Semitone;
-	m_iDetuneCent = Cent;
+void CFamiTrackerModule::SetTuning(int semitone, int cent) {		// // // 050B
+	m_iDetuneSemitone = semitone;
+	m_iDetuneCent = cent;
+}
+
+CSongData *CFamiTrackerModule::GetSong(unsigned index) {
+	// Ensure track is allocated
+	AllocateSong(index);
+	return index < GetSongCount() ? m_pTracks[index].get() : nullptr;
+}
+
+const CSongData *CFamiTrackerModule::GetSong(unsigned index) const {
+	return index < GetSongCount() ? m_pTracks[index].get() : nullptr;
+}
+
+std::size_t CFamiTrackerModule::GetSongCount() const {
+	return m_pTracks.size();
+}
+
+bool CFamiTrackerModule::AllocateSong(unsigned index) {
+	// Allocate a new song if not already done
+	for (unsigned i = GetSongCount(); i <= index; ++i)
+		if (!InsertSong(i, MakeNewSong()))
+			return false;
+	return true;
+}
+
+int CFamiTrackerModule::AddSong() {
+	// Add new track. Returns -1 on failure, or added track number otherwise
+	int NewTrack = GetSongCount();
+	if (InsertSong(NewTrack, MakeNewSong()))
+		return NewTrack;
+	return -1;
+}
+
+int CFamiTrackerModule::AddSong(std::unique_ptr<CSongData> pSong) {		// // //
+	int NewTrack = GetSongCount();
+	if (InsertSong(NewTrack, std::move(pSong)))
+		return NewTrack;
+	return -1;
+}
+
+bool CFamiTrackerModule::InsertSong(unsigned index, std::unique_ptr<CSongData> pSong) {		// // //
+	if (index <= GetSongCount() && index < MAX_TRACKS) {
+		m_pTracks.insert(m_pTracks.begin() + index, std::move(pSong));
+		return true;
+	}
+	return false;
+}
+
+std::unique_ptr<CSongData> CFamiTrackerModule::ReplaceSong(unsigned index, std::unique_ptr<CSongData> pSong) {		// // //
+	m_pTracks[index].swap(pSong);
+	return pSong;
+}
+
+std::unique_ptr<CSongData> CFamiTrackerModule::ReleaseSong(unsigned index) {		// // //
+	if (index >= GetSongCount())
+		return nullptr;
+
+	// Move down all other tracks
+	auto song = std::move(m_pTracks[index]);
+	m_pTracks.erase(m_pTracks.cbegin() + index);		// // //
+	if (!GetSongCount())
+		AllocateSong(0);
+
+	return song;
+}
+
+void CFamiTrackerModule::RemoveSong(unsigned index) {
+	(void)ReleaseSong(index);
+}
+
+void CFamiTrackerModule::SwapSongs(unsigned lhs, unsigned rhs) {
+	m_pTracks[lhs].swap(m_pTracks[rhs]);		// // //
+}
+
+std::unique_ptr<CSongData> CFamiTrackerModule::MakeNewSong() const {
+	auto pSong = std::make_unique<CSongData>();
+	pSong->SetSongTempo(GetMachine() == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
+	return pSong;
 }

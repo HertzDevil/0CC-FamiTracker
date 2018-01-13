@@ -306,7 +306,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 		n163chans = AssertRange(file_.GetBlockInt(), 1, 8, "N163 channel count");
 
 	// Determine if new or old split point is preferred
-	int Split = AssertRange<MODULE_ERROR_STRICT>(ver >= 6 ? file_.GetBlockInt() : (int)CFamiTrackerDoc::OLD_SPEED_SPLIT_POINT,
+	int Split = AssertRange<MODULE_ERROR_STRICT>(ver >= 6 ? file_.GetBlockInt() : (int)CFamiTrackerModule::OLD_SPEED_SPLIT_POINT,
 		0, 255, "Speed / tempo split point");
 	doc.SetSpeedSplitPoint(Split);
 
