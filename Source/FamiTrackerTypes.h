@@ -243,10 +243,13 @@ const char ECHO_BUFFER_NONE = '\xFF';
 const char ECHO_BUFFER_HALT = '\x7F';
 const char ECHO_BUFFER_ECHO = '\x80';
 
-enum machine_t {
+enum machine_t : unsigned char {
 	NTSC,
 	PAL
 };
+
+inline constexpr machine_t DEFAULT_MACHINE_TYPE = machine_t::NTSC;		// // //
+inline constexpr int DEFAULT_TEMPO = DEFAULT_MACHINE_TYPE == machine_t::PAL ? DEFAULT_TEMPO_PAL : DEFAULT_TEMPO_NTSC;		// // //
 
 enum vibrato_t : unsigned char {
 	VIBRATO_OLD = 0,

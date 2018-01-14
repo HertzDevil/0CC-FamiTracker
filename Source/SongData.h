@@ -134,15 +134,15 @@ private:
 	static const unsigned DEFAULT_ROW_COUNT;
 
 	// Track parameters
-	std::string	 m_sTrackName;				// // // moved
-	unsigned int m_iPatternLength;			// Amount of rows in one pattern
-	unsigned int m_iFrameCount;				// Number of frames
-	unsigned int m_iSongSpeed;				// Song speed
-	unsigned int m_iSongTempo;				// Song tempo
-	bool		 m_bUseGroove;				// // // Groove
+	std::string	 m_sTrackName = DEFAULT_TITLE;			// // // moved
+	unsigned int m_iPatternLength;						// Amount of rows in one pattern
+	unsigned int m_iFrameCount = 1;						// Number of frames
+	unsigned int m_iSongSpeed = DEFAULT_SPEED;			// Song speed
+	unsigned int m_iSongTempo = DEFAULT_TEMPO_NTSC;		// Song tempo
+	bool		 m_bUseGroove = false;					// // // Groove
 
 	// Row highlight settings
-	stHighlight  m_vRowHighlight;			// // //
+	stHighlight  m_vRowHighlight = DEFAULT_HIGHLIGHT;		// // //
 
 	// Bookmarks
 	CBookmarkCollection bookmarks_;		// // //

@@ -25,17 +25,12 @@
 
 #include "stdafx.h"		// // //
 
-#include <vector>
 #include <memory>		// // //
 #include <array>		// // //
 
-// Get access to some APU constants
-#include "APU/Types.h"
 // Constants, types and enums
-#include "FamiTrackerTypes.h"
-// // //
+//#include "FamiTrackerTypes.h"
 #include "FTMComponentInterface.h"
-#include "Settings.h"		// // //
 
 #define TRANSPOSE_FDS
 
@@ -54,27 +49,25 @@ enum {
 	UPDATE_CLOSE			// Document is closing (TODO remove)
 };
 
-// Access data types used by the document class
-#include "OldSequence.h"		// // //
-#include "Bookmark.h"		// // //
-
-#include "PatternEditorTypes.h"		// // //
-// #include "FrameEditorTypes.h"		// // //
-
 // External classes
 class CFamiTrackerModule;		// // //
 class CSongData;		// // //
 class CChannelMap;		// // //
 class CTrackerChannel;
 class CDocumentFile;
-class CSeqInstrument;		// // // TODO: move to instrument manager
 class CSimpleFile;		// // //
+class CBookmark;		// // //
 class CBookmarkCollection;		// // //
 class CInstrument;		// // //
 class CSequence;		// // //
+class stChanNote;		// // //
+struct stHighlight;		// // //
 
 enum inst_type_t : unsigned;
 enum class sequence_t : unsigned;
+enum cursor_column_t : unsigned int; // TODO: remove
+enum machine_t : unsigned char;
+enum vibrato_t : unsigned char;
 
 namespace ft0cc::doc {		// // //
 class groove;
@@ -343,13 +336,6 @@ public:
 		module_->VisitSongs(f);
 	}
 
-	// Constants
-public:
-	// Default song settings
-	static const machine_t	 DEFAULT_MACHINE_TYPE		= machine_t::NTSC;
-
-	static const std::size_t METADATA_FIELD_LENGTH		= 32;		// // //
-
 	//
 	// Private functions
 	//
@@ -418,10 +404,7 @@ private:
 	unsigned int	m_iChannelsAvailable;						// Number of channels added
 
 	// Instruments, samples and sequences
-	std::array<std::unique_ptr<groove>, MAX_GROOVE> m_pGrooveTable;		// // // Grooves
-
-	// Row highlight (TODO remove)
-	stHighlight		m_vHighlight;								// // //
+	std::array<std::unique_ptr<groove>, 32/*MAX_GROOVE*/> m_pGrooveTable;		// // // Grooves
 
 	//
 	// End of document data

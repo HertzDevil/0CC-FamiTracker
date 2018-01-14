@@ -595,9 +595,9 @@ bool CMainFrame::CreateDialogPanels()
 	m_cBannerEditArtist.SubclassDlgItem(IDC_SONG_ARTIST, &m_wndDialogBar);
 	m_cBannerEditCopyright.SubclassDlgItem(IDC_SONG_COPYRIGHT, &m_wndDialogBar);
 
-	m_cBannerEditName.SetLimitText(CFamiTrackerDoc::METADATA_FIELD_LENGTH - 1);
-	m_cBannerEditArtist.SetLimitText(CFamiTrackerDoc::METADATA_FIELD_LENGTH - 1);
-	m_cBannerEditCopyright.SetLimitText(CFamiTrackerDoc::METADATA_FIELD_LENGTH - 1);
+	m_cBannerEditName.SetLimitText(CFamiTrackerModule::METADATA_FIELD_LENGTH - 1);		// // //
+	m_cBannerEditArtist.SetLimitText(CFamiTrackerModule::METADATA_FIELD_LENGTH - 1);
+	m_cBannerEditCopyright.SetLimitText(CFamiTrackerModule::METADATA_FIELD_LENGTH - 1);
 
 	CEdit *pInstName = static_cast<CEdit*>(m_wndDialogBar.GetDlgItem(IDC_INSTNAME));
 	pInstName->SetLimitText(CInstrument::INST_NAME_MAX - 1);

@@ -69,7 +69,7 @@ void ModuleAction::CComment::UpdateViews(CMainFrame &MainFrm) const {
 
 
 ModuleAction::CTitle::CTitle(std::string_view str) :
-	newStr_(str.substr(0, CFamiTrackerDoc::METADATA_FIELD_LENGTH - 1))
+	newStr_(str.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1))
 {
 }
 
@@ -103,7 +103,7 @@ void ModuleAction::CTitle::UpdateViews(CMainFrame &MainFrm) const {
 
 
 ModuleAction::CArtist::CArtist(std::string_view str) :
-	newStr_(str.substr(0, CFamiTrackerDoc::METADATA_FIELD_LENGTH - 1))
+	newStr_(str.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1))
 {
 }
 
@@ -137,7 +137,7 @@ void ModuleAction::CArtist::UpdateViews(CMainFrame &MainFrm) const {
 
 
 ModuleAction::CCopyright::CCopyright(std::string_view str) :
-	newStr_(str.substr(0, CFamiTrackerDoc::METADATA_FIELD_LENGTH - 1))
+	newStr_(str.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1))
 {
 }
 

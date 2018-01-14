@@ -33,13 +33,7 @@ const stHighlight CSongData::DEFAULT_HIGHLIGHT = {4, 16, 0};		// // //
 // A list of these objects exists inside the document one for each song
 
 CSongData::CSongData(unsigned int PatternLength) :		// // //
-	m_sTrackName(DEFAULT_TITLE),		// // //
-	m_iPatternLength(PatternLength),
-	m_iFrameCount(1),
-	m_iSongSpeed(DEFAULT_SPEED),
-	m_iSongTempo(DEFAULT_TEMPO_NTSC),
-	m_bUseGroove(false),		// // //
-	m_vRowHighlight(DEFAULT_HIGHLIGHT)		// // //
+	m_iPatternLength(PatternLength)
 {
 	// // // Pre-allocate pattern 0 for all channels
 //	for (int i = 0; i < MAX_CHANNELS; ++i)

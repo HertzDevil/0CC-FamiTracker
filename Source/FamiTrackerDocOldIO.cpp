@@ -30,6 +30,7 @@
 #include "Instrument2A03.h"
 #include "ft0cc/doc/dpcm_sample.hpp"
 #include "Sequence.h"
+#include "FamiTrackerModule.h"
 
 namespace {
 
@@ -98,7 +99,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 		if (pOpenFile->Read(&FileBlock, sizeof(int)) == 0)
 			FileBlock = FB_EOF;
 
-		char pBuf[CFamiTrackerDoc::METADATA_FIELD_LENGTH] = { };		// // //
+		char pBuf[CFamiTrackerModule::METADATA_FIELD_LENGTH] = { };		// // //
 
 		switch (FileBlock) {
 		case FB_CHANNELS:

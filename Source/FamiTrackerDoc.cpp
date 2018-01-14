@@ -67,6 +67,7 @@
 #include "SongData.h"		// // //
 #include "FamiTrackerDocOldIO.h"		// // //
 #include "NumConv.h"		// // //
+#include "PatternEditorTypes.h"		// // // TODO: remove
 
 #include "ft0cc/doc/groove.hpp"		// // //
 #include "Sequence.h"		// // //
@@ -254,7 +255,6 @@ void CFamiTrackerDoc::DeleteContents()
 	// Reset variables to default
 	m_pChannelMap = std::make_unique<CChannelMap>();		// // //
 	m_iChannelsAvailable = CHANNELS_DEFAULT;
-	SetHighlight(CSongData::DEFAULT_HIGHLIGHT);		// // //
 
 	// Auto save
 #ifdef AUTOSAVE
@@ -1509,12 +1509,14 @@ const stHighlight &CFamiTrackerDoc::GetHighlight(unsigned int Track) const		// /
 
 void CFamiTrackerDoc::SetHighlight(const stHighlight &Hl)		// // //
 {
-	m_vHighlight = Hl;
+	VisitSongs([&Hl] (CSongData &song) {
+		song.SetHighlight(Hl);
+	});
 }
 
 const stHighlight &CFamiTrackerDoc::GetHighlight() const		// // //
 {
-	return m_vHighlight;
+	return GetSongData(0).GetRowHighlight();
 }
 
 stHighlight CFamiTrackerDoc::GetHighlightAt(unsigned int Track, unsigned int Frame, unsigned int Row) const		// // //
@@ -1522,7 +1524,7 @@ stHighlight CFamiTrackerDoc::GetHighlightAt(unsigned int Track, unsigned int Fra
 	while (Frame < 0) Frame += GetFrameCount(Track);
 	Frame %= GetFrameCount(Track);
 
-	stHighlight Hl = m_vHighlight;
+	stHighlight Hl = GetHighlight(Track);
 
 	const CBookmark Zero { };
 	const CBookmarkCollection *pCol = GetBookmarkCollection(Track);

@@ -29,7 +29,7 @@
 
 CTempoCounter::CTempoCounter(const CFamiTrackerDoc &pDoc) :
 	m_pDocument(&pDoc),
-	m_iTempo(CFamiTrackerDoc::DEFAULT_MACHINE_TYPE == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL),
+	m_iTempo(DEFAULT_TEMPO),
 	m_iSpeed(DEFAULT_SPEED)
 {
 }
