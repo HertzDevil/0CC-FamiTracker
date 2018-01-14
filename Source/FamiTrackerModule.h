@@ -137,6 +137,8 @@ public:
 private:
 	bool AllocateSong(unsigned index);
 
+	CFTMComponentInterface &parent_;
+
 	machine_t		m_iMachine = DEFAULT_MACHINE_TYPE;
 	unsigned int	m_iEngineSpeed = 0;
 	vibrato_t		m_iVibratoStyle = DEFAULT_VIBRATO_STYLE;

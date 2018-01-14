@@ -25,6 +25,7 @@
 #include "InstrumentManager.h"
 
 CFamiTrackerModule::CFamiTrackerModule(CFTMComponentInterface &parent) :
+	parent_(parent),
 	m_pInstrumentManager(std::make_unique<CInstrumentManager>(&parent))
 {
 	AllocateSong(0);
@@ -154,7 +155,7 @@ std::size_t CFamiTrackerModule::GetSongCount() const {
 }
 
 std::unique_ptr<CSongData> CFamiTrackerModule::MakeNewSong() const {
-	auto pSong = std::make_unique<CSongData>();
+	auto pSong = std::make_unique<CSongData>(parent_);
 	pSong->SetSongTempo(GetMachine() == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
 	return pSong;
 }

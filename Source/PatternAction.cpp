@@ -1125,7 +1125,7 @@ bool CPActionUniquePatterns::SaveState(const CMainFrame &MainFrm) {
 	const int Rows = Song.GetPatternLength();
 	const int Frames = Song.GetFrameCount();
 
-	songNew_ = std::make_unique<CSongData>(Rows);
+	songNew_ = std::make_unique<CSongData>(*GET_DOCUMENT(), Rows);
 	songNew_->SetSongSpeed(Song.GetSongSpeed());
 	songNew_->SetSongTempo(Song.GetSongTempo());
 	songNew_->SetFrameCount(Frames);
@@ -1165,7 +1165,7 @@ bool CPActionClearAll::SaveState(const CMainFrame &MainFrm) {
 		return false;
 	const auto &Song = *pDoc->GetSong(index_);
 
-	songNew_ = std::make_unique<CSongData>(Song.GetPatternLength());
+	songNew_ = std::make_unique<CSongData>(*GET_DOCUMENT(), Song.GetPatternLength());
 	songNew_->SetSongSpeed(Song.GetSongSpeed());
 	songNew_->SetSongTempo(Song.GetSongTempo());
 	songNew_->SetFrameCount(1);

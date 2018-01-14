@@ -24,6 +24,9 @@
 #include "PatternData.h"		// // //
 #include "Bookmark.h"		// // //
 
+#include "FTMComponentInterface.h"		// // //
+#include "ChannelMap.h"		// // //
+
 // Defaults when creating new modules
 const unsigned CSongData::DEFAULT_ROW_COUNT	= 64;
 const std::string CSongData::DEFAULT_TITLE = "New song";		// // //
@@ -32,7 +35,8 @@ const stHighlight CSongData::DEFAULT_HIGHLIGHT = {4, 16, 0};		// // //
 // This class contains pattern data
 // A list of these objects exists inside the document one for each song
 
-CSongData::CSongData(unsigned int PatternLength) :		// // //
+CSongData::CSongData(CFTMComponentInterface &parent, unsigned int PatternLength) :		// // //
+	parent_(parent),
 	m_iPatternLength(PatternLength)
 {
 	// // // Pre-allocate pattern 0 for all channels
@@ -52,14 +56,14 @@ bool CSongData::IsCellFree(unsigned int Channel, unsigned int Pattern, unsigned 
 
 bool CSongData::IsPatternEmpty(unsigned int Channel, unsigned int Pattern) const
 {
-	return m_pPatternData[Channel][Pattern].IsEmpty();		// // //
+	return GetPattern(Channel, Pattern).IsEmpty();		// // //
 }
 
 bool CSongData::IsPatternInUse(unsigned int Channel, unsigned int Pattern) const
 {
 	// Check if pattern is addressed in frame list
 	for (unsigned i = 0; i < m_iFrameCount; ++i)
-		if (m_iFrameList[i][Channel] == Pattern)
+		if (GetFramePattern(i, Channel) == Pattern)
 			return true;
 	return false;
 }
@@ -92,11 +96,11 @@ void CSongData::SetPatternData(unsigned Channel, unsigned Pattern, unsigned Row,
 }
 
 CPatternData &CSongData::GetPattern(unsigned Channel, unsigned Pattern) {
-	return m_pPatternData[Channel][Pattern];
+	return m_pPatternData[TranslateChannel(Channel)][Pattern];
 }
 
 const CPatternData &CSongData::GetPattern(unsigned Channel, unsigned Pattern) const {
-	return m_pPatternData[Channel][Pattern];
+	return m_pPatternData[TranslateChannel(Channel)][Pattern];
 }
 
 CPatternData &CSongData::GetPatternOnFrame(unsigned Channel, unsigned Frame) {
@@ -140,7 +144,7 @@ unsigned int CSongData::GetSongTempo() const
 
 int CSongData::GetEffectColumnCount(int Channel) const
 {
-	return m_iEffectColumns[Channel];
+	return m_iEffectColumns[TranslateChannel(Channel)];
 }
 
 bool CSongData::GetSongGroove() const		// // //
@@ -175,7 +179,7 @@ void CSongData::SetSongTempo(unsigned int Tempo)
 
 void CSongData::SetEffectColumnCount(int Channel, int Count)
 {
-	m_iEffectColumns[Channel] = Count;
+	m_iEffectColumns[TranslateChannel(Channel)] = Count;
 }
 
 void CSongData::SetSongGroove(bool Groove)		// // //
@@ -185,12 +189,12 @@ void CSongData::SetSongGroove(bool Groove)		// // //
 
 unsigned int CSongData::GetFramePattern(unsigned int Frame, unsigned int Channel) const
 {
-	return m_iFrameList[Frame][Channel];
+	return m_iFrameList[Frame][TranslateChannel(Channel)];
 }
 
 void CSongData::SetFramePattern(unsigned int Frame, unsigned int Channel, unsigned int Pattern)
 {
-	m_iFrameList[Frame][Channel] = Pattern;
+	m_iFrameList[Frame][TranslateChannel(Channel)] = Pattern;
 }
 
 unsigned CSongData::GetFrameSize(unsigned Frame, unsigned MaxChans) const {		// // //
@@ -237,6 +241,8 @@ void CSongData::CopyTrack(unsigned Chan, const CSongData &From, unsigned ChanFro
 
 void CSongData::SwapChannels(unsigned int First, unsigned int Second)		// // //
 {
+	First = TranslateChannel(First);
+	Second = TranslateChannel(Second);
 	std::swap(m_iEffectColumns[First], m_iEffectColumns[Second]);
 	for (int i = 0; i < MAX_FRAMES; i++)
 		std::swap(m_iFrameList[i][First], m_iFrameList[i][Second]);
@@ -259,4 +265,12 @@ void CSongData::SetBookmarks(const CBookmarkCollection &bookmarks) {
 
 void CSongData::SetBookmarks(CBookmarkCollection &&bookmarks) {
 	bookmarks_ = std::move(bookmarks);
+}
+
+unsigned CSongData::TranslateChannel(unsigned Index) const {		// // //
+	return parent_.GetChannelMap()->GetChannelType(Index);
+}
+
+unsigned CSongData::GetChannelPosition(unsigned ChanID) const {
+	return parent_.GetChannelMap()->GetChannelIndex(ChanID);
 }

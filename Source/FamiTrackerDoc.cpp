@@ -1278,7 +1278,7 @@ void CFamiTrackerDoc::SelectExpansionChip(unsigned chips, unsigned n163chs, bool
 			perm[j] = {m_pChannelMap->GetChannelIndex(j), newMap->GetChannelIndex(j)};
 
 		VisitSongs([&] (const CSongData &song, unsigned index) {
-			auto pNew = std::make_unique<CSongData>(song.GetPatternLength());
+			auto pNew = std::make_unique<CSongData>(*this, song.GetPatternLength());
 			pNew->SetHighlight(song.GetRowHighlight());
 			pNew->SetSongTempo(song.GetSongTempo());
 			pNew->SetSongSpeed(song.GetSongSpeed());

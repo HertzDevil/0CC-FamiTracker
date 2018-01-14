@@ -31,12 +31,13 @@
 #include "BookmarkCollection.h"		// // //
 
 class stChanNote;		// // //
+class CFTMComponentInterface;		// // //
 
 // CSongData holds all notes in the patterns
 class CSongData
 {
 public:
-	CSongData(unsigned int PatternLength = DEFAULT_ROW_COUNT);		// // //
+	explicit CSongData(CFTMComponentInterface &parent, unsigned int PatternLength = DEFAULT_ROW_COUNT);		// // //
 	~CSongData();
 
 	bool IsCellFree(unsigned int Channel, unsigned int Pattern, unsigned int Row) const;
@@ -97,12 +98,15 @@ public:
 				for (auto &p : ch)
 					f(p);
 		else {
-			unsigned ch_index = 0;
+			unsigned ch_pos = 0;
+			unsigned ch_index = GetChannelPosition(ch_pos);
 			for (auto &ch : m_pPatternData) {
-				unsigned p_index = 0;
-				for (auto &p : ch)
-					f(p, ch_index, p_index++);
-				++ch_index;
+				if (ch_index != (unsigned)-1) {
+					unsigned p_index = 0;
+					for (auto &p : ch)
+						f(p, ch_index, p_index++);
+				}
+				ch_index = GetChannelPosition(++ch_pos);
 			}
 		}
 	}
@@ -115,15 +119,22 @@ public:
 				for (auto &p : ch)
 					f(p);
 		else {
-			unsigned ch_index = 0;
+			unsigned ch_pos = 0;
+			unsigned ch_index = GetChannelPosition(ch_pos);
 			for (auto &ch : m_pPatternData) {
-				unsigned p_index = 0;
-				for (auto &p : ch)
-					f(p, ch_index, p_index++);
-				++ch_index;
+				if (ch_index != (unsigned)-1) {
+					unsigned p_index = 0;
+					for (auto &p : ch)
+						f(p, ch_index, p_index++);
+				}
+				ch_index = GetChannelPosition(++ch_pos);
 			}
 		}
 	}
+
+private:
+	unsigned TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
+	unsigned GetChannelPosition(unsigned ChanID) const;		// // // TODO: move to CSongView
 
 public:
 	// // // moved from CFamiTrackerDoc
@@ -132,6 +143,8 @@ public:
 
 private:
 	static const unsigned DEFAULT_ROW_COUNT;
+
+	CFTMComponentInterface &parent_;		// // //
 
 	// Track parameters
 	std::string	 m_sTrackName = DEFAULT_TITLE;			// // // moved
@@ -148,11 +161,11 @@ private:
 	CBookmarkCollection bookmarks_;		// // //
 
 	// Number of visible effect columns for each channel
-	std::array<unsigned char, MAX_CHANNELS> m_iEffectColumns = { };		// // //
+	std::array<unsigned char, CHANNELS> m_iEffectColumns = { };		// // //
 
 	// List of the patterns assigned to frames
-	std::array<std::array<unsigned char, MAX_CHANNELS>, MAX_FRAMES> m_iFrameList = { };		// // //
+	std::array<std::array<unsigned char, CHANNELS>, MAX_FRAMES> m_iFrameList = { };		// // //
 
 	// All accesses to m_pPatternData must go through GetPatternData()
-	std::array<std::array<CPatternData, MAX_PATTERN>, MAX_CHANNELS> m_pPatternData;		// // //
+	std::array<std::array<CPatternData, MAX_PATTERN>, CHANNELS> m_pPatternData = { };		// // //
 };
