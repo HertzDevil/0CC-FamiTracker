@@ -70,8 +70,7 @@ int CChannelMap::GetChannelCount() const {		// // //
 	return m_pChannels.size();
 }
 
-int CChannelMap::GetChannelType(int Channel) const
-{
+chan_id_t CChannelMap::GetChannelType(int Channel) const {		// // //
 	return GetChannel(Channel).GetID();
 }
 

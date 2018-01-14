@@ -212,7 +212,7 @@ public:
 	// Global (module) data
 	unsigned int	GetFrameRate() const;
 
-	void			SelectExpansionChip(unsigned chips, unsigned n163chs, bool Move);		// // //
+	void			SelectExpansionChip(unsigned chips, unsigned n163chs);		// // //
 	unsigned char	GetExpansionChip() const;
 	bool			ExpansionEnabled(int Chip) const;
 	int				GetNamcoChannels() const;

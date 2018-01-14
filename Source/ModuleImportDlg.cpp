@@ -108,8 +108,8 @@ bool CModuleImportDlg::LoadFile(CString Path)		// // //
 	unsigned n1 = m_pImportedDoc->GetNamcoChannels();
 	unsigned n2 = m_pDocument->GetNamcoChannels();
 	if (n1 != n2 || c1 != c2) {
-		m_pImportedDoc->SelectExpansionChip(c1 | c2, std::max(n1, n2), true);
-		m_pDocument->SelectExpansionChip(c1 | c2, std::max(n1, n2), true);
+		m_pImportedDoc->SelectExpansionChip(c1 | c2, std::max(n1, n2));
+		m_pDocument->SelectExpansionChip(c1 | c2, std::max(n1, n2));
 	}
 
 	return true;

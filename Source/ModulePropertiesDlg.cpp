@@ -141,7 +141,7 @@ void CModulePropertiesDlg::OnBnClickedOk()
 
 	if (!(m_iExpansions & SNDCHIP_N163)) m_iN163Channels = 0;
 	if (m_pDocument->GetNamcoChannels() != m_iN163Channels || m_pDocument->GetExpansionChip() != m_iExpansions) {		// // //
-		m_pDocument->SelectExpansionChip(m_iExpansions, m_iN163Channels, true);
+		m_pDocument->SelectExpansionChip(m_iExpansions, m_iN163Channels);
 		m_pDocument->UpdateAllViews(NULL, UPDATE_PROPERTIES);
 	}
 

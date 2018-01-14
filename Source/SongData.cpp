@@ -47,19 +47,7 @@ CSongData::CSongData(CFTMComponentInterface &parent, unsigned int PatternLength)
 CSongData::~CSongData() {
 }
 
-bool CSongData::IsCellFree(unsigned int Channel, unsigned int Pattern, unsigned int Row) const
-{
-	const auto &Note = GetPatternData(Channel, Pattern, Row);		// // //
-	constexpr const auto BLANK = stChanNote { };
-	return Note == BLANK;
-}
-
-bool CSongData::IsPatternEmpty(unsigned int Channel, unsigned int Pattern) const
-{
-	return GetPattern(Channel, Pattern).IsEmpty();		// // //
-}
-
-bool CSongData::IsPatternInUse(unsigned int Channel, unsigned int Pattern) const
+bool CSongData::IsPatternInUse(chan_id_t Channel, unsigned int Pattern) const
 {
 	// Check if pattern is addressed in frame list
 	for (unsigned i = 0; i < m_iFrameCount; ++i)
@@ -68,53 +56,43 @@ bool CSongData::IsPatternInUse(unsigned int Channel, unsigned int Pattern) const
 	return false;
 }
 
-bool CSongData::ArePatternsSame(unsigned ch1, unsigned pat1, unsigned ch2, unsigned pat2) const {		// // //
-	return GetPattern(ch1, pat1) == GetPattern(ch2, pat2);
-}
-
-unsigned CSongData::GetFreePatternIndex(unsigned Channel, unsigned Whence) const {		// // //
+unsigned CSongData::GetFreePatternIndex(chan_id_t Channel, unsigned Whence) const {		// // //
 	while (++Whence < MAX_PATTERN)
-		if (!IsPatternInUse(Channel, Whence) && IsPatternEmpty(Channel, Whence))
+		if (!IsPatternInUse(Channel, Whence) && GetPattern(Channel, Whence).IsEmpty())
 			return Whence;
 
 	return -1;
 }
 
-stChanNote &CSongData::GetPatternData(unsigned Channel, unsigned Pattern, unsigned Row)		// // //
+stChanNote &CSongData::GetPatternData(chan_id_t Channel, unsigned Pattern, unsigned Row)		// // //
 {
 	return GetPattern(Channel, Pattern).GetNoteOn(Row);
 }
 
-const stChanNote &CSongData::GetPatternData(unsigned Channel, unsigned Pattern, unsigned Row) const		// // //
+const stChanNote &CSongData::GetPatternData(chan_id_t Channel, unsigned Pattern, unsigned Row) const		// // //
 {
 	return GetPattern(Channel, Pattern).GetNoteOn(Row);
 }
 
-void CSongData::SetPatternData(unsigned Channel, unsigned Pattern, unsigned Row, const stChanNote &Note)		// // //
+void CSongData::SetPatternData(chan_id_t Channel, unsigned Pattern, unsigned Row, const stChanNote &Note)		// // //
 {
 	GetPattern(Channel, Pattern).SetNoteOn(Row, Note);
 }
 
-CPatternData &CSongData::GetPattern(unsigned Channel, unsigned Pattern) {
-	return m_pPatternData[TranslateChannel(Channel)][Pattern];
+CPatternData &CSongData::GetPattern(chan_id_t Channel, unsigned Pattern) {
+	return m_pPatternData[Channel][Pattern];
 }
 
-const CPatternData &CSongData::GetPattern(unsigned Channel, unsigned Pattern) const {
-	return m_pPatternData[TranslateChannel(Channel)][Pattern];
+const CPatternData &CSongData::GetPattern(chan_id_t Channel, unsigned Pattern) const {
+	return m_pPatternData[Channel][Pattern];
 }
 
-CPatternData &CSongData::GetPatternOnFrame(unsigned Channel, unsigned Frame) {
+CPatternData &CSongData::GetPatternOnFrame(chan_id_t Channel, unsigned Frame) {
 	return GetPattern(Channel, GetFramePattern(Frame, Channel));
 }
 
-const CPatternData &CSongData::GetPatternOnFrame(unsigned Channel, unsigned Frame) const {
+const CPatternData &CSongData::GetPatternOnFrame(chan_id_t Channel, unsigned Frame) const {
 	return GetPattern(Channel, GetFramePattern(Frame, Channel));
-}
-
-void CSongData::ClearPattern(unsigned int Channel, unsigned int Pattern)
-{
-	// Deletes a specified pattern in a channel
-	GetPattern(Channel, Pattern) = CPatternData { };		// // //
 }
 
 const std::string &CSongData::GetTitle() const		// // //
@@ -142,9 +120,9 @@ unsigned int CSongData::GetSongTempo() const
 	return m_iSongTempo;
 }
 
-int CSongData::GetEffectColumnCount(int Channel) const
+int CSongData::GetEffectColumnCount(chan_id_t Channel) const
 {
-	return m_iEffectColumns[TranslateChannel(Channel)];
+	return m_iEffectColumns[Channel];
 }
 
 bool CSongData::GetSongGroove() const		// // //
@@ -152,7 +130,7 @@ bool CSongData::GetSongGroove() const		// // //
 	return m_bUseGroove;
 }
 
-void CSongData::SetTitle(const std::string &str)		// // //
+void CSongData::SetTitle(std::string_view str)		// // //
 {
 	m_sTrackName = str;
 }
@@ -177,9 +155,9 @@ void CSongData::SetSongTempo(unsigned int Tempo)
 	m_iSongTempo = Tempo;
 }
 
-void CSongData::SetEffectColumnCount(int Channel, int Count)
+void CSongData::SetEffectColumnCount(chan_id_t Channel, int Count)
 {
-	m_iEffectColumns[TranslateChannel(Channel)] = Count;
+	m_iEffectColumns[Channel] = Count;
 }
 
 void CSongData::SetSongGroove(bool Groove)		// // //
@@ -187,14 +165,14 @@ void CSongData::SetSongGroove(bool Groove)		// // //
 	m_bUseGroove = Groove;
 }
 
-unsigned int CSongData::GetFramePattern(unsigned int Frame, unsigned int Channel) const
+unsigned int CSongData::GetFramePattern(unsigned int Frame, chan_id_t Channel) const
 {
-	return m_iFrameList[Frame][TranslateChannel(Channel)];
+	return m_iFrameList[Frame][Channel];
 }
 
-void CSongData::SetFramePattern(unsigned int Frame, unsigned int Channel, unsigned int Pattern)
+void CSongData::SetFramePattern(unsigned int Frame, chan_id_t Channel, unsigned int Pattern)
 {
-	m_iFrameList[Frame][TranslateChannel(Channel)] = Pattern;
+	m_iFrameList[Frame][Channel] = Pattern;
 }
 
 unsigned CSongData::GetFrameSize(unsigned Frame, unsigned MaxChans) const {		// // //
@@ -203,8 +181,8 @@ unsigned CSongData::GetFrameSize(unsigned Frame, unsigned MaxChans) const {		// 
 
 	for (unsigned i = 0; i < MaxChans; ++i) {
 		unsigned halt = [&] {
-			const int Columns = GetEffectColumnCount(i) + 1;
-			const auto &pat = GetPatternOnFrame(i, Frame);
+			const int Columns = GetEffectColumnCount(TranslateChannel(i)) + 1;
+			const auto &pat = GetPatternOnFrame(TranslateChannel(i), Frame);
 			for (unsigned j = 0; j < PatternLength - 1; ++j) {
 				const auto &Note = pat.GetNoteOn(j);
 				for (int k = 0; k < Columns; ++k)
@@ -231,7 +209,7 @@ const stHighlight &CSongData::GetRowHighlight() const
 	return m_vRowHighlight;
 }
 
-void CSongData::CopyTrack(unsigned Chan, const CSongData &From, unsigned ChanFrom) {
+void CSongData::CopyTrack(chan_id_t Chan, const CSongData &From, chan_id_t ChanFrom) {
 	SetEffectColumnCount(Chan, From.GetEffectColumnCount(ChanFrom));
 	for (int f = 0; f < MAX_FRAMES; f++)
 		SetFramePattern(f, Chan, From.GetFramePattern(f, ChanFrom));
@@ -239,10 +217,8 @@ void CSongData::CopyTrack(unsigned Chan, const CSongData &From, unsigned ChanFro
 		GetPattern(Chan, p) = From.GetPattern(ChanFrom, p);
 }
 
-void CSongData::SwapChannels(unsigned int First, unsigned int Second)		// // //
+void CSongData::SwapChannels(chan_id_t First, chan_id_t Second)		// // //
 {
-	First = TranslateChannel(First);
-	Second = TranslateChannel(Second);
 	std::swap(m_iEffectColumns[First], m_iEffectColumns[Second]);
 	for (int i = 0; i < MAX_FRAMES; i++)
 		std::swap(m_iFrameList[i][First], m_iFrameList[i][Second]);
@@ -267,7 +243,7 @@ void CSongData::SetBookmarks(CBookmarkCollection &&bookmarks) {
 	bookmarks_ = std::move(bookmarks);
 }
 
-unsigned CSongData::TranslateChannel(unsigned Index) const {		// // //
+chan_id_t CSongData::TranslateChannel(unsigned Index) const {		// // //
 	return parent_.GetChannelMap()->GetChannelType(Index);
 }
 

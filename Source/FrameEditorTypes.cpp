@@ -139,12 +139,12 @@ std::pair<CFrameIterator, CFrameIterator> CFrameIterator::FromSelection(const CF
 
 int CFrameIterator::Get(int Channel) const
 {
-	return song_.GetFramePattern(NormalizeFrame(m_iFrame), Channel);
+	return song_.GetFramePattern(NormalizeFrame(m_iFrame), song_.TranslateChannel(Channel));
 }
 
 void CFrameIterator::Set(int Channel, int Frame)
 {
-	song_.SetFramePattern(NormalizeFrame(m_iFrame), Channel, Frame);
+	song_.SetFramePattern(NormalizeFrame(m_iFrame), song_.TranslateChannel(Channel), Frame);
 }
 
 CFrameIterator &CFrameIterator::operator+=(const int Frames)

@@ -393,8 +393,8 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 			for (int j = 0; j < ChannelCount; ++j) {
 				int Chan = j + m_iFirstChannel;
 
-				unsigned index = song.GetFramePattern(Frame, Chan);		// // //
-				unsigned activeIndex = song.GetFramePattern(ActiveFrame, Chan);
+				unsigned index = song.GetFramePattern(Frame, song.TranslateChannel(Chan));		// // //
+				unsigned activeIndex = song.GetFramePattern(ActiveFrame, song.TranslateChannel(Chan));
 
 				// Dim patterns that are different from current
 				if ((!m_bLastRow && index == activeIndex) || bSelectedRow)

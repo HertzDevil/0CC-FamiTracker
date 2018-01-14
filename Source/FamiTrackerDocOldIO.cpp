@@ -60,7 +60,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 	// Only single track files
 	auto &Song = *doc.GetSong(0);
 
-	doc.SelectExpansionChip(SNDCHIP_NONE, 0, false);		// // //
+	doc.SelectExpansionChip(SNDCHIP_NONE, 0);		// // //
 	doc.SetMachine(NTSC);		// // //
 	doc.SetVibratoStyle(VIBRATO_OLD);
 	doc.SetLinearPitch(false);
@@ -165,7 +165,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 			Song.SetFrameCount(FrameCount);
 			for (c = 0; c < FrameCount; c++)
 				for (i = 0; i < doc.GetAvailableChannels(); i++)
-					Song.SetFramePattern(c, i, ReadInt(pOpenFile));
+					Song.SetFramePattern(c, Song.TranslateChannel(i), ReadInt(pOpenFile));
 			break;
 		}
 		case FB_PATTERNS: {
@@ -184,7 +184,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 							if (ImportedNote.ExtraStuff2 < 0xFF)
 								ImportedNote.ExtraStuff2++;
 						}
-						auto &Note = Song.GetPatternData(x, c, i);		// // //
+						stChanNote Note;		// // //
 						Note.EffNumber[0] = static_cast<effect_t>(ImportedNote.ExtraStuff1);
 						Note.EffParam[0] = ImportedNote.ExtraStuff2;
 						Note.Instrument = ImportedNote.Instrument;
@@ -197,6 +197,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 							Note.Vol = MAX_VOLUME;
 						if (Note.EffNumber[0] < EF_COUNT)		// // //
 							Note.EffNumber[0] = EFF_CONVERSION_050.first[Note.EffNumber[0]];
+						Song.SetPatternData(Song.TranslateChannel(x), c, i, Note);
 					}
 				}
 			}

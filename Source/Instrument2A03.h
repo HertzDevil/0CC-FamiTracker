@@ -37,7 +37,6 @@ public:
 	bool	Load(CDocumentFile *pDocFile) override;
 
 private:
-	char	GetSample(int Octave, int Note) const { return GetSampleIndex(Octave, Note); };		// // //
 	int		GetSampleCount() const;		// // // 050B
 
 public:

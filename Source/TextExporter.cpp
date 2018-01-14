@@ -624,7 +624,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			t.ReadEOL();
 			break;
 		case CT_EXPANSION:
-			Doc.SelectExpansionChip(t.ReadInt(0, 63), Doc.GetNamcoChannels(), false);		// // //
+			Doc.SelectExpansionChip(t.ReadInt(0, 63), Doc.GetNamcoChannels());		// // //
 			t.ReadEOL();
 			break;
 		case CT_VIBRATO:
@@ -653,7 +653,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_N163CHANNELS:
 			N163count = t.ReadInt(1, 8);		// // //
 			t.ReadEOL();
-			Doc.SelectExpansionChip(Doc.GetExpansionChip(), 8, false);
+			Doc.SelectExpansionChip(Doc.GetExpansionChip(), 8);
 			break;
 		case CT_MACRO:
 		case CT_MACROVRC6:
@@ -956,7 +956,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		Doc.SetSample(dpcm_index, std::move(dpcm_sample));
 	}
 	if (N163count != -1)		// // //
-		Doc.SelectExpansionChip(Doc.GetExpansionChip(), N163count, true); // calls ApplyExpansionChip()
+		Doc.SelectExpansionChip(Doc.GetExpansionChip(), N163count); // calls ApplyExpansionChip()
 }
 
 // =============================================================================
@@ -979,7 +979,7 @@ CString CTextExport::ExportRows(LPCTSTR FileName, const CFamiTrackerDoc &Doc) {	
 
 	Doc.VisitSongs([&] (const CSongData &song, unsigned t) {
 		unsigned rows = song.GetPatternLength();
-		song.VisitPatterns([&] (const CPatternData &pat, unsigned c, unsigned p) {
+		song.VisitPatterns([&] (const CPatternData &pat, chan_id_t c, unsigned p) {
 			pat.VisitRows(rows, [&] (const stChanNote &stCell, unsigned r) {
 				if (stCell != stChanNote { })
 					f.WriteString(Formatted(FMT, id++, t, c, p, r,
@@ -1067,7 +1067,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 	if (Doc.ExpansionEnabled(SNDCHIP_N163))
 	{
 		N163count = Doc.GetNamcoChannels();
-		Doc.SelectExpansionChip(Doc.GetExpansionChip(), 8, true); // calls ApplyExpansionChip()
+		Doc.SelectExpansionChip(Doc.GetExpansionChip(), 8); // calls ApplyExpansionChip()
 		s.Format(_T("# Namco 163 global settings\n"
 		            "%-15s %d\n"
 		            "\n"),
@@ -1393,7 +1393,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 	}
 
 	if (N163count != -1)		// // //
-		Doc.SelectExpansionChip(Doc.GetExpansionChip(), N163count, true); // calls ApplyExpansionChip()
+		Doc.SelectExpansionChip(Doc.GetExpansionChip(), N163count); // calls ApplyExpansionChip()
 	f.WriteString(_T("# End of export\n"));
 	Doc.UpdateAllViews(NULL, UPDATE_FRAME);
 	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
