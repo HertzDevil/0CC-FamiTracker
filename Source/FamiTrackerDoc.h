@@ -26,10 +26,9 @@
 #include "stdafx.h"		// // //
 
 #include <memory>		// // //
-#include <array>		// // //
+#include <string>		// // //
 
 // Constants, types and enums
-//#include "FamiTrackerTypes.h"
 #include "FTMComponentInterface.h"
 
 #define TRANSPOSE_FDS
@@ -79,10 +78,16 @@ class dpcm_sample;
 //
 
 // // // TODO:
-// // // - move core data fields into CFamiTrackerModule
+// // // + move core data fields into CFamiTrackerModule
 // // // - move high-level pattern operations to CSongView
 // // // - remove these delegations
+// // //    - CFamiTrackerModule
+// // //    - CSongData
+// // //    - CSongView
 // // // - use these classes directly in other classes
+// // //    - CFamiTrackerModule
+// // //    - CSongData
+// // //    - CSongView
 // // // - move action handler into CFamiTrackerDoc
 
 class CFamiTrackerDoc : public CDocument, public CFTMComponentInterface
@@ -154,9 +159,6 @@ public:
 	//
 
 	// Local (song) data
-	CSongData		*GetSong(unsigned int Index);		// // //
-	const CSongData	*GetSong(unsigned int Index) const;		// // //
-
 	void			SetPatternLength(unsigned int Track, unsigned int Length);
 	void			SetFrameCount(unsigned int Track, unsigned int Count);
 	void			SetSongSpeed(unsigned int Track, unsigned int Speed);
@@ -219,25 +221,6 @@ public:
 	unsigned int	GetAvailableChannels()	const { return m_iChannelsAvailable; }
 	void			SetAvailableChannels(unsigned channels) { m_iChannelsAvailable = channels; }		// // //
 
-	std::string_view GetModuleName() const;		// // //
-	std::string_view GetModuleArtist() const;
-	std::string_view GetModuleCopyright() const;
-	void			SetModuleName(std::string_view pName);
-	void			SetModuleArtist(std::string_view pArtist);
-	void			SetModuleCopyright(std::string_view pCopyright);
-
-	machine_t		GetMachine() const;
-	unsigned int	GetEngineSpeed() const;
-	vibrato_t		GetVibratoStyle() const;
-	bool			GetLinearPitch() const;
-	int				GetSpeedSplitPoint() const;
-
-	void			SetMachine(machine_t Machine);		// // //
-	void			SetEngineSpeed(unsigned int Speed);
-	void			SetVibratoStyle(vibrato_t Style);
-	void			SetLinearPitch(bool Enable);
-	void			SetSpeedSplitPoint(int SplitPoint);
-
 	void			SetHighlight(unsigned int Track, const stHighlight &Hl);		// // //
 	const stHighlight &GetHighlight(unsigned int Track) const;
 
@@ -251,26 +234,9 @@ public:
 	unsigned		GetTotalBookmarkCount() const;		// // //
 	CBookmark		*GetBookmarkAt(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
 
-	void			SetDetuneOffset(int Chip, int Note, int Detune);		// // //
-	int				GetDetuneOffset(int Chip, int Note) const;
-	void			ResetDetuneTables();
-	void			SetTuning(int Semitone, int Cent);		// // // 050B
-	int				GetTuningSemitone() const;		// // // 050B
-	int				GetTuningCent() const;		// // // 050B
-
-	std::shared_ptr<groove> GetGroove(unsigned Index);		// // //
-	std::shared_ptr<const groove> GetGroove(unsigned Index) const;		// // //
-	bool			HasGroove(unsigned Index) const;		// // //
-	void			SetGroove(unsigned Index, std::shared_ptr<groove> Groove);
-
 	int				GetFrameLength(unsigned int Track, unsigned int Frame) const;
 
 	// Track management functions
-	bool InsertSong(unsigned Index, std::unique_ptr<CSongData> pSong);		// // //
-	std::unique_ptr<CSongData> ReplaceSong(unsigned Index, std::unique_ptr<CSongData> pSong);		// // // returns old song
-	void			RemoveTrack(unsigned int Track);
-	std::unique_ptr<CSongData> ReleaseTrack(unsigned int Track);		// // //
-	unsigned int	GetTrackCount() const;
 	const std::string &GetTrackTitle(unsigned int Track) const;		// // //
 	void			SetTrackTitle(unsigned int Track, const std::string &title);		// // //
 	void			MoveTrackUp(unsigned int Track);
@@ -327,6 +293,44 @@ public:
 	void			Modify(bool Change);
 	void			ModifyIrreversible();
 
+// // // delegates to CFamiTrackerModule
+
+#pragma region delegates to CFamiTrackerModule
+
+	std::string_view GetModuleName() const;		// // //
+	std::string_view GetModuleArtist() const;
+	std::string_view GetModuleCopyright() const;
+	void			SetModuleName(std::string_view pName);
+	void			SetModuleArtist(std::string_view pArtist);
+	void			SetModuleCopyright(std::string_view pCopyright);
+
+	machine_t		GetMachine() const;
+	unsigned int	GetEngineSpeed() const;
+	vibrato_t		GetVibratoStyle() const;
+	bool			GetLinearPitch() const;
+	int				GetSpeedSplitPoint() const;
+
+	void			SetMachine(machine_t Machine);		// // //
+	void			SetEngineSpeed(unsigned int Speed);
+	void			SetVibratoStyle(vibrato_t Style);
+	void			SetLinearPitch(bool Enable);
+	void			SetSpeedSplitPoint(int SplitPoint);
+
+	int				GetDetuneOffset(int Chip, int Note) const;
+	void			SetDetuneOffset(int Chip, int Note, int Detune);		// // //
+	void			ResetDetuneTables();
+	int				GetTuningSemitone() const;		// // // 050B
+	int				GetTuningCent() const;		// // // 050B
+	void			SetTuning(int Semitone, int Cent);		// // // 050B
+
+	CSongData		*GetSong(unsigned int Index);		// // //
+	const CSongData	*GetSong(unsigned int Index) const;		// // //
+	unsigned int	GetTrackCount() const;
+	bool			InsertSong(unsigned Index, std::unique_ptr<CSongData> pSong);		// // //
+	std::unique_ptr<CSongData> ReplaceSong(unsigned Index, std::unique_ptr<CSongData> pSong);		// // // returns old song
+	std::unique_ptr<CSongData> ReleaseTrack(unsigned int Track);		// // //
+	void			RemoveTrack(unsigned int Track);
+
 	// void (*F)(CSongData &song [, unsigned index])
 	template <typename F>
 	void VisitSongs(F f) {
@@ -337,6 +341,13 @@ public:
 	void VisitSongs(F f) const {
 		module_->VisitSongs(f);
 	}
+
+	std::shared_ptr<groove> GetGroove(unsigned Index);		// // //
+	std::shared_ptr<const groove> GetGroove(unsigned Index) const;		// // //
+	bool			HasGroove(unsigned Index) const;		// // //
+	void			SetGroove(unsigned Index, std::shared_ptr<groove> Groove);
+
+#pragma endregion
 
 	//
 	// Private functions
@@ -378,6 +389,7 @@ private:
 
 	// Channels (TODO: run-time state, remove or move these?)
 	std::unique_ptr<CChannelMap> m_pChannelMap;		// // //
+	unsigned int	m_iChannelsAvailable;			// Number of channels added
 
 	std::unique_ptr<CFamiTrackerModule> module_;		// // //
 
@@ -398,19 +410,6 @@ private:
 	int				m_iAutoSaveCounter;
 	CString			m_sAutoSaveFile;
 #endif
-
-	//
-	// Document data
-	//
-
-	unsigned int	m_iChannelsAvailable;						// Number of channels added
-
-	// Instruments, samples and sequences
-	std::array<std::shared_ptr<groove>, 32/*MAX_GROOVE*/> m_pGrooveTable;		// // // Grooves
-
-	//
-	// End of document data
-	//
 
 	// Thread synchronization
 private:

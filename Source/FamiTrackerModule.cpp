@@ -204,3 +204,19 @@ void CFamiTrackerModule::RemoveSong(unsigned index) {
 void CFamiTrackerModule::SwapSongs(unsigned lhs, unsigned rhs) {
 	m_pTracks[lhs].swap(m_pTracks[rhs]);		// // //
 }
+
+std::shared_ptr<ft0cc::doc::groove> CFamiTrackerModule::GetGroove(unsigned index) {
+	return index < MAX_GROOVE ? m_pGrooveTable[index] : nullptr;
+}
+
+std::shared_ptr<const ft0cc::doc::groove> CFamiTrackerModule::GetGroove(unsigned index) const {
+	return index < MAX_GROOVE ? m_pGrooveTable[index] : nullptr;
+}
+
+bool CFamiTrackerModule::HasGroove(unsigned index) const {
+	return index < MAX_GROOVE && static_cast<bool>(m_pGrooveTable[index]);
+}
+
+void CFamiTrackerModule::SetGroove(unsigned index, std::shared_ptr<groove> pGroove) {
+	m_pGrooveTable[index] = std::move(pGroove);
+}

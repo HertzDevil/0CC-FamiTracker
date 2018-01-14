@@ -246,10 +246,6 @@ void CFamiTrackerDoc::DeleteContents()
 
 	UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
 
-	// // // Grooves
-	for (auto &x : m_pGrooveTable)		// // //
-		x.reset();
-
 	module_ = std::make_unique<CFamiTrackerModule>(*this);		// // //
 
 	// Reset variables to default
@@ -1833,25 +1829,6 @@ void CFamiTrackerDoc::SwapInstruments(int First, int Second)
 	});
 }
 
-std::shared_ptr<ft0cc::doc::groove> CFamiTrackerDoc::GetGroove(unsigned Index)		// // //
-{
-	return Index < MAX_GROOVE ? m_pGrooveTable[Index] : nullptr;
-}
-
-std::shared_ptr<const ft0cc::doc::groove> CFamiTrackerDoc::GetGroove(unsigned Index) const		// // //
-{
-	return Index < MAX_GROOVE ? m_pGrooveTable[Index] : nullptr;
-}
-
-bool CFamiTrackerDoc::HasGroove(unsigned Index) const {
-	return Index < MAX_GROOVE && static_cast<bool>(m_pGrooveTable[Index]);
-}
-
-void CFamiTrackerDoc::SetGroove(unsigned Index, std::shared_ptr<groove> Groove)
-{
-	m_pGrooveTable[Index] = std::move(Groove);
-}
-
 void CFamiTrackerDoc::SetExceededFlag(bool Exceed)
 {
 	m_bExceeded = Exceed;
@@ -1986,7 +1963,23 @@ std::unique_ptr<CSongData> CFamiTrackerDoc::ReplaceSong(unsigned Index, std::uni
 }
 
 CInstrumentManager *const CFamiTrackerDoc::GetInstrumentManager() const {
-	return module_->GetInstrumentManager();
+	return GetModule()->GetInstrumentManager();
+}
+
+std::shared_ptr<ft0cc::doc::groove> CFamiTrackerDoc::GetGroove(unsigned Index) {
+	return GetModule()->GetGroove(Index);
+}
+
+std::shared_ptr<const ft0cc::doc::groove> CFamiTrackerDoc::GetGroove(unsigned Index) const {
+	return GetModule()->GetGroove(Index);
+}
+
+bool CFamiTrackerDoc::HasGroove(unsigned Index) const {
+	return GetModule()->HasGroove(Index);
+}
+
+void CFamiTrackerDoc::SetGroove(unsigned Index, std::shared_ptr<groove> pGroove) {
+	GetModule()->SetGroove(Index, std::move(pGroove));
 }
 
 #pragma endregion

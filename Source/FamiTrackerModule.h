@@ -26,17 +26,23 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <array>
 #include "FamiTrackerTypes.h"
 
 class CSongData;
 class CInstrumentManager;
 class CFTMComponentInterface;
 
+namespace ft0cc::doc {
+class groove;
+} // namespace ft0cc::doc
+
 class CFamiTrackerModule {
+	using groove = ft0cc::doc::groove;
+
 public:
 	static constexpr std::size_t METADATA_FIELD_LENGTH		= 32;
 
-	static constexpr machine_t	 DEFAULT_MACHINE_TYPE		= machine_t::NTSC;
 	static constexpr vibrato_t	 DEFAULT_VIBRATO_STYLE		= vibrato_t::VIBRATO_NEW;
 	static constexpr bool		 DEFAULT_LINEAR_PITCH		= false;
 	static constexpr unsigned	 DEFAULT_SPEED_SPLIT_POINT	= 32;
@@ -119,8 +125,14 @@ public:
 			static_assert(false, "Unknown function signature");
 	}
 
-	// instrument
+	// instruments
 	CInstrumentManager *GetInstrumentManager() const;
+
+	// grooves
+	std::shared_ptr<groove> GetGroove(unsigned index);		// // //
+	std::shared_ptr<const groove> GetGroove(unsigned index) const;		// // //
+	bool			HasGroove(unsigned index) const;		// // //
+	void			SetGroove(unsigned index, std::shared_ptr<groove> pGroove);
 
 private:
 	bool AllocateSong(unsigned index);
@@ -144,4 +156,6 @@ private:
 	std::vector<std::unique_ptr<CSongData>> m_pTracks;
 
 	std::unique_ptr<CInstrumentManager> m_pInstrumentManager;
+
+	std::array<std::shared_ptr<groove>, 32/*MAX_GROOVE*/> m_pGrooveTable;		// // // Grooves
 };
