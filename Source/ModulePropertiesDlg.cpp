@@ -23,6 +23,8 @@
 #include "ModulePropertiesDlg.h"
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"		// // //
+#include "SongData.h"		// // //
 #include "MainFrm.h"
 #include "ModuleImportDlg.h"
 #include "SoundGen.h"
@@ -186,17 +188,14 @@ void CModulePropertiesDlg::OnBnClickedOk()
 
 void CModulePropertiesDlg::OnBnClickedSongAdd()
 {
-	CString TrackTitle;
-
 	// Try to add a track
-	int NewTrack = m_pDocument->AddTrack();
-
-	if (NewTrack == -1)
+	unsigned int NewTrack = m_pDocument->GetTrackCount();		// // //
+	if (!m_pDocument->InsertSong(NewTrack, m_pDocument->GetModule()->MakeNewSong()))
 		return;
-
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
+	CString TrackTitle;
 	TrackTitle.Format(TRACK_FORMAT, NewTrack + 1, m_pDocument->GetTrackTitle(NewTrack).c_str());
 	static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST))->InsertItem(NewTrack, TrackTitle);
 
@@ -205,19 +204,14 @@ void CModulePropertiesDlg::OnBnClickedSongAdd()
 
 void CModulePropertiesDlg::OnBnClickedSongInsert()		// // //
 {
-	CString TrackTitle;
-
 	// Try to add a track
-	unsigned int NewTrack = m_pDocument->AddTrack();
-
-	if (NewTrack == -1)
+	unsigned int NewTrack = m_iSelectedSong + 1;		// // //
+	if (!m_pDocument->InsertSong(NewTrack, m_pDocument->GetModule()->MakeNewSong()))
 		return;
-
-	while (NewTrack > m_iSelectedSong + 1)
-		m_pDocument->MoveTrackUp(NewTrack--);
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
+	CString TrackTitle;
 	TrackTitle.Format(TRACK_FORMAT, NewTrack, m_pDocument->GetTrackTitle(NewTrack).c_str());
 	auto pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
 	pSongList->InsertItem(NewTrack, TrackTitle);

@@ -22,8 +22,11 @@
 
 #include "FamiTrackerModule.h"
 #include "SongData.h"
+#include "InstrumentManager.h"
 
-CFamiTrackerModule::CFamiTrackerModule() {
+CFamiTrackerModule::CFamiTrackerModule(CFTMComponentInterface &parent) :
+	m_pInstrumentManager(std::make_unique<CInstrumentManager>(&parent))
+{
 	AllocateSong(0);
 }
 
@@ -150,27 +153,22 @@ std::size_t CFamiTrackerModule::GetSongCount() const {
 	return m_pTracks.size();
 }
 
+std::unique_ptr<CSongData> CFamiTrackerModule::MakeNewSong() const {
+	auto pSong = std::make_unique<CSongData>();
+	pSong->SetSongTempo(GetMachine() == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
+	return pSong;
+}
+
+CInstrumentManager *CFamiTrackerModule::GetInstrumentManager() const {
+	return m_pInstrumentManager.get();
+}
+
 bool CFamiTrackerModule::AllocateSong(unsigned index) {
 	// Allocate a new song if not already done
 	for (unsigned i = GetSongCount(); i <= index; ++i)
 		if (!InsertSong(i, MakeNewSong()))
 			return false;
 	return true;
-}
-
-int CFamiTrackerModule::AddSong() {
-	// Add new track. Returns -1 on failure, or added track number otherwise
-	int NewTrack = GetSongCount();
-	if (InsertSong(NewTrack, MakeNewSong()))
-		return NewTrack;
-	return -1;
-}
-
-int CFamiTrackerModule::AddSong(std::unique_ptr<CSongData> pSong) {		// // //
-	int NewTrack = GetSongCount();
-	if (InsertSong(NewTrack, std::move(pSong)))
-		return NewTrack;
-	return -1;
 }
 
 bool CFamiTrackerModule::InsertSong(unsigned index, std::unique_ptr<CSongData> pSong) {		// // //
@@ -205,10 +203,4 @@ void CFamiTrackerModule::RemoveSong(unsigned index) {
 
 void CFamiTrackerModule::SwapSongs(unsigned lhs, unsigned rhs) {
 	m_pTracks[lhs].swap(m_pTracks[rhs]);		// // //
-}
-
-std::unique_ptr<CSongData> CFamiTrackerModule::MakeNewSong() const {
-	auto pSong = std::make_unique<CSongData>();
-	pSong->SetSongTempo(GetMachine() == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
-	return pSong;
 }

@@ -163,7 +163,6 @@ public:
 	// Local (song) data
 	CSongData		*GetSong(unsigned int Index);		// // //
 	const CSongData	*GetSong(unsigned int Index) const;		// // //
-	std::unique_ptr<CSongData> ReplaceSong(unsigned Index, std::unique_ptr<CSongData> pSong);		// // // returns old song
 
 	void			SetPatternLength(unsigned int Track, unsigned int Length);
 	void			SetFrameCount(unsigned int Track, unsigned int Count);
@@ -272,8 +271,8 @@ public:
 	int				GetFrameLength(unsigned int Track, unsigned int Frame) const;
 
 	// Track management functions
-	int				AddTrack();
-	int				AddTrack(std::unique_ptr<CSongData> song);		// // //
+	bool InsertSong(unsigned Index, std::unique_ptr<CSongData> pSong);		// // //
+	std::unique_ptr<CSongData> ReplaceSong(unsigned Index, std::unique_ptr<CSongData> pSong);		// // // returns old song
 	void			RemoveTrack(unsigned int Track);
 	std::unique_ptr<CSongData> ReleaseTrack(unsigned int Track);		// // //
 	unsigned int	GetTrackCount() const;
@@ -419,7 +418,6 @@ private:
 	unsigned int	m_iChannelsAvailable;						// Number of channels added
 
 	// Instruments, samples and sequences
-	std::unique_ptr<CInstrumentManager> m_pInstrumentManager;	// // //
 	std::array<std::unique_ptr<groove>, MAX_GROOVE> m_pGrooveTable;		// // // Grooves
 
 	// Row highlight (TODO remove)

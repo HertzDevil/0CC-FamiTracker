@@ -162,7 +162,7 @@ bool CModuleImportDlg::ImportTracks()
 		if (m_ctlTrackList.GetCheck(i) == BST_CHECKED) {
 			auto pSong = m_pImportedDoc->ReleaseTrack(i);		// // //
 			auto &song = *pSong;
-			m_pDocument->AddTrack(std::move(pSong));
+			m_pDocument->InsertSong(m_pDocument->GetTrackCount(), std::move(pSong));
 
 			// // // translate instruments and grooves outside modules
 			if (song.GetSongGroove())

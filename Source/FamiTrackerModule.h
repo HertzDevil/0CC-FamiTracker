@@ -29,6 +29,8 @@
 #include "FamiTrackerTypes.h"
 
 class CSongData;
+class CInstrumentManager;
+class CFTMComponentInterface;
 
 class CFamiTrackerModule {
 public:
@@ -40,7 +42,7 @@ public:
 	static constexpr unsigned	 DEFAULT_SPEED_SPLIT_POINT	= 32;
 	static constexpr unsigned	 OLD_SPEED_SPLIT_POINT		= 21;
 
-	CFamiTrackerModule();
+	explicit CFamiTrackerModule(CFTMComponentInterface &parent);
 	~CFamiTrackerModule();
 
 	// module metadata
@@ -79,9 +81,7 @@ public:
 	CSongData *GetSong(unsigned index);
 	const CSongData *GetSong(unsigned index) const;
 	std::size_t GetSongCount() const;
-	bool AllocateSong(unsigned index);
-	int AddSong();
-	int AddSong(std::unique_ptr<CSongData> pSong);
+	std::unique_ptr<CSongData> MakeNewSong() const;
 	bool InsertSong(unsigned index, std::unique_ptr<CSongData> pSong);
 	std::unique_ptr<CSongData> ReplaceSong(unsigned index, std::unique_ptr<CSongData> pSong);
 	std::unique_ptr<CSongData> ReleaseSong(unsigned index);
@@ -119,10 +119,12 @@ public:
 			static_assert(false, "Unknown function signature");
 	}
 
-private:
-	std::unique_ptr<CSongData> MakeNewSong() const;
+	// instrument
+	CInstrumentManager *GetInstrumentManager() const;
 
 private:
+	bool AllocateSong(unsigned index);
+
 	machine_t		m_iMachine = DEFAULT_MACHINE_TYPE;
 	unsigned int	m_iEngineSpeed = 0;
 	vibrato_t		m_iVibratoStyle = DEFAULT_VIBRATO_STYLE;
@@ -140,4 +142,6 @@ private:
 	bool m_bDisplayComment = false;
 
 	std::vector<std::unique_ptr<CSongData>> m_pTracks;
+
+	std::unique_ptr<CInstrumentManager> m_pInstrumentManager;
 };

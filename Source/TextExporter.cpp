@@ -893,7 +893,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		break;
 		case CT_TRACK:
 		{
-			if (track != 0 && Doc.AddTrack() == -1)
+			if (track != 0 && !Doc.InsertSong(track, Doc.GetModule()->MakeNewSong()))
 				throw t.MakeError(_T("unable to add new track."));
 
 			Doc.SetPatternLength(track, t.ReadInt(1, MAX_PATTERN_LENGTH));		// // //

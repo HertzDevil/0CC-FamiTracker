@@ -86,8 +86,7 @@ END_MESSAGE_MAP()
 
 CFamiTrackerDoc::CFamiTrackerDoc() :
 	m_pChannelMap(std::make_unique<CChannelMap>()),		// // //
-	module_(std::make_unique<CFamiTrackerModule>()),		// // //
-	m_pInstrumentManager(std::make_unique<CInstrumentManager>(this))
+	module_(std::make_unique<CFamiTrackerModule>(*this))		// // //
 {
 	// Register this object to the sound generator
 	if (CSoundGen *pSoundGen = theApp.GetSoundGenerator())
@@ -250,9 +249,7 @@ void CFamiTrackerDoc::DeleteContents()
 	for (auto &x : m_pGrooveTable)		// // //
 		x.reset();
 
-	m_pInstrumentManager->ClearAll();		// // //
-
-	module_ = std::make_unique<CFamiTrackerModule>();		// // //
+	module_ = std::make_unique<CFamiTrackerModule>(*this);		// // //
 
 	// Reset variables to default
 	m_pChannelMap = std::make_unique<CChannelMap>();		// // //
@@ -740,7 +737,7 @@ unsigned int CFamiTrackerDoc::GetTotalSampleSize() const
 
 std::shared_ptr<CSequence> CFamiTrackerDoc::GetSequence(inst_type_t InstType, unsigned Index, sequence_t Type) const		// // //
 {
-	return m_pInstrumentManager->GetSequence(InstType, Type, Index);
+	return GetInstrumentManager()->GetSequence(InstType, Type, Index);
 }
 
 unsigned int CFamiTrackerDoc::GetSequenceItemCount(inst_type_t InstType, unsigned Index, sequence_t Type) const		// // //
@@ -752,7 +749,7 @@ unsigned int CFamiTrackerDoc::GetSequenceItemCount(inst_type_t InstType, unsigne
 
 int CFamiTrackerDoc::GetFreeSequence(inst_type_t InstType, sequence_t Type) const		// // //
 {
-	return m_pInstrumentManager->GetFreeSequenceIndex(InstType, Type, nullptr);
+	return GetInstrumentManager()->GetFreeSequenceIndex(InstType, Type, nullptr);
 }
 
 int CFamiTrackerDoc::GetSequenceCount(inst_type_t InstType, sequence_t Type) const		// // //
@@ -781,36 +778,36 @@ int CFamiTrackerDoc::GetTotalSequenceCount(inst_type_t InstType) const {		// // 
 
 std::shared_ptr<CInstrument> CFamiTrackerDoc::GetInstrument(unsigned int Index) const
 {
-	return m_pInstrumentManager->GetInstrument(Index);
+	return GetInstrumentManager()->GetInstrument(Index);
 }
 
 unsigned int CFamiTrackerDoc::GetInstrumentCount() const
 {
-	return m_pInstrumentManager->GetInstrumentCount();
+	return GetInstrumentManager()->GetInstrumentCount();
 }
 
 unsigned CFamiTrackerDoc::GetFreeInstrumentIndex() const {		// // //
-	return m_pInstrumentManager->GetFirstUnused();
+	return GetInstrumentManager()->GetFirstUnused();
 }
 
 bool CFamiTrackerDoc::IsInstrumentUsed(unsigned int Index) const
 {
-	return m_pInstrumentManager->IsInstrumentUsed(Index);
+	return GetInstrumentManager()->IsInstrumentUsed(Index);
 }
 
 bool CFamiTrackerDoc::AddInstrument(std::unique_ptr<CInstrument> pInstrument, unsigned int Slot)		// // //
 {
-	return m_pInstrumentManager->InsertInstrument(Slot, std::move(pInstrument));
+	return GetInstrumentManager()->InsertInstrument(Slot, std::move(pInstrument));
 }
 
 bool CFamiTrackerDoc::RemoveInstrument(unsigned int Index)		// // //
 {
-	return m_pInstrumentManager->RemoveInstrument(Index);
+	return GetInstrumentManager()->RemoveInstrument(Index);
 }
 
 inst_type_t CFamiTrackerDoc::GetInstrumentType(unsigned int Index) const
 {
-	return m_pInstrumentManager->GetInstrumentType(Index);
+	return GetInstrumentManager()->GetInstrumentType(Index);
 }
 
 void CFamiTrackerDoc::SaveInstrument(unsigned int Index, CSimpleFile &file) const
@@ -854,7 +851,7 @@ bool CFamiTrackerDoc::LoadInstrument(unsigned Index, CSimpleFile &File) {		// / 
 		LockDocument();
 
 		inst_type_t InstType = static_cast<inst_type_t>(File.ReadChar());
-		auto pInstrument = m_pInstrumentManager->CreateNew(InstType != INST_NONE ? InstType : INST_2A03);
+		auto pInstrument = GetInstrumentManager()->CreateNew(InstType != INST_NONE ? InstType : INST_2A03);
 		if (!pInstrument) {
 			UnlockDocument();
 			AfxMessageBox("Failed to create instrument", MB_ICONERROR);
@@ -1335,17 +1332,12 @@ CChannelMap *const CFamiTrackerDoc::GetChannelMap() const {
 
 CSequenceManager *const CFamiTrackerDoc::GetSequenceManager(int InstType) const
 {
-	return m_pInstrumentManager->GetSequenceManager(InstType);
-}
-
-CInstrumentManager *const CFamiTrackerDoc::GetInstrumentManager() const
-{
-	return m_pInstrumentManager.get();
+	return GetInstrumentManager()->GetSequenceManager(InstType);
 }
 
 CDSampleManager *const CFamiTrackerDoc::GetDSampleManager() const
 {
-	return m_pInstrumentManager->GetDSampleManager();
+	return GetInstrumentManager()->GetDSampleManager();
 }
 
 void CFamiTrackerDoc::Modify(bool Change)
@@ -1824,7 +1816,7 @@ bool CFamiTrackerDoc::ArePatternsSame(unsigned int Track, unsigned int Channel, 
 void CFamiTrackerDoc::SwapInstruments(int First, int Second)
 {
 	// Swap instruments
-	m_pInstrumentManager->SwapInstruments(First, Second);		// // //
+	GetInstrumentManager()->SwapInstruments(First, Second);		// // //
 
 	// Scan patterns
 	VisitSongs([&] (CSongData &song) {
@@ -1966,12 +1958,8 @@ unsigned int CFamiTrackerDoc::GetTrackCount() const {
 	return GetModule()->GetSongCount();
 }
 
-int CFamiTrackerDoc::AddTrack() {
-	return GetModule()->AddSong();
-}
-
-int CFamiTrackerDoc::AddTrack(std::unique_ptr<CSongData> song) {		// // //
-	return GetModule()->AddSong(std::move(song));
+bool CFamiTrackerDoc::InsertSong(unsigned Index, std::unique_ptr<CSongData> pSong) {
+	return GetModule()->InsertSong(Index, std::move(pSong));
 }
 
 void CFamiTrackerDoc::RemoveTrack(unsigned int Track) {
@@ -1984,6 +1972,10 @@ std::unique_ptr<CSongData> CFamiTrackerDoc::ReleaseTrack(unsigned int Track) {		
 
 std::unique_ptr<CSongData> CFamiTrackerDoc::ReplaceSong(unsigned Index, std::unique_ptr<CSongData> pSong) {		// // //
 	return GetModule()->ReplaceSong(Index, std::move(pSong));
+}
+
+CInstrumentManager *const CFamiTrackerDoc::GetInstrumentManager() const {
+	return module_->GetInstrumentManager();
 }
 
 #pragma endregion
