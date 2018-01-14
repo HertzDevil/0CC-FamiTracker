@@ -1349,14 +1349,14 @@ void CMainFrame::OnDeltaposSpeedSpin(NMHDR *pNMHDR, LRESULT *pResult)
 	}
 	else if (((NMUPDOWN*)pNMHDR)->iDelta < 0) {
 		for (int i = pDoc->GetSongSpeed(m_iTrack) + 1; i < MAX_GROOVE; ++i)
-			if (pDoc->GetGroove(i)) {
+			if (pDoc->HasGroove(i)) {
 				SetGroove(i);
 				return;
 			}
 	}
 	else if (((NMUPDOWN*)pNMHDR)->iDelta > 0) {
 		for (int i = pDoc->GetSongSpeed(m_iTrack) - 1; i >= 0; --i)
-			if (pDoc->GetGroove(i)) {
+			if (pDoc->HasGroove(i)) {
 				SetGroove(i);
 				return;
 			}
@@ -2026,7 +2026,7 @@ void CMainFrame::OnFileExportText()
 		return;
 
 	CTextExport Exporter;
-	CString sResult = Exporter.ExportFile(FileDialog.GetPathName(), &Doc);
+	CString sResult = Exporter.ExportFile(FileDialog.GetPathName(), Doc);		// // //
 	if (sResult.GetLength() > 0)
 	{
 		AfxMessageBox(sResult, MB_OK | MB_ICONEXCLAMATION);
@@ -2050,7 +2050,7 @@ void CMainFrame::OnFileExportRows()		// // //
 		return;
 
 	CTextExport Exporter;
-	CString sResult = Exporter.ExportRows(FileDialog.GetPathName(), pDoc);
+	CString sResult = Exporter.ExportRows(FileDialog.GetPathName(), *pDoc);
 	if (sResult.GetLength() > 0)
 	{
 		AfxMessageBox(sResult, MB_OK | MB_ICONEXCLAMATION);

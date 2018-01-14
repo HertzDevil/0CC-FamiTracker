@@ -35,8 +35,8 @@ struct CTextExport {
 	void ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc);		// // //
 
 	// returns an empty string on success, otherwise returns a descriptive error
-	CString ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc);
-	CString ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc);		// // //
+	CString ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc);		// // //
+	CString ExportRows(LPCTSTR FileName, const CFamiTrackerDoc &Doc);		// // //
 
 private:		// // //
 	static CString ExportString(const CString &s);

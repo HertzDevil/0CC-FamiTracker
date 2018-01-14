@@ -159,7 +159,7 @@ void CCommandLineExport::CommandLineExport(const CString& fileIn, const CString&
 	else if (0 == ext.CompareNoCase(_T(".txt")))
 	{
 		CTextExport textExport;
-		CString result = textExport.ExportFile(fileOut, pExportDoc);
+		CString result = textExport.ExportFile(fileOut, *pExportDoc);		// // //
 		if (result.GetLength() > 0)
 		{
 			if (bLog)

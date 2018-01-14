@@ -235,7 +235,7 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 					else if (Tempo == -1 && xy >= doc.GetSpeedSplitPoint()) Tempo = xy;
 					continue;
 				case EF_GROOVE:
-					if (GroovePos == -1 && xy < MAX_GROOVE && doc.GetGroove(xy)) {
+					if (GroovePos == -1 && xy < MAX_GROOVE && doc.HasGroove(xy)) {
 						GroovePos = totalRows;
 						Speed = xy;
 					}
@@ -317,7 +317,7 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 	}
 	if (GroovePos == -1 && doc.GetSongGroove(Track)) {
 		unsigned Index = doc.GetSongSpeed(Track);
-		if (Index < MAX_GROOVE && doc.GetGroove(Index)) {
+		if (Index < MAX_GROOVE && doc.HasGroove(Index)) {
 			GroovePos = totalRows;
 			Speed = Index;
 		}
@@ -329,7 +329,7 @@ std::string CSongState::GetChannelStateString(const CFamiTrackerDoc &doc, int ch
 	if (Tempo >= 0)
 		str += "        Tempo: " + std::to_string(Tempo);
 	if (Speed >= 0) {
-		if (const auto *pGroove = doc.GetGroove(Speed); pGroove && GroovePos >= 0) {
+		if (const auto pGroove = doc.GetGroove(Speed); pGroove && GroovePos >= 0) {
 			str += "        Groove: ";
 			str += {conv::to_digit(Speed >> 4), conv::to_digit(Speed), ' ', '<', '-'};
 			unsigned Size = pGroove->size();

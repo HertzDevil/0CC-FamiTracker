@@ -24,6 +24,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 class CFamiTrackerDoc;
 class CSongState;
@@ -50,13 +51,13 @@ public:
 
 private:
 	void SetupSpeed();
-	void LoadGroove(const ft0cc::doc::groove &Groove);
+	void LoadGroove(std::shared_ptr<const ft0cc::doc::groove> pGroove);
 	void UpdateGrooveSpeed();
 	void StepGroove();
 
 private:
 	const CFamiTrackerDoc *m_pDocument = nullptr;
-	const ft0cc::doc::groove *m_pCurrentGroove = nullptr;
+	std::shared_ptr<const ft0cc::doc::groove> m_pCurrentGroove = nullptr;
 
 	unsigned int m_iTempo;
 	unsigned int m_iSpeed;

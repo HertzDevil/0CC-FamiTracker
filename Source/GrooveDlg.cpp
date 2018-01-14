@@ -155,7 +155,7 @@ void CGrooveDlg::OnBnClickedApply()
 
 	for (int i = 0; i < MAX_GROOVE; i++)
 		if (GrooveTable[i]->size())
-			m_pDocument->SetGroove(i, std::make_unique<groove>(*GrooveTable[i]));
+			m_pDocument->SetGroove(i, std::make_shared<groove>(*GrooveTable[i]));
 		else {
 			m_pDocument->SetGroove(i, nullptr);
 			const unsigned Tracks = m_pDocument->GetTrackCount();
@@ -186,7 +186,7 @@ void CGrooveDlg::ReloadGrooves()
 	m_cCurrentGroove.ResetContent();
 	for (int i = 0; i < MAX_GROOVE; i++) {
 		bool Used = false;
-		if (const groove *orig = m_pDocument->GetGroove(i)) {
+		if (const auto orig = m_pDocument->GetGroove(i)) {
 			GrooveTable[i] = std::make_unique<groove>(*orig);
 			Used = true;
 		}
@@ -258,6 +258,7 @@ void CGrooveDlg::OnBnClickedButtonGroovelUp()
 {
 	if (m_iGrooveIndex == 0) return;
 	GrooveTable[m_iGrooveIndex].swap(GrooveTable[m_iGrooveIndex - 1]);
+	UpdateCurrentGroove();
 	SetGrooveIndex(m_iGrooveIndex - 1);
 	UpdateCurrentGroove();
 }
@@ -266,6 +267,7 @@ void CGrooveDlg::OnBnClickedButtonGroovelDown()
 {
 	if (m_iGrooveIndex == MAX_GROOVE - 1) return;
 	GrooveTable[m_iGrooveIndex].swap(GrooveTable[m_iGrooveIndex + 1]);
+	UpdateCurrentGroove();
 	SetGrooveIndex(m_iGrooveIndex + 1);
 	UpdateCurrentGroove();
 }

@@ -258,8 +258,10 @@ public:
 	int				GetTuningSemitone() const;		// // // 050B
 	int				GetTuningCent() const;		// // // 050B
 
-	groove			*GetGroove(unsigned Index) const;		// // //
-	void			SetGroove(unsigned Index, std::unique_ptr<groove> Groove);
+	std::shared_ptr<groove> GetGroove(unsigned Index);		// // //
+	std::shared_ptr<const groove> GetGroove(unsigned Index) const;		// // //
+	bool			HasGroove(unsigned Index) const;		// // //
+	void			SetGroove(unsigned Index, std::shared_ptr<groove> Groove);
 
 	int				GetFrameLength(unsigned int Track, unsigned int Frame) const;
 
@@ -404,7 +406,7 @@ private:
 	unsigned int	m_iChannelsAvailable;						// Number of channels added
 
 	// Instruments, samples and sequences
-	std::array<std::unique_ptr<groove>, 32/*MAX_GROOVE*/> m_pGrooveTable;		// // // Grooves
+	std::array<std::shared_ptr<groove>, 32/*MAX_GROOVE*/> m_pGrooveTable;		// // // Grooves
 
 	//
 	// End of document data

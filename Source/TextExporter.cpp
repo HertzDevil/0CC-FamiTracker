@@ -961,7 +961,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 
 // =============================================================================
 
-CString CTextExport::ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// // //
+CString CTextExport::ExportRows(LPCTSTR FileName, const CFamiTrackerDoc &Doc) {		// // //
 	CStdioFile f;
 	CFileException oFileException;
 	if (!f.Open(FileName, CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException))
@@ -977,7 +977,7 @@ CString CTextExport::ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	const CString FMT = _T("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n");
 	int id = 0;
 
-	pDoc->VisitSongs([&] (const CSongData &song, unsigned t) {
+	Doc.VisitSongs([&] (const CSongData &song, unsigned t) {
 		unsigned rows = song.GetPatternLength();
 		song.VisitPatterns([&] (const CPatternData &pat, unsigned c, unsigned p) {
 			pat.VisitRows(rows, [&] (const stChanNote &stCell, unsigned r) {
@@ -995,7 +995,7 @@ CString CTextExport::ExportRows(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	return _T("");
 }
 
-CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// // //
+CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// // //
 	CStdioFile f;
 	CFileException oFileException;
 	if (!f.Open(FileName, CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException))
@@ -1016,13 +1016,13 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	            "%-15s %s\n"
 	            "%-15s %s\n"
 	            "\n"),
-	            CT[CT_TITLE],     ExportString(pDoc->GetModuleName()),
-	            CT[CT_AUTHOR],    ExportString(pDoc->GetModuleArtist()),
-	            CT[CT_COPYRIGHT], ExportString(pDoc->GetModuleCopyright()));
+	            CT[CT_TITLE],     ExportString(Doc.GetModuleName()),
+	            CT[CT_AUTHOR],    ExportString(Doc.GetModuleArtist()),
+	            CT[CT_COPYRIGHT], ExportString(Doc.GetModuleCopyright()));
 	f.WriteString(s);
 
 	f.WriteString(_T("# Module comment\n"));
-	CString sComment = pDoc->GetModule()->GetComment().data();		// // //
+	CString sComment = Doc.GetModule()->GetComment().data();		// // //
 	bool bCommentLines = false;
 	do
 	{
@@ -1051,23 +1051,23 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 				"%-15s %d\n"
 //				"%-15s %d %d\n"		// // // 050B
 				),
-				CT[CT_MACHINE],   pDoc->GetMachine(),
-				CT[CT_FRAMERATE], pDoc->GetEngineSpeed(),
-				CT[CT_EXPANSION], pDoc->GetExpansionChip(),
-				CT[CT_VIBRATO],   pDoc->GetVibratoStyle(),
-				CT[CT_SPLIT],     pDoc->GetSpeedSplitPoint()
-//				,CT[CT_PLAYBACKRATE], pDoc->, pDoc->
+				CT[CT_MACHINE],   Doc.GetMachine(),
+				CT[CT_FRAMERATE], Doc.GetEngineSpeed(),
+				CT[CT_EXPANSION], Doc.GetExpansionChip(),
+				CT[CT_VIBRATO],   Doc.GetVibratoStyle(),
+				CT[CT_SPLIT],     Doc.GetSpeedSplitPoint()
+//				,CT[CT_PLAYBACKRATE], Doc., Doc.
 				);
-	if (pDoc->GetTuningSemitone() || pDoc->GetTuningCent())		// // // 050B
-		s.AppendFormat(_T("%-15s %d %d\n"), CT[CT_TUNING], pDoc->GetTuningSemitone(), pDoc->GetTuningCent());
+	if (Doc.GetTuningSemitone() || Doc.GetTuningCent())		// // // 050B
+		s.AppendFormat(_T("%-15s %d %d\n"), CT[CT_TUNING], Doc.GetTuningSemitone(), Doc.GetTuningCent());
 	f.WriteString(s);
 	f.WriteString(_T("\n"));
 
 	int N163count = -1;		// // //
-	if (pDoc->ExpansionEnabled(SNDCHIP_N163))
+	if (Doc.ExpansionEnabled(SNDCHIP_N163))
 	{
-		N163count = pDoc->GetNamcoChannels();
-		pDoc->SelectExpansionChip(pDoc->GetExpansionChip(), 8, true); // calls ApplyExpansionChip()
+		N163count = Doc.GetNamcoChannels();
+		Doc.SelectExpansionChip(Doc.GetExpansionChip(), 8, true); // calls ApplyExpansionChip()
 		s.Format(_T("# Namco 163 global settings\n"
 		            "%-15s %d\n"
 		            "\n"),
@@ -1082,7 +1082,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 
 		foreachSeq([&] (sequence_t st) {
 			for (int seq = 0; seq < MAX_SEQUENCES; ++seq) {
-				const auto pSequence = pDoc->GetSequence(CHIP_MACRO[c], seq, st);
+				const auto pSequence = Doc.GetSequence(CHIP_MACRO[c], seq, st);
 				if (pSequence && pSequence->GetItemCount() > 0) {
 					s.Format(_T("%-9s %3d %3d %3d %3d %3d :"),
 						CT[CT_MACRO + c],
@@ -1106,7 +1106,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	f.WriteString(_T("# DPCM samples\n"));
 	for (int smp=0; smp < MAX_DSAMPLES; ++smp)
 	{
-		if (auto pSample = pDoc->GetSample(smp)) {		// // //
+		if (auto pSample = Doc.GetSample(smp)) {		// // //
 			const unsigned int size = pSample->size();
 			s.Format(_T("%s %3d %5d %s\n"),
 				CT[CT_DPCMDEF],
@@ -1132,7 +1132,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 
 	f.WriteString(_T("# Detune settings\n"));		// // //
 	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++) {
-		int Offset = pDoc->GetDetuneOffset(i, j);
+		int Offset = Doc.GetDetuneOffset(i, j);
 		if (Offset != 0) {
 			s.Format(_T("%s %3d %3d %3d %5d\n"), CT[CT_DETUNE], i, j / NOTE_RANGE, j % NOTE_RANGE, Offset);
 			f.WriteString(s);
@@ -1142,7 +1142,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 
 	f.WriteString(_T("# Grooves\n"));		// // //
 	for (int i = 0; i < MAX_GROOVE; i++) {
-		if (const auto *pGroove = pDoc->GetGroove(i)) {
+		if (const auto pGroove = Doc.GetGroove(i)) {
 			s.Format(_T("%s %3d %3d :"), CT[CT_GROOVE], i, pGroove->size());
 			f.WriteString(s);
 			for (uint8_t entry : *pGroove) {
@@ -1156,12 +1156,12 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 
 	f.WriteString(_T("# Tracks using default groove\n"));		// // //
 	bool UsedGroove = false;
-	for (unsigned int i = 0; i < pDoc->GetTrackCount(); i++)
-		if (pDoc->GetSongGroove(i)) UsedGroove = true;
+	for (unsigned int i = 0; i < Doc.GetTrackCount(); i++)
+		if (Doc.GetSongGroove(i)) UsedGroove = true;
 	if (UsedGroove) {
 		s.Format(_T("%s :"), CT[CT_USEGROOVE]);
 		f.WriteString(s);
-		for (unsigned int i = 0; i < pDoc->GetTrackCount(); i++) if (pDoc->GetSongGroove(i)) {
+		for (unsigned int i = 0; i < Doc.GetTrackCount(); i++) if (Doc.GetSongGroove(i)) {
 			s.Format(_T(" %d"), i + 1);
 			f.WriteString(s);
 		}
@@ -1171,7 +1171,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	f.WriteString(_T("# Instruments\n"));
 	for (unsigned int i=0; i<MAX_INSTRUMENTS; ++i)
 	{
-		auto pInst = pDoc->GetInstrument(i);
+		auto pInst = Doc.GetInstrument(i);
 		if (!pInst) continue;
 
 		LPCTSTR CTstr = nullptr;		// // //
@@ -1183,7 +1183,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 		case INST_N163:	CTstr = CT[CT_INSTN163]; break;
 		case INST_S5B:	CTstr = CT[CT_INSTS5B];  break;
 		case INST_NONE: default:
-			pDoc->GetInstrument(i).reset(); continue;
+			Doc.GetInstrument(i).reset(); continue;
 		}
 		s.Format(_T("%-8s %3d   "), CTstr, i);
 		f.WriteString(s);
@@ -1326,34 +1326,34 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 
 	f.WriteString(_T("# Tracks\n\n"));
 
-	for (unsigned int t=0; t < pDoc->GetTrackCount(); ++t)
+	for (unsigned int t=0; t < Doc.GetTrackCount(); ++t)
 	{
-		const auto &zpTitle = pDoc->GetTrackTitle(t);		// // //
+		const auto &zpTitle = Doc.GetTrackTitle(t);		// // //
 
 		s.Format(_T("%s %3d %3d %3d %s\n"),
 			CT[CT_TRACK],
-			pDoc->GetPatternLength(t),
-			pDoc->GetSongSpeed(t),
-			pDoc->GetSongTempo(t),
+			Doc.GetPatternLength(t),
+			Doc.GetSongSpeed(t),
+			Doc.GetSongTempo(t),
 			ExportString(zpTitle));
 		f.WriteString(s);
 
 		s.Format(_T("%s :"), CT[CT_COLUMNS]);
 		f.WriteString(s);
-		for (int c=0; c < pDoc->GetChannelCount(); ++c)
+		for (int c=0; c < Doc.GetChannelCount(); ++c)
 		{
-			s.Format(_T(" %d"), pDoc->GetEffColumns(t, c)+1);
+			s.Format(_T(" %d"), Doc.GetEffColumns(t, c)+1);
 			f.WriteString(s);
 		}
 		f.WriteString(_T("\n\n"));
 
-		for (unsigned int o=0; o < pDoc->GetFrameCount(t); ++o)
+		for (unsigned int o=0; o < Doc.GetFrameCount(t); ++o)
 		{
 			s.Format(_T("%s %02X :"), CT[CT_ORDER], o);
 			f.WriteString(s);
-			for (int c=0; c < pDoc->GetChannelCount(); ++c)
+			for (int c=0; c < Doc.GetChannelCount(); ++c)
 			{
-				s.Format(_T(" %02X"), pDoc->GetPatternAtFrame(t, o, c));
+				s.Format(_T(" %02X"), Doc.GetPatternAtFrame(t, o, c));
 				f.WriteString(s);
 			}
 			f.WriteString(_T("\n"));
@@ -1364,9 +1364,9 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 		{
 			// detect and skip empty patterns
 			bool bUsed = false;
-			for (int c=0; c < pDoc->GetChannelCount(); ++c)
+			for (int c=0; c < Doc.GetChannelCount(); ++c)
 			{
-				if (!pDoc->IsPatternEmpty(t, c, p))
+				if (!Doc.IsPatternEmpty(t, c, p))
 				{
 					bUsed = true;
 					break;
@@ -1377,14 +1377,14 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 			s.Format(_T("%s %02X\n"), CT[CT_PATTERN], p);
 			f.WriteString(s);
 
-			for (unsigned int r=0; r < pDoc->GetPatternLength(t); ++r)
+			for (unsigned int r=0; r < Doc.GetPatternLength(t); ++r)
 			{
 				s.Format(_T("%s %02X"), CT[CT_ROW], r);
 				f.WriteString(s);
-				for (int c=0; c < pDoc->GetChannelCount(); ++c)
+				for (int c=0; c < Doc.GetChannelCount(); ++c)
 				{
 					f.WriteString(_T(" : "));
-					f.WriteString(ExportCellText(pDoc->GetDataAtPattern(t,p,c,r), pDoc->GetEffColumns(t, c)+1, c==3));		// // //
+					f.WriteString(ExportCellText(Doc.GetDataAtPattern(t,p,c,r), Doc.GetEffColumns(t, c)+1, c==3));		// // //
 				}
 				f.WriteString(_T("\n"));
 			}
@@ -1393,10 +1393,10 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc *pDoc) {		// /
 	}
 
 	if (N163count != -1)		// // //
-		pDoc->SelectExpansionChip(pDoc->GetExpansionChip(), N163count, true); // calls ApplyExpansionChip()
+		Doc.SelectExpansionChip(Doc.GetExpansionChip(), N163count, true); // calls ApplyExpansionChip()
 	f.WriteString(_T("# End of export\n"));
-	pDoc->UpdateAllViews(NULL, UPDATE_FRAME);
-	pDoc->UpdateAllViews(NULL, UPDATE_PATTERN);
+	Doc.UpdateAllViews(NULL, UPDATE_FRAME);
+	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
 	return _T("");
 }
 

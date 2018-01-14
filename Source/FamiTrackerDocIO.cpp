@@ -1331,7 +1331,7 @@ void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerDoc &doc, int ver) {
 void CFamiTrackerDocIO::SaveGrooves(const CFamiTrackerDoc &doc, int ver) {
 	int Count = 0;
 	for (int i = 0; i < MAX_GROOVE; ++i)
-		if (doc.GetGroove(i))
+		if (doc.HasGroove(i))
 			++Count;
 	if (!Count)
 		return;

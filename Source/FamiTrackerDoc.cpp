@@ -659,14 +659,14 @@ bool CFamiTrackerDoc::ImportGrooves(CFamiTrackerDoc &Imported, int *pGrooveMap)	
 {
 	int Index = 0;
 	for (int i = 0; i < MAX_GROOVE; ++i) {
-		if (const groove *pGroove = Imported.GetGroove(i)) {
-			while (GetGroove(Index))
+		if (const auto pGroove = Imported.GetGroove(i)) {
+			while (HasGroove(Index))
 				if (++Index >= MAX_GROOVE) {
 					AfxMessageBox(IDS_IMPORT_GROOVE_SLOTS, MB_ICONEXCLAMATION);
 					return false;
 				}
 			pGrooveMap[i] = Index;
-			SetGroove(Index, std::make_unique<groove>(*pGroove));
+			SetGroove(Index, std::move(pGroove));
 		}
 	}
 
@@ -1679,7 +1679,7 @@ double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) co
 	int GrooveIndex = song.GetSongGroove() ? Speed : -1;
 	int GroovePointer = 0;
 
-	if (GrooveIndex != -1 && !GetGroove(Speed)) {
+	if (GrooveIndex != -1 && !HasGroove(Speed)) {
 		GrooveIndex = -1;
 		Speed = DEFAULT_SPEED;
 	}
@@ -1695,7 +1695,7 @@ double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) co
 			}
 			break;
 		case EF_GROOVE:
-			if (GetGroove(param)) {
+			if (HasGroove(param)) {
 				GrooveIndex = param;
 				GroovePointer = 0;
 			}
@@ -1708,13 +1708,13 @@ double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) co
 
 	loop_visitor visitor(song, GetChannelCount());
 	visitor.Visit([&] {
-		if (GrooveIndex != -1)
-			Speed = m_pGrooveTable[GrooveIndex]->entry(GroovePointer++);
+		if (auto pGroove = GetGroove(GrooveIndex))
+			Speed = pGroove->entry(GroovePointer++);
 		FirstLoop += Speed / Tempo;
 	}, fxhandler);
 	visitor.Visit([&] {
-		if (GrooveIndex != -1)
-			Speed = m_pGrooveTable[GrooveIndex]->entry(GroovePointer++);
+		if (auto pGroove = GetGroove(GrooveIndex))
+			Speed = pGroove->entry(GroovePointer++);
 		SecondLoop += Speed / Tempo;
 	}, fxhandler);
 
@@ -1833,12 +1833,21 @@ void CFamiTrackerDoc::SwapInstruments(int First, int Second)
 	});
 }
 
-ft0cc::doc::groove *CFamiTrackerDoc::GetGroove(unsigned Index) const		// // //
+std::shared_ptr<ft0cc::doc::groove> CFamiTrackerDoc::GetGroove(unsigned Index)		// // //
 {
-	return Index < MAX_GROOVE ? m_pGrooveTable[Index].get() : nullptr;
+	return Index < MAX_GROOVE ? m_pGrooveTable[Index] : nullptr;
 }
 
-void CFamiTrackerDoc::SetGroove(unsigned Index, std::unique_ptr<groove> Groove)
+std::shared_ptr<const ft0cc::doc::groove> CFamiTrackerDoc::GetGroove(unsigned Index) const		// // //
+{
+	return Index < MAX_GROOVE ? m_pGrooveTable[Index] : nullptr;
+}
+
+bool CFamiTrackerDoc::HasGroove(unsigned Index) const {
+	return Index < MAX_GROOVE && static_cast<bool>(m_pGrooveTable[Index]);
+}
+
+void CFamiTrackerDoc::SetGroove(unsigned Index, std::shared_ptr<groove> Groove)
 {
 	m_pGrooveTable[Index] = std::move(Groove);
 }

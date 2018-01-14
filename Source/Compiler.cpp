@@ -1474,7 +1474,7 @@ void CCompiler::StoreGrooves()
 	GrooveListChunk.StoreByte(0); // padding; possibly used to disable groove
 
 	for (unsigned i = 0; i < MAX_GROOVE; i++) {
-		if (const auto *pGroove = m_pDocument->GetGroove(i)) {
+		if (const auto pGroove = m_pDocument->GetGroove(i)) {
 			unsigned int Pos = Size;
 			CChunk &Chunk = CreateChunk({CHUNK_GROOVE, i});
 			for (uint8_t entry : *pGroove)
@@ -1516,7 +1516,7 @@ void CCompiler::StoreSongs()
 		Chunk.StoreByte(m_pDocument->GetPatternLength(i));
 
 		if (m_pDocument->GetSongGroove(i))		// // //
-			if (m_pDocument->GetGroove(m_pDocument->GetSongSpeed(i)) != NULL)
+			if (m_pDocument->HasGroove(m_pDocument->GetSongSpeed(i)))
 				Chunk.StoreByte(0);
 			else
 				Chunk.StoreByte(DEFAULT_SPEED);
@@ -1524,10 +1524,10 @@ void CCompiler::StoreSongs()
 			Chunk.StoreByte(m_pDocument->GetSongSpeed(i));
 		Chunk.StoreByte(m_pDocument->GetSongTempo(i));
 
-		if (m_pDocument->GetSongGroove(i) && m_pDocument->GetGroove(m_pDocument->GetSongSpeed(i)) != NULL) {		// // //
+		if (m_pDocument->GetSongGroove(i) && m_pDocument->HasGroove(m_pDocument->GetSongSpeed(i))) {		// // //
 			int Pos = 1;
 			for (unsigned int j = 0; j < m_pDocument->GetSongSpeed(i); j++)
-				if (const auto *pGroove = m_pDocument->GetGroove(j))
+				if (const auto pGroove = m_pDocument->GetGroove(j))
 					Pos += pGroove->compiled_size();
 			Chunk.StoreByte(Pos);
 		}
