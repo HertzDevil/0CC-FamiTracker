@@ -140,30 +140,7 @@ void CModulePropertiesDlg::OnBnClickedOk()
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
 
 	if (!(m_iExpansions & SNDCHIP_N163)) m_iN163Channels = 0;
-	if (m_pDocument->GetNamcoChannels() != m_iN163Channels || m_pDocument->GetExpansionChip() != m_iExpansions)		// // //
-	{
-		CString str;
-		unsigned int Gone = m_pDocument->GetExpansionChip() & ~m_iExpansions;
-		for (int i = 0; i < 6; i++) {
-			if (Gone & (1 << i)) switch (i) {
-			case 0: str += _T("VRC6 "); break;
-			case 1: str += _T("VRC7 "); break;
-			case 2: str += _T("FDS ");  break;
-			case 3: str += _T("MMC5 "); break;
-			case 4: str += _T("N163 "); break;
-			case 5: str += _T("5B ");   break;
-			}
-			if (i == 4 && m_pDocument->ExpansionEnabled(SNDCHIP_N163)
-				&& (m_iExpansions & SNDCHIP_N163) && m_iN163Channels < m_pDocument->GetNamcoChannels()) {
-				str += _T("N163 ");
-				Gone |= 0x100;
-			}
-		}
-		str = "You are going to remove channels from the following expansion chips:\n" + str;
-		str += "\nDo you want to proceed? There is no undo for this command.";
-		if (Gone)
-			if (AfxMessageBox(str, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
-				return;
+	if (m_pDocument->GetNamcoChannels() != m_iN163Channels || m_pDocument->GetExpansionChip() != m_iExpansions) {		// // //
 		m_pDocument->SelectExpansionChip(m_iExpansions, m_iN163Channels, true);
 		m_pDocument->UpdateAllViews(NULL, UPDATE_PROPERTIES);
 	}

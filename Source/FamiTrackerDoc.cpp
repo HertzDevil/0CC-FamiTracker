@@ -1269,34 +1269,12 @@ const CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index) const		// // /
 void CFamiTrackerDoc::SelectExpansionChip(unsigned chips, unsigned n163chs, bool Move) {		// // //
 	ASSERT(n163chs <= 8 && !(chips & SNDCHIP_N163) == !n163chs);
 
-	auto newMap = theApp.GetSoundGenerator()->MakeChannelMap(chips, n163chs);		// // //
-
-	// // // Move pattern data upon removing expansion chips
-	if (Move) {
-		std::pair<int, int> perm[CHANNELS] = { };
-		for (int j = 0; j < CHANNELS; ++j)
-			perm[j] = {m_pChannelMap->GetChannelIndex(j), newMap->GetChannelIndex(j)};
-
-		VisitSongs([&] (const CSongData &song, unsigned index) {
-			auto pNew = std::make_unique<CSongData>(*this, song.GetPatternLength());
-			pNew->SetHighlight(song.GetRowHighlight());
-			pNew->SetSongTempo(song.GetSongTempo());
-			pNew->SetSongSpeed(song.GetSongSpeed());
-			pNew->SetSongGroove(song.GetSongGroove());
-			pNew->SetFrameCount(song.GetFrameCount());
-			pNew->SetTitle(song.GetTitle());
-			for (const auto [oldIndex, newIndex] : perm)
-				if (oldIndex != -1 && newIndex != -1)
-					pNew->CopyTrack(newIndex, song, oldIndex);
-			(void)ReplaceSong(index, std::move(pNew));
-		});
-	}
-
 	// // // Complete sound chip setup
 	if (chips != SNDCHIP_NONE)
 		SetMachine(NTSC);
 
 	// This will select a chip in the sound emulator
+	auto newMap = theApp.GetSoundGenerator()->MakeChannelMap(chips, n163chs);		// // //
 	LockDocument();
 	m_pChannelMap = std::move(newMap);		// // //
 	m_iChannelsAvailable = GetChannelCount();
