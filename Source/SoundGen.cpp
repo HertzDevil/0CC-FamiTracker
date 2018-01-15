@@ -279,7 +279,7 @@ void CSoundGen::PlaySingleRow(int track) {		// // //
 	auto [frame, row] = m_pTrackerView->GetSelectedPos();
 	m_pDocument->ForeachChannel([&] (chan_id_t i) {
 		if (!IsChannelMuted(i))
-			QueueNote(m_pDocument->GetChannelIndex(i), m_pDocument->GetActiveNote(track, frame, i, row), NOTE_PRIO_1);
+			QueueNote(i, m_pDocument->GetActiveNote(track, frame, i, row), NOTE_PRIO_1);
 	});
 }
 
@@ -608,7 +608,7 @@ void CSoundGen::OnTick() {
 	if (m_pTempoDisplay)		// // // 050B
 		m_pTempoDisplay->Tick();
 	if (theApp.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
-		m_pArpeggiator->Tick(m_pTrackerView->GetSelectedChannel());
+		m_pArpeggiator->Tick(m_pDocument->TranslateChannel(m_pTrackerView->GetSelectedChannel()));
 }
 
 void CSoundGen::OnStepRow() {
@@ -619,11 +619,11 @@ void CSoundGen::OnStepRow() {
 		m_pWaveRenderer->StepRow();		// // //
 }
 
-void CSoundGen::OnPlayNote(int chan, const stChanNote &note) {
-	if (!IsChannelMuted(m_pDocument->TranslateChannel(chan))) {
+void CSoundGen::OnPlayNote(chan_id_t chan, const stChanNote &note) {
+	if (!IsChannelMuted(chan)) {
 		if (m_pTrackerView)
 			m_pTrackerView->PlayerPlayNote(chan, note);
-		theApp.GetMIDI()->WriteNote(chan, note.Note, note.Octave, note.Vol);
+		theApp.GetMIDI()->WriteNote(m_pDocument->GetChannelIndex(chan), note.Note, note.Octave, note.Vol);
 	}
 }
 
@@ -650,7 +650,7 @@ bool CSoundGen::ShouldStopPlayer() const {
 	return is_rendering_impl() && m_pWaveRenderer->ShouldStopPlayer();
 }
 
-int CSoundGen::GetArpNote(int chan) const {
+int CSoundGen::GetArpNote(chan_id_t chan) const {
 	if (theApp.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
 		return m_pArpeggiator->GetNextNote(chan);
 	return -1;
@@ -1172,11 +1172,11 @@ void CSoundGen::SetNamcoMixing(bool bLinear)		// // //
 
 // Player state functions
 
-void CSoundGen::QueueNote(int Channel, const stChanNote &NoteData, note_prio_t Priority) const		// // //
+void CSoundGen::QueueNote(chan_id_t Channel, const stChanNote &NoteData, note_prio_t Priority) const		// // //
 {
 	// Queue a note for play
-	m_pSoundDriver->QueueNote(m_pDocument->TranslateChannel(Channel), NoteData, Priority);
-	theApp.GetMIDI()->WriteNote(Channel, NoteData.Note, NoteData.Octave, NoteData.Vol);
+	m_pSoundDriver->QueueNote(Channel, NoteData, Priority);
+	theApp.GetMIDI()->WriteNote(m_pDocument->GetChannelIndex(Channel), NoteData.Note, NoteData.Octave, NoteData.Vol);
 }
 
 void CSoundGen::ForceReloadInstrument(chan_id_t Channel)		// // //

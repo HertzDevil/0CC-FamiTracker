@@ -22,7 +22,7 @@
 
 #include "Arpeggiator.h"
 
-void CArpeggiator::Tick(int CurrentChannel) {
+void CArpeggiator::Tick(chan_id_t CurrentChannel) {
 	if (m_iAutoArpKeyCount == 1)
 		return;
 
@@ -61,7 +61,7 @@ void CArpeggiator::CutNote(unsigned MidiNote) {
 	m_iAutoArpNotes[MidiNote] = 2;
 }
 
-int CArpeggiator::GetNextNote(unsigned Channel) {
+int CArpeggiator::GetNextNote(chan_id_t Channel) {
 	return std::exchange(m_iArpeggiate[Channel], 0);
 }
 

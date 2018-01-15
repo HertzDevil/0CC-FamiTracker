@@ -341,7 +341,7 @@ void CInstrumentEditDlg::ChangeNoteState(int Note)
 void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 {
 	CFamiTrackerView *pView = CFamiTrackerView::GetView();
-	CFamiTrackerDoc *pDoc = static_cast<CFamiTrackerDoc*>(static_cast<CFrameWnd*>(GetParent())->GetActiveDocument());
+	CFamiTrackerDoc *pDoc = pView->GetDocument();
 	CMainFrame *pFrameWnd = static_cast<CMainFrame*>(GetParent());
 	int Channel = pView->GetSelectedChannel();		// // //
 	int Chip = pDoc->GetExpansionChip();
@@ -408,7 +408,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 			NoteData.Vol			= MAX_VOLUME - 1;
 			NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();
 
-			Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
+			Env.GetSoundGenerator()->QueueNote(pDoc->TranslateChannel(Channel), NoteData, NOTE_PRIO_2);
 			Env.GetSoundGenerator()->ForceReloadInstrument(pDoc->TranslateChannel(Channel));		// // //
 			m_iLastKey = NewNote;
 		}
@@ -416,7 +416,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 	else {
 		NoteData.Note			= pView->DoRelease() ? RELEASE : HALT;//HALT;
 
-		Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
+		Env.GetSoundGenerator()->QueueNote(pDoc->TranslateChannel(Channel), NoteData, NOTE_PRIO_2);
 
 		m_iLastKey = -1;
 	}
@@ -433,7 +433,7 @@ void CInstrumentEditDlg::SwitchOffNote(bool ForceHalt)
 	NoteData.Note			= (pView->DoRelease() && !ForceHalt) ? RELEASE : HALT;
 	NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();
 
-	Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
+	Env.GetSoundGenerator()->QueueNote(pView->GetDocument()->TranslateChannel(Channel), NoteData, NOTE_PRIO_2);
 
 	m_iLastKey = -1;
 }

@@ -201,7 +201,7 @@ void CSoundDriver::StepRow(chan_id_t chan) {
 		QueueNote(chan, NoteData, NOTE_PRIO_1);
 	// Let view know what is about to play
 	if (parent_)
-		parent_->OnPlayNote(doc_->GetChannelIndex(chan), NoteData);
+		parent_->OnPlayNote(chan, NoteData);
 }
 
 void CSoundDriver::PlayerTick() {
@@ -255,17 +255,13 @@ void CSoundDriver::PlayerTick() {
 }
 
 void CSoundDriver::UpdateChannels() {
-	for (auto &x : tracks_) {		// // //
-		// workaround to permutate channel indices
-		int Index = x.second->GetID();
-		int Channel = doc_->GetChannelIndex(tracks_[Index].second->GetID());
-		if (Channel == -1)
+	for (auto &[pChan, pTrackerChan] : tracks_) {		// // //
+		chan_id_t ID = pTrackerChan->GetID();
+		if (!pChan || doc_->GetChannelIndex(ID) == -1)
 			continue;
-		auto &pChan = tracks_[Index].first;
-		auto &pTrackerChan = tracks_[Index].second;
 
 		// Run auto-arpeggio, if enabled
-		if (int Arpeggio = parent_ ? parent_->GetArpNote(Channel) : -1; Arpeggio > 0)		// // //
+		if (int Arpeggio = parent_ ? parent_->GetArpNote(ID) : -1; Arpeggio > 0)		// // //
 			pChan->Arpeggiate(Arpeggio);
 
 		// Check if new note data has been queued for playing
@@ -281,7 +277,7 @@ void CSoundDriver::UpdateChannels() {
 		pChan->FinishTick();		// // //
 
 		// Update volume meters
-		pTrackerChan->SetVolumeMeter(apu_->GetVol(pTrackerChan->GetID()));		// // //
+		pTrackerChan->SetVolumeMeter(apu_->GetVol(ID));		// // //
 	}
 }
 

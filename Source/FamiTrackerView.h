@@ -113,7 +113,7 @@ public:
 	bool		IsMarkerValid() const;		// // //
 
 	// Player callback (TODO move to new interface)
-	void		 PlayerPlayNote(int Channel, const stChanNote &pNote);		// // //
+	void		 PlayerPlayNote(chan_id_t Channel, const stChanNote &pNote);		// // //
 
 	void		 MakeSilent();
 
@@ -219,25 +219,25 @@ private:
 	bool	EditEffNumberColumn(stChanNote &Note, unsigned char nChar, int EffectIndex, bool &bStepDown);
 	bool	EditEffParamColumn(stChanNote &Note, int Value, int EffectIndex, bool &bStepDown, bool &bMoveRight, bool &bMoveLeft);
 
-	void	InsertNote(int Note, int Octave, int Channel, int Velocity);
+	void	InsertNote(int Note, int Octave, chan_id_t Channel, int Velocity);
 
 	void	DoPaste(paste_mode_t Mode);		// // //
 
 	// MIDI keyboard emulation
 	void	HandleKeyboardNote(char nChar, bool Pressed);
-	void	SplitKeyboardAdjust(stChanNote &Note, int Channel) const;		// // //
-	unsigned SplitAdjustChannel(unsigned int Channel, const stChanNote &Note) const;		// // //
+	void	SplitKeyboardAdjust(stChanNote &Note, chan_id_t Channel) const;		// // //
+	chan_id_t SplitAdjustChannel(chan_id_t Channel, const stChanNote &Note) const;		// // //
 
 	// MIDI note functions
-	void	TriggerMIDINote(unsigned int Channel, unsigned int MidiNote, unsigned int Velocity, bool Insert);
-	void	ReleaseMIDINote(unsigned int Channel, unsigned int MidiNote, bool InsertCut);
-	void	CutMIDINote(unsigned int Channel, unsigned int MidiNote, bool InsertCut);
+	void	TriggerMIDINote(chan_id_t Channel, unsigned int MidiNote, unsigned int Velocity, bool Insert);
+	void	ReleaseMIDINote(chan_id_t Channel, unsigned int MidiNote, bool InsertCut);
+	void	CutMIDINote(chan_id_t Channel, unsigned int MidiNote, bool InsertCut);
 
 	// Note handling
-	void	PlayNote(unsigned int Channel, unsigned int Note, unsigned int Octave, unsigned int Velocity) const;
-	void	ReleaseNote(unsigned int Channel, unsigned int Note, unsigned int Octave) const;		// // //
-	void	HaltNote(unsigned int Channel, unsigned int Note, unsigned int Octave) const;		// // //
-	void	HaltNoteSingle(unsigned int Channel) const;		// // //
+	void	PlayNote(chan_id_t Channel, unsigned int Note, unsigned int Octave, unsigned int Velocity) const;
+	void	ReleaseNote(chan_id_t Channel, unsigned int Note, unsigned int Octave) const;		// // //
+	void	HaltNote(chan_id_t Channel, unsigned int Note, unsigned int Octave) const;		// // //
+	void	HaltNoteSingle(chan_id_t Channel) const;		// // //
 
 	void	UpdateArpDisplay();
 

@@ -185,7 +185,7 @@ public:
 	std::pair<unsigned, unsigned> GetPlayerPos() const;		// // // frame / row
 	int			GetPlayerTrack() const;
 	int			GetPlayerTicks() const;
-	void		QueueNote(int Channel, const stChanNote &NoteData, note_prio_t Priority) const;		// // //
+	void		QueueNote(chan_id_t Channel, const stChanNote &NoteData, note_prio_t Priority) const;		// // //
 	void		ForceReloadInstrument(chan_id_t Channel);		// // //
 	void		MoveToFrame(int Frame);
 	void		SetQueueFrame(unsigned Frame);		// // //
@@ -248,10 +248,10 @@ private:
 	CFTMComponentInterface *GetDocumentInterface() const override;
 	void		OnTick() override;
 	void		OnStepRow() override;
-	void		OnPlayNote(int chan, const stChanNote &note) override;
+	void		OnPlayNote(chan_id_t chan, const stChanNote &note) override;
 	void		OnUpdateRow(int frame, int row) override;
 	bool		ShouldStopPlayer() const override;
-	int			GetArpNote(int chan) const override; // TODO: remove
+	int			GetArpNote(chan_id_t chan) const override; // TODO: remove
 
 	//
 	// Private variables

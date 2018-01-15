@@ -24,17 +24,17 @@
 #pragma once
 
 #include <string>
-#include "FamiTrackerTypes.h"
+#include "APU/Types.h"
 
 // // // auto-arpeggiation support
 class CArpeggiator {
 public:
-	void Tick(int CurrentChannel);
+	void Tick(chan_id_t CurrentChannel);
 	void TriggerNote(unsigned MidiNote);
 	void ReleaseNote(unsigned MidiNote);
 	void CutNote(unsigned MidiNote);
 
-	int GetNextNote(unsigned Channel);
+	int GetNextNote(chan_id_t Channel);
 	std::string GetStateString() const;
 
 private:
@@ -42,6 +42,6 @@ private:
 	int m_iLastAutoArpPtr = 0;
 	int m_iAutoArpKeyCount = 0;
 	char m_iAutoArpNotes[128] = { };
-	unsigned int m_iArpeggiate[MAX_CHANNELS] = { };
+	unsigned int m_iArpeggiate[CHANNELS] = { };
 };
 
