@@ -147,6 +147,7 @@ public:
 	int				GetChannelIndex(int Channel) const;
 
 	int				GetChannelType(int Channel) const; // TODO: merge with TranslateChannel
+	int				GetChannelType(chan_id_t) const = delete;		// // //
 	int				GetChipType(int Channel) const;
 	int				GetChannelCount() const;
 
@@ -344,6 +345,13 @@ public:
 	template <typename F>
 	void VisitSongs(F f) const {
 		module_->VisitSongs(f);
+	}
+
+	// void (*F)(chan_id_t chan)
+	template <typename F>
+	void ForeachChannel(F f) const {
+		for (std::size_t i = 0, n = GetChannelCount(); i < n; ++i)
+			f(GetChannelType(i));
 	}
 
 	std::shared_ptr<groove> GetGroove(unsigned Index);		// // //

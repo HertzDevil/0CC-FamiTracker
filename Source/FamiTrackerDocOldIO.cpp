@@ -164,15 +164,16 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 			unsigned FrameCount = ReadInt(pOpenFile);
 			Song.SetFrameCount(FrameCount);
 			for (c = 0; c < FrameCount; c++)
-				for (i = 0; i < doc.GetAvailableChannels(); i++)
-					Song.SetFramePattern(c, doc.TranslateChannel(i), ReadInt(pOpenFile));
+				doc.ForeachChannel([&] (chan_id_t i) {
+					Song.SetFramePattern(c, i, ReadInt(pOpenFile));
+				});
 			break;
 		}
 		case FB_PATTERNS: {
 			ReadCount = ReadInt(pOpenFile);
 			unsigned PatternLength = ReadInt(pOpenFile);
 			Song.SetPatternLength(PatternLength);
-			for (unsigned int x = 0; x < doc.GetAvailableChannels(); x++) {
+			doc.ForeachChannel([&] (chan_id_t x) {
 				for (c = 0; c < ReadCount; c++) {
 					for (i = 0; i < PatternLength; i++) {
 						pOpenFile->Read(&ImportedNote, sizeof(ImportedNote));
@@ -197,10 +198,10 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 							Note.Vol = MAX_VOLUME;
 						if (Note.EffNumber[0] < EF_COUNT)		// // //
 							Note.EffNumber[0] = EFF_CONVERSION_050.first[Note.EffNumber[0]];
-						Song.SetPatternData(doc.TranslateChannel(x), c, i, Note);
+						Song.SetPatternData(x, c, i, Note);
 					}
 				}
-			}
+			});
 			break;
 		}
 		case FB_DSAMPLES: {

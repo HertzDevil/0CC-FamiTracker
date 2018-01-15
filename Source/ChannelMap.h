@@ -51,6 +51,12 @@ public:
 	unsigned		GetChipChannelCount(unsigned chip) const;
 	bool			HasExpansionChip(unsigned chips) const noexcept; // all
 
+//	template <typename F>
+//	void ForeachChannel(F f) const {
+//		for (std::size_t i = 0, n = m_pChannels.size(); i < n; ++i)
+//			f(GetChannelType(i));
+//	}
+
 private:		// // //
 	std::vector<CTrackerChannel *> m_pChannels;		// // //
 	std::unordered_map<int, int> m_iChannelIndices;		// // //

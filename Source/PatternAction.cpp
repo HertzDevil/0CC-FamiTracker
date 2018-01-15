@@ -1132,14 +1132,13 @@ bool CPActionUniquePatterns::SaveState(const CMainFrame &MainFrm) {
 	songNew_->SetSongGroove(Song.GetSongGroove());
 	songNew_->SetTitle(Song.GetTitle());
 
-	for (int c = 0; c < pDoc->GetChannelCount(); c++) {
-		chan_id_t chan = pDoc->TranslateChannel(c);
+	pDoc->ForeachChannel([&] (chan_id_t chan) {
 		songNew_->SetEffectColumnCount(chan, Song.GetEffectColumnCount(chan));
 		for (int f = 0; f < Frames; f++) {
 			songNew_->SetFramePattern(f, chan, f);
 			songNew_->GetPattern(chan, f) = Song.GetPatternOnFrame(chan, f);
 		}
-	}
+	});
 
 	return true;
 }

@@ -381,17 +381,19 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 	if (ver == 1) {
 		// Single track
 		auto &Song = *doc.GetSong(0);
-		for (int i = 0; i < doc.GetChannelCount(); ++i) try {
-			// Channel type (unused)
-			AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANNELS - 1, "Channel type index");
-			// Effect columns
-			Song.SetEffectColumnCount(doc.TranslateChannel(i), AssertRange<MODULE_ERROR_STRICT>(
-				file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count"));
-		}
-		catch (CModuleException e) {
-			e.AppendError("At channel %d", i + 1);
-			throw e;
-		}
+		doc.ForeachChannel([&] (chan_id_t i) {
+			try {
+				// Channel type (unused)
+				AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANNELS - 1, "Channel type index");
+				// Effect columns
+				Song.SetEffectColumnCount(i, AssertRange<MODULE_ERROR_STRICT>(
+					file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count"));
+			}
+			catch (CModuleException e) {
+				e.AppendError("At channel %d", i + 1);
+				throw e;
+			}
+		});
 	}
 	else if (ver >= 2) {
 		// Multiple tracks
@@ -403,23 +405,25 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 		if (ver >= 3)
 			doc.VisitSongs([&] (CSongData &song) { song.SetTitle((LPCTSTR)file_.ReadString()); });
 
-		for (int i = 0; i < doc.GetChannelCount(); ++i) try {
-			AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANNELS - 1, "Channel type index"); // Channel type (unused)
-			doc.VisitSongs([&] (CSongData &song, unsigned index) {
-				try {
-					song.SetEffectColumnCount(doc.TranslateChannel(i), AssertRange<MODULE_ERROR_STRICT>(
-						file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count"));
-				}
-				catch (CModuleException e) {
-					e.AppendError("At song %d,", index + 1);
-					throw e;
-				}
-			});
-		}
-		catch (CModuleException e) {
-			e.AppendError("At channel %d,", i + 1);
-			throw e;
-		}
+		doc.ForeachChannel([&] (chan_id_t i) {
+			try {
+				AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANNELS - 1, "Channel type index"); // Channel type (unused)
+				doc.VisitSongs([&] (CSongData &song, unsigned index) {
+					try {
+						song.SetEffectColumnCount(i, AssertRange<MODULE_ERROR_STRICT>(
+							file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count"));
+					}
+					catch (CModuleException e) {
+						e.AppendError("At song %d,", index + 1);
+						throw e;
+					}
+				});
+			}
+			catch (CModuleException e) {
+				e.AppendError("At channel %d,", i + 1);
+				throw e;
+			}
+		});
 
 		if (ver >= 4)		// // // 050B
 			for (unsigned int i = 0; i < Tracks; ++i) {
@@ -441,17 +445,17 @@ void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerDoc &doc, int ver) {
 	if (ver >= 3)
 		doc.VisitSongs([&] (const CSongData &song) { file_.WriteString(song.GetTitle().c_str()); });
 
-	for (int i = 0; i < doc.GetChannelCount(); ++i) {
+	doc.ForeachChannel([&] (chan_id_t i) {
 		// Channel type
-		file_.WriteBlockChar(doc.GetChannelType(i));		// // //
+		file_.WriteBlockChar(i);		// // //
 		for (unsigned int j = 0; j < doc.GetTrackCount(); ++j) {
 			// Effect columns
 			auto &song = *doc.GetSong(j);
-			file_.WriteBlockChar(song.GetEffectColumnCount(doc.TranslateChannel(i)));
+			file_.WriteBlockChar(song.GetEffectColumnCount(i));
 			if (ver <= 1)
 				break;
 		}
-	}
+	});
 }
 
 void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerDoc &doc, int ver) {
@@ -680,11 +684,11 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
 		auto &Song = *doc.GetSong(0);
 		Song.SetFrameCount(FrameCount);
 		for (unsigned i = 0; i < FrameCount; ++i) {
-			for (int j = 0; j < doc.GetChannelCount(); ++j) {
+			doc.ForeachChannel([&] (chan_id_t j) {
 				unsigned Pattern = static_cast<unsigned char>(file_.GetBlockChar());
 				AssertRange(Pattern, 0U, static_cast<unsigned>(MAX_PATTERN - 1), "Pattern index");
-				Song.SetFramePattern(i, doc.TranslateChannel(j), Pattern);
-			}
+				Song.SetFramePattern(i, j, Pattern);
+			});
 		}
 	}
 	else if (ver > 1) {
@@ -713,11 +717,11 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
 			song.SetPatternLength(PatternLength);
 
 			for (unsigned i = 0; i < FrameCount; ++i) {
-				for (int j = 0; j < doc.GetChannelCount(); ++j) {
+				doc.ForeachChannel([&] (chan_id_t j) {
 					// Read pattern index
 					int Pattern = static_cast<unsigned char>(file_.GetBlockChar());
-					song.SetFramePattern(i, doc.TranslateChannel(j), AssertRange(Pattern, 0, MAX_PATTERN - 1, "Pattern index"));
-				}
+					song.SetFramePattern(i, j, AssertRange(Pattern, 0, MAX_PATTERN - 1, "Pattern index"));
+				});
 			}
 		});
 	}
@@ -731,8 +735,9 @@ void CFamiTrackerDocIO::SaveFrames(const CFamiTrackerDoc &doc, int ver) {
 		file_.WriteBlockInt(Song.GetPatternLength());
 
 		for (unsigned int j = 0; j < Song.GetFrameCount(); ++j)
-			for (int k = 0; k < doc.GetChannelCount(); ++k)
-				file_.WriteBlockChar((unsigned char)Song.GetFramePattern(j, doc.TranslateChannel(k)));
+			doc.ForeachChannel([&] (chan_id_t k) {
+				file_.WriteBlockChar((unsigned char)Song.GetFramePattern(j, k));
+			});
 	});
 }
 
