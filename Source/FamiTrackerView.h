@@ -44,6 +44,8 @@ class CNoteQueue;		// // //
 class CArpeggiator;		// // //
 class CMainFrame;		// // //
 
+enum chan_id_t : unsigned;		// // //
+
 // // // Player modes
 enum class play_mode_t {
 	Frame,			// Play from top of pattern
@@ -122,13 +124,13 @@ public:
 	void	UpdateNoteQueues();		// // //
 
 	// Mute methods
-	void		 SoloChannel(unsigned int Channel);
-	void		 ToggleChannel(unsigned int Channel);
-	void		 SoloChip(unsigned int Channel);		// // //
-	void		 ToggleChip(unsigned int Channel);		// // //
+	void		 SoloChannel(chan_id_t Channel);
+	void		 ToggleChannel(chan_id_t Channel);
+	void		 SoloChip(chan_id_t Channel);		// // //
+	void		 ToggleChip(chan_id_t Channel);		// // //
 	void		 UnmuteAllChannels();
-	bool		 IsChannelMuted(unsigned int Channel) const;
-	void		 SetChannelMute(int Channel, bool bMute);
+	bool		 IsChannelMuted(chan_id_t Channel) const;
+	void		 SetChannelMute(chan_id_t Channel, bool bMute);
 
 	// For UI updates
 	bool		 IsSelecting() const;
@@ -240,7 +242,7 @@ private:
 	void	UpdateArpDisplay();
 
 	// Mute methods
-	bool	IsChannelSolo(unsigned int Channel) const;
+	bool	IsChannelSolo(chan_id_t Channel) const;		// // //
 	bool	IsChipSolo(unsigned int Chip) const;		// // //
 
 	// Other

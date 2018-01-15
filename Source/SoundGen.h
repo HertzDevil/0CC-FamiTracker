@@ -134,8 +134,8 @@ public:
 	void		 SilentAll();
 	void		 PlaySingleRow(int track);		// // //
 
-	void		 SetChannelMute(int chan, bool mute);		// // // TODO: move into CChannel
-	bool		 IsChannelMuted(int chan) const override;
+	void		 SetChannelMute(chan_id_t chan, bool mute);		// // // TODO: move into CChannel
+	bool		 IsChannelMuted(chan_id_t chan) const override;
 
 	void		 ResetState();
 	void		 ResetTempo();
@@ -302,7 +302,7 @@ private:
 	std::shared_ptr<CWaveRenderer> m_pWaveRenderer;			// // //
 	std::unique_ptr<CInstrumentRecorder> m_pInstRecorder;
 
-	std::array<bool, MAX_CHANNELS> muted_ = { };			// // //
+	std::array<bool, CHANNELS> muted_ = { };				// // //
 
 	// FDS & N163 waves
 	volatile bool		m_bWaveChanged;

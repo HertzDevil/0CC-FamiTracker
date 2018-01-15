@@ -27,6 +27,7 @@
 
 class stChanNote;
 class CFTMComponentInterface;
+enum chan_id_t : unsigned;
 
 class CSoundGenBase {
 public:
@@ -40,7 +41,7 @@ public:
 	virtual void OnPlayNote(int chan, const stChanNote &note) = 0;
 	virtual void OnUpdateRow(int frame, int row) = 0;
 
-	virtual bool IsChannelMuted(int chan) const = 0; // TODO: remove
+	virtual bool IsChannelMuted(chan_id_t chan) const = 0; // TODO: remove
 	virtual bool ShouldStopPlayer() const = 0;
 
 	virtual int GetArpNote(int chan) const { // TODO: remove

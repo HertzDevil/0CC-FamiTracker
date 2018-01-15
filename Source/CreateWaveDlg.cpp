@@ -126,7 +126,7 @@ void CCreateWaveDlg::OnBnClickedBegin()
 	pView->UnmuteAllChannels();
 	for (int i = 0; i < m_ctlChannelList.GetCount(); ++i) {
 		if (m_ctlChannelList.GetCheck(i) == 0)
-			pView->ToggleChannel(i);
+			pView->ToggleChannel(pDoc->TranslateChannel(i));
 	}
 
 	// Show the render progress dialog, this will also start rendering

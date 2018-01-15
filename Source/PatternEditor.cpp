@@ -1477,7 +1477,7 @@ void CPatternEditor::DrawHeader(CDC &DC)
 	for (int i = 0; i < m_iChannelsVisible; ++i) {
 
 		const int Channel = i + m_iFirstChannel;
-		const bool bMuted = m_pView->IsChannelMuted(Channel);
+		const bool bMuted = m_pView->IsChannelMuted(m_pDocument->TranslateChannel(Channel));
 		const bool Pushed = bMuted || (m_iChannelPushed == Channel) && m_bChannelPushed;
 
 		// Frame
@@ -2415,7 +2415,7 @@ void CPatternEditor::OnMouseUp(const CPoint &point)
 		const int Channel = GetChannelAtPoint(point.x);
 
 		if (PushedChannel != -1 && PushedChannel == Channel)
-			m_pView->ToggleChannel(PushedChannel);
+			m_pView->ToggleChannel(m_pDocument->TranslateChannel(PushedChannel));
 
 		// Channel headers
 		if (m_bDragging) {
@@ -2636,7 +2636,7 @@ void CPatternEditor::OnMouseDblClk(const CPoint &point)
 
 		// Solo
 		if (Column < 5) {
-			m_pView->SoloChannel(Channel);
+			m_pView->SoloChannel(m_pDocument->TranslateChannel(Channel));
 		}
 		// Remove one track effect column
 		else if (Column == 5) {

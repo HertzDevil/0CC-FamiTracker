@@ -278,7 +278,7 @@ void CSoundGen::PlaySingleRow(int track) {		// // //
 
 	auto [frame, row] = m_pTrackerView->GetSelectedPos();
 	m_pDocument->ForeachChannel([&] (chan_id_t i) {
-		if (!IsChannelMuted(m_pDocument->GetChannelIndex(i)))
+		if (!IsChannelMuted(i))
 			QueueNote(m_pDocument->GetChannelIndex(i), m_pDocument->GetActiveNote(track, frame, i, row), NOTE_PRIO_1);
 	});
 }
@@ -620,7 +620,7 @@ void CSoundGen::OnStepRow() {
 }
 
 void CSoundGen::OnPlayNote(int chan, const stChanNote &note) {
-	if (!IsChannelMuted(chan)) {
+	if (!IsChannelMuted(m_pDocument->TranslateChannel(chan))) {
 		if (m_pTrackerView)
 			m_pTrackerView->PlayerPlayNote(chan, note);
 		theApp.GetMIDI()->WriteNote(chan, note.Note, note.Octave, note.Vol);
@@ -635,13 +635,13 @@ void CSoundGen::OnUpdateRow(int frame, int row) {
 		m_pTrackerView->PostMessage(WM_USER_PLAYER, frame, row);
 }
 
-void CSoundGen::SetChannelMute(int chan, bool mute) {		// // //
+void CSoundGen::SetChannelMute(chan_id_t chan, bool mute) {		// // //
 	muted_[chan] = mute;
-	if (mute && m_pDocument->GetChannelType(chan) == GetRecordChannel())
+	if (mute && chan == GetRecordChannel())
 		SetRecordChannel((chan_id_t)-1);
 }
 
-bool CSoundGen::IsChannelMuted(int chan) const {
+bool CSoundGen::IsChannelMuted(chan_id_t chan) const {		// // //
 	return muted_[chan];
 }
 
