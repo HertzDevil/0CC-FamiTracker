@@ -73,6 +73,7 @@ struct stNSFeHeader {		// // //
 struct driver_t;
 class CChunk;
 enum chunk_type_t : int;
+enum chan_id_t : unsigned;
 struct stChunkLabel;		// // //
 namespace ft0cc::doc {
 class dpcm_sample;
@@ -136,7 +137,7 @@ private:
 
 	void	ScanSong();
 	int		GetSampleIndex(int SampleNumber);
-	bool	IsPatternAddressed(unsigned int Track, int Pattern, int Channel) const;
+	bool	IsPatternAddressed(unsigned int Track, int Pattern, chan_id_t Channel) const;
 
 	void	CreateMainHeader();
 	void	CreateSequenceList();

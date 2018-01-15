@@ -26,6 +26,7 @@
 #include "Instrument.h"
 #include "MainFrm.h"
 #include "DPI.h"
+#include <algorithm>
 
 // CTransposeDlg dialog
 
@@ -54,22 +55,21 @@ void CTransposeDlg::Transpose(int Trsp, unsigned int Track)
 {
 	if (!Trsp) return;
 
-	for (int c = m_pDocument->GetChannelCount() - 1; c >= 0; --c) {
-		int Type = m_pDocument->GetChannelType(c);
-		if (Type == CHANID_NOISE || Type == CHANID_DPCM) continue;
+	m_pDocument->ForeachChannel([&] (chan_id_t c) {
+		if (c == CHANID_NOISE || c == CHANID_DPCM)
+			return;
 		for (int p = 0; p < MAX_PATTERN; ++p) for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
-			stChanNote Note = m_pDocument->GetDataAtPattern(Track, p, m_pDocument->TranslateChannel(c), r);
-			if (Note.Instrument == MAX_INSTRUMENTS || Note.Instrument == HOLD_INSTRUMENT) continue;
+			stChanNote Note = m_pDocument->GetDataAtPattern(Track, p, c, r);
+			if (Note.Instrument == MAX_INSTRUMENTS || Note.Instrument == HOLD_INSTRUMENT)
+				continue;
 			if (Note.Note >= NOTE_C && Note.Note <= NOTE_B && !s_bDisableInst[Note.Instrument]) {
-				int MIDI = MIDI_NOTE(Note.Octave, Note.Note) + Trsp;
-				if (MIDI < 0) MIDI = 0;
-				else if (MIDI >= NOTE_COUNT) MIDI = NOTE_COUNT - 1;
+				int MIDI = std::clamp(MIDI_NOTE(Note.Octave, Note.Note) + Trsp, 0, NOTE_COUNT - 1);
 				Note.Octave = GET_OCTAVE(MIDI);
 				Note.Note = GET_NOTE(MIDI);
-				m_pDocument->SetDataAtPattern(Track, p, m_pDocument->TranslateChannel(c), r, Note);
+				m_pDocument->SetDataAtPattern(Track, p, c, r, Note);
 			}
 		}
-	}
+	});
 }
 
 BEGIN_MESSAGE_MAP(CTransposeDlg, CDialog)

@@ -220,8 +220,9 @@ void CSoundDriver::PlayerTick() {
 			++SteppedRows;
 		m_pTempoCounter->StepRow();		// // //
 
-		for (int i = 0, Channels = doc_->GetChannelCount(); i < Channels; ++i)		// // //
-			StepRow(i);
+		doc_->ForeachChannel([&] (chan_id_t i) {
+			StepRow(doc_->GetChannelIndex(i));
+		});
 
 		if (parent_)
 			parent_->OnStepRow();

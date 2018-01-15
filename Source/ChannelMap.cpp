@@ -54,14 +54,14 @@ bool CChannelMap::SupportsChannel(const CTrackerChannel &ch) const {		// // //
 		ch.GetID() - CHANID_N163_CH1 >= GetChipChannelCount(SNDCHIP_N163));
 }
 
-CTrackerChannel &CChannelMap::GetChannel(int Index) const		// // //
+CTrackerChannel &CChannelMap::GetChannel(int index) const		// // //
 {
-	return *m_pChannels[Index];
+	return *m_pChannels[index];
 }
 
-int CChannelMap::GetChannelIndex(int Channel) const {		// // //
+int CChannelMap::GetChannelIndex(int chan) const {		// // //
 	// Translate channel ID to index, returns -1 if not found
-	if (auto it = m_iChannelIndices.find(Channel); it != m_iChannelIndices.cend())
+	if (auto it = m_iChannelIndices.find(chan); it != m_iChannelIndices.cend())
 		return it->second;
 	return -1;
 }
@@ -70,13 +70,13 @@ int CChannelMap::GetChannelCount() const {		// // //
 	return m_pChannels.size();
 }
 
-chan_id_t CChannelMap::GetChannelType(int Channel) const {		// // //
-	return GetChannel(Channel).GetID();
+chan_id_t CChannelMap::GetChannelType(int index) const {		// // //
+	return GetChannel(index).GetID();
 }
 
-int CChannelMap::GetChipType(int Channel) const
+int CChannelMap::GetChipType(int index) const
 {
-	return GetChannel(Channel).GetChip();
+	return GetChannel(index).GetChip();
 }
 
 unsigned CChannelMap::GetExpansionFlag() const noexcept {		// // //

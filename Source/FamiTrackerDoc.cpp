@@ -1349,14 +1349,14 @@ bool CFamiTrackerDoc::IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsi
 
 // Channel interface, these functions must be synchronized!!!
 
-int CFamiTrackerDoc::GetChannelType(int Channel) const
+int CFamiTrackerDoc::GetChannelType(int Index) const
 {
-	return m_pChannelMap->GetChannelType(Channel);		// // //
+	return m_pChannelMap->GetChannelType(Index);		// // //
 }
 
-int CFamiTrackerDoc::GetChipType(int Channel) const
+int CFamiTrackerDoc::GetChipType(int Index) const
 {
-	return m_pChannelMap->GetChipType(Channel);		// // //
+	return m_pChannelMap->GetChipType(Index);		// // //
 }
 
 int CFamiTrackerDoc::GetChannelCount() const
@@ -1570,8 +1570,7 @@ CBookmark *CFamiTrackerDoc::GetBookmarkAt(unsigned int Track, unsigned int Frame
 
 class loop_visitor {
 public:
-	loop_visitor(const CChannelMap &map, const CSongData &song, int channels) :
-		map_(map), song_(song), channels_(channels) { }
+	loop_visitor(const CChannelMap &map, const CSongData &song) : map_(map), song_(song) { }
 
 	template <typename F, typename G>
 	void Visit(F cb, G fx) {
@@ -1585,7 +1584,7 @@ public:
 			int Bxx = -1;
 			int Dxx = -1;
 			bool Cxx = false;
-			for (int ch = 0; ch < channels_; ++ch) {
+			for (int ch = 0; ch < map_.GetChannelCount(); ++ch) {
 				const auto &Note = song_.GetPatternOnFrame(map_.GetChannelType(ch), f_).GetNoteOn(r_);		// // //
 				for (int l = 0, m = song_.GetEffectColumnCount(map_.GetChannelType(ch)); l <= m; ++l) {
 					switch (Note.EffNumber[l]) {
@@ -1631,7 +1630,6 @@ public:
 private:
 	const CChannelMap &map_;
 	const CSongData &song_;
-	int channels_;
 	unsigned f_ = 0;
 	unsigned r_ = 0;
 	bool first_ = true;
@@ -1643,7 +1641,7 @@ unsigned int CFamiTrackerDoc::ScanActualLength(unsigned int Track, unsigned int 
 	int FirstLoop = 0;
 	int SecondLoop = 0;
 
-	loop_visitor visitor(*GetChannelMap(), GetSongData(Track), GetChannelCount());
+	loop_visitor visitor(*GetChannelMap(), GetSongData(Track));
 	visitor.Visit([&] { ++FirstLoop; }, [] { });
 	visitor.Visit([&] { ++SecondLoop; }, [] { });
 
@@ -1690,7 +1688,7 @@ double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) co
 	double FirstLoop = 0.0;
 	double SecondLoop = 0.0;
 
-	loop_visitor visitor(*GetChannelMap(), song, GetChannelCount());
+	loop_visitor visitor(*GetChannelMap(), song);
 	visitor.Visit([&] {
 		if (auto pGroove = GetGroove(GrooveIndex))
 			Speed = pGroove->entry(GroovePointer++);

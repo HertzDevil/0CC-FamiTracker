@@ -203,16 +203,15 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
 		compat::ReorderSequences(doc, std::move(m_vTmpSequences));
 
 	if (fds_adjust_arps_) {
-		int Channel = doc.GetChannelIndex(CHANID_FDS);
-		if (Channel != -1) {
+		if (doc.GetChannelIndex(CHANID_FDS) != -1) {
 			for (unsigned int t = 0; t < doc.GetTrackCount(); ++t) for (int p = 0; p < MAX_PATTERN; ++p) for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
-				stChanNote Note = doc.GetDataAtPattern(t, p, doc.TranslateChannel(Channel), r);		// // //
+				stChanNote Note = doc.GetDataAtPattern(t, p, CHANID_FDS, r);		// // //
 				if (Note.Note >= NOTE_C && Note.Note <= NOTE_B) {
 					int Trsp = MIDI_NOTE(Note.Octave, Note.Note) + NOTE_RANGE * 2;
 					Trsp = Trsp >= NOTE_COUNT ? NOTE_COUNT - 1 : Trsp;
 					Note.Note = GET_NOTE(Trsp);
 					Note.Octave = GET_OCTAVE(Trsp);
-					doc.SetDataAtPattern(t, p, doc.TranslateChannel(Channel), r, Note);		// // //
+					doc.SetDataAtPattern(t, p, CHANID_FDS, r, Note);		// // //
 				}
 			}
 		}
@@ -839,7 +838,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 
 				if (ver == 3) {
 					// Fix for VRC7 portamento
-					if (doc.ExpansionEnabled(SNDCHIP_VRC7) && Channel > 4) {
+					if (doc.GetChipType(Channel) == SNDCHIP_VRC7) {		// // //
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
 							case EF_PORTA_DOWN:
@@ -852,7 +851,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 						}
 					}
 					// FDS pitch effect fix
-					else if (doc.ExpansionEnabled(SNDCHIP_FDS) && doc.GetChannelType(Channel) == CHANID_FDS) {
+					else if (doc.GetChipType(Channel) == SNDCHIP_FDS) {
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
 							case EF_PITCH:

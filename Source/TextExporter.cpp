@@ -909,8 +909,9 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_COLUMNS:
 		{
 			CHECK_COLON();
-			for (int c = 0; c < Doc.GetChannelCount(); ++c)
-				Doc.SetEffColumns(track - 1, Doc.TranslateChannel(c), t.ReadInt(1, MAX_EFFECT_COLUMNS) - 1);
+			Doc.ForeachChannel([&] (chan_id_t c) {
+				Doc.SetEffColumns(track - 1, c, t.ReadInt(1, MAX_EFFECT_COLUMNS) - 1);
+			});
 			t.ReadEOL();
 		}
 		break;
@@ -920,8 +921,9 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			if (ifr >= (int)Doc.GetFrameCount(track - 1)) // expand to accept frames
 				Doc.SetFrameCount(track - 1, ifr + 1);
 			CHECK_COLON();
-			for (int c = 0; c < Doc.GetChannelCount(); ++c)
-				Doc.SetPatternAtFrame(track - 1, ifr, Doc.TranslateChannel(c), t.ReadHex(0, MAX_PATTERN - 1));
+			Doc.ForeachChannel([&] (chan_id_t c) {
+				Doc.SetPatternAtFrame(track - 1, ifr, c, t.ReadHex(0, MAX_PATTERN - 1));
+			});
 			t.ReadEOL();
 		}
 		break;
@@ -935,12 +937,12 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 				throw t.MakeError(_T("no TRACK defined, cannot add ROW data."));
 
 			int row = t.ReadHex(0, MAX_PATTERN_LENGTH - 1);
-			for (int c = 0; c < Doc.GetChannelCount(); ++c) {
+			Doc.ForeachChannel([&] (chan_id_t c) {
 				CHECK_COLON();
-				stChanNote &&stCell = t.ImportCellText(Doc.GetEffColumns(track - 1, Doc.TranslateChannel(c)),
-					Doc.GetChipType(c), Doc.GetChannelType(c) == CHANID_NOISE);		// // //
-				Doc.SetDataAtPattern(track - 1, pattern, Doc.TranslateChannel(c), row, std::move(stCell));		// // //
-			}
+				stChanNote &&stCell = t.ImportCellText(Doc.GetEffColumns(track - 1, c),
+					Doc.GetChipType(Doc.GetChannelIndex(c)), c == CHANID_NOISE);		// // //
+				Doc.SetDataAtPattern(track - 1, pattern, c, row, std::move(stCell));		// // //
+			});
 			t.ReadEOL();
 		}
 		break;
@@ -1340,22 +1342,20 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 
 		s.Format(_T("%s :"), CT[CT_COLUMNS]);
 		f.WriteString(s);
-		for (int c=0; c < Doc.GetChannelCount(); ++c)
-		{
-			s.Format(_T(" %d"), Doc.GetEffColumns(t, Doc.TranslateChannel(c))+1);
+		Doc.ForeachChannel([&] (chan_id_t c) {
+			s.Format(_T(" %d"), Doc.GetEffColumns(t, c)+1);
 			f.WriteString(s);
-		}
+		});
 		f.WriteString(_T("\n\n"));
 
 		for (unsigned int o=0; o < Doc.GetFrameCount(t); ++o)
 		{
 			s.Format(_T("%s %02X :"), CT[CT_ORDER], o);
 			f.WriteString(s);
-			for (int c=0; c < Doc.GetChannelCount(); ++c)
-			{
-				s.Format(_T(" %02X"), Doc.GetPatternAtFrame(t, o, Doc.TranslateChannel(c)));
+			Doc.ForeachChannel([&] (chan_id_t c) {
+				s.Format(_T(" %02X"), Doc.GetPatternAtFrame(t, o, c));
 				f.WriteString(s);
-			}
+			});
 			f.WriteString(_T("\n"));
 		}
 		f.WriteString(_T("\n"));
@@ -1364,15 +1364,12 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 		{
 			// detect and skip empty patterns
 			bool bUsed = false;
-			for (int c=0; c < Doc.GetChannelCount(); ++c)
-			{
-				if (!Doc.IsPatternEmpty(t, Doc.TranslateChannel(c), p))
-				{
+			Doc.ForeachChannel([&] (chan_id_t c) {
+				if (!bUsed && !Doc.IsPatternEmpty(t, c, p))
 					bUsed = true;
-					break;
-				}
-			}
-			if (!bUsed) continue;
+			});
+			if (!bUsed)
+				continue;
 
 			s.Format(_T("%s %02X\n"), CT[CT_PATTERN], p);
 			f.WriteString(s);
@@ -1381,11 +1378,10 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 			{
 				s.Format(_T("%s %02X"), CT[CT_ROW], r);
 				f.WriteString(s);
-				for (int c=0; c < Doc.GetChannelCount(); ++c)
-				{
+				Doc.ForeachChannel([&] (chan_id_t c) {
 					f.WriteString(_T(" : "));
-					f.WriteString(ExportCellText(Doc.GetDataAtPattern(t,p,Doc.TranslateChannel(c),r), Doc.GetEffColumns(t, Doc.TranslateChannel(c))+1, c==3));		// // //
-				}
+					f.WriteString(ExportCellText(Doc.GetDataAtPattern(t,p,c,r), Doc.GetEffColumns(t, c)+1, c==3));		// // //
+				});
 				f.WriteString(_T("\n"));
 			}
 			f.WriteString(_T("\n"));

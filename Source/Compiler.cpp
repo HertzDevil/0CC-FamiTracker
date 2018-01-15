@@ -1093,13 +1093,14 @@ void CCompiler::ScanSong()
 	// // // Scan patterns in entire module
 	for (int i = 0; i < TrackCount; ++i) {
 		int PatternLength = m_pDocument->GetPatternLength(i);
-		for (int j = 0; j < Channels; ++j)
+		m_pDocument->ForeachChannel([&] (chan_id_t j) {
 			for (int k = 0; k < MAX_PATTERN; ++k)
 				for (int l = 0; l < PatternLength; ++l) {
-					const auto &note = m_pDocument->GetDataAtPattern(i, k, m_pDocument->TranslateChannel(j), l);
+					const auto &note = m_pDocument->GetDataAtPattern(i, k, j, l);
 					if (note.Instrument < std::size(inst_used))		// // //
 						inst_used[note.Instrument] = true;
 				}
+		});
 	}
 
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
@@ -1627,7 +1628,7 @@ void CCompiler::StorePatterns(unsigned int Track)
 	for (unsigned i = 0; i < MAX_PATTERN; ++i) {
 		for (unsigned j = 0; j < iChannels; ++j) {
 			// And store only used ones
-			if (IsPatternAddressed(Track, i, j)) {
+			if (IsPatternAddressed(Track, i, m_pDocument->TranslateChannel(j))) {
 
 				// Compile pattern data
 				PatternCompiler.CompileData(Track, i, j);
@@ -1690,13 +1691,13 @@ void CCompiler::StorePatterns(unsigned int Track)
 	Print(_T("%i patterns (%i bytes)\r\n"), PatternCount, PatternSize);
 }
 
-bool CCompiler::IsPatternAddressed(unsigned int Track, int Pattern, int Channel) const
+bool CCompiler::IsPatternAddressed(unsigned int Track, int Pattern, chan_id_t Channel) const
 {
 	// Scan the frame list to see if a pattern is accessed for that frame
 	const int FrameCount = m_pDocument->GetFrameCount(Track);
 
 	for (int i = 0; i < FrameCount; ++i) {
-		if (m_pDocument->GetPatternAtFrame(Track, i, m_pDocument->TranslateChannel(Channel)) == Pattern)
+		if (m_pDocument->GetPatternAtFrame(Track, i, Channel) == Pattern)
 			return true;
 	}
 

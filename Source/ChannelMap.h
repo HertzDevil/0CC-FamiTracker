@@ -41,21 +41,21 @@ public:
 	void			RegisterChannel(CTrackerChannel &Channel);		// // //
 	bool			SupportsChannel(const CTrackerChannel &ch) const;		// // //
 
-	CTrackerChannel	&GetChannel(int Index) const;		// // //
-	int				GetChannelIndex(int Channel) const;
+	CTrackerChannel	&GetChannel(int index) const;		// // //
+	int				GetChannelIndex(int chan) const;
 	int				GetChannelCount() const;		// // //
-	chan_id_t		GetChannelType(int Channel) const;		// // //
-	int				GetChipType(int Channel) const;
+	chan_id_t		GetChannelType(int index) const;		// // //
+	int				GetChipType(int index) const;
 
 	unsigned		GetExpansionFlag() const noexcept;		// // //
 	unsigned		GetChipChannelCount(unsigned chip) const;
 	bool			HasExpansionChip(unsigned chips) const noexcept; // all
 
-//	template <typename F>
-//	void ForeachChannel(F f) const {
-//		for (std::size_t i = 0, n = m_pChannels.size(); i < n; ++i)
-//			f(GetChannelType(i));
-//	}
+	template <typename F>
+	void ForeachChannel(F f) const {
+		for (std::size_t i = 0, n = m_pChannels.size(); i < n; ++i)
+			f(GetChannelType(i));
+	}
 
 private:		// // //
 	std::vector<CTrackerChannel *> m_pChannels;		// // //

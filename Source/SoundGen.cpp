@@ -276,11 +276,11 @@ void CSoundGen::PlaySingleRow(int track) {		// // //
 		m_bPlayingSingleRow = true;
 	}
 
-	int Channels = m_pDocument->GetChannelCount();
 	auto [frame, row] = m_pTrackerView->GetSelectedPos();
-	for (int i = 0; i < Channels; ++i)
-		if (!IsChannelMuted(i))
-			QueueNote(i, m_pDocument->GetActiveNote(track, frame, m_pDocument->TranslateChannel(i), row), NOTE_PRIO_1);
+	m_pDocument->ForeachChannel([&] (chan_id_t i) {
+		if (!IsChannelMuted(m_pDocument->GetChannelIndex(i)))
+			QueueNote(m_pDocument->GetChannelIndex(i), m_pDocument->GetActiveNote(track, frame, i, row), NOTE_PRIO_1);
+	});
 }
 
 void CSoundGen::WriteAPU(int Address, char Value)
