@@ -206,13 +206,13 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
 		int Channel = doc.GetChannelIndex(CHANID_FDS);
 		if (Channel != -1) {
 			for (unsigned int t = 0; t < doc.GetTrackCount(); ++t) for (int p = 0; p < MAX_PATTERN; ++p) for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
-				stChanNote Note = doc.GetDataAtPattern(t, p, Channel, r);		// // //
+				stChanNote Note = doc.GetDataAtPattern(t, p, doc.TranslateChannel(Channel), r);		// // //
 				if (Note.Note >= NOTE_C && Note.Note <= NOTE_B) {
 					int Trsp = MIDI_NOTE(Note.Octave, Note.Note) + NOTE_RANGE * 2;
 					Trsp = Trsp >= NOTE_COUNT ? NOTE_COUNT - 1 : Trsp;
 					Note.Note = GET_NOTE(Trsp);
 					Note.Octave = GET_OCTAVE(Trsp);
-					doc.SetDataAtPattern(t, p, Channel, r, Note);		// // //
+					doc.SetDataAtPattern(t, p, doc.TranslateChannel(Channel), r, Note);		// // //
 				}
 			}
 		}

@@ -178,31 +178,31 @@ public:
 
 	unsigned int	GetCurrentPatternLength(unsigned int Track, int Frame) const;		// // // moved from pattern editor
 
-	unsigned int	GetEffColumns(unsigned int Track, unsigned int Channel) const;
-	void			SetEffColumns(unsigned int Track, unsigned int Channel, unsigned int Columns);
+	unsigned int	GetEffColumns(unsigned int Track, chan_id_t Channel) const;
+	void			SetEffColumns(unsigned int Track, chan_id_t Channel, unsigned int Columns);
 
-	unsigned int 	GetPatternAtFrame(unsigned int Track, unsigned int Frame, unsigned int Channel) const;
-	void			SetPatternAtFrame(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Pattern);
+	unsigned int 	GetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel) const;
+	void			SetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Pattern);
 
-	bool			IsPatternEmpty(unsigned int Track, unsigned int Channel, unsigned int Pattern) const;
-	bool			ArePatternsSame(unsigned int Track, unsigned int Channel, unsigned int Pattern1, unsigned int Pattern2) const;		// // //
+	bool			IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsigned int Pattern) const;
+	bool			ArePatternsSame(unsigned int Track, chan_id_t Channel, unsigned int Pattern1, unsigned int Pattern2) const;		// // //
 
 	// Pattern editing
-	void			SetNoteData(unsigned Track, unsigned Frame, unsigned Channel, unsigned Row, const stChanNote &Data);		// // //
-	const stChanNote &GetNoteData(unsigned Track, unsigned Frame, unsigned Channel, unsigned Row) const;		// // //
-	stChanNote		GetActiveNote(unsigned Track, unsigned Frame, unsigned Channel, unsigned Row) const;		// // // remove hidden fx commands
+	void			SetNoteData(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row, const stChanNote &Data);		// // //
+	const stChanNote &GetNoteData(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const;		// // //
+	stChanNote		GetActiveNote(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const;		// // // remove hidden fx commands
 
-	void			SetDataAtPattern(unsigned Track, unsigned Pattern, unsigned Channel, unsigned Row, const stChanNote &pData);		// // //
-	const stChanNote &GetDataAtPattern(unsigned Track, unsigned Pattern, unsigned Channel, unsigned Row) const;		// // //
+	void			SetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row, const stChanNote &pData);		// // //
+	const stChanNote &GetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row) const;		// // //
 
-	void			ClearPattern(unsigned int Track, unsigned int Frame, unsigned int Channel);
+	void			ClearPattern(unsigned int Track, unsigned int Frame, chan_id_t Channel);
 
-	bool			InsertRow(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row);
-	bool			ClearRowField(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row, cursor_column_t Column);
-	bool			PullUp(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row);
-	void			CopyPattern(unsigned int Track, int Target, int Source, int Channel);
+	bool			InsertRow(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row);
+	bool			ClearRowField(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row, cursor_column_t Column);
+	bool			PullUp(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row);
+	void			CopyPattern(unsigned int Track, int Target, int Source, chan_id_t Channel);
 
-	void			SwapChannels(unsigned int Track, unsigned int First, unsigned int Second);		// // //
+	void			SwapChannels(unsigned int Track, chan_id_t First, chan_id_t Second);		// // //
 
 	// Frame editing
 	bool			InsertFrame(unsigned int Track, unsigned int Frame);
@@ -279,7 +279,7 @@ public:
 	// Other
 	unsigned int	ScanActualLength(unsigned int Track, unsigned int Count) const;		// // //
 	double			GetStandardLength(int Track, unsigned int ExtraLoops) const;		// // //
-	unsigned int	GetFirstFreePattern(unsigned int Track, unsigned int Channel) const;		// // //
+	unsigned int	GetFirstFreePattern(unsigned int Track, chan_id_t Channel) const;		// // //
 
 	// Operations
 	void			RemoveUnusedInstruments();
@@ -351,7 +351,7 @@ public:
 	template <typename F>
 	void ForeachChannel(F f) const {
 		for (std::size_t i = 0, n = GetChannelCount(); i < n; ++i)
-			f(GetChannelType(i));
+			f(TranslateChannel(i));
 	}
 
 	std::shared_ptr<groove> GetGroove(unsigned Index);		// // //

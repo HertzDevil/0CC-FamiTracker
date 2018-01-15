@@ -666,13 +666,14 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 					m_iCursorEditDigit = 1;
 				}
 				else if (m_iCursorEditDigit == 1) {
-					Pattern = m_pDocument->GetPatternAtFrame(Track, GetSelection().GstFirstSelectedFrame(), GetSelection().GetFirstSelectedChannel()) | Num;
+					Pattern = Num | m_pDocument->GetPatternAtFrame(Track, GetSelection().GstFirstSelectedFrame(),
+						m_pDocument->TranslateChannel(GetSelection().GetFirstSelectedChannel()));
 					m_iCursorEditDigit = 0;
 				}
 				m_pMainFrame->AddAction(std::make_unique<CFActionSetPattern>(Pattern));
 			}
 			else if (!m_bLastRow || FrameCount < MAX_FRAMES) {		// // //
-				int Pattern = m_bLastRow ? 0 : m_pDocument->GetPatternAtFrame(Track, Frame, Channel);		// // //
+				int Pattern = m_bLastRow ? 0 : m_pDocument->GetPatternAtFrame(Track, Frame, m_pDocument->TranslateChannel(Channel));		// // //
 				if (m_iCursorEditDigit == 0)
 					Pattern = (Pattern & 0x0F) | (Num << 4);
 				else if (m_iCursorEditDigit == 1)
@@ -1026,7 +1027,7 @@ void CFrameEditor::ClearPatterns(unsigned int Track, const CFrameSelection &Sel)
 {
 	for (auto [b, e] = CFrameIterator::FromSelection(Sel, *m_pDocument->GetChannelMap(), *m_pDocument->GetSong(Track)); b != e; ++b)
 		for (int c = b.m_iChannel; c < e.m_iChannel; ++c)
-			m_pDocument->ClearPattern(Track, b.m_iFrame, c);
+			m_pDocument->ClearPattern(Track, b.m_iFrame, m_pDocument->TranslateChannel(c));
 }
 
 bool CFrameEditor::InputEnabled() const

@@ -213,21 +213,21 @@ const stChanNote &CPatternIterator::Get(int Channel) const
 {
 	int Frame = m_iFrame % m_pDocument->GetFrameCount(m_iTrack);
 	if (Frame < 0) Frame += m_pDocument->GetFrameCount(m_iTrack);
-	return m_pDocument->GetNoteData(m_iTrack, Frame, Channel, m_iRow);
+	return m_pDocument->GetNoteData(m_iTrack, Frame, m_pDocument->TranslateChannel(Channel), m_iRow);
 }
 
 void CPatternIterator::Set(int Channel, const stChanNote &Note)
 {
 	int Frame = m_iFrame % m_pDocument->GetFrameCount(m_iTrack);
 	if (Frame < 0) Frame += m_pDocument->GetFrameCount(m_iTrack);
-	m_pDocument->SetNoteData(m_iTrack, Frame, Channel, m_iRow, Note);
+	m_pDocument->SetNoteData(m_iTrack, Frame, m_pDocument->TranslateChannel(Channel), m_iRow, Note);
 }
 
 void CPatternIterator::Step() // resolves skip effects
 {
 	for (int i = m_pDocument->GetChannelCount() - 1; i >= 0; --i) {
 		const auto &Note = Get(i);
-		for (int c = m_pDocument->GetEffColumns(m_iTrack, i); c >= 0; --c) {
+		for (int c = m_pDocument->GetEffColumns(m_iTrack, m_pDocument->TranslateChannel(i)); c >= 0; --c) {
 			if (Note.EffNumber[c] == EF_JUMP) {
 				m_iFrame = Note.EffParam[c];
 				if (m_iFrame >= static_cast<int>(m_pDocument->GetFrameCount(m_iTrack)))
@@ -239,7 +239,7 @@ void CPatternIterator::Step() // resolves skip effects
 	}
 	for (int i = m_pDocument->GetChannelCount() - 1; i >= 0; i--) {
 		const auto &Note = Get(i);
-		for (int c = m_pDocument->GetEffColumns(m_iTrack, i); c >= 0; --c) {
+		for (int c = m_pDocument->GetEffColumns(m_iTrack, m_pDocument->TranslateChannel(i)); c >= 0; --c) {
 			if (Note.EffNumber[c] == EF_SKIP) {
 				++m_iFrame;
 				m_iRow = 0;

@@ -1814,7 +1814,7 @@ void CFamiTrackerView::InsertNote(int Note, int Octave, int Channel, int Velocit
 	const int Frame = GetSelectedFrame();
 	const int Row = GetSelectedRow();
 
-	stChanNote Cell = GetDocument()->GetNoteData(Track, Frame, Channel, Row);		// // //
+	stChanNote Cell = GetDocument()->GetNoteData(Track, Frame, GetDocument()->TranslateChannel(Channel), Row);		// // //
 
 	Cell.Note = Note;
 
@@ -1917,7 +1917,7 @@ void CFamiTrackerView::PlayNote(unsigned int Channel, unsigned int Note, unsigne
 
 		for (int i = 0; i < Channels; ++i)
 			if (!IsChannelMuted(i) && i != Channel)
-				theApp.GetSoundGenerator()->QueueNote(i, pDoc->GetActiveNote(Track, Frame, i, Row),
+				theApp.GetSoundGenerator()->QueueNote(i, pDoc->GetActiveNote(Track, Frame, pDoc->TranslateChannel(i), Row),
 					(i == Channel) ? NOTE_PRIO_2 : NOTE_PRIO_1);		// // //
 	}
 }
@@ -2723,7 +2723,7 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 		return;
 
 	// Get the note data
-	stChanNote Note = pDoc->GetNoteData(Track, Frame, Channel, Row);		// // //
+	stChanNote Note = pDoc->GetNoteData(Track, Frame, pDoc->TranslateChannel(Channel), Row);		// // //
 
 	// Make all effect columns look the same, save an index instead
 	switch (Column) {
@@ -2956,7 +2956,7 @@ int CFamiTrackerView::TranslateKeyModplug(unsigned char Key) const
 	int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 	int Octave = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedOctave();		// // // 050B
 
-	const auto &NoteData = pDoc->GetNoteData(Track, GetSelectedFrame(), GetSelectedChannel(), GetSelectedRow());		// // //
+	const auto &NoteData = pDoc->GetNoteData(Track, GetSelectedFrame(), pDoc->TranslateChannel(GetSelectedChannel()), GetSelectedRow());		// // //
 
 	if (m_bEditEnable && Key >= '0' && Key <= '9') {		// // //
 		KeyOctave = Key - '1';
@@ -3435,7 +3435,7 @@ void CFamiTrackerView::OnPickupRow()
 	int Row = GetSelectedRow();
 	int Channel = GetSelectedChannel();
 
-	const auto &Note = pDoc->GetNoteData(Track, Frame, Channel, Row);		// // //
+	const auto &Note = pDoc->GetNoteData(Track, Frame, pDoc->TranslateChannel(Channel), Row);		// // //
 
 	m_iLastVolume = Note.Vol;
 	m_iLastInstrument = Note.Instrument;		// // //

@@ -121,7 +121,7 @@ int CSwapDlg::GetChipFromString(const CString &str)
 		return SNDCHIP_NONE;
 }
 
-int CSwapDlg::GetFinalChannel(unsigned int Channel, unsigned int Chip) const
+chan_id_t CSwapDlg::GetFinalChannel(unsigned int Channel, unsigned int Chip) const
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
@@ -134,7 +134,7 @@ int CSwapDlg::GetFinalChannel(unsigned int Channel, unsigned int Chip) const
 	case SNDCHIP_S5B:  Channel += CHANID_S5B_CH1; break;
 	}
 
-	return pDoc->GetChannelIndex(Channel);
+	return pDoc->TranslateChannel(pDoc->GetChannelIndex(Channel));
 }
 
 void CSwapDlg::OnEnChangeEditSwapChan1()

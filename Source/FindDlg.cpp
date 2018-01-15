@@ -206,7 +206,7 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 	const auto pDoc = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
 	m_cListResults.SetItemText(Pos, CHANNEL, pDoc->GetChannel(Cursor.m_iChannel).GetChannelName());
 	m_cListResults.SetItemText(Pos, PATTERN, conv::sv_from_int_hex(pDoc->GetPatternAtFrame(
-		Cursor.m_iTrack, Cursor.m_iFrame, Cursor.m_iChannel), 2).data());
+		Cursor.m_iTrack, Cursor.m_iFrame, pDoc->TranslateChannel(Cursor.m_iChannel)), 2).data());
 
 	m_cListResults.SetItemText(Pos, FRAME, conv::sv_from_int_hex(Cursor.m_iFrame, 2).data());
 	m_cListResults.SetItemText(Pos, ROW, conv::sv_from_int_hex(Cursor.m_iRow, 2).data());
@@ -1056,7 +1056,7 @@ bool CFindDlg::Find(bool ShowEnd)
 		}
 		const auto &Target = m_pFindCursor->Get();
 		if (CompareFields(Target, m_pFindCursor->m_iChannel == CHANID_NOISE,
-							m_pDocument->GetEffColumns(Track, m_pFindCursor->m_iChannel))) {
+							m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel)))) {
 			auto pCursor = std::move(m_pFindCursor);
 			m_pView->SelectFrame(pCursor->m_iFrame % Frames);
 			m_pView->SelectRow(pCursor->m_iRow);
@@ -1100,7 +1100,7 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 			if (m_cEffectColumn.GetCurSel() < MAX_EFFECT_COLUMNS)
 				MatchedColumns.push_back(m_cEffectColumn.GetCurSel());
 			else {
-				const int c = m_pDocument->GetEffColumns(m_pFindCursor->m_iTrack, m_pFindCursor->m_iChannel);
+				const int c = m_pDocument->GetEffColumns(m_pFindCursor->m_iTrack, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel));
 				for (int i = 0; i <= c; ++i)
 					if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[Target.EffNumber[i]]) &&
 						(!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.EffParam[i])))
@@ -1280,7 +1280,7 @@ void CFindDlg::OnBnClickedButtonFindAll()
 	do {
 		const auto &Target = m_pFindCursor->Get();
 		if (CompareFields(Target, m_pFindCursor->m_iChannel == CHANID_NOISE,
-							m_pDocument->GetEffColumns(Track, m_pFindCursor->m_iChannel)))
+							m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel))))
 			m_cResultsBox.AddResult(Target, *m_pFindCursor, m_pFindCursor->m_iChannel == CHANID_NOISE);
 		m_pFindCursor->Move(m_iSearchDirection);
 	} while (!m_pFindCursor->AtStart());
@@ -1306,7 +1306,7 @@ void CFindDlg::OnBnClickedButtonReplaceall()
 	do {
 		const auto &Target = m_pFindCursor->Get();
 		if (CompareFields(Target, m_pFindCursor->m_iChannel == CHANID_NOISE,
-							m_pDocument->GetEffColumns(Track, m_pFindCursor->m_iChannel))) {
+							m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel)))) {
 			m_bFound = true;
 			Replace(static_cast<CCompoundAction *>(pAction.get()));
 			++Count;

@@ -942,28 +942,28 @@ bool CFamiTrackerDoc::GetSongGroove(unsigned int Track) const		// // //
 	return GetSongData(Track).GetSongGroove();
 }
 
-unsigned int CFamiTrackerDoc::GetEffColumns(unsigned int Track, unsigned int Channel) const
+unsigned int CFamiTrackerDoc::GetEffColumns(unsigned int Track, chan_id_t Channel) const
 {
-	return GetSongData(Track).GetEffectColumnCount(TranslateChannel(Channel));
+	return GetSongData(Track).GetEffectColumnCount(Channel);
 }
 
-void CFamiTrackerDoc::SetEffColumns(unsigned int Track, unsigned int Channel, unsigned int Columns)
+void CFamiTrackerDoc::SetEffColumns(unsigned int Track, chan_id_t Channel, unsigned int Columns)
 {
 	ASSERT(Columns < MAX_EFFECT_COLUMNS);
 
-	GetSongData(Track).SetEffectColumnCount(TranslateChannel(Channel), Columns);
+	GetSongData(Track).SetEffectColumnCount(Channel, Columns);
 }
 
-unsigned int CFamiTrackerDoc::GetPatternAtFrame(unsigned int Track, unsigned int Frame, unsigned int Channel) const
+unsigned int CFamiTrackerDoc::GetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel) const
 {
-	return GetSongData(Track).GetFramePattern(Frame, TranslateChannel(Channel));
+	return GetSongData(Track).GetFramePattern(Frame, Channel);
 }
 
-void CFamiTrackerDoc::SetPatternAtFrame(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Pattern)
+void CFamiTrackerDoc::SetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Pattern)
 {
 	ASSERT(Pattern < MAX_PATTERN);
 
-	GetSongData(Track).SetFramePattern(Frame, TranslateChannel(Channel), Pattern);
+	GetSongData(Track).SetFramePattern(Frame, Channel, Pattern);
 }
 
 unsigned int CFamiTrackerDoc::GetFrameRate() const
@@ -976,43 +976,39 @@ unsigned int CFamiTrackerDoc::GetFrameRate() const
 
 //// Pattern functions ////////////////////////////////////////////////////////////////////////////////
 
-void CFamiTrackerDoc::SetNoteData(unsigned Track, unsigned Frame, unsigned Channel, unsigned Row, const stChanNote &Data)		// // //
+void CFamiTrackerDoc::SetNoteData(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row, const stChanNote &Data)		// // //
 {
-	auto &Song = GetSongData(Track);
-	Song.GetPatternOnFrame(TranslateChannel(Channel), Frame).SetNoteOn(Row, Data);		// // //
+	GetSongData(Track).GetPatternOnFrame(Channel, Frame).SetNoteOn(Row, Data);		// // //
 }
 
-const stChanNote &CFamiTrackerDoc::GetNoteData(unsigned Track, unsigned Frame, unsigned Channel, unsigned Row) const
+const stChanNote &CFamiTrackerDoc::GetNoteData(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const
 {
-	auto &Song = GetSongData(Track);
-	return Song.GetPatternOnFrame(TranslateChannel(Channel), Frame).GetNoteOn(Row);		// // //
+	return GetSongData(Track).GetPatternOnFrame(Channel, Frame).GetNoteOn(Row);		// // //
 }
 
-stChanNote CFamiTrackerDoc::GetActiveNote(unsigned Track, unsigned Frame, unsigned Channel, unsigned Row) const {		// // //
+stChanNote CFamiTrackerDoc::GetActiveNote(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const {		// // //
 	auto Note = GetNoteData(Track, Frame, Channel, Row);
 	for (int i = GetEffColumns(Track, Channel) + 1; i < MAX_EFFECT_COLUMNS; ++i)
 		Note.EffNumber[i] = EF_NONE;
 	return Note;
 }
 
-void CFamiTrackerDoc::SetDataAtPattern(unsigned Track, unsigned Pattern, unsigned Channel, unsigned Row, const stChanNote &Data)		// // //
+void CFamiTrackerDoc::SetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row, const stChanNote &Data)		// // //
 {
 	// Set a note to a direct pattern
-	auto &Song = GetSongData(Track);
-	Song.SetPatternData(TranslateChannel(Channel), Pattern, Row, Data);		// // //
+	GetSongData(Track).SetPatternData(Channel, Pattern, Row, Data);		// // //
 }
 
-const stChanNote &CFamiTrackerDoc::GetDataAtPattern(unsigned Track, unsigned Pattern, unsigned Channel, unsigned Row) const		// // //
+const stChanNote &CFamiTrackerDoc::GetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row) const		// // //
 {
 	// Get note from a direct pattern
-	auto &Song = GetSongData(Track);
-	return Song.GetPatternData(TranslateChannel(Channel), Pattern, Row);		// // //
+	return GetSongData(Track).GetPatternData(Channel, Pattern, Row);		// // //
 }
 
-bool CFamiTrackerDoc::InsertRow(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row)
+bool CFamiTrackerDoc::InsertRow(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row)
 {
 	auto &Song = GetSongData(Track);
-	auto &Pattern = Song.GetPatternOnFrame(TranslateChannel(Channel), Frame);		// // //
+	auto &Pattern = Song.GetPatternOnFrame(Channel, Frame);		// // //
 
 	for (unsigned int i = Song.GetPatternLength() - 1; i > Row; --i)
 		Pattern.SetNoteOn(i, Pattern.GetNoteOn(i - 1));
@@ -1021,17 +1017,17 @@ bool CFamiTrackerDoc::InsertRow(unsigned int Track, unsigned int Frame, unsigned
 	return true;
 }
 
-void CFamiTrackerDoc::ClearPattern(unsigned int Track, unsigned int Frame, unsigned int Channel)
+void CFamiTrackerDoc::ClearPattern(unsigned int Track, unsigned int Frame, chan_id_t Channel)
 {
 	// Clear entire pattern
 	auto &Song = GetSongData(Track);
-	Song.GetPatternOnFrame(TranslateChannel(Channel), Frame) = CPatternData { };		// // //
+	Song.GetPatternOnFrame(Channel, Frame) = CPatternData { };		// // //
 }
 
-bool CFamiTrackerDoc::ClearRowField(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row, cursor_column_t Column)
+bool CFamiTrackerDoc::ClearRowField(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row, cursor_column_t Column)
 {
 	auto &Song = GetSongData(Track);
-	stChanNote &Note = Song.GetPatternOnFrame(TranslateChannel(Channel), Frame).GetNoteOn(Row);		// // //
+	stChanNote &Note = Song.GetPatternOnFrame(Channel, Frame).GetNoteOn(Row);		// // //
 
 	switch (Column) {
 	case C_NOTE:			// Note
@@ -1076,10 +1072,10 @@ bool CFamiTrackerDoc::ClearRowField(unsigned int Track, unsigned int Frame, unsi
 	return true;
 }
 
-bool CFamiTrackerDoc::PullUp(unsigned int Track, unsigned int Frame, unsigned int Channel, unsigned int Row)
+bool CFamiTrackerDoc::PullUp(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row)
 {
 	auto &Song = GetSongData(Track);		// // //
-	auto &Pattern = Song.GetPatternOnFrame(TranslateChannel(Channel), Frame);
+	auto &Pattern = Song.GetPatternOnFrame(Channel, Frame);
 	int PatternLen = Song.GetPatternLength();
 
 	for (int i = Row; i < PatternLen - 1; ++i)
@@ -1089,18 +1085,17 @@ bool CFamiTrackerDoc::PullUp(unsigned int Track, unsigned int Frame, unsigned in
 	return true;
 }
 
-void CFamiTrackerDoc::CopyPattern(unsigned int Track, int Target, int Source, int Channel)
+void CFamiTrackerDoc::CopyPattern(unsigned int Track, int Target, int Source, chan_id_t Channel)
 {
 	// Copy one pattern to another
 
 	auto &Song = GetSongData(Track);
-	Song.GetPattern(TranslateChannel(Channel), Target) = Song.GetPattern(TranslateChannel(Channel), Source);		// // //
+	Song.GetPattern(Channel, Target) = Song.GetPattern(Channel, Source);		// // //
 }
 
-void CFamiTrackerDoc::SwapChannels(unsigned int Track, unsigned int First, unsigned int Second)		// // //
+void CFamiTrackerDoc::SwapChannels(unsigned int Track, chan_id_t First, chan_id_t Second)		// // //
 {
-	auto &Song = GetSongData(Track);
-	Song.SwapChannels(TranslateChannel(First), TranslateChannel(Second));
+	GetSongData(Track).SwapChannels(First, Second);
 }
 
 //// Frame functions //////////////////////////////////////////////////////////////////////////////////
@@ -1340,16 +1335,16 @@ int CFamiTrackerDoc::GetNamcoChannels() const {
 	return m_pChannelMap->GetChipChannelCount(SNDCHIP_N163);		// // //
 }
 
-unsigned int CFamiTrackerDoc::GetFirstFreePattern(unsigned int Track, unsigned int Channel) const
+unsigned int CFamiTrackerDoc::GetFirstFreePattern(unsigned int Track, chan_id_t Channel) const
 {
 	auto &Song = GetSongData(Track);
-	return Song.GetFreePatternIndex(TranslateChannel(Channel));		// // //
+	return Song.GetFreePatternIndex(Channel);		// // //
 }
 
-bool CFamiTrackerDoc::IsPatternEmpty(unsigned int Track, unsigned int Channel, unsigned int Pattern) const
+bool CFamiTrackerDoc::IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsigned int Pattern) const
 {
 	auto &Song = GetSongData(Track);
-	return Song.GetPattern(TranslateChannel(Channel), Pattern).IsEmpty();
+	return Song.GetPattern(Channel, Pattern).IsEmpty();
 }
 
 // Channel interface, these functions must be synchronized!!!
@@ -1803,10 +1798,10 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 					pInst->SetSampleIndex(o, n, 0);
 }
 
-bool CFamiTrackerDoc::ArePatternsSame(unsigned int Track, unsigned int Channel, unsigned int Pattern1, unsigned int Pattern2) const		// // //
+bool CFamiTrackerDoc::ArePatternsSame(unsigned int Track, chan_id_t Channel, unsigned int Pattern1, unsigned int Pattern2) const		// // //
 {
 	const auto &song = GetSongData(Track);
-	return song.GetPattern(TranslateChannel(Channel), Pattern1) == song.GetPattern(TranslateChannel(Channel), Pattern2);
+	return song.GetPattern(Channel, Pattern1) == song.GetPattern(Channel, Pattern2);
 }
 
 void CFamiTrackerDoc::SwapInstruments(int First, int Second)

@@ -627,7 +627,7 @@ bool CPatternEditor::CalculatePatternLayout()
 	for (int i = 0; i < ChannelCount; ++i) {
 		int Width;		// // //
 		if (m_bCompactMode) Width = (3 * m_iCharWidth + m_iColumnSpacing);
-		else Width = m_iCharWidth * 9 + m_iColumnSpacing * 4 + m_pDocument->GetEffColumns(Track, i) * (3 * m_iCharWidth + m_iColumnSpacing);
+		else Width = m_iCharWidth * 9 + m_iColumnSpacing * 4 + m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(i)) * (3 * m_iCharWidth + m_iColumnSpacing);
 		m_iChannelWidths[i] = Width + 1;
 		m_iColumns[i] = GetChannelColumns(i);		// // //
 		m_iChannelOffsets[i] = Offset;
@@ -1248,7 +1248,7 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 				bInvert = true;
 			}
 
-			DrawCell(DC, PosX - m_iColumnSpacing / 2, j, i, bInvert, m_pDocument->GetNoteData(Track, f, i, Row), colorInfo);		// // //
+			DrawCell(DC, PosX - m_iColumnSpacing / 2, j, i, bInvert, m_pDocument->GetNoteData(Track, f, m_pDocument->TranslateChannel(i), Row), colorInfo);		// // //
 			PosX += GetColumnSpace(j);
 			if (!m_bCompactMode)		// // //
 				SelStart += GetSelectWidth(j);
@@ -1343,7 +1343,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 						}
 						else {
 							bool Found = false;
-							for (unsigned int i = 0; i <= m_pDocument->GetEffColumns(GetSelectedTrack(), Channel); i++) {
+							for (unsigned int i = 0; i <= m_pDocument->GetEffColumns(GetSelectedTrack(), m_pDocument->TranslateChannel(Channel)); i++) {
 								if (NoteData.EffNumber[i] != EF_NONE) {
 									DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[NoteData.EffNumber[i] - 1], DimEff);
 									DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, HEX[NoteData.EffParam[i] >> 4], DimEff);
@@ -1517,14 +1517,14 @@ void CPatternEditor::DrawHeader(CDC &DC)
 			// Effect columns
 			DC.SetTextColor(TEXT_COLOR);
 			DC.SetTextAlign(TA_CENTER);
-			for (unsigned int i = 1; i <= m_pDocument->GetEffColumns(Track, Channel); i++) {		// // //
+			for (unsigned int i = 1; i <= m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(Channel)); i++) {		// // //
 				CString str;
 				str.Format(_T("fx%d"), i + 1);
 				DC.TextOut(Offset + GetChannelWidth(i) - m_iCharWidth * 3 / 2, HEADER_CHAN_START + HEADER_CHAN_HEIGHT - 17, str);
 			}
 
 			// Arrows for expanding/removing fx columns
-			if (m_pDocument->GetEffColumns(Track, Channel) > 0) {
+			if (m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(Channel)) > 0) {
 				ArrowPoints[0].SetPoint(Offset + m_iCharWidth * 15 / 2 + m_iColumnSpacing * 3 + 2, HEADER_CHAN_START + 6);		// // //
 				ArrowPoints[1].SetPoint(Offset + m_iCharWidth * 15 / 2 + m_iColumnSpacing * 3 + 2, HEADER_CHAN_START + 6 + 10);
 				ArrowPoints[2].SetPoint(Offset + m_iCharWidth * 15 / 2 + m_iColumnSpacing * 3 - 3, HEADER_CHAN_START + 6 + 5);
@@ -1538,7 +1538,7 @@ void CPatternEditor::DrawHeader(CDC &DC)
 				DC.SelectObject(pOldPen);
 			}
 
-			if (m_pDocument->GetEffColumns(Track, Channel) < (MAX_EFFECT_COLUMNS - 1)) {
+			if (m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(Channel)) < (MAX_EFFECT_COLUMNS - 1)) {
 				ArrowPoints[0].SetPoint(Offset + m_iCharWidth * 17 / 2 + m_iColumnSpacing * 3 - 2, HEADER_CHAN_START + 6);		// // //
 				ArrowPoints[1].SetPoint(Offset + m_iCharWidth * 17 / 2 + m_iColumnSpacing * 3 - 2, HEADER_CHAN_START + 6 + 10);
 				ArrowPoints[2].SetPoint(Offset + m_iCharWidth * 17 / 2 + m_iColumnSpacing * 3 + 3, HEADER_CHAN_START + 6 + 5);
@@ -1815,7 +1815,7 @@ cursor_column_t CPatternEditor::GetChannelColumns(int Channel) const
 {
 	// Return number of available columns in a channel
 	if (m_bCompactMode) return C_NOTE;
-	unsigned int Col = m_pDocument->GetEffColumns(GetSelectedTrack(), Channel);
+	unsigned int Col = m_pDocument->GetEffColumns(GetSelectedTrack(), m_pDocument->TranslateChannel(Channel));
 	switch (Col) {
 	case 0: return C_EFF1_PARAM2;
 	case 1: return C_EFF2_PARAM2;
@@ -2746,13 +2746,13 @@ bool CPatternEditor::OnMouseHover(UINT nFlags, const CPoint &point)
 		m_iMouseHoverChan = Channel;
 
 		if (Column == 5) {
-			if (m_pDocument->GetEffColumns(Track, Channel) > 0) {
+			if (m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(Channel)) > 0) {
 				bRedraw = m_iMouseHoverEffArrow != 1;
 				m_iMouseHoverEffArrow = 1;
 			}
 		}
 		else if (Column == 6) {
-			if (m_pDocument->GetEffColumns(Track, Channel) < (MAX_EFFECT_COLUMNS - 1)) {
+			if (m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(Channel)) < (MAX_EFFECT_COLUMNS - 1)) {
 				bRedraw = m_iMouseHoverEffArrow != 2;
 				m_iMouseHoverEffArrow = 2;
 			}
@@ -2830,7 +2830,7 @@ std::unique_ptr<CPatternClipData> CPatternEditor::CopyEntire() const
 
 	for (int i = 0; i < ChannelCount; ++i)
 		for (int j = 0; j < Rows; ++j)
-			*pClipData->GetPattern(i, j) = m_pDocument->GetNoteData(Track, Frame, i, j);		// // //
+			*pClipData->GetPattern(i, j) = m_pDocument->GetNoteData(Track, Frame, m_pDocument->TranslateChannel(i), j);		// // //
 
 	return pClipData;
 }
@@ -2891,7 +2891,8 @@ std::unique_ptr<CPatternClipData> CPatternEditor::CopyRaw(const CSelection &Sel)
 
 	const int PackedPos = (it.m_iFrame + Frames) * Length + it.m_iRow;
 	for (int r = 0; r < Rows; r++) for (int i = 0; i < Channels; ++i)
-		*pClipData->GetPattern(i, r) = m_pDocument->GetNoteData(Track, (PackedPos + r) / Length % Frames, i + cBegin, (PackedPos + r) % Length);
+		*pClipData->GetPattern(i, r) = m_pDocument->GetNoteData(Track, (PackedPos + r) / Length % Frames,
+			m_pDocument->TranslateChannel(i + cBegin), (PackedPos + r) % Length);
 
 	return pClipData;
 }
@@ -2903,7 +2904,7 @@ void CPatternEditor::PasteEntire(const CPatternClipData &ClipData)
 	const int Frame = m_cpCursorPos.m_iFrame;		// // //
 	for (int i = 0; i < ClipData.ClipInfo.Channels; ++i)
 		for (int j = 0; j < ClipData.ClipInfo.Rows; ++j)
-			m_pDocument->SetNoteData(Track, Frame, i, j, *ClipData.GetPattern(i, j));		// // //
+			m_pDocument->SetNoteData(Track, Frame, m_pDocument->TranslateChannel(i), j, *ClipData.GetPattern(i, j));		// // //
 }
 
 void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t PasteMode, const paste_pos_t PastePos)		// // //
@@ -2940,7 +2941,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t 
 				auto NoteData = front.Get(i);
 				CopyNoteSection(&NoteData, &Source, PasteMode, (i == c) ? StartColumn : COLUMN_NOTE,
 					std::min((i == Channels + c - 1) ? EndColumn : COLUMN_EFF4,
-								static_cast<column_t>(COLUMN_EFF1 + m_pDocument->GetEffColumns(Track, i))));
+								static_cast<column_t>(COLUMN_EFF1 + m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(i)))));
 				front.Set(i, NoteData);
 			}
 			front.m_iRow--;
@@ -2957,7 +2958,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t 
 			const auto &Source = *(ClipData.GetPattern(0, j % ClipData.ClipInfo.Rows));
 			for (unsigned int i = StartColumn - COLUMN_EFF1; i <= EndColumn - COLUMN_EFF1; ++i) {		// // //
 				const unsigned int Offset = i - StartColumn + ColStart;
-				if (Offset > m_pDocument->GetEffColumns(Track, c)) break;
+				if (Offset > m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(c))) break;
 				bool Protected = false;
 				switch (PasteMode) {
 				case PASTE_MIX:
@@ -2985,7 +2986,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t 
 		for (unsigned int i = c; i < CEnd; ++i) {
 			int cGet = (i - c) % ClipData.ClipInfo.Channels;
 			const column_t ColEnd = std::min((i == Channels + c - 1) ? EndColumn : COLUMN_EFF4,
-				static_cast<column_t>(COLUMN_EFF1 + m_pDocument->GetEffColumns(Track, i)));
+				static_cast<column_t>(COLUMN_EFF1 + m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(i))));
 			auto NoteData = it.Get(i);
 			const auto &Source = *(ClipData.GetPattern(cGet, j % ClipData.ClipInfo.Rows));
 			CopyNoteSection(&NoteData, &Source, PasteMode, (!cGet) ? StartColumn : COLUMN_NOTE, ColEnd);
@@ -3020,12 +3021,12 @@ void CPatternEditor::PasteRaw(const CPatternClipData &ClipData, const CCursorPos
 	for (int i = 0; i < Channels; ++i) for (int r = 0; r < Rows; r++) {
 		int c = i + Pos.m_iChannel;
 		if (c == GetChannelCount()) return;
-		stChanNote Target = m_pDocument->GetNoteData(Track, (PackedPos + r) / Length % Frames, c, (PackedPos + r) % Length);
+		stChanNote Target = m_pDocument->GetNoteData(Track, (PackedPos + r) / Length % Frames, m_pDocument->TranslateChannel(c), (PackedPos + r) % Length);
 		const auto &Source = *(ClipData.GetPattern(i, r));
 		CopyNoteSection(&Target, &Source, PASTE_DEFAULT, (i == 0) ? StartColumn : COLUMN_NOTE,
 			std::min((i == Channels + Pos.m_iChannel - 1) ? EndColumn : COLUMN_EFF4,
-						static_cast<column_t>(COLUMN_EFF1 + m_pDocument->GetEffColumns(Track, c))));
-		m_pDocument->SetNoteData(Track, (PackedPos + r) / Length % Frames, c, (PackedPos + r) % Length, Target);
+						static_cast<column_t>(COLUMN_EFF1 + m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(c)))));
+		m_pDocument->SetNoteData(Track, (PackedPos + r) / Length % Frames, m_pDocument->TranslateChannel(c), (PackedPos + r) % Length, Target);
 	}
 }
 
@@ -3110,7 +3111,7 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 			// bool HasSkip = false;
 			for (int i = 0; i < GetChannelCount(); i++) {
 				const auto &Note = it.first.Get(i);
-				for (unsigned int c = 0; c <= m_pDocument->GetEffColumns(Track, i); c++) switch (Note.EffNumber[c]) {
+				for (unsigned int c = 0; c <= m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(i)); c++) switch (Note.EffNumber[c]) {
 				case EF_JUMP: case EF_SKIP: case EF_HALT:
 					if (Sel.IsColumnSelected(static_cast<column_t>(COLUMN_EFF1 + c), i))
 						return it.first == it.second ? SEL_TERMINAL_SKIP : SEL_NONTERMINAL_SKIP;
@@ -3130,7 +3131,7 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 		Hi.fill(0u);
 
 		for (int i = Sel.GetFrameStart(); i <= Sel.GetFrameEnd(); i++) {
-			int Pattern = m_pDocument->GetPatternAtFrame(Track, (i + Frames) % Frames, c);
+			int Pattern = m_pDocument->GetPatternAtFrame(Track, (i + Frames) % Frames, m_pDocument->TranslateChannel(c));
 			int RBegin = i == Sel.GetFrameStart() ? Sel.GetRowStart() : 0;
 			int REnd = i == Sel.GetFrameEnd() ? Sel.GetRowEnd() : GetCurrentPatternLength(i) - 1;
 			if (Lo[Pattern] <= Hi[Pattern] && RBegin <= Hi[Pattern] && REnd >= Lo[Pattern])
@@ -3182,13 +3183,13 @@ void CPatternEditor::SetFocus(bool bFocus)
 
 void CPatternEditor::IncreaseEffectColumn(int Channel)
 {
-	const int Columns = m_pDocument->GetEffColumns(GetSelectedTrack(), Channel) + 1;
+	const int Columns = m_pDocument->GetEffColumns(GetSelectedTrack(), m_pDocument->TranslateChannel(Channel)) + 1;
 	GetMainFrame()->AddAction(std::make_unique<CPActionEffColumn>(Channel, Columns));		// // //
 }
 
 void CPatternEditor::DecreaseEffectColumn(int Channel)
 {
-	const int Columns = m_pDocument->GetEffColumns(GetSelectedTrack(), Channel) - 1;
+	const int Columns = m_pDocument->GetEffColumns(GetSelectedTrack(), m_pDocument->TranslateChannel(Channel)) - 1;
 	if (GetMainFrame()->AddAction(std::make_unique<CPActionEffColumn>(Channel, Columns)))		// // //
 		if (static_cast<int>(m_cpCursorPos.m_iColumn) > Columns * 3 + 6)		// // //
 			m_cpCursorPos.m_iColumn = static_cast<cursor_column_t>(m_cpCursorPos.m_iColumn - 3);
@@ -3489,7 +3490,7 @@ void CPatternEditor::GetSelectionAsText(CString &str) const		// // //
 	Header.Append(_T("# "));
 	for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
 		Header.AppendFormat(_T(": %-13s"), m_pDocument->GetChannel(i).GetChannelName());
-		int Columns = m_pDocument->GetEffColumns(Track, i);
+		int Columns = m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(i));
 		if (i == it.second.m_iChannel)
 			Columns = std::clamp(static_cast<int>(GetSelectColumn(it.second.m_iColumn)) - 3, 0, Columns);
 		for (int j = 0; j < Columns; j++)
@@ -3499,7 +3500,7 @@ void CPatternEditor::GetSelectionAsText(CString &str) const		// // //
 
 	static const int COLUMN_CHAR_POS[] = {0, 4, 7, 9, 13, 17, 21};
 	static const int COLUMN_CHAR_LEN[] = {3, 2, 1, 3, 3, 3, 3};
-	const int Last = m_pDocument->GetEffColumns(Track, it.second.m_iChannel) + 3;
+	const int Last = m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(it.second.m_iChannel)) + 3;
 	const unsigned BegCol = GetSelectColumn(it.first.m_iColumn);
 	const unsigned EndCol = GetSelectColumn(it.second.m_iColumn);
 	for (; it.first <= it.second; ++it.first) {
@@ -3507,7 +3508,7 @@ void CPatternEditor::GetSelectionAsText(CString &str) const		// // //
 		line.AppendFormat(_T("ROW %0*X"), HexLength, Row++);
 		for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
 			const auto &NoteData = it.first.Get(i);
-			CString Row = CTextExport::ExportCellText(NoteData, m_pDocument->GetEffColumns(Track, i) + 1, i == CHANID_NOISE);
+			CString Row = CTextExport::ExportCellText(NoteData, m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(i)) + 1, i == CHANID_NOISE);
 			if (i == it.first.m_iChannel) for (unsigned c = 0; c < BegCol; ++c)
 				for (int j = 0; j < COLUMN_CHAR_LEN[c]; ++j) Row.SetAt(COLUMN_CHAR_POS[c] + j, ' ');
 			if (i == it.second.m_iChannel && EndCol < COLUMN_EFF4)

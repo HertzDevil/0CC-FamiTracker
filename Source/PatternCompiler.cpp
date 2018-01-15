@@ -126,7 +126,7 @@ CPatternCompiler::~CPatternCompiler()
 
 void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 {
-	int EffColumns = m_pDocument->GetEffColumns(Track, Channel) + 1;
+	int EffColumns = m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(Channel)) + 1;
 
 	stSpacingInfo SpaceInfo;
 
@@ -145,7 +145,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 	unsigned char NESNote = 0;
 
 	for (unsigned int i = 0; i < iPatternLen; ++i) {
-		stChanNote ChanNote = m_pDocument->GetDataAtPattern(Track, Pattern, Channel, i);		// // //
+		stChanNote ChanNote = m_pDocument->GetDataAtPattern(Track, Pattern, m_pDocument->TranslateChannel(Channel), i);		// // //
 
 		unsigned char Note = ChanNote.Note;
 		unsigned char Octave = ChanNote.Octave;
@@ -699,7 +699,7 @@ void CPatternCompiler::ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned 
 	Info.SpaceSize = 0;
 
 	for (unsigned i = StartRow; i < m_pDocument->GetPatternLength(Track); ++i) {
-		const auto &NoteData = m_pDocument->GetDataAtPattern(Track, Pattern, Channel, i);		// // //
+		const auto &NoteData = m_pDocument->GetDataAtPattern(Track, Pattern, m_pDocument->TranslateChannel(Channel), i);		// // //
 		bool NoteUsed = false;
 
 		if (NoteData.Note > 0)
@@ -708,7 +708,7 @@ void CPatternCompiler::ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned 
 			NoteUsed = true;
 		else if (NoteData.Vol < MAX_VOLUME)
 			NoteUsed = true;
-		else for (unsigned j = 0, Count = m_pDocument->GetEffColumns(Track, Channel); j <= Count; ++j)
+		else for (unsigned j = 0, Count = m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(Channel)); j <= Count; ++j)
 			if (NoteData.EffNumber[j] != EF_NONE)
 				NoteUsed = true;
 

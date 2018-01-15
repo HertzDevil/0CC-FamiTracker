@@ -280,7 +280,7 @@ void CSoundGen::PlaySingleRow(int track) {		// // //
 	auto [frame, row] = m_pTrackerView->GetSelectedPos();
 	for (int i = 0; i < Channels; ++i)
 		if (!IsChannelMuted(i))
-			QueueNote(i, m_pDocument->GetActiveNote(track, frame, i, row), NOTE_PRIO_1);
+			QueueNote(i, m_pDocument->GetActiveNote(track, frame, m_pDocument->TranslateChannel(i), row), NOTE_PRIO_1);
 }
 
 void CSoundGen::WriteAPU(int Address, char Value)

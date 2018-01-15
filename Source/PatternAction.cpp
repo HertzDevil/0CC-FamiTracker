@@ -61,6 +61,7 @@ void CPatternEditorState::ApplyState(CPatternEditor *pEditor) const
 
 // // // for note writes
 #define STATE_EXPAND(st) (st)->Track, (st)->Cursor.m_iFrame, (st)->Cursor.m_iChannel, (st)->Cursor.m_iRow
+#define STATE_EXPAND2(pDoc, st) (st)->Track, (st)->Cursor.m_iFrame, (pDoc)->TranslateChannel((st)->Cursor.m_iChannel), (st)->Cursor.m_iRow
 
 CPatternAction::~CPatternAction()
 {
@@ -90,7 +91,9 @@ bool CPatternAction::SetTargetSelection(CPatternEditor *pPatternEditor, CSelecti
 		break;
 	}
 
-	CPatternIterator End(CFamiTrackerDoc::GetDoc(), m_pUndoState->Track, Start);
+	auto *pDoc = CFamiTrackerDoc::GetDoc();
+
+	CPatternIterator End(pDoc, m_pUndoState->Track, Start);
 
 	if (m_iPasteMode == PASTE_INSERT) {
 		End.m_iFrame = Start.m_iFrame;
@@ -108,7 +111,7 @@ bool CPatternAction::SetTargetSelection(CPatternEditor *pPatternEditor, CSelecti
 		End.m_iColumn = GetCursorEndColumn(
 			!((End.m_iChannel - Start.m_iChannel + 1) % m_pClipData->ClipInfo.Channels) ?
 			m_pClipData->ClipInfo.EndColumn :
-			static_cast<column_t>(COLUMN_EFF1 + CFamiTrackerDoc::GetDoc()->GetEffColumns(m_pUndoState->Track, End.m_iChannel)));
+			static_cast<column_t>(COLUMN_EFF1 + pDoc->GetEffColumns(m_pUndoState->Track, pDoc->TranslateChannel(End.m_iChannel))));
 		break;
 	case PASTE_DRAG:
 		End.m_iChannel += m_pClipData->ClipInfo.Channels - 1;
@@ -283,20 +286,20 @@ CPActionEditNote::CPActionEditNote(const stChanNote &Note) :
 bool CPActionEditNote::SaveState(const CMainFrame &MainFrm)
 {
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_OldNote = pDoc->GetNoteData(STATE_EXPAND(m_pUndoState));		// // //
+	m_OldNote = pDoc->GetNoteData(STATE_EXPAND2(pDoc, m_pUndoState));		// // //
 	return true;
 }
 
 void CPActionEditNote::Undo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetNoteData(STATE_EXPAND(m_pUndoState), m_OldNote);
+	pDoc->SetNoteData(STATE_EXPAND2(pDoc, m_pUndoState), m_OldNote);
 }
 
 void CPActionEditNote::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetNoteData(STATE_EXPAND(m_pUndoState), m_NewNote);
+	pDoc->SetNoteData(STATE_EXPAND2(pDoc, m_pUndoState), m_NewNote);
 }
 
 
@@ -309,20 +312,20 @@ CPActionReplaceNote::CPActionReplaceNote(const stChanNote &Note, int Frame, int 
 bool CPActionReplaceNote::SaveState(const CMainFrame &MainFrm)
 {
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_OldNote = pDoc->GetNoteData(m_pUndoState->Track, m_iFrame, m_iChannel, m_iRow);		// // //
+	m_OldNote = pDoc->GetNoteData(m_pUndoState->Track, m_iFrame, pDoc->TranslateChannel(m_iChannel), m_iRow);		// // //
 	return true;
 }
 
 void CPActionReplaceNote::Undo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetNoteData(m_pUndoState->Track, m_iFrame, m_iChannel, m_iRow, m_OldNote);
+	pDoc->SetNoteData(m_pUndoState->Track, m_iFrame, pDoc->TranslateChannel(m_iChannel), m_iRow, m_OldNote);
 }
 
 void CPActionReplaceNote::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetNoteData(m_pUndoState->Track, m_iFrame, m_iChannel, m_iRow, m_NewNote);
+	pDoc->SetNoteData(m_pUndoState->Track, m_iFrame, pDoc->TranslateChannel(m_iChannel), m_iRow, m_NewNote);
 }
 
 
@@ -330,23 +333,23 @@ void CPActionReplaceNote::Redo(CMainFrame &MainFrm)
 bool CPActionInsertRow::SaveState(const CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_OldNote = pDoc->GetNoteData(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame, m_pUndoState->Cursor.m_iChannel,
-					  pDoc->GetPatternLength(m_pUndoState->Track) - 1);
+	m_OldNote = pDoc->GetNoteData(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame,
+		pDoc->TranslateChannel(m_pUndoState->Cursor.m_iChannel), pDoc->GetPatternLength(m_pUndoState->Track) - 1);
 	return true;
 }
 
 void CPActionInsertRow::Undo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->PullUp(STATE_EXPAND(m_pUndoState));
-	pDoc->SetNoteData(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame, m_pUndoState->Cursor.m_iChannel,
+	pDoc->PullUp(STATE_EXPAND2(pDoc, m_pUndoState));
+	pDoc->SetNoteData(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame, pDoc->TranslateChannel(m_pUndoState->Cursor.m_iChannel),
 					  pDoc->GetPatternLength(m_pUndoState->Track) - 1, m_OldNote);
 }
 
 void CPActionInsertRow::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->InsertRow(STATE_EXPAND(m_pUndoState));
+	pDoc->InsertRow(STATE_EXPAND2(pDoc, m_pUndoState));
 }
 
 
@@ -360,7 +363,7 @@ bool CPActionDeleteRow::SaveState(const CMainFrame &MainFrm)
 {
 	if (m_bBack && !m_pUndoState->Cursor.m_iRow) return false;
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_OldNote = pDoc->GetNoteData(STATE_EXPAND(m_pUndoState) - (m_bBack ? 1 : 0));		// // // // bad
+	m_OldNote = pDoc->GetNoteData(STATE_EXPAND2(pDoc, m_pUndoState) - (m_bBack ? 1 : 0));		// // // // bad
 	return true;
 }
 
@@ -368,16 +371,16 @@ void CPActionDeleteRow::Undo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	if (m_bPullUp)
-		pDoc->InsertRow(STATE_EXPAND(m_pUndoState) - (m_bBack ? 1 : 0));
-	pDoc->SetNoteData(STATE_EXPAND(m_pUndoState) - (m_bBack ? 1 : 0), m_OldNote);
+		pDoc->InsertRow(STATE_EXPAND2(pDoc, m_pUndoState) - (m_bBack ? 1 : 0));
+	pDoc->SetNoteData(STATE_EXPAND2(pDoc, m_pUndoState) - (m_bBack ? 1 : 0), m_OldNote);
 }
 
 void CPActionDeleteRow::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->ClearRowField(STATE_EXPAND(m_pUndoState) - (m_bBack ? 1 : 0), m_pUndoState->Cursor.m_iColumn);
+	pDoc->ClearRowField(STATE_EXPAND2(pDoc, m_pUndoState) - (m_bBack ? 1 : 0), m_pUndoState->Cursor.m_iColumn);
 	if (m_bPullUp)
-		pDoc->PullUp(STATE_EXPAND(m_pUndoState) - (m_bBack ? 1 : 0));
+		pDoc->PullUp(STATE_EXPAND2(pDoc, m_pUndoState) - (m_bBack ? 1 : 0));
 }
 
 
@@ -390,7 +393,7 @@ CPActionScrollField::CPActionScrollField(int Amount) :		// // //
 bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 {
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_OldNote = pDoc->GetNoteData(STATE_EXPAND(m_pUndoState));		// // //
+	m_OldNote = pDoc->GetNoteData(STATE_EXPAND2(pDoc, m_pUndoState));		// // //
 
 	switch (m_pUndoState->Cursor.m_iColumn) {
 	case C_INSTRUMENT1: case C_INSTRUMENT2:
@@ -413,7 +416,7 @@ bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 void CPActionScrollField::Undo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetNoteData(STATE_EXPAND(m_pUndoState), m_OldNote);
+	pDoc->SetNoteData(STATE_EXPAND2(pDoc, m_pUndoState), m_OldNote);
 }
 
 void CPActionScrollField::Redo(CMainFrame &MainFrm)
@@ -449,7 +452,7 @@ void CPActionScrollField::Redo(CMainFrame &MainFrm)
 		ScrollFunc(Note.EffParam[3], 0x100); break;
 	}
 
-	pDoc->SetNoteData(STATE_EXPAND(m_pUndoState), Note);		// // //
+	pDoc->SetNoteData(STATE_EXPAND2(pDoc, m_pUndoState), Note);		// // //
 }
 
 
@@ -770,7 +773,7 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 	const CSelection &Sel = m_pUndoState->Selection;
 
 	for (int i = Sel.m_cpStart.m_iChannel; i <= Sel.m_cpEnd.m_iChannel; ++i) {
-		const int Columns = pDoc->GetEffColumns(m_pUndoState->Track, i) + 4;		// // //
+		const int Columns = pDoc->GetEffColumns(m_pUndoState->Track, pDoc->TranslateChannel(i)) + 4;		// // //
 		for (int j = 0; j < Columns; ++j) {
 			if (!Sel.IsColumnSelected(static_cast<column_t>(j), i)) continue;
 			CPatternIterator r {it.first};		// // //
@@ -1063,20 +1066,20 @@ bool CPActionEffColumn::SaveState(const CMainFrame &MainFrm)
 {
 	if (m_iNewColumns >= static_cast<int>(MAX_EFFECT_COLUMNS)) return false;
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_iOldColumns = pDoc->GetEffColumns(m_pUndoState->Track, m_iChannel);
+	m_iOldColumns = pDoc->GetEffColumns(m_pUndoState->Track, pDoc->TranslateChannel(m_iChannel));
 	return true;
 }
 
 void CPActionEffColumn::Undo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetEffColumns(m_pUndoState->Track, m_iChannel, m_iOldColumns);
+	pDoc->SetEffColumns(m_pUndoState->Track, pDoc->TranslateChannel(m_iChannel), m_iOldColumns);
 }
 
 void CPActionEffColumn::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetEffColumns(m_pUndoState->Track, m_iChannel, m_iNewColumns);
+	pDoc->SetEffColumns(m_pUndoState->Track, pDoc->TranslateChannel(m_iChannel), m_iNewColumns);
 }
 
 void CPActionEffColumn::UpdateViews(CMainFrame &MainFrm) const		// // //

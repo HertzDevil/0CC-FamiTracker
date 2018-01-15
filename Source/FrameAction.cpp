@@ -102,6 +102,7 @@ int CFrameEditorState::GetChanEnd() const
 }
 
 #define STATE_EXPAND(st) (st)->Track, (st)->Cursor.m_iFrame, (st)->Cursor.m_iChannel
+#define STATE_EXPAND2(pDoc, st) (st)->Track, (st)->Cursor.m_iFrame, (pDoc)->TranslateChannel((st)->Cursor.m_iChannel)
 
 
 
@@ -235,7 +236,7 @@ void CFActionCloneFrame::Undo(CMainFrame &MainFrm)
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	int Count = pDoc->GetChannelCount();
 	for (int i = 0; i < Count; ++i)
-		pDoc->ClearPattern(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame + 1, i);
+		pDoc->ClearPattern(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame + 1, pDoc->TranslateChannel(i));
 	pDoc->RemoveFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame + 1);
 }
 
@@ -314,7 +315,7 @@ void CFActionSetPattern::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	for (int f : m_itFrames) for (int c : m_itChannels)
-		pDoc->SetPatternAtFrame(m_pUndoState->Track, f, c, m_iNewPattern);
+		pDoc->SetPatternAtFrame(m_pUndoState->Track, f, pDoc->TranslateChannel(c), m_iNewPattern);
 }
 
 bool CFActionSetPattern::Merge(const CAction &Other)		// // //
@@ -356,7 +357,7 @@ void CFActionSetPatternAll::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	for (int i = 0; i < m_pRowClipData->ClipInfo.Channels; ++i)
-		pDoc->SetPatternAtFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame, i, m_iNewPattern);
+		pDoc->SetPatternAtFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame, pDoc->TranslateChannel(i), m_iNewPattern);
 }
 
 bool CFActionSetPatternAll::Merge(const CAction &Other)		// // //
@@ -406,7 +407,7 @@ void CFActionChangePattern::Redo(CMainFrame &MainFrm)
 		int NewFrame = ClipPattern(Frame + m_iPatternOffset);
 		if (NewFrame == Frame)
 			m_bOverflow = true;
-		pDoc->SetPatternAtFrame(m_pUndoState->Track, f, c, NewFrame);
+		pDoc->SetPatternAtFrame(m_pUndoState->Track, f, pDoc->TranslateChannel(c), NewFrame);
 	}
 }
 
@@ -459,7 +460,7 @@ void CFActionChangePatternAll::Redo(CMainFrame &MainFrm)
 		int NewFrame = ClipPattern(m_pRowClipData->GetFrame(0, i) + m_iPatternOffset);
 		if (NewFrame == Frame)
 			m_bOverflow = true;
-		pDoc->SetPatternAtFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame, i, NewFrame);
+		pDoc->SetPatternAtFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame, pDoc->TranslateChannel(i), NewFrame);
 	}
 }
 
@@ -646,10 +647,10 @@ bool CFActionClonePatterns::SaveState(const CMainFrame &MainFrm)		// // //
 		return true; // TODO: check this when all patterns are used up
 	}
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_iOldPattern = pDoc->GetPatternAtFrame(STATE_EXPAND(m_pUndoState));
-	if (pDoc->IsPatternEmpty(m_pUndoState->Track, m_pUndoState->Cursor.m_iChannel, m_iOldPattern))
+	m_iOldPattern = pDoc->GetPatternAtFrame(STATE_EXPAND2(pDoc, m_pUndoState));
+	if (pDoc->IsPatternEmpty(m_pUndoState->Track, pDoc->TranslateChannel(m_pUndoState->Cursor.m_iChannel), m_iOldPattern))
 		return false;
-	m_iNewPattern = pDoc->GetFirstFreePattern(m_pUndoState->Track, m_pUndoState->Cursor.m_iChannel);
+	m_iNewPattern = pDoc->GetFirstFreePattern(m_pUndoState->Track, pDoc->TranslateChannel(m_pUndoState->Cursor.m_iChannel));
 	return m_iNewPattern != -1;
 }
 
@@ -663,8 +664,8 @@ void CFActionClonePatterns::Undo(CMainFrame &MainFrm)		// // //
 	}
 	else {
 		CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-		pDoc->ClearPattern(STATE_EXPAND(m_pUndoState));
-		pDoc->SetPatternAtFrame(STATE_EXPAND(m_pUndoState), m_iOldPattern);
+		pDoc->ClearPattern(STATE_EXPAND2(pDoc, m_pUndoState));
+		pDoc->SetPatternAtFrame(STATE_EXPAND2(pDoc, m_pUndoState), m_iOldPattern);
 	}
 }
 
@@ -674,8 +675,8 @@ void CFActionClonePatterns::Redo(CMainFrame &MainFrm)		// // //
 	if (m_pUndoState->IsSelecting)
 		ClonePatterns(m_pUndoState->Selection, *pDoc->GetChannelMap(), *pDoc->GetSong(m_pUndoState->Track));
 	else {
-		pDoc->SetPatternAtFrame(STATE_EXPAND(m_pUndoState), m_iNewPattern);
-		pDoc->CopyPattern(m_pUndoState->Track, m_iNewPattern, m_iOldPattern, m_pUndoState->Cursor.m_iChannel);
+		pDoc->SetPatternAtFrame(STATE_EXPAND2(pDoc, m_pUndoState), m_iNewPattern);
+		pDoc->CopyPattern(m_pUndoState->Track, m_iNewPattern, m_iOldPattern, pDoc->TranslateChannel(m_pUndoState->Cursor.m_iChannel));
 	}
 }
 
@@ -743,7 +744,7 @@ bool CFActionMergeDuplicated::SaveState(const CMainFrame &MainFrm)
 
 		// map used patterns to themselves
 		for (int f = 0; f < Frames; ++f) {
-			unsigned int uiPattern = pDoc->GetPatternAtFrame(m_pUndoState->Track, f, c);
+			unsigned int uiPattern = pDoc->GetPatternAtFrame(m_pUndoState->Track, f, pDoc->TranslateChannel(c));
 			uiPatternUsed[uiPattern] = uiPattern;
 		}
 
@@ -751,7 +752,7 @@ bool CFActionMergeDuplicated::SaveState(const CMainFrame &MainFrm)
 		for (unsigned int ui = 0; ui < MAX_PATTERN; ++ui) {
 			if (uiPatternUsed[ui] == MAX_PATTERN) continue;
 			for (unsigned int uj = 0; uj < ui; ++uj)
-				if (pDoc->ArePatternsSame(m_pUndoState->Track, c, ui, uj)) {		// // //
+				if (pDoc->ArePatternsSame(m_pUndoState->Track, pDoc->TranslateChannel(c), ui, uj)) {		// // //
 					uiPatternUsed[ui] = uj;
 					TRACE("Duplicate: %d = %d\n", ui, uj);
 					break;
@@ -760,7 +761,7 @@ bool CFActionMergeDuplicated::SaveState(const CMainFrame &MainFrm)
 
 		// apply mapping
 		for (int f = 0; f < Frames; ++f)
-			m_pClipData->SetFrame(f, c, uiPatternUsed[pDoc->GetPatternAtFrame(m_pUndoState->Track, f, c)]);
+			m_pClipData->SetFrame(f, c, uiPatternUsed[pDoc->GetPatternAtFrame(m_pUndoState->Track, f, pDoc->TranslateChannel(c))]);
 	}
 
 	return true;

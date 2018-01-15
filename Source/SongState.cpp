@@ -169,8 +169,8 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 		for (int c = Chans - 1; c >= 0; c--) {
 			// if (Channel != -1) c = GetChannelIndex(Channel);
 			stChannelState &chState = State[c];
-			int EffColumns = doc.GetEffColumns(Track, c);
-			const auto &Note = doc.GetNoteData(Track, Frame, c, Row);		// // //
+			int EffColumns = doc.GetEffColumns(Track, doc.TranslateChannel(c));
+			const auto &Note = doc.GetNoteData(Track, Frame, doc.TranslateChannel(c), Row);		// // //
 
 			if (Note.Note != NONE && Note.Note != RELEASE) {
 				for (int i = 0; i < std::min(BufferPos[c], ECHO_BUFFER_LENGTH + 1); i++) {

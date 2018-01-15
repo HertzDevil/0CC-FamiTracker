@@ -1096,7 +1096,7 @@ void CCompiler::ScanSong()
 		for (int j = 0; j < Channels; ++j)
 			for (int k = 0; k < MAX_PATTERN; ++k)
 				for (int l = 0; l < PatternLength; ++l) {
-					const auto &note = m_pDocument->GetDataAtPattern(i, k, j, l);
+					const auto &note = m_pDocument->GetDataAtPattern(i, k, m_pDocument->TranslateChannel(j), l);
 					if (note.Instrument < std::size(inst_used))		// // //
 						inst_used[note.Instrument] = true;
 				}
@@ -1127,16 +1127,15 @@ void CCompiler::ScanSong()
 	m_bSamplesAccessed.fill({ });		// // //
 
 	// Get DPCM channel index
-	const int DpcmChannel = m_pDocument->GetChannelIndex(CHANID_DPCM);
 	unsigned int Instrument = 0;
 
 	for (int i = 0; i < TrackCount; ++i) {
 		const int patternlen = m_pDocument->GetPatternLength(i);
 		const int frames = m_pDocument->GetFrameCount(i);
 		for (int j = 0; j < frames; ++j) {
-			int p = m_pDocument->GetPatternAtFrame(i, j, DpcmChannel);
+			int p = m_pDocument->GetPatternAtFrame(i, j, CHANID_DPCM);
 			for (int k = 0; k < patternlen; ++k) {
-				const auto &Note = m_pDocument->GetDataAtPattern(i, p, DpcmChannel, k);		// // //
+				const auto &Note = m_pDocument->GetDataAtPattern(i, p, CHANID_DPCM, k);		// // //
 				if (Note.Instrument < MAX_INSTRUMENTS)
 					Instrument = Note.Instrument;
 				if (Note.Note >= NOTE_C && Note.Note <= NOTE_B)		// // //
@@ -1597,7 +1596,7 @@ void CCompiler::CreateFrameList(unsigned int Track)
 		// Pattern pointers
 		for (unsigned j = 0; j < ChannelCount; ++j) {		// // //
 			unsigned Chan = m_vChanOrder[j];
-			unsigned Pattern = m_pDocument->GetPatternAtFrame(Track, i, Chan);
+			unsigned Pattern = m_pDocument->GetPatternAtFrame(Track, i, m_pDocument->TranslateChannel(Chan));
 			Chunk.StorePointer({CHUNK_PATTERN, Track, Pattern, Chan});		// // //
 			TotalSize += 2;
 		}
@@ -1697,7 +1696,7 @@ bool CCompiler::IsPatternAddressed(unsigned int Track, int Pattern, int Channel)
 	const int FrameCount = m_pDocument->GetFrameCount(Track);
 
 	for (int i = 0; i < FrameCount; ++i) {
-		if (m_pDocument->GetPatternAtFrame(Track, i, Channel) == Pattern)
+		if (m_pDocument->GetPatternAtFrame(Track, i, m_pDocument->TranslateChannel(Channel)) == Pattern)
 			return true;
 	}
 

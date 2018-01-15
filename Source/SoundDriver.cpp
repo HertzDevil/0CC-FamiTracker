@@ -195,7 +195,7 @@ void CSoundDriver::Tick() {
 
 void CSoundDriver::StepRow(int chan) {
 	stChanNote NoteData = doc_->GetActiveNote(m_pPlayerCursor->GetCurrentSong(),
-		m_pPlayerCursor->GetCurrentFrame(), chan, m_pPlayerCursor->GetCurrentRow());		// // //
+		m_pPlayerCursor->GetCurrentFrame(), doc_->TranslateChannel(chan), m_pPlayerCursor->GetCurrentRow());		// // //
 	HandleGlobalEffects(NoteData);
 	if (!parent_ || !parent_->IsChannelMuted(chan))
 		QueueNote(chan, NoteData, NOTE_PRIO_1);
