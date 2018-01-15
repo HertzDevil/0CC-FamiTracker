@@ -409,7 +409,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 			NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();
 
 			Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
-			Env.GetSoundGenerator()->ForceReloadInstrument(Channel);		// // //
+			Env.GetSoundGenerator()->ForceReloadInstrument(pDoc->TranslateChannel(Channel));		// // //
 			m_iLastKey = NewNote;
 		}
 	}

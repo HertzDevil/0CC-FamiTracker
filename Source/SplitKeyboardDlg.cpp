@@ -36,7 +36,6 @@ IMPLEMENT_DYNAMIC(CSplitKeyboardDlg, CDialog)
 CSplitKeyboardDlg::CSplitKeyboardDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(IDD_SPLIT_KEYBOARD, pParent),
 	m_bSplitEnable(false),
-	m_iSplitChannel(-1),
 	m_iSplitNote(-1),
 	m_iSplitInstrument(MAX_INSTRUMENTS),
 	m_iSplitTranspose(0)
@@ -148,9 +147,9 @@ void CSplitKeyboardDlg::OnCbnSelchangeComboSplitNote()
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitChan()
 {
 	if (int Pos = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_CHAN))->GetCurSel())
-		m_iSplitChannel = CFamiTrackerDoc::GetDoc()->GetChannelType(Pos - 1);
+		m_iSplitChannel = CFamiTrackerDoc::GetDoc()->TranslateChannel(Pos - 1);
 	else
-		m_iSplitChannel = -1;
+		m_iSplitChannel = (chan_id_t)-1;
 }
 
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitInst()

@@ -126,6 +126,7 @@ chan_id_t CSwapDlg::GetFinalChannel(unsigned int Channel, unsigned int Chip) con
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
 	switch (Chip) {
+	case SNDCHIP_NONE: Channel += CHANID_SQUARE1; break;
 	case SNDCHIP_VRC6: Channel += CHANID_VRC6_PULSE1; break;
 	case SNDCHIP_VRC7: Channel += CHANID_VRC7_CH1; break;
 	case SNDCHIP_FDS:  Channel += CHANID_FDS; break;
@@ -134,7 +135,7 @@ chan_id_t CSwapDlg::GetFinalChannel(unsigned int Channel, unsigned int Chip) con
 	case SNDCHIP_S5B:  Channel += CHANID_S5B_CH1; break;
 	}
 
-	return pDoc->TranslateChannel(pDoc->GetChannelIndex(Channel));
+	return pDoc->TranslateChannel(pDoc->GetChannelIndex((chan_id_t)Channel));
 }
 
 void CSwapDlg::OnEnChangeEditSwapChan1()

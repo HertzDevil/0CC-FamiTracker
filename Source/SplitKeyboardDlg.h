@@ -26,6 +26,8 @@
 #include "stdafx.h"
 #include "resource.h"
 
+enum chan_id_t : unsigned;
+
 // CSplitKeyboardDlg dialog
 
 class CSplitKeyboardDlg : public CDialog
@@ -37,7 +39,7 @@ public:
 	virtual ~CSplitKeyboardDlg();
 
 	bool m_bSplitEnable;
-	int m_iSplitChannel;
+	chan_id_t m_iSplitChannel = (chan_id_t)-1;
 	int m_iSplitNote;
 	int m_iSplitInstrument;
 	int m_iSplitTranspose;

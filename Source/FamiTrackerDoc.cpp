@@ -150,7 +150,7 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCTSTR lpszPathName)
 
 	//DeleteContents();
 	theApp.GetSoundGenerator()->ResetDumpInstrument();
-	theApp.GetSoundGenerator()->SetRecordChannel(-1);		// // //
+	theApp.GetSoundGenerator()->SetRecordChannel((chan_id_t)-1);		// // //
 
 	LockDocument();
 
@@ -1373,7 +1373,7 @@ CTrackerChannel &CFamiTrackerDoc::GetChannel(int Index) const		// // //
 	return m_pChannelMap->GetChannel(Index);		// // //
 }
 
-int CFamiTrackerDoc::GetChannelIndex(int Channel) const
+int CFamiTrackerDoc::GetChannelIndex(chan_id_t Channel) const
 {
 	return m_pChannelMap->GetChannelIndex(Channel);		// // //
 }
@@ -1750,7 +1750,7 @@ void CFamiTrackerDoc::RemoveUnusedPatterns()
 {
 	VisitSongs([&] (CSongData &song) {
 		for (unsigned i = 0; i < CHANNELS; ++i)
-			if (GetChannelIndex(i) == (unsigned)-1)
+			if (GetChannelIndex((chan_id_t)i) == (unsigned)-1)
 				for (int p = 0; p < MAX_PATTERN; ++p)
 					song.GetPattern((chan_id_t)i, p) = CPatternData { };
 		song.VisitPatterns([&song] (CPatternData &pattern, chan_id_t c, unsigned p) {

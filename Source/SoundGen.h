@@ -150,8 +150,8 @@ public:
 
 	// Tracker playing
 	stDPCMState	 GetDPCMState() const;
-	int			 GetChannelNote(int chan) const;		// // //
-	int			 GetChannelVolume(int chan) const;		// // //
+	int			 GetChannelNote(chan_id_t chan) const;		// // //
+	int			 GetChannelVolume(chan_id_t chan) const;		// // //
 
 	// Rendering
 	bool		 RenderToFile(LPCTSTR pFile, const std::shared_ptr<CWaveRenderer> &pRender);		// // //
@@ -172,7 +172,7 @@ public:
 	uint8_t		GetReg(int Chip, int Reg) const;
 	CRegisterState *GetRegState(unsigned Chip, unsigned Reg) const;		// // //
 	double		GetChannelFrequency(unsigned Chip, int Channel) const;		// // //
-	std::string	RecallChannelState(int Channel) const;		// // //
+	std::string	RecallChannelState(chan_id_t Channel) const;		// // //
 
 	// FDS & N163 wave preview
 	void		WaveChanged();
@@ -186,7 +186,7 @@ public:
 	int			GetPlayerTrack() const;
 	int			GetPlayerTicks() const;
 	void		QueueNote(int Channel, const stChanNote &NoteData, note_prio_t Priority) const;		// // //
-	void		ForceReloadInstrument(int Channel);		// // //
+	void		ForceReloadInstrument(chan_id_t Channel);		// // //
 	void		MoveToFrame(int Frame);
 	void		SetQueueFrame(unsigned Frame);		// // //
 	unsigned	GetQueueFrame() const;		// // //
@@ -194,8 +194,8 @@ public:
 	// // // Instrument recorder
 	std::unique_ptr<CInstrument> GetRecordInstrument() const;
 	void			ResetDumpInstrument();
-	int				GetRecordChannel() const;
-	void			SetRecordChannel(int Channel);
+	chan_id_t		GetRecordChannel() const;
+	void			SetRecordChannel(chan_id_t Channel);
 	const stRecordSetting &GetRecordSetting() const;
 	void			SetRecordSetting(const stRecordSetting &Setting);
 

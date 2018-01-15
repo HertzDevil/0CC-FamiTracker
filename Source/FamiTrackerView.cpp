@@ -283,7 +283,6 @@ CFamiTrackerView::CFamiTrackerView() :
 	m_iMarkerFrame(-1),		// // // 050B
 	m_iMarkerRow(-1),		// // // 050B
 	m_iSplitNote(-1),		// // //
-	m_iSplitChannel(-1),		// // //
 	m_iSplitInstrument(MAX_INSTRUMENTS),		// // //
 	m_iSplitTranspose(0),		// // //
 	m_iNoteCorrection(),		// // //
@@ -846,7 +845,7 @@ void CFamiTrackerView::PeriodicUpdate()
 		// TODO get rid of static variables
 		static int LastNoteState = -1;
 
-		int Note = pSoundGen->GetChannelNote(pDoc->GetChannelType(GetSelectedChannel()));		// // //
+		int Note = pSoundGen->GetChannelNote(pDoc->TranslateChannel(GetSelectedChannel()));		// // //
 		if (LastNoteState != Note)
 			pMainFrm->ChangeNoteState(Note);
 
@@ -1636,7 +1635,7 @@ void CFamiTrackerView::OnEditSplitKeyboard()		// // //
 		}
 		else {
 			m_iSplitNote = -1;
-			m_iSplitChannel = -1;
+			m_iSplitChannel = (chan_id_t)-1;
 			m_iSplitInstrument = MAX_INSTRUMENTS;
 			m_iSplitTranspose = 0;
 		}
@@ -1901,11 +1900,11 @@ void CFamiTrackerView::PlayNote(unsigned int Channel, unsigned int Note, unsigne
 	Channel = SplitAdjustChannel(Channel, NoteData);
 	if (Channel < static_cast<unsigned>(pDoc->GetChannelCount())) {
 		int MidiNote = MIDI_NOTE(NoteData.Octave, NoteData.Note);		// // //
-		int ret = pDoc->GetChannelIndex(m_pNoteQueue->Trigger(MidiNote, pDoc->GetChannelType(Channel)));
+		int ret = pDoc->GetChannelIndex(m_pNoteQueue->Trigger(MidiNote, pDoc->TranslateChannel(Channel)));
 		if (ret != -1) {
 			SplitKeyboardAdjust(NoteData, ret);
 			pDoc->GetChannel(ret).SetNote(NoteData, NOTE_PRIO_2);
-			theApp.GetSoundGenerator()->ForceReloadInstrument(ret);		// // //
+			theApp.GetSoundGenerator()->ForceReloadInstrument(pDoc->TranslateChannel(ret));		// // //
 		}
 	}
 
@@ -1933,7 +1932,7 @@ void CFamiTrackerView::ReleaseNote(unsigned int Channel, unsigned int Note, unsi
 	Channel = SplitAdjustChannel(Channel, NoteData);		// // //
 	CFamiTrackerDoc *pDoc = GetDocument();		// // //
 	if (Channel < static_cast<unsigned>(pDoc->GetChannelCount())) {
-		int ch = pDoc->GetChannelIndex(m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), pDoc->GetChannelType(Channel)));
+		int ch = pDoc->GetChannelIndex(m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), pDoc->TranslateChannel(Channel)));
 	//	int ch = pDoc->GetChannelIndex(m_pNoteQueue->Release(MIDI_NOTE(Octave, Note), pDoc->GetChannelType(Channel)));
 		if (ch != -1)
 			theApp.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
@@ -1962,7 +1961,7 @@ void CFamiTrackerView::HaltNote(unsigned int Channel, unsigned int Note, unsigne
 	Channel = SplitAdjustChannel(Channel, NoteData);		// // //
 	CFamiTrackerDoc *pDoc = GetDocument();		// // //
 	if (Channel < static_cast<unsigned>(pDoc->GetChannelCount())) {
-		int ch = pDoc->GetChannelIndex(m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), pDoc->GetChannelType(Channel)));
+		int ch = pDoc->GetChannelIndex(m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), pDoc->TranslateChannel(Channel)));
 		if (ch != -1)
 			theApp.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
@@ -1989,7 +1988,7 @@ void CFamiTrackerView::HaltNoteSingle(unsigned int Channel) const
 	Channel = SplitAdjustChannel(Channel, NoteData);		// // // ?
 	CFamiTrackerDoc *pDoc = GetDocument();		// // //
 	if (Channel < static_cast<unsigned>(pDoc->GetChannelCount())) {
-		for (const auto &i : m_pNoteQueue->StopChannel(pDoc->GetChannelType(Channel))) {
+		for (const auto &i : m_pNoteQueue->StopChannel(pDoc->TranslateChannel(Channel))) {
 			int ch = pDoc->GetChannelIndex(i);
 			if (ch != -1)
 				theApp.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
@@ -2140,8 +2139,7 @@ void CFamiTrackerView::UpdateNoteQueues()		// // //
 
 	if (m_bEditEnable || theApp.GetSettings()->Midi.bMidiArpeggio)
 		for (int i = 0; i < Channels; ++i) {
-			unsigned ID = pDoc->GetChannelType(i);
-			if (ID != -1)
+			if (auto ID = pDoc->TranslateChannel(i); ID != -1)
 				m_pNoteQueue->AddMap({ID});
 		}
 	else {
@@ -2163,10 +2161,10 @@ void CFamiTrackerView::UpdateNoteQueues()		// // //
 		else
 			m_pNoteQueue->AddMap({CHANID_SQUARE1, CHANID_SQUARE2});
 		if (pDoc->ExpansionEnabled(SNDCHIP_N163)) {
-			std::vector<unsigned> n;
+			std::vector<chan_id_t> n;
 			int Channels = pDoc->GetNamcoChannels();
 			for (int i = 0; i < Channels; ++i)
-				n.push_back(CHANID_N163_CH1 + i);
+				n.push_back((chan_id_t)(CHANID_N163_CH1 + i));
 			m_pNoteQueue->AddMap(n);
 		}
 		if (pDoc->ExpansionEnabled(SNDCHIP_S5B))
@@ -2915,7 +2913,7 @@ void CFamiTrackerView::SplitKeyboardAdjust(stChanNote &Note, int Channel) const	
 
 unsigned CFamiTrackerView::SplitAdjustChannel(unsigned int Channel, const stChanNote &Note) const		// // //
 {
-	if (!m_bEditEnable && m_iSplitChannel != -1)
+	if (!m_bEditEnable && m_iSplitChannel != (chan_id_t)-1)
 		if (m_iSplitNote != -1 && MIDI_NOTE(Note.Octave, Note.Note) <= m_iSplitNote)
 			if (int Index = GetDocument()->GetChannelIndex(m_iSplitChannel); Index != -1)
 				return Index;
@@ -3273,7 +3271,7 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 		m_iMenuChannel = GetSelectedChannel();
 
 	CFamiTrackerDoc	*pDoc = GetDocument();
-	int Channel = pDoc->GetChannelType(m_iMenuChannel);
+	chan_id_t Channel = pDoc->TranslateChannel(m_iMenuChannel);		// // //
 	int Chip = pDoc->GetChipType(m_iMenuChannel);
 	m_iMenuChannel = -1;
 
@@ -3300,7 +3298,7 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 
 	if (IsChannelMuted(GetSelectedChannel()))
 		ToggleChannel(GetSelectedChannel());
-	theApp.GetSoundGenerator()->SetRecordChannel(Channel == theApp.GetSoundGenerator()->GetRecordChannel() ? -1 : Channel);
+	theApp.GetSoundGenerator()->SetRecordChannel(Channel == theApp.GetSoundGenerator()->GetRecordChannel() ? (chan_id_t)-1 : Channel);
 	InvalidateHeader();
 }
 
@@ -3609,9 +3607,8 @@ void CFamiTrackerView::OnUpdateFind(CCmdUI *pCmdUI)		// // //
 	InvalidateCursor();
 }
 
-void CFamiTrackerView::OnRecallChannelState()		// // //
-{
-	int Channel = static_cast<CFamiTrackerDoc*>(m_pDocument)->GetChannelType(GetSelectedChannel());
+void CFamiTrackerView::OnRecallChannelState() {		// // //
+	chan_id_t Channel = GetDocument()->TranslateChannel(GetSelectedChannel());
 	GetParentFrame()->SetMessageText(theApp.GetSoundGenerator()->RecallChannelState(Channel).c_str());
 }
 

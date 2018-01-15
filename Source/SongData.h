@@ -89,7 +89,7 @@ public:
 		if constexpr (std::is_invocable_v<F, CPatternData &>) {
 			unsigned ch_pos = 0;
 			for (auto &ch : m_pPatternData) {
-				if (GetChannelPosition(ch_pos) != (unsigned)-1)
+				if (GetChannelPosition((chan_id_t)ch_pos) != (unsigned)-1)
 					for (auto &p : ch)
 						f(p);
 				++ch_pos;
@@ -98,7 +98,7 @@ public:
 		else {
 			unsigned ch_pos = 0;
 			for (auto &ch : m_pPatternData) {
-				if (GetChannelPosition(ch_pos) != (unsigned)-1) {
+				if (GetChannelPosition((chan_id_t)ch_pos) != (unsigned)-1) {
 					unsigned p_index = 0;
 					for (auto &p : ch)
 						f(p, (chan_id_t)ch_pos, p_index++);
@@ -114,7 +114,7 @@ public:
 		if constexpr (std::is_invocable_v<F, const CPatternData &>) {
 			unsigned ch_pos = 0;
 			for (auto &ch : m_pPatternData) {
-				if (GetChannelPosition(ch_pos) != (unsigned)-1)
+				if (GetChannelPosition((chan_id_t)ch_pos) != (unsigned)-1)
 					for (auto &p : ch)
 						f(p);
 				++ch_pos;
@@ -123,7 +123,7 @@ public:
 		else {
 			unsigned ch_pos = 0;
 			for (auto &ch : m_pPatternData) {
-				if (GetChannelPosition(ch_pos) != (unsigned)-1) {
+				if (GetChannelPosition((chan_id_t)ch_pos) != (unsigned)-1) {
 					unsigned p_index = 0;
 					for (auto &p : ch)
 						f(p, (chan_id_t)ch_pos, p_index++);
@@ -133,7 +133,7 @@ public:
 		}
 	}
 
-	unsigned GetChannelPosition(unsigned ChanID) const;		// // // TODO: move to CSongView
+	unsigned GetChannelPosition(chan_id_t ChanID) const;		// // // TODO: move to CSongView
 
 public:
 	// // // moved from CFamiTrackerDoc

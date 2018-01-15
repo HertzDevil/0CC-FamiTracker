@@ -193,15 +193,15 @@ void CSoundDriver::Tick() {
 	}
 }
 
-void CSoundDriver::StepRow(int chan) {
+void CSoundDriver::StepRow(chan_id_t chan) {
 	stChanNote NoteData = doc_->GetActiveNote(m_pPlayerCursor->GetCurrentSong(),
-		m_pPlayerCursor->GetCurrentFrame(), doc_->TranslateChannel(chan), m_pPlayerCursor->GetCurrentRow());		// // //
+		m_pPlayerCursor->GetCurrentFrame(), chan, m_pPlayerCursor->GetCurrentRow());		// // //
 	HandleGlobalEffects(NoteData);
-	if (!parent_ || !parent_->IsChannelMuted(chan))
+	if (!parent_ || !parent_->IsChannelMuted(doc_->GetChannelIndex(chan)))
 		QueueNote(chan, NoteData, NOTE_PRIO_1);
 	// Let view know what is about to play
 	if (parent_)
-		parent_->OnPlayNote(chan, NoteData);
+		parent_->OnPlayNote(doc_->GetChannelIndex(chan), NoteData);
 }
 
 void CSoundDriver::PlayerTick() {
@@ -221,7 +221,7 @@ void CSoundDriver::PlayerTick() {
 		m_pTempoCounter->StepRow();		// // //
 
 		doc_->ForeachChannel([&] (chan_id_t i) {
-			StepRow(doc_->GetChannelIndex(i));
+			StepRow(i);
 		});
 
 		if (parent_)
@@ -310,13 +310,13 @@ void CSoundDriver::UpdateAPU(int cycles) {
 	apu_->EndFrame();		// // //
 }
 
-void CSoundDriver::QueueNote(int chan, const stChanNote &note, note_prio_t priority) {
-	doc_->GetChannel(chan).SetNote(note, priority);
+void CSoundDriver::QueueNote(chan_id_t chan, const stChanNote &note, note_prio_t priority) {
+	doc_->GetChannel(doc_->GetChannelIndex(chan)).SetNote(note, priority);
 }
 
-void CSoundDriver::ForceReloadInstrument(int chan) {
+void CSoundDriver::ForceReloadInstrument(chan_id_t chan) {
 	if (doc_)
-		tracks_[doc_->GetChannelType(chan)].first->ForceReloadInstrument();
+		tracks_[chan].first->ForceReloadInstrument();
 }
 
 bool CSoundDriver::IsPlaying() const {
@@ -331,21 +331,21 @@ CPlayerCursor *CSoundDriver::GetPlayerCursor() const {
 	return m_pPlayerCursor.get();
 }
 
-CChannelHandler *CSoundDriver::GetChannelHandler(int Index) const {
-	return tracks_[Index].first.get();
+CChannelHandler *CSoundDriver::GetChannelHandler(chan_id_t chan) const {
+	return tracks_[chan].first.get();
 }
 
-int CSoundDriver::GetChannelNote(int chan) const {
+int CSoundDriver::GetChannelNote(chan_id_t chan) const {
 	const auto &ch = GetChannelHandler(chan);
 	return ch ? ch->GetActiveNote() : -1;
 }
 
-int CSoundDriver::GetChannelVolume(int chan) const {
+int CSoundDriver::GetChannelVolume(chan_id_t chan) const {
 	const auto &ch = GetChannelHandler(chan);
 	return ch ? ch->GetChannelVolume() : 0;
 }
 
-std::string CSoundDriver::GetChannelStateString(int chan) const {
+std::string CSoundDriver::GetChannelStateString(chan_id_t chan) const {
 	const auto &ch = GetChannelHandler(chan);
 	return ch ? ch->GetStateString() : "";
 }

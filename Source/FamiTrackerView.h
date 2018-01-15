@@ -309,7 +309,7 @@ private:
 	int					m_iLastEffectParam;						// Last effect parameter added to pattern
 
 	int					m_iSplitNote;							// // // Split keyboard settings
-	int					m_iSplitChannel;
+	chan_id_t			m_iSplitChannel = (chan_id_t)-1;
 	int					m_iSplitInstrument;
 	int					m_iSplitTranspose;
 

@@ -219,6 +219,6 @@ void CSongData::SetBookmarks(CBookmarkCollection &&bookmarks) {
 	bookmarks_ = std::move(bookmarks);
 }
 
-unsigned CSongData::GetChannelPosition(unsigned ChanID) const {
+unsigned CSongData::GetChannelPosition(chan_id_t ChanID) const {
 	return parent_.GetChannelMap()->GetChannelIndex(ChanID);
 }

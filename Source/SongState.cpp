@@ -324,7 +324,7 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 	}
 }
 
-std::string CSongState::GetChannelStateString(const CFamiTrackerDoc &doc, int chan) const {
+std::string CSongState::GetChannelStateString(const CFamiTrackerDoc &doc, chan_id_t chan) const {
 	std::string str = State[doc.GetChannelIndex(chan)].GetStateString();
 	if (Tempo >= 0)
 		str += "        Tempo: " + std::to_string(Tempo);

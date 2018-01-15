@@ -144,7 +144,7 @@ public:
 	// Interface functions (not related to document data) TODO move this?
 	//
 	CTrackerChannel	&GetChannel(int Index) const;		// // //
-	int				GetChannelIndex(int Channel) const;
+	int				GetChannelIndex(chan_id_t Channel) const;		// // //
 
 	int				GetChannelType(int Index) const; // TODO: merge with TranslateChannel
 	int				GetChannelType(chan_id_t) const = delete;		// // //

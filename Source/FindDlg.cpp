@@ -257,14 +257,14 @@ void CFindResultsBox::SelectItem(int Index)
 {
 	const auto pDoc = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
 
-	const auto ToChannelIndex = [] (const std::string &_x) {
+	const auto ToChannelID = [] (const std::string &_x) {
 		CString x {_x.c_str()};
 		static const CString HEADER_STR[] = {
 			_T("Pulse "), _T("Triangle"), _T("Noise"), _T("DPCM"),
 			_T("VRC6 Pulse "), _T("Sawtooth"),
 			_T("MMC5 Pulse "), _T("Namco "), _T("FDS"), _T("FM Channel "), _T("5B Square ")
 		};
-		static const int HEADER_ID[] = {
+		static const chan_id_t HEADER_ID[] = {
 			CHANID_SQUARE1, CHANID_TRIANGLE, CHANID_NOISE, CHANID_DPCM,
 			CHANID_VRC6_PULSE1, CHANID_VRC6_SAWTOOTH,
 			CHANID_MMC5_SQUARE1, CHANID_N163_CH1, CHANID_FDS, CHANID_VRC7_CH1, CHANID_S5B_CH1,
@@ -273,17 +273,18 @@ void CFindResultsBox::SelectItem(int Index)
 			const auto &n = HEADER_STR[i];
 			int Size = n.GetLength();
 			if (x.Left(Size) == n) {
-				int Pos = HEADER_ID[i];
-				if (x != n) Pos += x.GetAt(x.GetLength() - 1) - '1';
+				chan_id_t Pos = HEADER_ID[i];
+				if (x != n)
+					Pos = (chan_id_t)(Pos + x.GetAt(x.GetLength() - 1) - '1');
 				return Pos;
 			}
 		}
-		return -1;
+		return (chan_id_t)-1;
 	};
 	const auto Cache = [&] (const std::string &x) {
 		auto it = m_iChannelPositionCache.find(x);
 		if (it == m_iChannelPositionCache.end())
-			return m_iChannelPositionCache[x] = pDoc->GetChannelIndex(ToChannelIndex(x));
+			return m_iChannelPositionCache[x] = pDoc->GetChannelIndex(ToChannelID(x));
 		return it->second;
 	};
 

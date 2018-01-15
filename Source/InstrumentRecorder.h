@@ -35,6 +35,7 @@ class CFamiTrackerDoc;
 class CSoundGen;
 class CWnd;
 enum class sequence_t : unsigned;
+enum chan_id_t : unsigned;
 
 struct stRecordSetting {
 	int Interval;
@@ -54,8 +55,8 @@ public:
 	void			RecordInstrument(const unsigned Tick, CWnd *pView);
 
 	std::unique_ptr<CInstrument> GetRecordInstrument(unsigned Tick);
-	int				GetRecordChannel() const;
-	void			SetRecordChannel(int Channel);
+	chan_id_t		GetRecordChannel() const;
+	void			SetRecordChannel(chan_id_t Channel);
 	const stRecordSetting &GetRecordSetting() const;
 	void			SetRecordSetting(const stRecordSetting &Setting);
 	void			SetDumpCount(int Count) { m_iDumpCount = Count; };
@@ -73,7 +74,7 @@ public:
 
 private:
 	CSoundGen		*m_pSoundGen;
-	int				m_iRecordChannel;
+	chan_id_t		m_iRecordChannel;
 	int				m_iDumpCount;
 	std::unique_ptr<CInstrument> *m_pDumpInstrument = nullptr;
 	std::array<std::unique_ptr<CInstrument>, MAX_INSTRUMENTS> m_pDumpCache = { };

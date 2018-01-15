@@ -37,7 +37,7 @@
 
 CInstrumentRecorder::CInstrumentRecorder(CSoundGen *pSG) :
 	m_pSoundGen(pSG),
-	m_iRecordChannel(-1),
+	m_iRecordChannel((chan_id_t)-1),
 	m_iDumpCount(0),
 	m_iRecordWaveCache(nullptr)
 {
@@ -242,12 +242,12 @@ std::unique_ptr<CInstrument> CInstrumentRecorder::GetRecordInstrument(unsigned T
 	return std::move(m_pDumpCache[Tick / m_stRecordSetting.Interval - (m_pSoundGen->IsPlaying() ? 1 : 0)]);
 }
 
-int CInstrumentRecorder::GetRecordChannel() const
+chan_id_t CInstrumentRecorder::GetRecordChannel() const
 {
 	return m_iRecordChannel;
 }
 
-void CInstrumentRecorder::SetRecordChannel(int Channel)
+void CInstrumentRecorder::SetRecordChannel(chan_id_t Channel)
 {
 	m_iRecordChannel = Channel;
 }
@@ -278,7 +278,7 @@ void CInstrumentRecorder::ResetDumpInstrument()
 		if (*m_pDumpInstrument != nullptr)
 			FinalizeRecordInstrument();
 		if (!m_iDumpCount || !m_pSoundGen->IsPlaying()) {
-			m_iRecordChannel = -1;
+			m_iRecordChannel = (chan_id_t)-1;
 			if (m_stRecordSetting.Reset) {
 				m_stRecordSetting.Interval = MAX_SEQUENCE_ITEMS;
 				m_stRecordSetting.InstCount = 1;
@@ -308,7 +308,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 {
 	const auto &Chan = m_pDocument->GetChannel(m_pDocument->GetChannelIndex(m_iRecordChannel));
 	if (m_pDocument->GetInstrumentCount() >= MAX_INSTRUMENTS) {
-		m_iDumpCount = 0; m_iRecordChannel = -1; return;
+		m_iDumpCount = 0; m_iRecordChannel = (chan_id_t)-1; return;
 	}
 	inst_type_t Type = [&] { // optimize this
 		switch (Chan.GetChip()) {

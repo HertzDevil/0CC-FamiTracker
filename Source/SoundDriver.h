@@ -41,6 +41,7 @@ class CAPU;
 class CSongState;
 class stChanNote;
 class CSoundGenBase;
+enum chan_id_t : unsigned;
 enum note_prio_t : unsigned;
 
 class CSoundDriver {
@@ -63,30 +64,30 @@ public:
 	void Tick();
 	void UpdateAPU(int cycles);
 
-	void QueueNote(int chan, const stChanNote &note, note_prio_t priority);
-	void ForceReloadInstrument(int chan);
+	void QueueNote(chan_id_t chan, const stChanNote &note, note_prio_t priority);
+	void ForceReloadInstrument(chan_id_t chan);
 
 	bool IsPlaying() const;
 	bool ShouldHalt() const;
 
 	CPlayerCursor *GetPlayerCursor() const;
 
-	int GetChannelNote(int chan) const;
-	int GetChannelVolume(int chan) const;
-	std::string GetChannelStateString(int chan) const;
+	int GetChannelNote(chan_id_t chan) const;
+	int GetChannelVolume(chan_id_t chan) const;
+	std::string GetChannelStateString(chan_id_t chan) const;
 
 	int ReadPeriodTable(int Index, int Table) const;
 	int ReadVibratoTable(int index) const;
 
 private:
 	void AssignTrack(std::unique_ptr<CTrackerChannel> track);
-	CChannelHandler *GetChannelHandler(int Index) const;
+	CChannelHandler *GetChannelHandler(chan_id_t chan) const;
 
 	void SetupVibrato();
 	void SetupPeriodTables();
 
 	void PlayerTick();
-	void StepRow(int chan);
+	void StepRow(chan_id_t chan);
 	void UpdateChannels();
 	void HandleGlobalEffects(stChanNote &note);
 

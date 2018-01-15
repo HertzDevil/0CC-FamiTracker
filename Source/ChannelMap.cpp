@@ -59,11 +59,10 @@ CTrackerChannel &CChannelMap::GetChannel(int index) const		// // //
 	return *m_pChannels[index];
 }
 
-int CChannelMap::GetChannelIndex(int chan) const {		// // //
+int CChannelMap::GetChannelIndex(chan_id_t chan) const {		// // //
 	// Translate channel ID to index, returns -1 if not found
-	if (auto it = m_iChannelIndices.find(chan); it != m_iChannelIndices.cend())
-		return it->second;
-	return -1;
+	auto it = m_iChannelIndices.find(chan);
+	return it != m_iChannelIndices.cend() ? it->second : -1;
 }
 
 int CChannelMap::GetChannelCount() const {		// // //

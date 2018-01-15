@@ -22,22 +22,23 @@
 
 #include "NoteQueue.h"
 
-enum class CNoteChannelQueue::note_state_t {HOLD, RELEASE};
+enum class CNoteChannelQueue::note_state_t : unsigned char {HOLD, RELEASE};
 
-CNoteChannelQueue::CNoteChannelQueue(const std::vector<unsigned> &Ch) :
+CNoteChannelQueue::CNoteChannelQueue(const std::vector<chan_id_t> &Ch) :
 	m_iChannelMapID(Ch), m_iChannelCount(Ch.size()),
 	m_iCurrentNote(Ch.size(), -1), m_bChannelMute(Ch.size())
 {
 }
 
-unsigned CNoteChannelQueue::Trigger(int Note, unsigned Channel)
+chan_id_t CNoteChannelQueue::Trigger(int Note, chan_id_t Channel)
 {
-	const auto AddNote = [&] (int Index) -> unsigned {
+	const auto AddNote = [&] (int Index) -> chan_id_t {
 		m_iCurrentNote[Index] = Note;
 		m_iNoteState[Note] = note_state_t::HOLD;
 		int p = 0;
 		for (const auto &x : m_iNotePriority)
-			if (x.second > p) p = x.second;
+			if (x.second > p)
+				p = x.second;
 		m_iNotePriority[Note] = p + 1;
 		m_iNoteChannel[Note] = Channel;
 		return m_iChannelMapID[Index];
@@ -58,7 +59,8 @@ unsigned CNoteChannelQueue::Trigger(int Note, unsigned Channel)
 		int p = 0x7FFFFFFF;
 		int c = -1;
 		for (int i = 0; i < m_iChannelCount; ++i) {
-			if (m_bChannelMute[i]) continue;
+			if (m_bChannelMute[i])
+				continue;
 			int n = m_iCurrentNote[i];
 			if (n && m_iNoteState[n] == note_state_t::RELEASE) {
 				int pnew = m_iNotePriority[n];
@@ -68,7 +70,8 @@ unsigned CNoteChannelQueue::Trigger(int Note, unsigned Channel)
 			}
 		}
 		if (c == -1) for (int i = 0; i < m_iChannelCount; ++i) {
-			if (m_bChannelMute[i]) continue;
+			if (m_bChannelMute[i])
+				continue;
 			int n = m_iCurrentNote[i];
 			if (n && m_iNoteState[n] == note_state_t::HOLD) {
 				int pnew = m_iNotePriority[n];
@@ -78,7 +81,7 @@ unsigned CNoteChannelQueue::Trigger(int Note, unsigned Channel)
 			}
 		}
 		if (c != -1) {
-			Cut(m_iCurrentNote[c], 0);
+			Cut(m_iCurrentNote[c], (chan_id_t)-1);
 			return AddNote(c);
 		}
 	}
@@ -87,10 +90,10 @@ unsigned CNoteChannelQueue::Trigger(int Note, unsigned Channel)
 		if (m_iCurrentNote[i] == Note && m_iNoteChannel[m_iCurrentNote[i]] == Channel)
 			return AddNote(i);
 
-	return -1;
+	return (chan_id_t)-1;
 }
 
-unsigned CNoteChannelQueue::Release(int Note, unsigned Channel)
+chan_id_t CNoteChannelQueue::Release(int Note, chan_id_t Channel)
 {
 	auto it = m_iNoteState.find(Note);
 	if (it != m_iNoteState.end()) {
@@ -100,10 +103,10 @@ unsigned CNoteChannelQueue::Release(int Note, unsigned Channel)
 			if (m_iCurrentNote[i] == Note)
 				return m_iChannelMapID[i];
 	}
-	return -1;
+	return (chan_id_t)-1;
 }
 
-unsigned CNoteChannelQueue::Cut(int Note, unsigned Channel)
+chan_id_t CNoteChannelQueue::Cut(int Note, chan_id_t Channel)
 {
 	auto it = m_iNoteState.find(Note);
 	if (it != m_iNoteState.end()) {
@@ -114,16 +117,17 @@ unsigned CNoteChannelQueue::Cut(int Note, unsigned Channel)
 		if (pit2 != m_iNoteChannel.end()) m_iNoteChannel.erase(pit2);
 		for (int i = 0; i < m_iChannelCount; ++i)
 			if (m_iCurrentNote[i] == Note) {
-				m_iCurrentNote[i] = -1; return m_iChannelMapID[i];
+				m_iCurrentNote[i] = -1;
+				return m_iChannelMapID[i];
 			}
 	}
-	return -1;
+	return (chan_id_t)-1;
 }
 
-std::vector<unsigned> CNoteChannelQueue::StopChannel(unsigned Channel)
+std::vector<chan_id_t> CNoteChannelQueue::StopChannel(chan_id_t Channel)
 {
-	std::unordered_map<int, unsigned> m {m_iNoteChannel};
-	std::vector<unsigned> v;
+	std::unordered_map<int, chan_id_t> m {m_iNoteChannel};
+	std::vector<chan_id_t> v;
 
 	for (const auto &x : m) if (x.second == Channel) {
 		Cut(x.first, x.second);
@@ -135,21 +139,21 @@ std::vector<unsigned> CNoteChannelQueue::StopChannel(unsigned Channel)
 
 void CNoteChannelQueue::StopAll()
 {
-	std::unordered_map<int, unsigned> m {m_iNoteChannel};
+	std::unordered_map<int, chan_id_t> m {m_iNoteChannel};
 	for (const auto &x : m)
 		Cut(x.first, x.second);
 }
 
-void CNoteChannelQueue::MuteChannel(unsigned Channel)
+void CNoteChannelQueue::MuteChannel(chan_id_t Channel)
 {
 	for (int i = 0; i < m_iChannelCount; ++i)
 		if (m_iChannelMapID[i] == Channel && !m_bChannelMute[i]) {
-			StopChannel(i);
+			StopChannel(Channel);
 			m_bChannelMute[i] = true;
 		}
 }
 
-void CNoteChannelQueue::UnmuteChannel(unsigned Channel)
+void CNoteChannelQueue::UnmuteChannel(chan_id_t Channel)
 {
 	for (int i = 0; i < m_iChannelCount; ++i)
 		if (m_iChannelMapID[i] == Channel && m_bChannelMute[i])
@@ -158,7 +162,7 @@ void CNoteChannelQueue::UnmuteChannel(unsigned Channel)
 
 
 
-void CNoteQueue::AddMap(const std::vector<unsigned> &Ch)
+void CNoteQueue::AddMap(const std::vector<chan_id_t> &Ch)
 {
 	auto ptr = std::make_shared<CNoteChannelQueue>(Ch);
 	for (const auto &x : Ch)
@@ -170,37 +174,33 @@ void CNoteQueue::ClearMaps()
 	m_Part.clear();
 }
 
-unsigned CNoteQueue::Trigger(int Note, unsigned Channel)
+chan_id_t CNoteQueue::Trigger(int Note, chan_id_t Channel)
 {
-	auto it = m_Part.find(Channel);
-	if (it != m_Part.end()) {
-		int ret = it->second->Trigger(Note, Channel);
-		if (ret != -1) return ret;
-	}
-	return -1;
+	if (auto it = m_Part.find(Channel); it != m_Part.end())
+		if (auto ret = it->second->Trigger(Note, Channel); ret != (chan_id_t)-1)
+			return ret;
+	return (chan_id_t)-1;
 }
 
-unsigned CNoteQueue::Release(int Note, unsigned Channel)
+chan_id_t CNoteQueue::Release(int Note, chan_id_t Channel)
 {
-	for (const auto &it : m_Part) {
-		int ret = it.second->Release(Note, Channel);
-		if (ret != -1) return ret;
-	}
-	return -1;
+	for (const auto &it : m_Part)
+		if (auto ret = it.second->Release(Note, Channel); ret != (chan_id_t)-1)
+			return ret;
+	return (chan_id_t)-1;
 }
 
-unsigned CNoteQueue::Cut(int Note, unsigned Channel)
+chan_id_t CNoteQueue::Cut(int Note, chan_id_t Channel)
 {
-	for (const auto &it : m_Part) {
-		int ret = it.second->Cut(Note, Channel);
-		if (ret != -1) return ret;
-	}
-	return -1;
+	for (const auto &it : m_Part)
+		if (auto ret = it.second->Cut(Note, Channel); ret != (chan_id_t)-1)
+			return ret;
+	return (chan_id_t)-1;
 }
 
-std::vector<unsigned> CNoteQueue::StopChannel(unsigned Channel)
+std::vector<chan_id_t> CNoteQueue::StopChannel(chan_id_t Channel)
 {
-	std::vector<unsigned> v;
+	std::vector<chan_id_t> v;
 	for (const auto &it : m_Part) {
 		auto ret = it.second->StopChannel(Channel);
 		v.insert(v.end(), ret.begin(), ret.end());
@@ -214,13 +214,13 @@ void CNoteQueue::StopAll()
 		it.second->StopAll();
 }
 
-void CNoteQueue::MuteChannel(unsigned Channel)
+void CNoteQueue::MuteChannel(chan_id_t Channel)
 {
 	for (const auto &it : m_Part)
 		it.second->MuteChannel(Channel);
 }
 
-void CNoteQueue::UnmuteChannel(unsigned Channel)
+void CNoteQueue::UnmuteChannel(chan_id_t Channel)
 {
 	for (const auto &it : m_Part)
 		it.second->UnmuteChannel(Channel);

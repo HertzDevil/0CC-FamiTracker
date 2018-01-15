@@ -163,6 +163,7 @@ int CGotoDlg::GetFinalChannel() const
 
 	int Channel = m_iDestChannel;
 	switch (m_iDestChip) {
+	case SNDCHIP_NONE: Channel += CHANID_SQUARE1; break;
 	case SNDCHIP_VRC6: Channel += CHANID_VRC6_PULSE1; break;
 	case SNDCHIP_VRC7: Channel += CHANID_VRC7_CH1; break;
 	case SNDCHIP_FDS:  Channel += CHANID_FDS; break;
@@ -171,7 +172,7 @@ int CGotoDlg::GetFinalChannel() const
 	case SNDCHIP_S5B:  Channel += CHANID_S5B_CH1; break;
 	}
 
-	return pDoc->GetChannelIndex(Channel);
+	return pDoc->GetChannelIndex((chan_id_t)Channel);
 }
 
 void CGotoDlg::OnEnChangeEditGotoFrame()

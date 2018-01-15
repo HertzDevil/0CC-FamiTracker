@@ -60,7 +60,7 @@ public:
 	explicit CSongState(int Count = MAX_CHANNELS);
 
 	void Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned Frame, unsigned Row);
-	std::string GetChannelStateString(const CFamiTrackerDoc &doc, int chan) const;
+	std::string GetChannelStateString(const CFamiTrackerDoc &doc, chan_id_t chan) const;
 
 	std::unique_ptr<stChannelState[]> State;
 	int Tempo = -1;
