@@ -393,8 +393,8 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 			for (int j = 0; j < ChannelCount; ++j) {
 				int Chan = j + m_iFirstChannel;
 
-				unsigned index = song.GetFramePattern(Frame, song.TranslateChannel(Chan));		// // //
-				unsigned activeIndex = song.GetFramePattern(ActiveFrame, song.TranslateChannel(Chan));
+				unsigned index = song.GetFramePattern(Frame, pDoc->TranslateChannel(Chan));		// // //
+				unsigned activeIndex = song.GetFramePattern(ActiveFrame, pDoc->TranslateChannel(Chan));
 
 				// Dim patterns that are different from current
 				if ((!m_bLastRow && index == activeIndex) || bSelectedRow)
@@ -993,7 +993,7 @@ std::pair<CFrameIterator, CFrameIterator> CFrameEditor::GetIterators() const		//
 {
 	int Track = m_pMainFrame->GetSelectedTrack();
 	auto pSel = model_->GetSelection();
-	return CFrameIterator::FromSelection(pSel ? *pSel : model_->GetCurrentPos(), *m_pDocument->GetSong(Track));
+	return CFrameIterator::FromSelection(pSel ? *pSel : model_->GetCurrentPos(), *m_pDocument->GetChannelMap(), *m_pDocument->GetSong(Track));
 }
 
 std::unique_ptr<CFrameClipData> CFrameEditor::CopySelection(const CFrameSelection &Sel, unsigned song) const		// // //
@@ -1024,7 +1024,7 @@ void CFrameEditor::PasteAt(unsigned int Track, const CFrameClipData &ClipData, c
 
 void CFrameEditor::ClearPatterns(unsigned int Track, const CFrameSelection &Sel)		// // //
 {
-	for (auto [b, e] = CFrameIterator::FromSelection(Sel, *m_pDocument->GetSong(Track)); b != e; ++b)
+	for (auto [b, e] = CFrameIterator::FromSelection(Sel, *m_pDocument->GetChannelMap(), *m_pDocument->GetSong(Track)); b != e; ++b)
 		for (int c = b.m_iChannel; c < e.m_iChannel; ++c)
 			m_pDocument->ClearPattern(Track, b.m_iFrame, c);
 }

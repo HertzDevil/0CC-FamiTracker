@@ -175,30 +175,6 @@ void CSongData::SetFramePattern(unsigned int Frame, chan_id_t Channel, unsigned 
 	m_iFrameList[Frame][Channel] = Pattern;
 }
 
-unsigned CSongData::GetFrameSize(unsigned Frame, unsigned MaxChans) const {		// // //
-	const unsigned PatternLength = GetPatternLength();	// default length
-	unsigned HaltPoint = PatternLength;
-
-	for (unsigned i = 0; i < MaxChans; ++i) {
-		unsigned halt = [&] {
-			const int Columns = GetEffectColumnCount(TranslateChannel(i)) + 1;
-			const auto &pat = GetPatternOnFrame(TranslateChannel(i), Frame);
-			for (unsigned j = 0; j < PatternLength - 1; ++j) {
-				const auto &Note = pat.GetNoteOn(j);
-				for (int k = 0; k < Columns; ++k)
-					switch (Note.EffNumber[k])
-					case EF_SKIP: case EF_JUMP: case EF_HALT:
-						return j + 1;
-			}
-			return PatternLength;
-		}();
-		if (halt < HaltPoint)
-			HaltPoint = halt;
-	}
-
-	return HaltPoint;
-}
-
 void CSongData::SetHighlight(const stHighlight &Hl)		// // //
 {
 	m_vRowHighlight = Hl;
@@ -241,10 +217,6 @@ void CSongData::SetBookmarks(const CBookmarkCollection &bookmarks) {
 
 void CSongData::SetBookmarks(CBookmarkCollection &&bookmarks) {
 	bookmarks_ = std::move(bookmarks);
-}
-
-chan_id_t CSongData::TranslateChannel(unsigned Index) const {		// // //
-	return parent_.GetChannelMap()->GetChannelType(Index);
 }
 
 unsigned CSongData::GetChannelPosition(unsigned ChanID) const {

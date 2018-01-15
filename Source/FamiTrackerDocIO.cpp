@@ -385,7 +385,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 			// Channel type (unused)
 			AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANNELS - 1, "Channel type index");
 			// Effect columns
-			Song.SetEffectColumnCount(Song.TranslateChannel(i), AssertRange<MODULE_ERROR_STRICT>(
+			Song.SetEffectColumnCount(doc.TranslateChannel(i), AssertRange<MODULE_ERROR_STRICT>(
 				file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count"));
 		}
 		catch (CModuleException e) {
@@ -407,7 +407,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 			AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANNELS - 1, "Channel type index"); // Channel type (unused)
 			doc.VisitSongs([&] (CSongData &song, unsigned index) {
 				try {
-					song.SetEffectColumnCount(song.TranslateChannel(i), AssertRange<MODULE_ERROR_STRICT>(
+					song.SetEffectColumnCount(doc.TranslateChannel(i), AssertRange<MODULE_ERROR_STRICT>(
 						file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count"));
 				}
 				catch (CModuleException e) {
@@ -447,7 +447,7 @@ void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerDoc &doc, int ver) {
 		for (unsigned int j = 0; j < doc.GetTrackCount(); ++j) {
 			// Effect columns
 			auto &song = *doc.GetSong(j);
-			file_.WriteBlockChar(song.GetEffectColumnCount(song.TranslateChannel(i)));
+			file_.WriteBlockChar(song.GetEffectColumnCount(doc.TranslateChannel(i)));
 			if (ver <= 1)
 				break;
 		}
@@ -683,7 +683,7 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
 			for (int j = 0; j < doc.GetChannelCount(); ++j) {
 				unsigned Pattern = static_cast<unsigned char>(file_.GetBlockChar());
 				AssertRange(Pattern, 0U, static_cast<unsigned>(MAX_PATTERN - 1), "Pattern index");
-				Song.SetFramePattern(i, Song.TranslateChannel(j), Pattern);
+				Song.SetFramePattern(i, doc.TranslateChannel(j), Pattern);
 			}
 		}
 	}
@@ -716,7 +716,7 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
 				for (int j = 0; j < doc.GetChannelCount(); ++j) {
 					// Read pattern index
 					int Pattern = static_cast<unsigned char>(file_.GetBlockChar());
-					song.SetFramePattern(i, song.TranslateChannel(j), AssertRange(Pattern, 0, MAX_PATTERN - 1, "Pattern index"));
+					song.SetFramePattern(i, doc.TranslateChannel(j), AssertRange(Pattern, 0, MAX_PATTERN - 1, "Pattern index"));
 				}
 			}
 		});
@@ -732,7 +732,7 @@ void CFamiTrackerDocIO::SaveFrames(const CFamiTrackerDoc &doc, int ver) {
 
 		for (unsigned int j = 0; j < Song.GetFrameCount(); ++j)
 			for (int k = 0; k < doc.GetChannelCount(); ++k)
-				file_.WriteBlockChar((unsigned char)Song.GetFramePattern(j, Song.TranslateChannel(k)));
+				file_.WriteBlockChar((unsigned char)Song.GetFramePattern(j, doc.TranslateChannel(k)));
 	});
 }
 
@@ -782,7 +782,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 					file_.GetBlockChar(), 0, MAX_VOLUME, "Channel volume");
 
 				int FX = compat200 ? 1 : ver >= 6 ? MAX_EFFECT_COLUMNS :
-					(pSong->GetEffectColumnCount(pSong->TranslateChannel(Channel)) + 1);		// // // 050B
+					(pSong->GetEffectColumnCount(doc.TranslateChannel(Channel)) + 1);		// // // 050B
 				for (int n = 0; n < FX; ++n) try {
 					unsigned char EffectNumber = file_.GetBlockChar();
 					if (Note.EffNumber[n] = static_cast<effect_t>(EffectNumber)) {
@@ -893,7 +893,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 				}
 				*/
 
-				pSong->SetPatternData(pSong->TranslateChannel(Channel), Pattern, Row, Note);		// // //
+				pSong->SetPatternData(doc.TranslateChannel(Channel), Pattern, Row, Note);		// // //
 			}
 			catch (CModuleException e) {
 				e.AppendError("At row %02X,", Row);
@@ -929,7 +929,7 @@ void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerDoc &doc, int ver) {
 			if (!Items)
 				return;
 			file_.WriteBlockInt(song);		// Write track
-			file_.WriteBlockInt(x.GetChannelPosition(ch));		// Write channel
+			file_.WriteBlockInt(doc.GetChannelIndex(ch));		// Write channel
 			file_.WriteBlockInt(index);		// Write pattern
 			file_.WriteBlockInt(Items);		// Number of items
 

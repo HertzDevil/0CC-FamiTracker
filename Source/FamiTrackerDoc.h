@@ -67,6 +67,7 @@ enum class sequence_t : unsigned;
 enum cursor_column_t : unsigned int; // TODO: remove
 enum machine_t : unsigned char;
 enum vibrato_t : unsigned char;
+enum chan_id_t : unsigned;
 
 namespace ft0cc::doc {		// // //
 class groove;
@@ -145,9 +146,12 @@ public:
 	CTrackerChannel	&GetChannel(int Index) const;		// // //
 	int				GetChannelIndex(int Channel) const;
 
-	int				GetChannelType(int Channel) const;
+	int				GetChannelType(int Channel) const; // TODO: merge with TranslateChannel
 	int				GetChipType(int Channel) const;
 	int				GetChannelCount() const;
+
+	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
+	chan_id_t		TranslateChannel(chan_id_t) const = delete;
 
 	// Synchronization
 	BOOL			LockDocument() const;

@@ -26,6 +26,7 @@
 #include "SongData.h"		// // //
 #include "MainFrm.h"
 #include "FrameEditor.h"
+#include "ChannelMap.h"		// // //
 #include <unordered_map>		// // //
 
 // // // all dependencies on CMainFrame
@@ -43,16 +44,16 @@ struct pairhash {		// // // from http://stackoverflow.com/a/20602159/5756577
 	}
 };
 
-void ClonePatterns(const CFrameSelection &Sel, CSongData &song) {		// // //
+void ClonePatterns(const CFrameSelection &Sel, const CChannelMap &map, CSongData &song) {		// // //
 	std::unordered_map<std::pair<int, int>, int, pairhash> NewPatterns;
 
-	for (auto [b, e] = CFrameIterator::FromSelection(Sel, song); b != e; ++b) {
+	for (auto [b, e] = CFrameIterator::FromSelection(Sel, map, song); b != e; ++b) {
 		for (int c = b.m_iChannel; c < e.m_iChannel; ++c) {
 			int OldPattern = b.Get(c);
 			auto Index = std::make_pair(c, OldPattern);
 			if (auto p = NewPatterns.find(Index); p == NewPatterns.end()) {		// // // share common patterns
-				NewPatterns[Index] = song.GetFreePatternIndex(song.TranslateChannel(c));
-				song.GetPattern(song.TranslateChannel(c), NewPatterns[Index]) = song.GetPattern(song.TranslateChannel(c), OldPattern);
+				NewPatterns[Index] = song.GetFreePatternIndex(map.GetChannelType(c));
+				song.GetPattern(map.GetChannelType(c), NewPatterns[Index]) = song.GetPattern(map.GetChannelType(c), OldPattern);
 			}
 			b.Set(c, NewPatterns[Index]);
 		}
@@ -557,7 +558,7 @@ void CFActionPaste::Redo(CMainFrame &MainFrm)
 	CFrameSelection sel {*m_pClipData, m_iTargetFrame};
 	pFrameEditor->PasteInsert(m_pUndoState->Track, m_iTargetFrame, *m_pClipData);
 	if (m_bClone)
-		ClonePatterns(sel, *GET_DOCUMENT()->GetSong(m_pUndoState->Track));
+		ClonePatterns(sel, *GET_DOCUMENT()->GetChannelMap(), *GET_DOCUMENT()->GetSong(m_pUndoState->Track));
 	pFrameEditor->SetSelection(sel);
 }
 
@@ -671,7 +672,7 @@ void CFActionClonePatterns::Redo(CMainFrame &MainFrm)		// // //
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	if (m_pUndoState->IsSelecting)
-		ClonePatterns(m_pUndoState->Selection, *pDoc->GetSong(m_pUndoState->Track));
+		ClonePatterns(m_pUndoState->Selection, *pDoc->GetChannelMap(), *pDoc->GetSong(m_pUndoState->Track));
 	else {
 		pDoc->SetPatternAtFrame(STATE_EXPAND(m_pUndoState), m_iNewPattern);
 		pDoc->CopyPattern(m_pUndoState->Track, m_iNewPattern, m_iOldPattern, m_pUndoState->Cursor.m_iChannel);

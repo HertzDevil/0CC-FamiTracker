@@ -72,8 +72,6 @@ public:
 	unsigned int GetFramePattern(unsigned int Frame, chan_id_t Channel) const;
 	void SetFramePattern(unsigned int Frame, chan_id_t Channel, unsigned int Pattern);
 
-	unsigned GetFrameSize(unsigned Frame, unsigned MaxChans) const;		// // //
-
 	void SetHighlight(const stHighlight &Hl);		// // //
 	const stHighlight &GetRowHighlight() const;
 
@@ -135,8 +133,6 @@ public:
 		}
 	}
 
-	chan_id_t TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
-	chan_id_t TranslateChannel(chan_id_t) const = delete;
 	unsigned GetChannelPosition(unsigned ChanID) const;		// // // TODO: move to CSongView
 
 public:

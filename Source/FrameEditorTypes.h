@@ -27,6 +27,7 @@
 
 // // // common classes for frame editor
 
+class CChannelMap;		// // //
 class CSongData;		// // //
 class CFrameClipData;		// // //
 
@@ -74,9 +75,10 @@ struct CFrameSelection
 struct CFrameIterator : public CFrameCursorPos		// // //
 {
 public:
-	CFrameIterator(CSongData &song, const CFrameCursorPos &Pos);
+	CFrameIterator(const CChannelMap &map, CSongData &song, const CFrameCursorPos &Pos);
 
-	static std::pair<CFrameIterator, CFrameIterator> FromSelection(const CFrameSelection &sel, CSongData &song);
+	static std::pair<CFrameIterator, CFrameIterator>
+	FromSelection(const CFrameSelection &sel, const CChannelMap &map, CSongData &song);
 
 	int Get(int Channel) const;
 	void Set(int Channel, int Pattern);
@@ -93,5 +95,6 @@ public:
 private:
 	int NormalizeFrame(int Frame) const;
 
+	const CChannelMap &map_;
 	CSongData &song_;
 };

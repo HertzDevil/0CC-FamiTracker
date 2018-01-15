@@ -58,7 +58,7 @@ void Kraid::buildSong(CSongData &song) {
 
 	for (int ch = 0; ch < FRAMES; ++ch)
 		for (int f = 0; f < ROWS; ++f)
-			song.SetFramePattern(f, song.TranslateChannel(ch), PATTERNS[ch][f]);
+			song.SetFramePattern(f, (chan_id_t)ch, PATTERNS[ch][f]);
 
 	makePattern(song, CHANID_TRIANGLE, 0, "<e.>e...<e.>e...<e.>e...<e.>e...");
 	makePattern(song, CHANID_TRIANGLE, 1, "<c.>c...<c.>c...<d.>d...<d.>d...");
@@ -90,7 +90,7 @@ void Kraid::buildSong(CSongData &song) {
 	} while (f || r);
 }
 
-void Kraid::makeInst(CFamiTrackerDoc &doc, unsigned index, char vol, const char * name) {
+void Kraid::makeInst(CFamiTrackerDoc &doc, unsigned index, char vol, std::string_view name) {
 	doc.AddInstrument(doc.GetInstrumentManager()->CreateNew(INST_2A03), index);
 	auto leadInst = std::dynamic_pointer_cast<CInstrument2A03>(doc.GetInstrument(index));
 	leadInst->SetSeqEnable(sequence_t::Volume, true);

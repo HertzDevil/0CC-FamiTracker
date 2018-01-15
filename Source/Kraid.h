@@ -38,6 +38,6 @@ struct Kraid {
 private:
 	void buildDoc(CFamiTrackerDoc &doc);
 	void buildSong(CSongData &song);
-	void makeInst(CFamiTrackerDoc &doc, unsigned index, char vol, const char *name);
+	void makeInst(CFamiTrackerDoc &doc, unsigned index, char vol, std::string_view name);
 	void makePattern(CSongData &song, chan_id_t ch, unsigned pat, std::string_view mml);
 };

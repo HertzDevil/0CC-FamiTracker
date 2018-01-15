@@ -165,7 +165,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 			Song.SetFrameCount(FrameCount);
 			for (c = 0; c < FrameCount; c++)
 				for (i = 0; i < doc.GetAvailableChannels(); i++)
-					Song.SetFramePattern(c, Song.TranslateChannel(i), ReadInt(pOpenFile));
+					Song.SetFramePattern(c, doc.TranslateChannel(i), ReadInt(pOpenFile));
 			break;
 		}
 		case FB_PATTERNS: {
@@ -197,7 +197,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 							Note.Vol = MAX_VOLUME;
 						if (Note.EffNumber[0] < EF_COUNT)		// // //
 							Note.EffNumber[0] = EFF_CONVERSION_050.first[Note.EffNumber[0]];
-						Song.SetPatternData(Song.TranslateChannel(x), c, i, Note);
+						Song.SetPatternData(doc.TranslateChannel(x), c, i, Note);
 					}
 				}
 			}
