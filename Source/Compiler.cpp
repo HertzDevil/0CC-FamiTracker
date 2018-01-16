@@ -484,7 +484,7 @@ void CCompiler::ExportNSFE(LPCTSTR lpszFileName, int MachineType)		// // //
 void CCompiler::ExportNES(LPCTSTR lpszFileName, bool EnablePAL)
 {
 	ClearLog();
-	if (m_pDocument->GetExpansionChip() != sound_chip_t::NONE) {
+	if (m_pDocument->GetExpansionChip()) {
 		Print(_T("Error: Expansion chips not supported.\n"));
 		AfxMessageBox(_T("Expansion chips are currently not supported!"), 0, 0);
 		return;
@@ -499,7 +499,7 @@ void CCompiler::ExportPRG(LPCTSTR lpszFileName, bool EnablePAL)
 	// Same as export to .NES but without the header
 
 	ClearLog();
-	if (m_pDocument->GetExpansionChip() != sound_chip_t::NONE) {
+	if (m_pDocument->GetExpansionChip()) {
 		Print(_T("Error: Expansion chips not supported.\n"));
 		AfxMessageBox(_T("Expansion chips are currently not supported!"), 0, 0);
 		return;
@@ -656,7 +656,7 @@ stNSFHeader CCompiler::CreateHeader(int MachineType) const		// // //
 
 	// Allow PAL or dual tunes only if no expansion chip is selected
 	// Expansion chips weren't available in PAL areas
-	if (m_pDocument->GetExpansionChip() == sound_chip_t::NONE)
+	if (!m_pDocument->GetExpansionChip())
 		Header.Flags = MachineType;
 
 	return Header;
@@ -686,7 +686,7 @@ stNSFeHeader CCompiler::CreateNSFeHeader(int MachineType)		// // //
 			Header.BankValues[7] = m_iLastBank;
 	}
 
-	if (m_pDocument->GetExpansionChip() == sound_chip_t::NONE)
+	if (!m_pDocument->GetExpansionChip())
 		Header.Flags = MachineType;
 
 	return Header;
@@ -909,7 +909,7 @@ bool CCompiler::CompileData()
 	// Select driver and channel order
 	if (!m_iActualChip.IsMultiChip())
 		switch (m_iActualChip.GetSoundChip()) {
-		case sound_chip_t::NONE:
+		case sound_chip_t::APU:
 			m_pDriverData = &DRIVER_PACK_2A03;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_2A03;
 			Print(_T(" * No expansion chip\n"));
@@ -951,14 +951,14 @@ bool CCompiler::CompileData()
 		Print(_T(" * Multiple expansion chips enabled\n"));
 //		if (m_pDocument->ExpansionEnabled(sound_chip_t::N163))
 //			m_pDocument->SetNamcoChannels(8, true);
-//		m_pDocument->SelectExpansionChip(sound_chip_t::ALL, true);
+//		m_pDocument->SelectExpansionChip(sound_chip_flag_t::All(), true);
 	}
 
 	// // // Setup channel order list, DPCM is located last
 	const sound_chip_flag_t Chip = m_pDocument->GetExpansionChip();
-	if (Chip.ContainsChip(sound_chip_t::NONE))
+	if (Chip.ContainsChip(sound_chip_t::APU))
 		for (int i = 0; i < 4; i++)
-			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::NONE, i));
+			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::APU, i));
 	if (Chip.ContainsChip(sound_chip_t::MMC5))
 		for (int i = 0; i < 2; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::MMC5, i));
@@ -976,7 +976,7 @@ bool CCompiler::CompileData()
 	if (Chip.ContainsChip(sound_chip_t::VRC7))
 		for (int i = 0; i < CHANNELS_VRC7; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::VRC7, i));
-	if (Chip.ContainsChip(sound_chip_t::NONE))
+	if (Chip.ContainsChip(sound_chip_t::APU))
 		m_vChanOrder.push_back(chan_id_t::DPCM);
 
 	// Driver size

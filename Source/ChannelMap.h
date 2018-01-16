@@ -34,7 +34,7 @@ class CTrackerChannel;		// // //
 class CChannelMap
 {
 public:
-	CChannelMap();		// // //
+	CChannelMap() = default;		// // //
 	CChannelMap(sound_chip_flag_t chips, unsigned n163chs);
 
 	void			ResetChannels();
@@ -63,5 +63,5 @@ private:		// // //
 	std::unordered_map<chan_id_t, int> m_iChannelIndices;		// // //
 
 	sound_chip_flag_t chips_;		// // //
-	unsigned n163chs_;		// // //
+	unsigned n163chs_ = 0u;		// // //
 };

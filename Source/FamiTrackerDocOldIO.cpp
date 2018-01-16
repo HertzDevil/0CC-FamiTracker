@@ -61,7 +61,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 	// Only single track files
 	auto &Song = *doc.GetSong(0);
 
-	doc.SelectExpansionChip(sound_chip_t::NONE, 0);		// // //
+	doc.SelectExpansionChip({ }, 0);		// // //
 	doc.SetMachine(NTSC);		// // //
 	doc.SetVibratoStyle(VIBRATO_OLD);
 	doc.SetLinearPitch(false);

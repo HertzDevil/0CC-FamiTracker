@@ -317,7 +317,7 @@ void CAPU::Log()
 	str.Format("Frame %08i: ", m_iFrame - 1);
 	str.Append("2A03 ");
 	for (int i = 0; i < 0x14; ++i)
-		str.AppendFormat("%02X ", GetReg(sound_chip_t::NONE, i));
+		str.AppendFormat("%02X ", GetReg(sound_chip_t::APU, i));
 	if (m_iExternalSoundChip & sound_chip_t::VRC6) {		// // //
 		str.Append("VRC6 ");
 		for (int i = 0; i < 0x03; ++i) for (int j = 0; j < 0x03; ++j)

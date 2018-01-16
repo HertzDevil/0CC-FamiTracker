@@ -3531,7 +3531,7 @@ void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
 	for (int c = it.first.m_iChannel; c <= it.second.m_iChannel; ++c) {
 		unsigned Type = GetChannelSubIndex(m_pDocument->TranslateChannel(c));
 		switch (m_pDocument->GetChipType(c)) {
-		case sound_chip_t::NONE: Type += 'A'; break;
+		case sound_chip_t::APU:  Type += 'A'; break;
 		case sound_chip_t::FDS:  Type += 'F'; break;
 		case sound_chip_t::VRC7: Type += 'G'; break;
 		case sound_chip_t::VRC6: Type += 'M'; break;

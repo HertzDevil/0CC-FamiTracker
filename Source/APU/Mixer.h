@@ -87,7 +87,7 @@ private:
 	CMixerChannel<stLevelsN163>    levelsN163_    {1600};
 	CMixerChannel<stLevelsS5B>     levelsS5B_     {1200};
 
-	sound_chip_flag_t m_iExternalChip = sound_chip_t::NONE;
+	sound_chip_flag_t m_iExternalChip;
 	uint32_t	m_iSampleRate = 0;
 
 	std::array<float, CHANID_COUNT>		m_fChannelLevels = { };

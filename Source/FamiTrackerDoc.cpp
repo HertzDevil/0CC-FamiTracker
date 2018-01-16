@@ -289,7 +289,7 @@ void CFamiTrackerDoc::CreateEmpty()
 	LockDocument();
 
 	// and select 2A03 only
-	SelectExpansionChip(sound_chip_t::NONE, 0);		// // //
+	SelectExpansionChip({ }, 0);		// // //
 	SetModifiedFlag(FALSE);
 	SetExceededFlag(FALSE);		// // //
 
@@ -1267,7 +1267,7 @@ void CFamiTrackerDoc::SelectExpansionChip(sound_chip_flag_t chips, unsigned n163
 	ASSERT(n163chs <= 8 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
 
 	// // // Complete sound chip setup
-	if (chips != sound_chip_t::NONE)
+	if (chips)
 		SetMachine(NTSC);
 
 	// This will select a chip in the sound emulator

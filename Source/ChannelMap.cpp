@@ -29,9 +29,6 @@
  *
  */
 
-CChannelMap::CChannelMap() : CChannelMap(sound_chip_t::NONE, 0) {
-}
-
 CChannelMap::CChannelMap(sound_chip_flag_t chips, unsigned n163chs) :
 	chips_(chips), n163chs_(n163chs)
 {

@@ -133,7 +133,7 @@ int CTrackerChannel::GetPitch() const
 bool CTrackerChannel::IsInstrumentCompatible(int Instrument, inst_type_t Type) const
 {
 	switch (m_iChip) {
-	case sound_chip_t::NONE:
+	case sound_chip_t::APU:
 	case sound_chip_t::MMC5:
 	case sound_chip_t::N163:		// // //
 	case sound_chip_t::S5B:
@@ -167,7 +167,7 @@ bool CTrackerChannel::IsEffectCompatible(int EffNumber, int EffParam) const		// 
 		case EF_GROOVE:
 			return EffParam < MAX_GROOVE;
 		case EF_VOLUME:
-			return ((m_iChip == sound_chip_t::NONE && m_iChannelID != chan_id_t::DPCM) || m_iChip == sound_chip_t::MMC5) &&
+			return ((m_iChip == sound_chip_t::APU && m_iChannelID != chan_id_t::DPCM) || m_iChip == sound_chip_t::MMC5) &&
 				(EffParam <= 0x1F || (EffParam >= 0xE0 && EffParam <= 0xE3));
 		case EF_PORTAMENTO: case EF_ARPEGGIO: case EF_VIBRATO: case EF_TREMOLO:
 		case EF_PITCH: case EF_PORTA_UP: case EF_PORTA_DOWN: case EF_SLIDE_UP: case EF_SLIDE_DOWN:

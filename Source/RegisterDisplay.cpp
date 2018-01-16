@@ -111,12 +111,12 @@ void CRegisterDisplay::Draw() {
 	DrawHeader(_T("2A03"));		// // //
 
 	for (int i = 0; i < 5; ++i) {
-		GetRegs(sound_chip_t::NONE, [&] (int x) { return 0x4000 + i * 4 + x; }, 4);
+		GetRegs(sound_chip_t::APU, [&] (int x) { return 0x4000 + i * 4 + x; }, 4);
 		text.Format(_T("$%04X:"), 0x4000 + i * 4);		// // //
 		DrawReg(text, 4);
 
 		int period, vol;
-		double freq = pSoundGen->GetChannelFrequency(sound_chip_t::NONE, i);		// // //
+		double freq = pSoundGen->GetChannelFrequency(sound_chip_t::APU, i);		// // //
 //		dc.FillSolidRect(x + 200, y, x + 400, y + 18, m_colEmptyBg);
 
 		switch (i) {

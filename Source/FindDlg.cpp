@@ -259,10 +259,10 @@ void CFindResultsBox::SelectItem(int Index)
 
 	const auto ToChannelID = [] (std::string_view x) {
 		static const std::tuple<std::string_view, sound_chip_t, unsigned> HEADERS[] = {
-			{"Pulse "     , sound_chip_t::NONE, GetChannelSubIndex(chan_id_t::SQUARE1)},
-			{"Triangle"   , sound_chip_t::NONE, GetChannelSubIndex(chan_id_t::TRIANGLE)},
-			{"Noise"      , sound_chip_t::NONE, GetChannelSubIndex(chan_id_t::NOISE)},
-			{"DPCM"       , sound_chip_t::NONE, GetChannelSubIndex(chan_id_t::DPCM)},
+			{"Pulse "     , sound_chip_t::APU , GetChannelSubIndex(chan_id_t::SQUARE1)},
+			{"Triangle"   , sound_chip_t::APU , GetChannelSubIndex(chan_id_t::TRIANGLE)},
+			{"Noise"      , sound_chip_t::APU , GetChannelSubIndex(chan_id_t::NOISE)},
+			{"DPCM"       , sound_chip_t::APU , GetChannelSubIndex(chan_id_t::DPCM)},
 			{"VRC6 Pulse ", sound_chip_t::VRC6, GetChannelSubIndex(chan_id_t::VRC6_PULSE1)},
 			{"Sawtooth"   , sound_chip_t::VRC6, GetChannelSubIndex(chan_id_t::VRC6_SAWTOOTH)},
 			{"MMC5 Pulse ", sound_chip_t::MMC5, GetChannelSubIndex(chan_id_t::MMC5_SQUARE1)},

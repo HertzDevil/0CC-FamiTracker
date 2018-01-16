@@ -1182,7 +1182,7 @@ void CMainFrame::OnAddInstrument()
 	// Chip type depends on selected channel
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 	switch (GetDoc().GetChipType(pView->GetSelectedChannel())) {		// // // TODO: remove eventually
-	case sound_chip_t::NONE: return OnAddInstrument2A03();
+	case sound_chip_t::APU:  return OnAddInstrument2A03();
 	case sound_chip_t::VRC6: return OnAddInstrumentVRC6();
 	case sound_chip_t::VRC7: return OnAddInstrumentVRC7();
 	case sound_chip_t::FDS:  return OnAddInstrumentFDS();
@@ -1603,7 +1603,7 @@ void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 
 	sound_chip_flag_t Chip = GetDoc().GetExpansionChip();
 
-	if (Chip == sound_chip_t::NONE)		// // //
+	if (!Chip)		// // //
 		String = _T("No expansion chip");
 	else if (!Chip.IsMultiChip())
 		switch (Chip.GetSoundChip()) {
@@ -2590,7 +2590,7 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 
 	menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_2A03, _T("New 2A03 instrument"));
 
-	if (Chip.ContainsChip(sound_chip_t::NONE))
+	if (Chip.ContainsChip(sound_chip_t::APU))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_2A03, _T("New 2A03 instrument"));
 	if (Chip.ContainsChip(sound_chip_t::VRC6))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_VRC6, _T("New VRC6 instrument"));
@@ -2606,7 +2606,7 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_S5B, _T("New Sunsoft instrument"));
 
 	switch (SelectedChip) {
-	case sound_chip_t::NONE: menu.SetDefaultItem(ID_INSTRUMENT_ADD_2A03); break;
+	case sound_chip_t::APU:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_2A03); break;
 	case sound_chip_t::VRC6: menu.SetDefaultItem(ID_INSTRUMENT_ADD_VRC6); break;
 	case sound_chip_t::VRC7: menu.SetDefaultItem(ID_INSTRUMENT_ADD_VRC7); break;
 	case sound_chip_t::FDS:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_FDS);  break;
@@ -3499,7 +3499,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 {
 	const CFamiTrackerDoc &Doc = GetDoc();
 
-	pCmdUI->Enable(Doc.GetExpansionChip() == sound_chip_t::NONE && !theApp.GetSoundGenerator()->IsPlaying());		// // //
+	pCmdUI->Enable(!Doc.GetExpansionChip() && !theApp.GetSoundGenerator()->IsPlaying());		// // //
 	UINT item = Doc.GetMachine() == PAL ? ID_TRACKER_PAL : ID_TRACKER_NTSC;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);

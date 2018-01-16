@@ -360,7 +360,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
 							switch (ChipID) {		// // //
-							case sound_chip_t::NONE: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:
+							case sound_chip_t::APU: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:
 								if (!m_pDocument->GetLinearPitch()) {
 									WriteData(Command(CMD_EFF_PORTAUP));
 									break;
@@ -379,7 +379,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
 							switch (ChipID) {		// // //
-							case sound_chip_t::NONE: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:
+							case sound_chip_t::APU: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:
 								if (!m_pDocument->GetLinearPitch()) {
 									WriteData(Command(CMD_EFF_PORTADOWN));
 									break;
@@ -441,7 +441,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 							WriteData(Command(CMD_EFF_RESET_PITCH));
 						else {
 							switch (ChipID) {
-							case sound_chip_t::NONE: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:		// // //
+							case sound_chip_t::APU: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:		// // //
 								if (!m_pDocument->GetLinearPitch()) break;
 							default:
 								EffParam = (char)(256 - (int)EffParam);

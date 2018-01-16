@@ -64,11 +64,11 @@ void CSoundDriver::SetupTracks() {
 
 	// 2A03/2A07
 	// // // Short header names
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Pulse 1"), _T("PU1"), sound_chip_t::NONE, chan_id_t::SQUARE1));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Pulse 2"), _T("PU2"), sound_chip_t::NONE, chan_id_t::SQUARE2));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Triangle"), _T("TRI"), sound_chip_t::NONE, chan_id_t::TRIANGLE));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Noise"), _T("NOI"), sound_chip_t::NONE, chan_id_t::NOISE));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("DPCM"), _T("DMC"), sound_chip_t::NONE, chan_id_t::DPCM));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Pulse 1"), _T("PU1"), sound_chip_t::APU, chan_id_t::SQUARE1));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Pulse 2"), _T("PU2"), sound_chip_t::APU, chan_id_t::SQUARE2));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Triangle"), _T("TRI"), sound_chip_t::APU, chan_id_t::TRIANGLE));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Noise"), _T("NOI"), sound_chip_t::APU, chan_id_t::NOISE));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("DPCM"), _T("DMC"), sound_chip_t::APU, chan_id_t::DPCM));
 
 	// Konami VRC6
 	AssignTrack(std::make_unique<CTrackerChannel>(_T("VRC6 Pulse 1"), _T("V1"), sound_chip_t::VRC6, chan_id_t::VRC6_PULSE1));

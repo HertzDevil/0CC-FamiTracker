@@ -33,7 +33,7 @@ const uint16_t CDPCM::DMC_PERIODS_PAL[]  = {
 };
 
 CDPCM::CDPCM(CMixer &Mixer, chan_id_t ID) :		// // //
-	C2A03Chan(Mixer, sound_chip_t::NONE, ID)
+	C2A03Chan(Mixer, sound_chip_t::APU, ID)
 {
 	PERIOD_TABLE = DMC_PERIODS_NTSC;
 

@@ -28,7 +28,6 @@
 #include <cstddef>
 
 enum class sound_chip_t : std::uint8_t {		// // //
-	NONE = 0x00u,
 	APU  = 0x00u,
 	VRC6 = 0x01u,
 	VRC7 = 0x02u,
@@ -36,7 +35,7 @@ enum class sound_chip_t : std::uint8_t {		// // //
 	MMC5 = 0x08u,
 	N163 = 0x10u,
 	S5B  = 0x20u,
-	ALL  = 0x3Fu,
+	NONE = 0xFFu,
 };
 
 constexpr sound_chip_t EXPANSION_CHIPS[] = {
@@ -96,7 +95,7 @@ constexpr auto value_cast(chan_id_t ch) noexcept {
 
 constexpr sound_chip_t GetChipFromChannel(chan_id_t ch) noexcept {
 	if (ch <= chan_id_t::DPCM)
-		return sound_chip_t::NONE;
+		return sound_chip_t::APU;
 	if (ch <= chan_id_t::VRC6_SAWTOOTH)
 		return sound_chip_t::VRC6;
 	if (ch <= chan_id_t::MMC5_VOICE)
@@ -132,7 +131,7 @@ constexpr std::size_t GetChannelSubIndex(chan_id_t ch) noexcept {
 
 constexpr chan_id_t MakeChannelIndex(sound_chip_t chip, unsigned subindex) noexcept {
 	switch (chip) {
-	case sound_chip_t::NONE:
+	case sound_chip_t::APU:
 		if (subindex < 5)
 			return (chan_id_t)((unsigned)chan_id_t::SQUARE1 + subindex);
 		break;

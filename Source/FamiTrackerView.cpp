@@ -3264,7 +3264,7 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 	if (Chip != sound_chip_t::FDS) {
 		inst_type_t Type = INST_NONE;
 		switch (Chip) {
-		case sound_chip_t::NONE: case sound_chip_t::MMC5: Type = INST_2A03; break;
+		case sound_chip_t::APU: case sound_chip_t::MMC5: Type = INST_2A03; break;
 		case sound_chip_t::VRC6: Type = INST_VRC6; break;
 		case sound_chip_t::N163: Type = INST_N163; break;
 		case sound_chip_t::S5B:  Type = INST_S5B; break;

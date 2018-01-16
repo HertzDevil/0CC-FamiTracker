@@ -92,7 +92,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 	const auto REG = [&] (int x) { return m_pSoundGen->GetReg(Chip, x); };
 
 	switch (Chip) {
-	case sound_chip_t::NONE:
+	case sound_chip_t::APU:
 		PitchReg = m_iRecordChannel == chan_id_t::NOISE ? (0x0F & REG(0x400E)) :
 					(REG(0x4002 | (ID << 2)) | (0x07 & REG(0x4003 | (ID << 2))) << 8); break;
 	case sound_chip_t::VRC6:
@@ -112,7 +112,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 
 	CDetuneTable::type_t Table;
 	switch (Chip) {
-	case sound_chip_t::NONE: Table = m_pDocument->GetMachine() == PAL ? CDetuneTable::DETUNE_PAL : CDetuneTable::DETUNE_NTSC; break;
+	case sound_chip_t::APU:  Table = m_pDocument->GetMachine() == PAL ? CDetuneTable::DETUNE_PAL : CDetuneTable::DETUNE_NTSC; break;
 	case sound_chip_t::VRC6: Table = m_iRecordChannel == chan_id_t::VRC6_SAWTOOTH ? CDetuneTable::DETUNE_SAW : CDetuneTable::DETUNE_NTSC; break;
 	case sound_chip_t::VRC7: Table = CDetuneTable::DETUNE_VRC7; break;
 	case sound_chip_t::FDS:  Table = CDetuneTable::DETUNE_FDS; break;
@@ -133,7 +133,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 
 	inst_type_t InstType = INST_NONE; // optimize this
 	switch (Chip) {
-	case sound_chip_t::NONE: case sound_chip_t::MMC5: InstType = INST_2A03; break;
+	case sound_chip_t::APU: case sound_chip_t::MMC5: InstType = INST_2A03; break;
 	case sound_chip_t::VRC6: InstType = INST_VRC6; break;
 	// case sound_chip_t::VRC7: Type = INST_VRC7; break;
 	case sound_chip_t::FDS:  InstType = INST_FDS; break;
@@ -147,7 +147,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 			switch (s) {
 			case sequence_t::Volume:
 				switch (Chip) {
-				case sound_chip_t::NONE:
+				case sound_chip_t::APU:
 					Val = m_iRecordChannel == chan_id_t::TRIANGLE ? ((0x7F & REG(0x4008)) ? 15 : 0) : (0x0F & REG(0x4000 | (ID << 2))); break;
 				case sound_chip_t::VRC6:
 					Val = m_iRecordChannel == chan_id_t::VRC6_SAWTOOTH ? (0x0F & (REG(0xB000) >> 1)) : (0x0F & REG(0x9000 + (ID << 12))); break;
@@ -164,7 +164,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 			case sequence_t::HiPitch: Val = static_cast<char>(Detune / 16); break;
 			case sequence_t::DutyCycle:
 				switch (Chip) {
-				case sound_chip_t::NONE:
+				case sound_chip_t::APU:
 					Val = m_iRecordChannel == chan_id_t::TRIANGLE ? 0 :
 						m_iRecordChannel == chan_id_t::NOISE ? (0x01 & REG(0x400E) >> 7) : (0x03 & REG(0x4000 | (ID << 2)) >> 6); break;
 				case sound_chip_t::VRC6:
@@ -306,7 +306,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 	}
 	inst_type_t Type = [&] { // optimize this
 		switch (Chan.GetChip()) {
-		case sound_chip_t::NONE: case sound_chip_t::MMC5: return INST_2A03;
+		case sound_chip_t::APU: case sound_chip_t::MMC5: return INST_2A03;
 		case sound_chip_t::VRC6: return INST_VRC6;
 		// case sound_chip_t::VRC7: return INST_VRC7;
 		case sound_chip_t::FDS:  return INST_FDS;

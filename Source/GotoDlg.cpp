@@ -81,7 +81,7 @@ BOOL CGotoDlg::OnInitDialog()
 
 	chan_id_t Channel = pView->GetSelectedChannelID();
 	switch (GetChipFromChannel(Channel)) {
-	case sound_chip_t::NONE: m_cChipEdit.SelectString(-1, _T("2A03")); break;
+	case sound_chip_t::APU : m_cChipEdit.SelectString(-1, _T("2A03")); break;
 	case sound_chip_t::VRC6: m_cChipEdit.SelectString(-1, _T("VRC6")); break;
 	case sound_chip_t::VRC7: m_cChipEdit.SelectString(-1, _T("VRC7")); break;
 	case sound_chip_t::FDS:  m_cChipEdit.SelectString(-1, _T("FDS"));  break;
@@ -124,7 +124,7 @@ void CGotoDlg::CheckDestination() const
 sound_chip_t CGotoDlg::GetChipFromString(const CString &str)
 {
 	if (str == _T("2A03"))
-		return sound_chip_t::NONE;
+		return sound_chip_t::APU;
 	else if (str == _T("VRC6"))
 		return sound_chip_t::VRC6;
 	else if (str == _T("VRC7"))
