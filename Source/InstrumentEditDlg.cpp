@@ -343,7 +343,6 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 	CFamiTrackerDoc *pDoc = pView->GetDocument();
 	CMainFrame *pFrameWnd = static_cast<CMainFrame*>(GetParent());
 	chan_id_t Channel = pView->GetSelectedChannelID();		// // //
-	int Chip = pDoc->GetExpansionChip();
 
 	stChanNote NoteData;
 

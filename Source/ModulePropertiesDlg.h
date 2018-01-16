@@ -41,7 +41,7 @@ private:
 
 	bool m_bSingleSelection;		// // //
 	unsigned int m_iSelectedSong;
-	sound_chip_t m_iExpansions;		// // //
+	sound_chip_flag_t m_iExpansions;		// // //
 	int m_iN163Channels;
 
 	CFamiTrackerDoc *m_pDocument;

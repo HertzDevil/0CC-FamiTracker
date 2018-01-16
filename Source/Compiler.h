@@ -264,7 +264,7 @@ private:
 	unsigned int	m_iWaveTables;
 
 	// // // Full chip export
-	sound_chip_t	m_iActualChip;
+	sound_chip_flag_t m_iActualChip;
 	int				m_iActualNamcoChannels;
 
 	// Optimization

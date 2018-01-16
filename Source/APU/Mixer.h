@@ -45,7 +45,7 @@ class CMixer
 public:
 	void	AddValue(chan_id_t ChanID, int Value, int FrameCycles);		// // //
 
-	void	ExternalSound(sound_chip_t Chip);		// // //
+	void	ExternalSound(sound_chip_flag_t Chip);		// // //
 	void	UpdateSettings(int LowCut, int HighCut, int HighDamp, float OverallVol);
 
 	bool	AllocateBuffer(unsigned int Size, uint32_t SampleRate, uint8_t NrChannels);
@@ -87,7 +87,7 @@ private:
 	CMixerChannel<stLevelsN163>    levelsN163_    {1600};
 	CMixerChannel<stLevelsS5B>     levelsS5B_     {1200};
 
-	sound_chip_t m_iExternalChip = SNDCHIP_NONE;
+	sound_chip_flag_t m_iExternalChip = SNDCHIP_NONE;
 	uint32_t	m_iSampleRate = 0;
 
 	std::array<float, CHANID_COUNT>		m_fChannelLevels = { };

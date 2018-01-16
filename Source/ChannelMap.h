@@ -35,7 +35,7 @@ class CChannelMap
 {
 public:
 	CChannelMap();		// // //
-	CChannelMap(sound_chip_t chips, unsigned n163chs);
+	CChannelMap(sound_chip_flag_t chips, unsigned n163chs);
 
 	void			ResetChannels();
 	void			RegisterChannel(CTrackerChannel &Channel);		// // //
@@ -48,9 +48,9 @@ public:
 	chan_id_t		GetChannelType(int index) const;		// // //
 	sound_chip_t	GetChipType(int index) const;
 
-	sound_chip_t	GetExpansionFlag() const noexcept;		// // //
+	sound_chip_flag_t GetExpansionFlag() const noexcept;		// // //
 	unsigned		GetChipChannelCount(sound_chip_t chip) const;
-	bool			HasExpansionChip(sound_chip_t chips) const noexcept; // all
+	bool			HasExpansionChip(sound_chip_t chip) const noexcept; // all
 
 	template <typename F>
 	void ForeachChannel(F f) const {
@@ -62,6 +62,6 @@ private:		// // //
 	std::vector<CTrackerChannel *> m_pChannels;		// // //
 	std::unordered_map<chan_id_t, int> m_iChannelIndices;		// // //
 
-	sound_chip_t chips_;		// // //
+	sound_chip_flag_t chips_;		// // //
 	unsigned n163chs_;		// // //
 };

@@ -39,32 +39,9 @@ enum sound_chip_t : std::uint8_t {		// // //
 	SNDCHIP_ALL  = 0x3Fu,
 };
 
-enum sound_chip_flag_t : std::uint8_t {
-	SNDCHIP_FLAG_NONE = SNDCHIP_NONE,
+constexpr sound_chip_t EXPANSION_CHIPS[] = {
+	SNDCHIP_VRC6, SNDCHIP_VRC7, SNDCHIP_FDS, SNDCHIP_MMC5, SNDCHIP_N163, SNDCHIP_S5B,
 };
-
-// // // TODO: use enum_traits (MSVC broke it)
-constexpr auto value_cast(sound_chip_t chip) noexcept {
-	using T = std::underlying_type_t<sound_chip_t>;
-	return static_cast<T>(static_cast<T>(chip) & static_cast<T>(SNDCHIP_ALL));
-}
-
-constexpr bool ContainsSoundChip(sound_chip_t flag, sound_chip_t chip) noexcept {
-	return (value_cast(flag) & value_cast(chip)) == value_cast(chip);
-}
-
-constexpr bool IsMultiChip(sound_chip_t flag) noexcept {
-	auto v = value_cast(flag);
-	return (v & (v - 1)) != 0;
-}
-
-constexpr sound_chip_t WithSoundChip(sound_chip_t flag, sound_chip_t chip) noexcept {
-	return (sound_chip_t)(value_cast(flag) | value_cast(chip));
-}
-
-constexpr sound_chip_t WithoutSoundChip(sound_chip_t flag, sound_chip_t chip) noexcept {
-	return (sound_chip_t)(value_cast(flag) & ~value_cast(chip));
-}
 
 enum class chan_id_t : unsigned {
 	SQUARE1,

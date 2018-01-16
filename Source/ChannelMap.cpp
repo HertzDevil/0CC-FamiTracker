@@ -32,7 +32,7 @@
 CChannelMap::CChannelMap() : CChannelMap(SNDCHIP_NONE, 0) {
 }
 
-CChannelMap::CChannelMap(sound_chip_t chips, unsigned n163chs) :
+CChannelMap::CChannelMap(sound_chip_flag_t chips, unsigned n163chs) :
 	chips_(chips), n163chs_(n163chs)
 {
 }
@@ -83,7 +83,7 @@ sound_chip_t CChannelMap::GetChipType(int index) const {
 	return GetChannel(index).GetChip();
 }
 
-sound_chip_t CChannelMap::GetExpansionFlag() const noexcept {		// // //
+sound_chip_flag_t CChannelMap::GetExpansionFlag() const noexcept {		// // //
 	return chips_;
 }
 
@@ -99,5 +99,5 @@ unsigned CChannelMap::GetChipChannelCount(sound_chip_t chip) const {
 }
 
 bool CChannelMap::HasExpansionChip(sound_chip_t chips) const noexcept {
-	return ContainsSoundChip(chips_, chips);
+	return chips_.ContainsChip(chips);
 }

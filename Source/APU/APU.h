@@ -60,7 +60,7 @@ public:
 	void	AddTime(int32_t Cycles);
 	void	EndFrame();		// // // public
 
-	void	SetExternalSound(sound_chip_t Chip);
+	void	SetExternalSound(sound_chip_flag_t Chip);
 	void	Write(uint16_t Address, uint8_t Value);		// // //
 	uint8_t	Read(uint16_t Address);
 
@@ -118,7 +118,7 @@ private:
 	std::unique_ptr<CVRC7> m_pVRC7;
 	std::unique_ptr<CS5B> m_pS5B;
 
-	uint8_t		m_iExternalSoundChip;				// External sound chip, if used
+	sound_chip_flag_t m_iExternalSoundChip;			// // // External sound chip, if used
 
 	uint32_t	m_iSampleRate;						// // //
 	uint32_t	m_iFrameClock;

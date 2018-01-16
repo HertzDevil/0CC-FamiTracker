@@ -94,12 +94,12 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 
 	// Expansion chips
 	m_iExpansions = m_pDocument->GetExpansionChip();
-	((CButton*)GetDlgItem(IDC_EXPANSION_VRC6))->SetCheck(ContainsSoundChip(m_iExpansions, SNDCHIP_VRC6));
-	((CButton*)GetDlgItem(IDC_EXPANSION_VRC7))->SetCheck(ContainsSoundChip(m_iExpansions, SNDCHIP_VRC7));
-	((CButton*)GetDlgItem(IDC_EXPANSION_FDS ))->SetCheck(ContainsSoundChip(m_iExpansions, SNDCHIP_FDS ));
-	((CButton*)GetDlgItem(IDC_EXPANSION_MMC5))->SetCheck(ContainsSoundChip(m_iExpansions, SNDCHIP_MMC5));
-	((CButton*)GetDlgItem(IDC_EXPANSION_N163))->SetCheck(ContainsSoundChip(m_iExpansions, SNDCHIP_N163));
-	((CButton*)GetDlgItem(IDC_EXPANSION_S5B ))->SetCheck(ContainsSoundChip(m_iExpansions, SNDCHIP_S5B ));
+	((CButton*)GetDlgItem(IDC_EXPANSION_VRC6))->SetCheck(m_iExpansions.ContainsChip(SNDCHIP_VRC6));
+	((CButton*)GetDlgItem(IDC_EXPANSION_VRC7))->SetCheck(m_iExpansions.ContainsChip(SNDCHIP_VRC7));
+	((CButton*)GetDlgItem(IDC_EXPANSION_FDS ))->SetCheck(m_iExpansions.ContainsChip(SNDCHIP_FDS ));
+	((CButton*)GetDlgItem(IDC_EXPANSION_MMC5))->SetCheck(m_iExpansions.ContainsChip(SNDCHIP_MMC5));
+	((CButton*)GetDlgItem(IDC_EXPANSION_N163))->SetCheck(m_iExpansions.ContainsChip(SNDCHIP_N163));
+	((CButton*)GetDlgItem(IDC_EXPANSION_S5B ))->SetCheck(m_iExpansions.ContainsChip(SNDCHIP_S5B ));
 
 	// Vibrato
 	CComboBox *pVibratoBox = static_cast<CComboBox*>(GetDlgItem(IDC_VIBRATO));
@@ -114,7 +114,7 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 
 	CString channelsStr;
 	channelsStr.LoadString(IDS_PROPERTIES_CHANNELS);
-	if (m_iExpansions & SNDCHIP_N163) {
+	if (m_iExpansions.ContainsChip(SNDCHIP_N163)) {
 		m_iN163Channels = m_pDocument->GetNamcoChannels();
 
 		pChanSlider->SetPos(m_iN163Channels);
@@ -139,7 +139,7 @@ void CModulePropertiesDlg::OnBnClickedOk()
 {
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
 
-	if (!(m_iExpansions & SNDCHIP_N163)) m_iN163Channels = 0;
+	if (!m_iExpansions.ContainsChip(SNDCHIP_N163)) m_iN163Channels = 0;
 	if (m_pDocument->GetNamcoChannels() != m_iN163Channels || m_pDocument->GetExpansionChip() != m_iExpansions) {		// // //
 		m_pDocument->SelectExpansionChip(m_iExpansions, m_iN163Channels);
 		m_pDocument->UpdateAllViews(NULL, UPDATE_PROPERTIES);
@@ -354,12 +354,12 @@ void CModulePropertiesDlg::OnBnClickedSongImport()
 
 	m_iExpansions = m_pDocument->GetExpansionChip();		// // //
 	m_iN163Channels = m_pDocument->GetNamcoChannels();
-	((CButton*)GetDlgItem(IDC_EXPANSION_VRC6))->SetCheck((m_iExpansions & SNDCHIP_VRC6) != 0);
-	((CButton*)GetDlgItem(IDC_EXPANSION_VRC7))->SetCheck((m_iExpansions & SNDCHIP_VRC7) != 0);
-	((CButton*)GetDlgItem(IDC_EXPANSION_FDS))->SetCheck((m_iExpansions & SNDCHIP_FDS) != 0);
-	((CButton*)GetDlgItem(IDC_EXPANSION_MMC5))->SetCheck((m_iExpansions & SNDCHIP_MMC5) != 0);
-	((CButton*)GetDlgItem(IDC_EXPANSION_N163))->SetCheck((m_iExpansions & SNDCHIP_N163) != 0);
-	((CButton*)GetDlgItem(IDC_EXPANSION_S5B))->SetCheck((m_iExpansions & SNDCHIP_S5B) != 0);
+	((CButton*)GetDlgItem(IDC_EXPANSION_VRC6))->SetCheck(m_iExpansions.ContainsChip(SNDCHIP_VRC6));
+	((CButton*)GetDlgItem(IDC_EXPANSION_VRC7))->SetCheck(m_iExpansions.ContainsChip(SNDCHIP_VRC7));
+	((CButton*)GetDlgItem(IDC_EXPANSION_FDS ))->SetCheck(m_iExpansions.ContainsChip(SNDCHIP_FDS ));
+	((CButton*)GetDlgItem(IDC_EXPANSION_MMC5))->SetCheck(m_iExpansions.ContainsChip(SNDCHIP_MMC5));
+	((CButton*)GetDlgItem(IDC_EXPANSION_N163))->SetCheck(m_iExpansions.ContainsChip(SNDCHIP_N163));
+	((CButton*)GetDlgItem(IDC_EXPANSION_S5B ))->SetCheck(m_iExpansions.ContainsChip(SNDCHIP_S5B ));
 	m_pDocument->UpdateAllViews(NULL, UPDATE_PROPERTIES);
 }
 /*
@@ -460,41 +460,31 @@ BOOL CModulePropertiesDlg::PreTranslateMessage(MSG* pMsg)
 void CModulePropertiesDlg::OnBnClickedExpansionVRC6()
 {
 	CButton *pCheckBox = (CButton*)GetDlgItem(IDC_EXPANSION_VRC6);
-
-	m_iExpansions = (pCheckBox->GetCheck() == BST_CHECKED ? WithSoundChip : WithoutSoundChip)(
-		m_iExpansions, SNDCHIP_VRC6);
+	m_iExpansions = m_iExpansions.EnableChip(SNDCHIP_VRC6, pCheckBox->GetCheck() == BST_CHECKED);		// // //
 }
 
 void CModulePropertiesDlg::OnBnClickedExpansionVRC7()
 {
 	CButton *pCheckBox = (CButton*)GetDlgItem(IDC_EXPANSION_VRC7);
-
-	m_iExpansions = (pCheckBox->GetCheck() == BST_CHECKED ? WithSoundChip : WithoutSoundChip)(
-		m_iExpansions, SNDCHIP_VRC7);
+	m_iExpansions = m_iExpansions.EnableChip(SNDCHIP_VRC7, pCheckBox->GetCheck() == BST_CHECKED);		// // //
 }
 
 void CModulePropertiesDlg::OnBnClickedExpansionFDS()
 {
 	CButton *pCheckBox = (CButton*)GetDlgItem(IDC_EXPANSION_FDS);
-
-	m_iExpansions = (pCheckBox->GetCheck() == BST_CHECKED ? WithSoundChip : WithoutSoundChip)(
-		m_iExpansions, SNDCHIP_FDS);
+	m_iExpansions = m_iExpansions.EnableChip(SNDCHIP_FDS, pCheckBox->GetCheck() == BST_CHECKED);		// // //
 }
 
 void CModulePropertiesDlg::OnBnClickedExpansionMMC5()
 {
 	CButton *pCheckBox = (CButton*)GetDlgItem(IDC_EXPANSION_MMC5);
-
-	m_iExpansions = (pCheckBox->GetCheck() == BST_CHECKED ? WithSoundChip : WithoutSoundChip)(
-		m_iExpansions, SNDCHIP_MMC5);
+	m_iExpansions = m_iExpansions.EnableChip(SNDCHIP_MMC5, pCheckBox->GetCheck() == BST_CHECKED);		// // //
 }
 
 void CModulePropertiesDlg::OnBnClickedExpansionS5B()
 {
 	CButton *pCheckBox = (CButton*)GetDlgItem(IDC_EXPANSION_S5B);
-
-	m_iExpansions = (pCheckBox->GetCheck() == BST_CHECKED ? WithSoundChip : WithoutSoundChip)(
-		m_iExpansions, SNDCHIP_S5B);
+	m_iExpansions = m_iExpansions.EnableChip(SNDCHIP_S5B, pCheckBox->GetCheck() == BST_CHECKED);		// // //
 }
 
 void CModulePropertiesDlg::OnBnClickedExpansionN163()
@@ -508,7 +498,7 @@ void CModulePropertiesDlg::OnBnClickedExpansionN163()
 
 	// Expansion chip
 	if (pCheckBox->GetCheck() == BST_CHECKED) {
-		m_iExpansions = WithSoundChip(m_iExpansions, SNDCHIP_N163);
+		m_iExpansions = m_iExpansions.WithChip(SNDCHIP_N163);
 
 		if (!m_iN163Channels)
 			m_iN163Channels = 1;		// // //
@@ -518,7 +508,7 @@ void CModulePropertiesDlg::OnBnClickedExpansionN163()
 		channelsStr.AppendFormat(_T(" %i"), m_iN163Channels);
 	}
 	else {
-		m_iExpansions = WithoutSoundChip(m_iExpansions, SNDCHIP_N163);
+		m_iExpansions = m_iExpansions.WithoutChip(SNDCHIP_N163);
 
 		pChanSlider->SetPos(m_iN163Channels = 0);
 		pChanSlider->EnableWindow(FALSE);

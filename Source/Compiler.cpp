@@ -577,11 +577,11 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 		pData[m_iDriverSize - 2 - 0x100 - 0xC0 * 2 - 8 - 1 - 8 + m_iActualNamcoChannels] = 3;
 	}
 
-	if (m_iActualChip & (m_iActualChip - 1)) {		// // // special processing for multichip
+	if (m_iActualChip.IsMultiChip()) {		// // // special processing for multichip
 		int ptr = FT_UPDATE_EXT_ADR;
-		for (int i = 0; i < 6; ++i) {
+		for (auto chip : EXPANSION_CHIPS) {
 			ASSERT(pData[ptr] == 0x20); // jsr
-			if (!(m_iActualChip & (1 << i))) {
+			if (!(m_iActualChip.ContainsChip(chip))) {
 				pData[ptr++] = 0xEA; // nop
 				pData[ptr++] = 0xEA;
 				pData[ptr++] = 0xEA;
@@ -635,7 +635,7 @@ stNSFHeader CCompiler::CreateHeader(int MachineType) const		// // //
 	strncpy((char *)Header.SongName,   m_pDocument->GetModuleName().data(), std::size(Header.SongName));
 	strncpy((char *)Header.ArtistName, m_pDocument->GetModuleArtist().data(), std::size(Header.ArtistName));
 	strncpy((char *)Header.Copyright,  m_pDocument->GetModuleCopyright().data(), std::size(Header.Copyright));
-	Header.SoundChip = m_iActualChip;		// // //
+	Header.SoundChip = value_cast(m_iActualChip);		// // //
 
 	// If speed is default, write correct NTSC/PAL speed periods
 	// else, set the same custom speed for both
@@ -670,7 +670,7 @@ stNSFeHeader CCompiler::CreateNSFeHeader(int MachineType)		// // //
 	Header.LoadAddr = m_iLoadAddress;
 	Header.InitAddr = m_iInitAddress;
 	Header.PlayAddr = m_iInitAddress + 3;
-	Header.SoundChip = m_iActualChip;		// // //
+	Header.SoundChip = value_cast(m_iActualChip);		// // //
 
 	int Speed = m_pDocument->GetEngineSpeed();
 	Header.Speed_NTSC = Speed ? 1000000 / Speed : 1000000 / 60; //0x411A; // default ntsc speed
@@ -907,75 +907,76 @@ bool CCompiler::CompileData()
 	m_iActualNamcoChannels = m_pDocument->GetNamcoChannels();
 
 	// Select driver and channel order
-	switch (m_pDocument->GetExpansionChip()) {
-	case SNDCHIP_NONE:
-		m_pDriverData = &DRIVER_PACK_2A03;
-		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_2A03;
-		Print(_T(" * No expansion chip\n"));
-		break;
-	case SNDCHIP_VRC6:
-		m_pDriverData = &DRIVER_PACK_VRC6;
-		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_VRC6;
-		Print(_T(" * VRC6 expansion enabled\n"));
-		break;
-	case SNDCHIP_MMC5:
-		m_pDriverData = &DRIVER_PACK_MMC5;
-		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_MMC5;
-		Print(_T(" * MMC5 expansion enabled\n"));
-		break;
-	case SNDCHIP_VRC7:
-		m_pDriverData = &DRIVER_PACK_VRC7;
-		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_VRC7;
-		Print(_T(" * VRC7 expansion enabled\n"));
-		break;
-	case SNDCHIP_FDS:
-		m_pDriverData = &DRIVER_PACK_FDS;
-		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_FDS;
-		Print(_T(" * FDS expansion enabled\n"));
-		break;
-	case SNDCHIP_N163:
-		m_pDriverData = &DRIVER_PACK_N163;
-		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_N163;
-		Print(_T(" * N163 expansion enabled\n"));
-		break;
-	case SNDCHIP_S5B:
-		m_pDriverData = &DRIVER_PACK_S5B;
-		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_S5B;
-		Print(_T(" * S5B expansion enabled\n"));
-		break;
-	default:		// // // crude, not meant for release
+	if (!m_iActualChip.IsMultiChip())
+		switch (m_iActualChip.GetSoundChip()) {
+		case SNDCHIP_NONE:
+			m_pDriverData = &DRIVER_PACK_2A03;
+			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_2A03;
+			Print(_T(" * No expansion chip\n"));
+			break;
+		case SNDCHIP_VRC6:
+			m_pDriverData = &DRIVER_PACK_VRC6;
+			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_VRC6;
+			Print(_T(" * VRC6 expansion enabled\n"));
+			break;
+		case SNDCHIP_MMC5:
+			m_pDriverData = &DRIVER_PACK_MMC5;
+			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_MMC5;
+			Print(_T(" * MMC5 expansion enabled\n"));
+			break;
+		case SNDCHIP_VRC7:
+			m_pDriverData = &DRIVER_PACK_VRC7;
+			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_VRC7;
+			Print(_T(" * VRC7 expansion enabled\n"));
+			break;
+		case SNDCHIP_FDS:
+			m_pDriverData = &DRIVER_PACK_FDS;
+			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_FDS;
+			Print(_T(" * FDS expansion enabled\n"));
+			break;
+		case SNDCHIP_N163:
+			m_pDriverData = &DRIVER_PACK_N163;
+			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_N163;
+			Print(_T(" * N163 expansion enabled\n"));
+			break;
+		case SNDCHIP_S5B:
+			m_pDriverData = &DRIVER_PACK_S5B;
+			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_S5B;
+			Print(_T(" * S5B expansion enabled\n"));
+			break;
+		}
+	else {		// // // crude
 		m_pDriverData = &DRIVER_PACK_ALL;
 		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_ALL;
 		Print(_T(" * Multiple expansion chips enabled\n"));
 //		if (m_pDocument->ExpansionEnabled(SNDCHIP_N163))
 //			m_pDocument->SetNamcoChannels(8, true);
 //		m_pDocument->SelectExpansionChip(SNDCHIP_ALL, true);
-		break;
 	}
 
 	// // // Setup channel order list, DPCM is located last
-	const sound_chip_t Chip = m_pDocument->GetExpansionChip();
-	if (ContainsSoundChip(Chip, SNDCHIP_NONE))
+	const sound_chip_flag_t Chip = m_pDocument->GetExpansionChip();
+	if (Chip.ContainsChip(SNDCHIP_NONE))
 		for (int i = 0; i < 4; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_NONE, i));
-	if (ContainsSoundChip(Chip, SNDCHIP_MMC5))
+	if (Chip.ContainsChip(SNDCHIP_MMC5))
 		for (int i = 0; i < 2; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_MMC5, i));
-	if (ContainsSoundChip(Chip, SNDCHIP_VRC6))
+	if (Chip.ContainsChip(SNDCHIP_VRC6))
 		for (int i = 0; i < CHANNELS_VRC6; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_VRC6, i));
-	if (ContainsSoundChip(Chip, SNDCHIP_N163))
+	if (Chip.ContainsChip(SNDCHIP_N163))
 		for (int i = 0; i < m_iActualNamcoChannels; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_N163, i));
-	if (ContainsSoundChip(Chip, SNDCHIP_FDS))
+	if (Chip.ContainsChip(SNDCHIP_FDS))
 		m_vChanOrder.push_back(chan_id_t::FDS);
-	if (ContainsSoundChip(Chip, SNDCHIP_S5B))
+	if (Chip.ContainsChip(SNDCHIP_S5B))
 		for (int i = 0; i < 3; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_S5B, i));
-	if (ContainsSoundChip(Chip, SNDCHIP_VRC7))
+	if (Chip.ContainsChip(SNDCHIP_VRC7))
 		for (int i = 0; i < CHANNELS_VRC7; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_VRC7, i));
-	if (ContainsSoundChip(Chip, SNDCHIP_NONE))
+	if (Chip.ContainsChip(SNDCHIP_NONE))
 		m_vChanOrder.push_back(chan_id_t::DPCM);
 
 	// Driver size
@@ -1134,8 +1135,7 @@ void CCompiler::ScanSong()
 
 void CCompiler::CreateMainHeader()
 {
-	int Chip = m_pDocument->GetExpansionChip();		// // //
-	bool bMultichip = (Chip & (Chip - 1)) != 0;
+	sound_chip_flag_t Chip = m_pDocument->GetExpansionChip();		// // //
 
 	unsigned char Flags =		// // // bankswitch flag is set later
 		(m_pDocument->GetVibratoStyle() == VIBRATO_OLD ? FLAG_VIBRATO : 0) |
@@ -1152,7 +1152,7 @@ void CCompiler::CreateMainHeader()
 	Chunk.StoreByte(Flags);
 
 	// FDS table, only if FDS is enabled
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_FDS) || bMultichip)
+	if (m_pDocument->ExpansionEnabled(SNDCHIP_FDS) || Chip.IsMultiChip())
 		Chunk.StorePointer({CHUNK_WAVETABLE});		// // //
 
 	const int TicksPerSec = m_pDocument->GetEngineSpeed();
@@ -1160,7 +1160,7 @@ void CCompiler::CreateMainHeader()
 	Chunk.StoreWord((TicksPerSec ? TicksPerSec : CAPU::FRAME_RATE_PAL) * 60);
 
 	// N163 channel count
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_N163) || bMultichip)
+	if (m_pDocument->ExpansionEnabled(SNDCHIP_N163) || Chip.IsMultiChip())
 		Chunk.StoreByte(m_iActualNamcoChannels ? m_iActualNamcoChannels : 1);
 
 	m_pHeaderChunk = &Chunk;

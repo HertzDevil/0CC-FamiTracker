@@ -1262,8 +1262,8 @@ const CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index) const		// // /
 	return *GetSong(Index);
 }
 
-void CFamiTrackerDoc::SelectExpansionChip(sound_chip_t chips, unsigned n163chs) {		// // //
-	ASSERT(n163chs <= 8 && (ContainsSoundChip(chips, SNDCHIP_N163) == (n163chs != 0)));
+void CFamiTrackerDoc::SelectExpansionChip(sound_chip_flag_t chips, unsigned n163chs) {		// // //
+	ASSERT(n163chs <= 8 && (chips.ContainsChip(SNDCHIP_N163) == (n163chs != 0)));
 
 	// // // Complete sound chip setup
 	if (chips != SNDCHIP_NONE)
@@ -1279,7 +1279,7 @@ void CFamiTrackerDoc::SelectExpansionChip(sound_chip_t chips, unsigned n163chs) 
 	ModifyIrreversible();
 }
 
-sound_chip_t CFamiTrackerDoc::GetExpansionChip() const {
+sound_chip_flag_t CFamiTrackerDoc::GetExpansionChip() const {
 	return m_pChannelMap->GetExpansionFlag();		// // //
 }
 

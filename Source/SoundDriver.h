@@ -52,7 +52,7 @@ public:
 	void SetupTracks();
 	void LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu);
 	void ConfigureDocument();
-	std::unique_ptr<CChannelMap> MakeChannelMap(sound_chip_t chips, unsigned n163chs) const;
+	std::unique_ptr<CChannelMap> MakeChannelMap(sound_chip_flag_t chips, unsigned n163chs) const;
 
 	void StartPlayer(std::unique_ptr<CPlayerCursor> cur);
 	void StopPlayer();

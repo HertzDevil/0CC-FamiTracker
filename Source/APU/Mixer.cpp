@@ -64,7 +64,7 @@ static const int   LEVEL_FALL_OFF_DELAY = 3;
 
 
 
-void CMixer::ExternalSound(sound_chip_t Chip) {		// // //
+void CMixer::ExternalSound(sound_chip_flag_t Chip) {		// // //
 	m_iExternalChip = Chip;
 	UpdateSettings(m_iLowCut, m_iHighCut, m_iHighDamp, m_fOverallVol);
 }
@@ -108,19 +108,19 @@ float CMixer::GetAttenuation() const
 
 	// Increase headroom if some expansion chips are enabled
 
-	if (ContainsSoundChip(m_iExternalChip, SNDCHIP_2A03))
+	if (m_iExternalChip.ContainsChip(SNDCHIP_2A03))
 		Attenuation *= ATTENUATION_2A03;
-	if (ContainsSoundChip(m_iExternalChip, SNDCHIP_VRC6))
+	if (m_iExternalChip.ContainsChip(SNDCHIP_VRC6))
 		Attenuation *= ATTENUATION_VRC6;
-	if (ContainsSoundChip(m_iExternalChip, SNDCHIP_VRC7))
+	if (m_iExternalChip.ContainsChip(SNDCHIP_VRC7))
 		Attenuation *= ATTENUATION_VRC7;
-	if (ContainsSoundChip(m_iExternalChip, SNDCHIP_MMC5))
+	if (m_iExternalChip.ContainsChip(SNDCHIP_MMC5))
 		Attenuation *= ATTENUATION_MMC5;
-	if (ContainsSoundChip(m_iExternalChip, SNDCHIP_FDS))
+	if (m_iExternalChip.ContainsChip(SNDCHIP_FDS))
 		Attenuation *= ATTENUATION_FDS;
-	if (ContainsSoundChip(m_iExternalChip, SNDCHIP_N163))
+	if (m_iExternalChip.ContainsChip(SNDCHIP_N163))
 		Attenuation *= ATTENUATION_N163;
-	if (ContainsSoundChip(m_iExternalChip, SNDCHIP_S5B))		// // // 050B
+	if (m_iExternalChip.ContainsChip(SNDCHIP_S5B))		// // // 050B
 		Attenuation *= ATTENUATION_S5B;
 
 	return Attenuation;

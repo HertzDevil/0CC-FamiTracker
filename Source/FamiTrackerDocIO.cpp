@@ -232,13 +232,15 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 	auto &modfile = *doc.GetModule();
 	auto &Song = *modfile.GetSong(0);
 
-	sound_chip_t Expansion = SNDCHIP_NONE;		// // //
+	sound_chip_flag_t Expansion = SNDCHIP_NONE;		// // //
 
 	// Get first track for module versions that require that
 	if (ver == 1)
 		Song.SetSongSpeed(file_.GetBlockInt());
-	else
-		Expansion = (sound_chip_t)file_.GetBlockChar();
+	else {
+		char flag = AssertRange<MODULE_ERROR_STRICT>((unsigned char)file_.GetBlockChar(), 0u, value_cast(SNDCHIP_ALL), "Expansion chip flag");;
+		Expansion = sound_chip_flag_t {flag};
+	}
 
 	int channels = AssertRange(file_.GetBlockInt(), 1, MAX_CHANNELS, "Channel count");		// // //
 	AssertRange<MODULE_ERROR_OFFICIAL>(channels, 1, MAX_CHANNELS - 1, "Channel count");
@@ -302,15 +304,13 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 
 	// Read namco channel count
 	int n163chans = 0;
-	if (ver >= 5 && (ContainsSoundChip(Expansion, SNDCHIP_N163)))
+	if (ver >= 5 && (Expansion.ContainsChip(SNDCHIP_N163)))
 		n163chans = AssertRange(file_.GetBlockInt(), 1, 8, "N163 channel count");
 
 	// Determine if new or old split point is preferred
 	int Split = AssertRange<MODULE_ERROR_STRICT>(ver >= 6 ? file_.GetBlockInt() : (int)CFamiTrackerModule::OLD_SPEED_SPLIT_POINT,
 		0, 255, "Speed / tempo split point");
 	modfile.SetSpeedSplitPoint(Split);
-
-	AssertRange<MODULE_ERROR_STRICT>(Expansion, 0u, value_cast(SNDCHIP_ALL), "Expansion chip flag");
 
 	if (ver >= 8) {		// // // 050B
 		int semitones = file_.GetBlockChar();
@@ -325,7 +325,7 @@ void CFamiTrackerDocIO::SaveParams(const CFamiTrackerDoc &doc, int ver) {
 	auto &modfile = *doc.GetModule();
 
 	if (ver >= 2)
-		file_.WriteBlockChar(doc.GetExpansionChip());		// ver 2 change
+		file_.WriteBlockChar(value_cast(doc.GetExpansionChip()));		// ver 2 change
 	else
 		file_.WriteBlockInt(modfile.GetSong(0)->GetSongSpeed());
 

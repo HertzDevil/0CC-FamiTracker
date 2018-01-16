@@ -214,8 +214,8 @@ public:
 	// Global (module) data
 	unsigned int	GetFrameRate() const;
 
-	void			SelectExpansionChip(sound_chip_t chips, unsigned n163chs);		// // //
-	sound_chip_t	GetExpansionChip() const;
+	void			SelectExpansionChip(sound_chip_flag_t chips, unsigned n163chs);		// // //
+	sound_chip_flag_t GetExpansionChip() const;
 	bool			ExpansionEnabled(sound_chip_t Chip) const;
 	int				GetNamcoChannels() const;
 

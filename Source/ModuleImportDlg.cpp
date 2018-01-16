@@ -104,13 +104,13 @@ bool CModuleImportDlg::LoadFile(CString Path)		// // //
 
 	// Check expansion chip match
 	// // // import as superset of expansion chip configurations
-	sound_chip_t c1 = m_pImportedDoc->GetExpansionChip();
-	sound_chip_t c2 = m_pDocument->GetExpansionChip();
+	sound_chip_flag_t c1 = m_pImportedDoc->GetExpansionChip();
+	sound_chip_flag_t c2 = m_pDocument->GetExpansionChip();
 	unsigned n1 = m_pImportedDoc->GetNamcoChannels();
 	unsigned n2 = m_pDocument->GetNamcoChannels();
 	if (n1 != n2 || c1 != c2) {
-		m_pImportedDoc->SelectExpansionChip(WithSoundChip(c1, c2), std::max(n1, n2));
-		m_pDocument->SelectExpansionChip(WithSoundChip(c1, c2), std::max(n1, n2));
+		m_pImportedDoc->SelectExpansionChip(c1.MergedWith(c2), std::max(n1, n2));
+		m_pDocument->SelectExpansionChip(c1.MergedWith(c2), std::max(n1, n2));
 	}
 
 	return true;

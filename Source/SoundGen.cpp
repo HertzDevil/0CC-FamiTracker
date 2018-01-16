@@ -191,7 +191,7 @@ void CSoundGen::SetVisualizerWindow(CVisualizerWnd *pWnd)
 	m_csVisualizerWndLock.Unlock();
 }
 
-std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(sound_chip_t chips, unsigned n163chs) const {		// // //
+std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(sound_chip_flag_t chips, unsigned n163chs) const {		// // //
 	// This method will add channels to the document object, depending on the expansion chip used.
 	// Called from the document object (from the main thread)
 
@@ -201,7 +201,7 @@ std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(sound_chip_t chips, unsig
 	return m_pSoundDriver->MakeChannelMap(chips, n163chs);		// // //
 }
 
-void CSoundGen::SelectChip(sound_chip_t Chip)
+void CSoundGen::SelectChip(sound_chip_flag_t Chip)
 {
 	if (IsPlaying()) {
 		StopPlayer();
@@ -1123,16 +1123,18 @@ void CSoundGen::OnCloseSound(WPARAM wParam, LPARAM lParam)
 
 void CSoundGen::OnSetChip(WPARAM wParam, LPARAM lParam)
 {
-	auto Chip = (sound_chip_t)wParam;
+	auto Chip = sound_chip_flag_t {(int)wParam};		// // //
 
 	m_pAPU->SetExternalSound(Chip);
 
 	// Enable internal channels after reset
-	m_pAPU->Write(0x4015, 0x0F);
-	m_pAPU->Write(0x4017, 0x00);
+	if (Chip.ContainsChip(SNDCHIP_2A03)) {
+		m_pAPU->Write(0x4015, 0x0F);
+		m_pAPU->Write(0x4017, 0x00);
+	}
 
 	// MMC5
-	if (Chip & SNDCHIP_MMC5)
+	if (Chip.ContainsChip(SNDCHIP_MMC5))
 		m_pAPU->Write(0x5015, 0x03);
 }
 

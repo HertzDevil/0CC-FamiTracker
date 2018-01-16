@@ -172,27 +172,26 @@ void CAPU::SetCallback(IAudioCallback &pCallback) {
 	m_pParent = &pCallback;
 }
 
-void CAPU::SetExternalSound(sound_chip_t Chip)
-{
+void CAPU::SetExternalSound(sound_chip_flag_t Chip) {
 	// Set expansion chip
 	m_iExternalSoundChip = Chip;
 	m_pMixer->ExternalSound(Chip);
 
 	ExChips.clear();
 
-	if (ContainsSoundChip(Chip, SNDCHIP_2A03))		// // //
+	if (Chip.ContainsChip(SNDCHIP_2A03))		// // //
 		ExChips.push_back(m_p2A03.get());
-	if (ContainsSoundChip(Chip, SNDCHIP_VRC6))
+	if (Chip.ContainsChip(SNDCHIP_VRC6))
 		ExChips.push_back(m_pVRC6.get());
-	if (ContainsSoundChip(Chip, SNDCHIP_VRC7))
+	if (Chip.ContainsChip(SNDCHIP_VRC7))
 		ExChips.push_back(m_pVRC7.get());
-	if (ContainsSoundChip(Chip, SNDCHIP_FDS))
+	if (Chip.ContainsChip(SNDCHIP_FDS))
 		ExChips.push_back(m_pFDS.get());
-	if (ContainsSoundChip(Chip, SNDCHIP_MMC5))
+	if (Chip.ContainsChip(SNDCHIP_MMC5))
 		ExChips.push_back(m_pMMC5.get());
-	if (ContainsSoundChip(Chip, SNDCHIP_N163))
+	if (Chip.ContainsChip(SNDCHIP_N163))
 		ExChips.push_back(m_pN163.get());
-	if (ContainsSoundChip(Chip, SNDCHIP_S5B))
+	if (Chip.ContainsChip(SNDCHIP_S5B))
 		ExChips.push_back(m_pS5B.get());
 
 	Reset();
