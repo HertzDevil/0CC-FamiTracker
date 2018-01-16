@@ -21,7 +21,6 @@
 */
 
 #include "SongData.h"
-#include "PatternData.h"		// // //
 #include "Bookmark.h"		// // //
 
 #include "FTMComponentInterface.h"		// // //
@@ -41,10 +40,19 @@ CSongData::CSongData(CFTMComponentInterface &parent, unsigned int PatternLength)
 {
 	// // // Pre-allocate pattern 0 for all channels
 //	for (int i = 0; i < MAX_CHANNELS; ++i)
-//		m_pPatternData[i][0].Allocate();		// // //
+//		tracks_[i].m_pPatternData[0].Allocate();		// // //
 }
 
 CSongData::~CSongData() {
+}
+
+CTrackData *CSongData::GetTrack(chan_id_t chan) {		// // //
+	auto idx = value_cast(chan);
+	return idx != value_cast(chan_id_t::NONE) ? &tracks_[idx] : nullptr;
+}
+
+const CTrackData *CSongData::GetTrack(chan_id_t chan) const {
+	return const_cast<CSongData *>(this)->GetTrack(chan);
 }
 
 bool CSongData::IsPatternInUse(chan_id_t Channel, unsigned int Pattern) const
@@ -80,10 +88,10 @@ void CSongData::SetPatternData(chan_id_t Channel, unsigned Pattern, unsigned Row
 }
 
 CPatternData &CSongData::GetPattern(chan_id_t Channel, unsigned Pattern) {
-	auto idx = value_cast(Channel);		// // //
-	if (idx == value_cast(chan_id_t::NONE))
+	auto track = GetTrack(Channel);		// // //
+	if (!track)
 		throw std::out_of_range {"Bad chan_id_t in " __FUNCTION__};
-	return m_pPatternData[idx][Pattern];
+	return track->GetPattern(Pattern);
 }
 
 const CPatternData &CSongData::GetPattern(chan_id_t Channel, unsigned Pattern) const {
@@ -125,8 +133,8 @@ unsigned int CSongData::GetSongTempo() const
 
 int CSongData::GetEffectColumnCount(chan_id_t Channel) const
 {
-	auto idx = value_cast(Channel);		// // //
-	return idx != value_cast(chan_id_t::NONE) ? m_iEffectColumns[idx] : 0;
+	auto track = GetTrack(Channel);		// // //
+	return track ? track->GetEffectColumnCount() : 0;
 }
 
 bool CSongData::GetSongGroove() const		// // //
@@ -161,8 +169,8 @@ void CSongData::SetSongTempo(unsigned int Tempo)
 
 void CSongData::SetEffectColumnCount(chan_id_t Channel, int Count)
 {
-	if (auto idx = value_cast(Channel); idx != value_cast(chan_id_t::NONE))		// // //
-		m_iEffectColumns[idx] = Count;
+	if (auto track = GetTrack(Channel))		// // //
+		track->SetEffectColumnCount(Count);
 }
 
 void CSongData::SetSongGroove(bool Groove)		// // //
@@ -172,14 +180,14 @@ void CSongData::SetSongGroove(bool Groove)		// // //
 
 unsigned int CSongData::GetFramePattern(unsigned int Frame, chan_id_t Channel) const
 {
-	auto idx = value_cast(Channel);		// // //
-	return idx != value_cast(chan_id_t::NONE) ? m_iFrameList[Frame][idx] : MAX_PATTERN;
+	auto track = GetTrack(Channel);		// // //
+	return track ? track->GetFramePattern(Frame) : MAX_PATTERN;
 }
 
 void CSongData::SetFramePattern(unsigned int Frame, chan_id_t Channel, unsigned int Pattern)
 {
-	if (auto idx = value_cast(Channel); idx != value_cast(chan_id_t::NONE))		// // //
-		m_iFrameList[Frame][idx] = Pattern;
+	if (auto track = GetTrack(Channel))		// // //
+		track->SetFramePattern(Frame, Pattern);
 }
 
 const stHighlight &CSongData::GetRowHighlight() const
@@ -193,23 +201,16 @@ void CSongData::SetRowHighlight(const stHighlight &Hl)		// // //
 }
 
 void CSongData::CopyTrack(chan_id_t Chan, const CSongData &From, chan_id_t ChanFrom) {
-	SetEffectColumnCount(Chan, From.GetEffectColumnCount(ChanFrom));
-	for (int f = 0; f < MAX_FRAMES; f++)
-		SetFramePattern(f, Chan, From.GetFramePattern(f, ChanFrom));
-	for (int p = 0; p < MAX_PATTERN; p++)
-		GetPattern(Chan, p) = From.GetPattern(ChanFrom, p);
+	if (auto *lhs = GetTrack(Chan))
+		if (auto *rhs = From.GetTrack(ChanFrom))
+			*lhs = *rhs;
 }
 
 void CSongData::SwapChannels(chan_id_t First, chan_id_t Second)		// // //
 {
-	auto lhs = value_cast(First);
-	auto rhs = value_cast(Second);
-	if (lhs != value_cast(chan_id_t::NONE) && rhs != value_cast(chan_id_t::NONE)) {
-		std::swap(m_iEffectColumns[lhs], m_iEffectColumns[rhs]);
-		for (int i = 0; i < MAX_FRAMES; i++)
-			std::swap(m_iFrameList[i][lhs], m_iFrameList[i][rhs]);
-		std::swap(m_pPatternData[lhs], m_pPatternData[rhs]);
-	}
+	if (auto *lhs = GetTrack(First))
+		if (auto *rhs = GetTrack(Second))
+			std::swap(*lhs, *rhs);
 }
 
 CBookmarkCollection &CSongData::GetBookmarks() {
@@ -230,6 +231,6 @@ void CSongData::SetBookmarks(CBookmarkCollection &&bookmarks) {
 	bookmarks_ = std::move(bookmarks);
 }
 
-unsigned CSongData::GetChannelPosition(chan_id_t ChanID) const {
-	return parent_.GetChannelMap()->GetChannelIndex(ChanID);
+bool CSongData::IsChannelEnabled(chan_id_t ChanID) const {
+	return parent_.GetChannelMap()->HasChannel(ChanID);
 }

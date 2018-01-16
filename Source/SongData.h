@@ -26,12 +26,13 @@
 #include <array>		// // //
 #include <string>		// // //
 #include "FamiTrackerTypes.h"		// // //
-#include "PatternData.h"		// // //
+#include "TrackData.h"		// // //
 #include "Highlight.h"		// // //
 #include "BookmarkCollection.h"		// // //
 
 class stChanNote;		// // //
 class CFTMComponentInterface;		// // //
+enum class chan_id_t : unsigned;		// // //
 
 // CSongData holds all notes in the patterns
 class CSongData
@@ -39,6 +40,9 @@ class CSongData
 public:
 	explicit CSongData(CFTMComponentInterface &parent, unsigned int PatternLength = DEFAULT_ROW_COUNT);		// // //
 	~CSongData();
+
+	CTrackData *GetTrack(chan_id_t chan);		// // //
+	const CTrackData *GetTrack(chan_id_t chan) const;
 
 	bool IsPatternInUse(chan_id_t Channel, unsigned int Pattern) const;
 
@@ -88,19 +92,19 @@ public:
 	void VisitPatterns(F f) {		// // //
 		if constexpr (std::is_invocable_v<F, CPatternData &>) {
 			unsigned ch_pos = 0;
-			for (auto &ch : m_pPatternData) {
-				if (GetChannelPosition((chan_id_t)ch_pos) != (unsigned)-1)
-					for (auto &p : ch)
+			for (auto &track : tracks_) {
+				if (IsChannelEnabled((chan_id_t)ch_pos))
+					for (auto &p : track.Patterns())
 						f(p);
 				++ch_pos;
 			}
 		}
 		else {
 			unsigned ch_pos = 0;
-			for (auto &ch : m_pPatternData) {
-				if (GetChannelPosition((chan_id_t)ch_pos) != (unsigned)-1) {
+			for (auto &track : tracks_) {
+				if (IsChannelEnabled((chan_id_t)ch_pos)) {
 					unsigned p_index = 0;
-					for (auto &p : ch)
+					for (auto &p : track.Patterns())
 						f(p, (chan_id_t)ch_pos, p_index++);
 				}
 				++ch_pos;
@@ -113,19 +117,19 @@ public:
 	void VisitPatterns(F f) const {
 		if constexpr (std::is_invocable_v<F, const CPatternData &>) {
 			unsigned ch_pos = 0;
-			for (auto &ch : m_pPatternData) {
-				if (GetChannelPosition((chan_id_t)ch_pos) != (unsigned)-1)
-					for (auto &p : ch)
+			for (auto &track : tracks_) {
+				if (IsChannelEnabled((chan_id_t)ch_pos))
+					for (auto &p : track.Patterns())
 						f(p);
 				++ch_pos;
 			}
 		}
 		else {
 			unsigned ch_pos = 0;
-			for (auto &ch : m_pPatternData) {
-				if (GetChannelPosition((chan_id_t)ch_pos) != (unsigned)-1) {
+			for (auto &track : tracks_) {
+				if (IsChannelEnabled((chan_id_t)ch_pos)) {
 					unsigned p_index = 0;
-					for (auto &p : ch)
+					for (auto &p : track.Patterns())
 						f(p, (chan_id_t)ch_pos, p_index++);
 				}
 				++ch_pos;
@@ -133,7 +137,8 @@ public:
 		}
 	}
 
-	unsigned GetChannelPosition(chan_id_t ChanID) const;		// // // TODO: move to CSongView
+private:
+	bool IsChannelEnabled(chan_id_t ChanID) const;		// // // TODO: move to CSongView
 
 public:
 	// // // moved from CFamiTrackerDoc
@@ -159,12 +164,5 @@ private:
 	// Bookmarks
 	CBookmarkCollection bookmarks_;		// // //
 
-	// Number of visible effect columns for each channel
-	std::array<unsigned char, CHANID_COUNT> m_iEffectColumns = { };		// // //
-
-	// List of the patterns assigned to frames
-	std::array<std::array<unsigned char, CHANID_COUNT>, MAX_FRAMES> m_iFrameList = { };		// // //
-
-	// All accesses to m_pPatternData must go through GetPatternData()
-	std::array<std::array<CPatternData, MAX_PATTERN>, CHANID_COUNT> m_pPatternData = { };		// // //
+	std::array<CTrackData, CHANID_COUNT> tracks_ = { };		// // //
 };

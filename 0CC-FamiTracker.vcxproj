@@ -520,6 +520,7 @@
     <ClCompile Include="Source\SwapDlg.cpp" />
     <ClCompile Include="Source\TempoCounter.cpp" />
     <ClCompile Include="Source\TempoDisplay.cpp" />
+    <ClCompile Include="Source\TrackData.cpp" />
     <ClCompile Include="Source\TransposeDlg.cpp" />
     <ClCompile Include="Source\VersionChecker.cpp" />
     <ClCompile Include="Source\VisualizerBase.cpp" />
@@ -715,6 +716,7 @@
     <ClInclude Include="Source\SwapDlg.h" />
     <ClInclude Include="Source\TempoCounter.h" />
     <ClInclude Include="Source\TempoDisplay.h" />
+    <ClInclude Include="Source\TrackData.h" />
     <ClInclude Include="Source\TransposeDlg.h" />
     <ClInclude Include="Source\VersionChecker.h" />
     <ClInclude Include="Source\VisualizerBase.h" />

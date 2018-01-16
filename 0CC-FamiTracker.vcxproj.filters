@@ -771,6 +771,9 @@
     <ClCompile Include="Source\FamiTrackerModule.cpp">
       <Filter>Source Files\Document Components</Filter>
     </ClCompile>
+    <ClCompile Include="Source\TrackData.cpp">
+      <Filter>Source Files\Document Data Types</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1420,6 +1423,9 @@
     </ClInclude>
     <ClInclude Include="Source\FamiTrackerModule.h">
       <Filter>Header Files\Document Component Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\TrackData.h">
+      <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
