@@ -175,7 +175,7 @@ void CMixer::SetNamcoVolume(float fVol)
 }
 
 void CMixer::UpdateMeters() {		// // //
-	for (int i = 0; i < CHANNELS; ++i) {
+	for (int i = 0; i < CHANID_COUNT; ++i) {
 		m_fChannelLevelsLast[i] = m_fChannelLevels[i];		// // //
 		if (m_iMeterDecayRate == DECAY_FAST)		// // // 050B
 			m_fChannelLevels[i] = 0;
@@ -248,7 +248,7 @@ int CMixer::FinishBuffer(int t)
 
 	// Get channel levels for VRC7
 	for (int i = 0; i < 6; ++i)
-		StoreChannelLevel(static_cast<chan_id_t>(CHANID_VRC7_CH1 + i), OPLL_getchanvol(i));
+		StoreChannelLevel(MakeChannelIndex(SNDCHIP_VRC7, i), OPLL_getchanvol(i));
 
 	UpdateMeters();		// // //
 
@@ -262,20 +262,20 @@ int CMixer::FinishBuffer(int t)
 
 void CMixer::AddValue(chan_id_t ChanID, int Value, int FrameCycles) {		// // //
 	switch (ChanID) {
-	case CHANID_SQUARE1: case CHANID_SQUARE2:
+	case chan_id_t::SQUARE1: case chan_id_t::SQUARE2:
 		StoreChannelLevel(ChanID, levels2A03SS_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	case CHANID_TRIANGLE: case CHANID_NOISE: case CHANID_DPCM:
+	case chan_id_t::TRIANGLE: case chan_id_t::NOISE: case chan_id_t::DPCM:
 		StoreChannelLevel(ChanID, levels2A03TND_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	case CHANID_VRC6_PULSE1: case CHANID_VRC6_PULSE2: case CHANID_VRC6_SAWTOOTH:
+	case chan_id_t::VRC6_PULSE1: case chan_id_t::VRC6_PULSE2: case chan_id_t::VRC6_SAWTOOTH:
 		StoreChannelLevel(ChanID, levelsVRC6_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	case CHANID_FDS:
+	case chan_id_t::FDS:
 		StoreChannelLevel(ChanID, levelsFDS_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	case CHANID_MMC5_SQUARE1: case CHANID_MMC5_SQUARE2: case CHANID_MMC5_VOICE:
+	case chan_id_t::MMC5_SQUARE1: case chan_id_t::MMC5_SQUARE2: case chan_id_t::MMC5_VOICE:
 		StoreChannelLevel(ChanID, levelsMMC5_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	case CHANID_N163_CH1: case CHANID_N163_CH2: case CHANID_N163_CH3: case CHANID_N163_CH4:
-	case CHANID_N163_CH5: case CHANID_N163_CH6: case CHANID_N163_CH7: case CHANID_N163_CH8:
+	case chan_id_t::N163_CH1: case chan_id_t::N163_CH2: case chan_id_t::N163_CH3: case chan_id_t::N163_CH4:
+	case chan_id_t::N163_CH5: case chan_id_t::N163_CH6: case chan_id_t::N163_CH7: case chan_id_t::N163_CH8:
 		StoreChannelLevel(ChanID, levelsN163_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	case CHANID_S5B_CH1: case CHANID_S5B_CH2: case CHANID_S5B_CH3:		// // // 050B
+	case chan_id_t::S5B_CH1: case chan_id_t::S5B_CH2: case chan_id_t::S5B_CH3:		// // // 050B
 		StoreChannelLevel(ChanID, levelsS5B_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
 	default:
 		return;
@@ -287,9 +287,9 @@ int CMixer::ReadBuffer(int Size, void *Buffer, bool Stereo)
 	return BlipBuffer.read_samples((blip_sample_t*)Buffer, Size);
 }
 
-int32_t CMixer::GetChanOutput(uint8_t Chan) const
+int32_t CMixer::GetChanOutput(chan_id_t Chan) const		// // //
 {
-	return (int32_t)m_fChannelLevelsLast[Chan];		// // //
+	return (int32_t)m_fChannelLevelsLast[value_cast(Chan)];		// // //
 }
 
 void CMixer::StoreChannelLevel(chan_id_t Channel, int Level)		// // //
@@ -297,29 +297,29 @@ void CMixer::StoreChannelLevel(chan_id_t Channel, int Level)		// // //
 	double AbsVol = std::abs(Level);
 
 	// Adjust channel levels for some channels
-	if (Channel == CHANID_VRC6_SAWTOOTH)
+	if (Channel == chan_id_t::VRC6_SAWTOOTH)
 		AbsVol = AbsVol * .75;
 
-	if (Channel == CHANID_DPCM)
+	if (Channel == chan_id_t::DPCM)
 		AbsVol /= 8.;
 
-	if (Channel == CHANID_FDS)
+	if (Channel == chan_id_t::FDS)
 		AbsVol /= 38.;
 
-	if (Channel >= CHANID_N163_CH1 && Channel <= CHANID_N163_CH8) {
+	if (GetChipFromChannel(Channel) == SNDCHIP_N163) {		// // //
 		AbsVol /= 15.;
-		Channel = static_cast<chan_id_t>(CHANID_N163_CH8 - (Channel - CHANID_N163_CH1));
+		Channel = MakeChannelIndex(SNDCHIP_N163, 7 - GetChannelSubIndex(Channel));
 	}
 
-	if (Channel >= CHANID_VRC7_CH1 && Channel <= CHANID_VRC7_CH6)
+	if (GetChipFromChannel(Channel) == SNDCHIP_VRC7)		// // //
 		AbsVol = std::log(AbsVol) * 3.;
 
-	if (Channel >= CHANID_S5B_CH1 && Channel <= CHANID_S5B_CH3)
+	if (GetChipFromChannel(Channel) == SNDCHIP_S5B)		// // //
 		AbsVol = std::log(AbsVol) * 2.8;
 
-	if (AbsVol >= m_fChannelLevels[Channel]) {
-		m_fChannelLevels[Channel] = float(AbsVol);
-		m_iChanLevelFallOff[Channel] = LEVEL_FALL_OFF_DELAY;
+	if (AbsVol >= m_fChannelLevels[value_cast(Channel)]) {
+		m_fChannelLevels[value_cast(Channel)] = float(AbsVol);
+		m_iChanLevelFallOff[value_cast(Channel)] = LEVEL_FALL_OFF_DELAY;
 	}
 }
 

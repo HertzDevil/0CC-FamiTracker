@@ -63,8 +63,6 @@ private:
 	void WriteData(char Data);
 	void WriteData(int Addr, char Data);
 private:
-	inline int GetIndex() const { return m_iChannelID - CHANID_N163_CH1; }
-private:
 	bool m_bLoadWave;
 	bool m_bDisableLoad;		// // //
 	int m_iChannels;

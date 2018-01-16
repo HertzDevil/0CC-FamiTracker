@@ -49,7 +49,7 @@ protected:
 	unsigned int m_iDestFrame;
 	unsigned int m_iDestRow;
 	unsigned int m_iDestChip;
-	unsigned int m_iDestChannel;
+	unsigned int m_iDestSubIndex;
 
 	CComboBox m_cChipEdit;
 

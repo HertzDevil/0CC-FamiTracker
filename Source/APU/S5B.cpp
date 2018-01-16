@@ -102,9 +102,9 @@ double CS5BChannel::GetFrequency() const		// // //
 
 CS5B::CS5B(CMixer &Mixer) : CSoundChip(Mixer),
 	m_Channel {
-		{Mixer, CHANID_S5B_CH1},
-		{Mixer, CHANID_S5B_CH2},
-		{Mixer, CHANID_S5B_CH3},
+		{Mixer, chan_id_t::S5B_CH1},
+		{Mixer, chan_id_t::S5B_CH2},
+		{Mixer, chan_id_t::S5B_CH3},
 	},
 	m_cPort(0),
 	m_iCounter(0)

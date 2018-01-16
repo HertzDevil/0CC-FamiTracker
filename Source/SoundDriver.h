@@ -41,7 +41,7 @@ class CAPU;
 class CSongState;
 class stChanNote;
 class CSoundGenBase;
-enum chan_id_t : unsigned;
+enum class chan_id_t : unsigned;
 enum note_prio_t : unsigned;
 
 class CSoundDriver {

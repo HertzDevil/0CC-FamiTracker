@@ -114,10 +114,12 @@ public:
 
 	/*!	\brief Sets the identifier of the channel.
 		\param ID The new identifier value. */
-	virtual void	SetChannelID(int ID) { m_iChannelID = ID; }
+	void			SetChannelID(chan_id_t ID) { m_iChannelID = ID; }		// // //
 	/*!	\brief Retrieves the identifier of the channel.
 		\return The channel's identifier value. */
-	int				GetChannelID() const { return m_iChannelID; }
+	chan_id_t		GetChannelID() const { return m_iChannelID; }		// // //
+	/*! \brief Gets the subindex of the channel. */
+	std::size_t		GetSubIndex() const;		// // //
 
 	//
 	// Internal virtual functions
@@ -356,9 +358,8 @@ public:
 	// Shared variables
 protected:
 	// Channel variables
-	/*!	\brief The channel identifier.
-		\details This value should always be a member of chan_id_t. */
-	int				m_iChannelID;
+	/*!	\brief The channel identifier. */
+	chan_id_t		m_iChannelID;		// // //
 
 	// General
 	/*!	\brief A flag indicating that a note has been triggered on the current tick. */

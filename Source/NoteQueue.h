@@ -27,7 +27,7 @@
 #include <unordered_map>
 #include <memory>
 
-enum chan_id_t : unsigned;
+enum class chan_id_t : unsigned;
 
 /*!
 	\brief A queue which automatically reassigns notes in the same logical track to different

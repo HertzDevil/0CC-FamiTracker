@@ -257,29 +257,28 @@ void CFindResultsBox::SelectItem(int Index)
 {
 	const auto pDoc = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
 
-	const auto ToChannelID = [] (const std::string &_x) {
-		CString x {_x.c_str()};
-		static const CString HEADER_STR[] = {
-			_T("Pulse "), _T("Triangle"), _T("Noise"), _T("DPCM"),
-			_T("VRC6 Pulse "), _T("Sawtooth"),
-			_T("MMC5 Pulse "), _T("Namco "), _T("FDS"), _T("FM Channel "), _T("5B Square ")
+	const auto ToChannelID = [] (std::string_view x) {
+		static const std::tuple<std::string_view, std::uint8_t, unsigned> HEADERS[] = {
+			{"Pulse "     , SNDCHIP_NONE, GetChannelSubIndex(chan_id_t::SQUARE1)},
+			{"Triangle"   , SNDCHIP_NONE, GetChannelSubIndex(chan_id_t::TRIANGLE)},
+			{"Noise"      , SNDCHIP_NONE, GetChannelSubIndex(chan_id_t::NOISE)},
+			{"DPCM"       , SNDCHIP_NONE, GetChannelSubIndex(chan_id_t::DPCM)},
+			{"VRC6 Pulse ", SNDCHIP_VRC6, GetChannelSubIndex(chan_id_t::VRC6_PULSE1)},
+			{"Sawtooth"   , SNDCHIP_VRC6, GetChannelSubIndex(chan_id_t::VRC6_SAWTOOTH)},
+			{"MMC5 Pulse ", SNDCHIP_MMC5, GetChannelSubIndex(chan_id_t::MMC5_SQUARE1)},
+			{"Namco "     , SNDCHIP_N163, GetChannelSubIndex(chan_id_t::N163_CH1)},
+			{"FDS"        , SNDCHIP_FDS , GetChannelSubIndex(chan_id_t::FDS)},
+			{"FM Channel ", SNDCHIP_VRC7, GetChannelSubIndex(chan_id_t::VRC7_CH1)},
+			{"5B Square " , SNDCHIP_S5B,  GetChannelSubIndex(chan_id_t::S5B_CH1)},
 		};
-		static const chan_id_t HEADER_ID[] = {
-			CHANID_SQUARE1, CHANID_TRIANGLE, CHANID_NOISE, CHANID_DPCM,
-			CHANID_VRC6_PULSE1, CHANID_VRC6_SAWTOOTH,
-			CHANID_MMC5_SQUARE1, CHANID_N163_CH1, CHANID_FDS, CHANID_VRC7_CH1, CHANID_S5B_CH1,
-		};
-		for (std::size_t i = 0; i < std::size(HEADER_ID); ++i) {
-			const auto &n = HEADER_STR[i];
-			int Size = n.GetLength();
-			if (x.Left(Size) == n) {
-				chan_id_t Pos = HEADER_ID[i];
-				if (x != n)
-					Pos = (chan_id_t)(Pos + x.GetAt(x.GetLength() - 1) - '1');
-				return Pos;
+		for (auto [prefix, chip, subindex] : HEADERS)
+			if (0 == x.compare(0, prefix.size(), prefix)) {
+				auto s = subindex;
+				if (prefix.size() != x.size())
+					s += x.back() - '1';
+				return MakeChannelIndex(chip, s);
 			}
-		}
-		return (chan_id_t)-1;
+		return chan_id_t::NONE;
 	};
 	const auto Cache = [&] (const std::string &x) {
 		auto it = m_iChannelPositionCache.find(x);
@@ -1056,7 +1055,7 @@ bool CFindDlg::Find(bool ShowEnd)
 			m_pFindCursor->Move(m_iSearchDirection);
 		}
 		const auto &Target = m_pFindCursor->Get();
-		if (CompareFields(Target, m_pFindCursor->m_iChannel == CHANID_NOISE,
+		if (CompareFields(Target, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel) == chan_id_t::NOISE,
 							m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel)))) {
 			auto pCursor = std::move(m_pFindCursor);
 			m_pView->SelectFrame(pCursor->m_iFrame % Frames);
@@ -1280,9 +1279,9 @@ void CFindDlg::OnBnClickedButtonFindAll()
 	m_cResultsBox.ClearResults();
 	do {
 		const auto &Target = m_pFindCursor->Get();
-		if (CompareFields(Target, m_pFindCursor->m_iChannel == CHANID_NOISE,
-							m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel))))
-			m_cResultsBox.AddResult(Target, *m_pFindCursor, m_pFindCursor->m_iChannel == CHANID_NOISE);
+		chan_id_t ch = m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel);
+		if (CompareFields(Target, ch == chan_id_t::NOISE, m_pDocument->GetEffColumns(Track, ch)))
+			m_cResultsBox.AddResult(Target, *m_pFindCursor, ch == chan_id_t::NOISE);
 		m_pFindCursor->Move(m_iSearchDirection);
 	} while (!m_pFindCursor->AtStart());
 
@@ -1306,8 +1305,8 @@ void CFindDlg::OnBnClickedButtonReplaceall()
 	PrepareCursor(true);
 	do {
 		const auto &Target = m_pFindCursor->Get();
-		if (CompareFields(Target, m_pFindCursor->m_iChannel == CHANID_NOISE,
-							m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel)))) {
+		chan_id_t ch = m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel);
+		if (CompareFields(Target, ch == chan_id_t::NOISE, m_pDocument->GetEffColumns(Track, ch))) {
 			m_bFound = true;
 			Replace(static_cast<CCompoundAction *>(pAction.get()));
 			++Count;

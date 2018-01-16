@@ -45,7 +45,7 @@
  */
 
 CChannelHandler::CChannelHandler(int MaxPeriod, int MaxVolume) :
-	m_iChannelID(0),
+	m_iChannelID(chan_id_t::NONE),		// // //
 	m_iInstTypeCurrent(INST_NONE),		// // //
 	m_iInstrument(0),
 	m_pNoteLookupTable(NULL),
@@ -95,9 +95,11 @@ void CChannelHandler::SetVibratoStyle(vibrato_t Style)		// // //
 void CChannelHandler::SetPitch(int Pitch)
 {
 	// Pitch ranges from -511 to +512
-	m_iPitch = Pitch;
-	if (m_iPitch == 512)
-		m_iPitch = 511;
+	m_iPitch = std::clamp(Pitch, -511, 511);		// // //
+}
+
+std::size_t CChannelHandler::GetSubIndex() const {		// // //
+	return GetChannelSubIndex(GetChannelID());
 }
 
 int CChannelHandler::GetPitch() const
@@ -229,7 +231,7 @@ std::string CChannelHandler::GetEffectString() const		// // //
 		str += MakeCommandString(EF_VOLUME_SLIDE, m_iVolSlide);
 	if (m_iFinePitch != 0x80)
 		str += MakeCommandString(EF_PITCH, m_iFinePitch);
-	if ((m_iDefaultDuty && m_iChannelID < CHANID_S5B_CH1) || (m_iDefaultDuty != 0x40 && m_iChannelID >= CHANID_S5B_CH1))
+	if ((m_iDefaultDuty && m_iChannelID < chan_id_t::S5B_CH1) || (m_iDefaultDuty != 0x40 && m_iChannelID >= chan_id_t::S5B_CH1))
 		str += MakeCommandString(EF_DUTY_CYCLE, m_iDefaultDuty);
 
 	// run-time effects

@@ -67,7 +67,7 @@ enum class sequence_t : unsigned;
 enum cursor_column_t : unsigned int; // TODO: remove
 enum machine_t : unsigned char;
 enum vibrato_t : unsigned char;
-enum chan_id_t : unsigned;
+enum class chan_id_t : unsigned;
 
 namespace ft0cc::doc {		// // //
 class groove;

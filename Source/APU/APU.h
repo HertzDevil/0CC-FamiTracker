@@ -44,6 +44,7 @@ class CMixer;		// // //
 class CSoundChip;		// // //
 class CRegisterState;		// // //
 enum chip_level_t : int;		// // //
+enum class chan_id_t : unsigned;		// // //
 
 #ifdef LOGGING
 class CFile;
@@ -68,7 +69,7 @@ public:
 	void	SetupMixer(int LowCut, int HighCut, int HighDamp, int Volume) const;
 	void	SetCallback(IAudioCallback &pCallback);		// // //
 
-	int32_t	GetVol(uint8_t Chan) const;
+	int32_t	GetVol(chan_id_t Chan) const;		// // //
 	uint8_t	GetReg(int Chip, int Reg) const;
 	double	GetFreq(int Chip, int Chan) const;		// // //
 	CRegisterState *GetRegState(int Chip, int Reg) const;		// // //

@@ -160,11 +160,11 @@ private:
 	CBookmarkCollection bookmarks_;		// // //
 
 	// Number of visible effect columns for each channel
-	std::array<unsigned char, CHANNELS> m_iEffectColumns = { };		// // //
+	std::array<unsigned char, CHANID_COUNT> m_iEffectColumns = { };		// // //
 
 	// List of the patterns assigned to frames
-	std::array<std::array<unsigned char, CHANNELS>, MAX_FRAMES> m_iFrameList = { };		// // //
+	std::array<std::array<unsigned char, CHANID_COUNT>, MAX_FRAMES> m_iFrameList = { };		// // //
 
 	// All accesses to m_pPatternData must go through GetPatternData()
-	std::array<std::array<CPatternData, MAX_PATTERN>, CHANNELS> m_pPatternData = { };		// // //
+	std::array<std::array<CPatternData, MAX_PATTERN>, CHANID_COUNT> m_pPatternData = { };		// // //
 };

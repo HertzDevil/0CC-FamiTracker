@@ -181,7 +181,7 @@ void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 		switch (InstType) {
 			case INST_2A03: {
 					chan_id_t Type = CFamiTrackerView::GetView()->GetSelectedChannelID();		// // //
-					bool bShowDPCM = (Type == CHANID_DPCM) || (std::static_pointer_cast<CInstrument2A03>(pInstrument)->AssignedSamples());
+					bool bShowDPCM = (Type == chan_id_t::DPCM) || (std::static_pointer_cast<CInstrument2A03>(pInstrument)->AssignedSamples());
 					InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, _T("2A03 settings"),
 						CInstrument2A03::SEQUENCE_NAME, 15, 3, INST_2A03), !bShowDPCM);		// // //
 					InsertPane(std::make_unique<CInstrumentEditorDPCM>(), bShowDPCM);
@@ -349,19 +349,19 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 
 	// // // Send to respective channels whenever cursor is outside instrument chip
 	if (m_iSelectedInstType == INST_2A03) {
-		if (m_pPanels[0]->IsWindowVisible() && Channel > CHANID_NOISE)
-			pView->SelectChannel(pDoc->GetChannelIndex(CHANID_SQUARE1));
+		if (m_pPanels[0]->IsWindowVisible() && Channel > chan_id_t::NOISE)
+			pView->SelectChannel(pDoc->GetChannelIndex(chan_id_t::SQUARE1));
 		if (m_pPanels[1]->IsWindowVisible())
-			pView->SelectChannel(pDoc->GetChannelIndex(CHANID_DPCM));
+			pView->SelectChannel(pDoc->GetChannelIndex(chan_id_t::DPCM));
 	}
 	else {
-		chan_id_t First = CHANNELS;
+		chan_id_t First = chan_id_t::NONE;
 		switch (m_iSelectedInstType) {
-		case INST_VRC6: First = CHANID_VRC6_PULSE1; break;
-		case INST_N163: First = CHANID_N163_CH1; break;
-		case INST_FDS:  First = CHANID_FDS; break;
-		case INST_VRC7: First = CHANID_VRC7_CH1; break;
-		case INST_S5B:  First = CHANID_S5B_CH1; break;
+		case INST_VRC6: First = chan_id_t::VRC6_PULSE1; break;
+		case INST_N163: First = chan_id_t::N163_CH1; break;
+		case INST_FDS:  First = chan_id_t::FDS; break;
+		case INST_VRC7: First = chan_id_t::VRC7_CH1; break;
+		case INST_S5B:  First = chan_id_t::S5B_CH1; break;
 		}
 		if (pDoc->HasChannel(First))
 			if (int Index = pDoc->GetChannelIndex(First); pDoc->GetChipType(Index) != pDoc->GetChipType(pDoc->GetChannelIndex(Channel)))

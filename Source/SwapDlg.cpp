@@ -96,8 +96,8 @@ BOOL CSwapDlg::OnInitDialog()
 
 void CSwapDlg::CheckDestination() const
 {
-	GetDlgItem(IDOK)->EnableWindow(GetFinalChannel(m_iDestChannel1, m_iDestChip1) != -1 &&
-								   GetFinalChannel(m_iDestChannel2, m_iDestChip2) != -1 &&
+	GetDlgItem(IDOK)->EnableWindow(MakeChannelIndex(m_iDestChannel1, m_iDestChip1) != chan_id_t::NONE &&
+								   MakeChannelIndex(m_iDestChannel2, m_iDestChip2) != chan_id_t::NONE &&
 								   (m_iDestChannel1 != m_iDestChannel2 || m_iDestChip1 != m_iDestChip2));
 }
 
@@ -119,23 +119,6 @@ int CSwapDlg::GetChipFromString(const CString &str)
 		return SNDCHIP_S5B;
 	else
 		return SNDCHIP_NONE;
-}
-
-chan_id_t CSwapDlg::GetFinalChannel(unsigned int Channel, unsigned int Chip) const
-{
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-
-	switch (Chip) {
-	case SNDCHIP_NONE: Channel += CHANID_SQUARE1; break;
-	case SNDCHIP_VRC6: Channel += CHANID_VRC6_PULSE1; break;
-	case SNDCHIP_VRC7: Channel += CHANID_VRC7_CH1; break;
-	case SNDCHIP_FDS:  Channel += CHANID_FDS; break;
-	case SNDCHIP_MMC5: Channel += CHANID_MMC5_SQUARE1; break;
-	case SNDCHIP_N163: Channel += CHANID_N163_CH1; break;
-	case SNDCHIP_S5B:  Channel += CHANID_S5B_CH1; break;
-	}
-
-	return (chan_id_t)Channel;
 }
 
 void CSwapDlg::OnEnChangeEditSwapChan1()
@@ -172,15 +155,16 @@ void CSwapDlg::OnCbnSelchangeComboSwapChip2()
 
 void CSwapDlg::OnBnClickedOk()
 {
+	auto lhs = MakeChannelIndex(m_iDestChannel1, m_iDestChip1);
+	auto rhs = MakeChannelIndex(m_iDestChannel2, m_iDestChip2);
+
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 	if (IsDlgButtonChecked(IDC_CHECK_SWAP_ALL) == BST_CHECKED)
 		for (unsigned int i = 0; i < pDoc->GetTrackCount(); i++)
-			pDoc->SwapChannels(i, GetFinalChannel(m_iDestChannel1, m_iDestChip1),
-								  GetFinalChannel(m_iDestChannel2, m_iDestChip2));
+			pDoc->SwapChannels(i, lhs, rhs);
 	else
-		pDoc->SwapChannels(m_iTrack,
-						   GetFinalChannel(m_iDestChannel1, m_iDestChip1),
-						   GetFinalChannel(m_iDestChannel2, m_iDestChip2));
+		pDoc->SwapChannels(m_iTrack, lhs, rhs);
+
 	pDoc->ModifyIrreversible();
 	pDoc->UpdateAllViews(NULL, UPDATE_PATTERN);
 	pDoc->UpdateAllViews(NULL, UPDATE_FRAME);

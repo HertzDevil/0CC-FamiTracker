@@ -60,7 +60,7 @@ public:
 
 private:		// // //
 	std::vector<CTrackerChannel *> m_pChannels;		// // //
-	std::unordered_map<int, int> m_iChannelIndices;		// // //
+	std::unordered_map<chan_id_t, int> m_iChannelIndices;		// // //
 
 	unsigned chips_;		// // //
 	unsigned n163chs_;		// // //

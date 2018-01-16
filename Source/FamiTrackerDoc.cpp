@@ -150,7 +150,7 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCTSTR lpszPathName)
 
 	//DeleteContents();
 	theApp.GetSoundGenerator()->ResetDumpInstrument();
-	theApp.GetSoundGenerator()->SetRecordChannel((chan_id_t)-1);		// // //
+	theApp.GetSoundGenerator()->SetRecordChannel(chan_id_t::NONE);		// // //
 
 	LockDocument();
 
@@ -1748,7 +1748,7 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 void CFamiTrackerDoc::RemoveUnusedPatterns()
 {
 	VisitSongs([&] (CSongData &song) {
-		for (unsigned i = 0; i < CHANNELS; ++i)
+		for (unsigned i = 0; i < CHANID_COUNT; ++i)
 			if (!HasChannel((chan_id_t)i))
 				for (int p = 0; p < MAX_PATTERN; ++p)
 					song.GetPattern((chan_id_t)i, p) = CPatternData { };
@@ -1768,9 +1768,9 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 			bool Used = false;
 			VisitSongs([&] (const CSongData &song) {
 				for (unsigned int Frame = 0; Frame < song.GetFrameCount(); ++Frame) {
-					unsigned int Pattern = song.GetFramePattern(Frame, CHANID_DPCM);
+					unsigned int Pattern = song.GetFramePattern(Frame, chan_id_t::DPCM);
 					for (unsigned int Row = 0; Row < song.GetPatternLength(); ++Row) {
-						const auto &Note = song.GetPatternData(CHANID_DPCM, Pattern, Row);		// // //
+						const auto &Note = song.GetPatternData(chan_id_t::DPCM, Pattern, Row);		// // //
 						int Index = Note.Instrument;
 						if (Note.Note < NOTE_C || Note.Note > NOTE_B || Index == MAX_INSTRUMENTS)
 							continue;		// // //

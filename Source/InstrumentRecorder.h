@@ -35,7 +35,7 @@ class CFamiTrackerDoc;
 class CSoundGen;
 class CWnd;
 enum class sequence_t : unsigned;
-enum chan_id_t : unsigned;
+enum class chan_id_t : unsigned;
 
 struct stRecordSetting {
 	int Interval;

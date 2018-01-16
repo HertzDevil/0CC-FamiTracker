@@ -40,7 +40,7 @@ enum chip_level_t {
 	CHIP_LEVEL_S5B
 };
 
-enum chan_id_t : unsigned;		// // //
+enum class chan_id_t : unsigned;		// // //
 
 class CMixer
 {
@@ -61,7 +61,7 @@ public:
 	void	AddSample(int ChanID, int Value);
 	int		ReadBuffer(int Size, void *Buffer, bool Stereo);
 
-	int32_t	GetChanOutput(uint8_t Chan) const;
+	int32_t	GetChanOutput(chan_id_t Chan) const;		// // //
 	void	SetChipLevel(chip_level_t Chip, float Level);
 	uint32_t	ResampleDuration(uint32_t Time) const;
 	void	SetNamcoMixing(bool bLinear);		// // //
@@ -92,9 +92,9 @@ private:
 	uint8_t		m_iExternalChip = 0;
 	uint32_t	m_iSampleRate = 0;
 
-	std::array<float, CHANNELS>		m_fChannelLevels = { };
-	std::array<float, CHANNELS>		m_fChannelLevelsLast = { };		// // //
-	std::array<uint32_t, CHANNELS>	m_iChanLevelFallOff = { };
+	std::array<float, CHANID_COUNT>		m_fChannelLevels = { };
+	std::array<float, CHANID_COUNT>		m_fChannelLevelsLast = { };		// // //
+	std::array<uint32_t, CHANID_COUNT>	m_iChanLevelFallOff = { };
 
 	decay_rate_t m_iMeterDecayRate = DECAY_SLOW;		// // // 050B
 	int			m_iLowCut = 0;

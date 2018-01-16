@@ -280,7 +280,7 @@ uint8_t CAPU::Read(uint16_t Address)
 
 // Expansion for famitracker
 
-int32_t CAPU::GetVol(uint8_t Chan) const
+int32_t CAPU::GetVol(chan_id_t Chan) const		// // //
 {
 	return m_pMixer->GetChanOutput(Chan);
 }

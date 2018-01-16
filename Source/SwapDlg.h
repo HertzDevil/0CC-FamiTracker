@@ -26,7 +26,7 @@
 #include "stdafx.h"
 #include "resource.h"
 
-enum chan_id_t : unsigned;
+enum class chan_id_t : unsigned;
 
 // CSwapDlg dialog
 
@@ -46,7 +46,6 @@ protected:
 
 	void CheckDestination() const;
 	static int GetChipFromString(const CString &str);
-	chan_id_t GetFinalChannel(unsigned int Channel, unsigned int Chip) const;
 
 	unsigned int m_iDestChannel1, m_iDestChannel2;
 	unsigned int m_iDestChip1, m_iDestChip2;

@@ -47,12 +47,6 @@ CChannelHandlerVRC7::CChannelHandlerVRC7() :
 	m_iVolume = VOL_COLUMN_MAX;
 }
 
-void CChannelHandlerVRC7::SetChannelID(int ID)
-{
-	CChannelHandler::SetChannelID(ID);
-	m_iChannel = ID - CHANID_VRC7_CH1;
-}
-
 void CChannelHandlerVRC7::SetPatch(unsigned char Patch)		// // //
 {
 	m_iDutyPeriod = Patch;
@@ -271,7 +265,9 @@ void CVRC7Channel::RefreshChannel()
 		m_iPatch = -1;
 	}
 
-	// Write custom instrument
+	unsigned subindex = GetSubIndex();		// // //
+
+											// Write custom instrument
 	if (m_iDutyPeriod == 0 && (m_iCommand == CMD_NOTE_TRIGGER || m_bRegsDirty)) {
 		for (int i = 0; i < 8; ++i)
 			RegWrite(i, m_iPatchRegs[i]);
@@ -286,7 +282,7 @@ void CVRC7Channel::RefreshChannel()
 
 	switch (m_iCommand) {
 		case CMD_NOTE_TRIGGER:
-			RegWrite(0x20 + m_iChannel, 0);
+			RegWrite(0x20 + subindex, 0);
 			m_iCommand = CMD_NOTE_ON;
 			Cmd = OPL_NOTE_ON | OPL_SUSTAIN_ON;
 			break;
@@ -302,24 +298,25 @@ void CVRC7Channel::RefreshChannel()
 	}
 
 	// Write frequency
-	RegWrite(0x10 + m_iChannel, Fnum & 0xFF);
+	RegWrite(0x10 + subindex, Fnum & 0xFF);
 
 	if (m_iCommand != CMD_NOTE_HALT) {
 		// Select volume & patch
-		RegWrite(0x30 + m_iChannel, (m_iDutyPeriod << 4) | (Volume ^ 0x0F));		// // //
+		RegWrite(0x30 + subindex, (m_iDutyPeriod << 4) | (Volume ^ 0x0F));		// // //
 	}
 
-	RegWrite(0x20 + m_iChannel, ((Fnum >> 8) & 1) | (Bnum << 1) | Cmd);
+	RegWrite(0x20 + subindex, ((Fnum >> 8) & 1) | (Bnum << 1) | Cmd);
 
-	if (m_iChannelID == CHANID_VRC7_CH6)		// // // 050B
+	if (m_iChannelID == chan_id_t::VRC7_CH6)		// // // 050B
 		m_cPatchFlag = 0;
 }
 
 void CVRC7Channel::ClearRegisters()
 {
-	for (int i = 0x10; i < 0x30; i += 0x10)
-		RegWrite(i + m_iChannel, 0);
-	RegWrite(0x30 + m_iChannel, 0x0F);		// // //
+	unsigned subindex = GetSubIndex();		// // //
+	RegWrite(0x10 + subindex, 0x00);
+	RegWrite(0x20 + subindex, 0x00);
+	RegWrite(0x30 + subindex, 0x0F);
 
 	m_iNote = -1;
 	m_iOctave = m_iOldOctave = -1;		// // //

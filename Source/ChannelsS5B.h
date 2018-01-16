@@ -56,7 +56,7 @@ protected:
 
 	// Static functions
 protected:
-	static void SetMode(int Chan, int Square, int Noise);
+	static void SetMode(chan_id_t Chan, int Square, int Noise);		// // //
 	void UpdateAutoEnvelope(int Period);		// // // 050B
 	void UpdateRegs();		// // //
 

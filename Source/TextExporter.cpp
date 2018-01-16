@@ -940,7 +940,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			Doc.ForeachChannel([&] (chan_id_t c) {
 				CHECK_COLON();
 				stChanNote &&stCell = t.ImportCellText(Doc.GetEffColumns(track - 1, c),
-					Doc.GetChipType(Doc.GetChannelIndex(c)), c == CHANID_NOISE);		// // //
+					Doc.GetChipType(Doc.GetChannelIndex(c)), c == chan_id_t::NOISE);		// // //
 				Doc.SetDataAtPattern(track - 1, pattern, c, row, std::move(stCell));		// // //
 			});
 			t.ReadEOL();
@@ -1380,7 +1380,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 				f.WriteString(s);
 				Doc.ForeachChannel([&] (chan_id_t c) {
 					f.WriteString(_T(" : "));
-					f.WriteString(ExportCellText(Doc.GetDataAtPattern(t,p,c,r), Doc.GetEffColumns(t, c)+1, c==3));		// // //
+					f.WriteString(ExportCellText(Doc.GetDataAtPattern(t,p,c,r), Doc.GetEffColumns(t, c)+1, c==chan_id_t::NOISE));		// // //
 				});
 				f.WriteString(_T("\n"));
 			}

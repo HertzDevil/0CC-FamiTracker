@@ -1379,7 +1379,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 					DrawChar(DC, PosX + m_iCharWidth * 2, PosY, NOTES_C[NoteData.Octave], ColorInfo.Note);
 					break;
 				default:
-					if (TrackerChannel.GetID() == CHANID_NOISE) {
+					if (TrackerChannel.GetID() == chan_id_t::NOISE) {
 						// Noise
 						char NoiseFreq = (NoteData.Note - 1 + NoteData.Octave * 12) & 0x0F;
 						DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoiseFreq], ColorInfo.Note);		// // //
@@ -1415,7 +1415,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 			break;
 		case C_VOLUME:
 			// Volume
-			if (NoteData.Vol == MAX_VOLUME || TrackerChannel.GetID() == CHANID_DPCM)
+			if (NoteData.Vol == MAX_VOLUME || TrackerChannel.GetID() == chan_id_t::DPCM)
 				BAR(PosX, PosY);
 			else
 				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.Vol & 0x0F], ColorInfo.Volume);		// // //
@@ -3508,7 +3508,8 @@ void CPatternEditor::GetSelectionAsText(CString &str) const		// // //
 		line.AppendFormat(_T("ROW %0*X"), HexLength, Row++);
 		for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
 			const auto &NoteData = it.first.Get(i);
-			CString Row = CTextExport::ExportCellText(NoteData, m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(i)) + 1, i == CHANID_NOISE);
+			chan_id_t ch = m_pDocument->TranslateChannel(i);
+			CString Row = CTextExport::ExportCellText(NoteData, m_pDocument->GetEffColumns(Track, ch) + 1, ch == chan_id_t::NOISE);
 			if (i == it.first.m_iChannel) for (unsigned c = 0; c < BegCol; ++c)
 				for (int j = 0; j < COLUMN_CHAR_LEN[c]; ++j) Row.SetAt(COLUMN_CHAR_POS[c] + j, ' ');
 			if (i == it.second.m_iChannel && EndCol < COLUMN_EFF4)
@@ -3528,15 +3529,15 @@ void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
 	str.Empty();
 
 	for (int c = it.first.m_iChannel; c <= it.second.m_iChannel; ++c) {
-		int Type = m_pDocument->TranslateChannel(c);
+		unsigned Type = GetChannelSubIndex(m_pDocument->TranslateChannel(c));
 		switch (m_pDocument->GetChipType(c)) {
-		case SNDCHIP_NONE: Type += 'A' - CHANID_SQUARE1; break;
-		case SNDCHIP_VRC6: Type += 'M' - CHANID_VRC6_PULSE1; break;
-		case SNDCHIP_VRC7: Type += 'G' - CHANID_VRC7_CH1; break;
-		case SNDCHIP_FDS:  Type += 'F' - CHANID_FDS; break;
-		case SNDCHIP_MMC5: Type += 'a' - CHANID_MMC5_SQUARE1; break;
-		case SNDCHIP_N163: Type += 'P' - CHANID_N163_CH1; break;
-		case SNDCHIP_S5B:  Type += 'X' - CHANID_S5B_CH1; break;
+		case SNDCHIP_NONE: Type += 'A'; break;
+		case SNDCHIP_FDS:  Type += 'F'; break;
+		case SNDCHIP_VRC7: Type += 'G'; break;
+		case SNDCHIP_VRC6: Type += 'M'; break;
+		case SNDCHIP_N163: Type += 'P'; break;
+		case SNDCHIP_S5B:  Type += 'X'; break;
+		case SNDCHIP_MMC5: Type += 'a'; break;
 		}
 		str.AppendFormat(_T("%c\t"), Type);
 

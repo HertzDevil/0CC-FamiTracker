@@ -51,7 +51,7 @@ void CChannelMap::RegisterChannel(CTrackerChannel &Channel)		// // //
 
 bool CChannelMap::SupportsChannel(const CTrackerChannel &ch) const {		// // //
 	return HasExpansionChip(ch.GetChip()) && !(ch.GetChip() == SNDCHIP_N163 &&
-		ch.GetID() - CHANID_N163_CH1 >= GetChipChannelCount(SNDCHIP_N163));
+		GetChannelSubIndex(ch.GetID()) >= GetChipChannelCount(SNDCHIP_N163));
 }
 
 CTrackerChannel &CChannelMap::GetChannel(int index) const		// // //

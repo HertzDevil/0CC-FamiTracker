@@ -121,7 +121,7 @@ void CChannelHandlerMMC5::RefreshChannel()		// // //
 
 	unsigned char HiFreq		= (Period & 0xFF);
 	unsigned char LoFreq		= (Period >> 8);
-	unsigned int  Offs			= 0x5000 + 4 * (m_iChannelID - CHANID_MMC5_SQUARE1);
+	unsigned int  Offs			= 0x5000 + 4 * GetSubIndex();
 
 	WriteRegister(0x5015, 0x03);
 
@@ -151,7 +151,7 @@ int CChannelHandlerMMC5::ConvertDuty(int Duty) const		// // //
 
 void CChannelHandlerMMC5::ClearRegisters()
 {
-	unsigned char Offs = 0x5000 + 4 * (m_iChannelID - CHANID_MMC5_SQUARE1);		// // //
+	unsigned Offs = 0x5000 + 4 * GetSubIndex();		// // //
 	WriteRegister(Offs, 0x30);
 	WriteRegister(Offs + 2, 0);
 	WriteRegister(Offs + 3, 0);

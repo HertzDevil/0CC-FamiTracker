@@ -43,14 +43,14 @@
 CN163::CN163(CMixer &Mixer) :
 	CSoundChip(Mixer),		// // //
 	m_Channels {
-		{Mixer, *this, CHANID_N163_CH1, m_iWaveData},
-		{Mixer, *this, CHANID_N163_CH2, m_iWaveData},
-		{Mixer, *this, CHANID_N163_CH3, m_iWaveData},
-		{Mixer, *this, CHANID_N163_CH4, m_iWaveData},
-		{Mixer, *this, CHANID_N163_CH5, m_iWaveData},
-		{Mixer, *this, CHANID_N163_CH6, m_iWaveData},
-		{Mixer, *this, CHANID_N163_CH7, m_iWaveData},
-		{Mixer, *this, CHANID_N163_CH8, m_iWaveData},
+		{Mixer, *this, chan_id_t::N163_CH1, m_iWaveData},
+		{Mixer, *this, chan_id_t::N163_CH2, m_iWaveData},
+		{Mixer, *this, chan_id_t::N163_CH3, m_iWaveData},
+		{Mixer, *this, chan_id_t::N163_CH4, m_iWaveData},
+		{Mixer, *this, chan_id_t::N163_CH5, m_iWaveData},
+		{Mixer, *this, chan_id_t::N163_CH6, m_iWaveData},
+		{Mixer, *this, chan_id_t::N163_CH7, m_iWaveData},
+		{Mixer, *this, chan_id_t::N163_CH8, m_iWaveData},
 	}
 {
 	m_pRegisterLogger->AddRegisterRange(0x00, 0x7F);		// // //

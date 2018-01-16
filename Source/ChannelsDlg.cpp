@@ -38,21 +38,21 @@ const LPCTSTR ROOT_ITEMS[] = {		// // //
 	_T("Sunsoft 5B")
 };
 
-const int CHILD_ITEMS_ID[ROOT_ITEM_COUNT][9] = {
+const chan_id_t CHILD_ITEMS_ID[ROOT_ITEM_COUNT][9] = {		// // //
 	// 2A03
-	{CHANID_SQUARE1, CHANID_SQUARE2, CHANID_TRIANGLE, CHANID_NOISE, CHANID_DPCM},
+	{chan_id_t::SQUARE1, chan_id_t::SQUARE2, chan_id_t::TRIANGLE, chan_id_t::NOISE, chan_id_t::DPCM},
 	// VRC 6
-	{CHANID_VRC6_PULSE1, CHANID_VRC6_PULSE2, CHANID_VRC6_SAWTOOTH},
+	{chan_id_t::VRC6_PULSE1, chan_id_t::VRC6_PULSE2, chan_id_t::VRC6_SAWTOOTH},
 	// VRC 7
-	{CHANID_VRC7_CH1, CHANID_VRC7_CH2, CHANID_VRC7_CH3, CHANID_VRC7_CH4, CHANID_VRC7_CH5, CHANID_VRC7_CH6},
+	{chan_id_t::VRC7_CH1, chan_id_t::VRC7_CH2, chan_id_t::VRC7_CH3, chan_id_t::VRC7_CH4, chan_id_t::VRC7_CH5, chan_id_t::VRC7_CH6},
 	// FDS
-	{CHANID_FDS},
+	{chan_id_t::FDS},
 	// MMC5
-	{CHANID_MMC5_SQUARE1, CHANID_MMC5_SQUARE2},
+	{chan_id_t::MMC5_SQUARE1, chan_id_t::MMC5_SQUARE2},
 	// N163
-	{CHANID_N163_CH1, CHANID_N163_CH2, CHANID_N163_CH3, CHANID_N163_CH4, CHANID_N163_CH5, CHANID_N163_CH6, CHANID_N163_CH7, CHANID_N163_CH8},
+	{chan_id_t::N163_CH1, chan_id_t::N163_CH2, chan_id_t::N163_CH3, chan_id_t::N163_CH4, chan_id_t::N163_CH5, chan_id_t::N163_CH6, chan_id_t::N163_CH7, chan_id_t::N163_CH8},
 	 // S5B
-	{CHANID_S5B_CH1, CHANID_S5B_CH2, CHANID_S5B_CH3}
+	{chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3}
 };
 
 const LPCTSTR CHILD_ITEMS[ROOT_ITEM_COUNT][9] = {		// // //
@@ -123,7 +123,7 @@ BOOL CChannelsDlg::OnInitDialog()
 			CString str;
 			str.Format(_T("%i: %s"), j + 1, CHILD_ITEMS[i][j]);
 			HTREEITEM hChild = m_pAvailableTree->InsertItem(str, hItem);
-			m_pAvailableTree->SetItemData(hChild, CHILD_ITEMS_ID[i][j]);
+			m_pAvailableTree->SetItemData(hChild, value_cast(CHILD_ITEMS_ID[i][j]));
 		}
 		m_pAvailableTree->SortChildren(hItem);
 	}
@@ -133,11 +133,11 @@ BOOL CChannelsDlg::OnInitDialog()
 	for (unsigned i = 0; i < pDoc->GetAvailableChannels(); ++i)
 		AddChannel(pDoc->GetChannel(i).GetID());		// // //
 /*
-	AddChannel(CHANID_SQUARE1);
-	AddChannel(CHANID_SQUARE2);
-	AddChannel(CHANID_TRIANGLE);
-	AddChannel(CHANID_NOISE);
-	AddChannel(CHANID_DPCM);
+	AddChannel(chan_id_t::SQUARE1);
+	AddChannel(chan_id_t::SQUARE2);
+	AddChannel(chan_id_t::TRIANGLE);
+	AddChannel(chan_id_t::NOISE);
+	AddChannel(chan_id_t::DPCM);
 */
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
@@ -165,8 +165,7 @@ void CChannelsDlg::OnDblClickAdded(NMHDR *pNMHDR, LRESULT *result)
 	int Count = m_pAddedChannels->GetItemCount();
 
 	if (Index != -1 && Count > 1) {
-
-		int ChanID = m_pAddedChannels->GetItemData(Index);
+		auto ChanID = (chan_id_t)m_pAddedChannels->GetItemData(Index);		// // //
 
 		m_pAvailableTree->GetRootItem();
 
@@ -179,7 +178,7 @@ void CChannelsDlg::OnDblClickAdded(NMHDR *pNMHDR, LRESULT *result)
 					CString str;
 					str.Format(_T("%i: %s"), j, CHILD_ITEMS[i][j]);
 					HTREEITEM hChild = m_pAvailableTree->InsertItem(str, hParent, hParent);
-					m_pAvailableTree->SetItemData(hChild, CHILD_ITEMS_ID[i][j]);
+					m_pAvailableTree->SetItemData(hChild, value_cast(CHILD_ITEMS_ID[i][j]));
 					m_pAvailableTree->Expand(hParent, TVE_EXPAND);
 				}
 				hItem = m_pAvailableTree->GetNextItem(hItem, TVGN_NEXT);
@@ -191,13 +190,13 @@ void CChannelsDlg::OnDblClickAdded(NMHDR *pNMHDR, LRESULT *result)
 	}
 }
 
-void CChannelsDlg::AddChannel(int ChanID)
+void CChannelsDlg::AddChannel(chan_id_t ChanID)		// // //
 {
 	for (int i = 0; i < ROOT_ITEM_COUNT; ++i) {
 		HTREEITEM hItem = m_pAvailableTree->GetNextItem(m_hRootItems[i], TVGN_CHILD);
 		for (int j = 0; hItem != NULL; ++j) {
 
-			int ID = m_pAvailableTree->GetItemData(hItem);
+			auto ID = (chan_id_t)m_pAvailableTree->GetItemData(hItem);		// // //
 
 			if (ID == ChanID) {
 				InsertChannel(hItem);

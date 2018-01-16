@@ -40,35 +40,35 @@ std::unique_ptr<CChannelHandler> CChannelFactory::Make(chan_id_t id) {
 
 std::unique_ptr<CChannelHandler> CChannelFactory::MakeImpl(chan_id_t id) {
 	switch (id) {
-	case CHANID_SQUARE1: case CHANID_SQUARE2:
+	case chan_id_t::SQUARE1: case chan_id_t::SQUARE2:
 		return std::make_unique<C2A03Square>();
-	case CHANID_TRIANGLE:
+	case chan_id_t::TRIANGLE:
 		return std::make_unique<CTriangleChan>();
-	case CHANID_NOISE:
+	case chan_id_t::NOISE:
 		return std::make_unique<CNoiseChan>();
-	case CHANID_DPCM:
+	case chan_id_t::DPCM:
 		return std::make_unique<CDPCMChan>();
 
-	case CHANID_VRC6_PULSE1: case CHANID_VRC6_PULSE2:
+	case chan_id_t::VRC6_PULSE1: case chan_id_t::VRC6_PULSE2:
 		return std::make_unique<CVRC6Square>();
-	case CHANID_VRC6_SAWTOOTH:
+	case chan_id_t::VRC6_SAWTOOTH:
 		return std::make_unique<CVRC6Sawtooth>();
 
-	case CHANID_VRC7_CH1: case CHANID_VRC7_CH2: case CHANID_VRC7_CH3:
-	case CHANID_VRC7_CH4: case CHANID_VRC7_CH5: case CHANID_VRC7_CH6:
+	case chan_id_t::VRC7_CH1: case chan_id_t::VRC7_CH2: case chan_id_t::VRC7_CH3:
+	case chan_id_t::VRC7_CH4: case chan_id_t::VRC7_CH5: case chan_id_t::VRC7_CH6:
 		return std::make_unique<CVRC7Channel>();
 
-	case CHANID_FDS:
+	case chan_id_t::FDS:
 		return std::make_unique<CChannelHandlerFDS>();
 
-	case CHANID_MMC5_SQUARE1: case CHANID_MMC5_SQUARE2:
+	case chan_id_t::MMC5_SQUARE1: case chan_id_t::MMC5_SQUARE2:
 		return std::make_unique<CChannelHandlerMMC5>();
 
-	case CHANID_N163_CH1: case CHANID_N163_CH2: case CHANID_N163_CH3: case CHANID_N163_CH4:
-	case CHANID_N163_CH5: case CHANID_N163_CH6: case CHANID_N163_CH7: case CHANID_N163_CH8:
+	case chan_id_t::N163_CH1: case chan_id_t::N163_CH2: case chan_id_t::N163_CH3: case chan_id_t::N163_CH4:
+	case chan_id_t::N163_CH5: case chan_id_t::N163_CH6: case chan_id_t::N163_CH7: case chan_id_t::N163_CH8:
 		return std::make_unique<CChannelHandlerN163>();
 
-	case CHANID_S5B_CH1: case CHANID_S5B_CH2: case CHANID_S5B_CH3:
+	case chan_id_t::S5B_CH1: case chan_id_t::S5B_CH2: case chan_id_t::S5B_CH3:
 		return std::make_unique<CChannelHandlerS5B>();
 	}
 

@@ -44,7 +44,7 @@ class CNoteQueue;		// // //
 class CArpeggiator;		// // //
 class CMainFrame;		// // //
 
-enum chan_id_t : unsigned;		// // //
+enum class chan_id_t : unsigned;		// // //
 
 // // // Player modes
 enum class play_mode_t {

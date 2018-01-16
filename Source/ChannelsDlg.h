@@ -28,6 +28,8 @@
 
 const int ROOT_ITEM_COUNT = 7;
 
+enum class chan_id_t : unsigned;		// // //
+
 // CChannelsDlg dialog
 
 class CChannelsDlg : public CDialog
@@ -47,7 +49,7 @@ protected:
 
 	HTREEITEM m_hRootItems[ROOT_ITEM_COUNT];
 
-	void AddChannel(int ChanID);
+	void AddChannel(chan_id_t ChanID);		// // //
 	void InsertChannel(HTREEITEM hItem);
 
 protected:

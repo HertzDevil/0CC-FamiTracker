@@ -30,7 +30,7 @@
 
 class CFamiTrackerDoc;
 class stChanNote;
-enum chan_id_t : unsigned;
+enum class chan_id_t : unsigned;
 
 std::string MakeCommandString(effect_t Effect, unsigned char Param);		// // //
 
@@ -76,7 +76,7 @@ public:
 	void Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned Frame, unsigned Row);
 	std::string GetChannelStateString(const CFamiTrackerDoc &doc, chan_id_t chan) const;
 
-	std::array<stChannelState, CHANNELS> State = { };
+	std::array<stChannelState, CHANID_COUNT> State = { };
 	int Tempo = -1;
 	int Speed = -1;
 	int GroovePos = -1; // -1: disable groove

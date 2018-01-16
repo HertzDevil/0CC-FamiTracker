@@ -78,7 +78,7 @@ bool CChannelHandlerVRC6::CreateInstHandler(inst_type_t Type)
 
 void CChannelHandlerVRC6::ClearRegisters()		// // //
 {
-	uint16_t Address = ((m_iChannelID - CHANID_VRC6_PULSE1) << 12) + 0x9000;
+	unsigned Address = (GetSubIndex() << 12) + 0x9000;		// // //
 	WriteRegister(Address, 0);
 	WriteRegister(Address + 1, 0);
 	WriteRegister(Address + 2, 0);
@@ -90,7 +90,7 @@ void CChannelHandlerVRC6::ClearRegisters()		// // //
 
 void CVRC6Square::RefreshChannel()
 {
-	uint16_t Address = ((m_iChannelID - CHANID_VRC6_PULSE1) << 12) + 0x9000;
+	unsigned Address = (GetSubIndex() << 12) + 0x9000;		// // //
 
 	unsigned int Period = CalculatePeriod();
 	unsigned int Volume = CalculateVolume();

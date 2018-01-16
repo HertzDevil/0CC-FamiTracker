@@ -583,7 +583,7 @@ void CSoundGen::BeginPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 	if (theApp.GetSettings()->General.bRetrieveChanState)		// // //
 		ApplyGlobalState();
 
-	if (m_pInstRecorder->GetRecordChannel() != -1)		// // //
+	if (m_pInstRecorder->GetRecordChannel() != chan_id_t::NONE)		// // //
 		m_pInstRecorder->StartRecording();
 }
 
@@ -636,13 +636,13 @@ void CSoundGen::OnUpdateRow(int frame, int row) {
 }
 
 void CSoundGen::SetChannelMute(chan_id_t chan, bool mute) {		// // //
-	muted_[chan] = mute;
+	muted_[value_cast(chan)] = mute;
 	if (mute && chan == GetRecordChannel())
-		SetRecordChannel((chan_id_t)-1);
+		SetRecordChannel(chan_id_t::NONE);
 }
 
 bool CSoundGen::IsChannelMuted(chan_id_t chan) const {		// // //
-	return muted_[chan];
+	return muted_[value_cast(chan)];
 }
 
 bool CSoundGen::ShouldStopPlayer() const {
@@ -1018,11 +1018,9 @@ BOOL CSoundGen::IdleLoop() {
 	// Update APU registers
 	UpdateAPU();
 
-	if (IsPlaying()) {		// // //
-		int Channel = m_pInstRecorder->GetRecordChannel();
-		if (Channel != -1)		// // //
+	if (IsPlaying())		// // //
+		if (chan_id_t Channel = m_pInstRecorder->GetRecordChannel(); Channel != chan_id_t::NONE)		// // //
 			m_pInstRecorder->RecordInstrument(GetPlayerTicks(), m_pTrackerView);
-	}
 
 	if (m_pSoundDriver->ShouldHalt() || m_bHaltRequest) {		// // //
 		// Halt has been requested, abort playback here

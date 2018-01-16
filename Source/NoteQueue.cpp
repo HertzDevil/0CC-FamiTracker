@@ -21,6 +21,7 @@
 */
 
 #include "NoteQueue.h"
+#include "APU/Types.h"
 
 enum class CNoteChannelQueue::note_state_t : unsigned char {HOLD, RELEASE};
 
@@ -81,7 +82,7 @@ chan_id_t CNoteChannelQueue::Trigger(int Note, chan_id_t Channel)
 			}
 		}
 		if (c != -1) {
-			Cut(m_iCurrentNote[c], (chan_id_t)-1);
+			Cut(m_iCurrentNote[c], chan_id_t::NONE);
 			return AddNote(c);
 		}
 	}
@@ -90,7 +91,7 @@ chan_id_t CNoteChannelQueue::Trigger(int Note, chan_id_t Channel)
 		if (m_iCurrentNote[i] == Note && m_iNoteChannel[m_iCurrentNote[i]] == Channel)
 			return AddNote(i);
 
-	return (chan_id_t)-1;
+	return chan_id_t::NONE;
 }
 
 chan_id_t CNoteChannelQueue::Release(int Note, chan_id_t Channel)
@@ -103,7 +104,7 @@ chan_id_t CNoteChannelQueue::Release(int Note, chan_id_t Channel)
 			if (m_iCurrentNote[i] == Note)
 				return m_iChannelMapID[i];
 	}
-	return (chan_id_t)-1;
+	return chan_id_t::NONE;
 }
 
 chan_id_t CNoteChannelQueue::Cut(int Note, chan_id_t Channel)
@@ -121,7 +122,7 @@ chan_id_t CNoteChannelQueue::Cut(int Note, chan_id_t Channel)
 				return m_iChannelMapID[i];
 			}
 	}
-	return (chan_id_t)-1;
+	return chan_id_t::NONE;
 }
 
 std::vector<chan_id_t> CNoteChannelQueue::StopChannel(chan_id_t Channel)
@@ -177,25 +178,25 @@ void CNoteQueue::ClearMaps()
 chan_id_t CNoteQueue::Trigger(int Note, chan_id_t Channel)
 {
 	if (auto it = m_Part.find(Channel); it != m_Part.end())
-		if (auto ret = it->second->Trigger(Note, Channel); ret != (chan_id_t)-1)
+		if (auto ret = it->second->Trigger(Note, Channel); ret != chan_id_t::NONE)
 			return ret;
-	return (chan_id_t)-1;
+	return chan_id_t::NONE;
 }
 
 chan_id_t CNoteQueue::Release(int Note, chan_id_t Channel)
 {
 	for (const auto &it : m_Part)
-		if (auto ret = it.second->Release(Note, Channel); ret != (chan_id_t)-1)
+		if (auto ret = it.second->Release(Note, Channel); ret != chan_id_t::NONE)
 			return ret;
-	return (chan_id_t)-1;
+	return chan_id_t::NONE;
 }
 
 chan_id_t CNoteQueue::Cut(int Note, chan_id_t Channel)
 {
 	for (const auto &it : m_Part)
-		if (auto ret = it.second->Cut(Note, Channel); ret != (chan_id_t)-1)
+		if (auto ret = it.second->Cut(Note, Channel); ret != chan_id_t::NONE)
 			return ret;
-	return (chan_id_t)-1;
+	return chan_id_t::NONE;
 }
 
 std::vector<chan_id_t> CNoteQueue::StopChannel(chan_id_t Channel)

@@ -165,9 +165,9 @@ double CVRC6_Sawtooth::GetFrequency() const		// // //
 
 CVRC6::CVRC6(CMixer &Mixer) :
 	CSoundChip(Mixer),		// // //
-	m_Pulse1(Mixer, CHANID_VRC6_PULSE1),
-	m_Pulse2(Mixer, CHANID_VRC6_PULSE2),
-	m_Sawtooth(Mixer, CHANID_VRC6_SAWTOOTH)
+	m_Pulse1(Mixer, chan_id_t::VRC6_PULSE1),
+	m_Pulse2(Mixer, chan_id_t::VRC6_PULSE2),
+	m_Sawtooth(Mixer, chan_id_t::VRC6_SAWTOOTH)
 {
 	m_pRegisterLogger->AddRegisterRange(0x9000, 0x9003);		// // //
 	m_pRegisterLogger->AddRegisterRange(0xA000, 0xA002);

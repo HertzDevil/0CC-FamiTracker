@@ -31,8 +31,8 @@ const double AMP_2A03 = 400.0;
 
 int stLevels2A03SS::Offset(chan_id_t ChanID, int Value) {
 	switch (ChanID) {
-	case CHANID_SQUARE1: return sq1_ += Value;
-	case CHANID_SQUARE2: return sq2_ += Value;
+	case chan_id_t::SQUARE1: return sq1_ += Value;
+	case chan_id_t::SQUARE2: return sq2_ += Value;
 	}
 	return 0;
 }
@@ -51,9 +51,9 @@ double stLevels2A03SS::CalcPin() const {
 
 int stLevels2A03TND::Offset(chan_id_t ChanID, int Value) {
 	switch (ChanID) {
-	case CHANID_TRIANGLE: return tri_ += Value;
-	case CHANID_NOISE:    return noi_ += Value;
-	case CHANID_DPCM:     return dmc_ += Value;
+	case chan_id_t::TRIANGLE: return tri_ += Value;
+	case chan_id_t::NOISE:    return noi_ += Value;
+	case chan_id_t::DPCM:     return dmc_ += Value;
 	}
 	return 0;
 }

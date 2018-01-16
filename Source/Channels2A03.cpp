@@ -151,7 +151,7 @@ void C2A03Square::RefreshChannel()
 	unsigned char HiFreq = (Period & 0xFF);
 	unsigned char LoFreq = (Period >> 8);
 
-	int Address = 0x4000 + m_iChannel * 4;		// // //
+	int Address = 0x4000 + GetSubIndex() * 4;		// // //
 	if (m_bGate)		// // //
 		WriteRegister(Address, (DutyCycle << 6) | (m_bEnvelopeLoop << 5) | (!m_bHardwareEnvelope << 4) | Volume);		// // //
 	else {
@@ -185,12 +185,6 @@ void C2A03Square::RefreshChannel()
 	m_bResetEnvelope = false;		// // //
 }
 
-void C2A03Square::SetChannelID(int ID)		// // //
-{
-	CChannelHandler::SetChannelID(ID);
-	m_iChannel = ID - CHANID_SQUARE1;
-}
-
 int C2A03Square::ConvertDuty(int Duty) const		// // //
 {
 	switch (m_iInstTypeCurrent) {
@@ -202,7 +196,7 @@ int C2A03Square::ConvertDuty(int Duty) const		// // //
 
 void C2A03Square::ClearRegisters()
 {
-	int Address = 0x4000 + m_iChannel * 4;		// // //
+	int Address = 0x4000 + GetSubIndex() * 4;		// // //
 	WriteRegister(Address + 0, 0x30);
 	WriteRegister(Address + 1, 0x08);
 	WriteRegister(Address + 2, 0x00);

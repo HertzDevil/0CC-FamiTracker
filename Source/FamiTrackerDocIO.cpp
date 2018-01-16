@@ -203,15 +203,15 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
 		compat::ReorderSequences(doc, std::move(m_vTmpSequences));
 
 	if (fds_adjust_arps_) {
-		if (doc.HasChannel(CHANID_FDS)) {
+		if (doc.HasChannel(chan_id_t::FDS)) {
 			for (unsigned int t = 0; t < doc.GetTrackCount(); ++t) for (int p = 0; p < MAX_PATTERN; ++p) for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
-				stChanNote Note = doc.GetDataAtPattern(t, p, CHANID_FDS, r);		// // //
+				stChanNote Note = doc.GetDataAtPattern(t, p, chan_id_t::FDS, r);		// // //
 				if (Note.Note >= NOTE_C && Note.Note <= NOTE_B) {
 					int Trsp = MIDI_NOTE(Note.Octave, Note.Note) + NOTE_RANGE * 2;
 					Trsp = Trsp >= NOTE_COUNT ? NOTE_COUNT - 1 : Trsp;
 					Note.Note = GET_NOTE(Trsp);
 					Note.Octave = GET_OCTAVE(Trsp);
-					doc.SetDataAtPattern(t, p, CHANID_FDS, r, Note);		// // //
+					doc.SetDataAtPattern(t, p, chan_id_t::FDS, r, Note);		// // //
 				}
 			}
 		}
@@ -383,13 +383,13 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 		doc.ForeachChannel([&] (chan_id_t i) {
 			try {
 				// Channel type (unused)
-				AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANNELS - 1, "Channel type index");
+				AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANID_COUNT - 1, "Channel type index");
 				// Effect columns
 				Song.SetEffectColumnCount(i, AssertRange<MODULE_ERROR_STRICT>(
 					file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count"));
 			}
 			catch (CModuleException e) {
-				e.AppendError("At channel %d", i + 1);
+				e.AppendError("At channel %d", value_cast(i) + 1);
 				throw e;
 			}
 		});
@@ -406,7 +406,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 
 		doc.ForeachChannel([&] (chan_id_t i) {
 			try {
-				AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANNELS - 1, "Channel type index"); // Channel type (unused)
+				AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANID_COUNT - 1, "Channel type index"); // Channel type (unused)
 				doc.VisitSongs([&] (CSongData &song, unsigned index) {
 					try {
 						song.SetEffectColumnCount(i, AssertRange<MODULE_ERROR_STRICT>(
@@ -419,7 +419,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 				});
 			}
 			catch (CModuleException e) {
-				e.AppendError("At channel %d,", i + 1);
+				e.AppendError("At channel %d,", value_cast(i) + 1);
 				throw e;
 			}
 		});
@@ -446,7 +446,7 @@ void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerDoc &doc, int ver) {
 
 	doc.ForeachChannel([&] (chan_id_t i) {
 		// Channel type
-		file_.WriteBlockChar(i);		// // //
+		file_.WriteBlockChar(value_cast(i));		// // //
 		for (unsigned int j = 0; j < doc.GetTrackCount(); ++j) {
 			// Effect columns
 			auto &song = *doc.GetSong(j);
@@ -871,7 +871,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 				/*
 				if (ver < 6) {
 					// Noise pitch slide fix
-					if (GetChannelType(Channel) == CHANID_NOISE) {
+					if (GetChannelType(Channel) == chan_id_t::NOISE) {
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
 								case EF_PORTA_DOWN:

@@ -26,7 +26,7 @@
 #include <memory>
 
 class CChannelHandler;
-enum chan_id_t : unsigned;
+enum class chan_id_t : unsigned;
 
 struct CChannelFactory {
 	static std::unique_ptr<CChannelHandler> Make(chan_id_t id);

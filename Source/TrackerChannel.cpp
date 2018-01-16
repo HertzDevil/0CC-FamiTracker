@@ -162,24 +162,24 @@ bool CTrackerChannel::IsEffectCompatible(int EffNumber, int EffParam) const		// 
 		case EF_DELAY:
 			return true;
 		case EF_NOTE_CUT: case EF_NOTE_RELEASE:
-			return EffParam <= 0x7F || m_iChannelID == CHANID_TRIANGLE;
+			return EffParam <= 0x7F || m_iChannelID == chan_id_t::TRIANGLE;
 		case EF_GROOVE:
 			return EffParam < MAX_GROOVE;
 		case EF_VOLUME:
-			return ((m_iChip == SNDCHIP_NONE && m_iChannelID != CHANID_DPCM) || m_iChip == SNDCHIP_MMC5) &&
+			return ((m_iChip == SNDCHIP_NONE && m_iChannelID != chan_id_t::DPCM) || m_iChip == SNDCHIP_MMC5) &&
 				(EffParam <= 0x1F || (EffParam >= 0xE0 && EffParam <= 0xE3));
 		case EF_PORTAMENTO: case EF_ARPEGGIO: case EF_VIBRATO: case EF_TREMOLO:
 		case EF_PITCH: case EF_PORTA_UP: case EF_PORTA_DOWN: case EF_SLIDE_UP: case EF_SLIDE_DOWN:
 		case EF_VOLUME_SLIDE: case EF_DELAYED_VOLUME: case EF_TRANSPOSE:
-			return m_iChannelID != CHANID_DPCM;
+			return m_iChannelID != chan_id_t::DPCM;
 		case EF_PORTAOFF:
 			return false;
 		case EF_SWEEPUP: case EF_SWEEPDOWN:
-			return m_iChannelID == CHANID_SQUARE1 || m_iChannelID == CHANID_SQUARE2;
+			return m_iChannelID == chan_id_t::SQUARE1 || m_iChannelID == chan_id_t::SQUARE2;
 		case EF_DAC: case EF_SAMPLE_OFFSET: case EF_RETRIGGER: case EF_DPCM_PITCH:
-			return m_iChannelID == CHANID_DPCM;
+			return m_iChannelID == chan_id_t::DPCM;
 		case EF_DUTY_CYCLE:
-			return m_iChannelID != CHANID_DPCM;		// // // 050B
+			return m_iChannelID != chan_id_t::DPCM;		// // // 050B
 		case EF_FDS_MOD_DEPTH:
 			return m_iChip == SNDCHIP_FDS && (EffParam <= 0x3F || EffParam >= 0x80);
 		case EF_FDS_MOD_SPEED_HI: case EF_FDS_MOD_SPEED_LO: case EF_FDS_MOD_BIAS:

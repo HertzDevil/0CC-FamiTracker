@@ -27,7 +27,7 @@
 
 class stChanNote;
 class CFTMComponentInterface;
-enum chan_id_t : unsigned;
+enum class chan_id_t : unsigned;
 
 class CSoundGenBase {
 public:

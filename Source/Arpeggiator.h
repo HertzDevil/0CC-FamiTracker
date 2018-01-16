@@ -42,6 +42,6 @@ private:
 	int m_iLastAutoArpPtr = 0;
 	int m_iAutoArpKeyCount = 0;
 	char m_iAutoArpNotes[128] = { };
-	unsigned int m_iArpeggiate[CHANNELS] = { };
+	unsigned int m_iArpeggiate[CHANID_COUNT] = { };
 };
 

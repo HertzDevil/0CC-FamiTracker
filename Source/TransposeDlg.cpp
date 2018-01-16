@@ -56,7 +56,7 @@ void CTransposeDlg::Transpose(int Trsp, unsigned int Track)
 	if (!Trsp) return;
 
 	m_pDocument->ForeachChannel([&] (chan_id_t c) {
-		if (c == CHANID_NOISE || c == CHANID_DPCM)
+		if (c == chan_id_t::NOISE || c == chan_id_t::DPCM)
 			return;
 		for (int p = 0; p < MAX_PATTERN; ++p) for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
 			stChanNote Note = m_pDocument->GetDataAtPattern(Track, p, c, r);

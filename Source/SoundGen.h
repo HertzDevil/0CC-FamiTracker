@@ -302,7 +302,7 @@ private:
 	std::shared_ptr<CWaveRenderer> m_pWaveRenderer;			// // //
 	std::unique_ptr<CInstrumentRecorder> m_pInstRecorder;
 
-	std::array<bool, CHANNELS> muted_ = { };				// // //
+	std::array<bool, CHANID_COUNT> muted_ = { };				// // //
 
 	// FDS & N163 waves
 	volatile bool		m_bWaveChanged;

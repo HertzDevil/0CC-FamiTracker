@@ -73,7 +73,7 @@ struct stNSFeHeader {		// // //
 struct driver_t;
 class CChunk;
 enum chunk_type_t : int;
-enum chan_id_t : unsigned;
+enum class chan_id_t : unsigned;
 struct stChunkLabel;		// // //
 namespace ft0cc::doc {
 class dpcm_sample;

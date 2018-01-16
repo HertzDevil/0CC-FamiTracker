@@ -31,11 +31,11 @@
 
 C2A03::C2A03(CMixer &Mixer) :
 	CSoundChip(Mixer),
-	m_Square1(Mixer, CHANID_SQUARE1, SNDCHIP_NONE),
-	m_Square2(Mixer, CHANID_SQUARE2, SNDCHIP_NONE),
-	m_Triangle(Mixer, CHANID_TRIANGLE),
-	m_Noise(Mixer, CHANID_NOISE),
-	m_DPCM(Mixer, CHANID_DPCM)		// // //
+	m_Square1(Mixer, chan_id_t::SQUARE1, SNDCHIP_NONE),
+	m_Square2(Mixer, chan_id_t::SQUARE2, SNDCHIP_NONE),
+	m_Triangle(Mixer, chan_id_t::TRIANGLE),
+	m_Noise(Mixer, chan_id_t::NOISE),
+	m_DPCM(Mixer, chan_id_t::DPCM)		// // //
 {
 	m_pRegisterLogger->AddRegisterRange(0x4000, 0x4017);		// // //
 }

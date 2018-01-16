@@ -43,23 +43,23 @@ int			  CChannelHandlerS5B::m_i5808B4		= 0;		// // // 050B
 
 // Class functions
 
-void CChannelHandlerS5B::SetMode(int Chan, int Square, int Noise)
+void CChannelHandlerS5B::SetMode(chan_id_t Chan, int Square, int Noise)
 {
-	Chan -= CHANID_S5B_CH1;
+	unsigned subindex = GetChannelSubIndex(Chan);		// // //
 
-	switch (Chan) {
-		case 0:
-			m_iModes &= 0x36;
-			break;
-		case 1:
-			m_iModes &= 0x2D;
-			break;
-		case 2:
-			m_iModes &= 0x1B;
-			break;
+	switch (subindex) {
+	case 0:
+		m_iModes &= 0x36;
+		break;
+	case 1:
+		m_iModes &= 0x2D;
+		break;
+	case 2:
+		m_iModes &= 0x1B;
+		break;
 	}
 
-	m_iModes |= (Noise << (3 + Chan)) | (Square << Chan);
+	m_iModes |= (Noise << (3 + subindex)) | (Square << subindex);
 }
 
 void CChannelHandlerS5B::UpdateAutoEnvelope(int Period)		// // // 050B
@@ -207,7 +207,7 @@ int CChannelHandlerS5B::ConvertDuty(int Duty) const		// // //
 
 void CChannelHandlerS5B::ClearRegisters()
 {
-	WriteReg(8 + m_iChannelID - CHANID_S5B_CH1, 0);		// Clear volume
+	WriteReg(8 + GetSubIndex(), 0);		// Clear volume
 }
 
 std::string CChannelHandlerS5B::GetCustomEffectString() const		// // //
@@ -240,15 +240,16 @@ void CChannelHandlerS5B::RefreshChannel()
 	UpdateAutoEnvelope(Period);		// // // 050B
 	SetMode(m_iChannelID, Square, Noise);
 
-	WriteReg((m_iChannelID - CHANID_S5B_CH1) * 2    , LoPeriod);
-	WriteReg((m_iChannelID - CHANID_S5B_CH1) * 2 + 1, HiPeriod);
-	WriteReg((m_iChannelID - CHANID_S5B_CH1) + 8    , Volume | Envelope);
+	unsigned subindex = GetSubIndex();		// // //
+	WriteReg(subindex * 2    , LoPeriod);
+	WriteReg(subindex * 2 + 1, HiPeriod);
+	WriteReg(subindex + 8    , Volume | Envelope);
 
 	if (Envelope && (m_bTrigger || m_bUpdate))		// // // 050B
 		m_bEnvTrigger = true;
 	m_bUpdate = false;
 
-	if (m_iChannelID == CHANID_S5B_CH3)
+	if (m_iChannelID == chan_id_t::S5B_CH3)
 		UpdateRegs();
 }
 

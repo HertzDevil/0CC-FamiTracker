@@ -149,7 +149,7 @@ void CSplitKeyboardDlg::OnCbnSelchangeComboSplitChan()
 	if (int Pos = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_CHAN))->GetCurSel())
 		m_iSplitChannel = CFamiTrackerDoc::GetDoc()->TranslateChannel(Pos - 1);
 	else
-		m_iSplitChannel = (chan_id_t)-1;
+		m_iSplitChannel = chan_id_t::NONE;
 }
 
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitInst()

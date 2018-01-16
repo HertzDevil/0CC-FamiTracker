@@ -78,37 +78,20 @@ BOOL CGotoDlg::OnInitDialog()
 	if (pDoc->ExpansionEnabled(SNDCHIP_S5B))
 		m_cChipEdit.AddString(_T("5B"));
 
-	int Channel = pView->GetSelectedChannelID();
-	if (Channel >= CHANID_S5B_CH1) {
-		Channel -= CHANID_S5B_CH1;
-		m_cChipEdit.SelectString(-1, _T("5B"));
+	chan_id_t Channel = pView->GetSelectedChannelID();
+	switch (GetChipFromChannel(Channel)) {
+	case SNDCHIP_NONE: m_cChipEdit.SelectString(-1, _T("2A03")); break;
+	case SNDCHIP_VRC6: m_cChipEdit.SelectString(-1, _T("VRC6")); break;
+	case SNDCHIP_VRC7: m_cChipEdit.SelectString(-1, _T("VRC7")); break;
+	case SNDCHIP_FDS:  m_cChipEdit.SelectString(-1, _T("FDS"));  break;
+	case SNDCHIP_MMC5: m_cChipEdit.SelectString(-1, _T("MMC5")); break;
+	case SNDCHIP_N163: m_cChipEdit.SelectString(-1, _T("N163")); break;
+	case SNDCHIP_S5B:  m_cChipEdit.SelectString(-1, _T("5B"));   break;
 	}
-	else if (Channel >= CHANID_VRC7_CH1) {
-		Channel -= CHANID_VRC7_CH1;
-		m_cChipEdit.SelectString(-1, _T("VRC7"));
-	}
-	else if (Channel >= CHANID_FDS) {
-		Channel -= CHANID_FDS;
-		m_cChipEdit.SelectString(-1, _T("FDS"));
-	}
-	else if (Channel >= CHANID_N163_CH1) {
-		Channel -= CHANID_N163_CH1;
-		m_cChipEdit.SelectString(-1, _T("N163"));
-	}
-	else if (Channel >= CHANID_MMC5_SQUARE1) {
-		Channel -= CHANID_MMC5_SQUARE1;
-		m_cChipEdit.SelectString(-1, _T("MMC5"));
-	}
-	else if (Channel >= CHANID_VRC6_PULSE1) {
-		Channel -= CHANID_VRC6_PULSE1;
-		m_cChipEdit.SelectString(-1, _T("VRC6"));
-	}
-	else
-		m_cChipEdit.SelectString(-1, _T("2A03"));
 
 	SetDlgItemInt(IDC_EDIT_GOTO_FRAME, pView->GetSelectedFrame());
 	SetDlgItemInt(IDC_EDIT_GOTO_ROW, pView->GetSelectedRow());
-	SetDlgItemInt(IDC_EDIT_GOTO_CHANNEL, Channel + 1);
+	SetDlgItemInt(IDC_EDIT_GOTO_CHANNEL, GetChannelSubIndex(Channel) + 1);
 
 	CEdit *pEdit = static_cast<CEdit*>(GetDlgItem(IDC_EDIT_GOTO_CHANNEL));
 	pEdit->SetLimitText(1);
@@ -160,19 +143,7 @@ int CGotoDlg::GetChipFromString(const CString &str)
 int CGotoDlg::GetFinalChannel() const
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-
-	int Channel = m_iDestChannel;
-	switch (m_iDestChip) {
-	case SNDCHIP_NONE: Channel += CHANID_SQUARE1; break;
-	case SNDCHIP_VRC6: Channel += CHANID_VRC6_PULSE1; break;
-	case SNDCHIP_VRC7: Channel += CHANID_VRC7_CH1; break;
-	case SNDCHIP_FDS:  Channel += CHANID_FDS; break;
-	case SNDCHIP_MMC5: Channel += CHANID_MMC5_SQUARE1; break;
-	case SNDCHIP_N163: Channel += CHANID_N163_CH1; break;
-	case SNDCHIP_S5B:  Channel += CHANID_S5B_CH1; break;
-	}
-
-	return pDoc->GetChannelIndex((chan_id_t)Channel);
+	return pDoc->GetChannelIndex(MakeChannelIndex(m_iDestChip, m_iDestSubIndex));
 }
 
 void CGotoDlg::OnEnChangeEditGotoFrame()
@@ -189,7 +160,7 @@ void CGotoDlg::OnEnChangeEditGotoRow()
 
 void CGotoDlg::OnEnChangeEditGotoChannel()
 {
-	m_iDestChannel = GetDlgItemInt(IDC_EDIT_GOTO_CHANNEL) - 1;
+	m_iDestSubIndex = GetDlgItemInt(IDC_EDIT_GOTO_CHANNEL) - 1;
 	CheckDestination();
 }
 

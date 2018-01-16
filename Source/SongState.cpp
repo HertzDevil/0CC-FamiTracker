@@ -89,45 +89,45 @@ std::string stChannelState::GetStateString() const {
 		effStr += MakeCommandString(x, p);
 	}
 
-	if ((ChannelID >= CHANID_SQUARE1 && ChannelID <= CHANID_SQUARE2) ||
-		ChannelID == CHANID_NOISE ||
-		(ChannelID >= CHANID_MMC5_SQUARE1 && ChannelID <= CHANID_MMC5_SQUARE2))
+	if ((ChannelID >= chan_id_t::SQUARE1 && ChannelID <= chan_id_t::SQUARE2) ||
+		ChannelID == chan_id_t::NOISE ||
+		(ChannelID >= chan_id_t::MMC5_SQUARE1 && ChannelID <= chan_id_t::MMC5_SQUARE2))
 		for (const auto &x : {EF_VOLUME}) {
 			int p = Effect[x];
 			if (p < 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (ChannelID == CHANID_TRIANGLE)
+	else if (ChannelID == chan_id_t::TRIANGLE)
 		for (const auto &x : {EF_VOLUME, EF_NOTE_CUT}) {
 			int p = Effect[x];
 			if (p < 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (ChannelID == CHANID_DPCM)
+	else if (ChannelID == chan_id_t::DPCM)
 		for (const auto &x : {EF_SAMPLE_OFFSET, /*EF_DPCM_PITCH*/}) {
 			int p = Effect[x];
 			if (p <= 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (ChannelID >= CHANID_VRC7_CH1 && ChannelID <= CHANID_VRC7_CH6)
+	else if (ChannelID >= chan_id_t::VRC7_CH1 && ChannelID <= chan_id_t::VRC7_CH6)
 		for (const auto &x : VRC7_EFFECTS) {
 			int p = Effect[x];
 			if (p < 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (ChannelID == CHANID_FDS)
+	else if (ChannelID == chan_id_t::FDS)
 		for (const auto &x : FDS_EFFECTS) {
 			int p = Effect[x];
 			if (p < 0 || (x == EF_FDS_MOD_BIAS && p == 0x80)) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (ChannelID >= CHANID_S5B_CH1 && ChannelID <= CHANID_S5B_CH3)
+	else if (ChannelID >= chan_id_t::S5B_CH1 && ChannelID <= chan_id_t::S5B_CH3)
 		for (const auto &x : S5B_EFFECTS) {
 			int p = Effect[x];
 			if (p < 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (ChannelID >= CHANID_N163_CH1 && ChannelID <= CHANID_N163_CH8)
+	else if (ChannelID >= chan_id_t::N163_CH1 && ChannelID <= chan_id_t::N163_CH8)
 		for (const auto &x : N163_EFFECTS) {
 			int p = Effect[x];
 			if (p < 0 || (x == EF_N163_WAVE_BUFFER && p == 0x7F)) continue;
@@ -208,12 +208,12 @@ void stChannelState::HandleExxCommand2A03(unsigned char param) {
 	else if (Effect[EF_VOLUME] == -1 && param <= 0x1F) {
 		Effect[EF_VOLUME] = param;
 		if (Effect_LengthCounter == -1)
-			Effect_LengthCounter = ChannelID == CHANID_TRIANGLE ? 0xE1 : 0xE2;
+			Effect_LengthCounter = ChannelID == chan_id_t::TRIANGLE ? 0xE1 : 0xE2;
 	}
 }
 
 void stChannelState::HandleSxxCommand(unsigned char xy) {
-	if (ChannelID != CHANID_TRIANGLE)
+	if (ChannelID != chan_id_t::TRIANGLE)
 		return;
 	if (Effect[EF_NOTE_CUT] == -1) {
 		if (xy <= 0x7F) {
@@ -232,8 +232,8 @@ void stChannelState::HandleSxxCommand(unsigned char xy) {
 
 
 CSongState::CSongState() {
-	for (chan_id_t i = (chan_id_t)0; i < CHANNELS; i = (chan_id_t)(i + 1))
-		State[i].ChannelID = i;
+	for (chan_id_t i = (chan_id_t)0; i < chan_id_t::COUNT; i = (chan_id_t)(value_cast(i) + 1))
+		State[value_cast(i)].ChannelID = i;
 }
 
 void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned Frame, unsigned Row) {
@@ -247,7 +247,7 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 	while (true) {
 		for (int c2 = Chans - 1; c2 >= 0; --c2) {
 			chan_id_t c = doc.TranslateChannel(c2);
-			stChannelState &chState = State[c];
+			stChannelState &chState = State[value_cast(c)];
 			CTrackerChannel &ch = doc.GetChannel(doc.GetChannelIndex(c));
 			int EffColumns = doc.GetEffColumns(Track, c);
 			const auto &Note = doc.GetNoteData(Track, Frame, c, Row);		// // //

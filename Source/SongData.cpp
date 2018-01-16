@@ -80,11 +80,14 @@ void CSongData::SetPatternData(chan_id_t Channel, unsigned Pattern, unsigned Row
 }
 
 CPatternData &CSongData::GetPattern(chan_id_t Channel, unsigned Pattern) {
-	return m_pPatternData[Channel][Pattern];
+	auto idx = value_cast(Channel);		// // //
+	if (idx == value_cast(chan_id_t::NONE))
+		throw std::out_of_range {"Bad chan_id_t in " __FUNCTION__};
+	return m_pPatternData[idx][Pattern];
 }
 
 const CPatternData &CSongData::GetPattern(chan_id_t Channel, unsigned Pattern) const {
-	return m_pPatternData[Channel][Pattern];
+	return const_cast<CSongData *>(this)->GetPattern(Channel, Pattern);
 }
 
 CPatternData &CSongData::GetPatternOnFrame(chan_id_t Channel, unsigned Frame) {
@@ -92,7 +95,7 @@ CPatternData &CSongData::GetPatternOnFrame(chan_id_t Channel, unsigned Frame) {
 }
 
 const CPatternData &CSongData::GetPatternOnFrame(chan_id_t Channel, unsigned Frame) const {
-	return GetPattern(Channel, GetFramePattern(Frame, Channel));
+	return const_cast<CSongData *>(this)->GetPatternOnFrame(Channel, Frame);
 }
 
 const std::string &CSongData::GetTitle() const		// // //
@@ -122,7 +125,8 @@ unsigned int CSongData::GetSongTempo() const
 
 int CSongData::GetEffectColumnCount(chan_id_t Channel) const
 {
-	return m_iEffectColumns[Channel];
+	auto idx = value_cast(Channel);		// // //
+	return idx != value_cast(chan_id_t::NONE) ? m_iEffectColumns[idx] : 0;
 }
 
 bool CSongData::GetSongGroove() const		// // //
@@ -157,7 +161,8 @@ void CSongData::SetSongTempo(unsigned int Tempo)
 
 void CSongData::SetEffectColumnCount(chan_id_t Channel, int Count)
 {
-	m_iEffectColumns[Channel] = Count;
+	if (auto idx = value_cast(Channel); idx != value_cast(chan_id_t::NONE))		// // //
+		m_iEffectColumns[idx] = Count;
 }
 
 void CSongData::SetSongGroove(bool Groove)		// // //
@@ -167,12 +172,14 @@ void CSongData::SetSongGroove(bool Groove)		// // //
 
 unsigned int CSongData::GetFramePattern(unsigned int Frame, chan_id_t Channel) const
 {
-	return m_iFrameList[Frame][Channel];
+	auto idx = value_cast(Channel);		// // //
+	return idx != value_cast(chan_id_t::NONE) ? m_iFrameList[Frame][idx] : MAX_PATTERN;
 }
 
 void CSongData::SetFramePattern(unsigned int Frame, chan_id_t Channel, unsigned int Pattern)
 {
-	m_iFrameList[Frame][Channel] = Pattern;
+	if (auto idx = value_cast(Channel); idx != value_cast(chan_id_t::NONE))		// // //
+		m_iFrameList[Frame][idx] = Pattern;
 }
 
 void CSongData::SetHighlight(const stHighlight &Hl)		// // //
@@ -195,10 +202,14 @@ void CSongData::CopyTrack(chan_id_t Chan, const CSongData &From, chan_id_t ChanF
 
 void CSongData::SwapChannels(chan_id_t First, chan_id_t Second)		// // //
 {
-	std::swap(m_iEffectColumns[First], m_iEffectColumns[Second]);
-	for (int i = 0; i < MAX_FRAMES; i++)
-		std::swap(m_iFrameList[i][First], m_iFrameList[i][Second]);
-	std::swap(m_pPatternData[First], m_pPatternData[Second]);
+	auto lhs = value_cast(First);
+	auto rhs = value_cast(Second);
+	if (lhs != value_cast(chan_id_t::NONE) && rhs != value_cast(chan_id_t::NONE)) {
+		std::swap(m_iEffectColumns[lhs], m_iEffectColumns[rhs]);
+		for (int i = 0; i < MAX_FRAMES; i++)
+			std::swap(m_iFrameList[i][lhs], m_iFrameList[i][rhs]);
+		std::swap(m_pPatternData[lhs], m_pPatternData[rhs]);
+	}
 }
 
 CBookmarkCollection &CSongData::GetBookmarks() {

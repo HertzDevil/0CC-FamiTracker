@@ -600,10 +600,10 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 			18, 19, 20,
 		};
 
-		for (int i = 0; i < CHANNELS; ++i)
+		for (int i = 0; i < CHANID_COUNT; ++i)
 			pData[FT_CH_ENABLE_ADR + i] = 0;
 		for (const chan_id_t x : m_vChanOrder)
-			pData[FT_CH_ENABLE_ADR + CH_MAP[x]] = 1;
+			pData[FT_CH_ENABLE_ADR + CH_MAP[value_cast(x)]] = 1;
 	}
 
 	// // // Copy the vibrato table, the stock one only works for new vibrato mode
@@ -957,25 +957,25 @@ bool CCompiler::CompileData()
 	const int Channels = m_pDocument->GetAvailableChannels();
 	const int Chip = m_pDocument->GetExpansionChip();
 	for (int i = 0; i < 4; i++)
-		m_vChanOrder.push_back((chan_id_t)(CHANID_SQUARE1 + i));
+		m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_NONE, i));
 	if (Chip & SNDCHIP_MMC5)
 		for (int i = 0; i < 2; i++)
-			m_vChanOrder.push_back((chan_id_t)(CHANID_MMC5_SQUARE1 + i));
+			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_MMC5, i));
 	if (Chip & SNDCHIP_VRC6)
 		for (int i = 0; i < CHANNELS_VRC6; i++)
-			m_vChanOrder.push_back((chan_id_t)(CHANID_VRC6_PULSE1 + i));
+			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_VRC6, i));
 	if (Chip & SNDCHIP_N163)
 		for (int i = 0; i < m_iActualNamcoChannels; i++)
-			m_vChanOrder.push_back((chan_id_t)(CHANID_N163_CH1 + i));
+			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_N163, i));
 	if (Chip & SNDCHIP_FDS)
-		m_vChanOrder.push_back(CHANID_FDS);
+		m_vChanOrder.push_back(chan_id_t::FDS);
 	if (Chip & SNDCHIP_S5B)
 		for (int i = 0; i < 3; i++)
-			m_vChanOrder.push_back((chan_id_t)(CHANID_S5B_CH1 + i));
+			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_S5B, i));
 	if (Chip & SNDCHIP_VRC7)
 		for (int i = 0; i < CHANNELS_VRC7; i++)
-			m_vChanOrder.push_back((chan_id_t)(CHANID_VRC7_CH1 + i));
-	m_vChanOrder.push_back(CHANID_DPCM);
+			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_VRC7, i));
+	m_vChanOrder.push_back(chan_id_t::DPCM);
 
 	// Driver size
 	m_iDriverSize = m_pDriverData->driver_size;
@@ -1120,9 +1120,9 @@ void CCompiler::ScanSong()
 		const int patternlen = m_pDocument->GetPatternLength(i);
 		const int frames = m_pDocument->GetFrameCount(i);
 		for (int j = 0; j < frames; ++j) {
-			int p = m_pDocument->GetPatternAtFrame(i, j, CHANID_DPCM);
+			int p = m_pDocument->GetPatternAtFrame(i, j, chan_id_t::DPCM);
 			for (int k = 0; k < patternlen; ++k) {
-				const auto &Note = m_pDocument->GetDataAtPattern(i, p, CHANID_DPCM, k);		// // //
+				const auto &Note = m_pDocument->GetDataAtPattern(i, p, chan_id_t::DPCM, k);		// // //
 				if (Note.Instrument < MAX_INSTRUMENTS)
 					Instrument = Note.Instrument;
 				if (Note.Note >= NOTE_C && Note.Note <= NOTE_B)		// // //
@@ -1584,7 +1584,7 @@ void CCompiler::CreateFrameList(unsigned int Track)
 		for (unsigned j = 0; j < ChannelCount; ++j) {		// // //
 			chan_id_t Chan = m_vChanOrder[j];
 			unsigned Pattern = m_pDocument->GetPatternAtFrame(Track, i, Chan);
-			Chunk.StorePointer({CHUNK_PATTERN, Track, Pattern, Chan});		// // //
+			Chunk.StorePointer({CHUNK_PATTERN, Track, Pattern, value_cast(Chan)});		// // //
 			TotalSize += 2;
 		}
 	}
@@ -1617,7 +1617,7 @@ void CCompiler::StorePatterns(unsigned int Track)
 				// Compile pattern data
 				PatternCompiler.CompileData(Track, i, j);
 
-				auto label = stChunkLabel {CHUNK_PATTERN, Track, i, j};		// // //
+				auto label = stChunkLabel {CHUNK_PATTERN, Track, i, value_cast(j)};		// // //
 
 				bool StoreNew = true;
 
@@ -1741,42 +1741,42 @@ void CCompiler::WriteChannelMap()
 {
 	CChunk &Chunk = CreateChunk(CHUNK_CHANNEL_MAP, "");
 
-	pChunk->StoreByte(CHANID_SQUARE1 + 1);
-	pChunk->StoreByte(CHANID_SQUARE2 + 1);
-	pChunk->StoreByte(CHANID_TRIANGLE + 1);
-	pChunk->StoreByte(CHANID_NOISE + 1);
+	pChunk->StoreByte(chan_id_t::SQUARE1 + 1);
+	pChunk->StoreByte(chan_id_t::SQUARE2 + 1);
+	pChunk->StoreByte(chan_id_t::TRIANGLE + 1);
+	pChunk->StoreByte(chan_id_t::NOISE + 1);
 
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_VRC6)) {
-		pChunk->StoreByte(CHANID_VRC6_PULSE1 + 1);
-		pChunk->StoreByte(CHANID_VRC6_PULSE2 + 1);
-		pChunk->StoreByte(CHANID_VRC6_SAWTOOTH + 1);
+		pChunk->StoreByte(chan_id_t::VRC6_PULSE1 + 1);
+		pChunk->StoreByte(chan_id_t::VRC6_PULSE2 + 1);
+		pChunk->StoreByte(chan_id_t::VRC6_SAWTOOTH + 1);
 	}
 
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_VRC7)) {
-		pChunk->StoreByte(CHANID_VRC7_CH1 + 1);
-		pChunk->StoreByte(CHANID_VRC7_CH2 + 1);
-		pChunk->StoreByte(CHANID_VRC7_CH3 + 1);
-		pChunk->StoreByte(CHANID_VRC7_CH4 + 1);
-		pChunk->StoreByte(CHANID_VRC7_CH5 + 1);
-		pChunk->StoreByte(CHANID_VRC7_CH6 + 1);
+		pChunk->StoreByte(chan_id_t::VRC7_CH1 + 1);
+		pChunk->StoreByte(chan_id_t::VRC7_CH2 + 1);
+		pChunk->StoreByte(chan_id_t::VRC7_CH3 + 1);
+		pChunk->StoreByte(chan_id_t::VRC7_CH4 + 1);
+		pChunk->StoreByte(chan_id_t::VRC7_CH5 + 1);
+		pChunk->StoreByte(chan_id_t::VRC7_CH6 + 1);
 	}
 
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_FDS)) {
-		pChunk->StoreByte(CHANID_FDS + 1);
+		pChunk->StoreByte(chan_id_t::FDS + 1);
 	}
 
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_MMC5)) {
-		pChunk->StoreByte(CHANID_MMC5_SQUARE1 + 1);
-		pChunk->StoreByte(CHANID_MMC5_SQUARE2 + 1);
+		pChunk->StoreByte(chan_id_t::MMC5_SQUARE1 + 1);
+		pChunk->StoreByte(chan_id_t::MMC5_SQUARE2 + 1);
 	}
 
 	if (m_pDocument->ExpansionEnabled(SNDCHIP_N163)) {
 		for (unsigned int i = 0; i < m_pDocument->GetNamcoChannels(); ++i) {
-			pChunk->StoreByte(CHANID_N163_CH1 + i + 1);
+			pChunk->StoreByte(chan_id_t::N163_CH1 + i + 1);
 		}
 	}
 
-	pChunk->StoreByte(CHANID_DPCM + 1);
+	pChunk->StoreByte(chan_id_t::DPCM + 1);
 }
 
 void CCompiler::WriteChannelTypes()

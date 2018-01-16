@@ -30,7 +30,7 @@
 class CFamiTrackerDoc;
 class CCompilerLog;
 
-enum chan_id_t : unsigned;
+enum class chan_id_t : unsigned;
 
 typedef unsigned char DPCM_List_t[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE];
 

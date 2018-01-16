@@ -65,7 +65,7 @@ template <chan_id_t... ChanIDs>
 struct stLevelsLinear {
 	int Offset(chan_id_t ChanID, int Value) {
 		return Offset(ChanID, Value,
-			std::index_sequence<(std::size_t)ChanIDs...> { },
+			std::integer_sequence<unsigned, value_cast(ChanIDs)...> { },
 			std::make_index_sequence<sizeof...(ChanIDs)> { });
 	}
 
@@ -74,18 +74,18 @@ struct stLevelsLinear {
 	}
 
 private:
-	int Offset(chan_id_t ChanID, int Value, std::index_sequence<>, std::index_sequence<>) {
+	int Offset(chan_id_t ChanID, int Value, std::integer_sequence<unsigned>, std::index_sequence<>) {
 		return 0;
 	}
 
-	template <std::size_t I, std::size_t... Is, std::size_t J, std::size_t... Js>
-	int Offset(chan_id_t ChanID, int Value, std::index_sequence<I, Is...>, std::index_sequence<J, Js...>) {
-		if (ChanID == I) {
+	template <unsigned I, unsigned... Is, std::size_t J, std::size_t... Js>
+	int Offset(chan_id_t ChanID, int Value, std::integer_sequence<unsigned, I, Is...>, std::index_sequence<J, Js...>) {
+		if (ChanID == (chan_id_t)I) {
 			tot_ += Value;
 			return lvl_[J] += Value;
 		}
 		return Offset(ChanID, Value,
-			std::index_sequence<Is...> { },
+			std::integer_sequence<unsigned, Is...> { },
 			std::index_sequence<Js...> { });
 	}
 
@@ -94,9 +94,9 @@ private:
 	int tot_ = 0;
 };
 
-using stLevelsVRC6 = stLevelsLinear<CHANID_VRC6_PULSE1, CHANID_VRC6_PULSE2, CHANID_VRC6_SAWTOOTH>;
-using stLevelsFDS = stLevelsLinear<CHANID_FDS>;
-using stLevelsMMC5 = stLevelsLinear<CHANID_MMC5_SQUARE1, CHANID_MMC5_SQUARE2, CHANID_MMC5_VOICE>;
-using stLevelsN163 = stLevelsLinear<CHANID_N163_CH1, CHANID_N163_CH2, CHANID_N163_CH3, CHANID_N163_CH4,
-	CHANID_N163_CH5, CHANID_N163_CH6, CHANID_N163_CH7, CHANID_N163_CH8>;
-using stLevelsS5B = stLevelsLinear<CHANID_S5B_CH1, CHANID_S5B_CH2, CHANID_S5B_CH3>;
+using stLevelsVRC6 = stLevelsLinear<chan_id_t::VRC6_PULSE1, chan_id_t::VRC6_PULSE2, chan_id_t::VRC6_SAWTOOTH>;
+using stLevelsFDS = stLevelsLinear<chan_id_t::FDS>;
+using stLevelsMMC5 = stLevelsLinear<chan_id_t::MMC5_SQUARE1, chan_id_t::MMC5_SQUARE2, chan_id_t::MMC5_VOICE>;
+using stLevelsN163 = stLevelsLinear<chan_id_t::N163_CH1, chan_id_t::N163_CH2, chan_id_t::N163_CH3, chan_id_t::N163_CH4,
+	chan_id_t::N163_CH5, chan_id_t::N163_CH6, chan_id_t::N163_CH7, chan_id_t::N163_CH8>;
+using stLevelsS5B = stLevelsLinear<chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3>;

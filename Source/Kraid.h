@@ -28,7 +28,7 @@
 class CFamiTrackerDoc;
 class CSongData;
 
-enum chan_id_t : unsigned;
+enum class chan_id_t : unsigned;
 
 // // // Easter egg
 

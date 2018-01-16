@@ -41,7 +41,6 @@ enum vrc7_command_t {
 class CChannelHandlerVRC7 : public CChannelHandlerInverted, public CChannelHandlerInterfaceVRC7 {		// // //
 public:
 	CChannelHandlerVRC7();
-	void	SetChannelID(int ID) override;
 
 	void	SetPatch(unsigned char Patch);		// // //
 	void	SetCustomReg(size_t Index, unsigned char Val);		// // //
@@ -72,7 +71,6 @@ protected:
 	static unsigned char m_iPatchRegs[8];		// // // 050B
 
 protected:
-	unsigned char m_iChannel;
 	char m_iPatch;
 
 	bool	m_bHold;

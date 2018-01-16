@@ -55,7 +55,6 @@ class C2A03Square : public CChannelHandler2A03 {
 public:
 	C2A03Square();
 	void	RefreshChannel() override;
-	void	SetChannelID(int ID) override;		// // //
 protected:
 	int		ConvertDuty(int Duty) const override;		// // //
 	void	ClearRegisters() override;
@@ -66,7 +65,6 @@ protected:
 	void	HandleNote(int Note, int Octave) override;
 	std::string	GetCustomEffectString() const override;		// // //
 
-	unsigned char m_iChannel;		// // //
 	unsigned char m_cSweep;
 	bool	m_bSweeping;
 	int		m_iSweep;
