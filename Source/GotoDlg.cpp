@@ -26,6 +26,7 @@
 #include "FamiTrackerView.h"
 #include "MainFrm.h"
 #include "PatternEditor.h"
+#include "APU/Types.h"
 
 // CGotoDlg dialog
 
@@ -65,28 +66,28 @@ BOOL CGotoDlg::OnInitDialog()
 	CFamiTrackerDoc *pDoc = pView->GetDocument();
 
 	m_cChipEdit.AddString(_T("2A03"));
-	if (pDoc->ExpansionEnabled(SNDCHIP_VRC6))
+	if (pDoc->ExpansionEnabled(sound_chip_t::VRC6))
 		m_cChipEdit.AddString(_T("VRC6"));
-	if (pDoc->ExpansionEnabled(SNDCHIP_VRC7))
+	if (pDoc->ExpansionEnabled(sound_chip_t::VRC7))
 		m_cChipEdit.AddString(_T("VRC7"));
-	if (pDoc->ExpansionEnabled(SNDCHIP_FDS))
+	if (pDoc->ExpansionEnabled(sound_chip_t::FDS))
 		m_cChipEdit.AddString(_T("FDS"));
-	if (pDoc->ExpansionEnabled(SNDCHIP_MMC5))
+	if (pDoc->ExpansionEnabled(sound_chip_t::MMC5))
 		m_cChipEdit.AddString(_T("MMC5"));
-	if (pDoc->ExpansionEnabled(SNDCHIP_N163))
+	if (pDoc->ExpansionEnabled(sound_chip_t::N163))
 		m_cChipEdit.AddString(_T("N163"));
-	if (pDoc->ExpansionEnabled(SNDCHIP_S5B))
+	if (pDoc->ExpansionEnabled(sound_chip_t::S5B))
 		m_cChipEdit.AddString(_T("5B"));
 
 	chan_id_t Channel = pView->GetSelectedChannelID();
 	switch (GetChipFromChannel(Channel)) {
-	case SNDCHIP_NONE: m_cChipEdit.SelectString(-1, _T("2A03")); break;
-	case SNDCHIP_VRC6: m_cChipEdit.SelectString(-1, _T("VRC6")); break;
-	case SNDCHIP_VRC7: m_cChipEdit.SelectString(-1, _T("VRC7")); break;
-	case SNDCHIP_FDS:  m_cChipEdit.SelectString(-1, _T("FDS"));  break;
-	case SNDCHIP_MMC5: m_cChipEdit.SelectString(-1, _T("MMC5")); break;
-	case SNDCHIP_N163: m_cChipEdit.SelectString(-1, _T("N163")); break;
-	case SNDCHIP_S5B:  m_cChipEdit.SelectString(-1, _T("5B"));   break;
+	case sound_chip_t::NONE: m_cChipEdit.SelectString(-1, _T("2A03")); break;
+	case sound_chip_t::VRC6: m_cChipEdit.SelectString(-1, _T("VRC6")); break;
+	case sound_chip_t::VRC7: m_cChipEdit.SelectString(-1, _T("VRC7")); break;
+	case sound_chip_t::FDS:  m_cChipEdit.SelectString(-1, _T("FDS"));  break;
+	case sound_chip_t::MMC5: m_cChipEdit.SelectString(-1, _T("MMC5")); break;
+	case sound_chip_t::N163: m_cChipEdit.SelectString(-1, _T("N163")); break;
+	case sound_chip_t::S5B:  m_cChipEdit.SelectString(-1, _T("5B"));   break;
 	}
 
 	SetDlgItemInt(IDC_EDIT_GOTO_FRAME, pView->GetSelectedFrame());
@@ -123,21 +124,21 @@ void CGotoDlg::CheckDestination() const
 sound_chip_t CGotoDlg::GetChipFromString(const CString &str)
 {
 	if (str == _T("2A03"))
-		return SNDCHIP_NONE;
+		return sound_chip_t::NONE;
 	else if (str == _T("VRC6"))
-		return SNDCHIP_VRC6;
+		return sound_chip_t::VRC6;
 	else if (str == _T("VRC7"))
-		return SNDCHIP_VRC7;
+		return sound_chip_t::VRC7;
 	else if (str == _T("FDS"))
-		return SNDCHIP_FDS;
+		return sound_chip_t::FDS;
 	else if (str == _T("MMC5"))
-		return SNDCHIP_MMC5;
+		return sound_chip_t::MMC5;
 	else if (str == _T("N163"))
-		return SNDCHIP_N163;
+		return sound_chip_t::N163;
 	else if (str == _T("5B"))
-		return SNDCHIP_S5B;
+		return sound_chip_t::S5B;
 	else
-		return SNDCHIP_NONE;
+		return sound_chip_t::NONE;
 }
 
 int CGotoDlg::GetFinalChannel() const

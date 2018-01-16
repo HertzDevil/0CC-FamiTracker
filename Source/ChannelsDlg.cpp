@@ -25,6 +25,7 @@
 #include "FamiTrackerDoc.h"
 #include "TrackerChannel.h"
 #include "APU/APU.h"
+#include "APU/Types.h"		// // //
 
 // Used to handle channels in a future version. Not finished.
 

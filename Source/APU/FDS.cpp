@@ -28,7 +28,7 @@
 
 // FDS interface, actual FDS emulation is in FDSSound.cpp
 
-CFDS::CFDS(CMixer &Mixer) : CChannel(Mixer, SNDCHIP_FDS, chan_id_t::FDS), CSoundChip(Mixer)
+CFDS::CFDS(CMixer &Mixer) : CChannel(Mixer, sound_chip_t::FDS, chan_id_t::FDS), CSoundChip(Mixer)
 {
 	m_pRegisterLogger->AddRegisterRange(0x4040, 0x408F);		// // //
 	FDSSoundInstall3();

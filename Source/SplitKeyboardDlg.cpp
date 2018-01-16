@@ -25,6 +25,7 @@
 #include "PatternNote.h"
 #include "FamiTrackerDoc.h"
 #include "TrackerChannel.h"
+#include "APU/Types.h"
 
 // CSplitKeyboardDlg dialog
 

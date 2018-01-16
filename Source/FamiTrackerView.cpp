@@ -1671,7 +1671,7 @@ void CFamiTrackerView::ToggleChip(chan_id_t Channel)		// // //
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
 
-	int Chip = pDoc->GetChipType(pDoc->GetChannelIndex(Channel));
+	sound_chip_t Chip = pDoc->GetChipType(pDoc->GetChannelIndex(Channel));
 	bool shouldMute = false;
 
 	pDoc->ForeachChannel([&] (chan_id_t i) {
@@ -1690,7 +1690,7 @@ void CFamiTrackerView::ToggleChip(chan_id_t Channel)		// // //
 void CFamiTrackerView::SoloChip(chan_id_t Channel)		// // //
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
-	int Chip = pDoc->GetChipType(pDoc->GetChannelIndex(Channel));
+	sound_chip_t Chip = pDoc->GetChipType(pDoc->GetChannelIndex(Channel));
 
 	if (IsChipSolo(Chip))
 		pDoc->ForeachChannel([&] (chan_id_t i) {
@@ -1725,7 +1725,7 @@ bool CFamiTrackerView::IsChannelSolo(chan_id_t Channel) const		// // //
 	return solo;
 }
 
-bool CFamiTrackerView::IsChipSolo(unsigned int Chip) const		// // //
+bool CFamiTrackerView::IsChipSolo(sound_chip_t Chip) const		// // //
 {
 	CFamiTrackerDoc* pDoc = GetDocument();
 	bool solo = true;
@@ -2126,27 +2126,27 @@ void CFamiTrackerView::UpdateNoteQueues()		// // //
 		m_pNoteQueue->AddMap({chan_id_t::NOISE});
 		m_pNoteQueue->AddMap({chan_id_t::DPCM});
 
-		if (pDoc->ExpansionEnabled(SNDCHIP_VRC6)) {
+		if (pDoc->ExpansionEnabled(sound_chip_t::VRC6)) {
 			m_pNoteQueue->AddMap({chan_id_t::VRC6_PULSE1, chan_id_t::VRC6_PULSE2});
 			m_pNoteQueue->AddMap({chan_id_t::VRC6_SAWTOOTH});
 		}
-		if (pDoc->ExpansionEnabled(SNDCHIP_VRC7))
+		if (pDoc->ExpansionEnabled(sound_chip_t::VRC7))
 			m_pNoteQueue->AddMap({chan_id_t::VRC7_CH1, chan_id_t::VRC7_CH2, chan_id_t::VRC7_CH3,
 								  chan_id_t::VRC7_CH4, chan_id_t::VRC7_CH5, chan_id_t::VRC7_CH6});
-		if (pDoc->ExpansionEnabled(SNDCHIP_FDS))
+		if (pDoc->ExpansionEnabled(sound_chip_t::FDS))
 			m_pNoteQueue->AddMap({chan_id_t::FDS});
-		if (pDoc->ExpansionEnabled(SNDCHIP_MMC5))
+		if (pDoc->ExpansionEnabled(sound_chip_t::MMC5))
 			m_pNoteQueue->AddMap({chan_id_t::SQUARE1, chan_id_t::SQUARE2, chan_id_t::MMC5_SQUARE1, chan_id_t::MMC5_SQUARE2});
 		else
 			m_pNoteQueue->AddMap({chan_id_t::SQUARE1, chan_id_t::SQUARE2});
-		if (pDoc->ExpansionEnabled(SNDCHIP_N163)) {
+		if (pDoc->ExpansionEnabled(sound_chip_t::N163)) {
 			std::vector<chan_id_t> n;
 			int Channels = pDoc->GetNamcoChannels();
 			for (int i = 0; i < Channels; ++i)
-				n.push_back(MakeChannelIndex(SNDCHIP_N163, i));
+				n.push_back(MakeChannelIndex(sound_chip_t::N163, i));
 			m_pNoteQueue->AddMap(n);
 		}
-		if (pDoc->ExpansionEnabled(SNDCHIP_S5B))
+		if (pDoc->ExpansionEnabled(sound_chip_t::S5B))
 			m_pNoteQueue->AddMap({chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3});
 	}
 
@@ -2578,7 +2578,7 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 
 	CFamiTrackerDoc* pDoc = GetDocument();
 
-	int Chip = pDoc->GetChipType(GetSelectedChannel());		// // //
+	sound_chip_t Chip = pDoc->GetChipType(GetSelectedChannel());		// // //
 
 	if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9)
 		nChar = '0' + nChar - VK_NUMPAD0;
@@ -3252,22 +3252,22 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 
 	CFamiTrackerDoc	*pDoc = GetDocument();
 	chan_id_t Channel = m_iMenuChannel;		// // //
-	int Chip = pDoc->GetChipType(pDoc->GetChannelIndex(m_iMenuChannel));
+	sound_chip_t Chip = pDoc->GetChipType(pDoc->GetChannelIndex(m_iMenuChannel));
 	m_iMenuChannel = chan_id_t::NONE;
 
-	if (Channel == chan_id_t::DPCM || Chip == SNDCHIP_VRC7) {
+	if (Channel == chan_id_t::DPCM || Chip == sound_chip_t::VRC7) {
 		AfxMessageBox(IDS_DUMP_NOT_SUPPORTED, MB_ICONERROR); return;
 	}
 	if (pDoc->GetInstrumentCount() >= MAX_INSTRUMENTS) {
 		AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR); return;
 	}
-	if (Chip != SNDCHIP_FDS) {
+	if (Chip != sound_chip_t::FDS) {
 		inst_type_t Type = INST_NONE;
 		switch (Chip) {
-		case SNDCHIP_NONE: case SNDCHIP_MMC5: Type = INST_2A03; break;
-		case SNDCHIP_VRC6: Type = INST_VRC6; break;
-		case SNDCHIP_N163: Type = INST_N163; break;
-		case SNDCHIP_S5B:  Type = INST_S5B; break;
+		case sound_chip_t::NONE: case sound_chip_t::MMC5: Type = INST_2A03; break;
+		case sound_chip_t::VRC6: Type = INST_VRC6; break;
+		case sound_chip_t::N163: Type = INST_N163; break;
+		case sound_chip_t::S5B:  Type = INST_S5B; break;
 		}
 		if (Type != INST_NONE) foreachSeq([&] (sequence_t i) {
 			if (pDoc->GetFreeSequence(Type, i) == -1) {
@@ -3596,15 +3596,15 @@ CString	CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) cons
 	int Param = Note.EffParam[Column];
 	if (Index >= EF_COUNT) return _T("Undefined effect");
 
-	int Chip = GetDocument()->GetChipType(GetSelectedChannel());
+	sound_chip_t Chip = GetDocument()->GetChipType(GetSelectedChannel());
 	if (Index > EF_FDS_VOLUME || (Index == EF_FDS_VOLUME && Param >= 0x40)) ++Index;
 	if (Index > EF_TRANSPOSE || (Index == EF_TRANSPOSE && Param >= 0x80)) ++Index;
 	if (Index > EF_SUNSOFT_ENV_TYPE || (Index == EF_SUNSOFT_ENV_TYPE && Param >= 0x10)) ++Index;
 	if (Index > EF_FDS_MOD_SPEED_HI || (Index == EF_FDS_MOD_SPEED_HI && Param >= 0x10)) ++Index;
 	if (Index > EF_FDS_MOD_DEPTH || (Index == EF_FDS_MOD_DEPTH && Param >= 0x80)) ++Index;
 	if (Index > EF_NOTE_CUT || (Index == EF_NOTE_CUT && Param >= 0x80 && GetSelectedChannelID() == chan_id_t::TRIANGLE)) ++Index;
-	if (Index > EF_DUTY_CYCLE || (Index == EF_DUTY_CYCLE && (Chip == SNDCHIP_VRC7 || Chip == SNDCHIP_N163))) ++Index;
-	if (Index > EF_DUTY_CYCLE || (Index == EF_DUTY_CYCLE && Chip == SNDCHIP_N163)) ++Index;
+	if (Index > EF_DUTY_CYCLE || (Index == EF_DUTY_CYCLE && (Chip == sound_chip_t::VRC7 || Chip == sound_chip_t::N163))) ++Index;
+	if (Index > EF_DUTY_CYCLE || (Index == EF_DUTY_CYCLE && Chip == sound_chip_t::N163)) ++Index;
 	if (Index > EF_VOLUME || (Index == EF_VOLUME && Param >= 0xE0)) ++Index;
 	if (Index > EF_SPEED || (Index == EF_SPEED && Param >= GetDocument()->GetSpeedSplitPoint())) ++Index;
 

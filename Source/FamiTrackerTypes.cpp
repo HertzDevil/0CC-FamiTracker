@@ -23,7 +23,7 @@
 #include "FamiTrackerTypes.h"
 #include "APU/Types.h"
 
-effect_t GetEffectFromChar(char ch, int Chip, bool *bValid)		// // //
+effect_t GetEffectFromChar(char ch, sound_chip_t Chip, bool *bValid)		// // //
 {
 	effect_t Eff = EF_NONE;
 
@@ -42,22 +42,22 @@ effect_t GetEffectFromChar(char ch, int Chip, bool *bValid)		// // //
 		*bValid = true;
 
 	switch (Chip) {
-	case SNDCHIP_FDS:
+	case sound_chip_t::FDS:
 		for (const auto &x : FDS_EFFECTS)
 			if (ch == EFF_CHAR[x - 1])
 				return x;
 		break;
-	case SNDCHIP_N163:
+	case sound_chip_t::N163:
 		for (const auto &x : N163_EFFECTS)
 			if (ch == EFF_CHAR[x - 1])
 				return x;
 		break;
-	case SNDCHIP_S5B:
+	case sound_chip_t::S5B:
 		for (const auto &x : S5B_EFFECTS)
 			if (ch == EFF_CHAR[x - 1])
 				return x;
 		break;
-	case SNDCHIP_VRC7:
+	case sound_chip_t::VRC7:
 		for (const auto &x : VRC7_EFFECTS)
 			if (ch == EFF_CHAR[x - 1])
 				return x;

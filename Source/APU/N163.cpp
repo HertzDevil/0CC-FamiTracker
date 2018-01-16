@@ -227,7 +227,7 @@ uint8_t CN163::ReadMem(uint8_t Reg)
 //
 
 CN163Chan::CN163Chan(CMixer &Mixer, CN163 &parent, chan_id_t ID, uint8_t *pWaveData) :		// // //
-	CChannel(Mixer, SNDCHIP_N163, ID),
+	CChannel(Mixer, sound_chip_t::N163, ID),
 	m_pWaveData(pWaveData), parent_(parent)
 {
 	Reset();

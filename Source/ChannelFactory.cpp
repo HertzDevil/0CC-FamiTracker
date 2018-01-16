@@ -28,6 +28,7 @@
 #include "ChannelsMMC5.h"
 #include "ChannelsN163.h"
 #include "ChannelsS5B.h"
+#include "APU/Types.h"
 
 // // // Default implementation for channel factory
 

@@ -64,47 +64,47 @@ void CSoundDriver::SetupTracks() {
 
 	// 2A03/2A07
 	// // // Short header names
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Pulse 1"), _T("PU1"), SNDCHIP_NONE, chan_id_t::SQUARE1));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Pulse 2"), _T("PU2"), SNDCHIP_NONE, chan_id_t::SQUARE2));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Triangle"), _T("TRI"), SNDCHIP_NONE, chan_id_t::TRIANGLE));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Noise"), _T("NOI"), SNDCHIP_NONE, chan_id_t::NOISE));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("DPCM"), _T("DMC"), SNDCHIP_NONE, chan_id_t::DPCM));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Pulse 1"), _T("PU1"), sound_chip_t::NONE, chan_id_t::SQUARE1));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Pulse 2"), _T("PU2"), sound_chip_t::NONE, chan_id_t::SQUARE2));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Triangle"), _T("TRI"), sound_chip_t::NONE, chan_id_t::TRIANGLE));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Noise"), _T("NOI"), sound_chip_t::NONE, chan_id_t::NOISE));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("DPCM"), _T("DMC"), sound_chip_t::NONE, chan_id_t::DPCM));
 
 	// Konami VRC6
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("VRC6 Pulse 1"), _T("V1"), SNDCHIP_VRC6, chan_id_t::VRC6_PULSE1));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("VRC6 Pulse 2"), _T("V2"), SNDCHIP_VRC6, chan_id_t::VRC6_PULSE2));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Sawtooth"), _T("SAW"), SNDCHIP_VRC6, chan_id_t::VRC6_SAWTOOTH));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("VRC6 Pulse 1"), _T("V1"), sound_chip_t::VRC6, chan_id_t::VRC6_PULSE1));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("VRC6 Pulse 2"), _T("V2"), sound_chip_t::VRC6, chan_id_t::VRC6_PULSE2));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Sawtooth"), _T("SAW"), sound_chip_t::VRC6, chan_id_t::VRC6_SAWTOOTH));
 
 	// // // Nintendo MMC5
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("MMC5 Pulse 1"), _T("PU3"), SNDCHIP_MMC5, chan_id_t::MMC5_SQUARE1));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("MMC5 Pulse 2"), _T("PU4"), SNDCHIP_MMC5, chan_id_t::MMC5_SQUARE2));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("MMC5 PCM"), _T("PCM"), SNDCHIP_MMC5, chan_id_t::MMC5_VOICE)); // null channel handler
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("MMC5 Pulse 1"), _T("PU3"), sound_chip_t::MMC5, chan_id_t::MMC5_SQUARE1));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("MMC5 Pulse 2"), _T("PU4"), sound_chip_t::MMC5, chan_id_t::MMC5_SQUARE2));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("MMC5 PCM"), _T("PCM"), sound_chip_t::MMC5, chan_id_t::MMC5_VOICE)); // null channel handler
 
 	// Namco N163
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 1"), _T("N1"), SNDCHIP_N163, chan_id_t::N163_CH1));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 2"), _T("N2"), SNDCHIP_N163, chan_id_t::N163_CH2));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 3"), _T("N3"), SNDCHIP_N163, chan_id_t::N163_CH3));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 4"), _T("N4"), SNDCHIP_N163, chan_id_t::N163_CH4));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 5"), _T("N5"), SNDCHIP_N163, chan_id_t::N163_CH5));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 6"), _T("N6"), SNDCHIP_N163, chan_id_t::N163_CH6));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 7"), _T("N7"), SNDCHIP_N163, chan_id_t::N163_CH7));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 8"), _T("N8"), SNDCHIP_N163, chan_id_t::N163_CH8));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 1"), _T("N1"), sound_chip_t::N163, chan_id_t::N163_CH1));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 2"), _T("N2"), sound_chip_t::N163, chan_id_t::N163_CH2));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 3"), _T("N3"), sound_chip_t::N163, chan_id_t::N163_CH3));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 4"), _T("N4"), sound_chip_t::N163, chan_id_t::N163_CH4));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 5"), _T("N5"), sound_chip_t::N163, chan_id_t::N163_CH5));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 6"), _T("N6"), sound_chip_t::N163, chan_id_t::N163_CH6));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 7"), _T("N7"), sound_chip_t::N163, chan_id_t::N163_CH7));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("Namco 8"), _T("N8"), sound_chip_t::N163, chan_id_t::N163_CH8));
 
 	// Nintendo FDS
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("FDS"), _T("FDS"), SNDCHIP_FDS, chan_id_t::FDS));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("FDS"), _T("FDS"), sound_chip_t::FDS, chan_id_t::FDS));
 
 	// Konami VRC7
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("FM Channel 1"), _T("FM1"), SNDCHIP_VRC7, chan_id_t::VRC7_CH1));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("FM Channel 2"), _T("FM2"), SNDCHIP_VRC7, chan_id_t::VRC7_CH2));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("FM Channel 3"), _T("FM3"), SNDCHIP_VRC7, chan_id_t::VRC7_CH3));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("FM Channel 4"), _T("FM4"), SNDCHIP_VRC7, chan_id_t::VRC7_CH4));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("FM Channel 5"), _T("FM5"), SNDCHIP_VRC7, chan_id_t::VRC7_CH5));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("FM Channel 6"), _T("FM6"), SNDCHIP_VRC7, chan_id_t::VRC7_CH6));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("FM Channel 1"), _T("FM1"), sound_chip_t::VRC7, chan_id_t::VRC7_CH1));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("FM Channel 2"), _T("FM2"), sound_chip_t::VRC7, chan_id_t::VRC7_CH2));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("FM Channel 3"), _T("FM3"), sound_chip_t::VRC7, chan_id_t::VRC7_CH3));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("FM Channel 4"), _T("FM4"), sound_chip_t::VRC7, chan_id_t::VRC7_CH4));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("FM Channel 5"), _T("FM5"), sound_chip_t::VRC7, chan_id_t::VRC7_CH5));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("FM Channel 6"), _T("FM6"), sound_chip_t::VRC7, chan_id_t::VRC7_CH6));
 
 	// // // Sunsoft 5B
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("5B Square 1"), _T("5B1"), SNDCHIP_S5B, chan_id_t::S5B_CH1));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("5B Square 2"), _T("5B2"), SNDCHIP_S5B, chan_id_t::S5B_CH2));
-	AssignTrack(std::make_unique<CTrackerChannel>(_T("5B Square 3"), _T("5B3"), SNDCHIP_S5B, chan_id_t::S5B_CH3));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("5B Square 1"), _T("5B1"), sound_chip_t::S5B, chan_id_t::S5B_CH1));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("5B Square 2"), _T("5B2"), sound_chip_t::S5B, chan_id_t::S5B_CH2));
+	AssignTrack(std::make_unique<CTrackerChannel>(_T("5B Square 3"), _T("5B3"), sound_chip_t::S5B, chan_id_t::S5B_CH3));
 }
 
 void CSoundDriver::LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu) {
@@ -279,7 +279,7 @@ void CSoundDriver::UpdateChannels() {
 }
 
 void CSoundDriver::UpdateAPU(int cycles) {
-	sound_chip_t LastChip = SNDCHIP_NONE;		// // // 050B
+	sound_chip_t LastChip = sound_chip_t::NONE;		// // // 050B
 
 	for (auto &x : tracks_) {
 		if (auto &ch = x.first) {

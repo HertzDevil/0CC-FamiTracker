@@ -64,17 +64,17 @@ BOOL CSwapDlg::OnInitDialog()
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 	m_cChipFirst.AddString(_T("2A03"));
-	if (pDoc->ExpansionEnabled(SNDCHIP_VRC6))
+	if (pDoc->ExpansionEnabled(sound_chip_t::VRC6))
 		m_cChipFirst.AddString(_T("VRC6"));
-	if (pDoc->ExpansionEnabled(SNDCHIP_VRC7))
+	if (pDoc->ExpansionEnabled(sound_chip_t::VRC7))
 		m_cChipFirst.AddString(_T("VRC7"));
-	if (pDoc->ExpansionEnabled(SNDCHIP_FDS))
+	if (pDoc->ExpansionEnabled(sound_chip_t::FDS))
 		m_cChipFirst.AddString(_T("FDS"));
-	if (pDoc->ExpansionEnabled(SNDCHIP_MMC5))
+	if (pDoc->ExpansionEnabled(sound_chip_t::MMC5))
 		m_cChipFirst.AddString(_T("MMC5"));
-	if (pDoc->ExpansionEnabled(SNDCHIP_N163))
+	if (pDoc->ExpansionEnabled(sound_chip_t::N163))
 		m_cChipFirst.AddString(_T("N163"));
-	if (pDoc->ExpansionEnabled(SNDCHIP_S5B))
+	if (pDoc->ExpansionEnabled(sound_chip_t::S5B))
 		m_cChipFirst.AddString(_T("5B"));
 
 	CString str;
@@ -104,21 +104,21 @@ void CSwapDlg::CheckDestination() const
 sound_chip_t CSwapDlg::GetChipFromString(const CString &str)
 {
 	if (str == _T("2A03"))
-		return SNDCHIP_2A03;
+		return sound_chip_t::APU;
 	else if (str == _T("VRC6"))
-		return SNDCHIP_VRC6;
+		return sound_chip_t::VRC6;
 	else if (str == _T("VRC7"))
-		return SNDCHIP_VRC7;
+		return sound_chip_t::VRC7;
 	else if (str == _T("FDS"))
-		return SNDCHIP_FDS;
+		return sound_chip_t::FDS;
 	else if (str == _T("MMC5"))
-		return SNDCHIP_MMC5;
+		return sound_chip_t::MMC5;
 	else if (str == _T("N163"))
-		return SNDCHIP_N163;
+		return sound_chip_t::N163;
 	else if (str == _T("5B"))
-		return SNDCHIP_S5B;
+		return sound_chip_t::S5B;
 	else
-		return SNDCHIP_NONE;
+		return sound_chip_t::NONE;
 }
 
 void CSwapDlg::OnEnChangeEditSwapChan1()

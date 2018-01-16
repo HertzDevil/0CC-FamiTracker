@@ -259,17 +259,17 @@ void CFindResultsBox::SelectItem(int Index)
 
 	const auto ToChannelID = [] (std::string_view x) {
 		static const std::tuple<std::string_view, sound_chip_t, unsigned> HEADERS[] = {
-			{"Pulse "     , SNDCHIP_NONE, GetChannelSubIndex(chan_id_t::SQUARE1)},
-			{"Triangle"   , SNDCHIP_NONE, GetChannelSubIndex(chan_id_t::TRIANGLE)},
-			{"Noise"      , SNDCHIP_NONE, GetChannelSubIndex(chan_id_t::NOISE)},
-			{"DPCM"       , SNDCHIP_NONE, GetChannelSubIndex(chan_id_t::DPCM)},
-			{"VRC6 Pulse ", SNDCHIP_VRC6, GetChannelSubIndex(chan_id_t::VRC6_PULSE1)},
-			{"Sawtooth"   , SNDCHIP_VRC6, GetChannelSubIndex(chan_id_t::VRC6_SAWTOOTH)},
-			{"MMC5 Pulse ", SNDCHIP_MMC5, GetChannelSubIndex(chan_id_t::MMC5_SQUARE1)},
-			{"Namco "     , SNDCHIP_N163, GetChannelSubIndex(chan_id_t::N163_CH1)},
-			{"FDS"        , SNDCHIP_FDS , GetChannelSubIndex(chan_id_t::FDS)},
-			{"FM Channel ", SNDCHIP_VRC7, GetChannelSubIndex(chan_id_t::VRC7_CH1)},
-			{"5B Square " , SNDCHIP_S5B,  GetChannelSubIndex(chan_id_t::S5B_CH1)},
+			{"Pulse "     , sound_chip_t::NONE, GetChannelSubIndex(chan_id_t::SQUARE1)},
+			{"Triangle"   , sound_chip_t::NONE, GetChannelSubIndex(chan_id_t::TRIANGLE)},
+			{"Noise"      , sound_chip_t::NONE, GetChannelSubIndex(chan_id_t::NOISE)},
+			{"DPCM"       , sound_chip_t::NONE, GetChannelSubIndex(chan_id_t::DPCM)},
+			{"VRC6 Pulse ", sound_chip_t::VRC6, GetChannelSubIndex(chan_id_t::VRC6_PULSE1)},
+			{"Sawtooth"   , sound_chip_t::VRC6, GetChannelSubIndex(chan_id_t::VRC6_SAWTOOTH)},
+			{"MMC5 Pulse ", sound_chip_t::MMC5, GetChannelSubIndex(chan_id_t::MMC5_SQUARE1)},
+			{"Namco "     , sound_chip_t::N163, GetChannelSubIndex(chan_id_t::N163_CH1)},
+			{"FDS"        , sound_chip_t::FDS , GetChannelSubIndex(chan_id_t::FDS)},
+			{"FM Channel ", sound_chip_t::VRC7, GetChannelSubIndex(chan_id_t::VRC7_CH1)},
+			{"5B Square " , sound_chip_t::S5B,  GetChannelSubIndex(chan_id_t::S5B_CH1)},
 		};
 		for (auto [prefix, chip, subindex] : HEADERS)
 			if (0 == x.compare(0, prefix.size(), prefix)) {

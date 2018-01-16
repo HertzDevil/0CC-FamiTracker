@@ -1182,13 +1182,13 @@ void CMainFrame::OnAddInstrument()
 	// Chip type depends on selected channel
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 	switch (GetDoc().GetChipType(pView->GetSelectedChannel())) {		// // // TODO: remove eventually
-	case SNDCHIP_NONE: return OnAddInstrument2A03();
-	case SNDCHIP_VRC6: return OnAddInstrumentVRC6();
-	case SNDCHIP_VRC7: return OnAddInstrumentVRC7();
-	case SNDCHIP_FDS:  return OnAddInstrumentFDS();
-	case SNDCHIP_MMC5: return OnAddInstrumentMMC5();
-	case SNDCHIP_N163: return OnAddInstrumentN163();
-	case SNDCHIP_S5B:  return OnAddInstrumentS5B();
+	case sound_chip_t::NONE: return OnAddInstrument2A03();
+	case sound_chip_t::VRC6: return OnAddInstrumentVRC6();
+	case sound_chip_t::VRC7: return OnAddInstrumentVRC7();
+	case sound_chip_t::FDS:  return OnAddInstrumentFDS();
+	case sound_chip_t::MMC5: return OnAddInstrumentMMC5();
+	case sound_chip_t::N163: return OnAddInstrumentN163();
+	case sound_chip_t::S5B:  return OnAddInstrumentS5B();
 	}
 }
 
@@ -1603,29 +1603,29 @@ void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 
 	sound_chip_flag_t Chip = GetDoc().GetExpansionChip();
 
-	if (Chip == SNDCHIP_NONE)		// // //
+	if (Chip == sound_chip_t::NONE)		// // //
 		String = _T("No expansion chip");
 	else if (!Chip.IsMultiChip())
 		switch (Chip.GetSoundChip()) {
-		case SNDCHIP_VRC6: String = _T(" Konami VRC6");   break;
-		case SNDCHIP_VRC7: String = _T(" Konami VRC7");   break;
-		case SNDCHIP_FDS:  String = _T(" Nintendo FDS");  break;
-		case SNDCHIP_MMC5: String = _T(" Nintendo MMC5"); break;
-		case SNDCHIP_N163: String = _T(" Namco 163");     break;
-		case SNDCHIP_S5B:  String = _T(" Sunsoft 5B");    break;
+		case sound_chip_t::VRC6: String = _T(" Konami VRC6");   break;
+		case sound_chip_t::VRC7: String = _T(" Konami VRC7");   break;
+		case sound_chip_t::FDS:  String = _T(" Nintendo FDS");  break;
+		case sound_chip_t::MMC5: String = _T(" Nintendo MMC5"); break;
+		case sound_chip_t::N163: String = _T(" Namco 163");     break;
+		case sound_chip_t::S5B:  String = _T(" Sunsoft 5B");    break;
 		}
 	else {
-		if (Chip.ContainsChip(SNDCHIP_VRC6))
+		if (Chip.ContainsChip(sound_chip_t::VRC6))
 			String += _T(" + VRC6");
-		if (Chip.ContainsChip(SNDCHIP_VRC7))
+		if (Chip.ContainsChip(sound_chip_t::VRC7))
 			String += _T(" + VRC7");
-		if (Chip.ContainsChip(SNDCHIP_FDS))
+		if (Chip.ContainsChip(sound_chip_t::FDS))
 			String += _T(" + FDS");
-		if (Chip.ContainsChip(SNDCHIP_MMC5))
+		if (Chip.ContainsChip(sound_chip_t::MMC5))
 			String += _T(" + MMC5");
-		if (Chip.ContainsChip(SNDCHIP_N163))
+		if (Chip.ContainsChip(sound_chip_t::N163))
 			String += _T(" + N163");
-		if (Chip.ContainsChip(SNDCHIP_S5B))
+		if (Chip.ContainsChip(sound_chip_t::S5B))
 			String += _T(" + S5B");
 		String.Delete(0, 3);
 	}
@@ -2590,29 +2590,29 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 
 	menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_2A03, _T("New 2A03 instrument"));
 
-	if (Chip.ContainsChip(SNDCHIP_NONE))
+	if (Chip.ContainsChip(sound_chip_t::NONE))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_2A03, _T("New 2A03 instrument"));
-	if (Chip.ContainsChip(SNDCHIP_VRC6))
+	if (Chip.ContainsChip(sound_chip_t::VRC6))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_VRC6, _T("New VRC6 instrument"));
-	if (Chip.ContainsChip(SNDCHIP_VRC7))
+	if (Chip.ContainsChip(sound_chip_t::VRC7))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_VRC7, _T("New VRC7 instrument"));
-	if (Chip.ContainsChip(SNDCHIP_FDS))
+	if (Chip.ContainsChip(sound_chip_t::FDS))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_FDS, _T("New FDS instrument"));
-	if (Chip.ContainsChip(SNDCHIP_MMC5))
+	if (Chip.ContainsChip(sound_chip_t::MMC5))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_MMC5, _T("New MMC5 instrument"));
-	if (Chip.ContainsChip(SNDCHIP_N163))
+	if (Chip.ContainsChip(sound_chip_t::N163))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_N163, _T("New Namco instrument"));
-	if (Chip.ContainsChip(SNDCHIP_S5B))
+	if (Chip.ContainsChip(sound_chip_t::S5B))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_S5B, _T("New Sunsoft instrument"));
 
 	switch (SelectedChip) {
-	case SNDCHIP_NONE: menu.SetDefaultItem(ID_INSTRUMENT_ADD_2A03); break;
-	case SNDCHIP_VRC6: menu.SetDefaultItem(ID_INSTRUMENT_ADD_VRC6); break;
-	case SNDCHIP_VRC7: menu.SetDefaultItem(ID_INSTRUMENT_ADD_VRC7); break;
-	case SNDCHIP_FDS:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_FDS);  break;
-	case SNDCHIP_MMC5: menu.SetDefaultItem(ID_INSTRUMENT_ADD_MMC5); break;
-	case SNDCHIP_N163: menu.SetDefaultItem(ID_INSTRUMENT_ADD_N163); break;
-	case SNDCHIP_S5B:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_S5B);  break;
+	case sound_chip_t::NONE: menu.SetDefaultItem(ID_INSTRUMENT_ADD_2A03); break;
+	case sound_chip_t::VRC6: menu.SetDefaultItem(ID_INSTRUMENT_ADD_VRC6); break;
+	case sound_chip_t::VRC7: menu.SetDefaultItem(ID_INSTRUMENT_ADD_VRC7); break;
+	case sound_chip_t::FDS:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_FDS);  break;
+	case sound_chip_t::MMC5: menu.SetDefaultItem(ID_INSTRUMENT_ADD_MMC5); break;
+	case sound_chip_t::N163: menu.SetDefaultItem(ID_INSTRUMENT_ADD_N163); break;
+	case sound_chip_t::S5B:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_S5B);  break;
 	}
 
 	menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, rect.left, rect.bottom, this);
@@ -3499,7 +3499,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 {
 	const CFamiTrackerDoc &Doc = GetDoc();
 
-	pCmdUI->Enable(Doc.GetExpansionChip() == SNDCHIP_NONE && !theApp.GetSoundGenerator()->IsPlaying());		// // //
+	pCmdUI->Enable(Doc.GetExpansionChip() == sound_chip_t::NONE && !theApp.GetSoundGenerator()->IsPlaying());		// // //
 	UINT item = Doc.GetMachine() == PAL ? ID_TRACKER_PAL : ID_TRACKER_NTSC;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);

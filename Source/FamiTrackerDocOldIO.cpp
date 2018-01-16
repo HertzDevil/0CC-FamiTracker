@@ -31,6 +31,7 @@
 #include "ft0cc/doc/dpcm_sample.hpp"
 #include "Sequence.h"
 #include "FamiTrackerModule.h"
+#include "APU/Types.h"
 
 namespace {
 
@@ -60,7 +61,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 	// Only single track files
 	auto &Song = *doc.GetSong(0);
 
-	doc.SelectExpansionChip(SNDCHIP_NONE, 0);		// // //
+	doc.SelectExpansionChip(sound_chip_t::NONE, 0);		// // //
 	doc.SetMachine(NTSC);		// // //
 	doc.SetVibratoStyle(VIBRATO_OLD);
 	doc.SetLinearPitch(false);

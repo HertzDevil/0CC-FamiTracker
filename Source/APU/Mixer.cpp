@@ -108,19 +108,19 @@ float CMixer::GetAttenuation() const
 
 	// Increase headroom if some expansion chips are enabled
 
-	if (m_iExternalChip.ContainsChip(SNDCHIP_2A03))
+	if (m_iExternalChip.ContainsChip(sound_chip_t::APU))
 		Attenuation *= ATTENUATION_2A03;
-	if (m_iExternalChip.ContainsChip(SNDCHIP_VRC6))
+	if (m_iExternalChip.ContainsChip(sound_chip_t::VRC6))
 		Attenuation *= ATTENUATION_VRC6;
-	if (m_iExternalChip.ContainsChip(SNDCHIP_VRC7))
+	if (m_iExternalChip.ContainsChip(sound_chip_t::VRC7))
 		Attenuation *= ATTENUATION_VRC7;
-	if (m_iExternalChip.ContainsChip(SNDCHIP_MMC5))
+	if (m_iExternalChip.ContainsChip(sound_chip_t::MMC5))
 		Attenuation *= ATTENUATION_MMC5;
-	if (m_iExternalChip.ContainsChip(SNDCHIP_FDS))
+	if (m_iExternalChip.ContainsChip(sound_chip_t::FDS))
 		Attenuation *= ATTENUATION_FDS;
-	if (m_iExternalChip.ContainsChip(SNDCHIP_N163))
+	if (m_iExternalChip.ContainsChip(sound_chip_t::N163))
 		Attenuation *= ATTENUATION_N163;
-	if (m_iExternalChip.ContainsChip(SNDCHIP_S5B))		// // // 050B
+	if (m_iExternalChip.ContainsChip(sound_chip_t::S5B))		// // // 050B
 		Attenuation *= ATTENUATION_S5B;
 
 	return Attenuation;
@@ -245,7 +245,7 @@ int CMixer::FinishBuffer(int t)
 
 	// Get channel levels for VRC7
 	for (int i = 0; i < 6; ++i)
-		StoreChannelLevel(MakeChannelIndex(SNDCHIP_VRC7, i), OPLL_getchanvol(i));
+		StoreChannelLevel(MakeChannelIndex(sound_chip_t::VRC7, i), OPLL_getchanvol(i));
 
 	UpdateMeters();		// // //
 
@@ -303,15 +303,15 @@ void CMixer::StoreChannelLevel(chan_id_t Channel, int Level)		// // //
 	if (Channel == chan_id_t::FDS)
 		AbsVol /= 38.;
 
-	if (GetChipFromChannel(Channel) == SNDCHIP_N163) {		// // //
+	if (GetChipFromChannel(Channel) == sound_chip_t::N163) {		// // //
 		AbsVol /= 15.;
-		Channel = MakeChannelIndex(SNDCHIP_N163, 7 - GetChannelSubIndex(Channel));
+		Channel = MakeChannelIndex(sound_chip_t::N163, 7 - GetChannelSubIndex(Channel));
 	}
 
-	if (GetChipFromChannel(Channel) == SNDCHIP_VRC7)		// // //
+	if (GetChipFromChannel(Channel) == sound_chip_t::VRC7)		// // //
 		AbsVol = std::log(AbsVol) * 3.;
 
-	if (GetChipFromChannel(Channel) == SNDCHIP_S5B)		// // //
+	if (GetChipFromChannel(Channel) == sound_chip_t::S5B)		// // //
 		AbsVol = std::log(AbsVol) * 2.8;
 
 	if (AbsVol >= m_fChannelLevels[value_cast(Channel)]) {

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "APU/Types.h"		// // //
+#include "APU/Types_fwd.h"		// // //
 
 /*
  * Here are the constants that defines the limits in the tracker
@@ -227,7 +227,7 @@ const char EFF_CHAR[] = {
 	*/
 };
 
-effect_t GetEffectFromChar(char ch, int Chip, bool *bValid = nullptr);		// // //
+effect_t GetEffectFromChar(char ch, sound_chip_t Chip, bool *bValid = nullptr);		// // //
 
 enum note_t : unsigned char {
 	NONE = 0,	// No note

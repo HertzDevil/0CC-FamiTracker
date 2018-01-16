@@ -329,7 +329,7 @@ public:
 		return std::runtime_error {(LPCTSTR)str};
 	}
 
-	stChanNote ImportCellText(unsigned fxMax, unsigned chip, bool isNoise) {		// // //
+	stChanNote ImportCellText(unsigned fxMax, sound_chip_t chip, bool isNoise) {		// // //
 		stChanNote Cell;		// // //
 
 		CString sNote = ReadToken();
@@ -624,7 +624,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			t.ReadEOL();
 			break;
 		case CT_EXPANSION:
-			Doc.SelectExpansionChip((sound_chip_t)t.ReadInt(0, value_cast(SNDCHIP_ALL)), Doc.GetNamcoChannels());		// // //
+			Doc.SelectExpansionChip((sound_chip_t)t.ReadInt(0, value_cast(sound_chip_t::ALL)), Doc.GetNamcoChannels());		// // //
 			t.ReadEOL();
 			break;
 		case CT_VIBRATO:
@@ -1067,7 +1067,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 	f.WriteString(_T("\n"));
 
 	int N163count = -1;		// // //
-	if (Doc.ExpansionEnabled(SNDCHIP_N163))
+	if (Doc.ExpansionEnabled(sound_chip_t::N163))
 	{
 		N163count = Doc.GetNamcoChannels();
 		Doc.SelectExpansionChip(Doc.GetExpansionChip(), 8); // calls ApplyExpansionChip()

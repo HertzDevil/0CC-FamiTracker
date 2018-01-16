@@ -26,7 +26,7 @@
 #include <array>		// // //
 #include <string>		// // //
 #include "FamiTrackerTypes.h"		// // //
-#include "APU/Types_fwd.h"		// // //
+#include "APU/Types.h"		// // //
 #include "TrackData.h"		// // //
 #include "Highlight.h"		// // //
 #include "BookmarkCollection.h"		// // //

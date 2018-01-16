@@ -179,19 +179,19 @@ void CAPU::SetExternalSound(sound_chip_flag_t Chip) {
 
 	ExChips.clear();
 
-	if (Chip.ContainsChip(SNDCHIP_2A03))		// // //
+	if (Chip.ContainsChip(sound_chip_t::APU))		// // //
 		ExChips.push_back(m_p2A03.get());
-	if (Chip.ContainsChip(SNDCHIP_VRC6))
+	if (Chip.ContainsChip(sound_chip_t::VRC6))
 		ExChips.push_back(m_pVRC6.get());
-	if (Chip.ContainsChip(SNDCHIP_VRC7))
+	if (Chip.ContainsChip(sound_chip_t::VRC7))
 		ExChips.push_back(m_pVRC7.get());
-	if (Chip.ContainsChip(SNDCHIP_FDS))
+	if (Chip.ContainsChip(sound_chip_t::FDS))
 		ExChips.push_back(m_pFDS.get());
-	if (Chip.ContainsChip(SNDCHIP_MMC5))
+	if (Chip.ContainsChip(sound_chip_t::MMC5))
 		ExChips.push_back(m_pMMC5.get());
-	if (Chip.ContainsChip(SNDCHIP_N163))
+	if (Chip.ContainsChip(sound_chip_t::N163))
 		ExChips.push_back(m_pN163.get());
-	if (Chip.ContainsChip(SNDCHIP_S5B))
+	if (Chip.ContainsChip(sound_chip_t::S5B))
 		ExChips.push_back(m_pS5B.get());
 
 	Reset();
@@ -317,36 +317,36 @@ void CAPU::Log()
 	str.Format("Frame %08i: ", m_iFrame - 1);
 	str.Append("2A03 ");
 	for (int i = 0; i < 0x14; ++i)
-		str.AppendFormat("%02X ", GetReg(SNDCHIP_NONE, i));
-	if (m_iExternalSoundChip & SNDCHIP_VRC6) {		// // //
+		str.AppendFormat("%02X ", GetReg(sound_chip_t::NONE, i));
+	if (m_iExternalSoundChip & sound_chip_t::VRC6) {		// // //
 		str.Append("VRC6 ");
 		for (int i = 0; i < 0x03; ++i) for (int j = 0; j < 0x03; ++j)
-			str.AppendFormat("%02X ", GetReg(SNDCHIP_VRC6, 0x9000 + i * 0x1000 + j));
+			str.AppendFormat("%02X ", GetReg(sound_chip_t::VRC6, 0x9000 + i * 0x1000 + j));
 	}
-	if (m_iExternalSoundChip & SNDCHIP_MMC5) {
+	if (m_iExternalSoundChip & sound_chip_t::MMC5) {
 		str.Append("MMC5 ");
 		for (int i = 0; i < 0x08; ++i)
-			str.AppendFormat("%02X ", GetReg(SNDCHIP_MMC5, 0x5000 + i));
+			str.AppendFormat("%02X ", GetReg(sound_chip_t::MMC5, 0x5000 + i));
 	}
-	if (m_iExternalSoundChip & SNDCHIP_N163) {
+	if (m_iExternalSoundChip & sound_chip_t::N163) {
 		str.Append("N163 ");
 		for (int i = 0; i < 0x80; ++i)
-			str.AppendFormat("%02X ", GetReg(SNDCHIP_N163, i));
+			str.AppendFormat("%02X ", GetReg(sound_chip_t::N163, i));
 	}
-	if (m_iExternalSoundChip & SNDCHIP_FDS) {
+	if (m_iExternalSoundChip & sound_chip_t::FDS) {
 		str.Append("FDS ");
 		for (int i = 0; i < 0x0B; ++i)
-			str.AppendFormat("%02X ", GetReg(SNDCHIP_FDS, 0x4080 + i));
+			str.AppendFormat("%02X ", GetReg(sound_chip_t::FDS, 0x4080 + i));
 	}
-	if (m_iExternalSoundChip & SNDCHIP_VRC7) {
+	if (m_iExternalSoundChip & sound_chip_t::VRC7) {
 		str.Append("VRC7 ");
 		for (int i = 0; i < 0x40; ++i)
-			str.AppendFormat("%02X ", GetReg(SNDCHIP_VRC7, i));
+			str.AppendFormat("%02X ", GetReg(sound_chip_t::VRC7, i));
 	}
-	if (m_iExternalSoundChip & SNDCHIP_S5B) {
+	if (m_iExternalSoundChip & sound_chip_t::S5B) {
 		str.Append("S5B ");
 		for (int i = 0; i < 0x10; ++i)
-			str.AppendFormat("%02X ", GetReg(SNDCHIP_S5B, i));
+			str.AppendFormat("%02X ", GetReg(sound_chip_t::S5B, i));
 	}
 	str.Append("\r\n");
 	m_pLog->Write(str, str.GetLength());
@@ -400,13 +400,13 @@ double CAPU::GetFreq(sound_chip_t Chip, int Chan) const
 {
 	const CSoundChip *pChip = nullptr;
 	switch (Chip) {
-	case SNDCHIP_2A03: pChip = m_p2A03.get(); break;
-	case SNDCHIP_VRC6: pChip = m_pVRC6.get(); break;
-	case SNDCHIP_VRC7: pChip = m_pVRC7.get(); break;
-	case SNDCHIP_FDS:  pChip = m_pFDS.get(); break;
-	case SNDCHIP_MMC5: pChip = m_pMMC5.get(); break;
-	case SNDCHIP_N163: pChip = m_pN163.get(); break;
-	case SNDCHIP_S5B:  pChip = m_pS5B.get(); break;
+	case sound_chip_t::APU: pChip = m_p2A03.get(); break;
+	case sound_chip_t::VRC6: pChip = m_pVRC6.get(); break;
+	case sound_chip_t::VRC7: pChip = m_pVRC7.get(); break;
+	case sound_chip_t::FDS:  pChip = m_pFDS.get(); break;
+	case sound_chip_t::MMC5: pChip = m_pMMC5.get(); break;
+	case sound_chip_t::N163: pChip = m_pN163.get(); break;
+	case sound_chip_t::S5B:  pChip = m_pS5B.get(); break;
 	default: __debugbreak(); return 0.;
 	}
 	return pChip->GetFreq(Chan);
@@ -416,13 +416,13 @@ CRegisterState *CAPU::GetRegState(sound_chip_t Chip, int Reg) const		// // //
 {
 	const CSoundChip *pChip = nullptr;
 	switch (Chip) {
-	case SNDCHIP_2A03: pChip = m_p2A03.get(); break;
-	case SNDCHIP_VRC6: pChip = m_pVRC6.get(); break;
-	case SNDCHIP_VRC7: pChip = m_pVRC7.get(); break;
-	case SNDCHIP_FDS:  pChip = m_pFDS.get(); break;
-	case SNDCHIP_MMC5: pChip = m_pMMC5.get(); break;
-	case SNDCHIP_N163: pChip = m_pN163.get(); break;
-	case SNDCHIP_S5B:  pChip = m_pS5B.get(); break;
+	case sound_chip_t::APU: pChip = m_p2A03.get(); break;
+	case sound_chip_t::VRC6: pChip = m_pVRC6.get(); break;
+	case sound_chip_t::VRC7: pChip = m_pVRC7.get(); break;
+	case sound_chip_t::FDS:  pChip = m_pFDS.get(); break;
+	case sound_chip_t::MMC5: pChip = m_pMMC5.get(); break;
+	case sound_chip_t::N163: pChip = m_pN163.get(); break;
+	case sound_chip_t::S5B:  pChip = m_pS5B.get(); break;
 	default: __debugbreak(); return nullptr;
 	}
 

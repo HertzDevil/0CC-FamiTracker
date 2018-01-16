@@ -26,21 +26,21 @@
 #include <cstdint>
 #include <stdexcept>
 
-enum sound_chip_t : std::uint8_t;
+enum class sound_chip_t : std::uint8_t;
 enum class chan_id_t : unsigned;
 enum apu_machine_t : unsigned char;
 
 // // // TODO: use enum_traits (MSVC broke it)
 constexpr auto value_cast(sound_chip_t chip) noexcept {
 	using T = std::underlying_type_t<sound_chip_t>;
-	return static_cast<T>(static_cast<T>(chip) & static_cast<T>(/*SNDCHIP_ALL*/0x3F));
+	return static_cast<T>(static_cast<T>(chip) & static_cast<T>(/*sound_chip_t::ALL*/0x3F));
 }
 
 struct sound_chip_flag_t {
 	using value_type = std::underlying_type_t<sound_chip_t>;
 
 	constexpr sound_chip_flag_t() noexcept = default;
-	constexpr sound_chip_flag_t(sound_chip_t chips) noexcept : chips_(chips) { }
+	constexpr sound_chip_flag_t(sound_chip_t chips) noexcept : chips_(value_cast(chips)) { }
 	explicit constexpr sound_chip_flag_t(int chips) noexcept : chips_(chips & 0x3Fu) { }
 
 	constexpr bool ContainsChip(sound_chip_t chip) const noexcept {

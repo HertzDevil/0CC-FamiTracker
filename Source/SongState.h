@@ -24,7 +24,7 @@
 #pragma once
 
 #include "FamiTrackerTypes.h" // constants
-#include "APU/Types_fwd.h"
+#include "APU/Types.h"
 #include <memory>
 #include <string>
 #include <array>

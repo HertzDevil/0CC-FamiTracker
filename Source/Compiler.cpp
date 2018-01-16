@@ -484,7 +484,7 @@ void CCompiler::ExportNSFE(LPCTSTR lpszFileName, int MachineType)		// // //
 void CCompiler::ExportNES(LPCTSTR lpszFileName, bool EnablePAL)
 {
 	ClearLog();
-	if (m_pDocument->GetExpansionChip() != SNDCHIP_NONE) {
+	if (m_pDocument->GetExpansionChip() != sound_chip_t::NONE) {
 		Print(_T("Error: Expansion chips not supported.\n"));
 		AfxMessageBox(_T("Expansion chips are currently not supported!"), 0, 0);
 		return;
@@ -499,7 +499,7 @@ void CCompiler::ExportPRG(LPCTSTR lpszFileName, bool EnablePAL)
 	// Same as export to .NES but without the header
 
 	ClearLog();
-	if (m_pDocument->GetExpansionChip() != SNDCHIP_NONE) {
+	if (m_pDocument->GetExpansionChip() != sound_chip_t::NONE) {
 		Print(_T("Error: Expansion chips not supported.\n"));
 		AfxMessageBox(_T("Expansion chips are currently not supported!"), 0, 0);
 		return;
@@ -573,7 +573,7 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 		pData[Driver.adr_reloc[i + 1]] = value >> 8;
 	}
 
-	if (m_iActualChip == SNDCHIP_N163) {
+	if (m_iActualChip == sound_chip_t::N163) {
 		pData[m_iDriverSize - 2 - 0x100 - 0xC0 * 2 - 8 - 1 - 8 + m_iActualNamcoChannels] = 3;
 	}
 
@@ -656,7 +656,7 @@ stNSFHeader CCompiler::CreateHeader(int MachineType) const		// // //
 
 	// Allow PAL or dual tunes only if no expansion chip is selected
 	// Expansion chips weren't available in PAL areas
-	if (m_pDocument->GetExpansionChip() == SNDCHIP_NONE)
+	if (m_pDocument->GetExpansionChip() == sound_chip_t::NONE)
 		Header.Flags = MachineType;
 
 	return Header;
@@ -686,7 +686,7 @@ stNSFeHeader CCompiler::CreateNSFeHeader(int MachineType)		// // //
 			Header.BankValues[7] = m_iLastBank;
 	}
 
-	if (m_pDocument->GetExpansionChip() == SNDCHIP_NONE)
+	if (m_pDocument->GetExpansionChip() == sound_chip_t::NONE)
 		Header.Flags = MachineType;
 
 	return Header;
@@ -909,37 +909,37 @@ bool CCompiler::CompileData()
 	// Select driver and channel order
 	if (!m_iActualChip.IsMultiChip())
 		switch (m_iActualChip.GetSoundChip()) {
-		case SNDCHIP_NONE:
+		case sound_chip_t::NONE:
 			m_pDriverData = &DRIVER_PACK_2A03;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_2A03;
 			Print(_T(" * No expansion chip\n"));
 			break;
-		case SNDCHIP_VRC6:
+		case sound_chip_t::VRC6:
 			m_pDriverData = &DRIVER_PACK_VRC6;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_VRC6;
 			Print(_T(" * VRC6 expansion enabled\n"));
 			break;
-		case SNDCHIP_MMC5:
+		case sound_chip_t::MMC5:
 			m_pDriverData = &DRIVER_PACK_MMC5;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_MMC5;
 			Print(_T(" * MMC5 expansion enabled\n"));
 			break;
-		case SNDCHIP_VRC7:
+		case sound_chip_t::VRC7:
 			m_pDriverData = &DRIVER_PACK_VRC7;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_VRC7;
 			Print(_T(" * VRC7 expansion enabled\n"));
 			break;
-		case SNDCHIP_FDS:
+		case sound_chip_t::FDS:
 			m_pDriverData = &DRIVER_PACK_FDS;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_FDS;
 			Print(_T(" * FDS expansion enabled\n"));
 			break;
-		case SNDCHIP_N163:
+		case sound_chip_t::N163:
 			m_pDriverData = &DRIVER_PACK_N163;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_N163;
 			Print(_T(" * N163 expansion enabled\n"));
 			break;
-		case SNDCHIP_S5B:
+		case sound_chip_t::S5B:
 			m_pDriverData = &DRIVER_PACK_S5B;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_S5B;
 			Print(_T(" * S5B expansion enabled\n"));
@@ -949,34 +949,34 @@ bool CCompiler::CompileData()
 		m_pDriverData = &DRIVER_PACK_ALL;
 		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_ALL;
 		Print(_T(" * Multiple expansion chips enabled\n"));
-//		if (m_pDocument->ExpansionEnabled(SNDCHIP_N163))
+//		if (m_pDocument->ExpansionEnabled(sound_chip_t::N163))
 //			m_pDocument->SetNamcoChannels(8, true);
-//		m_pDocument->SelectExpansionChip(SNDCHIP_ALL, true);
+//		m_pDocument->SelectExpansionChip(sound_chip_t::ALL, true);
 	}
 
 	// // // Setup channel order list, DPCM is located last
 	const sound_chip_flag_t Chip = m_pDocument->GetExpansionChip();
-	if (Chip.ContainsChip(SNDCHIP_NONE))
+	if (Chip.ContainsChip(sound_chip_t::NONE))
 		for (int i = 0; i < 4; i++)
-			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_NONE, i));
-	if (Chip.ContainsChip(SNDCHIP_MMC5))
+			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::NONE, i));
+	if (Chip.ContainsChip(sound_chip_t::MMC5))
 		for (int i = 0; i < 2; i++)
-			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_MMC5, i));
-	if (Chip.ContainsChip(SNDCHIP_VRC6))
+			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::MMC5, i));
+	if (Chip.ContainsChip(sound_chip_t::VRC6))
 		for (int i = 0; i < CHANNELS_VRC6; i++)
-			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_VRC6, i));
-	if (Chip.ContainsChip(SNDCHIP_N163))
+			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::VRC6, i));
+	if (Chip.ContainsChip(sound_chip_t::N163))
 		for (int i = 0; i < m_iActualNamcoChannels; i++)
-			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_N163, i));
-	if (Chip.ContainsChip(SNDCHIP_FDS))
+			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::N163, i));
+	if (Chip.ContainsChip(sound_chip_t::FDS))
 		m_vChanOrder.push_back(chan_id_t::FDS);
-	if (Chip.ContainsChip(SNDCHIP_S5B))
+	if (Chip.ContainsChip(sound_chip_t::S5B))
 		for (int i = 0; i < 3; i++)
-			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_S5B, i));
-	if (Chip.ContainsChip(SNDCHIP_VRC7))
+			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::S5B, i));
+	if (Chip.ContainsChip(sound_chip_t::VRC7))
 		for (int i = 0; i < CHANNELS_VRC7; i++)
-			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_VRC7, i));
-	if (Chip.ContainsChip(SNDCHIP_NONE))
+			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::VRC7, i));
+	if (Chip.ContainsChip(sound_chip_t::NONE))
 		m_vChanOrder.push_back(chan_id_t::DPCM);
 
 	// Driver size
@@ -1152,7 +1152,7 @@ void CCompiler::CreateMainHeader()
 	Chunk.StoreByte(Flags);
 
 	// FDS table, only if FDS is enabled
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_FDS) || Chip.IsMultiChip())
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::FDS) || Chip.IsMultiChip())
 		Chunk.StorePointer({CHUNK_WAVETABLE});		// // //
 
 	const int TicksPerSec = m_pDocument->GetEngineSpeed();
@@ -1160,7 +1160,7 @@ void CCompiler::CreateMainHeader()
 	Chunk.StoreWord((TicksPerSec ? TicksPerSec : CAPU::FRAME_RATE_PAL) * 60);
 
 	// N163 channel count
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_N163) || Chip.IsMultiChip())
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::N163) || Chip.IsMultiChip())
 		Chunk.StoreByte(m_iActualNamcoChannels ? m_iActualNamcoChannels : 1);
 
 	m_pHeaderChunk = &Chunk;
@@ -1254,7 +1254,7 @@ void CCompiler::CreateInstrumentList()
 
 	CChunk &InstListChunk = CreateChunk({CHUNK_INSTRUMENT_LIST});		// // //
 
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_FDS))
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::FDS))
 		pWavetableChunk = &CreateChunk({CHUNK_WAVETABLE});		// // //
 
 	m_iWaveBanks.fill(-1);		// // //
@@ -1744,13 +1744,13 @@ void CCompiler::WriteChannelMap()
 	pChunk->StoreByte(chan_id_t::TRIANGLE + 1);
 	pChunk->StoreByte(chan_id_t::NOISE + 1);
 
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_VRC6)) {
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::VRC6)) {
 		pChunk->StoreByte(chan_id_t::VRC6_PULSE1 + 1);
 		pChunk->StoreByte(chan_id_t::VRC6_PULSE2 + 1);
 		pChunk->StoreByte(chan_id_t::VRC6_SAWTOOTH + 1);
 	}
 
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_VRC7)) {
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::VRC7)) {
 		pChunk->StoreByte(chan_id_t::VRC7_CH1 + 1);
 		pChunk->StoreByte(chan_id_t::VRC7_CH2 + 1);
 		pChunk->StoreByte(chan_id_t::VRC7_CH3 + 1);
@@ -1759,16 +1759,16 @@ void CCompiler::WriteChannelMap()
 		pChunk->StoreByte(chan_id_t::VRC7_CH6 + 1);
 	}
 
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_FDS)) {
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::FDS)) {
 		pChunk->StoreByte(chan_id_t::FDS + 1);
 	}
 
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_MMC5)) {
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::MMC5)) {
 		pChunk->StoreByte(chan_id_t::MMC5_SQUARE1 + 1);
 		pChunk->StoreByte(chan_id_t::MMC5_SQUARE2 + 1);
 	}
 
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_N163)) {
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::N163)) {
 		for (unsigned int i = 0; i < m_pDocument->GetNamcoChannels(); ++i) {
 			pChunk->StoreByte(chan_id_t::N163_CH1 + i + 1);
 		}
@@ -1792,26 +1792,26 @@ void CCompiler::WriteChannelTypes()
 	for (int i = 0; i < 4; ++i)
 		pChunk->StoreByte(TYPE_2A03);
 
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_VRC6)) {
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::VRC6)) {
 		for (int i = 0; i < 3; ++i)
 			pChunk->StoreByte(TYPE_VRC6);
 	}
 
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_VRC7)) {
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::VRC7)) {
 		for (int i = 0; i < 3; ++i)
 			pChunk->StoreByte(TYPE_VRC7);
 	}
 
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_FDS)) {
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::FDS)) {
 		pChunk->StoreByte(TYPE_FDS);
 	}
 
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_MMC5)) {
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::MMC5)) {
 		for (int i = 0; i < 2; ++i)
 			pChunk->StoreByte(TYPE_MMC5);
 	}
 
-	if (m_pDocument->ExpansionEnabled(SNDCHIP_N163)) {
+	if (m_pDocument->ExpansionEnabled(sound_chip_t::N163)) {
 		for (unsigned int i = 0; i < m_pDocument->GetNamcoChannels(); ++i)
 			pChunk->StoreByte(TYPE_N163);
 	}

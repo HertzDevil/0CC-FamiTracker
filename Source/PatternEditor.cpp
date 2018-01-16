@@ -3531,13 +3531,13 @@ void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
 	for (int c = it.first.m_iChannel; c <= it.second.m_iChannel; ++c) {
 		unsigned Type = GetChannelSubIndex(m_pDocument->TranslateChannel(c));
 		switch (m_pDocument->GetChipType(c)) {
-		case SNDCHIP_NONE: Type += 'A'; break;
-		case SNDCHIP_FDS:  Type += 'F'; break;
-		case SNDCHIP_VRC7: Type += 'G'; break;
-		case SNDCHIP_VRC6: Type += 'M'; break;
-		case SNDCHIP_N163: Type += 'P'; break;
-		case SNDCHIP_S5B:  Type += 'X'; break;
-		case SNDCHIP_MMC5: Type += 'a'; break;
+		case sound_chip_t::NONE: Type += 'A'; break;
+		case sound_chip_t::FDS:  Type += 'F'; break;
+		case sound_chip_t::VRC7: Type += 'G'; break;
+		case sound_chip_t::VRC6: Type += 'M'; break;
+		case sound_chip_t::N163: Type += 'P'; break;
+		case sound_chip_t::S5B:  Type += 'X'; break;
+		case sound_chip_t::MMC5: Type += 'a'; break;
 		}
 		str.AppendFormat(_T("%c\t"), Type);
 

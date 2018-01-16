@@ -26,6 +26,7 @@
 #include "Instrument.h"
 #include "MainFrm.h"
 #include "DPI.h"
+#include "APU/Types.h"
 #include <algorithm>
 
 // CTransposeDlg dialog

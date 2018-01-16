@@ -27,20 +27,20 @@
 #include <type_traits>
 #include <cstddef>
 
-enum sound_chip_t : std::uint8_t {		// // //
-	SNDCHIP_NONE = 0x00u,
-	SNDCHIP_2A03 = 0x00u,
-	SNDCHIP_VRC6 = 0x01u,
-	SNDCHIP_VRC7 = 0x02u,
-	SNDCHIP_FDS  = 0x04u,
-	SNDCHIP_MMC5 = 0x08u,
-	SNDCHIP_N163 = 0x10u,
-	SNDCHIP_S5B  = 0x20u,
-	SNDCHIP_ALL  = 0x3Fu,
+enum class sound_chip_t : std::uint8_t {		// // //
+	NONE = 0x00u,
+	APU  = 0x00u,
+	VRC6 = 0x01u,
+	VRC7 = 0x02u,
+	FDS  = 0x04u,
+	MMC5 = 0x08u,
+	N163 = 0x10u,
+	S5B  = 0x20u,
+	ALL  = 0x3Fu,
 };
 
 constexpr sound_chip_t EXPANSION_CHIPS[] = {
-	SNDCHIP_VRC6, SNDCHIP_VRC7, SNDCHIP_FDS, SNDCHIP_MMC5, SNDCHIP_N163, SNDCHIP_S5B,
+	sound_chip_t::VRC6, sound_chip_t::VRC7, sound_chip_t::FDS, sound_chip_t::MMC5, sound_chip_t::N163, sound_chip_t::S5B,
 };
 
 enum class chan_id_t : unsigned {
@@ -96,20 +96,20 @@ constexpr auto value_cast(chan_id_t ch) noexcept {
 
 constexpr sound_chip_t GetChipFromChannel(chan_id_t ch) noexcept {
 	if (ch <= chan_id_t::DPCM)
-		return SNDCHIP_NONE;
+		return sound_chip_t::NONE;
 	if (ch <= chan_id_t::VRC6_SAWTOOTH)
-		return SNDCHIP_VRC6;
+		return sound_chip_t::VRC6;
 	if (ch <= chan_id_t::MMC5_VOICE)
-		return SNDCHIP_MMC5;
+		return sound_chip_t::MMC5;
 	if (ch <= chan_id_t::N163_CH8)
-		return SNDCHIP_N163;
+		return sound_chip_t::N163;
 	if (ch <= chan_id_t::FDS)
-		return SNDCHIP_FDS;
+		return sound_chip_t::FDS;
 	if (ch <= chan_id_t::VRC7_CH6)
-		return SNDCHIP_VRC7;
+		return sound_chip_t::VRC7;
 	if (ch <= chan_id_t::S5B_CH3)
-		return SNDCHIP_S5B;
-	return SNDCHIP_NONE;
+		return sound_chip_t::S5B;
+	return sound_chip_t::NONE;
 }
 
 constexpr std::size_t GetChannelSubIndex(chan_id_t ch) noexcept {
@@ -132,31 +132,31 @@ constexpr std::size_t GetChannelSubIndex(chan_id_t ch) noexcept {
 
 constexpr chan_id_t MakeChannelIndex(sound_chip_t chip, unsigned subindex) noexcept {
 	switch (chip) {
-	case SNDCHIP_NONE:
+	case sound_chip_t::NONE:
 		if (subindex < 5)
 			return (chan_id_t)((unsigned)chan_id_t::SQUARE1 + subindex);
 		break;
-	case SNDCHIP_VRC6:
+	case sound_chip_t::VRC6:
 		if (subindex < 3)
 			return (chan_id_t)((unsigned)chan_id_t::VRC6_PULSE1 + subindex);
 		break;
-	case SNDCHIP_MMC5:
+	case sound_chip_t::MMC5:
 		if (subindex < 3)
 			return (chan_id_t)((unsigned)chan_id_t::MMC5_SQUARE1 + subindex);
 		break;
-	case SNDCHIP_N163:
+	case sound_chip_t::N163:
 		if (subindex < 8)
 			return (chan_id_t)((unsigned)chan_id_t::N163_CH1 + subindex);
 		break;
-	case SNDCHIP_FDS:
+	case sound_chip_t::FDS:
 		if (subindex < 1)
 			return (chan_id_t)((unsigned)chan_id_t::FDS + subindex);
 		break;
-	case SNDCHIP_VRC7:
+	case sound_chip_t::VRC7:
 		if (subindex < 6)
 			return (chan_id_t)((unsigned)chan_id_t::VRC7_CH1 + subindex);
 		break;
-	case SNDCHIP_S5B:
+	case sound_chip_t::S5B:
 		if (subindex < 3)
 			return (chan_id_t)((unsigned)chan_id_t::S5B_CH1 + subindex);
 		break;

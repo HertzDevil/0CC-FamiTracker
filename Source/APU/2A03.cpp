@@ -31,8 +31,8 @@
 
 C2A03::C2A03(CMixer &Mixer) :
 	CSoundChip(Mixer),
-	m_Square1(Mixer, chan_id_t::SQUARE1, SNDCHIP_NONE),
-	m_Square2(Mixer, chan_id_t::SQUARE2, SNDCHIP_NONE),
+	m_Square1(Mixer, chan_id_t::SQUARE1, sound_chip_t::NONE),
+	m_Square2(Mixer, chan_id_t::SQUARE2, sound_chip_t::NONE),
 	m_Triangle(Mixer, chan_id_t::TRIANGLE),
 	m_Noise(Mixer, chan_id_t::NOISE),
 	m_DPCM(Mixer, chan_id_t::DPCM)		// // //

@@ -60,6 +60,7 @@
 #include "Bookmark.h"		// // //
 #include "BookmarkCollection.h"		// // //
 #include "APU/APU.h"
+#include "APU/Types.h"		// // //
 #include "SimpleFile.h"		// // //
 //#include "SongView.h"		// // //
 #include "ChannelMap.h"		// // //
@@ -288,7 +289,7 @@ void CFamiTrackerDoc::CreateEmpty()
 	LockDocument();
 
 	// and select 2A03 only
-	SelectExpansionChip(SNDCHIP_NONE, 0);		// // //
+	SelectExpansionChip(sound_chip_t::NONE, 0);		// // //
 	SetModifiedFlag(FALSE);
 	SetExceededFlag(FALSE);		// // //
 
@@ -1263,10 +1264,10 @@ const CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index) const		// // /
 }
 
 void CFamiTrackerDoc::SelectExpansionChip(sound_chip_flag_t chips, unsigned n163chs) {		// // //
-	ASSERT(n163chs <= 8 && (chips.ContainsChip(SNDCHIP_N163) == (n163chs != 0)));
+	ASSERT(n163chs <= 8 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
 
 	// // // Complete sound chip setup
-	if (chips != SNDCHIP_NONE)
+	if (chips != sound_chip_t::NONE)
 		SetMachine(NTSC);
 
 	// This will select a chip in the sound emulator
@@ -1325,7 +1326,7 @@ bool CFamiTrackerDoc::ExpansionEnabled(sound_chip_t Chip) const {
 }
 
 int CFamiTrackerDoc::GetNamcoChannels() const {
-	return m_pChannelMap->GetChipChannelCount(SNDCHIP_N163);		// // //
+	return m_pChannelMap->GetChipChannelCount(sound_chip_t::N163);		// // //
 }
 
 unsigned int CFamiTrackerDoc::GetFirstFreePattern(unsigned int Track, chan_id_t Channel) const

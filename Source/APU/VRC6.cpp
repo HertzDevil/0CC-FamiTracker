@@ -27,7 +27,7 @@
 
 // Konami VRC6 external sound chip emulation
 
-CVRC6_Pulse::CVRC6_Pulse(CMixer &Mixer, chan_id_t ID) : CChannel(Mixer, SNDCHIP_VRC6, ID)		// // //
+CVRC6_Pulse::CVRC6_Pulse(CMixer &Mixer, chan_id_t ID) : CChannel(Mixer, sound_chip_t::VRC6, ID)		// // //
 {
 	Reset();
 }
@@ -92,7 +92,7 @@ double CVRC6_Pulse::GetFrequency() const		// // //
 	return CAPU::BASE_FREQ_NTSC / 16. / (m_iPeriod + 1.);
 }
 
-CVRC6_Sawtooth::CVRC6_Sawtooth(CMixer &Mixer, chan_id_t ID) : CChannel(Mixer, SNDCHIP_VRC6, ID)		// // //
+CVRC6_Sawtooth::CVRC6_Sawtooth(CMixer &Mixer, chan_id_t ID) : CChannel(Mixer, sound_chip_t::VRC6, ID)		// // //
 {
 	Reset();
 }

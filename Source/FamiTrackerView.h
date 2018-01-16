@@ -243,7 +243,7 @@ private:
 
 	// Mute methods
 	bool	IsChannelSolo(chan_id_t Channel) const;		// // //
-	bool	IsChipSolo(unsigned int Chip) const;		// // //
+	bool	IsChipSolo(sound_chip_t Chip) const;		// // //
 
 	// Other
 	bool	AddAction(std::unique_ptr<CAction> pAction) const;		// // //

@@ -28,6 +28,7 @@
 #include "TrackerChannel.h"
 #include "Compiler.h"
 #include "ft0cc/doc/groove.hpp"		// // //
+#include "APU/Types.h"		// // //
 
 /**
  * CPatternCompiler - Compress patterns to strings for the NSF code
@@ -359,7 +360,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
 							switch (ChipID) {		// // //
-							case SNDCHIP_NONE: case SNDCHIP_VRC6: case SNDCHIP_MMC5: case SNDCHIP_S5B:
+							case sound_chip_t::NONE: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:
 								if (!m_pDocument->GetLinearPitch()) {
 									WriteData(Command(CMD_EFF_PORTAUP));
 									break;
@@ -378,7 +379,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
 							switch (ChipID) {		// // //
-							case SNDCHIP_NONE: case SNDCHIP_VRC6: case SNDCHIP_MMC5: case SNDCHIP_S5B:
+							case sound_chip_t::NONE: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:
 								if (!m_pDocument->GetLinearPitch()) {
 									WriteData(Command(CMD_EFF_PORTADOWN));
 									break;
@@ -440,7 +441,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 							WriteData(Command(CMD_EFF_RESET_PITCH));
 						else {
 							switch (ChipID) {
-							case SNDCHIP_NONE: case SNDCHIP_VRC6: case SNDCHIP_MMC5: case SNDCHIP_S5B:		// // //
+							case sound_chip_t::NONE: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:		// // //
 								if (!m_pDocument->GetLinearPitch()) break;
 							default:
 								EffParam = (char)(256 - (int)EffParam);
@@ -460,11 +461,11 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 					}
 					break;
 				case EF_DUTY_CYCLE:
-					if (ChipID == SNDCHIP_VRC7) {		// // // 050B
+					if (ChipID == sound_chip_t::VRC7) {		// // // 050B
 						WriteData(Command(CMD_EFF_VRC7_PATCH));
 						WriteData(EffParam << 4);
 					}
-					else if (ChipID == SNDCHIP_S5B) {
+					else if (ChipID == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_DUTY));
 						WriteData((EffParam << 6) | ((EffParam & 0x04) << 3));
 					}
@@ -550,13 +551,13 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 					break;
 				// // // VRC7
 				case EF_VRC7_PORT:
-					if (ChipID == SNDCHIP_VRC7) {
+					if (ChipID == sound_chip_t::VRC7) {
 						WriteData(Command(CMD_EFF_VRC7_PORT));
 						WriteData(EffParam & 0x07);
 					}
 					break;
 				case EF_VRC7_WRITE:
-					if (ChipID == SNDCHIP_VRC7) {
+					if (ChipID == sound_chip_t::VRC7) {
 						WriteData(Command(CMD_EFF_VRC7_WRITE));
 						WriteData(EffParam);
 					}
@@ -594,32 +595,32 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 					break;
 				// // // Sunsoft 5B
 				case EF_SUNSOFT_ENV_TYPE:
-					if (ChipID == SNDCHIP_S5B) {
+					if (ChipID == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_ENV_TYPE));
 						WriteData(EffParam);
 					}
 					break;
 				case EF_SUNSOFT_ENV_HI:
-					if (ChipID == SNDCHIP_S5B) {
+					if (ChipID == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_ENV_RATE_HI));
 						WriteData(EffParam);
 					}
 					break;
 				case EF_SUNSOFT_ENV_LO:
-					if (ChipID == SNDCHIP_S5B) {
+					if (ChipID == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_ENV_RATE_LO));
 						WriteData(EffParam);
 					}
 					break;
 				case EF_SUNSOFT_NOISE:		// // // 050B
-					if (ChipID == SNDCHIP_S5B) {
+					if (ChipID == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_NOISE));
 						WriteData(EffParam & 0x1F);
 					}
 					break;
 				// // // N163
 				case EF_N163_WAVE_BUFFER:
-					if (ChipID == SNDCHIP_N163 && EffParam <= 0x7F) {
+					if (ChipID == sound_chip_t::N163 && EffParam <= 0x7F) {
 						WriteData(Command(CMD_EFF_N163_WAVE_BUFFER));
 						WriteData(EffParam == 0x7F ? 0x80 : EffParam);
 					}
@@ -659,10 +660,10 @@ unsigned char CPatternCompiler::Command(int cmd) const
 	sound_chip_flag_t Chip = m_pDocument->GetExpansionChip();		// // //
 
 	if (!Chip.IsMultiChip()) {		// // // truncate values if some chips do not exist
-		if (!m_pDocument->ExpansionEnabled(SNDCHIP_N163) && cmd > CMD_EFF_N163_WAVE_BUFFER) cmd -= sizeof(N163_EFFECTS);
+		if (!m_pDocument->ExpansionEnabled(sound_chip_t::N163) && cmd > CMD_EFF_N163_WAVE_BUFFER) cmd -= sizeof(N163_EFFECTS);
 		// MMC5
-		if (!m_pDocument->ExpansionEnabled(SNDCHIP_FDS) && cmd > CMD_EFF_FDS_MOD_BIAS) cmd -= sizeof(FDS_EFFECTS);
-		if (!m_pDocument->ExpansionEnabled(SNDCHIP_VRC7) && cmd > CMD_EFF_VRC7_WRITE) cmd -= sizeof(VRC7_EFFECTS) + 1;
+		if (!m_pDocument->ExpansionEnabled(sound_chip_t::FDS) && cmd > CMD_EFF_FDS_MOD_BIAS) cmd -= sizeof(FDS_EFFECTS);
+		if (!m_pDocument->ExpansionEnabled(sound_chip_t::VRC7) && cmd > CMD_EFF_VRC7_WRITE) cmd -= sizeof(VRC7_EFFECTS) + 1;
 		// VRC6
 	}
 

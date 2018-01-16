@@ -35,6 +35,7 @@
 #include <memory>		// // //
 #include "FamiTrackerTypes.h"		// // //
 #include "SoundGenBase.h"		// // //
+#include "APU/Types.h"
 
 // Custom messages
 enum {

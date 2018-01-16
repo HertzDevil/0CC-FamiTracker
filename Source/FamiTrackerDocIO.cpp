@@ -28,6 +28,7 @@
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"
 #include "Settings.h"
+#include "APU/Types.h"
 
 #include "InstrumentManager.h"
 #include "Instrument2A03.h"
@@ -232,13 +233,13 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 	auto &modfile = *doc.GetModule();
 	auto &Song = *modfile.GetSong(0);
 
-	sound_chip_flag_t Expansion = SNDCHIP_NONE;		// // //
+	sound_chip_flag_t Expansion = sound_chip_t::NONE;		// // //
 
 	// Get first track for module versions that require that
 	if (ver == 1)
 		Song.SetSongSpeed(file_.GetBlockInt());
 	else {
-		char flag = AssertRange<MODULE_ERROR_STRICT>((unsigned char)file_.GetBlockChar(), 0u, value_cast(SNDCHIP_ALL), "Expansion chip flag");;
+		char flag = AssertRange<MODULE_ERROR_STRICT>((unsigned char)file_.GetBlockChar(), 0u, value_cast(sound_chip_t::ALL), "Expansion chip flag");;
 		Expansion = sound_chip_flag_t {flag};
 	}
 
@@ -284,7 +285,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 
 	// This is strange. Sometimes expansion chip is set to 0xFF in files
 	if (channels == 5)
-		Expansion = SNDCHIP_NONE;
+		Expansion = sound_chip_t::NONE;
 
 	if (file_.GetFileVersion() == 0x0200) {
 		int Speed = Song.GetSongSpeed();
@@ -304,7 +305,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 
 	// Read namco channel count
 	int n163chans = 0;
-	if (ver >= 5 && (Expansion.ContainsChip(SNDCHIP_N163)))
+	if (ver >= 5 && (Expansion.ContainsChip(sound_chip_t::N163)))
 		n163chans = AssertRange(file_.GetBlockInt(), 1, 8, "N163 channel count");
 
 	// Determine if new or old split point is preferred
@@ -342,7 +343,7 @@ void CFamiTrackerDocIO::SaveParams(const CFamiTrackerDoc &doc, int ver) {
 			file_.WriteBlockInt(hl.Second);
 
 			if (ver >= 5) {
-				if (doc.ExpansionEnabled(SNDCHIP_N163))
+				if (doc.ExpansionEnabled(sound_chip_t::N163))
 					file_.WriteBlockInt(doc.GetNamcoChannels());
 
 				if (ver >= 6)
@@ -519,7 +520,7 @@ void CFamiTrackerDocIO::SaveInstruments(const CFamiTrackerDoc &doc, int ver) {
 	// If FDS is used then version must be at least 4 or recent files won't load
 
 	// Fix for FDS instruments
-/*	if (m_iExpansionChip & SNDCHIP_FDS)
+/*	if (m_iExpansionChip & sound_chip_t::FDS)
 		ver = 4;
 
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
@@ -842,7 +843,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 						Note.Instrument = MAX_INSTRUMENTS;
 				}
 
-				if (doc.ExpansionEnabled(SNDCHIP_N163) && doc.GetChipType(Channel) == SNDCHIP_N163) {		// // //
+				if (doc.ExpansionEnabled(sound_chip_t::N163) && doc.GetChipType(Channel) == sound_chip_t::N163) {		// // //
 					for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n)
 						if (Note.EffNumber[n] == EF_SAMPLE_OFFSET)
 							Note.EffNumber[n] = EF_N163_WAVE_BUFFER;
@@ -850,7 +851,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 
 				if (ver == 3) {
 					// Fix for VRC7 portamento
-					if (doc.GetChipType(Channel) == SNDCHIP_VRC7) {		// // //
+					if (doc.GetChipType(Channel) == sound_chip_t::VRC7) {		// // //
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
 							case EF_PORTA_DOWN:
@@ -863,7 +864,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 						}
 					}
 					// FDS pitch effect fix
-					else if (doc.GetChipType(Channel) == SNDCHIP_FDS) {
+					else if (doc.GetChipType(Channel) == sound_chip_t::FDS) {
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
 							case EF_PITCH:

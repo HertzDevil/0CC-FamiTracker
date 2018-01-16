@@ -303,7 +303,7 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 					maskFDS = true;
 					break;
 				case EF_DUTY_CYCLE:
-					if (ch.GetChip() == SNDCHIP_VRC7)		// // // 050B
+					if (ch.GetChip() == sound_chip_t::VRC7)		// // // 050B
 						break;
 					[[fallthrough]];
 				case EF_SAMPLE_OFFSET:

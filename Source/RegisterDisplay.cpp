@@ -85,12 +85,12 @@ void CRegisterDisplay::Draw() {
 	CString text;
 
 	const int BAR_OFFSET = LINE_HEIGHT * (3 + 8 +
-		pSoundGen->IsExpansionEnabled(SNDCHIP_VRC6) * 5 +
-		pSoundGen->IsExpansionEnabled(SNDCHIP_MMC5) * 4 +
-		pSoundGen->IsExpansionEnabled(SNDCHIP_N163) * 18 +
-		pSoundGen->IsExpansionEnabled(SNDCHIP_FDS) * 13 +
-		pSoundGen->IsExpansionEnabled(SNDCHIP_VRC7) * 9 +
-		pSoundGen->IsExpansionEnabled(SNDCHIP_S5B) * 8);		// // //
+		pSoundGen->IsExpansionEnabled(sound_chip_t::VRC6) * 5 +
+		pSoundGen->IsExpansionEnabled(sound_chip_t::MMC5) * 4 +
+		pSoundGen->IsExpansionEnabled(sound_chip_t::N163) * 18 +
+		pSoundGen->IsExpansionEnabled(sound_chip_t::FDS) * 13 +
+		pSoundGen->IsExpansionEnabled(sound_chip_t::VRC7) * 9 +
+		pSoundGen->IsExpansionEnabled(sound_chip_t::S5B) * 8);		// // //
 	int vis_line = 0;
 
 	const auto DrawVolFunc = [&] (double Freq, int Volume) {
@@ -111,12 +111,12 @@ void CRegisterDisplay::Draw() {
 	DrawHeader(_T("2A03"));		// // //
 
 	for (int i = 0; i < 5; ++i) {
-		GetRegs(SNDCHIP_NONE, [&] (int x) { return 0x4000 + i * 4 + x; }, 4);
+		GetRegs(sound_chip_t::NONE, [&] (int x) { return 0x4000 + i * 4 + x; }, 4);
 		text.Format(_T("$%04X:"), 0x4000 + i * 4);		// // //
 		DrawReg(text, 4);
 
 		int period, vol;
-		double freq = pSoundGen->GetChannelFrequency(SNDCHIP_NONE, i);		// // //
+		double freq = pSoundGen->GetChannelFrequency(sound_chip_t::NONE, i);		// // //
 //		dc.FillSolidRect(x + 200, y, x + 400, y + 18, m_colEmptyBg);
 
 		switch (i) {
@@ -154,18 +154,18 @@ void CRegisterDisplay::Draw() {
 	++line; y += LINE_HEIGHT;		// // //
 	DrawText_(180, text);
 
-	if (pSoundGen->IsExpansionEnabled(SNDCHIP_VRC6)) {
+	if (pSoundGen->IsExpansionEnabled(sound_chip_t::VRC6)) {
 		DrawHeader(_T("VRC6"));		// // //
 
 		// VRC6
 		for (int i = 0; i < 3; ++i) {
-			GetRegs(SNDCHIP_VRC6, [&] (int x) { return 0x9000 + i * 0x1000 + x; }, 3);
+			GetRegs(sound_chip_t::VRC6, [&] (int x) { return 0x9000 + i * 0x1000 + x; }, 3);
 			text.Format(_T("$%04X:"), 0x9000 + i * 0x1000);		// // //
 			DrawReg(text, 3);
 
 			int period = (reg[1] | ((reg[2] & 15) << 8));
 			int vol = (reg[0] & (i == 2 ? 0x3F : 0x0F));
-			double freq = pSoundGen->GetChannelFrequency(SNDCHIP_VRC6, i);		// // //
+			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::VRC6, i);		// // //
 
 			text.Format(_T("%s, vol = %02i"), GetPitchText(3, period, freq), vol);
 			if (i != 2)
@@ -175,18 +175,18 @@ void CRegisterDisplay::Draw() {
 		}
 	}
 
-	if (pSoundGen->IsExpansionEnabled(SNDCHIP_MMC5)) {		// // //
+	if (pSoundGen->IsExpansionEnabled(sound_chip_t::MMC5)) {		// // //
 		DrawHeader(_T("MMC5"));		// // //
 
 		// MMC5
 		for (int i = 0; i < 2; ++i) {
-			GetRegs(SNDCHIP_MMC5, [&] (int x) { return 0x5000 + i * 4 + x; }, 4);
+			GetRegs(sound_chip_t::MMC5, [&] (int x) { return 0x5000 + i * 4 + x; }, 4);
 			text.Format(_T("$%04X:"), 0x5000 + i * 4);
 			DrawReg(text, 4);
 
 			int period = (reg[2] | ((reg[3] & 7) << 8));
 			int vol = (reg[0] & 0x0F);
-			double freq = pSoundGen->GetChannelFrequency(SNDCHIP_MMC5, i);		// // //
+			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::MMC5, i);		// // //
 
 			text.Format(_T("%s, vol = %02i, duty = %i"), GetPitchText(3, period, freq), vol, reg[0] >> 6);
 			DrawText_(180, text);
@@ -194,7 +194,7 @@ void CRegisterDisplay::Draw() {
 		}
 	}
 
-	if (pSoundGen->IsExpansionEnabled(SNDCHIP_N163)) {
+	if (pSoundGen->IsExpansionEnabled(sound_chip_t::N163)) {
 		DrawHeader(_T("N163"));		// // //
 
 		// // // N163 wave
@@ -205,7 +205,7 @@ void CRegisterDisplay::Draw() {
 		dc_.FillSolidRect(x + 300 - 1, y - 1, 2 * Length + 2, 17, 0x808080);
 		dc_.FillSolidRect(x + 300, y, 2 * Length, 15, 0);
 		for (int i = 0; i < Length; i++) {
-			auto pState = pSoundGen->GetRegState(SNDCHIP_N163, i);
+			auto pState = pSoundGen->GetRegState(sound_chip_t::N163, i);
 			const int Hi = (pState->GetValue() >> 4) & 0x0F;
 			const int Lo = pState->GetValue() & 0x0F;
 			COLORREF Col = BLEND(GREY(192), DECAY_COLOR[pState->GetNewValueTime()],
@@ -214,8 +214,8 @@ void CRegisterDisplay::Draw() {
 			dc_.FillSolidRect(x + 300 + i * 2 + 1, y + 15 - Hi, 1, Hi, Col);
 		}
 		for (int i = 0; i < N163_CHANS; ++i) {
-			auto pPosState = pSoundGen->GetRegState(SNDCHIP_N163, 0x78 - i * 8 + 6);
-			auto pLenState = pSoundGen->GetRegState(SNDCHIP_N163, 0x78 - i * 8 + 4);
+			auto pPosState = pSoundGen->GetRegState(sound_chip_t::N163, 0x78 - i * 8 + 6);
+			auto pLenState = pSoundGen->GetRegState(sound_chip_t::N163, 0x78 - i * 8 + 4);
 			const int WavePos = pPosState->GetValue();
 			const int WaveLen = 0x100 - (pLenState->GetValue() & 0xFC);
 			const int NewTime = std::min(pPosState->GetNewValueTime(), pLenState->GetNewValueTime());
@@ -231,13 +231,13 @@ void CRegisterDisplay::Draw() {
 
 		// N163
 		for (int i = 0; i < 16; ++i) {
-			GetRegs(SNDCHIP_N163, [&] (int x) { return i * 8 + x; }, 8);
+			GetRegs(sound_chip_t::N163, [&] (int x) { return i * 8 + x; }, 8);
 			text.Format(_T("$%02X:"), i * 8);
 			DrawReg(text, 8);
 
 			int period = (reg[0] | (reg[2] << 8) | ((reg[4] & 0x03) << 16));
 			int vol = (reg[7] & 0x0F);
-			double freq = pSoundGen->GetChannelFrequency(SNDCHIP_N163, 15 - i);		// // //
+			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::N163, 15 - i);		// // //
 
 			if (i >= 16 - N163_CHANS) {
 				text.Format(_T("%s, vol = %02i"), GetPitchText(5, period, freq), vol);
@@ -251,18 +251,18 @@ void CRegisterDisplay::Draw() {
 			DrawVolFunc(FreqCache[i], VolCache[i]);
 	}
 
-	if (pSoundGen->IsExpansionEnabled(SNDCHIP_FDS)) {
+	if (pSoundGen->IsExpansionEnabled(sound_chip_t::FDS)) {
 		DrawHeader(_T("FDS"));		// // //
 
-		int period = (pSoundGen->GetReg(SNDCHIP_FDS, 0x4082) & 0xFF) | ((pSoundGen->GetReg(SNDCHIP_FDS, 0x4083) & 0x0F) << 8);
-		int vol = (pSoundGen->GetReg(SNDCHIP_FDS, 0x4080) & 0x3F);
-		double freq = pSoundGen->GetChannelFrequency(SNDCHIP_FDS, 0);		// // //
+		int period = (pSoundGen->GetReg(sound_chip_t::FDS, 0x4082) & 0xFF) | ((pSoundGen->GetReg(sound_chip_t::FDS, 0x4083) & 0x0F) << 8);
+		int vol = (pSoundGen->GetReg(sound_chip_t::FDS, 0x4080) & 0x3F);
+		double freq = pSoundGen->GetChannelFrequency(sound_chip_t::FDS, 0);		// // //
 
 		CString FDStext;
 		FDStext.Format(_T("%s, vol = %02i"), GetPitchText(3, period, freq), vol);
 
 		for (int i = 0; i < 11; ++i) {
-			GetRegs(SNDCHIP_FDS, [&] (int) { return 0x4080 + i; }, 1);
+			GetRegs(sound_chip_t::FDS, [&] (int) { return 0x4080 + i; }, 1);
 			text.Format(_T("$%04X:"), 0x4080 + i);
 			DrawReg(text, 1);
 			if (!i) DrawText_(180, FDStext);
@@ -271,20 +271,20 @@ void CRegisterDisplay::Draw() {
 		DrawVolFunc(freq, vol << 3);
 	}
 
-	if (pSoundGen->IsExpansionEnabled(SNDCHIP_VRC7)) {		// // //
+	if (pSoundGen->IsExpansionEnabled(sound_chip_t::VRC7)) {		// // //
 		DrawHeader(_T("VRC7"));		// // //
 
-		GetRegs(SNDCHIP_VRC7, [] (int x) { return x; }, 8);
+		GetRegs(sound_chip_t::VRC7, [] (int x) { return x; }, 8);
 		DrawReg(_T("$00:"), 8);		// // //
 
 		for (int i = 0; i < 6; ++i) {
-			GetRegs(SNDCHIP_VRC7, [&] (int x) { return i + (++x << 4); }, 3);
+			GetRegs(sound_chip_t::VRC7, [&] (int x) { return i + (++x << 4); }, 3);
 			text.Format(_T("$x%01X:"), i);
 			DrawReg(text, 3);
 
 			int period = reg[0] | ((reg[1] & 0x01) << 8);
-			int vol = 0x0F - (pSoundGen->GetReg(SNDCHIP_VRC7, i + 0x30) & 0x0F);
-			double freq = pSoundGen->GetChannelFrequency(SNDCHIP_VRC7, i);		// // //
+			int vol = 0x0F - (pSoundGen->GetReg(sound_chip_t::VRC7, i + 0x30) & 0x0F);
+			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::VRC7, i);		// // //
 
 			text.Format(_T("%s, vol = %02i, patch = $%01X"), GetPitchText(3, period, freq), vol, reg[2] >> 4);
 			DrawText_(180, text);
@@ -293,24 +293,24 @@ void CRegisterDisplay::Draw() {
 		}
 	}
 
-	if (pSoundGen->IsExpansionEnabled(SNDCHIP_S5B)) {		// // //
+	if (pSoundGen->IsExpansionEnabled(sound_chip_t::S5B)) {		// // //
 		DrawHeader(_T("5B"));		// // //
 
 		// S5B
 		for (int i = 0; i < 4; ++i) {
-			GetRegs(SNDCHIP_S5B, [&] (int x) { return i * 2 + x; }, 2);
+			GetRegs(sound_chip_t::S5B, [&] (int x) { return i * 2 + x; }, 2);
 			text.Format(_T("$%02X:"), i * 2);
 			DrawReg(text, 2);
 
 			int period = reg[0] | ((reg[1] & 0x0F) << 8);
-			int vol = pSoundGen->GetReg(SNDCHIP_S5B, 8 + i) & 0x0F;
-			double freq = pSoundGen->GetChannelFrequency(SNDCHIP_S5B, i);		// // //
+			int vol = pSoundGen->GetReg(sound_chip_t::S5B, 8 + i) & 0x0F;
+			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::S5B, i);		// // //
 
 			if (i < 3)
 				text.Format(_T("%s, vol = %02i, mode = %c%c%c"), GetPitchText(3, period, freq), vol,
-					(pSoundGen->GetReg(SNDCHIP_S5B, 7) & (1 << i)) ? _T('-') : _T('T'),
-					(pSoundGen->GetReg(SNDCHIP_S5B, 7) & (8 << i)) ? _T('-') : _T('N'),
-					(pSoundGen->GetReg(SNDCHIP_S5B, 8 + i) & 0x10) ? _T('E') : _T('-'));
+					(pSoundGen->GetReg(sound_chip_t::S5B, 7) & (1 << i)) ? _T('-') : _T('T'),
+					(pSoundGen->GetReg(sound_chip_t::S5B, 7) & (8 << i)) ? _T('-') : _T('N'),
+					(pSoundGen->GetReg(sound_chip_t::S5B, 8 + i) & 0x10) ? _T('E') : _T('-'));
 			else
 				text.Format(_T("pitch = $%02X"), reg[0] & 0x1F);
 			DrawText_(180, text);
@@ -320,13 +320,13 @@ void CRegisterDisplay::Draw() {
 		}
 
 		for (int i = 0; i < 2; ++i) {
-			GetRegs(SNDCHIP_S5B, [&] (int x) { return i * 3 + x + 8; }, 3);
+			GetRegs(sound_chip_t::S5B, [&] (int x) { return i * 3 + x + 8; }, 3);
 			text.Format(_T("$%02X:"), i * 3 + 8);
 			DrawReg(text, 3);
 
 			if (i == 1) {
 				int period = (reg[0] | (reg[1] << 8));
-				double freq = pSoundGen->GetChannelFrequency(SNDCHIP_S5B, 3);		// // //
+				double freq = pSoundGen->GetChannelFrequency(sound_chip_t::S5B, 3);		// // //
 				if (freq != 0. && reg[1] == 0)
 					text.Format(_T("%s, shape = $%01X"), GetPitchText(4, period, freq), reg[2]);
 				else

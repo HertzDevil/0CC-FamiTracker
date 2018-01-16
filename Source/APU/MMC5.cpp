@@ -28,8 +28,8 @@
 
 CMMC5::CMMC5(CMixer &Mixer) :
 	CSoundChip(Mixer),		// // //
-	m_Square1(Mixer, chan_id_t::MMC5_SQUARE1, SNDCHIP_MMC5),
-	m_Square2(Mixer, chan_id_t::MMC5_SQUARE2, SNDCHIP_MMC5),
+	m_Square1(Mixer, chan_id_t::MMC5_SQUARE1, sound_chip_t::MMC5),
+	m_Square2(Mixer, chan_id_t::MMC5_SQUARE2, sound_chip_t::MMC5),
 	m_iMulLow(0),
 	m_iMulHigh(0)
 {

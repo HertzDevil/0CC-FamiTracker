@@ -29,7 +29,7 @@
  *
  */
 
-CChannelMap::CChannelMap() : CChannelMap(SNDCHIP_NONE, 0) {
+CChannelMap::CChannelMap() : CChannelMap(sound_chip_t::NONE, 0) {
 }
 
 CChannelMap::CChannelMap(sound_chip_flag_t chips, unsigned n163chs) :
@@ -51,8 +51,8 @@ void CChannelMap::RegisterChannel(CTrackerChannel &Channel)		// // //
 }
 
 bool CChannelMap::SupportsChannel(const CTrackerChannel &ch) const {		// // //
-	return HasExpansionChip(ch.GetChip()) && !(ch.GetChip() == SNDCHIP_N163 &&
-		GetChannelSubIndex(ch.GetID()) >= GetChipChannelCount(SNDCHIP_N163));
+	return HasExpansionChip(ch.GetChip()) && !(ch.GetChip() == sound_chip_t::N163 &&
+		GetChannelSubIndex(ch.GetID()) >= GetChipChannelCount(sound_chip_t::N163));
 }
 
 CTrackerChannel &CChannelMap::GetChannel(int index) const		// // //
@@ -88,7 +88,7 @@ sound_chip_flag_t CChannelMap::GetExpansionFlag() const noexcept {		// // //
 }
 
 unsigned CChannelMap::GetChipChannelCount(sound_chip_t chip) const {
-	if (chip == SNDCHIP_N163)
+	if (chip == sound_chip_t::N163)
 		return HasExpansionChip(chip) ? n163chs_ : 0;
 
 	unsigned count = 0;

@@ -22,6 +22,7 @@
 
 #include "TrackerChannel.h"
 #include "Instrument.h"		// // //
+#include "APU/Types.h"		// // //
 
 /*
  * This class serves as the interface between the UI and the sound player for each channel
@@ -132,23 +133,23 @@ int CTrackerChannel::GetPitch() const
 bool CTrackerChannel::IsInstrumentCompatible(int Instrument, inst_type_t Type) const
 {
 	switch (m_iChip) {
-		case SNDCHIP_NONE:
-		case SNDCHIP_MMC5:
-		case SNDCHIP_N163:		// // //
-		case SNDCHIP_S5B:
-		case SNDCHIP_VRC6:
-		case SNDCHIP_FDS:
-			switch (Type) {
-			case INST_2A03:
-			case INST_VRC6:
-			case INST_N163:
-			case INST_S5B:
-			case INST_FDS:
-				return true;
-			default: return false;
-			}
-		case SNDCHIP_VRC7:
-			return Type == INST_VRC7;
+	case sound_chip_t::NONE:
+	case sound_chip_t::MMC5:
+	case sound_chip_t::N163:		// // //
+	case sound_chip_t::S5B:
+	case sound_chip_t::VRC6:
+	case sound_chip_t::FDS:
+		switch (Type) {
+		case INST_2A03:
+		case INST_VRC6:
+		case INST_N163:
+		case INST_S5B:
+		case INST_FDS:
+			return true;
+		default: return false;
+		}
+	case sound_chip_t::VRC7:
+		return Type == INST_VRC7;
 	}
 
 	return false;
@@ -166,7 +167,7 @@ bool CTrackerChannel::IsEffectCompatible(int EffNumber, int EffParam) const		// 
 		case EF_GROOVE:
 			return EffParam < MAX_GROOVE;
 		case EF_VOLUME:
-			return ((m_iChip == SNDCHIP_NONE && m_iChannelID != chan_id_t::DPCM) || m_iChip == SNDCHIP_MMC5) &&
+			return ((m_iChip == sound_chip_t::NONE && m_iChannelID != chan_id_t::DPCM) || m_iChip == sound_chip_t::MMC5) &&
 				(EffParam <= 0x1F || (EffParam >= 0xE0 && EffParam <= 0xE3));
 		case EF_PORTAMENTO: case EF_ARPEGGIO: case EF_VIBRATO: case EF_TREMOLO:
 		case EF_PITCH: case EF_PORTA_UP: case EF_PORTA_DOWN: case EF_SLIDE_UP: case EF_SLIDE_DOWN:
@@ -181,18 +182,18 @@ bool CTrackerChannel::IsEffectCompatible(int EffNumber, int EffParam) const		// 
 		case EF_DUTY_CYCLE:
 			return m_iChannelID != chan_id_t::DPCM;		// // // 050B
 		case EF_FDS_MOD_DEPTH:
-			return m_iChip == SNDCHIP_FDS && (EffParam <= 0x3F || EffParam >= 0x80);
+			return m_iChip == sound_chip_t::FDS && (EffParam <= 0x3F || EffParam >= 0x80);
 		case EF_FDS_MOD_SPEED_HI: case EF_FDS_MOD_SPEED_LO: case EF_FDS_MOD_BIAS:
-			return m_iChip == SNDCHIP_FDS;
+			return m_iChip == sound_chip_t::FDS;
 		case EF_SUNSOFT_ENV_LO: case EF_SUNSOFT_ENV_HI: case EF_SUNSOFT_ENV_TYPE:
 		case EF_SUNSOFT_NOISE:		// // // 050B
-			return m_iChip == SNDCHIP_S5B;
+			return m_iChip == sound_chip_t::S5B;
 		case EF_N163_WAVE_BUFFER:
-			return m_iChip == SNDCHIP_N163 && EffParam <= 0x7F;
+			return m_iChip == sound_chip_t::N163 && EffParam <= 0x7F;
 		case EF_FDS_VOLUME:
-			return m_iChip == SNDCHIP_FDS && (EffParam <= 0x7F || EffParam == 0xE0);
+			return m_iChip == sound_chip_t::FDS && (EffParam <= 0x7F || EffParam == 0xE0);
 		case EF_VRC7_PORT: case EF_VRC7_WRITE:		// // // 050B
-			return m_iChip == SNDCHIP_VRC7;
+			return m_iChip == sound_chip_t::VRC7;
 	}
 
 	return false;
@@ -201,7 +202,7 @@ bool CTrackerChannel::IsEffectCompatible(int EffNumber, int EffParam) const		// 
 /*
 int CTrackerChannel::GetEffect(int Letter) const
 {
-	if (m_iChip == SNDCHIP_FDS) {
+	if (m_iChip == sound_chip_t::FDS) {
 	}
 
 	return

@@ -41,7 +41,7 @@ const int32_t EXP_VOLUME[32] = {
 };
 
 CS5BChannel::CS5BChannel(CMixer &Mixer, chan_id_t ID) :		// // //
-	CChannel(Mixer, SNDCHIP_S5B, ID),
+	CChannel(Mixer, sound_chip_t::S5B, ID),
 	m_iVolume(0),
 	m_iPeriod(0),
 	m_iPeriodClock(0),
