@@ -982,15 +982,16 @@ CString CTextExport::ExportRows(LPCTSTR FileName, const CFamiTrackerDoc &Doc) {	
 	Doc.VisitSongs([&] (const CSongData &song, unsigned t) {
 		unsigned rows = song.GetPatternLength();
 		song.VisitPatterns([&] (const CPatternData &pat, chan_id_t c, unsigned p) {
-			pat.VisitRows(rows, [&] (const stChanNote &stCell, unsigned r) {
-				if (stCell != stChanNote { })
-					f.WriteString(Formatted(FMT, id++, t, c, p, r,
-						stCell.Note, stCell.Octave, stCell.Instrument, stCell.Vol,
-						stCell.EffNumber[0], stCell.EffParam[0],
-						stCell.EffNumber[1], stCell.EffParam[1],
-						stCell.EffNumber[2], stCell.EffParam[2],
-						stCell.EffNumber[3], stCell.EffParam[3]));
-			});
+			if (song.IsPatternInUse(c, p))
+				pat.VisitRows(rows, [&] (const stChanNote &stCell, unsigned r) {
+					if (stCell != stChanNote { })
+						f.WriteString(Formatted(FMT, id++, t, c, p, r,
+							stCell.Note, stCell.Octave, stCell.Instrument, stCell.Vol,
+							stCell.EffNumber[0], stCell.EffParam[0],
+							stCell.EffNumber[1], stCell.EffParam[1],
+							stCell.EffNumber[2], stCell.EffParam[2],
+							stCell.EffNumber[3], stCell.EffParam[3]));
+				});
 		});
 	});
 

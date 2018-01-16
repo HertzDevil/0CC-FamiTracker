@@ -155,7 +155,7 @@ std::size_t CFamiTrackerModule::GetSongCount() const {
 }
 
 std::unique_ptr<CSongData> CFamiTrackerModule::MakeNewSong() const {
-	auto pSong = std::make_unique<CSongData>(parent_);
+	auto pSong = std::make_unique<CSongData>(CSongData::DEFAULT_ROW_COUNT);
 	pSong->SetSongTempo(GetMachine() == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
 	if (GetSongCount() > 0)
 		pSong->SetRowHighlight(GetSong(0)->GetRowHighlight());

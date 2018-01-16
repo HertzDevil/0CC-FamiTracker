@@ -38,7 +38,7 @@ enum class chan_id_t : unsigned;		// // //
 class CSongData
 {
 public:
-	explicit CSongData(CFTMComponentInterface &parent, unsigned int PatternLength = DEFAULT_ROW_COUNT);		// // //
+	explicit CSongData(unsigned int PatternLength);		// // //
 	~CSongData();
 
 	CTrackData *GetTrack(chan_id_t chan);		// // //
@@ -87,69 +87,55 @@ public:
 	void SetBookmarks(const CBookmarkCollection &bookmarks);
 	void SetBookmarks(CBookmarkCollection &&bookmarks);
 
-	// void (*F)(CPatternData &pat [, unsigned ch, unsigned pat_index])
+	// void (*F)(CPatternData &pat [, chan_id_t ch, unsigned pat_index])
 	template <typename F>
 	void VisitPatterns(F f) {		// // //
-		if constexpr (std::is_invocable_v<F, CPatternData &>) {
+		if constexpr (std::is_invocable_v<F, CPatternData &, chan_id_t, unsigned>) {
 			unsigned ch_pos = 0;
 			for (auto &track : tracks_) {
-				if (IsChannelEnabled((chan_id_t)ch_pos))
-					for (auto &p : track.Patterns())
-						f(p);
+				unsigned p_index = 0;
+				for (auto &p : track.Patterns())
+					f(p, (chan_id_t)ch_pos, p_index++);
 				++ch_pos;
 			}
 		}
-		else {
-			unsigned ch_pos = 0;
-			for (auto &track : tracks_) {
-				if (IsChannelEnabled((chan_id_t)ch_pos)) {
-					unsigned p_index = 0;
-					for (auto &p : track.Patterns())
-						f(p, (chan_id_t)ch_pos, p_index++);
-				}
-				++ch_pos;
-			}
+		else if constexpr (std::is_invocable_v<F, CPatternData &>) {
+			for (auto &track : tracks_)
+				for (auto &p : track.Patterns())
+					f(p);
 		}
+		else
+			static_assert(false, "Unknown function signature");
 	}
 
-	// void (*F)(const CPatternData &pat [, unsigned ch, unsigned pat_index])
+	// void (*F)(const CPatternData &pat [, chan_id_t ch, unsigned pat_index])
 	template <typename F>
 	void VisitPatterns(F f) const {
-		if constexpr (std::is_invocable_v<F, const CPatternData &>) {
+		if constexpr (std::is_invocable_v<F, const CPatternData &, chan_id_t, unsigned>) {
 			unsigned ch_pos = 0;
 			for (auto &track : tracks_) {
-				if (IsChannelEnabled((chan_id_t)ch_pos))
-					for (auto &p : track.Patterns())
-						f(p);
+				unsigned p_index = 0;
+				for (auto &p : track.Patterns())
+					f(p, (chan_id_t)ch_pos, p_index++);
 				++ch_pos;
 			}
 		}
-		else {
-			unsigned ch_pos = 0;
-			for (auto &track : tracks_) {
-				if (IsChannelEnabled((chan_id_t)ch_pos)) {
-					unsigned p_index = 0;
-					for (auto &p : track.Patterns())
-						f(p, (chan_id_t)ch_pos, p_index++);
-				}
-				++ch_pos;
-			}
+		else if constexpr (std::is_invocable_v<F, const CPatternData &>) {
+			for (auto &track : tracks_)
+				for (auto &p : track.Patterns())
+					f(p);
 		}
+		else
+			static_assert(false, "Unknown function signature");
 	}
-
-private:
-	bool IsChannelEnabled(chan_id_t ChanID) const;		// // // TODO: move to CSongView
 
 public:
 	// // // moved from CFamiTrackerDoc
 	static const char DEFAULT_TITLE[];
 	static const stHighlight DEFAULT_HIGHLIGHT;
-
-private:
 	static const unsigned DEFAULT_ROW_COUNT;
 
-	CFTMComponentInterface &parent_;		// // //
-
+private:
 	// Track parameters
 	std::string	 m_sTrackName = DEFAULT_TITLE;			// // // moved
 	unsigned int m_iPatternLength;						// Amount of rows in one pattern

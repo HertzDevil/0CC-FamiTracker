@@ -937,6 +937,9 @@ void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerDoc &doc, int ver) {
 
 	doc.VisitSongs([&] (const CSongData &x, unsigned song) {
 		x.VisitPatterns([&] (const CPatternData &pattern, chan_id_t ch, unsigned index) {
+			if (!x.IsPatternInUse(ch, index))		// // //
+				return;
+
 			// Save all rows
 			unsigned int PatternLen = MAX_PATTERN_LENGTH;
 			//unsigned int PatternLen = Song.GetPatternLength();

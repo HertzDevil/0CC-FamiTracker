@@ -34,8 +34,7 @@ const stHighlight CSongData::DEFAULT_HIGHLIGHT = {4, 16, 0};		// // //
 // This class contains pattern data
 // A list of these objects exists inside the document one for each song
 
-CSongData::CSongData(CFTMComponentInterface &parent, unsigned int PatternLength) :		// // //
-	parent_(parent),
+CSongData::CSongData(unsigned int PatternLength) :		// // //
 	m_iPatternLength(PatternLength)
 {
 	// // // Pre-allocate pattern 0 for all channels
@@ -58,9 +57,11 @@ const CTrackData *CSongData::GetTrack(chan_id_t chan) const {
 bool CSongData::IsPatternInUse(chan_id_t Channel, unsigned int Pattern) const
 {
 	// Check if pattern is addressed in frame list
-	for (unsigned i = 0; i < m_iFrameCount; ++i)
-		if (GetFramePattern(i, Channel) == Pattern)
-			return true;
+	if (Pattern < MAX_PATTERN)
+		if (auto *pTrack = GetTrack(Channel))
+			for (unsigned i = 0; i < GetFrameCount(); ++i)
+				if (pTrack->GetFramePattern(i) == Pattern)
+					return true;
 	return false;
 }
 
@@ -229,8 +230,4 @@ void CSongData::SetBookmarks(const CBookmarkCollection &bookmarks) {
 
 void CSongData::SetBookmarks(CBookmarkCollection &&bookmarks) {
 	bookmarks_ = std::move(bookmarks);
-}
-
-bool CSongData::IsChannelEnabled(chan_id_t ChanID) const {
-	return parent_.GetChannelMap()->HasChannel(ChanID);
 }
