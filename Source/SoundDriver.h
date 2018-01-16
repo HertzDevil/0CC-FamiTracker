@@ -27,6 +27,7 @@
 #include <vector>
 #include <string>
 #include "FamiTrackerTypes.h"
+#include "APU/Types_fwd.h"
 
 const int VIBRATO_LENGTH = 256;
 const int TREMOLO_LENGTH = 256;
@@ -41,7 +42,6 @@ class CAPU;
 class CSongState;
 class stChanNote;
 class CSoundGenBase;
-enum class chan_id_t : unsigned;
 enum note_prio_t : unsigned;
 
 class CSoundDriver {
@@ -52,7 +52,7 @@ public:
 	void SetupTracks();
 	void LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu);
 	void ConfigureDocument();
-	std::unique_ptr<CChannelMap> MakeChannelMap(unsigned chips, unsigned n163chs) const;
+	std::unique_ptr<CChannelMap> MakeChannelMap(sound_chip_t chips, unsigned n163chs) const;
 
 	void StartPlayer(std::unique_ptr<CPlayerCursor> cur);
 	void StopPlayer();

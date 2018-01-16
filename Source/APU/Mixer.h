@@ -40,14 +40,12 @@ enum chip_level_t {
 	CHIP_LEVEL_S5B
 };
 
-enum class chan_id_t : unsigned;		// // //
-
 class CMixer
 {
 public:
 	void	AddValue(chan_id_t ChanID, int Value, int FrameCycles);		// // //
 
-	void	ExternalSound(int Chip);
+	void	ExternalSound(sound_chip_t Chip);		// // //
 	void	UpdateSettings(int LowCut, int HighCut, int HighDamp, float OverallVol);
 
 	bool	AllocateBuffer(unsigned int Size, uint32_t SampleRate, uint8_t NrChannels);
@@ -89,7 +87,7 @@ private:
 	CMixerChannel<stLevelsN163>    levelsN163_    {1600};
 	CMixerChannel<stLevelsS5B>     levelsS5B_     {1200};
 
-	uint8_t		m_iExternalChip = 0;
+	sound_chip_t m_iExternalChip = SNDCHIP_NONE;
 	uint32_t	m_iSampleRate = 0;
 
 	std::array<float, CHANID_COUNT>		m_fChannelLevels = { };

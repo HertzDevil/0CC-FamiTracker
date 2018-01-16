@@ -27,6 +27,7 @@
 
 #include "../Common.h"
 #include <memory>		// // //
+#include "Types_fwd.h"		// // //
 
 // External classes
 class C2A03;		// // //
@@ -44,7 +45,6 @@ class CMixer;		// // //
 class CSoundChip;		// // //
 class CRegisterState;		// // //
 enum chip_level_t : int;		// // //
-enum class chan_id_t : unsigned;		// // //
 
 #ifdef LOGGING
 class CFile;
@@ -60,7 +60,7 @@ public:
 	void	AddTime(int32_t Cycles);
 	void	EndFrame();		// // // public
 
-	void	SetExternalSound(uint8_t Chip);
+	void	SetExternalSound(sound_chip_t Chip);
 	void	Write(uint16_t Address, uint8_t Value);		// // //
 	uint8_t	Read(uint16_t Address);
 
@@ -70,9 +70,9 @@ public:
 	void	SetCallback(IAudioCallback &pCallback);		// // //
 
 	int32_t	GetVol(chan_id_t Chan) const;		// // //
-	uint8_t	GetReg(int Chip, int Reg) const;
-	double	GetFreq(int Chip, int Chan) const;		// // //
-	CRegisterState *GetRegState(int Chip, int Reg) const;		// // //
+	uint8_t	GetReg(sound_chip_t Chip, int Reg) const;
+	double	GetFreq(sound_chip_t Chip, int Chan) const;		// // //
+	CRegisterState *GetRegState(sound_chip_t Chip, int Reg) const;		// // //
 
 	uint8_t	GetSamplePos() const;
 	uint8_t	GetDeltaCounter() const;

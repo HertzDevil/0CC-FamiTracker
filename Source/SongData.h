@@ -26,13 +26,13 @@
 #include <array>		// // //
 #include <string>		// // //
 #include "FamiTrackerTypes.h"		// // //
+#include "APU/Types_fwd.h"		// // //
 #include "TrackData.h"		// // //
 #include "Highlight.h"		// // //
 #include "BookmarkCollection.h"		// // //
 
 class stChanNote;		// // //
 class CFTMComponentInterface;		// // //
-enum class chan_id_t : unsigned;		// // //
 
 // CSongData holds all notes in the patterns
 class CSongData

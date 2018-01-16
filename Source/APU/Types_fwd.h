@@ -23,43 +23,9 @@
 
 #pragma once
 
-#include "stdafx.h"
-#include "resource.h"
-#include "APU/Types_fwd.h"
+#include <cstdint>
 
-// CGotoDlg dialog
-
-class CGotoDlg : public CDialog
-{
-	DECLARE_DYNAMIC(CGotoDlg)
-
-public:
-	CGotoDlg(CWnd* pParent = NULL);   // standard constructor
-	virtual ~CGotoDlg();
-
-// Dialog Data
-	enum { IDD = IDD_GOTO };
-
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-	void CheckDestination() const;
-	static sound_chip_t GetChipFromString(const CString &str);
-	int GetFinalChannel() const;
-
-	unsigned int m_iDestFrame;
-	unsigned int m_iDestRow;
-	sound_chip_t m_iDestChip;
-	unsigned int m_iDestSubIndex;
-
-	CComboBox m_cChipEdit;
-
-	DECLARE_MESSAGE_MAP()
-public:
-	virtual BOOL OnInitDialog();
-	afx_msg void OnEnChangeEditGotoFrame();
-	afx_msg void OnEnChangeEditGotoRow();
-	afx_msg void OnEnChangeEditGotoChannel();
-	afx_msg void OnCbnSelchangeComboGotoChip();
-	afx_msg void OnBnClickedOk();
-};
+enum sound_chip_t : std::uint8_t;
+enum sound_chip_flag_t : std::uint8_t;
+enum class chan_id_t : unsigned;
+enum apu_machine_t : unsigned char;

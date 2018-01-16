@@ -24,7 +24,7 @@
 #pragma once
 
 #include <cstdint>		// // //
-#include "Types.h"		// // //
+#include "Types_fwd.h"		// // //
 
 class CMixer;
 
@@ -34,7 +34,7 @@ class CMixer;
 
 class CChannel {
 public:
-	CChannel(CMixer &Mixer, uint8_t Chip, chan_id_t ID);
+	CChannel(CMixer &Mixer, sound_chip_t Chip, chan_id_t ID);
 
 	virtual ~CChannel() noexcept = default;
 	virtual void EndFrame();
@@ -51,6 +51,6 @@ protected:
 
 	uint32_t	m_iTime = 0;		// Cycle counter, resets every new frame
 	chan_id_t	m_iChanId;			// // // This channels unique ID
-	uint8_t		m_iChip;			// Chip
+	sound_chip_t m_iChip;			// // // Chip
 	int32_t		m_iLastValue = 0;	// Last value sent to mixer
 };

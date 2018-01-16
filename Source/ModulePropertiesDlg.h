@@ -25,6 +25,7 @@
 
 #include "stdafx.h"		// // //
 #include "resource.h"		// // //
+#include "APU/Types_fwd.h"
 
 class CFamiTrackerDoc;
 
@@ -40,7 +41,7 @@ private:
 
 	bool m_bSingleSelection;		// // //
 	unsigned int m_iSelectedSong;
-	unsigned char m_iExpansions;		// // //
+	sound_chip_t m_iExpansions;		// // //
 	int m_iN163Channels;
 
 	CFamiTrackerDoc *m_pDocument;

@@ -24,6 +24,7 @@
 #pragma once
 
 #include "stdafx.h"
+#include "APU/Types_fwd.h"
 
 class CRegisterDisplay {		// // // TODO: move to its own thread
 public:
@@ -35,7 +36,7 @@ private:
 	void DrawReg(const CString &header, int count);
 	void DrawText_(int xOffs, const CString &text);
 	template <typename F>
-	void GetRegs(unsigned Chip, F f, int Count);
+	void GetRegs(sound_chip_t Chip, F f, int Count);
 
 private:
 	CDC &dc_;

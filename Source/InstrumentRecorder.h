@@ -24,6 +24,7 @@
 #pragma once
 
 #include "FamiTrackerTypes.h"
+#include "APU/Types_fwd.h"
 #include <memory>
 #include <array>
 #include <unordered_map>
@@ -35,7 +36,6 @@ class CFamiTrackerDoc;
 class CSoundGen;
 class CWnd;
 enum class sequence_t : unsigned;
-enum class chan_id_t : unsigned;
 
 struct stRecordSetting {
 	int Interval;

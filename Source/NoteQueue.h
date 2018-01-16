@@ -26,8 +26,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
-
-enum class chan_id_t : unsigned;
+#include "APU/Types_fwd.h"
 
 /*!
 	\brief A queue which automatically reassigns notes in the same logical track to different

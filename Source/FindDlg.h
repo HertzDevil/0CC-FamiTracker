@@ -33,8 +33,7 @@
 
 #include "PatternNote.h"
 #include "PatternEditorTypes.h"
-
-enum class chan_id_t : unsigned;
+#include "APU/Types_fwd.h"
 
 class CharRange
 {

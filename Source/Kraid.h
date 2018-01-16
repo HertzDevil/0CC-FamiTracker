@@ -24,11 +24,10 @@
 #pragma once
 
 #include <string_view>
+#include "APU/Types_fwd.h"
 
 class CFamiTrackerDoc;
 class CSongData;
-
-enum class chan_id_t : unsigned;
 
 // // // Easter egg
 

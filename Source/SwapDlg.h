@@ -25,8 +25,7 @@
 
 #include "stdafx.h"
 #include "resource.h"
-
-enum class chan_id_t : unsigned;
+#include "APU/Types_fwd.h"
 
 // CSwapDlg dialog
 
@@ -45,10 +44,10 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	void CheckDestination() const;
-	static int GetChipFromString(const CString &str);
+	static sound_chip_t GetChipFromString(const CString &str);
 
 	unsigned int m_iDestChannel1, m_iDestChannel2;
-	unsigned int m_iDestChip1, m_iDestChip2;
+	sound_chip_t m_iDestChip1, m_iDestChip2;
 	unsigned int m_iTrack;
 
 	CEdit m_cChannelFirst, m_cChannelSecond;

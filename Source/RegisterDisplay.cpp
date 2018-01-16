@@ -371,7 +371,7 @@ void CRegisterDisplay::DrawText_(int xOffs, const CString &text) {
 }
 
 template <typename F>
-void CRegisterDisplay::GetRegs(unsigned Chip, F f, int count) {
+void CRegisterDisplay::GetRegs(sound_chip_t Chip, F f, int count) {
 	for (int j = 0; j < count; ++j) {
 		auto pState = Env.GetSoundGenerator()->GetRegState(Chip, f(j));		// // //
 		reg[j] = pState->GetValue();

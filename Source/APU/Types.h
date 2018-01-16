@@ -20,20 +20,51 @@
 ** must bear this legend.
 */
 
+
 #pragma once
 
-#include <cstdint>
-#include <cstddef>
+#include "Types_fwd.h"
 #include <type_traits>
+#include <cstddef>
 
-// // //
-inline constexpr std::uint8_t SNDCHIP_NONE = 0;
-inline constexpr std::uint8_t SNDCHIP_VRC6 = 1;			// Konami VRCVI
-inline constexpr std::uint8_t SNDCHIP_VRC7 = 2;			// Konami VRCVII
-inline constexpr std::uint8_t SNDCHIP_FDS  = 4;			// Famicom Disk Sound
-inline constexpr std::uint8_t SNDCHIP_MMC5 = 8;			// Nintendo MMC5
-inline constexpr std::uint8_t SNDCHIP_N163 = 16;		// Namco N-106
-inline constexpr std::uint8_t SNDCHIP_S5B  = 32;		// Sunsoft 5B
+enum sound_chip_t : std::uint8_t {		// // //
+	SNDCHIP_NONE = 0x00u,
+	SNDCHIP_2A03 = 0x00u,
+	SNDCHIP_VRC6 = 0x01u,
+	SNDCHIP_VRC7 = 0x02u,
+	SNDCHIP_FDS  = 0x04u,
+	SNDCHIP_MMC5 = 0x08u,
+	SNDCHIP_N163 = 0x10u,
+	SNDCHIP_S5B  = 0x20u,
+	SNDCHIP_ALL  = 0x3Fu,
+};
+
+enum sound_chip_flag_t : std::uint8_t {
+	SNDCHIP_FLAG_NONE = SNDCHIP_NONE,
+};
+
+// // // TODO: use enum_traits (MSVC broke it)
+constexpr auto value_cast(sound_chip_t chip) noexcept {
+	using T = std::underlying_type_t<sound_chip_t>;
+	return static_cast<T>(static_cast<T>(chip) & static_cast<T>(SNDCHIP_ALL));
+}
+
+constexpr bool ContainsSoundChip(sound_chip_t flag, sound_chip_t chip) noexcept {
+	return (value_cast(flag) & value_cast(chip)) == value_cast(chip);
+}
+
+constexpr bool IsMultiChip(sound_chip_t flag) noexcept {
+	auto v = value_cast(flag);
+	return (v & (v - 1)) != 0;
+}
+
+constexpr sound_chip_t WithSoundChip(sound_chip_t flag, sound_chip_t chip) noexcept {
+	return (sound_chip_t)(value_cast(flag) | value_cast(chip));
+}
+
+constexpr sound_chip_t WithoutSoundChip(sound_chip_t flag, sound_chip_t chip) noexcept {
+	return (sound_chip_t)(value_cast(flag) & ~value_cast(chip));
+}
 
 enum class chan_id_t : unsigned {
 	SQUARE1,
@@ -86,7 +117,7 @@ constexpr auto value_cast(chan_id_t ch) noexcept {
 	return static_cast<std::underlying_type_t<chan_id_t>>(chan_id_t::NONE);
 }
 
-constexpr std::uint8_t GetChipFromChannel(chan_id_t ch) noexcept {
+constexpr sound_chip_t GetChipFromChannel(chan_id_t ch) noexcept {
 	if (ch <= chan_id_t::DPCM)
 		return SNDCHIP_NONE;
 	if (ch <= chan_id_t::VRC6_SAWTOOTH)
@@ -122,7 +153,7 @@ constexpr std::size_t GetChannelSubIndex(chan_id_t ch) noexcept {
 	return (std::size_t)chan_id_t::NONE;
 }
 
-constexpr chan_id_t MakeChannelIndex(unsigned chip, unsigned subindex) noexcept {
+constexpr chan_id_t MakeChannelIndex(sound_chip_t chip, unsigned subindex) noexcept {
 	switch (chip) {
 	case SNDCHIP_NONE:
 		if (subindex < 5)
@@ -156,7 +187,7 @@ constexpr chan_id_t MakeChannelIndex(unsigned chip, unsigned subindex) noexcept 
 	return chan_id_t::NONE;
 }
 
-enum apu_machine_t {
+enum apu_machine_t : unsigned char {
 	MACHINE_NTSC,
 	MACHINE_PAL
 };

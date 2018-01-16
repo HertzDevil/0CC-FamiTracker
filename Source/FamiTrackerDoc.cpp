@@ -1262,8 +1262,8 @@ const CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index) const		// // /
 	return *GetSong(Index);
 }
 
-void CFamiTrackerDoc::SelectExpansionChip(unsigned chips, unsigned n163chs) {		// // //
-	ASSERT(n163chs <= 8 && !(chips & SNDCHIP_N163) == !n163chs);
+void CFamiTrackerDoc::SelectExpansionChip(sound_chip_t chips, unsigned n163chs) {		// // //
+	ASSERT(n163chs <= 8 && (ContainsSoundChip(chips, SNDCHIP_N163) == (n163chs != 0)));
 
 	// // // Complete sound chip setup
 	if (chips != SNDCHIP_NONE)
@@ -1279,7 +1279,7 @@ void CFamiTrackerDoc::SelectExpansionChip(unsigned chips, unsigned n163chs) {		/
 	ModifyIrreversible();
 }
 
-unsigned char CFamiTrackerDoc::GetExpansionChip() const {
+sound_chip_t CFamiTrackerDoc::GetExpansionChip() const {
 	return m_pChannelMap->GetExpansionFlag();		// // //
 }
 
@@ -1320,7 +1320,7 @@ void CFamiTrackerDoc::ModifyIrreversible()
 	SetExceededFlag(TRUE);
 }
 
-bool CFamiTrackerDoc::ExpansionEnabled(int Chip) const {
+bool CFamiTrackerDoc::ExpansionEnabled(sound_chip_t Chip) const {
 	return m_pChannelMap->HasExpansionChip(Chip);		// // //
 }
 
@@ -1342,7 +1342,7 @@ bool CFamiTrackerDoc::IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsi
 
 // Channel interface, these functions must be synchronized!!!
 
-int CFamiTrackerDoc::GetChipType(int Index) const
+sound_chip_t CFamiTrackerDoc::GetChipType(int Index) const
 {
 	return m_pChannelMap->GetChipType(Index);		// // //
 }

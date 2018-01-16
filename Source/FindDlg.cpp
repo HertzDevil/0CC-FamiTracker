@@ -258,7 +258,7 @@ void CFindResultsBox::SelectItem(int Index)
 	const auto pDoc = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
 
 	const auto ToChannelID = [] (std::string_view x) {
-		static const std::tuple<std::string_view, std::uint8_t, unsigned> HEADERS[] = {
+		static const std::tuple<std::string_view, sound_chip_t, unsigned> HEADERS[] = {
 			{"Pulse "     , SNDCHIP_NONE, GetChannelSubIndex(chan_id_t::SQUARE1)},
 			{"Triangle"   , SNDCHIP_NONE, GetChannelSubIndex(chan_id_t::TRIANGLE)},
 			{"Noise"      , SNDCHIP_NONE, GetChannelSubIndex(chan_id_t::NOISE)},

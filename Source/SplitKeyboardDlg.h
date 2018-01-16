@@ -25,8 +25,7 @@
 
 #include "stdafx.h"
 #include "resource.h"
-
-enum class chan_id_t : unsigned;
+#include "APU/Types_fwd.h"
 
 // CSplitKeyboardDlg dialog
 

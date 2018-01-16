@@ -130,7 +130,7 @@ void CSoundDriver::ConfigureDocument() {
 		}
 }
 
-std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(unsigned chips, unsigned n163chs) const {
+std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(sound_chip_t chips, unsigned n163chs) const {
 	// This affects the sound channel interface so it must be synchronized
 	auto map = std::make_unique<CChannelMap>(chips, n163chs);		// // //
 
@@ -279,11 +279,11 @@ void CSoundDriver::UpdateChannels() {
 }
 
 void CSoundDriver::UpdateAPU(int cycles) {
-	unsigned int LastChip = SNDCHIP_NONE;		// // // 050B
+	sound_chip_t LastChip = SNDCHIP_NONE;		// // // 050B
 
 	for (auto &x : tracks_) {
 		if (auto &ch = x.first) {
-			unsigned int Chip = x.second->GetChip();
+			sound_chip_t Chip = x.second->GetChip();
 			if (doc_->ExpansionEnabled(Chip)) {
 				int Delay = (Chip == LastChip) ? 150 : 250;
 				if (Delay < cycles) {

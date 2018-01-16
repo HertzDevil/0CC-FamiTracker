@@ -29,7 +29,7 @@
  *
  */
 
-CTrackerChannel::CTrackerChannel(LPCTSTR pName, LPCTSTR pShort, const int iChip, chan_id_t iID) :		// // //
+CTrackerChannel::CTrackerChannel(LPCTSTR pName, LPCTSTR pShort, sound_chip_t iChip, chan_id_t iID) :		// // //
 	m_pShortName(pShort),		// // //
 	m_pChannelName(pName),
 	m_iChip(iChip),
@@ -55,7 +55,7 @@ LPCTSTR CTrackerChannel::GetShortName() const
 	return m_pShortName;
 }
 
-const char CTrackerChannel::GetChip() const
+sound_chip_t CTrackerChannel::GetChip() const
 {
 	return m_iChip;
 }

@@ -27,6 +27,7 @@
 
 #include <memory>		// // //
 #include <string>		// // //
+#include "APU/Types_fwd.h"		// // //
 
 // Constants, types and enums
 #include "FTMComponentInterface.h"
@@ -67,7 +68,6 @@ enum class sequence_t : unsigned;
 enum cursor_column_t : unsigned int; // TODO: remove
 enum machine_t : unsigned char;
 enum vibrato_t : unsigned char;
-enum class chan_id_t : unsigned;
 
 namespace ft0cc::doc {		// // //
 class groove;
@@ -144,14 +144,11 @@ public:
 	// Interface functions (not related to document data) TODO move this?
 	//
 	CTrackerChannel	&GetChannel(int Index) const;		// // //
-	CTrackerChannel	&GetChannel(chan_id_t) const = delete;		// // //
 	int				GetChannelIndex(chan_id_t Channel) const;		// // //
 	bool			HasChannel(chan_id_t Channel) const;		// // //
 
 	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
-	chan_id_t		TranslateChannel(chan_id_t) const = delete;
-	int				GetChipType(int Index) const;
-	int				GetChipType(chan_id_t) const = delete;
+	sound_chip_t	GetChipType(int Index) const;
 	int				GetChannelCount() const;
 
 	// Synchronization
@@ -217,9 +214,9 @@ public:
 	// Global (module) data
 	unsigned int	GetFrameRate() const;
 
-	void			SelectExpansionChip(unsigned chips, unsigned n163chs);		// // //
-	unsigned char	GetExpansionChip() const;
-	bool			ExpansionEnabled(int Chip) const;
+	void			SelectExpansionChip(sound_chip_t chips, unsigned n163chs);		// // //
+	sound_chip_t	GetExpansionChip() const;
+	bool			ExpansionEnabled(sound_chip_t Chip) const;
 	int				GetNamcoChannels() const;
 
 	stHighlight		GetHighlightAt(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //

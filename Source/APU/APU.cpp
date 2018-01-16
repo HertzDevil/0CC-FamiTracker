@@ -172,7 +172,7 @@ void CAPU::SetCallback(IAudioCallback &pCallback) {
 	m_pParent = &pCallback;
 }
 
-void CAPU::SetExternalSound(uint8_t Chip)
+void CAPU::SetExternalSound(sound_chip_t Chip)
 {
 	// Set expansion chip
 	m_iExternalSoundChip = Chip;
@@ -180,18 +180,19 @@ void CAPU::SetExternalSound(uint8_t Chip)
 
 	ExChips.clear();
 
-	ExChips.push_back(m_p2A03.get());		// // //
-	if (Chip & SNDCHIP_VRC6)
+	if (ContainsSoundChip(Chip, SNDCHIP_2A03))		// // //
+		ExChips.push_back(m_p2A03.get());
+	if (ContainsSoundChip(Chip, SNDCHIP_VRC6))
 		ExChips.push_back(m_pVRC6.get());
-	if (Chip & SNDCHIP_VRC7)
+	if (ContainsSoundChip(Chip, SNDCHIP_VRC7))
 		ExChips.push_back(m_pVRC7.get());
-	if (Chip & SNDCHIP_FDS)
+	if (ContainsSoundChip(Chip, SNDCHIP_FDS))
 		ExChips.push_back(m_pFDS.get());
-	if (Chip & SNDCHIP_MMC5)
+	if (ContainsSoundChip(Chip, SNDCHIP_MMC5))
 		ExChips.push_back(m_pMMC5.get());
-	if (Chip & SNDCHIP_N163)
+	if (ContainsSoundChip(Chip, SNDCHIP_N163))
 		ExChips.push_back(m_pN163.get());
-	if (Chip & SNDCHIP_S5B)
+	if (ContainsSoundChip(Chip, SNDCHIP_S5B))
 		ExChips.push_back(m_pS5B.get());
 
 	Reset();
@@ -389,18 +390,18 @@ void CAPU::LogWrite(uint16_t Address, uint8_t Value)
 		r->Log(Address, Value);
 }
 
-uint8_t CAPU::GetReg(int Chip, int Reg) const
+uint8_t CAPU::GetReg(sound_chip_t Chip, int Reg) const
 {
 	if (auto r = GetRegState(Chip, Reg))		// // //
 		return r->GetValue();
 	return static_cast<uint8_t>(0);
 }
 
-double CAPU::GetFreq(int Chip, int Chan) const
+double CAPU::GetFreq(sound_chip_t Chip, int Chan) const
 {
 	const CSoundChip *pChip = nullptr;
 	switch (Chip) {
-	case SNDCHIP_NONE: pChip = m_p2A03.get(); break;
+	case SNDCHIP_2A03: pChip = m_p2A03.get(); break;
 	case SNDCHIP_VRC6: pChip = m_pVRC6.get(); break;
 	case SNDCHIP_VRC7: pChip = m_pVRC7.get(); break;
 	case SNDCHIP_FDS:  pChip = m_pFDS.get(); break;
@@ -412,11 +413,11 @@ double CAPU::GetFreq(int Chip, int Chan) const
 	return pChip->GetFreq(Chan);
 }
 
-CRegisterState *CAPU::GetRegState(int Chip, int Reg) const		// // //
+CRegisterState *CAPU::GetRegState(sound_chip_t Chip, int Reg) const		// // //
 {
 	const CSoundChip *pChip = nullptr;
 	switch (Chip) {
-	case SNDCHIP_NONE: pChip = m_p2A03.get(); break;
+	case SNDCHIP_2A03: pChip = m_p2A03.get(); break;
 	case SNDCHIP_VRC6: pChip = m_pVRC6.get(); break;
 	case SNDCHIP_VRC7: pChip = m_pVRC7.get(); break;
 	case SNDCHIP_FDS:  pChip = m_pFDS.get(); break;

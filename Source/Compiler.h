@@ -31,6 +31,7 @@
 #include <map>		// // //
 #include <cstdint>		// // //
 #include "FamiTrackerTypes.h"
+#include "APU/Types_fwd.h"		// // //
 #include "Sequence.h"		// // // TODO: remove
 
 // NSF file header
@@ -73,7 +74,6 @@ struct stNSFeHeader {		// // //
 struct driver_t;
 class CChunk;
 enum chunk_type_t : int;
-enum class chan_id_t : unsigned;
 struct stChunkLabel;		// // //
 namespace ft0cc::doc {
 class dpcm_sample;
@@ -264,7 +264,7 @@ private:
 	unsigned int	m_iWaveTables;
 
 	// // // Full chip export
-	unsigned char	m_iActualChip;
+	sound_chip_t	m_iActualChip;
 	int				m_iActualNamcoChannels;
 
 	// Optimization

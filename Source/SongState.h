@@ -24,13 +24,13 @@
 #pragma once
 
 #include "FamiTrackerTypes.h" // constants
+#include "APU/Types_fwd.h"
 #include <memory>
 #include <string>
 #include <array>
 
 class CFamiTrackerDoc;
 class stChanNote;
-enum class chan_id_t : unsigned;
 
 std::string MakeCommandString(effect_t Effect, unsigned char Param);		// // //
 

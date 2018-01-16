@@ -191,7 +191,7 @@ void CSoundGen::SetVisualizerWindow(CVisualizerWnd *pWnd)
 	m_csVisualizerWndLock.Unlock();
 }
 
-std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(unsigned chips, unsigned n163chs) const {		// // //
+std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(sound_chip_t chips, unsigned n163chs) const {		// // //
 	// This method will add channels to the document object, depending on the expansion chip used.
 	// Called from the document object (from the main thread)
 
@@ -201,7 +201,7 @@ std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(unsigned chips, unsigned 
 	return m_pSoundDriver->MakeChannelMap(chips, n163chs);		// // //
 }
 
-void CSoundGen::SelectChip(int Chip)
+void CSoundGen::SelectChip(sound_chip_t Chip)
 {
 	if (IsPlaying()) {
 		StopPlayer();
@@ -212,7 +212,7 @@ void CSoundGen::SelectChip(int Chip)
 		return;
 	}
 
-	PostThreadMessage(WM_USER_SET_CHIP, Chip, 0);
+	PostThreadMessage(WM_USER_SET_CHIP, value_cast(Chip), 0);
 }
 
 void CSoundGen::DocumentPropertiesChanged(CFamiTrackerDoc *pDocument)
@@ -292,7 +292,7 @@ void CSoundGen::WriteAPU(int Address, char Value)
 	PostThreadMessage(WM_USER_WRITE_APU, (WPARAM)Address, (LPARAM)Value);
 }
 
-bool CSoundGen::IsExpansionEnabled(int Chip) const {		// // //
+bool CSoundGen::IsExpansionEnabled(sound_chip_t Chip) const {		// // //
 	return m_pDocument && m_pDocument->ExpansionEnabled(Chip);
 }
 
@@ -712,17 +712,17 @@ void CSoundGen::ResetAPU()
 	m_pAPU->ClearSample();		// // //
 }
 
-uint8_t CSoundGen::GetReg(int Chip, int Reg) const
+uint8_t CSoundGen::GetReg(sound_chip_t Chip, int Reg) const
 {
 	return m_pAPU->GetReg(Chip, Reg);
 }
 
-CRegisterState *CSoundGen::GetRegState(unsigned Chip, unsigned Reg) const		// // //
+CRegisterState *CSoundGen::GetRegState(sound_chip_t Chip, unsigned Reg) const		// // //
 {
 	return m_pAPU->GetRegState(Chip, Reg);
 }
 
-double CSoundGen::GetChannelFrequency(unsigned Chip, int Channel) const		// // //
+double CSoundGen::GetChannelFrequency(sound_chip_t Chip, int Channel) const		// // //
 {
 	return m_pAPU->GetFreq(Chip, Channel);
 }
@@ -1123,7 +1123,7 @@ void CSoundGen::OnCloseSound(WPARAM wParam, LPARAM lParam)
 
 void CSoundGen::OnSetChip(WPARAM wParam, LPARAM lParam)
 {
-	int Chip = wParam;
+	auto Chip = (sound_chip_t)wParam;
 
 	m_pAPU->SetExternalSound(Chip);
 

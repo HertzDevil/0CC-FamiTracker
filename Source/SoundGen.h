@@ -104,8 +104,8 @@ public:
 	void		SetVisualizerWindow(CVisualizerWnd *pWnd);
 
 	// Multiple times initialization
-	std::unique_ptr<CChannelMap>	MakeChannelMap(unsigned chips, unsigned n163chs) const;		// // //
-	void		SelectChip(int Chip);
+	std::unique_ptr<CChannelMap>	MakeChannelMap(sound_chip_t chips, unsigned n163chs) const;		// // //
+	void		SelectChip(sound_chip_t Chip);
 	void		LoadMachineSettings();		// // // 050B
 
 	// Sound
@@ -166,12 +166,12 @@ public:
 	void		 WriteAPU(int Address, char Value);
 
 	// Other
-	bool		IsExpansionEnabled(int Chip) const;		// // //
+	bool		IsExpansionEnabled(sound_chip_t Chip) const;		// // //
 	int			GetNamcoChannelCount() const;		// // //
 
-	uint8_t		GetReg(int Chip, int Reg) const;
-	CRegisterState *GetRegState(unsigned Chip, unsigned Reg) const;		// // //
-	double		GetChannelFrequency(unsigned Chip, int Channel) const;		// // //
+	uint8_t		GetReg(sound_chip_t Chip, int Reg) const;
+	CRegisterState *GetRegState(sound_chip_t Chip, unsigned Reg) const;		// // //
+	double		GetChannelFrequency(sound_chip_t Chip, int Channel) const;		// // //
 	std::string	RecallChannelState(chan_id_t Channel) const;		// // //
 
 	// FDS & N163 wave preview

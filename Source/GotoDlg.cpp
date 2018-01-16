@@ -120,7 +120,7 @@ void CGotoDlg::CheckDestination() const
 	GetDlgItem(IDOK)->EnableWindow(Valid);
 }
 
-int CGotoDlg::GetChipFromString(const CString &str)
+sound_chip_t CGotoDlg::GetChipFromString(const CString &str)
 {
 	if (str == _T("2A03"))
 		return SNDCHIP_NONE;

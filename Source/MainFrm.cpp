@@ -1601,52 +1601,32 @@ void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 {
 	CString String;
 
-	int Chip = GetDoc().GetExpansionChip();
+	sound_chip_t Chip = GetDoc().GetExpansionChip();
 
-	if (!Chip)		// // //
+	if (Chip == SNDCHIP_NONE)		// // //
 		String = _T("No expansion chip");
-	else if (!(Chip & (Chip - 1)))
+	else if (!IsMultiChip(Chip))
 		switch (Chip) {
-			case SNDCHIP_VRC6:
-				String = _T(" Konami VRC6");
-				break;
-			case SNDCHIP_VRC7:
-				String = _T(" Konami VRC7");
-				break;
-			case SNDCHIP_FDS:
-				String = _T(" Nintendo FDS");
-				break;
-			case SNDCHIP_MMC5:
-				String = _T(" Nintendo MMC5");
-				break;
-			case SNDCHIP_N163:
-				String = _T(" Namco 163");
-				break;
-			case SNDCHIP_S5B:
-				String = _T(" Sunsoft 5B");
-				break;
+		case SNDCHIP_VRC6: String = _T(" Konami VRC6");   break;
+		case SNDCHIP_VRC7: String = _T(" Konami VRC7");   break;
+		case SNDCHIP_FDS:  String = _T(" Nintendo FDS");  break;
+		case SNDCHIP_MMC5: String = _T(" Nintendo MMC5"); break;
+		case SNDCHIP_N163: String = _T(" Namco 163");     break;
+		case SNDCHIP_S5B:  String = _T(" Sunsoft 5B");    break;
 		}
 	else {
-		for (int i = 0; i < 6; i++)	if (Chip & (1 << i)) switch (i) {
-			case 0:
-				String += _T(" + VRC6");
-				break;
-			case 1:
-				String += _T(" + VRC7");
-				break;
-			case 2:
-				String += _T(" + FDS");
-				break;
-			case 3:
-				String += _T(" + MMC5");
-				break;
-			case 4:
-				String += _T(" + N163");
-				break;
-			case 5:
-				String += _T(" + S5B");
-				break;
-		}
+		if (ContainsSoundChip(Chip, SNDCHIP_VRC6))
+			String += _T(" + VRC6");
+		if (ContainsSoundChip(Chip, SNDCHIP_VRC7))
+			String += _T(" + VRC7");
+		if (ContainsSoundChip(Chip, SNDCHIP_FDS))
+			String += _T(" + FDS");
+		if (ContainsSoundChip(Chip, SNDCHIP_MMC5))
+			String += _T(" + MMC5");
+		if (ContainsSoundChip(Chip, SNDCHIP_N163))
+			String += _T(" + N163");
+		if (ContainsSoundChip(Chip, SNDCHIP_S5B))
+			String += _T(" + S5B");
 		String.Delete(0, 3);
 	}
 
@@ -2605,46 +2585,34 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 	const CFamiTrackerDoc &Doc = GetDoc();
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 
-	int Chip = Doc.GetExpansionChip();
-	int SelectedChip = Doc.GetChipType(pView->GetSelectedChannel());		// // // where the cursor is located
+	sound_chip_t Chip = Doc.GetExpansionChip();		// // //
+	sound_chip_t SelectedChip = Doc.GetChipType(pView->GetSelectedChannel());		// // // where the cursor is located
 
 	menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_2A03, _T("New 2A03 instrument"));
 
-	if (Chip & SNDCHIP_VRC6)
+	if (ContainsSoundChip(Chip, SNDCHIP_NONE))
+		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_2A03, _T("New 2A03 instrument"));
+	if (ContainsSoundChip(Chip, SNDCHIP_VRC6))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_VRC6, _T("New VRC6 instrument"));
-	if (Chip & SNDCHIP_VRC7)
+	if (ContainsSoundChip(Chip, SNDCHIP_VRC7))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_VRC7, _T("New VRC7 instrument"));
-	if (Chip & SNDCHIP_FDS)
+	if (ContainsSoundChip(Chip, SNDCHIP_FDS))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_FDS, _T("New FDS instrument"));
-	if (Chip & SNDCHIP_MMC5)
+	if (ContainsSoundChip(Chip, SNDCHIP_MMC5))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_MMC5, _T("New MMC5 instrument"));
-	if (Chip & SNDCHIP_N163)
+	if (ContainsSoundChip(Chip, SNDCHIP_N163))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_N163, _T("New Namco instrument"));
-	if (Chip & SNDCHIP_S5B)
+	if (ContainsSoundChip(Chip, SNDCHIP_S5B))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_S5B, _T("New Sunsoft instrument"));
 
 	switch (SelectedChip) {
-		case SNDCHIP_NONE:
-			menu.SetDefaultItem(ID_INSTRUMENT_ADD_2A03);
-			break;
-		case SNDCHIP_VRC6:
-			menu.SetDefaultItem(ID_INSTRUMENT_ADD_VRC6);
-			break;
-		case SNDCHIP_VRC7:
-			menu.SetDefaultItem(ID_INSTRUMENT_ADD_VRC7);
-			break;
-		case SNDCHIP_FDS:
-			menu.SetDefaultItem(ID_INSTRUMENT_ADD_FDS);
-			break;
-		case SNDCHIP_MMC5:
-			menu.SetDefaultItem(ID_INSTRUMENT_ADD_MMC5);
-			break;
-		case SNDCHIP_N163:
-			menu.SetDefaultItem(ID_INSTRUMENT_ADD_N163);
-			break;
-		case SNDCHIP_S5B:
-			menu.SetDefaultItem(ID_INSTRUMENT_ADD_S5B);
-			break;
+	case SNDCHIP_NONE: menu.SetDefaultItem(ID_INSTRUMENT_ADD_2A03); break;
+	case SNDCHIP_VRC6: menu.SetDefaultItem(ID_INSTRUMENT_ADD_VRC6); break;
+	case SNDCHIP_VRC7: menu.SetDefaultItem(ID_INSTRUMENT_ADD_VRC7); break;
+	case SNDCHIP_FDS:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_FDS);  break;
+	case SNDCHIP_MMC5: menu.SetDefaultItem(ID_INSTRUMENT_ADD_MMC5); break;
+	case SNDCHIP_N163: menu.SetDefaultItem(ID_INSTRUMENT_ADD_N163); break;
+	case SNDCHIP_S5B:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_S5B);  break;
 	}
 
 	menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, rect.left, rect.bottom, this);

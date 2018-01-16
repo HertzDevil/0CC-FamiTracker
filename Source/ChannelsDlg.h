@@ -25,10 +25,9 @@
 
 #include "stdafx.h"		// // //
 #include "resource.h"		// // //
+#include "APU/Types_fwd.h"		// // //
 
 const int ROOT_ITEM_COUNT = 7;
-
-enum class chan_id_t : unsigned;		// // //
 
 // CChannelsDlg dialog
 

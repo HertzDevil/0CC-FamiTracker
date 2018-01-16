@@ -155,7 +155,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 		bool Action = false;
 
 		const auto &TrackerChannel = m_pDocument->GetChannel(m_pDocument->GetChannelIndex(Channel));		// // //
-		int ChipID = TrackerChannel.GetChip();
+		sound_chip_t ChipID = TrackerChannel.GetChip();
 
 		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT &&
 			Note != HALT && Note != NONE && Note != RELEASE) {		// // //

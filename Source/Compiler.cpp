@@ -908,73 +908,75 @@ bool CCompiler::CompileData()
 
 	// Select driver and channel order
 	switch (m_pDocument->GetExpansionChip()) {
-		case SNDCHIP_NONE:
-			m_pDriverData = &DRIVER_PACK_2A03;
-			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_2A03;
-			Print(_T(" * No expansion chip\n"));
-			break;
-		case SNDCHIP_VRC6:
-			m_pDriverData = &DRIVER_PACK_VRC6;
-			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_VRC6;
-			Print(_T(" * VRC6 expansion enabled\n"));
-			break;
-		case SNDCHIP_MMC5:
-			m_pDriverData = &DRIVER_PACK_MMC5;
-			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_MMC5;
-			Print(_T(" * MMC5 expansion enabled\n"));
-			break;
-		case SNDCHIP_VRC7:
-			m_pDriverData = &DRIVER_PACK_VRC7;
-			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_VRC7;
-			Print(_T(" * VRC7 expansion enabled\n"));
-			break;
-		case SNDCHIP_FDS:
-			m_pDriverData = &DRIVER_PACK_FDS;
-			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_FDS;
-			Print(_T(" * FDS expansion enabled\n"));
-			break;
-		case SNDCHIP_N163:
-			m_pDriverData = &DRIVER_PACK_N163;
-			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_N163;
-			Print(_T(" * N163 expansion enabled\n"));
-			break;
-		case SNDCHIP_S5B:
-			m_pDriverData = &DRIVER_PACK_S5B;
-			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_S5B;
-			Print(_T(" * S5B expansion enabled\n"));
-			break;
-		default:		// // // crude, not meant for release
-			m_pDriverData = &DRIVER_PACK_ALL;
-			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_ALL;
-			Print(_T(" * Multiple expansion chips enabled\n"));
-//			if (m_pDocument->ExpansionEnabled(SNDCHIP_N163))
-//				m_pDocument->SetNamcoChannels(8, true);
-//			m_pDocument->SelectExpansionChip(0x3F, true);
-			break;
+	case SNDCHIP_NONE:
+		m_pDriverData = &DRIVER_PACK_2A03;
+		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_2A03;
+		Print(_T(" * No expansion chip\n"));
+		break;
+	case SNDCHIP_VRC6:
+		m_pDriverData = &DRIVER_PACK_VRC6;
+		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_VRC6;
+		Print(_T(" * VRC6 expansion enabled\n"));
+		break;
+	case SNDCHIP_MMC5:
+		m_pDriverData = &DRIVER_PACK_MMC5;
+		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_MMC5;
+		Print(_T(" * MMC5 expansion enabled\n"));
+		break;
+	case SNDCHIP_VRC7:
+		m_pDriverData = &DRIVER_PACK_VRC7;
+		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_VRC7;
+		Print(_T(" * VRC7 expansion enabled\n"));
+		break;
+	case SNDCHIP_FDS:
+		m_pDriverData = &DRIVER_PACK_FDS;
+		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_FDS;
+		Print(_T(" * FDS expansion enabled\n"));
+		break;
+	case SNDCHIP_N163:
+		m_pDriverData = &DRIVER_PACK_N163;
+		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_N163;
+		Print(_T(" * N163 expansion enabled\n"));
+		break;
+	case SNDCHIP_S5B:
+		m_pDriverData = &DRIVER_PACK_S5B;
+		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_S5B;
+		Print(_T(" * S5B expansion enabled\n"));
+		break;
+	default:		// // // crude, not meant for release
+		m_pDriverData = &DRIVER_PACK_ALL;
+		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_ALL;
+		Print(_T(" * Multiple expansion chips enabled\n"));
+//		if (m_pDocument->ExpansionEnabled(SNDCHIP_N163))
+//			m_pDocument->SetNamcoChannels(8, true);
+//		m_pDocument->SelectExpansionChip(SNDCHIP_ALL, true);
+		break;
 	}
 
 	// // // Setup channel order list, DPCM is located last
-	const int Chip = m_pDocument->GetExpansionChip();
-	for (int i = 0; i < 4; i++)
-		m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_NONE, i));
-	if (Chip & SNDCHIP_MMC5)
+	const sound_chip_t Chip = m_pDocument->GetExpansionChip();
+	if (ContainsSoundChip(Chip, SNDCHIP_NONE))
+		for (int i = 0; i < 4; i++)
+			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_NONE, i));
+	if (ContainsSoundChip(Chip, SNDCHIP_MMC5))
 		for (int i = 0; i < 2; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_MMC5, i));
-	if (Chip & SNDCHIP_VRC6)
+	if (ContainsSoundChip(Chip, SNDCHIP_VRC6))
 		for (int i = 0; i < CHANNELS_VRC6; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_VRC6, i));
-	if (Chip & SNDCHIP_N163)
+	if (ContainsSoundChip(Chip, SNDCHIP_N163))
 		for (int i = 0; i < m_iActualNamcoChannels; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_N163, i));
-	if (Chip & SNDCHIP_FDS)
+	if (ContainsSoundChip(Chip, SNDCHIP_FDS))
 		m_vChanOrder.push_back(chan_id_t::FDS);
-	if (Chip & SNDCHIP_S5B)
+	if (ContainsSoundChip(Chip, SNDCHIP_S5B))
 		for (int i = 0; i < 3; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_S5B, i));
-	if (Chip & SNDCHIP_VRC7)
+	if (ContainsSoundChip(Chip, SNDCHIP_VRC7))
 		for (int i = 0; i < CHANNELS_VRC7; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_VRC7, i));
-	m_vChanOrder.push_back(chan_id_t::DPCM);
+	if (ContainsSoundChip(Chip, SNDCHIP_NONE))
+		m_vChanOrder.push_back(chan_id_t::DPCM);
 
 	// Driver size
 	m_iDriverSize = m_pDriverData->driver_size;

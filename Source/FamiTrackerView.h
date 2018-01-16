@@ -34,6 +34,7 @@
 #include "PatternEditorTypes.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
 #include "PlayerCursor.h"		// // //
+#include "APU/Types_fwd.h"		// // //
 
 // External classes
 class CFamiTrackerDoc;
@@ -43,8 +44,6 @@ class CAction;
 class CNoteQueue;		// // //
 class CArpeggiator;		// // //
 class CMainFrame;		// // //
-
-enum class chan_id_t : unsigned;		// // //
 
 // // // Player modes
 enum class play_mode_t {

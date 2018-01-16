@@ -23,11 +23,12 @@
 
 #pragma once
 
+#include "APU/Types_fwd.h"		// // //
+
 // // // tentative base class for CSoundGen, might become CSoundDriverBase later
 
 class stChanNote;
 class CFTMComponentInterface;
-enum class chan_id_t : unsigned;
 
 class CSoundGenBase {
 public:

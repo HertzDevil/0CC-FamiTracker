@@ -24,9 +24,9 @@
 #pragma once
 
 #include <memory>
+#include "APU/Types_fwd.h"
 
 class CChannelHandler;
-enum class chan_id_t : unsigned;
 
 struct CChannelFactory {
 	static std::unique_ptr<CChannelHandler> Make(chan_id_t id);

@@ -96,15 +96,15 @@ BOOL CSwapDlg::OnInitDialog()
 
 void CSwapDlg::CheckDestination() const
 {
-	GetDlgItem(IDOK)->EnableWindow(MakeChannelIndex(m_iDestChannel1, m_iDestChip1) != chan_id_t::NONE &&
-								   MakeChannelIndex(m_iDestChannel2, m_iDestChip2) != chan_id_t::NONE &&
+	GetDlgItem(IDOK)->EnableWindow(MakeChannelIndex(m_iDestChip1, m_iDestChannel1) != chan_id_t::NONE &&
+								   MakeChannelIndex(m_iDestChip2, m_iDestChannel2) != chan_id_t::NONE &&
 								   (m_iDestChannel1 != m_iDestChannel2 || m_iDestChip1 != m_iDestChip2));
 }
 
-int CSwapDlg::GetChipFromString(const CString &str)
+sound_chip_t CSwapDlg::GetChipFromString(const CString &str)
 {
 	if (str == _T("2A03"))
-		return SNDCHIP_NONE;
+		return SNDCHIP_2A03;
 	else if (str == _T("VRC6"))
 		return SNDCHIP_VRC6;
 	else if (str == _T("VRC7"))
@@ -155,8 +155,8 @@ void CSwapDlg::OnCbnSelchangeComboSwapChip2()
 
 void CSwapDlg::OnBnClickedOk()
 {
-	auto lhs = MakeChannelIndex(m_iDestChannel1, m_iDestChip1);
-	auto rhs = MakeChannelIndex(m_iDestChannel2, m_iDestChip2);
+	auto lhs = MakeChannelIndex(m_iDestChip1, m_iDestChannel1);
+	auto rhs = MakeChannelIndex(m_iDestChip2, m_iDestChannel2);
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 	if (IsDlgButtonChecked(IDC_CHECK_SWAP_ALL) == BST_CHECKED)

@@ -624,7 +624,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			t.ReadEOL();
 			break;
 		case CT_EXPANSION:
-			Doc.SelectExpansionChip(t.ReadInt(0, 63), Doc.GetNamcoChannels());		// // //
+			Doc.SelectExpansionChip((sound_chip_t)t.ReadInt(0, value_cast(SNDCHIP_ALL)), Doc.GetNamcoChannels());		// // //
 			t.ReadEOL();
 			break;
 		case CT_VIBRATO:

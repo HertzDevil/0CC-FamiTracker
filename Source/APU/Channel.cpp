@@ -23,7 +23,7 @@
 #include "Channel.h"
 #include "Mixer.h"
 
-CChannel::CChannel(CMixer &Mixer, uint8_t Chip, chan_id_t ID) :
+CChannel::CChannel(CMixer &Mixer, sound_chip_t Chip, chan_id_t ID) :
 	m_pMixer(&Mixer), m_iChip(Chip), m_iChanId(ID) {
 }
 

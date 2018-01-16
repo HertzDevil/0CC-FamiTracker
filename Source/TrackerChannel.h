@@ -26,8 +26,8 @@
 // CTrackerChannel
 
 #include "stdafx.h"		// // //
-#include "APU/Types.h"		// // //
 #include "PatternNote.h"		// // //
+#include "APU/Types_fwd.h"		// // //
 
 enum inst_type_t : unsigned;
 
@@ -42,11 +42,11 @@ class CChannelMap;		// // //
 class CTrackerChannel
 {
 public:
-	CTrackerChannel(LPCTSTR pName, LPCTSTR pShort, const int iChip, chan_id_t iID);		// // //
+	CTrackerChannel(LPCTSTR pName, LPCTSTR pShort, sound_chip_t iChip, chan_id_t iID);		// // //
 	~CTrackerChannel(void);
 	LPCTSTR GetChannelName() const;
 	LPCTSTR GetShortName() const;		// // //
-	const char GetChip() const;
+	sound_chip_t GetChip() const;		// // //
 	chan_id_t GetID() const;		// // //
 
 	stChanNote GetNote();
@@ -67,15 +67,16 @@ private:
 	LPCTSTR m_pChannelName, m_pShortName;		// // //
 
 private:
-	int m_iChip;
-	chan_id_t m_iChannelID;		// // //
-
 	stChanNote m_Note;
-	bool m_bNewNote;
 	note_prio_t	m_iNotePriority;
 
 	int m_iVolumeMeter;
 	int m_iPitch;
+
+	bool m_bNewNote;
+
+	sound_chip_t m_iChip;		// // //
+	chan_id_t m_iChannelID;		// // //
 
 private:
 	CCriticalSection m_csNoteLock;

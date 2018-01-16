@@ -617,6 +617,7 @@
     <ClInclude Include="Source\APU\MixerLevels.h" />
     <ClInclude Include="Source\APU\S5B.h" />
     <ClInclude Include="Source\APU\SampleMem.h" />
+    <ClInclude Include="Source\APU\Types_fwd.h" />
     <ClInclude Include="Source\Arpeggiator.h" />
     <ClInclude Include="Source\AudioDriver.h" />
     <ClInclude Include="Source\Bookmark.h" />

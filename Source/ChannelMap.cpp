@@ -22,6 +22,7 @@
 
 #include "ChannelMap.h"
 #include "TrackerChannel.h"
+#include "APU/Types.h"		// // //
 
 /*
  *  This class contains the expansion chip definitions & instruments.
@@ -31,7 +32,7 @@
 CChannelMap::CChannelMap() : CChannelMap(SNDCHIP_NONE, 0) {
 }
 
-CChannelMap::CChannelMap(unsigned chips, unsigned n163chs) :
+CChannelMap::CChannelMap(sound_chip_t chips, unsigned n163chs) :
 	chips_(chips), n163chs_(n163chs)
 {
 }
@@ -78,16 +79,15 @@ chan_id_t CChannelMap::GetChannelType(int index) const {		// // //
 	return GetChannel(index).GetID();
 }
 
-int CChannelMap::GetChipType(int index) const
-{
+sound_chip_t CChannelMap::GetChipType(int index) const {
 	return GetChannel(index).GetChip();
 }
 
-unsigned CChannelMap::GetExpansionFlag() const noexcept {		// // //
+sound_chip_t CChannelMap::GetExpansionFlag() const noexcept {		// // //
 	return chips_;
 }
 
-unsigned CChannelMap::GetChipChannelCount(unsigned chip) const {
+unsigned CChannelMap::GetChipChannelCount(sound_chip_t chip) const {
 	if (chip == SNDCHIP_N163)
 		return HasExpansionChip(chip) ? n163chs_ : 0;
 
@@ -98,6 +98,6 @@ unsigned CChannelMap::GetChipChannelCount(unsigned chip) const {
 	return count;
 }
 
-bool CChannelMap::HasExpansionChip(unsigned chips) const noexcept {
-	return (chips & chips_) == chips;
+bool CChannelMap::HasExpansionChip(sound_chip_t chips) const noexcept {
+	return ContainsSoundChip(chips_, chips);
 }
