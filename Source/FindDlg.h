@@ -34,6 +34,8 @@
 #include "PatternNote.h"
 #include "PatternEditorTypes.h"
 
+enum class chan_id_t : unsigned;
+
 class CharRange
 {
 public:
@@ -161,7 +163,7 @@ protected:
 
 	static result_column_t m_iLastsortColumn;
 	static bool m_bLastSortDescending;
-	static std::unordered_map<std::string, int> m_iChannelPositionCache;
+	static std::unordered_map<std::string, chan_id_t> m_iChannelPositionCache;
 
 	static int CALLBACK IntCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 	static int CALLBACK HexCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);

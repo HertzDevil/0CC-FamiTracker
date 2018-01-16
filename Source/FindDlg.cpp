@@ -184,7 +184,7 @@ IMPLEMENT_DYNAMIC(CFindResultsBox, CDialog)
 
 CFindResultsBox::result_column_t CFindResultsBox::m_iLastsortColumn = ID;
 bool CFindResultsBox::m_bLastSortDescending = false;
-std::unordered_map<std::string, int> CFindResultsBox::m_iChannelPositionCache = { };
+std::unordered_map<std::string, chan_id_t> CFindResultsBox::m_iChannelPositionCache = { };
 
 CFindResultsBox::CFindResultsBox(CWnd* pParent) : CDialog(IDD_FINDRESULTS, pParent)
 {
@@ -283,12 +283,12 @@ void CFindResultsBox::SelectItem(int Index)
 	const auto Cache = [&] (const std::string &x) {
 		auto it = m_iChannelPositionCache.find(x);
 		if (it == m_iChannelPositionCache.end())
-			return m_iChannelPositionCache[x] = pDoc->GetChannelIndex(ToChannelID(x));
+			return m_iChannelPositionCache[x] = ToChannelID(x);
 		return it->second;
 	};
 
 	auto pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
-	int Channel = Cache(m_cListResults.GetItemText(Index, CHANNEL).GetString());
+	int Channel = pDoc->GetChannelIndex(Cache(m_cListResults.GetItemText(Index, CHANNEL).GetString()));
 	if (Channel != -1) pView->SelectChannel(Channel);
 	pView->SelectFrame(strtol(m_cListResults.GetItemText(Index, FRAME), nullptr, 16));
 	pView->SelectRow(strtol(m_cListResults.GetItemText(Index, ROW), nullptr, 16));
