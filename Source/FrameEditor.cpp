@@ -687,7 +687,7 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				else
 					m_pMainFrame->AddAction(std::make_unique<CFActionSetPattern>(Pattern));
 
-				const int SelectedChannel = (model_->GetCurrentChannel() + 1) % m_pDocument->GetAvailableChannels();		// // //
+				const int SelectedChannel = (model_->GetCurrentChannel() + 1) % m_pDocument->GetChannelCount();		// // //
 				const int SelectedFrame = model_->GetCurrentFrame();
 
 				if (m_iCursorEditDigit == 1) {

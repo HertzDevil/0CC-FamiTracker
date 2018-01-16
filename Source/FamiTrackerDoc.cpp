@@ -247,12 +247,8 @@ void CFamiTrackerDoc::DeleteContents()
 	UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
 
 	module_ = std::make_unique<CFamiTrackerModule>(*this);		// // //
-
-	// Reset variables to default
 	m_pChannelMap = std::make_unique<CChannelMap>();		// // //
-	m_iChannelsAvailable = CHANNELS_DEFAULT;
 
-	// Auto save
 #ifdef AUTOSAVE
 	ClearAutoSave();
 #endif
@@ -1187,7 +1183,6 @@ bool CFamiTrackerDoc::AddFrames(unsigned int Track, unsigned int Frame, unsigned
 
 	auto &Song = GetSongData(Track);		// // //
 	const unsigned FrameCount = Song.GetFrameCount();
-	const unsigned Channels = GetAvailableChannels();
 
 	if (FrameCount + Count > MAX_FRAMES)
 		return false;
@@ -1211,7 +1206,6 @@ bool CFamiTrackerDoc::DeleteFrames(unsigned int Track, unsigned int Frame, unsig
 
 	auto &Song = GetSongData(Track);		// // //
 	const unsigned FrameCount = Song.GetFrameCount();
-	const unsigned Channels = GetAvailableChannels();
 
 	if (Frame >= FrameCount)
 		return true;
@@ -1279,7 +1273,6 @@ void CFamiTrackerDoc::SelectExpansionChip(unsigned chips, unsigned n163chs) {		/
 	auto newMap = theApp.GetSoundGenerator()->MakeChannelMap(chips, n163chs);		// // //
 	LockDocument();
 	m_pChannelMap = std::move(newMap);		// // //
-	m_iChannelsAvailable = GetChannelCount();
 	UnlockDocument();
 
 	ApplyExpansionChip();

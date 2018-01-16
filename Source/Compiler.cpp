@@ -746,7 +746,7 @@ void CCompiler::UpdateFrameBanks()
 {
 	// Write bank numbers to frame lists (can only be used when bankswitching is used)
 
-	int Channels = m_pDocument->GetAvailableChannels();
+	int Channels = m_pDocument->GetChannelCount();		// // //
 
 	for (CChunk *pChunk : m_vFrameChunks) {
 		// Add bank data
@@ -954,7 +954,6 @@ bool CCompiler::CompileData()
 	}
 
 	// // // Setup channel order list, DPCM is located last
-	const int Channels = m_pDocument->GetAvailableChannels();
 	const int Chip = m_pDocument->GetExpansionChip();
 	for (int i = 0; i < 4; i++)
 		m_vChanOrder.push_back(MakeChannelIndex(SNDCHIP_NONE, i));
@@ -1074,7 +1073,6 @@ void CCompiler::ScanSong()
 	bool inst_used[MAX_INSTRUMENTS] = { };		// // //
 
 	const int TrackCount = m_pDocument->GetTrackCount();
-	const int Channels = m_pDocument->GetAvailableChannels();
 
 	// // // Scan patterns in entire module
 	for (int i = 0; i < TrackCount; ++i) {
@@ -1566,7 +1564,6 @@ void CCompiler::CreateFrameList(unsigned int Track)
 	 */
 
 	const unsigned FrameCount   = m_pDocument->GetFrameCount(Track);		// // //
-	const unsigned ChannelCount = m_pDocument->GetAvailableChannels();
 
 	// Create frame list
 	CChunk &FrameListChunk = CreateChunk({CHUNK_FRAME_LIST, Track});		// // //
@@ -1581,8 +1578,7 @@ void CCompiler::CreateFrameList(unsigned int Track)
 		TotalSize += 2;
 
 		// Pattern pointers
-		for (unsigned j = 0; j < ChannelCount; ++j) {		// // //
-			chan_id_t Chan = m_vChanOrder[j];
+		for (chan_id_t Chan : m_vChanOrder) {		// // //
 			unsigned Pattern = m_pDocument->GetPatternAtFrame(Track, i, Chan);
 			Chunk.StorePointer({CHUNK_PATTERN, Track, Pattern, value_cast(Chan)});		// // //
 			TotalSize += 2;

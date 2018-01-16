@@ -701,7 +701,7 @@ void CMainFrame::ResizeFrameWindow()
 	ASSERT(m_pFrameEditor != NULL);
 
 	if (HasDocument()) {		// // //
-		int Channels = GetDoc().GetAvailableChannels();
+		int Channels = GetDoc().GetChannelCount();
 		int Height = 0, Width = 0;
 
 		// Located to the right

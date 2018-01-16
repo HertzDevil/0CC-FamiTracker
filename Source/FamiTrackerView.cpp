@@ -1895,7 +1895,6 @@ void CFamiTrackerView::PlayNote(chan_id_t Channel, unsigned int Note, unsigned i
 		int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 		int Frame = GetSelectedFrame();
 		int Row = GetSelectedRow();
-		int Channels = pDoc->GetAvailableChannels();
 
 		pDoc->ForeachChannel([&] (chan_id_t i) {
 			if (!IsChannelMuted(i) && i != Channel)
@@ -3144,8 +3143,7 @@ void CFamiTrackerView::TranslateMidiMessage()
 		if (Message != 0x0F) {
 			if (!theApp.GetSettings()->Midi.bMidiChannelMap)
 				Channel = GetSelectedChannel();
-			if (Channel > pDoc->GetAvailableChannels() - 1)
-				Channel = pDoc->GetAvailableChannels() - 1;
+			Channel = std::clamp((int)Channel, 0, pDoc->GetChannelCount() - 1);		// // //
 		}
 
 		// Translate key releases to note off messages

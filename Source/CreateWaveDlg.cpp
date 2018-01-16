@@ -153,11 +153,10 @@ BOOL CCreateWaveDlg::OnInitDialog()
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
-	int ChannelCount = pDoc->GetAvailableChannels();
-	for (int i = 0; i < ChannelCount; ++i) {
-		m_ctlChannelList.AddString(pDoc->GetChannel(i).GetChannelName());		// // //
-		m_ctlChannelList.SetCheck(i, 1);
-	}
+	pDoc->ForeachChannel([&] (chan_id_t i) {
+		m_ctlChannelList.AddString(pDoc->GetChannel(pDoc->GetChannelIndex(i)).GetChannelName());		// // //
+		m_ctlChannelList.SetCheck(pDoc->GetChannelIndex(i), 1);
+	});
 
 	for (unsigned int i = 0; i < pDoc->GetTrackCount(); ++i) {
 		CString text;

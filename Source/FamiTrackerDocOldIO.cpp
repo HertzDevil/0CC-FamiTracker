@@ -103,8 +103,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 
 		switch (FileBlock) {
 		case FB_CHANNELS:
-			doc.SetAvailableChannels(ReadInt(pOpenFile));
-			break;
+			break;		// // //
 
 		case FB_SPEED:
 			Song.SetSongSpeed(ReadInt(pOpenFile) + 1);

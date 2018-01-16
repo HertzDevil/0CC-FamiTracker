@@ -222,10 +222,6 @@ public:
 	bool			ExpansionEnabled(int Chip) const;
 	int				GetNamcoChannels() const;
 
-	// Todo: remove this, use getchannelcount instead
-	unsigned int	GetAvailableChannels()	const { return m_iChannelsAvailable; }
-	void			SetAvailableChannels(unsigned channels) { m_iChannelsAvailable = channels; }		// // //
-
 	void			SetHighlight(unsigned int Track, const stHighlight &Hl);		// // //
 	const stHighlight &GetHighlight(unsigned int Track) const;
 
@@ -401,8 +397,6 @@ private:
 
 	// Channels (TODO: run-time state, remove or move these?)
 	std::unique_ptr<CChannelMap> m_pChannelMap;		// // //
-	unsigned int	m_iChannelsAvailable;			// Number of channels added
-
 	std::unique_ptr<CFamiTrackerModule> module_;		// // //
 
 	//

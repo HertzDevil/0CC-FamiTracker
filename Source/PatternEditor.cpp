@@ -1833,7 +1833,7 @@ int CPatternEditor::GetSelectedTrack() const
 
 int CPatternEditor::GetChannelCount() const
 {
-	return m_pDocument->GetAvailableChannels();
+	return m_pDocument->GetChannelCount();		// // //
 }
 
 int CPatternEditor::GetFrameCount() const		// // //

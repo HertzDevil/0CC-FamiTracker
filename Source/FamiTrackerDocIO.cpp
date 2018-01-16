@@ -241,7 +241,6 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 
 	int channels = AssertRange(file_.GetBlockInt(), 1, MAX_CHANNELS, "Channel count");		// // //
 	AssertRange<MODULE_ERROR_OFFICIAL>(channels, 1, MAX_CHANNELS - 1, "Channel count");
-	doc.SetAvailableChannels(channels);		// // //
 
 	auto machine = static_cast<machine_t>(file_.GetBlockInt());
 	AssertFileData(machine == NTSC || machine == PAL, "Unknown machine");
@@ -318,6 +317,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 	}
 
 	doc.SelectExpansionChip(Expansion, n163chans);		// // //
+	AssertFileData(doc.GetChannelCount() == channels, "Channel count mismatch");
 }
 
 void CFamiTrackerDocIO::SaveParams(const CFamiTrackerDoc &doc, int ver) {
