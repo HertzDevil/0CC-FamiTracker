@@ -29,7 +29,7 @@
 #include "ModuleImportDlg.h"
 #include "SoundGen.h"
 
-LPCTSTR TRACK_FORMAT = _T("#%02i %s");
+LPCTSTR TRACK_FORMAT = _T("#%02i %.*s");		// // //
 
 // CModulePropertiesDlg dialog
 
@@ -173,7 +173,7 @@ void CModulePropertiesDlg::OnBnClickedSongAdd()
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
 	CString TrackTitle;
-	TrackTitle.Format(TRACK_FORMAT, NewTrack + 1, m_pDocument->GetTrackTitle(NewTrack).c_str());
+	TrackTitle.Format(TRACK_FORMAT, NewTrack + 1, m_pDocument->GetTrackTitle(NewTrack).size(), m_pDocument->GetTrackTitle(NewTrack).data());
 	static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST))->InsertItem(NewTrack, TrackTitle);
 
 	SelectSong(NewTrack);
@@ -189,14 +189,15 @@ void CModulePropertiesDlg::OnBnClickedSongInsert()		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
 	CString TrackTitle;
-	TrackTitle.Format(TRACK_FORMAT, NewTrack, m_pDocument->GetTrackTitle(NewTrack).c_str());
+	TrackTitle.Format(TRACK_FORMAT, NewTrack, m_pDocument->GetTrackTitle(NewTrack).size(), m_pDocument->GetTrackTitle(NewTrack).data());
 	auto pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
 	pSongList->InsertItem(NewTrack, TrackTitle);
 
-	for (unsigned i = 0; i < m_pDocument->GetTrackCount(); ++i) {
-		TrackTitle.Format(_T("#%02i %s"), i + 1, m_pDocument->GetTrackTitle(i).c_str());
-		pSongList->SetItemText(i, 0, TrackTitle);
-	}
+	m_pDocument->VisitSongs([&] (const CSongData &song, unsigned index) {
+		auto sv = song.GetTitle();
+		TrackTitle.Format(TRACK_FORMAT, index + 1, sv.size(), sv.data());		// // // start counting songs from 1
+		pSongList->SetItemText(index, 0, TrackTitle);
+	});
 
 	SelectSong(NewTrack);
 }
@@ -231,10 +232,11 @@ void CModulePropertiesDlg::OnBnClickedSongRemove()
 	Count = m_pDocument->GetTrackCount();	// Get new track count
 
 	// Redraw track list
-	for (unsigned int i = 0; i < Count; ++i) {
-		TrackTitle.Format(_T("#%02i %s"), i + 1, m_pDocument->GetTrackTitle(i).c_str());
-		pSongList->SetItemText(i, 0, TrackTitle);
-	}
+	m_pDocument->VisitSongs([&] (const CSongData &song, unsigned index) {
+		auto sv = song.GetTitle();
+		TrackTitle.Format(TRACK_FORMAT, index + 1, sv.size(), sv.data());		// // // start counting songs from 1
+		pSongList->SetItemText(index, 0, TrackTitle);
+	});
 
 	if (m_iSelectedSong >= Count)
 		m_iSelectedSong = Count - 1;
@@ -254,9 +256,9 @@ void CModulePropertiesDlg::OnBnClickedSongUp()
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
-	Text.Format(TRACK_FORMAT, Song + 1, m_pDocument->GetTrackTitle(Song).c_str());
+	Text.Format(TRACK_FORMAT, Song + 1, m_pDocument->GetTrackTitle(Song).size(), m_pDocument->GetTrackTitle(Song).data());
 	pSongList->SetItemText(Song, 0, Text);
-	Text.Format(TRACK_FORMAT, Song, m_pDocument->GetTrackTitle(Song - 1).c_str());
+	Text.Format(TRACK_FORMAT, Song, m_pDocument->GetTrackTitle(Song - 1).size(), m_pDocument->GetTrackTitle(Song - 1).data());
 	pSongList->SetItemText(Song - 1, 0, Text);
 
 	SelectSong(Song - 1);
@@ -275,9 +277,9 @@ void CModulePropertiesDlg::OnBnClickedSongDown()
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
-	Text.Format(TRACK_FORMAT, Song + 1, m_pDocument->GetTrackTitle(Song).c_str());
+	Text.Format(TRACK_FORMAT, Song + 1, m_pDocument->GetTrackTitle(Song).size(), m_pDocument->GetTrackTitle(Song).data());
 	pSongList->SetItemText(Song, 0, Text);
-	Text.Format(TRACK_FORMAT, Song + 2, m_pDocument->GetTrackTitle(Song + 1).c_str());
+	Text.Format(TRACK_FORMAT, Song + 2, m_pDocument->GetTrackTitle(Song + 1).size(), m_pDocument->GetTrackTitle(Song + 1).data());
 	pSongList->SetItemText(Song + 1, 0, Text);
 
 	SelectSong(Song + 1);
@@ -294,7 +296,7 @@ void CModulePropertiesDlg::OnEnChangeSongname()
 
 	pName->GetWindowText(Text);
 
-	Title.Format(TRACK_FORMAT, m_iSelectedSong + 1, Text);
+	Title.Format(TRACK_FORMAT, m_iSelectedSong + 1, Text.GetLength(), Text);
 
 	pSongList->SetItemText(m_iSelectedSong, 0, Title);
 	if (m_pDocument->GetTrackTitle(m_iSelectedSong) != (LPCTSTR)Text)		// // //
@@ -405,7 +407,7 @@ void CModulePropertiesDlg::OnLvnItemchangedSonglist(NMHDR *pNMHDR, LRESULT *pRes
 	if (pNMLV->uChanged & LVIF_STATE) {
 		if (pNMLV->uNewState & LVNI_SELECTED) {		// // //
 			m_iSelectedSong = pNMLV->iItem;
-			GetDlgItem(IDC_SONGNAME)->SetWindowText(m_pDocument->GetTrackTitle(m_iSelectedSong).c_str());		// // //
+			GetDlgItem(IDC_SONGNAME)->SetWindowText(m_pDocument->GetTrackTitle(m_iSelectedSong).data());		// // //
 		}
 		CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
 		m_bSingleSelection = pSongList->GetSelectedCount() == 1;
@@ -425,10 +427,11 @@ void CModulePropertiesDlg::FillSongList()
 	// Song editor
 	int Songs = m_pDocument->GetTrackCount();
 
-	for (int i = 0; i < Songs; ++i) {
-		Text.Format(TRACK_FORMAT, i + 1, m_pDocument->GetTrackTitle(i).c_str());		// // // start counting songs from 1
-		pSongList->InsertItem(i, Text);
-	}
+	m_pDocument->VisitSongs([&] (const CSongData &song, unsigned index) {
+		auto sv = song.GetTitle();
+		Text.Format(TRACK_FORMAT, index + 1, sv.size(), sv.data());		// // // start counting songs from 1
+		pSongList->InsertItem(index, Text);
+	});
 }
 
 BOOL CModulePropertiesDlg::PreTranslateMessage(MSG* pMsg)

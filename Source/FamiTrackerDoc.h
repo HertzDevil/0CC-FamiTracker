@@ -233,7 +233,7 @@ public:
 	int				GetFrameLength(unsigned int Track, unsigned int Frame) const;
 
 	// Track management functions
-	const std::string &GetTrackTitle(unsigned int Track) const;		// // //
+	std::string_view GetTrackTitle(unsigned int Track) const;		// // //
 	void			SetTrackTitle(unsigned int Track, const std::string &title);		// // //
 	void			MoveTrackUp(unsigned int Track);
 	void			MoveTrackDown(unsigned int Track);

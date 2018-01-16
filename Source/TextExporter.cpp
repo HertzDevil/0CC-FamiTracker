@@ -1330,14 +1330,12 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 
 	for (unsigned int t=0; t < Doc.GetTrackCount(); ++t)
 	{
-		const auto &zpTitle = Doc.GetTrackTitle(t);		// // //
-
 		s.Format(_T("%s %3d %3d %3d %s\n"),
 			CT[CT_TRACK],
 			Doc.GetPatternLength(t),
 			Doc.GetSongSpeed(t),
 			Doc.GetSongTempo(t),
-			ExportString(zpTitle));
+			ExportString(Doc.GetTrackTitle(t)));		// // //
 		f.WriteString(s);
 
 		s.Format(_T("%s :"), CT[CT_COLUMNS]);

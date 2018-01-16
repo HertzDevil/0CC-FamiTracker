@@ -1229,7 +1229,7 @@ bool CFamiTrackerDoc::DeleteFrames(unsigned int Track, unsigned int Frame, unsig
 
 //// Track functions //////////////////////////////////////////////////////////////////////////////////
 
-const std::string &CFamiTrackerDoc::GetTrackTitle(unsigned int Track) const		// // //
+std::string_view CFamiTrackerDoc::GetTrackTitle(unsigned int Track) const		// // //
 {
 	if (Track < GetTrackCount())
 		return GetSongData(Track).GetTitle();

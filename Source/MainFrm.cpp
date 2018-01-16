@@ -2229,7 +2229,8 @@ void CMainFrame::UpdateTrackBox()
 	int Count = Doc.GetTrackCount();
 
 	for (int i = 0; i < Count; ++i) {
-		Text.Format(_T("#%i %s"), i + 1, Doc.GetTrackTitle(i).c_str());		// // //
+		auto sv = Doc.GetTrackTitle(i);
+		Text.Format(_T("#%i %.*s"), i + 1, sv.size(), sv.data());		// // //
 		pTrackBox->AddString(Text);
 	}
 
@@ -3207,7 +3208,8 @@ void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
 		title.Append(_T("*"));
 
 	// Add name of subtune
-	title.AppendFormat(_T(" [#%i %s]"), m_iTrack + 1, Doc.GetTrackTitle(GetSelectedTrack()).c_str());		// // //
+	auto sv = GetCurrentSong()->GetTitle();
+	title.AppendFormat(_T(" [#%i %.*s]"), m_iTrack + 1, sv.size(), sv.data());		// // //
 
 	title.Append(_T(" - 0CC-FamiTracker "));		// // //
 	title.Append(Get0CCFTVersionString());		// // //

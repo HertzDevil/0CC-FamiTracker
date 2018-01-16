@@ -231,7 +231,7 @@ static ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerDoc &doc) {		// 
 	NSFEWriteBlockIdent(file, "tlbl", iTlblSize);
 
 	for (unsigned int i = 0; i < doc.GetTrackCount(); i++) {
-		file.Write(doc.GetTrackTitle(i).c_str(), doc.GetTrackTitle(i).size() + 1);
+		file.Write(doc.GetTrackTitle(i).data(), doc.GetTrackTitle(i).size() + 1);
 	}
 
 	ULONGLONG iDataSizePos = file.GetPosition();

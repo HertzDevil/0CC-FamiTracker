@@ -53,7 +53,7 @@ public:
 	CPatternData &GetPatternOnFrame(chan_id_t Channel, unsigned Frame);		// // //
 	const CPatternData &GetPatternOnFrame(chan_id_t Channel, unsigned Frame) const;		// // //
 
-	const std::string &GetTitle() const;		// // //
+	std::string_view GetTitle() const;		// // //
 	unsigned int GetPatternLength() const;
 	unsigned int GetFrameCount() const;
 	unsigned int GetSongSpeed() const;
@@ -137,7 +137,7 @@ public:
 
 public:
 	// // // moved from CFamiTrackerDoc
-	static const std::string DEFAULT_TITLE;
+	static const char DEFAULT_TITLE[];
 	static const stHighlight DEFAULT_HIGHLIGHT;
 
 private:

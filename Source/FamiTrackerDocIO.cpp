@@ -451,7 +451,7 @@ void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerDoc &doc, int ver) {
 
 	// Ver 3, store track names
 	if (ver >= 3)
-		doc.VisitSongs([&] (const CSongData &song) { file_.WriteString(song.GetTitle().c_str()); });
+		doc.VisitSongs([&] (const CSongData &song) { file_.WriteString(song.GetTitle().data()); });
 
 	doc.ForeachChannel([&] (chan_id_t i) {
 		// Channel type

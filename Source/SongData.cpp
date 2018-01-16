@@ -29,7 +29,7 @@
 
 // Defaults when creating new modules
 const unsigned CSongData::DEFAULT_ROW_COUNT	= 64;
-const std::string CSongData::DEFAULT_TITLE = "New song";		// // //
+const char CSongData::DEFAULT_TITLE[] = "New song";		// // //
 const stHighlight CSongData::DEFAULT_HIGHLIGHT = {4, 16, 0};		// // //
 
 // This class contains pattern data
@@ -98,7 +98,7 @@ const CPatternData &CSongData::GetPatternOnFrame(chan_id_t Channel, unsigned Fra
 	return const_cast<CSongData *>(this)->GetPatternOnFrame(Channel, Frame);
 }
 
-const std::string &CSongData::GetTitle() const		// // //
+std::string_view CSongData::GetTitle() const		// // //
 {
 	return m_sTrackName;
 }
