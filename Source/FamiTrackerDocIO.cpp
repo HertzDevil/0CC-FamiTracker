@@ -229,11 +229,12 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
 }
 
 void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
-	// Get first track for module versions that require that
-	auto &Song = *doc.GetSong(0);
+	auto &modfile = *doc.GetModule();
+	auto &Song = *modfile.GetSong(0);
 
 	unsigned Expansion = SNDCHIP_NONE;		// // //
 
+	// Get first track for module versions that require that
 	if (ver == 1)
 		Song.SetSongSpeed(file_.GetBlockInt());
 	else
@@ -244,39 +245,39 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 
 	auto machine = static_cast<machine_t>(file_.GetBlockInt());
 	AssertFileData(machine == NTSC || machine == PAL, "Unknown machine");
-	doc.SetMachine(machine);
+	modfile.SetMachine(machine);
 
 	if (ver >= 7) {		// // // 050B
 		switch (file_.GetBlockInt()) {
 		case 1:
-			doc.SetEngineSpeed(static_cast<int>(1000000. / file_.GetBlockInt() + .5));
+			modfile.SetEngineSpeed(static_cast<int>(1000000. / file_.GetBlockInt() + .5));
 			break;
 		case 0: case 2:
 		default:
 			file_.GetBlockInt();
-			doc.SetEngineSpeed(0);
+			modfile.SetEngineSpeed(0);
 		}
 	}
 	else
-		doc.SetEngineSpeed(file_.GetBlockInt());
+		modfile.SetEngineSpeed(file_.GetBlockInt());
 
 	if (ver > 2)
-		doc.SetVibratoStyle(file_.GetBlockInt() ? VIBRATO_NEW : VIBRATO_OLD);		// // //
+		modfile.SetVibratoStyle(file_.GetBlockInt() ? VIBRATO_NEW : VIBRATO_OLD);		// // //
 	else
-		doc.SetVibratoStyle(VIBRATO_OLD);
+		modfile.SetVibratoStyle(VIBRATO_OLD);
 
 	// TODO read m_bLinearPitch
 	if (ver >= 9) {		// // // 050B
 		bool SweepReset = file_.GetBlockInt() != 0;
 	}
 
-	doc.SetHighlight(CSongData::DEFAULT_HIGHLIGHT);		// // //
+	modfile.SetHighlight(CSongData::DEFAULT_HIGHLIGHT);		// // //
 
 	if (ver > 3 && ver <= 6) {		// // // 050B
 		stHighlight hl;
 		hl.First = file_.GetBlockInt();
 		hl.Second = file_.GetBlockInt();
-		doc.SetHighlight(hl);
+		modfile.SetHighlight(hl);
 	}
 
 	// This is strange. Sometimes expansion chip is set to 0xFF in files
@@ -307,13 +308,13 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 	// Determine if new or old split point is preferred
 	int Split = AssertRange<MODULE_ERROR_STRICT>(ver >= 6 ? file_.GetBlockInt() : (int)CFamiTrackerModule::OLD_SPEED_SPLIT_POINT,
 		0, 255, "Speed / tempo split point");
-	doc.SetSpeedSplitPoint(Split);
+	modfile.SetSpeedSplitPoint(Split);
 
 	AssertRange<MODULE_ERROR_STRICT>(Expansion, 0u, 0x3Fu, "Expansion chip flag");
 
 	if (ver >= 8) {		// // // 050B
 		int semitones = file_.GetBlockChar();
-		doc.SetTuning(semitones, file_.GetBlockChar());
+		modfile.SetTuning(semitones, file_.GetBlockChar());
 	}
 
 	doc.SelectExpansionChip(Expansion, n163chans);		// // //
@@ -321,20 +322,22 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::SaveParams(const CFamiTrackerDoc &doc, int ver) {
+	auto &modfile = *doc.GetModule();
+
 	if (ver >= 2)
 		file_.WriteBlockChar(doc.GetExpansionChip());		// ver 2 change
 	else
-		file_.WriteBlockInt(doc.GetSong(0)->GetSongSpeed());
+		file_.WriteBlockInt(modfile.GetSong(0)->GetSongSpeed());
 
 	file_.WriteBlockInt(doc.GetChannelCount());
-	file_.WriteBlockInt(doc.GetMachine());
-	file_.WriteBlockInt(doc.GetEngineSpeed());
+	file_.WriteBlockInt(modfile.GetMachine());
+	file_.WriteBlockInt(modfile.GetEngineSpeed());
 
 	if (ver >= 3) {
-		file_.WriteBlockInt(doc.GetVibratoStyle());
+		file_.WriteBlockInt(modfile.GetVibratoStyle());
 
 		if (ver >= 4) {
-			auto hl = doc.GetHighlight();
+			const stHighlight &hl = modfile.GetHighlight(0);
 			file_.WriteBlockInt(hl.First);
 			file_.WriteBlockInt(hl.Second);
 
@@ -343,11 +346,11 @@ void CFamiTrackerDocIO::SaveParams(const CFamiTrackerDoc &doc, int ver) {
 					file_.WriteBlockInt(doc.GetNamcoChannels());
 
 				if (ver >= 6)
-					file_.WriteBlockInt(doc.GetSpeedSplitPoint());
+					file_.WriteBlockInt(modfile.GetSpeedSplitPoint());
 
 				if (ver >= 8) {		// // // 050B
-					file_.WriteBlockChar(doc.GetTuningSemitone());
-					file_.WriteBlockChar(doc.GetTuningCent());
+					file_.WriteBlockChar(modfile.GetTuningSemitone());
+					file_.WriteBlockChar(modfile.GetTuningCent());
 				}
 			}
 		}
@@ -355,25 +358,32 @@ void CFamiTrackerDocIO::SaveParams(const CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::LoadSongInfo(CFamiTrackerDoc &doc, int ver) {
-	char buf[CFamiTrackerModule::METADATA_FIELD_LENGTH] = { };
-	file_.GetBlock(buf, std::size(buf));
-	doc.SetModuleName(buf);
-	file_.GetBlock(buf, std::size(buf));
-	doc.SetModuleArtist(buf);
-	file_.GetBlock(buf, std::size(buf));
-	doc.SetModuleCopyright(buf);
+	auto &modfile = *doc.GetModule();
+
+	std::array<char, CFamiTrackerModule::METADATA_FIELD_LENGTH> buf = { };
+	file_.GetBlock(buf.data(), std::size(buf));
+	buf.back() = '\0';
+	modfile.SetModuleName(buf.data());
+	file_.GetBlock(buf.data(), std::size(buf));
+	buf.back() = '\0';
+	modfile.SetModuleArtist(buf.data());
+	file_.GetBlock(buf.data(), std::size(buf));
+	buf.back() = '\0';
+	modfile.SetModuleCopyright(buf.data());
 }
 
 void CFamiTrackerDocIO::SaveSongInfo(const CFamiTrackerDoc &doc, int ver) {
 	const auto write_sv = [&] (std::string_view sv, size_t len) {
-		sv = sv.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1);
+		sv = sv.substr(0, len - 1);
 		file_.WriteBlock(sv.data(), sv.size());
 		for (size_t i = sv.size(); i < len; ++i)
 			file_.WriteBlockChar(0);
 	};
-	write_sv(doc.GetModuleName(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
-	write_sv(doc.GetModuleArtist(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
-	write_sv(doc.GetModuleCopyright(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
+
+	auto &modfile = *doc.GetModule();
+	write_sv(modfile.GetModuleName(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
+	write_sv(modfile.GetModuleArtist(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
+	write_sv(modfile.GetModuleCopyright(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
 }
 
 void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
@@ -428,10 +438,9 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 			for (unsigned int i = 0; i < Tracks; ++i) {
 				int First = static_cast<unsigned char>(file_.GetBlockChar());
 				int Second = static_cast<unsigned char>(file_.GetBlockChar());
-				if (!i)
+				if (i == 0)
 					doc.SetHighlight({First, Second});
 			}
-		doc.VisitSongs([&] (CSongData &song) { song.SetHighlight(doc.GetHighlight()); });		// // //
 	}
 }
 
@@ -468,7 +477,8 @@ void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerDoc &doc, int ver) {
 
 	// Number of instruments
 	const int Count = AssertRange(file_.GetBlockInt(), 0, CInstrumentManager::MAX_INSTRUMENTS, "Instrument count");
-	auto &Manager = *doc.GetInstrumentManager();
+	auto &modfile = *doc.GetModule();
+	auto &Manager = *modfile.GetInstrumentManager();
 
 	for (int i = 0; i < Count; ++i) {
 		// Instrument index
@@ -517,7 +527,8 @@ void CFamiTrackerDocIO::SaveInstruments(const CFamiTrackerDoc &doc, int ver) {
 			ver = 4;
 	}
 */
-	const auto &Manager = *doc.GetInstrumentManager();
+	auto &modfile = *doc.GetModule();
+	const auto &Manager = *modfile.GetInstrumentManager();
 
 	// Instruments block
 	const int Count = Manager.GetInstrumentCount();
@@ -546,7 +557,8 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * (int)SEQ_COUNT, "2A03 sequence count");
 	AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, static_cast<unsigned>(MAX_SEQUENCES * SEQ_COUNT - 1), "2A03 sequence count");		// // //
 
-	auto &Manager = *doc.GetInstrumentManager();
+	auto &modfile = *doc.GetModule();
+	auto &Manager = *modfile.GetInstrumentManager();
 
 	if (ver == 1) {
 		for (unsigned int i = 0; i < Count; ++i) {
@@ -1001,13 +1013,15 @@ void CFamiTrackerDocIO::SaveDSamples(const CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::LoadComments(CFamiTrackerDoc &doc, int ver) {
+	auto &modfile = *doc.GetModule();
 	bool disp = file_.GetBlockInt() == 1;
-	doc.GetModule()->SetComment(file_.ReadString().GetString(), disp);
+	modfile.SetComment(file_.ReadString().GetString(), disp);
 }
 
 void CFamiTrackerDocIO::SaveComments(const CFamiTrackerDoc &doc, int ver) {
-	if (auto str = doc.GetModule()->GetComment(); !str.empty()) {
-		file_.WriteBlockInt(doc.GetModule()->ShowsCommentOnOpen() ? 1 : 0);
+	auto &modfile = *doc.GetModule();
+	if (auto str = modfile.GetComment(); !str.empty()) {
+		file_.WriteBlockInt(modfile.ShowsCommentOnOpen() ? 1 : 0);
 		file_.WriteStringView(str);
 	}
 }
@@ -1220,18 +1234,20 @@ void CFamiTrackerDocIO::SaveSequencesS5B(const CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::LoadParamsExtra(CFamiTrackerDoc &doc, int ver) {
-	doc.SetLinearPitch(file_.GetBlockInt() != 0);
+	auto &modfile = *doc.GetModule();
+	modfile.SetLinearPitch(file_.GetBlockInt() != 0);
 	if (ver >= 2) {
 		int semitone = AssertRange(file_.GetBlockChar(), -12, 12, "Global semitone tuning");
 		int cent = AssertRange(file_.GetBlockChar(), -100, 100, "Global cent tuning");
-		doc.SetTuning(semitone, cent);
+		modfile.SetTuning(semitone, cent);
 	}
 }
 
 void CFamiTrackerDocIO::SaveParamsExtra(const CFamiTrackerDoc &doc, int ver) {
-	bool linear = doc.GetLinearPitch();
-	char semitone = doc.GetTuningSemitone();
-	char cent = doc.GetTuningCent();
+	auto &modfile = *doc.GetModule();
+	bool linear = modfile.GetLinearPitch();
+	char semitone = modfile.GetTuningSemitone();
+	char cent = modfile.GetTuningCent();
 	if (linear || semitone || cent) {
 		file_.WriteBlockInt(linear);
 		if (ver >= 2) {

@@ -32,6 +32,7 @@
 class CSongData;
 class CInstrumentManager;
 class CFTMComponentInterface;
+struct stHighlight;
 
 namespace ft0cc::doc {
 class groove;
@@ -131,8 +132,13 @@ public:
 	// grooves
 	std::shared_ptr<groove> GetGroove(unsigned index);		// // //
 	std::shared_ptr<const groove> GetGroove(unsigned index) const;		// // //
-	bool			HasGroove(unsigned index) const;		// // //
-	void			SetGroove(unsigned index, std::shared_ptr<groove> pGroove);
+	bool HasGroove(unsigned index) const;		// // //
+	void SetGroove(unsigned index, std::shared_ptr<groove> pGroove);
+
+	// highlight
+	const stHighlight &GetHighlight(unsigned song) const;
+	void SetHighlight(const stHighlight &hl);		// // //
+	void SetHighlight(unsigned song, const stHighlight &hl);		// // //
 
 private:
 	bool AllocateSong(unsigned index);

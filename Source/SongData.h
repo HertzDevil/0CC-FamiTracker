@@ -72,8 +72,8 @@ public:
 	unsigned int GetFramePattern(unsigned int Frame, chan_id_t Channel) const;
 	void SetFramePattern(unsigned int Frame, chan_id_t Channel, unsigned int Pattern);
 
-	void SetHighlight(const stHighlight &Hl);		// // //
 	const stHighlight &GetRowHighlight() const;
+	void SetRowHighlight(const stHighlight &Hl);		// // //
 
 	void CopyTrack(chan_id_t Chan, const CSongData &From, chan_id_t ChanFrom);		// // //
 	void SwapChannels(chan_id_t First, chan_id_t Second);		// // //

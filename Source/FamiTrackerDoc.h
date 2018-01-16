@@ -222,11 +222,6 @@ public:
 	bool			ExpansionEnabled(int Chip) const;
 	int				GetNamcoChannels() const;
 
-	void			SetHighlight(unsigned int Track, const stHighlight &Hl);		// // //
-	const stHighlight &GetHighlight(unsigned int Track) const;
-
-	void			SetHighlight(const stHighlight &Hl);		// // //
-	const stHighlight &GetHighlight() const;
 	stHighlight		GetHighlightAt(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
 	unsigned int	GetHighlightState(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
 
@@ -354,6 +349,10 @@ public:
 	std::shared_ptr<const groove> GetGroove(unsigned Index) const;		// // //
 	bool			HasGroove(unsigned Index) const;		// // //
 	void			SetGroove(unsigned Index, std::shared_ptr<groove> Groove);
+
+	const stHighlight &GetHighlight(unsigned int Track) const;
+	void			SetHighlight(const stHighlight &Hl);		// // //
+	void			SetHighlight(unsigned int Track, const stHighlight &Hl);		// // //
 
 #pragma endregion
 

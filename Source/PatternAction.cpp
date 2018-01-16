@@ -1097,7 +1097,7 @@ CPActionHighlight::CPActionHighlight(const stHighlight &Hl) :		// // //
 bool CPActionHighlight::SaveState(const CMainFrame &MainFrm)
 {
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_OldHighlight = pDoc->GetHighlight();
+	m_OldHighlight = pDoc->GetHighlight(0);
 	return m_NewHighlight != m_OldHighlight;
 }
 

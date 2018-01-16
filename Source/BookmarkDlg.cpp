@@ -346,12 +346,12 @@ void CBookmarkDlg::OnLbnSelchangeListBookmarks()
 	GetDlgItem(IDC_EDIT_BOOKMARK_NAME)->SetWindowText(pMark->m_sName.c_str());
 
 	m_bEnableHighlight1 = pMark->m_Highlight.First != -1;
-	m_cSpinHighlight1.SetPos(m_bEnableHighlight1 ? pMark->m_Highlight.First : m_pDocument->GetHighlight().First);
+	m_cSpinHighlight1.SetPos(m_bEnableHighlight1 ? pMark->m_Highlight.First : m_pDocument->GetHighlight(m_iTrack).First);
 	static_cast<CButton*>(GetDlgItem(IDC_CHECK_BOOKMARK_HIGH1))->SetCheck(m_bEnableHighlight1);
 	static_cast<CEdit*>(GetDlgItem(IDC_EDIT_BOOKMARK_HIGH1))->EnableWindow(m_bEnableHighlight1);
 
 	m_bEnableHighlight2 = pMark->m_Highlight.Second != -1;
-	m_cSpinHighlight2.SetPos(m_bEnableHighlight2 ? pMark->m_Highlight.Second : m_pDocument->GetHighlight().Second);
+	m_cSpinHighlight2.SetPos(m_bEnableHighlight2 ? pMark->m_Highlight.Second : m_pDocument->GetHighlight(m_iTrack).Second);
 	static_cast<CButton*>(GetDlgItem(IDC_CHECK_BOOKMARK_HIGH2))->SetCheck(m_bEnableHighlight2);
 	static_cast<CEdit*>(GetDlgItem(IDC_EDIT_BOOKMARK_HIGH2))->EnableWindow(m_bEnableHighlight2);
 

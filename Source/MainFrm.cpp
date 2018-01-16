@@ -1821,9 +1821,9 @@ void CMainFrame::OnUpdateHighlight1(CCmdUI *pCmdUI)		// // //
 		const CFamiTrackerDoc &Doc = GetDoc();
 		if (m_cLockedEditHighlight1.Update())
 			AddAction(std::make_unique<CPActionHighlight>(stHighlight {
-				std::clamp(m_cLockedEditHighlight1.GetValue(), 0, MAX_PATTERN_LENGTH), Doc.GetHighlight().Second, 0}));
+				std::clamp(m_cLockedEditHighlight1.GetValue(), 0, MAX_PATTERN_LENGTH), Doc.GetHighlight(GetSelectedTrack()).Second, 0}));
 		else
-			pCmdUI->SetText(MakeIntString(Doc.GetHighlight().First));
+			pCmdUI->SetText(MakeIntString(Doc.GetHighlight(GetSelectedTrack()).First));
 	}
 }
 
@@ -1833,9 +1833,9 @@ void CMainFrame::OnUpdateHighlight2(CCmdUI *pCmdUI)		// // //
 		const CFamiTrackerDoc &Doc = GetDoc();
 		if (m_cLockedEditHighlight2.Update())
 			AddAction(std::make_unique<CPActionHighlight>(stHighlight {
-				Doc.GetHighlight().First, std::clamp(m_cLockedEditHighlight2.GetValue(), 0, MAX_PATTERN_LENGTH), 0}));
+				Doc.GetHighlight(GetSelectedTrack()).First, std::clamp(m_cLockedEditHighlight2.GetValue(), 0, MAX_PATTERN_LENGTH), 0}));
 		else
-			pCmdUI->SetText(MakeIntString(Doc.GetHighlight().Second));
+			pCmdUI->SetText(MakeIntString(Doc.GetHighlight(GetSelectedTrack()).Second));
 	}
 }
 
@@ -2356,7 +2356,7 @@ void CMainFrame::OnUpdateViewControlpanel(CCmdUI *pCmdUI)
 void CMainFrame::OnDeltaposHighlightSpin1(NMHDR *pNMHDR, LRESULT *pResult)		// // //
 {
 	if (HasDocument()) {
-		stHighlight Hl = GetDoc().GetHighlight();
+		stHighlight Hl = GetDoc().GetHighlight(GetSelectedTrack());
 		Hl.First = std::clamp(Hl.First - ((NMUPDOWN*)pNMHDR)->iDelta, 0, MAX_PATTERN_LENGTH);
 		AddAction(std::make_unique<CPActionHighlight>(Hl));
 		theApp.GetSoundGenerator()->SetHighlightRows(Hl.First);		// // //
@@ -2366,7 +2366,7 @@ void CMainFrame::OnDeltaposHighlightSpin1(NMHDR *pNMHDR, LRESULT *pResult)		// /
 void CMainFrame::OnDeltaposHighlightSpin2(NMHDR *pNMHDR, LRESULT *pResult)		// // //
 {
 	if (HasDocument()) {
-		stHighlight Hl = GetDoc().GetHighlight();
+		stHighlight Hl = GetDoc().GetHighlight(GetSelectedTrack());
 		Hl.Second = std::clamp(Hl.Second - ((NMUPDOWN*)pNMHDR)->iDelta, 0, MAX_PATTERN_LENGTH);
 		AddAction(std::make_unique<CPActionHighlight>(Hl));
 	}

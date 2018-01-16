@@ -756,7 +756,7 @@ void CSoundGen::ResetTempo()
 		return;
 
 	m_pTempoCounter->LoadTempo(m_iLastTrack);		// // //
-	m_iLastHighlight = m_pDocument->GetHighlight().First;		// // //
+	m_iLastHighlight = m_pDocument->GetHighlight(m_iLastTrack).First;		// // //
 }
 
 void CSoundGen::SetHighlightRows(int Rows)		// // //

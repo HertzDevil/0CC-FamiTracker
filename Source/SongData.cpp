@@ -182,14 +182,14 @@ void CSongData::SetFramePattern(unsigned int Frame, chan_id_t Channel, unsigned 
 		m_iFrameList[Frame][idx] = Pattern;
 }
 
-void CSongData::SetHighlight(const stHighlight &Hl)		// // //
-{
-	m_vRowHighlight = Hl;
-}
-
 const stHighlight &CSongData::GetRowHighlight() const
 {
 	return m_vRowHighlight;
+}
+
+void CSongData::SetRowHighlight(const stHighlight &Hl)		// // //
+{
+	m_vRowHighlight = Hl;
 }
 
 void CSongData::CopyTrack(chan_id_t Chan, const CSongData &From, chan_id_t ChanFrom) {

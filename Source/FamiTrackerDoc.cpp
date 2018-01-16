@@ -1471,28 +1471,6 @@ void CFamiTrackerDoc::AutoSave()
 // Comment functions
 //
 
-void CFamiTrackerDoc::SetHighlight(unsigned int Track, const stHighlight &Hl)		// // //
-{
-	GetSongData(Track).SetHighlight(Hl);
-}
-
-const stHighlight &CFamiTrackerDoc::GetHighlight(unsigned int Track) const		// // //
-{
-	return GetSongData(Track).GetRowHighlight();
-}
-
-void CFamiTrackerDoc::SetHighlight(const stHighlight &Hl)		// // //
-{
-	VisitSongs([&Hl] (CSongData &song) {
-		song.SetHighlight(Hl);
-	});
-}
-
-const stHighlight &CFamiTrackerDoc::GetHighlight() const		// // //
-{
-	return GetSongData(0).GetRowHighlight();
-}
-
 stHighlight CFamiTrackerDoc::GetHighlightAt(unsigned int Track, unsigned int Frame, unsigned int Row) const		// // //
 {
 	while (Frame < 0) Frame += GetFrameCount(Track);
@@ -1984,6 +1962,18 @@ bool CFamiTrackerDoc::HasGroove(unsigned Index) const {
 
 void CFamiTrackerDoc::SetGroove(unsigned Index, std::shared_ptr<groove> pGroove) {
 	GetModule()->SetGroove(Index, std::move(pGroove));
+}
+
+const stHighlight &CFamiTrackerDoc::GetHighlight(unsigned int Track) const {		// // //
+	return GetModule()->GetHighlight(Track);
+}
+
+void CFamiTrackerDoc::SetHighlight(const stHighlight &Hl) {		// // //
+	GetModule()->SetHighlight(Hl);
+}
+
+void CFamiTrackerDoc::SetHighlight(unsigned int Track, const stHighlight &Hl) {		// // //
+	GetModule()->SetHighlight(Track, Hl);
 }
 
 #pragma endregion

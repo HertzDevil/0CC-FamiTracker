@@ -157,6 +157,8 @@ std::size_t CFamiTrackerModule::GetSongCount() const {
 std::unique_ptr<CSongData> CFamiTrackerModule::MakeNewSong() const {
 	auto pSong = std::make_unique<CSongData>(parent_);
 	pSong->SetSongTempo(GetMachine() == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
+	if (GetSongCount() > 0)
+		pSong->SetRowHighlight(GetSong(0)->GetRowHighlight());
 	return pSong;
 }
 
@@ -220,4 +222,18 @@ bool CFamiTrackerModule::HasGroove(unsigned index) const {
 
 void CFamiTrackerModule::SetGroove(unsigned index, std::shared_ptr<groove> pGroove) {
 	m_pGrooveTable[index] = std::move(pGroove);
+}
+
+const stHighlight &CFamiTrackerModule::GetHighlight(unsigned int song) const {		// // //
+	return GetSong(song)->GetRowHighlight();
+}
+
+void CFamiTrackerModule::SetHighlight(const stHighlight &hl) {		// // //
+	VisitSongs([&hl] (CSongData &song) {
+		song.SetRowHighlight(hl);
+	});
+}
+
+void CFamiTrackerModule::SetHighlight(unsigned song, const stHighlight &hl) {		// // //
+	GetSong(song)->SetRowHighlight(hl);
 }
