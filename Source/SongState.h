@@ -29,11 +29,15 @@
 #include <array>
 
 class CFamiTrackerDoc;
+class stChanNote;
+enum chan_id_t : unsigned;
 
 std::string MakeCommandString(effect_t Effect, unsigned char Param);		// // //
 
 // // // Channel state information
 class stChannelState {
+	friend class CSongState;
+
 public:
 	stChannelState();
 
@@ -46,23 +50,33 @@ public:
 	*/
 	std::string GetStateString() const;
 
-	int ChannelIndex = -1;
+	chan_id_t ChannelID = (chan_id_t)-1;
 	int Instrument = MAX_INSTRUMENTS;
 	int Volume = MAX_VOLUME;
 	std::array<int, EF_COUNT> Effect;
 	int Effect_LengthCounter = -1;
 	int Effect_AutoFMMult = -1;
 	std::array<int, ECHO_BUFFER_LENGTH + 1> Echo;
+
+private:
+	void HandleNote(const stChanNote &Note, unsigned EffColumns);
+	void HandleNormalCommand(unsigned char fx, unsigned char param);
+	void HandleSlideCommand(unsigned char fx, unsigned char param);
+	void HandleExxCommand2A03(unsigned char param);
+	void HandleSxxCommand(unsigned char param);
+
+	int BufferPos = 0;
+	std::array<int, ECHO_BUFFER_LENGTH + 1> Transpose = { };
 };
 
 class CSongState {
 public:
-	explicit CSongState(int Count = MAX_CHANNELS);
+	CSongState();
 
 	void Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned Frame, unsigned Row);
 	std::string GetChannelStateString(const CFamiTrackerDoc &doc, chan_id_t chan) const;
 
-	std::unique_ptr<stChannelState[]> State;
+	std::array<stChannelState, CHANNELS> State = { };
 	int Tempo = -1;
 	int Speed = -1;
 	int GroovePos = -1; // -1: disable groove

@@ -43,6 +43,7 @@ public:
 
 	CTrackerChannel	&GetChannel(int index) const;		// // //
 	int				GetChannelIndex(chan_id_t chan) const;
+	bool			HasChannel(chan_id_t chan) const;		// // //
 	int				GetChannelCount() const;		// // //
 	chan_id_t		GetChannelType(int index) const;		// // //
 	int				GetChipType(int index) const;

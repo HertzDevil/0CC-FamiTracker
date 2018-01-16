@@ -30,6 +30,8 @@
 class CFamiTrackerDoc;
 class CCompilerLog;
 
+enum chan_id_t : unsigned;
+
 typedef unsigned char DPCM_List_t[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE];
 
 class CPatternCompiler
@@ -38,7 +40,7 @@ public:
 	CPatternCompiler(const CFamiTrackerDoc &Doc, unsigned int *pInstList, DPCM_List_t *pDPCMList, std::shared_ptr<CCompilerLog> pLogger);		// // //
 	~CPatternCompiler();
 
-	void			CompileData(int Track, int Pattern, int Channel);
+	void			CompileData(int Track, int Pattern, chan_id_t Channel);
 
 	unsigned int	GetHash() const;
 	bool			CompareData(const std::vector<unsigned char> &data) const;		// // //
@@ -66,7 +68,7 @@ private:
 	void			AccumulateDuration();
 	void			OptimizeString();
 	int				GetBlockSize(int Position);
-	void			ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned int StartRow, int Pattern, int Channel);
+	void			ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned int StartRow, int Pattern, chan_id_t Channel);
 
 	// Debugging
 	void			Print(const char *text) const;		// // //

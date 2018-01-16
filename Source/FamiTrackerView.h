@@ -91,9 +91,10 @@ public:
 	void		 SelectChannel(unsigned int Channel);
 
 	unsigned int GetSelectedFrame() const;
-	unsigned int GetSelectedChannel() const;
 	unsigned int GetSelectedRow() const;
 	std::pair<unsigned, unsigned> GetSelectedPos() const;		// // //
+	unsigned int GetSelectedChannel() const;
+	chan_id_t GetSelectedChannelID() const;		// // //
 
 	CPlayerCursor GetPlayerCursor(play_mode_t Mode) const;		// // //
 
@@ -276,7 +277,7 @@ private:
 	// General
 	bool				m_bHasFocus;
 	UINT				m_iClipboard;
-	int					m_iMenuChannel;							// Which channel a popup-menu belongs to
+	chan_id_t			m_iMenuChannel;							// // // Which channel a popup-menu belongs to
 
 	// Cursor & editing
 	unsigned int		m_iMoveKeyStepping;						// Number of rows to jump when moving

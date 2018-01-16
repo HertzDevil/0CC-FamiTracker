@@ -602,8 +602,8 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 
 		for (int i = 0; i < CHANNELS; ++i)
 			pData[FT_CH_ENABLE_ADR + i] = 0;
-		for (const int x : m_vChanOrder)
-			pData[FT_CH_ENABLE_ADR + CH_MAP[m_pDocument->GetChannelType(x)]] = 1;
+		for (const chan_id_t x : m_vChanOrder)
+			pData[FT_CH_ENABLE_ADR + CH_MAP[x]] = 1;
 	}
 
 	// // // Copy the vibrato table, the stock one only works for new vibrato mode
@@ -956,39 +956,25 @@ bool CCompiler::CompileData()
 	// // // Setup channel order list, DPCM is located last
 	const int Channels = m_pDocument->GetAvailableChannels();
 	const int Chip = m_pDocument->GetExpansionChip();
-	int Channel = 0;
-	for (int i = 0; i < 4; i++) {
-		int Channel = m_pDocument->GetChannelIndex((chan_id_t)(CHANID_SQUARE1 + i));
-		m_vChanOrder.push_back(Channel);
-	}
-	if (Chip & SNDCHIP_MMC5) for (int i = 0; i < 2; i++) {
-		int Channel = m_pDocument->GetChannelIndex((chan_id_t)(CHANID_MMC5_SQUARE1 + i));
-		m_vChanOrder.push_back(Channel);
-	}
-	if (Chip & SNDCHIP_VRC6) for (int i = 0; i < 3; i++) {
-		int Channel = m_pDocument->GetChannelIndex((chan_id_t)(CHANID_VRC6_PULSE1 + i));
-		m_vChanOrder.push_back(Channel);
-	}
-	if (Chip & SNDCHIP_N163) {
-		int lim = m_iActualNamcoChannels;
-//		if (Chip & ~SNDCHIP_N163) lim = 8;
-		for (int i = 0; i < lim; i++) { // 0CC: use m_iActualNamcoChannels once cc65 is embedded
-			int Channel = m_pDocument->GetChannelIndex((chan_id_t)(CHANID_N163_CH1 + i));
-			m_vChanOrder.push_back(Channel);
-		}
-	}
-	if (Chip & SNDCHIP_FDS) {
-		int Channel = m_pDocument->GetChannelIndex(CHANID_FDS);
-		m_vChanOrder.push_back(Channel);
-	}
-	if (Chip & SNDCHIP_S5B) for (int i = 0; i < 3; i++) {
-		int Channel = m_pDocument->GetChannelIndex((chan_id_t)(CHANID_S5B_CH1 + i));
-		m_vChanOrder.push_back(Channel);
-	}
-	if (Chip & SNDCHIP_VRC7) for (int i = 0; i < 6; i++) {
-		int Channel = m_pDocument->GetChannelIndex((chan_id_t)(CHANID_VRC7_CH1 + i));
-		m_vChanOrder.push_back(Channel);
-	}
+	for (int i = 0; i < 4; i++)
+		m_vChanOrder.push_back((chan_id_t)(CHANID_SQUARE1 + i));
+	if (Chip & SNDCHIP_MMC5)
+		for (int i = 0; i < 2; i++)
+			m_vChanOrder.push_back((chan_id_t)(CHANID_MMC5_SQUARE1 + i));
+	if (Chip & SNDCHIP_VRC6)
+		for (int i = 0; i < CHANNELS_VRC6; i++)
+			m_vChanOrder.push_back((chan_id_t)(CHANID_VRC6_PULSE1 + i));
+	if (Chip & SNDCHIP_N163)
+		for (int i = 0; i < m_iActualNamcoChannels; i++)
+			m_vChanOrder.push_back((chan_id_t)(CHANID_N163_CH1 + i));
+	if (Chip & SNDCHIP_FDS)
+		m_vChanOrder.push_back(CHANID_FDS);
+	if (Chip & SNDCHIP_S5B)
+		for (int i = 0; i < 3; i++)
+			m_vChanOrder.push_back((chan_id_t)(CHANID_S5B_CH1 + i));
+	if (Chip & SNDCHIP_VRC7)
+		for (int i = 0; i < CHANNELS_VRC7; i++)
+			m_vChanOrder.push_back((chan_id_t)(CHANID_VRC7_CH1 + i));
 	m_vChanOrder.push_back(CHANID_DPCM);
 
 	// Driver size
@@ -1596,8 +1582,8 @@ void CCompiler::CreateFrameList(unsigned int Track)
 
 		// Pattern pointers
 		for (unsigned j = 0; j < ChannelCount; ++j) {		// // //
-			unsigned Chan = m_vChanOrder[j];
-			unsigned Pattern = m_pDocument->GetPatternAtFrame(Track, i, m_pDocument->TranslateChannel(Chan));
+			chan_id_t Chan = m_vChanOrder[j];
+			unsigned Pattern = m_pDocument->GetPatternAtFrame(Track, i, Chan);
 			Chunk.StorePointer({CHUNK_PATTERN, Track, Pattern, Chan});		// // //
 			TotalSize += 2;
 		}
@@ -1617,8 +1603,6 @@ void CCompiler::StorePatterns(unsigned int Track)
 	 *
 	 */
 
-	const unsigned iChannels = m_pDocument->GetAvailableChannels();		// // //
-
 	CPatternCompiler PatternCompiler(*m_pDocument, m_iAssignedInstruments.data(), (DPCM_List_t*)&m_iSamplesLookUp, m_pLogger);		// // //
 
 	int PatternCount = 0;
@@ -1626,9 +1610,9 @@ void CCompiler::StorePatterns(unsigned int Track)
 
 	// Iterate through all patterns
 	for (unsigned i = 0; i < MAX_PATTERN; ++i) {
-		for (unsigned j = 0; j < iChannels; ++j) {
+		m_pDocument->ForeachChannel([&] (chan_id_t j) {		// // //
 			// And store only used ones
-			if (IsPatternAddressed(Track, i, m_pDocument->TranslateChannel(j))) {
+			if (IsPatternAddressed(Track, i, j)) {
 
 				// Compile pattern data
 				PatternCompiler.CompileData(Track, i, j);
@@ -1671,7 +1655,7 @@ void CCompiler::StorePatterns(unsigned int Track)
 					++PatternCount;
 				}
 			}
-		}
+		});
 	}
 
 #ifdef REMOVE_DUPLICATE_PATTERNS

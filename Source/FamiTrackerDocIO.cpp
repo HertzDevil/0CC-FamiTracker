@@ -203,7 +203,7 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
 		compat::ReorderSequences(doc, std::move(m_vTmpSequences));
 
 	if (fds_adjust_arps_) {
-		if (doc.GetChannelIndex(CHANID_FDS) != -1) {
+		if (doc.HasChannel(CHANID_FDS)) {
 			for (unsigned int t = 0; t < doc.GetTrackCount(); ++t) for (int p = 0; p < MAX_PATTERN; ++p) for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
 				stChanNote Note = doc.GetDataAtPattern(t, p, CHANID_FDS, r);		// // //
 				if (Note.Note >= NOTE_C && Note.Note <= NOTE_B) {

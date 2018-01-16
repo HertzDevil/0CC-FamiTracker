@@ -608,7 +608,7 @@ void CSoundGen::OnTick() {
 	if (m_pTempoDisplay)		// // // 050B
 		m_pTempoDisplay->Tick();
 	if (theApp.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
-		m_pArpeggiator->Tick(m_pDocument->TranslateChannel(m_pTrackerView->GetSelectedChannel()));
+		m_pArpeggiator->Tick(m_pTrackerView->GetSelectedChannelID());
 }
 
 void CSoundGen::OnStepRow() {

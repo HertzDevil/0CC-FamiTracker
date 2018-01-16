@@ -1349,11 +1349,6 @@ bool CFamiTrackerDoc::IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsi
 
 // Channel interface, these functions must be synchronized!!!
 
-int CFamiTrackerDoc::GetChannelType(int Index) const
-{
-	return m_pChannelMap->GetChannelType(Index);		// // //
-}
-
 int CFamiTrackerDoc::GetChipType(int Index) const
 {
 	return m_pChannelMap->GetChipType(Index);		// // //
@@ -1376,6 +1371,10 @@ CTrackerChannel &CFamiTrackerDoc::GetChannel(int Index) const		// // //
 int CFamiTrackerDoc::GetChannelIndex(chan_id_t Channel) const
 {
 	return m_pChannelMap->GetChannelIndex(Channel);		// // //
+}
+
+bool CFamiTrackerDoc::HasChannel(chan_id_t Channel) const {		// // //
+	return GetChannelMap()->HasChannel(Channel);
 }
 
 // Attributes
@@ -1750,7 +1749,7 @@ void CFamiTrackerDoc::RemoveUnusedPatterns()
 {
 	VisitSongs([&] (CSongData &song) {
 		for (unsigned i = 0; i < CHANNELS; ++i)
-			if (GetChannelIndex((chan_id_t)i) == (unsigned)-1)
+			if (!HasChannel((chan_id_t)i))
 				for (int p = 0; p < MAX_PATTERN; ++p)
 					song.GetPattern((chan_id_t)i, p) = CPatternData { };
 		song.VisitPatterns([&song] (CPatternData &pattern, chan_id_t c, unsigned p) {

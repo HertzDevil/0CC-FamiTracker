@@ -180,8 +180,7 @@ void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 
 		switch (InstType) {
 			case INST_2A03: {
-					int Channel = CFamiTrackerView::GetView()->GetSelectedChannel();
-					int Type = pDoc->GetChannelType(Channel);
+					chan_id_t Type = CFamiTrackerView::GetView()->GetSelectedChannelID();		// // //
 					bool bShowDPCM = (Type == CHANID_DPCM) || (std::static_pointer_cast<CInstrument2A03>(pInstrument)->AssignedSamples());
 					InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, _T("2A03 settings"),
 						CInstrument2A03::SEQUENCE_NAME, 15, 3, INST_2A03), !bShowDPCM);		// // //
@@ -343,7 +342,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 	CFamiTrackerView *pView = CFamiTrackerView::GetView();
 	CFamiTrackerDoc *pDoc = pView->GetDocument();
 	CMainFrame *pFrameWnd = static_cast<CMainFrame*>(GetParent());
-	int Channel = pView->GetSelectedChannel();		// // //
+	chan_id_t Channel = pView->GetSelectedChannelID();		// // //
 	int Chip = pDoc->GetExpansionChip();
 
 	stChanNote NoteData;
@@ -364,11 +363,11 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 		case INST_VRC7: First = CHANID_VRC7_CH1; break;
 		case INST_S5B:  First = CHANID_S5B_CH1; break;
 		}
-		int Index = pDoc->GetChannelIndex(First);
-		if (Index != -1 && pDoc->GetChipType(Index) != pDoc->GetChipType(Channel))
-			pView->SelectChannel(Index);
+		if (pDoc->HasChannel(First))
+			if (int Index = pDoc->GetChannelIndex(First); pDoc->GetChipType(Index) != pDoc->GetChipType(pDoc->GetChannelIndex(Channel)))
+				pView->SelectChannel(Index);
 	}
-	Channel = pView->GetSelectedChannel();		// // //
+	Channel = pView->GetSelectedChannelID();		// // //
 
 	if (m_KeyboardRect.PtInRect({x, y})) {
 		int KeyPos = (x - m_KeyboardRect.left) % 70;		// // //
@@ -408,15 +407,15 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 			NoteData.Vol			= MAX_VOLUME - 1;
 			NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();
 
-			Env.GetSoundGenerator()->QueueNote(pDoc->TranslateChannel(Channel), NoteData, NOTE_PRIO_2);
-			Env.GetSoundGenerator()->ForceReloadInstrument(pDoc->TranslateChannel(Channel));		// // //
+			Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
+			Env.GetSoundGenerator()->ForceReloadInstrument(Channel);		// // //
 			m_iLastKey = NewNote;
 		}
 	}
 	else {
 		NoteData.Note			= pView->DoRelease() ? RELEASE : HALT;//HALT;
 
-		Env.GetSoundGenerator()->QueueNote(pDoc->TranslateChannel(Channel), NoteData, NOTE_PRIO_2);
+		Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 
 		m_iLastKey = -1;
 	}
@@ -427,13 +426,11 @@ void CInstrumentEditDlg::SwitchOffNote(bool ForceHalt)
 	CFamiTrackerView *pView = CFamiTrackerView::GetView();
 	CMainFrame *pFrameWnd = static_cast<CMainFrame*>(GetParent());
 
-	int Channel = pView->GetSelectedChannel();
-
 	stChanNote NoteData;		// // //
 	NoteData.Note			= (pView->DoRelease() && !ForceHalt) ? RELEASE : HALT;
 	NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();
 
-	Env.GetSoundGenerator()->QueueNote(pView->GetDocument()->TranslateChannel(Channel), NoteData, NOTE_PRIO_2);
+	Env.GetSoundGenerator()->QueueNote(pView->GetSelectedChannelID(), NoteData, NOTE_PRIO_2);
 
 	m_iLastKey = -1;
 }

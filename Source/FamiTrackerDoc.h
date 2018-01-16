@@ -146,15 +146,13 @@ public:
 	CTrackerChannel	&GetChannel(int Index) const;		// // //
 	CTrackerChannel	&GetChannel(chan_id_t) const = delete;		// // //
 	int				GetChannelIndex(chan_id_t Channel) const;		// // //
-
-	int				GetChannelType(int Index) const; // TODO: merge with TranslateChannel
-	int				GetChannelType(chan_id_t) const = delete;		// // //
-	int				GetChipType(int Index) const;
-	int				GetChipType(chan_id_t) const = delete;
-	int				GetChannelCount() const;
+	bool			HasChannel(chan_id_t Channel) const;		// // //
 
 	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
 	chan_id_t		TranslateChannel(chan_id_t) const = delete;
+	int				GetChipType(int Index) const;
+	int				GetChipType(chan_id_t) const = delete;
+	int				GetChannelCount() const;
 
 	// Synchronization
 	BOOL			LockDocument() const;

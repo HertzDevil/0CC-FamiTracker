@@ -170,12 +170,9 @@ void CSoundDriver::ResetTracks() {
 
 void CSoundDriver::LoadSoundState(const CSongState &state) {
 	m_pTempoCounter->LoadSoundState(state);
-	for (int i = 0, n = doc_->GetChannelCount(); i < n; ++i) {
-		for (auto &x : tracks_)		// // // pick this out later
-			if (x.first && x.second->GetID() == state.State[i].ChannelIndex) {
-				x.first->ApplyChannelState(state.State[i]); break;
-			}
-	}
+	for (auto &x : tracks_)
+		if (x.first && x.second && doc_->HasChannel(x.second->GetID()))
+				x.first->ApplyChannelState(state.State[x.second->GetID()]);
 }
 
 void CSoundDriver::SetTempoCounter(std::shared_ptr<CTempoCounter> tempo) {
@@ -257,7 +254,7 @@ void CSoundDriver::PlayerTick() {
 void CSoundDriver::UpdateChannels() {
 	for (auto &[pChan, pTrackerChan] : tracks_) {		// // //
 		chan_id_t ID = pTrackerChan->GetID();
-		if (!pChan || doc_->GetChannelIndex(ID) == -1)
+		if (!pChan || !doc_->HasChannel(ID))
 			continue;
 
 		// Run auto-arpeggio, if enabled

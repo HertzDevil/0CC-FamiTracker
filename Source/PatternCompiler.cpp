@@ -124,9 +124,9 @@ CPatternCompiler::~CPatternCompiler()
 {
 }
 
-void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
+void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 {
-	int EffColumns = m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(Channel)) + 1;
+	int EffColumns = m_pDocument->GetEffColumns(Track, Channel) + 1;
 
 	stSpacingInfo SpaceInfo;
 
@@ -145,7 +145,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 	unsigned char NESNote = 0;
 
 	for (unsigned int i = 0; i < iPatternLen; ++i) {
-		stChanNote ChanNote = m_pDocument->GetDataAtPattern(Track, Pattern, m_pDocument->TranslateChannel(Channel), i);		// // //
+		stChanNote ChanNote = m_pDocument->GetDataAtPattern(Track, Pattern, Channel, i);		// // //
 
 		unsigned char Note = ChanNote.Note;
 		unsigned char Octave = ChanNote.Octave;
@@ -154,8 +154,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 
 		bool Action = false;
 
-		const auto &TrackerChannel = m_pDocument->GetChannel(Channel);		// // //
-		int ChanID = TrackerChannel.GetID();
+		const auto &TrackerChannel = m_pDocument->GetChannel(m_pDocument->GetChannelIndex(Channel));		// // //
 		int ChipID = TrackerChannel.GetChip();
 
 		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT &&
@@ -232,7 +231,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 				LastInstrument = Instrument;
 				// Write instrument change command
 				//if (Channel < InstrChannels) {
-				if (ChanID != CHANID_DPCM) {		// Skip DPCM
+				if (Channel != CHANID_DPCM) {		// Skip DPCM
 					WriteDuration();
 #ifdef PACKED_INST_CHANGE
 					if (Instrument < 0x10)
@@ -251,14 +250,14 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 					DPCMInst = ChanNote.Instrument;
 				}
 			}
-			if (Instrument == HOLD_INSTRUMENT && ChanID != CHANID_DPCM) {		// // // 050B
+			if (Instrument == HOLD_INSTRUMENT && Channel != CHANID_DPCM) {		// // // 050B
 				WriteDuration();
 				WriteData(Command(CMD_HOLD));
 				Action = true;
 			}
 #ifdef OPTIMIZE_DURATIONS
 			if (Instrument == LastInstrument && Instrument < MAX_INSTRUMENTS) {		// // //
-				if (ChanID != CHANID_DPCM) {
+				if (Channel != CHANID_DPCM) {
 					WriteDuration();
 					Action = true;
 				}
@@ -279,7 +278,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 			NESNote = 0x6F + Octave;
 		}
 		else {
-			if (ChanID == CHANID_DPCM) {
+			if (Channel == CHANID_DPCM) {
 				// 2A03 DPCM
 				int LookUp = FindSample(DPCMInst, Octave, Note);
 				if (LookUp > 0) {
@@ -295,7 +294,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 					Print(str);
 				}
 			}
-			else if (ChanID == CHANID_NOISE) {
+			else if (Channel == CHANID_NOISE) {
 				// 2A03 Noise
 				NESNote = (Note - 1) + (Octave * NOTE_RANGE);
 				NESNote = (NESNote & 0x0F) | 0x10;
@@ -336,7 +335,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 					WriteData(EffParam);
 					break;
 				case EF_VOLUME:		// // //
-					switch (ChanID) {
+					switch (Channel) {
 					case CHANID_SQUARE1: case CHANID_SQUARE2: case CHANID_TRIANGLE: case CHANID_NOISE:
 					case CHANID_MMC5_SQUARE1: case CHANID_MMC5_SQUARE2:
 						WriteData(Command(CMD_EFF_VOLUME));
@@ -345,7 +344,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 					}
 					break;
 				case EF_PORTAMENTO:
-					if (ChanID != CHANID_DPCM) {
+					if (Channel != CHANID_DPCM) {
 						if (EffParam == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
@@ -355,7 +354,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 					}
 					break;
 				case EF_PORTA_UP:
-					if (ChanID != CHANID_DPCM) {
+					if (Channel != CHANID_DPCM) {
 						if (EffParam == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
@@ -374,7 +373,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 					}
 					break;
 				case EF_PORTA_DOWN:
-					if (ChanID != CHANID_DPCM) {
+					if (Channel != CHANID_DPCM) {
 						if (EffParam == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
@@ -400,19 +399,19 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 					}
 					break;*/
 				case EF_SWEEPUP:
-					if (ChanID < CHANID_TRIANGLE) {
+					if (Channel < CHANID_TRIANGLE) {
 						WriteData(Command(CMD_EFF_SWEEP));
 						WriteData(0x88 | (EffParam & 0x77));	// Calculate sweep
 					}
 					break;
 				case EF_SWEEPDOWN:
-					if (ChanID < CHANID_TRIANGLE) {
+					if (Channel < CHANID_TRIANGLE) {
 						WriteData(Command(CMD_EFF_SWEEP));
 						WriteData(0x80 | (EffParam & 0x77));	// Calculate sweep
 					}
 					break;
 				case EF_ARPEGGIO:
-					if (ChanID != CHANID_DPCM) {
+					if (Channel != CHANID_DPCM) {
 						if (EffParam == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
@@ -422,21 +421,21 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 					}
 					break;
 				case EF_VIBRATO:
-					if (ChanID != CHANID_DPCM) {
+					if (Channel != CHANID_DPCM) {
 						WriteData(Command(CMD_EFF_VIBRATO));
 						//WriteData(EffParam);
 						WriteData((EffParam & 0xF) << 4 | (EffParam >> 4));
 					}
 					break;
 				case EF_TREMOLO:
-					if (ChanID != CHANID_DPCM) {
+					if (Channel != CHANID_DPCM) {
 						WriteData(Command(CMD_EFF_TREMOLO));
 //						WriteData(EffParam & 0xF7);
 						WriteData((EffParam & 0xF) << 4 | (EffParam >> 4));
 					}
 					break;
 				case EF_PITCH:
-					if (ChanID != CHANID_DPCM) {
+					if (Channel != CHANID_DPCM) {
 						if (EffParam == 0x80)
 							WriteData(Command(CMD_EFF_RESET_PITCH));
 						else {
@@ -455,7 +454,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 					}
 					break;
 				case EF_DAC:
-					if (ChanID == CHANID_DPCM) {
+					if (Channel == CHANID_DPCM) {
 						WriteData(Command(CMD_EFF_DAC));
 						WriteData(EffParam & 0x7F);
 					}
@@ -469,37 +468,37 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 						WriteData(Command(CMD_EFF_DUTY));
 						WriteData((EffParam << 6) | ((EffParam & 0x04) << 3));
 					}
-					else if (ChanID != CHANID_TRIANGLE && ChanID != CHANID_DPCM) {	// Not triangle and dpcm
+					else if (Channel != CHANID_TRIANGLE && Channel != CHANID_DPCM) {	// Not triangle and dpcm
 						WriteData(Command(CMD_EFF_DUTY));
 						WriteData(EffParam);
 					}
 					break;
 				case EF_SAMPLE_OFFSET:
-					if (ChanID == CHANID_DPCM) {	// DPCM
+					if (Channel == CHANID_DPCM) {	// DPCM
 						WriteData(Command(CMD_EFF_OFFSET));
 						WriteData(EffParam);
 					}
 					break;
 				case EF_SLIDE_UP:
-					if (ChanID != CHANID_DPCM) {
+					if (Channel != CHANID_DPCM) {
 						WriteData(Command(CMD_EFF_SLIDE_UP));
 						WriteData(EffParam);
 					}
 					break;
 				case EF_SLIDE_DOWN:
-					if (ChanID != CHANID_DPCM) {
+					if (Channel != CHANID_DPCM) {
 						WriteData(Command(CMD_EFF_SLIDE_DOWN));
 						WriteData(EffParam);
 					}
 					break;
 				case EF_VOLUME_SLIDE:
-					if (ChanID != CHANID_DPCM) {
+					if (Channel != CHANID_DPCM) {
 						WriteData(Command(CMD_EFF_VOL_SLIDE));
 						WriteData(EffParam);
 					}
 					break;
 				case EF_NOTE_CUT:
-					if (EffParam >= 0x80 && ChanID == CHANID_TRIANGLE) {		// // //
+					if (EffParam >= 0x80 && Channel == CHANID_TRIANGLE) {		// // //
 						WriteData(Command(CMD_EFF_LINEAR_COUNTER));
 						WriteData(EffParam - 0x80);
 					}
@@ -509,13 +508,13 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 					}
 					break;
 				case EF_RETRIGGER:
-					if (ChanID == CHANID_DPCM) {
+					if (Channel == CHANID_DPCM) {
 						WriteData(Command(CMD_EFF_RETRIGGER));
 						WriteData(EffParam + 1);
 					}
 					break;
 				case EF_DPCM_PITCH:
-					if (ChanID == CHANID_DPCM) {
+					if (Channel == CHANID_DPCM) {
 						WriteData(Command(CMD_EFF_DPCM_PITCH));
 						WriteData(EffParam);
 					}
@@ -538,13 +537,13 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 					}
 					break;
 				case EF_DELAYED_VOLUME:		// // //
-					if (ChanID != CHANID_DPCM && (EffParam >> 4) && (EffParam & 0x0F)) {
+					if (Channel != CHANID_DPCM && (EffParam >> 4) && (EffParam & 0x0F)) {
 						WriteData(Command(CMD_EFF_DELAYED_VOLUME));
 						WriteData(EffParam);
 					}
 					break;
 				case EF_TRANSPOSE:			// // //
-					if (ChanID != CHANID_DPCM) {
+					if (Channel != CHANID_DPCM) {
 						WriteData(Command(CMD_EFF_TRANSPOSE));
 						WriteData(EffParam);
 					}
@@ -564,31 +563,31 @@ void CPatternCompiler::CompileData(int Track, int Pattern, int Channel)
 					break;
 				// FDS
 				case EF_FDS_MOD_DEPTH:
-					if (ChanID == CHANID_FDS) {
+					if (Channel == CHANID_FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_DEPTH));
 						WriteData(EffParam);
 					}
 					break;
 				case EF_FDS_MOD_SPEED_HI:
-					if (ChanID == CHANID_FDS) {
+					if (Channel == CHANID_FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_RATE_HI));
 						WriteData(EffParam);		// // //
 					}
 					break;
 				case EF_FDS_MOD_SPEED_LO:
-					if (ChanID == CHANID_FDS) {
+					if (Channel == CHANID_FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_RATE_LO));
 						WriteData(EffParam);
 					}
 					break;
 				case EF_FDS_MOD_BIAS:		// // //
-					if (ChanID == CHANID_FDS) {
+					if (Channel == CHANID_FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_BIAS));
 						WriteData(EffParam);
 					}
 					break;
 				case EF_FDS_VOLUME:		// // //
-					if (ChanID == CHANID_FDS) {
+					if (Channel == CHANID_FDS) {
 						WriteData(Command(CMD_EFF_FDS_VOLUME));
 						WriteData(EffParam == 0xE0 ? 0x80 : (EffParam ^ 0x40));
 					}
@@ -691,7 +690,7 @@ unsigned int CPatternCompiler::FindSample(int Instrument, int Octave, int Key) c
 	return (*m_pDPCMList)[Instrument][Octave][Key - 1];
 }
 
-void CPatternCompiler::ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned int StartRow, int Pattern, int Channel)
+void CPatternCompiler::ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned int StartRow, int Pattern, chan_id_t Channel)
 {
 	int StartSpace = -1, Space = 0, SpaceCount = 0;
 
@@ -699,7 +698,7 @@ void CPatternCompiler::ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned 
 	Info.SpaceSize = 0;
 
 	for (unsigned i = StartRow; i < m_pDocument->GetPatternLength(Track); ++i) {
-		const auto &NoteData = m_pDocument->GetDataAtPattern(Track, Pattern, m_pDocument->TranslateChannel(Channel), i);		// // //
+		const auto &NoteData = m_pDocument->GetDataAtPattern(Track, Pattern, Channel, i);		// // //
 		bool NoteUsed = false;
 
 		if (NoteData.Note > 0)
@@ -708,7 +707,7 @@ void CPatternCompiler::ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned 
 			NoteUsed = true;
 		else if (NoteData.Vol < MAX_VOLUME)
 			NoteUsed = true;
-		else for (unsigned j = 0, Count = m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(Channel)); j <= Count; ++j)
+		else for (unsigned j = 0, Count = m_pDocument->GetEffColumns(Track, Channel); j <= Count; ++j)
 			if (NoteData.EffNumber[j] != EF_NONE)
 				NoteUsed = true;
 

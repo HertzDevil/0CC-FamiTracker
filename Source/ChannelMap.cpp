@@ -65,6 +65,11 @@ int CChannelMap::GetChannelIndex(chan_id_t chan) const {		// // //
 	return it != m_iChannelIndices.cend() ? it->second : -1;
 }
 
+bool CChannelMap::HasChannel(chan_id_t chan) const {		// // //
+	auto it = m_iChannelIndices.find(chan);
+	return it != m_iChannelIndices.cend();
+}
+
 int CChannelMap::GetChannelCount() const {		// // //
 	return m_pChannels.size();
 }

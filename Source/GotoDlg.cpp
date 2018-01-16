@@ -78,7 +78,7 @@ BOOL CGotoDlg::OnInitDialog()
 	if (pDoc->ExpansionEnabled(SNDCHIP_S5B))
 		m_cChipEdit.AddString(_T("5B"));
 
-	int Channel = pDoc->GetChannelType(pView->GetSelectedChannel());
+	int Channel = pView->GetSelectedChannelID();
 	if (Channel >= CHANID_S5B_CH1) {
 		Channel -= CHANID_S5B_CH1;
 		m_cChipEdit.SelectString(-1, _T("5B"));

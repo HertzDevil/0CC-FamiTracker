@@ -135,7 +135,7 @@ chan_id_t CSwapDlg::GetFinalChannel(unsigned int Channel, unsigned int Chip) con
 	case SNDCHIP_S5B:  Channel += CHANID_S5B_CH1; break;
 	}
 
-	return pDoc->TranslateChannel(pDoc->GetChannelIndex((chan_id_t)Channel));
+	return (chan_id_t)Channel;
 }
 
 void CSwapDlg::OnEnChangeEditSwapChan1()

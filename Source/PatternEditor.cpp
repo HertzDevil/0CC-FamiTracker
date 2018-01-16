@@ -1487,7 +1487,7 @@ void CPatternEditor::DrawHeader(CDC &DC)
 			DC.Draw3dRect(Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT, BLEND(STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK, .5), STATIC_COLOR_SCHEME.FRAME_DARK);
 		}
 		else {
-			if (m_pDocument->GetChannelType(Channel) == theApp.GetSoundGenerator()->GetRecordChannel())		// // //
+			if (m_pDocument->TranslateChannel(Channel) == theApp.GetSoundGenerator()->GetRecordChannel())		// // //
 				GradientRectTriple(DC, Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT,
 								   m_colHead1, m_colHead2, m_colHead5);
 			DC.Draw3dRect(Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT, STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK);
@@ -3528,7 +3528,7 @@ void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
 	str.Empty();
 
 	for (int c = it.first.m_iChannel; c <= it.second.m_iChannel; ++c) {
-		int Type = m_pDocument->GetChannelType(c);
+		int Type = m_pDocument->TranslateChannel(c);
 		switch (m_pDocument->GetChipType(c)) {
 		case SNDCHIP_NONE: Type += 'A' - CHANID_SQUARE1; break;
 		case SNDCHIP_VRC6: Type += 'M' - CHANID_VRC6_PULSE1; break;
