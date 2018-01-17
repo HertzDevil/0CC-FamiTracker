@@ -23,6 +23,7 @@
 #include "ModuleImportDlg.h"
 #include "FamiTrackerDoc.h"
 #include "SongData.h"		// // //
+#include "SoundChipSet.h"		// // //
 //#include <algorithm>
 
 // CModuleImportDlg dialog
@@ -104,8 +105,8 @@ bool CModuleImportDlg::LoadFile(CString Path)		// // //
 
 	// Check expansion chip match
 	// // // import as superset of expansion chip configurations
-	sound_chip_flag_t c1 = m_pImportedDoc->GetExpansionChip();
-	sound_chip_flag_t c2 = m_pDocument->GetExpansionChip();
+	const CSoundChipSet &c1 = m_pImportedDoc->GetExpansionChip();
+	const CSoundChipSet &c2 = m_pDocument->GetExpansionChip();
 	unsigned n1 = m_pImportedDoc->GetNamcoChannels();
 	unsigned n2 = m_pDocument->GetNamcoChannels();
 	if (n1 != n2 || c1 != c2) {

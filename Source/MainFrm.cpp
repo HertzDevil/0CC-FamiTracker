@@ -1601,18 +1601,17 @@ void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 {
 	CString String;
 
-	sound_chip_flag_t Chip = GetDoc().GetExpansionChip();
+	const CSoundChipSet &Chip = GetDoc().GetExpansionChip();
 
-	if (!Chip)		// // //
-		String = _T("No expansion chip");
-	else if (!Chip.IsMultiChip())
-		switch (Chip.GetSoundChip()) {
-		case sound_chip_t::VRC6: String = _T(" Konami VRC6");   break;
-		case sound_chip_t::VRC7: String = _T(" Konami VRC7");   break;
-		case sound_chip_t::FDS:  String = _T(" Nintendo FDS");  break;
-		case sound_chip_t::MMC5: String = _T(" Nintendo MMC5"); break;
-		case sound_chip_t::N163: String = _T(" Namco 163");     break;
-		case sound_chip_t::S5B:  String = _T(" Sunsoft 5B");    break;
+	if (!Chip.IsMultiChip())		// // //
+		switch (Chip.WithoutChip(sound_chip_t::APU).GetSoundChip()) {
+		case sound_chip_t::VRC6: String = _T(" Konami VRC6");       break;
+		case sound_chip_t::VRC7: String = _T(" Konami VRC7");       break;
+		case sound_chip_t::FDS:  String = _T(" Nintendo FDS");      break;
+		case sound_chip_t::MMC5: String = _T(" Nintendo MMC5");     break;
+		case sound_chip_t::N163: String = _T(" Namco 163");         break;
+		case sound_chip_t::S5B:  String = _T(" Sunsoft 5B");        break;
+		case sound_chip_t::NONE: String = _T(" No expansion chip"); break;
 		}
 	else {
 		if (Chip.ContainsChip(sound_chip_t::VRC6))
@@ -2585,10 +2584,8 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 	const CFamiTrackerDoc &Doc = GetDoc();
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 
-	sound_chip_flag_t Chip = Doc.GetExpansionChip();		// // //
+	const CSoundChipSet &Chip = Doc.GetExpansionChip();		// // //
 	sound_chip_t SelectedChip = Doc.GetChipType(pView->GetSelectedChannel());		// // // where the cursor is located
-
-	menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_2A03, _T("New 2A03 instrument"));
 
 	if (Chip.ContainsChip(sound_chip_t::APU))
 		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_2A03, _T("New 2A03 instrument"));
@@ -3499,7 +3496,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 {
 	const CFamiTrackerDoc &Doc = GetDoc();
 
-	pCmdUI->Enable(!Doc.GetExpansionChip() && !theApp.GetSoundGenerator()->IsPlaying());		// // //
+	pCmdUI->Enable(!Doc.HasExpansionChips() && !theApp.GetSoundGenerator()->IsPlaying());		// // //
 	UINT item = Doc.GetMachine() == PAL ? ID_TRACKER_PAL : ID_TRACKER_NTSC;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);

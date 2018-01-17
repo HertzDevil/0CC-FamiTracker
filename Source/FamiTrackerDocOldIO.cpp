@@ -32,6 +32,7 @@
 #include "Sequence.h"
 #include "FamiTrackerModule.h"
 #include "APU/Types.h"
+#include "SoundChipSet.h"
 
 namespace {
 
@@ -61,7 +62,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 	// Only single track files
 	auto &Song = *doc.GetSong(0);
 
-	doc.SelectExpansionChip({ }, 0);		// // //
+	doc.SelectExpansionChip(sound_chip_t::APU, 0);		// // //
 	doc.SetMachine(NTSC);		// // //
 	doc.SetVibratoStyle(VIBRATO_OLD);
 	doc.SetLinearPitch(false);

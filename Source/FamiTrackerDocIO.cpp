@@ -29,6 +29,7 @@
 #include "FamiTrackerModule.h"
 #include "Settings.h"
 #include "APU/Types.h"
+#include "SoundChipSet.h"
 
 #include "InstrumentManager.h"
 #include "Instrument2A03.h"
@@ -233,14 +234,14 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 	auto &modfile = *doc.GetModule();
 	auto &Song = *modfile.GetSong(0);
 
-	sound_chip_flag_t Expansion;		// // //
+	CSoundChipSet Expansion = sound_chip_t::APU;		// // //
 
 	// Get first track for module versions that require that
 	if (ver == 1)
 		Song.SetSongSpeed(file_.GetBlockInt());
 	else {
-		char flag = AssertRange<MODULE_ERROR_STRICT>((unsigned char)file_.GetBlockChar(), 0u, value_cast(sound_chip_flag_t::All()), "Expansion chip flag");;
-		Expansion = sound_chip_flag_t {flag};
+		auto flag = AssertRange<MODULE_ERROR_STRICT>((unsigned char)file_.GetBlockChar(), 0u, CSoundChipSet::NSF_MAX_FLAG, "Expansion chip flag");;
+		Expansion = CSoundChipSet::FromNSFFlag(flag);
 	}
 
 	int channels = AssertRange(file_.GetBlockInt(), 1, MAX_CHANNELS, "Channel count");		// // //
@@ -285,7 +286,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 
 	// This is strange. Sometimes expansion chip is set to 0xFF in files
 	if (channels == 5)
-		Expansion = sound_chip_flag_t { };
+		Expansion = sound_chip_t::APU;
 
 	if (file_.GetFileVersion() == 0x0200) {
 		int Speed = Song.GetSongSpeed();
@@ -326,7 +327,7 @@ void CFamiTrackerDocIO::SaveParams(const CFamiTrackerDoc &doc, int ver) {
 	auto &modfile = *doc.GetModule();
 
 	if (ver >= 2)
-		file_.WriteBlockChar(value_cast(doc.GetExpansionChip()));		// ver 2 change
+		file_.WriteBlockChar(doc.GetExpansionChip().GetNSFFlag());		// // //
 	else
 		file_.WriteBlockInt(modfile.GetSong(0)->GetSongSpeed());
 

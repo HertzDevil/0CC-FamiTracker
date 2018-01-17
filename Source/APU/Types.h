@@ -25,18 +25,27 @@
 
 #include "Types_fwd.h"
 #include <type_traits>
-#include <cstddef>
 
 enum class sound_chip_t : std::uint8_t {		// // //
-	APU  = 0x00u,
-	VRC6 = 0x01u,
-	VRC7 = 0x02u,
-	FDS  = 0x04u,
-	MMC5 = 0x08u,
-	N163 = 0x10u,
-	S5B  = 0x20u,
-	NONE = 0xFFu,
+	APU,
+	VRC6,
+	VRC7,
+	FDS,
+	MMC5,
+	N163,
+	S5B,
+	NONE = (std::uint8_t)-1,
 };
+
+inline constexpr std::size_t SOUND_CHIP_COUNT = 7;
+
+// // // TODO: use enum_traits (MSVC broke it)
+constexpr auto value_cast(sound_chip_t chip) noexcept {
+	using T = std::underlying_type_t<sound_chip_t>;
+	if (chip >= sound_chip_t::APU && chip <= sound_chip_t::S5B)
+		return static_cast<T>(chip);
+	return static_cast<T>(sound_chip_t::NONE);
+}
 
 constexpr sound_chip_t EXPANSION_CHIPS[] = {
 	sound_chip_t::VRC6, sound_chip_t::VRC7, sound_chip_t::FDS, sound_chip_t::MMC5, sound_chip_t::N163, sound_chip_t::S5B,

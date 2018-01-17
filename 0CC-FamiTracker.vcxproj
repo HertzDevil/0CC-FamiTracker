@@ -455,6 +455,7 @@
     <ClCompile Include="Source\PatternClipData.cpp" />
     <ClCompile Include="Source\PatternData.cpp" />
     <ClCompile Include="Source\RegisterDisplay.cpp" />
+    <ClCompile Include="Source\SoundChipSet.cpp" />
     <ClCompile Include="Source\SoundDriver.cpp" />
     <ClCompile Include="Source\SongState.cpp" />
     <ClCompile Include="Source\FamiTrackerTypes.cpp" />
@@ -654,6 +655,7 @@
     <ClInclude Include="Source\DetuneTable.h" />
     <ClInclude Include="Source\DPI.h" />
     <ClInclude Include="Source\ChannelFactory.h" />
+    <ClInclude Include="Source\SoundChipSet.h" />
     <ClInclude Include="Source\SoundDriver.h" />
     <ClInclude Include="Source\SongState.h" />
     <ClInclude Include="Source\drivers\drv_2a03.h" />

@@ -289,7 +289,7 @@ void CFamiTrackerDoc::CreateEmpty()
 	LockDocument();
 
 	// and select 2A03 only
-	SelectExpansionChip({ }, 0);		// // //
+	SelectExpansionChip(sound_chip_t::APU, 0);		// // //
 	SetModifiedFlag(FALSE);
 	SetExceededFlag(FALSE);		// // //
 
@@ -1263,11 +1263,11 @@ const CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index) const		// // /
 	return *GetSong(Index);
 }
 
-void CFamiTrackerDoc::SelectExpansionChip(sound_chip_flag_t chips, unsigned n163chs) {		// // //
+void CFamiTrackerDoc::SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs) {		// // //
 	ASSERT(n163chs <= 8 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
 
 	// // // Complete sound chip setup
-	if (chips)
+	if (HasExpansionChips())
 		SetMachine(NTSC);
 
 	// This will select a chip in the sound emulator
@@ -1280,8 +1280,12 @@ void CFamiTrackerDoc::SelectExpansionChip(sound_chip_flag_t chips, unsigned n163
 	ModifyIrreversible();
 }
 
-sound_chip_flag_t CFamiTrackerDoc::GetExpansionChip() const {
+const CSoundChipSet &CFamiTrackerDoc::GetExpansionChip() const {
 	return m_pChannelMap->GetExpansionFlag();		// // //
+}
+
+bool CFamiTrackerDoc::HasExpansionChips() const {		// // //
+	return GetExpansionChip().WithoutChip(sound_chip_t::APU).HasChips();
 }
 
 void CFamiTrackerDoc::ApplyExpansionChip() const {
@@ -1425,7 +1429,7 @@ void CFamiTrackerDoc::SetupAutoSave()
 		file.Close();
 		if (AfxMessageBox(_T("It might be possible to recover last document, do you want to try?"), MB_YESNO) == IDYES) {
 			OpenDocument(TempFile);
-			SelectExpansionChip(m_iExpansionChip);
+			SelectExpansionChip(GetExpansionChip(), GetNamcoChannels());
 		}
 		else {
 			DeleteFile(TempFile);

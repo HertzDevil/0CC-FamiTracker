@@ -25,7 +25,7 @@
 
 #include <vector>		// // //
 #include <unordered_map>		// // //
-#include "APU/Types_fwd.h"		// // //
+#include "SoundChipSet.h"		// // //
 
 class CTrackerChannel;		// // //
 
@@ -35,7 +35,7 @@ class CChannelMap
 {
 public:
 	CChannelMap() = default;		// // //
-	CChannelMap(sound_chip_flag_t chips, unsigned n163chs);
+	CChannelMap(CSoundChipSet chips, unsigned n163chs);
 
 	void			ResetChannels();
 	void			RegisterChannel(CTrackerChannel &Channel);		// // //
@@ -48,7 +48,7 @@ public:
 	chan_id_t		GetChannelType(int index) const;		// // //
 	sound_chip_t	GetChipType(int index) const;
 
-	sound_chip_flag_t GetExpansionFlag() const noexcept;		// // //
+	const CSoundChipSet &GetExpansionFlag() const noexcept;		// // //
 	unsigned		GetChipChannelCount(sound_chip_t chip) const;
 	bool			HasExpansionChip(sound_chip_t chip) const noexcept; // all
 
@@ -62,6 +62,6 @@ private:		// // //
 	std::vector<CTrackerChannel *> m_pChannels;		// // //
 	std::unordered_map<chan_id_t, int> m_iChannelIndices;		// // //
 
-	sound_chip_flag_t chips_;		// // //
+	CSoundChipSet chips_;		// // //
 	unsigned n163chs_ = 0u;		// // //
 };

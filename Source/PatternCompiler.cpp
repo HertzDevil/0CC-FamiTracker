@@ -657,13 +657,13 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 
 unsigned char CPatternCompiler::Command(int cmd) const
 {
-	sound_chip_flag_t Chip = m_pDocument->GetExpansionChip();		// // //
+	const CSoundChipSet &Chip = m_pDocument->GetExpansionChip();		// // //
 
 	if (!Chip.IsMultiChip()) {		// // // truncate values if some chips do not exist
-		if (!m_pDocument->ExpansionEnabled(sound_chip_t::N163) && cmd > CMD_EFF_N163_WAVE_BUFFER) cmd -= sizeof(N163_EFFECTS);
+		if (!m_pDocument->ExpansionEnabled(sound_chip_t::N163) && cmd > CMD_EFF_N163_WAVE_BUFFER) cmd -= std::size(N163_EFFECTS);
 		// MMC5
-		if (!m_pDocument->ExpansionEnabled(sound_chip_t::FDS) && cmd > CMD_EFF_FDS_MOD_BIAS) cmd -= sizeof(FDS_EFFECTS);
-		if (!m_pDocument->ExpansionEnabled(sound_chip_t::VRC7) && cmd > CMD_EFF_VRC7_WRITE) cmd -= sizeof(VRC7_EFFECTS) + 1;
+		if (!m_pDocument->ExpansionEnabled(sound_chip_t::FDS) && cmd > CMD_EFF_FDS_MOD_BIAS) cmd -= std::size(FDS_EFFECTS);
+		if (!m_pDocument->ExpansionEnabled(sound_chip_t::VRC7) && cmd > CMD_EFF_VRC7_WRITE) cmd -= std::size(VRC7_EFFECTS) + 1;
 		// VRC6
 	}
 

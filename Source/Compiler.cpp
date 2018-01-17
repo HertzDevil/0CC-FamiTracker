@@ -134,16 +134,16 @@ unsigned int CCompiler::AdjustSampleAddress(unsigned int Address)
 
 CCompiler::CCompiler(const CFamiTrackerDoc &Doc, std::shared_ptr<CCompilerLog> pLogger) :
 	m_pDocument(&Doc),
-	m_pLogger(std::move(pLogger)),
 	m_iWaveTables(0),
 	m_pSamplePointersChunk(NULL),
 	m_pHeaderChunk(NULL),
 	m_pDriverData(NULL),
 	m_iLastBank(0),
+	m_iActualChip(m_pDocument->GetExpansionChip()),		// // //
+	m_iActualNamcoChannels(m_pDocument->GetNamcoChannels()),
+	m_pLogger(std::move(pLogger)),
 	m_iHashCollisions(0)
 {
-	m_iActualChip = m_pDocument->GetExpansionChip();		// // //
-	m_iActualNamcoChannels = m_pDocument->GetNamcoChannels();
 }
 
 CCompiler::~CCompiler() {
@@ -484,7 +484,7 @@ void CCompiler::ExportNSFE(LPCTSTR lpszFileName, int MachineType)		// // //
 void CCompiler::ExportNES(LPCTSTR lpszFileName, bool EnablePAL)
 {
 	ClearLog();
-	if (m_pDocument->GetExpansionChip()) {
+	if (m_pDocument->HasExpansionChips()) {
 		Print(_T("Error: Expansion chips not supported.\n"));
 		AfxMessageBox(_T("Expansion chips are currently not supported!"), 0, 0);
 		return;
@@ -499,7 +499,7 @@ void CCompiler::ExportPRG(LPCTSTR lpszFileName, bool EnablePAL)
 	// Same as export to .NES but without the header
 
 	ClearLog();
-	if (m_pDocument->GetExpansionChip()) {
+	if (m_pDocument->HasExpansionChips()) {
 		Print(_T("Error: Expansion chips not supported.\n"));
 		AfxMessageBox(_T("Expansion chips are currently not supported!"), 0, 0);
 		return;
@@ -573,7 +573,7 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 		pData[Driver.adr_reloc[i + 1]] = value >> 8;
 	}
 
-	if (m_iActualChip == sound_chip_t::N163) {
+	if (m_iActualChip.ContainsChip(sound_chip_t::N163)) {
 		pData[m_iDriverSize - 2 - 0x100 - 0xC0 * 2 - 8 - 1 - 8 + m_iActualNamcoChannels] = 3;
 	}
 
@@ -635,7 +635,7 @@ stNSFHeader CCompiler::CreateHeader(int MachineType) const		// // //
 	strncpy((char *)Header.SongName,   m_pDocument->GetModuleName().data(), std::size(Header.SongName));
 	strncpy((char *)Header.ArtistName, m_pDocument->GetModuleArtist().data(), std::size(Header.ArtistName));
 	strncpy((char *)Header.Copyright,  m_pDocument->GetModuleCopyright().data(), std::size(Header.Copyright));
-	Header.SoundChip = value_cast(m_iActualChip);		// // //
+	Header.SoundChip = m_iActualChip.GetNSFFlag();
 
 	// If speed is default, write correct NTSC/PAL speed periods
 	// else, set the same custom speed for both
@@ -656,7 +656,7 @@ stNSFHeader CCompiler::CreateHeader(int MachineType) const		// // //
 
 	// Allow PAL or dual tunes only if no expansion chip is selected
 	// Expansion chips weren't available in PAL areas
-	if (!m_pDocument->GetExpansionChip())
+	if (!m_pDocument->HasExpansionChips())
 		Header.Flags = MachineType;
 
 	return Header;
@@ -670,7 +670,7 @@ stNSFeHeader CCompiler::CreateNSFeHeader(int MachineType)		// // //
 	Header.LoadAddr = m_iLoadAddress;
 	Header.InitAddr = m_iInitAddress;
 	Header.PlayAddr = m_iInitAddress + 3;
-	Header.SoundChip = value_cast(m_iActualChip);		// // //
+	Header.SoundChip = m_iActualChip.GetNSFFlag();
 
 	int Speed = m_pDocument->GetEngineSpeed();
 	Header.Speed_NTSC = Speed ? 1000000 / Speed : 1000000 / 60; //0x411A; // default ntsc speed
@@ -686,7 +686,7 @@ stNSFeHeader CCompiler::CreateNSFeHeader(int MachineType)		// // //
 			Header.BankValues[7] = m_iLastBank;
 	}
 
-	if (!m_pDocument->GetExpansionChip())
+	if (!m_pDocument->HasExpansionChips())
 		Header.Flags = MachineType;
 
 	return Header;
@@ -908,8 +908,8 @@ bool CCompiler::CompileData()
 
 	// Select driver and channel order
 	if (!m_iActualChip.IsMultiChip())
-		switch (m_iActualChip.GetSoundChip()) {
-		case sound_chip_t::APU:
+		switch (m_iActualChip.WithoutChip(sound_chip_t::APU).GetSoundChip()) {
+		case sound_chip_t::NONE:
 			m_pDriverData = &DRIVER_PACK_2A03;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_2A03;
 			Print(_T(" * No expansion chip\n"));
@@ -951,11 +951,11 @@ bool CCompiler::CompileData()
 		Print(_T(" * Multiple expansion chips enabled\n"));
 //		if (m_pDocument->ExpansionEnabled(sound_chip_t::N163))
 //			m_pDocument->SetNamcoChannels(8, true);
-//		m_pDocument->SelectExpansionChip(sound_chip_flag_t::All(), true);
+//		m_pDocument->SelectExpansionChip(CSoundChipSet::All(), true);
 	}
 
 	// // // Setup channel order list, DPCM is located last
-	const sound_chip_flag_t Chip = m_pDocument->GetExpansionChip();
+	const CSoundChipSet &Chip = m_pDocument->GetExpansionChip();
 	if (Chip.ContainsChip(sound_chip_t::APU))
 		for (int i = 0; i < 4; i++)
 			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::APU, i));
@@ -1135,7 +1135,7 @@ void CCompiler::ScanSong()
 
 void CCompiler::CreateMainHeader()
 {
-	sound_chip_flag_t Chip = m_pDocument->GetExpansionChip();		// // //
+	const CSoundChipSet &Chip = m_pDocument->GetExpansionChip();		// // //
 
 	unsigned char Flags =		// // // bankswitch flag is set later
 		(m_pDocument->GetVibratoStyle() == VIBRATO_OLD ? FLAG_VIBRATO : 0) |

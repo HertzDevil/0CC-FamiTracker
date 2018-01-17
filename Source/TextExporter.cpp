@@ -36,6 +36,7 @@
 #include "InstrumentVRC7.h"		// // //
 #include "InstrumentFDS.h"		// // //
 #include "InstrumentN163.h"		// // //
+#include "SoundChipSet.h"		// // //
 
 #include <type_traits>		// // //
 
@@ -623,10 +624,12 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			Doc.SetEngineSpeed(t.ReadInt(0, 800));
 			t.ReadEOL();
 			break;
-		case CT_EXPANSION:
-			Doc.SelectExpansionChip(sound_chip_flag_t {t.ReadInt(0, value_cast(sound_chip_flag_t::All()))}, Doc.GetNamcoChannels());		// // //
+		case CT_EXPANSION: {
+			auto flag = t.ReadInt(0, CSoundChipSet::NSF_MAX_FLAG);		// // //
+			Doc.SelectExpansionChip(CSoundChipSet::FromNSFFlag(flag), Doc.GetNamcoChannels());		// // //
 			t.ReadEOL();
 			break;
+		}
 		case CT_VIBRATO:
 			Doc.SetVibratoStyle(static_cast<vibrato_t>(t.ReadInt(0, VIBRATO_NEW)));
 			t.ReadEOL();
@@ -1056,7 +1059,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 				),
 				CT[CT_MACHINE],   Doc.GetMachine(),
 				CT[CT_FRAMERATE], Doc.GetEngineSpeed(),
-				CT[CT_EXPANSION], Doc.GetExpansionChip(),
+				CT[CT_EXPANSION], Doc.GetExpansionChip().GetNSFFlag(),		// // //
 				CT[CT_VIBRATO],   Doc.GetVibratoStyle(),
 				CT[CT_SPLIT],     Doc.GetSpeedSplitPoint()
 //				,CT[CT_PLAYBACKRATE], Doc., Doc.

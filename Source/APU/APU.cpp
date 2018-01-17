@@ -62,7 +62,6 @@ CAPU::CAPU(IAudioCallback *pCallback) :		// // //
 	m_pS5B (std::make_unique<CS5B>(*m_pMixer)),
 	m_iFrameCycles(0),
 	m_pSoundBuffer(NULL),
-	m_iExternalSoundChip(0),
 	m_iCyclesToRun(0),
 	m_iSampleRate(44100)		// // //
 {
@@ -172,7 +171,7 @@ void CAPU::SetCallback(IAudioCallback &pCallback) {
 	m_pParent = &pCallback;
 }
 
-void CAPU::SetExternalSound(sound_chip_flag_t Chip) {
+void CAPU::SetExternalSound(const CSoundChipSet &Chip) {
 	// Set expansion chip
 	m_iExternalSoundChip = Chip;
 	m_pMixer->ExternalSound(Chip);
@@ -400,7 +399,7 @@ double CAPU::GetFreq(sound_chip_t Chip, int Chan) const
 {
 	const CSoundChip *pChip = nullptr;
 	switch (Chip) {
-	case sound_chip_t::APU: pChip = m_p2A03.get(); break;
+	case sound_chip_t::APU:  pChip = m_p2A03.get(); break;
 	case sound_chip_t::VRC6: pChip = m_pVRC6.get(); break;
 	case sound_chip_t::VRC7: pChip = m_pVRC7.get(); break;
 	case sound_chip_t::FDS:  pChip = m_pFDS.get(); break;
@@ -416,7 +415,7 @@ CRegisterState *CAPU::GetRegState(sound_chip_t Chip, int Reg) const		// // //
 {
 	const CSoundChip *pChip = nullptr;
 	switch (Chip) {
-	case sound_chip_t::APU: pChip = m_p2A03.get(); break;
+	case sound_chip_t::APU:  pChip = m_p2A03.get(); break;
 	case sound_chip_t::VRC6: pChip = m_pVRC6.get(); break;
 	case sound_chip_t::VRC7: pChip = m_pVRC7.get(); break;
 	case sound_chip_t::FDS:  pChip = m_pFDS.get(); break;

@@ -39,7 +39,7 @@ LPCTSTR TRACK_FORMAT = _T("#%02i %.*s");		// // //
 
 IMPLEMENT_DYNAMIC(CModulePropertiesDlg, CDialog)
 CModulePropertiesDlg::CModulePropertiesDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CModulePropertiesDlg::IDD, pParent), m_iSelectedSong(0), m_pDocument(NULL)
+	: CDialog(CModulePropertiesDlg::IDD, pParent), m_iSelectedSong(0), m_iExpansions(sound_chip_t::APU), m_pDocument(NULL)
 {
 }
 

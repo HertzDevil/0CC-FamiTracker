@@ -64,7 +64,7 @@ static const int   LEVEL_FALL_OFF_DELAY = 3;
 
 
 
-void CMixer::ExternalSound(sound_chip_flag_t Chip) {		// // //
+void CMixer::ExternalSound(CSoundChipSet Chip) {		// // //
 	m_iExternalChip = Chip;
 	UpdateSettings(m_iLowCut, m_iHighCut, m_iHighDamp, m_fOverallVol);
 }

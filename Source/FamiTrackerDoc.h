@@ -62,6 +62,7 @@ class CInstrument;		// // //
 class CSequence;		// // //
 class stChanNote;		// // //
 struct stHighlight;		// // //
+class CSoundChipSet;		// // //
 
 enum inst_type_t : unsigned;
 enum class sequence_t : unsigned;
@@ -214,8 +215,9 @@ public:
 	// Global (module) data
 	unsigned int	GetFrameRate() const;
 
-	void			SelectExpansionChip(sound_chip_flag_t chips, unsigned n163chs);		// // //
-	sound_chip_flag_t GetExpansionChip() const;
+	void			SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs);		// // //
+	const CSoundChipSet &GetExpansionChip() const;
+	bool			HasExpansionChips() const;		// // //
 	bool			ExpansionEnabled(sound_chip_t Chip) const;
 	int				GetNamcoChannels() const;
 

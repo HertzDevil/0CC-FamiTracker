@@ -29,7 +29,7 @@
  *
  */
 
-CChannelMap::CChannelMap(sound_chip_flag_t chips, unsigned n163chs) :
+CChannelMap::CChannelMap(CSoundChipSet chips, unsigned n163chs) :
 	chips_(chips), n163chs_(n163chs)
 {
 }
@@ -80,7 +80,7 @@ sound_chip_t CChannelMap::GetChipType(int index) const {
 	return GetChannel(index).GetChip();
 }
 
-sound_chip_flag_t CChannelMap::GetExpansionFlag() const noexcept {		// // //
+const CSoundChipSet &CChannelMap::GetExpansionFlag() const noexcept {		// // //
 	return chips_;
 }
 

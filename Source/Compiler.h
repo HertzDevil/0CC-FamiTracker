@@ -31,7 +31,7 @@
 #include <map>		// // //
 #include <cstdint>		// // //
 #include "FamiTrackerTypes.h"
-#include "APU/Types_fwd.h"		// // //
+#include "SoundChipSet.h"		// // //
 #include "Sequence.h"		// // // TODO: remove
 
 // NSF file header
@@ -264,7 +264,7 @@ private:
 	unsigned int	m_iWaveTables;
 
 	// // // Full chip export
-	sound_chip_flag_t m_iActualChip;
+	CSoundChipSet	m_iActualChip;
 	int				m_iActualNamcoChannels;
 
 	// Optimization

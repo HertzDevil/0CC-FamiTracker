@@ -35,7 +35,7 @@
 #include <memory>		// // //
 #include "FamiTrackerTypes.h"		// // //
 #include "SoundGenBase.h"		// // //
-#include "APU/Types.h"
+#include "APU/Types.h" // CHANID_COUNT
 
 // Custom messages
 enum {
@@ -78,6 +78,7 @@ class CTempoCounter;		// // //
 class CPlayerCursor;		// // //
 class CSoundDriver;		// // //
 class CChannelMap;		// // //
+class CSoundChipSet;		// // //
 
 namespace ft0cc::doc {
 class dpcm_sample;
@@ -105,8 +106,8 @@ public:
 	void		SetVisualizerWindow(CVisualizerWnd *pWnd);
 
 	// Multiple times initialization
-	std::unique_ptr<CChannelMap>	MakeChannelMap(sound_chip_flag_t chips, unsigned n163chs) const;		// // //
-	void		SelectChip(sound_chip_flag_t Chip);
+	std::unique_ptr<CChannelMap>	MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const;		// // //
+	void		SelectChip(const CSoundChipSet &Chip);
 	void		LoadMachineSettings();		// // // 050B
 
 	// Sound

@@ -42,6 +42,7 @@ class CAPU;
 class CSongState;
 class stChanNote;
 class CSoundGenBase;
+class CSoundChipSet;
 enum note_prio_t : unsigned;
 
 class CSoundDriver {
@@ -52,7 +53,7 @@ public:
 	void SetupTracks();
 	void LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu);
 	void ConfigureDocument();
-	std::unique_ptr<CChannelMap> MakeChannelMap(sound_chip_flag_t chips, unsigned n163chs) const;
+	std::unique_ptr<CChannelMap> MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const;
 
 	void StartPlayer(std::unique_ptr<CPlayerCursor> cur);
 	void StopPlayer();

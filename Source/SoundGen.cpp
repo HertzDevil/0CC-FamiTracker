@@ -49,6 +49,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "WaveFile.h"		// // //
 #include "APU/APU.h"
 #include "APU/Mixer.h"		// // // CHIP_LEVEL_*
+#include "SoundChipSet.h"		// // //
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "InstrumentRecorder.h"		// // //
 #include "Settings.h"
@@ -191,7 +192,7 @@ void CSoundGen::SetVisualizerWindow(CVisualizerWnd *pWnd)
 	m_csVisualizerWndLock.Unlock();
 }
 
-std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(sound_chip_flag_t chips, unsigned n163chs) const {		// // //
+std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const {		// // //
 	// This method will add channels to the document object, depending on the expansion chip used.
 	// Called from the document object (from the main thread)
 
@@ -201,7 +202,7 @@ std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(sound_chip_flag_t chips, 
 	return m_pSoundDriver->MakeChannelMap(chips, n163chs);		// // //
 }
 
-void CSoundGen::SelectChip(sound_chip_flag_t Chip)
+void CSoundGen::SelectChip(const CSoundChipSet &Chip)
 {
 	if (IsPlaying()) {
 		StopPlayer();
@@ -212,7 +213,7 @@ void CSoundGen::SelectChip(sound_chip_flag_t Chip)
 		return;
 	}
 
-	PostThreadMessage(WM_USER_SET_CHIP, value_cast(Chip), 0);
+	PostThreadMessage(WM_USER_SET_CHIP, Chip.GetFlag(), 0);
 }
 
 void CSoundGen::DocumentPropertiesChanged(CFamiTrackerDoc *pDocument)
@@ -1123,7 +1124,7 @@ void CSoundGen::OnCloseSound(WPARAM wParam, LPARAM lParam)
 
 void CSoundGen::OnSetChip(WPARAM wParam, LPARAM lParam)
 {
-	auto Chip = sound_chip_flag_t {(int)wParam};		// // //
+	auto Chip = CSoundChipSet::FromFlag(wParam);		// // //
 
 	m_pAPU->SetExternalSound(Chip);
 
