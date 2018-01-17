@@ -3538,9 +3538,10 @@ BOOL CFamiTrackerView::OnDrop(COleDataObject* pDataObject, DROPEFFECT dropEffect
 		// Get clipboard data
 		auto pClipData = std::make_unique<CPatternClipData>();		// // //
 		HGLOBAL hMem = pDataObject->GetGlobalData(m_iClipboard);
-		if (pClipData->ReadGlobalMemory(pDataObject->GetGlobalData(m_iClipboard)))
-			if (m_pPatternEditor->PerformDrop(std::move(pClipData), bCopy, m_bDropMix))
-				m_bDropped = true;
+		if (pClipData->ReadGlobalMemory(pDataObject->GetGlobalData(m_iClipboard))) {
+			m_pPatternEditor->PerformDrop(std::move(pClipData), bCopy, m_bDropMix);		// // // ???
+			m_bDropped = true;
+		}
 
 		InvalidateCursor();
 
