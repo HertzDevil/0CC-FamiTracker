@@ -62,7 +62,7 @@ public:
 	unsigned int GetFrameCount() const;
 	unsigned int GetSongSpeed() const;
 	unsigned int GetSongTempo() const;
-	int GetEffectColumnCount(chan_id_t Channel) const;
+	unsigned GetEffectColumnCount(chan_id_t Channel) const;
 	bool GetSongGroove() const;		// // //
 
 	void SetTitle(std::string_view str);		// // //
@@ -70,7 +70,7 @@ public:
 	void SetFrameCount(unsigned int Count);
 	void SetSongSpeed(unsigned int Speed);
 	void SetSongTempo(unsigned int Tempo);
-	void SetEffectColumnCount(chan_id_t Channel, int Count);
+	void SetEffectColumnCount(chan_id_t Channel, unsigned Count);
 	void SetSongGroove(bool Groove);		// // //
 
 	unsigned int GetFramePattern(unsigned int Frame, chan_id_t Channel) const;

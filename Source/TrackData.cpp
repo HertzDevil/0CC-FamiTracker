@@ -39,10 +39,10 @@ void CTrackData::SetFramePattern(unsigned Frame, unsigned Pattern) {
 		m_iFrameList[Frame] = Pattern;
 }
 
-int CTrackData::GetEffectColumnCount() const {
+unsigned CTrackData::GetEffectColumnCount() const {
 	return m_iEffectColumns;
 }
 
-void CTrackData::SetEffectColumnCount(int Count) {
+void CTrackData::SetEffectColumnCount(unsigned Count) {
 	m_iEffectColumns = Count;
 }

@@ -34,15 +34,21 @@ class CSongView {
 public:
 	CSongView(const CChannelOrder &order, CSongData &song);
 
-	// similar interface as CTrackData
+	const CChannelOrder &GetChannelOrder() const;
+	CSongData &GetSong();
+	const CSongData &GetSong() const;
+
+	// similar interface to CSongData
 	CPatternData &GetPattern(std::size_t index, unsigned Pattern);
 	const CPatternData &GetPattern(std::size_t index, unsigned Pattern) const;
+	CPatternData &GetPatternOnFrame(std::size_t index, unsigned Frame);
+	const CPatternData &GetPatternOnFrame(std::size_t index, unsigned Frame) const;
 
-	unsigned int GetFramePattern(std::size_t index, unsigned Frame) const;
+	unsigned GetFramePattern(std::size_t index, unsigned Frame) const;
 	void SetFramePattern(std::size_t index, unsigned Frame, unsigned Pattern);
 
-	int GetEffectColumnCount(std::size_t index) const;
-	void SetEffectColumnCount(std::size_t index, int Count);
+	unsigned GetEffectColumnCount(std::size_t index) const;
+	void SetEffectColumnCount(std::size_t index, unsigned Count);
 
 	// void (*F)(chan_id_t chan)
 	template <typename F>

@@ -35,8 +35,8 @@ public:
 	unsigned int GetFramePattern(unsigned Frame) const;
 	void SetFramePattern(unsigned Frame, unsigned Pattern);
 
-	int GetEffectColumnCount() const;
-	void SetEffectColumnCount(int Count);
+	unsigned GetEffectColumnCount() const;
+	void SetEffectColumnCount(unsigned Count);
 
 private:
 	friend class CSongData;

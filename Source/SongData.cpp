@@ -132,7 +132,7 @@ unsigned int CSongData::GetSongTempo() const
 	return m_iSongTempo;
 }
 
-int CSongData::GetEffectColumnCount(chan_id_t Channel) const
+unsigned CSongData::GetEffectColumnCount(chan_id_t Channel) const
 {
 	auto track = GetTrack(Channel);		// // //
 	return track ? track->GetEffectColumnCount() : 0;
@@ -168,7 +168,7 @@ void CSongData::SetSongTempo(unsigned int Tempo)
 	m_iSongTempo = Tempo;
 }
 
-void CSongData::SetEffectColumnCount(chan_id_t Channel, int Count)
+void CSongData::SetEffectColumnCount(chan_id_t Channel, unsigned Count)
 {
 	if (auto track = GetTrack(Channel))		// // //
 		track->SetEffectColumnCount(Count);

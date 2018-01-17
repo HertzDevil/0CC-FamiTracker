@@ -29,6 +29,18 @@ CSongView::CSongView(const CChannelOrder &order, CSongData &song) :
 {
 }
 
+const CChannelOrder &CSongView::GetChannelOrder() const {
+	return order_;
+}
+
+CSongData &CSongView::GetSong() {
+	return song_;
+}
+
+const CSongData &CSongView::GetSong() const {
+	return song_;
+}
+
 CPatternData &CSongView::GetPattern(std::size_t index, unsigned Pattern) {
 	auto pTrack = GetTrack(index);		// // //
 	if (!pTrack)
@@ -38,6 +50,14 @@ CPatternData &CSongView::GetPattern(std::size_t index, unsigned Pattern) {
 
 const CPatternData &CSongView::GetPattern(std::size_t index, unsigned Pattern) const {
 	return const_cast<CSongView *>(this)->GetPattern(index, Pattern);
+}
+
+CPatternData &CSongView::GetPatternOnFrame(std::size_t index, unsigned Frame) {
+	return GetPattern(index, GetFramePattern(index, Frame));
+}
+
+const CPatternData &CSongView::GetPatternOnFrame(std::size_t index, unsigned Frame) const {
+	return GetPattern(index, GetFramePattern(index, Frame));
 }
 
 unsigned int CSongView::GetFramePattern(std::size_t index, unsigned Frame) const {
@@ -50,12 +70,12 @@ void CSongView::SetFramePattern(std::size_t index, unsigned Frame, unsigned Patt
 		pTrack->SetFramePattern(Frame, Pattern);
 }
 
-int CSongView::GetEffectColumnCount(std::size_t index) const {
+unsigned CSongView::GetEffectColumnCount(std::size_t index) const {
 	auto pTrack = GetTrack(index);
 	return pTrack ? pTrack->GetEffectColumnCount() : 0;
 }
 
-void CSongView::SetEffectColumnCount(std::size_t index, int Count) {
+void CSongView::SetEffectColumnCount(std::size_t index, unsigned Count) {
 	if (auto pTrack = GetTrack(index))
 		pTrack->SetEffectColumnCount(Count);
 }
