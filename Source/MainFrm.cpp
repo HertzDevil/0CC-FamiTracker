@@ -1682,7 +1682,7 @@ void CMainFrame::OnUpdateModuleMoveframeup(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateInstrumentNew(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(m_pInstrumentList->GetItemCount() < MAX_INSTRUMENTS);
+	pCmdUI->Enable(GetDoc().GetChannelCount() > 0 && m_pInstrumentList->GetItemCount() < MAX_INSTRUMENTS);		// // //
 }
 
 void CMainFrame::OnUpdateInstrumentRemove(CCmdUI *pCmdUI)

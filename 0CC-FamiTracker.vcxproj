@@ -440,6 +440,7 @@
     <ClCompile Include="Source\BookmarkCollection.cpp" />
     <ClCompile Include="Source\BookmarkDlg.cpp" />
     <ClCompile Include="Source\ChannelFactory.cpp" />
+    <ClCompile Include="Source\ChannelOrder.cpp" />
     <ClCompile Include="Source\ClipboardResource.cpp" />
     <ClCompile Include="Source\FamiTrackerDocIO.cpp" />
     <ClCompile Include="Source\FamiTrackerDocOldIO.cpp" />
@@ -455,6 +456,7 @@
     <ClCompile Include="Source\PatternClipData.cpp" />
     <ClCompile Include="Source\PatternData.cpp" />
     <ClCompile Include="Source\RegisterDisplay.cpp" />
+    <ClCompile Include="Source\SongView.cpp" />
     <ClCompile Include="Source\SoundChipSet.cpp" />
     <ClCompile Include="Source\SoundDriver.cpp" />
     <ClCompile Include="Source\SongState.cpp" />
@@ -624,6 +626,7 @@
     <ClInclude Include="Source\Bookmark.h" />
     <ClInclude Include="Source\BookmarkCollection.h" />
     <ClInclude Include="Source\BookmarkDlg.h" />
+    <ClInclude Include="Source\ChannelOrder.h" />
     <ClInclude Include="Source\ClipboardResource.h" />
     <ClInclude Include="Source\Color.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />
@@ -655,6 +658,7 @@
     <ClInclude Include="Source\DetuneTable.h" />
     <ClInclude Include="Source\DPI.h" />
     <ClInclude Include="Source\ChannelFactory.h" />
+    <ClInclude Include="Source\SongView.h" />
     <ClInclude Include="Source\SoundChipSet.h" />
     <ClInclude Include="Source\SoundDriver.h" />
     <ClInclude Include="Source\SongState.h" />

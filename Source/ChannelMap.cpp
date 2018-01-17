@@ -24,27 +24,19 @@
 #include "TrackerChannel.h"
 #include "APU/Types.h"		// // //
 
-/*
- *  This class contains the expansion chip definitions & instruments.
- *
- */
-
 CChannelMap::CChannelMap(CSoundChipSet chips, unsigned n163chs) :
 	chips_(chips), n163chs_(n163chs)
 {
 }
 
-void CChannelMap::ResetChannels()
-{
-	m_pChannels.clear();		// // //
-	m_iChannelIndices.clear();
+const CChannelOrder &CChannelMap::GetChannelOrder() const {
+	return order_;
 }
 
-void CChannelMap::RegisterChannel(CTrackerChannel &Channel)		// // //
-{
+void CChannelMap::RegisterChannel(CTrackerChannel &Channel) {		// // //
 	// Adds a channel to the channel map
-	m_iChannelIndices.try_emplace(Channel.GetID(), m_pChannels.size());		// // //
-	m_pChannels.push_back(&Channel);
+	if (order_.AddChannel(Channel.GetID()))
+		m_pChannels.push_back(&Channel);
 }
 
 bool CChannelMap::SupportsChannel(const CTrackerChannel &ch) const {		// // //
@@ -52,24 +44,21 @@ bool CChannelMap::SupportsChannel(const CTrackerChannel &ch) const {		// // //
 		GetChannelSubIndex(ch.GetID()) >= GetChipChannelCount(sound_chip_t::N163));
 }
 
-CTrackerChannel &CChannelMap::GetChannel(int index) const		// // //
-{
-	return *m_pChannels[index];
+CTrackerChannel &CChannelMap::GetChannel(int index) const {		// // //
+	return *m_pChannels.at(index);
 }
 
 int CChannelMap::GetChannelIndex(chan_id_t chan) const {		// // //
 	// Translate channel ID to index, returns -1 if not found
-	auto it = m_iChannelIndices.find(chan);
-	return it != m_iChannelIndices.cend() ? it->second : -1;
+	return order_.GetChannelIndex(chan);
 }
 
 bool CChannelMap::HasChannel(chan_id_t chan) const {		// // //
-	auto it = m_iChannelIndices.find(chan);
-	return it != m_iChannelIndices.cend();
+	return order_.HasChannel(chan);
 }
 
 int CChannelMap::GetChannelCount() const {		// // //
-	return m_pChannels.size();
+	return order_.GetChannelCount();
 }
 
 chan_id_t CChannelMap::GetChannelType(int index) const {		// // //

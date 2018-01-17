@@ -40,6 +40,9 @@
 #include "FamiTrackerModule.h"
 #include "Bookmark.h"
 #include "BookmarkCollection.h"
+#include "ChannelMap.h"
+#include "ChannelOrder.h"
+#include "SongView.h"
 #include "DetuneDlg.h"
 #include "StretchDlg.h"
 #include "RecordSettingsDlg.h"
@@ -842,14 +845,16 @@ void CFamiTrackerView::PeriodicUpdate()
 			}
 		}
 
-		// TODO get rid of static variables
-		static int LastNoteState = -1;
+		if (pDoc->GetChannelCount()) {		// // //
+			// TODO get rid of static variables
+			static int LastNoteState = -1;
 
-		int Note = pSoundGen->GetChannelNote(GetSelectedChannelID());		// // //
-		if (LastNoteState != Note)
-			pMainFrm->ChangeNoteState(Note);
+			int Note = pSoundGen->GetChannelNote(GetSelectedChannelID());		// // //
+			if (LastNoteState != Note)
+				pMainFrm->ChangeNoteState(Note);
 
-		LastNoteState = Note;
+			LastNoteState = Note;
+		}
 	}
 
 	// Switch instrument
@@ -1293,8 +1298,10 @@ void CFamiTrackerView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHi
 void CFamiTrackerView::TrackChanged(unsigned int Track)
 {
 	// Called when the selected track has changed
+	CFamiTrackerDoc *pDoc = GetDocument();		// // //
 	CMainFrame *pMainFrm = GetMainFrame();		// // //
 
+	song_view_ = std::make_unique<CSongView>(pDoc->GetChannelMap()->GetChannelOrder(), *pDoc->GetSong(Track));		// // //
 	SetMarker(-1, -1);		// // //
 	m_pPatternEditor->ResetCursor();
 	m_pPatternEditor->InvalidatePatternData();
@@ -1421,6 +1428,10 @@ unsigned int CFamiTrackerView::GetSelectedChannel() const
 
 chan_id_t CFamiTrackerView::GetSelectedChannelID() const {		// // //
 	return GetDocument()->TranslateChannel(GetSelectedChannel());
+}
+
+CSongView *CFamiTrackerView::GetSongView() const {		// // //
+	return song_view_.get();
 }
 
 unsigned int CFamiTrackerView::GetSelectedRow() const

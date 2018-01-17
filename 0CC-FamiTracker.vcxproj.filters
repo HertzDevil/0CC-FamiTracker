@@ -774,8 +774,14 @@
     <ClCompile Include="Source\TrackData.cpp">
       <Filter>Source Files\Document Data Types</Filter>
     </ClCompile>
+    <ClCompile Include="Source\SongView.cpp">
+      <Filter>Source Files\Document Utilities</Filter>
+    </ClCompile>
     <ClCompile Include="Source\SoundChipSet.cpp">
       <Filter>Source Files\Sound Driver</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ChannelOrder.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1430,10 +1436,16 @@
     <ClInclude Include="Source\TrackData.h">
       <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Source\SongView.h">
+      <Filter>Header Files\Document Utilities Headers</Filter>
+    </ClInclude>
     <ClInclude Include="Source\APU\Types_fwd.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\SoundChipSet.h">
+      <Filter>Header Files\Sound Driver Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ChannelOrder.h">
       <Filter>Header Files\Sound Driver Headers</Filter>
     </ClInclude>
   </ItemGroup>

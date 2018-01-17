@@ -238,7 +238,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	const CFamiTrackerDoc *pDoc = m_pDocument;		// // //
 	const CFamiTrackerView *pView = m_pView;
 	auto pSong = m_pMainFrame->GetCurrentSong();		// // //
-	if (!pSong)
+	if (!pSong || !pDoc->GetChannelCount())
 		return;
 	const auto &song = *pSong;
 

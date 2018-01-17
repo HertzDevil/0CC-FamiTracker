@@ -28,6 +28,7 @@
 #include "stdafx.h"		// // //
 #include <memory>		// // //
 #include <array>		// // //
+#include <optional>		// // //
 #include <unordered_map>		// // //
 
 #include "FamiTrackerTypes.h"		// // //
@@ -44,6 +45,7 @@ class CAction;
 class CNoteQueue;		// // //
 class CArpeggiator;		// // //
 class CMainFrame;		// // //
+class CSongView;		// // //
 
 // // // Player modes
 enum class play_mode_t {
@@ -94,6 +96,8 @@ public:
 	std::pair<unsigned, unsigned> GetSelectedPos() const;		// // //
 	unsigned int GetSelectedChannel() const;
 	chan_id_t GetSelectedChannelID() const;		// // //
+
+	CSongView	*GetSongView() const;		// // //
 
 	CPlayerCursor GetPlayerCursor(play_mode_t Mode) const;		// // //
 
@@ -288,6 +292,8 @@ private:
 	bool				m_bMaskInstrument;						// Ignore instrument column on new notes
 	bool				m_bMaskVolume;							// Ignore volume column on new notes
 	paste_pos_t			m_iPastePos;							// // // Paste position
+
+	std::unique_ptr<CSongView> song_view_;						// // //
 
 	// Playing
 	int					m_iSwitchToInstrument;

@@ -289,7 +289,7 @@ void CFamiTrackerDoc::CreateEmpty()
 	LockDocument();
 
 	// and select 2A03 only
-	SelectExpansionChip(sound_chip_t::APU, 0);		// // //
+	SelectExpansionChip(sound_chip_t::S5B, 0);		// // //
 	SetModifiedFlag(FALSE);
 	SetExceededFlag(FALSE);		// // //
 

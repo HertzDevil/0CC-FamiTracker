@@ -24,7 +24,7 @@
 #pragma once
 
 #include <vector>		// // //
-#include <unordered_map>		// // //
+#include "ChannelOrder.h"		// // //
 #include "SoundChipSet.h"		// // //
 
 class CTrackerChannel;		// // //
@@ -37,7 +37,8 @@ public:
 	CChannelMap() = default;		// // //
 	CChannelMap(CSoundChipSet chips, unsigned n163chs);
 
-	void			ResetChannels();
+	const CChannelOrder &GetChannelOrder() const;
+
 	void			RegisterChannel(CTrackerChannel &Channel);		// // //
 	bool			SupportsChannel(const CTrackerChannel &ch) const;		// // //
 
@@ -54,13 +55,14 @@ public:
 
 	template <typename F>
 	void ForeachChannel(F f) const {
+//		return order_.ForeachChannel(f);
 		for (std::size_t i = 0, n = m_pChannels.size(); i < n; ++i)
 			f(GetChannelType(i));
 	}
 
 private:		// // //
 	std::vector<CTrackerChannel *> m_pChannels;		// // //
-	std::unordered_map<chan_id_t, int> m_iChannelIndices;		// // //
+	CChannelOrder order_;		// // //
 
 	CSoundChipSet chips_;		// // //
 	unsigned n163chs_ = 0u;		// // //
