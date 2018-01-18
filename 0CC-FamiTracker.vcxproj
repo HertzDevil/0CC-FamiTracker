@@ -525,6 +525,7 @@
     <ClCompile Include="Source\TempoDisplay.cpp" />
     <ClCompile Include="Source\TrackData.cpp" />
     <ClCompile Include="Source\TransposeDlg.cpp" />
+    <ClCompile Include="Source\version.cpp" />
     <ClCompile Include="Source\VersionChecker.cpp" />
     <ClCompile Include="Source\VisualizerBase.cpp" />
     <ClCompile Include="Source\WaveEditor.cpp" />
