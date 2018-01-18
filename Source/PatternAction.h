@@ -53,16 +53,12 @@ struct CPatternEditorState		// // // TODO: might be moved to PatternEditor.h
 		\details On construction, the object retrieves the current state of the pattern editor
 		immediately. Once created, a state object remains constant and can be applied back to the
 		pattern editor as many times as desired.
-		\param pEditor Pointer to the pattern editor.
-		\param Track The track number. */
-	CPatternEditorState(const CPatternEditor *pEditor, int Track);
+		\param Editor Reference to the pattern editor. */
+	CPatternEditorState(const CPatternEditor &Editor);
 
 	/*!	\brief Applies the state to a pattern editor.
-		\param pEditor Pointer to the pattern editor. */
-	void ApplyState(CPatternEditor *pEditor) const;
-
-	/*!	\brief The current track number at the time of the state's creation. */
-	int Track;
+		\param Editor Reference to the pattern editor. */
+	void ApplyState(CPatternEditor &Editor) const;
 
 	/*!	\brief The current cursor position at the time of the state's creation. */
 	CCursorPos Cursor;
@@ -92,7 +88,7 @@ private:
 	void UpdateViews(CMainFrame &MainFrm) const override;		// // //
 
 protected:
-	bool SetTargetSelection(CPatternEditor *pPatternEditor, CSelection &Sel);		// // //
+	bool SetTargetSelection(const CMainFrame &MainFrm, CSelection &Sel);		// // //
 	void DeleteSelection(CSongView &view, const CSelection &Sel) const;		// // //
 	bool ValidateSelection(const CPatternEditor &Editor) const;		// // //
 	std::pair<CPatternIterator, CPatternIterator> GetIterators(CSongView &view) const;		// // //
@@ -173,7 +169,8 @@ private:
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 
-	stChanNote m_OldNote;
+	stChanNote m_NewNote, m_OldNote;
+	int m_iRow;
 	bool m_bPullUp, m_bBack;
 };
 
@@ -186,7 +183,7 @@ private:
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 
-	stChanNote m_OldNote;
+	stChanNote m_NewNote, m_OldNote;
 	int m_iAmount;
 };
 

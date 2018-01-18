@@ -46,6 +46,7 @@
 #include <algorithm>
 #include <bitset>		// // //
 #include "FamiTracker.h"
+#include "FamiTrackerViewMessage.h"		// // //
 #include "Instrument.h"		// // //
 #include "SeqInstrument.h"		// // //
 #include "Instrument2A03.h"		// // //
@@ -69,7 +70,6 @@
 #include "SongView.h"		// // //
 #include "FamiTrackerDocOldIO.h"		// // //
 #include "NumConv.h"		// // //
-#include "PatternEditorTypes.h"		// // // TODO: remove
 
 #include "ft0cc/doc/groove.hpp"		// // //
 #include "Sequence.h"		// // //
@@ -1024,54 +1024,6 @@ void CFamiTrackerDoc::ClearPattern(unsigned int Track, unsigned int Frame, chan_
 	// Clear entire pattern
 	auto &Song = GetSongData(Track);
 	Song.GetPatternOnFrame(Channel, Frame) = CPatternData { };		// // //
-}
-
-bool CFamiTrackerDoc::ClearRowField(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row, cursor_column_t Column)
-{
-	auto &Song = GetSongData(Track);
-	stChanNote &Note = Song.GetPatternOnFrame(Channel, Frame).GetNoteOn(Row);		// // //
-
-	switch (Column) {
-	case C_NOTE:			// Note
-		Note.Note = NONE;
-		Note.Octave = 0;
-		Note.Instrument = MAX_INSTRUMENTS;	// Fix the old behaviour
-		Note.Vol = MAX_VOLUME;
-		break;
-	case C_INSTRUMENT1:		// Instrument
-	case C_INSTRUMENT2:
-		Note.Instrument = MAX_INSTRUMENTS;
-		break;
-	case C_VOLUME:			// Volume
-		Note.Vol = MAX_VOLUME;
-		break;
-	case C_EFF1_NUM:			// Effect 1
-	case C_EFF1_PARAM1:
-	case C_EFF1_PARAM2:
-		Note.EffNumber[0] = EF_NONE;
-		Note.EffParam[0] = 0;
-		break;
-	case C_EFF2_NUM:		// Effect 2
-	case C_EFF2_PARAM1:
-	case C_EFF2_PARAM2:
-		Note.EffNumber[1] = EF_NONE;
-		Note.EffParam[1] = 0;
-		break;
-	case C_EFF3_NUM:		// Effect 3
-	case C_EFF3_PARAM1:
-	case C_EFF3_PARAM2:
-		Note.EffNumber[2] = EF_NONE;
-		Note.EffParam[2] = 0;
-		break;
-	case C_EFF4_NUM:		// Effect 4
-	case C_EFF4_PARAM1:
-	case C_EFF4_PARAM2:
-		Note.EffNumber[3] = EF_NONE;
-		Note.EffParam[3] = 0;
-		break;
-	}
-
-	return true;
 }
 
 bool CFamiTrackerDoc::PullUp(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row)

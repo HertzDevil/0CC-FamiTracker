@@ -3419,7 +3419,7 @@ void CMainFrame::OnEditRemoveUnusedSamples()
 
 void CMainFrame::OnEditPopulateUniquePatterns()		// // //
 {
-	AddAction(std::make_unique<CPActionUniquePatterns>(m_iTrack));
+	AddAction(std::make_unique<CPActionUniquePatterns>(GetSelectedTrack()));
 }
 
 void CMainFrame::OnEditGoto()

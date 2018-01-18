@@ -22,6 +22,7 @@
 
 #include "SwapDlg.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerViewMessage.h"
 #include "APU/Types.h"
 
 // CSwapDlg dialog

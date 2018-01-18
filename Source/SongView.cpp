@@ -43,6 +43,14 @@ const CSongData &CSongView::GetSong() const {
 	return song_;
 }
 
+CTrackData *CSongView::GetTrack(std::size_t index) {
+	return GetSong().GetTrack(order_.TranslateChannel(index));
+}
+
+const CTrackData *CSongView::GetTrack(std::size_t index) const {
+	return GetSong().GetTrack(order_.TranslateChannel(index));
+}
+
 CPatternData &CSongView::GetPattern(std::size_t index, unsigned Pattern) {
 	auto pTrack = GetTrack(index);		// // //
 	if (!pTrack)
@@ -112,10 +120,10 @@ unsigned CSongView::GetCurrentPatternLength(unsigned Frame) const {
 	return GetFrameLength(Frame);
 }
 
-CTrackData *CSongView::GetTrack(std::size_t index) {
-	return song_.GetTrack(order_.TranslateChannel(index));
+void CSongView::PullUp(std::size_t index, unsigned Frame, unsigned Row) {
+	GetSong().PullUp(order_.TranslateChannel(index), Frame, Row);
 }
 
-const CTrackData *CSongView::GetTrack(std::size_t index) const {
-	return song_.GetTrack(order_.TranslateChannel(index));
+void CSongView::InsertRow(std::size_t index, unsigned Frame, unsigned Row) {
+	GetSong().InsertRow(order_.TranslateChannel(index), Frame, Row);
 }

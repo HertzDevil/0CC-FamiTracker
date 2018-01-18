@@ -24,6 +24,7 @@
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
+#include "FamiTrackerViewMessage.h"		// // //
 #include "SongData.h"		// // //
 #include "MainFrm.h"
 #include "ModuleImportDlg.h"

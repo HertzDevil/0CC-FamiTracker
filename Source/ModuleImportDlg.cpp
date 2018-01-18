@@ -24,6 +24,7 @@
 #include "FamiTrackerDoc.h"
 #include "SongData.h"		// // //
 #include "SoundChipSet.h"		// // //
+#include "FamiTrackerViewMessage.h"		// // //
 //#include <algorithm>
 
 // CModuleImportDlg dialog

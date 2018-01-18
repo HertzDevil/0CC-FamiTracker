@@ -22,6 +22,7 @@
 
 #include "TransposeDlg.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerViewMessage.h"
 #include "PatternNote.h"
 #include "Instrument.h"
 #include "MainFrm.h"

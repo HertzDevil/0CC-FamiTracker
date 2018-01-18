@@ -46,6 +46,7 @@ class CNoteQueue;		// // //
 class CArpeggiator;		// // //
 class CMainFrame;		// // //
 class CSongView;		// // //
+class CFamiTrackerModule;		// // //
 
 // // // Player modes
 enum class play_mode_t {
@@ -98,6 +99,8 @@ public:
 	chan_id_t GetSelectedChannelID() const;		// // //
 
 	CSongView	*GetSongView() const;		// // //
+	CFamiTrackerModule *GetModuleData();		// // //
+	const CFamiTrackerModule *GetModuleData() const;		// // //
 
 	CPlayerCursor GetPlayerCursor(play_mode_t Mode) const;		// // //
 

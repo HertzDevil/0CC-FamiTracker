@@ -22,38 +22,37 @@
 
 #include "PatternAction.h"
 #include "FamiTrackerEnv.h"		// // //
-#include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
+#include "FamiTrackerViewMessage.h"		// // //
 #include "Settings.h"		// // //
 #include "MainFrm.h"
 #include "PatternEditor.h"
 #include "PatternClipData.h"		// // //
+#include "FamiTrackerModule.h"		// // //
 #include "SongView.h"		// // //
 
 // // // all dependencies on CMainFrame
 #define GET_VIEW() static_cast<CFamiTrackerView *>(MainFrm.GetActiveView())
-#define GET_DOCUMENT() GET_VIEW()->GetDocument()
+#define GET_MODULE() GET_VIEW()->GetModuleData()
 #define GET_SONG_VIEW() GET_VIEW()->GetSongView()
 #define GET_PATTERN_EDITOR() GET_VIEW()->GetPatternEditor()
-#define GET_SELECTED_TRACK() MainFrm.GetSelectedTrack()
 #define UPDATE_CONTROLS() MainFrm.UpdateControls()
 
 // // // Pattern editor state class
 
-CPatternEditorState::CPatternEditorState(const CPatternEditor *pEditor, int Track) :
-	Track(Track),
-	Cursor(pEditor->GetCursor()),
-	OriginalSelection(pEditor->GetSelection()),
-	IsSelecting(pEditor->IsSelecting())
+CPatternEditorState::CPatternEditorState(const CPatternEditor &Editor) :
+	Cursor(Editor.GetCursor()),
+	OriginalSelection(Editor.GetSelection()),
+	IsSelecting(Editor.IsSelecting())
 {
 	Selection = OriginalSelection.GetNormalized();
 }
 
-void CPatternEditorState::ApplyState(CPatternEditor *pEditor) const
+void CPatternEditorState::ApplyState(CPatternEditor &Editor) const
 {
-	pEditor->MoveCursor(Cursor);
-	IsSelecting ? pEditor->SetSelection(OriginalSelection) : pEditor->CancelSelection();
-	pEditor->InvalidateCursor();
+	Editor.MoveCursor(Cursor);
+	IsSelecting ? Editor.SetSelection(OriginalSelection) : Editor.CancelSelection();
+	Editor.InvalidateCursor();
 }
 
 // CPatternAction /////////////////////////////////////////////////////////////////
@@ -61,16 +60,13 @@ void CPatternEditorState::ApplyState(CPatternEditor *pEditor) const
 // Undo/redo commands for pattern editor
 //
 
-// // // for note writes
-#define STATE_EXPAND(st) (st)->Track, (st)->Cursor.m_iFrame, (st)->Cursor.m_iChannel, (st)->Cursor.m_iRow
-#define STATE_EXPAND2(pDoc, st) (st)->Track, (st)->Cursor.m_iFrame, (pDoc)->TranslateChannel((st)->Cursor.m_iChannel), (st)->Cursor.m_iRow
-
 CPatternAction::~CPatternAction()
 {
 }
 
-bool CPatternAction::SetTargetSelection(CPatternEditor *pPatternEditor, CSelection &Sel)		// // //
+bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &Sel)		// // //
 {
+	CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 	CCursorPos Start;
 
 	if ((m_iPastePos == PASTE_SELECTION || m_iPastePos == PASTE_FILL) && !m_bSelecting)
@@ -93,8 +89,7 @@ bool CPatternAction::SetTargetSelection(CPatternEditor *pPatternEditor, CSelecti
 		break;
 	}
 
-	auto *pDoc = CFamiTrackerDoc::GetDoc();
-	auto pSongView = pDoc->MakeSongView(m_pUndoState->Track);
+	auto pSongView = GET_SONG_VIEW();
 
 	CPatternIterator End(*pSongView, Start);
 
@@ -114,7 +109,7 @@ bool CPatternAction::SetTargetSelection(CPatternEditor *pPatternEditor, CSelecti
 		End.m_iColumn = GetCursorEndColumn(
 			!((End.m_iChannel - Start.m_iChannel + 1) % m_pClipData->ClipInfo.Channels) ?
 			m_pClipData->ClipInfo.EndColumn :
-			static_cast<column_t>(COLUMN_EFF1 + pDoc->GetEffColumns(m_pUndoState->Track, pDoc->TranslateChannel(End.m_iChannel))));
+			static_cast<column_t>(COLUMN_EFF1 + pSongView->GetEffectColumnCount(End.m_iChannel)));
 		break;
 	case PASTE_DRAG:
 		End.m_iChannel += m_pClipData->ClipInfo.Channels - 1;
@@ -216,8 +211,8 @@ bool CPatternAction::ValidateSelection(const CPatternEditor &Editor) const		// /
 
 void CPatternAction::UpdateViews(CMainFrame &MainFrm) const		// // //
 {
-//	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_PATTERN);
-	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_FRAME); // cursor might have moved to different channel
+//	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_PATTERN);
+	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_FRAME); // cursor might have moved to different channel
 }
 
 std::pair<CPatternIterator, CPatternIterator> CPatternAction::GetIterators(CSongView &view) const
@@ -235,26 +230,26 @@ void CPatternAction::SaveUndoState(const CMainFrame &MainFrm)		// // //
 	CFamiTrackerView *pView = GET_VIEW();
 	const CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 
-	m_pUndoState = std::make_unique<CPatternEditorState>(pPatternEditor, GET_SELECTED_TRACK());
+	m_pUndoState = std::make_unique<CPatternEditorState>(*pPatternEditor);
 	m_bSelecting = pPatternEditor->IsSelecting();
 	m_selection = pPatternEditor->GetSelection();
 }
 
 void CPatternAction::SaveRedoState(const CMainFrame &MainFrm)		// // //
 {
-	m_pRedoState = std::make_unique<CPatternEditorState>(GET_PATTERN_EDITOR(), GET_SELECTED_TRACK());
+	m_pRedoState = std::make_unique<CPatternEditorState>(*GET_PATTERN_EDITOR());
 }
 
 void CPatternAction::RestoreUndoState(CMainFrame &MainFrm) const		// // //
 {
 	if (m_pUndoState)
-		m_pUndoState->ApplyState(GET_PATTERN_EDITOR());
+		m_pUndoState->ApplyState(*GET_PATTERN_EDITOR());
 }
 
 void CPatternAction::RestoreRedoState(CMainFrame &MainFrm) const		// // //
 {
 	if (m_pRedoState)
-		m_pRedoState->ApplyState(GET_PATTERN_EDITOR());
+		m_pRedoState->ApplyState(*GET_PATTERN_EDITOR());
 }
 
 
@@ -288,21 +283,21 @@ CPActionEditNote::CPActionEditNote(const stChanNote &Note) :
 
 bool CPActionEditNote::SaveState(const CMainFrame &MainFrm)
 {
-	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_OldNote = pDoc->GetNoteData(STATE_EXPAND2(pDoc, m_pUndoState));		// // //
+	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+		.GetNoteOn(m_pUndoState->Cursor.m_iRow);		// // //
 	return true;
 }
 
 void CPActionEditNote::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetNoteData(STATE_EXPAND2(pDoc, m_pUndoState), m_OldNote);
+	GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+		.SetNoteOn(m_pUndoState->Cursor.m_iRow, m_OldNote);		// // //
 }
 
 void CPActionEditNote::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetNoteData(STATE_EXPAND2(pDoc, m_pUndoState), m_NewNote);
+	GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+		.SetNoteOn(m_pUndoState->Cursor.m_iRow, m_NewNote);		// // //
 }
 
 
@@ -314,45 +309,42 @@ CPActionReplaceNote::CPActionReplaceNote(const stChanNote &Note, int Frame, int 
 
 bool CPActionReplaceNote::SaveState(const CMainFrame &MainFrm)
 {
-	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_OldNote = pDoc->GetNoteData(m_pUndoState->Track, m_iFrame, pDoc->TranslateChannel(m_iChannel), m_iRow);		// // //
+	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_iChannel, m_iFrame).GetNoteOn(m_iRow);		// // //
 	return true;
 }
 
 void CPActionReplaceNote::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetNoteData(m_pUndoState->Track, m_iFrame, pDoc->TranslateChannel(m_iChannel), m_iRow, m_OldNote);
+	GET_SONG_VIEW()->GetPatternOnFrame(m_iChannel, m_iFrame).SetNoteOn(m_iRow, m_OldNote);		// // //
 }
 
 void CPActionReplaceNote::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetNoteData(m_pUndoState->Track, m_iFrame, pDoc->TranslateChannel(m_iChannel), m_iRow, m_NewNote);
+	GET_SONG_VIEW()->GetPatternOnFrame(m_iChannel, m_iFrame).SetNoteOn(m_iRow, m_NewNote);		// // //
 }
 
 
 
 bool CPActionInsertRow::SaveState(const CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_OldNote = pDoc->GetNoteData(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame,
-		pDoc->TranslateChannel(m_pUndoState->Cursor.m_iChannel), pDoc->GetPatternLength(m_pUndoState->Track) - 1);
+	CSongView *pSongView = GET_SONG_VIEW();
+	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+		.GetNoteOn(pSongView->GetSong().GetPatternLength() - 1);		// // //
 	return true;
 }
 
 void CPActionInsertRow::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->PullUp(STATE_EXPAND2(pDoc, m_pUndoState));
-	pDoc->SetNoteData(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame, pDoc->TranslateChannel(m_pUndoState->Cursor.m_iChannel),
-					  pDoc->GetPatternLength(m_pUndoState->Track) - 1, m_OldNote);
+	CSongView *pSongView = GET_SONG_VIEW();
+
+	pSongView->PullUp(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame, m_pUndoState->Cursor.m_iRow);
+	pSongView->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+		.SetNoteOn(pSongView->GetSong().GetPatternLength() - 1, m_OldNote);		// // //
 }
 
 void CPActionInsertRow::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->InsertRow(STATE_EXPAND2(pDoc, m_pUndoState));
+	GET_SONG_VIEW()->InsertRow(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame, m_pUndoState->Cursor.m_iRow);
 }
 
 
@@ -364,26 +356,72 @@ CPActionDeleteRow::CPActionDeleteRow(bool PullUp, bool Backspace) :
 
 bool CPActionDeleteRow::SaveState(const CMainFrame &MainFrm)
 {
-	if (m_bBack && !m_pUndoState->Cursor.m_iRow) return false;
-	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_OldNote = pDoc->GetNoteData(STATE_EXPAND2(pDoc, m_pUndoState) - (m_bBack ? 1 : 0));		// // // // bad
+	if (m_bBack && !m_pUndoState->Cursor.m_iRow)
+		return false;
+	m_iRow = m_pUndoState->Cursor.m_iRow - (m_bBack ? 1 : 0);
+	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+		.GetNoteOn(m_iRow);		// // //
+
+	m_NewNote = m_OldNote;
+	switch (m_pUndoState->Cursor.m_iColumn) {
+	case C_NOTE:			// Note
+		m_NewNote.Note = NONE;
+		m_NewNote.Octave = 0;
+		m_NewNote.Instrument = MAX_INSTRUMENTS;	// Fix the old behaviour
+		m_NewNote.Vol = MAX_VOLUME;
+		break;
+	case C_INSTRUMENT1:		// Instrument
+	case C_INSTRUMENT2:
+		m_NewNote.Instrument = MAX_INSTRUMENTS;
+		break;
+	case C_VOLUME:			// Volume
+		m_NewNote.Vol = MAX_VOLUME;
+		break;
+	case C_EFF1_NUM:			// Effect 1
+	case C_EFF1_PARAM1:
+	case C_EFF1_PARAM2:
+		m_NewNote.EffNumber[0] = EF_NONE;
+		m_NewNote.EffParam[0] = 0;
+		break;
+	case C_EFF2_NUM:		// Effect 2
+	case C_EFF2_PARAM1:
+	case C_EFF2_PARAM2:
+		m_NewNote.EffNumber[1] = EF_NONE;
+		m_NewNote.EffParam[1] = 0;
+		break;
+	case C_EFF3_NUM:		// Effect 3
+	case C_EFF3_PARAM1:
+	case C_EFF3_PARAM2:
+		m_NewNote.EffNumber[2] = EF_NONE;
+		m_NewNote.EffParam[2] = 0;
+		break;
+	case C_EFF4_NUM:		// Effect 4
+	case C_EFF4_PARAM1:
+	case C_EFF4_PARAM2:
+		m_NewNote.EffNumber[3] = EF_NONE;
+		m_NewNote.EffParam[3] = 0;
+		break;
+	}
+
 	return true;
 }
 
 void CPActionDeleteRow::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
+	CSongView *pSongView = GET_SONG_VIEW();
 	if (m_bPullUp)
-		pDoc->InsertRow(STATE_EXPAND2(pDoc, m_pUndoState) - (m_bBack ? 1 : 0));
-	pDoc->SetNoteData(STATE_EXPAND2(pDoc, m_pUndoState) - (m_bBack ? 1 : 0), m_OldNote);
+		pSongView->InsertRow(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame, m_iRow);
+	pSongView->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+		.SetNoteOn(m_iRow, m_OldNote);		// // //
 }
 
 void CPActionDeleteRow::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->ClearRowField(STATE_EXPAND2(pDoc, m_pUndoState) - (m_bBack ? 1 : 0), m_pUndoState->Cursor.m_iColumn);
+	CSongView *pSongView = GET_SONG_VIEW();
+	pSongView->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+		.SetNoteOn(m_iRow, m_NewNote);		// // //
 	if (m_bPullUp)
-		pDoc->PullUp(STATE_EXPAND2(pDoc, m_pUndoState) - (m_bBack ? 1 : 0));
+		pSongView->PullUp(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame, m_iRow);
 }
 
 
@@ -395,21 +433,41 @@ CPActionScrollField::CPActionScrollField(int Amount) :		// // //
 
 bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 {
-	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_OldNote = pDoc->GetNoteData(STATE_EXPAND2(pDoc, m_pUndoState));		// // //
+	const auto ScrollFunc = [&] (unsigned char &Old, int Limit) {
+		int New = static_cast<int>(Old) + m_iAmount;
+		if (Env.GetSettings()->General.bWrapPatternValue) {
+			New %= Limit;
+			if (New < 0)
+				New += Limit;
+		}
+		else {
+			New = std::clamp(New, 0, Limit - 1);
+		}
+		Old = static_cast<unsigned char>(New);
+	};
+
+	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+		.GetNoteOn(m_pUndoState->Cursor.m_iRow);		// // //
+	m_NewNote = m_OldNote;
 
 	switch (m_pUndoState->Cursor.m_iColumn) {
 	case C_INSTRUMENT1: case C_INSTRUMENT2:
+		ScrollFunc(m_NewNote.Instrument, MAX_INSTRUMENTS);
 		return m_OldNote.Instrument < MAX_INSTRUMENTS && m_OldNote.Instrument != HOLD_INSTRUMENT;		// // // 050B
 	case C_VOLUME:
+		ScrollFunc(m_NewNote.Vol, MAX_VOLUME);
 		return m_OldNote.Vol < MAX_VOLUME;
 	case C_EFF1_NUM: case C_EFF1_PARAM1: case C_EFF1_PARAM2:
+		ScrollFunc(m_NewNote.EffParam[0], 0x100);
 		return m_OldNote.EffNumber[0] != EF_NONE;
 	case C_EFF2_NUM: case C_EFF2_PARAM1: case C_EFF2_PARAM2:
+		ScrollFunc(m_NewNote.EffParam[1], 0x100);
 		return m_OldNote.EffNumber[1] != EF_NONE;
 	case C_EFF3_NUM: case C_EFF3_PARAM1: case C_EFF3_PARAM2:
+		ScrollFunc(m_NewNote.EffParam[2], 0x100);
 		return m_OldNote.EffNumber[2] != EF_NONE;
 	case C_EFF4_NUM: case C_EFF4_PARAM1: case C_EFF4_PARAM2:
+		ScrollFunc(m_NewNote.EffParam[3], 0x100);
 		return m_OldNote.EffNumber[3] != EF_NONE;
 	}
 
@@ -418,44 +476,14 @@ bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 
 void CPActionScrollField::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetNoteData(STATE_EXPAND2(pDoc, m_pUndoState), m_OldNote);
+	GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+		.SetNoteOn(m_pUndoState->Cursor.m_iRow, m_OldNote);		// // //
 }
 
 void CPActionScrollField::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	stChanNote Note = m_OldNote;
-
-	const auto ScrollFunc = [&] (unsigned char &Old, int Limit) {
-		int New = static_cast<int>(Old) + m_iAmount;
-		if (Env.GetSettings()->General.bWrapPatternValue) {
-			New %= Limit;
-			if (New < 0) New += Limit;
-		}
-		else {
-			if (New < 0) New = 0;
-			if (New >= Limit) New = Limit - 1;
-		}
-		Old = static_cast<unsigned char>(New);
-	};
-
-	switch (m_pUndoState->Cursor.m_iColumn) {
-	case C_INSTRUMENT1: case C_INSTRUMENT2:
-		ScrollFunc(Note.Instrument, MAX_INSTRUMENTS); break;
-	case C_VOLUME:
-		ScrollFunc(Note.Vol, MAX_VOLUME); break;
-	case C_EFF1_NUM: case C_EFF1_PARAM1: case C_EFF1_PARAM2:
-		ScrollFunc(Note.EffParam[0], 0x100); break;
-	case C_EFF2_NUM: case C_EFF2_PARAM1: case C_EFF2_PARAM2:
-		ScrollFunc(Note.EffParam[1], 0x100); break;
-	case C_EFF3_NUM: case C_EFF3_PARAM1: case C_EFF3_PARAM2:
-		ScrollFunc(Note.EffParam[2], 0x100); break;
-	case C_EFF4_NUM: case C_EFF4_PARAM1: case C_EFF4_PARAM2:
-		ScrollFunc(Note.EffParam[3], 0x100); break;
-	}
-
-	pDoc->SetNoteData(STATE_EXPAND2(pDoc, m_pUndoState), Note);		// // //
+	GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+		.SetNoteOn(m_pUndoState->Cursor.m_iRow, m_NewNote);		// // //
 }
 
 
@@ -488,10 +516,9 @@ CPActionPaste::CPActionPaste(std::unique_ptr<CPatternClipData> pClipData, paste_
 }
 
 bool CPActionPaste::SaveState(const CMainFrame &MainFrm) {
-	CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
-	if (!SetTargetSelection(pPatternEditor, m_newSelection))		// // //
+	if (!SetTargetSelection(MainFrm, m_newSelection))		// // //
 		return false;
-	m_pUndoClipData = pPatternEditor->CopyRaw();
+	m_pUndoClipData = GET_PATTERN_EDITOR()->CopyRaw();
 	return true;
 }
 
@@ -630,7 +657,6 @@ CPActionTranspose::CPActionTranspose(transpose_t Type) : m_iTransposeMode(Type)
 
 void CPActionTranspose::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	CSongView *pSongView = GET_SONG_VIEW();
 	auto it = GetIterators(*pSongView);
 
@@ -642,7 +668,7 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 		(m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iColumn);
 
 	const bool bSingular = it.first == it.second && !m_pUndoState->IsSelecting;
-	const unsigned Length = pDoc->GetPatternLength(m_pUndoState->Track);
+	const unsigned Length = pSongView->GetSong().GetPatternLength();
 
 	int Row = 0;		// // //
 	int oldRow = -1;
@@ -690,7 +716,6 @@ CPActionScrollValues::CPActionScrollValues(int Amount) : m_iAmount(Amount)
 
 void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 	CSongView *pSongView = GET_SONG_VIEW();
 	auto it = GetIterators(*pSongView);
@@ -702,7 +727,7 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 		(m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iColumn);
 
 	const bool bSingular = it.first == it.second && !m_pUndoState->IsSelecting;
-	const unsigned Length = pDoc->GetPatternLength(m_pUndoState->Track);
+	const unsigned Length = pSongView->GetSong().GetPatternLength();
 
 	const auto WarpFunc = [this] (unsigned char &x, int Lim) {
 		int Val = x + m_iAmount;
@@ -773,13 +798,12 @@ bool CPActionInterpolate::SaveState(const CMainFrame &MainFrm)
 
 void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	CSongView *pSongView = GET_SONG_VIEW();
 	auto it = GetIterators(*pSongView);
 	const CSelection &Sel = m_pUndoState->Selection;
 
 	for (int i = Sel.m_cpStart.m_iChannel; i <= Sel.m_cpEnd.m_iChannel; ++i) {
-		const int Columns = pDoc->GetEffColumns(m_pUndoState->Track, pDoc->TranslateChannel(i)) + 4;		// // //
+		const int Columns = pSongView->GetEffectColumnCount(i) + 4;		// // //
 		for (int j = 0; j < Columns; ++j) {
 			if (!Sel.IsColumnSelected(static_cast<column_t>(j), i)) continue;
 			CPatternIterator r {it.first};		// // //
@@ -921,9 +945,7 @@ bool CPActionReplaceInst::SaveState(const CMainFrame &MainFrm)
 
 void CPActionReplaceInst::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	CSongView *pSongView = GET_SONG_VIEW();
-	auto it = GetIterators(*pSongView);
+	auto it = GetIterators(*GET_SONG_VIEW());
 	const CSelection &Sel = m_pUndoState->Selection;
 
 	const int cBegin = Sel.GetChanStart() + (Sel.IsColumnSelected(COLUMN_INSTRUMENT, Sel.GetChanStart()) ? 0 : 1);
@@ -949,10 +971,10 @@ CPActionDragDrop::CPActionDragDrop(std::unique_ptr<CPatternClipData> pClipData, 
 
 bool CPActionDragDrop::SaveState(const CMainFrame &MainFrm)
 {
-	if (m_bDragDelete)
-		m_pAuxiliaryClipData = GET_PATTERN_EDITOR()->CopyRaw();
 	CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
-	if (!SetTargetSelection(pPatternEditor, m_newSelection))		// // //
+	if (m_bDragDelete)
+		m_pAuxiliaryClipData = pPatternEditor->CopyRaw();
+	if (!SetTargetSelection(MainFrm, m_newSelection))		// // //
 		return false;
 	m_pUndoClipData = pPatternEditor->CopyRaw();
 	return true;
@@ -979,22 +1001,19 @@ void CPActionDragDrop::Redo(CMainFrame &MainFrm)
 
 bool CPActionPatternLen::SaveState(const CMainFrame &MainFrm)
 {
-	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_iOldPatternLen = pDoc->GetPatternLength(m_pUndoState->Track);
+	m_iOldPatternLen = GET_SONG_VIEW()->GetSong().GetPatternLength();
 	return m_iNewPatternLen != m_iOldPatternLen;
 }
 
 void CPActionPatternLen::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetPatternLength(m_pUndoState->Track, m_iOldPatternLen);
+	GET_SONG_VIEW()->GetSong().SetPatternLength(m_iOldPatternLen);
 	UPDATE_CONTROLS();
 }
 
 void CPActionPatternLen::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetPatternLength(m_pUndoState->Track, m_iNewPatternLen);
+	GET_SONG_VIEW()->GetSong().SetPatternLength(m_iNewPatternLen);
 	UPDATE_CONTROLS();
 }
 
@@ -1002,8 +1021,6 @@ bool CPActionPatternLen::Merge(const CAction &Other)		// // //
 {
 	auto pAction = dynamic_cast<const CPActionPatternLen *>(&Other);
 	if (!pAction)
-		return false;
-	if (m_pUndoState->Track != pAction->m_pUndoState->Track)
 		return false;
 
 	*m_pRedoState = *pAction->m_pRedoState;
@@ -1029,7 +1046,6 @@ bool CPActionStretch::SaveState(const CMainFrame &MainFrm)
 
 void CPActionStretch::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	CSongView *pSongView = GET_SONG_VIEW();
 	auto it = GetIterators(*pSongView);
 	const CSelection &Sel = m_pUndoState->Selection;
@@ -1058,7 +1074,7 @@ void CPActionStretch::Redo(CMainFrame &MainFrm)
 			oldRow = s.m_iRow;
 			++s;
 			if (s.m_iRow <= oldRow)
-				Offset += pDoc->GetPatternLength(m_pUndoState->Track) + s.m_iRow - oldRow - 1;
+				Offset += pSongView->GetSong().GetPatternLength() + s.m_iRow - oldRow - 1;
 		}
 		Pos %= m_iStretchMap.size();
 	} while (++it.first <= it.second);
@@ -1073,27 +1089,25 @@ CPActionEffColumn::CPActionEffColumn(int Channel, int Count) :		// // //
 
 bool CPActionEffColumn::SaveState(const CMainFrame &MainFrm)
 {
-	if (m_iNewColumns >= static_cast<int>(MAX_EFFECT_COLUMNS)) return false;
-	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_iOldColumns = pDoc->GetEffColumns(m_pUndoState->Track, pDoc->TranslateChannel(m_iChannel));
+	if (m_iNewColumns >= static_cast<int>(MAX_EFFECT_COLUMNS))
+		return false;
+	m_iOldColumns = GET_SONG_VIEW()->GetEffectColumnCount(m_iChannel);
 	return true;
 }
 
 void CPActionEffColumn::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetEffColumns(m_pUndoState->Track, pDoc->TranslateChannel(m_iChannel), m_iOldColumns);
+	GET_SONG_VIEW()->SetEffectColumnCount(m_iChannel, m_iOldColumns);
 }
 
 void CPActionEffColumn::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetEffColumns(m_pUndoState->Track, pDoc->TranslateChannel(m_iChannel), m_iNewColumns);
+	GET_SONG_VIEW()->SetEffectColumnCount(m_iChannel, m_iNewColumns);
 }
 
 void CPActionEffColumn::UpdateViews(CMainFrame &MainFrm) const		// // //
 {
-	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_COLUMNS);
+	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_COLUMNS);
 }
 
 
@@ -1105,35 +1119,29 @@ CPActionHighlight::CPActionHighlight(const stHighlight &Hl) :		// // //
 
 bool CPActionHighlight::SaveState(const CMainFrame &MainFrm)
 {
-	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_OldHighlight = pDoc->GetHighlight(0);
+	m_OldHighlight = GET_MODULE()->GetHighlight(0);
 	return m_NewHighlight != m_OldHighlight;
 }
 
 void CPActionHighlight::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetHighlight(m_OldHighlight);
+	GET_MODULE()->SetHighlight(m_OldHighlight);
 }
 
 void CPActionHighlight::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetHighlight(m_NewHighlight);
+	GET_MODULE()->SetHighlight(m_NewHighlight);
 }
 
 void CPActionHighlight::UpdateViews(CMainFrame &MainFrm) const
 {
-	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_HIGHLIGHT);
+	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_HIGHLIGHT);
 }
 
 
 
 bool CPActionUniquePatterns::SaveState(const CMainFrame &MainFrm) {
-	const auto *pDoc = GET_DOCUMENT();
-	if (index_ >= pDoc->GetTrackCount())
-		return false;
-	const auto &Song = *pDoc->GetSong(index_);
+	const auto &Song = GET_SONG_VIEW()->GetSong();
 	const int Frames = Song.GetFrameCount();
 
 	songNew_ = std::make_unique<CSongData>(Song.GetPatternLength());
@@ -1143,7 +1151,7 @@ bool CPActionUniquePatterns::SaveState(const CMainFrame &MainFrm) {
 	songNew_->SetSongGroove(Song.GetSongGroove());
 	songNew_->SetTitle(Song.GetTitle());
 
-	pDoc->ForeachChannel([&] (chan_id_t chan) {
+	GET_SONG_VIEW()->GetChannelOrder().ForeachChannel([&] (chan_id_t chan) {
 		songNew_->SetEffectColumnCount(chan, Song.GetEffectColumnCount(chan));
 		for (int f = 0; f < Frames; f++) {
 			songNew_->SetFramePattern(f, chan, f);
@@ -1155,26 +1163,21 @@ bool CPActionUniquePatterns::SaveState(const CMainFrame &MainFrm) {
 }
 
 void CPActionUniquePatterns::Undo(CMainFrame &MainFrm) {
-	auto pDoc = GET_DOCUMENT();
-	songNew_ = pDoc->ReplaceSong(index_, std::move(song_));
+	songNew_ = GET_MODULE()->ReplaceSong(index_, std::move(song_));
 }
 
 void CPActionUniquePatterns::Redo(CMainFrame &MainFrm) {
-	auto pDoc = GET_DOCUMENT();
-	song_ = pDoc->ReplaceSong(index_, std::move(songNew_));
+	song_ = GET_MODULE()->ReplaceSong(index_, std::move(songNew_));
 }
 
 void CPActionUniquePatterns::UpdateViews(CMainFrame &MainFrm) const {
-	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_FRAME);
+	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_FRAME);
 }
 
 
 
 bool CPActionClearAll::SaveState(const CMainFrame &MainFrm) {
-	const auto *pDoc = GET_DOCUMENT();
-	if (index_ >= pDoc->GetTrackCount())
-		return false;
-	const auto &Song = *pDoc->GetSong(index_);
+	const auto &Song = GET_SONG_VIEW()->GetSong();
 
 	songNew_ = std::make_unique<CSongData>(Song.GetPatternLength());
 	songNew_->SetSongSpeed(Song.GetSongSpeed());
@@ -1186,15 +1189,13 @@ bool CPActionClearAll::SaveState(const CMainFrame &MainFrm) {
 }
 
 void CPActionClearAll::Undo(CMainFrame &MainFrm) {
-	auto pDoc = GET_DOCUMENT();
-	songNew_ = pDoc->ReplaceSong(index_, std::move(song_));
+	songNew_ = GET_MODULE()->ReplaceSong(index_, std::move(song_));
 }
 
 void CPActionClearAll::Redo(CMainFrame &MainFrm) {
-	auto pDoc = GET_DOCUMENT();
-	song_ = pDoc->ReplaceSong(index_, std::move(songNew_));
+	song_ = GET_MODULE()->ReplaceSong(index_, std::move(songNew_));
 }
 
 void CPActionClearAll::UpdateViews(CMainFrame &MainFrm) const {
-	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_TRACK);
+	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_TRACK);
 }

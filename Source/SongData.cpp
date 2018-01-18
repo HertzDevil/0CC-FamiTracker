@@ -201,6 +201,23 @@ void CSongData::SetRowHighlight(const stHighlight &Hl)		// // //
 	m_vRowHighlight = Hl;
 }
 
+void CSongData::PullUp(chan_id_t Chan, unsigned Frame, unsigned Row) {
+	auto &Pattern = GetPatternOnFrame(Chan, Frame);
+	int PatternLen = GetPatternLength();
+
+	for (int i = Row; i < PatternLen - 1; ++i)
+		Pattern.SetNoteOn(i, Pattern.GetNoteOn(i + 1));		// // //
+	Pattern.SetNoteOn(PatternLen - 1, { });
+}
+
+void CSongData::InsertRow(chan_id_t Chan, unsigned Frame, unsigned Row) {
+	auto &Pattern = GetPatternOnFrame(Chan, Frame);		// // //
+
+	for (unsigned int i = GetPatternLength() - 1; i > Row; --i)
+		Pattern.SetNoteOn(i, Pattern.GetNoteOn(i - 1));
+	Pattern.SetNoteOn(Row, { });
+}
+
 void CSongData::CopyTrack(chan_id_t Chan, const CSongData &From, chan_id_t ChanFrom) {
 	if (auto *lhs = GetTrack(Chan))
 		if (auto *rhs = From.GetTrack(ChanFrom))

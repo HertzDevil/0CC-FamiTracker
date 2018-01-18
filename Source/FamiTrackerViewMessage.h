@@ -31,3 +31,16 @@ enum {
 	WM_USER_MIDI_EVENT,						// There is a new MIDI command
 	WM_USER_DUMP_INST = WM_USER + 3,		// // // End of track, add instrument
 };
+
+// View update modes (TODO check these and remove inappropriate flags)
+enum update_mode_t {
+	UPDATE_NONE = 0,		// No update
+	UPDATE_TRACK = 1,		// Track has been added, removed or changed
+	UPDATE_PATTERN,			// Pattern data has been edited
+	UPDATE_FRAME,			// Frame data has been edited
+	UPDATE_INSTRUMENT,		// Instrument has been added / removed
+	UPDATE_PROPERTIES,		// Module properties has changed (including channel count)
+	UPDATE_HIGHLIGHT,		// Row highlight option has changed
+	UPDATE_COLUMNS,			// Effect columns has changed
+	UPDATE_CLOSE			// Document is closing (TODO remove)
+};

@@ -38,6 +38,9 @@ public:
 	CSongData &GetSong();
 	const CSongData &GetSong() const;
 
+	CTrackData *GetTrack(std::size_t index);
+	const CTrackData *GetTrack(std::size_t index) const;
+
 	// similar interface to CSongData
 	CPatternData &GetPattern(std::size_t index, unsigned Pattern);
 	const CPatternData &GetPattern(std::size_t index, unsigned Pattern) const;
@@ -54,16 +57,15 @@ public:
 	unsigned GetFrameLength(unsigned Frame) const;
 	unsigned GetCurrentPatternLength(unsigned Frame) const;
 
+	void PullUp(std::size_t index, unsigned Frame, unsigned Row);
+	void InsertRow(std::size_t index, unsigned Frame, unsigned Row);
+
 	// void (*F)(std::size_t index)
 	template <typename F>
 	void ForeachChannel(F f) const {
 		for (std::size_t i = 0, n = order_.GetChannelCount(); i < n; ++i)
 			f(i);
 	}
-
-private:
-	CTrackData *GetTrack(std::size_t index);
-	const CTrackData *GetTrack(std::size_t index) const;
 
 	CChannelOrder order_;
 	CSongData &song_;

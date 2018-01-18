@@ -36,19 +36,6 @@
 
 // #define DISABLE_SAVE		// // //
 
-// View update modes (TODO check these and remove inappropriate flags)
-enum {
-	UPDATE_NONE = 0,		// No update
-	UPDATE_TRACK = 1,		// Track has been added, removed or changed
-	UPDATE_PATTERN,			// Pattern data has been edited
-	UPDATE_FRAME,			// Frame data has been edited
-	UPDATE_INSTRUMENT,		// Instrument has been added / removed
-	UPDATE_PROPERTIES,		// Module properties has changed (including channel count)
-	UPDATE_HIGHLIGHT,		// Row highlight option has changed
-	UPDATE_COLUMNS,			// Effect columns has changed
-	UPDATE_CLOSE			// Document is closing (TODO remove)
-};
-
 // External classes
 class CFamiTrackerModule;		// // //
 class CSongData;		// // //
@@ -67,7 +54,6 @@ class CSoundChipSet;		// // //
 
 enum inst_type_t : unsigned;
 enum class sequence_t : unsigned;
-enum cursor_column_t : unsigned int; // TODO: remove
 enum machine_t : unsigned char;
 enum vibrato_t : unsigned char;
 
@@ -199,7 +185,6 @@ public:
 	void			ClearPattern(unsigned int Track, unsigned int Frame, chan_id_t Channel);
 
 	bool			InsertRow(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row);
-	bool			ClearRowField(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row, cursor_column_t Column);
 	bool			PullUp(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row);
 	void			CopyPattern(unsigned int Track, int Target, int Source, chan_id_t Channel);
 

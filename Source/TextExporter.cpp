@@ -27,6 +27,7 @@
 #include "FamiTrackerModule.h"		// // //
 #include "version.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
+#include "FamiTrackerViewMessage.h"		// // //
 
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "ft0cc/doc/groove.hpp"		// // //

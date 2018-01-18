@@ -79,6 +79,8 @@ public:
 	const stHighlight &GetRowHighlight() const;
 	void SetRowHighlight(const stHighlight &Hl);		// // //
 
+	void PullUp(chan_id_t Chan, unsigned Frame, unsigned Row);
+	void InsertRow(chan_id_t Chan, unsigned Frame, unsigned Row);
 	void CopyTrack(chan_id_t Chan, const CSongData &From, chan_id_t ChanFrom);		// // //
 	void SwapChannels(chan_id_t First, chan_id_t Second);		// // //
 

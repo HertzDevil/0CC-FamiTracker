@@ -1434,6 +1434,14 @@ CSongView *CFamiTrackerView::GetSongView() const {		// // //
 	return song_view_.get();
 }
 
+CFamiTrackerModule *CFamiTrackerView::GetModuleData() {
+	return GetDocument()->GetModule();
+}
+
+const CFamiTrackerModule *CFamiTrackerView::GetModuleData() const {
+	return GetDocument()->GetModule();
+}
+
 unsigned int CFamiTrackerView::GetSelectedRow() const
 {
 	return m_pPatternEditor->GetRow();
