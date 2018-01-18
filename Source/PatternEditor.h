@@ -50,6 +50,7 @@ extern void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_
 class CFamiTrackerDoc;
 class CFamiTrackerView;
 class CMainFrame;
+class CTrackerChannel;		// // //
 class CPatternClipData;		// // //
 
 // CPatternEditor
@@ -121,6 +122,8 @@ public:
 	CCursorPos GetCursor() const;		// // //
 
 	cursor_column_t GetChannelColumns(int Channel) const;		// // //
+
+	CTrackerChannel &GetTrackerChannel(int Channel) const;		// // //
 
 	// Mouse
 	void OnMouseDown(const CPoint &point);

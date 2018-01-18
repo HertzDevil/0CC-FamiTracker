@@ -1320,7 +1320,7 @@ chan_id_t CFamiTrackerDoc::TranslateChannel(unsigned Index) const {		// // //
 
 CTrackerChannel &CFamiTrackerDoc::GetChannel(int Index) const		// // //
 {
-	return m_pChannelMap->GetChannel(Index);		// // //
+	return GetChannelMap()->GetChannel(Index);		// // //
 }
 
 int CFamiTrackerDoc::GetChannelIndex(chan_id_t Channel) const

@@ -43,6 +43,7 @@ public:
 	bool			SupportsChannel(const CTrackerChannel &ch) const;		// // //
 
 	CTrackerChannel	&GetChannel(int index) const;		// // //
+	CTrackerChannel	&FindChannel(chan_id_t chan) const;		// // //
 	int				GetChannelIndex(chan_id_t chan) const;
 	bool			HasChannel(chan_id_t chan) const;		// // //
 	int				GetChannelCount() const;		// // //

@@ -39,6 +39,7 @@
 #include "PatternClipData.h"		// // //
 #include "RegisterDisplay.h"		// // //
 #include "SongView.h"		// // //
+#include "ChannelMap.h"		// // //
 
 /*
  * CPatternEditor
@@ -1304,7 +1305,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	COLORREF DimInst = ColorInfo.Compact;		// // //
 	COLORREF DimEff = ColorInfo.Compact;		// // //
 
-	const auto &TrackerChannel = m_pDocument->GetChannel(Channel);		// // //
+	const CTrackerChannel &TrackerChannel = GetTrackerChannel(Channel);		// // //
 
 	// Make non-available instruments red in the pattern editor
 	if (NoteData.Instrument < MAX_INSTRUMENTS &&
@@ -1484,9 +1485,9 @@ void CPatternEditor::DrawHeader(CDC &DC)
 	DC.Draw3dRect(0, HEADER_CHAN_START, m_iRowColumnWidth, HEADER_CHAN_HEIGHT, STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK);
 
 	for (int i = 0; i < m_iChannelsVisible; ++i) {
-
 		const int Channel = i + m_iFirstChannel;
-		const bool bMuted = m_pView->IsChannelMuted(m_pDocument->TranslateChannel(Channel));
+		chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(Channel);
+		const bool bMuted = m_pView->IsChannelMuted(ch);
 		const bool Pushed = bMuted || (m_iChannelPushed == Channel) && m_bChannelPushed;
 
 		// Frame
@@ -1496,14 +1497,14 @@ void CPatternEditor::DrawHeader(CDC &DC)
 			DC.Draw3dRect(Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT, BLEND(STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK, .5), STATIC_COLOR_SCHEME.FRAME_DARK);
 		}
 		else {
-			if (m_pDocument->TranslateChannel(Channel) == theApp.GetSoundGenerator()->GetRecordChannel())		// // //
+			if (ch == theApp.GetSoundGenerator()->GetRecordChannel())		// // //
 				GradientRectTriple(DC, Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT,
 								   m_colHead1, m_colHead2, m_colHead5);
 			DC.Draw3dRect(Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT, STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK);
 		}
 
 		// Text
-		const auto &TrackerChannel = m_pDocument->GetChannel(Channel);		// // //
+		const auto &TrackerChannel = GetTrackerChannel(Channel);		// // //
 		CString pChanName = (m_bCompactMode && m_iCharWidth < 6) ? _T("") :
 			(m_bCompactMode || m_iCharWidth < 9) ? TrackerChannel.GetShortName() : TrackerChannel.GetChannelName();		// // //
 
@@ -1617,16 +1618,13 @@ void CPatternEditor::DrawMeters(CDC &DC)
 
 	// // //
 
-	if (!m_pDocument)
-		return;
-
 	int Offset = BAR_LEFT;
 
 	CFont *pOldFont = DC.SelectObject(&m_fontHeader);
 
 	for (int i = 0; i < m_iChannelsVisible; ++i) {
 		int Channel = i + m_iFirstChannel;
-		unsigned level = m_pDocument->GetChannel(Channel).GetVolumeMeter();		// // //
+		unsigned level = GetTrackerChannel(Channel).GetVolumeMeter();		// // //
 
 		for (std::size_t j = 0; j < CELL_COUNT; ++j) {
 			bool Active = j < level;
@@ -1663,7 +1661,7 @@ void CPatternEditor::DrawMeters(CDC &DC)
 }
 
 void CPatternEditor::DrawRegisters(CDC &DC) {		// // //
-	if (!m_pDocument)
+	if (!theApp.GetSoundGenerator())
 		return;
 
 	CFont *pOldFont = DC.SelectObject(&m_fontCourierNew);
@@ -1838,6 +1836,11 @@ cursor_column_t CPatternEditor::GetChannelColumns(int Channel) const
 	return C_NOTE;
 }
 
+CTrackerChannel &CPatternEditor::GetTrackerChannel(int Channel) const {		// // //
+	chan_id_t ch = m_pView->GetSongView()->GetChannelOrder().TranslateChannel(Channel);
+	return m_pDocument->GetChannelMap()->FindChannel(ch);
+}
+
 int CPatternEditor::GetSelectedTrack() const
 {
 	return GetMainFrame()->GetSelectedTrack();
@@ -1845,7 +1848,7 @@ int CPatternEditor::GetSelectedTrack() const
 
 int CPatternEditor::GetChannelCount() const
 {
-	return m_pDocument->GetChannelCount();		// // //
+	return m_pView->GetSongView()->GetChannelOrder().GetChannelCount();		// // //
 }
 
 int CPatternEditor::GetFrameCount() const		// // //
@@ -2415,6 +2418,8 @@ void CPatternEditor::OnMouseDown(const CPoint &point)
 
 void CPatternEditor::OnMouseUp(const CPoint &point)
 {
+	CSongView *pSongView = m_pView->GetSongView();		// // //
+
 	GetMainFrame()->ResetFind();		// // //
 
 	// Left mouse button released
@@ -2428,7 +2433,7 @@ void CPatternEditor::OnMouseUp(const CPoint &point)
 		const int Channel = GetChannelAtPoint(point.x);
 
 		if (PushedChannel != -1 && PushedChannel == Channel)
-			m_pView->ToggleChannel(m_pDocument->TranslateChannel(PushedChannel));
+			m_pView->ToggleChannel(pSongView->GetChannelOrder().TranslateChannel(PushedChannel));
 
 		// Channel headers
 		if (m_bDragging) {
@@ -2632,6 +2637,8 @@ void CPatternEditor::OnMouseMove(UINT nFlags, const CPoint &point)
 
 void CPatternEditor::OnMouseDblClk(const CPoint &point)
 {
+	CSongView *pSongView = m_pView->GetSongView();		// // //
+
 	// Mouse double click
 	const int ChannelCount = GetChannelCount();
 	const bool bShift = IsShiftPressed();
@@ -2648,14 +2655,14 @@ void CPatternEditor::OnMouseDblClk(const CPoint &point)
 
 		// Solo
 		if (Column < 5) {
-			m_pView->SoloChannel(m_pDocument->TranslateChannel(Channel));
+			m_pView->SoloChannel(pSongView->GetChannelOrder().TranslateChannel(Channel));
 		}
 		// Remove one track effect column
-		else if (Column == 5) {
+		else if (Column == cursor_column_t::C_EFF1_PARAM1) {		// // //
 			DecreaseEffectColumn(Channel);
 		}
 		// Add one track effect column
-		else if (Column == 6) {
+		else if (Column == cursor_column_t::C_EFF1_PARAM2) {
 			IncreaseEffectColumn(Channel);
 		}
 	}
@@ -3517,7 +3524,7 @@ void CPatternEditor::GetSelectionAsText(CString &str) const		// // //
 	CString Header(_T(' '), HexLength + 3);
 	Header.Append(_T("# "));
 	for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
-		Header.AppendFormat(_T(": %-13s"), m_pDocument->GetChannel(i).GetChannelName());
+		Header.AppendFormat(_T(": %-13s"), GetTrackerChannel(i).GetChannelName());
 		int Columns = pSongView->GetEffectColumnCount(i);
 		if (i == it.second.m_iChannel)
 			Columns = std::clamp(static_cast<int>(GetSelectColumn(it.second.m_iColumn)) - 3, 0, Columns);
@@ -3553,11 +3560,12 @@ void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
 {
 	// Returns a PPMCK MML translation of copied pattern
 
+	CSongView *pSongView = m_pView->GetSongView();		// // //
 	auto it = GetIterators();
 	str.Empty();
 
 	for (int c = it.first.m_iChannel; c <= it.second.m_iChannel; ++c) {
-		chan_id_t ch = m_pDocument->TranslateChannel(c);
+		chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(c);
 		unsigned Type = GetChannelSubIndex(ch);
 		switch (GetChipFromChannel(ch)) {
 		case sound_chip_t::APU:  Type += 'A'; break;

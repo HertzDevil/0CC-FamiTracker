@@ -48,6 +48,10 @@ CTrackerChannel &CChannelMap::GetChannel(int index) const {		// // //
 	return *m_pChannels.at(index);
 }
 
+CTrackerChannel &CChannelMap::FindChannel(chan_id_t chan) const {		// // //
+	return GetChannel(GetChannelIndex(chan));
+}
+
 int CChannelMap::GetChannelIndex(chan_id_t chan) const {		// // //
 	// Translate channel ID to index, returns -1 if not found
 	return order_.GetChannelIndex(chan);
