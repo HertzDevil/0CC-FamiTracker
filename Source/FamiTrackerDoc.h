@@ -175,20 +175,13 @@ public:
 	bool			ArePatternsSame(unsigned int Track, chan_id_t Channel, unsigned int Pattern1, unsigned int Pattern2) const;		// // //
 
 	// Pattern editing
-	void			SetNoteData(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row, const stChanNote &Data);		// // //
 	const stChanNote &GetNoteData(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const;		// // //
 	stChanNote		GetActiveNote(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const;		// // // remove hidden fx commands
 
-	void			SetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row, const stChanNote &pData);		// // //
 	const stChanNote &GetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row) const;		// // //
 
 	void			ClearPattern(unsigned int Track, unsigned int Frame, chan_id_t Channel);
-
-	bool			InsertRow(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row);
-	bool			PullUp(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Row);
 	void			CopyPattern(unsigned int Track, int Target, int Source, chan_id_t Channel);
-
-	void			SwapChannels(unsigned int Track, chan_id_t First, chan_id_t Second);		// // //
 
 	// Frame editing
 	bool			InsertFrame(unsigned int Track, unsigned int Frame);
@@ -201,8 +194,6 @@ public:
 	bool			DeleteFrames(unsigned int Track, unsigned int Frame, unsigned Count);		// // //
 
 	// Global (module) data
-	unsigned int	GetFrameRate() const;
-
 	void			SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs);		// // //
 	const CSoundChipSet &GetExpansionChip() const;
 	bool			HasExpansionChips() const;		// // //
@@ -289,6 +280,7 @@ public:
 
 	machine_t		GetMachine() const;
 	unsigned int	GetEngineSpeed() const;
+	unsigned int	GetFrameRate() const;
 	vibrato_t		GetVibratoStyle() const;
 	bool			GetLinearPitch() const;
 	int				GetSpeedSplitPoint() const;

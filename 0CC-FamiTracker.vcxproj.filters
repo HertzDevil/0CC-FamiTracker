@@ -1067,9 +1067,6 @@
     <ClInclude Include="Source\WaveFile.h">
       <Filter>Header Files\Components Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\FindDlg.h">
-      <Filter>Header Files\Dialog Boxes Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\GrooveDlg.h">
       <Filter>Header Files\Dialog Boxes Headers</Filter>
     </ClInclude>
@@ -1450,6 +1447,9 @@
     </ClInclude>
     <ClInclude Include="Source\ChannelOrder.h">
       <Filter>Header Files\Sound Driver Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\FindDlg.h">
+      <Filter>Header Files\Dialog Boxes Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

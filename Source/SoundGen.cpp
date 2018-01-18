@@ -33,7 +33,7 @@
 CSoundGen depends on CFamiTrackerView for:
  - MakeSilent
  - GetSelectedPos
- - GetSelectedChannel
+ - GetSelectedChannelID
  - PlayerPlayNote
 // // /*/
 

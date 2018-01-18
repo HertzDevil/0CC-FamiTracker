@@ -206,16 +206,19 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
 
 	if (fds_adjust_arps_) {
 		if (doc.HasChannel(chan_id_t::FDS)) {
-			for (unsigned int t = 0; t < doc.GetTrackCount(); ++t) for (int p = 0; p < MAX_PATTERN; ++p) for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
-				stChanNote Note = doc.GetDataAtPattern(t, p, chan_id_t::FDS, r);		// // //
-				if (Note.Note >= NOTE_C && Note.Note <= NOTE_B) {
-					int Trsp = MIDI_NOTE(Note.Octave, Note.Note) + NOTE_RANGE * 2;
-					Trsp = Trsp >= NOTE_COUNT ? NOTE_COUNT - 1 : Trsp;
-					Note.Note = GET_NOTE(Trsp);
-					Note.Octave = GET_OCTAVE(Trsp);
-					doc.SetDataAtPattern(t, p, chan_id_t::FDS, r, Note);		// // //
-				}
-			}
+			doc.VisitSongs([&] (CSongData &song) {
+				for (int p = 0; p < MAX_PATTERN; ++p)
+					for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
+						stChanNote &Note = song.GetPatternData(chan_id_t::FDS, p, r);		// // //
+						if (Note.Note >= NOTE_C && Note.Note <= NOTE_B) {
+							auto NewNote = Note;
+							int Trsp = MIDI_NOTE(Note.Octave, Note.Note) + NOTE_RANGE * 2;
+							Trsp = Trsp >= NOTE_COUNT ? NOTE_COUNT - 1 : Trsp;
+							Note.Note = GET_NOTE(Trsp);
+							Note.Octave = GET_OCTAVE(Trsp);
+						}
+					}
+			});
 		}
 		for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
 			if (doc.GetInstrumentType(i) == INST_FDS) {

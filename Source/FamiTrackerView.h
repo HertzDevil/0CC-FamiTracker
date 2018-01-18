@@ -231,7 +231,7 @@ private:
 	bool	EditEffNumberColumn(stChanNote &Note, unsigned char nChar, int EffectIndex, bool &bStepDown);
 	bool	EditEffParamColumn(stChanNote &Note, int Value, int EffectIndex, bool &bStepDown, bool &bMoveRight, bool &bMoveLeft);
 
-	void	InsertNote(int Note, int Octave, chan_id_t Channel, int Velocity);
+	void	InsertNote(int Note, int Octave, std::size_t Index, int Velocity);
 
 	void	DoPaste(paste_mode_t Mode);		// // //
 
@@ -241,15 +241,15 @@ private:
 	chan_id_t SplitAdjustChannel(chan_id_t Channel, const stChanNote &Note) const;		// // //
 
 	// MIDI note functions
-	void	TriggerMIDINote(chan_id_t Channel, unsigned int MidiNote, unsigned int Velocity, bool Insert);
-	void	ReleaseMIDINote(chan_id_t Channel, unsigned int MidiNote, bool InsertCut);
-	void	CutMIDINote(chan_id_t Channel, unsigned int MidiNote, bool InsertCut);
+	void	TriggerMIDINote(std::size_t Index, unsigned int MidiNote, unsigned int Velocity, bool Insert);
+	void	ReleaseMIDINote(std::size_t Index, unsigned int MidiNote, bool InsertCut);
+	void	CutMIDINote(std::size_t Index, unsigned int MidiNote, bool InsertCut);
 
 	// Note handling
-	void	PlayNote(chan_id_t Channel, unsigned int Note, unsigned int Octave, unsigned int Velocity) const;
-	void	ReleaseNote(chan_id_t Channel, unsigned int Note, unsigned int Octave) const;		// // //
-	void	HaltNote(chan_id_t Channel, unsigned int Note, unsigned int Octave) const;		// // //
-	void	HaltNoteSingle(chan_id_t Channel) const;		// // //
+	void	PlayNote(std::size_t Index, unsigned int Note, unsigned int Octave, unsigned int Velocity) const;
+	void	ReleaseNote(std::size_t Index, unsigned int Note, unsigned int Octave) const;		// // //
+	void	HaltNote(std::size_t Index, unsigned int Note, unsigned int Octave) const;		// // //
+	void	HaltNoteSingle(std::size_t Index) const;		// // //
 
 	void	UpdateArpDisplay();
 

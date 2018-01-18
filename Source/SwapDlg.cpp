@@ -22,7 +22,9 @@
 
 #include "SwapDlg.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
 #include "FamiTrackerViewMessage.h"
+#include "SongData.h"
 #include "APU/Types.h"
 
 // CSwapDlg dialog
@@ -161,10 +163,11 @@ void CSwapDlg::OnBnClickedOk()
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 	if (IsDlgButtonChecked(IDC_CHECK_SWAP_ALL) == BST_CHECKED)
-		for (unsigned int i = 0; i < pDoc->GetTrackCount(); i++)
-			pDoc->SwapChannels(i, lhs, rhs);
+		pDoc->VisitSongs([lhs, rhs] (CSongData &song) {
+			song.SwapChannels(lhs, rhs);
+		});
 	else
-		pDoc->SwapChannels(m_iTrack, lhs, rhs);
+		pDoc->GetSong(m_iTrack)->SwapChannels(lhs, rhs);
 
 	pDoc->ModifyIrreversible();
 	pDoc->UpdateAllViews(NULL, UPDATE_PATTERN);

@@ -22,6 +22,8 @@
 
 #include "TransposeDlg.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
+#include "SongData.h"
 #include "FamiTrackerViewMessage.h"
 #include "PatternNote.h"
 #include "Instrument.h"
@@ -53,24 +55,19 @@ void CTransposeDlg::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 }
 
-void CTransposeDlg::Transpose(int Trsp, unsigned int Track)
-{
-	if (!Trsp) return;
-
-	m_pDocument->ForeachChannel([&] (chan_id_t c) {
+void CTransposeDlg::Transpose(int Trsp, CSongData &song) {
+	song.VisitPatterns([&] (CPatternData &pat, chan_id_t c, unsigned) {
 		if (c == chan_id_t::NOISE || c == chan_id_t::DPCM)
 			return;
-		for (int p = 0; p < MAX_PATTERN; ++p) for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
-			stChanNote Note = m_pDocument->GetDataAtPattern(Track, p, c, r);
-			if (Note.Instrument == MAX_INSTRUMENTS || Note.Instrument == HOLD_INSTRUMENT)
-				continue;
-			if (Note.Note >= NOTE_C && Note.Note <= NOTE_B && !s_bDisableInst[Note.Instrument]) {
-				int MIDI = std::clamp(MIDI_NOTE(Note.Octave, Note.Note) + Trsp, 0, NOTE_COUNT - 1);
-				Note.Octave = GET_OCTAVE(MIDI);
-				Note.Note = GET_NOTE(MIDI);
-				m_pDocument->SetDataAtPattern(Track, p, c, r, Note);
+		pat.VisitRows([&] (stChanNote &note) {
+			if (note.Instrument == MAX_INSTRUMENTS || note.Instrument == HOLD_INSTRUMENT)
+				return;
+			if (note.Note >= NOTE_C && note.Note <= NOTE_B && !s_bDisableInst[note.Instrument]) {
+				int MIDI = std::clamp(MIDI_NOTE(note.Octave, note.Note) + Trsp, 0, NOTE_COUNT - 1);
+				note.Octave = GET_OCTAVE(MIDI);
+				note.Note = GET_NOTE(MIDI);
 			}
-		}
+		});
 	});
 }
 
@@ -131,17 +128,19 @@ void CTransposeDlg::OnBnClickedOk()
 	if (GetCheckedRadioButton(IDC_RADIO_SEMITONE_INC, IDC_RADIO_SEMITONE_DEC) == IDC_RADIO_SEMITONE_DEC)
 		Trsp = -Trsp;
 
-	if (All) {
-		const unsigned int Tracks = m_pDocument->GetTrackCount();
-		for (unsigned int t = 0; t < Tracks; ++t)
-			Transpose(Trsp, t);
-	}
-	else
-		Transpose(Trsp, m_iTrack);
+	if (Trsp) {
+		if (All)
+			m_pDocument->VisitSongs([Trsp] (CSongData &song) {
+				Transpose(Trsp, song);
+			});
+		else
+			Transpose(Trsp, *m_pDocument->GetSong(m_iTrack));
 
-	m_pDocument->UpdateAllViews(NULL, UPDATE_PATTERN);
-	m_pDocument->ModifyIrreversible();
-	((CMainFrame *)AfxGetMainWnd())->ResetUndo();
+		m_pDocument->UpdateAllViews(NULL, UPDATE_PATTERN);
+		m_pDocument->ModifyIrreversible();
+		((CMainFrame *)AfxGetMainWnd())->ResetUndo();
+	}
+
 	CDialog::OnOK();
 }
 

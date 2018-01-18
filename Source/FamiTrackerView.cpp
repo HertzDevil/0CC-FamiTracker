@@ -400,10 +400,8 @@ void CFamiTrackerView::OnDraw(CDC* pDC)
 {
 	// How should we protect the DC in this method?
 
-	CFamiTrackerDoc* pDoc = GetDocument();
-
 	// Check document
-	if (!pDoc->IsFileLoaded()) {
+	if (!GetDocument()->IsFileLoaded()) {
 		LPCTSTR str = _T("No module loaded.");
 		pDC->FillSolidRect(0, 0, m_iWindowWidth, m_iWindowHeight, 0x000000);
 		pDC->SetTextColor(0xFFFFFF);
@@ -423,10 +421,8 @@ void CFamiTrackerView::OnDraw(CDC* pDC)
 
 BOOL CFamiTrackerView::OnEraseBkgnd(CDC* pDC)
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
-
 	// Check document
-	if (!pDoc->IsFileLoaded())
+	if (!GetDocument()->IsFileLoaded())
 		return FALSE;
 
 	// Called when the background should be erased
@@ -812,8 +808,6 @@ void CFamiTrackerView::PeriodicUpdate()
 {
 	// Called periodically by an background timer
 
-	CFamiTrackerDoc* pDoc = GetDocument();
-
 	CMainFrame *pMainFrm = GetMainFrame();		// // //
 
 	if (const CSoundGen *pSoundGen = theApp.GetSoundGenerator()) {
@@ -821,7 +815,7 @@ void CFamiTrackerView::PeriodicUpdate()
 		if (!pSoundGen->IsBackgroundTask()) {
 
 			int PlayTicks = pSoundGen->GetPlayerTicks();
-			int PlayTime = (PlayTicks * 10) / pDoc->GetFrameRate();
+			int PlayTime = (PlayTicks * 10) / GetModuleData()->GetFrameRate();
 
 			// Play time
 			int Min = PlayTime / 600;
@@ -1757,7 +1751,7 @@ bool CFamiTrackerView::IsChipSolo(sound_chip_t Chip) const		// // //
 void CFamiTrackerView::SetChannelMute(chan_id_t Channel, bool bMute)
 {
 	if (IsChannelMuted(Channel) != bMute) {		// // //
-		HaltNoteSingle(Channel);
+		HaltNoteSingle(GetSongView()->GetChannelOrder().GetChannelIndex(Channel));
 //		if (bMute)
 //			m_pNoteQueue->MuteChannel(Channel);
 //		else
@@ -1804,14 +1798,15 @@ void CFamiTrackerView::StepDown()
 	InvalidateCursor();
 }
 
-void CFamiTrackerView::InsertNote(int Note, int Octave, chan_id_t Channel, int Velocity)
+void CFamiTrackerView::InsertNote(int Note, int Octave, std::size_t Index, int Velocity)
 {
+	chan_id_t Channel = TranslateChannel(Index);		// // //
+
 	// Inserts a note
-	const int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 	const int Frame = GetSelectedFrame();
 	const int Row = GetSelectedRow();
 
-	stChanNote Cell = GetDocument()->GetNoteData(Track, Frame, Channel, Row);		// // //
+	stChanNote Cell = GetSongView()->GetPatternOnFrame(Index, Frame).GetNoteOn(Row);		// // //
 
 	Cell.Note = Note;
 
@@ -1876,7 +1871,7 @@ void CFamiTrackerView::InsertNote(int Note, int Octave, chan_id_t Channel, int V
 /// Note playing routines
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CFamiTrackerView::PlayNote(chan_id_t Channel, unsigned int Note, unsigned int Octave, unsigned int Velocity) const
+void CFamiTrackerView::PlayNote(std::size_t Index, unsigned int Note, unsigned int Octave, unsigned int Velocity) const
 {
 	// Play a note in a channel
 	stChanNote NoteData;		// // //
@@ -1895,7 +1890,7 @@ void CFamiTrackerView::PlayNote(chan_id_t Channel, unsigned int Note, unsigned i
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
 	const CSongData &song = GetSongView()->GetSong();
 
-	Channel = SplitAdjustChannel(Channel, NoteData);
+	chan_id_t Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
 	if (order.HasChannel(Channel)) {
 		int MidiNote = MIDI_NOTE(NoteData.Octave, NoteData.Note);		// // //
 		chan_id_t ret = m_pNoteQueue->Trigger(MidiNote, Channel);
@@ -1918,7 +1913,7 @@ void CFamiTrackerView::PlayNote(chan_id_t Channel, unsigned int Note, unsigned i
 	}
 }
 
-void CFamiTrackerView::ReleaseNote(chan_id_t Channel, unsigned int Note, unsigned int Octave) const
+void CFamiTrackerView::ReleaseNote(std::size_t Index, unsigned int Note, unsigned int Octave) const
 {
 	// Releases a channel
 	stChanNote NoteData;		// // //
@@ -1926,7 +1921,7 @@ void CFamiTrackerView::ReleaseNote(chan_id_t Channel, unsigned int Note, unsigne
 	NoteData.Note = RELEASE;
 	NoteData.Instrument = GetInstrument();
 
-	Channel = SplitAdjustChannel(Channel, NoteData);		// // //
+	chan_id_t Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
 	if (order.HasChannel(Channel)) {
 		chan_id_t ch = m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), Channel);
@@ -1946,7 +1941,7 @@ void CFamiTrackerView::ReleaseNote(chan_id_t Channel, unsigned int Note, unsigne
 	}
 }
 
-void CFamiTrackerView::HaltNote(chan_id_t Channel, unsigned int Note, unsigned int Octave) const
+void CFamiTrackerView::HaltNote(std::size_t Index, unsigned int Note, unsigned int Octave) const
 {
 	// Halts a channel
 	stChanNote NoteData;		// // //
@@ -1954,7 +1949,7 @@ void CFamiTrackerView::HaltNote(chan_id_t Channel, unsigned int Note, unsigned i
 	NoteData.Note = HALT;
 	NoteData.Instrument = GetInstrument();
 
-	Channel = SplitAdjustChannel(Channel, NoteData);		// // //
+	chan_id_t Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
 	if (order.HasChannel(Channel)) {
 		chan_id_t ch = m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), Channel);
@@ -1972,7 +1967,7 @@ void CFamiTrackerView::HaltNote(chan_id_t Channel, unsigned int Note, unsigned i
 	}
 }
 
-void CFamiTrackerView::HaltNoteSingle(chan_id_t Channel) const
+void CFamiTrackerView::HaltNoteSingle(std::size_t Index) const
 {
 	// Halts one single channel only
 	stChanNote NoteData;		// // //
@@ -1980,11 +1975,11 @@ void CFamiTrackerView::HaltNoteSingle(chan_id_t Channel) const
 	NoteData.Note = HALT;
 	NoteData.Instrument = GetInstrument();
 
-	Channel = SplitAdjustChannel(Channel, NoteData);		// // // ?
-	CFamiTrackerDoc *pDoc = GetDocument();		// // //
-	if (pDoc->HasChannel(Channel)) {
+	chan_id_t Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData); // ?
+	const CChannelOrder &order = GetSongView()->GetChannelOrder();
+	if (order.HasChannel(Channel)) {
 		for (const auto &i : m_pNoteQueue->StopChannel(Channel)) {
-			if (pDoc->HasChannel(i))
+			if (order.HasChannel(i))
 				theApp.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_2);
 		}
 	}
@@ -2008,14 +2003,14 @@ static void FixNoise(unsigned int &MidiNote, unsigned int &Octave, unsigned int 
 */
 
 // Play a note
-void CFamiTrackerView::TriggerMIDINote(chan_id_t Channel, unsigned int MidiNote, unsigned int Velocity, bool Insert)
+void CFamiTrackerView::TriggerMIDINote(std::size_t Index, unsigned int MidiNote, unsigned int Velocity, bool Insert)
 {
 	if (MidiNote >= NOTE_COUNT) MidiNote = NOTE_COUNT - 1;		// // //
 
 	// Play a MIDI note
 	unsigned int Octave = GET_OCTAVE(MidiNote);
 	unsigned int Note = GET_NOTE(MidiNote);
-//	if (Channel == chan_id_t::NOISE)
+//	if (TranslateChannel(Channel) == chan_id_t::NOISE)
 //		FixNoise(MidiNote, Octave, Note);
 
 	if (!theApp.GetSettings()->Midi.bMidiVelocity) {
@@ -2027,10 +2022,10 @@ void CFamiTrackerView::TriggerMIDINote(chan_id_t Channel, unsigned int MidiNote,
 	}
 
 	if (!(theApp.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
-		PlayNote(Channel, Note, Octave, Velocity);
+		PlayNote(Index, Note, Octave, Velocity);
 
 	if (Insert)
-		InsertNote(Note, Octave, Channel, Velocity + 1);
+		InsertNote(Note, Octave, Index, Velocity + 1);
 
 	if (theApp.GetSettings()->Midi.bMidiArpeggio) {		// // //
 		m_pArpeggiator->TriggerNote(MidiNote);
@@ -2039,18 +2034,18 @@ void CFamiTrackerView::TriggerMIDINote(chan_id_t Channel, unsigned int MidiNote,
 
 	m_iLastMIDINote = MidiNote;
 
-	TRACE("%i: Trigger note %i on channel %i\n", GetTickCount(), MidiNote, Channel);
+	TRACE("%i: Trigger note %i on channel %i\n", GetTickCount(), MidiNote, Index);
 }
 
 // Cut the currently playing note
-void CFamiTrackerView::CutMIDINote(chan_id_t Channel, unsigned int MidiNote, bool InsertCut)
+void CFamiTrackerView::CutMIDINote(std::size_t Index, unsigned int MidiNote, bool InsertCut)
 {
 	if (MidiNote >= NOTE_COUNT) MidiNote = NOTE_COUNT - 1;		// // //
 
 	// Cut a MIDI note
 	unsigned int Octave = GET_OCTAVE(MidiNote);
 	unsigned int Note = GET_NOTE(MidiNote);
-//	if (Channel == chan_id_t::NOISE)
+//	if (TranslateChannel(Channel) == chan_id_t::NOISE)
 //		FixNoise(MidiNote, Octave, Note);
 
 	if (theApp.GetSettings()->Midi.bMidiArpeggio) {		// // //
@@ -2062,30 +2057,30 @@ void CFamiTrackerView::CutMIDINote(chan_id_t Channel, unsigned int MidiNote, boo
 	if (!(theApp.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		if (m_bEditEnable) {
 			if (m_iLastMIDINote == MidiNote)
-				HaltNote(Channel, Note, Octave);
+				HaltNote(Index, Note, Octave);
 		}
 		else
-			HaltNote(Channel, Note, Octave);
+			HaltNote(Index, Note, Octave);
 
 	if (InsertCut)
-		InsertNote(HALT, 0, Channel, 0);
+		InsertNote(HALT, 0, Index, 0);
 
 	// IT-mode, cut note on cuts
 	if (theApp.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
-		HaltNote(Channel, Note, Octave);		// // //
+		HaltNote(Index, Note, Octave);		// // //
 
-	TRACE("%i: Cut note %i on channel %i\n", GetTickCount(), MidiNote, Channel);
+	TRACE("%i: Cut note %i on channel %i\n", GetTickCount(), MidiNote, Index);
 }
 
 // Release the currently playing note
-void CFamiTrackerView::ReleaseMIDINote(chan_id_t Channel, unsigned int MidiNote, bool InsertCut)
+void CFamiTrackerView::ReleaseMIDINote(std::size_t Index, unsigned int MidiNote, bool InsertCut)
 {
 	if (MidiNote >= NOTE_COUNT) MidiNote = NOTE_COUNT - 1;		// // //
 
 	// Release a MIDI note
 	unsigned int Octave = GET_OCTAVE(MidiNote);
 	unsigned int Note = GET_NOTE(MidiNote);
-//	if (Channel == chan_id_t::NOISE)
+//	if (TranslateChannel(Channel) == chan_id_t::NOISE)
 //		FixNoise(MidiNote, Octave, Note);
 
 	if (theApp.GetSettings()->Midi.bMidiArpeggio) {		// // //
@@ -2097,19 +2092,19 @@ void CFamiTrackerView::ReleaseMIDINote(chan_id_t Channel, unsigned int MidiNote,
 	if (!(theApp.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		if (m_bEditEnable) {
 			if (m_iLastMIDINote == MidiNote)
-				ReleaseNote(Channel, Note, Octave);
+				ReleaseNote(Index, Note, Octave);
 		}
 		else
-			ReleaseNote(Channel, Note, Octave);
+			ReleaseNote(Index, Note, Octave);
 
 	if (InsertCut)
-		InsertNote(RELEASE, 0, Channel, 0);
+		InsertNote(RELEASE, 0, Index, 0);
 
 	// IT-mode, release note
 	if (theApp.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
-		ReleaseNote(Channel, Note, Octave);		// // //
+		ReleaseNote(Index, Note, Octave);		// // //
 
-	TRACE("%i: Release note %i on channel %i\n", GetTickCount(), MidiNote, Channel);
+	TRACE("%i: Release note %i on channel %i\n", GetTickCount(), MidiNote, Index);
 }
 
 void CFamiTrackerView::UpdateArpDisplay()
@@ -2819,7 +2814,7 @@ void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 
 	// Play a note from the keyboard
 	int Note = TranslateKey(nChar);
-	chan_id_t Channel = GetSelectedChannelID();		// // //
+	int Channel = GetSelectedChannel();
 
 	if (Pressed) {
 		static int LastNote;
@@ -3094,7 +3089,7 @@ bool CFamiTrackerView::PreviewNote(unsigned char Key)
 	TRACE("View: Note preview\n");
 
 	if (Note > 0) {
-		TriggerMIDINote(GetSelectedChannelID(), Note, 0x7F, false);
+		TriggerMIDINote(GetSelectedChannel(), Note, 0x7F, false);
 		return true;
 	}
 
@@ -3109,9 +3104,9 @@ void CFamiTrackerView::PreviewRelease(unsigned char Key)
 
 	if (Note > 0) {
 		if (DoRelease())
-			ReleaseMIDINote(GetSelectedChannelID(), Note, false);
+			ReleaseMIDINote(GetSelectedChannel(), Note, false);
 		else
-			CutMIDINote(GetSelectedChannelID(), Note, false);
+			CutMIDINote(GetSelectedChannel(), Note, false);
 	}
 }
 
@@ -3153,7 +3148,7 @@ void CFamiTrackerView::TranslateMidiMessage()
 
 		switch (Message) {
 			case MIDI_MSG_NOTE_ON:
-				TriggerMIDINote(TranslateChannel(Channel), Data1, Data2, true);
+				TriggerMIDINote(Channel, Data1, Data2, true);
 				AfxFormatString3(Status, IDS_MIDI_MESSAGE_ON_FORMAT,
 					MakeIntString(Data1 % 12),
 					MakeIntString(Data1 / 12),
@@ -3163,9 +3158,9 @@ void CFamiTrackerView::TranslateMidiMessage()
 			case MIDI_MSG_NOTE_OFF:
 				// MIDI key is released, don't input note break into pattern
 				if (DoRelease())
-					ReleaseMIDINote(TranslateChannel(Channel), Data1, false);
+					ReleaseMIDINote(Channel, Data1, false);
 				else
-					CutMIDINote(TranslateChannel(Channel), Data1, false);
+					CutMIDINote(Channel, Data1, false);
 				Status.Format(IDS_MIDI_MESSAGE_OFF);
 				break;
 

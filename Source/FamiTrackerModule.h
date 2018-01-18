@@ -66,6 +66,7 @@ public:
 	// global info
 	machine_t GetMachine() const;
 	unsigned int GetEngineSpeed() const;
+	unsigned int GetFrameRate() const;
 	vibrato_t GetVibratoStyle() const;
 	bool GetLinearPitch() const;
 	int GetSpeedSplitPoint() const;

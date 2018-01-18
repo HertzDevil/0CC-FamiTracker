@@ -28,6 +28,7 @@
 #include "FamiTrackerTypes.h"
 
 class CFamiTrackerDoc;
+class CSongData;
 
 // CTransposeDlg dialog
 
@@ -49,7 +50,7 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 private:
-	void Transpose(int Trsp, unsigned int Track);
+	static void Transpose(int Trsp, CSongData &song);
 
 	CFamiTrackerDoc *m_pDocument;
 	int m_iTrack;

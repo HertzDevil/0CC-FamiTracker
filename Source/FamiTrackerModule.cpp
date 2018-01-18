@@ -23,6 +23,7 @@
 #include "FamiTrackerModule.h"
 #include "SongData.h"
 #include "InstrumentManager.h"
+#include "APU/APU.h"
 
 CFamiTrackerModule::CFamiTrackerModule(CFTMComponentInterface &parent) :
 	parent_(parent),
@@ -77,6 +78,13 @@ machine_t CFamiTrackerModule::GetMachine() const {
 
 unsigned int CFamiTrackerModule::GetEngineSpeed() const {
 	return m_iEngineSpeed;
+}
+
+unsigned int CFamiTrackerModule::GetFrameRate() const {
+	unsigned Rate = GetEngineSpeed();		// // //
+	if (Rate == 0)
+		return (GetMachine() == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
+	return Rate;
 }
 
 vibrato_t CFamiTrackerModule::GetVibratoStyle() const {

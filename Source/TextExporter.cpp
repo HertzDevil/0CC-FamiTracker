@@ -331,7 +331,7 @@ public:
 		return std::runtime_error {(LPCTSTR)str};
 	}
 
-	stChanNote ImportCellText(unsigned fxMax, sound_chip_t chip, bool isNoise) {		// // //
+	stChanNote ImportCellText(unsigned fxMax, chan_id_t chan) {		// // //
 		stChanNote Cell;		// // //
 
 		CString sNote = ReadToken();
@@ -342,7 +342,7 @@ public:
 			if (sNote.GetLength() != 3)
 				throw MakeError(_T("note column should be 3 characters wide, '%s' found."), sNote);
 
-			if (isNoise) {		// // // noise
+			if (chan == chan_id_t::NOISE) {		// // // noise
 				int h = ImportHex(sNote.Left(1));		// // //
 				Cell.Note = (h % NOTE_RANGE) + 1;
 				Cell.Octave = h / NOTE_RANGE;
@@ -422,7 +422,7 @@ public:
 
 			if (sEff != _T("...")) {
 				bool Valid;		// // //
-				effect_t Eff = GetEffectFromChar(sEff.GetAt(0), chip, &Valid);
+				effect_t Eff = GetEffectFromChar(sEff.GetAt(0), GetChipFromChannel(chan), &Valid);
 				if (!Valid)
 					throw MakeError(_T("unrecognized effect '%s'."), sEff);
 				Cell.EffNumber[e] = Eff;
@@ -943,9 +943,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			int row = t.ReadHex(0, MAX_PATTERN_LENGTH - 1);
 			Doc.ForeachChannel([&] (chan_id_t c) {
 				CHECK_COLON();
-				stChanNote &&stCell = t.ImportCellText(Doc.GetEffColumns(track - 1, c),
-					Doc.GetChipType(Doc.GetChannelIndex(c)), c == chan_id_t::NOISE);		// // //
-				Doc.SetDataAtPattern(track - 1, pattern, c, row, std::move(stCell));		// // //
+				Doc.GetSong(track - 1)->SetPatternData(c, pattern, row, t.ImportCellText(Doc.GetEffColumns(track - 1, c), c));		// // //
 			});
 			t.ReadEOL();
 		}
