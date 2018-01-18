@@ -91,44 +91,72 @@ public:
 	void SetBookmarks(const CBookmarkCollection &bookmarks);
 	void SetBookmarks(CBookmarkCollection &&bookmarks);
 
-	// void (*F)(CPatternData &pat [, chan_id_t ch, unsigned pat_index])
+	// void (*F)(CTrackData &track [, chan_id_t ch])
 	template <typename F>
-	void VisitPatterns(F f) {		// // //
-		if constexpr (std::is_invocable_v<F, CPatternData &, chan_id_t, unsigned>) {
+	void VisitTracks(F f) {
+		if constexpr (std::is_invocable_v<F, CTrackData &, chan_id_t>) {
 			unsigned ch_pos = 0;
 			for (auto &track : tracks_) {
-				unsigned p_index = 0;
-				for (auto &p : track.Patterns())
-					f(p, (chan_id_t)ch_pos, p_index++);
+				f(track, (chan_id_t)ch_pos);
 				++ch_pos;
 			}
 		}
-		else if constexpr (std::is_invocable_v<F, CPatternData &>) {
+		else if constexpr (std::is_invocable_v<F, CTrackData &>) {
 			for (auto &track : tracks_)
-				for (auto &p : track.Patterns())
-					f(p);
+				f(track);
 		}
 		else
 			static_assert(false, "Unknown function signature");
 	}
 
-	// void (*F)(const CPatternData &pat [, chan_id_t ch, unsigned pat_index])
+	// void (*F)(const CTrackData &track [, chan_id_t ch])
 	template <typename F>
-	void VisitPatterns(F f) const {
-		if constexpr (std::is_invocable_v<F, const CPatternData &, chan_id_t, unsigned>) {
+	void VisitTracks(F f) const {
+		if constexpr (std::is_invocable_v<F, const CTrackData &, chan_id_t>) {
 			unsigned ch_pos = 0;
 			for (auto &track : tracks_) {
-				unsigned p_index = 0;
-				for (auto &p : track.Patterns())
-					f(p, (chan_id_t)ch_pos, p_index++);
+				f(track, (chan_id_t)ch_pos);
 				++ch_pos;
 			}
 		}
-		else if constexpr (std::is_invocable_v<F, const CPatternData &>) {
+		else if constexpr (std::is_invocable_v<F, const CTrackData &>) {
 			for (auto &track : tracks_)
-				for (auto &p : track.Patterns())
-					f(p);
+				f(track);
 		}
+		else
+			static_assert(false, "Unknown function signature");
+	}
+
+	// void (*F)(CPatternData &pattern [, chan_id_t ch, std::size_t p_index])
+	template <typename F>
+	void VisitPatterns(F f) {		// // //
+		if constexpr (std::is_invocable_v<F, CPatternData &, chan_id_t, std::size_t>)
+			VisitTracks([&] (CTrackData &track, chan_id_t ch) {
+				track.VisitPatterns([&] (CPatternData &pattern, std::size_t p_index) {
+					f(pattern, ch, p_index);
+				});
+			});
+		else if constexpr (std::is_invocable_v<F, CPatternData &>)
+			VisitTracks([&] (CTrackData &track) {
+				track.VisitPatterns(f);
+			});
+		else
+			static_assert(false, "Unknown function signature");
+	}
+
+	// void (*F)(const CPatternData &pattern [, chan_id_t ch, std::size_t p_index])
+	template <typename F>
+	void VisitPatterns(F f) const {
+		if constexpr (std::is_invocable_v<F, const CPatternData &, chan_id_t, std::size_t>)
+			VisitTracks([&] (const CTrackData &track, chan_id_t ch) {
+				track.VisitPatterns([&] (const CPatternData &pattern, std::size_t p_index) {
+					f(pattern, ch, p_index);
+				});
+			});
+		else if constexpr (std::is_invocable_v<F, const CPatternData &>)
+			VisitTracks([&] (const CTrackData &track) {
+				track.VisitPatterns(f);
+			});
 		else
 			static_assert(false, "Unknown function signature");
 	}

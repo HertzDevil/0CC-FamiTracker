@@ -38,11 +38,39 @@ public:
 	unsigned GetEffectColumnCount() const;
 	void SetEffectColumnCount(unsigned Count);
 
-private:
-	friend class CSongData;
-	auto &Patterns() { return m_pPatternData; }
-	const auto &Patterns() const { return m_pPatternData; }
+	// void (*F)(CPatternData &pattern [, std::size_t p_index])
+	template <typename F>
+	void VisitPatterns(F f) {
+		if constexpr (std::is_invocable_v<F, CPatternData &, std::size_t>) {
+			std::size_t p_index = 0;
+			for (auto &pattern : m_pPatternData)
+				f(pattern, p_index++);
+		}
+		else if constexpr (std::is_invocable_v<F, CPatternData &>) {
+			for (auto &pattern : m_pPatternData)
+				f(pattern);
+		}
+		else
+			static_assert(false, "Unknown function signature");
+	}
 
+	// void (*F)(const CPatternData &pattern [, std::size_t p_index])
+	template <typename F>
+	void VisitPatterns(F f) const {
+		if constexpr (std::is_invocable_v<F, const CPatternData &, std::size_t>) {
+			std::size_t p_index = 0;
+			for (auto &pattern : m_pPatternData)
+				f(pattern, p_index++);
+		}
+		else if constexpr (std::is_invocable_v<F, const CPatternData &>) {
+			for (auto &pattern : m_pPatternData)
+				f(pattern);
+		}
+		else
+			static_assert(false, "Unknown function signature");
+	}
+
+private:
 	std::array<CPatternData, MAX_PATTERN> m_pPatternData = { };
 	std::array<unsigned int, MAX_FRAMES> m_iFrameList = { };
 	unsigned char m_iEffectColumns = 0;
