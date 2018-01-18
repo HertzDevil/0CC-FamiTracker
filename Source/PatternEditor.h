@@ -123,8 +123,6 @@ public:
 
 	cursor_column_t GetChannelColumns(int Channel) const;		// // //
 
-	CTrackerChannel &GetTrackerChannel(int Channel) const;		// // //
-
 	// Mouse
 	void OnMouseDown(const CPoint &point);
 	void OnMouseUp(const CPoint &point);

@@ -989,10 +989,7 @@ const stChanNote &CFamiTrackerDoc::GetNoteData(unsigned Track, unsigned Frame, c
 }
 
 stChanNote CFamiTrackerDoc::GetActiveNote(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const {		// // //
-	auto Note = GetNoteData(Track, Frame, Channel, Row);
-	for (int i = GetEffColumns(Track, Channel) + 1; i < MAX_EFFECT_COLUMNS; ++i)
-		Note.EffNumber[i] = EF_NONE;
-	return Note;
+	return GetSongData(Track).GetActiveNote(Channel, Frame, Row);
 }
 
 void CFamiTrackerDoc::SetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row, const stChanNote &Data)		// // //

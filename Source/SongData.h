@@ -57,6 +57,8 @@ public:
 	CPatternData &GetPatternOnFrame(chan_id_t Channel, unsigned Frame);		// // //
 	const CPatternData &GetPatternOnFrame(chan_id_t Channel, unsigned Frame) const;		// // //
 
+	stChanNote GetActiveNote(chan_id_t Channel, unsigned Frame, unsigned Row) const;		// // //
+
 	std::string_view GetTitle() const;		// // //
 	unsigned int GetPatternLength() const;
 	unsigned int GetFrameCount() const;

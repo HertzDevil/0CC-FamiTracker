@@ -47,6 +47,7 @@ class CArpeggiator;		// // //
 class CMainFrame;		// // //
 class CSongView;		// // //
 class CFamiTrackerModule;		// // //
+class CTrackerChannel;		// // //
 
 // // // Player modes
 enum class play_mode_t {
@@ -96,7 +97,11 @@ public:
 	unsigned int GetSelectedRow() const;
 	std::pair<unsigned, unsigned> GetSelectedPos() const;		// // //
 	unsigned int GetSelectedChannel() const;
+
+	// forwards to song view, not channel map
+	chan_id_t TranslateChannel(unsigned Index) const;		// // //
 	chan_id_t GetSelectedChannelID() const;		// // //
+	CTrackerChannel &GetTrackerChannel(std::size_t Index) const;		// // //
 
 	CSongView	*GetSongView() const;		// // //
 	CFamiTrackerModule *GetModuleData();		// // //

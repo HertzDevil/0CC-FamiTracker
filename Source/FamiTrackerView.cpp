@@ -52,6 +52,7 @@
 #include "PatternClipData.h"
 #include "ModuleAction.h"
 #include "InstrumentRecorder.h"
+#include "InstrumentManager.h"
 #include "Instrument.h"
 #include "Sequence.h"
 
@@ -591,8 +592,6 @@ void CFamiTrackerView::CalcWindowRect(LPRECT lpClientRect, UINT nAdjustType)
 
 void CFamiTrackerView::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
-
 	m_pPatternEditor->OnVScroll(nSBCode, nPos);
 	InvalidateCursor();
 
@@ -601,8 +600,6 @@ void CFamiTrackerView::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar
 
 void CFamiTrackerView::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
-
 	m_pPatternEditor->OnHScroll(nSBCode, nPos);
 	InvalidateCursor();
 
@@ -629,7 +626,7 @@ void CFamiTrackerView::OnRButtonUp(UINT nFlags, CPoint point)
 
 	if (m_pPatternEditor->IsOverHeader(point)) {
 		// Pattern header
-		m_iMenuChannel = GetDocument()->TranslateChannel(m_pPatternEditor->GetChannelAtPoint(point.x));		// // //
+		m_iMenuChannel = TranslateChannel(m_pPatternEditor->GetChannelAtPoint(point.x));		// // //
 		PopupMenuBar.LoadMenu(IDR_PATTERN_HEADER_POPUP);
 		static_cast<CMainFrame*>(theApp.GetMainWnd())->UpdateMenu(&PopupMenuBar);
 		pPopupMenu = PopupMenuBar.GetSubMenu(0);
@@ -726,8 +723,6 @@ void CFamiTrackerView::OnXButtonDown(UINT nFlags, UINT nButton, CPoint point)		/
 
 void CFamiTrackerView::OnMouseMove(UINT nFlags, CPoint point)
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
-
 	if (nFlags & MK_LBUTTON) {
 		// Left button down
 		m_pPatternEditor->OnMouseMove(nFlags, point);
@@ -839,13 +834,13 @@ void CFamiTrackerView::PeriodicUpdate()
 
 			pMainFrm->SetIndicatorPos(Frame, Row);
 
-			if (pDoc->IsFileLoaded()) {
+			if (GetDocument()->IsFileLoaded()) {
 				UpdateMeters();
 				// // //
 			}
 		}
 
-		if (pDoc->GetChannelCount()) {		// // //
+		if (GetSongView()->GetChannelOrder().GetChannelCount()) {		// // //
 			// TODO get rid of static variables
 			static int LastNoteState = -1;
 
@@ -950,11 +945,8 @@ void CFamiTrackerView::OnTrackerEdit()
 
 LRESULT CFamiTrackerView::OnUserDumpInst(WPARAM wParam, LPARAM lParam)		// // //
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
-	auto Inst = theApp.GetSoundGenerator()->GetRecordInstrument();
-	int Slot = pDoc->GetFreeInstrumentIndex();
-	if (Slot != INVALID_INSTRUMENT)
-		AddAction(std::make_unique<ModuleAction::CAddInst>(Slot, std::move(Inst)));
+	AddAction(std::make_unique<ModuleAction::CAddInst>(GetModuleData()->GetInstrumentManager()->GetFirstUnused(),
+		theApp.GetSoundGenerator()->GetRecordInstrument()));
 	theApp.GetSoundGenerator()->ResetDumpInstrument();
 	InvalidateHeader();
 
@@ -963,15 +955,16 @@ LRESULT CFamiTrackerView::OnUserDumpInst(WPARAM wParam, LPARAM lParam)		// // //
 
 void CFamiTrackerView::OnTrackerDetune()			// // //
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
+	CFamiTrackerModule *pModule = GetModuleData();
 	CDetuneDlg DetuneDlg;
-	UINT nResult = DetuneDlg.DoModal();
-	if (nResult != IDOK) return;
+	if (DetuneDlg.DoModal() != IDOK)
+		return;
 	const int *Table = DetuneDlg.GetDetuneTable();
-	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++)
-		pDoc->SetDetuneOffset(i, j, *(Table + j + i * NOTE_COUNT));
-	pDoc->SetTuning(DetuneDlg.GetDetuneSemitone(), DetuneDlg.GetDetuneCent());		// // // 050B
-	theApp.GetSoundGenerator()->DocumentPropertiesChanged(pDoc);
+	for (int i = 0; i < 6; i++)
+		for (int j = 0; j < NOTE_COUNT; j++)
+			pModule->SetDetuneOffset(i, j, *(Table + j + i * NOTE_COUNT));
+	pModule->SetTuning(DetuneDlg.GetDetuneSemitone(), DetuneDlg.GetDetuneCent());		// // // 050B
+	theApp.GetSoundGenerator()->DocumentPropertiesChanged(GetDocument());
 }
 
 void CFamiTrackerView::OnTransposeDecreasenote()
@@ -1298,10 +1291,9 @@ void CFamiTrackerView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHi
 void CFamiTrackerView::TrackChanged(unsigned int Track)
 {
 	// Called when the selected track has changed
-	CFamiTrackerDoc *pDoc = GetDocument();		// // //
 	CMainFrame *pMainFrm = GetMainFrame();		// // //
 
-	song_view_ = pDoc->MakeSongView(Track);		// // //
+	song_view_ = GetDocument()->MakeSongView(Track);		// // //
 	SetMarker(-1, -1);		// // //
 	m_pPatternEditor->ResetCursor();
 	m_pPatternEditor->InvalidatePatternData();
@@ -1393,12 +1385,11 @@ bool CFamiTrackerView::IsMarkerValid() const		// // //
 	if (m_iMarkerFrame < 0 || m_iMarkerRow < 0)
 		return false;
 
-	CFamiTrackerDoc* pDoc = GetDocument();
+	const CSongView *pSongView = GetSongView();
 
-	const int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
-	if (m_iMarkerFrame >= static_cast<int>(pDoc->GetFrameCount(Track)))
+	if (m_iMarkerFrame >= static_cast<int>(pSongView->GetSong().GetFrameCount()))
 		return false;
-	if (m_iMarkerRow >= m_pPatternEditor->GetCurrentPatternLength(m_iMarkerFrame))
+	if (m_iMarkerRow >= (int)pSongView->GetCurrentPatternLength(m_iMarkerFrame))
 		return false;
 	return true;
 }
@@ -1412,7 +1403,7 @@ void CFamiTrackerView::PlayerPlayNote(chan_id_t Channel, const stChanNote &pNote
 {
 	// Callback from sound thread
 	if (m_bSwitchToInstrument && pNote.Instrument < MAX_INSTRUMENTS && pNote.Note != NONE &&
-		GetDocument()->GetChannelIndex(Channel) == GetSelectedChannel())
+		GetSongView()->GetChannelOrder().GetChannelIndex(Channel) == GetSelectedChannel())
 		m_iSwitchToInstrument = pNote.Instrument;
 }
 
@@ -1426,8 +1417,17 @@ unsigned int CFamiTrackerView::GetSelectedChannel() const
 	return m_pPatternEditor->GetChannel();
 }
 
+chan_id_t CFamiTrackerView::TranslateChannel(unsigned Index) const {		// // //
+	return GetSongView()->GetChannelOrder().TranslateChannel(Index);
+}
+
 chan_id_t CFamiTrackerView::GetSelectedChannelID() const {		// // //
-	return GetDocument()->TranslateChannel(GetSelectedChannel());
+	return TranslateChannel(GetSelectedChannel());
+}
+
+CTrackerChannel &CFamiTrackerView::GetTrackerChannel(std::size_t Index) const {		// // //
+	chan_id_t ch = GetSongView()->GetChannelOrder().TranslateChannel(Index);
+	return GetDocument()->GetChannelMap()->FindChannel(ch);
 }
 
 CSongView *CFamiTrackerView::GetSongView() const {		// // //
@@ -1672,14 +1672,14 @@ void CFamiTrackerView::ToggleChannel(chan_id_t Channel)
 
 void CFamiTrackerView::SoloChannel(chan_id_t Channel)
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
+	const CChannelOrder &order = GetSongView()->GetChannelOrder();		// // //
 
 	if (IsChannelSolo(Channel))
-		pDoc->ForeachChannel([&] (chan_id_t i) { // Revert channels
+		order.ForeachChannel([&] (chan_id_t i) { // Revert channels
 			SetChannelMute(i, false);
 		});
 	else
-		pDoc->ForeachChannel([&] (chan_id_t i) { // Solo selected channel
+		order.ForeachChannel([&] (chan_id_t i) { // Solo selected channel
 			SetChannelMute(i, i != Channel);
 		});
 
@@ -1688,18 +1688,17 @@ void CFamiTrackerView::SoloChannel(chan_id_t Channel)
 
 void CFamiTrackerView::ToggleChip(chan_id_t Channel)		// // //
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
-
-	sound_chip_t Chip = pDoc->GetChipType(pDoc->GetChannelIndex(Channel));
+	const CChannelOrder &order = GetSongView()->GetChannelOrder();
+	sound_chip_t Chip = GetChipFromChannel(Channel);
 	bool shouldMute = false;
 
-	pDoc->ForeachChannel([&] (chan_id_t i) {
-		if (!shouldMute && pDoc->GetChipType(pDoc->GetChannelIndex(i)) == Chip && !IsChannelMuted(i))
+	order.ForeachChannel([&] (chan_id_t i) {
+		if (!shouldMute && GetChipFromChannel(i) == Chip && !IsChannelMuted(i))
 			shouldMute = true;
 	});
 
-	pDoc->ForeachChannel([&] (chan_id_t i) {
-		if (pDoc->GetChipType(pDoc->GetChannelIndex(i)) == Chip)
+	order.ForeachChannel([&] (chan_id_t i) {
+		if (GetChipFromChannel(i) == Chip)
 			SetChannelMute(i, shouldMute);
 	});
 
@@ -1708,16 +1707,16 @@ void CFamiTrackerView::ToggleChip(chan_id_t Channel)		// // //
 
 void CFamiTrackerView::SoloChip(chan_id_t Channel)		// // //
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
-	sound_chip_t Chip = pDoc->GetChipType(pDoc->GetChannelIndex(Channel));
+	const CChannelOrder &order = GetSongView()->GetChannelOrder();
+	sound_chip_t Chip = GetChipFromChannel(Channel);
 
 	if (IsChipSolo(Chip))
-		pDoc->ForeachChannel([&] (chan_id_t i) {
+		order.ForeachChannel([&] (chan_id_t i) {
 			SetChannelMute(i, false);
 		});
 	else
-		pDoc->ForeachChannel([&] (chan_id_t i) {
-			SetChannelMute(i, pDoc->GetChipType(pDoc->GetChannelIndex(i)) != Chip);
+		order.ForeachChannel([&] (chan_id_t i) {
+			SetChannelMute(i, GetChipFromChannel(i) != Chip);
 		});
 
 	InvalidateHeader();
@@ -1733,10 +1732,9 @@ void CFamiTrackerView::UnmuteAllChannels()
 
 bool CFamiTrackerView::IsChannelSolo(chan_id_t Channel) const		// // //
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
 	bool solo = true;
 
-	pDoc->ForeachChannel([&] (chan_id_t i) {
+	GetSongView()->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
 		if (solo && !IsChannelMuted(i) && i != Channel)
 			solo = false;
 	});
@@ -1746,11 +1744,10 @@ bool CFamiTrackerView::IsChannelSolo(chan_id_t Channel) const		// // //
 
 bool CFamiTrackerView::IsChipSolo(sound_chip_t Chip) const		// // //
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
 	bool solo = true;
 
-	pDoc->ForeachChannel([&] (chan_id_t i) {
-		if (solo && !IsChannelMuted(i) && pDoc->GetChipType(pDoc->GetChannelIndex(i)) != Chip)
+	GetSongView()->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
+		if (solo && !IsChannelMuted(i) && GetChipFromChannel(i) != Chip)
 			solo = false;
 	});
 
@@ -1759,8 +1756,6 @@ bool CFamiTrackerView::IsChipSolo(sound_chip_t Chip) const		// // //
 
 void CFamiTrackerView::SetChannelMute(chan_id_t Channel, bool bMute)
 {
-	CFamiTrackerDoc* pDoc = GetDocument();
-
 	if (IsChannelMuted(Channel) != bMute) {		// // //
 		HaltNoteSingle(Channel);
 //		if (bMute)
@@ -1897,13 +1892,14 @@ void CFamiTrackerView::PlayNote(chan_id_t Channel, unsigned int Note, unsigned i
 	else
 		NoteData.Instrument	= GetInstrument();
 */
-	CFamiTrackerDoc *pDoc = GetDocument();
+	const CChannelOrder &order = GetSongView()->GetChannelOrder();
+	const CSongData &song = GetSongView()->GetSong();
 
 	Channel = SplitAdjustChannel(Channel, NoteData);
-	if (pDoc->HasChannel(Channel)) {
+	if (order.HasChannel(Channel)) {
 		int MidiNote = MIDI_NOTE(NoteData.Octave, NoteData.Note);		// // //
 		chan_id_t ret = m_pNoteQueue->Trigger(MidiNote, Channel);
-		if (pDoc->HasChannel(ret)) {
+		if (order.HasChannel(ret)) {
 			SplitKeyboardAdjust(NoteData, ret);
 			theApp.GetSoundGenerator()->QueueNote(ret, NoteData, NOTE_PRIO_2);		// // //
 			theApp.GetSoundGenerator()->ForceReloadInstrument(ret);		// // //
@@ -1911,13 +1907,12 @@ void CFamiTrackerView::PlayNote(chan_id_t Channel, unsigned int Note, unsigned i
 	}
 
 	if (theApp.GetSettings()->General.bPreviewFullRow) {
-		int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 		int Frame = GetSelectedFrame();
 		int Row = GetSelectedRow();
 
-		pDoc->ForeachChannel([&] (chan_id_t i) {
+		order.ForeachChannel([&] (chan_id_t i) {
 			if (!IsChannelMuted(i) && i != Channel)
-				theApp.GetSoundGenerator()->QueueNote(i, pDoc->GetActiveNote(Track, Frame, i, Row),
+				theApp.GetSoundGenerator()->QueueNote(i, song.GetActiveNote(i, Frame, Row),
 					(i == Channel) ? NOTE_PRIO_2 : NOTE_PRIO_1);		// // //
 		});
 	}
@@ -1932,18 +1927,18 @@ void CFamiTrackerView::ReleaseNote(chan_id_t Channel, unsigned int Note, unsigne
 	NoteData.Instrument = GetInstrument();
 
 	Channel = SplitAdjustChannel(Channel, NoteData);		// // //
-	CFamiTrackerDoc *pDoc = GetDocument();		// // //
-	if (pDoc->HasChannel(Channel)) {
+	const CChannelOrder &order = GetSongView()->GetChannelOrder();
+	if (order.HasChannel(Channel)) {
 		chan_id_t ch = m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), Channel);
 //		chan_id_t ch = m_pNoteQueue->Release(MIDI_NOTE(Octave, Note), Channel);
-		if (pDoc->HasChannel(ch))
+		if (order.HasChannel(ch))
 			theApp.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
 		if (theApp.GetSettings()->General.bPreviewFullRow) {
 			NoteData.Note = HALT;
 			NoteData.Instrument = MAX_INSTRUMENTS;
 
-			pDoc->ForeachChannel([&] (chan_id_t i) {
+			order.ForeachChannel([&] (chan_id_t i) {
 				if (i != ch)
 					theApp.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_1);
 			});
@@ -1960,16 +1955,16 @@ void CFamiTrackerView::HaltNote(chan_id_t Channel, unsigned int Note, unsigned i
 	NoteData.Instrument = GetInstrument();
 
 	Channel = SplitAdjustChannel(Channel, NoteData);		// // //
-	CFamiTrackerDoc *pDoc = GetDocument();		// // //
-	if (pDoc->HasChannel(Channel)) {
+	const CChannelOrder &order = GetSongView()->GetChannelOrder();
+	if (order.HasChannel(Channel)) {
 		chan_id_t ch = m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), Channel);
-		if (pDoc->HasChannel(ch))
+		if (order.HasChannel(ch))
 			theApp.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
 		if (theApp.GetSettings()->General.bPreviewFullRow) {
 			NoteData.Instrument = MAX_INSTRUMENTS;
 
-			pDoc->ForeachChannel([&] (chan_id_t i) {
+			order.ForeachChannel([&] (chan_id_t i) {
 				if (i != ch)
 					theApp.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_1);
 			});
@@ -2015,8 +2010,6 @@ static void FixNoise(unsigned int &MidiNote, unsigned int &Octave, unsigned int 
 // Play a note
 void CFamiTrackerView::TriggerMIDINote(chan_id_t Channel, unsigned int MidiNote, unsigned int Velocity, bool Insert)
 {
-	CFamiTrackerDoc *pDoc = GetDocument();
-
 	if (MidiNote >= NOTE_COUNT) MidiNote = NOTE_COUNT - 1;		// // //
 
 	// Play a MIDI note
@@ -2052,8 +2045,6 @@ void CFamiTrackerView::TriggerMIDINote(chan_id_t Channel, unsigned int MidiNote,
 // Cut the currently playing note
 void CFamiTrackerView::CutMIDINote(chan_id_t Channel, unsigned int MidiNote, bool InsertCut)
 {
-	CFamiTrackerDoc *pDoc = GetDocument();
-
 	if (MidiNote >= NOTE_COUNT) MidiNote = NOTE_COUNT - 1;		// // //
 
 	// Cut a MIDI note
@@ -2089,8 +2080,6 @@ void CFamiTrackerView::CutMIDINote(chan_id_t Channel, unsigned int MidiNote, boo
 // Release the currently playing note
 void CFamiTrackerView::ReleaseMIDINote(chan_id_t Channel, unsigned int MidiNote, bool InsertCut)
 {
-	CFamiTrackerDoc *pDoc = GetDocument();
-
 	if (MidiNote >= NOTE_COUNT) MidiNote = NOTE_COUNT - 1;		// // //
 
 	// Release a MIDI note
@@ -2137,7 +2126,7 @@ void CFamiTrackerView::UpdateNoteQueues()		// // //
 	m_pNoteQueue->ClearMaps();
 
 	if (m_bEditEnable || theApp.GetSettings()->Midi.bMidiArpeggio)
-		pDoc->ForeachChannel([&] (chan_id_t i) {
+		GetSongView()->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
 			m_pNoteQueue->AddMap({i});
 		});
 	else {
@@ -2383,8 +2372,6 @@ void CFamiTrackerView::OnKeyEnd()
 void CFamiTrackerView::OnKeyInsert()
 {
 	// Insert row
-	CFamiTrackerDoc* pDoc = GetDocument();
-
 	if (PreventRepeat(VK_INSERT, true) || !m_bEditEnable)		// // //
 		return;
 
@@ -2397,8 +2384,6 @@ void CFamiTrackerView::OnKeyInsert()
 void CFamiTrackerView::OnKeyBackspace()
 {
 	// Pull up row
-	CFamiTrackerDoc* pDoc = GetDocument();
-
 	if (!m_bEditEnable)		// // //
 		return;
 
@@ -2421,8 +2406,6 @@ void CFamiTrackerView::OnKeyBackspace()
 void CFamiTrackerView::OnKeyDelete()
 {
 	// Delete row data
-	CFamiTrackerDoc* pDoc = GetDocument();
-
 	bool bShiftPressed = IsShiftPressed();
 
 	if (PreventRepeat(VK_DELETE, true) || !m_bEditEnable)		// // //
@@ -2595,9 +2578,7 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 		return true;
 	}
 
-	CFamiTrackerDoc* pDoc = GetDocument();
-
-	sound_chip_t Chip = pDoc->GetChipType(GetSelectedChannel());		// // //
+	sound_chip_t Chip = GetChipFromChannel(GetSelectedChannelID());		// // //
 
 	if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9)
 		nChar = '0' + nChar - VK_NUMPAD0;
@@ -2699,8 +2680,6 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 {
 	if (theApp.GetAccelerator()->IsKeyUsed(nChar)) return;		// // //
 
-	CFamiTrackerDoc* pDoc = GetDocument();
-
 	int EditStyle = theApp.GetSettings()->General.iEditStyle;
 	int Index = 0;
 
@@ -2718,7 +2697,7 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 		return;
 
 	// Get the note data
-	stChanNote Note = pDoc->GetNoteData(Track, Frame, GetSelectedChannelID(), Row);		// // //
+	stChanNote Note = GetSongView()->GetPatternOnFrame(GetSelectedChannel(), Frame).GetNoteOn(Row);		// // //
 
 	// Make all effect columns look the same, save an index instead
 	switch (Column) {
@@ -2838,8 +2817,6 @@ void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 	if (theApp.GetAccelerator()->IsKeyUsed(nChar))
 		return;		// // //
 
-	CFamiTrackerDoc *pDoc = GetDocument();
-
 	// Play a note from the keyboard
 	int Note = TranslateKey(nChar);
 	chan_id_t Channel = GetSelectedChannelID();		// // //
@@ -2915,7 +2892,7 @@ chan_id_t CFamiTrackerView::SplitAdjustChannel(chan_id_t Channel, const stChanNo
 {
 	if (!m_bEditEnable && m_iSplitChannel != chan_id_t::NONE)
 		if (m_iSplitNote != -1 && MIDI_NOTE(Note.Octave, Note.Note) <= m_iSplitNote)
-			if (GetDocument()->HasChannel(m_iSplitChannel))
+			if (GetSongView()->GetChannelOrder().HasChannel(m_iSplitChannel))
 				return m_iSplitChannel;
 	return Channel;
 }
@@ -2948,13 +2925,10 @@ bool CFamiTrackerView::CheckRepeatKey(unsigned char Key) const
 int CFamiTrackerView::TranslateKeyModplug(unsigned char Key) const
 {
 	// Modplug conversion
-	CFamiTrackerDoc* pDoc = GetDocument();
-
 	int	KeyNote = 0, KeyOctave = 0;
-	int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 	int Octave = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedOctave();		// // // 050B
 
-	const auto &NoteData = pDoc->GetNoteData(Track, GetSelectedFrame(), GetSelectedChannelID(), GetSelectedRow());		// // //
+	const auto &NoteData = GetSongView()->GetPatternOnFrame(GetSelectedChannel(), GetSelectedFrame()).GetNoteOn(GetSelectedRow());
 
 	if (m_bEditEnable && Key >= '0' && Key <= '9') {		// // //
 		KeyOctave = Key - '1';
@@ -3150,10 +3124,10 @@ void CFamiTrackerView::TranslateMidiMessage()
 	// Check and handle MIDI messages
 
 	CMIDI *pMIDI = theApp.GetMIDI();
-	CFamiTrackerDoc* pDoc = GetDocument();
+	CSongView *pSongView = GetSongView();		// // //
 	CString Status;
 
-	if (!pMIDI || !pDoc)
+	if (!pMIDI || !pSongView)
 		return;
 
 	unsigned char Message, Channel, Data1, Data2;
@@ -3162,7 +3136,7 @@ void CFamiTrackerView::TranslateMidiMessage()
 		if (Message != 0x0F) {
 			if (!theApp.GetSettings()->Midi.bMidiChannelMap)
 				Channel = GetSelectedChannel();
-			Channel = std::clamp((int)Channel, 0, pDoc->GetChannelCount() - 1);		// // //
+			Channel = std::clamp((int)Channel, 0, (int)pSongView->GetChannelOrder().GetChannelCount() - 1);		// // //
 		}
 
 		// Translate key releases to note off messages
@@ -3179,7 +3153,7 @@ void CFamiTrackerView::TranslateMidiMessage()
 
 		switch (Message) {
 			case MIDI_MSG_NOTE_ON:
-				TriggerMIDINote(pDoc->TranslateChannel(Channel), Data1, Data2, true);
+				TriggerMIDINote(TranslateChannel(Channel), Data1, Data2, true);
 				AfxFormatString3(Status, IDS_MIDI_MESSAGE_ON_FORMAT,
 					MakeIntString(Data1 % 12),
 					MakeIntString(Data1 / 12),
@@ -3189,16 +3163,16 @@ void CFamiTrackerView::TranslateMidiMessage()
 			case MIDI_MSG_NOTE_OFF:
 				// MIDI key is released, don't input note break into pattern
 				if (DoRelease())
-					ReleaseMIDINote(pDoc->TranslateChannel(Channel), Data1, false);
+					ReleaseMIDINote(TranslateChannel(Channel), Data1, false);
 				else
-					CutMIDINote(pDoc->TranslateChannel(Channel), Data1, false);
+					CutMIDINote(TranslateChannel(Channel), Data1, false);
 				Status.Format(IDS_MIDI_MESSAGE_OFF);
 				break;
 
 			case MIDI_MSG_PITCH_WHEEL:
 				{
 					int PitchValue = 0x2000 - ((Data1 & 0x7F) | ((Data2 & 0x7F) << 7));
-					pDoc->GetChannel(Channel).SetPitch(-PitchValue / 0x10);		// // //
+					GetTrackerChannel(Channel).SetPitch(-PitchValue / 0x10);		// // //
 				}
 				break;
 
@@ -3271,7 +3245,7 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 
 	CFamiTrackerDoc	*pDoc = GetDocument();
 	chan_id_t Channel = m_iMenuChannel;		// // //
-	sound_chip_t Chip = pDoc->GetChipType(pDoc->GetChannelIndex(m_iMenuChannel));
+	sound_chip_t Chip = GetChipFromChannel(m_iMenuChannel);
 	m_iMenuChannel = chan_id_t::NONE;
 
 	if (Channel == chan_id_t::DPCM || Chip == sound_chip_t::VRC7) {
@@ -3425,13 +3399,10 @@ void CFamiTrackerView::OnBlockEnd()
 void CFamiTrackerView::OnPickupRow()
 {
 	// Get row info
-	CFamiTrackerDoc* pDoc = GetDocument();
-
-	int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 	int Frame = GetSelectedFrame();
 	int Row = GetSelectedRow();
 
-	const auto &Note = pDoc->GetNoteData(Track, Frame, GetSelectedChannelID(), Row);		// // //
+	const auto &Note = GetSongView()->GetPatternOnFrame(GetSelectedChannel(), Frame).GetNoteOn(Row);		// // //
 
 	m_iLastVolume = Note.Vol;
 	m_iLastInstrument = Note.Instrument;		// // //
@@ -3616,7 +3587,7 @@ CString	CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) cons
 	int Param = Note.EffParam[Column];
 	if (Index >= EF_COUNT) return _T("Undefined effect");
 
-	sound_chip_t Chip = GetDocument()->GetChipType(GetSelectedChannel());
+	sound_chip_t Chip = GetChipFromChannel(GetSelectedChannelID());
 	if (Index > EF_FDS_VOLUME || (Index == EF_FDS_VOLUME && Param >= 0x40)) ++Index;
 	if (Index > EF_TRANSPOSE || (Index == EF_TRANSPOSE && Param >= 0x80)) ++Index;
 	if (Index > EF_SUNSOFT_ENV_TYPE || (Index == EF_SUNSOFT_ENV_TYPE && Param >= 0x10)) ++Index;
@@ -3626,7 +3597,7 @@ CString	CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) cons
 	if (Index > EF_DUTY_CYCLE || (Index == EF_DUTY_CYCLE && (Chip == sound_chip_t::VRC7 || Chip == sound_chip_t::N163))) ++Index;
 	if (Index > EF_DUTY_CYCLE || (Index == EF_DUTY_CYCLE && Chip == sound_chip_t::N163)) ++Index;
 	if (Index > EF_VOLUME || (Index == EF_VOLUME && Param >= 0xE0)) ++Index;
-	if (Index > EF_SPEED || (Index == EF_SPEED && Param >= GetDocument()->GetSpeedSplitPoint())) ++Index;
+	if (Index > EF_SPEED || (Index == EF_SPEED && Param >= GetModuleData()->GetSpeedSplitPoint())) ++Index;
 
 	return EFFECT_TEXTS[Index - 1];
 }

@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <vector>		// // //
 #include <cmath>
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
 #include "SoundGen.h"
@@ -39,7 +39,6 @@
 #include "PatternClipData.h"		// // //
 #include "RegisterDisplay.h"		// // //
 #include "SongView.h"		// // //
-#include "ChannelMap.h"		// // //
 
 /*
  * CPatternEditor
@@ -114,7 +113,7 @@ void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t 
 		}
 	}
 
-	if (theApp.GetSettings()->General.iEditStyle == EDIT_STYLE_IT) {
+	if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT) {
 		switch (Mode) {
 		case PASTE_MIX:
 			if (Target->Note != NONE || Target->Instrument != MAX_INSTRUMENTS || Target->Vol != MAX_VOLUME)
@@ -231,7 +230,7 @@ void CPatternEditor::ApplyColorScheme()
 	// The color scheme has changed
 	//
 
-	const CSettings *pSettings = theApp.GetSettings();
+	const CSettings *pSettings = Env.GetSettings();
 
 	LPCTSTR	FontName = pSettings->Appearance.strFont;		// // //
 	LPCTSTR	HeaderFace = DEFAULT_HEADER_FONT;
@@ -281,7 +280,7 @@ void CPatternEditor::ApplyColorScheme()
 
 	// Cache some colors
 	m_colSeparator	= BLEND(ColBackground, Invert(ColBackground), SHADE_LEVEL::SEPARATOR);
-	m_colEmptyBg	= DIM(theApp.GetSettings()->Appearance.iColBackground, SHADE_LEVEL::EMPTY_BG);
+	m_colEmptyBg	= DIM(Env.GetSettings()->Appearance.iColBackground, SHADE_LEVEL::EMPTY_BG);
 
 	m_colHead1 = GetSysColor(COLOR_3DFACE);
 	m_colHead2 = GetSysColor(COLOR_BTNHIGHLIGHT);
@@ -421,7 +420,7 @@ void CPatternEditor::DrawScreen(CDC &DC, CFamiTrackerView *pView)
 	}
 
 	if (m_iLastPlayRow != m_iPlayRow) {
-		if (theApp.GetSoundGenerator()->IsPlaying() && !m_bFollowMode) {
+		if (Env.GetSoundGenerator()->IsPlaying() && !m_bFollowMode) {
 			bDrawPattern = true;		// // //
 			bQuickRedraw = false;
 		}
@@ -440,7 +439,7 @@ void CPatternEditor::DrawScreen(CDC &DC, CFamiTrackerView *pView)
 			bQuickRedraw = false;
 
 		// Todo: fix this
-		if (theApp.GetSettings()->General.bFreeCursorEdit)
+		if (Env.GetSettings()->General.bFreeCursorEdit)
 			bQuickRedraw = false;
 
 		// Todo: remove
@@ -595,7 +594,7 @@ CRect CPatternEditor::GetInvalidatedRect() const
 {
 	if (m_bHeaderInvalidated)
 		return GetActiveRect();
-	else if (theApp.GetSettings()->Display.bRegisterState)		// // //
+	else if (Env.GetSettings()->Display.bRegisterState)		// // //
 		return GetActiveRect();
 
 	return GetPatternRect();
@@ -722,9 +721,9 @@ bool CPatternEditor::CursorUpdated()
 		m_cpCursorPos.m_iFrame = Frames - 1;
 
 	// Ignore user cursor moves if the player is playing
-	if (theApp.GetSoundGenerator()->IsPlaying()) {
+	if (Env.GetSoundGenerator()->IsPlaying()) {
 
-		const CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+		const CSoundGen *pSoundGen = Env.GetSoundGenerator();
 		// Store a synchronized copy of frame & row position from player
 		std::tie(m_iPlayFrame, m_iPlayRow) = pSoundGen->GetPlayerPos();		// // //
 
@@ -738,7 +737,7 @@ bool CPatternEditor::CursorUpdated()
 	}
 
 	// Decide center row
-	if (theApp.GetSettings()->General.bFreeCursorEdit) {
+	if (Env.GetSettings()->General.bFreeCursorEdit) {
 
 		// Adjust if cursor is out of screen
 		if (m_iCenterRow < m_iLinesVisible / 2)
@@ -887,10 +886,10 @@ void CPatternEditor::PerformQuickRedraw(CDC &DC)
 	ScrollPatternArea(DC, DiffRows);
 
 	// Play cursor
-	if (theApp.GetSoundGenerator()->IsPlaying() && !m_bFollowMode) {
+	if (Env.GetSoundGenerator()->IsPlaying() && !m_bFollowMode) {
 		//PrintRow(DC, m_iPlayRow,
 	}
-	else if (!theApp.GetSoundGenerator()->IsPlaying() && m_iLastPlayRow != -1) {
+	else if (!Env.GetSoundGenerator()->IsPlaying() && m_iLastPlayRow != -1) {
 		if (m_iPlayFrame == m_cpCursorPos.m_iFrame) {
 			int Line = RowToLine(m_iLastPlayRow);
 			if (Line >= 0 && Line <= m_iLinesVisible) {
@@ -912,11 +911,11 @@ void CPatternEditor::PerformQuickRedraw(CDC &DC)
 void CPatternEditor::PrintRow(CDC &DC, int Row, int Line, int Frame) const
 {
 	const int FrameCount = GetFrameCount();		// // //
-	const int rEnd = (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode) ? std::max(m_iPlayRow + 1, m_iPatternLength) : m_iPatternLength;
+	const int rEnd = (Env.GetSoundGenerator()->IsPlaying() && m_bFollowMode) ? std::max(m_iPlayRow + 1, m_iPatternLength) : m_iPatternLength;
 	if (Row >= 0 && Row < rEnd) {
 		DrawRow(DC, Row, Line, Frame, false);
 	}
-	else if (theApp.GetSettings()->General.bFramePreview) {
+	else if (Env.GetSettings()->General.bFramePreview) {
 		if (Row >= rEnd) { // first frame
 			Row -= rEnd;
 			Frame++;
@@ -1061,7 +1060,7 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 
 	const double PREVIEW_SHADE_LEVEL = .7;		// // //
 
-	const CSettings *pSettings = theApp.GetSettings();		// // //
+	const CSettings *pSettings = Env.GetSettings();		// // //
 
 	COLORREF ColCursor	= pSettings->Appearance.iColCursor;
 	COLORREF ColBg		= pSettings->Appearance.iColBackground;
@@ -1209,7 +1208,7 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 		else
 			GradientBar(DC, 0, 0, Width, m_iRowHeight, BackColor, ColBg);
 
-		if (!m_bFollowMode && Row == m_iPlayRow && f == m_iPlayFrame && theApp.GetSoundGenerator()->IsPlaying()) {
+		if (!m_bFollowMode && Row == m_iPlayRow && f == m_iPlayFrame && Env.GetSoundGenerator()->IsPlaying()) {
 			// Play row
 			GradientBar(DC, 0, 0, Width, m_iRowHeight, pSettings->Appearance.iColCurrentRowPlaying, ColBg);		// // //
 		}
@@ -1278,7 +1277,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	// Hex numbers
 	static const char HEX[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-	const bool m_bDisplayFlat = theApp.GetSettings()->Appearance.bDisplayFlats;		// // //
+	const bool m_bDisplayFlat = Env.GetSettings()->Appearance.bDisplayFlats;		// // //
 
 	const char *NOTES_A = m_bDisplayFlat ? NOTES_A_FLAT : NOTES_A_SHARP;
 	const char *NOTES_B = m_bDisplayFlat ? NOTES_B_FLAT : NOTES_B_SHARP;
@@ -1305,7 +1304,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	COLORREF DimInst = ColorInfo.Compact;		// // //
 	COLORREF DimEff = ColorInfo.Compact;		// // //
 
-	const CTrackerChannel &TrackerChannel = GetTrackerChannel(Channel);		// // //
+	const CTrackerChannel &TrackerChannel = m_pView->GetTrackerChannel(Channel);		// // //
 
 	// Make non-available instruments red in the pattern editor
 	if (NoteData.Instrument < MAX_INSTRUMENTS &&
@@ -1497,14 +1496,14 @@ void CPatternEditor::DrawHeader(CDC &DC)
 			DC.Draw3dRect(Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT, BLEND(STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK, .5), STATIC_COLOR_SCHEME.FRAME_DARK);
 		}
 		else {
-			if (ch == theApp.GetSoundGenerator()->GetRecordChannel())		// // //
+			if (ch == Env.GetSoundGenerator()->GetRecordChannel())		// // //
 				GradientRectTriple(DC, Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT,
 								   m_colHead1, m_colHead2, m_colHead5);
 			DC.Draw3dRect(Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT, STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK);
 		}
 
 		// Text
-		const auto &TrackerChannel = GetTrackerChannel(Channel);		// // //
+		const auto &TrackerChannel = m_pView->GetTrackerChannel(Channel);		// // //
 		CString pChanName = (m_bCompactMode && m_iCharWidth < 6) ? _T("") :
 			(m_bCompactMode || m_iCharWidth < 9) ? TrackerChannel.GetShortName() : TrackerChannel.GetChannelName();		// // //
 
@@ -1624,7 +1623,7 @@ void CPatternEditor::DrawMeters(CDC &DC)
 
 	for (int i = 0; i < m_iChannelsVisible; ++i) {
 		int Channel = i + m_iFirstChannel;
-		unsigned level = GetTrackerChannel(Channel).GetVolumeMeter();		// // //
+		unsigned level = m_pView->GetTrackerChannel(Channel).GetVolumeMeter();		// // //
 
 		for (std::size_t j = 0; j < CELL_COUNT; ++j) {
 			bool Active = j < level;
@@ -1661,13 +1660,13 @@ void CPatternEditor::DrawMeters(CDC &DC)
 }
 
 void CPatternEditor::DrawRegisters(CDC &DC) {		// // //
-	if (!theApp.GetSoundGenerator())
+	if (!Env.GetSoundGenerator())
 		return;
 
 	CFont *pOldFont = DC.SelectObject(&m_fontCourierNew);
 	DC.FillSolidRect(0, 0, m_iWinWidth, m_iWinHeight, m_colEmptyBg);		// // //
 
-	if (theApp.GetSettings()->Display.bRegisterState)		// // //
+	if (Env.GetSettings()->Display.bRegisterState)		// // //
 		CRegisterDisplay {DC, m_colEmptyBg}.Draw();
 
 	DC.SelectObject(pOldFont);
@@ -1719,9 +1718,9 @@ void CPatternEditor::UpdateVerticalScroll()
 	si.cbSize = sizeof(SCROLLINFO);
 	si.fMask = SIF_PAGE | SIF_POS | SIF_RANGE;
 	si.nMin = 0;
-	si.nMax = m_iPatternLength + theApp.GetSettings()->General.iPageStepSize - 2;
+	si.nMax = m_iPatternLength + Env.GetSettings()->General.iPageStepSize - 2;
 	si.nPos = m_iDrawCursorRow;
-	si.nPage = theApp.GetSettings()->General.iPageStepSize;
+	si.nPage = Env.GetSettings()->General.iPageStepSize;
 
 	m_pView->SetScrollInfo(SB_VERT, &si);
 }
@@ -1800,7 +1799,7 @@ CCursorPos CPatternEditor::GetCursorAtPoint(const CPoint &point) const
 	int Frame = m_cpCursorPos.m_iFrame;
 	int Row = (point.y - HEADER_HEIGHT) / m_iRowHeight - (m_iLinesVisible / 2) + m_iCenterRow;
 
-	if (theApp.GetSettings()->General.bFramePreview) {		// // // guarantees valid cursor position
+	if (Env.GetSettings()->General.bFramePreview) {		// // // guarantees valid cursor position
 		while (Row < 0) {
 			Row += GetCurrentPatternLength(--Frame);
 		}
@@ -1834,11 +1833,6 @@ cursor_column_t CPatternEditor::GetChannelColumns(int Channel) const
 	default: return C_EFF1_PARAM2;
 	}
 	return C_NOTE;
-}
-
-CTrackerChannel &CPatternEditor::GetTrackerChannel(int Channel) const {		// // //
-	chan_id_t ch = m_pView->GetSongView()->GetChannelOrder().TranslateChannel(Channel);
-	return m_pDocument->GetChannelMap()->FindChannel(ch);
 }
 
 int CPatternEditor::GetSelectedTrack() const
@@ -1940,7 +1934,7 @@ CPatternEditor::CSelectionGuard::~CSelectionGuard()		// // //
 	else {
 		m_pPatternEditor->m_bCurrentlySelecting = false;
 
-		if (theApp.GetSettings()->General.iEditStyle != EDIT_STYLE_IT || !m_pPatternEditor->m_bSelecting)
+		if (Env.GetSettings()->General.iEditStyle != EDIT_STYLE_IT || !m_pPatternEditor->m_bSelecting)
 			m_pPatternEditor->CancelSelection();
 	}
 
@@ -2073,7 +2067,7 @@ void CPatternEditor::OnHomeKey()
 
 	const bool bControl = IsControlPressed();
 
-	if (bControl || theApp.GetSettings()->General.iEditStyle == EDIT_STYLE_FT2) {
+	if (bControl || Env.GetSettings()->General.iEditStyle == EDIT_STYLE_FT2) {
 		// Control or FT2 edit style
 		MoveToTop();
 	}
@@ -2095,7 +2089,7 @@ void CPatternEditor::OnEndKey()
 	const int Channels = GetChannelCount();
 	const cursor_column_t Columns = GetChannelColumns(GetChannel());
 
-	if (bControl || theApp.GetSettings()->General.iEditStyle == EDIT_STYLE_FT2) {
+	if (bControl || Env.GetSettings()->General.iEditStyle == EDIT_STYLE_FT2) {
 		// Control or FT2 edit style
 		MoveToBottom();
 	}
@@ -2118,10 +2112,10 @@ void CPatternEditor::MoveCursor(const CCursorPos &Pos)		// // //
 
 void CPatternEditor::MoveToRow(int Row)
 {
-	if (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
+	if (Env.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
 		return;
 
-	if (theApp.GetSettings()->General.bWrapFrames) {		// // //
+	if (Env.GetSettings()->General.bWrapFrames) {		// // //
 		while (Row < 0) {
 			MoveToFrame(m_cpCursorPos.m_iFrame - 1);
 			Row += m_iPatternLength;
@@ -2131,7 +2125,7 @@ void CPatternEditor::MoveToRow(int Row)
 			MoveToFrame(m_cpCursorPos.m_iFrame + 1);
 		}
 	}
-	else if (theApp.GetSettings()->General.bWrapCursor) {
+	else if (Env.GetSettings()->General.bWrapCursor) {
 		Row %= m_iPatternLength;
 		if (Row < 0) Row += m_iPatternLength;
 	}
@@ -2148,9 +2142,9 @@ void CPatternEditor::MoveToFrame(int Frame)
 	if (!m_bSelecting)
 		m_iWarpCount = 0;		// // //
 
-	if (theApp.GetSettings()->General.bWrapFrames) {
+	if (Env.GetSettings()->General.bWrapFrames) {
 		if (m_bSelecting) {		// // //
-			if (theApp.GetSettings()->General.bMultiFrameSel) {		// // //
+			if (Env.GetSettings()->General.bMultiFrameSel) {		// // //
 				if (Frame < 0)
 					m_iWarpCount--;
 				else if (Frame / FrameCount > m_cpCursorPos.m_iFrame / FrameCount)
@@ -2164,13 +2158,13 @@ void CPatternEditor::MoveToFrame(int Frame)
 	else
 		Frame = std::clamp(Frame, 0, FrameCount - 1);
 
-	if (m_bSelecting && !theApp.GetSettings()->General.bMultiFrameSel)		// // //
+	if (m_bSelecting && !Env.GetSettings()->General.bMultiFrameSel)		// // //
 		m_selection.m_cpStart.m_iFrame = m_selection.m_cpEnd.m_iFrame = Frame;
 
-	if (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode) {
+	if (Env.GetSoundGenerator()->IsPlaying() && m_bFollowMode) {
 		if (m_iPlayFrame != Frame) {
-			theApp.GetSoundGenerator()->MoveToFrame(Frame);
-			theApp.GetSoundGenerator()->ResetTempo();
+			Env.GetSoundGenerator()->MoveToFrame(Frame);
+			Env.GetSoundGenerator()->ResetTempo();
 		}
 	}
 
@@ -2187,13 +2181,13 @@ void CPatternEditor::MoveToChannel(int Channel)
 		return;
 
 	if (Channel < 0) {
-		if (theApp.GetSettings()->General.bWrapCursor)
+		if (Env.GetSettings()->General.bWrapCursor)
 			Channel = ChannelCount - 1;
 		else
 			Channel = 0;
 	}
 	else if (Channel > ChannelCount - 1) {
-		if (theApp.GetSettings()->General.bWrapCursor)
+		if (Env.GetSettings()->General.bWrapCursor)
 			Channel = 0;
 		else
 			Channel = ChannelCount - 1;
@@ -2235,7 +2229,7 @@ void CPatternEditor::ScrollLeft()
 			m_cpCursorPos.m_iColumn = m_iColumns[m_cpCursorPos.m_iChannel];
 		}
 		else {
-			if (theApp.GetSettings()->General.bWrapCursor) {
+			if (Env.GetSettings()->General.bWrapCursor) {
 				m_cpCursorPos.m_iChannel = GetChannelCount() - 1;
 				m_cpCursorPos.m_iColumn = m_iColumns[m_cpCursorPos.m_iChannel];
 			}
@@ -2253,7 +2247,7 @@ void CPatternEditor::ScrollRight()
 			m_cpCursorPos.m_iColumn = C_NOTE;
 		}
 		else {
-			if (theApp.GetSettings()->General.bWrapCursor) {
+			if (Env.GetSettings()->General.bWrapCursor) {
 				m_cpCursorPos.m_iChannel = 0;
 				m_cpCursorPos.m_iColumn = C_NOTE;
 			}
@@ -2582,7 +2576,7 @@ void CPatternEditor::ContinueMouseSelection(const CPoint &point)
 				}
 		}
 
-		if (!theApp.GetSettings()->General.bMultiFrameSel) {		// // //
+		if (!Env.GetSettings()->General.bMultiFrameSel) {		// // //
 			m_selection.m_cpEnd.m_iFrame %= FrameCount;
 			if (m_selection.m_cpEnd.m_iFrame < 0) m_selection.m_cpEnd.m_iFrame += FrameCount;
 			m_selection.m_cpStart.m_iFrame %= FrameCount;
@@ -2681,14 +2675,14 @@ void CPatternEditor::OnMouseDblClk(const CPoint &point)
 void CPatternEditor::OnMouseScroll(int Delta)
 {
 	// Mouse scroll wheel
-	if (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
+	if (Env.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
 		return;
 
 	if (Delta != 0) {
-		int ScrollLength = (Delta < 0) ? theApp.GetSettings()->General.iPageStepSize : -theApp.GetSettings()->General.iPageStepSize;
+		int ScrollLength = (Delta < 0) ? Env.GetSettings()->General.iPageStepSize : -Env.GetSettings()->General.iPageStepSize;
 		m_cpCursorPos.m_iRow += ScrollLength;
 
-		if (theApp.GetSettings()->General.bWrapFrames) {		// // //
+		if (Env.GetSettings()->General.bWrapFrames) {		// // //
 			while (m_cpCursorPos.m_iRow < 0) {
 				if (m_cpCursorPos.m_iFrame == 0 && m_bSelecting) ++m_iDragBeginWarp;
 				MoveToFrame(m_cpCursorPos.m_iFrame - 1);
@@ -2704,7 +2698,7 @@ void CPatternEditor::OnMouseScroll(int Delta)
 			m_cpCursorPos.m_iRow = std::clamp(m_cpCursorPos.m_iRow, 0, m_iPatternLength - 1);		// // //
 
 		m_iCenterRow = m_cpCursorPos.m_iRow;
-		if (theApp.GetSettings()->General.iEditStyle != EDIT_STYLE_IT && m_bSelecting == false)
+		if (Env.GetSettings()->General.iEditStyle != EDIT_STYLE_IT && m_bSelecting == false)
 			CancelSelection();
 	}
 }
@@ -2997,7 +2991,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t 
 			}
 			it.Set(c, NoteData);
 			if ((++it).m_iRow == 0) { // end of frame reached
-				if ((!theApp.GetSettings()->General.bOverflowPaste && PasteMode != PASTE_OVERFLOW) ||
+				if ((!Env.GetSettings()->General.bOverflowPaste && PasteMode != PASTE_OVERFLOW) ||
 					PasteMode == PASTE_INSERT) break;
 			}
 			if (it.m_iFrame == f && it.m_iRow == r) break;
@@ -3016,7 +3010,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t 
 			it.Set(i, NoteData);
 		}
 		if ((++it).m_iRow == 0) { // end of frame reached
-			if ((!theApp.GetSettings()->General.bOverflowPaste && PasteMode != PASTE_OVERFLOW) ||
+			if ((!Env.GetSettings()->General.bOverflowPaste && PasteMode != PASTE_OVERFLOW) ||
 				PasteMode == PASTE_INSERT) break;
 		}
 		if (!((it.m_iFrame - f) % GetFrameCount()) && it.m_iRow == r) break;
@@ -3135,7 +3129,7 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	const int Frames = GetFrameCount();
 
-	if (!theApp.GetSettings()->General.bShowSkippedRows) {
+	if (!Env.GetSettings()->General.bShowSkippedRows) {
 		auto it = CPatternIterator::FromSelection(Sel, *m_pView->GetSongView());
 		for (; it.first <= it.second; ++it.first) {
 			// bool HasSkip = false;
@@ -3336,7 +3330,7 @@ bool CPatternEditor::ScrollTimerCallback()
 
 void CPatternEditor::OnVScroll(UINT nSBCode, UINT nPos)
 {
-	int PageSize = theApp.GetSettings()->General.iPageStepSize;
+	int PageSize = Env.GetSettings()->General.iPageStepSize;
 
 	switch (nSBCode) {
 		case SB_LINEDOWN:
@@ -3524,7 +3518,7 @@ void CPatternEditor::GetSelectionAsText(CString &str) const		// // //
 	CString Header(_T(' '), HexLength + 3);
 	Header.Append(_T("# "));
 	for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
-		Header.AppendFormat(_T(": %-13s"), GetTrackerChannel(i).GetChannelName());
+		Header.AppendFormat(_T(": %-13s"), m_pView->GetTrackerChannel(i).GetChannelName());
 		int Columns = pSongView->GetEffectColumnCount(i);
 		if (i == it.second.m_iChannel)
 			Columns = std::clamp(static_cast<int>(GetSelectColumn(it.second.m_iColumn)) - 3, 0, Columns);
