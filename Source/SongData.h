@@ -86,6 +86,15 @@ public:
 	void CopyTrack(chan_id_t Chan, const CSongData &From, chan_id_t ChanFrom);		// // //
 	void SwapChannels(chan_id_t First, chan_id_t Second);		// // //
 
+	// // // Frame operations
+
+	bool AddFrames(unsigned Frame, unsigned Count);
+	bool DeleteFrames(unsigned Frame, unsigned Count);
+	bool SwapFrames(unsigned First, unsigned Second);
+	bool InsertFrame(unsigned Frame);
+	bool DuplicateFrame(unsigned Frame);
+	bool CloneFrame(unsigned Frame);
+
 	CBookmarkCollection &GetBookmarks();		// // //
 	const CBookmarkCollection &GetBookmarks() const;
 	void SetBookmarks(const CBookmarkCollection &bookmarks);

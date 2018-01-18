@@ -55,6 +55,8 @@
 #include "APU/APU.h"
 // // //
 #include "FamiTrackerModule.h"
+#include "SongData.h"
+#include "SongView.h"
 #include "AudioDriver.h"
 #include "GrooveDlg.h"
 #include "GotoDlg.h"
@@ -2947,7 +2949,7 @@ void CMainFrame::OnEditSelectother()		// // //
 
 			NewSel.m_cpStart.m_iRow = 0;
 			NewSel.m_cpStart.m_iColumn = C_NOTE;
-			NewSel.m_cpEnd.m_iRow = pDoc->GetCurrentPatternLength(m_iTrack, NewSel.m_cpEnd.m_iFrame) - 1;
+			NewSel.m_cpEnd.m_iRow = pView->GetSongView()->GetCurrentPatternLength(NewSel.m_cpEnd.m_iFrame) - 1;
 			NewSel.m_cpEnd.m_iColumn = pEditor->GetChannelColumns(NewSel.m_cpEnd.m_iChannel);
 
 			pEditor->SetSelection(NewSel);

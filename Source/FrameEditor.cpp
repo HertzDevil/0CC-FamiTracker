@@ -1014,7 +1014,7 @@ std::unique_ptr<CFrameClipData> CFrameEditor::CopyEntire(unsigned song) const		/
 
 void CFrameEditor::PasteInsert(unsigned int Track, int Frame, const CFrameClipData &ClipData)		// // //
 {
-	m_pDocument->AddFrames(Track, Frame, ClipData.ClipInfo.Frames);
+	m_pDocument->GetSong(Track)->AddFrames(Frame, ClipData.ClipInfo.Frames);
 	PasteAt(Track, ClipData, CFrameSelection {ClipData, Frame}.GetCursorStart());
 }
 

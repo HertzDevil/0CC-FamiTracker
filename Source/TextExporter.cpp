@@ -900,11 +900,12 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			if (track != 0 && !Doc.InsertSong(track, Doc.GetModule()->MakeNewSong()))
 				throw t.MakeError(_T("unable to add new track."));
 
-			Doc.SetPatternLength(track, t.ReadInt(1, MAX_PATTERN_LENGTH));		// // //
-			Doc.SetSongGroove(track, UseGroove[track]);		// // //
-			Doc.SetSongSpeed(track, t.ReadInt(0, MAX_TEMPO));
-			Doc.SetSongTempo(track, t.ReadInt(0, MAX_TEMPO));
-			Doc.SetTrackTitle(track, (LPCTSTR)t.ReadToken());		// // //
+			CSongData *pSong = Doc.GetSong(track);
+			pSong->SetPatternLength(t.ReadInt(1, MAX_PATTERN_LENGTH));		// // //
+			pSong->SetSongGroove(UseGroove[track]);		// // //
+			pSong->SetSongSpeed(t.ReadInt(0, MAX_TEMPO));
+			pSong->SetSongTempo(t.ReadInt(0, MAX_TEMPO));
+			pSong->SetTitle((LPCTSTR)t.ReadToken());		// // //
 
 			t.ReadEOL();
 			++track;
@@ -913,20 +914,22 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_COLUMNS:
 		{
 			CHECK_COLON();
+			CSongData *pSong = Doc.GetSong(track - 1);		// // //
 			Doc.ForeachChannel([&] (chan_id_t c) {
-				Doc.SetEffColumns(track - 1, c, t.ReadInt(1, MAX_EFFECT_COLUMNS) - 1);
+				pSong->SetEffectColumnCount(c, t.ReadInt(1, MAX_EFFECT_COLUMNS) - 1);
 			});
 			t.ReadEOL();
 		}
 		break;
 		case CT_ORDER:
 		{
+			CSongData *pSong = Doc.GetSong(track - 1);		// // //
 			int ifr = t.ReadHex(0, MAX_FRAMES - 1);
-			if (ifr >= (int)Doc.GetFrameCount(track - 1)) // expand to accept frames
-				Doc.SetFrameCount(track - 1, ifr + 1);
+			if (ifr >= (int)pSong->GetFrameCount()) // expand to accept frames
+				pSong->SetFrameCount(ifr + 1);
 			CHECK_COLON();
 			Doc.ForeachChannel([&] (chan_id_t c) {
-				Doc.SetPatternAtFrame(track - 1, ifr, c, t.ReadHex(0, MAX_PATTERN - 1));
+				pSong->SetFramePattern(ifr, c, t.ReadHex(0, MAX_PATTERN - 1));
 			});
 			t.ReadEOL();
 		}

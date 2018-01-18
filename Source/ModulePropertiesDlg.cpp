@@ -253,7 +253,7 @@ void CModulePropertiesDlg::OnBnClickedSongUp()
 	if (Song == 0)
 		return;
 
-	m_pDocument->MoveTrackUp(Song);
+	m_pDocument->GetModule()->SwapSongs(Song, Song - 1);
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
@@ -274,7 +274,7 @@ void CModulePropertiesDlg::OnBnClickedSongDown()
 	if (Song == (m_pDocument->GetTrackCount() - 1))
 		return;
 
-	m_pDocument->MoveTrackDown(Song);
+	m_pDocument->GetModule()->SwapSongs(Song, Song + 1);
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
@@ -300,9 +300,10 @@ void CModulePropertiesDlg::OnEnChangeSongname()
 	Title.Format(TRACK_FORMAT, m_iSelectedSong + 1, Text.GetLength(), Text);
 
 	pSongList->SetItemText(m_iSelectedSong, 0, Title);
-	if (m_pDocument->GetTrackTitle(m_iSelectedSong) != (LPCTSTR)Text)		// // //
+	CSongData *pSong = m_pDocument->GetSong(m_iSelectedSong);		// // //
+	if (pSong->GetTitle() != (LPCTSTR)Text)		// // //
 		m_pDocument->ModifyIrreversible();
-	m_pDocument->SetTrackTitle(m_iSelectedSong, (LPCTSTR)Text);
+	pSong->SetTitle((LPCTSTR)Text);
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 }
 

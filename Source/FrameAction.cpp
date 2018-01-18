@@ -27,11 +27,16 @@
 #include "MainFrm.h"
 #include "FrameEditor.h"
 #include "ChannelMap.h"		// // //
+#include "SongData.h"		// // //
+#include "SongView.h"		// // //
 #include <unordered_map>		// // //
 
 // // // all dependencies on CMainFrame
 #define GET_VIEW() static_cast<CFamiTrackerView *>(MainFrm.GetActiveView())
 #define GET_DOCUMENT() GET_VIEW()->GetDocument()
+#define GET_MODULE() GET_VIEW()->GetModuleData()
+#define GET_SONG_VIEW() GET_VIEW()->GetSongView()
+#define GET_SONG() GET_SONG_VIEW()->GetSong()
 #define GET_FRAME_EDITOR() MainFrm.GetFrameEditor()
 #define GET_SELECTED_TRACK() MainFrm.GetSelectedTrack()
 
@@ -113,12 +118,7 @@ int CFrameEditorState::GetChanEnd() const
 
 int CFrameAction::ClipPattern(int Pattern)
 {
-	if (Pattern < 0)
-		Pattern = 0;
-	if (Pattern > MAX_PATTERN - 1)
-		Pattern = MAX_PATTERN - 1;
-
-	return Pattern;
+	return std::clamp(Pattern, 0, MAX_PATTERN - 1);		// // //
 }
 
 void CFrameAction::SaveUndoState(const CMainFrame &MainFrm)		// // //
@@ -165,14 +165,12 @@ bool CFActionAddFrame::SaveState(const CMainFrame &MainFrm)
 
 void CFActionAddFrame::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->RemoveFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame + 1);
+	GET_SONG().DeleteFrames(m_pUndoState->Cursor.m_iFrame + 1, 1);
 }
 
 void CFActionAddFrame::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->InsertFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame + 1);
+	GET_SONG().InsertFrame(m_pUndoState->Cursor.m_iFrame + 1);
 }
 
 
@@ -182,8 +180,7 @@ CFActionRemoveFrame::~CFActionRemoveFrame() {
 
 bool CFActionRemoveFrame::SaveState(const CMainFrame &MainFrm)
 {
-	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	if (pDoc->GetFrameCount(m_pUndoState->Track) <= 1)
+	if (GET_SONG().GetFrameCount() <= 1)
 		return false;
 	m_pRowClipData = GET_FRAME_EDITOR()->CopyFrame(m_pUndoState->Cursor.m_iFrame, m_pUndoState->Track);
 	return true;
@@ -191,36 +188,31 @@ bool CFActionRemoveFrame::SaveState(const CMainFrame &MainFrm)
 
 void CFActionRemoveFrame::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->InsertFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame);
+	GET_SONG().InsertFrame(m_pUndoState->Cursor.m_iFrame);
 	GET_FRAME_EDITOR()->PasteInsert(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame, *m_pRowClipData);
 	GET_FRAME_EDITOR()->SetSelection({*m_pRowClipData, m_pUndoState->Cursor.m_iFrame});
 }
 
 void CFActionRemoveFrame::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->RemoveFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame);
+	GET_SONG().DeleteFrames(m_pUndoState->Cursor.m_iFrame, 1);
 }
 
 
 
 bool CFActionDuplicateFrame::SaveState(const CMainFrame &MainFrm)
 {
-	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	return pDoc->GetFrameCount(m_pUndoState->Track) < MAX_FRAMES;
+	return GET_SONG().GetFrameCount() < MAX_FRAMES;
 }
 
 void CFActionDuplicateFrame::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->RemoveFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame);
+	GET_SONG().DeleteFrames(m_pUndoState->Cursor.m_iFrame, 1);
 }
 
 void CFActionDuplicateFrame::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->DuplicateFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame);
+	GET_SONG().DuplicateFrame(m_pUndoState->Cursor.m_iFrame);
 }
 
 
@@ -237,13 +229,11 @@ void CFActionCloneFrame::Undo(CMainFrame &MainFrm)
 	int Count = pDoc->GetChannelCount();
 	for (int i = 0; i < Count; ++i)
 		pDoc->ClearPattern(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame + 1, pDoc->TranslateChannel(i));
-	pDoc->RemoveFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame + 1);
+	GET_SONG().DeleteFrames(m_pUndoState->Cursor.m_iFrame + 1, 1);
 }
 
-void CFActionCloneFrame::Redo(CMainFrame &MainFrm)
-{
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->CloneFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame + 1);
+void CFActionCloneFrame::Redo(CMainFrame &MainFrm) {
+	GET_SONG().CloneFrame(m_pUndoState->Cursor.m_iFrame + 1);
 }
 
 
@@ -255,21 +245,18 @@ CFActionFrameCount::CFActionFrameCount(int Count) :
 
 bool CFActionFrameCount::SaveState(const CMainFrame &MainFrm)
 {
-	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_iOldFrameCount = pDoc->GetFrameCount(m_pUndoState->Track);
+	m_iOldFrameCount = GET_SONG().GetFrameCount();
 	return m_iNewFrameCount != m_iOldFrameCount;
 }
 
 void CFActionFrameCount::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetFrameCount(m_pUndoState->Track, m_iOldFrameCount);
+	GET_SONG().SetFrameCount(m_iOldFrameCount);
 }
 
 void CFActionFrameCount::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->SetFrameCount(m_pUndoState->Track, m_iNewFrameCount);
+	GET_SONG().SetFrameCount(m_iNewFrameCount);
 }
 
 bool CFActionFrameCount::Merge(const CAction &Other)		// // //
@@ -313,9 +300,10 @@ void CFActionSetPattern::Undo(CMainFrame &MainFrm)
 
 void CFActionSetPattern::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	for (int f : m_itFrames) for (int c : m_itChannels)
-		pDoc->SetPatternAtFrame(m_pUndoState->Track, f, pDoc->TranslateChannel(c), m_iNewPattern);
+	CSongView *pSongView = GET_SONG_VIEW();
+	for (int c : m_itChannels)
+		for (int f : m_itFrames)
+			pSongView->SetFramePattern(c, f, m_iNewPattern);
 }
 
 bool CFActionSetPattern::Merge(const CAction &Other)		// // //
@@ -355,9 +343,10 @@ void CFActionSetPatternAll::Undo(CMainFrame &MainFrm)
 
 void CFActionSetPatternAll::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	for (int i = 0; i < m_pRowClipData->ClipInfo.Channels; ++i)
-		pDoc->SetPatternAtFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame, pDoc->TranslateChannel(i), m_iNewPattern);
+	CSongView *pSongView = GET_SONG_VIEW();
+	GET_SONG_VIEW()->ForeachChannel([&] (std::size_t index) {
+		pSongView->SetFramePattern(index, m_pUndoState->Cursor.m_iFrame, m_iNewPattern);
+	});
 }
 
 bool CFActionSetPatternAll::Merge(const CAction &Other)		// // //
@@ -399,16 +388,17 @@ void CFActionChangePattern::Undo(CMainFrame &MainFrm)
 
 void CFActionChangePattern::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
+	CSongView *pSongView = GET_SONG_VIEW();
 	const int f0 = m_pUndoState->GetFrameStart();
 	const int c0 = m_pUndoState->IsSelecting ? m_pUndoState->GetChanStart() : 0; // copies entire row by default
-	for (int f : m_itFrames) for (int c : m_itChannels) {
-		int Frame = m_pClipData->GetFrame(f - f0, c - c0);
-		int NewFrame = ClipPattern(Frame + m_iPatternOffset);
-		if (NewFrame == Frame)
-			m_bOverflow = true;
-		pDoc->SetPatternAtFrame(m_pUndoState->Track, f, pDoc->TranslateChannel(c), NewFrame);
-	}
+	for (int c : m_itChannels)
+		for (int f : m_itFrames) {
+			int Frame = m_pClipData->GetFrame(f - f0, c - c0);
+			int NewFrame = ClipPattern(Frame + m_iPatternOffset);
+			if (NewFrame == Frame)
+				m_bOverflow = true;
+			pSongView->SetFramePattern(c, f, NewFrame);
+		}
 }
 
 bool CFActionChangePattern::Merge(const CAction &Other)		// // //
@@ -454,14 +444,14 @@ void CFActionChangePatternAll::Undo(CMainFrame &MainFrm)
 
 void CFActionChangePatternAll::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	for (int i = 0; i < m_pRowClipData->ClipInfo.Channels; ++i) {
-		int Frame = m_pRowClipData->GetFrame(0, i);
-		int NewFrame = ClipPattern(m_pRowClipData->GetFrame(0, i) + m_iPatternOffset);
+	CSongView *pSongView = GET_SONG_VIEW();
+	pSongView->ForeachChannel([&] (std::size_t index) {
+		int Frame = m_pRowClipData->GetFrame(0, index);
+		int NewFrame = ClipPattern(Frame + m_iPatternOffset);
 		if (NewFrame == Frame)
 			m_bOverflow = true;
-		pDoc->SetPatternAtFrame(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame, pDoc->TranslateChannel(i), NewFrame);
-	}
+		pSongView->SetFramePattern(index, m_pUndoState->Cursor.m_iFrame, NewFrame);
+	});
 }
 
 bool CFActionChangePatternAll::Merge(const CAction &Other)		// // //
@@ -492,15 +482,13 @@ bool CFActionMoveDown::SaveState(const CMainFrame &MainFrm)
 
 void CFActionMoveDown::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->MoveFrameUp(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame + 1);
+	GET_SONG().SwapFrames(m_pUndoState->Cursor.m_iFrame, m_pUndoState->Cursor.m_iFrame + 1);
 	GET_VIEW()->SelectFrame(m_pUndoState->Cursor.m_iFrame);
 }
 
 void CFActionMoveDown::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->MoveFrameDown(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame);
+	GET_SONG().SwapFrames(m_pUndoState->Cursor.m_iFrame, m_pUndoState->Cursor.m_iFrame + 1);
 	GET_VIEW()->SelectFrame(m_pUndoState->Cursor.m_iFrame + 1);
 }
 
@@ -513,15 +501,13 @@ bool CFActionMoveUp::SaveState(const CMainFrame &MainFrm)
 
 void CFActionMoveUp::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->MoveFrameDown(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame - 1);
+	GET_SONG().SwapFrames(m_pUndoState->Cursor.m_iFrame, m_pUndoState->Cursor.m_iFrame - 1);
 	GET_VIEW()->SelectFrame(m_pUndoState->Cursor.m_iFrame);
 }
 
 void CFActionMoveUp::Redo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	pDoc->MoveFrameUp(m_pUndoState->Track, m_pUndoState->Cursor.m_iFrame);
+	GET_SONG().SwapFrames(m_pUndoState->Cursor.m_iFrame, m_pUndoState->Cursor.m_iFrame - 1);
 	GET_VIEW()->SelectFrame(m_pUndoState->Cursor.m_iFrame - 1);
 }
 
@@ -547,10 +533,9 @@ bool CFActionPaste::SaveState(const CMainFrame &MainFrm)
 
 void CFActionPaste::Undo(CMainFrame &MainFrm)
 {
-	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	if (m_bClone)
 		GET_FRAME_EDITOR()->ClearPatterns(m_pUndoState->Track, m_pRedoState->Selection);		// // //
-	pDoc->DeleteFrames(m_pUndoState->Track, m_iTargetFrame, m_pClipData->ClipInfo.Frames);
+	GET_SONG().DeleteFrames(m_iTargetFrame, m_pClipData->ClipInfo.Frames);
 }
 
 void CFActionPaste::Redo(CMainFrame &MainFrm)
@@ -663,9 +648,9 @@ void CFActionClonePatterns::Undo(CMainFrame &MainFrm)		// // //
 		pEditor->PasteAt(m_pUndoState->Track, *m_pClipData, m_pUndoState->Selection.m_cpStart);
 	}
 	else {
-		CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-		pDoc->ClearPattern(STATE_EXPAND2(pDoc, m_pUndoState));
-		pDoc->SetPatternAtFrame(STATE_EXPAND2(pDoc, m_pUndoState), m_iOldPattern);
+		CSongView *pSongView = GET_SONG_VIEW();
+		GET_DOCUMENT()->ClearPattern(STATE_EXPAND2(GET_DOCUMENT(), m_pUndoState));
+		pSongView->SetFramePattern(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame, m_iOldPattern);
 	}
 }
 
@@ -675,7 +660,8 @@ void CFActionClonePatterns::Redo(CMainFrame &MainFrm)		// // //
 	if (m_pUndoState->IsSelecting)
 		ClonePatterns(m_pUndoState->Selection, *pDoc->GetChannelMap(), *pDoc->GetSong(m_pUndoState->Track));
 	else {
-		pDoc->SetPatternAtFrame(STATE_EXPAND2(pDoc, m_pUndoState), m_iNewPattern);
+		CSongView *pSongView = GET_SONG_VIEW();
+		pSongView->SetFramePattern(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame, m_iNewPattern);
 		pDoc->CopyPattern(m_pUndoState->Track, m_iNewPattern, m_iOldPattern, pDoc->TranslateChannel(m_pUndoState->Cursor.m_iChannel));
 	}
 }
@@ -707,12 +693,10 @@ void CFActionDeleteSel::Undo(CMainFrame &MainFrm)
 
 void CFActionDeleteSel::Redo(CMainFrame &MainFrm)
 {
-	auto pView = GET_VIEW();
-	pView->GetDocument()->DeleteFrames(
-		m_pUndoState->Track,
+	GET_SONG().DeleteFrames(
 		m_pUndoState->Selection.m_cpStart.m_iFrame,
 		m_pUndoState->Selection.GetSelectedFrameCount());		// // //
-	pView->SelectFrame(m_pUndoState->Selection.m_cpStart.m_iFrame);
+	GET_VIEW()->SelectFrame(m_pUndoState->Selection.m_cpStart.m_iFrame);
 	GET_FRAME_EDITOR()->CancelSelection();
 }
 

@@ -128,17 +128,6 @@ public:
 	bool ImportGrooves(CFamiTrackerDoc &Imported, int *pGrooveMap);		// // //
 	bool ImportDetune(CFamiTrackerDoc &Imported);			// // //
 
-	//
-	// Interface functions (not related to document data) TODO move this?
-	//
-	CTrackerChannel	&GetChannel(int Index) const;		// // //
-	int				GetChannelIndex(chan_id_t Channel) const;		// // //
-	bool			HasChannel(chan_id_t Channel) const;		// // //
-
-	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
-	sound_chip_t	GetChipType(int Index) const;
-	int				GetChannelCount() const;
-
 	// Synchronization
 	BOOL			LockDocument() const;
 	BOOL			LockDocument(DWORD dwTimeout) const;
@@ -149,49 +138,7 @@ public:
 	//
 
 	// Local (song) data
-	void			SetPatternLength(unsigned int Track, unsigned int Length);
-	void			SetFrameCount(unsigned int Track, unsigned int Count);
-	void			SetSongSpeed(unsigned int Track, unsigned int Speed);
-	void			SetSongTempo(unsigned int Track, unsigned int Tempo);
-	void			SetSongGroove(unsigned int Track, bool Groove);		// // //
-
-	unsigned int	GetPatternLength(unsigned int Track) const;
-	unsigned int	GetFrameCount(unsigned int Track) const;
-	unsigned int	GetSongSpeed(unsigned int Track) const;
-	unsigned int	GetSongTempo(unsigned int Track) const;
-	bool			GetSongGroove(unsigned int Track) const;		// // //
-
-	unsigned int	GetCurrentPatternLength(unsigned int Track, int Frame) const;		// // // moved from pattern editor
-
 	std::unique_ptr<CSongView> MakeSongView(unsigned Track);		// // //
-
-	unsigned int	GetEffColumns(unsigned int Track, chan_id_t Channel) const;
-	void			SetEffColumns(unsigned int Track, chan_id_t Channel, unsigned int Columns);
-
-	unsigned int 	GetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel) const;
-	void			SetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Pattern);
-
-	bool			IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsigned int Pattern) const;
-	bool			ArePatternsSame(unsigned int Track, chan_id_t Channel, unsigned int Pattern1, unsigned int Pattern2) const;		// // //
-
-	// Pattern editing
-	const stChanNote &GetNoteData(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const;		// // //
-	stChanNote		GetActiveNote(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const;		// // // remove hidden fx commands
-
-	const stChanNote &GetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row) const;		// // //
-
-	void			ClearPattern(unsigned int Track, unsigned int Frame, chan_id_t Channel);
-	void			CopyPattern(unsigned int Track, int Target, int Source, chan_id_t Channel);
-
-	// Frame editing
-	bool			InsertFrame(unsigned int Track, unsigned int Frame);
-	bool			RemoveFrame(unsigned int Track, unsigned int Frame);
-	bool			DuplicateFrame(unsigned int Track, unsigned int Frame);
-	bool			CloneFrame(unsigned int Track, unsigned int Frame);		// // // renamed
-	bool			MoveFrameDown(unsigned int Track, unsigned int Frame);
-	bool			MoveFrameUp(unsigned int Track, unsigned int Frame);
-	bool			AddFrames(unsigned int Track, unsigned int Frame, unsigned Count);		// // //
-	bool			DeleteFrames(unsigned int Track, unsigned int Frame, unsigned Count);		// // //
 
 	// Global (module) data
 	void			SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs);		// // //
@@ -210,45 +157,16 @@ public:
 
 	int				GetFrameLength(unsigned int Track, unsigned int Frame) const;
 
-	// Track management functions
-	std::string_view GetTrackTitle(unsigned int Track) const;		// // //
-	void			SetTrackTitle(unsigned int Track, const std::string &title);		// // //
-	void			MoveTrackUp(unsigned int Track);
-	void			MoveTrackDown(unsigned int Track);
-
 	// Instruments functions
-	std::shared_ptr<CInstrument>	GetInstrument(unsigned int Index) const;
-	unsigned int	GetInstrumentCount() const;
-	unsigned		GetFreeInstrumentIndex() const;		// // //
-	bool			IsInstrumentUsed(unsigned int Index) const;
-	bool			AddInstrument(std::unique_ptr<CInstrument> pInstrument, unsigned int Slot);		// // //
-	bool			RemoveInstrument(unsigned int Index);							// // // Remove an instrument
-	inst_type_t		GetInstrumentType(unsigned int Index) const;
 	void			SaveInstrument(unsigned int Index, CSimpleFile &file) const;		// // //
 	bool 			LoadInstrument(unsigned Index, CSimpleFile &File);		// // //
 
-	// Sequences functions
-	// // // take instrument type as parameter rather than chip type
-	std::shared_ptr<CSequence> GetSequence(inst_type_t InstType, unsigned Index, sequence_t Type) const;		// // //
-	unsigned int	GetSequenceItemCount(inst_type_t InstType, unsigned Index, sequence_t Type) const;		// // //
-	int				GetFreeSequence(inst_type_t InstType, sequence_t Type) const;		// // //
-	int				GetSequenceCount(inst_type_t InstType, sequence_t Type) const;		// // //
-	int				GetTotalSequenceCount(inst_type_t InstType) const;		// // //
-
 	// DPCM samples
-	std::shared_ptr<dpcm_sample> GetSample(unsigned int Index);		// // //
-	std::shared_ptr<const dpcm_sample> GetSample(unsigned int Index) const;		// // //
 	void			SetSample(unsigned int Index, std::shared_ptr<dpcm_sample> pSamp);		// // //
-	bool			IsSampleUsed(unsigned int Index) const;
-	unsigned int	GetSampleCount() const;
-	int				GetFreeSampleSlot() const;
-	void			RemoveSample(unsigned int Index);
-	unsigned int	GetTotalSampleSize() const;
 
 	// Other
 	unsigned int	ScanActualLength(unsigned int Track, unsigned int Count) const;		// // //
 	double			GetStandardLength(int Track, unsigned int ExtraLoops) const;		// // //
-	unsigned int	GetFirstFreePattern(unsigned int Track, chan_id_t Channel) const;		// // //
 
 	// Operations
 	void			RemoveUnusedInstruments();
@@ -267,10 +185,47 @@ public:
 	void			Modify(bool Change);
 	void			ModifyIrreversible();
 
-// // // delegates to CFamiTrackerModule
+// // // delegates
+
+#pragma region delegates to CChannelMap
+	CTrackerChannel	&GetChannel(int Index) const;		// // //
+	int				GetChannelIndex(chan_id_t Channel) const;		// // //
+	bool			HasChannel(chan_id_t Channel) const;		// // //
+
+	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
+	sound_chip_t	GetChipType(int Index) const;
+	int				GetChannelCount() const;
+#pragma endregion
+
+#pragma region delegates to CSongData
+	void			SetSongSpeed(unsigned int Track, unsigned int Speed);
+	void			SetSongTempo(unsigned int Track, unsigned int Tempo);
+	void			SetSongGroove(unsigned int Track, bool Groove);		// // //
+
+	unsigned int	GetPatternLength(unsigned int Track) const;
+	unsigned int	GetFrameCount(unsigned int Track) const;
+	unsigned int	GetSongSpeed(unsigned int Track) const;
+	unsigned int	GetSongTempo(unsigned int Track) const;
+	bool			GetSongGroove(unsigned int Track) const;		// // //
+
+	unsigned int	GetEffColumns(unsigned int Track, chan_id_t Channel) const;
+
+	const stChanNote &GetNoteData(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const;		// // //
+	stChanNote		GetActiveNote(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const;		// // // remove hidden fx commands
+
+	const stChanNote &GetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row) const;		// // //
+
+	void			ClearPattern(unsigned int Track, unsigned int Frame, chan_id_t Channel);
+	void			CopyPattern(unsigned int Track, int Target, int Source, chan_id_t Channel);
+
+	unsigned int 	GetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel) const;
+
+	unsigned int	GetFirstFreePattern(unsigned int Track, chan_id_t Channel) const;		// // //
+	bool			IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsigned int Pattern) const;
+	bool			ArePatternsSame(unsigned int Track, chan_id_t Channel, unsigned int Pattern1, unsigned int Pattern2) const;		// // //
+#pragma endregion
 
 #pragma region delegates to CFamiTrackerModule
-
 	std::string_view GetModuleName() const;		// // //
 	std::string_view GetModuleArtist() const;
 	std::string_view GetModuleCopyright() const;
@@ -284,6 +239,8 @@ public:
 	vibrato_t		GetVibratoStyle() const;
 	bool			GetLinearPitch() const;
 	int				GetSpeedSplitPoint() const;
+
+	std::string_view GetTrackTitle(unsigned int Track) const;		// // //
 
 	void			SetMachine(machine_t Machine);		// // //
 	void			SetEngineSpeed(unsigned int Speed);
@@ -332,7 +289,34 @@ public:
 	const stHighlight &GetHighlight(unsigned int Track) const;
 	void			SetHighlight(const stHighlight &Hl);		// // //
 	void			SetHighlight(unsigned int Track, const stHighlight &Hl);		// // //
+#pragma endregion
 
+#pragma region delegates to CInstrumentManager
+	std::shared_ptr<CInstrument>	GetInstrument(unsigned int Index) const;
+	unsigned int	GetInstrumentCount() const;
+	unsigned		GetFreeInstrumentIndex() const;		// // //
+	bool			IsInstrumentUsed(unsigned int Index) const;
+	bool			AddInstrument(std::unique_ptr<CInstrument> pInstrument, unsigned int Slot);		// // //
+	bool			RemoveInstrument(unsigned int Index);							// // // Remove an instrument
+	inst_type_t		GetInstrumentType(unsigned int Index) const;
+
+	// // // take instrument type as parameter rather than chip type
+	std::shared_ptr<CSequence> GetSequence(inst_type_t InstType, unsigned Index, sequence_t Type) const;		// // //
+	unsigned int	GetSequenceItemCount(inst_type_t InstType, unsigned Index, sequence_t Type) const;		// // //
+	int				GetFreeSequence(inst_type_t InstType, sequence_t Type) const;		// // //
+	int				GetSequenceCount(inst_type_t InstType, sequence_t Type) const;		// // //
+	int				GetTotalSequenceCount(inst_type_t InstType) const;		// // //
+#pragma endregion
+
+
+#pragma region delegates to CDSampleManager
+	std::shared_ptr<dpcm_sample> GetSample(unsigned int Index);		// // //
+	std::shared_ptr<const dpcm_sample> GetSample(unsigned int Index) const;		// // //
+	bool			IsSampleUsed(unsigned int Index) const;
+	unsigned int	GetSampleCount() const;
+	int				GetFreeSampleSlot() const;
+	void			RemoveSample(unsigned int Index);
+	unsigned int	GetTotalSampleSize() const;
 #pragma endregion
 
 	//

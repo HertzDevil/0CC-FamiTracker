@@ -680,44 +680,36 @@ bool CFamiTrackerDoc::ImportDetune(CFamiTrackerDoc &Imported)		// // //
 
 // DMC Stuff
 
-std::shared_ptr<ft0cc::doc::dpcm_sample> CFamiTrackerDoc::GetSample(unsigned int Index)
-{
+std::shared_ptr<ft0cc::doc::dpcm_sample> CFamiTrackerDoc::GetSample(unsigned int Index) {
 	return GetDSampleManager()->GetDSample(Index);		// // //
 }
 
-std::shared_ptr<const ft0cc::doc::dpcm_sample> CFamiTrackerDoc::GetSample(unsigned int Index) const
-{
+std::shared_ptr<const ft0cc::doc::dpcm_sample> CFamiTrackerDoc::GetSample(unsigned int Index) const {
 	return GetDSampleManager()->GetDSample(Index);		// // //
 }
 
-void CFamiTrackerDoc::SetSample(unsigned int Index, std::shared_ptr<dpcm_sample> pSamp)		// // //
-{
+void CFamiTrackerDoc::SetSample(unsigned int Index, std::shared_ptr<dpcm_sample> pSamp) {		// // //
 	if (GetDSampleManager()->SetDSample(Index, std::move(pSamp)))
 		ModifyIrreversible();		// // //
 }
 
-bool CFamiTrackerDoc::IsSampleUsed(unsigned int Index) const
-{
+bool CFamiTrackerDoc::IsSampleUsed(unsigned int Index) const {
 	return GetDSampleManager()->IsSampleUsed(Index);		// // //
 }
 
-unsigned int CFamiTrackerDoc::GetSampleCount() const
-{
+unsigned int CFamiTrackerDoc::GetSampleCount() const {
 	return GetDSampleManager()->GetSampleCount();
 }
 
-int CFamiTrackerDoc::GetFreeSampleSlot() const
-{
+int CFamiTrackerDoc::GetFreeSampleSlot() const {
 	return GetDSampleManager()->GetFirstFree();
 }
 
-void CFamiTrackerDoc::RemoveSample(unsigned int Index)
-{
+void CFamiTrackerDoc::RemoveSample(unsigned int Index) {
 	(void)GetDSampleManager()->ReleaseDSample(Index);		// // //
 }
 
-unsigned int CFamiTrackerDoc::GetTotalSampleSize() const
-{
+unsigned int CFamiTrackerDoc::GetTotalSampleSize() const {
 	return GetDSampleManager()->GetTotalSize();
 }
 
@@ -770,13 +762,11 @@ int CFamiTrackerDoc::GetTotalSequenceCount(inst_type_t InstType) const {		// // 
 // Instruments
 //
 
-std::shared_ptr<CInstrument> CFamiTrackerDoc::GetInstrument(unsigned int Index) const
-{
+std::shared_ptr<CInstrument> CFamiTrackerDoc::GetInstrument(unsigned int Index) const {
 	return GetInstrumentManager()->GetInstrument(Index);
 }
 
-unsigned int CFamiTrackerDoc::GetInstrumentCount() const
-{
+unsigned int CFamiTrackerDoc::GetInstrumentCount() const {
 	return GetInstrumentManager()->GetInstrumentCount();
 }
 
@@ -784,28 +774,23 @@ unsigned CFamiTrackerDoc::GetFreeInstrumentIndex() const {		// // //
 	return GetInstrumentManager()->GetFirstUnused();
 }
 
-bool CFamiTrackerDoc::IsInstrumentUsed(unsigned int Index) const
-{
+bool CFamiTrackerDoc::IsInstrumentUsed(unsigned int Index) const {
 	return GetInstrumentManager()->IsInstrumentUsed(Index);
 }
 
-bool CFamiTrackerDoc::AddInstrument(std::unique_ptr<CInstrument> pInstrument, unsigned int Slot)		// // //
-{
+bool CFamiTrackerDoc::AddInstrument(std::unique_ptr<CInstrument> pInstrument, unsigned int Slot) {		// // //
 	return GetInstrumentManager()->InsertInstrument(Slot, std::move(pInstrument));
 }
 
-bool CFamiTrackerDoc::RemoveInstrument(unsigned int Index)		// // //
-{
+bool CFamiTrackerDoc::RemoveInstrument(unsigned int Index) {		// // //
 	return GetInstrumentManager()->RemoveInstrument(Index);
 }
 
-inst_type_t CFamiTrackerDoc::GetInstrumentType(unsigned int Index) const
-{
+inst_type_t CFamiTrackerDoc::GetInstrumentType(unsigned int Index) const {
 	return GetInstrumentManager()->GetInstrumentType(Index);
 }
 
-void CFamiTrackerDoc::SaveInstrument(unsigned int Index, CSimpleFile &file) const
-{
+void CFamiTrackerDoc::SaveInstrument(unsigned int Index, CSimpleFile &file) const {
 	GetInstrument(Index)->SaveFTI(file);
 }
 
@@ -869,20 +854,6 @@ bool CFamiTrackerDoc::LoadInstrument(unsigned Index, CSimpleFile &File) {		// / 
 // // // General document
 //
 
-void CFamiTrackerDoc::SetFrameCount(unsigned int Track, unsigned int Count)
-{
-	ASSERT(Count > 0 && Count <= MAX_FRAMES);		// // //
-
-	GetSongData(Track).SetFrameCount(Count);
-}
-
-void CFamiTrackerDoc::SetPatternLength(unsigned int Track, unsigned int Length)
-{
-	ASSERT(Length <= MAX_PATTERN_LENGTH);
-
-	GetSongData(Track).SetPatternLength(Length);
-}
-
 void CFamiTrackerDoc::SetSongSpeed(unsigned int Track, unsigned int Speed)
 {
 	auto &Song = GetSongData(Track);
@@ -907,17 +878,6 @@ void CFamiTrackerDoc::SetSongGroove(unsigned int Track, bool Groove)		// // //
 unsigned int CFamiTrackerDoc::GetPatternLength(unsigned int Track) const
 {
 	return GetSongData(Track).GetPatternLength();
-}
-
-unsigned int CFamiTrackerDoc::GetCurrentPatternLength(unsigned int Track, int Frame) const		// // //
-{
-	if (theApp.GetSettings()->General.bShowSkippedRows)		// // //
-		return GetPatternLength(Track);
-
-	int Frames = GetFrameCount(Track);
-	Frame %= Frames;
-	if (Frame < 0) Frame += Frames;
-	return GetFrameLength(Track, Frame);
 }
 
 std::unique_ptr<CSongView> CFamiTrackerDoc::MakeSongView(unsigned Track) {		// // //
@@ -949,23 +909,9 @@ unsigned int CFamiTrackerDoc::GetEffColumns(unsigned int Track, chan_id_t Channe
 	return GetSongData(Track).GetEffectColumnCount(Channel);
 }
 
-void CFamiTrackerDoc::SetEffColumns(unsigned int Track, chan_id_t Channel, unsigned int Columns)
-{
-	ASSERT(Columns < MAX_EFFECT_COLUMNS);
-
-	GetSongData(Track).SetEffectColumnCount(Channel, Columns);
-}
-
 unsigned int CFamiTrackerDoc::GetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel) const
 {
 	return GetSongData(Track).GetFramePattern(Frame, Channel);
-}
-
-void CFamiTrackerDoc::SetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel, unsigned int Pattern)
-{
-	ASSERT(Pattern < MAX_PATTERN);
-
-	GetSongData(Track).SetFramePattern(Frame, Channel, Pattern);
 }
 
 //// Pattern functions ////////////////////////////////////////////////////////////////////////////////
@@ -988,8 +934,7 @@ const stChanNote &CFamiTrackerDoc::GetDataAtPattern(unsigned Track, unsigned Pat
 void CFamiTrackerDoc::ClearPattern(unsigned int Track, unsigned int Frame, chan_id_t Channel)
 {
 	// Clear entire pattern
-	auto &Song = GetSongData(Track);
-	Song.GetPatternOnFrame(Channel, Frame) = CPatternData { };		// // //
+	GetSongData(Track).GetPatternOnFrame(Channel, Frame) = CPatternData { };		// // //
 }
 
 void CFamiTrackerDoc::CopyPattern(unsigned int Track, int Target, int Source, chan_id_t Channel)
@@ -1000,139 +945,6 @@ void CFamiTrackerDoc::CopyPattern(unsigned int Track, int Target, int Source, ch
 	Song.GetPattern(Channel, Target) = Song.GetPattern(Channel, Source);		// // //
 }
 
-//// Frame functions //////////////////////////////////////////////////////////////////////////////////
-
-bool CFamiTrackerDoc::InsertFrame(unsigned int Track, unsigned int Frame)
-{
-	ASSERT(Frame < MAX_FRAMES);
-
-	if (!AddFrames(Track, Frame, 1))
-		return false;
-
-	// Select free patterns
-	auto &Song = GetSongData(Track);		// // //
-	ForeachChannel([&] (chan_id_t i) {
-		unsigned Pattern = Song.GetFreePatternIndex(i);		// // //
-		Song.SetFramePattern(Frame, i, Pattern == -1 ? 0 : Pattern);
-	});
-
-	return true;
-}
-
-bool CFamiTrackerDoc::RemoveFrame(unsigned int Track, unsigned int Frame)
-{
-	return DeleteFrames(Track, Frame, 1);		// // //
-}
-
-bool CFamiTrackerDoc::DuplicateFrame(unsigned int Track, unsigned int Frame)
-{
-	// Create a copy of selected frame
-	if (!AddFrames(Track, Frame + 1, 1))		// // //
-		return false;
-
-	auto &Song = GetSongData(Track);		// // //
-	ForeachChannel([&] (chan_id_t i) {
-		Song.SetFramePattern(Frame + 1, i, Song.GetFramePattern(Frame, i));
-	});
-
-	return true;
-}
-
-bool CFamiTrackerDoc::CloneFrame(unsigned int Track, unsigned int Frame)		// // // renamed
-{
-	// Create a copy of selected frame including patterns
-
-	// insert new frame with next free pattern numbers
-	if (!InsertFrame(Track, Frame))
-		return false;
-
-	// copy old patterns into new
-	auto &Song = GetSongData(Track);		// / ///
-	ForeachChannel([&] (chan_id_t i) {
-		Song.GetPatternOnFrame(i, Frame) = Song.GetPatternOnFrame(i, Frame - 1);
-	});
-
-	return true;
-}
-
-static void SwapFrames(const CFamiTrackerDoc &doc, CSongData &Song, unsigned f1, unsigned f2) {		// // //
-	doc.ForeachChannel([&] (chan_id_t ch) {
-		int Pattern = Song.GetFramePattern(f1, ch);
-		Song.SetFramePattern(f1, ch, Song.GetFramePattern(f2, ch));
-		Song.SetFramePattern(f2, ch, Pattern);
-	});
-
-	Song.GetBookmarks().SwapFrames(f1, f2);		// // //
-}
-
-bool CFamiTrackerDoc::MoveFrameDown(unsigned int Track, unsigned int Frame)
-{
-	auto &Song = GetSongData(Track);		// / ///
-	if (Frame == Song.GetFrameCount() - 1)
-		return false;
-
-	SwapFrames(*this, Song, Frame, Frame + 1);
-	return true;
-}
-
-bool CFamiTrackerDoc::MoveFrameUp(unsigned int Track, unsigned int Frame)
-{
-	if (Frame == 0)
-		return false;
-
-	SwapFrames(*this, GetSongData(Track), Frame, Frame - 1);
-	return true;
-}
-
-bool CFamiTrackerDoc::AddFrames(unsigned int Track, unsigned int Frame, unsigned Count) {		// // //
-	ASSERT(Frame < MAX_FRAMES);
-
-	auto &Song = GetSongData(Track);		// // //
-	const unsigned FrameCount = Song.GetFrameCount();
-
-	if (FrameCount + Count > MAX_FRAMES)
-		return false;
-
-	Song.SetFrameCount(FrameCount + Count);
-
-	ForeachChannel([&] (chan_id_t j) {
-		for (unsigned int i = FrameCount + Count - 1; i >= Frame + Count; --i)
-			Song.SetFramePattern(i, j, Song.GetFramePattern(i - Count, j));
-		for (unsigned i = 0; i < Count; ++i)		// // //
-			Song.SetFramePattern(Frame + i, j, 0);
-	});
-
-	Song.GetBookmarks().InsertFrames(Frame, Count);		// // //
-
-	return true;
-}
-
-bool CFamiTrackerDoc::DeleteFrames(unsigned int Track, unsigned int Frame, unsigned Count) {		// // //
-	ASSERT(Frame < MAX_FRAMES);
-
-	auto &Song = GetSongData(Track);		// // //
-	const unsigned FrameCount = Song.GetFrameCount();
-
-	if (Frame >= FrameCount)
-		return true;
-	if (Count > FrameCount - Frame)
-		Count = FrameCount - Frame;
-	if (Count >= FrameCount)
-		return false;
-
-	ForeachChannel([&] (chan_id_t j) {
-		for (unsigned i = Frame; i < FrameCount - Count; ++i)
-			Song.SetFramePattern(i, j, Song.GetFramePattern(i + 1, j));
-		for (unsigned i = FrameCount - Count; i < FrameCount; ++i)
-			Song.SetFramePattern(i, j, 0);		// // //
-	});
-
-	Song.GetBookmarks().RemoveFrames(Frame, Count);		// // //
-	Song.SetFrameCount(FrameCount - Count);
-
-	return true;
-}
-
 //// Track functions //////////////////////////////////////////////////////////////////////////////////
 
 std::string_view CFamiTrackerDoc::GetTrackTitle(unsigned int Track) const		// // //
@@ -1140,21 +952,6 @@ std::string_view CFamiTrackerDoc::GetTrackTitle(unsigned int Track) const		// //
 	if (Track < GetTrackCount())
 		return GetSongData(Track).GetTitle();
 	return CSongData::DEFAULT_TITLE;
-}
-
-void CFamiTrackerDoc::SetTrackTitle(unsigned int Track, const std::string &title)		// // //
-{
-	GetSongData(Track).SetTitle(title);
-}
-
-void CFamiTrackerDoc::MoveTrackUp(unsigned int Track)
-{
-	GetModule()->SwapSongs(Track, Track - 1);
-}
-
-void CFamiTrackerDoc::MoveTrackDown(unsigned int Track)
-{
-	GetModule()->SwapSongs(Track, Track + 1);
 }
 
 CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index)		// // //
@@ -1240,40 +1037,34 @@ int CFamiTrackerDoc::GetNamcoChannels() const {
 
 unsigned int CFamiTrackerDoc::GetFirstFreePattern(unsigned int Track, chan_id_t Channel) const
 {
-	auto &Song = GetSongData(Track);
-	return Song.GetFreePatternIndex(Channel);		// // //
+	return GetSongData(Track).GetFreePatternIndex(Channel);		// // //
 }
 
 bool CFamiTrackerDoc::IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsigned int Pattern) const
 {
-	auto &Song = GetSongData(Track);
-	return Song.GetPattern(Channel, Pattern).IsEmpty();
+	return GetSongData(Track).GetPattern(Channel, Pattern).IsEmpty();
 }
 
 // Channel interface, these functions must be synchronized!!!
 
-sound_chip_t CFamiTrackerDoc::GetChipType(int Index) const
-{
-	return m_pChannelMap->GetChipType(Index);		// // //
+sound_chip_t CFamiTrackerDoc::GetChipType(int Index) const {
+	return GetChannelMap()->GetChipType(Index);		// // //
 }
 
-int CFamiTrackerDoc::GetChannelCount() const
-{
-	return m_pChannelMap->GetChannelCount();		// // //
+int CFamiTrackerDoc::GetChannelCount() const {
+	return GetChannelMap()->GetChannelCount();		// // //
 }
 
 chan_id_t CFamiTrackerDoc::TranslateChannel(unsigned Index) const {		// // //
 	return GetChannelMap()->GetChannelType(Index);
 }
 
-CTrackerChannel &CFamiTrackerDoc::GetChannel(int Index) const		// // //
-{
+CTrackerChannel &CFamiTrackerDoc::GetChannel(int Index) const {		// // //
 	return GetChannelMap()->GetChannel(Index);		// // //
 }
 
-int CFamiTrackerDoc::GetChannelIndex(chan_id_t Channel) const
-{
-	return m_pChannelMap->GetChannelIndex(Channel);		// // //
+int CFamiTrackerDoc::GetChannelIndex(chan_id_t Channel) const {
+	return GetChannelMap()->GetChannelIndex(Channel);		// // //
 }
 
 bool CFamiTrackerDoc::HasChannel(chan_id_t Channel) const {		// // //

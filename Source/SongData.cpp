@@ -238,6 +238,96 @@ void CSongData::SwapChannels(chan_id_t First, chan_id_t Second)		// // //
 			std::swap(*lhs, *rhs);
 }
 
+bool CSongData::AddFrames(unsigned Frame, unsigned Count) {
+	const unsigned FrameCount = GetFrameCount();
+	if (FrameCount + Count > MAX_FRAMES)
+		return false;
+
+	SetFrameCount(FrameCount + Count);
+	VisitTracks([&] (CTrackData &track) {
+		for (unsigned int i = FrameCount + Count - 1; i >= Frame + Count; --i)
+			track.SetFramePattern(i, track.GetFramePattern(i - Count));
+		for (unsigned i = 0; i < Count; ++i)		// // //
+			track.SetFramePattern(Frame + i, 0);
+	});
+
+	GetBookmarks().InsertFrames(Frame, Count);		// // //
+	return true;
+}
+
+bool CSongData::DeleteFrames(unsigned Frame, unsigned Count) {
+	const unsigned FrameCount = GetFrameCount();
+	if (Frame >= FrameCount)
+		return true;
+	if (Count > FrameCount - Frame)
+		Count = FrameCount - Frame;
+	if (Count >= FrameCount)
+		return false;
+
+	VisitTracks([&] (CTrackData &track) {
+		for (unsigned i = Frame; i < FrameCount - Count; ++i)
+			track.SetFramePattern(i, track.GetFramePattern(i + 1));
+		for (unsigned i = FrameCount - Count; i < FrameCount; ++i)
+			track.SetFramePattern(i, 0);		// // //
+	});
+	SetFrameCount(FrameCount - Count);
+
+	GetBookmarks().RemoveFrames(Frame, Count);		// // //
+	return true;
+}
+
+bool CSongData::SwapFrames(unsigned First, unsigned Second) {
+	const unsigned FrameCount = GetFrameCount();
+	if (First >= FrameCount || Second >= FrameCount)
+		return false;
+
+	VisitTracks([&] (CTrackData &track) {
+		auto Pattern = track.GetFramePattern(First);
+		track.SetFramePattern(First, track.GetFramePattern(Second));
+		track.SetFramePattern(Second, Pattern);
+	});
+
+	GetBookmarks().SwapFrames(First, Second);		// // //
+	return true;
+}
+
+bool CSongData::InsertFrame(unsigned Frame) {
+	if (!AddFrames(Frame, 1))
+		return false;
+
+	// Select free patterns
+	VisitTracks([&] (CTrackData &track, chan_id_t ch) {
+		unsigned Pattern = GetFreePatternIndex(ch);		// // //
+		track.SetFramePattern(Frame, Pattern < MAX_PATTERN ? Pattern : 0);
+	});
+
+	return true;
+}
+
+bool CSongData::DuplicateFrame(unsigned Frame) {
+	if (!AddFrames(Frame + 1, 1))		// // //
+		return false;
+
+	VisitTracks([&] (CTrackData &track) {
+		track.SetFramePattern(Frame + 1, track.GetFramePattern(Frame));
+	});
+
+	return true;
+}
+
+bool CSongData::CloneFrame(unsigned Frame) {
+	// insert new frame with next free pattern numbers
+	if (!InsertFrame(Frame))
+		return false;
+
+	// copy old patterns into new
+	VisitTracks([&] (CTrackData &, chan_id_t ch) {
+		GetPatternOnFrame(ch, Frame) = GetPatternOnFrame(ch, Frame - 1);
+	});
+
+	return true;
+}
+
 CBookmarkCollection &CSongData::GetBookmarks() {
 	return bookmarks_;
 }
