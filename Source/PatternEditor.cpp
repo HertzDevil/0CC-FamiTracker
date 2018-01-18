@@ -1818,8 +1818,8 @@ std::pair<CPatternIterator, CPatternIterator> CPatternEditor::GetIterators() con
 {
 	CCursorPos c_it {m_cpCursorPos}, c_end {m_cpCursorPos};
 	return IsSelecting() ?
-		CPatternIterator::FromSelection(m_selection, m_pDocument, GetSelectedTrack()) :
-		CPatternIterator::FromCursor(m_cpCursorPos, m_pDocument, GetSelectedTrack());
+		CPatternIterator::FromSelection(m_selection, *m_pView->GetSongView()) :
+		CPatternIterator::FromCursor(m_cpCursorPos, *m_pView->GetSongView());
 }
 
 cursor_column_t CPatternEditor::GetChannelColumns(int Channel) const
@@ -2885,8 +2885,8 @@ std::unique_ptr<CPatternClipData> CPatternEditor::CopyRaw(const CSelection &Sel)
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	CCursorPos c_it, c_end;
 	Sel.Normalize(c_it, c_end);
-	CPatternIterator it {m_pDocument, GetSelectedTrack(), c_it};
-	CPatternIterator end {m_pDocument, GetSelectedTrack(), c_end};
+	CPatternIterator it {*m_pView->GetSongView(), c_it};
+	CPatternIterator end {*m_pView->GetSongView(), c_end};
 
 	const int Frames	= pSongView->GetSong().GetFrameCount();
 	const int Length	= pSongView->GetSong().GetPatternLength();
@@ -2940,13 +2940,13 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t 
 	const unsigned int c = AtSel ? m_selection.GetChanStart() : (PastePos == PASTE_DRAG ? m_selDrag.GetChanStart() : m_cpCursorPos.m_iChannel);
 	const unsigned int CEnd = std::min(Channels + c, ChannelCount);
 
-	CPatternIterator it = CPatternIterator(m_pDocument, GetSelectedTrack(), CCursorPos(r, c, GetCursorStartColumn(StartColumn), f));		// // //
+	CPatternIterator it = CPatternIterator(*m_pView->GetSongView(), CCursorPos(r, c, GetCursorStartColumn(StartColumn), f));		// // //
 
 	const unsigned int FrameLength = Song.GetPatternLength();
 
 	if (PasteMode == PASTE_INSERT) {		// // //
-		CPatternIterator front = CPatternIterator(m_pDocument, GetSelectedTrack(), CCursorPos(FrameLength - 1, c, GetCursorStartColumn(StartColumn), f));
-		CPatternIterator back = CPatternIterator(m_pDocument, GetSelectedTrack(), CCursorPos(FrameLength - 1 - Rows, c, GetCursorEndColumn(EndColumn), f));
+		CPatternIterator front = CPatternIterator(*m_pView->GetSongView(), CCursorPos(FrameLength - 1, c, GetCursorStartColumn(StartColumn), f));
+		CPatternIterator back = CPatternIterator(*m_pView->GetSongView(), CCursorPos(FrameLength - 1 - Rows, c, GetCursorEndColumn(EndColumn), f));
 		front.m_iFrame = back.m_iFrame = f; // do not warp
 		front.m_iRow = FrameLength - 1;
 		back.m_iRow = FrameLength - 1 - Rows;
@@ -3024,7 +3024,7 @@ void CPatternEditor::PasteRaw(const CPatternClipData &ClipData)		// // //
 void CPatternEditor::PasteRaw(const CPatternClipData &ClipData, const CCursorPos &Pos)		// // //
 {
 	CSongView *pSongView = m_pView->GetSongView();		// // //
-	CPatternIterator it {m_pDocument, GetSelectedTrack(), Pos};
+	CPatternIterator it {*m_pView->GetSongView(), Pos};
 	const int Frames = pSongView->GetSong().GetFrameCount();
 	const int Length = pSongView->GetSong().GetPatternLength();
 
@@ -3129,7 +3129,7 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 	const int Frames = GetFrameCount();
 
 	if (!theApp.GetSettings()->General.bShowSkippedRows) {
-		auto it = CPatternIterator::FromSelection(Sel, m_pDocument, GetSelectedTrack());
+		auto it = CPatternIterator::FromSelection(Sel, *m_pView->GetSongView());
 		for (; it.first <= it.second; ++it.first) {
 			// bool HasSkip = false;
 			for (int i = 0; i < GetChannelCount(); i++) {
@@ -3177,7 +3177,10 @@ void CPatternEditor::UpdateSelectionCondition()		// // //
 
 int CPatternEditor::GetCurrentPatternLength(int Frame) const		// // //
 {
-	return m_pDocument->GetCurrentPatternLength(GetSelectedTrack(), Frame);
+	CSongView *pSongView = m_pView->GetSongView();		// // //
+	int Frames = pSongView->GetSong().GetFrameCount();
+	int f = Frame % Frames;
+	return pSongView->GetCurrentPatternLength(f < 0 ? f + Frames : f);
 }
 
 void CPatternEditor::SetHighlight(const stHighlight Hl)		// // //
@@ -3759,7 +3762,7 @@ void CPatternEditor::UpdateDrag(const CPoint &point)
 		ColumnEnd = static_cast<cursor_column_t>(ColumnStart + (m_iDragEndCol - m_iDragStartCol));
 	}
 
-	CPatternIterator cpBegin(m_pDocument, GetSelectedTrack(), CCursorPos(PointPos.m_iRow - m_iDragOffsetRow,		// // //
+	CPatternIterator cpBegin(*m_pView->GetSongView(), CCursorPos(PointPos.m_iRow - m_iDragOffsetRow,		// // //
 		PointPos.m_iChannel - m_iDragOffsetChannel, ColumnStart, PointPos.m_iFrame));
 	CPatternIterator cpEnd = cpBegin;
 	cpEnd += GetSelectionSize() - 1;

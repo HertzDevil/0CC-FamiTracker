@@ -66,6 +66,7 @@
 #include "ChannelMap.h"		// // //
 #include "FamiTrackerDocIO.h"		// // //
 #include "SongData.h"		// // //
+#include "SongView.h"		// // //
 #include "FamiTrackerDocOldIO.h"		// // //
 #include "NumConv.h"		// // //
 #include "PatternEditorTypes.h"		// // // TODO: remove
@@ -917,6 +918,10 @@ unsigned int CFamiTrackerDoc::GetCurrentPatternLength(unsigned int Track, int Fr
 	Frame %= Frames;
 	if (Frame < 0) Frame += Frames;
 	return GetFrameLength(Track, Frame);
+}
+
+std::unique_ptr<CSongView> CFamiTrackerDoc::MakeSongView(unsigned Track) {		// // //
+	return std::make_unique<CSongView>(GetChannelMap()->GetChannelOrder(), GetSongData(Track));
 }
 
 unsigned int CFamiTrackerDoc::GetFrameCount(unsigned int Track) const

@@ -52,6 +52,7 @@ enum {
 // External classes
 class CFamiTrackerModule;		// // //
 class CSongData;		// // //
+class CSongView;		// // //
 class CChannelMap;		// // //
 class CTrackerChannel;
 class CDocumentFile;
@@ -175,6 +176,8 @@ public:
 	bool			GetSongGroove(unsigned int Track) const;		// // //
 
 	unsigned int	GetCurrentPatternLength(unsigned int Track, int Frame) const;		// // // moved from pattern editor
+
+	std::unique_ptr<CSongView> MakeSongView(unsigned Track);		// // //
 
 	unsigned int	GetEffColumns(unsigned int Track, chan_id_t Channel) const;
 	void			SetEffColumns(unsigned int Track, chan_id_t Channel, unsigned int Columns);

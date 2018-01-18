@@ -39,6 +39,7 @@ enum transpose_t {
 };
 
 class CPatternEditor;		// // //
+class CSongView;		// // //
 class CMainFrame;		// // //
 class CPatternClipData;		// // //
 
@@ -92,9 +93,9 @@ private:
 
 protected:
 	bool SetTargetSelection(CPatternEditor *pPatternEditor, CSelection &Sel);		// // //
-	void DeleteSelection(CFamiTrackerDoc &Doc, unsigned Track, const CSelection &Sel) const;		// // //
+	void DeleteSelection(CSongView &view, const CSelection &Sel) const;		// // //
 	bool ValidateSelection(const CPatternEditor &Editor) const;		// // //
-	std::pair<CPatternIterator, CPatternIterator> GetIterators(CFamiTrackerDoc &doc) const;		// // //
+	std::pair<CPatternIterator, CPatternIterator> GetIterators(CSongView &view) const;		// // //
 
 protected:
 	std::unique_ptr<CPatternEditorState> m_pUndoState;		// // //

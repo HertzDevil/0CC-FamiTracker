@@ -138,6 +138,7 @@ enum sel_condition_t {
 };
 
 class CSongData;		// // //
+class CSongView;		// // //
 class stChanNote;
 
 class CFamiTrackerDoc;
@@ -183,12 +184,11 @@ public:
 
 class CPatternIterator : public CCursorPos {		// // //
 public:
-	CPatternIterator(const CPatternIterator &it);
-	CPatternIterator(CFamiTrackerDoc *const pDoc, int Track, const CCursorPos &Pos);
-	CPatternIterator(const CFamiTrackerDoc *const pDoc, int Track, const CCursorPos &Pos);
+	CPatternIterator(CSongView &view, const CCursorPos &Pos);
+//	CPatternIterator(const CSongView &view, const CCursorPos &Pos);
 
-	static std::pair<CPatternIterator, CPatternIterator> FromCursor(const CCursorPos &Pos, CFamiTrackerDoc *const pDoc, int Track);
-	static std::pair<CPatternIterator, CPatternIterator> FromSelection(const CSelection &Sel, CFamiTrackerDoc *const pDoc, int Track);
+	static std::pair<CPatternIterator, CPatternIterator> FromCursor(const CCursorPos &Pos, CSongView &view);
+	static std::pair<CPatternIterator, CPatternIterator> FromSelection(const CSelection &Sel, CSongView &view);
 
 	const stChanNote &Get(int Channel) const;
 	void Set(int Channel, const stChanNote &Note);
@@ -200,16 +200,16 @@ public:
 	CPatternIterator operator++(int);
 	CPatternIterator &operator--();
 	CPatternIterator operator--(int);
-	bool operator ==(const CPatternIterator &other) const;
+	bool operator==(const CPatternIterator &other) const;
+
+protected:
+	int TranslateFrame() const;
 
 private:
 	void Warp();
 
-public:
-	int m_iTrack;
-
 protected:
-	CFamiTrackerDoc *m_pDocument;
+	CSongView &song_view_;
 };
 
 /*

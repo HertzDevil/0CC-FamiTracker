@@ -50,10 +50,15 @@ public:
 	unsigned GetEffectColumnCount(std::size_t index) const;
 	void SetEffectColumnCount(std::size_t index, unsigned Count);
 
-	// void (*F)(chan_id_t chan)
+	// utility methods
+	unsigned GetFrameLength(unsigned Frame) const;
+	unsigned GetCurrentPatternLength(unsigned Frame) const;
+
+	// void (*F)(std::size_t index)
 	template <typename F>
 	void ForeachChannel(F f) const {
-		return order_.ForeachChannel(f);
+		for (std::size_t i = 0, n = order_.GetChannelCount(); i < n; ++i)
+			f(i);
 	}
 
 private:

@@ -32,6 +32,8 @@
 #include "PatternAction.h"
 #include "CompoundAction.h"
 #include "NumConv.h"
+#include "SongData.h"
+#include "SongView.h"
 
 namespace {
 
@@ -59,8 +61,8 @@ searchTerm::searchTerm() :
 
 
 
-CFindCursor::CFindCursor(CFamiTrackerDoc *pDoc, int Track, const CCursorPos &Pos, const CSelection &Scope) :
-	CPatternIterator(pDoc, Track, Pos),
+CFindCursor::CFindCursor(CSongView &view, const CCursorPos &Pos, const CSelection &Scope) :
+	CPatternIterator(view, Pos),
 	m_Scope(Scope.GetNormalized()),
 	m_cpBeginPos {Pos}
 {
@@ -99,7 +101,7 @@ void CFindCursor::Move(direction_t Dir)
 		m_iChannel = m_Scope.m_cpEnd.m_iChannel;
 		if (--m_iRow < 0) {
 			--m_iFrame;
-			m_iRow = m_pDocument->GetCurrentPatternLength(m_iTrack, m_iFrame) - 1;
+			m_iRow = song_view_.GetCurrentPatternLength(TranslateFrame()) - 1;
 		}
 		if (m_iFrame < m_Scope.m_cpStart.m_iFrame ||
 			m_iFrame == m_Scope.m_cpStart.m_iFrame && m_iRow < m_Scope.m_cpStart.m_iRow) {
@@ -109,7 +111,7 @@ void CFindCursor::Move(direction_t Dir)
 		break;
 	case direction_t::RIGHT:
 		m_iChannel = m_Scope.m_cpStart.m_iChannel;
-		if (++m_iRow >= static_cast<int>(m_pDocument->GetCurrentPatternLength(m_iTrack, m_iFrame))) {
+		if (++m_iRow >= static_cast<int>(song_view_.GetCurrentPatternLength(TranslateFrame()))) {
 			++m_iFrame;
 			m_iRow = 0;
 		}
@@ -124,7 +126,7 @@ void CFindCursor::Move(direction_t Dir)
 
 bool CFindCursor::AtStart() const
 {
-	const int Frames = m_pDocument->GetFrameCount(m_iTrack);
+	const int Frames = song_view_.GetSong().GetFrameCount();
 	return !((m_iFrame - m_cpBeginPos.m_iFrame) % Frames) &&
 		m_iRow == m_cpBeginPos.m_iRow && m_iChannel == m_cpBeginPos.m_iChannel;
 }
@@ -159,7 +161,7 @@ bool CFindCursor::Contains() const
 	if (m_iChannel < m_Scope.m_cpStart.m_iChannel || m_iChannel > m_Scope.m_cpEnd.m_iChannel)
 		return false;
 
-	const int Frames = m_pDocument->GetFrameCount(m_iTrack);
+	const int Frames = song_view_.GetSong().GetFrameCount();
 	int Frame = m_iFrame;
 	int fStart = m_Scope.m_cpStart.m_iFrame % Frames;
 	if (fStart < 0) fStart += Frames;
@@ -200,13 +202,15 @@ void CFindResultsBox::DoDataExchange(CDataExchange* pDX)
 
 void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Cursor, bool Noise)
 {
+	const int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
+
 	int Pos = m_cListResults.GetItemCount();
 	m_cListResults.InsertItem(Pos, conv::sv_from_int(Pos + 1).data());
 
 	const auto pDoc = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
 	m_cListResults.SetItemText(Pos, CHANNEL, pDoc->GetChannel(Cursor.m_iChannel).GetChannelName());
 	m_cListResults.SetItemText(Pos, PATTERN, conv::sv_from_int_hex(pDoc->GetPatternAtFrame(
-		Cursor.m_iTrack, Cursor.m_iFrame, pDoc->TranslateChannel(Cursor.m_iChannel)), 2).data());
+		Track, Cursor.m_iFrame, pDoc->TranslateChannel(Cursor.m_iChannel)), 2).data());
 
 	m_cListResults.SetItemText(Pos, FRAME, conv::sv_from_int_hex(Cursor.m_iFrame, 2).data());
 	m_cListResults.SetItemText(Pos, ROW, conv::sv_from_int_hex(Cursor.m_iRow, 2).data());
@@ -1076,6 +1080,8 @@ bool CFindDlg::Find(bool ShowEnd)
 
 bool CFindDlg::Replace(CCompoundAction *pAction)
 {
+	const int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
+
 	if (m_bFound) {
 		ASSERT(m_pFindCursor != nullptr);
 
@@ -1100,7 +1106,7 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 			if (m_cEffectColumn.GetCurSel() < MAX_EFFECT_COLUMNS)
 				MatchedColumns.push_back(m_cEffectColumn.GetCurSel());
 			else {
-				const int c = m_pDocument->GetEffColumns(m_pFindCursor->m_iTrack, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel));
+				const int c = m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel));
 				for (int i = 0; i <= c; ++i)
 					if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[Target.EffNumber[i]]) &&
 						(!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.EffParam[i])))
@@ -1207,7 +1213,7 @@ void CFindDlg::PrepareCursor(bool ReplaceAll)
 		Scope.m_cpStart.m_iRow = 0;
 		Scope.m_cpEnd.m_iRow = pEditor->GetCurrentPatternLength(Scope.m_cpEnd.m_iFrame) - 1;
 	}
-	m_pFindCursor = std::make_unique<CFindCursor>(m_pDocument, Track, ReplaceAll ? Scope.m_cpStart : Cursor, Scope);
+	m_pFindCursor = std::make_unique<CFindCursor>(*m_pView->GetSongView(), ReplaceAll ? Scope.m_cpStart : Cursor, Scope);
 }
 
 void CFindDlg::OnBnClickedButtonFindNext()

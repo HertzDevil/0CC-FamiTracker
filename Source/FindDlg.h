@@ -68,6 +68,7 @@ struct replaceTerm
 
 class CFamiTrackerDoc;
 class CFamiTrackerView;
+class CSongView;
 class CCompoundAction;
 
 /*!
@@ -81,11 +82,10 @@ public:
 	enum class direction_t { UP, DOWN, LEFT, RIGHT };
 
 	/*!	\brief Constructor of the find / replace cursor.
-		\param pEditor Pointer to the document.
-		\param Track The current song number.
+		\param view Song view object containing the module.
 		\param Pos The cursor position at which searching begins.
 		\param Scope The area that the cursor operates on. */
-	CFindCursor(CFamiTrackerDoc *pDoc, int Track, const CCursorPos &Pos, const CSelection &Scope);
+	CFindCursor(CSongView &view, const CCursorPos &Pos, const CSelection &Scope);
 
 	CFindCursor(const CFindCursor &other) = default;
 	CFindCursor &operator=(const CFindCursor &other) = default;

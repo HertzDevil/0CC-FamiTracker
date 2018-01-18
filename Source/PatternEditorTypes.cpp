@@ -23,6 +23,8 @@
 #include "PatternEditorTypes.h"
 #include "FamiTrackerDoc.h"
 #include "PatternNote.h"		// // //
+#include "SongView.h"		// // //
+#include "SongData.h"		// // //
 
 // CCursorPos /////////////////////////////////////////////////////////////////////
 
@@ -180,90 +182,82 @@ CSelection CSelection::GetNormalized() const
 
 // // // CPatternIterator //////////////////////////////////////////////////////
 
-CPatternIterator::CPatternIterator(const CPatternIterator &it) :
-	m_iTrack(it.m_iTrack), m_pDocument(it.m_pDocument), CCursorPos(static_cast<const CCursorPos &>(it))
-{
-}
-
-CPatternIterator::CPatternIterator(CFamiTrackerDoc *pDoc, int Track, const CCursorPos &Pos) :
-	m_iTrack(Track), m_pDocument(pDoc), CCursorPos(Pos)
+CPatternIterator::CPatternIterator(CSongView &view, const CCursorPos &Pos) :
+	song_view_(view), CCursorPos(Pos)
 {
 	Warp();
 }
 
-std::pair<CPatternIterator, CPatternIterator> CPatternIterator::FromCursor(const CCursorPos &Pos, CFamiTrackerDoc *const pDoc, int Track)
+std::pair<CPatternIterator, CPatternIterator> CPatternIterator::FromCursor(const CCursorPos &Pos, CSongView &view)
 {
 	return std::make_pair(
-		CPatternIterator {pDoc, Track, Pos},
-		CPatternIterator {pDoc, Track, Pos}
+		CPatternIterator {view, Pos},
+		CPatternIterator {view, Pos}
 	);
 }
 
-std::pair<CPatternIterator, CPatternIterator> CPatternIterator::FromSelection(const CSelection &Sel, CFamiTrackerDoc *const pDoc, int Track)
+std::pair<CPatternIterator, CPatternIterator> CPatternIterator::FromSelection(const CSelection &Sel, CSongView &view)
 {
 	CCursorPos it, end;
 	Sel.Normalize(it, end);
 	return std::make_pair(
-		CPatternIterator {pDoc, Track, it},
-		CPatternIterator {pDoc, Track, end}
+		CPatternIterator {view, it},
+		CPatternIterator {view, end}
 	);
 }
 
 const stChanNote &CPatternIterator::Get(int Channel) const
 {
-	int Frame = m_iFrame % m_pDocument->GetFrameCount(m_iTrack);
-	if (Frame < 0) Frame += m_pDocument->GetFrameCount(m_iTrack);
-	return m_pDocument->GetNoteData(m_iTrack, Frame, m_pDocument->TranslateChannel(Channel), m_iRow);
+	return song_view_.GetPatternOnFrame(Channel, TranslateFrame()).GetNoteOn(m_iRow);
 }
 
 void CPatternIterator::Set(int Channel, const stChanNote &Note)
 {
-	int Frame = m_iFrame % m_pDocument->GetFrameCount(m_iTrack);
-	if (Frame < 0) Frame += m_pDocument->GetFrameCount(m_iTrack);
-	m_pDocument->SetNoteData(m_iTrack, Frame, m_pDocument->TranslateChannel(Channel), m_iRow, Note);
+	song_view_.GetPatternOnFrame(Channel, TranslateFrame()).SetNoteOn(m_iRow, Note);
 }
 
 void CPatternIterator::Step() // resolves skip effects
 {
-	for (int i = m_pDocument->GetChannelCount() - 1; i >= 0; --i) {
-		const auto &Note = Get(i);
-		for (int c = m_pDocument->GetEffColumns(m_iTrack, m_pDocument->TranslateChannel(i)); c >= 0; --c) {
-			if (Note.EffNumber[c] == EF_JUMP) {
-				m_iFrame = Note.EffParam[c];
-				if (m_iFrame >= static_cast<int>(m_pDocument->GetFrameCount(m_iTrack)))
-					m_iFrame = m_pDocument->GetFrameCount(m_iTrack) - 1;
-				m_iRow = 0;
-				return;
+	int Bxx = -1;
+	int Dxx = -1;
+
+	song_view_.ForeachChannel([&] (std::size_t index) {
+		const stChanNote &Note = Get(index);
+		unsigned fx = song_view_.GetEffectColumnCount(index);
+		for (unsigned c = 0; c <= fx; ++c)
+			switch (Note.EffNumber[c]) {
+			case EF_JUMP: Bxx = Note.EffParam[c]; break;
+			case EF_SKIP: Dxx = Note.EffParam[c]; break;
 			}
-		}
+	});
+
+	if (Bxx != -1) {
+		m_iFrame = std::clamp(Bxx, 0, (int)song_view_.GetSong().GetFrameCount() - 1);
+		m_iRow = 0;
 	}
-	for (int i = m_pDocument->GetChannelCount() - 1; i >= 0; i--) {
-		const auto &Note = Get(i);
-		for (int c = m_pDocument->GetEffColumns(m_iTrack, m_pDocument->TranslateChannel(i)); c >= 0; --c) {
-			if (Note.EffNumber[c] == EF_SKIP) {
-				++m_iFrame;
-				m_iRow = 0;
-				return;
-			}
-		}
+	else if (Dxx != -1) {
+		++m_iFrame;
+		m_iRow = 0;
 	}
-	++m_iRow;
-	Warp();
+	else {
+		++m_iRow;
+		Warp();
+	}
 }
 
-CPatternIterator& CPatternIterator::operator+=(const int Rows)
+CPatternIterator &CPatternIterator::operator+=(const int Rows)
 {
 	m_iRow += Rows;
 	Warp();
 	return *this;
 }
 
-CPatternIterator& CPatternIterator::operator-=(const int Rows)
+CPatternIterator &CPatternIterator::operator-=(const int Rows)
 {
 	return operator+=(-Rows);
 }
 
-CPatternIterator& CPatternIterator::operator++()
+CPatternIterator &CPatternIterator::operator++()
 {
 	return operator+=(1);
 }
@@ -275,7 +269,7 @@ CPatternIterator CPatternIterator::operator++(int)
 	return tmp;
 }
 
-CPatternIterator& CPatternIterator::operator--()
+CPatternIterator &CPatternIterator::operator--()
 {
 	return operator+=(-1);
 }
@@ -292,20 +286,29 @@ bool CPatternIterator::operator==(const CPatternIterator &other) const
 	return m_iFrame == other.m_iFrame && m_iRow == other.m_iRow;
 }
 
+int CPatternIterator::TranslateFrame() const {
+	int frames = song_view_.GetSong().GetFrameCount();
+	int f = m_iFrame % frames;
+	return f < 0 ? f + frames : f;
+}
+
 void CPatternIterator::Warp()
 {
-	while (true) {
-		const int Length = m_pDocument->GetCurrentPatternLength(m_iTrack, m_iFrame);
-		if (m_iRow >= Length) {
-			m_iRow -= Length;
-			m_iFrame++;
+	if (m_iRow >= 0) {
+		while (true) {
+			if (int Length = song_view_.GetCurrentPatternLength(TranslateFrame()); m_iRow >= Length) {
+				m_iRow -= Length;
+				++m_iFrame;
+			}
+			else
+				return;
 		}
-		else break;
 	}
-	while (m_iRow < 0)
-		m_iRow += m_pDocument->GetCurrentPatternLength(m_iTrack, --m_iFrame);
-	//m_iFrame %= m_pDocument->GetFrameCount(m_iTrack);
-	//if (m_iFrame < 0) m_iFrame += m_pDocument->GetFrameCount(m_iTrack);
+	else
+		while (m_iRow < 0) {
+			--m_iFrame;
+			m_iRow += song_view_.GetCurrentPatternLength(TranslateFrame());
+		}
 }
 
 // CPatternEditorLayout ////////////////////////////////////////////////////////

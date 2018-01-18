@@ -1301,7 +1301,7 @@ void CFamiTrackerView::TrackChanged(unsigned int Track)
 	CFamiTrackerDoc *pDoc = GetDocument();		// // //
 	CMainFrame *pMainFrm = GetMainFrame();		// // //
 
-	song_view_ = std::make_unique<CSongView>(pDoc->GetChannelMap()->GetChannelOrder(), *pDoc->GetSong(Track));		// // //
+	song_view_ = pDoc->MakeSongView(Track);		// // //
 	SetMarker(-1, -1);		// // //
 	m_pPatternEditor->ResetCursor();
 	m_pPatternEditor->InvalidatePatternData();

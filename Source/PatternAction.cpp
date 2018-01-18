@@ -28,10 +28,12 @@
 #include "MainFrm.h"
 #include "PatternEditor.h"
 #include "PatternClipData.h"		// // //
+#include "SongView.h"		// // //
 
 // // // all dependencies on CMainFrame
 #define GET_VIEW() static_cast<CFamiTrackerView *>(MainFrm.GetActiveView())
 #define GET_DOCUMENT() GET_VIEW()->GetDocument()
+#define GET_SONG_VIEW() GET_VIEW()->GetSongView()
 #define GET_PATTERN_EDITOR() GET_VIEW()->GetPatternEditor()
 #define GET_SELECTED_TRACK() MainFrm.GetSelectedTrack()
 #define UPDATE_CONTROLS() MainFrm.UpdateControls()
@@ -92,8 +94,9 @@ bool CPatternAction::SetTargetSelection(CPatternEditor *pPatternEditor, CSelecti
 	}
 
 	auto *pDoc = CFamiTrackerDoc::GetDoc();
+	auto pSongView = pDoc->MakeSongView(m_pUndoState->Track);
 
-	CPatternIterator End(pDoc, m_pUndoState->Track, Start);
+	CPatternIterator End(*pSongView, Start);
 
 	if (m_iPasteMode == PASTE_INSERT) {
 		End.m_iFrame = Start.m_iFrame;
@@ -176,9 +179,9 @@ bool CPatternAction::SetTargetSelection(CPatternEditor *pPatternEditor, CSelecti
 	}
 }
 
-void CPatternAction::DeleteSelection(CFamiTrackerDoc &Doc, unsigned Track, const CSelection &Sel) const		// // //
+void CPatternAction::DeleteSelection(CSongView &view, const CSelection &Sel) const		// // //
 {
-	auto it = CPatternIterator::FromSelection(Sel, &Doc, Track);
+	auto it = CPatternIterator::FromSelection(Sel, view);
 	const column_t ColStart = GetSelectColumn(it.first.m_iColumn);
 	const column_t ColEnd = GetSelectColumn(it.second.m_iColumn);
 
@@ -217,11 +220,11 @@ void CPatternAction::UpdateViews(CMainFrame &MainFrm) const		// // //
 	GET_DOCUMENT()->UpdateAllViews(NULL, UPDATE_FRAME); // cursor might have moved to different channel
 }
 
-std::pair<CPatternIterator, CPatternIterator> CPatternAction::GetIterators(CFamiTrackerDoc &doc) const
+std::pair<CPatternIterator, CPatternIterator> CPatternAction::GetIterators(CSongView &view) const
 {
 	return m_pUndoState->IsSelecting ?
-		CPatternIterator::FromSelection(m_pUndoState->Selection, &doc, m_pUndoState->Track) :
-		CPatternIterator::FromCursor(m_pUndoState->Cursor, &doc, m_pUndoState->Track);
+		CPatternIterator::FromSelection(m_pUndoState->Selection, view) :
+		CPatternIterator::FromCursor(m_pUndoState->Cursor, view);
 }
 
 // Undo / Redo base methods
@@ -507,7 +510,7 @@ void CPActionPaste::Redo(CMainFrame &MainFrm) {
 
 void CPActionClearSel::Redo(CMainFrame &MainFrm)
 {
-	DeleteSelection(*GET_DOCUMENT(), GET_SELECTED_TRACK(), m_pUndoState->Selection);
+	DeleteSelection(*GET_SONG_VIEW(), m_pUndoState->Selection);
 }
 
 
@@ -553,7 +556,7 @@ void CPActionDeleteAtSel::Redo(CMainFrame &MainFrm)
 
 	CSelection Sel(m_pUndoState->Selection);
 	Sel.m_cpEnd.m_iRow = pPatternEditor->GetCurrentPatternLength(Sel.m_cpEnd.m_iFrame) - 1;
-	DeleteSelection(*GET_DOCUMENT(), GET_SELECTED_TRACK(), Sel);
+	DeleteSelection(*GET_SONG_VIEW(), Sel);
 	if (m_pUndoTail)
 		pPatternEditor->PasteRaw(*m_pUndoTail, m_pUndoState->Selection.m_cpStart);
 	pPatternEditor->CancelSelection();
@@ -614,7 +617,7 @@ void CPActionInsertAtSel::Redo(CMainFrame &MainFrm)
 
 	CSelection Sel(m_pUndoState->Selection);
 	Sel.m_cpEnd.m_iRow = pPatternEditor->GetCurrentPatternLength(Sel.m_cpEnd.m_iFrame) - 1;
-	DeleteSelection(*GET_DOCUMENT(), GET_SELECTED_TRACK(), Sel);
+	DeleteSelection(*GET_SONG_VIEW(), Sel);
 	if (m_pUndoHead)
 		pPatternEditor->PasteRaw(*m_pUndoHead, m_cpHeadPos);
 }
@@ -628,7 +631,8 @@ CPActionTranspose::CPActionTranspose(transpose_t Type) : m_iTransposeMode(Type)
 void CPActionTranspose::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	auto it = GetIterators(*pDoc);
+	CSongView *pSongView = GET_SONG_VIEW();
+	auto it = GetIterators(*pSongView);
 
 	int ChanStart     = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).m_iChannel;
 	int ChanEnd       = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iChannel;
@@ -688,7 +692,8 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
 	CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
-	auto it = GetIterators(*pDoc);
+	CSongView *pSongView = GET_SONG_VIEW();
+	auto it = GetIterators(*pSongView);
 	int ChanStart     = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).m_iChannel;
 	int ChanEnd       = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iChannel;
 	column_t ColStart = GetSelectColumn(
@@ -769,7 +774,8 @@ bool CPActionInterpolate::SaveState(const CMainFrame &MainFrm)
 void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	auto it = GetIterators(*pDoc);
+	CSongView *pSongView = GET_SONG_VIEW();
+	auto it = GetIterators(*pSongView);
 	const CSelection &Sel = m_pUndoState->Selection;
 
 	for (int i = Sel.m_cpStart.m_iChannel; i <= Sel.m_cpEnd.m_iChannel; ++i) {
@@ -870,7 +876,8 @@ bool CPActionReverse::SaveState(const CMainFrame &MainFrm)
 
 void CPActionReverse::Redo(CMainFrame &MainFrm)
 {
-	auto it = GetIterators(*GET_DOCUMENT());
+	CSongView *pSongView = GET_SONG_VIEW();
+	auto it = GetIterators(*pSongView);
 	const CSelection &Sel = m_pUndoState->Selection;
 
 	const column_t ColStart = GetSelectColumn(Sel.m_cpStart.m_iColumn);
@@ -915,7 +922,8 @@ bool CPActionReplaceInst::SaveState(const CMainFrame &MainFrm)
 void CPActionReplaceInst::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	auto it = GetIterators(*pDoc);
+	CSongView *pSongView = GET_SONG_VIEW();
+	auto it = GetIterators(*pSongView);
 	const CSelection &Sel = m_pUndoState->Selection;
 
 	const int cBegin = Sel.GetChanStart() + (Sel.IsColumnSelected(COLUMN_INSTRUMENT, Sel.GetChanStart()) ? 0 : 1);
@@ -962,7 +970,7 @@ void CPActionDragDrop::Undo(CMainFrame &MainFrm)
 void CPActionDragDrop::Redo(CMainFrame &MainFrm)
 {
 	if (m_bDragDelete)
-		DeleteSelection(*GET_DOCUMENT(), GET_SELECTED_TRACK(), m_pUndoState->Selection);		// // //
+		DeleteSelection(*GET_SONG_VIEW(), m_pUndoState->Selection);		// // //
 //	GET_PATTERN_EDITOR()->Paste(*m_pClipData, m_iPasteMode, m_iPastePos);		// // //
 	GET_PATTERN_EDITOR()->DragPaste(*m_pClipData, m_dragTarget, m_bDragMix);
 }
@@ -1022,7 +1030,8 @@ bool CPActionStretch::SaveState(const CMainFrame &MainFrm)
 void CPActionStretch::Redo(CMainFrame &MainFrm)
 {
 	CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	auto it = GetIterators(*pDoc);
+	CSongView *pSongView = GET_SONG_VIEW();
+	auto it = GetIterators(*pSongView);
 	const CSelection &Sel = m_pUndoState->Selection;
 	CPatternIterator s {it.first};
 

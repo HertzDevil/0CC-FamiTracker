@@ -23,6 +23,8 @@
 #include "SongView.h"
 #include "SongData.h"
 #include "TrackData.h"
+#include "FamiTrackerEnv.h"
+#include "Settings.h"
 
 CSongView::CSongView(const CChannelOrder &order, CSongData &song) :
 	order_(order), song_(song)
@@ -78,6 +80,36 @@ unsigned CSongView::GetEffectColumnCount(std::size_t index) const {
 void CSongView::SetEffectColumnCount(std::size_t index, unsigned Count) {
 	if (auto pTrack = GetTrack(index))
 		pTrack->SetEffectColumnCount(Count);
+}
+
+unsigned CSongView::GetFrameLength(unsigned Frame) const {
+	const unsigned PatternLength = GetSong().GetPatternLength();	// default length
+	unsigned HaltPoint = PatternLength;
+
+	ForeachChannel([&] (std::size_t index) {
+		unsigned halt = [&] {
+			const unsigned Columns = GetEffectColumnCount(index) + 1;
+			const auto &pat = GetPatternOnFrame(index, Frame);
+			for (unsigned j = 0; j < PatternLength - 1; ++j) {
+				const auto &Note = pat.GetNoteOn(j);
+				for (unsigned k = 0; k < Columns; ++k)
+					switch (Note.EffNumber[k])
+					case EF_SKIP: case EF_JUMP: case EF_HALT:
+						return j + 1;
+			}
+			return PatternLength;
+		}();
+		if (halt < HaltPoint)
+			HaltPoint = halt;
+	});
+
+	return HaltPoint;
+}
+
+unsigned CSongView::GetCurrentPatternLength(unsigned Frame) const {
+	if (Env.GetSettings()->General.bShowSkippedRows)		// // //
+		return GetSong().GetPatternLength();
+	return GetFrameLength(Frame);
 }
 
 CTrackData *CSongView::GetTrack(std::size_t index) {
