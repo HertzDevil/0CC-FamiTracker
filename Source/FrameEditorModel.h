@@ -27,13 +27,12 @@
 #include <memory>
 
 class CFrameEditor;
-class CFamiTrackerDoc;
 class CFamiTrackerView;
 class CFrameClipData;
 
 class CFrameEditorModel {
 public:
-	void AssignDocument(CFamiTrackerDoc &doc, CFamiTrackerView &view);
+	void AssignView(CFamiTrackerView &view);
 
 	void DoClick(int frame, int channel);
 	void DoMove(int frame, int channel);
@@ -64,7 +63,6 @@ public:
 	void PasteSelection(const CFrameClipData &clipdata, const CFrameCursorPos &pos);
 
 private:
-	CFamiTrackerDoc *doc_ = nullptr;
 	CFamiTrackerView *view_ = nullptr;
 
 	CFrameSelection m_selection;

@@ -931,20 +931,6 @@ const stChanNote &CFamiTrackerDoc::GetDataAtPattern(unsigned Track, unsigned Pat
 	return GetSongData(Track).GetPatternData(Channel, Pattern, Row);		// // //
 }
 
-void CFamiTrackerDoc::ClearPattern(unsigned int Track, unsigned int Frame, chan_id_t Channel)
-{
-	// Clear entire pattern
-	GetSongData(Track).GetPatternOnFrame(Channel, Frame) = CPatternData { };		// // //
-}
-
-void CFamiTrackerDoc::CopyPattern(unsigned int Track, int Target, int Source, chan_id_t Channel)
-{
-	// Copy one pattern to another
-
-	auto &Song = GetSongData(Track);
-	Song.GetPattern(Channel, Target) = Song.GetPattern(Channel, Source);		// // //
-}
-
 //// Track functions //////////////////////////////////////////////////////////////////////////////////
 
 std::string_view CFamiTrackerDoc::GetTrackTitle(unsigned int Track) const		// // //

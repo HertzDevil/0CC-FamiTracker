@@ -22,13 +22,11 @@
 
 #include "FrameEditorModel.h"
 #include "FrameClipData.h"
-#include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
 #include "SongData.h"
 #include "SongView.h"
 
-void CFrameEditorModel::AssignDocument(CFamiTrackerDoc &doc, CFamiTrackerView &view) {
-	doc_ = &doc;
+void CFrameEditorModel::AssignView(CFamiTrackerView &view) {
 	view_ = &view;
 }
 
@@ -96,7 +94,7 @@ CFrameSelection CFrameEditorModel::MakeFullSelection() const {
 }
 
 CFrameSelection CFrameEditorModel::GetActiveSelection() const {
-	return IsSelecting() ? m_selection : MakeFrameSelection(view_->GetSelectedFrame());
+	return IsSelecting() ? m_selection : MakeFrameSelection(GetCurrentFrame());
 }
 
 void CFrameEditorModel::Select(const CFrameSelection &sel) {
@@ -122,8 +120,9 @@ void CFrameEditorModel::ContinueSelection(const CFrameCursorPos &pos) {
 
 void CFrameEditorModel::ContinueFrameSelection(int frame) {
 	if (IsSelecting()) {
+		CSongView *pSongView = view_->GetSongView();
 		selStart_.m_iChannel = 0;
-		selEnd_ = {frame, doc_->GetChannelCount()};
+		selEnd_ = {frame, (int)pSongView->GetChannelOrder().GetChannelCount()};
 		Select(CFrameSelection::Including(selStart_, selEnd_));
 	}
 }

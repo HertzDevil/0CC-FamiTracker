@@ -41,6 +41,8 @@ struct CFamiTrackerEnv {
 	static CMIDI		*GetMIDI();
 	static CSettings	*GetSettings();
 	static CInstrumentService *GetInstrumentService();		// // //
+
+	static bool IsFileLoaded();
 };
 
 extern CFamiTrackerEnv Env; // saves some typing

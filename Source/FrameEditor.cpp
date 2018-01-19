@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <cmath>
 #include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
+#include "FamiTrackerEnv.h"
 #include "FamiTrackerView.h"
 #include "MainFrm.h"
 #include "FrameAction.h"
@@ -57,7 +57,6 @@ IMPLEMENT_DYNAMIC(CFrameEditor, CWnd)
 
 CFrameEditor::CFrameEditor(CMainFrame *pMainFrm) :
 	m_pMainFrame(pMainFrm),
-	m_pDocument(NULL),
 	m_pView(NULL),
 	model_(std::make_unique<CFrameEditorModel>()),		// // //
 	m_iClipboard(0),
@@ -128,11 +127,9 @@ BEGIN_MESSAGE_MAP(CFrameEditor, CWnd)
 END_MESSAGE_MAP()
 
 
-void CFrameEditor::AssignDocument(CFamiTrackerDoc *pDoc, CFamiTrackerView *pView)
-{
-	m_pDocument = pDoc;
-	m_pView		= pView;
-	model_->AssignDocument(*pDoc, *pView);		// // //
+void CFrameEditor::AssignView(CFamiTrackerView &View) {		// // //
+	m_pView = &View;
+	model_->AssignView(View);		// // //
 }
 
 // CFrameEditor message handlers
@@ -146,7 +143,7 @@ int CFrameEditor::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	m_Font.CreateFont(DPI::SY(14), 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
 					  OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
-					  theApp.GetSettings()->Appearance.strFrameFont);		// // // 050B
+					  Env.GetSettings()->Appearance.strFrameFont);		// // // 050B
 
 	m_iClipboard = ::RegisterClipboardFormat(CLIPBOARD_ID);
 
@@ -166,13 +163,13 @@ void CFrameEditor::OnPaint()
 //#define BENCHMARK
 
 	// Do not call CWnd::OnPaint() for painting messages
-	const CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	const CSoundGen *pSoundGen = Env.GetSoundGenerator();
 
 	// Get window size
 	CRect WinRect;
 	GetClientRect(&WinRect);
 
-	if (!CFamiTrackerDoc::GetDoc()->IsFileLoaded()) {
+	if (!Env.IsFileLoaded()) {		// // //
 		dc.FillSolidRect(WinRect, 0);
 		return;
 	}
@@ -221,30 +218,30 @@ void CFrameEditor::OnPaint()
 void CFrameEditor::DrawFrameEditor(CDC *pDC)
 {
 	// Draw the frame editor window
-
 	const COLORREF QUEUE_COLOR	  = 0x108010;	// Colour of row in play queue
 	const COLORREF RED_BAR_COLOR  = 0x4030A0;
 	const COLORREF BLUE_BAR_COLOR = 0xA02030;
 
 	// Cache settings
-	const COLORREF ColBackground	= theApp.GetSettings()->Appearance.iColBackground;
-	const COLORREF ColText			= theApp.GetSettings()->Appearance.iColPatternText;
-	const COLORREF ColTextHilite	= theApp.GetSettings()->Appearance.iColPatternTextHilite;
-	const COLORREF ColCursor		= theApp.GetSettings()->Appearance.iColCursor;
-	const COLORREF ColSelect		= theApp.GetSettings()->Appearance.iColSelection;
+	const COLORREF ColBackground	= Env.GetSettings()->Appearance.iColBackground;
+	const COLORREF ColText			= Env.GetSettings()->Appearance.iColPatternText;
+	const COLORREF ColTextHilite	= Env.GetSettings()->Appearance.iColPatternTextHilite;
+	const COLORREF ColCursor		= Env.GetSettings()->Appearance.iColCursor;
+	const COLORREF ColSelect		= Env.GetSettings()->Appearance.iColSelection;
 	const COLORREF ColDragCursor	= INTENSITY(ColBackground) > 0x80 ? BLACK : WHITE;
 	const COLORREF ColSelectEdge	= BLEND(ColSelect, WHITE, .7);
-	const COLORREF ColTextDimmed	= DIM(theApp.GetSettings()->Appearance.iColPatternText, .9);
+	const COLORREF ColTextDimmed	= DIM(Env.GetSettings()->Appearance.iColPatternText, .9);
 
-	const CFamiTrackerDoc *pDoc = m_pDocument;		// // //
 	const CFamiTrackerView *pView = m_pView;
-	auto pSong = m_pMainFrame->GetCurrentSong();		// // //
-	if (!pSong || !pDoc->GetChannelCount())
+	const CSongView *pSongView = pView->GetSongView();		// // //
+	if (!pSongView)
 		return;
-	const auto &song = *pSong;
+	const auto &song = pSongView->GetSong();
 
-	const int FrameCount	= song.GetFrameCount();
-	const int ChannelCount	= pDoc->GetChannelCount();
+	const int ChannelCount	= GetSongChannelCount();
+	if (!ChannelCount)
+		return;
+	const int FrameCount	= GetSongFrameCount();
 	int ActiveFrame			= GetEditFrame();		// // //
 	int ActiveChannel		= pView->GetSelectedChannel();
 
@@ -291,7 +288,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 		if (line != m_iMiddleRow)
 			for (unsigned j = 0, Count = Col.GetCount(); j < Count; ++j)
 				if (Col.GetBookmark(j)->m_iFrame == Frame) {
-					GradientBar(m_dcBack, RowRect, theApp.GetSettings()->Appearance.iColBackgroundHilite, ColBackground);		// // //
+					GradientBar(m_dcBack, RowRect, Env.GetSettings()->Appearance.iColBackgroundHilite, ColBackground);		// // //
 					break;
 				}
 	}
@@ -304,17 +301,17 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	}
 
 	// Play cursor
-	const int PlayFrame = theApp.GetSoundGenerator()->GetPlayerPos().first;		// // //
-	if (!pView->GetFollowMode() && theApp.GetSoundGenerator()->IsPlaying())
+	const int PlayFrame = Env.GetSoundGenerator()->GetPlayerPos().first;		// // //
+	if (!pView->GetFollowMode() && Env.GetSoundGenerator()->IsPlaying())
 		if (PlayFrame >= BeginFrame && PlayFrame <= EndFrame) {
 			int line = PlayFrame - FirstVisibleFrame;
 			const int ypos = line * ROW_HEIGHT;
 			CRect RowRect = DPI::Rect(0, ypos + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
-			GradientBar(m_dcBack, RowRect, theApp.GetSettings()->Appearance.iColCurrentRowPlaying, ColBackground);		// // //
+			GradientBar(m_dcBack, RowRect, Env.GetSettings()->Appearance.iColCurrentRowPlaying, ColBackground);		// // //
 		}
 
 	// Queue cursor
-	if (int Queue = theApp.GetSoundGenerator()->GetQueueFrame(); Queue >= BeginFrame && Queue <= EndFrame) {
+	if (int Queue = Env.GetSoundGenerator()->GetQueueFrame(); Queue >= BeginFrame && Queue <= EndFrame) {
 		int line = Queue - FirstVisibleFrame;
 		const int ypos = line * ROW_HEIGHT;
 		CRect RowRect = DPI::Rect(0, ypos + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
@@ -369,8 +366,6 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 		COLORREF CurrentColor = IsLineDimmed(line) ? ColTextDimmed : ColText;		// // //
 
 		for (int j = 0; j < ChannelCount; ++j) {
-			int Chan = j + m_iFirstChannel;
-
 			//m_dcBack.SetTextColor(CurrentColor);
 			m_dcBack.SetTextColor(DIM(CurrentColor, .7));
 
@@ -379,7 +374,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	}
 
 	// Frame patterns
-	const bool bHexRows = theApp.GetSettings()->General.bRowInHex;
+	const bool bHexRows = Env.GetSettings()->General.bRowInHex;
 	for (int Frame = BeginFrame; Frame <= EndFrame; ++Frame) {
 		if (Frame != FrameCount) {
 			int line = Frame - FirstVisibleFrame;
@@ -394,8 +389,8 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 			for (int j = 0; j < ChannelCount; ++j) {
 				int Chan = j + m_iFirstChannel;
 
-				unsigned index = song.GetFramePattern(Frame, pDoc->TranslateChannel(Chan));		// // //
-				unsigned activeIndex = song.GetFramePattern(ActiveFrame, pDoc->TranslateChannel(Chan));
+				unsigned index = pSongView->GetFramePattern(Chan, Frame);		// // //
+				unsigned activeIndex = pSongView->GetFramePattern(Chan, ActiveFrame);
 
 				// Dim patterns that are different from current
 				if ((!m_bLastRow && index == activeIndex) || bSelectedRow)
@@ -480,11 +475,11 @@ bool CFrameEditor::NeedUpdate() const
 	// Checks if the cursor or frame data has changed and area needs to be redrawn
 
 	const CFamiTrackerView *pView = CFamiTrackerView::GetView();
-	const CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	const CSoundGen *pSoundGen = Env.GetSoundGenerator();
 
 	const int ActiveFrame	= GetEditFrame();		// // //
 	const int ActiveChannel = pView->GetSelectedChannel();
-	const int PlayFrame	    = theApp.GetSoundGenerator()->GetPlayerPos().first;		// // //
+	const int PlayFrame	    = Env.GetSoundGenerator()->GetPlayerPos().first;		// // //
 
 	if (m_iLastCursorFrame != ActiveFrame)
 		return true;
@@ -507,6 +502,8 @@ void CFrameEditor::InvalidateFrameData()
 
 void CFrameEditor::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
+	unsigned Frames = GetSongFrameCount();		// // //
+
 	switch (nSBCode) {
 	case SB_ENDSCROLL:
 		return;
@@ -522,11 +519,11 @@ void CFrameEditor::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 		m_pView->SelectFrame(0);		// // //
 		break;
 	case SB_BOTTOM:
-		m_pView->SelectFrame(m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) - 1);
+		m_pView->SelectFrame(Frames - 1);
 		break;
 	case SB_THUMBPOSITION:
 	case SB_THUMBTRACK:
-		if (m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) > 1)
+		if (Frames > 1)
 			SetEditFrame(nPos);		// // //
 		break;
 	}
@@ -561,7 +558,7 @@ void CFrameEditor::OnSetFocus(CWnd* pOldWnd)
 	CWnd::OnSetFocus(pOldWnd);
 
 	// Install frame editor's accelerator
-	theApp.GetAccelerator()->SetAccelerator(m_hAccel);
+	Env.GetAccelerator()->SetAccelerator(m_hAccel);
 
 	InvalidateFrameData();
 }
@@ -573,7 +570,7 @@ void CFrameEditor::OnKillFocus(CWnd* pNewWnd)
 //	CancelSelection();		// // //
 	m_bLastRow = false;		// // //
 	InvalidateFrameData();
-	theApp.GetAccelerator()->SetAccelerator(NULL);
+	Env.GetAccelerator()->SetAccelerator(NULL);
 }
 
 void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
@@ -585,8 +582,10 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		int Track = m_pMainFrame->GetSelectedTrack();
 		bool bShift = (::GetKeyState(VK_SHIFT) & 0x80) == 0x80;
 
-		const int MaxChannel = m_pDocument->GetChannelCount() - 1;		// // //
-		const int FrameCount = m_pDocument->GetFrameCount(Track);
+		CSongView *pSongView = m_pView->GetSongView();		// // //
+
+		const int MaxChannel = GetSongChannelCount() - 1;		// // //
+		const int FrameCount = GetSongFrameCount();
 		const int Channel = model_->GetCurrentChannel();
 		const int Frame = GetEditFrame();		// // //
 		const int MaxFrame = FrameCount - (IsSelecting() ? 1 : 0);
@@ -667,14 +666,13 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 					m_iCursorEditDigit = 1;
 				}
 				else if (m_iCursorEditDigit == 1) {
-					Pattern = Num | m_pDocument->GetPatternAtFrame(Track, GetSelection().GstFirstSelectedFrame(),
-						m_pDocument->TranslateChannel(GetSelection().GetFirstSelectedChannel()));
+					Pattern = Num | pSongView->GetFramePattern(GetSelection().GetFirstSelectedChannel(), GetSelection().GstFirstSelectedFrame());
 					m_iCursorEditDigit = 0;
 				}
 				m_pMainFrame->AddAction(std::make_unique<CFActionSetPattern>(Pattern));
 			}
 			else if (!m_bLastRow || FrameCount < MAX_FRAMES) {		// // //
-				int Pattern = m_bLastRow ? 0 : m_pDocument->GetPatternAtFrame(Track, Frame, m_pDocument->TranslateChannel(Channel));		// // //
+				int Pattern = m_bLastRow ? 0 : pSongView->GetFramePattern(Channel, Frame);
 				if (m_iCursorEditDigit == 0)
 					Pattern = (Pattern & 0x0F) | (Num << 4);
 				else if (m_iCursorEditDigit == 1)
@@ -688,7 +686,7 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				else
 					m_pMainFrame->AddAction(std::make_unique<CFActionSetPattern>(Pattern));
 
-				const int SelectedChannel = (model_->GetCurrentChannel() + 1) % m_pDocument->GetChannelCount();		// // //
+				const int SelectedChannel = (model_->GetCurrentChannel() + 1) % GetSongChannelCount();		// // //
 				const int SelectedFrame = model_->GetCurrentFrame();
 
 				if (m_iCursorEditDigit == 1) {
@@ -718,7 +716,7 @@ void CFrameEditor::OnTimer(UINT_PTR nIDEvent)
 BOOL CFrameEditor::PreTranslateMessage(MSG* pMsg)
 {
 	// Temporary fix, accelerated messages must be sent to the main window
-	if (theApp.GetAccelerator()->Translate(theApp.m_pMainWnd->m_hWnd, pMsg)) {
+	if (Env.GetAccelerator()->Translate(Env.GetMainFrame()->m_hWnd, pMsg)) {
 		return TRUE;
 	}
 
@@ -736,7 +734,7 @@ int CFrameEditor::GetRowFromPoint(const CPoint &point, bool DropTarget) const
 	// Translate a point value to a row
 	int Delta = (point.y - DPI::SY(TOP_OFFSET)) / DPI::SY(ROW_HEIGHT);		// // //
 	int NewFrame = GetEditFrame() - m_iMiddleRow + Delta;
-	int MaxFrame = m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) - (DropTarget ? 0 : 1);
+	int MaxFrame = GetSongFrameCount() - (DropTarget ? 0 : 1);
 
 	return std::clamp(NewFrame, 0, MaxFrame);		// // //
 }
@@ -747,7 +745,7 @@ int CFrameEditor::GetChannelFromPoint(const CPoint &point) const
 	if (IsOverFrameColumn(point))
 		return -1;
 	int Offs = point.x - DPI::SX(ROW_COLUMN_WIDTH) - 2;		// // //
-	return std::min(m_pDocument->GetChannelCount() - 1, Offs / DPI::SX(FRAME_ITEM_WIDTH));
+	return std::min((int)GetSongChannelCount() - 1, Offs / DPI::SX(FRAME_ITEM_WIDTH));
 }
 
 bool CFrameEditor::IsOverFrameColumn(const CPoint &point) const		// // //
@@ -757,6 +755,14 @@ bool CFrameEditor::IsOverFrameColumn(const CPoint &point) const		// // //
 
 CFrameCursorPos CFrameEditor::TranslateFramePos(const CPoint &point, bool DropTarget) const {		// // //
 	return {GetRowFromPoint(point, DropTarget), GetChannelFromPoint(point)};
+}
+
+unsigned CFrameEditor::GetSongFrameCount() const {		// // //
+	return m_pView->GetSongView()->GetSong().GetFrameCount();
+}
+
+unsigned CFrameEditor::GetSongChannelCount() const {		// // //
+	return m_pView->GetSongView()->GetChannelOrder().GetChannelCount();
 }
 
 unsigned int CFrameEditor::CalcWidth(int Channels) const
@@ -802,14 +808,14 @@ void CFrameEditor::OnLButtonUp(UINT nFlags, CPoint point)
 	}
 	else {
 		CFrameCursorPos pos = TranslateFramePos(point, false);		// // //
-		if ((nFlags & MK_CONTROL) && theApp.GetSoundGenerator()->IsPlaying()) {
+		if ((nFlags & MK_CONTROL) && Env.GetSoundGenerator()->IsPlaying()) {
 			// Queue this frame
-			if (pos.m_iFrame == theApp.GetSoundGenerator()->GetQueueFrame())
+			if (pos.m_iFrame == Env.GetSoundGenerator()->GetQueueFrame())
 				// Remove
-				theApp.GetSoundGenerator()->SetQueueFrame(-1);
+				Env.GetSoundGenerator()->SetQueueFrame(-1);
 			else
 				// Set new
-				theApp.GetSoundGenerator()->SetQueueFrame(pos.m_iFrame);
+				Env.GetSoundGenerator()->SetQueueFrame(pos.m_iFrame);
 
 			InvalidateFrameData();
 		}
@@ -817,7 +823,7 @@ void CFrameEditor::OnLButtonUp(UINT nFlags, CPoint point)
 			// Switch to frame
 			SetEditFrame(GetRowFromPoint(point, GetFocus() == this));		// // // allow one-past-the-end
 			if (pos.m_iChannel >= 0)
-				m_pView->SelectChannel(std::min(pos.m_iChannel, m_pDocument->GetChannelCount() - 1));		// // //
+				m_pView->SelectChannel(std::min(pos.m_iChannel, (int)GetSongChannelCount() - 1));		// // //
 		}
 	}
 
@@ -901,12 +907,12 @@ BOOL CFrameEditor::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 void CFrameEditor::AutoScroll(const CPoint &point)
 {
 	const int Row = GetRowFromPoint(point, true);		// // //
-	const int Rows = m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) + 1;
+	const int Frames = GetSongFrameCount() + 1;		// // //
 
 	if (point.y <= m_iTopScrollArea && Row > 0) {
 		m_pView->SelectPrevFrame();
 	}
-	else if (point.y >= m_iBottomScrollArea && Row < (Rows - 1)) {
+	else if (point.y >= m_iBottomScrollArea && Row < (Frames - 1)) {
 		m_pView->SelectNextFrame();
 	}
 }
@@ -1092,7 +1098,7 @@ void CFrameEditor::OnEditSelectframe()		// // //
 
 void CFrameEditor::OnEditSelectchannel()		// // //
 {
-	int maxframe = m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) - 1;
+	int maxframe = GetSongFrameCount() - 1;		// // //
 	int channel = model_->GetCurrentChannel();
 	SetSelection(CFrameSelection::Including({0, channel}, {maxframe, channel}));
 }
@@ -1151,7 +1157,7 @@ int CFrameEditor::GetEditFrame() const		// // //
 {
 	int Frame = model_->GetCurrentFrame();
 	if (m_bLastRow)
-		if (Frame != m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) - 1) {
+		if (Frame != GetSongFrameCount() - 1) {		// // //
 			m_bLastRow = false;
 			SetEditFrame(++Frame);
 		}
@@ -1160,7 +1166,7 @@ int CFrameEditor::GetEditFrame() const		// // //
 
 void CFrameEditor::SetEditFrame(int Frame) const		// // //
 {
-	int Frames = m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack());
+	int Frames = GetSongFrameCount();
 //	if (m_bLastRow != (Frame >= Frames))
 //		InvalidateFrameData();
 	if (m_bLastRow = (Frame >= Frames))
@@ -1175,7 +1181,7 @@ bool CFrameEditor::IsCopyValid(COleDataObject* pDataObject) const
 	HGLOBAL hMem = pDataObject->GetGlobalData(m_iClipboard);
 	if (ClipData.ReadGlobalMemory(hMem)) {		// // //
 		int Frames = ClipData.ClipInfo.Frames;
-		return (m_pDocument->GetFrameCount(m_pMainFrame->GetSelectedTrack()) + Frames) <= MAX_FRAMES;
+		return (GetSongFrameCount() + Frames) <= MAX_FRAMES;		// // //
 	}
 	return false;
 }
@@ -1192,8 +1198,7 @@ BOOL CFrameEditor::DropData(COleDataObject* pDataObject, DROPEFFECT dropEffect)
 {
 	// Drag'n'drop operation completed
 
-	const int Track  = m_pMainFrame->GetSelectedTrack();
-	const int Frames = m_pDocument->GetFrameCount(Track);
+	const int Frames = GetSongFrameCount();		// // //
 
 	ASSERT(m_iDragRow >= 0 && m_iDragRow <= Frames);
 
@@ -1301,7 +1306,7 @@ void CFrameEditorDropTarget::SetClipBoardFormat(UINT iClipboard)
 
 DROPEFFECT CFrameEditorDropTarget::OnDragEnter(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point)
 {
-	CFrameWnd *pMainFrame = dynamic_cast<CFrameWnd*>(theApp.m_pMainWnd);
+	CFrameWnd *pMainFrame = Env.GetMainFrame();		// // //
 
 	if (pDataObject->IsDataAvailable(m_iClipboard)) {
 		if (dwKeyState & MK_CONTROL) {

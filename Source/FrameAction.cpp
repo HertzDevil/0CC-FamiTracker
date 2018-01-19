@@ -110,8 +110,7 @@ int CFrameEditorState::GetChanEnd() const
 	return IsSelecting ? Selection.GetLastSelectedChannel() : Cursor.m_iChannel;
 }
 
-#define STATE_EXPAND(st) (st)->Track, (st)->Cursor.m_iFrame, (st)->Cursor.m_iChannel
-#define STATE_EXPAND2(pDoc, st) (st)->Track, (st)->Cursor.m_iFrame, (pDoc)->TranslateChannel((st)->Cursor.m_iChannel)
+#define STATE_EXPAND2(st) (st)->Track, (st)->Cursor.m_iFrame, GET_DOCUMENT()->TranslateChannel((st)->Cursor.m_iChannel)
 
 
 
@@ -636,7 +635,7 @@ bool CFActionClonePatterns::SaveState(const CMainFrame &MainFrm)		// // //
 		return true; // TODO: check this when all patterns are used up
 	}
 	const CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-	m_iOldPattern = pDoc->GetPatternAtFrame(STATE_EXPAND2(pDoc, m_pUndoState));
+	m_iOldPattern = pDoc->GetPatternAtFrame(STATE_EXPAND2(m_pUndoState));
 	if (pDoc->IsPatternEmpty(m_pUndoState->Track, pDoc->TranslateChannel(m_pUndoState->Cursor.m_iChannel), m_iOldPattern))
 		return false;
 	m_iNewPattern = pDoc->GetFirstFreePattern(m_pUndoState->Track, pDoc->TranslateChannel(m_pUndoState->Cursor.m_iChannel));
@@ -653,7 +652,7 @@ void CFActionClonePatterns::Undo(CMainFrame &MainFrm)		// // //
 	}
 	else {
 		CSongView *pSongView = GET_SONG_VIEW();
-		GET_DOCUMENT()->ClearPattern(STATE_EXPAND2(GET_DOCUMENT(), m_pUndoState));
+		pSongView->GetPattern(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame) = CPatternData { };
 		pSongView->SetFramePattern(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame, m_iOldPattern);
 	}
 }
@@ -665,8 +664,8 @@ void CFActionClonePatterns::Redo(CMainFrame &MainFrm)		// // //
 		ClonePatterns(m_pUndoState->Selection, *pSongView);
 	else {
 		pSongView->SetFramePattern(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame, m_iNewPattern);
-		CFamiTrackerDoc *pDoc = GET_DOCUMENT();
-		pDoc->CopyPattern(m_pUndoState->Track, m_iNewPattern, m_iOldPattern, pDoc->TranslateChannel(m_pUndoState->Cursor.m_iChannel));
+		const auto &old = pSongView->GetPattern(m_pUndoState->Cursor.m_iChannel, m_iOldPattern);
+		pSongView->GetPattern(m_pUndoState->Cursor.m_iChannel, m_iNewPattern) = old;
 	}
 }
 

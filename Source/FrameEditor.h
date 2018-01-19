@@ -27,7 +27,6 @@
 #include <memory>		// // //
 #include "stdafx.h"		// // //
 
-class CFamiTrackerDoc;
 class CFamiTrackerView;
 class CFrameEditor;
 class CMainFrame;		// // //
@@ -65,7 +64,7 @@ public:
 	virtual ~CFrameEditor();
 
 	// General
-	void AssignDocument(CFamiTrackerDoc *pDoc, CFamiTrackerView *pView);
+	void AssignView(CFamiTrackerView &View);		// // //
 
 	// Drawing
 	void DrawScreen(CDC *pDC);		// // //
@@ -119,6 +118,9 @@ private:
 	bool IsOverFrameColumn(const CPoint &point) const;		// // //
 	CFrameCursorPos TranslateFramePos(const CPoint &point, bool DropTarget) const;		// // //
 
+	unsigned GetSongFrameCount() const;		// // //
+	unsigned GetSongChannelCount() const;		// // //
+
 	// Drag & drop
 	void InitiateDrag();
 
@@ -142,7 +144,6 @@ public:
 private:
 	// Object pointers
 	CMainFrame		 *m_pMainFrame;
-	CFamiTrackerDoc  *m_pDocument;
 	CFamiTrackerView *m_pView;
 
 	std::unique_ptr<CFrameEditorModel> model_;		// // //

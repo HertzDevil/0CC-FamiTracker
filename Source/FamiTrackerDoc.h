@@ -215,9 +215,6 @@ public:
 
 	const stChanNote &GetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row) const;		// // //
 
-	void			ClearPattern(unsigned int Track, unsigned int Frame, chan_id_t Channel);
-	void			CopyPattern(unsigned int Track, int Target, int Source, chan_id_t Channel);
-
 	unsigned int 	GetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel) const;
 
 	unsigned int	GetFirstFreePattern(unsigned int Track, chan_id_t Channel) const;		// // //

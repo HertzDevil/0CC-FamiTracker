@@ -24,6 +24,7 @@
 #include "stdafx.h"
 #include "FamiTracker.h"
 #include "InstrumentService.h"		// // //
+#include "FamiTrackerDoc.h"
 
 CFamiTrackerEnv Env;
 
@@ -58,4 +59,8 @@ CInstrumentService *CFamiTrackerEnv::GetInstrumentService() {
 		return f;
 	}();
 	return &factory;
+}
+
+bool CFamiTrackerEnv::IsFileLoaded() {
+	return CFamiTrackerDoc::GetDoc()->IsFileLoaded();
 }

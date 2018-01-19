@@ -1148,7 +1148,7 @@ void CFamiTrackerView::OnInitialUpdate()
 	TRACE("View: OnInitialUpdate (%s)\n", pDoc->GetTitle());
 
 	// Setup order window
-	pFrameEditor->AssignDocument(pDoc, this);
+	pFrameEditor->AssignView(*this);		// // //
 	m_pPatternEditor->SetDocument(pDoc, this);
 
 	// Always start with first track
