@@ -22,8 +22,6 @@
 
 #include "FrameEditor.h"
 #include <algorithm>
-#include <cmath>
-#include "FamiTracker.h"
 #include "FamiTrackerEnv.h"
 #include "FamiTrackerView.h"
 #include "MainFrm.h"
@@ -579,7 +577,6 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 	if (m_bInputEnable) {
 		// Keyboard input is active
-		int Track = m_pMainFrame->GetSelectedTrack();
 		bool bShift = (::GetKeyState(VK_SHIFT) & 0x80) == 0x80;
 
 		CSongView *pSongView = m_pView->GetSongView();		// // //

@@ -241,7 +241,6 @@ private:
 
 	// Translation
 	cursor_column_t GetColumnAtPoint(int PointX) const;		// // //
-	int  GetSelectedTrack() const;
 	int  GetFrameCount() const;		// // //
 	int	 GetChannelCount() const;
 	int	 RowToLine(int Row) const;

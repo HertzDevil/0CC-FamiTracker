@@ -703,7 +703,8 @@ void CMainFrame::ResizeFrameWindow()
 	ASSERT(m_pFrameEditor != NULL);
 
 	if (HasDocument()) {		// // //
-		int Channels = GetDoc().GetChannelCount();
+		auto pView = static_cast<CFamiTrackerView *>(GetActiveView());		// // //
+		int Channels = pView->GetSongView()->GetChannelOrder().GetChannelCount();
 		int Height = 0, Width = 0;
 
 		// Located to the right

@@ -1070,7 +1070,6 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 
 	const bool bEditMode = m_pView->GetEditMode();
 
-	const int Track = GetSelectedTrack();
 	const int Channels = /*m_iFirstChannel +*/ m_iChannelsVisible;
 	int OffsetX = m_iRowColumnWidth;
 
@@ -1083,6 +1082,7 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 	}
 
 	// Highlight
+	const int Track = GetMainFrame()->GetSelectedTrack();		// // //
 	unsigned int Highlight = m_pDocument->GetHighlightState(Track, Frame, Row);		// // //
 
 	// Clear
@@ -1833,11 +1833,6 @@ cursor_column_t CPatternEditor::GetChannelColumns(int Channel) const
 	default: return C_EFF1_PARAM2;
 	}
 	return C_NOTE;
-}
-
-int CPatternEditor::GetSelectedTrack() const
-{
-	return GetMainFrame()->GetSelectedTrack();
 }
 
 int CPatternEditor::GetChannelCount() const
