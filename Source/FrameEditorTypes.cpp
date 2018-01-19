@@ -22,9 +22,9 @@
 
 #include "FrameEditorTypes.h"
 #include <algorithm>
+#include "SongView.h"
 #include "SongData.h"
 #include "FrameClipData.h"
-#include "ChannelMap.h"
 
 // // // CFrameSelection class
 
@@ -123,29 +123,29 @@ CFrameSelection CFrameSelection::GetNormalized() const
 
 // // // CFrameIterator class
 
-CFrameIterator::CFrameIterator(const CChannelMap &map, CSongData &song, const CFrameCursorPos &Pos) :
-	CFrameCursorPos(Pos), map_(map), song_(song)
+CFrameIterator::CFrameIterator(CSongView &view, const CFrameCursorPos &Pos) :
+	CFrameCursorPos(Pos), song_view_(view)
 {
 }
 
-std::pair<CFrameIterator, CFrameIterator> CFrameIterator::FromSelection(const CFrameSelection &Sel, const CChannelMap &map, CSongData &song)
+std::pair<CFrameIterator, CFrameIterator> CFrameIterator::FromSelection(const CFrameSelection &Sel, CSongView &view)
 {
 	CFrameCursorPos it, end;
 	Sel.Normalize(it, end);
 	return std::make_pair(
-		CFrameIterator {map, song, it},
-		CFrameIterator {map, song, end}
+		CFrameIterator {view, it},
+		CFrameIterator {view, end}
 	);
 }
 
 int CFrameIterator::Get(int Channel) const
 {
-	return song_.GetFramePattern(NormalizeFrame(m_iFrame), map_.GetChannelType(Channel));
+	return song_view_.GetFramePattern(Channel, NormalizeFrame(m_iFrame));
 }
 
 void CFrameIterator::Set(int Channel, int Frame)
 {
-	song_.SetFramePattern(NormalizeFrame(m_iFrame), map_.GetChannelType(Channel), Frame);
+	song_view_.SetFramePattern(Channel, NormalizeFrame(m_iFrame), Frame);
 }
 
 CFrameIterator &CFrameIterator::operator+=(const int Frames)
@@ -195,6 +195,6 @@ bool CFrameIterator::operator!=(const CFrameIterator &other) const
 
 int CFrameIterator::NormalizeFrame(int Frame) const
 {
-	int Frames = song_.GetFrameCount();
+	int Frames = song_view_.GetSong().GetFrameCount();
 	return (Frame % Frames + Frames) % Frames;
 }

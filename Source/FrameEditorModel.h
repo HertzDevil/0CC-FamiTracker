@@ -48,7 +48,7 @@ public:
 	bool IsSelecting() const;
 	const CFrameSelection *GetSelection() const;
 	CFrameSelection MakeFrameSelection(int frame) const;
-	CFrameSelection MakeFullSelection(unsigned song) const;
+	CFrameSelection MakeFullSelection() const;
 	CFrameSelection GetActiveSelection() const;
 
 	void Select(const CFrameSelection &sel);
@@ -60,8 +60,8 @@ public:
 	bool IsFrameSelected(int frame) const;
 	bool IsChannelSelected(int channel) const;
 
-	std::unique_ptr<CFrameClipData> CopySelection(const CFrameSelection &sel, unsigned song) const;
-	void PasteSelection(const CFrameClipData &clipdata, const CFrameCursorPos &pos, unsigned song);
+	std::unique_ptr<CFrameClipData> CopySelection(const CFrameSelection &sel) const;
+	void PasteSelection(const CFrameClipData &clipdata, const CFrameCursorPos &pos);
 
 private:
 	CFamiTrackerDoc *doc_ = nullptr;

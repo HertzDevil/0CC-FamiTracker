@@ -25,6 +25,7 @@
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
 #include "SongData.h"
+#include "SongView.h"
 
 void CFrameEditorModel::AssignDocument(CFamiTrackerDoc &doc, CFamiTrackerView &view) {
 	doc_ = &doc;
@@ -79,16 +80,18 @@ const CFrameSelection *CFrameEditorModel::GetSelection() const {
 }
 
 CFrameSelection CFrameEditorModel::MakeFrameSelection(int frame) const {
+	CSongView *pSongView = view_->GetSongView();
 	return {
 		{frame, 0},
-		{frame + 1, doc_->GetChannelCount()},
+		{frame + 1, (int)pSongView->GetChannelOrder().GetChannelCount()},
 	};
 }
 
-CFrameSelection CFrameEditorModel::MakeFullSelection(unsigned song) const {
+CFrameSelection CFrameEditorModel::MakeFullSelection() const {
+	CSongView *pSongView = view_->GetSongView();
 	return {
 		{0, 0},
-		{(int)doc_->GetFrameCount(song), doc_->GetChannelCount()},
+		{(int)pSongView->GetSong().GetFrameCount(), (int)pSongView->GetChannelOrder().GetChannelCount()},
 	};
 }
 
@@ -133,8 +136,8 @@ bool CFrameEditorModel::IsChannelSelected(int channel) const {
 	return IsSelecting() && m_selection.IncludesChannel(channel);
 }
 
-std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSelection &sel, unsigned song) const {
-	auto [b, e] = CFrameIterator::FromSelection(sel, *doc_->GetChannelMap(), *const_cast<CFamiTrackerDoc *>(doc_)->GetSong(song)); // TODO: remove cast
+std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSelection &sel) const {
+	auto [b, e] = CFrameIterator::FromSelection(sel, *view_->GetSongView());
 
 	auto pData = std::make_unique<CFrameClipData>(sel.GetSelectedChanCount(), sel.GetSelectedFrameCount());
 	pData->ClipInfo.FirstChannel = b.m_iChannel;		// // //
@@ -153,8 +156,8 @@ std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSel
 	return pData;
 }
 
-void CFrameEditorModel::PasteSelection(const CFrameClipData &clipdata, const CFrameCursorPos &pos, unsigned song) {
-	CFrameIterator it {*doc_->GetChannelMap(), *doc_->GetSong(song), pos};
+void CFrameEditorModel::PasteSelection(const CFrameClipData &clipdata, const CFrameCursorPos &pos) {
+	CFrameIterator it {*view_->GetSongView(), pos};
 	for (int f = 0; f < clipdata.ClipInfo.Frames; ++f) {
 		for (int c = 0; c < clipdata.ClipInfo.Channels; ++c)
 			it.Set(c + /*it.m_iChannel*/ clipdata.ClipInfo.FirstChannel, clipdata.GetFrame(f, c));

@@ -91,17 +91,17 @@ public:
 	bool IsCopyValid(COleDataObject* pDataObject) const;
 	void UpdateDrag(const CPoint &point);
 	BOOL DropData(COleDataObject* pDataObject, DROPEFFECT dropEffect);
-	void MoveSelection(unsigned int Track, const CFrameSelection &Sel, const CFrameCursorPos &Target);		// // //
+	void MoveSelection(const CFrameSelection &Sel, const CFrameCursorPos &Target);		// // //
 
 	// Commands
-	std::unique_ptr<CFrameClipData> CopySelection(const CFrameSelection &Sel, unsigned song) const;		// // //
-	std::unique_ptr<CFrameClipData> CopyFrame(unsigned frame, unsigned song) const;		// // //
-	std::unique_ptr<CFrameClipData> CopyEntire(unsigned song) const;		// // //
+	std::unique_ptr<CFrameClipData> CopySelection(const CFrameSelection &Sel) const;		// // //
+	std::unique_ptr<CFrameClipData> CopyFrame(unsigned frame) const;		// // //
+	std::unique_ptr<CFrameClipData> CopyEntire() const;		// // //
 
-	void PasteAt(unsigned int Track, const CFrameClipData &ClipData, const CFrameCursorPos &Pos);		// // //
-	void PasteInsert(unsigned int Track, int Frame, const CFrameClipData &ClipData);		// // //
+	void PasteAt(const CFrameClipData &ClipData, const CFrameCursorPos &Pos);		// // //
+	void PasteInsert(int Frame, const CFrameClipData &ClipData);		// // //
 
-	void ClearPatterns(unsigned int Track, const CFrameSelection &Sel);		// // //
+	void ClearPatterns(const CFrameSelection &Sel);		// // //
 
 	// Return window width in pixels
 	unsigned int CalcWidth(int Channels) const;

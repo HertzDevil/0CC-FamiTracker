@@ -43,6 +43,7 @@
 #include "NumConv.h"		// // //
 #include "FrameEditorModel.h"		// // //
 #include "SongData.h"		// // //
+#include "SongView.h"		// // //
 
 /*
  * CFrameEditor
@@ -955,7 +956,7 @@ void CFrameEditor::OnEditCopy()
 		return;
 	}
 
-	Clipboard.TryCopy(*CopySelection(GetSelection(), m_pMainFrame->GetSelectedTrack()));		// // //
+	Clipboard.TryCopy(*CopySelection(GetSelection()));		// // //
 }
 
 std::unique_ptr<CFrameClipData> CFrameEditor::RestoreFrameClipData() {		// // //
@@ -992,42 +993,42 @@ void CFrameEditor::OnEditDelete()
 
 std::pair<CFrameIterator, CFrameIterator> CFrameEditor::GetIterators() const		// // //
 {
-	int Track = m_pMainFrame->GetSelectedTrack();
 	auto pSel = model_->GetSelection();
-	return CFrameIterator::FromSelection(pSel ? *pSel : model_->GetCurrentPos(), *m_pDocument->GetChannelMap(), *m_pDocument->GetSong(Track));
+	return CFrameIterator::FromSelection(pSel ? *pSel : model_->GetCurrentPos(), *m_pView->GetSongView());
 }
 
-std::unique_ptr<CFrameClipData> CFrameEditor::CopySelection(const CFrameSelection &Sel, unsigned song) const		// // //
+std::unique_ptr<CFrameClipData> CFrameEditor::CopySelection(const CFrameSelection &Sel) const		// // //
 {
-	return model_->CopySelection(Sel, song);
+	return model_->CopySelection(Sel);
 }
 
-std::unique_ptr<CFrameClipData> CFrameEditor::CopyFrame(unsigned frame, unsigned song) const		// // //
+std::unique_ptr<CFrameClipData> CFrameEditor::CopyFrame(unsigned frame) const		// // //
 {
-	return CopySelection(model_->MakeFrameSelection(frame), song);
+	return CopySelection(model_->MakeFrameSelection(frame));
 }
 
-std::unique_ptr<CFrameClipData> CFrameEditor::CopyEntire(unsigned song) const		// // //
+std::unique_ptr<CFrameClipData> CFrameEditor::CopyEntire() const		// // //
 {
-	return CopySelection(model_->MakeFullSelection(song), song);
+	return CopySelection(model_->MakeFullSelection());
 }
 
-void CFrameEditor::PasteInsert(unsigned int Track, int Frame, const CFrameClipData &ClipData)		// // //
+void CFrameEditor::PasteInsert(int Frame, const CFrameClipData &ClipData)		// // //
 {
-	m_pDocument->GetSong(Track)->AddFrames(Frame, ClipData.ClipInfo.Frames);
-	PasteAt(Track, ClipData, CFrameSelection {ClipData, Frame}.GetCursorStart());
+	m_pView->GetSongView()->GetSong().AddFrames(Frame, ClipData.ClipInfo.Frames);
+	PasteAt(ClipData, CFrameSelection {ClipData, Frame}.GetCursorStart());
 }
 
-void CFrameEditor::PasteAt(unsigned int Track, const CFrameClipData &ClipData, const CFrameCursorPos &Pos)		// // //
+void CFrameEditor::PasteAt(const CFrameClipData &ClipData, const CFrameCursorPos &Pos)		// // //
 {
-	model_->PasteSelection(ClipData, Pos, Track);
+	model_->PasteSelection(ClipData, Pos);
 }
 
-void CFrameEditor::ClearPatterns(unsigned int Track, const CFrameSelection &Sel)		// // //
+void CFrameEditor::ClearPatterns(const CFrameSelection &Sel)		// // //
 {
-	for (auto [b, e] = CFrameIterator::FromSelection(Sel, *m_pDocument->GetChannelMap(), *m_pDocument->GetSong(Track)); b != e; ++b)
+	CSongView *pSongView = m_pView->GetSongView();
+	for (auto [b, e] = CFrameIterator::FromSelection(Sel, *pSongView); b != e; ++b)
 		for (int c = b.m_iChannel; c < e.m_iChannel; ++c)
-			m_pDocument->ClearPattern(Track, b.m_iFrame, m_pDocument->TranslateChannel(c));
+			pSongView->GetPatternOnFrame(c, b.m_iFrame) = CPatternData { };
 }
 
 bool CFrameEditor::InputEnabled() const
@@ -1098,7 +1099,7 @@ void CFrameEditor::OnEditSelectchannel()		// // //
 
 void CFrameEditor::OnEditSelectall()		// // //
 {
-	SetSelection(model_->MakeFullSelection(m_pMainFrame->GetSelectedTrack()));
+	SetSelection(model_->MakeFullSelection());
 }
 
 void CFrameEditor::OnSize(UINT nType, int cx, int cy)
@@ -1133,7 +1134,7 @@ void CFrameEditor::CancelSelection()
 
 void CFrameEditor::InitiateDrag()
 {
-	auto pClipData = CopySelection(GetSelection(), m_pMainFrame->GetSelectedTrack());		// // //
+	auto pClipData = CopySelection(GetSelection());		// // //
 
 	DROPEFFECT res = pClipData->DragDropTransfer(m_iClipboard, DROPEFFECT_COPY | DROPEFFECT_MOVE);		// // // calls DropData
 
@@ -1232,13 +1233,13 @@ BOOL CFrameEditor::DropData(COleDataObject* pDataObject, DROPEFFECT dropEffect)
 	return TRUE;
 }
 
-void CFrameEditor::MoveSelection(unsigned int Track, const CFrameSelection &Sel, const CFrameCursorPos &Target)		// // //
+void CFrameEditor::MoveSelection(const CFrameSelection &Sel, const CFrameCursorPos &Target)		// // //
 {
 	if (Target.m_iFrame == Sel.GstFirstSelectedFrame())
 		return;
 	CFrameSelection Normal = Sel.GetNormalized();
 	CFrameCursorPos startPos = Sel.GetCursorStart();
-	auto pData = model_->CopySelection(Sel, Track);
+	auto pData = model_->CopySelection(Sel);
 	const int Frames = Sel.GetSelectedFrameCount();
 
 	int Delta = Target.m_iFrame - Sel.GstFirstSelectedFrame();
@@ -1248,11 +1249,11 @@ void CFrameEditor::MoveSelection(unsigned int Track, const CFrameSelection &Sel,
 		Tail.m_cpStart.m_iFrame = startPos.m_iFrame + Frames;
 		Tail.m_cpEnd.m_iFrame = Target.m_iFrame + Frames;
 		//                [Tail                   ]
-		auto pRest = model_->CopySelection(Tail, Track);
-		PasteAt(Track, *pRest, Normal.m_cpStart);
+		auto pRest = model_->CopySelection(Tail);
+		PasteAt(*pRest, Normal.m_cpStart);
 		// <Tail                   >
 		startPos.m_iFrame += Delta;
-		PasteAt(Track, *pData, startPos);
+		PasteAt(*pData, startPos);
 		//                         <Sel           >
 	}
 	else {
@@ -1261,9 +1262,9 @@ void CFrameEditor::MoveSelection(unsigned int Track, const CFrameSelection &Sel,
 		Head.m_cpEnd.m_iFrame = startPos.m_iFrame;
 		Head.m_cpStart.m_iFrame = Target.m_iFrame;
 		//    [Head                ]
-		auto pRest = model_->CopySelection(Head, Track);
-		PasteAt(Track, *pData, Head.m_cpStart);
-		PasteAt(Track, *pRest, {Head.m_cpStart.m_iFrame + Frames, Head.m_cpStart.m_iChannel});
+		auto pRest = model_->CopySelection(Head);
+		PasteAt(*pData, Head.m_cpStart);
+		PasteAt(*pRest, {Head.m_cpStart.m_iFrame + Frames, Head.m_cpStart.m_iChannel});
 	}
 	Normal.m_cpStart.m_iFrame += Delta;
 	Normal.m_cpEnd.m_iFrame += Delta;
