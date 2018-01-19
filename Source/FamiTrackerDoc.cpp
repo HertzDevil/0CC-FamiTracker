@@ -1453,12 +1453,6 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 					pInst->SetSampleIndex(o, n, 0);
 }
 
-bool CFamiTrackerDoc::ArePatternsSame(unsigned int Track, chan_id_t Channel, unsigned int Pattern1, unsigned int Pattern2) const		// // //
-{
-	const auto &song = GetSongData(Track);
-	return song.GetPattern(Channel, Pattern1) == song.GetPattern(Channel, Pattern2);
-}
-
 void CFamiTrackerDoc::SwapInstruments(int First, int Second)
 {
 	// Swap instruments

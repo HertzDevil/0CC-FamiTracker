@@ -219,7 +219,6 @@ public:
 
 	unsigned int	GetFirstFreePattern(unsigned int Track, chan_id_t Channel) const;		// // //
 	bool			IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsigned int Pattern) const;
-	bool			ArePatternsSame(unsigned int Track, chan_id_t Channel, unsigned int Pattern1, unsigned int Pattern2) const;		// // //
 #pragma endregion
 
 #pragma region delegates to CFamiTrackerModule

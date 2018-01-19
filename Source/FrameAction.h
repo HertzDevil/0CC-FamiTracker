@@ -32,7 +32,6 @@
 class CFrameEditor;		// // //
 class CFamiTrackerView;
 class CMainFrame;
-class CFamiTrackerDoc;
 
 /*
 	\brief A structure responsible for recording the cursor and selection state of the frame
@@ -45,13 +44,12 @@ struct CFrameEditorState		// TODO maybe merge this with CPatternEditorState
 		\details On construction, the object retrieves the current state of the frame editor
 		immediately. Once created, a state object remains constant and can be applied back to the
 		frame editor as many times as desired.
-		\param pView Pointer to the tracker view.
-		\param Track The track number. */
-	CFrameEditorState(const CFamiTrackerView *pEditor, int Track);
+		\param View Reference to the tracker view. */
+	explicit CFrameEditorState(const CFamiTrackerView &View);
 
 	/*!	\brief Applies the state to a frame editor.
-		\param pView Pointer to the tracker view. */
-	void ApplyState(CFamiTrackerView *pView) const;
+		\param View Reference to the tracker view. */
+	void ApplyState(CFamiTrackerView &View) const;
 
 	/*!	\brief Obtains the first selected frame.
 		\return Starting frame index. */
@@ -65,9 +63,6 @@ struct CFrameEditorState		// TODO maybe merge this with CPatternEditorState
 	/*!	\brief Obtains the last selected channel.
 		\return Ending channel index. */
 	int GetChanEnd() const;
-
-	/*!	\brief The current track number at the time of the state's creation. */
-	int Track;
 
 	/*!	\brief The current cursor position at the time of the state's creation. */
 	CFrameCursorPos Cursor;
