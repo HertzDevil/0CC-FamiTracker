@@ -33,8 +33,8 @@
 const unsigned int CDocumentFile::FILE_VER		 = 0x0440;			// Current file version (4.40)
 const unsigned int CDocumentFile::COMPATIBLE_VER = 0x0100;			// Compatible file version (1.0)
 
-const std::string_view CDocumentFile::FILE_HEADER_ID = "FamiTracker Module";		// // //
-const std::string_view CDocumentFile::FILE_END_ID = "END";
+//const std::string_view CDocumentFile::FILE_HEADER_ID = {"FamiTracker Module", 18};		// // //
+//const std::string_view CDocumentFile::FILE_END_ID = "END";
 
 const unsigned int CDocumentFile::MAX_BLOCK_SIZE = 0x80000;
 const unsigned int CDocumentFile::BLOCK_SIZE = 0x10000;
@@ -175,10 +175,10 @@ void CDocumentFile::ValidateFile()
 	// Checks if loaded file is valid
 
 	// Check ident string
-	char Buffer[256] = { };
+	char Buffer[FILE_HEADER_ID.size()] = { };
 	Read(Buffer, FILE_HEADER_ID.size());		// // //
 
-	if (array_view<char> {Buffer, FILE_HEADER_ID.size()} != FILE_HEADER_ID)
+	if (array_view<char> {Buffer} != FILE_HEADER_ID)
 		RaiseModuleException("File is not a FamiTracker module");
 
 	// Read file version

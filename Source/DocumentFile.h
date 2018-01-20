@@ -29,6 +29,9 @@
 #include <vector>		// // //
 #include "array_view.h"		// // //
 
+#include <string_view>		// // //
+using namespace std::string_view_literals;
+
 // CDocumentFile, class for reading/writing document files
 
 class CModuleException;
@@ -86,8 +89,8 @@ public:
 	static const unsigned int FILE_VER;
 	static const unsigned int COMPATIBLE_VER;
 
-	static const std::string_view FILE_HEADER_ID;		// // //
-	static const std::string_view FILE_END_ID;
+	static constexpr std::string_view FILE_HEADER_ID = "FamiTracker Module"sv;		// // //
+	static constexpr std::string_view FILE_END_ID = "END"sv;
 
 	static const unsigned int MAX_BLOCK_SIZE;
 	static const unsigned int BLOCK_SIZE;
