@@ -101,8 +101,7 @@ bool CAudioDriver::DoPlayBuffer() {
 	}
 
 	// Write audio to buffer
-	auto [pBuf, size] = ReleaseSoundBuffer();		// // //
-	m_pDSoundChannel->WriteBuffer(pBuf, size);
+	m_pDSoundChannel->WriteBuffer(ReleaseSoundBuffer());		// // //
 
 	// Reset buffer position
 	m_bBufferTimeout = false;
@@ -110,12 +109,12 @@ bool CAudioDriver::DoPlayBuffer() {
 	return true;
 }
 
-std::pair<char *, uint32_t> CAudioDriver::ReleaseSoundBuffer() {
+array_view<char> CAudioDriver::ReleaseSoundBuffer() {
 	m_iBufferPtr = 0;
 	return {m_pAccumBuffer.get(), m_iBufSizeBytes};
 }
 
-std::pair<int16_t *, uint32_t> CAudioDriver::ReleaseGraphBuffer() {
+array_view<std::int16_t> CAudioDriver::ReleaseGraphBuffer() {
 	return {m_iGraphBuffer.get(), m_iBufSizeSamples};
 }
 

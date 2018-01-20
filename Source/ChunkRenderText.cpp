@@ -171,7 +171,7 @@ void CChunkRenderText::StoreSamples(const std::vector<std::shared_ptr<const ft0c
 		CStringA label;
 		label.Format("ft_sample_%i", i);		// // //
 		str.Format("%s: ; %.*s\n", LPCTSTR(label), pDSample->name().size(), pDSample->name().data());
-		str += GetByteString(pData, SampleSize, DEFAULT_LINE_BREAK).c_str();
+		str += GetByteString(*pDSample, DEFAULT_LINE_BREAK).c_str();
 		Address += SampleSize;
 
 		// Adjust if necessary
@@ -416,7 +416,7 @@ void CChunkRenderText::StorePatternChunk(const CChunk *pChunk)
 	str.AppendFormat("%s:\n", GetLabelString(pChunk->GetLabel()));
 
 	const std::vector<unsigned char> &vec = pChunk->GetStringData(0);		// // //
-	str += GetByteString(&vec.front(), vec.size(), DEFAULT_LINE_BREAK).c_str();
+	str += GetByteString(vec, DEFAULT_LINE_BREAK).c_str();
 /*
 	len = vec.size();
 	for (int i = 0; i < len; ++i) {
@@ -492,17 +492,22 @@ void CChunkRenderText::WriteFileString(std::string_view sv) const		// // //
 	m_File.Write(sv.data(), sv.size());		// // //
 }
 
-std::string CChunkRenderText::GetByteString(const unsigned char *pData, int Len, int LineBreak) {		// // //
+std::string CChunkRenderText::GetByteString(array_view<unsigned char> Data, int LineBreak) {		// // //
 	std::string str = "\t.byte ";
 
-	for (int i = 0; i < Len; ++i) {
+	int i = 0;
+	while (!Data.empty()) {
 		str += '$';
-		str += conv::sv_from_uint_hex(pData[i], 2);
+		str += conv::sv_from_uint_hex(Data.front(), 2);
+		Data.pop_front();
 
-		if ((i % LineBreak == (LineBreak - 1)) && (i < Len - 1))
-			str += "\n\t.byte ";
-		else if (i < Len - 1)
-			str += ", ";
+		if (!Data.empty())
+			if ((i % LineBreak == (LineBreak - 1)))
+				str += "\n\t.byte ";
+			else
+				str += ", ";
+
+		++i;
 	}
 
 	str += '\n';

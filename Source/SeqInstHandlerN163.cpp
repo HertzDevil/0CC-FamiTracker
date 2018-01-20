@@ -29,7 +29,6 @@
 
 CSeqInstHandlerN163::CSeqInstHandlerN163(CChannelHandlerInterface *pInterface, int Vol, int Duty) :
 	CSeqInstHandler(pInterface, Vol, Duty),
-	m_cBuffer(),
 	m_pBufferCurrent(m_cBuffer),
 	m_bForceUpdate(false),
 	m_pBufferPrevious(m_cBuffer + CInstrumentN163::MAX_WAVE_SIZE)
@@ -84,11 +83,11 @@ void CSeqInstHandlerN163::UpdateWave(const CInstrumentN163 &Inst)
 	int Index = m_pInterface->GetDutyPeriod();
 	if (Index >= Inst.GetWaveCount())
 		Index = Inst.GetWaveCount() - 1;
-	const int Count = Inst.GetWaveSize() >> 1;
-	for (int i = 0; i < Count; ++i)
+	const unsigned Count = Inst.GetWaveSize() >> 1;
+	for (unsigned i = 0; i < Count; ++i)
 		m_pBufferCurrent[i] = Inst.GetSample(Index, 2 * i) | (Inst.GetSample(Index, 2 * i + 1) << 4);
 
 	if (auto pInterface = dynamic_cast<CChannelHandlerInterfaceN163*>(m_pInterface))
-		if (memcmp(m_pBufferCurrent, m_pBufferPrevious, Count) != 0 || m_bForceUpdate)
-			pInterface->FillWaveRAM(m_pBufferCurrent, Inst.GetWaveSize() >> 1);
+		if (array_view<char> {m_pBufferCurrent, Count} != array_view<char> {m_pBufferPrevious, Count} || m_bForceUpdate)
+			pInterface->FillWaveRAM({m_pBufferCurrent, Inst.GetWaveSize() >> 1});
 }

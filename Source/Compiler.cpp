@@ -308,18 +308,18 @@ void CCompiler::ExportNSF_NSFE(LPCTSTR lpszFileName, int MachineType, bool isNSF
 	CChunkRenderNSF Render(&OutputFile, m_iLoadAddress);
 
 	if (m_bBankSwitched) {
-		Render.StoreDriver(pDriver, m_iDriverSize);
+		Render.StoreDriver({pDriver, m_iDriverSize});
 		Render.StoreChunksBankswitched(m_vChunks);
 		Render.StoreSamplesBankswitched(m_vSamples);
 	}
 	else {
 		if (bCompressedMode) {
 			Render.StoreChunks(m_vChunks);
-			Render.StoreDriver(pDriver, m_iDriverSize);
+			Render.StoreDriver({pDriver, m_iDriverSize});
 			Render.StoreSamples(m_vSamples);
 		}
 		else {
-			Render.StoreDriver(pDriver, m_iDriverSize);
+			Render.StoreDriver({pDriver, m_iDriverSize});
 			Render.StoreChunks(m_vChunks);
 			Render.StoreSamples(m_vSamples);
 		}
@@ -398,10 +398,10 @@ void CCompiler::ExportNES_PRG(LPCTSTR lpszFileName, bool EnablePAL, bool isPRG) 
 
 	// Write NES data
 	CChunkRenderNES Render(&OutputFile, m_iLoadAddress);
-	Render.StoreDriver(pDriver, m_iDriverSize);
+	Render.StoreDriver({pDriver, m_iDriverSize});
 	Render.StoreChunks(m_vChunks);
 	Render.StoreSamples(m_vSamples);
-	Render.StoreCaller(NSF_CALLER_BIN, std::size(NSF_CALLER_BIN));
+	Render.StoreCaller(NSF_CALLER_BIN);
 
 	int Percent = (100 * m_iMusicDataSize) / (0x8000 - m_iDriverSize - m_iSamplesSize);
 	Print(_T(" * Driver size: %i bytes\n"), m_iDriverSize);
@@ -1689,12 +1689,6 @@ bool CCompiler::IsPatternAddressed(unsigned int Track, int Pattern, chan_id_t Ch
 void CCompiler::AddWavetable(CInstrumentFDS *pInstrument, CChunk *pChunk)
 {
 	// TODO Find equal existing waves
-	/*
-	for (int i = 0; i < m_iWaveTables; ++i) {
-		if (!memcmp(Wave, m_iWaveTable[i], 64))
-			return i;
-	}
-	*/
 
 	// Allocate new wave
 	for (int i = 0; i < 64; ++i)

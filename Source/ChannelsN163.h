@@ -35,10 +35,10 @@ public:
 	void	RefreshChannel() override;
 	void	ResetChannel() override;
 
-	void	SetWaveLength(int Length);		// // //
-	void	SetWavePosition(int Pos);
-	void	SetWaveCount(int Count);
-	void	FillWaveRAM(const char *Buffer, int Count);
+	void	SetWaveLength(int Length) override;		// // //
+	void	SetWavePosition(int Pos) override;
+	void	SetWaveCount(int Count) override;
+	void	FillWaveRAM(array_view<char> Wave) override;
 
 	void	SetChannelCount(int Count);		// // //
 

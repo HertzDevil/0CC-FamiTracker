@@ -23,20 +23,16 @@
 #include "SampleMem.h"
 
 uint8_t CSampleMem::ReadMem(uint16_t Address) const {
-	if (!m_pMemory)
-		return 0;
 	uint16_t Addr = (Address - 0xC000);// % m_iMemSize;
-	if (Addr >= m_iMemSize)
+	if (Addr >= m_pMemory.size())		// // //
 		return 0;
 	return m_pMemory[Addr];
 };
 
-void CSampleMem::SetMem(const void *pPtr, int Size) {
-	m_pMemory = static_cast<const uint8_t *>(pPtr);
-	m_iMemSize = Size;
+void CSampleMem::SetMem(array_view<uint8_t> Memory) {
+	m_pMemory = Memory;
 };
 
 void CSampleMem::Clear() {
-	m_pMemory = nullptr;
-	m_iMemSize = 0;
+	m_pMemory.clear();
 }

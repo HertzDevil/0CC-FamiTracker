@@ -26,11 +26,11 @@
 
 namespace {
 
-const char DEFAULT_INST_NAME[] = "New instrument";		// // //
+const std::string_view DEFAULT_INST_NAME = "New instrument";		// // //
 
 // FTI instruments files
-const char INST_HEADER[] = "FTI";		// // // moved
-const char INST_VERSION[] = "2.4";
+const std::string_view INST_HEADER = "FTI";		// // // moved
+const std::string_view INST_VERSION = "2.4";
 
 } // namespace
 
@@ -70,8 +70,8 @@ void CInstrument::RegisterManager(CInstrumentManagerInterface *pManager)		// // 
 
 void CInstrument::SaveFTI(CSimpleFile &File) const {
 	// Write header
-	File.WriteBytes(INST_HEADER, std::size(INST_HEADER) - 1);
-	File.WriteBytes(INST_VERSION, std::size(INST_VERSION) - 1);
+	File.WriteBytes(INST_HEADER);
+	File.WriteBytes(INST_VERSION);
 
 	// Write type
 	File.WriteChar(GetType());

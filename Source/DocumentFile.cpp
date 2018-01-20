@@ -33,8 +33,8 @@
 const unsigned int CDocumentFile::FILE_VER		 = 0x0440;			// Current file version (4.40)
 const unsigned int CDocumentFile::COMPATIBLE_VER = 0x0100;			// Compatible file version (1.0)
 
-const char CDocumentFile::FILE_HEADER_ID[] = "FamiTracker Module";		// // //
-const char CDocumentFile::FILE_END_ID[] = "END";
+const std::string_view CDocumentFile::FILE_HEADER_ID = "FamiTracker Module";		// // //
+const std::string_view CDocumentFile::FILE_END_ID = "END";
 
 const unsigned int CDocumentFile::MAX_BLOCK_SIZE = 0x80000;
 const unsigned int CDocumentFile::BLOCK_SIZE = 0x10000;
@@ -49,7 +49,7 @@ bool CDocumentFile::Finished() const
 bool CDocumentFile::BeginDocument()
 {
 	try {
-		Write(FILE_HEADER_ID, std::size(FILE_HEADER_ID) - 1);		// // //
+		Write(FILE_HEADER_ID.data(), FILE_HEADER_ID.size());		// // //
 		Write(&FILE_VER, sizeof(int));
 	}
 	catch (CFileException *e) {
@@ -63,7 +63,7 @@ bool CDocumentFile::BeginDocument()
 bool CDocumentFile::EndDocument()
 {
 	try {
-		Write(FILE_END_ID, std::size(FILE_END_ID) - 1);		// // //
+		Write(FILE_END_ID.data(), FILE_END_ID.size());		// // //
 	}
 	catch (CFileException *e) {
 		e->Delete();
@@ -94,32 +94,31 @@ void CDocumentFile::ReallocateBlock()
 	m_pBlockData.resize(m_iMaxBlockSize);		// // //
 }
 
-void CDocumentFile::WriteBlock(const void *pData, unsigned int Size)
+void CDocumentFile::WriteBlock(array_view<unsigned char> Data)		// // //
 {
 	ASSERT(!m_pBlockData.empty());		// // //
-
-	unsigned int WritePtr = 0;
 
 	// Allow block to grow in size
 
 	unsigned Previous = m_iBlockPointer;
-	while (Size > 0) {
-		unsigned int WriteSize = (Size > BLOCK_SIZE) ? BLOCK_SIZE : Size;
+	while (!Data.empty()) {
+		unsigned int WriteSize = (Data.size() > BLOCK_SIZE) ? BLOCK_SIZE : Data.size();
 
 		if ((m_iBlockPointer + WriteSize) >= m_iMaxBlockSize)
 			ReallocateBlock();
 
-		memcpy(m_pBlockData.data() + m_iBlockPointer, (const unsigned char *)pData + WritePtr, WriteSize);		// // //
+		memcpy(m_pBlockData.data() + m_iBlockPointer, Data.data(), WriteSize);		// // //
 		m_iBlockPointer += WriteSize;
-		Size -= WriteSize;
-		WritePtr += WriteSize;
+		Data.remove_front(WriteSize);
 	}
 	m_iPreviousPointer = Previous;
 }
 
-template<class T> void CDocumentFile::WriteBlockData(T Value)
+template <typename T>
+void CDocumentFile::WriteBlockData(T Value)
 {
-	WriteBlock(&Value, sizeof(Value));
+	auto ptr = reinterpret_cast<const unsigned char *>(&Value);
+	WriteBlock({ptr, sizeof(Value)});
 }
 
 void CDocumentFile::WriteBlockInt(int Value)
@@ -132,20 +131,21 @@ void CDocumentFile::WriteBlockChar(char Value)
 	WriteBlockData(Value);
 }
 
-void CDocumentFile::WriteString(CString String)
-{
-	int len = String.GetLength();
-
-	for (int i = 0; i < len; ++i)
-		WriteBlockChar(String.GetAt(i));
-
-	// End of string
+void CDocumentFile::WriteString(std::string_view sv) {		// // //
+	WriteBlock({(const unsigned char *)sv.data(), sv.size()});
 	WriteBlockChar(0);
 }
 
-void CDocumentFile::WriteStringView(std::string_view sv) {		// // //
-	WriteBlock(sv.data(), sv.size());
-	WriteBlockChar(0);
+void CDocumentFile::WriteStringPadded(std::string_view sv, std::size_t n) {
+	sv = sv.substr(0, n - 1);
+	WriteBlock({(const unsigned char *)sv.data(), sv.size()});
+	for (std::size_t i = sv.size(); i < n; ++i)
+		WriteBlockChar(0);
+}
+
+void CDocumentFile::WriteStringCounted(std::string_view sv) {
+	WriteBlockInt(sv.size());
+	WriteBlock({(const unsigned char *)sv.data(), sv.size()});
 }
 
 bool CDocumentFile::FlushBlock()
@@ -174,17 +174,17 @@ void CDocumentFile::ValidateFile()
 {
 	// Checks if loaded file is valid
 
-	char Buffer[256] = { };
-
 	// Check ident string
-	Read(Buffer, std::size(FILE_HEADER_ID) - 1);		// // //
+	char Buffer[256] = { };
+	Read(Buffer, FILE_HEADER_ID.size());		// // //
 
-	if (memcmp(Buffer, FILE_HEADER_ID, std::size(FILE_HEADER_ID) - 1) != 0)
+	if (array_view<char> {Buffer, FILE_HEADER_ID.size()} != FILE_HEADER_ID)
 		RaiseModuleException("File is not a FamiTracker module");
 
 	// Read file version
-	Read(Buffer, 4);
-	m_iFileVersion = (Buffer[3] << 24) | (Buffer[2] << 16) | (Buffer[1] << 8) | Buffer[0];
+	char VerBuffer[4] = { };		// // //
+	Read(VerBuffer, std::size(VerBuffer));
+	m_iFileVersion = (VerBuffer[3] << 24) | (VerBuffer[2] << 16) | (VerBuffer[1] << 8) | VerBuffer[0];
 
 	// // // Older file version
 	if (GetFileVersion() < COMPATIBLE_VER)
@@ -222,10 +222,9 @@ bool CDocumentFile::ReadBlock()
 	}
 
 	m_pBlockData = std::vector<char>(m_iBlockSize);		// // //
-	Read(m_pBlockData.data(), m_iBlockSize);
-
-	if (0 == strncmp(m_cBlockID.data(), FILE_END_ID, BLOCK_HEADER_SIZE))		// // //
-		m_bFileDone = true;
+	if (Read(m_pBlockData.data(), m_iBlockSize) == FILE_END_ID.size())		// // //
+		if (array_view<char> {m_cBlockID.data(), FILE_END_ID.size()} == FILE_END_ID)
+			m_bFileDone = true;
 
 	if (BytesRead == 0)
 		m_bFileDone = true;

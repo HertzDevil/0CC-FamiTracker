@@ -221,11 +221,11 @@ void CChannelHandlerN163::SetWaveCount(int Count)		// // //
 	m_iWaveCount = Count;
 }
 
-void CChannelHandlerN163::FillWaveRAM(const char *Buffer, int Count)		// // //
+void CChannelHandlerN163::FillWaveRAM(array_view<char> Wave)		// // //
 {
 	SetAddress(m_iWavePos >> 1, true);
-	for (int i = 0; i < Count; ++i)
-		WriteData(Buffer[i]);
+	for (auto c : Wave)
+		WriteData(c);
 }
 
 void CChannelHandlerN163::SetChannelCount(int Count)		// // //

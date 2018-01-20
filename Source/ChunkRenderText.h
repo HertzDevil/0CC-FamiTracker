@@ -26,6 +26,7 @@
 #include <vector>
 #include <memory>		// // //
 #include <string>		// // //
+#include "array_view.h"		// // //
 
 //
 // Text chunk renderer
@@ -58,7 +59,7 @@ public:
 private:
 	static const stChunkRenderFunc RENDER_FUNCTIONS[];
 	static std::string GetLabelString(const stChunkLabel &label);		// // //
-	static std::string GetByteString(const unsigned char *pData, int Len, int LineBreak);		// // //
+	static std::string GetByteString(array_view<unsigned char> Data, int LineBreak);		// // //
 	static std::string GetByteString(const CChunk *pChunk, int LineBreak);		// // //
 
 private:

@@ -39,9 +39,9 @@ void CWaveRenderer::CloseOutputFile() {
 	}
 }
 
-void CWaveRenderer::FlushBuffer(char *pBuf, unsigned Size) const {
+void CWaveRenderer::FlushBuffer(array_view<char> Buf) const {
 	if (m_pWaveFile)
-		m_pWaveFile->WriteWave(pBuf, Size);
+		m_pWaveFile->WriteWave(Buf);
 }
 
 void CWaveRenderer::Start() {

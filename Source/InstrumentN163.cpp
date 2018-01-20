@@ -80,7 +80,7 @@ void CInstrumentN163::Store(CDocumentFile *pDocFile) const
 	pDocFile->WriteBlockInt(m_iWaveCount);
 
 	for (int i = 0; i < m_iWaveCount; ++i) {
-		for (int j = 0; j < m_iWaveSize; ++j) {
+		for (unsigned j = 0; j < m_iWaveSize; ++j) {
 			pDocFile->WriteBlockChar(m_iSamples[i][j]);
 		}
 	}
@@ -100,7 +100,7 @@ bool CInstrumentN163::Load(CDocumentFile *pDocFile)
 	CModuleException::AssertRangeFmt<MODULE_ERROR_OFFICIAL>(m_iWaveCount, 1, 0x10, "N163 wave count");
 
 	for (int i = 0; i < m_iWaveCount; ++i) {
-		for (int j = 0; j < m_iWaveSize; ++j) try {
+		for (unsigned j = 0; j < m_iWaveSize; ++j) try {
 			m_iSamples[i][j] = CModuleException::AssertRangeFmt(pDocFile->GetBlockChar(), 0, 15, "N163 wave sample");
 		}
 		catch (CModuleException e) {
@@ -209,12 +209,12 @@ bool CInstrumentN163::RemoveWave(int Index)		// // //
 	return true;
 }
 
-int CInstrumentN163::GetWaveSize() const
+unsigned CInstrumentN163::GetWaveSize() const		// // //
 {
 	return m_iWaveSize;
 }
 
-void CInstrumentN163::SetWaveSize(int size)
+void CInstrumentN163::SetWaveSize(unsigned size)
 {
 	m_iWaveSize = size;
 	InstrumentChanged();

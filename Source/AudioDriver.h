@@ -27,6 +27,7 @@
 #include <memory>
 #include <utility>
 #include "Common.h"
+#include "array_view.h"
 
 class CDSoundChannel;
 
@@ -41,8 +42,8 @@ public:
 	void FlushBuffer(int16_t *Buffer, uint32_t Size) override;
 	bool PlayBuffer() override;
 	bool DoPlayBuffer();
-	std::pair<char *, uint32_t> ReleaseSoundBuffer();
-	std::pair<int16_t *, uint32_t> ReleaseGraphBuffer();
+	array_view<char> ReleaseSoundBuffer();
+	array_view<std::int16_t> ReleaseGraphBuffer();
 
 	void CloseAudioDevice();
 	bool IsAudioDeviceOpen() const;

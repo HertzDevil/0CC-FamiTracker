@@ -36,10 +36,10 @@ CBinaryFileWriter::CBinaryFileWriter(CFile *pFile) : m_pFile(pFile), m_iDataWrit
 {
 }
 
-void CBinaryFileWriter::Store(const void *pData, unsigned int Size)
+void CBinaryFileWriter::Store(array_view<std::uint8_t> Data)
 {
-	m_pFile->Write(pData, Size);
-	m_iDataWritten += Size;
+	m_pFile->Write(Data.data(), Data.size());
+	m_iDataWritten += Data.size();
 }
 
 void CBinaryFileWriter::Fill(unsigned int Size)
@@ -79,14 +79,12 @@ void CChunkRenderBinary::StoreSamples(const std::vector<std::shared_ptr<const ft
 void CChunkRenderBinary::StoreChunk(const CChunk &Chunk)		// // //
 {
 	for (int i = 0, n = Chunk.GetLength(); i < n; ++i) {
-		if (Chunk.GetType() == CHUNK_PATTERN) {
-			const std::vector<unsigned char> &vec = Chunk.GetStringData(CCompiler::PATTERN_CHUNK_INDEX);
-			Store(&vec.front(), vec.size());
-		}
+		if (Chunk.GetType() == CHUNK_PATTERN)
+			Store(Chunk.GetStringData(CCompiler::PATTERN_CHUNK_INDEX));
 		else {
 			unsigned short data = Chunk.GetData(i);
 			unsigned short size = Chunk.GetDataSize(i);
-			Store(&data, size);
+			Store({reinterpret_cast<const std::uint8_t *>(data), size});
 		}
 	}
 }
@@ -95,7 +93,7 @@ void CChunkRenderBinary::StoreSample(const ft0cc::doc::dpcm_sample &DSample)
 {
 	unsigned int SampleSize = DSample.size();
 
-	Store(DSample.data(), SampleSize);
+	Store(DSample);
 	m_iSampleAddress += SampleSize;
 
 	// Adjust size
@@ -119,10 +117,10 @@ CChunkRenderNSF::CChunkRenderNSF(CFile *pFile, unsigned int StartAddr) :
 {
 }
 
-void CChunkRenderNSF::StoreDriver(const unsigned char *pDriver, unsigned int Size)		// // //
+void CChunkRenderNSF::StoreDriver(array_view<std::uint8_t> Driver)		// // //
 {
 	// Store NSF driver
-	Store(pDriver, Size);
+	Store(Driver);
 }
 
 void CChunkRenderNSF::StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks)		// // //
@@ -165,7 +163,7 @@ void CChunkRenderNSF::StoreSamplesBankswitched(const std::vector<std::shared_ptr
 void CChunkRenderNSF::StoreSample(const ft0cc::doc::dpcm_sample &DSample)
 {
 	// Store sample and fill with zeros
-	Store(DSample.data(), DSample.size());
+	Store(DSample);
 	Fill(CCompiler::AdjustSampleAddress(GetAbsoluteAddr()));
 }
 
@@ -181,7 +179,7 @@ void CChunkRenderNSF::StoreSampleBankswitched(const ft0cc::doc::dpcm_sample &DSa
 	}
 
 	int Adjust = CCompiler::AdjustSampleAddress(m_iSampleAddr + SampleSize);
-	Store(DSample.data(), SampleSize);
+	Store(DSample);
 	Fill(Adjust);
 	m_iSampleAddr += SampleSize + Adjust;
 }
@@ -209,14 +207,12 @@ void CChunkRenderNSF::StoreChunkBankswitched(const CChunk &Chunk)		// // //
 void CChunkRenderNSF::StoreChunk(const CChunk &Chunk)		// // //
 {
 	for (int i = 0, n = Chunk.GetLength(); i < n; ++i) {
-		if (Chunk.GetType() == CHUNK_PATTERN) {
-			const std::vector<unsigned char> &vec = Chunk.GetStringData(CCompiler::PATTERN_CHUNK_INDEX);
-			Store(&vec.front(), vec.size());
-		}
+		if (Chunk.GetType() == CHUNK_PATTERN)
+			Store(Chunk.GetStringData(CCompiler::PATTERN_CHUNK_INDEX));
 		else {
 			unsigned short data = Chunk.GetData(i);
 			unsigned short size = Chunk.GetDataSize(i);
-			Store(&data, size);
+			Store({reinterpret_cast<const std::uint8_t *>(data), size});
 		}
 	}
 }
@@ -255,12 +251,11 @@ CChunkRenderNES::CChunkRenderNES(CFile *pFile, unsigned int StartAddr) : CChunkR
 {
 }
 
-void CChunkRenderNES::StoreCaller(const void *pData, unsigned int Size)
-{
+void CChunkRenderNES::StoreCaller(array_view<std::uint8_t> Data) {		// // //
 	while (GetBank() < 7)
 		AllocateNewBank();
 
-	int FillSize = (0x10000 - GetAbsoluteAddr()) - Size;
+	int FillSize = (0x10000 - GetAbsoluteAddr()) - Data.size();
 	Fill(FillSize);
-	Store(pData, Size);
+	Store(Data);
 }

@@ -96,22 +96,22 @@ void CVisualizerWnd::SetSampleRate(int SampleRate)
 			state->SetSampleRate(SampleRate);
 }
 
-void CVisualizerWnd::FlushSamples(const int16_t *pSamples, int Count)		// // //
+void CVisualizerWnd::FlushSamples(array_view<int16_t> Samples)		// // //
 {
 	if (!m_bThreadRunning)
 		return;
 
-	if (Count != m_iBufferSize) {
+	if (Samples.size() != m_iBufferSize) {
 		m_csBuffer.Lock();
-		m_pBuffer1 = std::make_unique<short[]>(Count);		// // //s
-		m_pBuffer2 = std::make_unique<short[]>(Count);
-		m_iBufferSize = Count;
+		m_iBufferSize = Samples.size();
+		m_pBuffer1 = std::make_unique<short[]>(m_iBufferSize);		// // //
+		m_pBuffer2 = std::make_unique<short[]>(m_iBufferSize);
 		m_pFillBuffer = &m_pBuffer1;
 		m_csBuffer.Unlock();
 	}
 
 	m_csBufferSelect.Lock();
-	memcpy(m_pFillBuffer->get(), pSamples, sizeof(int16_t) * Count);
+	memcpy(m_pFillBuffer->get(), Samples.data(), Samples.size());
 	m_csBufferSelect.Unlock();
 
 	SetEvent(m_hNewSamples);

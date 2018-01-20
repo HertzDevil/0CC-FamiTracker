@@ -28,6 +28,7 @@
 #include "stdafx.h"		// // //
 #include <memory>		// // //
 #include <array>		// // //
+#include "array_view.h"		// // //
 
 class CVisualizerBase;		// // //
 
@@ -42,7 +43,7 @@ public:
 	virtual ~CVisualizerWnd();
 
 	void SetSampleRate(int SampleRate);
-	void FlushSamples(const int16_t *Samples, int Count);		// // //
+	void FlushSamples(array_view<int16_t> Samples);		// // //
 	void ReportAudioProblem();
 
 private:

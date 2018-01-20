@@ -24,17 +24,17 @@
 #pragma once
 
 #include <cstdint>
+#include "../array_view.h"
 
 // class for simulating CPU memory, used by the DPCM channel
 class CSampleMem		// // //
 {
 public:
 	uint8_t ReadMem(uint16_t Address) const;
-	void SetMem(const void *pPtr, int Size);
+	void SetMem(array_view<uint8_t> Buffer);
 	void Clear();
 
 private:
-	const uint8_t *m_pMemory = nullptr;
-	uint16_t m_iMemSize = 0;
+	array_view<uint8_t> m_pMemory;
 };
 

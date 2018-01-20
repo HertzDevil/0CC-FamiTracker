@@ -25,6 +25,7 @@
 
 #include <fstream>
 #include <cstdint>
+#include "array_view.h"
 
 class CSimpleFile
 {
@@ -42,7 +43,7 @@ public:
 	void	WriteChar(char Value);
 	void	WriteShort(short Value);
 	void	WriteInt(int Value);
-	void	WriteBytes(const void *pBuf, size_t count);
+	void	WriteBytes(array_view<char> Buf);
 	void	WriteString(std::string_view sv);
 	void	WriteStringNull(std::string_view sv);
 

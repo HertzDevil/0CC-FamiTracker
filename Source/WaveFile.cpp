@@ -24,9 +24,6 @@
 
 bool CWaveFile::OpenFile(LPCTSTR Filename, int SampleRate, int SampleSize, int Channels)
 {
-	// Open a wave file for streaming
-	//
-
 	int nError;
 
 	WaveFormat.wf.wFormatTag	  = WAVE_FORMAT_PCM;
@@ -74,9 +71,6 @@ bool CWaveFile::OpenFile(LPCTSTR Filename, int SampleRate, int SampleSize, int C
 
 void CWaveFile::CloseFile()
 {
-	// Close the file
-	//
-
 	mmioinfoOut.dwFlags |= MMIO_DIRTY;
 	mmioSetInfo(hmmioOut, &mmioinfoOut, 0);
 
@@ -89,21 +83,15 @@ void CWaveFile::CloseFile()
 	mmioClose(hmmioOut, 0);
 }
 
-void CWaveFile::WriteWave(char *Data, int Size)
-{
-	// Save data to the file
-	//
-
-	int cT;
-
-	for (cT = 0; cT < Size; cT++) {
+void CWaveFile::WriteWave(array_view<char> av) {		// // //
+	for (auto c : av) {
 		if (mmioinfoOut.pchNext == mmioinfoOut.pchEndWrite) {
 			mmioinfoOut.dwFlags |= MMIO_DIRTY;
 			mmioAdvance(hmmioOut, &mmioinfoOut, MMIO_WRITE);
 		}
 
-		*((BYTE*)mmioinfoOut.pchNext) = *((BYTE*)Data + cT);
-		mmioinfoOut.pchNext++;
+		*((BYTE *)mmioinfoOut.pchNext) = (BYTE)c;
+		++mmioinfoOut.pchNext;
 	}
 }
 

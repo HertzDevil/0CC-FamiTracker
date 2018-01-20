@@ -24,6 +24,7 @@
 #pragma once
 
 #include <memory>
+#include "array_view.h"
 
 /*!
 	\brief A pure virtual interface for channel handlers.
@@ -76,8 +77,8 @@ public:
 	virtual void	SetFMSpeed(int) = 0;
 	virtual void	SetFMDepth(int) = 0;
 	virtual void	SetFMDelay(int) = 0;
-	virtual void	FillWaveRAM(const char*) = 0;
-	virtual void	FillModulationTable(const char*) = 0;
+	virtual void	FillWaveRAM(array_view<char>) = 0;
+	virtual void	FillModulationTable(array_view<char>) = 0;
 };
 
 class CChannelHandlerInterfaceN163
@@ -86,7 +87,7 @@ public:
 	virtual void	SetWaveLength(int) = 0;
 	virtual void	SetWavePosition(int) = 0;
 	virtual void	SetWaveCount(int) = 0;
-	virtual void	FillWaveRAM(const char*, int) = 0;
+	virtual void	FillWaveRAM(array_view<char>) = 0;
 };
 
 class CChannelHandlerInterfaceS5B

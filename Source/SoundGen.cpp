@@ -513,8 +513,7 @@ bool CSoundGen::PlayBuffer()
 	if (m_pWaveRenderer) {		// // //
 		CSingleLock l(&m_csRenderer); l.Lock();
 		if (is_rendering_impl()) {
-			auto [pBuf, size] = m_pAudioDriver->ReleaseSoundBuffer();		// // //
-			m_pWaveRenderer->FlushBuffer(pBuf, size);		// // //
+			m_pWaveRenderer->FlushBuffer(m_pAudioDriver->ReleaseSoundBuffer());		// // //
 			return true;
 		}
 	}
@@ -525,10 +524,9 @@ bool CSoundGen::PlayBuffer()
 	// // // Draw graph
 //	if (!IsBackgroundTask()) {
 	if (!is_rendering_impl()) {
-		auto [pBuf, size] = m_pAudioDriver->ReleaseGraphBuffer();
 		m_csVisualizerWndLock.Lock();
 		if (m_pVisualizerWnd)
-			m_pVisualizerWnd->FlushSamples(pBuf, size);
+			m_pVisualizerWnd->FlushSamples(m_pAudioDriver->ReleaseGraphBuffer());
 		m_csVisualizerWndLock.Unlock();
 	}
 

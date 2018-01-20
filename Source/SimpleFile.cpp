@@ -59,21 +59,21 @@ void CSimpleFile::WriteInt(int Value)
 	m_fFile.put(static_cast<char>(Value >> 24));
 }
 
-void CSimpleFile::WriteBytes(const void *pBuf, size_t count)
+void CSimpleFile::WriteBytes(array_view<char> Buf)
 {
-	m_fFile.write(reinterpret_cast<const char *>(pBuf), count);
+	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
 }
 
 void CSimpleFile::WriteString(std::string_view sv)
 {
 	int Len = sv.size();
 	WriteInt(Len);
-	WriteBytes(sv.data(), Len);
+	WriteBytes(sv);
 }
 
 void CSimpleFile::WriteStringNull(std::string_view sv)
 {
-	WriteBytes(sv.data(), sv.size());
+	WriteBytes(sv);
 	m_fFile.put('\0');
 }
 

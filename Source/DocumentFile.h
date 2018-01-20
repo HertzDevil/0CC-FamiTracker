@@ -27,6 +27,7 @@
 #include <string>
 #include <array>		// // //
 #include <vector>		// // //
+#include "array_view.h"		// // //
 
 // CDocumentFile, class for reading/writing document files
 
@@ -42,11 +43,12 @@ public:
 	bool		EndDocument();
 
 	void		CreateBlock(const char *ID, int Version);
-	void		WriteBlock(const void *pData, unsigned int Size);		// // //
+	void		WriteBlock(array_view<unsigned char> Data);		// // //
 	void		WriteBlockInt(int Value);
 	void		WriteBlockChar(char Value);
-	void		WriteString(CString String);
-	void		WriteStringView(std::string_view sv);		// // //
+	void		WriteString(std::string_view sv);		// // //
+	void		WriteStringPadded(std::string_view sv, std::size_t n);		// // //
+	void		WriteStringCounted(std::string_view sv);		// // //
 	bool		FlushBlock();
 
 	// Read functions
@@ -76,23 +78,24 @@ public:
 	[[noreturn]] void RaiseModuleException(const std::string &Msg) const;
 
 	// // // Overrides
-	virtual UINT Read(void* lpBuf, UINT nCount);
-	virtual void Write(const void* lpBuf, UINT nCount);
+	UINT Read(void *lpBuf, UINT nCount) override;
+	void Write(const void *lpBuf, UINT nCount) override;
 
 public:
 	// Constants
 	static const unsigned int FILE_VER;
 	static const unsigned int COMPATIBLE_VER;
 
-	static const char FILE_HEADER_ID[];		// // //
-	static const char FILE_END_ID[];
+	static const std::string_view FILE_HEADER_ID;		// // //
+	static const std::string_view FILE_END_ID;
 
 	static const unsigned int MAX_BLOCK_SIZE;
 	static const unsigned int BLOCK_SIZE;
 	static const unsigned int BLOCK_HEADER_SIZE = 16;		// // //
 
 private:
-	template<class T> void WriteBlockData(T Value);
+	template <typename T>
+	void WriteBlockData(T Value);
 
 protected:
 	void ReallocateBlock();

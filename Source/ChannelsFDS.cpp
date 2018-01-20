@@ -276,10 +276,12 @@ void CChannelHandlerFDS::SetFMDelay(int Delay)		// // //
 	m_iModulationDelay = Delay & 0xFF;
 }
 
-void CChannelHandlerFDS::FillWaveRAM(const char *pBuffer)		// // //
+void CChannelHandlerFDS::FillWaveRAM(array_view<char> Buffer)		// // //
 {
-	if (memcmp(m_iWaveTable.data(), pBuffer, sizeof(m_iWaveTable))) {
-		memcpy(m_iWaveTable.data(), pBuffer, sizeof(m_iWaveTable));
+	if (Buffer.size() != m_iWaveTable.size())
+		return;
+	if (Buffer != m_iWaveTable) {
+		std::copy(Buffer.begin(), Buffer.end(), m_iWaveTable.begin());
 
 		// Fills the 64 byte waveform table
 		// Enable write for waveform RAM
@@ -294,10 +296,12 @@ void CChannelHandlerFDS::FillWaveRAM(const char *pBuffer)		// // //
 	}
 }
 
-void CChannelHandlerFDS::FillModulationTable(const char *pBuffer)		// // //
+void CChannelHandlerFDS::FillModulationTable(array_view<char> Buffer)		// // //
 {
-	if (memcmp(m_iModTable.data(), pBuffer, sizeof(m_iModTable))) {
-		memcpy(m_iModTable.data(), pBuffer, sizeof(m_iModTable));
+	if (Buffer.size() != m_iModTable.size())
+		return;
+	if (Buffer != m_iModTable) {
+		std::copy(Buffer.begin(), Buffer.end(), m_iModTable.begin());
 
 		// Disable modulation
 		WriteRegister(0x4087, 0x80);

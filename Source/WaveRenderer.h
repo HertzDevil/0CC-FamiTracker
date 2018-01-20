@@ -26,6 +26,7 @@
 #include <memory>
 #include <cstdint>
 #include <string>
+#include "array_view.h"
 
 class CWaveFile;
 
@@ -35,7 +36,7 @@ public:
 
 	void SetOutputFile(std::unique_ptr<CWaveFile> pWave);
 	void CloseOutputFile();
-	void FlushBuffer(char *pBuf, unsigned Size) const;
+	void FlushBuffer(array_view<char> Buf) const;
 
 	void Start();
 	virtual void Tick() { }

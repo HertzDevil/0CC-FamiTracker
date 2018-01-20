@@ -25,19 +25,23 @@
 
 #include "stdafx.h"		// // //
 #include <mmsystem.h>
+#include "array_view.h"		// // //
 
 class CWaveFile
 {
-	public:
-		bool	OpenFile(LPCTSTR Filename, int SampleRate, int SampleSize, int Channels);		// // //
-		void	CloseFile();
-		void	WriteWave(char *Data, int Size);
+public:
+	// Open a wave file for streaming
+	bool	OpenFile(LPCTSTR Filename, int SampleRate, int SampleSize, int Channels);		// // //
+	// Close the file
+	void	CloseFile();
+	// Save data to the file
+	void	WriteWave(array_view<char> av);		// // //
 
-	private:
-		PCMWAVEFORMAT	WaveFormat;
-		MMCKINFO		ckOutRIFF, ckOut;
-		MMIOINFO		mmioinfoOut;
-		HMMIO			hmmioOut;
+private:
+	PCMWAVEFORMAT	WaveFormat;
+	MMCKINFO		ckOutRIFF, ckOut;
+	MMIOINFO		mmioinfoOut;
+	HMMIO			hmmioOut;
 
 };
 

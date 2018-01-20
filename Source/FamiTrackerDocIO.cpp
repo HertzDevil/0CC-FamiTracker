@@ -54,31 +54,31 @@
 
 namespace {
 
-const char *FILE_BLOCK_PARAMS			= "PARAMS";
-const char *FILE_BLOCK_INFO				= "INFO";
-const char *FILE_BLOCK_INSTRUMENTS		= "INSTRUMENTS";
-const char *FILE_BLOCK_SEQUENCES		= "SEQUENCES";
-const char *FILE_BLOCK_FRAMES			= "FRAMES";
-const char *FILE_BLOCK_PATTERNS			= "PATTERNS";
-const char *FILE_BLOCK_DSAMPLES			= "DPCM SAMPLES";
-const char *FILE_BLOCK_HEADER			= "HEADER";
-const char *FILE_BLOCK_COMMENTS			= "COMMENTS";
+const char FILE_BLOCK_PARAMS[]			= "PARAMS";
+const char FILE_BLOCK_INFO[]			= "INFO";
+const char FILE_BLOCK_INSTRUMENTS[]		= "INSTRUMENTS";
+const char FILE_BLOCK_SEQUENCES[]		= "SEQUENCES";
+const char FILE_BLOCK_FRAMES[]			= "FRAMES";
+const char FILE_BLOCK_PATTERNS[]		= "PATTERNS";
+const char FILE_BLOCK_DSAMPLES[]		= "DPCM SAMPLES";
+const char FILE_BLOCK_HEADER[]			= "HEADER";
+const char FILE_BLOCK_COMMENTS[]		= "COMMENTS";
 
 // VRC6
-const char *FILE_BLOCK_SEQUENCES_VRC6	= "SEQUENCES_VRC6";
+const char FILE_BLOCK_SEQUENCES_VRC6[]	= "SEQUENCES_VRC6";
 
 // N163
-const char *FILE_BLOCK_SEQUENCES_N163	= "SEQUENCES_N163";
-const char *FILE_BLOCK_SEQUENCES_N106	= "SEQUENCES_N106";
+const char FILE_BLOCK_SEQUENCES_N163[]	= "SEQUENCES_N163";
+const char FILE_BLOCK_SEQUENCES_N106[]	= "SEQUENCES_N106";
 
 // Sunsoft
-const char *FILE_BLOCK_SEQUENCES_S5B	= "SEQUENCES_S5B";
+const char FILE_BLOCK_SEQUENCES_S5B[]	= "SEQUENCES_S5B";
 
 // // // 0CC-FamiTracker specific
-const char *FILE_BLOCK_DETUNETABLES		= "DETUNETABLES";
-const char *FILE_BLOCK_GROOVES			= "GROOVES";
-const char *FILE_BLOCK_BOOKMARKS		= "BOOKMARKS";
-const char *FILE_BLOCK_PARAMS_EXTRA		= "PARAMS_EXTRA";
+const char FILE_BLOCK_DETUNETABLES[]	= "DETUNETABLES";
+const char FILE_BLOCK_GROOVES[]			= "GROOVES";
+const char FILE_BLOCK_BOOKMARKS[]		= "BOOKMARKS";
+const char FILE_BLOCK_PARAMS_EXTRA[]	= "PARAMS_EXTRA";
 
 template <typename F> // (const CSequence &seq, int index, int seqType)
 void VisitSequences(const CSequenceManager *manager, F&& f) {
@@ -378,17 +378,10 @@ void CFamiTrackerDocIO::LoadSongInfo(CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::SaveSongInfo(const CFamiTrackerDoc &doc, int ver) {
-	const auto write_sv = [&] (std::string_view sv, size_t len) {
-		sv = sv.substr(0, len - 1);
-		file_.WriteBlock(sv.data(), sv.size());
-		for (size_t i = sv.size(); i < len; ++i)
-			file_.WriteBlockChar(0);
-	};
-
 	auto &modfile = *doc.GetModule();
-	write_sv(modfile.GetModuleName(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
-	write_sv(modfile.GetModuleArtist(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
-	write_sv(modfile.GetModuleCopyright(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
+	file_.WriteStringPadded(modfile.GetModuleName(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
+	file_.WriteStringPadded(modfile.GetModuleArtist(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
+	file_.WriteStringPadded(modfile.GetModuleCopyright(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
 }
 
 void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
@@ -456,7 +449,7 @@ void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerDoc &doc, int ver) {
 
 	// Ver 3, store track names
 	if (ver >= 3)
-		doc.VisitSongs([&] (const CSongData &song) { file_.WriteString(song.GetTitle().data()); });
+		doc.VisitSongs([&] (const CSongData &song) { file_.WriteString(song.GetTitle()); });
 
 	doc.ForeachChannel([&] (chan_id_t i) {
 		// Channel type
@@ -552,8 +545,7 @@ void CFamiTrackerDocIO::SaveInstruments(const CFamiTrackerDoc &doc, int ver) {
 			pInst->Store(&file_);
 
 			// Store the name
-			file_.WriteBlockInt(pInst->GetName().size());
-			file_.WriteBlock(pInst->GetName().data(), pInst->GetName().size());
+			file_.WriteStringCounted(pInst->GetName());		// // //
 		}
 	}
 }
@@ -1010,11 +1002,9 @@ void CFamiTrackerDocIO::SaveDSamples(const CFamiTrackerDoc &doc, int ver) {
 			if (auto pSamp = manager.GetDSample(i)) {
 				// Write sample
 				file_.WriteBlockChar(i);
-				int Length = pSamp->name().size();
-				file_.WriteBlockInt(Length);
-				file_.WriteBlock(pSamp->name().data(), Length);
+				file_.WriteStringCounted(pSamp->name());
 				file_.WriteBlockInt(pSamp->size());
-				file_.WriteBlock(pSamp->data(), pSamp->size());
+				file_.WriteBlock(*pSamp);
 			}
 		}
 	}
@@ -1030,7 +1020,7 @@ void CFamiTrackerDocIO::SaveComments(const CFamiTrackerDoc &doc, int ver) {
 	auto &modfile = *doc.GetModule();
 	if (auto str = modfile.GetComment(); !str.empty()) {
 		file_.WriteBlockInt(modfile.ShowsCommentOnOpen() ? 1 : 0);
-		file_.WriteStringView(str);
+		file_.WriteString(str);
 	}
 }
 
@@ -1412,7 +1402,7 @@ void CFamiTrackerDocIO::SaveBookmarks(const CFamiTrackerDoc &doc, int ver) {
 			file_.WriteBlockChar(pMark->m_bPersist);
 			//file_.WriteBlockInt(pMark->m_sName.size());
 			//file_.WriteBlock(pMark->m_sName, (int)strlen(Name));
-			file_.WriteString(pMark->m_sName.c_str());
+			file_.WriteString(pMark->m_sName);
 		}
 	}
 }

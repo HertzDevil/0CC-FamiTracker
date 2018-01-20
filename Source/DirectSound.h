@@ -29,6 +29,7 @@
 #include <memory>		// // //
 #include <vector>		// // //
 #include <string>		// // //
+#include "array_view.h"		// // //
 
 // Return values from WaitForDirectSoundEvent()
 enum buffer_event_t {
@@ -52,7 +53,7 @@ public:
 	bool Stop() const;
 	bool IsPlaying() const;
 	bool ClearBuffer();
-	bool WriteBuffer(char *pBuffer, unsigned int Samples);
+	bool WriteBuffer(array_view<char> Buffer);		// // //
 
 	buffer_event_t WaitForSyncEvent(DWORD dwTimeout) const;
 

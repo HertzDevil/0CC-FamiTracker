@@ -890,7 +890,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 
 			int iw = t.ReadInt(0, CInstrumentN163::MAX_WAVE_COUNT - 1);
 			CHECK_COLON();
-			for (int s = 0; s < pInst->GetWaveSize(); ++s)
+			for (unsigned s = 0; s < pInst->GetWaveSize(); ++s)
 				pInst->SetSample(iw, s, t.ReadInt(0, 15));
 			t.ReadEOL();
 		}
@@ -1276,7 +1276,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 						CT[CT_N163WAVE], i, w);
 					f.WriteString(s);
 
-					for (int smp=0; smp < pDI->GetWaveSize(); ++smp)
+					for (unsigned smp=0; smp < pDI->GetWaveSize(); ++smp)
 					{
 						s.Format(_T(" %d"), pDI->GetSample(w, smp));
 						f.WriteString(s);

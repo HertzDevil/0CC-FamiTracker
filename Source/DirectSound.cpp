@@ -279,7 +279,7 @@ bool CDSoundChannel::ClearBuffer()
 	return true;
 }
 
-bool CDSoundChannel::WriteBuffer(char *pBuffer, unsigned int Samples)
+bool CDSoundChannel::WriteBuffer(array_view<char> Buffer)		// // //
 {
 	// Fill sound buffer
 	//
@@ -291,15 +291,15 @@ bool CDSoundChannel::WriteBuffer(char *pBuffer, unsigned int Samples)
 	DWORD AudioBytes1, AudioBytes2;
 	int	  Block = m_iCurrentWriteBlock;
 
-	ASSERT(Samples == m_iBlockSize);
+	ASSERT(Buffer.size() == m_iBlockSize);
 
 	if (FAILED(m_lpDirectSoundBuffer->Lock(Block * m_iBlockSize, m_iBlockSize, (void**)&pAudioPtr1, &AudioBytes1, (void**)&pAudioPtr2, &AudioBytes2, 0)))
 		return false;
 
-	memcpy(pAudioPtr1, pBuffer, AudioBytes1);
+	memcpy(pAudioPtr1, Buffer.data(), AudioBytes1);
 
 	if (pAudioPtr2)
-		memcpy(pAudioPtr2, pBuffer + AudioBytes1, AudioBytes2);
+		memcpy(pAudioPtr2, Buffer.data() + AudioBytes1, AudioBytes2);
 
 	if (FAILED(m_lpDirectSoundBuffer->Unlock((void*)pAudioPtr1, AudioBytes1, (void*)pAudioPtr2, AudioBytes2)))
 		return false;

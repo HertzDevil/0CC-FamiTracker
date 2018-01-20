@@ -1451,6 +1451,9 @@
     <ClInclude Include="Source\FindDlg.h">
       <Filter>Header Files\Dialog Boxes Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Source\array_view.h">
+      <Filter>Header Files\Other Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="0CC-FamiTracker.rc">

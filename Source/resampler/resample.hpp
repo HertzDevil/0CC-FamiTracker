@@ -86,9 +86,8 @@ public:
     bool    fail() const { return (flags_ & (failbit | badbit)) != 0; }
     bool    bad()  const { return (flags_ & badbit) != 0; }
     bool    eof()  const { return (flags_ & badbit) != 0; }
-    bool    good() const { return (*this) != 0; }
-    bool operator!() const { return fail(); }
-    operator const void *() const { return fail() ? 0 : this; }
+    bool    good() const { return !fail(); }		// // //
+	explicit operator bool() const { return good(); }		// // //
 
     // state control
     void clear(iostate b= goodbit)

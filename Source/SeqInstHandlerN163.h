@@ -58,7 +58,7 @@ private:
 	void UpdateWave(const CInstrumentN163 &Inst);
 
 private:
-	char m_cBuffer[CInstrumentN163::MAX_WAVE_SIZE * 2];
+	char m_cBuffer[CInstrumentN163::MAX_WAVE_SIZE * 2] = { };
 	char *m_pBufferCurrent, *m_pBufferPrevious;
 	bool m_bForceUpdate;
 };

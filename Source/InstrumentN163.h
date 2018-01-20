@@ -34,8 +34,8 @@ public:
 	bool	Load(CDocumentFile *pDocFile) override;
 
 public:
-	int		GetWaveSize() const;
-	void	SetWaveSize(int size);
+	unsigned GetWaveSize() const;		// // //
+	void	SetWaveSize(unsigned size);
 	int		GetWavePos() const;
 	void	SetWavePos(int pos);
 	int		GetSample(int wave, int pos) const;
@@ -69,7 +69,7 @@ public:
 
 private:
 	std::array<std::array<int, MAX_WAVE_SIZE>, MAX_WAVE_COUNT> m_iSamples = { };		// // //
-	int		m_iWaveSize;
+	unsigned m_iWaveSize;
 	int		m_iWavePos;
 	bool	m_bAutoWavePos;		// // // 050B
 	int		m_iWaveCount;
