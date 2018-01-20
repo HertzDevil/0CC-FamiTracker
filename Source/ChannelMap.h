@@ -35,7 +35,7 @@ class CChannelMap
 {
 public:
 	CChannelMap() = default;		// // //
-	CChannelMap(CSoundChipSet chips, unsigned n163chs);
+	CChannelMap(const CSoundChipSet &chips, unsigned n163chs);
 
 	const CChannelOrder &GetChannelOrder() const;
 

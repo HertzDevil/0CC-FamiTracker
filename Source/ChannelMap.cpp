@@ -24,7 +24,7 @@
 #include "TrackerChannel.h"
 #include "APU/Types.h"		// // //
 
-CChannelMap::CChannelMap(CSoundChipSet chips, unsigned n163chs) :
+CChannelMap::CChannelMap(const CSoundChipSet &chips, unsigned n163chs) :
 	chips_(chips), n163chs_(n163chs)
 {
 }

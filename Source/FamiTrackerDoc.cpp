@@ -70,6 +70,7 @@
 #include "SongView.h"		// // //
 #include "FamiTrackerDocOldIO.h"		// // //
 #include "NumConv.h"		// // //
+#include "SongLengthScanner.h"		// // // TODO: remove
 
 #include "ft0cc/doc/groove.hpp"		// // //
 #include "Sequence.h"		// // //
@@ -1225,139 +1226,20 @@ CBookmark *CFamiTrackerDoc::GetBookmarkAt(unsigned int Track, unsigned int Frame
 	return nullptr;
 }
 
-class loop_visitor {
-public:
-	loop_visitor(const CChannelMap &map, const CSongData &song) : map_(map), song_(song) { }
-
-	template <typename F, typename G>
-	void Visit(F cb, G fx) {
-		unsigned FrameCount = song_.GetFrameCount();
-		unsigned Rows = song_.GetPatternLength();
-
-		std::bitset<MAX_PATTERN_LENGTH> RowVisited[MAX_FRAMES] = { };		// // //
-		while (!RowVisited[f_][r_]) {
-			RowVisited[f_][r_] = true;
-
-			int Bxx = -1;
-			int Dxx = -1;
-			bool Cxx = false;
-			for (int ch = 0; ch < map_.GetChannelCount(); ++ch) {
-				const auto &Note = song_.GetPatternOnFrame(map_.GetChannelType(ch), f_).GetNoteOn(r_);		// // //
-				for (int l = 0, m = song_.GetEffectColumnCount(map_.GetChannelType(ch)); l <= m; ++l) {
-					switch (Note.EffNumber[l]) {
-					case EF_JUMP:
-						Bxx = Note.EffParam[l];
-						break;
-					case EF_SKIP:
-						Dxx = Note.EffParam[l];
-						break;
-					case EF_HALT:
-						if (!first_)
-							return;
-						first_ = false;
-						Cxx = true;
-					default:
-						if constexpr (std::is_invocable_v<G, int, effect_t, unsigned char>)
-							fx(ch, Note.EffNumber[l], Note.EffParam[l]);
-					}
-				}
-			}
-
-			if constexpr (std::is_invocable_v<F, unsigned, unsigned>)
-				cb(f_, r_);
-			else
-				cb();
-
-			if (Cxx)
-				return;
-			if (Bxx != -1) {
-				f_ = std::min(static_cast<unsigned int>(Bxx), FrameCount - 1);
-				r_ = 0;
-			}
-			else if (Dxx != -1)
-				r_ = std::min(static_cast<unsigned int>(Dxx), Rows - 1);
-			else if (++r_ >= Rows) {		// // //
-				r_ = 0;
-				if (++f_ >= FrameCount)
-					f_ = 0;
-			}
-		}
-	}
-
-private:
-	const CChannelMap &map_;
-	const CSongData &song_;
-	unsigned f_ = 0;
-	unsigned r_ = 0;
-	bool first_ = true;
-};
-
-unsigned int CFamiTrackerDoc::ScanActualLength(unsigned int Track, unsigned int Count) const		// // //
+unsigned int CFamiTrackerDoc::ScanActualLength(unsigned int Track, unsigned int Count) const		// // // TODO: remove
 {
-	// Return number for frames played for a certain number of loops
-	int FirstLoop = 0;
-	int SecondLoop = 0;
-
-	loop_visitor visitor(*GetChannelMap(), GetSongData(Track));
-	visitor.Visit([&] { ++FirstLoop; }, [] { });
-	visitor.Visit([&] { ++SecondLoop; }, [] { });
-
+	auto pSongView = const_cast<CFamiTrackerDoc *>(this)->MakeSongView(Track);
+	CSongLengthScanner scanner {*GetModule(), *pSongView};
+	auto [FirstLoop, SecondLoop] = scanner.GetRowCount();
 	return FirstLoop + SecondLoop * (Count - 1);		// // //
 }
 
-double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) const		// // //
+double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) const		// // // TODO: remove
 {
-	const auto &song = GetSongData(Track);
-
-	double Tempo = song.GetSongTempo();
-	if (!Tempo)
-		Tempo = 2.5 * GetFrameRate();
-	const bool AllowTempo = song.GetSongTempo() != 0;
-	const int Split = GetSpeedSplitPoint();
-	int Speed = song.GetSongSpeed();
-	int GrooveIndex = song.GetSongGroove() ? Speed : -1;
-	int GroovePointer = 0;
-
-	if (GrooveIndex != -1 && !HasGroove(Speed)) {
-		GrooveIndex = -1;
-		Speed = DEFAULT_SPEED;
-	}
-
-	const auto fxhandler = [&] (int ch, effect_t fx, uint8_t param) {
-		switch (fx) {
-		case EF_SPEED:
-			if (AllowTempo && param >= Split)
-				Tempo = param;
-			else {
-				GrooveIndex = -1;
-				Speed = param;
-			}
-			break;
-		case EF_GROOVE:
-			if (HasGroove(param)) {
-				GrooveIndex = param;
-				GroovePointer = 0;
-			}
-			break;
-		}
-	};
-
-	double FirstLoop = 0.0;
-	double SecondLoop = 0.0;
-
-	loop_visitor visitor(*GetChannelMap(), song);
-	visitor.Visit([&] {
-		if (auto pGroove = GetGroove(GrooveIndex))
-			Speed = pGroove->entry(GroovePointer++);
-		FirstLoop += Speed / Tempo;
-	}, fxhandler);
-	visitor.Visit([&] {
-		if (auto pGroove = GetGroove(GrooveIndex))
-			Speed = pGroove->entry(GroovePointer++);
-		SecondLoop += Speed / Tempo;
-	}, fxhandler);
-
-	return (2.5 * (FirstLoop + SecondLoop * ExtraLoops));
+	auto pSongView = const_cast<CFamiTrackerDoc *>(this)->MakeSongView(Track);
+	CSongLengthScanner scanner {*GetModule(), *pSongView};
+	auto [FirstLoop, SecondLoop] = scanner.GetSecondsCount();
+	return FirstLoop + SecondLoop * ExtraLoops;
 }
 
 // Operations

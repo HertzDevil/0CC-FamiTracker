@@ -57,6 +57,7 @@
 #include "FamiTrackerModule.h"
 #include "SongData.h"
 #include "SongView.h"
+#include "SongLengthScanner.h"
 #include "AudioDriver.h"
 #include "GrooveDlg.h"
 #include "GotoDlg.h"
@@ -2169,14 +2170,11 @@ void CMainFrame::OnModuleBookmarkSettings()		// // //
 
 void CMainFrame::OnModuleEstimateSongLength()		// // //
 {
-	const CFamiTrackerDoc &Doc = GetDoc();
-	double Intro = Doc.GetStandardLength(m_iTrack, 0);
-	double Loop = Doc.GetStandardLength(m_iTrack, 1) - Intro;
-	Intro = Intro - Loop;
-	int Rate = Doc.GetFrameRate();
+	CSongLengthScanner scanner {*GetDoc().GetModule(), *static_cast<CFamiTrackerView *>(GetActiveView())->GetSongView()};
+	auto [Intro, Loop] = scanner.GetSecondsCount();
+	auto [IntroRows, LoopRows] = scanner.GetRowCount();
 
-	int IntroRows = Doc.ScanActualLength(m_iTrack, 0);
-	int LoopRows = Doc.ScanActualLength(m_iTrack, 1) - IntroRows;
+	int Rate = GetDoc().GetFrameRate();
 
 	const TCHAR *fmt = _T("Estimated duration:\n"
 		"Intro: %lld:%02lld.%02lld (%d rows, %lld ticks)\n"

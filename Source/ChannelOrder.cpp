@@ -49,3 +49,26 @@ bool CChannelOrder::AddChannel(chan_id_t chan) {
 	}
 	return false;
 }
+
+CChannelOrder CChannelOrder::Canonicalize() const {
+	static const chan_id_t CANONICAL_ORDER[] = {
+		chan_id_t::SQUARE1, chan_id_t::SQUARE2, chan_id_t::TRIANGLE, chan_id_t::NOISE,
+		chan_id_t::MMC5_SQUARE1, chan_id_t::MMC5_SQUARE2, chan_id_t::MMC5_VOICE,
+		chan_id_t::VRC6_PULSE1, chan_id_t::VRC6_PULSE2, chan_id_t::VRC6_SAWTOOTH,
+		chan_id_t::N163_CH1, chan_id_t::N163_CH2, chan_id_t::N163_CH3, chan_id_t::N163_CH4,
+		chan_id_t::N163_CH5, chan_id_t::N163_CH6, chan_id_t::N163_CH7, chan_id_t::N163_CH8,
+		chan_id_t::FDS,
+		chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3,
+		chan_id_t::VRC7_CH1, chan_id_t::VRC7_CH2, chan_id_t::VRC7_CH3,
+		chan_id_t::VRC7_CH4, chan_id_t::VRC7_CH5, chan_id_t::VRC7_CH6,
+		chan_id_t::DPCM,
+	};
+
+	CChannelOrder orderNew;
+
+	for (chan_id_t ch : CANONICAL_ORDER)
+		if (HasChannel(ch))
+			orderNew.AddChannel(ch);
+
+	return orderNew;
+}

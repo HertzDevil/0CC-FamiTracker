@@ -23,31 +23,26 @@
 
 #pragma once
 
-#include <vector>
-#include <unordered_map>
-#include "APU/Types_fwd.h"
+#include <utility>
 
-// // // common functionality between CChannelMap and CSongView
+class CFamiTrackerModule;
+class CSongView;
 
-class CChannelOrder {
+class CSongLengthScanner {
 public:
-	chan_id_t TranslateChannel(std::size_t index) const;
-	bool HasChannel(chan_id_t chan) const;
-	std::size_t GetChannelIndex(chan_id_t chan) const;
-	std::size_t GetChannelCount() const;
-
-	bool AddChannel(chan_id_t chan);
-
-	CChannelOrder Canonicalize() const;
-
-	// void (*F)(chan_id_t chan)
-	template <typename F>
-	void ForeachChannel(F f) const {
-		for (chan_id_t ch : order_)
-			f(ch);
-	}
+	CSongLengthScanner(const CFamiTrackerModule &modfile, CSongView &view);
+	std::pair<unsigned, unsigned> GetRowCount();
+	std::pair<double, double> GetSecondsCount();
 
 private:
-	std::vector<chan_id_t> order_;
-	std::unordered_map<chan_id_t, std::size_t> indices_;
+	void Compute();
+
+	const CFamiTrackerModule &modfile_;
+	CSongView &song_view_;
+
+	unsigned rows1_ = 0;
+	unsigned rows2_ = 0;
+	double sec1_ = 0.;
+	double sec2_ = 0.;
+	bool scanned_ = false;
 };
