@@ -970,7 +970,7 @@ void CFamiTrackerDoc::SelectExpansionChip(const CSoundChipSet &chips, unsigned n
 }
 
 const CSoundChipSet &CFamiTrackerDoc::GetExpansionChip() const {
-	return m_pChannelMap->GetExpansionFlag();		// // //
+	return GetChannelMap()->GetExpansionFlag();		// // //
 }
 
 bool CFamiTrackerDoc::HasExpansionChips() const {		// // //
@@ -1015,11 +1015,11 @@ void CFamiTrackerDoc::ModifyIrreversible()
 }
 
 bool CFamiTrackerDoc::ExpansionEnabled(sound_chip_t Chip) const {
-	return m_pChannelMap->HasExpansionChip(Chip);		// // //
+	return GetChannelMap()->HasExpansionChip(Chip);		// // //
 }
 
 int CFamiTrackerDoc::GetNamcoChannels() const {
-	return m_pChannelMap->GetChipChannelCount(sound_chip_t::N163);		// // //
+	return GetChannelMap()->GetChipChannelCount(sound_chip_t::N163);		// // //
 }
 
 unsigned int CFamiTrackerDoc::GetFirstFreePattern(unsigned int Track, chan_id_t Channel) const
@@ -1039,7 +1039,7 @@ sound_chip_t CFamiTrackerDoc::GetChipType(int Index) const {
 }
 
 int CFamiTrackerDoc::GetChannelCount() const {
-	return GetChannelMap()->GetChannelCount();		// // //
+	return GetChannelMap()->GetChannelOrder().GetChannelCount();		// // //
 }
 
 chan_id_t CFamiTrackerDoc::TranslateChannel(unsigned Index) const {		// // //
@@ -1051,11 +1051,11 @@ CTrackerChannel &CFamiTrackerDoc::GetChannel(int Index) const {		// // //
 }
 
 int CFamiTrackerDoc::GetChannelIndex(chan_id_t Channel) const {
-	return GetChannelMap()->GetChannelIndex(Channel);		// // //
+	return GetChannelMap()->GetChannelOrder().GetChannelIndex(Channel);		// // //
 }
 
 bool CFamiTrackerDoc::HasChannel(chan_id_t Channel) const {		// // //
-	return GetChannelMap()->HasChannel(Channel);
+	return GetChannelMap()->GetChannelOrder().HasChannel(Channel);
 }
 
 // Attributes

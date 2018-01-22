@@ -66,7 +66,6 @@ struct replaceTerm
 	bool NoiseChan;
 };
 
-class CFamiTrackerDoc;
 class CFamiTrackerView;
 class CSongView;
 class CCompoundAction;
@@ -222,7 +221,6 @@ protected:
 	bool Find(bool ShowEnd);
 	bool Replace(CCompoundAction *pAction = nullptr);
 
-	CFamiTrackerDoc *m_pDocument;
 	CFamiTrackerView *m_pView;
 
 	CEdit m_cFindNoteField, m_cFindInstField, m_cFindVolField, m_cFindEffField;

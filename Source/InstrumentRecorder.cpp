@@ -88,7 +88,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 	int Detune = 0x7FFFFFFF;
 	unsigned ID = GetChannelSubIndex(m_iRecordChannel);
 
-	sound_chip_t Chip = m_pDocument->GetChipType(m_pDocument->GetChannelIndex(m_iRecordChannel));
+	sound_chip_t Chip = GetChipFromChannel(m_iRecordChannel);
 	const auto REG = [&] (int x) { return m_pSoundGen->GetReg(Chip, x); };
 
 	switch (Chip) {

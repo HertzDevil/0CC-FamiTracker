@@ -37,8 +37,6 @@ enum note_prio_t : unsigned {
 	NOTE_PRIO_2
 };
 
-class CChannelMap;		// // //
-
 class CTrackerChannel
 {
 public:

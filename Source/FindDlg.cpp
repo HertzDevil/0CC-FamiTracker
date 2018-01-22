@@ -23,7 +23,6 @@
 #include "FindDlg.h"
 #include <map>
 #include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
 #include "TrackerChannel.h"
 #include "MainFrm.h"
@@ -207,10 +206,10 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 	int Pos = m_cListResults.GetItemCount();
 	m_cListResults.InsertItem(Pos, conv::sv_from_int(Pos + 1).data());
 
-	const auto pDoc = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
-	m_cListResults.SetItemText(Pos, CHANNEL, pDoc->GetChannel(Cursor.m_iChannel).GetChannelName());
-	m_cListResults.SetItemText(Pos, PATTERN, conv::sv_from_int_hex(pDoc->GetPatternAtFrame(
-		Track, Cursor.m_iFrame, pDoc->TranslateChannel(Cursor.m_iChannel)), 2).data());
+	const CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
+	CSongView *pSongView = pView->GetSongView();
+	m_cListResults.SetItemText(Pos, CHANNEL, pView->GetTrackerChannel(Cursor.m_iChannel).GetChannelName());
+	m_cListResults.SetItemText(Pos, PATTERN, conv::sv_from_int_hex(pSongView->GetFramePattern(Cursor.m_iChannel, Cursor.m_iFrame), 2).data());
 
 	m_cListResults.SetItemText(Pos, FRAME, conv::sv_from_int_hex(Cursor.m_iFrame, 2).data());
 	m_cListResults.SetItemText(Pos, ROW, conv::sv_from_int_hex(Cursor.m_iRow, 2).data());
@@ -259,8 +258,6 @@ void CFindResultsBox::ClearResults()
 
 void CFindResultsBox::SelectItem(int Index)
 {
-	const auto pDoc = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
-
 	const auto ToChannelID = [] (std::string_view x) {
 		static const std::tuple<std::string_view, sound_chip_t, unsigned> HEADERS[] = {
 			{"Pulse "     , sound_chip_t::APU , GetChannelSubIndex(chan_id_t::SQUARE1)},
@@ -292,7 +289,7 @@ void CFindResultsBox::SelectItem(int Index)
 	};
 
 	auto pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
-	int Channel = pDoc->GetChannelIndex(Cache(m_cListResults.GetItemText(Index, CHANNEL).GetString()));
+	int Channel = pView->GetSongView()->GetChannelOrder().GetChannelIndex(Cache(m_cListResults.GetItemText(Index, CHANNEL).GetString()));
 	if (Channel != -1) pView->SelectChannel(Channel);
 	pView->SelectFrame(strtol(m_cListResults.GetItemText(Index, FRAME), nullptr, 16));
 	pView->SelectRow(strtol(m_cListResults.GetItemText(Index, ROW), nullptr, 16));
@@ -1041,8 +1038,9 @@ void CFindDlg::RaiseIf(bool Check, LPCTSTR Str, T... args)
 
 bool CFindDlg::Find(bool ShowEnd)
 {
-	const int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
-	const int Frames = m_pDocument->GetFrameCount(Track);
+	CSongView *pSongView = m_pView->GetSongView();
+	const CChannelOrder &Order = pSongView->GetChannelOrder();
+	const int Frames = pSongView->GetSong().GetFrameCount();
 
 	if (ShowEnd)
 		m_pFindCursor.reset();
@@ -1059,8 +1057,8 @@ bool CFindDlg::Find(bool ShowEnd)
 			m_pFindCursor->Move(m_iSearchDirection);
 		}
 		const auto &Target = m_pFindCursor->Get();
-		if (CompareFields(Target, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel) == chan_id_t::NOISE,
-							m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel)))) {
+		if (CompareFields(Target, Order.TranslateChannel(m_pFindCursor->m_iChannel) == chan_id_t::NOISE,
+			pSongView->GetEffectColumnCount(m_pFindCursor->m_iChannel))) {
 			auto pCursor = std::move(m_pFindCursor);
 			m_pView->SelectFrame(pCursor->m_iFrame % Frames);
 			m_pView->SelectRow(pCursor->m_iRow);
@@ -1080,7 +1078,7 @@ bool CFindDlg::Find(bool ShowEnd)
 
 bool CFindDlg::Replace(CCompoundAction *pAction)
 {
-	const int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
+	CSongView *pSongView = m_pView->GetSongView();
 
 	if (m_bFound) {
 		ASSERT(m_pFindCursor != nullptr);
@@ -1106,7 +1104,7 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 			if (m_cEffectColumn.GetCurSel() < MAX_EFFECT_COLUMNS)
 				MatchedColumns.push_back(m_cEffectColumn.GetCurSel());
 			else {
-				const int c = m_pDocument->GetEffColumns(Track, m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel));
+				const int c = pSongView->GetEffectColumnCount(m_pFindCursor->m_iChannel);
 				for (int i = 0; i <= c; ++i)
 					if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[Target.EffNumber[i]]) &&
 						(!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.EffParam[i])))
@@ -1115,7 +1113,7 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 
 			if (m_replaceTerm.Definite[WC_EFF]) {
 				effect_t fx = GetEffectFromChar(EFF_CHAR[m_replaceTerm.Note.EffNumber[0] - 1],
-												m_pDocument->GetChipType(m_pFindCursor->m_iChannel));
+					GetChipFromChannel(pSongView->GetChannelOrder().TranslateChannel(m_pFindCursor->m_iChannel)));
 				for (const int &i : MatchedColumns)
 					Target.EffNumber[i] = fx;
 			}
@@ -1141,10 +1139,10 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 
 bool CFindDlg::PrepareFind()
 {
-	m_pDocument = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
 	m_pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
-	if (!m_pDocument || !m_pView) {
-		AfxMessageBox(_T("Unknown error."), MB_ICONERROR); return false;
+	if (!m_pView || !m_pView->GetSongView()) {
+		AfxMessageBox(_T("Cannot find song view."), MB_ICONERROR);
+		return false;
 	}
 
 	try {
@@ -1180,8 +1178,8 @@ void CFindDlg::PrepareCursor(bool ReplaceAll)
 	if (m_pFindCursor)
 		return;
 
-	const int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
-	const int Frames = m_pDocument->GetFrameCount(Track);
+	CSongView *pSongView = m_pView->GetSongView();
+	const int Frames = pSongView->GetSong().GetFrameCount();
 	const CPatternEditor *pEditor = m_pView->GetPatternEditor();
 	CCursorPos Cursor = pEditor->GetCursor();
 	CSelection Scope;
@@ -1205,15 +1203,15 @@ void CFindDlg::PrepareCursor(bool ReplaceAll)
 		switch (m_cSearchArea.GetCurSel()) {
 		case 0: case 2: // Track, Frame
 			Scope.m_cpStart.m_iChannel = 0;
-			Scope.m_cpEnd.m_iChannel = m_pDocument->GetChannelCount() - 1; break;
+			Scope.m_cpEnd.m_iChannel = pSongView->GetChannelOrder().GetChannelCount() - 1; break;
 		case 1: case 3: // Channel, Pattern
 			Scope.m_cpStart.m_iChannel = Scope.m_cpEnd.m_iChannel = Cursor.m_iChannel; break;
 		}
 
 		Scope.m_cpStart.m_iRow = 0;
-		Scope.m_cpEnd.m_iRow = pEditor->GetCurrentPatternLength(Scope.m_cpEnd.m_iFrame) - 1;
+		Scope.m_cpEnd.m_iRow = pSongView->GetCurrentPatternLength(Scope.m_cpEnd.m_iFrame) - 1;
 	}
-	m_pFindCursor = std::make_unique<CFindCursor>(*m_pView->GetSongView(), ReplaceAll ? Scope.m_cpStart : Cursor, Scope);
+	m_pFindCursor = std::make_unique<CFindCursor>(*pSongView, ReplaceAll ? Scope.m_cpStart : Cursor, Scope);
 }
 
 void CFindDlg::OnBnClickedButtonFindNext()
@@ -1276,7 +1274,8 @@ void CFindDlg::OnBnClickedButtonFindAll()
 {
 	if (!PrepareFind()) return;
 
-	const int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
+	CSongView *pSongView = m_pView->GetSongView();
+	const CChannelOrder &Order = pSongView->GetChannelOrder();
 	m_iSearchDirection = IsDlgButtonChecked(IDC_CHECK_VERTICAL_SEARCH) ?
 		CFindCursor::direction_t::DOWN : CFindCursor::direction_t::RIGHT;
 
@@ -1285,9 +1284,9 @@ void CFindDlg::OnBnClickedButtonFindAll()
 	m_cResultsBox.ClearResults();
 	do {
 		const auto &Target = m_pFindCursor->Get();
-		chan_id_t ch = m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel);
-		if (CompareFields(Target, ch == chan_id_t::NOISE, m_pDocument->GetEffColumns(Track, ch)))
-			m_cResultsBox.AddResult(Target, *m_pFindCursor, ch == chan_id_t::NOISE);
+		bool isNoise = Order.TranslateChannel(m_pFindCursor->m_iChannel) == chan_id_t::NOISE;
+		if (CompareFields(Target, isNoise, pSongView->GetEffectColumnCount(m_pFindCursor->m_iChannel)))
+			m_cResultsBox.AddResult(Target, *m_pFindCursor, isNoise);
 		m_pFindCursor->Move(m_iSearchDirection);
 	} while (!m_pFindCursor->AtStart());
 
@@ -1301,7 +1300,8 @@ void CFindDlg::OnBnClickedButtonReplaceall()
 {
 	if (!PrepareReplace()) return;
 
-	const int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
+	CSongView *pSongView = m_pView->GetSongView();
+	const CChannelOrder &Order = pSongView->GetChannelOrder();
 	unsigned int Count = 0;
 
 	m_iSearchDirection = IsDlgButtonChecked(IDC_CHECK_VERTICAL_SEARCH) ?
@@ -1311,8 +1311,8 @@ void CFindDlg::OnBnClickedButtonReplaceall()
 	PrepareCursor(true);
 	do {
 		const auto &Target = m_pFindCursor->Get();
-		chan_id_t ch = m_pDocument->TranslateChannel(m_pFindCursor->m_iChannel);
-		if (CompareFields(Target, ch == chan_id_t::NOISE, m_pDocument->GetEffColumns(Track, ch))) {
+		bool isNoise = Order.TranslateChannel(m_pFindCursor->m_iChannel) == chan_id_t::NOISE;
+		if (CompareFields(Target, isNoise, pSongView->GetEffectColumnCount(m_pFindCursor->m_iChannel))) {
 			m_bFound = true;
 			Replace(static_cast<CCompoundAction *>(pAction.get()));
 			++Count;

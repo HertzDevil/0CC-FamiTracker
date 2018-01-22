@@ -43,6 +43,7 @@
 #include "InstrumentEditorN163Wave.h"
 #include "MainFrm.h"
 #include "SoundGen.h"
+#include "SongView.h"		// // //
 #include "TrackerChannel.h"
 #include "DPI.h"		// // //
 
@@ -340,33 +341,37 @@ void CInstrumentEditDlg::ChangeNoteState(int Note)
 void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 {
 	CFamiTrackerView *pView = CFamiTrackerView::GetView();
-	CFamiTrackerDoc *pDoc = pView->GetDocument();
+	const CChannelOrder &Order = pView->GetSongView()->GetChannelOrder();
 	CMainFrame *pFrameWnd = static_cast<CMainFrame*>(GetParent());
 	chan_id_t Channel = pView->GetSelectedChannelID();		// // //
 
-	stChanNote NoteData;
-
 	// // // Send to respective channels whenever cursor is outside instrument chip
 	if (m_iSelectedInstType == INST_2A03) {
-		if (m_pPanels[0]->IsWindowVisible() && Channel > chan_id_t::NOISE)
-			pView->SelectChannel(pDoc->GetChannelIndex(chan_id_t::SQUARE1));
-		if (m_pPanels[1]->IsWindowVisible())
-			pView->SelectChannel(pDoc->GetChannelIndex(chan_id_t::DPCM));
+		if (m_pPanels[0]->IsWindowVisible()) {
+			if (Order.HasChannel(chan_id_t::SQUARE1) && (GetChipFromChannel(chan_id_t::SQUARE1) != GetChipFromChannel(Channel) || Channel == chan_id_t::DPCM))
+				pView->SelectChannel(Order.GetChannelIndex(chan_id_t::SQUARE1));
+		}
+		else if (m_pPanels[1]->IsWindowVisible()) {
+			if (Order.HasChannel(chan_id_t::DPCM) && Channel != chan_id_t::DPCM)
+				pView->SelectChannel(Order.GetChannelIndex(chan_id_t::DPCM));
+		}
 	}
 	else {
 		chan_id_t First = chan_id_t::NONE;
 		switch (m_iSelectedInstType) {
+//		case INST_2A03: First = chan_id_t::SQUARE1; break;
 		case INST_VRC6: First = chan_id_t::VRC6_PULSE1; break;
 		case INST_N163: First = chan_id_t::N163_CH1; break;
 		case INST_FDS:  First = chan_id_t::FDS; break;
 		case INST_VRC7: First = chan_id_t::VRC7_CH1; break;
 		case INST_S5B:  First = chan_id_t::S5B_CH1; break;
 		}
-		if (pDoc->HasChannel(First))
-			if (int Index = pDoc->GetChannelIndex(First); pDoc->GetChipType(Index) != pDoc->GetChipType(pDoc->GetChannelIndex(Channel)))
-				pView->SelectChannel(Index);
+		if (Order.HasChannel(First) && GetChipFromChannel(First) != GetChipFromChannel(Channel))
+			pView->SelectChannel(Order.GetChannelIndex(First));
 	}
 	Channel = pView->GetSelectedChannelID();		// // //
+
+	stChanNote NoteData;
 
 	if (m_KeyboardRect.PtInRect({x, y})) {
 		int KeyPos = (x - m_KeyboardRect.left) % 70;		// // //

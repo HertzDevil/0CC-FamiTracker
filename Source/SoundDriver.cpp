@@ -139,7 +139,8 @@ std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(const CSoundChipSet &c
 	// Expansion & internal channels
 	for (auto &x : tracks_)
 		if (x.first && x.second && map->SupportsChannel(*x.second))
-			map->RegisterChannel(*x.second);
+			if (map->GetChannelOrder().AddChannel(x.second->GetID()))
+				map->RegisterChannel(*x.second);
 
 	return map;
 }
