@@ -34,6 +34,7 @@
 #include "DetuneTable.h"
 #include "FamiTrackerEnv.h"
 #include "Sequence.h"
+#include "ChannelName.h"
 
 CInstrumentRecorder::CInstrumentRecorder(CSoundGen *pSG) :
 	m_pSoundGen(pSG),
@@ -319,7 +320,8 @@ void CInstrumentRecorder::InitRecordInstrument()
 	if (!*m_pDumpInstrument) return;
 
 	CString str;
-	str.Format(_T("from %s"), Chan.GetChannelName());
+	auto sv = GetChannelFullName(m_iRecordChannel);
+	str.Format(_T("from %.*s"), sv.size(), sv.data());
 	(*m_pDumpInstrument)->SetName((LPCTSTR)str);
 
 	if (Type == INST_FDS) {

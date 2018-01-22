@@ -29,6 +29,7 @@
 #include "TrackerChannel.h"
 #include "WavProgressDlg.h"
 #include "WaveRenderer.h"		// // //
+#include "ChannelName.h"		// // //
 
 const int MAX_LOOP_TIMES = 99;
 const int MAX_PLAY_TIME	 = (99 * 60) + 0;
@@ -155,7 +156,7 @@ BOOL CCreateWaveDlg::OnInitDialog()
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
 	pDoc->ForeachChannel([&] (chan_id_t i) {
-		m_ctlChannelList.AddString(pDoc->GetChannel(pDoc->GetChannelIndex(i)).GetChannelName());		// // //
+		m_ctlChannelList.AddString(GetChannelFullName(i).data());		// // //
 		m_ctlChannelList.SetCheck(pDoc->GetChannelIndex(i), 1);
 	});
 

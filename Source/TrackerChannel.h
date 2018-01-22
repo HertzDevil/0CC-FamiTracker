@@ -40,10 +40,7 @@ enum note_prio_t : unsigned {
 class CTrackerChannel
 {
 public:
-	CTrackerChannel(LPCTSTR pName, LPCTSTR pShort, sound_chip_t iChip, chan_id_t iID);		// // //
-	~CTrackerChannel(void);
-	LPCTSTR GetChannelName() const;
-	LPCTSTR GetShortName() const;		// // //
+	CTrackerChannel(sound_chip_t iChip, chan_id_t iID);		// // //
 	sound_chip_t GetChip() const;		// // //
 	chan_id_t GetID() const;		// // //
 
@@ -60,9 +57,6 @@ public:
 
 	bool IsInstrumentCompatible(int Instrument, inst_type_t Type) const;		// // //
 	bool IsEffectCompatible(int EffNumber, int EffParam) const;		// // //
-
-private:
-	LPCTSTR m_pChannelName, m_pShortName;		// // //
 
 private:
 	stChanNote m_Note;

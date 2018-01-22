@@ -33,6 +33,7 @@
 #include "NumConv.h"
 #include "SongData.h"
 #include "SongView.h"
+#include "ChannelName.h"
 
 namespace {
 
@@ -201,14 +202,12 @@ void CFindResultsBox::DoDataExchange(CDataExchange* pDX)
 
 void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Cursor, bool Noise)
 {
-	const int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
-
 	int Pos = m_cListResults.GetItemCount();
 	m_cListResults.InsertItem(Pos, conv::sv_from_int(Pos + 1).data());
 
 	const CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
 	CSongView *pSongView = pView->GetSongView();
-	m_cListResults.SetItemText(Pos, CHANNEL, pView->GetTrackerChannel(Cursor.m_iChannel).GetChannelName());
+	m_cListResults.SetItemText(Pos, CHANNEL, GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel)).data());
 	m_cListResults.SetItemText(Pos, PATTERN, conv::sv_from_int_hex(pSongView->GetFramePattern(Cursor.m_iChannel, Cursor.m_iFrame), 2).data());
 
 	m_cListResults.SetItemText(Pos, FRAME, conv::sv_from_int_hex(Cursor.m_iFrame, 2).data());
@@ -290,9 +289,11 @@ void CFindResultsBox::SelectItem(int Index)
 
 	auto pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
 	int Channel = pView->GetSongView()->GetChannelOrder().GetChannelIndex(Cache(m_cListResults.GetItemText(Index, CHANNEL).GetString()));
-	if (Channel != -1) pView->SelectChannel(Channel);
-	pView->SelectFrame(strtol(m_cListResults.GetItemText(Index, FRAME), nullptr, 16));
-	pView->SelectRow(strtol(m_cListResults.GetItemText(Index, ROW), nullptr, 16));
+	if (Channel != -1) {
+		pView->SelectChannel(Channel);
+		pView->SelectFrame(*conv::to_uint((LPCTSTR)m_cListResults.GetItemText(Index, FRAME), 16u));
+		pView->SelectRow(*conv::to_uint((LPCTSTR)m_cListResults.GetItemText(Index, ROW), 16u));
+	}
 	AfxGetMainWnd()->SetFocus();
 }
 

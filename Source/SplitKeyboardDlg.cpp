@@ -26,6 +26,9 @@
 #include "FamiTrackerDoc.h"
 #include "TrackerChannel.h"
 #include "APU/Types.h"
+#include "ChannelName.h"
+#include "ChannelMap.h"
+#include "ChannelOrder.h"
 
 // CSplitKeyboardDlg dialog
 
@@ -91,9 +94,9 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	pCombo->AddString(KEEP_INST_STRING);
 	pCombo->SetCurSel(0);
 	for (int i = 0; i < pDoc->GetChannelCount(); ++i) {
-		const auto &Chan = pDoc->GetChannel(i);
-		pCombo->AddString(Chan.GetChannelName());
-		if (m_iSplitChannel == Chan.GetID())
+		chan_id_t ch = pDoc->GetChannelMap()->GetChannelOrder().TranslateChannel(i);
+		pCombo->AddString(GetChannelFullName(ch).data());
+		if (m_iSplitChannel == ch)
 			pCombo->SetCurSel(i + 1);
 	}
 

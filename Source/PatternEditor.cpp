@@ -39,6 +39,7 @@
 #include "PatternClipData.h"		// // //
 #include "RegisterDisplay.h"		// // //
 #include "SongView.h"		// // //
+#include "ChannelName.h"		// // //
 
 /*
  * CPatternEditor
@@ -1503,9 +1504,8 @@ void CPatternEditor::DrawHeader(CDC &DC)
 		}
 
 		// Text
-		const auto &TrackerChannel = m_pView->GetTrackerChannel(Channel);		// // //
-		CString pChanName = (m_bCompactMode && m_iCharWidth < 6) ? _T("") :
-			(m_bCompactMode || m_iCharWidth < 9) ? TrackerChannel.GetShortName() : TrackerChannel.GetChannelName();		// // //
+		auto pChanName = (m_bCompactMode && m_iCharWidth < 6) ? _T("") :
+			(m_bCompactMode || m_iCharWidth < 9) ? GetChannelShortName(ch) : GetChannelFullName(ch);		// // //
 
 		COLORREF HeadTextCol = bMuted ? STATIC_COLOR_SCHEME.CHANNEL_MUTED : STATIC_COLOR_SCHEME.CHANNEL_NORMAL;
 
@@ -1514,13 +1514,13 @@ void CPatternEditor::DrawHeader(CDC &DC)
 			DC.SetTextAlign(TA_CENTER);
 
 		DC.SetTextColor(BLEND(HeadTextCol, WHITE, SHADE_LEVEL::TEXT_SHADOW));
-		DC.TextOut(Offset + (m_bCompactMode ? GetColumnSpace(C_NOTE) / 2 + 1 : 10) + 1, HEADER_CHAN_START + 6 + (bMuted ? 1 : 0), pChanName);
+		DC.TextOut(Offset + (m_bCompactMode ? GetColumnSpace(C_NOTE) / 2 + 1 : 10) + 1, HEADER_CHAN_START + 6 + (bMuted ? 1 : 0), pChanName.data(), pChanName.size());
 
 		// Foreground
 		if (m_iMouseHoverChan == Channel)
 			HeadTextCol = BLEND(HeadTextCol, MakeRGB(255, 255, 0), SHADE_LEVEL::HOVER);
 		DC.SetTextColor(HeadTextCol);
-		DC.TextOut(Offset + (m_bCompactMode ? GetColumnSpace(C_NOTE) / 2 + 1 : 10), HEADER_CHAN_START + 5, pChanName);		// // //
+		DC.TextOut(Offset + (m_bCompactMode ? GetColumnSpace(C_NOTE) / 2 + 1 : 10), HEADER_CHAN_START + 5, pChanName.data(), pChanName.size());		// // //
 
 		if (!m_bCompactMode) {		// // //
 			// Effect columns
@@ -3513,7 +3513,7 @@ void CPatternEditor::GetSelectionAsText(CString &str) const		// // //
 	CString Header(_T(' '), HexLength + 3);
 	Header.Append(_T("# "));
 	for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
-		Header.AppendFormat(_T(": %-13s"), m_pView->GetTrackerChannel(i).GetChannelName());
+		Header.AppendFormat(_T(": %-13s"), GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(i)).data());
 		int Columns = pSongView->GetEffectColumnCount(i);
 		if (i == it.second.m_iChannel)
 			Columns = std::clamp(static_cast<int>(GetSelectColumn(it.second.m_iColumn)) - 3, 0, Columns);

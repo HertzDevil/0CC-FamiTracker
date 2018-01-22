@@ -30,9 +30,7 @@
  *
  */
 
-CTrackerChannel::CTrackerChannel(LPCTSTR pName, LPCTSTR pShort, sound_chip_t iChip, chan_id_t iID) :		// // //
-	m_pShortName(pShort),		// // //
-	m_pChannelName(pName),
+CTrackerChannel::CTrackerChannel(sound_chip_t iChip, chan_id_t iID) :		// // //
 	m_iChip(iChip),
 	m_iChannelID(iID),
 	m_bNewNote(false),
@@ -40,20 +38,6 @@ CTrackerChannel::CTrackerChannel(LPCTSTR pName, LPCTSTR pShort, sound_chip_t iCh
 	m_iNotePriority(NOTE_PRIO_0),
 	m_iVolumeMeter(0)
 {
-}
-
-CTrackerChannel::~CTrackerChannel(void)
-{
-}
-
-LPCTSTR CTrackerChannel::GetChannelName() const
-{
-	return m_pChannelName;
-}
-
-LPCTSTR CTrackerChannel::GetShortName() const
-{
-	return m_pShortName;
 }
 
 sound_chip_t CTrackerChannel::GetChip() const
