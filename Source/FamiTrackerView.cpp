@@ -1247,6 +1247,7 @@ void CFamiTrackerView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHi
 	// Module properties has changed (including channel count)
 	case UPDATE_PROPERTIES:
 		// Old
+		song_view_ = GetDocument()->MakeSongView(GetMainFrame()->GetSelectedTrack());		// // //
 		m_pPatternEditor->ResetCursor();
 		//m_pPatternEditor->Modified();
 		pMainFrm->ResetUndo();
