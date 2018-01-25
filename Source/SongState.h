@@ -50,13 +50,13 @@ public:
 	*/
 	std::string GetStateString() const;
 
-	chan_id_t ChannelID = (chan_id_t)-1;
+	chan_id_t ChannelID = chan_id_t::NONE;
 	int Instrument = MAX_INSTRUMENTS;
 	int Volume = MAX_VOLUME;
-	std::array<int, EF_COUNT> Effect;
+	std::array<int, EF_COUNT> Effect = { };
 	int Effect_LengthCounter = -1;
 	int Effect_AutoFMMult = -1;
-	std::array<int, ECHO_BUFFER_LENGTH + 1> Echo;
+	std::array<int, ECHO_BUFFER_LENGTH + 1> Echo = { };
 
 private:
 	void HandleNote(const stChanNote &Note, unsigned EffColumns);

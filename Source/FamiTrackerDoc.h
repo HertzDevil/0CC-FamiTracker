@@ -193,7 +193,6 @@ public:
 	bool			HasChannel(chan_id_t Channel) const;		// // //
 
 	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
-	sound_chip_t	GetChipType(int Index) const;
 	int				GetChannelCount() const;
 #pragma endregion
 

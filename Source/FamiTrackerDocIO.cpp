@@ -30,6 +30,8 @@
 #include "Settings.h"
 #include "APU/Types.h"
 #include "SoundChipSet.h"
+#include "ChannelMap.h"
+#include "ChannelORder.h"
 
 #include "InstrumentManager.h"
 #include "Instrument2A03.h"
@@ -760,6 +762,8 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 		Song.SetPatternLength(PatternLen);
 	}
 
+	const CChannelOrder &order = doc.GetChannelMap()->GetChannelOrder();		// // //
+
 	while (!file_.BlockDone()) {
 		unsigned Track;
 		if (ver > 1)
@@ -770,6 +774,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 		unsigned Channel = AssertRange(file_.GetBlockInt(), 0, MAX_CHANNELS - 1, "Pattern channel index");
 		unsigned Pattern = AssertRange(file_.GetBlockInt(), 0, MAX_PATTERN - 1, "Pattern index");
 		unsigned Items	= AssertRange(file_.GetBlockInt(), 0, MAX_PATTERN_LENGTH, "Pattern data count");
+		chan_id_t ch = order.TranslateChannel(Channel);
 
 		auto pSong = doc.GetSong(Track);
 
@@ -839,7 +844,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 						Note.Instrument = MAX_INSTRUMENTS;
 				}
 
-				if (doc.ExpansionEnabled(sound_chip_t::N163) && doc.GetChipType(Channel) == sound_chip_t::N163) {		// // //
+				if (doc.GetExpansionChip().ContainsChip(sound_chip_t::N163) && GetChipFromChannel(ch) == sound_chip_t::N163) {		// // //
 					for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n)
 						if (Note.EffNumber[n] == EF_SAMPLE_OFFSET)
 							Note.EffNumber[n] = EF_N163_WAVE_BUFFER;
@@ -847,7 +852,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 
 				if (ver == 3) {
 					// Fix for VRC7 portamento
-					if (doc.GetChipType(Channel) == sound_chip_t::VRC7) {		// // //
+					if (GetChipFromChannel(ch) == sound_chip_t::VRC7) {		// // //
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
 							case EF_PORTA_DOWN:
@@ -860,7 +865,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 						}
 					}
 					// FDS pitch effect fix
-					else if (doc.GetChipType(Channel) == sound_chip_t::FDS) {
+					else if (GetChipFromChannel(ch) == sound_chip_t::FDS) {
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
 							case EF_PITCH:

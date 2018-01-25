@@ -40,7 +40,7 @@ enum note_prio_t : unsigned {
 class CTrackerChannel
 {
 public:
-	CTrackerChannel(sound_chip_t iChip, chan_id_t iID);		// // //
+	explicit CTrackerChannel(chan_id_t iID);		// // //
 	sound_chip_t GetChip() const;		// // //
 	chan_id_t GetID() const;		// // //
 

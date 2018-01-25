@@ -30,8 +30,8 @@
  *
  */
 
-CTrackerChannel::CTrackerChannel(sound_chip_t iChip, chan_id_t iID) :		// // //
-	m_iChip(iChip),
+CTrackerChannel::CTrackerChannel(chan_id_t iID) :		// // //
+	m_iChip(GetChipFromChannel(iID)),
 	m_iChannelID(iID),
 	m_bNewNote(false),
 	m_iPitch(0),

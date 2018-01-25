@@ -46,7 +46,6 @@ public:
 	CTrackerChannel	&GetChannel(int index) const;		// // //
 	CTrackerChannel	&FindChannel(chan_id_t chan) const;		// // //
 	chan_id_t		GetChannelType(int index) const;		// // //
-	sound_chip_t	GetChipType(int index) const;
 
 	const CSoundChipSet &GetExpansionFlag() const noexcept;		// // //
 	unsigned		GetChipChannelCount(sound_chip_t chip) const;

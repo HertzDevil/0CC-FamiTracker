@@ -22,6 +22,8 @@
 
 #include "SongState.h"
 #include "FamiTrackerDoc.h"
+#include "SongView.h"
+//#include "SongData.h"
 #include "TrackerChannel.h"
 #include "ft0cc/doc/groove.hpp"
 #include <algorithm>
@@ -109,25 +111,25 @@ std::string stChannelState::GetStateString() const {
 			if (p <= 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (ChannelID >= chan_id_t::VRC7_CH1 && ChannelID <= chan_id_t::VRC7_CH6)
+	else if (GetChipFromChannel(ChannelID) == sound_chip_t::VRC7)
 		for (const auto &x : VRC7_EFFECTS) {
 			int p = Effect[x];
 			if (p < 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (ChannelID == chan_id_t::FDS)
+	else if (GetChipFromChannel(ChannelID) == sound_chip_t::FDS)
 		for (const auto &x : FDS_EFFECTS) {
 			int p = Effect[x];
 			if (p < 0 || (x == EF_FDS_MOD_BIAS && p == 0x80)) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (ChannelID >= chan_id_t::S5B_CH1 && ChannelID <= chan_id_t::S5B_CH3)
+	else if (GetChipFromChannel(ChannelID) == sound_chip_t::S5B)
 		for (const auto &x : S5B_EFFECTS) {
 			int p = Effect[x];
 			if (p < 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (ChannelID >= chan_id_t::N163_CH1 && ChannelID <= chan_id_t::N163_CH8)
+	else if (GetChipFromChannel(ChannelID) == sound_chip_t::N163)
 		for (const auto &x : N163_EFFECTS) {
 			int p = Effect[x];
 			if (p < 0 || (x == EF_N163_WAVE_BUFFER && p == 0x7F)) continue;
@@ -303,7 +305,7 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 					maskFDS = true;
 					break;
 				case EF_DUTY_CYCLE:
-					if (ch.GetChip() == sound_chip_t::VRC7)		// // // 050B
+					if (GetChipFromChannel(c) == sound_chip_t::VRC7)		// // // 050B
 						break;
 					[[fallthrough]];
 				case EF_SAMPLE_OFFSET:

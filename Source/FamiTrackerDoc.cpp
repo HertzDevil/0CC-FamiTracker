@@ -1034,10 +1034,6 @@ bool CFamiTrackerDoc::IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsi
 
 // Channel interface, these functions must be synchronized!!!
 
-sound_chip_t CFamiTrackerDoc::GetChipType(int Index) const {
-	return GetChannelMap()->GetChipType(Index);		// // //
-}
-
 int CFamiTrackerDoc::GetChannelCount() const {
 	return GetChannelMap()->GetChannelOrder().GetChannelCount();		// // //
 }

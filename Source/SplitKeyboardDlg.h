@@ -38,7 +38,7 @@ public:
 	virtual ~CSplitKeyboardDlg();
 
 	bool m_bSplitEnable;
-	chan_id_t m_iSplitChannel = (chan_id_t)-1;
+	chan_id_t m_iSplitChannel;
 	int m_iSplitNote;
 	int m_iSplitInstrument;
 	int m_iSplitTranspose;

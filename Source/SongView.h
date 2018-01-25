@@ -67,6 +67,7 @@ public:
 			f(i);
 	}
 
+private:
 	CChannelOrder order_;
 	CSongData &song_;
 };

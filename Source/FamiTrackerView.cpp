@@ -287,6 +287,7 @@ CFamiTrackerView::CFamiTrackerView() :
 	m_iMarkerFrame(-1),		// // // 050B
 	m_iMarkerRow(-1),		// // // 050B
 	m_iSplitNote(-1),		// // //
+	m_iSplitChannel(chan_id_t::NONE),		// // //
 	m_iSplitInstrument(MAX_INSTRUMENTS),		// // //
 	m_iSplitTranspose(0),		// // //
 	m_iNoteCorrection(),		// // //

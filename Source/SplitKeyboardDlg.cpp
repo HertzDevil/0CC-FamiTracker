@@ -40,6 +40,7 @@ IMPLEMENT_DYNAMIC(CSplitKeyboardDlg, CDialog)
 CSplitKeyboardDlg::CSplitKeyboardDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(IDD_SPLIT_KEYBOARD, pParent),
 	m_bSplitEnable(false),
+	m_iSplitChannel(chan_id_t::NONE),
 	m_iSplitNote(-1),
 	m_iSplitInstrument(MAX_INSTRUMENTS),
 	m_iSplitTranspose(0)

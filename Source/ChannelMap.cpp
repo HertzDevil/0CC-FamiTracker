@@ -43,8 +43,10 @@ void CChannelMap::RegisterChannel(CTrackerChannel &Channel) {		// // //
 }
 
 bool CChannelMap::SupportsChannel(const CTrackerChannel &ch) const {		// // //
-	return HasExpansionChip(ch.GetChip()) && !(ch.GetChip() == sound_chip_t::N163 &&
-		GetChannelSubIndex(ch.GetID()) >= GetChipChannelCount(sound_chip_t::N163));
+	chan_id_t chan = ch.GetID();
+	sound_chip_t chip = GetChipFromChannel(chan);
+	return HasExpansionChip(chip) && !(chip == sound_chip_t::N163 &&
+		GetChannelSubIndex(chan) >= GetChipChannelCount(sound_chip_t::N163));
 }
 
 CTrackerChannel &CChannelMap::GetChannel(int index) const {		// // //
@@ -57,10 +59,6 @@ CTrackerChannel &CChannelMap::FindChannel(chan_id_t chan) const {		// // //
 
 chan_id_t CChannelMap::GetChannelType(int index) const {		// // //
 	return GetChannel(index).GetID();
-}
-
-sound_chip_t CChannelMap::GetChipType(int index) const {
-	return GetChannel(index).GetChip();
 }
 
 const CSoundChipSet &CChannelMap::GetExpansionFlag() const noexcept {		// // //

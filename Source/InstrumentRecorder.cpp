@@ -301,12 +301,11 @@ void CInstrumentRecorder::ReleaseCurrent()
 
 void CInstrumentRecorder::InitRecordInstrument()
 {
-	const auto &Chan = m_pDocument->GetChannel(m_pDocument->GetChannelIndex(m_iRecordChannel));
 	if (m_pDocument->GetInstrumentCount() >= MAX_INSTRUMENTS) {
 		m_iDumpCount = 0; m_iRecordChannel = chan_id_t::NONE; return;
 	}
 	inst_type_t Type = [&] { // optimize this
-		switch (Chan.GetChip()) {
+		switch (GetChipFromChannel(m_iRecordChannel)) {
 		case sound_chip_t::APU: case sound_chip_t::MMC5: return INST_2A03;
 		case sound_chip_t::VRC6: return INST_VRC6;
 		// case sound_chip_t::VRC7: return INST_VRC7;
