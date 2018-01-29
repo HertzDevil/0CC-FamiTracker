@@ -25,6 +25,7 @@
 
 #include "SeqInstrument.h"
 #include <array>
+#include "array_view.h"		// // //
 
 class CInstrumentN163 : public CSeqInstrument {
 public:
@@ -40,6 +41,8 @@ public:
 	void	SetWavePos(int pos);
 	int		GetSample(int wave, int pos) const;
 	void	SetSample(int wave, int pos, int sample);
+	array_view<int> GetSamples(int wave) const;		// // //
+	void	SetSamples(int wave, array_view<int> buf);		// // //
 	/*
 	void	SetAutoWavePos(bool Enable);
 	bool	GetAutoWavePos() const;

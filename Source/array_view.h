@@ -50,6 +50,9 @@ concept ViewLike = requires (T x) {
 
 } // namespace details
 
+#define REQUIRES_ViewLike(T, ValT) \
+	std::enable_if_t<details::is_view_like<T, ValT>::value, int> = 0
+
 template <typename T>
 class array_view {
 public:
@@ -65,15 +68,16 @@ public:
 	using size_type = std::size_t;
 	using difference_type = std::ptrdiff_t;
 
+	static constexpr auto npos = (size_type)-1;
+
 	constexpr array_view() noexcept = default;
 	constexpr array_view(const_pointer data, std::size_t sz) noexcept :
 		data_(data), size_(sz) { }
-	template <typename U, std::size_t N,
-		std::enable_if_t<std::is_convertible_v<U *, const value_type *>, int> = 0>
-	constexpr array_view(const U (&data)[N]) noexcept :
+	template <typename ValT, std::size_t N,
+		std::enable_if_t<std::is_convertible_v<ValT *, const value_type *>, int> = 0>
+	constexpr array_view(const ValT (&data)[N]) noexcept :
 		data_(data), size_(N) { }
-	template <typename U,
-		std::enable_if_t<details::is_view_like<U, T>::value, int> = 0>
+	template <typename U, REQUIRES_ViewLike(U, value_type)>
 	constexpr array_view(const U &arr) noexcept :
 		data_(arr.data()), size_(arr.size()) { }
 
@@ -164,6 +168,28 @@ public:
 		return const_reverse_iterator {cbegin()};
 	}
 
+	size_type copy(pointer dest, size_type count, size_type pos = 0) const {
+		if (pos > size())
+			throw std::out_of_range {"pos cannot be larger than size()"};
+		if (count > size() - pos)
+			count = size() - pos;
+		for (size_type i = 0; i < count; ++i)
+			*dest++ = data_[pos++];
+		return count;
+	}
+	template <typename U, REQUIRES_ViewLike(U, value_type)>
+	size_type copy(U &dest, size_type pos = 0) const {
+		return copy(dest.data(), dest.size(), pos);
+	}
+
+	constexpr array_view subview(size_type pos, size_type count = npos) const {
+		if (pos > size())
+			throw std::out_of_range {"pos cannot be larger than size()"};
+		if (count > size() - pos)
+			count = size() - pos;
+		return {data_ + pos, count};
+	}
+
 	constexpr int compare(const array_view &other) const {
 		auto b1 = begin();
 		auto b2 = other.begin();
@@ -218,59 +244,53 @@ constexpr bool operator>=(const array_view<T> &lhs, const array_view<T> &rhs) {
 	return lhs.compare(rhs) >= 0;
 }
 
-template <typename T, typename U,
-	std::enable_if_t<details::is_view_like<U, T>::value, int> = 0>
-constexpr bool operator==(const array_view<T> &lhs, const U &rhs) {
+template <typename T, typename ValT, REQUIRES_ViewLike(ValT, T)>
+constexpr bool operator==(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs == array_view<T> {rhs};
 }
-template <typename T, typename U,
-	std::enable_if_t<details::is_view_like<U, T>::value, int> = 0>
-constexpr bool operator!=(const array_view<T> &lhs, const U &rhs) {
+template <typename T, typename ValT, REQUIRES_ViewLike(ValT, T)>
+constexpr bool operator!=(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs != array_view<T> {rhs};
 }
-template <typename T, typename U,
-	std::enable_if_t<details::is_view_like<U, T>::value, int> = 0>
-constexpr bool operator<(const array_view<T> &lhs, const U &rhs) {
+template <typename T, typename ValT, REQUIRES_ViewLike(ValT, T)>
+constexpr bool operator<(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs < array_view<T> {rhs};
 }
-template <typename T, typename U,
-	std::enable_if_t<details::is_view_like<U, T>::value, int> = 0>
-constexpr bool operator>(const array_view<T> &lhs, const U &rhs) {
+template <typename T, typename ValT, REQUIRES_ViewLike(ValT, T)>
+constexpr bool operator>(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs > array_view<T> {rhs};
 }
-template <typename T, typename U,
-	std::enable_if_t<details::is_view_like<U, T>::value, int> = 0>
-constexpr bool operator<=(const array_view<T> &lhs, const U &rhs) {
+template <typename T, typename ValT, REQUIRES_ViewLike(ValT, T)>
+constexpr bool operator<=(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs <= array_view<T> {rhs};
 }
-template <typename T, typename U,
-	std::enable_if_t<details::is_view_like<U, T>::value, int> = 0>
-constexpr bool operator>=(const array_view<T> &lhs, const U &rhs) {
+template <typename T, typename ValT, REQUIRES_ViewLike(ValT, T)>
+constexpr bool operator>=(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs >= array_view<T> {rhs};
 }
 
-template <typename T, typename U>
-constexpr bool operator==(const T &lhs, const array_view<U> &rhs) {
+template <typename T, typename ValT>
+constexpr bool operator==(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs == lhs;
 }
-template <typename T, typename U>
-constexpr bool operator!=(const T &lhs, const array_view<U> &rhs) {
+template <typename T, typename ValT>
+constexpr bool operator!=(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs != lhs;
 }
-template <typename T, typename U>
-constexpr bool operator<(const T &lhs, const array_view<U> &rhs) {
+template <typename T, typename ValT>
+constexpr bool operator<(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs > lhs;
 }
-template <typename T, typename U>
-constexpr bool operator>(const T &lhs, const array_view<U> &rhs) {
+template <typename T, typename ValT>
+constexpr bool operator>(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs < lhs;
 }
-template <typename T, typename U>
-constexpr bool operator<=(const T &lhs, const array_view<U> &rhs) {
+template <typename T, typename ValT>
+constexpr bool operator<=(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs >= lhs;
 }
-template <typename T, typename U>
-constexpr bool operator>=(const T &lhs, const array_view<U> &rhs) {
+template <typename T, typename ValT>
+constexpr bool operator>=(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs <= lhs;
 }
 

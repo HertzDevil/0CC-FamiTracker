@@ -268,11 +268,10 @@ void CInstrumentEditorFDS::OnModDelayChange()
 
 void CInstrumentEditorFDS::OnBnClickedCopyWave()
 {
-	CString Str;
-
 	// Assemble a MML string
-	for (int i = 0; i < 64; ++i)
-		Str.AppendFormat(_T("%i "), m_pInstrument->GetSample(i));
+	CString Str;
+	for (auto x : m_pInstrument->GetSamples())		// // //
+		Str.AppendFormat(_T("%i "), x);
 
 	CClipboard Clipboard(this, CF_TEXT);
 
@@ -317,11 +316,10 @@ void CInstrumentEditorFDS::ParseWaveString(LPCTSTR pString)
 
 void CInstrumentEditorFDS::OnBnClickedCopyTable()
 {
-	CString Str;
-
 	// Assemble a MML string
-	for (int i = 0; i < 32; ++i)
-		Str.AppendFormat(_T("%i "), m_pInstrument->GetModulation(i));
+	CString Str;
+	for (auto x : m_pInstrument->GetModTable())		// // //
+		Str.AppendFormat(_T("%i "), x);
 
 	CClipboard Clipboard(this, CF_TEXT);
 

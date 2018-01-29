@@ -293,7 +293,7 @@ void CInstrumentFDS::SetSamples(array_view<unsigned char> Wave) {
 	if (Wave.size() == m_iSamples.size()) {
 		if (Wave != m_iSamples)
 			InstrumentChanged();
-		std::copy(Wave.begin(), Wave.end(), m_iSamples.begin());
+		Wave.copy(m_iSamples);
 	}
 }
 
@@ -309,7 +309,7 @@ void CInstrumentFDS::SetModulation(int Index, int Value)
 	m_iModulation[Index] = Value;
 }
 
-array_view<unsigned char> CInstrumentFDS::GetModTable() const {
+array_view<unsigned char> CInstrumentFDS::GetModTable() const {		// // //
 	return m_iModulation;
 }
 
@@ -317,7 +317,7 @@ void CInstrumentFDS::SetModTable(array_view<unsigned char> Mod) {
 	if (Mod.size() == m_iModulation.size()) {
 		if (Mod != m_iModulation)
 			InstrumentChanged();
-		std::copy(Mod.begin(), Mod.end(), m_iModulation.begin());
+		Mod.copy(m_iModulation);
 	}
 }
 

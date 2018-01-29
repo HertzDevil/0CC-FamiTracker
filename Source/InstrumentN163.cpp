@@ -56,15 +56,13 @@ void CInstrumentN163::CloneFrom(const CInstrument *pInst)
 {
 	CSeqInstrument::CloneFrom(pInst);
 
-	if (auto pNew = dynamic_cast<const CInstrumentN163*>(pInst)) {
+	if (auto pNew = dynamic_cast<const CInstrumentN163 *>(pInst)) {
 		SetWaveSize(pNew->GetWaveSize());
 		SetWavePos(pNew->GetWavePos());
 	//	SetAutoWavePos(pInst->GetAutoWavePos());
 		SetWaveCount(pNew->GetWaveCount());
 
-		for (int i = 0; i < MAX_WAVE_COUNT; ++i)
-			for (int j = 0; j < MAX_WAVE_SIZE; ++j)
-				SetSample(i, j, pNew->GetSample(i, j));
+		m_iSamples = pNew->m_iSamples;
 	}
 }
 
@@ -170,12 +168,9 @@ bool CInstrumentN163::IsWaveEqual(const CInstrumentN163 &Instrument) const {		//
 	if (Instrument.GetWaveSize() != Size)
 		return false;
 
-	for (int i = 0; i < Count; ++i) {
-		for (int j = 0; j < Size; ++j) {
-			if (GetSample(i, j) != Instrument.GetSample(i, j))
-				return false;
-		}
-	}
+	for (int i = 0; i < Count; ++i)
+		if (GetSamples(i) != Instrument.GetSamples(i))		// // //
+			return false;
 
 	return true;
 }
@@ -216,8 +211,10 @@ unsigned CInstrumentN163::GetWaveSize() const		// // //
 
 void CInstrumentN163::SetWaveSize(unsigned size)
 {
-	m_iWaveSize = size;
-	InstrumentChanged();
+	if (m_iWaveSize != size) {		// // //
+		m_iWaveSize = size;
+		InstrumentChanged();
+	}
 }
 
 int CInstrumentN163::GetSample(int wave, int pos) const
@@ -227,8 +224,19 @@ int CInstrumentN163::GetSample(int wave, int pos) const
 
 void CInstrumentN163::SetSample(int wave, int pos, int sample)
 {
-	m_iSamples[wave][pos] = sample;
-	InstrumentChanged();
+	if (m_iSamples[wave][pos] != sample) {		// // //
+		m_iSamples[wave][pos] = sample;
+		InstrumentChanged();
+	}
+}
+
+array_view<int> CInstrumentN163::GetSamples(int wave) const {		// // //
+	return {m_iSamples[wave].data(), GetWaveSize()};
+}
+
+void CInstrumentN163::SetSamples(int wave, array_view<int> buf) {		// // //
+	if (buf.size() <= MAX_WAVE_SIZE)
+		buf.copy(m_iSamples[wave].data(), buf.size());
 }
 
 int CInstrumentN163::GetWavePos() const

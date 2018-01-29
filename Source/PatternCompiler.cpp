@@ -886,7 +886,7 @@ void CPatternCompiler::OptimizeString()
 			//
 			// Last known instrument must also be added
 			//
-			std::copy(m_vData.begin() + i, m_vData.begin() + i + best_length, m_vCompressedData.end());
+			std::copy_n(m_vData.begin() + i, best_length, m_vCompressedData.end());		// // //
 			// Define a loop point: 0xFF (number of loops) (number of bytes)
 			m_vCompressedData.push_back(Command(CMD_LOOP_POINT));
 			m_vCompressedData.push_back(best_matches - 1);	// the nsf code sees one less
@@ -896,7 +896,7 @@ void CPatternCompiler::OptimizeString()
 		else {
 			// No loop
 			int size = GetBlockSize(i);
-			std::copy(m_vData.begin() + i, m_vData.begin() + i + size, m_vCompressedData.end());
+			std::copy_n(m_vData.begin() + i, size, m_vCompressedData.end());		// // //
 			i += size;
 		}
 	}

@@ -211,12 +211,10 @@ void CInstrumentEditorN163Wave::OnPresetSawtooth()
 
 void CInstrumentEditorN163Wave::OnBnClickedCopy()
 {
-	CString Str;
-	int len = m_pInstrument->GetWaveSize();
-
 	// Assemble a MML string
-	for (int i = 0; i < len; ++i)
-		Str.AppendFormat(_T("%i "), m_pInstrument->GetSample(m_iWaveIndex, i));
+	CString Str;
+	for (auto x : m_pInstrument->GetSamples(m_iWaveIndex))		// // //
+		Str.AppendFormat(_T("%i "), x);
 
 	CClipboard Clipboard(this, CF_TEXT);
 
@@ -256,7 +254,7 @@ void CInstrumentEditorN163Wave::ParseString(LPCTSTR pString)
 			break;
 	}
 
-	int size = std::clamp(i & 0xFC, 4, WaveSizeAvailable());
+	int size = std::clamp(i & 0xFC, 4, im);
 	m_pInstrument->SetWaveSize(size);
 
 	static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE))->SelectString(0, conv::sv_from_int(size).data());
@@ -270,10 +268,9 @@ void CInstrumentEditorN163Wave::ParseString(LPCTSTR pString)
 LRESULT CInstrumentEditorN163Wave::OnWaveChanged(WPARAM wParam, LPARAM lParam)
 {
 	CString str;
-	int Size = m_pInstrument->GetWaveSize();
-	for (int i = 0; i < Size; ++i) {
-		str.AppendFormat(_T("%i "), m_pInstrument->GetSample(m_iWaveIndex, i));
-	}
+	for (auto x : m_pInstrument->GetSamples(m_iWaveIndex))		// // //
+		str.AppendFormat(_T("%i "), x);
+
 	SetDlgItemText(IDC_MML, str);
 	UpdateWaveBox(m_iWaveIndex);		// // //
 	return 0;
@@ -318,9 +315,8 @@ void CInstrumentEditorN163Wave::FillPosBox(int size)
 	CComboBox *pPosBox = static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_POS));
 	pPosBox->ResetContent();
 
-	for (int i = 0; i <= WaveSizeAvailable() - size; i += size) {		// // // prevent reading non-wave n163 registers
+	for (int i = 0; i <= WaveSizeAvailable() - size; i += size)		// // // prevent reading non-wave n163 registers
 		pPosBox->AddString(conv::sv_from_int(i).data());
-	}
 }
 
 void CInstrumentEditorN163Wave::PopulateWaveBox()		// // //
@@ -337,11 +333,10 @@ void CInstrumentEditorN163Wave::PopulateWaveBox()		// // //
 
 	m_cWaveListCtrl.DeleteAllItems();
 	for (int i = 0, Count = m_pInstrument->GetWaveCount(); i < Count; ++i) {
-		CString hex;
-		hex.Format(_T("%X"), i);
+		auto sv = conv::from_uint_hex(i);		// // //
 		UpdateWaveBox(i);
 		m_cWaveListCtrl.InsertItem(i, _T(""), i);
-		m_cWaveListCtrl.SetItemText(i, 1, hex);
+		m_cWaveListCtrl.SetItemText(i, 1, sv.data());
 	}
 	m_cWaveListCtrl.RedrawWindow();
 	SelectWave(m_iWaveIndex);

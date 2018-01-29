@@ -281,7 +281,7 @@ void CChannelHandlerFDS::FillWaveRAM(array_view<unsigned char> Buffer)		// // //
 	if (Buffer.size() != m_iWaveTable.size())
 		return;
 	if (Buffer != m_iWaveTable) {
-		std::copy(Buffer.begin(), Buffer.end(), m_iWaveTable.begin());
+		Buffer.copy(m_iWaveTable);		// // //
 
 		// Fills the 64 byte waveform table
 		// Enable write for waveform RAM
@@ -301,7 +301,7 @@ void CChannelHandlerFDS::FillModulationTable(array_view<unsigned char> Buffer)		
 	if (Buffer.size() != m_iModTable.size())
 		return;
 	if (Buffer != m_iModTable) {
-		std::copy(Buffer.begin(), Buffer.end(), m_iModTable.begin());
+		Buffer.copy(m_iModTable);		// // //
 
 		// Disable modulation
 		WriteRegister(0x4087, 0x80);

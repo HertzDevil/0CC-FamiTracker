@@ -1276,9 +1276,8 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 						CT[CT_N163WAVE], i, w);
 					f.WriteString(s);
 
-					for (unsigned smp=0; smp < pDI->GetWaveSize(); ++smp)
-					{
-						s.Format(_T(" %d"), pDI->GetSample(w, smp));
+					for (int smp : pDI->GetSamples(w)) {		// // //
+						s.Format(_T(" %d"), smp);
 						f.WriteString(s);
 					}
 					f.WriteString(_T("\n"));

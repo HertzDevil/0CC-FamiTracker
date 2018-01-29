@@ -296,10 +296,10 @@ bool CDSoundChannel::WriteBuffer(array_view<char> Buffer)		// // //
 	if (FAILED(m_lpDirectSoundBuffer->Lock(Block * m_iBlockSize, m_iBlockSize, (void**)&pAudioPtr1, &AudioBytes1, (void**)&pAudioPtr2, &AudioBytes2, 0)))
 		return false;
 
-	memcpy(pAudioPtr1, Buffer.data(), AudioBytes1);
+	std::memcpy(pAudioPtr1, Buffer.data(), AudioBytes1);
 
 	if (pAudioPtr2)
-		memcpy(pAudioPtr2, Buffer.data() + AudioBytes1, AudioBytes2);
+		std::memcpy(pAudioPtr2, Buffer.data() + AudioBytes1, AudioBytes2);
 
 	if (FAILED(m_lpDirectSoundBuffer->Unlock((void*)pAudioPtr1, AudioBytes1, (void*)pAudioPtr2, AudioBytes2)))
 		return false;
