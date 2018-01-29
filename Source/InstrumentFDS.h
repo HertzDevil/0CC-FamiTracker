@@ -26,6 +26,8 @@
 #include "SeqInstrument.h"		// // //
 #include <unordered_map>		// // //
 #include <memory>
+#include <array>		// // //
+#include "array_view.h"		// // //
 
 class CInstrumentFDS : public CSeqInstrument {
 public:
@@ -38,10 +40,16 @@ public:
 public:
 	unsigned char GetSample(int Index) const;
 	void	SetSample(int Index, int Sample);
-	int		GetModulationSpeed() const;
-	void	SetModulationSpeed(int Speed);
+	array_view<unsigned char> GetSamples() const;		// // //
+	void	SetSamples(array_view<unsigned char> Wave);		// // //
+
 	int		GetModulation(int Index) const;
 	void	SetModulation(int Index, int Value);
+	array_view<unsigned char> GetModTable() const;		// // //
+	void	SetModTable(array_view<unsigned char> Mod);		// // //
+
+	int		GetModulationSpeed() const;
+	void	SetModulationSpeed(int Speed);
 	int		GetModulationDepth() const;
 	void	SetModulationDepth(int Depth);
 	int		GetModulationDelay() const;
@@ -73,8 +81,8 @@ public:
 private:
 	// Instrument data
 	std::unordered_map<sequence_t, std::shared_ptr<CSequence>> m_pSequence;
-	unsigned char m_iSamples[64];
-	unsigned char m_iModulation[32];
+	std::array<unsigned char, WAVE_SIZE> m_iSamples = { };		// // //
+	std::array<unsigned char, MOD_SIZE> m_iModulation = { };
 	int			  m_iModulationSpeed;
 	int			  m_iModulationDepth;
 	int			  m_iModulationDelay;

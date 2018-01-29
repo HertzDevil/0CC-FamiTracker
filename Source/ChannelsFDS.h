@@ -47,16 +47,16 @@ public:		// // //
 	void SetFMDepth(int Depth) override;
 	void SetFMDelay(int Delay) override;
 	// void SetFMEnable(bool Enable);
-	void FillWaveRAM(array_view<char> Buffer) override;		// // //
-	void FillModulationTable(array_view<char> Buffer) override;		// // //
+	void FillWaveRAM(array_view<unsigned char> Buffer) override;		// // //
+	void FillModulationTable(array_view<unsigned char> Buffer) override;		// // //
 protected:
 	// FDS control variables
 	int m_iModulationSpeed;
 	int m_iModulationDepth;
 	int m_iModulationDelay;
 	// Modulation table
-	std::array<char, 32> m_iModTable = { };		// // //
-	std::array<char, 64> m_iWaveTable = { };		// // //
+	std::array<unsigned char, 64> m_iWaveTable = { };		// // //
+	std::array<unsigned char, 32> m_iModTable = { };		// // //
 protected:
 	int m_iVolModMode;		// // // TODO: make an enum for this
 	int m_iVolModRate;

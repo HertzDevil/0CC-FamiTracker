@@ -347,7 +347,7 @@ void CWaveEditorFDS::SetSample(int i, int s)
 
 int CWaveEditorFDS::GetMaxSamples() const
 {
-	return CInstrumentFDS::WAVE_SIZE;
+	return m_pInstrument->GetSamples().size();		// // //
 }
 
 void CWaveEditorFDS::DrawRect(CDC *pDC, int x, int y, int sx, int sy) const

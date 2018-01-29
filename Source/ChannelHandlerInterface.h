@@ -77,8 +77,8 @@ public:
 	virtual void	SetFMSpeed(int) = 0;
 	virtual void	SetFMDepth(int) = 0;
 	virtual void	SetFMDelay(int) = 0;
-	virtual void	FillWaveRAM(array_view<char>) = 0;
-	virtual void	FillModulationTable(array_view<char>) = 0;
+	virtual void	FillWaveRAM(array_view<unsigned char>) = 0;
+	virtual void	FillModulationTable(array_view<unsigned char>) = 0;
 };
 
 class CChannelHandlerInterfaceN163

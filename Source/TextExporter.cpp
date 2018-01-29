@@ -1290,18 +1290,16 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 				auto pDI = std::static_pointer_cast<CInstrumentFDS>(pInst);
 				s.Format(_T("%-8s %3d :"), CT[CT_FDSWAVE], i);
 				f.WriteString(s);
-				for (int smp=0; smp < CInstrumentFDS::WAVE_SIZE; ++smp)
-				{
-					s.Format(_T(" %2d"), pDI->GetSample(smp));
+				for (unsigned char smp : pDI->GetSamples()) {		// // //
+					s.Format(_T(" %2d"), smp);
 					f.WriteString(s);
 				}
 				f.WriteString(_T("\n"));
 
 				s.Format(_T("%-8s %3d :"), CT[CT_FDSMOD], i);
 				f.WriteString(s);
-				for (int smp=0; smp < CInstrumentFDS::MOD_SIZE; ++smp)
-				{
-					s.Format(_T(" %2d"), pDI->GetModulation(smp));
+				for (unsigned char m : pDI->GetModTable()) {		// // //
+					s.Format(_T(" %2d"), m);
 					f.WriteString(s);
 				}
 				f.WriteString(_T("\n"));

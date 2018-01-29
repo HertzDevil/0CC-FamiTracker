@@ -61,13 +61,8 @@ void CSeqInstHandlerFDS::UpdateInstrument()
 
 void CSeqInstHandlerFDS::UpdateTables(const CInstrumentFDS *pInst)
 {
-	CChannelHandlerInterfaceFDS *pInterface = dynamic_cast<CChannelHandlerInterfaceFDS*>(m_pInterface);
-	if (pInterface == nullptr) return;
-	char Buffer[0x40];		// // //
-	for (int i = 0; i < 0x40; i++)
-		Buffer[i] = pInst->GetSample(i);
-	pInterface->FillWaveRAM(Buffer);
-	for (int i = 0; i < 0x20; i++)
-		Buffer[i] = pInst->GetModulation(i);
-	pInterface->FillModulationTable(Buffer);
+	if (auto pInterface = dynamic_cast<CChannelHandlerInterfaceFDS*>(m_pInterface)) {
+		pInterface->FillWaveRAM(pInst->GetSamples());
+		pInterface->FillModulationTable(pInst->GetModTable());
+	}
 }

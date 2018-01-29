@@ -26,23 +26,26 @@
 #include "SimpleFile.h"
 #include "ModuleException.h"		// // //
 
-const char TEST_WAVE[] = {
+namespace {
+
+const std::array<unsigned char, CInstrumentFDS::WAVE_SIZE> TEST_WAVE = {
 	00, 01, 12, 22, 32, 36, 39, 39, 42, 47, 47, 50, 48, 51, 54, 58,
 	54, 55, 49, 50, 52, 61, 63, 63, 59, 56, 53, 51, 48, 47, 41, 35,
 	35, 35, 41, 47, 48, 51, 53, 56, 59, 63, 63, 61, 52, 50, 49, 55,
 	54, 58, 54, 51, 48, 50, 47, 47, 42, 39, 39, 36, 32, 22, 12, 01
 };
 
+} // namespace
+
 const char *const CInstrumentFDS::SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "(N/A)"};
 
 CInstrumentFDS::CInstrumentFDS() : CSeqInstrument(INST_FDS),		// // //
+	m_iSamples(TEST_WAVE),		// // //
 	m_iModulationSpeed(0),
 	m_iModulationDepth(0),
 	m_iModulationDelay(0),
-	m_bModulationEnable(true),
-	m_iModulation()
+	m_bModulationEnable(true)
 {
-	memcpy(m_iSamples, TEST_WAVE, WAVE_SIZE);
 	m_pSequence.emplace(sequence_t::Volume, std::make_shared<CSequence>(sequence_t::Volume));
 	m_pSequence.emplace(sequence_t::Arpeggio, std::make_shared<CSequence>(sequence_t::Arpeggio));
 	m_pSequence.emplace(sequence_t::Pitch, std::make_shared<CSequence>(sequence_t::Pitch));
@@ -61,10 +64,8 @@ void CInstrumentFDS::CloneFrom(const CInstrument *pInst)
 
 	if (auto pNew = dynamic_cast<const CInstrumentFDS*>(pInst)) {
 	// Copy parameters
-		for (int i = 0; i < WAVE_SIZE; ++i)
-			SetSample(i, pNew->GetSample(i));
-		for (int i = 0; i < MOD_SIZE; ++i)
-			SetModulation(i, pNew->GetModulation(i));
+		SetSamples(pNew->GetSamples());
+		SetModTable(pNew->GetModTable());
 		SetModulationDelay(pNew->GetModulationDelay());
 		SetModulationDepth(pNew->GetModulationDepth());
 		SetModulationSpeed(pNew->GetModulationSpeed());
@@ -157,14 +158,10 @@ void CInstrumentFDS::DoubleVolume() const
 void CInstrumentFDS::Store(CDocumentFile *pDocFile) const
 {
 	// Write wave
-	for (int i = 0; i < WAVE_SIZE; ++i) {
-		pDocFile->WriteBlockChar(GetSample(i));
-	}
-
-	// Write modulation table
-	for (int i = 0; i < MOD_SIZE; ++i) {
-		pDocFile->WriteBlockChar(GetModulation(i));
-	}
+	for (auto x : m_iSamples)		// // //
+		pDocFile->WriteBlockChar(x);
+	for (auto x : m_iModulation)
+		pDocFile->WriteBlockChar(x);
 
 	// Modulation parameters
 	pDocFile->WriteBlockInt(GetModulationSpeed());
@@ -179,13 +176,10 @@ void CInstrumentFDS::Store(CDocumentFile *pDocFile) const
 
 bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
 {
-	for (int i = 0; i < WAVE_SIZE; ++i) {
-		SetSample(i, pDocFile->GetBlockChar());
-	}
-
-	for (int i = 0; i < MOD_SIZE; ++i) {
-		SetModulation(i, pDocFile->GetBlockChar());
-	}
+	for (auto &x : m_iSamples)		// // //
+		x = pDocFile->GetBlockChar();
+	for (auto &x : m_iModulation)
+		x = pDocFile->GetBlockChar();
 
 	SetModulationSpeed(pDocFile->GetBlockInt());
 	SetModulationDepth(pDocFile->GetBlockInt());
@@ -235,14 +229,10 @@ void CInstrumentFDS::OnBlankInstrument() {		// // //
 void CInstrumentFDS::DoSaveFTI(CSimpleFile &File) const
 {
 	// Write wave
-	for (int i = 0; i < WAVE_SIZE; ++i) {
-		File.WriteChar(GetSample(i));
-	}
-
-	// Write modulation table
-	for (int i = 0; i < MOD_SIZE; ++i) {
-		File.WriteChar(GetModulation(i));
-	}
+	for (auto x : m_iSamples)		// // //
+		File.WriteChar(x);
+	for (auto x : m_iModulation)
+		File.WriteChar(x);
 
 	// Modulation parameters
 	File.WriteInt(GetModulationSpeed());
@@ -258,14 +248,10 @@ void CInstrumentFDS::DoSaveFTI(CSimpleFile &File) const
 void CInstrumentFDS::DoLoadFTI(CSimpleFile &File, int iVersion)
 {
 	// Read wave
-	for (int i = 0; i < WAVE_SIZE; ++i) {
-		SetSample(i, File.ReadChar());
-	}
-
-	// Read modulation table
-	for (int i = 0; i < MOD_SIZE; ++i) {
-		SetModulation(i, File.ReadChar());
-	}
+	for (auto &x : m_iSamples)		// // //
+		x = File.ReadChar();
+	for (auto &x : m_iModulation)
+		x = File.ReadChar();
 
 	// Modulation parameters
 	SetModulationSpeed(File.ReadInt());
@@ -289,16 +275,26 @@ bool CInstrumentFDS::CanRelease() const
 
 unsigned char CInstrumentFDS::GetSample(int Index) const
 {
-	ASSERT(Index < WAVE_SIZE);
 	return m_iSamples[Index];
 }
 
 void CInstrumentFDS::SetSample(int Index, int Sample)
 {
-	ASSERT(Index < WAVE_SIZE);
 	if (m_iSamples[Index] != Sample)		// // //
 		InstrumentChanged();
 	m_iSamples[Index] = Sample;
+}
+
+array_view<unsigned char> CInstrumentFDS::GetSamples() const {		// // //
+	return m_iSamples;
+}
+
+void CInstrumentFDS::SetSamples(array_view<unsigned char> Wave) {
+	if (Wave.size() == m_iSamples.size()) {
+		if (Wave != m_iSamples)
+			InstrumentChanged();
+		std::copy(Wave.begin(), Wave.end(), m_iSamples.begin());
+	}
 }
 
 int CInstrumentFDS::GetModulation(int Index) const
@@ -311,6 +307,18 @@ void CInstrumentFDS::SetModulation(int Index, int Value)
 	if (m_iModulation[Index] != Value)		// // //
 		InstrumentChanged();
 	m_iModulation[Index] = Value;
+}
+
+array_view<unsigned char> CInstrumentFDS::GetModTable() const {
+	return m_iModulation;
+}
+
+void CInstrumentFDS::SetModTable(array_view<unsigned char> Mod) {
+	if (Mod.size() == m_iModulation.size()) {
+		if (Mod != m_iModulation)
+			InstrumentChanged();
+		std::copy(Mod.begin(), Mod.end(), m_iModulation.begin());
+	}
 }
 
 int CInstrumentFDS::GetModulationSpeed() const
