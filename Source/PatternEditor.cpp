@@ -1328,6 +1328,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	unsigned fxcols = pSongView->GetEffectColumnCount(Channel);
+	chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(Channel);
 
 	switch (Column) {
 	case C_NOTE:
@@ -1388,7 +1389,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 			DrawChar(DC, PosX + m_iCharWidth * 2, PosY, NOTES_C[NoteData.Octave], ColorInfo.Note);
 			break;
 		default:
-			if (TrackerChannel.GetID() == chan_id_t::NOISE) {
+			if (ch == chan_id_t::NOISE) {
 				// Noise
 				char NoiseFreq = (NoteData.Note - 1 + NoteData.Octave * 12) & 0x0F;
 				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoiseFreq], ColorInfo.Note);		// // //
@@ -1424,7 +1425,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		break;
 	case C_VOLUME:
 		// Volume
-		if (NoteData.Vol == MAX_VOLUME || TrackerChannel.GetID() == chan_id_t::DPCM)
+		if (NoteData.Vol == MAX_VOLUME || ch == chan_id_t::DPCM)
 			BAR(PosX, PosY);
 		else
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.Vol & 0x0F], ColorInfo.Volume);		// // //

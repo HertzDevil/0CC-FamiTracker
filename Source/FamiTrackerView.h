@@ -31,6 +31,7 @@
 #include <optional>		// // //
 #include <unordered_map>		// // //
 
+#include "PatternNote.h"		// // //
 #include "FamiTrackerTypes.h"		// // //
 #include "PatternEditorTypes.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
@@ -231,7 +232,8 @@ private:
 	bool	EditEffNumberColumn(stChanNote &Note, unsigned char nChar, int EffectIndex, bool &bStepDown);
 	bool	EditEffParamColumn(stChanNote &Note, int Value, int EffectIndex, bool &bStepDown, bool &bMoveRight, bool &bMoveLeft);
 
-	void	InsertNote(int Note, int Octave, std::size_t Index, int Velocity);
+	void	InsertNote(const stChanNote &Note);		// // //
+	stChanNote GetInputNote(int Note, int Octave, std::size_t Index, int Velocity);		// // //
 
 	void	DoPaste(paste_mode_t Mode);		// // //
 
@@ -318,11 +320,7 @@ private:
 
 	// Input
 	std::array<char, 256> m_cKeyList = { };						// // //
-	int					m_iLastNote;							// Last note added to pattern
-	int					m_iLastInstrument;						// Last instrument added to pattern
-	int					m_iLastVolume;							// Last volume added to pattern
-	effect_t			m_iLastEffect;							// Last effect number added to pattern
-	int					m_iLastEffectParam;						// Last effect parameter added to pattern
+	stChanNote			m_LastNote;								// // // Last note added to pattern
 
 	int					m_iSplitNote;							// // // Split keyboard settings
 	chan_id_t			m_iSplitChannel;

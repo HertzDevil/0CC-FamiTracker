@@ -23,6 +23,10 @@
 #include "ChannelsDlg.h"
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerView.h"		// // //
+#include "SongView.h"		// // //
+#include "ChannelMap.h"		// // //
+#include "ChannelOrder.h"		// // //
 #include "TrackerChannel.h"
 #include "APU/APU.h"
 #include "APU/Types.h"		// // //
@@ -131,15 +135,11 @@ BOOL CChannelsDlg::OnInitDialog()
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
-	for (int i = 0; i < pDoc->GetChannelCount(); ++i)
-		AddChannel(pDoc->GetChannel(i).GetID());		// // //
-/*
-	AddChannel(chan_id_t::SQUARE1);
-	AddChannel(chan_id_t::SQUARE2);
-	AddChannel(chan_id_t::TRIANGLE);
-	AddChannel(chan_id_t::NOISE);
-	AddChannel(chan_id_t::DPCM);
-*/
+	// // // TODO: use song view instead
+	CFamiTrackerView::GetView()->GetSongView()->GetChannelOrder().ForeachChannel([&] (chan_id_t ch) {
+		AddChannel(ch);
+	});
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
 }
