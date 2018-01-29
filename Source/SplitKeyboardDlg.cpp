@@ -27,7 +27,6 @@
 #include "TrackerChannel.h"
 #include "APU/Types.h"
 #include "ChannelName.h"
-#include "ChannelMap.h"
 #include "ChannelOrder.h"
 
 // CSplitKeyboardDlg dialog
@@ -95,7 +94,7 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	pCombo->AddString(KEEP_INST_STRING);
 	pCombo->SetCurSel(0);
 	for (int i = 0; i < pDoc->GetChannelCount(); ++i) {
-		chan_id_t ch = pDoc->GetChannelMap()->GetChannelOrder().TranslateChannel(i);
+		chan_id_t ch = pDoc->GetChannelOrder().TranslateChannel(i);
 		pCombo->AddString(GetChannelFullName(ch).data());
 		if (m_iSplitChannel == ch)
 			pCombo->SetCurSel(i + 1);

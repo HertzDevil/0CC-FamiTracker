@@ -25,7 +25,6 @@
 #include "SongData.h"		// // //
 #include "MainFrm.h"
 #include "FrameEditor.h"
-#include "ChannelMap.h"		// // //
 #include "SongData.h"		// // //
 #include "SongView.h"		// // //
 #include "ChannelOrder.h"		// // //

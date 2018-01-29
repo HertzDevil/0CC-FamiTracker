@@ -25,7 +25,6 @@
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"		// // //
 #include "SongView.h"		// // //
-#include "ChannelMap.h"		// // //
 #include "ChannelOrder.h"		// // //
 #include "TrackerChannel.h"
 #include "APU/APU.h"

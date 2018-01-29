@@ -24,7 +24,7 @@
 #include "Bookmark.h"		// // //
 
 #include "FTMComponentInterface.h"		// // //
-#include "ChannelMap.h"		// // //
+#include "ChannelOrder.h"		// // //
 
 // Defaults when creating new modules
 const unsigned CSongData::DEFAULT_ROW_COUNT	= 64;

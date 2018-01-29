@@ -22,7 +22,6 @@
 
 #include "ChunkRenderBinary.h"
 #include <vector>
-#include "stdafx.h"
 #include "FamiTrackerTypes.h"		// // //
 #include "Compiler.h"
 #include "Chunk.h"

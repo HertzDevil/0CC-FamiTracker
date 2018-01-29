@@ -21,7 +21,6 @@
 */
 
 #include "InstrumentRecorder.h"
-#include "stdafx.h"
 #include "InstrumentManager.h"
 #include "FamiTrackerDoc.h"
 #include "TrackerChannel.h"

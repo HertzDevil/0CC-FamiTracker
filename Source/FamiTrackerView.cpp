@@ -40,7 +40,6 @@
 #include "FamiTrackerModule.h"
 #include "Bookmark.h"
 #include "BookmarkCollection.h"
-#include "ChannelMap.h"
 #include "ChannelOrder.h"
 #include "SongView.h"
 #include "DetuneDlg.h"

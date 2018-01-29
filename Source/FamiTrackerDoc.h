@@ -97,7 +97,7 @@ protected: // create from serialization only
 
 	// Static functions
 public:
-	static CFamiTrackerDoc* GetDoc();
+	static CFamiTrackerDoc *GetDoc();
 
 
 	// Other
@@ -178,7 +178,6 @@ public:
 	void			SetExceededFlag(bool Exceed = 1);		// // //
 
 	// // // from the component interface
-	CChannelMap *const GetChannelMap() const override;
 	CSequenceManager *const GetSequenceManager(int InstType) const override;
 	CInstrumentManager *const GetInstrumentManager() const override;
 	CDSampleManager *const GetDSampleManager() const override;
@@ -188,11 +187,12 @@ public:
 // // // delegates
 
 #pragma region delegates to CChannelMap
+	CChannelOrder	&GetChannelOrder() const override;		// // //
+
+	int				GetChannelCount() const;
+	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
 	int				GetChannelIndex(chan_id_t Channel) const;		// // //
 	bool			HasChannel(chan_id_t Channel) const;		// // //
-
-	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
-	int				GetChannelCount() const;
 #pragma endregion
 
 #pragma region delegates to CSongData

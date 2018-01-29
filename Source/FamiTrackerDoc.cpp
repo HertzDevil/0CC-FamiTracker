@@ -882,7 +882,7 @@ unsigned int CFamiTrackerDoc::GetPatternLength(unsigned int Track) const
 }
 
 std::unique_ptr<CSongView> CFamiTrackerDoc::MakeSongView(unsigned Track) {		// // //
-	return std::make_unique<CSongView>(GetChannelMap()->GetChannelOrder(), GetSongData(Track));
+	return std::make_unique<CSongView>(m_pChannelMap->GetChannelOrder(), GetSongData(Track));
 }
 
 unsigned int CFamiTrackerDoc::GetFrameCount(unsigned int Track) const
@@ -970,7 +970,7 @@ void CFamiTrackerDoc::SelectExpansionChip(const CSoundChipSet &chips, unsigned n
 }
 
 const CSoundChipSet &CFamiTrackerDoc::GetExpansionChip() const {
-	return GetChannelMap()->GetExpansionFlag();		// // //
+	return m_pChannelMap->GetExpansionFlag();		// // //
 }
 
 bool CFamiTrackerDoc::HasExpansionChips() const {		// // //
@@ -988,10 +988,6 @@ void CFamiTrackerDoc::ApplyExpansionChip() const {
 //
 // from the compoment interface
 //
-
-CChannelMap *const CFamiTrackerDoc::GetChannelMap() const {
-	return m_pChannelMap.get();
-}
 
 CSequenceManager *const CFamiTrackerDoc::GetSequenceManager(int InstType) const
 {
@@ -1015,11 +1011,11 @@ void CFamiTrackerDoc::ModifyIrreversible()
 }
 
 bool CFamiTrackerDoc::ExpansionEnabled(sound_chip_t Chip) const {
-	return GetChannelMap()->HasExpansionChip(Chip);		// // //
+	return m_pChannelMap->HasExpansionChip(Chip);		// // //
 }
 
 int CFamiTrackerDoc::GetNamcoChannels() const {
-	return GetChannelMap()->GetChipChannelCount(sound_chip_t::N163);		// // //
+	return m_pChannelMap->GetChipChannelCount(sound_chip_t::N163);		// // //
 }
 
 unsigned int CFamiTrackerDoc::GetFirstFreePattern(unsigned int Track, chan_id_t Channel) const
@@ -1034,20 +1030,24 @@ bool CFamiTrackerDoc::IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsi
 
 // Channel interface, these functions must be synchronized!!!
 
+CChannelOrder &CFamiTrackerDoc::GetChannelOrder() const {		// // //
+	return m_pChannelMap->GetChannelOrder();
+}
+
 int CFamiTrackerDoc::GetChannelCount() const {
-	return GetChannelMap()->GetChannelOrder().GetChannelCount();		// // //
+	return GetChannelOrder().GetChannelCount();		// // //
 }
 
 chan_id_t CFamiTrackerDoc::TranslateChannel(unsigned Index) const {		// // //
-	return GetChannelMap()->GetChannelOrder().TranslateChannel(Index);
+	return GetChannelOrder().TranslateChannel(Index);
 }
 
 int CFamiTrackerDoc::GetChannelIndex(chan_id_t Channel) const {
-	return GetChannelMap()->GetChannelOrder().GetChannelIndex(Channel);		// // //
+	return GetChannelOrder().GetChannelIndex(Channel);		// // //
 }
 
 bool CFamiTrackerDoc::HasChannel(chan_id_t Channel) const {		// // //
-	return GetChannelMap()->GetChannelOrder().HasChannel(Channel);
+	return GetChannelOrder().HasChannel(Channel);
 }
 
 // Attributes

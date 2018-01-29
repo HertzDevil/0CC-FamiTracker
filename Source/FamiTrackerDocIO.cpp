@@ -30,7 +30,6 @@
 #include "Settings.h"
 #include "APU/Types.h"
 #include "SoundChipSet.h"
-#include "ChannelMap.h"
 #include "ChannelORder.h"
 
 #include "InstrumentManager.h"
@@ -762,7 +761,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 		Song.SetPatternLength(PatternLen);
 	}
 
-	const CChannelOrder &order = doc.GetChannelMap()->GetChannelOrder();		// // //
+	const CChannelOrder &order = doc.GetChannelOrder();		// // //
 
 	while (!file_.BlockDone()) {
 		unsigned Track;
