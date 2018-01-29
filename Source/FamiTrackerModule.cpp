@@ -23,10 +23,12 @@
 #include "FamiTrackerModule.h"
 #include "SongData.h"
 #include "InstrumentManager.h"
-#include "APU/APU.h"
+#include "ChannelMap.h"
+#include "APU/APU.h" // default frame rate
 
 CFamiTrackerModule::CFamiTrackerModule(CFTMComponentInterface &parent) :
 	parent_(parent),
+	m_pChannelMap(std::make_unique<CChannelMap>()),
 	m_pInstrumentManager(std::make_unique<CInstrumentManager>(&parent))
 {
 	AllocateSong(0);
@@ -70,6 +72,32 @@ void CFamiTrackerModule::SetModuleCopyright(std::string_view sv) {
 void CFamiTrackerModule::SetComment(std::string_view comment, bool showOnOpen) {
 	m_strComment = comment;
 	m_bDisplayComment = showOnOpen;
+}
+
+CChannelOrder &CFamiTrackerModule::GetChannelOrder() const {
+	return m_pChannelMap->GetChannelOrder();
+}
+
+const CSoundChipSet &CFamiTrackerModule::GetSoundChipSet() const {
+	return m_pChannelMap->GetExpansionFlag();
+}
+
+void CFamiTrackerModule::SetChannelMap(std::unique_ptr<CChannelMap> pMap) {
+	m_pChannelMap = std::move(pMap);
+	if (HasExpansionChips())
+		SetMachine(NTSC);
+}
+
+bool CFamiTrackerModule::HasExpansionChips() const {
+	return GetSoundChipSet().WithoutChip(sound_chip_t::APU).HasChips();
+}
+
+bool CFamiTrackerModule::HasExpansionChip(sound_chip_t Chip) const {
+	return m_pChannelMap->HasExpansionChip(Chip);
+}
+
+int CFamiTrackerModule::GetNamcoChannels() const {
+	return m_pChannelMap->GetChipChannelCount(sound_chip_t::N163);
 }
 
 machine_t CFamiTrackerModule::GetMachine() const {
@@ -232,7 +260,7 @@ void CFamiTrackerModule::SetGroove(unsigned index, std::shared_ptr<groove> pGroo
 	m_pGrooveTable[index] = std::move(pGroove);
 }
 
-const stHighlight &CFamiTrackerModule::GetHighlight(unsigned int song) const {		// // //
+const stHighlight &CFamiTrackerModule::GetHighlight(unsigned song) const {		// // //
 	return GetSong(song)->GetRowHighlight();
 }
 

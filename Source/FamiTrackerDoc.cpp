@@ -89,7 +89,6 @@ END_MESSAGE_MAP()
 // CFamiTrackerDoc construction/destruction
 
 CFamiTrackerDoc::CFamiTrackerDoc() :
-	m_pChannelMap(std::make_unique<CChannelMap>()),		// // //
 	module_(std::make_unique<CFamiTrackerModule>(*this))		// // //
 {
 	// Register this object to the sound generator
@@ -250,7 +249,6 @@ void CFamiTrackerDoc::DeleteContents()
 	UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
 
 	module_ = std::make_unique<CFamiTrackerModule>(*this);		// // //
-	m_pChannelMap = std::make_unique<CChannelMap>();		// // //
 
 #ifdef AUTOSAVE
 	ClearAutoSave();
@@ -828,24 +826,19 @@ bool CFamiTrackerDoc::LoadInstrument(unsigned Index, CSimpleFile &File) {		// / 
 	}
 
 	try {
-		LockDocument();
+		CSingleLock lock {&m_csDocumentLock, TRUE};
 
 		inst_type_t InstType = static_cast<inst_type_t>(File.ReadChar());
-		auto pInstrument = GetInstrumentManager()->CreateNew(InstType != INST_NONE ? InstType : INST_2A03);
-		if (!pInstrument) {
-			UnlockDocument();
-			AfxMessageBox("Failed to create instrument", MB_ICONERROR);
-			return false;
+		if (auto pInstrument = GetInstrumentManager()->CreateNew(InstType != INST_NONE ? InstType : INST_2A03)) {
+			pInstrument->OnBlankInstrument();
+			pInstrument->LoadFTI(File, iInstMaj * 10 + iInstMin);		// // //
+			return AddInstrument(std::move(pInstrument), Index);
 		}
 
-		pInstrument->OnBlankInstrument();
-		pInstrument->LoadFTI(File, iInstMaj * 10 + iInstMin);		// // //
-		bool res = AddInstrument(std::move(pInstrument), Index);
-		UnlockDocument();
-		return res;
+		AfxMessageBox("Failed to create instrument", MB_ICONERROR);
+		return false;
 	}
 	catch (CModuleException e) {
-		UnlockDocument();
 		AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
 		return false;
 	}
@@ -955,26 +948,13 @@ const CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index) const		// // /
 void CFamiTrackerDoc::SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs) {		// // //
 	ASSERT(n163chs <= MAX_CHANNELS_N163 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
 
-	// // // Complete sound chip setup
-	if (HasExpansionChips())
-		SetMachine(NTSC);
-
 	// This will select a chip in the sound emulator
-	auto newMap = theApp.GetSoundGenerator()->MakeChannelMap(chips, n163chs);		// // //
 	LockDocument();
-	m_pChannelMap = std::move(newMap);		// // //
+	GetModule()->SetChannelMap(theApp.GetSoundGenerator()->MakeChannelMap(chips, n163chs));		// // //
 	UnlockDocument();
 
 	ApplyExpansionChip();
 	ModifyIrreversible();
-}
-
-const CSoundChipSet &CFamiTrackerDoc::GetExpansionChip() const {
-	return m_pChannelMap->GetExpansionFlag();		// // //
-}
-
-bool CFamiTrackerDoc::HasExpansionChips() const {		// // //
-	return GetExpansionChip().WithoutChip(sound_chip_t::APU).HasChips();
 }
 
 void CFamiTrackerDoc::ApplyExpansionChip() const {
@@ -1010,14 +990,6 @@ void CFamiTrackerDoc::ModifyIrreversible()
 	SetExceededFlag(TRUE);
 }
 
-bool CFamiTrackerDoc::ExpansionEnabled(sound_chip_t Chip) const {
-	return m_pChannelMap->HasExpansionChip(Chip);		// // //
-}
-
-int CFamiTrackerDoc::GetNamcoChannels() const {
-	return m_pChannelMap->GetChipChannelCount(sound_chip_t::N163);		// // //
-}
-
 unsigned int CFamiTrackerDoc::GetFirstFreePattern(unsigned int Track, chan_id_t Channel) const
 {
 	return GetSongData(Track).GetFreePatternIndex(Channel);		// // //
@@ -1031,7 +1003,7 @@ bool CFamiTrackerDoc::IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsi
 // Channel interface, these functions must be synchronized!!!
 
 CChannelOrder &CFamiTrackerDoc::GetChannelOrder() const {		// // //
-	return m_pChannelMap->GetChannelOrder();
+	return GetModule()->GetChannelOrder();
 }
 
 int CFamiTrackerDoc::GetChannelCount() const {
@@ -1345,7 +1317,7 @@ void CFamiTrackerDoc::SwapInstruments(int First, int Second)
 	});
 }
 
-void CFamiTrackerDoc::SetExceededFlag(bool Exceed)
+void CFamiTrackerDoc::SetExceededFlag(bool Exceed)		// // //
 {
 	m_bExceeded = Exceed;
 }
@@ -1405,6 +1377,22 @@ void CFamiTrackerDoc::SetModuleArtist(std::string_view pArtist) {
 
 void CFamiTrackerDoc::SetModuleCopyright(std::string_view pCopyright) {
 	GetModule()->SetModuleCopyright(pCopyright);
+}
+
+const CSoundChipSet &CFamiTrackerDoc::GetExpansionChip() const {
+	return GetModule()->GetSoundChipSet();
+}
+
+bool CFamiTrackerDoc::HasExpansionChips() const {
+	return GetModule()->HasExpansionChips();
+}
+
+bool CFamiTrackerDoc::ExpansionEnabled(sound_chip_t Chip) const {
+	return GetModule()->HasExpansionChip(Chip);
+}
+
+int CFamiTrackerDoc::GetNamcoChannels() const {
+	return GetModule()->GetNamcoChannels();
 }
 
 machine_t CFamiTrackerDoc::GetMachine() const {

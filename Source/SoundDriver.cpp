@@ -140,7 +140,7 @@ std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(const CSoundChipSet &c
 
 	// Register the channels in the document
 	// Expansion & internal channels
-	ForeachTrack([&] (CChannelHandler &, CTrackerChannel &tr, chan_id_t ch) {
+	ForeachTrack([&] (CChannelHandler &, CTrackerChannel &, chan_id_t ch) {
 		if (map->SupportsChannel(ch))
 			map->GetChannelOrder().AddChannel(ch);
 	});

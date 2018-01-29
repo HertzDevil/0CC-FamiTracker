@@ -30,6 +30,9 @@
 #include "FamiTrackerTypes.h"
 
 class CSongData;
+class CChannelMap;
+class CSoundChipSet;
+class CChannelOrder;
 class CInstrumentManager;
 class CFTMComponentInterface;
 struct stHighlight;
@@ -62,6 +65,15 @@ public:
 	void SetModuleArtist(std::string_view sv);
 	void SetModuleCopyright(std::string_view sv);
 	void SetComment(std::string_view comment, bool showOnOpen);
+
+	// sound chip
+	CChannelOrder &GetChannelOrder() const;
+	const CSoundChipSet &GetSoundChipSet() const;
+	void SetChannelMap(std::unique_ptr<CChannelMap> pMap);
+
+	bool HasExpansionChips() const;
+	bool HasExpansionChip(sound_chip_t Chip) const;
+	int GetNamcoChannels() const;
 
 	// global info
 	machine_t GetMachine() const;
@@ -161,6 +173,9 @@ private:
 
 	std::string m_strComment;
 	bool m_bDisplayComment = false;
+
+	// Channels (no longer contain run-time state)
+	std::unique_ptr<CChannelMap> m_pChannelMap;		// // //
 
 	std::vector<std::unique_ptr<CSongData>> m_pTracks;
 

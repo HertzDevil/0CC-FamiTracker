@@ -55,7 +55,7 @@
 
 namespace {
 
-const int MAX_CHANNELS = 28;		// // // vanilla ft channel count
+const unsigned MAX_CHANNELS = 28;		// // // vanilla ft channel count
 
 const char FILE_BLOCK_PARAMS[]			= "PARAMS";
 const char FILE_BLOCK_INFO[]			= "INFO";
@@ -251,7 +251,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 	}
 
 	int channels = AssertRange(file_.GetBlockInt(), 1, (int)CHANID_COUNT, "Channel count");		// // //
-	AssertRange<MODULE_ERROR_OFFICIAL>(channels, 1, MAX_CHANNELS - 1, "Channel count");
+	AssertRange<MODULE_ERROR_OFFICIAL>(channels, 1, (int)MAX_CHANNELS - 1, "Channel count");
 
 	auto machine = static_cast<machine_t>(file_.GetBlockInt());
 	AssertFileData(machine == NTSC || machine == PAL, "Unknown machine");
@@ -692,7 +692,7 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
 	if (ver == 1) {
 		unsigned int FrameCount = AssertRange(file_.GetBlockInt(), 1, MAX_FRAMES, "Track frame count");
 		/*m_iChannelsAvailable =*/ AssertRange<MODULE_ERROR_OFFICIAL>(AssertRange(file_.GetBlockInt(),
-			0, (int)CHANID_COUNT, "Channel count"), 0, MAX_CHANNELS, "Channel count");
+			0, (int)CHANID_COUNT, "Channel count"), 0, (int)MAX_CHANNELS, "Channel count");
 		auto &Song = *doc.GetSong(0);
 		Song.SetFrameCount(FrameCount);
 		for (unsigned i = 0; i < FrameCount; ++i) {

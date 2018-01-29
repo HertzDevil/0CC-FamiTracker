@@ -40,7 +40,6 @@
 class CFamiTrackerModule;		// // //
 class CSongData;		// // //
 class CSongView;		// // //
-class CChannelMap;		// // //
 class CTrackerChannel;
 class CDocumentFile;
 class CSimpleFile;		// // //
@@ -142,10 +141,6 @@ public:
 
 	// Global (module) data
 	void			SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs);		// // //
-	const CSoundChipSet &GetExpansionChip() const;
-	bool			HasExpansionChips() const;		// // //
-	bool			ExpansionEnabled(sound_chip_t Chip) const;
-	int				GetNamcoChannels() const;
 
 	stHighlight		GetHighlightAt(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
 	unsigned int	GetHighlightState(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
@@ -178,6 +173,7 @@ public:
 	void			SetExceededFlag(bool Exceed = 1);		// // //
 
 	// // // from the component interface
+	CChannelOrder	&GetChannelOrder() const override;		// // //
 	CSequenceManager *const GetSequenceManager(int InstType) const override;
 	CInstrumentManager *const GetInstrumentManager() const override;
 	CDSampleManager *const GetDSampleManager() const override;
@@ -186,9 +182,7 @@ public:
 
 // // // delegates
 
-#pragma region delegates to CChannelMap
-	CChannelOrder	&GetChannelOrder() const override;		// // //
-
+#pragma region delegates to CChannelOrder
 	int				GetChannelCount() const;
 	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
 	int				GetChannelIndex(chan_id_t Channel) const;		// // //
@@ -226,6 +220,12 @@ public:
 	void			SetModuleName(std::string_view pName);
 	void			SetModuleArtist(std::string_view pArtist);
 	void			SetModuleCopyright(std::string_view pCopyright);
+
+	const CSoundChipSet &GetExpansionChip() const;
+
+	bool			HasExpansionChips() const;		// // //
+	bool			ExpansionEnabled(sound_chip_t Chip) const;
+	int				GetNamcoChannels() const;
 
 	machine_t		GetMachine() const;
 	unsigned int	GetEngineSpeed() const;
@@ -351,8 +351,6 @@ private:
 	// Interface variables
 	//
 
-	// Channels (TODO: run-time state, remove or move these?)
-	std::unique_ptr<CChannelMap> m_pChannelMap;		// // //
 	std::unique_ptr<CFamiTrackerModule> module_;		// // //
 
 	//
