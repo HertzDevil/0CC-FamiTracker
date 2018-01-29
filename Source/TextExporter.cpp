@@ -655,9 +655,9 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		}
 		break;
 		case CT_N163CHANNELS:
-			N163count = t.ReadInt(1, 8);		// // //
+			N163count = t.ReadInt(1, MAX_CHANNELS_N163);		// // //
 			t.ReadEOL();
-			Doc.SelectExpansionChip(Doc.GetExpansionChip(), 8);
+			Doc.SelectExpansionChip(Doc.GetExpansionChip(), MAX_CHANNELS_N163);
 			break;
 		case CT_MACRO:
 		case CT_MACROVRC6:
@@ -1075,7 +1075,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 	if (Doc.ExpansionEnabled(sound_chip_t::N163))
 	{
 		N163count = Doc.GetNamcoChannels();
-		Doc.SelectExpansionChip(Doc.GetExpansionChip(), 8); // calls ApplyExpansionChip()
+		Doc.SelectExpansionChip(Doc.GetExpansionChip(), MAX_CHANNELS_N163); // calls ApplyExpansionChip()
 		s.Format(_T("# Namco 163 global settings\n"
 		            "%-15s %d\n"
 		            "\n"),

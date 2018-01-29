@@ -50,7 +50,13 @@ const CSoundChipSet &CChannelMap::GetExpansionFlag() const noexcept {		// // //
 unsigned CChannelMap::GetChipChannelCount(sound_chip_t chip) const {
 	if (HasExpansionChip(chip))
 		switch (chip) {
+		case sound_chip_t::APU:  return MAX_CHANNELS_2A03;
+		case sound_chip_t::VRC6: return MAX_CHANNELS_VRC6;
+		case sound_chip_t::VRC7: return MAX_CHANNELS_VRC7;
+		case sound_chip_t::FDS:  return MAX_CHANNELS_FDS;
+		case sound_chip_t::MMC5: return MAX_CHANNELS_MMC5 - 1;
 		case sound_chip_t::N163: return n163chs_;
+		case sound_chip_t::S5B:  return MAX_CHANNELS_S5B;
 		}
 	return 0;
 }

@@ -574,7 +574,7 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 	}
 
 	if (m_iActualChip.ContainsChip(sound_chip_t::N163)) {
-		pData[m_iDriverSize - 2 - 0x100 - 0xC0 * 2 - 8 - 1 - 8 + m_iActualNamcoChannels] = 3;
+		pData[m_iDriverSize - 2 - 0x100 - 0xC0 * 2 - 8 - 1 - MAX_CHANNELS_N163 + m_iActualNamcoChannels] = 3;
 	}
 
 	if (m_iActualChip.IsMultiChip()) {		// // // special processing for multichip
@@ -950,31 +950,32 @@ bool CCompiler::CompileData()
 		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_ALL;
 		Print(_T(" * Multiple expansion chips enabled\n"));
 //		if (m_pDocument->ExpansionEnabled(sound_chip_t::N163))
-//			m_pDocument->SetNamcoChannels(8, true);
+//			m_pDocument->SetNamcoChannels(MAX_CHANNELS_N163, true);
 //		m_pDocument->SelectExpansionChip(CSoundChipSet::All(), true);
 	}
 
 	// // // Setup channel order list, DPCM is located last
 	const CSoundChipSet &Chip = m_pDocument->GetExpansionChip();
 	if (Chip.ContainsChip(sound_chip_t::APU))
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < MAX_CHANNELS_2A03 - 1; ++i)
 			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::APU, i));
 	if (Chip.ContainsChip(sound_chip_t::MMC5))
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < MAX_CHANNELS_MMC5 - 1; ++i)
 			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::MMC5, i));
 	if (Chip.ContainsChip(sound_chip_t::VRC6))
-		for (int i = 0; i < CHANNELS_VRC6; i++)
+		for (int i = 0; i < MAX_CHANNELS_VRC6; ++i)
 			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::VRC6, i));
 	if (Chip.ContainsChip(sound_chip_t::N163))
-		for (int i = 0; i < m_iActualNamcoChannels; i++)
+		for (int i = 0; i < m_iActualNamcoChannels; ++i)
 			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::N163, i));
 	if (Chip.ContainsChip(sound_chip_t::FDS))
-		m_vChanOrder.push_back(chan_id_t::FDS);
+		for (int i = 0; i < MAX_CHANNELS_FDS; ++i)
+			m_vChanOrder.push_back(chan_id_t::FDS);
 	if (Chip.ContainsChip(sound_chip_t::S5B))
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < MAX_CHANNELS_S5B; ++i)
 			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::S5B, i));
 	if (Chip.ContainsChip(sound_chip_t::VRC7))
-		for (int i = 0; i < CHANNELS_VRC7; i++)
+		for (int i = 0; i < MAX_CHANNELS_VRC7; ++i)
 			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::VRC7, i));
 	if (Chip.ContainsChip(sound_chip_t::APU))
 		m_vChanOrder.push_back(chan_id_t::DPCM);
@@ -1783,16 +1784,16 @@ void CCompiler::WriteChannelTypes()
 
 	CChunk &Chunk = CreateChunk(CHUNK_CHANNEL_TYPES, "");
 
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < MAX_CHANNELS_2A03 - 1; ++i)
 		pChunk->StoreByte(TYPE_2A03);
 
 	if (m_pDocument->ExpansionEnabled(sound_chip_t::VRC6)) {
-		for (int i = 0; i < 3; ++i)
+		for (int i = 0; i < MAX_CHANNELS_VRC6; ++i)
 			pChunk->StoreByte(TYPE_VRC6);
 	}
 
 	if (m_pDocument->ExpansionEnabled(sound_chip_t::VRC7)) {
-		for (int i = 0; i < 3; ++i)
+		for (int i = 0; i < MAX_CHANNELS_VRC7; ++i)
 			pChunk->StoreByte(TYPE_VRC7);
 	}
 
@@ -1801,7 +1802,7 @@ void CCompiler::WriteChannelTypes()
 	}
 
 	if (m_pDocument->ExpansionEnabled(sound_chip_t::MMC5)) {
-		for (int i = 0; i < 2; ++i)
+		for (int i = 0; i < MAX_CHANNELS_MMC5 - 1; ++i)
 			pChunk->StoreByte(TYPE_MMC5);
 	}
 

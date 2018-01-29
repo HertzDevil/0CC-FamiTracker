@@ -111,7 +111,7 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 	// Namco channel count
 	CSliderCtrl *pChanSlider = static_cast<CSliderCtrl*>(GetDlgItem(IDC_CHANNELS));
 	CStatic *pChannelsLabel = (CStatic*)GetDlgItem(IDC_CHANNELS_NR);
-	pChanSlider->SetRange(1, 8);
+	pChanSlider->SetRange(1, MAX_CHANNELS_N163);		// // //
 
 	CString channelsStr;
 	channelsStr.LoadString(IDS_PROPERTIES_CHANNELS);

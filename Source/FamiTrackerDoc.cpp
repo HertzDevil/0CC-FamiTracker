@@ -882,7 +882,7 @@ unsigned int CFamiTrackerDoc::GetPatternLength(unsigned int Track) const
 }
 
 std::unique_ptr<CSongView> CFamiTrackerDoc::MakeSongView(unsigned Track) {		// // //
-	return std::make_unique<CSongView>(m_pChannelMap->GetChannelOrder(), GetSongData(Track));
+	return std::make_unique<CSongView>(GetChannelOrder(), GetSongData(Track));
 }
 
 unsigned int CFamiTrackerDoc::GetFrameCount(unsigned int Track) const
@@ -953,7 +953,7 @@ const CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index) const		// // /
 }
 
 void CFamiTrackerDoc::SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs) {		// // //
-	ASSERT(n163chs <= 8 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
+	ASSERT(n163chs <= MAX_CHANNELS_N163 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
 
 	// // // Complete sound chip setup
 	if (HasExpansionChips())

@@ -55,6 +55,8 @@
 
 namespace {
 
+const int MAX_CHANNELS = 28;		// // // vanilla ft channel count
+
 const char FILE_BLOCK_PARAMS[]			= "PARAMS";
 const char FILE_BLOCK_INFO[]			= "INFO";
 const char FILE_BLOCK_INSTRUMENTS[]		= "INSTRUMENTS";
@@ -248,7 +250,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 		Expansion = CSoundChipSet::FromNSFFlag(flag);
 	}
 
-	int channels = AssertRange(file_.GetBlockInt(), 1, MAX_CHANNELS, "Channel count");		// // //
+	int channels = AssertRange(file_.GetBlockInt(), 1, (int)CHANID_COUNT, "Channel count");		// // //
 	AssertRange<MODULE_ERROR_OFFICIAL>(channels, 1, MAX_CHANNELS - 1, "Channel count");
 
 	auto machine = static_cast<machine_t>(file_.GetBlockInt());
@@ -309,9 +311,9 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 	}
 
 	// Read namco channel count
-	int n163chans = 0;
+	unsigned n163chans = 0;
 	if (ver >= 5 && (Expansion.ContainsChip(sound_chip_t::N163)))
-		n163chans = AssertRange(file_.GetBlockInt(), 1, 8, "N163 channel count");
+		n163chans = AssertRange((unsigned)file_.GetBlockInt(), 1u, MAX_CHANNELS_N163, "N163 channel count");
 
 	// Determine if new or old split point is preferred
 	int Split = AssertRange<MODULE_ERROR_STRICT>(ver >= 6 ? file_.GetBlockInt() : (int)CFamiTrackerModule::OLD_SPEED_SPLIT_POINT,
@@ -689,7 +691,8 @@ void CFamiTrackerDocIO::SaveSequences(const CFamiTrackerDoc &doc, int ver) {
 void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
 	if (ver == 1) {
 		unsigned int FrameCount = AssertRange(file_.GetBlockInt(), 1, MAX_FRAMES, "Track frame count");
-		/*m_iChannelsAvailable =*/ AssertRange(file_.GetBlockInt(), 0, MAX_CHANNELS, "Channel count");
+		/*m_iChannelsAvailable =*/ AssertRange<MODULE_ERROR_OFFICIAL>(AssertRange(file_.GetBlockInt(),
+			0, (int)CHANID_COUNT, "Channel count"), 0, MAX_CHANNELS, "Channel count");
 		auto &Song = *doc.GetSong(0);
 		Song.SetFrameCount(FrameCount);
 		for (unsigned i = 0; i < FrameCount; ++i) {
@@ -770,7 +773,8 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 		else if (ver == 1)
 			Track = 0;
 
-		unsigned Channel = AssertRange(file_.GetBlockInt(), 0, MAX_CHANNELS - 1, "Pattern channel index");
+		unsigned Channel = AssertRange((unsigned)file_.GetBlockInt(), 0u, CHANID_COUNT - 1, "Pattern channel index");
+		AssertRange<MODULE_ERROR_OFFICIAL>(Channel, 0u, MAX_CHANNELS - 1, "Pattern channel index");
 		unsigned Pattern = AssertRange(file_.GetBlockInt(), 0, MAX_PATTERN - 1, "Pattern index");
 		unsigned Items	= AssertRange(file_.GetBlockInt(), 0, MAX_PATTERN_LENGTH, "Pattern data count");
 		chan_id_t ch = order.TranslateChannel(Channel);

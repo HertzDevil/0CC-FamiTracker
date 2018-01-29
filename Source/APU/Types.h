@@ -92,6 +92,15 @@ enum class chan_id_t : unsigned {
 	NONE = (unsigned)-1,		// // //
 };
 
+// // // moved from FamiTrackerTypes.h
+inline constexpr std::size_t MAX_CHANNELS_2A03 = 5;
+inline constexpr std::size_t MAX_CHANNELS_VRC6 = 3;
+inline constexpr std::size_t MAX_CHANNELS_VRC7 = 6;
+inline constexpr std::size_t MAX_CHANNELS_FDS = 1;
+inline constexpr std::size_t MAX_CHANNELS_MMC5 = 3; // includes pcm
+inline constexpr std::size_t MAX_CHANNELS_N163 = 8;
+inline constexpr std::size_t MAX_CHANNELS_S5B = 3;
+
 inline constexpr std::size_t CHANID_COUNT = (unsigned)chan_id_t::COUNT;
 
 // // // TODO: use enum_traits (MSVC broke it)
@@ -141,31 +150,31 @@ constexpr std::size_t GetChannelSubIndex(chan_id_t ch) noexcept {
 constexpr chan_id_t MakeChannelIndex(sound_chip_t chip, unsigned subindex) noexcept {
 	switch (chip) {
 	case sound_chip_t::APU:
-		if (subindex < 5)
+		if (subindex < MAX_CHANNELS_2A03)
 			return (chan_id_t)((unsigned)chan_id_t::SQUARE1 + subindex);
 		break;
 	case sound_chip_t::VRC6:
-		if (subindex < 3)
+		if (subindex < MAX_CHANNELS_VRC6)
 			return (chan_id_t)((unsigned)chan_id_t::VRC6_PULSE1 + subindex);
 		break;
 	case sound_chip_t::MMC5:
-		if (subindex < 3)
+		if (subindex < MAX_CHANNELS_MMC5)
 			return (chan_id_t)((unsigned)chan_id_t::MMC5_SQUARE1 + subindex);
 		break;
 	case sound_chip_t::N163:
-		if (subindex < 8)
+		if (subindex < MAX_CHANNELS_N163)
 			return (chan_id_t)((unsigned)chan_id_t::N163_CH1 + subindex);
 		break;
 	case sound_chip_t::FDS:
-		if (subindex < 1)
+		if (subindex < MAX_CHANNELS_FDS)
 			return (chan_id_t)((unsigned)chan_id_t::FDS + subindex);
 		break;
 	case sound_chip_t::VRC7:
-		if (subindex < 6)
+		if (subindex < MAX_CHANNELS_VRC7)
 			return (chan_id_t)((unsigned)chan_id_t::VRC7_CH1 + subindex);
 		break;
 	case sound_chip_t::S5B:
-		if (subindex < 3)
+		if (subindex < MAX_CHANNELS_S5B)
 			return (chan_id_t)((unsigned)chan_id_t::S5B_CH1 + subindex);
 		break;
 	}

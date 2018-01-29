@@ -100,8 +100,8 @@ void CN163::Process(uint32_t Time)
 		m_iChannelCntr += TimeToRun;
 
 		if (m_iChannelCntr >= CHAN_PERIOD) {
-			if (m_iActiveChan + m_iChansInUse < 8)
-				m_iActiveChan = 8;
+			if (m_iActiveChan + m_iChansInUse < MAX_CHANNELS_N163)
+				m_iActiveChan = MAX_CHANNELS_N163;
 			m_iActiveChan--;
 			m_iChannelCntr -= CHAN_PERIOD;
 		}
@@ -112,7 +112,7 @@ void CN163::ProcessOld(uint32_t Time)		// // //
 {
 	m_pMixer->SetNamcoVolume((m_iChansInUse == 0) ? 1.0f : 0.75f);
 
-	for (int i = 7 - m_iChansInUse; i < 8; ++i)
+	for (int i = 7 - m_iChansInUse; i < MAX_CHANNELS_N163; ++i)
 		m_Channels[i].ProcessClean(Time, m_iChansInUse + 1);
 }
 
@@ -132,7 +132,7 @@ void CN163::Mix(int32_t Value, uint32_t Time, chan_id_t ChanID)		// // //
 void CN163::EndFrame()
 {
 	CRegisterLoggerBlock b {*m_pRegisterLogger};
-	for (int i = 0; i < 8; ++i) {
+	for (int i = 0; i < MAX_CHANNELS_N163; ++i) {
 		m_Channels[i].EndFrame();
 		if (i <= m_iChansInUse) for (int j : {1, 3, 5}) {		// // // log phase
 			int Address = 0x78 - i * 8 + j;

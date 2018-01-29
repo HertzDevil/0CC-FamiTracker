@@ -2297,16 +2297,16 @@ void CPatternEditor::OnMouseDownHeader(const CPoint &point)
 	}
 
 	// Mute/unmute
-	if (Column < 5) {
+	if (Column < cursor_column_t::C_EFF1_PARAM1) {		// // //
 		m_iChannelPushed = Channel;
 		m_bChannelPushed = true;
 	}
 	// Remove one track effect column
-	else if (Column == 5) {
+	else if (Column == cursor_column_t::C_EFF1_PARAM1) {
 		DecreaseEffectColumn(Channel);
 	}
 	// Add one track effect column
-	else if (Column == 6) {
+	else if (Column == cursor_column_t::C_EFF1_PARAM2) {
 		IncreaseEffectColumn(Channel);
 	}
 }
@@ -2642,11 +2642,11 @@ void CPatternEditor::OnMouseDblClk(const CPoint &point)
 			return;
 
 		// Solo
-		if (Column < 5) {
+		if (Column < cursor_column_t::C_EFF1_PARAM1) {		// // //
 			m_pView->SoloChannel(pSongView->GetChannelOrder().TranslateChannel(Channel));
 		}
 		// Remove one track effect column
-		else if (Column == cursor_column_t::C_EFF1_PARAM1) {		// // //
+		else if (Column == cursor_column_t::C_EFF1_PARAM1) {
 			DecreaseEffectColumn(Channel);
 		}
 		// Add one track effect column

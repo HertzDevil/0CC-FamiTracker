@@ -26,6 +26,7 @@
 #include "PatternNote.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
 #include "Settings.h"
+#include "APU/Types.h"		// // //
 
 /*
  * CMIDI - Wrapper class for input and output MIDI devices
@@ -304,8 +305,8 @@ void CMIDI::ToggleInput()
 
 void CMIDI::WriteNote(unsigned char Channel, unsigned char Note, unsigned char Octave, unsigned char Velocity)
 {
-	static unsigned int LastNote[MAX_CHANNELS];	// Quick hack
-//	static unsigned int LastVolume[MAX_CHANNELS];
+	static unsigned int LastNote[CHANID_COUNT];		// // // Quick hack
+//	static unsigned int LastVolume[CHANID_COUNT];
 
 	if (/*!m_bOpened ||*/ m_iOutDevice == 0 || m_hMIDIOut == NULL)
 		return;

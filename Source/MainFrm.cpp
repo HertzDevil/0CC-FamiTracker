@@ -542,7 +542,7 @@ bool CMainFrame::CreateDialogPanels()
 	// Create frame editor
 	m_pFrameEditor = std::make_unique<CFrameEditor>(this);		// // //
 
-	CRect rect(12, 12, m_pFrameEditor->CalcWidth(CHANNELS_DEFAULT), 162);
+	CRect rect(12, 12, m_pFrameEditor->CalcWidth(MAX_CHANNELS_2A03), 162);		// // //
 	DPI::ScaleRect(rect);		// // //
 
 	if (!m_pFrameEditor->CreateEx(WS_EX_STATICEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL, rect, (CWnd*)&m_wndControlBar, 0)) {

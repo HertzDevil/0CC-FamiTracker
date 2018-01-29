@@ -244,7 +244,7 @@ int CMixer::FinishBuffer(int t)
 	BlipBuffer.end_frame(t);
 
 	// Get channel levels for VRC7
-	for (int i = 0; i < 6; ++i)
+	for (int i = 0; i < MAX_CHANNELS_VRC7; ++i)
 		StoreChannelLevel(MakeChannelIndex(sound_chip_t::VRC7, i), OPLL_getchanvol(i));
 
 	UpdateMeters();		// // //
@@ -305,7 +305,7 @@ void CMixer::StoreChannelLevel(chan_id_t Channel, int Level)		// // //
 
 	if (GetChipFromChannel(Channel) == sound_chip_t::N163) {		// // //
 		AbsVol /= 15.;
-		Channel = MakeChannelIndex(sound_chip_t::N163, 7 - GetChannelSubIndex(Channel));
+		Channel = MakeChannelIndex(sound_chip_t::N163, MAX_CHANNELS_N163 - 1 - GetChannelSubIndex(Channel));
 	}
 
 	if (GetChipFromChannel(Channel) == sound_chip_t::VRC7)		// // //

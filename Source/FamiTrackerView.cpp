@@ -1527,7 +1527,6 @@ void CFamiTrackerView::SelectRow(unsigned int Row)
 
 void CFamiTrackerView::SelectChannel(unsigned int Channel)
 {
-	ASSERT(Channel < MAX_CHANNELS);
 	m_pPatternEditor->MoveToChannel(Channel);
 	InvalidateCursor();
 }

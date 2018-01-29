@@ -179,7 +179,7 @@ void CChannelHandlerN163::RefreshChannel()
 		Volume = 0;
 
 	// Update channel
-	if (Channel + m_iChannels >= 8) {		// // //
+	if (Channel + m_iChannels >= MAX_CHANNELS_N163) {		// // //
 		WriteData(ChannelAddrBase + 7, ((m_iChannels - 1) << 4) | Volume);
 		if (!m_bGate)
 			return;

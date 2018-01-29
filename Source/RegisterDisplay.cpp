@@ -113,7 +113,7 @@ void CRegisterDisplay::Draw() {
 	if (pSoundGen->IsExpansionEnabled(sound_chip_t::APU)) {
 		DrawHeader(_T("2A03"));		// // //
 
-		for (int i = 0; i < 5; ++i) {
+		for (int i = 0; i < MAX_CHANNELS_2A03; ++i) {
 			GetRegs(sound_chip_t::APU, [&] (int x) { return 0x4000 + i * 4 + x; }, 4);
 			text.Format(_T("$%04X:"), 0x4000 + i * 4);		// // //
 			DrawReg(text, 4);
@@ -161,7 +161,7 @@ void CRegisterDisplay::Draw() {
 	if (pSoundGen->IsExpansionEnabled(sound_chip_t::VRC6)) {
 		DrawHeader(_T("VRC6"));		// // //
 
-		for (int i = 0; i < 3; ++i) {
+		for (int i = 0; i < MAX_CHANNELS_VRC6; ++i) {
 			GetRegs(sound_chip_t::VRC6, [&] (int x) { return 0x9000 + i * 0x1000 + x; }, 3);
 			text.Format(_T("$%04X:"), 0x9000 + i * 0x1000);		// // //
 			DrawReg(text, 3);
@@ -181,7 +181,7 @@ void CRegisterDisplay::Draw() {
 	if (pSoundGen->IsExpansionEnabled(sound_chip_t::MMC5)) {		// // //
 		DrawHeader(_T("MMC5"));		// // //
 
-		for (int i = 0; i < 2; ++i) {
+		for (int i = 0; i < MAX_CHANNELS_MMC5 - 1; ++i) {
 			GetRegs(sound_chip_t::MMC5, [&] (int x) { return 0x5000 + i * 4 + x; }, 4);
 			text.Format(_T("$%04X:"), 0x5000 + i * 4);
 			DrawReg(text, 4);
@@ -278,7 +278,7 @@ void CRegisterDisplay::Draw() {
 		GetRegs(sound_chip_t::VRC7, [] (int x) { return x; }, 8);
 		DrawReg(_T("$00:"), 8);		// // //
 
-		for (int i = 0; i < 6; ++i) {
+		for (int i = 0; i < MAX_CHANNELS_VRC7; ++i) {
 			GetRegs(sound_chip_t::VRC7, [&] (int x) { return i + (++x << 4); }, 3);
 			text.Format(_T("$x%01X:"), i);
 			DrawReg(text, 3);
@@ -306,7 +306,7 @@ void CRegisterDisplay::Draw() {
 			int vol = pSoundGen->GetReg(sound_chip_t::S5B, 8 + i) & 0x0F;
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::S5B, i);		// // //
 
-			if (i < 3)
+			if (i < MAX_CHANNELS_S5B)
 				text.Format(_T("%s, vol = %02i, mode = %c%c%c"), GetPitchText(3, period, freq), vol,
 					(pSoundGen->GetReg(sound_chip_t::S5B, 7) & (1 << i)) ? _T('-') : _T('T'),
 					(pSoundGen->GetReg(sound_chip_t::S5B, 7) & (8 << i)) ? _T('-') : _T('N'),

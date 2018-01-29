@@ -89,17 +89,9 @@ const int MAX_GROOVE = 32;
 // // // Maximum number of entries in the echo buffer
 const int ECHO_BUFFER_LENGTH = 3;
 
-// Number of available channels (max) TODO: should not be used anymore!
-// instead, check the channelsavailable variable and allocate dynamically
-const int MAX_CHANNELS	 = 5 + 3 + 2 + 6 + 1 + 8 + 3;
-
-const int CHANNELS_DEFAULT = 5;
-const int CHANNELS_VRC6	   = 3;
-const int CHANNELS_VRC7	   = 6;
-
 const int OCTAVE_RANGE = 8;
 const int NOTE_RANGE   = 12;
-const int NOTE_COUNT   = OCTAVE_RANGE * NOTE_RANGE;	// // // mvoed from SoundGen.h
+const int NOTE_COUNT   = OCTAVE_RANGE * NOTE_RANGE;		// // // moved from SoundGen.h
 
 const int INVALID_INSTRUMENT = -1;
 
@@ -256,21 +248,20 @@ enum vibrato_t : unsigned char {
 	VIBRATO_NEW,
 };
 
-inline int MIDI_NOTE(int octave, int note)		// // //
-{
+constexpr int MIDI_NOTE(int octave, int note) noexcept {		// // //
 	return octave * NOTE_RANGE + note - 1;
 }
 
-inline int GET_OCTAVE(int midi_note)
-{
+constexpr int GET_OCTAVE(int midi_note) noexcept {
 	int x = midi_note / NOTE_RANGE;
-	if (midi_note < 0 && !(midi_note % NOTE_RANGE)) --x;
+	if (midi_note < 0 && !(midi_note % NOTE_RANGE))
+		--x;
 	return x;
 }
 
-inline int GET_NOTE(int midi_note)
-{
+constexpr int GET_NOTE(int midi_note) noexcept {
 	int x = midi_note % NOTE_RANGE;
-	if (x < 0) x += NOTE_RANGE;
+	if (x < 0)
+		x += NOTE_RANGE;
 	return ++x;
 }

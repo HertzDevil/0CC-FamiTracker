@@ -30,8 +30,7 @@
 #include "Common.h"
 #include "PatternEditorTypes.h"
 #include "SongData.h"		// // //
-#include "FamiTrackerTypes.h"		// // //
-
+#include "APU/Types.h"		// // //
 
 // Row color cache
 struct RowColorInfo_t {
@@ -353,9 +352,9 @@ private:
 	int		m_iColumnSpacing;				// // //
 	int		m_iRowColumnWidth;				// // //
 
-	int		m_iChannelWidths[MAX_CHANNELS] = { };		// // // Cached width in pixels of each channel
-	int		m_iChannelOffsets[MAX_CHANNELS] = { };		// Cached x position of channels
-	cursor_column_t	m_iColumns[MAX_CHANNELS]; // // // Cached *index of rightmost column* in each channel
+	int		m_iChannelWidths[CHANID_COUNT] = { };		// // // Cached width in pixels of each channel
+	int		m_iChannelOffsets[CHANID_COUNT] = { };		// Cached x position of channels
+	cursor_column_t	m_iColumns[CHANID_COUNT]; // // // Cached *index of rightmost column* in each channel
 
 	// Drawing (TODO remove these)
 	int		m_iDrawCursorRow;

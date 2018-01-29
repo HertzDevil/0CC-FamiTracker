@@ -392,19 +392,19 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 					break;
 					/*
 				case EF_PORTAOFF:
-					if (Channel < 5) {
+					if (ChipID == sound_chip_t::APU) {
 						WriteData(CMD_EFF_PORTAOFF);
 						//WriteData(EffParam);
 					}
 					break;*/
 				case EF_SWEEPUP:
-					if (Channel < chan_id_t::TRIANGLE) {
+					if (Channel == chan_id_t::SQUARE1 || Channel == chan_id_t::SQUARE2) {
 						WriteData(Command(CMD_EFF_SWEEP));
 						WriteData(0x88 | (EffParam & 0x77));	// Calculate sweep
 					}
 					break;
 				case EF_SWEEPDOWN:
-					if (Channel < chan_id_t::TRIANGLE) {
+					if (Channel == chan_id_t::SQUARE1 || Channel == chan_id_t::SQUARE2) {
 						WriteData(Command(CMD_EFF_SWEEP));
 						WriteData(0x80 | (EffParam & 0x77));	// Calculate sweep
 					}

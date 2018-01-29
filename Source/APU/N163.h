@@ -25,6 +25,7 @@
 
 #include "SoundChip.h"
 #include "Channel.h"
+#include "Types.h"		// // //
 
 class CMixer;
 
@@ -78,7 +79,7 @@ protected:
 	void ProcessOld(uint32_t Time);		// // //
 
 private:
-	CN163Chan	m_Channels[8];		// // //
+	CN163Chan	m_Channels[MAX_CHANNELS_N163];		// // //
 
 	uint8_t		m_iWaveData[0x80] = { };		// // //
 	uint8_t		m_iExpandAddr = 0;
