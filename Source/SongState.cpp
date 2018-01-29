@@ -250,7 +250,6 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 		for (int c2 = Chans - 1; c2 >= 0; --c2) {
 			chan_id_t c = doc.TranslateChannel(c2);
 			stChannelState &chState = State[value_cast(c)];
-			CTrackerChannel &ch = doc.GetChannel(doc.GetChannelIndex(c));
 			int EffColumns = doc.GetEffColumns(Track, c);
 			const auto &Note = doc.GetNoteData(Track, Frame, c, Row);		// // //
 
@@ -258,7 +257,7 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 
 			for (int k = EffColumns; k >= 0; k--) {
 				unsigned char fx = Note.EffNumber[k], xy = Note.EffParam[k];
-				if (!ch.IsEffectCompatible(fx, xy))
+				if (!IsEffectCompatible(c, fx, xy))
 					continue;
 				switch (fx) {
 				// ignore effects that cannot have memory

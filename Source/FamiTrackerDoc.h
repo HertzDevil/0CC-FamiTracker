@@ -188,7 +188,6 @@ public:
 // // // delegates
 
 #pragma region delegates to CChannelMap
-	CTrackerChannel	&GetChannel(int Index) const;		// // //
 	int				GetChannelIndex(chan_id_t Channel) const;		// // //
 	bool			HasChannel(chan_id_t Channel) const;		// // //
 

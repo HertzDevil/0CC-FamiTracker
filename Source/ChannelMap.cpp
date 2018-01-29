@@ -37,28 +37,10 @@ const CChannelOrder &CChannelMap::GetChannelOrder() const {
 	return order_;
 }
 
-void CChannelMap::RegisterChannel(CTrackerChannel &Channel) {		// // //
-	// Adds a channel to the channel map
-	m_pChannels.push_back(&Channel);
-}
-
-bool CChannelMap::SupportsChannel(const CTrackerChannel &ch) const {		// // //
-	chan_id_t chan = ch.GetID();
-	sound_chip_t chip = GetChipFromChannel(chan);
+bool CChannelMap::SupportsChannel(chan_id_t ch) const {		// // //
+	sound_chip_t chip = GetChipFromChannel(ch);
 	return HasExpansionChip(chip) && !(chip == sound_chip_t::N163 &&
-		GetChannelSubIndex(chan) >= GetChipChannelCount(sound_chip_t::N163));
-}
-
-CTrackerChannel &CChannelMap::GetChannel(int index) const {		// // //
-	return *m_pChannels.at(index);
-}
-
-CTrackerChannel &CChannelMap::FindChannel(chan_id_t chan) const {		// // //
-	return GetChannel(GetChannelOrder().GetChannelIndex(chan));
-}
-
-chan_id_t CChannelMap::GetChannelType(int index) const {		// // //
-	return GetChannel(index).GetID();
+		GetChannelSubIndex(ch) >= GetChipChannelCount(sound_chip_t::N163));
 }
 
 const CSoundChipSet &CChannelMap::GetExpansionFlag() const noexcept {		// // //
@@ -66,14 +48,11 @@ const CSoundChipSet &CChannelMap::GetExpansionFlag() const noexcept {		// // //
 }
 
 unsigned CChannelMap::GetChipChannelCount(sound_chip_t chip) const {
-	if (chip == sound_chip_t::N163)
-		return HasExpansionChip(chip) ? n163chs_ : 0;
-
-	unsigned count = 0;
-	for (auto pChan : m_pChannels)
-		if (pChan->GetChip() == chip)
-			++count;
-	return count;
+	if (HasExpansionChip(chip))
+		switch (chip) {
+		case sound_chip_t::N163: return n163chs_;
+		}
+	return 0;
 }
 
 bool CChannelMap::HasExpansionChip(sound_chip_t chips) const noexcept {

@@ -62,7 +62,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "SoundDriver.h"		// // //
 #include "PatternNote.h"		// // //
 #include "ChannelMap.h"		// // //
-#include "TrackerChannel.h" // NOTE_PRIO_1
+#include "TrackerChannel.h"		// // //
 #include "Highlight.h"		// // //
 #include "Bookmark.h"		// // //
 
@@ -780,6 +780,14 @@ float CSoundGen::GetCurrentBPM() const		// // //
 
 bool CSoundGen::IsPlaying() const {
 	return m_pSoundDriver && m_pSoundDriver->IsPlaying();		// // //
+}
+
+CTrackerChannel *CSoundGen::GetTrackerChannel(chan_id_t chan) {		// // //
+	return m_pSoundDriver->GetTrackerChannel(chan);
+}
+
+const CTrackerChannel *CSoundGen::GetTrackerChannel(chan_id_t chan) const {
+	return m_pSoundDriver->GetTrackerChannel(chan);
 }
 
 CArpeggiator &CSoundGen::GetArpeggiator() {		// // //

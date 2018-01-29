@@ -40,26 +40,13 @@ public:
 	CChannelOrder &GetChannelOrder();
 	const CChannelOrder &GetChannelOrder() const;
 
-	void			RegisterChannel(CTrackerChannel &Channel);		// // //
-	bool			SupportsChannel(const CTrackerChannel &ch) const;		// // //
-
-	CTrackerChannel	&GetChannel(int index) const;		// // //
-	CTrackerChannel	&FindChannel(chan_id_t chan) const;		// // //
-	chan_id_t		GetChannelType(int index) const;		// // //
+	bool			SupportsChannel(chan_id_t ch) const;		// // //
 
 	const CSoundChipSet &GetExpansionFlag() const noexcept;		// // //
 	unsigned		GetChipChannelCount(sound_chip_t chip) const;
 	bool			HasExpansionChip(sound_chip_t chip) const noexcept; // all
 
-	template <typename F>
-	void ForeachChannel(F f) const {
-//		return order_.ForeachChannel(f);
-		for (std::size_t i = 0, n = m_pChannels.size(); i < n; ++i)
-			f(GetChannelType(i));
-	}
-
 private:		// // //
-	std::vector<CTrackerChannel *> m_pChannels;		// // //
 	CChannelOrder order_;		// // //
 
 	CSoundChipSet chips_;		// // //

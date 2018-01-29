@@ -1305,17 +1305,19 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	COLORREF DimInst = ColorInfo.Compact;		// // //
 	COLORREF DimEff = ColorInfo.Compact;		// // //
 
-	const CTrackerChannel &TrackerChannel = m_pView->GetTrackerChannel(Channel);		// // //
+	CSongView *pSongView = m_pView->GetSongView();		// // //
+	unsigned fxcols = pSongView->GetEffectColumnCount(Channel);
+	chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(Channel);
 
 	// Make non-available instruments red in the pattern editor
 	if (NoteData.Instrument < MAX_INSTRUMENTS &&
 		(!m_pDocument->IsInstrumentUsed(NoteData.Instrument) ||
-		!TrackerChannel.IsInstrumentCompatible(NoteData.Instrument, m_pDocument->GetInstrumentType(NoteData.Instrument)))) { // // //
+		!IsInstrumentCompatible(GetChipFromChannel(ch), m_pDocument->GetInstrumentType(NoteData.Instrument)))) { // // //
 		DimInst = InstColor = MakeRGB(255, 0, 0);
 	}
 
 	// // // effects too
-	if (EffNumber != EF_NONE) if (!TrackerChannel.IsEffectCompatible(EffNumber, EffParam))
+	if (EffNumber != EF_NONE) if (!IsEffectCompatible(ch, EffNumber, EffParam))
 		DimEff = EffColor = MakeRGB(255, 0, 0);		// // //
 
 	int PosY = m_iRowHeight - m_iRowHeight / 8;		// // //
@@ -1325,10 +1327,6 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 #define BAR(x, y) DC.FillSolidRect((x) + m_iCharWidth / 2 - BARLENGTH / 2, (y) - m_iRowHeight / 2 + m_iRowHeight / 8, BARLENGTH, 1, ColorInfo.Shaded)
 
 	DC.SetTextAlign(TA_CENTER | TA_BASELINE);		// // //
-
-	CSongView *pSongView = m_pView->GetSongView();		// // //
-	unsigned fxcols = pSongView->GetEffectColumnCount(Channel);
-	chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(Channel);
 
 	switch (Column) {
 	case C_NOTE:

@@ -63,49 +63,53 @@ void CSoundDriver::SetupTracks() {
 	// Clear all channels
 	tracks_.clear();		// // //
 
+	const auto AssignTrack = [&] (chan_id_t id) {		// // //
+		tracks_.emplace_back(CChannelFactory::Make(id), std::make_unique<CTrackerChannel>());
+	};
+
 	// 2A03/2A07
 	// // // Short header names
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::SQUARE1));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::SQUARE2));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::TRIANGLE));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::NOISE));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::DPCM));
+	AssignTrack(chan_id_t::SQUARE1);
+	AssignTrack(chan_id_t::SQUARE2);
+	AssignTrack(chan_id_t::TRIANGLE);
+	AssignTrack(chan_id_t::NOISE);
+	AssignTrack(chan_id_t::DPCM);
 
 	// Konami VRC6
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::VRC6_PULSE1));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::VRC6_PULSE2));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::VRC6_SAWTOOTH));
+	AssignTrack(chan_id_t::VRC6_PULSE1);
+	AssignTrack(chan_id_t::VRC6_PULSE2);
+	AssignTrack(chan_id_t::VRC6_SAWTOOTH);
 
 	// // // Nintendo MMC5
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::MMC5_SQUARE1));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::MMC5_SQUARE2));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::MMC5_VOICE)); // null channel handler
+	AssignTrack(chan_id_t::MMC5_SQUARE1);
+	AssignTrack(chan_id_t::MMC5_SQUARE2);
+	AssignTrack(chan_id_t::MMC5_VOICE); // null channel handler
 
 	// Namco N163
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::N163_CH1));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::N163_CH2));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::N163_CH3));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::N163_CH4));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::N163_CH5));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::N163_CH6));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::N163_CH7));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::N163_CH8));
+	AssignTrack(chan_id_t::N163_CH1);
+	AssignTrack(chan_id_t::N163_CH2);
+	AssignTrack(chan_id_t::N163_CH3);
+	AssignTrack(chan_id_t::N163_CH4);
+	AssignTrack(chan_id_t::N163_CH5);
+	AssignTrack(chan_id_t::N163_CH6);
+	AssignTrack(chan_id_t::N163_CH7);
+	AssignTrack(chan_id_t::N163_CH8);
 
 	// Nintendo FDS
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::FDS));
+	AssignTrack(chan_id_t::FDS);
 
 	// Konami VRC7
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::VRC7_CH1));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::VRC7_CH2));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::VRC7_CH3));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::VRC7_CH4));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::VRC7_CH5));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::VRC7_CH6));
+	AssignTrack(chan_id_t::VRC7_CH1);
+	AssignTrack(chan_id_t::VRC7_CH2);
+	AssignTrack(chan_id_t::VRC7_CH3);
+	AssignTrack(chan_id_t::VRC7_CH4);
+	AssignTrack(chan_id_t::VRC7_CH5);
+	AssignTrack(chan_id_t::VRC7_CH6);
 
 	// // // Sunsoft 5B
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::S5B_CH1));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::S5B_CH2));
-	AssignTrack(std::make_unique<CTrackerChannel>(chan_id_t::S5B_CH3));
+	AssignTrack(chan_id_t::S5B_CH1);
+	AssignTrack(chan_id_t::S5B_CH2);
+	AssignTrack(chan_id_t::S5B_CH3);
 }
 
 void CSoundDriver::LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu) {
@@ -113,22 +117,21 @@ void CSoundDriver::LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu) {
 	apu_ = &apu;
 
 	// Setup all channels
-	for (auto &x : tracks_)		// // //
-		if (auto &ch = x.first)
-			ch->InitChannel(&apu, m_iVibratoTable, parent_);
+	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &) {
+		ch.InitChannel(&apu, m_iVibratoTable, parent_);
+	});
 }
 
 void CSoundDriver::ConfigureDocument() {
 	SetupVibrato();
 	SetupPeriodTables();
 
-	for (auto &x : tracks_)
-		if (auto &ch = x.first) {
-			ch->SetVibratoStyle(doc_->GetVibratoStyle());		// // //
-			ch->SetLinearPitch(doc_->GetLinearPitch());
-			if (auto pChan = dynamic_cast<CChannelHandlerN163 *>(ch.get()))
-				pChan->SetChannelCount(doc_->GetNamcoChannels());
-		}
+	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &) {
+		ch.SetVibratoStyle(doc_->GetVibratoStyle());		// // //
+		ch.SetLinearPitch(doc_->GetLinearPitch());
+		if (auto pChan = dynamic_cast<CChannelHandlerN163 *>(&ch))
+			pChan->SetChannelCount(doc_->GetNamcoChannels());
+	});
 }
 
 std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const {
@@ -137,12 +140,20 @@ std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(const CSoundChipSet &c
 
 	// Register the channels in the document
 	// Expansion & internal channels
-	for (auto &x : tracks_)
-		if (x.first && x.second && map->SupportsChannel(*x.second))
-			if (map->GetChannelOrder().AddChannel(x.second->GetID()))
-				map->RegisterChannel(*x.second);
+	ForeachTrack([&] (CChannelHandler &, CTrackerChannel &tr, chan_id_t ch) {
+		if (map->SupportsChannel(ch))
+			map->GetChannelOrder().AddChannel(ch);
+	});
 
 	return map;
+}
+
+CTrackerChannel *CSoundDriver::GetTrackerChannel(chan_id_t chan) {
+	return chan != chan_id_t::NONE ? tracks_[value_cast(chan)].second.get() : nullptr;
+}
+
+const CTrackerChannel *CSoundDriver::GetTrackerChannel(chan_id_t chan) const {
+	return const_cast<CSoundDriver *>(this)->GetTrackerChannel(chan);
 }
 
 void CSoundDriver::StartPlayer(std::unique_ptr<CPlayerCursor> cur) {
@@ -162,19 +173,18 @@ void CSoundDriver::StopPlayer() {
 }
 
 void CSoundDriver::ResetTracks() {
-	for (auto &x : tracks_) {
-		if (auto &ch = x.first)
-			ch->ResetChannel();
-		if (auto &track = x.second)
-			track->Reset();
-	}
+	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &tr) {		// // //
+		ch.ResetChannel();
+		tr.Reset();
+	});
 }
 
 void CSoundDriver::LoadSoundState(const CSongState &state) {
 	m_pTempoCounter->LoadSoundState(state);
-	for (auto &x : tracks_)
-		if (x.first && x.second && doc_->HasChannel(x.second->GetID()))
-				x.first->ApplyChannelState(state.State[value_cast(x.second->GetID())]);
+	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &tr, chan_id_t id) {		// // //
+		if (doc_->HasChannel(id))
+			ch.ApplyChannelState(state.State[value_cast(id)]);
+	});
 }
 
 void CSoundDriver::SetTempoCounter(std::shared_ptr<CTempoCounter> tempo) {
@@ -254,50 +264,47 @@ void CSoundDriver::PlayerTick() {
 }
 
 void CSoundDriver::UpdateChannels() {
-	for (auto &[pChan, pTrackerChan] : tracks_) {		// // //
-		chan_id_t ID = pTrackerChan->GetID();
-		if (!pChan || !doc_->HasChannel(ID))
-			continue;
+	ForeachTrack([&] (CChannelHandler &Chan, CTrackerChannel &TrackerChan, chan_id_t ID) {		// // //
+		if (!doc_->HasChannel(ID))
+			return;
 
 		// Run auto-arpeggio, if enabled
 		if (int Arpeggio = parent_ ? parent_->GetArpNote(ID) : -1; Arpeggio > 0)		// // //
-			pChan->Arpeggiate(Arpeggio);
+			Chan.Arpeggiate(Arpeggio);
 
 		// Check if new note data has been queued for playing
-		if (pTrackerChan->NewNoteData())
-			pChan->PlayNote(pTrackerChan->GetNote());		// // //
+		if (TrackerChan.NewNoteData())
+			Chan.PlayNote(TrackerChan.GetNote());		// // //
 
 		// Pitch wheel
-		pChan->SetPitch(pTrackerChan->GetPitch());
+		Chan.SetPitch(TrackerChan.GetPitch());
 
 		// Channel updates (instruments, effects etc)
-		m_bHaltRequest ? pChan->ResetChannel() : pChan->ProcessChannel();
-		pChan->RefreshChannel();
-		pChan->FinishTick();		// // //
+		m_bHaltRequest ? Chan.ResetChannel() : Chan.ProcessChannel();
+		Chan.RefreshChannel();
+		Chan.FinishTick();		// // //
 
 		// Update volume meters
-		pTrackerChan->SetVolumeMeter(apu_->GetVol(ID));		// // //
-	}
+		TrackerChan.SetVolumeMeter(apu_->GetVol(ID));		// // //
+	});
 }
 
 void CSoundDriver::UpdateAPU(int cycles) {
 	sound_chip_t LastChip = sound_chip_t::NONE;		// // // 050B
 
-	for (auto &x : tracks_) {
-		if (auto &ch = x.first) {
-			sound_chip_t Chip = x.second->GetChip();
-			if (doc_->ExpansionEnabled(Chip)) {
-				int Delay = (Chip == LastChip) ? 150 : 250;
-				if (Delay < cycles) {
-					// Add APU cycles
-					cycles -= Delay;
-					apu_->AddTime(Delay);
-				}
-				LastChip = Chip;
+	ForeachTrack([&] (CChannelHandler &Chan, CTrackerChannel &, chan_id_t ID) {		// // //
+		if (doc_->HasChannel(ID)) {
+			sound_chip_t Chip = GetChipFromChannel(ID);
+			int Delay = (Chip == LastChip) ? 150 : 250;
+			if (Delay < cycles) {
+				// Add APU cycles
+				cycles -= Delay;
+				apu_->AddTime(Delay);
 			}
-			apu_->Process();
+			LastChip = Chip;
 		}
-	}
+		apu_->Process();
+	});
 
 	// Finish the audio frame
 	apu_->AddTime(cycles);
@@ -362,11 +369,6 @@ int CSoundDriver::ReadPeriodTable(int Index, int Table) const {
 
 int CSoundDriver::ReadVibratoTable(int index) const {
 	return m_iVibratoTable[index];
-}
-
-void CSoundDriver::AssignTrack(std::unique_ptr<CTrackerChannel> track) {
-	auto ch = CChannelFactory::Make(track->GetID());		// // //
-	tracks_.emplace_back(std::move(ch), std::move(track));
 }
 
 void CSoundDriver::SetupVibrato() {
@@ -439,33 +441,33 @@ void CSoundDriver::SetupPeriodTables() {
 	}
 
 	// // // Setup note tables
-	for (auto &x : tracks_) {
-		if (!x.first)
-			continue;
-		if (auto Table = [&] () -> const unsigned * {
-			switch (x.second->GetID()) {
-			case chan_id_t::SQUARE1: case chan_id_t::SQUARE2: case chan_id_t::TRIANGLE:
-				return Machine == PAL ? m_iNoteLookupTablePAL : m_iNoteLookupTableNTSC;
-			case chan_id_t::VRC6_PULSE1: case chan_id_t::VRC6_PULSE2:
-			case chan_id_t::MMC5_SQUARE1: case chan_id_t::MMC5_SQUARE2:
-				return m_iNoteLookupTableNTSC;
-			case chan_id_t::VRC6_SAWTOOTH:
-				return m_iNoteLookupTableSaw;
-			case chan_id_t::VRC7_CH1: case chan_id_t::VRC7_CH2: case chan_id_t::VRC7_CH3:
-			case chan_id_t::VRC7_CH4: case chan_id_t::VRC7_CH5: case chan_id_t::VRC7_CH6:
-				return m_iNoteLookupTableVRC7;
-			case chan_id_t::FDS:
-				return m_iNoteLookupTableFDS;
-			case chan_id_t::N163_CH1: case chan_id_t::N163_CH2: case chan_id_t::N163_CH3: case chan_id_t::N163_CH4:
-			case chan_id_t::N163_CH5: case chan_id_t::N163_CH6: case chan_id_t::N163_CH7: case chan_id_t::N163_CH8:
-				return m_iNoteLookupTableN163;
-			case chan_id_t::S5B_CH1: case chan_id_t::S5B_CH2: case chan_id_t::S5B_CH3:
-				return m_iNoteLookupTableS5B;
-			}
-			return nullptr;
-		}())
-			x.first->SetNoteTable(Table);
-	}
+	const auto GetNoteTable = [&] (chan_id_t ch) -> const unsigned * {
+		switch (ch) {
+		case chan_id_t::SQUARE1: case chan_id_t::SQUARE2: case chan_id_t::TRIANGLE:
+			return Machine == PAL ? m_iNoteLookupTablePAL : m_iNoteLookupTableNTSC;
+		case chan_id_t::VRC6_PULSE1: case chan_id_t::VRC6_PULSE2:
+		case chan_id_t::MMC5_SQUARE1: case chan_id_t::MMC5_SQUARE2:
+			return m_iNoteLookupTableNTSC;
+		case chan_id_t::VRC6_SAWTOOTH:
+			return m_iNoteLookupTableSaw;
+		case chan_id_t::VRC7_CH1: case chan_id_t::VRC7_CH2: case chan_id_t::VRC7_CH3:
+		case chan_id_t::VRC7_CH4: case chan_id_t::VRC7_CH5: case chan_id_t::VRC7_CH6:
+			return m_iNoteLookupTableVRC7;
+		case chan_id_t::FDS:
+			return m_iNoteLookupTableFDS;
+		case chan_id_t::N163_CH1: case chan_id_t::N163_CH2: case chan_id_t::N163_CH3: case chan_id_t::N163_CH4:
+		case chan_id_t::N163_CH5: case chan_id_t::N163_CH6: case chan_id_t::N163_CH7: case chan_id_t::N163_CH8:
+			return m_iNoteLookupTableN163;
+		case chan_id_t::S5B_CH1: case chan_id_t::S5B_CH2: case chan_id_t::S5B_CH3:
+			return m_iNoteLookupTableS5B;
+		}
+		return nullptr;
+	};
+
+	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &, chan_id_t id) {
+		if (auto Table = GetNoteTable(id))
+			ch.SetNoteTable(Table);
+	});
 }
 
 void CSoundDriver::HandleGlobalEffects(stChanNote &note) {

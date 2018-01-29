@@ -53,7 +53,10 @@ public:
 	void SetupTracks();
 	void LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu);
 	void ConfigureDocument();
+
 	std::unique_ptr<CChannelMap> MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const;
+	CTrackerChannel *GetTrackerChannel(chan_id_t chan);
+	const CTrackerChannel *GetTrackerChannel(chan_id_t chan) const;
 
 	void StartPlayer(std::unique_ptr<CPlayerCursor> cur);
 	void StopPlayer();
@@ -81,7 +84,6 @@ public:
 	int ReadVibratoTable(int index) const;
 
 private:
-	void AssignTrack(std::unique_ptr<CTrackerChannel> track);
 	CChannelHandler *GetChannelHandler(chan_id_t chan) const;
 
 	void SetupVibrato();
@@ -91,6 +93,26 @@ private:
 	void StepRow(chan_id_t chan);
 	void UpdateChannels();
 	void HandleGlobalEffects(stChanNote &note);
+
+	// void (*F)(CChannelHandler &channel, CTrackerChannel &track [, chan_id_t id])
+	template <typename F>
+	void ForeachTrack(F f) const {
+		if constexpr (std::is_invocable_v<F, CChannelHandler &, CTrackerChannel &>) {
+			for (auto &[ch, tr] : tracks_)
+				if (ch && tr)
+					f(*ch, *tr);
+		}
+		else if constexpr (std::is_invocable_v<F, CChannelHandler &, CTrackerChannel &, chan_id_t>) {
+			std::size_t x = 0;
+			for (auto &[ch, tr] : tracks_) {
+				if (ch && tr)
+					f(*ch, *tr, (chan_id_t)x);
+				++x;
+			}
+		}
+		else
+			static_assert(false, "Unknown function signature");
+	}
 
 private:
 	std::vector<std::pair<

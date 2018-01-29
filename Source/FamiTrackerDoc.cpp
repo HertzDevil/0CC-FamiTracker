@@ -1039,11 +1039,7 @@ int CFamiTrackerDoc::GetChannelCount() const {
 }
 
 chan_id_t CFamiTrackerDoc::TranslateChannel(unsigned Index) const {		// // //
-	return GetChannelMap()->GetChannelType(Index);
-}
-
-CTrackerChannel &CFamiTrackerDoc::GetChannel(int Index) const {		// // //
-	return GetChannelMap()->GetChannel(Index);		// // //
+	return GetChannelMap()->GetChannelOrder().TranslateChannel(Index);
 }
 
 int CFamiTrackerDoc::GetChannelIndex(chan_id_t Channel) const {

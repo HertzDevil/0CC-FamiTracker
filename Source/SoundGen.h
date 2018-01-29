@@ -75,6 +75,7 @@ class CAudioDriver;		// // //
 class CWaveRenderer;		// // //
 class CTempoDisplay;		// // //
 class CTempoCounter;		// // //
+class CTrackerChannel;		// // //
 class CPlayerCursor;		// // //
 class CSoundDriver;		// // //
 class CChannelMap;		// // //
@@ -144,6 +145,9 @@ public:
 	void		 SetHighlightRows(int Rows);		// // //
 	float		 GetCurrentBPM() const;		// // //
 	bool		 IsPlaying() const;
+
+	CTrackerChannel *GetTrackerChannel(chan_id_t chan);		// // //
+	const CTrackerChannel *GetTrackerChannel(chan_id_t chan) const;		// // //
 
 	CArpeggiator &GetArpeggiator();		// // //
 

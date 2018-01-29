@@ -25,7 +25,7 @@
 
 // CTrackerChannel
 
-#include "stdafx.h"		// // //
+#include <mutex>		// // //
 #include "PatternNote.h"		// // //
 #include "APU/Types_fwd.h"		// // //
 
@@ -37,13 +37,12 @@ enum note_prio_t : unsigned {
 	NOTE_PRIO_2
 };
 
+bool IsInstrumentCompatible(sound_chip_t chip, inst_type_t Type);		// // //
+bool IsEffectCompatible(chan_id_t ch, uint8_t EffNumber, uint8_t EffParam);		// // //
+
 class CTrackerChannel
 {
 public:
-	explicit CTrackerChannel(chan_id_t iID);		// // //
-	sound_chip_t GetChip() const;		// // //
-	chan_id_t GetID() const;		// // //
-
 	stChanNote GetNote();
 	void SetNote(const stChanNote &Note, note_prio_t Priority);		// // //
 	bool NewNoteData() const;
@@ -55,21 +54,15 @@ public:
 	void SetPitch(int Pitch);
 	int GetPitch() const;
 
-	bool IsInstrumentCompatible(int Instrument, inst_type_t Type) const;		// // //
-	bool IsEffectCompatible(int EffNumber, int EffParam) const;		// // //
-
 private:
 	stChanNote m_Note;
-	note_prio_t	m_iNotePriority;
+	note_prio_t m_iNotePriority = NOTE_PRIO_0;
 
-	int m_iVolumeMeter;
-	int m_iPitch;
+	int m_iVolumeMeter = 0;
+	int m_iPitch = 0;
 
-	bool m_bNewNote;
-
-	sound_chip_t m_iChip;		// // //
-	chan_id_t m_iChannelID;		// // //
+	bool m_bNewNote = false;
 
 private:
-	CCriticalSection m_csNoteLock;
+	mutable std::mutex m_csNoteLock;		// // //
 };

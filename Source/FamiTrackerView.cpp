@@ -1414,7 +1414,7 @@ chan_id_t CFamiTrackerView::GetSelectedChannelID() const {		// // //
 
 CTrackerChannel &CFamiTrackerView::GetTrackerChannel(std::size_t Index) const {		// // //
 	chan_id_t ch = GetSongView()->GetChannelOrder().TranslateChannel(Index);
-	return GetDocument()->GetChannelMap()->FindChannel(ch);
+	return *theApp.GetSoundGenerator()->GetTrackerChannel(ch);
 }
 
 CSongView *CFamiTrackerView::GetSongView() const {		// // //

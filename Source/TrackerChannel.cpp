@@ -30,49 +30,25 @@
  *
  */
 
-CTrackerChannel::CTrackerChannel(chan_id_t iID) :		// // //
-	m_iChip(GetChipFromChannel(iID)),
-	m_iChannelID(iID),
-	m_bNewNote(false),
-	m_iPitch(0),
-	m_iNotePriority(NOTE_PRIO_0),
-	m_iVolumeMeter(0)
-{
-}
-
-sound_chip_t CTrackerChannel::GetChip() const
-{
-	return m_iChip;
-}
-
-chan_id_t CTrackerChannel::GetID() const		// // //
-{
-	return m_iChannelID;
-}
-
 void CTrackerChannel::SetNote(const stChanNote &Note, note_prio_t Priority)		// // //
 {
-	m_csNoteLock.Lock();
+	std::lock_guard<std::mutex> lock {m_csNoteLock};
 
 	if (Priority >= m_iNotePriority) {
 		m_Note = Note;
 		m_bNewNote = true;
 		m_iNotePriority = Priority;
 	}
-
-	m_csNoteLock.Unlock();
 }
 
 stChanNote CTrackerChannel::GetNote()
 {
-	m_csNoteLock.Lock();
+	std::lock_guard<std::mutex> lock {m_csNoteLock};
 
 	stChanNote Note = m_Note;		// // //
 	m_Note = stChanNote { };
 	m_bNewNote = false;
 	m_iNotePriority = NOTE_PRIO_0;
-
-	m_csNoteLock.Unlock();
 
 	return Note;
 }
@@ -84,39 +60,45 @@ bool CTrackerChannel::NewNoteData() const
 
 void CTrackerChannel::Reset()
 {
-	m_csNoteLock.Lock();
+	std::lock_guard<std::mutex> lock {m_csNoteLock};
 
 	m_Note = stChanNote { };		// // //
 	m_bNewNote = false;
+	m_iPitch = 0;		// // //
 	m_iVolumeMeter = 0;
 	m_iNotePriority = NOTE_PRIO_0;
-
-	m_csNoteLock.Unlock();
 }
 
 void CTrackerChannel::SetVolumeMeter(int Value)
 {
+	std::lock_guard<std::mutex> lock {m_csNoteLock};		// // //
+
 	m_iVolumeMeter = Value;
 }
 
 int CTrackerChannel::GetVolumeMeter() const
 {
+	std::lock_guard<std::mutex> lock {m_csNoteLock};		// // //
+
 	return m_iVolumeMeter;
 }
 
 void CTrackerChannel::SetPitch(int Pitch)
 {
+	std::lock_guard<std::mutex> lock {m_csNoteLock};		// // //
+
 	m_iPitch = Pitch;
 }
 
 int CTrackerChannel::GetPitch() const
 {
+	std::lock_guard<std::mutex> lock {m_csNoteLock};		// // //
+
 	return m_iPitch;
 }
 
-bool CTrackerChannel::IsInstrumentCompatible(int Instrument, inst_type_t Type) const
-{
-	switch (m_iChip) {
+bool IsInstrumentCompatible(sound_chip_t chip, inst_type_t Type) {		// // //
+	switch (chip) {
 	case sound_chip_t::APU:
 	case sound_chip_t::MMC5:
 	case sound_chip_t::N163:		// // //
@@ -139,45 +121,45 @@ bool CTrackerChannel::IsInstrumentCompatible(int Instrument, inst_type_t Type) c
 	return false;
 }
 
-bool CTrackerChannel::IsEffectCompatible(int EffNumber, int EffParam) const		// // //
-{
+bool IsEffectCompatible(chan_id_t ch, uint8_t EffNumber, uint8_t EffParam) {		// // //
+	sound_chip_t chip = GetChipFromChannel(ch);
 	switch (EffNumber) {
 		case EF_NONE:
 		case EF_SPEED: case EF_JUMP: case EF_SKIP: case EF_HALT:
 		case EF_DELAY:
 			return true;
 		case EF_NOTE_CUT: case EF_NOTE_RELEASE:
-			return EffParam <= 0x7F || m_iChannelID == chan_id_t::TRIANGLE;
+			return EffParam <= 0x7F || ch == chan_id_t::TRIANGLE;
 		case EF_GROOVE:
 			return EffParam < MAX_GROOVE;
 		case EF_VOLUME:
-			return ((m_iChip == sound_chip_t::APU && m_iChannelID != chan_id_t::DPCM) || m_iChip == sound_chip_t::MMC5) &&
+			return ((chip == sound_chip_t::APU && ch != chan_id_t::DPCM) || chip == sound_chip_t::MMC5) &&
 				(EffParam <= 0x1F || (EffParam >= 0xE0 && EffParam <= 0xE3));
 		case EF_PORTAMENTO: case EF_ARPEGGIO: case EF_VIBRATO: case EF_TREMOLO:
 		case EF_PITCH: case EF_PORTA_UP: case EF_PORTA_DOWN: case EF_SLIDE_UP: case EF_SLIDE_DOWN:
 		case EF_VOLUME_SLIDE: case EF_DELAYED_VOLUME: case EF_TRANSPOSE:
-			return m_iChannelID != chan_id_t::DPCM;
+			return ch != chan_id_t::DPCM;
 		case EF_PORTAOFF:
 			return false;
 		case EF_SWEEPUP: case EF_SWEEPDOWN:
-			return m_iChannelID == chan_id_t::SQUARE1 || m_iChannelID == chan_id_t::SQUARE2;
+			return ch == chan_id_t::SQUARE1 || ch == chan_id_t::SQUARE2;
 		case EF_DAC: case EF_SAMPLE_OFFSET: case EF_RETRIGGER: case EF_DPCM_PITCH:
-			return m_iChannelID == chan_id_t::DPCM;
+			return ch == chan_id_t::DPCM;
 		case EF_DUTY_CYCLE:
-			return m_iChannelID != chan_id_t::DPCM;		// // // 050B
+			return ch != chan_id_t::DPCM;		// // // 050B
 		case EF_FDS_MOD_DEPTH:
-			return m_iChip == sound_chip_t::FDS && (EffParam <= 0x3F || EffParam >= 0x80);
+			return chip == sound_chip_t::FDS && (EffParam <= 0x3F || EffParam >= 0x80);
 		case EF_FDS_MOD_SPEED_HI: case EF_FDS_MOD_SPEED_LO: case EF_FDS_MOD_BIAS:
-			return m_iChip == sound_chip_t::FDS;
+			return chip == sound_chip_t::FDS;
 		case EF_SUNSOFT_ENV_LO: case EF_SUNSOFT_ENV_HI: case EF_SUNSOFT_ENV_TYPE:
 		case EF_SUNSOFT_NOISE:		// // // 050B
-			return m_iChip == sound_chip_t::S5B;
+			return chip == sound_chip_t::S5B;
 		case EF_N163_WAVE_BUFFER:
-			return m_iChip == sound_chip_t::N163 && EffParam <= 0x7F;
+			return chip == sound_chip_t::N163 && EffParam <= 0x7F;
 		case EF_FDS_VOLUME:
-			return m_iChip == sound_chip_t::FDS && (EffParam <= 0x7F || EffParam == 0xE0);
+			return chip == sound_chip_t::FDS && (EffParam <= 0x7F || EffParam == 0xE0);
 		case EF_VRC7_PORT: case EF_VRC7_WRITE:		// // // 050B
-			return m_iChip == sound_chip_t::VRC7;
+			return chip == sound_chip_t::VRC7;
 	}
 
 	return false;
