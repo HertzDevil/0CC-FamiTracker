@@ -52,7 +52,7 @@ void CInstrumentEditorFDSEnvelope::SelectInstrument(std::shared_ptr<CInstrument>
 	m_pInstrument = std::dynamic_pointer_cast<CInstrumentFDS>(pInst);
 	ASSERT(m_pInstrument);
 
-	LoadSequence(m_pSequence->GetSequenceType());		// // //
+	LoadSequence(m_iSelectedSetting);		// // //
 
 	SetFocus();
 }
@@ -108,7 +108,7 @@ void CInstrumentEditorFDSEnvelope::SetupParser() const		// // //
 		__debugbreak(); return nullptr;
 	};
 
-	auto pConv = MakeParser(m_pSequence->GetSequenceType(), m_pSequence->GetSetting());
+	auto pConv = MakeParser(m_iSelectedSetting, m_pSequence->GetSetting());
 	m_pSequenceEditor->SetConversion(*pConv);		// // //
 	m_pParser->SetSequence(m_pSequence);
 	m_pParser->SetConversion(std::move(pConv));
