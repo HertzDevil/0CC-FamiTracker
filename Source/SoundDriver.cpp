@@ -22,7 +22,6 @@
 
 #include "SoundDriver.h"
 #include "SoundGenBase.h"
-#include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"
 #include "SongData.h"
 #include "TempoCounter.h"
@@ -113,8 +112,8 @@ void CSoundDriver::SetupTracks() {
 	AssignTrack(chan_id_t::S5B_CH3);
 }
 
-void CSoundDriver::LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu) {
-	doc_ = &doc;
+void CSoundDriver::LoadDocument(const CFamiTrackerModule &modfile, CAPU &apu) {
+	modfile_ = &modfile;
 	apu_ = &apu;
 
 	// Setup all channels
@@ -127,13 +126,11 @@ void CSoundDriver::ConfigureDocument() {
 	SetupVibrato();
 	SetupPeriodTables();
 
-	const auto *pModule = doc_->GetModule();		// // //
-
 	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &) {
-		ch.SetVibratoStyle(pModule->GetVibratoStyle());
-		ch.SetLinearPitch(pModule->GetLinearPitch());
+		ch.SetVibratoStyle(modfile_->GetVibratoStyle());
+		ch.SetLinearPitch(modfile_->GetLinearPitch());
 		if (auto pChan = dynamic_cast<CChannelHandlerN163 *>(&ch))
-			pChan->SetChannelCount(pModule->GetNamcoChannels());
+			pChan->SetChannelCount(modfile_->GetNamcoChannels());
 	});
 }
 
@@ -185,28 +182,24 @@ void CSoundDriver::ResetTracks() {
 void CSoundDriver::LoadSoundState(const CSongState &state) {
 	m_pTempoCounter->LoadSoundState(state);
 	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &tr, chan_id_t id) {		// // //
-		if (doc_->HasChannel(id))
+		if (modfile_->GetChannelOrder().HasChannel(id))
 			ch.ApplyChannelState(state.State[value_cast(id)]);
 	});
 }
 
 void CSoundDriver::SetTempoCounter(std::shared_ptr<CTempoCounter> tempo) {
 	m_pTempoCounter = std::move(tempo);
-	m_pTempoCounter->AssignDocument(*doc_);
+	m_pTempoCounter->AssignModule(*modfile_);
 }
 
 void CSoundDriver::Tick() {
-	// Access the document object, skip if access wasn't granted to avoid gaps in audio playback
-	if (doc_ && doc_->LockDocument(0)) {
-		if (IsPlaying())
-			PlayerTick();
-		UpdateChannels();
-		doc_->UnlockDocument();
-	}
+	if (IsPlaying())
+		PlayerTick();
+	UpdateChannels();
 }
 
 void CSoundDriver::StepRow(chan_id_t chan) {
-	stChanNote NoteData = doc_->GetSong(m_pPlayerCursor->GetCurrentSong())->GetActiveNote(
+	stChanNote NoteData = modfile_->GetSong(m_pPlayerCursor->GetCurrentSong())->GetActiveNote(
 		chan, m_pPlayerCursor->GetCurrentFrame(), m_pPlayerCursor->GetCurrentRow());		// // //
 	HandleGlobalEffects(NoteData);
 	if (!parent_ || !parent_->IsChannelMuted(chan))
@@ -232,7 +225,7 @@ void CSoundDriver::PlayerTick() {
 			++SteppedRows;
 		m_pTempoCounter->StepRow();		// // //
 
-		doc_->ForeachChannel([&] (chan_id_t i) {
+		modfile_->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
 			StepRow(i);
 		});
 
@@ -268,7 +261,7 @@ void CSoundDriver::PlayerTick() {
 
 void CSoundDriver::UpdateChannels() {
 	ForeachTrack([&] (CChannelHandler &Chan, CTrackerChannel &TrackerChan, chan_id_t ID) {		// // //
-		if (!doc_->HasChannel(ID))
+		if (!modfile_->GetChannelOrder().HasChannel(ID))
 			return;
 
 		// Run auto-arpeggio, if enabled
@@ -296,7 +289,7 @@ void CSoundDriver::UpdateAPU(int cycles) {
 	sound_chip_t LastChip = sound_chip_t::NONE;		// // // 050B
 
 	ForeachTrack([&] (CChannelHandler &Chan, CTrackerChannel &, chan_id_t ID) {		// // //
-		if (doc_->HasChannel(ID)) {
+		if (modfile_->GetChannelOrder().HasChannel(ID)) {
 			sound_chip_t Chip = GetChipFromChannel(ID);
 			int Delay = (Chip == LastChip) ? 150 : 250;
 			if (Delay < cycles) {
@@ -321,7 +314,7 @@ void CSoundDriver::QueueNote(chan_id_t chan, const stChanNote &note, note_prio_t
 }
 
 void CSoundDriver::ForceReloadInstrument(chan_id_t chan) {
-	if (doc_)
+	if (modfile_)
 		tracks_[value_cast(chan)].first->ForceReloadInstrument();
 }
 
@@ -375,7 +368,7 @@ int CSoundDriver::ReadVibratoTable(int index) const {
 }
 
 void CSoundDriver::SetupVibrato() {
-	const vibrato_t style = doc_->GetModule()->GetVibratoStyle();
+	const vibrato_t style = modfile_->GetVibratoStyle();
 
 	for (int i = 0; i < 16; ++i) {	// depth
 		for (int j = 0; j < 16; ++j) {	// phase
@@ -394,8 +387,8 @@ void CSoundDriver::SetupVibrato() {
 }
 
 void CSoundDriver::SetupPeriodTables() {
-	machine_t Machine = doc_->GetMachine();
-	const double A440_NOTE = 45. - doc_->GetTuningSemitone() - doc_->GetTuningCent() / 100.;
+	machine_t Machine = modfile_->GetMachine();
+	const double A440_NOTE = 45. - modfile_->GetTuningSemitone() - modfile_->GetTuningCent() / 100.;
 	const double clock_ntsc = CAPU::BASE_FREQ_NTSC / 16.0;
 	const double clock_pal = CAPU::BASE_FREQ_PAL / 16.0;
 
@@ -406,16 +399,16 @@ void CSoundDriver::SetupPeriodTables() {
 
 		// 2A07
 		Pitch = (clock_pal / Freq) - 0.5;
-		m_iNoteLookupTablePAL[i] = (unsigned int)(Pitch - doc_->GetDetuneOffset(1, i));		// // //
+		m_iNoteLookupTablePAL[i] = (unsigned int)(Pitch - modfile_->GetDetuneOffset(1, i));		// // //
 
 		// 2A03 / MMC5 / VRC6
 		Pitch = (clock_ntsc / Freq) - 0.5;
-		m_iNoteLookupTableNTSC[i] = (unsigned int)(Pitch - doc_->GetDetuneOffset(0, i));		// // //
+		m_iNoteLookupTableNTSC[i] = (unsigned int)(Pitch - modfile_->GetDetuneOffset(0, i));		// // //
 		m_iNoteLookupTableS5B[i] = m_iNoteLookupTableNTSC[i] + 1;		// correction
 
 		// VRC6 Saw
 		Pitch = ((clock_ntsc * 16.0) / (Freq * 14.0)) - 0.5;
-		m_iNoteLookupTableSaw[i] = (unsigned int)(Pitch - doc_->GetDetuneOffset(2, i));		// // //
+		m_iNoteLookupTableSaw[i] = (unsigned int)(Pitch - modfile_->GetDetuneOffset(2, i));		// // //
 
 		// FDS
 #ifdef TRANSPOSE_FDS
@@ -423,11 +416,11 @@ void CSoundDriver::SetupPeriodTables() {
 #else
 		Pitch = (Freq * 65536.0) / (clock_ntsc / 4.0) + 0.5;
 #endif
-		m_iNoteLookupTableFDS[i] = (unsigned int)(Pitch + doc_->GetDetuneOffset(4, i));		// // //
+		m_iNoteLookupTableFDS[i] = (unsigned int)(Pitch + modfile_->GetDetuneOffset(4, i));		// // //
 
 		// N163
-		Pitch = ((Freq * doc_->GetNamcoChannels() * 983040.0) / clock_ntsc + 0.5) / 4;		// // //
-		m_iNoteLookupTableN163[i] = (unsigned int)(Pitch + doc_->GetDetuneOffset(5, i));		// // //
+		Pitch = ((Freq * modfile_->GetNamcoChannels() * 983040.0) / clock_ntsc + 0.5) / 4;		// // //
+		m_iNoteLookupTableN163[i] = (unsigned int)(Pitch + modfile_->GetDetuneOffset(5, i));		// // //
 
 		if (m_iNoteLookupTableN163[i] > 0xFFFF)	// 0x3FFFF
 			m_iNoteLookupTableN163[i] = 0xFFFF;	// 0x3FFFF
@@ -437,7 +430,7 @@ void CSoundDriver::SetupPeriodTables() {
 		// // // VRC7
 		if (i < NOTE_RANGE) {
 			Pitch = Freq * 262144.0 / 49716.0 + 0.5;
-			unsigned Reg = (unsigned int)(Pitch + doc_->GetDetuneOffset(3, i));
+			unsigned Reg = (unsigned int)(Pitch + modfile_->GetDetuneOffset(3, i));
 			for (int j = 0; j < OCTAVE_RANGE; ++j)
 				m_iNoteLookupTableVRC7[i + j * NOTE_RANGE] = Reg;		// // //
 		}

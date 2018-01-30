@@ -26,7 +26,8 @@
 #include <cstdint>
 #include <memory>
 
-class CFamiTrackerDoc;
+class CSongData;
+class CFamiTrackerModule;
 class CSongState;
 
 namespace ft0cc::doc {
@@ -35,10 +36,10 @@ class groove;
 
 class CTempoCounter {
 public:
-	explicit CTempoCounter(const CFamiTrackerDoc &pDoc);
-	void AssignDocument(const CFamiTrackerDoc &pDoc);
+	explicit CTempoCounter(const CFamiTrackerModule &modfile);
+	void AssignModule(const CFamiTrackerModule &modfile);
 
-	void LoadTempo(unsigned Track);
+	void LoadTempo(const CSongData &song);
 	double GetTempo() const;
 
 	void Tick();
@@ -56,7 +57,7 @@ private:
 	void StepGroove();
 
 private:
-	const CFamiTrackerDoc *m_pDocument = nullptr;
+	const CFamiTrackerModule *m_pModule = nullptr;
 	std::shared_ptr<const ft0cc::doc::groove> m_pCurrentGroove = nullptr;
 
 	unsigned int m_iTempo;

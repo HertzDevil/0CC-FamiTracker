@@ -139,9 +139,9 @@ void CSoundGen::AssignDocument(CFamiTrackerDoc *pDoc)
 	// Assigns a document to this object
 	m_pDocument = pDoc;
 	m_pInstRecorder->m_pDocument = pDoc;		// // //
-	m_pTempoCounter = std::make_shared<CTempoCounter>(*m_pDocument);		// // //
+	m_pTempoCounter = std::make_shared<CTempoCounter>(*m_pDocument->GetModule());		// // //
 
-	m_pSoundDriver->LoadDocument(*pDoc, *m_pAPU);		// // //
+	m_pSoundDriver->LoadDocument(*pDoc->GetModule(), *m_pAPU);		// // //
 	m_pSoundDriver->SetTempoCounter(m_pTempoCounter);		// // //
 	DocumentPropertiesChanged(pDoc);		// // //
 }
@@ -755,7 +755,7 @@ void CSoundGen::ResetTempo()
 	if (!m_pDocument)
 		return;
 
-	m_pTempoCounter->LoadTempo(m_iLastTrack);		// // //
+	m_pTempoCounter->LoadTempo(*m_pDocument->GetSong(m_iLastTrack));		// // //
 	m_iLastHighlight = m_pDocument->GetHighlight(m_iLastTrack).First;		// // //
 }
 
@@ -1014,7 +1014,11 @@ BOOL CSoundGen::IdleLoop() {
 
 	++m_iFrameCounter;
 
-	m_pSoundDriver->Tick();		// // //
+	// Access the document object, skip if access wasn't granted to avoid gaps in audio playback
+	if (m_pDocument->LockDocument(0)) {
+		m_pSoundDriver->Tick();		// // //
+		m_pDocument->UnlockDocument();
+	}
 
 	// Rendering
 	if (CSingleLock l(&m_csRenderer); l.Lock() && m_pWaveRenderer)		// // //

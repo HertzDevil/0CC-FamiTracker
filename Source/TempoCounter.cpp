@@ -21,50 +21,51 @@
 */
 
 #include "TempoCounter.h"
-#include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
+#include "SongData.h"
 #include "SongState.h"
 #include "ft0cc/doc/groove.hpp"
 
 // // // CTempoCounter
 
-CTempoCounter::CTempoCounter(const CFamiTrackerDoc &pDoc) :
-	m_pDocument(&pDoc),
+CTempoCounter::CTempoCounter(const CFamiTrackerModule &modfile) :
+	m_pModule(&modfile),
 	m_iTempo(DEFAULT_TEMPO),
 	m_iSpeed(DEFAULT_SPEED)
 {
 }
 
-void CTempoCounter::AssignDocument(const CFamiTrackerDoc &pDoc) {
-	m_pDocument = &pDoc;
+void CTempoCounter::AssignModule(const CFamiTrackerModule &modfile) {
+	m_pModule = &modfile;
 }
 
-void CTempoCounter::LoadTempo(unsigned Track) {
-	m_iSpeed = m_pDocument->GetSongSpeed(Track);
-	m_iTempo = m_pDocument->GetSongTempo(Track);
+void CTempoCounter::LoadTempo(const CSongData &song) {
+	m_iSpeed = song.GetSongSpeed();
+	m_iTempo = song.GetSongTempo();
 
 	m_iTempoAccum = 0;
 
-	if (auto pGroove = m_pDocument->GetGroove(m_iSpeed); m_pDocument->GetSongGroove(Track) && pGroove) {		// // //
+	if (auto pGroove = m_pModule->GetGroove(m_iSpeed); song.GetSongGroove() && pGroove) {		// // //
 		LoadGroove(std::move(pGroove));
 		UpdateGrooveSpeed();
 	}
 	else {
 		m_pCurrentGroove = nullptr;
-		if (m_pDocument->GetSongGroove(Track))
+		if (song.GetSongGroove())
 			m_iSpeed = DEFAULT_SPEED;
 		SetupSpeed();
 	}
 }
 
 double CTempoCounter::GetTempo() const {
-	auto Tempo = m_iTempo ? static_cast<double>(m_iTempo) : 2.5 * m_pDocument->GetFrameRate();		// // //
+	auto Tempo = m_iTempo ? static_cast<double>(m_iTempo) : 2.5 * m_pModule->GetFrameRate();		// // //
 	auto Speed = m_pCurrentGroove ? m_pCurrentGroove->average() : static_cast<double>(m_iSpeed);
 	return !m_iSpeed ? 0. : Tempo * 6. / Speed;
 }
 
 void CTempoCounter::Tick() {
 	if (m_iTempoAccum <= 0) {
-		int TicksPerSec = m_pDocument->GetFrameRate();
+		int TicksPerSec = m_pModule->GetFrameRate();
 		m_iTempoAccum += (m_iTempo ? 60 * TicksPerSec : m_iSpeed) - m_iTempoRemainder;		// // //
 	}
 	m_iTempoAccum -= m_iTempoDecrement;
@@ -80,7 +81,7 @@ bool CTempoCounter::CanStepRow() const {
 }
 
 void CTempoCounter::DoFxx(uint8_t Param) {
-	if (m_iTempo && Param >= m_pDocument->GetSpeedSplitPoint())		// // //
+	if (m_iTempo && Param >= m_pModule->GetSpeedSplitPoint())		// // //
 		m_iTempo = Param;
 	else {		// // //
 		m_iSpeed = Param;
@@ -91,7 +92,7 @@ void CTempoCounter::DoFxx(uint8_t Param) {
 
 void CTempoCounter::DoOxx(uint8_t Param) {
 	// currently does not support starting at arbitrary index of a groove
-	if (auto pGroove = m_pDocument->GetGroove(Param)) {
+	if (auto pGroove = m_pModule->GetGroove(Param)) {
 		LoadGroove(std::move(pGroove));
 		StepGroove();
 	}
@@ -101,7 +102,7 @@ void CTempoCounter::LoadSoundState(const CSongState &state) {
 	if (state.Tempo != -1)
 		m_iTempo = state.Tempo;
 	if (state.GroovePos >= 0) {
-		if (auto pGroove = m_pDocument->GetGroove(state.Speed)) {
+		if (auto pGroove = m_pModule->GetGroove(state.Speed)) {
 			LoadGroove(std::move(pGroove));
 			m_iGroovePosition = state.GroovePos;
 			UpdateGrooveSpeed();

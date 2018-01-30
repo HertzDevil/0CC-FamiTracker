@@ -32,7 +32,7 @@
 const int VIBRATO_LENGTH = 256;
 const int TREMOLO_LENGTH = 256;
 
-class CFamiTrackerDoc;
+class CFamiTrackerModule;
 class CChannelMap;
 class CTempoCounter;
 class CPlayerCursor;
@@ -51,7 +51,7 @@ public:
 	~CSoundDriver();
 
 	void SetupTracks();
-	void LoadDocument(const CFamiTrackerDoc &doc, CAPU &apu);
+	void LoadDocument(const CFamiTrackerModule &modfile, CAPU &apu);
 	void ConfigureDocument();
 
 	std::unique_ptr<CChannelMap> MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const;
@@ -118,7 +118,7 @@ private:
 	std::vector<std::pair<
 		std::unique_ptr<CChannelHandler>, std::unique_ptr<CTrackerChannel>
 	>> tracks_;
-	const CFamiTrackerDoc *doc_ = nullptr;		// // //
+	const CFamiTrackerModule *modfile_ = nullptr;		// // //
 	CAPU *apu_ = nullptr;		// // //
 	CSoundGenBase *parent_ = nullptr;		// // //
 
