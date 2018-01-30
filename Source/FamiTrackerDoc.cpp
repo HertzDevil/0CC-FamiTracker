@@ -1188,16 +1188,14 @@ CBookmark *CFamiTrackerDoc::GetBookmarkAt(unsigned int Track, unsigned int Frame
 
 unsigned int CFamiTrackerDoc::ScanActualLength(unsigned int Track, unsigned int Count) const		// // // TODO: remove
 {
-	auto pSongView = const_cast<CFamiTrackerDoc *>(this)->GetModule()->MakeSongView(Track);
-	CSongLengthScanner scanner {*GetModule(), *pSongView};
+	CSongLengthScanner scanner {*GetModule(), *GetModule()->MakeSongView(Track)};
 	auto [FirstLoop, SecondLoop] = scanner.GetRowCount();
 	return FirstLoop + SecondLoop * (Count - 1);		// // //
 }
 
 double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) const		// // // TODO: remove
 {
-	auto pSongView = const_cast<CFamiTrackerDoc *>(this)->GetModule()->MakeSongView(Track);
-	CSongLengthScanner scanner {*GetModule(), *pSongView};
+	CSongLengthScanner scanner {*GetModule(), *GetModule()->MakeSongView(Track)};
 	auto [FirstLoop, SecondLoop] = scanner.GetSecondsCount();
 	return FirstLoop + SecondLoop * ExtraLoops;
 }

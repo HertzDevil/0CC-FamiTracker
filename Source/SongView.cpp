@@ -26,20 +26,25 @@
 #include "FamiTrackerEnv.h"
 #include "Settings.h"
 
-CSongView::CSongView(const CChannelOrder &order, CSongData &song) :
+CConstSongView::CConstSongView(const CChannelOrder &order, const CSongData &song) :
 	order_(order), song_(song)
 {
 }
 
-const CChannelOrder &CSongView::GetChannelOrder() const {
+CSongView::CSongView(const CChannelOrder &order, CSongData &song) :
+	CConstSongView(order, const_cast<CSongData &>(song))
+{
+}
+
+const CChannelOrder &CConstSongView::GetChannelOrder() const {
 	return order_;
 }
 
 CSongData &CSongView::GetSong() {
-	return song_;
+	return const_cast<CSongData &>(song_);
 }
 
-const CSongData &CSongView::GetSong() const {
+const CSongData &CConstSongView::GetSong() const {
 	return song_;
 }
 
@@ -47,30 +52,30 @@ CTrackData *CSongView::GetTrack(std::size_t index) {
 	return GetSong().GetTrack(order_.TranslateChannel(index));
 }
 
-const CTrackData *CSongView::GetTrack(std::size_t index) const {
+const CTrackData *CConstSongView::GetTrack(std::size_t index) const {
 	return GetSong().GetTrack(order_.TranslateChannel(index));
 }
 
 CPatternData &CSongView::GetPattern(std::size_t index, unsigned Pattern) {
+	return const_cast<CPatternData &>(CConstSongView::GetPattern(index, Pattern));
+}
+
+const CPatternData &CConstSongView::GetPattern(std::size_t index, unsigned Pattern) const {
 	auto pTrack = GetTrack(index);		// // //
 	if (!pTrack)
 		throw std::out_of_range {"Bad chan_id_t in " __FUNCTION__};
 	return pTrack->GetPattern(Pattern);
 }
 
-const CPatternData &CSongView::GetPattern(std::size_t index, unsigned Pattern) const {
-	return const_cast<CSongView *>(this)->GetPattern(index, Pattern);
-}
-
 CPatternData &CSongView::GetPatternOnFrame(std::size_t index, unsigned Frame) {
 	return GetPattern(index, GetFramePattern(index, Frame));
 }
 
-const CPatternData &CSongView::GetPatternOnFrame(std::size_t index, unsigned Frame) const {
+const CPatternData &CConstSongView::GetPatternOnFrame(std::size_t index, unsigned Frame) const {
 	return GetPattern(index, GetFramePattern(index, Frame));
 }
 
-unsigned int CSongView::GetFramePattern(std::size_t index, unsigned Frame) const {
+unsigned int CConstSongView::GetFramePattern(std::size_t index, unsigned Frame) const {
 	auto pTrack = GetTrack(index);
 	return pTrack ? pTrack->GetFramePattern(Frame) : MAX_PATTERN;
 }
@@ -80,7 +85,7 @@ void CSongView::SetFramePattern(std::size_t index, unsigned Frame, unsigned Patt
 		pTrack->SetFramePattern(Frame, Pattern);
 }
 
-unsigned CSongView::GetEffectColumnCount(std::size_t index) const {
+unsigned CConstSongView::GetEffectColumnCount(std::size_t index) const {
 	auto pTrack = GetTrack(index);
 	return pTrack ? pTrack->GetEffectColumnCount() : 0;
 }
@@ -90,7 +95,7 @@ void CSongView::SetEffectColumnCount(std::size_t index, unsigned Count) {
 		pTrack->SetEffectColumnCount(Count);
 }
 
-unsigned CSongView::GetFrameLength(unsigned Frame) const {
+unsigned CConstSongView::GetFrameLength(unsigned Frame) const {
 	const unsigned PatternLength = GetSong().GetPatternLength();	// default length
 	unsigned HaltPoint = PatternLength;
 
@@ -114,7 +119,7 @@ unsigned CSongView::GetFrameLength(unsigned Frame) const {
 	return HaltPoint;
 }
 
-unsigned CSongView::GetCurrentPatternLength(unsigned Frame) const {
+unsigned CConstSongView::GetCurrentPatternLength(unsigned Frame) const {
 	if (Env.GetSettings()->General.bShowSkippedRows)		// // //
 		return GetSong().GetPatternLength();
 	return GetFrameLength(Frame);

@@ -206,7 +206,7 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 	m_cListResults.InsertItem(Pos, conv::sv_from_int(Pos + 1).data());
 
 	const CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
-	CSongView *pSongView = pView->GetSongView();
+	const CConstSongView *pSongView = pView->GetSongView();
 	m_cListResults.SetItemText(Pos, CHANNEL, GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel)).data());
 	m_cListResults.SetItemText(Pos, PATTERN, conv::sv_from_int_hex(pSongView->GetFramePattern(Cursor.m_iChannel, Cursor.m_iFrame), 2).data());
 

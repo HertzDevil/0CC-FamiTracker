@@ -34,6 +34,7 @@ class CSongData;
 class CChannelMap;
 class CSoundChipSet;
 class CChannelOrder;
+class CConstSongView;
 class CSongView;
 class CInstrumentManager;
 struct stHighlight;
@@ -77,6 +78,7 @@ public:
 	int GetNamcoChannels() const;
 
 	std::unique_ptr<CSongView> MakeSongView(unsigned index);
+	std::unique_ptr<CConstSongView> MakeSongView(unsigned index) const;
 
 	// global info
 	machine_t GetMachine() const;

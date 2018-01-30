@@ -30,35 +30,24 @@ class CSongData;
 class CPatternData;
 class CTrackData;
 
-class CSongView {
+class CConstSongView {
+	friend class CSongView;
+
 public:
-	CSongView(const CChannelOrder &order, CSongData &song);
+	CConstSongView(const CChannelOrder &order, const CSongData &song);
 
 	const CChannelOrder &GetChannelOrder() const;
-	CSongData &GetSong();
 	const CSongData &GetSong() const;
 
-	CTrackData *GetTrack(std::size_t index);
 	const CTrackData *GetTrack(std::size_t index) const;
 
-	// similar interface to CSongData
-	CPatternData &GetPattern(std::size_t index, unsigned Pattern);
 	const CPatternData &GetPattern(std::size_t index, unsigned Pattern) const;
-	CPatternData &GetPatternOnFrame(std::size_t index, unsigned Frame);
 	const CPatternData &GetPatternOnFrame(std::size_t index, unsigned Frame) const;
-
 	unsigned GetFramePattern(std::size_t index, unsigned Frame) const;
-	void SetFramePattern(std::size_t index, unsigned Frame, unsigned Pattern);
-
 	unsigned GetEffectColumnCount(std::size_t index) const;
-	void SetEffectColumnCount(std::size_t index, unsigned Count);
 
-	// utility methods
 	unsigned GetFrameLength(unsigned Frame) const;
 	unsigned GetCurrentPatternLength(unsigned Frame) const;
-
-	void PullUp(std::size_t index, unsigned Frame, unsigned Row);
-	void InsertRow(std::size_t index, unsigned Frame, unsigned Row);
 
 	// void (*F)(std::size_t index)
 	template <typename F>
@@ -69,5 +58,25 @@ public:
 
 private:
 	CChannelOrder order_;
-	CSongData &song_;
+	const CSongData &song_;
+};
+
+class CSongView : public CConstSongView {
+public:
+	CSongView(const CChannelOrder &order, CSongData &song);
+
+	using CConstSongView::GetSong;
+	CSongData &GetSong();
+	using CConstSongView::GetTrack;
+	CTrackData *GetTrack(std::size_t index);
+	using CConstSongView::GetPattern;
+	CPatternData &GetPattern(std::size_t index, unsigned Pattern);
+	using CConstSongView::GetPatternOnFrame;
+	CPatternData &GetPatternOnFrame(std::size_t index, unsigned Frame);
+
+	void SetFramePattern(std::size_t index, unsigned Frame, unsigned Pattern);
+	void SetEffectColumnCount(std::size_t index, unsigned Count);
+
+	void PullUp(std::size_t index, unsigned Frame, unsigned Row);
+	void InsertRow(std::size_t index, unsigned Frame, unsigned Row);
 };

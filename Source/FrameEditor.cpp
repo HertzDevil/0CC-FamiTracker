@@ -231,7 +231,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	const COLORREF ColTextDimmed	= DIM(Env.GetSettings()->Appearance.iColPatternText, .9);
 
 	const CFamiTrackerView *pView = m_pView;
-	const CSongView *pSongView = pView->GetSongView();		// // //
+	const CConstSongView *pSongView = pView->GetSongView();		// // //
 	if (!pSongView)
 		return;
 	const auto &song = pSongView->GetSong();

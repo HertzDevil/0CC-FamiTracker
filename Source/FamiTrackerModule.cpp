@@ -104,6 +104,10 @@ std::unique_ptr<CSongView> CFamiTrackerModule::MakeSongView(unsigned index) {		/
 	return std::make_unique<CSongView>(GetChannelOrder(), *GetSong(index));
 }
 
+std::unique_ptr<CConstSongView> CFamiTrackerModule::MakeSongView(unsigned index) const {		// // //
+	return std::make_unique<CConstSongView>(GetChannelOrder(), *GetSong(index));
+}
+
 machine_t CFamiTrackerModule::GetMachine() const {
 	return m_iMachine;
 }

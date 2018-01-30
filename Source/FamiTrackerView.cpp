@@ -1375,7 +1375,7 @@ bool CFamiTrackerView::IsMarkerValid() const		// // //
 	if (m_iMarkerFrame < 0 || m_iMarkerRow < 0)
 		return false;
 
-	const CSongView *pSongView = GetSongView();
+	const CConstSongView *pSongView = GetSongView();
 
 	if (m_iMarkerFrame >= static_cast<int>(pSongView->GetSong().GetFrameCount()))
 		return false;
@@ -1420,7 +1420,11 @@ CTrackerChannel &CFamiTrackerView::GetTrackerChannel(std::size_t Index) const {	
 	return *theApp.GetSoundGenerator()->GetTrackerChannel(ch);
 }
 
-CSongView *CFamiTrackerView::GetSongView() const {		// // //
+CSongView *CFamiTrackerView::GetSongView() {		// // //
+	return song_view_.get();
+}
+
+const CConstSongView *CFamiTrackerView::GetSongView() const {		// // //
 	return song_view_.get();
 }
 

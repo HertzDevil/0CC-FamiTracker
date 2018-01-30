@@ -35,7 +35,7 @@
 
 class loop_visitor {
 public:
-	explicit loop_visitor(CSongView &view) :
+	explicit loop_visitor(const CConstSongView &view) :
 		song_view_(view.GetChannelOrder().Canonicalize(), view.GetSong()) { }
 
 	template <typename F, typename G>
@@ -93,7 +93,7 @@ public:
 	}
 
 private:
-	CSongView song_view_;
+	CConstSongView song_view_;
 	unsigned f_ = 0;
 	unsigned r_ = 0;
 	bool first_ = true;
@@ -101,7 +101,7 @@ private:
 
 
 
-CSongLengthScanner::CSongLengthScanner(const CFamiTrackerModule &modfile, CSongView &view) :
+CSongLengthScanner::CSongLengthScanner(const CFamiTrackerModule &modfile, const CConstSongView &view) :
 	modfile_(modfile), song_view_(view)
 {
 }

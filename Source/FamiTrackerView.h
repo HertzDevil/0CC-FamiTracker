@@ -47,6 +47,7 @@ class CNoteQueue;		// // //
 class CArpeggiator;		// // //
 class CMainFrame;		// // //
 class CSongView;		// // //
+class CConstSongView;		// // //
 class CFamiTrackerModule;		// // //
 class CTrackerChannel;		// // //
 
@@ -104,7 +105,8 @@ public:
 	chan_id_t GetSelectedChannelID() const;		// // //
 	CTrackerChannel &GetTrackerChannel(std::size_t Index) const;		// // //
 
-	CSongView	*GetSongView() const;		// // //
+	CSongView	*GetSongView();		// // //
+	const CConstSongView *GetSongView() const;		// // //
 	CFamiTrackerModule *GetModuleData();		// // //
 	const CFamiTrackerModule *GetModuleData() const;		// // //
 

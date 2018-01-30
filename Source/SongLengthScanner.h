@@ -26,11 +26,11 @@
 #include <utility>
 
 class CFamiTrackerModule;
-class CSongView;
+class CConstSongView;
 
 class CSongLengthScanner {
 public:
-	CSongLengthScanner(const CFamiTrackerModule &modfile, CSongView &view);
+	CSongLengthScanner(const CFamiTrackerModule &modfile, const CConstSongView &view);
 	std::pair<unsigned, unsigned> GetRowCount();
 	std::pair<double, double> GetSecondsCount();
 
@@ -38,7 +38,7 @@ private:
 	void Compute();
 
 	const CFamiTrackerModule &modfile_;
-	CSongView &song_view_;
+	const CConstSongView &song_view_;
 
 	unsigned rows1_ = 0;
 	unsigned rows2_ = 0;
