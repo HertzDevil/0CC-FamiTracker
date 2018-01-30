@@ -26,6 +26,7 @@
 #include "stdafx.h"		// // //
 #include "resource.h"		// // //
 
+class CCompiler;		// // //
 class CExportDialog;
 
 typedef void (CExportDialog::*exportFunc_t)();
@@ -71,7 +72,7 @@ protected:
 	void CreatePRG();
 	void CreateASM();
 	void CreateNSFe();		// // //
-	void UpdateMetadata();		// // //
+	void UpdateMetadata(CCompiler &compiler);		// // //
 
 	DECLARE_MESSAGE_MAP()
 public:

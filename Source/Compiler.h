@@ -109,6 +109,8 @@ public:
 	void	ExportPRG(LPCTSTR lpszFileName, bool EnablePAL);
 	void	ExportASM(LPCTSTR lpszFileName);
 
+	void	SetMetadata(std::string_view title, std::string_view artist, std::string_view copyright);		// // //
+
 private:
 	void	ExportNSF_NSFE(LPCTSTR lpszFileName, int MachineType, bool isNSFE);		// // //
 	void	ExportNES_PRG(LPCTSTR lpszFileName, bool EnablePAL, bool isPRG);		// // //
@@ -197,6 +199,8 @@ public:
 
 private:
 	const CFamiTrackerDoc *m_pDocument;
+
+	std::string		title_, artist_, copyright_;		// // //
 
 	// Object lists
 	std::vector<std::shared_ptr<CChunk>> m_vChunks;		// // //

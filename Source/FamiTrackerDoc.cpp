@@ -1217,18 +1217,6 @@ std::string_view CFamiTrackerDoc::GetModuleCopyright() const {
 	return GetModule()->GetModuleCopyright();
 }
 
-void CFamiTrackerDoc::SetModuleName(std::string_view pName) {
-	GetModule()->SetModuleName(pName);
-}
-
-void CFamiTrackerDoc::SetModuleArtist(std::string_view pArtist) {
-	GetModule()->SetModuleArtist(pArtist);
-}
-
-void CFamiTrackerDoc::SetModuleCopyright(std::string_view pCopyright) {
-	GetModule()->SetModuleCopyright(pCopyright);
-}
-
 const CSoundChipSet &CFamiTrackerDoc::GetExpansionChip() const {
 	return GetModule()->GetSoundChipSet();
 }

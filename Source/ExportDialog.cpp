@@ -32,10 +32,6 @@
 #include "FamitrackerDoc.h"
 #include "Compiler.h"
 #include "Settings.h"
-#include "MainFrm.h"
-#include "FamiTrackerEnv.h"		// // //
-#include "CompoundAction.h"		// // //
-#include "ModuleAction.h"		// // //
 #include <optional>		// // //
 
 // Define internal exporters
@@ -212,8 +208,6 @@ void CExportDialog::CreateNSF()
 		CWaitCursor wait;
 
 		// Collect header info
-		UpdateMetadata();		// // //
-
 		int MachineType = 0;
 		if (IsDlgButtonChecked(IDC_NTSC) == BST_CHECKED)
 			MachineType = 0;
@@ -223,6 +217,7 @@ void CExportDialog::CreateNSF()
 			MachineType = 2;
 
 		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		UpdateMetadata(Compiler);		// // //
 		Compiler.ExportNSF(*path, MachineType);
 		theApp.GetSettings()->SetPath(*path, PATH_NSF);
 	}
@@ -236,8 +231,6 @@ void CExportDialog::CreateNSFe()		// // //
 		CWaitCursor wait;
 
 		// Collect header info
-		UpdateMetadata();		// // //
-
 		int MachineType = 0;
 		if (IsDlgButtonChecked(IDC_NTSC) == BST_CHECKED)
 			MachineType = 0;
@@ -247,22 +240,18 @@ void CExportDialog::CreateNSFe()		// // //
 			MachineType = 2;
 
 		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		UpdateMetadata(Compiler);		// // //
 		Compiler.ExportNSFE(*path, MachineType);
 		theApp.GetSettings()->SetPath(*path, PATH_NSF);
 	}
 }
 
-void CExportDialog::UpdateMetadata() {
+void CExportDialog::UpdateMetadata(CCompiler &compiler) {
 	CString Name, Artist, Copyright;
 	GetDlgItemText(IDC_NAME, Name);
 	GetDlgItemText(IDC_ARTIST, Artist);
 	GetDlgItemText(IDC_COPYRIGHT, Copyright);
-
-	auto pAction = std::make_unique<CCompoundAction>();
-	pAction->JoinAction(std::make_unique<ModuleAction::CTitle>((LPCTSTR)Name));
-	pAction->JoinAction(std::make_unique<ModuleAction::CArtist>((LPCTSTR)Artist));
-	pAction->JoinAction(std::make_unique<ModuleAction::CCopyright>((LPCTSTR)Copyright));
-	Env.GetMainFrame()->AddAction(std::move(pAction));
+	compiler.SetMetadata((LPCTSTR)Name, (LPCTSTR)Artist, (LPCTSTR)Copyright);
 }
 
 void CExportDialog::CreateNES()

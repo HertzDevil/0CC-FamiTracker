@@ -26,6 +26,7 @@
 #include "resource.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"		// // //
 #include "PatternNote.h"		// // //
 #include "SeqInstrument.h"		// // //
 #include "Instrument2A03.h"		// // //
@@ -134,13 +135,16 @@ unsigned int CCompiler::AdjustSampleAddress(unsigned int Address)
 
 CCompiler::CCompiler(const CFamiTrackerDoc &Doc, std::shared_ptr<CCompilerLog> pLogger) :
 	m_pDocument(&Doc),
+	title_(Doc.GetModule()->GetModuleName()),
+	artist_(Doc.GetModule()->GetModuleArtist()),
+	copyright_(Doc.GetModule()->GetModuleCopyright()),
 	m_iWaveTables(0),
 	m_pSamplePointersChunk(NULL),
 	m_pHeaderChunk(NULL),
 	m_pDriverData(NULL),
 	m_iLastBank(0),
-	m_iActualChip(m_pDocument->GetExpansionChip()),		// // //
-	m_iActualNamcoChannels(m_pDocument->GetNamcoChannels()),
+	m_iActualChip(Doc.GetModule()->GetSoundChipSet()),		// // //
+	m_iActualNamcoChannels(Doc.GetModule()->GetNamcoChannels()),
 	m_pLogger(std::move(pLogger)),
 	m_iHashCollisions(0)
 {
@@ -198,21 +202,21 @@ static void NSFEWriteBlockIdent(CFile &file, const char (&ident)[5], uint32_t sz
 	file.Write(ident, 4);
 }
 
-static ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerDoc &doc) {		// // //
+static ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerDoc &doc,
+	std::string_view title, std::string_view artist, std::string_view copyright) {		// // //
 	int iAuthSize = 0, iTimeSize = 0, iTlblSize = 0;
 	CStringA str = "0CC-FamiTracker ";
 	str.Append(Get0CCFTVersionString());		// // //
-	iAuthSize = doc.GetModuleName().size() + doc.GetModuleArtist().size() +
-		doc.GetModuleCopyright().size() + str.GetLength() + 4;
+	iAuthSize = title.size() + artist.size() + copyright.size() + str.GetLength() + 4;
 
 	NSFEWriteBlockIdent(file, "auth", iAuthSize);
 
 	const unsigned char nullch = 0;
-	file.Write(doc.GetModuleName().data(), doc.GetModuleName().size());
+	file.Write(title.data(), title.size());
 	file.Write(&nullch, 1);
-	file.Write(doc.GetModuleArtist().data(), doc.GetModuleArtist().size());
+	file.Write(artist.data(), artist.size());
 	file.Write(&nullch, 1);
-	file.Write(doc.GetModuleCopyright().data(), doc.GetModuleCopyright().size());
+	file.Write(copyright.data(), copyright.size());
 	file.Write(&nullch, 1);
 	file.Write((LPCTSTR)str, str.GetLength() + 1);
 
@@ -297,7 +301,7 @@ void CCompiler::ExportNSF_NSFE(LPCTSTR lpszFileName, int MachineType, bool isNSF
 	if (isNSFE) {
 		auto Header = CreateNSFeHeader(MachineType);		// // //
 		OutputFile.Write(&Header, sizeof(Header));
-		iDataSizePos = NSFEWriteBlocks(OutputFile, *m_pDocument);
+		iDataSizePos = NSFEWriteBlocks(OutputFile, *m_pDocument, title_, artist_, copyright_);
 	}
 	else {
 		auto Header = CreateHeader(MachineType);		// // //
@@ -525,6 +529,12 @@ void CCompiler::ExportASM(LPCTSTR lpszFileName)
 	ExportBIN_ASM(lpszFileName, "", true);		// // //
 }
 
+void CCompiler::SetMetadata(std::string_view title, std::string_view artist, std::string_view copyright) {		// // //
+	title_ = title.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1);
+	artist_ = artist.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1);
+	copyright_ = copyright.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1);
+}
+
 std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, unsigned short Origin) const {		// // //
 	// Copy embedded driver
 	auto pData = std::make_unique<unsigned char[]>(Driver.driver_size);
@@ -632,9 +642,9 @@ stNSFHeader CCompiler::CreateHeader(int MachineType) const		// // //
 	Header.LoadAddr = m_iLoadAddress;
 	Header.InitAddr = m_iInitAddress;
 	Header.PlayAddr = m_iInitAddress + 3;
-	strncpy((char *)Header.SongName,   m_pDocument->GetModuleName().data(), std::size(Header.SongName));
-	strncpy((char *)Header.ArtistName, m_pDocument->GetModuleArtist().data(), std::size(Header.ArtistName));
-	strncpy((char *)Header.Copyright,  m_pDocument->GetModuleCopyright().data(), std::size(Header.Copyright));
+	strncpy((char *)Header.SongName,   title_.data(), std::size(Header.SongName));
+	strncpy((char *)Header.ArtistName, artist_.data(), std::size(Header.ArtistName));
+	strncpy((char *)Header.Copyright,  copyright_.data(), std::size(Header.Copyright));
 	Header.SoundChip = m_iActualChip.GetNSFFlag();
 
 	// If speed is default, write correct NTSC/PAL speed periods

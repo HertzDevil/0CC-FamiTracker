@@ -205,9 +205,6 @@ public:
 	std::string_view GetModuleName() const;		// // //
 	std::string_view GetModuleArtist() const;
 	std::string_view GetModuleCopyright() const;
-	void			SetModuleName(std::string_view pName);
-	void			SetModuleArtist(std::string_view pArtist);
-	void			SetModuleCopyright(std::string_view pCopyright);
 
 	const CSoundChipSet &GetExpansionChip() const;
 
