@@ -216,7 +216,7 @@ void CExportDialog::CreateNSF()
 		else if (IsDlgButtonChecked(IDC_DUAL) == BST_CHECKED)
 			MachineType = 2;
 
-		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		UpdateMetadata(Compiler);		// // //
 		Compiler.ExportNSF(*path, MachineType);
 		theApp.GetSettings()->SetPath(*path, PATH_NSF);
@@ -239,7 +239,7 @@ void CExportDialog::CreateNSFe()		// // //
 		else if (IsDlgButtonChecked(IDC_DUAL) == BST_CHECKED)
 			MachineType = 2;
 
-		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		UpdateMetadata(Compiler);		// // //
 		Compiler.ExportNSFE(*path, MachineType);
 		theApp.GetSettings()->SetPath(*path, PATH_NSF);
@@ -261,7 +261,7 @@ void CExportDialog::CreateNES()
 	if (auto path = GetSavePath(pDoc->GetFileTitle(), theApp.GetSettings()->GetPath(PATH_NSF), NES_FILTER[0], NES_FILTER[1])) {		// // //
 		CWaitCursor wait;
 
-		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportNES(*path, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
 		theApp.GetSettings()->SetPath(*path, PATH_NSF);
 	}
@@ -296,7 +296,7 @@ void CExportDialog::CreateBIN()
 		// Display wait cursor
 		CWaitCursor wait;
 
-		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportBIN(*path, SampleDir);
 		theApp.GetSettings()->SetPath(*path, PATH_NSF);
 	}
@@ -308,7 +308,7 @@ void CExportDialog::CreatePRG()
 		CWaitCursor wait;
 
 		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportPRG(*path, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
 		theApp.GetSettings()->SetPath(*path, PATH_NSF);
 	}
@@ -320,7 +320,7 @@ void CExportDialog::CreateASM()
 		CWaitCursor wait;
 
 		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-		CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportASM(*path);
 		theApp.GetSettings()->SetPath(*path, PATH_NSF);
 	}
@@ -336,7 +336,7 @@ void CExportDialog::OnBnClickedPlay()
 	const char *file = "d:\\test.nsf";		// // //
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	CCompiler Compiler(*pDoc, std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+	CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 	Compiler.ExportNSF(file, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
 
 	// Play exported file (available in debug)

@@ -158,7 +158,6 @@ public:
 
 	// Other
 	unsigned int	ScanActualLength(unsigned int Track, unsigned int Count) const;		// // //
-	double			GetStandardLength(int Track, unsigned int ExtraLoops) const;		// // //
 
 	// Operations
 	void			RemoveUnusedInstruments();
@@ -195,10 +194,6 @@ public:
 	unsigned int	GetSongSpeed(unsigned int Track) const;
 	unsigned int	GetSongTempo(unsigned int Track) const;
 	bool			GetSongGroove(unsigned int Track) const;		// // //
-
-	const stChanNote &GetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row) const;		// // //
-
-	unsigned int 	GetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel) const;
 #pragma endregion
 
 #pragma region delegates to CFamiTrackerModule
@@ -208,22 +203,18 @@ public:
 
 	const CSoundChipSet &GetExpansionChip() const;
 
-	bool			HasExpansionChips() const;		// // //
 	bool			ExpansionEnabled(sound_chip_t Chip) const;
 	int				GetNamcoChannels() const;
 
 	machine_t		GetMachine() const;
 	unsigned int	GetEngineSpeed() const;
 	unsigned int	GetFrameRate() const;
-	vibrato_t		GetVibratoStyle() const;
-	bool			GetLinearPitch() const;
 	int				GetSpeedSplitPoint() const;
 
 	std::string_view GetTrackTitle(unsigned int Track) const;		// // //
 
 	int				GetDetuneOffset(int Chip, int Note) const;
 	void			SetDetuneOffset(int Chip, int Note, int Detune);		// // //
-	void			ResetDetuneTables();
 	int				GetTuningSemitone() const;		// // // 050B
 	int				GetTuningCent() const;		// // // 050B
 	void			SetTuning(int Semitone, int Cent);		// // // 050B
@@ -245,8 +236,6 @@ public:
 	void			SetGroove(unsigned Index, std::shared_ptr<groove> Groove);
 
 	const stHighlight &GetHighlight(unsigned int Track) const;
-	void			SetHighlight(const stHighlight &Hl);		// // //
-	void			SetHighlight(unsigned int Track, const stHighlight &Hl);		// // //
 #pragma endregion
 
 #pragma region delegates to CInstrumentManager
@@ -257,10 +246,8 @@ public:
 	inst_type_t		GetInstrumentType(unsigned int Index) const;
 
 	// // // take instrument type as parameter rather than chip type
-	std::shared_ptr<CSequence> GetSequence(inst_type_t InstType, unsigned Index, sequence_t Type) const;		// // //
 	int				GetFreeSequence(inst_type_t InstType, sequence_t Type) const;		// // //
 #pragma endregion
-
 
 #pragma region delegates to CDSampleManager
 	std::shared_ptr<dpcm_sample> GetSample(unsigned int Index);		// // //

@@ -30,6 +30,14 @@ const CPatternData &CTrackData::GetPattern(unsigned Pattern) const {
 	return m_pPatternData.at(Pattern);
 }
 
+CPatternData &CTrackData::GetPatternOnFrame(unsigned Frame) {
+	return m_pPatternData.at(GetFramePattern(Frame));
+}
+
+const CPatternData &CTrackData::GetPatternOnFrame(unsigned Frame) const {
+	return m_pPatternData.at(GetFramePattern(Frame));
+}
+
 unsigned int CTrackData::GetFramePattern(unsigned Frame) const {
 	return Frame < m_iFrameList.size() ? m_iFrameList[Frame] : MAX_PATTERN;
 }

@@ -999,16 +999,10 @@ CBookmark *CFamiTrackerDoc::GetBookmarkAt(unsigned int Track, unsigned int Frame
 
 unsigned int CFamiTrackerDoc::ScanActualLength(unsigned int Track, unsigned int Count) const		// // // TODO: remove
 {
-	CSongLengthScanner scanner {*GetModule(), *GetModule()->MakeSongView(Track)};
+	auto pSongView = GetModule()->MakeSongView(Track);
+	CSongLengthScanner scanner {*GetModule(), *pSongView};
 	auto [FirstLoop, SecondLoop] = scanner.GetRowCount();
 	return FirstLoop + SecondLoop * (Count - 1);		// // //
-}
-
-double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) const		// // // TODO: remove
-{
-	CSongLengthScanner scanner {*GetModule(), *GetModule()->MakeSongView(Track)};
-	auto [FirstLoop, SecondLoop] = scanner.GetSecondsCount();
-	return FirstLoop + SecondLoop * ExtraLoops;
 }
 
 // Operations
@@ -1040,7 +1034,7 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 	for (unsigned int i = 0; i < MAX_SEQUENCES; ++i)
 		foreachSeq([&] (sequence_t j) {		// // //
 			for (size_t c = 0; c < std::size(inst); ++c)
-				if (auto pSeq = GetSequence(inst[c], i, j); pSeq && pSeq > 0) {		// // //
+				if (auto pSeq = pManager->GetSequence(inst[c], j, i); pSeq && pSeq > 0) {		// // //
 					bool Used = false;
 					for (int k = 0; k < MAX_INSTRUMENTS; ++k) {
 						if (IsInstrumentUsed(k) && GetInstrumentType(k) == inst[c]) {
@@ -1194,15 +1188,6 @@ bool CFamiTrackerDoc::GetSongGroove(unsigned int Track) const {		// // //
 	return GetSongData(Track).GetSongGroove();
 }
 
-const stChanNote &CFamiTrackerDoc::GetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row) const {		// // //
-	// Get note from a direct pattern
-	return GetSongData(Track).GetPatternData(Channel, Pattern, Row);		// // //
-}
-
-unsigned int CFamiTrackerDoc::GetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel) const {
-	return GetSongData(Track).GetFramePattern(Frame, Channel);
-}
-
 
 
 std::string_view CFamiTrackerDoc::GetModuleName() const {
@@ -1219,10 +1204,6 @@ std::string_view CFamiTrackerDoc::GetModuleCopyright() const {
 
 const CSoundChipSet &CFamiTrackerDoc::GetExpansionChip() const {
 	return GetModule()->GetSoundChipSet();
-}
-
-bool CFamiTrackerDoc::HasExpansionChips() const {
-	return GetModule()->HasExpansionChips();
 }
 
 bool CFamiTrackerDoc::ExpansionEnabled(sound_chip_t Chip) const {
@@ -1245,14 +1226,6 @@ unsigned int CFamiTrackerDoc::GetFrameRate() const {
 	return GetModule()->GetFrameRate();
 }
 
-vibrato_t CFamiTrackerDoc::GetVibratoStyle() const {
-	return GetModule()->GetVibratoStyle();
-}
-
-bool CFamiTrackerDoc::GetLinearPitch() const {
-	return GetModule()->GetLinearPitch();
-}
-
 int CFamiTrackerDoc::GetSpeedSplitPoint() const {
 	return GetModule()->GetSpeedSplitPoint();
 }
@@ -1263,10 +1236,6 @@ int CFamiTrackerDoc::GetDetuneOffset(int Chip, int Note) const {
 
 void CFamiTrackerDoc::SetDetuneOffset(int Chip, int Note, int Detune) {
 	GetModule()->SetDetuneOffset(Chip, Note, Detune);
-}
-
-void CFamiTrackerDoc::ResetDetuneTables() {
-	GetModule()->ResetDetuneTables();
 }
 
 int CFamiTrackerDoc::GetTuningSemitone() const {
@@ -1317,14 +1286,6 @@ const stHighlight &CFamiTrackerDoc::GetHighlight(unsigned int Track) const {		//
 	return GetModule()->GetHighlight(Track);
 }
 
-void CFamiTrackerDoc::SetHighlight(const stHighlight &Hl) {		// // //
-	GetModule()->SetHighlight(Hl);
-}
-
-void CFamiTrackerDoc::SetHighlight(unsigned int Track, const stHighlight &Hl) {		// // //
-	GetModule()->SetHighlight(Track, Hl);
-}
-
 
 
 std::shared_ptr<CInstrument> CFamiTrackerDoc::GetInstrument(unsigned int Index) const {
@@ -1348,10 +1309,6 @@ inst_type_t CFamiTrackerDoc::GetInstrumentType(unsigned int Index) const {
 }
 
 
-
-std::shared_ptr<CSequence> CFamiTrackerDoc::GetSequence(inst_type_t InstType, unsigned Index, sequence_t Type) const {		// // //
-	return GetInstrumentManager()->GetSequence(InstType, Type, Index);
-}
 
 int CFamiTrackerDoc::GetFreeSequence(inst_type_t InstType, sequence_t Type) const {		// // //
 	return GetInstrumentManager()->GetFreeSequenceIndex(InstType, Type, nullptr);

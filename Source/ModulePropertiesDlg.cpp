@@ -237,7 +237,7 @@ void CModulePropertiesDlg::OnBnClickedSongRemove()
 
 void CModulePropertiesDlg::OnBnClickedSongUp()
 {
-	int Song = m_iSelectedSong;
+	unsigned Song = m_iSelectedSong;
 	if (Song <= 0)
 		return;
 
@@ -254,7 +254,7 @@ void CModulePropertiesDlg::OnBnClickedSongUp()
 
 void CModulePropertiesDlg::OnBnClickedSongDown()
 {
-	int Song = m_iSelectedSong;
+	unsigned Song = m_iSelectedSong;
 	if (Song >= (m_pModule->GetSongCount() - 1))
 		return;
 

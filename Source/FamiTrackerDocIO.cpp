@@ -227,9 +227,10 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
 					}
 			});
 		}
+		auto *pManager = modfile.GetInstrumentManager();
 		for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-			if (modfile.GetInstrumentManager()->GetInstrumentType(i) == INST_FDS) {
-				auto pSeq = std::static_pointer_cast<CSeqInstrument>(doc.GetInstrument(i))->GetSequence(sequence_t::Arpeggio);
+			if (pManager->GetInstrumentType(i) == INST_FDS) {
+				auto pSeq = std::static_pointer_cast<CSeqInstrument>(pManager->GetInstrument(i))->GetSequence(sequence_t::Arpeggio);
 				if (pSeq != nullptr && pSeq->GetItemCount() > 0 && pSeq->GetSetting() == SETTING_ARP_FIXED)
 					for (unsigned int j = 0; j < pSeq->GetItemCount(); ++j) {
 						int Trsp = pSeq->GetItem(j) + NOTE_RANGE * 2;

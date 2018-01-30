@@ -32,6 +32,7 @@
 #include <cstdint>		// // //
 #include "FamiTrackerTypes.h"
 #include "SoundChipSet.h"		// // //
+#include "ChannelOrder.h"		// // //
 #include "Sequence.h"		// // // TODO: remove
 
 // NSF file header
@@ -78,9 +79,10 @@ struct stChunkLabel;		// // //
 namespace ft0cc::doc {
 class dpcm_sample;
 } // namespace ft0cc::doc
-class CFamiTrackerDoc;		// // //
+class CFamiTrackerModule;		// // //
 class CSequence;		// // //
 class CInstrumentFDS;		// // //
+class CConstSongView;		// // //
 
 /*
  * Logger class
@@ -99,7 +101,7 @@ public:
 class CCompiler
 {
 public:
-	CCompiler(const CFamiTrackerDoc &Doc, std::shared_ptr<CCompilerLog> pLogger);		// // //
+	CCompiler(const CFamiTrackerModule &modfile, std::shared_ptr<CCompilerLog> pLogger);		// // //
 	~CCompiler();
 
 	void	ExportNSF(LPCTSTR lpszFileName, int MachineType);
@@ -198,7 +200,8 @@ public:
 	static unsigned int AdjustSampleAddress(unsigned int Address);
 
 private:
-	const CFamiTrackerDoc *m_pDocument;
+	const CFamiTrackerModule *m_pModule;		// // //
+	CChannelOrder m_ChannelOrder;		// // //
 
 	std::string		title_, artist_, copyright_;		// // //
 
@@ -209,17 +212,17 @@ private:
 	//std::vector<CChunk*> m_vWaveChunks;
 
 	// Special objects
-	CChunk			*m_pSamplePointersChunk;
-	CChunk			*m_pHeaderChunk;
+	CChunk			*m_pSamplePointersChunk = nullptr;
+	CChunk			*m_pHeaderChunk = nullptr;
 
 	// Samples
 	std::vector<std::shared_ptr<const ft0cc::doc::dpcm_sample>> m_vSamples;		// // //
 
 	// Flags
-	bool			m_bBankSwitched;
+	bool			m_bBankSwitched = false;
 
 	// Driver
-	const driver_t	*m_pDriverData;
+	const driver_t	*m_pDriverData = nullptr;
 	unsigned int	m_iVibratoTableLocation;
 
 	// Sequences and instruments
@@ -255,21 +258,15 @@ private:
 
 	unsigned int	m_iDuplicatePatterns;	// Number of duplicated patterns removed
 
-	std::vector<chan_id_t> m_vChanOrder;		// // // Channel order list
-
 	// NSF banks
 	unsigned int	m_iFirstSampleBank;		// Bank number with the first DPCM sample
-	unsigned int	m_iLastBank;			// Last bank in the NSF file
+	unsigned int	m_iLastBank = 0;		// Last bank in the NSF file
 
 	unsigned int	m_iSamplePointerBank;
 	unsigned int	m_iSamplePointerOffset;
 
 	// FDS
-	unsigned int	m_iWaveTables;
-
-	// // // Full chip export
-	CSoundChipSet	m_iActualChip;
-	int				m_iActualNamcoChannels;
+	unsigned int	m_iWaveTables = 0;
 
 	// Optimization
 	CMap<UINT, UINT, CChunk*, CChunk*> m_PatternMap;
@@ -279,5 +276,5 @@ private:
 	std::shared_ptr<CCompilerLog> m_pLogger;		// // //
 
 	// Diagnostics
-	unsigned int	m_iHashCollisions;
+	unsigned int	m_iHashCollisions = 0u;
 };

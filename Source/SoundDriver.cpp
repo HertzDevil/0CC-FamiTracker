@@ -23,6 +23,7 @@
 #include "SoundDriver.h"
 #include "SoundGenBase.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
 #include "SongData.h"
 #include "TempoCounter.h"
 #include "ChannelHandler.h"
@@ -126,11 +127,13 @@ void CSoundDriver::ConfigureDocument() {
 	SetupVibrato();
 	SetupPeriodTables();
 
+	const auto *pModule = doc_->GetModule();		// // //
+
 	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &) {
-		ch.SetVibratoStyle(doc_->GetVibratoStyle());		// // //
-		ch.SetLinearPitch(doc_->GetLinearPitch());
+		ch.SetVibratoStyle(pModule->GetVibratoStyle());
+		ch.SetLinearPitch(pModule->GetLinearPitch());
 		if (auto pChan = dynamic_cast<CChannelHandlerN163 *>(&ch))
-			pChan->SetChannelCount(doc_->GetNamcoChannels());
+			pChan->SetChannelCount(pModule->GetNamcoChannels());
 	});
 }
 
@@ -372,7 +375,7 @@ int CSoundDriver::ReadVibratoTable(int index) const {
 }
 
 void CSoundDriver::SetupVibrato() {
-	const vibrato_t style = doc_->GetVibratoStyle();
+	const vibrato_t style = doc_->GetModule()->GetVibratoStyle();
 
 	for (int i = 0; i < 16; ++i) {	// depth
 		for (int j = 0; j < 16; ++j) {	// phase

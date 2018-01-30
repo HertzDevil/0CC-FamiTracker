@@ -107,7 +107,10 @@ const CPatternData &CSongData::GetPattern(chan_id_t Channel, unsigned Pattern) c
 }
 
 CPatternData &CSongData::GetPatternOnFrame(chan_id_t Channel, unsigned Frame) {
-	return GetPattern(Channel, GetFramePattern(Frame, Channel));
+	auto track = GetTrack(Channel);		// // //
+	if (!track)
+		throw std::out_of_range {"Bad chan_id_t in " __FUNCTION__};
+	return track->GetPatternOnFrame(Frame);
 }
 
 const CPatternData &CSongData::GetPatternOnFrame(chan_id_t Channel, unsigned Frame) const {

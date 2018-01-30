@@ -252,7 +252,7 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 		SongView.ForeachTrack([&] (const CTrackData &track, chan_id_t c) {
 			stChannelState &chState = State[value_cast(c)];
 			int EffColumns = track.GetEffectColumnCount();
-			const auto &Note = track.GetPattern(track.GetFramePattern(Frame)).GetNoteOn(Row);		// // //
+			const auto &Note = track.GetPatternOnFrame(Frame).GetNoteOn(Row);		// // //
 
 			chState.HandleNote(Note, EffColumns);
 

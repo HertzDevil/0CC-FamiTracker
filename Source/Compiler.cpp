@@ -25,8 +25,9 @@
 #include "version.h"		// // //
 #include "resource.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
-#include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
+#include "SongData.h"		// // //
+#include "SongView.h"		// // //
 #include "PatternNote.h"		// // //
 #include "SeqInstrument.h"		// // //
 #include "Instrument2A03.h"		// // //
@@ -45,6 +46,7 @@
 #include "InstrumentManager.h"		// // //
 #include "InstrumentService.h"		// // //
 #include "InstCompiler.h"		// // //
+#include "SongLengthScanner.h"		// // //
 
 //
 // This is the new NSF data compiler, music is compiled to an object list instead of a binary chunk
@@ -133,20 +135,13 @@ unsigned int CCompiler::AdjustSampleAddress(unsigned int Address)
 
 // CCompiler
 
-CCompiler::CCompiler(const CFamiTrackerDoc &Doc, std::shared_ptr<CCompilerLog> pLogger) :
-	m_pDocument(&Doc),
-	title_(Doc.GetModule()->GetModuleName()),
-	artist_(Doc.GetModule()->GetModuleArtist()),
-	copyright_(Doc.GetModule()->GetModuleCopyright()),
-	m_iWaveTables(0),
-	m_pSamplePointersChunk(NULL),
-	m_pHeaderChunk(NULL),
-	m_pDriverData(NULL),
-	m_iLastBank(0),
-	m_iActualChip(Doc.GetModule()->GetSoundChipSet()),		// // //
-	m_iActualNamcoChannels(Doc.GetModule()->GetNamcoChannels()),
-	m_pLogger(std::move(pLogger)),
-	m_iHashCollisions(0)
+CCompiler::CCompiler(const CFamiTrackerModule &modfile, std::shared_ptr<CCompilerLog> pLogger) :
+	m_pModule(&modfile),
+	m_ChannelOrder(m_pModule->GetChannelOrder().Canonicalize()),		// // //
+	title_(m_pModule->GetModuleName()),
+	artist_(m_pModule->GetModuleArtist()),
+	copyright_(m_pModule->GetModuleCopyright()),
+	m_pLogger(std::move(pLogger))
 {
 }
 
@@ -202,7 +197,7 @@ static void NSFEWriteBlockIdent(CFile &file, const char (&ident)[5], uint32_t sz
 	file.Write(ident, 4);
 }
 
-static ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerDoc &doc,
+static ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerModule &modfile,
 	std::string_view title, std::string_view artist, std::string_view copyright) {		// // //
 	int iAuthSize = 0, iTimeSize = 0, iTlblSize = 0;
 	CStringA str = "0CC-FamiTracker ";
@@ -220,23 +215,26 @@ static ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerDoc &doc,
 	file.Write(&nullch, 1);
 	file.Write((LPCTSTR)str, str.GetLength() + 1);
 
-	for (unsigned int i = 0; i < doc.GetTrackCount(); i++) {
+	modfile.VisitSongs([&] (const CSongData &song) {
 		iTimeSize += 4;
-		iTlblSize += doc.GetTrackTitle(i).size() + 1;
-	}
+		iTlblSize += song.GetTitle().size() + 1;
+	});
 
 	NSFEWriteBlockIdent(file, "time", iTimeSize);
 
-	for (unsigned int i = 0; i < doc.GetTrackCount(); i++) {
-		int t = static_cast<int>(doc.GetStandardLength(i, 1) * 1000.0 + 0.5);
+	modfile.VisitSongs([&] (const CSongData &song, unsigned i) {
+		auto pSongView = modfile.MakeSongView(i);
+		CSongLengthScanner scanner {modfile, *pSongView};
+		auto [FirstLoop, SecondLoop] = scanner.GetSecondsCount();
+		int t = static_cast<int>((FirstLoop + SecondLoop) * 1000.0 + 0.5);
 		file.Write(reinterpret_cast<const char *>(&t), sizeof(int));
-	}
+	});
 
 	NSFEWriteBlockIdent(file, "tlbl", iTlblSize);
 
-	for (unsigned int i = 0; i < doc.GetTrackCount(); i++) {
-		file.Write(doc.GetTrackTitle(i).data(), doc.GetTrackTitle(i).size() + 1);
-	}
+	modfile.VisitSongs([&] (const CSongData &song) {
+		file.Write(song.GetTitle().data(), song.GetTitle().size() + 1);
+	});
 
 	ULONGLONG iDataSizePos = file.GetPosition();
 	NSFEWriteBlockIdent(file, "DATA", 0);
@@ -271,7 +269,7 @@ void CCompiler::ExportNSF_NSFE(LPCTSTR lpszFileName, int MachineType, bool isNSF
 	// Compressed mode means that driver and music is located just below the
 	// sample space, no space is lost even when samples are used
 	bool bCompressedMode = (PAGE_SAMPLES - m_iDriverSize - m_iMusicDataSize) >= 0x8000 &&
-		!m_bBankSwitched && m_iActualChip == m_pDocument->GetExpansionChip();
+		!m_bBankSwitched && !m_pModule->GetSoundChipSet().IsMultiChip();
 	if (bCompressedMode) {
 		// Locate driver at $C000 - (driver size)
 		m_iLoadAddress = PAGE_SAMPLES - m_iDriverSize - m_iMusicDataSize;
@@ -301,7 +299,7 @@ void CCompiler::ExportNSF_NSFE(LPCTSTR lpszFileName, int MachineType, bool isNSF
 	if (isNSFE) {
 		auto Header = CreateNSFeHeader(MachineType);		// // //
 		OutputFile.Write(&Header, sizeof(Header));
-		iDataSizePos = NSFEWriteBlocks(OutputFile, *m_pDocument, title_, artist_, copyright_);
+		iDataSizePos = NSFEWriteBlocks(OutputFile, *m_pModule, title_, artist_, copyright_);
 	}
 	else {
 		auto Header = CreateHeader(MachineType);		// // //
@@ -488,7 +486,7 @@ void CCompiler::ExportNSFE(LPCTSTR lpszFileName, int MachineType)		// // //
 void CCompiler::ExportNES(LPCTSTR lpszFileName, bool EnablePAL)
 {
 	ClearLog();
-	if (m_pDocument->HasExpansionChips()) {
+	if (m_pModule->HasExpansionChips()) {
 		Print(_T("Error: Expansion chips not supported.\n"));
 		AfxMessageBox(_T("Expansion chips are currently not supported!"), 0, 0);
 		return;
@@ -503,7 +501,7 @@ void CCompiler::ExportPRG(LPCTSTR lpszFileName, bool EnablePAL)
 	// Same as export to .NES but without the header
 
 	ClearLog();
-	if (m_pDocument->HasExpansionChips()) {
+	if (m_pModule->HasExpansionChips()) {
 		Print(_T("Error: Expansion chips not supported.\n"));
 		AfxMessageBox(_T("Expansion chips are currently not supported!"), 0, 0);
 		return;
@@ -583,15 +581,15 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 		pData[Driver.adr_reloc[i + 1]] = value >> 8;
 	}
 
-	if (m_iActualChip.ContainsChip(sound_chip_t::N163)) {
-		pData[m_iDriverSize - 2 - 0x100 - 0xC0 * 2 - 8 - 1 - MAX_CHANNELS_N163 + m_iActualNamcoChannels] = 3;
+	if (m_pModule->HasExpansionChip(sound_chip_t::N163)) {
+		pData[m_iDriverSize - 2 - 0x100 - 0xC0 * 2 - 8 - 1 - MAX_CHANNELS_N163 + m_pModule->GetNamcoChannels()] = 3;
 	}
 
-	if (m_iActualChip.IsMultiChip()) {		// // // special processing for multichip
+	if (m_pModule->GetSoundChipSet().IsMultiChip()) {		// // // special processing for multichip
 		int ptr = FT_UPDATE_EXT_ADR;
 		for (auto chip : EXPANSION_CHIPS) {
 			ASSERT(pData[ptr] == 0x20); // jsr
-			if (!(m_iActualChip.ContainsChip(chip))) {
+			if (!m_pModule->HasExpansionChip(chip)) {
 				pData[ptr++] = 0xEA; // nop
 				pData[ptr++] = 0xEA;
 				pData[ptr++] = 0xEA;
@@ -612,8 +610,9 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 
 		for (int i = 0; i < CHANID_COUNT; ++i)
 			pData[FT_CH_ENABLE_ADR + i] = 0;
-		for (const chan_id_t x : m_vChanOrder)
+		m_ChannelOrder.ForeachChannel([&] (chan_id_t x) {
 			pData[FT_CH_ENABLE_ADR + CH_MAP[value_cast(x)]] = 1;
+		});
 	}
 
 	// // // Copy the vibrato table, the stock one only works for new vibrato mode
@@ -638,18 +637,18 @@ stNSFHeader CCompiler::CreateHeader(int MachineType) const		// // //
 	//
 
 	stNSFHeader Header;		// // //
-	Header.TotalSongs = m_pDocument->GetTrackCount();
+	Header.TotalSongs = (uint8_t)m_pModule->GetSongCount();
 	Header.LoadAddr = m_iLoadAddress;
 	Header.InitAddr = m_iInitAddress;
 	Header.PlayAddr = m_iInitAddress + 3;
 	strncpy((char *)Header.SongName,   title_.data(), std::size(Header.SongName));
 	strncpy((char *)Header.ArtistName, artist_.data(), std::size(Header.ArtistName));
 	strncpy((char *)Header.Copyright,  copyright_.data(), std::size(Header.Copyright));
-	Header.SoundChip = m_iActualChip.GetNSFFlag();
+	Header.SoundChip = m_pModule->GetSoundChipSet().GetNSFFlag();
 
 	// If speed is default, write correct NTSC/PAL speed periods
 	// else, set the same custom speed for both
-	int Speed = m_pDocument->GetEngineSpeed();
+	int Speed = m_pModule->GetEngineSpeed();
 	Header.Speed_NTSC = Speed ? 1000000 / Speed : 1000000 / 60; //0x411A; // default ntsc speed
 	Header.Speed_PAL = Speed ? 1000000 / Speed : 1000000 / 50; //0x4E20; // default pal speed
 
@@ -666,7 +665,7 @@ stNSFHeader CCompiler::CreateHeader(int MachineType) const		// // //
 
 	// Allow PAL or dual tunes only if no expansion chip is selected
 	// Expansion chips weren't available in PAL areas
-	if (!m_pDocument->HasExpansionChips())
+	if (!m_pModule->HasExpansionChips())
 		Header.Flags = MachineType;
 
 	return Header;
@@ -676,13 +675,13 @@ stNSFeHeader CCompiler::CreateNSFeHeader(int MachineType)		// // //
 {
 	stNSFeHeader Header;
 
-	Header.TotalSongs = m_pDocument->GetTrackCount();
+	Header.TotalSongs = (uint8_t)m_pModule->GetSongCount();
 	Header.LoadAddr = m_iLoadAddress;
 	Header.InitAddr = m_iInitAddress;
 	Header.PlayAddr = m_iInitAddress + 3;
-	Header.SoundChip = m_iActualChip.GetNSFFlag();
+	Header.SoundChip = m_pModule->GetSoundChipSet().GetNSFFlag();
 
-	int Speed = m_pDocument->GetEngineSpeed();
+	int Speed = m_pModule->GetEngineSpeed();
 	Header.Speed_NTSC = Speed ? 1000000 / Speed : 1000000 / 60; //0x411A; // default ntsc speed
 
 	if (m_bBankSwitched) {
@@ -696,7 +695,7 @@ stNSFeHeader CCompiler::CreateNSFeHeader(int MachineType)		// // //
 			Header.BankValues[7] = m_iLastBank;
 	}
 
-	if (!m_pDocument->HasExpansionChips())
+	if (!m_pModule->HasExpansionChips())
 		Header.Flags = MachineType;
 
 	return Header;
@@ -756,7 +755,7 @@ void CCompiler::UpdateFrameBanks()
 {
 	// Write bank numbers to frame lists (can only be used when bankswitching is used)
 
-	int Channels = m_pDocument->GetChannelCount();		// // //
+	int Channels = m_ChannelOrder.GetChannelCount();		// // //
 
 	for (CChunk *pChunk : m_vFrameChunks) {
 		// Add bank data
@@ -913,12 +912,11 @@ bool CCompiler::CompileData()
 	//
 
 	// // // Full chip export
-	m_iActualChip = m_pDocument->GetExpansionChip();
-	m_iActualNamcoChannels = m_pDocument->GetNamcoChannels();
 
 	// Select driver and channel order
-	if (!m_iActualChip.IsMultiChip())
-		switch (m_iActualChip.WithoutChip(sound_chip_t::APU).GetSoundChip()) {
+	const CSoundChipSet &Chip = m_pModule->GetSoundChipSet();
+	if (!Chip.IsMultiChip())
+		switch (Chip.WithoutChip(sound_chip_t::APU).GetSoundChip()) {
 		case sound_chip_t::NONE:
 			m_pDriverData = &DRIVER_PACK_2A03;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_2A03;
@@ -955,40 +953,11 @@ bool CCompiler::CompileData()
 			Print(_T(" * S5B expansion enabled\n"));
 			break;
 		}
-	else {		// // // crude
+	else {		// // //
 		m_pDriverData = &DRIVER_PACK_ALL;
 		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_ALL;
 		Print(_T(" * Multiple expansion chips enabled\n"));
-//		if (m_pDocument->ExpansionEnabled(sound_chip_t::N163))
-//			m_pDocument->SetNamcoChannels(MAX_CHANNELS_N163, true);
-//		m_pDocument->SelectExpansionChip(CSoundChipSet::All(), true);
 	}
-
-	// // // Setup channel order list, DPCM is located last
-	const CSoundChipSet &Chip = m_pDocument->GetExpansionChip();
-	if (Chip.ContainsChip(sound_chip_t::APU))
-		for (int i = 0; i < MAX_CHANNELS_2A03 - 1; ++i)
-			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::APU, i));
-	if (Chip.ContainsChip(sound_chip_t::MMC5))
-		for (int i = 0; i < MAX_CHANNELS_MMC5 - 1; ++i)
-			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::MMC5, i));
-	if (Chip.ContainsChip(sound_chip_t::VRC6))
-		for (int i = 0; i < MAX_CHANNELS_VRC6; ++i)
-			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::VRC6, i));
-	if (Chip.ContainsChip(sound_chip_t::N163))
-		for (int i = 0; i < m_iActualNamcoChannels; ++i)
-			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::N163, i));
-	if (Chip.ContainsChip(sound_chip_t::FDS))
-		for (int i = 0; i < MAX_CHANNELS_FDS; ++i)
-			m_vChanOrder.push_back(chan_id_t::FDS);
-	if (Chip.ContainsChip(sound_chip_t::S5B))
-		for (int i = 0; i < MAX_CHANNELS_S5B; ++i)
-			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::S5B, i));
-	if (Chip.ContainsChip(sound_chip_t::VRC7))
-		for (int i = 0; i < MAX_CHANNELS_VRC7; ++i)
-			m_vChanOrder.push_back(MakeChannelIndex(sound_chip_t::VRC7, i));
-	if (Chip.ContainsChip(sound_chip_t::APU))
-		m_vChanOrder.push_back(chan_id_t::DPCM);
 
 	// Driver size
 	m_iDriverSize = m_pDriverData->driver_size;
@@ -1057,10 +1026,9 @@ void CCompiler::AddBankswitching()
 	}
 
 	// Frame lists sizes has changed
-	const int TrackCount = m_pDocument->GetTrackCount();
-	for (int i = 0; i < TrackCount; ++i) {
-		m_iTrackFrameSize[i] += m_pDocument->GetChannelCount() * m_pDocument->GetFrameCount(i);
-	}
+	m_pModule->VisitSongs([&] (const CSongData &song, unsigned i) {		// // //
+		m_iTrackFrameSize[i] += m_ChannelOrder.GetChannelCount() * song.GetFrameCount();
+	});
 
 	// Data size has changed
 	m_iMusicDataSize = CountData();
@@ -1086,31 +1054,30 @@ void CCompiler::ScanSong()
 
 	bool inst_used[MAX_INSTRUMENTS] = { };		// // //
 
-	const int TrackCount = m_pDocument->GetTrackCount();
+	auto &Im = *m_pModule->GetInstrumentManager();
 
 	// // // Scan patterns in entire module
-	for (int i = 0; i < TrackCount; ++i) {
-		int PatternLength = m_pDocument->GetPatternLength(i);
-		m_pDocument->ForeachChannel([&] (chan_id_t j) {
+	m_pModule->VisitSongs([&] (const CSongData &song) {
+		int PatternLength = song.GetPatternLength();
+		m_ChannelOrder.ForeachChannel([&] (chan_id_t j) {
 			for (int k = 0; k < MAX_PATTERN; ++k)
 				for (int l = 0; l < PatternLength; ++l) {
-					const auto &note = m_pDocument->GetDataAtPattern(i, k, j, l);
+					const auto &note = song.GetPattern(j, k).GetNoteOn(l);
 					if (note.Instrument < std::size(inst_used))		// // //
 						inst_used[note.Instrument] = true;
 				}
 		});
-	}
+	});
 
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-		if (m_pDocument->IsInstrumentUsed(i) && inst_used[i]) {		// // //
-
+		if (Im.IsInstrumentUsed(i) && inst_used[i]) {		// // //
 			// List of used instruments
 			m_iAssignedInstruments[m_iInstruments++] = i;
 
 			// Create a list of used sequences
-			inst_type_t it = m_pDocument->GetInstrumentType(i);		// // //
+			inst_type_t it = Im.GetInstrumentType(i);		// // //
 			for (size_t z = 0; z < std::size(used); z++) if (it == inst[z]) {
-				auto pInstrument = std::static_pointer_cast<CSeqInstrument>(m_pDocument->GetInstrument(i));
+				auto pInstrument = std::static_pointer_cast<CSeqInstrument>(Im.GetInstrument(i));
 				foreachSeq([&] (sequence_t j) {
 					if (pInstrument->GetSeqEnable(j))
 						(*used[z])[pInstrument->GetSeqIndex(j)][(unsigned)j] = true;
@@ -1128,29 +1095,30 @@ void CCompiler::ScanSong()
 	// Get DPCM channel index
 	unsigned int Instrument = 0;
 
-	for (int i = 0; i < TrackCount; ++i) {
-		const int patternlen = m_pDocument->GetPatternLength(i);
-		const int frames = m_pDocument->GetFrameCount(i);
+	m_pModule->VisitSongs([&] (const CSongData &song) {		// // //
+		const int patternlen = song.GetPatternLength();
+		const int frames = song.GetFrameCount();
+		const auto *pTrack = song.GetTrack(chan_id_t::DPCM);
 		for (int j = 0; j < frames; ++j) {
-			int p = m_pDocument->GetPatternAtFrame(i, j, chan_id_t::DPCM);
+			const auto &Pattern = pTrack->GetPatternOnFrame(j);
 			for (int k = 0; k < patternlen; ++k) {
-				const auto &Note = m_pDocument->GetDataAtPattern(i, p, chan_id_t::DPCM, k);		// // //
+				const auto &Note = Pattern.GetNoteOn(k);
 				if (Note.Instrument < MAX_INSTRUMENTS)
 					Instrument = Note.Instrument;
 				if (Note.Note >= NOTE_C && Note.Note <= NOTE_B)		// // //
 					m_bSamplesAccessed[Instrument][Note.Octave][Note.Note - 1] = true;
 			}
 		}
-	}
+	});
 }
 
 void CCompiler::CreateMainHeader()
 {
-	const CSoundChipSet &Chip = m_pDocument->GetExpansionChip();		// // //
+	const CSoundChipSet &Chip = m_pModule->GetSoundChipSet();		// // //
 
 	unsigned char Flags =		// // // bankswitch flag is set later
-		(m_pDocument->GetVibratoStyle() == VIBRATO_OLD ? FLAG_VIBRATO : 0) |
-		(m_pDocument->GetLinearPitch() ? FLAG_LINEARPITCH : 0);
+		(m_pModule->GetVibratoStyle() == VIBRATO_OLD ? FLAG_VIBRATO : 0) |
+		(m_pModule->GetLinearPitch() ? FLAG_LINEARPITCH : 0);
 
 	CChunk &Chunk = CreateChunk({CHUNK_HEADER});		// // //
 	Chunk.StorePointer({CHUNK_SONG_LIST});		// // //
@@ -1163,16 +1131,16 @@ void CCompiler::CreateMainHeader()
 	Chunk.StoreByte(Flags);
 
 	// FDS table, only if FDS is enabled
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::FDS) || Chip.IsMultiChip())
+	if (Chip.ContainsChip(sound_chip_t::FDS) || Chip.IsMultiChip())
 		Chunk.StorePointer({CHUNK_WAVETABLE});		// // //
 
-	const int TicksPerSec = m_pDocument->GetEngineSpeed();
+	const int TicksPerSec = m_pModule->GetEngineSpeed();
 	Chunk.StoreWord((TicksPerSec ? TicksPerSec : CAPU::FRAME_RATE_NTSC) * 60);
 	Chunk.StoreWord((TicksPerSec ? TicksPerSec : CAPU::FRAME_RATE_PAL) * 60);
 
 	// N163 channel count
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::N163) || Chip.IsMultiChip())
-		Chunk.StoreByte(m_iActualNamcoChannels ? m_iActualNamcoChannels : 1);
+	if (Chip.ContainsChip(sound_chip_t::N163) || Chip.IsMultiChip())
+		Chunk.StoreByte(m_pModule->GetNamcoChannels() ? m_pModule->GetNamcoChannels() : 1);
 
 	m_pHeaderChunk = &Chunk;
 }
@@ -1188,11 +1156,13 @@ void CCompiler::CreateSequenceList()
 	const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};
 	decltype(m_bSequencesUsed2A03) *used[] = {&m_bSequencesUsed2A03, &m_bSequencesUsedVRC6, &m_bSequencesUsedN163, &m_bSequencesUsedS5B};
 
+	auto &Im = *m_pModule->GetInstrumentManager();
+
 	// TODO: use the CSeqInstrument::GetSequence
 	// TODO: merge identical sequences from all chips
 	for (size_t c = 0; c < std::size(inst); c++) {
 		for (int i = 0; i < MAX_SEQUENCES; ++i) foreachSeq([&] (sequence_t j) {
-			const auto pSeq = m_pDocument->GetSequence(inst[c], i, j);
+			const auto pSeq = Im.GetSequence(inst[c], j, i);
 			if ((*used[c])[i][(unsigned)j] && pSeq->GetItemCount() > 0) {
 				Size += StoreSequence(*pSeq, {CHUNK_SEQUENCE, i * SEQ_COUNT + (unsigned)j, (unsigned)inst[c]});
 				++StoredCount;
@@ -1201,7 +1171,7 @@ void CCompiler::CreateSequenceList()
 	}
 
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-		if (auto pInstrument = std::dynamic_pointer_cast<CInstrumentFDS>(m_pDocument->GetInstrument(i))) {
+		if (auto pInstrument = std::dynamic_pointer_cast<CInstrumentFDS>(Im.GetInstrument(i))) {
 			foreachSeq([&] (sequence_t j) {
 				const auto pSeq = pInstrument->GetSequence(j);		// // //
 				if (pSeq && pSeq->GetItemCount() > 0) {
@@ -1265,7 +1235,9 @@ void CCompiler::CreateInstrumentList()
 
 	CChunk &InstListChunk = CreateChunk({CHUNK_INSTRUMENT_LIST});		// // //
 
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::FDS))
+	auto &Im = *m_pModule->GetInstrumentManager();
+
+	if (m_pModule->HasExpansionChip(sound_chip_t::FDS) || m_pModule->GetSoundChipSet().IsMultiChip())
 		pWavetableChunk = &CreateChunk({CHUNK_WAVETABLE});		// // //
 
 	m_iWaveBanks.fill(-1);		// // //
@@ -1274,12 +1246,12 @@ void CCompiler::CreateInstrumentList()
 	const CInstCompilerN163 n163_c;		// // //
 	for (unsigned int i = 0; i < m_iInstruments; ++i) {
 		unsigned iIndex = m_iAssignedInstruments[i];
-		if (m_pDocument->GetInstrumentType(iIndex) == INST_N163 && m_iWaveBanks[i] == (unsigned)-1) {
-			auto pInstrument = std::static_pointer_cast<CInstrumentN163>(m_pDocument->GetInstrument(iIndex));
+		if (Im.GetInstrumentType(iIndex) == INST_N163 && m_iWaveBanks[i] == (unsigned)-1) {
+			auto pInstrument = std::static_pointer_cast<CInstrumentN163>(Im.GetInstrument(iIndex));
 			for (unsigned int j = i + 1; j < m_iInstruments; ++j) {
 				unsigned inst = m_iAssignedInstruments[j];
-				if (m_pDocument->GetInstrumentType(inst) == INST_N163 && m_iWaveBanks[j] == (unsigned)-1) {
-					auto pNewInst = std::static_pointer_cast<CInstrumentN163>(m_pDocument->GetInstrument(inst));
+				if (Im.GetInstrumentType(inst) == INST_N163 && m_iWaveBanks[j] == (unsigned)-1) {
+					auto pNewInst = std::static_pointer_cast<CInstrumentN163>(Im.GetInstrument(inst));
 					if (pInstrument->IsWaveEqual(*pNewInst))
 						m_iWaveBanks[j] = iIndex;
 				}
@@ -1298,7 +1270,7 @@ void CCompiler::CreateInstrumentList()
 		iTotalSize += 2;
 
 		unsigned iIndex = m_iAssignedInstruments[i];
-		auto pInstrument = m_pDocument->GetInstrument(iIndex);
+		auto pInstrument = Im.GetInstrument(iIndex);
 /*
 		if (pInstrument->GetType() == INST_N163) {
 			CString label;
@@ -1348,8 +1320,8 @@ void CCompiler::CreateSampleList()
 	// Clear the sample list
 	m_iSampleBank.fill(0xFFu);		// // //
 
-	auto &Im = *m_pDocument->GetInstrumentManager();		// // //
-	auto &Dm = *m_pDocument->GetDSampleManager();		// // //
+	auto &Im = *m_pModule->GetInstrumentManager();		// // //
+	auto &Dm = *m_pModule->GetDSampleManager();		// // //
 
 	CChunk &Chunk = CreateChunk({CHUNK_SAMPLE_LIST});		// // //
 
@@ -1398,7 +1370,7 @@ void CCompiler::StoreSamples()
 	unsigned int iAddedSamples = 0;
 	unsigned int iSampleAddress = 0x0000;
 
-	auto &Dm = *m_pDocument->GetDSampleManager();		// // //
+	auto &Dm = *m_pModule->GetDSampleManager();		// // //
 
 	// Get sample start address
 	m_iSamplesSize = 0;
@@ -1471,7 +1443,7 @@ void CCompiler::StoreGrooves()
 	GrooveListChunk.StoreByte(0); // padding; possibly used to disable groove
 
 	for (unsigned i = 0; i < MAX_GROOVE; i++) {
-		if (const auto pGroove = m_pDocument->GetGroove(i)) {
+		if (const auto pGroove = m_pModule->GetGroove(i)) {
 			unsigned int Pos = Size;
 			CChunk &Chunk = CreateChunk({CHUNK_GROOVE, i});
 			for (uint8_t entry : *pGroove)
@@ -1495,55 +1467,52 @@ void CCompiler::StoreSongs()
 	 *
 	 */
 
-	const unsigned TrackCount = m_pDocument->GetTrackCount();		// // //
-
 	CChunk &SongListChunk = CreateChunk({CHUNK_SONG_LIST});		// // //
 
 	m_iDuplicatePatterns = 0;
 
 	// Store song info
-	for (unsigned i = 0; i < TrackCount; ++i) {
+	m_pModule->VisitSongs([&] (const CSongData &song, unsigned index) {
 		// Create song
-		CChunk &Chunk = AddChunkToList(SongListChunk, {CHUNK_SONG, i});		// // //
+		CChunk &Chunk = AddChunkToList(SongListChunk, {CHUNK_SONG, index});		// // //
 		m_vSongChunks.push_back(&Chunk);
 
 		// Store reference to song
-		Chunk.StorePointer({CHUNK_FRAME_LIST, i});		// // //
-		Chunk.StoreByte(m_pDocument->GetFrameCount(i));
-		Chunk.StoreByte(m_pDocument->GetPatternLength(i));
+		Chunk.StorePointer({CHUNK_FRAME_LIST, index});		// // //
+		Chunk.StoreByte(song.GetFrameCount());
+		Chunk.StoreByte(song.GetPatternLength());
 
-		if (m_pDocument->GetSongGroove(i))		// // //
-			if (m_pDocument->HasGroove(m_pDocument->GetSongSpeed(i)))
-				Chunk.StoreByte(0);
-			else
-				Chunk.StoreByte(DEFAULT_SPEED);
-		else
-			Chunk.StoreByte(m_pDocument->GetSongSpeed(i));
-		Chunk.StoreByte(m_pDocument->GetSongTempo(i));
+		bool useGroove = song.GetSongGroove();
+		auto pGroove = useGroove ? m_pModule->GetGroove(song.GetSongSpeed()) : nullptr;
 
-		if (m_pDocument->GetSongGroove(i) && m_pDocument->HasGroove(m_pDocument->GetSongSpeed(i))) {		// // //
+		if (useGroove && pGroove) {		// // //
+			Chunk.StoreByte(0);
+			Chunk.StoreByte(song.GetSongTempo());
 			int Pos = 1;
-			for (unsigned int j = 0; j < m_pDocument->GetSongSpeed(i); j++)
-				if (const auto pGroove = m_pDocument->GetGroove(j))
-					Pos += pGroove->compiled_size();
+			for (unsigned int j = 0; j < song.GetSongSpeed(); ++j)
+				if (const auto pPrev = m_pModule->GetGroove(j))
+					Pos += pPrev->compiled_size();
 			Chunk.StoreByte(Pos);
 		}
-		else
+		else {
+			Chunk.StoreByte(useGroove ? DEFAULT_SPEED : song.GetSongSpeed());
+			Chunk.StoreByte(song.GetSongTempo());
 			Chunk.StoreByte(0);
+		}
 
-		Chunk.StoreBankReference({CHUNK_FRAME_LIST, i}, 0);		// // //
-	}
+		Chunk.StoreBankReference({CHUNK_FRAME_LIST, index}, 0);		// // //
+	});
 
 	m_iSongBankReference = m_vSongChunks[0]->GetLength() - 1;	// Save bank value position (all songs are equal)
 
 	// Store actual songs
-	for (unsigned i = 0; i < TrackCount; ++i) {		// // //
+	m_pModule->VisitSongs([this] (const CSongData &, unsigned i) {
 		Print(_T(" * Song %i: "), i);
 		// Store frames
 		CreateFrameList(i);
 		// Store pattern data
 		StorePatterns(i);
-	}
+	});
 
 	if (m_iDuplicatePatterns > 0)
 		Print(_T(" * %i duplicated pattern(s) removed\n"), m_iDuplicatePatterns);
@@ -1576,7 +1545,8 @@ void CCompiler::CreateFrameList(unsigned int Track)
 	 *
 	 */
 
-	const unsigned FrameCount   = m_pDocument->GetFrameCount(Track);		// // //
+	const auto *pSong = m_pModule->GetSong(Track);		// // //
+	const unsigned FrameCount = pSong->GetFrameCount();		// // //
 
 	// Create frame list
 	CChunk &FrameListChunk = CreateChunk({CHUNK_FRAME_LIST, Track});		// // //
@@ -1591,11 +1561,11 @@ void CCompiler::CreateFrameList(unsigned int Track)
 		TotalSize += 2;
 
 		// Pattern pointers
-		for (chan_id_t Chan : m_vChanOrder) {		// // //
-			unsigned Pattern = m_pDocument->GetPatternAtFrame(Track, i, Chan);
+		m_ChannelOrder.ForeachChannel([&] (chan_id_t Chan) {
+			unsigned Pattern = pSong->GetFramePattern(i, Chan);
 			Chunk.StorePointer({CHUNK_PATTERN, Track, Pattern, value_cast(Chan)});		// // //
 			TotalSize += 2;
-		}
+		});
 	}
 
 	m_iTrackFrameSize[Track] = TotalSize;
@@ -1612,14 +1582,14 @@ void CCompiler::StorePatterns(unsigned int Track)
 	 *
 	 */
 
-	CPatternCompiler PatternCompiler(*m_pDocument->GetModule(), m_iAssignedInstruments.data(), (DPCM_List_t*)&m_iSamplesLookUp, m_pLogger);		// // //
+	CPatternCompiler PatternCompiler(*m_pModule, m_iAssignedInstruments.data(), (DPCM_List_t*)&m_iSamplesLookUp, m_pLogger);		// // //
 
 	int PatternCount = 0;
 	int PatternSize = 0;
 
 	// Iterate through all patterns
 	for (unsigned i = 0; i < MAX_PATTERN; ++i) {
-		m_pDocument->ForeachChannel([&] (chan_id_t j) {		// // //
+		m_ChannelOrder.ForeachChannel([&] (chan_id_t j) {		// // //
 			// And store only used ones
 			if (IsPatternAddressed(Track, i, j)) {
 
@@ -1687,12 +1657,11 @@ void CCompiler::StorePatterns(unsigned int Track)
 bool CCompiler::IsPatternAddressed(unsigned int Track, int Pattern, chan_id_t Channel) const
 {
 	// Scan the frame list to see if a pattern is accessed for that frame
-	const int FrameCount = m_pDocument->GetFrameCount(Track);
-
-	for (int i = 0; i < FrameCount; ++i) {
-		if (m_pDocument->GetPatternAtFrame(Track, i, Channel) == Pattern)
-			return true;
-	}
+	if (const auto *pSong = m_pModule->GetSong(Track))		// // //
+		if (const auto *pTrack = pSong->GetTrack(Channel))
+			for (int i = 0, n = pSong->GetFrameCount(); i < n; ++i)
+				if (pTrack->GetFramePattern(i) == Pattern)
+					return true;
 
 	return false;
 }

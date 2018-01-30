@@ -2199,21 +2199,20 @@ void CMainFrame::UpdateTrackBox()
 {
 	// Fill the track box with all songs
 	CComboBox		*pTrackBox	= static_cast<CComboBox*>(m_wndDialogBar.GetDlgItem(IDC_SUBTUNE));
-	const CFamiTrackerDoc &Doc = GetDoc();
+	const CFamiTrackerModule &modfile = *GetDoc().GetModule();		// // //
 	CString			Text;
 
 	ASSERT(pTrackBox != NULL);
 
 	pTrackBox->ResetContent();
 
-	int Count = Doc.GetTrackCount();
-
-	for (int i = 0; i < Count; ++i) {
-		auto sv = Doc.GetTrackTitle(i);
+	modfile.VisitSongs([&] (const CSongData &song, unsigned i) {
+		auto sv = song.GetTitle();
 		Text.Format(_T("#%i %.*s"), i + 1, sv.size(), sv.data());		// // //
 		pTrackBox->AddString(Text);
-	}
+	});
 
+	int Count = modfile.GetSongCount();
 	if (GetSelectedTrack() > (Count - 1))
 		SelectTrack(Count - 1);
 
@@ -2245,7 +2244,7 @@ void CMainFrame::OnRemoveFocus()
 
 void CMainFrame::OnNextSong()
 {
-	int Tracks = GetDoc().GetTrackCount();
+	int Tracks = GetDoc().GetModule()->GetSongCount();		// // //
 	int Track = GetSelectedTrack();
 	if (Track < (Tracks - 1))
 		SelectTrack(Track + 1);
@@ -2260,7 +2259,7 @@ void CMainFrame::OnPrevSong()
 
 void CMainFrame::OnUpdateNextSong(CCmdUI *pCmdUI)
 {
-	int Tracks = GetDoc().GetTrackCount();
+	int Tracks = GetDoc().GetModule()->GetSongCount();		// // //
 
 	if (GetSelectedTrack() < (Tracks - 1))
 		pCmdUI->Enable(TRUE);
@@ -3499,7 +3498,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 {
 	const CFamiTrackerDoc &Doc = GetDoc();
 
-	pCmdUI->Enable(!Doc.HasExpansionChips() && !theApp.GetSoundGenerator()->IsPlaying());		// // //
+	pCmdUI->Enable(!Doc.GetModule()->HasExpansionChips() && !theApp.GetSoundGenerator()->IsPlaying());		// // //
 	UINT item = Doc.GetMachine() == PAL ? ID_TRACKER_PAL : ID_TRACKER_NTSC;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);

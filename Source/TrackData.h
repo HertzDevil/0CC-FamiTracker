@@ -32,6 +32,9 @@ public:
 	CPatternData &GetPattern(unsigned Pattern);		// // //
 	const CPatternData &GetPattern(unsigned Pattern) const;		// // //
 
+	CPatternData &GetPatternOnFrame(unsigned Frame);		// // //
+	const CPatternData &GetPatternOnFrame(unsigned Frame) const;		// // //
+
 	unsigned int GetFramePattern(unsigned Frame) const;
 	void SetFramePattern(unsigned Frame, unsigned Pattern);
 

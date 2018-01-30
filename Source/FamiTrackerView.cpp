@@ -1163,8 +1163,8 @@ void CFamiTrackerView::OnInitialUpdate()
 	pMainFrame->ResizeFrameWindow();
 
 	// Fetch highlight
-	m_pPatternEditor->SetHighlight(pDoc->GetHighlight(0));		// // //
-	pMainFrame->SetHighlightRows(pDoc->GetHighlight(0));
+	m_pPatternEditor->SetHighlight(GetModuleData()->GetHighlight(0));		// // //
+	pMainFrame->SetHighlightRows(GetModuleData()->GetHighlight(0));
 
 	// Follow mode
 	SetFollowMode(theApp.GetSettings()->FollowMode);
@@ -1196,7 +1196,7 @@ void CFamiTrackerView::OnInitialUpdate()
 		SetFocus();
 
 	// Display comment box
-	if (pDoc->GetModule()->ShowsCommentOnOpen())		// // //
+	if (GetModuleData()->ShowsCommentOnOpen())		// // //
 		pMainFrame->PostMessage(WM_COMMAND, ID_MODULE_COMMENTS);
 
 	// Call OnUpdate
@@ -1256,7 +1256,7 @@ void CFamiTrackerView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHi
 		break;
 	// Row highlight option has changed
 	case UPDATE_HIGHLIGHT:
-		m_pPatternEditor->SetHighlight(GetDocument()->GetHighlight(pMainFrm->GetSelectedTrack()));		// // //
+		m_pPatternEditor->SetHighlight(GetModuleData()->GetHighlight(pMainFrm->GetSelectedTrack()));		// // //
 		m_pPatternEditor->InvalidatePatternData();
 		RedrawPatternEditor();
 		break;
@@ -1416,8 +1416,7 @@ chan_id_t CFamiTrackerView::GetSelectedChannelID() const {		// // //
 }
 
 CTrackerChannel &CFamiTrackerView::GetTrackerChannel(std::size_t Index) const {		// // //
-	chan_id_t ch = GetSongView()->GetChannelOrder().TranslateChannel(Index);
-	return *theApp.GetSoundGenerator()->GetTrackerChannel(ch);
+	return *theApp.GetSoundGenerator()->GetTrackerChannel(TranslateChannel(Index));
 }
 
 CSongView *CFamiTrackerView::GetSongView() {		// // //
