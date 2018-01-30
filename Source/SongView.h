@@ -56,6 +56,21 @@ public:
 			f(i);
 	}
 
+	// void (*F)(const CTrackData &track [, chan_id_t id])
+	template <typename F>
+	void ForeachTrack(F f) const {
+		if constexpr (std::is_invocable_v<F, const CTrackData &>) {
+			for (std::size_t i = 0, n = order_.GetChannelCount(); i < n; ++i)
+				f(*GetTrack(i));
+		}
+		else if constexpr (std::is_invocable_v<F, const CTrackData &, chan_id_t>) {
+			for (std::size_t i = 0, n = order_.GetChannelCount(); i < n; ++i)
+				f(*GetTrack(i), GetChannelOrder().TranslateChannel(i));
+		}
+		else
+			static_assert(false, "Unknown function signature");
+	}
+
 private:
 	CChannelOrder order_;
 	const CSongData &song_;

@@ -21,9 +21,9 @@
 */
 
 #include "SongState.h"
-#include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
 #include "SongView.h"
-//#include "SongData.h"
+#include "SongData.h"
 #include "TrackerChannel.h"
 #include "ft0cc/doc/groove.hpp"
 #include <algorithm>
@@ -238,8 +238,10 @@ CSongState::CSongState() {
 		State[value_cast(i)].ChannelID = i;
 }
 
-void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned Frame, unsigned Row) {
-	const int Chans = doc.GetChannelCount();
+void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, unsigned Frame, unsigned Row) {
+	CConstSongView SongView {modfile.GetChannelOrder().Canonicalize(), *modfile.GetSong(Track)};
+	const auto &order = SongView.GetChannelOrder();
+	const auto &song = SongView.GetSong();
 
 	int totalRows = 0;
 
@@ -247,11 +249,10 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 	bool doHalt = false;
 
 	while (true) {
-		for (int c2 = Chans - 1; c2 >= 0; --c2) {
-			chan_id_t c = doc.TranslateChannel(c2);
+		SongView.ForeachTrack([&] (const CTrackData &track, chan_id_t c) {
 			stChannelState &chState = State[value_cast(c)];
-			int EffColumns = doc.GetEffColumns(Track, c);
-			const auto &Note = doc.GetNoteData(Track, Frame, c, Row);		// // //
+			int EffColumns = track.GetEffectColumnCount();
+			const auto &Note = track.GetPattern(track.GetFramePattern(Frame)).GetNoteOn(Row);		// // //
 
 			chState.HandleNote(Note, EffColumns);
 
@@ -270,14 +271,15 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 					doHalt = true;
 					break;
 				case EF_SPEED:
-					if (Speed == -1 && (xy < doc.GetSpeedSplitPoint() || doc.GetSongTempo(Track) == 0)) {
-						Speed = xy; if (Speed < 1) Speed = 1;
+					if (Speed == -1 && (xy < modfile.GetSpeedSplitPoint() || song.GetSongTempo() == 0)) {
+						Speed = std::max((unsigned char)1u, xy);
 						GroovePos = -2;
 					}
-					else if (Tempo == -1 && xy >= doc.GetSpeedSplitPoint()) Tempo = xy;
+					else if (Tempo == -1 && xy >= modfile.GetSpeedSplitPoint())
+						Tempo = xy;
 					break;
 				case EF_GROOVE:
-					if (GroovePos == -1 && xy < MAX_GROOVE && doc.HasGroove(xy)) {
+					if (GroovePos == -1 && xy < MAX_GROOVE && modfile.HasGroove(xy)) {
 						GroovePos = totalRows;
 						Speed = xy;
 					}
@@ -297,7 +299,8 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 						maskFDS = true;
 					else if (!maskFDS && chState.Effect[fx] == -1) {
 						chState.Effect[fx] = xy;
-						if (chState.Effect_AutoFMMult == -1) chState.Effect_AutoFMMult = -2;
+						if (chState.Effect_AutoFMMult == -1)
+							chState.Effect_AutoFMMult = -2;
 					}
 					break;
 				case EF_FDS_MOD_SPEED_LO:
@@ -321,32 +324,32 @@ void CSongState::Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned F
 					break;
 				}
 			}
-		}
+		});
 		if (doHalt)
 			break;
 		if (Row)
 			Row--;
 		else if (Frame)
-			Row = doc.GetFrameLength(Track, --Frame) - 1;
+			Row = SongView.GetFrameLength(--Frame) - 1;
 		else
 			break;
 		totalRows++;
 	}
-	if (GroovePos == -1 && doc.GetSongGroove(Track)) {
-		unsigned Index = doc.GetSongSpeed(Track);
-		if (Index < MAX_GROOVE && doc.HasGroove(Index)) {
+	if (GroovePos == -1 && song.GetSongGroove()) {
+		unsigned Index = song.GetSongSpeed();
+		if (Index < MAX_GROOVE && modfile.HasGroove(Index)) {
 			GroovePos = totalRows;
 			Speed = Index;
 		}
 	}
 }
 
-std::string CSongState::GetChannelStateString(const CFamiTrackerDoc &doc, chan_id_t chan) const {
-	std::string str = State[doc.GetChannelIndex(chan)].GetStateString();
+std::string CSongState::GetChannelStateString(const CFamiTrackerModule &modfile, chan_id_t chan) const {
+	std::string str = State[modfile.GetChannelOrder().GetChannelIndex(chan)].GetStateString();
 	if (Tempo >= 0)
 		str += "        Tempo: " + std::to_string(Tempo);
 	if (Speed >= 0) {
-		if (const auto pGroove = doc.GetGroove(Speed); pGroove && GroovePos >= 0) {
+		if (const auto pGroove = modfile.GetGroove(Speed); pGroove && GroovePos >= 0) {
 			str += "        Groove: ";
 			str += {conv::to_digit(Speed >> 4), conv::to_digit(Speed), ' ', '<', '-'};
 			unsigned Size = pGroove->size();

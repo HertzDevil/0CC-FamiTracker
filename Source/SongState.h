@@ -29,7 +29,7 @@
 #include <string>
 #include <array>
 
-class CFamiTrackerDoc;
+class CFamiTrackerModule;
 class stChanNote;
 
 std::string MakeCommandString(effect_t Effect, unsigned char Param);		// // //
@@ -73,8 +73,8 @@ class CSongState {
 public:
 	CSongState();
 
-	void Retrieve(const CFamiTrackerDoc &doc, unsigned Track, unsigned Frame, unsigned Row);
-	std::string GetChannelStateString(const CFamiTrackerDoc &doc, chan_id_t chan) const;
+	void Retrieve(const CFamiTrackerModule &modfile, unsigned Track, unsigned Frame, unsigned Row);
+	std::string GetChannelStateString(const CFamiTrackerModule &modfile, chan_id_t chan) const;
 
 	std::array<stChannelState, CHANID_COUNT> State = { };
 	int Tempo = -1;

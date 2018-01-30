@@ -592,7 +592,7 @@ void CSoundGen::ApplyGlobalState()		// // //
 	auto [Frame, Row] = IsPlaying() ? GetPlayerPos() : m_pTrackerView->GetSelectedPos();		// // //
 
 	CSongState state;
-	state.Retrieve(*m_pDocument, GetPlayerTrack(), Frame, Row);
+	state.Retrieve(*m_pDocument->GetModule(), GetPlayerTrack(), Frame, Row);
 
 	m_pSoundDriver->LoadSoundState(state);
 
@@ -662,8 +662,8 @@ std::string CSoundGen::RecallChannelState(chan_id_t Channel) const		// // //
 
 	auto [Frame, Row] = m_pTrackerView->GetSelectedPos();
 	CSongState state;
-	state.Retrieve(*m_pDocument, GetPlayerTrack(), Frame, Row);
-	return state.GetChannelStateString(*m_pDocument, Channel);
+	state.Retrieve(*m_pDocument->GetModule(), GetPlayerTrack(), Frame, Row);
+	return state.GetChannelStateString(*m_pDocument->GetModule(), Channel);
 }
 
 void CSoundGen::HaltPlayer() {
