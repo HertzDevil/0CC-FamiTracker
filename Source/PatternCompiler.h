@@ -28,7 +28,7 @@
 #include "APU/Types_fwd.h"		// // //
 #include <memory>		// // //
 
-class CFamiTrackerDoc;
+class CFamiTrackerModule;		// // //
 class CCompilerLog;
 
 typedef unsigned char DPCM_List_t[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE];
@@ -36,7 +36,7 @@ typedef unsigned char DPCM_List_t[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE];
 class CPatternCompiler
 {
 public:
-	CPatternCompiler(const CFamiTrackerDoc &Doc, unsigned int *pInstList, DPCM_List_t *pDPCMList, std::shared_ptr<CCompilerLog> pLogger);		// // //
+	CPatternCompiler(const CFamiTrackerModule &ModFile, unsigned int *pInstList, DPCM_List_t *pDPCMList, std::shared_ptr<CCompilerLog> pLogger);		// // //
 	~CPatternCompiler();
 
 	void			CompileData(int Track, int Pattern, chan_id_t Channel);
@@ -52,8 +52,8 @@ public:
 
 private:
 	struct stSpacingInfo {
-		int SpaceCount;
-		int SpaceSize;
+		int SpaceCount = 0;
+		int SpaceSize = 0;
 	};
 
 private:
@@ -67,7 +67,7 @@ private:
 	void			AccumulateDuration();
 	void			OptimizeString();
 	int				GetBlockSize(int Position);
-	void			ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned int StartRow, int Pattern, chan_id_t Channel);
+	stSpacingInfo	ScanNoteLengths(int Track, unsigned int StartRow, int Pattern, chan_id_t Channel);		// // //
 
 	// Debugging
 	void			Print(const char *text) const;		// // //
@@ -84,6 +84,6 @@ private:
 
 	DPCM_List_t		*m_pDPCMList;
 
-	const CFamiTrackerDoc *m_pDocument = nullptr;		// // //
+	const CFamiTrackerModule &modfile_;		// // //
 	std::shared_ptr<CCompilerLog> m_pLogger;		// // //
 };

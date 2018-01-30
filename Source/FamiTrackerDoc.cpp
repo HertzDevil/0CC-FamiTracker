@@ -906,15 +906,6 @@ unsigned int CFamiTrackerDoc::GetPatternAtFrame(unsigned int Track, unsigned int
 
 //// Pattern functions ////////////////////////////////////////////////////////////////////////////////
 
-const stChanNote &CFamiTrackerDoc::GetNoteData(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const
-{
-	return GetSongData(Track).GetPatternOnFrame(Channel, Frame).GetNoteOn(Row);		// // //
-}
-
-stChanNote CFamiTrackerDoc::GetActiveNote(unsigned Track, unsigned Frame, chan_id_t Channel, unsigned Row) const {		// // //
-	return GetSongData(Track).GetActiveNote(Channel, Frame, Row);
-}
-
 const stChanNote &CFamiTrackerDoc::GetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row) const		// // //
 {
 	// Get note from a direct pattern

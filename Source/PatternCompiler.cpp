@@ -21,7 +21,6 @@
 */
 
 #include "PatternCompiler.h"
-#include "FamiTrackerDoc.h"
 #include "SeqInstrument.h"		// // //
 #include "Instrument2A03.h"		// // //
 #include "InstrumentFDS.h"		// // //
@@ -29,6 +28,9 @@
 #include "Compiler.h"
 #include "ft0cc/doc/groove.hpp"		// // //
 #include "APU/Types.h"		// // //
+#include "FamiTrackerModule.h"		// // //
+#include "InstrumentManager.h"		// // //
+#include "SongData.h"		// // //
 
 /**
  * CPatternCompiler - Compress patterns to strings for the NSF code
@@ -113,8 +115,8 @@ enum command_t {
 
 const unsigned char CMD_LOOP_POINT = 26;	// Currently unused
 
-CPatternCompiler::CPatternCompiler(const CFamiTrackerDoc &Doc, unsigned int *pInstList, DPCM_List_t *pDPCMList, std::shared_ptr<CCompilerLog> pLogger) :		// // //
-	m_pDocument(&Doc),
+CPatternCompiler::CPatternCompiler(const CFamiTrackerModule &ModFile, unsigned int *pInstList, DPCM_List_t *pDPCMList, std::shared_ptr<CCompilerLog> pLogger) :		// // //
+	modfile_(ModFile),
 	m_pInstrumentList(pInstList),
 	m_pDPCMList(pDPCMList),
 	m_pLogger(std::move(pLogger))
@@ -125,11 +127,13 @@ CPatternCompiler::~CPatternCompiler()
 {
 }
 
-void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
-{
-	int EffColumns = m_pDocument->GetEffColumns(Track, Channel) + 1;
+void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
+	const auto *pSong = modfile_.GetSong(Track);		// // //
+	if (!pSong)
+		return;
+	const auto *pInstManager = modfile_.GetInstrumentManager();
 
-	stSpacingInfo SpaceInfo;
+	int EffColumns = pSong->GetEffectColumnCount(Channel) + 1;
 
 	// Global init
 	m_iHash = 0;
@@ -140,13 +144,13 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 	m_vCompressedData.clear();
 
 	// Local init
-	unsigned int iPatternLen = m_pDocument->GetPatternLength(Track);
+	unsigned int iPatternLen = pSong->GetPatternLength();
 	unsigned char LastInstrument = MAX_INSTRUMENTS + 1;
 	unsigned char DPCMInst = 0;
 	unsigned char NESNote = 0;
 
 	for (unsigned int i = 0; i < iPatternLen; ++i) {
-		stChanNote ChanNote = m_pDocument->GetDataAtPattern(Track, Pattern, Channel, i);		// // //
+		stChanNote ChanNote = pSong->GetPattern(Channel, Pattern).GetNoteOn(i);		// // //
 
 		unsigned char Note = ChanNote.Note;
 		unsigned char Octave = ChanNote.Octave;
@@ -159,7 +163,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 
 		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT &&
 			Note != HALT && Note != NONE && Note != RELEASE) {		// // //
-			if (!IsInstrumentCompatible(ChipID, m_pDocument->GetInstrumentType(ChanNote.Instrument))) {		// // //
+			if (!IsInstrumentCompatible(ChipID, pInstManager->GetInstrumentType(ChanNote.Instrument))) {		// // //
 				CString str;
 				str.Format(_T("Error: Missing or incompatible instrument (on row %i, channel %i, pattern %i)\n"), i, Channel, Pattern);
 				Print(str);
@@ -194,7 +198,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 #ifdef OPTIMIZE_DURATIONS
 
 		// Determine length of space between notes
-		ScanNoteLengths(SpaceInfo, Track, i, Pattern, Channel);		// // //
+		stSpacingInfo SpaceInfo = ScanNoteLengths(Track, i, Pattern, Channel);		// // //
 
 		if (SpaceInfo.SpaceCount > 2) {
 			if (SpaceInfo.SpaceSize != m_iCurrentDefaultDuration && SpaceInfo.SpaceCount != 0xFF) {
@@ -282,7 +286,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 				int LookUp = FindSample(DPCMInst, Octave, Note);
 				if (LookUp > 0) {
 					NESNote = LookUp - 1;
-					if (auto pInstrument = std::dynamic_pointer_cast<CInstrument2A03>(m_pDocument->GetInstrument(DPCMInst)))
+					if (auto pInstrument = std::dynamic_pointer_cast<CInstrument2A03>(pInstManager->GetInstrument(DPCMInst)))
 						m_bDSamplesAccessed[pInstrument->GetSampleIndex(Octave, Note - 1) - 1] = true;
 					// TODO: Print errors if incompatible or non-existing instrument is found
 				}
@@ -315,7 +319,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 
 			switch (Effect) {
 				case EF_SPEED:
-					if (EffParam >= m_pDocument->GetSpeedSplitPoint() && m_pDocument->GetSongTempo(Track))		// // //
+					if (EffParam >= modfile_.GetSpeedSplitPoint() && pSong->GetSongTempo())		// // //
 						WriteData(Command(CMD_EFF_TEMPO));
 					else
 						WriteData(Command(CMD_EFF_SPEED));
@@ -359,7 +363,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 						else {
 							switch (ChipID) {		// // //
 							case sound_chip_t::APU: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:
-								if (!m_pDocument->GetLinearPitch()) {
+								if (!modfile_.GetLinearPitch()) {
 									WriteData(Command(CMD_EFF_PORTAUP));
 									break;
 								}
@@ -378,7 +382,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 						else {
 							switch (ChipID) {		// // //
 							case sound_chip_t::APU: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:
-								if (!m_pDocument->GetLinearPitch()) {
+								if (!modfile_.GetLinearPitch()) {
 									WriteData(Command(CMD_EFF_PORTADOWN));
 									break;
 								}
@@ -440,7 +444,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 						else {
 							switch (ChipID) {
 							case sound_chip_t::APU: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:		// // //
-								if (!m_pDocument->GetLinearPitch()) break;
+								if (!modfile_.GetLinearPitch()) break;
 							default:
 								EffParam = (char)(256 - (int)EffParam);
 								if (EffParam == 0)
@@ -530,7 +534,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 
 						int Pos = 1;
 						for (int i = 0; i < EffParam; i++)
-							if (const auto pGroove = m_pDocument->GetGroove(i))
+							if (const auto pGroove = modfile_.GetGroove(i))
 								Pos += pGroove->compiled_size(); // TODO: use groove manager instead
 						WriteData(Pos);
 					}
@@ -653,15 +657,14 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel)
 //	OptimizeString();
 }
 
-unsigned char CPatternCompiler::Command(int cmd) const
-{
-	const CSoundChipSet &Chip = m_pDocument->GetExpansionChip();		// // //
+unsigned char CPatternCompiler::Command(int cmd) const {
+	const CSoundChipSet &Chip = modfile_.GetSoundChipSet();		// // //
 
 	if (!Chip.IsMultiChip()) {		// // // truncate values if some chips do not exist
-		if (!m_pDocument->ExpansionEnabled(sound_chip_t::N163) && cmd > CMD_EFF_N163_WAVE_BUFFER) cmd -= std::size(N163_EFFECTS);
+		if (!Chip.ContainsChip(sound_chip_t::N163) && cmd > CMD_EFF_N163_WAVE_BUFFER) cmd -= std::size(N163_EFFECTS);
 		// MMC5
-		if (!m_pDocument->ExpansionEnabled(sound_chip_t::FDS) && cmd > CMD_EFF_FDS_MOD_BIAS) cmd -= std::size(FDS_EFFECTS);
-		if (!m_pDocument->ExpansionEnabled(sound_chip_t::VRC7) && cmd > CMD_EFF_VRC7_WRITE) cmd -= std::size(VRC7_EFFECTS) + 1;
+		if (!Chip.ContainsChip(sound_chip_t::FDS) && cmd > CMD_EFF_FDS_MOD_BIAS) cmd -= std::size(FDS_EFFECTS);
+		if (!Chip.ContainsChip(sound_chip_t::VRC7) && cmd > CMD_EFF_VRC7_WRITE) cmd -= std::size(VRC7_EFFECTS) + 1;
 		// VRC6
 	}
 
@@ -688,15 +691,15 @@ unsigned int CPatternCompiler::FindSample(int Instrument, int Octave, int Key) c
 	return (*m_pDPCMList)[Instrument][Octave][Key - 1];
 }
 
-void CPatternCompiler::ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned int StartRow, int Pattern, chan_id_t Channel)
-{
+CPatternCompiler::stSpacingInfo CPatternCompiler::ScanNoteLengths(int Track, unsigned int StartRow, int Pattern, chan_id_t Channel) {		// // //
+	const auto *pSong = modfile_.GetSong(Track);		// // //
+	if (!pSong)
+		return { };
+
 	int StartSpace = -1, Space = 0, SpaceCount = 0;
 
-	Info.SpaceCount = 0;
-	Info.SpaceSize = 0;
-
-	for (unsigned i = StartRow; i < m_pDocument->GetPatternLength(Track); ++i) {
-		const auto &NoteData = m_pDocument->GetDataAtPattern(Track, Pattern, Channel, i);		// // //
+	for (unsigned i = StartRow; i < pSong->GetPatternLength(); ++i) {
+		const auto &NoteData = pSong->GetPattern(Channel, Pattern).GetNoteOn(i);		// // //
 		bool NoteUsed = false;
 
 		if (NoteData.Note > 0)
@@ -705,15 +708,12 @@ void CPatternCompiler::ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned 
 			NoteUsed = true;
 		else if (NoteData.Vol < MAX_VOLUME)
 			NoteUsed = true;
-		else for (unsigned j = 0, Count = m_pDocument->GetEffColumns(Track, Channel); j <= Count; ++j)
+		else for (unsigned j = 0, Count = pSong->GetEffectColumnCount(Channel); j <= Count; ++j)
 			if (NoteData.EffNumber[j] != EF_NONE)
 				NoteUsed = true;
 
-		if (i == StartRow && NoteUsed == false) {
-			Info.SpaceCount = 0xFF;
-			Info.SpaceSize = StartSpace;
-			return;
-		}
+		if (i == StartRow && !NoteUsed)
+			return {0xFF, StartSpace};
 
 		if (i > StartRow) {
 			if (NoteUsed) {
@@ -721,24 +721,19 @@ void CPatternCompiler::ScanNoteLengths(stSpacingInfo &Info, int Track, unsigned 
 					StartSpace = Space;
 				else if (StartSpace == Space)
 					++SpaceCount;
-				else {
-					Info.SpaceCount = SpaceCount;
-					Info.SpaceSize = StartSpace;
-					return;
-				}
+				else
+					return {SpaceCount, StartSpace};
 				Space = 0;
 			}
 			else
-				Space++;
+				++Space;
 		}
 	}
 
-	if (StartSpace == Space) {
-		SpaceCount++;
-	}
+	if (StartSpace == Space)
+		++SpaceCount;
 
-	Info.SpaceCount = SpaceCount;
-	Info.SpaceSize = StartSpace;
+	return {SpaceCount, StartSpace};
 }
 
 void CPatternCompiler::WriteData(unsigned char Value)

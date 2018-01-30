@@ -1602,7 +1602,7 @@ void CCompiler::StorePatterns(unsigned int Track)
 	 *
 	 */
 
-	CPatternCompiler PatternCompiler(*m_pDocument, m_iAssignedInstruments.data(), (DPCM_List_t*)&m_iSamplesLookUp, m_pLogger);		// // //
+	CPatternCompiler PatternCompiler(*m_pDocument->GetModule(), m_iAssignedInstruments.data(), (DPCM_List_t*)&m_iSamplesLookUp, m_pLogger);		// // //
 
 	int PatternCount = 0;
 	int PatternSize = 0;

@@ -54,6 +54,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "InstrumentRecorder.h"		// // //
 #include "Settings.h"
 #include "MIDI.h"
+#include "SongData.h"		// // //
 #include "Arpeggiator.h"		// // //
 #include "TempoCounter.h"		// // //
 #include "TempoDisplay.h"		// // // 050B
@@ -280,7 +281,7 @@ void CSoundGen::PlaySingleRow(int track) {		// // //
 	auto [frame, row] = m_pTrackerView->GetSelectedPos();
 	m_pDocument->ForeachChannel([&] (chan_id_t i) {
 		if (!IsChannelMuted(i))
-			QueueNote(i, m_pDocument->GetActiveNote(track, frame, i, row), NOTE_PRIO_1);
+			QueueNote(i, m_pDocument->GetSong(track)->GetActiveNote(i, frame, row), NOTE_PRIO_1);
 	});
 }
 
