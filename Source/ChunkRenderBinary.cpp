@@ -83,7 +83,7 @@ void CChunkRenderBinary::StoreChunk(const CChunk &Chunk)		// // //
 		else {
 			unsigned short data = Chunk.GetData(i);
 			unsigned short size = Chunk.GetDataSize(i);
-			Store({reinterpret_cast<const std::uint8_t *>(data), size});
+			Store({reinterpret_cast<const std::uint8_t *>(&data), size});
 		}
 	}
 }
@@ -211,7 +211,7 @@ void CChunkRenderNSF::StoreChunk(const CChunk &Chunk)		// // //
 		else {
 			unsigned short data = Chunk.GetData(i);
 			unsigned short size = Chunk.GetDataSize(i);
-			Store({reinterpret_cast<const std::uint8_t *>(data), size});
+			Store({reinterpret_cast<const std::uint8_t *>(&data), size});
 		}
 	}
 }
