@@ -123,9 +123,9 @@ public:
 
 	// Import
 	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCTSTR lpszPathName);		// // //
-	bool ImportInstruments(CFamiTrackerDoc &Imported, int *pInstTable);
-	bool ImportGrooves(CFamiTrackerDoc &Imported, int *pGrooveMap);		// // //
-	bool ImportDetune(CFamiTrackerDoc &Imported);			// // //
+	bool			ImportInstruments(CFamiTrackerModule &Imported, int *pInstTable);
+	bool			ImportGrooves(CFamiTrackerModule &Imported, int *pGrooveMap);		// // //
+	bool			ImportDetune(CFamiTrackerModule &Imported);			// // //
 
 	// Synchronization
 	BOOL			LockDocument() const;
@@ -196,14 +196,9 @@ public:
 	unsigned int	GetSongTempo(unsigned int Track) const;
 	bool			GetSongGroove(unsigned int Track) const;		// // //
 
-	unsigned int	GetEffColumns(unsigned int Track, chan_id_t Channel) const;
-
 	const stChanNote &GetDataAtPattern(unsigned Track, unsigned Pattern, chan_id_t Channel, unsigned Row) const;		// // //
 
 	unsigned int 	GetPatternAtFrame(unsigned int Track, unsigned int Frame, chan_id_t Channel) const;
-
-	unsigned int	GetFirstFreePattern(unsigned int Track, chan_id_t Channel) const;		// // //
-	bool			IsPatternEmpty(unsigned int Track, chan_id_t Channel, unsigned int Pattern) const;
 #pragma endregion
 
 #pragma region delegates to CFamiTrackerModule
@@ -229,12 +224,6 @@ public:
 
 	std::string_view GetTrackTitle(unsigned int Track) const;		// // //
 
-	void			SetMachine(machine_t Machine);		// // //
-	void			SetEngineSpeed(unsigned int Speed);
-	void			SetVibratoStyle(vibrato_t Style);
-	void			SetLinearPitch(bool Enable);
-	void			SetSpeedSplitPoint(int SplitPoint);
-
 	int				GetDetuneOffset(int Chip, int Note) const;
 	void			SetDetuneOffset(int Chip, int Note, int Detune);		// // //
 	void			ResetDetuneTables();
@@ -245,21 +234,6 @@ public:
 	CSongData		*GetSong(unsigned int Index);		// // //
 	const CSongData	*GetSong(unsigned int Index) const;		// // //
 	unsigned int	GetTrackCount() const;
-	bool			InsertSong(unsigned Index, std::unique_ptr<CSongData> pSong);		// // //
-	std::unique_ptr<CSongData> ReplaceSong(unsigned Index, std::unique_ptr<CSongData> pSong);		// // // returns old song
-	std::unique_ptr<CSongData> ReleaseTrack(unsigned int Track);		// // //
-	void			RemoveTrack(unsigned int Track);
-
-	// void (*F)(CSongData &song [, unsigned index])
-	template <typename F>
-	void VisitSongs(F f) {
-		module_->VisitSongs(f);
-	}
-	// void (*F)(const CSongData &song [, unsigned index])
-	template <typename F>
-	void VisitSongs(F f) const {
-		module_->VisitSongs(f);
-	}
 
 	// void (*F)(chan_id_t chan)
 	template <typename F>
@@ -283,16 +257,11 @@ public:
 	unsigned int	GetInstrumentCount() const;
 	unsigned		GetFreeInstrumentIndex() const;		// // //
 	bool			IsInstrumentUsed(unsigned int Index) const;
-	bool			AddInstrument(std::unique_ptr<CInstrument> pInstrument, unsigned int Slot);		// // //
-	bool			RemoveInstrument(unsigned int Index);							// // // Remove an instrument
 	inst_type_t		GetInstrumentType(unsigned int Index) const;
 
 	// // // take instrument type as parameter rather than chip type
 	std::shared_ptr<CSequence> GetSequence(inst_type_t InstType, unsigned Index, sequence_t Type) const;		// // //
-	unsigned int	GetSequenceItemCount(inst_type_t InstType, unsigned Index, sequence_t Type) const;		// // //
 	int				GetFreeSequence(inst_type_t InstType, sequence_t Type) const;		// // //
-	int				GetSequenceCount(inst_type_t InstType, sequence_t Type) const;		// // //
-	int				GetTotalSequenceCount(inst_type_t InstType) const;		// // //
 #pragma endregion
 
 

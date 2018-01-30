@@ -33,6 +33,9 @@
 #include "Compiler.h"
 #include "Settings.h"
 #include "MainFrm.h"
+#include "FamiTrackerEnv.h"		// // //
+#include "CompoundAction.h"		// // //
+#include "ModuleAction.h"		// // //
 #include <optional>		// // //
 
 // Define internal exporters
@@ -209,13 +212,7 @@ void CExportDialog::CreateNSF()
 		CWaitCursor wait;
 
 		// Collect header info
-		CString Name, Artist, Copyright;
-		GetDlgItemText(IDC_NAME, Name);
-		GetDlgItemText(IDC_ARTIST, Artist);
-		GetDlgItemText(IDC_COPYRIGHT, Copyright);
-		pDoc->SetModuleName((LPCTSTR)Name);
-		pDoc->SetModuleArtist((LPCTSTR)Artist);
-		pDoc->SetModuleCopyright((LPCTSTR)Copyright);
+		UpdateMetadata();		// // //
 
 		int MachineType = 0;
 		if (IsDlgButtonChecked(IDC_NTSC) == BST_CHECKED)
@@ -239,13 +236,7 @@ void CExportDialog::CreateNSFe()		// // //
 		CWaitCursor wait;
 
 		// Collect header info
-		CString Name, Artist, Copyright;
-		GetDlgItemText(IDC_NAME, Name);
-		GetDlgItemText(IDC_ARTIST, Artist);
-		GetDlgItemText(IDC_COPYRIGHT, Copyright);
-		pDoc->SetModuleName((LPCTSTR)Name);
-		pDoc->SetModuleArtist((LPCTSTR)Artist);
-		pDoc->SetModuleCopyright((LPCTSTR)Copyright);
+		UpdateMetadata();		// // //
 
 		int MachineType = 0;
 		if (IsDlgButtonChecked(IDC_NTSC) == BST_CHECKED)
@@ -259,6 +250,19 @@ void CExportDialog::CreateNSFe()		// // //
 		Compiler.ExportNSFE(*path, MachineType);
 		theApp.GetSettings()->SetPath(*path, PATH_NSF);
 	}
+}
+
+void CExportDialog::UpdateMetadata() {
+	CString Name, Artist, Copyright;
+	GetDlgItemText(IDC_NAME, Name);
+	GetDlgItemText(IDC_ARTIST, Artist);
+	GetDlgItemText(IDC_COPYRIGHT, Copyright);
+
+	auto pAction = std::make_unique<CCompoundAction>();
+	pAction->JoinAction(std::make_unique<ModuleAction::CTitle>((LPCTSTR)Name));
+	pAction->JoinAction(std::make_unique<ModuleAction::CArtist>((LPCTSTR)Artist));
+	pAction->JoinAction(std::make_unique<ModuleAction::CCopyright>((LPCTSTR)Copyright));
+	Env.GetMainFrame()->AddAction(std::move(pAction));
 }
 
 void CExportDialog::CreateNES()

@@ -71,6 +71,7 @@ protected:
 	void CreatePRG();
 	void CreateASM();
 	void CreateNSFe();		// // //
+	void UpdateMetadata();		// // //
 
 	DECLARE_MESSAGE_MAP()
 public:

@@ -129,12 +129,13 @@ void CTransposeDlg::OnBnClickedOk()
 		Trsp = -Trsp;
 
 	if (Trsp) {
+		auto *pModule = m_pDocument->GetModule();
 		if (All)
-			m_pDocument->VisitSongs([Trsp] (CSongData &song) {
+			pModule->VisitSongs([Trsp] (CSongData &song) {
 				Transpose(Trsp, song);
 			});
 		else
-			Transpose(Trsp, *m_pDocument->GetSong(m_iTrack));
+			Transpose(Trsp, *pModule->GetSong(m_iTrack));
 
 		m_pDocument->UpdateAllViews(NULL, UPDATE_PATTERN);
 		m_pDocument->ModifyIrreversible();

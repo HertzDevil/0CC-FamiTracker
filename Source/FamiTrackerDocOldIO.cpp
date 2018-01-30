@@ -25,6 +25,7 @@
 #include "FamiTrackerDoc.h"
 #include "SongData.h"
 #include "InstrumentManager.h"
+#include "DSampleManager.h"
 #include <memory>
 #include <array>
 #include "Instrument2A03.h"
@@ -60,12 +61,13 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 	FileBlock = 0;
 
 	// Only single track files
-	auto &Song = *doc.GetSong(0);
+	auto &modfile = *doc.GetModule();
+	auto &Song = *modfile.GetSong(0);
 
 	doc.SelectExpansionChip(sound_chip_t::APU, 0);		// // //
-	doc.SetMachine(NTSC);		// // //
-	doc.SetVibratoStyle(VIBRATO_OLD);
-	doc.SetLinearPitch(false);
+	modfile.SetMachine(NTSC);		// // //
+	modfile.SetVibratoStyle(VIBRATO_OLD);
+	modfile.SetLinearPitch(false);
 
 	// // // local structs
 	struct {
@@ -112,11 +114,11 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 			break;
 
 		case FB_MACHINE:
-			doc.SetMachine(ReadInt(pOpenFile) ? PAL : NTSC);
+			modfile.SetMachine(ReadInt(pOpenFile) ? PAL : NTSC);
 			break;
 
 		case FB_ENGINESPEED:
-			doc.SetEngineSpeed(ReadInt(pOpenFile));
+			modfile.SetEngineSpeed(ReadInt(pOpenFile));
 			break;
 
 		case FB_INSTRUMENTS:
@@ -144,7 +146,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 						}
 					}
 
-					doc.AddInstrument(std::move(pInst), i);		// // //
+					modfile.GetInstrumentManager()->InsertInstrument(i, std::move(pInst));		// // //
 				}
 			}
 			break;
@@ -221,23 +223,23 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 					pOpenFile->Read(pBuf.data(), ImportedDSample.SampleSize);
 				}
 
-				doc.SetSample(i, std::make_shared<ft0cc::doc::dpcm_sample>(pBuf, ImportedDSample.Name));
+				modfile.GetDSampleManager()->SetDSample(i, std::make_shared<ft0cc::doc::dpcm_sample>(pBuf, ImportedDSample.Name));
 			}
 			break;
 		}
 		case FB_SONGNAME:
 			pOpenFile->Read(pBuf, std::size(pBuf));		// // //
-			doc.SetModuleName(pBuf);
+			modfile.SetModuleName(pBuf);
 			break;
 
 		case FB_SONGARTIST:
 			pOpenFile->Read(pBuf, std::size(pBuf));
-			doc.SetModuleArtist(pBuf);
+			modfile.SetModuleArtist(pBuf);
 			break;
 
 		case FB_SONGCOPYRIGHT:
 			pOpenFile->Read(pBuf, std::size(pBuf));
-			doc.SetModuleCopyright(pBuf);
+			modfile.SetModuleCopyright(pBuf);
 			break;
 
 		default:
@@ -245,21 +247,21 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 		}
 	}
 
-	ReorderSequences(doc, std::move(TmpSequences));		// // //
+	ReorderSequences(modfile, std::move(TmpSequences));		// // //
 
 	pOpenFile->Close();
 
 	return TRUE;
 }
 
-void compat::ReorderSequences(CFamiTrackerDoc &doc, std::vector<COldSequence> seqs)		// // //
+void compat::ReorderSequences(CFamiTrackerModule &modfile, std::vector<COldSequence> seqs)		// // //
 {
 	int Slots[SEQ_COUNT] = {0, 0, 0, 0, 0};
 	std::array<std::array<int, SEQ_COUNT>, MAX_SEQUENCES> Indices;
 	for (auto &x : Indices)
 		x.fill(-1);
 
-	auto &Manager = *doc.GetInstrumentManager();
+	auto &Manager = *modfile.GetInstrumentManager();
 
 	// Organize sequences
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {

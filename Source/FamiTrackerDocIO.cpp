@@ -209,7 +209,7 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
 	auto &modfile = *doc.GetModule();
 
 	if (file_.GetFileVersion() <= 0x0201)
-		compat::ReorderSequences(doc, std::move(m_vTmpSequences));
+		compat::ReorderSequences(modfile, std::move(m_vTmpSequences));
 
 	if (fds_adjust_arps_) {
 		if (modfile.HasExpansionChip(sound_chip_t::FDS)) {
@@ -678,7 +678,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::SaveSequences(const CFamiTrackerDoc &doc, int ver) {
-	int Count = doc.GetTotalSequenceCount(INST_2A03);
+	int Count = doc.GetModule()->GetInstrumentManager()->GetTotalSequenceCount(INST_2A03);
 	if (!Count)
 		return;		// // //
 	file_.WriteBlockInt(Count);
@@ -1125,7 +1125,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::SaveSequencesVRC6(const CFamiTrackerDoc &doc, int ver) {
-	int Count = doc.GetTotalSequenceCount(INST_VRC6);
+	int Count = doc.GetModule()->GetInstrumentManager()->GetTotalSequenceCount(INST_VRC6);
 	if (!Count)
 		return;		// // //
 	file_.WriteBlockInt(Count);
@@ -1188,12 +1188,13 @@ void CFamiTrackerDocIO::SaveSequencesN163(const CFamiTrackerDoc &doc, int ver) {
 	 * Store N163 sequences
 	 */
 
-	int Count = doc.GetTotalSequenceCount(INST_N163);
+	auto *pManager = doc.GetModule()->GetInstrumentManager();
+	int Count = pManager->GetTotalSequenceCount(INST_N163);
 	if (!Count)
 		return;		// // //
 	file_.WriteBlockInt(Count);
 
-	VisitSequences(doc.GetModule()->GetInstrumentManager()->GetSequenceManager(INST_N163), [&] (const CSequence &seq, int index, sequence_t seqType) {
+	VisitSequences(pManager->GetSequenceManager(INST_N163), [&] (const CSequence &seq, int index, sequence_t seqType) {
 		file_.WriteBlockInt(index);
 		file_.WriteBlockInt(value_cast(seqType));
 		file_.WriteBlockChar(seq.GetItemCount());
@@ -1241,12 +1242,13 @@ void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::SaveSequencesS5B(const CFamiTrackerDoc &doc, int ver) {
-	int Count = doc.GetTotalSequenceCount(INST_S5B);
+	auto *pManager = doc.GetModule()->GetInstrumentManager();
+	int Count = pManager->GetTotalSequenceCount(INST_S5B);
 	if (!Count)
 		return;		// // //
 	file_.WriteBlockInt(Count);
 
-	VisitSequences(doc.GetModule()->GetInstrumentManager()->GetSequenceManager(INST_S5B), [&] (const CSequence &seq, int index, sequence_t seqType) {
+	VisitSequences(pManager->GetSequenceManager(INST_S5B), [&] (const CSequence &seq, int index, sequence_t seqType) {
 		file_.WriteBlockInt(index);
 		file_.WriteBlockInt(value_cast(seqType));
 		file_.WriteBlockChar(seq.GetItemCount());

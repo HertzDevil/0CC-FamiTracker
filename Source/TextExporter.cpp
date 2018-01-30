@@ -576,6 +576,9 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 	// parse the file
 	Tokenizer t(FileName);		// // //
 
+	auto &modfile = *Doc.GetModule();		// // //
+	auto &InstManager = *modfile.GetInstrumentManager();
+
 	unsigned int dpcm_index = 0;
 	unsigned int dpcm_size = 0;
 	std::shared_ptr<ft0cc::doc::dpcm_sample> dpcm_sample;		// // //
@@ -598,47 +601,47 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			t.FinishLine();
 			break;
 		case CT_TITLE:
-			Doc.SetModuleName(Charify(t.ReadToken()));
+			modfile.SetModuleName(Charify(t.ReadToken()));
 			t.ReadEOL();
 			break;
 		case CT_AUTHOR:
-			Doc.SetModuleArtist(Charify(t.ReadToken()));
+			modfile.SetModuleArtist(Charify(t.ReadToken()));
 			t.ReadEOL();
 			break;
 		case CT_COPYRIGHT:
-			Doc.SetModuleCopyright(Charify(t.ReadToken()));
+			modfile.SetModuleCopyright(Charify(t.ReadToken()));
 			t.ReadEOL();
 			break;
 		case CT_COMMENT:
 		{
-			auto sComment = std::string {Doc.GetModule()->GetComment()};		// // //
+			auto sComment = std::string {modfile.GetComment()};		// // //
 			if (!sComment.empty())
 				sComment += "\r\n";
 			sComment += t.ReadToken();
-			Doc.GetModule()->SetComment(sComment, Doc.GetModule()->ShowsCommentOnOpen());
+			modfile.SetComment(sComment, modfile.ShowsCommentOnOpen());
 			t.ReadEOL();
 		}
 		break;
 		case CT_MACHINE:
-			Doc.SetMachine(static_cast<machine_t>(t.ReadInt(0, PAL)));
+			modfile.SetMachine(static_cast<machine_t>(t.ReadInt(0, PAL)));
 			t.ReadEOL();
 			break;
 		case CT_FRAMERATE:
-			Doc.SetEngineSpeed(t.ReadInt(0, 800));
+			modfile.SetEngineSpeed(t.ReadInt(0, 800));
 			t.ReadEOL();
 			break;
 		case CT_EXPANSION: {
 			auto flag = t.ReadInt(0, CSoundChipSet::NSF_MAX_FLAG);		// // //
-			Doc.SelectExpansionChip(CSoundChipSet::FromNSFFlag(flag), Doc.GetNamcoChannels());		// // //
+			Doc.SelectExpansionChip(CSoundChipSet::FromNSFFlag(flag), modfile.GetNamcoChannels());		// // //
 			t.ReadEOL();
 			break;
 		}
 		case CT_VIBRATO:
-			Doc.SetVibratoStyle(static_cast<vibrato_t>(t.ReadInt(0, VIBRATO_NEW)));
+			modfile.SetVibratoStyle(static_cast<vibrato_t>(t.ReadInt(0, VIBRATO_NEW)));
 			t.ReadEOL();
 			break;
 		case CT_SPLIT:
-			Doc.SetSpeedSplitPoint(t.ReadInt(0, 255));
+			modfile.SetSpeedSplitPoint(t.ReadInt(0, 255));
 			t.ReadEOL();
 			break;
 		case CT_PLAYBACKRATE:		// // // 050B
@@ -653,13 +656,13 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			int octave = t.ReadInt(-12, 12);
 			int cent = t.ReadInt(-100, 100);
 			t.ReadEOL();
-			Doc.SetTuning(octave, cent);
+			modfile.SetTuning(octave, cent);
 		}
 		break;
 		case CT_N163CHANNELS:
 			N163count = t.ReadInt(1, MAX_CHANNELS_N163);		// // //
 			t.ReadEOL();
-			Doc.SelectExpansionChip(Doc.GetExpansionChip(), MAX_CHANNELS_N163);
+			Doc.SelectExpansionChip(modfile.GetSoundChipSet(), MAX_CHANNELS_N163);
 			break;
 		case CT_MACRO:
 		case CT_MACROVRC6:
@@ -671,7 +674,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 
 			auto mt = (sequence_t)t.ReadInt(0, SEQ_COUNT - 1);
 			int index = t.ReadInt(0, MAX_SEQUENCES - 1);
-			const auto pSeq = Doc.GetSequence(CHIP_MACRO[chip], index, mt);
+			const auto pSeq = InstManager.GetSequence(CHIP_MACRO[chip], mt, index);
 
 			int loop = t.ReadInt(-1, MAX_SEQUENCE_ITEMS);		// // //
 			int release = t.ReadInt(-1, MAX_SEQUENCE_ITEMS);
@@ -697,7 +700,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			if (dpcm_sample) {
 				if (dpcm_sample->size() < dpcm_size)
 					dpcm_sample->resize(dpcm_size);
-				Doc.SetSample(dpcm_index, std::move(dpcm_sample));
+				modfile.GetDSampleManager()->SetDSample(dpcm_index, std::move(dpcm_sample));
 			}
 
 			dpcm_index = t.ReadInt(0, MAX_DSAMPLES - 1);
@@ -726,7 +729,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			int oct = t.ReadInt(0, OCTAVE_RANGE - 1);
 			int note = t.ReadInt(0, NOTE_RANGE - 1);
 			int offset = t.ReadInt(-32768, 32767);
-			Doc.SetDetuneOffset(table, oct * NOTE_RANGE + note, offset);
+			modfile.SetDetuneOffset(table, oct * NOTE_RANGE + note, offset);
 			t.ReadEOL();
 			break;
 		}
@@ -739,7 +742,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			CHECK_COLON();
 			for (uint8_t &x : *pGroove)
 				x = t.ReadInt(1, 255);
-			Doc.SetGroove(index, std::move(pGroove));
+			modfile.SetGroove(index, std::move(pGroove));
 			t.ReadEOL();
 		}
 		break;
@@ -747,10 +750,10 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		{
 			CHECK_COLON();
 			while (!t.IsEOL()) {
-				int index = t.ReadInt(1, MAX_TRACKS) - 1;
+				unsigned index = (unsigned)t.ReadInt(1, MAX_TRACKS) - 1;
 				UseGroove[index] = true;
-				if (static_cast<unsigned int>(index) < Doc.GetTrackCount())
-					Doc.SetSongGroove(index, true);
+				if (index < modfile.GetSongCount())
+					modfile.GetSong(index)->SetSongGroove(true);
 			}
 		}
 		break;
@@ -783,7 +786,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 				pInst->SetWaveCount(t.ReadInt(1, CInstrumentN163::MAX_WAVE_COUNT));
 			}
 			seqInst->SetName(Charify(t.ReadToken()));
-			Doc.AddInstrument(std::move(pInst), inst_index);
+			InstManager.InsertInstrument(inst_index, std::move(pInst));
 			t.ReadEOL();
 		}
 		break;
@@ -795,7 +798,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			for (int r = 0; r < 8; ++r)
 				pInst->SetCustomReg(r, t.ReadHex(0x00, 0xFF));
 			pInst->SetName(Charify(t.ReadToken()));
-			Doc.AddInstrument(std::move(pInst), inst_index);		// // //
+			InstManager.InsertInstrument(inst_index, std::move(pInst));
 			t.ReadEOL();
 		}
 		break;
@@ -808,16 +811,16 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			pInst->SetModulationDepth(t.ReadInt(0, 63));
 			pInst->SetModulationDelay(t.ReadInt(0, 255));
 			pInst->SetName(Charify(t.ReadToken()));
-			Doc.AddInstrument(std::move(pInst), inst_index);		// // //
+			InstManager.InsertInstrument(inst_index, std::move(pInst));
 			t.ReadEOL();
 		}
 		break;
 		case CT_KEYDPCM:
 		{
 			int inst_index = t.ReadInt(0, MAX_INSTRUMENTS - 1);
-			if (Doc.GetInstrumentType(inst_index) != INST_2A03)
+			if (InstManager.GetInstrumentType(inst_index) != INST_2A03)
 				throw t.MakeError(_T("instrument %d is not defined as a 2A03 instrument."), inst_index);
-			auto pInst = std::static_pointer_cast<CInstrument2A03>(Doc.GetInstrument(inst_index));
+			auto pInst = std::static_pointer_cast<CInstrument2A03>(InstManager.GetInstrument(inst_index));
 
 			int io = t.ReadInt(0, OCTAVE_RANGE);
 			int in = t.ReadInt(0, 12);
@@ -833,9 +836,9 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_FDSWAVE:
 		{
 			int inst_index = t.ReadInt(0, MAX_INSTRUMENTS - 1);
-			if (Doc.GetInstrumentType(inst_index) != INST_FDS)
+			if (InstManager.GetInstrumentType(inst_index) != INST_FDS)
 				throw t.MakeError(_T("instrument %d is not defined as an FDS instrument."), inst_index);
-			auto pInst = std::static_pointer_cast<CInstrumentFDS>(Doc.GetInstrument(inst_index));
+			auto pInst = std::static_pointer_cast<CInstrumentFDS>(InstManager.GetInstrument(inst_index));
 			CHECK_COLON();
 			for (int s = 0; s < CInstrumentFDS::WAVE_SIZE; ++s)
 				pInst->SetSample(s, t.ReadInt(0, 63));
@@ -845,9 +848,9 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_FDSMOD:
 		{
 			int inst_index = t.ReadInt(0, MAX_INSTRUMENTS - 1);
-			if (Doc.GetInstrumentType(inst_index) != INST_FDS)
+			if (InstManager.GetInstrumentType(inst_index) != INST_FDS)
 				throw t.MakeError(_T("instrument %d is not defined as an FDS instrument."), inst_index);
-			auto pInst = std::static_pointer_cast<CInstrumentFDS>(Doc.GetInstrument(inst_index));
+			auto pInst = std::static_pointer_cast<CInstrumentFDS>(InstManager.GetInstrument(inst_index));
 			CHECK_COLON();
 			for (int s = 0; s < CInstrumentFDS::MOD_SIZE; ++s)
 				pInst->SetModulation(s, t.ReadInt(0, 7));
@@ -857,9 +860,9 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_FDSMACRO:
 		{
 			int inst_index = t.ReadInt(0, MAX_INSTRUMENTS - 1);
-			if (Doc.GetInstrumentType(inst_index) != INST_FDS)
+			if (InstManager.GetInstrumentType(inst_index) != INST_FDS)
 				throw t.MakeError(_T("instrument %d is not defined as an FDS instrument."), inst_index);
-			auto pInst = std::static_pointer_cast<CInstrumentFDS>(Doc.GetInstrument(inst_index));
+			auto pInst = std::static_pointer_cast<CInstrumentFDS>(InstManager.GetInstrument(inst_index));
 
 			auto SeqType = (sequence_t)t.ReadInt(0, CInstrumentFDS::SEQUENCE_COUNT - 1);		// // //
 			auto pSeq = std::make_shared<CSequence>(SeqType);
@@ -886,9 +889,9 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_N163WAVE:
 		{
 			int inst_index = t.ReadInt(0, MAX_INSTRUMENTS - 1);
-			if (Doc.GetInstrumentType(inst_index) != INST_N163)
+			if (InstManager.GetInstrumentType(inst_index) != INST_N163)
 				throw t.MakeError(_T("instrument %d is not defined as an N163 instrument."), inst_index);
-			auto pInst = std::static_pointer_cast<CInstrumentN163>(Doc.GetInstrument(inst_index));
+			auto pInst = std::static_pointer_cast<CInstrumentN163>(InstManager.GetInstrument(inst_index));
 
 			int iw = t.ReadInt(0, CInstrumentN163::MAX_WAVE_COUNT - 1);
 			CHECK_COLON();
@@ -899,10 +902,10 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		break;
 		case CT_TRACK:
 		{
-			if (track != 0 && !Doc.InsertSong(track, Doc.GetModule()->MakeNewSong()))
+			if (track != 0 && !modfile.InsertSong(track, modfile.MakeNewSong()))
 				throw t.MakeError(_T("unable to add new track."));
 
-			CSongData *pSong = Doc.GetSong(track);
+			CSongData *pSong = modfile.GetSong(track);
 			pSong->SetPatternLength(t.ReadInt(1, MAX_PATTERN_LENGTH));		// // //
 			pSong->SetSongGroove(UseGroove[track]);		// // //
 			pSong->SetSongSpeed(t.ReadInt(0, MAX_TEMPO));
@@ -916,7 +919,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_COLUMNS:
 		{
 			CHECK_COLON();
-			CSongData *pSong = Doc.GetSong(track - 1);		// // //
+			CSongData *pSong = modfile.GetSong(track - 1);		// // //
 			Doc.ForeachChannel([&] (chan_id_t c) {
 				pSong->SetEffectColumnCount(c, t.ReadInt(1, MAX_EFFECT_COLUMNS) - 1);
 			});
@@ -925,7 +928,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		break;
 		case CT_ORDER:
 		{
-			CSongData *pSong = Doc.GetSong(track - 1);		// // //
+			CSongData *pSong = modfile.GetSong(track - 1);		// // //
 			int ifr = t.ReadHex(0, MAX_FRAMES - 1);
 			if (ifr >= (int)pSong->GetFrameCount()) // expand to accept frames
 				pSong->SetFrameCount(ifr + 1);
@@ -948,7 +951,8 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			int row = t.ReadHex(0, MAX_PATTERN_LENGTH - 1);
 			Doc.ForeachChannel([&] (chan_id_t c) {
 				CHECK_COLON();
-				Doc.GetSong(track - 1)->SetPatternData(c, pattern, row, t.ImportCellText(Doc.GetEffColumns(track - 1, c), c));		// // //
+				auto *pTrack = modfile.GetSong(track - 1)->GetTrack(c);		// // //
+				pTrack->GetPattern(pattern).SetNoteOn(row, t.ImportCellText(pTrack->GetEffectColumnCount(), c));
 			});
 			t.ReadEOL();
 		}
@@ -962,15 +966,15 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 	if (dpcm_sample) {
 		if (dpcm_sample->size() < dpcm_size)
 			dpcm_sample->resize(dpcm_size);
-		Doc.SetSample(dpcm_index, std::move(dpcm_sample));
+		modfile.GetDSampleManager()->SetDSample(dpcm_index, std::move(dpcm_sample));
 	}
 	if (N163count != -1)		// // //
-		Doc.SelectExpansionChip(Doc.GetExpansionChip(), N163count); // calls ApplyExpansionChip()
+		Doc.SelectExpansionChip(modfile.GetSoundChipSet(), N163count); // calls ApplyExpansionChip()
 }
 
 // =============================================================================
 
-CString CTextExport::ExportRows(LPCTSTR FileName, const CFamiTrackerDoc &Doc) {		// // //
+CString CTextExport::ExportRows(LPCTSTR FileName, const CFamiTrackerModule &modfile) {		// // //
 	CStdioFile f;
 	CFileException oFileException;
 	if (!f.Open(FileName, CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException))
@@ -986,7 +990,7 @@ CString CTextExport::ExportRows(LPCTSTR FileName, const CFamiTrackerDoc &Doc) {	
 	const CString FMT = _T("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n");
 	int id = 0;
 
-	Doc.VisitSongs([&] (const CSongData &song, unsigned t) {
+	modfile.VisitSongs([&] (const CSongData &song, unsigned t) {
 		unsigned rows = song.GetPatternLength();
 		song.VisitPatterns([&] (const CPatternData &pat, chan_id_t c, unsigned p) {
 			if (song.IsPatternInUse(c, p))
@@ -1364,7 +1368,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 	});
 
 	if (N163count != -1)		// // //
-		Doc.SelectExpansionChip(Doc.GetExpansionChip(), N163count); // calls ApplyExpansionChip()
+		Doc.SelectExpansionChip(modfile.GetSoundChipSet(), N163count); // calls ApplyExpansionChip()
 	f.WriteString(_T("# End of export\n"));
 	Doc.UpdateAllViews(NULL, UPDATE_FRAME);
 	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);

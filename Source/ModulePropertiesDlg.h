@@ -28,6 +28,7 @@
 #include "SoundChipSet.h"		// // //
 
 class CFamiTrackerDoc;
+class CFamiTrackerModule;		// // //
 
 // CModulePropertiesDlg dialog
 
@@ -44,7 +45,8 @@ private:
 	CSoundChipSet m_iExpansions;		// // //
 	int m_iN163Channels;
 
-	CFamiTrackerDoc *m_pDocument;
+	CFamiTrackerDoc *m_pDocument = nullptr;
+	CFamiTrackerModule *m_pModule = nullptr;		// // //
 
 public:
 	CModulePropertiesDlg(CWnd* pParent = NULL);   // standard constructor
@@ -56,6 +58,7 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
+	CString GetSongString(unsigned index) const;		// // //
 	void FillSongList();
 
 	DECLARE_MESSAGE_MAP()

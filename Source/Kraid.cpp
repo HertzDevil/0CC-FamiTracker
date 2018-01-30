@@ -91,7 +91,8 @@ void Kraid::buildSong(CSongData &song) {
 }
 
 void Kraid::makeInst(CFamiTrackerDoc &doc, unsigned index, char vol, std::string_view name) {
-	doc.AddInstrument(doc.GetInstrumentManager()->CreateNew(INST_2A03), index);
+	auto *pManager = doc.GetInstrumentManager();
+	pManager->InsertInstrument(index, pManager->CreateNew(INST_2A03));
 	auto leadInst = std::dynamic_pointer_cast<CInstrument2A03>(doc.GetInstrument(index));
 	leadInst->SetSeqEnable(sequence_t::Volume, true);
 	leadInst->SetSeqIndex(sequence_t::Volume, index);

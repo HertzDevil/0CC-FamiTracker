@@ -23,6 +23,7 @@
 #include "SwapDlg.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"
+#include "SoundChipSet.h"
 #include "FamiTrackerViewMessage.h"
 #include "SongData.h"
 #include "APU/Types.h"
@@ -65,19 +66,20 @@ BOOL CSwapDlg::OnInitDialog()
 	m_cChipFirst.SubclassDlgItem(IDC_COMBO_SWAP_CHIP1, this);
 	m_cChipSecond.SubclassDlgItem(IDC_COMBO_SWAP_CHIP2, this);
 
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	m_cChipFirst.AddString(_T("2A03"));
-	if (pDoc->ExpansionEnabled(sound_chip_t::VRC6))
+	const auto &chips = CFamiTrackerDoc::GetDoc()->GetModule()->GetSoundChipSet();
+	if (chips.ContainsChip(sound_chip_t::APU))
+		m_cChipFirst.AddString(_T("2A03"));
+	if (chips.ContainsChip(sound_chip_t::VRC6))
 		m_cChipFirst.AddString(_T("VRC6"));
-	if (pDoc->ExpansionEnabled(sound_chip_t::VRC7))
+	if (chips.ContainsChip(sound_chip_t::VRC7))
 		m_cChipFirst.AddString(_T("VRC7"));
-	if (pDoc->ExpansionEnabled(sound_chip_t::FDS))
+	if (chips.ContainsChip(sound_chip_t::FDS))
 		m_cChipFirst.AddString(_T("FDS"));
-	if (pDoc->ExpansionEnabled(sound_chip_t::MMC5))
+	if (chips.ContainsChip(sound_chip_t::MMC5))
 		m_cChipFirst.AddString(_T("MMC5"));
-	if (pDoc->ExpansionEnabled(sound_chip_t::N163))
+	if (chips.ContainsChip(sound_chip_t::N163))
 		m_cChipFirst.AddString(_T("N163"));
-	if (pDoc->ExpansionEnabled(sound_chip_t::S5B))
+	if (chips.ContainsChip(sound_chip_t::S5B))
 		m_cChipFirst.AddString(_T("5B"));
 
 	CString str;
@@ -108,20 +110,19 @@ sound_chip_t CSwapDlg::GetChipFromString(const CString &str)
 {
 	if (str == _T("2A03"))
 		return sound_chip_t::APU;
-	else if (str == _T("VRC6"))
+	if (str == _T("VRC6"))
 		return sound_chip_t::VRC6;
-	else if (str == _T("VRC7"))
+	if (str == _T("VRC7"))
 		return sound_chip_t::VRC7;
-	else if (str == _T("FDS"))
+	if (str == _T("FDS"))
 		return sound_chip_t::FDS;
-	else if (str == _T("MMC5"))
+	if (str == _T("MMC5"))
 		return sound_chip_t::MMC5;
-	else if (str == _T("N163"))
+	if (str == _T("N163"))
 		return sound_chip_t::N163;
-	else if (str == _T("5B"))
+	if (str == _T("5B"))
 		return sound_chip_t::S5B;
-	else
-		return sound_chip_t::NONE;
+	return sound_chip_t::NONE;
 }
 
 void CSwapDlg::OnEnChangeEditSwapChan1()
@@ -162,12 +163,13 @@ void CSwapDlg::OnBnClickedOk()
 	auto rhs = MakeChannelIndex(m_iDestChip2, m_iDestChannel2);
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
+	CFamiTrackerModule *pModule = pDoc->GetModule();
 	if (IsDlgButtonChecked(IDC_CHECK_SWAP_ALL) == BST_CHECKED)
-		pDoc->VisitSongs([lhs, rhs] (CSongData &song) {
+		pModule->VisitSongs([lhs, rhs] (CSongData &song) {
 			song.SwapChannels(lhs, rhs);
 		});
 	else
-		pDoc->GetSong(m_iTrack)->SwapChannels(lhs, rhs);
+		pModule->GetSong(m_iTrack)->SwapChannels(lhs, rhs);
 
 	pDoc->ModifyIrreversible();
 	pDoc->UpdateAllViews(NULL, UPDATE_PATTERN);

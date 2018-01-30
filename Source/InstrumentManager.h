@@ -63,6 +63,9 @@ public:
 	unsigned int GetFirstUnused() const;
 	int GetFreeSequenceIndex(inst_type_t InstType, sequence_t Type, const CSeqInstrument *pInst = nullptr) const;
 
+	int GetSequenceCount(inst_type_t InstType, sequence_t Type) const;
+	int GetTotalSequenceCount(inst_type_t InstType) const;
+
 	inst_type_t GetInstrumentType(unsigned int Index) const;
 
 	CSequenceManager *const GetSequenceManager(int InstType) const;

@@ -27,6 +27,7 @@
 #include <string_view>		// // //
 
 class CFamiTrackerDoc; // forward declaration
+class CFamiTrackerModule;		// // //
 class stChanNote;		// // //
 
 struct CTextExport {
@@ -36,7 +37,7 @@ struct CTextExport {
 
 	// returns an empty string on success, otherwise returns a descriptive error
 	CString ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc);		// // //
-	CString ExportRows(LPCTSTR FileName, const CFamiTrackerDoc &Doc);		// // //
+	CString ExportRows(LPCTSTR FileName, const CFamiTrackerModule &modfile);		// // //
 
 private:		// // //
 	static CString ExportString(const CString &s);

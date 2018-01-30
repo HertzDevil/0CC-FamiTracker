@@ -40,7 +40,7 @@ LPCTSTR TRACK_FORMAT = _T("#%02i %.*s");		// // //
 
 IMPLEMENT_DYNAMIC(CModulePropertiesDlg, CDialog)
 CModulePropertiesDlg::CModulePropertiesDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CModulePropertiesDlg::IDD, pParent), m_iSelectedSong(0), m_iExpansions(sound_chip_t::APU), m_pDocument(NULL)
+	: CDialog(CModulePropertiesDlg::IDD, pParent), m_iSelectedSong(0), m_iExpansions(sound_chip_t::APU)
 {
 }
 
@@ -85,6 +85,7 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 	// Get active document
 	CFrameWnd *pFrameWnd = static_cast<CFrameWnd*>(GetParent());
 	m_pDocument = static_cast<CFamiTrackerDoc*>(pFrameWnd->GetActiveDocument());
+	m_pModule = m_pDocument->GetModule();		// // //
 
 	CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
 	pSongList->InsertColumn(0, _T("Songs"), 0, 150);
@@ -94,7 +95,7 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 	SelectSong(0);		// // //
 
 	// Expansion chips
-	m_iExpansions = m_pDocument->GetExpansionChip();
+	m_iExpansions = m_pModule->GetSoundChipSet();
 	((CButton*)GetDlgItem(IDC_EXPANSION_VRC6))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::VRC6));
 	((CButton*)GetDlgItem(IDC_EXPANSION_VRC7))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::VRC7));
 	((CButton*)GetDlgItem(IDC_EXPANSION_FDS ))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::FDS ));
@@ -104,9 +105,9 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 
 	// Vibrato
 	CComboBox *pVibratoBox = static_cast<CComboBox*>(GetDlgItem(IDC_VIBRATO));
-	pVibratoBox->SetCurSel((m_pDocument->GetVibratoStyle() == VIBRATO_NEW) ? 0 : 1);
+	pVibratoBox->SetCurSel((m_pModule->GetVibratoStyle() == VIBRATO_NEW) ? 0 : 1);
 	CComboBox *pPitchBox = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_LINEARPITCH));		// // //
-	pPitchBox->SetCurSel(m_pDocument->GetLinearPitch() ? 1 : 0);
+	pPitchBox->SetCurSel(m_pModule->GetLinearPitch() ? 1 : 0);
 
 	// Namco channel count
 	CSliderCtrl *pChanSlider = static_cast<CSliderCtrl*>(GetDlgItem(IDC_CHANNELS));
@@ -116,7 +117,7 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 	CString channelsStr;
 	channelsStr.LoadString(IDS_PROPERTIES_CHANNELS);
 	if (m_iExpansions.ContainsChip(sound_chip_t::N163)) {
-		m_iN163Channels = m_pDocument->GetNamcoChannels();
+		m_iN163Channels = m_pModule->GetNamcoChannels();
 
 		pChanSlider->SetPos(m_iN163Channels);
 		pChanSlider->EnableWindow(TRUE);
@@ -141,7 +142,7 @@ void CModulePropertiesDlg::OnBnClickedOk()
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
 
 	if (!m_iExpansions.ContainsChip(sound_chip_t::N163)) m_iN163Channels = 0;
-	if (m_pDocument->GetNamcoChannels() != m_iN163Channels || m_pDocument->GetExpansionChip() != m_iExpansions) {		// // //
+	if (m_pModule->GetNamcoChannels() != m_iN163Channels || m_pModule->GetSoundChipSet() != m_iExpansions) {		// // //
 		m_pDocument->SelectExpansionChip(m_iExpansions, m_iN163Channels);
 		m_pDocument->UpdateAllViews(NULL, UPDATE_PROPERTIES);
 	}
@@ -149,10 +150,10 @@ void CModulePropertiesDlg::OnBnClickedOk()
 	// Vibrato
 	vibrato_t newVib = static_cast<CComboBox*>(GetDlgItem(IDC_VIBRATO))->GetCurSel() == 0 ? VIBRATO_NEW : VIBRATO_OLD;		// // //
 	bool newLinear = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_LINEARPITCH))->GetCurSel() == 1;
-	if (newVib != m_pDocument->GetVibratoStyle() || newLinear != m_pDocument->GetLinearPitch())
+	if (newVib != m_pModule->GetVibratoStyle() || newLinear != m_pModule->GetLinearPitch())
 		m_pDocument->ModifyIrreversible();
-	m_pDocument->SetVibratoStyle(newVib);
-	m_pDocument->SetLinearPitch(newLinear);
+	m_pModule->SetVibratoStyle(newVib);
+	m_pModule->SetLinearPitch(newLinear);
 
 	if (pMainFrame->GetSelectedTrack() != m_iSelectedSong)
 		pMainFrame->SelectTrack(m_iSelectedSong);
@@ -167,15 +168,13 @@ void CModulePropertiesDlg::OnBnClickedOk()
 void CModulePropertiesDlg::OnBnClickedSongAdd()
 {
 	// Try to add a track
-	unsigned int NewTrack = m_pDocument->GetTrackCount();		// // //
-	if (!m_pDocument->InsertSong(NewTrack, m_pDocument->GetModule()->MakeNewSong()))
+	unsigned int NewTrack = m_pModule->GetSongCount();		// // //
+	if (!m_pModule->InsertSong(NewTrack, m_pModule->MakeNewSong()))
 		return;
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
-	CString TrackTitle;
-	TrackTitle.Format(TRACK_FORMAT, NewTrack + 1, m_pDocument->GetTrackTitle(NewTrack).size(), m_pDocument->GetTrackTitle(NewTrack).data());
-	static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST))->InsertItem(NewTrack, TrackTitle);
+	static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST))->InsertItem(NewTrack, GetSongString(NewTrack));
 
 	SelectSong(NewTrack);
 }
@@ -184,20 +183,15 @@ void CModulePropertiesDlg::OnBnClickedSongInsert()		// // //
 {
 	// Try to add a track
 	unsigned int NewTrack = m_iSelectedSong + 1;		// // //
-	if (!m_pDocument->InsertSong(NewTrack, m_pDocument->GetModule()->MakeNewSong()))
+	if (!m_pModule->InsertSong(NewTrack, m_pModule->MakeNewSong()))
 		return;
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
-	CString TrackTitle;
-	TrackTitle.Format(TRACK_FORMAT, NewTrack, m_pDocument->GetTrackTitle(NewTrack).size(), m_pDocument->GetTrackTitle(NewTrack).data());
 	auto pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
-	pSongList->InsertItem(NewTrack, TrackTitle);
-
-	m_pDocument->VisitSongs([&] (const CSongData &song, unsigned index) {
-		auto sv = song.GetTitle();
-		TrackTitle.Format(TRACK_FORMAT, index + 1, sv.size(), sv.data());		// // // start counting songs from 1
-		pSongList->SetItemText(index, 0, TrackTitle);
+	pSongList->InsertItem(NewTrack, GetSongString(NewTrack));
+	m_pModule->VisitSongs([&] (const CSongData &, unsigned index) {
+		pSongList->SetItemText(index, 0, GetSongString(index));
 	});
 
 	SelectSong(NewTrack);
@@ -209,8 +203,7 @@ void CModulePropertiesDlg::OnBnClickedSongRemove()
 
 	CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
-	unsigned Count = m_pDocument->GetTrackCount();
-	CString TrackTitle;
+	unsigned Count = m_pModule->GetSongCount();
 
 	int SelCount = pSongList->GetSelectedCount();		// // //
 	if (Count <= static_cast<unsigned>(SelCount))
@@ -225,18 +218,16 @@ void CModulePropertiesDlg::OnBnClickedSongRemove()
 			if (m_iSelectedSong > i)
 				--m_iSelectedSong;
 			pSongList->DeleteItem(i);
-			m_pDocument->RemoveTrack(i);
+			m_pModule->RemoveSong(i);
 		}
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
-	Count = m_pDocument->GetTrackCount();	// Get new track count
+	Count = m_pModule->GetSongCount();	// Get new track count
 
 	// Redraw track list
-	m_pDocument->VisitSongs([&] (const CSongData &song, unsigned index) {
-		auto sv = song.GetTitle();
-		TrackTitle.Format(TRACK_FORMAT, index + 1, sv.size(), sv.data());		// // // start counting songs from 1
-		pSongList->SetItemText(index, 0, TrackTitle);
+	m_pModule->VisitSongs([&] (const CSongData &song, unsigned index) {
+		pSongList->SetItemText(index, 0, GetSongString(index));		// // //
 	});
 
 	if (m_iSelectedSong >= Count)
@@ -246,42 +237,34 @@ void CModulePropertiesDlg::OnBnClickedSongRemove()
 
 void CModulePropertiesDlg::OnBnClickedSongUp()
 {
-	CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
 	int Song = m_iSelectedSong;
-	CString Text;
-
-	if (Song == 0)
+	if (Song <= 0)
 		return;
 
-	m_pDocument->GetModule()->SwapSongs(Song, Song - 1);
+	m_pModule->SwapSongs(Song, Song - 1);
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
-	Text.Format(TRACK_FORMAT, Song + 1, m_pDocument->GetTrackTitle(Song).size(), m_pDocument->GetTrackTitle(Song).data());
-	pSongList->SetItemText(Song, 0, Text);
-	Text.Format(TRACK_FORMAT, Song, m_pDocument->GetTrackTitle(Song - 1).size(), m_pDocument->GetTrackTitle(Song - 1).data());
-	pSongList->SetItemText(Song - 1, 0, Text);
+	CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
+	pSongList->SetItemText(Song, 0, GetSongString(Song));
+	pSongList->SetItemText(Song - 1, 0, GetSongString(Song - 1));
 
 	SelectSong(Song - 1);
 }
 
 void CModulePropertiesDlg::OnBnClickedSongDown()
 {
-	CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
 	int Song = m_iSelectedSong;
-	CString Text;
-
-	if (Song == (m_pDocument->GetTrackCount() - 1))
+	if (Song >= (m_pModule->GetSongCount() - 1))
 		return;
 
-	m_pDocument->GetModule()->SwapSongs(Song, Song + 1);
+	m_pModule->SwapSongs(Song, Song + 1);
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
-	Text.Format(TRACK_FORMAT, Song + 1, m_pDocument->GetTrackTitle(Song).size(), m_pDocument->GetTrackTitle(Song).data());
-	pSongList->SetItemText(Song, 0, Text);
-	Text.Format(TRACK_FORMAT, Song + 2, m_pDocument->GetTrackTitle(Song + 1).size(), m_pDocument->GetTrackTitle(Song + 1).data());
-	pSongList->SetItemText(Song + 1, 0, Text);
+	CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
+	pSongList->SetItemText(Song, 0, GetSongString(Song));
+	pSongList->SetItemText(Song + 1, 0, GetSongString(Song + 1));
 
 	SelectSong(Song + 1);
 }
@@ -290,20 +273,18 @@ void CModulePropertiesDlg::OnEnChangeSongname()
 {
 	CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
 	CEdit *pName = static_cast<CEdit*>(GetDlgItem(IDC_SONGNAME));
-	CString Text, Title;
+	CString Text;
 
 	if (m_iSelectedSong == -1 || !m_bSingleSelection)
 		return;
 
 	pName->GetWindowText(Text);
 
-	Title.Format(TRACK_FORMAT, m_iSelectedSong + 1, Text.GetLength(), Text);
-
-	pSongList->SetItemText(m_iSelectedSong, 0, Title);
-	CSongData *pSong = m_pDocument->GetSong(m_iSelectedSong);		// // //
+	CSongData *pSong = m_pModule->GetSong(m_iSelectedSong);		// // //
 	if (pSong->GetTitle() != (LPCTSTR)Text)		// // //
 		m_pDocument->ModifyIrreversible();
 	pSong->SetTitle((LPCTSTR)Text);
+	pSongList->SetItemText(m_iSelectedSong, 0, GetSongString(m_iSelectedSong));
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 }
 
@@ -323,7 +304,7 @@ void CModulePropertiesDlg::SelectSong(int Song)
 
 void CModulePropertiesDlg::UpdateSongButtons()
 {
-	unsigned TrackCount = m_pDocument->GetTrackCount();
+	unsigned TrackCount = m_pModule->GetSongCount();
 	bool Empty = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST))->GetSelectedCount() == 0;
 
 	GetDlgItem(IDC_SONG_ADD)->EnableWindow((TrackCount == MAX_TRACKS) ? FALSE : TRUE);
@@ -349,13 +330,14 @@ void CModulePropertiesDlg::OnBnClickedSongImport()
 	if (!importDlg.LoadFile(OpenFileDlg.GetPathName()))		// // //
 		return;
 
-	importDlg.DoModal();
+	if (!importDlg.DoModal())		// // //
+		return;
 
 	FillSongList();
-	SelectSong(m_pDocument->GetTrackCount() - 1);		// // //
+	SelectSong(m_pModule->GetSongCount() - 1);		// // //
 
-	m_iExpansions = m_pDocument->GetExpansionChip();		// // //
-	m_iN163Channels = m_pDocument->GetNamcoChannels();
+	m_iExpansions = m_pModule->GetSoundChipSet();		// // //
+	m_iN163Channels = m_pModule->GetNamcoChannels();
 	((CButton*)GetDlgItem(IDC_EXPANSION_VRC6))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::VRC6));
 	((CButton*)GetDlgItem(IDC_EXPANSION_VRC7))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::VRC7));
 	((CButton*)GetDlgItem(IDC_EXPANSION_FDS ))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::FDS ));
@@ -409,7 +391,7 @@ void CModulePropertiesDlg::OnLvnItemchangedSonglist(NMHDR *pNMHDR, LRESULT *pRes
 	if (pNMLV->uChanged & LVIF_STATE) {
 		if (pNMLV->uNewState & LVNI_SELECTED) {		// // //
 			m_iSelectedSong = pNMLV->iItem;
-			GetDlgItem(IDC_SONGNAME)->SetWindowText(m_pDocument->GetTrackTitle(m_iSelectedSong).data());		// // //
+			GetDlgItem(IDC_SONGNAME)->SetWindowText(m_pModule->GetSong(m_iSelectedSong)->GetTitle().data());		// // //
 		}
 		CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
 		m_bSingleSelection = pSongList->GetSelectedCount() == 1;
@@ -417,6 +399,14 @@ void CModulePropertiesDlg::OnLvnItemchangedSonglist(NMHDR *pNMHDR, LRESULT *pRes
 	}
 
 	*pResult = 0;
+}
+
+CString CModulePropertiesDlg::GetSongString(unsigned index) const {		// // //
+	CString Text;
+	const auto *pSong = m_pModule->GetSong(index);
+	std::string_view sv = pSong ? pSong->GetTitle() : "(N/A)";
+	Text.Format(TRACK_FORMAT, index + 1, sv.size(), sv.data());		// // // start counting songs from 1
+	return Text;
 }
 
 void CModulePropertiesDlg::FillSongList()
@@ -427,9 +417,9 @@ void CModulePropertiesDlg::FillSongList()
 	pSongList->DeleteAllItems();
 
 	// Song editor
-	int Songs = m_pDocument->GetTrackCount();
+	int Songs = m_pModule->GetSongCount();
 
-	m_pDocument->VisitSongs([&] (const CSongData &song, unsigned index) {
+	m_pModule->VisitSongs([&] (const CSongData &song, unsigned index) {
 		auto sv = song.GetTitle();
 		Text.Format(TRACK_FORMAT, index + 1, sv.size(), sv.data());		// // // start counting songs from 1
 		pSongList->InsertItem(index, Text);

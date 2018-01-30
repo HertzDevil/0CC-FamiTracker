@@ -2033,7 +2033,7 @@ void CMainFrame::OnFileExportRows()		// // //
 		return;
 
 	CTextExport Exporter;
-	CString sResult = Exporter.ExportRows(FileDialog.GetPathName(), *pDoc);
+	CString sResult = Exporter.ExportRows(FileDialog.GetPathName(), *pDoc->GetModule());
 	if (sResult.GetLength() > 0)
 	{
 		AfxMessageBox(sResult, MB_OK | MB_ICONEXCLAMATION);
@@ -3150,14 +3150,15 @@ void CMainFrame::OnUpdateFrameeditorLeft(CCmdUI *pCmdUI)
 void CMainFrame::OnToggleSpeed()
 {
 	CFamiTrackerDoc &Doc = GetDoc();
-	int Speed = Doc.GetSpeedSplitPoint();
+	int Speed = Doc.GetModule()->GetSpeedSplitPoint();
 
 	if (Speed == CFamiTrackerModule::DEFAULT_SPEED_SPLIT_POINT)		// // //
 		Speed = CFamiTrackerModule::OLD_SPEED_SPLIT_POINT;
 	else
 		Speed = CFamiTrackerModule::DEFAULT_SPEED_SPLIT_POINT;
 
-	Doc.SetSpeedSplitPoint(Speed);
+	Doc.GetModule()->SetSpeedSplitPoint(Speed);
+	Doc.ModifyIrreversible();		// // //
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
 
 	SetStatusText(_T("Speed/tempo split-point set to %i"), Speed);
@@ -3443,22 +3444,22 @@ void CMainFrame::OnTrackerPal()
 {
 	CFamiTrackerDoc &Doc = GetDoc();
 
-	Doc.SetMachine(PAL);
+	Doc.GetModule()->SetMachine(PAL);
 	Doc.ModifyIrreversible();
 	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);		// // //
-	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetFrameRate()));		// // //
+	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetModule()->GetFrameRate()));		// // //
 }
 
 void CMainFrame::OnTrackerNtsc()
 {
 	CFamiTrackerDoc &Doc = GetDoc();
 
-	Doc.SetMachine(NTSC);
+	Doc.GetModule()->SetMachine(NTSC);
 	Doc.ModifyIrreversible();
 	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);		// // //
-	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetFrameRate()));		// // //
+	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetModule()->GetFrameRate()));		// // //
 }
 
 void CMainFrame::OnSpeedDefault()
@@ -3466,20 +3467,21 @@ void CMainFrame::OnSpeedDefault()
 	CFamiTrackerDoc &Doc = GetDoc();
 
 	int Speed = 0;
-	Doc.SetEngineSpeed(Speed);
+	Doc.GetModule()->SetEngineSpeed(Speed);
 	Doc.ModifyIrreversible();
 	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
-	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetFrameRate()));		// // //
+	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetModule()->GetFrameRate()));		// // //
 }
 
 void CMainFrame::OnSpeedCustom()
 {
 	CFamiTrackerDoc &Doc = GetDoc();
+	CFamiTrackerModule &Module = *Doc.GetModule();
 
 	CSpeedDlg SpeedDlg;
 
-	machine_t Machine = Doc.GetMachine();
-	int Speed = Doc.GetEngineSpeed();
+	machine_t Machine = Module.GetMachine();
+	int Speed = Module.GetEngineSpeed();
 	if (Speed == 0)
 		Speed = (Machine == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
 	Speed = SpeedDlg.GetSpeedFromDlg(Speed);
@@ -3487,10 +3489,10 @@ void CMainFrame::OnSpeedCustom()
 	if (Speed == 0)
 		return;
 
-	Doc.SetEngineSpeed(Speed);
+	Module.SetEngineSpeed(Speed);
 	Doc.ModifyIrreversible();
 	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
-	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetFrameRate()));		// // //
+	m_wndInstEdit.SetRefreshRate(static_cast<float>(Module.GetFrameRate()));		// // //
 }
 
 void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)

@@ -190,6 +190,23 @@ int CInstrumentManager::GetFreeSequenceIndex(inst_type_t InstType, sequence_t Ty
 	return -1;
 }
 
+int CInstrumentManager::GetSequenceCount(inst_type_t InstType, sequence_t Type) const {
+	int Count = 0;
+	for (int i = 0; i < MAX_SEQUENCES; ++i) {
+		if (auto pSeq = GetSequence(InstType, Type, i); pSeq && pSeq->GetItemCount() > 0)
+			++Count;
+	}
+	return Count;
+}
+
+int CInstrumentManager::GetTotalSequenceCount(inst_type_t InstType) const {
+	int Count = 0;
+	foreachSeq([&] (sequence_t i) {
+		Count += GetSequenceCount(InstType, i);
+	});
+	return Count;
+}
+
 inst_type_t CInstrumentManager::GetInstrumentType(unsigned int Index) const
 {
 	return !IsInstrumentUsed(Index) ? INST_NONE : m_pInstruments[Index]->GetType();

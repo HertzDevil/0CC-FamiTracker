@@ -22,9 +22,12 @@
 
 #include "ModuleImportDlg.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"		// // //
 #include "SongData.h"		// // //
 #include "SoundChipSet.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
+#include "FamiTrackerEnv.h"		// // //
+#include "SoundGen.h"		// // //
 //#include <algorithm>
 
 // CModuleImportDlg dialog
@@ -60,15 +63,13 @@ BOOL CModuleImportDlg::OnInitDialog()
 
 	m_ctlTrackList.SubclassDlgItem(IDC_TRACKS, this);
 
-	int TrackCount = m_pImportedDoc->GetTrackCount();
-
-	for (int i = 0; i < TrackCount; ++i) {
+	m_pImportedDoc->GetModule()->VisitSongs([&] (const CSongData &song, unsigned i) {
 		CString str;
-		auto sv = m_pImportedDoc->GetTrackTitle(i);
+		auto sv = song.GetTitle();
 		str.Format(_T("#%02i %.*s"), i + 1, sv.size(), sv.data());		// // //
 		m_ctlTrackList.AddString(str);
 		m_ctlTrackList.SetCheck(i, 1);
-	}
+	});
 
 	CheckDlgButton(IDC_INSTRUMENTS, BST_CHECKED);
 	CheckDlgButton(IDC_IMPORT_GROOVE, BST_CHECKED);		// // //
@@ -84,9 +85,12 @@ void CModuleImportDlg::OnBnClickedOk()
 		AfxMessageBox(IDS_IMPORT_FAILED, MB_ICONERROR);
 
 	// TODO another way to do this?
+	m_pDocument->ModifyIrreversible();		// // //
+	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_PATTERN);
 	m_pDocument->UpdateAllViews(NULL, UPDATE_FRAME);
 	m_pDocument->UpdateAllViews(NULL, UPDATE_INSTRUMENT);
+	Env.GetSoundGenerator()->DocumentPropertiesChanged(m_pDocument);
 
 	OnOK();
 }
@@ -99,17 +103,18 @@ void CModuleImportDlg::OnBnClickedCancel()
 bool CModuleImportDlg::LoadFile(CString Path)		// // //
 {
 	m_pImportedDoc = CFamiTrackerDoc::LoadImportFile(Path);
-
-	// Check if load failed
-	if (m_pImportedDoc == nullptr)
+	if (!m_pImportedDoc)
 		return false;
+
+	auto &oldModule = *m_pDocument->GetModule();
+	auto &newModule = *m_pImportedDoc->GetModule();
 
 	// Check expansion chip match
 	// // // import as superset of expansion chip configurations
-	const CSoundChipSet &c1 = m_pImportedDoc->GetExpansionChip();
-	const CSoundChipSet &c2 = m_pDocument->GetExpansionChip();
-	unsigned n1 = m_pImportedDoc->GetNamcoChannels();
-	unsigned n2 = m_pDocument->GetNamcoChannels();
+	const CSoundChipSet &c1 = newModule.GetSoundChipSet();
+	const CSoundChipSet &c2 = oldModule.GetSoundChipSet();
+	unsigned n1 = newModule.GetNamcoChannels();
+	unsigned n2 = oldModule.GetNamcoChannels();
 	if (n1 != n2 || c1 != c2) {
 		m_pImportedDoc->SelectExpansionChip(c1.MergedWith(c2), std::max(n1, n2));
 		m_pDocument->SelectExpansionChip(c1.MergedWith(c2), std::max(n1, n2));
@@ -124,7 +129,7 @@ bool CModuleImportDlg::ImportInstruments()
 		m_iInstrumentTable[i] = i;
 
 	if (IsDlgButtonChecked(IDC_INSTRUMENTS) == BST_CHECKED)
-		if (!m_pDocument->ImportInstruments(*m_pImportedDoc, m_iInstrumentTable))
+		if (!m_pDocument->ImportInstruments(*m_pImportedDoc->GetModule(), m_iInstrumentTable))
 			return false;
 
 	return true;
@@ -136,7 +141,7 @@ bool CModuleImportDlg::ImportGrooves()		// // //
 		m_iGrooveMap[i] = i;
 
 	if (IsDlgButtonChecked(IDC_IMPORT_GROOVE) == BST_CHECKED)
-		if (!m_pDocument->ImportGrooves(*m_pImportedDoc, m_iGrooveMap))
+		if (!m_pDocument->ImportGrooves(*m_pImportedDoc->GetModule(), m_iGrooveMap))
 			return false;
 
 	return true;
@@ -145,27 +150,31 @@ bool CModuleImportDlg::ImportGrooves()		// // //
 bool CModuleImportDlg::ImportDetune()		// // //
 {
 	if (IsDlgButtonChecked(IDC_IMPORT_DETUNE) == BST_CHECKED)
-		if (!m_pDocument->ImportDetune(*m_pImportedDoc))
+		if (!m_pDocument->ImportDetune(*m_pImportedDoc->GetModule()))
 			return false;
 
 	return true;
 }
 
-bool CModuleImportDlg::ImportTracks()
-{
+bool CModuleImportDlg::ImportTracks() {
+	auto &oldModule = *m_pDocument->GetModule();
+	auto &newModule = *m_pImportedDoc->GetModule();
+
 	// // // ensure there are enough track slots
 	unsigned count = 0;
-	for (unsigned int i = 0; i < m_pImportedDoc->GetTrackCount(); ++i)
+	newModule.VisitSongs([&] (const CSongData &, unsigned i) {
 		if (m_ctlTrackList.GetCheck(i) == BST_CHECKED)
-			if (++count + m_pDocument->GetTrackCount() > MAX_TRACKS)
-				return false;
+			++count;
+	});
+	if (count + oldModule.GetSongCount() > MAX_TRACKS)
+		return false;
 
 	// Import track
-	for (unsigned int i = 0; i < m_pImportedDoc->GetTrackCount(); ++i)
+	newModule.VisitSongs([&] (const CSongData &, unsigned i) {
 		if (m_ctlTrackList.GetCheck(i) == BST_CHECKED) {
-			auto pSong = m_pImportedDoc->ReleaseTrack(i);		// // //
+			auto pSong = newModule.ReleaseSong(i);		// // //
 			auto &song = *pSong;
-			m_pDocument->InsertSong(m_pDocument->GetTrackCount(), std::move(pSong));
+			oldModule.InsertSong(oldModule.GetSongCount(), std::move(pSong));
 
 			// // // translate instruments and grooves outside modules
 			if (song.GetSongGroove())
@@ -182,11 +191,7 @@ bool CModuleImportDlg::ImportTracks()
 				});
 			});
 		}
-
-	// Rebuild instrument list
-	m_pDocument->ModifyIrreversible();		// // //
-	m_pDocument->UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);		// // //
+	});
 
 	return true;
 }
