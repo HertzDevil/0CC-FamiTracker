@@ -136,9 +136,6 @@ public:
 	// Document data access functions
 	//
 
-	// Local (song) data
-	std::unique_ptr<CSongView> MakeSongView(unsigned Track);		// // //
-
 	// Global (module) data
 	void			SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs);		// // //
 
@@ -167,7 +164,6 @@ public:
 	void			RemoveUnusedInstruments();
 	void			RemoveUnusedSamples();		// // //
 	void			RemoveUnusedPatterns();
-	void			SwapInstruments(int First, int Second);
 
 	bool			GetExceededFlag() { return m_bExceeded; };
 	void			SetExceededFlag(bool Exceed = 1);		// // //

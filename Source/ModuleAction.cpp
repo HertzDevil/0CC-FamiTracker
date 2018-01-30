@@ -23,13 +23,12 @@
 #include "ModuleAction.h"
 #include "MainFrm.h"
 #include "FamiTrackerView.h"
-#include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"
 #include "InstrumentManager.h"
 #include "Instrument.h"
 
 #define GET_VIEW() static_cast<CFamiTrackerView *>(MainFrm.GetActiveView())
-#define GET_DOCUMENT() MainFrm.GetDoc()
+#define GET_MODULE() (*GET_VIEW()->GetModuleData())
 
 void CModuleAction::SaveUndoState(const CMainFrame &MainFrm) {
 }
@@ -46,20 +45,18 @@ void CModuleAction::RestoreRedoState(CMainFrame &MainFrm) const {
 
 
 bool ModuleAction::CComment::SaveState(const CMainFrame &MainFrm) {
-	auto &doc = GET_DOCUMENT();
-	oldComment_ = doc.GetModule()->GetComment();
-	oldShow_ = doc.GetModule()->ShowsCommentOnOpen();
+	auto &modfile = GET_MODULE();
+	oldComment_ = modfile.GetComment();
+	oldShow_ = modfile.ShowsCommentOnOpen();
 	return true; // no merge because the comment dialog is modal
 }
 
 void ModuleAction::CComment::Undo(CMainFrame &MainFrm) {
-	auto &doc = GET_DOCUMENT();
-	doc.GetModule()->SetComment(oldComment_, oldShow_);
+	GET_MODULE().SetComment(oldComment_, oldShow_);
 }
 
 void ModuleAction::CComment::Redo(CMainFrame &MainFrm) {
-	auto &doc = GET_DOCUMENT();
-	doc.GetModule()->SetComment(newComment_, newShow_);
+	GET_MODULE().SetComment(newComment_, newShow_);
 }
 
 void ModuleAction::CComment::UpdateViews(CMainFrame &MainFrm) const {
@@ -74,18 +71,16 @@ ModuleAction::CTitle::CTitle(std::string_view str) :
 }
 
 bool ModuleAction::CTitle::SaveState(const CMainFrame &MainFrm) {
-	oldStr_ = GET_DOCUMENT().GetModuleName();
+	oldStr_ = GET_MODULE().GetModuleName();
 	return newStr_ != oldStr_;
 }
 
 void ModuleAction::CTitle::Undo(CMainFrame &MainFrm) {
-	auto &doc = GET_DOCUMENT();
-	doc.SetModuleName(oldStr_);
+	GET_MODULE().SetModuleName(oldStr_);
 }
 
 void ModuleAction::CTitle::Redo(CMainFrame &MainFrm) {
-	auto &doc = GET_DOCUMENT();
-	doc.SetModuleName(newStr_);
+	GET_MODULE().SetModuleName(newStr_);
 }
 
 bool ModuleAction::CTitle::Merge(const CAction &other) {
@@ -108,18 +103,16 @@ ModuleAction::CArtist::CArtist(std::string_view str) :
 }
 
 bool ModuleAction::CArtist::SaveState(const CMainFrame &MainFrm) {
-	oldStr_ = GET_DOCUMENT().GetModuleArtist();
+	oldStr_ = GET_MODULE().GetModuleArtist();
 	return newStr_ != oldStr_;
 }
 
 void ModuleAction::CArtist::Undo(CMainFrame &MainFrm) {
-	auto &doc = GET_DOCUMENT();
-	doc.SetModuleArtist(oldStr_);
+	GET_MODULE().SetModuleArtist(oldStr_);
 }
 
 void ModuleAction::CArtist::Redo(CMainFrame &MainFrm) {
-	auto &doc = GET_DOCUMENT();
-	doc.SetModuleArtist(newStr_);
+	GET_MODULE().SetModuleArtist(newStr_);
 }
 
 bool ModuleAction::CArtist::Merge(const CAction &other) {
@@ -142,18 +135,16 @@ ModuleAction::CCopyright::CCopyright(std::string_view str) :
 }
 
 bool ModuleAction::CCopyright::SaveState(const CMainFrame &MainFrm) {
-	oldStr_ = GET_DOCUMENT().GetModuleCopyright();
+	oldStr_ = GET_MODULE().GetModuleCopyright();
 	return newStr_ != oldStr_;
 }
 
 void ModuleAction::CCopyright::Undo(CMainFrame &MainFrm) {
-	auto &doc = GET_DOCUMENT();
-	doc.SetModuleCopyright(oldStr_);
+	GET_MODULE().SetModuleCopyright(oldStr_);
 }
 
 void ModuleAction::CCopyright::Redo(CMainFrame &MainFrm) {
-	auto &doc = GET_DOCUMENT();
-	doc.SetModuleCopyright(newStr_);
+	GET_MODULE().SetModuleCopyright(newStr_);
 }
 
 bool ModuleAction::CCopyright::Merge(const CAction &other) {
@@ -177,24 +168,22 @@ ModuleAction::CAddInst::CAddInst(unsigned index, std::shared_ptr<CInstrument> pI
 
 bool ModuleAction::CAddInst::SaveState(const CMainFrame &MainFrm) {
 	prev_ = MainFrm.GetSelectedInstrument();
-	return inst_ && index_ < MAX_INSTRUMENTS && !GET_DOCUMENT().IsInstrumentUsed(index_);
+	return inst_ && index_ < MAX_INSTRUMENTS && !GET_MODULE().GetInstrumentManager()->IsInstrumentUsed(index_);
 }
 
 void ModuleAction::CAddInst::Undo(CMainFrame &MainFrm) {
-	auto &Doc = GET_DOCUMENT();
-	Doc.RemoveInstrument(index_);
+	GET_MODULE().GetInstrumentManager()->RemoveInstrument(index_);
 	if (prev_ != INVALID_INSTRUMENT)
 		MainFrm.SelectInstrument(prev_);
 }
 
 void ModuleAction::CAddInst::Redo(CMainFrame &MainFrm) {
-	auto &Doc = GET_DOCUMENT();
-	Doc.GetInstrumentManager()->InsertInstrument(index_, inst_);
+	GET_MODULE().GetInstrumentManager()->InsertInstrument(index_, inst_);
 	MainFrm.SelectInstrument(index_);
 }
 
 void ModuleAction::CAddInst::UpdateViews(CMainFrame &MainFrm) const {
-	GET_DOCUMENT().UpdateAllViews(NULL, UPDATE_INSTRUMENT);
+	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_INSTRUMENT);
 }
 
 
@@ -204,10 +193,10 @@ ModuleAction::CRemoveInst::CRemoveInst(unsigned index) :
 }
 
 bool ModuleAction::CRemoveInst::SaveState(const CMainFrame &MainFrm) {
-	const auto &Doc = GET_DOCUMENT();
-	if ((inst_ = Doc.GetInstrument(index_))) {
+	const auto *pManager = GET_MODULE().GetInstrumentManager();
+	if ((inst_ = pManager->GetInstrument(index_))) {
 		for (unsigned i = index_ + 1; i < MAX_INSTRUMENTS; ++i)
-			if (Doc.IsInstrumentUsed(i)) {
+			if (pManager->IsInstrumentUsed(i)) {
 				nextIndex_ = i;
 				break;
 			}
@@ -217,14 +206,12 @@ bool ModuleAction::CRemoveInst::SaveState(const CMainFrame &MainFrm) {
 }
 
 void ModuleAction::CRemoveInst::Undo(CMainFrame &MainFrm) {
-	auto &Doc = GET_DOCUMENT();
-	Doc.GetInstrumentManager()->InsertInstrument(index_, inst_);
+	GET_MODULE().GetInstrumentManager()->InsertInstrument(index_, inst_);
 	MainFrm.SelectInstrument(index_);
 }
 
 void ModuleAction::CRemoveInst::Redo(CMainFrame &MainFrm) {
-	auto &Doc = GET_DOCUMENT();
-	Doc.RemoveInstrument(index_);
+	GET_MODULE().GetInstrumentManager()->RemoveInstrument(index_);
 	if (nextIndex_ != INVALID_INSTRUMENT)
 		MainFrm.SelectInstrument(nextIndex_);
 	else
@@ -232,7 +219,7 @@ void ModuleAction::CRemoveInst::Redo(CMainFrame &MainFrm) {
 }
 
 void ModuleAction::CRemoveInst::UpdateViews(CMainFrame &MainFrm) const {
-	GET_DOCUMENT().UpdateAllViews(NULL, UPDATE_INSTRUMENT);
+	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_INSTRUMENT);
 }
 
 
@@ -243,7 +230,7 @@ ModuleAction::CInstName::CInstName(unsigned index, std::string_view str) :
 }
 
 bool ModuleAction::CInstName::SaveState(const CMainFrame &MainFrm) {
-	if (auto pInst = GET_DOCUMENT().GetInstrument(index_)) {
+	if (auto pInst = GET_MODULE().GetInstrumentManager()->GetInstrument(index_)) {
 		oldStr_ = pInst->GetName();
 		return newStr_ != oldStr_;
 	}
@@ -251,12 +238,12 @@ bool ModuleAction::CInstName::SaveState(const CMainFrame &MainFrm) {
 }
 
 void ModuleAction::CInstName::Undo(CMainFrame &MainFrm) {
-	auto pInst = GET_DOCUMENT().GetInstrument(index_);
+	auto pInst = GET_MODULE().GetInstrumentManager()->GetInstrument(index_);
 	pInst->SetName(oldStr_);
 }
 
 void ModuleAction::CInstName::Redo(CMainFrame &MainFrm) {
-	auto pInst = GET_DOCUMENT().GetInstrument(index_);
+	auto pInst = GET_MODULE().GetInstrumentManager()->GetInstrument(index_);
 	pInst->SetName(newStr_);
 }
 
@@ -285,21 +272,19 @@ ModuleAction::CSwapInst::CSwapInst(unsigned left, unsigned right) :
 bool ModuleAction::CSwapInst::SaveState(const CMainFrame &MainFrm) {
 	if (left_ == right_)
 		return false;
-	auto &Doc = GET_DOCUMENT();
-	return Doc.IsInstrumentUsed(left_) && Doc.IsInstrumentUsed(right_);
+	const auto *pManager = GET_MODULE().GetInstrumentManager();
+	return pManager->IsInstrumentUsed(left_) && pManager->IsInstrumentUsed(right_);
 }
 
 void ModuleAction::CSwapInst::Undo(CMainFrame &MainFrm) {
-	auto &Doc = GET_DOCUMENT();
-	Doc.SwapInstruments(left_, right_);
-	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
+	GET_MODULE().SwapInstruments(left_, right_);
+	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_PATTERN);
 	MainFrm.SelectInstrument(left_);
 }
 
 void ModuleAction::CSwapInst::Redo(CMainFrame &MainFrm) {
-	auto &Doc = GET_DOCUMENT();
-	Doc.SwapInstruments(left_, right_);
-	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
+	GET_MODULE().SwapInstruments(left_, right_);
+	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_PATTERN);
 	MainFrm.SelectInstrument(right_);
 }
 

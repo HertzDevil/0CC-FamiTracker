@@ -28,20 +28,21 @@
 #include <vector>
 #include <array>
 #include "FamiTrackerTypes.h"
+#include "FTMComponentInterface.h"
 
 class CSongData;
 class CChannelMap;
 class CSoundChipSet;
 class CChannelOrder;
+class CSongView;
 class CInstrumentManager;
-class CFTMComponentInterface;
 struct stHighlight;
 
 namespace ft0cc::doc {
 class groove;
 } // namespace ft0cc::doc
 
-class CFamiTrackerModule {
+class CFamiTrackerModule : public CFTMComponentInterface {
 	using groove = ft0cc::doc::groove;
 
 public:
@@ -67,13 +68,15 @@ public:
 	void SetComment(std::string_view comment, bool showOnOpen);
 
 	// sound chip
-	CChannelOrder &GetChannelOrder() const;
+	CChannelOrder &GetChannelOrder() const override;
 	const CSoundChipSet &GetSoundChipSet() const;
 	void SetChannelMap(std::unique_ptr<CChannelMap> pMap);
 
 	bool HasExpansionChips() const;
 	bool HasExpansionChip(sound_chip_t Chip) const;
 	int GetNamcoChannels() const;
+
+	std::unique_ptr<CSongView> MakeSongView(unsigned index);
 
 	// global info
 	machine_t GetMachine() const;
@@ -140,7 +143,11 @@ public:
 	}
 
 	// instruments
-	CInstrumentManager *GetInstrumentManager() const;
+	CInstrumentManager *const GetInstrumentManager() const override;
+	CSequenceManager *const GetSequenceManager(int InstType) const override;
+	CDSampleManager *const GetDSampleManager() const override;
+
+	void SwapInstruments(unsigned first, unsigned second);
 
 	// grooves
 	std::shared_ptr<groove> GetGroove(unsigned index);		// // //
@@ -156,7 +163,9 @@ public:
 private:
 	bool AllocateSong(unsigned index);
 
-	CFTMComponentInterface &parent_;
+	// TODO: remove these from base class
+	void Modify(bool Change) override;
+	void ModifyIrreversible() override;
 
 	machine_t		m_iMachine = DEFAULT_MACHINE_TYPE;
 	unsigned int	m_iEngineSpeed = 0;

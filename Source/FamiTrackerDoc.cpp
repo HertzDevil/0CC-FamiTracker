@@ -874,10 +874,6 @@ unsigned int CFamiTrackerDoc::GetPatternLength(unsigned int Track) const
 	return GetSongData(Track).GetPatternLength();
 }
 
-std::unique_ptr<CSongView> CFamiTrackerDoc::MakeSongView(unsigned Track) {		// // //
-	return std::make_unique<CSongView>(GetChannelOrder(), GetSongData(Track));
-}
-
 unsigned int CFamiTrackerDoc::GetFrameCount(unsigned int Track) const
 {
 	return GetSongData(Track).GetFrameCount();
@@ -1192,7 +1188,7 @@ CBookmark *CFamiTrackerDoc::GetBookmarkAt(unsigned int Track, unsigned int Frame
 
 unsigned int CFamiTrackerDoc::ScanActualLength(unsigned int Track, unsigned int Count) const		// // // TODO: remove
 {
-	auto pSongView = const_cast<CFamiTrackerDoc *>(this)->MakeSongView(Track);
+	auto pSongView = const_cast<CFamiTrackerDoc *>(this)->GetModule()->MakeSongView(Track);
 	CSongLengthScanner scanner {*GetModule(), *pSongView};
 	auto [FirstLoop, SecondLoop] = scanner.GetRowCount();
 	return FirstLoop + SecondLoop * (Count - 1);		// // //
@@ -1200,7 +1196,7 @@ unsigned int CFamiTrackerDoc::ScanActualLength(unsigned int Track, unsigned int 
 
 double CFamiTrackerDoc::GetStandardLength(int Track, unsigned int ExtraLoops) const		// // // TODO: remove
 {
-	auto pSongView = const_cast<CFamiTrackerDoc *>(this)->MakeSongView(Track);
+	auto pSongView = const_cast<CFamiTrackerDoc *>(this)->GetModule()->MakeSongView(Track);
 	CSongLengthScanner scanner {*GetModule(), *pSongView};
 	auto [FirstLoop, SecondLoop] = scanner.GetSecondsCount();
 	return FirstLoop + SecondLoop * ExtraLoops;
@@ -1297,24 +1293,6 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 			for (int o = 0; o < OCTAVE_RANGE; o++) for (int n = 0; n < NOTE_RANGE; n++)
 				if (!AssignUsed[i][o][n])
 					pInst->SetSampleIndex(o, n, 0);
-}
-
-void CFamiTrackerDoc::SwapInstruments(int First, int Second)
-{
-	// Swap instruments
-	GetInstrumentManager()->SwapInstruments(First, Second);		// // //
-
-	// Scan patterns
-	VisitSongs([&] (CSongData &song) {
-		song.VisitPatterns([&] (CPatternData &pat) {
-			pat.VisitRows([&] (stChanNote &note, unsigned row) {
-				if (note.Instrument == First)
-					note.Instrument = Second;
-				else if (note.Instrument == Second)
-					note.Instrument = First;
-			});
-		});
-	});
 }
 
 void CFamiTrackerDoc::SetExceededFlag(bool Exceed)		// // //

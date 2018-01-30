@@ -185,6 +185,8 @@ private:
 
 	void	PeriodicUpdate();
 
+	void	UpdateSongView();		// // //
+
 	// Instruments
 	void		 SetInstrument(int Instrument);
 	unsigned int GetInstrument() const;

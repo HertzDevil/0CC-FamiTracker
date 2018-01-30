@@ -24,10 +24,10 @@
 #include "SongData.h"
 #include "InstrumentManager.h"
 #include "ChannelMap.h"
+#include "SongView.h"
 #include "APU/APU.h" // default frame rate
 
 CFamiTrackerModule::CFamiTrackerModule(CFTMComponentInterface &parent) :
-	parent_(parent),
 	m_pChannelMap(std::make_unique<CChannelMap>()),
 	m_pInstrumentManager(std::make_unique<CInstrumentManager>(&parent))
 {
@@ -98,6 +98,10 @@ bool CFamiTrackerModule::HasExpansionChip(sound_chip_t Chip) const {
 
 int CFamiTrackerModule::GetNamcoChannels() const {
 	return m_pChannelMap->GetChipChannelCount(sound_chip_t::N163);
+}
+
+std::unique_ptr<CSongView> CFamiTrackerModule::MakeSongView(unsigned index) {		// // //
+	return std::make_unique<CSongView>(GetChannelOrder(), *GetSong(index));
 }
 
 machine_t CFamiTrackerModule::GetMachine() const {
@@ -198,8 +202,33 @@ std::unique_ptr<CSongData> CFamiTrackerModule::MakeNewSong() const {
 	return pSong;
 }
 
-CInstrumentManager *CFamiTrackerModule::GetInstrumentManager() const {
+CInstrumentManager *const CFamiTrackerModule::GetInstrumentManager() const {
 	return m_pInstrumentManager.get();
+}
+
+CSequenceManager *const CFamiTrackerModule::GetSequenceManager(int InstType) const {
+	return GetInstrumentManager()->GetSequenceManager(InstType);
+}
+
+CDSampleManager *const CFamiTrackerModule::GetDSampleManager() const {
+	return GetInstrumentManager()->GetDSampleManager();
+}
+
+void CFamiTrackerModule::SwapInstruments(unsigned first, unsigned second) {
+	// Swap instruments
+	GetInstrumentManager()->SwapInstruments(first, second);		// // //
+
+	// Scan patterns
+	VisitSongs([&] (CSongData &song) {
+		song.VisitPatterns([&] (CPatternData &pat) {
+			pat.VisitRows([&] (stChanNote &note, unsigned row) {
+				if (note.Instrument == first)
+					note.Instrument = second;
+				else if (note.Instrument == second)
+					note.Instrument = first;
+			});
+		});
+	});
 }
 
 bool CFamiTrackerModule::AllocateSong(unsigned index) {
@@ -208,6 +237,14 @@ bool CFamiTrackerModule::AllocateSong(unsigned index) {
 		if (!InsertSong(i, MakeNewSong()))
 			return false;
 	return true;
+}
+
+void CFamiTrackerModule::Modify(bool Change) {
+	__debugbreak();
+}
+
+void CFamiTrackerModule::ModifyIrreversible() {
+	__debugbreak();
 }
 
 bool CFamiTrackerModule::InsertSong(unsigned index, std::unique_ptr<CSongData> pSong) {		// // //

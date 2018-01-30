@@ -844,6 +844,10 @@ void CFamiTrackerView::PeriodicUpdate()
 	}
 }
 
+void CFamiTrackerView::UpdateSongView() {		// // //
+	song_view_ = GetModuleData()->MakeSongView(GetMainFrame()->GetSelectedTrack());
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Menu commands
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1238,7 +1242,7 @@ void CFamiTrackerView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHi
 	// Module properties has changed (including channel count)
 	case UPDATE_PROPERTIES:
 		// Old
-		song_view_ = GetDocument()->MakeSongView(GetMainFrame()->GetSelectedTrack());		// // //
+		UpdateSongView();		// // //
 		m_pPatternEditor->ResetCursor();
 		//m_pPatternEditor->Modified();
 		pMainFrm->ResetUndo();
@@ -1279,7 +1283,7 @@ void CFamiTrackerView::TrackChanged(unsigned int Track)
 	// Called when the selected track has changed
 	CMainFrame *pMainFrm = GetMainFrame();		// // //
 
-	song_view_ = GetDocument()->MakeSongView(Track);		// // //
+	UpdateSongView();		// // //
 	SetMarker(-1, -1);		// // //
 	m_pPatternEditor->ResetCursor();
 	m_pPatternEditor->InvalidatePatternData();
