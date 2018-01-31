@@ -111,7 +111,7 @@ private:
 			}
 		}
 		else
-			static_assert(false, "Unknown function signature");
+			static_assert(sizeof(F) == 0, "Unknown function signature");
 	}
 
 private:

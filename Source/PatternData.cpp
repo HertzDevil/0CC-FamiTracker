@@ -21,6 +21,7 @@
 */
 
 #include "PatternData.h"
+#include <type_traits>
 
 namespace {
 

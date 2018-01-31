@@ -115,7 +115,7 @@ public:
 				f(track);
 		}
 		else
-			static_assert(false, "Unknown function signature");
+			static_assert(sizeof(F) == 0, "Unknown function signature");
 	}
 
 	// void (*F)(const CTrackData &track [, chan_id_t ch])
@@ -133,7 +133,7 @@ public:
 				f(track);
 		}
 		else
-			static_assert(false, "Unknown function signature");
+			static_assert(sizeof(F) == 0, "Unknown function signature");
 	}
 
 	// void (*F)(CPatternData &pattern [, chan_id_t ch, std::size_t p_index])
@@ -150,7 +150,7 @@ public:
 				track.VisitPatterns(f);
 			});
 		else
-			static_assert(false, "Unknown function signature");
+			static_assert(sizeof(F) == 0, "Unknown function signature");
 	}
 
 	// void (*F)(const CPatternData &pattern [, chan_id_t ch, std::size_t p_index])
@@ -167,7 +167,7 @@ public:
 				track.VisitPatterns(f);
 			});
 		else
-			static_assert(false, "Unknown function signature");
+			static_assert(sizeof(F) == 0, "Unknown function signature");
 	}
 
 public:

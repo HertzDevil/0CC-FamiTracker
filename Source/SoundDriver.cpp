@@ -34,6 +34,7 @@
 #include "APU/APU.h"
 #include "ChannelsN163.h"
 #include "ChannelMap.h"
+#include <cmath>
 
 
 
@@ -376,7 +377,7 @@ void CSoundDriver::SetupVibrato() {
 			double angle = (double(j) / 16.0) * (3.1415 / 2.0);
 
 			if (style == VIBRATO_NEW)
-				value = int(sin(angle) * NEW_VIBRATO_DEPTH[i] /*+ 0.5f*/);
+				value = int(std::sin(angle) * NEW_VIBRATO_DEPTH[i] /*+ 0.5f*/);
 			else {
 				value = (int)((double(j * OLD_VIBRATO_DEPTH[i]) / 16.0) + 1);
 			}

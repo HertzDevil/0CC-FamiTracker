@@ -21,6 +21,7 @@
 */
 
 #include "Arpeggiator.h"
+#include <utility>
 
 void CArpeggiator::Tick(chan_id_t CurrentChannel) {
 	if (m_iAutoArpKeyCount == 1)

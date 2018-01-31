@@ -126,7 +126,7 @@ public:
 				f(*song);
 		}
 		else
-			static_assert(false, "Unknown function signature");
+			static_assert(sizeof(F) == 0, "Unknown function signature");
 	}
 	// void (*F)(const CSongData &song [, unsigned index])
 	template <typename F>
@@ -141,7 +141,7 @@ public:
 				f(*song);
 		}
 		else
-			static_assert(false, "Unknown function signature");
+			static_assert(sizeof(F) == 0, "Unknown function signature");
 	}
 
 	// instruments

@@ -54,7 +54,7 @@ public:
 				f(pattern);
 		}
 		else
-			static_assert(false, "Unknown function signature");
+			static_assert(sizeof(F) == 0, "Unknown function signature");
 	}
 
 	// void (*F)(const CPatternData &pattern [, std::size_t p_index])
@@ -70,7 +70,7 @@ public:
 				f(pattern);
 		}
 		else
-			static_assert(false, "Unknown function signature");
+			static_assert(sizeof(F) == 0, "Unknown function signature");
 	}
 
 private:
