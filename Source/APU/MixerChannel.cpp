@@ -20,7 +20,7 @@
 ** must bear this legend.
 */
 
-#include "MixerChannel.h"
+#include "APU/MixerChannel.h"
 
 CMixerChannelBase::CMixerChannelBase(unsigned maxVol) :
 	synth_ {maxVol}

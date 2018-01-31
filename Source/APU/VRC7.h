@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "SoundChip.h"
-#include "ext/emu2413.h"		// // //
+#include "APU/SoundChip.h"
+#include "APU/ext/emu2413.h"		// // //
 #include <vector>		// // //
 
 struct OPLL_deleter {

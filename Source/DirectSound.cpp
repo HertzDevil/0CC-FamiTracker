@@ -26,7 +26,7 @@
 
 #include "DirectSound.h"
 #include "common.h"
-#include "resource.h"
+#include "../resource.h"
 
 // Class members
 

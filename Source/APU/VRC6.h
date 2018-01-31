@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "SoundChip.h"
-#include "Channel.h"
+#include "APU/SoundChip.h"
+#include "APU/Channel.h"
 
 class CVRC6_Pulse : public CChannel {
 public:

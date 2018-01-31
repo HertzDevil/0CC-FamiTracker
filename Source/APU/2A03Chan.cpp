@@ -20,8 +20,8 @@
 ** must bear this legend.
 */
 
-#include "2A03Chan.h"
-#include "Mixer.h"
+#include "APU/2A03Chan.h"
+#include "APU/Mixer.h"
 
 uint16_t C2A03Chan::GetPeriod() const {
 	return m_iPeriod;

@@ -25,7 +25,7 @@
 #include <string>
 #include "Instrument.h"		// // // inst_type_t
 #include "Sequence.h"
-#include "resource.h"		// // // CInstrumentEditDlg
+#include "../resource.h"		// // // CInstrumentEditDlg
 #include "InstrumentEditDlg.h"		// // // GetRefreshRate()
 #include "InstrumentEditPanel.h"
 #include "SizeEditor.h"

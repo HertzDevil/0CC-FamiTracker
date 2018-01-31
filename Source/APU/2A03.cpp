@@ -20,12 +20,12 @@
 ** must bear this legend.
 */
 
-#include "2A03.h"
-#include "../common.h"
+#include "APU/2A03.h"
+#include "common.h"
 #include <algorithm>
-#include "Mixer.h"
+#include "APU/Mixer.h"
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
-#include "../RegisterState.h"		// // //
+#include "RegisterState.h"		// // //
 
 // // // 2A03 sound chip class
 

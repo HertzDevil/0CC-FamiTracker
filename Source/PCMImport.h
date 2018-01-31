@@ -23,7 +23,7 @@
 #pragma once
 
 #include "stdafx.h"		// // //
-#include "resource.h"		// // //
+#include "../resource.h"		// // //
 #include <memory>		// // //
 
 namespace ft0cc::doc {

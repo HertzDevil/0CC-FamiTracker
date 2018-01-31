@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "2A03Chan.h"		// // //
-#include "SampleMem.h"		// // //
+#include "APU/2A03Chan.h"		// // //
+#include "APU/SampleMem.h"		// // //
 
 class CDPCM : public C2A03Chan {
 public:

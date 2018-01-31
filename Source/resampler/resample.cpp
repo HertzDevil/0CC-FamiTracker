@@ -8,7 +8,7 @@
 // Get rid of visual studio specific warnings
 #define _SCL_SECURE_NO_WARNINGS
 
-#include "resample.hpp"
+#include "resampler/resample.hpp"
 //------------------------------------------------------------------------
 #include <limits>
 #include <cmath>

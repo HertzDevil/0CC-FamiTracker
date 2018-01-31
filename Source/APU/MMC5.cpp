@@ -20,9 +20,9 @@
 ** must bear this legend.
 */
 
-#include "MMC5.h"
-#include "Types.h"
-#include "../RegisterState.h"		// // //
+#include "APU/MMC5.h"
+#include "APU/Types.h"
+#include "RegisterState.h"		// // //
 
 // MMC5 external sound
 

@@ -22,7 +22,7 @@
 
 #include "VisualizerWnd.h"
 #include "FamiTrackerEnv.h"		// // //
-#include "resource.h"		// // //
+#include "../resource.h"		// // //
 #include "Settings.h"
 #include "VisualizerScope.h"
 #include "VisualizerSpectrum.h"

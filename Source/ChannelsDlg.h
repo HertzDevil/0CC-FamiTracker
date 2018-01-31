@@ -24,7 +24,7 @@
 #pragma once
 
 #include "stdafx.h"		// // //
-#include "resource.h"		// // //
+#include "../resource.h"		// // //
 #include "APU/Types_fwd.h"		// // //
 
 const int ROOT_ITEM_COUNT = 7;

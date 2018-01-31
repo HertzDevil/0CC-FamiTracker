@@ -49,7 +49,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdint.h>		// // //
-#include "emu2413.h"
+#include "APU/ext/emu2413.h"
 
 #define INLINE
 
@@ -64,10 +64,10 @@ static unsigned char default_inst[OPLL_TONE_NUM][(16 + 3) * 16] = {
 #define OPLL_TONE_NUM 3
 static unsigned char default_inst[OPLL_TONE_NUM][(16 + 3) * 16] = {
   {
-#include "2413tone.h"
+#include "APU/ext/2413tone.h"
   },
   {
-#include "vrc7tone.h"
+#include "APU/ext/vrc7tone.h"
    },
 //  {
 //#include "281btone.h"

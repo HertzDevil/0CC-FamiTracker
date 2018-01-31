@@ -22,7 +22,7 @@
 
 #include "Accelerator.h"
 #include "FamiTrackerEnv.h"		// // //
-#include "resource.h"		// // //
+#include "../resource.h"		// // //
 #include "Settings.h" // stOldSettingContext
 
 /*

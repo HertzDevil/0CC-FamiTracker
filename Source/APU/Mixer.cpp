@@ -52,12 +52,12 @@
 
 */
 
-#include "Mixer.h"
+#include "APU/Mixer.h"
 #include <algorithm>		// // //
 #include <memory>
 #include <cmath>
-#include "APU.h"
-#include "ext/emu2413.h"		// // //
+#include "APU/APU.h"
+#include "APU/ext/emu2413.h"		// // //
 
 static const float LEVEL_FALL_OFF_RATE	= 0.6f;
 static const int   LEVEL_FALL_OFF_DELAY = 3;

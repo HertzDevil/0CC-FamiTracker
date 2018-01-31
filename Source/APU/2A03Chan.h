@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "Channel.h"
+#include "APU/Channel.h"
 
 class C2A03Chan : public CChannel {		// // //
 public:

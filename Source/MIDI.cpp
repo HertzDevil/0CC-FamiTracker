@@ -22,7 +22,7 @@
 
 #include "MIDI.h"
 #include "FamiTrackerEnv.h"		// // //
-#include "resource.h"		// // //
+#include "../resource.h"		// // //
 #include "PatternNote.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
 #include "Settings.h"

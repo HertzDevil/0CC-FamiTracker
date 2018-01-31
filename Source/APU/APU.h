@@ -25,9 +25,9 @@
 
 //#define LOGGING
 
-#include "../Common.h"
+#include "Common.h"
 #include <memory>		// // //
-#include "../SoundChipSet.h"		// // //
+#include "SoundChipSet.h"		// // //
 
 // External classes
 class C2A03;		// // //

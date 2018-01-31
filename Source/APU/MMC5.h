@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "SoundChip.h"
-#include "Square.h"		// // //
+#include "APU/SoundChip.h"
+#include "APU/Square.h"		// // //
 
 class CMMC5 : public CSoundChip {
 public:

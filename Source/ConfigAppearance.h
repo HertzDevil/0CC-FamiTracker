@@ -41,7 +41,7 @@ enum color_items_t {
 };
 
 #include "ColorScheme.h"
-#include "resource.h"		// // //
+#include "../resource.h"		// // //
 
 // CConfigAppearance dialog
 

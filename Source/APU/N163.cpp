@@ -20,10 +20,10 @@
 ** must bear this legend.
 */
 
-#include "N163.h"
-#include "APU.h"
-#include "Mixer.h"		// // //
-#include "../RegisterState.h"		// // //
+#include "APU/N163.h"
+#include "APU/APU.h"
+#include "APU/Mixer.h"		// // //
+#include "RegisterState.h"		// // //
 #include <algorithm>		// // //
 
 /*

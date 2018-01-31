@@ -20,10 +20,10 @@
 ** must bear this legend.
 */
 
-#include "VRC7.h"
-#include "APU.h"
-#include "Mixer.h"		// // //
-#include "../RegisterState.h"		// // //
+#include "APU/VRC7.h"
+#include "APU/APU.h"
+#include "APU/Mixer.h"		// // //
+#include "RegisterState.h"		// // //
 
 const float  CVRC7::AMPLIFY	  = 4.6f;		// Mixing amplification, VRC7 patch 14 is 4,88 times stronger than a 50% square @ v=15
 const uint32_t CVRC7::OPL_CLOCK = 3579545;	// Clock frequency

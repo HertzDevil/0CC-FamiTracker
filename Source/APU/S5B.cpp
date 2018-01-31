@@ -20,11 +20,11 @@
 ** must bear this legend.
 */
 
-#include "S5B.h"
+#include "APU/S5B.h"
 #include <algorithm>
-#include "APU.h"
-#include "Types.h"		// // //
-#include "../RegisterState.h"
+#include "APU/APU.h"
+#include "APU/Types.h"		// // //
+#include "RegisterState.h"
 
 // // // 050B
 // Sunsoft 5B channel class

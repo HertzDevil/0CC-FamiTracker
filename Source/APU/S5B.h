@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "SoundChip.h"
-#include "Channel.h"
+#include "APU/SoundChip.h"
+#include "APU/Channel.h"
 
 // // // 050B
 

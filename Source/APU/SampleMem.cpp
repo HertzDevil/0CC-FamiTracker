@@ -20,7 +20,7 @@
 ** must bear this legend.
 */
 
-#include "SampleMem.h"
+#include "APU/SampleMem.h"
 
 uint8_t CSampleMem::ReadMem(uint16_t Address) const {
 	uint16_t Addr = (Address - 0xC000);// % m_iMemSize;

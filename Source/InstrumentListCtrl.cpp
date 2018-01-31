@@ -21,7 +21,7 @@
 */
 
 #include "InstrumentListCtrl.h"		// // //
-#include "resource.h"
+#include "../resource.h"
 #include "FamiTrackerDoc.h"
 #include "MainFrm.h"
 #include "FamiTracker.h"		// // //

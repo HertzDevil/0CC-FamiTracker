@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "Types_fwd.h"
+#include "APU/Types_fwd.h"
 #include <type_traits>
 
 enum class sound_chip_t : std::uint8_t {		// // //

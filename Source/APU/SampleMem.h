@@ -24,7 +24,7 @@
 #pragma once
 
 #include <cstdint>
-#include "../array_view.h"
+#include "array_view.h"
 
 // class for simulating CPU memory, used by the DPCM channel
 class CSampleMem		// // //

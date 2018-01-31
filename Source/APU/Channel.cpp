@@ -20,8 +20,8 @@
 ** must bear this legend.
 */
 
-#include "Channel.h"
-#include "Mixer.h"
+#include "APU/Channel.h"
+#include "APU/Mixer.h"
 
 CChannel::CChannel(CMixer &Mixer, sound_chip_t Chip, chan_id_t ID) :
 	m_pMixer(&Mixer), m_iChip(Chip), m_iChanId(ID) {

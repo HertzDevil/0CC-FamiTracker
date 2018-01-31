@@ -24,7 +24,7 @@
 #pragma once
 
 #include "stdafx.h"		// // //
-#include "resource.h"		// // //
+#include "../resource.h"		// // //
 
 // CRecordSettingsDlg dialog
 

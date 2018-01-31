@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "SoundChip.h"
-#include "Channel.h"
+#include "APU/SoundChip.h"
+#include "APU/Channel.h"
 
 class CFDS : public CSoundChip, public CChannel {
 public:

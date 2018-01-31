@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "2A03Chan.h"		// // //
+#include "APU/2A03Chan.h"		// // //
 
 class CTriangle : public C2A03Chan {
 public:

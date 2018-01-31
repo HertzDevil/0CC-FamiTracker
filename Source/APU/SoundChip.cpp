@@ -20,8 +20,8 @@
 ** must bear this legend.
 */
 
-#include "SoundChip.h"
-#include "../RegisterState.h"
+#include "APU/SoundChip.h"
+#include "RegisterState.h"
 
 CSoundChip::CSoundChip(CMixer &Mixer) :
 	m_pMixer(&Mixer),

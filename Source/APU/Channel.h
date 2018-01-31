@@ -24,7 +24,7 @@
 #pragma once
 
 #include <cstdint>		// // //
-#include "Types_fwd.h"		// // //
+#include "APU/Types_fwd.h"		// // //
 
 class CMixer;
 

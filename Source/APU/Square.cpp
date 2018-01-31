@@ -20,9 +20,9 @@
 ** must bear this legend.
 */
 
-#include "Square.h"
-#include "APU.h"
-#include "Mixer.h"		// // //
+#include "APU/Square.h"
+#include "APU/APU.h"
+#include "APU/Mixer.h"		// // //
 
 // This is also shared with MMC5
 

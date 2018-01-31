@@ -21,7 +21,7 @@
 */
 
 #include "Clipboard.h"
-#include "resource.h"		// // //
+#include "../resource.h"		// // //
 #include "ClipboardResource.h"		// // //
 
 // CClipboard //////////////////////////////////////////////////////////////////

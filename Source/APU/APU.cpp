@@ -20,20 +20,20 @@
 ** must bear this legend.
 */
 
-#include "APU.h"
+#include "APU/APU.h"
 #include <algorithm>		// // //
 #include <vector>
 #include <memory>
 #include <cmath>
-#include "Mixer.h"		// // //
-#include "2A03.h"		// // //
-#include "VRC6.h"
-#include "MMC5.h"
-#include "FDS.h"
-#include "N163.h"
-#include "VRC7.h"
-#include "S5B.h"
-#include "../RegisterState.h"		// // //
+#include "APU/Mixer.h"		// // //
+#include "APU/2A03.h"		// // //
+#include "APU/VRC6.h"
+#include "APU/MMC5.h"
+#include "APU/FDS.h"
+#include "APU/N163.h"
+#include "APU/VRC7.h"
+#include "APU/S5B.h"
+#include "RegisterState.h"		// // //
 
 const int		CAPU::SEQUENCER_FREQUENCY	= 240;		// // //
 const uint32_t	CAPU::BASE_FREQ_NTSC		= 1789773;		// 72.667

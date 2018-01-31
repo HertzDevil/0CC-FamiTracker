@@ -29,13 +29,13 @@ class dpcm_sample;
 } // namespace ft0cc::doc
 
 #include <memory>		// // //
-#include "SoundChip.h"
-#include "Channel.h"
+#include "APU/SoundChip.h"
+#include "APU/Channel.h"
 
-#include "Square.h"		// // //
-#include "Triangle.h"
-#include "Noise.h"
-#include "DPCM.h"
+#include "APU/Square.h"		// // //
+#include "APU/Triangle.h"
+#include "APU/Noise.h"
+#include "APU/DPCM.h"
 
 class C2A03 : public CSoundChip
 {

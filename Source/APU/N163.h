@@ -23,9 +23,9 @@
 
 #pragma once
 
-#include "SoundChip.h"
-#include "Channel.h"
-#include "Types.h"		// // //
+#include "APU/SoundChip.h"
+#include "APU/Channel.h"
+#include "APU/Types.h"		// // //
 
 class CMixer;
 

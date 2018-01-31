@@ -20,8 +20,8 @@
 ** must bear this legend.
 */
 
-#include "MixerLevels.h"
-#include "Types.h"
+#include "APU/MixerLevels.h"
+#include "APU/Types.h"
 
 namespace {
 

@@ -23,7 +23,7 @@
 #include "Compiler.h"
 #include <map>
 #include "version.h"		// // //
-#include "resource.h"		// // //
+#include "../resource.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerModule.h"		// // //
 #include "SongData.h"		// // //

@@ -23,12 +23,12 @@
 
 #pragma once
 
-#include "MixerChannel.h"		// // //
-#include "MixerLevels.h"		// // //
-#include "../Common.h"
-#include "../Blip_Buffer/blip_buffer.h"
+#include "APU/MixerChannel.h"		// // //
+#include "APU/MixerLevels.h"		// // //
+#include "Common.h"
+#include "Blip_Buffer/blip_buffer.h"
 #include <array>		// // //
-#include "../SoundChipSet.h"		// // //
+#include "SoundChipSet.h"		// // //
 
 enum chip_level_t {
 	CHIP_LEVEL_APU1,
