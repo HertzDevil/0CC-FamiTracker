@@ -51,7 +51,8 @@ public:
 	~CSoundDriver();
 
 	void SetupTracks();
-	void LoadDocument(const CFamiTrackerModule &modfile, CAPU &apu);
+	void AssignModule(const CFamiTrackerModule &modfile);
+	void LoadAPU(CAPU &apu);
 	void ConfigureDocument();
 
 	std::unique_ptr<CChannelMap> MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const;

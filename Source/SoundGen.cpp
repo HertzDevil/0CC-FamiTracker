@@ -139,9 +139,10 @@ void CSoundGen::AssignDocument(CFamiTrackerDoc *pDoc)
 	// Assigns a document to this object
 	m_pDocument = pDoc;
 	m_pInstRecorder->m_pDocument = pDoc;		// // //
+	m_pSoundDriver->AssignModule(*m_pDocument->GetModule());
 	m_pTempoCounter = std::make_shared<CTempoCounter>(*m_pDocument->GetModule());		// // //
 
-	m_pSoundDriver->LoadDocument(*pDoc->GetModule(), *m_pAPU);		// // //
+	m_pSoundDriver->LoadAPU(*m_pAPU);		// // //
 	m_pSoundDriver->SetTempoCounter(m_pTempoCounter);		// // //
 	DocumentPropertiesChanged(pDoc);		// // //
 }
@@ -222,6 +223,8 @@ void CSoundGen::DocumentPropertiesChanged(CFamiTrackerDoc *pDocument)
 //	ASSERT(pDocument == m_pDocument);		// // //
 	if (pDocument != m_pDocument)
 		return;
+	m_pTempoCounter->AssignModule(*m_pDocument->GetModule());
+	m_pSoundDriver->AssignModule(*pDocument->GetModule());
 	m_pSoundDriver->ConfigureDocument();
 }
 

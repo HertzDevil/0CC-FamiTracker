@@ -113,8 +113,11 @@ void CSoundDriver::SetupTracks() {
 	AssignTrack(chan_id_t::S5B_CH3);
 }
 
-void CSoundDriver::LoadDocument(const CFamiTrackerModule &modfile, CAPU &apu) {
+void CSoundDriver::AssignModule(const CFamiTrackerModule &modfile) {
 	modfile_ = &modfile;
+}
+
+void CSoundDriver::LoadAPU(CAPU &apu) {
 	apu_ = &apu;
 
 	// Setup all channels
