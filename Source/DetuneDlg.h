@@ -26,7 +26,7 @@
 #include "stdafx.h"
 #include "../resource.h"
 
-class CFamiTrackerDoc;
+class CFamiTrackerModule;
 
 // CDetuneDlg dialog
 
@@ -37,6 +37,8 @@ class CDetuneDlg : public CDialog
 public:
 	CDetuneDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDetuneDlg();
+
+	void AssignModule(CFamiTrackerModule &modfile);
 
 	const int *GetDetuneTable() const;
 	int GetDetuneSemitone() const;
@@ -49,7 +51,7 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
-	CFamiTrackerDoc* m_pDocument;
+	CFamiTrackerModule *modfile_ = nullptr;
 
 	CSliderCtrl *m_cSliderOctave, *m_cSliderNote, *m_cSliderOffset;
 	CEdit *m_cEditOctave, *m_cEditNote, *m_cEditOffset;
@@ -76,8 +78,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	virtual BOOL OnInitDialog();
-	afx_msg void OnBnClickedOk();
-	afx_msg void OnBnClickedCancel();
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	afx_msg void OnDeltaposSpinOctave(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnDeltaposSpinNote(NMHDR *pNMHDR, LRESULT *pResult);

@@ -29,7 +29,7 @@
 #include <memory>
 #include <array>
 
-class CFamiTrackerDoc;
+class CFamiTrackerModule;
 
 // CGrooveDlg dialog
 
@@ -44,6 +44,7 @@ class CGrooveDlg : public CDialog
 public:
 	CGrooveDlg(CWnd* pParent = NULL);   // standard constructor
 
+	void AssignModule(CFamiTrackerModule &modfile);
 	void SetGrooveIndex(int Index);
 
 // Dialog Data
@@ -52,7 +53,7 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
-	CFamiTrackerDoc *m_pDocument;
+	CFamiTrackerModule *modfile_ = nullptr;
 
 	std::array<std::unique_ptr<ft0cc::doc::groove>, MAX_GROOVE> GrooveTable;
 	ft0cc::doc::groove *Groove = nullptr;

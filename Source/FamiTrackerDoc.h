@@ -57,7 +57,6 @@ enum machine_t : unsigned char;
 enum vibrato_t : unsigned char;
 
 namespace ft0cc::doc {		// // //
-class groove;
 class dpcm_sample;
 } // namespace ft0cc::doc
 
@@ -80,7 +79,6 @@ class dpcm_sample;
 
 class CFamiTrackerDoc : public CDocument, public CFTMComponentInterface
 {
-	using groove = ft0cc::doc::groove;
 	using dpcm_sample = ft0cc::doc::dpcm_sample;
 
 	struct ctor_t { };		// // //
@@ -201,12 +199,6 @@ public:
 	unsigned int	GetFrameRate() const;
 	int				GetSpeedSplitPoint() const;
 
-	int				GetDetuneOffset(int Chip, int Note) const;
-	void			SetDetuneOffset(int Chip, int Note, int Detune);		// // //
-	int				GetTuningSemitone() const;		// // // 050B
-	int				GetTuningCent() const;		// // // 050B
-	void			SetTuning(int Semitone, int Cent);		// // // 050B
-
 	CSongData		*GetSong(unsigned int Index);		// // //
 	const CSongData	*GetSong(unsigned int Index) const;		// // //
 	unsigned int	GetTrackCount() const;
@@ -217,11 +209,6 @@ public:
 		for (std::size_t i = 0, n = GetChannelCount(); i < n; ++i)
 			f(TranslateChannel(i));
 	}
-
-	std::shared_ptr<groove> GetGroove(unsigned Index);		// // //
-	std::shared_ptr<const groove> GetGroove(unsigned Index) const;		// // //
-	bool			HasGroove(unsigned Index) const;		// // //
-	void			SetGroove(unsigned Index, std::shared_ptr<groove> Groove);
 
 	const stHighlight &GetHighlight(unsigned int Track) const;
 #pragma endregion

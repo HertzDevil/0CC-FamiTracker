@@ -946,8 +946,10 @@ void CFamiTrackerView::OnTrackerDetune()			// // //
 {
 	CFamiTrackerModule *pModule = GetModuleData();
 	CDetuneDlg DetuneDlg;
+	DetuneDlg.AssignModule(*pModule);
 	if (DetuneDlg.DoModal() != IDOK)
 		return;
+	GetDocument()->ModifyIrreversible();
 	const int *Table = DetuneDlg.GetDetuneTable();
 	for (int i = 0; i < 6; i++)
 		for (int j = 0; j < NOTE_COUNT; j++)

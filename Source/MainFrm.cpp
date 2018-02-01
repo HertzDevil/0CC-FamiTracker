@@ -1344,23 +1344,24 @@ void CMainFrame::OnSaveInstrument()
 
 void CMainFrame::OnDeltaposSpeedSpin(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();		// // //
-	int NewSpeed = pDoc->GetSongSpeed(m_iTrack) - ((NMUPDOWN*)pNMHDR)->iDelta;
+	CFamiTrackerModule *pModule = GetDoc().GetModule();		// // //
+	int OldSpeed = pModule->GetSong(GetSelectedTrack())->GetSongSpeed();
+	int NewSpeed = OldSpeed - ((NMUPDOWN*)pNMHDR)->iDelta;
 
-	if (!pDoc->GetSongGroove(m_iTrack)) {
+	if (!pModule->GetSong(GetSelectedTrack())->GetSongGroove()) {
 		SetSpeed(NewSpeed);
 		return;
 	}
 	else if (((NMUPDOWN*)pNMHDR)->iDelta < 0) {
-		for (int i = pDoc->GetSongSpeed(m_iTrack) + 1; i < MAX_GROOVE; ++i)
-			if (pDoc->HasGroove(i)) {
+		for (int i = OldSpeed + 1; i < MAX_GROOVE; ++i)
+			if (pModule->HasGroove(i)) {
 				SetGroove(i);
 				return;
 			}
 	}
 	else if (((NMUPDOWN*)pNMHDR)->iDelta > 0) {
-		for (int i = pDoc->GetSongSpeed(m_iTrack) - 1; i >= 0; --i)
-			if (pDoc->HasGroove(i)) {
+		for (int i = OldSpeed - 1; i >= 0; --i)
+			if (pModule->HasGroove(i)) {
 				SetGroove(i);
 				return;
 			}
@@ -2146,6 +2147,7 @@ void CMainFrame::OnModuleGrooveSettings()		// // //
 {
 	if (!m_pGrooveDlg) {
 		m_pGrooveDlg = std::make_unique<CGrooveDlg>();
+		m_pGrooveDlg->AssignModule(*GetDoc().GetModule());
 		m_pGrooveDlg->Create(IDD_GROOVE, this);
 	}
 	if (!m_pGrooveDlg->IsWindowVisible())

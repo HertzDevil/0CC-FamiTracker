@@ -72,7 +72,6 @@
 #include "NumConv.h"		// // //
 #include "SongLengthScanner.h"		// // // TODO: remove
 
-#include "ft0cc/doc/groove.hpp"		// // //
 #include "Sequence.h"		// // //
 
 //
@@ -1197,26 +1196,6 @@ int CFamiTrackerDoc::GetSpeedSplitPoint() const {
 	return GetModule()->GetSpeedSplitPoint();
 }
 
-int CFamiTrackerDoc::GetDetuneOffset(int Chip, int Note) const {
-	return GetModule()->GetDetuneOffset(Chip, Note);
-}
-
-void CFamiTrackerDoc::SetDetuneOffset(int Chip, int Note, int Detune) {
-	GetModule()->SetDetuneOffset(Chip, Note, Detune);
-}
-
-int CFamiTrackerDoc::GetTuningSemitone() const {
-	return GetModule()->GetTuningSemitone();
-}
-
-int CFamiTrackerDoc::GetTuningCent() const {
-	return GetModule()->GetTuningCent();
-}
-
-void CFamiTrackerDoc::SetTuning(int Semitone, int Cent) {
-	GetModule()->SetTuning(Semitone, Cent);
-}
-
 CSongData *CFamiTrackerDoc::GetSong(unsigned int Index) {		// // //
 	return GetModule()->GetSong(Index);
 }
@@ -1231,22 +1210,6 @@ unsigned int CFamiTrackerDoc::GetTrackCount() const {
 
 CInstrumentManager *const CFamiTrackerDoc::GetInstrumentManager() const {
 	return GetModule()->GetInstrumentManager();
-}
-
-std::shared_ptr<ft0cc::doc::groove> CFamiTrackerDoc::GetGroove(unsigned Index) {
-	return GetModule()->GetGroove(Index);
-}
-
-std::shared_ptr<const ft0cc::doc::groove> CFamiTrackerDoc::GetGroove(unsigned Index) const {
-	return GetModule()->GetGroove(Index);
-}
-
-bool CFamiTrackerDoc::HasGroove(unsigned Index) const {
-	return GetModule()->HasGroove(Index);
-}
-
-void CFamiTrackerDoc::SetGroove(unsigned Index, std::shared_ptr<groove> pGroove) {
-	GetModule()->SetGroove(Index, std::move(pGroove));
 }
 
 const stHighlight &CFamiTrackerDoc::GetHighlight(unsigned int Track) const {		// // //

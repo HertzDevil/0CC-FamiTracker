@@ -21,8 +21,9 @@
 */
 
 #include "GrooveDlg.h"
-#include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
+#include "SongData.h"
 #include "FamiTrackerView.h"
 #include "MainFrm.h"
 #include "PatternClipData.h"
@@ -75,8 +76,6 @@ BOOL CGrooveDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	m_pDocument = static_cast<CFamiTrackerDoc*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveDocument());
-
 	m_cGrooveTable.SubclassDlgItem(IDC_LIST_GROOVE_TABLE, this);
 	m_cCurrentGroove.SubclassDlgItem(IDC_LIST_GROOVE_EDITOR, this);
 
@@ -125,6 +124,10 @@ void CGrooveDlg::OnShowWindow(BOOL bShow, UINT nStatus)
 	}
 }
 
+void CGrooveDlg::AssignModule(CFamiTrackerModule &modfile) {
+	modfile_ = &modfile;
+}
+
 void CGrooveDlg::SetGrooveIndex(int Index)
 {
 	m_iGrooveIndex = Index;
@@ -151,19 +154,19 @@ void CGrooveDlg::OnBnClickedCancel()
 
 void CGrooveDlg::OnBnClickedApply()
 {
-	m_pDocument->ModifyIrreversible();
+	CFamiTrackerDoc::GetDoc()->ModifyIrreversible();
 
 	for (int i = 0; i < MAX_GROOVE; i++)
 		if (GrooveTable[i]->size())
-			m_pDocument->SetGroove(i, std::make_shared<groove>(*GrooveTable[i]));
+			modfile_->SetGroove(i, std::make_shared<groove>(*GrooveTable[i]));
 		else {
-			m_pDocument->SetGroove(i, nullptr);
-			const unsigned Tracks = m_pDocument->GetTrackCount();
-			for (unsigned j = 0; j < Tracks; j++)
-			if (m_pDocument->GetSongSpeed(j) == i && m_pDocument->GetSongGroove(j)) {
-				m_pDocument->SetSongSpeed(j, DEFAULT_SPEED);
-				m_pDocument->SetSongGroove(j, false);
-			}
+			modfile_->SetGroove(i, nullptr);
+			modfile_->VisitSongs([&] (CSongData &song) {
+				if (song.GetSongSpeed() == i && song.GetSongGroove()) {
+					song.SetSongSpeed(DEFAULT_SPEED);
+					song.SetSongGroove(false);
+				}
+			});
 		}
 }
 
@@ -186,7 +189,7 @@ void CGrooveDlg::ReloadGrooves()
 	m_cCurrentGroove.ResetContent();
 	for (int i = 0; i < MAX_GROOVE; i++) {
 		bool Used = false;
-		if (const auto orig = m_pDocument->GetGroove(i)) {
+		if (const auto orig = modfile_->GetGroove(i)) {
 			GrooveTable[i] = std::make_unique<groove>(*orig);
 			Used = true;
 		}

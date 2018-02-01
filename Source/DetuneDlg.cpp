@@ -25,6 +25,7 @@
 #include <cmath>
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
 #include "DetuneTable.h"
 
 // CDetuneDlg dialog
@@ -41,6 +42,10 @@ CDetuneDlg::~CDetuneDlg()
 {
 }
 
+void CDetuneDlg::AssignModule(CFamiTrackerModule &modfile) {
+	modfile_ = &modfile;
+}
+
 void CDetuneDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
@@ -49,8 +54,6 @@ void CDetuneDlg::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CDetuneDlg, CDialog)
 	ON_WM_HSCROLL()
-	ON_BN_CLICKED(IDOK, OnBnClickedOk)
-	ON_BN_CLICKED(IDCANCEL, OnBnClickedCancel)
 	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_OCTAVE, OnDeltaposSpinOctave)
 	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_NOTE, OnDeltaposSpinNote)
 	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_OFFSET, OnDeltaposSpinOffset)
@@ -86,14 +89,13 @@ BOOL CDetuneDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	CFrameWnd *pFrameWnd = static_cast<CFrameWnd*>(GetParent());
-	m_pDocument = static_cast<CFamiTrackerDoc*>(pFrameWnd->GetActiveDocument());
 	m_iOctave = 3;
 	m_iNote = 36;
 	m_iCurrentChip = 0;
 	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++)
-		m_iDetuneTable[i][j] = m_pDocument->GetDetuneOffset(i, j);
-	m_iGlobalSemitone = m_pDocument->GetTuningSemitone();		// // // 050B
-	m_iGlobalCent = m_pDocument->GetTuningCent();
+		m_iDetuneTable[i][j] = modfile_->GetDetuneOffset(i, j);
+	m_iGlobalSemitone = modfile_->GetTuningSemitone();		// // // 050B
+	m_iGlobalCent = modfile_->GetTuningCent();
 
 	m_cSliderOctave = (CSliderCtrl*)GetDlgItem(IDC_SLIDER_OCTAVE);
 	m_cSliderNote = (CSliderCtrl*)GetDlgItem(IDC_SLIDER_NOTE);
@@ -174,7 +176,7 @@ unsigned int CDetuneDlg::FreqToReg(double Freq, int Chip, int Octave)
 	case 2: dReg = BASE_FREQ_NTSC / Freq / 14.0 - 1.0; break;
 	case 3: dReg = Freq / 49716.0 * (1 << (18 - Octave)); break;
 	case 4: dReg = Freq / BASE_FREQ_NTSC * (1 << 20); break;
-	case 5: dReg = Freq / BASE_FREQ_NTSC * 15.0 * (1 << 18) * m_pDocument->GetNamcoChannels(); break;
+	case 5: dReg = Freq / BASE_FREQ_NTSC * 15.0 * (1 << 18) * modfile_->GetNamcoChannels(); break;
 	}
 	return (unsigned int)(dReg + .5);
 }
@@ -190,7 +192,7 @@ double CDetuneDlg::RegToFreq(unsigned int Reg, int Chip, int Octave)
 	case 2: return BASE_FREQ_NTSC / 14.0 / (Reg + 1.0); break;
 	case 3: return 49716.0 * Reg / (1 << (18 - Octave)); break;
 	case 4: return BASE_FREQ_NTSC * Reg / (1 << 20); break;
-	case 5: return BASE_FREQ_NTSC * Reg / 15 / (1 << 18) / m_pDocument->GetNamcoChannels(); break;
+	case 5: return BASE_FREQ_NTSC * Reg / 15 / (1 << 18) / modfile_->GetNamcoChannels(); break;
 	}
 }
 
@@ -240,7 +242,7 @@ void CDetuneDlg::UpdateOffset()
 
 	for (int i = 0; i < 6; i++) {
 		CString str, fmt = _T("%s\n%X\n%X");
-		if (i == 5 && !m_pDocument->GetNamcoChannels()) {
+		if (i == 5 && !modfile_->GetNamcoChannels()) {
 			str.Format(_T("%s\n-\n-\n-\n-\n-\n-"), CHIP_STR[i]);
 			SetDlgItemText(IDC_DETUNE_INFO_N163, str);
 			continue;
@@ -264,19 +266,6 @@ void CDetuneDlg::UpdateOffset()
 	SetDlgItemText(IDC_STATIC_DETUNE_SEMITONE, String);
 	String.Format(_T("Cent: %+d"), m_iGlobalCent);
 	SetDlgItemText(IDC_STATIC_DETUNE_CENT, String);
-}
-
-void CDetuneDlg::OnBnClickedOk()
-{
-	m_pDocument->ModifyIrreversible();
-	CDialog::OnOK();
-}
-
-void CDetuneDlg::OnBnClickedCancel()
-{
-	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++)
-		m_iDetuneTable[i][j] = m_pDocument->GetDetuneOffset(i, j);
-	CDialog::OnCancel();
 }
 
 void CDetuneDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
@@ -449,17 +438,15 @@ void CDetuneDlg::OnBnClickedButtonImport()
 
 void CDetuneDlg::OnBnClickedButtonExport()
 {
-	CString    Path;
-	CStdioFile csv;
-
-	CFileDialog SaveFileDialog(FALSE, _T("csv"), (LPCSTR)m_pDocument->GetFileTitle(),
+	CFileDialog SaveFileDialog(FALSE, _T("csv"), (LPCTSTR)CFamiTrackerDoc::GetDoc()->GetFileTitle(),
 		OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("Comma-separated values (*.csv)|*.csv|All files|*.*||"));
 
 	if (SaveFileDialog.DoModal() == IDCANCEL)
 		return;
 
-	Path = SaveFileDialog.GetPathName();
+	CString Path = SaveFileDialog.GetPathName();
 
+	CStdioFile csv;
 	if (!csv.Open(Path, CFile::modeWrite | CFile::modeCreate)) {
 		AfxMessageBox(IDS_FILE_OPEN_ERROR);
 		return;
