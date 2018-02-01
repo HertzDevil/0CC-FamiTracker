@@ -92,7 +92,7 @@ bool ModuleAction::CTitle::Merge(const CAction &other) {
 }
 
 void ModuleAction::CTitle::UpdateViews(CMainFrame &MainFrm) const {
-	MainFrm.SetSongInfo(MainFrm.GetDoc());
+	MainFrm.SetSongInfo(GET_MODULE());
 }
 
 
@@ -124,7 +124,7 @@ bool ModuleAction::CArtist::Merge(const CAction &other) {
 }
 
 void ModuleAction::CArtist::UpdateViews(CMainFrame &MainFrm) const {
-	MainFrm.SetSongInfo(MainFrm.GetDoc());
+	MainFrm.SetSongInfo(GET_MODULE());
 }
 
 
@@ -156,7 +156,7 @@ bool ModuleAction::CCopyright::Merge(const CAction &other) {
 }
 
 void ModuleAction::CCopyright::UpdateViews(CMainFrame &MainFrm) const {
-	MainFrm.SetSongInfo(MainFrm.GetDoc());
+	MainFrm.SetSongInfo(GET_MODULE());
 }
 
 

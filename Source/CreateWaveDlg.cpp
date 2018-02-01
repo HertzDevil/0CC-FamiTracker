@@ -24,11 +24,14 @@
 #include "FamiTracker.h" // LoadDefaultFilter
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
+#include "FamiTrackerModule.h"		// // //
+#include "SongData.h"		// // //
+#include "ChannelOrder.h"		// // //
 #include "MainFrm.h"
 #include "SoundGen.h"
-#include "TrackerChannel.h"
 #include "WavProgressDlg.h"
 #include "WaveRenderer.h"		// // //
+#include "WaveRendererFactory.h"		// // //
 #include "ChannelName.h"		// // //
 
 const int MAX_LOOP_TIMES = 99;
@@ -94,12 +97,13 @@ void CCreateWaveDlg::OnBnClickedBegin()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 	CFamiTrackerView *pView = CFamiTrackerView::GetView();
+	const CFamiTrackerModule *pModule = pView->GetModuleData();		// // //
 
 	CString FileName = pDoc->GetFileTitle();
 	int Track = m_ctlTracks.GetCurSel();
 
-	if (pDoc->GetTrackCount() > 1) {
-		auto sv = pDoc->GetTrackTitle(Track);
+	if (pModule->GetSongCount() > 1) {
+		auto sv = pModule->GetSong(Track)->GetTitle();
 		FileName.AppendFormat(_T(" - Track %02i (%.*s)"), Track + 1, sv.size(), sv.data());		// // //
 	}
 
@@ -116,20 +120,22 @@ void CCreateWaveDlg::OnBnClickedBegin()
 
 	auto pRenderer = [&] () -> std::unique_ptr<CWaveRenderer> {		// // //
 		if (IsDlgButtonChecked(IDC_RADIO_LOOP))
-			return std::make_unique<CWaveRendererRow>(pDoc->ScanActualLength(Track, GetFrameLoopCount()));		// // //
+			return CWaveRendererFactory::Make(*pModule, Track, render_type_t::Loops, GetFrameLoopCount());
 		if (IsDlgButtonChecked(IDC_RADIO_TIME))
-			// This variable is stored in seconds, convert to frames
-			return std::make_unique<CWaveRendererTick>(GetTimeLimit() * pDoc->GetFrameRate(), pDoc->GetFrameRate());		// // //
+			return CWaveRendererFactory::Make(*pModule, Track, render_type_t::Seconds, GetTimeLimit());
 		return nullptr;
 	}();
+	if (!pRenderer) {
+		AfxMessageBox("Unable to create wave renderer!", MB_ICONERROR);
+		return;
+	}
 	pRenderer->SetRenderTrack(Track);
 
 	// Mute selected channels
 	pView->UnmuteAllChannels();
-	for (int i = 0; i < m_ctlChannelList.GetCount(); ++i) {
-		if (m_ctlChannelList.GetCheck(i) == 0)
-			pView->ToggleChannel(pDoc->TranslateChannel(i));
-	}
+	for (int i = 0; i < m_ctlChannelList.GetCount(); ++i)
+		if (m_ctlChannelList.GetCheck(i) == BST_UNCHECKED)
+			pView->ToggleChannel(pModule->GetChannelOrder().TranslateChannel(i));
 
 	// Show the render progress dialog, this will also start rendering
 	ProgressDlg.BeginRender(SaveDialog.GetPathName(), std::move(pRenderer));		// // //
@@ -153,19 +159,20 @@ BOOL CCreateWaveDlg::OnInitDialog()
 
 	m_ctlTracks.SubclassDlgItem(IDC_TRACKS, this);
 
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
+	const CFamiTrackerModule *pModule = CFamiTrackerView::GetView()->GetModuleData();		// // //
+	const CChannelOrder &order = pModule->GetChannelOrder(); // CFamiTrackerView::GetView()->GetSongView()->
 
-	pDoc->ForeachChannel([&] (chan_id_t i) {
+	order.ForeachChannel([&] (chan_id_t i) {
 		m_ctlChannelList.AddString(GetChannelFullName(i).data());		// // //
-		m_ctlChannelList.SetCheck(pDoc->GetChannelIndex(i), 1);
+		m_ctlChannelList.SetCheck(order.GetChannelIndex(i), 1);
 	});
 
-	for (unsigned int i = 0; i < pDoc->GetTrackCount(); ++i) {
+	pModule->VisitSongs([&] (const CSongData &song, unsigned i) {
 		CString text;
-		auto sv = pDoc->GetTrackTitle(i);
+		auto sv = song.GetTitle();
 		text.Format(_T("#%02i - %.*s"), i + 1, sv.size(), sv.data());		// // //
 		m_ctlTracks.AddString(text);
-	}
+	});
 
 	CMainFrame *pMainFrm = static_cast<CMainFrame*>(AfxGetMainWnd());		// // //
 	m_ctlTracks.SetCurSel(pMainFrm->GetSelectedTrack());

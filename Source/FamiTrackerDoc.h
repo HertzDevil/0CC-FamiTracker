@@ -156,9 +156,6 @@ public:
 	// DPCM samples
 	void			SetSample(unsigned int Index, std::shared_ptr<dpcm_sample> pSamp);		// // //
 
-	// Other
-	unsigned int	ScanActualLength(unsigned int Track, unsigned int Count) const;		// // //
-
 	// Operations
 	void			RemoveUnusedInstruments();
 	void			RemoveUnusedSamples();		// // //
@@ -181,7 +178,6 @@ public:
 	int				GetChannelCount() const;
 	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
 	int				GetChannelIndex(chan_id_t Channel) const;		// // //
-	bool			HasChannel(chan_id_t Channel) const;		// // //
 #pragma endregion
 
 #pragma region delegates to CSongData
@@ -197,12 +193,6 @@ public:
 #pragma endregion
 
 #pragma region delegates to CFamiTrackerModule
-	std::string_view GetModuleName() const;		// // //
-	std::string_view GetModuleArtist() const;
-	std::string_view GetModuleCopyright() const;
-
-	const CSoundChipSet &GetExpansionChip() const;
-
 	bool			ExpansionEnabled(sound_chip_t Chip) const;
 	int				GetNamcoChannels() const;
 
@@ -210,8 +200,6 @@ public:
 	unsigned int	GetEngineSpeed() const;
 	unsigned int	GetFrameRate() const;
 	int				GetSpeedSplitPoint() const;
-
-	std::string_view GetTrackTitle(unsigned int Track) const;		// // //
 
 	int				GetDetuneOffset(int Chip, int Note) const;
 	void			SetDetuneOffset(int Chip, int Note, int Detune);		// // //

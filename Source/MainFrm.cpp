@@ -882,7 +882,7 @@ const CFamiTrackerDoc &CMainFrame::GetDoc() const {		// // //
 }
 
 CSongData *CMainFrame::GetCurrentSong() {
-	return GetDoc().GetSong(GetSelectedTrack());
+	return GetDoc().GetModule()->GetSong(GetSelectedTrack());
 }
 
 const CSongData *CMainFrame::GetCurrentSong() const {
@@ -1605,7 +1605,7 @@ void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 {
 	CString String;
 
-	const CSoundChipSet &Chip = GetDoc().GetExpansionChip();
+	const CSoundChipSet &Chip = GetDoc().GetModule()->GetSoundChipSet();
 
 	if (!Chip.IsMultiChip())		// // //
 		switch (Chip.WithoutChip(sound_chip_t::APU).GetSoundChip()) {
@@ -1858,11 +1858,10 @@ void CMainFrame::OnFileGeneralsettings()
 	static_cast<CFamiTrackerView*>(GetActiveView())->UpdateNoteQueues();		// // // auto arp setting
 }
 
-void CMainFrame::SetSongInfo(const CFamiTrackerDoc &doc)		// // //
-{
-	m_wndDialogBar.SetDlgItemText(IDC_SONG_NAME, doc.GetModuleName().data());
-	m_wndDialogBar.SetDlgItemText(IDC_SONG_ARTIST, doc.GetModuleArtist().data());
-	m_wndDialogBar.SetDlgItemText(IDC_SONG_COPYRIGHT, doc.GetModuleCopyright().data());
+void CMainFrame::SetSongInfo(const CFamiTrackerModule &modfile) {		// // //
+	m_wndDialogBar.SetDlgItemText(IDC_SONG_NAME, modfile.GetModuleName().data());
+	m_wndDialogBar.SetDlgItemText(IDC_SONG_ARTIST, modfile.GetModuleArtist().data());
+	m_wndDialogBar.SetDlgItemText(IDC_SONG_COPYRIGHT, modfile.GetModuleCopyright().data());
 }
 
 void CMainFrame::OnEnSongNameChange()
@@ -1981,7 +1980,7 @@ void CMainFrame::OnFileImportText()
 		AfxMessageBox(err.what(), MB_OK | MB_ICONEXCLAMATION);
 	}
 
-	SetSongInfo(Doc);		// // //
+	SetSongInfo(*Doc.GetModule());		// // //
 	Doc.SetModifiedFlag(FALSE);
 	Doc.SetExceededFlag(false);		// // //
 	// TODO figure out how to handle this case, call OnInitialUpdate??
@@ -2174,7 +2173,7 @@ void CMainFrame::OnModuleEstimateSongLength()		// // //
 	auto [Intro, Loop] = scanner.GetSecondsCount();
 	auto [IntroRows, LoopRows] = scanner.GetRowCount();
 
-	int Rate = GetDoc().GetFrameRate();
+	int Rate = GetDoc().GetModule()->GetFrameRate();
 
 	const TCHAR *fmt = _T("Estimated duration:\n"
 		"Intro: %lld:%02lld.%02lld (%d rows, %lld ticks)\n"
@@ -2584,7 +2583,7 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 	const CFamiTrackerDoc &Doc = GetDoc();
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 
-	const CSoundChipSet &Chip = Doc.GetExpansionChip();		// // //
+	const CSoundChipSet &Chip = Doc.GetModule()->GetSoundChipSet();		// // //
 	sound_chip_t SelectedChip = GetChipFromChannel(pView->GetSelectedChannelID());		// // // where the cursor is located
 
 	if (Chip.ContainsChip(sound_chip_t::APU))
@@ -3358,7 +3357,7 @@ void CMainFrame::OnEasterEggKraid5()
 		CFamiTrackerDoc &doc = GetDoc();
 		Kraid { }(doc);
 		SelectTrack(0);
-		SetSongInfo(doc);
+		SetSongInfo(*doc.GetModule());
 		UpdateControls();
 		UpdateInstrumentList();
 		UpdateTrackBox();

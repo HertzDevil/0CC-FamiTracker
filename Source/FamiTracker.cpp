@@ -28,7 +28,6 @@
 #include "FamiTrackerView.h"
 #include "MainFrm.h"
 #include "AboutDlg.h"
-#include "TrackerChannel.h"
 #include "MIDI.h"
 #include "SoundGen.h"
 #include "Accelerator.h"
@@ -36,6 +35,7 @@
 #include "CommandLineExport.h"
 #include "WinSDK/VersionHelpers.h"		// // //
 #include "WaveRenderer.h"		// // //
+#include "WaveRendererFactory.h"		// // //
 #include "VersionChecker.h"		// // //
 #include <iostream>		// // //
 
@@ -228,16 +228,16 @@ BOOL CFamiTrackerApp::InitInstance()
 		m_pSoundGenerator->AssignDocument(&doc);
 		m_pSoundGenerator->InitializeSound(NULL);
 
-		std::unique_ptr<CWaveRenderer> render;
-		switch (cmdInfo.render_type_) {
-		case render_type_t::Loops:
-			render = std::make_unique<CWaveRendererRow>(doc.ScanActualLength(cmdInfo.track_, cmdInfo.render_param_)); break;
-		case render_type_t::Seconds:
-			render = std::make_unique<CWaveRendererTick>(cmdInfo.render_param_, doc.GetFrameRate()); break;
+		std::unique_ptr<CWaveRenderer> render = CWaveRendererFactory::Make(*doc.GetModule(), cmdInfo.track_, cmdInfo.render_type_, cmdInfo.render_param_);
+		if (!render) {
+			std::cerr << "Error: unable to create wave renderer!\n";
+			ExitProcess(1);
+			return FALSE;
 		}
 		render->SetRenderTrack(cmdInfo.track_);
 		if (!m_pSoundGenerator->RenderToFile(cmdInfo.m_strExportFile.GetString(), std::move(render))) {
 			std::cerr << "Error: unable to render WAV file: " << cmdInfo.m_strExportFile << '\n';
+			ExitProcess(1);
 			return FALSE;
 		}
 		while (!m_pSoundGenerator->IsRendering())
@@ -765,6 +765,9 @@ CString MakeFloatString(float val, LPCTSTR format)
  * CFTCommandLineInfo, a custom command line parser
  *
  */
+
+CFTCommandLineInfo::CFTCommandLineInfo() : CCommandLineInfo(), render_type_(render_type_t::Loops) {
+}
 
 void CFTCommandLineInfo::ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast)
 {

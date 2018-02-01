@@ -789,6 +789,9 @@
     <ClCompile Include="Source\SongLengthScanner.cpp">
       <Filter>Source Files\Document Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Source\WaveRendererFactory.cpp">
+      <Filter>Source Files\Sound Driver</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1462,6 +1465,9 @@
     </ClInclude>
     <ClInclude Include="Source\ChannelName.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\WaveRendererFactory.h">
+      <Filter>Header Files\Sound Driver Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

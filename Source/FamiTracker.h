@@ -43,15 +43,14 @@ enum {
 	IPC_LOAD_PLAY
 };
 
-enum class render_type_t {
-	Loops,
-	Seconds,
-};
+enum class render_type_t : unsigned char;
 
 // Custom command line reader
 class CFTCommandLineInfo : public CCommandLineInfo
 {
 public:
+	CFTCommandLineInfo();		// // //
+
 	void ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast) override;
 
 	bool m_bLog = false;
@@ -61,9 +60,9 @@ public:
 	CString m_strExportFile;
 	CString m_strExportLogFile;
 	CString m_strExportDPCMFile;
-	render_type_t render_type_ = render_type_t::Loops;		// // //
 	unsigned track_ = MAX_TRACKS;
 	unsigned render_param_ = 1;		// // //
+	render_type_t render_type_;		// // //
 };
 
 class CMainFrame;		// // //

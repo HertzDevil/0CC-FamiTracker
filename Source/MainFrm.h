@@ -55,6 +55,7 @@ class CInstrumentFileTree;
 class CAction;
 class CActionHandler;
 class CFamiTrackerDoc;		// // //
+class CFamiTrackerModule;		// // //
 class CFrameEditor;
 class CGrooveDlg;		// // //
 class CBookmarkDlg;
@@ -85,7 +86,7 @@ public:
 	// Indicators & controls
 	void	SetIndicatorTime(int Min, int Sec, int MSec);
 	void	SetIndicatorPos(int Frame, int Row);
-	void	SetSongInfo(const CFamiTrackerDoc &doc);		// // //
+	void	SetSongInfo(const CFamiTrackerModule &modfile);		// // //
 	void	SetupColors();
 	void	DisplayOctave();
 

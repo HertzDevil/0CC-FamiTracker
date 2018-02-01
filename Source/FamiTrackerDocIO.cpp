@@ -240,7 +240,7 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
 		}
 	}
 
-	doc.SelectExpansionChip(doc.GetExpansionChip(), doc.GetNamcoChannels());
+	doc.SelectExpansionChip(modfile.GetSoundChipSet(), modfile.GetNamcoChannels());
 }
 
 void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {

@@ -24,7 +24,6 @@
 #include <map>
 #include "FamiTracker.h"
 #include "FamiTrackerView.h"
-#include "TrackerChannel.h"
 #include "MainFrm.h"
 #include "SoundGen.h"
 #include "PatternEditor.h"

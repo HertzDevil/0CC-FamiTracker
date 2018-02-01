@@ -1135,6 +1135,7 @@ void CFamiTrackerView::OnInitialUpdate()
 	//
 
 	CFamiTrackerDoc* pDoc = GetDocument();
+	CFamiTrackerModule *pModule = GetModuleData();
 
 	CMainFrame *pMainFrame = GetMainFrame();		// // //
 
@@ -1155,7 +1156,7 @@ void CFamiTrackerView::OnInitialUpdate()
 
 	// Update mainframe with new document settings
 	pMainFrame->UpdateInstrumentList();
-	pMainFrame->SetSongInfo(*pDoc);		// // //
+	pMainFrame->SetSongInfo(*pModule);		// // //
 	pMainFrame->UpdateTrackBox();
 	pMainFrame->DisplayOctave();
 	pMainFrame->UpdateControls();
@@ -1163,8 +1164,8 @@ void CFamiTrackerView::OnInitialUpdate()
 	pMainFrame->ResizeFrameWindow();
 
 	// Fetch highlight
-	m_pPatternEditor->SetHighlight(GetModuleData()->GetHighlight(0));		// // //
-	pMainFrame->SetHighlightRows(GetModuleData()->GetHighlight(0));
+	m_pPatternEditor->SetHighlight(pModule->GetHighlight(0));		// // //
+	pMainFrame->SetHighlightRows(pModule->GetHighlight(0));
 
 	// Follow mode
 	SetFollowMode(theApp.GetSettings()->FollowMode);
@@ -1196,7 +1197,7 @@ void CFamiTrackerView::OnInitialUpdate()
 		SetFocus();
 
 	// Display comment box
-	if (GetModuleData()->ShowsCommentOnOpen())		// // //
+	if (pModule->ShowsCommentOnOpen())		// // //
 		pMainFrame->PostMessage(WM_COMMAND, ID_MODULE_COMMENTS);
 
 	// Call OnUpdate
@@ -2092,15 +2093,14 @@ void CFamiTrackerView::UpdateArpDisplay()
 		GetParentFrame()->SetMessageText(str.c_str());
 }
 
-void CFamiTrackerView::UpdateNoteQueues()		// // //
-{
-	const CFamiTrackerDoc *pDoc = GetDocument();
-	const int Channels = pDoc->GetChannelCount();
+void CFamiTrackerView::UpdateNoteQueues() {		// // //
+	const CConstSongView *pSongView = GetSongView();
+	const int Channels = pSongView->GetChannelOrder().GetChannelCount();
 
 	m_pNoteQueue->ClearMaps();
 
 	if (m_bEditEnable || theApp.GetSettings()->Midi.bMidiArpeggio)
-		GetSongView()->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
+		pSongView->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
 			m_pNoteQueue->AddMap({i});
 		});
 	else {
@@ -2108,27 +2108,29 @@ void CFamiTrackerView::UpdateNoteQueues()		// // //
 		m_pNoteQueue->AddMap({chan_id_t::NOISE});
 		m_pNoteQueue->AddMap({chan_id_t::DPCM});
 
-		if (pDoc->ExpansionEnabled(sound_chip_t::VRC6)) {
+		const CSoundChipSet &chips = GetModuleData()->GetSoundChipSet();
+
+		if (chips.ContainsChip(sound_chip_t::VRC6)) {
 			m_pNoteQueue->AddMap({chan_id_t::VRC6_PULSE1, chan_id_t::VRC6_PULSE2});
 			m_pNoteQueue->AddMap({chan_id_t::VRC6_SAWTOOTH});
 		}
-		if (pDoc->ExpansionEnabled(sound_chip_t::VRC7))
+		if (chips.ContainsChip(sound_chip_t::VRC7))
 			m_pNoteQueue->AddMap({chan_id_t::VRC7_CH1, chan_id_t::VRC7_CH2, chan_id_t::VRC7_CH3,
 								  chan_id_t::VRC7_CH4, chan_id_t::VRC7_CH5, chan_id_t::VRC7_CH6});
-		if (pDoc->ExpansionEnabled(sound_chip_t::FDS))
+		if (chips.ContainsChip(sound_chip_t::FDS))
 			m_pNoteQueue->AddMap({chan_id_t::FDS});
-		if (pDoc->ExpansionEnabled(sound_chip_t::MMC5))
+		if (chips.ContainsChip(sound_chip_t::MMC5))
 			m_pNoteQueue->AddMap({chan_id_t::SQUARE1, chan_id_t::SQUARE2, chan_id_t::MMC5_SQUARE1, chan_id_t::MMC5_SQUARE2});
 		else
 			m_pNoteQueue->AddMap({chan_id_t::SQUARE1, chan_id_t::SQUARE2});
-		if (pDoc->ExpansionEnabled(sound_chip_t::N163)) {
+		if (chips.ContainsChip(sound_chip_t::N163)) {
 			std::vector<chan_id_t> n;
-			int Channels = pDoc->GetNamcoChannels();
+			int Channels = GetModuleData()->GetNamcoChannels();
 			for (int i = 0; i < Channels; ++i)
 				n.push_back(MakeChannelIndex(sound_chip_t::N163, i));
 			m_pNoteQueue->AddMap(n);
 		}
-		if (pDoc->ExpansionEnabled(sound_chip_t::S5B))
+		if (chips.ContainsChip(sound_chip_t::S5B))
 			m_pNoteQueue->AddMap({chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3});
 	}
 

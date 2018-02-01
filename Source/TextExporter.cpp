@@ -1056,7 +1056,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 	int N163count = -1;		// // //
 	if (modfile.HasExpansionChip(sound_chip_t::N163)) {
 		N163count = modfile.GetNamcoChannels();
-		Doc.SelectExpansionChip(Doc.GetExpansionChip(), MAX_CHANNELS_N163); // calls ApplyExpansionChip()
+		Doc.SelectExpansionChip(modfile.GetSoundChipSet(), MAX_CHANNELS_N163); // calls ApplyExpansionChip()
 		s.Format(_T("# Namco 163 global settings\n"
 		            "%-15s %d\n"
 		            "\n"),

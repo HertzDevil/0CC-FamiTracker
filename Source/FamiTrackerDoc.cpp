@@ -764,13 +764,6 @@ void CFamiTrackerDoc::SetSongSpeed(unsigned int Track, unsigned int Speed)
 
 //// Track functions //////////////////////////////////////////////////////////////////////////////////
 
-std::string_view CFamiTrackerDoc::GetTrackTitle(unsigned int Track) const		// // //
-{
-	if (Track < GetTrackCount())
-		return GetSongData(Track).GetTitle();
-	return CSongData::DEFAULT_TITLE;
-}
-
 CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index)		// // //
 {
 	// Ensure track is allocated
@@ -796,7 +789,7 @@ void CFamiTrackerDoc::SelectExpansionChip(const CSoundChipSet &chips, unsigned n
 
 void CFamiTrackerDoc::ApplyExpansionChip() const {
 	// Tell the sound emulator to switch expansion chip
-	theApp.GetSoundGenerator()->SelectChip(GetExpansionChip());
+	theApp.GetSoundGenerator()->SelectChip(GetModule()->GetSoundChipSet());
 
 	// Change period tables
 	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
@@ -997,14 +990,6 @@ CBookmark *CFamiTrackerDoc::GetBookmarkAt(unsigned int Track, unsigned int Frame
 	return nullptr;
 }
 
-unsigned int CFamiTrackerDoc::ScanActualLength(unsigned int Track, unsigned int Count) const		// // // TODO: remove
-{
-	auto pSongView = GetModule()->MakeSongView(Track);
-	CSongLengthScanner scanner {*GetModule(), *pSongView};
-	auto [FirstLoop, SecondLoop] = scanner.GetRowCount();
-	return FirstLoop + SecondLoop * (Count - 1);		// // //
-}
-
 // Operations
 
 void CFamiTrackerDoc::RemoveUnusedInstruments()
@@ -1052,9 +1037,11 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 
 void CFamiTrackerDoc::RemoveUnusedPatterns()
 {
+	const CChannelOrder &order = GetModule()->GetChannelOrder();
+
 	GetModule()->VisitSongs([&] (CSongData &song) {
 		for (unsigned i = 0; i < CHANID_COUNT; ++i)
-			if (!HasChannel((chan_id_t)i))
+			if (!order.HasChannel((chan_id_t)i))
 				for (int p = 0; p < MAX_PATTERN; ++p)
 					song.GetPattern((chan_id_t)i, p) = CPatternData { };
 		song.VisitPatterns([&song] (CPatternData &pattern, chan_id_t c, unsigned p) {
@@ -1154,10 +1141,6 @@ int CFamiTrackerDoc::GetChannelIndex(chan_id_t Channel) const {
 	return GetChannelOrder().GetChannelIndex(Channel);		// // //
 }
 
-bool CFamiTrackerDoc::HasChannel(chan_id_t Channel) const {		// // //
-	return GetChannelOrder().HasChannel(Channel);
-}
-
 
 
 void CFamiTrackerDoc::SetSongTempo(unsigned int Track, unsigned int Tempo) {
@@ -1189,22 +1172,6 @@ bool CFamiTrackerDoc::GetSongGroove(unsigned int Track) const {		// // //
 }
 
 
-
-std::string_view CFamiTrackerDoc::GetModuleName() const {
-	return GetModule()->GetModuleName();
-}
-
-std::string_view CFamiTrackerDoc::GetModuleArtist() const {
-	return GetModule()->GetModuleArtist();
-}
-
-std::string_view CFamiTrackerDoc::GetModuleCopyright() const {
-	return GetModule()->GetModuleCopyright();
-}
-
-const CSoundChipSet &CFamiTrackerDoc::GetExpansionChip() const {
-	return GetModule()->GetSoundChipSet();
-}
 
 bool CFamiTrackerDoc::ExpansionEnabled(sound_chip_t Chip) const {
 	return GetModule()->HasExpansionChip(Chip);

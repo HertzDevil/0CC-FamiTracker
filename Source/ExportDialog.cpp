@@ -30,6 +30,7 @@
 #include <vector>
 #include "FamiTracker.h"
 #include "FamitrackerDoc.h"
+#include "FamiTrackerModule.h"		// // //
 #include "Compiler.h"
 #include "Settings.h"
 #include <optional>		// // //
@@ -145,10 +146,10 @@ BOOL CExportDialog::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	CFrameWnd *pFrameWnd = static_cast<CFrameWnd*>(GetParent());
-	CFamiTrackerDoc *pDoc = static_cast<CFamiTrackerDoc*>(pFrameWnd->GetActiveDocument());
+	const auto *pModule = CFamiTrackerDoc::GetDoc()->GetModule();		// // //
 
 	// Check PAL button if it's a PAL song
-	if (pDoc->GetMachine() == PAL) {
+	if (pModule->GetMachine() == machine_t::PAL) {
 		CheckDlgButton(IDC_NTSC, 0);
 		CheckDlgButton(IDC_PAL, 1);
 		CheckDlgButton(IDC_DUAL, 0);
@@ -159,9 +160,9 @@ BOOL CExportDialog::OnInitDialog()
 		CheckDlgButton(IDC_DUAL, 0);
 	}
 
-	SetDlgItemText(IDC_NAME, pDoc->GetModuleName().data());		// // //
-	SetDlgItemText(IDC_ARTIST, pDoc->GetModuleArtist().data());
-	SetDlgItemText(IDC_COPYRIGHT, pDoc->GetModuleCopyright().data());
+	SetDlgItemText(IDC_NAME, pModule->GetModuleName().data());		// // //
+	SetDlgItemText(IDC_ARTIST, pModule->GetModuleArtist().data());
+	SetDlgItemText(IDC_COPYRIGHT, pModule->GetModuleCopyright().data());
 
 	// Fill the export box
 	CComboBox *pTypeBox = static_cast<CComboBox*>(GetDlgItem(IDC_TYPE));
