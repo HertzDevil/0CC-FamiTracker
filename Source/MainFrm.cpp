@@ -3353,7 +3353,8 @@ void CMainFrame::OnEasterEggKraid5()
 			m_iKraidCounter = 0;
 			return;}
 		CFamiTrackerDoc &doc = GetDoc();
-		Kraid { }(doc);
+		doc.CreateEmpty();
+		Kraid { }(*doc.GetModule());
 		SelectTrack(0);
 		SetSongInfo(*doc.GetModule());
 		UpdateControls();

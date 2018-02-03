@@ -26,17 +26,17 @@
 #include <string_view>
 #include "APU/Types_fwd.h"
 
-class CFamiTrackerDoc;
+class CFamiTrackerModule;
 class CSongData;
 
 // // // Easter egg
 
 struct Kraid {
-	void operator()(CFamiTrackerDoc &doc);
+	void operator()(CFamiTrackerModule &modfile);
 
 private:
-	void buildDoc(CFamiTrackerDoc &doc);
+	void buildDoc(CFamiTrackerModule &modfile);
 	void buildSong(CSongData &song);
-	void makeInst(CFamiTrackerDoc &doc, unsigned index, char vol, std::string_view name);
+	void makeInst(CFamiTrackerModule &modfile, unsigned index, char vol, std::string_view name);
 	void makePattern(CSongData &song, chan_id_t ch, unsigned pat, std::string_view mml);
 };

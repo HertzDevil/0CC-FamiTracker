@@ -21,23 +21,22 @@
 */
 
 #include "Kraid.h"
-#include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
 #include "InstrumentManager.h"
 #include "Instrument2A03.h"
 #include "SongData.h"
 #include "Sequence.h"
 
-void Kraid::operator()(CFamiTrackerDoc &doc) {
-	doc.CreateEmpty();
-	buildDoc(doc);
-	buildSong(*doc.GetSong(0));
+void Kraid::operator()(CFamiTrackerModule &modfile) {
+	buildDoc(modfile);
+	buildSong(*modfile.GetSong(0));
 }
 
-void Kraid::buildDoc(CFamiTrackerDoc &doc) {
+void Kraid::buildDoc(CFamiTrackerModule &modfile) {
 	// Instruments and sequences
-	makeInst(doc, 0, 6, "Lead ");
-	makeInst(doc, 1, 2, "Echo");
-	makeInst(doc, 2, 15, "Triangle");
+	makeInst(modfile, 0, 6, "Lead ");
+	makeInst(modfile, 1, 2, "Echo");
+	makeInst(modfile, 2, 15, "Triangle");
 }
 
 void Kraid::buildSong(CSongData &song) {
@@ -90,10 +89,10 @@ void Kraid::buildSong(CSongData &song) {
 	} while (f || r);
 }
 
-void Kraid::makeInst(CFamiTrackerDoc &doc, unsigned index, char vol, std::string_view name) {
-	auto *pManager = doc.GetInstrumentManager();
+void Kraid::makeInst(CFamiTrackerModule &modfile, unsigned index, char vol, std::string_view name) {
+	auto *pManager = modfile.GetInstrumentManager();
 	pManager->InsertInstrument(index, pManager->CreateNew(INST_2A03));
-	auto leadInst = std::dynamic_pointer_cast<CInstrument2A03>(doc.GetInstrument(index));
+	auto leadInst = std::dynamic_pointer_cast<CInstrument2A03>(pManager->GetInstrument(index));
 	leadInst->SetSeqEnable(sequence_t::Volume, true);
 	leadInst->SetSeqIndex(sequence_t::Volume, index);
 	leadInst->SetName(name);

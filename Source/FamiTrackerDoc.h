@@ -179,9 +179,6 @@ public:
 
 	machine_t		GetMachine() const;
 
-	CSongData		*GetSong(unsigned int Index);		// // //
-	const CSongData	*GetSong(unsigned int Index) const;		// // //
-
 	// void (*F)(chan_id_t chan)
 	template <typename F>
 	void ForeachChannel(F f) const {

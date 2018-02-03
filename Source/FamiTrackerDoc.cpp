@@ -1124,14 +1124,6 @@ machine_t CFamiTrackerDoc::GetMachine() const {
 	return GetModule()->GetMachine();
 }
 
-CSongData *CFamiTrackerDoc::GetSong(unsigned int Index) {		// // //
-	return GetModule()->GetSong(Index);
-}
-
-const CSongData *CFamiTrackerDoc::GetSong(unsigned int Index) const {		// // //
-	return GetModule()->GetSong(Index);
-}
-
 CInstrumentManager *const CFamiTrackerDoc::GetInstrumentManager() const {
 	return GetModule()->GetInstrumentManager();
 }
