@@ -415,11 +415,7 @@ void CSoundDriver::SetupPeriodTables() {
 		m_iNoteLookupTableSaw[i] = (unsigned int)(Pitch - modfile_->GetDetuneOffset(2, i));		// // //
 
 		// FDS
-#ifdef TRANSPOSE_FDS
 		Pitch = (Freq * 65536.0) / (clock_ntsc / 1.0) + 0.5;
-#else
-		Pitch = (Freq * 65536.0) / (clock_ntsc / 4.0) + 0.5;
-#endif
 		m_iNoteLookupTableFDS[i] = (unsigned int)(Pitch + modfile_->GetDetuneOffset(4, i));		// // //
 
 		// N163

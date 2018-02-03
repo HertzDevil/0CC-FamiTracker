@@ -181,11 +181,7 @@ bool CFamiTrackerDocIO::Save(const CFamiTrackerDoc &doc) {
 		{&CFamiTrackerDocIO::SaveInstruments,	6, FILE_BLOCK_INSTRUMENTS},
 		{&CFamiTrackerDocIO::SaveSequences,		6, FILE_BLOCK_SEQUENCES},
 		{&CFamiTrackerDocIO::SaveFrames,		3, FILE_BLOCK_FRAMES},
-#ifdef TRANSPOSE_FDS
 		{&CFamiTrackerDocIO::SavePatterns,		5, FILE_BLOCK_PATTERNS},
-#else
-		{&CFamiTrackerDocIO::SavePatterns,		4, FILE_BLOCK_PATTERNS},
-#endif
 		{&CFamiTrackerDocIO::SaveDSamples,		1, FILE_BLOCK_DSAMPLES},
 		{&CFamiTrackerDocIO::SaveComments,		1, FILE_BLOCK_COMMENTS},
 		{&CFamiTrackerDocIO::SaveSequencesVRC6,	6, FILE_BLOCK_SEQUENCES_VRC6},		// // //

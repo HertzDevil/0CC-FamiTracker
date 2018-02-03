@@ -32,8 +32,6 @@
 // Constants, types and enums
 #include "FTMComponentInterface.h"
 
-#define TRANSPOSE_FDS
-
 // #define DISABLE_SAVE		// // //
 
 // External classes
