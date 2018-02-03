@@ -203,7 +203,7 @@ void CSoundDriver::Tick() {
 }
 
 void CSoundDriver::StepRow(chan_id_t chan) {
-	stChanNote NoteData = modfile_->GetSong(m_pPlayerCursor->GetCurrentSong())->GetActiveNote(
+	stChanNote NoteData = m_pPlayerCursor->GetSong().GetActiveNote(
 		chan, m_pPlayerCursor->GetCurrentFrame(), m_pPlayerCursor->GetCurrentRow());		// // //
 	HandleGlobalEffects(NoteData);
 	if (!parent_ || !parent_->IsChannelMuted(chan))

@@ -429,10 +429,12 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 
 bool CChannelHandler::HandleInstrument(bool Trigger, bool NewInstrument)		// // //
 {
-	auto pDoc = m_pSoundGen->GetDocumentInterface();
-	if (!pDoc) return false;
-	std::shared_ptr<CInstrument> pInstrument = pDoc->GetInstrumentManager()->GetInstrument(m_iInstrument);
-	if (!pInstrument) return false;
+	auto pManager = m_pSoundGen->GetInstrumentManager();
+	if (!pManager)
+		return false;
+	std::shared_ptr<CInstrument> pInstrument = pManager->GetInstrument(m_iInstrument);
+	if (!pInstrument)
+		return false;
 
 	// load instrument here
 	inst_type_t instType = pInstrument->GetType();

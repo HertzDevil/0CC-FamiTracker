@@ -36,6 +36,7 @@ class groove;
 
 class CTempoCounter {
 public:
+	CTempoCounter();
 	explicit CTempoCounter(const CFamiTrackerModule &modfile);
 	void AssignModule(const CFamiTrackerModule &modfile);
 

@@ -1174,6 +1174,7 @@ void CFamiTrackerView::OnInitialUpdate()
 	SetFollowMode(theApp.GetSettings()->FollowMode);
 
 	// Setup speed/tempo (TODO remove?)
+	theApp.GetSoundGenerator()->AssignModule(*pModule);		// // //
 	theApp.GetSoundGenerator()->ResetState();
 	theApp.GetSoundGenerator()->ResetTempo();
 	theApp.GetSoundGenerator()->SetMeterDecayRate(theApp.GetSettings()->MeterDecayRate ? DECAY_FAST : DECAY_SLOW);		// // // 050B
@@ -1451,29 +1452,29 @@ std::pair<unsigned, unsigned> CFamiTrackerView::GetSelectedPos() const {
 
 CPlayerCursor CFamiTrackerView::GetPlayerCursor(play_mode_t Mode) const {		// // //
 	const unsigned Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
+	const CSongData &song = *GetModuleData()->GetSong(Track);
 
 	switch (Mode) {
 	case play_mode_t::Frame:
-		return CPlayerCursor {*GetDocument(), Track, GetSelectedFrame(), 0};
-	case play_mode_t::RepeatFrame:
-	{
-		auto cur = CPlayerCursor {*GetDocument(), Track, GetSelectedFrame(), 0};
+		return CPlayerCursor {song, Track, GetSelectedFrame(), 0};
+	case play_mode_t::RepeatFrame: {
+		auto cur = CPlayerCursor {song, Track, GetSelectedFrame(), 0};
 		cur.EnableFrameLoop();
 		return cur;
 	}
 	case play_mode_t::Cursor:
-		return CPlayerCursor {*GetDocument(), Track, GetSelectedFrame(), GetSelectedRow()};
+		return CPlayerCursor {song, Track, GetSelectedFrame(), GetSelectedRow()};
 	case play_mode_t::Marker:		// // // 050B
 		if (GetMarkerFrame() != -1 && GetMarkerRow() != -1)
-			return CPlayerCursor {*GetDocument(), Track,
+			return CPlayerCursor {song, Track,
 				static_cast<unsigned>(GetMarkerFrame()), static_cast<unsigned>(GetMarkerRow())};
 		break;
 	case play_mode_t::Song:
-		return CPlayerCursor {*GetDocument(), Track};
+		return CPlayerCursor {song, Track};
 	}
 
 	__debugbreak();
-	return CPlayerCursor {*GetDocument(), Track};
+	return CPlayerCursor {song, Track};
 }
 
 void CFamiTrackerView::SetFollowMode(bool Mode)

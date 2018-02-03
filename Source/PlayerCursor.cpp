@@ -21,16 +21,20 @@
 */
 
 #include "PlayerCursor.h"
-#include "FamiTrackerDoc.h"
+#include "SongData.h"
 
-CPlayerCursor::CPlayerCursor(const CFamiTrackerDoc &doc, unsigned track) :
-	doc_(doc), track_(track)
+CPlayerCursor::CPlayerCursor(const CSongData &song, unsigned index) :
+	song_(song), track_(index)
 {
 }
 
-CPlayerCursor::CPlayerCursor(const CFamiTrackerDoc &doc, unsigned track, unsigned frame, unsigned row) :
-	doc_(doc), track_(track), frame_(frame), row_(row)
+CPlayerCursor::CPlayerCursor(const CSongData &song, unsigned index, unsigned frame, unsigned row) :
+	song_(song), track_(index), frame_(frame), row_(row)
 {
+}
+
+const CSongData &CPlayerCursor::GetSong() const {
+	return song_;
 }
 
 void CPlayerCursor::QueueFrame(unsigned frame) {
@@ -47,7 +51,7 @@ void CPlayerCursor::Tick() {
 }
 
 void CPlayerCursor::StepRow() {
-	if (++row_ >= doc_.GetPatternLength(track_)) {
+	if (++row_ >= song_.GetPatternLength()) {
 		row_ = 0;
 		MoveToCheckedFrame(frame_ + 1);
 	}
@@ -68,7 +72,7 @@ void CPlayerCursor::MoveToRow(unsigned Row) {
 }
 
 void CPlayerCursor::MoveToFrame(unsigned frame) {
-	frame_ = frame % doc_.GetFrameCount(track_);
+	frame_ = frame % song_.GetFrameCount();
 	++total_frames_;
 }
 
@@ -77,7 +81,7 @@ void CPlayerCursor::MoveToCheckedFrame(unsigned frame) {
 }
 
 void CPlayerCursor::DoBxx(unsigned frame) {
-	const unsigned Max = doc_.GetFrameCount(track_) - 1;
+	const unsigned Max = song_.GetFrameCount() - 1;
 	MoveToFrame(frame <= Max ? frame : Max);
 	MoveToRow(0);
 }
@@ -87,7 +91,7 @@ void CPlayerCursor::DoCxx() {
 }
 
 void CPlayerCursor::DoDxx(unsigned row) {
-	const unsigned Max = doc_.GetPatternLength(track_) - 1;
+	const unsigned Max = song_.GetPatternLength() - 1;
 	MoveToCheckedFrame(frame_ + 1);
 	MoveToRow(row <= Max ? row : Max);
 }

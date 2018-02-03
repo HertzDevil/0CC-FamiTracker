@@ -25,13 +25,15 @@
 
 #include <optional>
 
-class CFamiTrackerDoc;
+class CSongData;
 
 // // // TODO: integrate this with CCursorPos
 class CPlayerCursor {
 public:
-	CPlayerCursor(const CFamiTrackerDoc &doc, unsigned track);
-	CPlayerCursor(const CFamiTrackerDoc &doc, unsigned track, unsigned frame, unsigned row);
+	explicit CPlayerCursor(const CSongData &song, unsigned index);
+	CPlayerCursor(const CSongData &song, unsigned index, unsigned frame, unsigned row);
+
+	const CSongData &GetSong() const;
 
 	void QueueFrame(unsigned frame);
 	void EnableFrameLoop();
@@ -60,7 +62,7 @@ private:
 	void MoveToCheckedFrame(unsigned frame);
 	unsigned DequeueFrame();
 
-	const CFamiTrackerDoc &doc_;
+	const CSongData &song_;
 
 	unsigned track_ = 0;
 	unsigned frame_ = 0;

@@ -28,13 +28,13 @@
 // // // tentative base class for CSoundGen, might become CSoundDriverBase later
 
 class stChanNote;
-class CFTMComponentInterface;
+class CInstrumentManager;
 
 class CSoundGenBase {
 public:
 	virtual ~CSoundGenBase() noexcept = default;
 
-	virtual CFTMComponentInterface *GetDocumentInterface() const = 0;
+	virtual CInstrumentManager *GetInstrumentManager() const = 0;
 
 	virtual void OnTick() = 0;
 	virtual void OnStepRow() = 0;

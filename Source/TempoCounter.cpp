@@ -28,6 +28,12 @@
 
 // // // CTempoCounter
 
+CTempoCounter::CTempoCounter() :
+	m_iTempo(DEFAULT_TEMPO),
+	m_iSpeed(DEFAULT_SPEED)
+{
+}
+
 CTempoCounter::CTempoCounter(const CFamiTrackerModule &modfile) :
 	m_pModule(&modfile),
 	m_iTempo(DEFAULT_TEMPO),

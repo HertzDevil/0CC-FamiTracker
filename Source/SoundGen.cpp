@@ -42,6 +42,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "FTMComponentInterface.h"		// // //
 #include "SongState.h"		// // //
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"		// // //
 #include "FamiTrackerView.h"
 #include "VisualizerWnd.h"
 #include "MainFrm.h"
@@ -100,6 +101,7 @@ END_MESSAGE_MAP()
 // CSoundGen
 
 CSoundGen::CSoundGen() :
+	m_pTempoCounter(std::make_shared<CTempoCounter>()),		// // //
 	m_pSoundDriver(std::make_unique<CSoundDriver>(this)),		// // //
 	m_pAPU(std::make_unique<CAPU>()),		// // //
 	m_bHaltRequest(false),
@@ -133,18 +135,25 @@ void CSoundGen::AssignDocument(CFamiTrackerDoc *pDoc)
 	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
 
 	// Ignore all but the first document (as new documents are used to import files)
-	if (m_pDocument != NULL)
+	if (m_pDocument)
 		return;
 
 	// Assigns a document to this object
 	m_pDocument = pDoc;
 	m_pInstRecorder->m_pDocument = pDoc;		// // //
-	m_pSoundDriver->AssignModule(*m_pDocument->GetModule());
-	m_pTempoCounter = std::make_shared<CTempoCounter>(*m_pDocument->GetModule());		// // //
+
+	AssignModule(*m_pDocument->GetModule());		// // //
 
 	m_pSoundDriver->LoadAPU(*m_pAPU);		// // //
 	m_pSoundDriver->SetTempoCounter(m_pTempoCounter);		// // //
+
 	DocumentPropertiesChanged(pDoc);		// // //
+}
+
+void CSoundGen::AssignModule(CFamiTrackerModule &modfile) {
+	m_pModule = &modfile;
+	m_pSoundDriver->AssignModule(modfile);
+	m_pTempoCounter->AssignModule(modfile);
 }
 
 void CSoundGen::AssignView(CFamiTrackerView *pView)
@@ -223,8 +232,7 @@ void CSoundGen::DocumentPropertiesChanged(CFamiTrackerDoc *pDocument)
 //	ASSERT(pDocument == m_pDocument);		// // //
 	if (pDocument != m_pDocument)
 		return;
-	m_pTempoCounter->AssignModule(*m_pDocument->GetModule());
-	m_pSoundDriver->AssignModule(*pDocument->GetModule());
+	AssignModule(*m_pDocument->GetModule());
 	m_pSoundDriver->ConfigureDocument();
 }
 
@@ -253,7 +261,7 @@ void CSoundGen::ResetPlayer(int Track)
 	if (!m_hThread)
 		return;
 
-	auto pCur = std::make_unique<CPlayerCursor>(*m_pDocument, Track);		// // //
+	auto pCur = std::make_unique<CPlayerCursor>(*m_pModule->GetSong(Track), Track);		// // //
 	PostThreadMessage(WM_USER_RESET, reinterpret_cast<uintptr_t>(pCur.release()), 0);
 }
 
@@ -282,9 +290,10 @@ void CSoundGen::PlaySingleRow(int track) {		// // //
 	}
 
 	auto [frame, row] = m_pTrackerView->GetSelectedPos();
-	m_pDocument->ForeachChannel([&] (chan_id_t i) {
+	const CSongData &song = *m_pModule->GetSong(track);
+	m_pModule->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
 		if (!IsChannelMuted(i))
-			QueueNote(i, m_pDocument->GetSong(track)->GetActiveNote(i, frame, row), NOTE_PRIO_1);
+			QueueNote(i, song.GetActiveNote(i, frame, row), NOTE_PRIO_1);
 	});
 }
 
@@ -298,11 +307,11 @@ void CSoundGen::WriteAPU(int Address, char Value)
 }
 
 bool CSoundGen::IsExpansionEnabled(sound_chip_t Chip) const {		// // //
-	return m_pDocument && m_pDocument->ExpansionEnabled(Chip);
+	return m_pModule && m_pModule->HasExpansionChip(Chip);
 }
 
 int CSoundGen::GetNamcoChannelCount() const {		// // //
-	return m_pDocument ? m_pDocument->GetNamcoChannels() : 0;
+	return m_pModule ? m_pModule->GetNamcoChannels() : 0;
 }
 
 void CSoundGen::PreviewSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSample, int Offset, int Pitch)		// // //
@@ -482,6 +491,10 @@ void CSoundGen::CloseAudio()
 	}
 }
 
+bool CSoundGen::IsAudioReady() const {		// // //
+	return m_pDocument && m_pModule && m_pAudioDriver->IsAudioDeviceOpen() && m_pDocument->IsFileLoaded();
+}
+
 void CSoundGen::ResetBuffer()
 {
 	// Called from player thread
@@ -558,10 +571,9 @@ void CSoundGen::BeginPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 {
 	// Called from player thread
 	ASSERT(GetCurrentThreadId() == m_nThreadID);
-	ASSERT(m_pDocument != NULL);
 //	ASSERT(m_pTrackerView != NULL);
 
-	if (!m_pDocument || !m_pAudioDriver->IsAudioDeviceOpen() || !m_pDocument->IsFileLoaded())		// // //
+	if (!IsAudioReady())		// // //
 		return;
 
 	auto &cur = *Pos;		// // //
@@ -596,7 +608,7 @@ void CSoundGen::ApplyGlobalState()		// // //
 	auto [Frame, Row] = IsPlaying() ? GetPlayerPos() : m_pTrackerView->GetSelectedPos();		// // //
 
 	CSongState state;
-	state.Retrieve(*m_pDocument->GetModule(), GetPlayerTrack(), Frame, Row);
+	state.Retrieve(*m_pModule, GetPlayerTrack(), Frame, Row);
 
 	m_pSoundDriver->LoadSoundState(state);
 
@@ -626,7 +638,7 @@ void CSoundGen::OnPlayNote(chan_id_t chan, const stChanNote &note) {
 	if (!IsChannelMuted(chan)) {
 		if (m_pTrackerView)
 			m_pTrackerView->PlayerPlayNote(chan, note);
-		theApp.GetMIDI()->WriteNote(m_pDocument->GetChannelIndex(chan), note.Note, note.Octave, note.Vol);
+		theApp.GetMIDI()->WriteNote(m_pModule->GetChannelOrder().GetChannelIndex(chan), note.Note, note.Octave, note.Vol);
 	}
 }
 
@@ -666,8 +678,8 @@ std::string CSoundGen::RecallChannelState(chan_id_t Channel) const		// // //
 
 	auto [Frame, Row] = m_pTrackerView->GetSelectedPos();
 	CSongState state;
-	state.Retrieve(*m_pDocument->GetModule(), GetPlayerTrack(), Frame, Row);
-	return state.GetChannelStateString(*m_pDocument->GetModule(), Channel);
+	state.Retrieve(*m_pModule, GetPlayerTrack(), Frame, Row);
+	return state.GetChannelStateString(*m_pModule, Channel);
 }
 
 void CSoundGen::HaltPlayer() {
@@ -753,13 +765,14 @@ void CSoundGen::ResetState()
 // Get tempo values from the document
 void CSoundGen::ResetTempo()
 {
-	ASSERT(m_pDocument != NULL);
+	ASSERT(m_pModule);
 
-	if (!m_pDocument)
+	if (!m_pModule)
 		return;
 
-	m_pTempoCounter->LoadTempo(*m_pDocument->GetSong(m_iLastTrack));		// // //
-	m_iLastHighlight = m_pDocument->GetHighlight(m_iLastTrack).First;		// // //
+	const CSongData &song = *m_pModule->GetSong(m_iLastTrack);
+	m_pTempoCounter->LoadTempo(song);		// // //
+	m_iLastHighlight = song.GetRowHighlight().First;		// // //
 }
 
 void CSoundGen::SetHighlightRows(int Rows)		// // //
@@ -775,7 +788,7 @@ double CSoundGen::GetAverageBPM() const		// // // 050B
 
 float CSoundGen::GetCurrentBPM() const		// // //
 {
-	double Max = m_pDocument->GetFrameRate() * 15.;
+	double Max = m_pModule->GetFrameRate() * 15.;
 	double BPM = GetAverageBPM();		// // // 050B
 	return static_cast<float>((BPM > Max ? Max : BPM) * 4. / (m_iLastHighlight ? m_iLastHighlight : 4));
 }
@@ -811,12 +824,12 @@ void CSoundGen::LoadMachineSettings()		// // //
 	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
 	ASSERT(m_pAPU != NULL);
 
-	m_iMachineType = m_pDocument->GetMachine();		// // // 050B
+	m_iMachineType = m_pModule->GetMachine();		// // // 050B
 
 	int BaseFreq	= (m_iMachineType == NTSC) ? CAPU::BASE_FREQ_NTSC  : CAPU::BASE_FREQ_PAL;
 
 	// Choose a default rate if not predefined
-	int Rate = m_pDocument->GetFrameRate();		// // //
+	int Rate = m_pModule->GetFrameRate();		// // //
 
 	// Number of cycles between each APU update
 	m_iUpdateCycles = BaseFreq / Rate;
@@ -1012,7 +1025,7 @@ BOOL CSoundGen::OnIdle(LONG lCount)
 }
 
 BOOL CSoundGen::IdleLoop() {
-	if (!m_pDocument || !m_pAudioDriver->IsAudioDeviceOpen() || !m_pDocument->IsFileLoaded())		// // //
+	if (!IsAudioReady())		// // //
 		return TRUE;
 
 	++m_iFrameCounter;
@@ -1027,8 +1040,10 @@ BOOL CSoundGen::IdleLoop() {
 	if (CSingleLock l(&m_csRenderer); l.Lock() && m_pWaveRenderer)		// // //
 		if (m_pWaveRenderer->ShouldStopRender())
 			StopRendering();
-		else if (m_pWaveRenderer->ShouldStartPlayer())
-			StartPlayer(std::make_unique<CPlayerCursor>(*m_pDocument, m_pWaveRenderer->GetRenderTrack()));
+		else if (m_pWaveRenderer->ShouldStartPlayer()) {
+			int track = m_pWaveRenderer->GetRenderTrack();
+			StartPlayer(std::make_unique<CPlayerCursor>(*m_pModule->GetSong(track), track));
+		}
 
 	// Update APU registers
 	UpdateAPU();
@@ -1156,8 +1171,9 @@ void CSoundGen::OnSetChip(WPARAM wParam, LPARAM lParam)
 void CSoundGen::OnRemoveDocument(WPARAM wParam, LPARAM lParam)
 {
 	// Remove document and view pointers
-	m_pDocument = NULL;
-	m_pTrackerView = NULL;
+	m_pModule = nullptr;		// // //
+	m_pDocument = nullptr;
+	m_pTrackerView = nullptr;
 	m_pInstRecorder->SetDumpCount(0);		// // //
 	m_pInstRecorder->ReleaseCurrent();
 	// m_pInstRecorder->ResetDumpInstrument();
@@ -1191,7 +1207,7 @@ void CSoundGen::QueueNote(chan_id_t Channel, const stChanNote &NoteData, note_pr
 {
 	// Queue a note for play
 	m_pSoundDriver->QueueNote(Channel, NoteData, Priority);
-	theApp.GetMIDI()->WriteNote(m_pDocument->GetChannelIndex(Channel), NoteData.Note, NoteData.Octave, NoteData.Vol);
+	theApp.GetMIDI()->WriteNote(m_pModule->GetChannelOrder().GetChannelIndex(Channel), NoteData.Note, NoteData.Octave, NoteData.Vol);
 }
 
 void CSoundGen::ForceReloadInstrument(chan_id_t Channel)		// // //
@@ -1239,9 +1255,9 @@ unsigned CSoundGen::GetQueueFrame() const
 
 // Verification
 
-CFTMComponentInterface *CSoundGen::GetDocumentInterface() const
+CInstrumentManager *CSoundGen::GetInstrumentManager() const
 {
-	return static_cast<CFTMComponentInterface*>(m_pDocument);
+	return m_pModule ? m_pModule->GetInstrumentManager() : nullptr;
 }
 
 void CSoundGen::SetSequencePlayPos(std::shared_ptr<const CSequence> pSequence, int Pos) {		// // //
@@ -1274,11 +1290,6 @@ void CSoundGen::SetMeterDecayRate(decay_rate_t Type) const		// // // 050B
 decay_rate_t CSoundGen::GetMeterDecayRate() const
 {
 	return m_pAPU->GetMeterDecayRate();
-}
-
-int CSoundGen::GetDefaultInstrument() const
-{
-	return ((CMainFrame*)theApp.m_pMainWnd)->GetSelectedInstrument();
 }
 
 // // // instrument recorder

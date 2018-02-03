@@ -61,13 +61,14 @@ enum note_prio_t : unsigned;		// // //
 
 class CFamiTrackerView;
 class CFamiTrackerDoc;
+class CFamiTrackerModule;		// // //
 class CInstrument;		// // //
 class CSequence;		// // //
 class CAPU;
 class CDSound;
 class CDSoundChannel;
 class CVisualizerWnd;
-class CFTMComponentInterface;		// // //
+class CInstrumentManager;		// // //
 class CInstrumentRecorder;		// // //
 class CRegisterState;		// // //
 class CArpeggiator;		// // //
@@ -102,6 +103,7 @@ public:
 
 	// One time initialization
 	void		AssignDocument(CFamiTrackerDoc *pDoc);
+	void		AssignModule(CFamiTrackerModule &modfile);		// // //
 	void		AssignView(CFamiTrackerView *pView);
 	void		RemoveDocument();
 	void		SetVisualizerWindow(CVisualizerWnd *pWnd);
@@ -183,7 +185,6 @@ public:
 	// FDS & N163 wave preview
 	void		WaveChanged();
 	bool		HasWaveChanged() const;
-	void		ResetWaveChanged();
 
 	void		SetNamcoMixing(bool bLinear);			// // //
 
@@ -205,17 +206,12 @@ public:
 	const stRecordSetting &GetRecordSetting() const;
 	void			SetRecordSetting(const stRecordSetting &Setting);
 
-	bool HasDocument() const { return m_pDocument != NULL; };
-	CFamiTrackerDoc *GetDocument() const { return m_pDocument; };
-
 	// Sequence play position
 	void SetSequencePlayPos(std::shared_ptr<const CSequence> pSequence, int Pos);		// // //
 	int GetSequencePlayPos(std::shared_ptr<const CSequence> pSequence);		// // //
 
 	void SetMeterDecayRate(decay_rate_t Type) const;		// // // 050B
 	decay_rate_t GetMeterDecayRate() const;		// // // 050B
-
-	int GetDefaultInstrument() const;
 
 	//
 	// Private functions
@@ -227,6 +223,7 @@ private:
 	// Audio
 	bool		ResetAudioDevice();
 	void		CloseAudio();
+	bool		IsAudioReady() const;		// // //
 
 	bool		PlayBuffer() override;
 
@@ -251,7 +248,7 @@ private:
 	void		ApplyGlobalState();		// // //
 
 	// // // CSoundGenBase impl
-	CFTMComponentInterface *GetDocumentInterface() const override;
+	CInstrumentManager *GetInstrumentManager() const override;
 	void		OnTick() override;
 	void		OnStepRow() override;
 	void		OnPlayNote(chan_id_t chan, const stChanNote &note) override;
@@ -265,6 +262,7 @@ private:
 private:
 	// Objects
 	CFamiTrackerDoc		*m_pDocument = nullptr;
+	CFamiTrackerModule	*m_pModule = nullptr;		// // //
 	CFamiTrackerView	*m_pTrackerView = nullptr;
 
 	// Sound
