@@ -25,6 +25,7 @@
 #include "version.h"		// // //
 #include "Exception.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"		// // //
 #include "FamiTrackerView.h"
 #include "MainFrm.h"
 #include "AboutDlg.h"
@@ -223,7 +224,7 @@ BOOL CFamiTrackerApp::InitInstance()
 			ExitProcess(1);
 			return FALSE;
 		}
-		if ((unsigned)cmdInfo.track_ >= doc.GetTrackCount())
+		if ((unsigned)cmdInfo.track_ >= doc.GetModule()->GetSongCount())
 			cmdInfo.track_ = 0;
 		m_pSoundGenerator->AssignDocument(&doc);
 		m_pSoundGenerator->InitializeSound(NULL);

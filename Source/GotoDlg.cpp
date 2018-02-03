@@ -21,11 +21,11 @@
 */
 
 #include "GotoDlg.h"
-#include "FamiTracker.h"
-#include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
 #include "FamiTrackerView.h"
-#include "MainFrm.h"
-#include "PatternEditor.h"
+#include "SoundChipSet.h"
+#include "SongData.h"
+#include "SongView.h"
 #include "APU/Types.h"
 
 // CGotoDlg dialog
@@ -62,21 +62,23 @@ BOOL CGotoDlg::OnInitDialog()
 {
 	m_cChipEdit.SubclassDlgItem(IDC_COMBO_GOTO_CHIP, this);
 
-	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
-	CFamiTrackerDoc *pDoc = pView->GetDocument();
+	const CFamiTrackerView *pView = CFamiTrackerView::GetView();
+	const CFamiTrackerModule *pModule = pView->GetModuleData();
 
-	m_cChipEdit.AddString(_T("2A03"));
-	if (pDoc->ExpansionEnabled(sound_chip_t::VRC6))
+	const CSoundChipSet &chips = pModule->GetSoundChipSet();
+	if (chips.ContainsChip(sound_chip_t::APU))
+		m_cChipEdit.AddString(_T("2A03"));
+	if (chips.ContainsChip(sound_chip_t::VRC6))
 		m_cChipEdit.AddString(_T("VRC6"));
-	if (pDoc->ExpansionEnabled(sound_chip_t::VRC7))
+	if (chips.ContainsChip(sound_chip_t::VRC7))
 		m_cChipEdit.AddString(_T("VRC7"));
-	if (pDoc->ExpansionEnabled(sound_chip_t::FDS))
+	if (chips.ContainsChip(sound_chip_t::FDS))
 		m_cChipEdit.AddString(_T("FDS"));
-	if (pDoc->ExpansionEnabled(sound_chip_t::MMC5))
+	if (chips.ContainsChip(sound_chip_t::MMC5))
 		m_cChipEdit.AddString(_T("MMC5"));
-	if (pDoc->ExpansionEnabled(sound_chip_t::N163))
+	if (chips.ContainsChip(sound_chip_t::N163))
 		m_cChipEdit.AddString(_T("N163"));
-	if (pDoc->ExpansionEnabled(sound_chip_t::S5B))
+	if (chips.ContainsChip(sound_chip_t::S5B))
 		m_cChipEdit.AddString(_T("5B"));
 
 	chan_id_t Channel = pView->GetSelectedChannelID();
@@ -107,13 +109,13 @@ BOOL CGotoDlg::OnInitDialog()
 
 void CGotoDlg::CheckDestination() const
 {
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	int Track = static_cast<CMainFrame*>(AfxGetMainWnd())->GetSelectedTrack();
+	const CFamiTrackerView *pView = CFamiTrackerView::GetView();
+	const CConstSongView *pSongView = pView->GetSongView();
 
 	bool Valid = true;
-	if (m_iDestFrame >= pDoc->GetFrameCount(Track))
+	if (m_iDestFrame >= pSongView->GetSong().GetFrameCount())
 		Valid = false;
-	else if (m_iDestRow >= static_cast<unsigned>(pDoc->GetFrameLength(Track, m_iDestFrame)))
+	else if (m_iDestRow >= static_cast<unsigned>(pSongView->GetFrameLength(m_iDestFrame)))
 		Valid = false;
 	else if (GetFinalChannel() == -1)
 		Valid = false;
@@ -143,8 +145,8 @@ sound_chip_t CGotoDlg::GetChipFromString(const CString &str)
 
 int CGotoDlg::GetFinalChannel() const
 {
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	return pDoc->GetChannelIndex(MakeChannelIndex(m_iDestChip, m_iDestSubIndex));
+	const CFamiTrackerModule *pModule = CFamiTrackerView::GetView()->GetModuleData();
+	return pModule->GetChannelOrder().GetChannelIndex(MakeChannelIndex(m_iDestChip, m_iDestSubIndex));
 }
 
 void CGotoDlg::OnEnChangeEditGotoFrame()
@@ -175,7 +177,7 @@ void CGotoDlg::OnCbnSelchangeComboGotoChip()
 
 void CGotoDlg::OnBnClickedOk()
 {
-	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
+	CFamiTrackerView *pView = CFamiTrackerView::GetView();
 	pView->SelectFrame(m_iDestFrame);
 	pView->SelectRow(m_iDestRow);
 	pView->SelectChannel(GetFinalChannel());

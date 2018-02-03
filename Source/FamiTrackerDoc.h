@@ -170,36 +170,17 @@ public:
 
 // // // delegates
 
-#pragma region delegates to CChannelOrder
-	int				GetChannelCount() const;
-	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
-	int				GetChannelIndex(chan_id_t Channel) const;		// // //
-#pragma endregion
-
 #pragma region delegates to CSongData
-	void			SetSongSpeed(unsigned int Track, unsigned int Speed);
-	void			SetSongTempo(unsigned int Track, unsigned int Tempo);
-	void			SetSongGroove(unsigned int Track, bool Groove);		// // //
-
-	unsigned int	GetPatternLength(unsigned int Track) const;
 	unsigned int	GetFrameCount(unsigned int Track) const;
-	unsigned int	GetSongSpeed(unsigned int Track) const;
-	unsigned int	GetSongTempo(unsigned int Track) const;
-	bool			GetSongGroove(unsigned int Track) const;		// // //
 #pragma endregion
 
 #pragma region delegates to CFamiTrackerModule
-	bool			ExpansionEnabled(sound_chip_t Chip) const;
 	int				GetNamcoChannels() const;
 
 	machine_t		GetMachine() const;
-	unsigned int	GetEngineSpeed() const;
-	unsigned int	GetFrameRate() const;
-	int				GetSpeedSplitPoint() const;
 
 	CSongData		*GetSong(unsigned int Index);		// // //
 	const CSongData	*GetSong(unsigned int Index) const;		// // //
-	unsigned int	GetTrackCount() const;
 
 	// void (*F)(chan_id_t chan)
 	template <typename F>
@@ -256,8 +237,8 @@ private:
 	// Internal module operations
 	//
 
-	CSongData		&GetSongData(unsigned int Index);		// // //
-	const CSongData	&GetSongData(unsigned int Index) const;		// // //
+	int				GetChannelCount() const;
+	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
 
 	void			ApplyExpansionChip() const;
 

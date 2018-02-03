@@ -93,12 +93,13 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_CHAN));
 	pCombo->AddString(KEEP_INST_STRING);
 	pCombo->SetCurSel(0);
-	for (int i = 0; i < pDoc->GetChannelCount(); ++i) {
-		chan_id_t ch = pDoc->GetChannelOrder().TranslateChannel(i);
+	int i = 0;
+	pDoc->GetChannelOrder().ForeachChannel([&] (chan_id_t ch) {
 		pCombo->AddString(GetChannelFullName(ch).data());
 		if (m_iSplitChannel == ch)
 			pCombo->SetCurSel(i + 1);
-	}
+		++i;
+	});
 
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_INST));
 	pCombo->AddString(KEEP_INST_STRING);
@@ -151,7 +152,7 @@ void CSplitKeyboardDlg::OnCbnSelchangeComboSplitNote()
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitChan()
 {
 	if (int Pos = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_CHAN))->GetCurSel())
-		m_iSplitChannel = CFamiTrackerDoc::GetDoc()->TranslateChannel(Pos - 1);
+		m_iSplitChannel = CFamiTrackerDoc::GetDoc()->GetChannelOrder().TranslateChannel(Pos - 1);
 	else
 		m_iSplitChannel = chan_id_t::NONE;
 }

@@ -773,12 +773,12 @@ void CMainFrame::SetupColors()
 
 void CMainFrame::SetTempo(int Tempo)
 {
-	CFamiTrackerDoc &Doc = GetDoc();
-	int MinTempo = Doc.GetSpeedSplitPoint();
+	CSongData &song = *GetCurrentSong();		// // //
+	int MinTempo = GetDoc().GetModule()->GetSpeedSplitPoint();
 	Tempo = std::clamp(Tempo, MinTempo, MAX_TEMPO);
-	if (Tempo != Doc.GetSongTempo(m_iTrack)) {		// // //
-		Doc.ModifyIrreversible();
-		Doc.SetSongTempo(m_iTrack, Tempo);
+	if (Tempo != song.GetSongTempo()) {		// // //
+		GetDoc().ModifyIrreversible();
+		song.SetSongTempo(Tempo);
 		theApp.GetSoundGenerator()->ResetTempo();
 
 		if (m_wndDialogBar.GetDlgItemInt(IDC_TEMPO) != Tempo)
@@ -788,13 +788,13 @@ void CMainFrame::SetTempo(int Tempo)
 
 void CMainFrame::SetSpeed(int Speed)
 {
-	CFamiTrackerDoc &Doc = GetDoc();
-	int MaxSpeed = Doc.GetSongTempo(m_iTrack) ? Doc.GetSpeedSplitPoint() - 1 : 0xFF;
+	CSongData &song = *GetCurrentSong();		// // //
+	int MaxSpeed = song.GetSongTempo() ? GetDoc().GetModule()->GetSpeedSplitPoint() - 1 : 0xFF;
 	Speed = std::clamp(Speed, MIN_SPEED, MaxSpeed);
-	if (Speed != Doc.GetSongSpeed(m_iTrack) || Doc.GetSongGroove(m_iTrack)) {		// // //
-		Doc.ModifyIrreversible();
-		Doc.SetSongGroove(m_iTrack, false);
-		Doc.SetSongSpeed(m_iTrack, Speed);
+	if (Speed != song.GetSongSpeed() || song.GetSongGroove()) {		// // //
+		GetDoc().ModifyIrreversible();
+		song.SetSongGroove(false);
+		song.SetSongSpeed(Speed);
 		theApp.GetSoundGenerator()->ResetTempo();
 
 		if (m_wndDialogBar.GetDlgItemInt(IDC_SPEED) != Speed)
@@ -803,12 +803,12 @@ void CMainFrame::SetSpeed(int Speed)
 }
 
 void CMainFrame::SetGroove(int Groove) {
-	CFamiTrackerDoc &Doc = GetDoc();
+	CSongData &song = *GetCurrentSong();
 	Groove = std::clamp(Groove, 0, MAX_GROOVE - 1);
-	if (Groove != Doc.GetSongSpeed(m_iTrack) || !Doc.GetSongGroove(m_iTrack)) {		// // //
-		Doc.ModifyIrreversible();
-		Doc.SetSongGroove(m_iTrack, true);
-		Doc.SetSongSpeed(m_iTrack, Groove);
+	if (Groove != song.GetSongSpeed() || !song.GetSongGroove()) {		// // //
+		GetDoc().ModifyIrreversible();
+		song.SetSongGroove(true);
+		song.SetSongSpeed(Groove);
 		theApp.GetSoundGenerator()->ResetTempo();
 
 		if (m_wndDialogBar.GetDlgItemInt(IDC_SPEED) != Groove)
@@ -1370,19 +1370,19 @@ void CMainFrame::OnDeltaposSpeedSpin(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CMainFrame::OnDeltaposTempoSpin(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	int NewTempo = CFamiTrackerDoc::GetDoc()->GetSongTempo(m_iTrack) - ((NMUPDOWN*)pNMHDR)->iDelta;
+	int NewTempo = GetCurrentSong()->GetSongTempo() - ((NMUPDOWN*)pNMHDR)->iDelta;		// // //
 	SetTempo(NewTempo);
 }
 
 void CMainFrame::OnDeltaposRowsSpin(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	int NewRows = CFamiTrackerDoc::GetDoc()->GetPatternLength(m_iTrack) - ((NMUPDOWN*)pNMHDR)->iDelta;
+	int NewRows = GetCurrentSong()->GetPatternLength() - ((NMUPDOWN*)pNMHDR)->iDelta;		// // //
 	SetRowCount(NewRows);
 }
 
 void CMainFrame::OnDeltaposFrameSpin(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	int NewFrames = CFamiTrackerDoc::GetDoc()->GetFrameCount(m_iTrack) - ((NMUPDOWN*)pNMHDR)->iDelta;
+	int NewFrames = GetCurrentSong()->GetFrameCount() - ((NMUPDOWN*)pNMHDR)->iDelta;		// // //
 	SetFrameCount(NewFrames);
 }
 
@@ -1576,8 +1576,8 @@ void CMainFrame::OnUpdateSBOctave(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateSBFrequency(CCmdUI *pCmdUI)
 {
 	const CFamiTrackerDoc &Doc = GetDoc();
-	machine_t Machine = Doc.GetMachine();
-	int EngineSpeed = Doc.GetEngineSpeed();
+	machine_t Machine = Doc.GetModule()->GetMachine();
+	int EngineSpeed = Doc.GetModule()->GetEngineSpeed();
 	CString String;
 
 	if (EngineSpeed == 0)
@@ -1687,7 +1687,7 @@ void CMainFrame::OnUpdateModuleMoveframeup(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateInstrumentNew(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(GetDoc().GetChannelCount() > 0 && m_pInstrumentList->GetItemCount() < MAX_INSTRUMENTS);		// // //
+	pCmdUI->Enable(GetDoc().GetModule()->GetChannelOrder().GetChannelCount() > 0 && m_pInstrumentList->GetItemCount() < MAX_INSTRUMENTS);		// // //
 }
 
 void CMainFrame::OnUpdateInstrumentRemove(CCmdUI *pCmdUI)
@@ -1761,7 +1761,7 @@ void CMainFrame::OnUpdateSpeedEdit(CCmdUI *pCmdUI)
 		if (m_cLockedEditSpeed.Update())
 			SetSpeed(m_cLockedEditSpeed.GetValue());
 		else {
-			pCmdUI->SetText(MakeIntString(GetDoc().GetSongSpeed(m_iTrack)));
+			pCmdUI->SetText(MakeIntString(GetCurrentSong()->GetSongSpeed()));		// // //
 		}
 	}
 }
@@ -1772,7 +1772,7 @@ void CMainFrame::OnUpdateTempoEdit(CCmdUI *pCmdUI)
 		if (m_cLockedEditTempo.Update())
 			SetTempo(m_cLockedEditTempo.GetValue());
 		else {
-			pCmdUI->SetText(MakeIntString(GetDoc().GetSongTempo(m_iTrack)));
+			pCmdUI->SetText(MakeIntString(GetCurrentSong()->GetSongTempo()));		// // //
 		}
 	}
 }
@@ -1783,7 +1783,7 @@ void CMainFrame::OnUpdateRowsEdit(CCmdUI *pCmdUI)
 		if (m_cLockedEditLength.Update())
 			SetRowCount(m_cLockedEditLength.GetValue());
 		else {
-			pCmdUI->SetText(MakeIntString(GetDoc().GetPatternLength(m_iTrack)));
+			pCmdUI->SetText(MakeIntString(GetCurrentSong()->GetPatternLength()));		// // //
 		}
 	}
 }
@@ -1794,7 +1794,7 @@ void CMainFrame::OnUpdateFramesEdit(CCmdUI *pCmdUI)
 		if (m_cLockedEditFrames.Update())
 			SetFrameCount(m_cLockedEditFrames.GetValue());
 		else {
-			pCmdUI->SetText(MakeIntString(GetDoc().GetFrameCount(m_iTrack)));
+			pCmdUI->SetText(MakeIntString(GetCurrentSong()->GetFrameCount()));		// // //
 		}
 	}
 }
@@ -1802,24 +1802,24 @@ void CMainFrame::OnUpdateFramesEdit(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateHighlight1(CCmdUI *pCmdUI)		// // //
 {
 	if (!m_cLockedEditHighlight1.IsEditable()) {
-		const CFamiTrackerDoc &Doc = GetDoc();
+		const stHighlight &hl = GetCurrentSong()->GetRowHighlight();
 		if (m_cLockedEditHighlight1.Update())
 			AddAction(std::make_unique<CPActionHighlight>(stHighlight {
-				std::clamp(m_cLockedEditHighlight1.GetValue(), 0, MAX_PATTERN_LENGTH), Doc.GetHighlight(GetSelectedTrack()).Second, 0}));
+				std::clamp(m_cLockedEditHighlight1.GetValue(), 0, MAX_PATTERN_LENGTH), hl.Second, 0}));
 		else
-			pCmdUI->SetText(MakeIntString(Doc.GetHighlight(GetSelectedTrack()).First));
+			pCmdUI->SetText(MakeIntString(hl.First));
 	}
 }
 
 void CMainFrame::OnUpdateHighlight2(CCmdUI *pCmdUI)		// // //
 {
 	if (!m_cLockedEditHighlight2.IsEditable()) {
-		const CFamiTrackerDoc &Doc = GetDoc();
+		const stHighlight &hl = GetCurrentSong()->GetRowHighlight();
 		if (m_cLockedEditHighlight2.Update())
 			AddAction(std::make_unique<CPActionHighlight>(stHighlight {
-				Doc.GetHighlight(GetSelectedTrack()).First, std::clamp(m_cLockedEditHighlight2.GetValue(), 0, MAX_PATTERN_LENGTH), 0}));
+				hl.First, std::clamp(m_cLockedEditHighlight2.GetValue(), 0, MAX_PATTERN_LENGTH), 0}));
 		else
-			pCmdUI->SetText(MakeIntString(Doc.GetHighlight(GetSelectedTrack()).Second));
+			pCmdUI->SetText(MakeIntString(hl.Second));
 	}
 }
 
@@ -3273,45 +3273,41 @@ void CMainFrame::OnToggleMultiplexer()
 
 void CMainFrame::OnToggleGroove()
 {
-	CFamiTrackerDoc &Doc = GetDoc();
-	Doc.SetSongGroove(m_iTrack, !Doc.GetSongGroove(m_iTrack));
-	Doc.ModifyIrreversible();
+	CSongData &song = *GetCurrentSong();
+	song.SetSongGroove(!song.GetSongGroove());
+	GetDoc().ModifyIrreversible();
 	GetActiveView()->SetFocus();
 }
 
 void CMainFrame::OnUpdateGrooveEdit(CCmdUI *pCmdUI)
 {
-	CFamiTrackerDoc &Doc = GetDoc();
-	int Speed = Doc.GetSongSpeed(m_iTrack);
-	if (Doc.GetSongGroove(m_iTrack)) {
+	CSongData &song = *GetCurrentSong();
+	int Speed = song.GetSongSpeed();
+	if (song.GetSongGroove()) {
 		m_cButtonGroove.SetWindowText(_T("Groove"));
-		if (Speed > MAX_GROOVE - 1) Speed = MAX_GROOVE - 1;
-		if (Speed < 0) Speed = 0;
+		Speed = std::clamp(Speed, 0, MAX_GROOVE - 1);
 	}
 	else {
 		m_cButtonGroove.SetWindowText(_T("Speed"));
-		int MaxSpeed = Doc.GetSongTempo(m_iTrack) ? Doc.GetSpeedSplitPoint() - 1 : 0xFF;
-		if (Speed > MaxSpeed) Speed = MaxSpeed;
-		if (Speed < MIN_SPEED) Speed = MIN_SPEED;
+		int MaxSpeed = song.GetSongTempo() ? GetDoc().GetModule()->GetSpeedSplitPoint() - 1 : 0xFF;
+		Speed = std::clamp(Speed, MIN_SPEED, MaxSpeed);
 	}
-	if (Speed != Doc.GetSongSpeed(m_iTrack))
-		Doc.ModifyIrreversible();
-	Doc.SetSongSpeed(m_iTrack, Speed);
+	if (Speed != song.GetSongSpeed())
+		GetDoc().ModifyIrreversible();
+	song.SetSongSpeed(Speed);
 }
 
 void CMainFrame::OnToggleFixTempo()
 {
-	CFamiTrackerDoc &Doc = GetDoc();
-	Doc.SetSongTempo(m_iTrack, Doc.GetSongTempo(m_iTrack) ? 0 : 150);
-	Doc.ModifyIrreversible();
+	CSongData &song = *GetCurrentSong();
+	song.SetSongTempo(song.GetSongTempo() ? 0 : 150);
+	GetDoc().ModifyIrreversible();
 	GetActiveView()->SetFocus();
 }
 
 void CMainFrame::OnUpdateToggleFixTempo(CCmdUI *pCmdUI)
 {
-	const CFamiTrackerDoc &Doc = GetDoc();
-
-	if (int Tempo = Doc.GetSongTempo(m_iTrack)) {
+	if (int Tempo = GetCurrentSong()->GetSongTempo()) {
 		m_cButtonFixTempo.SetWindowText(_T("Tempo"));
 		m_cLockedEditTempo.EnableWindow(true);
 		m_wndDialogBar.GetDlgItem(IDC_TEMPO_SPIN)->EnableWindow(true);
@@ -3321,7 +3317,7 @@ void CMainFrame::OnUpdateToggleFixTempo(CCmdUI *pCmdUI)
 		m_cLockedEditTempo.EnableWindow(false);
 		m_wndDialogBar.GetDlgItem(IDC_TEMPO_SPIN)->EnableWindow(false);
 		CString str;
-		str.Format(_T("%.2f"), static_cast<float>(Doc.GetFrameRate()) * 2.5);
+		str.Format(_T("%.2f"), static_cast<float>(GetDoc().GetModule()->GetFrameRate()) * 2.5);
 		m_cLockedEditTempo.SetWindowText(str);
 	}
 }
@@ -3500,7 +3496,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 	const CFamiTrackerDoc &Doc = GetDoc();
 
 	pCmdUI->Enable(!Doc.GetModule()->HasExpansionChips() && !theApp.GetSoundGenerator()->IsPlaying());		// // //
-	UINT item = Doc.GetMachine() == PAL ? ID_TRACKER_PAL : ID_TRACKER_NTSC;
+	UINT item = Doc.GetModule()->GetMachine() == PAL ? ID_TRACKER_PAL : ID_TRACKER_NTSC;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);
 }
@@ -3508,7 +3504,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateTrackerNtsc(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(!theApp.GetSoundGenerator()->IsPlaying());		// // //
-	UINT item = GetDoc().GetMachine() == NTSC ? ID_TRACKER_NTSC : ID_TRACKER_PAL;
+	UINT item = GetDoc().GetModule()->GetMachine() == NTSC ? ID_TRACKER_NTSC : ID_TRACKER_PAL;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);
 }
@@ -3516,11 +3512,11 @@ void CMainFrame::OnUpdateTrackerNtsc(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateSpeedDefault(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(!theApp.GetSoundGenerator()->IsPlaying());		// // //
-	pCmdUI->SetCheck(GetDoc().GetEngineSpeed() == 0);
+	pCmdUI->SetCheck(GetDoc().GetModule()->GetEngineSpeed() == 0);
 }
 
 void CMainFrame::OnUpdateSpeedCustom(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(!theApp.GetSoundGenerator()->IsPlaying());		// // //
-	pCmdUI->SetCheck(GetDoc().GetEngineSpeed() != 0);
+	pCmdUI->SetCheck(GetDoc().GetModule()->GetEngineSpeed() != 0);
 }

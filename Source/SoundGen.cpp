@@ -638,7 +638,7 @@ void CSoundGen::OnPlayNote(chan_id_t chan, const stChanNote &note) {
 	if (!IsChannelMuted(chan)) {
 		if (m_pTrackerView)
 			m_pTrackerView->PlayerPlayNote(chan, note);
-		theApp.GetMIDI()->WriteNote(m_pModule->GetChannelOrder().GetChannelIndex(chan), note.Note, note.Octave, note.Vol);
+		theApp.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(chan), note.Note, note.Octave, note.Vol);
 	}
 }
 
@@ -1207,7 +1207,7 @@ void CSoundGen::QueueNote(chan_id_t Channel, const stChanNote &NoteData, note_pr
 {
 	// Queue a note for play
 	m_pSoundDriver->QueueNote(Channel, NoteData, Priority);
-	theApp.GetMIDI()->WriteNote(m_pModule->GetChannelOrder().GetChannelIndex(Channel), NoteData.Note, NoteData.Octave, NoteData.Vol);
+	theApp.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(Channel), NoteData.Note, NoteData.Octave, NoteData.Vol);
 }
 
 void CSoundGen::ForceReloadInstrument(chan_id_t Channel)		// // //

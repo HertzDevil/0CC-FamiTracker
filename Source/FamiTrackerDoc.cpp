@@ -745,33 +745,7 @@ bool CFamiTrackerDoc::LoadInstrument(unsigned Index, CSimpleFile &File) {		// / 
 	}
 }
 
-//
-// // // General document
-//
-
-void CFamiTrackerDoc::SetSongSpeed(unsigned int Track, unsigned int Speed)
-{
-	auto &Song = GetSongData(Track);
-	if (Song.GetSongGroove())		// // //
-		ASSERT(Speed < MAX_GROOVE);
-	else
-		ASSERT(Speed <= MAX_TEMPO);
-
-	Song.SetSongSpeed(Speed);
-}
-
 //// Track functions //////////////////////////////////////////////////////////////////////////////////
-
-CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index)		// // //
-{
-	// Ensure track is allocated
-	return *GetSong(Index);
-}
-
-const CSongData &CFamiTrackerDoc::GetSongData(unsigned int Index) const		// // //
-{
-	return *GetSong(Index);
-}
 
 void CFamiTrackerDoc::SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs) {		// // //
 	ASSERT(n163chs <= MAX_CHANNELS_N163 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
@@ -960,11 +934,11 @@ unsigned int CFamiTrackerDoc::GetHighlightState(unsigned int Track, unsigned int
 }
 
 CBookmarkCollection *CFamiTrackerDoc::GetBookmarkCollection(unsigned track) {		// // //
-	return track < GetTrackCount() ? &GetSongData(track).GetBookmarks() : nullptr;
+	return track < GetModule()->GetSongCount() ? &GetModule()->GetSong(track)->GetBookmarks() : nullptr;
 }
 
 const CBookmarkCollection *CFamiTrackerDoc::GetBookmarkCollection(unsigned track) const {		// // //
-	return track < GetTrackCount() ? &GetSongData(track).GetBookmarks() : nullptr;
+	return track < GetModule()->GetSongCount() ? &GetModule()->GetSong(track)->GetBookmarks() : nullptr;
 }
 
 unsigned CFamiTrackerDoc::GetTotalBookmarkCount() const {		// // //
@@ -1092,7 +1066,7 @@ void CFamiTrackerDoc::SetExceededFlag(bool Exceed)		// // //
 int CFamiTrackerDoc::GetFrameLength(unsigned int Track, unsigned int Frame) const
 {
 	// // // moved from PatternEditor.cpp
-	auto &Song = GetSongData(Track);
+	auto &Song = *GetModule()->GetSong(Track);
 	const unsigned PatternLength = Song.GetPatternLength();	// default length
 	unsigned HaltPoint = PatternLength;
 
@@ -1134,45 +1108,13 @@ chan_id_t CFamiTrackerDoc::TranslateChannel(unsigned Index) const {		// // //
 	return GetChannelOrder().TranslateChannel(Index);
 }
 
-int CFamiTrackerDoc::GetChannelIndex(chan_id_t Channel) const {
-	return GetChannelOrder().GetChannelIndex(Channel);		// // //
-}
 
-
-
-void CFamiTrackerDoc::SetSongTempo(unsigned int Track, unsigned int Tempo) {
-	GetSongData(Track).SetSongTempo(Tempo);
-}
-
-void CFamiTrackerDoc::SetSongGroove(unsigned int Track, bool Groove) {		// // //
-	GetSongData(Track).SetSongGroove(Groove);
-}
-
-unsigned int CFamiTrackerDoc::GetPatternLength(unsigned int Track) const {
-	return GetSongData(Track).GetPatternLength();
-}
 
 unsigned int CFamiTrackerDoc::GetFrameCount(unsigned int Track) const {
-	return GetSongData(Track).GetFrameCount();
-}
-
-unsigned int CFamiTrackerDoc::GetSongSpeed(unsigned int Track) const {
-	return GetSongData(Track).GetSongSpeed();
-}
-
-unsigned int CFamiTrackerDoc::GetSongTempo(unsigned int Track) const {
-	return GetSongData(Track).GetSongTempo();
-}
-
-bool CFamiTrackerDoc::GetSongGroove(unsigned int Track) const {		// // //
-	return GetSongData(Track).GetSongGroove();
+	return GetModule()->GetSong(Track)->GetFrameCount();
 }
 
 
-
-bool CFamiTrackerDoc::ExpansionEnabled(sound_chip_t Chip) const {
-	return GetModule()->HasExpansionChip(Chip);
-}
 
 int CFamiTrackerDoc::GetNamcoChannels() const {
 	return GetModule()->GetNamcoChannels();
@@ -1182,28 +1124,12 @@ machine_t CFamiTrackerDoc::GetMachine() const {
 	return GetModule()->GetMachine();
 }
 
-unsigned int CFamiTrackerDoc::GetEngineSpeed() const {
-	return GetModule()->GetEngineSpeed();
-}
-
-unsigned int CFamiTrackerDoc::GetFrameRate() const {
-	return GetModule()->GetFrameRate();
-}
-
-int CFamiTrackerDoc::GetSpeedSplitPoint() const {
-	return GetModule()->GetSpeedSplitPoint();
-}
-
 CSongData *CFamiTrackerDoc::GetSong(unsigned int Index) {		// // //
 	return GetModule()->GetSong(Index);
 }
 
 const CSongData *CFamiTrackerDoc::GetSong(unsigned int Index) const {		// // //
 	return GetModule()->GetSong(Index);
-}
-
-unsigned int CFamiTrackerDoc::GetTrackCount() const {
-	return GetModule()->GetSongCount();
 }
 
 CInstrumentManager *const CFamiTrackerDoc::GetInstrumentManager() const {
