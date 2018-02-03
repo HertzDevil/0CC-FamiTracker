@@ -31,6 +31,7 @@
 #include "FamiTracker.h"
 #include "FamitrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
+#include "DSampleManager.h"		// // //
 #include "Compiler.h"
 #include "Settings.h"
 #include <optional>		// // //
@@ -276,7 +277,7 @@ void CExportDialog::CreateBIN()
 		const CString DEFAULT_SAMPLE_NAME = _T("samples.bin");		// // //
 
 		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-		if (pDoc->GetSampleCount() > 0) {
+		if (pDoc->GetModule()->GetDSampleManager()->GetDSampleCount() > 0) {
 			if (auto sampPath = GetSavePath(DEFAULT_SAMPLE_NAME, *path, DPCMS_FILTER[0], DPCMS_FILTER[1]))
 				SampleDir = *sampPath;
 			else

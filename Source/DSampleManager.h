@@ -37,12 +37,15 @@ class CDSampleManager
 public:
 	CDSampleManager();
 	std::shared_ptr<dpcm_sample> GetDSample(unsigned Index);
-	std::shared_ptr<dpcm_sample> ReleaseDSample(unsigned Index);
 	std::shared_ptr<const dpcm_sample> GetDSample(unsigned Index) const;
+
+	std::shared_ptr<dpcm_sample> ReleaseDSample(unsigned Index);
+	void RemoveDSample(unsigned Index);
+
 	bool SetDSample(unsigned Index, std::shared_ptr<dpcm_sample> pSamp);
 
 	bool IsSampleUsed(unsigned Index) const;
-	unsigned int GetSampleCount() const;
+	unsigned int GetDSampleCount() const;
 	unsigned int GetFirstFree() const;
 	unsigned int GetTotalSize() const;
 

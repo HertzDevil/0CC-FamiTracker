@@ -675,13 +675,6 @@ bool CFamiTrackerDoc::ImportDetune(CFamiTrackerModule &Imported)		// // //
 	return true;
 }
 
-// End of file load/save
-
-void CFamiTrackerDoc::SetSample(unsigned int Index, std::shared_ptr<dpcm_sample> pSamp) {		// // //
-	if (GetDSampleManager()->SetDSample(Index, std::move(pSamp)))
-		ModifyIrreversible();		// // //
-}
-
 // ---------------------------------------------------------------------------------------------------------
 // Document access functions
 // ---------------------------------------------------------------------------------------------------------
@@ -1026,8 +1019,10 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 {
 	bool AssignUsed[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE] = { };
 
+	auto &Manager = *GetDSampleManager();
+
 	for (int i = 0; i < MAX_DSAMPLES; ++i) {
-		if (GetDSampleManager()->IsSampleUsed(i)) {
+		if (Manager.IsSampleUsed(i)) {
 			bool Used = false;
 			GetModule()->VisitSongs([&] (const CSongData &song) {
 				for (unsigned int Frame = 0; Frame < song.GetFrameCount(); ++Frame) {
@@ -1047,7 +1042,7 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 				}
 			});
 			if (!Used)
-				RemoveSample(i);
+				Manager.RemoveDSample(i);
 		}
 	}
 	// also remove unused assignments
@@ -1158,36 +1153,6 @@ inst_type_t CFamiTrackerDoc::GetInstrumentType(unsigned int Index) const {
 
 int CFamiTrackerDoc::GetFreeSequence(inst_type_t InstType, sequence_t Type) const {		// // //
 	return GetInstrumentManager()->GetFreeSequenceIndex(InstType, Type, nullptr);
-}
-
-
-
-std::shared_ptr<ft0cc::doc::dpcm_sample> CFamiTrackerDoc::GetSample(unsigned int Index) {
-	return GetDSampleManager()->GetDSample(Index);		// // //
-}
-
-std::shared_ptr<const ft0cc::doc::dpcm_sample> CFamiTrackerDoc::GetSample(unsigned int Index) const {
-	return GetDSampleManager()->GetDSample(Index);		// // //
-}
-
-bool CFamiTrackerDoc::IsSampleUsed(unsigned int Index) const {
-	return GetDSampleManager()->IsSampleUsed(Index);		// // //
-}
-
-unsigned int CFamiTrackerDoc::GetSampleCount() const {
-	return GetDSampleManager()->GetSampleCount();
-}
-
-int CFamiTrackerDoc::GetFreeSampleSlot() const {
-	return GetDSampleManager()->GetFirstFree();
-}
-
-void CFamiTrackerDoc::RemoveSample(unsigned int Index) {
-	(void)GetDSampleManager()->ReleaseDSample(Index);		// // //
-}
-
-unsigned int CFamiTrackerDoc::GetTotalSampleSize() const {
-	return GetDSampleManager()->GetTotalSize();
 }
 
 #pragma endregion

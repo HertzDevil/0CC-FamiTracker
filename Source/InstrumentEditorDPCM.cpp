@@ -29,6 +29,7 @@
 #include "SampleEditorDlg.h"
 #include "SeqInstrument.h"		// // //
 #include "Instrument2A03.h"		// // //
+#include "DSampleManager.h"		// // //
 #include "PCMImport.h"
 #include "Settings.h"
 #include "SoundGen.h"
@@ -101,6 +102,10 @@ CInstrumentEditorDPCM::~CInstrumentEditorDPCM()
 void CInstrumentEditorDPCM::DoDataExchange(CDataExchange* pDX)
 {
 	CInstrumentEditPanel::DoDataExchange(pDX);
+}
+
+CDSampleManager *CInstrumentEditorDPCM::GetDSampleManager() const {		// // //
+	return GetDocument()->GetDSampleManager();
 }
 
 
@@ -232,7 +237,7 @@ void CInstrumentEditorDPCM::BuildSampleList()
 	pSampleBox->AddString(NO_SAMPLE_STR);
 
 	for (int i = 0; i < MAX_DSAMPLES; ++i) {
-		if (auto pDSample = GetDocument()->GetSample(i)) {		// // //
+		if (auto pDSample = GetDSampleManager()->GetDSample(i)) {		// // //
 			pSampleListCtrl->InsertItem(Index, conv::sv_from_int(i).data());
 			Text.Format(_T("%.*s"), pDSample->name().size(), pDSample->name().data());
 			pSampleListCtrl->SetItemText(Index, 1, Text);
@@ -290,21 +295,22 @@ bool CInstrumentEditorDPCM::LoadSample(const CString &FilePath, const CString &F
 
 bool CInstrumentEditorDPCM::InsertSample(std::shared_ptr<ft0cc::doc::dpcm_sample> pNewSample)		// // //
 {
-	int FreeSlot = GetDocument()->GetFreeSampleSlot();
+	auto *pManager = GetDSampleManager();
+	int FreeSlot = pManager->GetFirstFree();
 
 	// Out of sample slots
 	if (FreeSlot == -1)
 		return false;
 
-	int Size = GetDocument()->GetTotalSampleSize();
+	int Size = pManager->GetTotalSize();
 
 	if ((Size + pNewSample->size()) > MAX_SAMPLE_SPACE) {
 		CString message;
 		AfxFormatString1(message, IDS_OUT_OF_SAMPLEMEM_FORMAT, conv::sv_from_int(MAX_SAMPLE_SPACE / 1024).data());
 		AfxMessageBox(message, MB_ICONERROR);
 	}
-	else
-		GetDocument()->SetSample(FreeSlot, std::move(pNewSample));		// // //
+	else if (pManager->SetDSample(FreeSlot, std::move(pNewSample)))		// // //
+		GetDocument()->ModifyIrreversible();
 
 	return true;
 }
@@ -356,7 +362,7 @@ void CInstrumentEditorDPCM::OnBnClickedUnload()
 		pListBox->GetItemText(nItem, 0, ItemName, 256);
 		int Index = atoi(ItemName);
 		Env.GetSoundGenerator()->CancelPreviewSample();
-		GetDocument()->RemoveSample(Index);
+		GetDSampleManager()->RemoveDSample(Index);		// // //
 	}
 
 	BuildSampleList();
@@ -492,7 +498,7 @@ std::shared_ptr<const ft0cc::doc::dpcm_sample> CInstrumentEditorDPCM::GetSelecte
 	pSampleListCtrl->GetItemText(Index, 0, Text, 256);
 	Index = _tstoi(Text);
 
-	return GetDocument()->GetSample(Index);
+	return GetDSampleManager()->GetDSample(Index);
 }
 
 void CInstrumentEditorDPCM::SetSelectedSample(std::shared_ptr<ft0cc::doc::dpcm_sample> pSample) const		// // //
@@ -507,7 +513,7 @@ void CInstrumentEditorDPCM::SetSelectedSample(std::shared_ptr<ft0cc::doc::dpcm_s
 	pSampleListCtrl->GetItemText(Index, 0, Text, 256);
 	Index = _tstoi(Text);
 
-	GetDocument()->SetSample(Index, std::move(pSample));
+	GetDSampleManager()->SetDSample(Index, std::move(pSample));
 }
 
 void CInstrumentEditorDPCM::OnBnClickedSave()
@@ -526,7 +532,7 @@ void CInstrumentEditorDPCM::OnBnClickedSave()
 	pSampleListCtrl->GetItemText(Index, 0, Text, 256);
 	Index = _tstoi(Text);
 
-	auto pDSample = GetDocument()->GetSample(Index);		// // //
+	auto pDSample = GetDSampleManager()->GetDSample(Index);		// // //
 	if (!pDSample)
 		return;
 
@@ -604,7 +610,7 @@ void CInstrumentEditorDPCM::OnBnClickedAdd()
 
 	int Pitch = pPitchBox->GetCurSel();
 
-	if (GetDocument()->IsSampleUsed(m_iSelectedSample)) {
+	if (GetDSampleManager()->IsSampleUsed(m_iSelectedSample)) {		// // //
 		m_pInstrument->SetSampleIndex(m_iOctave, m_iSelectedKey, m_iSelectedSample + 1);
 		m_pInstrument->SetSamplePitch(m_iOctave, m_iSelectedKey, Pitch);
 		UpdateCurrentKey();
@@ -725,7 +731,7 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 
 	// Fill menu
 	for (int i = 0; i < MAX_DSAMPLES; i++) {
-		if (auto pDSample = GetDocument()->GetSample(i)) {		// // //
+		if (auto pDSample = GetDSampleManager()->GetDSample(i)) {		// // //
 			PopupMenu.AppendMenu(MF_STRING, i + 2, pDSample->name().data());
 		}
 	}
@@ -760,7 +766,7 @@ void CInstrumentEditorDPCM::OnNMDblclkTable(NMHDR *pNMHDR, LRESULT *pResult)
 		CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
 		CString sampleName = pTableListCtrl->GetItemText(MIDI_NOTE(m_iOctave, m_iSelectedKey + 1), 2);		// // //
 
-		auto pSample = GetDocument()->GetSample(Sample - 1);
+		auto pSample = GetDSampleManager()->GetDSample(Sample - 1);
 		if (pSample && pSample->size() > 0u && sampleName != NO_SAMPLE_STR)
 			Env.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, Pitch);
 	}

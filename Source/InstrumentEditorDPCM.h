@@ -26,6 +26,7 @@
 #include "InstrumentEditPanel.h"		// // //
 
 class CFamiTrackerView;
+class CDSampleManager;		// // //
 class CInstrument2A03;		// // //
 namespace ft0cc::doc {
 class dpcm_sample;
@@ -50,6 +51,8 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+	CDSampleManager *GetDSampleManager() const;		// // //
 
 	void BuildKeyList();
 	void BuildSampleList();

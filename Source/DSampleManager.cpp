@@ -38,6 +38,10 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CDSampleManager::ReleaseDSample(unsigne
 	return Index < m_pDSample.size() ? std::move(m_pDSample[Index]) : nullptr;
 }
 
+void CDSampleManager::RemoveDSample(unsigned Index) {
+	(void)ReleaseDSample(Index);
+}
+
 std::shared_ptr<const ft0cc::doc::dpcm_sample> CDSampleManager::GetDSample(unsigned Index) const
 {
 	return Index < m_pDSample.size() ? m_pDSample[Index] : nullptr;
@@ -57,7 +61,7 @@ bool CDSampleManager::IsSampleUsed(unsigned Index) const
 	return Index < m_pDSample.size() && m_pDSample[Index] != nullptr;
 }
 
-unsigned int CDSampleManager::GetSampleCount() const
+unsigned int CDSampleManager::GetDSampleCount() const
 {
 	unsigned int Count = 0;
 	for (const auto &x : m_pDSample)

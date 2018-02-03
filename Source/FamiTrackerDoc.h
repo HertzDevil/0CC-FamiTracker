@@ -149,9 +149,6 @@ public:
 	void			SaveInstrument(unsigned int Index, CSimpleFile &file) const;		// // //
 	bool 			LoadInstrument(unsigned Index, CSimpleFile &File);		// // //
 
-	// DPCM samples
-	void			SetSample(unsigned int Index, std::shared_ptr<dpcm_sample> pSamp);		// // //
-
 	// Operations
 	void			RemoveUnusedInstruments();
 	void			RemoveUnusedSamples();		// // //
@@ -198,16 +195,6 @@ public:
 
 	// // // take instrument type as parameter rather than chip type
 	int				GetFreeSequence(inst_type_t InstType, sequence_t Type) const;		// // //
-#pragma endregion
-
-#pragma region delegates to CDSampleManager
-	std::shared_ptr<dpcm_sample> GetSample(unsigned int Index);		// // //
-	std::shared_ptr<const dpcm_sample> GetSample(unsigned int Index) const;		// // //
-	bool			IsSampleUsed(unsigned int Index) const;
-	unsigned int	GetSampleCount() const;
-	int				GetFreeSampleSlot() const;
-	void			RemoveSample(unsigned int Index);
-	unsigned int	GetTotalSampleSize() const;
 #pragma endregion
 
 	//

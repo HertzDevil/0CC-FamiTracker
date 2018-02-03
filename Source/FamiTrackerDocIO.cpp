@@ -995,6 +995,8 @@ void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerDoc &doc, int ver) {
 	unsigned int Count = AssertRange(
 		static_cast<unsigned char>(file_.GetBlockChar()), 0U, CDSampleManager::MAX_DSAMPLES, "DPCM sample count");
 
+	auto &manager = *doc.GetModule()->GetInstrumentManager()->GetDSampleManager();
+
 	for (unsigned int i = 0; i < Count; ++i) {
 		unsigned int Index = AssertRange(
 			static_cast<unsigned char>(file_.GetBlockChar()), 0U, CDSampleManager::MAX_DSAMPLES - 1, "DPCM sample index");
@@ -1008,7 +1010,7 @@ void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerDoc &doc, int ver) {
 			std::vector<uint8_t> samples(TrueSize);
 			file_.GetBlock(samples.data(), Size);
 
-			doc.SetSample(Index, std::make_unique<ft0cc::doc::dpcm_sample>(samples, Name));		// // //
+			manager.SetDSample(Index, std::make_unique<ft0cc::doc::dpcm_sample>(samples, Name));		// // //
 		}
 		catch (CModuleException e) {
 			e.AppendError("At DPCM sample %d,", Index);
@@ -1019,7 +1021,7 @@ void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerDoc &doc, int ver) {
 
 void CFamiTrackerDocIO::SaveDSamples(const CFamiTrackerDoc &doc, int ver) {
 	const auto &manager = *doc.GetModule()->GetInstrumentManager()->GetDSampleManager();
-	if (int Count = manager.GetSampleCount()) {		// // //
+	if (int Count = manager.GetDSampleCount()) {		// // //
 		// Write sample count
 		file_.WriteBlockChar(Count);
 
