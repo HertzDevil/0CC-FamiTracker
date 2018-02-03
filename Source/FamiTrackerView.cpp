@@ -1151,6 +1151,7 @@ void CFamiTrackerView::OnInitialUpdate()
 
 	// Always start with first track
 	pMainFrame->SelectTrack(0);
+	UpdateSongView();		// // //
 
 	// Notify the pattern view about new document & view
 	m_pPatternEditor->ResetCursor();

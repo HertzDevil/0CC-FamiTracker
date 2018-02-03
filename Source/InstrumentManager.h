@@ -47,6 +47,8 @@ public:
 	CInstrumentManager(CFTMComponentInterface *pInterface = nullptr);
 	virtual ~CInstrumentManager();
 
+	void SetParent(CFTMComponentInterface *pInterface = nullptr);
+
 	void ClearAll();
 
 	std::unique_ptr<CInstrument> CreateNew(inst_type_t InstType);

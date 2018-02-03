@@ -246,7 +246,6 @@ void CFamiTrackerDoc::DeleteContents()
 	m_bBackupDone = true;	// No backup on new modules
 
 	UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
-
 	module_ = std::make_unique<CFamiTrackerModule>(*this);		// // //
 
 #ifdef AUTOSAVE
@@ -783,7 +782,6 @@ void CFamiTrackerDoc::SelectExpansionChip(const CSoundChipSet &chips, unsigned n
 	UnlockDocument();
 
 	ApplyExpansionChip();
-	ModifyIrreversible();
 }
 
 void CFamiTrackerDoc::ApplyExpansionChip() const {

@@ -144,6 +144,7 @@ void CModulePropertiesDlg::OnBnClickedOk()
 	if (!m_iExpansions.ContainsChip(sound_chip_t::N163)) m_iN163Channels = 0;
 	if (m_pModule->GetNamcoChannels() != m_iN163Channels || m_pModule->GetSoundChipSet() != m_iExpansions) {		// // //
 		m_pDocument->SelectExpansionChip(m_iExpansions, m_iN163Channels);
+		m_pDocument->ModifyIrreversible();
 		m_pDocument->UpdateAllViews(NULL, UPDATE_PROPERTIES);
 	}
 

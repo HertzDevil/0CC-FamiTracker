@@ -50,6 +50,10 @@ CInstrumentManager::~CInstrumentManager()
 			ptr->RegisterManager(nullptr);
 }
 
+void CInstrumentManager::SetParent(CFTMComponentInterface *pInterface) {
+	m_pDocInterface = pInterface;
+}
+
 //
 // Instrument methods
 //

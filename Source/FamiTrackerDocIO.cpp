@@ -134,6 +134,8 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerDoc &doc) {
 
 	auto &modfile = *doc.GetModule();
 
+	modfile.GetInstrumentManager()->SetParent(); // temp
+
 	// This has to be done for older files
 	if (file_.GetFileVersion() < 0x0210)
 		(void)modfile.GetSong(0);
@@ -166,6 +168,7 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerDoc &doc) {
 	}
 
 	PostLoad(doc);
+	modfile.GetInstrumentManager()->SetParent(&doc);
 	return true;
 }
 
