@@ -889,18 +889,21 @@ void CFamiTrackerDoc::AutoSave()
 
 stHighlight CFamiTrackerDoc::GetHighlightAt(unsigned int Track, unsigned int Frame, unsigned int Row) const		// // //
 {
-	while (Frame < 0) Frame += GetFrameCount(Track);
-	Frame %= GetFrameCount(Track);
+	const CSongData *pSong = GetModule()->GetSong(Track);
 
-	stHighlight Hl = GetHighlight(Track);
+	while (Frame < 0)
+		Frame += pSong->GetFrameCount();
+	Frame %= pSong->GetFrameCount();
+
+	stHighlight Hl = pSong->GetRowHighlight();
 
 	const CBookmark Zero { };
-	const CBookmarkCollection *pCol = GetBookmarkCollection(Track);
-	if (const unsigned Count = pCol->GetCount()) {
+	const CBookmarkCollection &Col = pSong->GetBookmarks();
+	if (const unsigned Count = Col.GetCount()) {
 		CBookmark tmp(Frame, Row);
 		unsigned int Min = tmp.Distance(Zero);
 		for (unsigned i = 0; i < Count; ++i) {
-			CBookmark *pMark = pCol->GetBookmark(i);
+			CBookmark *pMark = Col.GetBookmark(i);
 			unsigned Dist = tmp.Distance(*pMark);
 			if (Dist <= Min) {
 				Min = Dist;
@@ -924,34 +927,6 @@ unsigned int CFamiTrackerDoc::GetHighlightState(unsigned int Track, unsigned int
 	if (Hl.First > 0 && !((Row - Hl.Offset) % Hl.First))
 		return 1;
 	return 0;
-}
-
-CBookmarkCollection *CFamiTrackerDoc::GetBookmarkCollection(unsigned track) {		// // //
-	return track < GetModule()->GetSongCount() ? &GetModule()->GetSong(track)->GetBookmarks() : nullptr;
-}
-
-const CBookmarkCollection *CFamiTrackerDoc::GetBookmarkCollection(unsigned track) const {		// // //
-	return track < GetModule()->GetSongCount() ? &GetModule()->GetSong(track)->GetBookmarks() : nullptr;
-}
-
-unsigned CFamiTrackerDoc::GetTotalBookmarkCount() const {		// // //
-	unsigned count = 0;
-	GetModule()->VisitSongs([&] (const CSongData &song) {
-		count += song.GetBookmarks().GetCount();
-	});
-	return count;
-}
-
-CBookmark *CFamiTrackerDoc::GetBookmarkAt(unsigned int Track, unsigned int Frame, unsigned int Row) const		// // //
-{
-	if (const CBookmarkCollection *pCol = GetBookmarkCollection(Track)) {
-		for (unsigned i = 0, Count = pCol->GetCount(); i < Count; ++i) {
-			CBookmark *pMark = pCol->GetBookmark(i);
-			if (pMark->m_iFrame == Frame && pMark->m_iRow == Row)
-				return pMark;
-		}
-	}
-	return nullptr;
 }
 
 // Operations
@@ -1054,36 +1029,12 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 					pInst->SetSampleIndex(o, n, 0);
 }
 
-void CFamiTrackerDoc::SetExceededFlag(bool Exceed)		// // //
-{
-	m_bExceeded = Exceed;
+bool CFamiTrackerDoc::GetExceededFlag() const {		// // //
+	return m_bExceeded;
 }
 
-int CFamiTrackerDoc::GetFrameLength(unsigned int Track, unsigned int Frame) const
-{
-	// // // moved from PatternEditor.cpp
-	auto &Song = *GetModule()->GetSong(Track);
-	const unsigned PatternLength = Song.GetPatternLength();	// default length
-	unsigned HaltPoint = PatternLength;
-
-	ForeachChannel([&] (chan_id_t i) {
-		unsigned halt = [&] {
-			const int Columns = Song.GetEffectColumnCount(i) + 1;
-			const auto &pat = Song.GetPatternOnFrame(i, Frame);
-			for (unsigned j = 0; j < PatternLength - 1; ++j) {
-				const auto &Note = pat.GetNoteOn(j);
-				for (int k = 0; k < Columns; ++k)
-					switch (Note.EffNumber[k])
-					case EF_SKIP: case EF_JUMP: case EF_HALT:
-						return j + 1;
-			}
-			return PatternLength;
-		}();
-		if (halt < HaltPoint)
-			HaltPoint = halt;
-	});
-
-	return HaltPoint;
+void CFamiTrackerDoc::SetExceededFlag(bool Exceed) {		// // //
+	m_bExceeded = Exceed;
 }
 
 
@@ -1106,22 +1057,12 @@ chan_id_t CFamiTrackerDoc::TranslateChannel(unsigned Index) const {		// // //
 
 
 
-unsigned int CFamiTrackerDoc::GetFrameCount(unsigned int Track) const {
-	return GetModule()->GetSong(Track)->GetFrameCount();
-}
-
-
-
 int CFamiTrackerDoc::GetNamcoChannels() const {
 	return GetModule()->GetNamcoChannels();
 }
 
 CInstrumentManager *const CFamiTrackerDoc::GetInstrumentManager() const {
 	return GetModule()->GetInstrumentManager();
-}
-
-const stHighlight &CFamiTrackerDoc::GetHighlight(unsigned int Track) const {		// // //
-	return GetModule()->GetHighlight(Track);
 }
 
 #pragma endregion

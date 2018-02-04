@@ -1550,28 +1550,25 @@ void CFamiTrackerView::OnBookmarksToggle()
 	if ((theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode) || !m_bEditEnable)
 		return;
 
-	CFamiTrackerDoc* pDoc = GetDocument();
-	int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 	const int Frame = GetSelectedFrame();
 	const int Row = GetSelectedRow();
 
-	CBookmarkCollection *pCol = pDoc->GetBookmarkCollection(Track);
-	ASSERT(pCol);
-	if (pCol->FindAt(Frame, Row) != nullptr)
-		pCol->RemoveAt(Frame, Row);
+	CBookmarkCollection &Col = static_cast<CMainFrame *>(GetParentFrame())->GetCurrentSong()->GetBookmarks();
+	if (Col.FindAt(Frame, Row) != nullptr)
+		Col.RemoveAt(Frame, Row);
 	else {
 		auto pMark = std::make_unique<CBookmark>(Frame, Row);
 		pMark->m_Highlight.First = pMark->m_Highlight.Second = -1;
 		pMark->m_bPersist = false;
 		char buf[32] = {};
-		sprintf_s(buf, sizeof(buf), _T("Bookmark %i"), pCol->GetCount() + 1);
+		sprintf_s(buf, sizeof(buf), _T("Bookmark %i"), Col.GetCount() + 1);
 		pMark->m_sName = buf;
-		pCol->AddBookmark(std::move(pMark));
+		Col.AddBookmark(std::move(pMark));
 	}
 
 	static_cast<CMainFrame*>(GetParentFrame())->UpdateBookmarkList();
 	SetFocus();
-	pDoc->ModifyIrreversible();
+	GetDocument()->ModifyIrreversible();
 	m_pPatternEditor->InvalidatePatternData();
 	RedrawPatternEditor();
 	GetFrameEditor()->InvalidateFrameData();
@@ -1583,12 +1580,10 @@ void CFamiTrackerView::OnBookmarksNext()
 	if (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
 		return;
 
-	CFamiTrackerDoc* pDoc = GetDocument();
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
-	CBookmarkCollection *pCol = pDoc->GetBookmarkCollection(pMainFrame->GetSelectedTrack());
-	ASSERT(pCol);
+	CBookmarkCollection &Col = static_cast<CMainFrame *>(GetParentFrame())->GetCurrentSong()->GetBookmarks();
 
-	if (CBookmark *pMark = pCol->FindNext(GetSelectedFrame(), GetSelectedRow())) {
+	if (CBookmark *pMark = Col.FindNext(GetSelectedFrame(), GetSelectedRow())) {
 		SelectFrame(pMark->m_iFrame);
 		SelectRow(pMark->m_iRow);
 		CString str1 = _T("None");
@@ -1598,7 +1593,7 @@ void CFamiTrackerView::OnBookmarksNext()
 		CString Text;
 		AfxFormatString3(Text, IDS_BOOKMARK_FORMAT, pMark->m_sName.c_str(), str1, str2);
 		pMainFrame->SetMessageText(Text);
-		pMainFrame->UpdateBookmarkList(pCol->GetBookmarkIndex(pMark));
+		pMainFrame->UpdateBookmarkList(Col.GetBookmarkIndex(pMark));
 		SetFocus();
 	}
 	else {
@@ -1612,12 +1607,10 @@ void CFamiTrackerView::OnBookmarksPrevious()
 	if (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
 		return;
 
-	CFamiTrackerDoc* pDoc = GetDocument();
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
-	CBookmarkCollection *pCol = pDoc->GetBookmarkCollection(pMainFrame->GetSelectedTrack());
-	ASSERT(pCol);
+	CBookmarkCollection &Col = static_cast<CMainFrame *>(GetParentFrame())->GetCurrentSong()->GetBookmarks();
 
-	if (CBookmark *pMark = pCol->FindPrevious(GetSelectedFrame(), GetSelectedRow())) {
+	if (CBookmark *pMark = Col.FindPrevious(GetSelectedFrame(), GetSelectedRow())) {
 		SelectFrame(pMark->m_iFrame);
 		SelectRow(pMark->m_iRow);
 		CString str1 = _T("None");
@@ -1627,7 +1620,7 @@ void CFamiTrackerView::OnBookmarksPrevious()
 		CString Text;
 		AfxFormatString3(Text, IDS_BOOKMARK_FORMAT, pMark->m_sName.c_str(), str1, str2);
 		pMainFrame->SetMessageText(Text);
-		pMainFrame->UpdateBookmarkList(pCol->GetBookmarkIndex(pMark));
+		pMainFrame->UpdateBookmarkList(Col.GetBookmarkIndex(pMark));
 		SetFocus();
 	}
 	else {

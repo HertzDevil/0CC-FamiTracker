@@ -1084,12 +1084,12 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 	}
 
 	// Highlight
-	const int Track = GetMainFrame()->GetSelectedTrack();		// // //
-	unsigned int Highlight = m_pDocument->GetHighlightState(Track, Frame, Row);		// // //
+	const CSongData *pSong = GetMainFrame()->GetCurrentSong();		// // //
+	unsigned int Highlight = m_pDocument->GetHighlightState(GetMainFrame()->GetSelectedTrack(), Frame, Row);		// // //
 
 	// Clear
 	DC.FillSolidRect(1, Line * m_iRowHeight, m_iRowColumnWidth - 2, m_iRowHeight, ColBg);
-	if (m_pDocument->GetBookmarkAt(Track, Frame, Row))
+	if (pSong->GetBookmarks().FindAt(Frame, Row))
 		DC.FillSolidRect(1, Line * m_iRowHeight, m_iRowColumnWidth - 2, m_iRowHeight, ColHiBg);
 
 	COLORREF TextColor;

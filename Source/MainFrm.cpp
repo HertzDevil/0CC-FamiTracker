@@ -1641,32 +1641,26 @@ void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateInsertFrame(CCmdUI *pCmdUI)
 {
-	CFamiTrackerDoc &Doc = GetDoc();
-
-	if (!Doc.IsFileLoaded())
+	if (!GetDoc().IsFileLoaded())		// // //
 		return;
 
-	pCmdUI->Enable(Doc.GetFrameCount(m_iTrack) < MAX_FRAMES);
+	pCmdUI->Enable(GetCurrentSong()->GetFrameCount() < MAX_FRAMES);
 }
 
 void CMainFrame::OnUpdateRemoveFrame(CCmdUI *pCmdUI)
 {
-	CFamiTrackerDoc &Doc = GetDoc();
-
-	if (!Doc.IsFileLoaded())
+	if (!GetDoc().IsFileLoaded())		// // //
 		return;
 
-	pCmdUI->Enable(Doc.GetFrameCount(m_iTrack) > 1);
+	pCmdUI->Enable(GetCurrentSong()->GetFrameCount() > 1);
 }
 
 void CMainFrame::OnUpdateDuplicateFrame(CCmdUI *pCmdUI)
 {
-	const CFamiTrackerDoc &Doc = GetDoc();
-
-	if (!Doc.IsFileLoaded())
+	if (!GetDoc().IsFileLoaded())		// // //
 		return;
 
-	pCmdUI->Enable(Doc.GetFrameCount(m_iTrack) < MAX_FRAMES);
+	pCmdUI->Enable(GetCurrentSong()->GetFrameCount() < MAX_FRAMES);
 }
 
 void CMainFrame::OnUpdateModuleMoveframedown(CCmdUI *pCmdUI)
@@ -1677,7 +1671,7 @@ void CMainFrame::OnUpdateModuleMoveframedown(CCmdUI *pCmdUI)
 	if (!Doc.IsFileLoaded())
 		return;
 
-	pCmdUI->Enable(!(pView->GetSelectedFrame() == (Doc.GetFrameCount(m_iTrack) - 1)));
+	pCmdUI->Enable(!(pView->GetSelectedFrame() == (Doc.GetFrameCount(m_iTrack) - 1)));		// // //
 }
 
 void CMainFrame::OnUpdateModuleMoveframeup(CCmdUI *pCmdUI)
@@ -2338,7 +2332,7 @@ void CMainFrame::OnUpdateViewControlpanel(CCmdUI *pCmdUI)
 void CMainFrame::OnDeltaposHighlightSpin1(NMHDR *pNMHDR, LRESULT *pResult)		// // //
 {
 	if (HasDocument()) {
-		stHighlight Hl = GetDoc().GetHighlight(GetSelectedTrack());
+		stHighlight Hl = GetCurrentSong()->GetRowHighlight();
 		Hl.First = std::clamp(Hl.First - ((NMUPDOWN*)pNMHDR)->iDelta, 0, MAX_PATTERN_LENGTH);
 		AddAction(std::make_unique<CPActionHighlight>(Hl));
 		theApp.GetSoundGenerator()->SetHighlightRows(Hl.First);		// // //
@@ -2348,7 +2342,7 @@ void CMainFrame::OnDeltaposHighlightSpin1(NMHDR *pNMHDR, LRESULT *pResult)		// /
 void CMainFrame::OnDeltaposHighlightSpin2(NMHDR *pNMHDR, LRESULT *pResult)		// // //
 {
 	if (HasDocument()) {
-		stHighlight Hl = GetDoc().GetHighlight(GetSelectedTrack());
+		stHighlight Hl = GetCurrentSong()->GetRowHighlight();
 		Hl.Second = std::clamp(Hl.Second - ((NMUPDOWN*)pNMHDR)->iDelta, 0, MAX_PATTERN_LENGTH);
 		AddAction(std::make_unique<CPActionHighlight>(Hl));
 	}
@@ -2911,7 +2905,6 @@ void CMainFrame::OnEditSelectother()		// // //
 {
 	auto pView = static_cast<CFamiTrackerView*>(GetActiveView());
 	auto pEditor = pView->GetPatternEditor();
-	auto pDoc = static_cast<const CFamiTrackerDoc*>(GetActiveDocument());
 
 	if (GetFocus() == pView) {
 		if (pEditor->IsSelecting()) {
@@ -2919,7 +2912,7 @@ void CMainFrame::OnEditSelectother()		// // //
 			pEditor->CancelSelection();
 
 			CFrameSelection NewSel;
-			int Frames = pDoc->GetFrameCount(m_iTrack);
+			int Frames = GetCurrentSong()->GetFrameCount();
 			NewSel.m_cpStart.m_iFrame = Sel.m_cpStart.m_iFrame;
 			NewSel.m_cpEnd.m_iFrame = Sel.m_cpEnd.m_iFrame;
 			if (NewSel.m_cpStart.m_iFrame < 0) {

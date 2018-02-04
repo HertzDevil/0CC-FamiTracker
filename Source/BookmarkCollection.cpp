@@ -129,7 +129,7 @@ CBookmark *CBookmarkCollection::FindAt(unsigned Frame, unsigned Row) const
 {
 	const CBookmark tmp(Frame, Row);
 	auto it = std::find_if(m_pBookmark.begin(), m_pBookmark.end(), [&] (const std::unique_ptr<CBookmark> &a) {
-		return *a.get() == tmp;
+		return *a == tmp;
 	});
 	return it == m_pBookmark.end() ? nullptr : it->get();
 }

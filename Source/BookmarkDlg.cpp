@@ -24,7 +24,10 @@
 #include <string>
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
 #include "FamiTrackerView.h"
+#include "SongData.h"
+#include "SongView.h"
 #include "MainFrm.h"
 #include "Bookmark.h"
 #include "BookmarkCollection.h"
@@ -155,15 +158,15 @@ void CBookmarkDlg::LoadBookmarks(int Track)
 {
 	m_cListBookmark.ResetContent();
 	m_iTrack = Track;
+	m_pCollection = &m_pDocument->GetModule()->GetSong(Track)->GetBookmarks();
 
-	if ((m_pCollection = m_pDocument->GetBookmarkCollection(Track)))
-		for (unsigned i = 0; i < m_pCollection->GetCount(); ++i) {
-			const CBookmark *pMark = m_pCollection->GetBookmark(i);
-			CString str(pMark->m_sName.c_str());
-			if (str.IsEmpty()) str = _T("Bookmark");
-			str.AppendFormat(_T(" (%02X,%02X)"), pMark->m_iFrame, pMark->m_iRow);
-			m_cListBookmark.AddString(str);
-		}
+	for (unsigned i = 0; i < m_pCollection->GetCount(); ++i) {
+		const CBookmark *pMark = m_pCollection->GetBookmark(i);
+		CString str(pMark->m_sName.c_str());
+		if (str.IsEmpty()) str = _T("Bookmark");
+		str.AppendFormat(_T(" (%02X,%02X)"), pMark->m_iFrame, pMark->m_iRow);
+		m_cListBookmark.AddString(str);
+	}
 }
 
 void CBookmarkDlg::SelectBookmark(int Pos)
@@ -177,9 +180,11 @@ void CBookmarkDlg::SelectBookmark(int Pos)
 
 bool CBookmarkDlg::IsBookmarkValid(unsigned index) const {
 	if (m_pCollection && m_pDocument)
-		if (auto pBookmark = m_pCollection->GetBookmark(index))
-			return pBookmark->m_iFrame < m_pDocument->GetFrameCount(m_iTrack) &&
-				pBookmark->m_iRow < (unsigned)m_pDocument->GetFrameLength(m_iTrack, pBookmark->m_iFrame);
+		if (auto pBookmark = m_pCollection->GetBookmark(index)) {
+			auto *pSongView = CFamiTrackerView::GetView()->GetSongView();
+			return pBookmark->m_iFrame < pSongView->GetSong().GetFrameCount() &&
+				pBookmark->m_iRow < (unsigned)pSongView->GetFrameLength(pBookmark->m_iFrame);
+		}
 	return false;
 }
 
@@ -345,13 +350,15 @@ void CBookmarkDlg::OnLbnSelchangeListBookmarks()
 	static_cast<CButton*>(GetDlgItem(IDC_CHECK_BOOKMARK_PERSIST))->SetCheck(m_bPersist ? BST_CHECKED : BST_UNCHECKED);
 	GetDlgItem(IDC_EDIT_BOOKMARK_NAME)->SetWindowText(pMark->m_sName.c_str());
 
+	const auto &hl = m_pDocument->GetModule()->GetSong(m_iTrack)->GetRowHighlight();
+
 	m_bEnableHighlight1 = pMark->m_Highlight.First != -1;
-	m_cSpinHighlight1.SetPos(m_bEnableHighlight1 ? pMark->m_Highlight.First : m_pDocument->GetHighlight(m_iTrack).First);
+	m_cSpinHighlight1.SetPos(m_bEnableHighlight1 ? pMark->m_Highlight.First : hl.First);
 	static_cast<CButton*>(GetDlgItem(IDC_CHECK_BOOKMARK_HIGH1))->SetCheck(m_bEnableHighlight1);
 	static_cast<CEdit*>(GetDlgItem(IDC_EDIT_BOOKMARK_HIGH1))->EnableWindow(m_bEnableHighlight1);
 
 	m_bEnableHighlight2 = pMark->m_Highlight.Second != -1;
-	m_cSpinHighlight2.SetPos(m_bEnableHighlight2 ? pMark->m_Highlight.Second : m_pDocument->GetHighlight(m_iTrack).Second);
+	m_cSpinHighlight2.SetPos(m_bEnableHighlight2 ? pMark->m_Highlight.Second : hl.Second);
 	static_cast<CButton*>(GetDlgItem(IDC_CHECK_BOOKMARK_HIGH2))->SetCheck(m_bEnableHighlight2);
 	static_cast<CEdit*>(GetDlgItem(IDC_EDIT_BOOKMARK_HIGH2))->EnableWindow(m_bEnableHighlight2);
 
@@ -372,7 +379,7 @@ void CBookmarkDlg::OnLbnDblclkListBookmarks()
 	BOOL is_outside = FALSE;
 	UINT item_index = m_cListBookmark.ItemFromPoint(cursor, is_outside);
 	if (!is_outside && IsBookmarkValid(item_index)) {
-		CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(static_cast<CMainFrame*>(AfxGetMainWnd())->GetActiveView());
+		auto *pView = CFamiTrackerView::GetView();
 		CBookmark *pMark = m_pCollection->GetBookmark(item_index);
 		pView->SelectFrame(pMark->m_iFrame);
 		pView->SelectRow(pMark->m_iRow);

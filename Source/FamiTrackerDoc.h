@@ -36,27 +36,10 @@
 
 // External classes
 class CFamiTrackerModule;		// // //
-class CSongData;		// // //
-class CSongView;		// // //
-class CTrackerChannel;
 class CDocumentFile;
 class CSimpleFile;		// // //
-class CBookmark;		// // //
-class CBookmarkCollection;		// // //
-class CInstrument;		// // //
-class CSequence;		// // //
-class stChanNote;		// // //
 struct stHighlight;		// // //
 class CSoundChipSet;		// // //
-
-enum inst_type_t : unsigned;
-enum class sequence_t : unsigned;
-enum machine_t : unsigned char;
-enum vibrato_t : unsigned char;
-
-namespace ft0cc::doc {		// // //
-class dpcm_sample;
-} // namespace ft0cc::doc
 
 //
 // I'll try to organize this class, things are quite messy right now!
@@ -64,21 +47,15 @@ class dpcm_sample;
 
 // // // TODO:
 // // // + move core data fields into CFamiTrackerModule
-// // // - move high-level pattern operations to CSongView
-// // // - remove these delegations
+// // // + move high-level pattern operations to CSongView
+// // // - remove delegations to these classes and use them directly
 // // //    - CFamiTrackerModule
-// // //    - CSongData
-// // //    - CSongView
-// // // - use these classes directly in other classes
-// // //    - CFamiTrackerModule
-// // //    - CSongData
-// // //    - CSongView
+// // //    + CSongData
+// // //    + CSongView / CChannelOrder
 // // // - move action handler into CFamiTrackerDoc
 
 class CFamiTrackerDoc : public CDocument, public CFTMComponentInterface
 {
-	using dpcm_sample = ft0cc::doc::dpcm_sample;
-
 	struct ctor_t { };		// // //
 
 public:
@@ -113,20 +90,23 @@ public:
 	//
 	// Document file I/O
 	//
-	bool IsFileLoaded() const;
-	bool HasLastLoadFailed() const;
-	void CreateEmpty();		// // //
+	bool			IsFileLoaded() const;
+	bool			HasLastLoadFailed() const;
+	void			CreateEmpty();		// // //
+
+	bool			GetExceededFlag() const;		// // //
+	void			SetExceededFlag(bool Exceed = 1);
+
+	// Synchronization
+	BOOL			LockDocument() const;
+	BOOL			LockDocument(DWORD dwTimeout) const;
+	BOOL			UnlockDocument() const;
 
 	// Import
 	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCTSTR lpszPathName);		// // //
 	bool			ImportInstruments(CFamiTrackerModule &Imported, int *pInstTable);
 	bool			ImportGrooves(CFamiTrackerModule &Imported, int *pGrooveMap);		// // //
 	bool			ImportDetune(CFamiTrackerModule &Imported);			// // //
-
-	// Synchronization
-	BOOL			LockDocument() const;
-	BOOL			LockDocument(DWORD dwTimeout) const;
-	BOOL			UnlockDocument() const;
 
 	//
 	// Document data access functions
@@ -138,13 +118,6 @@ public:
 	stHighlight		GetHighlightAt(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
 	unsigned int	GetHighlightState(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
 
-	CBookmarkCollection *GetBookmarkCollection(unsigned track);		// // //
-	const CBookmarkCollection *GetBookmarkCollection(unsigned track) const;		// // //
-	unsigned		GetTotalBookmarkCount() const;		// // //
-	CBookmark		*GetBookmarkAt(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
-
-	int				GetFrameLength(unsigned int Track, unsigned int Frame) const;
-
 	// Instruments functions
 	void			SaveInstrument(unsigned int Index, CSimpleFile &file) const;		// // //
 	bool 			LoadInstrument(unsigned Index, CSimpleFile &File);		// // //
@@ -153,9 +126,6 @@ public:
 	void			RemoveUnusedInstruments();
 	void			RemoveUnusedSamples();		// // //
 	void			RemoveUnusedPatterns();
-
-	bool			GetExceededFlag() { return m_bExceeded; };
-	void			SetExceededFlag(bool Exceed = 1);		// // //
 
 	// // // from the component interface
 	CChannelOrder	&GetChannelOrder() const override;		// // //
@@ -167,21 +137,17 @@ public:
 
 // // // delegates
 
-#pragma region delegates to CSongData
-	unsigned int	GetFrameCount(unsigned int Track) const;
-#pragma endregion
-
 #pragma region delegates to CFamiTrackerModule
 	int				GetNamcoChannels() const;
+#pragma endregion
 
+#pragma region delegates to CSongView/CChannelOrder
 	// void (*F)(chan_id_t chan)
 	template <typename F>
 	void ForeachChannel(F f) const {
 		for (std::size_t i = 0, n = GetChannelCount(); i < n; ++i)
 			f(TranslateChannel(i));
 	}
-
-	const stHighlight &GetHighlight(unsigned int Track) const;
 #pragma endregion
 
 	//

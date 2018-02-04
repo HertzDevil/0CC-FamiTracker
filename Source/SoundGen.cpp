@@ -643,7 +643,7 @@ void CSoundGen::OnPlayNote(chan_id_t chan, const stChanNote &note) {
 }
 
 void CSoundGen::OnUpdateRow(int frame, int row) {
-	auto pMark = m_pDocument->GetBookmarkAt(m_iLastTrack, frame, row);
+	auto pMark = m_pModule->GetSong(m_iLastTrack)->GetBookmarks().FindAt(frame, row);
 	if (pMark && pMark->m_Highlight.First != -1)		// // //
 		m_iLastHighlight = pMark->m_Highlight.First;
 	if (!IsBackgroundTask() && m_pTrackerView)		// // //

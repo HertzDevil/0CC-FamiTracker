@@ -1432,7 +1432,10 @@ void CFamiTrackerDocIO::LoadBookmarks(CFamiTrackerDoc &doc, int ver) {
 void CFamiTrackerDocIO::SaveBookmarks(const CFamiTrackerDoc &doc, int ver) {
 	auto &modfile = *doc.GetModule();
 
-	int Count = doc.GetTotalBookmarkCount();
+	int Count = 0;
+	modfile.VisitSongs([&] (const CSongData &song) {
+		Count += song.GetBookmarks().GetCount();
+	});
 	if (!Count)
 		return;
 	file_.WriteBlockInt(Count);
