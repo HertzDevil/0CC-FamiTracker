@@ -56,6 +56,7 @@ class CAction;
 class CActionHandler;
 class CFamiTrackerDoc;		// // //
 class CFamiTrackerModule;		// // //
+class CInstrument;		// // //
 class CFrameEditor;
 class CGrooveDlg;		// // //
 class CBookmarkDlg;
@@ -104,7 +105,7 @@ public:
 	void	CloseInstrumentEditor();
 	void	UpdateInstrumentList();
 	void	SelectInstrument(int Index);
-	int		GetSelectedInstrument() const;
+	int		GetSelectedInstrumentIndex() const;
 	void	SwapInstruments(int First, int Second);
 
 	void	UpdateInstrumentName() const;		// // //
@@ -168,6 +169,7 @@ private:
 	void	ClearInstrumentList();
 	void	SetInstrumentEditName(const char *pText);		// // //
 	bool	LoadInstrument(unsigned Index, const CString &filename);		// // //
+	std::shared_ptr<CInstrument> GetSelectedInstrument() const;		// // //
 
 	void	SetFrameEditorPosition(int Position);
 	void	SetControlPanelPosition(control_panel_pos_t Position);		// // // 050B

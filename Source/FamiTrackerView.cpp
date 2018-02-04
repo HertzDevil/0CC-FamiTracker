@@ -1782,7 +1782,7 @@ void CFamiTrackerView::SetInstrument(int Instrument)
 unsigned int CFamiTrackerView::GetInstrument() const
 {
 	CMainFrame *pMainFrm = GetMainFrame();		// // //
-	return pMainFrm->GetSelectedInstrument();
+	return pMainFrm->GetSelectedInstrumentIndex();
 }
 
 unsigned int CFamiTrackerView::GetSplitInstrument() const		// // //
@@ -2772,7 +2772,7 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 bool CFamiTrackerView::DoRelease() const
 {
 	// Return true if there are a valid release sequence for selected instrument
-	auto pInstrument = GetDocument()->GetInstrument(GetInstrument());		// // //
+	auto pInstrument = GetModuleData()->GetInstrumentManager()->GetInstrument(GetInstrument());		// // //
 	return pInstrument && pInstrument->CanRelease();
 }
 
@@ -3207,7 +3207,7 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 	if (m_iMenuChannel == chan_id_t::NONE)
 		m_iMenuChannel = GetSelectedChannelID();
 
-	CFamiTrackerDoc	*pDoc = GetDocument();
+	CInstrumentManager *pManager = GetModuleData()->GetInstrumentManager();
 	chan_id_t Channel = m_iMenuChannel;		// // //
 	sound_chip_t Chip = GetChipFromChannel(m_iMenuChannel);
 	m_iMenuChannel = chan_id_t::NONE;
@@ -3215,7 +3215,7 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 	if (Channel == chan_id_t::DPCM || Chip == sound_chip_t::VRC7) {
 		AfxMessageBox(IDS_DUMP_NOT_SUPPORTED, MB_ICONERROR); return;
 	}
-	if (pDoc->GetInstrumentCount() >= MAX_INSTRUMENTS) {
+	if (pManager->GetInstrumentCount() >= MAX_INSTRUMENTS) {
 		AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR); return;
 	}
 	if (Chip != sound_chip_t::FDS) {
@@ -3226,11 +3226,17 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 		case sound_chip_t::N163: Type = INST_N163; break;
 		case sound_chip_t::S5B:  Type = INST_S5B; break;
 		}
-		if (Type != INST_NONE) foreachSeq([&] (sequence_t i) {
-			if (pDoc->GetFreeSequence(Type, i) == -1) {
-				AfxMessageBox(IDS_SEQUENCE_LIMIT, MB_ICONERROR); return;
+		if (Type != INST_NONE) {
+			bool err = false;
+			foreachSeq([&] (sequence_t i) {
+				if (pManager->GetFreeSequenceIndex(Type, i, nullptr) == -1)
+					err = true;
+			});
+			if (err) {
+				AfxMessageBox(IDS_SEQUENCE_LIMIT, MB_ICONERROR);
+				return;
 			}
-		});
+		}
 	}
 
 	if (IsChannelMuted(GetSelectedChannelID()))

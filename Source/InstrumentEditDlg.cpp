@@ -25,6 +25,7 @@
 #include <string>
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
+#include "InstrumentManager.h"		// // //
 #include "SeqInstrument.h"		// // //
 #include "Instrument2A03.h"		// // //
 #include "InstrumentVRC6.h"		// // //
@@ -164,7 +165,7 @@ void CInstrumentEditDlg::ClearPanels()
 void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	std::shared_ptr<CInstrument> pInstrument = pDoc->GetInstrument(Index);
+	std::shared_ptr<CInstrument> pInstrument = pDoc->GetInstrumentManager()->GetInstrument(Index);
 	int InstType = pInstrument->GetType();
 
 	// Dialog title
@@ -409,7 +410,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 			NoteData.Note			= Note;
 			NoteData.Octave			= Octave;
 			NoteData.Vol			= MAX_VOLUME - 1;
-			NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();
+			NoteData.Instrument		= pFrameWnd->GetSelectedInstrumentIndex();
 
 			Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 			Env.GetSoundGenerator()->ForceReloadInstrument(Channel);		// // //
@@ -432,7 +433,7 @@ void CInstrumentEditDlg::SwitchOffNote(bool ForceHalt)
 
 	stChanNote NoteData;		// // //
 	NoteData.Note			= (pView->DoRelease() && !ForceHalt) ? RELEASE : HALT;
-	NoteData.Instrument		= pFrameWnd->GetSelectedInstrument();
+	NoteData.Instrument		= pFrameWnd->GetSelectedInstrumentIndex();
 
 	Env.GetSoundGenerator()->QueueNote(pView->GetSelectedChannelID(), NoteData, NOTE_PRIO_2);
 

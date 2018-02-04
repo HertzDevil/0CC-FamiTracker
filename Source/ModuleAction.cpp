@@ -167,7 +167,7 @@ ModuleAction::CAddInst::CAddInst(unsigned index, std::shared_ptr<CInstrument> pI
 }
 
 bool ModuleAction::CAddInst::SaveState(const CMainFrame &MainFrm) {
-	prev_ = MainFrm.GetSelectedInstrument();
+	prev_ = MainFrm.GetSelectedInstrumentIndex();
 	return inst_ && index_ < MAX_INSTRUMENTS && !GET_MODULE().GetInstrumentManager()->IsInstrumentUsed(index_);
 }
 

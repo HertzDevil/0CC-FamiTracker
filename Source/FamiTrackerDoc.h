@@ -174,8 +174,6 @@ public:
 #pragma region delegates to CFamiTrackerModule
 	int				GetNamcoChannels() const;
 
-	machine_t		GetMachine() const;
-
 	// void (*F)(chan_id_t chan)
 	template <typename F>
 	void ForeachChannel(F f) const {
@@ -184,17 +182,6 @@ public:
 	}
 
 	const stHighlight &GetHighlight(unsigned int Track) const;
-#pragma endregion
-
-#pragma region delegates to CInstrumentManager
-	std::shared_ptr<CInstrument>	GetInstrument(unsigned int Index) const;
-	unsigned int	GetInstrumentCount() const;
-	unsigned		GetFreeInstrumentIndex() const;		// // //
-	bool			IsInstrumentUsed(unsigned int Index) const;
-	inst_type_t		GetInstrumentType(unsigned int Index) const;
-
-	// // // take instrument type as parameter rather than chip type
-	int				GetFreeSequence(inst_type_t InstType, sequence_t Type) const;		// // //
 #pragma endregion
 
 	//

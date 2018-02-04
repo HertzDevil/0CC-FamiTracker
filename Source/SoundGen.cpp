@@ -67,6 +67,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "TrackerChannel.h"		// // //
 #include "Highlight.h"		// // //
 #include "Bookmark.h"		// // //
+#include "Instrument.h"
 
 // // // Log VGM output (port from sn7t when necessary)
 //#define WRITE_VGM
@@ -140,8 +141,6 @@ void CSoundGen::AssignDocument(CFamiTrackerDoc *pDoc)
 
 	// Assigns a document to this object
 	m_pDocument = pDoc;
-	m_pInstRecorder->m_pDocument = pDoc;		// // //
-
 	AssignModule(*m_pDocument->GetModule());		// // //
 
 	m_pSoundDriver->LoadAPU(*m_pAPU);		// // //
@@ -152,6 +151,7 @@ void CSoundGen::AssignDocument(CFamiTrackerDoc *pDoc)
 
 void CSoundGen::AssignModule(CFamiTrackerModule &modfile) {
 	m_pModule = &modfile;
+	m_pInstRecorder->AssignModule(modfile);
 	m_pSoundDriver->AssignModule(modfile);
 	m_pTempoCounter->AssignModule(modfile);
 }

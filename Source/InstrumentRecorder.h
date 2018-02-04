@@ -28,11 +28,10 @@
 #include <memory>
 #include <array>
 #include <unordered_map>
-#include "Instrument.h"
 
 class CSequence;
 class CInstrument;
-class CFamiTrackerDoc;
+class CFamiTrackerModule;
 class CSoundGen;
 class CWnd;
 enum class sequence_t : unsigned;
@@ -46,10 +45,12 @@ struct stRecordSetting {
 class CInstrumentRecorder
 {
 public:
-	CInstrumentRecorder(CSoundGen *pSG);
+	explicit CInstrumentRecorder(CSoundGen *pSG);
 	~CInstrumentRecorder();
 
 public:
+	void			AssignModule(CFamiTrackerModule &modfile);
+
 	void			StartRecording();
 	void			StopRecording(CWnd *pView);
 	void			RecordInstrument(const unsigned Tick, CWnd *pView);
@@ -69,11 +70,8 @@ private:
 	void			InitRecordInstrument();
 	void			FinalizeRecordInstrument();
 
-public:
-	CFamiTrackerDoc *m_pDocument;
-
-private:
-	CSoundGen		*m_pSoundGen;
+	CFamiTrackerModule *m_pModule = nullptr;
+	CSoundGen		*m_pSoundGen = nullptr;
 	chan_id_t		m_iRecordChannel;
 	int				m_iDumpCount;
 	std::unique_ptr<CInstrument> *m_pDumpInstrument = nullptr;

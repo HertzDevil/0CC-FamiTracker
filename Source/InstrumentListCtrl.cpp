@@ -23,6 +23,7 @@
 #include "InstrumentListCtrl.h"		// // //
 #include "../resource.h"
 #include "FamiTrackerDoc.h"
+#include "InstrumentManager.h"		// // //
 #include "MainFrm.h"
 #include "FamiTracker.h"		// // //
 #include "Instrument.h"		// // //
@@ -132,10 +133,10 @@ void CInstrumentListCtrl::SelectPreviousItem()
 void CInstrumentListCtrl::InsertInstrument(int Index)
 {
 	// Inserts an instrument in the list (Index = instrument number)
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
+	auto *pManager = CFamiTrackerDoc::GetDoc()->GetInstrumentManager();		// // //
 
-	if (auto pInst = pDoc->GetInstrument(Index)) {		// // //
-		int Type = pDoc->GetInstrumentType(Index);
+	if (auto pInst = pManager->GetInstrument(Index)) {		// // //
+		int Type = pInst->GetType();
 
 		// Name is of type index - name
 		CStringA Text;

@@ -640,7 +640,7 @@ bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerModule &Imported, int *pInst
 					}
 			}
 
-			int Index = GetFreeInstrumentIndex();
+			int Index = pManager->GetFirstUnused();
 			pManager->InsertInstrument(Index, std::move(pInst));		// // //
 			// Save a reference to this instrument
 			pInstTable[i] = Index;
@@ -684,10 +684,10 @@ bool CFamiTrackerDoc::ImportDetune(CFamiTrackerModule &Imported)		// // //
 //
 
 void CFamiTrackerDoc::SaveInstrument(unsigned int Index, CSimpleFile &file) const {
-	GetInstrument(Index)->SaveFTI(file);
+	GetInstrumentManager()->GetInstrument(Index)->SaveFTI(file);
 }
 
-bool CFamiTrackerDoc::LoadInstrument(unsigned Index, CSimpleFile &File) {		// / //
+bool CFamiTrackerDoc::LoadInstrument(unsigned Index, CSimpleFile &File) {		// // //
 	// Loads an instrument from file, return allocated slot or INVALID_INSTRUMENT if failed
 
 	// FTI instruments files
@@ -974,7 +974,7 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 	auto *pManager = GetInstrumentManager();
 
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i)
-		if (IsInstrumentUsed(i) && !used[i])
+		if (pManager->IsInstrumentUsed(i) && !used[i])
 			pManager->RemoveInstrument(i);
 
 	static const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};
@@ -986,8 +986,8 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 				if (auto pSeq = pManager->GetSequence(inst[c], j, i); pSeq && pSeq > 0) {		// // //
 					bool Used = false;
 					for (int k = 0; k < MAX_INSTRUMENTS; ++k) {
-						if (IsInstrumentUsed(k) && GetInstrumentType(k) == inst[c]) {
-							auto pInstrument = std::static_pointer_cast<CSeqInstrument>(GetInstrument(k));
+						if (pManager->IsInstrumentUsed(k) && pManager->GetInstrumentType(k) == inst[c]) {
+							auto pInstrument = std::static_pointer_cast<CSeqInstrument>(pManager->GetInstrument(k));
 							if (pInstrument->GetSeqIndex(j) == i && pInstrument->GetSeqEnable(j)) {		// // //
 								Used = true; break;
 							}
@@ -1020,6 +1020,7 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 	bool AssignUsed[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE] = { };
 
 	auto &Manager = *GetDSampleManager();
+	auto &InstManager = *GetInstrumentManager();
 
 	for (int i = 0; i < MAX_DSAMPLES; ++i) {
 		if (Manager.IsSampleUsed(i)) {
@@ -1032,10 +1033,10 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 						int Index = Note.Instrument;
 						if (Note.Note < NOTE_C || Note.Note > NOTE_B || Index == MAX_INSTRUMENTS)
 							continue;		// // //
-						if (GetInstrumentType(Index) != INST_2A03)
+						if (InstManager.GetInstrumentType(Index) != INST_2A03)
 							continue;
 						AssignUsed[Index][Note.Octave][Note.Note - 1] = true;
-						auto pInst = std::static_pointer_cast<CInstrument2A03>(GetInstrument(Index));
+						auto pInst = std::static_pointer_cast<CInstrument2A03>(InstManager.GetInstrument(Index));
 						if (pInst->GetSampleIndex(Note.Octave, Note.Note - 1) == i + 1)
 							Used = true;
 					}
@@ -1046,8 +1047,8 @@ void CFamiTrackerDoc::RemoveUnusedSamples()		// // //
 		}
 	}
 	// also remove unused assignments
-	for (int i = 0; i < MAX_INSTRUMENTS; i++) if (IsInstrumentUsed(i))
-		if (auto pInst = std::dynamic_pointer_cast<CInstrument2A03>(GetInstrument(i)))
+	for (int i = 0; i < MAX_INSTRUMENTS; i++) if (InstManager.IsInstrumentUsed(i))
+		if (auto pInst = std::dynamic_pointer_cast<CInstrument2A03>(InstManager.GetInstrument(i)))
 			for (int o = 0; o < OCTAVE_RANGE; o++) for (int n = 0; n < NOTE_RANGE; n++)
 				if (!AssignUsed[i][o][n])
 					pInst->SetSampleIndex(o, n, 0);
@@ -1115,44 +1116,12 @@ int CFamiTrackerDoc::GetNamcoChannels() const {
 	return GetModule()->GetNamcoChannels();
 }
 
-machine_t CFamiTrackerDoc::GetMachine() const {
-	return GetModule()->GetMachine();
-}
-
 CInstrumentManager *const CFamiTrackerDoc::GetInstrumentManager() const {
 	return GetModule()->GetInstrumentManager();
 }
 
 const stHighlight &CFamiTrackerDoc::GetHighlight(unsigned int Track) const {		// // //
 	return GetModule()->GetHighlight(Track);
-}
-
-
-
-std::shared_ptr<CInstrument> CFamiTrackerDoc::GetInstrument(unsigned int Index) const {
-	return GetInstrumentManager()->GetInstrument(Index);
-}
-
-unsigned int CFamiTrackerDoc::GetInstrumentCount() const {
-	return GetInstrumentManager()->GetInstrumentCount();
-}
-
-unsigned CFamiTrackerDoc::GetFreeInstrumentIndex() const {		// // //
-	return GetInstrumentManager()->GetFirstUnused();
-}
-
-bool CFamiTrackerDoc::IsInstrumentUsed(unsigned int Index) const {
-	return GetInstrumentManager()->IsInstrumentUsed(Index);
-}
-
-inst_type_t CFamiTrackerDoc::GetInstrumentType(unsigned int Index) const {
-	return GetInstrumentManager()->GetInstrumentType(Index);
-}
-
-
-
-int CFamiTrackerDoc::GetFreeSequence(inst_type_t InstType, sequence_t Type) const {		// // //
-	return GetInstrumentManager()->GetFreeSequenceIndex(InstType, Type, nullptr);
 }
 
 #pragma endregion

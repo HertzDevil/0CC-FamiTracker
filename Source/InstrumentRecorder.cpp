@@ -22,8 +22,7 @@
 
 #include "InstrumentRecorder.h"
 #include "InstrumentManager.h"
-#include "FamiTrackerDoc.h"
-#include "TrackerChannel.h"
+#include "FamiTrackerModule.h"
 #include "FamiTrackerViewMessage.h"
 #include "SoundGen.h"
 #include "SeqInstrument.h"
@@ -52,6 +51,10 @@ CInstrumentRecorder::CInstrumentRecorder(CSoundGen *pSG) :
 
 CInstrumentRecorder::~CInstrumentRecorder()
 {
+}
+
+void CInstrumentRecorder::AssignModule(CFamiTrackerModule &modfile) {
+	m_pModule = &modfile;
 }
 
 void CInstrumentRecorder::StartRecording()
@@ -112,7 +115,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 
 	CDetuneTable::type_t Table;
 	switch (Chip) {
-	case sound_chip_t::APU:  Table = m_pDocument->GetMachine() == PAL ? CDetuneTable::DETUNE_PAL : CDetuneTable::DETUNE_NTSC; break;
+	case sound_chip_t::APU:  Table = m_pModule->GetMachine() == PAL ? CDetuneTable::DETUNE_PAL : CDetuneTable::DETUNE_NTSC; break;
 	case sound_chip_t::VRC6: Table = m_iRecordChannel == chan_id_t::VRC6_SAWTOOTH ? CDetuneTable::DETUNE_SAW : CDetuneTable::DETUNE_NTSC; break;
 	case sound_chip_t::VRC7: Table = CDetuneTable::DETUNE_VRC7; break;
 	case sound_chip_t::FDS:  Table = CDetuneTable::DETUNE_FDS; break;
@@ -300,7 +303,7 @@ void CInstrumentRecorder::ReleaseCurrent()
 
 void CInstrumentRecorder::InitRecordInstrument()
 {
-	if (m_pDocument->GetInstrumentCount() >= MAX_INSTRUMENTS) {
+	if (m_pModule->GetInstrumentManager()->GetInstrumentCount() >= MAX_INSTRUMENTS) {
 		m_iDumpCount = 0; m_iRecordChannel = chan_id_t::NONE; return;
 	}
 	inst_type_t Type = [&] { // optimize this
@@ -329,7 +332,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 	if (auto Inst = dynamic_cast<CSeqInstrument *>(m_pDumpInstrument->get())) {
 		foreachSeq([&] (sequence_t i) {
 			Inst->SetSeqEnable(i, 1);
-			Inst->SetSeqIndex(i, m_pDocument->GetFreeSequence(Type, i));
+			Inst->SetSeqIndex(i, m_pModule->GetInstrumentManager()->GetFreeSequenceIndex(Type, i, nullptr));
 		});
 		m_pSequenceCache[sequence_t::Arpeggio]->SetSetting(SETTING_ARP_FIXED);
 		// m_pSequenceCache[sequence_t::Pitch]->SetSetting(SETTING_PITCH_ABSOLUTE);
@@ -350,7 +353,7 @@ void CInstrumentRecorder::FinalizeRecordInstrument()
 	CInstrumentFDS *FDSInst = dynamic_cast<CInstrumentFDS *>(m_pDumpInstrument->get());
 	CInstrumentN163 *N163Inst = dynamic_cast<CInstrumentN163 *>(m_pDumpInstrument->get());
 	if (Inst != NULL) {
-		(*m_pDumpInstrument)->RegisterManager(m_pDocument->GetInstrumentManager());
+		(*m_pDumpInstrument)->RegisterManager(m_pModule->GetInstrumentManager());
 		foreachSeq([&] (sequence_t i) {
 			if (Inst->GetSeqEnable(i) != 0) {
 				m_pSequenceCache[i]->SetLoopPoint(m_pSequenceCache[i]->GetItemCount() - 1);

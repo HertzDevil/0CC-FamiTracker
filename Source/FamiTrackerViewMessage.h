@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "WinUser.h"
+#include "stdafx.h"
 
 // Custom window messages for CFamiTrackerView
 enum {

@@ -917,10 +917,10 @@ void CMainFrame::ClearInstrumentList()
 void CMainFrame::NewInstrument(inst_type_t Inst)		// // //
 {
 	// Add new instrument to module
-	CFamiTrackerDoc &Doc = GetDoc();
+	auto *pManager = GetDoc().GetInstrumentManager();
 
-	if (unsigned Index = Doc.GetFreeInstrumentIndex(); Index != INVALID_INSTRUMENT) {
-		if (auto pInst = Doc.GetInstrumentManager()->CreateNew(Inst)) {
+	if (unsigned Index = pManager->GetFirstUnused(); Index != INVALID_INSTRUMENT) {
+		if (auto pInst = pManager->CreateNew(Inst)) {
 			pInst->OnBlankInstrument();		// // //
 			AddAction(std::make_unique<ModuleAction::CAddInst>(Index, std::move(pInst)));
 		}
@@ -974,7 +974,7 @@ void CMainFrame::UpdateInstrumentList()
 	ClearInstrumentList();
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i)
 		m_pInstrumentList->InsertInstrument(i);
-	m_pInstrumentList->SelectInstrument(GetSelectedInstrument());		// // //
+	m_pInstrumentList->SelectInstrument(GetSelectedInstrumentIndex());		// // //
 
 	UpdateInstrumentName();		// // //
 }
@@ -999,7 +999,10 @@ void CMainFrame::SelectInstrument(int Index)
 		return;
 	}
 
-	if (auto pInst = GetDoc().GetInstrument(Index)) {
+	// Save selected instrument
+	m_iInstrument = Index;
+
+	if (auto pInst = GetSelectedInstrument()) {		// // //
 		// Select instrument in list
 		m_pInstrumentList->SelectInstrument(Index);
 
@@ -1017,12 +1020,9 @@ void CMainFrame::SelectInstrument(int Index)
 		SetInstrumentEditName(_T(""));
 		CloseInstrumentEditor();
 	}
-
-	// Save selected instrument
-	m_iInstrument = Index;
 }
 
-int CMainFrame::GetSelectedInstrument() const
+int CMainFrame::GetSelectedInstrumentIndex() const
 {
 	// Returns selected instrument
 	return m_iInstrument;
@@ -1034,9 +1034,9 @@ void CMainFrame::SwapInstruments(int First, int Second)
 }
 
 void CMainFrame::UpdateInstrumentName() const {		// // //
-	if (auto pInst = GetDoc().GetInstrument(GetSelectedInstrument())) {
+	if (auto pInst = GetSelectedInstrument()) {
 		LPCTSTR pName = (LPCTSTR)CA2CT(pInst->GetName().data());
-		m_pInstrumentList->SetInstrumentName(GetSelectedInstrument(), pName);
+		m_pInstrumentList->SetInstrumentName(GetSelectedInstrumentIndex(), pName);
 		m_wndDialogBar.GetDlgItem(IDC_INSTNAME)->SetWindowText(pName);
 	}
 	else
@@ -1167,14 +1167,14 @@ void CMainFrame::OnInstNameChange()
 	if (SelInstIndex != m_iInstrument)	// Instrument selection out of sync, ignore name change
 		return;
 
-	if (auto pInst = GetDoc().GetInstrument(m_iInstrument)) {		// // //
+	if (auto pInst = GetSelectedInstrument()) {		// // //
 		TCHAR Text[CInstrument::INST_NAME_MAX];
 		auto pEdit = static_cast<CEdit *>(m_wndDialogBar.GetDlgItem(IDC_INSTNAME));
 		pEdit->GetWindowText(Text, CInstrument::INST_NAME_MAX);
 		// Update instrument list & document
 		auto sel = pEdit->GetSel();
 		CT2CA str(Text);
-		if (AddAction(std::make_unique<ModuleAction::CInstName>(GetSelectedInstrument(), (const char *)str)))		// // //
+		if (AddAction(std::make_unique<ModuleAction::CInstName>(GetSelectedInstrumentIndex(), (const char *)str)))		// // //
 			pEdit->SetSel(sel);
 	}
 }
@@ -1199,7 +1199,7 @@ void CMainFrame::OnAddInstrument()
 void CMainFrame::OnRemoveInstrument()
 {
 	// Remove from document
-	int prev = GetSelectedInstrument();
+	int prev = GetSelectedInstrumentIndex();
 	if (AddAction(std::make_unique<ModuleAction::CRemoveInst>(m_iInstrument))) {		// // //
 //		m_pInstrumentList->RemoveInstrument(prev);
 //		m_pInstrumentList->SelectInstrument(m_iInstrument);
@@ -1265,6 +1265,11 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CString &filename) {		// /
 	return err(IDS_INST_LIMIT);
 }
 
+std::shared_ptr<CInstrument> CMainFrame::GetSelectedInstrument() const {		// // //
+	int index = GetSelectedInstrumentIndex();
+	return index != INVALID_INSTRUMENT ? GetDoc().GetModule()->GetInstrumentManager()->GetInstrument(index) : nullptr;
+}
+
 void CMainFrame::OnLoadInstrument()
 {
 	// Loads an instrument from a file
@@ -1307,11 +1312,7 @@ void CMainFrame::OnSaveInstrument()
 	const CFamiTrackerDoc &Doc = GetDoc();
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 
-	int Index = GetSelectedInstrument();
-	if (Index == INVALID_INSTRUMENT)
-		return;
-
-	auto pInst = Doc.GetInstrument(Index);		// // //
+	auto pInst = GetSelectedInstrument();		// // //
 	if (!pInst)
 		return;
 
@@ -1555,7 +1556,7 @@ void CMainFrame::OnHelpPerformance()
 
 void CMainFrame::OnUpdateSBInstrument(CCmdUI *pCmdUI)
 {
-	auto String = conv::from_uint_hex(GetSelectedInstrument(), 2);		// // //
+	auto String = conv::from_uint_hex(GetSelectedInstrumentIndex(), 2);		// // //
 	unsigned int Split = static_cast<CFamiTrackerView*>(GetActiveView())->GetSplitInstrument();
 	if (Split != MAX_INSTRUMENTS)
 		String = conv::from_int_hex(Split, 2) + " / " + String;
@@ -1903,13 +1904,13 @@ void CMainFrame::ChangeNoteState(int Note)
 void CMainFrame::OpenInstrumentEditor()
 {
 	// Bring up the instrument editor for the selected instrument
-	CFamiTrackerDoc &Doc = GetDoc();
+	CInstrumentManager *pManager = GetDoc().GetInstrumentManager();		// // //
 
-	int Instrument = GetSelectedInstrument();
+	int Instrument = GetSelectedInstrumentIndex();
 
-	if (Doc.IsInstrumentUsed(Instrument)) {
-		if (m_wndInstEdit.IsOpened() == false) {
-			m_wndInstEdit.SetInstrumentManager(Doc.GetInstrumentManager());		// // //
+	if (pManager->IsInstrumentUsed(Instrument)) {
+		if (!m_wndInstEdit.IsOpened()) {
+			m_wndInstEdit.SetInstrumentManager(pManager);		// // //
 			m_wndInstEdit.Create(IDD_INSTRUMENT, this);
 			m_wndInstEdit.SetCurrentInstrument(Instrument);
 			m_wndInstEdit.ShowWindow(SW_SHOW);

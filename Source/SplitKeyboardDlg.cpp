@@ -24,7 +24,7 @@
 #include "FamiTrackerTypes.h"
 #include "PatternNote.h"
 #include "FamiTrackerDoc.h"
-#include "TrackerChannel.h"
+#include "InstrumentManager.h"
 #include "APU/Types.h"
 #include "ChannelName.h"
 #include "ChannelOrder.h"
@@ -104,7 +104,7 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_INST));
 	pCombo->AddString(KEEP_INST_STRING);
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i)
-		if (pDoc->IsInstrumentUsed(i)) {
+		if (pDoc->GetInstrumentManager()->IsInstrumentUsed(i)) {
 			str.Format(_T("%02X"), i);
 			pCombo->AddString(str);
 		}

@@ -27,6 +27,7 @@
 #include "FamiTrackerViewMessage.h"
 #include "PatternNote.h"
 #include "Instrument.h"
+#include "InstrumentManager.h"
 #include "MainFrm.h"
 #include "DPI.h"
 #include "APU/Types.h"
@@ -104,7 +105,7 @@ BOOL CTransposeDlg::OnInitDialog()
 								CRect(x, y, x + DPI::SX(30), y + DPI::SY(18)), this, BUTTON_ID + i);
 		m_cInstButton[i].SetCheck(s_bDisableInst[i] ? BST_CHECKED : BST_UNCHECKED);
 		m_cInstButton[i].SetFont(&m_cFont);
-		m_cInstButton[i].EnableWindow(m_pDocument->IsInstrumentUsed(i));
+		m_cInstButton[i].EnableWindow(m_pDocument->GetModule()->GetInstrumentManager()->IsInstrumentUsed(i));
 	}
 
 	CSpinButtonCtrl *pSpin = static_cast<CSpinButtonCtrl*>(GetDlgItem(IDC_SPIN_TRSP_SEMITONE));
