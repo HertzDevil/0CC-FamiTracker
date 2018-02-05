@@ -1127,9 +1127,6 @@
     <ClInclude Include="Source\SequenceManager.h">
       <Filter>Header Files\Document Component Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\FTMComponentInterface.h">
-      <Filter>Header Files\Document Component Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\SequenceEditorMessage.h">
       <Filter>Header Files\Dialog Boxes Headers\Instrument Headers\Related Headers\Sequence editor Headers</Filter>
     </ClInclude>
@@ -1474,6 +1471,9 @@
     </ClInclude>
     <ClInclude Include="Source\ModuleImporter.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DocumentInterface.h">
+      <Filter>Header Files\Document Component Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

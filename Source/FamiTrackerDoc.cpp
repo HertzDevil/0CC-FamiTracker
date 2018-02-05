@@ -510,7 +510,7 @@ std::unique_ptr<CFamiTrackerDoc> CFamiTrackerDoc::LoadImportFile(LPCTSTR lpszPat
 //
 
 void CFamiTrackerDoc::SaveInstrument(unsigned int Index, CSimpleFile &file) const {
-	GetInstrumentManager()->GetInstrument(Index)->SaveFTI(file);
+	GetModule()->GetInstrumentManager()->GetInstrument(Index)->SaveFTI(file);
 }
 
 bool CFamiTrackerDoc::LoadInstrument(unsigned Index, CSimpleFile &File) {		// // //
@@ -549,10 +549,10 @@ bool CFamiTrackerDoc::LoadInstrument(unsigned Index, CSimpleFile &File) {		// //
 		CSingleLock lock {&m_csDocumentLock, TRUE};
 
 		inst_type_t InstType = static_cast<inst_type_t>(File.ReadChar());
-		if (auto pInstrument = GetInstrumentManager()->CreateNew(InstType != INST_NONE ? InstType : INST_2A03)) {
+		if (auto pInstrument = GetModule()->GetInstrumentManager()->CreateNew(InstType != INST_NONE ? InstType : INST_2A03)) {
 			pInstrument->OnBlankInstrument();
 			pInstrument->LoadFTI(File, iInstMaj * 10 + iInstMin);		// // //
-			return GetInstrumentManager()->InsertInstrument(Index, std::move(pInstrument));
+			return GetModule()->GetInstrumentManager()->InsertInstrument(Index, std::move(pInstrument));
 		}
 
 		AfxMessageBox("Failed to create instrument", MB_ICONERROR);
@@ -586,18 +586,8 @@ void CFamiTrackerDoc::ApplyExpansionChip() const {
 }
 
 //
-// from the compoment interface
+// from the document interface
 //
-
-CSequenceManager *const CFamiTrackerDoc::GetSequenceManager(int InstType) const
-{
-	return GetInstrumentManager()->GetSequenceManager(InstType);
-}
-
-CDSampleManager *const CFamiTrackerDoc::GetDSampleManager() const
-{
-	return GetInstrumentManager()->GetDSampleManager();
-}
 
 void CFamiTrackerDoc::Modify(bool Change)
 {
@@ -725,16 +715,8 @@ void CFamiTrackerDoc::SetExceededFlag(bool Exceed) {		// // //
 
 #pragma region delegates
 
-CChannelOrder &CFamiTrackerDoc::GetChannelOrder() const {		// // //
-	return GetModule()->GetChannelOrder();
-}
-
 int CFamiTrackerDoc::GetNamcoChannels() const {
 	return GetModule()->GetNamcoChannels();
-}
-
-CInstrumentManager *const CFamiTrackerDoc::GetInstrumentManager() const {
-	return GetModule()->GetInstrumentManager();
 }
 
 #pragma endregion

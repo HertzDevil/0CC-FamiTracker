@@ -917,7 +917,7 @@ void CMainFrame::ClearInstrumentList()
 void CMainFrame::NewInstrument(inst_type_t Inst)		// // //
 {
 	// Add new instrument to module
-	auto *pManager = GetDoc().GetInstrumentManager();
+	auto *pManager = GetDoc().GetModule()->GetInstrumentManager();
 
 	if (unsigned Index = pManager->GetFirstUnused(); Index != INVALID_INSTRUMENT) {
 		if (auto pInst = pManager->CreateNew(Inst)) {
@@ -1214,7 +1214,7 @@ void CMainFrame::OnCloneInstrument()
 	if (m_pInstrumentList->GetItemCount() == 0)
 		return;
 
-	auto Manager = Doc.GetInstrumentManager();		// // //
+	auto Manager = Doc.GetModule()->GetInstrumentManager();		// // //
 	if (Manager->CloneInstrument(m_iInstrument, Manager->GetFirstUnused())) {
 		Doc.ModifyIrreversible();		// // //
 		Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
@@ -1231,7 +1231,7 @@ void CMainFrame::OnDeepCloneInstrument()
 	if (m_pInstrumentList->GetItemCount() == 0)
 		return;
 
-	auto Manager = Doc.GetInstrumentManager();		// // //
+	auto Manager = Doc.GetModule()->GetInstrumentManager();		// // //
 	if (Manager->DeepCloneInstrument(m_iInstrument, Manager->GetFirstUnused())) {
 		Doc.ModifyIrreversible();		// // //
 		Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
@@ -1284,7 +1284,7 @@ void CMainFrame::OnLoadInstrument()
 
 	POSITION pos (FileDialog.GetStartPosition());
 
-	auto &Im = *GetDoc().GetInstrumentManager();		// // //
+	auto &Im = *GetDoc().GetModule()->GetInstrumentManager();		// // //
 
 	// Load multiple files
 	while (pos) {
@@ -1898,7 +1898,7 @@ void CMainFrame::ChangeNoteState(int Note)
 void CMainFrame::OpenInstrumentEditor()
 {
 	// Bring up the instrument editor for the selected instrument
-	CInstrumentManager *pManager = GetDoc().GetInstrumentManager();		// // //
+	CInstrumentManager *pManager = GetDoc().GetModule()->GetInstrumentManager();		// // //
 
 	int Instrument = GetSelectedInstrumentIndex();
 
@@ -2633,7 +2633,7 @@ void CMainFrame::OnLoadInstrumentMenu(NMHDR * pNotifyStruct, LRESULT * result)
 		break;
 	default:
 		if (retValue >= CInstrumentFileTree::MENU_BASE + 2) { // A file
-			auto &Im = *GetDoc().GetInstrumentManager();		// // //
+			auto &Im = *GetDoc().GetModule()->GetInstrumentManager();		// // //
 			int Index = Im.GetFirstUnused();
 			if (!LoadInstrument(Index, m_pInstrumentFileTree->GetFile(retValue)))
 				return;
@@ -2696,7 +2696,7 @@ bool CMainFrame::AddAction(std::unique_ptr<CAction> pAction)		// // //
 	if (!m_pActionHandler->AddAction(*this, std::move(pAction)))
 		return false;		// // //
 
-	auto pDoc = dynamic_cast<CFTMComponentInterface *>(GetActiveDocument());		// // //
+	auto pDoc = dynamic_cast<CDocumentInterface *>(GetActiveDocument());		// // //
 	pDoc->Modify(true);
 	if (m_pActionHandler->ActionsLost())		// // //
 		pDoc->ModifyIrreversible();

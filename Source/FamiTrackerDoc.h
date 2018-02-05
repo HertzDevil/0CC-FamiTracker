@@ -26,11 +26,9 @@
 #include "stdafx.h"		// // //
 
 #include <memory>		// // //
-#include <string>		// // //
-#include "APU/Types_fwd.h"		// // //
 
 // Constants, types and enums
-#include "FTMComponentInterface.h"
+#include "DocumentInterface.h"
 
 // #define DISABLE_SAVE		// // //
 
@@ -38,12 +36,7 @@
 class CFamiTrackerModule;		// // //
 class CDocumentFile;
 class CSimpleFile;		// // //
-struct stHighlight;		// // //
 class CSoundChipSet;		// // //
-
-//
-// I'll try to organize this class, things are quite messy right now!
-//
 
 // // // TODO:
 // // // + move core data fields into CFamiTrackerModule
@@ -54,7 +47,7 @@ class CSoundChipSet;		// // //
 // // //    + CSongView / CChannelOrder
 // // // - move action handler into CFamiTrackerDoc
 
-class CFamiTrackerDoc : public CDocument, public CFTMComponentInterface
+class CFamiTrackerDoc : public CDocument, public CDocumentInterface
 {
 	struct ctor_t { };		// // //
 
@@ -118,12 +111,6 @@ public:
 	// Instruments functions
 	void			SaveInstrument(unsigned int Index, CSimpleFile &file) const;		// // //
 	bool 			LoadInstrument(unsigned Index, CSimpleFile &File);		// // //
-
-	// // // from the component interface
-	CChannelOrder	&GetChannelOrder() const override;		// // //
-	CSequenceManager *const GetSequenceManager(int InstType) const override;
-	CInstrumentManager *const GetInstrumentManager() const override;
-	CDSampleManager *const GetDSampleManager() const override;
 
 #pragma region delegates to CFamiTrackerModule
 	int				GetNamcoChannels() const;

@@ -32,7 +32,6 @@
 #include "BookmarkCollection.h"		// // //
 
 class stChanNote;		// // //
-class CFTMComponentInterface;		// // //
 
 // CSongData holds all notes in the patterns
 class CSongData

@@ -32,7 +32,7 @@
 #include "DSampleManager.h"
 #include "Sequence.h"
 
-CFamiTrackerModule::CFamiTrackerModule(CFTMComponentInterface &parent) :
+CFamiTrackerModule::CFamiTrackerModule(CDocumentInterface &parent) :
 	m_pChannelMap(std::make_unique<CChannelMap>()),
 	m_pInstrumentManager(std::make_unique<CInstrumentManager>(&parent))
 {
@@ -246,14 +246,6 @@ bool CFamiTrackerModule::AllocateSong(unsigned index) {
 		if (!InsertSong(i, MakeNewSong()))
 			return false;
 	return true;
-}
-
-void CFamiTrackerModule::Modify(bool Change) {
-	__debugbreak();
-}
-
-void CFamiTrackerModule::ModifyIrreversible() {
-	__debugbreak();
 }
 
 bool CFamiTrackerModule::InsertSong(unsigned index, std::unique_ptr<CSongData> pSong) {		// // //

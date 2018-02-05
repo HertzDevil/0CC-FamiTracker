@@ -24,6 +24,7 @@
 #include "FamiTracker.h"
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"		// // //
 #include "FamiTrackerView.h"
 #include "SampleEditorView.h"
 #include "SampleEditorDlg.h"
@@ -105,7 +106,7 @@ void CInstrumentEditorDPCM::DoDataExchange(CDataExchange* pDX)
 }
 
 CDSampleManager *CInstrumentEditorDPCM::GetDSampleManager() const {		// // //
-	return GetDocument()->GetDSampleManager();
+	return GetDocument()->GetModule()->GetDSampleManager();
 }
 
 

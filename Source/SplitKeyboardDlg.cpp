@@ -24,6 +24,7 @@
 #include "FamiTrackerTypes.h"
 #include "PatternNote.h"
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"
 #include "InstrumentManager.h"
 #include "APU/Types.h"
 #include "ChannelName.h"
@@ -94,7 +95,7 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	pCombo->AddString(KEEP_INST_STRING);
 	pCombo->SetCurSel(0);
 	int i = 0;
-	pDoc->GetChannelOrder().ForeachChannel([&] (chan_id_t ch) {
+	pDoc->GetModule()->GetChannelOrder().ForeachChannel([&] (chan_id_t ch) {
 		pCombo->AddString(GetChannelFullName(ch).data());
 		if (m_iSplitChannel == ch)
 			pCombo->SetCurSel(i + 1);
@@ -104,7 +105,7 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_INST));
 	pCombo->AddString(KEEP_INST_STRING);
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i)
-		if (pDoc->GetInstrumentManager()->IsInstrumentUsed(i)) {
+		if (pDoc->GetModule()->GetInstrumentManager()->IsInstrumentUsed(i)) {
 			str.Format(_T("%02X"), i);
 			pCombo->AddString(str);
 		}
@@ -152,7 +153,7 @@ void CSplitKeyboardDlg::OnCbnSelchangeComboSplitNote()
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitChan()
 {
 	if (int Pos = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_CHAN))->GetCurSel())
-		m_iSplitChannel = CFamiTrackerDoc::GetDoc()->GetChannelOrder().TranslateChannel(Pos - 1);
+		m_iSplitChannel = CFamiTrackerDoc::GetDoc()->GetModule()->GetChannelOrder().TranslateChannel(Pos - 1);
 	else
 		m_iSplitChannel = chan_id_t::NONE;
 }

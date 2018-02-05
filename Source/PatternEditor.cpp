@@ -26,6 +26,7 @@
 #include <cmath>
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"		// // //
 #include "InstrumentManager.h"		// // //
 #include "FamiTrackerView.h"
 #include "SoundGen.h"
@@ -1303,7 +1304,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(Channel);
 
 	// Make non-available instruments red in the pattern editor
-	const auto *pManager = m_pDocument->GetInstrumentManager();
+	const auto *pManager = m_pDocument->GetModule()->GetInstrumentManager();
 	if (NoteData.Instrument < MAX_INSTRUMENTS &&
 		(!pManager->IsInstrumentUsed(NoteData.Instrument) ||
 		!IsInstrumentCompatible(GetChipFromChannel(ch), pManager->GetInstrumentType(NoteData.Instrument)))) {		// // //

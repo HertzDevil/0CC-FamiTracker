@@ -21,7 +21,7 @@
 */
 
 #include "InstrumentManager.h"
-#include "FTMComponentInterface.h"
+#include "DocumentInterface.h"
 #include "Instrument.h"
 #include "SeqInstrument.h"
 #include "InstrumentService.h"
@@ -34,7 +34,7 @@
 const int CInstrumentManager::MAX_INSTRUMENTS = 64;
 const int CInstrumentManager::SEQ_MANAGER_COUNT = 5;
 
-CInstrumentManager::CInstrumentManager(CFTMComponentInterface *pInterface) :
+CInstrumentManager::CInstrumentManager(CDocumentInterface *pInterface) :
 	m_pDSampleManager(std::make_unique<CDSampleManager>()),
 	m_pInstruments(MAX_INSTRUMENTS),
 	m_pDocInterface(pInterface)
@@ -50,7 +50,7 @@ CInstrumentManager::~CInstrumentManager()
 			ptr->RegisterManager(nullptr);
 }
 
-void CInstrumentManager::SetParent(CFTMComponentInterface *pInterface) {
+void CInstrumentManager::SetParent(CDocumentInterface *pInterface) {
 	m_pDocInterface = pInterface;
 }
 

@@ -31,7 +31,7 @@
 class CInstrument;
 class CSequenceManager;
 class CDSampleManager;
-class CFTMComponentInterface;
+class CDocumentInterface;
 
 enum inst_type_t : unsigned;
 enum class sequence_t : unsigned;
@@ -44,10 +44,10 @@ enum class sequence_t : unsigned;
 class CInstrumentManager : public CInstrumentManagerInterface
 {
 public:
-	CInstrumentManager(CFTMComponentInterface *pInterface = nullptr);
+	CInstrumentManager(CDocumentInterface *pInterface = nullptr);
 	virtual ~CInstrumentManager();
 
-	void SetParent(CFTMComponentInterface *pInterface = nullptr);
+	void SetParent(CDocumentInterface *pInterface = nullptr);
 
 	void ClearAll();
 
@@ -92,7 +92,7 @@ private:
 	std::unique_ptr<CDSampleManager> m_pDSampleManager;
 
 	mutable std::mutex m_InstrumentLock;		// // //
-	CFTMComponentInterface *m_pDocInterface;
+	CDocumentInterface *m_pDocInterface;
 
 private:
 	static const int SEQ_MANAGER_COUNT;

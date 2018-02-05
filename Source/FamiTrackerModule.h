@@ -28,7 +28,6 @@
 #include <vector>
 #include <array>
 #include "FamiTrackerTypes.h"
-#include "FTMComponentInterface.h"
 
 class CSongData;
 class CChannelMap;
@@ -37,13 +36,16 @@ class CChannelOrder;
 class CConstSongView;
 class CSongView;
 class CInstrumentManager;
+class CSequenceManager;
+class CDSampleManager;
+class CDocumentInterface; // TODO: remove
 struct stHighlight;
 
 namespace ft0cc::doc {
 class groove;
 } // namespace ft0cc::doc
 
-class CFamiTrackerModule : public CFTMComponentInterface {
+class CFamiTrackerModule {
 	using groove = ft0cc::doc::groove;
 
 public:
@@ -54,7 +56,7 @@ public:
 	static constexpr unsigned	 DEFAULT_SPEED_SPLIT_POINT	= 32;
 	static constexpr unsigned	 OLD_SPEED_SPLIT_POINT		= 21;
 
-	explicit CFamiTrackerModule(CFTMComponentInterface &parent);
+	explicit CFamiTrackerModule(CDocumentInterface &parent);
 	~CFamiTrackerModule();
 
 	// module metadata
@@ -69,7 +71,7 @@ public:
 	void SetComment(std::string_view comment, bool showOnOpen);
 
 	// sound chip
-	CChannelOrder &GetChannelOrder() const override;
+	CChannelOrder &GetChannelOrder() const;
 	const CSoundChipSet &GetSoundChipSet() const;
 	void SetChannelMap(std::unique_ptr<CChannelMap> pMap);
 
@@ -145,9 +147,9 @@ public:
 	}
 
 	// instruments
-	CInstrumentManager *const GetInstrumentManager() const override;
-	CSequenceManager *const GetSequenceManager(int InstType) const override;
-	CDSampleManager *const GetDSampleManager() const override;
+	CInstrumentManager *const GetInstrumentManager() const;
+	CSequenceManager *const GetSequenceManager(int InstType) const;
+	CDSampleManager *const GetDSampleManager() const;
 
 	void SwapInstruments(unsigned first, unsigned second);
 
@@ -170,10 +172,6 @@ public:
 
 private:
 	bool AllocateSong(unsigned index);
-
-	// TODO: remove these from base class
-	void Modify(bool Change) override;
-	void ModifyIrreversible() override;
 
 	machine_t		m_iMachine = DEFAULT_MACHINE_TYPE;
 	unsigned int	m_iEngineSpeed = 0;
