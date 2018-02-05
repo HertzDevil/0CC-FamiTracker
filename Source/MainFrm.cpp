@@ -3019,7 +3019,8 @@ void CMainFrame::OnEditRemoveUnusedInstruments()
 	// Current instrument might disappear
 	CloseInstrumentEditor();
 
-	Doc.RemoveUnusedInstruments();
+	Doc.GetModule()->RemoveUnusedInstruments();		// // //
+	Doc.ModifyIrreversible();
 
 	// Update instrument list
 	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
@@ -3034,7 +3035,7 @@ void CMainFrame::OnEditRemoveUnusedPatterns()
 	if (AfxMessageBox(IDS_REMOVE_PATTERNS, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
 		return;
 
-	Doc.RemoveUnusedPatterns();
+	Doc.GetModule()->RemoveUnusedPatterns();
 	Doc.ModifyIrreversible();		// // //
 	ResetUndo();
 	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
@@ -3404,7 +3405,7 @@ void CMainFrame::OnEditRemoveUnusedSamples()
 		return;
 
 	CloseInstrumentEditor();
-	Doc.RemoveUnusedSamples();
+	Doc.GetModule()->RemoveUnusedDSamples();		// // //
 	Doc.ModifyIrreversible();		// // //
 	ResetUndo();
 	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);

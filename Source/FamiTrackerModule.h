@@ -162,6 +162,11 @@ public:
 	void SetHighlight(const stHighlight &hl);		// // //
 	void SetHighlight(unsigned song, const stHighlight &hl);		// // //
 
+	// cleanup
+	void RemoveUnusedPatterns();
+	void RemoveUnusedInstruments();
+	void RemoveUnusedDSamples();		// // //
+
 private:
 	bool AllocateSong(unsigned index);
 

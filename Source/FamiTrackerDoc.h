@@ -122,11 +122,6 @@ public:
 	void			SaveInstrument(unsigned int Index, CSimpleFile &file) const;		// // //
 	bool 			LoadInstrument(unsigned Index, CSimpleFile &File);		// // //
 
-	// Operations
-	void			RemoveUnusedInstruments();
-	void			RemoveUnusedSamples();		// // //
-	void			RemoveUnusedPatterns();
-
 	// // // from the component interface
 	CChannelOrder	&GetChannelOrder() const override;		// // //
 	CSequenceManager *const GetSequenceManager(int InstType) const override;
