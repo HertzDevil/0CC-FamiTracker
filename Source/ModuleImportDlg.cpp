@@ -80,7 +80,31 @@ BOOL CModuleImportDlg::OnInitDialog()
 
 void CModuleImportDlg::OnBnClickedOk()
 {
-	CModuleImporter importer {*m_pDocument->GetModule(), *m_pImportedDoc->GetModule()};
+	auto &oldModule = *m_pDocument->GetModule();
+	auto &newModule = *m_pImportedDoc->GetModule();
+
+	// // // union of sound chip configurations
+	const CSoundChipSet &c1 = newModule.GetSoundChipSet();
+	const CSoundChipSet &c2 = oldModule.GetSoundChipSet();
+	unsigned n1 = newModule.GetNamcoChannels();
+	unsigned n2 = oldModule.GetNamcoChannels();
+	if (n1 != n2 || c1 != c2) {
+		CSoundChipSet merged = c1.MergedWith(c2);
+		unsigned n163chs = std::max(n1, n2);
+		m_pImportedDoc->SelectExpansionChip(merged, n163chs);
+		m_pDocument->SelectExpansionChip(merged, n163chs);
+	}
+
+	// // // remove non-imported songs in advance
+	unsigned track = 0;
+	for (int i = 0; track < newModule.GetSongCount(); ++i) {
+		if (m_ctlTrackList.GetCheck(i) == BST_CHECKED)
+			++track;
+		else
+			newModule.RemoveSong(track);
+	}
+
+	CModuleImporter importer {*m_pDocument->GetModule(), newModule};
 	if (importer.Validate()) {
 		importer.DoImport(
 			IsDlgButtonChecked(IDC_INSTRUMENTS) == BST_CHECKED,
@@ -102,31 +126,5 @@ void CModuleImportDlg::OnBnClickedOk()
 bool CModuleImportDlg::LoadFile(CString Path)		// // //
 {
 	m_pImportedDoc = CFamiTrackerDoc::LoadImportFile(Path);
-	if (!m_pImportedDoc)
-		return false;
-
-	auto &oldModule = *m_pDocument->GetModule();
-	auto &newModule = *m_pImportedDoc->GetModule();
-
-	// Check expansion chip match
-	// // // import as superset of expansion chip configurations
-	const CSoundChipSet &c1 = newModule.GetSoundChipSet();
-	const CSoundChipSet &c2 = oldModule.GetSoundChipSet();
-	unsigned n1 = newModule.GetNamcoChannels();
-	unsigned n2 = oldModule.GetNamcoChannels();
-	if (n1 != n2 || c1 != c2) {
-		m_pImportedDoc->SelectExpansionChip(c1.MergedWith(c2), std::max(n1, n2));
-		m_pDocument->SelectExpansionChip(c1.MergedWith(c2), std::max(n1, n2));
-	}
-
-	// // // remove non-imported songs in advance
-	unsigned track = 0;
-	for (int i = 0; track < newModule.GetSongCount(); ++i) {
-		if (m_ctlTrackList.GetCheck(i) == BST_CHECKED)
-			++track;
-		else
-			newModule.RemoveSong(track);
-	}
-
-	return true;
+	return m_pImportedDoc != nullptr;
 }

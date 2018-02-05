@@ -24,12 +24,10 @@
 #pragma once
 
 #include "stdafx.h"		// // //
-
 #include <memory>		// // //
-
-// Constants, types and enums
 #include "DocumentInterface.h"
 
+// #define AUTOSAVE
 // #define DISABLE_SAVE		// // //
 
 // External classes
@@ -41,10 +39,7 @@ class CSoundChipSet;		// // //
 // // // TODO:
 // // // + move core data fields into CFamiTrackerModule
 // // // + move high-level pattern operations to CSongView
-// // // - remove delegations to these classes and use them directly
-// // //    - CFamiTrackerModule
-// // //    + CSongData
-// // //    + CSongView / CChannelOrder
+// // // + use CFamiTrackerModule / CSongData / CSongView directly
 // // // - move action handler into CFamiTrackerDoc
 
 class CFamiTrackerDoc : public CDocument, public CDocumentInterface
@@ -98,27 +93,13 @@ public:
 	BOOL			LockDocument(DWORD dwTimeout) const;
 	BOOL			UnlockDocument() const;
 
-	//
-	// Document data access functions, TODO: remove
-	//
+	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCTSTR lpszPathName);		// // // TODO: use module class directly
 
-	// Import
-	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCTSTR lpszPathName);		// // //
-
-	// Global (module) data
 	void			SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs);		// // //
 
-	// Instruments functions
 	void			SaveInstrument(unsigned int Index, CSimpleFile &file) const;		// // //
 	bool 			LoadInstrument(unsigned Index, CSimpleFile &File);		// // //
 
-#pragma region delegates to CFamiTrackerModule
-	int				GetNamcoChannels() const;
-#pragma endregion
-
-	//
-	// Private functions
-	//
 private:
 
 	//
@@ -137,33 +118,19 @@ private:
 #endif
 
 	//
-	// Internal module operations
-	//
-
-	void			ApplyExpansionChip() const;
-
-	//
 	// Private variables
 	//
 private:
+	std::unique_ptr<CFamiTrackerModule> module_;		// // // implementation
 
-	//
-	// Interface variables
-	//
-
-	std::unique_ptr<CFamiTrackerModule> module_;		// // //
-
-	//
 	// State variables
-	//
-
 	bool			m_bFileLoaded = false;			// Is a file loaded?
 	bool			m_bFileLoadFailed = false;		// Last file load operation failed
 	unsigned int	m_iFileVersion;					// Loaded file version
 
 	bool			m_bForceBackup;
 	bool			m_bBackupDone;
-	bool			m_bExceeded;			// // //
+	bool			m_bExceeded = false;			// // //
 
 #ifdef AUTOSAVE
 	// Auto save
@@ -172,11 +139,7 @@ private:
 #endif
 
 	// Thread synchronization
-private:
-	mutable CMutex			 m_csDocumentLock;
-
-// Operations
-public:
+	mutable CMutex	m_csDocumentLock;
 
 // Overrides
 public:
@@ -188,7 +151,7 @@ public:
 	void SetModifiedFlag(BOOL bModified = 1) override;
 
 // Implementation
-public:
+private:
 #ifdef _DEBUG
 	void AssertValid() const override;
 	void Dump(CDumpContext& dc) const override;

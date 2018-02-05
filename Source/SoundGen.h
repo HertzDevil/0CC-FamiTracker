@@ -110,6 +110,7 @@ public:
 
 	// Multiple times initialization
 	std::unique_ptr<CChannelMap>	MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const;		// // //
+	void		ModuleChipChanged();		// // //
 	void		SelectChip(const CSoundChipSet &Chip);
 	void		LoadMachineSettings();		// // // 050B
 

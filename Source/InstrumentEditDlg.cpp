@@ -25,6 +25,7 @@
 #include <string>
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"		// // //
 #include "InstrumentManager.h"		// // //
 #include "SeqInstrument.h"		// // //
 #include "Instrument2A03.h"		// // //
@@ -165,7 +166,7 @@ void CInstrumentEditDlg::ClearPanels()
 void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	std::shared_ptr<CInstrument> pInstrument = pDoc->GetInstrumentManager()->GetInstrument(Index);
+	std::shared_ptr<CInstrument> pInstrument = pDoc->GetModule()->GetInstrumentManager()->GetInstrument(Index);
 	int InstType = pInstrument->GetType();
 
 	// Dialog title

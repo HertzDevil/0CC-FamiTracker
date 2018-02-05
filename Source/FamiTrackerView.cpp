@@ -2765,7 +2765,8 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 bool CFamiTrackerView::DoRelease() const
 {
 	// Return true if there are a valid release sequence for selected instrument
-	auto pInstrument = GetModuleData()->GetInstrumentManager()->GetInstrument(GetInstrument());		// // //
+	const auto *pManager = GetModuleData()->GetInstrumentManager();		// // //
+	auto pInstrument = pManager->GetInstrument(GetInstrument());		// // //
 	return pInstrument && pInstrument->CanRelease();
 }
 

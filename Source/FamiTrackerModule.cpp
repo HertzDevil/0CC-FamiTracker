@@ -211,15 +211,15 @@ std::unique_ptr<CSongData> CFamiTrackerModule::MakeNewSong() const {
 	return pSong;
 }
 
-CInstrumentManager *const CFamiTrackerModule::GetInstrumentManager() const {
+CInstrumentManager *CFamiTrackerModule::GetInstrumentManager() const {
 	return m_pInstrumentManager.get();
 }
 
-CSequenceManager *const CFamiTrackerModule::GetSequenceManager(int InstType) const {
+CSequenceManager *CFamiTrackerModule::GetSequenceManager(int InstType) const {
 	return GetInstrumentManager()->GetSequenceManager(InstType);
 }
 
-CDSampleManager *const CFamiTrackerModule::GetDSampleManager() const {
+CDSampleManager *CFamiTrackerModule::GetDSampleManager() const {
 	return GetInstrumentManager()->GetDSampleManager();
 }
 

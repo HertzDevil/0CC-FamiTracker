@@ -134,7 +134,7 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	UnlockDocument();
 
 	// Update main frame
-	ApplyExpansionChip();
+	theApp.GetSoundGenerator()->ModuleChipChanged();		// // //
 
 #ifdef AUTOSAVE
 	SetupAutoSave();
@@ -245,6 +245,7 @@ void CFamiTrackerDoc::SetModifiedFlag(BOOL bModified)
 void CFamiTrackerDoc::CreateEmpty()
 {
 	DeleteContents();		// // //
+	theApp.GetSoundGenerator()->DocumentPropertiesChanged(this);		// // // rebind module
 
 	LockDocument();
 
@@ -265,6 +266,23 @@ void CFamiTrackerDoc::CreateEmpty()
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(this);
 }
 
+
+bool CFamiTrackerDoc::GetExceededFlag() const {		// // //
+	return m_bExceeded;
+}
+
+void CFamiTrackerDoc::SetExceededFlag(bool Exceed) {		// // //
+	m_bExceeded = Exceed;
+}
+
+void CFamiTrackerDoc::Modify(bool Change) {
+	SetModifiedFlag(Change ? TRUE : FALSE);
+}
+
+void CFamiTrackerDoc::ModifyIrreversible() {
+	SetModifiedFlag(TRUE);
+	SetExceededFlag(TRUE);
+}
 //
 // Messages
 //
@@ -574,33 +592,8 @@ void CFamiTrackerDoc::SelectExpansionChip(const CSoundChipSet &chips, unsigned n
 	GetModule()->SetChannelMap(theApp.GetSoundGenerator()->MakeChannelMap(chips, n163chs));		// // //
 	UnlockDocument();
 
-	ApplyExpansionChip();
+	theApp.GetSoundGenerator()->ModuleChipChanged();
 }
-
-void CFamiTrackerDoc::ApplyExpansionChip() const {
-	// Tell the sound emulator to switch expansion chip
-	theApp.GetSoundGenerator()->SelectChip(GetModule()->GetSoundChipSet());
-
-	// Change period tables
-	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
-}
-
-//
-// from the document interface
-//
-
-void CFamiTrackerDoc::Modify(bool Change)
-{
-	SetModifiedFlag(Change ? TRUE : FALSE);
-}
-
-void CFamiTrackerDoc::ModifyIrreversible()
-{
-	SetModifiedFlag(TRUE);
-	SetExceededFlag(TRUE);
-}
-
-// Channel interface, these functions must be synchronized!!!
 
 // Attributes
 
@@ -656,7 +649,7 @@ void CFamiTrackerDoc::SetupAutoSave()
 		file.Close();
 		if (AfxMessageBox(_T("It might be possible to recover last document, do you want to try?"), MB_YESNO) == IDYES) {
 			OpenDocument(TempFile);
-			SelectExpansionChip(GetExpansionChip(), GetNamcoChannels());
+			SelectExpansionChip(GetModule()->GetSoundChipSet(), GetModule()->GetNamcoChannels());
 		}
 		else {
 			DeleteFile(TempFile);
@@ -698,25 +691,3 @@ void CFamiTrackerDoc::AutoSave()
 }
 
 #endif
-
-// Operations
-
-bool CFamiTrackerDoc::GetExceededFlag() const {		// // //
-	return m_bExceeded;
-}
-
-void CFamiTrackerDoc::SetExceededFlag(bool Exceed) {		// // //
-	m_bExceeded = Exceed;
-}
-
-
-
-// // // delegates
-
-#pragma region delegates
-
-int CFamiTrackerDoc::GetNamcoChannels() const {
-	return GetModule()->GetNamcoChannels();
-}
-
-#pragma endregion

@@ -147,9 +147,9 @@ public:
 	}
 
 	// instruments
-	CInstrumentManager *const GetInstrumentManager() const;
-	CSequenceManager *const GetSequenceManager(int InstType) const;
-	CDSampleManager *const GetDSampleManager() const;
+	CInstrumentManager *GetInstrumentManager() const;
+	CSequenceManager *GetSequenceManager(int InstType) const;
+	CDSampleManager *GetDSampleManager() const;
 
 	void SwapInstruments(unsigned first, unsigned second);
 

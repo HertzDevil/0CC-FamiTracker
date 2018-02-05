@@ -25,6 +25,7 @@
 #include "FamiTrackerEnv.h"		// // //
 #include "DPI.h"		// // //
 #include "FamiTrackerDoc.h"
+#include "FamiTrackerModule.h"		// // //
 #include "SeqInstrument.h"		// // //
 #include "InstrumentN163.h"		// // //
 #include "SoundGen.h"
@@ -175,7 +176,7 @@ void CInstrumentEditorN163Wave::GenerateWaves(std::unique_ptr<CWaveformGenerator
 // // // test
 
 int CInstrumentEditorN163Wave::WaveSizeAvailable() const {		// // //
-	return 256 - 16 * GetDocument()->GetNamcoChannels();
+	return 256 - 16 * GetDocument()->GetModule()->GetNamcoChannels();
 }
 
 void CInstrumentEditorN163Wave::OnPresetSine()

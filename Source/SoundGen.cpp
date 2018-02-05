@@ -213,6 +213,14 @@ std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(const CSoundChipSet &chip
 	return m_pSoundDriver->MakeChannelMap(chips, n163chs);		// // //
 }
 
+void CSoundGen::ModuleChipChanged() {		// // //
+	// Tell the sound emulator to switch expansion chip
+	SelectChip(m_pModule ? m_pModule->GetSoundChipSet() : sound_chip_t::APU);
+
+	// Change period tables
+	LoadMachineSettings();
+}
+
 void CSoundGen::SelectChip(const CSoundChipSet &Chip)
 {
 	if (IsPlaying()) {
