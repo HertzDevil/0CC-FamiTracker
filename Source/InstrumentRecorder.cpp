@@ -236,6 +236,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 
 std::unique_ptr<CInstrument> CInstrumentRecorder::GetRecordInstrument(unsigned Tick)
 {
+	FinalizeRecordInstrument();
 	return std::move(m_pDumpCache[Tick / m_stRecordSetting.Interval - (m_pSoundGen->IsPlaying() ? 1 : 0)]);
 }
 
@@ -272,8 +273,8 @@ void CInstrumentRecorder::ResetDumpInstrument()
 		InitRecordInstrument();
 	}
 	else {
-		if (*m_pDumpInstrument != nullptr)
-			FinalizeRecordInstrument();
+//		if (*m_pDumpInstrument != nullptr)
+//			FinalizeRecordInstrument();
 		if (!m_iDumpCount || !m_pSoundGen->IsPlaying()) {
 			m_iRecordChannel = chan_id_t::NONE;
 			if (m_stRecordSetting.Reset) {
@@ -297,8 +298,10 @@ void CInstrumentRecorder::ResetRecordCache()
 
 void CInstrumentRecorder::ReleaseCurrent()
 {
-	if (*m_pDumpInstrument)
+	if (*m_pDumpInstrument) {
+		FinalizeRecordInstrument();
 		m_pDumpInstrument->reset();
+	}
 }
 
 void CInstrumentRecorder::InitRecordInstrument()
