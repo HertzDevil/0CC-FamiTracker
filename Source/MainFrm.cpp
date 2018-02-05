@@ -1671,7 +1671,7 @@ void CMainFrame::OnUpdateModuleMoveframedown(CCmdUI *pCmdUI)
 	if (!Doc.IsFileLoaded())
 		return;
 
-	pCmdUI->Enable(!(pView->GetSelectedFrame() == (Doc.GetFrameCount(m_iTrack) - 1)));		// // //
+	pCmdUI->Enable(!(pView->GetSelectedFrame() == (GetCurrentSong()->GetFrameCount() - 1)));		// // //
 }
 
 void CMainFrame::OnUpdateModuleMoveframeup(CCmdUI *pCmdUI)

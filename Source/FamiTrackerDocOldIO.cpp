@@ -23,6 +23,7 @@
 #include "FamiTrackerDocOldIO.h"
 #include "FamiTrackerDocIOCommon.h"
 #include "FamiTrackerDoc.h"
+#include "ChannelOrder.h"
 #include "SongData.h"
 #include "InstrumentManager.h"
 #include "DSampleManager.h"
@@ -167,7 +168,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 			unsigned FrameCount = ReadInt(pOpenFile);
 			Song.SetFrameCount(FrameCount);
 			for (c = 0; c < FrameCount; c++)
-				doc.ForeachChannel([&] (chan_id_t i) {
+				modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
 					Song.SetFramePattern(c, i, ReadInt(pOpenFile));
 				});
 			break;
@@ -176,7 +177,7 @@ bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
 			ReadCount = ReadInt(pOpenFile);
 			unsigned PatternLength = ReadInt(pOpenFile);
 			Song.SetPatternLength(PatternLength);
-			doc.ForeachChannel([&] (chan_id_t x) {
+			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t x) {
 				for (c = 0; c < ReadCount; c++) {
 					for (i = 0; i < PatternLength; i++) {
 						pOpenFile->Read(&ImportedNote, sizeof(ImportedNote));

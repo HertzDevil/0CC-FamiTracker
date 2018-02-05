@@ -399,7 +399,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 	if (ver == 1) {
 		// Single track
 		auto &Song = *modfile.GetSong(0);
-		doc.ForeachChannel([&] (chan_id_t i) {
+		modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
 			try {
 				// Channel type (unused)
 				AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANID_COUNT - 1, "Channel type index");
@@ -423,7 +423,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 		if (ver >= 3)
 			modfile.VisitSongs([&] (CSongData &song) { song.SetTitle((LPCTSTR)file_.ReadString()); });
 
-		doc.ForeachChannel([&] (chan_id_t i) {
+		modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
 			try {
 				AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANID_COUNT - 1, "Channel type index"); // Channel type (unused)
 				modfile.VisitSongs([&] (CSongData &song, unsigned index) {
@@ -464,7 +464,7 @@ void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerDoc &doc, int ver) {
 	if (ver >= 3)
 		modfile.VisitSongs([&] (const CSongData &song) { file_.WriteString(song.GetTitle()); });
 
-	doc.ForeachChannel([&] (chan_id_t i) {
+	modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
 		// Channel type
 		file_.WriteBlockChar(value_cast(i));		// // //
 
@@ -711,7 +711,7 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
 		auto &Song = *modfile.GetSong(0);
 		Song.SetFrameCount(FrameCount);
 		for (unsigned i = 0; i < FrameCount; ++i) {
-			doc.ForeachChannel([&] (chan_id_t j) {
+			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t j) {
 				unsigned Pattern = static_cast<unsigned char>(file_.GetBlockChar());
 				AssertRange(Pattern, 0U, static_cast<unsigned>(MAX_PATTERN - 1), "Pattern index");
 				Song.SetFramePattern(i, j, Pattern);
@@ -744,7 +744,7 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
 			song.SetPatternLength(PatternLength);
 
 			for (unsigned i = 0; i < FrameCount; ++i) {
-				doc.ForeachChannel([&] (chan_id_t j) {
+				modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t j) {
 					// Read pattern index
 					int Pattern = static_cast<unsigned char>(file_.GetBlockChar());
 					song.SetFramePattern(i, j, AssertRange(Pattern, 0, MAX_PATTERN - 1, "Pattern index"));
@@ -755,14 +755,16 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
 }
 
 void CFamiTrackerDocIO::SaveFrames(const CFamiTrackerDoc &doc, int ver) {
-	doc.GetModule()->VisitSongs([&] (const CSongData &Song) {
+	auto &modfile = *doc.GetModule();
+
+	modfile.VisitSongs([&] (const CSongData &Song) {
 		file_.WriteBlockInt(Song.GetFrameCount());
 		file_.WriteBlockInt(Song.GetSongSpeed());
 		file_.WriteBlockInt(Song.GetSongTempo());
 		file_.WriteBlockInt(Song.GetPatternLength());
 
 		for (unsigned int j = 0; j < Song.GetFrameCount(); ++j)
-			doc.ForeachChannel([&] (chan_id_t k) {
+			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t k) {
 				file_.WriteBlockChar((unsigned char)Song.GetFramePattern(j, k));
 			});
 	});

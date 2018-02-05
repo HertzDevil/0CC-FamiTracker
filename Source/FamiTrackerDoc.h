@@ -137,15 +137,6 @@ public:
 	int				GetNamcoChannels() const;
 #pragma endregion
 
-#pragma region delegates to CSongView/CChannelOrder
-	// void (*F)(chan_id_t chan)
-	template <typename F>
-	void ForeachChannel(F f) const {
-		for (std::size_t i = 0, n = GetChannelCount(); i < n; ++i)
-			f(TranslateChannel(i));
-	}
-#pragma endregion
-
 	//
 	// Private functions
 	//
@@ -169,9 +160,6 @@ private:
 	//
 	// Internal module operations
 	//
-
-	int				GetChannelCount() const;
-	chan_id_t		TranslateChannel(unsigned Index) const;		// // // TODO: move to CSongView
 
 	void			ApplyExpansionChip() const;
 

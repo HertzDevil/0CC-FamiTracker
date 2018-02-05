@@ -23,33 +23,27 @@
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
 #include <algorithm>
-#include <bitset>		// // //
 #include "FamiTracker.h"
 #include "FamiTrackerViewMessage.h"		// // //
 #include "Instrument.h"		// // //
 #include "SeqInstrument.h"		// // //
 #include "Instrument2A03.h"		// // //
 #include "ModuleException.h"		// // //
-#include "TrackerChannel.h"
 #include "DocumentFile.h"
 #include "SoundGen.h"
 #include "SequenceCollection.h"		// // //
 #include "SequenceManager.h"		// // //
 #include "DSampleManager.h"			// // //
 #include "InstrumentManager.h"		// // //
-#include "Bookmark.h"		// // //
-#include "BookmarkCollection.h"		// // //
 #include "APU/APU.h"
 #include "APU/Types.h"		// // //
 #include "SimpleFile.h"		// // //
-//#include "SongView.h"		// // //
 #include "ChannelMap.h"		// // //
 #include "FamiTrackerDocIO.h"		// // //
 #include "SongData.h"		// // //
 #include "SongView.h"		// // //
 #include "FamiTrackerDocOldIO.h"		// // //
 #include "NumConv.h"		// // //
-#include "SongLengthScanner.h"		// // // TODO: remove
 
 #include "Sequence.h"		// // //
 
@@ -870,7 +864,7 @@ void CFamiTrackerDoc::RemoveUnusedInstruments()
 
 	GetModule()->VisitSongs([&] (const CSongData &song) {		// // //
 		int length = song.GetPatternLength();
-		ForeachChannel([&] (chan_id_t Channel) {
+		GetModule()->GetChannelOrder().ForeachChannel([&] (chan_id_t Channel) {
 			for (unsigned int Frame = 0; Frame < song.GetFrameCount(); ++Frame)
 				song.GetPatternOnFrame(Channel, Frame).VisitRows(length, [&] (const stChanNote &note) {
 					if (note.Instrument < MAX_INSTRUMENTS)
@@ -979,16 +973,6 @@ void CFamiTrackerDoc::SetExceededFlag(bool Exceed) {		// // //
 CChannelOrder &CFamiTrackerDoc::GetChannelOrder() const {		// // //
 	return GetModule()->GetChannelOrder();
 }
-
-int CFamiTrackerDoc::GetChannelCount() const {
-	return GetChannelOrder().GetChannelCount();		// // //
-}
-
-chan_id_t CFamiTrackerDoc::TranslateChannel(unsigned Index) const {		// // //
-	return GetChannelOrder().TranslateChannel(Index);
-}
-
-
 
 int CFamiTrackerDoc::GetNamcoChannels() const {
 	return GetModule()->GetNamcoChannels();

@@ -25,6 +25,7 @@
 #include "SongData.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
+#include "ChannelOrder.h"		// // //
 #include "version.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
@@ -920,7 +921,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		{
 			CHECK_COLON();
 			CSongData *pSong = modfile.GetSong(track - 1);		// // //
-			Doc.ForeachChannel([&] (chan_id_t c) {
+			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t c) {
 				pSong->SetEffectColumnCount(c, t.ReadInt(1, MAX_EFFECT_COLUMNS) - 1);
 			});
 			t.ReadEOL();
@@ -933,7 +934,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			if (ifr >= (int)pSong->GetFrameCount()) // expand to accept frames
 				pSong->SetFrameCount(ifr + 1);
 			CHECK_COLON();
-			Doc.ForeachChannel([&] (chan_id_t c) {
+			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t c) {
 				pSong->SetFramePattern(ifr, c, t.ReadHex(0, MAX_PATTERN - 1));
 			});
 			t.ReadEOL();
@@ -949,7 +950,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 				throw t.MakeError(_T("no TRACK defined, cannot add ROW data."));
 
 			int row = t.ReadHex(0, MAX_PATTERN_LENGTH - 1);
-			Doc.ForeachChannel([&] (chan_id_t c) {
+			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t c) {
 				CHECK_COLON();
 				auto *pTrack = modfile.GetSong(track - 1)->GetTrack(c);		// // //
 				pTrack->GetPattern(pattern).SetNoteOn(row, t.ImportCellText(pTrack->GetEffectColumnCount(), c));
@@ -1312,6 +1313,8 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 
 	f.WriteString(_T("# Tracks\n\n"));
 
+	const CChannelOrder &order = modfile.GetChannelOrder();		// // //
+
 	modfile.VisitSongs([&] (const CSongData &song) {
 		s.Format(_T("%s %3d %3d %3d %s\n"),
 			CT[CT_TRACK],
@@ -1323,7 +1326,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 
 		s.Format(_T("%s :"), CT[CT_COLUMNS]);
 		f.WriteString(s);
-		Doc.ForeachChannel([&] (chan_id_t c) {
+		order.ForeachChannel([&] (chan_id_t c) {
 			s.Format(_T(" %d"), song.GetEffectColumnCount(c)+1);
 			f.WriteString(s);
 		});
@@ -1332,7 +1335,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 		for (unsigned int o=0; o < song.GetFrameCount(); ++o) {
 			s.Format(_T("%s %02X :"), CT[CT_ORDER], o);
 			f.WriteString(s);
-			Doc.ForeachChannel([&] (chan_id_t c) {
+			order.ForeachChannel([&] (chan_id_t c) {
 				s.Format(_T(" %02X"), song.GetFramePattern(o, c));
 				f.WriteString(s);
 			});
@@ -1344,7 +1347,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 		{
 			// detect and skip empty patterns
 			bool bUsed = false;
-			Doc.ForeachChannel([&] (chan_id_t c) {
+			order.ForeachChannel([&] (chan_id_t c) {
 				if (!bUsed && !song.GetPattern(c, p).IsEmpty())
 					bUsed = true;
 			});
@@ -1357,7 +1360,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 			for (unsigned int r=0; r < song.GetPatternLength(); ++r) {
 				s.Format(_T("%s %02X"), CT[CT_ROW], r);
 				f.WriteString(s);
-				Doc.ForeachChannel([&] (chan_id_t c) {
+				order.ForeachChannel([&] (chan_id_t c) {
 					f.WriteString(_T(" : "));
 					f.WriteString(ExportCellText(song.GetPattern(c, p).GetNoteOn(r), song.GetEffectColumnCount(c)+1, c==chan_id_t::NOISE));		// // //
 				});
