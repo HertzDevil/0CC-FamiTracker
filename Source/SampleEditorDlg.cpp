@@ -49,7 +49,7 @@ IMPLEMENT_DYNAMIC(CSampleEditorDlg, CDialog)
 
 CSampleEditorDlg::CSampleEditorDlg(CWnd* pParent /*=NULL*/, std::shared_ptr<ft0cc::doc::dpcm_sample> pSample)		// // //
 	: CDialog(CSampleEditorDlg::IDD, pParent),
-	m_pSampleEditorView(std::make_unique<CSampleEditorView>()),		// / ///
+	m_pSampleEditorView(std::make_unique<CSampleEditorView>()),		// // //
 	m_pSample(std::move(pSample))		// // //
 {
 	m_pSoundGen = Env.GetSoundGenerator();

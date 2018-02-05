@@ -97,10 +97,17 @@ public:
 	bool			GetExceededFlag() const;		// // //
 	void			SetExceededFlag(bool Exceed = 1);
 
+	void			Modify(bool Change) override;
+	void			ModifyIrreversible() override;
+
 	// Synchronization
 	BOOL			LockDocument() const;
 	BOOL			LockDocument(DWORD dwTimeout) const;
 	BOOL			UnlockDocument() const;
+
+	//
+	// Document data access functions, TODO: remove
+	//
 
 	// Import
 	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCTSTR lpszPathName);		// // //
@@ -108,15 +115,8 @@ public:
 	bool			ImportGrooves(CFamiTrackerModule &Imported, int *pGrooveMap);		// // //
 	bool			ImportDetune(CFamiTrackerModule &Imported);			// // //
 
-	//
-	// Document data access functions
-	//
-
 	// Global (module) data
 	void			SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs);		// // //
-
-	stHighlight		GetHighlightAt(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
-	unsigned int	GetHighlightState(unsigned int Track, unsigned int Frame, unsigned int Row) const;		// // //
 
 	// Instruments functions
 	void			SaveInstrument(unsigned int Index, CSimpleFile &file) const;		// // //
@@ -132,10 +132,6 @@ public:
 	CSequenceManager *const GetSequenceManager(int InstType) const override;
 	CInstrumentManager *const GetInstrumentManager() const override;
 	CDSampleManager *const GetDSampleManager() const override;
-	void			Modify(bool Change);
-	void			ModifyIrreversible();
-
-// // // delegates
 
 #pragma region delegates to CFamiTrackerModule
 	int				GetNamcoChannels() const;

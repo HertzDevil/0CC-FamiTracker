@@ -211,6 +211,44 @@ void CSongData::SetRowHighlight(const stHighlight &Hl)		// // //
 	m_vRowHighlight = Hl;
 }
 
+stHighlight CSongData::GetHighlightAt(unsigned Frame, unsigned Row) const {		// // //
+	while (Frame < 0)
+		Frame += GetFrameCount();
+	Frame %= GetFrameCount();
+
+	stHighlight Hl = GetRowHighlight();
+
+	const CBookmark Zero { };
+	const CBookmarkCollection &Col = GetBookmarks();
+	if (const unsigned Count = Col.GetCount()) {
+		CBookmark tmp(Frame, Row);
+		unsigned int Min = tmp.Distance(Zero);
+		for (unsigned i = 0; i < Count; ++i) {
+			CBookmark *pMark = Col.GetBookmark(i);
+			unsigned Dist = tmp.Distance(*pMark);
+			if (Dist <= Min) {
+				Min = Dist;
+				if (pMark->m_Highlight.First != -1 && (pMark->m_bPersist || pMark->m_iFrame == Frame))
+					Hl.First = pMark->m_Highlight.First;
+				if (pMark->m_Highlight.Second != -1 && (pMark->m_bPersist || pMark->m_iFrame == Frame))
+					Hl.Second = pMark->m_Highlight.Second;
+				Hl.Offset = pMark->m_Highlight.Offset + pMark->m_iRow;
+			}
+		}
+	}
+
+	return Hl;
+}
+
+highlight_state_t CSongData::GetHighlightState(unsigned Frame, unsigned Row) const {		// // //
+	stHighlight Hl = GetHighlightAt(Frame, Row);
+	if (Hl.Second > 0 && !((Row - Hl.Offset) % Hl.Second))
+		return highlight_state_t::measure;
+	if (Hl.First > 0 && !((Row - Hl.Offset) % Hl.First))
+		return highlight_state_t::beat;
+	return highlight_state_t::none;
+}
+
 void CSongData::PullUp(chan_id_t Chan, unsigned Frame, unsigned Row) {
 	auto &Pattern = GetPatternOnFrame(Chan, Frame);
 	int PatternLen = GetPatternLength();

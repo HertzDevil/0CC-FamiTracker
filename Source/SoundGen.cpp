@@ -612,7 +612,7 @@ void CSoundGen::ApplyGlobalState()		// // //
 
 	m_pSoundDriver->LoadSoundState(state);
 
-	m_iLastHighlight = m_pDocument->GetHighlightAt(GetPlayerTrack(), Frame, Row).First;
+	m_iLastHighlight = m_pModule->GetSong(GetPlayerTrack())->GetHighlightAt(Frame, Row).First;
 }
 
 // // //

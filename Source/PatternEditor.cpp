@@ -1085,27 +1085,40 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 
 	// Highlight
 	const CSongData *pSong = GetMainFrame()->GetCurrentSong();		// // //
-	unsigned int Highlight = m_pDocument->GetHighlightState(GetMainFrame()->GetSelectedTrack(), Frame, Row);		// // //
+	highlight_state_t Highlight = pSong->GetHighlightState(Frame, Row);		// // //
 
 	// Clear
 	DC.FillSolidRect(1, Line * m_iRowHeight, m_iRowColumnWidth - 2, m_iRowHeight, ColBg);
 	if (pSong->GetBookmarks().FindAt(Frame, Row))
 		DC.FillSolidRect(1, Line * m_iRowHeight, m_iRowColumnWidth - 2, m_iRowHeight, ColHiBg);
 
-	COLORREF TextColor;
-
-	if (Highlight == 2)
-		TextColor = pSettings->Appearance.iColPatternTextHilite2;
-	else if (Highlight == 1)
-		TextColor = pSettings->Appearance.iColPatternTextHilite;
-	else
-		TextColor = pSettings->Appearance.iColPatternText;
+	COLORREF TextColor = pSettings->Appearance.iColPatternText;
+	switch (Highlight) {
+	case highlight_state_t::beat:    TextColor = pSettings->Appearance.iColPatternTextHilite; break;
+	case highlight_state_t::measure: TextColor = pSettings->Appearance.iColPatternTextHilite2; break;
+	}
 
 	if (bPreview) {
 		ColHiBg2 = DIM(ColHiBg2, PREVIEW_SHADE_LEVEL);
 		ColHiBg = DIM(ColHiBg, PREVIEW_SHADE_LEVEL);
 		ColBg = DIM(ColBg, PREVIEW_SHADE_LEVEL);
 		TextColor = DIM(TextColor, PREVIEW_SHADE_LEVEL);
+	}
+
+	COLORREF BackColor = ColBg;
+	switch (Highlight) {
+	case highlight_state_t::beat:    BackColor = ColHiBg; break;
+	case highlight_state_t::measure: BackColor = ColHiBg2; break;
+	}
+
+	if (!bPreview && Row == m_iDrawCursorRow) {
+		// Cursor row
+		if (!m_bHasFocus)
+			BackColor = BLEND(GRAY_BAR_COLOR, BackColor, SHADE_LEVEL::UNFOCUSED);	// Gray
+		else if (bEditMode)
+			BackColor = BLEND(pSettings->Appearance.iColCurrentRowEdit, BackColor, SHADE_LEVEL::FOCUSED);		// Red
+		else
+			BackColor = BLEND(pSettings->Appearance.iColCurrentRowNormal, BackColor, SHADE_LEVEL::FOCUSED);		// Blue
 	}
 
 	// // // 050B
@@ -1134,24 +1147,6 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 
 	DC.SetTextAlign(TA_LEFT);		// // //
 
-	COLORREF BackColor;
-	if (Highlight == 2)
-		BackColor = ColHiBg2;	// Highlighted row
-	else if (Highlight == 1)
-		BackColor = ColHiBg;	// Highlighted row
-	else
-		BackColor = ColBg;		// Normal
-
-	if (!bPreview && Row == m_iDrawCursorRow) {
-		// Cursor row
-		if (!m_bHasFocus)
-			BackColor = BLEND(GRAY_BAR_COLOR, BackColor, SHADE_LEVEL::UNFOCUSED);	// Gray
-		else if (bEditMode)
-			BackColor = BLEND(pSettings->Appearance.iColCurrentRowEdit, BackColor, SHADE_LEVEL::FOCUSED);		// Red
-		else
-			BackColor = BLEND(pSettings->Appearance.iColCurrentRowNormal, BackColor, SHADE_LEVEL::FOCUSED);		// Blue
-	}
-
 	const double BlendLv = Frame == m_cpCursorPos.m_iFrame ? 1. : PREVIEW_SHADE_LEVEL;
 	const COLORREF SelectColor = DIM(BLEND(ColSelect, BackColor, SHADE_LEVEL::SELECT), BlendLv);		// // //
 	const COLORREF DragColor = DIM(BLEND(SEL_DRAG_COL, BackColor, SHADE_LEVEL::SELECT), BlendLv);
@@ -1160,15 +1155,12 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 		MakeRGB(255, 0, 0);
 
 	RowColorInfo_t colorInfo;
-
 	colorInfo.Note = TextColor;
-
-	if (Highlight == 2)
-		colorInfo.Back = pSettings->Appearance.iColBackgroundHilite2;
-	else if (Highlight == 1)
-		colorInfo.Back = pSettings->Appearance.iColBackgroundHilite;
-	else
-		colorInfo.Back = pSettings->Appearance.iColBackground;
+	switch (Highlight) {
+	case highlight_state_t::none:    colorInfo.Back = pSettings->Appearance.iColBackground; break;
+	case highlight_state_t::beat:    colorInfo.Back = pSettings->Appearance.iColBackgroundHilite; break;
+	case highlight_state_t::measure: colorInfo.Back = pSettings->Appearance.iColBackgroundHilite2; break;
+	}
 
 	colorInfo.Shaded = BLEND(TextColor, colorInfo.Back, SHADE_LEVEL::UNUSED);
 	colorInfo.Compact = BLEND(TextColor, colorInfo.Back, SHADE_LEVEL::PREVIEW);		// // //

@@ -23,6 +23,10 @@
 
 #pragma once
 
+enum class highlight_state_t : unsigned char {		// // //
+	none, beat, measure,
+};
+
 // // // Highlight settings
 struct stHighlight {
 	int First;

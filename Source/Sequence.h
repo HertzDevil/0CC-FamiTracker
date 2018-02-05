@@ -117,7 +117,7 @@ public:
 	unsigned int GetReleasePoint() const;
 	seq_setting_t GetSetting() const;		// // //
 	sequence_t	 GetSequenceType() const;		// // //
-	void		 SetItem(int Index, int8_t Value);		// / ///
+	void		 SetItem(int Index, int8_t Value);		// // //
 	void		 SetItemCount(unsigned int Count);
 	void		 SetLoopPoint(unsigned int Point);
 	void		 SetReleasePoint(unsigned int Point);

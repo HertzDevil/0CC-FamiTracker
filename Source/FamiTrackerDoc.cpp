@@ -20,27 +20,6 @@
 ** must bear this legend.
 */
 
-/*
-
- Document file version changes
-
- Ver 4.0
-  - Header block, added song names
-
- Ver 3.0
-  - Sequences are stored in the way they are represented in the instrument editor
-  - Added separate speed and tempo settings
-  - Changed automatic portamento to 3xx and added 1xx & 2xx portamento
-
- Ver 2.1
-  - Made some additions to support multiple effect columns and prepared for more channels
-  - Made some speed adjustments, increase speed effects by one if it's below 20
-
- Ver 2.0
-  - Files are small
-
-*/
-
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
 #include <algorithm>
@@ -882,52 +861,6 @@ void CFamiTrackerDoc::AutoSave()
 }
 
 #endif
-
-//
-// Comment functions
-//
-
-stHighlight CFamiTrackerDoc::GetHighlightAt(unsigned int Track, unsigned int Frame, unsigned int Row) const		// // //
-{
-	const CSongData *pSong = GetModule()->GetSong(Track);
-
-	while (Frame < 0)
-		Frame += pSong->GetFrameCount();
-	Frame %= pSong->GetFrameCount();
-
-	stHighlight Hl = pSong->GetRowHighlight();
-
-	const CBookmark Zero { };
-	const CBookmarkCollection &Col = pSong->GetBookmarks();
-	if (const unsigned Count = Col.GetCount()) {
-		CBookmark tmp(Frame, Row);
-		unsigned int Min = tmp.Distance(Zero);
-		for (unsigned i = 0; i < Count; ++i) {
-			CBookmark *pMark = Col.GetBookmark(i);
-			unsigned Dist = tmp.Distance(*pMark);
-			if (Dist <= Min) {
-				Min = Dist;
-				if (pMark->m_Highlight.First != -1 && (pMark->m_bPersist || pMark->m_iFrame == Frame))
-					Hl.First = pMark->m_Highlight.First;
-				if (pMark->m_Highlight.Second != -1 && (pMark->m_bPersist || pMark->m_iFrame == Frame))
-					Hl.Second = pMark->m_Highlight.Second;
-				Hl.Offset = pMark->m_Highlight.Offset + pMark->m_iRow;
-			}
-		}
-	}
-
-	return Hl;
-}
-
-unsigned int CFamiTrackerDoc::GetHighlightState(unsigned int Track, unsigned int Frame, unsigned int Row) const		// // //
-{
-	stHighlight Hl = GetHighlightAt(Track, Frame, Row);
-	if (Hl.Second > 0 && !((Row - Hl.Offset) % Hl.Second))
-		return 2;
-	if (Hl.First > 0 && !((Row - Hl.Offset) % Hl.First))
-		return 1;
-	return 0;
-}
 
 // Operations
 

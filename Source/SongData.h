@@ -81,6 +81,9 @@ public:
 	const stHighlight &GetRowHighlight() const;
 	void SetRowHighlight(const stHighlight &Hl);		// // //
 
+	stHighlight GetHighlightAt(unsigned Frame, unsigned Row) const;		// // //
+	highlight_state_t GetHighlightState(unsigned Frame, unsigned Row) const;		// // //
+
 	void PullUp(chan_id_t Chan, unsigned Frame, unsigned Row);
 	void InsertRow(chan_id_t Chan, unsigned Frame, unsigned Row);
 	void CopyTrack(chan_id_t Chan, const CSongData &From, chan_id_t ChanFrom);		// // //
