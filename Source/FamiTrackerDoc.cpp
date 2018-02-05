@@ -26,26 +26,15 @@
 #include "FamiTracker.h"
 #include "FamiTrackerViewMessage.h"		// // //
 #include "Instrument.h"		// // //
-#include "SeqInstrument.h"		// // //
-#include "Instrument2A03.h"		// // //
 #include "ModuleException.h"		// // //
 #include "DocumentFile.h"
 #include "SoundGen.h"
-#include "SequenceCollection.h"		// // //
-#include "SequenceManager.h"		// // //
-#include "DSampleManager.h"			// // //
 #include "InstrumentManager.h"		// // //
-#include "APU/APU.h"
-#include "APU/Types.h"		// // //
 #include "SimpleFile.h"		// // //
 #include "ChannelMap.h"		// // //
 #include "FamiTrackerDocIO.h"		// // //
-#include "SongData.h"		// // //
-#include "SongView.h"		// // //
 #include "FamiTrackerDocOldIO.h"		// // //
 #include "NumConv.h"		// // //
-
-#include "Sequence.h"		// // //
 
 //
 // CFamiTrackerDoc
@@ -499,8 +488,6 @@ BOOL CFamiTrackerDoc::OpenDocumentNew(CDocumentFile &DocumentFile)
 	return TRUE;
 }
 
-// FTM import ////
-
 std::unique_ptr<CFamiTrackerDoc> CFamiTrackerDoc::LoadImportFile(LPCTSTR lpszPathName) {		// // //
 	// Import a module as new subtunes
 	auto pImported = std::make_unique<CFamiTrackerDoc>(ctor_t { });
@@ -512,140 +499,6 @@ std::unique_ptr<CFamiTrackerDoc> CFamiTrackerDoc::LoadImportFile(LPCTSTR lpszPat
 		return nullptr;
 
 	return pImported;
-}
-
-bool CFamiTrackerDoc::ImportInstruments(CFamiTrackerModule &Imported, int *pInstTable)		// // //
-{
-	// Copy instruments to current module
-	//
-	// pInstTable must point to an int array of size MAX_INSTRUMENTS
-	//
-
-	int SamplesTable[MAX_DSAMPLES] = { };
-	int SequenceTable2A03[MAX_SEQUENCES][SEQ_COUNT] = { };
-	int SequenceTableVRC6[MAX_SEQUENCES][SEQ_COUNT] = { };
-	int SequenceTableN163[MAX_SEQUENCES][SEQ_COUNT] = { };
-	int SequenceTableS5B[MAX_SEQUENCES][SEQ_COUNT] = { };		// // //
-
-	auto *pManager = GetModule()->GetInstrumentManager();
-	auto *pImportedInst = Imported.GetInstrumentManager();
-
-	// Check instrument count
-	if (pManager->GetInstrumentCount() + pImportedInst->GetInstrumentCount() > MAX_INSTRUMENTS) {
-		// Out of instrument slots
-		AfxMessageBox(IDS_IMPORT_INSTRUMENT_COUNT, MB_ICONERROR);
-		return false;
-	}
-
-	static const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
-	int (*seqTable[])[SEQ_COUNT] = {SequenceTable2A03, SequenceTableVRC6, SequenceTableN163, SequenceTableS5B};
-
-	// Copy sequences
-	for (size_t i = 0; i < std::size(inst); i++) for (int t = 0; t < SEQ_COUNT; ++t) {
-		if (pManager->GetSequenceCount(inst[i], (sequence_t)t) + pImportedInst->GetSequenceCount(inst[i], (sequence_t)t) > MAX_SEQUENCES) {		// // //
-			AfxMessageBox(IDS_IMPORT_SEQUENCE_COUNT, MB_ICONERROR);
-			return false;
-		}
-	}
-	for (size_t i = 0; i < std::size(inst); i++) foreachSeq([&] (sequence_t t) {
-		for (unsigned int s = 0; s < MAX_SEQUENCES; ++s)
-			if (auto pImportSeq = pImportedInst->GetSequence(inst[i], t, s); pImportSeq && pImportSeq->GetItemCount() > 0) {
-				int index = -1;
-				for (unsigned j = 0; j < MAX_SEQUENCES; ++j) {
-					auto pSeq = pManager->GetSequence(inst[i], t, j);
-					if (pSeq && pSeq->GetItemCount() > 0)
-						continue;
-					// TODO: continue if blank sequence is used by some instrument
-					*pSeq = *pImportSeq;		// // //
-					// Save a reference to this sequence
-					seqTable[i][s][value_cast(t)] = j;
-					break;
-				}
-			}
-	});
-
-	bool bOutOfSampleSpace = false;
-	auto *pDSampleManager = GetModule()->GetDSampleManager();
-	auto *pImportedSamps = Imported.GetDSampleManager();		// // //
-
-	// Copy DPCM samples
-	for (int i = 0; i < MAX_DSAMPLES; ++i) {
-		if (auto pImportDSample = pImportedSamps->ReleaseDSample(i)) {		// // //
-			int Index = pDSampleManager->GetFirstFree();
-			if (Index != -1) {
-				pDSampleManager->SetDSample(Index, pImportDSample);
-				// Save a reference to this DPCM sample
-				SamplesTable[i] = Index;
-			}
-			else
-				bOutOfSampleSpace = true;
-		}
-	}
-
-	if (bOutOfSampleSpace) {
-		// Out of sample space
-		AfxMessageBox(IDS_IMPORT_SAMPLE_SLOTS, MB_ICONEXCLAMATION);
-		return false;
-	}
-
-	// Copy instruments
-	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-		if (pImportedInst->IsInstrumentUsed(i)) {
-			auto pInst = pImportedInst->GetInstrument(i)->Clone();		// // //
-
-			// Update references
-			if (auto pSeq = dynamic_cast<CSeqInstrument *>(pInst.get())) {
-				foreachSeq([&] (sequence_t t) {
-					if (pSeq->GetSeqEnable(t)) {
-						for (size_t j = 0; j < std::size(inst); j++)
-							if (inst[j] == pInst->GetType()) {
-								pSeq->SetSeqIndex(t, seqTable[j][pSeq->GetSeqIndex(t)][value_cast(t)]);
-								break;
-							}
-					}
-				});
-				// Update DPCM samples
-				if (auto p2A03 = dynamic_cast<CInstrument2A03 *>(pSeq))
-					for (int o = 0; o < OCTAVE_RANGE; ++o) for (int n = 0; n < NOTE_RANGE; ++n) {
-						int Sample = p2A03->GetSampleIndex(o, n);
-						if (Sample != 0)
-							p2A03->SetSampleIndex(o, n, SamplesTable[Sample - 1] + 1);
-					}
-			}
-
-			int Index = pManager->GetFirstUnused();
-			pManager->InsertInstrument(Index, std::move(pInst));		// // //
-			// Save a reference to this instrument
-			pInstTable[i] = Index;
-		}
-	}
-
-	return true;
-}
-
-bool CFamiTrackerDoc::ImportGrooves(CFamiTrackerModule &Imported, int *pGrooveMap)		// // //
-{
-	int Index = 0;
-	for (int i = 0; i < MAX_GROOVE; ++i) {
-		if (auto pGroove = Imported.GetGroove(i)) {
-			while (GetModule()->HasGroove(Index))
-				if (++Index >= MAX_GROOVE) {
-					AfxMessageBox(IDS_IMPORT_GROOVE_SLOTS, MB_ICONEXCLAMATION);
-					return false;
-				}
-			pGrooveMap[i] = Index;
-			GetModule()->SetGroove(Index, std::move(pGroove));
-		}
-	}
-
-	return true;
-}
-
-bool CFamiTrackerDoc::ImportDetune(CFamiTrackerModule &Imported)		// // //
-{
-	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++)
-		GetModule()->SetDetuneOffset(i, j, Imported.GetDetuneOffset(i, j));
-	return true;
 }
 
 // ---------------------------------------------------------------------------------------------------------

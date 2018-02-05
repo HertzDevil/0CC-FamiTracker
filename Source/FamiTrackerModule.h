@@ -156,6 +156,7 @@ public:
 	std::shared_ptr<const groove> GetGroove(unsigned index) const;		// // //
 	bool HasGroove(unsigned index) const;		// // //
 	void SetGroove(unsigned index, std::shared_ptr<groove> pGroove);
+	unsigned GetGrooveCount() const;		// // //
 
 	// highlight
 	const stHighlight &GetHighlight(unsigned song) const;

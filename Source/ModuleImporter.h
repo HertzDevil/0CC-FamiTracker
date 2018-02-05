@@ -23,41 +23,28 @@
 
 #pragma once
 
-#include "stdafx.h"		// // //
-#include "../resource.h"		// // //
-#include <memory>		// // //
+#include <memory>
 #include "FamiTrackerTypes.h"
 
-class CFamiTrackerDoc;
+class CFamiTrackerModule;
 
-// CModuleImportDlg dialog
-
-class CModuleImportDlg : public CDialog
-{
-	DECLARE_DYNAMIC(CModuleImportDlg)
-
+class CModuleImporter {
 public:
-	CModuleImportDlg(CFamiTrackerDoc *pDoc);
-	virtual ~CModuleImportDlg();
+	CModuleImporter(CFamiTrackerModule &modfile, CFamiTrackerModule &imported);
 
-// Dialog Data
-	enum { IDD = IDD_IMPORT };
-
-public:
-	bool LoadFile(CString Path);		// // //
+	bool Validate() const;
+	void DoImport(bool doInst, bool doGroove, bool doDetune);
 
 private:
-	CFamiTrackerDoc *m_pDocument;
-	std::unique_ptr<CFamiTrackerDoc> m_pImportedDoc;		// // //
+	void ImportInstruments();
+	void ImportGrooves();
+	void ImportDetune();
+	void ImportSongs();
 
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+private:
+	CFamiTrackerModule &modfile_;
+	CFamiTrackerModule &imported_;
 
-protected:
-	CCheckListBox m_ctlTrackList;
-
-	DECLARE_MESSAGE_MAP()
-public:
-	afx_msg void OnBnClickedOk();
-	virtual BOOL OnInitDialog();
+	int inst_index_[MAX_INSTRUMENTS] = { };
+	int groove_index_[MAX_GROOVE] = { };
 };

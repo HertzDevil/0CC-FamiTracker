@@ -28,7 +28,7 @@
 #include "FamiTrackerViewMessage.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
 #include "SoundGen.h"		// // //
-//#include <algorithm>
+#include "ModuleImporter.h"		// // //
 
 // CModuleImportDlg dialog
 
@@ -51,7 +51,6 @@ void CModuleImportDlg::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CModuleImportDlg, CDialog)
 	ON_BN_CLICKED(IDOK, &CModuleImportDlg::OnBnClickedOk)
-	ON_BN_CLICKED(IDCANCEL, &CModuleImportDlg::OnBnClickedCancel)
 END_MESSAGE_MAP()
 
 
@@ -81,23 +80,23 @@ BOOL CModuleImportDlg::OnInitDialog()
 
 void CModuleImportDlg::OnBnClickedOk()
 {
-	if (!(ImportInstruments() && ImportGrooves() && ImportDetune() && ImportTracks()))		// // //
-		AfxMessageBox(IDS_IMPORT_FAILED, MB_ICONERROR);
+	CModuleImporter importer {*m_pDocument->GetModule(), *m_pImportedDoc->GetModule()};
+	if (importer.Validate()) {
+		importer.DoImport(
+			IsDlgButtonChecked(IDC_INSTRUMENTS) == BST_CHECKED,
+			IsDlgButtonChecked(IDC_IMPORT_GROOVE) == BST_CHECKED,
+			IsDlgButtonChecked(IDC_IMPORT_DETUNE) == BST_CHECKED);
 
-	// TODO another way to do this?
-	m_pDocument->ModifyIrreversible();		// // //
-	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);		// // //
-	m_pDocument->UpdateAllViews(NULL, UPDATE_PATTERN);
-	m_pDocument->UpdateAllViews(NULL, UPDATE_FRAME);
-	m_pDocument->UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-	Env.GetSoundGenerator()->DocumentPropertiesChanged(m_pDocument);
+		// TODO another way to do this?
+		m_pDocument->ModifyIrreversible();		// // //
+		m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);		// // //
+		m_pDocument->UpdateAllViews(NULL, UPDATE_PATTERN);
+		m_pDocument->UpdateAllViews(NULL, UPDATE_FRAME);
+		m_pDocument->UpdateAllViews(NULL, UPDATE_INSTRUMENT);
+		Env.GetSoundGenerator()->DocumentPropertiesChanged(m_pDocument);
+	}
 
 	OnOK();
-}
-
-void CModuleImportDlg::OnBnClickedCancel()
-{
-	OnCancel();
 }
 
 bool CModuleImportDlg::LoadFile(CString Path)		// // //
@@ -120,78 +119,14 @@ bool CModuleImportDlg::LoadFile(CString Path)		// // //
 		m_pDocument->SelectExpansionChip(c1.MergedWith(c2), std::max(n1, n2));
 	}
 
-	return true;
-}
-
-bool CModuleImportDlg::ImportInstruments()
-{
-	for (int i = 0; i < MAX_INSTRUMENTS; ++i)		// // //
-		m_iInstrumentTable[i] = i;
-
-	if (IsDlgButtonChecked(IDC_INSTRUMENTS) == BST_CHECKED)
-		if (!m_pDocument->ImportInstruments(*m_pImportedDoc->GetModule(), m_iInstrumentTable))
-			return false;
-
-	return true;
-}
-
-bool CModuleImportDlg::ImportGrooves()		// // //
-{
-	for (int i = 0; i < MAX_GROOVE; ++i)
-		m_iGrooveMap[i] = i;
-
-	if (IsDlgButtonChecked(IDC_IMPORT_GROOVE) == BST_CHECKED)
-		if (!m_pDocument->ImportGrooves(*m_pImportedDoc->GetModule(), m_iGrooveMap))
-			return false;
-
-	return true;
-}
-
-bool CModuleImportDlg::ImportDetune()		// // //
-{
-	if (IsDlgButtonChecked(IDC_IMPORT_DETUNE) == BST_CHECKED)
-		if (!m_pDocument->ImportDetune(*m_pImportedDoc->GetModule()))
-			return false;
-
-	return true;
-}
-
-bool CModuleImportDlg::ImportTracks() {
-	auto &oldModule = *m_pDocument->GetModule();
-	auto &newModule = *m_pImportedDoc->GetModule();
-
-	// // // ensure there are enough track slots
-	unsigned count = 0;
-	newModule.VisitSongs([&] (const CSongData &, unsigned i) {
+	// // // remove non-imported songs in advance
+	unsigned track = 0;
+	for (int i = 0; track < newModule.GetSongCount(); ++i) {
 		if (m_ctlTrackList.GetCheck(i) == BST_CHECKED)
-			++count;
-	});
-	if (count + oldModule.GetSongCount() > MAX_TRACKS)
-		return false;
-
-	// Import track
-	newModule.VisitSongs([&] (const CSongData &, unsigned i) {
-		if (m_ctlTrackList.GetCheck(i) == BST_CHECKED) {
-			auto pSong = newModule.ReleaseSong(i);		// // //
-			auto &song = *pSong;
-			oldModule.InsertSong(oldModule.GetSongCount(), std::move(pSong));
-
-			// // // translate instruments and grooves outside modules
-			if (song.GetSongGroove())
-				song.SetSongSpeed(m_iGrooveMap[song.GetSongSpeed()]);
-			song.VisitPatterns([this] (CPatternData &pat) {
-				pat.VisitRows([this] (stChanNote &note) {
-					// Translate instrument number
-					if (note.Instrument < MAX_INSTRUMENTS)
-						note.Instrument = m_iInstrumentTable[note.Instrument];
-					// // // Translate groove commands
-					for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
-						if (note.EffNumber[i] == EF_GROOVE && note.EffParam[i] < MAX_GROOVE)
-							note.EffParam[i] = m_iGrooveMap[note.EffParam[i]];
-				});
-			});
-		}
-	});
+			++track;
+		else
+			newModule.RemoveSong(track);
+	}
 
 	return true;
 }

@@ -111,9 +111,6 @@ public:
 
 	// Import
 	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCTSTR lpszPathName);		// // //
-	bool			ImportInstruments(CFamiTrackerModule &Imported, int *pInstTable);
-	bool			ImportGrooves(CFamiTrackerModule &Imported, int *pGrooveMap);		// // //
-	bool			ImportDetune(CFamiTrackerModule &Imported);			// // //
 
 	// Global (module) data
 	void			SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs);		// // //

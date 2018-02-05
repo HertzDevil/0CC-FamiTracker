@@ -306,6 +306,14 @@ void CFamiTrackerModule::SetGroove(unsigned index, std::shared_ptr<groove> pGroo
 	m_pGrooveTable[index] = std::move(pGroove);
 }
 
+unsigned CFamiTrackerModule::GetGrooveCount() const {
+	unsigned count = 0;
+	for (auto &x : m_pGrooveTable)
+		if (x)
+			++count;
+	return count;
+}
+
 const stHighlight &CFamiTrackerModule::GetHighlight(unsigned song) const {		// // //
 	return GetSong(song)->GetRowHighlight();
 }
