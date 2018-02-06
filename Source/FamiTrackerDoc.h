@@ -25,6 +25,7 @@
 
 #include "stdafx.h"		// // //
 #include <memory>		// // //
+#include <type_traits>		// // //
 #include "DocumentInterface.h"
 
 // #define AUTOSAVE
@@ -88,9 +89,28 @@ public:
 	void			ModifyIrreversible() override;
 
 	// Synchronization
-	BOOL			LockDocument() const;
-	BOOL			LockDocument(DWORD dwTimeout) const;
-	BOOL			UnlockDocument() const;
+
+	// T (*F)()
+	// T must be void or default-constructible
+	template <typename F>
+	auto Locked(F f) const {		// // //
+		using Ret = std::invoke_result_t<F>;
+		if (CSingleLock lock(&m_csDocumentLock); lock.Lock())
+			return f();
+		else if constexpr (!std::is_void_v<Ret>)
+			return Ret { };
+	}
+
+	// T (*F)()
+	// T must be void or default-constructible
+	template <typename F>
+	auto Locked(F f, DWORD dwTimeOut) const {
+		using Ret = std::invoke_result_t<F>;
+		if (CSingleLock lock(&m_csDocumentLock); lock.Lock(dwTimeOut))
+			return f();
+		else if constexpr (!std::is_void_v<Ret>)
+			return Ret { };
+	}
 
 	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCTSTR lpszPathName);		// // // TODO: use module class directly
 

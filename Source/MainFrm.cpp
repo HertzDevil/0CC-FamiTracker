@@ -1279,30 +1279,24 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CString &filename) {		// /
 			if (std::tie(iInstMaj, iInstMin) > std::tie(I_CURRENT_VER_MAJ, I_CURRENT_VER_MIN))
 				return err(IDS_INST_VERSION_UNSUPPORTED);
 
-			auto &Doc = GetDoc();
-			if (!Doc.LockDocument())
-				return err(IDS_INSTRUMENT_FILE_FAIL);
+			return GetDoc().Locked([&] {
+				try {
+					auto *pManager = GetDoc().GetModule()->GetInstrumentManager();
+					inst_type_t InstType = static_cast<inst_type_t>(file.ReadChar());
+					if (auto pInstrument = pManager->CreateNew(InstType != INST_NONE ? InstType : INST_2A03)) {
+						pInstrument->OnBlankInstrument();
+						pInstrument->LoadFTI(file, iInstMaj * 10 + iInstMin);		// // //
+						return pManager->InsertInstrument(Index, std::move(pInstrument));
+					}
 
-			try {
-				auto *pManager = Doc.GetModule()->GetInstrumentManager();
-
-				inst_type_t InstType = static_cast<inst_type_t>(file.ReadChar());
-				if (auto pInstrument = pManager->CreateNew(InstType != INST_NONE ? InstType : INST_2A03)) {
-					pInstrument->OnBlankInstrument();
-					pInstrument->LoadFTI(file, iInstMaj * 10 + iInstMin);		// // //
-					Doc.UnlockDocument();
-					return pManager->InsertInstrument(Index, std::move(pInstrument));
+					AfxMessageBox("Failed to create instrument", MB_ICONERROR);
+					return false;
 				}
-
-				Doc.UnlockDocument();
-				AfxMessageBox("Failed to create instrument", MB_ICONERROR);
-				return false;
-			}
-			catch (CModuleException e) {
-				Doc.UnlockDocument();
-				AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
-				return false;
-			}
+				catch (CModuleException e) {
+					AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
+					return false;
+				}
+			});
 		}
 		return err(IDS_FILE_OPEN_ERROR);
 	}

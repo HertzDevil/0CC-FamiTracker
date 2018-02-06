@@ -70,22 +70,6 @@ CFamiTrackerDoc *CFamiTrackerDoc::GetDoc()
 	return static_cast<CFamiTrackerDoc*>(pFrame->GetActiveDocument());
 }
 
-// Synchronization
-BOOL CFamiTrackerDoc::LockDocument() const
-{
-	return m_csDocumentLock.Lock();
-}
-
-BOOL CFamiTrackerDoc::LockDocument(DWORD dwTimeout) const
-{
-	return m_csDocumentLock.Lock(dwTimeout);
-}
-
-BOOL CFamiTrackerDoc::UnlockDocument() const
-{
-	return m_csDocumentLock.Unlock();
-}
-
 //
 // Overrides
 //
@@ -111,12 +95,9 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	theApp.GetSoundGenerator()->ResetDumpInstrument();
 	theApp.GetSoundGenerator()->SetRecordChannel(chan_id_t::NONE);		// // //
 
-	LockDocument();
-
 	// Load file
-	if (!OpenDocument(lpszPathName)) {
+	if (!Locked([&] { return OpenDocument(lpszPathName); })) {		// // //
 		// Loading failed, create empty document
-		UnlockDocument();
 		/*
 		DeleteContents();
 		CreateEmpty();
@@ -126,8 +107,6 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		// and tell doctemplate that loading failed
 		return FALSE;
 	}
-
-	UnlockDocument();
 
 	// Update main frame
 	theApp.GetSoundGenerator()->ModuleChipChanged();		// // //
@@ -196,25 +175,24 @@ void CFamiTrackerDoc::DeleteContents()
 	// Make sure player is stopped
 	theApp.StopPlayerAndWait();
 
-	LockDocument();
+	Locked([&] {		// // //
+		// Mark file as unloaded
+		m_bFileLoaded = false;
+		m_bForceBackup = false;
+		m_bBackupDone = true;	// No backup on new modules
 
-	// Mark file as unloaded
-	m_bFileLoaded = false;
-	m_bForceBackup = false;
-	m_bBackupDone = true;	// No backup on new modules
-
-	UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
-	module_ = std::make_unique<CFamiTrackerModule>(*this);		// // //
+		UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
+		module_ = std::make_unique<CFamiTrackerModule>(*this);		// // //
+		theApp.GetSoundGenerator()->AssignModule(*module_);		// // // rebind module
 
 #ifdef AUTOSAVE
-	ClearAutoSave();
+		ClearAutoSave();
 #endif
 
-	// Remove modified flag
-	SetModifiedFlag(FALSE);
-	SetExceededFlag(FALSE);		// // //
-
-	UnlockDocument();
+		// Remove modified flag
+		SetModifiedFlag(FALSE);
+		SetExceededFlag(FALSE);		// // //
+	});
 
 	CDocument::DeleteContents();
 }
@@ -241,23 +219,20 @@ void CFamiTrackerDoc::SetModifiedFlag(BOOL bModified)
 void CFamiTrackerDoc::CreateEmpty()
 {
 	DeleteContents();		// // //
-	theApp.GetSoundGenerator()->DocumentPropertiesChanged(this);		// // // rebind module
 
-	LockDocument();
-
-	// and select 2A03 only
-	SelectExpansionChip(sound_chip_t::APU, 0);		// // //
-	SetModifiedFlag(FALSE);
-	SetExceededFlag(FALSE);		// // //
+	Locked([&] {		// // //
+		// and select 2A03 only
+		SelectExpansionChip(sound_chip_t::APU, 0);		// // //
+		SetModifiedFlag(FALSE);
+		SetExceededFlag(FALSE);		// // //
 
 #ifdef AUTOSAVE
-	SetupAutoSave();
+		SetupAutoSave();
 #endif
 
-	// Document is avaliable
-	m_bFileLoaded = true;
-
-	UnlockDocument();
+		// Document is avaliable
+		m_bFileLoaded = true;
+	});
 
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(this);
 }
@@ -521,9 +496,9 @@ void CFamiTrackerDoc::SelectExpansionChip(const CSoundChipSet &chips, unsigned n
 	ASSERT(n163chs <= MAX_CHANNELS_N163 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
 
 	// This will select a chip in the sound emulator
-	LockDocument();
-	GetModule()->SetChannelMap(theApp.GetSoundGenerator()->MakeChannelMap(chips, n163chs));		// // //
-	UnlockDocument();
+	Locked([&] {
+		GetModule()->SetChannelMap(theApp.GetSoundGenerator()->MakeChannelMap(chips, n163chs));		// // //
+	});
 
 	theApp.GetSoundGenerator()->ModuleChipChanged();
 }

@@ -1039,10 +1039,9 @@ BOOL CSoundGen::IdleLoop() {
 	++m_iFrameCounter;
 
 	// Access the document object, skip if access wasn't granted to avoid gaps in audio playback
-	if (m_pDocument->LockDocument(0)) {
+	m_pDocument->Locked([this] {
 		m_pSoundDriver->Tick();		// // //
-		m_pDocument->UnlockDocument();
-	}
+	}, 0);
 
 	// Rendering
 	if (CSingleLock l(&m_csRenderer); l.Lock() && m_pWaveRenderer)		// // //
