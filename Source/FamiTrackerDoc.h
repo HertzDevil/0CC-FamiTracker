@@ -33,7 +33,6 @@
 // External classes
 class CFamiTrackerModule;		// // //
 class CDocumentFile;
-class CSimpleFile;		// // //
 class CSoundChipSet;		// // //
 
 // // // TODO:
@@ -73,7 +72,7 @@ public:
 	CFamiTrackerModule *GetModule() noexcept;
 	const CFamiTrackerModule *GetModule() const noexcept;
 
-	CString GetFileTitle() const;
+	CString			GetFileTitle() const;
 
 	//
 	// Document file I/O
@@ -96,9 +95,6 @@ public:
 	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCTSTR lpszPathName);		// // // TODO: use module class directly
 
 	void			SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs);		// // //
-
-	void			SaveInstrument(unsigned int Index, CSimpleFile &file) const;		// // //
-	bool 			LoadInstrument(unsigned Index, CSimpleFile &File);		// // //
 
 private:
 

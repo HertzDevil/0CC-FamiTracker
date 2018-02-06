@@ -77,6 +77,7 @@
 #include "Kraid.h"
 #include "NumConv.h"
 #include "InstrumentListCtrl.h"
+#include "ModuleException.h"
 
 namespace {
 
@@ -1256,10 +1257,53 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CString &filename) {		// /
 		return false;
 	};
 
-	auto &Doc = GetDoc();
 	if (Index != INVALID_INSTRUMENT) {
-		if (CSimpleFile file(filename, std::ios::in | std::ios::binary); file)
-			return Doc.LoadInstrument(Index, file);
+		if (CSimpleFile file(filename, std::ios::in | std::ios::binary); file) {
+			// FTI instruments files
+			static const char INST_HEADER[] = "FTI";
+//			static const char INST_VERSION[] = "2.4";
+
+			static const unsigned I_CURRENT_VER_MAJ = 2;		// // // 050B
+			static const unsigned I_CURRENT_VER_MIN = 5;		// // // 050B
+
+			// Signature
+			for (std::size_t i = 0; i < std::size(INST_HEADER) - 1; ++i)
+				if (file.ReadChar() != INST_HEADER[i])
+					return err(IDS_INSTRUMENT_FILE_FAIL);
+
+			// Version
+			unsigned iInstMaj = conv::from_digit(file.ReadChar());
+			if (file.ReadChar() != '.')
+				return err(IDS_INST_VERSION_UNSUPPORTED);
+			unsigned iInstMin = conv::from_digit(file.ReadChar());
+			if (std::tie(iInstMaj, iInstMin) > std::tie(I_CURRENT_VER_MAJ, I_CURRENT_VER_MIN))
+				return err(IDS_INST_VERSION_UNSUPPORTED);
+
+			auto &Doc = GetDoc();
+			if (!Doc.LockDocument())
+				return err(IDS_INSTRUMENT_FILE_FAIL);
+
+			try {
+				auto *pManager = Doc.GetModule()->GetInstrumentManager();
+
+				inst_type_t InstType = static_cast<inst_type_t>(file.ReadChar());
+				if (auto pInstrument = pManager->CreateNew(InstType != INST_NONE ? InstType : INST_2A03)) {
+					pInstrument->OnBlankInstrument();
+					pInstrument->LoadFTI(file, iInstMaj * 10 + iInstMin);		// // //
+					Doc.UnlockDocument();
+					return pManager->InsertInstrument(Index, std::move(pInstrument));
+				}
+
+				Doc.UnlockDocument();
+				AfxMessageBox("Failed to create instrument", MB_ICONERROR);
+				return false;
+			}
+			catch (CModuleException e) {
+				Doc.UnlockDocument();
+				AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
+				return false;
+			}
+		}
 		return err(IDS_FILE_OPEN_ERROR);
 	}
 	return err(IDS_INST_LIMIT);

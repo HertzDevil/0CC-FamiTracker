@@ -25,16 +25,12 @@
 #include <algorithm>
 #include "FamiTracker.h"
 #include "FamiTrackerViewMessage.h"		// // //
-#include "Instrument.h"		// // //
 #include "ModuleException.h"		// // //
 #include "DocumentFile.h"
 #include "SoundGen.h"
-#include "InstrumentManager.h"		// // //
-#include "SimpleFile.h"		// // //
 #include "ChannelMap.h"		// // //
 #include "FamiTrackerDocIO.h"		// // //
 #include "FamiTrackerDocOldIO.h"		// // //
-#include "NumConv.h"		// // //
 
 //
 // CFamiTrackerDoc
@@ -517,69 +513,6 @@ std::unique_ptr<CFamiTrackerDoc> CFamiTrackerDoc::LoadImportFile(LPCTSTR lpszPat
 		return nullptr;
 
 	return pImported;
-}
-
-// ---------------------------------------------------------------------------------------------------------
-// Document access functions
-// ---------------------------------------------------------------------------------------------------------
-
-//
-// Instruments
-//
-
-void CFamiTrackerDoc::SaveInstrument(unsigned int Index, CSimpleFile &file) const {
-	GetModule()->GetInstrumentManager()->GetInstrument(Index)->SaveFTI(file);
-}
-
-bool CFamiTrackerDoc::LoadInstrument(unsigned Index, CSimpleFile &File) {		// // //
-	// Loads an instrument from file, return allocated slot or INVALID_INSTRUMENT if failed
-
-	// FTI instruments files
-	static const char INST_HEADER[] = "FTI";
-//	static const char INST_VERSION[] = "2.4";
-
-	static const unsigned I_CURRENT_VER_MAJ = 2;		// // // 050B
-	static const unsigned I_CURRENT_VER_MIN = 5;		// // // 050B
-
-	if (Index >= MAX_INSTRUMENTS)		// // //
-		return false;
-
-	// Signature
-	for (std::size_t i = 0; i < std::size(INST_HEADER) - 1; ++i)
-		if (File.ReadChar() != INST_HEADER[i]) {
-			AfxMessageBox(IDS_INSTRUMENT_FILE_FAIL, MB_ICONERROR);
-			return false;
-		}
-
-	// Version
-	unsigned iInstMaj = conv::from_digit(File.ReadChar());
-	if (File.ReadChar() != '.') {
-		AfxMessageBox(IDS_INST_VERSION_UNSUPPORTED, MB_ICONERROR);
-		return false;
-	}
-	unsigned iInstMin = conv::from_digit(File.ReadChar());
-	if (std::tie(iInstMaj, iInstMin) > std::tie(I_CURRENT_VER_MAJ, I_CURRENT_VER_MIN)) {
-		AfxMessageBox(IDS_INST_VERSION_UNSUPPORTED, MB_ICONERROR);
-		return false;
-	}
-
-	try {
-		CSingleLock lock {&m_csDocumentLock, TRUE};
-
-		inst_type_t InstType = static_cast<inst_type_t>(File.ReadChar());
-		if (auto pInstrument = GetModule()->GetInstrumentManager()->CreateNew(InstType != INST_NONE ? InstType : INST_2A03)) {
-			pInstrument->OnBlankInstrument();
-			pInstrument->LoadFTI(File, iInstMaj * 10 + iInstMin);		// // //
-			return GetModule()->GetInstrumentManager()->InsertInstrument(Index, std::move(pInstrument));
-		}
-
-		AfxMessageBox("Failed to create instrument", MB_ICONERROR);
-		return false;
-	}
-	catch (CModuleException e) {
-		AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
-		return false;
-	}
 }
 
 //// Track functions //////////////////////////////////////////////////////////////////////////////////

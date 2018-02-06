@@ -29,7 +29,7 @@
 #include <map>
 #include <vector>
 #include "FamiTracker.h"
-#include "FamitrackerDoc.h"
+#include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
 #include "DSampleManager.h"		// // //
 #include "Compiler.h"
