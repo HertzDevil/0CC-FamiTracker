@@ -36,19 +36,20 @@ const int MIDI_MSG_PITCH_WHEEL		= 0x0E;
 
 // CMIDI command target
 
-class CMIDI : public CObject
-{
+class CMIDI {
 public:
 	CMIDI();
-	virtual ~CMIDI();
+	CMIDI(const CMIDI &) = delete;		// // //
+	CMIDI(CMIDI &&) = delete;
+	~CMIDI();
 
-	bool	Init(void);
-	void	Shutdown(void);
+	bool	Init();
+	void	Shutdown();
 
-	bool	OpenDevices(void);
-	bool	CloseDevices(void);
+	bool	OpenDevices();
+	bool	CloseDevices();
 
-	bool	ReadMessage(unsigned char & Message, unsigned char & Channel, unsigned char & Data1, unsigned char & Data2);
+	bool	ReadMessage(unsigned char &Message, unsigned char &Channel, unsigned char &Data1, unsigned char &Data2);
 	void	WriteNote(unsigned char Channel, unsigned char Note, unsigned char Octave, unsigned char Velocity);
 	void	ResetOutput();
 	void	ToggleInput();

@@ -95,10 +95,11 @@ protected:
 };
 
 // Settings collection
-class CSettings : public CObject
-{
+class CSettings {
 private:
 	CSettings();
+	CSettings(const CSettings &) = delete;		// // //
+	CSettings(CSettings &&) = delete;
 
 public:
 	void	LoadSettings();

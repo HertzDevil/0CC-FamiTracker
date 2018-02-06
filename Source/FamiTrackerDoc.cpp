@@ -423,7 +423,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 		DeleteContents();		// // //
 
 		if (m_iFileVersion < 0x0200U) {
-			if (!OpenDocumentOld(&OpenFile))
+			if (!compat::OpenDocumentOld(*this, &OpenFile.GetCFile()))
 				OpenFile.RaiseModuleException("General error");
 
 			// Create a backup of this file, since it's an old version
@@ -431,11 +431,10 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 			m_bForceBackup = true;
 		}
 		else {
-			if (!OpenDocumentNew(OpenFile))
-				OpenFile.RaiseModuleException("General error");
-
-			// Backup if files was of an older version
-			m_bForceBackup = m_iFileVersion < CDocumentFile::FILE_VER;
+			if (!CFamiTrackerDocIO {OpenFile}.Load(*this)) {
+				AfxMessageBox(IDS_FILE_LOAD_ERROR, MB_ICONERROR);
+				return FALSE;
+			}
 		}
 	}
 	catch (CModuleException e) {
@@ -450,30 +449,6 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(this);
 
-	return TRUE;
-}
-
-/**
- * This function reads the old obsolete file version.
- */
-BOOL CFamiTrackerDoc::OpenDocumentOld(CFile *pOpenFile)
-{
-	return compat::OpenDocumentOld(*this, pOpenFile);		// // //
-}
-
-/**
- *  This function opens the most recent file version
- *
- */
-BOOL CFamiTrackerDoc::OpenDocumentNew(CDocumentFile &DocumentFile)
-{
-	if (!CFamiTrackerDocIO {DocumentFile}.Load(*this)) {
-		DocumentFile.Close();
-		AfxMessageBox(IDS_FILE_LOAD_ERROR, MB_ICONERROR);
-		return FALSE;
-	}
-
-	DocumentFile.Close();
 	return TRUE;
 }
 

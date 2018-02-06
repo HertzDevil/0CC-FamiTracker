@@ -36,9 +36,16 @@ using namespace std::string_view_literals;
 
 class CModuleException;
 
-class CDocumentFile : public CFile
-{
+class CDocumentFile {
 public:
+	~CDocumentFile();		// // //
+
+	// // // delegations to CFile
+	CFile		&GetCFile();
+	BOOL		Open(LPCTSTR lpszFileName, UINT nOpenFlags, CFileException *pError = nullptr);
+	ULONGLONG	GetLength() const;
+	void		Close();
+
 	bool		Finished() const;
 
 	// Write functions
@@ -81,8 +88,8 @@ public:
 	[[noreturn]] void RaiseModuleException(const std::string &Msg) const;
 
 	// // // Overrides
-	UINT Read(void *lpBuf, UINT nCount) override;
-	void Write(const void *lpBuf, UINT nCount) override;
+	UINT Read(void *lpBuf, UINT nCount);
+	void Write(const void *lpBuf, UINT nCount);
 
 public:
 	// Constants
@@ -104,6 +111,8 @@ protected:
 	void ReallocateBlock();
 
 protected:
+	CFile			m_fFile;		// // //
+
 	unsigned int	m_iFileVersion;
 	bool			m_bFileDone;
 	bool			m_bIncomplete;

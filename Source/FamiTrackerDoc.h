@@ -125,9 +125,6 @@ private:
 	BOOL			SaveDocument(LPCTSTR lpszPathName) const;
 	BOOL			OpenDocument(LPCTSTR lpszPathName);
 
-	BOOL			OpenDocumentOld(CFile *pOpenFile);
-	BOOL			OpenDocumentNew(CDocumentFile &DocumentFile);
-
 #ifdef AUTOSAVE
 	void			SetupAutoSave();
 	void			ClearAutoSave();

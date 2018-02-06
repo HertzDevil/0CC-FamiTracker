@@ -39,6 +39,28 @@ const unsigned int CDocumentFile::COMPATIBLE_VER = 0x0100;			// Compatible file 
 const unsigned int CDocumentFile::MAX_BLOCK_SIZE = 0x80000;
 const unsigned int CDocumentFile::BLOCK_SIZE = 0x10000;
 
+CDocumentFile::~CDocumentFile() {
+	Close();
+}
+
+// // // delegations to CFile
+
+CFile &CDocumentFile::GetCFile() {
+	return m_fFile;
+}
+
+BOOL CDocumentFile::Open(LPCTSTR lpszFileName, UINT nOpenFlags, CFileException *pError) {
+	return m_fFile.Open(lpszFileName, nOpenFlags, pError);
+}
+
+ULONGLONG CDocumentFile::GetLength() const {
+	return m_fFile.GetLength();
+}
+
+void CDocumentFile::Close() {
+	m_fFile.Close();
+}
+
 // CDocumentFile
 
 bool CDocumentFile::Finished() const
@@ -362,13 +384,13 @@ void CDocumentFile::RaiseModuleException(const std::string &Msg) const		// // //
 UINT CDocumentFile::Read(void *lpBuf, UINT nCount)		// // //
 {
 	m_iPreviousPosition = m_iFilePosition;
-	m_iFilePosition = GetPosition();
-	return CFile::Read(lpBuf, nCount);
+	m_iFilePosition = m_fFile.GetPosition();
+	return m_fFile.Read(lpBuf, nCount);
 }
 
 void CDocumentFile::Write(const void *lpBuf, UINT nCount)		// // //
 {
 	m_iPreviousPosition = m_iFilePosition;
-	m_iFilePosition = GetPosition();
-	CFile::Write(lpBuf, nCount);
+	m_iFilePosition = m_fFile.GetPosition();
+	m_fFile.Write(lpBuf, nCount);
 }
