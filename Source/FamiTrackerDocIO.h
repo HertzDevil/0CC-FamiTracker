@@ -27,7 +27,7 @@
 #include <vector>
 #include "OldSequence.h"
 
-class CFamiTrackerDoc;
+class CFamiTrackerModule;
 class CDocumentFile;
 
 enum module_error_level_t : int; // Settings.h
@@ -36,59 +36,59 @@ class CFamiTrackerDocIO {
 public:
 	explicit CFamiTrackerDocIO(CDocumentFile &file);
 
-	bool Load(CFamiTrackerDoc &doc);
-	bool Save(const CFamiTrackerDoc &doc);
+	bool Load(CFamiTrackerModule &modfile);
+	bool Save(const CFamiTrackerModule &modfile);
 
 private:
-	void PostLoad(CFamiTrackerDoc &doc);
+	void PostLoad(CFamiTrackerModule &modfile);
 
-	void LoadParams(CFamiTrackerDoc &doc, int ver);
-	void SaveParams(const CFamiTrackerDoc &doc, int ver);
+	void LoadParams(CFamiTrackerModule &modfile, int ver);
+	void SaveParams(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadSongInfo(CFamiTrackerDoc &doc, int ver);
-	void SaveSongInfo(const CFamiTrackerDoc &doc, int ver);
+	void LoadSongInfo(CFamiTrackerModule &modfile, int ver);
+	void SaveSongInfo(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadHeader(CFamiTrackerDoc &doc, int ver);
-	void SaveHeader(const CFamiTrackerDoc &doc, int ver);
+	void LoadHeader(CFamiTrackerModule &modfile, int ver);
+	void SaveHeader(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadInstruments(CFamiTrackerDoc &doc, int ver);
-	void SaveInstruments(const CFamiTrackerDoc &doc, int ver);
+	void LoadInstruments(CFamiTrackerModule &modfile, int ver);
+	void SaveInstruments(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadSequences(CFamiTrackerDoc &doc, int ver);
-	void SaveSequences(const CFamiTrackerDoc &doc, int ver);
+	void LoadSequences(CFamiTrackerModule &modfile, int ver);
+	void SaveSequences(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadFrames(CFamiTrackerDoc &doc, int ver);
-	void SaveFrames(const CFamiTrackerDoc &doc, int ver);
+	void LoadFrames(CFamiTrackerModule &modfile, int ver);
+	void SaveFrames(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadPatterns(CFamiTrackerDoc &doc, int ver);
-	void SavePatterns(const CFamiTrackerDoc &doc, int ver);
+	void LoadPatterns(CFamiTrackerModule &modfile, int ver);
+	void SavePatterns(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadDSamples(CFamiTrackerDoc &doc, int ver);
-	void SaveDSamples(const CFamiTrackerDoc &doc, int ver);
+	void LoadDSamples(CFamiTrackerModule &modfile, int ver);
+	void SaveDSamples(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadComments(CFamiTrackerDoc &doc, int ver);
-	void SaveComments(const CFamiTrackerDoc &doc, int ver);
+	void LoadComments(CFamiTrackerModule &modfile, int ver);
+	void SaveComments(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver);
-	void SaveSequencesVRC6(const CFamiTrackerDoc &doc, int ver);
+	void LoadSequencesVRC6(CFamiTrackerModule &modfile, int ver);
+	void SaveSequencesVRC6(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadSequencesN163(CFamiTrackerDoc &doc, int ver);
-	void SaveSequencesN163(const CFamiTrackerDoc &doc, int ver);
+	void LoadSequencesN163(CFamiTrackerModule &modfile, int ver);
+	void SaveSequencesN163(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadSequencesS5B(CFamiTrackerDoc &doc, int ver);
-	void SaveSequencesS5B(const CFamiTrackerDoc &doc, int ver);
+	void LoadSequencesS5B(CFamiTrackerModule &modfile, int ver);
+	void SaveSequencesS5B(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadParamsExtra(CFamiTrackerDoc &doc, int ver);
-	void SaveParamsExtra(const CFamiTrackerDoc &doc, int ver);
+	void LoadParamsExtra(CFamiTrackerModule &modfile, int ver);
+	void SaveParamsExtra(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadDetuneTables(CFamiTrackerDoc &doc, int ver);
-	void SaveDetuneTables(const CFamiTrackerDoc &doc, int ver);
+	void LoadDetuneTables(CFamiTrackerModule &modfile, int ver);
+	void SaveDetuneTables(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadGrooves(CFamiTrackerDoc &doc, int ver);
-	void SaveGrooves(const CFamiTrackerDoc &doc, int ver);
+	void LoadGrooves(CFamiTrackerModule &modfile, int ver);
+	void SaveGrooves(const CFamiTrackerModule &modfile, int ver);
 
-	void LoadBookmarks(CFamiTrackerDoc &doc, int ver);
-	void SaveBookmarks(const CFamiTrackerDoc &doc, int ver);
+	void LoadBookmarks(CFamiTrackerModule &modfile, int ver);
+	void SaveBookmarks(const CFamiTrackerModule &modfile, int ver);
 
 private:
 	template <module_error_level_t l = MODULE_ERROR_DEFAULT>

@@ -209,6 +209,7 @@ std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(const CSoundChipSet &chip
 
 	// Called from main thread
 	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
+	ASSERT(n163chs <= MAX_CHANNELS_N163 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
 
 	return m_pSoundDriver->MakeChannelMap(chips, n163chs);		// // //
 }

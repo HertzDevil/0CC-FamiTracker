@@ -58,7 +58,8 @@ ULONGLONG CDocumentFile::GetLength() const {
 }
 
 void CDocumentFile::Close() {
-	m_fFile.Close();
+	if (m_fFile.m_hFile != CFile::hFileNull)
+		m_fFile.Close();
 }
 
 // CDocumentFile

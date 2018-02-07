@@ -184,6 +184,7 @@ void CFamiTrackerDoc::DeleteContents()
 		UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
 		module_ = std::make_unique<CFamiTrackerModule>(*this);		// // //
 		theApp.GetSoundGenerator()->AssignModule(*module_);		// // // rebind module
+		theApp.GetSoundGenerator()->ModuleChipChanged();
 
 #ifdef AUTOSAVE
 		ClearAutoSave();
@@ -234,6 +235,7 @@ void CFamiTrackerDoc::CreateEmpty()
 		m_bFileLoaded = true;
 	});
 
+	theApp.GetSoundGenerator()->ModuleChipChanged();
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(this);
 }
 
@@ -331,7 +333,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 		return FALSE;
 	}
 
-	if (!CFamiTrackerDocIO {DocumentFile}.Save(*this)) {		// // //
+	if (!CFamiTrackerDocIO {DocumentFile}.Save(*GetModule())) {		// // //
 		// The save process failed, delete temp file
 		DocumentFile.Close();
 		DeleteFile(TempFile);
@@ -396,23 +398,25 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 	CFileException ex;
 	CDocumentFile  OpenFile;
 
+	// Check if empty file
+	CFileStatus status;		// // //
+	CFile::GetStatus(lpszPathName, status);
+	if (!status.m_size) {
+		// Setup default settings
+		CreateEmpty();
+		return TRUE;
+	}
+
 	// Open file
 	if (!OpenFile.Open(lpszPathName, CFile::modeRead | CFile::shareDenyWrite, &ex)) {
 		TCHAR   szCause[1024];		// // //
 		CString strFormatted;
-		ex.GetErrorMessage(szCause, sizeof(szCause));
+		ex.GetErrorMessage(szCause, std::size(szCause));
 		strFormatted = _T("Could not open file.\n\n");
 		strFormatted += szCause;
 		AfxMessageBox(strFormatted);
 		//OnNewDocument();
 		return FALSE;
-	}
-
-	// Check if empty file
-	if (OpenFile.GetLength() == 0) {
-		// Setup default settings
-		CreateEmpty();
-		return TRUE;
 	}
 
 	try {		// // //
@@ -431,14 +435,16 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 			m_bForceBackup = true;
 		}
 		else {
-			if (!CFamiTrackerDocIO {OpenFile}.Load(*this)) {
-				AfxMessageBox(IDS_FILE_LOAD_ERROR, MB_ICONERROR);
-				return FALSE;
+			if (!CFamiTrackerDocIO {OpenFile}.Load(*GetModule())) {
+				CString msg;
+				msg.LoadString(IDS_FILE_LOAD_ERROR);
+				OpenFile.RaiseModuleException((LPCTSTR)msg);
 			}
 		}
 	}
 	catch (CModuleException e) {
 		AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
+		DeleteContents();
 		return FALSE;
 	}
 
@@ -447,6 +453,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 	m_bFileLoadFailed = false;
 	m_bBackupDone = false;		// // //
 
+	theApp.GetSoundGenerator()->ModuleChipChanged();		// // //
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(this);
 
 	return TRUE;
@@ -468,14 +475,9 @@ std::unique_ptr<CFamiTrackerDoc> CFamiTrackerDoc::LoadImportFile(LPCTSTR lpszPat
 //// Track functions //////////////////////////////////////////////////////////////////////////////////
 
 void CFamiTrackerDoc::SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs) {		// // //
-	ASSERT(n163chs <= MAX_CHANNELS_N163 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
-
-	// This will select a chip in the sound emulator
 	Locked([&] {
 		GetModule()->SetChannelMap(theApp.GetSoundGenerator()->MakeChannelMap(chips, n163chs));		// // //
 	});
-
-	theApp.GetSoundGenerator()->ModuleChipChanged();
 }
 
 // Attributes

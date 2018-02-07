@@ -59,6 +59,8 @@ public:
 	explicit CFamiTrackerModule(CDocumentInterface &parent);
 	~CFamiTrackerModule();
 
+	CDocumentInterface *GetParent();
+
 	// module metadata
 	std::string_view GetModuleName() const;
 	std::string_view GetModuleArtist() const;
@@ -195,6 +197,7 @@ private:
 	std::vector<std::unique_ptr<CSongData>> m_pTracks;
 
 	std::unique_ptr<CInstrumentManager> m_pInstrumentManager;
+	CDocumentInterface &parent_; // TODO: remove
 
 	std::array<std::shared_ptr<groove>, 32/*MAX_GROOVE*/> m_pGrooveTable;		// // // Grooves
 };

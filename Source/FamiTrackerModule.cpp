@@ -34,12 +34,17 @@
 
 CFamiTrackerModule::CFamiTrackerModule(CDocumentInterface &parent) :
 	m_pChannelMap(std::make_unique<CChannelMap>()),
-	m_pInstrumentManager(std::make_unique<CInstrumentManager>(&parent))
+	m_pInstrumentManager(std::make_unique<CInstrumentManager>(&parent)),
+	parent_(parent)
 {
 	AllocateSong(0);
 }
 
 CFamiTrackerModule::~CFamiTrackerModule() {
+}
+
+CDocumentInterface *CFamiTrackerModule::GetParent() {
+	return &parent_;
 }
 
 std::string_view CFamiTrackerModule::GetModuleName() const {

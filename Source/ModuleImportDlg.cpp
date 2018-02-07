@@ -93,6 +93,7 @@ void CModuleImportDlg::OnBnClickedOk()
 		unsigned n163chs = std::max(n1, n2);
 		m_pImportedDoc->SelectExpansionChip(merged, n163chs);
 		m_pDocument->SelectExpansionChip(merged, n163chs);
+		Env.GetSoundGenerator()->ModuleChipChanged();		// // //
 	}
 
 	// // // remove non-imported songs in advance

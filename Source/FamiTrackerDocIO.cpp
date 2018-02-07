@@ -25,12 +25,15 @@
 #include "FamiTrackerDocOldIO.h"
 #include "DocumentFile.h" // stdafx.h
 #include "ModuleException.h"
-#include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"
 #include "Settings.h"
 #include "APU/Types.h"
 #include "SoundChipSet.h"
-#include "ChannelORder.h"
+#include "ChannelOrder.h"
+
+#include "FamiTrackerEnv.h"
+#include "SoundGen.h"
+#include "ChannelMap.h"
 
 #include "InstrumentManager.h"
 #include "Instrument2A03.h"
@@ -55,33 +58,35 @@
 
 namespace {
 
+using namespace std::string_view_literals;
+
 const unsigned MAX_CHANNELS = 28;		// // // vanilla ft channel count
 
-const char FILE_BLOCK_PARAMS[]			= "PARAMS";
-const char FILE_BLOCK_INFO[]			= "INFO";
-const char FILE_BLOCK_INSTRUMENTS[]		= "INSTRUMENTS";
-const char FILE_BLOCK_SEQUENCES[]		= "SEQUENCES";
-const char FILE_BLOCK_FRAMES[]			= "FRAMES";
-const char FILE_BLOCK_PATTERNS[]		= "PATTERNS";
-const char FILE_BLOCK_DSAMPLES[]		= "DPCM SAMPLES";
-const char FILE_BLOCK_HEADER[]			= "HEADER";
-const char FILE_BLOCK_COMMENTS[]		= "COMMENTS";
+const auto FILE_BLOCK_PARAMS			= "PARAMS"sv;
+const auto FILE_BLOCK_INFO				= "INFO"sv;
+const auto FILE_BLOCK_INSTRUMENTS		= "INSTRUMENTS"sv;
+const auto FILE_BLOCK_SEQUENCES			= "SEQUENCES"sv;
+const auto FILE_BLOCK_FRAMES			= "FRAMES"sv;
+const auto FILE_BLOCK_PATTERNS			= "PATTERNS"sv;
+const auto FILE_BLOCK_DSAMPLES			= "DPCM SAMPLES"sv;
+const auto FILE_BLOCK_HEADER			= "HEADER"sv;
+const auto FILE_BLOCK_COMMENTS			= "COMMENTS"sv;
 
 // VRC6
-const char FILE_BLOCK_SEQUENCES_VRC6[]	= "SEQUENCES_VRC6";
+const auto FILE_BLOCK_SEQUENCES_VRC6	= "SEQUENCES_VRC6"sv;
 
 // N163
-const char FILE_BLOCK_SEQUENCES_N163[]	= "SEQUENCES_N163";
-const char FILE_BLOCK_SEQUENCES_N106[]	= "SEQUENCES_N106";
+const auto FILE_BLOCK_SEQUENCES_N163	= "SEQUENCES_N163"sv;
+const auto FILE_BLOCK_SEQUENCES_N106	= "SEQUENCES_N106"sv;
 
 // Sunsoft
-const char FILE_BLOCK_SEQUENCES_S5B[]	= "SEQUENCES_S5B";
+const auto FILE_BLOCK_SEQUENCES_S5B		= "SEQUENCES_S5B"sv;
 
 // // // 0CC-FamiTracker specific
-const char FILE_BLOCK_DETUNETABLES[]	= "DETUNETABLES";
-const char FILE_BLOCK_GROOVES[]			= "GROOVES";
-const char FILE_BLOCK_BOOKMARKS[]		= "BOOKMARKS";
-const char FILE_BLOCK_PARAMS_EXTRA[]	= "PARAMS_EXTRA";
+const auto FILE_BLOCK_DETUNETABLES		= "DETUNETABLES"sv;
+const auto FILE_BLOCK_GROOVES			= "GROOVES"sv;
+const auto FILE_BLOCK_BOOKMARKS			= "BOOKMARKS"sv;
+const auto FILE_BLOCK_PARAMS_EXTRA		= "PARAMS_EXTRA"sv;
 
 template <typename F> // (const CSequence &seq, int index, int seqType)
 void VisitSequences(const CSequenceManager *manager, F&& f) {
@@ -106,8 +111,8 @@ CFamiTrackerDocIO::CFamiTrackerDocIO(CDocumentFile &file) :
 {
 }
 
-bool CFamiTrackerDocIO::Load(CFamiTrackerDoc &doc) {
-	using map_t = std::unordered_map<std::string, void (CFamiTrackerDocIO::*)(CFamiTrackerDoc &, int)>;
+bool CFamiTrackerDocIO::Load(CFamiTrackerModule &modfile) {
+	using map_t = std::unordered_map<std::string_view, void (CFamiTrackerDocIO::*)(CFamiTrackerModule &, int)>;
 	static const auto FTM_READ_FUNC = map_t {
 		{FILE_BLOCK_PARAMS,			&CFamiTrackerDocIO::LoadParams},
 		{FILE_BLOCK_INFO,			&CFamiTrackerDocIO::LoadSongInfo},
@@ -132,8 +137,6 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerDoc &doc) {
 	int _msgs_ = 0;
 #endif
 
-	auto &modfile = *doc.GetModule();
-
 	modfile.GetInstrumentManager()->SetParent(); // temp
 
 	// This has to be done for older files
@@ -144,12 +147,12 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerDoc &doc) {
 	bool ErrorFlag = false;
 	while (!file_.Finished() && !ErrorFlag) {
 		ErrorFlag = file_.ReadBlock();
-		std::string BlockID = file_.GetBlockHeaderID();		// // //
+		std::string_view BlockID = file_.GetBlockHeaderID();		// // //
 		if (BlockID == "END")
 			break;
 
 		try {
-			(this->*FTM_READ_FUNC.at(BlockID))(doc, file_.GetBlockVersion());		// // //
+			(this->*FTM_READ_FUNC.at(BlockID))(modfile, file_.GetBlockVersion());		// // //
 		}
 		catch (std::out_of_range) {
 #ifdef _DEBUG
@@ -162,18 +165,16 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerDoc &doc) {
 		}
 	}
 
-	if (ErrorFlag) {
-		doc.DeleteContents();
+	if (ErrorFlag)
 		return false;
-	}
 
-	PostLoad(doc);
-	modfile.GetInstrumentManager()->SetParent(&doc);
+	PostLoad(modfile);
+	modfile.GetInstrumentManager()->SetParent(modfile.GetParent());
 	return true;
 }
 
-bool CFamiTrackerDocIO::Save(const CFamiTrackerDoc &doc) {
-	using block_info_t = std::tuple<void (CFamiTrackerDocIO::*)(const CFamiTrackerDoc &, int), int, const char *>;
+bool CFamiTrackerDocIO::Save(const CFamiTrackerModule &modfile) {
+	using block_info_t = std::tuple<void (CFamiTrackerDocIO::*)(const CFamiTrackerModule &, int), int, std::string_view>;
 	static const block_info_t MODULE_WRITE_FUNC[] = {		// // //
 		{&CFamiTrackerDocIO::SaveParams,		6, FILE_BLOCK_PARAMS},
 		{&CFamiTrackerDocIO::SaveSongInfo,		1, FILE_BLOCK_INFO},
@@ -195,8 +196,8 @@ bool CFamiTrackerDocIO::Save(const CFamiTrackerDoc &doc) {
 
 	file_.BeginDocument();
 	for (auto [fn, ver, name] : MODULE_WRITE_FUNC) {
-		file_.CreateBlock(name, ver);
-		(this->*fn)(doc, ver);
+		file_.CreateBlock(name.data(), ver);
+		(this->*fn)(modfile, ver);
 		if (!file_.FlushBlock())
 			return false;
 	}
@@ -204,9 +205,7 @@ bool CFamiTrackerDocIO::Save(const CFamiTrackerDoc &doc) {
 	return true;
 }
 
-void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::PostLoad(CFamiTrackerModule &modfile) {
 	if (file_.GetFileVersion() <= 0x0201)
 		compat::ReorderSequences(modfile, std::move(m_vTmpSequences));
 
@@ -238,12 +237,9 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerDoc &doc) {
 			}
 		}
 	}
-
-	doc.SelectExpansionChip(modfile.GetSoundChipSet(), modfile.GetNamcoChannels());
 }
 
-void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
+void CFamiTrackerDocIO::LoadParams(CFamiTrackerModule &modfile, int ver) {
 	auto &Song = *modfile.GetSong(0);
 
 	CSoundChipSet Expansion = sound_chip_t::APU;		// // //
@@ -331,13 +327,11 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerDoc &doc, int ver) {
 		modfile.SetTuning(semitones, file_.GetBlockChar());
 	}
 
-	doc.SelectExpansionChip(Expansion, n163chans);		// // //
+	modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(Expansion, n163chans));		// // //
 	AssertFileData<MODULE_ERROR_STRICT>(modfile.GetChannelOrder().GetChannelCount() == channels, "Channel count mismatch");
 }
 
-void CFamiTrackerDocIO::SaveParams(const CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::SaveParams(const CFamiTrackerModule &modfile, int ver) {
 	if (ver >= 2)
 		file_.WriteBlockChar(modfile.GetSoundChipSet().GetNSFFlag());		// // //
 	else
@@ -371,9 +365,7 @@ void CFamiTrackerDocIO::SaveParams(const CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::LoadSongInfo(CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::LoadSongInfo(CFamiTrackerModule &modfile, int ver) {
 	std::array<char, CFamiTrackerModule::METADATA_FIELD_LENGTH> buf = { };
 	file_.GetBlock(buf.data(), std::size(buf));
 	buf.back() = '\0';
@@ -386,16 +378,13 @@ void CFamiTrackerDocIO::LoadSongInfo(CFamiTrackerDoc &doc, int ver) {
 	modfile.SetModuleCopyright(buf.data());
 }
 
-void CFamiTrackerDocIO::SaveSongInfo(const CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
+void CFamiTrackerDocIO::SaveSongInfo(const CFamiTrackerModule &modfile, int ver) {
 	file_.WriteStringPadded(modfile.GetModuleName(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
 	file_.WriteStringPadded(modfile.GetModuleArtist(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
 	file_.WriteStringPadded(modfile.GetModuleCopyright(), CFamiTrackerModule::METADATA_FIELD_LENGTH);
 }
 
-void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 	if (ver == 1) {
 		// Single track
 		auto &Song = *modfile.GetSong(0);
@@ -453,9 +442,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerModule &modfile, int ver) {
 	// Write number of tracks
 	if (ver >= 2)
 		file_.WriteBlockChar((unsigned char)modfile.GetSongCount() - 1);
@@ -478,7 +465,7 @@ void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerDoc &doc, int ver) {
 	});
 }
 
-void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerDoc &doc, int ver) {
+void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerModule &modfile, int ver) {
 	/*
 	 * Version changes
 	 *
@@ -489,7 +476,6 @@ void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerDoc &doc, int ver) {
 
 	// Number of instruments
 	const int Count = AssertRange(file_.GetBlockInt(), 0, CInstrumentManager::MAX_INSTRUMENTS, "Instrument count");
-	auto &modfile = *doc.GetModule();
 	auto &Manager = *modfile.GetInstrumentManager();
 
 	for (int i = 0; i < Count; ++i) {
@@ -521,7 +507,7 @@ void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SaveInstruments(const CFamiTrackerDoc &doc, int ver) {
+void CFamiTrackerDocIO::SaveInstruments(const CFamiTrackerModule &modfile, int ver) {
 	// A bug in v0.3.0 causes a crash if this is not 2, so change only when that ver is obsolete!
 	//
 	// Log:
@@ -539,7 +525,6 @@ void CFamiTrackerDocIO::SaveInstruments(const CFamiTrackerDoc &doc, int ver) {
 			ver = 4;
 	}
 */
-	auto &modfile = *doc.GetModule();
 	const auto &Manager = *modfile.GetInstrumentManager();
 
 	// Instruments block
@@ -564,11 +549,10 @@ void CFamiTrackerDocIO::SaveInstruments(const CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
+void CFamiTrackerDocIO::LoadSequences(CFamiTrackerModule &modfile, int ver) {
 	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * (int)SEQ_COUNT, "2A03 sequence count");
 	AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, static_cast<unsigned>(MAX_SEQUENCES * SEQ_COUNT - 1), "2A03 sequence count");		// // //
 
-	auto &modfile = *doc.GetModule();
 	auto &Manager = *modfile.GetInstrumentManager();
 
 	if (ver == 1) {
@@ -677,13 +661,13 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SaveSequences(const CFamiTrackerDoc &doc, int ver) {
-	int Count = doc.GetModule()->GetInstrumentManager()->GetTotalSequenceCount(INST_2A03);
+void CFamiTrackerDocIO::SaveSequences(const CFamiTrackerModule &modfile, int ver) {
+	int Count = modfile.GetInstrumentManager()->GetTotalSequenceCount(INST_2A03);
 	if (!Count)
 		return;		// // //
 	file_.WriteBlockInt(Count);
 
-	auto *Manager = doc.GetModule()->GetInstrumentManager()->GetSequenceManager(INST_2A03);
+	auto *Manager = modfile.GetInstrumentManager()->GetSequenceManager(INST_2A03);
 
 	VisitSequences(Manager, [&] (const CSequence &seq, int index, sequence_t seqType) {
 		file_.WriteBlockInt(index);
@@ -701,9 +685,7 @@ void CFamiTrackerDocIO::SaveSequences(const CFamiTrackerDoc &doc, int ver) {
 	});
 }
 
-void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::LoadFrames(CFamiTrackerModule &modfile, int ver) {
 	if (ver == 1) {
 		unsigned int FrameCount = AssertRange(file_.GetBlockInt(), 1, MAX_FRAMES, "Track frame count");
 		/*m_iChannelsAvailable =*/ AssertRange<MODULE_ERROR_OFFICIAL>(AssertRange(file_.GetBlockInt(),
@@ -754,9 +736,7 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SaveFrames(const CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::SaveFrames(const CFamiTrackerModule &modfile, int ver) {
 	modfile.VisitSongs([&] (const CSongData &Song) {
 		file_.WriteBlockInt(Song.GetFrameCount());
 		file_.WriteBlockInt(Song.GetSongSpeed());
@@ -770,11 +750,9 @@ void CFamiTrackerDocIO::SaveFrames(const CFamiTrackerDoc &doc, int ver) {
 	});
 }
 
-void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
+void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 	fds_adjust_arps_ = ver < 5;		// // //
 	bool compat200 = (file_.GetFileVersion() == 0x0200);		// // //
-
-	auto &modfile = *doc.GetModule();
 
 	if (ver == 1) {
 		int PatternLen = AssertRange(file_.GetBlockInt(), 0, MAX_PATTERN_LENGTH, "Pattern data count");
@@ -945,7 +923,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerDoc &doc, int ver) {
+void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerModule &modfile, int ver) {
 	/*
 	 * Version changes:
 	 *
@@ -956,8 +934,6 @@ void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerDoc &doc, int ver) {
 	 *  (6: Noise pitch slide effects fix)
 	 *
 	 */
-
-	auto &modfile = *doc.GetModule();
 
 	modfile.VisitSongs([&] (const CSongData &x, unsigned song) {
 		x.VisitPatterns([&] (const CPatternData &pattern, chan_id_t ch, unsigned index) {
@@ -993,11 +969,11 @@ void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerDoc &doc, int ver) {
 	});
 }
 
-void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerDoc &doc, int ver) {
+void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerModule &modfile, int ver) {
 	unsigned int Count = AssertRange(
 		static_cast<unsigned char>(file_.GetBlockChar()), 0U, CDSampleManager::MAX_DSAMPLES, "DPCM sample count");
 
-	auto &manager = *doc.GetModule()->GetInstrumentManager()->GetDSampleManager();
+	auto &manager = *modfile.GetInstrumentManager()->GetDSampleManager();
 
 	for (unsigned int i = 0; i < Count; ++i) {
 		unsigned int Index = AssertRange(
@@ -1021,8 +997,8 @@ void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SaveDSamples(const CFamiTrackerDoc &doc, int ver) {
-	const auto &manager = *doc.GetModule()->GetInstrumentManager()->GetDSampleManager();
+void CFamiTrackerDocIO::SaveDSamples(const CFamiTrackerModule &modfile, int ver) {
+	const auto &manager = *modfile.GetInstrumentManager()->GetDSampleManager();
 	if (int Count = manager.GetDSampleCount()) {		// // //
 		// Write sample count
 		file_.WriteBlockChar(Count);
@@ -1039,25 +1015,23 @@ void CFamiTrackerDocIO::SaveDSamples(const CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::LoadComments(CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
+void CFamiTrackerDocIO::LoadComments(CFamiTrackerModule &modfile, int ver) {
 	bool disp = file_.GetBlockInt() == 1;
 	modfile.SetComment(file_.ReadString().GetString(), disp);
 }
 
-void CFamiTrackerDocIO::SaveComments(const CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
+void CFamiTrackerDocIO::SaveComments(const CFamiTrackerModule &modfile, int ver) {
 	if (auto str = modfile.GetComment(); !str.empty()) {
 		file_.WriteBlockInt(modfile.ShowsCommentOnOpen() ? 1 : 0);
 		file_.WriteString(str);
 	}
 }
 
-void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
+void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerModule &modfile, int ver) {
 	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * (int)SEQ_COUNT, "VRC6 sequence count");
 	AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, static_cast<unsigned>(MAX_SEQUENCES), "VRC6 sequence count");		// // //
 
-	CSequenceManager *pManager = doc.GetModule()->GetInstrumentManager()->GetSequenceManager(INST_VRC6);		// // //
+	CSequenceManager *pManager = modfile.GetInstrumentManager()->GetSequenceManager(INST_VRC6);		// // //
 
 	int Indices[MAX_SEQUENCES * SEQ_COUNT];
 	sequence_t Types[MAX_SEQUENCES * SEQ_COUNT];
@@ -1128,13 +1102,13 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SaveSequencesVRC6(const CFamiTrackerDoc &doc, int ver) {
-	int Count = doc.GetModule()->GetInstrumentManager()->GetTotalSequenceCount(INST_VRC6);
+void CFamiTrackerDocIO::SaveSequencesVRC6(const CFamiTrackerModule &modfile, int ver) {
+	int Count = modfile.GetInstrumentManager()->GetTotalSequenceCount(INST_VRC6);
 	if (!Count)
 		return;		// // //
 	file_.WriteBlockInt(Count);
 
-	auto *pManager = doc.GetModule()->GetInstrumentManager()->GetSequenceManager(INST_VRC6);
+	auto *pManager = modfile.GetInstrumentManager()->GetSequenceManager(INST_VRC6);
 
 	VisitSequences(pManager, [&] (const CSequence &seq, int index, sequence_t seqType) {
 		file_.WriteBlockInt(index);
@@ -1152,11 +1126,11 @@ void CFamiTrackerDocIO::SaveSequencesVRC6(const CFamiTrackerDoc &doc, int ver) {
 	});
 }
 
-void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerDoc &doc, int ver) {
+void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerModule &modfile, int ver) {
 	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * (int)SEQ_COUNT, "N163 sequence count");
 	AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, static_cast<unsigned>(MAX_SEQUENCES * SEQ_COUNT - 1), "N163 sequence count");		// // //
 
-	CSequenceManager *pManager = doc.GetModule()->GetInstrumentManager()->GetSequenceManager(INST_N163);		// // //
+	CSequenceManager *pManager = modfile.GetInstrumentManager()->GetSequenceManager(INST_N163);		// // //
 
 	for (unsigned int i = 0; i < Count; i++) {
 		unsigned int  Index		   = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
@@ -1187,12 +1161,12 @@ void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SaveSequencesN163(const CFamiTrackerDoc &doc, int ver) {
+void CFamiTrackerDocIO::SaveSequencesN163(const CFamiTrackerModule &modfile, int ver) {
 	/*
 	 * Store N163 sequences
 	 */
 
-	auto *pManager = doc.GetModule()->GetInstrumentManager();
+	auto *pManager = modfile.GetInstrumentManager();
 	int Count = pManager->GetTotalSequenceCount(INST_N163);
 	if (!Count)
 		return;		// // //
@@ -1210,11 +1184,11 @@ void CFamiTrackerDocIO::SaveSequencesN163(const CFamiTrackerDoc &doc, int ver) {
 	});
 }
 
-void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerDoc &doc, int ver) {
+void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerModule &modfile, int ver) {
 	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * (int)SEQ_COUNT, "5B sequence count");
 	AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, static_cast<unsigned>(MAX_SEQUENCES * SEQ_COUNT - 1), "5B sequence count");		// // //
 
-	CSequenceManager *pManager = doc.GetModule()->GetInstrumentManager()->GetSequenceManager(INST_S5B);		// // //
+	CSequenceManager *pManager = modfile.GetInstrumentManager()->GetSequenceManager(INST_S5B);		// // //
 
 	for (unsigned int i = 0; i < Count; i++) {
 		unsigned int  Index		   = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
@@ -1245,8 +1219,8 @@ void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SaveSequencesS5B(const CFamiTrackerDoc &doc, int ver) {
-	auto *pManager = doc.GetModule()->GetInstrumentManager();
+void CFamiTrackerDocIO::SaveSequencesS5B(const CFamiTrackerModule &modfile, int ver) {
+	auto *pManager = modfile.GetInstrumentManager();
 	int Count = pManager->GetTotalSequenceCount(INST_S5B);
 	if (!Count)
 		return;		// // //
@@ -1264,8 +1238,7 @@ void CFamiTrackerDocIO::SaveSequencesS5B(const CFamiTrackerDoc &doc, int ver) {
 	});
 }
 
-void CFamiTrackerDocIO::LoadParamsExtra(CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
+void CFamiTrackerDocIO::LoadParamsExtra(CFamiTrackerModule &modfile, int ver) {
 	modfile.SetLinearPitch(file_.GetBlockInt() != 0);
 	if (ver >= 2) {
 		int semitone = AssertRange(file_.GetBlockChar(), -12, 12, "Global semitone tuning");
@@ -1274,8 +1247,7 @@ void CFamiTrackerDocIO::LoadParamsExtra(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SaveParamsExtra(const CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
+void CFamiTrackerDocIO::SaveParamsExtra(const CFamiTrackerModule &modfile, int ver) {
 	bool linear = modfile.GetLinearPitch();
 	char semitone = modfile.GetTuningSemitone();
 	char cent = modfile.GetTuningCent();
@@ -1290,9 +1262,7 @@ void CFamiTrackerDocIO::SaveParamsExtra(const CFamiTrackerDoc &doc, int ver) {
 
 #include "DetuneDlg.h" // TODO: bad, encapsulate detune tables
 
-void CFamiTrackerDocIO::LoadDetuneTables(CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::LoadDetuneTables(CFamiTrackerModule &modfile, int ver) {
 	int Count = AssertRange(file_.GetBlockChar(), 0, 6, "Detune table count");
 	for (int i = 0; i < Count; ++i) {
 		int Chip = AssertRange(file_.GetBlockChar(), 0, 5, "Detune table index");
@@ -1311,9 +1281,7 @@ void CFamiTrackerDocIO::LoadDetuneTables(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SaveDetuneTables(const CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::SaveDetuneTables(const CFamiTrackerModule &modfile, int ver) {
 	int NoteUsed[6] = { };
 	int ChipCount = 0;
 	for (size_t i = 0; i < std::size(NoteUsed); ++i) {
@@ -1340,9 +1308,7 @@ void CFamiTrackerDocIO::SaveDetuneTables(const CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerModule &modfile, int ver) {
 	const int Count = AssertRange(file_.GetBlockChar(), 0, MAX_GROOVE, "Groove count");
 
 	for (int i = 0; i < Count; i++) {
@@ -1386,9 +1352,7 @@ void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SaveGrooves(const CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::SaveGrooves(const CFamiTrackerModule &modfile, int ver) {
 	int Count = 0;
 	for (int i = 0; i < MAX_GROOVE; ++i)
 		if (modfile.HasGroove(i))
@@ -1410,9 +1374,7 @@ void CFamiTrackerDocIO::SaveGrooves(const CFamiTrackerDoc &doc, int ver) {
 	modfile.VisitSongs([&] (const CSongData &song) { file_.WriteBlockChar(song.GetSongGroove()); });
 }
 
-void CFamiTrackerDocIO::LoadBookmarks(CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::LoadBookmarks(CFamiTrackerModule &modfile, int ver) {
 	for (int i = 0, n = file_.GetBlockInt(); i < n; ++i) {
 		auto pMark = std::make_unique<CBookmark>();
 		unsigned int Track = AssertRange(
@@ -1431,9 +1393,7 @@ void CFamiTrackerDocIO::LoadBookmarks(CFamiTrackerDoc &doc, int ver) {
 	}
 }
 
-void CFamiTrackerDocIO::SaveBookmarks(const CFamiTrackerDoc &doc, int ver) {
-	auto &modfile = *doc.GetModule();
-
+void CFamiTrackerDocIO::SaveBookmarks(const CFamiTrackerModule &modfile, int ver) {
 	int Count = 0;
 	modfile.VisitSongs([&] (const CSongData &song) {
 		Count += song.GetBookmarks().GetCount();
