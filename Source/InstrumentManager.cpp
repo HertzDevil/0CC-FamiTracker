@@ -21,7 +21,6 @@
 */
 
 #include "InstrumentManager.h"
-#include "DocumentInterface.h"
 #include "Instrument.h"
 #include "SeqInstrument.h"
 #include "InstrumentService.h"
@@ -34,10 +33,9 @@
 const int CInstrumentManager::MAX_INSTRUMENTS = 64;
 const int CInstrumentManager::SEQ_MANAGER_COUNT = 5;
 
-CInstrumentManager::CInstrumentManager(CDocumentInterface *pInterface) :
+CInstrumentManager::CInstrumentManager() :
 	m_pDSampleManager(std::make_unique<CDSampleManager>()),
-	m_pInstruments(MAX_INSTRUMENTS),
-	m_pDocInterface(pInterface)
+	m_pInstruments(MAX_INSTRUMENTS)
 {
 	for (int i = 0; i < SEQ_MANAGER_COUNT; i++)
 		m_pSequenceManager.push_back(std::make_unique<CSequenceManager>(i == 2 ? 3 : SEQ_COUNT));
@@ -48,10 +46,6 @@ CInstrumentManager::~CInstrumentManager()
 	for (auto &ptr : m_pInstruments)
 		if (ptr)
 			ptr->RegisterManager(nullptr);
-}
-
-void CInstrumentManager::SetParent(CDocumentInterface *pInterface) {
-	m_pDocInterface = pInterface;
 }
 
 //
@@ -287,10 +281,4 @@ int CInstrumentManager::AddDSample(std::shared_ptr<ft0cc::doc::dpcm_sample> pSam
 	if (Index != -1)
 		SetDSample(Index, std::move(pSamp));
 	return Index;
-}
-
-void CInstrumentManager::InstrumentChanged() const
-{
-	if (m_pDocInterface)
-		m_pDocInterface->ModifyIrreversible();
 }

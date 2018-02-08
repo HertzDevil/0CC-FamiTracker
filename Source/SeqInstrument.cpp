@@ -183,11 +183,8 @@ bool CSeqInstrument::GetSeqEnable(sequence_t SeqType) const
 
 void CSeqInstrument::SetSeqEnable(sequence_t SeqType, bool Enable)
 {
-	if (auto it = seq_indices_.find(SeqType); it != seq_indices_.end()) {
-		if (Enable != it->second.first)
-			InstrumentChanged();
+	if (auto it = seq_indices_.find(SeqType); it != seq_indices_.end())
 		it->second.first = Enable;
-	}
 }
 
 int	CSeqInstrument::GetSeqIndex(sequence_t SeqType) const
@@ -198,11 +195,8 @@ int	CSeqInstrument::GetSeqIndex(sequence_t SeqType) const
 
 void CSeqInstrument::SetSeqIndex(sequence_t SeqType, int Value)
 {
-	if (auto it = seq_indices_.find(SeqType); it != seq_indices_.end()) {
-		if (Value != it->second.second)
-			InstrumentChanged();
+	if (auto it = seq_indices_.find(SeqType); it != seq_indices_.end())
 		it->second.second = Value;
-	}
 }
 
 std::shared_ptr<CSequence> CSeqInstrument::GetSequence(sequence_t SeqType) const		// // //

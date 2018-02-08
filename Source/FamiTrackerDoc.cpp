@@ -46,7 +46,7 @@ END_MESSAGE_MAP()
 // CFamiTrackerDoc construction/destruction
 
 CFamiTrackerDoc::CFamiTrackerDoc() :
-	module_(std::make_unique<CFamiTrackerModule>(*this))		// // //
+	module_(std::make_unique<CFamiTrackerModule>())		// // //
 {
 	// Register this object to the sound generator
 	if (CSoundGen *pSoundGen = theApp.GetSoundGenerator())
@@ -182,8 +182,8 @@ void CFamiTrackerDoc::DeleteContents()
 		m_bBackupDone = true;	// No backup on new modules
 
 		UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
-		module_ = std::make_unique<CFamiTrackerModule>(*this);		// // //
-		theApp.GetSoundGenerator()->AssignModule(*module_);		// // // rebind module
+		module_ = std::make_unique<CFamiTrackerModule>();		// // //
+		theApp.GetSoundGenerator()->AssignModule(*GetModule());		// // // rebind module
 		theApp.GetSoundGenerator()->ModuleChipChanged();
 
 #ifdef AUTOSAVE

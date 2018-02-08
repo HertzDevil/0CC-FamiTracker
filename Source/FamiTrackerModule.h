@@ -38,7 +38,6 @@ class CSongView;
 class CInstrumentManager;
 class CSequenceManager;
 class CDSampleManager;
-class CDocumentInterface; // TODO: remove
 struct stHighlight;
 
 namespace ft0cc::doc {
@@ -56,10 +55,8 @@ public:
 	static constexpr unsigned	 DEFAULT_SPEED_SPLIT_POINT	= 32;
 	static constexpr unsigned	 OLD_SPEED_SPLIT_POINT		= 21;
 
-	explicit CFamiTrackerModule(CDocumentInterface &parent);
+	CFamiTrackerModule();
 	~CFamiTrackerModule();
-
-	CDocumentInterface *GetParent();
 
 	// module metadata
 	std::string_view GetModuleName() const;
@@ -197,7 +194,6 @@ private:
 	std::vector<std::unique_ptr<CSongData>> m_pTracks;
 
 	std::unique_ptr<CInstrumentManager> m_pInstrumentManager;
-	CDocumentInterface &parent_; // TODO: remove
 
 	std::array<std::shared_ptr<groove>, 32/*MAX_GROOVE*/> m_pGrooveTable;		// // // Grooves
 };

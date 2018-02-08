@@ -1472,9 +1472,6 @@
     <ClInclude Include="Source\ModuleImporter.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\DocumentInterface.h">
-      <Filter>Header Files\Document Component Headers</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="0CC-FamiTracker.rc">

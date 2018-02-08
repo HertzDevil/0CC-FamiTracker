@@ -26,6 +26,7 @@
 #include "InstrumentManager.h"		// // //
 #include "SequenceEditor.h"
 #include "SequenceParser.h"		// // //
+#include "FamiTrackerDoc.h"		// // //
 
 // // // CInstrumentEditorSeq dialog
 
@@ -167,13 +168,19 @@ void CInstrumentEditorSeq::OnLvnItemchangedInstsettings(NMHDR *pNMHDR, LRESULT *
 		}
 
 		// Changed checkbox
-		switch(pNMLV->uNewState & LCTRL_CHECKBOX_STATE) {
-			case LCTRL_CHECKBOX_CHECKED:	// Checked
-				m_pInstrument->SetSeqEnable(m_iSelectedSetting, 1);
-				break;
-			case LCTRL_CHECKBOX_UNCHECKED:	// Unchecked
-				m_pInstrument->SetSeqEnable(m_iSelectedSetting, 0);
-				break;
+		switch (pNMLV->uNewState & LCTRL_CHECKBOX_STATE) {
+		case LCTRL_CHECKBOX_CHECKED:	// Checked/
+			if (!m_pInstrument->GetSeqEnable(m_iSelectedSetting)) {		// // //
+				m_pInstrument->SetSeqEnable(m_iSelectedSetting, true);
+				GetDocument()->ModifyIrreversible();
+			}
+			break;
+		case LCTRL_CHECKBOX_UNCHECKED:	// Unchecked
+			if (m_pInstrument->GetSeqEnable(m_iSelectedSetting)) {		// // //
+				m_pInstrument->SetSeqEnable(m_iSelectedSetting, false);
+				GetDocument()->ModifyIrreversible();
+			}
+			break;
 		}
 	}
 
@@ -191,8 +198,10 @@ void CInstrumentEditorSeq::OnEnChangeSeqIndex()
 		CString str;		// // //
 		str.Format(_T("%i"), Index);
 		pList->SetItemText(value_cast(m_iSelectedSetting), 1, str);
-		if (m_pInstrument->GetSeqIndex(m_iSelectedSetting) != Index)
+		if (m_pInstrument->GetSeqIndex(m_iSelectedSetting) != Index) {
 			m_pInstrument->SetSeqIndex(m_iSelectedSetting, Index);
+			GetDocument()->ModifyIrreversible();		// // //
+		}
 		SelectSequence(m_iSelectedSetting);
 	}
 }

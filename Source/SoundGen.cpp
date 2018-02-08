@@ -39,7 +39,6 @@ CSoundGen depends on CFamiTrackerView for:
 
 #include "SoundGen.h"
 #include "FamiTracker.h"
-#include "DocumentInterface.h"		// // //
 #include "SongState.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //

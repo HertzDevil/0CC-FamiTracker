@@ -280,8 +280,6 @@ unsigned char CInstrumentFDS::GetSample(int Index) const
 
 void CInstrumentFDS::SetSample(int Index, int Sample)
 {
-	if (m_iSamples[Index] != Sample)		// // //
-		InstrumentChanged();
 	m_iSamples[Index] = Sample;
 }
 
@@ -290,11 +288,8 @@ array_view<unsigned char> CInstrumentFDS::GetSamples() const {		// // //
 }
 
 void CInstrumentFDS::SetSamples(array_view<unsigned char> Wave) {
-	if (Wave.size() == m_iSamples.size()) {
-		if (Wave != m_iSamples)
-			InstrumentChanged();
+	if (Wave.size() == m_iSamples.size())
 		Wave.copy(m_iSamples);
-	}
 }
 
 int CInstrumentFDS::GetModulation(int Index) const
@@ -304,8 +299,6 @@ int CInstrumentFDS::GetModulation(int Index) const
 
 void CInstrumentFDS::SetModulation(int Index, int Value)
 {
-	if (m_iModulation[Index] != Value)		// // //
-		InstrumentChanged();
 	m_iModulation[Index] = Value;
 }
 
@@ -314,11 +307,8 @@ array_view<unsigned char> CInstrumentFDS::GetModTable() const {		// // //
 }
 
 void CInstrumentFDS::SetModTable(array_view<unsigned char> Mod) {
-	if (Mod.size() == m_iModulation.size()) {
-		if (Mod != m_iModulation)
-			InstrumentChanged();
+	if (Mod.size() == m_iModulation.size())
 		Mod.copy(m_iModulation);
-	}
 }
 
 int CInstrumentFDS::GetModulationSpeed() const
@@ -328,8 +318,6 @@ int CInstrumentFDS::GetModulationSpeed() const
 
 void CInstrumentFDS::SetModulationSpeed(int Speed)
 {
-	if (m_iModulationSpeed != Speed)		// // //
-		InstrumentChanged();
 	m_iModulationSpeed = Speed;
 }
 
@@ -340,8 +328,6 @@ int CInstrumentFDS::GetModulationDepth() const
 
 void CInstrumentFDS::SetModulationDepth(int Depth)
 {
-	if (m_iModulationDepth != Depth)		// // //
-		InstrumentChanged();
 	m_iModulationDepth = Depth;
 }
 
@@ -352,8 +338,6 @@ int CInstrumentFDS::GetModulationDelay() const
 
 void CInstrumentFDS::SetModulationDelay(int Delay)
 {
-	if (m_iModulationDelay != Delay)		// // //
-		InstrumentChanged();
 	m_iModulationDelay = Delay;
 }
 
@@ -364,8 +348,6 @@ bool CInstrumentFDS::GetModulationEnable() const
 
 void CInstrumentFDS::SetModulationEnable(bool Enable)
 {
-	if (m_bModulationEnable != Enable)			// // //
-		InstrumentChanged();
 	m_bModulationEnable = Enable;
 }
 

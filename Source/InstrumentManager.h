@@ -31,7 +31,6 @@
 class CInstrument;
 class CSequenceManager;
 class CDSampleManager;
-class CDocumentInterface;
 
 enum inst_type_t : unsigned;
 enum class sequence_t : unsigned;
@@ -44,10 +43,8 @@ enum class sequence_t : unsigned;
 class CInstrumentManager : public CInstrumentManagerInterface
 {
 public:
-	CInstrumentManager(CDocumentInterface *pInterface = nullptr);
+	CInstrumentManager();
 	virtual ~CInstrumentManager();
-
-	void SetParent(CDocumentInterface *pInterface = nullptr);
 
 	void ClearAll();
 
@@ -81,7 +78,6 @@ public:
 	std::shared_ptr<const ft0cc::doc::dpcm_sample> GetDSample(int Index) const override;
 	void SetDSample(int Index, std::shared_ptr<ft0cc::doc::dpcm_sample> pSamp) override;
 	int AddDSample(std::shared_ptr<ft0cc::doc::dpcm_sample> pSamp) override;
-	void InstrumentChanged() const override;
 
 public:
 	static const int MAX_INSTRUMENTS;
@@ -92,7 +88,6 @@ private:
 	std::unique_ptr<CDSampleManager> m_pDSampleManager;
 
 	mutable std::mutex m_InstrumentLock;		// // //
-	CDocumentInterface *m_pDocInterface;
 
 private:
 	static const int SEQ_MANAGER_COUNT;

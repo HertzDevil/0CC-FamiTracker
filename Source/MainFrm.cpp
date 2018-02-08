@@ -2734,10 +2734,10 @@ bool CMainFrame::AddAction(std::unique_ptr<CAction> pAction)		// // //
 	if (!m_pActionHandler->AddAction(*this, std::move(pAction)))
 		return false;		// // //
 
-	auto pDoc = dynamic_cast<CDocumentInterface *>(GetActiveDocument());		// // //
-	pDoc->Modify(true);
+	auto &Doc = GetDoc();		// // //
+	Doc.Modify(true);
 	if (m_pActionHandler->ActionsLost())		// // //
-		pDoc->ModifyIrreversible();
+		Doc.ModifyIrreversible();
 
 	return true;
 }

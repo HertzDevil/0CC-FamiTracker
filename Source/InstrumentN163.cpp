@@ -186,7 +186,6 @@ bool CInstrumentN163::InsertNewWave(int Index)		// // //
 		m_iSamples[i] = m_iSamples[i - 1];
 	m_iSamples[Index].fill(0);
 	++m_iWaveCount;
-	InstrumentChanged();
 	return true;
 }
 
@@ -200,7 +199,6 @@ bool CInstrumentN163::RemoveWave(int Index)		// // //
 	for (int i = Index; i < m_iWaveCount - 1; ++i)
 		m_iSamples[i] = m_iSamples[i + 1];
 	--m_iWaveCount;
-	InstrumentChanged();
 	return true;
 }
 
@@ -211,10 +209,7 @@ unsigned CInstrumentN163::GetWaveSize() const		// // //
 
 void CInstrumentN163::SetWaveSize(unsigned size)
 {
-	if (m_iWaveSize != size) {		// // //
-		m_iWaveSize = size;
-		InstrumentChanged();
-	}
+	m_iWaveSize = size;
 }
 
 int CInstrumentN163::GetSample(int wave, int pos) const
@@ -224,10 +219,7 @@ int CInstrumentN163::GetSample(int wave, int pos) const
 
 void CInstrumentN163::SetSample(int wave, int pos, int sample)
 {
-	if (m_iSamples[wave][pos] != sample) {		// // //
-		m_iSamples[wave][pos] = sample;
-		InstrumentChanged();
-	}
+	m_iSamples[wave][pos] = sample;
 }
 
 array_view<int> CInstrumentN163::GetSamples(int wave) const {		// // //
@@ -246,9 +238,7 @@ int CInstrumentN163::GetWavePos() const
 
 void CInstrumentN163::SetWavePos(int pos)
 {
-	m_iWavePos = MAX_WAVE_SIZE - m_iWaveSize;		// // // prevent reading non-wave n163 registers
-	if (pos < m_iWavePos) m_iWavePos = pos;
-	InstrumentChanged();
+	m_iWavePos = std::min(pos, MAX_WAVE_SIZE - (int)m_iWaveSize);		// // // prevent reading non-wave n163 registers
 }
 /*
 void CInstrumentN163::SetAutoWavePos(bool Enable)
@@ -264,8 +254,6 @@ bool CInstrumentN106::GetAutoWavePos() const
 void CInstrumentN163::SetWaveCount(int count)
 {
 	ASSERT(count <= MAX_WAVE_COUNT);
-	if (m_iWaveCount != count)			// // //
-		InstrumentChanged();
 	m_iWaveCount = count;
 }
 

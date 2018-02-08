@@ -27,7 +27,6 @@
 
 #include "ChannelHandler.h"
 #include "SongState.h"		// // //
-#include "DocumentInterface.h"
 #include "InstrumentManager.h"
 #include "TrackerChannel.h"		// // //
 #include "APU/Types.h"		// // //

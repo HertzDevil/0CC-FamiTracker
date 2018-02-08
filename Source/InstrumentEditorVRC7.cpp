@@ -26,6 +26,7 @@
 #include "Clipboard.h"
 #include <algorithm>		// // //
 #include "sv_regex.h"		// // //
+#include "FamiTrackerDoc.h"		// // //
 
 static unsigned char default_inst[(16+3)*16] =
 {
@@ -136,6 +137,7 @@ void CInstrumentEditorVRC7::OnCbnSelchangePatch()
 void CInstrumentEditorVRC7::SelectPatch(int Patch)
 {
 	m_pInstrument->SetPatch(Patch);
+	GetDocument()->ModifyIrreversible();		// // //
 	EnableControls(Patch == 0);
 
 	if (Patch == 0)
@@ -374,6 +376,8 @@ void CInstrumentEditorVRC7::SaveCustomPatch()
 	Reg = GetSliderVal(IDC_C_SL) << 4;
 	Reg |= GetSliderVal(IDC_C_RR);
 	m_pInstrument->SetCustomReg(7, Reg);
+
+	GetDocument()->ModifyIrreversible();		// // //
 }
 
 void CInstrumentEditorVRC7::OnBnClickedCheckbox()
@@ -492,6 +496,8 @@ void CInstrumentEditorVRC7::PasteSettings(LPCTSTR pString)
 		if (++i >= 8)
 			break;
 	}
+
+	GetDocument()->ModifyIrreversible();		// // //
 }
 
 BOOL CInstrumentEditorVRC7::PreTranslateMessage(MSG* pMsg)

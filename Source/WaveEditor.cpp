@@ -22,6 +22,7 @@
 
 #include "WaveEditor.h"
 #include "FamiTrackerEnv.h"		// // //
+#include "FamiTrackerDoc.h"		// // //
 #include "APU/Types.h"		// // //
 #include "Instrument.h"
 #include "SeqInstrument.h"
@@ -341,7 +342,10 @@ int CWaveEditorFDS::GetSample(int i) const
 void CWaveEditorFDS::SetSample(int i, int s)
 {
 	ASSERT(m_pInstrument != NULL);
-	m_pInstrument->SetSample(i, s);
+	if (m_pInstrument->GetSample(i) != s) {		// // //
+		m_pInstrument->SetSample(i, s);
+		CFamiTrackerDoc::GetDoc()->ModifyIrreversible();
+	}
 	Env.GetSoundGenerator()->WaveChanged();
 }
 
@@ -377,7 +381,10 @@ int CWaveEditorN163::GetSample(int i) const
 void CWaveEditorN163::SetSample(int i, int s)
 {
 	ASSERT(m_pInstrument != NULL);
-	m_pInstrument->SetSample(m_iWaveIndex, i, s);
+	if (m_pInstrument->GetSample(m_iWaveIndex, i) != s) {		// // //
+		m_pInstrument->SetSample(m_iWaveIndex, i, s);
+		CFamiTrackerDoc::GetDoc()->ModifyIrreversible();
+	}
 	Env.GetSoundGenerator()->WaveChanged();
 }
 

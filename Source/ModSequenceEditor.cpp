@@ -26,6 +26,7 @@
 #include "Instrument.h"
 #include "SeqInstrument.h"		// // //
 #include "InstrumentFDS.h"		// // //
+#include "FamiTrackerDoc.h"		// // //
 #include "DPI.h"		// // //
 
 int SIZE_X = 12;
@@ -124,27 +125,18 @@ void CModSequenceEditor::EditSequence(CPoint point)
 {
 	const int VALUES[] = {3, 2, 1, 0, 7, 6, 5, 4};
 
-	int index = (point.x - 2) / (SIZE_X + 2);
-	int value = ((point.y - 3) / 7);
-
-	if (index < 0)
-		index = 0;
-	if (index > 31)
-		index = 31;
-
-	if (value < 0)
-		value = 0;
-	if (value > 7)
-		value = 7;
-
-	value = VALUES[value];
+	int index = std::clamp((point.x - 2) / (SIZE_X + 2), 0L, 31L);		// // //
+	int value = VALUES[std::clamp((point.y - 3) / 7, 0L, 7L)];
 
 	CDC *pDC = GetDC();
 
 	if (pDC != NULL) {
 		int s = m_pInstrument->GetModulation(index);
 		FillItem(pDC, index, s, true);
-		m_pInstrument->SetModulation(index, value);
+		if (m_pInstrument->GetModulation(index) != value) {		// // //
+			m_pInstrument->SetModulation(index, value);
+			CFamiTrackerDoc::GetDoc()->ModifyIrreversible();
+		}
 		FillItem(pDC, index, value, false);
 		ReleaseDC(pDC);
 	}

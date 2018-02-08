@@ -67,7 +67,6 @@ public:
 
 protected:
 	virtual void CloneFrom(const CInstrument *pInst);					// // // virtual copying
-	void InstrumentChanged() const;
 
 private:
 	virtual void DoSaveFTI(CSimpleFile &File) const = 0;				// // //

@@ -312,31 +312,26 @@ char CInstrument2A03::GetSampleDeltaValue(int Octave, int Note) const
 void CInstrument2A03::SetSampleIndex(int Octave, int Note, char Sample)
 {
 	m_cSamples[Octave][Note] = Sample;
-	InstrumentChanged();
 }
 
 void CInstrument2A03::SetSamplePitch(int Octave, int Note, char Pitch)
 {
 	m_cSamplePitch[Octave][Note] = Pitch;
-	InstrumentChanged();
 }
 
 void CInstrument2A03::SetSampleLoop(int Octave, int Note, bool Loop)
 {
 	m_cSamplePitch[Octave][Note] = (m_cSamplePitch[Octave][Note] & 0x7F) | (Loop ? 0x80 : 0);
-	InstrumentChanged();
 }
 
 void CInstrument2A03::SetSampleLoopOffset(int Octave, int Note, char Offset)
 {
 	m_cSampleLoopOffset[Octave][Note] = Offset;
-	InstrumentChanged();
 }
 
 void CInstrument2A03::SetSampleDeltaValue(int Octave, int Note, char Value)
 {
 	m_cSampleDelta[Octave][Note] = Value;
-	InstrumentChanged();
 }
 
 bool CInstrument2A03::AssignedSamples() const

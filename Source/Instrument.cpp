@@ -92,10 +92,3 @@ inst_type_t CInstrument::GetType() const		// // //
 {
 	return m_iType;
 }
-
-void CInstrument::InstrumentChanged() const
-{
-	// Set modified flag
-	if (m_pInstManager)		// // //
-		m_pInstManager->InstrumentChanged();
-}

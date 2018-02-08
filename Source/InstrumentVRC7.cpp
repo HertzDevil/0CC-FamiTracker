@@ -97,7 +97,6 @@ bool CInstrumentVRC7::CanRelease() const
 void CInstrumentVRC7::SetPatch(unsigned int Patch)
 {
 	m_iPatch = Patch;
-	InstrumentChanged();
 }
 
 unsigned int CInstrumentVRC7::GetPatch() const
@@ -108,7 +107,6 @@ unsigned int CInstrumentVRC7::GetPatch() const
 void CInstrumentVRC7::SetCustomReg(int Reg, unsigned char Value)		// // //
 {
 	m_iRegs[Reg] = Value;
-	InstrumentChanged();
 }
 
 unsigned char CInstrumentVRC7::GetCustomReg(int Reg) const		// // //

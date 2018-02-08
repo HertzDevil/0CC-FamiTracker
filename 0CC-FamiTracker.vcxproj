@@ -689,7 +689,6 @@
     <ClInclude Include="Source\FamiTrackerView.h" />
     <ClInclude Include="Source\FamiTrackerViewMessage.h" />
     <ClInclude Include="Source\FindDlg.h" />
-    <ClInclude Include="Source\DocumentInterface.h" />
     <ClInclude Include="Source\GotoDlg.h" />
     <ClInclude Include="Source\GrooveDlg.h" />
     <ClInclude Include="Source\InstHandler.h" />

@@ -137,8 +137,6 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerModule &modfile) {
 	int _msgs_ = 0;
 #endif
 
-	modfile.GetInstrumentManager()->SetParent(); // temp
-
 	// This has to be done for older files
 	if (file_.GetFileVersion() < 0x0210)
 		(void)modfile.GetSong(0);
@@ -169,7 +167,6 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerModule &modfile) {
 		return false;
 
 	PostLoad(modfile);
-	modfile.GetInstrumentManager()->SetParent(modfile.GetParent());
 	return true;
 }
 

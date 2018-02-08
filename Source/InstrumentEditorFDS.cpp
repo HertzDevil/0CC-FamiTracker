@@ -33,6 +33,7 @@
 #include "ModSequenceEditor.h"
 #include <algorithm>		// // //
 #include "sv_regex.h"		// // //
+#include "FamiTrackerDoc.h"		// // //
 
 // CInstrumentEditorFDS dialog
 
@@ -151,6 +152,7 @@ void CInstrumentEditorFDS::OnPresetSine()
 		m_pInstrument->SetSample(i, sample);
 	}
 
+	GetDocument()->ModifyIrreversible();		// // //
 	m_pWaveEditor->RedrawWindow();
 	Env.GetSoundGenerator()->WaveChanged();
 }
@@ -162,6 +164,7 @@ void CInstrumentEditorFDS::OnPresetTriangle()
 		m_pInstrument->SetSample(i, sample);
 	}
 
+	GetDocument()->ModifyIrreversible();		// // //
 	m_pWaveEditor->RedrawWindow();
 	Env.GetSoundGenerator()->WaveChanged();
 }
@@ -173,6 +176,7 @@ void CInstrumentEditorFDS::OnPresetPulse50()
 		m_pInstrument->SetSample(i, sample);
 	}
 
+	GetDocument()->ModifyIrreversible();		// // //
 	m_pWaveEditor->RedrawWindow();
 	Env.GetSoundGenerator()->WaveChanged();
 }
@@ -184,6 +188,7 @@ void CInstrumentEditorFDS::OnPresetPulse25()
 		m_pInstrument->SetSample(i, sample);
 	}
 
+	GetDocument()->ModifyIrreversible();		// // //
 	m_pWaveEditor->RedrawWindow();
 	Env.GetSoundGenerator()->WaveChanged();
 }
@@ -195,6 +200,7 @@ void CInstrumentEditorFDS::OnPresetSawtooth()
 		m_pInstrument->SetSample(i, sample);
 	}
 
+	GetDocument()->ModifyIrreversible();		// // //
 	m_pWaveEditor->RedrawWindow();
 	Env.GetSoundGenerator()->WaveChanged();
 }
@@ -205,6 +211,7 @@ void CInstrumentEditorFDS::OnModPresetFlat()
 		m_pInstrument->SetModulation(i, 0);
 	}
 
+	GetDocument()->ModifyIrreversible();		// // //
 	m_pModSequenceEditor->RedrawWindow();
 	Env.GetSoundGenerator()->WaveChanged();
 }
@@ -226,6 +233,7 @@ void CInstrumentEditorFDS::OnModPresetSine()
 	m_pInstrument->SetModulation(24, 0);
 	m_pInstrument->SetModulation(25, 0);
 
+	GetDocument()->ModifyIrreversible();		// // //
 	m_pModSequenceEditor->RedrawWindow();
 	Env.GetSoundGenerator()->WaveChanged();
 }
@@ -236,14 +244,20 @@ void CInstrumentEditorFDS::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 //	int ModDepth = GetDlgItemInt(IDC_MOD_DEPTH);
 //	int ModDelay = GetDlgItemInt(IDC_MOD_DELAY);
 
-	m_pInstrument->SetModulationSpeed(ModSpeed);
+	if (m_pInstrument->GetModulationSpeed() != ModSpeed) {
+		m_pInstrument->SetModulationSpeed(ModSpeed);		// // //
+		GetDocument()->ModifyIrreversible();
+	}
 }
 
 void CInstrumentEditorFDS::OnModRateChange()
 {
 	if (m_pInstrument) {
-		int ModSpeed = GetDlgItemInt(IDC_MOD_RATE);
-		m_pInstrument->SetModulationSpeed(std::clamp(ModSpeed, 0, 4095));		// // //
+		int ModSpeed = std::clamp(GetDlgItemInt(IDC_MOD_RATE), 0u, 4095u);
+		if (m_pInstrument->GetModulationSpeed() != ModSpeed) {
+			m_pInstrument->SetModulationSpeed(ModSpeed);		// // //
+			GetDocument()->ModifyIrreversible();
+		}
 	}
 	Env.GetSoundGenerator()->WaveChanged();
 }
@@ -251,8 +265,11 @@ void CInstrumentEditorFDS::OnModRateChange()
 void CInstrumentEditorFDS::OnModDepthChange()
 {
 	if (m_pInstrument) {
-		int ModDepth = GetDlgItemInt(IDC_MOD_DEPTH);
-		m_pInstrument->SetModulationDepth(std::clamp(ModDepth, 0, 63));		// // //
+		int ModDepth = std::clamp(GetDlgItemInt(IDC_MOD_DEPTH), 0u, 63u);
+		if (m_pInstrument->GetModulationDepth() != ModDepth) {
+			m_pInstrument->SetModulationDepth(ModDepth);		// // //
+			GetDocument()->ModifyIrreversible();
+		}
 	}
 	Env.GetSoundGenerator()->WaveChanged();
 }
@@ -260,8 +277,11 @@ void CInstrumentEditorFDS::OnModDepthChange()
 void CInstrumentEditorFDS::OnModDelayChange()
 {
 	if (m_pInstrument) {
-		int ModDelay = GetDlgItemInt(IDC_MOD_DELAY);
-		m_pInstrument->SetModulationDelay(std::clamp(ModDelay, 0, 255));		// // //
+		int ModDelay = std::clamp(GetDlgItemInt(IDC_MOD_DELAY), 0u, 255u);
+		if (m_pInstrument->GetModulationDelay() != ModDelay) {
+			m_pInstrument->SetModulationDelay(ModDelay);		// // //
+			GetDocument()->ModifyIrreversible();
+		}
 	}
 	Env.GetSoundGenerator()->WaveChanged();
 }
@@ -310,6 +330,7 @@ void CInstrumentEditorFDS::ParseWaveString(LPCTSTR pString)
 			break;
 	}
 
+	GetDocument()->ModifyIrreversible();		// // //
 	m_pWaveEditor->RedrawWindow();
 	Env.GetSoundGenerator()->WaveChanged();
 }
@@ -358,6 +379,7 @@ void CInstrumentEditorFDS::ParseTableString(LPCTSTR pString)
 			break;
 	}
 
+	GetDocument()->ModifyIrreversible();		// // //
 	m_pModSequenceEditor->RedrawWindow();
 	Env.GetSoundGenerator()->WaveChanged();
 }

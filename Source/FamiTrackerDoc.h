@@ -26,7 +26,6 @@
 #include "stdafx.h"		// // //
 #include <memory>		// // //
 #include <type_traits>		// // //
-#include "DocumentInterface.h"
 
 // #define AUTOSAVE
 // #define DISABLE_SAVE		// // //
@@ -42,7 +41,7 @@ class CSoundChipSet;		// // //
 // // // + use CFamiTrackerModule / CSongData / CSongView directly
 // // // - move action handler into CFamiTrackerDoc
 
-class CFamiTrackerDoc : public CDocument, public CDocumentInterface
+class CFamiTrackerDoc : public CDocument
 {
 	struct ctor_t { };		// // //
 
@@ -85,8 +84,8 @@ public:
 	bool			GetExceededFlag() const;		// // //
 	void			SetExceededFlag(bool Exceed = 1);
 
-	void			Modify(bool Change) override;
-	void			ModifyIrreversible() override;
+	void			Modify(bool Change);
+	void			ModifyIrreversible();
 
 	// Synchronization
 

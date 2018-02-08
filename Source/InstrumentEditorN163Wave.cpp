@@ -169,6 +169,7 @@ void CInstrumentEditorN163Wave::GenerateWaves(std::unique_ptr<CWaveformGenerator
 		m_pInstrument->SetSample(m_iWaveIndex, i, static_cast<int>(Sample));
 	}
 
+	GetDocument()->ModifyIrreversible();		// // //
 	m_pWaveEditor->WaveChanged();
 	Env.GetSoundGenerator()->WaveChanged();
 }
@@ -262,6 +263,7 @@ void CInstrumentEditorN163Wave::ParseString(LPCTSTR pString)
 
 	FillPosBox(size);
 
+	GetDocument()->ModifyIrreversible();		// // //
 	m_pWaveEditor->SetLength(size);
 	m_pWaveEditor->WaveChanged();
 }
@@ -283,7 +285,10 @@ void CInstrumentEditorN163Wave::OnWaveSizeChange()
 	int size = GetDlgItemInt(IDC_WAVE_SIZE, &trans, FALSE);
 	size = std::clamp(size & 0xFC, 4, WaveSizeAvailable());		// // //
 
-	m_pInstrument->SetWaveSize(size);
+	if (m_pInstrument->GetWaveSize() != size) {
+		m_pInstrument->SetWaveSize(size);
+		GetDocument()->ModifyIrreversible();
+	}
 
 	FillPosBox(size);
 
@@ -298,6 +303,7 @@ void CInstrumentEditorN163Wave::OnWavePosChange()
 	int pos = GetDlgItemInt(IDC_WAVE_POS, &trans, FALSE);
 
 	m_pInstrument->SetWavePos(std::clamp(pos, 0, 255));		// // //
+	GetDocument()->ModifyIrreversible();
 }
 
 void CInstrumentEditorN163Wave::OnWavePosSelChange()
@@ -309,6 +315,7 @@ void CInstrumentEditorN163Wave::OnWavePosSelChange()
 	int pos = _ttoi(str);
 
 	m_pInstrument->SetWavePos(std::clamp(pos, 0, 255));		// // //
+	GetDocument()->ModifyIrreversible();
 }
 
 void CInstrumentEditorN163Wave::FillPosBox(int size)
@@ -404,6 +411,7 @@ void CInstrumentEditorN163Wave::SelectWave(int Index)		// // //
 void CInstrumentEditorN163Wave::OnBnClickedN163Add()		// // //
 {
 	if (m_pInstrument->InsertNewWave(m_iWaveIndex + 1)) {
+		GetDocument()->ModifyIrreversible();
 		PopulateWaveBox();
 		m_cWaveListCtrl.SetItemState(++m_iWaveIndex, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
 	}
@@ -412,6 +420,7 @@ void CInstrumentEditorN163Wave::OnBnClickedN163Add()		// // //
 void CInstrumentEditorN163Wave::OnBnClickedN163Delete()		// // //
 {
 	if (m_pInstrument->RemoveWave(m_iWaveIndex)) {
+		GetDocument()->ModifyIrreversible();
 		PopulateWaveBox();
 		if (m_iWaveIndex == m_pInstrument->GetWaveCount())
 			m_iWaveIndex--;

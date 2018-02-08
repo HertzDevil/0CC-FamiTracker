@@ -406,6 +406,7 @@ void CInstrumentEditorDPCM::OnCbnSelchangePitch()
 		Pitch |= 0x80;
 
 	m_pInstrument->SetSamplePitch(m_iOctave, m_iSelectedKey, Pitch);
+	GetDocument()->ModifyIrreversible();		// // //
 
 	UpdateCurrentKey();
 }
@@ -484,6 +485,7 @@ void CInstrumentEditorDPCM::OnCbnSelchangeSamples()
 	}
 
 	m_pInstrument->SetSampleIndex(m_iOctave, m_iSelectedKey, Sample);
+	GetDocument()->ModifyIrreversible();		// // //
 
 	UpdateCurrentKey();
 }
@@ -566,6 +568,7 @@ void CInstrumentEditorDPCM::OnBnClickedLoop()
 		Pitch |= 0x80;
 
 	m_pInstrument->SetSamplePitch(m_iOctave, m_iSelectedKey, Pitch);
+	GetDocument()->ModifyIrreversible();		// // //
 
 	UpdateCurrentKey();
 }
@@ -614,6 +617,7 @@ void CInstrumentEditorDPCM::OnBnClickedAdd()
 	if (GetDSampleManager()->IsSampleUsed(m_iSelectedSample)) {		// // //
 		m_pInstrument->SetSampleIndex(m_iOctave, m_iSelectedKey, m_iSelectedSample + 1);
 		m_pInstrument->SetSamplePitch(m_iOctave, m_iSelectedKey, Pitch);
+		GetDocument()->ModifyIrreversible();		// // //
 		UpdateCurrentKey();
 	}
 
@@ -639,6 +643,7 @@ void CInstrumentEditorDPCM::OnBnClickedRemove()
 
 	// Remove sample from key list
 	m_pInstrument->SetSampleIndex(m_iOctave, m_iSelectedKey, 0);
+	GetDocument()->ModifyIrreversible();		// // //
 	UpdateCurrentKey();
 
 	if (m_iSelectedKey > 0) {
@@ -742,6 +747,7 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	if (Result == 1) {
 		// Remove sample
 		m_pInstrument->SetSampleIndex(m_iOctave, m_iSelectedKey, 0);
+		GetDocument()->ModifyIrreversible();		// // //
 		UpdateCurrentKey();
 	}
 	else if (Result > 1) {
@@ -750,6 +756,7 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 		int Pitch = pPitchBox->GetCurSel();
 		m_pInstrument->SetSampleIndex(m_iOctave, m_iSelectedKey, Result - 1);
 		m_pInstrument->SetSamplePitch(m_iOctave, m_iSelectedKey, Pitch);
+		GetDocument()->ModifyIrreversible();		// // //
 		UpdateCurrentKey();
 	}
 
@@ -794,8 +801,10 @@ void CInstrumentEditorDPCM::OnEnChangeDeltaCounter()
 		Value = -1;
 	}
 
-	if (m_pInstrument->GetSampleDeltaValue(m_iOctave, m_iSelectedKey) != Value)
+	if (m_pInstrument->GetSampleDeltaValue(m_iOctave, m_iSelectedKey) != Value) {
 		m_pInstrument->SetSampleDeltaValue(m_iOctave, m_iSelectedKey, Value);
+		GetDocument()->ModifyIrreversible();		// // //
+	}
 }
 
 void CInstrumentEditorDPCM::OnDeltaposDeltaSpin(NMHDR *pNMHDR, LRESULT *pResult)
@@ -822,6 +831,7 @@ void CInstrumentEditorDPCM::OnDeltaposDeltaSpin(NMHDR *pNMHDR, LRESULT *pResult)
 	}
 
 	m_pInstrument->SetSampleDeltaValue(m_iOctave, m_iSelectedKey, Value);
+	GetDocument()->ModifyIrreversible();		// // //
 
 	*pResult = 0;
 }

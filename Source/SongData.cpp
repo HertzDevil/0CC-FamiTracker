@@ -22,8 +22,6 @@
 
 #include "SongData.h"
 #include "Bookmark.h"		// // //
-
-#include "DocumentInterface.h"		// // //
 #include "ChannelOrder.h"		// // //
 
 // Defaults when creating new modules
