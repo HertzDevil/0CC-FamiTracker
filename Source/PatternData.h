@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <optional>
+#include <memory>
 #include <array>
 #include "FamiTrackerTypes.h"
 #include "PatternNote.h"
@@ -37,10 +37,10 @@ class CPatternData {
 
 public:
 	CPatternData() = default;
-	CPatternData(const CPatternData &other) = default;
-	CPatternData(CPatternData &&other) noexcept;
-	CPatternData &operator=(const CPatternData &other) = default;
-	CPatternData &operator=(CPatternData &&other) noexcept;
+	CPatternData(const CPatternData &other);
+	CPatternData(CPatternData &&other) noexcept = default;
+	CPatternData &operator=(const CPatternData &other);
+	CPatternData &operator=(CPatternData &&other) noexcept = default;
 
 	stChanNote &GetNoteOn(unsigned row);
 	const stChanNote &GetNoteOn(unsigned row) const;
@@ -91,5 +91,5 @@ private:
 
 private:
 	using elem_t = std::array<stChanNote, max_size>;
-	std::optional<elem_t> data_;
+	std::unique_ptr<elem_t> data_;
 };

@@ -29,12 +29,18 @@ const auto BLANK = stChanNote { };
 
 } // namespace
 
-CPatternData::CPatternData(CPatternData &&other) noexcept : data_(std::move(other.data_)) {
-	other.data_.reset();
+CPatternData::CPatternData(const CPatternData &other) : data_(std::make_unique<elem_t>(*other.data_)) {
 }
 
-CPatternData &CPatternData::operator=(CPatternData &&other) noexcept {
-	data_.swap(other.data_);
+CPatternData &CPatternData::operator=(const CPatternData &other) {
+	if (this != &other) {
+		if (other.data_) {
+			Allocate();
+			*data_ = *other.data_;
+		}
+		else
+			data_.reset();
+	}
 	return *this;
 }
 
@@ -89,5 +95,5 @@ bool CPatternData::IsEmpty() const {
 
 void CPatternData::Allocate() {
 	if (!data_)
-		data_.emplace();
+		data_ = std::make_unique<elem_t>();
 }

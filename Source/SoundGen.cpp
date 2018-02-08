@@ -218,7 +218,8 @@ void CSoundGen::ModuleChipChanged() {		// // //
 	SelectChip(m_pModule ? m_pModule->GetSoundChipSet() : sound_chip_t::APU);
 
 	// Change period tables
-	LoadMachineSettings();
+	if (m_pModule)
+		LoadMachineSettings();
 }
 
 void CSoundGen::SelectChip(const CSoundChipSet &Chip)
