@@ -26,7 +26,7 @@
 #include "SoundGen.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
-#include "ChannelOrder.h"		// // //
+#include "ChannelMap.h"		// // //
 #include "version.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
@@ -634,7 +634,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 			break;
 		case CT_EXPANSION: {
 			auto flag = t.ReadInt(0, CSoundChipSet::NSF_MAX_FLAG);		// // //
-			Doc.SelectExpansionChip(CSoundChipSet::FromNSFFlag(flag), modfile.GetNamcoChannels());		// // //
+			modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(CSoundChipSet::FromNSFFlag(flag), modfile.GetNamcoChannels()));
 			t.ReadEOL();
 			break;
 		}
@@ -664,7 +664,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_N163CHANNELS:
 			N163count = t.ReadInt(1, MAX_CHANNELS_N163);		// // //
 			t.ReadEOL();
-			Doc.SelectExpansionChip(modfile.GetSoundChipSet(), MAX_CHANNELS_N163);
+			modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(modfile.GetSoundChipSet(), MAX_CHANNELS_N163));
 			break;
 		case CT_MACRO:
 		case CT_MACROVRC6:
@@ -971,7 +971,7 @@ void CTextExport::ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {
 		modfile.GetDSampleManager()->SetDSample(dpcm_index, std::move(dpcm_sample));
 	}
 	if (N163count != -1)		// // //
-		Doc.SelectExpansionChip(modfile.GetSoundChipSet(), N163count);
+		modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(modfile.GetSoundChipSet(), N163count));
 
 	Env.GetSoundGenerator()->ModuleChipChanged();		// // //
 }
@@ -1024,7 +1024,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 	}
 
 	CString s;
-	const auto &modfile = *Doc.GetModule();		// // //
+	auto &modfile = *Doc.GetModule();		// // //
 
 	f.WriteString(Formatted("# 0CC-FamiTracker text export %s\n\n", Get0CCFTVersionString()));		// // //
 
@@ -1060,7 +1060,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 	int N163count = -1;		// // //
 	if (modfile.HasExpansionChip(sound_chip_t::N163)) {
 		N163count = modfile.GetNamcoChannels();
-		Doc.SelectExpansionChip(modfile.GetSoundChipSet(), MAX_CHANNELS_N163);
+		modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(modfile.GetSoundChipSet(), MAX_CHANNELS_N163));
 		s.Format(_T("# Namco 163 global settings\n"
 		            "%-15s %d\n"
 		            "\n"),
@@ -1374,7 +1374,7 @@ CString CTextExport::ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc) {		// //
 	});
 
 	if (N163count != -1)		// // //
-		Doc.SelectExpansionChip(modfile.GetSoundChipSet(), N163count);
+		modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(modfile.GetSoundChipSet(), N163count));
 	f.WriteString(_T("# End of export\n"));
 	Doc.UpdateAllViews(NULL, UPDATE_FRAME);
 	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);

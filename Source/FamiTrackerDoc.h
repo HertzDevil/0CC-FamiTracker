@@ -33,13 +33,10 @@
 // External classes
 class CFamiTrackerModule;		// // //
 class CDocumentFile;
-class CSoundChipSet;		// // //
 
-// // // TODO:
 // // // + move core data fields into CFamiTrackerModule
 // // // + move high-level pattern operations to CSongView
 // // // + use CFamiTrackerModule / CSongData / CSongView directly
-// // // - move action handler into CFamiTrackerDoc
 
 class CFamiTrackerDoc : public CDocument
 {
@@ -113,8 +110,6 @@ public:
 
 	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCTSTR lpszPathName);		// // // TODO: use module class directly
 
-	void			SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs);		// // //
-
 private:
 
 	//
@@ -140,8 +135,8 @@ private:
 	bool			m_bFileLoadFailed = false;		// Last file load operation failed
 	unsigned int	m_iFileVersion;					// Loaded file version
 
-	bool			m_bForceBackup;
-	bool			m_bBackupDone;
+	bool			m_bForceBackup = false;
+	bool			m_bBackupDone = true;
 	bool			m_bExceeded = false;			// // //
 
 #ifdef AUTOSAVE

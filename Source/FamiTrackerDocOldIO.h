@@ -26,13 +26,12 @@
 #include "OldSequence.h"
 #include <vector>
 
-class CFamiTrackerDoc;
 class CFamiTrackerModule;
 class CFile;
 
 namespace compat {
 
-bool OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile);
+bool OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile);
 void ReorderSequences(CFamiTrackerModule &modfile, std::vector<COldSequence> seqs);
 
 } // namespace compat

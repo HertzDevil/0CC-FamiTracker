@@ -22,7 +22,9 @@
 
 #include "FamiTrackerDocOldIO.h"
 #include "FamiTrackerDocIOCommon.h"
-#include "FamiTrackerDoc.h"
+#include "FamiTrackerEnv.h"
+#include "SoundGen.h"
+#include "ChannelMap.h"
 #include "ChannelOrder.h"
 #include "SongData.h"
 #include "InstrumentManager.h"
@@ -56,16 +58,15 @@ enum {
 
 } // namespace
 
-bool compat::OpenDocumentOld(CFamiTrackerDoc &doc, CFile *pOpenFile) {
+bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 	unsigned int i, c, ReadCount, FileBlock;
 
 	FileBlock = 0;
 
 	// Only single track files
-	auto &modfile = *doc.GetModule();
 	auto &Song = *modfile.GetSong(0);
 
-	doc.SelectExpansionChip(sound_chip_t::APU, 0);		// // //
+	modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
 	modfile.SetMachine(NTSC);		// // //
 	modfile.SetVibratoStyle(VIBRATO_OLD);
 	modfile.SetLinearPitch(false);

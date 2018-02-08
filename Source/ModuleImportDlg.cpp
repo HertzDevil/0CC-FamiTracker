@@ -28,6 +28,7 @@
 #include "FamiTrackerViewMessage.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
 #include "SoundGen.h"		// // //
+#include "ChannelMap.h"		// // //
 #include "ModuleImporter.h"		// // //
 
 // CModuleImportDlg dialog
@@ -91,8 +92,8 @@ void CModuleImportDlg::OnBnClickedOk()
 	if (n1 != n2 || c1 != c2) {
 		CSoundChipSet merged = c1.MergedWith(c2);
 		unsigned n163chs = std::max(n1, n2);
-		m_pImportedDoc->SelectExpansionChip(merged, n163chs);
-		m_pDocument->SelectExpansionChip(merged, n163chs);
+		oldModule.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(merged, n163chs));
+		newModule.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(merged, n163chs));
 		Env.GetSoundGenerator()->ModuleChipChanged();		// // //
 	}
 

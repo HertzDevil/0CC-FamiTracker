@@ -183,7 +183,7 @@ void CFamiTrackerDoc::DeleteContents()
 
 		UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
 		module_ = std::make_unique<CFamiTrackerModule>();		// // //
-		theApp.GetSoundGenerator()->AssignModule(*GetModule());		// // // rebind module
+		theApp.GetSoundGenerator()->DocumentPropertiesChanged(this);		// // // rebind module
 		theApp.GetSoundGenerator()->ModuleChipChanged();
 
 #ifdef AUTOSAVE
@@ -223,9 +223,7 @@ void CFamiTrackerDoc::CreateEmpty()
 
 	Locked([&] {		// // //
 		// and select 2A03 only
-		SelectExpansionChip(sound_chip_t::APU, 0);		// // //
-		SetModifiedFlag(FALSE);
-		SetExceededFlag(FALSE);		// // //
+		GetModule()->SetChannelMap(theApp.GetSoundGenerator()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
 
 #ifdef AUTOSAVE
 		SetupAutoSave();
@@ -427,7 +425,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 		DeleteContents();		// // //
 
 		if (m_iFileVersion < 0x0200U) {
-			if (!compat::OpenDocumentOld(*this, &OpenFile.GetCFile()))
+			if (!compat::OpenDocumentOld(*GetModule(), &OpenFile.GetCFile()))
 				OpenFile.RaiseModuleException("General error");
 
 			// Create a backup of this file, since it's an old version
@@ -470,14 +468,6 @@ std::unique_ptr<CFamiTrackerDoc> CFamiTrackerDoc::LoadImportFile(LPCTSTR lpszPat
 		return nullptr;
 
 	return pImported;
-}
-
-//// Track functions //////////////////////////////////////////////////////////////////////////////////
-
-void CFamiTrackerDoc::SelectExpansionChip(const CSoundChipSet &chips, unsigned n163chs) {		// // //
-	Locked([&] {
-		GetModule()->SetChannelMap(theApp.GetSoundGenerator()->MakeChannelMap(chips, n163chs));		// // //
-	});
 }
 
 // Attributes
