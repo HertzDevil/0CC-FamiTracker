@@ -34,6 +34,7 @@
 #include "APU/VRC7.h"
 #include "APU/S5B.h"
 #include "RegisterState.h"		// // //
+#include "Assertion.h"		// // //
 
 const int		CAPU::SEQUENCER_FREQUENCY	= 240;		// // //
 const uint32_t	CAPU::BASE_FREQ_NTSC		= 1789773;		// 72.667
@@ -406,7 +407,7 @@ double CAPU::GetFreq(sound_chip_t Chip, int Chan) const
 	case sound_chip_t::MMC5: pChip = m_pMMC5.get(); break;
 	case sound_chip_t::N163: pChip = m_pN163.get(); break;
 	case sound_chip_t::S5B:  pChip = m_pS5B.get(); break;
-	default: __debugbreak(); return 0.;
+	default: DEBUG_BREAK(); return 0.;
 	}
 	return pChip->GetFreq(Chan);
 }
@@ -422,7 +423,7 @@ CRegisterState *CAPU::GetRegState(sound_chip_t Chip, int Reg) const		// // //
 	case sound_chip_t::MMC5: pChip = m_pMMC5.get(); break;
 	case sound_chip_t::N163: pChip = m_pN163.get(); break;
 	case sound_chip_t::S5B:  pChip = m_pS5B.get(); break;
-	default: __debugbreak(); return nullptr;
+	default: DEBUG_BREAK(); return nullptr;
 	}
 
 	return pChip->GetRegisterLogger().GetRegister(Reg);

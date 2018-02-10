@@ -627,6 +627,7 @@
     <ClInclude Include="Source\APU\SampleMem.h" />
     <ClInclude Include="Source\APU\Types_fwd.h" />
     <ClInclude Include="Source\Arpeggiator.h" />
+    <ClInclude Include="Source\Assertion.h" />
     <ClInclude Include="Source\AudioDriver.h" />
     <ClInclude Include="Source\Bookmark.h" />
     <ClInclude Include="Source\BookmarkCollection.h" />

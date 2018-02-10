@@ -22,6 +22,7 @@
 
 #include "InstrumentService.h"
 #include "InstrumentTypeImpl.h"
+#include "Assertion.h"
 
 std::unique_ptr<CInstrument> CInstrumentService::Make(inst_type_t index) const {
 	return GetInstrumentType(index).MakeInstrument();
@@ -50,6 +51,6 @@ CInstrumentType &CInstrumentService::GetInstrumentType(inst_type_t index) const 
 		return *it->second;
 
 	static CInstrumentTypeNull null_inst;
-	__debugbreak();
+	DEBUG_BREAK();
 	return null_inst;
 }

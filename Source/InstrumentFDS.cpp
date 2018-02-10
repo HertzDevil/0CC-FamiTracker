@@ -25,6 +25,7 @@
 #include "DocumentFile.h"
 #include "SimpleFile.h"
 #include "ModuleException.h"		// // //
+#include "Assertion.h"		// // //
 
 namespace {
 
@@ -365,13 +366,13 @@ void CInstrumentFDS::SetSeqEnable(sequence_t, bool) {
 
 int	CInstrumentFDS::GetSeqIndex(sequence_t SeqType) const
 {
-	__debugbreak();
+	DEBUG_BREAK();
 	return -1;
 }
 
 void CInstrumentFDS::SetSeqIndex(sequence_t SeqType, int Value)
 {
-	__debugbreak();
+	DEBUG_BREAK();
 }
 
 std::shared_ptr<CSequence> CInstrumentFDS::GetSequence(sequence_t SeqType) const		// // //

@@ -1,3 +1,4 @@
+#include "APU/ext/FDSSound.h"
 #include <cmath>
 #include <memory>
 #include <cstdint>		// // //
@@ -136,7 +137,7 @@ static void FDSSoundEGStep(FDS_EG *peg)
 }
 
 
-int32_t __fastcall FDSSoundRender(void)
+int32_t MSVC_FASTCALL FDSSoundRender(void)
 {
 	int32_t output;
 	/* Wave Generator */
@@ -223,7 +224,7 @@ int32_t __fastcall FDSSoundRender(void)
 	return (fdssound.op[0].pg.freq != 0) ? output : 0;
 }
 
-void __fastcall FDSSoundVolume(unsigned int volume)
+void MSVC_FASTCALL FDSSoundVolume(unsigned int volume)
 {
 	volume += 196;
 	fdssound.mastervolume = (volume << (LOG_BITS - 8)) << 1;
@@ -238,7 +239,7 @@ static const uint8_t wave_delta_table[8] = {
 	0,256 - (4 << FM_DEPTH),256 - (2 << FM_DEPTH),256 - (1 << FM_DEPTH),
 };
 
-void __fastcall FDSSoundWrite(uint16_t address, uint8_t value)
+void MSVC_FASTCALL FDSSoundWrite(uint16_t address, uint8_t value)
 {
 	if (0x4040 <= address && address <= 0x407F)
 	{
@@ -316,7 +317,7 @@ void __fastcall FDSSoundWrite(uint16_t address, uint8_t value)
 	}
 }
 
-uint8_t __fastcall FDSSoundRead(uint16_t address)
+uint8_t MSVC_FASTCALL FDSSoundRead(uint16_t address)
 {
 	if (0x4040 <= address && address <= 0x407f)
 	{
@@ -347,7 +348,7 @@ static uint32_t DivFix(uint32_t p1, uint32_t p2, uint32_t fix)
 	return ret;
 }
 
-void __fastcall FDSSoundReset(void)
+void MSVC_FASTCALL FDSSoundReset(void)
 {
 	uint32_t i;
 	fdssound = FDSSOUND { };		// // //

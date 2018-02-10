@@ -26,11 +26,11 @@
 #include "APU/MixerChannel.h"		// // //
 #include "APU/MixerLevels.h"		// // //
 #include "Common.h"
-#include "Blip_Buffer/blip_buffer.h"
+#include "Blip_Buffer/Blip_Buffer.h"
 #include <array>		// // //
 #include "SoundChipSet.h"		// // //
 
-enum chip_level_t {
+enum chip_level_t : unsigned char {
 	CHIP_LEVEL_APU1,
 	CHIP_LEVEL_APU2,
 	CHIP_LEVEL_VRC6,

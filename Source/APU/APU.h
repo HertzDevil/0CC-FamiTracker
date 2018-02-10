@@ -44,7 +44,7 @@ class dpcm_sample;
 class CMixer;		// // //
 class CSoundChip;		// // //
 class CRegisterState;		// // //
-enum chip_level_t : int;		// // //
+enum chip_level_t : unsigned char;		// // //
 
 #ifdef LOGGING
 class CFile;

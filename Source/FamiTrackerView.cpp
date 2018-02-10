@@ -54,6 +54,7 @@
 #include "InstrumentManager.h"
 #include "Instrument.h"
 #include "Sequence.h"
+#include "Assertion.h"
 
 // Clipboard ID
 const TCHAR CFamiTrackerView::CLIPBOARD_ID[] = _T("FamiTracker Pattern");
@@ -1473,7 +1474,7 @@ CPlayerCursor CFamiTrackerView::GetPlayerCursor(play_mode_t Mode) const {		// //
 		return CPlayerCursor {song, Track};
 	}
 
-	__debugbreak();
+	DEBUG_BREAK();
 	return CPlayerCursor {song, Track};
 }
 

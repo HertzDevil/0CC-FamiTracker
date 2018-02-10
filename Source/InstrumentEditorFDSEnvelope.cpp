@@ -28,6 +28,7 @@
 #include "SequenceEditor.h"
 #include "SequenceParser.h"		// // //
 #include "DPI.h"		// // //
+#include "Assertion.h"		// // //
 
 // CInstrumentEditorFDSEnvelope dialog
 
@@ -105,7 +106,7 @@ void CInstrumentEditorFDSEnvelope::SetupParser() const		// // //
 		case sequence_t::Pitch:
 			return std::make_unique<CSeqConversionDefault>(-128, 127);
 		}
-		__debugbreak(); return nullptr;
+		DEBUG_BREAK(); return nullptr;
 	};
 
 	auto pConv = MakeParser(m_iSelectedSetting, m_pSequence->GetSetting());

@@ -35,6 +35,7 @@
 #include "ChannelsN163.h"
 #include "ChannelMap.h"
 #include <cmath>
+#include "Assertion.h"
 
 
 
@@ -363,7 +364,7 @@ int CSoundDriver::ReadPeriodTable(int Index, int Table) const {
 	case CDetuneTable::DETUNE_N163: return m_iNoteLookupTableN163[Index]; break;
 	case CDetuneTable::DETUNE_S5B:  return m_iNoteLookupTableNTSC[Index] + 1; break;
 	}
-	__debugbreak();
+	DEBUG_BREAK();
 	return m_iNoteLookupTableNTSC[Index];
 }
 

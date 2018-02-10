@@ -21,7 +21,7 @@
 */
 
 #include "APU/2A03.h"
-#include "common.h"
+#include "Common.h"
 #include <algorithm>
 #include "APU/Mixer.h"
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //

@@ -27,6 +27,7 @@
 #include "SequenceEditor.h"
 #include "SequenceParser.h"		// // //
 #include "FamiTrackerDoc.h"		// // //
+#include "Assertion.h"		// // //
 
 // // // CInstrumentEditorSeq dialog
 
@@ -108,7 +109,7 @@ void CInstrumentEditorSeq::SetupParser() const		// // //
 				return std::make_unique<CSeqConversion5B>();
 			return std::make_unique<CSeqConversionDefault>(0, this->m_iMaxDuty);
 		}
-		__debugbreak(); return nullptr;
+		DEBUG_BREAK(); return nullptr;
 	};
 
 	auto pConv = MakeParser(m_pSequence->GetSequenceType(), m_pSequence->GetSetting());

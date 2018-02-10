@@ -63,7 +63,7 @@ CPatternData &CSongView::GetPattern(std::size_t index, unsigned Pattern) {
 const CPatternData &CConstSongView::GetPattern(std::size_t index, unsigned Pattern) const {
 	auto pTrack = GetTrack(index);		// // //
 	if (!pTrack)
-		throw std::out_of_range {"Bad chan_id_t in " __FUNCTION__};
+		throw std::out_of_range {"Bad chan_id_t in CConstSongView::GetPattern(std::size_t, unsigned)"};
 	return pTrack->GetPattern(Pattern);
 }
 

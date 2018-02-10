@@ -22,6 +22,7 @@
 
 #include "SequenceCollection.h"
 #include "Sequence.h"
+#include "Assertion.h"
 
 const int CSequenceCollection::MAX_SEQUENCES = 128;
 
@@ -44,7 +45,7 @@ void CSequenceCollection::SetSequence(unsigned int Index, std::shared_ptr<CSeque
 	if (!Seq || Seq->GetSequenceType() == seq_type_)
 		m_pSequence[Index] = std::move(Seq);
 	else {
-		__debugbreak();
+		DEBUG_BREAK();
 		m_pSequence[Index] = std::make_shared<CSequence>(*Seq);
 		m_pSequence[Index]->SetSequenceType((sequence_t)Index);
 	}

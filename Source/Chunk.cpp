@@ -21,6 +21,7 @@
 */
 
 #include "Chunk.h"
+#include "Assertion.h"		// // //
 
 /**
  * CChunk - Stores NSF data
@@ -150,10 +151,8 @@ void CChunk::AssignLabels(std::map<stChunkLabel, int> &labelMap)		// // //
 		if (auto pChunkData = dynamic_cast<CChunkDataPointer *>(x.get())) {
 			if (auto it = labelMap.find(pChunkData->m_Label); it != labelMap.end())		// // //
 				pChunkData->ref = it->second;
-#ifdef _DEBUG
 			else
-				__debugbreak();
-#endif
+				DEBUG_BREAK();
 		}
 }
 
