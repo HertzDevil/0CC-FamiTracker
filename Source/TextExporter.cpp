@@ -1044,7 +1044,11 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		WriteString(s);
 		if (n == std::string_view::npos)
 			break;
-		sComment.remove_prefix(sComment.find_first_not_of("\r\n", n));
+		sComment.remove_prefix(n);
+		if (!sComment.empty() && sComment.front() == '\r')
+			sComment.remove_prefix(1);
+		if (!sComment.empty() && sComment.front() == '\n')
+			sComment.remove_prefix(1);
 	}
 	WriteString("\n");
 
