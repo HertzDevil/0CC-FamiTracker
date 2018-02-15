@@ -452,14 +452,19 @@ private:
 	}
 
 	CStringA ReadFromFile(LPCWSTR FileName) {
-		CStringA buf;
 		CFileException oFileException;
-		if (CStdioFile f; f.Open(FileName, CFile::modeRead | CFile::typeText, &oFileException)) {
-			CStringW line;
-			while (f.ReadString(line))
-				buf += conv::to_utf8(line).data() + '\n';
+		if (CStdioFile f; f.Open(FileName, CFile::modeRead | CFile::typeBinary, &oFileException)) {
+			CStringA str;
+			while (f.GetPosition() < f.GetLength()) {
+				char buf[1024] = { };
+				ULONGLONG sz = std::min(f.GetLength() - f.GetPosition(), (ULONGLONG)std::size(buf));
+				f.Read(buf, (UINT)sz);
+				CStringA part(buf, (int)sz);
+				part.Replace("\r", "");
+				str += part;
+			}
 			f.Close();
-			return buf;
+			return str;
 		}
 
 		WCHAR szError[256];
@@ -961,6 +966,7 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 	if (N163count != -1)		// // //
 		modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(modfile.GetSoundChipSet(), N163count));
 
+	Env.GetSoundGenerator()->AssignModule(modfile);		// / //
 	Env.GetSoundGenerator()->ModuleChipChanged();		// // //
 }
 
@@ -977,8 +983,8 @@ CStringA CTextExport::ExportRows(LPCWSTR FileName, const CFamiTrackerModule &mod
 		return FormattedA("Unable to open file:\n%s", conv::to_utf8(szError).data());
 	}
 
-	const auto WriteString = [&] (LPCSTR str) { // TODO: don't use CStdioFile
-		f.WriteString(conv::to_wide(str).data());
+	const auto WriteString = [&] (const CStringA &str) { // TODO: don't use CStdioFile
+		f.Write(str.GetString(), str.GetLength());
 	};
 
 	WriteString("ID,TRACK,CHANNEL,PATTERN,ROW,NOTE,OCTAVE,INST,VOLUME,FX1,FX1PARAM,FX2,FX2PARAM,FX3,FX3PARAM,FX4,FX4PARAM\n");
@@ -1018,8 +1024,8 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	CStringA s;
 	auto &modfile = *Doc.GetModule();		// // //
 
-	const auto WriteString = [&] (LPCSTR str) { // TODO: don't use CStdioFile
-		f.WriteString(conv::to_wide(str).data());
+	const auto WriteString = [&] (const CStringA &str) { // TODO: don't use CStdioFile
+		f.Write(str.GetString(), str.GetLength());
 	};
 
 	WriteString(FormattedA("# 0CC-FamiTracker text export %s\n\n", Get0CCFTVersionString()));		// // //
