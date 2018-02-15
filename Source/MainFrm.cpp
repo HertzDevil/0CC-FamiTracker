@@ -76,6 +76,7 @@
 #include "InstrumentManager.h"
 #include "Kraid.h"
 #include "NumConv.h"
+#include "str_conv/utf8_conv.hpp"
 #include "str_conv/str_conv.hpp"
 #include "InstrumentListCtrl.h"
 #include "ModuleException.h"
@@ -1900,32 +1901,42 @@ void CMainFrame::SetSongInfo(const CFamiTrackerModule &modfile) {		// // //
 
 void CMainFrame::OnEnSongNameChange()
 {
-	CStringW str;
+	CStringW wstr;
 	auto pEdit = (CEdit *)m_wndDialogBar.GetDlgItem(IDC_SONG_NAME);
-	pEdit->GetWindowTextW(str);
+	pEdit->GetWindowTextW(wstr);
 	auto sel = pEdit->GetSel();
-	if (AddAction(std::make_unique<ModuleAction::CTitle>(conv::to_utf8(str))))
-		pEdit->SetSel(sel);
+	auto str = conv::to_utf8(wstr);		// // //
+	auto sv = conv::utf8_trim(std::string_view {str}.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1));
+	if (!AddAction(std::make_unique<ModuleAction::CTitle>(sv)) && str != sv)
+		pEdit->SetWindowTextW(conv::to_wide(sv).data());
+	pEdit->SetSel(sel);
 }
 
 void CMainFrame::OnEnSongArtistChange()
 {
-	CStringW str;
+	CStringW wstr;
 	auto pEdit = (CEdit *)m_wndDialogBar.GetDlgItem(IDC_SONG_ARTIST);
-	pEdit->GetWindowTextW(str);
+	pEdit->GetWindowTextW(wstr);
+
 	auto sel = pEdit->GetSel();
-	if (AddAction(std::make_unique<ModuleAction::CArtist>(conv::to_utf8(str))))
-		pEdit->SetSel(sel);
+	auto str = conv::to_utf8(wstr);		// // //
+	auto sv = conv::utf8_trim(std::string_view {str}.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1));
+	if (!AddAction(std::make_unique<ModuleAction::CArtist>(sv)) && str != sv)
+		pEdit->SetWindowTextW(conv::to_wide(sv).data());
+	pEdit->SetSel(sel);
 }
 
 void CMainFrame::OnEnSongCopyrightChange()
 {
-	CStringW str;
+	CStringW wstr;
 	auto pEdit = (CEdit *)m_wndDialogBar.GetDlgItem(IDC_SONG_COPYRIGHT);
-	pEdit->GetWindowTextW(str);
+	pEdit->GetWindowTextW(wstr);
 	auto sel = pEdit->GetSel();
-	if (AddAction(std::make_unique<ModuleAction::CCopyright>(conv::to_utf8(str))))
-		pEdit->SetSel(sel);
+	auto str = conv::to_utf8(wstr);		// // //
+	auto sv = conv::utf8_trim(std::string_view {str}.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1));
+	if (!AddAction(std::make_unique<ModuleAction::CCopyright>(sv)) && str != sv)
+		pEdit->SetWindowTextW(conv::to_wide(sv).data());
+	pEdit->SetSel(sel);
 }
 
 void CMainFrame::ChangeNoteState(int Note)
