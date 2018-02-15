@@ -55,64 +55,65 @@
 #include "Instrument.h"
 #include "Sequence.h"
 #include "Assertion.h"
+#include "str_conv/str_conv.hpp"
 
 // Clipboard ID
-const TCHAR CFamiTrackerView::CLIPBOARD_ID[] = _T("FamiTracker Pattern");
+const WCHAR CFamiTrackerView::CLIPBOARD_ID[] = L"FamiTracker Pattern";
 
 // Effect texts
 // 0CC: add verbose description as in modplug
-const CString EFFECT_TEXTS[] = {		// // //
-	_T("Fxx - Set speed to XX, cancels groove"),
-	_T("Fxx - Set tempo to XX"),
-	_T("Bxx - Jump to beginning of frame XX"),
-	_T("Dxx - Skip to row XX of next frame"),
-	_T("Cxx - Halt song"),
-	_T("Exx - Set length counter index to XX"),
-	_T("EEx - Set length counter mode, bit 0 = length counter, bit 1 = disable loop"),
-	_T("3xx - Automatic portamento, XX = speed"),
-	_T("(not used)"),
-	_T("Hxy - Hardware sweep up, X = speed, Y = shift"),
-	_T("Ixy - Hardware sweep down, X = speed, Y = shift"),
-	_T("0xy - Arpeggio, X = second note, Y = third note"),
-	_T("4xy - Vibrato, X = speed, Y = depth"),
-	_T("7xy - Tremolo, X = speed, Y = depth"),
-	_T("Pxx - Fine pitch, XX - 80 = offset"),
-	_T("Gxx - Row delay, XX = number of frames"),
-	_T("Zxx - DPCM delta counter setting, XX = DC bias"),
-	_T("1xx - Slide up, XX = speed"),
-	_T("2xx - Slide down, XX = speed"),
-	_T("Vxx - Set Square duty / Noise mode to XX"),
-	_T("Vxx - Set N163 wave index to XX"),
-	_T("Vxx - Set VRC7 patch index to XX"),
-	_T("Yxx - Set DPCM sample offset to XX"),
-	_T("Qxy - Portamento up, X = speed, Y = notes"),
-	_T("Rxy - Portamento down, X = speed, Y = notes"),
-	_T("Axy - Volume slide, X = up, Y = down"),
-	_T("Sxx - Note cut, XX = frames to wait"),
-	_T("Sxx - Triangle channel linear counter, XX - 80 = duration"),
-	_T("Xxx - DPCM retrigger, XX = frames to wait"),
-	_T("Mxy - Delayed channel volume, X = frames to wait, Y = channel volume"),
-	_T("Hxx - FDS modulation depth, XX = depth, 3F = highest"),
-	_T("Hxx - Auto FDS modulation ratio, XX - 80 = multiplier"),
-	_T("I0x - FDS modulation rate, high byte; disable auto modulation"),
-	_T("Ixy - Auto FDS modulation, X = multiplier, Y + 1 = divider"),
-	_T("Jxx - FDS modulation rate, low byte"),
-	_T("W0x - DPCM pitch, F = highest"),
-	_T("H0y - 5B envelope shape, bit 3 = Continue, bit 2 = Attack, bit 1 = Alternate, bit 0 = Hold"),
-	_T("Hxy - Auto 5B envelope, X - 8 = shift amount, Y = shape"),
-	_T("Ixx - 5B envelope rate, high byte"),
-	_T("Jxx - 5B envelope rate, low byte"),
-	_T("Wxx - 5B noise pitch, 1F = lowest"),
-	_T("Hxx - VRC7 custom patch port, XX = register address"),
-	_T("Ixx - VRC7 custom patch write, XX = register value"),
-	_T("Lxx - Note release, XX = frames to wait"),
-	_T("Oxx - Set groove to XX"),
-	_T("Txy - Delayed transpose (upward), X = frames to wait, Y = semitone offset"),
-	_T("Txy - Delayed transpose (downward), X - 8 = frames to wait, Y = semitone offset"),
-	_T("Zxx - N163 wave buffer access, XX = position in bytes"),
-	_T("Exx - FDS volume envelope (attack), XX = rate"),
-	_T("Exx - FDS volume envelope (decay), XX - 40 = rate"),
-	_T("Zxx - Auto FDS modulation rate bias, XX - 80 = offset"),
+const CStringW EFFECT_TEXTS[] = {		// // //
+	L"Fxx - Set speed to XX, cancels groove",
+	L"Fxx - Set tempo to XX",
+	L"Bxx - Jump to beginning of frame XX",
+	L"Dxx - Skip to row XX of next frame",
+	L"Cxx - Halt song",
+	L"Exx - Set length counter index to XX",
+	L"EEx - Set length counter mode, bit 0 = length counter, bit 1 = disable loop",
+	L"3xx - Automatic portamento, XX = speed",
+	L"(not used)",
+	L"Hxy - Hardware sweep up, X = speed, Y = shift",
+	L"Ixy - Hardware sweep down, X = speed, Y = shift",
+	L"0xy - Arpeggio, X = second note, Y = third note",
+	L"4xy - Vibrato, X = speed, Y = depth",
+	L"7xy - Tremolo, X = speed, Y = depth",
+	L"Pxx - Fine pitch, XX - 80 = offset",
+	L"Gxx - Row delay, XX = number of frames",
+	L"Zxx - DPCM delta counter setting, XX = DC bias",
+	L"1xx - Slide up, XX = speed",
+	L"2xx - Slide down, XX = speed",
+	L"Vxx - Set Square duty / Noise mode to XX",
+	L"Vxx - Set N163 wave index to XX",
+	L"Vxx - Set VRC7 patch index to XX",
+	L"Yxx - Set DPCM sample offset to XX",
+	L"Qxy - Portamento up, X = speed, Y = notes",
+	L"Rxy - Portamento down, X = speed, Y = notes",
+	L"Axy - Volume slide, X = up, Y = down",
+	L"Sxx - Note cut, XX = frames to wait",
+	L"Sxx - Triangle channel linear counter, XX - 80 = duration",
+	L"Xxx - DPCM retrigger, XX = frames to wait",
+	L"Mxy - Delayed channel volume, X = frames to wait, Y = channel volume",
+	L"Hxx - FDS modulation depth, XX = depth, 3F = highest",
+	L"Hxx - Auto FDS modulation ratio, XX - 80 = multiplier",
+	L"I0x - FDS modulation rate, high byte; disable auto modulation",
+	L"Ixy - Auto FDS modulation, X = multiplier, Y + 1 = divider",
+	L"Jxx - FDS modulation rate, low byte",
+	L"W0x - DPCM pitch, F = highest",
+	L"H0y - 5B envelope shape, bit 3 = Continue, bit 2 = Attack, bit 1 = Alternate, bit 0 = Hold",
+	L"Hxy - Auto 5B envelope, X - 8 = shift amount, Y = shape",
+	L"Ixx - 5B envelope rate, high byte",
+	L"Jxx - 5B envelope rate, low byte",
+	L"Wxx - 5B noise pitch, 1F = lowest",
+	L"Hxx - VRC7 custom patch port, XX = register address",
+	L"Ixx - VRC7 custom patch write, XX = register value",
+	L"Lxx - Note release, XX = frames to wait",
+	L"Oxx - Set groove to XX",
+	L"Txy - Delayed transpose (upward), X = frames to wait, Y = semitone offset",
+	L"Txy - Delayed transpose (downward), X - 8 = frames to wait, Y = semitone offset",
+	L"Zxx - N163 wave buffer access, XX = position in bytes",
+	L"Exx - FDS volume envelope (attack), XX = rate",
+	L"Exx - FDS volume envelope (decay), XX - 40 = rate",
+	L"Zxx - Auto FDS modulation rate bias, XX - 80 = offset",
 };
 
 // OLE copy and mix
@@ -394,11 +395,11 @@ void CFamiTrackerView::OnDraw(CDC* pDC)
 
 	// Check document
 	if (!GetDocument()->IsFileLoaded()) {
-		LPCTSTR str = _T("No module loaded.");
+		LPCWSTR str = L"No module loaded.";
 		pDC->FillSolidRect(0, 0, m_iWindowWidth, m_iWindowHeight, 0x000000);
 		pDC->SetTextColor(0xFFFFFF);
 		CRect textRect(0, 0, m_iWindowWidth, m_iWindowHeight);
-		pDC->DrawText(str, _tcslen(str), &textRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		pDC->DrawTextW(str, _tcslen(str), &textRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 		return;
 	}
 
@@ -615,7 +616,7 @@ void CFamiTrackerView::OnRButtonUp(UINT nFlags, CPoint point)
 	if (m_pPatternEditor->IsOverHeader(point)) {
 		// Pattern header
 		m_iMenuChannel = TranslateChannel(m_pPatternEditor->GetChannelAtPoint(point.x));		// // //
-		PopupMenuBar.LoadMenu(IDR_PATTERN_HEADER_POPUP);
+		PopupMenuBar.LoadMenuW(IDR_PATTERN_HEADER_POPUP);
 		static_cast<CMainFrame*>(theApp.GetMainWnd())->UpdateMenu(&PopupMenuBar);
 		pPopupMenu = PopupMenuBar.GetSubMenu(0);
 		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDTOINST, theApp.GetSoundGenerator()->IsPlaying() ? MF_DISABLED : MF_ENABLED);		// // //
@@ -628,7 +629,7 @@ void CFamiTrackerView::OnRButtonUp(UINT nFlags, CPoint point)
 	else if (m_pPatternEditor->IsOverPattern(point)) {		// // // 050B todo
 		// Pattern area
 		m_iMenuChannel = chan_id_t::NONE;
-		PopupMenuBar.LoadMenu(IDR_PATTERN_POPUP);
+		PopupMenuBar.LoadMenuW(IDR_PATTERN_POPUP);
 		static_cast<CMainFrame*>(theApp.GetMainWnd())->UpdateMenu(&PopupMenuBar);
 		pPopupMenu = PopupMenuBar.GetSubMenu(0);
 		// Send messages to parent in order to get the menu options working
@@ -1076,7 +1077,7 @@ void CFamiTrackerView::OnTrackerPlayrow()
 
 void CFamiTrackerView::OnEditCopyAsVolumeSequence()		// // //
 {
-	CString str;
+	CStringW str;
 	m_pPatternEditor->GetVolumeColumn(str);
 
 	CClipboard Clipboard(this, CF_TEXT);
@@ -1086,14 +1087,14 @@ void CFamiTrackerView::OnEditCopyAsVolumeSequence()		// // //
 		return;
 	}
 
-	if (!Clipboard.SetDataPointer((LPCTSTR)str, str.GetLength() + 1)) {
+	if (!Clipboard.SetDataPointer((LPCWSTR)str, str.GetLength() + 1)) {
 		AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
 	}
 }
 
 void CFamiTrackerView::OnEditCopyAsText()		// // //
 {
-	CString str;
+	CStringW str;
 	m_pPatternEditor->GetSelectionAsText(str);
 
 	CClipboard Clipboard(this, CF_TEXT);
@@ -1103,14 +1104,14 @@ void CFamiTrackerView::OnEditCopyAsText()		// // //
 		return;
 	}
 
-	if (!Clipboard.SetDataPointer((LPCTSTR)str, str.GetLength() + 1)) {
+	if (!Clipboard.SetDataPointer((LPCWSTR)str, str.GetLength() + 1)) {
 		AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
 	}
 }
 
 void CFamiTrackerView::OnEditCopyAsPPMCK()		// // //
 {
-	CString str;
+	CStringW str;
 	m_pPatternEditor->GetSelectionAsPPMCK(str);
 
 	CClipboard Clipboard(this, CF_TEXT);
@@ -1120,7 +1121,7 @@ void CFamiTrackerView::OnEditCopyAsPPMCK()		// // //
 		return;
 	}
 
-	if (!Clipboard.SetDataPointer((LPCTSTR)str, str.GetLength() + 1)) {
+	if (!Clipboard.SetDataPointer((LPCWSTR)str, str.GetLength() + 1)) {
 		AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
 	}
 }
@@ -1144,7 +1145,7 @@ void CFamiTrackerView::OnInitialUpdate()
 
 	CFrameEditor *pFrameEditor = GetFrameEditor();
 
-	TRACE("View: OnInitialUpdate (%s)\n", pDoc->GetTitle());
+	TRACE(L"View: OnInitialUpdate (%s)\n", pDoc->GetTitle());
 
 	// Setup order window
 	pFrameEditor->AssignView(*this);		// // //
@@ -1562,7 +1563,7 @@ void CFamiTrackerView::OnBookmarksToggle()
 		pMark->m_Highlight.First = pMark->m_Highlight.Second = -1;
 		pMark->m_bPersist = false;
 		char buf[32] = {};
-		sprintf_s(buf, sizeof(buf), _T("Bookmark %i"), Col.GetCount() + 1);
+		sprintf_s(buf, std::size(buf), "Bookmark %i", Col.GetCount() + 1);
 		pMark->m_sName = buf;
 		Col.AddBookmark(std::move(pMark));
 	}
@@ -1587,12 +1588,12 @@ void CFamiTrackerView::OnBookmarksNext()
 	if (CBookmark *pMark = Col.FindNext(GetSelectedFrame(), GetSelectedRow())) {
 		SelectFrame(pMark->m_iFrame);
 		SelectRow(pMark->m_iRow);
-		CString str1 = _T("None");
-		if (pMark->m_Highlight.First != -1) str1.Format(_T("%i"), pMark->m_Highlight.First);
-		CString str2 = _T("None");
-		if (pMark->m_Highlight.Second != -1) str2.Format(_T("%i"), pMark->m_Highlight.Second);
-		CString Text;
-		AfxFormatString3(Text, IDS_BOOKMARK_FORMAT, pMark->m_sName.c_str(), str1, str2);
+		CStringW str1 = L"None";
+		if (pMark->m_Highlight.First != -1) str1.Format(L"%i", pMark->m_Highlight.First);
+		CStringW str2 = L"None";
+		if (pMark->m_Highlight.Second != -1) str2.Format(L"%i", pMark->m_Highlight.Second);
+		CStringW Text;
+		AfxFormatString3(Text, IDS_BOOKMARK_FORMAT, conv::to_wide(pMark->m_sName).data(), str1, str2);
 		pMainFrame->SetMessageText(Text);
 		pMainFrame->UpdateBookmarkList(Col.GetBookmarkIndex(pMark));
 		SetFocus();
@@ -1614,12 +1615,12 @@ void CFamiTrackerView::OnBookmarksPrevious()
 	if (CBookmark *pMark = Col.FindPrevious(GetSelectedFrame(), GetSelectedRow())) {
 		SelectFrame(pMark->m_iFrame);
 		SelectRow(pMark->m_iRow);
-		CString str1 = _T("None");
-		if (pMark->m_Highlight.First != -1) str1.Format(_T("%i"), pMark->m_Highlight.First);
-		CString str2 = _T("None");
-		if (pMark->m_Highlight.Second != -1) str2.Format(_T("%i"), pMark->m_Highlight.Second);
-		CString Text;
-		AfxFormatString3(Text, IDS_BOOKMARK_FORMAT, pMark->m_sName.c_str(), str1, str2);
+		CStringW str1 = L"None";
+		if (pMark->m_Highlight.First != -1) str1.Format(L"%i", pMark->m_Highlight.First);
+		CStringW str2 = L"None";
+		if (pMark->m_Highlight.Second != -1) str2.Format(L"%i", pMark->m_Highlight.Second);
+		CStringW Text;
+		AfxFormatString3(Text, IDS_BOOKMARK_FORMAT, conv::to_wide(pMark->m_sName).data(), str1, str2);
 		pMainFrame->SetMessageText(Text);
 		pMainFrame->UpdateBookmarkList(Col.GetBookmarkIndex(pMark));
 		SetFocus();
@@ -2020,7 +2021,7 @@ void CFamiTrackerView::TriggerMIDINote(std::size_t Index, unsigned int MidiNote,
 
 	m_iLastMIDINote = MidiNote;
 
-	TRACE("%i: Trigger note %i on channel %i\n", GetTickCount(), MidiNote, Index);
+	TRACE(L"%i: Trigger note %i on channel %i\n", GetTickCount(), MidiNote, Index);
 }
 
 // Cut the currently playing note
@@ -2051,7 +2052,7 @@ void CFamiTrackerView::CutMIDINote(std::size_t Index, unsigned int MidiNote, boo
 	if (theApp.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
 		HaltNote(Index, Note, Octave);		// // //
 
-	TRACE("%i: Cut note %i on channel %i\n", GetTickCount(), MidiNote, Index);
+	TRACE(L"%i: Cut note %i on channel %i\n", GetTickCount(), MidiNote, Index);
 }
 
 // Release the currently playing note
@@ -2082,13 +2083,13 @@ void CFamiTrackerView::ReleaseMIDINote(std::size_t Index, unsigned int MidiNote,
 	if (theApp.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
 		ReleaseNote(Index, Note, Octave);		// // //
 
-	TRACE("%i: Release note %i on channel %i\n", GetTickCount(), MidiNote, Index);
+	TRACE(L"%i: Release note %i on channel %i\n", GetTickCount(), MidiNote, Index);
 }
 
 void CFamiTrackerView::UpdateArpDisplay()
 {
 	if (auto str = m_pArpeggiator->GetStateString(); !str.empty())		// // //
-		GetParentFrame()->SetMessageText(str.c_str());
+		GetParentFrame()->SetMessageText(conv::to_wide(str).data());
 }
 
 void CFamiTrackerView::UpdateNoteQueues() {		// // //
@@ -3050,7 +3051,7 @@ bool CFamiTrackerView::PreviewNote(unsigned char Key)
 
 	int Note = TranslateKey(Key);
 
-	TRACE("View: Note preview\n");
+	TRACE(L"View: Note preview\n");
 
 	if (Note > 0) {
 		TriggerMIDINote(GetSelectedChannel(), Note, 0x7F, false);
@@ -3084,7 +3085,7 @@ void CFamiTrackerView::TranslateMidiMessage()
 
 	CMIDI *pMIDI = theApp.GetMIDI();
 	CSongView *pSongView = GetSongView();		// // //
-	CString Status;
+	CStringW Status;
 
 	if (!pMIDI || !pSongView)
 		return;
@@ -3395,7 +3396,7 @@ bool CFamiTrackerView::AddAction(std::unique_ptr<CAction> pAction) const		// // 
 
 DROPEFFECT CFamiTrackerView::OnDragEnter(COleDataObject* pDataObject, DWORD dwKeyState, CPoint point)
 {
-	TRACE("OLE: OnDragEnter\n");
+	TRACE(L"OLE: OnDragEnter\n");
 
 	sel_condition_t Cond = m_pPatternEditor->GetSelectionCondition();
 	if (m_pPatternEditor->GetSelectionCondition() == SEL_NONTERMINAL_SKIP) {		// // //
@@ -3436,7 +3437,7 @@ DROPEFFECT CFamiTrackerView::OnDragEnter(COleDataObject* pDataObject, DWORD dwKe
 
 void CFamiTrackerView::OnDragLeave()
 {
-	TRACE("OLE: OnDragLeave\n");
+	TRACE(L"OLE: OnDragLeave\n");
 
 	if (m_nDropEffect != DROPEFFECT_NONE) {
 		m_pPatternEditor->EndDrag();
@@ -3450,7 +3451,7 @@ void CFamiTrackerView::OnDragLeave()
 
 DROPEFFECT CFamiTrackerView::OnDragOver(COleDataObject* pDataObject, DWORD dwKeyState, CPoint point)
 {
-	TRACE("OLE: OnDragOver\n");
+	TRACE(L"OLE: OnDragOver\n");
 
 	// Update drag'n'drop cursor
 	if (m_nDropEffect != DROPEFFECT_NONE) {
@@ -3463,7 +3464,7 @@ DROPEFFECT CFamiTrackerView::OnDragOver(COleDataObject* pDataObject, DWORD dwKey
 
 BOOL CFamiTrackerView::OnDrop(COleDataObject* pDataObject, DROPEFFECT dropEffect, CPoint point)
 {
-	TRACE("OLE: OnDrop\n");
+	TRACE(L"OLE: OnDrop\n");
 
 	BOOL Result = FALSE;
 
@@ -3494,7 +3495,7 @@ BOOL CFamiTrackerView::OnDrop(COleDataObject* pDataObject, DROPEFFECT dropEffect
 
 void CFamiTrackerView::BeginDragData(int ChanOffset, int RowOffset)
 {
-	TRACE("OLE: BeginDragData\n");
+	TRACE(L"OLE: BeginDragData\n");
 
 	std::unique_ptr<CPatternClipData> pClipData(m_pPatternEditor->Copy());
 
@@ -3538,14 +3539,14 @@ void CFamiTrackerView::OnUpdateFind(CCmdUI *pCmdUI)		// // //
 }
 
 void CFamiTrackerView::OnRecallChannelState() {		// // //
-	GetParentFrame()->SetMessageText(theApp.GetSoundGenerator()->RecallChannelState(GetSelectedChannelID()).c_str());
+	GetParentFrame()->SetMessageText(conv::to_wide(theApp.GetSoundGenerator()->RecallChannelState(GetSelectedChannelID())).data());
 }
 
-CString	CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) const		// // //
+CStringW	CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) const		// // //
 {
 	int Index = Note.EffNumber[Column];
 	int Param = Note.EffParam[Column];
-	if (Index >= EF_COUNT) return _T("Undefined effect");
+	if (Index >= EF_COUNT) return L"Undefined effect";
 
 	sound_chip_t Chip = GetChipFromChannel(GetSelectedChannelID());
 	if (Index > EF_FDS_VOLUME || (Index == EF_FDS_VOLUME && Param >= 0x40)) ++Index;

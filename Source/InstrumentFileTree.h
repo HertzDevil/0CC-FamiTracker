@@ -32,9 +32,9 @@
 class CInstrumentFileTree
 {
 public:
-	bool BuildMenuTree(const CString &instrumentPath);		// // //
+	bool BuildMenuTree(const CStringW &instrumentPath);		// // //
 	CMenu &GetMenu();		// // //
-	CString GetFile(int Index) const;
+	CStringW GetFile(int Index) const;
 	bool ShouldRebuild() const;
 	void Changed();
 
@@ -48,12 +48,12 @@ public:
 	static const int CACHE_TIMEOUT = 60000;	// 1 minute
 
 protected:
-	bool ScanDirectory(const CString &path, CMenu &Menu, int level);		// // //
+	bool ScanDirectory(const CStringW &path, CMenu &Menu, int level);		// // //
 
 private:
 	CMenu m_RootMenu;		// // //
 	int m_iFileIndex = 0;
-	std::vector<CString> m_fileList;		// // //
+	std::vector<CStringW> m_fileList;		// // //
 	std::vector<std::unique_ptr<CMenu>> m_menuArray;		// // //
 	DWORD m_iTimeout;
 	bool m_bShouldRebuild = true;

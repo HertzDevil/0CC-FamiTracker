@@ -29,6 +29,7 @@
 #include "SequenceParser.h"		// // //
 #include "DPI.h"		// // //
 #include "NumConv.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 // CInstrumentEditPanel dialog
 //
@@ -90,7 +91,7 @@ HBRUSH CInstrumentEditPanel::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 BOOL CInstrumentEditPanel::PreTranslateMessage(MSG* pMsg)
 {
-	TCHAR ClassName[256];
+	WCHAR ClassName[256];
 
 	switch (pMsg->message) {
 		case WM_KEYDOWN:
@@ -113,7 +114,7 @@ BOOL CInstrumentEditPanel::PreTranslateMessage(MSG* pMsg)
 				default:	// Note keys
 					// Make sure the dialog is selected when previewing
 					GetClassName(pMsg->hwnd, ClassName, 256);
-					if (_tcscmp(ClassName, _T("Edit"))) {
+					if (0 != wcscmp(ClassName, L"Edit")) {
 						// Remove repeated keys
 						if ((pMsg->lParam & (1 << 30)) == 0)
 							PreviewNote((unsigned char)pMsg->wParam);
@@ -200,7 +201,7 @@ BEGIN_MESSAGE_MAP(CSequenceInstrumentEditPanel, CInstrumentEditPanel)
 	ON_NOTIFY(NM_RCLICK, IDC_INSTSETTINGS, OnRClickInstSettings)
 END_MESSAGE_MAP()
 
-void CSequenceInstrumentEditPanel::SetupDialog(const LPCTSTR *pListItems)		// // //
+void CSequenceInstrumentEditPanel::SetupDialog(const LPCSTR *pListItems)		// // //
 {
 	// Instrument settings
 	CListCtrl *pList = static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS));
@@ -210,17 +211,17 @@ void CSequenceInstrumentEditPanel::SetupDialog(const LPCTSTR *pListItems)		// //
 	int Width = r.Width();
 
 	pList->DeleteAllItems();
-	pList->InsertColumn(0, _T(""), LVCFMT_LEFT, static_cast<int>(.18 * Width));
-	pList->InsertColumn(1, _T("#"), LVCFMT_LEFT, static_cast<int>(.22 * Width));
-	pList->InsertColumn(2, _T("Effect name"), LVCFMT_LEFT, static_cast<int>(.6 * Width));
-	pList->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
+	pList->InsertColumn(0, L"", LVCFMT_LEFT, static_cast<int>(.18 * Width));
+	pList->InsertColumn(1, L"#", LVCFMT_LEFT, static_cast<int>(.22 * Width));
+	pList->InsertColumn(2, L"Effect name", LVCFMT_LEFT, static_cast<int>(.6 * Width));
+	pList->SendMessageW(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
 
 	foreachSeq([&] (sequence_t i) {
 		int nItem = value_cast(i);
-		pList->InsertItem(nItem, _T(""), 0);
+		pList->InsertItem(nItem, L"", 0);
 		pList->SetCheck(nItem, 0);
-		pList->SetItemText(nItem, 1, _T("0"));
-		pList->SetItemText(nItem, 2, pListItems[nItem]);
+		pList->SetItemText(nItem, 1, L"0");
+		pList->SetItemText(nItem, 2, conv::to_wide(pListItems[nItem]).data());
 	});
 
 	pList->SetItemState(value_cast(m_iSelectedSetting), LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
@@ -255,10 +256,10 @@ void CSequenceInstrumentEditPanel::PreviewNote(unsigned char Key)
 		CInstrumentEditPanel::PreviewNote(Key);
 }
 
-void CSequenceInstrumentEditPanel::TranslateMML(CString String) const
+void CSequenceInstrumentEditPanel::TranslateMML(const CStringW &String) const
 {
 	// Takes a string and translates it into a sequence
-	m_pParser->ParseSequence((LPCTSTR)String);		// // //
+	m_pParser->ParseSequence(conv::to_utf8(String));		// // //
 
 	// Update editor
 	if (m_pSequenceEditor != nullptr)
@@ -278,7 +279,7 @@ void CSequenceInstrumentEditPanel::OnRClickInstSettings(NMHDR* pNMHDR, LRESULT* 
 
 	// Display clone menu
 	CMenu contextMenu;
-	contextMenu.LoadMenu(IDR_SEQUENCE_POPUP);
+	contextMenu.LoadMenuW(IDR_SEQUENCE_POPUP);
 	CMenu *pMenu = contextMenu.GetSubMenu(0);
 	pMenu->EnableMenuItem(ID_CLONE_SEQUENCE, (m_pSequence->GetItemCount() != 0) ? MF_ENABLED : MF_DISABLED);
 	pMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, oPoint.x, oPoint.y, this);

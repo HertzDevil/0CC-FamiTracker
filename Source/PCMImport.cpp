@@ -34,6 +34,7 @@
 #include "resampler/resample.hpp"
 #include "resampler/resample.inl"
 #include <algorithm>		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 const int CPCMImport::QUALITY_RANGE = 16;
 const int CPCMImport::VOLUME_RANGE = 12;		// +/- dB
@@ -140,7 +141,7 @@ private:
 class CFileSoundDialog : public CFileDialog
 {
 public:
-	CFileSoundDialog(BOOL bOpenFileDialog, LPCTSTR lpszDefExt = NULL, LPCTSTR lpszFileName = NULL, DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, LPCTSTR lpszFilter = NULL, CWnd* pParentWnd = NULL, DWORD dwSize = 0);
+	CFileSoundDialog(BOOL bOpenFileDialog, LPCWSTR lpszDefExt = NULL, LPCWSTR lpszFileName = NULL, DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, LPCWSTR lpszFilter = NULL, CWnd* pParentWnd = NULL, DWORD dwSize = 0);
 	~CFileSoundDialog();
 
 protected:
@@ -149,7 +150,7 @@ protected:
 
 //	CFileSoundDialog
 
-CFileSoundDialog::CFileSoundDialog(BOOL bOpenFileDialog, LPCTSTR lpszDefExt, LPCTSTR lpszFileName, DWORD dwFlags, LPCTSTR lpszFilter, CWnd* pParentWnd, DWORD dwSize)
+CFileSoundDialog::CFileSoundDialog(BOOL bOpenFileDialog, LPCWSTR lpszDefExt, LPCWSTR lpszFileName, DWORD dwFlags, LPCWSTR lpszFilter, CWnd* pParentWnd, DWORD dwSize)
 	: CFileDialog(bOpenFileDialog, lpszDefExt, lpszFileName, dwFlags, lpszFilter, pParentWnd, dwSize)
 {
 }
@@ -164,7 +165,7 @@ void CFileSoundDialog::OnFileNameChange()
 {
 	// Preview wave file
 
-	if (!GetFileExt().CompareNoCase(_T("wav")) && Env.GetSettings()->General.bWavePreview)
+	if (!GetFileExt().CompareNoCase(L"wav") && Env.GetSettings()->General.bWavePreview)
 		PlaySound(GetPathName(), NULL, SND_FILENAME | SND_NODEFAULT | SND_ASYNC | SND_NOWAIT);
 
 	CFileDialog::OnFileNameChange();
@@ -202,7 +203,7 @@ END_MESSAGE_MAP()
 std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ShowDialog() {		// // //
 	// Return imported sample, or NULL if cancel/error
 
-	CString fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, _T(".wav"));
+	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, L".wav");
 	CFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY, fileFilter);
 
 	OpenFileDialog.m_pOFN->lpstrInitialDir = Env.GetSettings()->GetPath(PATH_WAV);
@@ -252,15 +253,15 @@ BOOL CPCMImport::OnInitDialog()
 
 	UpdateText();
 
-	CString text;
-	AfxFormatString1(text, IDS_DPCM_IMPORT_SIZE_FORMAT, _T("(unknown)"));
-	SetDlgItemText(IDC_SAMPLESIZE, text);
+	CStringW text;
+	AfxFormatString1(text, IDS_DPCM_IMPORT_SIZE_FORMAT, L"(unknown)");
+	SetDlgItemTextW(IDC_SAMPLESIZE, text);
 
 	UpdateFileInfo();
 
-	CString Title;
+	CStringW Title;
 	AfxFormatString1(Title, IDS_DPCM_IMPORT_TITLE_FORMAT, m_strFileName);
-	SetWindowText(Title);
+	SetWindowTextW(Title);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
@@ -282,11 +283,11 @@ void CPCMImport::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 
 void CPCMImport::UpdateText()
 {
-	CString Text;
+	CStringW Text;
 	AfxFormatString1(Text, IDS_DPCM_IMPORT_QUALITY_FORMAT, MakeIntString(m_iQuality));
-	SetDlgItemText(IDC_QUALITY_FRM, Text);
-	AfxFormatString1(Text, IDS_DPCM_IMPORT_GAIN_FORMAT, MakeFloatString(float(m_iVolume), _T("%+.0f")));
-	SetDlgItemText(IDC_VOLUME_FRM, Text);
+	SetDlgItemTextW(IDC_QUALITY_FRM, Text);
+	AfxFormatString1(Text, IDS_DPCM_IMPORT_GAIN_FORMAT, MakeFloatString(float(m_iVolume), L"%+.0f"));
+	SetDlgItemTextW(IDC_VOLUME_FRM, Text);
 }
 
 void CPCMImport::OnBnClickedCancel()
@@ -307,7 +308,7 @@ void CPCMImport::OnBnClickedOk()
 		m_strFileName.Truncate(m_strFileName.GetLength() - 4);
 
 		// Set the name
-		pSample->rename((LPCSTR)m_strFileName);
+		pSample->rename(conv::to_utf8(m_strFileName));
 
 		m_pImported = std::move(pSample);
 		m_pCachedSample.reset();
@@ -319,9 +320,9 @@ void CPCMImport::OnBnClickedOk()
 void CPCMImport::OnBnClickedPreview()
 {
 	if (auto pSample = GetSample()) {		// // //
-		CString text;
+		CStringW text;
 		AfxFormatString1(text, IDS_DPCM_IMPORT_SIZE_FORMAT, MakeIntString(pSample->size()));
-		SetDlgItemText(IDC_SAMPLESIZE, text);
+		SetDlgItemTextW(IDC_SAMPLESIZE, text);
 
 		// Preview the sample
 		Env.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, m_iQuality);
@@ -330,20 +331,20 @@ void CPCMImport::OnBnClickedPreview()
 
 void CPCMImport::UpdateFileInfo()
 {
-	CString SampleRate;
+	CStringW SampleRate;
 
 	AfxFormatString3(SampleRate, IDS_DPCM_IMPORT_WAVE_FORMAT,
 		MakeIntString(m_iSamplesPerSec),
 		MakeIntString(m_iSampleSize * 8),
-		(m_iChannels == 2) ? _T("Stereo") : _T("Mono"));
+		(m_iChannels == 2) ? L"Stereo" : L"Mono");
 
-	SetDlgItemText(IDC_SAMPLE_RATE, SampleRate);
+	SetDlgItemTextW(IDC_SAMPLE_RATE, SampleRate);
 
 	float base_freq = (float)CAPU::BASE_FREQ_NTSC / (float)CDPCM::DMC_PERIODS_NTSC[m_iQuality];
 
-	CString Resampling;
+	CStringW Resampling;
 	AfxFormatString1(Resampling, IDS_DPCM_IMPORT_TARGET_FORMAT, MakeFloatString(base_freq));
-	SetDlgItemText(IDC_RESAMPLING, Resampling);
+	SetDlgItemTextW(IDC_RESAMPLING, Resampling);
 }
 
 std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::GetSample() {		// // //
@@ -462,11 +463,11 @@ bool CPCMImport::OpenWaveFile()
 	m_iWaveSize = 0;
 	m_ullSampleStart = 0;
 
-	TRACE(_T("DPCM import: Loading wave file %s...\n"), m_strPath);
+	TRACE(L"DPCM import: Loading wave file %s...\n", m_strPath);
 
 	if (!m_fSampleFile.Open(m_strPath, CFile::modeRead, &ex)) {
-		TCHAR   szCause[255];
-		CString strFormatted;
+		WCHAR   szCause[255];
+		CStringW strFormatted;
 		ex.GetErrorMessage(szCause, 255);
 		AfxFormatString1(strFormatted, IDS_OPEN_FILE_ERROR, szCause);
 		AfxMessageBox(strFormatted);
@@ -489,7 +490,7 @@ bool CPCMImport::OpenWaveFile()
 	while (Scanning) {
 		if (m_fSampleFile.Read(Header, 4) < 4) {
 			Scanning = false;
-			TRACE(_T("DPCM import: End of file reached\n"));
+			TRACE(L"DPCM import: End of file reached\n");
 		}
 
 		if (!memcmp(Header, "WAVE", 4)) {
@@ -500,7 +501,7 @@ bool CPCMImport::OpenWaveFile()
 
 			if (!memcmp(Header, "fmt ", 4)) {
 				// Read the wave-format
-				TRACE(_T("DPCM import: Found fmt block\n"));
+				TRACE(L"DPCM import: Found fmt block\n");
 				int ReadSize = BlockSize;
 				if (ReadSize > sizeof(PCMWAVEFORMAT))
 					ReadSize = sizeof(PCMWAVEFORMAT);
@@ -513,20 +514,20 @@ bool CPCMImport::OpenWaveFile()
 					// Invalid audio format
 					Scanning = false;
 					ValidWave = false;
-					TRACE(_T("DPCM import: Unrecognized wave format (%i)\n"), WaveFormat.wf.wFormatTag);
+					TRACE(L"DPCM import: Unrecognized wave format (%i)\n", WaveFormat.wf.wFormatTag);
 				}
 
 			}
 			else if (!memcmp(Header, "data", 4)) {
 				// Actual wave-data, store the position
-				TRACE(_T("DPCM import: Found data block\n"));
+				TRACE(L"DPCM import: Found data block\n");
 				m_iWaveSize = BlockSize;
 				m_ullSampleStart = m_fSampleFile.GetPosition();
 				m_fSampleFile.Seek(BlockSize, CFile::current);
 			}
 			else {
 				// Unrecognized block
-				TRACE(_T("DPCM import: Unrecognized block %c%c%c%c\n"), Header[0], Header[1], Header[2], Header[3]);
+				TRACE(L"DPCM import: Unrecognized block %c%c%c%c\n", Header[0], Header[1], Header[2], Header[3]);
 				m_fSampleFile.Seek(BlockSize, CFile::current);
 			}
 		}
@@ -534,7 +535,7 @@ bool CPCMImport::OpenWaveFile()
 
 	if (!ValidWave || !WaveFormatFound || m_iWaveSize == 0) {
 		// Failed to load file properly, display error message and quit
-		TRACE(_T("DPCM import: Unsupported or invalid wave file\n"));
+		TRACE(L"DPCM import: Unsupported or invalid wave file\n");
 		m_fSampleFile.Close();
 		AfxMessageBox(IDS_DPCM_IMPORT_INVALID_WAVEFILE, MB_ICONEXCLAMATION);
 		return false;
@@ -547,7 +548,7 @@ bool CPCMImport::OpenWaveFile()
 	m_iAvgBytesPerSec = WaveFormat.wf.nAvgBytesPerSec;
 	m_iSamplesPerSec  = WaveFormat.wf.nSamplesPerSec;
 
-	TRACE(_T("DPCM import: Scan done (%i Hz, %i bits, %i channels)\n"), m_iSamplesPerSec, m_iSampleSize, m_iChannels);
+	TRACE(L"DPCM import: Scan done (%i Hz, %i bits, %i channels)\n", m_iSamplesPerSec, m_iSampleSize, m_iChannels);
 
 	return true;
 }

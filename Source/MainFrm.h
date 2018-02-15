@@ -153,7 +153,7 @@ public:
 
 private:
 	template <typename... T>
-	void	SetStatusText(LPCTSTR Text, T&&... args);		// // //
+	void	SetStatusText(LPCWSTR Text, T&&... args);		// // //
 	bool	CreateDialogPanels();
 	bool	CreateToolbars();
 	bool	CreateInstrumentToolbar();
@@ -167,8 +167,8 @@ private:
 	// Instrument list operations
 	void	NewInstrument(inst_type_t Inst);		// // //
 	void	ClearInstrumentList();
-	void	SetInstrumentEditName(const char *pText);		// // //
-	bool	LoadInstrument(unsigned Index, const CString &filename);		// // //
+	void	SetInstrumentEditName(std::wstring_view pText);		// // //
+	bool	LoadInstrument(unsigned Index, const CStringW &filename);		// // //
 	std::shared_ptr<CInstrument> GetSelectedInstrument() const;		// // //
 
 	void	SetFrameEditorPosition(int Position);
@@ -241,7 +241,7 @@ private:  // control bar embedded members
 	int					m_iInstNumCurrent;
 
 public:
-	virtual BOOL Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle = WS_OVERLAPPEDWINDOW, const RECT& rect = rectDefault, CWnd* pParentWnd = NULL, LPCTSTR lpszMenuName = NULL, DWORD dwExStyle = 0, CCreateContext* pContext = NULL);
+	virtual BOOL Create(LPCWSTR lpszClassName, LPCWSTR lpszWindowName, DWORD dwStyle = WS_OVERLAPPEDWINDOW, const RECT& rect = rectDefault, CWnd* pParentWnd = NULL, LPCWSTR lpszMenuName = NULL, DWORD dwExStyle = 0, CCreateContext* pContext = NULL);
 
 // Generated message map functions
 protected:

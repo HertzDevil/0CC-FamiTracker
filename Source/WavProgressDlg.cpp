@@ -26,6 +26,7 @@
 #include "APU\Types.h"
 #include "SoundGen.h"
 #include "WaveRenderer.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 // CWavProgressDlg dialog
 
@@ -65,7 +66,7 @@ void CWavProgressDlg::OnBnClickedCancel()
 	EndDialog(0);
 }
 
-void CWavProgressDlg::BeginRender(const CString &File, std::unique_ptr<CWaveRenderer> pRender)		// // //
+void CWavProgressDlg::BeginRender(const CStringW &File, std::unique_ptr<CWaveRenderer> pRender)		// // //
 {
 	m_sFile = File;
 	m_pWaveRenderer = std::move(pRender);		// // //
@@ -86,11 +87,11 @@ BOOL CWavProgressDlg::OnInitDialog()
 	pView->RedrawWindow();
 
 	// Start rendering
-	CString FileStr;
+	CStringW FileStr;
 	AfxFormatString1(FileStr, IDS_WAVE_PROGRESS_FILE_FORMAT, m_sFile);
-	SetDlgItemText(IDC_PROGRESS_FILE, FileStr);
+	SetDlgItemTextW(IDC_PROGRESS_FILE, FileStr);
 
-	if (!pSoundGen->RenderToFile(m_sFile.GetBuffer(), m_pWaveRenderer))		// // //
+	if (!pSoundGen->RenderToFile(m_sFile, m_pWaveRenderer))		// // //
 		EndDialog(0);
 
 	m_dwStartTime = GetTickCount();
@@ -106,23 +107,23 @@ void CWavProgressDlg::OnTimer(UINT_PTR nIDEvent)
 	CProgressCtrl *pProgressBar = static_cast<CProgressCtrl*>(GetDlgItem(IDC_PROGRESS_BAR));
 	CSoundGen *pSoundGen = Env.GetSoundGenerator();
 
-	SetDlgItemText(IDC_PROGRESS_LBL, m_pWaveRenderer->GetProgressString().c_str());
+	SetDlgItemTextW(IDC_PROGRESS_LBL, conv::to_wide(m_pWaveRenderer->GetProgressString()).data());
 	pProgressBar->SetPos(m_pWaveRenderer->GetProgressPercent());		// // //
 
-	CString str, Text;
+	CStringW str, Text;
 	const DWORD Time = (GetTickCount() - m_dwStartTime) / 1000;		// // //
-	str.Format(_T("%02i:%02i"), (Time / 60), (Time % 60));
+	str.Format(L"%02i:%02i", (Time / 60), (Time % 60));
 	AfxFormatString1(Text, IDS_WAVE_PROGRESS_ELAPSED_FORMAT, str);
-	SetDlgItemText(IDC_TIME, Text);
+	SetDlgItemTextW(IDC_TIME, Text);
 
 	if (!pSoundGen->IsRendering()) {
 		m_pWaveRenderer->CloseOutputFile();		// // //
-		SetDlgItemText(IDC_CANCEL, CString(MAKEINTRESOURCE(IDS_WAVE_EXPORT_DONE)));
-		CString title;
-		GetWindowText(title);
-		title.Append(_T(" "));
-		title.Append(CString(MAKEINTRESOURCE(IDS_WAVE_EXPORT_FINISHED)));
-		SetWindowText(title);
+		SetDlgItemTextW(IDC_CANCEL, CStringW(MAKEINTRESOURCE(IDS_WAVE_EXPORT_DONE)));
+		CStringW title;
+		GetWindowTextW(title);
+		title.Append(L" ");
+		title.Append(CStringW(MAKEINTRESOURCE(IDS_WAVE_EXPORT_FINISHED)));
+		SetWindowTextW(title);
 		pProgressBar->SetPos(100);
 		KillTimer(0);
 	}

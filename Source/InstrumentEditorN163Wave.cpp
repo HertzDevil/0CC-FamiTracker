@@ -34,6 +34,7 @@
 #include "NumConv.h"		// // //
 #include "sv_regex.h"		// // //
 #include <array>		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 // CInstrumentEditorN163Wave dialog
 
@@ -62,9 +63,9 @@ void CInstrumentEditorN163Wave::SelectInstrument(std::shared_ptr<CInstrument> pI
 	CComboBox *pSizeBox = static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE));
 	CComboBox *pPosBox = static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_POS));
 
-	pSizeBox->SelectString(-1, conv::sv_from_int(m_pInstrument->GetWaveSize()).data());		// // //
+	pSizeBox->SelectString(-1, conv::to_wide(conv::sv_from_int(m_pInstrument->GetWaveSize())).data());		// // //
 	FillPosBox(m_pInstrument->GetWaveSize());
-	pPosBox->SetWindowText(conv::sv_from_int(m_pInstrument->GetWavePos()).data());
+	pPosBox->SetWindowTextW(conv::to_wide(conv::sv_from_int(m_pInstrument->GetWavePos())).data());
 
 	/*
 	if (m_pInstrument->GetAutoWavePos()) {
@@ -112,21 +113,21 @@ BOOL CInstrumentEditorN163Wave::OnInitDialog()
 	CInstrumentEditPanel::OnInitDialog();
 
 	// Create wave editor
-	m_pWaveEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE, DPI::Rect(20, 30, 0, 0), this);		// // //
+	m_pWaveEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, L"", WS_CHILD | WS_VISIBLE, DPI::Rect(20, 30, 0, 0), this);		// // //
 	m_pWaveEditor->ShowWindow(SW_SHOW);
 	m_pWaveEditor->UpdateWindow();
 
 	CComboBox *pWaveSize = static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE));
 
 	for (int i = 4, im = WaveSizeAvailable(); i <= im; i += 4)
-		pWaveSize->AddString(conv::sv_from_int(i).data());
+		pWaveSize->AddString(conv::to_wide(conv::sv_from_int(i)).data());
 
 	int order[2] = {1, 0};		// // //
 	CRect r;
 	m_cWaveListCtrl.SubclassDlgItem(IDC_N163_WAVES, this);
 	m_cWaveListCtrl.GetClientRect(&r);		// // // 050B
-	m_cWaveListCtrl.InsertColumn(0, _T("Wave"), LVCFMT_LEFT, static_cast<int>(.85 * r.Width()));
-	m_cWaveListCtrl.InsertColumn(1, _T("#"), LVCFMT_LEFT, static_cast<int>(.15 * r.Width()));
+	m_cWaveListCtrl.InsertColumn(0, L"Wave", LVCFMT_LEFT, static_cast<int>(.85 * r.Width()));
+	m_cWaveListCtrl.InsertColumn(1, L"#", LVCFMT_LEFT, static_cast<int>(.15 * r.Width()));
 	m_cWaveListCtrl.SetColumnOrderArray(2, order);
 
 	m_WaveImage.Create(CInstrumentN163::MAX_WAVE_SIZE, 16, ILC_COLOR8, 0, CInstrumentN163::MAX_WAVE_COUNT);
@@ -214,9 +215,9 @@ void CInstrumentEditorN163Wave::OnPresetSawtooth()
 void CInstrumentEditorN163Wave::OnBnClickedCopy()
 {
 	// Assemble a MML string
-	CString Str;
+	CStringW Str;
 	for (auto x : m_pInstrument->GetSamples(m_iWaveIndex))		// // //
-		Str.AppendFormat(_T("%i "), x);
+		Str.AppendFormat(L"%i ", x);
 
 	CClipboard Clipboard(this, CF_TEXT);
 
@@ -225,7 +226,7 @@ void CInstrumentEditorN163Wave::OnBnClickedCopy()
 		return;
 	}
 
-	Clipboard.SetDataPointer((LPCTSTR)Str, Str.GetLength() + 1);
+	Clipboard.SetDataPointer((LPCWSTR)Str, Str.GetLength() + 1);
 }
 
 void CInstrumentEditorN163Wave::OnBnClickedPaste()
@@ -241,15 +242,15 @@ void CInstrumentEditorN163Wave::OnBnClickedPaste()
 	if (Clipboard.IsDataAvailable()) {
 		LPTSTR text = (LPTSTR)Clipboard.GetDataPointer();
 		if (text != NULL)
-			ParseString(text);
+			ParseString(conv::to_utf8(text));
 	}
 }
 
-void CInstrumentEditorN163Wave::ParseString(LPCTSTR pString)
+void CInstrumentEditorN163Wave::ParseString(std::string_view sv)
 {
 	int i = 0;
 	int im = WaveSizeAvailable();
-	for (auto x : re::tokens(pString)) {		// // //
+	for (auto x : re::tokens(sv)) {		// // //
 		int value = CSequenceInstrumentEditPanel::ReadStringValue(x.str());
 		m_pInstrument->SetSample(m_iWaveIndex, i, std::clamp(value, 0, 15));		// // //
 		if (++i >= im)
@@ -259,7 +260,7 @@ void CInstrumentEditorN163Wave::ParseString(LPCTSTR pString)
 	int size = std::clamp(i & 0xFC, 4, im);
 	m_pInstrument->SetWaveSize(size);
 
-	static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE))->SelectString(0, conv::sv_from_int(size).data());
+	static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_SIZE))->SelectString(0, conv::to_wide(conv::sv_from_int(size)).data());
 
 	FillPosBox(size);
 
@@ -270,11 +271,11 @@ void CInstrumentEditorN163Wave::ParseString(LPCTSTR pString)
 
 LRESULT CInstrumentEditorN163Wave::OnWaveChanged(WPARAM wParam, LPARAM lParam)
 {
-	CString str;
+	CStringW str;
 	for (auto x : m_pInstrument->GetSamples(m_iWaveIndex))		// // //
-		str.AppendFormat(_T("%i "), x);
+		str.AppendFormat(L"%i ", x);
 
-	SetDlgItemText(IDC_MML, str);
+	SetDlgItemTextW(IDC_MML, str);
 	UpdateWaveBox(m_iWaveIndex);		// // //
 	return 0;
 }
@@ -308,7 +309,7 @@ void CInstrumentEditorN163Wave::OnWavePosChange()
 
 void CInstrumentEditorN163Wave::OnWavePosSelChange()
 {
-	CString str;
+	CStringW str;
 	CComboBox *pPosBox = static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_POS));
 	pPosBox->GetLBText(pPosBox->GetCurSel(), str);
 
@@ -324,7 +325,7 @@ void CInstrumentEditorN163Wave::FillPosBox(int size)
 	pPosBox->ResetContent();
 
 	for (int i = 0; i <= WaveSizeAvailable() - size; i += size)		// // // prevent reading non-wave n163 registers
-		pPosBox->AddString(conv::sv_from_int(i).data());
+		pPosBox->AddString(conv::to_wide(conv::sv_from_int(i)).data());
 }
 
 void CInstrumentEditorN163Wave::PopulateWaveBox()		// // //
@@ -341,10 +342,9 @@ void CInstrumentEditorN163Wave::PopulateWaveBox()		// // //
 
 	m_cWaveListCtrl.DeleteAllItems();
 	for (int i = 0, Count = m_pInstrument->GetWaveCount(); i < Count; ++i) {
-		auto sv = conv::from_uint_hex(i);		// // //
 		UpdateWaveBox(i);
-		m_cWaveListCtrl.InsertItem(i, _T(""), i);
-		m_cWaveListCtrl.SetItemText(i, 1, sv.data());
+		m_cWaveListCtrl.InsertItem(i, L"", i);
+		m_cWaveListCtrl.SetItemText(i, 1, conv::to_wide(conv::from_uint_hex(i)).data());
 	}
 	m_cWaveListCtrl.RedrawWindow();
 	SelectWave(m_iWaveIndex);
@@ -353,7 +353,7 @@ void CInstrumentEditorN163Wave::PopulateWaveBox()		// // //
 void CInstrumentEditorN163Wave::UpdateWaveBox(int Index)		// // //
 {
 	CBitmap Waveform;
-	std::array<unsigned char, CInstrumentN163::MAX_WAVE_SIZE * 2> WaveBits;
+	std::array<unsigned char, CInstrumentN163::MAX_WAVE_SIZE * 2> WaveBits = { };
 
 	WaveBits.fill(0xFFu);
 	int Width = m_pInstrument->GetWaveSize();
@@ -386,9 +386,9 @@ void CInstrumentEditorN163Wave::OnPositionClicked()
 void CInstrumentEditorN163Wave::OnKeyReturn()
 {
 	// Parse MML string
-	CString text;
-	GetDlgItemText(IDC_MML, text);
-	ParseString(text);
+	CStringW text;
+	GetDlgItemTextW(IDC_MML, text);
+	ParseString(conv::to_utf8(text));
 }
 
 void CInstrumentEditorN163Wave::OnLvnItemchangedN163Waves(NMHDR *pNMHDR, LRESULT *pResult)		// // //

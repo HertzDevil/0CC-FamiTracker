@@ -45,7 +45,7 @@ public:
 	std::shared_ptr<ft0cc::doc::dpcm_sample> GetDSample() const;		// // //
 
 	void SelectionChanged();
-	void UpdateStatus(int Index, LPCTSTR Text);		// // //
+	void UpdateStatus(int Index, LPCWSTR Text);		// // //
 
 // Dialog Data
 	enum { IDD = IDD_SAMPLE_EDITOR };

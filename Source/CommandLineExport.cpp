@@ -27,12 +27,13 @@
 #include "Compiler.h"
 #include "SoundGen.h"
 #include "TextExporter.h"
+#include "str_conv/str_conv.hpp"		// // //
 
 // Command line export logger
 class CCommandLineLog : public CCompilerLog {
 public:
 	explicit CCommandLineLog(CStdioFile *pFile) : m_pFile(pFile) { }
-	void WriteLog(LPCTSTR text) {
+	void WriteLog(LPCWSTR text) {
 		m_pFile->WriteString(text);
 	};
 	void Clear() { }
@@ -41,7 +42,7 @@ private:
 };
 
 // Command line export function
-void CCommandLineExport::CommandLineExport(const CString &fileIn, const CString &fileOut, const CString &fileLog, const CString &fileDPCM) {
+void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CStringW &fileOut, const CStringW &fileLog, const CStringW &fileDPCM) {
 	// open log
 	bool bLog = false;
 	CStdioFile fLog;
@@ -55,7 +56,7 @@ void CCommandLineExport::CommandLineExport(const CString &fileIn, const CString 
 	CObject *pObject = pRuntimeClass->CreateObject();
 	if (pObject == NULL || !pObject->IsKindOf(RUNTIME_CLASS(CFamiTrackerDoc))) {
 		if (bLog)
-			fLog.WriteString(_T("Error: unable to create CFamiTrackerDoc\n"));
+			fLog.WriteString(L"Error: unable to create CFamiTrackerDoc\n");
 		return;
 	}
 	auto pExportDoc = static_cast<CFamiTrackerDoc *>(pObject);
@@ -63,97 +64,97 @@ void CCommandLineExport::CommandLineExport(const CString &fileIn, const CString 
 	// open file
 	if (!pExportDoc->OnOpenDocument(fileIn)) {
 		if (bLog) {
-			fLog.WriteString(_T("Error: unable to open document: "));
+			fLog.WriteString(L"Error: unable to open document: ");
 			fLog.WriteString(fileIn);
-			fLog.WriteString(_T("\n"));
+			fLog.WriteString(L"\n");
 		}
 		return;
 	}
 	if (bLog) {
-		fLog.WriteString(_T("Opened: "));
+		fLog.WriteString(L"Opened: ");
 		fLog.WriteString(fileIn);
-		fLog.WriteString(_T("\n"));
+		fLog.WriteString(L"\n");
 	}
 
 	// find extension
-	int nPos = fileOut.ReverseFind(TCHAR('.'));
+	int nPos = fileOut.ReverseFind(WCHAR('.'));
 	if (nPos < 0) {
 		if (bLog) {
-			fLog.WriteString(_T("Error: export filename has no extension: "));
+			fLog.WriteString(L"Error: export filename has no extension: ");
 			fLog.WriteString(fileOut);
-			fLog.WriteString(_T("\n"));
+			fLog.WriteString(L"\n");
 		}
 		return;
 	}
-	CString ext = fileOut.Mid(nPos);
+	CStringW ext = fileOut.Mid(nPos);
 
 	const CFamiTrackerModule *pModule = pExportDoc->GetModule();		// // //
 
 	// export
-	if (0 == ext.CompareNoCase(_T(".nsf"))) {
+	if (0 == ext.CompareNoCase(L".nsf")) {
 		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
 		compiler.ExportNSF(fileOut, pModule->GetMachine());
 		if (bLog) {
-			fLog.WriteString(_T("\nNSF export complete.\n"));
+			fLog.WriteString(L"\nNSF export complete.\n");
 		}
 		return;
 	}
-	else if (0 == ext.CompareNoCase(_T(".nes"))) {
+	else if (0 == ext.CompareNoCase(L".nes")) {
 		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
 		compiler.ExportNES(fileOut, pModule->GetMachine() == machine_t::PAL);
 		if (bLog) {
-			fLog.WriteString(_T("\nNES export complete.\n"));
+			fLog.WriteString(L"\nNES export complete.\n");
 		}
 		return;
 	}
 	// BIN export requires two files
-	else if (0 == ext.CompareNoCase(_T(".bin"))) {
+	else if (0 == ext.CompareNoCase(L".bin")) {
 		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
 		compiler.ExportBIN(fileOut, fileDPCM);
 		if (bLog) {
-			fLog.WriteString(_T("\nBIN export complete.\n"));
+			fLog.WriteString(L"\nBIN export complete.\n");
 		}
 		return;
 	}
-	else if (0 == ext.CompareNoCase(_T(".prg"))) {
+	else if (0 == ext.CompareNoCase(L".prg")) {
 		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
 		compiler.ExportPRG(fileOut, pModule->GetMachine() == machine_t::PAL);
 		if (bLog) {
-			fLog.WriteString(_T("\nPRG export complete.\n"));
+			fLog.WriteString(L"\nPRG export complete.\n");
 		}
 		return;
 	}
-	else if (0 == ext.CompareNoCase(_T(".asm"))) {
+	else if (0 == ext.CompareNoCase(L".asm")) {
 		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
 		compiler.ExportASM(fileOut);
 		if (bLog) {
-			fLog.WriteString(_T("\nASM export complete.\n"));
+			fLog.WriteString(L"\nASM export complete.\n");
 		}
 		return;
 	}
-	else if (0 == ext.CompareNoCase(_T(".nsfe")))		// // //
+	else if (0 == ext.CompareNoCase(L".nsfe"))		// // //
 	{
 		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
 		compiler.ExportNSFE(fileOut, pModule->GetMachine());
 		if (bLog) {
-			fLog.WriteString(_T("\nNSFe export complete.\n"));
+			fLog.WriteString(L"\nNSFe export complete.\n");
 		}
 		return;
 	}
-	else if (0 == ext.CompareNoCase(_T(".txt"))) {
+	else if (0 == ext.CompareNoCase(L".txt")) {
 		CTextExport textExport;
-		CString result = textExport.ExportFile(fileOut, *pExportDoc);		// // //
+		CStringA result = textExport.ExportFile(fileOut, *pExportDoc);		// // //
 		if (result.GetLength() > 0) {
 			if (bLog) {
-				fLog.WriteString(_T("Error: "));
-				fLog.WriteString(result);
-				fLog.WriteString(_T("\n"));
+				fLog.WriteString(L"Error: ");
+				fLog.WriteString(conv::to_wide(result).data());
+				fLog.WriteString(L"\n");
 			}
 		}
 		else if (bLog) {
-			fLog.WriteString(_T("Exported: "));
+			fLog.WriteString(L"Exported: ");
 			fLog.WriteString(fileOut);
-			fLog.WriteString(_T("\n"));
+			fLog.WriteString(L"\n");
 		}
 		return;
 	}
@@ -161,9 +162,9 @@ void CCommandLineExport::CommandLineExport(const CString &fileIn, const CString 
 	// // //
 
 	if (bLog) {
-		fLog.WriteString(_T("Error: unable to find matching export extension for: "));
+		fLog.WriteString(L"Error: unable to find matching export extension for: ");
 		fLog.WriteString(fileOut);
-		fLog.WriteString(_T("\n"));
+		fLog.WriteString(L"\n");
 	}
 	return;
 }

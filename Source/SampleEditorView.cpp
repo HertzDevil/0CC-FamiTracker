@@ -89,7 +89,7 @@ void CSampleEditorView::OnPaint()
 	m_dcCopy.SetViewportOrg(1, 1);
 
 	if (m_iSize == 0) {
-		m_dcCopy.TextOut(10, 10, CString(_T("No sample")));
+		m_dcCopy.TextOutW(10, 10, L"No sample");
 		dc.BitBlt(0, 0, m_clientRect.Width(), m_clientRect.Height(), &m_dcCopy, 0, 0, SRCCOPY);
 		return;
 	}
@@ -208,9 +208,9 @@ void CSampleEditorView::OnMouseMove(UINT nFlags, CPoint point)
 		static_cast<CSampleEditorDlg*>(GetParent())->SelectionChanged();
 	}
 
-	CString Text, num1, num2;		// // //
-	num1.Format(_T("0x%02X"), Offset);
-	num2.Format(_T("%d"), Pos);
+	CStringW Text, num1, num2;		// // //
+	num1.Format(L"0x%02X", Offset);
+	num2.Format(L"%d", Pos);
 	AfxFormatString2(Text, ID_INDICATOR_DPCM_SEGMENT, num1, num2);
 	static_cast<CSampleEditorDlg*>(GetParent())->UpdateStatus(0, Text);
 
@@ -376,11 +376,11 @@ void CSampleEditorView::UpdateInfo()
 	if (!m_iSize)
 		return;
 
-	CString Text, num;		// // //
-	num.Format(_T("%i"), m_iSize / 8);
+	CStringW Text, num;		// // //
+	num.Format(L"%i", m_iSize / 8);
 	AfxFormatString1(Text, ID_INDICATOR_DPCM_SIZE, num);
 	static_cast<CSampleEditorDlg*>(GetParent())->UpdateStatus(1, Text);
-	num.Format(_T("%i"), m_pSamples[m_iSize - 1]);
+	num.Format(L"%i", m_pSamples[m_iSize - 1]);
 	AfxFormatString1(Text, ID_INDICATOR_DPCM_ENDPOS, num);
 	static_cast<CSampleEditorDlg*>(GetParent())->UpdateStatus(2, Text);
 }
@@ -438,7 +438,7 @@ void CSampleEditorView::OnLeft()
 void CSampleEditorView::OnContextMenu(CWnd* pWnd, CPoint point)
 {
 	CMenu contextMenu;
-	contextMenu.LoadMenu(IDR_SAMPLE_EDITOR_POPUP);
+	contextMenu.LoadMenuW(IDR_SAMPLE_EDITOR_POPUP);
 	CMenu *pPopupMenu = contextMenu.GetSubMenu(0);
 	pPopupMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, pWnd->GetParent());
 }

@@ -30,16 +30,16 @@
 
 namespace {
 
-LPCTSTR rgpszAcceptTypes[] = {_T("application/json"), NULL};
+LPCWSTR rgpszAcceptTypes[] = {L"application/json", NULL};
 
 // // // TODO: cpr maybe
 struct CHttpStringReader {
 	CHttpStringReader() {
-		hOpen = InternetOpen(_T("0CC_FamiTracker"), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-		hConnect = InternetConnect(hOpen, _T("api.github.com"),
-			INTERNET_DEFAULT_HTTPS_PORT, _T(""), _T(""), INTERNET_SERVICE_HTTP, 0, 0);
-		hRequest = HttpOpenRequest(hConnect, _T("GET"), _T("/repos/HertzDevil/0CC-FamiTracker/releases"),
-			_T("HTTP/1.0"), NULL, rgpszAcceptTypes,
+		hOpen = InternetOpenW(L"0CC_FamiTracker", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+		hConnect = InternetConnectW(hOpen, L"api.github.com",
+			INTERNET_DEFAULT_HTTPS_PORT, L"", L"", INTERNET_SERVICE_HTTP, 0, 0);
+		hRequest = HttpOpenRequestW(hConnect, L"GET", L"/repos/HertzDevil/0CC-FamiTracker/releases",
+			L"HTTP/1.0", NULL, rgpszAcceptTypes,
 			INTERNET_FLAG_RELOAD | INTERNET_FLAG_SECURE | INTERNET_FLAG_NO_CACHE_WRITE, NULL);
 	}
 
@@ -94,7 +94,7 @@ std::pair<nlohmann::json, ft_version_t> FindBestVersion(const nlohmann::json &j)
 		ft_version_t ver = { };
 		auto &[api, maj, min, rev] = ver;
 		std::string tag = i["tag_name"];
-		::sscanf_s(tag.c_str(), "v%u.%u.%u%*1[.r]%u", &api, &maj, &min, &rev);
+		::sscanf_s(tag.data(), "v%u.%u.%u%*1[.r]%u", &api, &maj, &min, &rev);
 		if (ver > current) {
 			current = ver;
 			jPtr = &i;
@@ -152,5 +152,5 @@ void CVersionChecker::ThreadFn(bool startup, std::promise<std::optional<stVersio
 catch (...) {
 	p.set_value(std::nullopt);
 //	p.set_value(stVersionCheckResult {
-//		_T("Unable to get version information from the source repository."), _T(""), MB_ICONERROR});
+//		"Unable to get version information from the source repository.", "", MB_ICONERROR});
 }

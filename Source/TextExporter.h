@@ -31,15 +31,15 @@ class CFamiTrackerModule;		// // //
 class stChanNote;		// // //
 
 struct CTextExport {
-	static CString ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise);		// // //
+	static CStringA ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise);		// // //
 
-	void ImportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc);		// // //
+	void ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc);		// // //
 
 	// returns an empty string on success, otherwise returns a descriptive error
-	CString ExportFile(LPCTSTR FileName, CFamiTrackerDoc &Doc);		// // //
-	CString ExportRows(LPCTSTR FileName, const CFamiTrackerModule &modfile);		// // //
+	CStringA ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc);		// // //
+	CStringA ExportRows(LPCWSTR FileName, const CFamiTrackerModule &modfile);		// // //
 
 private:		// // //
-	static CString ExportString(const CString &s);
-	static CString ExportString(std::string_view s);
+	static CStringA ExportString(const CStringA &s);
+	static CStringA ExportString(std::string_view s);
 };

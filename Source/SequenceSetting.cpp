@@ -31,15 +31,15 @@
 
 // Sequence setting menu
 
-static const LPCTSTR SEQ_SETTING_TEXT[][SEQ_COUNT] = {		// // // 050B
-	{_T("16 steps"), _T("Absolute"), _T("Relative"), nullptr, nullptr},
-	{_T("64 steps"),    _T("Fixed"), _T("Absolute"), nullptr, nullptr},
+static const LPCWSTR SEQ_SETTING_TEXT[][SEQ_COUNT] = {		// // // 050B
+	{L"16 steps", L"Absolute", L"Relative", nullptr, nullptr},
+	{L"64 steps",    L"Fixed", L"Absolute", nullptr, nullptr},
 #ifdef _DEBUG
-	{       nullptr, _T("Relative"),    _T("Sweep"), nullptr, nullptr},
+	{    nullptr, L"Relative",    L"Sweep", nullptr, nullptr},
 #else
-	{       nullptr, _T("Relative"),        nullptr, nullptr, nullptr},
+	{    nullptr, L"Relative",     nullptr, nullptr, nullptr},
 #endif
-	{       nullptr,   _T("Scheme"),        nullptr, nullptr, nullptr},
+	{    nullptr,   L"Scheme",     nullptr, nullptr, nullptr},
 };
 
 const UINT CSequenceSetting::MENU_ID_BASE = 0x1000U;		// // //
@@ -80,7 +80,7 @@ void CSequenceSetting::OnPaint()
 	if (mode > SEQ_SETTING_COUNT[(unsigned)m_pSequence->GetSequenceType()] || SEQ_SETTING_TEXT[mode][(unsigned)m_pSequence->GetSequenceType()] == nullptr) {
 		dc.FillSolidRect(rect, 0xFFFFFF); return;
 	}
-	LPCTSTR str = SEQ_SETTING_TEXT[mode][(unsigned)m_pSequence->GetSequenceType()];
+	LPCWSTR str = SEQ_SETTING_TEXT[mode][(unsigned)m_pSequence->GetSequenceType()];
 
 	int BgColor = m_bMouseOver ? 0x303030 : 0x101010;
 
@@ -91,7 +91,7 @@ void CSequenceSetting::OnPaint()
 	dc.SetBkColor(BgColor);
 
 	rect.top += 2;
-	dc.DrawText(str, _tcslen(str), rect, DT_CENTER);
+	dc.DrawTextW(str, _tcslen(str), rect, DT_CENTER);
 }
 
 void CSequenceSetting::OnLButtonDown(UINT nFlags, CPoint point)
@@ -108,7 +108,7 @@ void CSequenceSetting::OnLButtonDown(UINT nFlags, CPoint point)
 
 	m_menuPopup.CreatePopupMenu();
 	for (unsigned i = 0; i < SEQ_SETTING_COUNT[seqType]; ++i)
-		m_menuPopup.AppendMenu(MF_STRING, MENU_ID_BASE + i, SEQ_SETTING_TEXT[i][seqType]);
+		m_menuPopup.AppendMenuW(MF_STRING, MENU_ID_BASE + i, SEQ_SETTING_TEXT[i][seqType]);
 	m_menuPopup.CheckMenuRadioItem(MENU_ID_BASE, MENU_ID_MAX, MENU_ID_BASE + Setting, MF_BYCOMMAND);
 #ifndef _DEBUG
 	if (m_pSequence->GetSequenceType() == sequence_t::Volume && m_iInstType != INST_VRC6)

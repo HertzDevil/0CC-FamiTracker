@@ -721,7 +721,7 @@ bool CFActionMergeDuplicated::SaveState(const CMainFrame &MainFrm)
 			for (unsigned int uj = 0; uj < ui; ++uj)
 				if (pSongView->GetPattern(c, ui) == pSongView->GetPattern(c, uj)) {		// // //
 					uiPatternUsed[ui] = uj;
-					TRACE("Duplicate: %d = %d\n", ui, uj);
+					TRACE(L"Duplicate: %d = %d\n", ui, uj);
 					break;
 				}
 		}

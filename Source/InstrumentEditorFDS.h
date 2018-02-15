@@ -24,6 +24,7 @@
 #pragma once
 
 #include "InstrumentEditPanel.h"		// // //
+#include <string_view>		// // //
 
 class CWaveEditorFDS;
 class CModSequenceEditor;
@@ -39,7 +40,7 @@ public:
 	CInstrumentEditorFDS(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CInstrumentEditorFDS();
 	int GetIDD() const override { return IDD; }
-	LPCTSTR GetTitle() const { return _T("Nintendo FDS"); }		// // //
+	LPCWSTR GetTitle() const { return L"Nintendo FDS"; }		// // //
 
 	// Public
 	virtual void SelectInstrument(std::shared_ptr<CInstrument> pInst);
@@ -50,8 +51,8 @@ public:
 protected:
 	void EnableModControls(bool enable);
 
-	void ParseWaveString(LPCTSTR pString);
-	void ParseTableString(LPCTSTR pString);
+	void ParseWaveString(std::string_view String);
+	void ParseTableString(std::string_view String);
 
 protected:
 	std::shared_ptr<CInstrumentFDS> m_pInstrument;

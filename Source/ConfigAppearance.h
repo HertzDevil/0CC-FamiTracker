@@ -42,6 +42,7 @@ enum color_items_t {
 
 #include "ColorScheme.h"
 #include "../resource.h"		// // //
+#include <string_view>		// // //
 
 // CConfigAppearance dialog
 
@@ -53,7 +54,7 @@ public:
 	CConfigAppearance();
 	virtual ~CConfigAppearance();
 
-	void AddFontName(char *Name);
+	void AddFontName(std::wstring_view Name);		// / //
 
 // Dialog Data
 	enum { IDD = IDD_CONFIG_APPEARANCE };
@@ -61,7 +62,7 @@ public:
 protected:
 	static int CALLBACK EnumFontFamExProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD FontType, LPARAM lParam);
 
-	static const LPCTSTR COLOR_ITEMS[];		// // //
+	static const std::string_view COLOR_ITEMS[];		// // //
 	static const int NUM_COLOR_SCHEMES;
 
 	static const COLOR_SCHEME *COLOR_SCHEMES[];
@@ -80,11 +81,11 @@ protected:
 	void SetColor(int Index, int Color);
 	int GetColor(int Index) const;
 
-	void ExportSettings(const char *Path) const;		// // // 050B
-	void ImportSettings(const char *Path);		// // // 050B
+	void ExportSettings(LPCWSTR Path) const;		// // // 050B
+	void ImportSettings(LPCWSTR Path);		// // // 050B
 
 protected:
-	CString		m_strFont;
+	CStringW		m_strFont;
 
 	int			m_iFontSize;
 	int			m_iSelectedItem;

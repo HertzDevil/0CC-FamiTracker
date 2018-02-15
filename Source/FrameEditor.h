@@ -139,7 +139,7 @@ public:
 	static const int DEFAULT_HEIGHT		= 161;	// Window height at top position
 	static const int CURSOR_WIDTH		= 8;	// Cursor box width
 
-	static const TCHAR CLIPBOARD_ID[];
+	static const WCHAR CLIPBOARD_ID[];
 
 private:
 	// Object pointers

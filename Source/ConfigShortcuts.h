@@ -54,7 +54,7 @@ protected:
 	void KeyReleased(int Key);
 	void StoreKey(int Item, int Key, int Mod);
 
-	CString	AssembleKeyString(int Mod, int Key);
+	CStringW	AssembleKeyString(int Mod, int Key);
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

@@ -45,7 +45,7 @@ public:
 // Dialog Data
 	enum { IDD = IDD_COMMENTS };
 
-	static const LPCTSTR FONT_FACE;		// // //
+	static const LPCWSTR FONT_FACE;		// // //
 	static int FONT_SIZE;
 
 protected:

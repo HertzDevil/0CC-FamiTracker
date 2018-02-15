@@ -34,6 +34,7 @@
 #include "SequenceEditorMessage.h"		// // //
 #include "DPI.h"		// // //
 #include "SequenceParser.h"		// // //
+#include "str_conv/str_conv.hpp"		// / ///
 
 // This file contains the sequence editor and sequence size control
 
@@ -69,10 +70,10 @@ BOOL CSequenceEditor::CreateEditor(CWnd *pParentWnd, const RECT &rect)
 {
 	CRect menuRect;
 
-	if (CWnd::CreateEx(WS_EX_STATICEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE, rect, pParentWnd, 0) == -1)
+	if (CWnd::CreateEx(WS_EX_STATICEDGE, NULL, L"", WS_CHILD | WS_VISIBLE, rect, pParentWnd, 0) == -1)
 		return -1;
 
-	m_cFont.CreateFont(-11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, _T("Tahoma"));
+	m_cFont.CreateFontW(-11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Tahoma");
 
 	m_pParent = pParentWnd;
 
@@ -80,13 +81,13 @@ BOOL CSequenceEditor::CreateEditor(CWnd *pParentWnd, const RECT &rect)
 	GetClientRect(GraphRect);
 	GraphRect.bottom -= 25;
 
-	if (m_pSizeEditor->CreateEx(NULL, NULL, _T(""), WS_CHILD | WS_VISIBLE, CRect(34, GraphRect.bottom + 5, 94, GraphRect.bottom + 22), this, 0) == -1)
+	if (m_pSizeEditor->CreateEx(NULL, NULL, L"", WS_CHILD | WS_VISIBLE, CRect(34, GraphRect.bottom + 5, 94, GraphRect.bottom + 22), this, 0) == -1)
 		return -1;
 
 	menuRect = CRect(GraphRect.right - 72, GraphRect.bottom + 5, GraphRect.right - 2, GraphRect.bottom + 24);
 
 	// Sequence settings editor
-	if (m_pSetting->CreateEx(NULL, NULL, _T(""), WS_CHILD | WS_VISIBLE, menuRect, this, 0) == -1)
+	if (m_pSetting->CreateEx(NULL, NULL, L"", WS_CHILD | WS_VISIBLE, menuRect, this, 0) == -1)
 		return -1;
 
 	m_pSetting->Setup(&m_cFont);
@@ -112,14 +113,14 @@ void CSequenceEditor::OnPaint()
 		m_pSizeEditor->SetValue(m_pSequence->GetItemCount());
 
 	dc.SelectObject(&m_cFont);
-	dc.TextOut(7, rect.bottom - 19, _T("Size:"));
+	dc.TextOutW(7, rect.bottom - 19, L"Size:");
 
-	CString LengthStr;
+	CStringW LengthStr;
 	float Rate;		// // //
 	Rate = static_cast<CInstrumentEditDlg*>(static_cast<CSequenceInstrumentEditPanel*>(m_pParent)->GetParent())->GetRefreshRate();
-	LengthStr.Format(_T("%.0f ms  "), (1000.0f * m_pSizeEditor->GetValue()) / Rate);
+	LengthStr.Format(L"%.0f ms  ", (1000.0f * m_pSizeEditor->GetValue()) / Rate);
 
-	dc.TextOut(120, rect.bottom - 19, LengthStr);
+	dc.TextOutW(120, rect.bottom - 19, LengthStr);
 }
 
 LRESULT CSequenceEditor::OnSizeChange(WPARAM wParam, LPARAM lParam)
@@ -142,12 +143,12 @@ LRESULT CSequenceEditor::OnCursorChange(WPARAM wParam, LPARAM lParam)
 	CRect rect;
 	GetClientRect(rect);
 
-	CString Text;
+	CStringW Text;
 	if (m_pConversion != nullptr)		// // //
-		Text.Format(_T("{%i, %s}        "), wParam, m_pConversion->ToString(static_cast<char>(lParam)).c_str());
+		Text.Format(L"{%i, %s}        ", wParam, conv::to_wide(m_pConversion->ToString(static_cast<char>(lParam))).data());
 	else
-		Text.Format(_T("{%i, %i}        "), wParam, lParam);
-	pDC->TextOut(170, rect.bottom - 19, Text);
+		Text.Format(L"{%i, %i}        ", wParam, lParam);
+	pDC->TextOutW(170, rect.bottom - 19, Text);
 
 	ReleaseDC(pDC);
 	return TRUE;
@@ -248,7 +249,7 @@ void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int I
 	GetClientRect(GraphRect);
 	GraphRect.bottom -= 25;
 
-	if (m_pGraphEditor->CreateEx(NULL, NULL, _T(""), WS_CHILD, GraphRect, this, 0) == -1)
+	if (m_pGraphEditor->CreateEx(NULL, NULL, L"", WS_CHILD, GraphRect, this, 0) == -1)
 		return;
 
 	m_pGraphEditor->UpdateWindow();

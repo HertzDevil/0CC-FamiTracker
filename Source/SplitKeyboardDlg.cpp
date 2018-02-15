@@ -29,10 +29,12 @@
 #include "APU/Types.h"
 #include "ChannelName.h"
 #include "ChannelOrder.h"
+#include "str_conv/str_conv.hpp"
+#include "NumConv.h"
 
 // CSplitKeyboardDlg dialog
 
-const CString KEEP_INST_STRING = _T("Keep");
+const CStringW KEEP_INST_STRING = L"Keep";
 const int CSplitKeyboardDlg::MAX_TRANSPOSE = 24;
 
 IMPLEMENT_DYNAMIC(CSplitKeyboardDlg, CDialog)
@@ -73,20 +75,20 @@ END_MESSAGE_MAP()
 BOOL CSplitKeyboardDlg::OnInitDialog()
 {
 	CComboBox *pCombo;
-	CString str;
+	CStringW str;
 	const auto pDoc = CFamiTrackerDoc::GetDoc();
 
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_NOTE));
 	for (auto n : stChanNote::NOTE_NAME) {
 		if (n.back() == '-')
 			n.pop_back();
-		pCombo->AddString(n.c_str());
+		pCombo->AddString(conv::to_wide(n).data());
 	}
 	pCombo->SetCurSel(m_iSplitNote != -1 ? (GET_NOTE(m_iSplitNote) - 1) : 0);
 
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_OCTAVE));
 	for (int i = 0; i < OCTAVE_RANGE; ++i) {
-		str.Format(_T("%d"), i);
+		str.Format(L"%d", i);
 		pCombo->AddString(str);
 	}
 	pCombo->SetCurSel(m_iSplitNote != -1 ? GET_OCTAVE(m_iSplitNote) : 3);
@@ -96,7 +98,7 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	pCombo->SetCurSel(0);
 	int i = 0;
 	pDoc->GetModule()->GetChannelOrder().ForeachChannel([&] (chan_id_t ch) {
-		pCombo->AddString(GetChannelFullName(ch).data());
+		pCombo->AddString(conv::to_wide(GetChannelFullName(ch)).data());
 		if (m_iSplitChannel == ch)
 			pCombo->SetCurSel(i + 1);
 		++i;
@@ -106,19 +108,19 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	pCombo->AddString(KEEP_INST_STRING);
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i)
 		if (pDoc->GetModule()->GetInstrumentManager()->IsInstrumentUsed(i)) {
-			str.Format(_T("%02X"), i);
+			str.Format(L"%02X", i);
 			pCombo->AddString(str);
 		}
-	str.Format(_T("%02X"), m_iSplitInstrument);
+	str.Format(L"%02X", m_iSplitInstrument);
 	if (pCombo->SelectString(-1, str) == CB_ERR)
 		pCombo->SelectString(-1, KEEP_INST_STRING);
 
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_TRSP));
 	for (int i = -MAX_TRANSPOSE; i <= MAX_TRANSPOSE; ++i) {
-		str.Format(_T("%+d"), i);
+		str.Format(L"%+d", i);
 		pCombo->AddString(str);
 	}
-	str.Format(_T("%+d"), m_iSplitTranspose);
+	str.Format(L"%+d", m_iSplitTranspose);
 	pCombo->SelectString(-1, str);
 
 	CheckDlgButton(IDC_CHECK_SPLIT_ENABLE, m_bSplitEnable ? BST_CHECKED : BST_UNCHECKED);
@@ -160,9 +162,9 @@ void CSplitKeyboardDlg::OnCbnSelchangeComboSplitChan()
 
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitInst()
 {
-	CString str;
-	GetDlgItemText(IDC_COMBO_SPLIT_INST, str);
-	m_iSplitInstrument = str == KEEP_INST_STRING ? MAX_INSTRUMENTS : strtol(str, nullptr, 16);
+	CStringW str;
+	GetDlgItemTextW(IDC_COMBO_SPLIT_INST, str);
+	m_iSplitInstrument = str == KEEP_INST_STRING ? MAX_INSTRUMENTS : conv::to_int(conv::to_utf8(str), 16u).value_or(MAX_INSTRUMENTS);
 }
 
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitTrsp()

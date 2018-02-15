@@ -51,7 +51,7 @@ protected:
 	std::shared_ptr<ft0cc::doc::dpcm_sample> m_pImported;		// // //
 	std::shared_ptr<ft0cc::doc::dpcm_sample> m_pCachedSample;
 
-	CString		m_strPath, m_strFileName;
+	CStringW		m_strPath, m_strFileName;
 	CFile		m_fSampleFile;
 	ULONGLONG	m_ullSampleStart;
 

@@ -65,7 +65,7 @@ void CSizeEditor::OnPaint()
 	CPaintDC dc(this);
 
 	CFont Font;
-	Font.CreateFont(-11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, _T("Tahoma"));
+	Font.CreateFontW(-11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Tahoma");
 
 	CFont *pOldFont = dc.SelectObject(&Font);
 
@@ -110,14 +110,14 @@ void CSizeEditor::OnPaint()
 	textRect.DeflateRect(rect.bottom + 6, 1, rect.bottom + 6, 0);
 
 	// Text
-	CString str;
-	str.Format(_T("%i"), m_iValue);		// // //
+	CStringW str;
+	str.Format(L"%i", m_iValue);		// // //
 	dc.SetBkMode(TRANSPARENT);
 	dc.SetTextColor(0xFFFFFF);
-	dc.DrawText(str, &textRect, DT_RIGHT);
+	dc.DrawTextW(str, &textRect, DT_RIGHT);
 	dc.SetTextColor(0);
-	dc.TextOut(6, 1 + ((m_iButtonPressed == 1) ? 1 : 0), _T("-"));
-	dc.TextOut(rect.right - 14, 1 + ((m_iButtonPressed == 2) ? 1 : 0), _T("+"));
+	dc.TextOutW(6, 1 + ((m_iButtonPressed == 1) ? 1 : 0), L"-");
+	dc.TextOutW(rect.right - 14, 1 + ((m_iButtonPressed == 2) ? 1 : 0), L"+");
 
 	dc.SelectObject(pOldFont);
 }

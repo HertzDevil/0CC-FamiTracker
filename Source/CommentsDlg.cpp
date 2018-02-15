@@ -21,12 +21,13 @@
 */
 
 #include "CommentsDlg.h"
+#include "str_conv/str_conv.hpp"		// // //
 
 // CCommentsDlg dialog
 
 // Font
-const LPCTSTR CCommentsDlg::FONT_FACE = _T("Courier");		// // //
-int		CCommentsDlg::FONT_SIZE = 12;
+const LPCWSTR CCommentsDlg::FONT_FACE = L"Courier";		// // //
+int CCommentsDlg::FONT_SIZE = 12;
 
 RECT CCommentsDlg::WinRect;
 
@@ -82,9 +83,9 @@ END_MESSAGE_MAP()
 
 void CCommentsDlg::SaveComment()
 {
-	CString str;		// // //
-	GetDlgItemText(IDC_COMMENTS, str);		// // //
-	m_sComment = CT2CA(str.GetString());
+	CStringW str;		// // //
+	GetDlgItemTextW(IDC_COMMENTS, str);		// // //
+	m_sComment = conv::to_utf8(str.GetString());
 	m_bShowOnLoad = IsDlgButtonChecked(IDC_SHOWONOPEN) == BST_CHECKED;
 }
 
@@ -129,11 +130,11 @@ BOOL CCommentsDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	SetDlgItemText(IDC_COMMENTS, CA2CT(m_sComment.c_str()));		// // //
+	SetDlgItemTextW(IDC_COMMENTS, conv::to_wide(m_sComment).data());		// // //
 	CheckDlgButton(IDC_SHOWONOPEN, m_bShowOnLoad ? BST_CHECKED : BST_UNCHECKED);
 	m_bChanged = false;
 
-	m_cFont.CreateFont(FONT_SIZE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, FONT_FACE);		// // //
+	m_cFont.CreateFontW(FONT_SIZE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, FONT_FACE);		// // //
 	GetDlgItem(IDC_COMMENTS)->SetFont(&m_cFont);
 
 	if (WinRect.top == 0 && WinRect.bottom == 0)

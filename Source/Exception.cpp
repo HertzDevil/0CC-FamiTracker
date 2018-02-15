@@ -35,33 +35,33 @@
 // Todo: Recover files should not be created if the crash occurred
 // during the file save operation, this could be fixed with a flag.
 
-const TCHAR FTM_DUMP[] = _T("recover");
-const TCHAR MINIDUMP_FILE_PRE[] = _T("MiniDump");
-const TCHAR MINIDUMP_FILE_END[] = _T(".dmp");
+const WCHAR FTM_DUMP[] = L"recover";
+const WCHAR MINIDUMP_FILE_PRE[] = L"MiniDump";
+const WCHAR MINIDUMP_FILE_END[] = L".dmp";
 
 //#ifdef ENABLE_CRASH_HANDLER
 
-static CString GetDumpFilename(int counter)
+static CStringW GetDumpFilename(int counter)
 {
 	// Append a timestamp to the filename
 	//
-	CString filename;
+	CStringW filename;
 	CTime t = CTime::GetCurrentTime();
 
 	filename = MINIDUMP_FILE_PRE;
 
 	// Date
-	filename.AppendFormat(_T("_%02i%02i%02i-%02i%02i"), t.GetYear(), t.GetMonth(), t.GetDay(), t.GetHour(), t.GetMinute());
+	filename.AppendFormat(L"_%02i%02i%02i-%02i%02i", t.GetYear(), t.GetMonth(), t.GetDay(), t.GetHour(), t.GetMinute());
 
 	// App version
-	filename.AppendFormat(_T("-v%s"), GetDumpVersionString());		// // //
+	filename.AppendFormat(L"-v%s", GetDumpVersionString());		// // //
 #ifdef WIP
-	filename.Append(_T("_beta"));
+	filename.Append(L"_beta");
 #endif
 
 	// Counter
 	if (counter > 0)
-		filename.AppendFormat(_T("(%i)"), counter);
+		filename.AppendFormat(L"(%i)", counter);
 
 	filename.Append(MINIDUMP_FILE_END);
 
@@ -72,7 +72,7 @@ static LONG WINAPI ExceptionHandler(__in struct _EXCEPTION_POINTERS *ep)
 {
 	static BOOL HasDumped = FALSE;
 
-	CString MinidumpFile;
+	CStringW MinidumpFile;
 	int dump_counter = 0;
 
 	// Prevent multiple calls to this exception handler
@@ -106,21 +106,21 @@ static LONG WINAPI ExceptionHandler(__in struct _EXCEPTION_POINTERS *ep)
 
 	// Find a free filename.
 	// Start with "recover" and append a number if file exists.
-	CString DocDumpFile = FTM_DUMP;
+	CStringW DocDumpFile = FTM_DUMP;
 	int counter = 1;
 
-	while (GetFileAttributes(DocDumpFile + _T(".ftm")) != 0xFFFFFFFF)
-		DocDumpFile.Format(_T("%s%i"), FTM_DUMP, counter++);
+	while (GetFileAttributes(DocDumpFile + L".ftm") != 0xFFFFFFFF)
+		DocDumpFile.Format(L"%s%i", FTM_DUMP, counter++);
 
-	DocDumpFile.Append(_T(".ftm"));
+	DocDumpFile.Append(L".ftm");
 
 	// Display a message
-	CString text;
-	text.Format(_T("This application has encountered a problem and needs to close.\n\n"));
-	text.AppendFormat(_T("Unhandled exception %X.\n\n"), ep->ExceptionRecord->ExceptionCode);
-	text.AppendFormat(_T("A memory dump file has been created (%s), please include this if you file a bug report!\n\n"), LPCTSTR(MinidumpFile));
-	text.AppendFormat(_T("Attempting to save current module as %s."), LPCTSTR(DocDumpFile));
-//	text.Append(_T("Application will now close."));
+	CStringW text;
+	text.Format(L"This application has encountered a problem and needs to close.\n\n");
+	text.AppendFormat(L"Unhandled exception %X.\n\n", ep->ExceptionRecord->ExceptionCode);
+	text.AppendFormat(L"A memory dump file has been created (%s), please include this if you file a bug report!\n\n", LPCWSTR(MinidumpFile));
+	text.AppendFormat(L"Attempting to save current module as %s.", LPCWSTR(DocDumpFile));
+//	text.Append("Application will now close.");
 	AfxMessageBox(text, MB_ICONSTOP);
 
 	// Try to save the document

@@ -20,8 +20,10 @@
 ** must bear this legend.
 */
 
+#define _SCL_SECURE_NO_WARNINGS
 #include "DocumentFile.h"
 #include "ModuleException.h"
+#include "array_view.h"
 
 //
 // This class is based on CFile and has some simple extensions to create and read FTM files
@@ -49,7 +51,7 @@ CFile &CDocumentFile::GetCFile() {
 	return m_fFile;
 }
 
-BOOL CDocumentFile::Open(LPCTSTR lpszFileName, UINT nOpenFlags, CFileException *pError) {
+BOOL CDocumentFile::Open(LPCWSTR lpszFileName, UINT nOpenFlags, CFileException *pError) {
 	return m_fFile.Open(lpszFileName, nOpenFlags, pError);
 }
 
@@ -96,10 +98,12 @@ bool CDocumentFile::EndDocument()
 	return true;
 }
 
-void CDocumentFile::CreateBlock(const char *ID, int Version)
+void CDocumentFile::CreateBlock(std::string_view ID, int Version)		// // //
 {
-	ASSERT(strlen(ID) < BLOCK_HEADER_SIZE);		// // //
-	strncpy_s(m_cBlockID.data(), std::size(m_cBlockID), ID, BLOCK_HEADER_SIZE);
+	ASSERT(ID.size() < BLOCK_HEADER_SIZE);		// // //
+	m_cBlockID.fill(0);		// // //
+	ID = ID.substr(0, std::size(m_cBlockID) - 1);
+	ID.copy(m_cBlockID.data(), ID.size());
 
 	m_iBlockPointer = 0;
 	m_iBlockSize	= 0;
@@ -302,7 +306,7 @@ char CDocumentFile::GetBlockChar()
 	return Value;
 }
 
-CString CDocumentFile::ReadString()
+CStringA CDocumentFile::ReadString()
 {
 	/*
 	char str[1024], c;
@@ -313,10 +317,10 @@ CString CDocumentFile::ReadString()
 
 	str[str_ptr++] = 0;
 
-	return CString(str);
+	return CStringW(str);
 	*/
 
-	CString str;
+	CStringA str;
 	char c;
 	int str_ptr = 0;
 

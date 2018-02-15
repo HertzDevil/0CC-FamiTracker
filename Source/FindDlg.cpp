@@ -33,6 +33,7 @@
 #include "SongData.h"
 #include "SongView.h"
 #include "ChannelName.h"
+#include "str_conv/str_conv.hpp"
 
 namespace {
 
@@ -202,44 +203,44 @@ void CFindResultsBox::DoDataExchange(CDataExchange* pDX)
 void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Cursor, bool Noise)
 {
 	int Pos = m_cListResults.GetItemCount();
-	m_cListResults.InsertItem(Pos, conv::sv_from_int(Pos + 1).data());
+	m_cListResults.InsertItem(Pos, conv::to_wide(conv::sv_from_int(Pos + 1)).data());
 
 	const CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
 	const CConstSongView *pSongView = pView->GetSongView();
-	m_cListResults.SetItemText(Pos, CHANNEL, GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel)).data());
-	m_cListResults.SetItemText(Pos, PATTERN, conv::sv_from_int_hex(pSongView->GetFramePattern(Cursor.m_iChannel, Cursor.m_iFrame), 2).data());
+	m_cListResults.SetItemText(Pos, CHANNEL, conv::to_wide(GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel))).data());
+	m_cListResults.SetItemText(Pos, PATTERN, conv::to_wide(conv::sv_from_int_hex(pSongView->GetFramePattern(Cursor.m_iChannel, Cursor.m_iFrame), 2)).data());
 
-	m_cListResults.SetItemText(Pos, FRAME, conv::sv_from_int_hex(Cursor.m_iFrame, 2).data());
-	m_cListResults.SetItemText(Pos, ROW, conv::sv_from_int_hex(Cursor.m_iRow, 2).data());
+	m_cListResults.SetItemText(Pos, FRAME, conv::to_wide(conv::sv_from_int_hex(Cursor.m_iFrame, 2)).data());
+	m_cListResults.SetItemText(Pos, ROW, conv::to_wide(conv::sv_from_int_hex(Cursor.m_iRow, 2)).data());
 
 	switch (Note.Note) {
 	case NONE:
 		break;
 	case HALT:
-		m_cListResults.SetItemText(Pos, NOTE, _T("---")); break;
+		m_cListResults.SetItemText(Pos, NOTE, L"---"); break;
 	case RELEASE:
-		m_cListResults.SetItemText(Pos, NOTE, _T("===")); break;
+		m_cListResults.SetItemText(Pos, NOTE, L"==="); break;
 	case ECHO:
-		m_cListResults.SetItemText(Pos, NOTE, ("^-" + conv::from_int(Note.Octave)).data()); break;
+		m_cListResults.SetItemText(Pos, NOTE, (L"^-" + conv::to_wide(conv::from_int(Note.Octave))).data()); break;
 	default:
 		if (Noise)
-			m_cListResults.SetItemText(Pos, NOTE, (conv::from_int_hex(MIDI_NOTE(Note.Octave, Note.Note) & 0x0F) + "-#").data());
+			m_cListResults.SetItemText(Pos, NOTE, (conv::to_wide(conv::from_int_hex(MIDI_NOTE(Note.Octave, Note.Note) & 0x0F)) + L"-#").data());
 		else
-			m_cListResults.SetItemText(Pos, NOTE, Note.ToString().c_str());
+			m_cListResults.SetItemText(Pos, NOTE, conv::to_wide(Note.ToString()).data());
 	}
 
 	if (Note.Instrument == HOLD_INSTRUMENT)		// // // 050B
-		m_cListResults.SetItemText(Pos, INST, _T("&&"));
+		m_cListResults.SetItemText(Pos, INST, L"&&");
 	else if (Note.Instrument != MAX_INSTRUMENTS)
-		m_cListResults.SetItemText(Pos, INST, conv::sv_from_int_hex(Note.Instrument, 2).data());
+		m_cListResults.SetItemText(Pos, INST, conv::to_wide(conv::sv_from_int_hex(Note.Instrument, 2)).data());
 
 	if (Note.Vol != MAX_VOLUME)
-		m_cListResults.SetItemText(Pos, VOL, conv::sv_from_int_hex(Note.Vol).data());
+		m_cListResults.SetItemText(Pos, VOL, conv::to_wide(conv::sv_from_int_hex(Note.Vol)).data());
 
 	for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
 		if (Note.EffNumber[i] != EF_NONE) {
 			auto str = EFF_CHAR[Note.EffNumber[i] - 1] + conv::from_int_hex(Note.EffParam[i], 2);
-			m_cListResults.SetItemText(Pos, EFFECT + i, str.data());
+			m_cListResults.SetItemText(Pos, EFFECT + i, conv::to_wide(str).data());
 		}
 
 	UpdateCount();
@@ -287,11 +288,11 @@ void CFindResultsBox::SelectItem(int Index)
 	};
 
 	auto pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
-	int Channel = pView->GetSongView()->GetChannelOrder().GetChannelIndex(Cache(m_cListResults.GetItemText(Index, CHANNEL).GetString()));
+	int Channel = pView->GetSongView()->GetChannelOrder().GetChannelIndex(Cache(conv::to_utf8(m_cListResults.GetItemText(Index, CHANNEL))));
 	if (Channel != -1) {
 		pView->SelectChannel(Channel);
-		pView->SelectFrame(*conv::to_uint((LPCTSTR)m_cListResults.GetItemText(Index, FRAME), 16u));
-		pView->SelectRow(*conv::to_uint((LPCTSTR)m_cListResults.GetItemText(Index, ROW), 16u));
+		pView->SelectFrame(*conv::to_uint(conv::to_utf8(m_cListResults.GetItemText(Index, FRAME)), 16u));
+		pView->SelectRow(*conv::to_uint(conv::to_utf8(m_cListResults.GetItemText(Index, ROW)), 16u));
 	}
 	AfxGetMainWnd()->SetFocus();
 }
@@ -299,10 +300,10 @@ void CFindResultsBox::SelectItem(int Index)
 void CFindResultsBox::UpdateCount() const
 {
 	int Count = m_cListResults.GetItemCount();
-	CString str;
-	str.Format(_T("%d"), Count);
-	AfxFormatString2(str, IDS_FINDRESULT_COUNT, str, Count == 1 ? _T("result") : _T("results"));
-	GetDlgItem(IDC_STATIC_FINDRESULT_COUNT)->SetWindowText(str);
+	CStringW str;
+	str.Format(L"%d", Count);
+	AfxFormatString2(str, IDS_FINDRESULT_COUNT, str, Count == 1 ? L"result" : L"results");
+	GetDlgItem(IDC_STATIC_FINDRESULT_COUNT)->SetWindowTextW(str);
 }
 
 
@@ -324,17 +325,17 @@ BOOL CFindResultsBox::OnInitDialog()
 	m_cListResults.GetClientRect(&r);
 	const int w = r.Width() - ::GetSystemMetrics(SM_CXHSCROLL);
 
-	m_cListResults.InsertColumn(ID, _T("ID"), LVCFMT_LEFT, static_cast<int>(.085 * w));
-	m_cListResults.InsertColumn(CHANNEL, _T("Channel"), LVCFMT_LEFT, static_cast<int>(.19 * w));
-	m_cListResults.InsertColumn(PATTERN, _T("Pa."), LVCFMT_LEFT, static_cast<int>(.065 * w));
-	m_cListResults.InsertColumn(FRAME, _T("Fr."), LVCFMT_LEFT, static_cast<int>(.065 * w));
-	m_cListResults.InsertColumn(ROW, _T("Ro."), LVCFMT_LEFT, static_cast<int>(.065 * w));
-	m_cListResults.InsertColumn(NOTE, _T("Note"), LVCFMT_LEFT, static_cast<int>(.08 * w));
-	m_cListResults.InsertColumn(INST, _T("In."), LVCFMT_LEFT, static_cast<int>(.065 * w));
-	m_cListResults.InsertColumn(VOL, _T("Vo."), LVCFMT_LEFT, static_cast<int>(.065 * w));
+	m_cListResults.InsertColumn(ID, L"ID", LVCFMT_LEFT, static_cast<int>(.085 * w));
+	m_cListResults.InsertColumn(CHANNEL, L"Channel", LVCFMT_LEFT, static_cast<int>(.19 * w));
+	m_cListResults.InsertColumn(PATTERN, L"Pa.", LVCFMT_LEFT, static_cast<int>(.065 * w));
+	m_cListResults.InsertColumn(FRAME, L"Fr.", LVCFMT_LEFT, static_cast<int>(.065 * w));
+	m_cListResults.InsertColumn(ROW, L"Ro.", LVCFMT_LEFT, static_cast<int>(.065 * w));
+	m_cListResults.InsertColumn(NOTE, L"Note", LVCFMT_LEFT, static_cast<int>(.08 * w));
+	m_cListResults.InsertColumn(INST, L"In.", LVCFMT_LEFT, static_cast<int>(.065 * w));
+	m_cListResults.InsertColumn(VOL, L"Vo.", LVCFMT_LEFT, static_cast<int>(.065 * w));
 	for (int i = MAX_EFFECT_COLUMNS; i > 0; --i) {
-		CString str;
-		str.Format(_T("fx%d"), i);
+		CStringW str;
+		str.Format(L"fx%d", i);
 		m_cListResults.InsertColumn(EFFECT, str, LVCFMT_LEFT, static_cast<int>(.08 * w));
 	}
 
@@ -422,38 +423,28 @@ void CFindResultsBox::OnLvnColumnClickFindResults(NMHDR *pNMHDR, LRESULT *pResul
 int CFindResultsBox::IntCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
 	CListCtrl *pList = reinterpret_cast<CListCtrl*>(lParamSort);
-	long x = strtol(pList->GetItemText(lParam1, m_iLastsortColumn), nullptr, 10);
-	long y = strtol(pList->GetItemText(lParam2, m_iLastsortColumn), nullptr, 10);
+	auto x = conv::to_int(conv::to_utf8(pList->GetItemText(lParam1, m_iLastsortColumn)));
+	auto y = conv::to_int(conv::to_utf8(pList->GetItemText(lParam1, m_iLastsortColumn)));
 
-	int result = 0;
-	if (x > y)
-		result = 1;
-	else if (x < y)
-		result = -1;
-
+	int result = x > y ? 1 : x < y ? -1 : 0; // x <=> y;
 	return m_bLastSortDescending ? -result : result;
 }
 
 int CFindResultsBox::HexCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
 	CListCtrl *pList = reinterpret_cast<CListCtrl*>(lParamSort);
-	long x = strtol(pList->GetItemText(lParam1, m_iLastsortColumn), nullptr, 16);
-	long y = strtol(pList->GetItemText(lParam2, m_iLastsortColumn), nullptr, 16);
+	auto x = conv::to_int(conv::to_utf8(pList->GetItemText(lParam1, m_iLastsortColumn)), 16u);
+	auto y = conv::to_int(conv::to_utf8(pList->GetItemText(lParam1, m_iLastsortColumn)), 16u);
 
-	int result = 0;
-	if (x > y)
-		result = 1;
-	else if (x < y)
-		result = -1;
-
+	int result = x > y ? 1 : x < y ? -1 : 0; // x <=> y;
 	return m_bLastSortDescending ? -result : result;
 }
 
 int CFindResultsBox::StringCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
 	CListCtrl *pList = reinterpret_cast<CListCtrl*>(lParamSort);
-	CString x = pList->GetItemText(lParam1, m_iLastsortColumn);
-	CString y = pList->GetItemText(lParam2, m_iLastsortColumn);
+	CStringW x = pList->GetItemText(lParam1, m_iLastsortColumn);
+	CStringW y = pList->GetItemText(lParam2, m_iLastsortColumn);
 
 	int result = x.Compare(y);
 
@@ -463,14 +454,14 @@ int CFindResultsBox::StringCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lP
 int CFindResultsBox::ChannelCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
 	CListCtrl *pList = reinterpret_cast<CListCtrl*>(lParamSort);
-	CString x = pList->GetItemText(lParam1, m_iLastsortColumn);
-	CString y = pList->GetItemText(lParam2, m_iLastsortColumn);
+	CStringW x = pList->GetItemText(lParam1, m_iLastsortColumn);
+	CStringW y = pList->GetItemText(lParam2, m_iLastsortColumn);
 
-	const auto ToIndex = [] (const CString &x) {
-		static const CString HEADER_STR[] = {
-			_T("Pulse "), _T("Triangle"), _T("Noise"), _T("DPCM"),
-			_T("VRC6 Pulse "), _T("Sawtooth"),
-			_T("MMC5 Pulse "), _T("Namco "), _T("FDS"), _T("FM Channel "), _T("5B Square ")
+	const auto ToIndex = [] (const CStringW &x) {
+		static const CStringW HEADER_STR[] = {
+			L"Pulse ", L"Triangle", L"Noise", L"DPCM",
+			L"VRC6 Pulse ", L"Sawtooth",
+			L"MMC5 Pulse ", L"Namco ", L"FDS", L"FM Channel ", L"5B Square "
 		};
 		int Pos = 0;
 		for (const auto &n : HEADER_STR) {
@@ -483,8 +474,8 @@ int CFindResultsBox::ChannelCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM l
 		}
 		return -1;
 	};
-	const auto Cache = [&] (const CString &x) {
-		static std::map<CString, int> m;
+	const auto Cache = [&] (const CStringW &x) {
+		static std::map<CStringW, int> m;
 		auto it = m.find(x);
 		if (it == m.end())
 			return m[x] = ToIndex(x);
@@ -499,30 +490,30 @@ int CFindResultsBox::ChannelCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM l
 int CFindResultsBox::NoteCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
 	CListCtrl *pList = reinterpret_cast<CListCtrl*>(lParamSort);
-	CString x = pList->GetItemText(lParam1, m_iLastsortColumn);
-	CString y = pList->GetItemText(lParam2, m_iLastsortColumn);
+	CStringW x = pList->GetItemText(lParam1, m_iLastsortColumn);
+	CStringW y = pList->GetItemText(lParam2, m_iLastsortColumn);
 
-	const auto ToIndex = [] (const CString &x) {
-		if (x.Left(1) == _T("^"))
-			return 0x400 + x.GetAt(x.GetLength() - 1);
-		if (x == _T("==="))
+	const auto ToIndex = [] (std::string_view x) {
+		if (x.size() == 2 && x.front() == '^')
+			return 0x400 + x.back();
+		if (x == "===")
 			return 0x300;
-		if (x == _T("---"))
+		if (x == "---")
 			return 0x200;
-		if (x.Right(1) == _T("#"))
-			return 0x100 + x.GetAt(0);
+		if (x.size() == 3 && x.back() == '#')
+			return 0x100 + x.front();
 		for (int i = 0; i < NOTE_RANGE; ++i) {
 			const auto &n = stChanNote::NOTE_NAME[i];
-			if (n == (LPCTSTR)x.Left(n.size()))
-				return MIDI_NOTE(x.GetAt(x.GetLength() - 1) - '0', ++i);
+			if (n == x.substr(0, n.size()))
+				return MIDI_NOTE(x.back() - '0', ++i);
 		}
 		return -1;
 	};
-	const auto Cache = [&] (const CString &x) {
-		static std::map<CString, int> m;
+	const auto Cache = [&] (const CStringW &x) {
+		static std::map<CStringW, int> m;
 		auto it = m.find(x);
 		if (it == m.end())
-			return m[x] = ToIndex(x);
+			return m[x] = ToIndex(conv::to_utf8(x));
 		return it->second;
 	};
 
@@ -573,8 +564,8 @@ END_MESSAGE_MAP()
 
 // CFindDlg message handlers
 
-const CString CFindDlg::m_pNoteName[7] = {_T("C"), _T("D"), _T("E"), _T("F"), _T("G"), _T("A"), _T("B")};
-const CString CFindDlg::m_pNoteSign[3] = {_T("b"), _T("-"), _T("#")};
+const CStringW CFindDlg::m_pNoteName[7] = {L"C", L"D", L"E", L"F", L"G", L"A", L"B"};
+const CStringW CFindDlg::m_pNoteSign[3] = {L"b", L"-", L"#"};
 const int CFindDlg::m_iNoteOffset[7] = {NOTE_C, NOTE_D, NOTE_E, NOTE_F, NOTE_G, NOTE_A, NOTE_B};
 
 
@@ -640,7 +631,7 @@ void CFindDlg::OnUpdateFields(UINT nID)
 	UpdateFields();
 }
 
-void CFindDlg::ParseNote(searchTerm &Term, CString str, bool Half)
+void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 {
 	if (!Half) Term.Definite[WC_NOTE] = Term.Definite[WC_OCT] = false;
 
@@ -659,10 +650,10 @@ void CFindDlg::ParseNote(searchTerm &Term, CString str, bool Half)
 	}
 
 	RaiseIf(Half && (!Term.Note->IsSingle() || !Term.Oct->IsSingle()),
-		_T("Cannot use wildcards in a range search query."));
+		L"Cannot use wildcards in a range search query.");
 
-	if (str == _T("-") || str == _T("---")) {
-		RaiseIf(Half, _T("Cannot use note cut in a range search query."));
+	if (str == L"-" || str == L"---") {
+		RaiseIf(Half, L"Cannot use note cut in a range search query.");
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
 		Term.Note->Set(HALT);
@@ -670,8 +661,8 @@ void CFindDlg::ParseNote(searchTerm &Term, CString str, bool Half)
 		return;
 	}
 
-	if (str == _T("=") || str == _T("===")) {
-		RaiseIf(Half, _T("Cannot use note release in a range search query."));
+	if (str == L"=" || str == L"===") {
+		RaiseIf(Half, L"Cannot use note release in a range search query.");
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
 		Term.Note->Set(RELEASE);
@@ -679,25 +670,25 @@ void CFindDlg::ParseNote(searchTerm &Term, CString str, bool Half)
 		return;
 	}
 
-	if (str == _T(".")) {
-		RaiseIf(Half, _T("Cannot use wildcards in a range search query."));
+	if (str == L".") {
+		RaiseIf(Half, L"Cannot use wildcards in a range search query.");
 		Term.Definite[WC_NOTE] = true;
 		Term.Note->Min = NONE + 1;
 		Term.Note->Max = ECHO;
 		return;
 	}
 
-	if (str.GetAt(0) == _T('^')) {
-		RaiseIf(Half && !Term.Definite[WC_OCT], _T("Cannot use wildcards in a range search query."));
+	if (str.GetAt(0) == L'^') {
+		RaiseIf(Half && !Term.Definite[WC_OCT], L"Cannot use wildcards in a range search query.");
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
 		Term.Note->Set(ECHO);
 		if (str.Delete(0)) {
-			if (str.GetAt(0) == _T('-'))
+			if (str.GetAt(0) == L'-')
 				str.Delete(0);
-			int BufPos = conv::to_int((LPCTSTR)str).value_or(ECHO_BUFFER_LENGTH + 1);
+			int BufPos = conv::to_int(conv::to_utf8(str)).value_or(ECHO_BUFFER_LENGTH + 1);
 			RaiseIf(BufPos > ECHO_BUFFER_LENGTH,
-				_T("Echo buffer access \"^%s\" is out of range, maximum is %d."), str, ECHO_BUFFER_LENGTH);
+				L"Echo buffer access \"^%s\" is out of range, maximum is %d.", str, ECHO_BUFFER_LENGTH);
 			Term.Oct->Set(BufPos, Half);
 		}
 		else {
@@ -706,7 +697,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CString str, bool Half)
 		return;
 	}
 
-	if (str.Mid(1, 2) != _T("-#")) for (int i = 0; i < 7; i++) {
+	if (str.Mid(1, 2) != L"-#") for (int i = 0; i < 7; i++) {
 		if (str.Left(1).MakeUpper() == m_pNoteName[i]) {
 			Term.Definite[WC_NOTE] = true;
 			int Note = m_iNoteOffset[i];
@@ -717,27 +708,27 @@ void CFindDlg::ParseNote(searchTerm &Term, CString str, bool Half)
 			}
 			if (str.Delete(0)) {
 				Term.Definite[WC_OCT] = true;
-				RaiseIf(str.SpanIncluding("0123456789") != str, _T("Unknown note octave."));
-				Oct = conv::to_int((LPCTSTR)str).value_or(-1);
+				RaiseIf(str.SpanIncluding(L"0123456789") != str, L"Unknown note octave.");
+				Oct = conv::to_int(conv::to_utf8(str)).value_or(-1);
 				RaiseIf(Oct >= OCTAVE_RANGE || Oct < 0,
-					_T("Note octave \"%s\" is out of range, maximum is %d."), str, OCTAVE_RANGE - 1);
+					L"Note octave \"%s\" is out of range, maximum is %d.", str, OCTAVE_RANGE - 1);
 				Term.Oct->Set(Oct, Half);
 			}
-			else RaiseIf(Half, _T("Cannot use wildcards in a range search query."));
+			else RaiseIf(Half, L"Cannot use wildcards in a range search query.");
 			while (Note > NOTE_RANGE) { Note -= NOTE_RANGE; if (Term.Definite[WC_OCT]) Term.Oct->Set(++Oct, Half); }
 			while (Note < NOTE_C) { Note += NOTE_RANGE; if (Term.Definite[WC_OCT]) Term.Oct->Set(--Oct, Half); }
 			Term.Note->Set(Note, Half);
 			RaiseIf(Term.Definite[WC_OCT] && (Oct >= OCTAVE_RANGE || Oct < 0),
-				_T("Note octave \"%s\" is out of range, check if the note contains Cb or B#."), str);
+				L"Note octave \"%s\" is out of range, check if the note contains Cb or B#.", str);
 			return;
 		}
 	}
 
-	if (str.Right(2) == _T("-#") && str.GetLength() == 3) {
+	if (str.Right(2) == L"-#" && str.GetLength() == 3) {
 		int NoteValue = GetHex(str.Left(1));
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
-		if (str.Left(1) == _T(".")) {
+		if (str.Left(1) == L".") {
 			Term.Note->Min = 1; Term.Note->Max = 4;
 			Term.Oct->Min = 0; Term.Oct->Max = 1;
 		}
@@ -749,11 +740,11 @@ void CFindDlg::ParseNote(searchTerm &Term, CString str, bool Half)
 		return;
 	}
 
-	if (str.SpanIncluding("0123456789") == str) {
-		int NoteValue = conv::to_int((LPCTSTR)str).value_or(-1);
-		RaiseIf(NoteValue == 0 && str.GetAt(0) != _T('0'), _T("Invalid note \"%s\"."), str);
+	if (str.SpanIncluding(L"0123456789") == str) {
+		int NoteValue = conv::to_int(conv::to_utf8(str)).value_or(-1);
+		RaiseIf(NoteValue == 0 && str.GetAt(0) != L'0', L"Invalid note \"%s\".", str);
 		RaiseIf(NoteValue >= NOTE_COUNT || NoteValue < 0,
-			_T("Note value \"%s\" is out of range, maximum is %d."), str, NOTE_COUNT - 1);
+			L"Note value \"%s\" is out of range, maximum is %d.", str, NOTE_COUNT - 1);
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
 		Term.Note->Set(NoteValue % NOTE_RANGE + 1, Half);
@@ -761,10 +752,10 @@ void CFindDlg::ParseNote(searchTerm &Term, CString str, bool Half)
 		return;
 	}
 
-	RaiseIf(true, _T("Unknown note query."));
+	RaiseIf(true, L"Unknown note query.");
 }
 
-void CFindDlg::ParseInst(searchTerm &Term, CString str, bool Half)
+void CFindDlg::ParseInst(searchTerm &Term, CStringW str, bool Half)
 {
 	Term.Definite[WC_INST] = true;
 	if (str.IsEmpty()) {
@@ -772,26 +763,26 @@ void CFindDlg::ParseInst(searchTerm &Term, CString str, bool Half)
 			Term.Inst->Set(MAX_INSTRUMENTS);
 		return;
 	}
-	RaiseIf(Half && !Term.Inst->IsSingle(), _T("Cannot use wildcards in a range search query."));
+	RaiseIf(Half && !Term.Inst->IsSingle(), L"Cannot use wildcards in a range search query.");
 
-	if (str == _T(".")) {
-		RaiseIf(Half, _T("Cannot use wildcards in a range search query."));
+	if (str == L".") {
+		RaiseIf(Half, L"Cannot use wildcards in a range search query.");
 		Term.Inst->Min = 0;
 		Term.Inst->Max = MAX_INSTRUMENTS - 1;
 	}
-	else if (str == _T("&&")) {		// // // 050B
-		RaiseIf(Half, _T("Cannot use && in a range search query."));
+	else if (str == L"&&") {		// // // 050B
+		RaiseIf(Half, L"Cannot use && in a range search query.");
 		Term.Inst->Set(HOLD_INSTRUMENT);
 	}
 	else if (!str.IsEmpty()) {
 		unsigned char Val = GetHex(str);
 		RaiseIf(Val >= MAX_INSTRUMENTS,
-			_T("Instrument \"%s\" is out of range, maximum is %X."), str, MAX_INSTRUMENTS - 1);
+			L"Instrument \"%s\" is out of range, maximum is %X.", str, MAX_INSTRUMENTS - 1);
 		Term.Inst->Set(Val, Half);
 	}
 }
 
-void CFindDlg::ParseVol(searchTerm &Term, CString str, bool Half)
+void CFindDlg::ParseVol(searchTerm &Term, CStringW str, bool Half)
 {
 	Term.Definite[WC_VOL] = true;
 	if (str.IsEmpty()) {
@@ -799,24 +790,24 @@ void CFindDlg::ParseVol(searchTerm &Term, CString str, bool Half)
 			Term.Vol->Set(MAX_VOLUME);
 		return;
 	}
-	RaiseIf(Half && !Term.Vol->IsSingle(), _T("Cannot use wildcards in a range search query."));
+	RaiseIf(Half && !Term.Vol->IsSingle(), L"Cannot use wildcards in a range search query.");
 
-	if (str == _T(".")) {
-		RaiseIf(Half, _T("Cannot use wildcards in a range search query."));
+	if (str == L".") {
+		RaiseIf(Half, L"Cannot use wildcards in a range search query.");
 		Term.Vol->Min = 0;
 		Term.Vol->Max = MAX_VOLUME - 1;
 	}
 	else if (!str.IsEmpty()) {
 		unsigned char Val = GetHex(str);
 		RaiseIf(Val >= MAX_VOLUME,
-			_T("Channel volume \"%s\" is out of range, maximum is %X."), str, MAX_VOLUME - 1);
+			L"Channel volume \"%s\" is out of range, maximum is %X.", str, MAX_VOLUME - 1);
 		Term.Vol->Set(Val, Half);
 	}
 }
 
-void CFindDlg::ParseEff(searchTerm &Term, CString str, bool Half)
+void CFindDlg::ParseEff(searchTerm &Term, CStringW str, bool Half)
 {
-	RaiseIf(str.GetLength() == 2, _T("Effect \"%s\" is too short."), str.Left(1));
+	RaiseIf(str.GetLength() == 2, L"Effect \"%s\" is too short.", str.Left(1));
 
 	if (str.IsEmpty()) {
 		Term.Definite[WC_EFF] = true;
@@ -824,13 +815,13 @@ void CFindDlg::ParseEff(searchTerm &Term, CString str, bool Half)
 		Term.EffNumber[EF_NONE] = true;
 		Term.EffParam->Set(0);
 	}
-	else if (str == _T(".")) {
+	else if (str == L".") {
 		Term.Definite[WC_EFF] = true;
 		for (size_t i = 1; i < EF_COUNT; i++)
 			Term.EffNumber[i] = true;
 	}
 	else {
-		char Name = str[0];
+		char Name = conv::to_utf8(str.Left(1)).front();
 		bool found = false;
 		for (size_t i = 1; i < EF_COUNT; i++) {
 			if (Name == EFF_CHAR[i - 1]) {
@@ -839,7 +830,7 @@ void CFindDlg::ParseEff(searchTerm &Term, CString str, bool Half)
 				found = true;
 			}
 		}
-		RaiseIf(!found, _T("Unknown effect \"%s\" found in search query."), str.Left(1));
+		RaiseIf(!found, L"Unknown effect \"%s\" found in search query.", str.Left(1));
 	}
 	if (str.GetLength() > 1) {
 		Term.Definite[WC_PARAM] = true;
@@ -850,43 +841,43 @@ void CFindDlg::ParseEff(searchTerm &Term, CString str, bool Half)
 void CFindDlg::GetFindTerm()
 {
 	RaiseIf(m_cSearchArea.GetCurSel() == 4 && !m_pView->GetPatternEditor()->IsSelecting(),
-			_T("Cannot use \"Selection\" as the search scope if there is no active pattern selection."));
+		L"Cannot use \"Selection\" as the search scope if there is no active pattern selection.");
 
-	CString str = _T("");
+	CStringW str = L"";
 	searchTerm newTerm;
 
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_NOTE)) {
-		m_cFindNoteField.GetWindowText(str);
+		m_cFindNoteField.GetWindowTextW(str);
 		bool empty = str.IsEmpty();
 		ParseNote(newTerm, str, false);
-		m_cFindNoteField2.GetWindowText(str);
+		m_cFindNoteField2.GetWindowTextW(str);
 		ParseNote(newTerm, str, !empty);
 		RaiseIf((newTerm.Note->Min == ECHO && newTerm.Note->Max >= NOTE_C && newTerm.Note->Max <= NOTE_B ||
 			newTerm.Note->Max == ECHO && newTerm.Note->Min >= NOTE_C && newTerm.Note->Min <= NOTE_B) &&
 			newTerm.Definite[WC_OCT],
-			_T("Cannot use both notes and echo buffer in a range search query."));
+			L"Cannot use both notes and echo buffer in a range search query.");
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_INST)) {
-		m_cFindInstField.GetWindowText(str);
+		m_cFindInstField.GetWindowTextW(str);
 		bool empty = str.IsEmpty();
 		ParseInst(newTerm, str, false);
-		m_cFindInstField2.GetWindowText(str);
+		m_cFindInstField2.GetWindowTextW(str);
 		ParseInst(newTerm, str, !empty);
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_VOL)) {
-		m_cFindVolField.GetWindowText(str);
+		m_cFindVolField.GetWindowTextW(str);
 		bool empty = str.IsEmpty();
 		ParseVol(newTerm, str, false);
-		m_cFindVolField2.GetWindowText(str);
+		m_cFindVolField2.GetWindowTextW(str);
 		ParseVol(newTerm, str, !empty);
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_EFF)) {
-		m_cFindEffField.GetWindowText(str);
+		m_cFindEffField.GetWindowTextW(str);
 		ParseEff(newTerm, str, false);
 	}
 
 	for (int i = 0; i <= 6; i++) {
-		RaiseIf(i == 6, _T("Search query is empty."));
+		RaiseIf(i == 6, L"Search query is empty.");
 		if (newTerm.Definite[i]) break;
 	}
 
@@ -895,28 +886,28 @@ void CFindDlg::GetFindTerm()
 
 void CFindDlg::GetReplaceTerm()
 {
-	CString str = _T("");
+	CStringW str = L"";
 	searchTerm newTerm;
 
 	if (IsDlgButtonChecked(IDC_CHECK_REPLACE_NOTE)) {
-		m_cReplaceNoteField.GetWindowText(str);
+		m_cReplaceNoteField.GetWindowTextW(str);
 		ParseNote(newTerm, str, false);
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_REPLACE_INST)) {
-		m_cReplaceInstField.GetWindowText(str);
+		m_cReplaceInstField.GetWindowTextW(str);
 		ParseInst(newTerm, str, false);
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_REPLACE_VOL)) {
-		m_cReplaceVolField.GetWindowText(str);
+		m_cReplaceVolField.GetWindowTextW(str);
 		ParseVol(newTerm, str, false);
 	}
 	if (IsDlgButtonChecked(IDC_CHECK_REPLACE_EFF)) {
-		m_cReplaceEffField.GetWindowText(str);
+		m_cReplaceEffField.GetWindowTextW(str);
 		ParseEff(newTerm, str, false);
 	}
 
 	for (int i = 0; i <= 6; i++) {
-		RaiseIf(i == 6, _T("Replacement query is empty."));
+		RaiseIf(i == 6, L"Replacement query is empty.");
 		if (newTerm.Definite[i]) break;
 	}
 
@@ -928,23 +919,23 @@ void CFindDlg::GetReplaceTerm()
 			newTerm.Definite[WC_INST] && !newTerm.Inst->IsSingle() ||
 			newTerm.Definite[WC_VOL] && !newTerm.Vol->IsSingle() ||
 			newTerm.Definite[WC_PARAM] && !newTerm.EffParam->IsSingle(),
-			_T("Replacement query cannot contain wildcards."));
+			L"Replacement query cannot contain wildcards.");
 
 	if (IsDlgButtonChecked(IDC_CHECK_FIND_REMOVE)) {
 		RaiseIf(newTerm.Definite[WC_NOTE] && !newTerm.Definite[WC_OCT],
-				_T("Replacement query cannot contain a note with an unspecified octave if ")
-				_T("the option \"Remove original data\" is enabled."));
+				L"Replacement query cannot contain a note with an unspecified octave if "
+				L"the option \"Remove original data\" is enabled.");
 		RaiseIf(newTerm.Definite[WC_EFF] && !newTerm.Definite[WC_PARAM],
-				_T("Replacement query cannot contain an effect with an unspecified parameter if ")
-				_T("the option \"Remove original data\" is enabled."));
+				L"Replacement query cannot contain an effect with an unspecified parameter if "
+				L"the option \"Remove original data\" is enabled.");
 	}
 
 	m_replaceTerm = toReplace(newTerm);
 }
 
-unsigned CFindDlg::GetHex(LPCTSTR str) {
-	auto val = conv::to_int(str, 16);
-	RaiseIf(!val, _T("Invalid hexadecimal \"%s\"."), str);
+unsigned CFindDlg::GetHex(LPCWSTR str) {
+	auto val = conv::to_int(conv::to_utf8(str), 16);
+	RaiseIf(!val, L"Invalid hexadecimal \"%s\".", str);
 	return *val;
 }
 
@@ -1027,13 +1018,13 @@ bool CFindDlg::CompareFields(const stChanNote &Target, bool Noise, int EffCount)
 }
 
 template <typename... T>
-void CFindDlg::RaiseIf(bool Check, LPCTSTR Str, T... args)
+void CFindDlg::RaiseIf(bool Check, LPCWSTR Str, T... args)
 {
 	if (!Check)
 		return;
-	TCHAR buf[512];
-	_sntprintf_s(buf, sizeof(buf), _TRUNCATE, Str, args...);
-	throw CFindException {buf};
+	WCHAR buf[512] = { };
+	_snwprintf_s(buf, _TRUNCATE, Str, args...);
+	throw CFindException {conv::to_utf8(buf).data()};
 }
 
 bool CFindDlg::Find(bool ShowEnd)
@@ -1141,7 +1132,7 @@ bool CFindDlg::PrepareFind()
 {
 	m_pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
 	if (!m_pView || !m_pView->GetSongView()) {
-		AfxMessageBox(_T("Cannot find song view."), MB_ICONERROR);
+		AfxMessageBox(L"Cannot find song view.", MB_ICONERROR);
 		return false;
 	}
 
@@ -1149,7 +1140,7 @@ bool CFindDlg::PrepareFind()
 		GetFindTerm();
 	}
 	catch (CFindException e) {
-		AfxMessageBox(e.what(), MB_OK | MB_ICONSTOP);
+		AfxMessageBox(conv::to_wide(e.what()).data(), MB_OK | MB_ICONSTOP);
 		return false;
 	}
 
@@ -1164,7 +1155,7 @@ bool CFindDlg::PrepareReplace()
 		GetReplaceTerm();
 	}
 	catch (CFindException e) {
-		AfxMessageBox(e.what(), MB_OK | MB_ICONSTOP);
+		AfxMessageBox(conv::to_wide(e.what()).data(), MB_OK | MB_ICONSTOP);
 		return false;
 	}
 
@@ -1322,8 +1313,8 @@ void CFindDlg::OnBnClickedButtonReplaceall()
 
 	static_cast<CMainFrame*>(AfxGetMainWnd())->AddAction(std::move(pAction));
 	m_pView->SetFocus();
-	CString str;
-	str.Format(_T("%d occurrence(s) replaced."), Count);
+	CStringW str;
+	str.Format(L"%d occurrence(s) replaced.", Count);
 	AfxMessageBox(str, MB_OK | MB_ICONINFORMATION);
 }
 

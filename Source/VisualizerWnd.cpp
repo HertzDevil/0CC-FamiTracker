@@ -128,7 +128,7 @@ UINT CVisualizerWnd::ThreadProc()
 	DWORD nThreadID = AfxGetThread()->m_nThreadID;
 	m_bThreadRunning = true;
 
-	TRACE("Visualizer: Started thread (0x%04x)\n", nThreadID);
+	TRACE(L"Visualizer: Started thread (0x%04x)\n", nThreadID);
 
 	while (m_bThreadRunning && ::WaitForSingleObject(m_hNewSamples, INFINITE) == WAIT_OBJECT_0) {
 
@@ -160,12 +160,12 @@ UINT CVisualizerWnd::ThreadProc()
 		m_csBuffer.Unlock();
 	}
 
-	TRACE("Visualizer: Closed thread (0x%04x)\n", nThreadID);
+	TRACE(L"Visualizer: Closed thread (0x%04x)\n", nThreadID);
 
 	return 0;
 }
 
-BOOL CVisualizerWnd::CreateEx(DWORD dwExStyle, LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, CCreateContext* pContext)
+BOOL CVisualizerWnd::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, CCreateContext* pContext)
 {
 	// This is saved
 	m_iCurrentState = Env.GetSettings()->SampleWinState;
@@ -211,7 +211,7 @@ void CVisualizerWnd::OnPaint()
 	if (m_bNoAudio) {
 		CRect rect;
 		GetClientRect(rect);
-		dc.DrawText("No audio", rect, DT_CENTER | DT_VCENTER);
+		dc.DrawTextW(L"No audio", rect, DT_CENTER | DT_VCENTER);
 	}
 	else
 		m_pStates[m_iCurrentState]->Display(&dc, true);
@@ -222,7 +222,7 @@ void CVisualizerWnd::OnPaint()
 void CVisualizerWnd::OnRButtonUp(UINT nFlags, CPoint point)
 {
 	CMenu PopupMenuBar;
-	PopupMenuBar.LoadMenu(IDR_SAMPLE_WND_POPUP);
+	PopupMenuBar.LoadMenuW(IDR_SAMPLE_WND_POPUP);
 
 	CMenu *pPopupMenu = PopupMenuBar.GetSubMenu(0);
 
@@ -271,15 +271,15 @@ void CVisualizerWnd::OnDestroy()
 		m_bThreadRunning = false;
 		::SetEvent(m_hNewSamples);
 
-		TRACE("Visualizer: Joining thread...\n");
+		TRACE(L"Visualizer: Joining thread...\n");
 		if (::WaitForSingleObject(hThread, 5000) == WAIT_OBJECT_0) {
 			::CloseHandle(m_hNewSamples);
 			m_hNewSamples = NULL;
 			m_pWorkerThread = NULL;
-			TRACE("Visualizer: Thread has finished.\n");
+			TRACE(L"Visualizer: Thread has finished.\n");
 		}
 		else {
-			TRACE("Visualizer: Could not shutdown worker thread\n");
+			TRACE(L"Visualizer: Could not shutdown worker thread\n");
 		}
 	}
 

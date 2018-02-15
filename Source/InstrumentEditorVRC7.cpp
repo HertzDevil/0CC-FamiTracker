@@ -27,6 +27,7 @@
 #include <algorithm>		// // //
 #include "sv_regex.h"		// // //
 #include "FamiTrackerDoc.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 static unsigned char default_inst[(16+3)*16] =
 {
@@ -79,29 +80,29 @@ BOOL CInstrumentEditorVRC7::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	CComboBox *pPatchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PATCH));
-	CString Text;
+	CStringW Text;
 
 	const _TCHAR* const PATCH_NAME[16] = {
-		_T("(custom patch)"),
-		_T("Bell"),
-		_T("Guitar"),
-		_T("Piano"),
-		_T("Flute"),
-		_T("Clarinet"),
-		_T("Rattling Bell"),
-		_T("Trumpet"),
-		_T("Reed Organ"),
-		_T("Soft Bell"),
-		_T("Xylophone"),
-		_T("Vibraphone"),
-		_T("Brass"),
-		_T("Bass Guitar"),
-		_T("Synthesizer"),
-		_T("Chorus")
+		L"(custom patch)",
+		L"Bell",
+		L"Guitar",
+		L"Piano",
+		L"Flute",
+		L"Clarinet",
+		L"Rattling Bell",
+		L"Trumpet",
+		L"Reed Organ",
+		L"Soft Bell",
+		L"Xylophone",
+		L"Vibraphone",
+		L"Brass",
+		L"Bass Guitar",
+		L"Synthesizer",
+		L"Chorus"
 	};
 
 	for (int i = 0; i < 16; ++i) {
-		Text.Format(_T("Patch #%i - %s"), i, PATCH_NAME[i]);
+		Text.Format(L"Patch #%i - %s", i, PATCH_NAME[i]);
 		pPatchBox->AddString(Text);
 	}
 
@@ -405,9 +406,9 @@ void CInstrumentEditorVRC7::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 	CMenu menu;
 
 	menu.CreatePopupMenu();
-	menu.AppendMenu(MF_STRING, 1, _T("&Copy"));
-	menu.AppendMenu(MF_STRING, 2, _T("Copy as Plain &Text"));		// // //
-	menu.AppendMenu(MF_STRING, 3, _T("&Paste"));
+	menu.AppendMenuW(MF_STRING, 1, L"&Copy");
+	menu.AppendMenuW(MF_STRING, 2, L"Copy as Plain &Text");		// // //
+	menu.AppendMenuW(MF_STRING, 3, L"&Paste");
 
 	switch (menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD, point.x, point.y, this)) {
 		case 1: // Copy
@@ -424,12 +425,12 @@ void CInstrumentEditorVRC7::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 
 void CInstrumentEditorVRC7::OnCopy()
 {
-	CString MML;
+	CStringW MML;
 
 	int patch = m_pInstrument->GetPatch();
 	// Assemble a MML string
 	for (int i = 0; i < 8; ++i)
-		MML.AppendFormat(_T("$%02X "), (patch == 0) ? (unsigned char)(m_pInstrument->GetCustomReg(i)) : default_inst[patch * 16 + i]);
+		MML.AppendFormat(L"$%02X ", (patch == 0) ? (unsigned char)(m_pInstrument->GetCustomReg(i)) : default_inst[patch * 16 + i]);
 
 	CClipboard Clipboard(this, CF_TEXT);
 
@@ -438,7 +439,7 @@ void CInstrumentEditorVRC7::OnCopy()
 		return;
 	}
 
-	Clipboard.SetDataPointer((LPCTSTR)MML, MML.GetLength() + 1);
+	Clipboard.SetDataPointer((LPCWSTR)MML, MML.GetLength() + 1);
 }
 
 void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
@@ -448,13 +449,13 @@ void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
 	for (int i = 0; i < 8; ++i)
 		reg[i] = patch == 0 ? m_pInstrument->GetCustomReg(i) : default_inst[patch * 16 + i];
 
-	CString MML;
-	GetDlgItemTextA(IDC_PATCH, MML);
+	CStringW MML;
+	GetDlgItemTextW(IDC_PATCH, MML);
 	auto sv = m_pInstrument->GetName();
-	MML.Format(_T(";%s\r\n;%.*s\r\n"), MML, sv.size(), sv.data());
-	MML.AppendFormat(_T(";TL FB\r\n %2d,%2d,\r\n;AR DR SL RR KL MT AM VB EG KR DT\r\n"), reg[2] & 0x3F, reg[3] & 0x07);
+	MML.Format(L";%s\r\n;%.*s\r\n", MML, sv.size(), sv.data());
+	MML.AppendFormat(L";TL FB\r\n %2d,%2d,\r\n;AR DR SL RR KL MT AM VB EG KR DT\r\n", reg[2] & 0x3F, reg[3] & 0x07);
 	for (int i = 0; i <= 1; i++)
-		MML.AppendFormat(_T(" %2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,\r\n"),
+		MML.AppendFormat(L" %2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,\r\n",
 			(reg[4 + i] >> 4) & 0x0F, reg[4 + i] & 0x0F, (reg[6 + i] >> 4) & 0x0F, reg[6 + i] & 0x0F,
 			(reg[2 + i] >> 6) & 0x03, reg[i] & 0x0F,
 			(reg[i] >> 7) & 0x01, (reg[i] >> 6) & 0x01, (reg[i] >> 5) & 0x01, (reg[i] >> 4) & 0x01,
@@ -467,7 +468,7 @@ void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
 		return;
 	}
 
-	Clipboard.SetDataPointer((LPCTSTR)MML, MML.GetLength() + 1);
+	Clipboard.SetDataPointer((LPCWSTR)MML, MML.GetLength() + 1);
 }
 
 void CInstrumentEditorVRC7::OnPaste()
@@ -481,16 +482,16 @@ void CInstrumentEditorVRC7::OnPaste()
 	}
 
 	if (Clipboard.IsDataAvailable()) {
-		LPCTSTR text = (LPCTSTR)Clipboard.GetDataPointer();
+		LPCWSTR text = (LPCWSTR)Clipboard.GetDataPointer();
 		if (text != NULL)
-			PasteSettings(text);
+			ParsePatch(conv::to_utf8(text));
 	}
 }
 
-void CInstrumentEditorVRC7::PasteSettings(LPCTSTR pString)
+void CInstrumentEditorVRC7::ParsePatch(std::string_view sv)
 {
 	int i = 0;
-	for (auto x : re::tokens(pString)) {		// // //
+	for (auto x : re::tokens(sv)) {		// // //
 		int value = CSequenceInstrumentEditPanel::ReadStringValue(x.str());
 		m_pInstrument->SetCustomReg(i, std::clamp(value, 0, 0xFF));		// // //
 		if (++i >= 8)

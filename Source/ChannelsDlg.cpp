@@ -32,14 +32,14 @@
 
 // Used to handle channels in a future version. Not finished.
 
-const LPCTSTR ROOT_ITEMS[] = {		// // //
-	_T("2A03/2A07"),
-	_T("Konami VRC6"),
-	_T("Konami VRC7"),
-	_T("Nintendo FDS"),
-	_T("Nintendo MMC5"),
-	_T("Namco 106"),
-	_T("Sunsoft 5B")
+const LPCWSTR ROOT_ITEMS[] = {		// // //
+	L"2A03/2A07",
+	L"Konami VRC6",
+	L"Konami VRC7",
+	L"Nintendo FDS",
+	L"Nintendo MMC5",
+	L"Namco 106",
+	L"Sunsoft 5B"
 };
 
 const chan_id_t CHILD_ITEMS_ID[ROOT_ITEM_COUNT][9] = {		// // //
@@ -59,21 +59,21 @@ const chan_id_t CHILD_ITEMS_ID[ROOT_ITEM_COUNT][9] = {		// // //
 	{chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3}
 };
 
-const LPCTSTR CHILD_ITEMS[ROOT_ITEM_COUNT][9] = {		// // //
+const LPCWSTR CHILD_ITEMS[ROOT_ITEM_COUNT][9] = {		// // //
 	// 2A03
-	{_T("Square 1"), _T("Square 2"), _T("Triangle"), _T("Noise"), _T("DPCM")},
+	{L"Square 1", L"Square 2", L"Triangle", L"Noise", L"DPCM"},
 	// VRC 6
-	{_T("Pulse 1"), _T("Pulse 2"), _T("Sawtooth")},
+	{L"Pulse 1", L"Pulse 2", L"Sawtooth"},
 	// VRC 7
-	{_T("Channel 1"), _T("Channel 2"), _T("Channel 3"), _T("Channel 4"), _T("Channel 5"), _T("Channel 6")},
+	{L"Channel 1", L"Channel 2", L"Channel 3", L"Channel 4", L"Channel 5", L"Channel 6"},
 	// FDS
-	{_T("FDS")},
+	{L"FDS"},
 	// MMC5
-	{_T("Square 1"), _T("Square 2")},
+	{L"Square 1", L"Square 2"},
 	// N163
-	{_T("Channel 1"), _T("Channel 2"), _T("Channel 3"), _T("Channel 4"), _T("Channel 5"), _T("Channel 6"), _T("Channel 7"), _T("Channel 8")},
+	{L"Channel 1", L"Channel 2", L"Channel 3", L"Channel 4", L"Channel 5", L"Channel 6", L"Channel 7", L"Channel 8"},
 	 // S5B
-	{_T("Square 1"), _T("Square 2"), _T("Square 3")}
+	{L"Square 1", L"Square 2", L"Square 3"}
 };
 
 // CChannelsDlg dialog
@@ -118,14 +118,14 @@ BOOL CChannelsDlg::OnInitDialog()
 
 //	m_pAddedChannels->GetWIndowLon
 
-	m_pAddedChannels->InsertColumn(0, _T("Name"), 0, 150);
+	m_pAddedChannels->InsertColumn(0, L"Name", 0, 150);
 
 	for (int i = 0; i < ROOT_ITEM_COUNT; ++i) {
 		HTREEITEM hItem = m_pAvailableTree->InsertItem(ROOT_ITEMS[i]);
 		m_hRootItems[i] = hItem;
 		for (int j = 0; CHILD_ITEMS[i][j] != NULL; ++j) {
-			CString str;
-			str.Format(_T("%i: %s"), j + 1, CHILD_ITEMS[i][j]);
+			CStringW str;
+			str.Format(L"%i: %s", j + 1, CHILD_ITEMS[i][j]);
 			HTREEITEM hChild = m_pAvailableTree->InsertItem(str, hItem);
 			m_pAvailableTree->SetItemData(hChild, value_cast(CHILD_ITEMS_ID[i][j]));
 		}
@@ -175,8 +175,8 @@ void CChannelsDlg::OnDblClickAdded(NMHDR *pNMHDR, LRESULT *result)
 			HTREEITEM hItem = m_pAvailableTree->GetNextItem(hParent, TVGN_CHILD);
 			for (int j = 0; CHILD_ITEMS[i][j] != NULL; ++j) {
 				if (CHILD_ITEMS_ID[i][j] == ChanID) {
-					CString str;
-					str.Format(_T("%i: %s"), j, CHILD_ITEMS[i][j]);
+					CStringW str;
+					str.Format(L"%i: %s", j, CHILD_ITEMS[i][j]);
 					HTREEITEM hChild = m_pAvailableTree->InsertItem(str, hParent, hParent);
 					m_pAvailableTree->SetItemData(hChild, value_cast(CHILD_ITEMS_ID[i][j]));
 					m_pAvailableTree->Expand(hParent, TVE_EXPAND);
@@ -214,10 +214,10 @@ void CChannelsDlg::InsertChannel(HTREEITEM hItem)
 
 	if (hParentItem != NULL) {
 
-		CString ChanName = m_pAvailableTree->GetItemText(hItem);
-		CString ChipName = m_pAvailableTree->GetItemText(hParentItem);
+		CStringW ChanName = m_pAvailableTree->GetItemText(hItem);
+		CStringW ChipName = m_pAvailableTree->GetItemText(hParentItem);
 
-		CString AddStr = ChipName + _T(" :: ") + ChanName.Right(ChanName.GetLength() - 3);
+		CStringW AddStr = ChipName + L" :: " + ChanName.Right(ChanName.GetLength() - 3);
 
 		// Channel ID
 		int ChanId = m_pAvailableTree->GetItemData(hItem);
@@ -239,7 +239,7 @@ void CChannelsDlg::OnBnClickedMoveDown()
 	if (Index >= m_pAddedChannels->GetItemCount() - 1 || Index == -1)
 		return;
 
-	CString text = m_pAddedChannels->GetItemText(Index, 0);
+	CStringW text = m_pAddedChannels->GetItemText(Index, 0);
 	int data = m_pAddedChannels->GetItemData(Index);
 
 	m_pAddedChannels->SetItemText(Index, 0, m_pAddedChannels->GetItemText(Index + 1, 0));
@@ -260,7 +260,7 @@ void CChannelsDlg::OnBnClickedMoveUp()
 	if (Index == 0 || Index == -1)
 		return;
 
-	CString text = m_pAddedChannels->GetItemText(Index, 0);
+	CStringW text = m_pAddedChannels->GetItemText(Index, 0);
 	int data = m_pAddedChannels->GetItemData(Index);
 
 	m_pAddedChannels->SetItemText(Index, 0, m_pAddedChannels->GetItemText(Index - 1, 0));

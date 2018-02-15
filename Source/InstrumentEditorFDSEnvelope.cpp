@@ -29,6 +29,7 @@
 #include "SequenceParser.h"		// // //
 #include "DPI.h"		// // //
 #include "Assertion.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 // CInstrumentEditorFDSEnvelope dialog
 
@@ -85,7 +86,7 @@ BOOL CInstrumentEditorFDSEnvelope::OnInitDialog()
 void CInstrumentEditorFDSEnvelope::UpdateSequenceString(bool Changed)		// // //
 {
 	SetupParser();		// // //
-	SetDlgItemText(IDC_SEQUENCE_STRING, m_pParser->PrintSequence().c_str());		// // //
+	SetDlgItemTextW(IDC_SEQUENCE_STRING, conv::to_wide(m_pParser->PrintSequence()).data());		// // //
 }
 
 void CInstrumentEditorFDSEnvelope::SetupParser() const		// // //
@@ -131,7 +132,7 @@ void CInstrumentEditorFDSEnvelope::LoadSequence(sequence_t seqType)		// // //
 
 void CInstrumentEditorFDSEnvelope::OnKeyReturn()
 {
-	CString string;
-	GetDlgItemText(IDC_SEQUENCE_STRING, string);
+	CStringW string;
+	GetDlgItemTextW(IDC_SEQUENCE_STRING, string);
 	TranslateMML(string);		// // //
 }

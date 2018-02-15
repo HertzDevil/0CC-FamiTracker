@@ -28,6 +28,7 @@
 #include "Chunk.h"
 #include "NumConv.h"		// // //
 #include "Instrument.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 /**
  * Text chunk render, these methods will always output single byte strings
@@ -42,13 +43,13 @@ std::string CChunkRenderText::GetLabelString(const stChunkLabel &label) {
 		return std::string(text);
 	};
 	const auto APPEND1 = [&] (std::string_view text) -> std::string {
-		CStringA str; str.AppendFormat(text.data(), label.Param1); return (LPCTSTR)str;
+		CStringA str; str.AppendFormat(text.data(), label.Param1); return (LPCSTR)str;
 	};
 	const auto APPEND2 = [&] (std::string_view text) -> std::string {
-		CStringA str; str.AppendFormat(text.data(), label.Param1, label.Param2); return (LPCTSTR)str;
+		CStringA str; str.AppendFormat(text.data(), label.Param1, label.Param2); return (LPCSTR)str;
 	};
 	const auto APPEND3 = [&] (std::string_view text) -> std::string {
-		CStringA str; str.AppendFormat(text.data(), label.Param1, label.Param2, label.Param3); return (LPCTSTR)str;
+		CStringA str; str.AppendFormat(text.data(), label.Param1, label.Param2, label.Param3); return (LPCSTR)str;
 	};
 
 	switch (label.Type) {
@@ -116,7 +117,7 @@ void CChunkRenderText::StoreChunks(const std::vector<std::shared_ptr<CChunk>> &C
 
 	// Write strings to file
 	WriteFileString("; 0CC-FamiTracker exported music data: ");
-	WriteFileString((LPCTSTR)CFamiTrackerDoc::GetDoc()->GetTitle());
+	WriteFileString(conv::to_utf8(CFamiTrackerDoc::GetDoc()->GetTitle()));
 	WriteFileString("\n;\n\n");
 
 	// Module header
@@ -170,8 +171,8 @@ void CChunkRenderText::StoreSamples(const std::vector<std::shared_ptr<const ft0c
 
 		CStringA label;
 		label.Format("ft_sample_%i", i);		// // //
-		str.Format("%s: ; %.*s\n", LPCTSTR(label), pDSample->name().size(), pDSample->name().data());
-		str += GetByteString(*pDSample, DEFAULT_LINE_BREAK).c_str();
+		str.Format("%s: ; %.*s\n", (LPCSTR)label, pDSample->name().size(), pDSample->name().data());
+		str += GetByteString(*pDSample, DEFAULT_LINE_BREAK).data();
 		Address += SampleSize;
 
 		// Adjust if necessary
@@ -182,7 +183,7 @@ void CChunkRenderText::StoreSamples(const std::vector<std::shared_ptr<const ft0c
 		}
 
 		str.Append("\n");
-		WriteFileString((LPCTSTR)str);
+		WriteFileString((LPCSTR)str);
 	}
 }
 
@@ -215,21 +216,21 @@ void CChunkRenderText::StoreHeaderChunk(const CChunk *pChunk)
 	if (i < pChunk->GetLength())
 		str.AppendFormat("\t.word %i ; N163 channels\n", pChunk->GetData(i++));	// N163 channels
 
-	m_headerStrings.push_back((LPCTSTR)str);
+	m_headerStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreInstrumentListChunk(const CChunk *pChunk)
 {
-	CString str;
+	CStringA str;
 
 	// Store instrument pointers
-	str.Format(_T("%s:\n"), GetLabelString(pChunk->GetLabel()));
+	str.Format("%s:\n", GetLabelString(pChunk->GetLabel()));
 
 	for (int i = 0; i < pChunk->GetLength(); ++i) {
-		str.AppendFormat(_T("\t.word %s\n"), GetLabelString(pChunk->GetDataPointerTarget(i)));
+		str.AppendFormat("\t.word %s\n", GetLabelString(pChunk->GetDataPointerTarget(i)));
 	}
 
-	m_instrumentListStrings.push_back((LPCTSTR)str);
+	m_instrumentListStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreInstrumentChunk(const CChunk *pChunk)
@@ -255,7 +256,7 @@ void CChunkRenderText::StoreInstrumentChunk(const CChunk *pChunk)
 
 	str.Append("\n");
 
-	m_instrumentStrings.push_back((LPCTSTR)str);
+	m_instrumentStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreSequenceChunk(const CChunk *pChunk)
@@ -263,9 +264,9 @@ void CChunkRenderText::StoreSequenceChunk(const CChunk *pChunk)
 	CStringA str;
 
 	str.Format("%s:\n", GetLabelString(pChunk->GetLabel()));
-	str += GetByteString(pChunk, DEFAULT_LINE_BREAK).c_str();		// // //
+	str += GetByteString(pChunk, DEFAULT_LINE_BREAK).data();		// // //
 
-	m_sequenceStrings.push_back((LPCTSTR)str);
+	m_sequenceStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreSampleListChunk(const CChunk *pChunk)
@@ -279,7 +280,7 @@ void CChunkRenderText::StoreSampleListChunk(const CChunk *pChunk)
 		str.AppendFormat("\t.byte %i, %i, %i\n", pChunk->GetData(i + 0), pChunk->GetData(i + 1), pChunk->GetData(i + 2));
 	}
 
-	m_sampleListStrings.push_back((LPCTSTR)str);
+	m_sampleListStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreSamplePointersChunk(const CChunk *pChunk)
@@ -303,7 +304,7 @@ void CChunkRenderText::StoreSamplePointersChunk(const CChunk *pChunk)
 
 	str.Append("\n");
 
-	m_samplePointersStrings.push_back((LPCTSTR)str);
+	m_samplePointersStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreGrooveListChunk(const CChunk *pChunk)		// // //
@@ -316,7 +317,7 @@ void CChunkRenderText::StoreGrooveListChunk(const CChunk *pChunk)		// // //
 		str.AppendFormat("\t.byte $%02X\n", pChunk->GetData(i));
 	}
 
-	m_grooveListStrings.push_back((LPCTSTR)str);
+	m_grooveListStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreGrooveChunk(const CChunk *pChunk)		// // //
@@ -324,9 +325,9 @@ void CChunkRenderText::StoreGrooveChunk(const CChunk *pChunk)		// // //
 	CStringA str;
 
 	// str.Format("%s:\n", GetLabelString(pChunk->GetLabel()));
-	str += GetByteString(pChunk, DEFAULT_LINE_BREAK).c_str();
+	str += GetByteString(pChunk, DEFAULT_LINE_BREAK).data();
 
-	m_grooveStrings.push_back((LPCTSTR)str);
+	m_grooveStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreSongListChunk(const CChunk *pChunk)
@@ -339,7 +340,7 @@ void CChunkRenderText::StoreSongListChunk(const CChunk *pChunk)
 		str.AppendFormat("\t.word %s\n", GetLabelString(pChunk->GetDataPointerTarget(i)));
 	}
 
-	m_songListStrings.push_back((LPCTSTR)str);
+	m_songListStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreSongChunk(const CChunk *pChunk)
@@ -360,7 +361,7 @@ void CChunkRenderText::StoreSongChunk(const CChunk *pChunk)
 
 	str.Append("\n");
 
-	m_songStrings.push_back((LPCTSTR)str);
+	m_songStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreFrameListChunk(const CChunk *pChunk)
@@ -375,7 +376,7 @@ void CChunkRenderText::StoreFrameListChunk(const CChunk *pChunk)
 		str.AppendFormat("\t.word %s\n", GetLabelString(pChunk->GetDataPointerTarget(i)));
 	}
 
-	m_songDataStrings.push_back((LPCTSTR)str);
+	m_songDataStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreFrameChunk(const CChunk *pChunk)
@@ -388,7 +389,7 @@ void CChunkRenderText::StoreFrameChunk(const CChunk *pChunk)
 
 	for (int i = 0, j = 0; i < len; ++i) {
 		if (pChunk->IsDataPointer(i))
-			str.AppendFormat("%s%s", (j++ > 0) ? _T(", ") : _T(""), GetLabelString(pChunk->GetDataPointerTarget(i)));
+			str.AppendFormat("%s%s", (j++ > 0) ? L", " : L"", GetLabelString(pChunk->GetDataPointerTarget(i)));
 	}
 
 	// Bank values
@@ -397,13 +398,13 @@ void CChunkRenderText::StoreFrameChunk(const CChunk *pChunk)
 			if (j == 0) {
 				str.AppendFormat("\n\t.byte ", GetLabelString(pChunk->GetLabel()));
 			}
-			str.AppendFormat("%s$%02X", (j++ > 0) ? _T(", ") : _T(""), pChunk->GetData(i));
+			str.AppendFormat("%s$%02X", (j++ > 0) ? L", " : L"", pChunk->GetData(i));
 		}
 	}
 
 	str.Append("\n");
 
-	m_songDataStrings.push_back((LPCTSTR)str);
+	m_songDataStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StorePatternChunk(const CChunk *pChunk)
@@ -416,7 +417,7 @@ void CChunkRenderText::StorePatternChunk(const CChunk *pChunk)
 	str.AppendFormat("%s:\n", GetLabelString(pChunk->GetLabel()));
 
 	const std::vector<unsigned char> &vec = pChunk->GetStringData(0);		// // //
-	str += GetByteString(vec, DEFAULT_LINE_BREAK).c_str();
+	str += GetByteString(vec, DEFAULT_LINE_BREAK).data();
 /*
 	len = vec.size();
 	for (int i = 0; i < len; ++i) {
@@ -431,7 +432,7 @@ void CChunkRenderText::StorePatternChunk(const CChunk *pChunk)
 */
 	str.Append("\n");
 
-	m_songDataStrings.push_back((LPCTSTR)str);
+	m_songDataStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreWavetableChunk(const CChunk *pChunk)
@@ -455,7 +456,7 @@ void CChunkRenderText::StoreWavetableChunk(const CChunk *pChunk)
 
 	str.Append("\n");
 
-	m_wavetableStrings.push_back((LPCTSTR)str);
+	m_wavetableStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::StoreWavesChunk(const CChunk *pChunk)
@@ -484,7 +485,7 @@ void CChunkRenderText::StoreWavesChunk(const CChunk *pChunk)
 
 	str.Append("\n");
 
-	m_wavesStrings.push_back((LPCTSTR)str);
+	m_wavesStrings.push_back((LPCSTR)str);
 }
 
 void CChunkRenderText::WriteFileString(std::string_view sv) const		// // //

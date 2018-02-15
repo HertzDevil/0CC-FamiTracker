@@ -67,25 +67,25 @@ struct stOldSettingContext
 // Base class for settings, pure virtual
 class CSettingBase {
 public:
-	CSettingBase(LPCTSTR pSection, LPCTSTR pEntry) : m_pSection(pSection), m_pEntry(pEntry) {};
+	CSettingBase(LPCWSTR pSection, LPCWSTR pEntry) : m_pSection(pSection), m_pEntry(pEntry) {};
 	virtual ~CSettingBase() {}
 	virtual void Load() = 0;
 	virtual void Save() = 0;
 	virtual void Default() = 0;
-	virtual void UpdateDefault(LPCTSTR pSection, LPCTSTR pEntry);		// // /
-	LPCTSTR GetSection() const { return m_pSection; };
+	virtual void UpdateDefault(LPCWSTR pSection, LPCWSTR pEntry);		// // /
+	LPCWSTR GetSection() const { return m_pSection; };
 protected:
-	LPCTSTR m_pSection;
-	LPCTSTR m_pEntry;
-	LPCTSTR m_pSectionSecond = nullptr;		// // //
-	LPCTSTR m_pEntrySecond = nullptr;		// // //
+	LPCWSTR m_pSection;
+	LPCWSTR m_pEntry;
+	LPCWSTR m_pSectionSecond = nullptr;		// // //
+	LPCWSTR m_pEntrySecond = nullptr;		// // //
 };
 
 // Templated setting class
 template <class T>
 class CSettingType : public CSettingBase {
 public:
-	CSettingType(LPCTSTR pSection, LPCTSTR pEntry, T defaultVal, T *pVar) : CSettingBase(pSection, pEntry), m_tDefaultValue(defaultVal), m_pVariable(pVar) {};
+	CSettingType(LPCWSTR pSection, LPCWSTR pEntry, T defaultVal, T *pVar) : CSettingBase(pSection, pEntry), m_tDefaultValue(defaultVal), m_pVariable(pVar) {};
 	virtual void Load();
 	virtual void Save();
 	virtual void Default();
@@ -108,8 +108,8 @@ public:
 	void	DeleteSettings();
 	void	SetWindowPos(int Left, int Top, int Right, int Bottom, int State);
 
-	CString GetPath(unsigned int PathType) const;
-	void	SetPath(CString PathName, unsigned int PathType);
+	const CStringW &GetPath(unsigned int PathType) const;		// // //
+	void	SetPath(const CStringW &PathName, unsigned int PathType);
 
 public:
 	static CSettings &GetInstance();		// // //
@@ -186,8 +186,8 @@ public:
 		int		iColCurrentRowEdit;
 		int		iColCurrentRowPlaying;
 
-		CString	strFont;		// // //
-		CString	strFrameFont;		// // // 050B
+		CStringW	strFont;		// // //
+		CStringW	strFrameFont;		// // // 050B
 		int		iFontSize;
 		bool	bPatternColor;
 		bool	bDisplayFlats;
@@ -234,11 +234,11 @@ public:
 		int		iLevelS5B;
 	} ChipLevels;
 
-	CString InstrumentMenuPath;
+	CStringW InstrumentMenuPath;
 
 private:
 	template<class T>
-	CSettingBase *AddSetting(LPCTSTR pSection, LPCTSTR pEntry, T tDefault, T *pVariable);		// // //
+	CSettingBase *AddSetting(LPCWSTR pSection, LPCWSTR pEntry, T tDefault, T *pVariable);		// // //
 	void SetupSettings();
 
 private:
@@ -249,5 +249,5 @@ private:
 
 private:
 	// Paths
-	CString Paths[PATH_COUNT];
+	CStringW Paths[PATH_COUNT];
 };

@@ -24,56 +24,56 @@
 #include "FamiTracker.h"
 #include "Settings.h"
 
-const CString CConfigGeneral::CONFIG_STR[] = {		// // //
-	_T("Wrap cursor"),
-	_T("Wrap across frames"),
-	_T("Free cursor edit"),
-	_T("Preview wave-files"),
-	_T("Key repeat"),
-	_T("Show row numbers in hex"),
-	_T("Preview next/previous frames"),
-	_T("Don't reset DPCM on note stop"),
-	_T("Ignore Step when moving"),
-	_T("Delete-key pulls up rows"),
-	_T("Backup files"),
-	_T("Single instance"),
-	_T("Preview full row"),
-	_T("Don't select on double-click"),
-	_T("Warp pattern values"),
-	_T("Cut sub-volume"),
-	_T("Use old FDS volume table"),
-	_T("Retrieve channel state"),
-	_T("Overflow paste mode"),
-	_T("Show skipped rows"),
-	_T("Hexadecimal keypad"),
-	_T("Multi-frame selection"),
-	_T("Check version on startup"),
+const CStringW CConfigGeneral::CONFIG_STR[] = {		// // //
+	L"Wrap cursor",
+	L"Wrap across frames",
+	L"Free cursor edit",
+	L"Preview wave-files",
+	L"Key repeat",
+	L"Show row numbers in hex",
+	L"Preview next/previous frames",
+	L"Don't reset DPCM on note stop",
+	L"Ignore Step when moving",
+	L"Delete-key pulls up rows",
+	L"Backup files",
+	L"Single instance",
+	L"Preview full row",
+	L"Don't select on double-click",
+	L"Warp pattern values",
+	L"Cut sub-volume",
+	L"Use old FDS volume table",
+	L"Retrieve channel state",
+	L"Overflow paste mode",
+	L"Show skipped rows",
+	L"Hexadecimal keypad",
+	L"Multi-frame selection",
+	L"Check version on startup",
 };
 
-const CString CConfigGeneral::CONFIG_DESC[] = {		// // //
-	_T("Wrap the cursor around the edges of the pattern editor."),
-	_T("Move to next or previous frame when reaching top or bottom in the pattern editor."),
-	_T("Unlock the cursor from the center of the pattern editor."),
-	_T("Preview wave and DPCM files in the open file dialog when loading samples to the module."),
-	_T("Enable key repetition in the pattern editor."),
-	_T("Display row numbers and the frame count on the status bar in hexadecimal."),
-	_T("Preview next and previous frames in the pattern editor."),
-	_T("Prevent resetting the DPCM channel after previewing any DPCM sample."),
-	_T("Ignore the pattern step setting when moving the cursor, only use it when inserting notes."),
-	_T("Make delete key pull up rows rather than only deleting the value, as if by Shift+Delete."),
-	_T("Create a backup copy of the existing file when saving a module."),
-	_T("Only allow one single instance of the 0CC-FamiTracker application."),
-	_T("Preview all channels when inserting notes in the pattern editor."),
-	_T("Do not select the whole channel when double-clicking in the pattern editor."),
-	_T("When using Shift + Mouse Wheel to modify a pattern value, allow the parameter to wrap around its limit values."),
-	_T("Always silent volume values below 1 due to Axy or 7xy effects."),
-	_T("Use the existing volume table for the FDS channel which has higher precision than in exported NSFs."),
-	_T("Reconstruct the current channel's state from previous frames upon playing (except when playing one row)."),
-	_T("Move pasted pattern data outside the rows of the current frame to subsequent frames."),
-	_T("Display rows that are truncated by Bxx, Cxx, or Dxx effects."),
-	_T("Use the extra keys on the keypad as hexadecimal digits in the pattern editor."),
-	_T("Allow pattern selections to span across multiple frames."),
-	_T("Check for new 0CC-FamiTracker versions on startup if an internet connection could be established."),
+const CStringW CConfigGeneral::CONFIG_DESC[] = {		// // //
+	L"Wrap the cursor around the edges of the pattern editor.",
+	L"Move to next or previous frame when reaching top or bottom in the pattern editor.",
+	L"Unlock the cursor from the center of the pattern editor.",
+	L"Preview wave and DPCM files in the open file dialog when loading samples to the module.",
+	L"Enable key repetition in the pattern editor.",
+	L"Display row numbers and the frame count on the status bar in hexadecimal.",
+	L"Preview next and previous frames in the pattern editor.",
+	L"Prevent resetting the DPCM channel after previewing any DPCM sample.",
+	L"Ignore the pattern step setting when moving the cursor, only use it when inserting notes.",
+	L"Make delete key pull up rows rather than only deleting the value, as if by Shift+Delete.",
+	L"Create a backup copy of the existing file when saving a module.",
+	L"Only allow one single instance of the 0CC-FamiTracker application.",
+	L"Preview all channels when inserting notes in the pattern editor.",
+	L"Do not select the whole channel when double-clicking in the pattern editor.",
+	L"When using Shift + Mouse Wheel to modify a pattern value, allow the parameter to wrap around its limit values.",
+	L"Always silent volume values below 1 due to Axy or 7xy effects.",
+	L"Use the existing volume table for the FDS channel which has higher precision than in exported NSFs.",
+	L"Reconstruct the current channel's state from previous frames upon playing (except when playing one row).",
+	L"Move pasted pattern data outside the rows of the current frame to subsequent frames.",
+	L"Display rows that are truncated by Bxx, Cxx, or Dxx effects.",
+	L"Use the extra keys on the keypad as hexadecimal digits in the pattern editor.",
+	L"Allow pattern selections to span across multiple frames.",
+	L"Check for new 0CC-FamiTracker versions on startup if an internet connection could be established.",
 };
 
 // CConfigGeneral dialog
@@ -172,7 +172,7 @@ BOOL CConfigGeneral::OnApply()
 
 BOOL CConfigGeneral::OnInitDialog()
 {
-	char Text[64];
+	WCHAR Text[64] = { };
 
 	CPropertyPage::OnInitDialog();
 
@@ -211,16 +211,16 @@ BOOL CConfigGeneral::OnInitDialog()
 	m_iKeyRepeat			= pSettings->Keys.iKeyRepeat;
 	m_iKeyEchoBuffer		= pSettings->Keys.iKeyEchoBuffer;		// // //
 
-	GetKeyNameText(MapVirtualKey(m_iKeyNoteCut, MAPVK_VK_TO_VSC) << 16, Text, 64);
-	SetDlgItemText(IDC_KEY_NOTE_CUT, Text);
-	GetKeyNameText(MapVirtualKey(m_iKeyNoteRelease, MAPVK_VK_TO_VSC) << 16, Text, 64);
-	SetDlgItemText(IDC_KEY_NOTE_RELEASE, Text);
-	GetKeyNameText(MapVirtualKey(m_iKeyClear, MAPVK_VK_TO_VSC) << 16, Text, 64);
-	SetDlgItemText(IDC_KEY_CLEAR, Text);
-	GetKeyNameText(MapVirtualKey(m_iKeyRepeat, MAPVK_VK_TO_VSC) << 16, Text, 64);
-	SetDlgItemText(IDC_KEY_REPEAT, Text);
-	GetKeyNameText(MapVirtualKey(m_iKeyEchoBuffer, MAPVK_VK_TO_VSC) << 16, Text, 64);		// // //
-	SetDlgItemText(IDC_KEY_ECHO_BUFFER, Text);
+	GetKeyNameTextW(MapVirtualKey(m_iKeyNoteCut, MAPVK_VK_TO_VSC) << 16, Text, 64);
+	SetDlgItemTextW(IDC_KEY_NOTE_CUT, Text);
+	GetKeyNameTextW(MapVirtualKey(m_iKeyNoteRelease, MAPVK_VK_TO_VSC) << 16, Text, 64);
+	SetDlgItemTextW(IDC_KEY_NOTE_RELEASE, Text);
+	GetKeyNameTextW(MapVirtualKey(m_iKeyClear, MAPVK_VK_TO_VSC) << 16, Text, 64);
+	SetDlgItemTextW(IDC_KEY_CLEAR, Text);
+	GetKeyNameTextW(MapVirtualKey(m_iKeyRepeat, MAPVK_VK_TO_VSC) << 16, Text, 64);
+	SetDlgItemTextW(IDC_KEY_REPEAT, Text);
+	GetKeyNameTextW(MapVirtualKey(m_iKeyEchoBuffer, MAPVK_VK_TO_VSC) << 16, Text, 64);		// // //
+	SetDlgItemTextW(IDC_KEY_ECHO_BUFFER, Text);
 
 	EnableToolTips(TRUE);
 
@@ -228,11 +228,11 @@ BOOL CConfigGeneral::OnInitDialog()
 	m_wndToolTip.Activate(TRUE);
 
 	CWnd *pWndChild = GetWindow(GW_CHILD);
-	CString strToolTip;
+	CStringW strToolTip;
 
 	while (pWndChild) {
 		int nID = pWndChild->GetDlgCtrlID();
-		if (strToolTip.LoadString(nID)) {
+		if (strToolTip.LoadStringW(nID)) {
 			m_wndToolTip.AddTool(pWndChild, strToolTip);
 		}
 		pWndChild = pWndChild->GetWindow(GW_HWNDNEXT);
@@ -268,13 +268,13 @@ BOOL CConfigGeneral::OnInitDialog()
 	CRect r;		// // //
 	pList->GetClientRect(&r);
 	pList->DeleteAllItems();
-	pList->InsertColumn(0, _T(""), LVCFMT_LEFT, 20);
-	pList->InsertColumn(1, _T("Option"), LVCFMT_LEFT, r.Width() - 20 - ::GetSystemMetrics(SM_CXHSCROLL));
-	pList->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
+	pList->InsertColumn(0, L"", LVCFMT_LEFT, 20);
+	pList->InsertColumn(1, L"Option", LVCFMT_LEFT, r.Width() - 20 - ::GetSystemMetrics(SM_CXHSCROLL));
+	pList->SendMessageW(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
 	pList->SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
 	for (int i = SETTINGS_BOOL_COUNT - 1; i > -1; i--) {
-		pList->InsertItem(0, _T(""), 0);
+		pList->InsertItem(0, L"", 0);
 		pList->SetCheck(0, CONFIG_BOOL[i]);
 		pList->SetItemText(0, 1, CONFIG_STR[i]);
 	}
@@ -337,9 +337,9 @@ void CConfigGeneral::OnLvnItemchangedConfigList(NMHDR *pNMHDR, LRESULT *pResult)
 
 	if (pNMLV->uChanged & LVIF_STATE) {
 		if (pNMLV->uNewState & LVNI_SELECTED || pNMLV->uNewState & 0x3000) {
-			CString str;
-			str.Format(_T("Description: %s"), CONFIG_DESC[pNMLV->iItem]);
-			SetDlgItemText(IDC_EDIT_CONFIG_DESC, str);
+			CStringW str;
+			str.Format(L"Description: %s", CONFIG_DESC[pNMLV->iItem]);
+			SetDlgItemTextW(IDC_EDIT_CONFIG_DESC, str);
 
 			if (pNMLV->iItem >= 0 && pNMLV->iItem < SETTINGS_BOOL_COUNT)
 				pList->SetItemState(pNMLV->iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
@@ -358,7 +358,7 @@ void CConfigGeneral::OnLvnItemchangedConfigList(NMHDR *pNMHDR, LRESULT *pResult)
 BOOL CConfigGeneral::PreTranslateMessage(MSG* pMsg)
 {
 	if (pMsg->message == WM_KEYDOWN) {
-		char Text[64];
+		WCHAR Text[64] = { };
 		int id = GetFocus()->GetDlgCtrlID();
 		int key = pMsg->wParam;
 
@@ -385,8 +385,8 @@ BOOL CConfigGeneral::PreTranslateMessage(MSG* pMsg)
 				return CPropertyPage::PreTranslateMessage(pMsg);
 		}
 
-		GetKeyNameText(key ? pMsg->lParam : 0, Text, 64);
-		SetDlgItemText(id, Text);
+		GetKeyNameTextW(key ? pMsg->lParam : 0, Text, 64);
+		SetDlgItemTextW(id, Text);
 
 		SetModified();
 

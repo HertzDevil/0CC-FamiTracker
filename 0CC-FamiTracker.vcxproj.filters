@@ -795,6 +795,9 @@
     <ClCompile Include="Source\ModuleImporter.cpp">
       <Filter>Source Files\Document Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Source\str_conv\str_conv.cpp">
+      <Filter>Source Files\Other</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1473,6 +1476,12 @@
       <Filter>Header Files\Document Utilities Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\Assertion.h">
+      <Filter>Header Files\Other Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\str_conv\str_conv.hpp">
+      <Filter>Header Files\Other Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\str_conv\utf8_conv.hpp">
       <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
   </ItemGroup>

@@ -56,12 +56,12 @@
     <UseOfMfc>Static</UseOfMfc>
     <UseOfAtl>false</UseOfAtl>
     <PlatformToolset>v141_xp</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>Static</UseOfMfc>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v141_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Template|x64'" Label="Configuration">
@@ -80,14 +80,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>Static</UseOfMfc>
     <UseOfAtl>false</UseOfAtl>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>Static</UseOfMfc>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
@@ -522,6 +522,7 @@
     <ClCompile Include="Source\ModSequenceEditor.cpp" />
     <ClCompile Include="Source\PCMImport.cpp" />
     <ClCompile Include="Source\StretchDlg.cpp" />
+    <ClCompile Include="Source\str_conv\str_conv.cpp" />
     <ClCompile Include="Source\SwapDlg.cpp" />
     <ClCompile Include="Source\TempoCounter.cpp" />
     <ClCompile Include="Source\TempoDisplay.cpp" />
@@ -727,6 +728,8 @@
     <ClInclude Include="Source\SplitKeyboardDlg.h" />
     <ClInclude Include="Source\stdafx.h" />
     <ClInclude Include="Source\StretchDlg.h" />
+    <ClInclude Include="Source\str_conv\str_conv.hpp" />
+    <ClInclude Include="Source\str_conv\utf8_conv.hpp" />
     <ClInclude Include="Source\sv_regex.h" />
     <ClInclude Include="Source\SwapDlg.h" />
     <ClInclude Include="Source\TempoCounter.h" />

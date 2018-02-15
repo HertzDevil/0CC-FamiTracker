@@ -28,18 +28,19 @@
 #include "SequenceParser.h"		// // //
 #include "FamiTrackerDoc.h"		// // //
 #include "Assertion.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 // // // CInstrumentEditorSeq dialog
 
 /*
-LPCTSTR CInstrumentEditorSeq::INST_SETTINGS[] = {_T(""), _T(""), _T(""), _T(""), _T("")};
+LPCWSTR CInstrumentEditorSeq::INST_SETTINGS[] = {L"", L"", L"", L"", L""};
 const int CInstrumentEditorSeq::MAX_VOLUME = 0;
 const int CInstrumentEditorSeq::MAX_DUTY = 0;
 const inst_type_t CInstrumentEditorSeq::INST_TYPE = INST_NONE;
 */
 
 IMPLEMENT_DYNAMIC(CInstrumentEditorSeq, CSequenceInstrumentEditPanel)
-CInstrumentEditorSeq::CInstrumentEditorSeq(CWnd* pParent, LPCTSTR Title, const LPCTSTR *SeqName, int Vol, int Duty, inst_type_t Type) :
+CInstrumentEditorSeq::CInstrumentEditorSeq(CWnd* pParent, LPCWSTR Title, const LPCSTR *SeqName, int Vol, int Duty, inst_type_t Type) :
 	CSequenceInstrumentEditPanel(CInstrumentEditorSeq::IDD, pParent),
 	m_pTitle(Title),
 	m_pSequenceName(SeqName),
@@ -59,10 +60,10 @@ void CInstrumentEditorSeq::SelectInstrument(std::shared_ptr<CInstrument> pInst)
 	// Update instrument setting list
 	if (CListCtrl *pList = static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS))) {		// // //
 		pList->SetRedraw(FALSE);
-		CString str;
+		CStringW str;
 		foreachSeq([&] (sequence_t i) {
 			pList->SetCheck(value_cast(i), m_pInstrument->GetSeqEnable(i));
-			str.Format(_T("%i"), m_pInstrument->GetSeqIndex(i));
+			str.Format(L"%i", m_pInstrument->GetSeqIndex(i));
 			pList->SetItemText(value_cast(i), 1, str);
 		});
 		pList->SetRedraw();
@@ -122,7 +123,7 @@ void CInstrumentEditorSeq::UpdateSequenceString(bool Changed)		// // //
 {
 	// Update sequence string
 	SetupParser();		// // //
-	SetDlgItemText(IDC_SEQUENCE_STRING, m_pParser->PrintSequence().c_str());		// // //
+	SetDlgItemTextW(IDC_SEQUENCE_STRING, conv::to_wide(m_pParser->PrintSequence()).data());		// // //
 	// If the sequence was changed, assume the user wants to enable it
 	if (Changed) {
 		static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS))->SetCheck(value_cast(m_iSelectedSetting), 1);
@@ -196,8 +197,8 @@ void CInstrumentEditorSeq::OnEnChangeSeqIndex()
 
 	if (m_pInstrument != nullptr) {
 		// Update list
-		CString str;		// // //
-		str.Format(_T("%i"), Index);
+		CStringW str;		// // //
+		str.Format(L"%i", Index);
 		pList->SetItemText(value_cast(m_iSelectedSetting), 1, str);
 		if (m_pInstrument->GetSeqIndex(m_iSelectedSetting) != Index) {
 			m_pInstrument->SetSeqIndex(m_iSelectedSetting, Index);
@@ -224,8 +225,8 @@ BOOL CInstrumentEditorSeq::DestroyWindow()
 void CInstrumentEditorSeq::OnKeyReturn()
 {
 	// Translate the sequence text string to a sequence
-	CString Text;
-	GetDlgItemText(IDC_SEQUENCE_STRING, Text);
+	CStringW Text;
+	GetDlgItemTextW(IDC_SEQUENCE_STRING, Text);
 	TranslateMML(Text);		// // //
 
 	// Enable setting

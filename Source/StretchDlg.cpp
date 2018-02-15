@@ -22,6 +22,9 @@
 
 #include "StretchDlg.h"
 #include <vector>
+#include "sv_regex.h"
+#include "str_conv/str_conv.hpp"
+#include "NumConv.h"
 
 const size_t STRETCH_MAP_TEST_LEN = 16;
 
@@ -76,20 +79,16 @@ BOOL CStretchDlg::OnInitDialog()
 
 void CStretchDlg::UpdateStretch()
 {
-	CString str, token;
-	int pos = 0;
-	GetDlgItemText(IDC_EDIT_STRETCH_MAP, str);
-	m_iStretchMap.clear();
-	if (str.SpanIncluding(_T("0123456789 ")) != str) {
-		m_bValid = false;
-		return;
-	}
+	CStringW wstr;
+	GetDlgItemTextW(IDC_EDIT_STRETCH_MAP, wstr);
+	auto str = conv::to_utf8(wstr);
 
-	token = str.Tokenize(_T(" "), pos);
-	while (!token.IsEmpty()) {
-		m_iStretchMap.push_back(atoi(token));
-		token = str.Tokenize(_T(" "), pos);
-	}
+	int pos = 0;
+	m_iStretchMap.clear();
+
+	for (auto x : re::tokens(str))
+		if (auto e = conv::to_uint8(x.str()))
+			m_iStretchMap.push_back(*e);
 
 	if (m_iStretchMap.empty()) m_bValid = false;
 	else if (m_iStretchMap[0] == 0) m_bValid = false;
@@ -101,26 +100,27 @@ void CStretchDlg::UpdateStretch()
 
 void CStretchDlg::UpdateTest()
 {
-	CString str = _T("Test:");
+	std::string str = "Test:";
 	unsigned int count = 0, mapPos = 0;
 	for (int i = 0; i < STRETCH_MAP_TEST_LEN; i++) {
 		if (count < STRETCH_MAP_TEST_LEN && m_iStretchMap[mapPos] != 0)
-			str.AppendFormat(_T(" %d"), count);
+			str += ' ' + conv::from_uint(count);
 		else
-			str += _T(" -");
+			str += " -";
 		count += m_iStretchMap[mapPos];
 		if (++mapPos == m_iStretchMap.size())
 			mapPos = 0;
 	}
-	SetDlgItemText(IDC_STRETCH_TEST, str);
+	SetDlgItemTextW(IDC_STRETCH_TEST, conv::to_wide(str).data());
 }
 
 void CStretchDlg::OnEnChangeEditStretchMap()
 {
-	CString str;
+	CStringW str;
 	UpdateStretch();
 
-	if (!m_bValid) SetDlgItemText(IDC_STRETCH_TEST, _T(" Invalid stretch map"));
+	if (!m_bValid)
+		SetDlgItemTextW(IDC_STRETCH_TEST, L" Invalid stretch map");
 	GetDlgItem(IDOK)->EnableWindow(m_bValid);
 	GetDlgItem(IDC_BUTTON_STRETCH_INVERT)->EnableWindow(m_bValid);
 }
@@ -133,38 +133,39 @@ void CStretchDlg::OnBnClickedCancel()
 
 void CStretchDlg::OnBnClickedButtonStretchExpand()
 {
-	SetDlgItemText(IDC_EDIT_STRETCH_MAP, _T("1 0"));
+	SetDlgItemTextW(IDC_EDIT_STRETCH_MAP, L"1 0");
 }
 
 void CStretchDlg::OnBnClickedButtonStretchShrink()
 {
-	SetDlgItemText(IDC_EDIT_STRETCH_MAP, _T("2"));
+	SetDlgItemTextW(IDC_EDIT_STRETCH_MAP, L"2");
 }
 
 void CStretchDlg::OnBnClickedButtonStretchReset()
 {
-	SetDlgItemText(IDC_EDIT_STRETCH_MAP, _T("1"));
+	SetDlgItemTextW(IDC_EDIT_STRETCH_MAP, L"1");
 }
 
 void CStretchDlg::OnBnClickedButtonStretchInvert()
 {
 	if (!m_bValid) return;
-	CString str;
+	CStringA str;
 	unsigned int pos = 0;
 
 	while (pos < m_iStretchMap.size()) {
 		int x = m_iStretchMap[pos++];
 		int y = 0;
 		while (m_iStretchMap[pos] == 0) {
-			if (pos >= m_iStretchMap.size()) break;
+			if (pos >= m_iStretchMap.size())
+				break;
 			pos++;
 			y++;
 		}
-		str.AppendFormat(_T(" %d"), y + 1);
+		str.AppendFormat(" %d", y + 1);
 		for (int i = 0; i < x - 1; i++)
-			str.AppendFormat(_T(" %d"), 0);
+			str.AppendFormat(" %d", 0);
 	}
 
 	str.Delete(0);
-	SetDlgItemText(IDC_EDIT_STRETCH_MAP, str);
+	SetDlgItemTextW(IDC_EDIT_STRETCH_MAP, conv::to_wide(str).data());
 }

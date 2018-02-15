@@ -31,10 +31,10 @@
 class CLinkLabel : public CStatic
 {
 public:
-	CLinkLabel(CString address);
+	CLinkLabel(CStringW address);
 protected:
 	DECLARE_MESSAGE_MAP()
-	CString m_strAddress;
+	CStringW m_strAddress;
 	bool m_bHover;
 public:
 	afx_msg HBRUSH CtlColor(CDC* /*pDC*/, UINT /*nCtlColor*/);

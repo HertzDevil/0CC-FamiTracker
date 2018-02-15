@@ -55,7 +55,8 @@
 #define _WIN32_IE 0x0600	// Change this to the appropriate value to target IE 5.0 or later.
 #endif
 
-#define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS	// some CString constructors will be explicit
+#define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS	// some CStringW constructors will be explicit
+#define _CSTRING_DISABLE_NARROW_WIDE_CONVERSION		// // //
 
 // turns off MFC's hiding of some common and often safely ignored warning messages
 #define _AFX_ALL_WARNINGS
@@ -83,11 +84,11 @@ class CRenderTarget;		// // //
 #ifdef _DEBUG
 #define new DEBUG_NEW
 template <typename... T>
-bool _trace(LPCTSTR format, T&&... args)
+bool _trace(LPCWSTR format, T&&... args)
 {
-	TCHAR buffer[1000];
-	_sntprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, static_cast<T&&>(args)...);
-	OutputDebugString(buffer);
+	WCHAR buffer[1000] = { };
+	_snwprintf_s(buffer, _TRUNCATE, format, static_cast<T&&>(args)...);
+	OutputDebugStringW(buffer);
 
 	return true;
 }

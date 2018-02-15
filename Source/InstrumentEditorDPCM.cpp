@@ -38,27 +38,28 @@
 #include "PatternNote.h"		// // // note names
 #include <algorithm>		// // //
 #include "NumConv.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
-LPCTSTR NO_SAMPLE_STR = _T("(no sample)");
+LPCWSTR NO_SAMPLE_STR = L"(no sample)";
 
 // Derive a new class from CFileDialog with implemented preview of DMC files
 
 class CDMCFileSoundDialog : public CFileDialog
 {
 public:
-	CDMCFileSoundDialog(BOOL bOpenFileDialog, LPCTSTR lpszDefExt = NULL, LPCTSTR lpszFileName = NULL, DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, LPCTSTR lpszFilter = NULL, CWnd* pParentWnd = NULL, DWORD dwSize = 0);
+	CDMCFileSoundDialog(BOOL bOpenFileDialog, LPCWSTR lpszDefExt = NULL, LPCWSTR lpszFileName = NULL, DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, LPCWSTR lpszFilter = NULL, CWnd* pParentWnd = NULL, DWORD dwSize = 0);
 	virtual ~CDMCFileSoundDialog();
 
 	static const int DEFAULT_PREVIEW_PITCH = 15;
 
 protected:
 	virtual void OnFileNameChange();
-	CString m_strLastFile;
+	CStringW m_strLastFile;
 };
 
 //	CFileSoundDialog
 
-CDMCFileSoundDialog::CDMCFileSoundDialog(BOOL bOpenFileDialog, LPCTSTR lpszDefExt, LPCTSTR lpszFileName, DWORD dwFlags, LPCTSTR lpszFilter, CWnd* pParentWnd, DWORD dwSize)
+CDMCFileSoundDialog::CDMCFileSoundDialog(BOOL bOpenFileDialog, LPCWSTR lpszDefExt, LPCWSTR lpszFileName, DWORD dwFlags, LPCWSTR lpszFilter, CWnd* pParentWnd, DWORD dwSize)
 	: CFileDialog(bOpenFileDialog, lpszDefExt, lpszFileName, dwFlags, lpszFilter, pParentWnd, dwSize)
 {
 }
@@ -72,7 +73,7 @@ CDMCFileSoundDialog::~CDMCFileSoundDialog()
 void CDMCFileSoundDialog::OnFileNameChange()
 {
 	// Preview DMC file
-	if (!GetFileExt().CompareNoCase(_T("dmc")) && Env.GetSettings()->General.bWavePreview) {
+	if (!GetFileExt().CompareNoCase(L"dmc") && Env.GetSettings()->General.bWavePreview) {
 		DWORD dwAttrib = GetFileAttributes(GetPathName());
 		if (!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY) && GetPathName() != m_strLastFile) {
 			CFile file(GetPathName(), CFile::modeRead);
@@ -147,31 +148,31 @@ BOOL CInstrumentEditorDPCM::OnInitDialog()
 	pTableListCtrl->GetClientRect(&r);
 	int Width = r.Width() - ::GetSystemMetrics(SM_CXHSCROLL);
 	pTableListCtrl->DeleteAllItems();
-	pTableListCtrl->InsertColumn(0, _T("Key"), LVCFMT_LEFT, static_cast<int>(.2 * Width));
-	pTableListCtrl->InsertColumn(1, _T("Pitch"), LVCFMT_LEFT, static_cast<int>(.23 * Width));
-	pTableListCtrl->InsertColumn(2, _T("Sample"), LVCFMT_LEFT, static_cast<int>(.57 * Width));
-	pTableListCtrl->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
+	pTableListCtrl->InsertColumn(0, L"Key", LVCFMT_LEFT, static_cast<int>(.2 * Width));
+	pTableListCtrl->InsertColumn(1, L"Pitch", LVCFMT_LEFT, static_cast<int>(.23 * Width));
+	pTableListCtrl->InsertColumn(2, L"Sample", LVCFMT_LEFT, static_cast<int>(.57 * Width));
+	pTableListCtrl->SendMessageW(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
 
 	CListCtrl *pSampleListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
 	pSampleListCtrl->GetClientRect(&r);
 	Width = r.Width();
 	pSampleListCtrl->DeleteAllItems();
-	pSampleListCtrl->InsertColumn(0, _T("#"), LVCFMT_LEFT, static_cast<int>(.2 * Width));		// // //
-	pSampleListCtrl->InsertColumn(1, _T("Name"), LVCFMT_LEFT, static_cast<int>(.55 * Width));
-	pSampleListCtrl->InsertColumn(2, _T("Size"), LVCFMT_LEFT, static_cast<int>(.25 * Width));
-	pSampleListCtrl->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
+	pSampleListCtrl->InsertColumn(0, L"#", LVCFMT_LEFT, static_cast<int>(.2 * Width));		// // //
+	pSampleListCtrl->InsertColumn(1, L"Name", LVCFMT_LEFT, static_cast<int>(.55 * Width));
+	pSampleListCtrl->InsertColumn(2, L"Size", LVCFMT_LEFT, static_cast<int>(.25 * Width));
+	pSampleListCtrl->SendMessageW(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
 
 	CComboBox *pPitch = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
 	for (int i = 0; i < 16; ++i)
-		pPitch->AddString(std::to_string(i).c_str());
+		pPitch->AddString(conv::to_wide(std::to_string(i)).data());
 	pPitch->SetCurSel(15);
 
 	CheckDlgButton(IDC_LOOP, 0);
 
-	CString text;		// // //
+	CStringW text;		// // //
 	pTableListCtrl->DeleteAllItems();
 	for (int i = 0; i < NOTE_COUNT; ++i) {
-		text.Format(_T("%s%d"), stChanNote::NOTE_NAME[GET_NOTE(i) - 1].c_str(), GET_OCTAVE(i));
+		text.Format(L"%s%d", conv::to_wide(stChanNote::NOTE_NAME[GET_NOTE(i) - 1]).data(), GET_OCTAVE(i));
 		pTableListCtrl->InsertItem(i, text);
 	}
 	pTableListCtrl->GetItemRect(0, &r, 2);		// // //
@@ -184,7 +185,7 @@ BOOL CInstrumentEditorDPCM::OnInitDialog()
 	pSpin->SetRange(-1, 127);
 	pSpin->SetPos(-1);
 
-	SetDlgItemText(IDC_DELTA_COUNTER, _T("Off"));
+	SetDlgItemTextW(IDC_DELTA_COUNTER, L"Off");
 
 	static_cast<CButton*>(GetDlgItem(IDC_ADD))->SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_LEFT)));
 	static_cast<CButton*>(GetDlgItem(IDC_REMOVE))->SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_RIGHT)));
@@ -207,8 +208,8 @@ void CInstrumentEditorDPCM::UpdateCurrentKey()		// // //
 void CInstrumentEditorDPCM::UpdateKey(int Index)
 {
 	CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
-	CString NameStr = NO_SAMPLE_STR;
-	CString PitchStr = _T("-");
+	CStringW NameStr = NO_SAMPLE_STR;
+	CStringW PitchStr = L"-";
 
 	int Octave = GET_OCTAVE(Index);		// // //
 	int Note = GET_NOTE(Index) - 1;
@@ -216,8 +217,8 @@ void CInstrumentEditorDPCM::UpdateKey(int Index)
 		int Item = m_pInstrument->GetSampleIndex(Octave, Note) - 1;
 		int Pitch = m_pInstrument->GetSamplePitch(Octave, Note);
 		auto pSample = m_pInstrument->GetDSample(Octave, Note);		// // //
-		NameStr = !pSample ? _T("(n/a)") : pSample->name().data();
-		PitchStr.Format(_T("%i %s"), Pitch & 0x0F, (Pitch & 0x80) ? "L" : "");
+		NameStr = !pSample ? L"(n/a)" : conv::to_wide(pSample->name()).data();
+		PitchStr.Format(L"%i %s", Pitch & 0x0F, (Pitch & 0x80) ? L"L" : L"");
 	}
 
 	pTableListCtrl->SetItemText(Index, 1, PitchStr);
@@ -233,18 +234,19 @@ void CInstrumentEditorDPCM::BuildSampleList()
 	pSampleBox->ResetContent();
 
 	unsigned int Size(0), Index(0);
-	CString	Text;
+	CStringW	Text;
 
 	pSampleBox->AddString(NO_SAMPLE_STR);
 
 	for (int i = 0; i < MAX_DSAMPLES; ++i) {
 		if (auto pDSample = GetDSampleManager()->GetDSample(i)) {		// // //
-			pSampleListCtrl->InsertItem(Index, conv::sv_from_int(i).data());
-			Text.Format(_T("%.*s"), pDSample->name().size(), pDSample->name().data());
+			pSampleListCtrl->InsertItem(Index, conv::to_wide(conv::sv_from_int(i)).data());
+			auto name = conv::to_wide(pDSample->name());
+			Text.Format(L"%.*s", name.size(), name.data());
 			pSampleListCtrl->SetItemText(Index, 1, Text);
-			Text.Format(_T("%u"), pDSample->size());
+			Text.Format(L"%u", pDSample->size());
 			pSampleListCtrl->SetItemText(Index, 2, Text);
-			Text.Format(_T("%02i - %.*s"), i, pDSample->name().size(), pDSample->name().data());
+			Text.Format(L"%02i - %.*s", i, name.size(), name.data());
 			pSampleBox->AddString(Text);
 			Size += pDSample->size();
 			++Index;
@@ -252,11 +254,11 @@ void CInstrumentEditorDPCM::BuildSampleList()
 	}
 
 	AfxFormatString3(Text, IDS_DPCM_SPACE_FORMAT,
-		conv::from_int(Size / 0x400).c_str(),		// // //
-		conv::from_int((MAX_SAMPLE_SPACE - Size) / 0x400).c_str(),
-		conv::from_int(MAX_SAMPLE_SPACE / 0x400).c_str());
+		conv::to_wide(conv::from_int(Size / 0x400)).data(),		// // //
+		conv::to_wide(conv::from_int((MAX_SAMPLE_SPACE - Size) / 0x400)).data(),
+		conv::to_wide(conv::from_int(MAX_SAMPLE_SPACE / 0x400)).data());
 
-	SetDlgItemText(IDC_SPACE, Text);
+	SetDlgItemTextW(IDC_SPACE, Text);
 }
 
 // When saved in NSF, the samples has to be aligned at even 6-bits addresses
@@ -264,7 +266,7 @@ void CInstrumentEditorDPCM::BuildSampleList()
 // TODO: I think I was wrong
 #define ADJUST_FOR_STORAGE(x) (x)
 
-bool CInstrumentEditorDPCM::LoadSample(const CString &FilePath, const CString &FileName)
+bool CInstrumentEditorDPCM::LoadSample(const CStringW &FilePath, const CStringW &FileName)
 {
 	CFile SampleFile;
 
@@ -286,7 +288,7 @@ bool CInstrumentEditorDPCM::LoadSample(const CString &FilePath, const CString &F
 	SampleFile.Read(pBuf.data(), Size);
 	SampleFile.Close();
 
-	if (!InsertSample(std::make_shared<ft0cc::doc::dpcm_sample>(pBuf, (LPCTSTR)FileName)))
+	if (!InsertSample(std::make_shared<ft0cc::doc::dpcm_sample>(pBuf, conv::to_utf8(FileName))))
 		return false;
 
 	BuildSampleList();
@@ -306,8 +308,8 @@ bool CInstrumentEditorDPCM::InsertSample(std::shared_ptr<ft0cc::doc::dpcm_sample
 	int Size = pManager->GetTotalSize();
 
 	if ((Size + pNewSample->size()) > MAX_SAMPLE_SPACE) {
-		CString message;
-		AfxFormatString1(message, IDS_OUT_OF_SAMPLEMEM_FORMAT, conv::sv_from_int(MAX_SAMPLE_SPACE / 1024).data());
+		CStringW message;
+		AfxFormatString1(message, IDS_OUT_OF_SAMPLEMEM_FORMAT, conv::to_wide(conv::sv_from_int(MAX_SAMPLE_SPACE / 1024)).data());
 		AfxMessageBox(message, MB_ICONERROR);
 	}
 	else if (pManager->SetDSample(FreeSlot, std::move(pNewSample)))		// // //
@@ -318,7 +320,7 @@ bool CInstrumentEditorDPCM::InsertSample(std::shared_ptr<ft0cc::doc::dpcm_sample
 
 void CInstrumentEditorDPCM::OnBnClickedLoad()
 {
-	CString fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, _T(".dmc"));
+	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, L".dmc");
 	CDMCFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_ALLOWMULTISELECT | OFN_EXPLORER, fileFilter);
 
 	OpenFileDialog.m_pOFN->lpstrInitialDir = Env.GetSettings()->GetPath(PATH_DMC);
@@ -329,12 +331,12 @@ void CInstrumentEditorDPCM::OnBnClickedLoad()
 	Env.GetSettings()->SetPath(OpenFileDialog.GetPathName(), PATH_DMC);
 
 	if (OpenFileDialog.GetFileName().GetLength() == 0) {
-		Env.GetSettings()->SetPath(OpenFileDialog.GetPathName() + _T("\\"), PATH_DMC);		// // //
+		Env.GetSettings()->SetPath(OpenFileDialog.GetPathName() + L"\\", PATH_DMC);		// // //
 		// Multiple files
 		POSITION Pos = OpenFileDialog.GetStartPosition();
 		while (Pos) {
-			CString Path = OpenFileDialog.GetNextPathName(Pos);
-			CString FileName = Path.Right(Path.GetLength() - Path.ReverseFind('\\') - 1);
+			CStringW Path = OpenFileDialog.GetNextPathName(Pos);
+			CStringW FileName = Path.Right(Path.GetLength() - Path.ReverseFind('\\') - 1);
 			LoadSample(Path, FileName);
 		}
 	}
@@ -348,7 +350,7 @@ void CInstrumentEditorDPCM::OnBnClickedUnload()
 {
 	CListCtrl *pListBox = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
 	int SelCount;
-	char ItemName[256];
+	WCHAR ItemName[256] = { };
 	int nItem = -1;
 
 	if (m_iSelectedSample == MAX_DSAMPLES)
@@ -361,7 +363,7 @@ void CInstrumentEditorDPCM::OnBnClickedUnload()
 		nItem = pListBox->GetNextItem(nItem, LVNI_SELECTED);
 		ASSERT(nItem != -1);
 		pListBox->GetItemText(nItem, 0, ItemName, 256);
-		int Index = atoi(ItemName);
+		int Index = _wtoi(ItemName);
 		Env.GetSoundGenerator()->CancelPreviewSample();
 		GetDSampleManager()->RemoveDSample(Index);		// // //
 	}
@@ -378,9 +380,9 @@ void CInstrumentEditorDPCM::OnNMClickSampleList(NMHDR *pNMHDR, LRESULT *pResult)
 
 	int Index = pSampleListCtrl->GetSelectionMark();
 
-	TCHAR ItemName[256];
+	WCHAR ItemName[256];
 	pSampleListCtrl->GetItemText(Index, 0, ItemName, 256);
-	m_iSelectedSample = _ttoi(ItemName);
+	m_iSelectedSample = _wtoi(ItemName);
 
 	*pResult = 0;
 }
@@ -416,7 +418,7 @@ void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	//CSpinButtonCtrl *pSpinButton;
 	//CComboBox *pSampleBox, *pPitchBox;
 	//CEdit *pDeltaValue;
-	CString Text;
+	CStringW Text;
 
 	//m_pTableListCtrl	= static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
 
@@ -433,7 +435,7 @@ void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	int Pitch = m_pInstrument->GetSamplePitch(m_iOctave, m_iSelectedKey);
 	int Delta = m_pInstrument->GetSampleDeltaValue(m_iOctave, m_iSelectedKey);
 
-	Text.Format(_T("%02i - %s"), Sample, pTableListCtrl->GetItemText(pTableListCtrl->GetSelectionMark(), 2));
+	Text.Format(L"%02i - %s", Sample, pTableListCtrl->GetItemText(pTableListCtrl->GetSelectionMark(), 2));
 
 	if (Sample != -1)
 		pSampleBox->SelectString(0, Text);
@@ -449,7 +451,7 @@ void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 			CheckDlgButton(IDC_LOOP, 0);
 
 		if (Delta == -1)
-			pDeltaValue->SetWindowText(_T("Off"));
+			pDeltaValue->SetWindowTextW(L"Off");
 		else
 			SetDlgItemInt(IDC_DELTA_COUNTER, Delta, FALSE);
 
@@ -468,16 +470,16 @@ void CInstrumentEditorDPCM::OnCbnSelchangeSamples()
 	int Sample = pSampleBox->GetCurSel();
 
 	if (Sample > 0) {
-		char Name[256];
+		WCHAR Name[256];
 		pSampleBox->GetLBText(Sample, Name);
 
 		Name[2] = 0;
-		if (Name[0] == _T('0')) {
+		if (Name[0] == L'0') {
 			Name[0] = Name[1];
 			Name[1] = 0;
 		}
 
-		Sample = _tstoi(Name);
+		Sample = _wtoi(Name);
 		Sample++;
 
 		if (PrevSample == 0)
@@ -497,7 +499,7 @@ std::shared_ptr<const ft0cc::doc::dpcm_sample> CInstrumentEditorDPCM::GetSelecte
 	if (Index == -1)
 		return nullptr;
 
-	TCHAR Text[256];
+	WCHAR Text[256];
 	pSampleListCtrl->GetItemText(Index, 0, Text, 256);
 	Index = _tstoi(Text);
 
@@ -512,7 +514,7 @@ void CInstrumentEditorDPCM::SetSelectedSample(std::shared_ptr<ft0cc::doc::dpcm_s
 	if (Index == -1)
 		return;
 
-	TCHAR Text[256];
+	WCHAR Text[256];
 	pSampleListCtrl->GetItemText(Index, 0, Text, 256);
 	Index = _tstoi(Text);
 
@@ -521,9 +523,9 @@ void CInstrumentEditorDPCM::SetSelectedSample(std::shared_ptr<ft0cc::doc::dpcm_s
 
 void CInstrumentEditorDPCM::OnBnClickedSave()
 {
-	CString	Path;
+	CStringW	Path;
 	CFile	SampleFile;
-	TCHAR	Text[256];
+	WCHAR	Text[256];
 
 	CListCtrl *pSampleListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
 
@@ -539,8 +541,8 @@ void CInstrumentEditorDPCM::OnBnClickedSave()
 	if (!pDSample)
 		return;
 
-	CString fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, _T(".dmc"));
-	CFileDialog SaveFileDialog(FALSE, _T("dmc"), pDSample->name().data(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
+	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, L".dmc");
+	CFileDialog SaveFileDialog(FALSE, L"dmc", conv::to_wide(pDSample->name()).data(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
 
 	SaveFileDialog.m_pOFN->lpstrInitialDir = Env.GetSettings()->GetPath(PATH_DMC);
 
@@ -711,7 +713,7 @@ void CInstrumentEditorDPCM::OnNMRClickSampleList(NMHDR *pNMHDR, LRESULT *pResult
 	CPoint point;
 
 	GetCursorPos(&point);
-	PopupMenuBar.LoadMenu(IDR_SAMPLES_POPUP);
+	PopupMenuBar.LoadMenuW(IDR_SAMPLES_POPUP);
 	pPopupMenu = PopupMenuBar.GetSubMenu(0);
 	pPopupMenu->SetDefaultItem(IDC_PREVIEW);
 	pPopupMenu->TrackPopupMenu(TPM_RIGHTBUTTON, point.x, point.y, this);
@@ -733,14 +735,12 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	CMenu PopupMenu;
 	GetCursorPos(&point);
 	PopupMenu.CreatePopupMenu();
-	PopupMenu.AppendMenu(MF_STRING, 1, NO_SAMPLE_STR);
+	PopupMenu.AppendMenuW(MF_STRING, 1, NO_SAMPLE_STR);
 
 	// Fill menu
-	for (int i = 0; i < MAX_DSAMPLES; i++) {
-		if (auto pDSample = GetDSampleManager()->GetDSample(i)) {		// // //
-			PopupMenu.AppendMenu(MF_STRING, i + 2, pDSample->name().data());
-		}
-	}
+	for (int i = 0; i < MAX_DSAMPLES; i++)
+		if (auto pDSample = GetDSampleManager()->GetDSample(i))		// // //
+			PopupMenu.AppendMenuW(MF_STRING, i + 2, conv::to_wide(pDSample->name()).data());
 
 	UINT Result = PopupMenu.TrackPopupMenu(TPM_RIGHTBUTTON | TPM_RETURNCMD, point.x, point.y, this);
 
@@ -772,7 +772,7 @@ void CInstrumentEditorDPCM::OnNMDblclkTable(NMHDR *pNMHDR, LRESULT *pResult)
 	if (int Sample = m_pInstrument->GetSampleIndex(m_iOctave, m_iSelectedKey)) {		// // //
 		int Pitch = m_pInstrument->GetSamplePitch(m_iOctave, m_iSelectedKey) & 0x0F;
 		CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
-		CString sampleName = pTableListCtrl->GetItemText(MIDI_NOTE(m_iOctave, m_iSelectedKey + 1), 2);		// // //
+		CStringW sampleName = pTableListCtrl->GetItemText(MIDI_NOTE(m_iOctave, m_iSelectedKey + 1), 2);		// // //
 
 		auto pSample = GetDSampleManager()->GetDSample(Sample - 1);
 		if (pSample && pSample->size() > 0u && sampleName != NO_SAMPLE_STR)
@@ -818,7 +818,7 @@ void CInstrumentEditorDPCM::OnDeltaposDeltaSpin(NMHDR *pNMHDR, LRESULT *pResult)
 		return;
 
 	if (pNMUpDown->iPos <= 0 && pNMUpDown->iDelta < 0) {
-		pDeltaValue->SetWindowText(_T("Off"));
+		pDeltaValue->SetWindowTextW(L"Off");
 		Value = -1;
 	}
 	else {

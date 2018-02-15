@@ -32,106 +32,106 @@
  */
 
 // List of modifier strings
-const LPCTSTR CAccelerator::MOD_NAMES[] = {		// // //
-	_T("None"),
-	_T("Alt"),
-	_T("Ctrl"),
-	_T("Ctrl+Alt"),
-	_T("Shift"),
-	_T("Shift+Alt"),
-	_T("Shift+Ctrl"),
-	_T("Shift+Ctrl+Alt")
+const LPCWSTR CAccelerator::MOD_NAMES[] = {		// // //
+	L"None",
+	L"Alt",
+	L"Ctrl",
+	L"Ctrl+Alt",
+	L"Shift",
+	L"Shift+Alt",
+	L"Shift+Ctrl",
+	L"Shift+Ctrl+Alt"
 };
 
 // Default shortcut table
 const std::vector<stAccelEntry> CAccelerator::DEFAULT_TABLE {
-	{_T("Decrease octave"),				MOD_NONE,		VK_DIVIDE,		ID_CMD_OCTAVE_PREVIOUS},
-	{_T("Increase octave"),				MOD_NONE,		VK_MULTIPLY,	ID_CMD_OCTAVE_NEXT},
-	{_T("Play / Stop"),					MOD_NONE,		VK_RETURN,		ID_TRACKER_TOGGLE_PLAY},
-	{_T("Play"),						MOD_NONE,		0,				ID_TRACKER_PLAY},
-	{_T("Play from start"),				MOD_NONE,		VK_F5,			ID_TRACKER_PLAY_START},
-	{_T("Play from cursor"),			MOD_NONE,		VK_F7,			ID_TRACKER_PLAY_CURSOR},
-	{_T("Play from row marker"),		MOD_CONTROL,	VK_F7,			ID_TRACKER_PLAY_MARKER, _T("Play from bookmark")},		// // // 050B
-	{_T("Play and loop pattern"),		MOD_NONE,		VK_F6,			ID_TRACKER_PLAYPATTERN},
-	{_T("Play row"),					MOD_CONTROL,	VK_RETURN,		ID_TRACKER_PLAYROW},
-	{_T("Stop"),						MOD_NONE,		VK_F8,			ID_TRACKER_STOP},
-	{_T("Edit enable/disable"),			MOD_NONE,		VK_SPACE,		ID_TRACKER_EDIT},
-	{_T("Set row marker"),				MOD_CONTROL,	'B',			ID_TRACKER_SET_MARKER, _T("Set row marker")},		// // // 050B
-	{_T("Paste and mix"),				MOD_CONTROL,	'M',			ID_EDIT_PASTEMIX},
-	{_T("Paste and overwrite"),			MOD_NONE,		0,				ID_EDIT_PASTEOVERWRITE},			// // //
-	{_T("Paste and insert"),			MOD_NONE,		0,				ID_EDIT_PASTEINSERT},				// // //
-	{_T("Select all"),					MOD_CONTROL,	'A',			ID_EDIT_SELECTALL},
-	{_T("Deselect"),					MOD_NONE,		VK_ESCAPE,		ID_SELECT_NONE},					// // //
-	{_T("Select row"),					MOD_NONE,		0,				ID_SELECT_ROW},						// // //
-	{_T("Select column"),				MOD_NONE,		0,				ID_SELECT_COLUMN},					// // //
-	{_T("Select pattern"),				MOD_NONE,		0,				ID_SELECT_PATTERN},					// // //
-	{_T("Select frame"),				MOD_NONE,		0,				ID_SELECT_FRAME},					// // //
-	{_T("Select channel"),				MOD_NONE,		0,				ID_SELECT_CHANNEL},					// // //
-	{_T("Select track"),				MOD_NONE,		0,				ID_SELECT_TRACK},					// // //
-	{_T("Select in other editor"),		MOD_NONE,		0,				ID_SELECT_OTHER},					// // //
-	{_T("Go to row"),					MOD_ALT,		'G',			ID_EDIT_GOTO},						// // //
-	{_T("Toggle channel"),				MOD_ALT,		VK_F9,			ID_TRACKER_TOGGLECHANNEL},
-	{_T("Solo channel"),				MOD_ALT,		VK_F10,			ID_TRACKER_SOLOCHANNEL},
-	{_T("Toggle chip"),					MOD_CONTROL|MOD_ALT, VK_F9,		ID_TRACKER_TOGGLECHIP},				// // //
-	{_T("Solo chip"),					MOD_CONTROL|MOD_ALT, VK_F10,	ID_TRACKER_SOLOCHIP},				// // //
-	{_T("Record to instrument"),		MOD_NONE,		0,				ID_TRACKER_RECORDTOINST},			// // //
-	{_T("Interpolate"),					MOD_CONTROL,	'G',			ID_EDIT_INTERPOLATE},
-	{_T("Go to next frame"),			MOD_CONTROL,	VK_RIGHT,		ID_NEXT_FRAME},
-	{_T("Go to previous frame"),		MOD_CONTROL,	VK_LEFT,		ID_PREV_FRAME},
-	{_T("Toggle bookmark"),				MOD_CONTROL,	'K',			ID_BOOKMARKS_TOGGLE},				// // //
-	{_T("Next bookmark"),				MOD_CONTROL,	VK_NEXT,		ID_BOOKMARKS_NEXT},					// // //
-	{_T("Previous bookmark"),			MOD_CONTROL,	VK_PRIOR,		ID_BOOKMARKS_PREVIOUS},				// // //
-	{_T("Transpose, decrease notes"),	MOD_CONTROL,	VK_F1,			ID_TRANSPOSE_DECREASENOTE},
-	{_T("Transpose, increase notes"),	MOD_CONTROL,	VK_F2,			ID_TRANSPOSE_INCREASENOTE},
-	{_T("Transpose, decrease octaves"),	MOD_CONTROL,	VK_F3,			ID_TRANSPOSE_DECREASEOCTAVE},
-	{_T("Transpose, increase octaves"),	MOD_CONTROL,	VK_F4,			ID_TRANSPOSE_INCREASEOCTAVE},
-	{_T("Increase pattern"),			MOD_NONE,		VK_ADD,			IDC_FRAME_INC},
-	{_T("Decrease pattern"),			MOD_NONE,		VK_SUBTRACT,	IDC_FRAME_DEC},
-	{_T("Next instrument"),				MOD_CONTROL,	VK_DOWN,		ID_CMD_NEXT_INSTRUMENT},
-	{_T("Previous instrument"),			MOD_CONTROL,	VK_UP,			ID_CMD_PREV_INSTRUMENT},
-	{_T("Type instrument number"),		MOD_NONE,		0,				ID_CMD_INST_NUM},					// // //
-	{_T("Mask instruments"),			MOD_ALT,		'T',			ID_EDIT_INSTRUMENTMASK},
-	{_T("Mask volume"),					MOD_ALT,		'V',			ID_EDIT_VOLUMEMASK},				// // //
-	{_T("Edit instrument"),				MOD_CONTROL,	'I',			ID_INSTRUMENT_EDIT},
-	{_T("Increase step size"),			MOD_CONTROL,	VK_ADD,			ID_CMD_INCREASESTEPSIZE},
-	{_T("Decrease step size"),			MOD_CONTROL,	VK_SUBTRACT,	ID_CMD_DECREASESTEPSIZE},
-	{_T("Follow mode"),					MOD_NONE,		VK_SCROLL,		IDC_FOLLOW_TOGGLE},
-	{_T("Duplicate frame"),				MOD_CONTROL,	'D',			ID_MODULE_DUPLICATEFRAME},
-	{_T("Insert frame"),				MOD_NONE,		0,				ID_MODULE_INSERTFRAME},
-	{_T("Remove frame"),				MOD_NONE,		0,				ID_MODULE_REMOVEFRAME},
-	{_T("Reverse"),						MOD_CONTROL,	'R',			ID_EDIT_REVERSE},
-	{_T("Select frame editor"),			MOD_NONE,		VK_F3,			ID_FOCUS_FRAME_EDITOR},
-	{_T("Select pattern editor"),		MOD_NONE,		VK_F2,			ID_FOCUS_PATTERN_EDITOR},
-	{_T("Move one step up"),			MOD_ALT,		VK_UP,			ID_CMD_STEP_UP},
-	{_T("Move one step down"),			MOD_ALT,		VK_DOWN,		ID_CMD_STEP_DOWN},
-	{_T("Replace instrument"),			MOD_ALT,		'S',			ID_EDIT_REPLACEINSTRUMENT},
-	{_T("Toggle control panel"),		MOD_NONE,		0,				ID_VIEW_CONTROLPANEL},
-	{_T("Display effect list"),			MOD_NONE,		0,				ID_HELP_EFFECTTABLE},
-	{_T("Select block start"),			MOD_ALT,		'B',			ID_BLOCK_START},
-	{_T("Select block end"),			MOD_ALT,		'E',			ID_BLOCK_END},
-	{_T("Pick up row settings"),		MOD_NONE,		0,				ID_POPUP_PICKUPROW},
-	{_T("Next song"),					MOD_NONE,		0,				ID_NEXT_SONG},
-	{_T("Previous song"),				MOD_NONE,		0,				ID_PREV_SONG},
-	{_T("Expand patterns"),				MOD_NONE,		0,				ID_EDIT_EXPANDPATTERNS},
-	{_T("Shrink patterns"),				MOD_NONE,		0,				ID_EDIT_SHRINKPATTERNS},
-	{_T("Stretch patterns"),			MOD_NONE,		0,				ID_EDIT_STRETCHPATTERNS},			// // //
-	{_T("Clone frame"),					MOD_NONE,		0,				ID_MODULE_DUPLICATEFRAMEPATTERNS, _T("Duplicate patterns")},		// // //
-	{_T("Clone pattern"),				MOD_ALT,		'D',			ID_MODULE_DUPLICATECURRENTPATTERN, _T("Duplicate current pattern")},	// // //
-	{_T("Decrease pattern values"),		MOD_SHIFT,		VK_F1,			ID_DECREASEVALUES},
-	{_T("Increase pattern values"),		MOD_SHIFT,		VK_F2,			ID_INCREASEVALUES},
-	{_T("Coarse decrease values"),		MOD_SHIFT,		VK_F3,			ID_DECREASEVALUESCOARSE},			// // //
-	{_T("Coarse increase values"),		MOD_SHIFT,		VK_F4,			ID_INCREASEVALUESCOARSE},			// // //
-	{_T("Toggle find / replace tab"),	MOD_CONTROL,	'F',			ID_EDIT_FIND_TOGGLE},				// // //
-	{_T("Find next"),					MOD_NONE,		0,				ID_FIND_NEXT},						// // //
-	{_T("Find previous"),				MOD_NONE,		0,				ID_FIND_PREVIOUS},					// // //
-	{_T("Recall channel state"),		MOD_NONE,		0,				ID_RECALL_CHANNEL_STATE},			// // //
-	{_T("Compact View"),				MOD_NONE,		0,				IDC_COMPACT_TOGGLE},				// // //
+	{L"Decrease octave",				MOD_NONE,		VK_DIVIDE,		ID_CMD_OCTAVE_PREVIOUS},
+	{L"Increase octave",				MOD_NONE,		VK_MULTIPLY,	ID_CMD_OCTAVE_NEXT},
+	{L"Play / Stop",					MOD_NONE,		VK_RETURN,		ID_TRACKER_TOGGLE_PLAY},
+	{L"Play",							MOD_NONE,		0,				ID_TRACKER_PLAY},
+	{L"Play from start",				MOD_NONE,		VK_F5,			ID_TRACKER_PLAY_START},
+	{L"Play from cursor",				MOD_NONE,		VK_F7,			ID_TRACKER_PLAY_CURSOR},
+	{L"Play from row marker",			MOD_CONTROL,	VK_F7,			ID_TRACKER_PLAY_MARKER, L"Play from bookmark"},		// // // 050B
+	{L"Play and loop pattern",			MOD_NONE,		VK_F6,			ID_TRACKER_PLAYPATTERN},
+	{L"Play row",						MOD_CONTROL,	VK_RETURN,		ID_TRACKER_PLAYROW},
+	{L"Stop",							MOD_NONE,		VK_F8,			ID_TRACKER_STOP},
+	{L"Edit enable/disable",			MOD_NONE,		VK_SPACE,		ID_TRACKER_EDIT},
+	{L"Set row marker",					MOD_CONTROL,	'B',			ID_TRACKER_SET_MARKER, L"Set row marker"},		// // // 050B
+	{L"Paste and mix",					MOD_CONTROL,	'M',			ID_EDIT_PASTEMIX},
+	{L"Paste and overwrite",			MOD_NONE,		0,				ID_EDIT_PASTEOVERWRITE},			// // //
+	{L"Paste and insert",				MOD_NONE,		0,				ID_EDIT_PASTEINSERT},				// // //
+	{L"Select all",						MOD_CONTROL,	'A',			ID_EDIT_SELECTALL},
+	{L"Deselect",						MOD_NONE,		VK_ESCAPE,		ID_SELECT_NONE},					// // //
+	{L"Select row",						MOD_NONE,		0,				ID_SELECT_ROW},						// // //
+	{L"Select column",					MOD_NONE,		0,				ID_SELECT_COLUMN},					// // //
+	{L"Select pattern",					MOD_NONE,		0,				ID_SELECT_PATTERN},					// // //
+	{L"Select frame",					MOD_NONE,		0,				ID_SELECT_FRAME},					// // //
+	{L"Select channel",					MOD_NONE,		0,				ID_SELECT_CHANNEL},					// // //
+	{L"Select track",					MOD_NONE,		0,				ID_SELECT_TRACK},					// // //
+	{L"Select in other editor",			MOD_NONE,		0,				ID_SELECT_OTHER},					// // //
+	{L"Go to row",						MOD_ALT,		'G',			ID_EDIT_GOTO},						// // //
+	{L"Toggle channel",					MOD_ALT,		VK_F9,			ID_TRACKER_TOGGLECHANNEL},
+	{L"Solo channel",					MOD_ALT,		VK_F10,			ID_TRACKER_SOLOCHANNEL},
+	{L"Toggle chip",					MOD_CONTROL|MOD_ALT, VK_F9,		ID_TRACKER_TOGGLECHIP},				// // //
+	{L"Solo chip",						MOD_CONTROL|MOD_ALT, VK_F10,	ID_TRACKER_SOLOCHIP},				// // //
+	{L"Record to instrument",			MOD_NONE,		0,				ID_TRACKER_RECORDTOINST},			// // //
+	{L"Interpolate",					MOD_CONTROL,	'G',			ID_EDIT_INTERPOLATE},
+	{L"Go to next frame",				MOD_CONTROL,	VK_RIGHT,		ID_NEXT_FRAME},
+	{L"Go to previous frame",			MOD_CONTROL,	VK_LEFT,		ID_PREV_FRAME},
+	{L"Toggle bookmark",				MOD_CONTROL,	'K',			ID_BOOKMARKS_TOGGLE},				// // //
+	{L"Next bookmark",					MOD_CONTROL,	VK_NEXT,		ID_BOOKMARKS_NEXT},					// // //
+	{L"Previous bookmark",				MOD_CONTROL,	VK_PRIOR,		ID_BOOKMARKS_PREVIOUS},				// // //
+	{L"Transpose, decrease notes",		MOD_CONTROL,	VK_F1,			ID_TRANSPOSE_DECREASENOTE},
+	{L"Transpose, increase notes",		MOD_CONTROL,	VK_F2,			ID_TRANSPOSE_INCREASENOTE},
+	{L"Transpose, decrease octaves",	MOD_CONTROL,	VK_F3,			ID_TRANSPOSE_DECREASEOCTAVE},
+	{L"Transpose, increase octaves",	MOD_CONTROL,	VK_F4,			ID_TRANSPOSE_INCREASEOCTAVE},
+	{L"Increase pattern",				MOD_NONE,		VK_ADD,			IDC_FRAME_INC},
+	{L"Decrease pattern",				MOD_NONE,		VK_SUBTRACT,	IDC_FRAME_DEC},
+	{L"Next instrument",				MOD_CONTROL,	VK_DOWN,		ID_CMD_NEXT_INSTRUMENT},
+	{L"Previous instrument",			MOD_CONTROL,	VK_UP,			ID_CMD_PREV_INSTRUMENT},
+	{L"Type instrument number",			MOD_NONE,		0,				ID_CMD_INST_NUM},					// // //
+	{L"Mask instruments",				MOD_ALT,		'T',			ID_EDIT_INSTRUMENTMASK},
+	{L"Mask volume",					MOD_ALT,		'V',			ID_EDIT_VOLUMEMASK},				// // //
+	{L"Edit instrument",				MOD_CONTROL,	'I',			ID_INSTRUMENT_EDIT},
+	{L"Increase step size",				MOD_CONTROL,	VK_ADD,			ID_CMD_INCREASESTEPSIZE},
+	{L"Decrease step size",				MOD_CONTROL,	VK_SUBTRACT,	ID_CMD_DECREASESTEPSIZE},
+	{L"Follow mode",					MOD_NONE,		VK_SCROLL,		IDC_FOLLOW_TOGGLE},
+	{L"Duplicate frame",				MOD_CONTROL,	'D',			ID_MODULE_DUPLICATEFRAME},
+	{L"Insert frame",					MOD_NONE,		0,				ID_MODULE_INSERTFRAME},
+	{L"Remove frame",					MOD_NONE,		0,				ID_MODULE_REMOVEFRAME},
+	{L"Reverse",						MOD_CONTROL,	'R',			ID_EDIT_REVERSE},
+	{L"Select frame editor",			MOD_NONE,		VK_F3,			ID_FOCUS_FRAME_EDITOR},
+	{L"Select pattern editor",			MOD_NONE,		VK_F2,			ID_FOCUS_PATTERN_EDITOR},
+	{L"Move one step up",				MOD_ALT,		VK_UP,			ID_CMD_STEP_UP},
+	{L"Move one step down",				MOD_ALT,		VK_DOWN,		ID_CMD_STEP_DOWN},
+	{L"Replace instrument",				MOD_ALT,		'S',			ID_EDIT_REPLACEINSTRUMENT},
+	{L"Toggle control panel",			MOD_NONE,		0,				ID_VIEW_CONTROLPANEL},
+	{L"Display effect list",			MOD_NONE,		0,				ID_HELP_EFFECTTABLE},
+	{L"Select block start",				MOD_ALT,		'B',			ID_BLOCK_START},
+	{L"Select block end",				MOD_ALT,		'E',			ID_BLOCK_END},
+	{L"Pick up row settings",			MOD_NONE,		0,				ID_POPUP_PICKUPROW},
+	{L"Next song",						MOD_NONE,		0,				ID_NEXT_SONG},
+	{L"Previous song",					MOD_NONE,		0,				ID_PREV_SONG},
+	{L"Expand patterns",				MOD_NONE,		0,				ID_EDIT_EXPANDPATTERNS},
+	{L"Shrink patterns",				MOD_NONE,		0,				ID_EDIT_SHRINKPATTERNS},
+	{L"Stretch patterns",				MOD_NONE,		0,				ID_EDIT_STRETCHPATTERNS},			// // //
+	{L"Clone frame",					MOD_NONE,		0,				ID_MODULE_DUPLICATEFRAMEPATTERNS, L"Duplicate patterns"},		// // //
+	{L"Clone pattern",					MOD_ALT,		'D',			ID_MODULE_DUPLICATECURRENTPATTERN, L"Duplicate current pattern"},	// // //
+	{L"Decrease pattern values",		MOD_SHIFT,		VK_F1,			ID_DECREASEVALUES},
+	{L"Increase pattern values",		MOD_SHIFT,		VK_F2,			ID_INCREASEVALUES},
+	{L"Coarse decrease values",			MOD_SHIFT,		VK_F3,			ID_DECREASEVALUESCOARSE},			// // //
+	{L"Coarse increase values",			MOD_SHIFT,		VK_F4,			ID_INCREASEVALUESCOARSE},			// // //
+	{L"Toggle find / replace tab",		MOD_CONTROL,	'F',			ID_EDIT_FIND_TOGGLE},				// // //
+	{L"Find next",						MOD_NONE,		0,				ID_FIND_NEXT},						// // //
+	{L"Find previous",					MOD_NONE,		0,				ID_FIND_PREVIOUS},					// // //
+	{L"Recall channel state",			MOD_NONE,		0,				ID_RECALL_CHANNEL_STATE},			// // //
+	{L"Compact View",					MOD_NONE,		0,				IDC_COMPACT_TOGGLE},				// // //
 };
 
 const int CAccelerator::ACCEL_COUNT = DEFAULT_TABLE.size();
 
 // Registry key
-const LPCTSTR CAccelerator::SHORTCUTS_SECTION = _T("Shortcuts");		// // //
+const LPCWSTR CAccelerator::SHORTCUTS_SECTION = L"Shortcuts";		// // //
 
 // Translate internal modifier -> windows modifier
 static BYTE GetMod(int Mod)
@@ -145,7 +145,7 @@ CAccelerator::CAccelerator() :
 	m_pEntriesTable(ACCEL_COUNT),		// // //
 	m_pAccelTable(ACCEL_COUNT)		// // //
 {
-	TRACE(_T("Accelerator: Accelerator table contains %d items\n"), ACCEL_COUNT);
+	TRACE(L"Accelerator: Accelerator table contains %d items\n", ACCEL_COUNT);
 }
 
 CAccelerator::~CAccelerator()
@@ -153,7 +153,7 @@ CAccelerator::~CAccelerator()
 	ASSERT(m_hAccel == nullptr);
 }
 
-LPCTSTR CAccelerator::GetItemName(int Item) const
+LPCWSTR CAccelerator::GetItemName(int Item) const
 {
 	return m_pEntriesTable[Item].name;
 }
@@ -178,21 +178,21 @@ int CAccelerator::GetDefaultMod(int Item) const
 	return DEFAULT_TABLE[Item].mod;
 }
 
-LPCTSTR CAccelerator::GetItemModName(int Item) const
+LPCWSTR CAccelerator::GetItemModName(int Item) const
 {
 	return MOD_NAMES[m_pEntriesTable[Item].mod];
 }
 
-LPCTSTR CAccelerator::GetItemKeyName(int Item) const
+LPCWSTR CAccelerator::GetItemKeyName(int Item) const
 {
 	if (m_pEntriesTable[Item].key > 0) {
 		return GetVKeyName(m_pEntriesTable[Item].key);
 	}
 
-	return _T("None");
+	return L"None";
 }
 
-LPCTSTR CAccelerator::GetVKeyName(int virtualKey) const
+LPCWSTR CAccelerator::GetVKeyName(int virtualKey) const
 {
 	unsigned int scanCode = MapVirtualKey(virtualKey, MAPVK_VK_TO_VSC);
 
@@ -208,12 +208,12 @@ LPCTSTR CAccelerator::GetVKeyName(int virtualKey) const
 			break;
 	}
 
-	static TCHAR keyName[50];
+	static WCHAR keyName[50];
 
-	if (GetKeyNameText(scanCode << 16, keyName, sizeof(keyName)) != 0)
+	if (GetKeyNameTextW(scanCode << 16, keyName, sizeof(keyName)) != 0)
 		return keyName;
 
-	return _T("");
+	return L"";
 }
 
 void CAccelerator::StoreShortcut(int Item, int Key, int Mod)
@@ -222,17 +222,17 @@ void CAccelerator::StoreShortcut(int Item, int Key, int Mod)
 	m_pEntriesTable[Item].mod = Mod;
 }
 
-bool CAccelerator::GetShortcutString(int id, CString &str) const
+bool CAccelerator::GetShortcutString(int id, CStringW &str) const
 {
 	for (const auto &x : m_pEntriesTable) {		// // //
 		if (x.id == id) {
-			CString KeyName = GetVKeyName(x.key);
+			CStringW KeyName = GetVKeyName(x.key);
 			if (KeyName.GetLength() > 1)
 				KeyName = KeyName.Mid(0, 1).MakeUpper() + KeyName.Mid(1, KeyName.GetLength() - 1).MakeLower();
 			if (x.mod > 0)
-				str.Format(_T("\t%s+%s"), MOD_NAMES[x.mod], KeyName);
+				str.Format(L"\t%s+%s", MOD_NAMES[x.mod], KeyName);
 			else
-				str.Format(_T("\t%s"), KeyName);
+				str.Format(L"\t%s", KeyName);
 			return true;
 		}
 	}

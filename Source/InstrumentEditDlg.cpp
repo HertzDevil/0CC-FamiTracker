@@ -48,19 +48,20 @@
 #include "SongView.h"		// // //
 #include "TrackerChannel.h"
 #include "DPI.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 // Constants
 const int CInstrumentEditDlg::KEYBOARD_WIDTH  = 561;
 const int CInstrumentEditDlg::KEYBOARD_HEIGHT = 58;
 
-const LPCTSTR CInstrumentEditDlg::CHIP_NAMES[] = {		// // //
-	_T(""),
-	_T("2A03"),
-	_T("VRC6"),
-	_T("VRC7"),
-	_T("FDS"),
-	_T("Namco"),
-	_T("Sunsoft")
+const LPCWSTR CInstrumentEditDlg::CHIP_NAMES[] = {		// // //
+	L"",
+	L"2A03",
+	L"VRC6",
+	L"VRC7",
+	L"FDS",
+	L"Namco",
+	L"Sunsoft"
 };
 
 // CInstrumentEditDlg dialog
@@ -170,12 +171,12 @@ void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 	int InstType = pInstrument->GetType();
 
 	// Dialog title
-	CString Suffix;
-	auto sv = pInstrument->GetName();
-	Suffix.Format(_T("%02X. %.*s (%s)"), Index, sv.size(), sv.data(), CHIP_NAMES[InstType]);		// // //
-	CString Title;
+	CStringW Suffix;
+	auto sv = conv::to_wide(pInstrument->GetName());
+	Suffix.Format(L"%02X. %.*s (%s)", Index, sv.size(), sv.data(), CHIP_NAMES[InstType]);		// // //
+	CStringW Title;
 	AfxFormatString1(Title, IDS_INSTRUMENT_EDITOR_TITLE, Suffix);
-	SetWindowText(Title);
+	SetWindowTextW(Title);
 
 	if (InstType != m_iSelectedInstType) {
 		ShowWindow(SW_HIDE);
@@ -185,13 +186,13 @@ void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 			case INST_2A03: {
 					chan_id_t Type = CFamiTrackerView::GetView()->GetSelectedChannelID();		// // //
 					bool bShowDPCM = (Type == chan_id_t::DPCM) || (std::static_pointer_cast<CInstrument2A03>(pInstrument)->AssignedSamples());
-					InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, _T("2A03 settings"),
+					InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, L"2A03 settings",
 						CInstrument2A03::SEQUENCE_NAME, 15, 3, INST_2A03), !bShowDPCM);		// // //
 					InsertPane(std::make_unique<CInstrumentEditorDPCM>(), bShowDPCM);
 				}
 				break;
 			case INST_VRC6:
-				InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, _T("Konami VRC6"),
+				InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, L"Konami VRC6",
 					CInstrumentVRC6::SEQUENCE_NAME, 15, 7, INST_VRC6), true);
 				break;
 			case INST_VRC7:
@@ -202,12 +203,12 @@ void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 				InsertPane(std::make_unique<CInstrumentEditorFDSEnvelope>(), false);
 				break;
 			case INST_N163:
-				InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, _T("Envelopes"),
+				InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, L"Envelopes",
 					CInstrumentN163::SEQUENCE_NAME, 15, CInstrumentN163::MAX_WAVE_COUNT - 1, INST_N163), true);
 				InsertPane(std::make_unique<CInstrumentEditorN163Wave>(), false);
 				break;
 			case INST_S5B:
-				InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, _T("Sunsoft 5B"),
+				InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, L"Sunsoft 5B",
 					CInstrumentS5B::SEQUENCE_NAME, 15, 255, INST_S5B), true);
 				break;
 		}

@@ -42,6 +42,7 @@
 #include "FrameEditorModel.h"		// // //
 #include "SongData.h"		// // //
 #include "SongView.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 /*
  * CFrameEditor
@@ -49,7 +50,7 @@
  *
  */
 
-const TCHAR CFrameEditor::CLIPBOARD_ID[] = _T("FamiTracker Frames");
+const WCHAR CFrameEditor::CLIPBOARD_ID[] = L"FamiTracker Frames";
 
 IMPLEMENT_DYNAMIC(CFrameEditor, CWnd)
 
@@ -139,7 +140,7 @@ int CFrameEditor::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	m_hAccel = LoadAccelerators(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_FRAMEWND));
 
-	m_Font.CreateFont(DPI::SY(14), 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
+	m_Font.CreateFontW(DPI::SY(14), 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
 					  OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
 					  Env.GetSettings()->Appearance.strFrameFont);		// // // 050B
 
@@ -205,11 +206,11 @@ void CFrameEditor::OnPaint()
 
 #ifdef BENCHMARK
 	++m_iPaints;
-	CString txt;
+	CStringW txt;
 	txt.Format("Updates %i", m_iUpdates);
-	dc.TextOut(1, 1, txt);
+	dc.TextOutW(1, 1, txt);
 	txt.Format("Paints %i", m_iPaints);
-	dc.TextOut(1, 18, txt);
+	dc.TextOutW(1, 18, txt);
 #endif
 }
 
@@ -359,7 +360,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 		int line = FrameCount - FirstVisibleFrame;
 		const int ypos = line * ROW_HEIGHT;
 		m_dcBack.SetTextColor(ColTextHilite);
-		m_dcBack.TextOut(DPI::SX(3 + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3), _T(">>"));
+		m_dcBack.TextOutW(DPI::SX(3 + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3), L">>");
 
 		COLORREF CurrentColor = IsLineDimmed(line) ? ColTextDimmed : ColText;		// // //
 
@@ -367,7 +368,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 			//m_dcBack.SetTextColor(CurrentColor);
 			m_dcBack.SetTextColor(DIM(CurrentColor, .7));
 
-			m_dcBack.TextOut(DPI::SX(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3), _T("--"));
+			m_dcBack.TextOutW(DPI::SX(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3), L"--");
 		}
 	}
 
@@ -379,8 +380,8 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 			const int ypos = line * ROW_HEIGHT;
 			bool bSelectedRow = model_->IsFrameSelected(Frame);		// // //
 			m_dcBack.SetTextColor(ColTextHilite);
-			m_dcBack.TextOut(DPI::SX(3 + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3),
-				(bHexRows ? conv::sv_from_uint_hex(Frame, 2) : conv::sv_from_uint(Frame, 3)).data());
+			m_dcBack.TextOutW(DPI::SX(3 + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3),
+				conv::to_wide(bHexRows ? conv::sv_from_uint_hex(Frame, 2) : conv::sv_from_uint(Frame, 3)).data());
 
 			COLORREF CurrentColor = IsLineDimmed(line) ? ColTextDimmed : ColText;		// // //
 
@@ -396,8 +397,8 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 				else
 					m_dcBack.SetTextColor(DIM(CurrentColor, .7));
 
-				m_dcBack.TextOut(DPI::SX(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3),
-					conv::sv_from_uint_hex(index, 2).data());		// // //
+				m_dcBack.TextOutW(DPI::SX(28 + j * FRAME_ITEM_WIDTH + FRAME_ITEM_WIDTH / 2), DPI::SY(ypos + 3),
+					conv::to_wide(conv::sv_from_uint_hex(index, 2)).data());		// // //
 			}
 		}
 	}
@@ -918,7 +919,7 @@ void CFrameEditor::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 {
 	// Popup menu
 	CMenu *pPopupMenu, PopupMenuBar;
-	PopupMenuBar.LoadMenu(IDR_FRAME_POPUP);
+	PopupMenuBar.LoadMenuW(IDR_FRAME_POPUP);
 	m_pMainFrame->UpdateMenu(&PopupMenuBar);
 	pPopupMenu = PopupMenuBar.GetSubMenu(0);
 

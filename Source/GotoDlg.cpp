@@ -67,29 +67,29 @@ BOOL CGotoDlg::OnInitDialog()
 
 	const CSoundChipSet &chips = pModule->GetSoundChipSet();
 	if (chips.ContainsChip(sound_chip_t::APU))
-		m_cChipEdit.AddString(_T("2A03"));
+		m_cChipEdit.AddString(L"2A03");
 	if (chips.ContainsChip(sound_chip_t::VRC6))
-		m_cChipEdit.AddString(_T("VRC6"));
+		m_cChipEdit.AddString(L"VRC6");
 	if (chips.ContainsChip(sound_chip_t::VRC7))
-		m_cChipEdit.AddString(_T("VRC7"));
+		m_cChipEdit.AddString(L"VRC7");
 	if (chips.ContainsChip(sound_chip_t::FDS))
-		m_cChipEdit.AddString(_T("FDS"));
+		m_cChipEdit.AddString(L"FDS");
 	if (chips.ContainsChip(sound_chip_t::MMC5))
-		m_cChipEdit.AddString(_T("MMC5"));
+		m_cChipEdit.AddString(L"MMC5");
 	if (chips.ContainsChip(sound_chip_t::N163))
-		m_cChipEdit.AddString(_T("N163"));
+		m_cChipEdit.AddString(L"N163");
 	if (chips.ContainsChip(sound_chip_t::S5B))
-		m_cChipEdit.AddString(_T("5B"));
+		m_cChipEdit.AddString(L"5B");
 
 	chan_id_t Channel = pView->GetSelectedChannelID();
 	switch (GetChipFromChannel(Channel)) {
-	case sound_chip_t::APU : m_cChipEdit.SelectString(-1, _T("2A03")); break;
-	case sound_chip_t::VRC6: m_cChipEdit.SelectString(-1, _T("VRC6")); break;
-	case sound_chip_t::VRC7: m_cChipEdit.SelectString(-1, _T("VRC7")); break;
-	case sound_chip_t::FDS:  m_cChipEdit.SelectString(-1, _T("FDS"));  break;
-	case sound_chip_t::MMC5: m_cChipEdit.SelectString(-1, _T("MMC5")); break;
-	case sound_chip_t::N163: m_cChipEdit.SelectString(-1, _T("N163")); break;
-	case sound_chip_t::S5B:  m_cChipEdit.SelectString(-1, _T("5B"));   break;
+	case sound_chip_t::APU : m_cChipEdit.SelectString(-1, L"2A03"); break;
+	case sound_chip_t::VRC6: m_cChipEdit.SelectString(-1, L"VRC6"); break;
+	case sound_chip_t::VRC7: m_cChipEdit.SelectString(-1, L"VRC7"); break;
+	case sound_chip_t::FDS:  m_cChipEdit.SelectString(-1, L"FDS");  break;
+	case sound_chip_t::MMC5: m_cChipEdit.SelectString(-1, L"MMC5"); break;
+	case sound_chip_t::N163: m_cChipEdit.SelectString(-1, L"N163"); break;
+	case sound_chip_t::S5B:  m_cChipEdit.SelectString(-1, L"5B");   break;
 	}
 
 	SetDlgItemInt(IDC_EDIT_GOTO_FRAME, pView->GetSelectedFrame());
@@ -123,21 +123,21 @@ void CGotoDlg::CheckDestination() const
 	GetDlgItem(IDOK)->EnableWindow(Valid);
 }
 
-sound_chip_t CGotoDlg::GetChipFromString(const CString &str)
+sound_chip_t CGotoDlg::GetChipFromString(const CStringW &str)
 {
-	if (str == _T("2A03"))
+	if (str == L"2A03")
 		return sound_chip_t::APU;
-	else if (str == _T("VRC6"))
+	else if (str == L"VRC6")
 		return sound_chip_t::VRC6;
-	else if (str == _T("VRC7"))
+	else if (str == L"VRC7")
 		return sound_chip_t::VRC7;
-	else if (str == _T("FDS"))
+	else if (str == L"FDS")
 		return sound_chip_t::FDS;
-	else if (str == _T("MMC5"))
+	else if (str == L"MMC5")
 		return sound_chip_t::MMC5;
-	else if (str == _T("N163"))
+	else if (str == L"N163")
 		return sound_chip_t::N163;
-	else if (str == _T("5B"))
+	else if (str == L"5B")
 		return sound_chip_t::S5B;
 	else
 		return sound_chip_t::NONE;
@@ -169,8 +169,8 @@ void CGotoDlg::OnEnChangeEditGotoChannel()
 
 void CGotoDlg::OnCbnSelchangeComboGotoChip()
 {
-	CString str;
-	m_cChipEdit.GetWindowText(str);
+	CStringW str;
+	m_cChipEdit.GetWindowTextW(str);
 	m_iDestChip = GetChipFromString(str);
 	CheckDestination();
 }

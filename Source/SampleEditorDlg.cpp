@@ -27,6 +27,7 @@
 #include "APU/Types.h"
 #include "SoundGen.h"
 #include "SampleEditorView.h"
+#include "str_conv/str_conv.hpp"		// // //
 
 //
 // The DPCM sample editor
@@ -105,10 +106,11 @@ BOOL CSampleEditorDlg::OnInitDialog()
 	// A timer for the flashing start cursor
 	SetTimer(TMR_START_CURSOR, 500, NULL);
 
-	CString title;
-	GetWindowText(title);
-	title.AppendFormat(_T(" [%.*s]"), m_pSample->name().size(), m_pSample->name().data());
-	SetWindowText(title);
+	CStringW title;
+	GetWindowTextW(title);
+	auto name = conv::to_wide(m_pSample->name());
+	title.AppendFormat(L" [%.*s]", name.size(), name.data());
+	SetWindowTextW(title);
 
 	UpdateSampleView();
 	SelectionChanged();
@@ -254,16 +256,16 @@ void CSampleEditorDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar
 {
 	int Pitch = static_cast<CSliderCtrl*>(GetDlgItem(IDC_PITCH))->GetPos();
 
-	CString text;
-	text.Format(_T("Pitch (%i)"), Pitch);
-	SetDlgItemText(IDC_STATIC_PITCH, text);
+	CStringW text;
+	text.Format(L"Pitch (%i)", Pitch);
+	SetDlgItemTextW(IDC_STATIC_PITCH, text);
 
 	auto pZoom = static_cast<CSliderCtrl*>(GetDlgItem(IDC_ZOOM));		// // //
 	float Zoom = static_cast<float>(pZoom->GetPos()) / pZoom->GetRangeMax();
 	m_pSampleEditorView->SetZoom(1.0f - Zoom);
 	m_pSampleEditorView->Invalidate();
-	text.Format(_T("Zoom (%.2fx)"), 1. / m_pSampleEditorView->GetZoom());		// // //
-	SetDlgItemText(IDC_STATIC_DPCM_ZOOM, text);
+	text.Format(L"Zoom (%.2fx)", 1. / m_pSampleEditorView->GetZoom());		// // //
+	SetDlgItemTextW(IDC_STATIC_DPCM_ZOOM, text);
 
 	CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
 }
@@ -290,7 +292,7 @@ void CSampleEditorDlg::SelectionChanged()
 	}
 }
 
-void CSampleEditorDlg::UpdateStatus(int Index, LPCTSTR Text)		// // //
+void CSampleEditorDlg::UpdateStatus(int Index, LPCWSTR Text)		// // //
 {
 	m_wndInfoStatusBar.SetPaneText(Index, Text);
 }

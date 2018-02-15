@@ -265,7 +265,7 @@ private:
 
 	// Other
 	bool	AddAction(std::unique_ptr<CAction> pAction) const;		// // //
-	CString	GetEffectHint(const stChanNote &Note, int Column) const;		// // //
+	CStringW	GetEffectHint(const stChanNote &Note, int Column) const;		// // //
 
 	// // //
 	// Keyboard
@@ -285,7 +285,7 @@ private:
 // Constants
 //
 public:
-	static const TCHAR CLIPBOARD_ID[];
+	static const WCHAR CLIPBOARD_ID[];
 
 //
 // View variables

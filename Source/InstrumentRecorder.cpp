@@ -323,10 +323,8 @@ void CInstrumentRecorder::InitRecordInstrument()
 	*m_pDumpInstrument = Env.GetInstrumentService()->Make(Type);		// // //
 	if (!*m_pDumpInstrument) return;
 
-	CString str;
-	auto sv = GetChannelFullName(m_iRecordChannel);
-	str.Format(_T("from %.*s"), sv.size(), sv.data());
-	(*m_pDumpInstrument)->SetName((LPCTSTR)str);
+	auto str = std::string {GetChannelFullName(m_iRecordChannel)};
+	(*m_pDumpInstrument)->SetName(u8"from " + str);
 
 	if (Type == INST_FDS) {
 		m_pSequenceCache[sequence_t::Arpeggio]->SetSetting(SETTING_ARP_FIXED);

@@ -33,6 +33,7 @@
 #include "ModSequenceEditor.h"
 #include <algorithm>		// // //
 #include "sv_regex.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 #include "FamiTrackerDoc.h"		// // //
 
 // CInstrumentEditorFDS dialog
@@ -102,12 +103,12 @@ BOOL CInstrumentEditorFDS::OnInitDialog()
 	CInstrumentEditPanel::OnInitDialog();
 
 	// Create wave editor
-	m_pWaveEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE, DPI::Rect(20, 30, 0, 0), this);		// // //
+	m_pWaveEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, L"", WS_CHILD | WS_VISIBLE, DPI::Rect(20, 30, 0, 0), this);		// // //
 	m_pWaveEditor->ShowWindow(SW_SHOW);
 	m_pWaveEditor->UpdateWindow();
 
 	// Create modulation sequence editor
-	m_pModSequenceEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE, DPI::Rect(10, 200, 0, 0), this);		// // //
+	m_pModSequenceEditor->CreateEx(WS_EX_CLIENTEDGE, NULL, L"", WS_CHILD | WS_VISIBLE, DPI::Rect(10, 200, 0, 0), this);		// // //
 	m_pModSequenceEditor->ShowWindow(SW_SHOW);
 	m_pModSequenceEditor->UpdateWindow();
 
@@ -289,9 +290,9 @@ void CInstrumentEditorFDS::OnModDelayChange()
 void CInstrumentEditorFDS::OnBnClickedCopyWave()
 {
 	// Assemble a MML string
-	CString Str;
+	CStringW Str;
 	for (auto x : m_pInstrument->GetSamples())		// // //
-		Str.AppendFormat(_T("%i "), x);
+		Str.AppendFormat(L"%i ", x);
 
 	CClipboard Clipboard(this, CF_TEXT);
 
@@ -300,7 +301,7 @@ void CInstrumentEditorFDS::OnBnClickedCopyWave()
 		return;
 	}
 
-	Clipboard.SetDataPointer((LPCTSTR)Str, Str.GetLength() + 1);
+	Clipboard.SetDataPointer((LPCWSTR)Str, Str.GetLength() + 1);
 }
 
 void CInstrumentEditorFDS::OnBnClickedPasteWave()
@@ -314,16 +315,16 @@ void CInstrumentEditorFDS::OnBnClickedPasteWave()
 	}
 
 	if (Clipboard.IsDataAvailable()) {
-		LPCTSTR text = (LPCTSTR)Clipboard.GetDataPointer();
+		LPCWSTR text = (LPCWSTR)Clipboard.GetDataPointer();
 		if (text != NULL)
-			ParseWaveString(text);
+			ParseWaveString(conv::to_utf8(text));
 	}
 }
 
-void CInstrumentEditorFDS::ParseWaveString(LPCTSTR pString)
+void CInstrumentEditorFDS::ParseWaveString(std::string_view sv)
 {
 	int i = 0;
-	for (auto x : re::tokens(pString)) {		// // //
+	for (auto x : re::tokens(sv)) {		// // //
 		int value = CSequenceInstrumentEditPanel::ReadStringValue(x.str());
 		m_pInstrument->SetSample(i, std::clamp(value, 0, 63));		// // //
 		if (++i >= 64)
@@ -338,9 +339,9 @@ void CInstrumentEditorFDS::ParseWaveString(LPCTSTR pString)
 void CInstrumentEditorFDS::OnBnClickedCopyTable()
 {
 	// Assemble a MML string
-	CString Str;
+	CStringW Str;
 	for (auto x : m_pInstrument->GetModTable())		// // //
-		Str.AppendFormat(_T("%i "), x);
+		Str.AppendFormat(L"%i ", x);
 
 	CClipboard Clipboard(this, CF_TEXT);
 
@@ -349,7 +350,7 @@ void CInstrumentEditorFDS::OnBnClickedCopyTable()
 		return;
 	}
 
-	Clipboard.SetDataPointer((LPCTSTR)Str, Str.GetLength() + 1);
+	Clipboard.SetDataPointer((LPCWSTR)Str, Str.GetLength() + 1);
 }
 
 void CInstrumentEditorFDS::OnBnClickedPasteTable()
@@ -363,16 +364,16 @@ void CInstrumentEditorFDS::OnBnClickedPasteTable()
 	}
 
 	if (Clipboard.IsDataAvailable()) {
-		LPCTSTR text = (LPCTSTR)Clipboard.GetDataPointer();
+		LPCWSTR text = (LPCWSTR)Clipboard.GetDataPointer();
 		if (text != NULL)
-			ParseTableString(text);
+			ParseTableString(conv::to_utf8(text));
 	}
 }
 
-void CInstrumentEditorFDS::ParseTableString(LPCTSTR pString)
+void CInstrumentEditorFDS::ParseTableString(std::string_view sv)
 {
 	int i = 0;
-	for (auto x : re::tokens(pString)) {		// // //
+	for (auto x : re::tokens(sv)) {		// // //
 		int value = CSequenceInstrumentEditPanel::ReadStringValue(x.str());
 		m_pInstrument->SetModulation(i, std::clamp(value, 0, 7));		// // //
 		if (++i >= 32)

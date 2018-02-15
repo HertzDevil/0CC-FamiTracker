@@ -27,6 +27,8 @@
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"
 #include "DetuneTable.h"
+#include "str_conv/str_conv.hpp"
+#include "NumConv.h"
 
 // CDetuneDlg dialog
 
@@ -74,15 +76,15 @@ END_MESSAGE_MAP()
 
 // CDetuneDlg message handlers
 
-const LPCTSTR CDetuneDlg::m_pNote[12]	 = {
-	_T("C") , _T("C#"), _T("D") , _T("D#"), _T("E") , _T("F"),
-	_T("F#"), _T("G") , _T("G#"), _T("A") , _T("A#"), _T("B"),
+const LPCWSTR CDetuneDlg::m_pNote[12]	 = {
+	L"C" , L"C#", L"D" , L"D#", L"E" , L"F",
+	L"F#", L"G" , L"G#", L"A" , L"A#", L"B",
 };
-const LPCTSTR CDetuneDlg::m_pNoteFlat[12] = {
-	_T("C") , _T("D-"), _T("D") , _T("E-"), _T("E") , _T("F"),
-	_T("G-"), _T("G") , _T("A-"), _T("A") , _T("B-"), _T("B"),
+const LPCWSTR CDetuneDlg::m_pNoteFlat[12] = {
+	L"C" , L"D-", L"D" , L"E-", L"E" , L"F",
+	L"G-", L"G" , L"A-", L"A" , L"B-", L"B",
 };
-const CString CDetuneDlg::CHIP_STR[6] = {_T("NTSC"), _T("PAL"), _T("Saw"), _T("VRC7"), _T("FDS"), _T("N163")};
+const CStringW CDetuneDlg::CHIP_STR[6] = {L"NTSC", L"PAL", L"Saw", L"VRC7", L"FDS", L"N163"};
 
 BOOL CDetuneDlg::OnInitDialog()
 {
@@ -126,7 +128,7 @@ BOOL CDetuneDlg::OnInitDialog()
 	SpinOffset->SetPos(m_iDetuneTable[m_iCurrentChip][m_iNote]);
 	m_cSliderOffset->SetTicFreq(4);
 
-	m_cEditNote->SetWindowText(_T(m_pNote[m_iNote % NOTE_RANGE]));
+	m_cEditNote->SetWindowTextW(m_pNote[m_iNote % NOTE_RANGE]);
 
 	UDACCEL Acc[1];
 	Acc[0].nSec = 0;
@@ -203,11 +205,11 @@ double CDetuneDlg::NoteToFreq(double Note)
 
 void CDetuneDlg::UpdateOctave()
 {
-	CString String;
+	CStringW String;
 	m_iOctave = std::clamp(m_iOctave, 0, OCTAVE_RANGE - 1);
 	m_cSliderOctave->SetPos(m_iOctave);
-	String.Format(_T("%i"), m_iOctave);
-	m_cEditOctave->SetWindowText(String);
+	String.Format(L"%i", m_iOctave);
+	m_cEditOctave->SetWindowTextW(String);
 	m_iNote = m_iOctave * NOTE_RANGE + m_iNote % NOTE_RANGE;
 	UpdateOffset();
 }
@@ -216,17 +218,17 @@ void CDetuneDlg::UpdateNote()
 {
 	m_iNote = std::clamp(m_iNote, 0, NOTE_COUNT - 1);
 	m_cSliderNote->SetPos(m_iNote % NOTE_RANGE);
-	m_cEditNote->SetWindowText(_T(m_pNote[m_iNote % NOTE_RANGE]));
+	m_cEditNote->SetWindowTextW(m_pNote[m_iNote % NOTE_RANGE]);
 	m_iOctave = m_iNote / NOTE_RANGE;
 	UpdateOctave();
 }
 
 void CDetuneDlg::UpdateOffset()
 {
-	CString String;
+	CStringW String;
 	m_cSliderOffset->SetPos(m_iDetuneTable[m_iCurrentChip][m_iNote]);
-	String.Format(_T("%i"), m_iDetuneTable[m_iCurrentChip][m_iNote]);
-	m_cEditOffset->SetWindowText(String);
+	String.Format(L"%i", m_iDetuneTable[m_iCurrentChip][m_iNote]);
+	m_cEditOffset->SetWindowTextW(String);
 
 	if (m_iCurrentChip == 3) // VRC7
 		for (int i = 0; i < OCTAVE_RANGE; i++)
@@ -234,17 +236,17 @@ void CDetuneDlg::UpdateOffset()
 
 	const auto DoubleFunc = [] (double x) {
 		if (std::abs(x) >= 9999.5)
-			return _T("\n%.0f");
+			return L"\n%.0f";
 		if (std::abs(x) >= 99.995)
-			return _T("\n%.4g");
-		return _T("\n%.2f");
+			return L"\n%.4g";
+		return L"\n%.2f";
 	};
 
 	for (int i = 0; i < 6; i++) {
-		CString str, fmt = _T("%s\n%X\n%X");
+		CStringW str, fmt = L"%s\n%X\n%X";
 		if (i == 5 && !modfile_->GetNamcoChannels()) {
-			str.Format(_T("%s\n-\n-\n-\n-\n-\n-"), CHIP_STR[i]);
-			SetDlgItemText(IDC_DETUNE_INFO_N163, str);
+			str.Format(L"%s\n-\n-\n-\n-\n-\n-", CHIP_STR[i]);
+			SetDlgItemTextW(IDC_DETUNE_INFO_N163, str);
 			continue;
 		}
 		double Note = m_iGlobalSemitone + .01 * m_iGlobalCent + m_iNote;
@@ -259,13 +261,13 @@ void CDetuneDlg::UpdateOffset()
 			fmt += DoubleFunc(x);
 
 		str.Format(fmt, CHIP_STR[i], oldReg, newReg, values[0], values[1], values[2], values[3]);
-		SetDlgItemText(IDC_DETUNE_INFO_NTSC + i, str);
+		SetDlgItemTextW(IDC_DETUNE_INFO_NTSC + i, str);
 	}
 
-	String.Format(_T("Semitone: %+d"), m_iGlobalSemitone);
-	SetDlgItemText(IDC_STATIC_DETUNE_SEMITONE, String);
-	String.Format(_T("Cent: %+d"), m_iGlobalCent);
-	SetDlgItemText(IDC_STATIC_DETUNE_CENT, String);
+	String.Format(L"Semitone: %+d", m_iGlobalSemitone);
+	SetDlgItemTextW(IDC_STATIC_DETUNE_SEMITONE, String);
+	String.Format(L"Cent: %+d", m_iGlobalCent);
+	SetDlgItemTextW(IDC_STATIC_DETUNE_CENT, String);
 }
 
 void CDetuneDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
@@ -326,16 +328,16 @@ void CDetuneDlg::OnDeltaposSpinOffset(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CDetuneDlg::OnEnKillfocusEditOctave()
 {
-	CString String;
-	m_cEditOctave->GetWindowText(String);
-	m_iOctave = atoi(String);
+	CStringW String;
+	m_cEditOctave->GetWindowTextW(String);
+	m_iOctave = conv::to_int(conv::to_utf8(String)).value_or(0);
 	UpdateOctave();
 }
 
 void CDetuneDlg::OnEnKillfocusEditNote()
 {
-	CString String;
-	m_cEditNote->GetWindowText(String);
+	CStringW String;
+	m_cEditNote->GetWindowTextW(String);
 	for (int i = 0; i < NOTE_RANGE; i++)
 		if (String == m_pNote[i] || String == m_pNoteFlat[i])
 			m_iNote = m_iOctave * NOTE_RANGE + i;
@@ -344,9 +346,9 @@ void CDetuneDlg::OnEnKillfocusEditNote()
 
 void CDetuneDlg::OnEnKillfocusEditOffset()
 {
-	CString String;
-	m_cEditOffset->GetWindowText(String);
-	m_iDetuneTable[m_iCurrentChip][m_iNote] = atoi(String);
+	CStringW String;
+	m_cEditOffset->GetWindowTextW(String);
+	m_iDetuneTable[m_iCurrentChip][m_iNote] = conv::to_int(conv::to_utf8(String)).value_or(0);
 	UpdateOctave();
 }
 
@@ -396,12 +398,12 @@ void CDetuneDlg::OnBnClickedButtonReset()
 
 void CDetuneDlg::OnBnClickedButtonImport()
 {
-	CString    Path;
+	CStringW    Path;
 	CStdioFile csv;
 	CFrameWnd *pFrameWnd = static_cast<CFrameWnd*>(GetParent());
 
-	CFileDialog FileDialog(TRUE, _T("csv"), 0,
-		OFN_HIDEREADONLY, _T("Comma-separated values (*.csv)|*.csv|All files|*.*||"));
+	CFileDialog FileDialog(TRUE, L"csv", 0,
+		OFN_HIDEREADONLY, L"Comma-separated values (*.csv)|*.csv|All files|*.*||");
 
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
@@ -413,15 +415,16 @@ void CDetuneDlg::OnBnClickedButtonImport()
 		return;
 	}
 
-	CString Line;
+	CStringW LineW;
 	int Count, Chip = 0, Note = 0;
-	while (csv.ReadString(Line)) {
-		Count = Line.Find(_T(','), 0);
+	while (csv.ReadString(LineW)) {
+		CStringA Line = conv::to_utf8(LineW).data();
+		Count = Line.Find(L',', 0);
 		Chip = atoi(Line.Left(Count));
 		Note = 0;
 		while (Line.Delete(0, Count)) {
 			if (!Line.Delete(0, 1)) break;
-			Count = Line.Find(_T(','), 0);
+			Count = Line.Find(L',', 0);
 			if (Count == -1)
 				m_iDetuneTable[Chip][Note] = atoi(Line);
 			else {
@@ -438,13 +441,13 @@ void CDetuneDlg::OnBnClickedButtonImport()
 
 void CDetuneDlg::OnBnClickedButtonExport()
 {
-	CFileDialog SaveFileDialog(FALSE, _T("csv"), (LPCTSTR)CFamiTrackerDoc::GetDoc()->GetFileTitle(),
-		OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("Comma-separated values (*.csv)|*.csv|All files|*.*||"));
+	CFileDialog SaveFileDialog(FALSE, L"csv", (LPCWSTR)CFamiTrackerDoc::GetDoc()->GetFileTitle(),
+		OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"Comma-separated values (*.csv)|*.csv|All files|*.*||");
 
 	if (SaveFileDialog.DoModal() == IDCANCEL)
 		return;
 
-	CString Path = SaveFileDialog.GetPathName();
+	CStringW Path = SaveFileDialog.GetPathName();
 
 	CStdioFile csv;
 	if (!csv.Open(Path, CFile::modeWrite | CFile::modeCreate)) {
@@ -452,14 +455,14 @@ void CDetuneDlg::OnBnClickedButtonExport()
 		return;
 	}
 
-	CString Line, Unit;
+	CStringW Line, Unit;
 	for (int i = 0; i < 6; i++) {
-		Line.Format(_T("%i"), i);
+		Line.Format(L"%i", i);
 		for (int j = 0; j < NOTE_COUNT; j++) {
-			Unit.Format(_T(",%i"), m_iDetuneTable[i][j]);
+			Unit.Format(L",%i", m_iDetuneTable[i][j]);
 			Line += Unit;
 		}
-		Line += _T("\n");
+		Line += L"\n";
 		csv.WriteString(Line);
 	}
 

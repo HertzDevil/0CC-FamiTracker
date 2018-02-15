@@ -39,7 +39,7 @@ public:
 	CWavProgressDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CWavProgressDlg();
 
-	void BeginRender(const CString &File, std::unique_ptr<CWaveRenderer> pRenderer);		// // //
+	void BeginRender(const CStringW &File, std::unique_ptr<CWaveRenderer> pRenderer);		// // //
 
 // Dialog Data
 	enum { IDD = IDD_WAVE_PROGRESS };
@@ -48,7 +48,7 @@ protected:
 	DWORD m_dwStartTime;
 	std::shared_ptr<CWaveRenderer> m_pWaveRenderer;		// // //
 
-	CString m_sFile;
+	CStringW m_sFile;
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

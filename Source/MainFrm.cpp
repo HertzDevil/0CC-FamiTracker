@@ -76,6 +76,7 @@
 #include "InstrumentManager.h"
 #include "Kraid.h"
 #include "NumConv.h"
+#include "str_conv/str_conv.hpp"
 #include "InstrumentListCtrl.h"
 #include "ModuleException.h"
 
@@ -360,7 +361,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	END_MESSAGE_MAP()
 
 
-BOOL CMainFrame::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle , const RECT& rect , CWnd* pParentWnd , LPCTSTR lpszMenuName , DWORD dwExStyle , CCreateContext* pContext)
+BOOL CMainFrame::Create(LPCWSTR lpszClassName, LPCWSTR lpszWindowName, DWORD dwStyle , const RECT& rect , CWnd* pParentWnd , LPCWSTR lpszMenuName , DWORD dwExStyle , CCreateContext* pContext)
 {
 	CSettings *pSettings = theApp.GetSettings();
 	RECT newrect;
@@ -391,7 +392,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 
 	if (!m_wndStatusBar.Create(this) || !m_wndStatusBar.SetIndicators(indicators, std::size(indicators))) {		// // //
-		TRACE("Failed to create status bar\n");
+		TRACE(L"Failed to create status bar\n");
 		return -1;      // fail to create
 	}
 	m_wndStatusBar.SetPaneInfo(1, ID_INDICATOR_CHIP, SBPS_NORMAL, 250);		// // //
@@ -401,7 +402,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 
 	if (!CreateInstrumentToolbar()) {
-		TRACE("Failed to create instrument toolbar\n");
+		TRACE(L"Failed to create instrument toolbar\n");
 		return -1;      // fail to create
 	}
 
@@ -413,7 +414,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	*/
 
 	if (!CreateVisualizerWindow()) {
-		TRACE("Failed to create sample window\n");
+		TRACE(L"Failed to create sample window\n");
 		return -1;      // fail to create
 	}
 
@@ -439,15 +440,15 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	SetFrameEditorPosition(theApp.GetSettings()->FrameEditPos);
 
 #ifdef _DEBUG
-	m_strTitle.Append(_T(" [DEBUG]"));
+	m_strTitle.Append(L" [DEBUG]");
 #endif
 #ifdef WIP
-	m_strTitle.Append(_T(" [BETA]"));
+	m_strTitle.Append(L" [BETA]");
 #endif
 
 	if (AfxGetResourceHandle() != AfxGetInstanceHandle()) {		// // //
 		// Prevent confusing bugs while developing
-		m_strTitle.Append(_T(" [Localization enabled]"));
+		m_strTitle.Append(L" [Localization enabled]");
 	}
 
 	return 0;
@@ -458,21 +459,21 @@ bool CMainFrame::CreateToolbars()
 	REBARBANDINFO rbi1;
 
 	if (!m_wndToolBarReBar.Create(this)) {
-		TRACE("Failed to create rebar\n");
+		TRACE(L"Failed to create rebar\n");
 		return false;      // fail to create
 	}
 
 	// Add the toolbar
 	if (!m_wndToolBar.CreateEx(this, TBSTYLE_FLAT | TBSTYLE_TRANSPARENT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
 		!m_wndToolBar.LoadToolBar(IDR_MAINFRAME))  {
-		TRACE("Failed to create toolbar\n");
+		TRACE(L"Failed to create toolbar\n");
 		return false;      // fail to create
 	}
 
 	m_wndToolBar.SetBarStyle(CBRS_ALIGN_TOP | CBRS_SIZE_DYNAMIC | CBRS_TOOLTIPS | CBRS_FLYBY);
 
 	if (!m_wndOctaveBar.Create(this, (UINT)IDD_OCTAVE, CBRS_TOOLTIPS | CBRS_FLYBY, IDD_OCTAVE)) {
-		TRACE("Failed to create octave bar\n");
+		TRACE(L"Failed to create octave bar\n");
 		return false;      // fail to create
 	}
 
@@ -487,7 +488,7 @@ bool CMainFrame::CreateToolbars()
 	rbi1.cx			= DPI::SX(496);
 
 	if (!m_wndToolBarReBar.GetReBarCtrl().InsertBand(-1, &rbi1)) {
-		TRACE("Failed to create rebar\n");
+		TRACE(L"Failed to create rebar\n");
 		return false;      // fail to create
 	}
 
@@ -500,7 +501,7 @@ bool CMainFrame::CreateToolbars()
 	rbi1.cx			= DPI::SX(100);
 
 	if (!m_wndToolBarReBar.GetReBarCtrl().InsertBand(-1, &rbi1)) {
-		TRACE("Failed to create rebar\n");
+		TRACE(L"Failed to create rebar\n");
 		return false;      // fail to create
 	}
 
@@ -522,13 +523,13 @@ bool CMainFrame::CreateDialogPanels()
 
 	// Top area
 	if (!m_wndControlBar.Create(this, IDD_MAINBAR, CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY, IDD_MAINBAR)) {
-		TRACE("Failed to create frame main bar\n");
+		TRACE(L"Failed to create frame main bar\n");
 		return false;
 	}
 
 	/////////
 	if (!m_wndVerticalControlBar.Create(this, IDD_MAINBAR, CBRS_LEFT | CBRS_TOOLTIPS | CBRS_FLYBY, IDD_MAINBAR)) {
-		TRACE("Failed to create frame main bar\n");
+		TRACE(L"Failed to create frame main bar\n");
 		return false;
 	}
 
@@ -546,20 +547,20 @@ bool CMainFrame::CreateDialogPanels()
 	CRect rect(12, 12, m_pFrameEditor->CalcWidth(MAX_CHANNELS_2A03), 162);		// // //
 	DPI::ScaleRect(rect);		// // //
 
-	if (!m_pFrameEditor->CreateEx(WS_EX_STATICEDGE, NULL, _T(""), WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL, rect, (CWnd*)&m_wndControlBar, 0)) {
-		TRACE("Failed to create frame editor\n");
+	if (!m_pFrameEditor->CreateEx(WS_EX_STATICEDGE, NULL, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL, rect, (CWnd*)&m_wndControlBar, 0)) {
+		TRACE(L"Failed to create frame editor\n");
 		return false;
 	}
 
 	// // // Find / replace panel
 	m_pFindDlg = std::make_unique<CFindDlg>();
 	if (!m_wndFindControlBar.Create(this, IDD_MAINBAR, CBRS_RIGHT | CBRS_TOOLTIPS | CBRS_FLYBY, IDD_MAINBAR)) {
-		TRACE("Failed to create find dialog\n");
+		TRACE(L"Failed to create find dialog\n");
 		return false;
 	}
 	m_wndFindControlBar.ShowWindow(SW_HIDE);
 	if (!m_pFindDlg->Create(IDD_FIND, &m_wndFindControlBar)) {
-		TRACE("Failed to create find / replace dialog\n");
+		TRACE(L"Failed to create find / replace dialog\n");
 		return false;
 	}
 	m_pFindDlg->ShowWindow(SW_SHOW);
@@ -567,7 +568,7 @@ bool CMainFrame::CreateDialogPanels()
 	m_wndDialogBar.SetFrameParent(this);
 
 	if (!m_wndDialogBar.Create(IDD_MAINFRAME, &m_wndControlBar)) {
-		TRACE("Failed to create dialog bar\n");
+		TRACE(L"Failed to create dialog bar\n");
 		return false;
 	}
 
@@ -592,7 +593,7 @@ bool CMainFrame::CreateDialogPanels()
 	SetupColors();
 
 	m_pInstrumentList->CreateImageList();		// // //
-	m_pInstrumentList->SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
+	m_pInstrumentList->SendMessageW(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
 
 	// Title, author & copyright
 	m_cBannerEditName.SubclassDlgItem(IDC_SONG_NAME, &m_wndDialogBar);
@@ -611,7 +612,7 @@ bool CMainFrame::CreateDialogPanels()
 #ifdef NEW_INSTRUMENTPANEL
 /*
 	if (!m_wndInstrumentBar.Create(this, IDD_INSTRUMENTPANEL, CBRS_RIGHT | CBRS_TOOLTIPS | CBRS_FLYBY, IDD_INSTRUMENTPANEL)) {
-		TRACE("Failed to create frame instrument bar\n");
+		TRACE(L"Failed to create frame instrument bar\n");
 	}
 
 	m_wndInstrumentBar.ShowWindow(SW_SHOW);
@@ -621,7 +622,7 @@ bool CMainFrame::CreateDialogPanels()
 	// Frame bar
 /*
 	if (!m_wndFrameBar.Create(this, IDD_FRAMEBAR, CBRS_LEFT | CBRS_TOOLTIPS | CBRS_FLYBY, IDD_FRAMEBAR)) {
-		TRACE("Failed to create frame bar\n");
+		TRACE(L"Failed to create frame bar\n");
 	}
 
 	m_wndFrameBar.ShowWindow(SW_SHOW);
@@ -639,7 +640,7 @@ bool CMainFrame::CreateVisualizerWindow()
 	// Create the sample graph window
 	m_pVisualizerWnd = std::make_unique<CVisualizerWnd>();
 
-	if (!m_pVisualizerWnd->CreateEx(WS_EX_STATICEDGE, NULL, _T("Samples"), WS_CHILD | WS_VISIBLE, rect, (CWnd*)&m_wndDialogBar, 0))
+	if (!m_pVisualizerWnd->CreateEx(WS_EX_STATICEDGE, NULL, L"Samples", WS_CHILD | WS_VISIBLE, rect, (CWnd*)&m_wndDialogBar, 0))
 		return false;
 
 	// Assign this to the sound generator
@@ -656,7 +657,7 @@ bool CMainFrame::CreateInstrumentToolbar()
 	// Setup the instrument toolbar
 	REBARBANDINFO rbi;
 
-	if (!m_wndInstToolBarWnd.CreateEx(0, NULL, _T(""), WS_CHILD | WS_VISIBLE, DPI::Rect(310, 173, 184, 26), (CWnd*)&m_wndDialogBar, 0))
+	if (!m_wndInstToolBarWnd.CreateEx(0, NULL, L"", WS_CHILD | WS_VISIBLE, DPI::Rect(310, 173, 184, 26), (CWnd*)&m_wndDialogBar, 0))
 		return false;
 
 	if (!m_wndInstToolReBar.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 0, 0), &m_wndInstToolBarWnd, AFX_IDW_REBAR))
@@ -674,7 +675,7 @@ bool CMainFrame::CreateInstrumentToolbar()
 	m_ilInstToolBar.Add(&m_bmInstToolbar, MakeRGB(255, 0, 255));
 	m_wndInstToolBar.GetToolBarCtrl().SetImageList(&m_ilInstToolBar);
 
-	char name = '\0';		// // //
+	WCHAR name = L'\0';		// // //
 
 	rbi.cbSize		= sizeof(REBARBANDINFO);
 	rbi.fMask		= RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_STYLE | RBBIM_TEXT;
@@ -898,21 +899,21 @@ bool CMainFrame::HasDocument() const {		// // //
 // CMainFrame message handlers
 
 template <typename... T>
-void CMainFrame::SetStatusText(LPCTSTR Text, T&&... args)		// // //
+void CMainFrame::SetStatusText(LPCWSTR Text, T&&... args)		// // //
 {
 	if (!Text)
 		return;
 
-	char Buf[512] = { };
-	_sntprintf_s(Buf, sizeof(Buf), _TRUNCATE, Text, std::forward<T>(args)...);
-	m_wndStatusBar.SetWindowText(Buf);
+	WCHAR Buf[512] = { };
+	_sntprintf_s(Buf, std::size(Buf), _TRUNCATE, Text, std::forward<T>(args)...);
+	m_wndStatusBar.SetWindowTextW(Buf);
 }
 
 void CMainFrame::ClearInstrumentList()
 {
 	// Remove all items from the instrument list
 	m_pInstrumentList->DeleteAllItems();
-	SetInstrumentEditName(_T(""));
+	SetInstrumentEditName(L"");
 }
 
 void CMainFrame::NewInstrument(inst_type_t Inst)		// // //
@@ -927,7 +928,7 @@ void CMainFrame::NewInstrument(inst_type_t Inst)		// // //
 		}
 #ifdef _DEBUG
 		else
-			MessageBox(_T("(TODO) add instrument definitions for this chip"), _T("Stop"), MB_OK);
+			MessageBox(L"(TODO) add instrument definitions for this chip", L"Stop", MB_OK);
 #endif
 	}
 	else
@@ -996,7 +997,7 @@ void CMainFrame::SelectInstrument(int Index)
 	// No instruments added
 	if (ListCount == 0) {
 		m_iInstrument = 0;
-		SetInstrumentEditName(_T(""));
+		SetInstrumentEditName(L"");
 		return;
 	}
 
@@ -1008,7 +1009,7 @@ void CMainFrame::SelectInstrument(int Index)
 		m_pInstrumentList->SelectInstrument(Index);
 
 		// Set instrument name
-		SetInstrumentEditName(pInst->GetName().data());
+		SetInstrumentEditName(conv::to_wide(pInst->GetName()).data());
 
 		// Update instrument editor
 		if (m_wndInstEdit.IsOpened())
@@ -1018,7 +1019,7 @@ void CMainFrame::SelectInstrument(int Index)
 		// Remove selection
 		m_pInstrumentList->SetSelectionMark(-1);
 		m_pInstrumentList->SetItemState(m_iInstrument, 0, LVIS_SELECTED | LVIS_FOCUSED);
-		SetInstrumentEditName(_T(""));
+		SetInstrumentEditName(L"");
 		CloseInstrumentEditor();
 	}
 }
@@ -1036,12 +1037,12 @@ void CMainFrame::SwapInstruments(int First, int Second)
 
 void CMainFrame::UpdateInstrumentName() const {		// // //
 	if (auto pInst = GetSelectedInstrument()) {
-		LPCTSTR pName = (LPCTSTR)CA2CT(pInst->GetName().data());
-		m_pInstrumentList->SetInstrumentName(GetSelectedInstrumentIndex(), pName);
-		m_wndDialogBar.GetDlgItem(IDC_INSTNAME)->SetWindowText(pName);
+		auto pName = conv::to_wide(pInst->GetName());
+		m_pInstrumentList->SetInstrumentName(GetSelectedInstrumentIndex(), pName.data());
+		m_wndDialogBar.GetDlgItem(IDC_INSTNAME)->SetWindowTextW(pName.data());
 	}
 	else
-		m_wndDialogBar.GetDlgItem(IDC_INSTNAME)->SetWindowText(_T(""));
+		m_wndDialogBar.GetDlgItem(IDC_INSTNAME)->SetWindowTextW(L"");
 }
 
 void CMainFrame::OnNextInstrument()
@@ -1112,14 +1113,14 @@ void CMainFrame::ShowInstrumentNumberText()		// // //
 		else
 			digit += conv::to_digit((m_iInstNumCurrent >> (4 * (INST_DIGITS - i - 1))) & 0xF);
 
-	CString msg;
-	AfxFormatString1(msg, IDS_TYPE_INST_NUM, digit.c_str());
+	CStringW msg;
+	AfxFormatString1(msg, IDS_TYPE_INST_NUM, conv::to_wide(digit).data());
 	SetMessageText(msg);
 }
 
-void CMainFrame::SetInstrumentEditName(const char *pText)		// // //
+void CMainFrame::SetInstrumentEditName(std::wstring_view pText)		// // //
 {
-	m_wndDialogBar.SetDlgItemText(IDC_INSTNAME, pText);
+	m_wndDialogBar.SetDlgItemTextW(IDC_INSTNAME, pText.data());
 }
 
 void CMainFrame::SetIndicatorTime(int Min, int Sec, int MSec)
@@ -1130,8 +1131,8 @@ void CMainFrame::SetIndicatorTime(int Min, int Sec, int MSec)
 		LMin = Min;
 		LSec = Sec;
 		LMSec = MSec;
-		CString String;
-		String.Format(_T("%02i:%02i:%01i0"), Min, Sec, MSec);
+		CStringW String;
+		String.Format(L"%02i:%02i:%01i0", Min, Sec, MSec);
 		m_wndStatusBar.SetPaneText(6, String);
 	}
 }
@@ -1141,7 +1142,7 @@ void CMainFrame::SetIndicatorPos(int Frame, int Row)
 	std::string String = theApp.GetSettings()->General.bRowInHex ?		// // //
 		(conv::from_int_hex(Row, 2) + " / " + conv::from_int_hex(Frame, 2)) :
 		(conv::from_int(Row, 3) + " / " + conv::from_int(Frame, 3));
-	m_wndStatusBar.SetPaneText(7, String.c_str());
+	m_wndStatusBar.SetPaneText(7, conv::to_wide(String).data());
 }
 
 void CMainFrame::OnSize(UINT nType, int cx, int cy)
@@ -1169,13 +1170,12 @@ void CMainFrame::OnInstNameChange()
 		return;
 
 	if (auto pInst = GetSelectedInstrument()) {		// // //
-		TCHAR Text[CInstrument::INST_NAME_MAX];
+		WCHAR Text[CInstrument::INST_NAME_MAX] = { };
 		auto pEdit = static_cast<CEdit *>(m_wndDialogBar.GetDlgItem(IDC_INSTNAME));
-		pEdit->GetWindowText(Text, CInstrument::INST_NAME_MAX);
+		pEdit->GetWindowTextW(Text, CInstrument::INST_NAME_MAX);
 		// Update instrument list & document
 		auto sel = pEdit->GetSel();
-		CT2CA str(Text);
-		if (AddAction(std::make_unique<ModuleAction::CInstName>(GetSelectedInstrumentIndex(), (const char *)str)))		// // //
+		if (AddAction(std::make_unique<ModuleAction::CInstName>(GetSelectedInstrumentIndex(), conv::to_utf8(Text))))		// // //
 			pEdit->SetSel(sel);
 	}
 }
@@ -1251,7 +1251,7 @@ void CMainFrame::OnEditInstrument()
 	OpenInstrumentEditor();
 }
 
-bool CMainFrame::LoadInstrument(unsigned Index, const CString &filename) {		// // //
+bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// // //
 	const auto err = [this] (int ID) {
 		AfxMessageBox(ID, MB_ICONERROR);
 		return false;
@@ -1289,11 +1289,11 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CString &filename) {		// /
 						return pManager->InsertInstrument(Index, std::move(pInstrument));
 					}
 
-					AfxMessageBox("Failed to create instrument", MB_ICONERROR);
+					AfxMessageBox(L"Failed to create instrument", MB_ICONERROR);
 					return false;
 				}
 				catch (CModuleException e) {
-					AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
+					AfxMessageBox(conv::to_wide(e.GetErrorString()).data(), MB_ICONERROR);
 					return false;
 				}
 			});
@@ -1312,8 +1312,8 @@ void CMainFrame::OnLoadInstrument()
 {
 	// Loads an instrument from a file
 
-	CString filter = LoadDefaultFilter(IDS_FILTER_FTI, _T(".fti"));
-	CFileDialog FileDialog(TRUE, _T("fti"), 0, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, filter);
+	CStringW filter = LoadDefaultFilter(IDS_FILTER_FTI, L".fti");
+	CFileDialog FileDialog(TRUE, L"fti", 0, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, filter);
 
 	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_FTI);
 
@@ -1334,7 +1334,7 @@ void CMainFrame::OnLoadInstrument()
 	UpdateInstrumentList();
 
 	if (FileDialog.GetFileName().GetLength() == 0)		// // //
-		theApp.GetSettings()->SetPath(FileDialog.GetPathName() + _T("\\"), PATH_FTI);
+		theApp.GetSettings()->SetPath(FileDialog.GetPathName() + L"\\", PATH_FTI);
 	else
 		theApp.GetSettings()->SetPath(FileDialog.GetPathName(), PATH_FTI);
 }
@@ -1354,15 +1354,15 @@ void CMainFrame::OnSaveInstrument()
 	if (!pInst)
 		return;
 
-	auto Name = std::string(pInst->GetName());		// // //
+	auto Name = conv::to_wide(pInst->GetName());		// // //
 
 	// Remove bad characters
 	for (auto &ch : Name)
-		if (ch == '/')
-			ch = ' ';
+		if (ch == L'/')
+			ch = L' ';
 
-	CString filter = LoadDefaultFilter(IDS_FILTER_FTI, _T(".fti"));
-	CFileDialog FileDialog(FALSE, _T("fti"), Name.c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
+	CStringW filter = LoadDefaultFilter(IDS_FILTER_FTI, L".fti");
+	CFileDialog FileDialog(FALSE, L"fti", Name.data(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
 
 	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_FTI);
 	if (FileDialog.DoModal() == IDCANCEL)
@@ -1598,15 +1598,15 @@ void CMainFrame::OnUpdateSBInstrument(CCmdUI *pCmdUI)
 	unsigned int Split = static_cast<CFamiTrackerView*>(GetActiveView())->GetSplitInstrument();
 	if (Split != MAX_INSTRUMENTS)
 		String = conv::from_int_hex(Split, 2) + " / " + String;
-	CString msg;
-	AfxFormatString1(msg, ID_INDICATOR_INSTRUMENT, String.c_str());
+	CStringW msg;
+	AfxFormatString1(msg, ID_INDICATOR_INSTRUMENT, conv::to_wide(String).data());
 	pCmdUI->Enable();
 	pCmdUI->SetText(msg);
 }
 
 void CMainFrame::OnUpdateSBOctave(CCmdUI *pCmdUI)
 {
-	CString String;
+	CStringW String;
 	AfxFormatString1(String, ID_INDICATOR_OCTAVE, MakeIntString(GetSelectedOctave()));		// // //
 	pCmdUI->Enable();
 	pCmdUI->SetText(String);
@@ -1617,12 +1617,12 @@ void CMainFrame::OnUpdateSBFrequency(CCmdUI *pCmdUI)
 	const CFamiTrackerDoc &Doc = GetDoc();
 	machine_t Machine = Doc.GetModule()->GetMachine();
 	int EngineSpeed = Doc.GetModule()->GetEngineSpeed();
-	CString String;
+	CStringW String;
 
 	if (EngineSpeed == 0)
 		EngineSpeed = (Machine == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
 
-	String.Format(_T("%i Hz"), EngineSpeed);
+	String.Format(L"%i Hz", EngineSpeed);
 
 	pCmdUI->Enable();
 	pCmdUI->SetText(String);
@@ -1634,8 +1634,8 @@ void CMainFrame::OnUpdateSBTempo(CCmdUI *pCmdUI)
 
 	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 	if (pSoundGen && !pSoundGen->IsBackgroundTask()) {
-		CString String;
-		String.Format(_T("%.2f BPM"), pSoundGen->GetCurrentBPM());		// // //
+		CStringW String;
+		String.Format(L"%.2f BPM", pSoundGen->GetCurrentBPM());		// // //
 		pCmdUI->Enable();
 		pCmdUI->SetText(String);
 	}
@@ -1643,33 +1643,33 @@ void CMainFrame::OnUpdateSBTempo(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 {
-	CString String;
+	CStringW String;
 
 	const CSoundChipSet &Chip = GetDoc().GetModule()->GetSoundChipSet();
 
 	if (!Chip.IsMultiChip())		// // //
 		switch (Chip.WithoutChip(sound_chip_t::APU).GetSoundChip()) {
-		case sound_chip_t::VRC6: String = _T(" Konami VRC6");       break;
-		case sound_chip_t::VRC7: String = _T(" Konami VRC7");       break;
-		case sound_chip_t::FDS:  String = _T(" Nintendo FDS");      break;
-		case sound_chip_t::MMC5: String = _T(" Nintendo MMC5");     break;
-		case sound_chip_t::N163: String = _T(" Namco 163");         break;
-		case sound_chip_t::S5B:  String = _T(" Sunsoft 5B");        break;
-		case sound_chip_t::NONE: String = _T(" No expansion chip"); break;
+		case sound_chip_t::VRC6: String = L" Konami VRC6";       break;
+		case sound_chip_t::VRC7: String = L" Konami VRC7";       break;
+		case sound_chip_t::FDS:  String = L" Nintendo FDS";      break;
+		case sound_chip_t::MMC5: String = L" Nintendo MMC5";     break;
+		case sound_chip_t::N163: String = L" Namco 163";         break;
+		case sound_chip_t::S5B:  String = L" Sunsoft 5B";        break;
+		case sound_chip_t::NONE: String = L" No expansion chip"; break;
 		}
 	else {
 		if (Chip.ContainsChip(sound_chip_t::VRC6))
-			String += _T(" + VRC6");
+			String += L" + VRC6";
 		if (Chip.ContainsChip(sound_chip_t::VRC7))
-			String += _T(" + VRC7");
+			String += L" + VRC7";
 		if (Chip.ContainsChip(sound_chip_t::FDS))
-			String += _T(" + FDS");
+			String += L" + FDS";
 		if (Chip.ContainsChip(sound_chip_t::MMC5))
-			String += _T(" + MMC5");
+			String += L" + MMC5";
 		if (Chip.ContainsChip(sound_chip_t::N163))
-			String += _T(" + N163");
+			String += L" + N163";
 		if (Chip.ContainsChip(sound_chip_t::S5B))
-			String += _T(" + S5B");
+			String += L" + S5B";
 		String.Delete(0, 3);
 	}
 
@@ -1755,11 +1755,11 @@ void CMainFrame::OnUpdateInstrumentEdit(CCmdUI *pCmdUI)
 
 void CMainFrame::OnTimer(UINT nIDEvent)
 {
-	CString text;
+	CStringW text;
 	switch (nIDEvent) {
 		// Welcome message
 		case TMR_WELCOME:
-			AfxFormatString1(text, IDS_WELCOME_VER_FORMAT, Get0CCFTVersionString());
+			AfxFormatString1(text, IDS_WELCOME_VER_FORMAT, conv::to_wide(Get0CCFTVersionString()).data());
 			SetMessageText(text);
 			KillTimer(TMR_WELCOME);
 			break;
@@ -1858,7 +1858,7 @@ void CMainFrame::OnUpdateHighlight2(CCmdUI *pCmdUI)		// // //
 
 void CMainFrame::OnFileGeneralsettings()
 {
-	CString Title;
+	CStringW Title;
 	GetMessageString(IDS_CONFIG_WINDOW, Title);
 	CPropertySheet ConfigWindow(Title, this, 0);
 
@@ -1893,38 +1893,38 @@ void CMainFrame::OnFileGeneralsettings()
 }
 
 void CMainFrame::SetSongInfo(const CFamiTrackerModule &modfile) {		// // //
-	m_wndDialogBar.SetDlgItemText(IDC_SONG_NAME, modfile.GetModuleName().data());
-	m_wndDialogBar.SetDlgItemText(IDC_SONG_ARTIST, modfile.GetModuleArtist().data());
-	m_wndDialogBar.SetDlgItemText(IDC_SONG_COPYRIGHT, modfile.GetModuleCopyright().data());
+	m_wndDialogBar.SetDlgItemTextW(IDC_SONG_NAME, conv::to_wide(modfile.GetModuleName()).data());
+	m_wndDialogBar.SetDlgItemTextW(IDC_SONG_ARTIST, conv::to_wide(modfile.GetModuleArtist()).data());
+	m_wndDialogBar.SetDlgItemTextW(IDC_SONG_COPYRIGHT, conv::to_wide(modfile.GetModuleCopyright()).data());
 }
 
 void CMainFrame::OnEnSongNameChange()
 {
-	CString str;
+	CStringW str;
 	auto pEdit = (CEdit *)m_wndDialogBar.GetDlgItem(IDC_SONG_NAME);
-	pEdit->GetWindowText(str);
+	pEdit->GetWindowTextW(str);
 	auto sel = pEdit->GetSel();
-	if (AddAction(std::make_unique<ModuleAction::CTitle>(str.GetString())))
+	if (AddAction(std::make_unique<ModuleAction::CTitle>(conv::to_utf8(str))))
 		pEdit->SetSel(sel);
 }
 
 void CMainFrame::OnEnSongArtistChange()
 {
-	CString str;
+	CStringW str;
 	auto pEdit = (CEdit *)m_wndDialogBar.GetDlgItem(IDC_SONG_ARTIST);
-	pEdit->GetWindowText(str);
+	pEdit->GetWindowTextW(str);
 	auto sel = pEdit->GetSel();
-	if (AddAction(std::make_unique<ModuleAction::CArtist>(str.GetString())))
+	if (AddAction(std::make_unique<ModuleAction::CArtist>(conv::to_utf8(str))))
 		pEdit->SetSel(sel);
 }
 
 void CMainFrame::OnEnSongCopyrightChange()
 {
-	CString str;
+	CStringW str;
 	auto pEdit = (CEdit *)m_wndDialogBar.GetDlgItem(IDC_SONG_COPYRIGHT);
-	pEdit->GetWindowText(str);
+	pEdit->GetWindowTextW(str);
 	auto sel = pEdit->GetSel();
-	if (AddAction(std::make_unique<ModuleAction::CCopyright>(str.GetString())))
+	if (AddAction(std::make_unique<ModuleAction::CCopyright>(conv::to_utf8(str))))
 		pEdit->SetSel(sel);
 }
 
@@ -1996,7 +1996,7 @@ void CMainFrame::OnUpdateKeyRepeat(CCmdUI *pCmdUI)
 
 void CMainFrame::OnFileImportText()
 {
-	CString fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, _T(".txt"));
+	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, L".txt");
 	CFileDialog FileDialog(TRUE, 0, 0, OFN_HIDEREADONLY, fileFilter);
 
 	if (GetActiveDocument()->SaveModified() == 0)
@@ -2011,7 +2011,7 @@ void CMainFrame::OnFileImportText()
 		CTextExport { }.ImportFile(FileDialog.GetPathName(), Doc);
 	}
 	catch (std::runtime_error err) {
-		AfxMessageBox(err.what(), MB_OK | MB_ICONEXCLAMATION);
+		AfxMessageBox(conv::to_wide(err.what()).data(), MB_OK | MB_ICONEXCLAMATION);
 	}
 
 	SetSongInfo(*Doc.GetModule());		// // //
@@ -2032,20 +2032,20 @@ void CMainFrame::OnFileExportText()
 #endif
 
 	CFamiTrackerDoc &Doc = GetDoc();
-	CString	DefFileName = Doc.GetFileTitle();
+	CStringW	DefFileName = Doc.GetFileTitle();
 
-	CString fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, _T(".txt"));
-	CFileDialog FileDialog(FALSE, _T(".txt"), DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
+	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, L".txt");
+	CFileDialog FileDialog(FALSE, L".txt", DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
 	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_NSF);
 
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
 
 	CTextExport Exporter;
-	CString sResult = Exporter.ExportFile(FileDialog.GetPathName(), Doc);		// // //
+	CStringA sResult = Exporter.ExportFile(FileDialog.GetPathName(), Doc);		// // //
 	if (sResult.GetLength() > 0)
 	{
-		AfxMessageBox(sResult, MB_OK | MB_ICONEXCLAMATION);
+		AfxMessageBox(conv::to_wide(sResult).data(), MB_OK | MB_ICONEXCLAMATION);
 	}
 }
 
@@ -2057,19 +2057,19 @@ void CMainFrame::OnFileExportRows()		// // //
 #endif
 
 	CFamiTrackerDoc	*pDoc = (CFamiTrackerDoc*)GetActiveDocument();
-	CString	DefFileName = pDoc->GetFileTitle();
+	CStringW	DefFileName = pDoc->GetFileTitle();
 
-	CFileDialog FileDialog(FALSE, _T(".csv"), DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("Comma-separated values (*.csv)|*.csv|All files|*.*||"));
+	CFileDialog FileDialog(FALSE, L".csv", DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"Comma-separated values (*.csv)|*.csv|All files|*.*||");
 	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_NSF);
 
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
 
 	CTextExport Exporter;
-	CString sResult = Exporter.ExportRows(FileDialog.GetPathName(), *pDoc->GetModule());
+	CStringA sResult = Exporter.ExportRows(FileDialog.GetPathName(), *pDoc->GetModule());
 	if (sResult.GetLength() > 0)
 	{
-		AfxMessageBox(sResult, MB_OK | MB_ICONEXCLAMATION);
+		AfxMessageBox(conv::to_wide(sResult).data(), MB_OK | MB_ICONEXCLAMATION);
 	}
 }
 
@@ -2210,11 +2210,11 @@ void CMainFrame::OnModuleEstimateSongLength()		// // //
 
 	int Rate = GetDoc().GetModule()->GetFrameRate();
 
-	const TCHAR *fmt = _T("Estimated duration:\n"
-		"Intro: %lld:%02lld.%02lld (%d rows, %lld ticks)\n"
-		"Loop: %lld:%02lld.%02lld (%d rows, %lld ticks)\n"
-		"Tick counts are subject to rounding errors!");
-	CString str;
+	LPCWSTR fmt = L"Estimated duration:\n"
+		L"Intro: %lld:%02lld.%02lld (%d rows, %lld ticks)\n"
+		L"Loop: %lld:%02lld.%02lld (%d rows, %lld ticks)\n"
+		L"Tick counts are subject to rounding errors!";
+	CStringW str;
 	str.Format(fmt,
 		static_cast<long long>(Intro + .5 / 6000) / 60,
 		static_cast<long long>(Intro + .005) % 60,
@@ -2234,15 +2234,15 @@ void CMainFrame::UpdateTrackBox()
 	// Fill the track box with all songs
 	CComboBox		*pTrackBox	= static_cast<CComboBox*>(m_wndDialogBar.GetDlgItem(IDC_SUBTUNE));
 	const CFamiTrackerModule &modfile = *GetDoc().GetModule();		// // //
-	CString			Text;
+	CStringW			Text;
 
 	ASSERT(pTrackBox != NULL);
 
 	pTrackBox->ResetContent();
 
 	modfile.VisitSongs([&] (const CSongData &song, unsigned i) {
-		auto sv = song.GetTitle();
-		Text.Format(_T("#%i %.*s"), i + 1, sv.size(), sv.data());		// // //
+		auto sv = conv::to_wide(song.GetTitle());
+		Text.Format(L"#%i %.*s", i + 1, sv.size(), sv.data());		// // //
 		pTrackBox->AddString(Text);
 	});
 
@@ -2480,13 +2480,13 @@ void CMainFrame::OnUpdateEditDelete(CCmdUI *pCmdUI)
 void CMainFrame::OnHelpEffecttable()
 {
 	// Display effect table in help
-	HtmlHelp((DWORD)_T("effect_list.htm"), HH_DISPLAY_TOPIC);
+	HtmlHelp((DWORD)L"effect_list.htm", HH_DISPLAY_TOPIC);
 }
 
 void CMainFrame::OnHelpFAQ()
 {
 	// Display FAQ in help
-	HtmlHelp((DWORD)_T("faq.htm"), HH_DISPLAY_TOPIC);
+	HtmlHelp((DWORD)L"faq.htm", HH_DISPLAY_TOPIC);
 }
 
 CFrameEditor *CMainFrame::GetFrameEditor() const
@@ -2519,7 +2519,7 @@ void CMainFrame::OnShowWindow(BOOL bShow, UINT nStatus)
 
 void CMainFrame::OnDestroy()
 {
-	TRACE("FrameWnd: Destroying main frame window\n");
+	TRACE(L"FrameWnd: Destroying main frame window\n");
 
 	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 
@@ -2536,7 +2536,7 @@ void CMainFrame::OnDestroy()
 		DWORD dwResult = ::WaitForSingleObject(SoundEvent.m_hObject, /*CSoundGen::AUDIO_TIMEOUT*/ 2000 + 1000);		// // //
 
 		if (dwResult != WAIT_OBJECT_0)
-			TRACE(_T("MainFrame: Error while waiting for sound to close!\n"));
+			TRACE(L"MainFrame: Error while waiting for sound to close!\n");
 	}
 
 	CFrameWnd::OnDestroy();
@@ -2622,19 +2622,19 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 	sound_chip_t SelectedChip = GetChipFromChannel(pView->GetSelectedChannelID());		// // // where the cursor is located
 
 	if (Chip.ContainsChip(sound_chip_t::APU))
-		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_2A03, _T("New 2A03 instrument"));
+		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_2A03, L"New 2A03 instrument");
 	if (Chip.ContainsChip(sound_chip_t::VRC6))
-		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_VRC6, _T("New VRC6 instrument"));
+		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_VRC6, L"New VRC6 instrument");
 	if (Chip.ContainsChip(sound_chip_t::VRC7))
-		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_VRC7, _T("New VRC7 instrument"));
+		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_VRC7, L"New VRC7 instrument");
 	if (Chip.ContainsChip(sound_chip_t::FDS))
-		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_FDS, _T("New FDS instrument"));
+		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_FDS, L"New FDS instrument");
 	if (Chip.ContainsChip(sound_chip_t::MMC5))
-		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_MMC5, _T("New MMC5 instrument"));
+		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_MMC5, L"New MMC5 instrument");
 	if (Chip.ContainsChip(sound_chip_t::N163))
-		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_N163, _T("New Namco instrument"));
+		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_N163, L"New Namco instrument");
 	if (Chip.ContainsChip(sound_chip_t::S5B))
-		menu.AppendMenu(MF_STRING, ID_INSTRUMENT_ADD_S5B, _T("New Sunsoft instrument"));
+		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_S5B, L"New Sunsoft instrument");
 
 	switch (SelectedChip) {
 	case sound_chip_t::APU:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_2A03); break;
@@ -2683,12 +2683,12 @@ void CMainFrame::OnLoadInstrumentMenu(NMHDR * pNotifyStruct, LRESULT * result)
 
 void CMainFrame::SelectInstrumentFolder()
 {
-	BROWSEINFOA Browse;
+	BROWSEINFOW Browse;
 	LPITEMIDLIST lpID;
-	char Path[MAX_PATH];
-	CString Title;
+	WCHAR Path[MAX_PATH];
+	CStringW Title;
 
-	Title.LoadString(IDS_INSTRUMENT_FOLDER);
+	Title.LoadStringW(IDS_INSTRUMENT_FOLDER);
 	Browse.lpszTitle	= Title;
 	Browse.hwndOwner	= m_hWnd;
 	Browse.pidlRoot		= NULL;
@@ -2696,10 +2696,10 @@ void CMainFrame::SelectInstrumentFolder()
 	Browse.ulFlags		= BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
 	Browse.pszDisplayName = Path;
 
-	lpID = SHBrowseForFolder(&Browse);
+	lpID = SHBrowseForFolderW(&Browse);
 
 	if (lpID != NULL) {
-		SHGetPathFromIDList(lpID, Path);
+		SHGetPathFromIDListW(lpID, Path);
 		theApp.GetSettings()->InstrumentMenuPath = Path;
 		m_pInstrumentFileTree->Changed();
 	}
@@ -2710,13 +2710,13 @@ BOOL CMainFrame::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct)
 	switch (pCopyDataStruct->dwData) {
 		case IPC_LOAD:
 			// Load file
-			if (_tcslen((LPCTSTR)pCopyDataStruct->lpData) > 0)
-				theApp.OpenDocumentFile((LPCTSTR)pCopyDataStruct->lpData);
+			if (_tcslen((LPCWSTR)pCopyDataStruct->lpData) > 0)
+				theApp.OpenDocumentFile((LPCWSTR)pCopyDataStruct->lpData);
 			return TRUE;
 		case IPC_LOAD_PLAY:
 			// Load file
-			if (_tcslen((LPCTSTR)pCopyDataStruct->lpData) > 0)
-				theApp.OpenDocumentFile((LPCTSTR)pCopyDataStruct->lpData);
+			if (_tcslen((LPCWSTR)pCopyDataStruct->lpData) > 0)
+				theApp.OpenDocumentFile((LPCWSTR)pCopyDataStruct->lpData);
 			// and play
 			if (CFamiTrackerDoc::GetDoc()->IsFileLoaded() &&
 				!CFamiTrackerDoc::GetDoc()->HasLastLoadFailed())
@@ -2791,14 +2791,14 @@ void CMainFrame::UpdateMenu(CMenu *pMenu)
 		}
 		else if ((state & MF_SEPARATOR) == 0) {
 			// Change menu name
-			CString shortcut;
+			CStringW shortcut;
 			UINT id = pMenu->GetMenuItemID(i);
 
 			if (pAccel->GetShortcutString(id, shortcut)) {
-				CString string;
+				CStringW string;
 				pMenu->GetMenuString(i, string, MF_BYPOSITION);
 
-				int tab = string.Find(_T('\t'));
+				int tab = string.Find(L'\t');
 
 				if (tab != -1) {
 					string = string.Left(tab);
@@ -3194,32 +3194,32 @@ void CMainFrame::OnToggleSpeed()
 	Doc.ModifyIrreversible();		// // //
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
 
-	SetStatusText(_T("Speed/tempo split-point set to %i"), Speed);
+	SetStatusText(L"Speed/tempo split-point set to %i", Speed);
 }
 
 void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
 {
 	CFamiTrackerDoc &Doc = GetDoc();
 
-	CString title = Doc.GetTitle();
+	CStringW title = Doc.GetTitle();
 
 	// Add a star (*) for unsaved documents
 	if (Doc.IsModified())
-		title.Append(_T("*"));
+		title.Append(L"*");
 
 	// Add name of subtune
-	auto sv = GetCurrentSong()->GetTitle();
-	title.AppendFormat(_T(" [#%i %.*s]"), m_iTrack + 1, sv.size(), sv.data());		// // //
+	auto sv = conv::to_wide(GetCurrentSong()->GetTitle());
+	title.AppendFormat(L" [#%i %.*s]", m_iTrack + 1, sv.size(), sv.data());		// // //
 
-	title.Append(_T(" - 0CC-FamiTracker "));		// // //
-	title.Append(Get0CCFTVersionString());		// // //
-	SetWindowText(title);
+	title.Append(L" - 0CC-FamiTracker ");		// // //
+	title.Append(conv::to_wide(Get0CCFTVersionString()).data());		// // //
+	SetWindowTextW(title);
 	// UpdateFrameTitleForDocument(title);
 }
 
 LRESULT CMainFrame::OnDisplayMessageString(WPARAM wParam, LPARAM lParam)
 {
-	AfxMessageBox((LPCTSTR)wParam, (UINT)lParam);
+	AfxMessageBox((LPCWSTR)wParam, (UINT)lParam);
 	return 0;
 }
 
@@ -3240,7 +3240,7 @@ void CMainFrame::CheckAudioStatus()
 
 	if (!theApp.GetSoundGenerator()) {
 		// Should really never be displayed (only during debugging)
-		SetMessageText(_T("Audio is not working"));
+		SetMessageText(L"Audio is not working");
 		return;
 	}
 
@@ -3292,15 +3292,15 @@ void CMainFrame::OnToggleMultiplexer()
 {
 	CSettings *pSettings = theApp.GetSettings();
 	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
-	if (!pSettings->m_bNamcoMixing){
+	if (!pSettings->m_bNamcoMixing) {
 		pSettings->m_bNamcoMixing = true;
 		pSoundGen->SetNamcoMixing(theApp.GetSettings()->m_bNamcoMixing);
-		SetStatusText(_T("Namco 163 multiplexer emulation disabled"));
+		SetStatusText(L"Namco 163 multiplexer emulation disabled");
 	}
 	else{
 		pSettings->m_bNamcoMixing = false;
 		pSoundGen->SetNamcoMixing(theApp.GetSettings()->m_bNamcoMixing);
-		SetStatusText(_T("Namco 163 multiplexer emulation enabled"));
+		SetStatusText(L"Namco 163 multiplexer emulation enabled");
 	}
 }
 
@@ -3317,11 +3317,11 @@ void CMainFrame::OnUpdateGrooveEdit(CCmdUI *pCmdUI)
 	CSongData &song = *GetCurrentSong();
 	int Speed = song.GetSongSpeed();
 	if (song.GetSongGroove()) {
-		m_cButtonGroove.SetWindowText(_T("Groove"));
+		m_cButtonGroove.SetWindowTextW(L"Groove");
 		Speed = std::clamp(Speed, 0, MAX_GROOVE - 1);
 	}
 	else {
-		m_cButtonGroove.SetWindowText(_T("Speed"));
+		m_cButtonGroove.SetWindowTextW(L"Speed");
 		int MaxSpeed = song.GetSongTempo() ? GetDoc().GetModule()->GetSpeedSplitPoint() - 1 : 0xFF;
 		Speed = std::clamp(Speed, MIN_SPEED, MaxSpeed);
 	}
@@ -3341,17 +3341,17 @@ void CMainFrame::OnToggleFixTempo()
 void CMainFrame::OnUpdateToggleFixTempo(CCmdUI *pCmdUI)
 {
 	if (int Tempo = GetCurrentSong()->GetSongTempo()) {
-		m_cButtonFixTempo.SetWindowText(_T("Tempo"));
+		m_cButtonFixTempo.SetWindowTextW(L"Tempo");
 		m_cLockedEditTempo.EnableWindow(true);
 		m_wndDialogBar.GetDlgItem(IDC_TEMPO_SPIN)->EnableWindow(true);
 	}
 	else {
-		m_cButtonFixTempo.SetWindowText(_T("Fixed"));
+		m_cButtonFixTempo.SetWindowTextW(L"Fixed");
 		m_cLockedEditTempo.EnableWindow(false);
 		m_wndDialogBar.GetDlgItem(IDC_TEMPO_SPIN)->EnableWindow(false);
-		CString str;
-		str.Format(_T("%.2f"), static_cast<float>(GetDoc().GetModule()->GetFrameRate()) * 2.5);
-		m_cLockedEditTempo.SetWindowText(str);
+		CStringW str;
+		str.Format(L"%.2f", static_cast<float>(GetDoc().GetModule()->GetFrameRate()) * 2.5);
+		m_cLockedEditTempo.SetWindowTextW(str);
 	}
 }
 
@@ -3395,10 +3395,10 @@ void CMainFrame::OnEasterEggKraid5()
 		UpdateTrackBox();
 		ResetUndo();
 		ResizeFrameWindow();
-		SetStatusText(_T(
+		SetStatusText(conv::to_wide(
 			"Famitracker - Metroid - Kraid's Lair "
 			"(Uploaded on Jun 9, 2010 http://www.youtube.com/watch?v=9yzCLy-fZVs) "
-			"The FTM straight from the tutorial. - 8BitDanooct1"));
+			"The FTM straight from the tutorial. - 8BitDanooct1").data());
 	}
 	m_iKraidCounter = 0;
 }

@@ -58,7 +58,7 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
-	CString GetSongString(unsigned index) const;		// // //
+	CStringW GetSongString(unsigned index) const;		// // //
 	void FillSongList();
 
 	DECLARE_MESSAGE_MAP()

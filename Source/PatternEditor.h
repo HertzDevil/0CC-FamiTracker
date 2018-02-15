@@ -156,9 +156,9 @@ public:
 	void SelectAllChannels();
 	void SelectAll();
 
-	void GetVolumeColumn(CString &str) const;
-	void GetSelectionAsText(CString &str) const;		// // //
-	void GetSelectionAsPPMCK(CString &str) const;		// // //
+	void GetVolumeColumn(CStringW &str) const;
+	void GetSelectionAsText(CStringW &str) const;		// // //
+	void GetSelectionAsPPMCK(CStringW &str) const;		// // //
 
 	// Various
 	int GetCurrentPatternLength(int Frame) const;		// // // allow negative frames
@@ -228,7 +228,7 @@ private:
 	// // //
 	void DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Channel, bool bInvert,
 		const stChanNote &NoteData, const RowColorInfo_t &ColorInfo) const;		// // //
-	void DrawChar(CDC &DC, int x, int y, TCHAR c, COLORREF Color) const;
+	void DrawChar(CDC &DC, int x, int y, WCHAR c, COLORREF Color) const;
 
 	// Other drawing
 	void DrawChannelStates(CDC &DC);
@@ -285,7 +285,7 @@ public:
 	// // //
 private:
 	// Private consts
-	static const LPCTSTR DEFAULT_HEADER_FONT;		// // //
+	static const LPCWSTR DEFAULT_HEADER_FONT;		// // //
 	static const int DEFAULT_FONT_SIZE;
 	static const int DEFAULT_HEADER_FONT_SIZE;
 

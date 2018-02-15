@@ -49,7 +49,7 @@ enum ft_block_t {
 };
 
 struct stVerInfo {
-	CString  Name;
+	CStringW  Name;
 	effect_t MaxEffect;
 	unsigned FTMver;
 	int      MaxArpMode;
@@ -76,7 +76,7 @@ protected:
 	void UpdateInfo();
 
 protected:
-	static const CString VERSION_TEXT[];
+	static const CStringW VERSION_TEXT[];
 	static const effect_t MAX_EFFECT_INDEX[];
 	static const stVerInfo VERSION_INFO[VERSION_INFO_COUNT];
 

@@ -139,11 +139,11 @@ void CConfigMixer::UpdateLevels()
 
 void CConfigMixer::UpdateLevel(int nID, int Level)
 {
-	CString str, str2;
-	str.Format(_T("%+.1f dB"), float(-Level) / float(LEVEL_SCALE));
-	GetDlgItemText(nID, str2);
+	CStringW str, str2;
+	str.Format(L"%+.1f dB", float(-Level) / float(LEVEL_SCALE));
+	GetDlgItemTextW(nID, str2);
 	if (str.Compare(str2) != 0)
-		SetDlgItemText(nID, str);
+		SetDlgItemTextW(nID, str);
 }
 
 void CConfigMixer::OnBnClickedButtonMixerReset()		// // // 050B

@@ -44,7 +44,7 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	void CheckDestination() const;
-	static sound_chip_t GetChipFromString(const CString &str);
+	static sound_chip_t GetChipFromString(const CStringW &str);
 
 	unsigned int m_iDestChannel1, m_iDestChannel2;
 	sound_chip_t m_iDestChip1, m_iDestChip2;

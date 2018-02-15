@@ -33,6 +33,7 @@
 #include "WaveRenderer.h"		// // //
 #include "WaveRendererFactory.h"		// // //
 #include "ChannelName.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 const int MAX_LOOP_TIMES = 99;
 const int MAX_PLAY_TIME	 = (99 * 60) + 0;
@@ -77,10 +78,10 @@ int CCreateWaveDlg::GetFrameLoopCount() const
 int CCreateWaveDlg::GetTimeLimit() const
 {
 	int Minutes, Seconds;
-	TCHAR str[256];
+	WCHAR str[256];
 
-	GetDlgItemText(IDC_SECONDS, str, 256);
-	_stscanf(str, _T("%u:%u"), &Minutes, &Seconds);
+	GetDlgItemTextW(IDC_SECONDS, str, 256);
+	swscanf(str, L"%u:%u", &Minutes, &Seconds);
 	int Time = (Minutes * 60) + (Seconds % 60);
 
 	if (Time < 1)
@@ -99,17 +100,17 @@ void CCreateWaveDlg::OnBnClickedBegin()
 	CFamiTrackerView *pView = CFamiTrackerView::GetView();
 	const CFamiTrackerModule *pModule = pView->GetModuleData();		// // //
 
-	CString FileName = pDoc->GetFileTitle();
+	CStringW FileName = pDoc->GetFileTitle();
 	int Track = m_ctlTracks.GetCurSel();
 
 	if (pModule->GetSongCount() > 1) {
 		auto sv = pModule->GetSong(Track)->GetTitle();
-		FileName.AppendFormat(_T(" - Track %02i (%.*s)"), Track + 1, sv.size(), sv.data());		// // //
+		FileName.AppendFormat(L" - Track %02i (%.*s)", Track + 1, sv.size(), sv.data());		// // //
 	}
 
 	CWavProgressDlg ProgressDlg;
-	CString fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, _T(".wav"));
-	CFileDialog SaveDialog(FALSE, _T("wav"), FileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
+	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, L".wav");
+	CFileDialog SaveDialog(FALSE, L"wav", FileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
 
 	// Close this dialog
 	EndDialog(0);
@@ -126,7 +127,7 @@ void CCreateWaveDlg::OnBnClickedBegin()
 		return nullptr;
 	}();
 	if (!pRenderer) {
-		AfxMessageBox("Unable to create wave renderer!", MB_ICONERROR);
+		AfxMessageBox(L"Unable to create wave renderer!", MB_ICONERROR);
 		return;
 	}
 	pRenderer->SetRenderTrack(Track);
@@ -149,8 +150,8 @@ BOOL CCreateWaveDlg::OnInitDialog()
 	CheckDlgButton(IDC_RADIO_LOOP, BST_CHECKED);
 	CheckDlgButton(IDC_RADIO_TIME, BST_UNCHECKED);
 
-	SetDlgItemText(IDC_TIMES, _T("1"));
-	SetDlgItemText(IDC_SECONDS, _T("01:00"));
+	SetDlgItemTextW(IDC_TIMES, L"1");
+	SetDlgItemTextW(IDC_SECONDS, L"01:00");
 
 	m_ctlChannelList.SubclassDlgItem(IDC_CHANNELS, this);
 
@@ -163,14 +164,14 @@ BOOL CCreateWaveDlg::OnInitDialog()
 	const CChannelOrder &order = pModule->GetChannelOrder(); // CFamiTrackerView::GetView()->GetSongView()->
 
 	order.ForeachChannel([&] (chan_id_t i) {
-		m_ctlChannelList.AddString(GetChannelFullName(i).data());		// // //
+		m_ctlChannelList.AddString(conv::to_wide(GetChannelFullName(i)).data());		// // //
 		m_ctlChannelList.SetCheck(order.GetChannelIndex(i), 1);
 	});
 
 	pModule->VisitSongs([&] (const CSongData &song, unsigned i) {
-		CString text;
+		CStringW text;
 		auto sv = song.GetTitle();
-		text.Format(_T("#%02i - %.*s"), i + 1, sv.size(), sv.data());		// // //
+		text.Format(L"s#%02i - %.*s", i + 1, sv.size(), sv.data());		// // //
 		m_ctlTracks.AddString(text);
 	});
 
@@ -207,7 +208,7 @@ void CCreateWaveDlg::OnDeltaposSpinTime(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 	int Minutes, Seconds;
 	int Time = GetTimeLimit() - pNMUpDown->iDelta;
-	CString str;
+	CStringW str;
 
 	if (Time < 1)
 		Time = 1;
@@ -217,8 +218,8 @@ void CCreateWaveDlg::OnDeltaposSpinTime(NMHDR *pNMHDR, LRESULT *pResult)
 	Seconds = Time % 60;
 	Minutes = Time / 60;
 
-	str.Format(_T("%02i:%02i"), Minutes, Seconds);
-	SetDlgItemText(IDC_SECONDS, str);
+	str.Format(L"%02i:%02i", Minutes, Seconds);
+	SetDlgItemTextW(IDC_SECONDS, str);
 	CheckDlgButton(IDC_RADIO_LOOP, BST_UNCHECKED);
 	CheckDlgButton(IDC_RADIO_TIME, BST_CHECKED);
 	*pResult = 0;

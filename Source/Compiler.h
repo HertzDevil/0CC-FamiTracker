@@ -91,7 +91,7 @@ class CCompilerLog
 {
 public:
 	virtual ~CCompilerLog() noexcept = default;
-	virtual void WriteLog(LPCTSTR text) = 0;
+	virtual void WriteLog(LPCWSTR text) = 0;
 	virtual void Clear() = 0;
 };
 
@@ -104,21 +104,21 @@ public:
 	CCompiler(const CFamiTrackerModule &modfile, std::shared_ptr<CCompilerLog> pLogger);		// // //
 	~CCompiler();
 
-	void	ExportNSF(LPCTSTR lpszFileName, int MachineType);
-	void	ExportNSFE(LPCTSTR lpszFileName, int MachineType);		// // //
-	void	ExportNES(LPCTSTR lpszFileName, bool EnablePAL);
-	void	ExportBIN(LPCTSTR lpszBIN_File, LPCTSTR lpszDPCM_File);
-	void	ExportPRG(LPCTSTR lpszFileName, bool EnablePAL);
-	void	ExportASM(LPCTSTR lpszFileName);
+	void	ExportNSF(LPCWSTR lpszFileName, int MachineType);
+	void	ExportNSFE(LPCWSTR lpszFileName, int MachineType);		// // //
+	void	ExportNES(LPCWSTR lpszFileName, bool EnablePAL);
+	void	ExportBIN(LPCWSTR lpszBIN_File, LPCWSTR lpszDPCM_File);
+	void	ExportPRG(LPCWSTR lpszFileName, bool EnablePAL);
+	void	ExportASM(LPCWSTR lpszFileName);
 
 	void	SetMetadata(std::string_view title, std::string_view artist, std::string_view copyright);		// // //
 
 private:
-	void	ExportNSF_NSFE(LPCTSTR lpszFileName, int MachineType, bool isNSFE);		// // //
-	void	ExportNES_PRG(LPCTSTR lpszFileName, bool EnablePAL, bool isPRG);		// // //
-	void	ExportBIN_ASM(LPCTSTR lpszFileName, LPCTSTR lpszDPCM_File, bool isASM);		// // //
+	void	ExportNSF_NSFE(LPCWSTR lpszFileName, int MachineType, bool isNSFE);		// // //
+	void	ExportNES_PRG(LPCWSTR lpszFileName, bool EnablePAL, bool isPRG);		// // //
+	void	ExportBIN_ASM(LPCWSTR lpszFileName, LPCWSTR lpszDPCM_File, bool isASM);		// // //
 
-	bool	OpenFile(LPCTSTR lpszFileName, CFile &file) const;
+	bool	OpenFile(LPCWSTR lpszFileName, CFile &file) const;
 
 	stNSFHeader CreateHeader(int MachineType) const;		// // //
 	stNSFeHeader CreateNSFeHeader(int MachineType);		// // //
@@ -173,7 +173,7 @@ private:
 
 	// Debugging
 	template <typename... Args>
-	void	Print(LPCTSTR text, Args&&... args) const;		// // //
+	void	Print(LPCWSTR text, Args&&... args) const;		// // //
 	void	ClearLog() const;
 
 public:

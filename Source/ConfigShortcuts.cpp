@@ -67,9 +67,9 @@ BOOL CConfigShortcuts::OnInitDialog()
 	pListView->GetClientRect(&r);
 	int w = r.Width() - ::GetSystemMetrics(SM_CXHSCROLL);
 	pListView->DeleteAllItems();
-	pListView->InsertColumn(0, _T("Action"), LVCFMT_LEFT, static_cast<int>(.52 * w));
-	pListView->InsertColumn(1, _T("Modifier"), LVCFMT_LEFT, static_cast<int>(.23 * w));
-	pListView->InsertColumn(2, _T("Key"), LVCFMT_LEFT, static_cast<int>(.25 * w));
+	pListView->InsertColumn(0, L"Action", LVCFMT_LEFT, static_cast<int>(.52 * w));
+	pListView->InsertColumn(1, L"Modifier", LVCFMT_LEFT, static_cast<int>(.23 * w));
+	pListView->InsertColumn(2, L"Key", LVCFMT_LEFT, static_cast<int>(.25 * w));
 
 	// Build shortcut list
 	for (int i = 0; i < CAccelerator::ACCEL_COUNT; ++i) {
@@ -94,8 +94,8 @@ void CConfigShortcuts::OnNMClickShortcuts(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	CListCtrl *pListView = static_cast<CListCtrl*>(GetDlgItem(IDC_SHORTCUTS));
 	m_iSelectedItem = pListView->GetSelectionMark();
-	CString KeyString = AssembleKeyString(m_iMods[m_iSelectedItem], m_iKeys[m_iSelectedItem]);
-	SetDlgItemText(IDC_KEY, KeyString);
+	CStringW KeyString = AssembleKeyString(m_iMods[m_iSelectedItem], m_iKeys[m_iSelectedItem]);
+	SetDlgItemTextW(IDC_KEY, KeyString);
 
 	*pResult = 0;
 }
@@ -109,8 +109,8 @@ void CConfigShortcuts::OnBnClickedDefault()
 
 	StoreKey(m_iSelectedItem, Key, Mod);
 
-	CString KeyString = AssembleKeyString(Mod, Key);
-	SetDlgItemText(IDC_KEY, KeyString);
+	CStringW KeyString = AssembleKeyString(Mod, Key);
+	SetDlgItemTextW(IDC_KEY, KeyString);
 
 	SetModified();
 }
@@ -127,8 +127,8 @@ BOOL CConfigShortcuts::OnApply()
 		if (it == m.end())
 			m[KeyVal] = i;
 		else {
-			CString msg;
-			msg.Format(_T("These two commands are assigned to the same shortcut (%s):\n- %s\n- %s"),
+			CStringW msg;
+			msg.Format(L"These two commands are assigned to the same shortcut (%s):\n- %s\n- %s",
 					   AssembleKeyString(m_iMods[i], m_iKeys[i]),
 					   CAccelerator::DEFAULT_TABLE[it->second].name,
 					   CAccelerator::DEFAULT_TABLE[i].name);
@@ -206,8 +206,8 @@ void CConfigShortcuts::SetupKey(int Key)
 	StoreKey(m_iSelectedItem, Key, Mod);
 
 	// Display key
-	CString KeyStr = AssembleKeyString(Mod, Key);
-	SetDlgItemText(IDC_KEY, KeyStr);
+	CStringW KeyStr = AssembleKeyString(Mod, Key);
+	SetDlgItemTextW(IDC_KEY, KeyStr);
 
 	SetModified();
 }
@@ -216,7 +216,7 @@ void CConfigShortcuts::StoreKey(int Item, int Key, int Mod)
 {
 	// Store in temp. list
 	CAccelerator *pAccel = theApp.GetAccelerator();
-	CString KeyName = pAccel->GetVKeyName(Key);
+	CStringW KeyName = pAccel->GetVKeyName(Key);
 
 	// Save to list
 	CListCtrl *pListView = static_cast<CListCtrl*>(GetDlgItem(IDC_SHORTCUTS));
@@ -233,9 +233,9 @@ void CConfigShortcuts::OnBnClickedClear()
 	CListCtrl *pListView = static_cast<CListCtrl*>(GetDlgItem(IDC_SHORTCUTS));
 
 	pListView->SetItemText(m_iSelectedItem, 1, CAccelerator::MOD_NAMES[MOD_NONE]);
-	pListView->SetItemText(m_iSelectedItem, 2, _T("None"));
+	pListView->SetItemText(m_iSelectedItem, 2, L"None");
 
-	SetDlgItemText(IDC_KEY, _T(""));
+	SetDlgItemTextW(IDC_KEY, L"");
 
 	m_iKeys[m_iSelectedItem] = 0;
 	m_iMods[m_iSelectedItem] = MOD_NONE;
@@ -243,24 +243,24 @@ void CConfigShortcuts::OnBnClickedClear()
 	SetModified();
 }
 
-CString CConfigShortcuts::AssembleKeyString(int Mod, int Key)
+CStringW CConfigShortcuts::AssembleKeyString(int Mod, int Key)
 {
 	CAccelerator *pAccel = theApp.GetAccelerator();
-	CString KeyStr;
+	CStringW KeyStr;
 
 	if (Mod & MOD_SHIFT) {
 		KeyStr.Append(pAccel->GetVKeyName(VK_SHIFT));
-		KeyStr.Append(_T(" + "));
+		KeyStr.Append(L" + ");
 	}
 
 	if (Mod & MOD_CONTROL) {
 		KeyStr.Append(pAccel->GetVKeyName(VK_CONTROL));
-		KeyStr.Append(_T(" + "));
+		KeyStr.Append(L" + ");
 	}
 
 	if (Mod & MOD_ALT) {
 		KeyStr.Append(pAccel->GetVKeyName(VK_MENU));
-		KeyStr.Append(_T(" + "));
+		KeyStr.Append(L" + ");
 	}
 
 	KeyStr.Append(pAccel->GetVKeyName(Key));

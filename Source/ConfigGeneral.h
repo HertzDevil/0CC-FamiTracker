@@ -77,8 +77,8 @@ protected:
 	int		m_iKeyRepeat;
 	int		m_iKeyEchoBuffer;		// // //
 
-	static const CString CONFIG_STR[SETTINGS_BOOL_COUNT];		// // //
-	static const CString CONFIG_DESC[SETTINGS_BOOL_COUNT];		// // //
+	static const CStringW CONFIG_STR[SETTINGS_BOOL_COUNT];		// // //
+	static const CStringW CONFIG_DESC[SETTINGS_BOOL_COUNT];		// // //
 
 	CToolTipCtrl m_wndToolTip;
 

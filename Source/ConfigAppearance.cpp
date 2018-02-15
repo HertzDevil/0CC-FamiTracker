@@ -29,22 +29,23 @@
 #include <fstream>
 #include <string>
 #include "NumConv.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
-const LPCTSTR CConfigAppearance::COLOR_ITEMS[] = {		// // //
-	_T("Background"),
-	_T("Highlighted background"),
-	_T("Highlighted background 2"),
-	_T("Pattern text"),
-	_T("Highlighted pattern text"),
-	_T("Highlighted pattern text 2"),
-	_T("Instrument column"),
-	_T("Volume column"),
-	_T("Effect number column"),
-	_T("Selection"),
-	_T("Cursor"),
-	_T("Current row (normal mode)"),		// // //
-	_T("Current row (edit mode)"),
-	_T("Current row (playing)")
+const std::string_view CConfigAppearance::COLOR_ITEMS[] = {		// // //
+	"Background",
+	"Highlighted background",
+	"Highlighted background 2",
+	"Pattern text",
+	"Highlighted pattern text",
+	"Highlighted pattern text 2",
+	"Instrument column",
+	"Volume column",
+	"Effect number column",
+	"Selection",
+	"Cursor",
+	"Current row (normal mode)",		// // //
+	"Current row (edit mode)",
+	"Current row (playing)",
 };
 
 const char CConfigAppearance::SETTING_SEPARATOR[] = " : ";		// // // 050B
@@ -68,7 +69,7 @@ int CALLBACK CConfigAppearance::EnumFontFamExProc(ENUMLOGFONTEX *lpelfe, NEWTEXT
 {
 	if (lpelfe->elfLogFont.lfCharSet == ANSI_CHARSET && lpelfe->elfFullName[0] != '@' &&
 		strlen((char*)lpelfe->elfFullName) < LF_FACESIZE)		// // //
-		reinterpret_cast<CConfigAppearance*>(lParam)->AddFontName((char*)&lpelfe->elfFullName);
+		reinterpret_cast<CConfigAppearance*>(lParam)->AddFontName((LPCWSTR)&lpelfe->elfFullName);
 
 	return 1;
 }
@@ -146,9 +147,9 @@ void CConfigAppearance::OnPaint()
 	int WinWidth = Rect.right - Rect.left;
 
 	CFont Font, *OldFont;
-	LOGFONT LogFont = { };		// // //
+	LOGFONTW LogFont = { };		// // //
 
-	strcpy_s(LogFont.lfFaceName, LF_FACESIZE, m_strFont.GetBuffer());
+	wcsncpy_s(LogFont.lfFaceName, m_strFont, LF_FACESIZE);
 
 	LogFont.lfHeight = -m_iFontSize;
 	LogFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
@@ -202,9 +203,9 @@ void CConfigAppearance::OnPaint()
 #define BAR(x, y) dc.FillSolidRect((x) + 3, (y) + (iRowSize / 2) + 1, 10 - 7, 1, ShadedCol)
 
 		if (i == 0) {
-			dc.TextOut(OffsetLeft, OffsetTop - 2, _T("C"));
-			dc.TextOut(OffsetLeft + 12, OffsetTop - 2, _T("-"));
-			dc.TextOut(OffsetLeft + 24, OffsetTop - 2, _T("4"));
+			dc.TextOutW(OffsetLeft, OffsetTop - 2, L"C");
+			dc.TextOutW(OffsetLeft + 12, OffsetTop - 2, L"-");
+			dc.TextOutW(OffsetLeft + 24, OffsetTop - 2, L"4");
 		}
 		else {
 			BAR(OffsetLeft, OffsetTop - 2);
@@ -239,7 +240,7 @@ BOOL CConfigAppearance::OnInitDialog()
 
 	CDC *pDC = GetDC();
 	if (pDC != NULL) {
-		LOGFONT LogFont = { };		// // //
+		LOGFONTW LogFont = { };		// // //
 		LogFont.lfCharSet = DEFAULT_CHARSET;
 		EnumFontFamiliesEx(pDC->m_hDC, &LogFont, (FONTENUMPROC)EnumFontFamExProc, (LPARAM)this, 0);
 		ReleaseDC(pDC);
@@ -250,10 +251,10 @@ BOOL CConfigAppearance::OnInitDialog()
 	CComboBox *pItemsBox = static_cast<CComboBox*>(GetDlgItem(IDC_COL_ITEM));
 
 	for (int i = 0; i < COLOR_ITEM_COUNT; ++i) {
-		pItemsBox->AddString(COLOR_ITEMS[i]);
+		pItemsBox->AddString(conv::to_wide(COLOR_ITEMS[i]).data());
 	}
 
-	pItemsBox->SelectString(0, COLOR_ITEMS[0]);
+	pItemsBox->SelectString(0, conv::to_wide(COLOR_ITEMS[0]).data());
 
 	m_iSelectedItem = 0;
 
@@ -283,27 +284,27 @@ BOOL CConfigAppearance::OnInitDialog()
 		pItemsBox->AddString(COLOR_SCHEMES[i]->NAME);
 	}
 
-	TCHAR txtBuf[16];
+	WCHAR txtBuf[16];
 
 	for (int i = 0; i < FONT_SIZE_COUNT; ++i) {
 		_itot_s(FONT_SIZES[i], txtBuf, 16, 10);
 		pFontSizeList->AddString(txtBuf);
 	}		// // //
 	_itot_s(m_iFontSize, txtBuf, 16, 10);
-	pFontSizeList->SetWindowText(txtBuf);
+	pFontSizeList->SetWindowTextW(txtBuf);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
 }
 
-void CConfigAppearance::AddFontName(char *Name)
+void CConfigAppearance::AddFontName(std::wstring_view Name)		// // //
 {
 	CComboBox *pFontList = static_cast<CComboBox*>(GetDlgItem(IDC_FONT));
 
-	pFontList->AddString(Name);
+	pFontList->AddString(Name.data());
 
-	if (m_strFont.Compare(Name) == 0)
-		pFontList->SelectString(0, Name);
+	if (m_strFont.Compare(Name.data()) == 0)
+		pFontList->SelectString(0, Name.data());
 }
 
 BOOL CConfigAppearance::OnApply()
@@ -419,7 +420,7 @@ int CConfigAppearance::GetColor(int Index) const
 
 void CConfigAppearance::OnCbnSelchangeFontSize()
 {
-	CString str;
+	CStringW str;
 	CComboBox *pFontSizeList = static_cast<CComboBox*>(GetDlgItem(IDC_FONT_SIZE));
 	pFontSizeList->GetLBText(pFontSizeList->GetCurSel(), str);
 	m_iFontSize = _ttoi(str);
@@ -430,8 +431,8 @@ void CConfigAppearance::OnCbnSelchangeFontSize()
 void CConfigAppearance::OnCbnEditchangeFontSize()		// // //
 {
 	CComboBox *pFontSizeList = static_cast<CComboBox*>(GetDlgItem(IDC_FONT_SIZE));
-	CString str;
-	pFontSizeList->GetWindowText(str);
+	CStringW str;
+	pFontSizeList->GetWindowTextW(str);
 	int newSize = _ttoi(str);
 	if (newSize < 5 || newSize > 30) return; // arbitrary
 	m_iFontSize = newSize;
@@ -453,16 +454,16 @@ void CConfigAppearance::OnBnClickedDisplayFlats()
 
 void CConfigAppearance::OnBnClickedButtonAppearanceSave()		// // // 050B
 {
-	CString fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, _T(".txt"));
-	CFileDialog fileDialog {FALSE, NULL, _T("Theme.txt"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter};
+	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, L".txt");
+	CFileDialog fileDialog {FALSE, NULL, L"Theme.txt", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter};
 	if (fileDialog.DoModal() == IDOK)
-		ExportSettings(fileDialog.GetPathName().GetBuffer());
+		ExportSettings(fileDialog.GetPathName());
 }
 
 void CConfigAppearance::OnBnClickedButtonAppearanceLoad()		// // // 050B
 {
-	CString fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, _T(".txt"));
-	CFileDialog fileDialog {TRUE, NULL, _T("Theme.txt"), OFN_HIDEREADONLY, fileFilter};
+	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, L".txt");
+	CFileDialog fileDialog {TRUE, NULL, L"Theme.txt", OFN_HIDEREADONLY, fileFilter};
 	if (fileDialog.DoModal() == IDOK) {
 		ImportSettings(fileDialog.GetPathName().GetBuffer());
 		static_cast<CComboBox*>(GetDlgItem(IDC_FONT))->SelectString(0, m_strFont);
@@ -472,7 +473,7 @@ void CConfigAppearance::OnBnClickedButtonAppearanceLoad()		// // // 050B
 	}
 }
 
-void CConfigAppearance::ExportSettings(const char *Path) const		// // // 050B
+void CConfigAppearance::ExportSettings(LPCWSTR Path) const		// // // 050B
 {
 	if (auto file = std::fstream {Path, std::ios_base::out}) {
 		file << "# 0CC-FamiTracker appearance" << std::endl;
@@ -485,7 +486,7 @@ void CConfigAppearance::ExportSettings(const char *Path) const		// // // 050B
 	}
 }
 
-void CConfigAppearance::ImportSettings(const char *Path)		// // // 050B
+void CConfigAppearance::ImportSettings(LPCWSTR Path)		// // // 050B
 {
 	std::fstream file {Path, std::ios_base::in};
 	std::string Line;
@@ -521,7 +522,7 @@ void CConfigAppearance::ImportSettings(const char *Path)		// // // 050B
 				m_iFontSize = *x;
 		}
 		else if (Line.find("Font") != std::string::npos)
-			m_strFont = sv.data();
+			m_strFont = conv::to_wide(sv.data()).data();
 	}
 
 	file.close();

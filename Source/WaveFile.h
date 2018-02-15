@@ -31,7 +31,7 @@ class CWaveFile
 {
 public:
 	// Open a wave file for streaming
-	bool	OpenFile(LPCTSTR Filename, int SampleRate, int SampleSize, int Channels);		// // //
+	bool	OpenFile(LPCWSTR Filename, int SampleRate, int SampleSize, int Channels);		// // //
 	// Close the file
 	void	CloseFile();
 	// Save data to the file

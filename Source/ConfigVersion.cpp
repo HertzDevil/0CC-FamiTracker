@@ -25,34 +25,34 @@
 #include "FamiTrackerTypes.h"
 #include "Settings.h"
 
-const CString CConfigVersion::VERSION_TEXT[] = {
-	_T("FamiTracker 0.2.2"),
-	_T("FamiTracker 0.2.4"),
-	_T("FamiTracker 0.2.5"),
-	_T("FamiTracker 0.2.6"),
-	_T("FamiTracker 0.2.7"),
-	_T("FamiTracker 0.2.9 - 0.3.0"),
-	_T("FamiTracker 0.3.0 re-release"),
-	_T("FamiTracker 0.3.5 beta 0"),
-	_T("FamiTracker 0.3.5"),
-	_T("FamiTracker 0.3.6 beta 1 - 0.3.6 beta 3"),
-	_T("FamiTracker 0.3.6 beta 4 - 0.3.6"),
-	_T("FamiTracker 0.3.7 beta 0"),
-	_T("FamiTracker 0.3.7"),
-	_T("FamiTracker 0.3.8 beta 0"),
-	_T("FamiTracker 0.3.8 beta 1 - 0.3.8 beta 5"),
-	_T("FamiTracker 0.4.0 - 0.4.1"),
-	_T("FamiTracker 0.4.2 beta 1 - 0.4.6"),
-	_T("0CC-FamiTracker 0.1.0 - 0.1.1"),
-	_T("0CC-FamiTracker 0.2.0 - 0.3.1"),
-	_T("0CC-FamiTracker 0.3.2 - 0.3.3"),		// DETUNETABLES
-	_T("0CC-FamiTracker 0.3.4 - 0.3.7"),		// GROOVES
-	_T("0CC-FamiTracker 0.3.8"),
-	_T("0CC-FamiTracker 0.3.9"),
-	_T("0CC-FamiTracker 0.3.10"),
-	_T("0CC-FamiTracker 0.3.11"),				// BOOKMARKS
-	_T("0CC-FamiTracker 0.3.12 - 0.3.14.0"),
-	_T("Current version"),						// PARAMS_EXTRA
+const CStringW CConfigVersion::VERSION_TEXT[] = {
+	L"FamiTracker 0.2.2",
+	L"FamiTracker 0.2.4",
+	L"FamiTracker 0.2.5",
+	L"FamiTracker 0.2.6",
+	L"FamiTracker 0.2.7",
+	L"FamiTracker 0.2.9 - 0.3.0",
+	L"FamiTracker 0.3.0 re-release",
+	L"FamiTracker 0.3.5 beta 0",
+	L"FamiTracker 0.3.5",
+	L"FamiTracker 0.3.6 beta 1 - 0.3.6 beta 3",
+	L"FamiTracker 0.3.6 beta 4 - 0.3.6",
+	L"FamiTracker 0.3.7 beta 0",
+	L"FamiTracker 0.3.7",
+	L"FamiTracker 0.3.8 beta 0",
+	L"FamiTracker 0.3.8 beta 1 - 0.3.8 beta 5",
+	L"FamiTracker 0.4.0 - 0.4.1",
+	L"FamiTracker 0.4.2 beta 1 - 0.4.6",
+	L"0CC-FamiTracker 0.1.0 - 0.1.1",
+	L"0CC-FamiTracker 0.2.0 - 0.3.1",
+	L"0CC-FamiTracker 0.3.2 - 0.3.3",		// DETUNETABLES
+	L"0CC-FamiTracker 0.3.4 - 0.3.7",		// GROOVES
+	L"0CC-FamiTracker 0.3.8",
+	L"0CC-FamiTracker 0.3.9",
+	L"0CC-FamiTracker 0.3.10",
+	L"0CC-FamiTracker 0.3.11",				// BOOKMARKS
+	L"0CC-FamiTracker 0.3.12 - 0.3.14.0",
+	L"Current version",						// PARAMS_EXTRA
 };
 
 const effect_t CConfigVersion::MAX_EFFECT_INDEX[] = {
@@ -86,24 +86,24 @@ const effect_t CConfigVersion::MAX_EFFECT_INDEX[] = {
 };
 
 const stVerInfo CConfigVersion::VERSION_INFO[] = {
-	{_T("FamiTracker 0.2.2"),                 EF_SWEEPDOWN,     0x0200, 0, {1, 1, 0, 1, 1, 1, 1, 1}},
-	{_T("FamiTracker 0.2.4"),                 EF_TREMOLO,       0x0201, 0, {1, 1, 1, 1, 1, 1, 1, 1}},
-	{_T("FamiTracker 0.2.5"),                 EF_PITCH,         0x0203, 0, {1, 1, 1, 1, 2, 1, 1, 1}},
-	{_T("FamiTracker 0.2.6"),                 EF_DAC,           0x0203, 0, {2, 1, 2, 2, 2, 2, 2, 1}},
-	{_T("FamiTracker 0.2.7"),                 EF_SAMPLE_OFFSET, 0x0300, 0, {2, 1, 2, 2, 3, 3, 3, 1}},
-	{_T("FamiTracker 0.2.9 - 0.3.0"),         EF_VOLUME_SLIDE,  0x0300, 0, {2, 1, 2, 2, 3, 3, 3, 1, 1}},
-	{_T("FamiTracker 0.3.0 re-release"),      EF_VOLUME_SLIDE,  0x0410, 1, {2, 1, 2, 2, 4, 3, 3, 1, 1}},
-	{_T("FamiTracker 0.3.5 beta 0"),          EF_RETRIGGER,     0x0420, 0, {3, 1, 2, 2, 4, 3, 3, 1, 1}},
-	{_T("FamiTracker 0.3.5"),                 EF_RETRIGGER,     0x0420, 0, {3, 1, 2, 2, 5, 3, 3, 1, 5}},
+	{L"FamiTracker 0.2.2",                 EF_SWEEPDOWN,     0x0200, 0, {1, 1, 0, 1, 1, 1, 1, 1}},
+	{L"FamiTracker 0.2.4",                 EF_TREMOLO,       0x0201, 0, {1, 1, 1, 1, 1, 1, 1, 1}},
+	{L"FamiTracker 0.2.5",                 EF_PITCH,         0x0203, 0, {1, 1, 1, 1, 2, 1, 1, 1}},
+	{L"FamiTracker 0.2.6",                 EF_DAC,           0x0203, 0, {2, 1, 2, 2, 2, 2, 2, 1}},
+	{L"FamiTracker 0.2.7",                 EF_SAMPLE_OFFSET, 0x0300, 0, {2, 1, 2, 2, 3, 3, 3, 1}},
+	{L"FamiTracker 0.2.9 - 0.3.0",         EF_VOLUME_SLIDE,  0x0300, 0, {2, 1, 2, 2, 3, 3, 3, 1, 1}},
+	{L"FamiTracker 0.3.0 re-release",      EF_VOLUME_SLIDE,  0x0410, 1, {2, 1, 2, 2, 4, 3, 3, 1, 1}},
+	{L"FamiTracker 0.3.5 beta 0",          EF_RETRIGGER,     0x0420, 0, {3, 1, 2, 2, 4, 3, 3, 1, 1}},
+	{L"FamiTracker 0.3.5",                 EF_RETRIGGER,     0x0420, 0, {3, 1, 2, 2, 5, 3, 3, 1, 5}},
 };
 
-const CString MODULE_ERROR_DESC[] = {
-	_T("None: Perform no validation at all while loading or saving modules. "
-	   "The tracker might crash or enter an inconsistent state."),
-	_T("Default: Perform the usual error checking according to the most recent official stable build."),
-	_T("Official: Perform extra bounds checking to ensure that modules are openable in the official build."),
-	_T("Strict: Validate all modules so that they do not contain any illegal data. "
-	   "Modules openable in the official build might be rejected."),
+const CStringW MODULE_ERROR_DESC[] = {
+	L"None: Perform no validation at all while loading or saving modules. "
+	 "The tracker might crash or enter an inconsistent state.",
+	L"Default: Perform the usual error checking according to the most recent official stable build.",
+	L"Official: Perform extra bounds checking to ensure that modules are openable in the official build.",
+	L"Strict: Validate all modules so that they do not contain any illegal data. "
+	 "Modules openable in the official build might be rejected.",
 };
 
 // CConfigVersion dialog
@@ -121,7 +121,7 @@ void CConfigVersion::DoDataExchange(CDataExchange* pDX)
 
 void CConfigVersion::UpdateInfo()
 {
-	GetDlgItem(IDC_STATIC_VERSION_ERROR)->SetWindowText(MODULE_ERROR_DESC[m_iModuleErrorLevel]);
+	GetDlgItem(IDC_STATIC_VERSION_ERROR)->SetWindowTextW(MODULE_ERROR_DESC[m_iModuleErrorLevel]);
 }
 
 BEGIN_MESSAGE_MAP(CConfigVersion, CPropertyPage)

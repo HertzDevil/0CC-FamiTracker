@@ -31,6 +31,7 @@
 #include "MainFrm.h"
 #include "Bookmark.h"
 #include "BookmarkCollection.h"
+#include "str_conv/str_conv.hpp"
 
 
 
@@ -49,7 +50,7 @@ void CListBoxEx::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) {
 	COLORREF crOldTextColor = dc.GetTextColor();
 	COLORREF crOldBkColor = dc.GetBkColor();
 
-	CString str;
+	CStringW str;
 	GetText(lpDrawItemStruct->itemID, str);
 
 	if ((lpDrawItemStruct->itemAction | ODA_SELECT) &&
@@ -66,7 +67,7 @@ void CListBoxEx::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) {
 		dc.SetTextColor(::GetSysColor(COLOR_GRAYTEXT));
 
 	dc.SetWindowOrg(-2, 0);
-	dc.DrawText(str, (int)_tcslen(str), &lpDrawItemStruct->rcItem, DT_SINGLELINE);
+	dc.DrawTextW(str, (int)_tcslen(str), &lpDrawItemStruct->rcItem, DT_SINGLELINE);
 
 	dc.SetWindowOrg(0, 0);
 	dc.SetTextColor(crOldTextColor);
@@ -129,15 +130,15 @@ END_MESSAGE_MAP()
 
 std::unique_ptr<CBookmark> CBookmarkDlg::MakeBookmark() const
 {
-	CString str;
-	GetDlgItem(IDC_EDIT_BOOKMARK_NAME)->GetWindowText(str);
+	CStringW str;
+	GetDlgItem(IDC_EDIT_BOOKMARK_NAME)->GetWindowTextW(str);
 
 	auto pMark = std::make_unique<CBookmark>(m_cSpinFrame.GetPos(), m_cSpinRow.GetPos());
 	pMark->m_Highlight.First = m_bEnableHighlight1 ? m_cSpinHighlight1.GetPos() : -1;
 	pMark->m_Highlight.Second = m_bEnableHighlight2 ? m_cSpinHighlight2.GetPos() : -1;
 	pMark->m_Highlight.Offset = 0;
 	pMark->m_bPersist = m_bPersist;
-	pMark->m_sName = std::string(str);
+	pMark->m_sName = conv::to_utf8(str);
 
 	if (pMark->m_iFrame >= MAX_FRAMES)
 		pMark->m_iFrame = MAX_FRAMES - 1;
@@ -162,9 +163,10 @@ void CBookmarkDlg::LoadBookmarks(int Track)
 
 	for (unsigned i = 0; i < m_pCollection->GetCount(); ++i) {
 		const CBookmark *pMark = m_pCollection->GetBookmark(i);
-		CString str(pMark->m_sName.c_str());
-		if (str.IsEmpty()) str = _T("Bookmark");
-		str.AppendFormat(_T(" (%02X,%02X)"), pMark->m_iFrame, pMark->m_iRow);
+		CStringW str = conv::to_wide(pMark->m_sName).data();
+		if (str.IsEmpty())
+			str = L"Bookmark";
+		str.AppendFormat(L" (%02X,%02X)", pMark->m_iFrame, pMark->m_iRow);
 		m_cListBookmark.AddString(str);
 	}
 }
@@ -348,7 +350,7 @@ void CBookmarkDlg::OnLbnSelchangeListBookmarks()
 	const CBookmark *pMark = m_pCollection->GetBookmark(pos);
 	m_bPersist = pMark->m_bPersist;
 	static_cast<CButton*>(GetDlgItem(IDC_CHECK_BOOKMARK_PERSIST))->SetCheck(m_bPersist ? BST_CHECKED : BST_UNCHECKED);
-	GetDlgItem(IDC_EDIT_BOOKMARK_NAME)->SetWindowText(pMark->m_sName.c_str());
+	GetDlgItem(IDC_EDIT_BOOKMARK_NAME)->SetWindowTextW(conv::to_wide(pMark->m_sName).data());
 
 	const auto &hl = m_pDocument->GetModule()->GetSong(m_iTrack)->GetRowHighlight();
 

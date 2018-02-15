@@ -164,8 +164,8 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT &&
 			Note != HALT && Note != NONE && Note != RELEASE) {		// // //
 			if (!IsInstrumentCompatible(ChipID, pInstManager->GetInstrumentType(ChanNote.Instrument))) {		// // //
-				CString str;
-				str.Format(_T("Error: Missing or incompatible instrument (on row %i, channel %i, pattern %i)\n"), i, Channel, Pattern);
+				CStringW str;
+				str.Format(L"Error: Missing or incompatible instrument (on row %i, channel %i, pattern %i)\n", i, Channel, Pattern);
 				Print(str);
 			}
 		}
@@ -292,8 +292,8 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 				}
 				else {
 					NESNote = 0xFF;		// Invalid sample, skip
-					CString str;
-					str.Format(_T("Error: Missing DPCM sample (on row %i, channel %i, pattern %i)\n"), i, Channel, Pattern);
+					CStringW str;
+					str.Format(L"Error: Missing DPCM sample (on row %i, channel %i, pattern %i)\n", i, Channel, Pattern);
 					Print(str);
 				}
 			}
@@ -902,7 +902,7 @@ unsigned int CPatternCompiler::GetHash() const
 	return m_iHash;
 }
 
-void CPatternCompiler::Print(const char *text) const		// // //
+void CPatternCompiler::Print(const wchar_t *text) const		// // //
 {
 	if (m_pLogger != NULL)
 		m_pLogger->WriteLog(text);

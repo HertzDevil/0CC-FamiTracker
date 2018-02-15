@@ -28,6 +28,7 @@
 #include "MainFrm.h"
 #include "FamiTracker.h"		// // //
 #include "Instrument.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 ///
 /// CInstrumentListCtrl
@@ -79,11 +80,11 @@ int CInstrumentListCtrl::GetInstrumentIndex(int Selection) const
 	if (Selection == -1)
 		return -1;
 
-	TCHAR Text[CInstrument::INST_NAME_MAX];
+	WCHAR Text[CInstrument::INST_NAME_MAX];
 	GetItemText(Selection, 0, Text, CInstrument::INST_NAME_MAX);
 
 	int Instrument;
-	_stscanf(Text, _T("%X"), &Instrument);
+	_stscanf(Text, L"%X", &Instrument);
 
 	return Instrument;
 }
@@ -91,8 +92,8 @@ int CInstrumentListCtrl::GetInstrumentIndex(int Selection) const
 int CInstrumentListCtrl::FindInstrument(int Index) const
 {
 	// Find the instrument item from the list (Index = instrument number)
-	CString Txt;
-	Txt.Format(_T("%02X"), Index);
+	CStringW Txt;
+	Txt.Format(L"%02X", Index);
 
 	LVFINDINFO info;
 	info.flags = LVFI_PARTIAL | LVFI_STRING;
@@ -143,7 +144,7 @@ void CInstrumentListCtrl::InsertInstrument(int Index)
 		CStringA Text;
 		auto sv = pInst->GetName();
 		Text.Format("%02X - %.*s", Index, sv.size(), sv.data());
-		InsertItem(Index, CA2CT(Text), Type - 1);
+		InsertItem(Index, conv::to_wide(Text).data(), Type - 1);
 		SelectInstrument(Index);		// // //
 	}
 }
@@ -156,12 +157,12 @@ void CInstrumentListCtrl::RemoveInstrument(int Index)
 		DeleteItem(Selection);
 }
 
-void CInstrumentListCtrl::SetInstrumentName(int Index, LPCTSTR pName)		// // //
+void CInstrumentListCtrl::SetInstrumentName(int Index, LPCWSTR pName)		// // //
 {
 	// Update instrument name in the list
 	int ListIndex = GetSelectionMark();
-	CString Name;
-	Name.Format(_T("%02X - %s"), Index, pName);
+	CStringW Name;
+	Name.Format(L"%02X - %s", Index, pName);
 	SetItemText(ListIndex, 0, Name);
 }
 
@@ -175,7 +176,7 @@ void CInstrumentListCtrl::OnContextMenu(CWnd* pWnd, CPoint point)
 
 	// Display the popup menu
 	CMenu *pPopupMenu, PopupMenuBar;
-	PopupMenuBar.LoadMenu(IDR_INSTRUMENT_POPUP);
+	PopupMenuBar.LoadMenuW(IDR_INSTRUMENT_POPUP);
 	pPopupMenu = PopupMenuBar.GetSubMenu(0);
 	// Route the menu messages to mainframe
 	pPopupMenu->TrackPopupMenu(TPM_LEFTBUTTON, point.x, point.y, m_pMainFrame);

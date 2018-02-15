@@ -44,7 +44,7 @@ public:
 	CInstrumentEditPanel(UINT nIDTemplate, CWnd* pParent = NULL);   // standard constructor
 	virtual ~CInstrumentEditPanel();
 	virtual int GetIDD() const = 0;
-	virtual LPCTSTR GetTitle() const = 0;		// // //
+	virtual LPCWSTR GetTitle() const = 0;		// // //
 
 	// Select instrument for the editing
 	virtual void SelectInstrument(std::shared_ptr<CInstrument> pInst) = 0;		// // //
@@ -103,11 +103,11 @@ protected:
 
 protected:
 	// Setup default sequence dialog
-	void SetupDialog(const LPCTSTR *pListItems);		// // //
+	void SetupDialog(const LPCSTR *pListItems);		// // //
 
 	// Virtual methods
 	virtual void SetupParser() const = 0;		// // //
-	virtual void TranslateMML(CString String) const;		// // //
+	virtual void TranslateMML(const CStringW &String) const;		// // //
 	virtual void PreviewNote(unsigned char Key);
 
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

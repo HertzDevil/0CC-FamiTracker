@@ -51,15 +51,15 @@ class CFTCommandLineInfo : public CCommandLineInfo
 public:
 	CFTCommandLineInfo();		// // //
 
-	void ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast) override;
+	void ParseParam(const WCHAR* pszParam, BOOL bFlag, BOOL bLast) override;
 
 	bool m_bLog = false;
 	bool m_bExport = false;
 	bool m_bPlay = false;
 	bool m_bRender = false;		// // //
-	CString m_strExportFile;
-	CString m_strExportLogFile;
-	CString m_strExportDPCMFile;
+	CStringW m_strExportFile;
+	CStringW m_strExportLogFile;
+	CStringW m_strExportDPCMFile;
 	unsigned track_ = MAX_TRACKS;
 	unsigned render_param_ = 1;		// // //
 	render_type_t render_type_;		// // //
@@ -84,8 +84,8 @@ class CDocTemplate0CC : public CSingleDocTemplate
 {
 public:
 	CDocTemplate0CC(UINT nIDResource, CRuntimeClass* pDocClass, CRuntimeClass* pFrameClass, CRuntimeClass* pViewClass);
-	BOOL GetDocString(CString& rString, enum DocStringIndex i) const;
-	CDocTemplate::Confidence MatchDocType(const char* pszPathName, CDocument*& rpDocMatch);
+	BOOL GetDocString(CStringW& rString, enum DocStringIndex i) const;
+	CDocTemplate::Confidence MatchDocType(LPCWSTR lpszPathName, CDocument*& rpDocMatch);
 };
 
 /*!
@@ -96,7 +96,7 @@ public:
 class CDocManager0CC : public CDocManager
 {
 public:
-	virtual BOOL DoPromptFileName(CString& fileName, UINT nIDSTitle,
+	virtual BOOL DoPromptFileName(CStringW& fileName, UINT nIDSTitle,
 								  DWORD lFlags, BOOL bOpenFileDialog, CDocTemplate* pTemplate);
 };
 
@@ -190,8 +190,8 @@ public:
 extern CFamiTrackerApp theApp;
 
 // Global helper functions
-CString LoadDefaultFilter(LPCTSTR Name, LPCTSTR Ext);
-CString LoadDefaultFilter(UINT nID, LPCTSTR Ext);
-void AfxFormatString3(CString &rString, UINT nIDS, LPCTSTR lpsz1, LPCTSTR lpsz2, LPCTSTR lpsz3);
-CString MakeIntString(int val, LPCTSTR format = _T("%i"));
-CString MakeFloatString(float val, LPCTSTR format = _T("%g"));
+CStringW LoadDefaultFilter(LPCWSTR Name, LPCWSTR Ext);
+CStringW LoadDefaultFilter(UINT nID, LPCWSTR Ext);
+void AfxFormatString3(CStringW &rString, UINT nIDS, LPCWSTR lpsz1, LPCWSTR lpsz2, LPCWSTR lpsz3);
+CStringW MakeIntString(int val, LPCWSTR format = L"%i");
+CStringW MakeFloatString(float val, LPCWSTR format = L"%g");

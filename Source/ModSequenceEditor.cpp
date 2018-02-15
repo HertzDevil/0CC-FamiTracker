@@ -48,7 +48,7 @@ CModSequenceEditor::~CModSequenceEditor()
 {
 }
 
-BOOL CModSequenceEditor::CreateEx(DWORD dwExStyle, LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd)
+BOOL CModSequenceEditor::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd)
 {
 	CRect newRect;
 

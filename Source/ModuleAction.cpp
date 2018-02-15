@@ -60,7 +60,7 @@ void ModuleAction::CComment::Redo(CMainFrame &MainFrm) {
 }
 
 void ModuleAction::CComment::UpdateViews(CMainFrame &MainFrm) const {
-	MainFrm.SetMessageText(_T("Comment settings changed"));
+	MainFrm.SetMessageText(L"Comment settings changed");
 }
 
 

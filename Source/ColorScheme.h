@@ -26,7 +26,7 @@
 #include "stdafx.h"
 
 // Default font
-const LPCTSTR FONT_FACE = _T("Verdana");		// // //
+const LPCWSTR FONT_FACE = L"Verdana";		// // //
 const int FONT_SIZE	  = 12;
 
 // Static colors
@@ -54,28 +54,28 @@ namespace SHADE_LEVEL {
 
 // Custom colors
 struct COLOR_SCHEME {
-	const TCHAR		*NAME;
-	const COLORREF	BACKGROUND;
-	const COLORREF	BACKGROUND_HILITE;
-	const COLORREF	BACKGROUND_HILITE2;
-	const COLORREF	TEXT_NORMAL;
-	const COLORREF	TEXT_HILITE;
-	const COLORREF	TEXT_HILITE2;
-	const COLORREF	TEXT_INSTRUMENT;
-	const COLORREF	TEXT_VOLUME;
-	const COLORREF	TEXT_EFFECT;
-	const COLORREF	SELECTION;
-	const COLORREF	CURSOR;
-	const COLORREF	ROW_NORMAL;		// // //
-	const COLORREF	ROW_EDIT;		// // //
-	const COLORREF	ROW_PLAYING;		// // //
-	const TCHAR		*FONT_FACE;
-	const int		FONT_SIZE;
+	LPCWSTR		NAME;
+	COLORREF	BACKGROUND;
+	COLORREF	BACKGROUND_HILITE;
+	COLORREF	BACKGROUND_HILITE2;
+	COLORREF	TEXT_NORMAL;
+	COLORREF	TEXT_HILITE;
+	COLORREF	TEXT_HILITE2;
+	COLORREF	TEXT_INSTRUMENT;
+	COLORREF	TEXT_VOLUME;
+	COLORREF	TEXT_EFFECT;
+	COLORREF	SELECTION;
+	COLORREF	CURSOR;
+	COLORREF	ROW_NORMAL;		// // //
+	COLORREF	ROW_EDIT;		// // //
+	COLORREF	ROW_PLAYING;		// // //
+	LPCWSTR		FONT_FACE;
+	int			FONT_SIZE;
 };
 
 // Default
 const COLOR_SCHEME DEFAULT_COLOR_SCHEME = {
-	_T("Default"),		// Name
+	L"Default",			// Name
 	0x00000000,			// Background color
 	0x00001010,			// Highlighted background color
 	0x00002020,			// Highlighted background color 2
@@ -90,13 +90,13 @@ const COLOR_SCHEME DEFAULT_COLOR_SCHEME = {
 	0x00A02030,			// // // Current row
 	0x00302080,			// // // Current row (edit mode)
 	0x00400050,			// // // Current row (playing)
-	_T("Verdana"),		// Font
+	L"Verdana",			// Font
 	12					// Font size
 };
 
 // Monochrome
 const COLOR_SCHEME MONOCHROME_COLOR_SCHEME = {
-	_T("Monochrome"),	// Name
+	L"Monochrome",		// Name
 	0x00181818,			// Background color
 	0x00202020,			// Highlighted background color
 	0x00303030,			// Highlighted background color 2
@@ -111,13 +111,13 @@ const COLOR_SCHEME MONOCHROME_COLOR_SCHEME = {
 	0x00A02030,			// // // Current row
 	0x00302080,			// // // Current row (edit mode)
 	0x00400050,			// // // Current row (playing)
-	_T("Fixedsys"),		// Font
+	L"Fixedsys",		// Font
 	12					// Font size
 };
 
 // Renoise
 const COLOR_SCHEME RENOISE_COLOR_SCHEME = {
-	_T("Renoise"),		// Name
+	L"Renoise",			// Name
 	0x00131313,			// Background color
 	0x00231A18,			// Highlighted background color
 	0x00342b29,			// Highlighted background color 2
@@ -132,13 +132,13 @@ const COLOR_SCHEME RENOISE_COLOR_SCHEME = {
 	0x00A02030,			// // // Current row
 	0x00302080,			// // // Current row (edit mode)
 	0x00400050,			// // // Current row (playing)
-	_T("Fixedsys"),		// Font
+	L"Fixedsys",		// Font
 	12					// Font size
 };
 
 // White
 const COLOR_SCHEME WHITE_COLOR_SCHEME = {
-	_T("White"),		// Name
+	L"White",			// Name
 	0x00FFFFFF,			// Background color
 	0x00FFFFFF,			// Highlighted background color
 	0x00FFF0FF,			// Highlighted background color 2
@@ -153,13 +153,13 @@ const COLOR_SCHEME WHITE_COLOR_SCHEME = {
 	0x00A02030,			// // // Current row
 	0x00302080,			// // // Current row (edit mode)
 	0x00400050,			// // // Current row (playing)
-	_T("Courier"),		// Font
+	L"Courier",			// Font
 	12					// Font size
 };
 
 // // // Saturday
 const COLOR_SCHEME SATURDAY_COLOR_SCHEME = {
-	_T("Saturday"),		// Name
+	L"Saturday",		// Name
 	0x00080004,			// Background color
 	0x0030141C,			// Highlighted background color
 	0x00401828,			// Highlighted background color 2
@@ -174,6 +174,6 @@ const COLOR_SCHEME SATURDAY_COLOR_SCHEME = {
 	0x00D01030,			// // // Current row
 	0x000030C0,			// // // Current row (edit mode)
 	0x00500070,			// // // Current row (playing)
-	_T("Courier"),		// Font
+	L"Courier",			// Font
 	11					// Font size
 };

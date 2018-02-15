@@ -42,6 +42,7 @@
 #include "RegisterDisplay.h"		// // //
 #include "SongView.h"		// // //
 #include "ChannelName.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 /*
  * CPatternEditor
@@ -57,7 +58,7 @@ const int CPatternEditor::HEADER_CHAN_HEIGHT = 36;
 const int CPatternEditor::ROW_HEIGHT		 = 12;
 
 // Pattern header font
-const LPCTSTR CPatternEditor::DEFAULT_HEADER_FONT = _T("Tahoma");		// // //
+const LPCWSTR CPatternEditor::DEFAULT_HEADER_FONT = L"Tahoma";		// // //
 
 const int CPatternEditor::DEFAULT_FONT_SIZE			= 12;
 const int CPatternEditor::DEFAULT_HEADER_FONT_SIZE	= 11;
@@ -235,8 +236,8 @@ void CPatternEditor::ApplyColorScheme()
 
 	const CSettings *pSettings = Env.GetSettings();
 
-	LPCTSTR	FontName = pSettings->Appearance.strFont;		// // //
-	LPCTSTR	HeaderFace = DEFAULT_HEADER_FONT;
+	LPCWSTR	FontName = pSettings->Appearance.strFont;		// // //
+	LPCWSTR	HeaderFace = DEFAULT_HEADER_FONT;
 
 	COLORREF ColBackground = pSettings->Appearance.iColBackground;
 
@@ -250,36 +251,19 @@ void CPatternEditor::ApplyColorScheme()
 	CalcLayout();
 
 	// Create pattern font
-	LOGFONT LogFont = { };		// // //
-	memcpy(LogFont.lfFaceName, FontName, _tcslen(FontName));
-
-	LogFont.lfHeight = -m_iPatternFontSize;
-//	LogFont.lfHeight = -DPI::SY(12);		// // //
-	LogFont.lfQuality = DRAFT_QUALITY;
-	LogFont.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
-
-	// Remove old font
 	if (m_fontPattern.m_hObject != NULL)
 		m_fontPattern.DeleteObject();
-
-	m_fontPattern.CreateFontIndirect(&LogFont);
+	m_fontPattern.CreateFontW(-m_iPatternFontSize, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, FontName);		// // //
 
 	// Create header font
-	LogFont = { };		// // //
-	memcpy(LogFont.lfFaceName, HeaderFace, _tcslen(HeaderFace));
-
-	LogFont.lfHeight = -DEFAULT_HEADER_FONT_SIZE;
-	//LogFont.lfWeight = 550;
-	LogFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
-
-	// Remove old font
 	if (m_fontHeader.m_hObject != NULL)
 		m_fontHeader.DeleteObject();
-
-	m_fontHeader.CreateFontIndirect(&LogFont);
+	m_fontHeader.CreateFontW(-DEFAULT_HEADER_FONT_SIZE, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_SWISS, HeaderFace);		// // //
 
 	if (m_fontCourierNew.m_hObject == NULL)		// // // smaller
-		m_fontCourierNew.CreateFont(14, 0, 0, 0, 0, FALSE, FALSE, FALSE, 0, 0, 0, DRAFT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, _T("Courier New"));
+		m_fontCourierNew.CreateFontW(14, 0, 0, 0, 0, FALSE, FALSE, FALSE, 0, 0, 0, DRAFT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Courier New");
 
 	// Cache some colors
 	m_colSeparator	= BLEND(ColBackground, Invert(ColBackground), SHADE_LEVEL::SEPARATOR);
@@ -513,9 +497,9 @@ void CPatternEditor::DrawScreen(CDC &DC, CFamiTrackerView *pView)
 #ifdef _DEBUG
 	DC.SetBkColor(DEFAULT_COLOR_SCHEME.CURSOR);
 	DC.SetTextColor(DEFAULT_COLOR_SCHEME.TEXT_HILITE);
-	DC.TextOut(m_iWinWidth - 70, 42, _T("DEBUG"));
-	DC.TextOut(m_iWinWidth - 70, 62, _T("DEBUG"));
-	DC.TextOut(m_iWinWidth - 70, 82, _T("DEBUG"));
+	DC.TextOutW(m_iWinWidth - 70, 42, L"DEBUG");
+	DC.TextOutW(m_iWinWidth - 70, 62, L"DEBUG");
+	DC.TextOutW(m_iWinWidth - 70, 82, L"DEBUG");
 #endif
 #ifdef BENCHMARK
 
@@ -524,43 +508,43 @@ void CPatternEditor::DrawScreen(CDC &DC, CFamiTrackerView *pView)
 
 	CRect clipBox;
 	DC.GetClipBox(&clipBox);
-	CString txt;
+	CStringW txt;
 	DC.SetTextColor(0xFFFF);
-	txt.Format(_T("Clip box: %ix%i %ix%i"), clipBox.top, clipBox.left, clipBox.bottom, clipBox.right);
-	DC.TextOut(10, 10, txt);
-	txt.Format(_T("Pattern area: %i x %i"), m_iPatternWidth, m_iPatternHeight);
-	DC.TextOut(10, 30, txt);
+	txt.Format(L"Clip box: %ix%i %ix%i", clipBox.top, clipBox.left, clipBox.bottom, clipBox.right);
+	DC.TextOutW(10, 10, txt);
+	txt.Format(L"Pattern area: %i x %i", m_iPatternWidth, m_iPatternHeight);
+	DC.TextOutW(10, 30, txt);
 
-	CString Text;
+	CStringW Text;
 	int PosY = 100;
 	const int LINE_BREAK = 18;
 	DC.SetTextColor(0xFFFF);
 	DC.SetBkColor(0);
 
-#define PUT_TEXT(x) DC.TextOut(m_iWinWidth - x, PosY, Text); PosY += LINE_BREAK
+#define PUT_TEXT(x) DC.TextOutW(m_iWinWidth - x, PosY, Text); PosY += LINE_BREAK
 
-	Text.Format(_T("%i ms"), (__int64(EndTime.QuadPart) - __int64(StartTime.QuadPart)) / (__int64(Freq.QuadPart) / 1000)); PUT_TEXT(160);
-	Text.Format(_T("%i redraws"), m_iRedraws); PUT_TEXT(160);
-	Text.Format(_T("%i paints"), m_iPaints); PUT_TEXT(160);
-	Text.Format(_T("%i quick redraws"), m_iQuickRedraws); PUT_TEXT(160);
-	Text.Format(_T("%i full redraws"), m_iFullRedraws); PUT_TEXT(160);
-	Text.Format(_T("%i header redraws"), m_iHeaderRedraws); PUT_TEXT(160);
-	Text.Format(_T("%i erases"), m_iErases); PUT_TEXT(160);
-	Text.Format(_T("%i new buffers"), m_iBuffers); PUT_TEXT(160);
-	Text.Format(_T("%i chars drawn"), m_iCharsDrawn); PUT_TEXT(160);
-	Text.Format(_T("%i rows visible"), m_iLinesVisible); PUT_TEXT(160);
-	Text.Format(_T("%i full rows visible"), m_iLinesFullVisible); PUT_TEXT(160);
-	Text.Format(_T("%i (%i) end sel"), m_selection.m_cpEnd.m_iChannel, GetChannelCount()); PUT_TEXT(160);
-	Text.Format(_T("Channels: %i, %i"), m_iFirstChannel, m_iChannelsVisible); PUT_TEXT(160);
+	Text.Format(L"%i ms", (__int64(EndTime.QuadPart) - __int64(StartTime.QuadPart)) / (__int64(Freq.QuadPart) / 1000)); PUT_TEXT(160);
+	Text.Format(L"%i redraws", m_iRedraws); PUT_TEXT(160);
+	Text.Format(L"%i paints", m_iPaints); PUT_TEXT(160);
+	Text.Format(L"%i quick redraws", m_iQuickRedraws); PUT_TEXT(160);
+	Text.Format(L"%i full redraws", m_iFullRedraws); PUT_TEXT(160);
+	Text.Format(L"%i header redraws", m_iHeaderRedraws); PUT_TEXT(160);
+	Text.Format(L"%i erases", m_iErases); PUT_TEXT(160);
+	Text.Format(L"%i new buffers", m_iBuffers); PUT_TEXT(160);
+	Text.Format(L"%i chars drawn", m_iCharsDrawn); PUT_TEXT(160);
+	Text.Format(L"%i rows visible", m_iLinesVisible); PUT_TEXT(160);
+	Text.Format(L"%i full rows visible", m_iLinesFullVisible); PUT_TEXT(160);
+	Text.Format(L"%i (%i) end sel", m_selection.m_cpEnd.m_iChannel, GetChannelCount()); PUT_TEXT(160);
+	Text.Format(L"Channels: %i, %i", m_iFirstChannel, m_iChannelsVisible); PUT_TEXT(160);
 
 	PosY += 20;
 
-	Text.Format(_T("Selection channel: %i - %i"), m_selection.m_cpStart.m_iChannel, m_selection.m_cpEnd.m_iChannel); PUT_TEXT(220);
-	Text.Format(_T("Selection column: %i - %i"), m_selection.m_cpStart.m_iColumn, m_selection.m_cpEnd.m_iColumn); PUT_TEXT(220);
-	Text.Format(_T("Selection row: %i - %i"), m_selection.m_cpStart.m_iRow, m_selection.m_cpEnd.m_iRow); PUT_TEXT(220);
-	Text.Format(_T("Window width: %i - %i"), m_iWinWidth, m_iPatternWidth); PUT_TEXT(220);
-	Text.Format(_T("Play: %i - %i"), m_iPlayFrame, m_iPlayRow); PUT_TEXT(220);
-	Text.Format(_T("Middle row: %i"), m_iCenterRow); PUT_TEXT(220);
+	Text.Format(L"Selection channel: %i - %i", m_selection.m_cpStart.m_iChannel, m_selection.m_cpEnd.m_iChannel); PUT_TEXT(220);
+	Text.Format(L"Selection column: %i - %i", m_selection.m_cpStart.m_iColumn, m_selection.m_cpEnd.m_iColumn); PUT_TEXT(220);
+	Text.Format(L"Selection row: %i - %i", m_selection.m_cpStart.m_iRow, m_selection.m_cpEnd.m_iRow); PUT_TEXT(220);
+	Text.Format(L"Window width: %i - %i", m_iWinWidth, m_iPatternWidth); PUT_TEXT(220);
+	Text.Format(L"Play: %i - %i", m_iPlayFrame, m_iPlayRow); PUT_TEXT(220);
+	Text.Format(L"Middle row: %i", m_iCenterRow); PUT_TEXT(220);
 
 #endif		// // //
 
@@ -1130,17 +1114,17 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 	// Draw row number
 	DC.SetTextAlign(TA_CENTER | TA_BASELINE);		// // //
 
-	CString Text;
+	CStringW Text;
 
 	if (pSettings->General.bRowInHex) {
 		// // // Hex display
-		Text.Format(_T("%02X"), Row);
+		Text.Format(L"%02X", Row);
 		DrawChar(DC, (m_iRowColumnWidth - m_iCharWidth) / 2, (Line + 1) * m_iRowHeight - m_iRowHeight / 8, Text[0], TextColor);
 		DrawChar(DC, (m_iRowColumnWidth + m_iCharWidth) / 2, (Line + 1) * m_iRowHeight - m_iRowHeight / 8, Text[1], TextColor);
 	}
 	else {
 		// // // Decimal display
-		Text.Format(_T("%03d"), Row);
+		Text.Format(L"%03d", Row);
 		DrawChar(DC, m_iRowColumnWidth / 2 - m_iCharWidth, (Line + 1) * m_iRowHeight - m_iRowHeight / 8, Text[0], TextColor);
 		DrawChar(DC, m_iRowColumnWidth / 2				  , (Line + 1) * m_iRowHeight - m_iRowHeight / 8, Text[1], TextColor);
 		DrawChar(DC, m_iRowColumnWidth / 2 + m_iCharWidth, (Line + 1) * m_iRowHeight - m_iRowHeight / 8, Text[2], TextColor);
@@ -1286,10 +1270,10 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		EffNumber >= EF_COUNT ||
 		NoteData.Instrument > MAX_INSTRUMENTS && NoteData.Instrument != HOLD_INSTRUMENT) {		// // // 050B
 		if (Column == C_NOTE/* || Column == 4*/) {
-			CString Text;
-			Text.Format(_T("(invalid)"));
+			CStringW Text;
+			Text.Format(L"(invalid)");
 			DC.SetTextColor(MakeRGB(255, 0, 0));
-			DC.TextOut(PosX, -1, Text);
+			DC.TextOutW(PosX, -1, Text);
 		}
 		return;
 	}
@@ -1378,7 +1362,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 			break;
 		case ECHO:
 			// // // Echo buffer access
-			DrawChar(DC, PosX + m_iCharWidth, PosY, _T('^'), ColorInfo.Note);
+			DrawChar(DC, PosX + m_iCharWidth, PosY, L'^', ColorInfo.Note);
 			DrawChar(DC, PosX + m_iCharWidth * 2, PosY, NOTES_C[NoteData.Octave], ColorInfo.Note);
 			break;
 		default:
@@ -1498,8 +1482,8 @@ void CPatternEditor::DrawHeader(CDC &DC)
 		}
 
 		// Text
-		auto pChanName = (m_bCompactMode && m_iCharWidth < 6) ? _T("") :
-			(m_bCompactMode || m_iCharWidth < 9) ? GetChannelShortName(ch) : GetChannelFullName(ch);		// // //
+		auto pChanName = (m_bCompactMode && m_iCharWidth < 6) ? L"" :
+			conv::to_wide((m_bCompactMode || m_iCharWidth < 9) ? GetChannelShortName(ch) : GetChannelFullName(ch));		// // //
 
 		COLORREF HeadTextCol = bMuted ? STATIC_COLOR_SCHEME.CHANNEL_MUTED : STATIC_COLOR_SCHEME.CHANNEL_NORMAL;
 
@@ -1508,13 +1492,13 @@ void CPatternEditor::DrawHeader(CDC &DC)
 			DC.SetTextAlign(TA_CENTER);
 
 		DC.SetTextColor(BLEND(HeadTextCol, WHITE, SHADE_LEVEL::TEXT_SHADOW));
-		DC.TextOut(Offset + (m_bCompactMode ? GetColumnSpace(C_NOTE) / 2 + 1 : 10) + 1, HEADER_CHAN_START + 6 + (bMuted ? 1 : 0), pChanName.data(), pChanName.size());
+		DC.TextOutW(Offset + (m_bCompactMode ? GetColumnSpace(C_NOTE) / 2 + 1 : 10) + 1, HEADER_CHAN_START + 6 + (bMuted ? 1 : 0), pChanName.data(), pChanName.size());
 
 		// Foreground
 		if (m_iMouseHoverChan == Channel)
 			HeadTextCol = BLEND(HeadTextCol, MakeRGB(255, 255, 0), SHADE_LEVEL::HOVER);
 		DC.SetTextColor(HeadTextCol);
-		DC.TextOut(Offset + (m_bCompactMode ? GetColumnSpace(C_NOTE) / 2 + 1 : 10), HEADER_CHAN_START + 5, pChanName.data(), pChanName.size());		// // //
+		DC.TextOutW(Offset + (m_bCompactMode ? GetColumnSpace(C_NOTE) / 2 + 1 : 10), HEADER_CHAN_START + 5, pChanName.data(), pChanName.size());		// // //
 
 		if (!m_bCompactMode) {		// // //
 			// Effect columns
@@ -1523,9 +1507,9 @@ void CPatternEditor::DrawHeader(CDC &DC)
 
 			unsigned fxcols = pSongView->GetEffectColumnCount(Channel);
 			for (unsigned int i = 1; i <= fxcols; i++) {		// // //
-				CString str;
-				str.Format(_T("fx%d"), i + 1);
-				DC.TextOut(Offset + GetChannelWidth(i) - m_iCharWidth * 3 / 2, HEADER_CHAN_START + HEADER_CHAN_HEIGHT - 17, str);
+				CStringW str;
+				str.Format(L"fx%d", i + 1);
+				DC.TextOutW(Offset + GetChannelWidth(i) - m_iCharWidth * 3 / 2, HEADER_CHAN_START + HEADER_CHAN_HEIGHT - 17, str);
 			}
 
 			// Arrows for expanding/removing fx columns
@@ -1667,10 +1651,10 @@ void CPatternEditor::DrawRegisters(CDC &DC) {		// // //
 }
 
 // Draws a colored character
-void CPatternEditor::DrawChar(CDC &DC, int x, int y, TCHAR c, COLORREF Color) const
+void CPatternEditor::DrawChar(CDC &DC, int x, int y, WCHAR c, COLORREF Color) const
 {
 	DC.SetTextColor(Color);
-	DC.TextOut(x, y, &c, 1);
+	DC.TextOutW(x, y, &c, 1);
 	++m_iCharsDrawn;
 }
 
@@ -3456,7 +3440,7 @@ void CPatternEditor::SetSelection(int Scope)		// // //
 	m_bSelectionInvalidated = true;
 }
 
-void CPatternEditor::GetVolumeColumn(CString &str) const
+void CPatternEditor::GetVolumeColumn(CStringW &str) const
 {
 	// Copy the volume column as text
 
@@ -3481,11 +3465,11 @@ void CPatternEditor::GetVolumeColumn(CString &str) const
 		const auto &NoteData = it.first.Get(Channel);
 		if (NoteData.Vol != MAX_VOLUME)
 			vol = NoteData.Vol;
-		str.AppendFormat(_T("%i "), vol);
+		str.AppendFormat(L"%i ", vol);
 	}
 }
 
-void CPatternEditor::GetSelectionAsText(CString &str) const		// // //
+void CPatternEditor::GetSelectionAsText(CStringW &str) const		// // //
 {
 	// Copy selection as text
 	CSongView *pSongView = m_pView->GetSongView();		// // //
@@ -3504,17 +3488,17 @@ void CPatternEditor::GetSelectionAsText(CString &str) const		// // //
 	do HexLength++; while (Size >>= 4);
 	if (HexLength < 2) HexLength = 2;
 
-	CString Header(_T(' '), HexLength + 3);
-	Header.Append(_T("# "));
+	CStringW Header(L' ', HexLength + 3);
+	Header.Append(L"# ");
 	for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
-		Header.AppendFormat(_T(": %-13s"), GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(i)).data());
+		Header.AppendFormat(L": %-13s", GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(i)).data());
 		int Columns = pSongView->GetEffectColumnCount(i);
 		if (i == it.second.m_iChannel)
 			Columns = std::clamp(static_cast<int>(GetSelectColumn(it.second.m_iColumn)) - 3, 0, Columns);
 		for (int j = 0; j < Columns; j++)
-			Header.AppendFormat(_T("fx%d "), j + 2);
+			Header.AppendFormat(L"fx%d ", j + 2);
 	}
-	str = Header.TrimRight() + _T("\r\n");
+	str = Header.TrimRight() + L"\r\n";
 
 	static const int COLUMN_CHAR_POS[] = {0, 4, 7, 9, 13, 17, 21};
 	static const int COLUMN_CHAR_LEN[] = {3, 2, 1, 3, 3, 3, 3};
@@ -3522,24 +3506,24 @@ void CPatternEditor::GetSelectionAsText(CString &str) const		// // //
 	const unsigned BegCol = GetSelectColumn(it.first.m_iColumn);
 	const unsigned EndCol = GetSelectColumn(it.second.m_iColumn);
 	for (; it.first <= it.second; ++it.first) {
-		CString line;
-		line.AppendFormat(_T("ROW %0*X"), HexLength, Row++);
+		CStringW line;
+		line.AppendFormat(L"ROW %0*X", HexLength, Row++);
 		for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
 			const auto &NoteData = it.first.Get(i);
-			CString Row = CTextExport::ExportCellText(NoteData, pSongView->GetEffectColumnCount(i) + 1,
+			auto Row = CTextExport::ExportCellText(NoteData, pSongView->GetEffectColumnCount(i) + 1,
 				pSongView->GetChannelOrder().TranslateChannel(i) == chan_id_t::NOISE);
 			if (i == it.first.m_iChannel) for (unsigned c = 0; c < BegCol; ++c)
 				for (int j = 0; j < COLUMN_CHAR_LEN[c]; ++j) Row.SetAt(COLUMN_CHAR_POS[c] + j, ' ');
 			if (i == it.second.m_iChannel && EndCol < COLUMN_EFF4)
 				Row = Row.Left(COLUMN_CHAR_POS[EndCol + 1] - 1);
-			line.AppendFormat(_T(" : %s"), Row);
+			line.AppendFormat(L" : %s", conv::to_wide(Row).data());
 		}
 		str.Append(line);
-		str.Append(_T("\r\n"));
+		str.Append(L"\r\n");
 	}
 }
 
-void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
+void CPatternEditor::GetSelectionAsPPMCK(CStringW &str) const		// // //
 {
 	// Returns a PPMCK MML translation of copied pattern
 
@@ -3559,7 +3543,7 @@ void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
 		case sound_chip_t::S5B:  Type += 'X'; break;
 		case sound_chip_t::MMC5: Type += 'a'; break;
 		}
-		str.AppendFormat(_T("%c\t"), Type);
+		str.AppendFormat(L"%c\t", Type);
 
 		int o = -1;
 		int len = -1;
@@ -3578,7 +3562,7 @@ void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
 				bool push = current.Note != NONE && current.Note != RELEASE;
 
 				if (current.Vol != MAX_VOLUME)
-					str.AppendFormat(_T("v%i"), current.Vol);
+					str.AppendFormat(L"v%i", current.Vol);
 
 				if (current.Note == ECHO) {
 					current.Note   = echo[current.Octave].Note;
@@ -3592,32 +3576,32 @@ void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
 				}
 
 				if (!first || (NoteData.Note != NONE)) switch (current.Note) {
-				case NONE: str.Append(_T("w")); break;
-				case RELEASE: str.Append(_T("k")); break;
-				case HALT: str.Append(_T("r")); break;
+				case NONE: str.Append(L"w"); break;
+				case RELEASE: str.Append(L"k"); break;
+				case HALT: str.Append(L"r"); break;
 				default:
 					if (o == -1) {
 						o = current.Octave;
-						str.AppendFormat(_T("o%i"), o);
+						str.AppendFormat(L"o%i", o);
 					}
 					else {
 						while (o < current.Octave) {
 							o++;
-							str.Append(_T(">"));
+							str.Append(L">");
 						}
 						while (o > current.Octave) {
 							o--;
-							str.Append(_T("<"));
+							str.Append(L"<");
 						}
 					}
-					str.AppendFormat(_T("%c"), (current.Note * 7 + 18) / 12 % 7 + 'a');
-					if ((current.Note * 7 + 6) % 12 >= 7) str.Append(_T("#"));
+					str.AppendFormat(L"%c", (current.Note * 7 + 18) / 12 % 7 + 'a');
+					if ((current.Note * 7 + 6) % 12 >= 7) str.Append(L"#");
 				}
 
 				if (fin) len++;
 				while (len >= 32) {
 					len -= 16;
-					str.Append(_T("1^"));
+					str.Append(L"1^");
 				}
 				int l = 16;
 				while (l) {
@@ -3625,15 +3609,15 @@ void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
 						l >>= 1;
 						continue;
 					}
-					str.AppendFormat(_T("%i"), 16 / l);
+					str.AppendFormat(L"%i", 16 / l);
 					do {
 						len -= l;
 						l >>= 1;
 						if (len & l) {
-							str.Append(_T("."));
+							str.Append(L".");
 						}
 					} while (len & l);
-					if (len) str.Append(_T("^"));
+					if (len) str.Append(L"^");
 				}
 
 				current = NoteData;
@@ -3641,7 +3625,7 @@ void CPatternEditor::GetSelectionAsPPMCK(CString &str) const		// // //
 
 			first = false;
 		}
-		str.Append(_T("\r\n"));
+		str.Append(L"\r\n");
 	}
 }
 

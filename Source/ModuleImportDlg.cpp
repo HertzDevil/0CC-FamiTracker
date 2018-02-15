@@ -64,9 +64,9 @@ BOOL CModuleImportDlg::OnInitDialog()
 	m_ctlTrackList.SubclassDlgItem(IDC_TRACKS, this);
 
 	m_pImportedDoc->GetModule()->VisitSongs([&] (const CSongData &song, unsigned i) {
-		CString str;
+		CStringW str;
 		auto sv = song.GetTitle();
-		str.Format(_T("#%02i %.*s"), i + 1, sv.size(), sv.data());		// // //
+		str.Format(L"#%02i %.*s", i + 1, sv.size(), sv.data());		// // //
 		m_ctlTrackList.AddString(str);
 		m_ctlTrackList.SetCheck(i, 1);
 	});
@@ -125,7 +125,7 @@ void CModuleImportDlg::OnBnClickedOk()
 	OnOK();
 }
 
-bool CModuleImportDlg::LoadFile(CString Path)		// // //
+bool CModuleImportDlg::LoadFile(CStringW Path)		// // //
 {
 	m_pImportedDoc = CFamiTrackerDoc::LoadImportFile(Path);
 	return m_pImportedDoc != nullptr;

@@ -62,13 +62,13 @@ BOOL CConfigMIDI::OnInitDialog()
 
 	CMIDI	*pMIDI = Env.GetMIDI();		// // //
 	int		NumDev, i;
-	CString Text;
+	CStringW Text;
 
 	CComboBox *pInDevices = static_cast<CComboBox*>(GetDlgItem(IDC_INDEVICES));
 	CComboBox *pOutDevices = static_cast<CComboBox*>(GetDlgItem(IDC_OUTDEVICES));
 
-	pInDevices->AddString(_T("<none>"));
-	pOutDevices->AddString(_T("<none>"));
+	pInDevices->AddString(L"<none>");
+	pOutDevices->AddString(L"<none>");
 
 	// Input
 	NumDev = pMIDI->GetNumInputDevices();

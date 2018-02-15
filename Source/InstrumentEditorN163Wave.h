@@ -24,6 +24,7 @@
 #pragma once
 
 #include "InstrumentEditPanel.h"		// // //
+#include <string_view>		// // //
 
 // CInstrumentEditorN163Wave dialog
 
@@ -39,7 +40,7 @@ public:
 	CInstrumentEditorN163Wave(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CInstrumentEditorN163Wave();
 	int GetIDD() const override { return IDD; }
-	LPCTSTR GetTitle() const { return _T("Wave"); }		// // //
+	LPCWSTR GetTitle() const { return L"Wave"; }		// // //
 
 	// Public
 	virtual void SelectInstrument(std::shared_ptr<CInstrument> pInst);
@@ -51,7 +52,7 @@ public:
 protected:
 	virtual void OnKeyReturn();
 
-	void ParseString(LPCTSTR pString);
+	void ParseString(std::string_view sv);		// // //
 	void FillPosBox(int size);
 	void PopulateWaveBox();		// // //
 	void UpdateWaveBox(int Index);		// // //

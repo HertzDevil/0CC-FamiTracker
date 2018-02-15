@@ -115,7 +115,7 @@ CSoundGen::CSoundGen() :
 	m_iSequencePlayPos(0),
 	m_iSequenceTimeout(0)
 {
-	TRACE("SoundGen: Object created\n");
+	TRACE(L"SoundGen: Object created\n");
 
 	// Create all kinds of channels
 	m_pSoundDriver->SetupTracks();		// // //
@@ -188,7 +188,7 @@ void CSoundGen::RemoveDocument()
 
 	if (m_pDocument != NULL) {
 		// Thread stuck
-		TRACE("SoundGen: Could not remove document pointer!\n");
+		TRACE(L"SoundGen: Could not remove document pointer!\n");
 	}
 }
 
@@ -229,7 +229,7 @@ void CSoundGen::SelectChip(const CSoundChipSet &Chip)
 	}
 
 	if (!WaitForStop()) {
-		TRACE("CSoundGen: Could not stop player!");
+		TRACE(L"CSoundGen: Could not stop player!");
 		return;
 	}
 
@@ -474,7 +474,7 @@ bool CSoundGen::ResetAudioDevice()
 	m_pAPU->SetupMixer(pSettings->Sound.iBassFilter, pSettings->Sound.iTrebleFilter,
 					   pSettings->Sound.iTrebleDamping, pSettings->Sound.iMixVolume);
 
-	TRACE("SoundGen: Created sound channel with params: %i Hz, %i bits, %i ms (%i blocks)\n", SampleRate, SampleSize, BufferLen, iBlocks);
+	TRACE(L"SoundGen: Created sound channel with params: %i Hz, %i bits, %i ms (%i blocks)\n", SampleRate, SampleSize, BufferLen, iBlocks);
 
 	return true;
 }
@@ -864,7 +864,7 @@ int CSoundGen::GetChannelVolume(chan_id_t chan) const {		// // //
 
 // File rendering functions
 
-bool CSoundGen::RenderToFile(LPCTSTR pFile, const std::shared_ptr<CWaveRenderer> &pRender)		// // //
+bool CSoundGen::RenderToFile(LPCWSTR pFile, const std::shared_ptr<CWaveRenderer> &pRender)		// // //
 {
 	// Called from main thread
 	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
@@ -989,14 +989,14 @@ BOOL CSoundGen::InitInstance()
 	m_bRunning = true;
 
 	if (!ResetAudioDevice()) {
-		TRACE("SoundGen: Failed to reset audio device!\n");
+		TRACE(L"SoundGen: Failed to reset audio device!\n");
 		if (m_pVisualizerWnd != NULL)
 			m_pVisualizerWnd->ReportAudioProblem();
 	}
 
 	ResetAPU();
 
-	TRACE("SoundGen: Created thread (0x%04x)\n", m_nThreadID);
+	TRACE(L"SoundGen: Created thread (0x%04x)\n", m_nThreadID);
 
 	SetThreadPriority(THREAD_PRIORITY_TIME_CRITICAL);
 
@@ -1011,7 +1011,7 @@ int CSoundGen::ExitInstance()
 {
 	// Shutdown the thread
 
-	TRACE("SoundGen: Closing thread (0x%04x)\n", m_nThreadID);
+	TRACE(L"SoundGen: Closing thread (0x%04x)\n", m_nThreadID);
 
 	// Make sure sound interface is shut down
 	CloseAudio();
@@ -1107,7 +1107,7 @@ void CSoundGen::OnSilentAll(WPARAM wParam, LPARAM lParam)
 void CSoundGen::OnLoadSettings(WPARAM wParam, LPARAM lParam)
 {
 	if (!ResetAudioDevice()) {
-		TRACE("SoundGen: Failed to reset audio device!\n");
+		TRACE(L"SoundGen: Failed to reset audio device!\n");
 		if (m_pVisualizerWnd != NULL)
 			m_pVisualizerWnd->ReportAudioProblem();
 	}
@@ -1188,7 +1188,7 @@ void CSoundGen::OnRemoveDocument(WPARAM wParam, LPARAM lParam)
 	//if (*m_pDumpInstrument)		// // //
 	//	(*m_pDumpInstrument)->Release();
 	m_pInstRecorder->ResetRecordCache();
-	TRACE("SoundGen: Document removed\n");
+	TRACE(L"SoundGen: Document removed\n");
 }
 
 // FDS & N163

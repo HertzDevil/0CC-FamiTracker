@@ -39,7 +39,7 @@
 /// CBannerEdit
 ///
 
-const TCHAR CBannerEdit::BANNER_FONT[]	 = _T("Tahoma");
+const WCHAR CBannerEdit::BANNER_FONT[]	 = L"Tahoma";
 const COLORREF CBannerEdit::BANNER_COLOR = 0x808080;
 
 // Used to display a banner in edit boxes
@@ -64,8 +64,8 @@ void CBannerEdit::OnPaint()
 	CEdit::OnPaint();
 
 	// Overlay some text
-	CString str;
-	GetWindowText(str);
+	CStringW str;
+	GetWindowTextW(str);
 
 	// only if empty and not in focus
 	if (str.GetLength() > 0 || GetFocus() == this)
@@ -74,12 +74,12 @@ void CBannerEdit::OnPaint()
 	CDC *pDC = GetDC();
 	if (pDC != NULL) {
 		CFont font;
-		font.CreateFont(DPI::SY(12), 0, 0, 0, 0, TRUE, FALSE, FALSE, 0, 0, 0, 0, 0, BANNER_FONT);
+		font.CreateFontW(DPI::SY(12), 0, 0, 0, 0, TRUE, FALSE, FALSE, 0, 0, 0, 0, 0, BANNER_FONT);
 		CFont *pOldFont = pDC->SelectObject(&font);
 
 		pDC->SetBkColor(pDC->GetPixel(4, 4));
 		pDC->SetTextColor(BANNER_COLOR);
-		pDC->TextOut(2, 1, m_strText);
+		pDC->TextOutW(2, 1, m_strText);
 		pDC->SelectObject(pOldFont);
 
 		ReleaseDC(pDC);
@@ -90,11 +90,11 @@ void CBannerEdit::OnKillFocus(CWnd* pNewWnd)
 {
 	CEdit::OnKillFocus(pNewWnd);
 	// Limit string size to 31 chars
-	CString text;
-	GetWindowText(text);
+	CStringW text;
+	GetWindowTextW(text);
 	if (text.GetLength() > 31)
 		text = text.Left(31);
-	SetWindowText(text);
+	SetWindowTextW(text);
 }
 
 ///
@@ -134,7 +134,7 @@ void CLockedEdit::OnLButtonDblClk(UINT nFlags, CPoint point)
 	if (IsEditable())
 		SetSel(0, -1);	// select all
 	else {
-		SendMessage(EM_SETREADONLY, FALSE);
+		SendMessageW(EM_SETREADONLY, FALSE);
 		SetFocus();
 		SetSel(0, -1);
 	}
@@ -151,13 +151,13 @@ void CLockedEdit::OnSetFocus(CWnd* pOldWnd)
 void CLockedEdit::OnKillFocus(CWnd* pNewWnd)
 {
 	CEdit::OnKillFocus(pNewWnd);
-	CString Text;
+	CStringW Text;
 	if (!IsEditable())
 		return;
-	GetWindowText(Text);
+	GetWindowTextW(Text);
 	m_iValue = _ttoi(Text);
 	m_bUpdate = true;
-	SendMessage(EM_SETREADONLY, TRUE);
+	SendMessageW(EM_SETREADONLY, TRUE);
 }
 
 BOOL CLockedEdit::PreTranslateMessage(MSG* pMsg)

@@ -313,7 +313,7 @@ void CAPU::ClearSample()		// // //
 #ifdef LOGGING
 void CAPU::Log()
 {
-	CString str;
+	CStringW str;
 	str.Format("Frame %08i: ", m_iFrame - 1);
 	str.Append("2A03 ");
 	for (int i = 0; i < 0x14; ++i)

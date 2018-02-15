@@ -47,11 +47,23 @@ auto string_gmatch(std::basic_string_view<CharT, Traits> sv, const std::basic_re
 	return rng {sv, re};
 }
 
-static inline const std::regex words {R"(\S+)", std::regex_constants::optimize};
+static const std::regex words {R"(\S+)", std::regex_constants::optimize};
+static const std::wregex wwords {LR"(\S+)", std::regex_constants::optimize};
 
-template <typename T>
-auto tokens(T sv) {
-	return string_gmatch(std::string_view {sv}, words);
+inline auto tokens(std::string_view sv) {
+	return string_gmatch(sv, words);
+}
+
+inline auto tokens(std::wstring_view sv) {
+	return string_gmatch(sv, wwords);
+}
+
+inline auto tokens(const char *str) {
+	return tokens(std::string_view {str});
+}
+
+inline auto tokens(const wchar_t *str) {
+	return tokens(std::wstring_view {str});
 }
 
 using svmatch = std::match_results<std::string_view::const_iterator>;

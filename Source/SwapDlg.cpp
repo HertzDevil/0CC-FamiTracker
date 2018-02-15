@@ -68,28 +68,28 @@ BOOL CSwapDlg::OnInitDialog()
 
 	const auto &chips = CFamiTrackerDoc::GetDoc()->GetModule()->GetSoundChipSet();
 	if (chips.ContainsChip(sound_chip_t::APU))
-		m_cChipFirst.AddString(_T("2A03"));
+		m_cChipFirst.AddString(L"2A03");
 	if (chips.ContainsChip(sound_chip_t::VRC6))
-		m_cChipFirst.AddString(_T("VRC6"));
+		m_cChipFirst.AddString(L"VRC6");
 	if (chips.ContainsChip(sound_chip_t::VRC7))
-		m_cChipFirst.AddString(_T("VRC7"));
+		m_cChipFirst.AddString(L"VRC7");
 	if (chips.ContainsChip(sound_chip_t::FDS))
-		m_cChipFirst.AddString(_T("FDS"));
+		m_cChipFirst.AddString(L"FDS");
 	if (chips.ContainsChip(sound_chip_t::MMC5))
-		m_cChipFirst.AddString(_T("MMC5"));
+		m_cChipFirst.AddString(L"MMC5");
 	if (chips.ContainsChip(sound_chip_t::N163))
-		m_cChipFirst.AddString(_T("N163"));
+		m_cChipFirst.AddString(L"N163");
 	if (chips.ContainsChip(sound_chip_t::S5B))
-		m_cChipFirst.AddString(_T("5B"));
+		m_cChipFirst.AddString(L"5B");
 
-	CString str;
+	CStringW str;
 	for (int i = 0; i < m_cChipFirst.GetCount(); i++)
 	{
 	   m_cChipFirst.GetLBText(i, str);
 	   m_cChipSecond.AddString(str);
 	}
-	m_cChannelFirst.SetWindowText(_T("1"));
-	m_cChannelSecond.SetWindowText(_T("2"));
+	m_cChannelFirst.SetWindowTextW(L"1");
+	m_cChannelSecond.SetWindowTextW(L"2");
 	m_cChipFirst.SetCurSel(0);
 	m_cChipSecond.SetCurSel(0);
 	CheckDlgButton(IDC_CHECK_SWAP_ALL, BST_UNCHECKED);
@@ -106,53 +106,53 @@ void CSwapDlg::CheckDestination() const
 								   (m_iDestChannel1 != m_iDestChannel2 || m_iDestChip1 != m_iDestChip2));
 }
 
-sound_chip_t CSwapDlg::GetChipFromString(const CString &str)
+sound_chip_t CSwapDlg::GetChipFromString(const CStringW &str)
 {
-	if (str == _T("2A03"))
+	if (str == L"2A03")
 		return sound_chip_t::APU;
-	if (str == _T("VRC6"))
+	if (str == L"VRC6")
 		return sound_chip_t::VRC6;
-	if (str == _T("VRC7"))
+	if (str == L"VRC7")
 		return sound_chip_t::VRC7;
-	if (str == _T("FDS"))
+	if (str == L"FDS")
 		return sound_chip_t::FDS;
-	if (str == _T("MMC5"))
+	if (str == L"MMC5")
 		return sound_chip_t::MMC5;
-	if (str == _T("N163"))
+	if (str == L"N163")
 		return sound_chip_t::N163;
-	if (str == _T("5B"))
+	if (str == L"5B")
 		return sound_chip_t::S5B;
 	return sound_chip_t::NONE;
 }
 
 void CSwapDlg::OnEnChangeEditSwapChan1()
 {
-	CString str;
-	m_cChannelFirst.GetWindowText(str);
-	m_iDestChannel1 = atoi(str) - 1;
+	CStringW str;
+	m_cChannelFirst.GetWindowTextW(str);
+	m_iDestChannel1 = StrToIntW(str) - 1;
 	CheckDestination();
 }
 
 void CSwapDlg::OnEnChangeEditSwapChan2()
 {
-	CString str;
-	m_cChannelSecond.GetWindowText(str);
-	m_iDestChannel2 = atoi(str) - 1;
+	CStringW str;
+	m_cChannelSecond.GetWindowTextW(str);
+	m_iDestChannel2 = StrToIntW(str) - 1;
 	CheckDestination();
 }
 
 void CSwapDlg::OnCbnSelchangeComboSwapChip1()
 {
-	CString str;
-	m_cChipFirst.GetWindowText(str);
+	CStringW str;
+	m_cChipFirst.GetWindowTextW(str);
 	m_iDestChip1 = GetChipFromString(str);
 	CheckDestination();
 }
 
 void CSwapDlg::OnCbnSelchangeComboSwapChip2()
 {
-	CString str;
-	m_cChipSecond.GetWindowText(str);
+	CStringW str;
+	m_cChipSecond.GetWindowTextW(str);
 	m_iDestChip2 = GetChipFromString(str);
 	CheckDestination();
 }

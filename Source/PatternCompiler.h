@@ -70,7 +70,7 @@ private:
 	stSpacingInfo	ScanNoteLengths(int Track, unsigned int StartRow, int Pattern, chan_id_t Channel);		// // //
 
 	// Debugging
-	void			Print(const char *text) const;		// // //
+	void			Print(const wchar_t *text) const;		// // //
 
 private:
 	std::vector<unsigned char> m_vData;		// // //

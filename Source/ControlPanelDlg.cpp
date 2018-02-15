@@ -71,7 +71,7 @@ BOOL CControlPanelDlg::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLE
 BOOL CControlPanelDlg::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
 	// Route notify messages to main frame
-	//*pResult = GetParent()->GetParent()->SendMessage(WM_NOTIFY, wParam, lParam);
+	//*pResult = GetParent()->GetParent()->SendMessageW(WM_NOTIFY, wParam, lParam);
 	return CDialog::OnNotify(wParam, lParam, pResult);
 }
 

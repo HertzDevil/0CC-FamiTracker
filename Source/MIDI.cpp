@@ -180,14 +180,14 @@ int CMIDI::GetNumOutputDevices() const
 	return midiOutGetNumDevs();
 }
 
-void CMIDI::GetInputDeviceString(int Num, CString &Text) const
+void CMIDI::GetInputDeviceString(int Num, CStringW &Text) const
 {
 	MIDIINCAPS InCaps;
 	midiInGetDevCaps(Num, &InCaps, sizeof(MIDIINCAPS));
 	Text = InCaps.szPname;
 }
 
-void CMIDI::GetOutputDeviceString(int Num, CString &Text) const
+void CMIDI::GetOutputDeviceString(int Num, CStringW &Text) const
 {
 	MIDIOUTCAPS OutCaps;
 	midiOutGetDevCaps(Num, &OutCaps, sizeof(MIDIOUTCAPS));
@@ -234,7 +234,7 @@ void CMIDI::Event(unsigned char Status, unsigned char Data1, unsigned char Data2
 	CFrameWnd *pFrame = static_cast<CFrameWnd*>(AfxGetApp()->m_pMainWnd);
 	CView *pView = pFrame->GetActiveView();
 
-	TRACE("%i: MIDI message %02X %02X %02X\n", GetTickCount(), Status, Data1, Data2);
+	TRACE(L"%i: MIDI message %02X %02X %02X\n", GetTickCount(), Status, Data1, Data2);
 
 	// Timing
 	switch (Status) {

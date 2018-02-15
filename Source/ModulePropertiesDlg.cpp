@@ -30,8 +30,9 @@
 #include "ModuleImportDlg.h"
 #include "SoundGen.h"
 #include "ChannelMap.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
-LPCTSTR TRACK_FORMAT = _T("#%02i %.*s");		// // //
+LPCWSTR TRACK_FORMAT = L"#%02i %.*s";		// // //
 
 // CModulePropertiesDlg dialog
 
@@ -89,7 +90,7 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 	m_pModule = m_pDocument->GetModule();		// // //
 
 	CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
-	pSongList->InsertColumn(0, _T("Songs"), 0, 150);
+	pSongList->InsertColumn(0, L"Songs", 0, 150);
 	pSongList->SetExtendedStyle(LVS_EX_FULLROWSELECT);
 
 	FillSongList();
@@ -115,24 +116,24 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 	CStatic *pChannelsLabel = (CStatic*)GetDlgItem(IDC_CHANNELS_NR);
 	pChanSlider->SetRange(1, MAX_CHANNELS_N163);		// // //
 
-	CString channelsStr;
-	channelsStr.LoadString(IDS_PROPERTIES_CHANNELS);
+	CStringW channelsStr;
+	channelsStr.LoadStringW(IDS_PROPERTIES_CHANNELS);
 	if (m_iExpansions.ContainsChip(sound_chip_t::N163)) {
 		m_iN163Channels = m_pModule->GetNamcoChannels();
 
 		pChanSlider->SetPos(m_iN163Channels);
 		pChanSlider->EnableWindow(TRUE);
 		pChannelsLabel->EnableWindow(TRUE);
-		channelsStr.AppendFormat(_T(" %i"), m_iN163Channels);
+		channelsStr.AppendFormat(L" %i", m_iN163Channels);
 	}
 	else {
 		m_iN163Channels = 1;
 
 		pChanSlider->SetPos(0);
 		pChanSlider->EnableWindow(FALSE);
-		channelsStr.Append(_T(" N/A"));
+		channelsStr.Append(L" N/A");
 	}
-	SetDlgItemText(IDC_CHANNELS_NR, channelsStr);
+	SetDlgItemTextW(IDC_CHANNELS_NR, channelsStr);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
@@ -277,17 +278,18 @@ void CModulePropertiesDlg::OnEnChangeSongname()
 {
 	CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
 	CEdit *pName = static_cast<CEdit*>(GetDlgItem(IDC_SONGNAME));
-	CString Text;
 
 	if (m_iSelectedSong == -1 || !m_bSingleSelection)
 		return;
 
-	pName->GetWindowText(Text);
+	CStringW WText;
+	pName->GetWindowTextW(WText);
+	auto Text = conv::to_utf8(WText);
 
 	CSongData *pSong = m_pModule->GetSong(m_iSelectedSong);		// // //
-	if (pSong->GetTitle() != (LPCTSTR)Text)		// // //
+	if (pSong->GetTitle() != Text)		// // //
 		m_pDocument->ModifyIrreversible();
-	pSong->SetTitle((LPCTSTR)Text);
+	pSong->SetTitle(Text);
 	pSongList->SetItemText(m_iSelectedSong, 0, GetSongString(m_iSelectedSong));
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 }
@@ -324,8 +326,8 @@ void CModulePropertiesDlg::OnBnClickedSongImport()
 	CModuleImportDlg importDlg(m_pDocument);
 
 	// TODO use string table
-	CFileDialog OpenFileDlg(TRUE, _T("0cc"), 0, OFN_HIDEREADONLY,
-							_T("0CC-FamiTracker modules (*.0cc;*.ftm)|*.0cc; *.ftm|All files (*.*)|*.*||"),		// // //
+	CFileDialog OpenFileDlg(TRUE, L"0cc", 0, OFN_HIDEREADONLY,
+							L"0CC-FamiTracker modules (*.0cc;*.ftm)|*.0cc; *.ftm|All files (*.*)|*.*||",		// // //
 							AfxGetMainWnd(), 0);
 
 	if (OpenFileDlg.DoModal() == IDCANCEL)
@@ -359,19 +361,19 @@ void CModulePropertiesDlg::OnCbnSelchangeExpansion()
 	// Expansion chip
 	unsigned int iExpansionChip = theApp.GetChannelMap()->GetChipIdent(pExpansionChipBox->GetCurSel());
 
-	CString channelsStr;
-	channelsStr.LoadString(IDS_PROPERTIES_CHANNELS);
+	CStringW channelsStr;
+	channelsStr.LoadStringW(IDS_PROPERTIES_CHANNELS);
 	if (iExpansionChip == sound_chip_t::N163) {
 		pSlider->EnableWindow(TRUE);
 		int Channels = m_pDocument->GetNamcoChannels();
 		pSlider->SetPos(Channels);
-		channelsStr.AppendFormat(_T(" %i"), Channels);
+		channelsStr.AppendFormat(L" %i", Channels);
 	}
 	else {
 		pSlider->EnableWindow(FALSE);
-		channelsStr.Append(_T(" N/A"));
+		channelsStr.Append(L" N/A");
 	}
-	SetDlgItemText(IDC_CHANNELS_NR, channelsStr);
+	SetDlgItemTextW(IDC_CHANNELS_NR, channelsStr);
 }
 */
 void CModulePropertiesDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
@@ -380,10 +382,10 @@ void CModulePropertiesDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 
 	m_iN163Channels = pSlider->GetPos();
 
-	CString text;
-	text.LoadString(IDS_PROPERTIES_CHANNELS);
-	text.AppendFormat(_T(" %i"),  pSlider->GetPos());
-	SetDlgItemText(IDC_CHANNELS_NR, text);
+	CStringW text;
+	text.LoadStringW(IDS_PROPERTIES_CHANNELS);
+	text.AppendFormat(L" %i",  pSlider->GetPos());
+	SetDlgItemTextW(IDC_CHANNELS_NR, text);
 
 	CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
 }
@@ -395,7 +397,7 @@ void CModulePropertiesDlg::OnLvnItemchangedSonglist(NMHDR *pNMHDR, LRESULT *pRes
 	if (pNMLV->uChanged & LVIF_STATE) {
 		if (pNMLV->uNewState & LVNI_SELECTED) {		// // //
 			m_iSelectedSong = pNMLV->iItem;
-			GetDlgItem(IDC_SONGNAME)->SetWindowText(m_pModule->GetSong(m_iSelectedSong)->GetTitle().data());		// // //
+			GetDlgItem(IDC_SONGNAME)->SetWindowTextW(conv::to_wide(m_pModule->GetSong(m_iSelectedSong)->GetTitle()).data());		// // //
 		}
 		CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
 		m_bSingleSelection = pSongList->GetSelectedCount() == 1;
@@ -405,10 +407,10 @@ void CModulePropertiesDlg::OnLvnItemchangedSonglist(NMHDR *pNMHDR, LRESULT *pRes
 	*pResult = 0;
 }
 
-CString CModulePropertiesDlg::GetSongString(unsigned index) const {		// // //
-	CString Text;
+CStringW CModulePropertiesDlg::GetSongString(unsigned index) const {		// // //
+	CStringW Text;
 	const auto *pSong = m_pModule->GetSong(index);
-	std::string_view sv = pSong ? pSong->GetTitle() : "(N/A)";
+	auto sv = conv::to_wide(pSong ? pSong->GetTitle() : "(N/A)");
 	Text.Format(TRACK_FORMAT, index + 1, sv.size(), sv.data());		// // // start counting songs from 1
 	return Text;
 }
@@ -416,7 +418,7 @@ CString CModulePropertiesDlg::GetSongString(unsigned index) const {		// // //
 void CModulePropertiesDlg::FillSongList()
 {
 	CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
-	CString Text;
+	CStringW Text;
 
 	pSongList->DeleteAllItems();
 
@@ -424,7 +426,7 @@ void CModulePropertiesDlg::FillSongList()
 	int Songs = m_pModule->GetSongCount();
 
 	m_pModule->VisitSongs([&] (const CSongData &song, unsigned index) {
-		auto sv = song.GetTitle();
+		auto sv = conv::to_wide(song.GetTitle());
 		Text.Format(TRACK_FORMAT, index + 1, sv.size(), sv.data());		// // // start counting songs from 1
 		pSongList->InsertItem(index, Text);
 	});
@@ -489,8 +491,8 @@ void CModulePropertiesDlg::OnBnClickedExpansionN163()
 
 	CSliderCtrl *pChanSlider = (CSliderCtrl*)GetDlgItem(IDC_CHANNELS);
 	CStatic *pChannelsLabel = (CStatic*)GetDlgItem(IDC_CHANNELS_NR);
-	CString channelsStr;
-	channelsStr.LoadString(IDS_PROPERTIES_CHANNELS);
+	CStringW channelsStr;
+	channelsStr.LoadStringW(IDS_PROPERTIES_CHANNELS);
 
 	// Expansion chip
 	if (pCheckBox->GetCheck() == BST_CHECKED) {
@@ -501,7 +503,7 @@ void CModulePropertiesDlg::OnBnClickedExpansionN163()
 		pChanSlider->SetPos(m_iN163Channels);
 		pChanSlider->EnableWindow(TRUE);
 		pChannelsLabel->EnableWindow(TRUE);
-		channelsStr.AppendFormat(_T(" %i"), m_iN163Channels);
+		channelsStr.AppendFormat(L" %i", m_iN163Channels);
 	}
 	else {
 		m_iExpansions = m_iExpansions.WithoutChip(sound_chip_t::N163);
@@ -509,9 +511,9 @@ void CModulePropertiesDlg::OnBnClickedExpansionN163()
 		pChanSlider->SetPos(m_iN163Channels = 0);
 		pChanSlider->EnableWindow(FALSE);
 		pChannelsLabel->EnableWindow(FALSE);
-		channelsStr.Append(_T(" N/A"));
+		channelsStr.Append(L" N/A");
 	}
-	SetDlgItemText(IDC_CHANNELS_NR, channelsStr);
+	SetDlgItemTextW(IDC_CHANNELS_NR, channelsStr);
 }
 
 void CModulePropertiesDlg::OnCbnSelchangeComboLinearpitch()
@@ -519,10 +521,9 @@ void CModulePropertiesDlg::OnCbnSelchangeComboLinearpitch()
 	static bool First = true;
 	if (First) {
 		First = false;
-		AfxMessageBox(_T(
-			"Because linear pitch mode is a planned feature in the official build, "
-			"changes to this setting might not be reflected when the current module is loaded from "
-			"a future official release that implements this feature."
-		), MB_OK | MB_ICONINFORMATION);
+		AfxMessageBox(
+			L"Because linear pitch mode is a planned feature in the official build, "
+			L"changes to this setting might not be reflected when the current module is loaded from "
+			L"a future official release that implements this feature.", MB_OK | MB_ICONINFORMATION);
 	}
 }

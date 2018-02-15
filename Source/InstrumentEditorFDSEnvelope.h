@@ -37,7 +37,7 @@ public:
 	CInstrumentEditorFDSEnvelope(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CInstrumentEditorFDSEnvelope();
 	int GetIDD() const override { return IDD; }
-	LPCTSTR GetTitle() const { return _T("Envelopes"); }		// // //
+	LPCWSTR GetTitle() const { return L"Envelopes"; }		// // //
 
 	// Public
 	virtual void SelectInstrument(std::shared_ptr<CInstrument> pInst);

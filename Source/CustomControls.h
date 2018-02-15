@@ -57,11 +57,11 @@ class CBannerEdit : public CEdit {
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
-	CBannerEdit(UINT nID) : CEdit() { m_strText.LoadString(nID); };
+	CBannerEdit(UINT nID) : CEdit() { m_strText.LoadStringW(nID); };
 protected:
-	CString m_strText;
+	CStringW m_strText;
 protected:
-	static const TCHAR BANNER_FONT[];
+	static const WCHAR BANNER_FONT[];
 	static const COLORREF BANNER_COLOR;
 public:
 	afx_msg void OnPaint();

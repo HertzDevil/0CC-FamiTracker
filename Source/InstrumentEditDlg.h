@@ -66,7 +66,7 @@ protected:
 	static const int KEYBOARD_WIDTH;
 	static const int KEYBOARD_HEIGHT;
 
-	static const LPCTSTR CHIP_NAMES[];		// // //
+	static const LPCWSTR CHIP_NAMES[];		// // //
 
 protected:
 	// Variables for keyboard

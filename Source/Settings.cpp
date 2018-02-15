@@ -36,13 +36,13 @@
 stOldSettingContext::stOldSettingContext()
 {
 	free((void*)theApp.m_pszProfileName);
-	theApp.m_pszProfileName = _T("FamiTracker");
+	theApp.m_pszProfileName = L"FamiTracker";
 }
 
 stOldSettingContext::~stOldSettingContext()
 {
-	CString s;
-	s.LoadString(AFX_IDS_APP_TITLE);
+	CStringW s;
+	s.LoadStringW(AFX_IDS_APP_TITLE);
 	theApp.m_pszProfileName = _tcsdup(s);
 }
 
@@ -56,7 +56,7 @@ CSettings &CSettings::GetInstance()		// // //
 
 CSettings::CSettings() {
 	SetupSettings();
-	TRACE(_T("Settings: Added %u settings\n"), m_pSettings.size());
+	TRACE(L"Settings: Added %u settings\n", m_pSettings.size());
 }
 
 void CSettings::SetupSettings()
@@ -74,14 +74,14 @@ void CSettings::SetupSettings()
 	//  4. A variable that contains the setting, loaded on program startup and saved on shutdown
 	//
 
-	const auto SETTING_INT = [&] (LPCTSTR Section, LPCTSTR Entry, int Default, int *Variable) {		// // //
-		return AddSetting<int>(_T(Section), _T(Entry), Default, Variable);
+	const auto SETTING_INT = [&] (LPCWSTR Section, LPCWSTR Entry, int Default, int *Variable) {		// // //
+		return AddSetting<int>(Section, Entry, Default, Variable);
 	};
-	const auto SETTING_BOOL = [&] (LPCTSTR Section, LPCTSTR Entry, bool Default, bool *Variable) {
-		return AddSetting<bool>(_T(Section), _T(Entry), Default, Variable);
+	const auto SETTING_BOOL = [&] (LPCWSTR Section, LPCWSTR Entry, bool Default, bool *Variable) {
+		return AddSetting<bool>(Section, Entry, Default, Variable);
 	};
-	const auto SETTING_STRING = [&] (LPCTSTR Section, LPCTSTR Entry, CString Default, CString *Variable) {
-		return AddSetting<CString>(_T(Section), _T(Entry), Default, Variable);
+	const auto SETTING_STRING = [&] (LPCWSTR Section, LPCWSTR Entry, CStringW Default, CStringW *Variable) {
+		return AddSetting<CStringW>(Section, Entry, Default, Variable);
 	};
 
 	stOldSettingContext s;		// // //
@@ -95,130 +95,130 @@ void CSettings::SetupSettings()
 	*/
 
 	// General
-	SETTING_INT("General", "Edit style", EDIT_STYLE_FT2, &General.iEditStyle);
-	SETTING_INT("General", "Page step size", 4, &General.iPageStepSize);
-	SETTING_BOOL("General", "Wrap cursor", true, &General.bWrapCursor);
-	SETTING_BOOL("General", "Wrap across frames", true, &General.bWrapFrames);
-	SETTING_BOOL("General", "Free cursor edit",	false, &General.bFreeCursorEdit);
-	SETTING_BOOL("General", "Wave preview", true, &General.bWavePreview);
-	SETTING_BOOL("General", "Key repeat", true, &General.bKeyRepeat);
-	SETTING_BOOL("General", "Hex row display", true, &General.bRowInHex);
-	SETTING_BOOL("General", "Frame preview", true, &General.bFramePreview);
-	SETTING_BOOL("General", "No DPCM reset", false, &General.bNoDPCMReset);
-	SETTING_BOOL("General", "No Step moving", false, &General.bNoStepMove);
-	SETTING_BOOL("General", "Delete pull up", false, &General.bPullUpDelete);
-	SETTING_BOOL("General", "Backups", false, &General.bBackups);
-	SETTING_BOOL("General", "Single instance", false, &General.bSingleInstance);
-	SETTING_BOOL("General", "Preview full row", false, &General.bPreviewFullRow);
-	SETTING_BOOL("General", "Double click selection", false, &General.bDblClickSelect);
+	SETTING_INT(L"General", L"Edit style", EDIT_STYLE_FT2, &General.iEditStyle);
+	SETTING_INT(L"General", L"Page step size", 4, &General.iPageStepSize);
+	SETTING_BOOL(L"General", L"Wrap cursor", true, &General.bWrapCursor);
+	SETTING_BOOL(L"General", L"Wrap across frames", true, &General.bWrapFrames);
+	SETTING_BOOL(L"General", L"Free cursor edit",	false, &General.bFreeCursorEdit);
+	SETTING_BOOL(L"General", L"Wave preview", true, &General.bWavePreview);
+	SETTING_BOOL(L"General", L"Key repeat", true, &General.bKeyRepeat);
+	SETTING_BOOL(L"General", L"Hex row display", true, &General.bRowInHex);
+	SETTING_BOOL(L"General", L"Frame preview", true, &General.bFramePreview);
+	SETTING_BOOL(L"General", L"No DPCM reset", false, &General.bNoDPCMReset);
+	SETTING_BOOL(L"General", L"No Step moving", false, &General.bNoStepMove);
+	SETTING_BOOL(L"General", L"Delete pull up", false, &General.bPullUpDelete);
+	SETTING_BOOL(L"General", L"Backups", false, &General.bBackups);
+	SETTING_BOOL(L"General", L"Single instance", false, &General.bSingleInstance);
+	SETTING_BOOL(L"General", L"Preview full row", false, &General.bPreviewFullRow);
+	SETTING_BOOL(L"General", L"Double click selection", false, &General.bDblClickSelect);
 	// // //
-	SETTING_BOOL("General", "Wrap pattern values", false, &General.bWrapPatternValue);
-	SETTING_BOOL("General", "Cut sub-volume", false, &General.bCutVolume);
-	SETTING_BOOL("General", "Use old FDS volume table", false, &General.bFDSOldVolume);
-	SETTING_BOOL("General", "Retrieve channel state", false, &General.bRetrieveChanState);
-	SETTING_BOOL("General", "Overflow paste mode", false, &General.bOverflowPaste);
-	SETTING_BOOL("General", "Show skipped rows", false, &General.bShowSkippedRows);
-	SETTING_BOOL("General", "Hexadecimal keypad", false, &General.bHexKeypad);
-	SETTING_BOOL("General", "Multi-frame selection", false, &General.bMultiFrameSel);
-	SETTING_BOOL("General", "Check for new versions", true, &General.bCheckVersion);
+	SETTING_BOOL(L"General", L"Wrap pattern values", false, &General.bWrapPatternValue);
+	SETTING_BOOL(L"General", L"Cut sub-volume", false, &General.bCutVolume);
+	SETTING_BOOL(L"General", L"Use old FDS volume table", false, &General.bFDSOldVolume);
+	SETTING_BOOL(L"General", L"Retrieve channel state", false, &General.bRetrieveChanState);
+	SETTING_BOOL(L"General", L"Overflow paste mode", false, &General.bOverflowPaste);
+	SETTING_BOOL(L"General", L"Show skipped rows", false, &General.bShowSkippedRows);
+	SETTING_BOOL(L"General", L"Hexadecimal keypad", false, &General.bHexKeypad);
+	SETTING_BOOL(L"General", L"Multi-frame selection", false, &General.bMultiFrameSel);
+	SETTING_BOOL(L"General", L"Check for new versions", true, &General.bCheckVersion);
 
 	// // // Version / Compatibility info
-	SETTING_INT("Version", "Module error level", MODULE_ERROR_DEFAULT, &Version.iErrorLevel);
+	SETTING_INT(L"Version", L"Module error level", MODULE_ERROR_DEFAULT, &Version.iErrorLevel);
 
 	// Keys
-	SETTING_INT("Keys", "Note cut",		0x31, &Keys.iKeyNoteCut);
-	SETTING_INT("Keys", "Note release", 0xDC, &Keys.iKeyNoteRelease);
-	SETTING_INT("Keys", "Clear field",	0xBD, &Keys.iKeyClear);
-	SETTING_INT("Keys", "Repeat",		0x00, &Keys.iKeyRepeat);
-	SETTING_INT("Keys", "Echo buffer",	0x00, &Keys.iKeyEchoBuffer);		// // //
+	SETTING_INT(L"Keys", L"Note cut", 0x31, &Keys.iKeyNoteCut);
+	SETTING_INT(L"Keys", L"Note release", 0xDC, &Keys.iKeyNoteRelease);
+	SETTING_INT(L"Keys", L"Clear field", 0xBD, &Keys.iKeyClear);
+	SETTING_INT(L"Keys", L"Repeat", 0x00, &Keys.iKeyRepeat);
+	SETTING_INT(L"Keys", L"Echo buffer", 0x00, &Keys.iKeyEchoBuffer);		// // //
 
 	// Sound
-	SETTING_INT("Sound", "Audio Device", 0, &Sound.iDevice);
-	SETTING_INT("Sound", "Sample rate",	44100, &Sound.iSampleRate);
-	SETTING_INT("Sound", "Sample size", 16, &Sound.iSampleSize);
-	SETTING_INT("Sound", "Buffer length", 40, &Sound.iBufferLength);
-	SETTING_INT("Sound", "Bass filter freq", 30, &Sound.iBassFilter);
-	SETTING_INT("Sound", "Treble filter freq", 12000, &Sound.iTrebleFilter);
-	SETTING_INT("Sound", "Treble filter damping", 24, &Sound.iTrebleDamping);
-	SETTING_INT("Sound", "Volume", 100, &Sound.iMixVolume);
+	SETTING_INT(L"Sound", L"Audio Device", 0, &Sound.iDevice);
+	SETTING_INT(L"Sound", L"Sample rate", 44100, &Sound.iSampleRate);
+	SETTING_INT(L"Sound", L"Sample size", 16, &Sound.iSampleSize);
+	SETTING_INT(L"Sound", L"Buffer length", 40, &Sound.iBufferLength);
+	SETTING_INT(L"Sound", L"Bass filter freq", 30, &Sound.iBassFilter);
+	SETTING_INT(L"Sound", L"Treble filter freq", 12000, &Sound.iTrebleFilter);
+	SETTING_INT(L"Sound", L"Treble filter damping", 24, &Sound.iTrebleDamping);
+	SETTING_INT(L"Sound", L"Volume", 100, &Sound.iMixVolume);
 
 	// Midi
-	SETTING_INT("MIDI", "Device", 0, &Midi.iMidiDevice);
-	SETTING_INT("MIDI", "Out Device", 0, &Midi.iMidiOutDevice);
-	SETTING_BOOL("MIDI", "Master sync", false, &Midi.bMidiMasterSync);
-	SETTING_BOOL("MIDI", "Key release", false, &Midi.bMidiKeyRelease);
-	SETTING_BOOL("MIDI", "Channel map", false, &Midi.bMidiChannelMap);
-	SETTING_BOOL("MIDI", "Velocity control", false,	&Midi.bMidiVelocity);
-	SETTING_BOOL("MIDI", "Auto Arpeggio", false, &Midi.bMidiArpeggio);
+	SETTING_INT(L"MIDI", L"Device", 0, &Midi.iMidiDevice);
+	SETTING_INT(L"MIDI", L"Out Device", 0, &Midi.iMidiOutDevice);
+	SETTING_BOOL(L"MIDI", L"Master sync", false, &Midi.bMidiMasterSync);
+	SETTING_BOOL(L"MIDI", L"Key release", false, &Midi.bMidiKeyRelease);
+	SETTING_BOOL(L"MIDI", L"Channel map", false, &Midi.bMidiChannelMap);
+	SETTING_BOOL(L"MIDI", L"Velocity control", false,	&Midi.bMidiVelocity);
+	SETTING_BOOL(L"MIDI", L"Auto Arpeggio", false, &Midi.bMidiArpeggio);
 
 	// Appearance
-	SETTING_INT("Appearance", "Background", DEFAULT_COLOR_SCHEME.BACKGROUND, &Appearance.iColBackground);
-	SETTING_INT("Appearance", "Background highlighted", DEFAULT_COLOR_SCHEME.BACKGROUND_HILITE, &Appearance.iColBackgroundHilite);
-	SETTING_INT("Appearance", "Background highlighted 2", DEFAULT_COLOR_SCHEME.BACKGROUND_HILITE2, &Appearance.iColBackgroundHilite2);
-	SETTING_INT("Appearance", "Pattern text", DEFAULT_COLOR_SCHEME.TEXT_NORMAL, &Appearance.iColPatternText);
-	SETTING_INT("Appearance", "Pattern text highlighted", DEFAULT_COLOR_SCHEME.TEXT_HILITE, &Appearance.iColPatternTextHilite);
-	SETTING_INT("Appearance", "Pattern text highlighted 2", DEFAULT_COLOR_SCHEME.TEXT_HILITE2, &Appearance.iColPatternTextHilite2);
-	SETTING_INT("Appearance", "Pattern instrument", DEFAULT_COLOR_SCHEME.TEXT_INSTRUMENT, &Appearance.iColPatternInstrument);
-	SETTING_INT("Appearance", "Pattern volume", DEFAULT_COLOR_SCHEME.TEXT_VOLUME, &Appearance.iColPatternVolume);
-	SETTING_INT("Appearance", "Pattern effect", DEFAULT_COLOR_SCHEME.TEXT_EFFECT, &Appearance.iColPatternEffect);
-	SETTING_INT("Appearance", "Selection", DEFAULT_COLOR_SCHEME.SELECTION, &Appearance.iColSelection);
-	SETTING_INT("Appearance", "Cursor", DEFAULT_COLOR_SCHEME.CURSOR, &Appearance.iColCursor);
+	SETTING_INT(L"Appearance", L"Background", DEFAULT_COLOR_SCHEME.BACKGROUND, &Appearance.iColBackground);
+	SETTING_INT(L"Appearance", L"Background highlighted", DEFAULT_COLOR_SCHEME.BACKGROUND_HILITE, &Appearance.iColBackgroundHilite);
+	SETTING_INT(L"Appearance", L"Background highlighted 2", DEFAULT_COLOR_SCHEME.BACKGROUND_HILITE2, &Appearance.iColBackgroundHilite2);
+	SETTING_INT(L"Appearance", L"Pattern text", DEFAULT_COLOR_SCHEME.TEXT_NORMAL, &Appearance.iColPatternText);
+	SETTING_INT(L"Appearance", L"Pattern text highlighted", DEFAULT_COLOR_SCHEME.TEXT_HILITE, &Appearance.iColPatternTextHilite);
+	SETTING_INT(L"Appearance", L"Pattern text highlighted 2", DEFAULT_COLOR_SCHEME.TEXT_HILITE2, &Appearance.iColPatternTextHilite2);
+	SETTING_INT(L"Appearance", L"Pattern instrument", DEFAULT_COLOR_SCHEME.TEXT_INSTRUMENT, &Appearance.iColPatternInstrument);
+	SETTING_INT(L"Appearance", L"Pattern volume", DEFAULT_COLOR_SCHEME.TEXT_VOLUME, &Appearance.iColPatternVolume);
+	SETTING_INT(L"Appearance", L"Pattern effect", DEFAULT_COLOR_SCHEME.TEXT_EFFECT, &Appearance.iColPatternEffect);
+	SETTING_INT(L"Appearance", L"Selection", DEFAULT_COLOR_SCHEME.SELECTION, &Appearance.iColSelection);
+	SETTING_INT(L"Appearance", L"Cursor", DEFAULT_COLOR_SCHEME.CURSOR, &Appearance.iColCursor);
 	// // //
-	SETTING_INT("Appearance", "Current row (normal mode)", DEFAULT_COLOR_SCHEME.ROW_NORMAL, &Appearance.iColCurrentRowNormal);
-	SETTING_INT("Appearance", "Current row (edit mode)", DEFAULT_COLOR_SCHEME.ROW_EDIT, &Appearance.iColCurrentRowEdit);
-	SETTING_INT("Appearance", "Current row (playing)", DEFAULT_COLOR_SCHEME.ROW_PLAYING, &Appearance.iColCurrentRowPlaying);
-	SETTING_STRING("Appearance", "Pattern font", FONT_FACE, &Appearance.strFont)
-		->UpdateDefault("General", "Pattern font");
-	SETTING_INT("Appearance", "Pattern font size", FONT_SIZE, &Appearance.iFontSize)
-		->UpdateDefault("General", "Pattern font size");
-	SETTING_STRING("Appearance", "Frame font", FONT_FACE, &Appearance.strFrameFont)
-		->UpdateDefault("General", "Frame font");		// // // 050B
-	SETTING_BOOL("Appearance", "Pattern colors", true, &Appearance.bPatternColor)
-		->UpdateDefault("Appearance", "Pattern colors");
-	SETTING_BOOL("Appearance", "Display flats", false, &Appearance.bDisplayFlats)
-		->UpdateDefault("Appearance", "Display flats");
+	SETTING_INT(L"Appearance", L"Current row (normal mode)", DEFAULT_COLOR_SCHEME.ROW_NORMAL, &Appearance.iColCurrentRowNormal);
+	SETTING_INT(L"Appearance", L"Current row (edit mode)", DEFAULT_COLOR_SCHEME.ROW_EDIT, &Appearance.iColCurrentRowEdit);
+	SETTING_INT(L"Appearance", L"Current row (playing)", DEFAULT_COLOR_SCHEME.ROW_PLAYING, &Appearance.iColCurrentRowPlaying);
+	SETTING_STRING(L"Appearance", L"Pattern font", FONT_FACE, &Appearance.strFont)
+		->UpdateDefault(L"General", L"Pattern font");
+	SETTING_INT(L"Appearance", L"Pattern font size", FONT_SIZE, &Appearance.iFontSize)
+		->UpdateDefault(L"General", L"Pattern font size");
+	SETTING_STRING(L"Appearance", L"Frame font", FONT_FACE, &Appearance.strFrameFont)
+		->UpdateDefault(L"General", L"Frame font");		// // // 050B
+	SETTING_BOOL(L"Appearance", L"Pattern colors", true, &Appearance.bPatternColor)
+		->UpdateDefault(L"Appearance", L"Pattern colors");
+	SETTING_BOOL(L"Appearance", L"Display flats", false, &Appearance.bDisplayFlats)
+		->UpdateDefault(L"Appearance", L"Display flats");
 
 	// Window position
-	SETTING_INT("Window position", "Left", 100, &WindowPos.iLeft);
-	SETTING_INT("Window position", "Top", 100, &WindowPos.iTop);
-	SETTING_INT("Window position", "Right",	950, &WindowPos.iRight);
-	SETTING_INT("Window position", "Bottom", 920, &WindowPos.iBottom);
-	SETTING_INT("Window position", "State",	STATE_NORMAL, &WindowPos.iState);
+	SETTING_INT(L"Window position", L"Left", 100, &WindowPos.iLeft);
+	SETTING_INT(L"Window position", L"Top", 100, &WindowPos.iTop);
+	SETTING_INT(L"Window position", L"Right", 950, &WindowPos.iRight);
+	SETTING_INT(L"Window position", L"Bottom", 920, &WindowPos.iBottom);
+	SETTING_INT(L"Window position", L"State", STATE_NORMAL, &WindowPos.iState);
 
 	// Display
-	SETTING_BOOL("Display", "Average BPM", false, &Display.bAverageBPM);		// // // 050B
-	SETTING_BOOL("Display", "Channel state", false, &Display.bChannelState);		// // // 050B todo
-	SETTING_BOOL("Display", "Register state", false, &Display.bRegisterState);		// // // 050B
+	SETTING_BOOL(L"Display", L"Average BPM", false, &Display.bAverageBPM);		// // // 050B
+	SETTING_BOOL(L"Display", L"Channel state", false, &Display.bChannelState);		// // // 050B todo
+	SETTING_BOOL(L"Display", L"Register state", false, &Display.bRegisterState);		// // // 050B
 
 	// Other
-	SETTING_INT("Other", "Sample window state", 0, &SampleWinState);
-	SETTING_INT("Other", "Frame editor position", 0, &FrameEditPos);
-	SETTING_INT("Other", "Control panel position", 0, &ControlPanelPos);		// // // 050B todo
-	SETTING_BOOL("Other", "Follow mode", true, &FollowMode);
-	SETTING_BOOL("Other", "Meter decay rate", false, &MeterDecayRate);		// // // 050B
+	SETTING_INT(L"Other", L"Sample window state", 0, &SampleWinState);
+	SETTING_INT(L"Other", L"Frame editor position", 0, &FrameEditPos);
+	SETTING_INT(L"Other", L"Control panel position", 0, &ControlPanelPos);		// // // 050B todo
+	SETTING_BOOL(L"Other", L"Follow mode", true, &FollowMode);
+	SETTING_BOOL(L"Other", L"Meter decay rate", false, &MeterDecayRate);		// // // 050B
 
 	// Paths
-	SETTING_STRING("Paths", "FTM path", "", &Paths[PATH_FTM]);
-	SETTING_STRING("Paths", "FTI path", "", &Paths[PATH_FTI]);
-	SETTING_STRING("Paths", "NSF path", "", &Paths[PATH_NSF]);
-	SETTING_STRING("Paths", "DMC path", "", &Paths[PATH_DMC]);
-	SETTING_STRING("Paths", "WAV path", "", &Paths[PATH_WAV]);
+	SETTING_STRING(L"Paths", L"FTM path", L"", &Paths[PATH_FTM]);
+	SETTING_STRING(L"Paths", L"FTI path", L"", &Paths[PATH_FTI]);
+	SETTING_STRING(L"Paths", L"NSF path", L"", &Paths[PATH_NSF]);
+	SETTING_STRING(L"Paths", L"DMC path", L"", &Paths[PATH_DMC]);
+	SETTING_STRING(L"Paths", L"WAV path", L"", &Paths[PATH_WAV]);
 
-	SETTING_STRING("Paths", "Instrument menu", "", &InstrumentMenuPath);
+	SETTING_STRING(L"Paths", L"Instrument menu", L"", &InstrumentMenuPath);
 
 	// Mixing
-	SETTING_INT("Mixer", "APU1", 0, &ChipLevels.iLevelAPU1);
-	SETTING_INT("Mixer", "APU2", 0, &ChipLevels.iLevelAPU2);
-	SETTING_INT("Mixer", "VRC6", 0, &ChipLevels.iLevelVRC6);
-	SETTING_INT("Mixer", "VRC7", 0, &ChipLevels.iLevelVRC7);
-	SETTING_INT("Mixer", "MMC5", 0, &ChipLevels.iLevelMMC5);
-	SETTING_INT("Mixer", "FDS", 0, &ChipLevels.iLevelFDS);
-	SETTING_INT("Mixer", "N163", 0, &ChipLevels.iLevelN163);
-	SETTING_INT("Mixer", "S5B", 0, &ChipLevels.iLevelS5B);
+	SETTING_INT(L"Mixer", L"APU1", 0, &ChipLevels.iLevelAPU1);
+	SETTING_INT(L"Mixer", L"APU2", 0, &ChipLevels.iLevelAPU2);
+	SETTING_INT(L"Mixer", L"VRC6", 0, &ChipLevels.iLevelVRC6);
+	SETTING_INT(L"Mixer", L"VRC7", 0, &ChipLevels.iLevelVRC7);
+	SETTING_INT(L"Mixer", L"MMC5", 0, &ChipLevels.iLevelMMC5);
+	SETTING_INT(L"Mixer", L"FDS", 0, &ChipLevels.iLevelFDS);
+	SETTING_INT(L"Mixer", L"N163", 0, &ChipLevels.iLevelN163);
+	SETTING_INT(L"Mixer", L"S5B", 0, &ChipLevels.iLevelS5B);
 }
 
 template<class T>
-CSettingBase *CSettings::AddSetting(LPCTSTR pSection, LPCTSTR pEntry, T tDefault, T *pVariable)
+CSettingBase *CSettings::AddSetting(LPCWSTR pSection, LPCWSTR pEntry, T tDefault, T *pVariable)
 {
 	return m_pSettings.emplace_back(std::make_unique<CSettingType<T>>(pSection, pEntry, tDefault, pVariable)).get();		// // //
 }
@@ -247,7 +247,7 @@ void CSettings::DeleteSettings()
 {
 	// Delete all settings from registry
 	HKEY hKey = theApp.GetAppRegistryKey();
-	theApp.DelRegTree(hKey, _T(""));
+	theApp.DelRegTree(hKey, L"");
 }
 
 void CSettings::SetWindowPos(int Left, int Top, int Right, int Bottom, int State)
@@ -259,21 +259,21 @@ void CSettings::SetWindowPos(int Left, int Top, int Right, int Bottom, int State
 	WindowPos.iState = State;
 }
 
-CString CSettings::GetPath(unsigned int PathType) const
+const CStringW &CSettings::GetPath(unsigned int PathType) const
 {
 	ASSERT(PathType < PATH_COUNT);
 	return Paths[PathType];
 }
 
-void CSettings::SetPath(CString PathName, unsigned int PathType)
+void CSettings::SetPath(const CStringW &PathName, unsigned int PathType)
 {
 	ASSERT(PathType < PATH_COUNT);
 
 	// Remove file name if there is a
-	if (PathName.Right(1) == _T("\\") || PathName.Find(_T('\\')) == -1)
+	if (PathName.Right(1) == L"\\" || PathName.Find(L'\\') == -1)
 		Paths[PathType] = PathName;
 	else
-		Paths[PathType] = PathName.Left(PathName.ReverseFind(_T('\\')));
+		Paths[PathType] = PathName.Left(PathName.ReverseFind(L'\\'));
 }
 
 // Settings types
@@ -309,9 +309,9 @@ void CSettingType<bool>::Load()
 }
 
 template<>
-void CSettingType<CString>::Load()
+void CSettingType<CStringW>::Load()
 {
-	CString Value = m_tDefaultValue;		// // //
+	CStringW Value = m_tDefaultValue;		// // //
 	{
 		stOldSettingContext s;
 		if (m_pSectionSecond)
@@ -330,7 +330,7 @@ void CSettingType<T>::Save()
 }
 
 template<>
-void CSettingType<CString>::Save()
+void CSettingType<CStringW>::Save()
 {
 	theApp.WriteProfileString(m_pSection, m_pEntry, *m_pVariable);
 }
@@ -341,7 +341,7 @@ void CSettingType<T>::Default()
 	*m_pVariable = m_tDefaultValue;
 }
 
-void CSettingBase::UpdateDefault(LPCTSTR pSection, LPCTSTR pEntry)		// // //
+void CSettingBase::UpdateDefault(LPCWSTR pSection, LPCWSTR pEntry)		// // //
 {
 	m_pSectionSecond = pSection;
 	m_pEntrySecond = pEntry;

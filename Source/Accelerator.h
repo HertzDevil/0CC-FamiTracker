@@ -32,11 +32,11 @@
 #define MOD_NONE 0
 
 struct stAccelEntry {
-	LPCTSTR name;
+	LPCWSTR name;
 	int	mod;
 	int	key;
 	int	id;
-	LPCTSTR orig_name;		// // //
+	LPCWSTR orig_name;		// // //
 };
 
 class CSettings;		// // //
@@ -46,14 +46,14 @@ public:
 	CAccelerator();
 	~CAccelerator();
 
-	LPCTSTR			GetItemName(int Item) const;					// Name of shortcut
+	LPCWSTR			GetItemName(int Item) const;					// Name of shortcut
 	int				GetItemKey(int Item) const;						// Key for shortcut
 	int				GetItemMod(int Item) const;						// Modifier for shortcut
 	int				GetDefaultKey(int Item) const;					// Default key for shortcut
 	int				GetDefaultMod(int Item) const;					// Default modifier for shortcut
-	LPCTSTR			GetItemModName(int Item) const;					// Key string for shortcut
-	LPCTSTR			GetItemKeyName(int Item) const;					// Modifier string for shortcut
-	LPCTSTR			GetVKeyName(int virtualKey) const;				// Translates virtual key to a string
+	LPCWSTR			GetItemModName(int Item) const;					// Key string for shortcut
+	LPCWSTR			GetItemKeyName(int Item) const;					// Modifier string for shortcut
+	LPCWSTR			GetVKeyName(int virtualKey) const;				// Translates virtual key to a string
 	void			StoreShortcut(int Item, int Key, int Mod);		// Store key and modifier for shortcut
 
 	void			SaveShortcuts(CSettings *pSettings) const;		// Save to registry
@@ -65,17 +65,17 @@ public:
 	BOOL			Translate(HWND hWnd, MSG *pMsg);
 	void			SetAccelerator(HACCEL hAccel);
 
-	bool			GetShortcutString(int id, CString &str) const;
+	bool			GetShortcutString(int id, CStringW &str) const;
 
 	// // // check if key is used as a modifier-less shortcut
 	bool			IsKeyUsed(int nChar) const;
 
 public:
 	// Class member constants
-	static const LPCTSTR	  MOD_NAMES[];							// Strings for modifiers
+	static const LPCWSTR	  MOD_NAMES[];							// Strings for modifiers
 	static const std::vector<stAccelEntry> DEFAULT_TABLE;			// // // List of default shortcuts
 	static const int		  ACCEL_COUNT;							// Number of shortcuts
-	static const LPCTSTR	  SHORTCUTS_SECTION;					// Registry section
+	static const LPCWSTR	  SHORTCUTS_SECTION;					// Registry section
 
 private:
 	HACCEL	m_hAccel = nullptr;

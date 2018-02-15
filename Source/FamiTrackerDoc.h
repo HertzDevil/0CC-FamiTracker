@@ -69,7 +69,7 @@ public:
 	CFamiTrackerModule *GetModule() noexcept;
 	const CFamiTrackerModule *GetModule() const noexcept;
 
-	CString			GetFileTitle() const;
+	CStringW			GetFileTitle() const;
 
 	//
 	// Document file I/O
@@ -108,7 +108,7 @@ public:
 			return Ret { };
 	}
 
-	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCTSTR lpszPathName);		// // // TODO: use module class directly
+	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCWSTR lpszPathName);		// // // TODO: use module class directly
 
 private:
 
@@ -116,8 +116,8 @@ private:
 	// File management functions (load/save)
 	//
 
-	BOOL			SaveDocument(LPCTSTR lpszPathName) const;
-	BOOL			OpenDocument(LPCTSTR lpszPathName);
+	BOOL			SaveDocument(LPCWSTR lpszPathName) const;
+	BOOL			OpenDocument(LPCWSTR lpszPathName);
 
 #ifdef AUTOSAVE
 	void			SetupAutoSave();
@@ -142,7 +142,7 @@ private:
 #ifdef AUTOSAVE
 	// Auto save
 	int				m_iAutoSaveCounter;
-	CString			m_sAutoSaveFile;
+	CStringW			m_sAutoSaveFile;
 #endif
 
 	// Thread synchronization
@@ -151,8 +151,8 @@ private:
 // Overrides
 public:
 	BOOL OnNewDocument() override;
-	BOOL OnSaveDocument(LPCTSTR lpszPathName) override;
-	BOOL OnOpenDocument(LPCTSTR lpszPathName) override;
+	BOOL OnSaveDocument(LPCWSTR lpszPathName) override;
+	BOOL OnOpenDocument(LPCWSTR lpszPathName) override;
 	void OnCloseDocument() override;
 	void DeleteContents() override;
 	void SetModifiedFlag(BOOL bModified = 1) override;

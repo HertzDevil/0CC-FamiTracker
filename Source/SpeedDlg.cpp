@@ -63,9 +63,9 @@ void CSpeedDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
 	m_iSpeed = ((CSliderCtrl*)pScrollBar)->GetPos();
-	CString String;
-	String.Format(_T("%i Hz"), m_iSpeed );
-	SetDlgItemText(IDC_SPEED, String);
+	CStringW String;
+	String.Format(L"%i Hz", m_iSpeed );
+	SetDlgItemTextW(IDC_SPEED, String);
 }
 
 BOOL CSpeedDlg::OnInitDialog()
@@ -73,14 +73,14 @@ BOOL CSpeedDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	CSliderCtrl *Slider = static_cast<CSliderCtrl*>(GetDlgItem(IDC_SPEED_SLD));
-	CString String;
+	CStringW String;
 
 	// TODO: Program will crash if speed is set below 25Hz, I don't know why
 	Slider->SetRange(RATE_MIN, RATE_MAX);
 	Slider->SetPos(m_iSpeed);
 
-	String.Format(_T("%i Hz"), m_iSpeed);
-	SetDlgItemText(IDC_SPEED, String);
+	String.Format(L"%i Hz", m_iSpeed);
+	SetDlgItemTextW(IDC_SPEED, String);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE

@@ -122,7 +122,7 @@ CWavegenParamString::CWavegenParamString(const char *Name) :
 
 const char *CWavegenParamString::GetValue() const
 {
-	return m_pData.c_str();
+	return m_pData.data();
 }
 
 bool CWavegenParamString::SetValue(const void *Val)

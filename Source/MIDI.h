@@ -69,8 +69,8 @@ public:
 	int		GetNumInputDevices() const;
 	int		GetNumOutputDevices() const;
 
-	void	GetInputDeviceString(int Num, CString &Text) const;
-	void	GetOutputDeviceString(int Num, CString &Text) const;
+	void	GetInputDeviceString(int Num, CStringW &Text) const;
+	void	GetOutputDeviceString(int Num, CStringW &Text) const;
 
 	// Private methods
 private:

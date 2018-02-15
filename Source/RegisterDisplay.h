@@ -25,6 +25,7 @@
 
 #include "stdafx.h"
 #include "APU/Types_fwd.h"
+#include <string_view>
 
 class CRegisterDisplay {		// // // TODO: move to its own thread
 public:
@@ -32,9 +33,9 @@ public:
 	void Draw();
 
 private:
-	void DrawHeader(const CString &text);
-	void DrawReg(const CString &header, int count);
-	void DrawText_(int xOffs, const CString &text);
+	void DrawHeader(const CStringA &text);
+	void DrawReg(const CStringA &header, int count);
+	void DrawText_(int xOffs, const CStringA &text);
 	template <typename F>
 	void GetRegs(sound_chip_t Chip, F f, int Count);
 

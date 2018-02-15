@@ -54,7 +54,7 @@ public:
 	{
 		const size_t MAX_ERROR_STRLEN = 256;
 		char buf[MAX_ERROR_STRLEN] = { };
-		_sntprintf_s(buf, MAX_ERROR_STRLEN, _TRUNCATE, fmt.data(), std::forward<T>(args)...);
+		_snprintf_s(buf, MAX_ERROR_STRLEN, _TRUNCATE, fmt.data(), std::forward<T>(args)...);
 		m_strError.emplace_back(buf);
 	}
 	/*!	\brief Sets the footer string of the error message.

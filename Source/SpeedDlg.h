@@ -48,7 +48,7 @@ protected:
 public:
 	int GetSpeedFromDlg(int InitialSpeed);
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
-//	virtual BOOL Create(LPCTSTR lpszTemplateName, CWnd* pParentWnd = NULL);
+//	virtual BOOL Create(LPCWSTR lpszTemplateName, CWnd* pParentWnd = NULL);
 	virtual BOOL OnInitDialog();
 	afx_msg void OnBnClickedCancel();
 };

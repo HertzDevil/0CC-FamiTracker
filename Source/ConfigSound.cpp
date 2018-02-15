@@ -27,6 +27,7 @@
 #include "SoundGen.h"
 #include "Settings.h"
 #include "DirectSound.h"
+#include "str_conv/str_conv.hpp"		// // //
 
 // CConfigSound dialog
 
@@ -82,16 +83,16 @@ BOOL CConfigSound::OnInitDialog()
 
 	// Read settings
 	switch (pSettings->Sound.iSampleRate) {
-		case 11025: pSampleRate->SelectString(0, _T("11 025 Hz")); break;
-		case 22050: pSampleRate->SelectString(0, _T("22 050 Hz")); break;
-		case 44100: pSampleRate->SelectString(0, _T("44 100 Hz")); break;
-		case 48000: pSampleRate->SelectString(0, _T("48 000 Hz")); break;
-		case 96000: pSampleRate->SelectString(0, _T("96 000 Hz")); break;
+		case 11025: pSampleRate->SelectString(0, L"11 025 Hz"); break;
+		case 22050: pSampleRate->SelectString(0, L"22 050 Hz"); break;
+		case 44100: pSampleRate->SelectString(0, L"44 100 Hz"); break;
+		case 48000: pSampleRate->SelectString(0, L"48 000 Hz"); break;
+		case 96000: pSampleRate->SelectString(0, L"96 000 Hz"); break;
 	}
 
 	switch (pSettings->Sound.iSampleSize) {
-		case 16: pSampleSize->SelectString(0, _T("16 bit")); break;
-		case 8:	 pSampleSize->SelectString(0, _T("8 bit")); break;
+		case 16: pSampleSize->SelectString(0, L"16 bit"); break;
+		case 8:	 pSampleSize->SelectString(0, L"8 bit"); break;
 	}
 
 	pBufSlider->SetPos(pSettings->Sound.iBufferLength);
@@ -106,7 +107,7 @@ BOOL CConfigSound::OnInitDialog()
 	const int iCount = pDSound->GetDeviceCount();
 
 	for (int i = 0; i < iCount; ++i)
-		pDevices->AddString(pDSound->GetDeviceName(i));
+		pDevices->AddString(conv::to_wide(pDSound->GetDeviceName(i)).data());
 
 	pDevices->SetCurSel(pSettings->Sound.iDevice);
 
@@ -174,20 +175,20 @@ void CConfigSound::OnCbnSelchangeDevices()
 
 void CConfigSound::UpdateTexts()
 {
-	CString Text;
+	CStringW Text;
 
-	Text.Format(_T("%i ms"), static_cast<CSliderCtrl*>(GetDlgItem(IDC_BUF_LENGTH))->GetPos());
-	SetDlgItemText(IDC_BUF_LEN, Text);
+	Text.Format(L"%i ms", static_cast<CSliderCtrl*>(GetDlgItem(IDC_BUF_LENGTH))->GetPos());
+	SetDlgItemTextW(IDC_BUF_LEN, Text);
 
-	Text.Format(_T("%i Hz"), static_cast<CSliderCtrl*>(GetDlgItem(IDC_BASS_FREQ))->GetPos());
-	SetDlgItemText(IDC_BASS_FREQ_T, Text);
+	Text.Format(L"%i Hz", static_cast<CSliderCtrl*>(GetDlgItem(IDC_BASS_FREQ))->GetPos());
+	SetDlgItemTextW(IDC_BASS_FREQ_T, Text);
 
-	Text.Format(_T("%i Hz"), static_cast<CSliderCtrl*>(GetDlgItem(IDC_TREBLE_FREQ))->GetPos());
-	SetDlgItemText(IDC_TREBLE_FREQ_T, Text);
+	Text.Format(L"%i Hz", static_cast<CSliderCtrl*>(GetDlgItem(IDC_TREBLE_FREQ))->GetPos());
+	SetDlgItemTextW(IDC_TREBLE_FREQ_T, Text);
 
-	Text.Format(_T("-%i dB"), static_cast<CSliderCtrl*>(GetDlgItem(IDC_TREBLE_DAMP))->GetPos());
-	SetDlgItemText(IDC_TREBLE_DAMP_T, Text);
+	Text.Format(L"-%i dB", static_cast<CSliderCtrl*>(GetDlgItem(IDC_TREBLE_DAMP))->GetPos());
+	SetDlgItemTextW(IDC_TREBLE_DAMP_T, Text);
 
-	Text.Format(_T("%i %%"), static_cast<CSliderCtrl*>(GetDlgItem(IDC_VOLUME))->GetPos());
-	SetDlgItemText(IDC_VOLUME_T, Text);
+	Text.Format(L"%i %%", static_cast<CSliderCtrl*>(GetDlgItem(IDC_VOLUME))->GetPos());
+	SetDlgItemTextW(IDC_VOLUME_T, Text);
 }

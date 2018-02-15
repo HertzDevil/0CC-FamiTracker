@@ -42,7 +42,7 @@ public:
 
 	// // // delegations to CFile
 	CFile		&GetCFile();
-	BOOL		Open(LPCTSTR lpszFileName, UINT nOpenFlags, CFileException *pError = nullptr);
+	BOOL		Open(LPCWSTR lpszFileName, UINT nOpenFlags, CFileException *pError = nullptr);
 	ULONGLONG	GetLength() const;
 	void		Close();
 
@@ -52,7 +52,7 @@ public:
 	bool		BeginDocument();
 	bool		EndDocument();
 
-	void		CreateBlock(const char *ID, int Version);
+	void		CreateBlock(std::string_view ID, int Version);		// // //
 	void		WriteBlock(array_view<unsigned char> Data);		// // //
 	void		WriteBlockInt(int Value);
 	void		WriteBlockChar(char Value);
@@ -76,7 +76,7 @@ public:
 	int			GetBlockPos() const;
 	int			GetBlockSize() const;
 
-	CString		ReadString();
+	CStringA	ReadString();
 
 	void		RollbackPointer(int count);	// avoid this
 

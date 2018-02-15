@@ -65,7 +65,7 @@ CWaveEditor::~CWaveEditor()
 {
 }
 
-BOOL CWaveEditor::CreateEx(DWORD dwExStyle, LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd)
+BOOL CWaveEditor::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd)
 {
 	CRect newRect;
 
@@ -304,8 +304,8 @@ void CWaveEditor::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 	CMenu menu;
 
 	menu.CreatePopupMenu();
-	menu.AppendMenu(MF_STRING, 1, _T("&Steps"));
-	menu.AppendMenu(MF_STRING, 2, _T("&Lines"));
+	menu.AppendMenuW(MF_STRING, 1, L"&Steps");
+	menu.AppendMenuW(MF_STRING, 2, L"&Lines");
 
 	if (GetLineMode())
 		menu.CheckMenuItem(1, MF_BYPOSITION | MF_CHECKED);

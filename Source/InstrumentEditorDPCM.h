@@ -42,7 +42,7 @@ public:
 	CInstrumentEditorDPCM(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CInstrumentEditorDPCM();
 	int GetIDD() const override { return IDD; }
-	LPCTSTR GetTitle() const override { return _T("DPCM samples"); }		// // //
+	LPCWSTR GetTitle() const override { return L"DPCM samples"; }		// // //
 
 // Dialog Data
 	enum { IDD = IDD_INSTRUMENT_DPCM };
@@ -58,7 +58,7 @@ protected:
 	void BuildSampleList();
 	void UpdateCurrentKey();		// // //
 	void UpdateKey(int Index);
-	bool LoadSample(const CString &FilePath, const CString &FileName);
+	bool LoadSample(const CStringW &FilePath, const CStringW &FileName);
 	bool InsertSample(std::shared_ptr<ft0cc::doc::dpcm_sample> pNewSample);		// // //
 
 	std::shared_ptr<const ft0cc::doc::dpcm_sample> GetSelectedSample();		// // //

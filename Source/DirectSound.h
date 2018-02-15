@@ -107,10 +107,9 @@ public:
 	// Enumeration
 	void			EnumerateDevices();
 	void			ClearEnumeration();
-	BOOL			EnumerateCallback(LPGUID lpGuid, LPCTSTR lpcstrDescription, LPCTSTR lpcstrModule);		// // //
+	BOOL			EnumerateCallback(LPGUID lpGuid, LPCWSTR lpcstrDescription, LPCWSTR lpcstrModule);		// // //
 	unsigned int	GetDeviceCount() const;
-	LPCTSTR			GetDeviceName(unsigned int iDevice) const;
-	int				MatchDeviceID(LPCTSTR Name) const;
+	std::string_view GetDeviceName(unsigned int iDevice) const;		// // //
 
 public:
 	static const unsigned int MAX_DEVICES = 256;
@@ -119,7 +118,7 @@ public:
 	static const unsigned int MAX_BUFFER_LENGTH = 10000;
 
 protected:
-	static BOOL CALLBACK DSEnumCallback(LPGUID lpGuid, LPCTSTR lpcstrDescription, LPCTSTR lpcstrModule, LPVOID lpContext);
+	static BOOL CALLBACK DSEnumCallback(LPGUID lpGuid, LPCWSTR lpcstrDescription, LPCWSTR lpcstrModule, LPVOID lpContext);
 
 private:
 	HWND			m_hWndTarget;

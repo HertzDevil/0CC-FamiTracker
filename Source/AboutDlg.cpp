@@ -25,9 +25,13 @@
 
 // CAboutDlg dialog used for App About
 
-LPCTSTR LINK_WEB  = _T("http://hertzdevil.info/programs/");
-LPCTSTR LINK_BUG  = _T("http://hertzdevil.info/forum/index.php");		// // //
-LPCTSTR LINK_MAIL = _T("mailto:nicetas.c@gmail.com");
+namespace {
+
+const LPCWSTR LINK_WEB  = L"http://hertzdevil.info/programs/";
+const LPCWSTR LINK_BUG  = L"http://hertzdevil.info/forum/index.php";		// // //
+const LPCWSTR LINK_MAIL = L"mailto:nicetas.c@gmail.com";
+
+} // namespace
 
 // CLinkLabel
 
@@ -38,7 +42,7 @@ BEGIN_MESSAGE_MAP(CLinkLabel, CStatic)
 	ON_WM_MOUSEMOVE()
 END_MESSAGE_MAP()
 
-CLinkLabel::CLinkLabel(CString address)
+CLinkLabel::CLinkLabel(CStringW address)
 {
 	m_strAddress = address;
 	m_bHover = false;
@@ -53,7 +57,7 @@ HBRUSH CLinkLabel::CtlColor(CDC* pDC, UINT /*nCtlColor*/)
 
 void CLinkLabel::OnLButtonUp(UINT nFlags, CPoint point)
 {
-	ShellExecute(NULL, _T("open"), m_strAddress, NULL, NULL, SW_SHOWNORMAL);
+	ShellExecuteW(NULL, L"open", m_strAddress, NULL, NULL, SW_SHOWNORMAL);
 	CStatic::OnLButtonUp(nFlags, point);
 }
 
@@ -131,28 +135,28 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 
 BOOL CAboutDlg::OnInitDialog()
 {
-	CString aboutString;
+	CStringW aboutString;
 
 #ifdef WIP
-	aboutString.Format(_T("0CC-FamiTracker %s"), Get0CCFTVersionString());
+	aboutString.Format(L"0CC-FamiTracker %s", Get0CCFTVersionString());
 #else
 	AfxFormatString1(aboutString, IDS_ABOUT_VERSION_FORMAT, Get0CCFTVersionString());
 #endif
 
-	SetDlgItemText(IDC_ABOUT1, aboutString);
-	SetDlgItemText(IDC_ABOUT_CONTRIB,
-		_T("- Original software by jsr\r\n")
-		_T("- Export plugin support by Gradualore\r\n")
-		_T("- Toolbar icons are made by ilkke\r\n")
-		_T("- DPCM import resampler by Jarhmander\r\n")
-		_T("- Module text import/export by rainwarrior"));		// // //
-	SetDlgItemText(IDC_ABOUT_LIB,
-		_T("- Blip_buffer 0.4.0 is Copyright (C) blargg\r\n")
-		_T("(http://www.slack.net/~ant/nes-emu/)\r\n")
-		_T("- Fast Fourier Transform code is (C) 2017 Project Nayuki (MIT License)\r\n")
-		_T("- YM2413 emulator is written by Mitsutaka Okazaki\r\n")
-		_T("- FDS sound emulator from nezplug (including a fix by rainwarrior)\r\n")
-		_T("- JSON for Modern C++ is Copyright (C) Niels Lohmann"));
+	SetDlgItemTextW(IDC_ABOUT1, aboutString);
+	SetDlgItemTextW(IDC_ABOUT_CONTRIB,
+		L"- Original software by jsr\r\n"
+		L"- Export plugin support by Gradualore\r\n"
+		L"- Toolbar icons are made by ilkke\r\n"
+		L"- DPCM import resampler by Jarhmander\r\n"
+		L"- Module text import/export by rainwarrior");		// // //
+	SetDlgItemTextW(IDC_ABOUT_LIB,
+		L"- Blip_buffer 0.4.0 is Copyright (C) blargg\r\n"
+		L"(http://www.slack.net/~ant/nes-emu/)\r\n"
+		L"- Fast Fourier Transform code is (C) 2017 Project Nayuki (MIT License)\r\n"
+		L"- YM2413 emulator is written by Mitsutaka Okazaki\r\n"
+		L"- FDS sound emulator from nezplug (including a fix by rainwarrior)\r\n"
+		L"- JSON for Modern C++ is Copyright (C) Niels Lohmann");
 
 	m_cHead.SubclassDlgItem(IDC_HEAD, this);
 
@@ -163,7 +167,7 @@ BOOL CAboutDlg::OnInitDialog()
 
 	m_cMail.SubclassDlgItem(IDC_MAIL, this);
 
-	LOGFONT LogFont;
+	LOGFONTW LogFont;
 	CFont *pFont;
 	pFont = m_cMail.GetFont();
 	pFont->GetLogFont(&LogFont);
@@ -183,7 +187,7 @@ BOOL CAboutDlg::OnInitDialog()
 
 	CStatic *pStatic = static_cast<CStatic*>(GetDlgItem(IDC_ABOUT1));
 	CFont *pOldFont = pStatic->GetFont();
-	LOGFONT NewLogFont;
+	LOGFONTW NewLogFont;
 	pOldFont->GetLogFont(&NewLogFont);
 	NewLogFont.lfWeight = FW_BOLD;
 	m_cBoldFont.CreateFontIndirect(&NewLogFont);

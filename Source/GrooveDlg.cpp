@@ -30,6 +30,9 @@
 #include "Clipboard.h"
 #include "PatternNote.h"
 #include "ft0cc/doc/groove.hpp"
+#include "str_conv/str_conv.hpp"
+#include "NumConv.h"
+#include "sv_regex.h"
 
 using groove = ft0cc::doc::groove;
 
@@ -82,8 +85,8 @@ BOOL CGrooveDlg::OnInitDialog()
 	CSpinButtonCtrl *SpinPad = (CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_PAD);
 	SpinPad->SetRange(1, 255);
 	SpinPad->SetPos(1);
-	SetDlgItemText(IDC_EDIT_GROOVE_NUM, _T("12"));
-	SetDlgItemText(IDC_EDIT_GROOVE_DENOM, _T("2"));
+	SetDlgItemTextW(IDC_EDIT_GROOVE_NUM, L"12");
+	SetDlgItemTextW(IDC_EDIT_GROOVE_DENOM, L"2");
 
 	ReloadGrooves();
 	SetGrooveIndex(0);
@@ -183,7 +186,7 @@ void CGrooveDlg::OnLbnSelchangeListCurrentGroove()
 
 void CGrooveDlg::ReloadGrooves()
 {
-	SetDlgItemText(IDC_EDIT_GROOVE_FIELD, _T(""));
+	SetDlgItemTextW(IDC_EDIT_GROOVE_FIELD, L"");
 
 	m_cGrooveTable.ResetContent();
 	m_cCurrentGroove.ResetContent();
@@ -196,31 +199,31 @@ void CGrooveDlg::ReloadGrooves()
 		else
 			GrooveTable[i] = std::make_unique<groove>();
 
-		CString String;
-		String.Format(_T("%02X%s"), i, Used ? _T(" *") : _T(""));
+		CStringW String;
+		String.Format(L"%02X%s", i, Used ? " *" : "");
 		m_cGrooveTable.AddString(String);
 	}
 }
 
 void CGrooveDlg::UpdateCurrentGroove()
 {
-	CString String;
-	CString disp = "";
+	CStringW String;
+	CStringW disp = L"";
 
 	Groove = GrooveTable[m_iGrooveIndex].get();
 	m_cCurrentGroove.ResetContent();
 	unsigned i = 0;
 	for (uint8_t entry : *Groove) {
-		String.Format(_T("%02X: %d"), i++, entry);
-		disp.AppendFormat(_T("%d "), entry);
+		String.Format(L"%02X: %d", i++, entry);
+		disp.AppendFormat(L"%d ", entry);
 		m_cCurrentGroove.InsertString(-1, String);
 	}
-	m_cCurrentGroove.InsertString(-1, _T("--"));
+	m_cCurrentGroove.InsertString(-1, L"--");
 
 	m_cCurrentGroove.SetCurSel(m_iGroovePos);
-	SetDlgItemText(IDC_EDIT_GROOVE_FIELD, disp);
+	SetDlgItemTextW(IDC_EDIT_GROOVE_FIELD, disp);
 
-	String.Format(_T("%02X%s"), m_iGrooveIndex, Groove->size() ? _T(" *") : _T(""));
+	String.Format(L"%02X%s", m_iGrooveIndex, Groove->size() ? " *" : "");
 	m_cGrooveTable.SetRedraw(FALSE);
 	m_cGrooveTable.DeleteString(m_iGrooveIndex);
 	m_cGrooveTable.InsertString(m_iGrooveIndex, String);
@@ -232,18 +235,18 @@ void CGrooveDlg::UpdateCurrentGroove()
 
 void CGrooveDlg::UpdateIndicators()
 {
-	CString String;
+	CStringW String;
 
-	String.Format(_T("Speed: %.3f"), Groove->average());
-	SetDlgItemText(IDC_STATIC_GROOVE_AVERAGE, String);
-	String.Format(_T("Size: %d bytes"), Groove->size() ? Groove->compiled_size() : 0);
-	SetDlgItemText(IDC_STATIC_GROOVE_SIZE, String);
+	String.Format(L"Speed: %.3f", Groove->average());
+	SetDlgItemTextW(IDC_STATIC_GROOVE_AVERAGE, String);
+	String.Format(L"Size: %d bytes", Groove->size() ? Groove->compiled_size() : 0);
+	SetDlgItemTextW(IDC_STATIC_GROOVE_SIZE, String);
 	int Total = 0;
 	for (int i = 0; i < MAX_GROOVE; ++i)
 		if (GrooveTable[i]->size())
 			Total += GrooveTable[i]->compiled_size();
-	String.Format(_T("Total size: %d / 255 bytes"), Total);
-	SetDlgItemText(IDC_STATIC_GROOVE_TOTAL, String);
+	String.Format(L"Total size: %d / 255 bytes", Total);
+	SetDlgItemTextW(IDC_STATIC_GROOVE_TOTAL, String);
 
 	CWnd *OKButton = GetDlgItem(IDOK);
 	CWnd *ApplyButton = GetDlgItem(IDAPPLY);
@@ -285,11 +288,10 @@ void CGrooveDlg::OnBnClickedButtonGroovelClearall()
 {
 	m_cGrooveTable.SetRedraw(FALSE);
 	m_cGrooveTable.ResetContent();
-	CString str;
-	for (int i = 0; i < MAX_GROOVE - 1; i++) {
+	CStringW str;
+	for (int i = 0; i < MAX_GROOVE; ++i) {
 		*GrooveTable[i] = groove { };
-		str.Format(_T("%02X"), i);
-		m_cGrooveTable.AddString(str);
+		m_cGrooveTable.AddString(conv::to_wide(conv::from_int(i, 2)).data());
 	}
 	m_cGrooveTable.SetRedraw(TRUE);
 	UpdateCurrentGroove();
@@ -354,21 +356,19 @@ void CGrooveDlg::OnBnClickedButtonGrooveCopyFxx()
 
 void CGrooveDlg::ParseGrooveField()
 {
-	CString Str;
-	GetDlgItemText(IDC_EDIT_GROOVE_FIELD, Str);
+	CStringW WStr;
+	GetDlgItemTextW(IDC_EDIT_GROOVE_FIELD, WStr);
+	auto Str = conv::to_utf8(WStr);
 
 	*Groove = groove { };
 	m_iGroovePos = 0;
-	while (true) {
-		if (Str.IsEmpty()) break;
-		Groove->resize(Groove->size() + 1);
-		int Speed = atoi(Str);
-		if (Speed > 255) Speed = 255;
-		if (Speed < 1)   Speed = 1;
-		Groove->set_entry(m_iGroovePos, Speed);
-		m_iGroovePos++;
-		if (m_iGroovePos == groove::max_size || Str.FindOneOf(_T("0123456789")) == -1 || Str.Find(_T(' ')) == -1) break;
-		Str.Delete(0, Str.Find(_T(' ')) + 1);
+
+	for (auto x : re::tokens(Str)) {
+		if (auto entry = conv::to_uint8(x.str())) {
+			Groove->resize(Groove->size() + 1);
+			int Speed = std::clamp((int)*entry, 1, 255);
+			Groove->set_entry(m_iGroovePos++, Speed);
+		}
 	}
 
 	m_iGroovePos = 0;
@@ -403,11 +403,11 @@ void CGrooveDlg::OnBnClickedButtonGrooveShrink()
 
 void CGrooveDlg::OnBnClickedButtonGrooveGenerate()
 {
-	CString Str;
-	GetDlgItemText(IDC_EDIT_GROOVE_NUM, Str);
-	int Num = atoi(Str);
-	GetDlgItemText(IDC_EDIT_GROOVE_DENOM, Str);
-	int Denom = atoi(Str);
+	CStringW Str;
+	GetDlgItemTextW(IDC_EDIT_GROOVE_NUM, Str);
+	int Num = conv::to_int(conv::to_utf8(Str)).value_or(0);
+	GetDlgItemTextW(IDC_EDIT_GROOVE_DENOM, Str);
+	int Denom = conv::to_int(conv::to_utf8(Str)).value_or(0);
 	if (Denom < 1 || Denom > groove::max_size || Num < Denom || Num > Denom * 255) return;
 
 	*Groove = groove { };
@@ -420,10 +420,11 @@ void CGrooveDlg::OnBnClickedButtonGrooveGenerate()
 
 void CGrooveDlg::OnBnClickedButtonGroovePad()
 {
-	CString Str;
-	GetDlgItemText(IDC_EDIT_GROOVE_PAD, Str);
-	int Amount = atoi(Str);
-	if (Groove->size() > groove::max_size / 2) return;
+	CStringW Str;
+	GetDlgItemTextW(IDC_EDIT_GROOVE_PAD, Str);
+	int Amount = conv::to_int(conv::to_utf8(Str)).value_or(0);
+	if (Groove->size() > groove::max_size / 2)
+		return;
 	for (uint8_t entry : *Groove)
 		if (entry <= Amount)
 			return;

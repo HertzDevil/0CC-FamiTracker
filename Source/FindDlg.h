@@ -199,18 +199,18 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
-	void ParseNote(searchTerm &Term, CString str, bool Half);
-	void ParseInst(searchTerm &Term, CString str, bool Half);
-	void ParseVol(searchTerm &Term, CString str, bool Half);
-	void ParseEff(searchTerm &Term, CString str, bool Half);
+	void ParseNote(searchTerm &Term, CStringW str, bool Half);
+	void ParseInst(searchTerm &Term, CStringW str, bool Half);
+	void ParseVol(searchTerm &Term, CStringW str, bool Half);
+	void ParseEff(searchTerm &Term, CStringW str, bool Half);
 	void GetFindTerm();
 	void GetReplaceTerm();
 
 	bool CompareFields(const stChanNote &Target, bool Noise, int EffCount);
 
 	template <typename... T>
-	void RaiseIf(bool Check, LPCTSTR Str, T... args);
-	unsigned GetHex(LPCTSTR str);
+	void RaiseIf(bool Check, LPCWSTR Str, T... args);
+	unsigned GetHex(LPCWSTR str);
 
 	replaceTerm toReplace(const searchTerm &x) const;
 
@@ -237,8 +237,8 @@ protected:
 
 	CFindResultsBox m_cResultsBox;
 
-	static const CString m_pNoteName[7];
-	static const CString m_pNoteSign[3];
+	static const CStringW m_pNoteName[7];
+	static const CStringW m_pNoteSign[3];
 	static const int m_iNoteOffset[7];
 
 	DECLARE_MESSAGE_MAP()

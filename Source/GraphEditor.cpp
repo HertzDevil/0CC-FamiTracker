@@ -66,14 +66,14 @@ BOOL CGraphEditor::OnEraseBkgnd(CDC* DC)
 	return FALSE;
 }
 
-BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, LPVOID lpParam)
+BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, LPVOID lpParam)
 {
 	if (CWnd::CreateEx(dwExStyle, lpszClassName, lpszWindowName, dwStyle, rect, pParentWnd, nID, lpParam) == -1)
 		return -1;
 
-	LOGFONT LogFont = { };		// // //
+	LOGFONTW LogFont = { };		// // //
 
-	const LPCTSTR SMALL_FONT_FACE = _T("Verdana");		// // //
+	const LPCWSTR SMALL_FONT_FACE = L"Verdana";		// // //
 
 	_tcscpy_s(LogFont.lfFaceName, 32, SMALL_FONT_FACE);
 	LogFont.lfHeight = -10;
@@ -200,7 +200,7 @@ void CGraphEditor::DrawBackground(CDC &DC, int Lines, bool DrawMarks, int MarkOf
 void CGraphEditor::DrawRange(CDC &DC, int Max, int Min)
 {
 	CFont *pOldFont = DC.SelectObject(&m_SmallFont);		// // //
-	CString line;
+	CStringW line;
 	const int Top = GetItemTop();		// // //
 	const int Bottom = GetItemBottom();
 
@@ -214,12 +214,12 @@ void CGraphEditor::DrawRange(CDC &DC, int Max, int Min)
 	CRect topRect = textRect, bottomRect = textRect;
 
 	topRect.MoveToY(Top - 3);
-	line.Format(_T("%02i"), Max);
-	DC.DrawText(line, topRect, DT_RIGHT);
+	line.Format(L"%02i", Max);
+	DC.DrawTextW(line, topRect, DT_RIGHT);
 
 	bottomRect.MoveToY(Bottom - 11);
-	line.Format(_T("%02i"), Min);
-	DC.DrawText(line, bottomRect, DT_RIGHT);
+	line.Format(L"%02i", Min);
+	DC.DrawTextW(line, bottomRect, DT_RIGHT);
 
 	DC.SelectObject(pOldFont);
 }
@@ -239,7 +239,7 @@ void CGraphEditor::DrawLoopPoint(CDC &DC, int StepWidth)
 
 		DC.SetTextColor(0xFFFFFF);
 		DC.SetBkMode(TRANSPARENT);
-		DC.TextOut(x + 4, m_BottomRect.top, _T("Loop"));
+		DC.TextOutW(x + 4, m_BottomRect.top, L"Loop");
 	}
 
 	DC.SelectObject(pOldFont);
@@ -260,7 +260,7 @@ void CGraphEditor::DrawReleasePoint(CDC &DC, int StepWidth)
 
 		DC.SetTextColor(0xFFFFFF);
 		DC.SetBkMode(TRANSPARENT);
-		DC.TextOut(x + 4, m_BottomRect.top, _T("Release"));
+		DC.TextOutW(x + 4, m_BottomRect.top, L"Release");
 	}
 
 	DC.SelectObject(pOldFont);
@@ -289,7 +289,7 @@ void CGraphEditor::DrawLoopRelease(CDC &DC, int StepWidth)		// // //
 
 		DC.SetTextColor(0xFFFFFF);
 		DC.SetBkMode(TRANSPARENT);
-		DC.TextOut(x + 4, m_BottomRect.top, _T("Loop, Release"));
+		DC.TextOutW(x + 4, m_BottomRect.top, L"Loop, Release");
 
 		DC.SelectObject(pOldFont);
 	}
@@ -813,15 +813,15 @@ void CArpeggioGraphEditor::DrawRange(CDC &DC, int Max, int Min)
 		DC.SetBkColor(0);
 
 		// Top
-		CString line;
+		CStringW line;
 		int NoteValue = m_iScrollOffset + 20;
-		line.Format(_T("%s%d"), stChanNote::NOTE_NAME[GET_NOTE(NoteValue) - 1].c_str(), GET_OCTAVE(NoteValue));		// // //
-		DC.TextOut(2, m_GraphRect.top - 3, line);
+		line.Format(L"%s%d", stChanNote::NOTE_NAME[GET_NOTE(NoteValue) - 1].data(), GET_OCTAVE(NoteValue));		// // //
+		DC.TextOutW(2, m_GraphRect.top - 3, line);
 
 		// Bottom
 		NoteValue = m_iScrollOffset;
-		line.Format(_T("%s%d"), stChanNote::NOTE_NAME[GET_NOTE(NoteValue) - 1].c_str(), GET_OCTAVE(NoteValue));		// // //
-		DC.TextOut(2, m_GraphRect.bottom - 13, line);
+		line.Format(L"%s%d", stChanNote::NOTE_NAME[GET_NOTE(NoteValue) - 1].data(), GET_OCTAVE(NoteValue));		// // //
+		DC.TextOutW(2, m_GraphRect.bottom - 13, line);
 
 		DC.SelectObject(pOldFont);
 	}
@@ -906,8 +906,8 @@ void CArpeggioGraphEditor::OnPaint()
 				DrawRect(m_BackDC, x, y, w, h);
 
 			if (m_pSequence->GetSetting() == SETTING_ARP_SCHEME) {
-				static const CString HEAD[] = {_T(""), _T("x"), _T("y"), _T("-y")};
-				m_BackDC.TextOut(x + w / 2, y - 2 * h, HEAD[(m_pSequence->GetItem(i) & 0xFF) >> 6]);
+				static const CStringW HEAD[] = {L"", L"x", L"y", L"-y"};
+				m_BackDC.TextOutW(x + w / 2, y - 2 * h, HEAD[(m_pSequence->GetItem(i) & 0xFF) >> 6]);
 			}
 		}
 	}

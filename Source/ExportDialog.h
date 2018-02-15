@@ -49,19 +49,19 @@ protected:
 
 protected:
 	static const exportFunc_t DEFAULT_EXPORT_FUNCS[];
-	static const LPCTSTR	  DEFAULT_EXPORT_NAMES[];		// // //
+	static const LPCWSTR	  DEFAULT_EXPORT_NAMES[];		// // //
 	static const int		  DEFAULT_EXPORTERS;
 
-	static const LPCTSTR NSF_FILTER[2];
-	static const LPCTSTR NES_FILTER[2];
-	static const LPCTSTR RAW_FILTER[2];
-	static const LPCTSTR DPCMS_FILTER[2];
-	static const LPCTSTR PRG_FILTER[2];
-	static const LPCTSTR ASM_FILTER[2];
-	static const LPCTSTR NSFE_FILTER[2];		// // //
+	static const LPCWSTR NSF_FILTER[2];
+	static const LPCWSTR NES_FILTER[2];
+	static const LPCWSTR RAW_FILTER[2];
+	static const LPCWSTR DPCMS_FILTER[2];
+	static const LPCWSTR PRG_FILTER[2];
+	static const LPCWSTR ASM_FILTER[2];
+	static const LPCWSTR NSFE_FILTER[2];		// // //
 
 #ifdef _DEBUG
-	CString m_strFile;
+	CStringW m_strFile;
 #endif
 
 protected:

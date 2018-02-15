@@ -24,6 +24,7 @@
 #pragma once
 
 #include "InstrumentEditPanel.h"		// // //
+#include <string_view>		// // //
 
 class CInstrumentVRC7;		// // //
 
@@ -35,7 +36,7 @@ public:
 	CInstrumentEditorVRC7(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CInstrumentEditorVRC7();
 	int GetIDD() const override { return IDD; }
-	LPCTSTR GetTitle() const { return _T("Konami VRC7"); }		// // //
+	LPCWSTR GetTitle() const { return L"Konami VRC7"; }		// // //
 
 	virtual void SelectInstrument(std::shared_ptr<CInstrument> pInst);
 
@@ -54,7 +55,7 @@ protected:
 	void SetSliderVal(int Slider, int Value);
 	void EnableControls(bool bEnable);
 	void SelectPatch(int Patch);
-	void PasteSettings(LPCTSTR pString);
+	void ParsePatch(std::string_view sv);		// // //
 	void CopyAsPlainText();		// // //
 
 protected:

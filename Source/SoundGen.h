@@ -163,7 +163,7 @@ public:
 	int			 GetChannelVolume(chan_id_t chan) const;		// // //
 
 	// Rendering
-	bool		 RenderToFile(LPCTSTR pFile, const std::shared_ptr<CWaveRenderer> &pRender);		// // //
+	bool		 RenderToFile(LPCWSTR pFile, const std::shared_ptr<CWaveRenderer> &pRender);		// // //
 	bool		 IsRendering() const;
 	bool		 IsBackgroundTask() const;
 

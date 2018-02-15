@@ -31,6 +31,7 @@
 #include "ChannelMap.h"		// // //
 #include "FamiTrackerDocIO.h"		// // //
 #include "FamiTrackerDocOldIO.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 //
 // CFamiTrackerDoc
@@ -87,7 +88,7 @@ BOOL CFamiTrackerDoc::OnNewDocument()
 	return TRUE;
 }
 
-BOOL CFamiTrackerDoc::OnOpenDocument(LPCTSTR lpszPathName)
+BOOL CFamiTrackerDoc::OnOpenDocument(LPCWSTR lpszPathName)
 {
 	// This function is called by the GUI to load a file
 
@@ -123,7 +124,7 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	return TRUE;
 }
 
-BOOL CFamiTrackerDoc::OnSaveDocument(LPCTSTR lpszPathName)
+BOOL CFamiTrackerDoc::OnSaveDocument(LPCWSTR lpszPathName)
 {
 #ifdef DISABLE_SAVE		// // //
 	static_cast<CFrameWnd*>(AfxGetMainWnd())->SetMessageText(IDS_DISABLE_SAVE);
@@ -137,9 +138,9 @@ BOOL CFamiTrackerDoc::OnSaveDocument(LPCTSTR lpszPathName)
 
 	// File backup, now performed on save instead of open
 	if ((m_bForceBackup || theApp.GetSettings()->General.bBackups) && !m_bBackupDone) {
-		CString BakName;
-		BakName.Format(_T("%s.bak"), lpszPathName);
-		CopyFile(lpszPathName, BakName.GetString(), FALSE);
+		CStringW BakName;
+		BakName.Format(L"%s.bak", lpszPathName);
+		CopyFileW(lpszPathName, BakName, FALSE);
 		m_bBackupDone = true;
 	}
 
@@ -279,7 +280,7 @@ void CFamiTrackerDoc::OnFileSaveAs()
 #endif
 
 	// Overloaded in order to save the ftm-path
-	CString newName = GetPathName();
+	CStringW newName = GetPathName();
 
 	if (!AfxGetApp()->DoPromptFileName(newName, AFX_IDS_SAVEFILE, OFN_HIDEREADONLY | OFN_PATHMUSTEXIST, FALSE, NULL))
 		return;
@@ -311,20 +312,20 @@ void CFamiTrackerDoc::Dump(CDumpContext& dc) const
 // Document store functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
+BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 {
 	CDocumentFile DocumentFile;
 	CFileException ex;
-	TCHAR TempPath[MAX_PATH], TempFile[MAX_PATH];
+	WCHAR TempPath[MAX_PATH], TempFile[MAX_PATH];
 
 	// First write to a temp file (if saving fails, the original is not destroyed)
 	GetTempPath(MAX_PATH, TempPath);
-	GetTempFileName(TempPath, _T("FTM"), 0, TempFile);
+	GetTempFileName(TempPath, L"FTM", 0, TempFile);
 
 	if (!DocumentFile.Open(TempFile, CFile::modeWrite | CFile::modeCreate, &ex)) {
 		// Could not open file
-		TCHAR szCause[255];
-		CString strFormatted;
+		WCHAR szCause[255];
+		CStringW strFormatted;
 		ex.GetErrorMessage(szCause, 255);
 		AfxFormatString1(strFormatted, IDS_SAVE_FILE_ERROR, szCause);
 		AfxMessageBox(strFormatted, MB_OK | MB_ICONERROR);
@@ -336,8 +337,8 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 		DocumentFile.Close();
 		DeleteFile(TempFile);
 		// Display error
-		CString	ErrorMsg;
-		ErrorMsg.LoadString(IDS_SAVE_ERROR);
+		CStringW	ErrorMsg;
+		ErrorMsg.LoadStringW(IDS_SAVE_ERROR);
 		AfxMessageBox(ErrorMsg, MB_OK | MB_ICONERROR);
 		return FALSE;
 	}
@@ -361,7 +362,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 		AfxDebugBreak();		// // //
 		LPTSTR lpMsgBuf;
 		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
-		CString	strFormatted;
+		CStringW	strFormatted;
 		AfxFormatString1(strFormatted, IDS_SAVE_FILE_ERROR, lpMsgBuf);
 		AfxMessageBox(strFormatted, MB_OK | MB_ICONERROR);
 		LocalFree(lpMsgBuf);
@@ -377,8 +378,8 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 
 	// Todo: avoid calling the main window from document class
 	if (CFrameWnd *pMainFrame = static_cast<CFrameWnd*>(AfxGetMainWnd())) {		// // //
-		CString text;
-		AfxFormatString1(text, IDS_FILE_SAVED, std::to_string(FileSize).c_str());		// // //
+		CStringW text;
+		AfxFormatString1(text, IDS_FILE_SAVED, conv::to_wide(std::to_string(FileSize)).data());		// // //
 		pMainFrame->SetMessageText(text);
 	}
 
@@ -389,7 +390,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCTSTR lpszPathName) const
 // Document load functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
+BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 {
 	m_bFileLoadFailed = true;
 
@@ -407,10 +408,10 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 
 	// Open file
 	if (!OpenFile.Open(lpszPathName, CFile::modeRead | CFile::shareDenyWrite, &ex)) {
-		TCHAR   szCause[1024];		// // //
-		CString strFormatted;
+		WCHAR   szCause[1024];		// // //
+		CStringW strFormatted;
 		ex.GetErrorMessage(szCause, std::size(szCause));
-		strFormatted = _T("Could not open file.\n\n");
+		strFormatted = L"Could not open file.\n\n";
 		strFormatted += szCause;
 		AfxMessageBox(strFormatted);
 		//OnNewDocument();
@@ -434,14 +435,14 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 		}
 		else {
 			if (!CFamiTrackerDocIO {OpenFile}.Load(*GetModule())) {
-				CString msg;
-				msg.LoadString(IDS_FILE_LOAD_ERROR);
-				OpenFile.RaiseModuleException((LPCTSTR)msg);
+				CStringA msg;
+				msg.LoadStringW(IDS_FILE_LOAD_ERROR);
+				OpenFile.RaiseModuleException((LPCSTR)msg);
 			}
 		}
 	}
 	catch (CModuleException e) {
-		AfxMessageBox(e.GetErrorString().c_str(), MB_ICONERROR);
+		AfxMessageBox(conv::to_wide(e.GetErrorString()).data(), MB_ICONERROR);
 		DeleteContents();
 		return FALSE;
 	}
@@ -457,7 +458,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCTSTR lpszPathName)
 	return TRUE;
 }
 
-std::unique_ptr<CFamiTrackerDoc> CFamiTrackerDoc::LoadImportFile(LPCTSTR lpszPathName) {		// // //
+std::unique_ptr<CFamiTrackerDoc> CFamiTrackerDoc::LoadImportFile(LPCWSTR lpszPathName) {		// // //
 	// Import a module as new subtunes
 	auto pImported = std::make_unique<CFamiTrackerDoc>(ctor_t { });
 
@@ -480,12 +481,12 @@ const CFamiTrackerModule *CFamiTrackerDoc::GetModule() const noexcept {
 	return module_.get();
 }
 
-CString CFamiTrackerDoc::GetFileTitle() const
+CStringW CFamiTrackerDoc::GetFileTitle() const
 {
 	// Return file name without extension
-	CString FileName = GetTitle();
+	CStringW FileName = GetTitle();
 
-	static const LPCTSTR EXT[] = {_T(".ftm"), _T(".0cc"), _T(".ftm.bak"), _T(".0cc.bak")};		// // //
+	static const LPCWSTR EXT[] = {L".ftm", L".0cc", L".ftm.bak", L".0cc.bak"};		// // //
 	// Remove extension
 
 	for (const auto &str : EXT) {
@@ -513,16 +514,16 @@ bool CFamiTrackerDoc::HasLastLoadFailed() const
 
 void CFamiTrackerDoc::SetupAutoSave()
 {
-	TCHAR TempPath[MAX_PATH], TempFile[MAX_PATH];
+	WCHAR TempPath[MAX_PATH], TempFile[MAX_PATH];
 
 	GetTempPath(MAX_PATH, TempPath);
-	GetTempFileName(TempPath, _T("Aut"), 21587, TempFile);
+	GetTempFileName(TempPath, L"Aut", 21587, TempFile);
 
 	// Check if file exists
 	CFile file;
 	if (file.Open(TempFile, CFile::modeRead)) {
 		file.Close();
-		if (AfxMessageBox(_T("It might be possible to recover last document, do you want to try?"), MB_YESNO) == IDYES) {
+		if (AfxMessageBox(L"It might be possible to recover last document, do you want to try?", MB_YESNO) == IDYES) {
 			OpenDocument(TempFile);
 			SelectExpansionChip(GetModule()->GetSoundChipSet(), GetModule()->GetNamcoChannels());
 		}
@@ -531,9 +532,9 @@ void CFamiTrackerDoc::SetupAutoSave()
 		}
 	}
 
-	TRACE("Doc: Allocated file for auto save: ");
+	TRACE(L"Doc: Allocated file for auto save: ");
 	TRACE(TempFile);
-	TRACE("\n");
+	TRACE(L"\n");
 
 	m_sAutoSaveFile = TempFile;
 }
@@ -545,10 +546,10 @@ void CFamiTrackerDoc::ClearAutoSave()
 
 	DeleteFile(m_sAutoSaveFile);
 
-	m_sAutoSaveFile = _T("");
+	m_sAutoSaveFile = L"";
 	m_iAutoSaveCounter = 0;
 
-	TRACE("Doc: Removed auto save file\n");
+	TRACE(L"Doc: Removed auto save file\n");
 }
 
 void CFamiTrackerDoc::AutoSave()
@@ -560,7 +561,7 @@ void CFamiTrackerDoc::AutoSave()
 	m_iAutoSaveCounter--;
 
 	if (m_iAutoSaveCounter == 0) {
-		TRACE("Doc: Performing auto save\n");
+		TRACE(L"Doc: Performing auto save\n");
 		SaveDocument(m_sAutoSaveFile);
 	}
 }

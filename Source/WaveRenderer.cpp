@@ -29,7 +29,7 @@ CWaveRenderer::~CWaveRenderer() {
 }
 
 void CWaveRenderer::SetOutputFile(std::unique_ptr<CWaveFile> pWave) {
-	pWave.swap(m_pWaveFile);
+	m_pWaveFile = std::move(pWave);
 }
 
 void CWaveRenderer::CloseOutputFile() {
