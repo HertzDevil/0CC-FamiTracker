@@ -60,13 +60,13 @@ std::string NoteToStr(int Note) {
 	return str;
 }
 
-CStringW GetPitchText(int digits, int period, double freq) {
-	const CStringW fmt = L"pitch = $%0*X (%7.2fHz %s %+03i)";
+CStringA GetPitchText(int digits, int period, double freq) {
+	const CStringA fmt = "pitch = $%0*X (%7.2fHz %s %+03i)";
 	const double note = NoteFromFreq(freq);
 	const int note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);
 	const int cents = int((note - double(note_conv)) * 100.0);
 
-	CStringW str;
+	CStringA str;
 	if (freq != 0.)
 		str.Format(fmt, digits, period, freq, NoteToStr(note_conv).data(), cents);
 	else
