@@ -63,12 +63,12 @@ CInstrumentListCtrl::CInstrumentListCtrl(CMainFrame *pMainFrame) :
 void CInstrumentListCtrl::CreateImageList() {
 	m_pImageList = std::make_unique<CImageList>();
 	m_pImageList->Create(16, 16, ILC_COLOR32, 1, 1);
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_2A03));
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_VRC6));
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_VRC7));
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_FDS));
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_N163));
-	m_pImageList->Add(theApp.LoadIcon(IDI_INST_S5B));		// // //
+	m_pImageList->Add(theApp.LoadIconW(IDI_INST_2A03));
+	m_pImageList->Add(theApp.LoadIconW(IDI_INST_VRC6));
+	m_pImageList->Add(theApp.LoadIconW(IDI_INST_VRC7));
+	m_pImageList->Add(theApp.LoadIconW(IDI_INST_FDS));
+	m_pImageList->Add(theApp.LoadIconW(IDI_INST_N163));
+	m_pImageList->Add(theApp.LoadIconW(IDI_INST_S5B));		// // //
 
 	SetImageList(m_pImageList.get(), LVSIL_NORMAL);
 	SetImageList(m_pImageList.get(), LVSIL_SMALL);
@@ -84,7 +84,7 @@ int CInstrumentListCtrl::GetInstrumentIndex(int Selection) const
 	GetItemText(Selection, 0, Text, CInstrument::INST_NAME_MAX);
 
 	int Instrument;
-	_stscanf(Text, L"%X", &Instrument);
+	swscanf(Text, L"%X", &Instrument);
 
 	return Instrument;
 }
@@ -95,7 +95,7 @@ int CInstrumentListCtrl::FindInstrument(int Index) const
 	CStringW Txt;
 	Txt.Format(L"%02X", Index);
 
-	LVFINDINFO info;
+	LVFINDINFOW info;
 	info.flags = LVFI_PARTIAL | LVFI_STRING;
 	info.psz = Txt;
 
@@ -198,14 +198,14 @@ void CInstrumentListCtrl::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CInstrumentListCtrl::OnLvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	NMLVDISPINFO *pDispInfo = reinterpret_cast<NMLVDISPINFO*>(pNMHDR);
+	LPNMLVDISPINFOW pDispInfo = reinterpret_cast<LPNMLVDISPINFOW>(pNMHDR);
 	// TODO: Add your control notification handler code here
 	*pResult = 0;
 }
 
 void CInstrumentListCtrl::OnLvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	NMLVDISPINFO *pDispInfo = reinterpret_cast<NMLVDISPINFO*>(pNMHDR);
+	LPNMLVDISPINFOW pDispInfo = reinterpret_cast<LPNMLVDISPINFOW>(pNMHDR);
 	// TODO: Add your control notification handler code here
 	*pResult = 0;
 }

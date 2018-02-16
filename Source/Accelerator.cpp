@@ -278,12 +278,12 @@ void CAccelerator::LoadShortcuts(CSettings *pSettings)
 		{		// // //
 			stOldSettingContext s;
 			if (x.orig_name != nullptr)		// // //
-				Setting = App->GetProfileInt(SHORTCUTS_SECTION, x.orig_name, Setting);
-			Setting = App->GetProfileInt(SHORTCUTS_SECTION, x.name, Setting);
+				Setting = App->GetProfileIntW(SHORTCUTS_SECTION, x.orig_name, Setting);
+			Setting = App->GetProfileIntW(SHORTCUTS_SECTION, x.name, Setting);
 		}
 		if (x.orig_name != nullptr)		// // //
-			Setting = App->GetProfileInt(SHORTCUTS_SECTION, x.orig_name, Setting);
-		Setting = App->GetProfileInt(SHORTCUTS_SECTION, x.name, Setting);
+			Setting = App->GetProfileIntW(SHORTCUTS_SECTION, x.orig_name, Setting);
+		Setting = App->GetProfileIntW(SHORTCUTS_SECTION, x.name, Setting);
 
 		x.key = Setting & 0xFF;
 		x.mod = Setting >> 8;

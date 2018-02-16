@@ -329,7 +329,7 @@ void CGrooveDlg::OnBnClickedButtonGrooveCopyFxx()
 		return;
 	}
 
-	CClipboard Clipboard(CFamiTrackerView::GetView(), ::RegisterClipboardFormat(CFamiTrackerView::CLIPBOARD_ID));
+	CClipboard Clipboard(CFamiTrackerView::GetView(), ::RegisterClipboardFormatW(CFamiTrackerView::CLIPBOARD_ID));
 	if (!Clipboard.IsOpened()) {
 		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
 		return;

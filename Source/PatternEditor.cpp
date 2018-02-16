@@ -1302,8 +1302,10 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	int PosY = m_iRowHeight - m_iRowHeight / 8;		// // //
 	// // // PosX -= 1;
 
-#define BARLENGTH (m_iRowHeight > 6 ? 4 : 2)		// // //
-#define BAR(x, y) DC.FillSolidRect((x) + m_iCharWidth / 2 - BARLENGTH / 2, (y) - m_iRowHeight / 2 + m_iRowHeight / 8, BARLENGTH, 1, ColorInfo.Shaded)
+	const auto BAR = [&] (int x, int y) {		// // //
+		const auto BARLENGTH = m_iRowHeight > 6 ? 4 : 2;
+		DC.FillSolidRect(x + m_iCharWidth / 2 - BARLENGTH / 2, y - m_iRowHeight / 2 + m_iRowHeight / 8, BARLENGTH, 1, ColorInfo.Shaded);
+	};
 
 	DC.SetTextAlign(TA_CENTER | TA_BASELINE);		// // //
 

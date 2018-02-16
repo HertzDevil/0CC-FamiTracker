@@ -46,7 +46,7 @@ static CStringW GetDumpFilename(int counter)
 	// Append a timestamp to the filename
 	//
 	CStringW filename;
-	CTime t = CTime::GetCurrentTime();
+	CTime t = CTime::GetTickCount();
 
 	filename = MINIDUMP_FILE_PRE;
 
@@ -83,10 +83,10 @@ static LONG WINAPI ExceptionHandler(__in struct _EXCEPTION_POINTERS *ep)
 
 	MinidumpFile = GetDumpFilename(dump_counter++);
 
-	while (GetFileAttributes(MinidumpFile) != 0xFFFFFFFF)
+	while (GetFileAttributesW(MinidumpFile) != 0xFFFFFFFF)
 		MinidumpFile = GetDumpFilename(dump_counter++);
 
-	HANDLE hFile = CreateFile(MinidumpFile, GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE hFile = CreateFileW(MinidumpFile, GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	// Save the memory dump file
 	if ((hFile != NULL) && (hFile != INVALID_HANDLE_VALUE))  {
@@ -109,7 +109,7 @@ static LONG WINAPI ExceptionHandler(__in struct _EXCEPTION_POINTERS *ep)
 	CStringW DocDumpFile = FTM_DUMP;
 	int counter = 1;
 
-	while (GetFileAttributes(DocDumpFile + L".ftm") != 0xFFFFFFFF)
+	while (GetFileAttributesW(DocDumpFile + L".ftm") != 0xFFFFFFFF)
 		DocDumpFile.Format(L"%s%i", FTM_DUMP, counter++);
 
 	DocDumpFile.Append(L".ftm");

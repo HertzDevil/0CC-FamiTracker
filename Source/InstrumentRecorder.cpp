@@ -67,7 +67,7 @@ void CInstrumentRecorder::StartRecording()
 void CInstrumentRecorder::StopRecording(CWnd *pView)
 {
 	if (*m_pDumpInstrument != nullptr && pView != nullptr)
-		pView->PostMessage(WM_USER_DUMP_INST);
+		pView->PostMessageW(WM_USER_DUMP_INST);
 	--m_iDumpCount;
 }
 
@@ -77,7 +77,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 	if (m_iRecordChannel == chan_id_t::NONE || Tick > Intv * m_stRecordSetting.InstCount + 1) return;
 	if (Tick % Intv == 1 && Tick > Intv) {
 		if (*m_pDumpInstrument != nullptr && pView != nullptr) {
-			pView->PostMessage(WM_USER_DUMP_INST);
+			pView->PostMessageW(WM_USER_DUMP_INST);
 			m_pDumpInstrument++;
 		}
 		--m_iDumpCount;

@@ -67,7 +67,7 @@ void CListBoxEx::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) {
 		dc.SetTextColor(::GetSysColor(COLOR_GRAYTEXT));
 
 	dc.SetWindowOrg(-2, 0);
-	dc.DrawTextW(str, (int)_tcslen(str), &lpDrawItemStruct->rcItem, DT_SINGLELINE);
+	dc.DrawTextW(str, (int)wcslen(str), &lpDrawItemStruct->rcItem, DT_SINGLELINE);
 
 	dc.SetWindowOrg(0, 0);
 	dc.SetTextColor(crOldTextColor);

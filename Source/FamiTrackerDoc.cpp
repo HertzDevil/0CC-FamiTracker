@@ -319,8 +319,8 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 	WCHAR TempPath[MAX_PATH], TempFile[MAX_PATH];
 
 	// First write to a temp file (if saving fails, the original is not destroyed)
-	GetTempPath(MAX_PATH, TempPath);
-	GetTempFileName(TempPath, L"FTM", 0, TempFile);
+	GetTempPathW(MAX_PATH, TempPath);
+	GetTempFileNameW(TempPath, L"FTM", 0, TempFile);
 
 	if (!DocumentFile.Open(TempFile, CFile::modeWrite | CFile::modeCreate, &ex)) {
 		// Could not open file
@@ -335,9 +335,9 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 	if (!CFamiTrackerDocIO {DocumentFile}.Save(*GetModule())) {		// // //
 		// The save process failed, delete temp file
 		DocumentFile.Close();
-		DeleteFile(TempFile);
+		DeleteFileW(TempFile);
 		// Display error
-		CStringW	ErrorMsg;
+		CStringW ErrorMsg;
 		ErrorMsg.LoadStringW(IDS_SAVE_ERROR);
 		AfxMessageBox(ErrorMsg, MB_OK | MB_ICONERROR);
 		return FALSE;
@@ -351,28 +351,28 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 	HANDLE hOldFile;
 	FILETIME creationTime;
 
-	hOldFile = CreateFile(lpszPathName, FILE_READ_ATTRIBUTES, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	hOldFile = CreateFileW(lpszPathName, FILE_READ_ATTRIBUTES, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	GetFileTime(hOldFile, &creationTime, NULL, NULL);
 	CloseHandle(hOldFile);
 
 	// Everything is done and the program cannot crash at this point
 	// Replace the original
-	if (!MoveFileEx(TempFile, lpszPathName, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED)) {
+	if (!MoveFileExW(TempFile, lpszPathName, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED)) {
 		// Display message if saving failed
 		AfxDebugBreak();		// // //
 		LPTSTR lpMsgBuf;
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
+		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
 		CStringW	strFormatted;
 		AfxFormatString1(strFormatted, IDS_SAVE_FILE_ERROR, lpMsgBuf);
 		AfxMessageBox(strFormatted, MB_OK | MB_ICONERROR);
 		LocalFree(lpMsgBuf);
 		// Remove temp file
-		DeleteFile(TempFile);
+		DeleteFileW(TempFile);
 		return FALSE;
 	}
 
 	// Restore creation date
-	hOldFile = CreateFile(lpszPathName, FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	hOldFile = CreateFileW(lpszPathName, FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	SetFileTime(hOldFile, &creationTime, NULL, NULL);
 	CloseHandle(hOldFile);
 
@@ -490,7 +490,7 @@ CStringW CFamiTrackerDoc::GetFileTitle() const
 	// Remove extension
 
 	for (const auto &str : EXT) {
-		int Len = lstrlen(str);
+		int Len = wcslen(str);
 		if (FileName.Right(Len).CompareNoCase(str) == 0)
 			return FileName.Left(FileName.GetLength() - Len);
 	}
@@ -516,8 +516,8 @@ void CFamiTrackerDoc::SetupAutoSave()
 {
 	WCHAR TempPath[MAX_PATH], TempFile[MAX_PATH];
 
-	GetTempPath(MAX_PATH, TempPath);
-	GetTempFileName(TempPath, L"Aut", 21587, TempFile);
+	GetTempPathW(MAX_PATH, TempPath);
+	GetTempFileNameW(TempPath, L"Aut", 21587, TempFile);
 
 	// Check if file exists
 	CFile file;
@@ -528,7 +528,7 @@ void CFamiTrackerDoc::SetupAutoSave()
 			SelectExpansionChip(GetModule()->GetSoundChipSet(), GetModule()->GetNamcoChannels());
 		}
 		else {
-			DeleteFile(TempFile);
+			DeleteFileW(TempFile);
 		}
 	}
 
@@ -544,7 +544,7 @@ void CFamiTrackerDoc::ClearAutoSave()
 	if (m_sAutoSaveFile.GetLength() == 0)
 		return;
 
-	DeleteFile(m_sAutoSaveFile);
+	DeleteFileW(m_sAutoSaveFile);
 
 	m_sAutoSaveFile = L"";
 	m_iAutoSaveCounter = 0;

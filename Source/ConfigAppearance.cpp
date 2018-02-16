@@ -146,17 +146,10 @@ void CConfigAppearance::OnPaint()
 	int WinHeight = Rect.bottom - Rect.top;
 	int WinWidth = Rect.right - Rect.left;
 
-	CFont Font, *OldFont;
-	LOGFONTW LogFont = { };		// // //
-
-	wcsncpy_s(LogFont.lfFaceName, m_strFont, LF_FACESIZE);
-
-	LogFont.lfHeight = -m_iFontSize;
-	LogFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
-
-	Font.CreateFontIndirect(&LogFont);
-
-	OldFont = dc.SelectObject(&Font);
+	CFont Font;		// // //
+	Font.CreateFontW(-m_iFontSize, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET,
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, m_strFont);
+	CFont *OldFont = OldFont = dc.SelectObject(&Font);
 
 	// Background
 	dc.FillSolidRect(Rect, GetColor(COL_BACKGROUND));
@@ -173,6 +166,10 @@ void CConfigAppearance::OnPaint()
 	COLORREF BgCol = GetColor(COL_BACKGROUND);
 	COLORREF HilightBgCol = GetColor(COL_BACKGROUND_HILITE);
 	COLORREF Hilight2BgCol = GetColor(COL_BACKGROUND_HILITE2);
+
+	const auto BAR = [&] (int x, int y) {
+		dc.FillSolidRect(x + 3, y + (iRowSize / 2) + 1, 10 - 7, 1, ShadedCol);
+	};
 
 	for (int i = 0; i < iRows; ++i) {
 
@@ -199,8 +196,6 @@ void CConfigAppearance::OnPaint()
 		else {
 			dc.SetTextColor(ShadedCol);
 		}
-
-#define BAR(x, y) dc.FillSolidRect((x) + 3, (y) + (iRowSize / 2) + 1, 10 - 7, 1, ShadedCol)
 
 		if (i == 0) {
 			dc.TextOutW(OffsetLeft, OffsetTop - 2, L"C");
@@ -242,7 +237,7 @@ BOOL CConfigAppearance::OnInitDialog()
 	if (pDC != NULL) {
 		LOGFONTW LogFont = { };		// // //
 		LogFont.lfCharSet = DEFAULT_CHARSET;
-		EnumFontFamiliesEx(pDC->m_hDC, &LogFont, (FONTENUMPROC)EnumFontFamExProc, (LPARAM)this, 0);
+		EnumFontFamiliesExW(pDC->m_hDC, &LogFont, (FONTENUMPROC)EnumFontFamExProc, (LPARAM)this, 0);
 		ReleaseDC(pDC);
 	}
 

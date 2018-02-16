@@ -60,7 +60,7 @@ void CWavProgressDlg::OnBnClickedCancel()
 
 	if (pSoundGen->IsRendering()) {
 		//pSoundGen->StopRendering();
-		pSoundGen->PostThreadMessage(WM_USER_STOP_RENDER, 0, 0);
+		pSoundGen->PostThreadMessageW(WM_USER_STOP_RENDER, 0, 0);
 	}
 
 	EndDialog(0);

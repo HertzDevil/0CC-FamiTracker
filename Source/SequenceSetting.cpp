@@ -91,7 +91,7 @@ void CSequenceSetting::OnPaint()
 	dc.SetBkColor(BgColor);
 
 	rect.top += 2;
-	dc.DrawTextW(str, _tcslen(str), rect, DT_CENTER);
+	dc.DrawTextW(str, wcslen(str), rect, DT_CENTER);
 }
 
 void CSequenceSetting::OnLButtonDown(UINT nFlags, CPoint point)
@@ -166,7 +166,7 @@ void CSequenceSetting::OnMenuSettingChanged(UINT ID)		// // //
 	}
 
 	m_pSequence->SetSetting(static_cast<seq_setting_t>(New));
-	m_pParent->PostMessage(WM_SETTING_CHANGED);		// // //
+	m_pParent->PostMessageW(WM_SETTING_CHANGED);		// // //
 }
 
 void CSequenceSetting::OnMouseMove(UINT nFlags, CPoint point)

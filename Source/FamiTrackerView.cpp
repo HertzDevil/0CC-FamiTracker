@@ -365,7 +365,7 @@ int CFamiTrackerView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_pPatternEditor->ApplyColorScheme();
 
 	// Create clipboard format
-	m_iClipboard = ::RegisterClipboardFormat(CLIPBOARD_ID);
+	m_iClipboard = ::RegisterClipboardFormatW(CLIPBOARD_ID);
 
 	if (m_iClipboard == 0)
 		AfxMessageBox(IDS_CLIPBOARD_ERROR, MB_ICONERROR);
@@ -399,7 +399,7 @@ void CFamiTrackerView::OnDraw(CDC* pDC)
 		pDC->FillSolidRect(0, 0, m_iWindowWidth, m_iWindowHeight, 0x000000);
 		pDC->SetTextColor(0xFFFFFF);
 		CRect textRect(0, 0, m_iWindowWidth, m_iWindowHeight);
-		pDC->DrawTextW(str, _tcslen(str), &textRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		pDC->DrawTextW(str, wcslen(str), &textRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 		return;
 	}
 
@@ -1204,7 +1204,7 @@ void CFamiTrackerView::OnInitialUpdate()
 
 	// Display comment box
 	if (pModule->ShowsCommentOnOpen())		// // //
-		pMainFrame->PostMessage(WM_COMMAND, ID_MODULE_COMMENTS);
+		pMainFrame->PostMessageW(WM_COMMAND, ID_MODULE_COMMENTS);
 
 	// Call OnUpdate
 	//CView::OnInitialUpdate();

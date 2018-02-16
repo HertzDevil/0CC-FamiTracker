@@ -180,7 +180,7 @@ void CSoundGen::RemoveDocument()
 	StopPlayer();
 	WaitForStop();
 
-	PostThreadMessage(WM_USER_REMOVE_DOCUMENT, 0, 0);
+	PostThreadMessageW(WM_USER_REMOVE_DOCUMENT, 0, 0);
 
 	// Wait 5s for thread to clear the pointer
 	for (int i = 0; i < 50 && m_pDocument != NULL; ++i)
@@ -233,7 +233,7 @@ void CSoundGen::SelectChip(const CSoundChipSet &Chip)
 		return;
 	}
 
-	PostThreadMessage(WM_USER_SET_CHIP, Chip.GetFlag(), 0);
+	PostThreadMessageW(WM_USER_SET_CHIP, Chip.GetFlag(), 0);
 }
 
 void CSoundGen::DocumentPropertiesChanged(CFamiTrackerDoc *pDocument)
@@ -254,7 +254,7 @@ void CSoundGen::StartPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 	if (!m_hThread)
 		return;
 
-	PostThreadMessage(WM_USER_PLAY, reinterpret_cast<uintptr_t>(Pos.release()), 0);
+	PostThreadMessageW(WM_USER_PLAY, reinterpret_cast<uintptr_t>(Pos.release()), 0);
 }
 
 void CSoundGen::StopPlayer()
@@ -262,7 +262,7 @@ void CSoundGen::StopPlayer()
 	if (!m_hThread)
 		return;
 
-	PostThreadMessage(WM_USER_STOP, 0, 0);
+	PostThreadMessageW(WM_USER_STOP, 0, 0);
 }
 
 void CSoundGen::ResetPlayer(int Track)
@@ -271,7 +271,7 @@ void CSoundGen::ResetPlayer(int Track)
 		return;
 
 	auto pCur = std::make_unique<CPlayerCursor>(*m_pModule->GetSong(Track), Track);		// // //
-	PostThreadMessage(WM_USER_RESET, reinterpret_cast<uintptr_t>(pCur.release()), 0);
+	PostThreadMessageW(WM_USER_RESET, reinterpret_cast<uintptr_t>(pCur.release()), 0);
 }
 
 void CSoundGen::LoadSettings()
@@ -279,7 +279,7 @@ void CSoundGen::LoadSettings()
 	if (!m_hThread)
 		return;
 
-	PostThreadMessage(WM_USER_LOAD_SETTINGS, 0, 0);
+	PostThreadMessageW(WM_USER_LOAD_SETTINGS, 0, 0);
 }
 
 void CSoundGen::SilentAll()
@@ -287,7 +287,7 @@ void CSoundGen::SilentAll()
 	if (!m_hThread)
 		return;
 
-	PostThreadMessage(WM_USER_SILENT_ALL, 0, 0);
+	PostThreadMessageW(WM_USER_SILENT_ALL, 0, 0);
 }
 
 void CSoundGen::PlaySingleRow(int track) {		// // //
@@ -312,7 +312,7 @@ void CSoundGen::WriteAPU(int Address, char Value)
 		return;
 
 	// Direct APU interface
-	PostThreadMessage(WM_USER_WRITE_APU, (WPARAM)Address, (LPARAM)Value);
+	PostThreadMessageW(WM_USER_WRITE_APU, (WPARAM)Address, (LPARAM)Value);
 }
 
 bool CSoundGen::IsExpansionEnabled(sound_chip_t Chip) const {		// // //
@@ -331,7 +331,7 @@ void CSoundGen::PreviewSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSa
 	m_pPreviewSample = std::move(pSample);
 	// Preview a DPCM sample. If the name of sample is null,
 	// the sample will be removed after played
-	PostThreadMessage(WM_USER_PREVIEW_SAMPLE, Offset, Pitch);
+	PostThreadMessageW(WM_USER_PREVIEW_SAMPLE, Offset, Pitch);
 }
 
 void CSoundGen::CancelPreviewSample()
@@ -349,7 +349,7 @@ bool CSoundGen::IsRunning() const
 bool CSoundGen::Shutdown() {		// // //
 	// Thread was not suspended, send quit message
 	if (ResumeThread() == 0)
-		PostThreadMessage(WM_QUIT, 0, 0);
+		PostThreadMessageW(WM_QUIT, 0, 0);
 
 	// If thread was suspended then it will auto-terminate, because sound hasn't been initialized
 
@@ -656,7 +656,7 @@ void CSoundGen::OnUpdateRow(int frame, int row) {
 	if (pMark && pMark->m_Highlight.First != -1)		// // //
 		m_iLastHighlight = pMark->m_Highlight.First;
 	if (!IsBackgroundTask() && m_pTrackerView)		// // //
-		m_pTrackerView->PostMessage(WM_USER_PLAYER, frame, row);
+		m_pTrackerView->PostMessageW(WM_USER_PLAYER, frame, row);
 }
 
 void CSoundGen::SetChannelMute(chan_id_t chan, bool mute) {		// // //
@@ -885,7 +885,7 @@ bool CSoundGen::RenderToFile(LPCWSTR pFile, const std::shared_ptr<CWaveRenderer>
 	if (auto pWave = std::make_unique<CWaveFile>(); pWave &&		// // //
 		pWave->OpenFile(pFile, theApp.GetSettings()->Sound.iSampleRate, theApp.GetSettings()->Sound.iSampleSize, 1)) {
 		m_pWaveRenderer->SetOutputFile(std::move(pWave));
-		PostThreadMessage(WM_USER_START_RENDER, 0, 0);
+		PostThreadMessageW(WM_USER_START_RENDER, 0, 0);
 		return true;
 	}
 

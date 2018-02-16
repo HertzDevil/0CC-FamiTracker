@@ -144,7 +144,7 @@ int CFrameEditor::OnCreate(LPCREATESTRUCT lpCreateStruct)
 					  OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
 					  Env.GetSettings()->Appearance.strFrameFont);		// // // 050B
 
-	m_iClipboard = ::RegisterClipboardFormat(CLIPBOARD_ID);
+	m_iClipboard = ::RegisterClipboardFormatW(CLIPBOARD_ID);
 
 	m_DropTarget.Register(this);
 	m_DropTarget.SetClipBoardFormat(m_iClipboard);

@@ -277,7 +277,7 @@ void CWaveEditor::EditWave(CPoint point)
 		SetSample(index, sample);
 
 	// Indicates wave change
-	GetParent()->PostMessage(WM_USER_WAVE_CHANGED);
+	GetParent()->PostMessageW(WM_USER_WAVE_CHANGED);
 }
 
 void CWaveEditor::DrawLine(CDC *pDC)
@@ -296,7 +296,7 @@ void CWaveEditor::WaveChanged()
 {
 	Invalidate();
 	RedrawWindow();
-	GetParent()->PostMessage(WM_USER_WAVE_CHANGED);
+	GetParent()->PostMessageW(WM_USER_WAVE_CHANGED);
 }
 
 void CWaveEditor::OnContextMenu(CWnd* /*pWnd*/, CPoint point)

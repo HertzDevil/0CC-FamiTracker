@@ -113,7 +113,7 @@ END_MESSAGE_MAP()
 
 bool CLockedEdit::IsEditable() const
 {
-	return !((GetWindowLong(m_hWnd, GWL_STYLE) & ES_READONLY) == ES_READONLY);
+	return !((GetWindowLongW(m_hWnd, GWL_STYLE) & ES_READONLY) == ES_READONLY);
 }
 
 bool CLockedEdit::Update()

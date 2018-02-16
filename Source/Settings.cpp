@@ -285,12 +285,12 @@ void CSettingType<T>::Load()
 	{
 		stOldSettingContext s;
 		if (m_pSectionSecond)
-			Value = theApp.GetProfileInt(m_pSectionSecond, m_pEntrySecond, Value);
-		Value = theApp.GetProfileInt(m_pSection, m_pEntry, Value);
+			Value = theApp.GetProfileIntW(m_pSectionSecond, m_pEntrySecond, Value);
+		Value = theApp.GetProfileIntW(m_pSection, m_pEntry, Value);
 	}
 	if (m_pSectionSecond)
-		Value = theApp.GetProfileInt(m_pSectionSecond, m_pEntrySecond, Value);
-	*m_pVariable = theApp.GetProfileInt(m_pSection, m_pEntry, Value);
+		Value = theApp.GetProfileIntW(m_pSectionSecond, m_pEntrySecond, Value);
+	*m_pVariable = theApp.GetProfileIntW(m_pSection, m_pEntry, Value);
 }
 
 template<>
@@ -300,12 +300,12 @@ void CSettingType<bool>::Load()
 	{
 		stOldSettingContext s;
 		if (m_pSectionSecond)
-			Value = theApp.GetProfileInt(m_pSectionSecond, m_pEntrySecond, Value) != 0;
-		Value = theApp.GetProfileInt(m_pSection, m_pEntry, Value) != 0;
+			Value = theApp.GetProfileIntW(m_pSectionSecond, m_pEntrySecond, Value) != 0;
+		Value = theApp.GetProfileIntW(m_pSection, m_pEntry, Value) != 0;
 	}
 	if (m_pSectionSecond)
-		Value = theApp.GetProfileInt(m_pSectionSecond, m_pEntrySecond, Value) != 0;
-	*m_pVariable = theApp.GetProfileInt(m_pSection, m_pEntry, Value) != 0;
+		Value = theApp.GetProfileIntW(m_pSectionSecond, m_pEntrySecond, Value) != 0;
+	*m_pVariable = theApp.GetProfileIntW(m_pSection, m_pEntry, Value) != 0;
 }
 
 template<>
@@ -315,12 +315,12 @@ void CSettingType<CStringW>::Load()
 	{
 		stOldSettingContext s;
 		if (m_pSectionSecond)
-			Value = theApp.GetProfileString(m_pSectionSecond, m_pEntrySecond, Value);
-		Value = theApp.GetProfileString(m_pSection, m_pEntry, Value);
+			Value = theApp.GetProfileStringW(m_pSectionSecond, m_pEntrySecond, Value);
+		Value = theApp.GetProfileStringW(m_pSection, m_pEntry, Value);
 	}
 	if (m_pSectionSecond)
-		Value = theApp.GetProfileString(m_pSectionSecond, m_pEntrySecond, Value);
-	*m_pVariable = theApp.GetProfileString(m_pSection, m_pEntry, Value);
+		Value = theApp.GetProfileStringW(m_pSectionSecond, m_pEntrySecond, Value);
+	*m_pVariable = theApp.GetProfileStringW(m_pSection, m_pEntry, Value);
 }
 
 template<class T>
@@ -332,7 +332,7 @@ void CSettingType<T>::Save()
 template<>
 void CSettingType<CStringW>::Save()
 {
-	theApp.WriteProfileString(m_pSection, m_pEntry, *m_pVariable);
+	theApp.WriteProfileStringW(m_pSection, m_pEntry, *m_pVariable);
 }
 
 template<class T>

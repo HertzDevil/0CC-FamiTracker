@@ -96,7 +96,7 @@ bool CInstrumentFileTree::ScanDirectory(const CStringW &path, CMenu &Menu, int l
 
 	// First scan directories
 	while (working) {
-		working = fileFinder.FindNextFile();
+		working = fileFinder.FindNextFileW();
 
 		if (fileFinder.IsDirectory() && !fileFinder.IsHidden() && !fileFinder.IsDots() && m_iTotalMenusAdded++ < MAX_MENUS) {
 			auto &SubMenu = *m_menuArray.emplace_back(std::make_unique<CMenu>());		// // //
@@ -112,7 +112,7 @@ bool CInstrumentFileTree::ScanDirectory(const CStringW &path, CMenu &Menu, int l
 
 	// Then files
 	while (working) {
-		working = fileFinder.FindNextFile();
+		working = fileFinder.FindNextFileW();
 		Menu.AppendMenuW(MF_STRING | MF_ENABLED, MENU_BASE + m_iFileIndex++, fileFinder.GetFileTitle());
 		m_fileList.push_back(path + L"\\" + fileFinder.GetFileName());		// // //
 		bNoFile = false;

@@ -35,7 +35,7 @@ bool CWaveFile::OpenFile(LPCWSTR Filename, int SampleRate, int SampleSize, int C
 
 	WCHAR pBuf[128] = { };		// // //
 	wcscpy_s(pBuf, Filename);
-	hmmioOut = mmioOpen(pBuf, NULL, MMIO_ALLOCBUF | MMIO_READWRITE | MMIO_CREATE);
+	hmmioOut = mmioOpenW(pBuf, NULL, MMIO_ALLOCBUF | MMIO_READWRITE | MMIO_CREATE);
 
 	ckOutRIFF.fccType = mmioFOURCC('W', 'A', 'V', 'E');
 	ckOutRIFF.cksize  = 0;

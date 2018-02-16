@@ -185,7 +185,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	// Work-around to enable file type registration in windows vista/7
 	if (IsWindowsVistaOrGreater()) {		// // //
 		HKEY HKCU;
-		long res_reg = ::RegOpenKey(HKEY_CURRENT_USER, L"Software\\Classes", &HKCU);
+		long res_reg = ::RegOpenKeyW(HKEY_CURRENT_USER, L"Software\\Classes", &HKCU);
 		if(res_reg == ERROR_SUCCESS)
 			RegOverridePredefKey(HKEY_CLASSES_ROOT, HKCU);
 	}
@@ -198,7 +198,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	// Add shell options
 	RegisterShellFileTypes();		// // //
 	static const LPCWSTR FILE_ASSOC_NAME = L"0CC-FamiTracker Module";
-	AfxRegSetValue(HKEY_CLASSES_ROOT, "0CCFamiTracker.Document", REG_SZ, FILE_ASSOC_NAME, lstrlen(FILE_ASSOC_NAME) * sizeof(WCHAR));
+	AfxRegSetValue(HKEY_CLASSES_ROOT, "0CCFamiTracker.Document", REG_SZ, FILE_ASSOC_NAME, wcslen(FILE_ASSOC_NAME) * sizeof(WCHAR));
 	// Add an option to play files
 	CStringW strPathName, strTemp, strFileTypeId;
 	AfxGetModuleShortFileName(AfxGetInstanceHandle(), strPathName);
@@ -206,7 +206,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	strOpenCommandLine += L" /play \"%1\"";
 	if (pDocTemplate->GetDocString(strFileTypeId, CDocTemplate::regFileTypeId) && !strFileTypeId.IsEmpty()) {
 		strTemp.Format(L"%s\\shell\\play\\%s", (LPCWSTR)strFileTypeId, L"command");
-		AfxRegSetValue(HKEY_CLASSES_ROOT, strTemp, REG_SZ, strOpenCommandLine, lstrlen(strOpenCommandLine) * sizeof(WCHAR));
+		AfxRegSetValue(HKEY_CLASSES_ROOT, strTemp, REG_SZ, strOpenCommandLine, wcslen(strOpenCommandLine) * sizeof(WCHAR));
 	}
 #endif
 
@@ -377,7 +377,7 @@ BOOL CFamiTrackerApp::PreTranslateMessage(MSG* pMsg)
 
 void CFamiTrackerApp::CheckAppThemed()
 {
-	HMODULE hinstDll = ::LoadLibrary(L"UxTheme.dll");
+	HMODULE hinstDll = ::LoadLibraryW(L"UxTheme.dll");
 
 	if (hinstDll) {
 		typedef BOOL (*ISAPPTHEMEDPROC)();
@@ -399,15 +399,15 @@ bool CFamiTrackerApp::IsThemeActive() const
 #ifdef SUPPORT_TRANSLATIONS
 bool GetFileVersion(LPCWSTR Filename, WORD &Major, WORD &Minor, WORD &Revision, WORD &Build) {
 	DWORD Handle;
-	DWORD Size = GetFileVersionInfoSize(Filename, &Handle);
+	DWORD Size = GetFileVersionInfoSizeW(Filename, &Handle);
 
 	Major = Minor = Revision = Build = 0;
 
 	if (Size > 0) {
-		if (std::vector<WCHAR> pData(Size); GetFileVersionInfo(Filename, NULL, Size, pData.data()) != 0) {		// // //
+		if (std::vector<WCHAR> pData(Size); GetFileVersionInfoW(Filename, NULL, Size, pData.data()) != 0) {		// // //
 			UINT size;
 			VS_FIXEDFILEINFO *pFileinfo;
-			if (VerQueryValue(pData.data(), L"\\", (LPVOID*)&pFileinfo, &size) != 0) {
+			if (VerQueryValueW(pData.data(), L"\\", (LPVOID*)&pFileinfo, &size) != 0) {
 				Major = pFileinfo->dwProductVersionMS >> 16;
 				Minor = pFileinfo->dwProductVersionMS & 0xFFFF;
 				Revision = pFileinfo->dwProductVersionLS >> 16;
@@ -429,7 +429,7 @@ void CFamiTrackerApp::LoadLocalization()
 		if (0 != Compare0CCFTVersion(Major, Minor, Revision, Build))		// // //
 			return;
 
-		m_hInstResDLL = ::LoadLibrary(DLL_NAME);
+		m_hInstResDLL = ::LoadLibraryW(DLL_NAME);
 
 		if (m_hInstResDLL != NULL) {
 			TRACE(L"App: Loaded localization DLL\n");
@@ -483,7 +483,7 @@ void CFamiTrackerApp::RegisterSingleInstance()
 	if (!GetSettings()->General.bSingleInstance)
 		return;
 
-	m_hWndMapFile = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, SHARED_MEM_SIZE, FT_SHARED_MEM_NAME);
+	m_hWndMapFile = CreateFileMappingW(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, SHARED_MEM_SIZE, FT_SHARED_MEM_NAME);
 
 	if (m_hWndMapFile != NULL) {
 		LPTSTR pBuf = (LPTSTR) MapViewOfFile(m_hWndMapFile, FILE_MAP_ALL_ACCESS, 0, 0, SHARED_MEM_SIZE);
@@ -525,7 +525,7 @@ bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
 
 	if (GetLastError() == ERROR_ALREADY_EXISTS) {
 		// Another instance detected, get window handle
-		HANDLE hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, FT_SHARED_MEM_NAME);
+		HANDLE hMapFile = OpenFileMappingW(FILE_MAP_ALL_ACCESS, FALSE, FT_SHARED_MEM_NAME);
 		if (hMapFile != NULL) {
 			LPCWSTR pBuf = (LPTSTR) MapViewOfFile(hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, SHARED_MEM_SIZE);
 			if (pBuf != NULL) {
@@ -537,10 +537,10 @@ bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
 					// We have the window handle & file, send a message to open the file
 					COPYDATASTRUCT data;
 					data.dwData = cmdInfo.m_bPlay ? IPC_LOAD_PLAY : IPC_LOAD;
-					data.cbData = (DWORD)((_tcslen(pFilePath) + 1) * sizeof(WCHAR));
+					data.cbData = (DWORD)((wcslen(pFilePath) + 1) * sizeof(WCHAR));
 					data.lpData = pFilePath;
 					DWORD result;
-					SendMessageTimeout(hWnd, WM_COPYDATA, NULL, (LPARAM)&data, SMTO_NORMAL, 100, &result);
+					SendMessageTimeoutW(hWnd, WM_COPYDATA, NULL, (LPARAM)&data, SMTO_NORMAL, 100, &result);
 					UnmapViewOfFile(pBuf);
 					CloseHandle(hMapFile);
 					TRACE(L"App: Found another instance, shutting down\n");
@@ -775,29 +775,29 @@ void CFTCommandLineInfo::ParseParam(const WCHAR* pszParam, BOOL bFlag, BOOL bLas
 {
 	if (bFlag) {
 		// Export file (/export or /e)
-		if (!_tcsicmp(pszParam, L"export") || !_tcsicmp(pszParam, L"e")) {
+		if (!_wcsicmp(pszParam, L"export") || !_wcsicmp(pszParam, L"e")) {
 			m_bExport = true;
 			return;
 		}
 		// Auto play (/play or /p)
-		else if (!_tcsicmp(pszParam, L"play") || !_tcsicmp(pszParam, L"p")) {
+		else if (!_wcsicmp(pszParam, L"play") || !_wcsicmp(pszParam, L"p")) {
 			m_bPlay = true;
 			return;
 		}
 		// // // Render (/render or /r)
-		else if (!_tcsicmp(pszParam, L"render") || !_tcsicmp(pszParam, L"r")) {
+		else if (!_wcsicmp(pszParam, L"render") || !_wcsicmp(pszParam, L"r")) {
 			m_bRender = true;
 			return;
 		}
 		// Disable crash dumps (/nodump)
-		else if (!_tcsicmp(pszParam, L"nodump")) {
+		else if (!_wcsicmp(pszParam, L"nodump")) {
 #ifdef ENABLE_CRASH_HANDLER
 			UninstallExceptionHandler();
 #endif
 			return;
 		}
 		// Enable register logger (/log), available in debug mode only
-		else if (!_tcsicmp(pszParam, L"log")) {
+		else if (!_wcsicmp(pszParam, L"log")) {
 #ifdef _DEBUG
 			m_bLog = true;
 			return;
@@ -806,7 +806,7 @@ void CFTCommandLineInfo::ParseParam(const WCHAR* pszParam, BOOL bFlag, BOOL bLas
 		// Enable console output (TODO)
 		// This is intended for a small helper program that avoids the problem with console on win32 programs,
 		// and should remain undocumented. I'm using it for testing.
-		else if (!_tcsicmp(pszParam, L"console")) {
+		else if (!_wcsicmp(pszParam, L"console")) {
 			FILE *f;
 			AttachConsole(ATTACH_PARENT_PROCESS);
 			errno_t err = freopen_s(&f, "CON", "w", stdout);
@@ -840,7 +840,7 @@ void CFTCommandLineInfo::ParseParam(const WCHAR* pszParam, BOOL bFlag, BOOL bLas
 				CStringW param = pszParam;
 				WCHAR *str_end = const_cast<LPTSTR>(pszParam) + param.GetLength();
 				WCHAR *str_end2;
-				track_ = _tcstoul(pszParam, &str_end2, 10);
+				track_ = wcstoul(pszParam, &str_end2, 10);
 				if (errno || str_end2 != str_end)
 					m_bRender = false;
 				if (track_ >= MAX_TRACKS)
@@ -857,7 +857,7 @@ void CFTCommandLineInfo::ParseParam(const WCHAR* pszParam, BOOL bFlag, BOOL bLas
 					render_type_ = render_type_t::Loops;
 				WCHAR *str_end = const_cast<LPTSTR>(pszParam) + param.GetLength();
 				WCHAR *str_end2;
-				render_param_ = _tcstoul(pszParam, &str_end2, 10);
+				render_param_ = wcstoul(pszParam, &str_end2, 10);
 				if (errno || str_end2 != str_end)
 					m_bRender = false;
 				return;

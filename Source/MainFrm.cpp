@@ -457,7 +457,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 bool CMainFrame::CreateToolbars()
 {
-	REBARBANDINFO rbi1;
+	REBARBANDINFOW rbi1;
 
 	if (!m_wndToolBarReBar.Create(this)) {
 		TRACE(L"Failed to create rebar\n");
@@ -480,7 +480,7 @@ bool CMainFrame::CreateToolbars()
 
 	// // // TODO: 050B
 
-	rbi1.cbSize		= sizeof(REBARBANDINFO);
+	rbi1.cbSize		= sizeof(REBARBANDINFOW);
 	rbi1.fMask		= RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_STYLE | RBBIM_SIZE;
 	rbi1.fStyle		= RBBS_GRIPPERALWAYS;		// // // 050B
 	rbi1.hwndChild	= m_wndToolBar;
@@ -493,7 +493,7 @@ bool CMainFrame::CreateToolbars()
 		return false;      // fail to create
 	}
 
-	rbi1.cbSize		= sizeof(REBARBANDINFO);
+	rbi1.cbSize		= sizeof(REBARBANDINFOW);
 	rbi1.fMask		= RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_STYLE | RBBIM_SIZE;
 	rbi1.fStyle		= RBBS_GRIPPERALWAYS;		// // // 050B
 	rbi1.hwndChild	= m_wndOctaveBar;
@@ -508,7 +508,7 @@ bool CMainFrame::CreateToolbars()
 
 	m_wndToolBarReBar.GetReBarCtrl().MinimizeBand(0);
 
-	HBITMAP hbm = (HBITMAP)::LoadImage(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_TOOLBAR_256), IMAGE_BITMAP, DPI::SX(352), DPI::SY(16), LR_CREATEDIBSECTION);
+	HBITMAP hbm = (HBITMAP)::LoadImageW(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_TOOLBAR_256), IMAGE_BITMAP, DPI::SX(352), DPI::SY(16), LR_CREATEDIBSECTION);
 	m_bmToolbar.Attach(hbm);
 
 	m_ilToolBar.Create(DPI::SX(16), DPI::SY(16), ILC_COLOR8 | ILC_MASK, 4, 4);
@@ -656,7 +656,7 @@ bool CMainFrame::CreateVisualizerWindow()
 bool CMainFrame::CreateInstrumentToolbar()
 {
 	// Setup the instrument toolbar
-	REBARBANDINFO rbi;
+	REBARBANDINFOW rbi;
 
 	if (!m_wndInstToolBarWnd.CreateEx(0, NULL, L"", WS_CHILD | WS_VISIBLE, DPI::Rect(310, 173, 184, 26), (CWnd*)&m_wndDialogBar, 0))
 		return false;
@@ -670,7 +670,7 @@ bool CMainFrame::CreateInstrumentToolbar()
 	m_wndInstToolBar.GetToolBarCtrl().SetExtendedStyle(TBSTYLE_EX_DRAWDDARROWS);
 
 	// Set 24-bit icons
-	HBITMAP hbm = (HBITMAP)::LoadImage(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_TOOLBAR_INST_256), IMAGE_BITMAP, DPI::SX(96), DPI::SY(16), LR_CREATEDIBSECTION);
+	HBITMAP hbm = (HBITMAP)::LoadImageW(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_TOOLBAR_INST_256), IMAGE_BITMAP, DPI::SX(96), DPI::SY(16), LR_CREATEDIBSECTION);
 	m_bmInstToolbar.Attach(hbm);
 	m_ilInstToolBar.Create(DPI::SX(16), DPI::SY(16), ILC_COLOR24 | ILC_MASK, 4, 4);
 	m_ilInstToolBar.Add(&m_bmInstToolbar, MakeRGB(255, 0, 255));
@@ -678,7 +678,7 @@ bool CMainFrame::CreateInstrumentToolbar()
 
 	WCHAR name = L'\0';		// // //
 
-	rbi.cbSize		= sizeof(REBARBANDINFO);
+	rbi.cbSize		= sizeof(REBARBANDINFOW);
 	rbi.fMask		= RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_STYLE | RBBIM_TEXT;
 	rbi.fStyle		= RBBS_NOGRIPPER;
 	rbi.cxMinChild	= DPI::SX(300);
@@ -929,7 +929,7 @@ void CMainFrame::NewInstrument(inst_type_t Inst)		// // //
 		}
 #ifdef _DEBUG
 		else
-			MessageBox(L"(TODO) add instrument definitions for this chip", L"Stop", MB_OK);
+			MessageBoxW(L"(TODO) add instrument definitions for this chip", L"Stop", MB_OK);
 #endif
 	}
 	else
@@ -2491,13 +2491,13 @@ void CMainFrame::OnUpdateEditDelete(CCmdUI *pCmdUI)
 void CMainFrame::OnHelpEffecttable()
 {
 	// Display effect table in help
-	HtmlHelp((DWORD)L"effect_list.htm", HH_DISPLAY_TOPIC);
+	HtmlHelpW((DWORD)L"effect_list.htm", HH_DISPLAY_TOPIC);
 }
 
 void CMainFrame::OnHelpFAQ()
 {
 	// Display FAQ in help
-	HtmlHelp((DWORD)L"faq.htm", HH_DISPLAY_TOPIC);
+	HtmlHelpW((DWORD)L"faq.htm", HH_DISPLAY_TOPIC);
 }
 
 CFrameEditor *CMainFrame::GetFrameEditor() const
@@ -2542,7 +2542,7 @@ void CMainFrame::OnDestroy()
 		pSoundGen->SetVisualizerWindow(NULL);
 		// Kill the sound interface since the main window is being destroyed
 		CEvent SoundEvent(FALSE, FALSE);		// // //
-		pSoundGen->PostThreadMessage(WM_USER_CLOSE_SOUND, (WPARAM)&SoundEvent, NULL);
+		pSoundGen->PostThreadMessageW(WM_USER_CLOSE_SOUND, (WPARAM)&SoundEvent, NULL);
 		// Wait for sound to close
 		DWORD dwResult = ::WaitForSingleObject(SoundEvent.m_hObject, /*CSoundGen::AUDIO_TIMEOUT*/ 2000 + 1000);		// // //
 
@@ -2600,7 +2600,7 @@ void CMainFrame::SelectOctave(int Octave)		// // // 050B
 
 BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
-	LPNMTOOLBAR lpnmtb = (LPNMTOOLBAR) lParam;
+	LPNMTOOLBARW lpnmtb = (LPNMTOOLBARW) lParam;
 
 	// Handle new instrument menu
 	switch (((LPNMHDR)lParam)->code) {
@@ -2721,12 +2721,12 @@ BOOL CMainFrame::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct)
 	switch (pCopyDataStruct->dwData) {
 		case IPC_LOAD:
 			// Load file
-			if (_tcslen((LPCWSTR)pCopyDataStruct->lpData) > 0)
+			if (wcslen((LPCWSTR)pCopyDataStruct->lpData) > 0)
 				theApp.OpenDocumentFile((LPCWSTR)pCopyDataStruct->lpData);
 			return TRUE;
 		case IPC_LOAD_PLAY:
 			// Load file
-			if (_tcslen((LPCWSTR)pCopyDataStruct->lpData) > 0)
+			if (wcslen((LPCWSTR)pCopyDataStruct->lpData) > 0)
 				theApp.OpenDocumentFile((LPCWSTR)pCopyDataStruct->lpData);
 			// and play
 			if (CFamiTrackerDoc::GetDoc()->IsFileLoaded() &&
@@ -2807,7 +2807,7 @@ void CMainFrame::UpdateMenu(CMenu *pMenu)
 
 			if (pAccel->GetShortcutString(id, shortcut)) {
 				CStringW string;
-				pMenu->GetMenuString(i, string, MF_BYPOSITION);
+				pMenu->GetMenuStringW(i, string, MF_BYPOSITION);
 
 				int tab = string.Find(L'\t');
 
@@ -2816,7 +2816,7 @@ void CMainFrame::UpdateMenu(CMenu *pMenu)
 				}
 
 				string += shortcut;
-				pMenu->ModifyMenu(i, MF_BYPOSITION, id, string);
+				pMenu->ModifyMenuW(i, MF_BYPOSITION, id, string);
 			}
 		}
 	}

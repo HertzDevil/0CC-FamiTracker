@@ -74,7 +74,7 @@ void CDMCFileSoundDialog::OnFileNameChange()
 {
 	// Preview DMC file
 	if (!GetFileExt().CompareNoCase(L"dmc") && Env.GetSettings()->General.bWavePreview) {
-		DWORD dwAttrib = GetFileAttributes(GetPathName());
+		DWORD dwAttrib = GetFileAttributesW(GetPathName());
 		if (!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY) && GetPathName() != m_strLastFile) {
 			CFile file(GetPathName(), CFile::modeRead);
 			auto size = std::min<unsigned>(static_cast<unsigned>(file.GetLength()), ft0cc::doc::dpcm_sample::max_size);
@@ -187,8 +187,8 @@ BOOL CInstrumentEditorDPCM::OnInitDialog()
 
 	SetDlgItemTextW(IDC_DELTA_COUNTER, L"Off");
 
-	static_cast<CButton*>(GetDlgItem(IDC_ADD))->SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_LEFT)));
-	static_cast<CButton*>(GetDlgItem(IDC_REMOVE))->SetIcon(::LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_RIGHT)));
+	static_cast<CButton*>(GetDlgItem(IDC_ADD))->SetIcon(::LoadIconW(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_LEFT)));
+	static_cast<CButton*>(GetDlgItem(IDC_REMOVE))->SetIcon(::LoadIconW(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDI_RIGHT)));
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE

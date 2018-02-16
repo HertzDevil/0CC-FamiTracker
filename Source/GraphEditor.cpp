@@ -436,7 +436,7 @@ void CGraphEditor::OnMouseMove(UINT nFlags, CPoint point)
 					}
 
 					RedrawWindow();
-					m_pParentWnd->PostMessage(WM_SEQUENCE_CHANGED, 1);
+					m_pParentWnd->PostMessageW(WM_SEQUENCE_CHANGED, 1);
 				}
 				}
 				break;
@@ -455,7 +455,7 @@ void CGraphEditor::OnMouseMove(UINT nFlags, CPoint point)
 		CursorChanged(point.x - GRAPH_LEFT);
 	}
 	else
-		m_pParentWnd->PostMessage(WM_CURSOR_CHANGE, 0, 0);
+		m_pParentWnd->PostMessageW(WM_CURSOR_CHANGE, 0, 0);
 }
 
 void CGraphEditor::OnRButtonDown(UINT nFlags, CPoint point)
@@ -492,7 +492,7 @@ void CGraphEditor::ModifyItem(CPoint point, bool Redraw)
 {
 	if (Redraw) {
 		RedrawWindow(NULL);
-		m_pParentWnd->PostMessage(WM_SEQUENCE_CHANGED, 1);
+		m_pParentWnd->PostMessageW(WM_SEQUENCE_CHANGED, 1);
 	}
 }
 
@@ -512,7 +512,7 @@ void CGraphEditor::ModifyLoopPoint(CPoint point, bool Redraw)
 
 	if (Redraw) {
 		RedrawWindow(NULL);
-		m_pParentWnd->PostMessage(WM_SEQUENCE_CHANGED, 1);
+		m_pParentWnd->PostMessageW(WM_SEQUENCE_CHANGED, 1);
 	}
 }
 
@@ -532,7 +532,7 @@ void CGraphEditor::ModifyReleasePoint(CPoint point, bool Redraw)
 
 	if (Redraw) {
 		RedrawWindow(NULL);
-		m_pParentWnd->PostMessage(WM_SEQUENCE_CHANGED, 1);
+		m_pParentWnd->PostMessageW(WM_SEQUENCE_CHANGED, 1);
 	}
 }
 
@@ -552,7 +552,7 @@ void CGraphEditor::CursorChanged(int x)
 		return;
 
 	int Value = m_pSequence->GetItem(Pos);
-	m_pParentWnd->PostMessage(WM_CURSOR_CHANGE, Pos, Value);
+	m_pParentWnd->PostMessageW(WM_CURSOR_CHANGE, Pos, Value);
 }
 
 bool CGraphEditor::IsEditLine() const

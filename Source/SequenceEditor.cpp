@@ -129,7 +129,7 @@ LRESULT CSequenceEditor::OnSizeChange(WPARAM wParam, LPARAM lParam)
 	m_pSequence->SetItemCount(wParam);
 	m_pGraphEditor->RedrawWindow();
 	RedrawWindow();
-	PostMessage(WM_SEQUENCE_CHANGED, 1);
+	PostMessageW(WM_SEQUENCE_CHANGED, 1);
 
 	return TRUE;
 }

@@ -159,7 +159,7 @@ void CCompiler::Print(LPCWSTR text, Args&&... args) const		// // //
 
 	_sntprintf_s(buf, sizeof(buf), _TRUNCATE, text, std::forward<Args>(args)...);
 
-	size_t len = _tcslen(buf);
+	size_t len = wcslen(buf);
 
 	if (buf[len - 1] == '\n' && len < (sizeof(buf) - 1)) {
 		buf[len - 1] = '\r';
@@ -421,7 +421,7 @@ void CCompiler::ExportBIN_ASM(LPCWSTR lpszFileName, LPCWSTR lpszDPCM_File, bool 
 		return;
 	}
 
-	bool exportDPCM = _tcslen(lpszDPCM_File) > 0;		// // //
+	bool exportDPCM = wcslen(lpszDPCM_File) > 0;		// // //
 
 	// Convert to binary
 	ResolveLabels();
