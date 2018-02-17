@@ -1050,7 +1050,7 @@ void CCompiler::ScanSong()
 	m_bSequencesUsedN163.fill({ });
 	m_bSequencesUsedS5B.fill({ });
 
-	static const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
+	static const inst_type_t INST[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
 	decltype(m_bSequencesUsed2A03) *used[] = {&m_bSequencesUsed2A03, &m_bSequencesUsedVRC6, &m_bSequencesUsedN163, &m_bSequencesUsedS5B};
 
 	bool inst_used[MAX_INSTRUMENTS] = { };		// // //
@@ -1070,15 +1070,15 @@ void CCompiler::ScanSong()
 		});
 	});
 
-	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-		if (Im.IsInstrumentUsed(i) && inst_used[i]) {		// // //
+	Im.VisitInstruments([&] (const CInstrument &inst, std::size_t i) {
+		if (inst_used[i]) {		// // //
 			// List of used instruments
 			m_iAssignedInstruments[m_iInstruments++] = i;
 
 			// Create a list of used sequences
 			inst_type_t it = Im.GetInstrumentType(i);		// // //
-			for (size_t z = 0; z < std::size(used); z++) if (it == inst[z]) {
-				auto pInstrument = std::static_pointer_cast<CSeqInstrument>(Im.GetInstrument(i));
+			for (size_t z = 0; z < std::size(used); z++) if (it == INST[z]) {
+				auto pInstrument = static_cast<const CSeqInstrument *>(&inst);
 				foreachSeq([&] (sequence_t j) {
 					if (pInstrument->GetSeqEnable(j))
 						(*used[z])[pInstrument->GetSeqIndex(j)][(unsigned)j] = true;
@@ -1086,7 +1086,7 @@ void CCompiler::ScanSong()
 				break;
 			}
 		}
-	}
+	});
 
 	// See which samples are used
 	m_iSamplesUsed = 0;

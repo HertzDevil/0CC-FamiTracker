@@ -79,6 +79,46 @@ public:
 	void SetDSample(int Index, std::shared_ptr<ft0cc::doc::dpcm_sample> pSamp) override;
 	int AddDSample(std::shared_ptr<ft0cc::doc::dpcm_sample> pSamp) override;
 
+	// void (*F)(CInstrument &inst [, std::size_t index])
+	template <typename F>
+	void VisitInstruments(F f) {
+		if constexpr (std::is_invocable_v<F, CInstrument &>) {
+			for (auto &x : m_pInstruments)
+				if (x)
+					f(*x);
+		}
+		else if constexpr (std::is_invocable_v<F, CInstrument &, std::size_t>) {
+			std::size_t index = 0;
+			for (auto &x : m_pInstruments) {
+				if (x)
+					f(*x, index);
+				++index;
+			}
+		}
+		else
+			static_assert(sizeof(F) == 0, "Invalid function signature");
+	}
+
+	// void (*F)(const CInstrument &inst [, std::size_t index])
+	template <typename F>
+	void VisitInstruments(F f) const {
+		if constexpr (std::is_invocable_v<F, const CInstrument &>) {
+			for (auto &x : m_pInstruments)
+				if (x)
+					f(*x);
+		}
+		else if constexpr (std::is_invocable_v<F, const CInstrument &, std::size_t>) {
+			std::size_t index = 0;
+			for (auto &x : m_pInstruments) {
+				if (x)
+					f(*x, index);
+				++index;
+			}
+		}
+		else
+			static_assert(sizeof(F) == 0, "Invalid function signature");
+	}
+
 public:
 	static const int MAX_INSTRUMENTS;
 

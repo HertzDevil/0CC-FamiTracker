@@ -133,36 +133,34 @@ void CModuleImporter::ImportInstruments() {
 	}
 
 	// Copy instruments
-	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-		if (pImportedInst->IsInstrumentUsed(i)) {
-			auto pInst = pImportedInst->GetInstrument(i)->Clone();		// // //
+	pImportedInst->VisitInstruments([&] (const CInstrument &inst, std::size_t i) {
+		auto pInst = inst.Clone();		// // //
 
-			// Update references
-			if (auto pSeq = dynamic_cast<CSeqInstrument *>(pInst.get())) {
-				foreachSeq([&] (sequence_t t) {
-					if (pSeq->GetSeqEnable(t)) {
-						for (size_t j = 0; j < std::size(INST); j++)
-							if (INST[j] == pInst->GetType()) {
-								pSeq->SetSeqIndex(t, seqTable[j][pSeq->GetSeqIndex(t)][value_cast(t)]);
-								break;
-							}
-					}
-				});
-				// Update DPCM samples
-				if (auto p2A03 = dynamic_cast<CInstrument2A03 *>(pSeq))
-					for (int o = 0; o < OCTAVE_RANGE; ++o) for (int n = 0; n < NOTE_RANGE; ++n) {
-						int Sample = p2A03->GetSampleIndex(o, n);
-						if (Sample != 0)
-							p2A03->SetSampleIndex(o, n, SamplesTable[Sample - 1] + 1);
-					}
-			}
-
-			int Index = pManager->GetFirstUnused();
-			pManager->InsertInstrument(Index, std::move(pInst));		// // //
-			// Save a reference to this instrument
-			inst_index_[i] = Index;
+		// Update references
+		if (auto pSeq = dynamic_cast<CSeqInstrument *>(pInst.get())) {
+			foreachSeq([&] (sequence_t t) {
+				if (pSeq->GetSeqEnable(t)) {
+					for (size_t j = 0; j < std::size(INST); j++)
+						if (INST[j] == pInst->GetType()) {
+							pSeq->SetSeqIndex(t, seqTable[j][pSeq->GetSeqIndex(t)][value_cast(t)]);
+							break;
+						}
+				}
+			});
+			// Update DPCM samples
+			if (auto p2A03 = dynamic_cast<CInstrument2A03 *>(pSeq))
+				for (int o = 0; o < OCTAVE_RANGE; ++o) for (int n = 0; n < NOTE_RANGE; ++n) {
+					int Sample = p2A03->GetSampleIndex(o, n);
+					if (Sample != 0)
+						p2A03->SetSampleIndex(o, n, SamplesTable[Sample - 1] + 1);
+				}
 		}
-	}
+
+		int Index = pManager->GetFirstUnused();
+		pManager->InsertInstrument(Index, std::move(pInst));		// // //
+		// Save a reference to this instrument
+		inst_index_[i] = Index;
+	});
 }
 
 void CModuleImporter::ImportGrooves() {

@@ -351,9 +351,10 @@ void CFamiTrackerModule::RemoveUnusedInstruments() {
 
 	auto *pManager = GetInstrumentManager();
 
-	for (int i = 0; i < MAX_INSTRUMENTS; ++i)
-		if (pManager->IsInstrumentUsed(i) && !used[i])
+	pManager->VisitInstruments([&] (CInstrument &, std::size_t i) {
+		if (!used[i])
 			pManager->RemoveInstrument(i);
+	});
 
 	static const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};
 
@@ -408,9 +409,11 @@ void CFamiTrackerModule::RemoveUnusedDSamples() {
 		}
 	}
 	// also remove unused assignments
-	for (int i = 0; i < MAX_INSTRUMENTS; i++) if (InstManager.IsInstrumentUsed(i))
-		if (auto pInst = std::dynamic_pointer_cast<CInstrument2A03>(InstManager.GetInstrument(i)))
-			for (int o = 0; o < OCTAVE_RANGE; o++) for (int n = 0; n < NOTE_RANGE; n++)
-				if (!AssignUsed[i][o][n])
-					pInst->SetSampleIndex(o, n, 0);
+	InstManager.VisitInstruments([&] (CInstrument &inst, std::size_t i) {
+		if (auto pInst = dynamic_cast<CInstrument2A03 *>(&inst))
+			for (int o = 0; o < OCTAVE_RANGE; o++)
+				for (int n = 0; n < NOTE_RANGE; n++)
+					if (!AssignUsed[i][o][n])
+						pInst->SetSampleIndex(o, n, 0);
+	});
 }

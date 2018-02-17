@@ -106,11 +106,10 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_INST));
 	pCombo->AddString(KEEP_INST_STRING);
-	for (int i = 0; i < MAX_INSTRUMENTS; ++i)
-		if (pDoc->GetModule()->GetInstrumentManager()->IsInstrumentUsed(i)) {
-			str.Format(L"%02X", i);
-			pCombo->AddString(str);
-		}
+	pDoc->GetModule()->GetInstrumentManager()->VisitInstruments([&] (const CInstrument &, std::size_t i) {
+		str.Format(L"%02X", i);
+		pCombo->AddString(str);
+	});
 	str.Format(L"%02X", m_iSplitInstrument);
 	if (pCombo->SelectString(-1, str) == CB_ERR)
 		pCombo->SelectString(-1, KEEP_INST_STRING);
