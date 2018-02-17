@@ -21,7 +21,6 @@
 */
 
 #include "PatternEditorTypes.h"
-#include "FamiTrackerDoc.h"
 #include "PatternNote.h"		// // //
 #include "SongView.h"		// // //
 #include "SongData.h"		// // //

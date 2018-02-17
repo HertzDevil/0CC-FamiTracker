@@ -587,22 +587,22 @@ BOOL CInstrumentEditorDPCM::PreTranslateMessage(MSG* pMsg)
 {
 	if (IsWindowVisible()) {
 		switch (pMsg->message) {
-			case WM_KEYDOWN:
-				if (pMsg->wParam == 27)	// Esc
-					break;
-				if (GetFocus() != GetDlgItem(IDC_DELTA_COUNTER)) {
-					// Select DPCM channel
-					CFamiTrackerView::GetView()->SelectChannel(4);
-					PreviewNote((unsigned char)pMsg->wParam);		// // //
-					return TRUE;
-				}
+		case WM_KEYDOWN:
+			if (pMsg->wParam == VK_ESCAPE)		// // //
 				break;
-			case WM_KEYUP:
-				if (GetFocus() != GetDlgItem(IDC_DELTA_COUNTER)) {
-					PreviewRelease((unsigned char)pMsg->wParam);		// // //
-					return TRUE;
-				}
-				break;
+			if (GetFocus() != GetDlgItem(IDC_DELTA_COUNTER)) {
+				// Select DPCM channel
+				CFamiTrackerView::GetView()->SelectChannel(4);
+				PreviewNote((unsigned char)pMsg->wParam);		// // //
+				return TRUE;
+			}
+			break;
+		case WM_KEYUP:
+			if (GetFocus() != GetDlgItem(IDC_DELTA_COUNTER)) {
+				PreviewRelease((unsigned char)pMsg->wParam);		// // //
+				return TRUE;
+			}
+			break;
 		}
 	}
 

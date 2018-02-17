@@ -1149,7 +1149,7 @@ void CFamiTrackerView::OnInitialUpdate()
 
 	// Setup order window
 	pFrameEditor->AssignView(*this);		// // //
-	m_pPatternEditor->SetDocument(pDoc, this);
+	m_pPatternEditor->SetDocument(pModule, this);
 
 	// Always start with first track
 	pMainFrame->SelectTrack(0);
@@ -1562,9 +1562,7 @@ void CFamiTrackerView::OnBookmarksToggle()
 		auto pMark = std::make_unique<CBookmark>(Frame, Row);
 		pMark->m_Highlight.First = pMark->m_Highlight.Second = -1;
 		pMark->m_bPersist = false;
-		char buf[32] = {};
-		sprintf_s(buf, std::size(buf), "Bookmark %i", Col.GetCount() + 1);
-		pMark->m_sName = buf;
+		pMark->m_sName = "Bookmark " + std::to_string(Col.GetCount() + 1);
 		Col.AddBookmark(std::move(pMark));
 	}
 

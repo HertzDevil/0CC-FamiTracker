@@ -25,7 +25,6 @@
 #include <vector>		// // //
 #include <cmath>
 #include "FamiTrackerEnv.h"		// // //
-#include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
 #include "InstrumentManager.h"		// // //
 #include "FamiTrackerView.h"
@@ -153,9 +152,6 @@ void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t 
 // CPatternEditor
 
 CPatternEditor::CPatternEditor() :
-	// Pointers
-	m_pDocument(NULL),
-	m_pView(NULL),
 	// Drawing
 	m_iWinWidth(0),
 	m_iWinHeight(0),
@@ -280,10 +276,9 @@ void CPatternEditor::ApplyColorScheme()
 	InvalidateHeader();
 }
 
-void CPatternEditor::SetDocument(CFamiTrackerDoc *pDoc, CFamiTrackerView *pView)
-{
+void CPatternEditor::SetDocument(CFamiTrackerModule *pModule, CFamiTrackerView *pView) {		// // //
 	// Set a new document and view, reset everything
-	m_pDocument = pDoc;
+	m_pModule = pModule;
 	m_pView = pView;
 
 	// Reset
@@ -1288,7 +1283,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(Channel);
 
 	// Make non-available instruments red in the pattern editor
-	const auto *pManager = m_pDocument->GetModule()->GetInstrumentManager();
+	const auto *pManager = m_pModule->GetInstrumentManager();
 	if (NoteData.Instrument < MAX_INSTRUMENTS &&
 		(!pManager->IsInstrumentUsed(NoteData.Instrument) ||
 		!IsInstrumentCompatible(GetChipFromChannel(ch), pManager->GetInstrumentType(NoteData.Instrument)))) {		// // //

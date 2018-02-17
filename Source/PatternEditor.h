@@ -46,7 +46,7 @@ struct RowColorInfo_t {
 extern void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t Mode, column_t Begin, column_t End);		// // //
 
 // External classes
-class CFamiTrackerDoc;
+class CFamiTrackerModule;
 class CFamiTrackerView;
 class CMainFrame;
 class CTrackerChannel;		// // //
@@ -59,7 +59,7 @@ public:
 	CPatternEditor();
 
 	void ApplyColorScheme();
-	void SetDocument(CFamiTrackerDoc *pDoc, CFamiTrackerView *pView);
+	void SetDocument(CFamiTrackerModule *pModule, CFamiTrackerView *pView);		// // //
 	void SetWindowSize(int width, int height);
 	void ResetCursor();
 
@@ -295,8 +295,8 @@ private:
 
 	// Variables
 private:
-	CFamiTrackerDoc	 *m_pDocument;
-	CFamiTrackerView *m_pView;
+	CFamiTrackerModule *m_pModule = nullptr;
+	CFamiTrackerView *m_pView = nullptr;
 
 	// GDI objects
 	std::unique_ptr<CDC>	 m_pPatternDC;
