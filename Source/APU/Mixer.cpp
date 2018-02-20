@@ -58,6 +58,7 @@
 #include <cmath>
 #include "APU/APU.h"
 #include "APU/ext/emu2413.h"		// // //
+#include "APU/SN76489.h"		// // //
 
 static const float LEVEL_FALL_OFF_RATE	= 0.6f;
 static const int   LEVEL_FALL_OFF_DELAY = 3;
@@ -91,6 +92,8 @@ void CMixer::SetChipLevel(chip_level_t Chip, float Level)
 		levelsN163_.SetMixerLevel(Level); break;
 	case CHIP_LEVEL_S5B:		// // // 050B
 		levelsS5B_.SetMixerLevel(Level); break;
+	case CHIP_LEVEL_SN76489:
+		levelsSN76489_.SetMixerLevel(Level); break;
 	}
 }
 
@@ -143,6 +146,7 @@ void CMixer::UpdateSettings(int LowCut,	int HighCut, int HighDamp, float Overall
 	levelsVRC6_.SetLowPass(eq);
 	levelsMMC5_.SetLowPass(eq);
 	levelsS5B_.SetLowPass(eq);
+	levelsSN76489_.SetLowPass(eq);
 
 	// // // N163 special filtering
 	levelsN163_.SetLowPass({-(double)std::max(24, m_iHighDamp), std::min(m_iHighCut, 12000), (long)m_iSampleRate});
@@ -158,6 +162,7 @@ void CMixer::UpdateSettings(int LowCut,	int HighCut, int HighDamp, float Overall
 	levelsVRC6_.SetVolume(Volume * 3.98333f);
 	levelsFDS_.SetVolume(Volume * 1.00f);
 	levelsMMC5_.SetVolume(Volume * 1.18421f);
+	levelsSN76489_.SetVolume(Volume);
 
 	// Not checked
 	levelsS5B_.SetVolume(Volume);		// // // 050B
@@ -230,6 +235,7 @@ void CMixer::ClearBuffer()
 	levelsVRC6_.ResetDelta();
 	levelsMMC5_.ResetDelta();
 	levelsFDS_.ResetDelta();
+	levelsSN76489_.ResetDelta();
 	levelsN163_.ResetDelta();
 	levelsS5B_.ResetDelta();
 }
@@ -274,6 +280,8 @@ void CMixer::AddValue(chan_id_t ChanID, int Value, int FrameCycles) {		// // //
 		StoreChannelLevel(ChanID, levelsN163_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
 	case chan_id_t::S5B_CH1: case chan_id_t::S5B_CH2: case chan_id_t::S5B_CH3:		// // // 050B
 		StoreChannelLevel(ChanID, levelsS5B_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
+	case chan_id_t::SN76489_CH1: case chan_id_t::SN76489_CH2: case chan_id_t::SN76489_CH3: case chan_id_t::SN76489_NOISE:
+		StoreChannelLevel(ChanID, levelsSN76489_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
 	default:
 		return;
 	}
@@ -313,6 +321,13 @@ void CMixer::StoreChannelLevel(chan_id_t Channel, int Level)		// // //
 
 	if (GetChipFromChannel(Channel) == sound_chip_t::S5B)		// // //
 		AbsVol = std::log(AbsVol) * 2.8;
+
+	if (GetChipFromChannel(Channel) == sound_chip_t::SN76489) {
+		int Lv = (int)AbsVol;
+		AbsVol = 0;
+		while (AbsVol < 15 && Lv >= CSN76489::VOLUME_TABLE[14 - (int)AbsVol])
+			++AbsVol;
+	}
 
 	if (AbsVol >= m_fChannelLevels[value_cast(Channel)]) {
 		m_fChannelLevels[value_cast(Channel)] = float(AbsVol);

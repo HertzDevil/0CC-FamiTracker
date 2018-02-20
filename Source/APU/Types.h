@@ -34,21 +34,23 @@ enum class sound_chip_t : std::uint8_t {		// // //
 	MMC5,
 	N163,
 	S5B,
+	SN76489,
 	NONE = (std::uint8_t)-1,
 };
 
-inline constexpr std::size_t SOUND_CHIP_COUNT = 7;
+inline constexpr std::size_t SOUND_CHIP_COUNT = 8;
 
 // // // TODO: use enum_traits (MSVC broke it)
 constexpr auto value_cast(sound_chip_t chip) noexcept {
 	using T = std::underlying_type_t<sound_chip_t>;
-	if (chip >= sound_chip_t::APU && chip <= sound_chip_t::S5B)
+	if (chip >= sound_chip_t::APU && chip <= sound_chip_t::SN76489)
 		return static_cast<T>(chip);
 	return static_cast<T>(sound_chip_t::NONE);
 }
 
 constexpr sound_chip_t EXPANSION_CHIPS[] = {
 	sound_chip_t::VRC6, sound_chip_t::VRC7, sound_chip_t::FDS, sound_chip_t::MMC5, sound_chip_t::N163, sound_chip_t::S5B,
+	sound_chip_t::SN76489,
 };
 
 enum class chan_id_t : unsigned {
@@ -88,6 +90,11 @@ enum class chan_id_t : unsigned {
 	S5B_CH2,
 	S5B_CH3,
 
+	SN76489_CH1,
+	SN76489_CH2,
+	SN76489_CH3,
+	SN76489_NOISE,
+
 	COUNT,		/* Total number of channels */
 	NONE = (unsigned)-1,		// // //
 };
@@ -100,6 +107,7 @@ inline constexpr std::size_t MAX_CHANNELS_FDS = 1;
 inline constexpr std::size_t MAX_CHANNELS_MMC5 = 3; // includes pcm
 inline constexpr std::size_t MAX_CHANNELS_N163 = 8;
 inline constexpr std::size_t MAX_CHANNELS_S5B = 3;
+inline constexpr std::size_t MAX_CHANNELS_SN76489 = 4;
 
 inline constexpr std::size_t CHANID_COUNT = (unsigned)chan_id_t::COUNT;
 
@@ -126,6 +134,8 @@ constexpr sound_chip_t GetChipFromChannel(chan_id_t ch) noexcept {
 		return sound_chip_t::VRC7;
 	if (ch <= chan_id_t::S5B_CH3)
 		return sound_chip_t::S5B;
+	if (ch <= chan_id_t::SN76489_NOISE)
+		return sound_chip_t::SN76489;
 	return sound_chip_t::NONE;
 }
 
@@ -144,6 +154,8 @@ constexpr std::size_t GetChannelSubIndex(chan_id_t ch) noexcept {
 		return (std::size_t)ch - (std::size_t)chan_id_t::VRC7_CH1;
 	if (ch <= chan_id_t::S5B_CH3)
 		return (std::size_t)ch - (std::size_t)chan_id_t::S5B_CH1;
+	if (ch <= chan_id_t::SN76489_NOISE)
+		return (std::size_t)ch - (std::size_t)chan_id_t::SN76489_CH1;
 	return (std::size_t)chan_id_t::NONE;
 }
 
@@ -176,6 +188,10 @@ constexpr chan_id_t MakeChannelIndex(sound_chip_t chip, unsigned subindex) noexc
 	case sound_chip_t::S5B:
 		if (subindex < MAX_CHANNELS_S5B)
 			return (chan_id_t)((unsigned)chan_id_t::S5B_CH1 + subindex);
+		break;
+	case sound_chip_t::SN76489:
+		if (subindex < MAX_CHANNELS_SN76489)
+			return (chan_id_t)((unsigned)chan_id_t::SN76489_CH1 + subindex);
 		break;
 	}
 	return chan_id_t::NONE;

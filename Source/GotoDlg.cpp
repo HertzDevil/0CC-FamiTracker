@@ -80,6 +80,8 @@ BOOL CGotoDlg::OnInitDialog()
 		m_cChipEdit.AddString(L"N163");
 	if (chips.ContainsChip(sound_chip_t::S5B))
 		m_cChipEdit.AddString(L"5B");
+	if (chips.ContainsChip(sound_chip_t::SN76489))
+		m_cChipEdit.AddString(L"SN76489");
 
 	chan_id_t Channel = pView->GetSelectedChannelID();
 	switch (GetChipFromChannel(Channel)) {
@@ -90,6 +92,7 @@ BOOL CGotoDlg::OnInitDialog()
 	case sound_chip_t::MMC5: m_cChipEdit.SelectString(-1, L"MMC5"); break;
 	case sound_chip_t::N163: m_cChipEdit.SelectString(-1, L"N163"); break;
 	case sound_chip_t::S5B:  m_cChipEdit.SelectString(-1, L"5B");   break;
+	case sound_chip_t::SN76489:  m_cChipEdit.SelectString(-1, L"SN76489");   break;
 	}
 
 	SetDlgItemInt(IDC_EDIT_GOTO_FRAME, pView->GetSelectedFrame());
@@ -139,6 +142,8 @@ sound_chip_t CGotoDlg::GetChipFromString(const CStringW &str)
 		return sound_chip_t::N163;
 	else if (str == L"5B")
 		return sound_chip_t::S5B;
+	else if (str == L"SN76489")
+		return sound_chip_t::SN76489;
 	else
 		return sound_chip_t::NONE;
 }

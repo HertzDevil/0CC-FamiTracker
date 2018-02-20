@@ -105,12 +105,14 @@ bool IsInstrumentCompatible(sound_chip_t chip, inst_type_t Type) {		// // //
 	case sound_chip_t::S5B:
 	case sound_chip_t::VRC6:
 	case sound_chip_t::FDS:
+	case sound_chip_t::SN76489:
 		switch (Type) {
 		case INST_2A03:
 		case INST_VRC6:
 		case INST_N163:
 		case INST_S5B:
 		case INST_FDS:
+		case INST_SN76489:
 			return true;
 		default: return false;
 		}
@@ -160,6 +162,8 @@ bool IsEffectCompatible(chan_id_t ch, uint8_t EffNumber, uint8_t EffParam) {		//
 			return chip == sound_chip_t::FDS && (EffParam <= 0x7F || EffParam == 0xE0);
 		case EF_VRC7_PORT: case EF_VRC7_WRITE:		// // // 050B
 			return chip == sound_chip_t::VRC7;
+		case EF_SN_CONTROL:
+			return chip == sound_chip_t::SN76489;
 	}
 
 	return false;

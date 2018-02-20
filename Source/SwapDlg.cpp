@@ -81,6 +81,8 @@ BOOL CSwapDlg::OnInitDialog()
 		m_cChipFirst.AddString(L"N163");
 	if (chips.ContainsChip(sound_chip_t::S5B))
 		m_cChipFirst.AddString(L"5B");
+	if (chips.ContainsChip(sound_chip_t::SN76489))
+		m_cChipFirst.AddString(L"SN76489");
 
 	CStringW str;
 	for (int i = 0; i < m_cChipFirst.GetCount(); i++)
@@ -122,6 +124,8 @@ sound_chip_t CSwapDlg::GetChipFromString(const CStringW &str)
 		return sound_chip_t::N163;
 	if (str == L"5B")
 		return sound_chip_t::S5B;
+	if (str == L"SN76489")
+		return sound_chip_t::SN76489;
 	return sound_chip_t::NONE;
 }
 

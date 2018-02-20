@@ -56,6 +56,7 @@ unsigned CChannelMap::GetChipChannelCount(sound_chip_t chip) const {
 		case sound_chip_t::MMC5: return MAX_CHANNELS_MMC5 - 1;
 		case sound_chip_t::N163: return n163chs_;
 		case sound_chip_t::S5B:  return MAX_CHANNELS_S5B;
+		case sound_chip_t::SN76489: return MAX_CHANNELS_SN76489;
 		}
 	return 0;
 }

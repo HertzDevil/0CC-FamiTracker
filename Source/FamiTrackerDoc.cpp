@@ -224,7 +224,7 @@ void CFamiTrackerDoc::CreateEmpty()
 
 	Locked([&] {		// // //
 		// and select 2A03 only
-		GetModule()->SetChannelMap(theApp.GetSoundGenerator()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
+		GetModule()->SetChannelMap(theApp.GetSoundGenerator()->MakeChannelMap(CSoundChipSet {sound_chip_t::SN76489}.WithChip(sound_chip_t::APU), 0));		// // //
 
 #ifdef AUTOSAVE
 		SetupAutoSave();

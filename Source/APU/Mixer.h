@@ -38,7 +38,8 @@ enum chip_level_t : unsigned char {
 	CHIP_LEVEL_MMC5,
 	CHIP_LEVEL_FDS,
 	CHIP_LEVEL_N163,
-	CHIP_LEVEL_S5B
+	CHIP_LEVEL_S5B,
+	CHIP_LEVEL_SN76489, // TODO: add stereo
 };
 
 class CMixer
@@ -87,6 +88,7 @@ private:
 	CMixerChannel<stLevelsMMC5>    levelsMMC5_    {130};
 	CMixerChannel<stLevelsN163>    levelsN163_    {1600};
 	CMixerChannel<stLevelsS5B>     levelsS5B_     {1200};
+	CMixerChannel<stLevelsSN76489> levelsSN76489_ {5000};
 
 	CSoundChipSet m_iExternalChip;
 	uint32_t	m_iSampleRate = 0;

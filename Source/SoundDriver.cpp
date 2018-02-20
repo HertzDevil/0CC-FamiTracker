@@ -36,6 +36,7 @@
 #include "ChannelMap.h"
 #include <cmath>
 #include "Assertion.h"
+#include "ChannelsSN7.h"
 
 
 
@@ -112,6 +113,12 @@ void CSoundDriver::SetupTracks() {
 	AssignTrack(chan_id_t::S5B_CH1);
 	AssignTrack(chan_id_t::S5B_CH2);
 	AssignTrack(chan_id_t::S5B_CH3);
+
+	// // // SN76489
+	AssignTrack(chan_id_t::SN76489_CH1);
+	AssignTrack(chan_id_t::SN76489_CH2);
+	AssignTrack(chan_id_t::SN76489_CH3);
+	AssignTrack(chan_id_t::SN76489_NOISE);
 }
 
 void CSoundDriver::AssignModule(const CFamiTrackerModule &modfile) {
@@ -363,6 +370,7 @@ int CSoundDriver::ReadPeriodTable(int Index, int Table) const {
 	case CDetuneTable::DETUNE_FDS:  return m_iNoteLookupTableFDS[Index]; break;
 	case CDetuneTable::DETUNE_N163: return m_iNoteLookupTableN163[Index]; break;
 	case CDetuneTable::DETUNE_S5B:  return m_iNoteLookupTableNTSC[Index] + 1; break;
+	case CDetuneTable::DETUNE_SN76489: return m_iNoteLookupTableSN76489[Index]; break;
 	}
 	DEBUG_BREAK();
 	return m_iNoteLookupTableNTSC[Index];
@@ -428,6 +436,10 @@ void CSoundDriver::SetupPeriodTables() {
 
 		// // // Sunsoft 5B uses NTSC table
 
+		// // // SN76489
+		Pitch = (clock_ntsc / Freq / 2) + 0.5;
+		m_iNoteLookupTableSN76489[i] = (unsigned int)(Pitch/* + modfile_->GetDetuneOffset(6, i)*/);		// // //
+
 		// // // VRC7
 		if (i < NOTE_RANGE) {
 			Pitch = Freq * 262144.0 / 49716.0 + 0.5;
@@ -457,6 +469,8 @@ void CSoundDriver::SetupPeriodTables() {
 			return m_iNoteLookupTableN163;
 		case chan_id_t::S5B_CH1: case chan_id_t::S5B_CH2: case chan_id_t::S5B_CH3:
 			return m_iNoteLookupTableS5B;
+		case chan_id_t::SN76489_CH1: case chan_id_t::SN76489_CH2: case chan_id_t::SN76489_CH3: case chan_id_t::SN76489_NOISE:
+			return m_iNoteLookupTableSN76489;
 		}
 		return nullptr;
 	};
@@ -495,6 +509,12 @@ void CSoundDriver::HandleGlobalEffects(stChanNote &note) {
 			case EF_HALT:
 				m_bDoHalt = true;		// // //
 				m_pPlayerCursor->DoCxx();		// // //
+				break;
+
+			// // // NCx: SN76489 channel swap
+			case EF_SN_CONTROL:
+				if (EffParam >= 0xC1 && EffParam <= 0xC3)
+					CChannelHandlerSN7::SwapChannels(MakeChannelIndex(sound_chip_t::SN76489, EffParam - 0xC1));
 				break;
 
 			default: continue;		// // //

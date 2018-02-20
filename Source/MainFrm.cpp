@@ -178,6 +178,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_INSTRUMENT_ADD_MMC5, OnAddInstrumentMMC5)
 	ON_COMMAND(ID_INSTRUMENT_ADD_N163, OnAddInstrumentN163)
 	ON_COMMAND(ID_INSTRUMENT_ADD_S5B, OnAddInstrumentS5B)
+	ON_COMMAND(ID_INSTRUMENT_ADD_SN7, OnAddInstrumentSN7)		// // //
 	ON_COMMAND(ID_MODULE_MODULEPROPERTIES, OnModuleModuleproperties)
 	ON_COMMAND(ID_MODULE_CHANNELS, OnModuleChannels)
 	ON_COMMAND(ID_MODULE_COMMENTS, OnModuleComments)
@@ -971,6 +972,11 @@ void CMainFrame::OnAddInstrumentS5B()
 	NewInstrument(INST_S5B);
 }
 
+void CMainFrame::OnAddInstrumentSN7()
+{
+	NewInstrument(INST_SN76489);
+}
+
 void CMainFrame::UpdateInstrumentList()
 {
 	// Rewrite the instrument list
@@ -1195,6 +1201,7 @@ void CMainFrame::OnAddInstrument()
 	case sound_chip_t::MMC5: return OnAddInstrumentMMC5();
 	case sound_chip_t::N163: return OnAddInstrumentN163();
 	case sound_chip_t::S5B:  return OnAddInstrumentS5B();
+	case sound_chip_t::SN76489: return OnAddInstrumentSN7();
 	}
 }
 
@@ -1656,6 +1663,7 @@ void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 		case sound_chip_t::MMC5: String = L" Nintendo MMC5";     break;
 		case sound_chip_t::N163: String = L" Namco 163";         break;
 		case sound_chip_t::S5B:  String = L" Sunsoft 5B";        break;
+		case sound_chip_t::SN76489: String = L" SN76489";        break;
 		case sound_chip_t::NONE: String = L" No expansion chip"; break;
 		}
 	else {
@@ -1671,6 +1679,8 @@ void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 			String += L" + N163";
 		if (Chip.ContainsChip(sound_chip_t::S5B))
 			String += L" + S5B";
+		if (Chip.ContainsChip(sound_chip_t::SN76489))
+			String += L" + SN76489";
 		String.Delete(0, 3);
 	}
 
@@ -2646,6 +2656,8 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_N163, L"New Namco instrument");
 	if (Chip.ContainsChip(sound_chip_t::S5B))
 		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_S5B, L"New Sunsoft instrument");
+	if (Chip.ContainsChip(sound_chip_t::SN76489))
+		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_SN7, L"New SN76489 instrument");
 
 	switch (SelectedChip) {
 	case sound_chip_t::APU:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_2A03); break;
@@ -2655,6 +2667,7 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 	case sound_chip_t::MMC5: menu.SetDefaultItem(ID_INSTRUMENT_ADD_MMC5); break;
 	case sound_chip_t::N163: menu.SetDefaultItem(ID_INSTRUMENT_ADD_N163); break;
 	case sound_chip_t::S5B:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_S5B);  break;
+	case sound_chip_t::SN76489: menu.SetDefaultItem(ID_INSTRUMENT_ADD_SN7); break;
 	}
 
 	menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, rect.left, rect.bottom, this);

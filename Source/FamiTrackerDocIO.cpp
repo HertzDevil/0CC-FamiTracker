@@ -40,6 +40,7 @@
 #include "InstrumentVRC6.h" // error message
 #include "InstrumentN163.h" // error message
 #include "InstrumentS5B.h" // error message
+#include "InstrumentSN7.h" // error message
 
 #include "SequenceManager.h"
 #include "SequenceCollection.h"
@@ -81,6 +82,8 @@ const auto FILE_BLOCK_SEQUENCES_N106	= "SEQUENCES_N106"sv;
 
 // Sunsoft
 const auto FILE_BLOCK_SEQUENCES_S5B		= "SEQUENCES_S5B"sv;
+
+const auto FILE_BLOCK_SEQUENCES_SN7		= "SEQUENCES_SN7"sv;
 
 // // // 0CC-FamiTracker specific
 const auto FILE_BLOCK_DETUNETABLES		= "DETUNETABLES"sv;
@@ -127,6 +130,7 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerModule &modfile) {
 		{FILE_BLOCK_SEQUENCES_N163,	&CFamiTrackerDocIO::LoadSequencesN163},
 		{FILE_BLOCK_SEQUENCES_N106,	&CFamiTrackerDocIO::LoadSequencesN163},	// Backward compatibility
 		{FILE_BLOCK_SEQUENCES_S5B,	&CFamiTrackerDocIO::LoadSequencesS5B},	// // //
+		{FILE_BLOCK_SEQUENCES_SN7,	&CFamiTrackerDocIO::LoadSequencesSN7},
 		{FILE_BLOCK_PARAMS_EXTRA,	&CFamiTrackerDocIO::LoadParamsExtra},	// // //
 		{FILE_BLOCK_DETUNETABLES,	&CFamiTrackerDocIO::LoadDetuneTables},	// // //
 		{FILE_BLOCK_GROOVES,		&CFamiTrackerDocIO::LoadGrooves},		// // //
@@ -185,6 +189,7 @@ bool CFamiTrackerDocIO::Save(const CFamiTrackerModule &modfile) {
 		{&CFamiTrackerDocIO::SaveSequencesVRC6,	6, FILE_BLOCK_SEQUENCES_VRC6},		// // //
 		{&CFamiTrackerDocIO::SaveSequencesN163,	1, FILE_BLOCK_SEQUENCES_N163},
 		{&CFamiTrackerDocIO::SaveSequencesS5B,	1, FILE_BLOCK_SEQUENCES_S5B},
+		{&CFamiTrackerDocIO::SaveSequencesSN7,	6, FILE_BLOCK_SEQUENCES_SN7},		// // //
 		{&CFamiTrackerDocIO::SaveParamsExtra,	2, FILE_BLOCK_PARAMS_EXTRA},		// // //
 		{&CFamiTrackerDocIO::SaveDetuneTables,	1, FILE_BLOCK_DETUNETABLES},		// // //
 		{&CFamiTrackerDocIO::SaveGrooves,		1, FILE_BLOCK_GROOVES},				// // //
@@ -1255,6 +1260,105 @@ void CFamiTrackerDocIO::SaveParamsExtra(const CFamiTrackerModule &modfile, int v
 			file_.WriteBlockChar(cent);
 		}
 	}
+}
+
+void CFamiTrackerDocIO::LoadSequencesSN7(CFamiTrackerModule &modfile, int ver) {
+	unsigned int Count = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES * (int)SEQ_COUNT, "SN76489 sequence count");
+	AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, static_cast<unsigned>(MAX_SEQUENCES), "SN76489 sequence count");		// // //
+
+	CSequenceManager *pManager = modfile.GetInstrumentManager()->GetSequenceManager(INST_SN76489);		// // //
+
+	int Indices[MAX_SEQUENCES * SEQ_COUNT];
+	sequence_t Types[MAX_SEQUENCES * SEQ_COUNT];
+	for (unsigned int i = 0; i < Count; ++i) {
+		unsigned int Index = Indices[i] = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
+		sequence_t Type = Types[i] = enum_cast<sequence_t>((unsigned)AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type"));
+		try {
+			unsigned char SeqCount = file_.GetBlockChar();
+			auto pSeq = pManager->GetCollection(Type)->GetSequence(Index);
+			pSeq->Clear();
+			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
+
+			pSeq->SetLoopPoint(AssertRange<MODULE_ERROR_STRICT>(
+				file_.GetBlockInt(), -1, static_cast<int>(SeqCount) - 1, "Sequence loop point"));
+
+			if (ver == 4) {
+				pSeq->SetReleasePoint(AssertRange<MODULE_ERROR_STRICT>(
+					file_.GetBlockInt(), -1, static_cast<int>(SeqCount) - 1, "Sequence release point"));
+				pSeq->SetSetting(static_cast<seq_setting_t>(file_.GetBlockInt()));		// // //
+			}
+
+			// AssertRange(SeqCount, 0, MAX_SEQUENCE_ITEMS, "Sequence item count");
+			for (unsigned int j = 0; j < SeqCount; ++j) {
+				char Value = file_.GetBlockChar();
+				if (j < MAX_SEQUENCE_ITEMS)		// // //
+					pSeq->SetItem(j, Value);
+			}
+		}
+		catch (CModuleException e) {
+			e.AppendError("At SN76489 %s sequence %d,", CInstrumentSN7::SEQUENCE_NAME[value_cast(Type)], Index);
+			throw e;
+		}
+	}
+
+	if (ver == 5) {
+		// Version 5 saved the release points incorrectly, this is fixed in ver 6
+		for (int i = 0; i < MAX_SEQUENCES; ++i) {
+			foreachSeq([&] (sequence_t j) {
+				try {
+					int ReleasePoint = file_.GetBlockInt();
+					int Settings = file_.GetBlockInt();
+					auto pSeq = pManager->GetCollection(j)->GetSequence(i);
+					int Length = pSeq->GetItemCount();
+					if (Length > 0) {
+						pSeq->SetReleasePoint(AssertRange<MODULE_ERROR_STRICT>(
+							ReleasePoint, -1, Length - 1, "Sequence release point"));
+						pSeq->SetSetting(static_cast<seq_setting_t>(Settings));		// // //
+					}
+				}
+				catch (CModuleException e) {
+					e.AppendError("At SN76489 %s sequence %d,", CInstrumentSN7::SEQUENCE_NAME[value_cast(j)], i);
+					throw e;
+				}
+			});
+		}
+	}
+	else if (ver >= 6) {
+		for (unsigned int i = 0; i < Count; ++i) try {
+			auto pSeq = pManager->GetCollection(Types[i])->GetSequence(Indices[i]);
+			pSeq->SetReleasePoint(AssertRange<MODULE_ERROR_STRICT>(
+				file_.GetBlockInt(), -1, static_cast<int>(pSeq->GetItemCount()) - 1, "Sequence release point"));
+			pSeq->SetSetting(static_cast<seq_setting_t>(file_.GetBlockInt()));		// // //
+		}
+		catch (CModuleException e) {
+			e.AppendError("At SN76489 %s sequence %d,", CInstrumentSN7::SEQUENCE_NAME[value_cast(Types[i])], Indices[i]);
+			throw e;
+		}
+	}
+}
+
+void CFamiTrackerDocIO::SaveSequencesSN7(const CFamiTrackerModule &modfile, int ver) {
+	int Count = modfile.GetInstrumentManager()->GetTotalSequenceCount(INST_SN76489);
+	if (!Count)
+		return;		// // //
+	file_.WriteBlockInt(Count);
+
+	auto *pManager = modfile.GetInstrumentManager()->GetSequenceManager(INST_SN76489);
+
+	VisitSequences(pManager, [&] (const CSequence &seq, int index, sequence_t seqType) {
+		file_.WriteBlockInt(index);
+		file_.WriteBlockInt(value_cast(seqType));
+		file_.WriteBlockChar(seq.GetItemCount());
+		file_.WriteBlockInt(seq.GetLoopPoint());
+		for (int k = 0, Count = seq.GetItemCount(); k < Count; ++k)
+			file_.WriteBlockChar(seq.GetItem(k));
+	});
+
+	// v6
+	VisitSequences(pManager, [&] (const CSequence &seq, int, sequence_t) {
+		file_.WriteBlockInt(seq.GetReleasePoint());
+		file_.WriteBlockInt(seq.GetSetting());
+	});
 }
 
 #include "DetuneDlg.h" // TODO: bad, encapsulate detune tables

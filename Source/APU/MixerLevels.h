@@ -101,3 +101,5 @@ using stLevelsMMC5 = stLevelsLinear<chan_id_t::MMC5_SQUARE1, chan_id_t::MMC5_SQU
 using stLevelsN163 = stLevelsLinear<chan_id_t::N163_CH1, chan_id_t::N163_CH2, chan_id_t::N163_CH3, chan_id_t::N163_CH4,
 	chan_id_t::N163_CH5, chan_id_t::N163_CH6, chan_id_t::N163_CH7, chan_id_t::N163_CH8>;
 using stLevelsS5B = stLevelsLinear<chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3>;
+using stLevelsSN76489 = stLevelsLinear<chan_id_t::SN76489_CH1, chan_id_t::SN76489_CH2, chan_id_t::SN76489_CH3,
+	chan_id_t::SN76489_NOISE>;

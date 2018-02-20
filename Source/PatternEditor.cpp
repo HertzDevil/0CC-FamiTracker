@@ -1250,6 +1250,8 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	static const char NOTES_C[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 	// Hex numbers
 	static const char HEX[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+	// // // SN76489 Noise channel display
+	static const char SN7_NOISE[] = {'L', 'M', 'H', 'C'};
 
 	const bool m_bDisplayFlat = Env.GetSettings()->Appearance.bDisplayFlats;		// // //
 
@@ -1367,6 +1369,13 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 				// Noise
 				char NoiseFreq = (NoteData.Note - 1 + NoteData.Octave * 12) & 0x0F;
 				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoiseFreq], ColorInfo.Note);		// // //
+				DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, '-', ColorInfo.Note);
+				DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, '#', ColorInfo.Note);
+			}
+			else if (ch == chan_id_t::SN76489_NOISE) {		// // //
+				// SN76489 Noise
+				char NoiseFreq = (NoteData.Note - 1 + NoteData.Octave * 12) & 0x03;
+				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, SN7_NOISE[NoiseFreq], ColorInfo.Note);		// // //
 				DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, '-', ColorInfo.Note);
 				DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, '#', ColorInfo.Note);
 			}

@@ -23,29 +23,13 @@
 
 #pragma once
 
-#if defined(_DEBUG) || !defined(NDEBUG)
-#  define FT0CC_DEBUG 1
-#else
-#  define FT0CC_DEBUG 0
-#endif
+#include "SeqInstrument.h"
 
-#ifndef DEBUG_BREAK
-#  if FT0CC_DEBUG
-#    ifdef _MSC_VER
-#      define DEBUG_BREAK() (__debugbreak())
-#    else
-#      include <csignal>
-#      define DEBUG_BREAK() (raise(SIGTRAP))
-#    endif
-#  else
-#    define DEBUG_BREAK() ((void)0)
-#  endif
-#endif
+class CInstrumentSN7 : public CSeqInstrument {
+public:
+	CInstrumentSN7() : CSeqInstrument(INST_SN76489) { }		// // //
 
-#ifndef Assert
-#  if FT0CC_DEBUG
-#    define Assert(b) do { if (!(b)) DEBUG_BREAK(); } while (false)
-#  else
-#    define Assert(b) ((void)0)
-#  endif
-#endif
+public:
+	static const char *const SEQUENCE_NAME[];
+	const char *GetSequenceName(int Index) const override { return SEQUENCE_NAME[Index]; }		// // //
+};

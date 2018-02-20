@@ -142,6 +142,7 @@ enum effect_t : unsigned char {
 	EF_N163_WAVE_BUFFER,		// // //
 	EF_FDS_VOLUME,				// // //
 	EF_FDS_MOD_BIAS,				// // //
+	EF_SN_CONTROL,		// // //
 //	EF_TARGET_VOLUME_SLIDE,
 /*
 	EF_VRC7_MODULATOR,
@@ -167,6 +168,7 @@ const effect_t FDS_EFFECTS[] = {EF_FDS_MOD_DEPTH, EF_FDS_MOD_SPEED_HI, EF_FDS_MO
 // const effect_t MMC5_EFFECTS[] = {};
 const effect_t N163_EFFECTS[] = {EF_N163_WAVE_BUFFER};
 const effect_t S5B_EFFECTS[] = {EF_SUNSOFT_ENV_TYPE, EF_SUNSOFT_ENV_HI, EF_SUNSOFT_ENV_LO, EF_SUNSOFT_NOISE};
+const effect_t SN76489_EFFECTS[] = {EF_SN_CONTROL};
 
 // Channel effect letters
 const char EFF_CHAR[] = {
@@ -211,6 +213,7 @@ const char EFF_CHAR[] = {
 	'Z',	// // // N163 wave buffer
 	'E',	// // // FDS volume envelope
 	'Z',	// // // FDS auto-FM bias
+	'N',	// // // SN76489 control
 	//'9'	// Targeted volume slide
 	/*
 	'H',	// VRC7 modulator

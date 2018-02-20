@@ -33,6 +33,7 @@
 #include "APU/N163.h"
 #include "APU/VRC7.h"
 #include "APU/S5B.h"
+#include "APU/SN76489.h"		// // //
 #include "RegisterState.h"		// // //
 #include "Assertion.h"		// // //
 
@@ -61,6 +62,7 @@ CAPU::CAPU(IAudioCallback *pCallback) :		// // //
 	m_pFDS (std::make_unique<CFDS>(*m_pMixer)),
 	m_pN163(std::make_unique<CN163>(*m_pMixer)),
 	m_pS5B (std::make_unique<CS5B>(*m_pMixer)),
+	m_pSN76489(std::make_unique<CSN76489>(*m_pMixer)),		// // //
 	m_iFrameCycles(0),
 	m_pSoundBuffer(NULL),
 	m_iCyclesToRun(0),
@@ -193,6 +195,8 @@ void CAPU::SetExternalSound(const CSoundChipSet &Chip) {
 		ExChips.push_back(m_pN163.get());
 	if (Chip.ContainsChip(sound_chip_t::S5B))
 		ExChips.push_back(m_pS5B.get());
+	if (Chip.ContainsChip(sound_chip_t::SN76489))
+		ExChips.push_back(m_pSN76489.get());
 
 	Reset();
 }
@@ -407,6 +411,7 @@ double CAPU::GetFreq(sound_chip_t Chip, int Chan) const
 	case sound_chip_t::MMC5: pChip = m_pMMC5.get(); break;
 	case sound_chip_t::N163: pChip = m_pN163.get(); break;
 	case sound_chip_t::S5B:  pChip = m_pS5B.get(); break;
+	case sound_chip_t::SN76489:  pChip = m_pSN76489.get(); break;
 	default: DEBUG_BREAK(); return 0.;
 	}
 	return pChip->GetFreq(Chan);
@@ -423,6 +428,7 @@ CRegisterState *CAPU::GetRegState(sound_chip_t Chip, int Reg) const		// // //
 	case sound_chip_t::MMC5: pChip = m_pMMC5.get(); break;
 	case sound_chip_t::N163: pChip = m_pN163.get(); break;
 	case sound_chip_t::S5B:  pChip = m_pS5B.get(); break;
+	case sound_chip_t::SN76489:  pChip = m_pSN76489.get(); break;
 	default: DEBUG_BREAK(); return nullptr;
 	}
 

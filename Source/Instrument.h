@@ -34,7 +34,8 @@ enum inst_type_t : unsigned {
 	INST_VRC7,
 	INST_FDS,
 	INST_N163,
-	INST_S5B
+	INST_S5B,
+	INST_SN76489,		// // //
 };
 
 // External classes

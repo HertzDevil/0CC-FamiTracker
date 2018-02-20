@@ -138,6 +138,7 @@ private:
 	unsigned int		m_iNoteLookupTableFDS[NOTE_COUNT];			// For FDS
 	unsigned int		m_iNoteLookupTableN163[NOTE_COUNT];			// For N163
 	unsigned int		m_iNoteLookupTableS5B[NOTE_COUNT];			// // // For 5B, internal use only
+	unsigned int		m_iNoteLookupTableSN76489[NOTE_COUNT];		// // // For SN76489
 	int					m_iVibratoTable[VIBRATO_LENGTH];
 
 	std::shared_ptr<CTempoCounter> m_pTempoCounter;			// // // tempo calculation

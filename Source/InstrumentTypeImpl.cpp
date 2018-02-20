@@ -28,6 +28,7 @@
 #include "InstrumentVRC7.h"
 #include "InstrumentN163.h"
 #include "InstrumentS5B.h"
+#include "InstrumentSN7.h"
 
 #include "InstCompiler.h"
 
@@ -53,6 +54,7 @@ template class CInstrumentTypeImpl<CInstrumentVRC7, CInstCompilerVRC7, INST_VRC7
 template class CInstrumentTypeImpl<CInstrumentFDS , CInstCompilerFDS , INST_FDS >;
 template class CInstrumentTypeImpl<CInstrumentN163, CInstCompilerN163, INST_N163>;
 template class CInstrumentTypeImpl<CInstrumentS5B , CInstCompilerSeq , INST_S5B >;
+template class CInstrumentTypeImpl<CInstrumentSN7 , CInstCompilerSeq , INST_SN76489>;
 
 inst_type_t CInstrumentTypeNull::GetID() const {
 	return INST_NONE;

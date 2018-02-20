@@ -433,6 +433,7 @@
     <ClCompile Include="Source\APU\N163.cpp" />
     <ClCompile Include="Source\APU\S5B.cpp" />
     <ClCompile Include="Source\APU\SampleMem.cpp" />
+    <ClCompile Include="Source\APU\SN76489.cpp" />
     <ClCompile Include="Source\APU\SoundChip.cpp" />
     <ClCompile Include="Source\Arpeggiator.cpp" />
     <ClCompile Include="Source\AudioDriver.cpp" />
@@ -441,6 +442,7 @@
     <ClCompile Include="Source\BookmarkDlg.cpp" />
     <ClCompile Include="Source\ChannelFactory.cpp" />
     <ClCompile Include="Source\ChannelOrder.cpp" />
+    <ClCompile Include="Source\ChannelsSN7.cpp" />
     <ClCompile Include="Source\ClipboardResource.cpp" />
     <ClCompile Include="Source\FamiTrackerDocIO.cpp" />
     <ClCompile Include="Source\FamiTrackerDocOldIO.cpp" />
@@ -450,6 +452,7 @@
     <ClCompile Include="Source\FrameEditorModel.cpp" />
     <ClCompile Include="Source\InstCompiler.cpp" />
     <ClCompile Include="Source\InstrumentService.cpp" />
+    <ClCompile Include="Source\InstrumentSN7.cpp" />
     <ClCompile Include="Source\InstrumentTypeImpl.cpp" />
     <ClCompile Include="Source\Kraid.cpp" />
     <ClCompile Include="Source\ModuleAction.cpp" />
@@ -613,6 +616,7 @@
     <ClCompile Include="Source\WaveFile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\APU\SN76489.h" />
     <ClInclude Include="Source\array_view.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Source\ActionHandler.h" />
@@ -635,6 +639,7 @@
     <ClInclude Include="Source\BookmarkDlg.h" />
     <ClInclude Include="Source\ChannelName.h" />
     <ClInclude Include="Source\ChannelOrder.h" />
+    <ClInclude Include="Source\ChannelsSN7.h" />
     <ClInclude Include="Source\ClipboardResource.h" />
     <ClInclude Include="Source\Color.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />
@@ -649,6 +654,7 @@
     <ClInclude Include="Source\Highlight.h" />
     <ClInclude Include="Source\InstCompiler.h" />
     <ClInclude Include="Source\InstrumentListCtrl.h" />
+    <ClInclude Include="Source\InstrumentSN7.h" />
     <ClInclude Include="Source\InstrumentType.h" />
     <ClInclude Include="Source\InstrumentTypeImpl.h" />
     <ClInclude Include="Source\IntRange.h" />

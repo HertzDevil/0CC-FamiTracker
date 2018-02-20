@@ -28,6 +28,7 @@
 #include "ChannelsMMC5.h"
 #include "ChannelsN163.h"
 #include "ChannelsS5B.h"
+#include "ChannelsSN7.h"
 #include "APU/Types.h"
 
 // // // Default implementation for channel factory
@@ -71,6 +72,11 @@ std::unique_ptr<CChannelHandler> CChannelFactory::MakeImpl(chan_id_t id) {
 
 	case chan_id_t::S5B_CH1: case chan_id_t::S5B_CH2: case chan_id_t::S5B_CH3:
 		return std::make_unique<CChannelHandlerS5B>();
+
+	case chan_id_t::SN76489_CH1: case chan_id_t::SN76489_CH2: case chan_id_t::SN76489_CH3:
+		return std::make_unique<CSN7SquareChan>();
+	case chan_id_t::SN76489_NOISE:
+		return std::make_unique<CSN7NoiseChan>();
 	}
 
 	return nullptr;

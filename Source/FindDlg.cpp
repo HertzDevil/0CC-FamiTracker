@@ -270,6 +270,8 @@ void CFindResultsBox::SelectItem(int Index)
 			{"FDS"        , sound_chip_t::FDS , GetChannelSubIndex(chan_id_t::FDS)},
 			{"FM Channel ", sound_chip_t::VRC7, GetChannelSubIndex(chan_id_t::VRC7_CH1)},
 			{"5B Square " , sound_chip_t::S5B,  GetChannelSubIndex(chan_id_t::S5B_CH1)},
+			{"PSG Square ", sound_chip_t::SN76489, GetChannelSubIndex(chan_id_t::SN76489_CH1)},
+			{"PSG Noise"  , sound_chip_t::SN76489, GetChannelSubIndex(chan_id_t::SN76489_NOISE)},
 		};
 		for (auto [prefix, chip, subindex] : HEADERS)
 			if (0 == x.compare(0, prefix.size(), prefix)) {

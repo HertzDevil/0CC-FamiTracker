@@ -798,6 +798,15 @@
     <ClCompile Include="Source\ChannelOrder.cpp">
       <Filter>Source Files\Sound Driver</Filter>
     </ClCompile>
+    <ClCompile Include="Source\APU\SN76489.cpp">
+      <Filter>Source Files\Sound Driver\Emulation\Sound Chips</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ChannelsSN7.cpp">
+      <Filter>Source Files\Sound Driver\Channels</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\InstrumentSN7.cpp">
+      <Filter>Source Files\Document Data Types\Instruments</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1483,6 +1492,15 @@
     </ClInclude>
     <ClInclude Include="Source\str_conv\utf8_conv.hpp">
       <Filter>Header Files\Other Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\APU\SN76489.h">
+      <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ChannelsSN7.h">
+      <Filter>Header Files\Sound Driver Headers\Channels Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\InstrumentSN7.h">
+      <Filter>Header Files\Document Data Type Headers\Instrument Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -20,32 +20,7 @@
 ** must bear this legend.
 */
 
+// // // CInstrumentSN7 is a subtype of CSeqInstrument.
+#include "InstrumentSN7.h"
 
-#pragma once
-
-#if defined(_DEBUG) || !defined(NDEBUG)
-#  define FT0CC_DEBUG 1
-#else
-#  define FT0CC_DEBUG 0
-#endif
-
-#ifndef DEBUG_BREAK
-#  if FT0CC_DEBUG
-#    ifdef _MSC_VER
-#      define DEBUG_BREAK() (__debugbreak())
-#    else
-#      include <csignal>
-#      define DEBUG_BREAK() (raise(SIGTRAP))
-#    endif
-#  else
-#    define DEBUG_BREAK() ((void)0)
-#  endif
-#endif
-
-#ifndef Assert
-#  if FT0CC_DEBUG
-#    define Assert(b) do { if (!(b)) DEBUG_BREAK(); } while (false)
-#  else
-#    define Assert(b) ((void)0)
-#  endif
-#endif
+const char *const CInstrumentSN7::SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "Noise / Mode"};

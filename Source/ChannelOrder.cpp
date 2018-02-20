@@ -59,6 +59,7 @@ CChannelOrder CChannelOrder::Canonicalize() const {
 		chan_id_t::N163_CH5, chan_id_t::N163_CH6, chan_id_t::N163_CH7, chan_id_t::N163_CH8,
 		chan_id_t::FDS,
 		chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3,
+		chan_id_t::SN76489_CH1, chan_id_t::SN76489_CH2, chan_id_t::SN76489_CH3, chan_id_t::SN76489_NOISE,
 		chan_id_t::VRC7_CH1, chan_id_t::VRC7_CH2, chan_id_t::VRC7_CH3,
 		chan_id_t::VRC7_CH4, chan_id_t::VRC7_CH5, chan_id_t::VRC7_CH6,
 		chan_id_t::DPCM,

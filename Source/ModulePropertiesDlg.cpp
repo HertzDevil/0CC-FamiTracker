@@ -74,6 +74,7 @@ BEGIN_MESSAGE_MAP(CModulePropertiesDlg, CDialog)
 	ON_BN_CLICKED(IDC_EXPANSION_MMC5, OnBnClickedExpansionMMC5)
 	ON_BN_CLICKED(IDC_EXPANSION_S5B, OnBnClickedExpansionS5B)
 	ON_BN_CLICKED(IDC_EXPANSION_N163, OnBnClickedExpansionN163)
+	ON_BN_CLICKED(IDC_EXPANSION_SN7, OnBnClickedExpansionSN7)
 	ON_CBN_SELCHANGE(IDC_COMBO_LINEARPITCH, OnCbnSelchangeComboLinearpitch)
 END_MESSAGE_MAP()
 
@@ -104,6 +105,7 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 	((CButton*)GetDlgItem(IDC_EXPANSION_MMC5))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::MMC5));
 	((CButton*)GetDlgItem(IDC_EXPANSION_N163))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::N163));
 	((CButton*)GetDlgItem(IDC_EXPANSION_S5B ))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::S5B ));
+	((CButton*)GetDlgItem(IDC_EXPANSION_SN7 ))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::SN76489));
 
 	// Vibrato
 	CComboBox *pVibratoBox = static_cast<CComboBox*>(GetDlgItem(IDC_VIBRATO));
@@ -350,6 +352,7 @@ void CModulePropertiesDlg::OnBnClickedSongImport()
 	((CButton*)GetDlgItem(IDC_EXPANSION_MMC5))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::MMC5));
 	((CButton*)GetDlgItem(IDC_EXPANSION_N163))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::N163));
 	((CButton*)GetDlgItem(IDC_EXPANSION_S5B ))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::S5B ));
+	((CButton*)GetDlgItem(IDC_EXPANSION_SN7 ))->SetCheck(m_iExpansions.ContainsChip(sound_chip_t::SN76489));
 	m_pDocument->UpdateAllViews(NULL, UPDATE_PROPERTIES);
 }
 /*
@@ -483,6 +486,12 @@ void CModulePropertiesDlg::OnBnClickedExpansionS5B()
 {
 	CButton *pCheckBox = (CButton*)GetDlgItem(IDC_EXPANSION_S5B);
 	m_iExpansions = m_iExpansions.EnableChip(sound_chip_t::S5B, pCheckBox->GetCheck() == BST_CHECKED);		// // //
+}
+
+void CModulePropertiesDlg::OnBnClickedExpansionSN7()
+{
+	CButton *pCheckBox = (CButton*)GetDlgItem(IDC_EXPANSION_SN7);
+	m_iExpansions = m_iExpansions.EnableChip(sound_chip_t::SN76489, pCheckBox->GetCheck() == BST_CHECKED);		// // //
 }
 
 void CModulePropertiesDlg::OnBnClickedExpansionN163()

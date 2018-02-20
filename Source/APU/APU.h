@@ -37,6 +37,7 @@ class CFDS;
 class CMMC5;
 class CN163;
 class CS5B;
+class CSN76489;		// // //
 
 namespace ft0cc::doc {
 class dpcm_sample;
@@ -117,6 +118,7 @@ private:
 	std::unique_ptr<CN163> m_pN163;
 	std::unique_ptr<CVRC7> m_pVRC7;
 	std::unique_ptr<CS5B> m_pS5B;
+	std::unique_ptr<CSN76489> m_pSN76489;		// // //
 
 	CSoundChipSet m_iExternalSoundChip;				// // // External sound chip, if used
 

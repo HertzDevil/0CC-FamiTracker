@@ -78,6 +78,9 @@ private:
 	void LoadSequencesS5B(CFamiTrackerModule &modfile, int ver);
 	void SaveSequencesS5B(const CFamiTrackerModule &modfile, int ver);
 
+	void LoadSequencesSN7(CFamiTrackerModule &modfile, int ver);
+	void SaveSequencesSN7(const CFamiTrackerModule &modfile, int ver);
+
 	void LoadParamsExtra(CFamiTrackerModule &modfile, int ver);
 	void SaveParamsExtra(const CFamiTrackerModule &modfile, int ver);
 

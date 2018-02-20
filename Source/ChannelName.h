@@ -37,6 +37,7 @@ constexpr std::string_view GetChannelFullName(chan_id_t ch) noexcept {
 		"FDS"sv,
 		"FM Channel 1"sv, "FM Channel 2"sv, "FM Channel 3"sv, "FM Channel 4"sv, "FM Channel 5"sv, "FM Channel 6"sv,
 		"5B Square 1"sv, "5B Square 2"sv, "5B Square 3"sv,
+		"PSG Square 1"sv, "PSG Square 2"sv, "PSG Square 3"sv, "PSG Noise"sv,
 	};
 
 	return ch < chan_id_t::COUNT ? NAMES[value_cast(ch)] : "(N/A)";
@@ -53,6 +54,7 @@ constexpr std::string_view GetChannelShortName(chan_id_t ch) noexcept {
 		"FDS"sv,
 		"FM1"sv, "FM2"sv, "FM3"sv, "FM4"sv, "FM5"sv, "FM6"sv,
 		"5B1"sv, "5B2"sv, "5B3"sv,
+		"SN1"sv, "SN2"sv, "SN3"sv, "SNN"sv,
 	};
 
 	return ch < chan_id_t::COUNT ? NAMES[value_cast(ch)] : "(N/A)";
