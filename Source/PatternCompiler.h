@@ -36,7 +36,7 @@ typedef unsigned char DPCM_List_t[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE];
 class CPatternCompiler
 {
 public:
-	CPatternCompiler(const CFamiTrackerModule &ModFile, unsigned int *pInstList, DPCM_List_t *pDPCMList, std::shared_ptr<CCompilerLog> pLogger);		// // //
+	CPatternCompiler(const CFamiTrackerModule &ModFile, const std::vector<unsigned> &InstList, const DPCM_List_t *pDPCMList, std::shared_ptr<CCompilerLog> pLogger);		// // //
 	~CPatternCompiler();
 
 	void			CompileData(int Track, int Pattern, chan_id_t Channel);
@@ -80,9 +80,9 @@ private:
 	unsigned int	m_iCurrentDefaultDuration;
 	bool			m_bDSamplesAccessed[OCTAVE_RANGE * NOTE_RANGE] = { }; // <- check the range, its not optimal right now
 	unsigned int	m_iHash;
-	unsigned int	*m_pInstrumentList;
+	const std::vector<unsigned> &m_iInstrumentList;		// // //
 
-	DPCM_List_t		*m_pDPCMList;
+	const DPCM_List_t *m_pDPCMList = nullptr;		// // //
 
 	const CFamiTrackerModule &modfile_;		// // //
 	std::shared_ptr<CCompilerLog> m_pLogger;		// // //

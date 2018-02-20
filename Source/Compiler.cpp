@@ -21,7 +21,6 @@
 */
 
 #include "Compiler.h"
-#include <map>
 #include "version.h"		// // //
 #include "../resource.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
@@ -536,12 +535,12 @@ void CCompiler::SetMetadata(std::string_view title, std::string_view artist, std
 
 std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, unsigned short Origin) const {		// // //
 	// Copy embedded driver
-	auto pData = std::make_unique<unsigned char[]>(Driver.driver_size);
-	memcpy(pData.get(), Driver.driver, Driver.driver_size);
+	auto pData = std::make_unique<unsigned char[]>(Driver.driver.size());
+	memcpy(pData.get(), Driver.driver.data(), Driver.driver.size());
 
 	// // // Custom pitch tables
 	const CSoundGen *pSoundGen = Env.GetSoundGenerator();		// // //
-	for (size_t i = 0; i < Driver.freq_table_size; i += 2) {		// // //
+	for (size_t i = 0; i < Driver.freq_table.size(); i += 2) {		// // //
 		int Table = Driver.freq_table[i + 1];
 		switch (Table) {
 		case CDetuneTable::DETUNE_NTSC:
@@ -567,7 +566,7 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 	}
 
 	// Relocate driver
-	for (size_t i = 0; i < Driver.word_reloc_size; ++i) {
+	for (size_t i = 0; i < Driver.word_reloc.size(); ++i) {
 		// Words
 		unsigned short value = pData[Driver.word_reloc[i]] + (pData[Driver.word_reloc[i] + 1] << 8);
 		value += Origin;
@@ -575,7 +574,7 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 		pData[Driver.word_reloc[i] + 1] = value >> 8;
 	}
 
-	for (size_t i = 0; i < Driver.adr_reloc_size; i += 2) {		// // //
+	for (size_t i = 0; i < Driver.adr_reloc.size(); i += 2) {		// // //
 		unsigned short value = pData[Driver.adr_reloc[i]] + (pData[Driver.adr_reloc[i + 1]] << 8);
 		value += Origin;
 		pData[Driver.adr_reloc[i]] = value & 0xFF;
@@ -961,7 +960,7 @@ bool CCompiler::CompileData()
 	}
 
 	// Driver size
-	m_iDriverSize = m_pDriverData->driver_size;
+	m_iDriverSize = m_pDriverData->driver.size();		// // //
 
 	// Scan and optimize song
 	ScanSong();
@@ -1041,9 +1040,8 @@ void CCompiler::ScanSong()
 	//
 
 	// Re-assign instruments
-	m_iInstruments = 0;
+	m_iAssignedInstruments.clear();		// // //
 
-	m_iAssignedInstruments.fill(0);		// // //
 	// TODO: remove these
 	m_bSequencesUsed2A03.fill({ });
 	m_bSequencesUsedVRC6.fill({ });
@@ -1073,7 +1071,7 @@ void CCompiler::ScanSong()
 	Im.VisitInstruments([&] (const CInstrument &inst, std::size_t i) {
 		if (inst_used[i]) {		// // //
 			// List of used instruments
-			m_iAssignedInstruments[m_iInstruments++] = i;
+			m_iAssignedInstruments.push_back(i);
 
 			// Create a list of used sequences
 			inst_type_t it = Im.GetInstrumentType(i);		// // //
@@ -1245,11 +1243,11 @@ void CCompiler::CreateInstrumentList()
 
 	// Collect N163 waves
 	const CInstCompilerN163 n163_c;		// // //
-	for (unsigned int i = 0; i < m_iInstruments; ++i) {
+	for (unsigned int i = 0; i < m_iAssignedInstruments.size(); ++i) {
 		unsigned iIndex = m_iAssignedInstruments[i];
 		if (Im.GetInstrumentType(iIndex) == INST_N163 && m_iWaveBanks[i] == (unsigned)-1) {
 			auto pInstrument = std::static_pointer_cast<CInstrumentN163>(Im.GetInstrument(iIndex));
-			for (unsigned int j = i + 1; j < m_iInstruments; ++j) {
+			for (unsigned int j = i + 1; j < m_iAssignedInstruments.size(); ++j) {
 				unsigned inst = m_iAssignedInstruments[j];
 				if (Im.GetInstrumentType(inst) == INST_N163 && m_iWaveBanks[j] == (unsigned)-1) {
 					auto pNewInst = std::static_pointer_cast<CInstrumentN163>(Im.GetInstrument(inst));
@@ -1266,7 +1264,7 @@ void CCompiler::CreateInstrumentList()
 	}
 
 	// Store instruments
-	for (unsigned int i = 0; i < m_iInstruments; ++i) {
+	for (unsigned int i = 0; i < m_iAssignedInstruments.size(); ++i) {
 		CChunk &Chunk = AddChunkToList(InstListChunk, {CHUNK_INSTRUMENT, i});		// // //
 		iTotalSize += 2;
 
@@ -1299,7 +1297,7 @@ void CCompiler::CreateInstrumentList()
 		}
 	}
 
-	Print(L" * Instruments used: %i (%i bytes)\n", m_iInstruments, iTotalSize);
+	Print(L" * Instruments used: %i (%i bytes)\n", m_iAssignedInstruments.size(), iTotalSize);
 
 	if (iWaveSize > 0)
 		Print(L" * N163 waves size: %i bytes\n", iWaveSize);
@@ -1519,7 +1517,7 @@ void CCompiler::StoreSongs()
 		Print(L" * %i duplicated pattern(s) removed\n", m_iDuplicatePatterns);
 
 #ifdef _DEBUG
-	Print(L"Hash collisions: %i (of %i items)\r\n", m_iHashCollisions, m_PatternMap.GetCount());
+	Print(L"Hash collisions: %i (of %i items)\r\n", m_iHashCollisions, m_PatternMap.size());		// // //
 #endif
 }
 
@@ -1583,7 +1581,7 @@ void CCompiler::StorePatterns(unsigned int Track)
 	 *
 	 */
 
-	CPatternCompiler PatternCompiler(*m_pModule, m_iAssignedInstruments.data(), (DPCM_List_t*)&m_iSamplesLookUp, m_pLogger);		// // //
+	CPatternCompiler PatternCompiler(*m_pModule, m_iAssignedInstruments, (const DPCM_List_t *)m_iSamplesLookUp.data(), m_pLogger);		// // //
 
 	int PatternCount = 0;
 	int PatternSize = 0;
@@ -1605,9 +1603,8 @@ void CCompiler::StorePatterns(unsigned int Track)
 				unsigned int Hash = PatternCompiler.GetHash();
 
 				// Check for duplicate patterns
-				CChunk *pDuplicate = m_PatternMap[Hash];
-
-				if (pDuplicate != NULL) {
+				if (auto it = m_PatternMap.find(Hash); it != m_PatternMap.end()) {
+					const CChunk *pDuplicate = it->second;
 					// Hash only indicates that patterns may be equal, check exact data
 					if (PatternCompiler.CompareData(pDuplicate->GetStringData(PATTERN_CHUNK_INDEX))) {
 						// Duplicate was found, store a reference to existing pattern
@@ -1623,8 +1620,8 @@ void CCompiler::StorePatterns(unsigned int Track)
 					CChunk &Chunk = CreateChunk(label);		// // //
 
 #ifdef REMOVE_DUPLICATE_PATTERNS
-					if (m_PatternMap[Hash] != NULL)
-						m_iHashCollisions++;
+					if (m_PatternMap.count(Hash))
+						++m_iHashCollisions;
 					m_PatternMap[Hash] = &Chunk;
 #endif /* REMOVE_DUPLICATE_PATTERNS */
 

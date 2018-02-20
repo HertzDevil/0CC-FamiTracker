@@ -780,9 +780,6 @@
     <ClCompile Include="Source\SoundChipSet.cpp">
       <Filter>Source Files\Sound Driver</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ChannelOrder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\version.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -797,6 +794,9 @@
     </ClCompile>
     <ClCompile Include="Source\str_conv\str_conv.cpp">
       <Filter>Source Files\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ChannelOrder.cpp">
+      <Filter>Source Files\Sound Driver</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

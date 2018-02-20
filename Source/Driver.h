@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <iterator>		// // // std::size
+#include "array_view.h"		// // //
 
 //
 // The NSF driver binaries
@@ -68,100 +68,64 @@ const unsigned char NSF_CALLER_BIN_VRC6[] = {
 #include "drivers/drv_all.h"		// // //
 
 struct driver_t {
-	const unsigned char *driver;
-	std::size_t driver_size;
-	const int *word_reloc;
-	std::size_t word_reloc_size;
-	const int *freq_table;		// // //
-	std::size_t freq_table_size;	// // //
-	const int *adr_reloc;		// // //
-	std::size_t adr_reloc_size;	// // //
+	array_view<unsigned char> driver;		// // //
+	array_view<int> word_reloc;
+	array_view<int> freq_table;
+	array_view<int> adr_reloc;
 };
 
 const driver_t DRIVER_PACK_2A03 = {
 	DRIVER_2A03,
-	std::size(DRIVER_2A03),
 	DRIVER_RELOC_WORD_2A03,
-	std::size(DRIVER_RELOC_WORD_2A03),
-	DRIVER_FREQ_TABLE_2A03,				// // //
-	std::size(DRIVER_FREQ_TABLE_2A03),
+	DRIVER_FREQ_TABLE_2A03,
 	DRIVER_RELOC_ADR_2A03,
-	std::size(DRIVER_RELOC_ADR_2A03),
 };
 
 const driver_t DRIVER_PACK_VRC6 = {
 	DRIVER_VRC6,
-	std::size(DRIVER_VRC6),
 	DRIVER_RELOC_WORD_VRC6,
-	std::size(DRIVER_RELOC_WORD_VRC6),
-	DRIVER_FREQ_TABLE_VRC6,				// // //
-	std::size(DRIVER_FREQ_TABLE_VRC6),
+	DRIVER_FREQ_TABLE_VRC6,
 	DRIVER_RELOC_ADR_VRC6,
-	std::size(DRIVER_RELOC_ADR_VRC6),
 };
 
 const driver_t DRIVER_PACK_VRC7 = {
 	DRIVER_VRC7,
-	std::size(DRIVER_VRC7),
 	DRIVER_RELOC_WORD_VRC7,
-	std::size(DRIVER_RELOC_WORD_VRC7),
-	DRIVER_FREQ_TABLE_VRC7,				// // //
-	std::size(DRIVER_FREQ_TABLE_VRC7),
+	DRIVER_FREQ_TABLE_VRC7,
 	DRIVER_RELOC_ADR_VRC7,
-	std::size(DRIVER_RELOC_ADR_VRC7),
 };
 
 const driver_t DRIVER_PACK_MMC5 = {
 	DRIVER_MMC5,
-	std::size(DRIVER_MMC5),
 	DRIVER_RELOC_WORD_MMC5,
-	std::size(DRIVER_RELOC_WORD_MMC5),
-	DRIVER_FREQ_TABLE_MMC5,				// // //
-	std::size(DRIVER_FREQ_TABLE_MMC5),
+	DRIVER_FREQ_TABLE_MMC5,
 	DRIVER_RELOC_ADR_MMC5,
-	std::size(DRIVER_RELOC_ADR_MMC5),
 };
 
 const driver_t DRIVER_PACK_FDS = {
 	DRIVER_FDS,
-	std::size(DRIVER_FDS),
 	DRIVER_RELOC_WORD_FDS,
-	std::size(DRIVER_RELOC_WORD_FDS),
-	DRIVER_FREQ_TABLE_FDS,				// // //
-	std::size(DRIVER_FREQ_TABLE_FDS),
+	DRIVER_FREQ_TABLE_FDS,
 	DRIVER_RELOC_ADR_FDS,
-	std::size(DRIVER_RELOC_ADR_FDS),
 };
 
 const driver_t DRIVER_PACK_N163 = {
 	DRIVER_N163,
-	std::size(DRIVER_N163),
 	DRIVER_RELOC_WORD_N163,
-	std::size(DRIVER_RELOC_WORD_N163),
-	DRIVER_FREQ_TABLE_N163,				// // //
-	std::size(DRIVER_FREQ_TABLE_N163),
+	DRIVER_FREQ_TABLE_N163,
 	DRIVER_RELOC_ADR_N163,
-	std::size(DRIVER_RELOC_ADR_N163),
 };
 
 const driver_t DRIVER_PACK_S5B = {		// // //
 	DRIVER_S5B,
-	std::size(DRIVER_S5B),
 	DRIVER_RELOC_WORD_S5B,
-	std::size(DRIVER_RELOC_WORD_S5B),
-	DRIVER_FREQ_TABLE_S5B,				// // //
-	std::size(DRIVER_FREQ_TABLE_S5B),
+	DRIVER_FREQ_TABLE_S5B,
 	DRIVER_RELOC_ADR_S5B,
-	std::size(DRIVER_RELOC_ADR_S5B),
 };
 
 const driver_t DRIVER_PACK_ALL = {		// // //
 	DRIVER_ALL,
-	std::size(DRIVER_ALL),
 	DRIVER_RELOC_WORD_ALL,
-	std::size(DRIVER_RELOC_WORD_ALL),
-	DRIVER_FREQ_TABLE_ALL,				// // //
-	std::size(DRIVER_FREQ_TABLE_ALL),
+	DRIVER_FREQ_TABLE_ALL,
 	DRIVER_RELOC_ADR_ALL,
-	std::size(DRIVER_RELOC_ADR_ALL),
 };

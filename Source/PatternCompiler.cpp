@@ -115,9 +115,9 @@ enum command_t {
 
 const unsigned char CMD_LOOP_POINT = 26;	// Currently unused
 
-CPatternCompiler::CPatternCompiler(const CFamiTrackerModule &ModFile, unsigned int *pInstList, DPCM_List_t *pDPCMList, std::shared_ptr<CCompilerLog> pLogger) :		// // //
+CPatternCompiler::CPatternCompiler(const CFamiTrackerModule &ModFile, const std::vector<unsigned> &InstList, const DPCM_List_t *pDPCMList, std::shared_ptr<CCompilerLog> pLogger) :		// // //
 	modfile_(ModFile),
-	m_pInstrumentList(pInstList),
+	m_iInstrumentList(InstList),
 	m_pDPCMList(pDPCMList),
 	m_pLogger(std::move(pLogger))
 {
@@ -678,10 +678,9 @@ unsigned int CPatternCompiler::FindInstrument(int Instrument) const
 	if (Instrument == HOLD_INSTRUMENT)		// // // 050B
 		return HOLD_INSTRUMENT;
 
-	for (int i = 0; i < MAX_INSTRUMENTS; i++) {
-		if (m_pInstrumentList[i] == Instrument)
+	for (int i = 0; i < m_iInstrumentList.size(); ++i)
+		if (m_iInstrumentList[i] == Instrument)
 			return i;
-	}
 
 	return 0;	// Could not find the instrument
 }

@@ -226,8 +226,7 @@ private:
 	unsigned int	m_iVibratoTableLocation;
 
 	// Sequences and instruments
-	unsigned int	m_iInstruments;
-	std::array<unsigned, MAX_INSTRUMENTS> m_iAssignedInstruments = { };		// // //
+	std::vector<unsigned> m_iAssignedInstruments;		// // //
 	std::array<std::array<bool, SEQ_COUNT>, MAX_SEQUENCES> m_bSequencesUsed2A03 = { };
 	std::array<std::array<bool, SEQ_COUNT>, MAX_SEQUENCES> m_bSequencesUsedVRC6 = { };
 	std::array<std::array<bool, SEQ_COUNT>, MAX_SEQUENCES> m_bSequencesUsedN163 = { };
@@ -269,7 +268,7 @@ private:
 	unsigned int	m_iWaveTables = 0;
 
 	// Optimization
-	CMap<UINT, UINT, CChunk*, CChunk*> m_PatternMap;
+	std::map<unsigned, const CChunk *> m_PatternMap;		// // //
 	std::map<stChunkLabel, stChunkLabel> m_DuplicateMap;		// // //
 
 	// Debugging
