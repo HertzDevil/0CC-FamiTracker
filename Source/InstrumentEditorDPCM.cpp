@@ -211,12 +211,10 @@ void CInstrumentEditorDPCM::UpdateKey(int Index)
 	CStringW NameStr = NO_SAMPLE_STR;
 	CStringW PitchStr = L"-";
 
-	int Octave = GET_OCTAVE(Index);		// // //
-	int Note = value_cast(GET_NOTE(Index)) - 1;
-	if (m_pInstrument->GetSampleIndex(Octave, Note) > 0) {
-		int Item = m_pInstrument->GetSampleIndex(Octave, Note) - 1;
-		int Pitch = m_pInstrument->GetSamplePitch(Octave, Note);
-		auto pSample = m_pInstrument->GetDSample(Octave, Note);		// // //
+	if (m_pInstrument->GetSampleIndex(Index) > 0) {
+		int Item = m_pInstrument->GetSampleIndex(Index) - 1;
+		int Pitch = m_pInstrument->GetSamplePitch(Index);
+		auto pSample = m_pInstrument->GetDSample(Index);		// // //
 		NameStr = !pSample ? L"(n/a)" : conv::to_wide(pSample->name()).data();
 		PitchStr.Format(L"%i %s", Pitch & 0x0F, (Pitch & 0x80) ? L"L" : L"");
 	}
@@ -407,7 +405,7 @@ void CInstrumentEditorDPCM::OnCbnSelchangePitch()
 	if (IsDlgButtonChecked(IDC_LOOP))
 		Pitch |= 0x80;
 
-	m_pInstrument->SetSamplePitch(m_iOctave, value_cast(m_iSelectedKey) - 1, Pitch);
+	m_pInstrument->SetSamplePitch(MIDI_NOTE(m_iOctave, m_iSelectedKey), Pitch);
 	GetDocument()->ModifyIrreversible();		// // //
 
 	UpdateCurrentKey();
@@ -431,11 +429,11 @@ void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	m_iSelectedKey = GET_NOTE(pTableListCtrl->GetSelectionMark());		// // //
 	m_iOctave = GET_OCTAVE(pTableListCtrl->GetSelectionMark());
 
-	auto index = value_cast(m_iSelectedKey) - 1;
+	auto index = MIDI_NOTE(m_iOctave, m_iSelectedKey);
 
-	int Sample = m_pInstrument->GetSampleIndex(m_iOctave, index) - 1;
-	int Pitch = m_pInstrument->GetSamplePitch(m_iOctave, index);
-	int Delta = m_pInstrument->GetSampleDeltaValue(m_iOctave, index);
+	int Sample = m_pInstrument->GetSampleIndex(index) - 1;
+	int Pitch = m_pInstrument->GetSamplePitch(index);
+	int Delta = m_pInstrument->GetSampleDeltaValue(index);
 
 	Text.Format(L"%02i - %s", Sample, pTableListCtrl->GetItemText(pTableListCtrl->GetSelectionMark(), 2));
 
@@ -468,9 +466,7 @@ void CInstrumentEditorDPCM::OnCbnSelchangeSamples()
 	CComboBox *pSampleBox = static_cast<CComboBox*>(GetDlgItem(IDC_SAMPLES));
 	CComboBox *pPitchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
 
-	auto index = value_cast(m_iSelectedKey) - 1;
-
-	int PrevSample = m_pInstrument->GetSampleIndex(m_iOctave, index);
+	int PrevSample = m_pInstrument->GetSampleIndex(MIDI_NOTE(m_iOctave, m_iSelectedKey));
 	int Sample = pSampleBox->GetCurSel();
 
 	if (Sample > 0) {
@@ -487,10 +483,10 @@ void CInstrumentEditorDPCM::OnCbnSelchangeSamples()
 		Sample++;
 
 		if (PrevSample == 0)
-			m_pInstrument->SetSamplePitch(m_iOctave, index, pPitchBox->GetCurSel());
+			m_pInstrument->SetSamplePitch(MIDI_NOTE(m_iOctave, m_iSelectedKey), pPitchBox->GetCurSel());
 	}
 
-	m_pInstrument->SetSampleIndex(m_iOctave, index, Sample);
+	m_pInstrument->SetSampleIndex(MIDI_NOTE(m_iOctave, m_iSelectedKey), Sample);
 	GetDocument()->ModifyIrreversible();		// // //
 
 	UpdateCurrentKey();
@@ -568,13 +564,13 @@ void CInstrumentEditorDPCM::OnBnClickedSave()
 
 void CInstrumentEditorDPCM::OnBnClickedLoop()
 {
-	auto index = value_cast(m_iSelectedKey) - 1;
-	int Pitch = m_pInstrument->GetSamplePitch(m_iOctave, index) & 0x0F;
+	auto index = MIDI_NOTE(m_iOctave, m_iSelectedKey);
+	int Pitch = m_pInstrument->GetSamplePitch(index) & 0x0F;
 
 	if (IsDlgButtonChecked(IDC_LOOP))
 		Pitch |= 0x80;
 
-	m_pInstrument->SetSamplePitch(m_iOctave, index, Pitch);
+	m_pInstrument->SetSamplePitch(index, Pitch);
 	GetDocument()->ModifyIrreversible();		// // //
 
 	UpdateCurrentKey();
@@ -620,11 +616,11 @@ void CInstrumentEditorDPCM::OnBnClickedAdd()
 	CComboBox *pPitchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
 
 	int Pitch = pPitchBox->GetCurSel();
-	auto index = value_cast(m_iSelectedKey) - 1;
+	auto index = MIDI_NOTE(m_iOctave, m_iSelectedKey);
 
 	if (GetDSampleManager()->IsSampleUsed(m_iSelectedSample)) {		// // //
-		m_pInstrument->SetSampleIndex(m_iOctave, index, m_iSelectedSample + 1);
-		m_pInstrument->SetSamplePitch(m_iOctave, index, Pitch);
+		m_pInstrument->SetSampleIndex(index, m_iSelectedSample + 1);
+		m_pInstrument->SetSamplePitch(index, Pitch);
 		GetDocument()->ModifyIrreversible();		// // //
 		UpdateCurrentKey();
 	}
@@ -650,7 +646,7 @@ void CInstrumentEditorDPCM::OnBnClickedRemove()
 	CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
 
 	// Remove sample from key list
-	m_pInstrument->SetSampleIndex(m_iOctave, value_cast(m_iSelectedKey) - 1, 0);
+	m_pInstrument->SetSampleIndex(MIDI_NOTE(m_iOctave, m_iSelectedKey), 0);
 	GetDocument()->ModifyIrreversible();		// // //
 	UpdateCurrentKey();
 
@@ -737,8 +733,6 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	m_iSelectedKey = GET_NOTE(pTableListCtrl->GetSelectionMark());		// // //
 	m_iOctave = GET_OCTAVE(pTableListCtrl->GetSelectionMark());
 
-	auto index = value_cast(m_iSelectedKey) - 1;
-
 	CPoint point;
 	CMenu PopupMenu;
 	GetCursorPos(&point);
@@ -754,7 +748,7 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 
 	if (Result == 1) {
 		// Remove sample
-		m_pInstrument->SetSampleIndex(m_iOctave, index, 0);
+		m_pInstrument->SetSampleIndex(MIDI_NOTE(m_iOctave, m_iSelectedKey), 0);
 		GetDocument()->ModifyIrreversible();		// // //
 		UpdateCurrentKey();
 	}
@@ -762,8 +756,8 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 		// Add sample
 		CComboBox *pPitchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
 		int Pitch = pPitchBox->GetCurSel();
-		m_pInstrument->SetSampleIndex(m_iOctave, index, Result - 1);
-		m_pInstrument->SetSamplePitch(m_iOctave, index, Pitch);
+		m_pInstrument->SetSampleIndex(MIDI_NOTE(m_iOctave, m_iSelectedKey), Result - 1);
+		m_pInstrument->SetSamplePitch(MIDI_NOTE(m_iOctave, m_iSelectedKey), Pitch);
 		GetDocument()->ModifyIrreversible();		// // //
 		UpdateCurrentKey();
 	}
@@ -777,10 +771,10 @@ void CInstrumentEditorDPCM::OnNMDblclkTable(NMHDR *pNMHDR, LRESULT *pResult)
 
 	// Preview sample from key table
 
-	auto index = value_cast(m_iSelectedKey) - 1;
+	auto index = MIDI_NOTE(m_iOctave, m_iSelectedKey);
 
-	if (int Sample = m_pInstrument->GetSampleIndex(m_iOctave, index)) {		// // //
-		int Pitch = m_pInstrument->GetSamplePitch(m_iOctave, index) & 0x0F;
+	if (int Sample = m_pInstrument->GetSampleIndex(index)) {		// // //
+		int Pitch = m_pInstrument->GetSamplePitch(index) & 0x0F;
 		CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
 		CStringW sampleName = pTableListCtrl->GetItemText(MIDI_NOTE(m_iOctave, m_iSelectedKey), 2);		// // //
 
@@ -801,20 +795,15 @@ void CInstrumentEditorDPCM::OnEnChangeDeltaCounter()
 
 	int Value = GetDlgItemInt(IDC_DELTA_COUNTER, &Trans, FALSE);
 
-	if (Trans == TRUE) {
-		if (Value < 0)
-			Value = 0;
-		if (Value > 127)
-			Value = 127;
-	}
-	else {
+	if (Trans == TRUE)
+		Value = std::clamp(Value, 0, 127);
+	else
 		Value = -1;
-	}
 
-	auto index = value_cast(m_iSelectedKey) - 1;
+	auto index = MIDI_NOTE(m_iOctave, m_iSelectedKey);
 
-	if (m_pInstrument->GetSampleDeltaValue(m_iOctave, index) != Value) {
-		m_pInstrument->SetSampleDeltaValue(m_iOctave, index, Value);
+	if (m_pInstrument->GetSampleDeltaValue(index) != Value) {
+		m_pInstrument->SetSampleDeltaValue(index, Value);
 		GetDocument()->ModifyIrreversible();		// // //
 	}
 }
@@ -842,7 +831,7 @@ void CInstrumentEditorDPCM::OnDeltaposDeltaSpin(NMHDR *pNMHDR, LRESULT *pResult)
 		SetDlgItemInt(IDC_DELTA_COUNTER, Value, FALSE);
 	}
 
-	m_pInstrument->SetSampleDeltaValue(m_iOctave, value_cast(m_iSelectedKey) - 1, Value);
+	m_pInstrument->SetSampleDeltaValue(MIDI_NOTE(m_iOctave, m_iSelectedKey), Value);
 	GetDocument()->ModifyIrreversible();		// // //
 
 	*pResult = 0;

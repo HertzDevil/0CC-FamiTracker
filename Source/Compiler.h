@@ -235,8 +235,8 @@ private:
 	std::array<unsigned, MAX_INSTRUMENTS> m_iWaveBanks = { };		// // // N163 waves
 
 	// Sample variables
-	std::array<std::array<std::array<unsigned char, NOTE_RANGE>, OCTAVE_RANGE>, MAX_INSTRUMENTS> m_iSamplesLookUp = { };
-	std::array<std::array<std::array<bool, NOTE_RANGE>, OCTAVE_RANGE>, MAX_INSTRUMENTS> m_bSamplesAccessed = { };
+	std::array<std::array<unsigned char, NOTE_COUNT>, MAX_INSTRUMENTS> m_iSamplesLookUp = { };
+	std::array<std::array<bool, NOTE_COUNT>, MAX_INSTRUMENTS> m_bSamplesAccessed = { };
 	std::array<unsigned char, MAX_DSAMPLES> m_iSampleBank = { };
 	unsigned int	m_iSampleStart;
 	unsigned int	m_iSamplesUsed;

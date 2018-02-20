@@ -31,7 +31,7 @@
 class CFamiTrackerModule;		// // //
 class CCompilerLog;
 
-typedef unsigned char DPCM_List_t[MAX_INSTRUMENTS][OCTAVE_RANGE][NOTE_RANGE];
+using DPCM_List_t = unsigned char[MAX_INSTRUMENTS][NOTE_COUNT];		// // //
 
 class CPatternCompiler
 {
@@ -58,7 +58,7 @@ private:
 
 private:
 	unsigned int	FindInstrument(int Instrument) const;
-	unsigned int	FindSample(int Instrument, int Octave, int Key) const;
+	unsigned int	FindSample(int Instrument, int MidiNote) const;		// // //
 
 	unsigned char	Command(int cmd) const;
 

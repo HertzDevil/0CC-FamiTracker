@@ -40,20 +40,20 @@ private:
 	int		GetSampleCount() const;		// // // 050B
 
 public:
-	// Samples
-	char	GetSampleIndex(int Octave, int Note) const;
-	char	GetSamplePitch(int Octave, int Note) const;
-	bool	GetSampleLoop(int Octave, int Note) const;
-	char	GetSampleLoopOffset(int Octave, int Note) const;
-	char	GetSampleDeltaValue(int Octave, int Note) const;
-	void	SetSampleIndex(int Octave, int Note, char Sample);
-	void	SetSamplePitch(int Octave, int Note, char Pitch);
-	void	SetSampleLoop(int Octave, int Note, bool Loop);
-	void	SetSampleLoopOffset(int Octave, int Note, char Offset);
-	void	SetSampleDeltaValue(int Octave, int Note, char Offset);
+	// // // Samples
+	char	GetSampleIndex(int MidiNote) const;
+	char	GetSamplePitch(int MidiNote) const;
+	bool	GetSampleLoop(int MidiNote) const;
+	char	GetSampleLoopOffset(int MidiNote) const;
+	char	GetSampleDeltaValue(int MidiNote) const;
+	void	SetSampleIndex(int MidiNote, char Sample);
+	void	SetSamplePitch(int MidiNote, char Pitch);
+	void	SetSampleLoop(int MidiNote, bool Loop);
+	void	SetSampleLoopOffset(int MidiNote, char Offset);
+	void	SetSampleDeltaValue(int MidiNote, char Offset);
 
 	bool	AssignedSamples() const;
-	std::shared_ptr<ft0cc::doc::dpcm_sample> GetDSample(int Octave, int Note) const;		// // //
+	std::shared_ptr<ft0cc::doc::dpcm_sample> GetDSample(int MidiNote) const;		// // //
 
 protected:
 	void	CloneFrom(const CInstrument *pInst) override;		// // //
@@ -67,8 +67,8 @@ public:
 	const char *GetSequenceName(int Index) const override { return SEQUENCE_NAME[Index]; }		// // //
 
 private:
-	char	m_cSamples[OCTAVE_RANGE][NOTE_RANGE];				// Samples
-	char	m_cSamplePitch[OCTAVE_RANGE][NOTE_RANGE];			// Play pitch/loop
-	char	m_cSampleLoopOffset[OCTAVE_RANGE][NOTE_RANGE];		// Loop offset
-	char	m_cSampleDelta[OCTAVE_RANGE][NOTE_RANGE];			// Delta setting
+	char	m_cSamples[NOTE_COUNT] = { };				// // // Samples
+	char	m_cSamplePitch[NOTE_COUNT] = { };			// Play pitch/loop
+	char	m_cSampleLoopOffset[NOTE_COUNT] = { };		// Loop offset
+	char	m_cSampleDelta[NOTE_COUNT] = { };			// Delta setting
 };

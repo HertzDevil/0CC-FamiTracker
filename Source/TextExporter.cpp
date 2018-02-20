@@ -818,13 +818,14 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 			auto pInst = std::static_pointer_cast<CInstrument2A03>(InstManager.GetInstrument(inst_index));
 
 			int io = t.ReadInt(0, OCTAVE_RANGE);
-			int in = t.ReadInt(0, 12);
+			int in = t.ReadInt(0, 11);		// // //
+			auto MidiNote = io * NOTE_RANGE + in;
 
-			pInst->SetSampleIndex(io, in, t.ReadInt(0, MAX_DSAMPLES - 1) + 1);
-			pInst->SetSamplePitch(io, in, t.ReadInt(0, 15));
-			pInst->SetSampleLoop(io, in, t.ReadInt(0, 1) == 1);
-			pInst->SetSampleLoopOffset(io, in, t.ReadInt(0, 255));
-			pInst->SetSampleDeltaValue(io, in, t.ReadInt(-1, 127));
+			pInst->SetSampleIndex(MidiNote, t.ReadInt(0, MAX_DSAMPLES - 1) + 1);
+			pInst->SetSamplePitch(MidiNote, t.ReadInt(0, 15));
+			pInst->SetSampleLoop(MidiNote, t.ReadInt(0, 1) == 1);
+			pInst->SetSampleLoopOffset(MidiNote, t.ReadInt(0, 255));
+			pInst->SetSampleDeltaValue(MidiNote, t.ReadInt(-1, 127));
 			t.ReadEOL();
 		}
 		break;
@@ -1237,21 +1238,20 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		case INST_2A03:
 			{
 				auto pDI = std::static_pointer_cast<CInstrument2A03>(pInst);
-				for (int oct = 0; oct < OCTAVE_RANGE; ++oct)
-				for (int key = 0; key < NOTE_RANGE; ++key)
+				for (int n = 0; n < NOTE_COUNT; ++n)
 				{
-					int smp = pDI->GetSampleIndex(oct, key);
+					int smp = pDI->GetSampleIndex(n);
 					if (smp != 0)
 					{
-						int d = pDI->GetSampleDeltaValue(oct, key);
+						int d = pDI->GetSampleDeltaValue(n);
 						s.Format("%s %3d %3d %3d   %3d %3d %3d %5d %3d\n",
 							CT[CT_KEYDPCM],
 							i,
-							oct, key,
+							GET_OCTAVE(n), value_cast(GET_NOTE(n)) - 1,
 							smp - 1,
-							pDI->GetSamplePitch(oct, key) & 0x0F,
-							pDI->GetSampleLoop(oct, key) ? 1 : 0,
-							pDI->GetSampleLoopOffset(oct, key),
+							pDI->GetSamplePitch(n) & 0x0F,
+							pDI->GetSampleLoop(n) ? 1 : 0,
+							pDI->GetSampleLoopOffset(n),
 							(d >= 0 && d <= 127) ? d : -1);
 						WriteString(s);
 					}

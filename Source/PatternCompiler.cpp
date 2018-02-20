@@ -282,11 +282,11 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 		else {
 			if (Channel == chan_id_t::DPCM) {
 				// 2A03 DPCM
-				int LookUp = FindSample(DPCMInst, Octave, value_cast(Note) - 1);
+				int LookUp = FindSample(DPCMInst, MIDI_NOTE(Octave, Note));
 				if (LookUp > 0) {
 					NESNote = LookUp - 1;
 					if (auto pInstrument = std::dynamic_pointer_cast<CInstrument2A03>(pInstManager->GetInstrument(DPCMInst)))
-						m_bDSamplesAccessed[pInstrument->GetSampleIndex(Octave, value_cast(Note) - 1) - 1] = true;
+						m_bDSamplesAccessed[pInstrument->GetSampleIndex(MIDI_NOTE(Octave, Note)) - 1] = true;
 					// TODO: Print errors if incompatible or non-existing instrument is found
 				}
 				else {
@@ -684,9 +684,9 @@ unsigned int CPatternCompiler::FindInstrument(int Instrument) const
 	return 0;	// Could not find the instrument
 }
 
-unsigned int CPatternCompiler::FindSample(int Instrument, int Octave, int Key) const
+unsigned int CPatternCompiler::FindSample(int Instrument, int MidiNote) const		// // //
 {
-	return (*m_pDPCMList)[Instrument][Octave][Key];
+	return (*m_pDPCMList)[Instrument][MidiNote];
 }
 
 CPatternCompiler::stSpacingInfo CPatternCompiler::ScanNoteLengths(int Track, unsigned int StartRow, int Pattern, chan_id_t Channel) {		// // //

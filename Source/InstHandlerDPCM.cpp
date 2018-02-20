@@ -40,12 +40,10 @@ void CInstHandlerDPCM::TriggerInstrument()
 	if (pInterface == nullptr) return;
 	if (auto pDPCMInst = std::dynamic_pointer_cast<const CInstrument2A03>(m_pInstrument)) {
 		const int Val = m_pInterface->GetNote();
-		const int Octave = GET_OCTAVE(Val);
-		const int Note = value_cast(GET_NOTE(Val)) - 1;
-		if (auto pSamp = pDPCMInst->GetDSample(Octave, Note)) {
-			pInterface->WriteDCOffset(pDPCMInst->GetSampleDeltaValue(Octave, Note));
-			pInterface->SetLoopOffset(pDPCMInst->GetSampleLoopOffset(Octave, Note));
-			pInterface->PlaySample(pSamp, pDPCMInst->GetSamplePitch(Octave, Note));
+		if (auto pSamp = pDPCMInst->GetDSample(Val)) {
+			pInterface->WriteDCOffset(pDPCMInst->GetSampleDeltaValue(Val));
+			pInterface->SetLoopOffset(pDPCMInst->GetSampleLoopOffset(Val));
+			pInterface->PlaySample(pSamp, pDPCMInst->GetSamplePitch(Val));
 		}
 	}
 }

@@ -149,11 +149,9 @@ void CModuleImporter::ImportInstruments() {
 			});
 			// Update DPCM samples
 			if (auto p2A03 = dynamic_cast<CInstrument2A03 *>(pSeq))
-				for (int o = 0; o < OCTAVE_RANGE; ++o) for (int n = 0; n < NOTE_RANGE; ++n) {
-					int Sample = p2A03->GetSampleIndex(o, n);
-					if (Sample != 0)
-						p2A03->SetSampleIndex(o, n, SamplesTable[Sample - 1] + 1);
-				}
+				for (int n = 0; n < NOTE_COUNT; ++n)
+					if (int Sample = p2A03->GetSampleIndex(n); Sample != 0)
+						p2A03->SetSampleIndex(n, SamplesTable[Sample - 1] + 1);
 		}
 
 		int Index = pManager->GetFirstUnused();
