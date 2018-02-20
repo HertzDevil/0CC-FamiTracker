@@ -126,7 +126,7 @@ CMainFrame::CMainFrame() :
 	m_iFrameEditorPos(FRAME_EDIT_POS_TOP),
 	m_iInstrument(0),
 	m_iTrack(0),
-	m_iOctave(3),
+	m_iOctave(DEFAULT_OCTAVE),
 	m_iInstNumDigit(0),		// // //
 	m_iInstNumCurrent(MAX_INSTRUMENTS),		// // //
 	m_iKraidCounter(0)		// // // Easter Egg

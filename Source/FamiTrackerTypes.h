@@ -90,6 +90,7 @@ const int MAX_GROOVE = 32;
 const int ECHO_BUFFER_LENGTH = 3;
 
 const int OCTAVE_RANGE = 8;
+const int DEFAULT_OCTAVE = 3;		// // //
 const int NOTE_RANGE   = 12;
 const int NOTE_COUNT   = OCTAVE_RANGE * NOTE_RANGE;		// // // moved from SoundGen.h
 
