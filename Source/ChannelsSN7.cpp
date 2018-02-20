@@ -161,7 +161,7 @@ CSN7NoiseChan::CSN7NoiseChan() : CChannelHandlerSN7()
 
 void CSN7NoiseChan::HandleNote(int Note, int Octave)
 {
-//	CChannelHandlerSN7::HandleNote(Note, Octave);
+	CChannelHandler::HandleNote(Note, Octave);
 
 	int NewNote = MIDI_NOTE(Octave, Note);
 	int NesFreq = TriggerNote(NewNote);
