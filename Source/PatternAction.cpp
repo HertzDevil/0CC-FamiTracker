@@ -365,7 +365,7 @@ bool CPActionDeleteRow::SaveState(const CMainFrame &MainFrm)
 	m_NewNote = m_OldNote;
 	switch (m_pUndoState->Cursor.m_iColumn) {
 	case C_NOTE:			// Note
-		m_NewNote.Note = NONE;
+		m_NewNote.Note = note_t::NONE;
 		m_NewNote.Octave = 0;
 		m_NewNote.Instrument = MAX_INSTRUMENTS;	// Fix the old behaviour
 		m_NewNote.Vol = MAX_VOLUME;
@@ -678,22 +678,22 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 		for (int i = ChanStart; i <= ChanEnd; ++i) {
 			if (!m_pUndoState->Selection.IsColumnSelected(COLUMN_NOTE, i))
 				continue;
-			auto Note = *(m_pUndoClipData->GetPattern(i - ChanStart, Row));		// // //
-			if (Note.Note == NONE || Note.Note == HALT || Note.Note == RELEASE)
-				continue;
-			if (Note.Note == ECHO) {
-				if (bSingular) switch (m_iTransposeMode) {		// // //
+			stChanNote Note = *(m_pUndoClipData->GetPattern(i - ChanStart, Row));		// // //
+			if (Note.Note == note_t::ECHO) {
+				if (!bSingular)
+					continue;
+				switch (m_iTransposeMode) {		// // //
 				case TRANSPOSE_DEC_NOTES: case TRANSPOSE_DEC_OCTAVES:
 					if (Note.Octave > 0)
-						Note.Octave--;
+						--Note.Octave;
 					break;
 				case TRANSPOSE_INC_NOTES: case TRANSPOSE_INC_OCTAVES:
 					if (Note.Octave < ECHO_BUFFER_LENGTH)
-						Note.Octave++;
+						++Note.Octave;
 					break;
 				}
 			}
-			else {		// // //
+			else if (IsNote(Note.Note)) {		// // //
 				static const int AMOUNT[] = {-1, 1, -NOTE_RANGE, NOTE_RANGE};
 				int NewNote = MIDI_NOTE(Note.Octave, Note.Note) + AMOUNT[m_iTransposeMode];
 				if (NewNote < 0) NewNote = 0;
@@ -701,6 +701,8 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 				Note.Note = GET_NOTE(NewNote);
 				Note.Octave = GET_OCTAVE(NewNote);
 			}
+			else
+				continue;
 			it.first.Set(i, Note);
 		}
 		++Row;
@@ -816,8 +818,7 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 			effect_t Effect;
 			switch (j) {
 			case COLUMN_NOTE:
-				if (StartData.Note < NOTE_C || StartData.Note > NOTE_B
-					|| EndData.Note < NOTE_C || EndData.Note > NOTE_B)
+				if (!IsNote(StartData.Note) || !IsNote(EndData.Note))
 					continue;
 				StartValLo = (float)MIDI_NOTE(StartData.Octave, StartData.Note);
 				EndValLo = (float)MIDI_NOTE(EndData.Octave, EndData.Note);

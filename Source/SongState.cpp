@@ -146,13 +146,13 @@ std::string stChannelState::GetStateString() const {
 }
 
 void stChannelState::HandleNote(const stChanNote &Note, unsigned EffColumns) {
-	if (Note.Note != NONE && Note.Note != RELEASE) {
+	if (Note.Note != note_t::NONE && Note.Note != note_t::RELEASE) {
 		for (int i = 0; i < std::min(BufferPos, ECHO_BUFFER_LENGTH + 1); i++) {
 			if (Echo[i] == ECHO_BUFFER_ECHO) {
 				UpdateEchoTranspose(Note, Transpose[i], EffColumns);
 				switch (Note.Note) {
-				case HALT: Echo[i] = ECHO_BUFFER_HALT; break;
-				case ECHO: Echo[i] = ECHO_BUFFER_ECHO + Note.Octave; break;
+				case note_t::HALT: Echo[i] = ECHO_BUFFER_HALT; break;
+				case note_t::ECHO: Echo[i] = ECHO_BUFFER_ECHO + Note.Octave; break;
 				default:
 					int NewNote = MIDI_NOTE(Note.Octave, Note.Note) + Transpose[i];
 					NewNote = std::clamp(NewNote, 0, NOTE_COUNT - 1);
@@ -166,8 +166,8 @@ void stChannelState::HandleNote(const stChanNote &Note, unsigned EffColumns) {
 			// WriteEchoBuffer(&Note, BufferPos, EffColumns);
 			int Value;
 			switch (Note.Note) {
-			case HALT: Value = ECHO_BUFFER_HALT; break;
-			case ECHO: Value = ECHO_BUFFER_ECHO + Note.Octave; break;
+			case note_t::HALT: Value = ECHO_BUFFER_HALT; break;
+			case note_t::ECHO: Value = ECHO_BUFFER_ECHO + Note.Octave; break;
 			default:
 				Value = MIDI_NOTE(Note.Octave, Note.Note);
 				UpdateEchoTranspose(Note, Value, EffColumns);

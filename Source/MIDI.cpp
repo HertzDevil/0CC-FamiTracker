@@ -303,15 +303,15 @@ void CMIDI::ToggleInput()
 	m_bInStarted = !m_bInStarted;
 }
 
-void CMIDI::WriteNote(unsigned char Channel, unsigned char Note, unsigned char Octave, unsigned char Velocity)
+void CMIDI::WriteNote(unsigned char Channel, note_t Note, unsigned char Octave, unsigned char Velocity)		// // //
 {
-	static unsigned int LastNote[CHANID_COUNT];		// // // Quick hack
+	static unsigned int LastNote[CHANID_COUNT] = { };		// // // Quick hack
 //	static unsigned int LastVolume[CHANID_COUNT];
 
 	if (/*!m_bOpened ||*/ m_iOutDevice == 0 || m_hMIDIOut == NULL)
 		return;
 
-	if (Note == 0)
+	if (Note == note_t::NONE)
 		return;
 
 	Octave++;
@@ -329,18 +329,18 @@ void CMIDI::WriteNote(unsigned char Channel, unsigned char Note, unsigned char O
 	unsigned int MsgChannel = Channel;
 	unsigned int MsgType;
 
-	unsigned int Data1 = Note - 1 + Octave * 12;		// note
+	unsigned int Data1 = MIDI_NOTE(Octave, Note);		// note
 	unsigned int Data2 = Velocity * 8;					// velocity
 
-	if (Note == HALT || Note == RELEASE) {
+	if (Note == note_t::HALT || Note == note_t::RELEASE) {
 		MsgType = MIDI_MSG_NOTE_OFF;
 		Data2 = 0;
 		Data1 = LastNote[Channel];
 		LastNote[Channel] = 0;
 	}
 	else {
-		if (LastNote[Channel] != 0 && Note != LastNote[Channel])
-			WriteNote(Channel, HALT, 0, 0);
+		if (LastNote[Channel] != 0 && Data1 != LastNote[Channel])
+			WriteNote(Channel, note_t::HALT, 0, 0);
 
 		MsgType = MIDI_MSG_NOTE_ON;
 		LastNote[Channel] = Data1;

@@ -84,7 +84,7 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 			n.pop_back();
 		pCombo->AddString(conv::to_wide(n).data());
 	}
-	pCombo->SetCurSel(m_iSplitNote != -1 ? (GET_NOTE(m_iSplitNote) - 1) : 0);
+	pCombo->SetCurSel(m_iSplitNote != -1 ? (value_cast(GET_NOTE(m_iSplitNote)) - 1) : 0);
 
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_OCTAVE));
 	for (int i = 0; i < OCTAVE_RANGE; ++i) {
@@ -147,8 +147,7 @@ void CSplitKeyboardDlg::OnCbnSelchangeComboSplitNote()
 {
 	m_iSplitNote = MIDI_NOTE(
 		static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_OCTAVE))->GetCurSel(),
-		static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_NOTE))->GetCurSel() + 1
-	);
+		static_cast<note_t>(static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_NOTE))->GetCurSel() + 1));
 }
 
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitChan()

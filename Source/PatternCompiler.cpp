@@ -152,7 +152,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 	for (unsigned int i = 0; i < iPatternLen; ++i) {
 		stChanNote ChanNote = pSong->GetPattern(Channel, Pattern).GetNoteOn(i);		// // //
 
-		unsigned char Note = ChanNote.Note;
+		note_t Note = ChanNote.Note;
 		unsigned char Octave = ChanNote.Octave;
 		unsigned char Instrument = FindInstrument(ChanNote.Instrument);
 		unsigned char Volume = ChanNote.Vol;
@@ -161,8 +161,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 
 		sound_chip_t ChipID = GetChipFromChannel(Channel);		// // //
 
-		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT &&
-			Note != HALT && Note != NONE && Note != RELEASE) {		// // //
+		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT && (IsNote(Note) || Note == note_t::ECHO)) {		// // //
 			if (!IsInstrumentCompatible(ChipID, pInstManager->GetInstrumentType(ChanNote.Instrument))) {		// // //
 				CStringW str;
 				str.Format(L"Error: Missing or incompatible instrument (on row %i, channel %i, pattern %i)\n", i, Channel, Pattern);
@@ -229,7 +228,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 		}
 		else
 */
-		if (Note != HALT && Note != RELEASE) {		// // //
+		if (Note != note_t::HALT && Note != note_t::RELEASE) {		// // //
 			if (Instrument != LastInstrument && Instrument < MAX_INSTRUMENTS) {
 				LastInstrument = Instrument;
 				// Write instrument change command
@@ -268,26 +267,26 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 #endif /* OPTIMIZE_DURATIONS */
 		}
 
-		if (Note == 0) {
+		if (Note == note_t::NONE) {
 			NESNote = 0xFF;
 		}
-		else if (Note == HALT) {
+		else if (Note == note_t::HALT) {
 			NESNote = 0x7F - 1;
 		}
-		else if (Note == RELEASE) {
+		else if (Note == note_t::RELEASE) {
 			NESNote = 0x7F - 2;
 		}
-		else if (Note == ECHO) {		// // //
+		else if (Note == note_t::ECHO) {		// // //
 			NESNote = 0x6F + Octave;
 		}
 		else {
 			if (Channel == chan_id_t::DPCM) {
 				// 2A03 DPCM
-				int LookUp = FindSample(DPCMInst, Octave, Note);
+				int LookUp = FindSample(DPCMInst, Octave, value_cast(Note) - 1);
 				if (LookUp > 0) {
 					NESNote = LookUp - 1;
 					if (auto pInstrument = std::dynamic_pointer_cast<CInstrument2A03>(pInstManager->GetInstrument(DPCMInst)))
-						m_bDSamplesAccessed[pInstrument->GetSampleIndex(Octave, Note - 1) - 1] = true;
+						m_bDSamplesAccessed[pInstrument->GetSampleIndex(Octave, value_cast(Note) - 1) - 1] = true;
 					// TODO: Print errors if incompatible or non-existing instrument is found
 				}
 				else {
@@ -299,12 +298,12 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 			}
 			else if (Channel == chan_id_t::NOISE) {
 				// 2A03 Noise
-				NESNote = (Note - 1) + (Octave * NOTE_RANGE);
+				NESNote = MIDI_NOTE(Octave, Note);
 				NESNote = (NESNote & 0x0F) | 0x10;
 			}
 			else
 				// All other channels
-				NESNote = (Note - 1) + (Octave * NOTE_RANGE);
+				NESNote = MIDI_NOTE(Octave, Note);
 		}
 
 		for (int j = 0; j < EffColumns; ++j) {
@@ -678,7 +677,7 @@ unsigned int CPatternCompiler::FindInstrument(int Instrument) const
 	if (Instrument == HOLD_INSTRUMENT)		// // // 050B
 		return HOLD_INSTRUMENT;
 
-	for (int i = 0; i < m_iInstrumentList.size(); ++i)
+	for (std::size_t i = 0; i < m_iInstrumentList.size(); ++i)
 		if (m_iInstrumentList[i] == Instrument)
 			return i;
 
@@ -687,7 +686,7 @@ unsigned int CPatternCompiler::FindInstrument(int Instrument) const
 
 unsigned int CPatternCompiler::FindSample(int Instrument, int Octave, int Key) const
 {
-	return (*m_pDPCMList)[Instrument][Octave][Key - 1];
+	return (*m_pDPCMList)[Instrument][Octave][Key];
 }
 
 CPatternCompiler::stSpacingInfo CPatternCompiler::ScanNoteLengths(int Track, unsigned int StartRow, int Pattern, chan_id_t Channel) {		// // //
@@ -701,7 +700,7 @@ CPatternCompiler::stSpacingInfo CPatternCompiler::ScanNoteLengths(int Track, uns
 		const auto &NoteData = pSong->GetPattern(Channel, Pattern).GetNoteOn(i);		// // //
 		bool NoteUsed = false;
 
-		if (NoteData.Note > 0)
+		if (NoteData.Note != note_t::NONE)
 			NoteUsed = true;
 		else if (NoteData.Instrument < MAX_INSTRUMENTS || NoteData.Instrument == HOLD_INSTRUMENT)		// // //
 			NoteUsed = true;

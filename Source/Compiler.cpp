@@ -1104,8 +1104,8 @@ void CCompiler::ScanSong()
 				const auto &Note = Pattern.GetNoteOn(k);
 				if (Note.Instrument < MAX_INSTRUMENTS)
 					Instrument = Note.Instrument;
-				if (Note.Note >= NOTE_C && Note.Note <= NOTE_B)		// // //
-					m_bSamplesAccessed[Instrument][Note.Octave][Note.Note - 1] = true;
+				if (IsNote(Note.Note))		// // //
+					m_bSamplesAccessed[Instrument][Note.Octave][value_cast(Note.Note) - 1] = true;
 			}
 		}
 	});

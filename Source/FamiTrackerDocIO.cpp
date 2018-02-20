@@ -212,7 +212,7 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerModule &modfile) {
 				for (int p = 0; p < MAX_PATTERN; ++p)
 					for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
 						stChanNote &Note = song.GetPatternData(chan_id_t::FDS, p, r);		// // //
-						if (Note.Note >= NOTE_C && Note.Note <= NOTE_B) {
+						if (IsNote(Note.Note)) {
 							auto NewNote = Note;
 							int Trsp = MIDI_NOTE(Note.Octave, Note.Note) + NOTE_RANGE * 2;
 							Trsp = Trsp >= NOTE_COUNT ? NOTE_COUNT - 1 : Trsp;
@@ -783,8 +783,8 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 			try {
 				stChanNote Note;		// // //
 
-				Note.Note = AssertRange<MODULE_ERROR_STRICT>(		// // //
-					file_.GetBlockChar(), NONE, ECHO, "Note value");
+				Note.Note = static_cast<note_t>(AssertRange<MODULE_ERROR_STRICT>(		// // //
+					file_.GetBlockChar(), value_cast(note_t::NONE), value_cast(note_t::ECHO), "Note value"));
 				Note.Octave = AssertRange<MODULE_ERROR_STRICT>(
 					file_.GetBlockChar(), 0, OCTAVE_RANGE - 1, "Octave value");
 				int Inst = static_cast<unsigned char>(file_.GetBlockChar());
@@ -835,7 +835,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 						Note.Vol &= 0x0F;
 					}
 
-					if (Note.Note == 0)
+					if (Note.Note == note_t::NONE)
 						Note.Instrument = MAX_INSTRUMENTS;
 				}
 
@@ -953,7 +953,7 @@ void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerModule &modfile, int ver)
 				if (note == stChanNote { })
 					return;
 				file_.WriteBlockInt(row);
-				file_.WriteBlockChar(note.Note);
+				file_.WriteBlockChar(value_cast(note.Note));
 				file_.WriteBlockChar(note.Octave);
 				file_.WriteBlockChar(note.Instrument);
 				file_.WriteBlockChar(note.Vol);

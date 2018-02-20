@@ -1399,7 +1399,7 @@ bool CFamiTrackerView::IsMarkerValid() const		// // //
 void CFamiTrackerView::PlayerPlayNote(chan_id_t Channel, const stChanNote &pNote)
 {
 	// Callback from sound thread
-	if (m_bSwitchToInstrument && pNote.Instrument < MAX_INSTRUMENTS && pNote.Note != NONE &&
+	if (m_bSwitchToInstrument && pNote.Instrument < MAX_INSTRUMENTS && pNote.Note != note_t::NONE &&
 		GetSongView()->GetChannelOrder().GetChannelIndex(Channel) == GetSelectedChannel())
 		m_iSwitchToInstrument = pNote.Instrument;
 }
@@ -1810,7 +1810,7 @@ void CFamiTrackerView::InsertNote(const stChanNote &Cell) {		// // //
 	}
 }
 
-stChanNote CFamiTrackerView::GetInputNote(int Note, int Octave, std::size_t Index, int Velocity) {		// // //
+stChanNote CFamiTrackerView::GetInputNote(note_t Note, int Octave, std::size_t Index, int Velocity) {		// // //
 	chan_id_t Channel = TranslateChannel(Index);		// // //
 	const int Frame = GetSelectedFrame();
 	const int Row = GetSelectedRow();
@@ -1819,7 +1819,7 @@ stChanNote CFamiTrackerView::GetInputNote(int Note, int Octave, std::size_t Inde
 
 	Cell.Note = Note;
 
-	if (Cell.Note != HALT && Cell.Note != RELEASE) {
+	if (Cell.Note != note_t::HALT && Cell.Note != note_t::RELEASE) {
 		Cell.Octave = Octave;
 
 		if (!m_bMaskInstrument && Cell.Instrument != HOLD_INSTRUMENT)		// // // 050B
@@ -1830,11 +1830,11 @@ stChanNote CFamiTrackerView::GetInputNote(int Note, int Octave, std::size_t Inde
 			if (Velocity < 128)
 				Cell.Vol = Velocity * MAX_VOLUME / 128;
 		}
-		if (Cell.Note == ECHO) {
+		if (Cell.Note == note_t::ECHO) {
 			if (Cell.Octave > ECHO_BUFFER_LENGTH)
 				Cell.Octave = ECHO_BUFFER_LENGTH;
 		}
-		else if (Cell.Note != NONE) {		// // //
+		else if (Cell.Note != note_t::NONE) {		// // //
 			if (Channel == chan_id_t::NOISE) {		// // //
 				unsigned int MidiNote = (MIDI_NOTE(Cell.Octave, Cell.Note) % 16) + 16;
 				Cell.Octave = GET_OCTAVE(MidiNote);
@@ -1861,7 +1861,7 @@ stChanNote CFamiTrackerView::GetInputNote(int Note, int Octave, std::size_t Inde
 /// Note playing routines
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CFamiTrackerView::PlayNote(std::size_t Index, unsigned int Note, unsigned int Octave, unsigned int Velocity) const
+void CFamiTrackerView::PlayNote(std::size_t Index, note_t Note, unsigned int Octave, unsigned int Velocity) const
 {
 	// Play a note in a channel
 	stChanNote NoteData;		// // //
@@ -1903,12 +1903,12 @@ void CFamiTrackerView::PlayNote(std::size_t Index, unsigned int Note, unsigned i
 	}
 }
 
-void CFamiTrackerView::ReleaseNote(std::size_t Index, unsigned int Note, unsigned int Octave) const
+void CFamiTrackerView::ReleaseNote(std::size_t Index, note_t Note, unsigned int Octave) const
 {
 	// Releases a channel
 	stChanNote NoteData;		// // //
 
-	NoteData.Note = RELEASE;
+	NoteData.Note = note_t::RELEASE;
 	NoteData.Instrument = GetInstrument();
 
 	chan_id_t Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
@@ -1920,7 +1920,7 @@ void CFamiTrackerView::ReleaseNote(std::size_t Index, unsigned int Note, unsigne
 			theApp.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
 		if (theApp.GetSettings()->General.bPreviewFullRow) {
-			NoteData.Note = HALT;
+			NoteData.Note = note_t::HALT;
 			NoteData.Instrument = MAX_INSTRUMENTS;
 
 			order.ForeachChannel([&] (chan_id_t i) {
@@ -1931,12 +1931,12 @@ void CFamiTrackerView::ReleaseNote(std::size_t Index, unsigned int Note, unsigne
 	}
 }
 
-void CFamiTrackerView::HaltNote(std::size_t Index, unsigned int Note, unsigned int Octave) const
+void CFamiTrackerView::HaltNote(std::size_t Index, note_t Note, unsigned int Octave) const
 {
 	// Halts a channel
 	stChanNote NoteData;		// // //
 
-	NoteData.Note = HALT;
+	NoteData.Note = note_t::HALT;
 	NoteData.Instrument = GetInstrument();
 
 	chan_id_t Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
@@ -1962,7 +1962,7 @@ void CFamiTrackerView::HaltNoteSingle(std::size_t Index) const
 	// Halts one single channel only
 	stChanNote NoteData;		// // //
 
-	NoteData.Note = HALT;
+	NoteData.Note = note_t::HALT;
 	NoteData.Instrument = GetInstrument();
 
 	chan_id_t Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData); // ?
@@ -1999,7 +1999,7 @@ void CFamiTrackerView::TriggerMIDINote(std::size_t Index, unsigned int MidiNote,
 
 	// Play a MIDI note
 	unsigned int Octave = GET_OCTAVE(MidiNote);
-	unsigned int Note = GET_NOTE(MidiNote);
+	note_t Note = GET_NOTE(MidiNote);
 //	if (TranslateChannel(Channel) == chan_id_t::NOISE)
 //		FixNoise(MidiNote, Octave, Note);
 
@@ -2029,7 +2029,7 @@ void CFamiTrackerView::CutMIDINote(std::size_t Index, unsigned int MidiNote, boo
 
 	// Cut a MIDI note
 	unsigned int Octave = GET_OCTAVE(MidiNote);
-	unsigned int Note = GET_NOTE(MidiNote);
+	note_t Note = GET_NOTE(MidiNote);
 //	if (TranslateChannel(Channel) == chan_id_t::NOISE)
 //		FixNoise(MidiNote, Octave, Note);
 
@@ -2039,7 +2039,7 @@ void CFamiTrackerView::CutMIDINote(std::size_t Index, unsigned int MidiNote, boo
 			HaltNote(Index, Note, Octave);
 
 	if (InsertCut)
-		InsertNote(GetInputNote(HALT, 0, Index, 0));
+		InsertNote(GetInputNote(note_t::HALT, 0, Index, 0));
 
 	if (theApp.GetSettings()->Midi.bMidiArpeggio) {		// // //
 		m_pArpeggiator->CutNote(MidiNote);
@@ -2060,7 +2060,7 @@ void CFamiTrackerView::ReleaseMIDINote(std::size_t Index, unsigned int MidiNote,
 
 	// Release a MIDI note
 	unsigned int Octave = GET_OCTAVE(MidiNote);
-	unsigned int Note = GET_NOTE(MidiNote);
+	note_t Note = GET_NOTE(MidiNote);
 //	if (TranslateChannel(Channel) == chan_id_t::NOISE)
 //		FixNoise(MidiNote, Octave, Note);
 
@@ -2070,7 +2070,7 @@ void CFamiTrackerView::ReleaseMIDINote(std::size_t Index, unsigned int MidiNote,
 			ReleaseNote(Index, Note, Octave);
 
 	if (InsertCut)
-		InsertNote(GetInputNote(RELEASE, 0, Index, 0));
+		InsertNote(GetInputNote(note_t::RELEASE, 0, Index, 0));
 
 	if (theApp.GetSettings()->Midi.bMidiArpeggio) {		// // //
 		m_pArpeggiator->ReleaseNote(MidiNote);
@@ -2698,7 +2698,7 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 				Note.Octave = m_LastNote.Octave;
 			}
 			else if (CheckEchoKey(nChar)) {		// // //
-				m_LastNote.Note = Note.Note = ECHO;
+				m_LastNote.Note = Note.Note = note_t::ECHO;
 				m_LastNote.Octave = Note.Octave = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedOctave();		// // //
 				if (Note.Octave > ECHO_BUFFER_LENGTH)
 					Note.Octave = ECHO_BUFFER_LENGTH;
@@ -2707,7 +2707,7 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 			}
 			else if (CheckClearKey(nChar)) {
 				// Remove note
-				m_LastNote.Note = Note.Note = NONE;		// // //
+				m_LastNote.Note = Note.Note = note_t::NONE;		// // //
 				m_LastNote.Octave = Note.Octave = 0;
 			}
 			else {
@@ -2832,7 +2832,7 @@ void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 
 void CFamiTrackerView::SplitKeyboardAdjust(stChanNote &Note, chan_id_t Channel) const		// // //
 {
-	ASSERT(Note.Note >= NOTE_C && Note.Note <= NOTE_B);
+	ASSERT(Note.Note >= note_t::C && Note.Note <= note_t::B);
 	if (m_iSplitNote != -1 && Channel != chan_id_t::NOISE) {
 		int MidiNote = MIDI_NOTE(Note.Octave, Note.Note);
 		if (MidiNote <= m_iSplitNote) {
@@ -2883,7 +2883,8 @@ bool CFamiTrackerView::CheckRepeatKey(unsigned char Key) const
 int CFamiTrackerView::TranslateKeyModplug(unsigned char Key) const
 {
 	// Modplug conversion
-	int	KeyNote = 0, KeyOctave = 0;
+	note_t KeyNote = note_t::NONE;
+	int KeyOctave = 0;
 	int Octave = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedOctave();		// // // 050B
 
 	const auto &NoteData = GetSongView()->GetPatternOnFrame(GetSelectedChannel(), GetSelectedFrame()).GetNoteOn(GetSelectedRow());
@@ -2897,46 +2898,46 @@ int CFamiTrackerView::TranslateKeyModplug(unsigned char Key) const
 
 	// Convert key to a note, Modplug style
 	switch (Key) {
-		case 81:	KeyNote = NOTE_C;	KeyOctave = Octave;	break;	// Q		// // //
-		case 87:	KeyNote = NOTE_Cs;	KeyOctave = Octave;	break;	// W
-		case 69:	KeyNote = NOTE_D;	KeyOctave = Octave;	break;	// E
-		case 82:	KeyNote = NOTE_Ds;	KeyOctave = Octave;	break;	// R
-		case 84:	KeyNote = NOTE_E;	KeyOctave = Octave;	break;	// T
-		case 89:	KeyNote = NOTE_F;	KeyOctave = Octave;	break;	// Y
-		case 85:	KeyNote = NOTE_Fs;	KeyOctave = Octave;	break;	// U
-		case 73:	KeyNote = NOTE_G;	KeyOctave = Octave;	break;	// I
-		case 79:	KeyNote = NOTE_Gs;	KeyOctave = Octave;	break;	// O
-		case 80:	KeyNote = NOTE_A;	KeyOctave = Octave;	break;	// P
-		case 219:	KeyNote = NOTE_As;	KeyOctave = Octave;	break;	// [{		// // //
-		case 221:	KeyNote = NOTE_B;	KeyOctave = Octave;	break;	// ]}		// // //
+		case 81:	KeyNote = note_t::C;	KeyOctave = Octave;	break;	// Q		// // //
+		case 87:	KeyNote = note_t::Cs;	KeyOctave = Octave;	break;	// W
+		case 69:	KeyNote = note_t::D;	KeyOctave = Octave;	break;	// E
+		case 82:	KeyNote = note_t::Ds;	KeyOctave = Octave;	break;	// R
+		case 84:	KeyNote = note_t::E;	KeyOctave = Octave;	break;	// T
+		case 89:	KeyNote = note_t::F;	KeyOctave = Octave;	break;	// Y
+		case 85:	KeyNote = note_t::Fs;	KeyOctave = Octave;	break;	// U
+		case 73:	KeyNote = note_t::G;	KeyOctave = Octave;	break;	// I
+		case 79:	KeyNote = note_t::Gs;	KeyOctave = Octave;	break;	// O
+		case 80:	KeyNote = note_t::A;	KeyOctave = Octave;	break;	// P
+		case 219:	KeyNote = note_t::As;	KeyOctave = Octave;	break;	// [{		// // //
+		case 221:	KeyNote = note_t::B;	KeyOctave = Octave;	break;	// ]}		// // //
 
-		case 65:	KeyNote = NOTE_C;	KeyOctave = Octave + 1;	break;	// A
-		case 83:	KeyNote = NOTE_Cs;	KeyOctave = Octave + 1;	break;	// S
-		case 68:	KeyNote = NOTE_D;	KeyOctave = Octave + 1;	break;	// D
-		case 70:	KeyNote = NOTE_Ds;	KeyOctave = Octave + 1;	break;	// F
-		case 71:	KeyNote = NOTE_E;	KeyOctave = Octave + 1;	break;	// G
-		case 72:	KeyNote = NOTE_F;	KeyOctave = Octave + 1;	break;	// H
-		case 74:	KeyNote = NOTE_Fs;	KeyOctave = Octave + 1;	break;	// J
-		case 75:	KeyNote = NOTE_G;	KeyOctave = Octave + 1;	break;	// K
-		case 76:	KeyNote = NOTE_Gs;	KeyOctave = Octave + 1;	break;	// L
-		case 186:	KeyNote = NOTE_A;	KeyOctave = Octave + 1;	break;	// ;:		// // //
-		case 222:	KeyNote = NOTE_As;	KeyOctave = Octave + 1;	break;	// '"
-		//case 191:	KeyNote = NOTE_B;	KeyOctave = Octave + 1;	break;	// // //
+		case 65:	KeyNote = note_t::C;	KeyOctave = Octave + 1;	break;	// A
+		case 83:	KeyNote = note_t::Cs;	KeyOctave = Octave + 1;	break;	// S
+		case 68:	KeyNote = note_t::D;	KeyOctave = Octave + 1;	break;	// D
+		case 70:	KeyNote = note_t::Ds;	KeyOctave = Octave + 1;	break;	// F
+		case 71:	KeyNote = note_t::E;	KeyOctave = Octave + 1;	break;	// G
+		case 72:	KeyNote = note_t::F;	KeyOctave = Octave + 1;	break;	// H
+		case 74:	KeyNote = note_t::Fs;	KeyOctave = Octave + 1;	break;	// J
+		case 75:	KeyNote = note_t::G;	KeyOctave = Octave + 1;	break;	// K
+		case 76:	KeyNote = note_t::Gs;	KeyOctave = Octave + 1;	break;	// L
+		case 186:	KeyNote = note_t::A;	KeyOctave = Octave + 1;	break;	// ;:		// // //
+		case 222:	KeyNote = note_t::As;	KeyOctave = Octave + 1;	break;	// '"
+		//case 191:	KeyNote = note_t::B;	KeyOctave = Octave + 1;	break;	// // //
 
-		case 90:	KeyNote = NOTE_C;	KeyOctave = Octave + 2;	break;	// Z
-		case 88:	KeyNote = NOTE_Cs;	KeyOctave = Octave + 2;	break;	// X
-		case 67:	KeyNote = NOTE_D;	KeyOctave = Octave + 2;	break;	// C
-		case 86:	KeyNote = NOTE_Ds;	KeyOctave = Octave + 2;	break;	// V
-		case 66:	KeyNote = NOTE_E;	KeyOctave = Octave + 2;	break;	// B
-		case 78:	KeyNote = NOTE_F;	KeyOctave = Octave + 2;	break;	// N
-		case 77:	KeyNote = NOTE_Fs;	KeyOctave = Octave + 2;	break;	// M
-		case 188:	KeyNote = NOTE_G;	KeyOctave = Octave + 2;	break;	// ,<
-		case 190:	KeyNote = NOTE_Gs;	KeyOctave = Octave + 2;	break;	// .>
-		case 191:	KeyNote = NOTE_A;	KeyOctave = Octave + 2;	break;	// /?		// // //
+		case 90:	KeyNote = note_t::C;	KeyOctave = Octave + 2;	break;	// Z
+		case 88:	KeyNote = note_t::Cs;	KeyOctave = Octave + 2;	break;	// X
+		case 67:	KeyNote = note_t::D;	KeyOctave = Octave + 2;	break;	// C
+		case 86:	KeyNote = note_t::Ds;	KeyOctave = Octave + 2;	break;	// V
+		case 66:	KeyNote = note_t::E;	KeyOctave = Octave + 2;	break;	// B
+		case 78:	KeyNote = note_t::F;	KeyOctave = Octave + 2;	break;	// N
+		case 77:	KeyNote = note_t::Fs;	KeyOctave = Octave + 2;	break;	// M
+		case 188:	KeyNote = note_t::G;	KeyOctave = Octave + 2;	break;	// ,<
+		case 190:	KeyNote = note_t::Gs;	KeyOctave = Octave + 2;	break;	// .>
+		case 191:	KeyNote = note_t::A;	KeyOctave = Octave + 2;	break;	// /?		// // //
 	}
 
 	// Invalid
-	if (KeyNote == 0)
+	if (KeyNote == note_t::NONE)
 		return -1;
 
 	auto it = m_iNoteCorrection.find(Key);		// // //
@@ -2950,55 +2951,55 @@ int CFamiTrackerView::TranslateKeyModplug(unsigned char Key) const
 int CFamiTrackerView::TranslateKeyDefault(unsigned char Key) const
 {
 	// Default conversion
-	int	KeyNote = 0;
+	note_t KeyNote = note_t::NONE;
 	int KeyOctave = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedOctave();		// // // 050B
 
 	// Convert key to a note
 	switch (Key) {
-		case 50:	KeyNote = NOTE_Cs;	KeyOctave += 1;	break;	// 2		// // //
-		case 51:	KeyNote = NOTE_Ds;	KeyOctave += 1;	break;	// 3
-		case 53:	KeyNote = NOTE_Fs;	KeyOctave += 1;	break;	// 5
-		case 54:	KeyNote = NOTE_Gs;	KeyOctave += 1;	break;	// 6
-		case 55:	KeyNote = NOTE_As;	KeyOctave += 1;	break;	// 7
-		case 57:	KeyNote = NOTE_Cs;	KeyOctave += 2;	break;	// 9
-		case 48:	KeyNote = NOTE_Ds;	KeyOctave += 2;	break;	// 0
-		case 187:	KeyNote = NOTE_Fs;	KeyOctave += 2;	break;	// =+
+		case 50:	KeyNote = note_t::Cs;	KeyOctave += 1;	break;	// 2		// // //
+		case 51:	KeyNote = note_t::Ds;	KeyOctave += 1;	break;	// 3
+		case 53:	KeyNote = note_t::Fs;	KeyOctave += 1;	break;	// 5
+		case 54:	KeyNote = note_t::Gs;	KeyOctave += 1;	break;	// 6
+		case 55:	KeyNote = note_t::As;	KeyOctave += 1;	break;	// 7
+		case 57:	KeyNote = note_t::Cs;	KeyOctave += 2;	break;	// 9
+		case 48:	KeyNote = note_t::Ds;	KeyOctave += 2;	break;	// 0
+		case 187:	KeyNote = note_t::Fs;	KeyOctave += 2;	break;	// =+
 
-		case 81:	KeyNote = NOTE_C;	KeyOctave += 1;	break;	// Q
-		case 87:	KeyNote = NOTE_D;	KeyOctave += 1;	break;	// W
-		case 69:	KeyNote = NOTE_E;	KeyOctave += 1;	break;	// E
-		case 82:	KeyNote = NOTE_F;	KeyOctave += 1;	break;	// R
-		case 84:	KeyNote = NOTE_G;	KeyOctave += 1;	break;	// T
-		case 89:	KeyNote = NOTE_A;	KeyOctave += 1;	break;	// Y
-		case 85:	KeyNote = NOTE_B;	KeyOctave += 1;	break;	// U
-		case 73:	KeyNote = NOTE_C;	KeyOctave += 2;	break;	// I
-		case 79:	KeyNote = NOTE_D;	KeyOctave += 2;	break;	// O
-		case 80:	KeyNote = NOTE_E;	KeyOctave += 2;	break;	// P
-		case 219:	KeyNote = NOTE_F;	KeyOctave += 2;	break;	// [{		// // //
-		case 221:	KeyNote = NOTE_G;	KeyOctave += 2;	break;	// ]}		// // //
+		case 81:	KeyNote = note_t::C;	KeyOctave += 1;	break;	// Q
+		case 87:	KeyNote = note_t::D;	KeyOctave += 1;	break;	// W
+		case 69:	KeyNote = note_t::E;	KeyOctave += 1;	break;	// E
+		case 82:	KeyNote = note_t::F;	KeyOctave += 1;	break;	// R
+		case 84:	KeyNote = note_t::G;	KeyOctave += 1;	break;	// T
+		case 89:	KeyNote = note_t::A;	KeyOctave += 1;	break;	// Y
+		case 85:	KeyNote = note_t::B;	KeyOctave += 1;	break;	// U
+		case 73:	KeyNote = note_t::C;	KeyOctave += 2;	break;	// I
+		case 79:	KeyNote = note_t::D;	KeyOctave += 2;	break;	// O
+		case 80:	KeyNote = note_t::E;	KeyOctave += 2;	break;	// P
+		case 219:	KeyNote = note_t::F;	KeyOctave += 2;	break;	// [{		// // //
+		case 221:	KeyNote = note_t::G;	KeyOctave += 2;	break;	// ]}		// // //
 
-		case 83:	KeyNote = NOTE_Cs;					break;	// S
-		case 68:	KeyNote = NOTE_Ds;					break;	// D
-		case 71:	KeyNote = NOTE_Fs;					break;	// G
-		case 72:	KeyNote = NOTE_Gs;					break;	// H
-		case 74:	KeyNote = NOTE_As;					break;	// J
-		case 76:	KeyNote = NOTE_Cs;	KeyOctave += 1;	break;	// L
-		case 186:	KeyNote = NOTE_Ds;	KeyOctave += 1;	break;	// ;:		// // //
+		case 83:	KeyNote = note_t::Cs;					break;	// S
+		case 68:	KeyNote = note_t::Ds;					break;	// D
+		case 71:	KeyNote = note_t::Fs;					break;	// G
+		case 72:	KeyNote = note_t::Gs;					break;	// H
+		case 74:	KeyNote = note_t::As;					break;	// J
+		case 76:	KeyNote = note_t::Cs;	KeyOctave += 1;	break;	// L
+		case 186:	KeyNote = note_t::Ds;	KeyOctave += 1;	break;	// ;:		// // //
 
-		case 90:	KeyNote = NOTE_C;					break;	// Z
-		case 88:	KeyNote = NOTE_D;					break;	// X
-		case 67:	KeyNote = NOTE_E;					break;	// C
-		case 86:	KeyNote = NOTE_F;					break;	// V
-		case 66:	KeyNote = NOTE_G;					break;	// B
-		case 78:	KeyNote = NOTE_A;					break;	// N
-		case 77:	KeyNote = NOTE_B;					break;	// M
-		case 188:	KeyNote = NOTE_C;	KeyOctave += 1;	break;	// ,<
-		case 190:	KeyNote = NOTE_D;	KeyOctave += 1;	break;	// .>
-		case 191:	KeyNote = NOTE_E;	KeyOctave += 1;	break;	// /?		// // //
+		case 90:	KeyNote = note_t::C;					break;	// Z
+		case 88:	KeyNote = note_t::D;					break;	// X
+		case 67:	KeyNote = note_t::E;					break;	// C
+		case 86:	KeyNote = note_t::F;					break;	// V
+		case 66:	KeyNote = note_t::G;					break;	// B
+		case 78:	KeyNote = note_t::A;					break;	// N
+		case 77:	KeyNote = note_t::B;					break;	// M
+		case 188:	KeyNote = note_t::C;	KeyOctave += 1;	break;	// ,<
+		case 190:	KeyNote = note_t::D;	KeyOctave += 1;	break;	// .>
+		case 191:	KeyNote = note_t::E;	KeyOctave += 1;	break;	// /?		// // //
 	}
 
 	// Invalid
-	if (KeyNote == 0)
+	if (KeyNote == note_t::NONE)
 		return -1;
 
 	auto it = m_iNoteCorrection.find(Key);		// // //

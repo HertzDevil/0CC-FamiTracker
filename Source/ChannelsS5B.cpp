@@ -131,7 +131,7 @@ bool CChannelHandlerS5B::HandleEffect(effect_t EffNum, unsigned char EffParam)
 	return true;
 }
 
-void CChannelHandlerS5B::HandleNote(int Note, int Octave)		// // //
+void CChannelHandlerS5B::HandleNote(note_t Note, int Octave)		// // //
 {
 	CChannelHandler::HandleNote(Note, Octave);
 	m_iNoiseFreq = m_iDefaultNoise;

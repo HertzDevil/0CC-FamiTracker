@@ -221,14 +221,22 @@ const char EFF_CHAR[] = {
 
 effect_t GetEffectFromChar(char ch, sound_chip_t Chip, bool *bValid = nullptr);		// // //
 
-enum note_t : unsigned char {
-	NONE = 0,	// No note
-	NOTE_C,  NOTE_Cs, NOTE_D,  NOTE_Ds, NOTE_E,  NOTE_F,		// // // renamed
-	NOTE_Fs, NOTE_G,  NOTE_Gs, NOTE_A,  NOTE_As, NOTE_B,
-	RELEASE,	// Release, begin note release sequence
-	HALT,		// Halt, stops note
-	ECHO,		// // // Echo buffer access, octave determines position
+enum class note_t : unsigned char {
+	NONE = 0,					// No note
+	C,  Cs, D,  Ds, E,  F,		// // // renamed
+	Fs, G,  Gs, A,  As, B,
+	RELEASE,					// Release, begin note release sequence
+	HALT,						// Halt, stops note
+	ECHO,						// // // Echo buffer access, octave determines position
 };
+
+constexpr auto value_cast(note_t n) noexcept { // TODO: use enum_traits
+	return static_cast<unsigned char>(n);
+}
+
+constexpr bool IsNote(note_t n) noexcept {
+	return n >= note_t::C && n <= note_t::B;
+}
 
 // // // special echo buffer constants
 const char ECHO_BUFFER_NONE = '\xFF';
@@ -248,8 +256,10 @@ enum vibrato_t : unsigned char {
 	VIBRATO_NEW,
 };
 
-constexpr int MIDI_NOTE(int octave, int note) noexcept {		// // //
-	return octave * NOTE_RANGE + note - 1;
+constexpr int MIDI_NOTE(int octave, note_t note) noexcept {		// // //
+	if (IsNote(note))
+		return octave * NOTE_RANGE + static_cast<unsigned>(note) - 1;
+	return -1;
 }
 
 constexpr int GET_OCTAVE(int midi_note) noexcept {
@@ -259,9 +269,9 @@ constexpr int GET_OCTAVE(int midi_note) noexcept {
 	return x;
 }
 
-constexpr int GET_NOTE(int midi_note) noexcept {
+constexpr note_t GET_NOTE(int midi_note) noexcept {
 	int x = midi_note % NOTE_RANGE;
 	if (x < 0)
 		x += NOTE_RANGE;
-	return ++x;
+	return static_cast<note_t>(++x);
 }

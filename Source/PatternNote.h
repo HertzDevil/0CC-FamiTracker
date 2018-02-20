@@ -38,14 +38,14 @@ public:
 			if (EffNumber[i] != other.EffNumber[i] || EffNumber[i] != EF_NONE && EffParam[i] != other.EffParam[i])
 				return false;
 		return Note == other.Note && Vol == other.Vol && Instrument == other.Instrument &&
-			(Note == NONE || Octave == other.Octave || Note == HALT || Note == RELEASE);
+			(Note == note_t::NONE || Octave == other.Octave || Note == note_t::HALT || Note == note_t::RELEASE);
 	}
 	constexpr bool operator!=(const stChanNote &other) const noexcept {
 		return !operator==(other);
 	}
 
 public:
-	unsigned char Note = NONE;
+	note_t Note = note_t::NONE;
 	unsigned char Octave = 0U;
 	unsigned char Vol = MAX_VOLUME;
 	unsigned char Instrument = MAX_INSTRUMENTS;

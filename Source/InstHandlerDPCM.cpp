@@ -41,7 +41,7 @@ void CInstHandlerDPCM::TriggerInstrument()
 	if (auto pDPCMInst = std::dynamic_pointer_cast<const CInstrument2A03>(m_pInstrument)) {
 		const int Val = m_pInterface->GetNote();
 		const int Octave = GET_OCTAVE(Val);
-		const int Note = GET_NOTE(Val) - 1;
+		const int Note = value_cast(GET_NOTE(Val)) - 1;
 		if (auto pSamp = pDPCMInst->GetDSample(Octave, Note)) {
 			pInterface->WriteDCOffset(pDPCMInst->GetSampleDeltaValue(Octave, Note));
 			pInterface->SetLoopOffset(pDPCMInst->GetSampleLoopOffset(Octave, Note));

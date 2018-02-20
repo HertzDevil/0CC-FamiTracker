@@ -194,10 +194,10 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 						Note.EffNumber[0] = static_cast<effect_t>(ImportedNote.ExtraStuff1);
 						Note.EffParam[0] = ImportedNote.ExtraStuff2;
 						Note.Instrument = ImportedNote.Instrument;
-						Note.Note = ImportedNote.Note;
+						Note.Note = static_cast<note_t>(ImportedNote.Note);
 						Note.Octave = ImportedNote.Octave;
 						Note.Vol = 0;
-						if (Note.Note == 0)
+						if (Note.Note == note_t::NONE)
 							Note.Instrument = MAX_INSTRUMENTS;
 						if (Note.Vol == 0)
 							Note.Vol = MAX_VOLUME;

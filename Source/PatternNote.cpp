@@ -37,15 +37,15 @@ const std::string stChanNote::NOTE_NAME_FLAT[NOTE_RANGE] = {
 std::string stChanNote::ToString() const
 {
 	switch (Note) {
-	case NONE:
+	case note_t::NONE:
 		return "..."s;
-	case HALT:
+	case note_t::HALT:
 		return "---"s;
-	case RELEASE:
+	case note_t::RELEASE:
 		return "==="s;
-	case ECHO:
+	case note_t::ECHO:
 		return "^-"s + std::to_string(Octave);
 	default:
-		return NOTE_NAME[Note - 1] + std::to_string(Octave);
+		return NOTE_NAME[value_cast(Note) - 1] + std::to_string(Octave);
 	}
 }

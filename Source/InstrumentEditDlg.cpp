@@ -296,11 +296,11 @@ void CInstrumentEditDlg::OnPaint()
 	BlackKey.CreateCompatibleDC(&dc);
 	CDCObjectContext c3 {BlackKey, &BlackKeyBmp};		// // //
 
-	const int WHITE[]	= {NOTE_C, NOTE_D, NOTE_E, NOTE_F, NOTE_G, NOTE_A, NOTE_B};
-	const int BLACK_1[] = {NOTE_Cs, NOTE_Ds};
-	const int BLACK_2[] = {NOTE_Fs, NOTE_Gs, NOTE_As};
+	const note_t WHITE[]   = {note_t::C, note_t::D, note_t::E, note_t::F, note_t::G, note_t::A, note_t::B};
+	const note_t BLACK_1[] = {note_t::Cs, note_t::Ds};
+	const note_t BLACK_2[] = {note_t::Fs, note_t::Gs, note_t::As};
 
-	int Note = GET_NOTE(m_iActiveKey);		// // //
+	note_t Note = GET_NOTE(m_iActiveKey);		// // //
 	int Octave = GET_OCTAVE(m_iActiveKey);
 
 	for (int j = 0; j < 8; j++) {
@@ -379,32 +379,32 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 	if (m_KeyboardRect.PtInRect({x, y})) {
 		int KeyPos = (x - m_KeyboardRect.left) % 70;		// // //
 		int Octave = (x - m_KeyboardRect.left) / 70;
-		int Note;
+		note_t Note;		// // //
 
 		if (y > m_KeyboardRect.top + 38) {
 			// Only white keys
-			     if (KeyPos >= 60) Note = NOTE_B;
-			else if (KeyPos >= 50) Note = NOTE_A;
-			else if (KeyPos >= 40) Note = NOTE_G;
-			else if (KeyPos >= 30) Note = NOTE_F;
-			else if (KeyPos >= 20) Note = NOTE_E;
-			else if (KeyPos >= 10) Note = NOTE_D;
-			else if (KeyPos >=  0) Note = NOTE_C;
+			     if (KeyPos >= 60) Note = note_t::B;
+			else if (KeyPos >= 50) Note = note_t::A;
+			else if (KeyPos >= 40) Note = note_t::G;
+			else if (KeyPos >= 30) Note = note_t::F;
+			else if (KeyPos >= 20) Note = note_t::E;
+			else if (KeyPos >= 10) Note = note_t::D;
+			else if (KeyPos >=  0) Note = note_t::C;
 		}
 		else {
 			// Black and white keys
-			     if (KeyPos >= 62) Note = NOTE_B;
-			else if (KeyPos >= 56) Note = NOTE_As;
-			else if (KeyPos >= 53) Note = NOTE_A;
-			else if (KeyPos >= 46) Note = NOTE_Gs;
-			else if (KeyPos >= 43) Note = NOTE_G;
-			else if (KeyPos >= 37) Note = NOTE_Fs;
-			else if (KeyPos >= 30) Note = NOTE_F;
-			else if (KeyPos >= 23) Note = NOTE_E;
-			else if (KeyPos >= 16) Note = NOTE_Ds;
-			else if (KeyPos >= 13) Note = NOTE_D;
-			else if (KeyPos >=  7) Note = NOTE_Cs;
-			else if (KeyPos >=  0) Note = NOTE_C;
+			     if (KeyPos >= 62) Note = note_t::B;
+			else if (KeyPos >= 56) Note = note_t::As;
+			else if (KeyPos >= 53) Note = note_t::A;
+			else if (KeyPos >= 46) Note = note_t::Gs;
+			else if (KeyPos >= 43) Note = note_t::G;
+			else if (KeyPos >= 37) Note = note_t::Fs;
+			else if (KeyPos >= 30) Note = note_t::F;
+			else if (KeyPos >= 23) Note = note_t::E;
+			else if (KeyPos >= 16) Note = note_t::Ds;
+			else if (KeyPos >= 13) Note = note_t::D;
+			else if (KeyPos >=  7) Note = note_t::Cs;
+			else if (KeyPos >=  0) Note = note_t::C;
 		}
 
 		int NewNote = MIDI_NOTE(Octave, Note);		// // //
@@ -420,7 +420,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 		}
 	}
 	else {
-		NoteData.Note			= pView->DoRelease() ? RELEASE : HALT;//HALT;
+		NoteData.Note			= pView->DoRelease() ? note_t::RELEASE : note_t::HALT;//note_t::HALT;
 
 		Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 
@@ -434,7 +434,7 @@ void CInstrumentEditDlg::SwitchOffNote(bool ForceHalt)
 	CMainFrame *pFrameWnd = static_cast<CMainFrame*>(GetParent());
 
 	stChanNote NoteData;		// // //
-	NoteData.Note			= (pView->DoRelease() && !ForceHalt) ? RELEASE : HALT;
+	NoteData.Note			= (pView->DoRelease() && !ForceHalt) ? note_t::RELEASE : note_t::HALT;
 	NoteData.Instrument		= pFrameWnd->GetSelectedInstrumentIndex();
 
 	Env.GetSoundGenerator()->QueueNote(pView->GetSelectedChannelID(), NoteData, NOTE_PRIO_2);

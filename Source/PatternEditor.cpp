@@ -87,7 +87,7 @@ void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t 
 		case PASTE_MIX:
 			switch (i) {
 			case COLUMN_NOTE:
-				if (TByte != NONE) Protected[i] = true;
+				if (TByte != value_cast(note_t::NONE)) Protected[i] = true;
 				break;
 			case COLUMN_INSTRUMENT:
 				if (TByte != MAX_INSTRUMENTS) Protected[i] = true;
@@ -102,7 +102,7 @@ void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t 
 		case PASTE_OVERWRITE:
 			switch (i) {
 			case COLUMN_NOTE:
-				if (SByte == NONE) Protected[i] = true;
+				if (SByte == value_cast(note_t::NONE)) Protected[i] = true;
 				break;
 			case COLUMN_INSTRUMENT:
 				if (SByte == MAX_INSTRUMENTS) Protected[i] = true;
@@ -119,11 +119,11 @@ void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t 
 	if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT) {
 		switch (Mode) {
 		case PASTE_MIX:
-			if (Target->Note != NONE || Target->Instrument != MAX_INSTRUMENTS || Target->Vol != MAX_VOLUME)
+			if (Target->Note != note_t::NONE || Target->Instrument != MAX_INSTRUMENTS || Target->Vol != MAX_VOLUME)
 				Protected[COLUMN_NOTE] = Protected[COLUMN_INSTRUMENT] = Protected[COLUMN_VOLUME] = true;
 			// continue
 		case PASTE_OVERWRITE:
-			if (Source->Note == NONE && Source->Instrument == MAX_INSTRUMENTS && Source->Vol == MAX_VOLUME)
+			if (Source->Note == note_t::NONE && Source->Instrument == MAX_INSTRUMENTS && Source->Vol == MAX_VOLUME)
 				Protected[COLUMN_NOTE] = Protected[COLUMN_INSTRUMENT] = Protected[COLUMN_VOLUME] = true;
 		}
 	}
@@ -1260,7 +1260,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	int EffParam  = Column >= 4 ? NoteData.EffParam[(Column - 4) / 3] : 0;
 
 	// Detect invalid note data
-	if (NoteData.Note > ECHO ||		// // //
+	if (NoteData.Note > note_t::ECHO ||		// // //
 		NoteData.Octave > 8 ||
 		EffNumber >= EF_COUNT ||
 		NoteData.Instrument > MAX_INSTRUMENTS && NoteData.Instrument != HOLD_INSTRUMENT) {		// // // 050B
@@ -1308,7 +1308,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	case C_NOTE:
 		// Note and octave
 		switch (NoteData.Note) {
-		case NONE:
+		case note_t::NONE:
 			if (m_bCompactMode) {		// // //
 				if (NoteData.Instrument != MAX_INSTRUMENTS) {
 					if (NoteData.Instrument == HOLD_INSTRUMENT) {		// // // 050B
@@ -1348,16 +1348,16 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 				BAR(PosX + m_iCharWidth * 2, PosY);
 			}
 			break;		// // // same below
-		case HALT:
+		case note_t::HALT:
 			// Note stop
 			GradientBar(DC, PosX + 5, (m_iRowHeight / 2) - 2, m_iCharWidth * 3 - 11, m_iRowHeight / 4, ColorInfo.Note, ColorInfo.Back);
 			break;
-		case RELEASE:
+		case note_t::RELEASE:
 			// Note release
 			DC.FillSolidRect(PosX + 5, m_iRowHeight / 2 - 3, m_iCharWidth * 3 - 11, 2, ColorInfo.Note);		// // //
 			DC.FillSolidRect(PosX + 5, m_iRowHeight / 2 + 1, m_iCharWidth * 3 - 11, 2, ColorInfo.Note);
 			break;
-		case ECHO:
+		case note_t::ECHO:
 			// // // Echo buffer access
 			DrawChar(DC, PosX + m_iCharWidth, PosY, L'^', ColorInfo.Note);
 			DrawChar(DC, PosX + m_iCharWidth * 2, PosY, NOTES_C[NoteData.Octave], ColorInfo.Note);
@@ -1365,15 +1365,15 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		default:
 			if (ch == chan_id_t::NOISE) {
 				// Noise
-				char NoiseFreq = (NoteData.Note - 1 + NoteData.Octave * 12) & 0x0F;
+				char NoiseFreq = MIDI_NOTE(NoteData.Octave, NoteData.Note) & 0x0F;
 				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoiseFreq], ColorInfo.Note);		// // //
 				DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, '-', ColorInfo.Note);
 				DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, '#', ColorInfo.Note);
 			}
 			else {
 				// The rest
-				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, NOTES_A[NoteData.Note - 1], ColorInfo.Note);		// // //
-				DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, NOTES_B[NoteData.Note - 1], ColorInfo.Note);
+				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, NOTES_A[value_cast(NoteData.Note) - 1], ColorInfo.Note);		// // //
+				DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, NOTES_B[value_cast(NoteData.Note) - 1], ColorInfo.Note);
 				DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, NOTES_C[NoteData.Octave], ColorInfo.Note);
 			}
 			break;
@@ -1381,7 +1381,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		break;
 	case C_INSTRUMENT1:
 		// Instrument x0
-		if (NoteData.Instrument == MAX_INSTRUMENTS || NoteData.Note == HALT || NoteData.Note == RELEASE)
+		if (NoteData.Instrument == MAX_INSTRUMENTS || NoteData.Note == note_t::HALT || NoteData.Note == note_t::RELEASE)
 			BAR(PosX, PosY);
 		else if (NoteData.Instrument == HOLD_INSTRUMENT)		// // // 050B
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, '&', InstColor);
@@ -1390,7 +1390,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		break;
 	case C_INSTRUMENT2:
 		// Instrument 0x
-		if (NoteData.Instrument == MAX_INSTRUMENTS || NoteData.Note == HALT || NoteData.Note == RELEASE)
+		if (NoteData.Instrument == MAX_INSTRUMENTS || NoteData.Note == note_t::HALT || NoteData.Note == note_t::RELEASE)
 			BAR(PosX, PosY);
 		else if (NoteData.Instrument == HOLD_INSTRUMENT)		// // // 050B
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, '&', InstColor);
@@ -3546,22 +3546,22 @@ void CPatternEditor::GetSelectionAsPPMCK(CStringW &str) const		// // //
 		int len = -1;
 		bool first = true;
 		stChanNote current;
-		current.Note = HALT;
+		current.Note = note_t::HALT;
 		stChanNote echo[ECHO_BUFFER_LENGTH + 1] = { };
 
 		for (CPatternIterator s {it.first}; s <= it.second; ++s) {
 			len++;
 			const auto &NoteData = s.Get(c);
-			bool dump = NoteData.Note != NONE || NoteData.Vol != MAX_VOLUME;
+			bool dump = NoteData.Note != note_t::NONE || NoteData.Vol != MAX_VOLUME;
 			bool fin = s.m_iFrame == it.second.m_iFrame && s.m_iRow == it.second.m_iRow;
 
 			if (dump || fin) {
-				bool push = current.Note != NONE && current.Note != RELEASE;
+				bool push = current.Note != note_t::NONE && current.Note != note_t::RELEASE;
 
 				if (current.Vol != MAX_VOLUME)
 					str.AppendFormat(L"v%i", current.Vol);
 
-				if (current.Note == ECHO) {
+				if (current.Note == note_t::ECHO) {
 					current.Note   = echo[current.Octave].Note;
 					current.Octave = echo[current.Octave].Octave;
 				}
@@ -3572,10 +3572,10 @@ void CPatternEditor::GetSelectionAsPPMCK(CStringW &str) const		// // //
 					echo[0] = current;
 				}
 
-				if (!first || (NoteData.Note != NONE)) switch (current.Note) {
-				case NONE: str.Append(L"w"); break;
-				case RELEASE: str.Append(L"k"); break;
-				case HALT: str.Append(L"r"); break;
+				if (!first || (NoteData.Note != note_t::NONE)) switch (current.Note) {
+				case note_t::NONE: str.Append(L"w"); break;
+				case note_t::RELEASE: str.Append(L"k"); break;
+				case note_t::HALT: str.Append(L"r"); break;
 				default:
 					if (o == -1) {
 						o = current.Octave;
@@ -3591,8 +3591,8 @@ void CPatternEditor::GetSelectionAsPPMCK(CStringW &str) const		// // //
 							str.Append(L"<");
 						}
 					}
-					str.AppendFormat(L"%c", (current.Note * 7 + 18) / 12 % 7 + 'a');
-					if ((current.Note * 7 + 6) % 12 >= 7) str.Append(L"#");
+					str.AppendFormat(L"%c", (value_cast(current.Note) * 7 + 18) / 12 % 7 + 'a');
+					if ((value_cast(current.Note) * 7 + 6) % 12 >= 7) str.Append(L"#");
 				}
 
 				if (fin) len++;

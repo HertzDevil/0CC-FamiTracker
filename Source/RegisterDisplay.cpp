@@ -49,7 +49,7 @@ double NoteFromFreq(double Freq) {
 
 std::string NoteToStr(int Note) {
 	int Octave = GET_OCTAVE(Note) + 1;		// // //
-	int Index = GET_NOTE(Note) - 1;
+	int Index = value_cast(GET_NOTE(Note)) - 1;
 
 	std::string str;
 	if (Env.GetSettings()->Appearance.bDisplayFlats)

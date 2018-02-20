@@ -336,17 +336,17 @@ public:
 		stChanNote Cell;		// // //
 
 		CStringA sNote = ReadToken();
-		if (sNote == "...") { Cell.Note = NONE; }
-		else if (sNote == "---") { Cell.Note = HALT; }
-		else if (sNote == "===") { Cell.Note = RELEASE; }
+		if (sNote == "...") { Cell.Note = note_t::NONE; }
+		else if (sNote == "---") { Cell.Note = note_t::HALT; }
+		else if (sNote == "===") { Cell.Note = note_t::RELEASE; }
 		else {
 			if (sNote.GetLength() != 3)
 				throw MakeError("note column should be 3 characters wide, '%s' found.", sNote);
 
 			if (chan == chan_id_t::NOISE) {		// // // noise
 				int h = ImportHex(sNote.Left(1));		// // //
-				Cell.Note = (h % NOTE_RANGE) + 1;
-				Cell.Octave = h / NOTE_RANGE;
+				Cell.Note = GET_NOTE(h);
+				Cell.Octave = GET_OCTAVE(h);
 
 				// importer is very tolerant about the second and third characters
 				// in a noise note, they can be anything
@@ -355,32 +355,32 @@ public:
 				int o = sNote.GetAt(2) - L'0';
 				if (o < 0 || o > ECHO_BUFFER_LENGTH)
 					throw MakeError("out-of-bound echo buffer accessed.");
-				Cell.Note = ECHO;
+				Cell.Note = note_t::ECHO;
 				Cell.Octave = o;
 			}
 			else {
-				int n = 0;
+				int n = 1;
 				switch (sNote.GetAt(0)) {
-				case L'c': case L'C': n = 0; break;
-				case L'd': case L'D': n = 2; break;
-				case L'e': case L'E': n = 4; break;
-				case L'f': case L'F': n = 5; break;
-				case L'g': case L'G': n = 7; break;
-				case L'a': case L'A': n = 9; break;
-				case L'b': case L'B': n = 11; break;
+				case L'c': case L'C': n = value_cast(note_t::C); break;
+				case L'd': case L'D': n = value_cast(note_t::D); break;
+				case L'e': case L'E': n = value_cast(note_t::E); break;
+				case L'f': case L'F': n = value_cast(note_t::F); break;
+				case L'g': case L'G': n = value_cast(note_t::G); break;
+				case L'a': case L'A': n = value_cast(note_t::A); break;
+				case L'b': case L'B': n = value_cast(note_t::B); break;
 				default:
 					throw MakeError("unrecognized note '%s'.", sNote);
 				}
 				switch (sNote.GetAt(1)) {
 				case L'-': case L'.': break;
-				case L'#': case L'+': n += 1; break;
-				case L'b': case L'f': n -= 1; break;
+				case L'#': case L'+': ++n; break;
+				case L'b': case L'f': --n; break;
 				default:
 					throw MakeError("unrecognized note '%s'.", sNote);
 				}
-				while (n < 0) n += NOTE_RANGE;
-				while (n >= NOTE_RANGE) n -= NOTE_RANGE;
-				Cell.Note = n + 1;
+				while (n < value_cast(note_t::C)) n += NOTE_RANGE;
+				while (n > value_cast(note_t::B)) n -= NOTE_RANGE;
+				Cell.Note = static_cast<note_t>(n);
 
 				int o = sNote.GetAt(2) - L'0';
 				if (o < 0 || o >= OCTAVE_RANGE) {
@@ -508,19 +508,19 @@ CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEff
 {
 	CStringA tmp;
 
-	static const LPCSTR TEXT_NOTE[ECHO+1] = {		// // //
+	static const LPCSTR TEXT_NOTE[] = {		// // //
 		"...",
 		"C-?", "C#?", "D-?", "D#?", "E-?", "F-?",
 		"F#?", "G-?", "G#?", "A-?", "A#?", "B-?",
 		"===", "---", "^-?",
 	};
 
-	CStringA s = (stCell.Note <= ECHO) ? TEXT_NOTE[stCell.Note] : "...";		// // //
-	if (stCell.Note >= NOTE_C && stCell.Note <= NOTE_B || stCell.Note == ECHO)		// // //
+	CStringA s = (stCell.Note <= note_t::ECHO) ? TEXT_NOTE[value_cast(stCell.Note)] : "...";		// // //
+	if (IsNote(stCell.Note) || stCell.Note == note_t::ECHO)		// // //
 	{
 		if (bNoise)
 		{
-			char nNoiseFreq = (stCell.Note - 1 + stCell.Octave * NOTE_RANGE) & 0x0F;
+			char nNoiseFreq = MIDI_NOTE(stCell.Octave, stCell.Note) & 0x0F;
 			s.Format("%01X-#", nNoiseFreq);
 		}
 		else

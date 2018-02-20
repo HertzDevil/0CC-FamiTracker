@@ -25,6 +25,8 @@
 
 #include "InstrumentEditPanel.h"		// // //
 
+enum class note_t : unsigned char;		// // //
+
 class CFamiTrackerView;
 class CDSampleManager;		// // //
 class CInstrument2A03;		// // //
@@ -69,7 +71,7 @@ protected:
 
 	int	m_iSelectedSample;
 	int	m_iOctave;
-	int m_iSelectedKey;
+	note_t m_iSelectedKey;
 
 	DECLARE_MESSAGE_MAP()
 public:

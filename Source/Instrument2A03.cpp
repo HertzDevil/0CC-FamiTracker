@@ -122,7 +122,7 @@ bool CInstrument2A03::Load(CDocumentFile *pDocFile)
 		for (int i = 0; i < Count; ++i) {
 			int Note = CModuleException::AssertRangeFmt<MODULE_ERROR_STRICT>(
 				pDocFile->GetBlockChar(), 0, NOTE_COUNT - 1, "DPCM sample assignment note index");
-			ReadAssignment(GET_OCTAVE(Note), GET_NOTE(Note) - 1);
+			ReadAssignment(GET_OCTAVE(Note), value_cast(GET_NOTE(Note)) - 1);
 		}
 	}
 	else

@@ -393,13 +393,13 @@ void CFamiTrackerModule::RemoveUnusedDSamples() {
 					for (unsigned int Row = 0; Row < song.GetPatternLength(); ++Row) {
 						const auto &Note = song.GetPatternData(chan_id_t::DPCM, Pattern, Row);		// // //
 						int Index = Note.Instrument;
-						if (Note.Note < NOTE_C || Note.Note > NOTE_B || Index == MAX_INSTRUMENTS)
+						if (!IsNote(Note.Note) || Index == MAX_INSTRUMENTS)
 							continue;		// // //
 						if (InstManager.GetInstrumentType(Index) != INST_2A03)
 							continue;
-						AssignUsed[Index][Note.Octave][Note.Note - 1] = true;
+						AssignUsed[Index][Note.Octave][value_cast(Note.Note) - 1] = true;
 						auto pInst = std::static_pointer_cast<CInstrument2A03>(InstManager.GetInstrument(Index));
-						if (pInst->GetSampleIndex(Note.Octave, Note.Note - 1) == i + 1)
+						if (pInst->GetSampleIndex(Note.Octave, value_cast(Note.Note) - 1) == i + 1)
 							Used = true;
 					}
 				}

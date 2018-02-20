@@ -40,7 +40,7 @@ public:
 protected:
 	// // //
 	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //
-	void	HandleNote(int Note, int Octave) override;		// // //
+	void	HandleNote(note_t Note, int Octave) override;		// // //
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;
 	void	HandleRelease() override;
