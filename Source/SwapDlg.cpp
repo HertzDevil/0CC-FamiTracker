@@ -32,8 +32,10 @@
 
 IMPLEMENT_DYNAMIC(CSwapDlg, CDialog)
 
-CSwapDlg::CSwapDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(IDD_SWAP, pParent)
+CSwapDlg::CSwapDlg(CWnd* pParent /*=NULL*/) :
+	CDialog(IDD_SWAP, pParent),
+	m_iDestChip1(sound_chip_t::APU),
+	m_iDestChip2(sound_chip_t::APU)
 {
 }
 
