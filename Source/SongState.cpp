@@ -56,7 +56,7 @@ void UpdateEchoTranspose(const stChanNote &Note, int &Value, unsigned int EffCol
 
 
 std::string MakeCommandString(effect_t Effect, unsigned char Param) {		// // //
-	return {' ', EFF_CHAR[Effect - 1], conv::to_digit(Param >> 4), conv::to_digit(Param)};
+	return {' ', EFF_CHAR[Effect - 1], conv::to_digit(Param >> 4), conv::to_digit(Param & 0x0Fu), '\0'};
 }
 
 
