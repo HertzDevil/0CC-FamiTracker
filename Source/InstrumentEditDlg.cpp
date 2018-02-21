@@ -171,11 +171,9 @@ void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 	int InstType = pInstrument->GetType();
 
 	// Dialog title
-	CStringW Suffix;
 	auto sv = conv::to_wide(pInstrument->GetName());
-	Suffix.Format(L"%02X. %.*s (%s)", Index, sv.size(), sv.data(), CHIP_NAMES[InstType]);		// // //
 	CStringW Title;
-	AfxFormatString1(Title, IDS_INSTRUMENT_EDITOR_TITLE, Suffix);
+	AfxFormatString1(Title, IDS_INSTRUMENT_EDITOR_TITLE, FormattedW(L"%02X. %.*s (%s)", Index, sv.size(), sv.data(), CHIP_NAMES[InstType]));		// // //
 	SetWindowTextW(Title);
 
 	if (InstType != m_iSelectedInstType) {

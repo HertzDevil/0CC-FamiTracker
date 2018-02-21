@@ -169,10 +169,8 @@ BOOL CCreateWaveDlg::OnInitDialog()
 	});
 
 	pModule->VisitSongs([&] (const CSongData &song, unsigned i) {
-		CStringW text;
-		auto sv = song.GetTitle();
-		text.Format(L"s#%02i - %.*s", i + 1, sv.size(), sv.data());		// // //
-		m_ctlTracks.AddString(text);
+		auto sv = conv::to_wide(song.GetTitle());
+		m_ctlTracks.AddString(FormattedW(L"#%02i - %.*s", i + 1, sv.size(), sv.data()));		// // //
 	});
 
 	CMainFrame *pMainFrm = static_cast<CMainFrame*>(AfxGetMainWnd());		// // //
@@ -208,7 +206,6 @@ void CCreateWaveDlg::OnDeltaposSpinTime(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 	int Minutes, Seconds;
 	int Time = GetTimeLimit() - pNMUpDown->iDelta;
-	CStringW str;
 
 	if (Time < 1)
 		Time = 1;
@@ -218,8 +215,7 @@ void CCreateWaveDlg::OnDeltaposSpinTime(NMHDR *pNMHDR, LRESULT *pResult)
 	Seconds = Time % 60;
 	Minutes = Time / 60;
 
-	str.Format(L"%02i:%02i", Minutes, Seconds);
-	SetDlgItemTextW(IDC_SECONDS, str);
+	SetDlgItemTextW(IDC_SECONDS, FormattedW(L"%02i:%02i", Minutes, Seconds));
 	CheckDlgButton(IDC_RADIO_LOOP, BST_UNCHECKED);
 	CheckDlgButton(IDC_RADIO_TIME, BST_CHECKED);
 	*pResult = 0;

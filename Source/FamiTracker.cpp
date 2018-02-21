@@ -725,12 +725,9 @@ void CFamiTrackerApp::OnFileOpen()
 CStringW LoadDefaultFilter(LPCWSTR Name, LPCWSTR Ext)
 {
 	// Loads a single filter string including the all files option
-	CStringW filter;
 	CStringW allFilter;
 	VERIFY(allFilter.LoadStringW(AFX_IDS_ALLFILTER));
-
-	filter.Format(L"%s|*%s|%s|*.*||", Name, Ext, allFilter);
-	return filter;
+	return FormattedW(L"%s|*%s|%s|*.*||", Name, Ext, allFilter);
 }
 
 CStringW LoadDefaultFilter(UINT nID, LPCWSTR Ext)
@@ -744,23 +741,7 @@ void AfxFormatString3(CStringW &rString, UINT nIDS, LPCWSTR lpsz1, LPCWSTR lpsz2
 {
 	// AfxFormatString with three arguments
 	LPCWSTR arr[] = {lpsz1, lpsz2, lpsz3};
-	AfxFormatStrings(rString, nIDS, arr, 3);
-}
-
-CStringW MakeIntString(int val, LPCWSTR format)
-{
-	// Turns an int into a string
-	CStringW str;
-	str.Format(format, val);
-	return str;
-}
-
-CStringW MakeFloatString(float val, LPCWSTR format)
-{
-	// Turns a float into a string
-	CStringW str;
-	str.Format(format, val);
-	return str;
+	AfxFormatStrings(rString, nIDS, arr, std::size(arr));
 }
 
 /**

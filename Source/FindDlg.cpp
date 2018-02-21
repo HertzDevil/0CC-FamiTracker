@@ -301,8 +301,7 @@ void CFindResultsBox::UpdateCount() const
 {
 	int Count = m_cListResults.GetItemCount();
 	CStringW str;
-	str.Format(L"%d", Count);
-	AfxFormatString2(str, IDS_FINDRESULT_COUNT, str, Count == 1 ? L"result" : L"results");
+	AfxFormatString2(str, IDS_FINDRESULT_COUNT, FormattedW(L"%d", Count), Count == 1 ? L"result" : L"results");
 	GetDlgItem(IDC_STATIC_FINDRESULT_COUNT)->SetWindowTextW(str);
 }
 
@@ -333,11 +332,8 @@ BOOL CFindResultsBox::OnInitDialog()
 	m_cListResults.InsertColumn(NOTE, L"Note", LVCFMT_LEFT, static_cast<int>(.08 * w));
 	m_cListResults.InsertColumn(INST, L"In.", LVCFMT_LEFT, static_cast<int>(.065 * w));
 	m_cListResults.InsertColumn(VOL, L"Vo.", LVCFMT_LEFT, static_cast<int>(.065 * w));
-	for (int i = MAX_EFFECT_COLUMNS; i > 0; --i) {
-		CStringW str;
-		str.Format(L"fx%d", i);
-		m_cListResults.InsertColumn(EFFECT, str, LVCFMT_LEFT, static_cast<int>(.08 * w));
-	}
+	for (int i = MAX_EFFECT_COLUMNS; i > 0; --i)
+		m_cListResults.InsertColumn(EFFECT, FormattedW(L"fx%d", i), LVCFMT_LEFT, static_cast<int>(.08 * w));
 
 	UpdateCount();
 
@@ -1312,9 +1308,7 @@ void CFindDlg::OnBnClickedButtonReplaceall()
 
 	static_cast<CMainFrame*>(AfxGetMainWnd())->AddAction(std::move(pAction));
 	m_pView->SetFocus();
-	CStringW str;
-	str.Format(L"%d occurrence(s) replaced.", Count);
-	AfxMessageBox(str, MB_OK | MB_ICONINFORMATION);
+	AfxMessageBox(FormattedW(L"%d occurrence(s) replaced.", Count), MB_OK | MB_ICONINFORMATION);
 }
 
 void CFindDlg::Reset()

@@ -408,27 +408,22 @@ void CModulePropertiesDlg::OnLvnItemchangedSonglist(NMHDR *pNMHDR, LRESULT *pRes
 }
 
 CStringW CModulePropertiesDlg::GetSongString(unsigned index) const {		// // //
-	CStringW Text;
 	const auto *pSong = m_pModule->GetSong(index);
 	auto sv = conv::to_wide(pSong ? pSong->GetTitle() : "(N/A)");
-	Text.Format(TRACK_FORMAT, index + 1, sv.size(), sv.data());		// // // start counting songs from 1
-	return Text;
+	return FormattedW(TRACK_FORMAT, index + 1, sv.size(), sv.data());		// // // start counting songs from 1
 }
 
 void CModulePropertiesDlg::FillSongList()
 {
 	CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
-	CStringW Text;
 
 	pSongList->DeleteAllItems();
 
 	// Song editor
 	int Songs = m_pModule->GetSongCount();
 
-	m_pModule->VisitSongs([&] (const CSongData &song, unsigned index) {
-		auto sv = conv::to_wide(song.GetTitle());
-		Text.Format(TRACK_FORMAT, index + 1, sv.size(), sv.data());		// // // start counting songs from 1
-		pSongList->InsertItem(index, Text);
+	m_pModule->VisitSongs([&] (const CSongData &, unsigned index) {
+		pSongList->InsertItem(index, GetSongString(index));
 	});
 }
 

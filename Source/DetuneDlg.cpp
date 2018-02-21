@@ -205,11 +205,9 @@ double CDetuneDlg::NoteToFreq(double Note)
 
 void CDetuneDlg::UpdateOctave()
 {
-	CStringW String;
 	m_iOctave = std::clamp(m_iOctave, 0, OCTAVE_RANGE - 1);
 	m_cSliderOctave->SetPos(m_iOctave);
-	String.Format(L"%i", m_iOctave);
-	m_cEditOctave->SetWindowTextW(String);
+	m_cEditOctave->SetWindowTextW(FormattedW(L"%i", m_iOctave));
 	m_iNote = m_iOctave * NOTE_RANGE + m_iNote % NOTE_RANGE;
 	UpdateOffset();
 }
@@ -225,10 +223,8 @@ void CDetuneDlg::UpdateNote()
 
 void CDetuneDlg::UpdateOffset()
 {
-	CStringW String;
 	m_cSliderOffset->SetPos(m_iDetuneTable[m_iCurrentChip][m_iNote]);
-	String.Format(L"%i", m_iDetuneTable[m_iCurrentChip][m_iNote]);
-	m_cEditOffset->SetWindowTextW(String);
+	m_cEditOffset->SetWindowTextW(FormattedW(L"%i", m_iDetuneTable[m_iCurrentChip][m_iNote]));
 
 	if (m_iCurrentChip == 3) // VRC7
 		for (int i = 0; i < OCTAVE_RANGE; i++)
@@ -243,10 +239,9 @@ void CDetuneDlg::UpdateOffset()
 	};
 
 	for (int i = 0; i < 6; i++) {
-		CStringW str, fmt = L"%s\n%X\n%X";
+		CStringW fmt = L"%s\n%X\n%X";
 		if (i == 5 && !modfile_->GetNamcoChannels()) {
-			str.Format(L"%s\n-\n-\n-\n-\n-\n-", CHIP_STR[i]);
-			SetDlgItemTextW(IDC_DETUNE_INFO_N163, str);
+			SetDlgItemTextW(IDC_DETUNE_INFO_N163, FormattedW(L"%s\n-\n-\n-\n-\n-\n-", CHIP_STR[i]));
 			continue;
 		}
 		double Note = m_iGlobalSemitone + .01 * m_iGlobalCent + m_iNote;
@@ -260,14 +255,11 @@ void CDetuneDlg::UpdateOffset()
 		for (const auto x : values)
 			fmt += DoubleFunc(x);
 
-		str.Format(fmt, CHIP_STR[i], oldReg, newReg, values[0], values[1], values[2], values[3]);
-		SetDlgItemTextW(IDC_DETUNE_INFO_NTSC + i, str);
+		SetDlgItemTextW(IDC_DETUNE_INFO_NTSC + i, FormattedW(fmt, CHIP_STR[i], oldReg, newReg, values[0], values[1], values[2], values[3]));
 	}
 
-	String.Format(L"Semitone: %+d", m_iGlobalSemitone);
-	SetDlgItemTextW(IDC_STATIC_DETUNE_SEMITONE, String);
-	String.Format(L"Cent: %+d", m_iGlobalCent);
-	SetDlgItemTextW(IDC_STATIC_DETUNE_CENT, String);
+	SetDlgItemTextW(IDC_STATIC_DETUNE_SEMITONE, FormattedW(L"Semitone: %+d", m_iGlobalSemitone));
+	SetDlgItemTextW(IDC_STATIC_DETUNE_CENT, FormattedW(L"Cent: %+d", m_iGlobalCent));
 }
 
 void CDetuneDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
@@ -455,13 +447,10 @@ void CDetuneDlg::OnBnClickedButtonExport()
 		return;
 	}
 
-	CStringW Line, Unit;
 	for (int i = 0; i < 6; i++) {
-		Line.Format(L"%i", i);
-		for (int j = 0; j < NOTE_COUNT; j++) {
-			Unit.Format(L",%i", m_iDetuneTable[i][j]);
-			Line += Unit;
-		}
+		CString Line = FormattedW(L"%i", i);
+		for (int j = 0; j < NOTE_COUNT; j++)
+			Line.AppendFormat(L",%i", m_iDetuneTable[i][j]);
 		Line += L"\n";
 		csv.WriteString(Line);
 	}

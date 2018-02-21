@@ -96,9 +96,8 @@ BOOL CTransposeDlg::OnInitDialog()
 	CRect r;
 	GetClientRect(&r);
 
-	CStringW Name;
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-		Name.Format(L"%02X", i);
+		CStringW Name = FormattedW(L"%02X", i);
 		int x = DPI::SX(20) + i % 8 * ((r.Width() - DPI::SX(30)) / 8);
 		int y = DPI::SY(104) + i / 8 * DPI::SY(20);
 		m_cInstButton[i].Create(Name, WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX,

@@ -222,22 +222,20 @@ void CAccelerator::StoreShortcut(int Item, int Key, int Mod)
 	m_pEntriesTable[Item].mod = Mod;
 }
 
-bool CAccelerator::GetShortcutString(int id, CStringW &str) const
-{
+CStringW CAccelerator::GetShortcutString(int id) const {		// // //
 	for (const auto &x : m_pEntriesTable) {		// // //
 		if (x.id == id) {
 			CStringW KeyName = GetVKeyName(x.key);
 			if (KeyName.GetLength() > 1)
 				KeyName = KeyName.Mid(0, 1).MakeUpper() + KeyName.Mid(1, KeyName.GetLength() - 1).MakeLower();
 			if (x.mod > 0)
-				str.Format(L"\t%s+%s", MOD_NAMES[x.mod], KeyName);
+				return FormattedW(L"\t%s+%s", MOD_NAMES[x.mod], KeyName);
 			else
-				str.Format(L"\t%s", KeyName);
-			return true;
+				return FormattedW(L"\t%s", KeyName);
 		}
 	}
 
-	return false;
+	return L"";
 }
 
 bool CAccelerator::IsKeyUsed(int nChar) const		// // //

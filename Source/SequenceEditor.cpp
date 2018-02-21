@@ -115,12 +115,8 @@ void CSequenceEditor::OnPaint()
 	dc.SelectObject(&m_cFont);
 	dc.TextOutW(7, rect.bottom - 19, L"Size:");
 
-	CStringW LengthStr;
-	float Rate;		// // //
-	Rate = static_cast<CInstrumentEditDlg*>(static_cast<CSequenceInstrumentEditPanel*>(m_pParent)->GetParent())->GetRefreshRate();
-	LengthStr.Format(L"%.0f ms  ", (1000.0f * m_pSizeEditor->GetValue()) / Rate);
-
-	dc.TextOutW(120, rect.bottom - 19, LengthStr);
+	float Rate = static_cast<CInstrumentEditDlg*>(static_cast<CSequenceInstrumentEditPanel*>(m_pParent)->GetParent())->GetRefreshRate();
+	dc.TextOutW(120, rect.bottom - 19, FormattedW(L"%.0f ms  ", (1000.0f * m_pSizeEditor->GetValue()) / Rate));
 }
 
 LRESULT CSequenceEditor::OnSizeChange(WPARAM wParam, LPARAM lParam)
@@ -143,11 +139,9 @@ LRESULT CSequenceEditor::OnCursorChange(WPARAM wParam, LPARAM lParam)
 	CRect rect;
 	GetClientRect(rect);
 
-	CStringW Text;
-	if (m_pConversion != nullptr)		// // //
-		Text.Format(L"{%i, %s}        ", wParam, conv::to_wide(m_pConversion->ToString(static_cast<char>(lParam))).data());
-	else
-		Text.Format(L"{%i, %i}        ", wParam, lParam);
+	CStringW Text = m_pConversion ?
+		FormattedW(L"{%i, %s}        ", wParam, conv::to_wide(m_pConversion->ToString(static_cast<char>(lParam))).data()) :
+		FormattedW(L"{%i, %i}        ", wParam, lParam);
 	pDC->TextOutW(170, rect.bottom - 19, Text);
 
 	ReleaseDC(pDC);

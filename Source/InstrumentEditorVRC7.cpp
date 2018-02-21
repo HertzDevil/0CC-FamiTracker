@@ -80,7 +80,6 @@ BOOL CInstrumentEditorVRC7::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	CComboBox *pPatchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PATCH));
-	CStringW Text;
 
 	const _TCHAR* const PATCH_NAME[16] = {
 		L"(custom patch)",
@@ -101,10 +100,8 @@ BOOL CInstrumentEditorVRC7::OnInitDialog()
 		L"Chorus"
 	};
 
-	for (int i = 0; i < 16; ++i) {
-		Text.Format(L"Patch #%i - %s", i, PATCH_NAME[i]);
-		pPatchBox->AddString(Text);
-	}
+	for (int i = 0; i < 16; ++i)
+		pPatchBox->AddString(FormattedW(L"Patch #%i - %s", i, PATCH_NAME[i]));
 
 	pPatchBox->SetCurSel(0);
 
@@ -449,10 +446,8 @@ void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
 	for (int i = 0; i < 8; ++i)
 		reg[i] = patch == 0 ? m_pInstrument->GetCustomReg(i) : default_inst[patch * 16 + i];
 
-	CStringW MML;
-	GetDlgItemTextW(IDC_PATCH, MML);
-	auto sv = m_pInstrument->GetName();
-	MML.Format(L";%s\r\n;%.*s\r\n", MML, sv.size(), sv.data());
+	auto sv = conv::to_wide(m_pInstrument->GetName());
+	CStringW MML = FormattedW(L";%s\r\n;%.*s\r\n", MML, sv.size(), sv.data());
 	MML.AppendFormat(L";TL FB\r\n %2d,%2d,\r\n;AR DR SL RR KL MT AM VB EG KR DT\r\n", reg[2] & 0x3F, reg[3] & 0x07);
 	for (int i = 0; i <= 1; i++)
 		MML.AppendFormat(L" %2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,\r\n",

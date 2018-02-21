@@ -124,9 +124,7 @@ BOOL CChannelsDlg::OnInitDialog()
 		HTREEITEM hItem = m_pAvailableTree->InsertItem(ROOT_ITEMS[i]);
 		m_hRootItems[i] = hItem;
 		for (int j = 0; CHILD_ITEMS[i][j] != NULL; ++j) {
-			CStringW str;
-			str.Format(L"%i: %s", j + 1, CHILD_ITEMS[i][j]);
-			HTREEITEM hChild = m_pAvailableTree->InsertItem(str, hItem);
+			HTREEITEM hChild = m_pAvailableTree->InsertItem(FormattedW(L"%i: %s", j + 1, CHILD_ITEMS[i][j]), hItem);
 			m_pAvailableTree->SetItemData(hChild, value_cast(CHILD_ITEMS_ID[i][j]));
 		}
 		m_pAvailableTree->SortChildren(hItem);
@@ -175,9 +173,7 @@ void CChannelsDlg::OnDblClickAdded(NMHDR *pNMHDR, LRESULT *result)
 			HTREEITEM hItem = m_pAvailableTree->GetNextItem(hParent, TVGN_CHILD);
 			for (int j = 0; CHILD_ITEMS[i][j] != NULL; ++j) {
 				if (CHILD_ITEMS_ID[i][j] == ChanID) {
-					CStringW str;
-					str.Format(L"%i: %s", j, CHILD_ITEMS[i][j]);
-					HTREEITEM hChild = m_pAvailableTree->InsertItem(str, hParent, hParent);
+					HTREEITEM hChild = m_pAvailableTree->InsertItem(FormattedW(L"%i: %s", j, CHILD_ITEMS[i][j]), hParent, hParent);
 					m_pAvailableTree->SetItemData(hChild, value_cast(CHILD_ITEMS_ID[i][j]));
 					m_pAvailableTree->Expand(hParent, TVE_EXPAND);
 				}

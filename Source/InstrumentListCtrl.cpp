@@ -92,12 +92,10 @@ int CInstrumentListCtrl::GetInstrumentIndex(int Selection) const
 int CInstrumentListCtrl::FindInstrument(int Index) const
 {
 	// Find the instrument item from the list (Index = instrument number)
-	CStringW Txt;
-	Txt.Format(L"%02X", Index);
-
+	CStringW instname = FormattedW(L"%02X", Index);
 	LVFINDINFOW info;
 	info.flags = LVFI_PARTIAL | LVFI_STRING;
-	info.psz = Txt;
+	info.psz = (LPCWSTR)instname;
 
 	return FindItem(&info);
 }
@@ -141,10 +139,8 @@ void CInstrumentListCtrl::InsertInstrument(int Index)
 		int Type = pInst->GetType();
 
 		// Name is of type index - name
-		CStringA Text;
-		auto sv = pInst->GetName();
-		Text.Format("%02X - %.*s", Index, sv.size(), sv.data());
-		InsertItem(Index, conv::to_wide(Text).data(), Type - 1);
+		auto sv = conv::to_wide(pInst->GetName());
+		InsertItem(Index, FormattedW(L"%02X - %.*s", Index, sv.size(), sv.data()), Type - 1);
 		SelectInstrument(Index);		// // //
 	}
 }
@@ -160,10 +156,7 @@ void CInstrumentListCtrl::RemoveInstrument(int Index)
 void CInstrumentListCtrl::SetInstrumentName(int Index, LPCWSTR pName)		// // //
 {
 	// Update instrument name in the list
-	int ListIndex = GetSelectionMark();
-	CStringW Name;
-	Name.Format(L"%02X - %s", Index, pName);
-	SetItemText(ListIndex, 0, Name);
+	SetItemText(GetSelectionMark(), 0, FormattedW(L"%02X - %s", Index, pName));
 }
 
 void CInstrumentListCtrl::OnContextMenu(CWnd* pWnd, CPoint point)

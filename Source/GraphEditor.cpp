@@ -30,6 +30,7 @@
 #include "DPI.h"		// // //
 #include "PatternNote.h"		// // //
 #include "Color.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 // CGraphEditor
 
@@ -200,7 +201,6 @@ void CGraphEditor::DrawBackground(CDC &DC, int Lines, bool DrawMarks, int MarkOf
 void CGraphEditor::DrawRange(CDC &DC, int Max, int Min)
 {
 	CFont *pOldFont = DC.SelectObject(&m_SmallFont);		// // //
-	CStringW line;
 	const int Top = GetItemTop();		// // //
 	const int Bottom = GetItemBottom();
 
@@ -214,12 +214,10 @@ void CGraphEditor::DrawRange(CDC &DC, int Max, int Min)
 	CRect topRect = textRect, bottomRect = textRect;
 
 	topRect.MoveToY(Top - 3);
-	line.Format(L"%02i", Max);
-	DC.DrawTextW(line, topRect, DT_RIGHT);
+	DC.DrawTextW(FormattedW(L"%02i", Max), topRect, DT_RIGHT);
 
 	bottomRect.MoveToY(Bottom - 11);
-	line.Format(L"%02i", Min);
-	DC.DrawTextW(line, bottomRect, DT_RIGHT);
+	DC.DrawTextW(FormattedW(L"%02i", Min), bottomRect, DT_RIGHT);
 
 	DC.SelectObject(pOldFont);
 }
@@ -813,15 +811,14 @@ void CArpeggioGraphEditor::DrawRange(CDC &DC, int Max, int Min)
 		DC.SetBkColor(0);
 
 		// Top
-		CStringW line;
 		int NoteValue = m_iScrollOffset + 20;
-		line.Format(L"%s%d", stChanNote::NOTE_NAME[value_cast(GET_NOTE(NoteValue)) - 1].data(), GET_OCTAVE(NoteValue));		// // //
-		DC.TextOutW(2, m_GraphRect.top - 3, line);
+		DC.TextOutW(2, m_GraphRect.top - 3, FormattedW(L"%s%d",
+			conv::to_wide(stChanNote::NOTE_NAME[value_cast(GET_NOTE(NoteValue)) - 1]).data(), GET_OCTAVE(NoteValue)));		// // //
 
 		// Bottom
 		NoteValue = m_iScrollOffset;
-		line.Format(L"%s%d", stChanNote::NOTE_NAME[value_cast(GET_NOTE(NoteValue)) - 1].data(), GET_OCTAVE(NoteValue));		// // //
-		DC.TextOutW(2, m_GraphRect.bottom - 13, line);
+		DC.TextOutW(2, m_GraphRect.bottom - 13, FormattedW(L"%s%d",
+			conv::to_wide(stChanNote::NOTE_NAME[value_cast(GET_NOTE(NoteValue)) - 1]).data(), GET_OCTAVE(NoteValue)));
 
 		DC.SelectObject(pOldFont);
 	}

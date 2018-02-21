@@ -1586,12 +1586,10 @@ void CFamiTrackerView::OnBookmarksNext()
 	if (CBookmark *pMark = Col.FindNext(GetSelectedFrame(), GetSelectedRow())) {
 		SelectFrame(pMark->m_iFrame);
 		SelectRow(pMark->m_iRow);
-		CStringW str1 = L"None";
-		if (pMark->m_Highlight.First != -1) str1.Format(L"%i", pMark->m_Highlight.First);
-		CStringW str2 = L"None";
-		if (pMark->m_Highlight.Second != -1) str2.Format(L"%i", pMark->m_Highlight.Second);
 		CStringW Text;
-		AfxFormatString3(Text, IDS_BOOKMARK_FORMAT, conv::to_wide(pMark->m_sName).data(), str1, str2);
+		AfxFormatString3(Text, IDS_BOOKMARK_FORMAT, conv::to_wide(pMark->m_sName).data(),
+			(pMark->m_Highlight.First != -1) ? FormattedW(L"%i", pMark->m_Highlight.First) : CStringW(L"None"),
+			(pMark->m_Highlight.Second != -1) ? FormattedW(L"%i", pMark->m_Highlight.Second) : CStringW(L"None"));
 		pMainFrame->SetMessageText(Text);
 		pMainFrame->UpdateBookmarkList(Col.GetBookmarkIndex(pMark));
 		SetFocus();
@@ -1613,12 +1611,10 @@ void CFamiTrackerView::OnBookmarksPrevious()
 	if (CBookmark *pMark = Col.FindPrevious(GetSelectedFrame(), GetSelectedRow())) {
 		SelectFrame(pMark->m_iFrame);
 		SelectRow(pMark->m_iRow);
-		CStringW str1 = L"None";
-		if (pMark->m_Highlight.First != -1) str1.Format(L"%i", pMark->m_Highlight.First);
-		CStringW str2 = L"None";
-		if (pMark->m_Highlight.Second != -1) str2.Format(L"%i", pMark->m_Highlight.Second);
 		CStringW Text;
-		AfxFormatString3(Text, IDS_BOOKMARK_FORMAT, conv::to_wide(pMark->m_sName).data(), str1, str2);
+		AfxFormatString3(Text, IDS_BOOKMARK_FORMAT, conv::to_wide(pMark->m_sName).data(),
+			(pMark->m_Highlight.First != -1) ? FormattedW(L"%i", pMark->m_Highlight.First) : CStringW(L"None"),
+			(pMark->m_Highlight.Second != -1) ? FormattedW(L"%i", pMark->m_Highlight.Second) : CStringW(L"None"));
 		pMainFrame->SetMessageText(Text);
 		pMainFrame->UpdateBookmarkList(Col.GetBookmarkIndex(pMark));
 		SetFocus();
@@ -3114,9 +3110,9 @@ void CFamiTrackerView::TranslateMidiMessage()
 			case MIDI_MSG_NOTE_ON:
 				TriggerMIDINote(Channel, Data1, Data2, m_bEditEnable);		// // //
 				AfxFormatString3(Status, IDS_MIDI_MESSAGE_ON_FORMAT,
-					MakeIntString(Data1 % 12),
-					MakeIntString(Data1 / 12),
-					MakeIntString(Data2));
+					FormattedW(L"%i", Data1 % 12),
+					FormattedW(L"%i", Data1 / 12),
+					FormattedW(L"%i", Data2));
 				break;
 
 			case MIDI_MSG_NOTE_OFF:

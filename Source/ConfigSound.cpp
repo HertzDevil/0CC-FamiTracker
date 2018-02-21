@@ -175,20 +175,9 @@ void CConfigSound::OnCbnSelchangeDevices()
 
 void CConfigSound::UpdateTexts()
 {
-	CStringW Text;
-
-	Text.Format(L"%i ms", static_cast<CSliderCtrl*>(GetDlgItem(IDC_BUF_LENGTH))->GetPos());
-	SetDlgItemTextW(IDC_BUF_LEN, Text);
-
-	Text.Format(L"%i Hz", static_cast<CSliderCtrl*>(GetDlgItem(IDC_BASS_FREQ))->GetPos());
-	SetDlgItemTextW(IDC_BASS_FREQ_T, Text);
-
-	Text.Format(L"%i Hz", static_cast<CSliderCtrl*>(GetDlgItem(IDC_TREBLE_FREQ))->GetPos());
-	SetDlgItemTextW(IDC_TREBLE_FREQ_T, Text);
-
-	Text.Format(L"-%i dB", static_cast<CSliderCtrl*>(GetDlgItem(IDC_TREBLE_DAMP))->GetPos());
-	SetDlgItemTextW(IDC_TREBLE_DAMP_T, Text);
-
-	Text.Format(L"%i %%", static_cast<CSliderCtrl*>(GetDlgItem(IDC_VOLUME))->GetPos());
-	SetDlgItemTextW(IDC_VOLUME_T, Text);
+	SetDlgItemTextW(IDC_BUF_LEN, FormattedW(L"%i ms", static_cast<CSliderCtrl*>(GetDlgItem(IDC_BUF_LENGTH))->GetPos()));
+	SetDlgItemTextW(IDC_BASS_FREQ_T, FormattedW(L"%i Hz", static_cast<CSliderCtrl*>(GetDlgItem(IDC_BASS_FREQ))->GetPos()));
+	SetDlgItemTextW(IDC_TREBLE_FREQ_T, FormattedW(L"%i Hz", static_cast<CSliderCtrl*>(GetDlgItem(IDC_TREBLE_FREQ))->GetPos()));
+	SetDlgItemTextW(IDC_TREBLE_DAMP_T, FormattedW(L"-%i dB", static_cast<CSliderCtrl*>(GetDlgItem(IDC_TREBLE_DAMP))->GetPos()));
+	SetDlgItemTextW(IDC_VOLUME_T, FormattedW(L"%i %%", static_cast<CSliderCtrl*>(GetDlgItem(IDC_VOLUME))->GetPos()));
 }

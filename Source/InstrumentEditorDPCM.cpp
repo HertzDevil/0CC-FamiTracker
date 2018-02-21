@@ -168,12 +168,10 @@ BOOL CInstrumentEditorDPCM::OnInitDialog()
 
 	CheckDlgButton(IDC_LOOP, 0);
 
-	CStringW text;		// // //
-	pTableListCtrl->DeleteAllItems();
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		text.Format(L"%s%d", conv::to_wide(stChanNote::NOTE_NAME[value_cast(GET_NOTE(i)) - 1]).data(), GET_OCTAVE(i));
-		pTableListCtrl->InsertItem(i, text);
-	}
+	pTableListCtrl->DeleteAllItems();		// // //
+	for (int i = 0; i < NOTE_COUNT; ++i)
+		pTableListCtrl->InsertItem(i, FormattedW(L"%s%d",
+			conv::to_wide(stChanNote::NOTE_NAME[value_cast(GET_NOTE(i)) - 1]).data(), GET_OCTAVE(i)));
 	pTableListCtrl->GetItemRect(0, &r, 2);		// // //
 	pTableListCtrl->Scroll({0, DEFAULT_OCTAVE * NOTE_RANGE * r.Height()});
 
@@ -215,7 +213,7 @@ void CInstrumentEditorDPCM::UpdateKey(int Index)
 		int Pitch = m_pInstrument->GetSamplePitch(Index);
 		auto pSample = m_pInstrument->GetDSample(Index);		// // //
 		NameStr = !pSample ? L"(n/a)" : conv::to_wide(pSample->name()).data();
-		PitchStr.Format(L"%i %s", Pitch & 0x0F, (Pitch & 0x80) ? L"L" : L"");
+		PitchStr = FormattedW(L"%i %s", Pitch & 0x0F, (Pitch & 0x80) ? L"L" : L"");
 	}
 
 	pTableListCtrl->SetItemText(Index, 1, PitchStr);
@@ -231,7 +229,6 @@ void CInstrumentEditorDPCM::BuildSampleList()
 	pSampleBox->ResetContent();
 
 	unsigned int Size(0), Index(0);
-	CStringW	Text;
 
 	pSampleBox->AddString(NO_SAMPLE_STR);
 
@@ -239,17 +236,15 @@ void CInstrumentEditorDPCM::BuildSampleList()
 		if (auto pDSample = GetDSampleManager()->GetDSample(i)) {		// // //
 			pSampleListCtrl->InsertItem(Index, conv::to_wide(conv::sv_from_int(i)).data());
 			auto name = conv::to_wide(pDSample->name());
-			Text.Format(L"%.*s", name.size(), name.data());
-			pSampleListCtrl->SetItemText(Index, 1, Text);
-			Text.Format(L"%u", pDSample->size());
-			pSampleListCtrl->SetItemText(Index, 2, Text);
-			Text.Format(L"%02i - %.*s", i, name.size(), name.data());
-			pSampleBox->AddString(Text);
+			pSampleListCtrl->SetItemText(Index, 1, name.data());
+			pSampleListCtrl->SetItemText(Index, 2, FormattedW(L"%u", pDSample->size()));
+			pSampleBox->AddString(FormattedW(L"%02i - %.*s", i, name.size(), name.data()));
 			Size += pDSample->size();
 			++Index;
 		}
 	}
 
+	CStringW Text;
 	AfxFormatString3(Text, IDS_DPCM_SPACE_FORMAT,
 		conv::to_wide(conv::from_int(Size / 0x400)).data(),		// // //
 		conv::to_wide(conv::from_int((MAX_SAMPLE_SPACE - Size) / 0x400)).data(),
@@ -415,8 +410,6 @@ void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	//CSpinButtonCtrl *pSpinButton;
 	//CComboBox *pSampleBox, *pPitchBox;
 	//CEdit *pDeltaValue;
-	CStringW Text;
-
 	//m_pTableListCtrl	= static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
 
 	CListCtrl *pTableListCtrl	 = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
@@ -431,10 +424,8 @@ void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	int Pitch = m_pInstrument->GetSamplePitch(m_iSelectedNote);
 	int Delta = m_pInstrument->GetSampleDeltaValue(m_iSelectedNote);
 
-	Text.Format(L"%02i - %s", Sample, pTableListCtrl->GetItemText(pTableListCtrl->GetSelectionMark(), 2));
-
 	if (Sample != -1)
-		pSampleBox->SelectString(0, Text);
+		pSampleBox->SelectString(0, FormattedW(L"%02i - %s", Sample, pTableListCtrl->GetItemText(pTableListCtrl->GetSelectionMark(), 2)));
 	else
 		pSampleBox->SetCurSel(0);
 

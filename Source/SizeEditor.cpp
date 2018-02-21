@@ -110,11 +110,9 @@ void CSizeEditor::OnPaint()
 	textRect.DeflateRect(rect.bottom + 6, 1, rect.bottom + 6, 0);
 
 	// Text
-	CStringW str;
-	str.Format(L"%i", m_iValue);		// // //
 	dc.SetBkMode(TRANSPARENT);
 	dc.SetTextColor(0xFFFFFF);
-	dc.DrawTextW(str, &textRect, DT_RIGHT);
+	dc.DrawTextW(FormattedW(L"%i", m_iValue), &textRect, DT_RIGHT);
 	dc.SetTextColor(0);
 	dc.TextOutW(6, 1 + ((m_iButtonPressed == 1) ? 1 : 0), L"-");
 	dc.TextOutW(rect.right - 14, 1 + ((m_iButtonPressed == 2) ? 1 : 0), L"+");

@@ -22,6 +22,7 @@
 
 #include "AboutDlg.h"
 #include "version.h"
+#include "str_conv/str_conv.hpp"		// // //
 
 // CAboutDlg dialog used for App About
 
@@ -135,11 +136,10 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 
 BOOL CAboutDlg::OnInitDialog()
 {
-	CStringW aboutString;
-
 #ifdef WIP
-	aboutString.Format(L"0CC-FamiTracker %s", Get0CCFTVersionString());
+	CStringW aboutString = FormattedW(L"0CC-FamiTracker %s", conv::to_wide(Get0CCFTVersionString()).data());		// // //
 #else
+	CStringW aboutString;
 	AfxFormatString1(aboutString, IDS_ABOUT_VERSION_FORMAT, Get0CCFTVersionString());
 #endif
 
@@ -172,7 +172,7 @@ BOOL CAboutDlg::OnInitDialog()
 	pFont = m_cMail.GetFont();
 	pFont->GetLogFont(&LogFont);
 	LogFont.lfUnderline = 1;
-	m_cLinkFont.CreateFontIndirect(&LogFont);
+	m_cLinkFont.CreateFontIndirectW(&LogFont);
 
 	m_cMail.SetFont(&m_cLinkFont);
 	m_wndToolTip.AddTool(&m_cMail, IDS_ABOUT_TOOLTIP_MAIL);
@@ -190,10 +190,10 @@ BOOL CAboutDlg::OnInitDialog()
 	LOGFONTW NewLogFont;
 	pOldFont->GetLogFont(&NewLogFont);
 	NewLogFont.lfWeight = FW_BOLD;
-	m_cBoldFont.CreateFontIndirect(&NewLogFont);
+	m_cBoldFont.CreateFontIndirectW(&NewLogFont);
 	NewLogFont.lfHeight = 18;
 //	NewLogFont.lfUnderline = TRUE;
-	m_cTitleFont.CreateFontIndirect(&NewLogFont);
+	m_cTitleFont.CreateFontIndirectW(&NewLogFont);
 	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT1))->SetFont(&m_cTitleFont);
 	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT2))->SetFont(&m_cBoldFont);
 	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT3))->SetFont(&m_cBoldFont);

@@ -208,10 +208,8 @@ void CSampleEditorView::OnMouseMove(UINT nFlags, CPoint point)
 		static_cast<CSampleEditorDlg*>(GetParent())->SelectionChanged();
 	}
 
-	CStringW Text, num1, num2;		// // //
-	num1.Format(L"0x%02X", Offset);
-	num2.Format(L"%d", Pos);
-	AfxFormatString2(Text, ID_INDICATOR_DPCM_SEGMENT, num1, num2);
+	CStringW Text;		// // //
+	AfxFormatString2(Text, ID_INDICATOR_DPCM_SEGMENT, FormattedW(L"0x%02X", Offset), FormattedW(L"%d", Pos));
 	static_cast<CSampleEditorDlg*>(GetParent())->UpdateStatus(0, Text);
 
 	CStatic::OnMouseMove(nFlags, point);
@@ -376,12 +374,10 @@ void CSampleEditorView::UpdateInfo()
 	if (!m_iSize)
 		return;
 
-	CStringW Text, num;		// // //
-	num.Format(L"%i", m_iSize / 8);
-	AfxFormatString1(Text, ID_INDICATOR_DPCM_SIZE, num);
+	CStringW Text;		// // //
+	AfxFormatString1(Text, ID_INDICATOR_DPCM_SIZE, FormattedW(L"%i", m_iSize / 8));
 	static_cast<CSampleEditorDlg*>(GetParent())->UpdateStatus(1, Text);
-	num.Format(L"%i", m_pSamples[m_iSize - 1]);
-	AfxFormatString1(Text, ID_INDICATOR_DPCM_ENDPOS, num);
+	AfxFormatString1(Text, ID_INDICATOR_DPCM_ENDPOS, FormattedW(L"%i", m_pSamples[m_iSize - 1]));
 	static_cast<CSampleEditorDlg*>(GetParent())->UpdateStatus(2, Text);
 }
 

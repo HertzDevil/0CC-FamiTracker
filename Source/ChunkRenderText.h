@@ -58,7 +58,7 @@ public:
 
 private:
 	static const stChunkRenderFunc RENDER_FUNCTIONS[];
-	static std::string GetLabelString(const stChunkLabel &label);		// // //
+	static CStringA GetLabelString(const stChunkLabel &label);		// // //
 	static std::string GetByteString(array_view<unsigned char> Data, int LineBreak);		// // //
 	static std::string GetByteString(const CChunk *pChunk, int LineBreak);		// // //
 

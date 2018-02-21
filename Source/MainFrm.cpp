@@ -1132,9 +1132,7 @@ void CMainFrame::SetIndicatorTime(int Min, int Sec, int MSec)
 		LMin = Min;
 		LSec = Sec;
 		LMSec = MSec;
-		CStringW String;
-		String.Format(L"%02i:%02i:%01i0", Min, Sec, MSec);
-		m_wndStatusBar.SetPaneText(6, String);
+		m_wndStatusBar.SetPaneText(6, FormattedW(L"%02i:%02i:%01i0", Min, Sec, MSec));
 	}
 }
 
@@ -1608,25 +1606,15 @@ void CMainFrame::OnUpdateSBInstrument(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateSBOctave(CCmdUI *pCmdUI)
 {
 	CStringW String;
-	AfxFormatString1(String, ID_INDICATOR_OCTAVE, MakeIntString(GetSelectedOctave()));		// // //
+	AfxFormatString1(String, ID_INDICATOR_OCTAVE, FormattedW(L"%i", GetSelectedOctave()));		// // //
 	pCmdUI->Enable();
 	pCmdUI->SetText(String);
 }
 
 void CMainFrame::OnUpdateSBFrequency(CCmdUI *pCmdUI)
 {
-	const CFamiTrackerDoc &Doc = GetDoc();
-	machine_t Machine = Doc.GetModule()->GetMachine();
-	int EngineSpeed = Doc.GetModule()->GetEngineSpeed();
-	CStringW String;
-
-	if (EngineSpeed == 0)
-		EngineSpeed = (Machine == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
-
-	String.Format(L"%i Hz", EngineSpeed);
-
 	pCmdUI->Enable();
-	pCmdUI->SetText(String);
+	pCmdUI->SetText(FormattedW(L"%i Hz", GetDoc().GetModule()->GetFrameRate()));		// // //
 }
 
 void CMainFrame::OnUpdateSBTempo(CCmdUI *pCmdUI)
@@ -1635,10 +1623,8 @@ void CMainFrame::OnUpdateSBTempo(CCmdUI *pCmdUI)
 
 	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 	if (pSoundGen && !pSoundGen->IsBackgroundTask()) {
-		CStringW String;
-		String.Format(L"%.2f BPM", pSoundGen->GetCurrentBPM());		// // //
 		pCmdUI->Enable();
-		pCmdUI->SetText(String);
+		pCmdUI->SetText(FormattedW(L"%.2f BPM", pSoundGen->GetCurrentBPM()));		// // //
 	}
 }
 
@@ -1786,7 +1772,7 @@ void CMainFrame::OnTimer(UINT nIDEvent)
 
 void CMainFrame::OnUpdateKeyStepEdit(CCmdUI *pCmdUI)
 {
-	pCmdUI->SetText(MakeIntString(static_cast<CFamiTrackerView*>(GetActiveView())->GetStepping()));
+	pCmdUI->SetText(FormattedW(L"%i", static_cast<CFamiTrackerView*>(GetActiveView())->GetStepping()));
 }
 
 void CMainFrame::OnUpdateSpeedEdit(CCmdUI *pCmdUI)
@@ -1795,7 +1781,7 @@ void CMainFrame::OnUpdateSpeedEdit(CCmdUI *pCmdUI)
 		if (m_cLockedEditSpeed.Update())
 			SetSpeed(m_cLockedEditSpeed.GetValue());
 		else {
-			pCmdUI->SetText(MakeIntString(GetCurrentSong()->GetSongSpeed()));		// // //
+			pCmdUI->SetText(FormattedW(L"%i", GetCurrentSong()->GetSongSpeed()));		// // //
 		}
 	}
 }
@@ -1806,7 +1792,7 @@ void CMainFrame::OnUpdateTempoEdit(CCmdUI *pCmdUI)
 		if (m_cLockedEditTempo.Update())
 			SetTempo(m_cLockedEditTempo.GetValue());
 		else {
-			pCmdUI->SetText(MakeIntString(GetCurrentSong()->GetSongTempo()));		// // //
+			pCmdUI->SetText(FormattedW(L"%i", GetCurrentSong()->GetSongTempo()));		// // //
 		}
 	}
 }
@@ -1817,7 +1803,7 @@ void CMainFrame::OnUpdateRowsEdit(CCmdUI *pCmdUI)
 		if (m_cLockedEditLength.Update())
 			SetRowCount(m_cLockedEditLength.GetValue());
 		else {
-			pCmdUI->SetText(MakeIntString(GetCurrentSong()->GetPatternLength()));		// // //
+			pCmdUI->SetText(FormattedW(L"%i", GetCurrentSong()->GetPatternLength()));		// // //
 		}
 	}
 }
@@ -1828,7 +1814,7 @@ void CMainFrame::OnUpdateFramesEdit(CCmdUI *pCmdUI)
 		if (m_cLockedEditFrames.Update())
 			SetFrameCount(m_cLockedEditFrames.GetValue());
 		else {
-			pCmdUI->SetText(MakeIntString(GetCurrentSong()->GetFrameCount()));		// // //
+			pCmdUI->SetText(FormattedW(L"%i", GetCurrentSong()->GetFrameCount()));		// // //
 		}
 	}
 }
@@ -1841,7 +1827,7 @@ void CMainFrame::OnUpdateHighlight1(CCmdUI *pCmdUI)		// // //
 			AddAction(std::make_unique<CPActionHighlight>(stHighlight {
 				std::clamp(m_cLockedEditHighlight1.GetValue(), 0, MAX_PATTERN_LENGTH), hl.Second, 0}));
 		else
-			pCmdUI->SetText(MakeIntString(hl.First));
+			pCmdUI->SetText(FormattedW(L"%i", hl.First));
 	}
 }
 
@@ -1853,7 +1839,7 @@ void CMainFrame::OnUpdateHighlight2(CCmdUI *pCmdUI)		// // //
 			AddAction(std::make_unique<CPActionHighlight>(stHighlight {
 				hl.First, std::clamp(m_cLockedEditHighlight2.GetValue(), 0, MAX_PATTERN_LENGTH), 0}));
 		else
-			pCmdUI->SetText(MakeIntString(hl.Second));
+			pCmdUI->SetText(FormattedW(L"%i", hl.Second));
 	}
 }
 
@@ -2221,12 +2207,11 @@ void CMainFrame::OnModuleEstimateSongLength()		// // //
 
 	int Rate = GetDoc().GetModule()->GetFrameRate();
 
-	LPCWSTR fmt = L"Estimated duration:\n"
+	const LPCWSTR fmt = L"Estimated duration:\n"
 		L"Intro: %lld:%02lld.%02lld (%d rows, %lld ticks)\n"
 		L"Loop: %lld:%02lld.%02lld (%d rows, %lld ticks)\n"
 		L"Tick counts are subject to rounding errors!";
-	CStringW str;
-	str.Format(fmt,
+	AfxMessageBox(FormattedW(fmt,
 		static_cast<long long>(Intro + .5 / 6000) / 60,
 		static_cast<long long>(Intro + .005) % 60,
 		static_cast<long long>(Intro * 100 + .5) % 100,
@@ -2236,16 +2221,14 @@ void CMainFrame::OnModuleEstimateSongLength()		// // //
 		static_cast<long long>(Loop + .005) % 60,
 		static_cast<long long>(Loop * 100 + .5) % 100,
 		LoopRows,
-		static_cast<long long>(Loop * Rate + .5));
-	AfxMessageBox(str);
+		static_cast<long long>(Loop * Rate + .5)));
 }
 
 void CMainFrame::UpdateTrackBox()
 {
 	// Fill the track box with all songs
-	CComboBox		*pTrackBox	= static_cast<CComboBox*>(m_wndDialogBar.GetDlgItem(IDC_SUBTUNE));
+	CComboBox *pTrackBox = static_cast<CComboBox*>(m_wndDialogBar.GetDlgItem(IDC_SUBTUNE));
 	const CFamiTrackerModule &modfile = *GetDoc().GetModule();		// // //
-	CStringW			Text;
 
 	ASSERT(pTrackBox != NULL);
 
@@ -2253,8 +2236,7 @@ void CMainFrame::UpdateTrackBox()
 
 	modfile.VisitSongs([&] (const CSongData &song, unsigned i) {
 		auto sv = conv::to_wide(song.GetTitle());
-		Text.Format(L"#%i %.*s", i + 1, sv.size(), sv.data());		// // //
-		pTrackBox->AddString(Text);
+		pTrackBox->AddString(FormattedW(L"#%i %.*s", i + 1, sv.size(), sv.data()));		// // //
 	});
 
 	int Count = modfile.GetSongCount();
@@ -2802,10 +2784,9 @@ void CMainFrame::UpdateMenu(CMenu *pMenu)
 		}
 		else if ((state & MF_SEPARATOR) == 0) {
 			// Change menu name
-			CStringW shortcut;
 			UINT id = pMenu->GetMenuItemID(i);
 
-			if (pAccel->GetShortcutString(id, shortcut)) {
+			if (CStringW shortcut = pAccel->GetShortcutString(id); !shortcut.IsEmpty()) {		// // //
 				CStringW string;
 				pMenu->GetMenuStringW(i, string, MF_BYPOSITION);
 
@@ -3360,9 +3341,7 @@ void CMainFrame::OnUpdateToggleFixTempo(CCmdUI *pCmdUI)
 		m_cButtonFixTempo.SetWindowTextW(L"Fixed");
 		m_cLockedEditTempo.EnableWindow(false);
 		m_wndDialogBar.GetDlgItem(IDC_TEMPO_SPIN)->EnableWindow(false);
-		CStringW str;
-		str.Format(L"%.2f", static_cast<float>(GetDoc().GetModule()->GetFrameRate()) * 2.5);
-		m_cLockedEditTempo.SetWindowTextW(str);
+		m_cLockedEditTempo.SetWindowTextW(FormattedW(L"%.2f", static_cast<float>(GetDoc().GetModule()->GetFrameRate()) * 2.5));
 	}
 }
 

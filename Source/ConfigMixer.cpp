@@ -139,8 +139,8 @@ void CConfigMixer::UpdateLevels()
 
 void CConfigMixer::UpdateLevel(int nID, int Level)
 {
-	CStringW str, str2;
-	str.Format(L"%+.1f dB", float(-Level) / float(LEVEL_SCALE));
+	CString str = FormattedW(L"%+.1f dB", float(-Level) / float(LEVEL_SCALE));
+	CStringW str2;
 	GetDlgItemTextW(nID, str2);
 	if (str.Compare(str2) != 0)
 		SetDlgItemTextW(nID, str);

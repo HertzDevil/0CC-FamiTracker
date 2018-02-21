@@ -66,12 +66,9 @@ CStringA GetPitchText(int digits, int period, double freq) {
 	const int note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);
 	const int cents = int((note - double(note_conv)) * 100.0);
 
-	CStringA str;
 	if (freq != 0.)
-		str.Format(fmt, digits, period, freq, NoteToStr(note_conv).data(), cents);
-	else
-		str.Format(fmt, digits, period, 0., "---", 0);
-	return str;
+		return FormattedA(fmt, digits, period, freq, NoteToStr(note_conv).data(), cents);
+	return FormattedA(fmt, digits, period, 0., "---", 0);
 };
 
 } // namespace
@@ -83,8 +80,6 @@ void CRegisterDisplay::Draw() {
 	dc_.SetBkMode(TRANSPARENT);		// // //
 
 	const CSoundGen *pSoundGen = Env.GetSoundGenerator();
-
-	CStringA text;
 
 	const int BAR_OFFSET = LINE_HEIGHT * (3 +
 		pSoundGen->IsExpansionEnabled(sound_chip_t::APU) * 8 +
@@ -116,32 +111,32 @@ void CRegisterDisplay::Draw() {
 
 		for (int i = 0; i < MAX_CHANNELS_2A03; ++i) {
 			GetRegs(sound_chip_t::APU, [&] (int x) { return 0x4000 + i * 4 + x; }, 4);
-			text.Format("$%04X:", 0x4000 + i * 4);		// // //
-			DrawReg(text, 4);
+			DrawReg(FormattedA("$%04X:", 0x4000 + i * 4), 4);
 
 			int period, vol;
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::APU, i);		// // //
 //			dc.FillSolidRect(x + 200, y, x + 400, y + 18, m_colEmptyBg);
 
+			CStringA text;
 			switch (i) {
 			case 0: case 1:
 				period = reg[2] | ((reg[3] & 7) << 8);
 				vol = reg[0] & 0x0F;
-				text.Format("%s, vol = %02i, duty = %i", GetPitchText(3, period, freq), vol, reg[0] >> 6); break;
+				text = FormattedA("%s, vol = %02i, duty = %i", GetPitchText(3, period, freq), vol, reg[0] >> 6); break;
 			case 2:
 				period = reg[2] | ((reg[3] & 7) << 8);
 				vol = reg[0] ? 15 : 0;
-				text.Format("%s", GetPitchText(3, period, freq)); break;
+				text = FormattedA("%s", GetPitchText(3, period, freq)); break;
 			case 3:
 				period = reg[2] & 0x0F;
 				vol = reg[0] & 0x0F;
-				text.Format("pitch = $%01X, vol = %02i, mode = %i", period, vol, reg[2] >> 7);
+				text = FormattedA("pitch = $%01X, vol = %02i, mode = %i", period, vol, reg[2] >> 7);
 				period = (period << 4) | ((reg[2] & 0x80) >> 4);
 				freq /= 16; break; // for display
 			case 4:
 				period = reg[0] & 0x0F;
 				vol = 15 * !pSoundGen->PreviewDone();
-				text.Format("%s, %s, size = %i byte%c", GetPitchText(1, period & 0x0F, freq),
+				text = FormattedA("%s, %s, size = %i byte%c", GetPitchText(1, period & 0x0F, freq),
 					(reg[0] & 0x40) ? "looped" : "once", (reg[3] << 4) | 1, reg[3] ? 's' : ' ');
 				freq /= 16; break; // for display
 			}
@@ -154,9 +149,8 @@ void CRegisterDisplay::Draw() {
 		}
 
 		const auto &DPCMState = pSoundGen->GetDPCMState();		// // //
-		text.Format("position: %02i, delta = $%02X", DPCMState.SamplePos, DPCMState.DeltaCntr);
 		++line; y += LINE_HEIGHT;		// // //
-		DrawText_(180, text);
+		DrawText_(180, FormattedA("position: %02i, delta = $%02X", DPCMState.SamplePos, DPCMState.DeltaCntr));
 	}
 
 	if (pSoundGen->IsExpansionEnabled(sound_chip_t::VRC6)) {
@@ -164,14 +158,13 @@ void CRegisterDisplay::Draw() {
 
 		for (int i = 0; i < MAX_CHANNELS_VRC6; ++i) {
 			GetRegs(sound_chip_t::VRC6, [&] (int x) { return 0x9000 + i * 0x1000 + x; }, 3);
-			text.Format("$%04X:", 0x9000 + i * 0x1000);		// // //
-			DrawReg(text, 3);
+			DrawReg(FormattedA("$%04X:", 0x9000 + i * 0x1000), 3);
 
 			int period = (reg[1] | ((reg[2] & 15) << 8));
 			int vol = (reg[0] & (i == 2 ? 0x3F : 0x0F));
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::VRC6, i);		// // //
 
-			text.Format("%s, vol = %02i", GetPitchText(3, period, freq), vol);
+			CStringA text = FormattedA("%s, vol = %02i", GetPitchText(3, period, freq), vol);
 			if (i != 2)
 				text.AppendFormat(", duty = %i", (reg[0] >> 4) & 0x07);
 			DrawText_(180, text);
@@ -184,15 +177,13 @@ void CRegisterDisplay::Draw() {
 
 		for (int i = 0; i < MAX_CHANNELS_MMC5 - 1; ++i) {
 			GetRegs(sound_chip_t::MMC5, [&] (int x) { return 0x5000 + i * 4 + x; }, 4);
-			text.Format("$%04X:", 0x5000 + i * 4);
-			DrawReg(text, 4);
+			DrawReg(FormattedA("$%04X:", 0x5000 + i * 4), 4);
 
 			int period = (reg[2] | ((reg[3] & 7) << 8));
 			int vol = (reg[0] & 0x0F);
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::MMC5, i);		// // //
 
-			text.Format("%s, vol = %02i, duty = %i", GetPitchText(3, period, freq), vol, reg[0] >> 6);
-			DrawText_(180, text);
+			DrawText_(180, FormattedA("%s, vol = %02i, duty = %i", GetPitchText(3, period, freq), vol, reg[0] >> 6));
 			DrawVolFunc(freq, vol << 4);
 		}
 	}
@@ -234,16 +225,14 @@ void CRegisterDisplay::Draw() {
 
 		for (int i = 0; i < 16; ++i) {
 			GetRegs(sound_chip_t::N163, [&] (int x) { return i * 8 + x; }, 8);
-			text.Format("$%02X:", i * 8);
-			DrawReg(text, 8);
+			DrawReg(FormattedA("$%02X:", i * 8), 8);
 
 			int period = (reg[0] | (reg[2] << 8) | ((reg[4] & 0x03) << 16));
 			int vol = (reg[7] & 0x0F);
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::N163, 15 - i);		// // //
 
 			if (i >= 16 - N163_CHANS) {
-				text.Format("%s, vol = %02i", GetPitchText(5, period, freq), vol);
-				DrawText_(300, text);
+				DrawText_(300, FormattedA("%s, vol = %02i", GetPitchText(5, period, freq), vol));
 				FreqCache[15 - i] = freq;
 				VolCache[15 - i] = vol << 4;
 			}
@@ -260,15 +249,11 @@ void CRegisterDisplay::Draw() {
 		int vol = (pSoundGen->GetReg(sound_chip_t::FDS, 0x4080) & 0x3F);
 		double freq = pSoundGen->GetChannelFrequency(sound_chip_t::FDS, 0);		// // //
 
-		CStringA FDStext;
-		FDStext.Format("%s, vol = %02i", GetPitchText(3, period, freq), vol);
-
 		for (int i = 0; i < 11; ++i) {
 			GetRegs(sound_chip_t::FDS, [&] (int) { return 0x4080 + i; }, 1);
-			text.Format("$%04X:", 0x4080 + i);
-			DrawReg(text, 1);
+			DrawReg(FormattedA("$%04X:", 0x4080 + i), 1);
 			if (!i)
-				DrawText_(180, FDStext);
+				DrawText_(180, FormattedA("%s, vol = %02i", GetPitchText(3, period, freq), vol));
 		}
 
 		DrawVolFunc(freq, vol << 3);
@@ -282,15 +267,13 @@ void CRegisterDisplay::Draw() {
 
 		for (int i = 0; i < MAX_CHANNELS_VRC7; ++i) {
 			GetRegs(sound_chip_t::VRC7, [&] (int x) { return i + (++x << 4); }, 3);
-			text.Format("$x%01X:", i);
-			DrawReg(text, 3);
+			DrawReg(FormattedA("$x%01X:", i), 3);
 
 			int period = reg[0] | ((reg[1] & 0x01) << 8);
 			int vol = 0x0F - (pSoundGen->GetReg(sound_chip_t::VRC7, i + 0x30) & 0x0F);
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::VRC7, i);		// // //
 
-			text.Format("%s, vol = %02i, patch = $%01X", GetPitchText(3, period, freq), vol, reg[2] >> 4);
-			DrawText_(180, text);
+			DrawText_(180, FormattedA("%s, vol = %02i, patch = $%01X", GetPitchText(3, period, freq), vol, reg[2] >> 4));
 
 			DrawVolFunc(freq, vol << 4);
 		}
@@ -301,21 +284,19 @@ void CRegisterDisplay::Draw() {
 
 		for (int i = 0; i < 4; ++i) {
 			GetRegs(sound_chip_t::S5B, [&] (int x) { return i * 2 + x; }, 2);
-			text.Format("$%02X:", i * 2);
-			DrawReg(text, 2);
+			DrawReg(FormattedA("$%02X:", i * 2), 2);
 
 			int period = reg[0] | ((reg[1] & 0x0F) << 8);
 			int vol = pSoundGen->GetReg(sound_chip_t::S5B, 8 + i) & 0x0F;
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::S5B, i);		// // //
 
 			if (i < MAX_CHANNELS_S5B)
-				text.Format("%s, vol = %02i, mode = %c%c%c", GetPitchText(3, period, freq), vol,
+				DrawText_(180, FormattedA("%s, vol = %02i, mode = %c%c%c", GetPitchText(3, period, freq), vol,
 					(pSoundGen->GetReg(sound_chip_t::S5B, 7) & (1 << i)) ? L'-' : L'T',
 					(pSoundGen->GetReg(sound_chip_t::S5B, 7) & (8 << i)) ? L'-' : L'N',
-					(pSoundGen->GetReg(sound_chip_t::S5B, 8 + i) & 0x10) ? L'E' : L'-');
+					(pSoundGen->GetReg(sound_chip_t::S5B, 8 + i) & 0x10) ? L'E' : L'-'));
 			else
-				text.Format("pitch = $%02X", reg[0] & 0x1F);
-			DrawText_(180, text);
+				DrawText_(180, FormattedA("pitch = $%02X", reg[0] & 0x1F));
 
 			if (i < 3)
 				DrawVolFunc(freq, vol << 4);
@@ -323,18 +304,15 @@ void CRegisterDisplay::Draw() {
 
 		for (int i = 0; i < 2; ++i) {
 			GetRegs(sound_chip_t::S5B, [&] (int x) { return i * 3 + x + 8; }, 3);
-			text.Format("$%02X:", i * 3 + 8);
-			DrawReg(text, 3);
+			DrawReg(FormattedA("$%02X:", i * 3 + 8), 3);
 
 			if (i == 1) {
 				int period = (reg[0] | (reg[1] << 8));
 				double freq = pSoundGen->GetChannelFrequency(sound_chip_t::S5B, 3);		// // //
 				if (freq != 0. && reg[1] == 0)
-					text.Format("%s, shape = $%01X", GetPitchText(4, period, freq), reg[2]);
+					DrawText_(180, FormattedA("%s, shape = $%01X", GetPitchText(4, period, freq), reg[2]));
 				else
-					text.Format("period = $%04X, shape = $%01X", period, reg[2]);
-
-				DrawText_(180, text);
+					DrawText_(180, FormattedA("period = $%04X, shape = $%01X", period, reg[2]));
 			}
 		}
 	}
@@ -359,10 +337,8 @@ void CRegisterDisplay::DrawReg(const CStringA &header, int count) {
 	dc_.MoveTo(x, y);
 	dc_.TextOutW(0, 0, conv::to_wide(header).data());
 	for (int j = 0; j < count; j++) {
-		CStringW str;
-		str.Format(L" $%02X", reg[j]);
 		dc_.SetTextColor(BLEND(GREY(192), DECAY_COLOR[update[j] >> 4], (double)(update[j] & 0x0F) / CRegisterState::DECAY_RATE));
-		dc_.TextOutW(0, 0, str);
+		dc_.TextOutW(0, 0, FormattedW(L" $%02X", reg[j]));
 	}
 }
 

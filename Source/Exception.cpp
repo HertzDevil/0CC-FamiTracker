@@ -110,13 +110,12 @@ static LONG WINAPI ExceptionHandler(__in struct _EXCEPTION_POINTERS *ep)
 	int counter = 1;
 
 	while (GetFileAttributesW(DocDumpFile + L".ftm") != 0xFFFFFFFF)
-		DocDumpFile.Format(L"%s%i", FTM_DUMP, counter++);
+		DocDumpFile = FormattedW(L"%s%i", FTM_DUMP, counter++);
 
 	DocDumpFile.Append(L".ftm");
 
 	// Display a message
-	CStringW text;
-	text.Format(L"This application has encountered a problem and needs to close.\n\n");
+	CStringW text = L"This application has encountered a problem and needs to close.\n\n";
 	text.AppendFormat(L"Unhandled exception %X.\n\n", ep->ExceptionRecord->ExceptionCode);
 	text.AppendFormat(L"A memory dump file has been created (%s), please include this if you file a bug report!\n\n", LPCWSTR(MinidumpFile));
 	text.AppendFormat(L"Attempting to save current module as %s.", LPCWSTR(DocDumpFile));

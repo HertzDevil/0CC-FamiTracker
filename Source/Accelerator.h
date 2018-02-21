@@ -65,7 +65,7 @@ public:
 	BOOL			Translate(HWND hWnd, MSG *pMsg);
 	void			SetAccelerator(HACCEL hAccel);
 
-	bool			GetShortcutString(int id, CStringW &str) const;
+	CStringW		GetShortcutString(int id) const;		// // //
 
 	// // // check if key is used as a modifier-less shortcut
 	bool			IsKeyUsed(int nChar) const;

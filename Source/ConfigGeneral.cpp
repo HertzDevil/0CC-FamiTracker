@@ -337,9 +337,7 @@ void CConfigGeneral::OnLvnItemchangedConfigList(NMHDR *pNMHDR, LRESULT *pResult)
 
 	if (pNMLV->uChanged & LVIF_STATE) {
 		if (pNMLV->uNewState & LVNI_SELECTED || pNMLV->uNewState & 0x3000) {
-			CStringW str;
-			str.Format(L"Description: %s", CONFIG_DESC[pNMLV->iItem]);
-			SetDlgItemTextW(IDC_EDIT_CONFIG_DESC, str);
+			SetDlgItemTextW(IDC_EDIT_CONFIG_DESC, FormattedW(L"Description: %s", CONFIG_DESC[pNMLV->iItem]));
 
 			if (pNMLV->iItem >= 0 && pNMLV->iItem < SETTINGS_BOOL_COUNT)
 				pList->SetItemState(pNMLV->iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);

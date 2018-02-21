@@ -127,13 +127,10 @@ BOOL CConfigShortcuts::OnApply()
 		if (it == m.end())
 			m[KeyVal] = i;
 		else {
-			CStringW msg;
-			msg.Format(L"These two commands are assigned to the same shortcut (%s):\n- %s\n- %s",
-					   AssembleKeyString(m_iMods[i], m_iKeys[i]),
-					   CAccelerator::DEFAULT_TABLE[it->second].name,
-					   CAccelerator::DEFAULT_TABLE[i].name);
-
-			AfxMessageBox(msg, MB_ICONERROR);
+			AfxMessageBox(FormattedW(L"These two commands are assigned to the same shortcut (%s):\n- %s\n- %s",
+				AssembleKeyString(m_iMods[i], m_iKeys[i]),
+				CAccelerator::DEFAULT_TABLE[it->second].name,
+				CAccelerator::DEFAULT_TABLE[i].name), MB_ICONERROR);
 			return FALSE;
 		}
 	}

@@ -46,25 +46,6 @@
 
 #include <type_traits>		// // //
 
-namespace {
-
-template <typename T>
-struct printf_arg : std::disjunction<
-	std::is_scalar<std::decay_t<T>>,
-	std::is_convertible<T, const char *>
-> { };
-
-template <typename... Args>		// // // TODO: put this into stdafx.h perhaps
-CStringA FormattedA(const char *fmt, Args&&... args) {
-	CStringA str;
-	static_assert(std::conjunction_v<printf_arg<Args>...>,
-		"Only scalar types allowed in printf");
-	str.Format(fmt, std::forward<Args>(args)...);
-	return str;
-}
-
-} // namespace
-
 #define DEBUG_OUT(...) { OutputDebugString(FormattedA(__VA_ARGS__)); }
 
 // command tokens
@@ -506,8 +487,6 @@ CStringA CTextExport::ExportString(std::string_view s)		// // //
 
 CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise)		// // //
 {
-	CStringA tmp;
-
 	static const LPCSTR TEXT_NOTE[] = {		// // //
 		"...",
 		"C-?", "C#?", "D-?", "D#?", "E-?", "F-?",
@@ -517,39 +496,21 @@ CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEff
 
 	CStringA s = (stCell.Note <= note_t::ECHO) ? TEXT_NOTE[value_cast(stCell.Note)] : "...";		// // //
 	if (IsNote(stCell.Note) || stCell.Note == note_t::ECHO)		// // //
-	{
 		if (bNoise)
-		{
-			char nNoiseFreq = MIDI_NOTE(stCell.Octave, stCell.Note) & 0x0F;
-			s.Format("%01X-#", nNoiseFreq);
-		}
+			s = FormattedA("%01X-#", MIDI_NOTE(stCell.Octave, stCell.Note) & 0x0F);
 		else
-		{
-			s = s.Left(2);
-			tmp.Format("%01d", stCell.Octave);
-			s += tmp;
-		}
-	}
+			s = FormattedA("%2s%01d", s.Left(2), stCell.Octave);
 
-	tmp.Format(" %02X", stCell.Instrument);
 	s += (stCell.Instrument == MAX_INSTRUMENTS) ? CStringA(" ..") :
-		(stCell.Instrument == HOLD_INSTRUMENT) ? CStringA(" &&") : tmp;		// // // 050B
+		(stCell.Instrument == HOLD_INSTRUMENT) ? CStringA(" &&") : FormattedA(" %02X", stCell.Instrument);		// // // 050B
 
-	tmp.Format(" %01X", stCell.Vol);
-	s += (stCell.Vol == 0x10) ? CStringA(" .") : tmp;		// // //
+	s += (stCell.Vol == 0x10) ? CStringA(" .") : FormattedA(" %01X", stCell.Vol);		// // //
 
 	for (unsigned int e=0; e < nEffects; ++e)
-	{
 		if (stCell.EffNumber[e] == 0)
-		{
-			s += " ...";
-		}
+			s.Append(" ...");
 		else
-		{
-			tmp.Format(" %c%02X", EFF_CHAR[stCell.EffNumber[e]-1], stCell.EffParam[e]);
-			s += tmp;
-		}
-	}
+			s.AppendFormat(" %c%02X", EFF_CHAR[stCell.EffNumber[e]-1], stCell.EffParam[e]);
 
 	return s;
 }
@@ -1022,7 +983,6 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		return FormattedA("Unable to open file:\n%s", conv::to_utf8(szError).data());
 	}
 
-	CStringA s;
 	auto &modfile = *Doc.GetModule();		// // //
 
 	const auto WriteString = [&] (const CStringA &str) { // TODO: don't use CStdioFile
@@ -1041,8 +1001,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	std::string_view sComment = modfile.GetComment();		// // //
 	while (true) {
 		auto n = sComment.find_first_of("\r\n");
-		s.Format("%s %s\n", CT[CT_COMMENT], ExportString(sComment.substr(0, n)));
-		WriteString(s);
+		WriteString(FormattedA("%s %s\n", CT[CT_COMMENT], ExportString(sComment.substr(0, n))));
 		if (n == std::string_view::npos)
 			break;
 		sComment.remove_prefix(n);
@@ -1068,11 +1027,10 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	if (modfile.HasExpansionChip(sound_chip_t::N163)) {
 		N163count = modfile.GetNamcoChannels();
 		modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(modfile.GetSoundChipSet(), MAX_CHANNELS_N163));
-		s.Format("# Namco 163 global settings\n"
-		         "%-15s %d\n"
-		         "\n",
-		         CT[CT_N163CHANNELS], N163count);
-		WriteString(s);
+		WriteString(FormattedA("# Namco 163 global settings\n"
+			"%-15s %d\n"
+			"\n",
+			CT[CT_N163CHANNELS], N163count));
 	}
 
 	WriteString("# Macros\n");
@@ -1083,18 +1041,15 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 			for (int seq = 0; seq < MAX_SEQUENCES; ++seq) {
 				const auto pSequence = InstManager.GetSequence(CHIP_MACRO[c], st, seq);
 				if (pSequence && pSequence->GetItemCount() > 0) {
-					s.Format("%-9s %3d %3d %3d %3d %3d :",
+					WriteString(FormattedA("%-9s %3d %3d %3d %3d %3d :",
 						CT[CT_MACRO + c],
 						st,
 						seq,
 						pSequence->GetLoopPoint(),
 						pSequence->GetReleasePoint(),
-						pSequence->GetSetting());
-					WriteString(s);
-					for (unsigned int i = 0; i < pSequence->GetItemCount(); ++i) {
-						s.Format(" %d", pSequence->GetItem(i));
-						WriteString(s);
-					}
+						pSequence->GetSetting()));
+					for (unsigned int i = 0; i < pSequence->GetItemCount(); ++i)
+						WriteString(FormattedA(" %d", pSequence->GetItem(i)));
 					WriteString("\n");
 				}
 			}
@@ -1107,22 +1062,17 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	{
 		if (auto pSample = modfile.GetDSampleManager()->GetDSample(smp)) {		// // //
 			const unsigned int size = pSample->size();
-			s.Format("%s %3d %5d %s\n",
+			WriteString(FormattedA("%s %3d %5d %s\n",
 				CT[CT_DPCMDEF],
 				smp,
 				size,
-				ExportString(pSample->name()));
-			WriteString(s);
+				ExportString(pSample->name())));
 
 			for (unsigned int i=0; i < size; i += 32)
 			{
-				s.Format("%s :", CT[CT_DPCM]);
-				WriteString(s);
+				WriteString(FormattedA("%s :", CT[CT_DPCM]));
 				for (unsigned int j=0; j<32 && (i+j)<size; ++j)
-				{
-					s.Format(" %02X", pSample->sample_at(i + j));		// // //
-					WriteString(s);
-				}
+					WriteString(FormattedA(" %02X", pSample->sample_at(i + j)));
 				WriteString("\n");
 			}
 		}
@@ -1133,8 +1083,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++) {
 		int Offset = modfile.GetDetuneOffset(i, j);
 		if (Offset != 0) {
-			s.Format("%s %3d %3d %3d %5d\n", CT[CT_DETUNE], i, j / NOTE_RANGE, j % NOTE_RANGE, Offset);
-			WriteString(s);
+			WriteString(FormattedA("%s %3d %3d %3d %5d\n", CT[CT_DETUNE], i, j / NOTE_RANGE, j % NOTE_RANGE, Offset));
 		}
 	}
 	WriteString("\n");
@@ -1142,12 +1091,9 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	WriteString("# Grooves\n");		// // //
 	for (int i = 0; i < MAX_GROOVE; i++) {
 		if (const auto pGroove = modfile.GetGroove(i)) {
-			s.Format("%s %3d %3d :", CT[CT_GROOVE], i, pGroove->size());
-			WriteString(s);
-			for (uint8_t entry : *pGroove) {
-				s.Format(" %d", entry);
-				WriteString(s);
-			}
+			WriteString(FormattedA("%s %3d %3d :", CT[CT_GROOVE], i, pGroove->size()));
+			for (uint8_t entry : *pGroove)
+				WriteString(FormattedA(" %d", entry));
 			WriteString("\n");
 		}
 	}
@@ -1160,7 +1106,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 			UsedGroove = true;
 	});
 	if (UsedGroove) {
-		s.Format("%s :", CT[CT_USEGROOVE]);
+		CStringA s = FormattedA("%s :", CT[CT_USEGROOVE]);
 		modfile.VisitSongs([&] (const CSongData &song, unsigned index) {
 			if (song.GetSongGroove())
 				s.AppendFormat(" %d", index + 1);
@@ -1185,11 +1131,10 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		case INST_NONE: default:
 			continue;
 		}
-		s.Format("%-8s %3d   ", CTstr, i);
-		WriteString(s);
+		WriteString(FormattedA("%-8s %3d   ", CTstr, i));
 
 		if (auto seqInst = std::dynamic_pointer_cast<CSeqInstrument>(pInst)) {
-			s.Empty();
+			CStringA s;
 			foreachSeq([&] (sequence_t j) {
 				s.AppendFormat("%3d ", seqInst->GetSeqEnable(j) ? seqInst->GetSeqIndex(j) : -1);
 			});
@@ -1201,31 +1146,29 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		case INST_N163:
 			{
 				auto pDI = std::static_pointer_cast<CInstrumentN163>(pInst);
-				s.Format("%3d %3d %3d ",
+				WriteString(FormattedA("%3d %3d %3d ",
 					pDI->GetWaveSize(),
 					pDI->GetWavePos(),
-					pDI->GetWaveCount());
-				WriteString(s);
+					pDI->GetWaveCount()));
 			}
 			break;
 		case INST_VRC7:
 			{
 				auto pDI = std::static_pointer_cast<CInstrumentVRC7>(pInst);
-				s.Format("%3d ", pDI->GetPatch());
+				CStringA patch = FormattedA("%3d ", pDI->GetPatch());
 				for (int j = 0; j < 8; j++)
-					s.AppendFormat("%02X ", pDI->GetCustomReg(j));
-				WriteString(s);
+					patch.AppendFormat("%02X ", pDI->GetCustomReg(j));
+				WriteString(patch);
 			}
 			break;
 		case INST_FDS:
 			{
 				auto pDI = std::static_pointer_cast<CInstrumentFDS>(pInst);
-				s.Format("%3d %3d %3d %3d ",
+				WriteString(FormattedA("%3d %3d %3d %3d ",
 					pDI->GetModulationEnable(),
 					pDI->GetModulationSpeed(),
 					pDI->GetModulationDepth(),
-					pDI->GetModulationDelay());
-				WriteString(s);
+					pDI->GetModulationDelay()));
 			}
 			break;
 		}
@@ -1244,7 +1187,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 					if (smp != 0)
 					{
 						int d = pDI->GetSampleDeltaValue(n);
-						s.Format("%s %3d %3d %3d   %3d %3d %3d %5d %3d\n",
+						WriteString(FormattedA("%s %3d %3d %3d   %3d %3d %3d %5d %3d\n",
 							CT[CT_KEYDPCM],
 							i,
 							GET_OCTAVE(n), value_cast(GET_NOTE(n)) - 1,
@@ -1252,8 +1195,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 							pDI->GetSamplePitch(n) & 0x0F,
 							pDI->GetSampleLoop(n) ? 1 : 0,
 							pDI->GetSampleLoopOffset(n),
-							(d >= 0 && d <= 127) ? d : -1);
-						WriteString(s);
+							(d >= 0 && d <= 127) ? d : -1));
 					}
 				}
 			}
@@ -1263,14 +1205,10 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 				auto pDI = std::static_pointer_cast<CInstrumentN163>(pInst);
 				for (int w=0; w < pDI->GetWaveCount(); ++w)
 				{
-					s.Format("%s %3d %3d :",
-						CT[CT_N163WAVE], i, w);
-					WriteString(s);
+					WriteString(FormattedA("%s %3d %3d :", CT[CT_N163WAVE], i, w));
 
-					for (int smp : pDI->GetSamples(w)) {		// // //
-						s.Format(" %d", smp);
-						WriteString(s);
-					}
+					for (int smp : pDI->GetSamples(w))		// // //
+						WriteString(FormattedA(" %d", smp));
 					WriteString("\n");
 				}
 			}
@@ -1278,19 +1216,14 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		case INST_FDS:
 			{
 				auto pDI = std::static_pointer_cast<CInstrumentFDS>(pInst);
-				s.Format("%-8s %3d :", CT[CT_FDSWAVE], i);
-				WriteString(s);
-				for (unsigned char smp : pDI->GetSamples()) {		// // //
-					s.Format(" %2d", smp);
-					WriteString(s);
-				}
+				WriteString(FormattedA("%-8s %3d :", CT[CT_FDSWAVE], i));
+				for (unsigned char smp : pDI->GetSamples())		// // //
+					WriteString(FormattedA(" %2d", smp));
 				WriteString("\n");
 
-				s.Format("%-8s %3d :", CT[CT_FDSMOD], i);
-				WriteString(s);
+				WriteString(FormattedA("%-8s %3d :", CT[CT_FDSMOD], i));
 				for (unsigned char m : pDI->GetModTable()) {		// // //
-					s.Format(" %2d", m);
-					WriteString(s);
+					WriteString(FormattedA(" %2d", m));
 				}
 				WriteString("\n");
 
@@ -1299,19 +1232,15 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 					if (!pSequence || pSequence->GetItemCount() < 1)
 						return;
 
-					s.Format("%-8s %3d %3d %3d %3d %3d :",
+					WriteString(FormattedA("%-8s %3d %3d %3d %3d %3d :",
 						CT[CT_FDSMACRO],
 						i,
 						seq,
 						pSequence->GetLoopPoint(),
 						pSequence->GetReleasePoint(),
-						pSequence->GetSetting());
-					WriteString(s);
+						pSequence->GetSetting()));
 					for (unsigned int i=0; i < pSequence->GetItemCount(); ++i)
-					{
-						s.Format(" %d", pSequence->GetItem(i));
-						WriteString(s);
-					}
+						WriteString(FormattedA(" %d", pSequence->GetItem(i)));
 					WriteString("\n");
 				});
 			}
@@ -1325,28 +1254,23 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	const CChannelOrder &order = modfile.GetChannelOrder();		// // //
 
 	modfile.VisitSongs([&] (const CSongData &song) {
-		s.Format("%s %3d %3d %3d %s\n",
+		WriteString(FormattedA("%s %3d %3d %3d %s\n",
 			CT[CT_TRACK],
 			song.GetPatternLength(),
 			song.GetSongSpeed(),
 			song.GetSongTempo(),
-			ExportString(song.GetTitle()));		// // //
-		WriteString(s);
+			ExportString(song.GetTitle())));
 
-		s.Format("%s :", CT[CT_COLUMNS]);
-		WriteString(s);
+		WriteString(FormattedA("%s :", CT[CT_COLUMNS]));
 		order.ForeachChannel([&] (chan_id_t c) {
-			s.Format(" %d", song.GetEffectColumnCount(c)+1);
-			WriteString(s);
+			WriteString(FormattedA(" %d", song.GetEffectColumnCount(c)+1));
 		});
 		WriteString("\n\n");
 
 		for (unsigned int o=0; o < song.GetFrameCount(); ++o) {
-			s.Format("%s %02X :", CT[CT_ORDER], o);
-			WriteString(s);
+			WriteString(FormattedA("%s %02X :", CT[CT_ORDER], o));
 			order.ForeachChannel([&] (chan_id_t c) {
-				s.Format(" %02X", song.GetFramePattern(o, c));
-				WriteString(s);
+				WriteString(FormattedA(" %02X", song.GetFramePattern(o, c)));
 			});
 			WriteString("\n");
 		}
@@ -1363,12 +1287,10 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 			if (!bUsed)
 				continue;
 
-			s.Format("%s %02X\n", CT[CT_PATTERN], p);
-			WriteString(s);
+			WriteString(FormattedA("%s %02X\n", CT[CT_PATTERN], p));
 
 			for (unsigned int r=0; r < song.GetPatternLength(); ++r) {
-				s.Format("%s %02X", CT[CT_ROW], r);
-				WriteString(s);
+				WriteString(FormattedA("%s %02X", CT[CT_ROW], r));
 				order.ForeachChannel([&] (chan_id_t c) {
 					WriteString(" : ");
 					WriteString(ExportCellText(song.GetPattern(c, p).GetNoteOn(r), song.GetEffectColumnCount(c)+1, c==chan_id_t::NOISE));		// // //

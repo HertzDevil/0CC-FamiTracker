@@ -161,13 +161,9 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 
 		sound_chip_t ChipID = GetChipFromChannel(Channel);		// // //
 
-		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT && (IsNote(Note) || Note == note_t::ECHO)) {		// // //
-			if (!IsInstrumentCompatible(ChipID, pInstManager->GetInstrumentType(ChanNote.Instrument))) {		// // //
-				CStringW str;
-				str.Format(L"Error: Missing or incompatible instrument (on row %i, channel %i, pattern %i)\n", i, Channel, Pattern);
-				Print(str);
-			}
-		}
+		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT && (IsNote(Note) || Note == note_t::ECHO))		// // //
+			if (!IsInstrumentCompatible(ChipID, pInstManager->GetInstrumentType(ChanNote.Instrument)))		// // //
+				Print(FormattedW(L"Error: Missing or incompatible instrument (on row %i, channel %i, pattern %i)\n", i, Channel, Pattern));
 
 		// Check for delays, must come first
 		for (int j = 0; j < EffColumns; ++j) {
@@ -291,9 +287,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 				}
 				else {
 					NESNote = 0xFF;		// Invalid sample, skip
-					CStringW str;
-					str.Format(L"Error: Missing DPCM sample (on row %i, channel %i, pattern %i)\n", i, Channel, Pattern);
-					Print(str);
+					Print(FormattedW(L"Error: Missing DPCM sample (on row %i, channel %i, pattern %i)\n", i, Channel, Pattern));
 				}
 			}
 			else if (Channel == chan_id_t::NOISE) {

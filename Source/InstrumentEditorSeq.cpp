@@ -60,11 +60,9 @@ void CInstrumentEditorSeq::SelectInstrument(std::shared_ptr<CInstrument> pInst)
 	// Update instrument setting list
 	if (CListCtrl *pList = static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS))) {		// // //
 		pList->SetRedraw(FALSE);
-		CStringW str;
 		foreachSeq([&] (sequence_t i) {
 			pList->SetCheck(value_cast(i), m_pInstrument->GetSeqEnable(i));
-			str.Format(L"%i", m_pInstrument->GetSeqIndex(i));
-			pList->SetItemText(value_cast(i), 1, str);
+			pList->SetItemText(value_cast(i), 1, FormattedW(L"%i", m_pInstrument->GetSeqIndex(i)));
 		});
 		pList->SetRedraw();
 		pList->RedrawWindow();
@@ -197,9 +195,7 @@ void CInstrumentEditorSeq::OnEnChangeSeqIndex()
 
 	if (m_pInstrument != nullptr) {
 		// Update list
-		CStringW str;		// // //
-		str.Format(L"%i", Index);
-		pList->SetItemText(value_cast(m_iSelectedSetting), 1, str);
+		pList->SetItemText(value_cast(m_iSelectedSetting), 1, FormattedW(L"%i", Index));
 		if (m_pInstrument->GetSeqIndex(m_iSelectedSetting) != Index) {
 			m_pInstrument->SetSeqIndex(m_iSelectedSetting, Index);
 			GetDocument()->ModifyIrreversible();		// // //

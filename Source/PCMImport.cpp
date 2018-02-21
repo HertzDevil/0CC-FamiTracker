@@ -284,9 +284,9 @@ void CPCMImport::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 void CPCMImport::UpdateText()
 {
 	CStringW Text;
-	AfxFormatString1(Text, IDS_DPCM_IMPORT_QUALITY_FORMAT, MakeIntString(m_iQuality));
+	AfxFormatString1(Text, IDS_DPCM_IMPORT_QUALITY_FORMAT, FormattedW(L"%i", m_iQuality));
 	SetDlgItemTextW(IDC_QUALITY_FRM, Text);
-	AfxFormatString1(Text, IDS_DPCM_IMPORT_GAIN_FORMAT, MakeFloatString(float(m_iVolume), L"%+.0f"));
+	AfxFormatString1(Text, IDS_DPCM_IMPORT_GAIN_FORMAT, FormattedW(L"%+.0f", (float)m_iVolume));		// // //
 	SetDlgItemTextW(IDC_VOLUME_FRM, Text);
 }
 
@@ -321,7 +321,7 @@ void CPCMImport::OnBnClickedPreview()
 {
 	if (auto pSample = GetSample()) {		// // //
 		CStringW text;
-		AfxFormatString1(text, IDS_DPCM_IMPORT_SIZE_FORMAT, MakeIntString(pSample->size()));
+		AfxFormatString1(text, IDS_DPCM_IMPORT_SIZE_FORMAT, FormattedW(L"%i", pSample->size()));
 		SetDlgItemTextW(IDC_SAMPLESIZE, text);
 
 		// Preview the sample
@@ -334,8 +334,8 @@ void CPCMImport::UpdateFileInfo()
 	CStringW SampleRate;
 
 	AfxFormatString3(SampleRate, IDS_DPCM_IMPORT_WAVE_FORMAT,
-		MakeIntString(m_iSamplesPerSec),
-		MakeIntString(m_iSampleSize * 8),
+		FormattedW(L"%i", m_iSamplesPerSec),
+		FormattedW(L"%i", m_iSampleSize * 8),
 		(m_iChannels == 2) ? L"Stereo" : L"Mono");
 
 	SetDlgItemTextW(IDC_SAMPLE_RATE, SampleRate);
@@ -343,7 +343,7 @@ void CPCMImport::UpdateFileInfo()
 	float base_freq = (float)CAPU::BASE_FREQ_NTSC / (float)CDPCM::DMC_PERIODS_NTSC[m_iQuality];
 
 	CStringW Resampling;
-	AfxFormatString1(Resampling, IDS_DPCM_IMPORT_TARGET_FORMAT, MakeFloatString(base_freq));
+	AfxFormatString1(Resampling, IDS_DPCM_IMPORT_TARGET_FORMAT, FormattedW(L"%g", base_freq));
 	SetDlgItemTextW(IDC_RESAMPLING, Resampling);
 }
 

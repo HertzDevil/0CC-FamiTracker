@@ -30,6 +30,7 @@
 #include "SoundGen.h"		// // //
 #include "ChannelMap.h"		// // //
 #include "ModuleImporter.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 // CModuleImportDlg dialog
 
@@ -64,10 +65,8 @@ BOOL CModuleImportDlg::OnInitDialog()
 	m_ctlTrackList.SubclassDlgItem(IDC_TRACKS, this);
 
 	m_pImportedDoc->GetModule()->VisitSongs([&] (const CSongData &song, unsigned i) {
-		CStringW str;
-		auto sv = song.GetTitle();
-		str.Format(L"#%02i %.*s", i + 1, sv.size(), sv.data());		// // //
-		m_ctlTrackList.AddString(str);
+		auto sv = conv::to_wide(song.GetTitle());		// // //
+		m_ctlTrackList.AddString(FormattedW(L"#%02i %.*s", i + 1, sv.size(), sv.data()));
 		m_ctlTrackList.SetCheck(i, 1);
 	});
 

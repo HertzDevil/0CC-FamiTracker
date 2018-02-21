@@ -72,15 +72,14 @@ void CPerformanceDlg::OnTimer(UINT nIDEvent)
 	unsigned int Usage = theApp.GetCPUUsage();
 	unsigned int Rate = theApp.GetSoundGenerator()->GetFrameRate();
 	unsigned int Underruns = theApp.GetSoundGenerator()->GetAudioDriver()->GetUnderruns();
+
+	SetDlgItemTextW(IDC_CPU, FormattedW(L"%i%%", Usage / 100));
+
 	CStringW Text;
-
-	Text.Format(L"%i%%", Usage / 100);
-	SetDlgItemTextW(IDC_CPU, Text);
-
-	AfxFormatString1(Text, IDS_PERFORMANCE_FRAMERATE_FORMAT, MakeIntString(Rate));
+	AfxFormatString1(Text, IDS_PERFORMANCE_FRAMERATE_FORMAT, FormattedW(L"%i", Rate));
 	SetDlgItemTextW(IDC_FRAMERATE, Text);
 
-	AfxFormatString1(Text, IDS_PERFORMANCE_UNDERRUN_FORMAT, MakeIntString(Underruns));
+	AfxFormatString1(Text, IDS_PERFORMANCE_UNDERRUN_FORMAT, FormattedW(L"%i", Underruns));
 	SetDlgItemTextW(IDC_UNDERRUN, Text);
 
 	pBar->SetRange(0, 100);

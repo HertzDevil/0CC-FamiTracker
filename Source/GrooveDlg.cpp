@@ -199,34 +199,29 @@ void CGrooveDlg::ReloadGrooves()
 		else
 			GrooveTable[i] = std::make_unique<groove>();
 
-		CStringW String;
-		String.Format(L"%02X%s", i, Used ? L" *" : L"");
-		m_cGrooveTable.AddString(String);
+		m_cGrooveTable.AddString(FormattedW(L"%02X%s", i, Used ? L" *" : L""));
 	}
 }
 
 void CGrooveDlg::UpdateCurrentGroove()
 {
-	CStringW String;
 	CStringW disp = L"";
 
 	Groove = GrooveTable[m_iGrooveIndex].get();
 	m_cCurrentGroove.ResetContent();
 	unsigned i = 0;
 	for (uint8_t entry : *Groove) {
-		String.Format(L"%02X: %d", i++, entry);
 		disp.AppendFormat(L"%d ", entry);
-		m_cCurrentGroove.InsertString(-1, String);
+		m_cCurrentGroove.InsertString(-1, FormattedW(L"%02X: %d", i++, entry));
 	}
 	m_cCurrentGroove.InsertString(-1, L"--");
 
 	m_cCurrentGroove.SetCurSel(m_iGroovePos);
 	SetDlgItemTextW(IDC_EDIT_GROOVE_FIELD, disp);
 
-	String.Format(L"%02X%s", m_iGrooveIndex, Groove->size() ? L" *" : L"");
 	m_cGrooveTable.SetRedraw(FALSE);
 	m_cGrooveTable.DeleteString(m_iGrooveIndex);
-	m_cGrooveTable.InsertString(m_iGrooveIndex, String);
+	m_cGrooveTable.InsertString(m_iGrooveIndex, FormattedW(L"%02X%s", m_iGrooveIndex, Groove->size() ? L" *" : L""));
 	m_cGrooveTable.SetCurSel(m_iGrooveIndex);
 	m_cGrooveTable.SetRedraw(TRUE);
 
@@ -235,18 +230,13 @@ void CGrooveDlg::UpdateCurrentGroove()
 
 void CGrooveDlg::UpdateIndicators()
 {
-	CStringW String;
-
-	String.Format(L"Speed: %.3f", Groove->average());
-	SetDlgItemTextW(IDC_STATIC_GROOVE_AVERAGE, String);
-	String.Format(L"Size: %d bytes", Groove->size() ? Groove->compiled_size() : 0);
-	SetDlgItemTextW(IDC_STATIC_GROOVE_SIZE, String);
+	SetDlgItemTextW(IDC_STATIC_GROOVE_AVERAGE, FormattedW(L"Speed: %.3f", Groove->average()));
+	SetDlgItemTextW(IDC_STATIC_GROOVE_SIZE, FormattedW(L"Size: %d bytes", Groove->size() ? Groove->compiled_size() : 0));
 	int Total = 0;
 	for (int i = 0; i < MAX_GROOVE; ++i)
 		if (GrooveTable[i]->size())
 			Total += GrooveTable[i]->compiled_size();
-	String.Format(L"Total size: %d / 255 bytes", Total);
-	SetDlgItemTextW(IDC_STATIC_GROOVE_TOTAL, String);
+	SetDlgItemTextW(IDC_STATIC_GROOVE_TOTAL, FormattedW(L"Total size: %d / 255 bytes", Total));
 
 	CWnd *OKButton = GetDlgItem(IDOK);
 	CWnd *ApplyButton = GetDlgItem(IDAPPLY);

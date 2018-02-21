@@ -193,5 +193,3 @@ extern CFamiTrackerApp theApp;
 CStringW LoadDefaultFilter(LPCWSTR Name, LPCWSTR Ext);
 CStringW LoadDefaultFilter(UINT nID, LPCWSTR Ext);
 void AfxFormatString3(CStringW &rString, UINT nIDS, LPCWSTR lpsz1, LPCWSTR lpsz2, LPCWSTR lpsz3);
-CStringW MakeIntString(int val, LPCWSTR format = L"%i");
-CStringW MakeFloatString(float val, LPCWSTR format = L"%g");

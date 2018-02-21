@@ -256,16 +256,13 @@ void CSampleEditorDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar
 {
 	int Pitch = static_cast<CSliderCtrl*>(GetDlgItem(IDC_PITCH))->GetPos();
 
-	CStringW text;
-	text.Format(L"Pitch (%i)", Pitch);
-	SetDlgItemTextW(IDC_STATIC_PITCH, text);
+	SetDlgItemTextW(IDC_STATIC_PITCH, FormattedW(L"Pitch (%i)", Pitch));
 
 	auto pZoom = static_cast<CSliderCtrl*>(GetDlgItem(IDC_ZOOM));		// // //
 	float Zoom = static_cast<float>(pZoom->GetPos()) / pZoom->GetRangeMax();
 	m_pSampleEditorView->SetZoom(1.0f - Zoom);
 	m_pSampleEditorView->Invalidate();
-	text.Format(L"Zoom (%.2fx)", 1. / m_pSampleEditorView->GetZoom());		// // //
-	SetDlgItemTextW(IDC_STATIC_DPCM_ZOOM, text);
+	SetDlgItemTextW(IDC_STATIC_DPCM_ZOOM, FormattedW(L"Zoom (%.2fx)", 1. / m_pSampleEditorView->GetZoom()));
 
 	CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
 }

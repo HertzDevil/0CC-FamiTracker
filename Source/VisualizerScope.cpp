@@ -157,10 +157,7 @@ void CVisualizerScope::Display(CDC *pDC, bool bPaintMsg)
 	CVisualizerBase::Display(pDC, bPaintMsg);		// // //
 
 #ifdef _DEBUG
-	CStringW PeakText;
-	PeakText.Format(L"%i", m_iPeak);
-	pDC->TextOutW(0, 0, PeakText);
-	PeakText.Format(L"%gdB", 20.0 * log(double(m_iPeak) / 65535.0));		// // //
-	pDC->TextOutW(0, 16, PeakText);
+	pDC->TextOutW(0, 0, FormattedW(L"%i", m_iPeak));
+	pDC->TextOutW(0, 16, FormattedW(L"%gdB", 20.0 * log(double(m_iPeak) / 65535.0)));
 #endif
 }

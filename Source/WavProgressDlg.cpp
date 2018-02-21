@@ -110,10 +110,9 @@ void CWavProgressDlg::OnTimer(UINT_PTR nIDEvent)
 	SetDlgItemTextW(IDC_PROGRESS_LBL, conv::to_wide(m_pWaveRenderer->GetProgressString()).data());
 	pProgressBar->SetPos(m_pWaveRenderer->GetProgressPercent());		// // //
 
-	CStringW str, Text;
+	CStringW Text;
 	const DWORD Time = (GetTickCount() - m_dwStartTime) / 1000;		// // //
-	str.Format(L"%02i:%02i", (Time / 60), (Time % 60));
-	AfxFormatString1(Text, IDS_WAVE_PROGRESS_ELAPSED_FORMAT, str);
+	AfxFormatString1(Text, IDS_WAVE_PROGRESS_ELAPSED_FORMAT, FormattedW(L"%02i:%02i", Time / 60, Time % 60));
 	SetDlgItemTextW(IDC_TIME, Text);
 
 	if (!pSoundGen->IsRendering()) {

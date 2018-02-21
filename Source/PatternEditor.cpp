@@ -1109,17 +1109,15 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 	// Draw row number
 	DC.SetTextAlign(TA_CENTER | TA_BASELINE);		// // //
 
-	CStringW Text;
-
 	if (pSettings->General.bRowInHex) {
 		// // // Hex display
-		Text.Format(L"%02X", Row);
+		CStringW Text = FormattedW(L"%02X", Row);
 		DrawChar(DC, (m_iRowColumnWidth - m_iCharWidth) / 2, (Line + 1) * m_iRowHeight - m_iRowHeight / 8, Text[0], TextColor);
 		DrawChar(DC, (m_iRowColumnWidth + m_iCharWidth) / 2, (Line + 1) * m_iRowHeight - m_iRowHeight / 8, Text[1], TextColor);
 	}
 	else {
 		// // // Decimal display
-		Text.Format(L"%03d", Row);
+		CStringW Text = FormattedW(L"%03d", Row);
 		DrawChar(DC, m_iRowColumnWidth / 2 - m_iCharWidth, (Line + 1) * m_iRowHeight - m_iRowHeight / 8, Text[0], TextColor);
 		DrawChar(DC, m_iRowColumnWidth / 2				  , (Line + 1) * m_iRowHeight - m_iRowHeight / 8, Text[1], TextColor);
 		DrawChar(DC, m_iRowColumnWidth / 2 + m_iCharWidth, (Line + 1) * m_iRowHeight - m_iRowHeight / 8, Text[2], TextColor);
@@ -1265,8 +1263,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		EffNumber >= EF_COUNT ||
 		NoteData.Instrument > MAX_INSTRUMENTS && NoteData.Instrument != HOLD_INSTRUMENT) {		// // // 050B
 		if (Column == C_NOTE/* || Column == 4*/) {
-			CStringW Text;
-			Text.Format(L"(invalid)");
+			CStringW Text = L"(invalid)";
 			DC.SetTextColor(MakeRGB(255, 0, 0));
 			DC.TextOutW(PosX, -1, Text);
 		}
@@ -1503,11 +1500,8 @@ void CPatternEditor::DrawHeader(CDC &DC)
 			DC.SetTextAlign(TA_CENTER);
 
 			unsigned fxcols = pSongView->GetEffectColumnCount(Channel);
-			for (unsigned int i = 1; i <= fxcols; i++) {		// // //
-				CStringW str;
-				str.Format(L"fx%d", i + 1);
-				DC.TextOutW(Offset + GetChannelWidth(i) - m_iCharWidth * 3 / 2, HEADER_CHAN_START + HEADER_CHAN_HEIGHT - 17, str);
-			}
+			for (unsigned int i = 1; i <= fxcols; ++i)		// // //
+				DC.TextOutW(Offset + GetChannelWidth(i) - m_iCharWidth * 3 / 2, HEADER_CHAN_START + HEADER_CHAN_HEIGHT - 17, FormattedW(L"fx&d", i + 1));
 
 			// Arrows for expanding/removing fx columns
 			if (fxcols > 0) {

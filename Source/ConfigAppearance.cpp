@@ -400,7 +400,7 @@ void CConfigAppearance::SelectColorScheme(const COLOR_SCHEME *pColorScheme)
 	m_strFont = pColorScheme->FONT_FACE;
 	m_iFontSize = pColorScheme->FONT_SIZE;
 	pFontList->SelectString(0, m_strFont);
-	pFontSizeList->SelectString(0, MakeIntString(m_iFontSize));
+	pFontSizeList->SelectString(0, FormattedW(L"%i", m_iFontSize));
 }
 
 void CConfigAppearance::SetColor(int Index, int Color)
@@ -462,7 +462,7 @@ void CConfigAppearance::OnBnClickedButtonAppearanceLoad()		// // // 050B
 	if (fileDialog.DoModal() == IDOK) {
 		ImportSettings(fileDialog.GetPathName().GetBuffer());
 		static_cast<CComboBox*>(GetDlgItem(IDC_FONT))->SelectString(0, m_strFont);
-		static_cast<CComboBox*>(GetDlgItem(IDC_FONT_SIZE))->SelectString(0, MakeIntString(m_iFontSize));
+		static_cast<CComboBox*>(GetDlgItem(IDC_FONT_SIZE))->SelectString(0, FormattedW(L"%i", m_iFontSize));
 		RedrawWindow();
 		SetModified();
 	}

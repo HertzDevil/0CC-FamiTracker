@@ -76,6 +76,7 @@ class CRenderTarget;		// // //
 #include <afxdlgs.h>
 #include <afxole.h>        // MFC OLE support
 #include <afxmt.h>		// // // For CMutex
+#include <type_traits>		// // //
 
 #ifdef TRACE
 #undef TRACE
@@ -96,3 +97,39 @@ bool _trace(LPCWSTR format, T&&... args)
 #else
 #define TRACE __noop
 #endif
+
+namespace details {
+
+template <typename T, typename CharT>		// // //
+inline constexpr bool is_printf_arg_v = std::is_arithmetic_v<std::decay_t<T>> ||
+	std::is_enum_v<std::decay_t<T>> || std::is_convertible_v<T, const CharT *>;
+
+} // namespace details
+
+template <typename... Args>
+inline CStringA FormattedA(LPCSTR fmt, Args&&... args) {
+	CStringA str;
+	static_assert((... && details::is_printf_arg_v<Args, CHAR>), "These types cannot be passed to printf");
+	str.Format(fmt, std::forward<Args>(args)...);
+	return str;
+}
+
+template <typename... Args>
+inline CStringW FormattedW(LPCWSTR fmt, Args&&... args) {
+	CStringW str;
+	static_assert((... && details::is_printf_arg_v<Args, WCHAR>), "These types cannot be passed to printf");
+	str.Format(fmt, std::forward<Args>(args)...);
+	return str;
+}
+
+template <typename... Args>
+inline void AppendFormatA(CStringA &str, LPCSTR fmt, Args&&... args) {
+	static_assert((... && details::is_printf_arg_v<Args, CHAR>), "These types cannot be passed to printf");
+	str.AppendFormat(fmt, std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+inline void AppendFormatW(CStringW &str, LPCWSTR fmt, Args&&... args) {
+	static_assert((... && details::is_printf_arg_v<Args, WCHAR>), "These typep cannot be passed to printf");
+	str.AppendFormat(fmt, std::forward<Args>(args)...);
+}
