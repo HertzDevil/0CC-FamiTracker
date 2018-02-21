@@ -139,12 +139,10 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 
 					if (ImportedInstruments.AssignedSample > 0) {
 						int Pitch = 0;
-						for (int y = 0; y < 6; y++) {
-							for (int x = 0; x < 12; x++) {
-								pInst->SetSampleIndex(y, x, ImportedInstruments.AssignedSample);
-								pInst->SetSamplePitch(y, x, Pitch);
-								Pitch = (Pitch + 1) % 16;
-							}
+						for (int n = 0; n < 72; ++n) {		// // //
+							pInst->SetSampleIndex(n, ImportedInstruments.AssignedSample);
+							pInst->SetSamplePitch(n, Pitch);
+							Pitch = (Pitch + 1) % 16;
 						}
 					}
 
@@ -194,10 +192,10 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 						Note.EffNumber[0] = static_cast<effect_t>(ImportedNote.ExtraStuff1);
 						Note.EffParam[0] = ImportedNote.ExtraStuff2;
 						Note.Instrument = ImportedNote.Instrument;
-						Note.Note = ImportedNote.Note;
+						Note.Note = static_cast<note_t>(ImportedNote.Note);
 						Note.Octave = ImportedNote.Octave;
 						Note.Vol = 0;
-						if (Note.Note == 0)
+						if (Note.Note == note_t::NONE)
 							Note.Instrument = MAX_INSTRUMENTS;
 						if (Note.Vol == 0)
 							Note.Vol = MAX_VOLUME;

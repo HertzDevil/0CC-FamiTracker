@@ -41,7 +41,7 @@ void CChannelHandlerMMC5::HandleNoteData(stChanNote &NoteData)		// // //
 	// // //
 	CChannelHandler::HandleNoteData(NoteData);
 
-	if (NoteData.Note != NONE && NoteData.Note != HALT && NoteData.Note != RELEASE) {
+	if (IsNote(NoteData.Note) || NoteData.Note == note_t::ECHO) {
 		if (!m_bEnvelopeLoop || m_bHardwareEnvelope)		// // //
 			m_bResetEnvelope = true;
 	}

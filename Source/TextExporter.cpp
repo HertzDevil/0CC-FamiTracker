@@ -336,17 +336,17 @@ public:
 		stChanNote Cell;		// // //
 
 		CStringA sNote = ReadToken();
-		if (sNote == "...") { Cell.Note = NONE; }
-		else if (sNote == "---") { Cell.Note = HALT; }
-		else if (sNote == "===") { Cell.Note = RELEASE; }
+		if (sNote == "...") { Cell.Note = note_t::NONE; }
+		else if (sNote == "---") { Cell.Note = note_t::HALT; }
+		else if (sNote == "===") { Cell.Note = note_t::RELEASE; }
 		else {
 			if (sNote.GetLength() != 3)
 				throw MakeError("note column should be 3 characters wide, '%s' found.", sNote);
 
 			if (chan == chan_id_t::NOISE) {		// // // noise
 				int h = ImportHex(sNote.Left(1));		// // //
-				Cell.Note = (h % NOTE_RANGE) + 1;
-				Cell.Octave = h / NOTE_RANGE;
+				Cell.Note = GET_NOTE(h);
+				Cell.Octave = GET_OCTAVE(h);
 
 				// importer is very tolerant about the second and third characters
 				// in a noise note, they can be anything
@@ -355,32 +355,32 @@ public:
 				int o = sNote.GetAt(2) - L'0';
 				if (o < 0 || o > ECHO_BUFFER_LENGTH)
 					throw MakeError("out-of-bound echo buffer accessed.");
-				Cell.Note = ECHO;
+				Cell.Note = note_t::ECHO;
 				Cell.Octave = o;
 			}
 			else {
-				int n = 0;
+				int n = 1;
 				switch (sNote.GetAt(0)) {
-				case L'c': case L'C': n = 0; break;
-				case L'd': case L'D': n = 2; break;
-				case L'e': case L'E': n = 4; break;
-				case L'f': case L'F': n = 5; break;
-				case L'g': case L'G': n = 7; break;
-				case L'a': case L'A': n = 9; break;
-				case L'b': case L'B': n = 11; break;
+				case L'c': case L'C': n = value_cast(note_t::C); break;
+				case L'd': case L'D': n = value_cast(note_t::D); break;
+				case L'e': case L'E': n = value_cast(note_t::E); break;
+				case L'f': case L'F': n = value_cast(note_t::F); break;
+				case L'g': case L'G': n = value_cast(note_t::G); break;
+				case L'a': case L'A': n = value_cast(note_t::A); break;
+				case L'b': case L'B': n = value_cast(note_t::B); break;
 				default:
 					throw MakeError("unrecognized note '%s'.", sNote);
 				}
 				switch (sNote.GetAt(1)) {
 				case L'-': case L'.': break;
-				case L'#': case L'+': n += 1; break;
-				case L'b': case L'f': n -= 1; break;
+				case L'#': case L'+': ++n; break;
+				case L'b': case L'f': --n; break;
 				default:
 					throw MakeError("unrecognized note '%s'.", sNote);
 				}
-				while (n < 0) n += NOTE_RANGE;
-				while (n >= NOTE_RANGE) n -= NOTE_RANGE;
-				Cell.Note = n + 1;
+				while (n < value_cast(note_t::C)) n += NOTE_RANGE;
+				while (n > value_cast(note_t::B)) n -= NOTE_RANGE;
+				Cell.Note = static_cast<note_t>(n);
 
 				int o = sNote.GetAt(2) - L'0';
 				if (o < 0 || o >= OCTAVE_RANGE) {
@@ -508,19 +508,19 @@ CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEff
 {
 	CStringA tmp;
 
-	static const LPCSTR TEXT_NOTE[ECHO+1] = {		// // //
+	static const LPCSTR TEXT_NOTE[] = {		// // //
 		"...",
 		"C-?", "C#?", "D-?", "D#?", "E-?", "F-?",
 		"F#?", "G-?", "G#?", "A-?", "A#?", "B-?",
 		"===", "---", "^-?",
 	};
 
-	CStringA s = (stCell.Note <= ECHO) ? TEXT_NOTE[stCell.Note] : "...";		// // //
-	if (stCell.Note >= NOTE_C && stCell.Note <= NOTE_B || stCell.Note == ECHO)		// // //
+	CStringA s = (stCell.Note <= note_t::ECHO) ? TEXT_NOTE[value_cast(stCell.Note)] : "...";		// // //
+	if (IsNote(stCell.Note) || stCell.Note == note_t::ECHO)		// // //
 	{
 		if (bNoise)
 		{
-			char nNoiseFreq = (stCell.Note - 1 + stCell.Octave * NOTE_RANGE) & 0x0F;
+			char nNoiseFreq = MIDI_NOTE(stCell.Octave, stCell.Note) & 0x0F;
 			s.Format("%01X-#", nNoiseFreq);
 		}
 		else
@@ -818,13 +818,14 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 			auto pInst = std::static_pointer_cast<CInstrument2A03>(InstManager.GetInstrument(inst_index));
 
 			int io = t.ReadInt(0, OCTAVE_RANGE);
-			int in = t.ReadInt(0, 12);
+			int in = t.ReadInt(0, 11);		// // //
+			auto MidiNote = io * NOTE_RANGE + in;
 
-			pInst->SetSampleIndex(io, in, t.ReadInt(0, MAX_DSAMPLES - 1) + 1);
-			pInst->SetSamplePitch(io, in, t.ReadInt(0, 15));
-			pInst->SetSampleLoop(io, in, t.ReadInt(0, 1) == 1);
-			pInst->SetSampleLoopOffset(io, in, t.ReadInt(0, 255));
-			pInst->SetSampleDeltaValue(io, in, t.ReadInt(-1, 127));
+			pInst->SetSampleIndex(MidiNote, t.ReadInt(0, MAX_DSAMPLES - 1) + 1);
+			pInst->SetSamplePitch(MidiNote, t.ReadInt(0, 15));
+			pInst->SetSampleLoop(MidiNote, t.ReadInt(0, 1) == 1);
+			pInst->SetSampleLoopOffset(MidiNote, t.ReadInt(0, 255));
+			pInst->SetSampleDeltaValue(MidiNote, t.ReadInt(-1, 127));
 			t.ReadEOL();
 		}
 		break;
@@ -1237,21 +1238,20 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		case INST_2A03:
 			{
 				auto pDI = std::static_pointer_cast<CInstrument2A03>(pInst);
-				for (int oct = 0; oct < OCTAVE_RANGE; ++oct)
-				for (int key = 0; key < NOTE_RANGE; ++key)
+				for (int n = 0; n < NOTE_COUNT; ++n)
 				{
-					int smp = pDI->GetSampleIndex(oct, key);
+					int smp = pDI->GetSampleIndex(n);
 					if (smp != 0)
 					{
-						int d = pDI->GetSampleDeltaValue(oct, key);
+						int d = pDI->GetSampleDeltaValue(n);
 						s.Format("%s %3d %3d %3d   %3d %3d %3d %5d %3d\n",
 							CT[CT_KEYDPCM],
 							i,
-							oct, key,
+							GET_OCTAVE(n), value_cast(GET_NOTE(n)) - 1,
 							smp - 1,
-							pDI->GetSamplePitch(oct, key) & 0x0F,
-							pDI->GetSampleLoop(oct, key) ? 1 : 0,
-							pDI->GetSampleLoopOffset(oct, key),
+							pDI->GetSamplePitch(n) & 0x0F,
+							pDI->GetSampleLoop(n) ? 1 : 0,
+							pDI->GetSampleLoopOffset(n),
 							(d >= 0 && d <= 127) ? d : -1);
 						WriteString(s);
 					}

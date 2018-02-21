@@ -1104,8 +1104,8 @@ void CCompiler::ScanSong()
 				const auto &Note = Pattern.GetNoteOn(k);
 				if (Note.Instrument < MAX_INSTRUMENTS)
 					Instrument = Note.Instrument;
-				if (Note.Note >= NOTE_C && Note.Note <= NOTE_B)		// // //
-					m_bSamplesAccessed[Instrument][Note.Octave][Note.Note - 1] = true;
+				if (IsNote(Note.Note))		// // //
+					m_bSamplesAccessed[Instrument][MIDI_NOTE(Note.Octave, Note.Note)] = true;
 			}
 		}
 	});
@@ -1330,28 +1330,26 @@ void CCompiler::CreateSampleList()
 		if (Im.IsInstrumentUsed(i) && Im.GetInstrumentType(i) == INST_2A03) {
 			auto pInstrument = std::static_pointer_cast<CInstrument2A03>(Im.GetInstrument(i));
 
-			for (int j = 0; j < OCTAVE_RANGE; ++j) {
-				for (int k = 0; k < NOTE_RANGE; ++k) {
-					// Get sample
-					unsigned char iSample = pInstrument->GetSampleIndex(j, k);
-					if ((iSample > 0) && m_bSamplesAccessed[i][j][k] && Dm.IsSampleUsed(iSample - 1)) {
+			for (int n = 0; n < NOTE_COUNT; ++n) {
+				// Get sample
+				unsigned char iSample = pInstrument->GetSampleIndex(n);
+				if ((iSample > 0) && m_bSamplesAccessed[i][n] && Dm.IsSampleUsed(iSample - 1)) {
 
-						unsigned char SamplePitch = pInstrument->GetSamplePitch(j, k);
-						unsigned char SampleIndex = GetSampleIndex(iSample - 1);
-						unsigned int  SampleDelta = pInstrument->GetSampleDeltaValue(j, k);
-						SamplePitch |= (SamplePitch & 0x80) >> 1;
+					unsigned char SamplePitch = pInstrument->GetSamplePitch(n);
+					unsigned char SampleIndex = GetSampleIndex(iSample - 1);
+					unsigned int  SampleDelta = pInstrument->GetSampleDeltaValue(n);
+					SamplePitch |= (SamplePitch & 0x80) >> 1;
 
-						// Save a reference to this item
-						m_iSamplesLookUp[i][j][k] = ++Item;
+					// Save a reference to this item
+					m_iSamplesLookUp[i][n] = ++Item;
 
-						Chunk.StoreByte(SamplePitch);
-						Chunk.StoreByte(SampleDelta);
-						Chunk.StoreByte(SampleIndex * SAMPLE_ITEM_WIDTH);
-					}
-					else
-						// No instrument here
-						m_iSamplesLookUp[i][j][k] = 0;
+					Chunk.StoreByte(SamplePitch);
+					Chunk.StoreByte(SampleDelta);
+					Chunk.StoreByte(SampleIndex * SAMPLE_ITEM_WIDTH);
 				}
+				else
+					// No instrument here
+					m_iSamplesLookUp[i][n] = 0;
 			}
 		}
 	}

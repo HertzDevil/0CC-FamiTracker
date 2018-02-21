@@ -34,6 +34,8 @@ const int MIDI_MSG_PROGRAM_CHANGE	= 0x0C;
 const int MIDI_MSG_CHANNEL_PRESSURE = 0x0D;
 const int MIDI_MSG_PITCH_WHEEL		= 0x0E;
 
+enum class note_t : unsigned char;		// // //
+
 // CMIDI command target
 
 class CMIDI {
@@ -50,7 +52,7 @@ public:
 	bool	CloseDevices();
 
 	bool	ReadMessage(unsigned char &Message, unsigned char &Channel, unsigned char &Data1, unsigned char &Data2);
-	void	WriteNote(unsigned char Channel, unsigned char Note, unsigned char Octave, unsigned char Velocity);
+	void	WriteNote(unsigned char Channel, note_t Note, unsigned char Octave, unsigned char Velocity);		// // //
 	void	ResetOutput();
 	void	ToggleInput();
 

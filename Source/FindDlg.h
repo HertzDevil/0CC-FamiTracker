@@ -30,29 +30,58 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <limits>
 
 #include "PatternNote.h"
 #include "PatternEditorTypes.h"
 #include "APU/Types_fwd.h"
 
-class CharRange
-{
-public:
-	CharRange() { Min = '\x00'; Max = '\xFF'; };
-	CharRange(unsigned char a, unsigned char b) { Min = a; Max = b; };
-	void Set(unsigned char x, bool Half = false) { if (!Half) Min = x; Max = x; };
-	bool IsMatch(unsigned char x) const { return (x >= Min && x <= Max) || (x >= Max && x <= Min); };
-	bool IsSingle() const { return Min == Max; };
-	unsigned char Min;
-	unsigned char Max;
+namespace details {
+
+template <typename T, bool>
+struct underlying_type {
+	using type = T;
 };
+template <typename T>
+struct underlying_type<T, true> {
+	using type = std::underlying_type_t<T>;
+};
+template <typename T>
+using underlying_type_t = typename underlying_type<T, std::is_enum_v<T>>::type;
+
+} // namespace details
+
+template <typename T>
+struct FindRange {
+	constexpr FindRange() noexcept = default;
+	constexpr FindRange(T a, T b) noexcept : Min(a), Max(b) { }
+
+	constexpr void Set(T x, bool Half = false) noexcept {
+		if (!Half)
+			Min = x;
+		Max = x;
+	}
+	constexpr bool IsMatch(T x) const noexcept {
+		return (x >= Min && x <= Max) || (x >= Max && x <= Min);
+	}
+	constexpr bool IsSingle() const noexcept {
+		return Min == Max;
+	}
+
+	T Min = static_cast<T>(std::numeric_limits<details::underlying_type_t<T>>::min());
+	T Max = static_cast<T>(std::numeric_limits<details::underlying_type_t<T>>::max());
+};
+
+using CharRange = FindRange<unsigned char>;
+using NoteRange = FindRange<note_t>;
 
 class searchTerm
 {
 public:
 	searchTerm();
 
-	std::unique_ptr<CharRange> Note, Oct, Inst, Vol;
+	std::unique_ptr<NoteRange> Note;
+	std::unique_ptr<CharRange> Oct, Inst, Vol;
 	bool EffNumber[EF_COUNT] = { };
 	std::unique_ptr<CharRange> EffParam;
 	bool Definite[6] = { };
@@ -239,7 +268,7 @@ protected:
 
 	static const CStringW m_pNoteName[7];
 	static const CStringW m_pNoteSign[3];
-	static const int m_iNoteOffset[7];
+	static const note_t m_iNoteOffset[7];
 
 	DECLARE_MESSAGE_MAP()
 public:

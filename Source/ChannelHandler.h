@@ -133,7 +133,7 @@ protected:
 		\param Octave The note octave.
 		\param Note The note pitch.
 		\return The note value with the given pitch and octave. */
-	virtual int		RunNote(int Octave, int Note);		// // // virtual
+	virtual int		RunNote(int Octave, note_t Note);		// // // virtual
 	/*!	\brief Restricts the note value within the limits of the tracker, and notifies the tracker
 		view of the note.
 		\param Note Input note value.
@@ -175,7 +175,7 @@ protected:
 		\details Echo buffer retrieval takes place before this method is called.
 		\param Note The note pitch.
 		\param Octave The note octave. */
-	virtual void	HandleNote(int Note, int Octave);
+	virtual void	HandleNote(note_t Note, int Octave);
 
 	/*!	\brief Instantiates a pitch slide to a destination note. */
 	virtual void	SetupSlide();		// // //

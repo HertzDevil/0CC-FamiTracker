@@ -50,7 +50,7 @@ void CChannelHandler2A03::HandleNoteData(stChanNote &NoteData)		// // //
 	// // //
 	CChannelHandler::HandleNoteData(NoteData);
 
-	if (NoteData.Note != NONE && NoteData.Note != HALT && NoteData.Note != RELEASE) {
+	if (IsNote(NoteData.Note) || NoteData.Note == note_t::ECHO) {
 		if (!m_bEnvelopeLoop || m_bHardwareEnvelope)		// // //
 			m_bResetEnvelope = true;
 	}
@@ -236,7 +236,7 @@ void C2A03Square::HandleEmptyNote()
 		m_cSweep = m_iSweep;
 }
 
-void C2A03Square::HandleNote(int Note, int Octave)		// // //
+void C2A03Square::HandleNote(note_t Note, int Octave)		// // //
 {
 	CChannelHandler2A03::HandleNote(Note, Octave);
 
@@ -361,7 +361,7 @@ std::string CTriangleChan::GetCustomEffectString() const		// // //
 // Noise
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CNoiseChan::HandleNote(int Note, int Octave)
+void CNoiseChan::HandleNote(note_t Note, int Octave)
 {
 	CChannelHandler2A03::HandleNote(Note, Octave);		// // //
 
@@ -515,7 +515,7 @@ void CDPCMChan::HandleNoteData(stChanNote &NoteData)		// // //
 	m_iCustomPitch = -1;
 	m_iRetrigger = 0;
 
-	if (NoteData.Note != NONE) {
+	if (NoteData.Note != note_t::NONE) {
 		m_iNoteCut = 0;
 		m_iNoteRelease = 0;			// // //
 	}
@@ -567,7 +567,7 @@ void CDPCMChan::HandleRelease()
 	m_bRelease = true;
 }
 
-void CDPCMChan::HandleNote(int Note, int Octave)
+void CDPCMChan::HandleNote(note_t Note, int Octave)
 {
 	CChannelHandler::HandleNote(Note, Octave);		// // //
 	m_iNote = MIDI_NOTE(Octave, Note);		// // //

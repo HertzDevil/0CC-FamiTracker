@@ -62,7 +62,7 @@ protected:
 	void	HandleNoteData(stChanNote &pNoteData) override;		// // //
 	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //
 	void	HandleEmptyNote() override;
-	void	HandleNote(int Note, int Octave) override;
+	void	HandleNote(note_t Note, int Octave) override;
 	std::string	GetCustomEffectString() const override;		// // //
 
 	unsigned char m_cSweep;
@@ -94,7 +94,7 @@ public:
 protected:
 	void	ClearRegisters() override;
 	std::string	GetCustomEffectString() const override;		// // //
-	void	HandleNote(int Note, int Octave) override;
+	void	HandleNote(note_t Note, int Octave) override;
 	void	SetupSlide() override;		// // //
 
 	int		LimitPeriod(int Period) const override;		// // //
@@ -123,7 +123,7 @@ protected:
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;
 	void	HandleRelease() override;
-	void	HandleNote(int Note, int Octave) override;
+	void	HandleNote(note_t Note, int Octave) override;
 	bool	CreateInstHandler(inst_type_t Type) override;		// // //
 
 	void	ClearRegisters() override;

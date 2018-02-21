@@ -47,7 +47,7 @@ void CChannelHandlerFDS::HandleNoteData(stChanNote &NoteData)		// // //
 
 	CChannelHandler::HandleNoteData(NoteData);
 	// // //
-	if (NoteData.Note != NONE && NoteData.Note != HALT && NoteData.Note != RELEASE)
+	if (IsNote(NoteData.Note) || NoteData.Note == note_t::ECHO)
 		m_bVolModTrigger = true;
 
 	if (m_iEffModDepth != -1)

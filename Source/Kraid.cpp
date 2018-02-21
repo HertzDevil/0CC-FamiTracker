@@ -116,20 +116,20 @@ void Kraid::makePattern(CSongData &song, chan_id_t ch, unsigned pat, std::string
 		case '<': --octave; break;
 		case '>': ++octave; break;
 		case '.': ++row; break;
-		case '-': ++row; note.Note = HALT; break;
-		case '=': ++row; note.Note = RELEASE; break;
-		case 'c': ++row; note.Note = NOTE_C; note.Octave = octave, note.Instrument = INST; break;
-		case 'C': ++row; note.Note = NOTE_Cs; note.Octave = octave, note.Instrument = INST; break;
-		case 'd': ++row; note.Note = NOTE_D; note.Octave = octave, note.Instrument = INST; break;
-		case 'D': ++row; note.Note = NOTE_Ds; note.Octave = octave, note.Instrument = INST; break;
-		case 'e': ++row; note.Note = NOTE_E; note.Octave = octave, note.Instrument = INST; break;
-		case 'f': ++row; note.Note = NOTE_F; note.Octave = octave, note.Instrument = INST; break;
-		case 'F': ++row; note.Note = NOTE_Fs; note.Octave = octave, note.Instrument = INST; break;
-		case 'g': ++row; note.Note = NOTE_G; note.Octave = octave, note.Instrument = INST; break;
-		case 'G': ++row; note.Note = NOTE_Gs; note.Octave = octave, note.Instrument = INST; break;
-		case 'a': ++row; note.Note = NOTE_A; note.Octave = octave, note.Instrument = INST; break;
-		case 'A': ++row; note.Note = NOTE_As; note.Octave = octave, note.Instrument = INST; break;
-		case 'b': ++row; note.Note = NOTE_B; note.Octave = octave, note.Instrument = INST; break;
+		case '-': ++row; note.Note = note_t::HALT; break;
+		case '=': ++row; note.Note = note_t::RELEASE; break;
+		case 'c': ++row; note.Note = note_t::C;  note.Octave = octave, note.Instrument = INST; break;
+		case 'C': ++row; note.Note = note_t::Cs; note.Octave = octave, note.Instrument = INST; break;
+		case 'd': ++row; note.Note = note_t::D;  note.Octave = octave, note.Instrument = INST; break;
+		case 'D': ++row; note.Note = note_t::Ds; note.Octave = octave, note.Instrument = INST; break;
+		case 'e': ++row; note.Note = note_t::E;  note.Octave = octave, note.Instrument = INST; break;
+		case 'f': ++row; note.Note = note_t::F;  note.Octave = octave, note.Instrument = INST; break;
+		case 'F': ++row; note.Note = note_t::Fs; note.Octave = octave, note.Instrument = INST; break;
+		case 'g': ++row; note.Note = note_t::G;  note.Octave = octave, note.Instrument = INST; break;
+		case 'G': ++row; note.Note = note_t::Gs; note.Octave = octave, note.Instrument = INST; break;
+		case 'a': ++row; note.Note = note_t::A;  note.Octave = octave, note.Instrument = INST; break;
+		case 'A': ++row; note.Note = note_t::As; note.Octave = octave, note.Instrument = INST; break;
+		case 'b': ++row; note.Note = note_t::B;  note.Octave = octave, note.Instrument = INST; break;
 		case '@': note.EffNumber[0] = EF_DUTY_CYCLE; note.EffParam[0] = 2; break;
 		}
 	}

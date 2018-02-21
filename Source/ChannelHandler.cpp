@@ -286,9 +286,9 @@ void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, int Pos)
 	if (Pos < 0 || Pos > ECHO_BUFFER_LENGTH) return;
 	int Value;
 	switch (NoteData.Note) {
-	case NONE: Value = ECHO_BUFFER_NONE; break;
-	case HALT: Value = ECHO_BUFFER_HALT; break;
-	case ECHO: Value = ECHO_BUFFER_ECHO + NoteData.Octave; break;
+	case note_t::NONE: Value = ECHO_BUFFER_NONE; break;
+	case note_t::HALT: Value = ECHO_BUFFER_HALT; break;
+	case note_t::ECHO: Value = ECHO_BUFFER_ECHO + NoteData.Octave; break;
 	default:
 		Value = MIDI_NOTE(NoteData.Octave, NoteData.Note);
 		for (int i = MAX_EFFECT_COLUMNS - 1; i >= 0; --i) {
@@ -320,25 +320,25 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 {
 	int LastInstrument = m_iInstrument;
 	int Instrument = NoteData.Instrument;
-	bool Trigger = (NoteData.Note != NONE) && (NoteData.Note != HALT) && (NoteData.Note != RELEASE) &&
+	bool Trigger = (NoteData.Note != note_t::NONE) && (NoteData.Note != note_t::HALT) && (NoteData.Note != note_t::RELEASE) &&
 		Instrument != HOLD_INSTRUMENT;		// // // 050B
 	bool pushNone = false;
 
 	// // // Echo buffer
-	if (NoteData.Note == ECHO && NoteData.Octave <= ECHO_BUFFER_LENGTH)
+	if (NoteData.Note == note_t::ECHO && NoteData.Octave <= ECHO_BUFFER_LENGTH)
 	{ // retrieve buffer
 		int NewNote = m_iEchoBuffer[NoteData.Octave];
 		if (NewNote == ECHO_BUFFER_NONE) {
-			NoteData.Note = NONE;
+			NoteData.Note = note_t::NONE;
 			pushNone = true;
 		}
-		else if (NewNote == ECHO_BUFFER_HALT) NoteData.Note = HALT;
+		else if (NewNote == ECHO_BUFFER_HALT) NoteData.Note = note_t::HALT;
 		else {
 			NoteData.Note = GET_NOTE(NewNote);
 			NoteData.Octave = GET_OCTAVE(NewNote);
 		}
 	}
-	if (NoteData.Note != RELEASE && (NoteData.Note != NONE) || pushNone)
+	if (NoteData.Note != note_t::RELEASE && (NoteData.Note != note_t::NONE) || pushNone)
 	{ // push buffer
 		for (int i = ECHO_BUFFER_LENGTH; i > 0; i--)
 			m_iEchoBuffer[i] = m_iEchoBuffer[i - 1];
@@ -346,7 +346,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 	}
 
 	// Clear the note cut effect
-	if (NoteData.Note != NONE) {
+	if (NoteData.Note != note_t::NONE) {
 		m_iNoteCut = 0;
 		m_iNoteRelease = 0;		// // //
 		if (Trigger && m_iNoteVolume == 0 && !m_iVolSlide) {		// // //
@@ -379,7 +379,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 	}
 
 	// Instrument
-	if (NoteData.Note == HALT || NoteData.Note == RELEASE)		// // //
+	if (NoteData.Note == note_t::HALT || NoteData.Note == note_t::RELEASE)		// // //
 		Instrument = MAX_INSTRUMENTS;	// Ignore instrument for release and halt commands
 
 	if (Instrument != MAX_INSTRUMENTS && Instrument != HOLD_INSTRUMENT)		// // // 050B
@@ -393,25 +393,25 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 	}
 
 	switch (NoteData.Note) {		// // // set note value before loading instrument
-	case NONE: case HALT: case RELEASE: break;
+	case note_t::NONE: case note_t::HALT: case note_t::RELEASE: break;
 	default: m_iNote = RunNote(NoteData.Octave, NoteData.Note);
 	}
 
 	// Note
 	switch (NoteData.Note) {
-		case NONE:
-			HandleEmptyNote();
-			break;
-		case HALT:
-			m_bRelease = false;
-			HandleCut();
-			break;
-		case RELEASE:
-			HandleRelease();
-			break;
-		default:
-			HandleNote(NoteData.Note, NoteData.Octave);
-			break;
+	case note_t::NONE:
+		HandleEmptyNote();
+		break;
+	case note_t::HALT:
+		m_bRelease = false;
+		HandleCut();
+		break;
+	case note_t::RELEASE:
+		HandleRelease();
+		break;
+	default:
+		HandleNote(NoteData.Note, NoteData.Octave);
+		break;
 	}
 
 	if (Trigger && (m_iEffect == EF_SLIDE_DOWN || m_iEffect == EF_SLIDE_UP))		// // //
@@ -504,7 +504,7 @@ void CChannelHandler::ReleaseNote()
 	m_bRelease = true;
 }
 
-int CChannelHandler::RunNote(int Octave, int Note)
+int CChannelHandler::RunNote(int Octave, note_t Note)
 {
 	// Run the note and handle portamento
 	int NewNote = MIDI_NOTE(Octave, Note);
@@ -524,7 +524,7 @@ int CChannelHandler::RunNote(int Octave, int Note)
 	return NewNote;
 }
 
-void CChannelHandler::HandleNote(int Note, int Octave)		// // //
+void CChannelHandler::HandleNote(note_t Note, int Octave)		// // //
 {
 	m_iDutyPeriod = m_iDefaultDuty;
 	m_bTrigger = true;

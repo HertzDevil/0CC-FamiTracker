@@ -68,8 +68,7 @@ protected:
 	std::shared_ptr<CInstrument2A03> m_pInstrument;
 
 	int	m_iSelectedSample;
-	int	m_iOctave;
-	int m_iSelectedKey;
+	int m_iSelectedNote = -1;		// // //
 
 	DECLARE_MESSAGE_MAP()
 public:

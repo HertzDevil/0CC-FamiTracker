@@ -119,7 +119,7 @@ void CChannelHandlerVRC7::HandleRelease()
 	}
 }
 
-void CChannelHandlerVRC7::HandleNote(int Note, int Octave)
+void CChannelHandlerVRC7::HandleNote(note_t Note, int Octave)
 {
 	CChannelHandler::HandleNote(Note, Octave);		// // //
 
@@ -137,7 +137,7 @@ void CChannelHandlerVRC7::HandleNote(int Note, int Octave)
 		m_iCommand = CMD_NOTE_TRIGGER;
 }
 
-int CChannelHandlerVRC7::RunNote(int Octave, int Note)		// // //
+int CChannelHandlerVRC7::RunNote(int Octave, note_t Note)		// // //
 {
 	// Run the note and handle portamento
 	int NewNote = MIDI_NOTE(Octave, Note);
