@@ -24,6 +24,7 @@
 #include "stdafx.h"
 #include <Dbghelp.h>
 #include "version.h"
+#include "str_conv/str_conv.hpp"		// // //
 
 //
 // This file contains an unhandled exception handler
@@ -51,17 +52,17 @@ static CStringW GetDumpFilename(int counter)
 	filename = MINIDUMP_FILE_PRE;
 
 	// Date
-	filename.AppendFormat(L"_%02i%02i%02i-%02i%02i", t.GetYear(), t.GetMonth(), t.GetDay(), t.GetHour(), t.GetMinute());
+	AppendFormatW(filename, L"_%02i%02i%02i-%02i%02i", t.GetYear(), t.GetMonth(), t.GetDay(), t.GetHour(), t.GetMinute());
 
 	// App version
-	filename.AppendFormat(L"-v%s", GetDumpVersionString());		// // //
+	AppendFormatW(filename, L"-v%s", conv::to_wide(GetDumpVersionString()).data());		// // //
 #ifdef WIP
 	filename.Append(L"_beta");
 #endif
 
 	// Counter
 	if (counter > 0)
-		filename.AppendFormat(L"(%i)", counter);
+		AppendFormatW(filename, L"(%i)", counter);
 
 	filename.Append(MINIDUMP_FILE_END);
 
@@ -116,9 +117,9 @@ static LONG WINAPI ExceptionHandler(__in struct _EXCEPTION_POINTERS *ep)
 
 	// Display a message
 	CStringW text = L"This application has encountered a problem and needs to close.\n\n";
-	text.AppendFormat(L"Unhandled exception %X.\n\n", ep->ExceptionRecord->ExceptionCode);
-	text.AppendFormat(L"A memory dump file has been created (%s), please include this if you file a bug report!\n\n", LPCWSTR(MinidumpFile));
-	text.AppendFormat(L"Attempting to save current module as %s.", LPCWSTR(DocDumpFile));
+	AppendFormatW(text, L"Unhandled exception %X.\n\n", ep->ExceptionRecord->ExceptionCode);
+	AppendFormatW(text, L"A memory dump file has been created (%s), please include this if you file a bug report!\n\n", LPCWSTR(MinidumpFile));
+	AppendFormatW(text, L"Attempting to save current module as %s.", LPCWSTR(DocDumpFile));
 //	text.Append("Application will now close.");
 	AfxMessageBox(text, MB_ICONSTOP);
 

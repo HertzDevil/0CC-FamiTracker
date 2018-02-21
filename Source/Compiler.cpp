@@ -1272,9 +1272,7 @@ void CCompiler::CreateInstrumentList()
 		auto pInstrument = Im.GetInstrument(iIndex);
 /*
 		if (pInstrument->GetType() == INST_N163) {
-			CStringW label;
-			label.Format(LABEL_WAVES, iIndex);
-			pWavesChunk = CreateChunk(CHUNK_WAVES, label);
+			pWavesChunk = CreateChunk(CHUNK_WAVES, FormattedW(LABEL_WAVES, iIndex));
 			// Store waves
 			iWaveSize += ((CInstrumentN163*)pInstrument)->StoreWave(pWavesChunk);
 		}

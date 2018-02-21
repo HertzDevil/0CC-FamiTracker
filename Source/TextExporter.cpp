@@ -309,7 +309,7 @@ public:
 	template <typename... Args>
 	auto MakeError(LPCSTR fmt, Args&&... args) const {		// // //
 		CStringA str = FormattedA("Line %d column %d: ", line, GetColumn());
-		str.AppendFormat(fmt, args...);
+		AppendFormatA(str, fmt, std::forward<Args>(args)...);
 		return std::runtime_error {(LPCSTR)str};
 	}
 
@@ -510,7 +510,7 @@ CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEff
 		if (stCell.EffNumber[e] == 0)
 			s.Append(" ...");
 		else
-			s.AppendFormat(" %c%02X", EFF_CHAR[stCell.EffNumber[e]-1], stCell.EffParam[e]);
+			AppendFormatA(s, " %c%02X", EFF_CHAR[stCell.EffNumber[e]-1], stCell.EffParam[e]);
 
 	return s;
 }
@@ -1109,7 +1109,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		CStringA s = FormattedA("%s :", CT[CT_USEGROOVE]);
 		modfile.VisitSongs([&] (const CSongData &song, unsigned index) {
 			if (song.GetSongGroove())
-				s.AppendFormat(" %d", index + 1);
+				AppendFormatA(s, " %d", index + 1);
 		});
 		WriteString(s);
 		WriteString("\n\n");
@@ -1136,7 +1136,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		if (auto seqInst = std::dynamic_pointer_cast<CSeqInstrument>(pInst)) {
 			CStringA s;
 			foreachSeq([&] (sequence_t j) {
-				s.AppendFormat("%3d ", seqInst->GetSeqEnable(j) ? seqInst->GetSeqIndex(j) : -1);
+				AppendFormatA(s, "%3d ", seqInst->GetSeqEnable(j) ? seqInst->GetSeqIndex(j) : -1);
 			});
 			WriteString(s);
 		}
@@ -1157,7 +1157,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 				auto pDI = std::static_pointer_cast<CInstrumentVRC7>(pInst);
 				CStringA patch = FormattedA("%3d ", pDI->GetPatch());
 				for (int j = 0; j < 8; j++)
-					patch.AppendFormat("%02X ", pDI->GetCustomReg(j));
+					AppendFormatA(patch, "%02X ", pDI->GetCustomReg(j));
 				WriteString(patch);
 			}
 			break;

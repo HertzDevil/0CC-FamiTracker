@@ -3121,7 +3121,7 @@ void CFamiTrackerView::TranslateMidiMessage()
 					ReleaseMIDINote(Channel, Data1, false);
 				else
 					CutMIDINote(Channel, Data1, false);
-				Status.Format(IDS_MIDI_MESSAGE_OFF);
+				Status.LoadStringW(IDS_MIDI_MESSAGE_OFF);
 				break;
 
 			case MIDI_MSG_PITCH_WHEEL:

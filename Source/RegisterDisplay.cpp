@@ -166,7 +166,7 @@ void CRegisterDisplay::Draw() {
 
 			CStringA text = FormattedA("%s, vol = %02i", GetPitchText(3, period, freq), vol);
 			if (i != 2)
-				text.AppendFormat(", duty = %i", (reg[0] >> 4) & 0x07);
+				AppendFormatA(text, ", duty = %i", (reg[0] >> 4) & 0x07);
 			DrawText_(180, text);
 			DrawVolFunc(freq, vol << (i == 2 ? 3 : 4));
 		}

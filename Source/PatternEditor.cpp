@@ -503,43 +503,43 @@ void CPatternEditor::DrawScreen(CDC &DC, CFamiTrackerView *pView)
 
 	CRect clipBox;
 	DC.GetClipBox(&clipBox);
-	CStringW txt;
 	DC.SetTextColor(0xFFFF);
-	txt.Format(L"Clip box: %ix%i %ix%i", clipBox.top, clipBox.left, clipBox.bottom, clipBox.right);
-	DC.TextOutW(10, 10, txt);
-	txt.Format(L"Pattern area: %i x %i", m_iPatternWidth, m_iPatternHeight);
-	DC.TextOutW(10, 30, txt);
+	DC.TextOutW(10, 10, FormattedW(L"Clip box: %ix%i %ix%i", clipBox.top, clipBox.left, clipBox.bottom, clipBox.right));
+	DC.TextOutW(10, 30, FormattedW(L"Pattern area: %i x %i", m_iPatternWidth, m_iPatternHeight));
 
-	CStringW Text;
 	int PosY = 100;
 	const int LINE_BREAK = 18;
 	DC.SetTextColor(0xFFFF);
 	DC.SetBkColor(0);
 
-#define PUT_TEXT(x) DC.TextOutW(m_iWinWidth - x, PosY, Text); PosY += LINE_BREAK
+	const auto PUT_TEXT = [&] (int x, LPCWSTR fmt, auto&&... args) {
+		DC.TextOutW(m_iWinWidth - x, PosY, FormattedWfmt, std::forward<decltype(args)>(args)...));
+		PosY += LINE_BREAK;
+	};
 
-	Text.Format(L"%i ms", (__int64(EndTime.QuadPart) - __int64(StartTime.QuadPart)) / (__int64(Freq.QuadPart) / 1000)); PUT_TEXT(160);
-	Text.Format(L"%i redraws", m_iRedraws); PUT_TEXT(160);
-	Text.Format(L"%i paints", m_iPaints); PUT_TEXT(160);
-	Text.Format(L"%i quick redraws", m_iQuickRedraws); PUT_TEXT(160);
-	Text.Format(L"%i full redraws", m_iFullRedraws); PUT_TEXT(160);
-	Text.Format(L"%i header redraws", m_iHeaderRedraws); PUT_TEXT(160);
-	Text.Format(L"%i erases", m_iErases); PUT_TEXT(160);
-	Text.Format(L"%i new buffers", m_iBuffers); PUT_TEXT(160);
-	Text.Format(L"%i chars drawn", m_iCharsDrawn); PUT_TEXT(160);
-	Text.Format(L"%i rows visible", m_iLinesVisible); PUT_TEXT(160);
-	Text.Format(L"%i full rows visible", m_iLinesFullVisible); PUT_TEXT(160);
-	Text.Format(L"%i (%i) end sel", m_selection.m_cpEnd.m_iChannel, GetChannelCount()); PUT_TEXT(160);
-	Text.Format(L"Channels: %i, %i", m_iFirstChannel, m_iChannelsVisible); PUT_TEXT(160);
+	__int64 mscount = (__int64(EndTime.QuadPart) - __int64(StartTime.QuadPart)) / (__int64(Freq.QuadPart) / 1000);
+	PUT_TEXT(160, L"%i ms", mscount);
+	PUT_TEXT(160, L"%i redraws", m_iRedraws);
+	PUT_TEXT(160, L"%i paints", m_iPaints);
+	PUT_TEXT(160, L"%i quick redraws", m_iQuickRedraws);
+	PUT_TEXT(160, L"%i full redraws", m_iFullRedraws);
+	PUT_TEXT(160, L"%i header redraws", m_iHeaderRedraws);
+	PUT_TEXT(160, L"%i erases", m_iErases);
+	PUT_TEXT(160, L"%i new buffers", m_iBuffers);
+	PUT_TEXT(160, L"%i chars drawn", m_iCharsDrawn);
+	PUT_TEXT(160, L"%i rows visible", m_iLinesVisible);
+	PUT_TEXT(160, L"%i full rows visible", m_iLinesFullVisible);
+	PUT_TEXT(160, L"%i (%i) end sel", m_selection.m_cpEnd.m_iChannel, GetChannelCount());
+	PUT_TEXT(160, L"Channels: %i, %i", m_iFirstChannel, m_iChannelsVisible);
 
 	PosY += 20;
 
-	Text.Format(L"Selection channel: %i - %i", m_selection.m_cpStart.m_iChannel, m_selection.m_cpEnd.m_iChannel); PUT_TEXT(220);
-	Text.Format(L"Selection column: %i - %i", m_selection.m_cpStart.m_iColumn, m_selection.m_cpEnd.m_iColumn); PUT_TEXT(220);
-	Text.Format(L"Selection row: %i - %i", m_selection.m_cpStart.m_iRow, m_selection.m_cpEnd.m_iRow); PUT_TEXT(220);
-	Text.Format(L"Window width: %i - %i", m_iWinWidth, m_iPatternWidth); PUT_TEXT(220);
-	Text.Format(L"Play: %i - %i", m_iPlayFrame, m_iPlayRow); PUT_TEXT(220);
-	Text.Format(L"Middle row: %i", m_iCenterRow); PUT_TEXT(220);
+	PUT_TEXT(220, L"Selection channel: %i - %i", m_selection.m_cpStart.m_iChannel, m_selection.m_cpEnd.m_iChannel);
+	PUT_TEXT(220, L"Selection column: %i - %i", m_selection.m_cpStart.m_iColumn, m_selection.m_cpEnd.m_iColumn);
+	PUT_TEXT(220, L"Selection row: %i - %i", m_selection.m_cpStart.m_iRow, m_selection.m_cpEnd.m_iRow);
+	PUT_TEXT(220, L"Window width: %i - %i", m_iWinWidth, m_iPatternWidth);
+	PUT_TEXT(220, L"Play: %i - %i", m_iPlayFrame, m_iPlayRow);
+	PUT_TEXT(220, L"Middle row: %i", m_iCenterRow);
 
 #endif		// // //
 
@@ -3456,7 +3456,7 @@ void CPatternEditor::GetVolumeColumn(CStringW &str) const
 		const auto &NoteData = it.first.Get(Channel);
 		if (NoteData.Vol != MAX_VOLUME)
 			vol = NoteData.Vol;
-		str.AppendFormat(L"%i ", vol);
+		AppendFormatW(str, L"%i ", vol);
 	}
 }
 
@@ -3482,12 +3482,12 @@ void CPatternEditor::GetSelectionAsText(CStringW &str) const		// // //
 	CStringW Header(L' ', HexLength + 3);
 	Header.Append(L"# ");
 	for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
-		Header.AppendFormat(L": %-13s", GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(i)).data());
+		AppendFormatW(Header, L": %-13s", conv::to_wide(GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(i))).data());
 		int Columns = pSongView->GetEffectColumnCount(i);
 		if (i == it.second.m_iChannel)
 			Columns = std::clamp(static_cast<int>(GetSelectColumn(it.second.m_iColumn)) - 3, 0, Columns);
 		for (int j = 0; j < Columns; j++)
-			Header.AppendFormat(L"fx%d ", j + 2);
+			AppendFormatW(Header, L"fx%d ", j + 2);
 	}
 	str = Header.TrimRight() + L"\r\n";
 
@@ -3498,7 +3498,7 @@ void CPatternEditor::GetSelectionAsText(CStringW &str) const		// // //
 	const unsigned EndCol = GetSelectColumn(it.second.m_iColumn);
 	for (; it.first <= it.second; ++it.first) {
 		CStringW line;
-		line.AppendFormat(L"ROW %0*X", HexLength, Row++);
+		AppendFormatW(line, L"ROW %0*X", HexLength, Row++);
 		for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
 			const auto &NoteData = it.first.Get(i);
 			auto Row = CTextExport::ExportCellText(NoteData, pSongView->GetEffectColumnCount(i) + 1,
@@ -3507,7 +3507,7 @@ void CPatternEditor::GetSelectionAsText(CStringW &str) const		// // //
 				for (int j = 0; j < COLUMN_CHAR_LEN[c]; ++j) Row.SetAt(COLUMN_CHAR_POS[c] + j, ' ');
 			if (i == it.second.m_iChannel && EndCol < COLUMN_EFF4)
 				Row = Row.Left(COLUMN_CHAR_POS[EndCol + 1] - 1);
-			line.AppendFormat(L" : %s", conv::to_wide(Row).data());
+			AppendFormatW(line, L" : %s", conv::to_wide(Row).data());
 		}
 		str.Append(line);
 		str.Append(L"\r\n");
@@ -3534,7 +3534,7 @@ void CPatternEditor::GetSelectionAsPPMCK(CStringW &str) const		// // //
 		case sound_chip_t::S5B:  Type += 'X'; break;
 		case sound_chip_t::MMC5: Type += 'a'; break;
 		}
-		str.AppendFormat(L"%c\t", Type);
+		AppendFormatW(str, L"%c\t", Type);
 
 		int o = -1;
 		int len = -1;
@@ -3553,7 +3553,7 @@ void CPatternEditor::GetSelectionAsPPMCK(CStringW &str) const		// // //
 				bool push = current.Note != note_t::NONE && current.Note != note_t::RELEASE;
 
 				if (current.Vol != MAX_VOLUME)
-					str.AppendFormat(L"v%i", current.Vol);
+					AppendFormatW(str, L"v%i", current.Vol);
 
 				if (current.Note == note_t::ECHO) {
 					current.Note   = echo[current.Octave].Note;
@@ -3573,7 +3573,7 @@ void CPatternEditor::GetSelectionAsPPMCK(CStringW &str) const		// // //
 				default:
 					if (o == -1) {
 						o = current.Octave;
-						str.AppendFormat(L"o%i", o);
+						AppendFormatW(str, L"o%i", o);
 					}
 					else {
 						while (o < current.Octave) {
@@ -3585,7 +3585,7 @@ void CPatternEditor::GetSelectionAsPPMCK(CStringW &str) const		// // //
 							str.Append(L"<");
 						}
 					}
-					str.AppendFormat(L"%c", (value_cast(current.Note) * 7 + 18) / 12 % 7 + 'a');
+					AppendFormatW(str, L"%c", (value_cast(current.Note) * 7 + 18) / 12 % 7 + 'a');
 					if ((value_cast(current.Note) * 7 + 6) % 12 >= 7) str.Append(L"#");
 				}
 
@@ -3600,7 +3600,7 @@ void CPatternEditor::GetSelectionAsPPMCK(CStringW &str) const		// // //
 						l >>= 1;
 						continue;
 					}
-					str.AppendFormat(L"%i", 16 / l);
+					AppendFormatW(str, L"%i", 16 / l);
 					do {
 						len -= l;
 						l >>= 1;

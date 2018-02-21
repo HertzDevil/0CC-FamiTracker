@@ -211,7 +211,7 @@ void CGrooveDlg::UpdateCurrentGroove()
 	m_cCurrentGroove.ResetContent();
 	unsigned i = 0;
 	for (uint8_t entry : *Groove) {
-		disp.AppendFormat(L"%d ", entry);
+		AppendFormatW(disp, L"%d ", entry);
 		m_cCurrentGroove.InsertString(-1, FormattedW(L"%02X: %d", i++, entry));
 	}
 	m_cCurrentGroove.InsertString(-1, L"--");

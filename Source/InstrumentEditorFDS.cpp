@@ -292,7 +292,7 @@ void CInstrumentEditorFDS::OnBnClickedCopyWave()
 	// Assemble a MML string
 	CStringW Str;
 	for (auto x : m_pInstrument->GetSamples())		// // //
-		Str.AppendFormat(L"%i ", x);
+		AppendFormatW(Str, L"%i ", x);
 
 	CClipboard Clipboard(this, CF_TEXT);
 
@@ -341,7 +341,7 @@ void CInstrumentEditorFDS::OnBnClickedCopyTable()
 	// Assemble a MML string
 	CStringW Str;
 	for (auto x : m_pInstrument->GetModTable())		// // //
-		Str.AppendFormat(L"%i ", x);
+		AppendFormatW(Str, L"%i ", x);
 
 	CClipboard Clipboard(this, CF_TEXT);
 

@@ -166,7 +166,7 @@ void CBookmarkDlg::LoadBookmarks(int Track)
 		CStringW str = conv::to_wide(pMark->m_sName).data();
 		if (str.IsEmpty())
 			str = L"Bookmark";
-		str.AppendFormat(L" (%02X,%02X)", pMark->m_iFrame, pMark->m_iRow);
+		AppendFormatW(str, L" (%02X,%02X)", pMark->m_iFrame, pMark->m_iRow);
 		m_cListBookmark.AddString(str);
 	}
 }

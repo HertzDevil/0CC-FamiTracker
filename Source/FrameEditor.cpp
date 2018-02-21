@@ -206,11 +206,8 @@ void CFrameEditor::OnPaint()
 
 #ifdef BENCHMARK
 	++m_iPaints;
-	CStringW txt;
-	txt.Format("Updates %i", m_iUpdates);
-	dc.TextOutW(1, 1, txt);
-	txt.Format("Paints %i", m_iPaints);
-	dc.TextOutW(1, 18, txt);
+	dc.TextOutW(1, 1, FormattedW("Updates %i", m_iUpdates));
+	dc.TextOutW(1, 18, FormattedW("Paints %i", m_iPaints));
 #endif
 }
 

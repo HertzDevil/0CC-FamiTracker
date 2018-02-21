@@ -161,9 +161,9 @@ void CStretchDlg::OnBnClickedButtonStretchInvert()
 			pos++;
 			y++;
 		}
-		str.AppendFormat(" %d", y + 1);
+		AppendFormatA(str, " %d", y + 1);
 		for (int i = 0; i < x - 1; i++)
-			str.AppendFormat(" %d", 0);
+			AppendFormatA(str, " %d", 0);
 	}
 
 	str.Delete(0);

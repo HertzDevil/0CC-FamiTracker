@@ -200,12 +200,12 @@ BOOL CFamiTrackerApp::InitInstance()
 	static const LPCWSTR FILE_ASSOC_NAME = L"0CC-FamiTracker Module";
 	RegSetValueW(HKEY_CLASSES_ROOT, L"0CCFamiTracker.Document", REG_SZ, FILE_ASSOC_NAME, wcslen(FILE_ASSOC_NAME) * sizeof(WCHAR));
 	// Add an option to play files
-	CStringW strPathName, strTemp, strFileTypeId;
+	CStringW strPathName, strFileTypeId;
 	AfxGetModuleShortFileName(AfxGetInstanceHandle(), strPathName);
 	CStringW strOpenCommandLine = strPathName;
 	strOpenCommandLine += L" /play \"%1\"";
 	if (pDocTemplate->GetDocString(strFileTypeId, CDocTemplate::regFileTypeId) && !strFileTypeId.IsEmpty()) {
-		strTemp.Format(L"%s\\shell\\play\\%s", (LPCWSTR)strFileTypeId, L"command");
+		CStringW strTemp = FormattedW(L"%s\\shell\\play\\%s", (LPCWSTR)strFileTypeId, L"command");
 		RegSetValueW(HKEY_CLASSES_ROOT, strTemp, REG_SZ, strOpenCommandLine, wcslen(strOpenCommandLine) * sizeof(WCHAR));
 	}
 #endif

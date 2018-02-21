@@ -124,7 +124,7 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 		pChanSlider->SetPos(m_iN163Channels);
 		pChanSlider->EnableWindow(TRUE);
 		pChannelsLabel->EnableWindow(TRUE);
-		channelsStr.AppendFormat(L" %i", m_iN163Channels);
+		AppendFormatW(channelsStr, L" %i", m_iN163Channels);
 	}
 	else {
 		m_iN163Channels = 1;
@@ -367,7 +367,7 @@ void CModulePropertiesDlg::OnCbnSelchangeExpansion()
 		pSlider->EnableWindow(TRUE);
 		int Channels = m_pDocument->GetNamcoChannels();
 		pSlider->SetPos(Channels);
-		channelsStr.AppendFormat(L" %i", Channels);
+		AppendFormatW(channelsStr, L" %i", Channels);
 	}
 	else {
 		pSlider->EnableWindow(FALSE);
@@ -384,7 +384,7 @@ void CModulePropertiesDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 
 	CStringW text;
 	text.LoadStringW(IDS_PROPERTIES_CHANNELS);
-	text.AppendFormat(L" %i",  pSlider->GetPos());
+	AppendFormatW(text, L" %i",  pSlider->GetPos());
 	SetDlgItemTextW(IDC_CHANNELS_NR, text);
 
 	CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
@@ -498,7 +498,7 @@ void CModulePropertiesDlg::OnBnClickedExpansionN163()
 		pChanSlider->SetPos(m_iN163Channels);
 		pChanSlider->EnableWindow(TRUE);
 		pChannelsLabel->EnableWindow(TRUE);
-		channelsStr.AppendFormat(L" %i", m_iN163Channels);
+		AppendFormatW(channelsStr, L" %i", m_iN163Channels);
 	}
 	else {
 		m_iExpansions = m_iExpansions.WithoutChip(sound_chip_t::N163);

@@ -3201,7 +3201,7 @@ void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
 
 	// Add name of subtune
 	auto sv = conv::to_wide(GetCurrentSong()->GetTitle());
-	title.AppendFormat(L" [#%i %.*s]", m_iTrack + 1, sv.size(), sv.data());		// // //
+	AppendFormatW(title, L" [#%i %.*s]", m_iTrack + 1, sv.size(), sv.data());		// // //
 
 	title.Append(L" - 0CC-FamiTracker ");		// // //
 	title.Append(conv::to_wide(Get0CCFTVersionString()).data());		// // //

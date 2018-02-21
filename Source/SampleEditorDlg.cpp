@@ -109,7 +109,7 @@ BOOL CSampleEditorDlg::OnInitDialog()
 	CStringW title;
 	GetWindowTextW(title);
 	auto name = conv::to_wide(m_pSample->name());
-	title.AppendFormat(L" [%.*s]", name.size(), name.data());
+	AppendFormatW(title, L" [%.*s]", name.size(), name.data());
 	SetWindowTextW(title);
 
 	UpdateSampleView();

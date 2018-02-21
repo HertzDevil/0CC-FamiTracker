@@ -217,7 +217,7 @@ void CInstrumentEditorN163Wave::OnBnClickedCopy()
 	// Assemble a MML string
 	CStringW Str;
 	for (auto x : m_pInstrument->GetSamples(m_iWaveIndex))		// // //
-		Str.AppendFormat(L"%i ", x);
+		AppendFormatW(Str, L"%i ", x);
 
 	CClipboard Clipboard(this, CF_TEXT);
 
@@ -273,7 +273,7 @@ LRESULT CInstrumentEditorN163Wave::OnWaveChanged(WPARAM wParam, LPARAM lParam)
 {
 	CStringW str;
 	for (auto x : m_pInstrument->GetSamples(m_iWaveIndex))		// // //
-		str.AppendFormat(L"%i ", x);
+		AppendFormatW(str, L"%i ", x);
 
 	SetDlgItemTextW(IDC_MML, str);
 	UpdateWaveBox(m_iWaveIndex);		// // //

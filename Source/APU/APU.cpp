@@ -313,40 +313,39 @@ void CAPU::ClearSample()		// // //
 #ifdef LOGGING
 void CAPU::Log()
 {
-	CStringW str;
-	str.Format("Frame %08i: ", m_iFrame - 1);
+	CStringA str = FormattedA("Frame %08i: ", m_iFrame - 1);
 	str.Append("2A03 ");
 	for (int i = 0; i < 0x14; ++i)
-		str.AppendFormat("%02X ", GetReg(sound_chip_t::APU, i));
-	if (m_iExternalSoundChip & sound_chip_t::VRC6) {		// // //
+		AppendFormatA(str, "%02X ", GetReg(sound_chip_t::APU, i));
+	if (m_iExternalSoundChip.ContainsChip(sound_chip_t::VRC6)) {		// // //
 		str.Append("VRC6 ");
 		for (int i = 0; i < 0x03; ++i) for (int j = 0; j < 0x03; ++j)
-			str.AppendFormat("%02X ", GetReg(sound_chip_t::VRC6, 0x9000 + i * 0x1000 + j));
+			AppendFormatA(str, "%02X ", GetReg(sound_chip_t::VRC6, 0x9000 + i * 0x1000 + j));
 	}
-	if (m_iExternalSoundChip & sound_chip_t::MMC5) {
+	if (m_iExternalSoundChip.ContainsChip(sound_chip_t::MMC5)) {
 		str.Append("MMC5 ");
 		for (int i = 0; i < 0x08; ++i)
-			str.AppendFormat("%02X ", GetReg(sound_chip_t::MMC5, 0x5000 + i));
+			AppendFormatA(str, "%02X ", GetReg(sound_chip_t::MMC5, 0x5000 + i));
 	}
-	if (m_iExternalSoundChip & sound_chip_t::N163) {
+	if (m_iExternalSoundChip.ContainsChip(sound_chip_t::N163)) {
 		str.Append("N163 ");
 		for (int i = 0; i < 0x80; ++i)
-			str.AppendFormat("%02X ", GetReg(sound_chip_t::N163, i));
+			AppendFormatA(str, "%02X ", GetReg(sound_chip_t::N163, i));
 	}
-	if (m_iExternalSoundChip & sound_chip_t::FDS) {
+	if (m_iExternalSoundChip.ContainsChip(sound_chip_t::FDS)) {
 		str.Append("FDS ");
 		for (int i = 0; i < 0x0B; ++i)
-			str.AppendFormat("%02X ", GetReg(sound_chip_t::FDS, 0x4080 + i));
+			AppendFormatA(str, "%02X ", GetReg(sound_chip_t::FDS, 0x4080 + i));
 	}
-	if (m_iExternalSoundChip & sound_chip_t::VRC7) {
+	if (m_iExternalSoundChip.ContainsChip(sound_chip_t::VRC7)) {
 		str.Append("VRC7 ");
 		for (int i = 0; i < 0x40; ++i)
-			str.AppendFormat("%02X ", GetReg(sound_chip_t::VRC7, i));
+			AppendFormatA(str, "%02X ", GetReg(sound_chip_t::VRC7, i));
 	}
-	if (m_iExternalSoundChip & sound_chip_t::S5B) {
+	if (m_iExternalSoundChip.ContainsChip(sound_chip_t::S5B)) {
 		str.Append("S5B ");
 		for (int i = 0; i < 0x10; ++i)
-			str.AppendFormat("%02X ", GetReg(sound_chip_t::S5B, i));
+			AppendFormatA(str, "%02X ", GetReg(sound_chip_t::S5B, i));
 	}
 	str.Append("\r\n");
 	m_pLog->Write(str, str.GetLength());

@@ -104,8 +104,8 @@ void CCreateWaveDlg::OnBnClickedBegin()
 	int Track = m_ctlTracks.GetCurSel();
 
 	if (pModule->GetSongCount() > 1) {
-		auto sv = pModule->GetSong(Track)->GetTitle();
-		FileName.AppendFormat(L" - Track %02i (%.*s)", Track + 1, sv.size(), sv.data());		// // //
+		auto sv = conv::to_wide(pModule->GetSong(Track)->GetTitle());
+		AppendFormatW(FileName, L" - Track %02i (%.*s)", Track + 1, sv.size(), sv.data());		// // //
 	}
 
 	CWavProgressDlg ProgressDlg;
