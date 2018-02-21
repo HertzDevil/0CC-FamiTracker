@@ -200,7 +200,7 @@ void CGrooveDlg::ReloadGrooves()
 			GrooveTable[i] = std::make_unique<groove>();
 
 		CStringW String;
-		String.Format(L"%02X%s", i, Used ? " *" : "");
+		String.Format(L"%02X%s", i, Used ? L" *" : L"");
 		m_cGrooveTable.AddString(String);
 	}
 }
@@ -223,7 +223,7 @@ void CGrooveDlg::UpdateCurrentGroove()
 	m_cCurrentGroove.SetCurSel(m_iGroovePos);
 	SetDlgItemTextW(IDC_EDIT_GROOVE_FIELD, disp);
 
-	String.Format(L"%02X%s", m_iGrooveIndex, Groove->size() ? " *" : "");
+	String.Format(L"%02X%s", m_iGrooveIndex, Groove->size() ? L" *" : L"");
 	m_cGrooveTable.SetRedraw(FALSE);
 	m_cGrooveTable.DeleteString(m_iGrooveIndex);
 	m_cGrooveTable.InsertString(m_iGrooveIndex, String);

@@ -113,7 +113,9 @@ unsigned int CDSound::GetDeviceCount() const
 }
 
 std::string_view CDSound::GetDeviceName(unsigned int iDevice) const {		// // //
-	return iDevice < devices_.size() ? devices_[iDevice].first : "Invalid device";		// // //
+	if (iDevice < devices_.size())
+		return devices_[iDevice].first;
+	return "Invalid device";		// // //
 }
 
 int CDSound::CalculateBufferLength(int BufferLen, int Samplerate, int Samplesize, int Channels) const

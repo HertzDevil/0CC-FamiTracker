@@ -1241,20 +1241,20 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	const stChanNote &NoteData, const RowColorInfo_t &ColorInfo) const		// // //
 {
 	// Sharps
-	static const char NOTES_A_SHARP[] = {'C', 'C', 'D', 'D', 'E', 'F', 'F', 'G', 'G', 'A', 'A', 'B'};
-	static const char NOTES_B_SHARP[] = {'-', '#', '-', '#', '-', '-', '#', '-', '#', '-', '#', '-'};
+	static const wchar_t NOTES_A_SHARP[] = {L'C', L'C', L'D', L'D', L'E', L'F', L'F', L'G', L'G', L'A', L'A', L'B'};
+	static const wchar_t NOTES_B_SHARP[] = {L'-', L'#', L'-', L'#', L'-', L'-', L'#', L'-', L'#', L'-', L'#', L'-'};
 	// Flats
-	static const char NOTES_A_FLAT[] = {'C', 'D', 'D', 'E', 'E', 'F', 'G', 'G', 'A', 'A', 'B', 'B'};
-	static const char NOTES_B_FLAT[] = {'-', 'b', '-', 'b', '-', '-', 'b', '-', 'b', '-', 'b', '-'};
+	static const wchar_t NOTES_A_FLAT[] = {L'C', L'D', L'D', L'E', L'E', L'F', L'G', L'G', L'A', L'A', L'B', L'B'};
+	static const wchar_t NOTES_B_FLAT[] = {L'-', L'b', L'-', L'b', L'-', L'-', L'b', L'-', L'b', L'-', L'b', L'-'};
 	// Octaves
-	static const char NOTES_C[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+	static const wchar_t NOTES_C[] = {L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7', L'8', L'9'};
 	// Hex numbers
-	static const char HEX[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+	static const wchar_t HEX[] = {L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7', L'8', L'9', L'A', L'B', L'C', L'D', L'E', L'F'};
 
 	const bool m_bDisplayFlat = Env.GetSettings()->Appearance.bDisplayFlats;		// // //
 
-	const char *NOTES_A = m_bDisplayFlat ? NOTES_A_FLAT : NOTES_A_SHARP;
-	const char *NOTES_B = m_bDisplayFlat ? NOTES_B_FLAT : NOTES_B_SHARP;
+	const wchar_t *NOTES_A = m_bDisplayFlat ? NOTES_A_FLAT : NOTES_A_SHARP;
+	const wchar_t *NOTES_B = m_bDisplayFlat ? NOTES_B_FLAT : NOTES_B_SHARP;
 
 	int EffNumber = Column >= 4 ? NoteData.EffNumber[(Column - 4) / 3] : 0;		// // //
 	int EffParam  = Column >= 4 ? NoteData.EffParam[(Column - 4) / 3] : 0;
@@ -1312,8 +1312,8 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 			if (m_bCompactMode) {		// // //
 				if (NoteData.Instrument != MAX_INSTRUMENTS) {
 					if (NoteData.Instrument == HOLD_INSTRUMENT) {		// // // 050B
-						DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, '&', DimInst);
-						DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, '&', DimInst);
+						DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, L'&', DimInst);
+						DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, L'&', DimInst);
 					}
 					else {
 						DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, HEX[NoteData.Instrument >> 4], DimInst);
@@ -1367,8 +1367,8 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 				// Noise
 				char NoiseFreq = MIDI_NOTE(NoteData.Octave, NoteData.Note) & 0x0F;
 				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoiseFreq], ColorInfo.Note);		// // //
-				DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, '-', ColorInfo.Note);
-				DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, '#', ColorInfo.Note);
+				DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, L'-', ColorInfo.Note);
+				DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, L'#', ColorInfo.Note);
 			}
 			else {
 				// The rest
@@ -1384,7 +1384,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		if (NoteData.Instrument == MAX_INSTRUMENTS || NoteData.Note == note_t::HALT || NoteData.Note == note_t::RELEASE)
 			BAR(PosX, PosY);
 		else if (NoteData.Instrument == HOLD_INSTRUMENT)		// // // 050B
-			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, '&', InstColor);
+			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, L'&', InstColor);
 		else
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.Instrument >> 4], InstColor);		// // //
 		break;
@@ -1393,7 +1393,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		if (NoteData.Instrument == MAX_INSTRUMENTS || NoteData.Note == note_t::HALT || NoteData.Note == note_t::RELEASE)
 			BAR(PosX, PosY);
 		else if (NoteData.Instrument == HOLD_INSTRUMENT)		// // // 050B
-			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, '&', InstColor);
+			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, L'&', InstColor);
 		else
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.Instrument & 0x0F], InstColor);		// // //
 		break;

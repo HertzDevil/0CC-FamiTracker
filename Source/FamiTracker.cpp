@@ -198,7 +198,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	// Add shell options
 	RegisterShellFileTypes();		// // //
 	static const LPCWSTR FILE_ASSOC_NAME = L"0CC-FamiTracker Module";
-	AfxRegSetValue(HKEY_CLASSES_ROOT, "0CCFamiTracker.Document", REG_SZ, FILE_ASSOC_NAME, wcslen(FILE_ASSOC_NAME) * sizeof(WCHAR));
+	RegSetValueW(HKEY_CLASSES_ROOT, L"0CCFamiTracker.Document", REG_SZ, FILE_ASSOC_NAME, wcslen(FILE_ASSOC_NAME) * sizeof(WCHAR));
 	// Add an option to play files
 	CStringW strPathName, strTemp, strFileTypeId;
 	AfxGetModuleShortFileName(AfxGetInstanceHandle(), strPathName);
@@ -206,7 +206,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	strOpenCommandLine += L" /play \"%1\"";
 	if (pDocTemplate->GetDocString(strFileTypeId, CDocTemplate::regFileTypeId) && !strFileTypeId.IsEmpty()) {
 		strTemp.Format(L"%s\\shell\\play\\%s", (LPCWSTR)strFileTypeId, L"command");
-		AfxRegSetValue(HKEY_CLASSES_ROOT, strTemp, REG_SZ, strOpenCommandLine, wcslen(strOpenCommandLine) * sizeof(WCHAR));
+		RegSetValueW(HKEY_CLASSES_ROOT, strTemp, REG_SZ, strOpenCommandLine, wcslen(strOpenCommandLine) * sizeof(WCHAR));
 	}
 #endif
 
