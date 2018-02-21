@@ -1374,7 +1374,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 			}
 			else if (ch == chan_id_t::SN76489_NOISE) {		// // //
 				// SN76489 Noise
-				char NoiseFreq = (NoteData.Note - 1 + NoteData.Octave * 12) & 0x03;
+				char NoiseFreq = MIDI_NOTE(NoteData.Octave, NoteData.Note) & 0x03;
 				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, SN7_NOISE[NoiseFreq], ColorInfo.Note);		// // //
 				DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, '-', ColorInfo.Note);
 				DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, '#', ColorInfo.Note);

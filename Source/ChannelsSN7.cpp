@@ -159,7 +159,7 @@ CSN7NoiseChan::CSN7NoiseChan() : CChannelHandlerSN7()
 	m_iDefaultDuty = 0;
 }
 
-void CSN7NoiseChan::HandleNote(int Note, int Octave)
+void CSN7NoiseChan::HandleNote(note_t Note, int Octave)
 {
 	CChannelHandler::HandleNote(Note, Octave);
 

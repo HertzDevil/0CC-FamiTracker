@@ -74,7 +74,7 @@ public:
 protected:
 	bool HandleEffect(effect_t EffNum, unsigned char EffParam) override;
 	void ClearRegisters() override;
-	void HandleNote(int Note, int Octave) override;
+	void HandleNote(note_t Note, int Octave) override;
 	void SetupSlide() override;
 
 	int TriggerNote(int Note) override;
