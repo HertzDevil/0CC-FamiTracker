@@ -1134,11 +1134,13 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		WriteString(FormattedA("%-8s %3d   ", CTstr, i));
 
 		if (auto seqInst = std::dynamic_pointer_cast<CSeqInstrument>(pInst)) {
-			CStringA s;
-			foreachSeq([&] (sequence_t j) {
-				AppendFormatA(s, "%3d ", seqInst->GetSeqEnable(j) ? seqInst->GetSeqIndex(j) : -1);
-			});
-			WriteString(s);
+			if (seqInst->GetType() != INST_FDS) {
+				CStringA s;
+				foreachSeq([&] (sequence_t j) {
+					AppendFormatA(s, "%3d ", seqInst->GetSeqEnable(j) ? seqInst->GetSeqIndex(j) : -1);
+				});
+				WriteString(s);
+			}
 		}
 
 		switch (pInst->GetType())
