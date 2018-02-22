@@ -639,7 +639,7 @@ void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 			m_iCursorEditDigit = 0;
 			if (bShift && !m_bLastRow) {
-				model_->ContinueSelection(CFrameCursorPos {GetEditFrame(), Channel});		// // //
+				model_->ContinueSelection(CFrameCursorPos {GetEditFrame(), model_->GetCurrentChannel()});		// // //
 				InvalidateFrameData();
 			}
 			break;
