@@ -304,13 +304,13 @@ void CWaveEditor::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 	CMenu menu;
 
 	menu.CreatePopupMenu();
-	menu.AppendMenuW(MF_STRING, 1, L"&Steps");
-	menu.AppendMenuW(MF_STRING, 2, L"&Lines");
+	menu.AppendMenuW(MFT_STRING, 1, L"&Steps");
+	menu.AppendMenuW(MFT_STRING, 2, L"&Lines");
 
 	if (GetLineMode())
-		menu.CheckMenuItem(1, MF_BYPOSITION | MF_CHECKED);
+		menu.CheckMenuItem(1, MF_BYPOSITION | MFS_CHECKED);
 	else
-		menu.CheckMenuItem(0, MF_BYPOSITION | MF_CHECKED);
+		menu.CheckMenuItem(0, MF_BYPOSITION | MFS_CHECKED);
 
 	switch (menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD, point.x, point.y, this)) {
 		case 1:

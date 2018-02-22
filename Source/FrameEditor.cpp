@@ -922,8 +922,8 @@ void CFrameEditor::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 
 	// Paste menu item
 	BOOL ClipboardAvailable = IsClipboardAvailable();
-	pPopupMenu->EnableMenuItem(ID_FRAME_PASTE, MF_BYCOMMAND | (ClipboardAvailable ? MF_ENABLED : MF_DISABLED));
-	pPopupMenu->EnableMenuItem(ID_FRAME_PASTENEWPATTERNS, MF_BYCOMMAND | (ClipboardAvailable ? MF_ENABLED : MF_DISABLED));
+	pPopupMenu->EnableMenuItem(ID_FRAME_PASTE, MF_BYCOMMAND | (ClipboardAvailable ? MFS_ENABLED : MFS_DISABLED));
+	pPopupMenu->EnableMenuItem(ID_FRAME_PASTENEWPATTERNS, MF_BYCOMMAND | (ClipboardAvailable ? MFS_ENABLED : MFS_DISABLED));
 
 	pPopupMenu->TrackPopupMenu(TPM_RIGHTBUTTON, point.x, point.y, this);
 }

@@ -54,21 +54,21 @@ bool CInstrumentFileTree::BuildMenuTree(const CStringW &instrumentPath)		// // /
 	TRACE(L"Building instrument file tree...\n");
 
 	m_RootMenu.CreatePopupMenu();
-	m_RootMenu.AppendMenuW(MF_STRING, MENU_BASE + 0, L"Open file...");
-	m_RootMenu.AppendMenuW(MF_STRING, MENU_BASE + 1, L"Select directory...");
-	m_RootMenu.AppendMenuW(MF_SEPARATOR);
+	m_RootMenu.AppendMenuW(MFT_STRING, MENU_BASE + 0, L"Open file...");
+	m_RootMenu.AppendMenuW(MFT_STRING, MENU_BASE + 1, L"Select directory...");
+	m_RootMenu.AppendMenuW(MFT_SEPARATOR);
 	m_RootMenu.SetDefaultItem(0, TRUE);
 
 	if (instrumentPath.GetLength() == 0) {
 		m_bShouldRebuild = true;
-		m_RootMenu.AppendMenuW(MF_STRING | MF_DISABLED, MENU_BASE + 2, L"(select a directory)");
+		m_RootMenu.AppendMenuW(MFT_STRING | MFS_DISABLED, MENU_BASE + 2, L"(select a directory)");
 	}
 	else {
 		m_iFileIndex = 2;
 
 		if (!ScanDirectory(instrumentPath, m_RootMenu, 0)) {		// // //
 			// No files found
-			m_RootMenu.AppendMenuW(MF_STRING | MF_DISABLED, MENU_BASE + 2, L"(no files found)");
+			m_RootMenu.AppendMenuW(MFT_STRING | MFS_DISABLED, MENU_BASE + 2, L"(no files found)");
 			m_bShouldRebuild = true;
 		}
 		else {
@@ -103,7 +103,7 @@ bool CInstrumentFileTree::ScanDirectory(const CStringW &path, CMenu &Menu, int l
 			SubMenu.CreatePopupMenu();
 			// Recursive scan
 			bool bEnabled = ScanDirectory(path + L"\\" + fileFinder.GetFileName(), SubMenu, level + 1);
-			Menu.AppendMenuW(MF_STRING | MF_POPUP | (bEnabled ? MF_ENABLED : MF_DISABLED), (UINT)SubMenu.m_hMenu, fileFinder.GetFileName());
+			Menu.AppendMenuW(MFT_STRING | MF_POPUP | (bEnabled ? MFS_ENABLED : MFS_DISABLED), (UINT)SubMenu.m_hMenu, fileFinder.GetFileName());
 			bNoFile = false;
 		}
 	}
@@ -113,7 +113,7 @@ bool CInstrumentFileTree::ScanDirectory(const CStringW &path, CMenu &Menu, int l
 	// Then files
 	while (working) {
 		working = fileFinder.FindNextFileW();
-		Menu.AppendMenuW(MF_STRING | MF_ENABLED, MENU_BASE + m_iFileIndex++, fileFinder.GetFileTitle());
+		Menu.AppendMenuW(MFT_STRING | MFS_ENABLED, MENU_BASE + m_iFileIndex++, fileFinder.GetFileTitle());
 		m_fileList.push_back(path + L"\\" + fileFinder.GetFileName());		// // //
 		bNoFile = false;
 	}

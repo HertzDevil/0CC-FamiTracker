@@ -108,13 +108,13 @@ void CSequenceSetting::OnLButtonDown(UINT nFlags, CPoint point)
 
 	m_menuPopup.CreatePopupMenu();
 	for (unsigned i = 0; i < SEQ_SETTING_COUNT[seqType]; ++i)
-		m_menuPopup.AppendMenuW(MF_STRING, MENU_ID_BASE + i, SEQ_SETTING_TEXT[i][seqType]);
+		m_menuPopup.AppendMenuW(MFT_STRING, MENU_ID_BASE + i, SEQ_SETTING_TEXT[i][seqType]);
 	m_menuPopup.CheckMenuRadioItem(MENU_ID_BASE, MENU_ID_MAX, MENU_ID_BASE + Setting, MF_BYCOMMAND);
 #ifndef _DEBUG
 	if (m_pSequence->GetSequenceType() == sequence_t::Volume && m_iInstType != INST_VRC6)
-		m_menuPopup.EnableMenuItem(MENU_ID_BASE + SETTING_VOL_64_STEPS, MF_DISABLED);		// // // 050B
+		m_menuPopup.EnableMenuItem(MENU_ID_BASE + SETTING_VOL_64_STEPS, MFS_DISABLED);		// // // 050B
 //	else if (m_pSequence->GetSequenceType() == sequence_t::Pitch && m_iInstType != INST_2A03)
-//		m_menuPopup.EnableMenuItem(MENU_ID_BASE + SETTING_PITCH_SWEEP, MF_DISABLED);
+//		m_menuPopup.EnableMenuItem(MENU_ID_BASE + SETTING_PITCH_SWEEP, MFS_DISABLED);
 #endif
 	m_menuPopup.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x + rect.left, point.y + rect.top, this);
 	m_menuPopup.DestroyMenu();		// // //

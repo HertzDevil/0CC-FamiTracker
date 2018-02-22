@@ -403,9 +403,9 @@ void CInstrumentEditorVRC7::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 	CMenu menu;
 
 	menu.CreatePopupMenu();
-	menu.AppendMenuW(MF_STRING, 1, L"&Copy");
-	menu.AppendMenuW(MF_STRING, 2, L"Copy as Plain &Text");		// // //
-	menu.AppendMenuW(MF_STRING, 3, L"&Paste");
+	menu.AppendMenuW(MFT_STRING, 1, L"&Copy");
+	menu.AppendMenuW(MFT_STRING, 2, L"Copy as Plain &Text");		// // //
+	menu.AppendMenuW(MFT_STRING, 3, L"&Paste");
 
 	switch (menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD, point.x, point.y, this)) {
 		case 1: // Copy

@@ -447,7 +447,7 @@ void CFamiTrackerApp::OnRecentFilesClear()		// // //
 	auto pMenu = m_pMainWnd->GetMenu()->GetSubMenu(0)->GetSubMenu(14);
 	for (int i = 0; i < MAX_RECENT_FILES; ++i)
 		pMenu->RemoveMenu(ID_FILE_MRU_FILE1 + i, MF_BYCOMMAND);
-	pMenu->AppendMenuW(MF_STRING, ID_FILE_MRU_FILE1, L"(File)");
+	pMenu->AppendMenuW(MFT_STRING, ID_FILE_MRU_FILE1, L"(File)");
 }
 
 void CFamiTrackerApp::OnUpdateRecentFilesClear(CCmdUI *pCmdUI)		// // //

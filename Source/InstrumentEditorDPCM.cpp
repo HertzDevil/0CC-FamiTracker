@@ -723,12 +723,12 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	CMenu PopupMenu;
 	GetCursorPos(&point);
 	PopupMenu.CreatePopupMenu();
-	PopupMenu.AppendMenuW(MF_STRING, 1, NO_SAMPLE_STR);
+	PopupMenu.AppendMenuW(MFT_STRING, 1, NO_SAMPLE_STR);
 
 	// Fill menu
 	for (int i = 0; i < MAX_DSAMPLES; i++)
 		if (auto pDSample = GetDSampleManager()->GetDSample(i))		// // //
-			PopupMenu.AppendMenuW(MF_STRING, i + 2, conv::to_wide(pDSample->name()).data());
+			PopupMenu.AppendMenuW(MFT_STRING, i + 2, conv::to_wide(pDSample->name()).data());
 
 	UINT Result = PopupMenu.TrackPopupMenu(TPM_RIGHTBUTTON | TPM_RETURNCMD, point.x, point.y, this);
 

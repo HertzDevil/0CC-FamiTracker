@@ -281,6 +281,6 @@ void CSequenceInstrumentEditPanel::OnRClickInstSettings(NMHDR* pNMHDR, LRESULT* 
 	CMenu contextMenu;
 	contextMenu.LoadMenuW(IDR_SEQUENCE_POPUP);
 	CMenu *pMenu = contextMenu.GetSubMenu(0);
-	pMenu->EnableMenuItem(ID_CLONE_SEQUENCE, (m_pSequence->GetItemCount() != 0) ? MF_ENABLED : MF_DISABLED);
+	pMenu->EnableMenuItem(ID_CLONE_SEQUENCE, (m_pSequence->GetItemCount() != 0) ? MFS_ENABLED : MFS_DISABLED);
 	pMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, oPoint.x, oPoint.y, this);
 }

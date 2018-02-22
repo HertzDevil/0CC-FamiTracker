@@ -2615,19 +2615,19 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 	sound_chip_t SelectedChip = GetChipFromChannel(pView->GetSelectedChannelID());		// // // where the cursor is located
 
 	if (Chip.ContainsChip(sound_chip_t::APU))
-		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_2A03, L"New 2A03 instrument");
+		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_2A03, L"New 2A03 instrument");
 	if (Chip.ContainsChip(sound_chip_t::VRC6))
-		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_VRC6, L"New VRC6 instrument");
+		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_VRC6, L"New VRC6 instrument");
 	if (Chip.ContainsChip(sound_chip_t::VRC7))
-		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_VRC7, L"New VRC7 instrument");
+		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_VRC7, L"New VRC7 instrument");
 	if (Chip.ContainsChip(sound_chip_t::FDS))
-		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_FDS, L"New FDS instrument");
+		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_FDS, L"New FDS instrument");
 	if (Chip.ContainsChip(sound_chip_t::MMC5))
-		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_MMC5, L"New MMC5 instrument");
+		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_MMC5, L"New MMC5 instrument");
 	if (Chip.ContainsChip(sound_chip_t::N163))
-		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_N163, L"New Namco instrument");
+		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_N163, L"New Namco instrument");
 	if (Chip.ContainsChip(sound_chip_t::S5B))
-		menu.AppendMenuW(MF_STRING, ID_INSTRUMENT_ADD_S5B, L"New Sunsoft instrument");
+		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_S5B, L"New Sunsoft instrument");
 
 	switch (SelectedChip) {
 	case sound_chip_t::APU:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_2A03); break;
@@ -2782,7 +2782,7 @@ void CMainFrame::UpdateMenu(CMenu *pMenu)
 			// Update sub menu
 			UpdateMenu(pMenu->GetSubMenu(i));
 		}
-		else if ((state & MF_SEPARATOR) == 0) {
+		else if ((state & MFT_SEPARATOR) == 0) {
 			// Change menu name
 			UINT id = pMenu->GetMenuItemID(i);
 
