@@ -47,7 +47,7 @@ bool CClipboardResource::ReadGlobalMemory(HGLOBAL hMem) {
 	return false;
 }
 
-DROPEFFECT CClipboardResource::DragDropTransfer(UINT clipboardID, DWORD effects) const {
+DROPEFFECT CClipboardResource::DragDropTransfer(CLIPFORMAT clipboardID, DWORD effects) const {
 	DROPEFFECT res = DROPEFFECT_NONE;
 	if (HGLOBAL hMem = AllocateGlobalMemory()) {
 		if (WriteGlobalMemory(hMem)) {

@@ -69,7 +69,7 @@ void CInstrument2A03::Store(CDocumentFile *pDocFile) const
 
 	if (Version >= 7)		// // // 050B
 		pDocFile->WriteBlockInt(GetSampleCount());
-	for (int n = 0; n < NOTE_COUNT; ++n) {
+	for (int n = 0; n < NOTE_RANGE * Octaves; ++n) {
 		if (Version >= 7) {		// // // 050B
 			if (!GetSampleIndex(n)) continue;
 			pDocFile->WriteBlockChar(n);

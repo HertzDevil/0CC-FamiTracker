@@ -74,7 +74,7 @@ public:
 private:
 	bool ReadSample(int &v)
 	{
-		int ret, nbytes;
+		int ret = 0, nbytes = 0;
 		if (smpsize_ == 2) {
 			// 16 bit samples
 			short sample_word[2];

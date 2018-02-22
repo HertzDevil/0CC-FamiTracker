@@ -82,7 +82,6 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 		}
 		--m_iDumpCount;
 	}
-	bool Temp = *m_pDumpInstrument == nullptr;
 	int Pos = (Tick - 1) % Intv;
 
 	signed char Val = 0;
@@ -113,7 +112,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 		PitchReg = (REG(ID << 1) | (0x0F & REG(1 + (ID << 1))) << 8); break;
 	}
 
-	CDetuneTable::type_t Table;
+	CDetuneTable::type_t Table = CDetuneTable::DETUNE_NTSC;
 	switch (Chip) {
 	case sound_chip_t::APU:  Table = m_pModule->GetMachine() == PAL ? CDetuneTable::DETUNE_PAL : CDetuneTable::DETUNE_NTSC; break;
 	case sound_chip_t::VRC6: Table = m_iRecordChannel == chan_id_t::VRC6_SAWTOOTH ? CDetuneTable::DETUNE_SAW : CDetuneTable::DETUNE_NTSC; break;

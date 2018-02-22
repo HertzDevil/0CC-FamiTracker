@@ -151,12 +151,11 @@ BOOL CAboutDlg::OnInitDialog()
 		L"- DPCM import resampler by Jarhmander\r\n"
 		L"- Module text import/export by rainwarrior");		// // //
 	SetDlgItemTextW(IDC_ABOUT_LIB,
-		L"- Blip_buffer 0.4.0 is Copyright (C) blargg\r\n"
-		L"(http://www.slack.net/~ant/nes-emu/)\r\n"
-		L"- Fast Fourier Transform code is (C) 2017 Project Nayuki (MIT License)\r\n"
-		L"- YM2413 emulator is written by Mitsutaka Okazaki\r\n"
+		L"- Blip_buffer 0.4.0 is Copyright (C) blargg (LGPL v2.1)\r\n"
+		L"- Fast Fourier Transform code is (C) 2017 Project Nayuki (MIT)\r\n"
+		L"- YM2413 emulator is written by Mitsutaka Okazaki (MIT)\r\n"
 		L"- FDS sound emulator from nezplug (including a fix by rainwarrior)\r\n"
-		L"- JSON for Modern C++ is Copyright (C) Niels Lohmann");
+		L"- JSON for Modern C++ is Copyright (C) Niels Lohmann (MIT)");
 
 	m_cHead.SubclassDlgItem(IDC_HEAD, this);
 

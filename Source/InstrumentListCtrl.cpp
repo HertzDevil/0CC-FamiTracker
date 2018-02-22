@@ -180,7 +180,7 @@ void CInstrumentListCtrl::OnContextMenu(CWnd* pWnd, CPoint point)
 
 void CInstrumentListCtrl::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+//	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
 
 	// Selection changed
 //	if (pNMLV->uNewState & LVIS_SELECTED)
@@ -191,14 +191,14 @@ void CInstrumentListCtrl::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CInstrumentListCtrl::OnLvnBeginlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	LPNMLVDISPINFOW pDispInfo = reinterpret_cast<LPNMLVDISPINFOW>(pNMHDR);
+//	LPNMLVDISPINFOW pDispInfo = reinterpret_cast<LPNMLVDISPINFOW>(pNMHDR);
 	// TODO: Add your control notification handler code here
 	*pResult = 0;
 }
 
 void CInstrumentListCtrl::OnLvnEndlabeledit(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	LPNMLVDISPINFOW pDispInfo = reinterpret_cast<LPNMLVDISPINFOW>(pNMHDR);
+//	LPNMLVDISPINFOW pDispInfo = reinterpret_cast<LPNMLVDISPINFOW>(pNMHDR);
 	// TODO: Add your control notification handler code here
 	*pResult = 0;
 }
@@ -218,8 +218,6 @@ void CInstrumentListCtrl::OnNMClick(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CInstrumentListCtrl::OnLvnKeydown(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	LPNMLVKEYDOWN pLVKeyDow = reinterpret_cast<LPNMLVKEYDOWN>(pNMHDR);
-
 	// Empty
 
 	*pResult = 0;
@@ -227,8 +225,6 @@ void CInstrumentListCtrl::OnLvnKeydown(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CInstrumentListCtrl::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-
 	// Double-click = instrument editor
 	m_pMainFrame->OpenInstrumentEditor();
 
@@ -254,7 +250,7 @@ void CInstrumentListCtrl::OnLvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult)
 	ASSERT(m_pDragImage);
 
 	m_pDragImage->BeginDrag(0, CPoint(nOffset, nOffset));
-	m_pDragImage->DragEnter(this, pNMLV->ptAction);
+	CImageList::DragEnter(this, pNMLV->ptAction);
 
 	// Capture all mouse messages
 	SetCapture();
@@ -267,8 +263,8 @@ void CInstrumentListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 	// Handle drag operation
 	if (m_bDragging) {
 		// Move the drag image
-		m_pDragImage->DragMove(point);
-		m_pDragImage->DragShowNolock(false);
+		CImageList::DragMove(point);
+		CImageList::DragShowNolock(false);
 
 		// Turn off hilight for previous drop target
 		SetItemState(m_nDropIndex, 0, LVIS_DROPHILITED);
@@ -276,8 +272,7 @@ void CInstrumentListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 		RedrawItems(m_nDropIndex, m_nDropIndex);
 
 		// Get drop index
-		UINT nFlags;
-		m_nDropIndex = HitTest(point, &nFlags);
+		m_nDropIndex = HitTest(point);
 
 		// Highlight drop index
 		if (m_nDropIndex != -1) {
@@ -286,7 +281,7 @@ void CInstrumentListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 			UpdateWindow();
 		}
 
-		m_pDragImage->DragShowNolock(true);
+		CImageList::DragShowNolock(true);
 	}
 
 	CListCtrl::OnMouseMove(nFlags, point);
@@ -299,8 +294,8 @@ void CInstrumentListCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 		ReleaseCapture();
 		m_bDragging = false;
 
-		m_pDragImage->DragLeave(this);
-		m_pDragImage->EndDrag();
+		CImageList::DragLeave(this);
+		CImageList::EndDrag();
 		m_pDragImage.reset();		// // //
 
 		// Remove highlight

@@ -302,7 +302,7 @@ void CBookmarkDlg::OnBnClickedButtonBookmarkMoveup()
 void CBookmarkDlg::OnBnClickedButtonBookmarkMovedown()
 {
 	int pos = m_cListBookmark.GetCurSel();
-	if (pos != LB_ERR && pos != m_pCollection->GetCount() - 1) {
+	if (pos != LB_ERR && (unsigned)pos != m_pCollection->GetCount() - 1) {
 		if (m_pCollection->SwapBookmarks(pos, pos + 1))
 			m_pDocument->ModifyIrreversible();
 		UpdateBookmarkList();

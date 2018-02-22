@@ -855,7 +855,7 @@ void CChannelHandler::ProcessChannel()
 int CChannelHandler::GetVibrato() const
 {
 	// Vibrato offset (4xx)
-	int VibFreq;
+	int VibFreq = 0;
 
 	if ((m_iVibratoPhase & 0xF0) == 0x00)
 		VibFreq = m_pVibratoTable[m_iVibratoDepth + m_iVibratoPhase];

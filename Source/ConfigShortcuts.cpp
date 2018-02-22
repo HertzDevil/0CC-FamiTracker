@@ -128,7 +128,7 @@ BOOL CConfigShortcuts::OnApply()
 			m[KeyVal] = i;
 		else {
 			AfxMessageBox(FormattedW(L"These two commands are assigned to the same shortcut (%s):\n- %s\n- %s",
-				AssembleKeyString(m_iMods[i], m_iKeys[i]),
+				(LPCWSTR)AssembleKeyString(m_iMods[i], m_iKeys[i]),
 				CAccelerator::DEFAULT_TABLE[it->second].name,
 				CAccelerator::DEFAULT_TABLE[i].name), MB_ICONERROR);
 			return FALSE;

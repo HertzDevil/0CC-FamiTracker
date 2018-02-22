@@ -157,8 +157,8 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 				COldSequence Seq;
 				pOpenFile->Read(&ImportedSequence, sizeof(ImportedSequence));
 				if (ImportedSequence.Count > 0 && ImportedSequence.Count < MAX_SEQUENCE_ITEMS)
-					for (unsigned int i = 0; i < ImportedSequence.Count; ++i)		// // //
-						Seq.AddItem(ImportedSequence.Length[i], ImportedSequence.Value[i]);
+					for (unsigned int j = 0; j < ImportedSequence.Count; ++j)		// // //
+						Seq.AddItem(ImportedSequence.Length[j], ImportedSequence.Value[j]);
 				TmpSequences.push_back(Seq);		// // //
 			}
 			break;
@@ -216,14 +216,14 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 
 			pOpenFile->Read(&ReadCount, sizeof(int));
 			for (i = 0; i < ReadCount; i++) {
-				std::vector<uint8_t> pBuf;		// // //
+				std::vector<uint8_t> Sample;		// // //
 				pOpenFile->Read(&ImportedDSample, sizeof(ImportedDSample));
 				if (ImportedDSample.SampleSize != 0 && ImportedDSample.SampleSize < 0x4000) {
-					pBuf.resize(ImportedDSample.SampleSize);		// // //
-					pOpenFile->Read(pBuf.data(), ImportedDSample.SampleSize);
+					Sample.resize(ImportedDSample.SampleSize);		// // //
+					pOpenFile->Read(Sample.data(), ImportedDSample.SampleSize);
 				}
 
-				modfile.GetDSampleManager()->SetDSample(i, std::make_shared<ft0cc::doc::dpcm_sample>(pBuf, ImportedDSample.Name));
+				modfile.GetDSampleManager()->SetDSample(i, std::make_shared<ft0cc::doc::dpcm_sample>(Sample, ImportedDSample.Name));
 			}
 			break;
 		}

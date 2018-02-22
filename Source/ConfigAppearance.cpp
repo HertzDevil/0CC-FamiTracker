@@ -144,7 +144,6 @@ void CConfigAppearance::OnPaint()
 	Rect.right -= ParentRect.left;
 
 	int WinHeight = Rect.bottom - Rect.top;
-	int WinWidth = Rect.right - Rect.left;
 
 	CFont Font;		// // //
 	Font.CreateFontW(-m_iFontSize, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET,
@@ -241,7 +240,6 @@ BOOL CConfigAppearance::OnInitDialog()
 		ReleaseDC(pDC);
 	}
 
-	CComboBox *pFontList = static_cast<CComboBox*>(GetDlgItem(IDC_FONT));
 	CComboBox *pFontSizeList = static_cast<CComboBox*>(GetDlgItem(IDC_FONT_SIZE));
 	CComboBox *pItemsBox = static_cast<CComboBox*>(GetDlgItem(IDC_COL_ITEM));
 

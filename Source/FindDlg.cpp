@@ -147,7 +147,7 @@ void CFindCursor::ResetPosition(direction_t Dir)
 	switch (Dir) {
 	case direction_t::DOWN: case direction_t::RIGHT:
 		m_cpBeginPos = m_Scope.m_cpEnd; Source = &m_Scope.m_cpStart; break;
-	case direction_t::UP: case direction_t::LEFT:
+	case direction_t::UP: case direction_t::LEFT: default:
 		m_cpBeginPos = m_Scope.m_cpStart; Source = &m_Scope.m_cpEnd; break;
 	}
 	m_iFrame = Source->m_iFrame;
@@ -684,7 +684,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 				str.Delete(0);
 			int BufPos = conv::to_int(conv::to_utf8(str)).value_or(ECHO_BUFFER_LENGTH + 1);
 			RaiseIf(BufPos > ECHO_BUFFER_LENGTH,
-				L"Echo buffer access \"^%s\" is out of range, maximum is %d.", str, ECHO_BUFFER_LENGTH);
+				L"Echo buffer access \"^%s\" is out of range, maximum is %d.", (LPCWSTR)str, ECHO_BUFFER_LENGTH);
 			Term.Oct->Set(BufPos, Half);
 		}
 		else {
@@ -707,7 +707,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 				RaiseIf(str.SpanIncluding(L"0123456789") != str, L"Unknown note octave.");
 				Oct = conv::to_int(conv::to_utf8(str)).value_or(-1);
 				RaiseIf(Oct >= OCTAVE_RANGE || Oct < 0,
-					L"Note octave \"%s\" is out of range, maximum is %d.", str, OCTAVE_RANGE - 1);
+					L"Note octave \"%s\" is out of range, maximum is %d.", (LPCWSTR)str, OCTAVE_RANGE - 1);
 				Term.Oct->Set(Oct, Half);
 			}
 			else RaiseIf(Half, L"Cannot use wildcards in a range search query.");
@@ -715,7 +715,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 			while (Note < value_cast(note_t::C)) { Note += NOTE_RANGE; if (Term.Definite[WC_OCT]) Term.Oct->Set(--Oct, Half); }
 			Term.Note->Set(static_cast<note_t>(Note), Half);
 			RaiseIf(Term.Definite[WC_OCT] && (Oct >= OCTAVE_RANGE || Oct < 0),
-				L"Note octave \"%s\" is out of range, check if the note contains Cb or B#.", str);
+				L"Note octave \"%s\" is out of range, check if the note contains Cb or B#.", (LPCWSTR)str);
 			return;
 		}
 	}
@@ -738,9 +738,9 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 
 	if (str.SpanIncluding(L"0123456789") == str) {
 		int NoteValue = conv::to_int(conv::to_utf8(str)).value_or(-1);
-		RaiseIf(NoteValue == 0 && str.GetAt(0) != L'0', L"Invalid note \"%s\".", str);
+		RaiseIf(NoteValue == 0 && str.GetAt(0) != L'0', L"Invalid note \"%s\".", (LPCWSTR)str);
 		RaiseIf(NoteValue >= NOTE_COUNT || NoteValue < 0,
-			L"Note value \"%s\" is out of range, maximum is %d.", str, NOTE_COUNT - 1);
+			L"Note value \"%s\" is out of range, maximum is %d.", (LPCWSTR)str, NOTE_COUNT - 1);
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
 		Term.Note->Set(GET_NOTE(NoteValue), Half);
@@ -773,7 +773,7 @@ void CFindDlg::ParseInst(searchTerm &Term, CStringW str, bool Half)
 	else if (!str.IsEmpty()) {
 		unsigned char Val = GetHex(str);
 		RaiseIf(Val >= MAX_INSTRUMENTS,
-			L"Instrument \"%s\" is out of range, maximum is %X.", str, MAX_INSTRUMENTS - 1);
+			L"Instrument \"%s\" is out of range, maximum is %X.", (LPCWSTR)str, MAX_INSTRUMENTS - 1);
 		Term.Inst->Set(Val, Half);
 	}
 }
@@ -796,14 +796,14 @@ void CFindDlg::ParseVol(searchTerm &Term, CStringW str, bool Half)
 	else if (!str.IsEmpty()) {
 		unsigned char Val = GetHex(str);
 		RaiseIf(Val >= MAX_VOLUME,
-			L"Channel volume \"%s\" is out of range, maximum is %X.", str, MAX_VOLUME - 1);
+			L"Channel volume \"%s\" is out of range, maximum is %X.", (LPCWSTR)str, MAX_VOLUME - 1);
 		Term.Vol->Set(Val, Half);
 	}
 }
 
 void CFindDlg::ParseEff(searchTerm &Term, CStringW str, bool Half)
 {
-	RaiseIf(str.GetLength() == 2, L"Effect \"%s\" is too short.", str.Left(1));
+	RaiseIf(str.GetLength() == 2, L"Effect \"%s\" is too short.", (LPCWSTR)str.Left(1));
 
 	if (str.IsEmpty()) {
 		Term.Definite[WC_EFF] = true;
@@ -826,7 +826,7 @@ void CFindDlg::ParseEff(searchTerm &Term, CStringW str, bool Half)
 				found = true;
 			}
 		}
-		RaiseIf(!found, L"Unknown effect \"%s\" found in search query.", str.Left(1));
+		RaiseIf(!found, L"Unknown effect \"%s\" found in search query.", (LPCWSTR)str.Left(1));
 	}
 	if (str.GetLength() > 1) {
 		Term.Definite[WC_PARAM] = true;
@@ -931,7 +931,7 @@ void CFindDlg::GetReplaceTerm()
 
 unsigned CFindDlg::GetHex(LPCWSTR str) {
 	auto val = conv::to_int(conv::to_utf8(str), 16);
-	RaiseIf(!val, L"Invalid hexadecimal \"%s\".", str);
+	RaiseIf(!val, L"Invalid hexadecimal \"%s\".", (LPCWSTR)str);
 	return *val;
 }
 

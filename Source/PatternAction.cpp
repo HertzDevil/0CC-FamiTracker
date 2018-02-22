@@ -227,7 +227,6 @@ std::pair<CPatternIterator, CPatternIterator> CPatternAction::GetIterators(CSong
 void CPatternAction::SaveUndoState(const CMainFrame &MainFrm)		// // //
 {
 	// Save undo cursor position
-	CFamiTrackerView *pView = GET_VIEW();
 	const CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 
 	m_pUndoState = std::make_unique<CPatternEditorState>(*pPatternEditor);
@@ -662,10 +661,6 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 
 	int ChanStart     = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).m_iChannel;
 	int ChanEnd       = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iChannel;
-	column_t ColStart = GetSelectColumn(
-		(m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).m_iColumn);
-	column_t ColEnd   = GetSelectColumn(
-		(m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iColumn);
 
 	const bool bSingular = it.first == it.second && !m_pUndoState->IsSelecting;
 	const unsigned Length = pSongView->GetSong().GetPatternLength();
@@ -811,11 +806,11 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 			CPatternIterator r {it.first};		// // //
 			const auto &StartData = r.Get(i);
 			const auto &EndData = it.second.Get(i);
-			double StartValHi, StartValLo;		// // //
-			double EndValHi, EndValLo;
-			double DeltaHi, DeltaLo;
+			double StartValHi = 0., StartValLo = 0.;		// // //
+			double EndValHi = 0., EndValLo = 0.;
+			double DeltaHi = 0., DeltaLo = 0.;
 			bool TwoParam = false;
-			effect_t Effect;
+			effect_t Effect = EF_NONE;
 			switch (j) {
 			case COLUMN_NOTE:
 				if (!IsNote(StartData.Note) || !IsNote(EndData.Note))

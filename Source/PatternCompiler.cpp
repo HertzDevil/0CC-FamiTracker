@@ -526,8 +526,8 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 						WriteData(Command(CMD_EFF_GROOVE));
 
 						int Pos = 1;
-						for (int i = 0; i < EffParam; i++)
-							if (const auto pGroove = modfile_.GetGroove(i))
+						for (int k = 0; k < EffParam; ++k)
+							if (const auto pGroove = modfile_.GetGroove(k))
 								Pos += pGroove->compiled_size(); // TODO: use groove manager instead
 						WriteData(Pos);
 					}

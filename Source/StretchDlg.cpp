@@ -83,7 +83,6 @@ void CStretchDlg::UpdateStretch()
 	GetDlgItemTextW(IDC_EDIT_STRETCH_MAP, wstr);
 	auto str = conv::to_utf8(wstr);
 
-	int pos = 0;
 	m_iStretchMap.clear();
 
 	for (auto x : re::tokens(str))

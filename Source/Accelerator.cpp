@@ -229,9 +229,9 @@ CStringW CAccelerator::GetShortcutString(int id) const {		// // //
 			if (KeyName.GetLength() > 1)
 				KeyName = KeyName.Mid(0, 1).MakeUpper() + KeyName.Mid(1, KeyName.GetLength() - 1).MakeLower();
 			if (x.mod > 0)
-				return FormattedW(L"\t%s+%s", MOD_NAMES[x.mod], KeyName);
+				return FormattedW(L"\t%s+%s", MOD_NAMES[x.mod], (LPCWSTR)KeyName);
 			else
-				return FormattedW(L"\t%s", KeyName);
+				return FormattedW(L"\t%s", (LPCWSTR)KeyName);
 		}
 	}
 

@@ -549,8 +549,8 @@ LRESULT CFamiTrackerView::OnUserPlayerEvent(WPARAM wParam, LPARAM lParam)
 {
 	// Player is playing
 	// TODO clean up
-	int Frame = (int)wParam;
-	int Row = (int)lParam;
+//	int Frame = (int)wParam;
+//	int Row = (int)lParam;
 
 	m_pPatternEditor->InvalidateCursor();
 	RedrawPatternEditor();
@@ -2118,8 +2118,8 @@ void CFamiTrackerView::UpdateNoteQueues() {		// // //
 			m_pNoteQueue->AddMap({chan_id_t::SQUARE1, chan_id_t::SQUARE2});
 		if (chips.ContainsChip(sound_chip_t::N163)) {
 			std::vector<chan_id_t> n;
-			int Channels = GetModuleData()->GetNamcoChannels();
-			for (int i = 0; i < Channels; ++i)
+			int NamcoChannels = GetModuleData()->GetNamcoChannels();
+			for (int i = 0; i < NamcoChannels; ++i)
 				n.push_back(MakeChannelIndex(sound_chip_t::N163, i));
 			m_pNoteQueue->AddMap(n);
 		}
@@ -2652,7 +2652,6 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 	int EditStyle = theApp.GetSettings()->General.iEditStyle;
 	int Index = 0;
 
-	int Track = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack();
 	int Frame = GetSelectedFrame();
 	int Row = GetSelectedRow();
 	cursor_column_t Column = m_pPatternEditor->GetColumn();
@@ -3393,7 +3392,7 @@ DROPEFFECT CFamiTrackerView::OnDragEnter(COleDataObject* pDataObject, DWORD dwKe
 {
 	TRACE(L"OLE: OnDragEnter\n");
 
-	sel_condition_t Cond = m_pPatternEditor->GetSelectionCondition();
+//	sel_condition_t Cond = m_pPatternEditor->GetSelectionCondition();
 	if (m_pPatternEditor->GetSelectionCondition() == SEL_NONTERMINAL_SKIP) {		// // //
 		MessageBeep(MB_ICONWARNING);
 		static_cast<CMainFrame*>(GetParentFrame())->SetMessageText(IDS_SEL_NONTERMINAL_SKIP);
@@ -3472,7 +3471,6 @@ BOOL CFamiTrackerView::OnDrop(COleDataObject* pDataObject, DROPEFFECT dropEffect
 
 		// Get clipboard data
 		auto pClipData = std::make_unique<CPatternClipData>();		// // //
-		HGLOBAL hMem = pDataObject->GetGlobalData(m_iClipboard);
 		if (pClipData->ReadGlobalMemory(pDataObject->GetGlobalData(m_iClipboard))) {
 			m_pPatternEditor->PerformDrop(std::move(pClipData), bCopy, m_bDropMix);		// // // ???
 			m_bDropped = true;

@@ -277,7 +277,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerModule &modfile, int ver) {
 
 	// TODO read m_bLinearPitch
 	if (ver >= 9) {		// // // 050B
-		bool SweepReset = file_.GetBlockInt() != 0;
+		(void)(file_.GetBlockInt() != 0);
 	}
 
 	modfile.SetHighlight(CSongData::DEFAULT_HIGHLIGHT);		// // //
@@ -555,7 +555,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerModule &modfile, int ver) {
 	if (ver == 1) {
 		for (unsigned int i = 0; i < Count; ++i) {
 			COldSequence Seq;
-			unsigned int Index = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
+			(void)AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
 			unsigned int SeqCount = static_cast<unsigned char>(file_.GetBlockChar());
 			AssertRange(SeqCount, 0U, static_cast<unsigned>(MAX_SEQUENCE_ITEMS - 1), "Sequence item count");
 			for (unsigned int j = 0; j < SeqCount; ++j) {
@@ -759,11 +759,9 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 	const CChannelOrder &order = modfile.GetChannelOrder();		// // //
 
 	while (!file_.BlockDone()) {
-		unsigned Track;
+		unsigned Track = 0;
 		if (ver > 1)
 			Track = AssertRange(file_.GetBlockInt(), 0, static_cast<int>(MAX_TRACKS) - 1, "Pattern track index");
-		else if (ver == 1)
-			Track = 0;
 
 		unsigned Channel = AssertRange((unsigned)file_.GetBlockInt(), 0u, CHANID_COUNT - 1, "Pattern channel index");
 		AssertRange<MODULE_ERROR_OFFICIAL>(Channel, 0u, MAX_CHANNELS - 1, "Pattern channel index");
@@ -798,7 +796,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 					(pSong->GetEffectColumnCount(order.TranslateChannel(Channel)) + 1);		// // // 050B
 				for (int n = 0; n < FX; ++n) try {
 					unsigned char EffectNumber = file_.GetBlockChar();
-					if (Note.EffNumber[n] = static_cast<effect_t>(EffectNumber)) {
+					if (Note.EffNumber[n] = static_cast<effect_t>(EffectNumber); Note.EffNumber[n] != EF_NONE) {
 						AssertRange<MODULE_ERROR_STRICT>(EffectNumber, EF_NONE, EF_COUNT - 1, "Effect index");
 						unsigned char EffectParam = file_.GetBlockChar();
 						if (ver < 3) {
@@ -1272,7 +1270,7 @@ void CFamiTrackerDocIO::LoadDetuneTables(CFamiTrackerModule &modfile, int ver) {
 			}
 		}
 		catch (CModuleException e) {
-			e.AppendError("At %s detune table,", CDetuneDlg::CHIP_STR[Chip]);
+			e.AppendError("At %s detune table,", (LPCWSTR)CDetuneDlg::CHIP_STR[Chip]);
 			throw e;
 		}
 	}

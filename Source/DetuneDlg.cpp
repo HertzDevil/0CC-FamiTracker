@@ -84,13 +84,12 @@ const LPCWSTR CDetuneDlg::m_pNoteFlat[12] = {
 	L"C" , L"D-", L"D" , L"E-", L"E" , L"F",
 	L"G-", L"G" , L"A-", L"A" , L"B-", L"B",
 };
-const CStringW CDetuneDlg::CHIP_STR[6] = {L"NTSC", L"PAL", L"Saw", L"VRC7", L"FDS", L"N163"};
+const LPCWSTR CDetuneDlg::CHIP_STR[6] = {L"NTSC", L"PAL", L"Saw", L"VRC7", L"FDS", L"N163"};
 
 BOOL CDetuneDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	CFrameWnd *pFrameWnd = static_cast<CFrameWnd*>(GetParent());
 	m_iOctave = 3;
 	m_iNote = 36;
 	m_iCurrentChip = 0;
@@ -394,7 +393,6 @@ void CDetuneDlg::OnBnClickedButtonImport()
 {
 	CStringW    Path;
 	CStdioFile csv;
-	CFrameWnd *pFrameWnd = static_cast<CFrameWnd*>(GetParent());
 
 	CFileDialog FileDialog(TRUE, L"csv", 0,
 		OFN_HIDEREADONLY, L"Comma-separated values (*.csv)|*.csv|All files|*.*||");

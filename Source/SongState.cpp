@@ -240,7 +240,6 @@ CSongState::CSongState() {
 
 void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, unsigned Frame, unsigned Row) {
 	CConstSongView SongView {modfile.GetChannelOrder().Canonicalize(), *modfile.GetSong(Track)};
-	const auto &order = SongView.GetChannelOrder();
 	const auto &song = SongView.GetSong();
 
 	int totalRows = 0;

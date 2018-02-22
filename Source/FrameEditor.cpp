@@ -471,7 +471,6 @@ bool CFrameEditor::NeedUpdate() const
 	// Checks if the cursor or frame data has changed and area needs to be redrawn
 
 	const CFamiTrackerView *pView = CFamiTrackerView::GetView();
-	const CSoundGen *pSoundGen = Env.GetSoundGenerator();
 
 	const int ActiveFrame	= GetEditFrame();		// // //
 	const int ActiveChannel = pView->GetSelectedChannel();
@@ -1164,7 +1163,7 @@ void CFrameEditor::SetEditFrame(int Frame) const		// // //
 	int Frames = GetSongFrameCount();
 //	if (m_bLastRow != (Frame >= Frames))
 //		InvalidateFrameData();
-	if (m_bLastRow = (Frame >= Frames))
+	if (m_bLastRow = (Frame >= Frames); m_bLastRow)
 		Frame = Frames - 1;
 	m_pView->SelectFrame(Frame);
 }

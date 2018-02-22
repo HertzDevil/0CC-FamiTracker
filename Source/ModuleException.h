@@ -33,7 +33,7 @@
 /*!
 	\brief An exception object raised while reading and writing FTM files.
 */
-class CModuleException : std::exception
+class CModuleException : public std::exception
 {
 public:
 	/*!	\brief Constructor of the exception object with an empty message. */

@@ -1093,7 +1093,6 @@ void CPitchGraphEditor::OnPaint()
 	}
 
 	int StepWidth = GetItemWidth();
-	int StepHeight = GetItemHeight();		// // //
 	const int Top = GetItemTop();		// // //
 
 	// One last line
@@ -1157,7 +1156,6 @@ void CPitchGraphEditor::ModifyItem(CPoint point, bool Redraw)
 {
 	int MouseY = (point.y - m_GraphRect.top) - (m_GraphRect.Height() / 2);
 	int ItemWidth = GetItemWidth();
-	int ItemHeight = GetItemHeight();
 	int ItemIndex = (point.x - GRAPH_LEFT) / ItemWidth;
 	int ItemValue = -(MouseY * 255) / m_GraphRect.Height();
 
@@ -1181,7 +1179,6 @@ void CPitchGraphEditor::HighlightItem(CPoint point)
 {
 	int MouseY = (point.y - m_GraphRect.top) - (m_GraphRect.Height() / 2);
 	int ItemWidth = GetItemWidth();
-	int ItemHeight = GetItemHeight();
 	int ItemIndex = (point.x - GRAPH_LEFT) / ItemWidth;
 	int ItemValue = -(MouseY * 255) / m_GraphRect.Height();
 	int LastItem = m_iHighlightedItem;
@@ -1255,12 +1252,12 @@ void CNoiseEditor::OnPaint()
 		static const s5b_mode_t BAR_MODE[] = {s5b_mode_t::Envelope, s5b_mode_t::Square, s5b_mode_t::Noise};		// // //
 		static const COLORREF BAR_COLOR[] = {0x00A0A0, 0xA0A000, 0xA000A0};
 
-		for (std::size_t i = 0; i < std::size(BAR_MODE); ++i) {
-			int y = m_GraphRect.bottom - BUTTON_MARGIN + i * BUTTON_HEIGHT + 1;
-			int h = BUTTON_HEIGHT - 1;
-			const COLORREF Color = (flags & BAR_MODE[i]) == BAR_MODE[i] ? BAR_COLOR[i] : 0x505050;
-			m_BackDC.FillSolidRect(x, y, w, h, Color);
-			m_BackDC.Draw3dRect(x, y, w, h, BLEND(Color, WHITE, .8), BLEND(Color, BLACK, .8));
+		for (std::size_t j = 0; j < std::size(BAR_MODE); ++j) {
+			int y2 = m_GraphRect.bottom - BUTTON_MARGIN + j * BUTTON_HEIGHT + 1;
+			int h2 = BUTTON_HEIGHT - 1;
+			const COLORREF Color = (flags & BAR_MODE[j]) == BAR_MODE[j] ? BAR_COLOR[j] : 0x505050;
+			m_BackDC.FillSolidRect(x, y2, w, h2, Color);
+			m_BackDC.Draw3dRect(x, y2, w, h2, BLEND(Color, WHITE, .8), BLEND(Color, BLACK, .8));
 		}
 	}
 

@@ -110,8 +110,8 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 		pCombo->SelectString(-1, KEEP_INST_STRING);
 
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_TRSP));
-	for (int i = -MAX_TRANSPOSE; i <= MAX_TRANSPOSE; ++i)
-		pCombo->AddString(FormattedW(L"%+d", i));
+	for (int j = -MAX_TRANSPOSE; j <= MAX_TRANSPOSE; ++j)
+		pCombo->AddString(FormattedW(L"%+d", j));
 	pCombo->SelectString(-1, FormattedW(L"%+d", m_iSplitTranspose));
 
 	CheckDlgButton(IDC_CHECK_SPLIT_ENABLE, m_bSplitEnable ? BST_CHECKED : BST_UNCHECKED);
@@ -122,7 +122,8 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 
 void CSplitKeyboardDlg::OnBnClickedCheckSplitEnable()
 {
-	if (m_bSplitEnable = (IsDlgButtonChecked(IDC_CHECK_SPLIT_ENABLE) == BST_CHECKED)) {
+	m_bSplitEnable = (IsDlgButtonChecked(IDC_CHECK_SPLIT_ENABLE) == BST_CHECKED);
+	if (m_bSplitEnable) {
 		OnCbnSelchangeComboSplitNote();
 		OnCbnSelchangeComboSplitChan();
 		OnCbnSelchangeComboSplitInst();

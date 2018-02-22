@@ -122,11 +122,11 @@ void CRegisterDisplay::Draw() {
 			case 0: case 1:
 				period = reg[2] | ((reg[3] & 7) << 8);
 				vol = reg[0] & 0x0F;
-				text = FormattedA("%s, vol = %02i, duty = %i", GetPitchText(3, period, freq), vol, reg[0] >> 6); break;
+				text = FormattedA("%s, vol = %02i, duty = %i", (LPCSTR)GetPitchText(3, period, freq), vol, reg[0] >> 6); break;
 			case 2:
 				period = reg[2] | ((reg[3] & 7) << 8);
 				vol = reg[0] ? 15 : 0;
-				text = FormattedA("%s", GetPitchText(3, period, freq)); break;
+				text = FormattedA("%s", (LPCSTR)GetPitchText(3, period, freq)); break;
 			case 3:
 				period = reg[2] & 0x0F;
 				vol = reg[0] & 0x0F;
@@ -136,7 +136,7 @@ void CRegisterDisplay::Draw() {
 			case 4:
 				period = reg[0] & 0x0F;
 				vol = 15 * !pSoundGen->PreviewDone();
-				text = FormattedA("%s, %s, size = %i byte%c", GetPitchText(1, period & 0x0F, freq),
+				text = FormattedA("%s, %s, size = %i byte%c", (LPCSTR)GetPitchText(1, period & 0x0F, freq),
 					(reg[0] & 0x40) ? "looped" : "once", (reg[3] << 4) | 1, reg[3] ? 's' : ' ');
 				freq /= 16; break; // for display
 			}
@@ -164,7 +164,7 @@ void CRegisterDisplay::Draw() {
 			int vol = (reg[0] & (i == 2 ? 0x3F : 0x0F));
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::VRC6, i);		// // //
 
-			CStringA text = FormattedA("%s, vol = %02i", GetPitchText(3, period, freq), vol);
+			CStringA text = FormattedA("%s, vol = %02i", (LPCSTR)GetPitchText(3, period, freq), vol);
 			if (i != 2)
 				AppendFormatA(text, ", duty = %i", (reg[0] >> 4) & 0x07);
 			DrawText_(180, text);
@@ -183,7 +183,7 @@ void CRegisterDisplay::Draw() {
 			int vol = (reg[0] & 0x0F);
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::MMC5, i);		// // //
 
-			DrawText_(180, FormattedA("%s, vol = %02i, duty = %i", GetPitchText(3, period, freq), vol, reg[0] >> 6));
+			DrawText_(180, FormattedA("%s, vol = %02i, duty = %i", (LPCSTR)GetPitchText(3, period, freq), vol, reg[0] >> 6));
 			DrawVolFunc(freq, vol << 4);
 		}
 	}
@@ -232,7 +232,7 @@ void CRegisterDisplay::Draw() {
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::N163, 15 - i);		// // //
 
 			if (i >= 16 - N163_CHANS) {
-				DrawText_(300, FormattedA("%s, vol = %02i", GetPitchText(5, period, freq), vol));
+				DrawText_(300, FormattedA("%s, vol = %02i", (LPCSTR)GetPitchText(5, period, freq), vol));
 				FreqCache[15 - i] = freq;
 				VolCache[15 - i] = vol << 4;
 			}
@@ -253,7 +253,7 @@ void CRegisterDisplay::Draw() {
 			GetRegs(sound_chip_t::FDS, [&] (int) { return 0x4080 + i; }, 1);
 			DrawReg(FormattedA("$%04X:", 0x4080 + i), 1);
 			if (!i)
-				DrawText_(180, FormattedA("%s, vol = %02i", GetPitchText(3, period, freq), vol));
+				DrawText_(180, FormattedA("%s, vol = %02i", (LPCSTR)GetPitchText(3, period, freq), vol));
 		}
 
 		DrawVolFunc(freq, vol << 3);
@@ -273,7 +273,7 @@ void CRegisterDisplay::Draw() {
 			int vol = 0x0F - (pSoundGen->GetReg(sound_chip_t::VRC7, i + 0x30) & 0x0F);
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::VRC7, i);		// // //
 
-			DrawText_(180, FormattedA("%s, vol = %02i, patch = $%01X", GetPitchText(3, period, freq), vol, reg[2] >> 4));
+			DrawText_(180, FormattedA("%s, vol = %02i, patch = $%01X", (LPCSTR)GetPitchText(3, period, freq), vol, reg[2] >> 4));
 
 			DrawVolFunc(freq, vol << 4);
 		}
@@ -291,7 +291,7 @@ void CRegisterDisplay::Draw() {
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::S5B, i);		// // //
 
 			if (i < MAX_CHANNELS_S5B)
-				DrawText_(180, FormattedA("%s, vol = %02i, mode = %c%c%c", GetPitchText(3, period, freq), vol,
+				DrawText_(180, FormattedA("%s, vol = %02i, mode = %c%c%c", (LPCSTR)GetPitchText(3, period, freq), vol,
 					(pSoundGen->GetReg(sound_chip_t::S5B, 7) & (1 << i)) ? L'-' : L'T',
 					(pSoundGen->GetReg(sound_chip_t::S5B, 7) & (8 << i)) ? L'-' : L'N',
 					(pSoundGen->GetReg(sound_chip_t::S5B, 8 + i) & 0x10) ? L'E' : L'-'));
@@ -310,7 +310,7 @@ void CRegisterDisplay::Draw() {
 				int period = (reg[0] | (reg[1] << 8));
 				double freq = pSoundGen->GetChannelFrequency(sound_chip_t::S5B, 3);		// // //
 				if (freq != 0. && reg[1] == 0)
-					DrawText_(180, FormattedA("%s, shape = $%01X", GetPitchText(4, period, freq), reg[2]));
+					DrawText_(180, FormattedA("%s, shape = $%01X", (LPCSTR)GetPitchText(4, period, freq), reg[2]));
 				else
 					DrawText_(180, FormattedA("period = $%04X, shape = $%01X", period, reg[2]));
 			}

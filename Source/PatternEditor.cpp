@@ -487,8 +487,6 @@ void CPatternEditor::DrawScreen(CDC &DC, CFamiTrackerView *pView)
 	//if (DC.RectVisible(GetUnbufferedRect()))
 	//	DrawUnbufferedArea(DC);
 
-	int Line = 1;
-
 #ifdef _DEBUG
 	DC.SetBkColor(DEFAULT_COLOR_SCHEME.CURSOR);
 	DC.SetTextColor(DEFAULT_COLOR_SCHEME.TEXT_HILITE);
@@ -496,6 +494,7 @@ void CPatternEditor::DrawScreen(CDC &DC, CFamiTrackerView *pView)
 	DC.TextOutW(m_iWinWidth - 70, 62, L"DEBUG");
 	DC.TextOutW(m_iWinWidth - 70, 82, L"DEBUG");
 #endif
+
 #ifdef BENCHMARK
 
 	QueryPerformanceCounter(&EndTime);
@@ -1500,8 +1499,8 @@ void CPatternEditor::DrawHeader(CDC &DC)
 			DC.SetTextAlign(TA_CENTER);
 
 			unsigned fxcols = pSongView->GetEffectColumnCount(Channel);
-			for (unsigned int i = 1; i <= fxcols; ++i)		// // //
-				DC.TextOutW(Offset + GetChannelWidth(i) - m_iCharWidth * 3 / 2, HEADER_CHAN_START + HEADER_CHAN_HEIGHT - 17, FormattedW(L"fx%d", i + 1));
+			for (unsigned int fx = 1; fx <= fxcols; ++fx)		// // //
+				DC.TextOutW(Offset + GetChannelWidth(fx) - m_iCharWidth * 3 / 2, HEADER_CHAN_START + HEADER_CHAN_HEIGHT - 17, FormattedW(L"fx%d", fx + 1));
 
 			// Arrows for expanding/removing fx columns
 			if (fxcols > 0) {
@@ -3501,13 +3500,13 @@ void CPatternEditor::GetSelectionAsText(CStringW &str) const		// // //
 		AppendFormatW(line, L"ROW %0*X", HexLength, Row++);
 		for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
 			const auto &NoteData = it.first.Get(i);
-			auto Row = CTextExport::ExportCellText(NoteData, pSongView->GetEffectColumnCount(i) + 1,
+			auto RowString = CTextExport::ExportCellText(NoteData, pSongView->GetEffectColumnCount(i) + 1,
 				pSongView->GetChannelOrder().TranslateChannel(i) == chan_id_t::NOISE);
 			if (i == it.first.m_iChannel) for (unsigned c = 0; c < BegCol; ++c)
-				for (int j = 0; j < COLUMN_CHAR_LEN[c]; ++j) Row.SetAt(COLUMN_CHAR_POS[c] + j, ' ');
+				for (int j = 0; j < COLUMN_CHAR_LEN[c]; ++j) RowString.SetAt(COLUMN_CHAR_POS[c] + j, ' ');
 			if (i == it.second.m_iChannel && EndCol < COLUMN_EFF4)
-				Row = Row.Left(COLUMN_CHAR_POS[EndCol + 1] - 1);
-			AppendFormatW(line, L" : %s", conv::to_wide(Row).data());
+				RowString = RowString.Left(COLUMN_CHAR_POS[EndCol + 1] - 1);
+			AppendFormatW(line, L" : %s", conv::to_wide(RowString).data());
 		}
 		str.Append(line);
 		str.Append(L"\r\n");

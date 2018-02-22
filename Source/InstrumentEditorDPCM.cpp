@@ -209,7 +209,6 @@ void CInstrumentEditorDPCM::UpdateKey(int Index)
 	CStringW PitchStr = L"-";
 
 	if (m_pInstrument->GetSampleIndex(Index) > 0) {
-		int Item = m_pInstrument->GetSampleIndex(Index) - 1;
 		int Pitch = m_pInstrument->GetSamplePitch(Index);
 		auto pSample = m_pInstrument->GetDSample(Index);		// // //
 		NameStr = !pSample ? L"(n/a)" : conv::to_wide(pSample->name()).data();
@@ -341,14 +340,14 @@ void CInstrumentEditorDPCM::OnBnClickedLoad()
 void CInstrumentEditorDPCM::OnBnClickedUnload()
 {
 	CListCtrl *pListBox = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
-	int SelCount;
 	WCHAR ItemName[256] = { };
 	int nItem = -1;
 
 	if (m_iSelectedSample == MAX_DSAMPLES)
 		return;
 
-	if (!(SelCount = pListBox->GetSelectedCount()))
+	int SelCount = pListBox->GetSelectedCount();
+	if (!SelCount)
 		return;
 
 	for (int i = 0; i < SelCount; i++) {
@@ -425,7 +424,7 @@ void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	int Delta = m_pInstrument->GetSampleDeltaValue(m_iSelectedNote);
 
 	if (Sample != -1)
-		pSampleBox->SelectString(0, FormattedW(L"%02i - %s", Sample, pTableListCtrl->GetItemText(pTableListCtrl->GetSelectionMark(), 2)));
+		pSampleBox->SelectString(0, FormattedW(L"%02i - %s", Sample, (LPCWSTR)pTableListCtrl->GetItemText(pTableListCtrl->GetSelectionMark(), 2)));
 	else
 		pSampleBox->SetCurSel(0);
 
@@ -696,8 +695,6 @@ void CInstrumentEditorDPCM::OnBnClickedPreview()
 
 void CInstrumentEditorDPCM::OnNMRClickSampleList(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-
 	CMenu *pPopupMenu, PopupMenuBar;
 	CPoint point;
 
@@ -712,8 +709,6 @@ void CInstrumentEditorDPCM::OnNMRClickSampleList(NMHDR *pNMHDR, LRESULT *pResult
 
 void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-
 	// Create a popup menu for key list with samples
 	CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
 
@@ -753,8 +748,6 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CInstrumentEditorDPCM::OnNMDblclkTable(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-
 	// Preview sample from key table
 
 	if (int Sample = m_pInstrument->GetSampleIndex(m_iSelectedNote)) {		// // //

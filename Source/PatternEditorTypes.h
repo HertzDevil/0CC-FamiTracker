@@ -81,7 +81,7 @@ const unsigned int COLUMNS = 7;		// // // moved from FamiTrackerDoc.h
 inline column_t GetSelectColumn(cursor_column_t Column)
 {
 	// Return first column for a specific column field
-	static const column_t COLUMNS[] = {
+	static const column_t COLUMN_INDICES[] = {
 		COLUMN_NOTE,
 		COLUMN_INSTRUMENT, COLUMN_INSTRUMENT,
 		COLUMN_VOLUME,
@@ -91,7 +91,7 @@ inline column_t GetSelectColumn(cursor_column_t Column)
 		COLUMN_EFF4, COLUMN_EFF4, COLUMN_EFF4,
 	};
 
-	return COLUMNS[Column];
+	return COLUMN_INDICES[Column];
 }
 
 inline cursor_column_t GetCursorStartColumn(column_t Column)

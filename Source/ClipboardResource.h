@@ -32,7 +32,7 @@ public:
 	HGLOBAL AllocateGlobalMemory() const;
 	bool WriteGlobalMemory(HGLOBAL hMem) const;
 	bool ReadGlobalMemory(HGLOBAL hMem);
-	DROPEFFECT DragDropTransfer(UINT clipboardID, DWORD effects) const;
+	DROPEFFECT DragDropTransfer(CLIPFORMAT clipboardID, DWORD effects) const;
 
 	// Check whether object contains clipboard data
 	virtual bool ContainsData() const = 0;		// // //

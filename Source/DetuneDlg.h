@@ -43,7 +43,7 @@ public:
 	const int *GetDetuneTable() const;
 	int GetDetuneSemitone() const;
 	int GetDetuneCent() const;
-	static const CStringW CHIP_STR[6];
+	static const LPCWSTR CHIP_STR[6];
 
 // Dialog Data
 	enum { IDD = IDD_DETUNE };

@@ -147,7 +147,6 @@ BOOL CExportDialog::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	CFrameWnd *pFrameWnd = static_cast<CFrameWnd*>(GetParent());
 	const auto *pModule = CFamiTrackerDoc::GetDoc()->GetModule();		// // //
 
 	// Check PAL button if it's a PAL song

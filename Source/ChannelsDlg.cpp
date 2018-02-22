@@ -114,8 +114,6 @@ BOOL CChannelsDlg::OnInitDialog()
 	m_pAvailableTree = static_cast<CTreeCtrl*>(GetDlgItem(IDC_AVAILABLE_TREE));
 	m_pAddedChannels = static_cast<CListCtrl*>(GetDlgItem(IDC_ADDED_LIST));
 
-	int RootItems = std::size(ROOT_ITEMS);		// // //
-
 //	m_pAddedChannels->GetWIndowLon
 
 	m_pAddedChannels->InsertColumn(0, L"Name", 0, 150);
@@ -129,8 +127,6 @@ BOOL CChannelsDlg::OnInitDialog()
 		}
 		m_pAvailableTree->SortChildren(hItem);
 	}
-
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
 	// // // TODO: use song view instead
 	CFamiTrackerView::GetView()->GetSongView()->GetChannelOrder().ForeachChannel([&] (chan_id_t ch) {

@@ -855,7 +855,6 @@ void CMainFrame::SetHighlightRows(const stHighlight &Hl)		// // //
 void CMainFrame::DisplayOctave()
 {
 	CComboBox *pOctaveList = static_cast<CComboBox*>(m_wndOctaveBar.GetDlgItem(IDC_OCTAVE));
-	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
 	pOctaveList->SetCurSel(GetSelectedOctave());		// // //
 }
 
@@ -1202,7 +1201,7 @@ void CMainFrame::OnAddInstrument()
 void CMainFrame::OnRemoveInstrument()
 {
 	// Remove from document
-	int prev = GetSelectedInstrumentIndex();
+//	int prev = GetSelectedInstrumentIndex();
 	if (AddAction(std::make_unique<ModuleAction::CRemoveInst>(m_iInstrument))) {		// // //
 //		m_pInstrumentList->RemoveInstrument(prev);
 //		m_pInstrumentList->SelectInstrument(m_iInstrument);
@@ -1348,9 +1347,6 @@ void CMainFrame::OnSaveInstrument()
 	return;
 #endif
 	// Saves instrument to a file
-
-	const CFamiTrackerDoc &Doc = GetDoc();
-	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 
 	auto pInst = GetSelectedInstrument();		// // //
 	if (!pInst)
@@ -2261,7 +2257,6 @@ void CMainFrame::OnCbnSelchangeSong()
 void CMainFrame::OnCbnSelchangeOctave()
 {
 	CComboBox *pTrackBox	= static_cast<CComboBox*>(m_wndOctaveBar.GetDlgItem(IDC_OCTAVE));
-	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
 	unsigned int Octave		= pTrackBox->GetCurSel();
 
 	if (GetSelectedOctave() != Octave)		// // //

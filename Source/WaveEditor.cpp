@@ -135,7 +135,7 @@ void CWaveEditor::OnPaint()
 
 		// Lines
 		for (int i = 0; i < m_iLX; ++i) {
-			int Sample = Steps - GetSample(i);
+			Sample = Steps - GetSample(i);
 			dc.LineTo(i * m_iSX + icX, Sample * m_iSY + icY);
 		}
 

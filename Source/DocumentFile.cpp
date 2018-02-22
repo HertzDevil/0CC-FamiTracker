@@ -116,7 +116,6 @@ void CDocumentFile::CreateBlock(std::string_view ID, int Version)		// // //
 
 void CDocumentFile::ReallocateBlock()
 {
-	int OldSize = m_iMaxBlockSize;
 	m_iMaxBlockSize += BLOCK_SIZE;
 	m_pBlockData.resize(m_iMaxBlockSize);		// // //
 }
@@ -321,12 +320,14 @@ CStringA CDocumentFile::ReadString()
 	*/
 
 	CStringA str;
-	char c;
 	int str_ptr = 0;
 
 	unsigned int Previous = m_iBlockPointer;
-	while (str_ptr++ < 65536 && (c = GetBlockChar()))
-		str.AppendChar(c);
+	while (str_ptr++ < 65536)
+		if (char c = GetBlockChar())
+			str.AppendChar(c);
+		else
+			break;
 	m_iPreviousPointer = Previous;
 
 	return str;

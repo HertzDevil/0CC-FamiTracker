@@ -981,12 +981,12 @@ maketables (uint32_t c, uint32_t r)
 }
 
 OPLL *
-OPLL_new (uint32_t clk, uint32_t rate)
+OPLL_new (uint32_t c, uint32_t r)
 {
   OPLL *opll;
   int32_t i;
 
-  maketables (clk, rate);
+  maketables (c, r);
 
   opll = (OPLL *) calloc (sizeof (OPLL), 1);
   if (opll == NULL)

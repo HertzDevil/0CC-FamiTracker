@@ -128,9 +128,9 @@ void CSampleEditorView::OnPaint()
 	// Selection, each step is 16 bytes, or 128 samples
 	if (m_iSelStart != m_iSelEnd) {
 		const COLORREF SEL_COLOR = 0xFF80A0;
-		int Offset = int(m_iViewStart / m_dSampleStep);
-		int StartPixel = GetPixel(m_iSelStart) - Offset;
-		int EndPixel = GetPixel(m_iSelEnd) - Offset;
+		int SelOffset = int(m_iViewStart / m_dSampleStep);
+		int StartPixel = GetPixel(m_iSelStart) - SelOffset;
+		int EndPixel = GetPixel(m_iSelEnd) - SelOffset;
 		m_dcCopy.FillSolidRect(StartPixel, 0, EndPixel - StartPixel, Height, SEL_COLOR);
 	}
 
@@ -158,10 +158,10 @@ void CSampleEditorView::OnPaint()
 		int x = int(Pos);
 		if (x != LastPos) {
 			if (Steps == 1) {
-				int y = (Min * Height) / 127;
+				int ynew = (Min * Height) / 127;
 				m_dcCopy.LineTo(x, LastValue);
-				m_dcCopy.LineTo(x, y);
-				LastValue = y;
+				m_dcCopy.LineTo(x, ynew);
+				LastValue = ynew;
 			}
 			else {
 				m_dcCopy.LineTo(x, (Min * Height) / 127);

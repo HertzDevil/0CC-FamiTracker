@@ -1484,6 +1484,9 @@
     <ClInclude Include="Source\str_conv\utf8_conv.hpp">
       <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Source\json\json.hpp">
+      <Filter>Header Files\Other Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="0CC-FamiTracker.rc">

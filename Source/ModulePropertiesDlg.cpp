@@ -207,7 +207,6 @@ void CModulePropertiesDlg::OnBnClickedSongRemove()
 	ASSERT(m_iSelectedSong != -1);
 
 	CListCtrl *pSongList = static_cast<CListCtrl*>(GetDlgItem(IDC_SONGLIST));
-	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
 	unsigned Count = m_pModule->GetSongCount();
 
 	int SelCount = pSongList->GetSelectedCount();		// // //
@@ -420,8 +419,6 @@ void CModulePropertiesDlg::FillSongList()
 	pSongList->DeleteAllItems();
 
 	// Song editor
-	int Songs = m_pModule->GetSongCount();
-
 	m_pModule->VisitSongs([&] (const CSongData &, unsigned index) {
 		pSongList->InsertItem(index, GetSongString(index));
 	});

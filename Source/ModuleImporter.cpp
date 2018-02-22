@@ -108,7 +108,6 @@ void CModuleImporter::ImportInstruments() {
 	for (size_t i = 0; i < std::size(INST); i++) foreachSeq([&] (sequence_t t) {
 		for (unsigned int s = 0; s < MAX_SEQUENCES; ++s)
 			if (auto pImportSeq = pImportedInst->GetSequence(INST[i], t, s); pImportSeq && pImportSeq->GetItemCount() > 0) {
-				int index = -1;
 				for (unsigned j = 0; j < MAX_SEQUENCES; ++j) {
 					auto pSeq = pManager->GetSequence(INST[i], t, j);
 					if (pSeq && pSeq->GetItemCount() > 0)

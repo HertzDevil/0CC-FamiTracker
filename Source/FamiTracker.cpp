@@ -737,7 +737,7 @@ CStringW LoadDefaultFilter(LPCWSTR Name, LPCWSTR Ext)
 	// Loads a single filter string including the all files option
 	CStringW allFilter;
 	VERIFY(allFilter.LoadStringW(AFX_IDS_ALLFILTER));
-	return FormattedW(L"%s|*%s|%s|*.*||", Name, Ext, allFilter);
+	return FormattedW(L"%s|*%s|%s|*.*||", Name, Ext, (LPCWSTR)allFilter);
 }
 
 CStringW LoadDefaultFilter(UINT nID, LPCWSTR Ext)
@@ -800,7 +800,7 @@ void CFTCommandLineInfo::ParseParam(const WCHAR* pszParam, BOOL bFlag, BOOL bLas
 		else if (!_wcsicmp(pszParam, L"console")) {
 			FILE *f;
 			AttachConsole(ATTACH_PARENT_PROCESS);
-			errno_t err = freopen_s(&f, "CON", "w", stdout);
+			freopen_s(&f, "CON", "w", stdout);
 			printf("0CC-FamiTracker v%s\n", Get0CCFTVersionString());		// // //
 			return;
 		}

@@ -446,8 +446,10 @@ void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
 	for (int i = 0; i < 8; ++i)
 		reg[i] = patch == 0 ? m_pInstrument->GetCustomReg(i) : default_inst[patch * 16 + i];
 
+	CStringW patchname;
+	GetDlgItemTextW(IDC_PATCH, patchname);
 	auto sv = conv::to_wide(m_pInstrument->GetName());
-	CStringW MML = FormattedW(L";%s\r\n;%.*s\r\n", MML, sv.size(), sv.data());
+	CStringW MML = FormattedW(L";%s\r\n;%.*s\r\n", (LPCWSTR)patchname, sv.size(), sv.data());
 	AppendFormatW(MML, L";TL FB\r\n %2d,%2d,\r\n;AR DR SL RR KL MT AM VB EG KR DT\r\n", reg[2] & 0x3F, reg[3] & 0x07);
 	for (int i = 0; i <= 1; i++)
 		AppendFormatW(MML, L" %2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,\r\n",

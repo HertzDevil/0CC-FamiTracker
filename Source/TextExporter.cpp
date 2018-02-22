@@ -228,7 +228,6 @@ public:
 
 	int ReadInt(int range_min, int range_max) {
 		int i = 0;
-		int c = GetColumn();
 		if (CStringA t = ReadToken(); t.IsEmpty())
 			throw MakeError("expected integer, no token found.");
 		else if (::sscanf(t, "%d", &i) != 1)
@@ -241,7 +240,6 @@ public:
 
 	int ReadHex(int range_min, int range_max) {
 		int i = 0;
-		int c = GetColumn();
 		if (CStringA t = ReadToken(); t.IsEmpty())
 			throw MakeError("expected hexadecimal, no token found.");
 		else if (::sscanf(t, "%x", &i) != 1)
@@ -254,7 +252,6 @@ public:
 
 	// note: finishes line if found
 	void ReadEOL() {
-		int c = GetColumn();
 		ConsumeSpace();
 		if (CStringA s = ReadToken(); !s.IsEmpty())
 			throw MakeError("expected end of line, '%s' found.", s);
@@ -736,10 +733,10 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 				seqInst->SetSeqIndex(s, seqindex != -1 ? seqindex : 0);
 			});
 			if (c == CT_INSTN163) {
-				auto pInst = static_cast<CInstrumentN163*>(seqInst);
-				pInst->SetWaveSize(t.ReadInt(0, 256 - 16 * N163count));		// // //
-				pInst->SetWavePos(t.ReadInt(0, 256 - 16 * N163count - 1));
-				pInst->SetWaveCount(t.ReadInt(1, CInstrumentN163::MAX_WAVE_COUNT));
+				auto pInstN163 = static_cast<CInstrumentN163*>(seqInst);
+				pInstN163->SetWaveSize(t.ReadInt(0, 256 - 16 * N163count));		// // //
+				pInstN163->SetWavePos(t.ReadInt(0, 256 - 16 * N163count - 1));
+				pInstN163->SetWaveCount(t.ReadInt(1, CInstrumentN163::MAX_WAVE_COUNT));
 			}
 			seqInst->SetName(LPCSTR(t.ReadToken()));
 			InstManager.InsertInstrument(inst_index, std::move(pInst));
@@ -1241,8 +1238,8 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 						pSequence->GetLoopPoint(),
 						pSequence->GetReleasePoint(),
 						pSequence->GetSetting()));
-					for (unsigned int i=0; i < pSequence->GetItemCount(); ++i)
-						WriteString(FormattedA(" %d", pSequence->GetItem(i)));
+					for (unsigned int j=0; j < pSequence->GetItemCount(); ++j)
+						WriteString(FormattedA(" %d", pSequence->GetItem(j)));
 					WriteString("\n");
 				});
 			}
