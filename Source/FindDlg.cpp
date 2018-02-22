@@ -43,7 +43,7 @@ enum {
 	WC_INST,
 	WC_VOL,
 	WC_EFF,
-	WC_PARAM
+	WC_PARAM,
 };
 
 } // namespace
@@ -457,7 +457,7 @@ int CFindResultsBox::ChannelCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM l
 		static const CStringW HEADER_STR[] = {
 			L"Pulse ", L"Triangle", L"Noise", L"DPCM",
 			L"VRC6 Pulse ", L"Sawtooth",
-			L"MMC5 Pulse ", L"Namco ", L"FDS", L"FM Channel ", L"5B Square "
+			L"MMC5 Pulse ", L"Namco ", L"FDS", L"FM Channel ", L"5B Square ",
 		};
 		int Pos = 0;
 		for (const auto &n : HEADER_STR) {

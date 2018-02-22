@@ -35,7 +35,7 @@
 
 enum frame_edit_pos_t {
 	FRAME_EDIT_POS_TOP,
-	FRAME_EDIT_POS_LEFT
+	FRAME_EDIT_POS_LEFT,
 };
 
 enum control_panel_pos_t		// // // 050B
@@ -47,7 +47,7 @@ enum control_panel_pos_t		// // // 050B
 
 enum {
 	WM_USER_DISPLAY_MESSAGE_STRING = WM_USER,
-	WM_USER_DISPLAY_MESSAGE_ID
+	WM_USER_DISPLAY_MESSAGE_ID,
 };
 
 class CVisualizerWnd;

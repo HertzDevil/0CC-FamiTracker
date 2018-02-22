@@ -31,7 +31,7 @@ enum edit_t {
 	EDIT_LINE,
 	EDIT_POINT,
 	EDIT_LOOP,
-	EDIT_RELEASE
+	EDIT_RELEASE,
 };
 
 class CSequence;		// // //

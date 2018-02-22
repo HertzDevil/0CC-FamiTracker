@@ -100,7 +100,7 @@ const CChunkRenderText::stChunkRenderFunc CChunkRenderText::RENDER_FUNCTIONS[] =
 	{CHUNK_FRAME,			&CChunkRenderText::StoreFrameChunk},
 	{CHUNK_PATTERN,			&CChunkRenderText::StorePatternChunk},
 	{CHUNK_WAVETABLE,		&CChunkRenderText::StoreWavetableChunk},
-	{CHUNK_WAVES,			&CChunkRenderText::StoreWavesChunk}
+	{CHUNK_WAVES,			&CChunkRenderText::StoreWavesChunk},
 };
 
 CChunkRenderText::CChunkRenderText(CFile &File) : m_File(File)

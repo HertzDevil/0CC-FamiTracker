@@ -37,7 +37,7 @@ const int32_t EXP_VOLUME[32] = {
 	 22,  26,  31,  37,
 	 45,  53,  63,  76,
 	 90, 106, 127, 151,
-	180, 212, 255, 255
+	180, 212, 255, 255,
 };
 
 CS5BChannel::CS5BChannel(CMixer &Mixer, chan_id_t ID) :		// // //

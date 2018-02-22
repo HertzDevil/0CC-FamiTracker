@@ -124,7 +124,7 @@ const int SINGLE_STEP = 1;				// Size of single step moves (default: 1)
 // Timer IDs
 enum {
 	TMR_UPDATE,
-	TMR_SCROLL
+	TMR_SCROLL,
 };
 
 // CFamiTrackerView

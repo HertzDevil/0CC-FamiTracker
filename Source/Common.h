@@ -27,7 +27,7 @@
 
 enum decay_rate_t {		// // // 050B
 	DECAY_SLOW,
-	DECAY_FAST
+	DECAY_FAST,
 };
 
 // Used to get the DPCM state

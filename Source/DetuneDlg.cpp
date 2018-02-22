@@ -76,7 +76,7 @@ END_MESSAGE_MAP()
 
 // CDetuneDlg message handlers
 
-const LPCWSTR CDetuneDlg::m_pNote[12]	 = {
+const LPCWSTR CDetuneDlg::m_pNote[12] = {
 	L"C" , L"C#", L"D" , L"D#", L"E" , L"F",
 	L"F#", L"G" , L"G#", L"A" , L"A#", L"B",
 };
@@ -248,10 +248,12 @@ void CDetuneDlg::UpdateOffset()
 		int oldReg = FreqToReg(NoteToFreq(Note), i, m_iNote / NOTE_RANGE);
 		int newReg = std::max(0, (int)oldReg + m_iDetuneTable[i][m_iNote] * (i >= 3 ? 1 : -1));
 		double newFreq = RegToFreq(newReg, i, m_iNote / NOTE_RANGE);
-		double values[4] = {RegToFreq(oldReg, i, m_iNote / NOTE_RANGE) * (i == 4 ? .25 : 1),
-							newFreq * (i == 4 ? .25 : 1),
-							NoteToFreq(Note) * (i == 4 ? .25 : 1),
-							1200.0 * log(newFreq / NoteToFreq(Note)) / log(2.0)};
+		double values[4] = {
+			RegToFreq(oldReg, i, m_iNote / NOTE_RANGE) * (i == 4 ? .25 : 1),
+			newFreq * (i == 4 ? .25 : 1),
+			NoteToFreq(Note) * (i == 4 ? .25 : 1),
+			1200.0 * log(newFreq / NoteToFreq(Note)) / log(2.0),
+		};
 		for (const auto x : values)
 			fmt += DoubleFunc(x);
 

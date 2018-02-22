@@ -42,5 +42,5 @@ enum update_mode_t {
 	UPDATE_PROPERTIES,		// Module properties has changed (including channel count)
 	UPDATE_HIGHLIGHT,		// Row highlight option has changed
 	UPDATE_COLUMNS,			// Effect columns has changed
-	UPDATE_CLOSE			// Document is closing (TODO remove)
+	UPDATE_CLOSE,			// Document is closing (TODO remove)
 };

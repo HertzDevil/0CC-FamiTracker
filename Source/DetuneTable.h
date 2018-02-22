@@ -36,7 +36,7 @@ public:
 		DETUNE_VRC7,
 		DETUNE_FDS,
 		DETUNE_N163,
-		DETUNE_S5B
+		DETUNE_S5B,
 	};
 
 protected:

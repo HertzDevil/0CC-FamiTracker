@@ -39,7 +39,7 @@ const LPCWSTR ROOT_ITEMS[] = {		// // //
 	L"Nintendo FDS",
 	L"Nintendo MMC5",
 	L"Namco 106",
-	L"Sunsoft 5B"
+	L"Sunsoft 5B",
 };
 
 const chan_id_t CHILD_ITEMS_ID[ROOT_ITEM_COUNT][9] = {		// // //
@@ -56,7 +56,7 @@ const chan_id_t CHILD_ITEMS_ID[ROOT_ITEM_COUNT][9] = {		// // //
 	// N163
 	{chan_id_t::N163_CH1, chan_id_t::N163_CH2, chan_id_t::N163_CH3, chan_id_t::N163_CH4, chan_id_t::N163_CH5, chan_id_t::N163_CH6, chan_id_t::N163_CH7, chan_id_t::N163_CH8},
 	 // S5B
-	{chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3}
+	{chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3},
 };
 
 const LPCWSTR CHILD_ITEMS[ROOT_ITEM_COUNT][9] = {		// // //
@@ -73,7 +73,7 @@ const LPCWSTR CHILD_ITEMS[ROOT_ITEM_COUNT][9] = {		// // //
 	// N163
 	{L"Channel 1", L"Channel 2", L"Channel 3", L"Channel 4", L"Channel 5", L"Channel 6", L"Channel 7", L"Channel 8"},
 	 // S5B
-	{L"Square 1", L"Square 2", L"Square 3"}
+	{L"Square 1", L"Square 2", L"Square 3"},
 };
 
 // CChannelsDlg dialog

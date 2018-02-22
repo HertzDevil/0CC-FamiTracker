@@ -38,7 +38,7 @@ enum chip_level_t : unsigned char {
 	CHIP_LEVEL_MMC5,
 	CHIP_LEVEL_FDS,
 	CHIP_LEVEL_N163,
-	CHIP_LEVEL_S5B
+	CHIP_LEVEL_S5B,
 };
 
 class CMixer

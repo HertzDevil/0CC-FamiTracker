@@ -34,7 +34,7 @@ enum inst_type_t : unsigned;
 enum note_prio_t : unsigned {
 	NOTE_PRIO_0,
 	NOTE_PRIO_1,
-	NOTE_PRIO_2
+	NOTE_PRIO_2,
 };
 
 bool IsInstrumentCompatible(sound_chip_t chip, inst_type_t Type);		// // //

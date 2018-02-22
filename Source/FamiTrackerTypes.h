@@ -149,7 +149,7 @@ enum effect_t : unsigned char {
 	EF_VRC7_CARRIER,
 	EF_VRC7_LEVELS,
 */
-	EF_COUNT
+	EF_COUNT,
 };
 
 // DPCM  effects
@@ -212,7 +212,7 @@ const char EFF_CHAR[] = {
 	'Z',	// // // N163 wave buffer
 	'E',	// // // FDS volume envelope
 	'Z',	// // // FDS auto-FM bias
-	//'9'	// Targeted volume slide
+	//'9',	// Targeted volume slide
 	/*
 	'H',	// VRC7 modulator
 	'I',	// VRC7 carrier
@@ -246,7 +246,7 @@ const char ECHO_BUFFER_ECHO = '\x80';
 
 enum machine_t : unsigned char {
 	NTSC,
-	PAL
+	PAL,
 };
 
 inline constexpr machine_t DEFAULT_MACHINE_TYPE = machine_t::NTSC;		// // //

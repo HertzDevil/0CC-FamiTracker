@@ -183,5 +183,5 @@ constexpr chan_id_t MakeChannelIndex(sound_chip_t chip, unsigned subindex) noexc
 
 enum apu_machine_t : unsigned char {
 	MACHINE_NTSC,
-	MACHINE_PAL
+	MACHINE_PAL,
 };

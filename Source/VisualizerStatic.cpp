@@ -61,7 +61,7 @@ void CVisualizerStatic::Draw()
 	const COLORREF Back[] = {
 		FixRGB(Env.GetSettings()->Appearance.iColBackground),
 		FixRGB(Env.GetSettings()->Appearance.iColBackgroundHilite),
-		FixRGB(Env.GetSettings()->Appearance.iColBackgroundHilite2)
+		FixRGB(Env.GetSettings()->Appearance.iColBackgroundHilite2),
 	};
 	const COLORREF Color = FixRGB(Env.GetSettings()->Appearance.iColPatternText);
 	const COLORREF Shadow = BlendColors(Color, 1, Back[0], 2);

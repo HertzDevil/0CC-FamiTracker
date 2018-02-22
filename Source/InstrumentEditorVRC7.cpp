@@ -81,7 +81,7 @@ BOOL CInstrumentEditorVRC7::OnInitDialog()
 
 	CComboBox *pPatchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PATCH));
 
-	const _TCHAR* const PATCH_NAME[16] = {
+	const LPCWSTR PATCH_NAME[16] = {
 		L"(custom patch)",
 		L"Bell",
 		L"Guitar",
@@ -97,7 +97,7 @@ BOOL CInstrumentEditorVRC7::OnInitDialog()
 		L"Brass",
 		L"Bass Guitar",
 		L"Synthesizer",
-		L"Chorus"
+		L"Chorus",
 	};
 
 	for (int i = 0; i < 16; ++i)
@@ -159,7 +159,7 @@ void CInstrumentEditorVRC7::EnableControls(bool bEnable)
 		IDC_C_KSR, IDC_C_MUL,
 		IDC_C_RR, IDC_C_SL,
 		IDC_C_SL, IDC_C_VIB,
-		IDC_TL, IDC_FB
+		IDC_TL, IDC_FB,
 	};
 
 	for (auto id : SLIDER_IDS)		// // //

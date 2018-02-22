@@ -42,7 +42,7 @@ public:
 		SEQ_STATE_DISABLED, /*!< Current sequence is not enabled. */
 		SEQ_STATE_RUNNING,	/*!< Current sequence is running. */
 		SEQ_STATE_END,		/*!< Current sequence has just finished running the last tick. */
-		SEQ_STATE_HALT		/*!< Current sequence has finished running until the next note. */
+		SEQ_STATE_HALT,		/*!< Current sequence has finished running until the next note. */
 	};
 
 	/*!	\brief Constructor of the sequence instrument handler.

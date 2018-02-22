@@ -243,7 +243,7 @@ void CVisualizerWnd::OnRButtonUp(UINT nFlags, CPoint point)
 		ID_POPUP_SAMPLESCOPE2,
 		ID_POPUP_SPECTRUMANALYZER,
 		ID_POPUP_SPECTRUMANALYZER2,		// // //
-		ID_POPUP_NOTHING
+		ID_POPUP_NOTHING,
 	};
 
 	pPopupMenu->CheckMenuItem(menuIds[m_iCurrentState], MF_BYCOMMAND | MF_CHECKED);

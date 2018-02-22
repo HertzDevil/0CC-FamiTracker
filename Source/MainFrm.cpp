@@ -104,7 +104,7 @@ const UINT indicators[] =
 enum {
 	TMR_WELCOME,
 	TMR_AUDIO_CHECK,
-	TMR_AUTOSAVE
+	TMR_AUTOSAVE,
 };
 
 // Repeat config

@@ -40,7 +40,7 @@ const LPCWSTR CAccelerator::MOD_NAMES[] = {		// // //
 	L"Shift",
 	L"Shift+Alt",
 	L"Shift+Ctrl",
-	L"Shift+Ctrl+Alt"
+	L"Shift+Ctrl+Alt",
 };
 
 // Default shortcut table

@@ -61,7 +61,7 @@ enum cursor_column_t : unsigned int {		// // // moved from FamiTrackerDoc.h
 	C_EFF3_PARAM2,
 	C_EFF4_NUM,
 	C_EFF4_PARAM1,
-	C_EFF4_PARAM2
+	C_EFF4_PARAM2,
 };
 
 // Column layout
@@ -72,7 +72,7 @@ enum column_t : unsigned int {
 	COLUMN_EFF1,
 	COLUMN_EFF2,
 	COLUMN_EFF3,
-	COLUMN_EFF4
+	COLUMN_EFF4,
 };
 const unsigned int COLUMNS = 7;		// // // moved from FamiTrackerDoc.h
 
@@ -88,7 +88,7 @@ inline column_t GetSelectColumn(cursor_column_t Column)
 		COLUMN_EFF1, COLUMN_EFF1, COLUMN_EFF1,
 		COLUMN_EFF2, COLUMN_EFF2, COLUMN_EFF2,
 		COLUMN_EFF3, COLUMN_EFF3, COLUMN_EFF3,
-		COLUMN_EFF4, COLUMN_EFF4, COLUMN_EFF4
+		COLUMN_EFF4, COLUMN_EFF4, COLUMN_EFF4,
 	};
 
 	return COLUMNS[Column];
@@ -97,7 +97,7 @@ inline column_t GetSelectColumn(cursor_column_t Column)
 inline cursor_column_t GetCursorStartColumn(column_t Column)
 {
 	static const cursor_column_t COL_START[] = {
-		C_NOTE, C_INSTRUMENT1, C_VOLUME, C_EFF1_NUM, C_EFF2_NUM, C_EFF3_NUM, C_EFF4_NUM
+		C_NOTE, C_INSTRUMENT1, C_VOLUME, C_EFF1_NUM, C_EFF2_NUM, C_EFF3_NUM, C_EFF4_NUM,
 	};
 
 	return COL_START[Column];
@@ -106,7 +106,7 @@ inline cursor_column_t GetCursorStartColumn(column_t Column)
 inline cursor_column_t GetCursorEndColumn(column_t Column)
 {
 	static const cursor_column_t COL_END[] = {
-		C_NOTE, C_INSTRUMENT2, C_VOLUME, C_EFF1_PARAM2, C_EFF2_PARAM2, C_EFF3_PARAM2, C_EFF4_PARAM2
+		C_NOTE, C_INSTRUMENT2, C_VOLUME, C_EFF1_PARAM2, C_EFF2_PARAM2, C_EFF3_PARAM2, C_EFF4_PARAM2,
 	};
 
 	return COL_END[Column];
@@ -118,14 +118,14 @@ enum paste_mode_t : unsigned int {
 	PASTE_MIX,
 	PASTE_OVERWRITE,
 	PASTE_INSERT,
-	PASTE_OVERFLOW // forced overflow paste, used for undo
+	PASTE_OVERFLOW, // forced overflow paste, used for undo
 };
 
 enum paste_pos_t : unsigned int {
 	PASTE_CURSOR,
 	PASTE_SELECTION,
 	PASTE_FILL,
-	PASTE_DRAG
+	PASTE_DRAG,
 };
 
 // // // Selection condition
@@ -134,7 +134,7 @@ enum sel_condition_t {
 	SEL_REPEATED_ROW,		// same row included in multiple frames
 	// SEL_UNKNOWN_SIZE,	// skip effect outside selection, unused
 	SEL_NONTERMINAL_SKIP,	// skip effect on non-terminal row
-	SEL_TERMINAL_SKIP		// skip effect on last row
+	SEL_TERMINAL_SKIP,		// skip effect on last row
 };
 
 class CSongData;		// // //

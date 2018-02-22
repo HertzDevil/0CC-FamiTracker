@@ -37,7 +37,7 @@ enum color_items_t {
 	COL_CURRENT_ROW_NORMAL,
 	COL_CURRENT_ROW_EDIT,
 	COL_CURRENT_ROW_PLAYING,
-	COLOR_ITEM_COUNT
+	COLOR_ITEM_COUNT,
 };
 
 #include "ColorScheme.h"

@@ -40,7 +40,7 @@
 // Inter-process commands
 enum {
 	IPC_LOAD = 1,
-	IPC_LOAD_PLAY
+	IPC_LOAD_PLAY,
 };
 
 enum class render_type_t : unsigned char;

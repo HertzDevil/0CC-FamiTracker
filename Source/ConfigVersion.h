@@ -45,7 +45,7 @@ enum ft_block_t {
 	BLK_GROOVES,
 	BLK_BOOKMARKS,
 	BLK_PARAMS_EXTRA,
-	BLK_COUNT
+	BLK_COUNT,
 };
 
 struct stVerInfo {

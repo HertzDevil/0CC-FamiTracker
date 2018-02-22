@@ -61,7 +61,7 @@ const LPCWSTR CInstrumentEditDlg::CHIP_NAMES[] = {		// // //
 	L"VRC7",
 	L"FDS",
 	L"Namco",
-	L"Sunsoft"
+	L"Sunsoft",
 };
 
 // CInstrumentEditDlg dialog

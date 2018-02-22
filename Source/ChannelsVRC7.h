@@ -35,7 +35,7 @@ enum vrc7_command_t {
 	CMD_NOTE_TRIGGER,
 	CMD_NOTE_OFF,
 	CMD_NOTE_HALT,
-	CMD_NOTE_RELEASE
+	CMD_NOTE_RELEASE,
 };
 
 class CChannelHandlerVRC7 : public CChannelHandlerInverted, public CChannelHandlerInterfaceVRC7 {		// // //

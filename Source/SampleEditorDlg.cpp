@@ -41,7 +41,7 @@ static UINT indicators[] = {		// // //
 
 enum {
 	TMR_PLAY_CURSOR,
-	TMR_START_CURSOR
+	TMR_START_CURSOR,
 };
 
 // CSampleEditorDlg dialog

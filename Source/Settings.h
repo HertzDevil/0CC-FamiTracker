@@ -44,7 +44,7 @@ enum module_error_level_t {		// // //
 
 enum WIN_STATES {
 	STATE_NORMAL,
-	STATE_MAXIMIZED
+	STATE_MAXIMIZED,
 };
 
 enum PATHS {
@@ -54,7 +54,7 @@ enum PATHS {
 	PATH_DMC,
 	PATH_WAV,
 
-	PATH_COUNT
+	PATH_COUNT,
 };
 
 // // // helper class for loading settings from official famitracker

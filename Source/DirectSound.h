@@ -37,7 +37,7 @@ enum buffer_event_t {
 	BUFFER_CUSTOM_EVENT = 1,
 	BUFFER_TIMEOUT,
 	BUFFER_IN_SYNC,
-	BUFFER_OUT_OF_SYNC
+	BUFFER_OUT_OF_SYNC,
 };
 
 // DirectSound channel
