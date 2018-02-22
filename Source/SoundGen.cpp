@@ -631,8 +631,6 @@ void CSoundGen::OnTick() {
 		m_pWaveRenderer->Tick();
 	if (m_pTempoDisplay)		// // // 050B
 		m_pTempoDisplay->Tick();
-	if (theApp.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
-		m_pArpeggiator->Tick(m_pTrackerView->GetSelectedChannelID());
 }
 
 void CSoundGen::OnStepRow() {
@@ -1043,6 +1041,9 @@ BOOL CSoundGen::IdleLoop() {
 	m_pDocument->Locked([this] {
 		m_pSoundDriver->Tick();		// // //
 	}, 0);
+
+	if (theApp.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
+		m_pArpeggiator->Tick(m_pTrackerView->GetSelectedChannelID());
 
 	// Rendering
 	if (CSingleLock l(&m_csRenderer); l.Lock() && m_pWaveRenderer)		// // //
