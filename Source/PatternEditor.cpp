@@ -1501,7 +1501,7 @@ void CPatternEditor::DrawHeader(CDC &DC)
 
 			unsigned fxcols = pSongView->GetEffectColumnCount(Channel);
 			for (unsigned int i = 1; i <= fxcols; ++i)		// // //
-				DC.TextOutW(Offset + GetChannelWidth(i) - m_iCharWidth * 3 / 2, HEADER_CHAN_START + HEADER_CHAN_HEIGHT - 17, FormattedW(L"fx&d", i + 1));
+				DC.TextOutW(Offset + GetChannelWidth(i) - m_iCharWidth * 3 / 2, HEADER_CHAN_START + HEADER_CHAN_HEIGHT - 17, FormattedW(L"fx%d", i + 1));
 
 			// Arrows for expanding/removing fx columns
 			if (fxcols > 0) {
