@@ -238,8 +238,6 @@ void CSoundDriver::PlayerTick() {
 			parent_->OnStepRow();
 	}
 	m_pTempoCounter->Tick();		// // //
-	if (parent_)
-		parent_->OnTick();
 
 	// Update player
 	if (parent_ && parent_->ShouldStopPlayer())		// // //
