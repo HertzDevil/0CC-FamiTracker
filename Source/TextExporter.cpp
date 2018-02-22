@@ -930,6 +930,8 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 
 	Env.GetSoundGenerator()->AssignModule(modfile);		// / //
 	Env.GetSoundGenerator()->ModuleChipChanged();		// // //
+	Doc.UpdateAllViews(NULL, UPDATE_FRAME);
+	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
 }
 
 // =============================================================================
