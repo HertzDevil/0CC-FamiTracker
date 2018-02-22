@@ -80,8 +80,11 @@ public:
 				f_ = std::min(static_cast<unsigned int>(Bxx), FrameCount - 1);
 				r_ = 0;
 			}
-			else if (Dxx != -1)
+			else if (Dxx != -1) {
+				if (++f_ >= FrameCount)
+					f_ = 0;
 				r_ = std::min(static_cast<unsigned int>(Dxx), Rows - 1);
+			}
 			else if (++r_ >= Rows) {		// // //
 				r_ = 0;
 				if (++f_ >= FrameCount)
