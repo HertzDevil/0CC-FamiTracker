@@ -249,6 +249,13 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 	bool doHalt = false;
 
 	while (true) {
+		if (Row)
+			Row--;
+		else if (Frame)
+			Row = SongView.GetFrameLength(--Frame) - 1;
+		else
+			break;
+
 		SongView.ForeachTrack([&] (const CTrackData &track, chan_id_t c) {
 			stChannelState &chState = State[value_cast(c)];
 			int EffColumns = track.GetEffectColumnCount();
@@ -326,12 +333,6 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 			}
 		});
 		if (doHalt)
-			break;
-		if (Row)
-			Row--;
-		else if (Frame)
-			Row = SongView.GetFrameLength(--Frame) - 1;
-		else
 			break;
 		totalRows++;
 	}
