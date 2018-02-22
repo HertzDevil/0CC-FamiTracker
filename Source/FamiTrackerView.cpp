@@ -1080,16 +1080,12 @@ void CFamiTrackerView::OnEditCopyAsVolumeSequence()		// // //
 	CStringW str;
 	m_pPatternEditor->GetVolumeColumn(str);
 
-	CClipboard Clipboard(this, CF_TEXT);
-
-	if (!Clipboard.IsOpened()) {
+	if (CClipboard Clipboard(this, CF_UNICODETEXT); Clipboard.IsOpened()) {
+		if (!Clipboard.SetString(str))
+			AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
+	}
+	else
 		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return;
-	}
-
-	if (!Clipboard.SetDataPointer((LPCWSTR)str, str.GetLength() + 1)) {
-		AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
-	}
 }
 
 void CFamiTrackerView::OnEditCopyAsText()		// // //
@@ -1097,16 +1093,12 @@ void CFamiTrackerView::OnEditCopyAsText()		// // //
 	CStringW str;
 	m_pPatternEditor->GetSelectionAsText(str);
 
-	CClipboard Clipboard(this, CF_TEXT);
-
-	if (!Clipboard.IsOpened()) {
+	if (CClipboard Clipboard(this, CF_UNICODETEXT); Clipboard.IsOpened()) {
+		if (!Clipboard.SetString(str))
+			AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
+	}
+	else
 		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return;
-	}
-
-	if (!Clipboard.SetDataPointer((LPCWSTR)str, str.GetLength() + 1)) {
-		AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
-	}
 }
 
 void CFamiTrackerView::OnEditCopyAsPPMCK()		// // //
@@ -1114,16 +1106,12 @@ void CFamiTrackerView::OnEditCopyAsPPMCK()		// // //
 	CStringW str;
 	m_pPatternEditor->GetSelectionAsPPMCK(str);
 
-	CClipboard Clipboard(this, CF_TEXT);
-
-	if (!Clipboard.IsOpened()) {
+	if (CClipboard Clipboard(this, CF_UNICODETEXT); Clipboard.IsOpened()) {
+		if (!Clipboard.SetString(str))
+			AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
+	}
+	else
 		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return;
-	}
-
-	if (!Clipboard.SetDataPointer((LPCWSTR)str, str.GetLength() + 1)) {
-		AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
-	}
 }
 
 

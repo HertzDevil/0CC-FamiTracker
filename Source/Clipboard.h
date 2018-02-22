@@ -35,7 +35,7 @@ public:
 	~CClipboard();
 
 	bool	IsOpened() const;
-	bool	SetDataPointer(LPCVOID pData, UINT Size) const;
+	bool	SetString(const CStringW &str) const;		// // //
 	bool	GetData(HGLOBAL &hMemory) const;		// // //
 	LPVOID	GetDataPointer();
 	bool	IsDataAvailable()const;
@@ -44,6 +44,7 @@ public:
 	bool	TryRestore(CClipboardResource &res) const;		// // //
 
 private:
+	bool	SetDataPointer(LPCVOID pData, UINT Size) const;
 	void	SetData(HGLOBAL hMemory) const;
 
 	bool m_bOpened;

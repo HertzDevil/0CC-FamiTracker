@@ -294,20 +294,18 @@ void CInstrumentEditorFDS::OnBnClickedCopyWave()
 	for (auto x : m_pInstrument->GetSamples())		// // //
 		AppendFormatW(Str, L"%i ", x);
 
-	CClipboard Clipboard(this, CF_TEXT);
-
-	if (!Clipboard.IsOpened()) {
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return;
+	if (CClipboard Clipboard(this, CF_UNICODETEXT); Clipboard.IsOpened()) {
+		if (!Clipboard.SetString(Str))
+			AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
 	}
-
-	Clipboard.SetDataPointer((LPCWSTR)Str, Str.GetLength() + 1);
+	else
+		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
 }
 
 void CInstrumentEditorFDS::OnBnClickedPasteWave()
 {
 	// Paste from clipboard
-	CClipboard Clipboard(this, CF_TEXT);
+	CClipboard Clipboard(this, CF_UNICODETEXT);
 
 	if (!Clipboard.IsOpened()) {
 		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
@@ -343,20 +341,18 @@ void CInstrumentEditorFDS::OnBnClickedCopyTable()
 	for (auto x : m_pInstrument->GetModTable())		// // //
 		AppendFormatW(Str, L"%i ", x);
 
-	CClipboard Clipboard(this, CF_TEXT);
-
-	if (!Clipboard.IsOpened()) {
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return;
+	if (CClipboard Clipboard(this, CF_UNICODETEXT); Clipboard.IsOpened()) {
+		if (!Clipboard.SetString(Str))
+			AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
 	}
-
-	Clipboard.SetDataPointer((LPCWSTR)Str, Str.GetLength() + 1);
+	else
+		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
 }
 
 void CInstrumentEditorFDS::OnBnClickedPasteTable()
 {
 	// Paste from clipboard
-	CClipboard Clipboard(this, CF_TEXT);
+	CClipboard Clipboard(this, CF_UNICODETEXT);
 
 	if (!Clipboard.IsOpened()) {
 		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);

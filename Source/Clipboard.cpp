@@ -44,6 +44,10 @@ bool CClipboard::IsOpened() const
 	return m_bOpened;
 }
 
+bool CClipboard::SetString(const CStringW &str) const {		// // //
+	return SetDataPointer((LPCWSTR)str, sizeof(WCHAR) * (str.GetLength() + 1));
+}
+
 void CClipboard::SetData(HGLOBAL hMemory) const
 {
 	ASSERT(m_bOpened);
