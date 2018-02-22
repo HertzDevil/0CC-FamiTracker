@@ -1169,13 +1169,16 @@ void CMainFrame::OnInstNameChange()
 		return;
 
 	if (auto pInst = GetSelectedInstrument()) {		// // //
-		WCHAR Text[CInstrument::INST_NAME_MAX] = { };
+		CStringW Text;
 		auto pEdit = static_cast<CEdit *>(m_wndDialogBar.GetDlgItem(IDC_INSTNAME));
-		pEdit->GetWindowTextW(Text, CInstrument::INST_NAME_MAX);
+		pEdit->GetWindowTextW(Text);
 		// Update instrument list & document
 		auto sel = pEdit->GetSel();
-		if (AddAction(std::make_unique<ModuleAction::CInstName>(GetSelectedInstrumentIndex(), conv::to_utf8(Text))))		// // //
-			pEdit->SetSel(sel);
+		auto str = conv::to_utf8(Text);
+		auto sv = conv::utf8_trim(std::string_view {str}.substr(0, CInstrument::INST_NAME_MAX - 1));
+		if (!AddAction(std::make_unique<ModuleAction::CInstName>(GetSelectedInstrumentIndex(), sv)) && str != sv)		// // //
+			pEdit->SetWindowTextW(conv::to_wide(sv).data());
+		pEdit->SetSel(sel);
 	}
 }
 
