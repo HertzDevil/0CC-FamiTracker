@@ -2017,6 +2017,7 @@ void CMainFrame::OnFileImportText()
 	// TODO figure out how to handle this case, call OnInitialUpdate??
 	//Doc.UpdateAllViews(NULL, CHANGED_ERASE);		// Remove
 	Doc.UpdateAllViews(NULL, UPDATE_PROPERTIES);
+	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
 }
 
