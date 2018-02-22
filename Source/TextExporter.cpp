@@ -930,8 +930,6 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 
 	Env.GetSoundGenerator()->AssignModule(modfile);		// / //
 	Env.GetSoundGenerator()->ModuleChipChanged();		// // //
-	Doc.UpdateAllViews(NULL, UPDATE_FRAME);
-	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
 }
 
 // =============================================================================
@@ -1306,8 +1304,6 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	if (N163count != -1)		// // //
 		modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(modfile.GetSoundChipSet(), N163count));
 	WriteString("# End of export\n");
-	Doc.UpdateAllViews(NULL, UPDATE_FRAME);
-	Doc.UpdateAllViews(NULL, UPDATE_PATTERN);
 	Env.GetSoundGenerator()->ModuleChipChanged();		// // //
 	return "";
 }

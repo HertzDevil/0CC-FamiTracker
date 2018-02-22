@@ -2016,8 +2016,7 @@ void CMainFrame::OnFileImportText()
 	Doc.SetExceededFlag(false);		// // //
 	// TODO figure out how to handle this case, call OnInitialUpdate??
 	//Doc.UpdateAllViews(NULL, CHANGED_ERASE);		// Remove
-	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-	//Doc.UpdateAllViews(NULL, UPDATE_ENTIRE);		// TODO Remove
+	Doc.UpdateAllViews(NULL, UPDATE_PROPERTIES);
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
 }
 
@@ -2044,6 +2043,7 @@ void CMainFrame::OnFileExportText()
 	{
 		AfxMessageBox(conv::to_wide(sResult).data(), MB_OK | MB_ICONEXCLAMATION);
 	}
+	Doc.UpdateAllViews(NULL, UPDATE_PROPERTIES);
 }
 
 void CMainFrame::OnFileExportRows()		// // //
