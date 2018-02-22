@@ -65,6 +65,10 @@ CVisualizerWnd::~CVisualizerWnd()
 {
 }
 
+HANDLE CVisualizerWnd::GetThreadHandle() const {		// // //
+	return m_pWorkerThread->m_hThread;
+}
+
 BEGIN_MESSAGE_MAP(CVisualizerWnd, CWnd)
 	ON_WM_ERASEBKGND()
 	ON_WM_LBUTTONDOWN()

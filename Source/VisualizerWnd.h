@@ -42,6 +42,8 @@ public:
 	CVisualizerWnd();
 	virtual ~CVisualizerWnd();
 
+	HANDLE GetThreadHandle() const;		// // //
+
 	void SetSampleRate(int SampleRate);
 	void FlushSamples(array_view<int16_t> Samples);		// // //
 	void ReportAudioProblem();

@@ -38,6 +38,7 @@
 #include "WaveRenderer.h"		// // //
 #include "WaveRendererFactory.h"		// // //
 #include "VersionChecker.h"		// // //
+#include "VisualizerWnd.h"		// // //
 #include <iostream>		// // //
 #include "str_conv/str_conv.hpp"		// // //
 
@@ -585,19 +586,28 @@ void CFamiTrackerApp::SilentEverything()
 
 // Get-functions
 
-CMainFrame *CFamiTrackerApp::GetMainFrame() {		// // //
-	return dynamic_cast<CMainFrame *>(GetMainWnd());
+CMainFrame *CFamiTrackerApp::GetMainFrame() const {		// // //
+	return static_cast<CMainFrame *>(const_cast<CFamiTrackerApp *>(this)->GetMainWnd());
 }
 
 int CFamiTrackerApp::GetCPUUsage() const
 {
 	// Calculate CPU usage
-	const int THREAD_COUNT = 2;
-	static FILETIME KernelLastTime[THREAD_COUNT], UserLastTime[THREAD_COUNT];
-	const HANDLE hThreads[THREAD_COUNT] = {m_hThread, m_pSoundGenerator->m_hThread};
-	unsigned int TotalTime = 0;
+	const HANDLE hThreads[] = {
+		m_hThread,
+		m_pSoundGenerator->m_hThread,
+		GetMainFrame()->GetVisualizerWnd()->GetThreadHandle(),
+	};		// // //
 
-	for (int i = 0; i < THREAD_COUNT; ++i) {
+	static FILETIME KernelLastTime[std::size(hThreads)] = { };
+	static FILETIME UserLastTime[std::size(hThreads)] = { };
+	uint64_t TotalTime = 0u;
+
+	// // // get processor count
+	SYSTEM_INFO si;
+	::GetNativeSystemInfo(&si);
+
+	for (std::size_t i = 0; i < std::size(hThreads); ++i) {
 		FILETIME CreationTime, ExitTime, KernelTime, UserTime;
 		GetThreadTimes(hThreads[i], &CreationTime, &ExitTime, &KernelTime, &UserTime);
 		TotalTime += (KernelTime.dwLowDateTime - KernelLastTime[i].dwLowDateTime) / 1000;
@@ -606,7 +616,7 @@ int CFamiTrackerApp::GetCPUUsage() const
 		UserLastTime[i]	= UserTime;
 	}
 
-	return TotalTime;
+	return static_cast<int>(TotalTime / si.dwNumberOfProcessors);
 }
 
 void CFamiTrackerApp::ReloadColorScheme()

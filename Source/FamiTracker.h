@@ -130,11 +130,11 @@ public:
 	void			SilentEverything();
 
 	// Get-functions
-	CMainFrame		*GetMainFrame();		// // //
-	CAccelerator	*GetAccelerator()		{ ASSERT(m_pAccel); return m_pAccel.get(); }
-	CSoundGen		*GetSoundGenerator()	{ ASSERT(m_pSoundGenerator); return m_pSoundGenerator.get(); }
-	CMIDI			*GetMIDI()				{ ASSERT(m_pMIDI); return m_pMIDI.get(); }
-	CSettings		*GetSettings()			{ ASSERT(m_pSettings); return m_pSettings; }
+	CMainFrame		*GetMainFrame() const;		// // //
+	CAccelerator	*GetAccelerator() const		{ ASSERT(m_pAccel); return m_pAccel.get(); }
+	CSoundGen		*GetSoundGenerator() const	{ ASSERT(m_pSoundGenerator); return m_pSoundGenerator.get(); }
+	CMIDI			*GetMIDI() const			{ ASSERT(m_pMIDI); return m_pMIDI.get(); }
+	CSettings		*GetSettings() const		{ ASSERT(m_pSettings); return m_pSettings; }
 
 	//
 	// Private functions
