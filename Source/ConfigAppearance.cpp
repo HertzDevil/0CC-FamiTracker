@@ -146,7 +146,7 @@ void CConfigAppearance::OnPaint()
 	int WinHeight = Rect.bottom - Rect.top;
 
 	CFont Font;		// // //
-	Font.CreateFontW(-m_iFontSize, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET,
+	Font.CreateFontW(-m_iFontSize, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, ANSI_CHARSET,
 		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, m_strFont);
 	CFont *OldFont = OldFont = dc.SelectObject(&Font);
 
@@ -235,7 +235,7 @@ BOOL CConfigAppearance::OnInitDialog()
 	CDC *pDC = GetDC();
 	if (pDC != NULL) {
 		LOGFONTW LogFont = { };		// // //
-		LogFont.lfCharSet = DEFAULT_CHARSET;
+		LogFont.lfCharSet = ANSI_CHARSET;
 		EnumFontFamiliesExW(pDC->m_hDC, &LogFont, (FONTENUMPROC)EnumFontFamExProc, (LPARAM)this, 0);
 		ReleaseDC(pDC);
 	}

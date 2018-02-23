@@ -73,7 +73,7 @@ BOOL CSequenceEditor::CreateEditor(CWnd *pParentWnd, const RECT &rect)
 	if (CWnd::CreateEx(WS_EX_STATICEDGE, NULL, L"", WS_CHILD | WS_VISIBLE, rect, pParentWnd, 0) == -1)
 		return -1;
 
-	m_cFont.CreateFontW(-11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Tahoma");
+	m_cFont.CreateFontW(-11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Tahoma");
 
 	m_pParent = pParentWnd;
 
