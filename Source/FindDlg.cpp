@@ -560,8 +560,8 @@ END_MESSAGE_MAP()
 
 // CFindDlg message handlers
 
-const CStringW CFindDlg::m_pNoteName[7] = {L"C", L"D", L"E", L"F", L"G", L"A", L"B"};
-const CStringW CFindDlg::m_pNoteSign[3] = {L"b", L"-", L"#"};
+const WCHAR CFindDlg::m_pNoteName[7] = {L'C', L'D', L'E', L'F', L'G', L'A', L'B'};
+const WCHAR CFindDlg::m_pNoteSign[3] = {L'b', L'-', L'#'};
 const note_t CFindDlg::m_iNoteOffset[7] = {note_t::C, note_t::D, note_t::E, note_t::F, note_t::G, note_t::A, note_t::B};
 
 

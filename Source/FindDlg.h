@@ -266,8 +266,8 @@ protected:
 
 	CFindResultsBox m_cResultsBox;
 
-	static const CStringW m_pNoteName[7];
-	static const CStringW m_pNoteSign[3];
+	static const WCHAR m_pNoteName[7];
+	static const WCHAR m_pNoteSign[3];
 	static const note_t m_iNoteOffset[7];
 
 	DECLARE_MESSAGE_MAP()

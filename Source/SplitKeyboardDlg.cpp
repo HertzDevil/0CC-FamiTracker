@@ -34,7 +34,7 @@
 
 // CSplitKeyboardDlg dialog
 
-const CStringW KEEP_INST_STRING = L"Keep";
+const LPCWSTR KEEP_INST_STRING = L"Keep";
 const int CSplitKeyboardDlg::MAX_TRANSPOSE = 24;
 
 IMPLEMENT_DYNAMIC(CSplitKeyboardDlg, CDialog)

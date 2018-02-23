@@ -24,7 +24,7 @@
 #include "FamiTracker.h"
 #include "Settings.h"
 
-const CStringW CConfigGeneral::CONFIG_STR[] = {		// // //
+const LPCWSTR CConfigGeneral::CONFIG_STR[] = {		// // //
 	L"Wrap cursor",
 	L"Wrap across frames",
 	L"Free cursor edit",
@@ -50,7 +50,7 @@ const CStringW CConfigGeneral::CONFIG_STR[] = {		// // //
 	L"Check version on startup",
 };
 
-const CStringW CConfigGeneral::CONFIG_DESC[] = {		// // //
+const LPCWSTR CConfigGeneral::CONFIG_DESC[] = {		// // //
 	L"Wrap the cursor around the edges of the pattern editor.",
 	L"Move to next or previous frame when reaching top or bottom in the pattern editor.",
 	L"Unlock the cursor from the center of the pattern editor.",

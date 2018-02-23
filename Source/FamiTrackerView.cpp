@@ -62,7 +62,7 @@ const WCHAR CFamiTrackerView::CLIPBOARD_ID[] = L"FamiTracker Pattern";
 
 // Effect texts
 // 0CC: add verbose description as in modplug
-const CStringW EFFECT_TEXTS[] = {		// // //
+const LPCWSTR EFFECT_TEXTS[] = {		// // //
 	L"Fxx - Set speed to XX, cancels groove",
 	L"Fxx - Set tempo to XX",
 	L"Bxx - Jump to beginning of frame XX",

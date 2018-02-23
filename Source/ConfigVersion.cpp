@@ -27,7 +27,7 @@
 
 namespace {
 
-const CStringW MODULE_ERROR_DESC[] = {
+const LPCWSTR MODULE_ERROR_DESC[] = {
 	L"None: Perform no validation at all while loading or saving modules. "
 	 "The tracker might crash or enter an inconsistent state.",
 	L"Default: Perform the usual error checking according to the most recent official stable build.",
