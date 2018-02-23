@@ -25,77 +25,7 @@
 #include "FamiTrackerTypes.h"
 #include "Settings.h"
 
-const CStringW CConfigVersion::VERSION_TEXT[] = {
-	L"FamiTracker 0.2.2",
-	L"FamiTracker 0.2.4",
-	L"FamiTracker 0.2.5",
-	L"FamiTracker 0.2.6",
-	L"FamiTracker 0.2.7",
-	L"FamiTracker 0.2.9 - 0.3.0",
-	L"FamiTracker 0.3.0 re-release",
-	L"FamiTracker 0.3.5 beta 0",
-	L"FamiTracker 0.3.5",
-	L"FamiTracker 0.3.6 beta 1 - 0.3.6 beta 3",
-	L"FamiTracker 0.3.6 beta 4 - 0.3.6",
-	L"FamiTracker 0.3.7 beta 0",
-	L"FamiTracker 0.3.7",
-	L"FamiTracker 0.3.8 beta 0",
-	L"FamiTracker 0.3.8 beta 1 - 0.3.8 beta 5",
-	L"FamiTracker 0.4.0 - 0.4.1",
-	L"FamiTracker 0.4.2 beta 1 - 0.4.6",
-	L"0CC-FamiTracker 0.1.0 - 0.1.1",
-	L"0CC-FamiTracker 0.2.0 - 0.3.1",
-	L"0CC-FamiTracker 0.3.2 - 0.3.3",		// DETUNETABLES
-	L"0CC-FamiTracker 0.3.4 - 0.3.7",		// GROOVES
-	L"0CC-FamiTracker 0.3.8",
-	L"0CC-FamiTracker 0.3.9",
-	L"0CC-FamiTracker 0.3.10",
-	L"0CC-FamiTracker 0.3.11",				// BOOKMARKS
-	L"0CC-FamiTracker 0.3.12 - 0.3.14.0",
-	L"Current version",						// PARAMS_EXTRA
-};
-
-const effect_t CConfigVersion::MAX_EFFECT_INDEX[] = {
-	EF_SWEEPDOWN,			// 0.2.2
-	EF_TREMOLO,				// 0.2.4
-	EF_PITCH,				// 0.2.5
-	EF_DAC,					// 0.2.6
-	EF_SAMPLE_OFFSET,		// 0.2.7
-	EF_VOLUME_SLIDE,		// 0.2.9
-	EF_VOLUME_SLIDE,
-	EF_RETRIGGER,			// 0.3.5b0
-	EF_RETRIGGER,
-	EF_RETRIGGER,
-	EF_RETRIGGER,
-	EF_FDS_MOD_SPEED_LO,	// 0.3.7b0
-	EF_DPCM_PITCH,			// 0.3.7
-	EF_DPCM_PITCH,
-	EF_DPCM_PITCH,
-	EF_DPCM_PITCH,
-	EF_SUNSOFT_ENV_TYPE,	// 0.4.2 (actually 0.4.1 already had 5B effects)
-	EF_SUNSOFT_ENV_TYPE,
-	EF_NOTE_RELEASE,		// 0CC 0.2.0
-	EF_NOTE_RELEASE,
-	EF_GROOVE,				// 0CC 0.3.4
-	EF_TRANSPOSE,			// 0CC 0.3.8
-	EF_N163_WAVE_BUFFER,	// 0CC 0.3.9
-	EF_FDS_VOLUME,			// 0CC 0.3.10
-	EF_FDS_VOLUME,
-	EF_FDS_MOD_BIAS,		// 0CC 0.3.12
-	EF_FDS_MOD_BIAS,
-};
-
-const stVerInfo CConfigVersion::VERSION_INFO[] = {
-	{L"FamiTracker 0.2.2",                 EF_SWEEPDOWN,     0x0200, 0, {1, 1, 0, 1, 1, 1, 1, 1}},
-	{L"FamiTracker 0.2.4",                 EF_TREMOLO,       0x0201, 0, {1, 1, 1, 1, 1, 1, 1, 1}},
-	{L"FamiTracker 0.2.5",                 EF_PITCH,         0x0203, 0, {1, 1, 1, 1, 2, 1, 1, 1}},
-	{L"FamiTracker 0.2.6",                 EF_DAC,           0x0203, 0, {2, 1, 2, 2, 2, 2, 2, 1}},
-	{L"FamiTracker 0.2.7",                 EF_SAMPLE_OFFSET, 0x0300, 0, {2, 1, 2, 2, 3, 3, 3, 1}},
-	{L"FamiTracker 0.2.9 - 0.3.0",         EF_VOLUME_SLIDE,  0x0300, 0, {2, 1, 2, 2, 3, 3, 3, 1, 1}},
-	{L"FamiTracker 0.3.0 re-release",      EF_VOLUME_SLIDE,  0x0410, 1, {2, 1, 2, 2, 4, 3, 3, 1, 1}},
-	{L"FamiTracker 0.3.5 beta 0",          EF_RETRIGGER,     0x0420, 0, {3, 1, 2, 2, 4, 3, 3, 1, 1}},
-	{L"FamiTracker 0.3.5",                 EF_RETRIGGER,     0x0420, 0, {3, 1, 2, 2, 5, 3, 3, 1, 5}},
-};
+namespace {
 
 const CStringW MODULE_ERROR_DESC[] = {
 	L"None: Perform no validation at all while loading or saving modules. "
@@ -105,6 +35,8 @@ const CStringW MODULE_ERROR_DESC[] = {
 	L"Strict: Validate all modules so that they do not contain any illegal data. "
 	 "Modules openable in the official build might be rejected.",
 };
+
+} // namespace
 
 // CConfigVersion dialog
 
@@ -137,20 +69,7 @@ BOOL CConfigVersion::OnInitDialog()
 {
 	CPropertyPage::OnInitDialog();
 
-#ifndef _DEBUG
-	GetDlgItem(IDC_COMBO_VERSION_SELECT)->EnableWindow(FALSE);
-	GetDlgItem(IDC_CHECK_VERSION_LOAD)->EnableWindow(FALSE);
-	GetDlgItem(IDC_CHECK_VERSION_EDIT)->EnableWindow(FALSE);
-	GetDlgItem(IDC_CHECK_VERSION_SAVE)->EnableWindow(FALSE);
-#endif
-
 	m_iModuleErrorLevel = Env.GetSettings()->Version.iErrorLevel;
-
-	m_cComboVersion.SubclassDlgItem(IDC_COMBO_VERSION_SELECT, this);
-
-	for (const auto &str : VERSION_TEXT)
-		m_cComboVersion.AddString(str);
-	m_cComboVersion.SetCurSel(m_cComboVersion.GetCount() - 1); // TODO: add to registry
 
 	m_cSliderErrorLevel.SubclassDlgItem(IDC_SLIDER_VERSION_ERRORLEVEL, this);
 	m_cSliderErrorLevel.SetRange(MODULE_ERROR_NONE, MODULE_ERROR_STRICT);

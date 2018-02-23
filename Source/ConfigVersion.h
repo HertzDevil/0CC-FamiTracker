@@ -25,38 +25,6 @@
 
 #include "stdafx.h"		// // //
 #include "../resource.h"		// // //
-#include "FamiTrackerTypes.h"
-
-// TODO: put these into FamiTrackerDoc.h maybe?
-enum ft_block_t {
-	BLK_PARAMS,
-	BLK_INFO,
-	BLK_HEADER,
-	BLK_INSTRUMENTS,
-	BLK_SEQUENCES,
-	BLK_FRAMES,
-	BLK_PATTERNS,
-	BLK_DPCM_SAMPLES,
-	BLK_COMMENTS,
-	BLK_SEQUENCES_VRC6,
-	BLK_SEQUENCES_N163,
-	BLK_SEQUENCES_S5B,
-	BLK_DETUNETABLES,
-	BLK_GROOVES,
-	BLK_BOOKMARKS,
-	BLK_PARAMS_EXTRA,
-	BLK_COUNT,
-};
-
-struct stVerInfo {
-	CStringW  Name;
-	effect_t MaxEffect;
-	unsigned FTMver;
-	int      MaxArpMode;
-	int      Version[BLK_COUNT];
-};
-
-#define VERSION_INFO_COUNT 9
 
 // CConfigVersion dialog
 
@@ -76,13 +44,8 @@ protected:
 	void UpdateInfo();
 
 protected:
-	static const CStringW VERSION_TEXT[];
-	static const effect_t MAX_EFFECT_INDEX[];
-	static const stVerInfo VERSION_INFO[VERSION_INFO_COUNT];
-
 	int m_iModuleErrorLevel;
 
-	CComboBox m_cComboVersion;
 	CSliderCtrl m_cSliderErrorLevel;
 
 	DECLARE_MESSAGE_MAP()
