@@ -82,7 +82,7 @@ void Kraid::buildSong(CSongData &song) {
 		}
 		if (note != stChanNote { }) {
 			note.Instrument = 1;
-			note.EffNumber[1] = EF_DELAY;
+			note.EffNumber[1] = effect_t::DELAY;
 			note.EffParam[1] = 3;
 			song.GetPatternOnFrame(chan_id_t::SQUARE1, f).SetNoteOn(r, note);
 		}
@@ -130,7 +130,7 @@ void Kraid::makePattern(CSongData &song, chan_id_t ch, unsigned pat, std::string
 		case 'a': ++row; note.Note = note_t::A;  note.Octave = octave, note.Instrument = INST; break;
 		case 'A': ++row; note.Note = note_t::As; note.Octave = octave, note.Instrument = INST; break;
 		case 'b': ++row; note.Note = note_t::B;  note.Octave = octave, note.Instrument = INST; break;
-		case '@': note.EffNumber[0] = EF_DUTY_CYCLE; note.EffParam[0] = 2; break;
+		case '@': note.EffNumber[0] = effect_t::DUTY_CYCLE; note.EffParam[0] = 2; break;
 		}
 	}
 }

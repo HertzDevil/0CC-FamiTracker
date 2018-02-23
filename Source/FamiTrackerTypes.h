@@ -100,77 +100,74 @@ const int INVALID_INSTRUMENT = -1;
 const int MAX_VOLUME = 0x10;
 
 // Channel effects
-enum effect_t : unsigned char {
-	EF_NONE = 0,
-	EF_SPEED,
-	EF_JUMP,
-	EF_SKIP,
-	EF_HALT,
-	EF_VOLUME,
-	EF_PORTAMENTO,
-	EF_PORTAOFF,				// unused!!
-	EF_SWEEPUP,
-	EF_SWEEPDOWN,
-	EF_ARPEGGIO,
-	EF_VIBRATO,
-	EF_TREMOLO,
-	EF_PITCH,
-	EF_DELAY,
-	EF_DAC,
-	EF_PORTA_UP,
-	EF_PORTA_DOWN,
-	EF_DUTY_CYCLE,
-	EF_SAMPLE_OFFSET,
-	EF_SLIDE_UP,
-	EF_SLIDE_DOWN,
-	EF_VOLUME_SLIDE,
-	EF_NOTE_CUT,
-	EF_RETRIGGER,
-	EF_DELAYED_VOLUME,			// // //
-	EF_FDS_MOD_DEPTH,
-	EF_FDS_MOD_SPEED_HI,
-	EF_FDS_MOD_SPEED_LO,
-	EF_DPCM_PITCH,
-	EF_SUNSOFT_ENV_TYPE,
-	EF_SUNSOFT_ENV_HI,
-	EF_SUNSOFT_ENV_LO,
-	EF_SUNSOFT_NOISE,		// // // 050B
-	EF_VRC7_PORT,		// // // 050B
-	EF_VRC7_WRITE,		// // // 050B
-	EF_NOTE_RELEASE,			// // //
-	EF_GROOVE,					// // //
-	EF_TRANSPOSE,				// // //
-	EF_N163_WAVE_BUFFER,		// // //
-	EF_FDS_VOLUME,				// // //
-	EF_FDS_MOD_BIAS,				// // //
-//	EF_TARGET_VOLUME_SLIDE,
+enum class effect_t : unsigned char {
+	NONE = 0,
+	SPEED,
+	JUMP,
+	SKIP,
+	HALT,
+	VOLUME,
+	PORTAMENTO,
+	PORTAOFF,			// unused!!
+	SWEEPUP,
+	SWEEPDOWN,
+	ARPEGGIO,
+	VIBRATO,
+	TREMOLO,
+	PITCH,
+	DELAY,
+	DAC,
+	PORTA_UP,
+	PORTA_DOWN,
+	DUTY_CYCLE,
+	SAMPLE_OFFSET,
+	SLIDE_UP,
+	SLIDE_DOWN,
+	VOLUME_SLIDE,
+	NOTE_CUT,
+	RETRIGGER,
+	DELAYED_VOLUME,		// // //
+	FDS_MOD_DEPTH,
+	FDS_MOD_SPEED_HI,
+	FDS_MOD_SPEED_LO,
+	DPCM_PITCH,
+	SUNSOFT_ENV_TYPE,
+	SUNSOFT_ENV_HI,
+	SUNSOFT_ENV_LO,
+	SUNSOFT_NOISE,		// // // 050B
+	VRC7_PORT,			// // // 050B
+	VRC7_WRITE,			// // // 050B
+	NOTE_RELEASE,		// // //
+	GROOVE,				// // //
+	TRANSPOSE,			// // //
+	N163_WAVE_BUFFER,	// // //
+	FDS_VOLUME,			// // //
+	FDS_MOD_BIAS,		// // //
+//	TARGET_VOLUME_SLIDE,
 /*
-	EF_VRC7_MODULATOR,
-	EF_VRC7_CARRIER,
-	EF_VRC7_LEVELS,
+	VRC7_MODULATOR,
+	VRC7_CARRIER,
+	VRC7_LEVELS,
 */
-	EF_COUNT,
+	COUNT,
 };
 
-// DPCM  effects
-//const int EF_DPCM_PITCH = EF_SWEEPUP;		// DPCM pitch, 'H'
+const std::size_t EFFECT_COUNT = static_cast<unsigned>(effect_t::COUNT);
 
-//const int EF_VRC7_PATCH = EF_DUTY_CYCLE;	// VRC7 patch setting, 'V'
-
-// FDS effects
-//const int EF_FDS_MOD_DEPTH = EF_SWEEPUP;	// FDS modulation depth, 'H'
-
-//const int EF_RETRIGGER = EF_SWEEPDOWN;
+constexpr auto value_cast(effect_t n) noexcept { // TODO: use enum_traits
+	return static_cast<unsigned char>(n);
+}
 
 // const effect_t VRC6_EFFECTS[] = {};
-const effect_t VRC7_EFFECTS[] = {EF_VRC7_PORT, EF_VRC7_WRITE};
-const effect_t FDS_EFFECTS[] = {EF_FDS_MOD_DEPTH, EF_FDS_MOD_SPEED_HI, EF_FDS_MOD_SPEED_LO, EF_FDS_VOLUME, EF_FDS_MOD_BIAS};
+const effect_t VRC7_EFFECTS[] = {effect_t::VRC7_PORT, effect_t::VRC7_WRITE};
+const effect_t FDS_EFFECTS[] = {effect_t::FDS_MOD_DEPTH, effect_t::FDS_MOD_SPEED_HI, effect_t::FDS_MOD_SPEED_LO, effect_t::FDS_VOLUME, effect_t::FDS_MOD_BIAS};
 // const effect_t MMC5_EFFECTS[] = {};
-const effect_t N163_EFFECTS[] = {EF_N163_WAVE_BUFFER};
-const effect_t S5B_EFFECTS[] = {EF_SUNSOFT_ENV_TYPE, EF_SUNSOFT_ENV_HI, EF_SUNSOFT_ENV_LO, EF_SUNSOFT_NOISE};
+const effect_t N163_EFFECTS[] = {effect_t::N163_WAVE_BUFFER};
+const effect_t S5B_EFFECTS[] = {effect_t::SUNSOFT_ENV_TYPE, effect_t::SUNSOFT_ENV_HI, effect_t::SUNSOFT_ENV_LO, effect_t::SUNSOFT_NOISE};
 
 // Channel effect letters
 const char EFF_CHAR[] = {
+	 0,		// // // blank
 	'F',	// Speed
 	'B',	// Jump
 	'D',	// Skip

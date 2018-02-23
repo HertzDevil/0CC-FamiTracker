@@ -55,13 +55,13 @@ public:
 				const auto &Note = song_view_.GetPatternOnFrame(index, f_).GetNoteOn(r_);		// // //
 				for (int l = 0, m = song_view_.GetEffectColumnCount(index); l <= m; ++l) {
 					switch (Note.EffNumber[l]) {
-					case EF_JUMP:
+					case effect_t::JUMP:
 						Bxx = Note.EffParam[l];
 						break;
-					case EF_SKIP:
+					case effect_t::SKIP:
 						Dxx = Note.EffParam[l];
 						break;
-					case EF_HALT:
+					case effect_t::HALT:
 						Cxx = true;
 						break;
 					default:
@@ -141,7 +141,7 @@ void CSongLengthScanner::Compute() {
 
 	const auto fxhandler = [&] (effect_t fx, uint8_t param) {
 		switch (fx) {
-		case EF_SPEED:
+		case effect_t::SPEED:
 			if (AllowTempo && param >= Split)
 				Tempo = param;
 			else {
@@ -149,7 +149,7 @@ void CSongLengthScanner::Compute() {
 				Speed = param;
 			}
 			break;
-		case EF_GROOVE:
+		case effect_t::GROOVE:
 			if (modfile_.HasGroove(param)) {
 				GrooveIndex = param;
 				GroovePointer = 0;

@@ -69,13 +69,13 @@ void CChannelHandlerVRC7::HandleNoteData(stChanNote &NoteData)		// // //
 bool CChannelHandlerVRC7::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
 	switch (EffNum) {
-	case EF_DUTY_CYCLE:
+	case effect_t::DUTY_CYCLE:
 		m_iPatch = EffParam;		// // // 050B
 		break;
-	case EF_VRC7_PORT:		// // // 050B
+	case effect_t::VRC7_PORT:		// // // 050B
 		m_iCustomPort = EffParam & 0x07;
 		break;
-	case EF_VRC7_WRITE:		// // // 050B
+	case effect_t::VRC7_WRITE:		// // // 050B
 		m_iPatchRegs[m_iCustomPort] = EffParam;
 		m_cPatchFlag |= 1 << m_iCustomPort;
 		m_bRegsDirty = true;
@@ -126,11 +126,11 @@ void CChannelHandlerVRC7::HandleNote(note_t Note, int Octave)
 	m_bHold	= true;
 
 /*
-	if ((m_iEffect != EF_PORTAMENTO || m_iPortaSpeed == 0) ||
+	if ((m_iEffect != effect_t::PORTAMENTO || m_iPortaSpeed == 0) ||
 		m_iCommand == CMD_NOTE_HALT || m_iCommand == CMD_NOTE_RELEASE)		// // // 050B
 		m_iCommand = CMD_NOTE_TRIGGER;
 */
-	if (m_iPortaSpeed > 0 && m_iEffect == EF_PORTAMENTO &&
+	if (m_iPortaSpeed > 0 && m_iEffect == effect_t::PORTAMENTO &&
 		m_iCommand != CMD_NOTE_HALT && m_iCommand != CMD_NOTE_RELEASE)		// // // 050B
 		CorrectOctave();
 	else
@@ -144,7 +144,7 @@ int CChannelHandlerVRC7::RunNote(int Octave, note_t Note)		// // //
 
 	int NesFreq = TriggerNote(NewNote);
 
-	if (m_iPortaSpeed > 0 && m_iEffect == EF_PORTAMENTO && m_bGate) {		// // //
+	if (m_iPortaSpeed > 0 && m_iEffect == effect_t::PORTAMENTO && m_bGate) {		// // //
 		if (m_iPeriod == 0) {
 			m_iPeriod = NesFreq;
 			m_iOldOctave = m_iOctave = Octave;
@@ -321,7 +321,7 @@ void CVRC7Channel::ClearRegisters()
 	m_iNote = -1;
 	m_iOctave = m_iOldOctave = -1;		// // //
 	m_iPatch = -1;
-	m_iEffect = EF_NONE;
+	m_iEffect = effect_t::NONE;
 
 	m_iCommand = CMD_NOTE_HALT;
 	m_iCustomPort = 0;		// // // 050B

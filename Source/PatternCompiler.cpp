@@ -167,21 +167,21 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 
 		// Check for delays, must come first
 		for (int j = 0; j < EffColumns; ++j) {
-			unsigned char Effect   = ChanNote.EffNumber[j];
+			effect_t Effect   = ChanNote.EffNumber[j];
 			unsigned char EffParam = ChanNote.EffParam[j];
-			if (Effect == EF_DELAY && EffParam > 0) {
+			if (Effect == effect_t::DELAY && EffParam > 0) {
 				WriteDuration();
 				for (int k = 0; k < EffColumns; ++k) {
 					// Clear skip and jump commands on delayed rows
-					if (ChanNote.EffNumber[k] == EF_SKIP) {
+					if (ChanNote.EffNumber[k] == effect_t::SKIP) {
 						WriteData(Command(CMD_EFF_SKIP));
 						WriteData(ChanNote.EffParam[k] + 1);
-						ChanNote.EffNumber[k] = EF_NONE;
+						ChanNote.EffNumber[k] = effect_t::NONE;
 					}
-					else if (ChanNote.EffNumber[k] == EF_JUMP) {
+					else if (ChanNote.EffNumber[k] == effect_t::JUMP) {
 						WriteData(Command(CMD_EFF_JUMP));
 						WriteData(ChanNote.EffParam[k] + 1);
-						ChanNote.EffNumber[k] = EF_NONE;
+						ChanNote.EffNumber[k] = effect_t::NONE;
 					}
 				}
 				Action = true;
@@ -301,36 +301,35 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 		}
 
 		for (int j = 0; j < EffColumns; ++j) {
-
-			unsigned char Effect   = ChanNote.EffNumber[j];
+			effect_t Effect   = ChanNote.EffNumber[j];
 			unsigned char EffParam = ChanNote.EffParam[j];
 
-			if (Effect > 0) {
+			if (Effect != effect_t::NONE) {
 				WriteDuration();
 				Action = true;
 			}
 
 			switch (Effect) {
-				case EF_SPEED:
+				case effect_t::SPEED:
 					if (EffParam >= modfile_.GetSpeedSplitPoint() && pSong->GetSongTempo())		// // //
 						WriteData(Command(CMD_EFF_TEMPO));
 					else
 						WriteData(Command(CMD_EFF_SPEED));
 					WriteData(EffParam ? EffParam : 1); // NSF halts if 0 is exported
 					break;
-				case EF_JUMP:
+				case effect_t::JUMP:
 					WriteData(Command(CMD_EFF_JUMP));
 					WriteData(EffParam + 1);
 					break;
-				case EF_SKIP:
+				case effect_t::SKIP:
 					WriteData(Command(CMD_EFF_SKIP));
 					WriteData(EffParam + 1);
 					break;
-				case EF_HALT:
+				case effect_t::HALT:
 					WriteData(Command(CMD_EFF_HALT));
 					WriteData(EffParam);
 					break;
-				case EF_VOLUME:		// // //
+				case effect_t::VOLUME:		// // //
 					switch (Channel) {
 					case chan_id_t::SQUARE1: case chan_id_t::SQUARE2: case chan_id_t::TRIANGLE: case chan_id_t::NOISE:
 					case chan_id_t::MMC5_SQUARE1: case chan_id_t::MMC5_SQUARE2:
@@ -339,7 +338,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 							WriteData(EffParam & 0x9F);
 					}
 					break;
-				case EF_PORTAMENTO:
+				case effect_t::PORTAMENTO:
 					if (Channel != chan_id_t::DPCM) {
 						if (EffParam == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
@@ -349,7 +348,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 						}
 					}
 					break;
-				case EF_PORTA_UP:
+				case effect_t::PORTA_UP:
 					if (Channel != chan_id_t::DPCM) {
 						if (EffParam == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
@@ -368,7 +367,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 						}
 					}
 					break;
-				case EF_PORTA_DOWN:
+				case effect_t::PORTA_DOWN:
 					if (Channel != chan_id_t::DPCM) {
 						if (EffParam == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
@@ -388,25 +387,25 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 					}
 					break;
 					/*
-				case EF_PORTAOFF:
+				case effect_t::PORTAOFF:
 					if (ChipID == sound_chip_t::APU) {
 						WriteData(CMD_EFF_PORTAOFF);
 						//WriteData(EffParam);
 					}
 					break;*/
-				case EF_SWEEPUP:
+				case effect_t::SWEEPUP:
 					if (Channel == chan_id_t::SQUARE1 || Channel == chan_id_t::SQUARE2) {
 						WriteData(Command(CMD_EFF_SWEEP));
 						WriteData(0x88 | (EffParam & 0x77));	// Calculate sweep
 					}
 					break;
-				case EF_SWEEPDOWN:
+				case effect_t::SWEEPDOWN:
 					if (Channel == chan_id_t::SQUARE1 || Channel == chan_id_t::SQUARE2) {
 						WriteData(Command(CMD_EFF_SWEEP));
 						WriteData(0x80 | (EffParam & 0x77));	// Calculate sweep
 					}
 					break;
-				case EF_ARPEGGIO:
+				case effect_t::ARPEGGIO:
 					if (Channel != chan_id_t::DPCM) {
 						if (EffParam == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
@@ -416,21 +415,21 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 						}
 					}
 					break;
-				case EF_VIBRATO:
+				case effect_t::VIBRATO:
 					if (Channel != chan_id_t::DPCM) {
 						WriteData(Command(CMD_EFF_VIBRATO));
 						//WriteData(EffParam);
 						WriteData((EffParam & 0xF) << 4 | (EffParam >> 4));
 					}
 					break;
-				case EF_TREMOLO:
+				case effect_t::TREMOLO:
 					if (Channel != chan_id_t::DPCM) {
 						WriteData(Command(CMD_EFF_TREMOLO));
 //						WriteData(EffParam & 0xF7);
 						WriteData((EffParam & 0xF) << 4 | (EffParam >> 4));
 					}
 					break;
-				case EF_PITCH:
+				case effect_t::PITCH:
 					if (Channel != chan_id_t::DPCM) {
 						if (EffParam == 0x80)
 							WriteData(Command(CMD_EFF_RESET_PITCH));
@@ -449,13 +448,13 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 						}
 					}
 					break;
-				case EF_DAC:
+				case effect_t::DAC:
 					if (Channel == chan_id_t::DPCM) {
 						WriteData(Command(CMD_EFF_DAC));
 						WriteData(EffParam & 0x7F);
 					}
 					break;
-				case EF_DUTY_CYCLE:
+				case effect_t::DUTY_CYCLE:
 					if (ChipID == sound_chip_t::VRC7) {		// // // 050B
 						WriteData(Command(CMD_EFF_VRC7_PATCH));
 						WriteData(EffParam << 4);
@@ -469,31 +468,31 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 						WriteData(EffParam);
 					}
 					break;
-				case EF_SAMPLE_OFFSET:
+				case effect_t::SAMPLE_OFFSET:
 					if (Channel == chan_id_t::DPCM) {	// DPCM
 						WriteData(Command(CMD_EFF_OFFSET));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_SLIDE_UP:
+				case effect_t::SLIDE_UP:
 					if (Channel != chan_id_t::DPCM) {
 						WriteData(Command(CMD_EFF_SLIDE_UP));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_SLIDE_DOWN:
+				case effect_t::SLIDE_DOWN:
 					if (Channel != chan_id_t::DPCM) {
 						WriteData(Command(CMD_EFF_SLIDE_DOWN));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_VOLUME_SLIDE:
+				case effect_t::VOLUME_SLIDE:
 					if (Channel != chan_id_t::DPCM) {
 						WriteData(Command(CMD_EFF_VOL_SLIDE));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_NOTE_CUT:
+				case effect_t::NOTE_CUT:
 					if (EffParam >= 0x80 && Channel == chan_id_t::TRIANGLE) {		// // //
 						WriteData(Command(CMD_EFF_LINEAR_COUNTER));
 						WriteData(EffParam - 0x80);
@@ -503,25 +502,25 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 						WriteData(EffParam);
 					}
 					break;
-				case EF_RETRIGGER:
+				case effect_t::RETRIGGER:
 					if (Channel == chan_id_t::DPCM) {
 						WriteData(Command(CMD_EFF_RETRIGGER));
 						WriteData(EffParam + 1);
 					}
 					break;
-				case EF_DPCM_PITCH:
+				case effect_t::DPCM_PITCH:
 					if (Channel == chan_id_t::DPCM) {
 						WriteData(Command(CMD_EFF_DPCM_PITCH));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_NOTE_RELEASE:		// // //
+				case effect_t::NOTE_RELEASE:		// // //
 					if (EffParam < 0x80) {
 						WriteData(Command(CMD_EFF_NOTE_RELEASE));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_GROOVE:		// // //
+				case effect_t::GROOVE:		// // //
 					if (EffParam < MAX_GROOVE) {
 						WriteData(Command(CMD_EFF_GROOVE));
 
@@ -532,89 +531,89 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 						WriteData(Pos);
 					}
 					break;
-				case EF_DELAYED_VOLUME:		// // //
+				case effect_t::DELAYED_VOLUME:		// // //
 					if (Channel != chan_id_t::DPCM && (EffParam >> 4) && (EffParam & 0x0F)) {
 						WriteData(Command(CMD_EFF_DELAYED_VOLUME));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_TRANSPOSE:			// // //
+				case effect_t::TRANSPOSE:			// // //
 					if (Channel != chan_id_t::DPCM) {
 						WriteData(Command(CMD_EFF_TRANSPOSE));
 						WriteData(EffParam);
 					}
 					break;
 				// // // VRC7
-				case EF_VRC7_PORT:
+				case effect_t::VRC7_PORT:
 					if (ChipID == sound_chip_t::VRC7) {
 						WriteData(Command(CMD_EFF_VRC7_PORT));
 						WriteData(EffParam & 0x07);
 					}
 					break;
-				case EF_VRC7_WRITE:
+				case effect_t::VRC7_WRITE:
 					if (ChipID == sound_chip_t::VRC7) {
 						WriteData(Command(CMD_EFF_VRC7_WRITE));
 						WriteData(EffParam);
 					}
 					break;
 				// FDS
-				case EF_FDS_MOD_DEPTH:
+				case effect_t::FDS_MOD_DEPTH:
 					if (Channel == chan_id_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_DEPTH));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_FDS_MOD_SPEED_HI:
+				case effect_t::FDS_MOD_SPEED_HI:
 					if (Channel == chan_id_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_RATE_HI));
 						WriteData(EffParam);		// // //
 					}
 					break;
-				case EF_FDS_MOD_SPEED_LO:
+				case effect_t::FDS_MOD_SPEED_LO:
 					if (Channel == chan_id_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_RATE_LO));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_FDS_MOD_BIAS:		// // //
+				case effect_t::FDS_MOD_BIAS:		// // //
 					if (Channel == chan_id_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_BIAS));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_FDS_VOLUME:		// // //
+				case effect_t::FDS_VOLUME:		// // //
 					if (Channel == chan_id_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_VOLUME));
 						WriteData(EffParam == 0xE0 ? 0x80 : (EffParam ^ 0x40));
 					}
 					break;
 				// // // Sunsoft 5B
-				case EF_SUNSOFT_ENV_TYPE:
+				case effect_t::SUNSOFT_ENV_TYPE:
 					if (ChipID == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_ENV_TYPE));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_SUNSOFT_ENV_HI:
+				case effect_t::SUNSOFT_ENV_HI:
 					if (ChipID == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_ENV_RATE_HI));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_SUNSOFT_ENV_LO:
+				case effect_t::SUNSOFT_ENV_LO:
 					if (ChipID == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_ENV_RATE_LO));
 						WriteData(EffParam);
 					}
 					break;
-				case EF_SUNSOFT_NOISE:		// // // 050B
+				case effect_t::SUNSOFT_NOISE:		// // // 050B
 					if (ChipID == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_NOISE));
 						WriteData(EffParam & 0x1F);
 					}
 					break;
 				// // // N163
-				case EF_N163_WAVE_BUFFER:
+				case effect_t::N163_WAVE_BUFFER:
 					if (ChipID == sound_chip_t::N163 && EffParam <= 0x7F) {
 						WriteData(Command(CMD_EFF_N163_WAVE_BUFFER));
 						WriteData(EffParam == 0x7F ? 0x80 : EffParam);
@@ -701,7 +700,7 @@ CPatternCompiler::stSpacingInfo CPatternCompiler::ScanNoteLengths(int Track, uns
 		else if (NoteData.Vol < MAX_VOLUME)
 			NoteUsed = true;
 		else for (unsigned j = 0, Count = pSong->GetEffectColumnCount(Channel); j <= Count; ++j)
-			if (NoteData.EffNumber[j] != EF_NONE)
+			if (NoteData.EffNumber[j] != effect_t::NONE)
 				NoteUsed = true;
 
 		if (i == StartRow && !NoteUsed)

@@ -180,11 +180,11 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 				for (c = 0; c < ReadCount; c++) {
 					for (i = 0; i < PatternLength; i++) {
 						pOpenFile->Read(&ImportedNote, sizeof(ImportedNote));
-						if (ImportedNote.ExtraStuff1 == EF_PORTAOFF) {
-							ImportedNote.ExtraStuff1 = EF_PORTAMENTO;
+						if (ImportedNote.ExtraStuff1 == (int)effect_t::PORTAOFF) {
+							ImportedNote.ExtraStuff1 = (int)effect_t::PORTAMENTO;
 							ImportedNote.ExtraStuff2 = 0;
 						}
-						else if (ImportedNote.ExtraStuff1 == EF_PORTAMENTO) {
+						else if (ImportedNote.ExtraStuff1 == (int)effect_t::PORTAMENTO) {
 							if (ImportedNote.ExtraStuff2 < 0xFF)
 								ImportedNote.ExtraStuff2++;
 						}
@@ -199,8 +199,8 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 							Note.Instrument = MAX_INSTRUMENTS;
 						if (Note.Vol == 0)
 							Note.Vol = MAX_VOLUME;
-						if (Note.EffNumber[0] < EF_COUNT)		// // //
-							Note.EffNumber[0] = EFF_CONVERSION_050.first[Note.EffNumber[0]];
+						if (Note.EffNumber[0] < effect_t::COUNT)		// // //
+							Note.EffNumber[0] = EFF_CONVERSION_050.first[value_cast(Note.EffNumber[0])];
 						Song.SetPatternData(x, c, i, Note);
 					}
 				}

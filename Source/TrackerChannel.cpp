@@ -121,44 +121,44 @@ bool IsInstrumentCompatible(sound_chip_t chip, inst_type_t Type) {		// // //
 	return false;
 }
 
-bool IsEffectCompatible(chan_id_t ch, uint8_t EffNumber, uint8_t EffParam) {		// // //
+bool IsEffectCompatible(chan_id_t ch, effect_t EffNumber, uint8_t EffParam) {		// // //
 	sound_chip_t chip = GetChipFromChannel(ch);
 	switch (EffNumber) {
-		case EF_NONE:
-		case EF_SPEED: case EF_JUMP: case EF_SKIP: case EF_HALT:
-		case EF_DELAY:
+		case effect_t::NONE:
+		case effect_t::SPEED: case effect_t::JUMP: case effect_t::SKIP: case effect_t::HALT:
+		case effect_t::DELAY:
 			return true;
-		case EF_NOTE_CUT: case EF_NOTE_RELEASE:
+		case effect_t::NOTE_CUT: case effect_t::NOTE_RELEASE:
 			return EffParam <= 0x7F || ch == chan_id_t::TRIANGLE;
-		case EF_GROOVE:
+		case effect_t::GROOVE:
 			return EffParam < MAX_GROOVE;
-		case EF_VOLUME:
+		case effect_t::VOLUME:
 			return ((chip == sound_chip_t::APU && ch != chan_id_t::DPCM) || chip == sound_chip_t::MMC5) &&
 				(EffParam <= 0x1F || (EffParam >= 0xE0 && EffParam <= 0xE3));
-		case EF_PORTAMENTO: case EF_ARPEGGIO: case EF_VIBRATO: case EF_TREMOLO:
-		case EF_PITCH: case EF_PORTA_UP: case EF_PORTA_DOWN: case EF_SLIDE_UP: case EF_SLIDE_DOWN:
-		case EF_VOLUME_SLIDE: case EF_DELAYED_VOLUME: case EF_TRANSPOSE:
+		case effect_t::PORTAMENTO: case effect_t::ARPEGGIO: case effect_t::VIBRATO: case effect_t::TREMOLO:
+		case effect_t::PITCH: case effect_t::PORTA_UP: case effect_t::PORTA_DOWN: case effect_t::SLIDE_UP: case effect_t::SLIDE_DOWN:
+		case effect_t::VOLUME_SLIDE: case effect_t::DELAYED_VOLUME: case effect_t::TRANSPOSE:
 			return ch != chan_id_t::DPCM;
-		case EF_PORTAOFF:
+		case effect_t::PORTAOFF:
 			return false;
-		case EF_SWEEPUP: case EF_SWEEPDOWN:
+		case effect_t::SWEEPUP: case effect_t::SWEEPDOWN:
 			return ch == chan_id_t::SQUARE1 || ch == chan_id_t::SQUARE2;
-		case EF_DAC: case EF_SAMPLE_OFFSET: case EF_RETRIGGER: case EF_DPCM_PITCH:
+		case effect_t::DAC: case effect_t::SAMPLE_OFFSET: case effect_t::RETRIGGER: case effect_t::DPCM_PITCH:
 			return ch == chan_id_t::DPCM;
-		case EF_DUTY_CYCLE:
+		case effect_t::DUTY_CYCLE:
 			return ch != chan_id_t::DPCM;		// // // 050B
-		case EF_FDS_MOD_DEPTH:
+		case effect_t::FDS_MOD_DEPTH:
 			return chip == sound_chip_t::FDS && (EffParam <= 0x3F || EffParam >= 0x80);
-		case EF_FDS_MOD_SPEED_HI: case EF_FDS_MOD_SPEED_LO: case EF_FDS_MOD_BIAS:
+		case effect_t::FDS_MOD_SPEED_HI: case effect_t::FDS_MOD_SPEED_LO: case effect_t::FDS_MOD_BIAS:
 			return chip == sound_chip_t::FDS;
-		case EF_SUNSOFT_ENV_LO: case EF_SUNSOFT_ENV_HI: case EF_SUNSOFT_ENV_TYPE:
-		case EF_SUNSOFT_NOISE:		// // // 050B
+		case effect_t::SUNSOFT_ENV_LO: case effect_t::SUNSOFT_ENV_HI: case effect_t::SUNSOFT_ENV_TYPE:
+		case effect_t::SUNSOFT_NOISE:		// // // 050B
 			return chip == sound_chip_t::S5B;
-		case EF_N163_WAVE_BUFFER:
+		case effect_t::N163_WAVE_BUFFER:
 			return chip == sound_chip_t::N163 && EffParam <= 0x7F;
-		case EF_FDS_VOLUME:
+		case effect_t::FDS_VOLUME:
 			return chip == sound_chip_t::FDS && (EffParam <= 0x7F || EffParam == 0xE0);
-		case EF_VRC7_PORT: case EF_VRC7_WRITE:		// // // 050B
+		case effect_t::VRC7_PORT: case effect_t::VRC7_WRITE:		// // // 050B
 			return chip == sound_chip_t::VRC7;
 	}
 

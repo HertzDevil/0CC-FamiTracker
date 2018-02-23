@@ -63,6 +63,7 @@ const WCHAR CFamiTrackerView::CLIPBOARD_ID[] = L"FamiTracker Pattern";
 // Effect texts
 // 0CC: add verbose description as in modplug
 const LPCWSTR EFFECT_TEXTS[] = {		// // //
+	L"(not used)",
 	L"Fxx - Set speed to XX, cancels groove",
 	L"Fxx - Set tempo to XX",
 	L"Bxx - Jump to beginning of frame XX",
@@ -1833,7 +1834,7 @@ stChanNote CFamiTrackerView::GetInputNote(note_t Note, int Octave, std::size_t I
 	if (theApp.GetSettings()->Midi.bMidiMasterSync) {
 		int Delay = theApp.GetMIDI()->GetQuantization();
 		if (Delay > 0) {
-			Cell.EffNumber[0] = EF_DELAY;
+			Cell.EffNumber[0] = effect_t::DELAY;
 			Cell.EffParam[0] = Delay;
 		}
 	}
@@ -2523,13 +2524,13 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 		Note.EffParam[EffectIndex] = m_LastNote.EffParam[0];
 		if (EditStyle != EDIT_STYLE_MPT)		// // //
 			bStepDown = true;
-		if (m_bEditEnable && Note.EffNumber[EffectIndex] != EF_NONE)		// // //
+		if (m_bEditEnable && Note.EffNumber[EffectIndex] != effect_t::NONE)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 		return true;
 	}
 
 	if (CheckClearKey(nChar)) {
-		Note.EffNumber[EffectIndex] = EF_NONE;
+		Note.EffNumber[EffectIndex] = effect_t::NONE;
 		if (EditStyle != EDIT_STYLE_MPT)
 			bStepDown = true;
 		return true;
@@ -2545,7 +2546,7 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 
 	if (bValidEffect) {
 		Note.EffNumber[EffectIndex] = Effect;
-		if (m_bEditEnable && Note.EffNumber[EffectIndex] != EF_NONE)		// // //
+		if (m_bEditEnable && Note.EffNumber[EffectIndex] != effect_t::NONE)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 		switch (EditStyle) {
 			case EDIT_STYLE_MPT:	// Modplug
@@ -2578,7 +2579,7 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 		Note.EffParam[EffectIndex] = m_LastNote.EffParam[0];
 		if (EditStyle != EDIT_STYLE_MPT)		// // //
 			bStepDown = true;
-		if (m_bEditEnable && Note.EffNumber[EffectIndex] != EF_NONE)		// // //
+		if (m_bEditEnable && Note.EffNumber[EffectIndex] != effect_t::NONE)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 		return true;
 	}
@@ -2627,7 +2628,7 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 	m_LastNote.EffNumber[0] = Note.EffNumber[EffectIndex];		// // //
 	m_LastNote.EffParam[0] = Note.EffParam[EffectIndex];
 
-	if (m_bEditEnable && Note.EffNumber[EffectIndex] != EF_NONE)		// // //
+	if (m_bEditEnable && Note.EffNumber[EffectIndex] != effect_t::NONE)		// // //
 		GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 
 	return true;
@@ -3523,23 +3524,35 @@ void CFamiTrackerView::OnRecallChannelState() {		// // //
 	GetParentFrame()->SetMessageText(conv::to_wide(theApp.GetSoundGenerator()->RecallChannelState(GetSelectedChannelID())).data());
 }
 
-CStringW	CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) const		// // //
+CStringW CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) const		// // //
 {
-	int Index = Note.EffNumber[Column];
+	auto Index = value_cast(Note.EffNumber[Column]);
 	int Param = Note.EffParam[Column];
-	if (Index >= EF_COUNT) return L"Undefined effect";
+	if (Index >= EFFECT_COUNT)
+		return L"Undefined effect";
 
 	sound_chip_t Chip = GetChipFromChannel(GetSelectedChannelID());
-	if (Index > EF_FDS_VOLUME || (Index == EF_FDS_VOLUME && Param >= 0x40)) ++Index;
-	if (Index > EF_TRANSPOSE || (Index == EF_TRANSPOSE && Param >= 0x80)) ++Index;
-	if (Index > EF_SUNSOFT_ENV_TYPE || (Index == EF_SUNSOFT_ENV_TYPE && Param >= 0x10)) ++Index;
-	if (Index > EF_FDS_MOD_SPEED_HI || (Index == EF_FDS_MOD_SPEED_HI && Param >= 0x10)) ++Index;
-	if (Index > EF_FDS_MOD_DEPTH || (Index == EF_FDS_MOD_DEPTH && Param >= 0x80)) ++Index;
-	if (Index > EF_NOTE_CUT || (Index == EF_NOTE_CUT && Param >= 0x80 && GetSelectedChannelID() == chan_id_t::TRIANGLE)) ++Index;
-	if (Index > EF_DUTY_CYCLE || (Index == EF_DUTY_CYCLE && (Chip == sound_chip_t::VRC7 || Chip == sound_chip_t::N163))) ++Index;
-	if (Index > EF_DUTY_CYCLE || (Index == EF_DUTY_CYCLE && Chip == sound_chip_t::N163)) ++Index;
-	if (Index > EF_VOLUME || (Index == EF_VOLUME && Param >= 0xE0)) ++Index;
-	if (Index > EF_SPEED || (Index == EF_SPEED && Param >= GetModuleData()->GetSpeedSplitPoint())) ++Index;
+	const int xy = 0;
+	if (Index > value_cast(effect_t::FDS_VOLUME)       || (Index == value_cast(effect_t::FDS_VOLUME)       && Param >= 0x40))
+		++Index;
+	if (Index > value_cast(effect_t::TRANSPOSE)        || (Index == value_cast(effect_t::TRANSPOSE)        && Param >= 0x80))
+		++Index;
+	if (Index > value_cast(effect_t::SUNSOFT_ENV_TYPE) || (Index == value_cast(effect_t::SUNSOFT_ENV_TYPE) && Param >= 0x10))
+		++Index;
+	if (Index > value_cast(effect_t::FDS_MOD_SPEED_HI) || (Index == value_cast(effect_t::FDS_MOD_SPEED_HI) && Param >= 0x10))
+		++Index;
+	if (Index > value_cast(effect_t::FDS_MOD_DEPTH)    || (Index == value_cast(effect_t::FDS_MOD_DEPTH)    && Param >= 0x80))
+		++Index;
+	if (Index > value_cast(effect_t::NOTE_CUT)         || (Index == value_cast(effect_t::NOTE_CUT)         && Param >= 0x80 && GetSelectedChannelID() == chan_id_t::TRIANGLE))
+		++Index;
+	if (Index > value_cast(effect_t::DUTY_CYCLE)       || (Index == value_cast(effect_t::DUTY_CYCLE)       && (Chip == sound_chip_t::VRC7 || Chip == sound_chip_t::N163)))
+		++Index;
+	if (Index > value_cast(effect_t::DUTY_CYCLE)       || (Index == value_cast(effect_t::DUTY_CYCLE)       && Chip == sound_chip_t::N163))
+		++Index;
+	if (Index > value_cast(effect_t::VOLUME)           || (Index == value_cast(effect_t::VOLUME)           && Param >= 0xE0))
+		++Index;
+	if (Index > value_cast(effect_t::SPEED)            || (Index == value_cast(effect_t::SPEED)            && Param >= GetModuleData()->GetSpeedSplitPoint()))
+		++Index;
 
-	return EFFECT_TEXTS[Index - 1];
+	return EFFECT_TEXTS[Index];
 }

@@ -96,7 +96,7 @@ void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t 
 				if (TByte != MAX_VOLUME) Protected[i] = true;
 				break;
 			default:
-				if (TByte != EF_NONE) Protected[i] = true;
+				if (TByte != value_cast(effect_t::NONE)) Protected[i] = true;
 			}
 			// continue
 		case PASTE_OVERWRITE:
@@ -111,7 +111,7 @@ void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t 
 				if (SByte == MAX_VOLUME) Protected[i] = true;
 				break;
 			default:
-				if (SByte == EF_NONE) Protected[i] = true;
+				if (SByte == value_cast(effect_t::NONE)) Protected[i] = true;
 			}
 		}
 	}
@@ -1253,13 +1253,13 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	const wchar_t *NOTES_A = m_bDisplayFlat ? NOTES_A_FLAT : NOTES_A_SHARP;
 	const wchar_t *NOTES_B = m_bDisplayFlat ? NOTES_B_FLAT : NOTES_B_SHARP;
 
-	int EffNumber = Column >= 4 ? NoteData.EffNumber[(Column - 4) / 3] : 0;		// // //
+	effect_t EffNumber = Column >= 4 ? NoteData.EffNumber[(Column - 4) / 3] : effect_t::NONE;		// // //
 	int EffParam  = Column >= 4 ? NoteData.EffParam[(Column - 4) / 3] : 0;
 
 	// Detect invalid note data
 	if (NoteData.Note > note_t::ECHO ||		// // //
 		NoteData.Octave > 8 ||
-		EffNumber >= EF_COUNT ||
+		EffNumber >= effect_t::COUNT ||
 		NoteData.Instrument > MAX_INSTRUMENTS && NoteData.Instrument != HOLD_INSTRUMENT) {		// // // 050B
 		if (Column == C_NOTE/* || Column == 4*/) {
 			CStringW Text = L"(invalid)";
@@ -1287,7 +1287,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	}
 
 	// // // effects too
-	if (EffNumber != EF_NONE) if (!IsEffectCompatible(ch, EffNumber, EffParam))
+	if (EffNumber != effect_t::NONE) if (!IsEffectCompatible(ch, EffNumber, EffParam))
 		DimEff = EffColor = MakeRGB(255, 0, 0);		// // //
 
 	int PosY = m_iRowHeight - m_iRowHeight / 8;		// // //
@@ -1324,8 +1324,8 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 				else {
 					bool Found = false;
 					for (unsigned int i = 0; i <= fxcols; i++) {
-						if (NoteData.EffNumber[i] != EF_NONE) {
-							DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[NoteData.EffNumber[i] - 1], DimEff);
+						if (NoteData.EffNumber[i] != effect_t::NONE) {
+							DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[value_cast(NoteData.EffNumber[i])], DimEff);
 							DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, HEX[NoteData.EffParam[i] >> 4], DimEff);
 							DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, HEX[NoteData.EffParam[i] & 0x0F], DimEff);
 							Found = true;
@@ -1402,21 +1402,21 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		break;
 	case C_EFF1_NUM: case C_EFF2_NUM: case C_EFF3_NUM: case C_EFF4_NUM:
 		// Effect type
-		if (EffNumber == 0)
+		if (EffNumber == effect_t::NONE)
 			BAR(PosX, PosY);
 		else
-			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[EffNumber - 1], EffColor);		// // //
+			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[value_cast(EffNumber)], EffColor);		// // //
 		break;
 	case C_EFF1_PARAM1: case C_EFF2_PARAM1: case C_EFF3_PARAM1: case C_EFF4_PARAM1:
 		// Effect param x
-		if (EffNumber == 0)
+		if (EffNumber == effect_t::NONE)
 			BAR(PosX, PosY);
 		else
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[(EffParam >> 4) & 0x0F], ColorInfo.Note);		// // //
 		break;
 	case C_EFF1_PARAM2: case C_EFF2_PARAM2: case C_EFF3_PARAM2: case C_EFF4_PARAM2:
 		// Effect param y
-		if (EffNumber == 0)
+		if (EffNumber == effect_t::NONE)
 			BAR(PosX, PosY);
 		else
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[EffParam & 0x0F], ColorInfo.Note);		// // //
@@ -2942,10 +2942,10 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t 
 				bool Protected = false;
 				switch (PasteMode) {
 				case PASTE_MIX:
-					if (NoteData.EffNumber[Offset] != EF_NONE) Protected = true;
+					if (NoteData.EffNumber[Offset] != effect_t::NONE) Protected = true;
 					// continue
 				case PASTE_OVERWRITE:
-					if (Source.EffNumber[i] == EF_NONE) Protected = true;
+					if (Source.EffNumber[i] == effect_t::NONE) Protected = true;
 				}
 				if (!Protected) {
 					NoteData.EffNumber[Offset] = Source.EffNumber[i];
@@ -3100,7 +3100,7 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 				const auto &Note = it.first.Get(i);
 				for (unsigned int c = 0; c <= pSongView->GetEffectColumnCount(i); c++)
 					switch (Note.EffNumber[c]) {
-					case EF_JUMP: case EF_SKIP: case EF_HALT:
+					case effect_t::JUMP: case effect_t::SKIP: case effect_t::HALT:
 						if (Sel.IsColumnSelected(static_cast<column_t>(COLUMN_EFF1 + c), i))
 							return it.first == it.second ? SEL_TERMINAL_SKIP : SEL_NONTERMINAL_SKIP;
 						/*else if (it != End)

@@ -379,25 +379,25 @@ bool CPActionDeleteRow::SaveState(const CMainFrame &MainFrm)
 	case C_EFF1_NUM:			// Effect 1
 	case C_EFF1_PARAM1:
 	case C_EFF1_PARAM2:
-		m_NewNote.EffNumber[0] = EF_NONE;
+		m_NewNote.EffNumber[0] = effect_t::NONE;
 		m_NewNote.EffParam[0] = 0;
 		break;
 	case C_EFF2_NUM:		// Effect 2
 	case C_EFF2_PARAM1:
 	case C_EFF2_PARAM2:
-		m_NewNote.EffNumber[1] = EF_NONE;
+		m_NewNote.EffNumber[1] = effect_t::NONE;
 		m_NewNote.EffParam[1] = 0;
 		break;
 	case C_EFF3_NUM:		// Effect 3
 	case C_EFF3_PARAM1:
 	case C_EFF3_PARAM2:
-		m_NewNote.EffNumber[2] = EF_NONE;
+		m_NewNote.EffNumber[2] = effect_t::NONE;
 		m_NewNote.EffParam[2] = 0;
 		break;
 	case C_EFF4_NUM:		// Effect 4
 	case C_EFF4_PARAM1:
 	case C_EFF4_PARAM2:
-		m_NewNote.EffNumber[3] = EF_NONE;
+		m_NewNote.EffNumber[3] = effect_t::NONE;
 		m_NewNote.EffParam[3] = 0;
 		break;
 	}
@@ -458,16 +458,16 @@ bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 		return m_OldNote.Vol < MAX_VOLUME;
 	case C_EFF1_NUM: case C_EFF1_PARAM1: case C_EFF1_PARAM2:
 		ScrollFunc(m_NewNote.EffParam[0], 0x100);
-		return m_OldNote.EffNumber[0] != EF_NONE;
+		return m_OldNote.EffNumber[0] != effect_t::NONE;
 	case C_EFF2_NUM: case C_EFF2_PARAM1: case C_EFF2_PARAM2:
 		ScrollFunc(m_NewNote.EffParam[1], 0x100);
-		return m_OldNote.EffNumber[1] != EF_NONE;
+		return m_OldNote.EffNumber[1] != effect_t::NONE;
 	case C_EFF3_NUM: case C_EFF3_PARAM1: case C_EFF3_PARAM2:
 		ScrollFunc(m_NewNote.EffParam[2], 0x100);
-		return m_OldNote.EffNumber[2] != EF_NONE;
+		return m_OldNote.EffNumber[2] != effect_t::NONE;
 	case C_EFF4_NUM: case C_EFF4_PARAM1: case C_EFF4_PARAM2:
 		ScrollFunc(m_NewNote.EffParam[3], 0x100);
-		return m_OldNote.EffNumber[3] != EF_NONE;
+		return m_OldNote.EffNumber[3] != effect_t::NONE;
 	}
 
 	return false;
@@ -761,10 +761,10 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 					WarpFunc(Note.Vol, MAX_VOLUME);
 					break;
 				case COLUMN_EFF1: case COLUMN_EFF2: case COLUMN_EFF3: case COLUMN_EFF4:
-					if (Note.EffNumber[k - COLUMN_EFF1] == EF_NONE) break;
+					if (Note.EffNumber[k - COLUMN_EFF1] == effect_t::NONE) break;
 					if (bSingular) switch (Note.EffNumber[k - COLUMN_EFF1]) {
-					case EF_SWEEPUP: case EF_SWEEPDOWN: case EF_ARPEGGIO: case EF_VIBRATO: case EF_TREMOLO:
-					case EF_SLIDE_UP: case EF_SLIDE_DOWN: case EF_VOLUME_SLIDE: case EF_DELAYED_VOLUME: case EF_TRANSPOSE:
+					case effect_t::SWEEPUP: case effect_t::SWEEPDOWN: case effect_t::ARPEGGIO: case effect_t::VIBRATO: case effect_t::TREMOLO:
+					case effect_t::SLIDE_UP: case effect_t::SLIDE_DOWN: case effect_t::VOLUME_SLIDE: case effect_t::DELAYED_VOLUME: case effect_t::TRANSPOSE:
 						unsigned char Hi = Note.EffParam[k - COLUMN_EFF1] >> 4;
 						unsigned char Lo = Note.EffParam[k - COLUMN_EFF1] & 0x0F;
 						WarpFunc(pPatternEditor->GetColumn() % 3 == 2 ? Hi : Lo, 0x10);
@@ -810,7 +810,7 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 			double EndValHi = 0., EndValLo = 0.;
 			double DeltaHi = 0., DeltaLo = 0.;
 			bool TwoParam = false;
-			effect_t Effect = EF_NONE;
+			effect_t Effect = effect_t::NONE;
 			switch (j) {
 			case COLUMN_NOTE:
 				if (!IsNote(StartData.Note) || !IsNote(EndData.Note))
@@ -833,16 +833,16 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 				EndValLo = (float)EndData.Vol;
 				break;
 			case COLUMN_EFF1: case COLUMN_EFF2: case COLUMN_EFF3: case COLUMN_EFF4:
-				if (StartData.EffNumber[j - 3] == EF_NONE || EndData.EffNumber[j - 3] == EF_NONE
+				if (StartData.EffNumber[j - 3] == effect_t::NONE || EndData.EffNumber[j - 3] == effect_t::NONE
 					|| StartData.EffNumber[j - 3] != EndData.EffNumber[j - 3])
 					continue;
 				StartValLo = (float)StartData.EffParam[j - 3];
 				EndValLo = (float)EndData.EffParam[j - 3];
 				Effect = StartData.EffNumber[j - 3];
 				switch (Effect) {
-				case EF_SWEEPUP: case EF_SWEEPDOWN: case EF_SLIDE_UP: case EF_SLIDE_DOWN:
-				case EF_ARPEGGIO: case EF_VIBRATO: case EF_TREMOLO:
-				case EF_VOLUME_SLIDE: case EF_DELAYED_VOLUME: case EF_TRANSPOSE:
+				case effect_t::SWEEPUP: case effect_t::SWEEPDOWN: case effect_t::SLIDE_UP: case effect_t::SLIDE_DOWN:
+				case effect_t::ARPEGGIO: case effect_t::VIBRATO: case effect_t::TREMOLO:
+				case effect_t::VOLUME_SLIDE: case effect_t::DELAYED_VOLUME: case effect_t::TRANSPOSE:
 					TwoParam = true;
 				}
 				break;

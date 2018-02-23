@@ -29,31 +29,31 @@
 namespace compat {
 
 // // // helper function for effect conversion
-using EffTable = std::array<effect_t, EF_COUNT>;
+using EffTable = std::array<effect_t, EFFECT_COUNT>;
 constexpr std::pair<EffTable, EffTable>
 MakeEffectConversion(std::initializer_list<std::pair<effect_t, effect_t>> List) {
 	EffTable forward = { }, backward = { };
-	for (int i = 0; i < EF_COUNT; ++i)
+	for (int i = 0; i < EFFECT_COUNT; ++i)
 		forward[i] = backward[i] = static_cast<effect_t>(i);
 	for (const auto &p : List) {
-		forward[p.first] = p.second;
-		backward[p.second] = p.first;
+		forward[value_cast(p.first)] = p.second;
+		backward[value_cast(p.second)] = p.first;
 	}
 	return std::make_pair(forward, backward);
 }
 
 const auto EFF_CONVERSION_050 = MakeEffectConversion({
-//	{EF_SUNSOFT_ENV_LO,		EF_SUNSOFT_ENV_TYPE},
-//	{EF_SUNSOFT_ENV_TYPE,	EF_SUNSOFT_ENV_LO},
-	{EF_SUNSOFT_NOISE,		EF_NOTE_RELEASE},
-	{EF_VRC7_PORT,			EF_GROOVE},
-	{EF_VRC7_WRITE,			EF_TRANSPOSE},
-	{EF_NOTE_RELEASE,		EF_N163_WAVE_BUFFER},
-	{EF_GROOVE,				EF_FDS_VOLUME},
-	{EF_TRANSPOSE,			EF_FDS_MOD_BIAS},
-	{EF_N163_WAVE_BUFFER,	EF_SUNSOFT_NOISE},
-	{EF_FDS_VOLUME,			EF_VRC7_PORT},
-	{EF_FDS_MOD_BIAS,		EF_VRC7_WRITE},
+//	{effect_t::SUNSOFT_ENV_LO,		effect_t::SUNSOFT_ENV_TYPE},
+//	{effect_t::SUNSOFT_ENV_TYPE,	effect_t::SUNSOFT_ENV_LO},
+	{effect_t::SUNSOFT_NOISE,		effect_t::NOTE_RELEASE},
+	{effect_t::VRC7_PORT,			effect_t::GROOVE},
+	{effect_t::VRC7_WRITE,			effect_t::TRANSPOSE},
+	{effect_t::NOTE_RELEASE,		effect_t::N163_WAVE_BUFFER},
+	{effect_t::GROOVE,				effect_t::FDS_VOLUME},
+	{effect_t::TRANSPOSE,			effect_t::FDS_MOD_BIAS},
+	{effect_t::N163_WAVE_BUFFER,	effect_t::SUNSOFT_NOISE},
+	{effect_t::FDS_VOLUME,			effect_t::VRC7_PORT},
+	{effect_t::FDS_MOD_BIAS,		effect_t::VRC7_WRITE},
 });
 
 } // namespace compat

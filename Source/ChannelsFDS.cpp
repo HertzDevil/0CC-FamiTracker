@@ -63,14 +63,14 @@ void CChannelHandlerFDS::HandleNoteData(stChanNote &NoteData)		// // //
 bool CChannelHandlerFDS::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
 	switch (EffNum) {
-	case EF_FDS_MOD_DEPTH:
+	case effect_t::FDS_MOD_DEPTH:
 		if (EffParam < 0x40)		// // //
 			m_iEffModDepth = EffParam;
 		else if (EffParam >= 0x80 && m_bAutoModulation) {
 			m_iEffModSpeedHi = EffParam - 0x80;
 		}
 		break;
-	case EF_FDS_MOD_SPEED_HI:
+	case effect_t::FDS_MOD_SPEED_HI:
 		if (EffParam >= 0x10) {		// // //
 			m_iEffModSpeedHi = EffParam >> 4;
 			m_iEffModSpeedLo = (EffParam & 0x0F) + 1;
@@ -83,13 +83,13 @@ bool CChannelHandlerFDS::HandleEffect(effect_t EffNum, unsigned char EffParam)
 			m_bAutoModulation = false;
 		}
 		break;
-	case EF_FDS_MOD_SPEED_LO:
+	case effect_t::FDS_MOD_SPEED_LO:
 		m_iEffModSpeedLo = EffParam;
 		if (m_bAutoModulation)		// // //
 			m_iEffModSpeedHi = 0;
 		m_bAutoModulation = false;
 		break;
-	case EF_FDS_VOLUME:
+	case effect_t::FDS_VOLUME:
 		if (EffParam < 0x80) {
 			m_iVolModRate = EffParam & 0x3F;
 			m_iVolModMode = (EffParam >> 6) + 1;
@@ -97,7 +97,7 @@ bool CChannelHandlerFDS::HandleEffect(effect_t EffNum, unsigned char EffParam)
 		else if (EffParam == 0xE0)
 			m_iVolModMode = 0;
 		break;
-	case EF_FDS_MOD_BIAS:		// // //
+	case effect_t::FDS_MOD_BIAS:		// // //
 		m_iModulationOffset = EffParam - 0x80;
 		break;
 	default: return CChannelHandlerInverted::HandleEffect(EffNum, EffParam);
@@ -241,21 +241,21 @@ std::string CChannelHandlerFDS::GetCustomEffectString() const		// // //
 	std::string str;
 
 	if (m_iVolModMode)
-		str += MakeCommandString(EF_FDS_VOLUME, ((m_iVolModMode - 1) << 6) | m_iVolModRate);
+		str += MakeCommandString(effect_t::FDS_VOLUME, ((m_iVolModMode - 1) << 6) | m_iVolModRate);
 	if (m_iEffModDepth != -1)
-		str += MakeCommandString(EF_FDS_MOD_DEPTH, m_iEffModDepth);
+		str += MakeCommandString(effect_t::FDS_MOD_DEPTH, m_iEffModDepth);
 	if (m_bAutoModulation) {
-		str += MakeCommandString(EF_FDS_MOD_SPEED_HI, ((m_iEffModSpeedHi > 0xF ? 1 : m_iEffModSpeedHi) << 4) | (m_iEffModSpeedLo - 1));
+		str += MakeCommandString(effect_t::FDS_MOD_SPEED_HI, ((m_iEffModSpeedHi > 0xF ? 1 : m_iEffModSpeedHi) << 4) | (m_iEffModSpeedLo - 1));
 		if (m_iEffModSpeedHi > 0xF)
-			str += MakeCommandString(EF_FDS_MOD_DEPTH, 0x80 + m_iEffModSpeedHi);
+			str += MakeCommandString(effect_t::FDS_MOD_DEPTH, 0x80 + m_iEffModSpeedHi);
 		if (m_iModulationOffset != 0)
-			str += MakeCommandString(EF_FDS_MOD_BIAS, m_iModulationOffset + 0x80);
+			str += MakeCommandString(effect_t::FDS_MOD_BIAS, m_iModulationOffset + 0x80);
 	}
 	else {
 		if (m_iModulationSpeed >> 8)
-			str += MakeCommandString(EF_FDS_MOD_SPEED_HI, m_iModulationSpeed >> 8);
+			str += MakeCommandString(effect_t::FDS_MOD_SPEED_HI, m_iModulationSpeed >> 8);
 		if (m_iModulationSpeed & 0xFF)
-			str += MakeCommandString(EF_FDS_MOD_SPEED_LO, m_iModulationSpeed & 0xFF);
+			str += MakeCommandString(effect_t::FDS_MOD_SPEED_LO, m_iModulationSpeed & 0xFF);
 	}
 
 	return str;

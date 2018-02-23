@@ -470,27 +470,27 @@ void CSoundDriver::HandleGlobalEffects(stChanNote &note) {
 		unsigned char EffParam = note.EffParam[i];
 		switch (note.EffNumber[i]) {
 			// Fxx: Sets speed to xx
-			case EF_SPEED:
+			case effect_t::SPEED:
 				m_pTempoCounter->DoFxx(EffParam ? EffParam : 1);		// // //
 				break;
 
 			// Oxx: Sets groove to xx
-			case EF_GROOVE:		// // //
+			case effect_t::GROOVE:		// // //
 				m_pTempoCounter->DoOxx(EffParam % MAX_GROOVE);		// // //
 				break;
 
 			// Bxx: Jump to pattern xx
-			case EF_JUMP:
+			case effect_t::JUMP:
 				m_iJumpToPattern = EffParam;
 				break;
 
 			// Dxx: Skip to next track and start at row xx
-			case EF_SKIP:
+			case effect_t::SKIP:
 				m_iSkipToRow = EffParam;
 				break;
 
 			// Cxx: Halt playback
-			case EF_HALT:
+			case effect_t::HALT:
 				m_bDoHalt = true;		// // //
 				m_pPlayerCursor->DoCxx();		// // //
 				break;
@@ -498,6 +498,6 @@ void CSoundDriver::HandleGlobalEffects(stChanNote &note) {
 			default: continue;		// // //
 		}
 
-		note.EffNumber[i] = EF_NONE;
+		note.EffNumber[i] = effect_t::NONE;
 	}
 }

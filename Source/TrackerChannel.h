@@ -30,6 +30,7 @@
 #include "APU/Types_fwd.h"		// // //
 
 enum inst_type_t : unsigned;
+enum class effect_t : unsigned char;
 
 enum note_prio_t : unsigned {
 	NOTE_PRIO_0,
@@ -38,7 +39,7 @@ enum note_prio_t : unsigned {
 };
 
 bool IsInstrumentCompatible(sound_chip_t chip, inst_type_t Type);		// // //
-bool IsEffectCompatible(chan_id_t ch, uint8_t EffNumber, uint8_t EffParam);		// // //
+bool IsEffectCompatible(chan_id_t ch, effect_t EffNumber, uint8_t EffParam);		// // //
 
 class CTrackerChannel
 {

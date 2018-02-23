@@ -150,7 +150,7 @@ void CChannelHandler::ResetChannel()
 	m_iPeriod			= 0;
 
 	// Effect states
-	m_iEffect			= EF_NONE;		// // //
+	m_iEffect			= effect_t::NONE;		// // //
 	m_iEffectParam		= 0;		// // //
 
 	m_iPortaSpeed		= 0;
@@ -208,14 +208,14 @@ void CChannelHandler::ApplyChannelState(const stChannelState &State)
 	if (m_iInstrument != MAX_INSTRUMENTS)
 		HandleInstrument(true, true);
 	if (State.Effect_LengthCounter >= 0)
-		HandleEffect(EF_VOLUME, State.Effect_LengthCounter);
-	for (unsigned int i = 0; i < EF_COUNT; i++)
+		HandleEffect(effect_t::VOLUME, State.Effect_LengthCounter);
+	for (unsigned int i = 0; i < EFFECT_COUNT; i++)
 		if (State.Effect[i] >= 0)
 			HandleEffect(static_cast<effect_t>(i), State.Effect[i]);
-	if (State.Effect[EF_FDS_MOD_SPEED_HI] >= 0x10)
-		HandleEffect(EF_FDS_MOD_SPEED_HI, State.Effect[EF_FDS_MOD_SPEED_HI]);
+	if (State.Effect[value_cast(effect_t::FDS_MOD_SPEED_HI)] >= 0x10)
+		HandleEffect(effect_t::FDS_MOD_SPEED_HI, State.Effect[value_cast(effect_t::FDS_MOD_SPEED_HI)]);
 	if (State.Effect_AutoFMMult >= 0)
-		HandleEffect(EF_FDS_MOD_DEPTH, State.Effect_AutoFMMult);
+		HandleEffect(effect_t::FDS_MOD_DEPTH, State.Effect_AutoFMMult);
 }
 
 std::string CChannelHandler::GetEffectString() const		// // //
@@ -223,27 +223,27 @@ std::string CChannelHandler::GetEffectString() const		// // //
 	std::string str = GetSlideEffectString();
 
 	if (m_iVibratoSpeed)
-		str += MakeCommandString(EF_VIBRATO, (m_iVibratoSpeed << 4) | (m_iVibratoDepth >> 4));
+		str += MakeCommandString(effect_t::VIBRATO, (m_iVibratoSpeed << 4) | (m_iVibratoDepth >> 4));
 	if (m_iTremoloSpeed)
-		str += MakeCommandString(EF_TREMOLO, (m_iTremoloSpeed << 4) | (m_iTremoloDepth >> 4));
+		str += MakeCommandString(effect_t::TREMOLO, (m_iTremoloSpeed << 4) | (m_iTremoloDepth >> 4));
 	if (m_iVolSlide)
-		str += MakeCommandString(EF_VOLUME_SLIDE, m_iVolSlide);
+		str += MakeCommandString(effect_t::VOLUME_SLIDE, m_iVolSlide);
 	if (m_iFinePitch != 0x80)
-		str += MakeCommandString(EF_PITCH, m_iFinePitch);
+		str += MakeCommandString(effect_t::PITCH, m_iFinePitch);
 	if ((m_iDefaultDuty && m_iChannelID < chan_id_t::S5B_CH1) || (m_iDefaultDuty != 0x40 && m_iChannelID >= chan_id_t::S5B_CH1))
-		str += MakeCommandString(EF_DUTY_CYCLE, m_iDefaultDuty);
+		str += MakeCommandString(effect_t::DUTY_CYCLE, m_iDefaultDuty);
 
 	// run-time effects
 	if (m_cDelayCounter >= 0 && m_bDelayEnabled)
-		str += MakeCommandString(EF_DELAY, m_cDelayCounter + 1);
+		str += MakeCommandString(effect_t::DELAY, m_cDelayCounter + 1);
 	if (m_iNoteRelease)
-		str += MakeCommandString(EF_NOTE_RELEASE, m_iNoteRelease);
+		str += MakeCommandString(effect_t::NOTE_RELEASE, m_iNoteRelease);
 	if (m_iNoteVolume > 0)
-		str += MakeCommandString(EF_DELAYED_VOLUME, (m_iNoteVolume << 4) | (m_iNewVolume >> VOL_COLUMN_SHIFT));
+		str += MakeCommandString(effect_t::DELAYED_VOLUME, (m_iNoteVolume << 4) | (m_iNewVolume >> VOL_COLUMN_SHIFT));
 	if (m_iNoteCut)
-		str += MakeCommandString(EF_NOTE_CUT, m_iNoteCut);
+		str += MakeCommandString(effect_t::NOTE_CUT, m_iNoteCut);
 	if (m_iTranspose)
-		str += MakeCommandString(EF_TRANSPOSE, ((m_iTranspose + (m_bTransposeDown ? 8 : 0)) << 4) | m_iTransposeTarget);
+		str += MakeCommandString(effect_t::TRANSPOSE, ((m_iTranspose + (m_bTransposeDown ? 8 : 0)) << 4) | m_iTransposeTarget);
 
 	str += GetCustomEffectString();
 	return str.empty() ? std::string(" None") : str;
@@ -252,11 +252,11 @@ std::string CChannelHandler::GetEffectString() const		// // //
 std::string CChannelHandler::GetSlideEffectString() const		// // //
 {
 	switch (m_iEffect) {
-	case EF_ARPEGGIO:
+	case effect_t::ARPEGGIO:
 		if (m_iEffectParam)
 			return MakeCommandString(m_iEffect, m_iEffectParam);
 		break;
-	case EF_PORTA_UP: case EF_PORTA_DOWN: case EF_PORTAMENTO:
+	case effect_t::PORTA_UP: case effect_t::PORTA_DOWN: case effect_t::PORTAMENTO:
 		if (m_iPortaSpeed)
 			return MakeCommandString(m_iEffect, m_iPortaSpeed);
 		break;
@@ -293,15 +293,15 @@ void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, int Pos)
 		Value = MIDI_NOTE(NoteData.Octave, NoteData.Note);
 		for (int i = MAX_EFFECT_COLUMNS - 1; i >= 0; --i) {
 			const int Param = NoteData.EffParam[i] & 0x0F;
-			if (NoteData.EffNumber[i] == EF_SLIDE_UP) {
+			if (NoteData.EffNumber[i] == effect_t::SLIDE_UP) {
 				Value += Param;
 				break;
 			}
-			else if (NoteData.EffNumber[i] == EF_SLIDE_DOWN) {
+			else if (NoteData.EffNumber[i] == effect_t::SLIDE_DOWN) {
 				Value -= Param;
 				break;
 			}
-			else if (NoteData.EffNumber[i] == EF_TRANSPOSE) {
+			else if (NoteData.EffNumber[i] == effect_t::TRANSPOSE) {
 				// Sometimes there are not enough ticks for the transpose to take place
 				if (NoteData.EffParam[i] & 0x80)
 					Value -= Param;
@@ -356,8 +356,8 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 		m_iTranspose = 0;		// // //
 	}
 
-	if (Trigger && (m_iEffect == EF_SLIDE_UP || m_iEffect == EF_SLIDE_DOWN))
-		m_iEffect = EF_NONE;
+	if (Trigger && (m_iEffect == effect_t::SLIDE_UP || m_iEffect == effect_t::SLIDE_DOWN))
+		m_iEffect = effect_t::NONE;
 
 	// Effects
 	for (int n = 0; n < MAX_EFFECT_COLUMNS; n++) {
@@ -366,7 +366,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 		HandleEffect(EffNum, EffParam);		// // // single method
 
 		// 0CC: remove this eventually like how the asm handles it
-		if (EffNum == EF_VOLUME_SLIDE && !EffParam && Trigger && m_iNoteVolume == 0) {		// // //
+		if (EffNum == effect_t::VOLUME_SLIDE && !EffParam && Trigger && m_iNoteVolume == 0) {		// // //
 			m_iVolume = m_iDefaultVolume;
 			m_iNoteVolume = -1;
 		}
@@ -414,7 +414,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 		break;
 	}
 
-	if (Trigger && (m_iEffect == EF_SLIDE_DOWN || m_iEffect == EF_SLIDE_UP))		// // //
+	if (Trigger && (m_iEffect == effect_t::SLIDE_DOWN || m_iEffect == effect_t::SLIDE_UP))		// // //
 		SetupSlide();
 
 	if ((NewInstrument || Trigger) && m_iInstrument != MAX_INSTRUMENTS) {
@@ -511,7 +511,7 @@ int CChannelHandler::RunNote(int Octave, note_t Note)
 
 	int NesFreq = TriggerNote(NewNote);
 
-	if (m_iPortaSpeed > 0 && m_iEffect == EF_PORTAMENTO && m_bGate) {		// // //
+	if (m_iPortaSpeed > 0 && m_iEffect == effect_t::PORTAMENTO && m_bGate) {		// // //
 		if (m_iPeriod == 0)
 			m_iPeriod = NesFreq;
 		m_iPortaTo = NesFreq;
@@ -538,17 +538,17 @@ void CChannelHandler::SetupSlide()		// // //
 	};
 
 	switch (m_iEffect) {
-	case EF_PORTAMENTO:
+	case effect_t::PORTAMENTO:
 		m_iPortaSpeed = m_iEffectParam;
 		if (m_bGate)		// // //
 			m_iPortaTo = TriggerNote(m_iNote);
 		break;
-	case EF_SLIDE_UP:
+	case effect_t::SLIDE_UP:
 		m_iNote += m_iEffectParam & 0xF;
 		m_iPortaSpeed = GetSlideSpeed(m_iEffectParam);
 		m_iPortaTo = TriggerNote(m_iNote);
 		break;
-	case EF_SLIDE_DOWN:
+	case effect_t::SLIDE_DOWN:
 		m_iNote -= m_iEffectParam & 0xF;
 		m_iPortaSpeed = GetSlideSpeed(m_iEffectParam);
 		m_iPortaTo = TriggerNote(m_iNote);
@@ -561,76 +561,76 @@ bool CChannelHandler::HandleEffect(effect_t EffCmd, unsigned char EffParam)
 	// Handle common effects for all channels
 
 	switch (EffCmd) {
-	case EF_PORTAMENTO:
+	case effect_t::PORTAMENTO:
 		m_iEffectParam = EffParam;		// // //
-		m_iEffect = EF_PORTAMENTO;
+		m_iEffect = effect_t::PORTAMENTO;
 		SetupSlide();
 		if (!EffParam)
 			m_iPortaTo = 0;
 		break;
-	case EF_VIBRATO:
+	case effect_t::VIBRATO:
 		m_iVibratoDepth = (EffParam & 0x0F) << 4;
 		m_iVibratoSpeed = EffParam >> 4;
 		if (!EffParam)
 			m_iVibratoPhase = !m_bNewVibratoMode ? 48 : 0;
 		break;
-	case EF_TREMOLO:
+	case effect_t::TREMOLO:
 		m_iTremoloDepth = (EffParam & 0x0F) << 4;
 		m_iTremoloSpeed = EffParam >> 4;
 		if (!EffParam)
 			m_iTremoloPhase = 0;
 		break;
-	case EF_ARPEGGIO:
+	case effect_t::ARPEGGIO:
 		m_iEffectParam = EffParam;		// // //
-		m_iEffect = EF_ARPEGGIO;
+		m_iEffect = effect_t::ARPEGGIO;
 		break;
-	case EF_PITCH:
+	case effect_t::PITCH:
 		m_iFinePitch = EffParam;
 		break;
-	case EF_PORTA_DOWN:
+	case effect_t::PORTA_DOWN:
 		m_iPortaSpeed = EffParam;
 		m_iEffectParam = EffParam;		// // //
-		m_iEffect = EF_PORTA_DOWN;
+		m_iEffect = effect_t::PORTA_DOWN;
 		break;
-	case EF_PORTA_UP:
+	case effect_t::PORTA_UP:
 		m_iPortaSpeed = EffParam;
 		m_iEffectParam = EffParam;		// // //
-		m_iEffect = EF_PORTA_UP;
+		m_iEffect = effect_t::PORTA_UP;
 		break;
-	case EF_SLIDE_UP:		// // //
+	case effect_t::SLIDE_UP:		// // //
 		m_iEffectParam = EffParam;
-		m_iEffect = EF_SLIDE_UP;
+		m_iEffect = effect_t::SLIDE_UP;
 		SetupSlide();
 		break;
-	case EF_SLIDE_DOWN:		// // //
+	case effect_t::SLIDE_DOWN:		// // //
 		m_iEffectParam = EffParam;
-		m_iEffect = EF_SLIDE_DOWN;
+		m_iEffect = effect_t::SLIDE_DOWN;
 		SetupSlide();
 		break;
-	case EF_VOLUME_SLIDE:
+	case effect_t::VOLUME_SLIDE:
 		m_iVolSlide = EffParam;
 		if (!EffParam)		// // //
 			m_iDefaultVolume = m_iVolume;
 		break;
-	case EF_NOTE_CUT:
+	case effect_t::NOTE_CUT:
 		if (EffParam >= 0x80) return false;		// // //
 		m_iNoteCut = EffParam + 1;
 		break;
-	case EF_NOTE_RELEASE:		// // //
+	case effect_t::NOTE_RELEASE:		// // //
 		if (EffParam >= 0x80) return false;
 		m_iNoteRelease = EffParam + 1;
 		break;
-	case EF_DELAYED_VOLUME:		// // //
+	case effect_t::DELAYED_VOLUME:		// // //
 		if (!(EffParam >> 4) || !(EffParam & 0xF)) break;
 		m_iNoteVolume = (EffParam >> 4) + 1;
 		m_iNewVolume = (EffParam & 0x0F) << VOL_COLUMN_SHIFT;
 		break;
-	case EF_TRANSPOSE:		// // //
+	case effect_t::TRANSPOSE:		// // //
 		m_iTranspose = ((EffParam & 0x70) >> 4) + 1;
 		m_iTransposeTarget = EffParam & 0x0F;
 		m_bTransposeDown = (EffParam & 0x80) != 0;
 		break;
-//	case EF_TARGET_VOLUME_SLIDE:
+//	case effect_t::TARGET_VOLUME_SLIDE:
 		// TODO implement
 //		break;
 	default:
@@ -651,14 +651,14 @@ bool CChannelHandler::HandleDelay(stChanNote &NoteData)
 
 	// Check delay
 	for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i) {
-		if (NoteData.EffNumber[i] == EF_DELAY && NoteData.EffParam[i] > 0) {
+		if (NoteData.EffNumber[i] == effect_t::DELAY && NoteData.EffParam[i] > 0) {
 			m_bDelayEnabled = true;
 			m_cDelayCounter = NoteData.EffParam[i];
 
 			// Only one delay/row is allowed
 			for (int j = 0; j < MAX_EFFECT_COLUMNS; ++j) {
-				if (NoteData.EffNumber[j] == EF_DELAY) {		// // //
-					NoteData.EffNumber[j] = EF_NONE;
+				if (NoteData.EffNumber[j] == effect_t::DELAY) {		// // //
+					NoteData.EffNumber[j] = effect_t::NONE;
 					NoteData.EffParam[j] = 0;
 				}
 			}
@@ -755,7 +755,7 @@ void CChannelHandler::UpdateEffects()
 {
 	// Handle other effects
 	switch (m_iEffect) {
-		case EF_ARPEGGIO:
+		case effect_t::ARPEGGIO:
 			if (m_iEffectParam != 0) {
 				if (m_iNote != -1) {		// // //
 					int offset = [&] {
@@ -772,19 +772,19 @@ void CChannelHandler::UpdateEffects()
 				m_iArpState = (m_iArpState + 1) % 3;
 			}
 			break;
-		case EF_PORTAMENTO:
-		case EF_SLIDE_UP:		// // //
-		case EF_SLIDE_DOWN:		// // //
+		case effect_t::PORTAMENTO:
+		case effect_t::SLIDE_UP:		// // //
+		case effect_t::SLIDE_DOWN:		// // //
 			// Automatic portamento
 			if (m_iPortaSpeed > 0 && m_iPortaTo) {		// // //
 				if (m_iPeriod > m_iPortaTo) {
 					PeriodRemove(m_iPortaSpeed);
 					if (m_iPeriod <= m_iPortaTo) {
 						SetPeriod(m_iPortaTo);
-						if (m_iEffect != EF_PORTAMENTO) {
+						if (m_iEffect != effect_t::PORTAMENTO) {
 							m_iPortaTo = 0;
 							m_iPortaSpeed = 0;
-							m_iEffect = EF_NONE;
+							m_iEffect = effect_t::NONE;
 						}
 					}
 				}
@@ -792,43 +792,43 @@ void CChannelHandler::UpdateEffects()
 					PeriodAdd(m_iPortaSpeed);
 					if (m_iPeriod >= m_iPortaTo) {
 						SetPeriod(m_iPortaTo);
-						if (m_iEffect != EF_PORTAMENTO) {
+						if (m_iEffect != effect_t::PORTAMENTO) {
 							m_iPortaTo = 0;
 							m_iPortaSpeed = 0;
-							m_iEffect = EF_NONE;
+							m_iEffect = effect_t::NONE;
 						}
 					}
 				}
 			}
 			break;
 			/*
-		case EF_SLIDE_UP:
+		case effect_t::SLIDE_UP:
 			if (m_iPortaSpeed > 0) {
 				if (m_iPeriod > m_iPortaTo) {
 					PeriodRemove(m_iPortaSpeed);
 					if (m_iPeriod < m_iPortaTo) {
 						SetPeriod(m_iPortaTo);
 						m_iPortaTo = 0;
-						m_iEffect = EF_NONE;
+						m_iEffect = effect_t::NONE;
 					}
 				}
 			}
 			break;
-		case EF_SLIDE_DOWN:
+		case effect_t::SLIDE_DOWN:
 			if (m_iPortaSpeed > 0) {
 				PeriodAdd(m_iPortaSpeed);
 				if (m_iPeriod > m_iPortaTo) {
 					SetPeriod(m_iPortaTo);
 					m_iPortaTo = 0;
-					m_iEffect = EF_NONE;
+					m_iEffect = effect_t::NONE;
 				}
 			}
 			break;
 			*/
-		case EF_PORTA_DOWN:
+		case effect_t::PORTA_DOWN:
 			m_bLinearPitch ? PeriodRemove(m_iPortaSpeed) : PeriodAdd(m_iPortaSpeed);		// // //
 			break;
-		case EF_PORTA_UP:
+		case effect_t::PORTA_UP:
 			m_bLinearPitch ? PeriodAdd(m_iPortaSpeed) : PeriodRemove(m_iPortaSpeed);		// // //
 			break;
 	}
@@ -1002,7 +1002,7 @@ int CChannelHandler::GetDutyPeriod() const
 
 unsigned char CChannelHandler::GetArpParam() const
 {
-	return m_iEffect == EF_ARPEGGIO ? m_iEffectParam : 0U;
+	return m_iEffect == effect_t::ARPEGGIO ? m_iEffectParam : 0U;
 }
 
 bool CChannelHandler::IsActive() const
@@ -1023,8 +1023,8 @@ bool CChannelHandler::IsReleasing() const
 bool CChannelHandlerInverted::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
 	if (!m_bLinearPitch) switch (EffNum) {		// // //
-	case EF_PORTA_UP: EffNum = EF_PORTA_DOWN; break;
-	case EF_PORTA_DOWN: EffNum = EF_PORTA_UP; break;
+	case effect_t::PORTA_UP: EffNum = effect_t::PORTA_DOWN; break;
+	case effect_t::PORTA_DOWN: EffNum = effect_t::PORTA_UP; break;
 	}
 	return CChannelHandler::HandleEffect(EffNum, EffParam);
 }
@@ -1046,10 +1046,10 @@ int CChannelHandlerInverted::CalculatePeriod() const
 std::string CChannelHandlerInverted::GetSlideEffectString() const		// // //
 {
 	switch (m_iEffect) {
-	case EF_PORTA_UP:
-		return MakeCommandString(EF_PORTA_DOWN, m_iPortaSpeed);
-	case EF_PORTA_DOWN:
-		return MakeCommandString(EF_PORTA_UP, m_iPortaSpeed);
+	case effect_t::PORTA_UP:
+		return MakeCommandString(effect_t::PORTA_DOWN, m_iPortaSpeed);
+	case effect_t::PORTA_DOWN:
+		return MakeCommandString(effect_t::PORTA_UP, m_iPortaSpeed);
 	}
 	return CChannelHandler::GetSlideEffectString();
 }

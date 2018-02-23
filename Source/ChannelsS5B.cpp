@@ -105,23 +105,23 @@ CChannelHandlerS5B::CChannelHandlerS5B() :
 bool CChannelHandlerS5B::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
 	switch (EffNum) {
-	case EF_SUNSOFT_NOISE: // W
+	case effect_t::SUNSOFT_NOISE: // W
 		m_iDefaultNoise = m_iNoiseFreq = EffParam & 0x1F;		// // // 050B
 		break;
-	case EF_SUNSOFT_ENV_HI: // I
+	case effect_t::SUNSOFT_ENV_HI: // I
 		m_iEnvFreqHi = EffParam;
 		break;
-	case EF_SUNSOFT_ENV_LO: // J
+	case effect_t::SUNSOFT_ENV_LO: // J
 		m_iEnvFreqLo = EffParam;
 		break;
-	case EF_SUNSOFT_ENV_TYPE: // H
+	case effect_t::SUNSOFT_ENV_TYPE: // H
 		m_bEnvTrigger = true;		// // // 050B
 		m_iEnvType = EffParam & 0x0F;
 		m_bUpdate = true;
 		m_bEnvelopeEnabled = EffParam != 0;
 		m_iAutoEnvelopeShift = EffParam >> 4;
 		break;
-	case EF_DUTY_CYCLE:
+	case effect_t::DUTY_CYCLE:
 		m_iDefaultDuty = m_iDutyPeriod = (EffParam << 6) | ((EffParam & 0x04) << 3);		// // // 050B
 //		m_iDefaultDuty = m_iDutyPeriod = EffParam;		// // //
 		break;
@@ -215,13 +215,13 @@ std::string CChannelHandlerS5B::GetCustomEffectString() const		// // //
 	std::string str;
 
 	if (m_iEnvFreqLo)
-		str += MakeCommandString(EF_SUNSOFT_ENV_LO, m_iEnvFreqLo);
+		str += MakeCommandString(effect_t::SUNSOFT_ENV_LO, m_iEnvFreqLo);
 	if (m_iEnvFreqHi)
-		str += MakeCommandString(EF_SUNSOFT_ENV_HI, m_iEnvFreqHi);
+		str += MakeCommandString(effect_t::SUNSOFT_ENV_HI, m_iEnvFreqHi);
 	if (m_iEnvType)
-		str += MakeCommandString(EF_SUNSOFT_ENV_TYPE, m_iEnvType);
+		str += MakeCommandString(effect_t::SUNSOFT_ENV_TYPE, m_iEnvType);
 	if (m_iDefaultNoise)
-		str += MakeCommandString(EF_SUNSOFT_NOISE, m_iDefaultNoise);
+		str += MakeCommandString(effect_t::SUNSOFT_NOISE, m_iDefaultNoise);
 
 	return str;
 }

@@ -795,16 +795,16 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 				int FX = compat200 ? 1 : ver >= 6 ? MAX_EFFECT_COLUMNS :
 					(pSong->GetEffectColumnCount(order.TranslateChannel(Channel)) + 1);		// // // 050B
 				for (int n = 0; n < FX; ++n) try {
-					unsigned char EffectNumber = file_.GetBlockChar();
-					if (Note.EffNumber[n] = static_cast<effect_t>(EffectNumber); Note.EffNumber[n] != EF_NONE) {
-						AssertRange<MODULE_ERROR_STRICT>(EffectNumber, EF_NONE, EF_COUNT - 1, "Effect index");
+					auto EffectNumber = (effect_t)file_.GetBlockChar();
+					if (Note.EffNumber[n] = static_cast<effect_t>(EffectNumber); Note.EffNumber[n] != effect_t::NONE) {
+						AssertRange<MODULE_ERROR_STRICT>(value_cast(EffectNumber), value_cast(effect_t::NONE), EFFECT_COUNT - 1, "Effect index");
 						unsigned char EffectParam = file_.GetBlockChar();
 						if (ver < 3) {
-							if (EffectNumber == EF_PORTAOFF) {
-								EffectNumber = EF_PORTAMENTO;
+							if (EffectNumber == effect_t::PORTAOFF) {
+								EffectNumber = effect_t::PORTAMENTO;
 								EffectParam = 0;
 							}
-							else if (EffectNumber == EF_PORTAMENTO) {
+							else if (EffectNumber == effect_t::PORTAMENTO) {
 								if (EffectParam < 0xFF)
 									EffectParam++;
 							}
@@ -823,7 +823,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 	//				Note.Vol &= 0x0F;
 
 				if (compat200) {		// // //
-					if (Note.EffNumber[0] == EF_SPEED && Note.EffParam[0] < 20)
+					if (Note.EffNumber[0] == effect_t::SPEED && Note.EffParam[0] < 20)
 						Note.EffParam[0]++;
 
 					if (Note.Vol == 0)
@@ -839,8 +839,8 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 
 				if (modfile.GetSoundChipSet().ContainsChip(sound_chip_t::N163) && GetChipFromChannel(ch) == sound_chip_t::N163) {		// // //
 					for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n)
-						if (Note.EffNumber[n] == EF_SAMPLE_OFFSET)
-							Note.EffNumber[n] = EF_N163_WAVE_BUFFER;
+						if (Note.EffNumber[n] == effect_t::SAMPLE_OFFSET)
+							Note.EffNumber[n] = effect_t::N163_WAVE_BUFFER;
 				}
 
 				if (ver == 3) {
@@ -848,11 +848,11 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 					if (GetChipFromChannel(ch) == sound_chip_t::VRC7) {		// // //
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
-							case EF_PORTA_DOWN:
-								Note.EffNumber[n] = EF_PORTA_UP;
+							case effect_t::PORTA_DOWN:
+								Note.EffNumber[n] = effect_t::PORTA_UP;
 								break;
-							case EF_PORTA_UP:
-								Note.EffNumber[n] = EF_PORTA_DOWN;
+							case effect_t::PORTA_UP:
+								Note.EffNumber[n] = effect_t::PORTA_DOWN;
 								break;
 							}
 						}
@@ -861,7 +861,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 					else if (GetChipFromChannel(ch) == sound_chip_t::FDS) {
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
-							case EF_PITCH:
+							case effect_t::PITCH:
 								if (Note.EffParam[n] != 0x80)
 									Note.EffParam[n] = (0x100 - Note.EffParam[n]) & 0xFF;
 								break;
@@ -872,8 +872,8 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 
 				if (file_.GetFileVersion() < 0x450) {		// // // 050B
 					for (auto &x : Note.EffNumber)
-						if (x < EF_COUNT)
-							x = compat::EFF_CONVERSION_050.first[x];
+						if (x < effect_t::COUNT)
+							x = compat::EFF_CONVERSION_050.first[value_cast(x)];
 				}
 				/*
 				if (ver < 6) {
@@ -881,21 +881,21 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 					if (GetChannelType(Channel) == chan_id_t::NOISE) {
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
-								case EF_PORTA_DOWN:
-									Note.EffNumber[n] = EF_PORTA_UP;
+								case effect_t::PORTA_DOWN:
+									Note.EffNumber[n] = effect_t::PORTA_UP;
 									Note.EffParam[n] = Note.EffParam[n] << 4;
 									break;
-								case EF_PORTA_UP:
-									Note.EffNumber[n] = EF_PORTA_DOWN;
+								case effect_t::PORTA_UP:
+									Note.EffNumber[n] = effect_t::PORTA_DOWN;
 									Note.EffParam[n] = Note.EffParam[n] << 4;
 									break;
-								case EF_PORTAMENTO:
+								case effect_t::PORTAMENTO:
 									Note.EffParam[n] = Note.EffParam[n] << 4;
 									break;
-								case EF_SLIDE_UP:
+								case effect_t::SLIDE_UP:
 									Note.EffParam[n] = Note.EffParam[n] + 0x70;
 									break;
-								case EF_SLIDE_DOWN:
+								case effect_t::SLIDE_DOWN:
 									Note.EffParam[n] = Note.EffParam[n] + 0x70;
 									break;
 							}
@@ -956,7 +956,7 @@ void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerModule &modfile, int ver)
 				file_.WriteBlockChar(note.Instrument);
 				file_.WriteBlockChar(note.Vol);
 				for (int n = 0, EffColumns = x.GetEffectColumnCount(ch) + 1; n < EffColumns; ++n) {
-					file_.WriteBlockChar(compat::EFF_CONVERSION_050.second[note.EffNumber[n]]);		// // // 050B
+					file_.WriteBlockChar(value_cast(compat::EFF_CONVERSION_050.second[value_cast(note.EffNumber[n])]));		// // // 050B
 					file_.WriteBlockChar(note.EffParam[n]);
 				}
 			});

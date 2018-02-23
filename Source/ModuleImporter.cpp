@@ -193,7 +193,7 @@ void CModuleImporter::ImportSongs() {
 					note.Instrument = inst_index_[note.Instrument];
 				// // // Translate groove commands
 				for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
-					if (note.EffNumber[i] == EF_GROOVE && note.EffParam[i] < MAX_GROOVE)
+					if (note.EffNumber[i] == effect_t::GROOVE && note.EffParam[i] < MAX_GROOVE)
 						note.EffParam[i] = groove_index_[note.EffParam[i]];
 			});
 		});

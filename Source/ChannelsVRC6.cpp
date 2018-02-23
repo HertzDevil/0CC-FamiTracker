@@ -38,7 +38,7 @@ CChannelHandlerVRC6::CChannelHandlerVRC6(int MaxPeriod, int MaxVolume) :		// // 
 bool CChannelHandlerVRC6::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
 	switch (EffNum) {
-	case EF_DUTY_CYCLE:
+	case effect_t::DUTY_CYCLE:
 		m_iDefaultDuty = m_iDutyPeriod = EffParam;
 		break;
 	default: return CChannelHandler::HandleEffect(EffNum, EffParam);

@@ -57,26 +57,26 @@ void CChannelHandlerN163::ResetChannel()
 bool CChannelHandlerN163::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
 	switch (EffNum) {
-	case EF_PORTA_DOWN:
+	case effect_t::PORTA_DOWN:
 		m_iPortaSpeed = EffParam;
 		if (!m_bLinearPitch) m_iPortaSpeed <<= N163_PITCH_SLIDE_SHIFT;		// // //
 		m_iEffectParam = EffParam;
-		m_iEffect = m_bLinearPitch ? EF_PORTA_DOWN : EF_PORTA_UP;
+		m_iEffect = m_bLinearPitch ? effect_t::PORTA_DOWN : effect_t::PORTA_UP;
 		break;
-	case EF_PORTA_UP:
+	case effect_t::PORTA_UP:
 		m_iPortaSpeed = EffParam;
 		if (!m_bLinearPitch) m_iPortaSpeed <<= N163_PITCH_SLIDE_SHIFT;		// // //
 		m_iEffectParam = EffParam;
-		m_iEffect = m_bLinearPitch ? EF_PORTA_UP : EF_PORTA_DOWN;
+		m_iEffect = m_bLinearPitch ? effect_t::PORTA_UP : effect_t::PORTA_DOWN;
 		break;
-	case EF_DUTY_CYCLE:
+	case effect_t::DUTY_CYCLE:
 		// Duty effect controls wave
 		m_iDefaultDuty = m_iDutyPeriod = EffParam;
 		m_bLoadWave = true;
 		if (auto pHandler = dynamic_cast<CSeqInstHandlerN163*>(m_pInstHandler.get()))
 			pHandler->RequestWaveUpdate();
 		break;
-	case EF_N163_WAVE_BUFFER:		// // //
+	case effect_t::N163_WAVE_BUFFER:		// // //
 		if (EffParam == 0x7F) {
 			m_iWavePos = m_iWavePosOld;
 			m_bDisableLoad = false;
@@ -279,12 +279,12 @@ int CChannelHandlerN163::CalculatePeriod() const		// // //
 std::string CChannelHandlerN163::GetSlideEffectString() const		// // //
 {
 	if (m_iPortaSpeed) switch (m_iEffect) {
-	case EF_PORTA_UP:
-		return MakeCommandString(EF_PORTA_DOWN, m_iPortaSpeed >> N163_PITCH_SLIDE_SHIFT);
-	case EF_PORTA_DOWN:
-		return MakeCommandString(EF_PORTA_UP, m_iPortaSpeed >> N163_PITCH_SLIDE_SHIFT);
-	case EF_PORTAMENTO:
-		return MakeCommandString(EF_PORTAMENTO, m_iPortaSpeed >> N163_PITCH_SLIDE_SHIFT);
+	case effect_t::PORTA_UP:
+		return MakeCommandString(effect_t::PORTA_DOWN, m_iPortaSpeed >> N163_PITCH_SLIDE_SHIFT);
+	case effect_t::PORTA_DOWN:
+		return MakeCommandString(effect_t::PORTA_UP, m_iPortaSpeed >> N163_PITCH_SLIDE_SHIFT);
+	case effect_t::PORTAMENTO:
+		return MakeCommandString(effect_t::PORTAMENTO, m_iPortaSpeed >> N163_PITCH_SLIDE_SHIFT);
 	}
 	return CChannelHandlerInverted::GetSlideEffectString();
 }
@@ -292,7 +292,7 @@ std::string CChannelHandlerN163::GetSlideEffectString() const		// // //
 std::string CChannelHandlerN163::GetCustomEffectString() const		// // //
 {
 	if (m_bDisableLoad)
-		return MakeCommandString(EF_N163_WAVE_BUFFER, m_iWavePos >> 1);
+		return MakeCommandString(effect_t::N163_WAVE_BUFFER, m_iWavePos >> 1);
 	return std::string();
 }
 
