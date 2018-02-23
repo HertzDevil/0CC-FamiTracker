@@ -115,7 +115,7 @@ void CVisualizerWnd::FlushSamples(array_view<int16_t> Samples)		// // //
 	}
 
 	m_csBufferSelect.Lock();
-	std::memcpy(m_pFillBuffer->get(), Samples.data(), Samples.size() * sizeof(short));
+	Samples.copy(m_pFillBuffer->get(), Samples.size());
 	m_csBufferSelect.Unlock();
 
 	SetEvent(m_hNewSamples);
