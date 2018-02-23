@@ -32,7 +32,7 @@ constexpr std::string_view GetChannelFullName(chan_id_t ch) noexcept {
 	constexpr std::string_view NAMES[] = {
 		"Pulse 1"sv, "Pulse 2"sv, "Triangle"sv, "Noise"sv, "DPCM"sv,
 		"VRC6 Pulse 1"sv, "VRC6 Pulse 2"sv, "Sawtooth"sv,
-		"MMC5 Pulse 1"sv, "MMC5 PUlse 2"sv, "MMC5 PCM"sv,
+		"MMC5 Pulse 1"sv, "MMC5 Pulse 2"sv, "MMC5 PCM"sv,
 		"Namco 1"sv, "Namco 2"sv, "Namco 3"sv, "Namco 4"sv, "Namco 5"sv, "Namco 6"sv, "Namco 7"sv, "Namco 8"sv,
 		"FDS"sv,
 		"FM Channel 1"sv, "FM Channel 2"sv, "FM Channel 3"sv, "FM Channel 4"sv, "FM Channel 5"sv, "FM Channel 6"sv,
