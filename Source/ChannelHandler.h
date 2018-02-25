@@ -63,7 +63,7 @@ public:
 		\param pAPU Pointer to the sound channel object.
 		\param pVibTable Pointer to the vibrato lookup table.
 		\param pSoundGen Pointer to the sound generator object. */
-	void	InitChannel(CAPU *pAPU, int *pVibTable, CSoundGenBase *pSoundGen);		// // //
+	void	InitChannel(CAPU *pAPU, const int *pVibTable, CSoundGenBase *pSoundGen);		// // //
 	/*!	\brief Called by the MIDI auto-arpeggio function to play a given note value.
 		\param Note The note value. */
 	void	Arpeggiate(unsigned int Note);
@@ -498,13 +498,13 @@ protected:
 		the sound channel. Except for the Konami VRC7, which only requires register values for a
 		single octave, all other lookup tables should contain at least as many entries as the number
 		of notes available in the tracker. */
-	const unsigned int *m_pNoteLookupTable;
+	const unsigned int *m_pNoteLookupTable = nullptr;
 	/*!	\brief A pointer to the channel's vibrato lookup table.
 		\details A vibrato lookup table contains as many rows as the number of vibrato depths
 		available, each row containing the first quarter of the vibrato amplitude values; values for
 		other 4xy vibrato effect phases are calculated within the channel handler. The 7xy tremolo
 		effect shares the same lookup table. */
-	int				*m_pVibratoTable;
+	const int		*m_pVibratoTable = nullptr;
 
 	/*!	\brief The MIDI pitch wheel offset of the current channel.
 		\details A positive value represents a lower pitch. The value of this member is limited

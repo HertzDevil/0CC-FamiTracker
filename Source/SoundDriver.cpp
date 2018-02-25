@@ -31,7 +31,6 @@
 #include "PlayerCursor.h"
 #include "DetuneTable.h"
 #include "SongState.h"
-#include "APU/APU.h"
 #include "ChannelsN163.h"
 #include "ChannelMap.h"
 #include <cmath>
@@ -119,8 +118,6 @@ void CSoundDriver::AssignModule(const CFamiTrackerModule &modfile) {
 }
 
 void CSoundDriver::LoadAPU(CAPU &apu) {
-	apu_ = &apu;
-
 	// Setup all channels
 	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &) {
 		ch.InitChannel(&apu, m_iVibratoTable, parent_);
@@ -282,33 +279,7 @@ void CSoundDriver::UpdateChannels() {
 		m_bHaltRequest ? Chan.ResetChannel() : Chan.ProcessChannel();
 		Chan.RefreshChannel();
 		Chan.FinishTick();		// // //
-
-		// Update volume meters
-		TrackerChan.SetVolumeMeter(apu_->GetVol(ID));		// // //
 	});
-}
-
-void CSoundDriver::UpdateAPU(int cycles) {
-	sound_chip_t LastChip = sound_chip_t::NONE;		// // // 050B
-
-	ForeachTrack([&] (CChannelHandler &Chan, CTrackerChannel &, chan_id_t ID) {		// // //
-		if (modfile_->GetChannelOrder().HasChannel(ID)) {
-			sound_chip_t Chip = GetChipFromChannel(ID);
-			int Delay = (Chip == LastChip) ? 150 : 250;
-			if (Delay < cycles) {
-				// Add APU cycles
-				cycles -= Delay;
-				apu_->AddTime(Delay);
-			}
-			LastChip = Chip;
-		}
-		apu_->Process();
-	});
-
-	// Finish the audio frame
-	apu_->AddTime(cycles);
-	apu_->Process();
-	apu_->EndFrame();		// // //
 }
 
 void CSoundDriver::QueueNote(chan_id_t chan, const stChanNote &note, note_prio_t priority) {
@@ -392,8 +363,8 @@ void CSoundDriver::SetupVibrato() {
 void CSoundDriver::SetupPeriodTables() {
 	machine_t Machine = modfile_->GetMachine();
 	const double A440_NOTE = 45. - modfile_->GetTuningSemitone() - modfile_->GetTuningCent() / 100.;
-	const double clock_ntsc = CAPU::BASE_FREQ_NTSC / 16.0;
-	const double clock_pal = CAPU::BASE_FREQ_PAL / 16.0;
+	const double clock_ntsc = 236250000.0 / 132.0;
+	const double clock_pal  = 4433618.75 * 6.0 / 16.0;
 
 	for (int i = 0; i < NOTE_COUNT; ++i) {
 		// Frequency (in Hz)

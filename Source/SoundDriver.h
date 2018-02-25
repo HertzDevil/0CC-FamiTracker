@@ -67,7 +67,6 @@ public:
 	void SetTempoCounter(std::shared_ptr<CTempoCounter> tempo);
 
 	void Tick();
-	void UpdateAPU(int cycles);
 
 	void QueueNote(chan_id_t chan, const stChanNote &note, note_prio_t priority);
 	void ForceReloadInstrument(chan_id_t chan);
@@ -83,17 +82,6 @@ public:
 
 	int ReadPeriodTable(int Index, int Table) const;
 	int ReadVibratoTable(int index) const;
-
-private:
-	CChannelHandler *GetChannelHandler(chan_id_t chan) const;
-
-	void SetupVibrato();
-	void SetupPeriodTables();
-
-	void PlayerTick();
-	void StepRow(chan_id_t chan);
-	void UpdateChannels();
-	void HandleGlobalEffects(stChanNote &note);
 
 	// void (*F)(CChannelHandler &channel, CTrackerChannel &track [, chan_id_t id])
 	template <typename F>
@@ -116,11 +104,21 @@ private:
 	}
 
 private:
+	CChannelHandler *GetChannelHandler(chan_id_t chan) const;
+
+	void SetupVibrato();
+	void SetupPeriodTables();
+
+	void PlayerTick();
+	void StepRow(chan_id_t chan);
+	void UpdateChannels();
+	void HandleGlobalEffects(stChanNote &note);
+
+private:
 	std::vector<std::pair<
 		std::unique_ptr<CChannelHandler>, std::unique_ptr<CTrackerChannel>
 	>> tracks_;
 	const CFamiTrackerModule *modfile_ = nullptr;		// // //
-	CAPU *apu_ = nullptr;		// // //
 	CSoundGenBase *parent_ = nullptr;		// // //
 
 	bool				m_bPlaying = false;

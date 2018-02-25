@@ -70,7 +70,7 @@ CChannelHandler::~CChannelHandler()
 {
 }
 
-void CChannelHandler::InitChannel(CAPU *pAPU, int *pVibTable, CSoundGenBase *pSoundGen)		// // //
+void CChannelHandler::InitChannel(CAPU *pAPU, const int *pVibTable, CSoundGenBase *pSoundGen)		// // //
 {
 	// Called from main thread
 

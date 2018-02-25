@@ -1042,6 +1042,10 @@ BOOL CSoundGen::IdleLoop() {
 		m_pSoundDriver->Tick();		// // //
 	}, 0);
 
+	m_pSoundDriver->ForeachTrack([&] (CChannelHandler &, CTrackerChannel &TrackerChan, chan_id_t ID) {		// // //
+		TrackerChan.SetVolumeMeter(m_pAPU->GetVol(ID));		// // //
+	});
+
 	if (theApp.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
 		m_pArpeggiator->Tick(m_pTrackerView->GetSelectedChannelID());
 
@@ -1077,7 +1081,27 @@ void CSoundGen::UpdateAPU()
 
 	if (CSingleLock l(&m_csAPULock); l.Lock()) {
 		// Update APU channel registers
-		m_pSoundDriver->UpdateAPU(m_iUpdateCycles);
+		int cycles = m_iUpdateCycles;
+		sound_chip_t LastChip = sound_chip_t::NONE;		// // // 050B
+
+		m_pSoundDriver->ForeachTrack([&] (CChannelHandler &Chan, CTrackerChannel &, chan_id_t ID) {		// // //
+			if (m_pModule->GetChannelOrder().HasChannel(ID)) {
+				sound_chip_t Chip = GetChipFromChannel(ID);
+				int Delay = (Chip == LastChip) ? 150 : 250;
+				if (Delay < cycles) {
+					// Add APU cycles
+					cycles -= Delay;
+					m_pAPU->AddTime(Delay);
+				}
+				LastChip = Chip;
+			}
+			m_pAPU->Process();
+		});
+
+		// Finish the audio frame
+		m_pAPU->AddTime(cycles);
+		m_pAPU->Process();
+		m_pAPU->EndFrame();		// // //
 
 #ifdef WRITE_VGM		// // //
 		if (m_pVGMWriter)
