@@ -84,6 +84,7 @@
 namespace {
 
 const unsigned MAX_UNDO_LEVELS = 64;		// // // moved
+const int INST_DIGITS = 2;		// // //
 
 const UINT indicators[] =
 {
@@ -1071,8 +1072,6 @@ void CMainFrame::OnPreviousOctave()		// // //
 		SelectOctave(Octave - 1);
 }
 
-static const int INST_DIGITS = 2;		// // //
-
 void CMainFrame::OnTypeInstrumentNumber()		// // //
 {
 	m_iInstNumDigit = 1;
@@ -1125,12 +1124,8 @@ void CMainFrame::SetInstrumentEditName(std::wstring_view pText)		// // //
 
 void CMainFrame::SetIndicatorTime(int Min, int Sec, int MSec)
 {
-	static int LMin, LSec, LMSec;
-
-	if (Min != LMin || Sec != LSec || MSec != LMSec) {
-		LMin = Min;
-		LSec = Sec;
-		LMSec = MSec;
+	if (auto t = std::tie(Min, Sec, MSec); t != m_iIndicatorLast) {		// // //
+		m_iIndicatorLast = t;
 		m_wndStatusBar.SetPaneText(6, FormattedW(L"%02i:%02i:%01i0", Min, Sec, MSec));
 	}
 }
@@ -1261,11 +1256,11 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// 
 	if (Index != INVALID_INSTRUMENT) {
 		if (CSimpleFile file(filename, std::ios::in | std::ios::binary); file) {
 			// FTI instruments files
-			static const char INST_HEADER[] = "FTI";
-//			static const char INST_VERSION[] = "2.4";
+			const char INST_HEADER[] = "FTI";
+//			const char INST_VERSION[] = "2.4";
 
-			static const unsigned I_CURRENT_VER_MAJ = 2;		// // // 050B
-			static const unsigned I_CURRENT_VER_MIN = 5;		// // // 050B
+			const unsigned I_CURRENT_VER_MAJ = 2;		// // // 050B
+			const unsigned I_CURRENT_VER_MIN = 5;		// // // 050B
 
 			// Signature
 			for (std::size_t i = 0; i < std::size(INST_HEADER) - 1; ++i)
@@ -1489,22 +1484,21 @@ void CMainFrame::OnTrackerKillsound()
 	theApp.SilentEverything();
 }
 
-bool CMainFrame::CheckRepeat() const
+bool CMainFrame::CheckRepeat()
 {
-	static UINT LastTime, RepeatCounter;
 	UINT CurrentTime = GetTickCount();
 
-	if ((CurrentTime - LastTime) < REPEAT_TIME) {
-		if (RepeatCounter < REPEAT_DELAY)
-			RepeatCounter++;
+	if ((CurrentTime - m_iPressLastTime) < REPEAT_TIME) {		// // //
+		if (m_iPressRepeatCounter < REPEAT_DELAY)
+			m_iPressRepeatCounter++;
 	}
 	else {
-		RepeatCounter = 0;
+		m_iPressRepeatCounter = 0;
 	}
 
-	LastTime = CurrentTime;
+	m_iPressLastTime = CurrentTime;
 
-	return RepeatCounter == REPEAT_DELAY;
+	return m_iPressRepeatCounter == REPEAT_DELAY;
 }
 
 void CMainFrame::OnBnClickedIncFrame()
@@ -1618,8 +1612,6 @@ void CMainFrame::OnUpdateSBFrequency(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateSBTempo(CCmdUI *pCmdUI)
 {
-	static int Highlight = m_wndOctaveBar.GetDlgItemInt(IDC_HIGHLIGHT1);
-
 	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 	if (pSoundGen && !pSoundGen->IsBackgroundTask()) {
 		pCmdUI->Enable();
@@ -3229,9 +3221,6 @@ void CMainFrame::CheckAudioStatus()
 	const DWORD TIMEOUT = 2000; // Display a message for 2 seconds
 
 	// Monitor audio playback
-	// TODO remove static variables
-	static BOOL DisplayedError;
-	static DWORD MessageTimeout;
 
 	if (!theApp.GetSoundGenerator()) {
 		// Should really never be displayed (only during debugging)
@@ -3247,28 +3236,28 @@ void CMainFrame::CheckAudioStatus()
 	if (pDriver->GetSoundTimeout()) {
 		// No events from the audio pump
 		SetMessageText(IDS_SOUND_FAIL);
-		DisplayedError = TRUE;
-		MessageTimeout = GetTickCount() + TIMEOUT;
+		m_bDisplayedError = TRUE;
+		m_iMessageTimeout = GetTickCount() + TIMEOUT;
 	}
 #ifndef _DEBUG
 	else if (pDriver->DidBufferUnderrun()) {		// // //
 		// Buffer underrun
 		SetMessageText(IDS_UNDERRUN_MESSAGE);
-		DisplayedError = TRUE;
-		MessageTimeout = GetTickCount() + TIMEOUT;
+		m_bDisplayedError = TRUE;
+		m_iMessageTimeout = GetTickCount() + TIMEOUT;
 	}
 	else if (pDriver->WasAudioClipping()) {		// // //
 		// Audio is clipping
 		SetMessageText(IDS_CLIPPING_MESSAGE);
-		DisplayedError = TRUE;
-		MessageTimeout = GetTickCount() + TIMEOUT;
+		m_bDisplayedError = TRUE;
+		m_iMessageTimeout = GetTickCount() + TIMEOUT;
 	}
 #endif
 	else {
-		if (DisplayedError == TRUE && MessageTimeout < GetTickCount()) {
+		if (m_bDisplayedError == TRUE && m_iMessageTimeout < GetTickCount()) {
 			// Restore message
 			//SetMessageText(AFX_IDS_IDLEMESSAGE);
-			DisplayedError = FALSE;
+			m_bDisplayedError = FALSE;
 		}
 	}
 }

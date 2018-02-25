@@ -113,7 +113,7 @@ CFamiTrackerDocIO::CFamiTrackerDocIO(CDocumentFile &file) :
 
 bool CFamiTrackerDocIO::Load(CFamiTrackerModule &modfile) {
 	using map_t = std::unordered_map<std::string_view, void (CFamiTrackerDocIO::*)(CFamiTrackerModule &, int)>;
-	static const auto FTM_READ_FUNC = map_t {
+	const auto FTM_READ_FUNC = map_t {
 		{FILE_BLOCK_PARAMS,			&CFamiTrackerDocIO::LoadParams},
 		{FILE_BLOCK_INFO,			&CFamiTrackerDocIO::LoadSongInfo},
 		{FILE_BLOCK_HEADER,			&CFamiTrackerDocIO::LoadHeader},
@@ -172,7 +172,7 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerModule &modfile) {
 
 bool CFamiTrackerDocIO::Save(const CFamiTrackerModule &modfile) {
 	using block_info_t = std::tuple<void (CFamiTrackerDocIO::*)(const CFamiTrackerModule &, int), int, std::string_view>;
-	static const block_info_t MODULE_WRITE_FUNC[] = {		// // //
+	const block_info_t MODULE_WRITE_FUNC[] = {		// // //
 		{&CFamiTrackerDocIO::SaveParams,		6, FILE_BLOCK_PARAMS},
 		{&CFamiTrackerDocIO::SaveSongInfo,		1, FILE_BLOCK_INFO},
 		{&CFamiTrackerDocIO::SaveHeader,		3, FILE_BLOCK_HEADER},

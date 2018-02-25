@@ -356,7 +356,7 @@ void CFamiTrackerModule::RemoveUnusedInstruments() {
 			pManager->RemoveInstrument(i);
 	});
 
-	static const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};
+	const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};
 
 	// Also remove unused sequences
 	for (unsigned int i = 0; i < MAX_SEQUENCES; ++i)

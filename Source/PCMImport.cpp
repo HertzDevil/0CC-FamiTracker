@@ -359,7 +359,7 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::GetSample() {		// // //
 
 std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ConvertFile() {		// // //
 	// Converts a WAV file to a DPCM sample
-	static const int DMC_BIAS = 32;
+	const int DMC_BIAS = 32;
 
 	unsigned char DeltaAcc = 0;	// DPCM sample accumulator
 	int Delta = DMC_BIAS;		// Delta counter
@@ -386,8 +386,8 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ConvertFile() {		// // //
 	while (resmpler.get(val) && (pSamples.size() < ft0cc::doc::dpcm_sample::max_size)) {		// // //
 
 		// when resampling we must clip because of possible ringing.
-		static const float MAX_AMP =  (1 << 16) - 1;
-		static const float MIN_AMP = -(1 << 16) + 1; // just being symetric
+		const float MAX_AMP =  (1 << 16) - 1;
+		const float MIN_AMP = -(1 << 16) + 1; // just being symetric
 		val = std::clamp(val, MIN_AMP, MAX_AMP);
 
 		// Volume done this way so it acts as before

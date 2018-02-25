@@ -220,9 +220,10 @@ BEGIN_MESSAGE_MAP(CFamiTrackerView, CView)
 	ON_COMMAND(ID_DECAY_SLOW, CMainFrame::OnDecaySlow)		// // //
 END_MESSAGE_MAP()
 
+namespace {
+
 // Convert keys 0-F to numbers, -1 = invalid key
-static int ConvertKeyToHex(int Key)
-{
+int ConvertKeyToHex(int Key) {
 	switch (Key) {
 	case '0': case VK_NUMPAD0: return 0x00;
 	case '1': case VK_NUMPAD1: return 0x01;
@@ -249,19 +250,20 @@ static int ConvertKeyToHex(int Key)
 	return -1;
 }
 
-static int ConvertKeyExtra(int Key)		// // //
-{
+int ConvertKeyExtra(int Key) {		// // //
 	switch (Key) {
-		case VK_DIVIDE:   return 0x0A;
-		case VK_MULTIPLY: return 0x0B;
-		case VK_SUBTRACT: return 0x0C;
-		case VK_ADD:      return 0x0D;
-		case VK_RETURN:   return 0x0E;
-		case VK_DECIMAL:  return 0x0F;
+	case VK_DIVIDE:   return 0x0A;
+	case VK_MULTIPLY: return 0x0B;
+	case VK_SUBTRACT: return 0x0C;
+	case VK_ADD:      return 0x0D;
+	case VK_RETURN:   return 0x0E;
+	case VK_DECIMAL:  return 0x0F;
 	}
 
 	return -1;
 }
+
+} // namespace
 
 // CFamiTrackerView construction/destruction
 
@@ -464,10 +466,9 @@ void CFamiTrackerView::InvalidateCursor()
 	RedrawPatternEditor();
 	RedrawFrameEditor();
 
-	static CCursorPos LastPosition { };		// // //
 	CCursorPos p = m_pPatternEditor->GetCursor();
-	if (LastPosition != p) {
-		LastPosition = p;
+	if (m_cpLastCursor != p) {		// // //
+		m_cpLastCursor = p;
 		static_cast<CMainFrame*>(GetParentFrame())->ResetFind();		// // //
 	}
 }
@@ -829,14 +830,11 @@ void CFamiTrackerView::PeriodicUpdate()
 		}
 
 		if (GetSongView()->GetChannelOrder().GetChannelCount()) {		// // //
-			// TODO get rid of static variables
-			static int LastNoteState = -1;
-
 			int Note = pSoundGen->GetChannelNote(GetSelectedChannelID());		// // //
-			if (LastNoteState != Note)
+			if (m_iLastNoteState != Note) {
 				pMainFrm->ChangeNoteState(Note);
-
-			LastNoteState = Note;
+				m_iLastNoteState = Note;
+			}
 		}
 	}
 
@@ -1968,13 +1966,17 @@ void CFamiTrackerView::HaltNoteSingle(std::size_t Index) const
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
-static void FixNoise(unsigned int &MidiNote, unsigned int &Octave, unsigned int &Note)
+namespace {
+
+void FixNoise(unsigned int &MidiNote, unsigned int &Octave, unsigned int &Note)
 {
 	// NES noise channel
 	MidiNote = (MidiNote % 16) + 16;
 	Octave = GET_OCTAVE(MidiNote);
 	Note = GET_NOTE(MidiNote);
 }
+
+} // namespace
 */
 
 // Play a note
@@ -2761,11 +2763,9 @@ void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 	int Channel = GetSelectedChannel();
 
 	if (Pressed) {
-		static int LastNote;
-
 		if (CheckHaltKey(nChar)) {
 			if (m_bEditEnable)
-				CutMIDINote(Channel, LastNote, true);
+				CutMIDINote(Channel, m_iLastPressedKey, true);
 			else {
 				for (const auto &x : m_iNoteCorrection)		// // //
 					CutMIDINote(Channel, TranslateKey(x.first), false);
@@ -2774,7 +2774,7 @@ void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 		}
 		else if (CheckReleaseKey(nChar)) {
 			if (m_bEditEnable)
-				ReleaseMIDINote(Channel, LastNote, true);
+				ReleaseMIDINote(Channel, m_iLastPressedKey, true);
 			else {
 				for (const auto &x : m_iNoteCorrection)		// // //
 					ReleaseMIDINote(Channel, TranslateKey(x.first), false);
@@ -2786,7 +2786,7 @@ void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 			if (Note == -1)
 				return;
 			TriggerMIDINote(Channel, Note, 0x7F, m_bEditEnable);
-			LastNote = Note;
+			m_iLastPressedKey = Note;
 			m_iNoteCorrection[nChar] = 0;		// // //
 		}
 	}

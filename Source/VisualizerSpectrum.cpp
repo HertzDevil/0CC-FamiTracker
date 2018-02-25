@@ -88,9 +88,9 @@ void CVisualizerSpectrum::SetSampleData(const int16_t *pSamples, unsigned int iC
 
 void CVisualizerSpectrum::Draw()
 {
-	static const float SCALING = 250.0f;
-	static const int OFFSET = 0;
-	static const float DECAY = 3.0f;
+	const float SCALING = 250.0f;
+	const int OFFSET = 0;
+	const float DECAY = 3.0f;
 
 	float Step = 0.2f * (float(FFT_POINTS) / float(m_iWidth)) * m_iBarSize;		// // //
 	float Pos = 2;	// Add a small offset to remove note on/off actions

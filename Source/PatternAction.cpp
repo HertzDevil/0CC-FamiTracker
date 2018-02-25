@@ -689,7 +689,7 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 				}
 			}
 			else if (IsNote(Note.Note)) {		// // //
-				static const int AMOUNT[] = {-1, 1, -NOTE_RANGE, NOTE_RANGE};
+				const int AMOUNT[] = {-1, 1, -NOTE_RANGE, NOTE_RANGE};
 				int NewNote = MIDI_NOTE(Note.Octave, Note.Note) + AMOUNT[m_iTransposeMode];
 				if (NewNote < 0) NewNote = 0;
 				if (NewNote >= NOTE_COUNT) NewNote = NOTE_COUNT - 1;

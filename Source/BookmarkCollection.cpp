@@ -165,8 +165,9 @@ CBookmark *CBookmarkCollection::FindPrevious(unsigned Frame, unsigned Row) const
 
 bool CBookmarkCollection::SortByName(bool Desc)
 {
-	static auto sortFunc = [] (const std::unique_ptr<CBookmark> &a, const std::unique_ptr<CBookmark> &b)
-		{ return a->m_sName < b->m_sName; };
+	const auto sortFunc = [] (const std::unique_ptr<CBookmark> &a, const std::unique_ptr<CBookmark> &b) {
+		return a->m_sName < b->m_sName;
+	};
 
 	if (Desc) std::reverse(m_pBookmark.begin(), m_pBookmark.end());
 	bool Change = !std::is_sorted(m_pBookmark.begin(), m_pBookmark.end(), sortFunc);
@@ -179,8 +180,7 @@ bool CBookmarkCollection::SortByName(bool Desc)
 
 bool CBookmarkCollection::SortByPosition(bool Desc)
 {
-	static auto sortFunc = [] (const std::unique_ptr<CBookmark> &a, const std::unique_ptr<CBookmark> &b)
-		{ return *a < *b; };
+	const auto sortFunc = [] (const std::unique_ptr<CBookmark> &a, const std::unique_ptr<CBookmark> &b) { return *a < *b; };
 
 	if (Desc) std::reverse(m_pBookmark.begin(), m_pBookmark.end());
 	bool Change = !std::is_sorted(m_pBookmark.begin(), m_pBookmark.end(), sortFunc);

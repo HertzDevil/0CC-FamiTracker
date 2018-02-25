@@ -306,6 +306,7 @@ private:
 	bool				m_bMaskInstrument;						// Ignore instrument column on new notes
 	bool				m_bMaskVolume;							// Ignore volume column on new notes
 	paste_pos_t			m_iPastePos;							// // // Paste position
+	CCursorPos			m_cpLastCursor;							// // //
 
 	std::unique_ptr<CSongView> song_view_;						// // //
 
@@ -325,6 +326,8 @@ private:
 	// Input
 	std::array<char, 256> m_cKeyList = { };						// // //
 	stChanNote			m_LastNote;								// // // Last note added to pattern
+	int					m_iLastPressedKey = -1;					// // //
+	int					m_iLastNoteState = -1;					// // //
 
 	int					m_iSplitNote;							// // // Split keyboard settings
 	chan_id_t			m_iSplitChannel;

@@ -26,7 +26,9 @@
 #include "Settings.h"		// // //
 #include "Color.h"		// // //
 
-static const char LOGO_FONT[][7] = {		// // //
+namespace {
+
+const uint8_t LOGO_FONT[][7] = {		// // //
 	{0x3C, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3C}, // 0
 	{0x3C, 0x66, 0x60, 0x60, 0x60, 0x66, 0x3C}, // C
 	{0x00, 0x00, 0x00, 0x7E, 0x00, 0x00, 0x00}, // -
@@ -40,6 +42,8 @@ static const char LOGO_FONT[][7] = {		// // //
 	{0x7E, 0x60, 0x60, 0x78, 0x60, 0x60, 0x7E}, // E
 };
 
+} // namespace
+
 CVisualizerStatic::~CVisualizerStatic()
 {
 	if (m_dcImage.m_hDC)
@@ -52,8 +56,8 @@ void CVisualizerStatic::SetSampleRate(int SampleRate)
 
 void CVisualizerStatic::Draw()
 {
-	static const char STR[] = "0CC-FamiTracker";		// // //
-	static const size_t COUNT = std::size(STR);
+	const char STR[] = "0CC-FamiTracker";		// // //
+	const size_t COUNT = std::size(STR);
 	static long long t = 0;
 
 	const auto FixRGB = [] (int x) { return MakeRGB(GetB(x), GetG(x), GetR(x)); };
@@ -91,7 +95,7 @@ void CVisualizerStatic::Draw()
 
 void CVisualizerStatic::DrawChar(char n, int xPos, int yPos, const COLORREF &Color)		// // //
 {
-	const auto drawFunc = [&] (const char (&glyph)[7]) {
+	const auto drawFunc = [&] (const uint8_t (&glyph)[7]) {
 		for (int i = 0; i < 7; ++i) {
 			if (yPos >= 0 && yPos < m_iHeight) {
 				int x = xPos;

@@ -902,7 +902,7 @@ void CArpeggioGraphEditor::OnPaint()
 				DrawRect(m_BackDC, x, y, w, h);
 
 			if (m_pSequence->GetSetting() == SETTING_ARP_SCHEME) {
-				static const CStringW HEAD[] = {L"", L"x", L"y", L"-y"};
+				const LPCWSTR HEAD[] = {L"", L"x", L"y", L"-y"};
 				m_BackDC.TextOutW(x + w / 2, y - 2 * h, HEAD[(m_pSequence->GetItem(i) & 0xFF) >> 6]);
 			}
 		}
@@ -1248,8 +1248,8 @@ void CNoiseEditor::OnPaint()
 		// Draw switches
 		auto flags = enum_cast<s5b_mode_t>((uint8_t)m_pSequence->GetItem(i));		// // //
 
-		static const s5b_mode_t BAR_MODE[] = {s5b_mode_t::Envelope, s5b_mode_t::Square, s5b_mode_t::Noise};		// // //
-		static const COLORREF BAR_COLOR[] = {0x00A0A0, 0xA0A000, 0xA000A0};
+		const s5b_mode_t BAR_MODE[] = {s5b_mode_t::Envelope, s5b_mode_t::Square, s5b_mode_t::Noise};		// // //
+		const COLORREF BAR_COLOR[] = {0x00A0A0, 0xA0A000, 0xA000A0};
 
 		for (std::size_t j = 0; j < std::size(BAR_MODE); ++j) {
 			int y2 = m_GraphRect.bottom - BUTTON_MARGIN + j * BUTTON_HEIGHT + 1;

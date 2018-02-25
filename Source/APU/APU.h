@@ -27,6 +27,7 @@
 
 #include "Common.h"
 #include <memory>		// // //
+#include <vector>		// // //
 #include "SoundChipSet.h"		// // //
 #include "APUInterface.h"		// // //
 
@@ -118,6 +119,8 @@ private:
 	std::unique_ptr<CN163> m_pN163;
 	std::unique_ptr<CVRC7> m_pVRC7;
 	std::unique_ptr<CS5B> m_pS5B;
+
+	std::vector<CSoundChip *> m_pExpansionChips;		// // //
 
 	CSoundChipSet m_iExternalSoundChip;				// // // External sound chip, if used
 

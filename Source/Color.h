@@ -66,12 +66,10 @@ constexpr unsigned Invert(unsigned c) noexcept {
 }
 
 constexpr unsigned BlendColors(unsigned c1, double w1, unsigned c2, double w2) noexcept {
-	auto [r1, g1, b1] = GetRGB(c1);
-	auto [r2, g2, b2] = GetRGB(c2);
 	return MakeRGB(
-		ClipColorValue((r1 * w1 + r2 * w2) / (w1 + w2)),
-		ClipColorValue((g1 * w1 + g2 * w2) / (w1 + w2)),
-		ClipColorValue((b1 * w1 + b2 * w2) / (w1 + w2)));
+		ClipColorValue((GetR(c1) * w1 + GetR(c2) * w2) / (w1 + w2)),
+		ClipColorValue((GetG(c1) * w1 + GetG(c2) * w2) / (w1 + w2)),
+		ClipColorValue((GetB(c1) * w1 + GetB(c2) * w2) / (w1 + w2)));
 }
 
 constexpr unsigned BLEND(unsigned c1, unsigned c2, double level) noexcept {

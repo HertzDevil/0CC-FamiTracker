@@ -151,7 +151,7 @@ CCompiler::~CCompiler() {
 template <typename... Args>
 void CCompiler::Print(LPCWSTR text, Args&&... args) const		// // //
 {
- 	static WCHAR buf[256];
+	WCHAR buf[256] = { };
 
 	if (!m_pLogger || !text)
 		return;
@@ -192,12 +192,14 @@ bool CCompiler::OpenFile(LPCWSTR lpszFileName, CFile &file) const
 	return true;
 }
 
-static void NSFEWriteBlockIdent(CFile &file, const char (&ident)[5], uint32_t sz) {		// // //
+namespace {
+
+void NSFEWriteBlockIdent(CFile &file, const char(&ident)[5], uint32_t sz) {		// // //
 	file.Write(reinterpret_cast<const char *>(&sz), sizeof(sz));
 	file.Write(ident, 4);
 }
 
-static ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerModule &modfile,
+ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerModule &modfile,
 	std::string_view title, std::string_view artist, std::string_view copyright) {		// // //
 	int iAuthSize = 0, iTimeSize = 0, iTlblSize = 0;
 	CStringA str = "0CC-FamiTracker ";
@@ -225,7 +227,7 @@ static ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerModule &modfile,
 	modfile.VisitSongs([&] (const CSongData &song, unsigned i) {
 		auto pSongView = modfile.MakeSongView(i);
 		CSongLengthScanner scanner {modfile, *pSongView};
-		auto [FirstLoop, SecondLoop] = scanner.GetSecondsCount();
+		auto[FirstLoop, SecondLoop] = scanner.GetSecondsCount();
 		int t = static_cast<int>((FirstLoop + SecondLoop) * 1000.0 + 0.5);
 		file.Write(reinterpret_cast<const char *>(&t), sizeof(int));
 	});
@@ -240,6 +242,8 @@ static ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerModule &modfile,
 	NSFEWriteBlockIdent(file, "DATA", 0);
 	return iDataSizePos;
 }
+
+} // namespace
 
 void CCompiler::ExportNSF_NSFE(LPCWSTR lpszFileName, int MachineType, bool isNSFE) {
 	if (m_bBankSwitched) {
@@ -391,7 +395,7 @@ void CCompiler::ExportNES_PRG(LPCWSTR lpszFileName, bool EnablePAL, bool isPRG) 
 	Print(L"Writing output file...\n");
 
 	// Write header
-	static const char NES_HEADER[] = { // 32kb NROM, no CHR
+	const char NES_HEADER[] = { // 32kb NROM, no CHR
 		0x4E, 0x45, 0x53, 0x1A, 0x02, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	};
@@ -1048,7 +1052,7 @@ void CCompiler::ScanSong()
 	m_bSequencesUsedN163.fill({ });
 	m_bSequencesUsedS5B.fill({ });
 
-	static const inst_type_t INST[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
+	const inst_type_t INST[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
 	decltype(m_bSequencesUsed2A03) *used[] = {&m_bSequencesUsed2A03, &m_bSequencesUsedVRC6, &m_bSequencesUsedN163, &m_bSequencesUsedS5B};
 
 	bool inst_used[MAX_INSTRUMENTS] = { };		// // //

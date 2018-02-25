@@ -309,7 +309,7 @@ void CConfigGeneral::OnLvnItemchangedConfigList(NMHDR *pNMHDR, LRESULT *pResult)
 	pNMLV->uOldState &= ~mask;
 
 	using T = bool (CConfigGeneral::*);
-	static T CONFIG_BOOL[SETTINGS_BOOL_COUNT] = {		// // //
+	const T CONFIG_BOOL[SETTINGS_BOOL_COUNT] = {		// // //
 		&CConfigGeneral::m_bWrapCursor,
 		&CConfigGeneral::m_bWrapFrames,
 		&CConfigGeneral::m_bFreeCursorEdit,

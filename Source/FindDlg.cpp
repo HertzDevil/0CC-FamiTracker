@@ -259,7 +259,7 @@ void CFindResultsBox::ClearResults()
 void CFindResultsBox::SelectItem(int Index)
 {
 	const auto ToChannelID = [] (std::string_view x) {
-		static const std::tuple<std::string_view, sound_chip_t, unsigned> HEADERS[] = {
+		const std::tuple<std::string_view, sound_chip_t, unsigned> HEADERS[] = {
 			{"Pulse "     , sound_chip_t::APU , GetChannelSubIndex(chan_id_t::SQUARE1)},
 			{"Triangle"   , sound_chip_t::APU , GetChannelSubIndex(chan_id_t::TRIANGLE)},
 			{"Noise"      , sound_chip_t::APU , GetChannelSubIndex(chan_id_t::NOISE)},
@@ -455,16 +455,17 @@ int CFindResultsBox::ChannelCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM l
 	CStringW y = pList->GetItemText(lParam2, m_iLastsortColumn);
 
 	const auto ToIndex = [] (const CStringW &x) {
-		static const CStringW HEADER_STR[] = {
+		const std::wstring_view HEADER_STR[] = {
 			L"Pulse ", L"Triangle", L"Noise", L"DPCM",
 			L"VRC6 Pulse ", L"Sawtooth",
 			L"MMC5 Pulse ", L"Namco ", L"FDS", L"FM Channel ", L"5B Square ",
 		};
 		int Pos = 0;
 		for (const auto &n : HEADER_STR) {
-			int Size = n.GetLength();
-			if (x.Left(Size) == n) {
-				if (x != n) Pos += x.GetAt(x.GetLength() - 1);
+			int Size = n.size();
+			if (x.Left(Size) == n.data()) {
+				if (x != n.data())
+					Pos += x.GetAt(x.GetLength() - 1);
 				return Pos;
 			}
 			Pos += 0x100;

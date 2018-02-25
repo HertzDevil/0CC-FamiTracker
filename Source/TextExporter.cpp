@@ -31,6 +31,7 @@
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
+#include "NoteName.h"		// // //
 
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "ft0cc/doc/groove.hpp"		// // //
@@ -105,8 +106,9 @@ enum
 	CT_COUNT
 };
 
-static const char *CT[CT_COUNT] =
-{
+namespace {
+
+const char *CT[CT_COUNT] = {
 	// comment
 	"#",
 	// song info
@@ -159,6 +161,8 @@ static const char *CT[CT_COUNT] =
 	"PATTERN",
 	"ROW",
 };
+
+} // namespace
 
 // =============================================================================
 
@@ -483,19 +487,11 @@ CStringA CTextExport::ExportString(std::string_view s)		// // //
 
 CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise)		// // //
 {
-	static const LPCSTR TEXT_NOTE[] = {		// // //
-		"...",
-		"C-?", "C#?", "D-?", "D#?", "E-?", "F-?",
-		"F#?", "G-?", "G#?", "A-?", "A#?", "B-?",
-		"===", "---", "^-?",
-	};
-
-	CStringA s = (stCell.Note <= note_t::ECHO) ? TEXT_NOTE[value_cast(stCell.Note)] : "...";		// // //
-	if (IsNote(stCell.Note) || stCell.Note == note_t::ECHO)		// // //
-		if (bNoise)
-			s = FormattedA("%01X-#", MIDI_NOTE(stCell.Octave, stCell.Note) & 0x0F);
-		else
-			s = s.Left(2) + FormattedA("%01d", stCell.Octave);
+	CStringA s = "...";
+	if (bNoise && (IsNote(stCell.Note) || stCell.Note == note_t::ECHO))		// // //
+		s = FormattedA("%01X-#", MIDI_NOTE(stCell.Octave, stCell.Note) & 0x0F);
+	else if (stCell.Note <= note_t::ECHO)
+		s = GetNoteString(stCell).data();
 
 	s += (stCell.Instrument == MAX_INSTRUMENTS) ? CStringA(" ..") :
 		(stCell.Instrument == HOLD_INSTRUMENT) ? CStringA(" &&") : FormattedA(" %02X", stCell.Instrument);		// // // 050B
@@ -621,7 +617,7 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_MACRON163:
 		case CT_MACROS5B:
 		{
-			static const inst_type_t CHIP_MACRO[4] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
+			const inst_type_t CHIP_MACRO[4] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
 			int chip = c - CT_MACRO;
 
 			auto mt = (sequence_t)t.ReadInt(0, SEQ_COUNT - 1);

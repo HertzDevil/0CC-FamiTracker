@@ -51,7 +51,7 @@ bool CChannelOrder::AddChannel(chan_id_t chan) {
 }
 
 CChannelOrder CChannelOrder::Canonicalize() const {
-	static const chan_id_t CANONICAL_ORDER[] = {
+	const chan_id_t CANONICAL_ORDER[] = {
 		chan_id_t::SQUARE1, chan_id_t::SQUARE2, chan_id_t::TRIANGLE, chan_id_t::NOISE,
 		chan_id_t::MMC5_SQUARE1, chan_id_t::MMC5_SQUARE2, chan_id_t::MMC5_VOICE,
 		chan_id_t::VRC6_PULSE1, chan_id_t::VRC6_PULSE2, chan_id_t::VRC6_SAWTOOTH,

@@ -133,11 +133,14 @@ const int CAccelerator::ACCEL_COUNT = DEFAULT_TABLE.size();
 // Registry key
 const LPCWSTR CAccelerator::SHORTCUTS_SECTION = L"Shortcuts";		// // //
 
+namespace {
+
 // Translate internal modifier -> windows modifier
-static BYTE GetMod(int Mod)
-{
+BYTE GetMod(int Mod) {
 	return ((Mod & MOD_CONTROL) ? FCONTROL : 0) | ((Mod & MOD_SHIFT) ? FSHIFT : 0) | ((Mod & MOD_ALT) ? FALT : 0);
 }
+
+} // namespace
 
 // Class instance functions
 
@@ -192,9 +195,8 @@ LPCWSTR CAccelerator::GetItemKeyName(int Item) const
 	return L"None";
 }
 
-LPCWSTR CAccelerator::GetVKeyName(int virtualKey) const
-{
-	unsigned int scanCode = MapVirtualKey(virtualKey, MAPVK_VK_TO_VSC);
+CStringW CAccelerator::GetVKeyName(int virtualKey) const {		// // //
+	unsigned int scanCode = MapVirtualKeyW(virtualKey, MAPVK_VK_TO_VSC);
 
 	// because MapVirtualKey strips the extended bit for some keys
 	switch (virtualKey) {
@@ -208,9 +210,9 @@ LPCWSTR CAccelerator::GetVKeyName(int virtualKey) const
 			break;
 	}
 
-	static WCHAR keyName[50];
+	WCHAR keyName[50] = { };
 
-	if (GetKeyNameTextW(scanCode << 16, keyName, sizeof(keyName)) != 0)
+	if (GetKeyNameTextW(scanCode << 16, keyName, std::size(keyName)) != 0)
 		return keyName;
 
 	return L"";
@@ -313,19 +315,19 @@ void CAccelerator::Setup()
 			a.cmd = x.id;
 			m_pAccelTable.push_back(a);
 		}
-	m_hAccel = CreateAcceleratorTable(m_pAccelTable.data(), ACCEL_COUNT);
+	m_hAccel = CreateAcceleratorTableW(m_pAccelTable.data(), ACCEL_COUNT);
 }
 
 BOOL CAccelerator::Translate(HWND hWnd, MSG *pMsg)
 {
 	if (m_hAdditionalAccel) {
-		if (TranslateAccelerator(hWnd, m_hAdditionalAccel, pMsg)) {
+		if (TranslateAcceleratorW(hWnd, m_hAdditionalAccel, pMsg)) {
 			return TRUE;
 		}
 	}
 
 	if (m_hAccel) {
-		if (TranslateAccelerator(hWnd, m_hAccel, pMsg)) {
+		if (TranslateAcceleratorW(hWnd, m_hAccel, pMsg)) {
 			return TRUE;
 		}
 	}

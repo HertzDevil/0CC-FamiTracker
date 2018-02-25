@@ -484,7 +484,7 @@ CStringW CFamiTrackerDoc::GetFileTitle() const
 	// Return file name without extension
 	CStringW FileName = GetTitle();
 
-	static const LPCWSTR EXT[] = {L".ftm", L".0cc", L".ftm.bak", L".0cc.bak"};		// // //
+	const LPCWSTR EXT[] = {L".ftm", L".0cc", L".ftm.bak", L".0cc.bak"};		// // //
 	// Remove extension
 
 	for (const auto &str : EXT) {

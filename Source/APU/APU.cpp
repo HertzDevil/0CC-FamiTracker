@@ -49,8 +49,6 @@ const uint8_t CAPU::LENGTH_TABLE[] = {
 	0xC0, 0x18, 0x48, 0x1A, 0x10, 0x1C, 0x20, 0x1E,
 };
 
-static std::vector<CSoundChip*> ExChips;
-
 CAPU::CAPU(IAudioCallback *pCallback) :		// // //
 	m_pMixer(std::make_unique<CMixer>()),		// // //
 	m_pParent(pCallback),
@@ -92,7 +90,7 @@ void CAPU::Process()
 
 		uint32_t Time = std::min(m_iCyclesToRun, m_iSequencerNext - m_iSequencerClock);		// // //
 
-		for (auto Chip : ExChips)		// // //
+		for (auto Chip : m_pExpansionChips)		// // //
 			Chip->Process(Time);
 
 		m_iFrameCycles	  += Time;
@@ -118,7 +116,7 @@ void CAPU::EndFrame()
 {
 	// The APU will always output audio in 32 bit signed format
 
-	for (auto Chip : ExChips)		// // //
+	for (auto Chip : m_pExpansionChips)		// // //
 		Chip->EndFrame();
 
 	int SamplesAvail = m_pMixer->FinishBuffer(m_iFrameCycles);
@@ -128,7 +126,7 @@ void CAPU::EndFrame()
 
 	m_iFrameCycles = 0;
 
-	for (auto &r : ExChips)		// // //
+	for (auto &r : m_pExpansionChips)		// // //
 		r->GetRegisterLogger().Step();
 
 #ifdef LOGGING
@@ -148,7 +146,7 @@ void CAPU::Reset()
 	m_iCyclesToRun		= 0;
 	m_iFrameCycles		= 0;
 
-	for (auto Chip : ExChips) {		// // //
+	for (auto Chip : m_pExpansionChips) {		// // //
 		Chip->GetRegisterLogger().Reset();
 		Chip->Reset();
 	}
@@ -177,22 +175,22 @@ void CAPU::SetExternalSound(const CSoundChipSet &Chip) {
 	m_iExternalSoundChip = Chip;
 	m_pMixer->ExternalSound(Chip);
 
-	ExChips.clear();
+	m_pExpansionChips.clear();
 
 	if (Chip.ContainsChip(sound_chip_t::APU))		// // //
-		ExChips.push_back(m_p2A03.get());
+		m_pExpansionChips.push_back(m_p2A03.get());
 	if (Chip.ContainsChip(sound_chip_t::VRC6))
-		ExChips.push_back(m_pVRC6.get());
+		m_pExpansionChips.push_back(m_pVRC6.get());
 	if (Chip.ContainsChip(sound_chip_t::VRC7))
-		ExChips.push_back(m_pVRC7.get());
+		m_pExpansionChips.push_back(m_pVRC7.get());
 	if (Chip.ContainsChip(sound_chip_t::FDS))
-		ExChips.push_back(m_pFDS.get());
+		m_pExpansionChips.push_back(m_pFDS.get());
 	if (Chip.ContainsChip(sound_chip_t::MMC5))
-		ExChips.push_back(m_pMMC5.get());
+		m_pExpansionChips.push_back(m_pMMC5.get());
 	if (Chip.ContainsChip(sound_chip_t::N163))
-		ExChips.push_back(m_pN163.get());
+		m_pExpansionChips.push_back(m_pN163.get());
 	if (Chip.ContainsChip(sound_chip_t::S5B))
-		ExChips.push_back(m_pS5B.get());
+		m_pExpansionChips.push_back(m_pS5B.get());
 
 	Reset();
 }
@@ -252,7 +250,7 @@ void CAPU::Write(uint16_t Address, uint8_t Value)
 
 	Process();
 
-	for (auto Chip : ExChips)		// // //
+	for (auto Chip : m_pExpansionChips)		// // //
 		Chip->Write(Address, Value);
 
 	LogWrite(Address, Value);
@@ -268,7 +266,7 @@ uint8_t CAPU::Read(uint16_t Address)
 
 	Process();
 
-	for (auto Chip : ExChips)		// // //
+	for (auto Chip : m_pExpansionChips)		// // //
 		if (!Mapped)
 			Value = Chip->Read(Address, Mapped);
 
@@ -384,7 +382,7 @@ decay_rate_t CAPU::GetMeterDecayRate() const		// // // 050B
 
 void CAPU::LogWrite(uint16_t Address, uint8_t Value)
 {
-	for (auto &r : ExChips)		// // //
+	for (auto &r : m_pExpansionChips)		// // //
 		r->Log(Address, Value);
 }
 

@@ -50,7 +50,7 @@ bool CModuleImporter::Validate() const {
 		return false;
 	}
 
-	static const inst_type_t INST[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
+	const inst_type_t INST[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
 
 	auto *pManager = modfile_.GetInstrumentManager();
 	auto *pDSampleManager = modfile_.GetDSampleManager();
@@ -95,7 +95,7 @@ void CModuleImporter::DoImport(bool doInst, bool doGroove, bool doDetune) {
 }
 
 void CModuleImporter::ImportInstruments() {
-	static const inst_type_t INST[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
+	const inst_type_t INST[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
 
 	auto *pManager = modfile_.GetInstrumentManager();
 	auto *pDSampleManager = modfile_.GetDSampleManager();

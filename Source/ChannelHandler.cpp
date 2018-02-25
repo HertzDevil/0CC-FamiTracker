@@ -540,7 +540,7 @@ void CChannelHandler::HandleNote(note_t Note, int Octave)		// // //
 
 void CChannelHandler::SetupSlide()		// // //
 {
-	static const auto GetSlideSpeed = [] (unsigned char param) {
+	const auto GetSlideSpeed = [] (unsigned char param) {
 		return ((param & 0xF0) >> 3) + 1;
 	};
 

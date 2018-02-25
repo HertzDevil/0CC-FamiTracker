@@ -77,7 +77,7 @@ bool CAudioDriver::PlayBuffer() {
 }
 
 bool CAudioDriver::DoPlayBuffer() {
-	static const int AUDIO_TIMEOUT = 2000;		// // // 2s buffer timeout
+	const int AUDIO_TIMEOUT = 2000;		// // // 2s buffer timeout
 
 	// Output to direct sound
 	DWORD dwEvent;

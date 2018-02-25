@@ -30,11 +30,15 @@
  *
  */
 
-static const unsigned char VRC7_SINE_PATCH[] = {0x01, 0x21, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x0F};		// // //
+namespace {
+
+const unsigned char VRC7_SINE_PATCH[] = {0x01, 0x21, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x0F};		// // //
+
+} // namespace
 
 CInstrumentVRC7::CInstrumentVRC7() : CInstrument(INST_VRC7), m_iPatch(0)		// // //
 {
-	memcpy(m_iRegs, VRC7_SINE_PATCH, sizeof(VRC7_SINE_PATCH));
+	memcpy(m_iRegs, VRC7_SINE_PATCH, std::size(VRC7_SINE_PATCH));
 }
 
 std::unique_ptr<CInstrument> CInstrumentVRC7::Clone() const

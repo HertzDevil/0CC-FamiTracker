@@ -53,7 +53,7 @@ public:
 	int				GetDefaultMod(int Item) const;					// Default modifier for shortcut
 	LPCWSTR			GetItemModName(int Item) const;					// Key string for shortcut
 	LPCWSTR			GetItemKeyName(int Item) const;					// Modifier string for shortcut
-	LPCWSTR			GetVKeyName(int virtualKey) const;				// Translates virtual key to a string
+	CStringW		GetVKeyName(int virtualKey) const;				// // // Translates virtual key to a string
 	void			StoreShortcut(int Item, int Key, int Mod);		// Store key and modifier for shortcut
 
 	void			SaveShortcuts(CSettings *pSettings) const;		// Save to registry

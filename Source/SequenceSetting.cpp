@@ -31,7 +31,9 @@
 
 // Sequence setting menu
 
-static const LPCWSTR SEQ_SETTING_TEXT[][SEQ_COUNT] = {		// // // 050B
+namespace {
+
+const LPCWSTR SEQ_SETTING_TEXT[][SEQ_COUNT] = {		// // // 050B
 	{L"16 steps", L"Absolute", L"Relative", nullptr, nullptr},
 	{L"64 steps",    L"Fixed", L"Absolute", nullptr, nullptr},
 #ifdef _DEBUG
@@ -41,6 +43,8 @@ static const LPCWSTR SEQ_SETTING_TEXT[][SEQ_COUNT] = {		// // // 050B
 #endif
 	{    nullptr,   L"Scheme",     nullptr, nullptr, nullptr},
 };
+
+} // namespace
 
 const UINT CSequenceSetting::MENU_ID_BASE = 0x1000U;		// // //
 const UINT CSequenceSetting::MENU_ID_MAX  = 0x100FU;		// // //

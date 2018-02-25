@@ -32,6 +32,7 @@
 #include "DialogReBar.h"
 #include "ControlPanelDlg.h"
 #include <memory>		// // //
+#include <tuple>		// // //
 
 enum frame_edit_pos_t {
 	FRAME_EDIT_POS_TOP,
@@ -176,7 +177,7 @@ private:
 	void	SetControlPanelPosition(control_panel_pos_t Position);		// // // 050B
 	void	SelectInstrumentFolder();
 
-	bool	CheckRepeat() const;
+	bool	CheckRepeat();		// // //
 
 	void	CheckAudioStatus();
 
@@ -240,6 +241,13 @@ private:  // control bar embedded members
 
 	int					m_iInstNumDigit;			// // //
 	int					m_iInstNumCurrent;
+
+	// // // static variables
+	std::tuple<int, int, int> m_iIndicatorLast = { };
+	unsigned			m_iPressLastTime = 0u;
+	unsigned			m_iPressRepeatCounter = 0u;
+	bool				m_bDisplayedError = false;
+	DWORD				m_iMessageTimeout = 0;
 
 public:
 	virtual BOOL Create(LPCWSTR lpszClassName, LPCWSTR lpszWindowName, DWORD dwStyle = WS_OVERLAPPEDWINDOW, const RECT& rect = rectDefault, CWnd* pParentWnd = NULL, LPCWSTR lpszMenuName = NULL, DWORD dwExStyle = 0, CCreateContext* pContext = NULL);

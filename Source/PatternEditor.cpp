@@ -70,7 +70,7 @@ void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t 
 		Target = Source;
 		return;
 	}
-	static const char Offset[] = {
+	const char Offset[] = {
 		offsetof(stChanNote, Note),
 		offsetof(stChanNote, Instrument),
 		offsetof(stChanNote, Vol),
@@ -1238,15 +1238,15 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	const stChanNote &NoteData, const RowColorInfo_t &ColorInfo) const		// // //
 {
 	// Sharps
-	static const wchar_t NOTES_A_SHARP[] = {L'C', L'C', L'D', L'D', L'E', L'F', L'F', L'G', L'G', L'A', L'A', L'B'};
-	static const wchar_t NOTES_B_SHARP[] = {L'-', L'#', L'-', L'#', L'-', L'-', L'#', L'-', L'#', L'-', L'#', L'-'};
+	const wchar_t NOTES_A_SHARP[] = {L'C', L'C', L'D', L'D', L'E', L'F', L'F', L'G', L'G', L'A', L'A', L'B'};
+	const wchar_t NOTES_B_SHARP[] = {L'-', L'#', L'-', L'#', L'-', L'-', L'#', L'-', L'#', L'-', L'#', L'-'};
 	// Flats
-	static const wchar_t NOTES_A_FLAT[] = {L'C', L'D', L'D', L'E', L'E', L'F', L'G', L'G', L'A', L'A', L'B', L'B'};
-	static const wchar_t NOTES_B_FLAT[] = {L'-', L'b', L'-', L'b', L'-', L'-', L'b', L'-', L'b', L'-', L'b', L'-'};
+	const wchar_t NOTES_A_FLAT[] = {L'C', L'D', L'D', L'E', L'E', L'F', L'G', L'G', L'A', L'A', L'B', L'B'};
+	const wchar_t NOTES_B_FLAT[] = {L'-', L'b', L'-', L'b', L'-', L'-', L'b', L'-', L'b', L'-', L'b', L'-'};
 	// Octaves
-	static const wchar_t NOTES_C[] = {L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7', L'8', L'9'};
+	const wchar_t NOTES_C[] = {L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7', L'8', L'9'};
 	// Hex numbers
-	static const wchar_t HEX[] = {L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7', L'8', L'9', L'A', L'B', L'C', L'D', L'E', L'F'};
+	const wchar_t HEX[] = {L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7', L'8', L'9', L'A', L'B', L'C', L'D', L'E', L'F'};
 
 	const bool m_bDisplayFlat = Env.GetSettings()->Appearance.bDisplayFlats;		// // //
 
@@ -1560,9 +1560,17 @@ array_fmap(const std::array<T, N> &arr, F f) {
 }
 
 constexpr COLORREF MeterCol(unsigned vol) noexcept {		// // //
-	const COLORREF COL_MIN = MakeRGB(64, 240, 32);
-	const COLORREF COL_MAX = MakeRGB(240, 240, 0);
+	constexpr COLORREF COL_MIN = MakeRGB(64, 240, 32);
+	constexpr COLORREF COL_MAX = MakeRGB(240, 240, 0);
 	return BlendColors(COL_MAX, vol * vol, COL_MIN, 300 - vol * vol);
+}
+
+constexpr COLORREF dim60(COLORREF c) noexcept {
+	return DIM(c, .6);
+}
+
+constexpr COLORREF dim90(COLORREF c) noexcept {
+	return DIM(c, .9);
 }
 
 } // namespace details
@@ -1579,9 +1587,9 @@ void CPatternEditor::DrawMeters(CDC &DC)
 	const int BAR_SPACE	 = 1;
 	const int BAR_HEIGHT = 5;
 
-	static const auto colors = details::array_fmap(details::index_array(std::make_index_sequence<CELL_COUNT>()), details::MeterCol);
-	static const auto colors_dim = details::array_fmap(colors, [] (COLORREF c) { return DIM(c, .6); });
-	static const auto colors_shadow = details::array_fmap(colors, [] (COLORREF c) { return DIM(c, .9); });
+	constexpr auto colors = details::array_fmap(details::index_array(std::make_index_sequence<CELL_COUNT>()), details::MeterCol);
+	constexpr auto colors_dim = details::array_fmap(colors, details::dim60);
+	constexpr auto colors_shadow = details::array_fmap(colors, details::dim90);
 
 	// // //
 
@@ -3492,8 +3500,8 @@ void CPatternEditor::GetSelectionAsText(CStringW &str) const		// // //
 	}
 	str = Header.TrimRight() + L"\r\n";
 
-	static const int COLUMN_CHAR_POS[] = {0, 4, 7, 9, 13, 17, 21};
-	static const int COLUMN_CHAR_LEN[] = {3, 2, 1, 3, 3, 3, 3};
+	const int COLUMN_CHAR_POS[] = {0, 4, 7, 9, 13, 17, 21};
+	const int COLUMN_CHAR_LEN[] = {3, 2, 1, 3, 3, 3, 3};
 	const int Last = pSongView->GetEffectColumnCount(it.second.m_iChannel) + 3;
 	const unsigned BegCol = GetSelectColumn(it.first.m_iColumn);
 	const unsigned EndCol = GetSelectColumn(it.second.m_iColumn);

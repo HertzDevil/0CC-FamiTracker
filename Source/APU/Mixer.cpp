@@ -59,10 +59,12 @@
 #include "APU/APU.h"
 #include "APU/ext/emu2413.h"		// // //
 
-static const float LEVEL_FALL_OFF_RATE	= 0.6f;
-static const int   LEVEL_FALL_OFF_DELAY = 3;
+namespace {
 
+const float LEVEL_FALL_OFF_RATE = 0.6f;
+const int   LEVEL_FALL_OFF_DELAY = 3;
 
+} // namespace
 
 void CMixer::ExternalSound(CSoundChipSet Chip) {		// // //
 	m_iExternalChip = Chip;

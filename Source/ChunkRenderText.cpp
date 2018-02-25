@@ -35,7 +35,11 @@
  *
  */
 
-static const int DEFAULT_LINE_BREAK = 20;
+namespace {
+
+const int DEFAULT_LINE_BREAK = 20;
+
+} // namespace
 
 // // // TODO: remove
 CStringA CChunkRenderText::GetLabelString(const stChunkLabel &label) {

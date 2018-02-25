@@ -238,7 +238,7 @@ void CVisualizerWnd::OnRButtonUp(UINT nFlags, CPoint point)
 	menuPoint.x = rect.left + point.x;
 	menuPoint.y = rect.top + point.y;
 
-	static const UINT menuIds[] = {
+	const UINT menuIds[] = {
 		ID_POPUP_SAMPLESCOPE1,
 		ID_POPUP_SAMPLESCOPE2,
 		ID_POPUP_SPECTRUMANALYZER,

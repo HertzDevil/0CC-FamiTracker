@@ -33,7 +33,9 @@
 // The DPCM sample editor
 //
 
-static UINT indicators[] = {		// // //
+namespace {
+
+UINT indicators[] = {		// // //
 	ID_INDICATOR_DPCM_SEGMENT,
 	ID_INDICATOR_DPCM_SIZE,
 	ID_INDICATOR_DPCM_ENDPOS,
@@ -43,6 +45,8 @@ enum {
 	TMR_PLAY_CURSOR,
 	TMR_START_CURSOR,
 };
+
+} // namespace
 
 // CSampleEditorDlg dialog
 

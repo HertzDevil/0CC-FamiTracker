@@ -29,10 +29,14 @@
 #include "FamiTrackerDoc.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 
-static unsigned char default_inst[(16+3)*16] =
+namespace {
+
+unsigned char default_inst[(16+3)*16] =
 {
 #include "apu/ext/vrc7tone.h"
 };
+
+} // namespace
 
 // CInstrumentSettingsVRC7 dialog
 

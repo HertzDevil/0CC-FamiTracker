@@ -388,7 +388,7 @@ void CNoiseChan::HandleNote(note_t Note, int Octave)
 
 void CNoiseChan::SetupSlide()		// // //
 {
-	static const auto GetSlideSpeed = [] (unsigned char param) {
+	const auto GetSlideSpeed = [] (unsigned char param) {
 		return ((param & 0xF0) >> 3) + 1;
 	};
 
