@@ -44,7 +44,7 @@
 
 #ifndef Assert
 #  if FT0CC_DEBUG
-#    define Assert(b) do { if (!b) DEBUG_BREAK(); } while (false)
+#    define Assert(b) do { if (!(b)) DEBUG_BREAK(); } while (false)
 #  else
 #    define Assert(b) ((void)0)
 #  endif
