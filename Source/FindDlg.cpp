@@ -33,6 +33,7 @@
 #include "SongData.h"
 #include "SongView.h"
 #include "ChannelName.h"
+#include "NoteName.h"
 #include "str_conv/str_conv.hpp"
 
 namespace {
@@ -226,7 +227,7 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 		if (Noise)
 			m_cListResults.SetItemText(Pos, NOTE, (conv::to_wide(conv::from_int_hex(MIDI_NOTE(Note.Octave, Note.Note) & 0x0F)) + L"-#").data());
 		else
-			m_cListResults.SetItemText(Pos, NOTE, conv::to_wide(Note.ToString()).data());
+			m_cListResults.SetItemText(Pos, NOTE, conv::to_wide(GetNoteString(Note)).data());
 	}
 
 	if (Note.Instrument == HOLD_INSTRUMENT)		// // // 050B
@@ -490,18 +491,17 @@ int CFindResultsBox::NoteCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lPar
 	CStringW y = pList->GetItemText(lParam2, m_iLastsortColumn);
 
 	const auto ToIndex = [] (std::string_view x) {
-		if (x.size() == 2 && x.front() == '^')
-			return 0x400 + x.back();
-		if (x == "===")
-			return 0x300;
-		if (x == "---")
+		auto [note, octave] = ReadNoteFromString(x);
+		switch (note) {
+		case note_t::HALT:
 			return 0x200;
-		if (x.size() == 3 && x.back() == '#')
-			return 0x100 + x.front();
-		for (int i = 0; i < NOTE_RANGE; ++i) {
-			const auto &n = stChanNote::NOTE_NAME[i];
-			if (n == x.substr(0, n.size()))
-				return MIDI_NOTE(x.back() - '0', static_cast<note_t>(++i));
+		case note_t::RELEASE:
+			return 0x300;
+		case note_t::ECHO:
+			return 0x400 + octave;
+		default:
+			if (IsNote(note))
+				return MIDI_NOTE(octave, note);
 		}
 		return -1;
 	};

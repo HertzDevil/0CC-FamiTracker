@@ -39,6 +39,7 @@
 #include <algorithm>		// // //
 #include "NumConv.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
+#include "NoteName.h"		// // //
 
 LPCWSTR NO_SAMPLE_STR = L"(no sample)";
 
@@ -170,8 +171,7 @@ BOOL CInstrumentEditorDPCM::OnInitDialog()
 
 	pTableListCtrl->DeleteAllItems();		// // //
 	for (int i = 0; i < NOTE_COUNT; ++i)
-		pTableListCtrl->InsertItem(i, FormattedW(L"%s%d",
-			conv::to_wide(stChanNote::NOTE_NAME[value_cast(GET_NOTE(i)) - 1]).data(), GET_OCTAVE(i)));
+		pTableListCtrl->InsertItem(i, conv::to_wide(GetNoteString(GET_NOTE(i), GET_OCTAVE(i))).data());
 	pTableListCtrl->GetItemRect(0, &r, 2);		// // //
 	pTableListCtrl->Scroll({0, DEFAULT_OCTAVE * NOTE_RANGE * r.Height()});
 

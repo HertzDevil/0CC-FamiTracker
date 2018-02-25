@@ -31,6 +31,7 @@
 #include "PatternNote.h"		// // //
 #include "Color.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
+#include "NoteName.h"		// // //
 
 // CGraphEditor
 
@@ -812,13 +813,11 @@ void CArpeggioGraphEditor::DrawRange(CDC &DC, int Max, int Min)
 
 		// Top
 		int NoteValue = m_iScrollOffset + 20;
-		DC.TextOutW(2, m_GraphRect.top - 3, FormattedW(L"%s%d",
-			conv::to_wide(stChanNote::NOTE_NAME[value_cast(GET_NOTE(NoteValue)) - 1]).data(), GET_OCTAVE(NoteValue)));		// // //
+		DC.TextOutW(2, m_GraphRect.top - 3, conv::to_wide(GetNoteString(GET_NOTE(NoteValue), GET_OCTAVE(NoteValue))).data());		// // //
 
 		// Bottom
 		NoteValue = m_iScrollOffset;
-		DC.TextOutW(2, m_GraphRect.bottom - 13, FormattedW(L"%s%d",
-			conv::to_wide(stChanNote::NOTE_NAME[value_cast(GET_NOTE(NoteValue)) - 1]).data(), GET_OCTAVE(NoteValue)));
+		DC.TextOutW(2, m_GraphRect.bottom - 13, conv::to_wide(GetNoteString(GET_NOTE(NoteValue), GET_OCTAVE(NoteValue))).data());
 
 		DC.SelectObject(pOldFont);
 	}

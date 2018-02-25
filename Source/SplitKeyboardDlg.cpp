@@ -31,6 +31,7 @@
 #include "ChannelOrder.h"
 #include "str_conv/str_conv.hpp"
 #include "NumConv.h"
+#include "NoteName.h"
 
 // CSplitKeyboardDlg dialog
 
@@ -78,11 +79,8 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	const auto pDoc = CFamiTrackerDoc::GetDoc();
 
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_NOTE));
-	for (auto n : stChanNote::NOTE_NAME) {
-		if (n.back() == '-')
-			n.pop_back();
+	for (auto n : KEY_NAME)
 		pCombo->AddString(conv::to_wide(n).data());
-	}
 	pCombo->SetCurSel(m_iSplitNote != -1 ? (value_cast(GET_NOTE(m_iSplitNote)) - 1) : 0);
 
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_OCTAVE));

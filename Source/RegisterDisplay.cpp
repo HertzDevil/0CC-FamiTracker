@@ -34,6 +34,7 @@
 #include "PatternNote.h"
 #include <algorithm>
 #include "str_conv/str_conv.hpp"		// // //
+#include "NoteName.h"		// // //
 
 namespace {
 
@@ -47,27 +48,14 @@ double NoteFromFreq(double Freq) {
 	return 45.0 + 12.0 * (std::log(Freq / 440.0) / log(2.0));
 }
 
-std::string NoteToStr(int Note) {
-	int Octave = GET_OCTAVE(Note) + 1;		// // //
-	int Index = value_cast(GET_NOTE(Note)) - 1;
-
-	std::string str;
-	if (Env.GetSettings()->Appearance.bDisplayFlats)
-		str = stChanNote::NOTE_NAME_FLAT[Index];
-	else
-		str = stChanNote::NOTE_NAME[Index];
-	str += std::to_string(Octave);
-	return str;
-}
-
 CStringA GetPitchText(int digits, int period, double freq) {
-	const CStringA fmt = "pitch = $%0*X (%7.2fHz %s %+03i)";
+	const LPCSTR fmt = "pitch = $%0*X (%7.2fHz %s %+03i)";
 	const double note = NoteFromFreq(freq);
 	const int note_conv = note >= 0 ? int(note + 0.5) : int(note - 0.5);
 	const int cents = int((note - double(note_conv)) * 100.0);
 
 	if (freq != 0.)
-		return FormattedA(fmt, digits, period, freq, NoteToStr(note_conv).data(), cents);
+		return FormattedA(fmt, digits, period, freq, GetNoteString(GET_NOTE(note_conv), GET_OCTAVE(note_conv) + 1).data(), cents);
 	return FormattedA(fmt, digits, period, 0., "---", 0);
 };
 

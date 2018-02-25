@@ -20,32 +20,19 @@
 ** must bear this legend.
 */
 
-#include "PatternNote.h"
 
-using namespace std::string_literals;
+#pragma once
 
-const std::string stChanNote::NOTE_NAME[NOTE_RANGE] = {
-	"C-"s, "C#"s, "D-"s, "D#"s, "E-"s, "F-"s,
-	"F#"s, "G-"s, "G#"s, "A-"s, "A#"s, "B-"s,
+#include <string>
+#include <string_view>
+
+enum class note_t : unsigned char;
+class stChanNote;
+
+extern std::string GetNoteString(note_t note, int octave);
+extern std::string GetNoteString(const stChanNote &note);
+extern std::pair<note_t, int> ReadNoteFromString(std::string_view sv);
+
+inline const std::string_view KEY_NAME[] = {
+	"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
 };
-
-const std::string stChanNote::NOTE_NAME_FLAT[NOTE_RANGE] = {
-	"C-"s, "Db"s, "D-"s, "Eb"s, "E-"s, "F-"s,
-	"Gb"s, "G-"s, "Ab"s, "A-"s, "Bb"s, "B-"s,
-};
-
-std::string stChanNote::ToString() const
-{
-	switch (Note) {
-	case note_t::NONE:
-		return "..."s;
-	case note_t::HALT:
-		return "---"s;
-	case note_t::RELEASE:
-		return "==="s;
-	case note_t::ECHO:
-		return "^-"s + std::to_string(Octave);
-	default:
-		return NOTE_NAME[value_cast(Note) - 1] + std::to_string(Octave);
-	}
-}

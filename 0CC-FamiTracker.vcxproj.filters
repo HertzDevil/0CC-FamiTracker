@@ -618,9 +618,6 @@
     <ClCompile Include="Source\APU\2A03.cpp">
       <Filter>Source Files\Sound Driver\Emulation\Sound Chips</Filter>
     </ClCompile>
-    <ClCompile Include="Source\PatternNote.cpp">
-      <Filter>Source Files\Document Data Types</Filter>
-    </ClCompile>
     <ClCompile Include="Source\CompoundAction.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
@@ -794,6 +791,9 @@
     </ClCompile>
     <ClCompile Include="Source\ChannelOrder.cpp">
       <Filter>Source Files\Sound Driver</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\NoteName.cpp">
+      <Filter>Source Files\Other</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1482,6 +1482,9 @@
       <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\json\json.hpp">
+      <Filter>Header Files\Other Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\NoteName.h">
       <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
   </ItemGroup>

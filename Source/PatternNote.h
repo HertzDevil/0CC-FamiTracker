@@ -24,14 +24,11 @@
 #pragma once
 
 #include "FamiTrackerTypes.h"
-#include <string>
 
 // Channel note struct, holds the data for each row in patterns
 class stChanNote {
 public:
 	constexpr stChanNote() noexcept = default;
-
-	std::string ToString() const;
 
 	constexpr bool operator==(const stChanNote &other) const noexcept {
 		for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
@@ -51,8 +48,4 @@ public:
 	unsigned char Instrument = MAX_INSTRUMENTS;
 	effect_t      EffNumber[MAX_EFFECT_COLUMNS] = {effect_t::NONE, effect_t::NONE, effect_t::NONE, effect_t::NONE};		// // //
 	unsigned char EffParam[MAX_EFFECT_COLUMNS] = {0U, 0U, 0U, 0U};
-
-public:
-	static const std::string NOTE_NAME[NOTE_RANGE];
-	static const std::string NOTE_NAME_FLAT[NOTE_RANGE];
 };

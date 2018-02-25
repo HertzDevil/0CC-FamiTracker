@@ -462,6 +462,7 @@
     <ClCompile Include="Source\Kraid.cpp" />
     <ClCompile Include="Source\ModuleAction.cpp" />
     <ClCompile Include="Source\ModuleImporter.cpp" />
+    <ClCompile Include="Source\NoteName.cpp" />
     <ClCompile Include="Source\PatternClipData.cpp" />
     <ClCompile Include="Source\PatternData.cpp" />
     <ClCompile Include="Source\RegisterDisplay.cpp" />
@@ -496,7 +497,6 @@
     <ClCompile Include="Source\MainFrm.cpp" />
     <ClCompile Include="Source\ModuleException.cpp" />
     <ClCompile Include="Source\OldSequence.cpp" />
-    <ClCompile Include="Source\PatternNote.cpp" />
     <ClCompile Include="Source\RecordSettingsDlg.cpp" />
     <ClCompile Include="Source\SeqInstHandler.cpp" />
     <ClCompile Include="Source\SeqInstHandlerFDS.cpp" />
@@ -663,6 +663,7 @@
     <ClInclude Include="Source\Kraid.h" />
     <ClInclude Include="Source\ModuleAction.h" />
     <ClInclude Include="Source\ModuleImporter.h" />
+    <ClInclude Include="Source\NoteName.h" />
     <ClInclude Include="Source\NoteQueue.h" />
     <ClInclude Include="Source\NumConv.h" />
     <ClInclude Include="Source\PatternClipData.h" />

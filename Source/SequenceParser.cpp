@@ -25,6 +25,7 @@
 #include "PatternNote.h"
 #include "sv_regex.h"
 #include "NumConv.h"
+#include "NoteName.h"
 
 // // //
 
@@ -271,10 +272,7 @@ bool CSeqConversionArpScheme::GetNextTerm(std::string_view &sv, int &Out)
 
 std::string CSeqConversionArpFixed::ToString(char Value) const
 {
-	stChanNote Note;
-	Note.Note = GET_NOTE(static_cast<unsigned char>(Value));
-	Note.Octave = GET_OCTAVE(static_cast<unsigned char>(Value));
-	return Note.ToString();
+	return GetNoteString(GET_NOTE(static_cast<unsigned char>(Value)), GET_OCTAVE(static_cast<unsigned char>(Value)));
 }
 
 bool CSeqConversionArpFixed::GetNextTerm(std::string_view &sv, int &Out)
