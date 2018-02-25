@@ -33,7 +33,7 @@
 #include "SoundGenBase.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
 #include "Settings.h"		// // //
-#include "APU/APU.h"
+#include "APU/APUInterface.h"		// // //
 #include "InstHandler.h"		// // //
 #include "NumConv.h"		// // //
 #include <algorithm>		// // //
@@ -70,11 +70,11 @@ CChannelHandler::~CChannelHandler()
 {
 }
 
-void CChannelHandler::InitChannel(CAPU *pAPU, const int *pVibTable, CSoundGenBase *pSoundGen)		// // //
+void CChannelHandler::InitChannel(CAPUInterface &apu, const int *pVibTable, CSoundGenBase *pSoundGen)		// // //
 {
 	// Called from main thread
 
-	m_pAPU = pAPU;
+	m_pAPU = &apu;
 	m_pVibratoTable = pVibTable;
 	m_pSoundGen = pSoundGen;
 

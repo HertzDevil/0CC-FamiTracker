@@ -626,11 +626,11 @@ void CSoundGen::ApplyGlobalState()		// // //
 
 // // //
 void CSoundGen::OnTick() {
+	if (m_pTempoDisplay)		// // // 050B
+		m_pTempoDisplay->Tick();
 	CSingleLock l(&m_csRenderer); l.Lock();
 	if (is_rendering_impl())
 		m_pWaveRenderer->Tick();
-	if (m_pTempoDisplay)		// // // 050B
-		m_pTempoDisplay->Tick();
 }
 
 void CSoundGen::OnStepRow() {
@@ -650,7 +650,7 @@ void CSoundGen::OnPlayNote(chan_id_t chan, const stChanNote &note) {
 }
 
 void CSoundGen::OnUpdateRow(int frame, int row) {
-	auto pMark = m_pModule->GetSong(m_iLastTrack)->GetBookmarks().FindAt(frame, row);
+	auto *pMark = m_pModule->GetSong(m_iLastTrack)->GetBookmarks().FindAt(frame, row);
 	if (pMark && pMark->m_Highlight.First != -1)		// // //
 		m_iLastHighlight = pMark->m_Highlight.First;
 	if (!IsBackgroundTask() && m_pTrackerView)		// // //

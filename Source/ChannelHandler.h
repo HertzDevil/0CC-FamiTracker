@@ -28,6 +28,7 @@ static const int DUTY_2A03_FROM_VRC6[] = {0, 0, 1, 1, 1, 1, 2, 2};		// // //
 static const int DUTY_VRC6_FROM_2A03[] = {1, 3, 7, 3};		// // //
 
 class CInstHandler;
+class CAPUInterface;		// // //
 class stChannelState;
 class CSoundGenBase;		// // //
 
@@ -60,10 +61,10 @@ public:
 
 	// Public functions
 	/*!	\brief Initializes the channel handler and sets up member pointers.
-		\param pAPU Pointer to the sound channel object.
+		\param pAPU Reference to the sound channel object.
 		\param pVibTable Pointer to the vibrato lookup table.
 		\param pSoundGen Pointer to the sound generator object. */
-	void	InitChannel(CAPU *pAPU, const int *pVibTable, CSoundGenBase *pSoundGen);		// // //
+	void	InitChannel(CAPUInterface &apu, const int *pVibTable, CSoundGenBase *pSoundGen);		// // //
 	/*!	\brief Called by the MIDI auto-arpeggio function to play a given note value.
 		\param Note The note value. */
 	void	Arpeggiate(unsigned int Note);
@@ -489,7 +490,7 @@ protected:
 
 	// Misc
 	/*!	\brief A pointer to the underlying sound channel controller object. */
-	CAPU			*m_pAPU;
+	CAPUInterface	*m_pAPU = nullptr;
 	/*!	\brief A pointer to the sound generator object. */
 	CSoundGenBase	*m_pSoundGen = nullptr;		// // //
 

@@ -28,6 +28,7 @@
 #include "Common.h"
 #include <memory>		// // //
 #include "SoundChipSet.h"		// // //
+#include "APUInterface.h"		// // //
 
 // External classes
 class C2A03;		// // //
@@ -50,7 +51,7 @@ enum chip_level_t : unsigned char;		// // //
 class CFile;
 #endif
 
-class CAPU {
+class CAPU : public CAPUInterface {
 public:
 	explicit CAPU(IAudioCallback *pCallback = nullptr);		// // //
 	~CAPU();
@@ -61,7 +62,7 @@ public:
 	void	EndFrame();		// // // public
 
 	void	SetExternalSound(const CSoundChipSet &Chip);
-	void	Write(uint16_t Address, uint8_t Value);		// // //
+	void	Write(uint16_t Address, uint8_t Value) override;		// // //
 	uint8_t	Read(uint16_t Address);
 
 	void	ChangeMachineRate(int Machine, int Rate);		// // //

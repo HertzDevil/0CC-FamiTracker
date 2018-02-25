@@ -1487,6 +1487,9 @@
     <ClInclude Include="Source\NoteName.h">
       <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Source\APU\APUInterface.h">
+      <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="0CC-FamiTracker.rc">

@@ -38,7 +38,7 @@ class CTempoCounter;
 class CPlayerCursor;
 class CChannelHandler;
 class CTrackerChannel;
-class CAPU;
+class CAPUInterface;
 class CSongState;
 class stChanNote;
 class CSoundGenBase;
@@ -52,7 +52,7 @@ public:
 
 	void SetupTracks();
 	void AssignModule(const CFamiTrackerModule &modfile);
-	void LoadAPU(CAPU &apu);
+	void LoadAPU(CAPUInterface &apu);
 	void ConfigureDocument();
 
 	std::unique_ptr<CChannelMap> MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const;

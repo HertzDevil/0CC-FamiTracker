@@ -117,10 +117,10 @@ void CSoundDriver::AssignModule(const CFamiTrackerModule &modfile) {
 	modfile_ = &modfile;
 }
 
-void CSoundDriver::LoadAPU(CAPU &apu) {
+void CSoundDriver::LoadAPU(CAPUInterface &apu) {
 	// Setup all channels
 	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &) {
-		ch.InitChannel(&apu, m_iVibratoTable, parent_);
+		ch.InitChannel(apu, m_iVibratoTable, parent_);
 	});
 }
 
@@ -137,7 +137,6 @@ void CSoundDriver::ConfigureDocument() {
 }
 
 std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const {
-	// This affects the sound channel interface so it must be synchronized
 	auto map = std::make_unique<CChannelMap>(chips, n163chs);		// // //
 
 	// Register the channels in the document
