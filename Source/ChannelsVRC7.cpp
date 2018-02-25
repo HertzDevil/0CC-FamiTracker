@@ -298,9 +298,6 @@ void CChannelHandlerVRC7::RefreshChannel()
 	}
 
 	RegWrite(0x20 + subindex, ((Fnum >> 8) & 1) | (Bnum << 1) | Cmd);
-
-	if (m_iChannelID == chan_id_t::VRC7_CH6)		// // // 050B
-		((CChipHandler *)m_pChipHandler)->RefreshAfter(*m_pAPU);
 }
 
 void CChannelHandlerVRC7::ClearRegisters()

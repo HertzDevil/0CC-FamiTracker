@@ -87,6 +87,8 @@ void CSoundDriver::AssignModule(const CFamiTrackerModule &modfile) {
 }
 
 void CSoundDriver::LoadAPU(CAPUInterface &apu) {
+	apu_ = &apu;
+
 	// Setup all channels
 	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &) {
 		ch.InitChannel(apu, m_iVibratoTable, parent_);
@@ -228,6 +230,9 @@ void CSoundDriver::PlayerTick() {
 }
 
 void CSoundDriver::UpdateChannels() {
+	for (auto &chip : chips_)
+		chip->RefreshBefore(*apu_);
+
 	ForeachTrack([&] (CChannelHandler &Chan, CTrackerChannel &TrackerChan, chan_id_t ID) {		// // //
 		if (!modfile_->GetChannelOrder().HasChannel(ID))
 			return;
@@ -248,6 +253,9 @@ void CSoundDriver::UpdateChannels() {
 		Chan.RefreshChannel();
 		Chan.FinishTick();		// // //
 	});
+
+	for (auto &chip : chips_)
+		chip->RefreshAfter(*apu_);
 }
 
 void CSoundDriver::QueueNote(chan_id_t chan, const stChanNote &note, note_prio_t priority) {

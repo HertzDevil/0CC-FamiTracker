@@ -120,6 +120,7 @@ private:
 	std::vector<std::unique_ptr<CChipHandler>> chips_;		// // //
 	const CFamiTrackerModule *modfile_ = nullptr;		// // //
 	CSoundGenBase *parent_ = nullptr;		// // //
+	CAPUInterface *apu_ = nullptr;		// // //
 
 	bool				m_bPlaying = false;
 	bool				m_bHaltRequest = false;
