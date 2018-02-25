@@ -31,7 +31,6 @@
 #include "PlayerCursor.h"
 #include "DetuneTable.h"
 #include "SongState.h"
-#include "ChannelsN163.h"
 #include "ChannelMap.h"
 #include <cmath>
 #include "Assertion.h"
@@ -129,10 +128,7 @@ void CSoundDriver::ConfigureDocument() {
 	SetupPeriodTables();
 
 	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &) {
-		ch.SetVibratoStyle(modfile_->GetVibratoStyle());
-		ch.SetLinearPitch(modfile_->GetLinearPitch());
-		if (auto pChan = dynamic_cast<CChannelHandlerN163 *>(&ch))
-			pChan->SetChannelCount(modfile_->GetNamcoChannels());
+		ch.ConfigureDocument(*modfile_);
 	});
 }
 

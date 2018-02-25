@@ -24,6 +24,7 @@
 
 #include "ChannelsFDS.h"
 #include "APU/Types.h"		// // //
+#include "Instrument.h"		// // //
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 #include "SeqInstHandlerFDS.h"		// // //

@@ -26,6 +26,7 @@
 #include "APU/Types.h"		// // //
 #include "Sequence.h"		// // //
 #include "APU/APU.h"
+#include "Instrument.h"		// // //
 #include "InstHandler.h"		// // //
 #include "SeqInstHandlerS5B.h"		// // //
 #include "SongState.h"		// // //

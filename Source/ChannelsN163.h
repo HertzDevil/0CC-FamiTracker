@@ -43,6 +43,8 @@ public:
 	void	SetChannelCount(int Count);		// // //
 
 protected:
+	void	ConfigureDocument(const CFamiTrackerModule &modfile) override;		// // //
+
 	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //
 	bool	HandleInstrument(bool Trigger, bool NewInstrument) override;		// // //
 	void	HandleEmptyNote() override;

@@ -22,19 +22,22 @@
 
 #pragma once
 
-class CAPU;
 
 static const int DUTY_2A03_FROM_VRC6[] = {0, 0, 1, 1, 1, 1, 2, 2};		// // //
 static const int DUTY_VRC6_FROM_2A03[] = {1, 3, 7, 3};		// // //
+
+class CAPU;
 
 class CInstHandler;
 class CAPUInterface;		// // //
 class stChannelState;
 class CSoundGenBase;		// // //
+class CFamiTrackerModule;		// // //
+
+enum inst_type_t : unsigned;		// // //
 
 #include "ChannelHandlerInterface.h"
 #include "FamiTrackerTypes.h"		// // //
-#include "Instrument.h"		// // //
 #include "PatternNote.h"		// // //
 #include <memory>		// // //
 #include <string>		// // //
@@ -65,6 +68,9 @@ public:
 		\param pVibTable Pointer to the vibrato lookup table.
 		\param pSoundGen Pointer to the sound generator object. */
 	void	InitChannel(CAPUInterface &apu, const int *pVibTable, CSoundGenBase *pSoundGen);		// // //
+	/*! \brief Updates the channel handler after the module is modified.
+		\param modfile Reference to the module object. */
+	virtual void ConfigureDocument(const CFamiTrackerModule &modfile);		// // //
 	/*!	\brief Called by the MIDI auto-arpeggio function to play a given note value.
 		\param Note The note value. */
 	void	Arpeggiate(unsigned int Note);

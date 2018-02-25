@@ -24,6 +24,7 @@
 
 #include "ChannelsMMC5.h"
 #include "APU/Types.h"		// // //
+#include "Instrument.h"		// // //
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 #include "SongState.h"		// // //

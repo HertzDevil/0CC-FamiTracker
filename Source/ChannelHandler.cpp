@@ -28,9 +28,11 @@
 #include "ChannelHandler.h"
 #include "SongState.h"		// // //
 #include "InstrumentManager.h"
+#include "Instrument.h"		// // //
 #include "TrackerChannel.h"		// // //
 #include "APU/Types.h"		// // //
 #include "SoundGenBase.h"		// // //
+#include "FamiTrackerModule.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
 #include "Settings.h"		// // //
 #include "APU/APUInterface.h"		// // //
@@ -79,6 +81,11 @@ void CChannelHandler::InitChannel(CAPUInterface &apu, const int *pVibTable, CSou
 	m_pSoundGen = pSoundGen;
 
 	m_bDelayEnabled = false;
+}
+
+void CChannelHandler::ConfigureDocument(const CFamiTrackerModule &modfile) {		// // //
+	SetVibratoStyle(modfile.GetVibratoStyle());
+	SetLinearPitch(modfile.GetLinearPitch());
 }
 
 void CChannelHandler::SetLinearPitch(bool bEnable)		// // //

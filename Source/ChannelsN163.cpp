@@ -29,6 +29,7 @@
 #include "SeqInstHandler.h"		// // //
 #include "SeqInstHandlerN163.h"		// // //
 #include "SongState.h"		// // //
+#include "FamiTrackerModule.h"		// // //
 #ifdef _DEBUG
 #include "stdafx.h" // ASSERT
 #endif
@@ -52,6 +53,11 @@ void CChannelHandlerN163::ResetChannel()
 	m_iWavePos = m_iWavePosOld = 0;		// // //
 	m_iWaveLen = 4;
 	m_bLoadWave = false;
+}
+
+void CChannelHandlerN163::ConfigureDocument(const CFamiTrackerModule &modfile) {		// // //
+	CChannelHandler::ConfigureDocument(modfile);
+	SetChannelCount(modfile.GetNamcoChannels());
 }
 
 bool CChannelHandlerN163::HandleEffect(effect_t EffNum, unsigned char EffParam)

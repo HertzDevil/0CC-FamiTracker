@@ -28,6 +28,7 @@
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "FamiTrackerEnv.h"		// // //
 #include "Settings.h"
+#include "Instrument.h"		// // //
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 #include "InstHandlerDPCM.h"		// // //

@@ -24,11 +24,12 @@
 
 #include "ChannelsVRC7.h"
 #include "APU/Types.h"		// // //
+#include "Instrument.h"		// // //
 #include "InstHandler.h"		// // //
 #include "InstHandlerVRC7.h"		// // //
 
-#define OPL_NOTE_ON 0x10
-#define OPL_SUSTAIN_ON 0x20
+const int OPL_NOTE_ON = 0x10;
+const int OPL_SUSTAIN_ON = 0x20;
 
 const int VRC7_PITCH_RESOLUTION = 2;		// // // extra bits for internal pitch
 
@@ -267,7 +268,7 @@ void CVRC7Channel::RefreshChannel()
 
 	unsigned subindex = GetSubIndex();		// // //
 
-											// Write custom instrument
+	// Write custom instrument
 	if (m_iDutyPeriod == 0 && (m_iCommand == CMD_NOTE_TRIGGER || m_bRegsDirty)) {
 		for (int i = 0; i < 8; ++i)
 			RegWrite(i, m_iPatchRegs[i]);
