@@ -177,7 +177,8 @@ void CSoundDriver::ResetTracks() {
 }
 
 void CSoundDriver::LoadSoundState(const CSongState &state) {
-	m_pTempoCounter->LoadSoundState(state);
+	if (m_pTempoCounter)
+		m_pTempoCounter->LoadSoundState(state);
 	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &tr, chan_id_t id) {		// // //
 		if (modfile_->GetChannelOrder().HasChannel(id))
 			ch.ApplyChannelState(state.State[value_cast(id)]);
@@ -185,8 +186,8 @@ void CSoundDriver::LoadSoundState(const CSongState &state) {
 }
 
 void CSoundDriver::SetTempoCounter(std::shared_ptr<CTempoCounter> tempo) {
-	m_pTempoCounter = std::move(tempo);
-	m_pTempoCounter->AssignModule(*modfile_);
+	if (m_pTempoCounter = std::move(tempo); m_pTempoCounter)
+		m_pTempoCounter->AssignModule(*modfile_);
 }
 
 void CSoundDriver::Tick() {
@@ -207,6 +208,8 @@ void CSoundDriver::StepRow(chan_id_t chan) {
 }
 
 void CSoundDriver::PlayerTick() {
+	if (!m_pTempoCounter)
+		return;
 	m_pPlayerCursor->Tick();
 	if (parent_)
 		parent_->OnTick();
@@ -435,33 +438,31 @@ void CSoundDriver::HandleGlobalEffects(stChanNote &note) {
 	for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i) {
 		unsigned char EffParam = note.EffParam[i];
 		switch (note.EffNumber[i]) {
-			// Fxx: Sets speed to xx
-			case effect_t::SPEED:
+		// Fxx: Sets speed to xx
+		case effect_t::SPEED:
+			if (m_pTempoCounter)
 				m_pTempoCounter->DoFxx(EffParam ? EffParam : 1);		// // //
-				break;
-
-			// Oxx: Sets groove to xx
-			case effect_t::GROOVE:		// // //
+			break;
+		// Oxx: Sets groove to xx
+		case effect_t::GROOVE:		// // //
+			if (m_pTempoCounter)
 				m_pTempoCounter->DoOxx(EffParam % MAX_GROOVE);		// // //
-				break;
-
-			// Bxx: Jump to pattern xx
-			case effect_t::JUMP:
-				m_iJumpToPattern = EffParam;
-				break;
-
-			// Dxx: Skip to next track and start at row xx
-			case effect_t::SKIP:
-				m_iSkipToRow = EffParam;
-				break;
-
-			// Cxx: Halt playback
-			case effect_t::HALT:
-				m_bDoHalt = true;		// // //
-				m_pPlayerCursor->DoCxx();		// // //
-				break;
-
-			default: continue;		// // //
+			break;
+		// Bxx: Jump to pattern xx
+		case effect_t::JUMP:
+			m_iJumpToPattern = EffParam;
+			break;
+		// Dxx: Skip to next track and start at row xx
+		case effect_t::SKIP:
+			m_iSkipToRow = EffParam;
+			break;
+		// Cxx: Halt playback
+		case effect_t::HALT:
+			m_bDoHalt = true;		// // //
+			m_pPlayerCursor->DoCxx();		// // //
+			break;
+		default:
+			continue;		// // //
 		}
 
 		note.EffNumber[i] = effect_t::NONE;
