@@ -273,7 +273,7 @@ CFamiTrackerView::CFamiTrackerView() :
 	m_bMaskInstrument(false),
 	m_bMaskVolume(true),
 	m_bSwitchToInstrument(false),
-	m_iPastePos(PASTE_CURSOR),		// // //
+	m_iPastePos(paste_pos_t::CURSOR),		// // //
 	m_iSwitchToInstrument(-1),
 	m_bFollowMode(true),
 	m_bCompactMode(false),		// // //
@@ -857,7 +857,7 @@ void CFamiTrackerView::UpdateSongView() {		// // //
 
 void CFamiTrackerView::OnEditCopy()
 {
-	if (m_pPatternEditor->GetSelectionCondition() == SEL_NONTERMINAL_SKIP) {		// // //
+	if (m_pPatternEditor->GetSelectionCondition() == sel_condition_t::NONTERMINAL_SKIP) {		// // //
 		CMainFrame *pMainFrm = GetMainFrame();		// // //
 		MessageBeep(MB_ICONWARNING);
 		pMainFrm->SetMessageText(IDS_SEL_NONTERMINAL_SKIP);
@@ -886,25 +886,25 @@ void CFamiTrackerView::OnEditCut()
 void CFamiTrackerView::OnEditPaste()
 {
 	if (m_bEditEnable)
-		DoPaste(PASTE_DEFAULT);
+		DoPaste(paste_mode_t::DEFAULT);
 }
 
 void CFamiTrackerView::OnEditPasteMix()		// // //
 {
 	if (m_bEditEnable)
-		DoPaste(PASTE_MIX);
+		DoPaste(paste_mode_t::MIX);
 }
 
 void CFamiTrackerView::OnEditPasteOverwrite()		// // //
 {
 	if (m_bEditEnable)
-		DoPaste(PASTE_OVERWRITE);
+		DoPaste(paste_mode_t::OVERWRITE);
 }
 
 void CFamiTrackerView::OnEditPasteInsert()		// // //
 {
 	if (m_bEditEnable)
-		DoPaste(PASTE_INSERT);
+		DoPaste(paste_mode_t::INSERT);
 }
 
 void CFamiTrackerView::DoPaste(paste_mode_t Mode) {		// // //
@@ -1332,23 +1332,23 @@ void CFamiTrackerView::OnUpdateTrackerEdit(CCmdUI *pCmdUI)
 
 void CFamiTrackerView::OnEditPasteSpecialCursor()		// // //
 {
-	m_iPastePos = PASTE_CURSOR;
+	m_iPastePos = paste_pos_t::CURSOR;
 }
 
 void CFamiTrackerView::OnEditPasteSpecialSelection()
 {
-	m_iPastePos = PASTE_SELECTION;
+	m_iPastePos = paste_pos_t::SELECTION;
 }
 
 void CFamiTrackerView::OnEditPasteSpecialFill()
 {
-	m_iPastePos = PASTE_FILL;
+	m_iPastePos = paste_pos_t::FILL;
 }
 
 void CFamiTrackerView::OnUpdatePasteSpecial(CCmdUI *pCmdUI)
 {
 	if (pCmdUI->m_pMenu != NULL)
-		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_PASTESPECIAL_CURSOR, ID_PASTESPECIAL_FILL, ID_PASTESPECIAL_CURSOR + m_iPastePos, MF_BYCOMMAND);
+		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_PASTESPECIAL_CURSOR, ID_PASTESPECIAL_FILL, ID_PASTESPECIAL_CURSOR + (unsigned)m_iPastePos, MF_BYCOMMAND);
 }
 
 void CFamiTrackerView::OnUpdateDisableWhilePlaying(CCmdUI *pCmdUI)
@@ -2541,10 +2541,7 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 	if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9)
 		nChar = '0' + nChar - VK_NUMPAD0;
 
-	bool bValidEffect = false;
-	effect_t Effect = GetEffectFromChar(nChar, Chip, &bValidEffect);		// // //
-
-	if (bValidEffect) {
+	if (effect_t Effect = GetEffectFromChar(nChar, Chip); Effect != effect_t::NONE) {		// // //
 		Note.EffNumber[EffectIndex] = Effect;
 		if (m_bEditEnable && Note.EffNumber[EffectIndex] != effect_t::NONE)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
@@ -3382,12 +3379,12 @@ DROPEFFECT CFamiTrackerView::OnDragEnter(COleDataObject* pDataObject, DWORD dwKe
 	TRACE(L"OLE: OnDragEnter\n");
 
 //	sel_condition_t Cond = m_pPatternEditor->GetSelectionCondition();
-	if (m_pPatternEditor->GetSelectionCondition() == SEL_NONTERMINAL_SKIP) {		// // //
+	if (m_pPatternEditor->GetSelectionCondition() == sel_condition_t::NONTERMINAL_SKIP) {		// // //
 		MessageBeep(MB_ICONWARNING);
 		static_cast<CMainFrame*>(GetParentFrame())->SetMessageText(IDS_SEL_NONTERMINAL_SKIP);
 		m_nDropEffect = DROPEFFECT_NONE;
 	}
-	else if (m_pPatternEditor->GetSelectionCondition() == SEL_REPEATED_ROW) {		// // //
+	else if (m_pPatternEditor->GetSelectionCondition() == sel_condition_t::REPEATED_ROW) {		// // //
 		MessageBeep(MB_ICONWARNING);
 		static_cast<CMainFrame*>(GetParentFrame())->SetMessageText(IDS_SEL_REPEATED_ROW);
 		m_nDropEffect = DROPEFFECT_NONE;

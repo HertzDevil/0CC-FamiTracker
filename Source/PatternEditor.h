@@ -43,7 +43,7 @@ struct RowColorInfo_t {
 	COLORREF Compact;		// // //
 };
 
-extern void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t Mode, column_t Begin, column_t End);		// // //
+extern void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t Mode, column_t Begin, column_t End);		// // //
 
 // External classes
 class CFamiTrackerModule;
@@ -147,7 +147,7 @@ public:
 	std::unique_ptr<CPatternClipData> CopyRaw() const;		// // //
 	std::unique_ptr<CPatternClipData> CopyRaw(const CSelection &Sel) const;		// // //
 	void PasteEntire(const CPatternClipData &ClipData);
-	void Paste(const CPatternClipData &ClipData, const paste_mode_t PasteMode, const paste_pos_t PastePos);		// // //
+	void Paste(const CPatternClipData &ClipData, paste_mode_t PasteMode, paste_pos_t PastePos);		// // //
 	void PasteRaw(const CPatternClipData &ClipData);		// // //
 	void PasteRaw(const CPatternClipData &ClipData, const CCursorPos &Pos);		// // //
 

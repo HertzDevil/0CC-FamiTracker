@@ -101,10 +101,10 @@ const UINT indicators[] =
 };
 
 // Timers
-enum {
-	TMR_WELCOME,
-	TMR_AUDIO_CHECK,
-	TMR_AUTOSAVE,
+enum class timer_id_t : UINT {		// // //
+	WELCOME,
+	AUDIO_CHECK,
+	AUTOSAVE,
 };
 
 // Repeat config
@@ -420,14 +420,14 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	}
 
 	// Initial message, 100ms
-	SetTimer(TMR_WELCOME, 100, NULL);
+	SetTimer((UINT_PTR)timer_id_t::WELCOME, 100, NULL);
 
 	// Periodic audio check, 500ms
-	SetTimer(TMR_AUDIO_CHECK, 500, NULL);
+	SetTimer((UINT_PTR)timer_id_t::AUDIO_CHECK, 500, NULL);
 
 	// Auto save
 #ifdef AUTOSAVE
-	SetTimer(TMR_AUTOSAVE, 1000, NULL);
+	SetTimer((UINT_PTR)timer_id_t::AUTOSAVE, 1000, NULL);
 #endif
 
 	m_wndOctaveBar.CheckDlgButton(IDC_FOLLOW, theApp.GetSettings()->FollowMode);
@@ -1742,20 +1742,20 @@ void CMainFrame::OnUpdateInstrumentEdit(CCmdUI *pCmdUI)
 void CMainFrame::OnTimer(UINT nIDEvent)
 {
 	CStringW text;
-	switch (nIDEvent) {
+	switch ((timer_id_t)nIDEvent) {
 		// Welcome message
-		case TMR_WELCOME:
+		case timer_id_t::WELCOME:
 			AfxFormatString1(text, IDS_WELCOME_VER_FORMAT, conv::to_wide(Get0CCFTVersionString()).data());
 			SetMessageText(text);
-			KillTimer(TMR_WELCOME);
+			KillTimer((UINT_PTR)timer_id_t::WELCOME);
 			break;
 		// Check sound player
-		case TMR_AUDIO_CHECK:
+		case timer_id_t::AUDIO_CHECK:
 			CheckAudioStatus();
 			break;
 #ifdef AUTOSAVE
 		// Auto save
-		case TMR_AUTOSAVE: {
+		case timer_id_t::AUTOSAVE: {
 			/*
 				CFamiTrackerDoc *pDoc = dynamic_cast<CFamiTrackerDoc*>(GetActiveDocument());
 				if (pDoc != NULL)
@@ -2519,7 +2519,7 @@ void CMainFrame::OnDestroy()
 
 	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
 
-	KillTimer(TMR_AUDIO_CHECK);
+	KillTimer((UINT_PTR)timer_id_t::AUDIO_CHECK);
 
 	// Clean up sound stuff
 	if (pSoundGen && pSoundGen->IsRunning()) {

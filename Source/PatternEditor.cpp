@@ -64,10 +64,10 @@ const int CPatternEditor::DEFAULT_HEADER_FONT_SIZE	= 11;
 
 // // //
 
-void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t Mode, column_t Begin, column_t End)		// // //
+void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t Mode, column_t Begin, column_t End)		// // //
 {
 	if (Begin == COLUMN_NOTE && End == COLUMN_EFF4) {
-		*Target = *Source;
+		Target = Source;
 		return;
 	}
 	static const char Offset[] = {
@@ -81,10 +81,10 @@ void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t 
 	};
 	bool Protected[sizeof(Offset)] = {};
 	for (size_t i = 0; i < sizeof(Offset); ++i) {
-		const unsigned char TByte = *(reinterpret_cast<unsigned char*>(Target) + Offset[i]); // skip octave byte
-		const unsigned char SByte = *(reinterpret_cast<const unsigned char*>(Source) + Offset[i]);
+		const unsigned char TByte = *(reinterpret_cast<unsigned char*>(&Target) + Offset[i]); // skip octave byte
+		const unsigned char SByte = *(reinterpret_cast<const unsigned char*>(&Source) + Offset[i]);
 		switch (Mode) {
-		case PASTE_MIX:
+		case paste_mode_t::MIX:
 			switch (i) {
 			case COLUMN_NOTE:
 				if (TByte != value_cast(note_t::NONE)) Protected[i] = true;
@@ -99,7 +99,7 @@ void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t 
 				if (TByte != value_cast(effect_t::NONE)) Protected[i] = true;
 			}
 			// continue
-		case PASTE_OVERWRITE:
+		case paste_mode_t::OVERWRITE:
 			switch (i) {
 			case COLUMN_NOTE:
 				if (SByte == value_cast(note_t::NONE)) Protected[i] = true;
@@ -118,12 +118,12 @@ void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t 
 
 	if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT) {
 		switch (Mode) {
-		case PASTE_MIX:
-			if (Target->Note != note_t::NONE || Target->Instrument != MAX_INSTRUMENTS || Target->Vol != MAX_VOLUME)
+		case paste_mode_t::MIX:
+			if (Target.Note != note_t::NONE || Target.Instrument != MAX_INSTRUMENTS || Target.Vol != MAX_VOLUME)
 				Protected[COLUMN_NOTE] = Protected[COLUMN_INSTRUMENT] = Protected[COLUMN_VOLUME] = true;
 			// continue
-		case PASTE_OVERWRITE:
-			if (Source->Note == note_t::NONE && Source->Instrument == MAX_INSTRUMENTS && Source->Vol == MAX_VOLUME)
+		case paste_mode_t::OVERWRITE:
+			if (Source.Note == note_t::NONE && Source.Instrument == MAX_INSTRUMENTS && Source.Vol == MAX_VOLUME)
 				Protected[COLUMN_NOTE] = Protected[COLUMN_INSTRUMENT] = Protected[COLUMN_VOLUME] = true;
 		}
 	}
@@ -134,18 +134,18 @@ void CopyNoteSection(stChanNote *Target, const stChanNote *Source, paste_mode_t 
 
 	for (unsigned i = Begin; i <= End; i++) if (!Protected[i]) switch (i) {
 	case COLUMN_NOTE:
-		Target->Note = Source->Note;
-		Target->Octave = Source->Octave;
+		Target.Note = Source.Note;
+		Target.Octave = Source.Octave;
 		break;
 	case COLUMN_INSTRUMENT:
-		Target->Instrument = Source->Instrument;
+		Target.Instrument = Source.Instrument;
 		break;
 	case COLUMN_VOLUME:
-		Target->Vol = Source->Vol;
+		Target.Vol = Source.Vol;
 		break;
 	default:
-		Target->EffNumber[i - 3] = Source->EffNumber[i - 3];
-		Target->EffParam[i - 3] = Source->EffParam[i - 3];
+		Target.EffNumber[i - 3] = Source.EffNumber[i - 3];
+		Target.EffParam[i - 3] = Source.EffParam[i - 3];
 	}
 }
 
@@ -207,7 +207,7 @@ CPatternEditor::CPatternEditor() :
 	m_bCompactMode(false),		// // //
 	m_iWarpCount(0),		// // //
 	m_iDragBeginWarp(0),		// // //
-	m_iSelectionCondition(SEL_CLEAN),		// // //
+	m_iSelectionCondition(sel_condition_t::CLEAN),		// // //
 	// Benchmarking
 	m_iRedraws(0),
 	m_iFullRedraws(0),
@@ -1127,7 +1127,7 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 	const double BlendLv = Frame == m_cpCursorPos.m_iFrame ? 1. : PREVIEW_SHADE_LEVEL;
 	const COLORREF SelectColor = DIM(BLEND(ColSelect, BackColor, SHADE_LEVEL::SELECT), BlendLv);		// // //
 	const COLORREF DragColor = DIM(BLEND(SEL_DRAG_COL, BackColor, SHADE_LEVEL::SELECT), BlendLv);
-	const COLORREF SelectEdgeCol = (m_iSelectionCondition == SEL_CLEAN /* || m_iSelectionCondition == SEL_UNKNOWN_SIZE*/ ) ?
+	const COLORREF SelectEdgeCol = (m_iSelectionCondition == sel_condition_t::CLEAN /* || m_iSelectionCondition == sel_condition_t::UNKNOWN_SIZE*/ ) ?
 		DIM(BLEND(SelectColor, WHITE, SHADE_LEVEL::SELECT_EDGE), BlendLv) :
 		MakeRGB(255, 0, 0);
 
@@ -1185,7 +1185,7 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 		}
 
 		// Draw each column
-		const int BorderWidth = (m_iSelectionCondition == SEL_NONTERMINAL_SKIP) ? 2 : 1;		// // //
+		const int BorderWidth = (m_iSelectionCondition == sel_condition_t::NONTERMINAL_SKIP) ? 2 : 1;		// // //
 		for (int _j = 0; _j <= Columns; ++_j) {
 			cursor_column_t j = static_cast<cursor_column_t>(_j);
 			int SelWidth = GetSelectWidth(m_bCompactMode ? C_NOTE : j);		// // //
@@ -2454,7 +2454,7 @@ void CPatternEditor::BeginMouseSelection(const CPoint &point)
 	if (IsInsidePattern(point)) {
 		// Selection threshold
 		if (abs(m_ptSelStartPoint.x - point.x) > m_iDragThresholdX || abs(m_ptSelStartPoint.y - point.y) > m_iDragThresholdY) {
-			m_iSelectionCondition = SEL_CLEAN;		// // //
+			m_iSelectionCondition = sel_condition_t::CLEAN;		// // //
 			m_bSelecting = true;
 		}
 	}
@@ -2687,7 +2687,7 @@ void CPatternEditor::DragPaste(const CPatternClipData &ClipData, const CSelectio
 	// Set cursor location
 	m_cpCursorPos = DragTarget.m_cpStart;
 
-	Paste(ClipData, bMix ? PASTE_MIX : PASTE_DEFAULT, PASTE_DRAG);		// // //
+	Paste(ClipData, bMix ? paste_mode_t::MIX : paste_mode_t::DEFAULT, paste_pos_t::DRAG);		// // //
 
 	// // // Update selection
 	m_selection.m_cpStart = DragTarget.m_cpStart;
@@ -2827,7 +2827,7 @@ std::unique_ptr<CPatternClipData> CPatternEditor::Copy() const
 	for (int r = 0; r < Rows; r++) {		// // //
 		for (int i = 0; i < Channels; ++i) {
 			stChanNote *Target = pClipData->GetPattern(i, r);
-			/*CopyNoteSection(Target, &NoteData, PASTE_DEFAULT,
+			/*CopyNoteSection(*Target, NoteData, paste_mode_t::DEFAULT,
 				i == 0 ? ColStart : COLUMN_NOTE, i == Channels - 1 ? ColEnd : COLUMN_EFF4);*/
 			*Target = it.Get(i + m_selection.GetChanStart());
 			// the clip data should store the entire field;
@@ -2885,32 +2885,32 @@ void CPatternEditor::PasteEntire(const CPatternClipData &ClipData)
 			pSongView->GetPatternOnFrame(i, Frame).SetNoteOn(j, *ClipData.GetPattern(i, j));		// // //
 }
 
-void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t PasteMode, const paste_pos_t PastePos)		// // //
+void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteMode, paste_pos_t PastePos)		// // //
 {
 	// // // Paste
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	CSongData &Song = pSongView->GetSong();
 	const unsigned int ChannelCount = GetChannelCount();
 
-	const unsigned int Channels	   = (PastePos == PASTE_FILL) ?
+	const unsigned int Channels	   = (PastePos == paste_pos_t::FILL) ?
 		m_selection.GetChanEnd() - m_selection.GetChanStart() + 1 : ClipData.ClipInfo.Channels;
-	const unsigned int Rows		   = (PastePos == PASTE_FILL) ? GetSelectionSize() : ClipData.ClipInfo.Rows;
+	const unsigned int Rows		   = (PastePos == paste_pos_t::FILL) ? GetSelectionSize() : ClipData.ClipInfo.Rows;
 	const column_t StartColumn = ClipData.ClipInfo.StartColumn;
 	const column_t EndColumn   = ClipData.ClipInfo.EndColumn;
 
-	bool AtSel = (PastePos == PASTE_SELECTION || PastePos == PASTE_FILL);
-	const int f = AtSel ? m_selection.GetFrameStart() : (PastePos == PASTE_DRAG ? m_selDrag.GetFrameStart() : m_cpCursorPos.m_iFrame);
-	const unsigned int r = AtSel ? m_selection.GetRowStart() : (PastePos == PASTE_DRAG ? m_selDrag.GetRowStart() : m_cpCursorPos.m_iRow);
-	const unsigned int c = AtSel ? m_selection.GetChanStart() : (PastePos == PASTE_DRAG ? m_selDrag.GetChanStart() : m_cpCursorPos.m_iChannel);
+	bool AtSel = (PastePos == paste_pos_t::SELECTION || PastePos == paste_pos_t::FILL);
+	const int f = AtSel ? m_selection.GetFrameStart() : (PastePos == paste_pos_t::DRAG ? m_selDrag.GetFrameStart() : m_cpCursorPos.m_iFrame);
+	const unsigned int r = AtSel ? m_selection.GetRowStart() : (PastePos == paste_pos_t::DRAG ? m_selDrag.GetRowStart() : m_cpCursorPos.m_iRow);
+	const unsigned int c = AtSel ? m_selection.GetChanStart() : (PastePos == paste_pos_t::DRAG ? m_selDrag.GetChanStart() : m_cpCursorPos.m_iChannel);
 	const unsigned int CEnd = std::min(Channels + c, ChannelCount);
 
-	CPatternIterator it = CPatternIterator(*m_pView->GetSongView(), CCursorPos(r, c, GetCursorStartColumn(StartColumn), f));		// // //
+	CPatternIterator it(*m_pView->GetSongView(), CCursorPos(r, c, GetCursorStartColumn(StartColumn), f));		// // //
 
 	const unsigned int FrameLength = Song.GetPatternLength();
 
-	if (PasteMode == PASTE_INSERT) {		// // //
-		CPatternIterator front = CPatternIterator(*m_pView->GetSongView(), CCursorPos(FrameLength - 1, c, GetCursorStartColumn(StartColumn), f));
-		CPatternIterator back = CPatternIterator(*m_pView->GetSongView(), CCursorPos(FrameLength - 1 - Rows, c, GetCursorEndColumn(EndColumn), f));
+	if (PasteMode == paste_mode_t::INSERT) {		// // //
+		CPatternIterator front(*m_pView->GetSongView(), CCursorPos(FrameLength - 1, c, GetCursorStartColumn(StartColumn), f));
+		CPatternIterator back(*m_pView->GetSongView(), CCursorPos(FrameLength - 1 - Rows, c, GetCursorEndColumn(EndColumn), f));
 		front.m_iFrame = back.m_iFrame = f; // do not warp
 		front.m_iRow = FrameLength - 1;
 		back.m_iRow = FrameLength - 1 - Rows;
@@ -2918,7 +2918,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t 
 			for (unsigned int i = c; i < CEnd; i++) {
 				const auto &Source = back.Get(i);
 				auto NoteData = front.Get(i);
-				CopyNoteSection(&NoteData, &Source, PasteMode, (i == c) ? StartColumn : COLUMN_NOTE,
+				CopyNoteSection(NoteData, Source, PasteMode, (i == c) ? StartColumn : COLUMN_NOTE,
 					std::min((i == Channels + c - 1) ? EndColumn : COLUMN_EFF4,
 								static_cast<column_t>(COLUMN_EFF1 + pSongView->GetEffectColumnCount(i))));
 				front.Set(i, NoteData);
@@ -2941,10 +2941,10 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t 
 					break;
 				bool Protected = false;
 				switch (PasteMode) {
-				case PASTE_MIX:
+				case paste_mode_t::MIX:
 					if (NoteData.EffNumber[Offset] != effect_t::NONE) Protected = true;
 					// continue
-				case PASTE_OVERWRITE:
+				case paste_mode_t::OVERWRITE:
 					if (Source.EffNumber[i] == effect_t::NONE) Protected = true;
 				}
 				if (!Protected) {
@@ -2954,10 +2954,11 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t 
 			}
 			it.Set(c, NoteData);
 			if ((++it).m_iRow == 0) { // end of frame reached
-				if ((!Env.GetSettings()->General.bOverflowPaste && PasteMode != PASTE_OVERFLOW) ||
-					PasteMode == PASTE_INSERT) break;
+				if ((!Env.GetSettings()->General.bOverflowPaste) || PasteMode == paste_mode_t::INSERT)
+					break;
 			}
-			if (it.m_iFrame == f && it.m_iRow == r) break;
+			if (it.m_iFrame == f && it.m_iRow == r)
+				break;
 		}
 		return;
 	}
@@ -2969,14 +2970,15 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, const paste_mode_t 
 				static_cast<column_t>(COLUMN_EFF1 + pSongView->GetEffectColumnCount(i)));
 			auto NoteData = it.Get(i);
 			const auto &Source = *(ClipData.GetPattern(cGet, j % ClipData.ClipInfo.Rows));
-			CopyNoteSection(&NoteData, &Source, PasteMode, (!cGet) ? StartColumn : COLUMN_NOTE, ColEnd);
+			CopyNoteSection(NoteData, Source, PasteMode, (!cGet) ? StartColumn : COLUMN_NOTE, ColEnd);
 			it.Set(i, NoteData);
 		}
 		if ((++it).m_iRow == 0) { // end of frame reached
-			if ((!Env.GetSettings()->General.bOverflowPaste && PasteMode != PASTE_OVERFLOW) ||
-				PasteMode == PASTE_INSERT) break;
+			if ((!Env.GetSettings()->General.bOverflowPaste) || PasteMode == paste_mode_t::INSERT)
+				break;
 		}
-		if (!((it.m_iFrame - f) % GetFrameCount()) && it.m_iRow == r) break;
+		if (!((it.m_iFrame - f) % GetFrameCount()) && it.m_iRow == r)
+			break;
 	}
 }
 
@@ -3011,7 +3013,7 @@ void CPatternEditor::PasteRaw(const CPatternClipData &ClipData, const CCursorPos
 			CPatternData &pattern = pSongView->GetPatternOnFrame(c, f);
 			stChanNote &Target = pattern.GetNoteOn(line);
 			const stChanNote &Source = *(ClipData.GetPattern(i, r));
-			CopyNoteSection(&Target, &Source, PASTE_DEFAULT, (i == 0) ? StartColumn : COLUMN_NOTE,
+			CopyNoteSection(Target, Source, paste_mode_t::DEFAULT, (i == 0) ? StartColumn : COLUMN_NOTE,
 				std::min((i == Channels + Pos.m_iChannel - 1) ? EndColumn : COLUMN_EFF4, maxcol));
 		}
 	}
@@ -3083,7 +3085,7 @@ int CPatternEditor::GetSelectionSize() const		// // //
 sel_condition_t CPatternEditor::GetSelectionCondition() const		// // //
 {
 	if (!m_bSelecting)
-		return SEL_CLEAN;
+		return sel_condition_t::CLEAN;
 	return GetSelectionCondition(m_selection);
 }
 
@@ -3102,13 +3104,13 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 					switch (Note.EffNumber[c]) {
 					case effect_t::JUMP: case effect_t::SKIP: case effect_t::HALT:
 						if (Sel.IsColumnSelected(static_cast<column_t>(COLUMN_EFF1 + c), i))
-							return it.first == it.second ? SEL_TERMINAL_SKIP : SEL_NONTERMINAL_SKIP;
+							return it.first == it.second ? sel_condition_t::TERMINAL_SKIP : sel_condition_t::NONTERMINAL_SKIP;
 						/*else if (it != End)
 							HasSkip = true;*/
 					}
 			}
 			/*if (HasSkip)
-				return SEL_UNKNOWN_SIZE;*/
+				return sel_condition_t::UNKNOWN_SIZE;*/
 		}
 	}
 
@@ -3123,13 +3125,13 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 			int RBegin = i == Sel.GetFrameStart() ? Sel.GetRowStart() : 0;
 			int REnd = i == Sel.GetFrameEnd() ? Sel.GetRowEnd() : GetCurrentPatternLength(i) - 1;
 			if (Lo[Pattern] <= Hi[Pattern] && RBegin <= Hi[Pattern] && REnd >= Lo[Pattern])
-				return SEL_REPEATED_ROW;
+				return sel_condition_t::REPEATED_ROW;
 			Lo[Pattern] = std::min(Lo[Pattern], static_cast<unsigned char>(RBegin));
 			Hi[Pattern] = std::max(Hi[Pattern], static_cast<unsigned char>(REnd));
 		}
 	}
 
-	return SEL_CLEAN;
+	return sel_condition_t::CLEAN;
 }
 
 void CPatternEditor::UpdateSelectionCondition()		// // //

@@ -69,20 +69,20 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 	CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 	CCursorPos Start;
 
-	if ((m_iPastePos == PASTE_SELECTION || m_iPastePos == PASTE_FILL) && !m_bSelecting)
-		m_iPastePos = PASTE_CURSOR;
+	if ((m_iPastePos == paste_pos_t::SELECTION || m_iPastePos == paste_pos_t::FILL) && !m_bSelecting)
+		m_iPastePos = paste_pos_t::CURSOR;
 
 	switch (m_iPastePos) { // m_iColumn will be written later
-	case PASTE_CURSOR:
+	case paste_pos_t::CURSOR:
 		Start = m_pUndoState->Cursor;
 		break;
-	case PASTE_DRAG:
+	case paste_pos_t::DRAG:
 		Start.m_iFrame = m_dragTarget.GetFrameStart();
 		Start.m_iRow = m_dragTarget.GetRowStart();
 		Start.m_iChannel = m_dragTarget.GetChanStart();
 		break;
-	case PASTE_SELECTION:
-	case PASTE_FILL:
+	case paste_pos_t::SELECTION:
+	case paste_pos_t::FILL:
 		Start.m_iFrame = m_selection.GetFrameStart();
 		Start.m_iRow = m_selection.GetRowStart();
 		Start.m_iChannel = m_selection.GetChanStart();
@@ -93,7 +93,7 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 
 	CPatternIterator End(*pSongView, Start);
 
-	if (m_iPasteMode == PASTE_INSERT) {
+	if (m_iPasteMode == paste_mode_t::INSERT) {
 		End.m_iFrame = Start.m_iFrame;
 		End.m_iRow = pPatternEditor->GetCurrentPatternLength(End.m_iFrame) - 1;
 	}
@@ -101,7 +101,7 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 		End += m_pClipData->ClipInfo.Rows - 1;
 
 	switch (m_iPastePos) {
-	case PASTE_FILL:
+	case paste_pos_t::FILL:
 		End.m_iFrame = m_selection.GetFrameEnd();
 		End.m_iRow = m_selection.GetRowEnd();
 		End.m_iChannel = m_selection.GetChanEnd();
@@ -111,7 +111,7 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 			m_pClipData->ClipInfo.EndColumn :
 			static_cast<column_t>(COLUMN_EFF1 + pSongView->GetEffectColumnCount(End.m_iChannel)));
 		break;
-	case PASTE_DRAG:
+	case paste_pos_t::DRAG:
 		End.m_iChannel += m_pClipData->ClipInfo.Channels - 1;
 		Start.m_iColumn = m_dragTarget.GetColStart();
 		End.m_iColumn = m_dragTarget.GetColEnd();
@@ -133,7 +133,7 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 	if (static_cast<int>(EFBEGIN - Start.m_iColumn) > OFFS)
 		OFFS = EFBEGIN - Start.m_iColumn;
 	if (Start.m_iChannel == End.m_iChannel && Start.m_iColumn >= EFBEGIN && End.m_iColumn >= EFBEGIN) {
-		if (m_iPastePos != PASTE_DRAG) {
+		if (m_iPastePos != paste_pos_t::DRAG) {
 			End.m_iColumn = static_cast<cursor_column_t>(End.m_iColumn + OFFS);
 			Start.m_iColumn = static_cast<cursor_column_t>(Start.m_iColumn + OFFS);
 			if (End.m_iColumn > C_EFF4_PARAM2)
@@ -147,7 +147,7 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 	pPatternEditor->SetSelection(New);
 
 	sel_condition_t Cond = pPatternEditor->GetSelectionCondition();
-	if (Cond == SEL_CLEAN) {
+	if (Cond == sel_condition_t::CLEAN) {
 		Sel = New;
 		return true;
 	}
@@ -156,10 +156,10 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 		if (!m_bSelecting) pPatternEditor->CancelSelection();
 		int Confirm = IDYES;
 		switch (Cond) {
-		case SEL_REPEATED_ROW:
+		case sel_condition_t::REPEATED_ROW:
 			Confirm = AfxMessageBox(IDS_PASTE_REPEATED_ROW, MB_YESNO | MB_ICONEXCLAMATION | MB_DEFBUTTON2);
 			break;
-		case SEL_NONTERMINAL_SKIP: case SEL_TERMINAL_SKIP:
+		case sel_condition_t::NONTERMINAL_SKIP: case sel_condition_t::TERMINAL_SKIP:
 			if (!bOverflow) break;
 			Confirm = AfxMessageBox(IDS_PASTE_NONTERMINAL, MB_YESNO | MB_ICONEXCLAMATION | MB_DEFBUTTON2);
 			break;
@@ -184,7 +184,7 @@ void CPatternAction::DeleteSelection(CSongView &view, const CSelection &Sel) con
 
 	do for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
 		auto NoteData = it.first.Get(i);
-		CopyNoteSection(&NoteData, &BLANK, PASTE_DEFAULT,
+		CopyNoteSection(NoteData, BLANK, paste_mode_t::DEFAULT,
 						i == it.first.m_iChannel ? ColStart : COLUMN_NOTE,
 						i == it.second.m_iChannel ? ColEnd : COLUMN_EFF4);
 		it.first.Set(i, NoteData);
@@ -196,13 +196,13 @@ bool CPatternAction::ValidateSelection(const CPatternEditor &Editor) const		// /
 	if (!m_pUndoState->IsSelecting)
 		return false;
 	switch (Editor.GetSelectionCondition(m_pUndoState->Selection)) {
-	case SEL_CLEAN:
+	case sel_condition_t::CLEAN:
 		return true;
-	case SEL_REPEATED_ROW:
+	case sel_condition_t::REPEATED_ROW:
 		static_cast<CFrameWnd*>(AfxGetMainWnd())->SetMessageText(IDS_SEL_REPEATED_ROW); break;
-	case SEL_NONTERMINAL_SKIP:
+	case sel_condition_t::NONTERMINAL_SKIP:
 		static_cast<CFrameWnd*>(AfxGetMainWnd())->SetMessageText(IDS_SEL_NONTERMINAL_SKIP); break;
-	case SEL_TERMINAL_SKIP:
+	case sel_condition_t::TERMINAL_SKIP:
 		static_cast<CFrameWnd*>(AfxGetMainWnd())->SetMessageText(IDS_SEL_TERMINAL_SKIP); break;
 	}
 	MessageBeep(MB_ICONWARNING);
@@ -909,13 +909,13 @@ void CPActionReverse::Redo(CMainFrame &MainFrm)
 			auto NoteEnd = it.second.Get(c);
 			if (c == Sel.m_cpStart.m_iChannel && ColStart > 0) {		// // //
 				auto Temp = NoteEnd;
-				CopyNoteSection(&NoteEnd, &NoteBegin, PASTE_DEFAULT, COLUMN_NOTE, static_cast<column_t>(ColStart - 1));
-				CopyNoteSection(&NoteBegin, &Temp, PASTE_DEFAULT, COLUMN_NOTE, static_cast<column_t>(ColStart - 1));
+				CopyNoteSection(NoteEnd, NoteBegin, paste_mode_t::DEFAULT, COLUMN_NOTE, static_cast<column_t>(ColStart - 1));
+				CopyNoteSection(NoteBegin, Temp, paste_mode_t::DEFAULT, COLUMN_NOTE, static_cast<column_t>(ColStart - 1));
 			}
 			if (c == Sel.m_cpEnd.m_iChannel && ColEnd < COLUMN_EFF4) {
 				auto Temp = NoteEnd;
-				CopyNoteSection(&NoteEnd, &NoteBegin, PASTE_DEFAULT, static_cast<column_t>(ColEnd + 1), COLUMN_EFF4);
-				CopyNoteSection(&NoteBegin, &Temp, PASTE_DEFAULT, static_cast<column_t>(ColEnd + 1), COLUMN_EFF4);
+				CopyNoteSection(NoteEnd, NoteBegin, paste_mode_t::DEFAULT, static_cast<column_t>(ColEnd + 1), COLUMN_EFF4);
+				CopyNoteSection(NoteBegin, Temp, paste_mode_t::DEFAULT, static_cast<column_t>(ColEnd + 1), COLUMN_EFF4);
 			}
 			it.first.Set(c, NoteEnd);
 			it.second.Set(c, NoteBegin);
@@ -962,7 +962,7 @@ CPActionDragDrop::CPActionDragDrop(std::unique_ptr<CPatternClipData> pClipData, 
 {
 	m_pClipData		= std::move(pClipData);
 	m_dragTarget	= pDragTarget;
-	m_iPastePos		= PASTE_DRAG;
+	m_iPastePos		= paste_pos_t::DRAG;
 }
 
 bool CPActionDragDrop::SaveState(const CMainFrame &MainFrm)
@@ -1059,7 +1059,7 @@ void CPActionStretch::Redo(CMainFrame &MainFrm)
 			const auto &Source = (Offset < m_pUndoClipData->ClipInfo.Rows && m_iStretchMap[Pos] > 0) ?
 				*(m_pUndoClipData->GetPattern(i - Sel.m_cpStart.m_iChannel, Offset)) : BLANK;		// // //
 			auto Target = it.first.Get(i);
-			CopyNoteSection(&Target, &Source, PASTE_DEFAULT,
+			CopyNoteSection(Target, Source, paste_mode_t::DEFAULT,
 							i == Sel.m_cpStart.m_iChannel ? ColStart : COLUMN_NOTE,
 							i == Sel.m_cpEnd.m_iChannel ? ColEnd : COLUMN_EFF4);
 			it.first.Set(i, Target);

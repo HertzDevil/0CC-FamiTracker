@@ -113,28 +113,27 @@ inline cursor_column_t GetCursorEndColumn(column_t Column)
 }
 
 // // // Paste modes
-enum paste_mode_t : unsigned int {
-	PASTE_DEFAULT,
-	PASTE_MIX,
-	PASTE_OVERWRITE,
-	PASTE_INSERT,
-	PASTE_OVERFLOW, // forced overflow paste, used for undo
+enum class paste_mode_t : unsigned int {
+	DEFAULT,
+	MIX,
+	OVERWRITE,
+	INSERT,
 };
 
-enum paste_pos_t : unsigned int {
-	PASTE_CURSOR,
-	PASTE_SELECTION,
-	PASTE_FILL,
-	PASTE_DRAG,
+enum class paste_pos_t : unsigned int {
+	CURSOR,
+	SELECTION,
+	FILL,
+	DRAG,
 };
 
 // // // Selection condition
-enum sel_condition_t {
-	SEL_CLEAN,				// safe for operations
-	SEL_REPEATED_ROW,		// same row included in multiple frames
-	// SEL_UNKNOWN_SIZE,	// skip effect outside selection, unused
-	SEL_NONTERMINAL_SKIP,	// skip effect on non-terminal row
-	SEL_TERMINAL_SKIP,		// skip effect on last row
+enum class sel_condition_t : unsigned char {
+	CLEAN,				// safe for operations
+	REPEATED_ROW,		// same row included in multiple frames
+	// UNKNOWN_SIZE,	// skip effect outside selection, unused
+	NONTERMINAL_SKIP,	// skip effect on non-terminal row
+	TERMINAL_SKIP,		// skip effect on last row
 };
 
 class CSongData;		// // //
