@@ -606,9 +606,6 @@
     <ClCompile Include="Source\InstHandlerDPCM.cpp">
       <Filter>Source Files\Sound Driver\Instruments</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ChannelFactory.cpp">
-      <Filter>Source Files\Sound Driver\Channels</Filter>
-    </ClCompile>
     <ClCompile Include="Source\InstrumentRecorder.cpp">
       <Filter>Source Files\Sound Driver</Filter>
     </ClCompile>
@@ -805,6 +802,9 @@
       <Filter>Source Files\Sound Driver\Chips</Filter>
     </ClCompile>
     <ClCompile Include="Source\ChipHandlerVRC7.cpp">
+      <Filter>Source Files\Sound Driver\Chips</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ChipFactory.cpp">
       <Filter>Source Files\Sound Driver\Chips</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1229,9 +1229,6 @@
     <ClInclude Include="Source\InstHandlerDPCM.h">
       <Filter>Header Files\Sound Driver Headers\Instruments Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ChannelFactory.h">
-      <Filter>Header Files\Sound Driver Headers\Channels Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\InstrumentRecorder.h">
       <Filter>Header Files\Sound Driver Headers</Filter>
     </ClInclude>
@@ -1506,6 +1503,9 @@
       <Filter>Header Files\Sound Driver Headers\Chips Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\ChipHandlerVRC7.h">
+      <Filter>Header Files\Sound Driver Headers\Chips Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ChipFactory.h">
       <Filter>Header Files\Sound Driver Headers\Chips Headers</Filter>
     </ClInclude>
   </ItemGroup>

@@ -26,7 +26,8 @@
 #include "SongData.h"
 #include "TempoCounter.h"
 #include "ChannelHandler.h"
-#include "ChannelFactory.h"
+#include "ChipHandler.h"
+#include "ChipFactory.h"
 #include "TrackerChannel.h"
 #include "PlayerCursor.h"
 #include "DetuneTable.h"
@@ -63,53 +64,22 @@ void CSoundDriver::SetupTracks() {
 	// Clear all channels
 	tracks_.clear();		// // //
 
-	const auto AssignTrack = [&] (chan_id_t id) {		// // //
-		tracks_.emplace_back(CChannelFactory::Make(id), std::make_unique<CTrackerChannel>());
-	};
+	for (std::size_t i = 0; i < CHANID_COUNT; ++i)
+		tracks_.emplace_back(nullptr, std::make_unique<CTrackerChannel>());
 
-	// 2A03/2A07
-	// // // Short header names
-	AssignTrack(chan_id_t::SQUARE1);
-	AssignTrack(chan_id_t::SQUARE2);
-	AssignTrack(chan_id_t::TRIANGLE);
-	AssignTrack(chan_id_t::NOISE);
-	AssignTrack(chan_id_t::DPCM);
+	chips_.push_back(CChipFactory::Make(sound_chip_t::APU));
+	chips_.push_back(CChipFactory::Make(sound_chip_t::VRC6));
+	chips_.push_back(CChipFactory::Make(sound_chip_t::VRC7));
+	chips_.push_back(CChipFactory::Make(sound_chip_t::FDS));
+	chips_.push_back(CChipFactory::Make(sound_chip_t::MMC5));
+	chips_.push_back(CChipFactory::Make(sound_chip_t::N163));
+	chips_.push_back(CChipFactory::Make(sound_chip_t::S5B));
 
-	// Konami VRC6
-	AssignTrack(chan_id_t::VRC6_PULSE1);
-	AssignTrack(chan_id_t::VRC6_PULSE2);
-	AssignTrack(chan_id_t::VRC6_SAWTOOTH);
-
-	// // // Nintendo MMC5
-	AssignTrack(chan_id_t::MMC5_SQUARE1);
-	AssignTrack(chan_id_t::MMC5_SQUARE2);
-	AssignTrack(chan_id_t::MMC5_VOICE); // null channel handler
-
-	// Namco N163
-	AssignTrack(chan_id_t::N163_CH1);
-	AssignTrack(chan_id_t::N163_CH2);
-	AssignTrack(chan_id_t::N163_CH3);
-	AssignTrack(chan_id_t::N163_CH4);
-	AssignTrack(chan_id_t::N163_CH5);
-	AssignTrack(chan_id_t::N163_CH6);
-	AssignTrack(chan_id_t::N163_CH7);
-	AssignTrack(chan_id_t::N163_CH8);
-
-	// Nintendo FDS
-	AssignTrack(chan_id_t::FDS);
-
-	// Konami VRC7
-	AssignTrack(chan_id_t::VRC7_CH1);
-	AssignTrack(chan_id_t::VRC7_CH2);
-	AssignTrack(chan_id_t::VRC7_CH3);
-	AssignTrack(chan_id_t::VRC7_CH4);
-	AssignTrack(chan_id_t::VRC7_CH5);
-	AssignTrack(chan_id_t::VRC7_CH6);
-
-	// // // Sunsoft 5B
-	AssignTrack(chan_id_t::S5B_CH1);
-	AssignTrack(chan_id_t::S5B_CH2);
-	AssignTrack(chan_id_t::S5B_CH3);
+	for (auto &x : chips_) {
+		x->VisitChannelHandlers([&] (CChannelHandler &ch) {
+			tracks_[value_cast(ch.GetChannelID())].first = &ch;
+		});
+	}
 }
 
 void CSoundDriver::AssignModule(const CFamiTrackerModule &modfile) {
@@ -303,21 +273,21 @@ CPlayerCursor *CSoundDriver::GetPlayerCursor() const {
 }
 
 CChannelHandler *CSoundDriver::GetChannelHandler(chan_id_t chan) const {
-	return tracks_[value_cast(chan)].first.get();
+	return tracks_[value_cast(chan)].first;
 }
 
 int CSoundDriver::GetChannelNote(chan_id_t chan) const {
-	const auto &ch = GetChannelHandler(chan);
+	const auto *ch = GetChannelHandler(chan);
 	return ch ? ch->GetActiveNote() : -1;
 }
 
 int CSoundDriver::GetChannelVolume(chan_id_t chan) const {
-	const auto &ch = GetChannelHandler(chan);
+	const auto *ch = GetChannelHandler(chan);
 	return ch ? ch->GetChannelVolume() : 0;
 }
 
 std::string CSoundDriver::GetChannelStateString(chan_id_t chan) const {
-	const auto &ch = GetChannelHandler(chan);
+	const auto *ch = GetChannelHandler(chan);
 	return ch ? ch->GetStateString() : "";
 }
 

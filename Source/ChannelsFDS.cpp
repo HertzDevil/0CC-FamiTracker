@@ -33,8 +33,8 @@
 #include "Settings.h"		// // //
 #include "SongState.h"		// // //
 
-CChannelHandlerFDS::CChannelHandlerFDS() :
-	CChannelHandlerInverted(0xFFF, 32)
+CChannelHandlerFDS::CChannelHandlerFDS(chan_id_t ch) :		// // //
+	CChannelHandlerInverted(ch, 0xFFF, 32)
 {
 }
 

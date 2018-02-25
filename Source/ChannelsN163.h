@@ -31,7 +31,7 @@
 
 class CChannelHandlerN163 : public CChannelHandlerInverted, public CChannelHandlerInterfaceN163 {
 public:
-	CChannelHandlerN163();
+	explicit CChannelHandlerN163(chan_id_t ch);		// // //
 	void	RefreshChannel() override;
 	void	ResetChannel() override;
 

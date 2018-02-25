@@ -37,8 +37,8 @@
 
 const int N163_PITCH_SLIDE_SHIFT = 2;	// Increase amplitude of pitch slides
 
-CChannelHandlerN163::CChannelHandlerN163() :
-	CChannelHandlerInverted(0xFFFF, 0x0F),
+CChannelHandlerN163::CChannelHandlerN163(chan_id_t ch) :		// / //
+	CChannelHandlerInverted(ch, 0xFFFF, 0x0F),
 	m_bDisableLoad(false),		// // //
 	m_bResetPhase(false),
 	m_iWaveLen(4),		// // //

@@ -31,7 +31,7 @@
 
 class CChannelHandlerS5B : public CChannelHandler, public CChannelHandlerInterfaceS5B {
 public:
-	CChannelHandlerS5B();
+	explicit CChannelHandlerS5B(chan_id_t ch);		// / //
 	void	ResetChannel() override;
 	void	RefreshChannel() override;
 

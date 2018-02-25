@@ -28,7 +28,7 @@
 
 class CChannelHandlerFDS : public CChannelHandlerInverted, public CChannelHandlerInterfaceFDS {
 public:
-	CChannelHandlerFDS();
+	explicit CChannelHandlerFDS(chan_id_t ch);		// // //
 	void	RefreshChannel() override;
 protected:
 	void	HandleNoteData(stChanNote &pNoteData) override;		// // //

@@ -37,15 +37,12 @@ const int OPL_SUSTAIN_ON = 0x20;
 
 const int VRC7_PITCH_RESOLUTION = 2;		// // // extra bits for internal pitch
 
-CChipHandlerVRC7 handlerVRC7;		// // // TODO: move into CSoundGen
-
 } // namespace
 
-CChannelHandlerVRC7::CChannelHandlerVRC7() :
-	CChannelHandlerInverted((1 << (VRC7_PITCH_RESOLUTION + 9)) - 1, 15),		// // //
-	m_pChipHandler(&handlerVRC7)
+CChannelHandlerVRC7::CChannelHandlerVRC7(chan_id_t ch, CChipHandlerVRC7 &handler) :		// // //
+	CChannelHandlerInverted(ch, (1 << (VRC7_PITCH_RESOLUTION + 9)) - 1, 15),		// // //
+	m_pChipHandler(&handler)
 {
-	m_pChipHandler->AddChannelHandler(*this);
 	m_iVolume = VOL_COLUMN_MAX;
 }
 
@@ -251,7 +248,7 @@ int CChannelHandlerVRC7::CalculatePeriod() const
 // VRC7 Channels
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CVRC7Channel::RefreshChannel()
+void CChannelHandlerVRC7::RefreshChannel()
 {
 //	int Note = m_iTriggeredNote;
 	int Volume = CalculateVolume();
@@ -306,7 +303,7 @@ void CVRC7Channel::RefreshChannel()
 		((CChipHandler *)m_pChipHandler)->RefreshAfter(*m_pAPU);
 }
 
-void CVRC7Channel::ClearRegisters()
+void CChannelHandlerVRC7::ClearRegisters()
 {
 	unsigned subindex = GetSubIndex();		// // //
 	RegWrite(0x10 + subindex, 0x00);
@@ -322,7 +319,7 @@ void CVRC7Channel::ClearRegisters()
 	m_iCustomPort = 0;		// // // 050B
 }
 
-void CVRC7Channel::RegWrite(unsigned char Reg, unsigned char Value)
+void CChannelHandlerVRC7::RegWrite(unsigned char Reg, unsigned char Value)
 {
 	m_pAPU->Write(0x9010, Reg);
 	m_pAPU->Write(0x9030, Value);

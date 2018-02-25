@@ -31,7 +31,7 @@
 
 class CChannelHandlerMMC5 : public CChannelHandler {
 public:
-	CChannelHandlerMMC5();
+	explicit CChannelHandlerMMC5(chan_id_t ch);		// // //
 	void	ResetChannel() override;
 	void	RefreshChannel() override;
 

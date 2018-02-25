@@ -45,8 +45,8 @@
  *
  */
 
-CChannelHandler::CChannelHandler(int MaxPeriod, int MaxVolume) :
-	m_iChannelID(chan_id_t::NONE),		// // //
+CChannelHandler::CChannelHandler(chan_id_t ch, int MaxPeriod, int MaxVolume) :		// // //
+	m_iChannelID(ch),		// // //
 	m_iInstTypeCurrent(INST_NONE),		// // //
 	m_iInstrument(0),
 	m_pNoteLookupTable(NULL),
@@ -102,6 +102,14 @@ void CChannelHandler::SetPitch(int Pitch)
 {
 	// Pitch ranges from -511 to +512
 	m_iPitch = std::clamp(Pitch, -511, 511);		// // //
+}
+
+
+/*!	\brief Retrieves the identifier of the channel.
+\return The channel's identifier value. */
+
+chan_id_t CChannelHandler::GetChannelID() const {		// // //
+	return m_iChannelID;
 }
 
 std::size_t CChannelHandler::GetSubIndex() const {		// // //

@@ -26,10 +26,8 @@
 #include <memory>
 #include "APU/Types_fwd.h"
 
-class CChannelHandler;
+class CChipHandler;
 
-struct CChannelFactory {
-	static std::unique_ptr<CChannelHandler> Make(chan_id_t id);
-private:
-	static std::unique_ptr<CChannelHandler> MakeImpl(chan_id_t id);
+struct CChipFactory {
+	static std::unique_ptr<CChipHandler> Make(sound_chip_t id);
 };

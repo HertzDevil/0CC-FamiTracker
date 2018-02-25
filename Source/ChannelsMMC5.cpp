@@ -30,7 +30,7 @@
 #include "SeqInstHandler.h"		// // //
 #include "SongState.h"		// // //
 
-CChannelHandlerMMC5::CChannelHandlerMMC5() : CChannelHandler(0x7FF, 0x0F)
+CChannelHandlerMMC5::CChannelHandlerMMC5(chan_id_t ch) : CChannelHandler(ch, 0x7FF, 0x0F)		// // //
 {
 	m_bHardwareEnvelope = false;		// // //
 	m_bEnvelopeLoop = true;

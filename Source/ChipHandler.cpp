@@ -21,6 +21,10 @@
 */
 
 #include "ChipHandler.h"
+#include "ChannelHandler.h"
+
+CChipHandler::~CChipHandler() noexcept {
+}
 
 void CChipHandler::RefreshBefore(CAPUInterface &) {
 }
@@ -28,6 +32,6 @@ void CChipHandler::RefreshBefore(CAPUInterface &) {
 void CChipHandler::RefreshAfter(CAPUInterface &) {
 }
 
-void CChipHandler::AddChannelHandler(CChannelHandler &ch) {
-	channels_.push_back(&ch);
+void CChipHandler::AddChannelHandler(std::unique_ptr<CChannelHandler> ch) {
+	channels_.push_back(std::move(ch));
 }

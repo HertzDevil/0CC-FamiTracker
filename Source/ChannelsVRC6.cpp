@@ -32,8 +32,8 @@
 #include "FamiTrackerEnv.h"		// // //
 #include "Settings.h"		// // //
 
-CChannelHandlerVRC6::CChannelHandlerVRC6(int MaxPeriod, int MaxVolume) :		// // //
-	CChannelHandler(MaxPeriod, MaxVolume)
+CChannelHandlerVRC6::CChannelHandlerVRC6(chan_id_t ch, int MaxPeriod, int MaxVolume) :		// // //
+	CChannelHandler(ch, MaxPeriod, MaxVolume)
 {
 }
 

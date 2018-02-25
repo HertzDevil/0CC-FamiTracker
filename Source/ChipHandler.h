@@ -24,6 +24,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 class CChannelHandler;
 class CAPUInterface;
@@ -32,27 +33,33 @@ class CAPUInterface;
 
 class CChipHandler {
 public:
-	virtual ~CChipHandler() noexcept = default;
+	CChipHandler() noexcept = default;
+	virtual ~CChipHandler() noexcept;
 
 	CChipHandler(const CChipHandler &) = delete;
 	CChipHandler &operator=(const CChipHandler &) = delete;
 	CChipHandler(CChipHandler &&) noexcept = default;
 	CChipHandler &operator=(CChipHandler &&) noexcept = default;
 
-protected:
-	CChipHandler() noexcept = default;
-
 public:
 	virtual void RefreshBefore(CAPUInterface &apu);
 	virtual void RefreshAfter(CAPUInterface &apu);
 
-	void AddChannelHandler(CChannelHandler &ch);
+	void AddChannelHandler(std::unique_ptr<CChannelHandler> ch);
 
-protected:
-	const auto &GetChannelHandlers() const {
-		return channels_;
+	// void (*F)(CChannelHandler &ch)
+	template <typename F>
+	void VisitChannelHandlers(F f) {
+		for (auto &ch : channels_)
+			f(*ch);
+	}
+	// void (*F)(const CChannelHandler &ch)
+	template <typename F>
+	void VisitChannelHandlers(F f) const {
+		for (auto &ch : channels_)
+			f(std::as_const(*ch));
 	}
 
 private:
-	std::vector<CChannelHandler *> channels_;
+	std::vector<std::unique_ptr<CChannelHandler>> channels_;
 };

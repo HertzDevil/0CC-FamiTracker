@@ -92,8 +92,8 @@ void CChannelHandlerS5B::UpdateRegs()		// // //
 
 // Instance functions
 
-CChannelHandlerS5B::CChannelHandlerS5B() :
-	CChannelHandler(0xFFF, 0x0F),
+CChannelHandlerS5B::CChannelHandlerS5B(chan_id_t ch) :		// // //
+	CChannelHandler(ch, 0xFFF, 0x0F),
 	m_bEnvelopeEnabled(false),		// // // 050B
 	m_iAutoEnvelopeShift(0),		// // // 050B
 	m_bUpdate(false)

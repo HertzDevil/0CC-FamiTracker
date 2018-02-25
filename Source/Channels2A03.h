@@ -31,7 +31,7 @@
 
 class CChannelHandler2A03 : public CChannelHandler {
 public:
-	CChannelHandler2A03();
+	explicit CChannelHandler2A03(chan_id_t ch);		// // //
 	virtual void ResetChannel();
 
 protected:
@@ -53,7 +53,7 @@ protected:
 // // // 2A03 Square
 class C2A03Square : public CChannelHandler2A03 {
 public:
-	C2A03Square();
+	explicit C2A03Square(chan_id_t ch);		// // //
 	void	RefreshChannel() override;
 protected:
 	int		ConvertDuty(int Duty) const override;		// // //
@@ -74,7 +74,7 @@ protected:
 // Triangle
 class CTriangleChan : public CChannelHandler2A03 {
 public:
-	CTriangleChan();
+	explicit CTriangleChan(chan_id_t ch);		// // //
 	void	RefreshChannel() override;
 	void	ResetChannel() override;		// // //
 	int		GetChannelVolume() const override;		// // //
@@ -89,7 +89,7 @@ private:
 // Noise
 class CNoiseChan : public CChannelHandler2A03 {
 public:
-	CNoiseChan();
+	explicit CNoiseChan(chan_id_t ch);		// // //
 	void	RefreshChannel();
 protected:
 	void	ClearRegisters() override;
@@ -110,7 +110,7 @@ class dpcm_sample;
 // DPCM
 class CDPCMChan : public CChannelHandler, public CChannelHandlerInterfaceDPCM {		// // //
 public:
-	CDPCMChan();		// // //
+	explicit CDPCMChan(chan_id_t ch);		// // //
 	void	RefreshChannel() override;
 	int		GetChannelVolume() const override;		// // //
 

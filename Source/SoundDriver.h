@@ -37,6 +37,7 @@ class CChannelMap;
 class CTempoCounter;
 class CPlayerCursor;
 class CChannelHandler;
+class CChipHandler;
 class CTrackerChannel;
 class CAPUInterface;
 class CSongState;
@@ -115,9 +116,8 @@ private:
 	void HandleGlobalEffects(stChanNote &note);
 
 private:
-	std::vector<std::pair<
-		std::unique_ptr<CChannelHandler>, std::unique_ptr<CTrackerChannel>
-	>> tracks_;
+	std::vector<std::pair<CChannelHandler *, std::unique_ptr<CTrackerChannel>>> tracks_;
+	std::vector<std::unique_ptr<CChipHandler>> chips_;		// // //
 	const CFamiTrackerModule *modfile_ = nullptr;		// // //
 	CSoundGenBase *parent_ = nullptr;		// // //
 

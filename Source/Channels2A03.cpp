@@ -37,8 +37,8 @@
 
 //#define NOISE_PITCH_SCALE
 
-CChannelHandler2A03::CChannelHandler2A03() :
-	CChannelHandler(0x7FF, 0x0F),
+CChannelHandler2A03::CChannelHandler2A03(chan_id_t ch) :		// // //
+	CChannelHandler(ch, 0x7FF, 0x0F),
 	m_bHardwareEnvelope(false),
 	m_bEnvelopeLoop(true),
 	m_bResetEnvelope(false),
@@ -135,8 +135,8 @@ void CChannelHandler2A03::ResetChannel()
 // // // 2A03 Square
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-C2A03Square::C2A03Square() :
-	CChannelHandler2A03(),
+C2A03Square::C2A03Square(chan_id_t ch) :		// // //
+	CChannelHandler2A03(ch),
 	m_cSweep(0),
 	m_bSweeping(0),
 	m_iSweep(0)
@@ -268,8 +268,8 @@ std::string C2A03Square::GetCustomEffectString() const		// // //
 // Triangle
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CTriangleChan::CTriangleChan() :		// // //
-	CChannelHandler2A03(),
+CTriangleChan::CTriangleChan(chan_id_t ch) :		// // //
+	CChannelHandler2A03(ch),
 	m_iLinearCounter(-1)
 {
 }
@@ -426,7 +426,7 @@ int CNoiseChan::CalculatePeriod() const
 }
 */
 
-CNoiseChan::CNoiseChan() : CChannelHandler2A03()		// // //
+CNoiseChan::CNoiseChan(chan_id_t ch) : CChannelHandler2A03(ch)		// // //
 {
 }
 
@@ -501,8 +501,8 @@ int CNoiseChan::TriggerNote(int Note)
 // DPCM
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CDPCMChan::CDPCMChan() :		// // //
-	CChannelHandler(0xF, 0x3F),		// // // does not use these anyway
+CDPCMChan::CDPCMChan(chan_id_t ch) :		// // //
+	CChannelHandler(ch, 0xF, 0x3F),		// // // does not use these anyway
 	m_bEnabled(false),
 	m_bRetrigger(false),
 	m_cDAC(255),

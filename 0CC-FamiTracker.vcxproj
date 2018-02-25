@@ -453,8 +453,8 @@
     <ClCompile Include="Source\Bookmark.cpp" />
     <ClCompile Include="Source\BookmarkCollection.cpp" />
     <ClCompile Include="Source\BookmarkDlg.cpp" />
-    <ClCompile Include="Source\ChannelFactory.cpp" />
     <ClCompile Include="Source\ChannelOrder.cpp" />
+    <ClCompile Include="Source\ChipFactory.cpp" />
     <ClCompile Include="Source\ChipHandler.cpp" />
     <ClCompile Include="Source\ChipHandlerVRC7.cpp" />
     <ClCompile Include="Source\ClipboardResource.cpp" />
@@ -651,6 +651,7 @@
     <ClInclude Include="Source\BookmarkDlg.h" />
     <ClInclude Include="Source\ChannelName.h" />
     <ClInclude Include="Source\ChannelOrder.h" />
+    <ClInclude Include="Source\ChipFactory.h" />
     <ClInclude Include="Source\ChipHandler.h" />
     <ClInclude Include="Source\ChipHandlerVRC7.h" />
     <ClInclude Include="Source\ClipboardResource.h" />
@@ -686,7 +687,6 @@
     <ClInclude Include="Source\CompoundAction.h" />
     <ClInclude Include="Source\DetuneTable.h" />
     <ClInclude Include="Source\DPI.h" />
-    <ClInclude Include="Source\ChannelFactory.h" />
     <ClInclude Include="Source\SongLengthScanner.h" />
     <ClInclude Include="Source\SongView.h" />
     <ClInclude Include="Source\SoundChipSet.h" />

@@ -42,7 +42,7 @@ class CChipHandlerVRC7;		// // //
 
 class CChannelHandlerVRC7 : public CChannelHandlerInverted, public CChannelHandlerInterfaceVRC7 {		// // //
 public:
-	CChannelHandlerVRC7();
+	CChannelHandlerVRC7(chan_id_t ch, CChipHandlerVRC7 &handler);		// // //
 
 	void	SetPatch(unsigned char Patch);		// // //
 	void	SetCustomReg(size_t Index, unsigned char Val);		// // //
@@ -63,9 +63,13 @@ protected:
 	void	UpdateNoteRelease() override;		// // //
 	int		TriggerNote(int Note) override;
 
+	void	RefreshChannel() override;		// // //
+	void	ClearRegisters() override;
+
 protected:
 	void CorrectOctave();		// // //
 	unsigned int GetFnum(int Note) const;
+	void RegWrite(unsigned char Reg, unsigned char Value);
 
 protected:
 	int		m_iTriggeredNote = 0;
@@ -79,14 +83,3 @@ protected:
 	char	m_iPatch;
 	bool	m_bHold;
 };
-
-class CVRC7Channel : public CChannelHandlerVRC7 {
-public:
-	CVRC7Channel() : CChannelHandlerVRC7() { }
-	void RefreshChannel();
-protected:
-	void ClearRegisters();
-private:
-	void RegWrite(unsigned char Reg, unsigned char Value);
-};
-

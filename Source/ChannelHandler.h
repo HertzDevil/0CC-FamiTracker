@@ -50,9 +50,10 @@ enum inst_type_t : unsigned;		// // //
 class CChannelHandler : public CChannelHandlerInterface {
 protected:
 	/*!	\brief Constructor of the channel handler.
+		\param ch Identifier of the channel.
 		\param MaxPeriod The maximum pitch register value that the channel handler can attain.
 		\param MaxVolume The maximum instrument volume level that the channel handler can attain. */
-	CChannelHandler(int MaxPeriod, int MaxVolume);
+	CChannelHandler(chan_id_t ch, int MaxPeriod, int MaxVolume);
 
 public:
 	/*!	\brief Destructor of the channel handler. */
@@ -119,12 +120,9 @@ public:
 		\param Pitch The new offset value. */
 	virtual void	SetPitch(int Pitch);
 
-	/*!	\brief Sets the identifier of the channel.
-		\param ID The new identifier value. */
-	void			SetChannelID(chan_id_t ID) { m_iChannelID = ID; }		// // //
 	/*!	\brief Retrieves the identifier of the channel.
 		\return The channel's identifier value. */
-	chan_id_t		GetChannelID() const { return m_iChannelID; }		// // //
+	chan_id_t		GetChannelID() const;		// // //
 	/*! \brief Gets the subindex of the channel. */
 	std::size_t		GetSubIndex() const;		// // //
 
@@ -528,7 +526,8 @@ protected:
 // Channel handler for channels with frequency registers
 class CChannelHandlerInverted : public CChannelHandler {
 protected:
-	CChannelHandlerInverted(int MaxPeriod, int MaxVolume) : CChannelHandler(MaxPeriod, MaxVolume) {}
+	CChannelHandlerInverted(chan_id_t ch, int MaxPeriod, int MaxVolume) :
+		CChannelHandler(ch, MaxPeriod, MaxVolume) { }
 	// // //
 	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //
 	int		CalculatePeriod() const override;
