@@ -42,7 +42,7 @@ class CChipHandlerVRC7;		// // //
 
 class CChannelHandlerVRC7 : public CChannelHandlerInverted, public CChannelHandlerInterfaceVRC7 {		// // //
 public:
-	CChannelHandlerVRC7(chan_id_t ch, CChipHandlerVRC7 &handler);		// // //
+	CChannelHandlerVRC7(chan_id_t ch, CChipHandlerVRC7 &parent);		// // //
 
 	void	SetPatch(unsigned char Patch);		// // //
 	void	SetCustomReg(size_t Index, unsigned char Val);		// // //
@@ -77,7 +77,7 @@ protected:
 	int		m_iOldOctave;		// // //
 	int		m_iCustomPort;		// // // 050B
 
-	CChipHandlerVRC7 *m_pChipHandler = nullptr;
+	CChipHandlerVRC7 &chip_handler_;
 
 	vrc7_command_t m_iCommand = CMD_NONE;
 	char	m_iPatch;

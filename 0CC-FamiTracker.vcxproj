@@ -456,6 +456,7 @@
     <ClCompile Include="Source\ChannelOrder.cpp" />
     <ClCompile Include="Source\ChipFactory.cpp" />
     <ClCompile Include="Source\ChipHandler.cpp" />
+    <ClCompile Include="Source\ChipHandlerS5B.cpp" />
     <ClCompile Include="Source\ChipHandlerVRC7.cpp" />
     <ClCompile Include="Source\ClipboardResource.cpp" />
     <ClCompile Include="Source\FamiTrackerDocIO.cpp" />
@@ -653,6 +654,7 @@
     <ClInclude Include="Source\ChannelOrder.h" />
     <ClInclude Include="Source\ChipFactory.h" />
     <ClInclude Include="Source\ChipHandler.h" />
+    <ClInclude Include="Source\ChipHandlerS5B.h" />
     <ClInclude Include="Source\ChipHandlerVRC7.h" />
     <ClInclude Include="Source\ClipboardResource.h" />
     <ClInclude Include="Source\Color.h" />

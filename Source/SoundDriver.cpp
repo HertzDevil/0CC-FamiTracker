@@ -142,6 +142,9 @@ void CSoundDriver::StopPlayer() {
 }
 
 void CSoundDriver::ResetTracks() {
+	for (auto &chip : chips_)		// // //
+		chip->ResetChip(*apu_);
+
 	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &tr) {		// // //
 		ch.ResetChannel();
 		tr.Reset();

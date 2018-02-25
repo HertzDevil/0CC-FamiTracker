@@ -807,6 +807,9 @@
     <ClCompile Include="Source\ChipFactory.cpp">
       <Filter>Source Files\Sound Driver\Chips</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ChipHandlerS5B.cpp">
+      <Filter>Source Files\Sound Driver\Chips</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1506,6 +1509,9 @@
       <Filter>Header Files\Sound Driver Headers\Chips Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\ChipFactory.h">
+      <Filter>Header Files\Sound Driver Headers\Chips Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ChipHandlerS5B.h">
       <Filter>Header Files\Sound Driver Headers\Chips Headers</Filter>
     </ClInclude>
   </ItemGroup>

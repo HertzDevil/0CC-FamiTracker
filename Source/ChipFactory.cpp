@@ -34,6 +34,7 @@
 
 #include "ChipHandler.h"
 #include "ChipHandlerVRC7.h"
+#include "ChipHandlerS5B.h"
 
 std::unique_ptr<CChipHandler> CChipFactory::Make(sound_chip_t id) {
 	switch (id) {
@@ -77,9 +78,9 @@ std::unique_ptr<CChipHandler> CChipFactory::Make(sound_chip_t id) {
 		return chip;
 	}
 	case sound_chip_t::S5B: {
-		auto chip = std::make_unique<CChipHandler>();
+		auto chip = std::make_unique<CChipHandlerS5B>();
 		for (unsigned i = 0; i < MAX_CHANNELS_S5B; ++i)
-			chip->AddChannelHandler(std::make_unique<CChannelHandlerS5B>(MakeChannelIndex(id, i)));
+			chip->AddChannelHandler(std::make_unique<CChannelHandlerS5B>(MakeChannelIndex(id, i), *chip));
 		return chip;
 	}
 	default:

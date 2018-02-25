@@ -25,13 +25,15 @@
 
 #include "ChannelHandler.h"
 
+class CChipHandlerS5B;		// // //
+
 //
 // Derived channels, 5B
 //
 
 class CChannelHandlerS5B : public CChannelHandler, public CChannelHandlerInterfaceS5B {
 public:
-	explicit CChannelHandlerS5B(chan_id_t ch);		// / //
+	CChannelHandlerS5B(chan_id_t ch, CChipHandlerS5B &parent);		// / //
 	void	ResetChannel() override;
 	void	RefreshChannel() override;
 
@@ -53,27 +55,12 @@ protected:
 
 protected:
 	void WriteReg(int Reg, int Value);
-
-	// Static functions
-protected:
-	static void SetMode(chan_id_t Chan, int Square, int Noise);		// // //
 	void UpdateAutoEnvelope(int Period);		// // // 050B
-	void UpdateRegs();		// // //
-
-	// Static memebers
-protected:
-	static int m_iModes;
-	static int m_iNoiseFreq;
-	static int m_iNoisePrev;		// // //
-	static int m_iDefaultNoise;		// // //
-	static unsigned char m_iEnvFreqHi;
-	static unsigned char m_iEnvFreqLo;
-	static bool m_bEnvTrigger;		// // // 050B
-	static int m_iEnvType;
-	static int m_i5808B4;		// // // 050B, unused
 
 	// Instance members
 protected:
+	CChipHandlerS5B &chip_handler_;
+
 	bool m_bEnvelopeEnabled;		// // // 050B
 	int m_iAutoEnvelopeShift;		// // // 050B
 	bool m_bUpdate;

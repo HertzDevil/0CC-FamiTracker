@@ -26,6 +26,9 @@
 CChipHandler::~CChipHandler() noexcept {
 }
 
+void CChipHandler::ResetChip(CAPUInterface &) {
+}
+
 void CChipHandler::RefreshBefore(CAPUInterface &) {
 }
 

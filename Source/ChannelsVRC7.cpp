@@ -39,9 +39,9 @@ const int VRC7_PITCH_RESOLUTION = 2;		// // // extra bits for internal pitch
 
 } // namespace
 
-CChannelHandlerVRC7::CChannelHandlerVRC7(chan_id_t ch, CChipHandlerVRC7 &handler) :		// // //
+CChannelHandlerVRC7::CChannelHandlerVRC7(chan_id_t ch, CChipHandlerVRC7 &parent) :		// // //
 	CChannelHandlerInverted(ch, (1 << (VRC7_PITCH_RESOLUTION + 9)) - 1, 15),		// // //
-	m_pChipHandler(&handler)
+	chip_handler_(parent)
 {
 	m_iVolume = VOL_COLUMN_MAX;
 }
@@ -53,7 +53,7 @@ void CChannelHandlerVRC7::SetPatch(unsigned char Patch)		// // //
 
 void CChannelHandlerVRC7::SetCustomReg(size_t Index, unsigned char Val)		// // //
 {
-	m_pChipHandler->SetPatchReg(Index & 0x07u, Val);		// // //
+	chip_handler_.SetPatchReg(Index & 0x07u, Val);		// // //
 }
 
 void CChannelHandlerVRC7::HandleNoteData(stChanNote &NoteData)		// // //
@@ -74,7 +74,7 @@ bool CChannelHandlerVRC7::HandleEffect(effect_t EffNum, unsigned char EffParam)
 		m_iCustomPort = EffParam & 0x07;
 		break;
 	case effect_t::VRC7_WRITE:		// // // 050B
-		m_pChipHandler->QueuePatchReg(m_iCustomPort, EffParam);		// // //
+		chip_handler_.QueuePatchReg(m_iCustomPort, EffParam);		// // //
 		break;
 	default: return CChannelHandlerInverted::HandleEffect(EffNum, EffParam);
 	}
@@ -265,7 +265,7 @@ void CChannelHandlerVRC7::RefreshChannel()
 
 	// Write custom instrument
 	if (m_iDutyPeriod == 0 && m_iCommand == CMD_NOTE_TRIGGER)		// // //
-		m_pChipHandler->RequestPatchUpdate();
+		chip_handler_.RequestPatchUpdate();
 
 	if (!m_bGate)
 		m_iCommand = CMD_NOTE_HALT;

@@ -23,6 +23,7 @@
 // Sunsoft 5B (YM2149/AY-3-8910)
 
 #include "ChannelsS5B.h"
+#include "ChipHandlerS5B.h"		// // //
 #include "APU/Types.h"		// // //
 #include "APU/APUInterface.h"		// // //
 #include "Instrument.h"		// // //
@@ -30,37 +31,7 @@
 #include "SeqInstHandlerS5B.h"		// // //
 #include "SongState.h"		// // //
 
-// Static member variables, for the shared stuff in 5B
-int			  CChannelHandlerS5B::m_iModes		= 0;
-int			  CChannelHandlerS5B::m_iNoiseFreq	= 0;
-int			  CChannelHandlerS5B::m_iNoisePrev	= -1;
-int			  CChannelHandlerS5B::m_iDefaultNoise = 0;		// // //
-unsigned char CChannelHandlerS5B::m_iEnvFreqHi	= 0;
-unsigned char CChannelHandlerS5B::m_iEnvFreqLo	= 0;
-bool		  CChannelHandlerS5B::m_bEnvTrigger	= false;		// // // 050B
-int			  CChannelHandlerS5B::m_iEnvType	= 0;
-int			  CChannelHandlerS5B::m_i5808B4		= 0;		// // // 050B
-
 // Class functions
-
-void CChannelHandlerS5B::SetMode(chan_id_t Chan, int Square, int Noise)
-{
-	unsigned subindex = GetChannelSubIndex(Chan);		// // //
-
-	switch (subindex) {
-	case 0:
-		m_iModes &= 0x36;
-		break;
-	case 1:
-		m_iModes &= 0x2D;
-		break;
-	case 2:
-		m_iModes &= 0x1B;
-		break;
-	}
-
-	m_iModes |= (Noise << (3 + subindex)) | (Square << subindex);
-}
 
 void CChannelHandlerS5B::UpdateAutoEnvelope(int Period)		// // // 050B
 {
@@ -72,51 +43,36 @@ void CChannelHandlerS5B::UpdateAutoEnvelope(int Period)		// // // 050B
 		}
 		else if (m_iAutoEnvelopeShift < 8)
 			Period <<= 8 - m_iAutoEnvelopeShift;
-		m_iEnvFreqLo = Period & 0xFF;
-		m_iEnvFreqHi = Period >> 8;
+		chip_handler_.SetEnvelopePeriod(Period);
 	}
-}
-
-void CChannelHandlerS5B::UpdateRegs()		// // //
-{
-	// Done only once
-	if (m_iNoiseFreq != m_iNoisePrev)		// // //
-		WriteReg(0x06, (m_iNoisePrev = m_iNoiseFreq) ^ 0x1F);
-	WriteReg(0x07, m_iModes);
-	WriteReg(0x0B, m_iEnvFreqLo);
-	WriteReg(0x0C, m_iEnvFreqHi);
-	if (m_bEnvTrigger)		// // // 050B
-		WriteReg(0x0D, m_iEnvType);
-	m_bEnvTrigger = false;
 }
 
 // Instance functions
 
-CChannelHandlerS5B::CChannelHandlerS5B(chan_id_t ch) :		// // //
+CChannelHandlerS5B::CChannelHandlerS5B(chan_id_t ch, CChipHandlerS5B &parent) :		// // //
 	CChannelHandler(ch, 0xFFF, 0x0F),
+	chip_handler_(parent),		// // //
 	m_bEnvelopeEnabled(false),		// // // 050B
 	m_iAutoEnvelopeShift(0),		// // // 050B
 	m_bUpdate(false)
 {
 	m_iDefaultDuty = value_cast(s5b_mode_t::Square);		// // //
-	m_iDefaultNoise = 0;		// // //
 }
 
 bool CChannelHandlerS5B::HandleEffect(effect_t EffNum, unsigned char EffParam)
 {
 	switch (EffNum) {
 	case effect_t::SUNSOFT_NOISE: // W
-		m_iDefaultNoise = m_iNoiseFreq = EffParam & 0x1F;		// // // 050B
+		chip_handler_.SetDefaultNoisePeriod(EffParam & 0x1Fu);		// // // 050B
 		break;
 	case effect_t::SUNSOFT_ENV_HI: // I
-		m_iEnvFreqHi = EffParam;
+		chip_handler_.SetEnvelopePeriod((EffParam << 8) | (chip_handler_.GetEnvelopePeriod() & 0x00FFu));
 		break;
 	case effect_t::SUNSOFT_ENV_LO: // J
-		m_iEnvFreqLo = EffParam;
+		chip_handler_.SetEnvelopePeriod(EffParam | (chip_handler_.GetEnvelopePeriod() & 0xFF00u));
 		break;
 	case effect_t::SUNSOFT_ENV_TYPE: // H
-		m_bEnvTrigger = true;		// // // 050B
-		m_iEnvType = EffParam & 0x0F;
+		chip_handler_.SetEnvelopeShape(EffParam & 0x0Fu);
 		m_bUpdate = true;
 		m_bEnvelopeEnabled = EffParam != 0;
 		m_iAutoEnvelopeShift = EffParam >> 4;
@@ -134,7 +90,7 @@ bool CChannelHandlerS5B::HandleEffect(effect_t EffNum, unsigned char EffParam)
 void CChannelHandlerS5B::HandleNote(note_t Note, int Octave)		// // //
 {
 	CChannelHandler::HandleNote(Note, Octave);
-	m_iNoiseFreq = m_iDefaultNoise;
+	chip_handler_.RestoreNoisePeriod();
 }
 
 void CChannelHandlerS5B::HandleEmptyNote()
@@ -179,15 +135,8 @@ void CChannelHandlerS5B::ResetChannel()
 	CChannelHandler::ResetChannel();
 
 	m_iDefaultDuty = m_iDutyPeriod = value_cast(s5b_mode_t::Square);
-	m_iDefaultNoise = m_iNoiseFreq = 0;		// // //
-	m_iNoisePrev = -1;		// // //
 	m_bEnvelopeEnabled = false;
 	m_iAutoEnvelopeShift = 0;
-	m_iEnvFreqHi = 0;
-	m_iEnvFreqLo = 0;
-	m_iEnvType = 0;
-	m_i5808B4 = 0;		// // // 050B
-	m_bEnvTrigger = false;
 }
 
 int CChannelHandlerS5B::CalculateVolume() const		// // //
@@ -212,18 +161,7 @@ void CChannelHandlerS5B::ClearRegisters()
 
 std::string CChannelHandlerS5B::GetCustomEffectString() const		// // //
 {
-	std::string str;
-
-	if (m_iEnvFreqLo)
-		str += MakeCommandString(effect_t::SUNSOFT_ENV_LO, m_iEnvFreqLo);
-	if (m_iEnvFreqHi)
-		str += MakeCommandString(effect_t::SUNSOFT_ENV_HI, m_iEnvFreqHi);
-	if (m_iEnvType)
-		str += MakeCommandString(effect_t::SUNSOFT_ENV_TYPE, m_iEnvType);
-	if (m_iDefaultNoise)
-		str += MakeCommandString(effect_t::SUNSOFT_NOISE, m_iDefaultNoise);
-
-	return str;
+	return chip_handler_.GetCustomEffectString();
 }
 
 void CChannelHandlerS5B::RefreshChannel()
@@ -238,7 +176,7 @@ void CChannelHandlerS5B::RefreshChannel()
 	unsigned char Envelope = (m_bGate && (m_iDutyPeriod & value_cast(s5b_mode_t::Envelope))) ? 0x10 : 0; // m_bEnvelopeEnabled ? 0x10 : 0;
 
 	UpdateAutoEnvelope(Period);		// // // 050B
-	SetMode(m_iChannelID, Square, Noise);
+	chip_handler_.SetChannelOutput(GetChannelSubIndex(m_iChannelID), Square, Noise);
 
 	unsigned subindex = GetSubIndex();		// // //
 	WriteReg(subindex * 2    , LoPeriod);
@@ -246,14 +184,11 @@ void CChannelHandlerS5B::RefreshChannel()
 	WriteReg(subindex + 8    , Volume | Envelope);
 
 	if (Envelope && (m_bTrigger || m_bUpdate))		// // // 050B
-		m_bEnvTrigger = true;
+		chip_handler_.TriggerEnvelope();
 	m_bUpdate = false;
-
-	if (m_iChannelID == chan_id_t::S5B_CH3)
-		UpdateRegs();
 }
 
 void CChannelHandlerS5B::SetNoiseFreq(int Pitch)		// // //
 {
-	m_iNoiseFreq = Pitch;
+	chip_handler_.SetNoisePeriod(Pitch);
 }

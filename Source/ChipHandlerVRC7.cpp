@@ -42,11 +42,17 @@ void CChipHandlerVRC7::RequestPatchUpdate() {
 	dirty_ = true;
 }
 
+void CChipHandlerVRC7::ResetChip(CAPUInterface &apu) {
+	patch_.fill(0u);
+	patch_mask_ = 0u;
+	RequestPatchUpdate();
+}
+
 void CChipHandlerVRC7::RefreshAfter(CAPUInterface &apu) {
 	CChipHandler::RefreshAfter(apu);
 
 	if (dirty_) {
-		for (unsigned i = 0; i < std::size(patch_); ++i) {
+		for (unsigned i = 0; i < patch_.size(); ++i) {
 			apu.Write(0x9010, i);
 			apu.Write(0x9030, patch_[i]);
 		}

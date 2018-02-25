@@ -25,22 +25,35 @@
 
 #include "ChipHandler.h"
 #include <cstdint>
-#include <array>
+#include <string>
 
-class CChipHandlerVRC7 : public CChipHandler {
+class CChipHandlerS5B : public CChipHandler {
 public:
-	void SetPatchReg(unsigned index, uint8_t val);
-	void QueuePatchReg(unsigned index, uint8_t val);
-	void RequestPatchUpdate();
+	void SetChannelOutput(unsigned Subindex, int Square, int Noise);
+
+	void SetNoisePeriod(uint8_t period);
+	void SetDefaultNoisePeriod(uint8_t period);
+	void RestoreNoisePeriod();
+
+	uint16_t GetEnvelopePeriod() const;
+	void SetEnvelopePeriod(uint16_t period);
+	void SetEnvelopeShape(uint8_t shape);
+	void TriggerEnvelope();
+
+	std::string GetCustomEffectString() const;
 
 private:
 	void ResetChip(CAPUInterface &apu) override;
 	void RefreshAfter(CAPUInterface &apu) override;
 
-	// Custom instrument patch
-	std::array<uint8_t, 8> patch_ = { };		// // // 050B
-	// Each bit represents that the custom patch register on that index has been updated
-	uint8_t patch_mask_ = 0u;		// // // 050B
-	// True if custom instrument registers needs to be updated
-	bool dirty_ = false;
+	void WriteReg(CAPUInterface &apu, uint8_t adr, uint8_t val) const;
+
+	int			m_iNoiseFreq	= 0;
+	int			m_iNoisePrev	= -1;
+	int			m_iDefaultNoise	= 0;		// // //
+	uint16_t	m_iEnvFreq		= 0u;		// // //
+	uint8_t		m_iModes		= 0x3Fu;
+	bool		m_bEnvTrigger	= false;		// // // 050B
+	int			m_iEnvType		= 0;
+	int			m_i5808B4		= 0;		// // // 050B
 };

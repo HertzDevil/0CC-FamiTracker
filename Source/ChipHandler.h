@@ -42,6 +42,7 @@ public:
 	CChipHandler &operator=(CChipHandler &&) noexcept = default;
 
 public:
+	virtual void ResetChip(CAPUInterface &apu);
 	virtual void RefreshBefore(CAPUInterface &apu);
 	virtual void RefreshAfter(CAPUInterface &apu);
 
