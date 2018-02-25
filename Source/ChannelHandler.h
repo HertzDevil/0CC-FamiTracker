@@ -280,13 +280,6 @@ protected:
 		\param Pos The index of the echo buffer at which the note will be inserted. */
 	void	WriteEchoBuffer(const stChanNote &NoteData, int Pos);		// // //
 
-	/*!	\brief Writes to the APU memory.
-		\details This method no longer considers whether the destination sound chip is internal or
-		external, as 2A03 is handled in the same way as expansion chips in the APU class.
-		\param Reg The register port.
-		\param Value The value to be written. */
-	void	WriteRegister(uint16_t Reg, uint8_t Value);
-
 	/*!	\brief Converts a duty value from the current instrument into an equivalent value for the
 		current sound channel.
 		\details This method is only called from an instrument through the channel handler's

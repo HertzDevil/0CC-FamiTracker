@@ -24,6 +24,7 @@
 
 #include "ChannelsFDS.h"
 #include "APU/Types.h"		// // //
+#include "APU/APUInterface.h"		// // //
 #include "Instrument.h"		// // //
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
@@ -171,40 +172,40 @@ void CChannelHandlerFDS::RefreshChannel()
 	unsigned char Volume = CalculateVolume();
 
 	if (!m_bGate) {		// // //
-		WriteRegister(0x4080, 0x80 | Volume);
+		m_pAPU->Write(0x4080, 0x80 | Volume);
 		return;
 	}
 
 	// Write frequency
-	WriteRegister(0x4082, LoFreq);
-	WriteRegister(0x4083, HiFreq);
+	m_pAPU->Write(0x4082, LoFreq);
+	m_pAPU->Write(0x4083, HiFreq);
 
 	// Write volume
 	if (m_iVolModMode) {		// // //
 		if (m_bVolModTrigger) {
 			m_bVolModTrigger = false;
-			WriteRegister(0x4080, 0x80 | Volume);
+			m_pAPU->Write(0x4080, 0x80 | Volume);
 		}
-		WriteRegister(0x4080, ((2 - m_iVolModMode) << 6) | m_iVolModRate);
+		m_pAPU->Write(0x4080, ((2 - m_iVolModMode) << 6) | m_iVolModRate);
 	}
 	else
-		WriteRegister(0x4080, 0x80 | Volume);
+		m_pAPU->Write(0x4080, 0x80 | Volume);
 
 	if (m_bTrigger)		// // //
-		WriteRegister(0x4085, 0);
+		m_pAPU->Write(0x4085, 0);
 
 	// Update modulation unit
 	if (m_iModulationDelay == 0) {
 		// Modulation frequency
-		WriteRegister(0x4086, ModFreqLo);
-		WriteRegister(0x4087, ModFreqHi);
+		m_pAPU->Write(0x4086, ModFreqLo);
+		m_pAPU->Write(0x4087, ModFreqHi);
 
 		// Sweep depth, disable sweep envelope
-		WriteRegister(0x4084, 0x80 | m_iModulationDepth);
+		m_pAPU->Write(0x4084, 0x80 | m_iModulationDepth);
 	}
 	else {
 		// Delayed modulation
-		WriteRegister(0x4087, 0x80);
+		m_pAPU->Write(0x4087, 0x80);
 		m_iModulationDelay--;
 	}
 
@@ -213,19 +214,19 @@ void CChannelHandlerFDS::RefreshChannel()
 void CChannelHandlerFDS::ClearRegisters()
 {
 	// Clear volume
-	WriteRegister(0x4080, 0x80);
+	m_pAPU->Write(0x4080, 0x80);
 
 	// Silence channel
-	WriteRegister(0x4082, 0x00);		// // //
-	WriteRegister(0x4083, 0x80);
+	m_pAPU->Write(0x4082, 0x00);		// // //
+	m_pAPU->Write(0x4083, 0x80);
 
 	// Default speed
-	WriteRegister(0x408A, 0xFF);
+	m_pAPU->Write(0x408A, 0xFF);
 
 	// Disable modulation
-	WriteRegister(0x4086, 0x00);		// // //
-	WriteRegister(0x4087, 0x00);
-	WriteRegister(0x4084, 0x00);		// // //
+	m_pAPU->Write(0x4086, 0x00);		// // //
+	m_pAPU->Write(0x4087, 0x00);
+	m_pAPU->Write(0x4084, 0x00);		// // //
 
 	m_bAutoModulation = false;		// // //
 	m_iModulationOffset = 0;		// // //
@@ -286,14 +287,14 @@ void CChannelHandlerFDS::FillWaveRAM(array_view<unsigned char> Buffer)		// // //
 
 		// Fills the 64 byte waveform table
 		// Enable write for waveform RAM
-		WriteRegister(0x4089, 0x80);
+		m_pAPU->Write(0x4089, 0x80);
 
 		// Wave ram
 		for (int i = 0; i < 0x40; ++i)
-			WriteRegister(0x4040 + i, m_iWaveTable[i]);
+			m_pAPU->Write(0x4040 + i, m_iWaveTable[i]);
 
 		// Disable write for waveform RAM, master volume = full
-		WriteRegister(0x4089, 0x00);
+		m_pAPU->Write(0x4089, 0x00);
 	}
 }
 
@@ -305,11 +306,11 @@ void CChannelHandlerFDS::FillModulationTable(array_view<unsigned char> Buffer)		
 		Buffer.copy(m_iModTable);		// // //
 
 		// Disable modulation
-		WriteRegister(0x4087, 0x80);
+		m_pAPU->Write(0x4087, 0x80);
 		// Reset modulation table pointer, set bias to zero
-		WriteRegister(0x4085, 0x00);
+		m_pAPU->Write(0x4085, 0x00);
 		// Fill the table
 		for (int i = 0; i < 32; ++i)
-			WriteRegister(0x4088, m_iModTable[i]);
+			m_pAPU->Write(0x4088, m_iModTable[i]);
 	}
 }

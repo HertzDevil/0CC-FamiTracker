@@ -42,22 +42,15 @@ void CChipHandlerVRC7::RequestPatchUpdate() {
 	dirty_ = true;
 }
 
-void CChipHandlerVRC7::WritePatch(CAPUInterface &apu) {
-	for (unsigned i = 0; i < std::size(patch_); ++i) {
-		apu.Write(0x9010, i);
-		apu.Write(0x9030, patch_[i]);
-	}
-}
-
-bool CChipHandlerVRC7::NeedsPatchUpdate() const {
-	return dirty_;
-}
-
 void CChipHandlerVRC7::RefreshAfter(CAPUInterface &apu) {
 	CChipHandler::RefreshAfter(apu);
 
-	if (NeedsPatchUpdate())
-		WritePatch(apu);
-	dirty_ = false;
+	if (dirty_) {
+		for (unsigned i = 0; i < std::size(patch_); ++i) {
+			apu.Write(0x9010, i);
+			apu.Write(0x9030, patch_[i]);
+		}
+		dirty_ = false;
+	}
 	patch_mask_ = 0u;
 }

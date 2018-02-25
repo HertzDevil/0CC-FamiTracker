@@ -948,11 +948,6 @@ int CChannelHandler::LimitVolume(int Volume) const		// // //
 	return Volume;
 }
 
-void CChannelHandler::WriteRegister(uint16_t Reg, uint8_t Value)
-{
-	m_pAPU->Write(Reg, Value);
-}
-
 void CChannelHandler::RegisterKeyState(int Note)
 {
 	m_iActiveNote = Note;		// // //

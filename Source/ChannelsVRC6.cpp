@@ -24,6 +24,7 @@
 
 #include "ChannelsVRC6.h"
 #include "APU/Types.h"		// // //
+#include "APU/APUInterface.h"		// // //
 #include "Instrument.h"		// // //
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
@@ -80,9 +81,9 @@ bool CChannelHandlerVRC6::CreateInstHandler(inst_type_t Type)
 void CChannelHandlerVRC6::ClearRegisters()		// // //
 {
 	unsigned Address = (GetSubIndex() << 12) + 0x9000;		// // //
-	WriteRegister(Address, 0);
-	WriteRegister(Address + 1, 0);
-	WriteRegister(Address + 2, 0);
+	m_pAPU->Write(Address, 0);
+	m_pAPU->Write(Address + 1, 0);
+	m_pAPU->Write(Address + 2, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,13 +102,13 @@ void CVRC6Square::RefreshChannel()
 	unsigned char LoFreq = (Period >> 8);
 
 	if (!m_bGate) {		// // //
-		WriteRegister(Address, DutyCycle);
+		m_pAPU->Write(Address, DutyCycle);
 		return;
 	}
 
-	WriteRegister(Address, DutyCycle | Volume);
-	WriteRegister(Address + 1, HiFreq);
-	WriteRegister(Address + 2, 0x80 | LoFreq);
+	m_pAPU->Write(Address, DutyCycle | Volume);
+	m_pAPU->Write(Address + 1, HiFreq);
+	m_pAPU->Write(Address + 2, 0x80 | LoFreq);
 }
 
 int CVRC6Square::ConvertDuty(int Duty) const		// // //
@@ -126,16 +127,16 @@ int CVRC6Square::ConvertDuty(int Duty) const		// // //
 void CVRC6Sawtooth::RefreshChannel()
 {
 	if (!m_bGate) {		// // //
-		WriteRegister(0xB000, 0);
+		m_pAPU->Write(0xB000, 0);
 		return;
 	}
 
 	unsigned int Period = CalculatePeriod();
 	unsigned int Volume = CalculateVolume();		// // //
 
-	WriteRegister(0xB000, Volume);
-	WriteRegister(0xB001, Period & 0xFF);
-	WriteRegister(0xB002, 0x80 | (Period >> 8));
+	m_pAPU->Write(0xB000, Volume);
+	m_pAPU->Write(0xB001, Period & 0xFF);
+	m_pAPU->Write(0xB002, 0x80 | (Period >> 8));
 }
 
 bool CVRC6Sawtooth::CreateInstHandler(inst_type_t Type)		// // //

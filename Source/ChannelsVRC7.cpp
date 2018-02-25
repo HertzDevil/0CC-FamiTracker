@@ -24,6 +24,7 @@
 
 #include "ChannelsVRC7.h"
 #include "APU/Types.h"		// // //
+#include "APU/APUInterface.h"		// // //
 #include "Instrument.h"		// // //
 #include "InstHandler.h"		// // //
 #include "InstHandlerVRC7.h"		// // //
@@ -323,6 +324,6 @@ void CVRC7Channel::ClearRegisters()
 
 void CVRC7Channel::RegWrite(unsigned char Reg, unsigned char Value)
 {
-	WriteRegister(0x9010, Reg);
-	WriteRegister(0x9030, Value);
+	m_pAPU->Write(0x9010, Reg);
+	m_pAPU->Write(0x9030, Value);
 }

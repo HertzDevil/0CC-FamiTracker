@@ -31,9 +31,6 @@ public:
 	void SetPatchReg(unsigned index, uint8_t val);
 	void QueuePatchReg(unsigned index, uint8_t val);
 	void RequestPatchUpdate();
-	void WritePatch(CAPUInterface &apu);
-
-	bool NeedsPatchUpdate() const;
 
 private:
 	void RefreshAfter(CAPUInterface &apu) override;

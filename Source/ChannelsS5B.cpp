@@ -24,8 +24,7 @@
 
 #include "ChannelsS5B.h"
 #include "APU/Types.h"		// // //
-#include "Sequence.h"		// // //
-#include "APU/APU.h"
+#include "APU/APUInterface.h"		// // //
 #include "Instrument.h"		// // //
 #include "InstHandler.h"		// // //
 #include "SeqInstHandlerS5B.h"		// // //
@@ -171,8 +170,8 @@ bool CChannelHandlerS5B::CreateInstHandler(inst_type_t Type)
 
 void CChannelHandlerS5B::WriteReg(int Reg, int Value)
 {
-	WriteRegister(0xC000, Reg);
-	WriteRegister(0xE000, Value);
+	m_pAPU->Write(0xC000, Reg);
+	m_pAPU->Write(0xE000, Value);
 }
 
 void CChannelHandlerS5B::ResetChannel()

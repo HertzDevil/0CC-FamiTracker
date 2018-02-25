@@ -24,6 +24,7 @@
 
 #include "ChannelsMMC5.h"
 #include "APU/Types.h"		// // //
+#include "APU/APUInterface.h"		// // //
 #include "Instrument.h"		// // //
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
@@ -124,18 +125,18 @@ void CChannelHandlerMMC5::RefreshChannel()		// // //
 	unsigned char LoFreq		= (Period >> 8);
 	unsigned int  Offs			= 0x5000 + 4 * GetSubIndex();
 
-	WriteRegister(0x5015, 0x03);
+	m_pAPU->Write(0x5015, 0x03);
 
 	if (m_bGate)		// // //
-		WriteRegister(Offs, (DutyCycle << 6) | (m_bEnvelopeLoop << 5) | (!m_bHardwareEnvelope << 4) | Volume);
+		m_pAPU->Write(Offs, (DutyCycle << 6) | (m_bEnvelopeLoop << 5) | (!m_bHardwareEnvelope << 4) | Volume);
 	else {
-		WriteRegister(Offs, 0x30);
+		m_pAPU->Write(Offs, 0x30);
 		m_iLastPeriod = 0xFFFF;
 		return;
 	}
-	WriteRegister(Offs + 2, HiFreq);
+	m_pAPU->Write(Offs + 2, HiFreq);
 	if (LoFreq != (m_iLastPeriod >> 8) || m_bResetEnvelope)		// // //
-		WriteRegister(Offs + 3, LoFreq + (m_iLengthCounter << 3));
+		m_pAPU->Write(Offs + 3, LoFreq + (m_iLengthCounter << 3));
 
 	m_iLastPeriod = Period;		// // //
 	m_bResetEnvelope = false;
@@ -153,9 +154,9 @@ int CChannelHandlerMMC5::ConvertDuty(int Duty) const		// // //
 void CChannelHandlerMMC5::ClearRegisters()
 {
 	unsigned Offs = 0x5000 + 4 * GetSubIndex();		// // //
-	WriteRegister(Offs, 0x30);
-	WriteRegister(Offs + 2, 0);
-	WriteRegister(Offs + 3, 0);
+	m_pAPU->Write(Offs, 0x30);
+	m_pAPU->Write(Offs + 2, 0);
+	m_pAPU->Write(Offs + 3, 0);
 	m_iLastPeriod = 0xFFFF;		// // //
 }
 

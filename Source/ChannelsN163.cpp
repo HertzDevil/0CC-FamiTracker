@@ -23,6 +23,7 @@
 #include "ChannelsN163.h"
 //#include "FamiTracker.h"
 #include "APU/Types.h"		// // //
+#include "APU/APUInterface.h"		// // //
 #include "SeqInstrument.h"		// // //
 #include "InstrumentN163.h"		// // // constants
 #include "InstHandler.h"		// // //
@@ -304,18 +305,18 @@ std::string CChannelHandlerN163::GetCustomEffectString() const		// // //
 
 void CChannelHandlerN163::WriteReg(int Reg, int Value)
 {
-	WriteRegister(0xF800, Reg);
-	WriteRegister(0x4800, Value);
+	m_pAPU->Write(0xF800, Reg);
+	m_pAPU->Write(0x4800, Value);
 }
 
 void CChannelHandlerN163::SetAddress(char Addr, bool AutoInc)
 {
-	WriteRegister(0xF800, (AutoInc ? 0x80 : 0) | Addr);
+	m_pAPU->Write(0xF800, (AutoInc ? 0x80 : 0) | Addr);
 }
 
 void CChannelHandlerN163::WriteData(char Data)
 {
-	WriteRegister(0x4800, Data);
+	m_pAPU->Write(0x4800, Data);
 }
 
 void CChannelHandlerN163::WriteData(int Addr, char Data)

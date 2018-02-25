@@ -154,32 +154,32 @@ void C2A03Square::RefreshChannel()
 
 	int Address = 0x4000 + GetSubIndex() * 4;		// // //
 	if (m_bGate)		// // //
-		WriteRegister(Address, (DutyCycle << 6) | (m_bEnvelopeLoop << 5) | (!m_bHardwareEnvelope << 4) | Volume);		// // //
+		m_pAPU->Write(Address, (DutyCycle << 6) | (m_bEnvelopeLoop << 5) | (!m_bHardwareEnvelope << 4) | Volume);		// // //
 	else {
-		WriteRegister(Address, 0x30);
+		m_pAPU->Write(Address, 0x30);
 		m_iLastPeriod = 0xFFFF;
 		return;
 	}
 
 	if (m_cSweep) {
 		if (m_cSweep & 0x80) {
-			WriteRegister(Address + 1, m_cSweep);
+			m_pAPU->Write(Address + 1, m_cSweep);
 			m_cSweep &= 0x7F;
-			WriteRegister(0x4017, 0x80);	// Clear sweep unit
-			WriteRegister(0x4017, 0x00);
-			WriteRegister(Address + 2, HiFreq);
-			WriteRegister(Address + 3, LoFreq + (m_iLengthCounter << 3));		// // //
+			m_pAPU->Write(0x4017, 0x80);	// Clear sweep unit
+			m_pAPU->Write(0x4017, 0x00);
+			m_pAPU->Write(Address + 2, HiFreq);
+			m_pAPU->Write(Address + 3, LoFreq + (m_iLengthCounter << 3));		// // //
 			m_iLastPeriod = 0xFFFF;
 		}
 	}
 	else {
-		WriteRegister(Address + 1, 0x08);
-		//WriteRegister(0x4017, 0x80);	// Manually execute one APU frame sequence to kill the sweep unit
-		//WriteRegister(0x4017, 0x00);
-		WriteRegister(Address + 2, HiFreq);
+		m_pAPU->Write(Address + 1, 0x08);
+		//m_pAPU->Write(0x4017, 0x80);	// Manually execute one APU frame sequence to kill the sweep unit
+		//m_pAPU->Write(0x4017, 0x00);
+		m_pAPU->Write(Address + 2, HiFreq);
 
 		if (LoFreq != (m_iLastPeriod >> 8) || m_bResetEnvelope)		// // //
-			WriteRegister(Address + 3, LoFreq + (m_iLengthCounter << 3));
+			m_pAPU->Write(Address + 3, LoFreq + (m_iLengthCounter << 3));
 	}
 
 	m_iLastPeriod = Period;
@@ -198,10 +198,10 @@ int C2A03Square::ConvertDuty(int Duty) const		// // //
 void C2A03Square::ClearRegisters()
 {
 	int Address = 0x4000 + GetSubIndex() * 4;		// // //
-	WriteRegister(Address + 0, 0x30);
-	WriteRegister(Address + 1, 0x08);
-	WriteRegister(Address + 2, 0x00);
-	WriteRegister(Address + 3, 0x00);
+	m_pAPU->Write(Address + 0, 0x30);
+	m_pAPU->Write(Address + 1, 0x08);
+	m_pAPU->Write(Address + 2, 0x00);
+	m_pAPU->Write(Address + 3, 0x00);
 	m_iLastPeriod = 0xFFFF;
 }
 
@@ -282,13 +282,13 @@ void CTriangleChan::RefreshChannel()
 	unsigned char LoFreq = (Freq >> 8);
 
 	if (m_iInstVolume > 0 && m_iVolume > 0 && m_bGate) {
-		WriteRegister(0x4008, (m_bEnvelopeLoop << 7) | (m_iLinearCounter & 0x7F));		// // //
-		WriteRegister(0x400A, HiFreq);
+		m_pAPU->Write(0x4008, (m_bEnvelopeLoop << 7) | (m_iLinearCounter & 0x7F));		// // //
+		m_pAPU->Write(0x400A, HiFreq);
 		if (m_bEnvelopeLoop || m_bResetEnvelope)		// // //
-			WriteRegister(0x400B, LoFreq + (m_iLengthCounter << 3));
+			m_pAPU->Write(0x400B, LoFreq + (m_iLengthCounter << 3));
 	}
 	else
-		WriteRegister(0x4008, 0);
+		m_pAPU->Write(0x4008, 0);
 
 	m_bResetEnvelope = false;		// // //
 }
@@ -339,9 +339,9 @@ bool CTriangleChan::HandleEffect(effect_t EffNum, unsigned char EffParam)
 
 void CTriangleChan::ClearRegisters()
 {
-	WriteRegister(0x4008, 0);
-	WriteRegister(0x400A, 0);
-	WriteRegister(0x400B, 0);
+	m_pAPU->Write(0x4008, 0);
+	m_pAPU->Write(0x400A, 0);
+	m_pAPU->Write(0x400B, 0);
 }
 
 std::string CTriangleChan::GetCustomEffectString() const		// // //
@@ -445,23 +445,23 @@ void CNoiseChan::RefreshChannel()
 	Period ^= 0x0F;
 
 	if (m_bGate)		// // //
-		WriteRegister(0x400C, (m_bEnvelopeLoop << 5) | (!m_bHardwareEnvelope << 4) | Volume);		// // //
+		m_pAPU->Write(0x400C, (m_bEnvelopeLoop << 5) | (!m_bHardwareEnvelope << 4) | Volume);		// // //
 	else {
-		WriteRegister(0x400C, 0x30);
+		m_pAPU->Write(0x400C, 0x30);
 		return;
 	}
-	WriteRegister(0x400E, NoiseMode | Period);
+	m_pAPU->Write(0x400E, NoiseMode | Period);
 	if (m_bEnvelopeLoop || m_bResetEnvelope)		// // //
-		WriteRegister(0x400F, m_iLengthCounter << 3);
+		m_pAPU->Write(0x400F, m_iLengthCounter << 3);
 
 	m_bResetEnvelope = false;		// // //
 }
 
 void CNoiseChan::ClearRegisters()
 {
-	WriteRegister(0x400C, 0x30);
-	WriteRegister(0x400E, 0);
-	WriteRegister(0x400F, 0);
+	m_pAPU->Write(0x400C, 0x30);
+	m_pAPU->Write(0x400E, 0);
+	m_pAPU->Write(0x400F, 0);
 }
 
 std::string CNoiseChan::GetCustomEffectString() const		// // //
@@ -593,7 +593,7 @@ bool CDPCMChan::CreateInstHandler(inst_type_t Type)
 void CDPCMChan::RefreshChannel()
 {
 	if (m_cDAC != 255) {
-		WriteRegister(0x4011, m_cDAC);
+		m_pAPU->Write(0x4011, m_cDAC);
 		m_cDAC = 255;
 	}
 
@@ -608,7 +608,7 @@ void CDPCMChan::RefreshChannel()
 
 	if (m_bRelease) {
 		// Release command
-		WriteRegister(0x4015, 0x0F);
+		m_pAPU->Write(0x4015, 0x0F);
 		m_bEnabled = false;
 		m_bRelease = false;
 	}
@@ -617,7 +617,7 @@ void CDPCMChan::RefreshChannel()
 	if (m_bRelease) {
 		// Release loop flag
 		m_bRelease = false;
-		WriteRegister(0x4010, 0x00 | (m_iPeriod & 0x0F));
+		m_pAPU->Write(0x4010, 0x00 | (m_iPeriod & 0x0F));
 		return;
 	}
 */
@@ -627,25 +627,25 @@ void CDPCMChan::RefreshChannel()
 
 	if (!m_bGate) {
 		// Cut sample
-		WriteRegister(0x4015, 0x0F);
+		m_pAPU->Write(0x4015, 0x0F);
 
 		if (!Env.GetSettings()->General.bNoDPCMReset || Env.GetSoundGenerator()->IsPlaying())		// // //
-			WriteRegister(0x4011, 0);	// regain full volume for TN
+			m_pAPU->Write(0x4011, 0);	// regain full volume for TN
 
 		m_bEnabled = false;		// don't write to this channel anymore
 	}
 	else if (m_bRetrigger) {
 		// Start playing the sample
-		WriteRegister(0x4010, (m_iPeriod & 0x0F) | m_iLoop);
-		WriteRegister(0x4012, m_iOffset);							// load address, start at $C000
-		WriteRegister(0x4013, m_iSampleLength);						// length
-		WriteRegister(0x4015, 0x0F);
-		WriteRegister(0x4015, 0x1F);								// fire sample
+		m_pAPU->Write(0x4010, (m_iPeriod & 0x0F) | m_iLoop);
+		m_pAPU->Write(0x4012, m_iOffset);							// load address, start at $C000
+		m_pAPU->Write(0x4013, m_iSampleLength);						// length
+		m_pAPU->Write(0x4015, 0x0F);
+		m_pAPU->Write(0x4015, 0x1F);								// fire sample
 
 		// Loop offset
 		if (m_iLoopOffset > 0) {
-			WriteRegister(0x4012, m_iLoopOffset);
-			WriteRegister(0x4013, m_iLoopLength);
+			m_pAPU->Write(0x4012, m_iLoopOffset);
+			m_pAPU->Write(0x4013, m_iLoopLength);
 		}
 
 		m_bRetrigger = false;
@@ -685,12 +685,12 @@ void CDPCMChan::PlaySample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSamp,
 
 void CDPCMChan::ClearRegisters()
 {
-	WriteRegister(0x4015, 0x0F);
+	m_pAPU->Write(0x4015, 0x0F);
 
-	WriteRegister(0x4010, 0);
-	WriteRegister(0x4011, 0);
-	WriteRegister(0x4012, 0);
-	WriteRegister(0x4013, 0);
+	m_pAPU->Write(0x4010, 0);
+	m_pAPU->Write(0x4011, 0);
+	m_pAPU->Write(0x4012, 0);
+	m_pAPU->Write(0x4013, 0);
 
 	m_iOffset = 0;
 	m_cDAC = 255;
