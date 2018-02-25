@@ -225,6 +225,9 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ObjectFileName>obj/$(IntDir)/%(RelativeDir)</ObjectFileName>
       <DisableSpecificWarnings>4100;4244;4245;4389</DisableSpecificWarnings>
+      <ConformanceMode>true</ConformanceMode>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -311,6 +314,9 @@
       <ObjectFileName>obj/$(IntDir)/%(RelativeDir)</ObjectFileName>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <DisableSpecificWarnings>4100;4244;4245;4389</DisableSpecificWarnings>
+      <ConformanceMode>true</ConformanceMode>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -449,6 +455,8 @@
     <ClCompile Include="Source\BookmarkDlg.cpp" />
     <ClCompile Include="Source\ChannelFactory.cpp" />
     <ClCompile Include="Source\ChannelOrder.cpp" />
+    <ClCompile Include="Source\ChipHandler.cpp" />
+    <ClCompile Include="Source\ChipHandlerVRC7.cpp" />
     <ClCompile Include="Source\ClipboardResource.cpp" />
     <ClCompile Include="Source\FamiTrackerDocIO.cpp" />
     <ClCompile Include="Source\FamiTrackerDocOldIO.cpp" />
@@ -643,6 +651,8 @@
     <ClInclude Include="Source\BookmarkDlg.h" />
     <ClInclude Include="Source\ChannelName.h" />
     <ClInclude Include="Source\ChannelOrder.h" />
+    <ClInclude Include="Source\ChipHandler.h" />
+    <ClInclude Include="Source\ChipHandlerVRC7.h" />
     <ClInclude Include="Source\ClipboardResource.h" />
     <ClInclude Include="Source\Color.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />

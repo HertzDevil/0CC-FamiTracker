@@ -38,6 +38,8 @@ enum vrc7_command_t {
 	CMD_NOTE_RELEASE,
 };
 
+class CChipHandlerVRC7;		// // //
+
 class CChannelHandlerVRC7 : public CChannelHandlerInverted, public CChannelHandlerInterfaceVRC7 {		// // //
 public:
 	CChannelHandlerVRC7();
@@ -66,21 +68,16 @@ protected:
 	unsigned int GetFnum(int Note) const;
 
 protected:
-	static bool m_bRegsDirty;
-	static char m_cPatchFlag;		// // // 050B
-	static unsigned char m_iPatchRegs[8];		// // // 050B
-
-protected:
-	char m_iPatch;
-
-	bool	m_bHold;
-
-	vrc7_command_t m_iCommand;
-
-	int		m_iTriggeredNote;
+	int		m_iTriggeredNote = 0;
 	int		m_iOctave;
 	int		m_iOldOctave;		// // //
 	int		m_iCustomPort;		// // // 050B
+
+	CChipHandlerVRC7 *m_pChipHandler = nullptr;
+
+	vrc7_command_t m_iCommand = CMD_NONE;
+	char	m_iPatch;
+	bool	m_bHold;
 };
 
 class CVRC7Channel : public CChannelHandlerVRC7 {

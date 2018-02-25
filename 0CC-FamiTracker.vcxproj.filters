@@ -226,6 +226,12 @@
     <Filter Include="Header Files\Sound Driver Headers\Audio Headers\Blip_Buffer Headers">
       <UniqueIdentifier>{acdc884a-b8a0-4fe3-9890-d0ecbdcbeb52}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Sound Driver\Chips">
+      <UniqueIdentifier>{fee292f7-8531-453d-b6f2-721c748b2e68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Sound Driver Headers\Chips Headers">
+      <UniqueIdentifier>{c07c64f3-db28-48d8-bc26-3654bf491561}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Exception.cpp">
@@ -657,9 +663,6 @@
     <ClCompile Include="Source\AudioDriver.cpp">
       <Filter>Source Files\Sound Driver\Audio</Filter>
     </ClCompile>
-    <ClCompile Include="Source\WaveRenderer.cpp">
-      <Filter>Source Files\Sound Driver</Filter>
-    </ClCompile>
     <ClCompile Include="Source\TempoDisplay.cpp">
       <Filter>Source Files\Sound Driver</Filter>
     </ClCompile>
@@ -780,9 +783,6 @@
     <ClCompile Include="Source\SongLengthScanner.cpp">
       <Filter>Source Files\Document Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\WaveRendererFactory.cpp">
-      <Filter>Source Files\Sound Driver</Filter>
-    </ClCompile>
     <ClCompile Include="Source\ModuleImporter.cpp">
       <Filter>Source Files\Document Utilities</Filter>
     </ClCompile>
@@ -794,6 +794,18 @@
     </ClCompile>
     <ClCompile Include="Source\NoteName.cpp">
       <Filter>Source Files\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\WaveRenderer.cpp">
+      <Filter>Source Files\Sound Driver\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\WaveRendererFactory.cpp">
+      <Filter>Source Files\Sound Driver\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ChipHandler.cpp">
+      <Filter>Source Files\Sound Driver\Chips</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ChipHandlerVRC7.cpp">
+      <Filter>Source Files\Sound Driver\Chips</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1301,9 +1313,6 @@
     <ClInclude Include="Source\AudioDriver.h">
       <Filter>Header Files\Sound Driver Headers\Audio Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\WaveRenderer.h">
-      <Filter>Header Files\Sound Driver Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\TempoDisplay.h">
       <Filter>Header Files\Sound Driver Headers</Filter>
     </ClInclude>
@@ -1466,9 +1475,6 @@
     <ClInclude Include="Source\ChannelName.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\WaveRendererFactory.h">
-      <Filter>Header Files\Sound Driver Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\ModuleImporter.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
     </ClInclude>
@@ -1489,6 +1495,18 @@
     </ClInclude>
     <ClInclude Include="Source\APU\APUInterface.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\WaveRenderer.h">
+      <Filter>Header Files\Sound Driver Headers\Audio Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\WaveRendererFactory.h">
+      <Filter>Header Files\Sound Driver Headers\Audio Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ChipHandler.h">
+      <Filter>Header Files\Sound Driver Headers\Chips Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ChipHandlerVRC7.h">
+      <Filter>Header Files\Sound Driver Headers\Chips Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

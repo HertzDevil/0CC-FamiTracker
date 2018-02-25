@@ -90,7 +90,7 @@ void CAPU::Process()
 
 		uint32_t Time = std::min(m_iCyclesToRun, m_iSequencerNext - m_iSequencerClock);		// // //
 
-		for (auto Chip : m_pExpansionChips)		// // //
+		for (auto *Chip : m_pExpansionChips)		// // //
 			Chip->Process(Time);
 
 		m_iFrameCycles	  += Time;
@@ -116,7 +116,7 @@ void CAPU::EndFrame()
 {
 	// The APU will always output audio in 32 bit signed format
 
-	for (auto Chip : m_pExpansionChips)		// // //
+	for (auto *Chip : m_pExpansionChips)		// // //
 		Chip->EndFrame();
 
 	int SamplesAvail = m_pMixer->FinishBuffer(m_iFrameCycles);
@@ -126,7 +126,7 @@ void CAPU::EndFrame()
 
 	m_iFrameCycles = 0;
 
-	for (auto &r : m_pExpansionChips)		// // //
+	for (auto *r : m_pExpansionChips)		// // //
 		r->GetRegisterLogger().Step();
 
 #ifdef LOGGING
@@ -146,7 +146,7 @@ void CAPU::Reset()
 	m_iCyclesToRun		= 0;
 	m_iFrameCycles		= 0;
 
-	for (auto Chip : m_pExpansionChips) {		// // //
+	for (auto *Chip : m_pExpansionChips) {		// // //
 		Chip->GetRegisterLogger().Reset();
 		Chip->Reset();
 	}
@@ -250,7 +250,7 @@ void CAPU::Write(uint16_t Address, uint8_t Value)
 
 	Process();
 
-	for (auto Chip : m_pExpansionChips)		// // //
+	for (auto *Chip : m_pExpansionChips)		// // //
 		Chip->Write(Address, Value);
 
 	LogWrite(Address, Value);
@@ -266,7 +266,7 @@ uint8_t CAPU::Read(uint16_t Address)
 
 	Process();
 
-	for (auto Chip : m_pExpansionChips)		// // //
+	for (auto *Chip : m_pExpansionChips)		// // //
 		if (!Mapped)
 			Value = Chip->Read(Address, Mapped);
 
@@ -382,7 +382,7 @@ decay_rate_t CAPU::GetMeterDecayRate() const		// // // 050B
 
 void CAPU::LogWrite(uint16_t Address, uint8_t Value)
 {
-	for (auto &r : m_pExpansionChips)		// // //
+	for (auto *r : m_pExpansionChips)		// // //
 		r->Log(Address, Value);
 }
 

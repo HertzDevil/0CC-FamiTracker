@@ -27,24 +27,24 @@
 #include "Instrument.h"		// // //
 #include "InstHandler.h"		// // //
 #include "InstHandlerVRC7.h"		// // //
+#include "ChipHandlerVRC7.h"		// // //
+
+namespace {
 
 const int OPL_NOTE_ON = 0x10;
 const int OPL_SUSTAIN_ON = 0x20;
 
 const int VRC7_PITCH_RESOLUTION = 2;		// // // extra bits for internal pitch
 
-// True if custom instrument registers needs to be updated, shared among all channels
-bool CChannelHandlerVRC7::m_bRegsDirty = false;
-// Each bit represents that the custom patch register on that index has been updated
-char CChannelHandlerVRC7::m_cPatchFlag = 0;		// // // 050B
-// Custom instrument patch
-unsigned char CChannelHandlerVRC7::m_iPatchRegs[8] = { };		// // // 050B
+CChipHandlerVRC7 handlerVRC7;		// // // TODO: move into CSoundGen
+
+} // namespace
 
 CChannelHandlerVRC7::CChannelHandlerVRC7() :
 	CChannelHandlerInverted((1 << (VRC7_PITCH_RESOLUTION + 9)) - 1, 15),		// // //
-	m_iCommand(CMD_NONE),
-	m_iTriggeredNote(0)
+	m_pChipHandler(&handlerVRC7)
 {
+	m_pChipHandler->AddChannelHandler(*this);
 	m_iVolume = VOL_COLUMN_MAX;
 }
 
@@ -55,8 +55,7 @@ void CChannelHandlerVRC7::SetPatch(unsigned char Patch)		// // //
 
 void CChannelHandlerVRC7::SetCustomReg(size_t Index, unsigned char Val)		// // //
 {
-	if (!(m_cPatchFlag & (1 << Index)))		// // // 050B
-		m_iPatchRegs[Index] = Val;
+	m_pChipHandler->SetPatchReg(Index & 0x07u, Val);		// // //
 }
 
 void CChannelHandlerVRC7::HandleNoteData(stChanNote &NoteData)		// // //
@@ -77,9 +76,7 @@ bool CChannelHandlerVRC7::HandleEffect(effect_t EffNum, unsigned char EffParam)
 		m_iCustomPort = EffParam & 0x07;
 		break;
 	case effect_t::VRC7_WRITE:		// // // 050B
-		m_iPatchRegs[m_iCustomPort] = EffParam;
-		m_cPatchFlag |= 1 << m_iCustomPort;
-		m_bRegsDirty = true;
+		m_pChipHandler->QueuePatchReg(m_iCustomPort, EffParam);		// // //
 		break;
 	default: return CChannelHandlerInverted::HandleEffect(EffNum, EffParam);
 	}
@@ -269,12 +266,8 @@ void CVRC7Channel::RefreshChannel()
 	unsigned subindex = GetSubIndex();		// // //
 
 	// Write custom instrument
-	if ((m_iDutyPeriod == 0 && m_iCommand == CMD_NOTE_TRIGGER) || m_bRegsDirty) {
-		for (int i = 0; i < 8; ++i)
-			RegWrite(i, m_iPatchRegs[i]);
-	}
-
-	m_bRegsDirty = false;
+	if (m_iDutyPeriod == 0 && m_iCommand == CMD_NOTE_TRIGGER)		// // //
+		m_pChipHandler->RequestPatchUpdate();
 
 	if (!m_bGate)
 		m_iCommand = CMD_NOTE_HALT;
@@ -282,20 +275,20 @@ void CVRC7Channel::RefreshChannel()
 	int Cmd = 0;
 
 	switch (m_iCommand) {
-		case CMD_NOTE_TRIGGER:
-			RegWrite(0x20 + subindex, 0);
-			m_iCommand = CMD_NOTE_ON;
-			Cmd = OPL_NOTE_ON | OPL_SUSTAIN_ON;
-			break;
-		case CMD_NOTE_ON:
-			Cmd = m_bHold ? OPL_NOTE_ON : OPL_SUSTAIN_ON;
-			break;
-		case CMD_NOTE_HALT:
-			Cmd = 0;
-			break;
-		case CMD_NOTE_RELEASE:
-			Cmd = OPL_SUSTAIN_ON;
-			break;
+	case CMD_NOTE_TRIGGER:
+		RegWrite(0x20 + subindex, 0);
+		m_iCommand = CMD_NOTE_ON;
+		Cmd = OPL_NOTE_ON | OPL_SUSTAIN_ON;
+		break;
+	case CMD_NOTE_ON:
+		Cmd = m_bHold ? OPL_NOTE_ON : OPL_SUSTAIN_ON;
+		break;
+	case CMD_NOTE_HALT:
+		Cmd = 0;
+		break;
+	case CMD_NOTE_RELEASE:
+		Cmd = OPL_SUSTAIN_ON;
+		break;
 	}
 
 	// Write frequency
@@ -309,7 +302,7 @@ void CVRC7Channel::RefreshChannel()
 	RegWrite(0x20 + subindex, ((Fnum >> 8) & 1) | (Bnum << 1) | Cmd);
 
 	if (m_iChannelID == chan_id_t::VRC7_CH6)		// // // 050B
-		m_cPatchFlag = 0;
+		((CChipHandler *)m_pChipHandler)->RefreshAfter(*m_pAPU);
 }
 
 void CVRC7Channel::ClearRegisters()
