@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "APU/Types_fwd.h"		// // //
+#include "APU/Types.h"		// // //
 
 /*
  * Here are the constants that defines the limits in the tracker
@@ -217,7 +217,36 @@ const char EFF_CHAR[] = {
 	*/
 };
 
-effect_t GetEffectFromChar(char ch, sound_chip_t Chip, bool *bValid = nullptr);		// // //
+constexpr effect_t GetEffectFromChar(char ch, sound_chip_t Chip) noexcept {		// // //
+	for (int i = value_cast(effect_t::NONE) + 1; i < EFFECT_COUNT; ++i)
+		if (EFF_CHAR[i] == ch) {
+			effect_t Eff = static_cast<effect_t>(i);
+			switch (Chip) {
+			case sound_chip_t::FDS:
+				for (const auto &x : FDS_EFFECTS)
+					if (ch == EFF_CHAR[value_cast(x)])
+						return x;
+				break;
+			case sound_chip_t::N163:
+				for (const auto &x : N163_EFFECTS)
+					if (ch == EFF_CHAR[value_cast(x)])
+						return x;
+				break;
+			case sound_chip_t::S5B:
+				for (const auto &x : S5B_EFFECTS)
+					if (ch == EFF_CHAR[value_cast(x)])
+						return x;
+				break;
+			case sound_chip_t::VRC7:
+				for (const auto &x : VRC7_EFFECTS)
+					if (ch == EFF_CHAR[value_cast(x)])
+						return x;
+				break;
+			}
+			return Eff;
+		}
+	return effect_t::NONE;
+}
 
 enum class note_t : unsigned char {
 	NONE = 0,					// No note

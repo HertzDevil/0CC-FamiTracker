@@ -470,7 +470,6 @@
     <ClCompile Include="Source\SoundChipSet.cpp" />
     <ClCompile Include="Source\SoundDriver.cpp" />
     <ClCompile Include="Source\SongState.cpp" />
-    <ClCompile Include="Source\FamiTrackerTypes.cpp" />
     <ClCompile Include="Source\FrameEditorTypes.cpp" />
     <ClCompile Include="Source\NoteQueue.cpp" />
     <ClCompile Include="Source\PatternComponent.cpp" />

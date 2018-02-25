@@ -400,9 +400,8 @@ public:
 				throw MakeError("effect column should be 3 characters wide, '%s' found.", (LPCSTR)sEff);
 
 			if (sEff != "...") {
-				bool Valid;		// // //
-				effect_t Eff = GetEffectFromChar(sEff.GetAt(0), GetChipFromChannel(chan), &Valid);
-				if (!Valid)
+				effect_t Eff = GetEffectFromChar(sEff.GetAt(0), GetChipFromChannel(chan));		// // //
+				if (Eff == effect_t::NONE)
 					throw MakeError("unrecognized effect '%s'.", (LPCSTR)sEff);
 				Cell.EffNumber[e] = Eff;
 

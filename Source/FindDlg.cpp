@@ -1100,8 +1100,9 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 			if (m_replaceTerm.Definite[WC_EFF]) {
 				effect_t fx = GetEffectFromChar(EFF_CHAR[value_cast(m_replaceTerm.Note.EffNumber[0])],
 					GetChipFromChannel(pSongView->GetChannelOrder().TranslateChannel(m_pFindCursor->m_iChannel)));
-				for (const int &i : MatchedColumns)
-					Target.EffNumber[i] = fx;
+				if (fx != effect_t::NONE)
+					for (const int &i : MatchedColumns)
+						Target.EffNumber[i] = fx;
 			}
 
 			if (m_replaceTerm.Definite[WC_PARAM])
