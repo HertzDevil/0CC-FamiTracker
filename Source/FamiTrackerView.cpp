@@ -1208,6 +1208,7 @@ void CFamiTrackerView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHi
 	case UPDATE_TRACK:
 		if (theApp.GetSoundGenerator()->IsPlaying())
 			theApp.StopPlayer();
+		UpdateSongView();		// // //
 		pMainFrm->UpdateTrackBox();
 		m_pPatternEditor->InvalidateBackground();
 		m_pPatternEditor->InvalidatePatternData();

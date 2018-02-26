@@ -1146,6 +1146,8 @@ bool CPActionUniquePatterns::SaveState(const CMainFrame &MainFrm) {
 	songNew_->SetFrameCount(Frames);
 	songNew_->SetSongGroove(Song.GetSongGroove());
 	songNew_->SetTitle(Song.GetTitle());
+	songNew_->SetBookmarks(Song.GetBookmarks());
+	songNew_->SetRowHighlight(Song.GetRowHighlight());
 
 	GET_SONG_VIEW()->GetChannelOrder().ForeachChannel([&] (chan_id_t chan) {
 		songNew_->SetEffectColumnCount(chan, Song.GetEffectColumnCount(chan));
@@ -1167,6 +1169,7 @@ void CPActionUniquePatterns::Redo(CMainFrame &MainFrm) {
 }
 
 void CPActionUniquePatterns::UpdateViews(CMainFrame &MainFrm) const {
+	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_TRACK);
 	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_FRAME);
 }
 
@@ -1194,4 +1197,5 @@ void CPActionClearAll::Redo(CMainFrame &MainFrm) {
 
 void CPActionClearAll::UpdateViews(CMainFrame &MainFrm) const {
 	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_TRACK);
+	MainFrm.GetActiveDocument()->UpdateAllViews(NULL, UPDATE_FRAME);
 }
