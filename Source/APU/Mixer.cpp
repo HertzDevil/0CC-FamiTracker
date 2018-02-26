@@ -303,7 +303,7 @@ void CMixer::StoreChannelLevel(chan_id_t Channel, int Level)		// // //
 		AbsVol /= 8.;
 
 	if (Channel == chan_id_t::FDS)
-		AbsVol /= 38.;
+		AbsVol /= 188.;
 
 	if (GetChipFromChannel(Channel) == sound_chip_t::N163) {		// // //
 		AbsVol /= 15.;

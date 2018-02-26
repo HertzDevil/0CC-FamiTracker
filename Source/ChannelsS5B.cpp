@@ -176,7 +176,7 @@ void CChannelHandlerS5B::RefreshChannel()
 	unsigned char Envelope = (m_bGate && (m_iDutyPeriod & value_cast(s5b_mode_t::Envelope))) ? 0x10 : 0; // m_bEnvelopeEnabled ? 0x10 : 0;
 
 	UpdateAutoEnvelope(Period);		// // // 050B
-	chip_handler_.SetChannelOutput(GetChannelSubIndex(m_iChannelID), Square, Noise);
+	chip_handler_.SetChannelOutput(GetSubIndex(), Square, Noise);
 
 	unsigned subindex = GetSubIndex();		// // //
 	WriteReg(subindex * 2    , LoPeriod);
