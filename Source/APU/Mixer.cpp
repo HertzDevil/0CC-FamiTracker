@@ -158,7 +158,7 @@ void CMixer::UpdateSettings(int LowCut,	int HighCut, int HighDamp, float Overall
 	levels2A03SS_.SetVolume(Volume);
 	levels2A03TND_.SetVolume(Volume);
 	levelsVRC6_.SetVolume(Volume * 3.98333f);
-	levelsFDS_.SetVolume(Volume * 1.00f);
+	levelsFDS_.SetVolume(Volume * 0.40565f);		// // //
 	levelsMMC5_.SetVolume(Volume * 1.18421f);
 
 	// Not checked

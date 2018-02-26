@@ -154,7 +154,7 @@ BOOL CAboutDlg::OnInitDialog()
 		L"- Blip_buffer 0.4.0 is Copyright (C) blargg (LGPL v2.1)\r\n"
 		L"- Fast Fourier Transform code is (C) 2017 Project Nayuki (MIT)\r\n"
 		L"- YM2413 emulator is written by Mitsutaka Okazaki (MIT)\r\n"
-		L"- FDS sound emulator from nezplug (including a fix by rainwarrior)\r\n"
+		L"- FDS sound emulator from rainwarrior's NSFPlay\r\n"
 		L"- JSON for Modern C++ is Copyright (C) Niels Lohmann (MIT)");
 
 	m_cHead.SubclassDlgItem(IDC_HEAD, this);

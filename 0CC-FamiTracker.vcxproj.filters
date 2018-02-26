@@ -729,9 +729,6 @@
     <ClCompile Include="Source\APU\ext\emu2413.c">
       <Filter>Source Files\Sound Driver\Emulation\Sound Chips\External</Filter>
     </ClCompile>
-    <ClCompile Include="Source\APU\ext\FDSSound.cpp">
-      <Filter>Source Files\Sound Driver\Emulation\Sound Chips\External</Filter>
-    </ClCompile>
     <ClCompile Include="Source\APU\Channel.cpp">
       <Filter>Source Files\Sound Driver\Audio</Filter>
     </ClCompile>
@@ -809,6 +806,9 @@
     </ClCompile>
     <ClCompile Include="Source\ChipHandlerS5B.cpp">
       <Filter>Source Files\Sound Driver\Chips</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\APU\ext\FDSSound_new.cpp">
+      <Filter>Source Files\Sound Driver\Emulation\Sound Chips\External</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1391,9 +1391,6 @@
     <ClInclude Include="Source\APU\ext\emu2413.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers\External</Filter>
     </ClInclude>
-    <ClInclude Include="Source\APU\ext\FDSSound.h">
-      <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers\External</Filter>
-    </ClInclude>
     <ClInclude Include="Source\APU\ext\vrc7tone.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers\External</Filter>
     </ClInclude>
@@ -1513,6 +1510,9 @@
     </ClInclude>
     <ClInclude Include="Source\ChipHandlerS5B.h">
       <Filter>Header Files\Sound Driver Headers\Chips Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\APU\ext\FDSSound_new.h">
+      <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers\External</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

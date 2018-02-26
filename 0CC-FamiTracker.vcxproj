@@ -440,7 +440,7 @@
     <ClCompile Include="Source\APU\2A03Chan.cpp" />
     <ClCompile Include="Source\APU\Channel.cpp" />
     <ClCompile Include="Source\APU\ext\emu2413.c" />
-    <ClCompile Include="Source\APU\ext\FDSSound.cpp" />
+    <ClCompile Include="Source\APU\ext\FDSSound_new.cpp" />
     <ClCompile Include="Source\APU\MixerChannel.cpp" />
     <ClCompile Include="Source\APU\MixerLevels.cpp" />
     <ClCompile Include="Source\APU\MMC5.cpp" />
@@ -630,6 +630,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\APU\APUInterface.h" />
+    <ClInclude Include="Source\APU\ext\FDSSound_new.h" />
     <ClInclude Include="Source\array_view.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Source\ActionHandler.h" />
@@ -637,7 +638,6 @@
     <ClInclude Include="Source\APU\2A03Chan.h" />
     <ClInclude Include="Source\APU\ext\2413tone.h" />
     <ClInclude Include="Source\APU\ext\emu2413.h" />
-    <ClInclude Include="Source\APU\ext\FDSSound.h" />
     <ClInclude Include="Source\APU\ext\vrc7tone.h" />
     <ClInclude Include="Source\APU\MixerChannel.h" />
     <ClInclude Include="Source\APU\MixerLevels.h" />

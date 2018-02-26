@@ -23,15 +23,17 @@
 #include "APU/FDS.h"
 #include "APU/APU.h"
 #include "RegisterState.h"		// // //
-#include "APU/ext/FDSSound.h"		// // //
+#include "APU/ext/FDSSound_new.h"		// // //
 #include "APU/Types.h"		// // //
 
 // FDS interface, actual FDS emulation is in FDSSound.cpp
 
-CFDS::CFDS(CMixer &Mixer) : CChannel(Mixer, sound_chip_t::FDS, chan_id_t::FDS), CSoundChip(Mixer)
+CFDS::CFDS(CMixer &Mixer) :
+	CChannel(Mixer, sound_chip_t::FDS, chan_id_t::FDS),
+	CSoundChip(Mixer),
+	emu_(std::make_unique<xgm::NES_FDS>())
 {
 	m_pRegisterLogger->AddRegisterRange(0x4040, 0x408F);		// // //
-	FDSSoundInstall3();
 }
 
 CFDS::~CFDS()
@@ -40,19 +42,19 @@ CFDS::~CFDS()
 
 void CFDS::Reset()
 {
-	FDSSoundReset();
-	FDSSoundVolume(0);
+	emu_->Reset();
 }
 
 void CFDS::Write(uint16_t Address, uint8_t Value)
 {
-	FDSSoundWrite(Address, Value);
+	emu_->Write(Address, Value);
 }
 
 uint8_t CFDS::Read(uint16_t Address, bool &Mapped)
 {
-	Mapped = ((0x4040 <= Address && Address <= 0x407f) || (0x4090 == Address) || (0x4092 == Address));
-	return FDSSoundRead(Address);
+	uint32_t val = 0;
+	Mapped = emu_->Read(Address, val);
+	return static_cast<uint8_t>(val);
 }
 
 void CFDS::EndFrame()
@@ -65,9 +67,14 @@ void CFDS::Process(uint32_t Time)
 	if (!Time)
 		return;
 
-	while (Time--) {
-		Mix(FDSSoundRender() >> 12);
-		++m_iTime;
+	const uint32_t TIME_STEP = 32u; // ???
+
+	while (Time) {
+		const uint32_t t = Time < TIME_STEP ? Time : TIME_STEP;
+		emu_->Tick(t);
+		Mix(emu_->Render());
+		m_iTime += t;
+		Time -= t;
 	}
 }
 

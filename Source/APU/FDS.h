@@ -26,6 +26,10 @@
 #include "APU/SoundChip.h"
 #include "APU/Channel.h"
 
+namespace xgm {		// // //
+class NES_FDS;
+} // namespace xgm
+
 class CFDS : public CSoundChip, public CChannel {
 public:
 	explicit CFDS(CMixer &Mixer);
@@ -37,4 +41,7 @@ public:
 	void	Process(uint32_t Time) override;
 	double	GetFreq(int Channel) const override;		// // //
 	double	GetFrequency() const { return GetFreq(0); }		// // //
+
+private:
+	std::unique_ptr<xgm::NES_FDS> emu_;		// // //
 };
