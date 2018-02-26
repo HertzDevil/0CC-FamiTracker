@@ -287,7 +287,7 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 					break;
 				case effect_t::GROOVE:
 					if (GroovePos == -1 && xy < MAX_GROOVE && modfile.HasGroove(xy)) {
-						GroovePos = totalRows;
+						GroovePos = totalRows + 1;
 						Speed = xy;
 					}
 					break;
