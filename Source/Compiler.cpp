@@ -156,11 +156,11 @@ void CCompiler::Print(LPCWSTR text, Args&&... args) const		// // //
 	if (!m_pLogger || !text)
 		return;
 
-	_sntprintf_s(buf, sizeof(buf), _TRUNCATE, text, std::forward<Args>(args)...);
+	_sntprintf_s(buf, std::size(buf), _TRUNCATE, text, std::forward<Args>(args)...);
 
 	size_t len = wcslen(buf);
 
-	if (buf[len - 1] == '\n' && len < (sizeof(buf) - 1)) {
+	if (buf[len - 1] == '\n' && len < (std::size(buf) - 1)) {
 		buf[len - 1] = '\r';
 		buf[len] = '\n';
 		buf[len + 1] = 0;
