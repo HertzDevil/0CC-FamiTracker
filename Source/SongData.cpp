@@ -305,7 +305,7 @@ bool CSongData::DeleteFrames(unsigned Frame, unsigned Count) {
 
 	VisitTracks([&] (CTrackData &track) {
 		for (unsigned i = Frame; i < FrameCount - Count; ++i)
-			track.SetFramePattern(i, track.GetFramePattern(i + 1));
+			track.SetFramePattern(i, track.GetFramePattern(i + Count));
 		for (unsigned i = FrameCount - Count; i < FrameCount; ++i)
 			track.SetFramePattern(i, 0);		// // //
 	});
