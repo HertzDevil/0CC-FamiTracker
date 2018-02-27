@@ -54,14 +54,14 @@ void CAudioDriver::Reset() {
 		m_pDSoundChannel->ClearBuffer();
 }
 
-void CAudioDriver::FlushBuffer(int16_t *pBuffer, uint32_t Size) {
+void CAudioDriver::FlushBuffer(array_view<int16_t> Buffer) {
 	if (!m_pDSoundChannel)
 		return;
 
 	if (m_iSampleSize == 8)
-		FillBuffer<uint8_t, 8>(pBuffer, Size);
+		FillBuffer<uint8_t, 8>(Buffer);
 	else
-		FillBuffer<int16_t, 0>(pBuffer, Size);
+		FillBuffer<int16_t, 0>(Buffer);
 
 	if (m_iClipCounter > 50) {
 		// Ignore some clipping to allow the HP-filter adjust itself
@@ -146,16 +146,14 @@ unsigned CAudioDriver::GetUnderruns() const {
 }
 
 template <class T, int SHIFT>
-void CAudioDriver::FillBuffer(int16_t *pBuffer, uint32_t Size)
+void CAudioDriver::FillBuffer(array_view<int16_t> Buffer)		// // //
 {
 	// Called when the APU audio buffer is full and
 	// ready for playing
 
 	auto pConversionBuffer = reinterpret_cast<T *>(m_pAccumBuffer.get());		// // //
 
-	for (uint32_t i = 0; i < Size; ++i) {
-		int16_t Sample = pBuffer[i];
-
+	for (int16_t Sample : Buffer) {		// // //
 		// 1000 Hz test tone
 #ifdef AUDIO_TEST
 		static double sine_phase = 0;

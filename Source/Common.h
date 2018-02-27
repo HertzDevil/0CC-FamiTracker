@@ -24,6 +24,7 @@
 #pragma once
 
 #include <cstdint>
+#include "array_view.h"		// // //
 
 enum decay_rate_t {		// // // 050B
 	DECAY_SLOW,
@@ -39,6 +40,6 @@ struct stDPCMState {
 // Used to play the audio when the buffer is full
 class IAudioCallback {
 public:
-	virtual void FlushBuffer(int16_t *Buffer, uint32_t Size) = 0;
+	virtual void FlushBuffer(array_view<int16_t> Buffer) = 0;		// // //
 	virtual bool PlayBuffer() = 0;		// // // return true if succeeded
 };

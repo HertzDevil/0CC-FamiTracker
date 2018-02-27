@@ -111,6 +111,11 @@ public:
 		return data_;
 	}
 
+	constexpr array_view<unsigned char> as_bytes() const noexcept {
+		return {reinterpret_cast<const unsigned char *>(data()),
+			sizeof(value_type) * size()};
+	}
+
 	constexpr size_type size() const noexcept {
 		return size_;
 	}

@@ -24,6 +24,7 @@
 #pragma once
 
 #include "stdafx.h"		// // //
+#include "array_view.h"		// // //
 
 class CClipboardResource;		// // //
 
@@ -37,6 +38,7 @@ public:
 	bool	IsOpened() const;
 	bool	SetString(const CStringW &str) const;		// // //
 	bool	GetData(HGLOBAL &hMemory) const;		// // //
+	bool	SetDataPointer(array_view<unsigned char> data) const;		// // //
 	LPVOID	GetDataPointer();
 	bool	IsDataAvailable()const;
 
@@ -44,7 +46,6 @@ public:
 	bool	TryRestore(CClipboardResource &res) const;		// // //
 
 private:
-	bool	SetDataPointer(LPCVOID pData, UINT Size) const;
 	void	SetData(HGLOBAL hMemory) const;
 
 	bool m_bOpened;

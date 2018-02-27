@@ -45,7 +45,7 @@ bool CClipboard::IsOpened() const
 }
 
 bool CClipboard::SetString(const CStringW &str) const {		// // //
-	return SetDataPointer((LPCWSTR)str, sizeof(WCHAR) * (str.GetLength() + 1));
+	return SetDataPointer(array_view<WCHAR>(str, str.GetLength() + 1).as_bytes());
 }
 
 void CClipboard::SetData(HGLOBAL hMemory) const
@@ -56,13 +56,13 @@ void CClipboard::SetData(HGLOBAL hMemory) const
 	::SetClipboardData(m_iClipboard, hMemory);
 }
 
-bool CClipboard::SetDataPointer(LPCVOID pData, UINT Size) const
+bool CClipboard::SetDataPointer(array_view<unsigned char> Data) const		// // //
 {
 	ASSERT(m_bOpened);
 
-	if (HGLOBAL hMemory = ::GlobalAlloc(GMEM_MOVEABLE, Size)) {
+	if (HGLOBAL hMemory = ::GlobalAlloc(GMEM_MOVEABLE, Data.size())) {
 		if (LPVOID pClipData = ::GlobalLock(hMemory)) {
-			memcpy(pClipData, pData, Size);
+			Data.copy(reinterpret_cast<unsigned char *>(pClipData), Data.size());
 			SetData(hMemory);
 			::GlobalUnlock(hMemory);
 			return true;

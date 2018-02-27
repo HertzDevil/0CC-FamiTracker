@@ -122,7 +122,7 @@ void CAPU::EndFrame()
 	int SamplesAvail = m_pMixer->FinishBuffer(m_iFrameCycles);
 	int ReadSamples	= m_pMixer->ReadBuffer(SamplesAvail, m_pSoundBuffer.get(), m_bStereoEnabled);
 	if (m_pParent)		// // //
-		m_pParent->FlushBuffer(m_pSoundBuffer.get(), ReadSamples);
+		m_pParent->FlushBuffer({m_pSoundBuffer.get(), (unsigned)ReadSamples});
 
 	m_iFrameCycles = 0;
 

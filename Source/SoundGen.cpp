@@ -513,14 +513,14 @@ void CSoundGen::ResetBuffer()
 	m_pAPU->Reset();
 }
 
-void CSoundGen::FlushBuffer(int16_t *pBuffer, uint32_t Size)
+void CSoundGen::FlushBuffer(array_view<int16_t> Buffer)		// // //
 {
 	// Callback method from emulation
 
 	// May only be called from sound player thread
 	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
-	m_pAudioDriver->FlushBuffer(pBuffer, Size);		// // //
+	m_pAudioDriver->FlushBuffer(Buffer);		// // //
 }
 
 // // //

@@ -116,7 +116,7 @@ public:
 
 	// Sound
 	bool		InitializeSound(HWND hWnd);
-	void		FlushBuffer(int16_t *Buffer, uint32_t Size) override;
+	void		FlushBuffer(array_view<int16_t> Buffer) override;
 	CDSound		*GetSoundInterface() const;		// // //
 	CAudioDriver *GetAudioDriver() const;		// // //
 

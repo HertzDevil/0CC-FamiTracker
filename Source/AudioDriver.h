@@ -39,7 +39,7 @@ public:
 	CAudioDriver(IAudioCallback &Parent, std::unique_ptr<CDSoundChannel> pDevice, unsigned SampleSize);
 
 	void Reset();
-	void FlushBuffer(int16_t *Buffer, uint32_t Size) override;
+	void FlushBuffer(array_view<int16_t> Buffer) override;
 	bool PlayBuffer() override;
 	bool DoPlayBuffer();
 	array_view<char> ReleaseSoundBuffer();
@@ -55,7 +55,7 @@ public:
 
 private:
 	template <class T, int SHIFT>
-	void FillBuffer(int16_t *Buffer, uint32_t Size);
+	void FillBuffer(array_view<int16_t> Buffer);		// // //
 
 private:
 	std::unique_ptr<CDSoundChannel> m_pDSoundChannel;		// // // directsound channel
