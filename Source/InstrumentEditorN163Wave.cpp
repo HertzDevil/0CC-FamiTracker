@@ -249,7 +249,7 @@ void CInstrumentEditorN163Wave::ParseString(std::string_view sv)
 	int i = 0;
 	int im = WaveSizeAvailable();
 	for (auto x : re::tokens(sv)) {		// // //
-		int value = CSequenceInstrumentEditPanel::ReadStringValue(x.str());
+		int value = CSequenceInstrumentEditPanel::ReadStringValue(re::sv_from_submatch(x[0]));
 		m_pInstrument->SetSample(m_iWaveIndex, i, std::clamp(value, 0, 15));		// // //
 		if (++i >= im)
 			break;
@@ -311,10 +311,10 @@ void CInstrumentEditorN163Wave::OnWavePosSelChange()
 	CComboBox *pPosBox = static_cast<CComboBox*>(GetDlgItem(IDC_WAVE_POS));
 	pPosBox->GetLBText(pPosBox->GetCurSel(), str);
 
-	int pos = _ttoi(str);
-
-	m_pInstrument->SetWavePos(std::clamp(pos, 0, 255));		// // //
-	GetDocument()->ModifyIrreversible();
+	if (auto pos = conv::to_int(conv::to_utf8(str))) {
+		m_pInstrument->SetWavePos(std::clamp(*pos, 0, 255));		// // //
+		GetDocument()->ModifyIrreversible();
+	}
 }
 
 void CInstrumentEditorN163Wave::FillPosBox(int size)

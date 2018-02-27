@@ -323,7 +323,7 @@ void CInstrumentEditorFDS::ParseWaveString(std::string_view sv)
 {
 	int i = 0;
 	for (auto x : re::tokens(sv)) {		// // //
-		int value = CSequenceInstrumentEditPanel::ReadStringValue(x.str());
+		int value = CSequenceInstrumentEditPanel::ReadStringValue(re::sv_from_submatch(x[0]));
 		m_pInstrument->SetSample(i, std::clamp(value, 0, 63));		// // //
 		if (++i >= 64)
 			break;
@@ -370,7 +370,7 @@ void CInstrumentEditorFDS::ParseTableString(std::string_view sv)
 {
 	int i = 0;
 	for (auto x : re::tokens(sv)) {		// // //
-		int value = CSequenceInstrumentEditPanel::ReadStringValue(x.str());
+		int value = CSequenceInstrumentEditPanel::ReadStringValue(re::sv_from_submatch(x[0]));
 		m_pInstrument->SetModulation(i, std::clamp(value, 0, 7));		// // //
 		if (++i >= 32)
 			break;

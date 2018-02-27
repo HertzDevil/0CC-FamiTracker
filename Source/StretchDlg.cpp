@@ -86,7 +86,7 @@ void CStretchDlg::UpdateStretch()
 	m_iStretchMap.clear();
 
 	for (auto x : re::tokens(str))
-		if (auto e = conv::to_uint8(x.str()))
+		if (auto e = conv::to_uint8(re::sv_from_submatch(x[0])))
 			m_iStretchMap.push_back(*e);
 
 	if (m_iStretchMap.empty()) m_bValid = false;

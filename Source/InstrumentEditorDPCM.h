@@ -58,6 +58,7 @@ protected:
 	void BuildSampleList();
 	void UpdateCurrentKey();		// // //
 	void UpdateKey(int Index);
+	int GetSelectedSampleIndex() const;		// // //
 	bool LoadSample(const CStringW &FilePath, const CStringW &FileName);
 	bool InsertSample(std::shared_ptr<ft0cc::doc::dpcm_sample> pNewSample);		// // //
 

@@ -416,21 +416,27 @@ void CConfigAppearance::OnCbnSelchangeFontSize()
 	CStringW str;
 	CComboBox *pFontSizeList = static_cast<CComboBox*>(GetDlgItem(IDC_FONT_SIZE));
 	pFontSizeList->GetLBText(pFontSizeList->GetCurSel(), str);
-	m_iFontSize = _ttoi(str);
-	RedrawWindow();
-	SetModified();
+	if (auto newSize = conv::to_int(conv::to_utf8(str))) {
+		if (*newSize < 5 || *newSize > 30)
+			return; // arbitrary
+		m_iFontSize = *newSize;
+		RedrawWindow();
+		SetModified();
+	}
 }
 
 void CConfigAppearance::OnCbnEditchangeFontSize()		// // //
 {
-	CComboBox *pFontSizeList = static_cast<CComboBox*>(GetDlgItem(IDC_FONT_SIZE));
 	CStringW str;
+	CComboBox *pFontSizeList = static_cast<CComboBox*>(GetDlgItem(IDC_FONT_SIZE));
 	pFontSizeList->GetWindowTextW(str);
-	int newSize = _ttoi(str);
-	if (newSize < 5 || newSize > 30) return; // arbitrary
-	m_iFontSize = newSize;
-	RedrawWindow();
-	SetModified();
+	if (auto newSize = conv::to_int(conv::to_utf8(str))) {
+		if (*newSize < 5 || *newSize > 30)
+			return; // arbitrary
+		m_iFontSize = *newSize;
+		RedrawWindow();
+		SetModified();
+	}
 }
 
 void CConfigAppearance::OnBnClickedPatterncolors()

@@ -354,10 +354,9 @@ void CGrooveDlg::ParseGrooveField()
 	m_iGroovePos = 0;
 
 	for (auto x : re::tokens(Str)) {
-		if (auto entry = conv::to_uint8(x.str())) {
+		if (auto entry = conv::to_uint8(re::sv_from_submatch(x[0]))) {
 			Groove->resize(Groove->size() + 1);
-			int Speed = std::clamp((int)*entry, 1, 255);
-			Groove->set_entry(m_iGroovePos++, Speed);
+			Groove->set_entry(m_iGroovePos++, *entry ? *entry : 1);
 		}
 	}
 

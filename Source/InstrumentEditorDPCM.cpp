@@ -219,6 +219,14 @@ void CInstrumentEditorDPCM::UpdateKey(int Index)
 	pTableListCtrl->SetItemText(Index, 2, NameStr);
 }
 
+int CInstrumentEditorDPCM::GetSelectedSampleIndex() const {		// // //
+	CListCtrl *pSampleListCtrl = static_cast<CListCtrl *>(GetDlgItem(IDC_SAMPLE_LIST));
+	if (int Index = pSampleListCtrl->GetSelectionMark(); Index != -1)
+		if (CStringW str = pSampleListCtrl->GetItemText(Index, 0); auto n = conv::to_int(conv::to_utf8(str)))
+			return *n;
+	return -1;
+}
+
 void CInstrumentEditorDPCM::BuildSampleList()
 {
 	CComboBox *pSampleBox = static_cast<CComboBox*>(GetDlgItem(IDC_SAMPLES));
@@ -353,10 +361,11 @@ void CInstrumentEditorDPCM::OnBnClickedUnload()
 	for (int i = 0; i < SelCount; i++) {
 		nItem = pListBox->GetNextItem(nItem, LVNI_SELECTED);
 		ASSERT(nItem != -1);
-		pListBox->GetItemText(nItem, 0, ItemName, 256);
-		int Index = _wtoi(ItemName);
-		Env.GetSoundGenerator()->CancelPreviewSample();
-		GetDSampleManager()->RemoveDSample(Index);		// // //
+		CStringW str = pListBox->GetItemText(nItem, 0);
+		if (auto n = conv::to_int(conv::to_utf8(str))) {
+			Env.GetSoundGenerator()->CancelPreviewSample();
+			GetDSampleManager()->RemoveDSample(*n);		// // //
+		}
 	}
 
 	BuildSampleList();
@@ -364,17 +373,8 @@ void CInstrumentEditorDPCM::OnBnClickedUnload()
 
 void CInstrumentEditorDPCM::OnNMClickSampleList(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	CListCtrl *pSampleListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
-
-	if (pSampleListCtrl->GetItemCount() == 0)
-		return;
-
-	int Index = pSampleListCtrl->GetSelectionMark();
-
-	WCHAR ItemName[256];
-	pSampleListCtrl->GetItemText(Index, 0, ItemName, 256);
-	m_iSelectedSample = _wtoi(ItemName);
-
+	if (int Index = GetSelectedSampleIndex(); Index != -1)		// // //
+		m_iSelectedSample = Index;
 	*pResult = 0;
 }
 
@@ -456,17 +456,11 @@ void CInstrumentEditorDPCM::OnCbnSelchangeSamples()
 	int Sample = pSampleBox->GetCurSel();
 
 	if (Sample > 0) {
-		WCHAR Name[256];
+		CStringW Name;		// // //
 		pSampleBox->GetLBText(Sample, Name);
-
-		Name[2] = 0;
-		if (Name[0] == L'0') {
-			Name[0] = Name[1];
-			Name[1] = 0;
-		}
-
-		Sample = _wtoi(Name);
-		Sample++;
+		Name.Truncate(2);
+		if (auto n = conv::to_int(conv::to_utf8(Name)))		// // //
+			Sample = *n + 1;
 
 		if (PrevSample == 0)
 			m_pInstrument->SetSamplePitch(m_iSelectedNote, pPitchBox->GetCurSel());
@@ -479,50 +473,24 @@ void CInstrumentEditorDPCM::OnCbnSelchangeSamples()
 }
 
 std::shared_ptr<const ft0cc::doc::dpcm_sample> CInstrumentEditorDPCM::GetSelectedSample() {		// // //
-	CListCtrl *pSampleListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
-
-	int Index = pSampleListCtrl->GetSelectionMark();
-	if (Index == -1)
-		return nullptr;
-
-	WCHAR Text[256];
-	pSampleListCtrl->GetItemText(Index, 0, Text, 256);
-	Index = _tstoi(Text);
-
-	return GetDSampleManager()->GetDSample(Index);
+	int Index = GetSelectedSampleIndex();		// // //
+	return Index != -1 ? GetDSampleManager()->GetDSample(Index) : nullptr;
 }
 
 void CInstrumentEditorDPCM::SetSelectedSample(std::shared_ptr<ft0cc::doc::dpcm_sample> pSample) const		// // //
 {
-	CListCtrl *pSampleListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
-
-	int Index = pSampleListCtrl->GetSelectionMark();
-	if (Index == -1)
-		return;
-
-	WCHAR Text[256];
-	pSampleListCtrl->GetItemText(Index, 0, Text, 256);
-	Index = _tstoi(Text);
-
-	GetDSampleManager()->SetDSample(Index, std::move(pSample));
+	if (int Index = GetSelectedSampleIndex(); Index != -1)		// // //
+		GetDSampleManager()->SetDSample(Index, std::move(pSample));
 }
 
 void CInstrumentEditorDPCM::OnBnClickedSave()
 {
 	CStringW	Path;
 	CFile	SampleFile;
-	WCHAR	Text[256];
 
-	CListCtrl *pSampleListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
-
-	int Index = pSampleListCtrl->GetSelectionMark();
-
+	int Index = GetSelectedSampleIndex();		// // //
 	if (Index == -1)
 		return;
-
-	pSampleListCtrl->GetItemText(Index, 0, Text, 256);
-	Index = _tstoi(Text);
-
 	auto pDSample = GetDSampleManager()->GetDSample(Index);		// // //
 	if (!pDSample)
 		return;

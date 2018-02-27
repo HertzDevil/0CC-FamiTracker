@@ -109,36 +109,40 @@ bool CSeqConversionDefault::GetNextInteger(std::string_view &sv, int &Out, bool 
 {
 	re::svmatch m;
 
-	try {
-		if (m_bHex) {
-			static const std::regex HEX_RE {R"(^([\+-]?)[0-9A-Fa-f]+)"};
-			if (!std::regex_search(sv.begin(), sv.end(), m, HEX_RE))
-				return false;
+	if (m_bHex) {
+		static const std::regex HEX_RE {R"(^([\+-]?)[0-9A-Fa-f]+)", std::regex_constants::optimize};
+		if (!std::regex_search(sv.begin(), sv.end(), m, HEX_RE))
+			return false;
+		if (Signed && !m[1].length())
+			return false;
+		if (auto val = conv::to_int(re::sv_from_submatch(m[0]), 16))
+			Out = *val;
+		else
+			return false;
+	}
+	else {
+		static const std::regex NUMBER_RE {R"(^([\+-]?)[0-9]+)", std::regex_constants::optimize};
+		static const std::regex HEX_PREFIX_RE {R"(([\+-]?)[\$x]([0-9A-Fa-f]+))", std::regex_constants::optimize}; // do not allow 0x prefix
+		if (std::regex_search(sv.begin(), sv.end(), m, HEX_PREFIX_RE)) {
 			if (Signed && !m[1].length())
 				return false;
-			Out = std::stoi(m.str(), nullptr, 16);
+			if (auto val = conv::to_int(re::sv_from_submatch(m[2]), 16))
+				Out = *val;
+			else
+				return false;
+			if (m[1] == "-")
+				Out = -Out;
 		}
-		else {
-			static const std::regex NUMBER_RE {R"(^([\+-]?)[0-9]+)"};
-			static const std::regex HEX_PREFIX_RE {R"(([\+-]?)[\$x]([0-9A-Fa-f]+))"}; // do not allow 0x prefix
-			if (std::regex_search(sv.begin(), sv.end(), m, HEX_PREFIX_RE)) {
-				if (Signed && !m[1].length())
-					return false;
-				Out = std::stoi(m.str(2), nullptr, 16);
-				if (m.str(1) == "-")
-					Out = -Out;
-			}
-			else if (std::regex_search(sv.begin(), sv.end(), m, NUMBER_RE)) {
-				if (Signed && !m[1].length())
-					return false;
-				Out = std::stoi(m.str());
-			}
+		else if (std::regex_search(sv.begin(), sv.end(), m, NUMBER_RE)) {
+			if (Signed && !m[1].length())
+				return false;
+			if (auto val = conv::to_int(re::sv_from_submatch(m[0])))
+				Out = *val;
 			else
 				return false;
 		}
-	}
-	catch (std::out_of_range &) {
-		return false;
+		else
+			return false;
 	}
 
 	sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
@@ -182,15 +186,15 @@ bool CSeqConversion5B::GetNextTerm(std::string_view &sv, int &Out)
 		return false;
 
 	static const std::regex S5B_FLAGS_RE {R"(^[TtNnEe]*)"};
-	re::svmatch m;
-	if (std::regex_search(sv.begin(), sv.end(), m, S5B_FLAGS_RE)) {
+	if (re::svmatch m; std::regex_search(sv.begin(), sv.end(), m, S5B_FLAGS_RE)) {
 		if (m_iEnableFlags == -1) {
 			m_iEnableFlags = 0;
-			if (m.str().find_first_of("Tt") != std::string::npos)
+			auto sv = re::sv_from_submatch(m[0]);
+			if (sv.find_first_of("Tt") != std::string::npos)
 				m_iEnableFlags |= value_cast(s5b_mode_t::Square);
-			if (m.str().find_first_of("Nn") != std::string::npos)
+			if (sv.find_first_of("Nn") != std::string::npos)
 				m_iEnableFlags |= value_cast(s5b_mode_t::Noise);
-			if (m.str().find_first_of("Ee") != std::string::npos)
+			if (sv.find_first_of("Ee") != std::string::npos)
 				m_iEnableFlags |= value_cast(s5b_mode_t::Envelope);
 		}
 		sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
@@ -252,7 +256,7 @@ bool CSeqConversionArpScheme::GetNextTerm(std::string_view &sv, int &Out)
 	static const std::regex SCHEME_TAIL_RE {R"(^(\+x|\+y|-y)?)"};
 
 	if (std::regex_search(sv.begin(), sv.end(), m, SCHEME_HEAD_RE)) {
-		SchemeFunc(m.str());
+		SchemeFunc(re::sv_from_submatch(m[0]));
 		sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
 		Out = 0;
 		GetNextInteger(sv, Out, true); // optional
@@ -261,7 +265,7 @@ bool CSeqConversionArpScheme::GetNextTerm(std::string_view &sv, int &Out)
 		if (!GetNextInteger(sv, Out))
 			return false;
 		if (std::regex_search(sv.begin(), sv.end(), m, SCHEME_TAIL_RE)) {
-			SchemeFunc(m.str()); // optional
+			SchemeFunc(re::sv_from_submatch(m[0])); // optional
 			sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
 		}
 	}
@@ -289,21 +293,20 @@ bool CSeqConversionArpFixed::GetNextTerm(std::string_view &sv, int &Out)
 	if (!std::regex_match(sv.begin(), sv.end(), m, FIXED_RE))
 		return false;
 
-	char ch = m.str(1)[0];
+	char ch = re::sv_from_submatch(m[1])[0];
 	int Note = NOTE_OFFSET[ch >= 'a' ? ch - 'a' : ch - 'A'];
-	for (const auto &acc : m.str(2)) {
+	auto accstr = re::sv_from_submatch(m[2]);
+	for (const auto &acc : accstr) {
 		switch (acc) {
 		case '+': case '#': ++Note; break;
 		/*case '-':*/ case 'b': --Note; break;
 		}
 	}
 
-	try {
-		Note += NOTE_RANGE * std::stoi(m.str(3));
-	}
-	catch (std::out_of_range &) {
+	if (auto oct = conv::to_uint(re::sv_from_submatch(m[3])))
+		Note += NOTE_RANGE * *oct;
+	else
 		return false;
-	}
 
 	Out = Note;
 
@@ -329,7 +332,6 @@ void CSequenceParser::ParseSequence(std::string_view sv)
 	m_pSequence->Clear();
 	m_pSequence->SetSetting(Setting);
 	m_iPushedCount = 0;
-	static const std::regex SPLIT_RE {R"(\S+)"};
 
 	const auto PushFunc = [&] () {
 		while (m_pConversion->IsReady()) {
@@ -343,8 +345,8 @@ void CSequenceParser::ParseSequence(std::string_view sv)
 
 	m_pConversion->OnStart();
 	PushFunc();
-	for (auto x : re::string_gmatch(sv, SPLIT_RE)) {
-		auto str = x.str();
+	for (auto x : re::tokens(sv)) {
+		auto str = re::sv_from_submatch(x[0]);
 		if (str == "|")
 			Loop = m_iPushedCount;
 		else if (str == "/")

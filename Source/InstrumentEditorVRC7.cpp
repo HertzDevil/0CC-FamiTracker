@@ -489,7 +489,7 @@ void CInstrumentEditorVRC7::ParsePatch(std::string_view sv)
 {
 	int i = 0;
 	for (auto x : re::tokens(sv)) {		// // //
-		int value = CSequenceInstrumentEditPanel::ReadStringValue(x.str());
+		int value = CSequenceInstrumentEditPanel::ReadStringValue(re::sv_from_submatch(x[0]));
 		m_pInstrument->SetCustomReg(i, std::clamp(value, 0, 0xFF));		// // //
 		if (++i >= 8)
 			break;

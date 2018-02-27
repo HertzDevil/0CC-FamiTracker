@@ -47,6 +47,13 @@ auto string_gmatch(std::basic_string_view<CharT, Traits> sv, const std::basic_re
 	return rng {sv, re};
 }
 
+template <typename BidirIt>
+std::basic_string_view<typename std::iterator_traits<BidirIt>::value_type>
+sv_from_submatch(std::sub_match<BidirIt> submatch) {
+	using T = std::basic_string_view<typename std::iterator_traits<BidirIt>::value_type>;
+	return submatch.matched ? T(&*submatch.first, std::distance(submatch.first, submatch.second)) : T();
+}
+
 static const std::regex words {R"(\S+)", std::regex_constants::optimize};
 static const std::wregex wwords {LR"(\S+)", std::regex_constants::optimize};
 

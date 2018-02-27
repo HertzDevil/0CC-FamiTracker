@@ -41,6 +41,7 @@
 #include "VisualizerWnd.h"		// // //
 #include <iostream>		// // //
 #include "str_conv/str_conv.hpp"		// // //
+#include "NumConv.h"		// // //
 
 #include <afxadv.h>		// // // CRecentFileList
 #if !defined(WIP) && !defined(_DEBUG)		// // //
@@ -526,30 +527,30 @@ bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
 
 	if (GetLastError() == ERROR_ALREADY_EXISTS) {
 		// Another instance detected, get window handle
-		HANDLE hMapFile = OpenFileMappingW(FILE_MAP_ALL_ACCESS, FALSE, FT_SHARED_MEM_NAME);
-		if (hMapFile != NULL) {
-			LPCWSTR pBuf = (LPTSTR) MapViewOfFile(hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, SHARED_MEM_SIZE);
-			if (pBuf != NULL) {
-				// Get window handle
-				HWND hWnd = (HWND)_ttoi(pBuf);
-				if (hWnd != NULL) {
-					// Get file name
-					LPTSTR pFilePath = cmdInfo.m_strFileName.GetBuffer();
-					// We have the window handle & file, send a message to open the file
-					COPYDATASTRUCT data;
-					data.dwData = cmdInfo.m_bPlay ? IPC_LOAD_PLAY : IPC_LOAD;
-					data.cbData = (DWORD)((wcslen(pFilePath) + 1) * sizeof(WCHAR));
-					data.lpData = pFilePath;
-					DWORD result;
-					SendMessageTimeoutW(hWnd, WM_COPYDATA, NULL, (LPARAM)&data, SMTO_NORMAL, 100, &result);
-					UnmapViewOfFile(pBuf);
-					CloseHandle(hMapFile);
-					TRACE(L"App: Found another instance, shutting down\n");
-					// Then close the program
-					return true;
+		if (HANDLE hMapFile = OpenFileMappingW(FILE_MAP_ALL_ACCESS, FALSE, FT_SHARED_MEM_NAME)) {
+			if (auto pwBuf = (LPCWSTR)MapViewOfFile(hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, SHARED_MEM_SIZE)) {
+				if (auto pBuf = conv::to_uint(conv::to_utf8(pwBuf))) {
+					// Get window handle
+					if (auto hWnd = (HWND)*pBuf) {
+						// Get file name
+						LPTSTR pFilePath = cmdInfo.m_strFileName.GetBuffer();
+						// We have the window handle & file, send a message to open the file
+						COPYDATASTRUCT data;
+						data.dwData = cmdInfo.m_bPlay ? IPC_LOAD_PLAY : IPC_LOAD;
+						data.cbData = (DWORD)((wcslen(pFilePath) + 1) * sizeof(WCHAR));
+						data.lpData = pFilePath;
+						DWORD result;
+						SendMessageTimeoutW(hWnd, WM_COPYDATA, NULL, (LPARAM)&data, SMTO_NORMAL, 100, &result);
+						cmdInfo.m_strFileName.ReleaseBuffer();
+						UnmapViewOfFile(pwBuf);
+						CloseHandle(hMapFile);
+						TRACE(L"App: Found another instance, shutting down\n");
+						// Then close the program
+						return true;
+					}
 				}
 
-				UnmapViewOfFile(pBuf);
+				UnmapViewOfFile(pwBuf);
 			}
 			CloseHandle(hMapFile);
 		}
@@ -828,28 +829,27 @@ void CFTCommandLineInfo::ParseParam(const WCHAR* pszParam, BOOL bFlag, BOOL bLas
 				return;
 			}
 			else if (track_ == MAX_TRACKS) {
-				CStringW param = pszParam;
-				WCHAR *str_end = const_cast<LPTSTR>(pszParam) + param.GetLength();
-				WCHAR *str_end2;
-				track_ = wcstoul(pszParam, &str_end2, 10);
-				if (errno || str_end2 != str_end)
+				if (auto track = conv::to_uint(conv::to_utf8(pszParam))) {
+					track_ = *track;
+					if (track_ >= MAX_TRACKS)
+						track_ = 0;
+				}
+				else
 					m_bRender = false;
-				if (track_ >= MAX_TRACKS)
-					track_ = 0;
 				return;
 			}
 			else {
-				CStringW param = pszParam;
-				if (param.Right(1) == L"s") {
-					param.Delete(param.GetLength() - 1);
+				std::string param = conv::to_utf8(pszParam);
+				std::string_view sv = param;
+				if (!sv.empty() && sv.back() == 's') {
+					sv.remove_suffix(1);
 					render_type_ = render_type_t::Seconds;
 				}
 				else
 					render_type_ = render_type_t::Loops;
-				WCHAR *str_end = const_cast<LPTSTR>(pszParam) + param.GetLength();
-				WCHAR *str_end2;
-				render_param_ = wcstoul(pszParam, &str_end2, 10);
-				if (errno || str_end2 != str_end)
+				if (auto len = conv::to_uint(param))
+					render_param_ = *len;
+				else
 					m_bRender = false;
 				return;
 			}

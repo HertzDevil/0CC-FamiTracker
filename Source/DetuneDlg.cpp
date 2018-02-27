@@ -29,6 +29,7 @@
 #include "DetuneTable.h"
 #include "str_conv/str_conv.hpp"
 #include "NumConv.h"
+#include "sv_regex.h"
 
 // CDetuneDlg dialog
 
@@ -407,22 +408,24 @@ void CDetuneDlg::OnBnClickedButtonImport()
 		return;
 	}
 
+	static const std::regex TOKEN {R"([^,]+)", std::regex_constants::optimize};
 	CStringW LineW;
-	int Count, Chip = 0, Note = 0;
 	while (csv.ReadString(LineW)) {
-		CStringA Line = conv::to_utf8(LineW).data();
-		Count = Line.Find(L',', 0);
-		Chip = atoi(Line.Left(Count));
-		Note = 0;
-		while (Line.Delete(0, Count)) {
-			if (!Line.Delete(0, 1)) break;
-			Count = Line.Find(L',', 0);
-			if (Count == -1)
-				m_iDetuneTable[Chip][Note] = atoi(Line);
-			else {
-				m_iDetuneTable[Chip][Note] = atoi(Line.Left(Count));
-				++Note;
-			}
+		auto Line = conv::to_utf8(LineW);
+		int Chip = -1;
+		int Note = 0;
+		for (auto m : re::string_gmatch(std::string_view {Line}, TOKEN)) {
+			if (auto offs = conv::to_int(re::sv_from_submatch(m[0])))
+				if (Chip == -1) {
+					Chip = *offs;
+					if (Chip < 0 || Chip >= 6) {
+						AfxMessageBox(L"Invalid chip index.");
+						csv.Close();
+						return;
+					}
+				}
+				else
+					m_iDetuneTable[Chip][Note++] = *offs;
 		}
 	}
 
