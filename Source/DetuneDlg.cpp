@@ -324,7 +324,7 @@ void CDetuneDlg::OnEnKillfocusEditOctave()
 {
 	CStringW String;
 	m_cEditOctave->GetWindowTextW(String);
-	m_iOctave = conv::to_int(conv::to_utf8(String)).value_or(0);
+	m_iOctave = conv::to_int(String).value_or(0);
 	UpdateOctave();
 }
 
@@ -342,7 +342,7 @@ void CDetuneDlg::OnEnKillfocusEditOffset()
 {
 	CStringW String;
 	m_cEditOffset->GetWindowTextW(String);
-	m_iDetuneTable[m_iCurrentChip][m_iNote] = conv::to_int(conv::to_utf8(String)).value_or(0);
+	m_iDetuneTable[m_iCurrentChip][m_iNote] = conv::to_int(String).value_or(0);
 	UpdateOctave();
 }
 

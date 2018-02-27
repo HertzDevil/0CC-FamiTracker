@@ -222,7 +222,7 @@ void CInstrumentEditorDPCM::UpdateKey(int Index)
 int CInstrumentEditorDPCM::GetSelectedSampleIndex() const {		// // //
 	CListCtrl *pSampleListCtrl = static_cast<CListCtrl *>(GetDlgItem(IDC_SAMPLE_LIST));
 	if (int Index = pSampleListCtrl->GetSelectionMark(); Index != -1)
-		if (CStringW str = pSampleListCtrl->GetItemText(Index, 0); auto n = conv::to_int(conv::to_utf8(str)))
+		if (CStringW str = pSampleListCtrl->GetItemText(Index, 0); auto n = conv::to_int(str))
 			return *n;
 	return -1;
 }
@@ -362,7 +362,7 @@ void CInstrumentEditorDPCM::OnBnClickedUnload()
 		nItem = pListBox->GetNextItem(nItem, LVNI_SELECTED);
 		ASSERT(nItem != -1);
 		CStringW str = pListBox->GetItemText(nItem, 0);
-		if (auto n = conv::to_int(conv::to_utf8(str))) {
+		if (auto n = conv::to_int(str)) {
 			Env.GetSoundGenerator()->CancelPreviewSample();
 			GetDSampleManager()->RemoveDSample(*n);		// // //
 		}
@@ -459,7 +459,7 @@ void CInstrumentEditorDPCM::OnCbnSelchangeSamples()
 		CStringW Name;		// // //
 		pSampleBox->GetLBText(Sample, Name);
 		Name.Truncate(2);
-		if (auto n = conv::to_int(conv::to_utf8(Name)))		// // //
+		if (auto n = conv::to_int(Name))		// // //
 			Sample = *n + 1;
 
 		if (PrevSample == 0)

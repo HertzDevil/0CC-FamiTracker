@@ -780,9 +780,6 @@
     <ClCompile Include="Source\ModuleImporter.cpp">
       <Filter>Source Files\Document Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\str_conv\str_conv.cpp">
-      <Filter>Source Files\Other</Filter>
-    </ClCompile>
     <ClCompile Include="Source\ChannelOrder.cpp">
       <Filter>Source Files\Sound Driver</Filter>
     </ClCompile>
@@ -1513,6 +1510,9 @@
     </ClInclude>
     <ClInclude Include="Source\APU\ext\FDSSound_new.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers\External</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\to_sv.h">
+      <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

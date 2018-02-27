@@ -210,7 +210,7 @@ std::string CChannelHandler::GetStateString() const		// // //
 	else
 		log += conv::sv_from_uint_hex(m_iInstrument, 2);
 	log += "        Vol.: ";
-	log += conv::to_digit(m_iDefaultVolume >> VOL_COLUMN_SHIFT);
+	log += conv::to_digit<char>(m_iDefaultVolume >> VOL_COLUMN_SHIFT);
 	log += "        Active effects:";
 	return log + GetEffectString();
 }

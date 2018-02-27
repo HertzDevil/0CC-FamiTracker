@@ -1110,7 +1110,7 @@ void CMainFrame::ShowInstrumentNumberText()		// // //
 		if (i >= m_iInstNumDigit - 1)
 			digit += '_';
 		else
-			digit += conv::to_digit((m_iInstNumCurrent >> (4 * (INST_DIGITS - i - 1))) & 0xF);
+			digit += conv::to_digit<char>((m_iInstNumCurrent >> (4 * (INST_DIGITS - i - 1))) & 0xF);
 
 	CStringW msg;
 	AfxFormatString1(msg, IDS_TYPE_INST_NUM, conv::to_wide(digit).data());

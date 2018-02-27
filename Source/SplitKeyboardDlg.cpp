@@ -153,7 +153,7 @@ void CSplitKeyboardDlg::OnCbnSelchangeComboSplitInst()
 {
 	CStringW str;
 	GetDlgItemTextW(IDC_COMBO_SPLIT_INST, str);
-	m_iSplitInstrument = str == KEEP_INST_STRING ? MAX_INSTRUMENTS : conv::to_int(conv::to_utf8(str), 16u).value_or(MAX_INSTRUMENTS);
+	m_iSplitInstrument = str == KEEP_INST_STRING ? MAX_INSTRUMENTS : conv::to_int(str, 16u).value_or(MAX_INSTRUMENTS);
 }
 
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitTrsp()

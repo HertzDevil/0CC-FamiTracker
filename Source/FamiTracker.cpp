@@ -529,7 +529,7 @@ bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
 		// Another instance detected, get window handle
 		if (HANDLE hMapFile = OpenFileMappingW(FILE_MAP_ALL_ACCESS, FALSE, FT_SHARED_MEM_NAME)) {
 			if (auto pwBuf = (LPCWSTR)MapViewOfFile(hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, SHARED_MEM_SIZE)) {
-				if (auto pBuf = conv::to_uint(conv::to_utf8(pwBuf))) {
+				if (auto pBuf = conv::to_uint(pwBuf)) {
 					// Get window handle
 					if (auto hWnd = (HWND)*pBuf) {
 						// Get file name
@@ -829,7 +829,7 @@ void CFTCommandLineInfo::ParseParam(const WCHAR* pszParam, BOOL bFlag, BOOL bLas
 				return;
 			}
 			else if (track_ == MAX_TRACKS) {
-				if (auto track = conv::to_uint(conv::to_utf8(pszParam))) {
+				if (auto track = conv::to_uint(pszParam)) {
 					track_ = *track;
 					if (track_ >= MAX_TRACKS)
 						track_ = 0;
@@ -847,7 +847,7 @@ void CFTCommandLineInfo::ParseParam(const WCHAR* pszParam, BOOL bFlag, BOOL bLas
 				}
 				else
 					render_type_ = render_type_t::Loops;
-				if (auto len = conv::to_uint(param))
+				if (auto len = conv::to_uint(sv))
 					render_param_ = *len;
 				else
 					m_bRender = false;

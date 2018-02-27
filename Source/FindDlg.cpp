@@ -292,8 +292,8 @@ void CFindResultsBox::SelectItem(int Index)
 	int Channel = pView->GetSongView()->GetChannelOrder().GetChannelIndex(Cache(conv::to_utf8(m_cListResults.GetItemText(Index, CHANNEL))));
 	if (Channel != -1) {
 		pView->SelectChannel(Channel);
-		pView->SelectFrame(*conv::to_uint(conv::to_utf8(m_cListResults.GetItemText(Index, FRAME)), 16u));
-		pView->SelectRow(*conv::to_uint(conv::to_utf8(m_cListResults.GetItemText(Index, ROW)), 16u));
+		pView->SelectFrame(*conv::to_uint(m_cListResults.GetItemText(Index, FRAME), 16u));
+		pView->SelectRow(*conv::to_uint(m_cListResults.GetItemText(Index, ROW), 16u));
 	}
 	AfxGetMainWnd()->SetFocus();
 }
@@ -420,8 +420,8 @@ void CFindResultsBox::OnLvnColumnClickFindResults(NMHDR *pNMHDR, LRESULT *pResul
 int CFindResultsBox::IntCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
 	CListCtrl *pList = reinterpret_cast<CListCtrl*>(lParamSort);
-	auto x = conv::to_int(conv::to_utf8(pList->GetItemText(lParam1, m_iLastsortColumn)));
-	auto y = conv::to_int(conv::to_utf8(pList->GetItemText(lParam1, m_iLastsortColumn)));
+	auto x = conv::to_int(pList->GetItemText(lParam1, m_iLastsortColumn));
+	auto y = conv::to_int(pList->GetItemText(lParam1, m_iLastsortColumn));
 
 	int result = x > y ? 1 : x < y ? -1 : 0; // x <=> y;
 	return m_bLastSortDescending ? -result : result;
@@ -430,8 +430,8 @@ int CFindResultsBox::IntCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lPara
 int CFindResultsBox::HexCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
 	CListCtrl *pList = reinterpret_cast<CListCtrl*>(lParamSort);
-	auto x = conv::to_int(conv::to_utf8(pList->GetItemText(lParam1, m_iLastsortColumn)), 16u);
-	auto y = conv::to_int(conv::to_utf8(pList->GetItemText(lParam1, m_iLastsortColumn)), 16u);
+	auto x = conv::to_int(pList->GetItemText(lParam1, m_iLastsortColumn), 16u);
+	auto y = conv::to_int(pList->GetItemText(lParam1, m_iLastsortColumn), 16u);
 
 	int result = x > y ? 1 : x < y ? -1 : 0; // x <=> y;
 	return m_bLastSortDescending ? -result : result;
@@ -683,7 +683,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		if (str.Delete(0)) {
 			if (str.GetAt(0) == L'-')
 				str.Delete(0);
-			int BufPos = conv::to_int(conv::to_utf8(str)).value_or(ECHO_BUFFER_LENGTH + 1);
+			int BufPos = conv::to_int(str).value_or(ECHO_BUFFER_LENGTH + 1);
 			RaiseIf(BufPos > ECHO_BUFFER_LENGTH,
 				L"Echo buffer access \"^%s\" is out of range, maximum is %d.", (LPCWSTR)str, ECHO_BUFFER_LENGTH);
 			Term.Oct->Set(BufPos, Half);
@@ -706,7 +706,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 			if (str.Delete(0)) {
 				Term.Definite[WC_OCT] = true;
 				RaiseIf(str.SpanIncluding(L"0123456789") != str, L"Unknown note octave.");
-				Oct = conv::to_int(conv::to_utf8(str)).value_or(-1);
+				Oct = conv::to_int(str).value_or(-1);
 				RaiseIf(Oct >= OCTAVE_RANGE || Oct < 0,
 					L"Note octave \"%s\" is out of range, maximum is %d.", (LPCWSTR)str, OCTAVE_RANGE - 1);
 				Term.Oct->Set(Oct, Half);
@@ -738,7 +738,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 	}
 
 	if (str.SpanIncluding(L"0123456789") == str) {
-		int NoteValue = conv::to_int(conv::to_utf8(str)).value_or(-1);
+		int NoteValue = conv::to_int(str).value_or(-1);
 		RaiseIf(NoteValue == 0 && str.GetAt(0) != L'0', L"Invalid note \"%s\".", (LPCWSTR)str);
 		RaiseIf(NoteValue >= NOTE_COUNT || NoteValue < 0,
 			L"Note value \"%s\" is out of range, maximum is %d.", (LPCWSTR)str, NOTE_COUNT - 1);
@@ -931,7 +931,7 @@ void CFindDlg::GetReplaceTerm()
 }
 
 unsigned CFindDlg::GetHex(LPCWSTR str) {
-	auto val = conv::to_int(conv::to_utf8(str), 16);
+	auto val = conv::to_int(str, 16);
 	RaiseIf(!val, L"Invalid hexadecimal \"%s\".", (LPCWSTR)str);
 	return *val;
 }

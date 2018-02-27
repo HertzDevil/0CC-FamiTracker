@@ -538,7 +538,6 @@
     <ClCompile Include="Source\ModSequenceEditor.cpp" />
     <ClCompile Include="Source\PCMImport.cpp" />
     <ClCompile Include="Source\StretchDlg.cpp" />
-    <ClCompile Include="Source\str_conv\str_conv.cpp" />
     <ClCompile Include="Source\SwapDlg.cpp" />
     <ClCompile Include="Source\TempoCounter.cpp" />
     <ClCompile Include="Source\TempoDisplay.cpp" />
@@ -756,6 +755,7 @@
     <ClInclude Include="Source\SwapDlg.h" />
     <ClInclude Include="Source\TempoCounter.h" />
     <ClInclude Include="Source\TempoDisplay.h" />
+    <ClInclude Include="Source\to_sv.h" />
     <ClInclude Include="Source\TrackData.h" />
     <ClInclude Include="Source\TransposeDlg.h" />
     <ClInclude Include="Source\VersionChecker.h" />

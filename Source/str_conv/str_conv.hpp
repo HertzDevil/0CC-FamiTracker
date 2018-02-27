@@ -25,57 +25,79 @@
 
 #include <string>
 #include <string_view>
-#include "stdafx.h"
+#include "to_sv.h"
+#include "str_conv/utf8_conv.hpp"
 
 namespace conv {
 
 namespace std = ::std;
 
-std::string to_utf8(std::string_view sv);
-std::string to_utf8(std::wstring_view sv);
-std::string to_utf8(std::u16string_view sv);
-std::string to_utf8(std::u32string_view sv);
+namespace details {
 
-std::u16string to_utf16(std::string_view sv);
-std::u16string to_utf16(std::wstring_view sv);
-std::u16string to_utf16(std::u16string_view sv);
-std::u16string to_utf16(std::u32string_view sv);
-
-std::u32string to_utf32(std::string_view sv);
-std::u32string to_utf32(std::wstring_view sv);
-std::u32string to_utf32(std::u16string_view sv);
-std::u32string to_utf32(std::u32string_view sv);
-
-std::wstring to_wide(std::string_view sv);
-std::wstring to_wide(std::wstring_view sv);
-std::wstring to_wide(std::u16string_view sv);
-std::wstring to_wide(std::u32string_view sv);
-
-// MFC-specific
-
-template <typename CharT>
-auto to_utf8(const CharT *str) {
-	return to_utf8(std::basic_string_view<CharT> {str});
+template <typename CharT, typename ForwardIt>
+constexpr auto codepoint_from_utf(ForwardIt first, ForwardIt last) noexcept {
+	if constexpr (sizeof(CharT) == sizeof(char))
+		return utf8_to_codepoint(std::move(first), std::move(last));
+	else if constexpr (sizeof(CharT) == sizeof(char16_t))
+		return utf16_to_codepoint(std::move(first), std::move(last));
+	else if constexpr (sizeof(CharT) == sizeof(char32_t))
+		return utf32_to_codepoint(std::move(first), std::move(last));
+	else
+		static_assert(!sizeof(ForwardIt), "Invalid character size");
 }
 
-template <typename CharT>
-auto to_utf16(const CharT *str) {
-	return to_utf16(std::basic_string_view<CharT> {str});
+template <typename CharT, typename OutputIt>
+constexpr auto utf_from_codepoint(OutputIt it, char32_t c) noexcept {
+	if constexpr (sizeof(CharT) == sizeof(char))
+		return codepoint_to_utf8(std::move(it), c);
+	else if constexpr (sizeof(CharT) == sizeof(char16_t))
+		return codepoint_to_utf16(std::move(it), c);
+	else if constexpr (sizeof(CharT) == sizeof(char32_t))
+		return codepoint_to_utf32(std::move(it), c);
+	else
+		static_assert(!sizeof(OutputIt), "Invalid character size");
 }
 
-template <typename CharT>
-auto to_utf32(const CharT *str) {
-	return to_utf32(std::basic_string_view<CharT> {str});
+template <typename To, typename From>
+std::basic_string<To> utf_convert(std::basic_string_view<From> sv) {
+	std::basic_string<To> str;
+	auto b = sv.begin();
+	auto e = sv.end();
+	while (b != e) {
+		auto [it, ch] = codepoint_from_utf<From>(b, e);
+		b = it;
+		utf_from_codepoint<To>(std::back_inserter(str), ch);
+	}
+	return str;
 }
 
-template <typename CharT>
-auto to_wide(const CharT *str) {
-	return to_wide(std::basic_string_view<CharT> {str});
+template <typename To, typename From>
+auto to_utf_string(From&& str) {
+	if constexpr (std::is_same_v<std::decay_t<From>, To>)
+		return To(std::forward<From>(str));
+	else
+		return details::utf_convert<typename To::value_type>(to_sv(str));
 }
 
-std::string to_utf8(const CStringA &str);
-std::string to_utf8(const CStringW &str);
-std::wstring to_wide(const CStringA &str);
-std::wstring to_wide(const CStringW &str);
+} // namespace details
+
+
+
+template <typename T>
+auto to_utf8(T&& str) {
+	return details::to_utf_string<std::string>(std::forward<T>(str));
+}
+template <typename T>
+auto to_utf16(T&& str) {
+	return details::to_utf_string<std::u16string>(std::forward<T>(str));
+}
+template <typename T>
+auto to_utf32(T&& str) {
+	return details::to_utf_string<std::u32string>(std::forward<T>(str));
+}
+template <typename T>
+auto to_wide(T&& str) {
+	return details::to_utf_string<std::wstring>(std::forward<T>(str));
+}
 
 } // namespace conv

@@ -56,7 +56,7 @@ void UpdateEchoTranspose(const stChanNote &Note, int &Value, unsigned int EffCol
 
 
 std::string MakeCommandString(effect_t Effect, unsigned char Param) {		// // //
-	return {' ', EFF_CHAR[value_cast(Effect)], conv::to_digit(Param >> 4), conv::to_digit(Param & 0x0Fu), '\0'};
+	return {' ', EFF_CHAR[value_cast(Effect)], conv::to_digit<char>(Param >> 4), conv::to_digit<char>(Param & 0x0Fu), '\0'};
 }
 
 
@@ -74,7 +74,7 @@ std::string stChannelState::GetStateString() const {
 	else
 		log += conv::sv_from_int_hex(Instrument, 2);
 	log += "        Vol.: ";
-	log += conv::to_digit(Volume >= MAX_VOLUME ? 0xF : Volume);
+	log += conv::to_digit<char>(Volume >= MAX_VOLUME ? 0xF : Volume);
 	log += "        Active effects:";
 
 	std::string effStr;
@@ -352,7 +352,7 @@ std::string CSongState::GetChannelStateString(const CFamiTrackerModule &modfile,
 	if (Speed >= 0) {
 		if (const auto pGroove = modfile.GetGroove(Speed); pGroove && GroovePos >= 0) {
 			str += "        Groove: ";
-			str += {conv::to_digit(Speed >> 4), conv::to_digit(Speed), ' ', '<', '-'};
+			str += {conv::to_digit<char>(Speed >> 4), conv::to_digit<char>(Speed), ' ', '<', '-'};
 			unsigned Size = pGroove->size();
 			for (unsigned i = 0; i < Size; ++i)
 				str += ' ' + std::to_string(pGroove->entry((i + GroovePos) % Size));

@@ -23,7 +23,6 @@
 #include "CustomControls.h"
 #include "DPI.h"		// // //
 #include "NumConv.h"		// // //
-#include "str_conv/str_conv.hpp"		// // //
 
 /*
 
@@ -157,7 +156,7 @@ void CLockedEdit::OnKillFocus(CWnd* pNewWnd)
 	if (!IsEditable())
 		return;
 	GetWindowTextW(Text);
-	m_iValue = conv::to_int(conv::to_utf8(Text)).value_or(0);
+	m_iValue = conv::to_int(Text).value_or(0);
 	m_bUpdate = true;
 	SendMessageW(EM_SETREADONLY, TRUE);
 }

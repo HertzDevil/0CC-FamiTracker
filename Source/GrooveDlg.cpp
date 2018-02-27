@@ -394,9 +394,9 @@ void CGrooveDlg::OnBnClickedButtonGrooveGenerate()
 {
 	CStringW Str;
 	GetDlgItemTextW(IDC_EDIT_GROOVE_NUM, Str);
-	int Num = conv::to_int(conv::to_utf8(Str)).value_or(0);
+	int Num = conv::to_int(Str).value_or(0);
 	GetDlgItemTextW(IDC_EDIT_GROOVE_DENOM, Str);
-	int Denom = conv::to_int(conv::to_utf8(Str)).value_or(0);
+	int Denom = conv::to_int(Str).value_or(0);
 	if (Denom < 1 || Denom > groove::max_size || Num < Denom || Num > Denom * 255) return;
 
 	*Groove = groove { };
@@ -411,7 +411,7 @@ void CGrooveDlg::OnBnClickedButtonGroovePad()
 {
 	CStringW Str;
 	GetDlgItemTextW(IDC_EDIT_GROOVE_PAD, Str);
-	int Amount = conv::to_int(conv::to_utf8(Str)).value_or(0);
+	int Amount = conv::to_int(Str).value_or(0);
 	if (Groove->size() > groove::max_size / 2)
 		return;
 	for (uint8_t entry : *Groove)
