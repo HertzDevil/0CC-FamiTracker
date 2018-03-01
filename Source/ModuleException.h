@@ -52,10 +52,7 @@ public:
 	template <typename... T>
 	void AppendError(const std::string &fmt, T&&... args)
 	{
-		const size_t MAX_ERROR_STRLEN = 256;
-		char buf[MAX_ERROR_STRLEN] = { };
-		_snprintf_s(buf, MAX_ERROR_STRLEN, _TRUNCATE, fmt.data(), std::forward<T>(args)...);
-		m_strError.emplace_back(buf);
+		m_strError.emplace_back((LPCSTR)FormattedA(fmt.data(), std::forward<T>(args)...));
 	}
 	/*!	\brief Sets the footer string of the error message.
 		\param footer The new footer string. */

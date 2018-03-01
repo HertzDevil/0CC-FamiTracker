@@ -802,7 +802,7 @@ void CFTCommandLineInfo::ParseParam(const WCHAR* pszParam, BOOL bFlag, BOOL bLas
 			FILE *f;
 			AttachConsole(ATTACH_PARENT_PROCESS);
 			freopen_s(&f, "CON", "w", stdout);
-			printf("0CC-FamiTracker v%s\n", Get0CCFTVersionString());		// // //
+			std::cout << "0CC-FamiTracker v" << Get0CCFTVersionString() << '\n';		// // //
 			return;
 		}
 	}

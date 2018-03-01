@@ -30,6 +30,7 @@
 #include "APU/Types.h"
 #include "SoundChipSet.h"
 #include "ChannelOrder.h"
+#include "str_conv/str_conv.hpp"
 
 #include "FamiTrackerEnv.h"
 #include "SoundGen.h"
@@ -1270,7 +1271,7 @@ void CFamiTrackerDocIO::LoadDetuneTables(CFamiTrackerModule &modfile, int ver) {
 			}
 		}
 		catch (CModuleException e) {
-			e.AppendError("At %s detune table,", (LPCWSTR)CDetuneDlg::CHIP_STR[Chip]);
+			e.AppendError("At %s detune table,", conv::to_utf8(CDetuneDlg::CHIP_STR[Chip]).data());
 			throw e;
 		}
 	}

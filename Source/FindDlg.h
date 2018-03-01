@@ -238,7 +238,7 @@ protected:
 	bool CompareFields(const stChanNote &Target, bool Noise, int EffCount);
 
 	template <typename... T>
-	void RaiseIf(bool Check, LPCWSTR Str, T... args);
+	void RaiseIf(bool Check, LPCWSTR Str, T&&... args);
 	unsigned GetHex(LPCWSTR str);
 
 	replaceTerm toReplace(const searchTerm &x) const;

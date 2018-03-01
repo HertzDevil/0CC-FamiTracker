@@ -902,12 +902,8 @@ bool CMainFrame::HasDocument() const {		// // //
 template <typename... T>
 void CMainFrame::SetStatusText(LPCWSTR Text, T&&... args)		// // //
 {
-	if (!Text)
-		return;
-
-	WCHAR Buf[512] = { };
-	_sntprintf_s(Buf, std::size(Buf), _TRUNCATE, Text, std::forward<T>(args)...);
-	m_wndStatusBar.SetWindowTextW(Buf);
+	if (Text)
+		m_wndStatusBar.SetWindowTextW(FormattedW(Text, std::forward<T>(args)...));
 }
 
 void CMainFrame::ClearInstrumentList()

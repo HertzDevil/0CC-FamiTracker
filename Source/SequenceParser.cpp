@@ -189,12 +189,12 @@ bool CSeqConversion5B::GetNextTerm(std::string_view &sv, int &Out)
 	if (re::svmatch m; std::regex_search(sv.begin(), sv.end(), m, S5B_FLAGS_RE)) {
 		if (m_iEnableFlags == -1) {
 			m_iEnableFlags = 0;
-			auto sv = re::sv_from_submatch(m[0]);
-			if (sv.find_first_of("Tt") != std::string::npos)
+			auto flags = re::sv_from_submatch(m[0]);
+			if (flags.find_first_of("Tt") != std::string::npos)
 				m_iEnableFlags |= value_cast(s5b_mode_t::Square);
-			if (sv.find_first_of("Nn") != std::string::npos)
+			if (flags.find_first_of("Nn") != std::string::npos)
 				m_iEnableFlags |= value_cast(s5b_mode_t::Noise);
-			if (sv.find_first_of("Ee") != std::string::npos)
+			if (flags.find_first_of("Ee") != std::string::npos)
 				m_iEnableFlags |= value_cast(s5b_mode_t::Envelope);
 		}
 		sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));

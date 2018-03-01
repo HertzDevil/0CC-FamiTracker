@@ -348,7 +348,6 @@ void CInstrumentEditorDPCM::OnBnClickedLoad()
 void CInstrumentEditorDPCM::OnBnClickedUnload()
 {
 	CListCtrl *pListBox = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
-	WCHAR ItemName[256] = { };
 	int nItem = -1;
 
 	if (m_iSelectedSample == MAX_DSAMPLES)

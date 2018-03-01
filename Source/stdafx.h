@@ -82,22 +82,6 @@ class CRenderTarget;		// // //
 #undef TRACE
 #endif
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-template <typename... T>
-bool _trace(LPCWSTR format, T&&... args)
-{
-	WCHAR buffer[1000] = { };
-	_snwprintf_s(buffer, _TRUNCATE, format, static_cast<T&&>(args)...);
-	OutputDebugStringW(buffer);
-
-	return true;
-}
-#define TRACE _trace
-#else
-#define TRACE __noop
-#endif
-
 namespace details {
 
 template <typename T, typename CharT>		// // //
@@ -109,7 +93,7 @@ inline constexpr bool is_printf_arg_v = std::is_arithmetic_v<std::decay_t<T>> ||
 template <typename... Args>
 inline CStringA FormattedA(LPCSTR fmt, Args&&... args) {
 	CStringA str;
-	static_assert((... && details::is_printf_arg_v<Args, CHAR>), "These types cannot be passed to printf");
+	static_assert((... && details::is_printf_arg_v<Args, CHAR>), "These types cannot be passed as printf arguments");
 	str.Format(fmt, std::forward<Args>(args)...);
 	return str;
 }
@@ -117,19 +101,38 @@ inline CStringA FormattedA(LPCSTR fmt, Args&&... args) {
 template <typename... Args>
 inline CStringW FormattedW(LPCWSTR fmt, Args&&... args) {
 	CStringW str;
-	static_assert((... && details::is_printf_arg_v<Args, WCHAR>), "These types cannot be passed to printf");
+	static_assert((... && details::is_printf_arg_v<Args, WCHAR>), "These types cannot be passed as printf arguments");
 	str.Format(fmt, std::forward<Args>(args)...);
 	return str;
 }
 
 template <typename... Args>
 inline void AppendFormatA(CStringA &str, LPCSTR fmt, Args&&... args) {
-	static_assert((... && details::is_printf_arg_v<Args, CHAR>), "These types cannot be passed to printf");
+	static_assert((... && details::is_printf_arg_v<Args, CHAR>), "These types cannot be passed as printf arguments");
 	str.AppendFormat(fmt, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 inline void AppendFormatW(CStringW &str, LPCWSTR fmt, Args&&... args) {
-	static_assert((... && details::is_printf_arg_v<Args, WCHAR>), "These typep cannot be passed to printf");
+	static_assert((... && details::is_printf_arg_v<Args, WCHAR>), "These types cannot be passed as printf arguments");
 	str.AppendFormat(fmt, std::forward<Args>(args)...);
 }
+
+
+
+namespace details {
+
+template <typename... Args>
+void debug_trace(LPCWSTR format, Args&&... args) {
+	static_assert((... && details::is_printf_arg_v<Args, WCHAR>), "These types cannot be passed as printf arguments");
+#ifdef _DEBUG
+	OutputDebugStringW(FormattedW(format, std::forward<T>(args)...));
+#endif
+}
+
+} // namespace details
+
+#ifdef TRACE
+#undef TRACE
+#endif
+#define TRACE details::debug_trace

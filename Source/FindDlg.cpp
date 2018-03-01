@@ -1014,13 +1014,11 @@ bool CFindDlg::CompareFields(const stChanNote &Target, bool Noise, int EffCount)
 }
 
 template <typename... T>
-void CFindDlg::RaiseIf(bool Check, LPCWSTR Str, T... args)
+void CFindDlg::RaiseIf(bool Check, LPCWSTR Str, T&&... args)
 {
 	if (!Check)
 		return;
-	WCHAR buf[512] = { };
-	_snwprintf_s(buf, _TRUNCATE, Str, args...);
-	throw CFindException {conv::to_utf8(buf).data()};
+	throw CFindException {conv::to_utf8(FormattedW(Str, std::forward<T>(args)...)).data()};
 }
 
 bool CFindDlg::Find(bool ShowEnd)

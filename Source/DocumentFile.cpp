@@ -24,6 +24,7 @@
 #include "DocumentFile.h"
 #include "ModuleException.h"
 #include "array_view.h"
+#include "NumConv.h"
 
 //
 // This class is based on CFile and has some simple extensions to create and read FTM files
@@ -374,10 +375,10 @@ CModuleException CDocumentFile::GetException() const		// // //
 
 void CDocumentFile::SetDefaultFooter(CModuleException &e) const		// // //
 {
-	char Buffer[128] = {};
-	sprintf_s(Buffer, std::size(Buffer), "At address 0x%X in %.*s block,\naddress 0x%llX in file",
-			  m_iPreviousPointer, m_cBlockID.size(), m_cBlockID.data(), m_iPreviousPosition);		// // //
-	e.SetFooter(std::string {Buffer});
+	std::string msg = "At address 0x" + conv::from_int_hex(m_iPreviousPointer) +
+		" in " + std::string(m_cBlockID.data(), m_cBlockID.size()) + " block,\naddress 0x" +
+		conv::from_int_hex(m_iPreviousPosition) + " in file";		// // //
+	e.SetFooter(std::move(msg));
 }
 
 void CDocumentFile::RaiseModuleException(const std::string &Msg) const		// // //
