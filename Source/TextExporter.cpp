@@ -937,7 +937,7 @@ CStringA CTextExport::ExportRows(LPCWSTR FileName, const CFamiTrackerModule &mod
 	if (!f.Open(FileName, CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException))
 	{
 		WCHAR szError[256];
-		oFileException.GetErrorMessage(szError, 256);
+		oFileException.GetErrorMessage(szError, std::size(szError));
 
 		return FormattedA("Unable to open file:\n%s", conv::to_utf8(szError).data());
 	}
@@ -975,7 +975,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	CFileException oFileException;
 	if (!f.Open(FileName, CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException)) {
 		WCHAR szError[256];
-		oFileException.GetErrorMessage(szError, 256);
+		oFileException.GetErrorMessage(szError, std::size(szError));
 
 		return FormattedA("Unable to open file:\n%s", conv::to_utf8(szError).data());
 	}

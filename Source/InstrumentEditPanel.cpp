@@ -113,7 +113,7 @@ BOOL CInstrumentEditPanel::PreTranslateMessage(MSG* pMsg)
 					break;
 				default:	// Note keys
 					// Make sure the dialog is selected when previewing
-					GetClassName(pMsg->hwnd, ClassName, 256);
+					GetClassNameW(pMsg->hwnd, ClassName, std::size(ClassName));
 					if (0 != wcscmp(ClassName, L"Edit")) {
 						// Remove repeated keys
 						if ((pMsg->lParam & (1 << 30)) == 0)

@@ -211,15 +211,15 @@ BOOL CConfigGeneral::OnInitDialog()
 	m_iKeyRepeat			= pSettings->Keys.iKeyRepeat;
 	m_iKeyEchoBuffer		= pSettings->Keys.iKeyEchoBuffer;		// // //
 
-	GetKeyNameTextW(MapVirtualKey(m_iKeyNoteCut, MAPVK_VK_TO_VSC) << 16, Text, 64);
+	GetKeyNameTextW(MapVirtualKey(m_iKeyNoteCut, MAPVK_VK_TO_VSC) << 16, Text, std::size(Text));
 	SetDlgItemTextW(IDC_KEY_NOTE_CUT, Text);
-	GetKeyNameTextW(MapVirtualKey(m_iKeyNoteRelease, MAPVK_VK_TO_VSC) << 16, Text, 64);
+	GetKeyNameTextW(MapVirtualKey(m_iKeyNoteRelease, MAPVK_VK_TO_VSC) << 16, Text, std::size(Text));
 	SetDlgItemTextW(IDC_KEY_NOTE_RELEASE, Text);
-	GetKeyNameTextW(MapVirtualKey(m_iKeyClear, MAPVK_VK_TO_VSC) << 16, Text, 64);
+	GetKeyNameTextW(MapVirtualKey(m_iKeyClear, MAPVK_VK_TO_VSC) << 16, Text, std::size(Text));
 	SetDlgItemTextW(IDC_KEY_CLEAR, Text);
-	GetKeyNameTextW(MapVirtualKey(m_iKeyRepeat, MAPVK_VK_TO_VSC) << 16, Text, 64);
+	GetKeyNameTextW(MapVirtualKey(m_iKeyRepeat, MAPVK_VK_TO_VSC) << 16, Text, std::size(Text));
 	SetDlgItemTextW(IDC_KEY_REPEAT, Text);
-	GetKeyNameTextW(MapVirtualKey(m_iKeyEchoBuffer, MAPVK_VK_TO_VSC) << 16, Text, 64);		// // //
+	GetKeyNameTextW(MapVirtualKey(m_iKeyEchoBuffer, MAPVK_VK_TO_VSC) << 16, Text, std::size(Text));		// // //
 	SetDlgItemTextW(IDC_KEY_ECHO_BUFFER, Text);
 
 	EnableToolTips(TRUE);
@@ -383,7 +383,7 @@ BOOL CConfigGeneral::PreTranslateMessage(MSG* pMsg)
 				return CPropertyPage::PreTranslateMessage(pMsg);
 		}
 
-		GetKeyNameTextW(key ? pMsg->lParam : 0, Text, 64);
+		GetKeyNameTextW(key ? pMsg->lParam : 0, Text, std::size(Text));
 		SetDlgItemTextW(id, Text);
 
 		SetModified();
