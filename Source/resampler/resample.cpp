@@ -41,8 +41,16 @@ template <typename T, typename InIter1, typename InIter2>
 /** small utility class to change a function object into an iterator **/
 
 template <typename func>
- class func_iterator : public std::iterator<std::forward_iterator_tag, float>
+ class func_iterator		// // //
 {
+public:
+    typedef std::input_iterator_tag iterator_category;
+    typedef float value_type;
+    typedef std::ptrdiff_t difference_type;
+    typedef float *pointer;
+    typedef float reference;
+
+private:
     func f_;
     float x_;
     float step_;
@@ -51,7 +59,7 @@ public:
      : f_(f), x_(initval), step_(step) {}
 
     func_iterator &operator++() { x_ += step_; return *this; }
-    float operator*() { return f_(x_); }
+    reference operator*() { return f_(x_); }
 };
 
 /** small utility function to create a func_iterator **/
