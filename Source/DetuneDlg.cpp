@@ -99,36 +99,38 @@ BOOL CDetuneDlg::OnInitDialog()
 	m_iGlobalSemitone = modfile_->GetTuningSemitone();		// // // 050B
 	m_iGlobalCent = modfile_->GetTuningCent();
 
-	m_cSliderOctave = (CSliderCtrl*)GetDlgItem(IDC_SLIDER_OCTAVE);
-	m_cSliderNote = (CSliderCtrl*)GetDlgItem(IDC_SLIDER_NOTE);
-	m_cSliderOffset = (CSliderCtrl*)GetDlgItem(IDC_SLIDER_OFFSET);
+	m_cSliderOctave.SubclassDlgItem(IDC_SLIDER_OCTAVE, this);
+	m_cSliderNote.SubclassDlgItem(IDC_SLIDER_NOTE, this);
+	m_cSliderOffset.SubclassDlgItem(IDC_SLIDER_OFFSET, this);
+	m_cSliderDetuneSemitone.SubclassDlgItem(IDC_SLIDER_DETUNE_SEMITONE, this);
+	m_cSliderDetuneCent.SubclassDlgItem(IDC_SLIDER_DETUNE_CENT, this);
 
-	m_cEditOctave = (CEdit*)GetDlgItem(IDC_EDIT_OCTAVE);
-	m_cEditNote = (CEdit*)GetDlgItem(IDC_EDIT_NOTE);
-	m_cEditOffset = (CEdit*)GetDlgItem(IDC_EDIT_OFFSET);
+	m_cEditOctave.SubclassDlgItem(IDC_EDIT_OCTAVE, this);
+	m_cEditNote.SubclassDlgItem(IDC_EDIT_NOTE, this);
+	m_cEditOffset.SubclassDlgItem(IDC_EDIT_OFFSET, this);
 
 	auto SpinOctave = (CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_OCTAVE);
-	m_cSliderOctave->SetRange(0, OCTAVE_RANGE - 1);
+	m_cSliderOctave.SetRange(0, OCTAVE_RANGE - 1);
 	SpinOctave->SetRange(0, OCTAVE_RANGE - 1);
-	m_cSliderOctave->SetPos(m_iOctave);
+	m_cSliderOctave.SetPos(m_iOctave);
 	SpinOctave->SetPos(m_iOctave);
-	m_cSliderOctave->SetTicFreq(1);
+	m_cSliderOctave.SetTicFreq(1);
 
 	auto SpinNote = (CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_NOTE);
-	m_cSliderNote->SetRange(0, NOTE_RANGE - 1);
+	m_cSliderNote.SetRange(0, NOTE_RANGE - 1);
 	SpinNote->SetRange(0, NOTE_RANGE - 1);
-	m_cSliderNote->SetPos(m_iNote % NOTE_RANGE);
+	m_cSliderNote.SetPos(m_iNote % NOTE_RANGE);
 	SpinNote->SetPos(m_iNote % NOTE_RANGE);
-	m_cSliderNote->SetTicFreq(1);
+	m_cSliderNote.SetTicFreq(1);
 
 	auto SpinOffset = (CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_OFFSET);
-	m_cSliderOffset->SetRange(-16, 16);
+	m_cSliderOffset.SetRange(-16, 16);
 	SpinOffset->SetRange(-16, 16);
-	m_cSliderOffset->SetPos(m_iDetuneTable[m_iCurrentChip][m_iNote]);
+	m_cSliderOffset.SetPos(m_iDetuneTable[m_iCurrentChip][m_iNote]);
 	SpinOffset->SetPos(m_iDetuneTable[m_iCurrentChip][m_iNote]);
-	m_cSliderOffset->SetTicFreq(4);
+	m_cSliderOffset.SetTicFreq(4);
 
-	m_cEditNote->SetWindowTextW(m_pNote[m_iNote % NOTE_RANGE]);
+	m_cEditNote.SetWindowTextW(m_pNote[m_iNote % NOTE_RANGE]);
 
 	UDACCEL Acc[1];
 	Acc[0].nSec = 0;
@@ -137,14 +139,12 @@ BOOL CDetuneDlg::OnInitDialog()
 
 	CheckRadioButton(IDC_RADIO_NTSC, IDC_RADIO_N163, IDC_RADIO_NTSC);
 
-	auto pSlider = static_cast<CSliderCtrl*>(GetDlgItem(IDC_SLIDER_DETUNE_SEMITONE));
-	pSlider->SetRange(-NOTE_RANGE, NOTE_RANGE);
-	pSlider->SetTicFreq(1);
-	pSlider->SetPos(m_iGlobalSemitone);
-	pSlider = static_cast<CSliderCtrl*>(GetDlgItem(IDC_SLIDER_DETUNE_CENT));
-	pSlider->SetRange(-100, 100);
-	pSlider->SetTicFreq(5);
-	pSlider->SetPos(m_iGlobalCent);
+	m_cSliderDetuneSemitone.SetRange(-NOTE_RANGE, NOTE_RANGE);
+	m_cSliderDetuneSemitone.SetTicFreq(1);
+	m_cSliderDetuneSemitone.SetPos(m_iGlobalSemitone);
+	m_cSliderDetuneCent.SetRange(-100, 100);
+	m_cSliderDetuneCent.SetTicFreq(5);
+	m_cSliderDetuneCent.SetPos(m_iGlobalCent);
 
 	UpdateOffset();
 
@@ -206,8 +206,8 @@ double CDetuneDlg::NoteToFreq(double Note)
 void CDetuneDlg::UpdateOctave()
 {
 	m_iOctave = std::clamp(m_iOctave, 0, OCTAVE_RANGE - 1);
-	m_cSliderOctave->SetPos(m_iOctave);
-	m_cEditOctave->SetWindowTextW(FormattedW(L"%i", m_iOctave));
+	m_cSliderOctave.SetPos(m_iOctave);
+	m_cEditOctave.SetWindowTextW(FormattedW(L"%i", m_iOctave));
 	m_iNote = m_iOctave * NOTE_RANGE + m_iNote % NOTE_RANGE;
 	UpdateOffset();
 }
@@ -215,16 +215,16 @@ void CDetuneDlg::UpdateOctave()
 void CDetuneDlg::UpdateNote()
 {
 	m_iNote = std::clamp(m_iNote, 0, NOTE_COUNT - 1);
-	m_cSliderNote->SetPos(m_iNote % NOTE_RANGE);
-	m_cEditNote->SetWindowTextW(m_pNote[m_iNote % NOTE_RANGE]);
+	m_cSliderNote.SetPos(m_iNote % NOTE_RANGE);
+	m_cEditNote.SetWindowTextW(m_pNote[m_iNote % NOTE_RANGE]);
 	m_iOctave = m_iNote / NOTE_RANGE;
 	UpdateOctave();
 }
 
 void CDetuneDlg::UpdateOffset()
 {
-	m_cSliderOffset->SetPos(m_iDetuneTable[m_iCurrentChip][m_iNote]);
-	m_cEditOffset->SetWindowTextW(FormattedW(L"%i", m_iDetuneTable[m_iCurrentChip][m_iNote]));
+	m_cSliderOffset.SetPos(m_iDetuneTable[m_iCurrentChip][m_iNote]);
+	m_cEditOffset.SetWindowTextW(FormattedW(L"%i", m_iDetuneTable[m_iCurrentChip][m_iNote]));
 
 	if (m_iCurrentChip == 3) // VRC7
 		for (int i = 0; i < OCTAVE_RANGE; i++)
@@ -268,24 +268,26 @@ void CDetuneDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
 
-	if (pScrollBar == (CScrollBar*)m_cSliderOctave) {
-		m_iOctave = m_cSliderOctave->GetPos();
+	auto pWnd = static_cast<CWnd *>(pScrollBar);
+
+	if (pWnd == &m_cSliderOctave) {
+		m_iOctave = m_cSliderOctave.GetPos();
 		UpdateOctave();
 	}
-	else if (pScrollBar == (CScrollBar*)m_cSliderNote) {
-		m_iNote = m_iOctave * NOTE_RANGE + m_cSliderNote->GetPos();
+	else if (pWnd == &m_cSliderNote) {
+		m_iNote = m_iOctave * NOTE_RANGE + m_cSliderNote.GetPos();
 		UpdateNote();
 	}
-	else if (pScrollBar == (CScrollBar*)m_cSliderOffset) {
-		m_iDetuneTable[m_iCurrentChip][m_iNote] = m_cSliderOffset->GetPos();
+	else if (pWnd == &m_cSliderOffset) {
+		m_iDetuneTable[m_iCurrentChip][m_iNote] = m_cSliderOffset.GetPos();
 		UpdateOffset();
 	}
-	else if (pScrollBar == GetDlgItem(IDC_SLIDER_DETUNE_SEMITONE)) {
-		m_iGlobalSemitone = static_cast<CSliderCtrl*>(GetDlgItem(IDC_SLIDER_DETUNE_SEMITONE))->GetPos();
+	else if (pWnd == &m_cSliderDetuneSemitone) {
+		m_iGlobalSemitone = m_cSliderDetuneSemitone.GetPos();
 		UpdateOffset();
 	}
-	else if (pScrollBar == GetDlgItem(IDC_SLIDER_DETUNE_CENT)) {
-		m_iGlobalCent = static_cast<CSliderCtrl*>(GetDlgItem(IDC_SLIDER_DETUNE_CENT))->GetPos();
+	else if (pWnd == &m_cSliderDetuneCent) {
+		m_iGlobalCent = m_cSliderDetuneCent.GetPos();
 		UpdateOffset();
 	}
 }
@@ -323,7 +325,7 @@ void CDetuneDlg::OnDeltaposSpinOffset(NMHDR *pNMHDR, LRESULT *pResult)
 void CDetuneDlg::OnEnKillfocusEditOctave()
 {
 	CStringW String;
-	m_cEditOctave->GetWindowTextW(String);
+	m_cEditOctave.GetWindowTextW(String);
 	m_iOctave = conv::to_int(String).value_or(0);
 	UpdateOctave();
 }
@@ -331,7 +333,7 @@ void CDetuneDlg::OnEnKillfocusEditOctave()
 void CDetuneDlg::OnEnKillfocusEditNote()
 {
 	CStringW String;
-	m_cEditNote->GetWindowTextW(String);
+	m_cEditNote.GetWindowTextW(String);
 	for (int i = 0; i < NOTE_RANGE; i++)
 		if (String == m_pNote[i] || String == m_pNoteFlat[i])
 			m_iNote = m_iOctave * NOTE_RANGE + i;
@@ -341,7 +343,7 @@ void CDetuneDlg::OnEnKillfocusEditNote()
 void CDetuneDlg::OnEnKillfocusEditOffset()
 {
 	CStringW String;
-	m_cEditOffset->GetWindowTextW(String);
+	m_cEditOffset.GetWindowTextW(String);
 	m_iDetuneTable[m_iCurrentChip][m_iNote] = conv::to_int(String).value_or(0);
 	UpdateOctave();
 }

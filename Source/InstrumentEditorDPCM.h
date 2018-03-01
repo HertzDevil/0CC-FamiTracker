@@ -68,6 +68,13 @@ protected:
 protected:
 	std::shared_ptr<CInstrument2A03> m_pInstrument;
 
+	CListCtrl m_cTableListCtrl;		// // //
+	CListCtrl m_cSampleListCtrl;
+	CComboBox m_cComboSampleName;
+	CComboBox m_cComboSamplePitch;
+	CEdit m_cEditDeltaCounter;
+	CSpinButtonCtrl m_cSpinDeltaCounter;
+
 	int	m_iSelectedSample;
 	int m_iSelectedNote = -1;		// // //
 

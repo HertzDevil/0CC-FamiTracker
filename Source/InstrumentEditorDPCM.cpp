@@ -143,44 +143,47 @@ BOOL CInstrumentEditorDPCM::OnInitDialog()
 
 	m_iSelectedNote = -1;		// // //
 
-	CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
+	m_cTableListCtrl.SubclassDlgItem(IDC_TABLE, this);		// // //
+	m_cSampleListCtrl.SubclassDlgItem(IDC_SAMPLE_LIST, this);
+	m_cComboSampleName.SubclassDlgItem(IDC_SAMPLES, this);
+	m_cComboSamplePitch.SubclassDlgItem(IDC_PITCH, this);
+	m_cEditDeltaCounter.SubclassDlgItem(IDC_DELTA_COUNTER, this);
+	m_cSpinDeltaCounter.SubclassDlgItem(IDC_DELTA_SPIN, this);
+
 	CRect r;		// // // 050B
-	pTableListCtrl->GetClientRect(&r);
+	m_cTableListCtrl.GetClientRect(&r);
 	int Width = r.Width() - ::GetSystemMetrics(SM_CXHSCROLL);
-	pTableListCtrl->DeleteAllItems();
-	pTableListCtrl->InsertColumn(0, L"Key", LVCFMT_LEFT, static_cast<int>(.2 * Width));
-	pTableListCtrl->InsertColumn(1, L"Pitch", LVCFMT_LEFT, static_cast<int>(.23 * Width));
-	pTableListCtrl->InsertColumn(2, L"Sample", LVCFMT_LEFT, static_cast<int>(.57 * Width));
-	pTableListCtrl->SendMessageW(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
+	m_cTableListCtrl.DeleteAllItems();
+	m_cTableListCtrl.InsertColumn(0, L"Key", LVCFMT_LEFT, static_cast<int>(.2 * Width));
+	m_cTableListCtrl.InsertColumn(1, L"Pitch", LVCFMT_LEFT, static_cast<int>(.23 * Width));
+	m_cTableListCtrl.InsertColumn(2, L"Sample", LVCFMT_LEFT, static_cast<int>(.57 * Width));
+	m_cTableListCtrl.SendMessageW(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
 
-	CListCtrl *pSampleListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
-	pSampleListCtrl->GetClientRect(&r);
+	m_cSampleListCtrl.GetClientRect(&r);
 	Width = r.Width();
-	pSampleListCtrl->DeleteAllItems();
-	pSampleListCtrl->InsertColumn(0, L"#", LVCFMT_LEFT, static_cast<int>(.2 * Width));		// // //
-	pSampleListCtrl->InsertColumn(1, L"Name", LVCFMT_LEFT, static_cast<int>(.55 * Width));
-	pSampleListCtrl->InsertColumn(2, L"Size", LVCFMT_LEFT, static_cast<int>(.25 * Width));
-	pSampleListCtrl->SendMessageW(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
+	m_cSampleListCtrl.DeleteAllItems();
+	m_cSampleListCtrl.InsertColumn(0, L"#", LVCFMT_LEFT, static_cast<int>(.2 * Width));		// // //
+	m_cSampleListCtrl.InsertColumn(1, L"Name", LVCFMT_LEFT, static_cast<int>(.55 * Width));
+	m_cSampleListCtrl.InsertColumn(2, L"Size", LVCFMT_LEFT, static_cast<int>(.25 * Width));
+	m_cSampleListCtrl.SendMessageW(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
 
-	CComboBox *pPitch = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
 	for (int i = 0; i < 16; ++i)
-		pPitch->AddString(conv::to_wide(std::to_string(i)).data());
-	pPitch->SetCurSel(15);
+		m_cComboSamplePitch.AddString(conv::to_wide(std::to_string(i)).data());
+	m_cComboSamplePitch.SetCurSel(15);
 
 	CheckDlgButton(IDC_LOOP, 0);
 
-	pTableListCtrl->DeleteAllItems();		// // //
+	m_cTableListCtrl.DeleteAllItems();		// // //
 	for (int i = 0; i < NOTE_COUNT; ++i)
-		pTableListCtrl->InsertItem(i, conv::to_wide(GetNoteString(GET_NOTE(i), GET_OCTAVE(i))).data());
-	pTableListCtrl->GetItemRect(0, &r, 2);		// // //
-	pTableListCtrl->Scroll({0, DEFAULT_OCTAVE * NOTE_RANGE * r.Height()});
+		m_cTableListCtrl.InsertItem(i, conv::to_wide(GetNoteString(GET_NOTE(i), GET_OCTAVE(i))).data());
+	m_cTableListCtrl.GetItemRect(0, &r, 2);		// // //
+	m_cTableListCtrl.Scroll({0, DEFAULT_OCTAVE * NOTE_RANGE * r.Height()});
 
 	BuildSampleList();
 	m_iSelectedSample = 0;
 
-	CSpinButtonCtrl *pSpin = (CSpinButtonCtrl*)GetDlgItem(IDC_DELTA_SPIN);
-	pSpin->SetRange(-1, 127);
-	pSpin->SetPos(-1);
+	m_cSpinDeltaCounter.SetRange(-1, 127);
+	m_cSpinDeltaCounter.SetPos(-1);
 
 	SetDlgItemTextW(IDC_DELTA_COUNTER, L"Off");
 
@@ -204,7 +207,6 @@ void CInstrumentEditorDPCM::UpdateCurrentKey()		// // //
 
 void CInstrumentEditorDPCM::UpdateKey(int Index)
 {
-	CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
 	CStringW NameStr = NO_SAMPLE_STR;
 	CStringW PitchStr = L"-";
 
@@ -215,37 +217,33 @@ void CInstrumentEditorDPCM::UpdateKey(int Index)
 		PitchStr = FormattedW(L"%i %s", Pitch & 0x0F, (Pitch & 0x80) ? L"L" : L"");
 	}
 
-	pTableListCtrl->SetItemText(Index, 1, PitchStr);
-	pTableListCtrl->SetItemText(Index, 2, NameStr);
+	m_cTableListCtrl.SetItemText(Index, 1, PitchStr);
+	m_cTableListCtrl.SetItemText(Index, 2, NameStr);
 }
 
 int CInstrumentEditorDPCM::GetSelectedSampleIndex() const {		// // //
-	CListCtrl *pSampleListCtrl = static_cast<CListCtrl *>(GetDlgItem(IDC_SAMPLE_LIST));
-	if (int Index = pSampleListCtrl->GetSelectionMark(); Index != -1)
-		if (CStringW str = pSampleListCtrl->GetItemText(Index, 0); auto n = conv::to_int(str))
+	if (int Index = m_cSampleListCtrl.GetSelectionMark(); Index != -1)
+		if (CStringW str = m_cSampleListCtrl.GetItemText(Index, 0); auto n = conv::to_int(str))
 			return *n;
 	return -1;
 }
 
 void CInstrumentEditorDPCM::BuildSampleList()
 {
-	CComboBox *pSampleBox = static_cast<CComboBox*>(GetDlgItem(IDC_SAMPLES));
-	CListCtrl *pSampleListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
-
-	pSampleListCtrl->DeleteAllItems();
-	pSampleBox->ResetContent();
+	m_cSampleListCtrl.DeleteAllItems();
+	m_cComboSampleName.ResetContent();
 
 	unsigned int Size(0), Index(0);
 
-	pSampleBox->AddString(NO_SAMPLE_STR);
+	m_cComboSampleName.AddString(NO_SAMPLE_STR);
 
 	for (int i = 0; i < MAX_DSAMPLES; ++i) {
 		if (auto pDSample = GetDSampleManager()->GetDSample(i)) {		// // //
-			pSampleListCtrl->InsertItem(Index, conv::to_wide(conv::sv_from_int(i)).data());
+			m_cSampleListCtrl.InsertItem(Index, conv::to_wide(conv::sv_from_int(i)).data());
 			auto name = conv::to_wide(pDSample->name());
-			pSampleListCtrl->SetItemText(Index, 1, name.data());
-			pSampleListCtrl->SetItemText(Index, 2, FormattedW(L"%u", pDSample->size()));
-			pSampleBox->AddString(FormattedW(L"%02i - %.*s", i, name.size(), name.data()));
+			m_cSampleListCtrl.SetItemText(Index, 1, name.data());
+			m_cSampleListCtrl.SetItemText(Index, 2, FormattedW(L"%u", pDSample->size()));
+			m_cComboSampleName.AddString(FormattedW(L"%02i - %.*s", i, name.size(), name.data()));
 			Size += pDSample->size();
 			++Index;
 		}
@@ -347,20 +345,19 @@ void CInstrumentEditorDPCM::OnBnClickedLoad()
 
 void CInstrumentEditorDPCM::OnBnClickedUnload()
 {
-	CListCtrl *pListBox = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
 	int nItem = -1;
 
 	if (m_iSelectedSample == MAX_DSAMPLES)
 		return;
 
-	int SelCount = pListBox->GetSelectedCount();
+	int SelCount = m_cSampleListCtrl.GetSelectedCount();
 	if (!SelCount)
 		return;
 
 	for (int i = 0; i < SelCount; i++) {
-		nItem = pListBox->GetNextItem(nItem, LVNI_SELECTED);
+		nItem = m_cSampleListCtrl.GetNextItem(nItem, LVNI_SELECTED);
 		ASSERT(nItem != -1);
-		CStringW str = pListBox->GetItemText(nItem, 0);
+		CStringW str = m_cSampleListCtrl.GetItemText(nItem, 0);
 		if (auto n = conv::to_int(str)) {
 			Env.GetSoundGenerator()->CancelPreviewSample();
 			GetDSampleManager()->RemoveDSample(*n);		// // //
@@ -392,7 +389,7 @@ void CInstrumentEditorDPCM::OnCbnSelchangePitch()
 	if (m_iSelectedNote == -1)
 		return;
 
-	int Pitch = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH))->GetCurSel();
+	int Pitch = m_cComboSamplePitch.GetCurSel();
 
 	if (IsDlgButtonChecked(IDC_LOOP))
 		Pitch |= 0x80;
@@ -405,30 +402,19 @@ void CInstrumentEditorDPCM::OnCbnSelchangePitch()
 
 void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	//CSpinButtonCtrl *pSpinButton;
-	//CComboBox *pSampleBox, *pPitchBox;
-	//CEdit *pDeltaValue;
-	//m_pTableListCtrl	= static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
-
-	CListCtrl *pTableListCtrl	 = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
-	CComboBox *pSampleBox		 = static_cast<CComboBox*>(GetDlgItem(IDC_SAMPLES));
-	CComboBox *pPitchBox		 = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
-	CSpinButtonCtrl *pSpinButton = static_cast<CSpinButtonCtrl*>(GetDlgItem(IDC_DELTA_SPIN));
-	CEdit *pDeltaValue			 = static_cast<CEdit*>(GetDlgItem(IDC_DELTA_COUNTER));
-
-	m_iSelectedNote = pTableListCtrl->GetSelectionMark();		// // //
+	m_iSelectedNote = m_cTableListCtrl.GetSelectionMark();		// // //
 
 	int Sample = m_pInstrument->GetSampleIndex(m_iSelectedNote) - 1;
 	int Pitch = m_pInstrument->GetSamplePitch(m_iSelectedNote);
 	int Delta = m_pInstrument->GetSampleDeltaValue(m_iSelectedNote);
 
 	if (Sample != -1)
-		pSampleBox->SelectString(0, FormattedW(L"%02i - %s", Sample, (LPCWSTR)pTableListCtrl->GetItemText(pTableListCtrl->GetSelectionMark(), 2)));
+		m_cComboSampleName.SelectString(0, FormattedW(L"%02i - %s", Sample, (LPCWSTR)m_cTableListCtrl.GetItemText(m_cTableListCtrl.GetSelectionMark(), 2)));
 	else
-		pSampleBox->SetCurSel(0);
+		m_cComboSampleName.SetCurSel(0);
 
 	if (Sample >= 0) {
-		pPitchBox->SetCurSel(Pitch & 0x0F);
+		m_cComboSamplePitch.SetCurSel(Pitch & 0x0F);
 
 		if (Pitch & 0x80)
 			CheckDlgButton(IDC_LOOP, 1);
@@ -436,11 +422,11 @@ void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 			CheckDlgButton(IDC_LOOP, 0);
 
 		if (Delta == -1)
-			pDeltaValue->SetWindowTextW(L"Off");
+			m_cEditDeltaCounter.SetWindowTextW(L"Off");
 		else
 			SetDlgItemInt(IDC_DELTA_COUNTER, Delta, FALSE);
 
-		pSpinButton->SetPos(Delta);
+		m_cSpinDeltaCounter.SetPos(Delta);
 	}
 
 	*pResult = 0;
@@ -448,21 +434,18 @@ void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CInstrumentEditorDPCM::OnCbnSelchangeSamples()
 {
-	CComboBox *pSampleBox = static_cast<CComboBox*>(GetDlgItem(IDC_SAMPLES));
-	CComboBox *pPitchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
-
 	int PrevSample = m_pInstrument->GetSampleIndex(m_iSelectedNote);
-	int Sample = pSampleBox->GetCurSel();
+	int Sample = m_cComboSampleName.GetCurSel();
 
 	if (Sample > 0) {
 		CStringW Name;		// // //
-		pSampleBox->GetLBText(Sample, Name);
+		m_cComboSampleName.GetLBText(Sample, Name);
 		Name.Truncate(2);
 		if (auto n = conv::to_int(Name))		// // //
 			Sample = *n + 1;
 
 		if (PrevSample == 0)
-			m_pInstrument->SetSamplePitch(m_iSelectedNote, pPitchBox->GetCurSel());
+			m_pInstrument->SetSamplePitch(m_iSelectedNote, m_cComboSamplePitch.GetCurSel());
 	}
 
 	m_pInstrument->SetSampleIndex(m_iSelectedNote, Sample);
@@ -544,7 +527,7 @@ BOOL CInstrumentEditorDPCM::PreTranslateMessage(MSG* pMsg)
 		case WM_KEYDOWN:
 			if (pMsg->wParam == VK_ESCAPE)		// // //
 				break;
-			if (GetFocus() != GetDlgItem(IDC_DELTA_COUNTER)) {
+			if (GetFocus() != &m_cEditDeltaCounter) {
 				// Select DPCM channel
 				CFamiTrackerView::GetView()->SelectChannel(4);
 				PreviewNote((unsigned char)pMsg->wParam);		// // //
@@ -552,7 +535,7 @@ BOOL CInstrumentEditorDPCM::PreTranslateMessage(MSG* pMsg)
 			}
 			break;
 		case WM_KEYUP:
-			if (GetFocus() != GetDlgItem(IDC_DELTA_COUNTER)) {
+			if (GetFocus() != &m_cEditDeltaCounter) {
 				PreviewRelease((unsigned char)pMsg->wParam);		// // //
 				return TRUE;
 			}
@@ -566,10 +549,8 @@ BOOL CInstrumentEditorDPCM::PreTranslateMessage(MSG* pMsg)
 void CInstrumentEditorDPCM::OnBnClickedAdd()
 {
 	// Add sample to key list
-	CComboBox *pPitchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
 
-	int Pitch = pPitchBox->GetCurSel();
-
+	int Pitch = m_cComboSamplePitch.GetCurSel();
 
 	if (GetDSampleManager()->IsSampleUsed(m_iSelectedSample)) {		// // //
 		m_pInstrument->SetSampleIndex(m_iSelectedNote, m_iSelectedSample + 1);
@@ -578,36 +559,31 @@ void CInstrumentEditorDPCM::OnBnClickedAdd()
 		UpdateCurrentKey();
 	}
 
-	CListCtrl* pSampleListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_SAMPLE_LIST));
-	CListCtrl* pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
-
 	if (m_iSelectedNote < NOTE_COUNT - 1 && m_iSelectedSample < MAX_DSAMPLES) {
-		pSampleListCtrl->SetItemState(m_iSelectedSample, 0, LVIS_FOCUSED | LVIS_SELECTED);
-		pTableListCtrl->SetItemState(m_iSelectedNote, 0, LVIS_FOCUSED | LVIS_SELECTED);
-		if (m_iSelectedSample < pSampleListCtrl->GetItemCount() - 1)
+		m_cSampleListCtrl.SetItemState(m_iSelectedSample, 0, LVIS_FOCUSED | LVIS_SELECTED);
+		m_cTableListCtrl.SetItemState(m_iSelectedNote, 0, LVIS_FOCUSED | LVIS_SELECTED);
+		if (m_iSelectedSample < m_cSampleListCtrl.GetItemCount() - 1)
 			++m_iSelectedSample;
 		++m_iSelectedNote;
-		pSampleListCtrl->SetSelectionMark(m_iSelectedSample);
-		pTableListCtrl->SetSelectionMark(m_iSelectedNote);
-		pSampleListCtrl->SetItemState(m_iSelectedSample, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
-		pTableListCtrl->SetItemState(m_iSelectedNote, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
+		m_cSampleListCtrl.SetSelectionMark(m_iSelectedSample);
+		m_cTableListCtrl.SetSelectionMark(m_iSelectedNote);
+		m_cSampleListCtrl.SetItemState(m_iSelectedSample, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
+		m_cTableListCtrl.SetItemState(m_iSelectedNote, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
 	}
 }
 
 void CInstrumentEditorDPCM::OnBnClickedRemove()
 {
-	CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
-
 	// Remove sample from key list
 	m_pInstrument->SetSampleIndex(m_iSelectedNote, 0);
 	GetDocument()->ModifyIrreversible();		// // //
 	UpdateCurrentKey();
 
 	if (m_iSelectedNote > 0) {		// // //
-		pTableListCtrl->SetItemState(m_iSelectedNote, 0, LVIS_FOCUSED | LVIS_SELECTED);
+		m_cTableListCtrl.SetItemState(m_iSelectedNote, 0, LVIS_FOCUSED | LVIS_SELECTED);
 		--m_iSelectedNote;
-		pTableListCtrl->SetSelectionMark(m_iSelectedNote);
-		pTableListCtrl->SetItemState(m_iSelectedNote, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
+		m_cTableListCtrl.SetSelectionMark(m_iSelectedNote);
+		m_cTableListCtrl.SetItemState(m_iSelectedNote, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
 	}
 }
 
@@ -677,9 +653,7 @@ void CInstrumentEditorDPCM::OnNMRClickSampleList(NMHDR *pNMHDR, LRESULT *pResult
 void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	// Create a popup menu for key list with samples
-	CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
-
-	m_iSelectedNote = pTableListCtrl->GetSelectionMark();		// // //
+	m_iSelectedNote = m_cTableListCtrl.GetSelectionMark();		// // //
 
 	CPoint point;
 	CMenu PopupMenu;
@@ -702,8 +676,7 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	}
 	else if (Result > 1) {
 		// Add sample
-		CComboBox *pPitchBox = static_cast<CComboBox*>(GetDlgItem(IDC_PITCH));
-		int Pitch = pPitchBox->GetCurSel();
+		int Pitch = m_cComboSamplePitch.GetCurSel();
 		m_pInstrument->SetSampleIndex(m_iSelectedNote, Result - 1);
 		m_pInstrument->SetSamplePitch(m_iSelectedNote, Pitch);
 		GetDocument()->ModifyIrreversible();		// // //
@@ -719,8 +692,7 @@ void CInstrumentEditorDPCM::OnNMDblclkTable(NMHDR *pNMHDR, LRESULT *pResult)
 
 	if (int Sample = m_pInstrument->GetSampleIndex(m_iSelectedNote)) {		// // //
 		int Pitch = m_pInstrument->GetSamplePitch(m_iSelectedNote) & 0x0F;
-		CListCtrl *pTableListCtrl = static_cast<CListCtrl*>(GetDlgItem(IDC_TABLE));
-		CStringW sampleName = pTableListCtrl->GetItemText(m_iSelectedNote, 2);		// // //
+		CStringW sampleName = m_cTableListCtrl.GetItemText(m_iSelectedNote, 2);		// // //
 
 		auto pSample = GetDSampleManager()->GetDSample(Sample - 1);
 		if (pSample && pSample->size() > 0u && sampleName != NO_SAMPLE_STR)
@@ -753,7 +725,6 @@ void CInstrumentEditorDPCM::OnEnChangeDeltaCounter()
 void CInstrumentEditorDPCM::OnDeltaposDeltaSpin(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	CEdit *pDeltaValue = static_cast<CEdit*>(GetDlgItem(IDC_DELTA_COUNTER));
 
 	int Value = 0;
 
@@ -761,7 +732,7 @@ void CInstrumentEditorDPCM::OnDeltaposDeltaSpin(NMHDR *pNMHDR, LRESULT *pResult)
 		return;
 
 	if (pNMUpDown->iPos <= 0 && pNMUpDown->iDelta < 0) {
-		pDeltaValue->SetWindowTextW(L"Off");
+		m_cEditDeltaCounter.SetWindowTextW(L"Off");
 		Value = -1;
 	}
 	else {

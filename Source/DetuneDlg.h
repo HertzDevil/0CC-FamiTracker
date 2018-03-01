@@ -53,8 +53,9 @@ protected:
 
 	CFamiTrackerModule *modfile_ = nullptr;
 
-	CSliderCtrl *m_cSliderOctave, *m_cSliderNote, *m_cSliderOffset;
-	CEdit *m_cEditOctave, *m_cEditNote, *m_cEditOffset;
+	CSliderCtrl m_cSliderOctave, m_cSliderNote, m_cSliderOffset;
+	CSliderCtrl m_cSliderDetuneSemitone, m_cSliderDetuneCent;
+	CEdit m_cEditOctave, m_cEditNote, m_cEditOffset;
 
 	static const LPCWSTR m_pNote[12];
 	static const LPCWSTR m_pNoteFlat[12];

@@ -184,8 +184,7 @@ BOOL CAboutDlg::OnInitDialog()
 	m_cBug.SetFont(&m_cLinkFont);
 	m_wndToolTip.AddTool(&m_cBug, IDS_ABOUT_TOOLTIP_BUG);
 
-	CStatic *pStatic = static_cast<CStatic*>(GetDlgItem(IDC_ABOUT1));
-	CFont *pOldFont = pStatic->GetFont();
+	CFont *pOldFont = GetDlgItem(IDC_ABOUT1)->GetFont();		// // //
 	LOGFONTW NewLogFont;
 	pOldFont->GetLogFont(&NewLogFont);
 	NewLogFont.lfWeight = FW_BOLD;
@@ -193,9 +192,9 @@ BOOL CAboutDlg::OnInitDialog()
 	NewLogFont.lfHeight = 18;
 //	NewLogFont.lfUnderline = TRUE;
 	m_cTitleFont.CreateFontIndirectW(&NewLogFont);
-	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT1))->SetFont(&m_cTitleFont);
-	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT2))->SetFont(&m_cBoldFont);
-	static_cast<CStatic*>(GetDlgItem(IDC_ABOUT3))->SetFont(&m_cBoldFont);
+	GetDlgItem(IDC_ABOUT1)->SetFont(&m_cTitleFont);
+	GetDlgItem(IDC_ABOUT2)->SetFont(&m_cBoldFont);
+	GetDlgItem(IDC_ABOUT3)->SetFont(&m_cBoldFont);
 
 	return TRUE;
 }

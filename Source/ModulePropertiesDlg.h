@@ -61,6 +61,21 @@ protected:
 	CStringW GetSongString(unsigned index) const;		// // //
 	void FillSongList();
 
+	// // //
+	CListCtrl m_cListSongs;
+
+	CButton m_cButtonEnableVRC6;
+	CButton m_cButtonEnableVRC7;
+	CButton m_cButtonEnableFDS;
+	CButton m_cButtonEnableMMC5;
+	CButton m_cButtonEnableN163;
+	CButton m_cButtonEnableS5B;
+	CSliderCtrl m_cSliderN163Chans;
+	CStatic m_cStaticN163Chans;
+
+	CComboBox m_cComboVibrato;
+	CComboBox m_cComboLinearPitch;
+
 	DECLARE_MESSAGE_MAP()
 public:
 	virtual BOOL OnInitDialog();
@@ -71,7 +86,6 @@ public:
 	afx_msg void OnBnClickedSongUp();
 	afx_msg void OnBnClickedSongDown();
 	afx_msg void OnEnChangeSongname();
-	afx_msg void OnClickSongList(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedSongImport();
 	// afx_msg void OnCbnSelchangeExpansion();
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
