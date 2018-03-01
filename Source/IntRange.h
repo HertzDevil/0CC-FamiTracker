@@ -35,88 +35,88 @@ private:
 	struct it;
 public:
 	constexpr CIntRange() = default;
-	/*constexpr*/ CIntRange(T b, T e) : _b(b), _e(e) { }
+	constexpr CIntRange(T b, T e) : b_(b), e_(e) { }
 	constexpr T operator[](size_t x) const {
-		return _b + x;
+		return b_ + x;
 	}
-	template <class _T>
-	friend constexpr bool operator==(const CIntRange<_T> &lhs, const CIntRange<_T> &rhs) {
-		return lhs._b == rhs._b && lhs._e == rhs._e;
+	template <class T_>
+	friend constexpr bool operator==(const CIntRange<T_> &lhs, const CIntRange<T_> &rhs) {
+		return lhs.b_ == rhs.b_ && lhs.e_ == rhs.e_;
 	}
-	template <class _T>
-	friend constexpr bool operator!=(const CIntRange<_T> &lhs, const CIntRange<_T> &rhs) {
-		return lhs._b != rhs._b || lhs._e != rhs._e;
+	template <class T_>
+	friend constexpr bool operator!=(const CIntRange<T_> &lhs, const CIntRange<T_> &rhs) {
+		return lhs.b_ != rhs.b_ || lhs.e_ != rhs.e_;
 	}
-	template <class _T> // subset of
-	friend constexpr bool operator<=(const CIntRange<_T> &lhs, const CIntRange<_T> &rhs) {
-		return lhs._b >= rhs._b && lhs._e <= rhs._e;
+	template <class T_> // subset of
+	friend constexpr bool operator<=(const CIntRange<T_> &lhs, const CIntRange<T_> &rhs) {
+		return lhs.b_ >= rhs.b_ && lhs.e_ <= rhs.e_;
 	}
-	template <class _T> // superset of
-	friend constexpr bool operator>=(const CIntRange<_T> &lhs, const CIntRange<_T> &rhs) {
-		return lhs._b <= rhs._b && lhs._e >= rhs._e;
+	template <class T_> // superset of
+	friend constexpr bool operator>=(const CIntRange<T_> &lhs, const CIntRange<T_> &rhs) {
+		return lhs.b_ <= rhs.b_ && lhs.e_ >= rhs.e_;
 	}
-	template <class _T> // strict subset of
-	friend constexpr bool operator<(const CIntRange<_T> &lhs, const CIntRange<_T> &rhs) {
+	template <class T_> // strict subset of
+	friend constexpr bool operator<(const CIntRange<T_> &lhs, const CIntRange<T_> &rhs) {
 		return lhs <= rhs && lhs != rhs;
 	}
-	template <class _T> // strict superset of
-	friend constexpr bool operator>(const CIntRange<_T> &lhs, const CIntRange<_T> &rhs) {
+	template <class T_> // strict superset of
+	friend constexpr bool operator>(const CIntRange<T_> &lhs, const CIntRange<T_> &rhs) {
 		return lhs >= rhs && lhs != rhs;
 	}
-	template <class _T> // intersection
-	friend /*constexpr*/ CIntRange<_T> operator&(const CIntRange<_T> &lhs, const CIntRange<_T> &rhs) {
-		return CIntRange<_T>(lhs._b > rhs._b ? lhs._b : rhs._b,
-							 lhs._e < rhs._e ? lhs._e : rhs._e);
+	template <class T_> // intersection
+	friend constexpr CIntRange<T_> operator&(const CIntRange<T_> &lhs, const CIntRange<T_> &rhs) {
+		return CIntRange<T_>(lhs.b_ > rhs.b_ ? lhs.b_ : rhs.b_,
+							 lhs.e_ < rhs.e_ ? lhs.e_ : rhs.e_);
 	}
-	/*constexpr*/ CIntRange &operator+=(T rhs) {
-		_b += rhs;
-		_e += rhs;
+	constexpr CIntRange &operator+=(T rhs) {
+		b_ += rhs;
+		e_ += rhs;
 		return *this;
 	}
-	/*constexpr*/ CIntRange &operator-=(T rhs) {
-		_b -= rhs;
-		_e -= rhs;
+	constexpr CIntRange &operator-=(T rhs) {
+		b_ -= rhs;
+		e_ -= rhs;
 		return *this;
 	}
-	template <class _T> // shift
-	friend /*constexpr*/ CIntRange<_T> operator+(const CIntRange<_T> &lhs, T rhs) {
-		CIntRange<_T> r {lhs};
+	template <class T_> // shift
+	friend constexpr CIntRange<T_> operator+(const CIntRange<T_> &lhs, T rhs) {
+		CIntRange<T_> r {lhs};
 		r += rhs;
 		return r;
 	}
-	template <class _T> // shift
-	friend /*constexpr*/ CIntRange<_T> operator-(const CIntRange<_T> &lhs, T rhs) {
-		CIntRange<_T> r {lhs};
+	template <class T_> // shift
+	friend constexpr CIntRange<T_> operator-(const CIntRange<T_> &lhs, T rhs) {
+		CIntRange<T_> r {lhs};
 		r -= rhs;
 		return r;
 	}
-	template <class _T> // shift
-	friend /*constexpr*/ CIntRange<_T> operator+(T lhs, const CIntRange<_T> &rhs) {
+	template <class T_> // shift
+	friend constexpr CIntRange<T_> operator+(T lhs, const CIntRange<T_> &rhs) {
 		return rhs + lhs;
 	}
-	template <class _T> // shift
-	friend /*constexpr*/ CIntRange<_T> operator-(T lhs, const CIntRange<_T> &rhs) {
+	template <class T_> // shift
+	friend constexpr CIntRange<T_> operator-(T lhs, const CIntRange<T_> &rhs) {
 		return rhs - lhs;
 	}
-	/*constexpr*/ CIntRange &operator++() {
-		++_b;
-		++_e;
+	constexpr CIntRange &operator++() {
+		++b_;
+		++e_;
 		return *this;
 	}
-	/*constexpr*/ CIntRange &operator--() {
-		--_b;
-		--_e;
+	constexpr CIntRange &operator--() {
+		--b_;
+		--e_;
 		return *this;
 	}
 	CIntRange operator++(int) {
-		return CIntRange<T>(_b++, _e++);
+		return CIntRange<T>(b_++, e_++);
 	}
 	CIntRange operator--(int) {
-		return CIntRange<T>(_b--, _e--);
+		return CIntRange<T>(b_--, e_--);
 	}
-	constexpr it begin() const { return it(_b); }
-	constexpr it end() const { return it(_e); }
-	T _b, _e;
+	constexpr it begin() const { return it(b_); }
+	constexpr it end() const { return it(e_); }
+	T b_, e_;
 private:
 	struct it {
 		explicit constexpr it(T x) : _x(x) { }

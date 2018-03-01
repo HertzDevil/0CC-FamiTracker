@@ -112,8 +112,8 @@ void CVisualizerScope::RenderBuffer()
 void CVisualizerScope::Draw()
 {
 #ifdef _DEBUG
-	int _min = 0;		// // //
-	int _max = 0;
+	int min_ = 0;		// // //
+	int max_ = 0;
 #endif
 
 	const int TIME_SCALING = 7;
@@ -123,10 +123,10 @@ void CVisualizerScope::Draw()
 
 	for (unsigned int i = 0; i < m_iSampleCount; ++i) {
 #ifdef _DEBUG
-		if (_min > m_pSamples[i])
-			_min = m_pSamples[i];
-		if (_max < m_pSamples[i])
-			_max = m_pSamples[i];
+		if (min_ > m_pSamples[i])
+			min_ = m_pSamples[i];
+		if (max_ < m_pSamples[i])
+			max_ = m_pSamples[i];
 #endif
 
 		int Pos = m_iWindowBufPtr++ / TIME_SCALING;
@@ -148,7 +148,7 @@ void CVisualizerScope::Draw()
 	}
 
 #ifdef _DEBUG
-	m_iPeak = _max - _min;		// // //
+	m_iPeak = max_ - min_;		// // //
 #endif
 }
 

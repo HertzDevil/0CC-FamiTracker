@@ -155,11 +155,11 @@ bool CVRC6Sawtooth::CreateInstHandler(inst_type_t Type)		// // //
 
 int CVRC6Sawtooth::CalculateVolume() const		// // //
 {
-	bool _64_step = false;
+	bool use_64_steps = false;
 	if (auto pHandler = dynamic_cast<CSeqInstHandlerSawtooth*>(m_pInstHandler.get()))
-		_64_step = pHandler->IsDutyIgnored();
+		use_64_steps = pHandler->IsDutyIgnored();
 
-	if (_64_step) {
+	if (use_64_steps) {
 		if (!Env.GetSettings()->General.bFDSOldVolume)		// // // match NSF setting
 			return LimitVolume(((m_iInstVolume + 1) * ((m_iVolume >> VOL_COLUMN_SHIFT) + 1) - 1) / 16 - GetTremolo());
 		return CChannelHandler::CalculateVolume();

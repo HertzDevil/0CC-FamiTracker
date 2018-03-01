@@ -24,17 +24,17 @@
 #include "DPI.h"
 
 const int DPI::DEFAULT_DPI = 96;
-int DPI::_dpiX = DPI::DEFAULT_DPI;
-int DPI::_dpiY = DPI::DEFAULT_DPI;
+int DPI::dpiX_ = DPI::DEFAULT_DPI;
+int DPI::dpiY_ = DPI::DEFAULT_DPI;
 
 int DPI::SX(int pt)
 {
-	return ::MulDiv(pt, _dpiX, DPI::DEFAULT_DPI);
+	return ::MulDiv(pt, dpiX_, DPI::DEFAULT_DPI);
 }
 
 int DPI::SY(int pt)
 {
-	return ::MulDiv(pt, _dpiY, DPI::DEFAULT_DPI);
+	return ::MulDiv(pt, dpiY_, DPI::DEFAULT_DPI);
 }
 
 void DPI::ScaleMouse(CPoint &pt)
@@ -58,6 +58,6 @@ CRect DPI::Rect(int x, int y, int w, int h)
 
 void DPI::SetScale(int X, int Y)		// // //
 {
-	_dpiX = X;
-	_dpiY = Y;
+	dpiX_ = X;
+	dpiY_ = Y;
 }

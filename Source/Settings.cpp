@@ -43,7 +43,7 @@ stOldSettingContext::~stOldSettingContext()
 {
 	CStringW s;
 	s.LoadStringW(AFX_IDS_APP_TITLE);
-	theApp.m_pszProfileName = _tcsdup(s);
+	theApp.m_pszProfileName = _wcsdup(s);
 }
 
 // CSettings

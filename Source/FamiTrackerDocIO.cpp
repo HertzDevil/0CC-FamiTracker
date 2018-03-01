@@ -135,7 +135,7 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerModule &modfile) {
 	};
 
 #ifdef _DEBUG
-	int _msgs_ = 0;
+	int msgs_ = 0;
 #endif
 
 	// This has to be done for older files
@@ -156,7 +156,7 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerModule &modfile) {
 		catch (std::out_of_range) {
 #ifdef _DEBUG
 		// This shouldn't show up in release (debug only)
-//			if (++_msgs_ < 5)
+//			if (++msgs_ < 5)
 //				AfxMessageBox(L"Unknown file block!");
 #endif
 			if (file_.IsFileIncomplete())

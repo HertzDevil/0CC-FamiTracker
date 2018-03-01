@@ -254,17 +254,17 @@ void CInstrumentEditDlg::OnTcnSelchangeInstTab(NMHDR *pNMHDR, LRESULT *pResult)
 */
 struct CDCObjectContext		// // // TODO: put it somewhere else, maybe Graphics.h
 {
-	CDCObjectContext(CDC &dc, CGdiObject *obj) : _dc(dc)
+	CDCObjectContext(CDC &dc, CGdiObject *obj) : dc_(dc)
 	{
-		_obj = dc.SelectObject(obj);
+		obj_ = dc.SelectObject(obj);
 	}
 	~CDCObjectContext()
 	{
-		_dc.SelectObject(_obj);
+		dc_.SelectObject(obj_);
 	}
 private:
-	CDC &_dc;
-	CGdiObject *_obj;
+	CDC &dc_;
+	CGdiObject *obj_;
 };
 
 void CInstrumentEditDlg::OnPaint()

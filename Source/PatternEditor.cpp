@@ -516,7 +516,7 @@ void CPatternEditor::DrawScreen(CDC &DC, CFamiTrackerView *pView)
 		PosY += LINE_BREAK;
 	};
 
-	__int64 mscount = (__int64(EndTime.QuadPart) - __int64(StartTime.QuadPart)) / (__int64(Freq.QuadPart) / 1000);
+	int64_t mscount = (int64_t(EndTime.QuadPart) - int64_t(StartTime.QuadPart)) / (int64_t(Freq.QuadPart) / 1000);
 	PUT_TEXT(160, L"%i ms", mscount);
 	PUT_TEXT(160, L"%i redraws", m_iRedraws);
 	PUT_TEXT(160, L"%i paints", m_iPaints);
@@ -1186,8 +1186,8 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 
 		// Draw each column
 		const int BorderWidth = (m_iSelectionCondition == sel_condition_t::NONTERMINAL_SKIP) ? 2 : 1;		// // //
-		for (int _j = 0; _j <= Columns; ++_j) {
-			cursor_column_t j = static_cast<cursor_column_t>(_j);
+		for (int j_ = 0; j_ <= Columns; ++j_) {
+			cursor_column_t j = static_cast<cursor_column_t>(j_);
 			int SelWidth = GetSelectWidth(m_bCompactMode ? C_NOTE : j);		// // //
 
 			// Selection

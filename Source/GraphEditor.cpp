@@ -77,7 +77,7 @@ BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpsz
 
 	const LPCWSTR SMALL_FONT_FACE = L"Verdana";		// // //
 
-	_tcscpy_s(LogFont.lfFaceName, 32, SMALL_FONT_FACE);
+	wcscpy_s(LogFont.lfFaceName, SMALL_FONT_FACE);
 	LogFont.lfHeight = -10;
 	LogFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
 	m_SmallFont.CreateFontIndirect(&LogFont);		// // //

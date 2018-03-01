@@ -281,9 +281,9 @@ std::string CSeqConversionArpFixed::ToString(char Value) const
 
 bool CSeqConversionArpFixed::GetNextTerm(std::string_view &sv, int &Out)
 {
-	std::string_view _sv(sv);
-	if (CSeqConversionDefault::GetNextTerm(_sv, Out)) {
-		sv = _sv;
+	std::string_view sv_(sv);
+	if (CSeqConversionDefault::GetNextTerm(sv_, Out)) {
+		sv = sv_;
 		return true;
 	}
 
