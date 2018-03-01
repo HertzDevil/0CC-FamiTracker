@@ -358,8 +358,8 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 	if (!MoveFileExW(TempFile, lpszPathName, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED)) {
 		// Display message if saving failed
 		AfxDebugBreak();		// // //
-		LPTSTR lpMsgBuf;
-		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
+		LPWSTR lpMsgBuf;
+		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&lpMsgBuf, 0, NULL);
 		CStringW	strFormatted;
 		AfxFormatString1(strFormatted, IDS_SAVE_FILE_ERROR, lpMsgBuf);
 		AfxMessageBox(strFormatted, MB_OK | MB_ICONERROR);

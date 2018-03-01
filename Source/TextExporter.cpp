@@ -31,6 +31,7 @@
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
+#include "NumConv.h"		// // //
 #include "NoteName.h"		// // //
 
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
@@ -231,27 +232,31 @@ public:
 	}
 
 	int ReadInt(int range_min, int range_max) {
-		int i = 0;
-		if (CStringA t = ReadToken(); t.IsEmpty())
-			throw MakeError("expected integer, no token found.");
-		else if (::sscanf(t, "%d", &i) != 1)
+		if (CStringA t = ReadToken(); !t.IsEmpty()) {
+			if (auto i = conv::to_int(t)) {
+				if (*i >= range_min && *i <= range_max) {
+					last_pos_ = pos;
+					return *i;
+				}
+				throw MakeError("expected integer in range [%d,%d], %d found.", range_min, range_max, *i);
+			}
 			throw MakeError("expected integer, '%s' found.", (LPCSTR)t);
-		else if (i < range_min || i > range_max)
-			throw MakeError("expected integer in range [%d,%d], %d found.", range_min, range_max, i);
-		last_pos_ = pos;
-		return i;
+		}
+		throw MakeError("expected integer, no token found.");
 	}
 
-	int ReadHex(int range_min, int range_max) {
-		int i = 0;
-		if (CStringA t = ReadToken(); t.IsEmpty())
-			throw MakeError("expected hexadecimal, no token found.");
-		else if (::sscanf(t, "%x", &i) != 1)
+	unsigned ReadHex(unsigned range_min, unsigned range_max) {
+		if (CStringA t = ReadToken(); !t.IsEmpty()) {
+			if (auto i = conv::to_uint(t, 16)) {
+				if (*i >= range_min && *i <= range_max) {
+					last_pos_ = pos;
+					return *i;
+				}
+				throw MakeError("expected hexadecimal in range [%X,%X], %X found.", range_min, range_max, *i);
+			}
 			throw MakeError("expected hexadecimal, '%s' found.", (LPCSTR)t);
-		else if (i < range_min || i > range_max)
-			throw MakeError("expected hexidecmal in range [%X,%X], %X found.", range_min, range_max, i);
-		last_pos_ = pos;
-		return i;
+		}
+		throw MakeError("expected hexadecimal, no token found.");
 	}
 
 	// note: finishes line if found

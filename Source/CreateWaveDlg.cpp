@@ -78,9 +78,9 @@ int CCreateWaveDlg::GetFrameLoopCount() const
 int CCreateWaveDlg::GetTimeLimit() const
 {
 	int Minutes, Seconds;
-	WCHAR str[256];
+	CStringW str;
 
-	GetDlgItemTextW(IDC_SECONDS, str, 256);
+	GetDlgItemTextW(IDC_SECONDS, str);
 	swscanf(str, L"%u:%u", &Minutes, &Seconds);
 	int Time = (Minutes * 60) + (Seconds % 60);
 

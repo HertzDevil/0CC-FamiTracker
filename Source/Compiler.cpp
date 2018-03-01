@@ -227,7 +227,7 @@ ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerModule &modfile,
 	modfile.VisitSongs([&] (const CSongData &song, unsigned i) {
 		auto pSongView = modfile.MakeSongView(i);
 		CSongLengthScanner scanner {modfile, *pSongView};
-		auto[FirstLoop, SecondLoop] = scanner.GetSecondsCount();
+		auto [FirstLoop, SecondLoop] = scanner.GetSecondsCount();
 		int t = static_cast<int>((FirstLoop + SecondLoop) * 1000.0 + 0.5);
 		file.Write(reinterpret_cast<const char *>(&t), sizeof(int));
 	});

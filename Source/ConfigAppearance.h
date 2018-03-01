@@ -63,12 +63,9 @@ protected:
 	static int CALLBACK EnumFontFamExProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD FontType, LPARAM lParam);
 
 	static const std::string_view COLOR_ITEMS[];		// // //
-	static const int NUM_COLOR_SCHEMES;
 
-	static const COLOR_SCHEME *COLOR_SCHEMES[];
-
+	static const COLOR_SCHEME *const COLOR_SCHEMES[];
 	static const int FONT_SIZES[];
-	static const int FONT_SIZE_COUNT;
 
 	static const char SETTING_SEPARATOR[];		// // // 050B
 	static const char HEX_PREFIX[];		// // // 050B

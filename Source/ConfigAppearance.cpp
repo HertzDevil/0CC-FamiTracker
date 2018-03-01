@@ -52,7 +52,7 @@ const char CConfigAppearance::SETTING_SEPARATOR[] = " : ";		// // // 050B
 const char CConfigAppearance::HEX_PREFIX[] = "0x";		// // // 050B
 
 // Pre-defined color schemes
-const COLOR_SCHEME *CConfigAppearance::COLOR_SCHEMES[] = {
+const COLOR_SCHEME *const CConfigAppearance::COLOR_SCHEMES[] = {
 	&DEFAULT_COLOR_SCHEME,
 	&MONOCHROME_COLOR_SCHEME,
 	&RENOISE_COLOR_SCHEME,
@@ -60,10 +60,7 @@ const COLOR_SCHEME *CConfigAppearance::COLOR_SCHEMES[] = {
 	&SATURDAY_COLOR_SCHEME,		// // //
 };
 
-const int CConfigAppearance::NUM_COLOR_SCHEMES = std::size(COLOR_SCHEMES);
-
 const int CConfigAppearance::FONT_SIZES[] = {10, 11, 12, 14, 16, 18, 20, 22};
-const int CConfigAppearance::FONT_SIZE_COUNT = std::size(FONT_SIZES);
 
 int CALLBACK CConfigAppearance::EnumFontFamExProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD FontType, LPARAM lParam)
 {
@@ -273,18 +270,12 @@ BOOL CConfigAppearance::OnInitDialog()
 
 	pItemsBox = static_cast<CComboBox*>(GetDlgItem(IDC_SCHEME));
 
-	for (int i = 0; i < NUM_COLOR_SCHEMES; ++i) {
-		pItemsBox->AddString(COLOR_SCHEMES[i]->NAME);
-	}
+	for (auto *scheme : COLOR_SCHEMES)
+		pItemsBox->AddString(scheme->NAME);
 
-	WCHAR txtBuf[16];
-
-	for (int i = 0; i < FONT_SIZE_COUNT; ++i) {
-		_itot_s(FONT_SIZES[i], txtBuf, 16, 10);
-		pFontSizeList->AddString(txtBuf);
-	}		// // //
-	_itot_s(m_iFontSize, txtBuf, 16, 10);
-	pFontSizeList->SetWindowTextW(txtBuf);
+	for (int pt : FONT_SIZES)		// // //
+		pFontSizeList->AddString(conv::to_wide(conv::from_int(pt)).data());
+	pFontSizeList->SetWindowTextW(conv::to_wide(conv::from_int(m_iFontSize)).data());
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE

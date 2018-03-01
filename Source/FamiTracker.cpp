@@ -488,10 +488,10 @@ void CFamiTrackerApp::RegisterSingleInstance()
 	m_hWndMapFile = CreateFileMappingW(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, SHARED_MEM_SIZE, FT_SHARED_MEM_NAME);
 
 	if (m_hWndMapFile != NULL) {
-		LPTSTR pBuf = (LPTSTR) MapViewOfFile(m_hWndMapFile, FILE_MAP_ALL_ACCESS, 0, 0, SHARED_MEM_SIZE);
-		if (pBuf != NULL) {
+		if (auto pBuf = (LPWSTR)MapViewOfFile(m_hWndMapFile, FILE_MAP_ALL_ACCESS, 0, 0, SHARED_MEM_SIZE)) {		// // //
 			// Create a string of main window handle
-			_itot_s((int)GetMainWnd()->m_hWnd, pBuf, SHARED_MEM_SIZE, 10);
+//			conv::to_wide(conv::from_int((int)GetMainWnd()->m_hWnd)).copy(pBuf, SHARED_MEM_SIZE);
+			_itow_s((int)GetMainWnd()->m_hWnd, pBuf, SHARED_MEM_SIZE, 10);
 			UnmapViewOfFile(pBuf);
 		}
 	}
@@ -533,7 +533,7 @@ bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
 					// Get window handle
 					if (auto hWnd = (HWND)*pBuf) {
 						// Get file name
-						LPTSTR pFilePath = cmdInfo.m_strFileName.GetBuffer();
+						LPWSTR pFilePath = cmdInfo.m_strFileName.GetBuffer();
 						// We have the window handle & file, send a message to open the file
 						COPYDATASTRUCT data;
 						data.dwData = cmdInfo.m_bPlay ? IPC_LOAD_PLAY : IPC_LOAD;

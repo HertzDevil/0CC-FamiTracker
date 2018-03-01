@@ -96,7 +96,7 @@ std::pair<nlohmann::json, ft_version_t> FindBestVersion(const nlohmann::json &j)
 	for (const auto &i : j) {
 		ft_version_t ver = { };
 		auto &[api, maj, min, rev] = ver;
-		std::string tag = i["tag_name"];
+		const std::string &tag = i["tag_name"];
 		::sscanf_s(tag.data(), "v%u.%u.%u%*1[.r]%u", &api, &maj, &min, &rev);
 		if (ver > current) {
 			current = ver;

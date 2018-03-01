@@ -238,7 +238,7 @@ void CInstrumentEditorN163Wave::OnBnClickedPaste()
 	}
 
 	if (Clipboard.IsDataAvailable()) {
-		LPTSTR text = (LPTSTR)Clipboard.GetDataPointer();
+		LPWSTR text = (LPWSTR)Clipboard.GetDataPointer();
 		if (text != NULL)
 			ParseString(conv::to_utf8(text));
 	}

@@ -28,6 +28,7 @@
 #include "MainFrm.h"
 #include "FamiTracker.h"		// // //
 #include "Instrument.h"		// // //
+#include "NumConv.h"	// // //
 #include "str_conv/str_conv.hpp"		// // //
 
 ///
@@ -77,16 +78,12 @@ void CInstrumentListCtrl::CreateImageList() {
 int CInstrumentListCtrl::GetInstrumentIndex(int Selection) const
 {
 	// Get the instrument number from an item in the list (Selection = list index)
-	if (Selection == -1)
-		return -1;
-
-	WCHAR Text[CInstrument::INST_NAME_MAX];
-	GetItemText(Selection, 0, Text, CInstrument::INST_NAME_MAX);
-
-	int Instrument;
-	swscanf(Text, L"%X", &Instrument);
-
-	return Instrument;
+	if (Selection != -1) {
+		CStringW Text = GetItemText(Selection, 0);		// // //
+		if (auto x = conv::to_uint(Text, 16))
+			return *x;
+	}
+	return INVALID_INSTRUMENT;
 }
 
 int CInstrumentListCtrl::FindInstrument(int Index) const
