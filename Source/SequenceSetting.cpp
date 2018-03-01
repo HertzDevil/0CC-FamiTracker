@@ -33,15 +33,15 @@
 
 namespace {
 
-const LPCWSTR SEQ_SETTING_TEXT[][SEQ_COUNT] = {		// // // 050B
-	{L"16 steps", L"Absolute", L"Relative", nullptr, nullptr},
-	{L"64 steps",    L"Fixed", L"Absolute", nullptr, nullptr},
+const std::wstring_view SEQ_SETTING_TEXT[][SEQ_COUNT] = {		// // // 050B
+	{L"16 steps", L"Absolute", L"Relative", L"", L""},
+	{L"64 steps",    L"Fixed", L"Absolute", L"", L""},
 #ifdef _DEBUG
-	{    nullptr, L"Relative",    L"Sweep", nullptr, nullptr},
+	{        L"", L"Relative",    L"Sweep", L"", L""},
 #else
-	{    nullptr, L"Relative",     nullptr, nullptr, nullptr},
+	{        L"", L"Relative",         L"", L"", L""},
 #endif
-	{    nullptr,   L"Scheme",     nullptr, nullptr, nullptr},
+	{        L"",   L"Scheme",         L"", L"", L""},
 };
 
 } // namespace
@@ -81,10 +81,11 @@ void CSequenceSetting::OnPaint()
 	GetClientRect(&rect);
 
 	unsigned mode = m_pSequence->GetSetting();		// // //
-	if (mode > SEQ_SETTING_COUNT[(unsigned)m_pSequence->GetSequenceType()] || SEQ_SETTING_TEXT[mode][(unsigned)m_pSequence->GetSequenceType()] == nullptr) {
-		dc.FillSolidRect(rect, 0xFFFFFF); return;
+	std::wstring_view sv = mode < std::size(SEQ_SETTING_TEXT) ? SEQ_SETTING_TEXT[mode][(unsigned)m_pSequence->GetSequenceType()] : std::wstring_view { };
+	if (sv.empty()) {
+		dc.FillSolidRect(rect, 0xFFFFFF);
+		return;
 	}
-	LPCWSTR str = SEQ_SETTING_TEXT[mode][(unsigned)m_pSequence->GetSequenceType()];
 
 	int BgColor = m_bMouseOver ? 0x303030 : 0x101010;
 
@@ -95,7 +96,7 @@ void CSequenceSetting::OnPaint()
 	dc.SetBkColor(BgColor);
 
 	rect.top += 2;
-	dc.DrawTextW(str, wcslen(str), rect, DT_CENTER);
+	dc.DrawTextW(sv.data(), sv.size(), rect, DT_CENTER);
 }
 
 void CSequenceSetting::OnLButtonDown(UINT nFlags, CPoint point)
@@ -111,8 +112,9 @@ void CSequenceSetting::OnLButtonDown(UINT nFlags, CPoint point)
 	if (SEQ_SETTING_COUNT[seqType] < 2) return;
 
 	m_menuPopup.CreatePopupMenu();
-	for (unsigned i = 0; i < SEQ_SETTING_COUNT[seqType]; ++i)
-		m_menuPopup.AppendMenuW(MFT_STRING, MENU_ID_BASE + i, SEQ_SETTING_TEXT[i][seqType]);
+	for (unsigned i = 0; i < std::size(SEQ_SETTING_TEXT); ++i)
+		if (auto sv = SEQ_SETTING_TEXT[i][seqType]; !sv.empty())
+			m_menuPopup.AppendMenuW(MFT_STRING, MENU_ID_BASE + i, sv.data());
 	m_menuPopup.CheckMenuRadioItem(MENU_ID_BASE, MENU_ID_MAX, MENU_ID_BASE + Setting, MF_BYCOMMAND);
 #ifndef _DEBUG
 	if (m_pSequence->GetSequenceType() == sequence_t::Volume && m_iInstType != INST_VRC6)

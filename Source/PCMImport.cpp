@@ -468,7 +468,7 @@ bool CPCMImport::OpenWaveFile()
 	if (!m_fSampleFile.Open(m_strPath, CFile::modeRead, &ex)) {
 		WCHAR   szCause[255];
 		CStringW strFormatted;
-		ex.GetErrorMessage(szCause, 255);
+		ex.GetErrorMessage(szCause, std::size(szCause));
 		AfxFormatString1(strFormatted, IDS_OPEN_FILE_ERROR, szCause);
 		AfxMessageBox(strFormatted);
 		return false;

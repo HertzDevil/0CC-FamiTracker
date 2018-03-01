@@ -151,27 +151,17 @@ CCompiler::~CCompiler() {
 template <typename... Args>
 void CCompiler::Print(LPCWSTR text, Args&&... args) const		// // //
 {
-	WCHAR buf[256] = { };
-
 	if (!m_pLogger || !text)
 		return;
 
-	_sntprintf_s(buf, std::size(buf), _TRUNCATE, text, std::forward<Args>(args)...);
-
-	size_t len = wcslen(buf);
-
-	if (buf[len - 1] == '\n' && len < (std::size(buf) - 1)) {
-		buf[len - 1] = '\r';
-		buf[len] = '\n';
-		buf[len + 1] = 0;
-	}
-
-	m_pLogger->WriteLog(buf);
+	CStringW buf = FormattedW(text, std::forward<Args>(args)...);		// // //
+	buf.Replace(L"\n", L"\r\n");
+	m_pLogger->WriteLog((LPCWSTR)buf);
 }
 
 void CCompiler::ClearLog() const
 {
-	if (m_pLogger != NULL)
+	if (m_pLogger)
 		m_pLogger->Clear();
 }
 
@@ -183,7 +173,7 @@ bool CCompiler::OpenFile(LPCWSTR lpszFileName, CFile &file) const
 		// Display formatted file exception message
 		WCHAR szCause[255];
 		CStringW strFormatted;
-		ex.GetErrorMessage(szCause, 255);
+		ex.GetErrorMessage(szCause, std::size(szCause));
 		AfxFormatString1(strFormatted, IDS_OPEN_FILE_ERROR, szCause);
 		AfxMessageBox(strFormatted, MB_OK | MB_ICONERROR);
 		return false;
@@ -424,7 +414,7 @@ void CCompiler::ExportBIN_ASM(LPCWSTR lpszFileName, LPCWSTR lpszDPCM_File, bool 
 		return;
 	}
 
-	bool exportDPCM = wcslen(lpszDPCM_File) > 0;		// // //
+	bool exportDPCM = lpszDPCM_File && *lpszDPCM_File != '\0';		// // //
 
 	// Convert to binary
 	ResolveLabels();

@@ -199,8 +199,8 @@ BOOL CFamiTrackerApp::InitInstance()
 #if !defined(WIP) && !defined(_DEBUG)
 	// Add shell options
 	RegisterShellFileTypes();		// // //
-	static const LPCWSTR FILE_ASSOC_NAME = L"0CC-FamiTracker Module";
-	RegSetValueW(HKEY_CLASSES_ROOT, L"0CCFamiTracker.Document", REG_SZ, FILE_ASSOC_NAME, wcslen(FILE_ASSOC_NAME) * sizeof(WCHAR));
+	const WCHAR FILE_ASSOC_NAME[] = L"0CC-FamiTracker Module";
+	RegSetValueW(HKEY_CLASSES_ROOT, L"0CCFamiTracker.Document", REG_SZ, FILE_ASSOC_NAME, std::size(FILE_ASSOC_NAME) * sizeof(WCHAR));
 	// Add an option to play files
 	CStringW strPathName, strFileTypeId;
 	AfxGetModuleShortFileName(AfxGetInstanceHandle(), strPathName);
@@ -208,7 +208,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	strOpenCommandLine += L" /play \"%1\"";
 	if (pDocTemplate->GetDocString(strFileTypeId, CDocTemplate::regFileTypeId) && !strFileTypeId.IsEmpty()) {
 		CStringW strTemp = FormattedW(L"%s\\shell\\play\\%s", (LPCWSTR)strFileTypeId, L"command");
-		RegSetValueW(HKEY_CLASSES_ROOT, strTemp, REG_SZ, strOpenCommandLine, wcslen(strOpenCommandLine) * sizeof(WCHAR));
+		RegSetValueW(HKEY_CLASSES_ROOT, strTemp, REG_SZ, strOpenCommandLine, strOpenCommandLine.GetLength() * sizeof(WCHAR));
 	}
 #endif
 
@@ -537,7 +537,7 @@ bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
 						// We have the window handle & file, send a message to open the file
 						COPYDATASTRUCT data;
 						data.dwData = cmdInfo.m_bPlay ? IPC_LOAD_PLAY : IPC_LOAD;
-						data.cbData = (DWORD)((wcslen(pFilePath) + 1) * sizeof(WCHAR));
+						data.cbData = (DWORD)((cmdInfo.m_strFileName.GetLength() + 1) * sizeof(WCHAR));
 						data.lpData = pFilePath;
 						DWORD result;
 						SendMessageTimeoutW(hWnd, WM_COPYDATA, NULL, (LPARAM)&data, SMTO_NORMAL, 100, &result);

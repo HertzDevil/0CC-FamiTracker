@@ -324,7 +324,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 		// Could not open file
 		WCHAR szCause[255];
 		CStringW strFormatted;
-		ex.GetErrorMessage(szCause, 255);
+		ex.GetErrorMessage(szCause, std::size(szCause));
 		AfxFormatString1(strFormatted, IDS_SAVE_FILE_ERROR, szCause);
 		AfxMessageBox(strFormatted, MB_OK | MB_ICONERROR);
 		return FALSE;
@@ -484,14 +484,14 @@ CStringW CFamiTrackerDoc::GetFileTitle() const
 	// Return file name without extension
 	CStringW FileName = GetTitle();
 
-	const LPCWSTR EXT[] = {L".ftm", L".0cc", L".ftm.bak", L".0cc.bak"};		// // //
+	const std::wstring_view EXT[] = {L".ftm", L".0cc", L".ftm.bak", L".0cc.bak"};		// // //
 	// Remove extension
 
-	for (const auto &str : EXT) {
-		int Len = wcslen(str);
-		if (FileName.Right(Len).CompareNoCase(str) == 0)
-			return FileName.Left(FileName.GetLength() - Len);
-	}
+	for (auto sv : EXT)
+		if (FileName.Right(sv.size()).CompareNoCase(sv.data()) == 0) {
+			FileName.Truncate(FileName.GetLength() - sv.size());
+			break;
+		}
 
 	return FileName;
 }

@@ -398,11 +398,11 @@ void CFamiTrackerView::OnDraw(CDC* pDC)
 
 	// Check document
 	if (!GetDocument()->IsFileLoaded()) {
-		LPCWSTR str = L"No module loaded.";
+		const WCHAR str[] = L"No module loaded.";		// // //
 		pDC->FillSolidRect(0, 0, m_iWindowWidth, m_iWindowHeight, 0x000000);
 		pDC->SetTextColor(0xFFFFFF);
 		CRect textRect(0, 0, m_iWindowWidth, m_iWindowHeight);
-		pDC->DrawTextW(str, wcslen(str), &textRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		pDC->DrawTextW(str, std::size(str), &textRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 		return;
 	}
 

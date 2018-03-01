@@ -2695,21 +2695,23 @@ void CMainFrame::SelectInstrumentFolder()
 
 BOOL CMainFrame::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct)
 {
+	bool hasFile = pCopyDataStruct->lpData && *(LPCWSTR)pCopyDataStruct->lpData != L'\0';		// // //
+
 	switch (pCopyDataStruct->dwData) {
-		case IPC_LOAD:
-			// Load file
-			if (wcslen((LPCWSTR)pCopyDataStruct->lpData) > 0)
-				theApp.OpenDocumentFile((LPCWSTR)pCopyDataStruct->lpData);
-			return TRUE;
-		case IPC_LOAD_PLAY:
-			// Load file
-			if (wcslen((LPCWSTR)pCopyDataStruct->lpData) > 0)
-				theApp.OpenDocumentFile((LPCWSTR)pCopyDataStruct->lpData);
-			// and play
-			if (CFamiTrackerDoc::GetDoc()->IsFileLoaded() &&
-				!CFamiTrackerDoc::GetDoc()->HasLastLoadFailed())
-				theApp.StartPlayer(play_mode_t::Song);		// // //
-			return TRUE;
+	case IPC_LOAD:
+		// Load file
+		if (hasFile)
+			theApp.OpenDocumentFile((LPCWSTR)pCopyDataStruct->lpData);
+		return TRUE;
+	case IPC_LOAD_PLAY:
+		// Load file
+		if (hasFile)
+			theApp.OpenDocumentFile((LPCWSTR)pCopyDataStruct->lpData);
+		// and play
+		if (CFamiTrackerDoc::GetDoc()->IsFileLoaded() &&
+			!CFamiTrackerDoc::GetDoc()->HasLastLoadFailed())
+			theApp.StartPlayer(play_mode_t::Song);		// // //
+		return TRUE;
 	}
 
 	return CFrameWnd::OnCopyData(pWnd, pCopyDataStruct);

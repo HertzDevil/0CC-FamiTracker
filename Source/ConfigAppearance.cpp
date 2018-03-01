@@ -62,11 +62,10 @@ const COLOR_SCHEME *const CConfigAppearance::COLOR_SCHEMES[] = {
 
 const int CConfigAppearance::FONT_SIZES[] = {10, 11, 12, 14, 16, 18, 20, 22};
 
-int CALLBACK CConfigAppearance::EnumFontFamExProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD FontType, LPARAM lParam)
+int CALLBACK CConfigAppearance::EnumFontFamExProc(ENUMLOGFONTEXW *lpelfe, NEWTEXTMETRICEXW *lpntme, DWORD FontType, LPARAM lParam)
 {
-	if (lpelfe->elfLogFont.lfCharSet == ANSI_CHARSET && lpelfe->elfFullName[0] != '@' &&
-		strlen((char*)lpelfe->elfFullName) < LF_FACESIZE)		// // //
-		reinterpret_cast<CConfigAppearance*>(lParam)->AddFontName((LPCWSTR)&lpelfe->elfFullName);
+	if (lpelfe->elfLogFont.lfCharSet == ANSI_CHARSET && lpelfe->elfFullName[0] != L'@')
+		reinterpret_cast<CConfigAppearance *>(lParam)->AddFontName((LPCWSTR)&lpelfe->elfFullName);
 
 	return 1;
 }
@@ -283,6 +282,9 @@ BOOL CConfigAppearance::OnInitDialog()
 
 void CConfigAppearance::AddFontName(std::wstring_view Name)		// // //
 {
+	if (Name.size() >= LF_FACESIZE)		// // //
+		return;
+
 	CComboBox *pFontList = static_cast<CComboBox*>(GetDlgItem(IDC_FONT));
 
 	pFontList->AddString(Name.data());

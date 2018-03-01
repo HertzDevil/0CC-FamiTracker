@@ -1405,8 +1405,6 @@ void CFamiTrackerDocIO::SaveBookmarks(const CFamiTrackerModule &modfile, int ver
 			file_.WriteBlockInt(pMark->m_Highlight.First);
 			file_.WriteBlockInt(pMark->m_Highlight.Second);
 			file_.WriteBlockChar(pMark->m_bPersist);
-			//file_.WriteBlockInt(pMark->m_sName.size());
-			//file_.WriteBlock(pMark->m_sName, (int)strlen(Name));
 			file_.WriteString(pMark->m_sName);
 		}
 	});

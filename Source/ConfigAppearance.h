@@ -60,7 +60,7 @@ public:
 	enum { IDD = IDD_CONFIG_APPEARANCE };
 
 protected:
-	static int CALLBACK EnumFontFamExProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD FontType, LPARAM lParam);
+	static int CALLBACK EnumFontFamExProc(ENUMLOGFONTEXW *lpelfe, NEWTEXTMETRICEXW *lpntme, DWORD FontType, LPARAM lParam);
 
 	static const std::string_view COLOR_ITEMS[];		// // //
 

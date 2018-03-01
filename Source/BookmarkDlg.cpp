@@ -67,7 +67,7 @@ void CListBoxEx::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) {
 		dc.SetTextColor(::GetSysColor(COLOR_GRAYTEXT));
 
 	dc.SetWindowOrg(-2, 0);
-	dc.DrawTextW(str, (int)wcslen(str), &lpDrawItemStruct->rcItem, DT_SINGLELINE);
+	dc.DrawTextW(str, (int)str.GetLength(), &lpDrawItemStruct->rcItem, DT_SINGLELINE);
 
 	dc.SetWindowOrg(0, 0);
 	dc.SetTextColor(crOldTextColor);
@@ -85,7 +85,7 @@ void CListBoxEx::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct) {
 	CDC *pDC = GetDC();
 
 	TEXTMETRIC tm;
-	pDC->GetTextMetrics(&tm);
+	pDC->GetTextMetricsW(&tm);
 	lpMeasureItemStruct->itemHeight = tm.tmHeight * 3 / 4;
 
 	ReleaseDC(pDC);
