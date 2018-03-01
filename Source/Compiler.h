@@ -44,9 +44,9 @@ struct stNSFHeader {
 	uint16_t	LoadAddr;
 	uint16_t	InitAddr;
 	uint16_t	PlayAddr;
-	uint8_t		SongName[32] = { };
-	uint8_t		ArtistName[32] = { };
-	uint8_t		Copyright[32] = { };
+	char		SongName[32] = { };
+	char		ArtistName[32] = { };
+	char		Copyright[32] = { };
 	uint16_t	Speed_NTSC;
 	uint8_t		BankValues[8] = { };
 	uint16_t	Speed_PAL;

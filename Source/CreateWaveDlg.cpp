@@ -81,7 +81,7 @@ int CCreateWaveDlg::GetTimeLimit() const
 	CStringW str;
 
 	GetDlgItemTextW(IDC_SECONDS, str);
-	swscanf(str, L"%u:%u", &Minutes, &Seconds);
+	swscanf_s(str, L"%u:%u", &Minutes, &Seconds);
 	int Time = (Minutes * 60) + (Seconds % 60);
 
 	if (Time < 1)

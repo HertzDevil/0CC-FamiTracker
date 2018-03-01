@@ -29,10 +29,6 @@
 #define _CRTDBG_MAPALLOC
 #define NOMINMAX
 
-// Get rid of warnings in VS 2005
-#define _CRT_SECURE_NO_DEPRECATE
-#define _CRT_SECURE_NO_WARNINGS
-
 #ifndef VC_EXTRALEAN
 #define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
 #endif
@@ -60,8 +56,6 @@
 
 // turns off MFC's hiding of some common and often safely ignored warning messages
 #define _AFX_ALL_WARNINGS
-
-#define NO_WARN_MBCS_MFC_DEPRECATION		// // // MBCS
 
 struct IUnknown;		// // // /permissive-
 class CRenderTarget;		// // //

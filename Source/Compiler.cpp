@@ -635,9 +635,9 @@ stNSFHeader CCompiler::CreateHeader(int MachineType) const		// // //
 	Header.LoadAddr = m_iLoadAddress;
 	Header.InitAddr = m_iInitAddress;
 	Header.PlayAddr = m_iInitAddress + 3;
-	strncpy((char *)Header.SongName,   title_.data(), std::size(Header.SongName));
-	strncpy((char *)Header.ArtistName, artist_.data(), std::size(Header.ArtistName));
-	strncpy((char *)Header.Copyright,  copyright_.data(), std::size(Header.Copyright));
+	strncpy_s(Header.SongName,   title_.data(), std::size(Header.SongName) - 1);
+	strncpy_s(Header.ArtistName, artist_.data(), std::size(Header.ArtistName) - 1);
+	strncpy_s(Header.Copyright,  copyright_.data(), std::size(Header.Copyright) - 1);
 	Header.SoundChip = m_pModule->GetSoundChipSet().GetNSFFlag();
 
 	// If speed is default, write correct NTSC/PAL speed periods
