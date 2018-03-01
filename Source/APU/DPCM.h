@@ -41,9 +41,9 @@ public:
 	void	Reload();
 
 	CSampleMem &GetSampleMemory();		// // //
-	uint8_t	GetSamplePos() const { return  (m_iDMA_Address - (m_iDMA_LoadReg << 6 | 0x4000)) >> 6; };
-	uint8_t	GetDeltaCounter() const { return m_iDeltaCounter; };
-	bool	IsPlaying() const { return (m_iDMA_BytesRemaining > 0); };
+	uint8_t	GetSamplePos() const { return  (m_iDMA_Address - (m_iDMA_LoadReg << 6 | 0x4000)) >> 6; }
+	uint8_t	GetDeltaCounter() const { return m_iDeltaCounter; }
+	bool	IsPlaying() const { return (m_iDMA_BytesRemaining > 0); }
 
 public:
 	static const uint16_t	DMC_PERIODS_NTSC[];

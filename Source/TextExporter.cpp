@@ -290,26 +290,10 @@ public:
 	}
 
 	int ImportHex(const CStringA &sToken) {		// // //
-		int i = 0;
-		for (int d=0; d < sToken.GetLength(); ++d)
-		{
-			const char HEX_TEXT[16] = {
-				'0', '1', '2', '3', '4', '5', '6', '7',
-				'8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
-			};
-
-			i <<= 4;
-			char t = sToken.Mid(d,1).MakeUpper().GetAt(0);		// // //
-			int h = 0;
-			for (h=0; h < 16; ++h)
-				if (t == HEX_TEXT[h]) {
-					i += h;
-					break;
-				}
-			if (h >= 16)
-				throw MakeError("hexadecimal number expected, '%s' found.", (LPCSTR)sToken);
-		}
-		return i;
+		auto x = conv::to_int(sToken, 16);
+		if (!x)
+			throw MakeError("hexadecimal number expected, '%s' found.", (LPCSTR)sToken);
+		return *x;
 	}
 
 	template <typename... Args>

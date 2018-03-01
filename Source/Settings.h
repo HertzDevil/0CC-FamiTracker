@@ -67,13 +67,13 @@ struct stOldSettingContext
 // Base class for settings, pure virtual
 class CSettingBase {
 public:
-	CSettingBase(LPCWSTR pSection, LPCWSTR pEntry) : m_pSection(pSection), m_pEntry(pEntry) {};
-	virtual ~CSettingBase() {}
+	CSettingBase(LPCWSTR pSection, LPCWSTR pEntry) : m_pSection(pSection), m_pEntry(pEntry) { }
+	virtual ~CSettingBase() noexcept = default;		// // //
 	virtual void Load() = 0;
 	virtual void Save() = 0;
 	virtual void Default() = 0;
 	virtual void UpdateDefault(LPCWSTR pSection, LPCWSTR pEntry);		// // /
-	LPCWSTR GetSection() const { return m_pSection; };
+	LPCWSTR GetSection() const { return m_pSection; }
 protected:
 	LPCWSTR m_pSection;
 	LPCWSTR m_pEntry;
@@ -85,10 +85,10 @@ protected:
 template <class T>
 class CSettingType : public CSettingBase {
 public:
-	CSettingType(LPCWSTR pSection, LPCWSTR pEntry, T defaultVal, T *pVar) : CSettingBase(pSection, pEntry), m_tDefaultValue(defaultVal), m_pVariable(pVar) {};
-	virtual void Load();
-	virtual void Save();
-	virtual void Default();
+	CSettingType(LPCWSTR pSection, LPCWSTR pEntry, T defaultVal, T *pVar) : CSettingBase(pSection, pEntry), m_tDefaultValue(defaultVal), m_pVariable(pVar) { }
+	void Load() override;
+	void Save() override;
+	void Default() override;
 protected:
 	T *m_pVariable;
 	T m_tDefaultValue;

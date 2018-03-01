@@ -86,10 +86,10 @@ public:
 class CChunkDataByte : public CChunkData
 {
 public:
-	CChunkDataByte(unsigned char data) : CChunkData(), m_data(data) {}
+	CChunkDataByte(unsigned char data) : CChunkData(), m_data(data) { }
 	int GetSize() const override { return 1; }
 
-	unsigned short GetData() const override { return m_data; };
+	unsigned short GetData() const override { return m_data; }
 	unsigned char m_data;
 };
 
@@ -99,7 +99,7 @@ public:
 	CChunkDataWord(unsigned short data) : CChunkData(), m_data(data) { }
 	int GetSize() const override { return 2; }
 
-	unsigned short GetData() const override { return m_data; };
+	unsigned short GetData() const override { return m_data; }
 	unsigned short m_data;
 };
 
@@ -108,7 +108,7 @@ class CChunkDataPointer : public CChunkData
 public:
 	CChunkDataPointer(const stChunkLabel &label) : CChunkData(), m_Label(label) { }		// // //
 	int GetSize() const override { return 2; }
-	unsigned short GetData() const override { return ref; };
+	unsigned short GetData() const override { return ref; }
 
 	stChunkLabel m_Label;
 	unsigned short ref = 0xFFFF;
@@ -119,7 +119,7 @@ class CChunkDataBank : public CChunkData
 public:
 	CChunkDataBank(const stChunkLabel &label, int bank) : CChunkData(), m_Label(label), m_bank(bank) { }		// // //
 	int GetSize() const override { return 1; }
-	unsigned short GetData() const override { return m_bank; };
+	unsigned short GetData() const override { return m_bank; }
 
 	stChunkLabel m_Label;		// // // Reference to a label which belongs to the bank this data should point to
 	unsigned int m_bank;
@@ -128,9 +128,9 @@ public:
 class CChunkDataString : public CChunkData
 {
 public:
-	CChunkDataString(const std::vector<unsigned char> &data) : CChunkData(), m_vData(data) {}
+	CChunkDataString(const std::vector<unsigned char> &data) : CChunkData(), m_vData(data) { }
 	int GetSize() const override { return m_vData.size(); }
-	unsigned short GetData() const override { return 0; };	// Invalid for this type
+	unsigned short GetData() const override { return 0; }	// Invalid for this type
 
 	std::vector<unsigned char> m_vData;		// // //
 };

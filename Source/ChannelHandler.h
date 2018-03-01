@@ -285,7 +285,7 @@ protected:
 		\param Duty Input duty value from the instrument.
 		\return The converted duty value, or -1 if no sensible value exists.
 		\sa CChannelHandler::SetDutyPeriod */
-	virtual int ConvertDuty(int Duty) const { return Duty; };		// // //
+	virtual int ConvertDuty(int Duty) const { return Duty; }		// // //
 
 public:		// // //
 	/*!	\brief Sets the current pitch register of the channel.

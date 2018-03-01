@@ -87,15 +87,15 @@ class CInstrumentN163;
 class CWaveEditorFDS : public CWaveEditor
 {
 public:
-	CWaveEditorFDS(int sx, int sy, int lx, int ly) : CWaveEditor(sx, sy, lx, ly), m_pInstrument(NULL) {};
+	using CWaveEditor::CWaveEditor;		// // //
 	void SetInstrument(std::shared_ptr<CInstrumentFDS> pInst);
 protected:
-	virtual int GetSample(int i) const;
-	virtual void SetSample(int i, int s);
-	virtual int GetMaxSamples() const;
-	virtual void DrawRect(CDC *pDC, int x, int y, int sx, int sy) const;
-	virtual bool GetLineMode() const { return m_bLineMode; };
-	virtual void SetLineMode(bool Mode) { m_bLineMode = Mode; };
+	int GetSample(int i) const override;
+	void SetSample(int i, int s) override;
+	int GetMaxSamples() const override;
+	void DrawRect(CDC *pDC, int x, int y, int sx, int sy) const override;
+	bool GetLineMode() const override { return m_bLineMode; }
+	void SetLineMode(bool Mode) override { m_bLineMode = Mode; }
 
 protected:
 	static bool m_bLineMode;
@@ -108,22 +108,22 @@ protected:
 class CWaveEditorN163 : public CWaveEditor
 {
 public:
-	CWaveEditorN163(int sx, int sy, int lx, int ly) : CWaveEditor(sx, sy, lx, ly), m_pInstrument(NULL), m_iWaveIndex(0) {};
+	using CWaveEditor::CWaveEditor;		// // //
 	void SetLength(int Length);
 	void SetInstrument(std::shared_ptr<CInstrumentN163> pInst);
 	void SetWave(int i);
 protected:
-	virtual int GetSample(int i) const;
-	virtual void SetSample(int i, int s);
-	virtual int GetMaxSamples() const;
-	virtual void DrawRect(CDC *pDC, int x, int y, int sx, int sy) const;
-	virtual bool GetLineMode() const { return m_bLineMode; };
-	virtual void SetLineMode(bool Mode) { m_bLineMode = Mode; };
+	int GetSample(int i) const override;
+	void SetSample(int i, int s) override;
+	int GetMaxSamples() const override;
+	void DrawRect(CDC *pDC, int x, int y, int sx, int sy) const override;
+	bool GetLineMode() const override { return m_bLineMode; }
+	void SetLineMode(bool Mode) override { m_bLineMode = Mode; }
 
 protected:
 	static bool m_bLineMode;
 
 protected:
 	std::shared_ptr<CInstrumentN163> m_pInstrument;
-	int m_iWaveIndex;
+	int m_iWaveIndex = 0;
 };

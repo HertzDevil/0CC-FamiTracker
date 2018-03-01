@@ -49,9 +49,9 @@ public:
 	void	OnRight();
 	void	OnLeft();
 
-	int		GetStartOffset() const { return m_iStartCursor; };
-	int		GetSelStart() const { return (m_iSelStart < m_iSelEnd) ? m_iSelStart : m_iSelEnd; };
-	int		GetSelEnd() const { return (m_iSelStart > m_iSelEnd) ? m_iSelStart : m_iSelEnd; };
+	int		GetStartOffset() const { return m_iStartCursor; }
+	int		GetSelStart() const { return (m_iSelStart < m_iSelEnd) ? m_iSelStart : m_iSelEnd; }
+	int		GetSelEnd() const { return (m_iSelStart > m_iSelEnd) ? m_iSelStart : m_iSelEnd; }
 	int		GetBlock(int Pixel) const;
 	int		GetPixel(int Block) const;
 

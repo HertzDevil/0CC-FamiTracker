@@ -179,13 +179,12 @@ public:
 protected:
 	CListCtrl m_cListResults;
 
-	enum result_column_t
-	{
+	enum result_column_t {
 		ID,
 		CHANNEL, PATTERN, FRAME, ROW,
 		NOTE, INST, VOL,
 		EFFECT,
-		COUNT = EFFECT + MAX_EFFECT_COLUMNS
+		COUNT = EFFECT + MAX_EFFECT_COLUMNS,
 	};
 
 	static result_column_t m_iLastsortColumn;

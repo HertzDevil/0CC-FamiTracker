@@ -37,7 +37,7 @@ class CFrameEditorDropTarget : public COleDropTarget
 {
 public:
 	CFrameEditorDropTarget(CFrameEditor *pParent)
-		: m_iClipboard(0), m_nDropEffect(DROPEFFECT_NONE), m_bCopyNewPatterns(false), m_pParent(pParent) {};
+		: m_iClipboard(0), m_nDropEffect(DROPEFFECT_NONE), m_bCopyNewPatterns(false), m_pParent(pParent) { }
 	void SetClipBoardFormat(UINT iClipboard);
 	DROPEFFECT OnDragEnter(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point);
 	DROPEFFECT OnDragOver(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point);

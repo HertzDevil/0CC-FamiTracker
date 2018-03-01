@@ -33,8 +33,7 @@ class CLockedEdit : public CEdit {
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
-	CLockedEdit() : m_bUpdate(false), m_iValue(0) {
-	};
+	CLockedEdit() = default;
 	bool IsEditable() const;
 	bool Update();
 	int GetValue() const;
@@ -43,8 +42,8 @@ private:
 	void OnSetFocus(CWnd* pOldWnd);
 	void OnKillFocus(CWnd* pNewWnd);
 private:
-	bool m_bUpdate;
-	int m_iValue;
+	bool m_bUpdate = false;
+	int m_iValue = 0;
 public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnFileAddsong();
@@ -57,7 +56,7 @@ class CBannerEdit : public CEdit {
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
-	CBannerEdit(UINT nID) : CEdit() { m_strText.LoadStringW(nID); };
+	CBannerEdit(UINT nID) : CEdit() { m_strText.LoadStringW(nID); }
 protected:
 	CStringW m_strText;
 protected:

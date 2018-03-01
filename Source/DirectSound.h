@@ -57,13 +57,13 @@ public:
 
 	buffer_event_t WaitForSyncEvent(DWORD dwTimeout) const;
 
-	int GetBlockSize() const	{ return m_iBlockSize; };
-	int GetBlockSamples() const	{ return m_iBlockSize >> ((m_iSampleSize >> 3) - 1); };
-	int GetBlocks()	const		{ return m_iBlocks; };
-	int	GetBufferLength() const	{ return m_iBufferLength; };
-	int GetSampleSize()	const	{ return m_iSampleSize;	};
-	int	GetSampleRate()	const	{ return m_iSampleRate;	};
-	int GetChannels() const		{ return m_iChannels; };
+	int GetBlockSize() const	{ return m_iBlockSize; }
+	int GetBlockSamples() const	{ return m_iBlockSize >> ((m_iSampleSize >> 3) - 1); }
+	int GetBlocks()	const		{ return m_iBlocks; }
+	int	GetBufferLength() const	{ return m_iBufferLength; }
+	int GetSampleSize()	const	{ return m_iSampleSize;	}
+	int	GetSampleRate()	const	{ return m_iSampleRate;	}
+	int GetChannels() const		{ return m_iChannels; }
 
 private:
 	int GetPlayBlock() const;

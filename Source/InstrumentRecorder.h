@@ -60,7 +60,7 @@ public:
 	void			SetRecordChannel(chan_id_t Channel);
 	const stRecordSetting &GetRecordSetting() const;
 	void			SetRecordSetting(const stRecordSetting &Setting);
-	void			SetDumpCount(int Count) { m_iDumpCount = Count; };
+	void			SetDumpCount(int Count) { m_iDumpCount = Count; }
 
 	void			ResetDumpInstrument();
 	void			ResetRecordCache();

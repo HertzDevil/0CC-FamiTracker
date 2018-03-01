@@ -126,7 +126,7 @@ template <typename... Args>
 void debug_trace(LPCWSTR format, Args&&... args) {
 	static_assert((... && details::is_printf_arg_v<Args, WCHAR>), "These types cannot be passed as printf arguments");
 #ifdef _DEBUG
-	OutputDebugStringW(FormattedW(format, std::forward<T>(args)...));
+	OutputDebugStringW(FormattedW(format, std::forward<Args>(args)...));
 #endif
 }
 

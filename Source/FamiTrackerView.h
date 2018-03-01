@@ -81,8 +81,8 @@ public:
 public:
 
 	// Instruments
-	bool		 SwitchToInstrument() const { return m_bSwitchToInstrument; };
-	void		 SwitchToInstrument(bool Switch) { m_bSwitchToInstrument = Switch; };
+	bool		 SwitchToInstrument() const { return m_bSwitchToInstrument; }
+	void		 SwitchToInstrument(bool Switch) { m_bSwitchToInstrument = Switch; }
 	unsigned int GetSplitInstrument() const;		// // //
 
 	// Scrolling/viewing no-editing functions
@@ -115,10 +115,10 @@ public:
 	void		 SetFollowMode(bool Mode);
 	bool		 GetFollowMode() const;
 	void		 SetCompactMode(bool Mode);		// // //
-	bool		 GetEditMode() const { return m_bEditEnable; };
+	bool		 GetEditMode() const { return m_bEditEnable; }
 	void		 SetStepping(int Step);
-	unsigned int GetStepping() const { return m_iInsertKeyStepping; };
-	paste_pos_t  GetPastePos() const { return m_iPastePos; };		// // //
+	unsigned int GetStepping() const { return m_iInsertKeyStepping; }
+	paste_pos_t  GetPastePos() const { return m_iPastePos; }		// // //
 	void		 AdjustOctave(int Delta);		// // //
 
 	// // // 050B
