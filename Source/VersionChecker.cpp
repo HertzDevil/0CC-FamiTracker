@@ -128,13 +128,13 @@ std::optional<stVersionCheckResult> CVersionChecker::GetVersionCheckResult() {
 }
 
 void CVersionChecker::ThreadFn(bool startup, std::promise<std::optional<stVersionCheckResult>> p) noexcept try {
-	if (auto j = FindBestVersion(CHttpStringReader { }.ReadJson()); !j.first.empty()) {
-		auto [api, maj, min, rev] = j.second;
+	if (auto [json, verNum] = FindBestVersion(CHttpStringReader { }.ReadJson()); !json.empty()) {
+		auto [api, maj, min, rev] = verNum;
 		std::string verStr = std::to_string(api) + '.' + std::to_string(maj) + '.' + std::to_string(min) + '.' + std::to_string(rev);
 
-		std::string timeStr = j.first["published_at"];
+		std::string timeStr = json["published_at"];
 
-		std::string desc = j.first["body"];
+		std::string desc = json["body"];
 		if (auto pos = desc.find("\r\n\r\n"); pos != std::string::npos)
 			desc = desc.substr(pos + 4);
 		if (auto pos = desc.find("\r\n\r\n#"); pos != std::string::npos)

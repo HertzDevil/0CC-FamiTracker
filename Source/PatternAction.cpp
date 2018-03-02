@@ -176,19 +176,19 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 
 void CPatternAction::DeleteSelection(CSongView &view, const CSelection &Sel) const		// // //
 {
-	auto it = CPatternIterator::FromSelection(Sel, view);
-	const column_t ColStart = GetSelectColumn(it.first.m_iColumn);
-	const column_t ColEnd = GetSelectColumn(it.second.m_iColumn);
+	auto [b, e] = CPatternIterator::FromSelection(Sel, view);
+	const column_t ColStart = GetSelectColumn(b.m_iColumn);
+	const column_t ColEnd = GetSelectColumn(e.m_iColumn);
 
 	stChanNote BLANK;
 
-	do for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
-		auto NoteData = it.first.Get(i);
+	do for (int i = b.m_iChannel; i <= e.m_iChannel; ++i) {
+		auto NoteData = b.Get(i);
 		CopyNoteSection(NoteData, BLANK, paste_mode_t::DEFAULT,
-						i == it.first.m_iChannel ? ColStart : COLUMN_NOTE,
-						i == it.second.m_iChannel ? ColEnd : COLUMN_EFF4);
-		it.first.Set(i, NoteData);
-	} while (++it.first <= it.second);
+						i == b.m_iChannel ? ColStart : COLUMN_NOTE,
+						i == e.m_iChannel ? ColEnd : COLUMN_EFF4);
+		b.Set(i, NoteData);
+	} while (++b <= e);
 }
 
 bool CPatternAction::ValidateSelection(const CPatternEditor &Editor) const		// // //
@@ -657,19 +657,19 @@ CPActionTranspose::CPActionTranspose(transpose_t Type) : m_iTransposeMode(Type)
 void CPActionTranspose::Redo(CMainFrame &MainFrm)
 {
 	CSongView *pSongView = GET_SONG_VIEW();
-	auto it = GetIterators(*pSongView);
+	auto [b, e] = GetIterators(*pSongView);
 
 	int ChanStart     = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).m_iChannel;
 	int ChanEnd       = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iChannel;
 
-	const bool bSingular = it.first == it.second && !m_pUndoState->IsSelecting;
+	const bool bSingular = b == e && !m_pUndoState->IsSelecting;
 	const unsigned Length = pSongView->GetSong().GetPatternLength();
 
 	int Row = 0;		// // //
 	int oldRow = -1;
 	do {
-		if (it.first.m_iRow <= oldRow)
-			Row += Length + it.first.m_iRow - oldRow - 1;
+		if (b.m_iRow <= oldRow)
+			Row += Length + b.m_iRow - oldRow - 1;
 		for (int i = ChanStart; i <= ChanEnd; ++i) {
 			if (!m_pUndoState->Selection.IsColumnSelected(COLUMN_NOTE, i))
 				continue;
@@ -698,11 +698,11 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 			}
 			else
 				continue;
-			it.first.Set(i, Note);
+			b.Set(i, Note);
 		}
 		++Row;
-		oldRow = it.first.m_iRow;
-	} while (++it.first <= it.second);
+		oldRow = b.m_iRow;
+	} while (++b <= e);
 }
 
 
@@ -715,7 +715,7 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 {
 	CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 	CSongView *pSongView = GET_SONG_VIEW();
-	auto it = GetIterators(*pSongView);
+	auto [b, e] = GetIterators(*pSongView);
 	int ChanStart     = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).m_iChannel;
 	int ChanEnd       = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iChannel;
 	column_t ColStart = GetSelectColumn(
@@ -723,7 +723,7 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 	column_t ColEnd   = GetSelectColumn(
 		(m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iColumn);
 
-	const bool bSingular = it.first == it.second && !m_pUndoState->IsSelecting;
+	const bool bSingular = b == e && !m_pUndoState->IsSelecting;
 	const unsigned Length = pSongView->GetSong().GetPatternLength();
 
 	const auto WarpFunc = [this] (unsigned char &x, int Lim) {
@@ -742,8 +742,8 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 	int Row = 0;
 	int oldRow = -1;
 	do {
-		if (it.first.m_iRow <= oldRow)
-			Row += Length + it.first.m_iRow - oldRow - 1;
+		if (b.m_iRow <= oldRow)
+			Row += Length + b.m_iRow - oldRow - 1;
 		for (int i = ChanStart; i <= ChanEnd; ++i) {
 			auto Note = *(m_pUndoClipData->GetPattern(i - ChanStart, Row));		// // //
 			for (unsigned k = COLUMN_INSTRUMENT; k < COLUMNS; ++k) {
@@ -775,11 +775,11 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 					break;
 				}
 			}
-			it.first.Set(i, Note);
+			b.Set(i, Note);
 		}
 		++Row;
-		oldRow = it.first.m_iRow;
-	} while (++it.first <= it.second);
+		oldRow = b.m_iRow;
+	} while (++b <= e);
 }
 
 
@@ -796,16 +796,16 @@ bool CPActionInterpolate::SaveState(const CMainFrame &MainFrm)
 void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 {
 	CSongView *pSongView = GET_SONG_VIEW();
-	auto it = GetIterators(*pSongView);
+	auto [b, e] = GetIterators(*pSongView);
 	const CSelection &Sel = m_pUndoState->Selection;
 
 	for (int i = Sel.m_cpStart.m_iChannel; i <= Sel.m_cpEnd.m_iChannel; ++i) {
 		const int Columns = pSongView->GetEffectColumnCount(i) + 4;		// // //
 		for (int j = 0; j < Columns; ++j) {
 			if (!Sel.IsColumnSelected(static_cast<column_t>(j), i)) continue;
-			CPatternIterator r {it.first};		// // //
+			CPatternIterator r {b};		// // //
 			const auto &StartData = r.Get(i);
-			const auto &EndData = it.second.Get(i);
+			const auto &EndData = e.Get(i);
 			double StartValHi = 0., StartValLo = 0.;		// // //
 			double EndValHi = 0., EndValLo = 0.;
 			double DeltaHi = 0., DeltaLo = 0.;
@@ -859,7 +859,7 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 			DeltaHi = (EndValHi - StartValHi) / float(m_iSelectionSize - 1);
 			DeltaLo = (EndValLo - StartValLo) / float(m_iSelectionSize - 1);
 
-			while (++r < it.second) {
+			while (++r < e) {
 				StartValLo += DeltaLo;
 				StartValHi += DeltaHi;
 				auto Note = r.Get(i);
@@ -897,16 +897,16 @@ bool CPActionReverse::SaveState(const CMainFrame &MainFrm)
 void CPActionReverse::Redo(CMainFrame &MainFrm)
 {
 	CSongView *pSongView = GET_SONG_VIEW();
-	auto it = GetIterators(*pSongView);
+	auto [b, e] = GetIterators(*pSongView);
 	const CSelection &Sel = m_pUndoState->Selection;
 
 	const column_t ColStart = GetSelectColumn(Sel.m_cpStart.m_iColumn);
 	const column_t ColEnd = GetSelectColumn(Sel.m_cpEnd.m_iColumn);
 
-	while (it.first < it.second) {
+	while (b < e) {
 		for (int c = Sel.m_cpStart.m_iChannel; c <= Sel.m_cpEnd.m_iChannel; ++c) {
-			auto NoteBegin = it.first.Get(c);
-			auto NoteEnd = it.second.Get(c);
+			auto NoteBegin = b.Get(c);
+			auto NoteEnd = e.Get(c);
 			if (c == Sel.m_cpStart.m_iChannel && ColStart > 0) {		// // //
 				auto Temp = NoteEnd;
 				CopyNoteSection(NoteEnd, NoteBegin, paste_mode_t::DEFAULT, COLUMN_NOTE, static_cast<column_t>(ColStart - 1));
@@ -917,11 +917,11 @@ void CPActionReverse::Redo(CMainFrame &MainFrm)
 				CopyNoteSection(NoteEnd, NoteBegin, paste_mode_t::DEFAULT, static_cast<column_t>(ColEnd + 1), COLUMN_EFF4);
 				CopyNoteSection(NoteBegin, Temp, paste_mode_t::DEFAULT, static_cast<column_t>(ColEnd + 1), COLUMN_EFF4);
 			}
-			it.first.Set(c, NoteEnd);
-			it.second.Set(c, NoteBegin);
+			b.Set(c, NoteEnd);
+			e.Set(c, NoteBegin);
 		}
-		++it.first;
-		--it.second;
+		++b;
+		--e;
 	}
 }
 
@@ -941,17 +941,17 @@ bool CPActionReplaceInst::SaveState(const CMainFrame &MainFrm)
 
 void CPActionReplaceInst::Redo(CMainFrame &MainFrm)
 {
-	auto it = GetIterators(*GET_SONG_VIEW());
+	auto [b, e] = GetIterators(*GET_SONG_VIEW());
 	const CSelection &Sel = m_pUndoState->Selection;
 
 	const int cBegin = Sel.GetChanStart() + (Sel.IsColumnSelected(COLUMN_INSTRUMENT, Sel.GetChanStart()) ? 0 : 1);
 	const int cEnd = Sel.GetChanEnd() - (Sel.IsColumnSelected(COLUMN_INSTRUMENT, Sel.GetChanEnd()) ? 0 : 1);
 
 	do for (int i = cBegin; i <= cEnd; ++i) {
-		const auto &Note = it.first.Get(i);
+		const auto &Note = b.Get(i);
 		if (Note.Instrument != MAX_INSTRUMENTS && Note.Instrument != HOLD_INSTRUMENT)		// // // 050B
 			const_cast<stChanNote &>(Note).Instrument = m_iInstrumentIndex; // TODO: non-const CPatternIterator
-	} while (++it.first <= it.second);
+	} while (++b <= e);
 }
 
 
@@ -1043,9 +1043,9 @@ bool CPActionStretch::SaveState(const CMainFrame &MainFrm)
 void CPActionStretch::Redo(CMainFrame &MainFrm)
 {
 	CSongView *pSongView = GET_SONG_VIEW();
-	auto it = GetIterators(*pSongView);
+	auto [b, e] = GetIterators(*pSongView);
 	const CSelection &Sel = m_pUndoState->Selection;
-	CPatternIterator s {it.first};
+	CPatternIterator s {b};
 
 	const column_t ColStart = GetSelectColumn(Sel.m_cpStart.m_iColumn);
 	const column_t ColEnd = GetSelectColumn(Sel.m_cpEnd.m_iColumn);
@@ -1058,11 +1058,11 @@ void CPActionStretch::Redo(CMainFrame &MainFrm)
 		for (int i = Sel.m_cpStart.m_iChannel; i <= Sel.m_cpEnd.m_iChannel; ++i) {
 			const auto &Source = (Offset < m_pUndoClipData->ClipInfo.Rows && m_iStretchMap[Pos] > 0) ?
 				*(m_pUndoClipData->GetPattern(i - Sel.m_cpStart.m_iChannel, Offset)) : BLANK;		// // //
-			auto Target = it.first.Get(i);
+			auto Target = b.Get(i);
 			CopyNoteSection(Target, Source, paste_mode_t::DEFAULT,
 							i == Sel.m_cpStart.m_iChannel ? ColStart : COLUMN_NOTE,
 							i == Sel.m_cpEnd.m_iChannel ? ColEnd : COLUMN_EFF4);
-			it.first.Set(i, Target);
+			b.Set(i, Target);
 		}
 		int dist = m_iStretchMap[Pos++];
 		for (int i = 0; i < dist; ++i) {
@@ -1073,7 +1073,7 @@ void CPActionStretch::Redo(CMainFrame &MainFrm)
 				Offset += pSongView->GetSong().GetPatternLength() + s.m_iRow - oldRow - 1;
 		}
 		Pos %= m_iStretchMap.size();
-	} while (++it.first <= it.second);
+	} while (++b <= e);
 }
 
 

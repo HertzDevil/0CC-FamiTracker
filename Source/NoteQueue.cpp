@@ -130,9 +130,9 @@ std::vector<chan_id_t> CNoteChannelQueue::StopChannel(chan_id_t Channel)
 	std::unordered_map<int, chan_id_t> m {m_iNoteChannel};
 	std::vector<chan_id_t> v;
 
-	for (const auto &x : m) if (x.second == Channel) {
-		Cut(x.first, x.second);
-		v.push_back(x.second);
+	for (auto [note, ch] : m) if (ch == Channel) {
+		Cut(note, ch);
+		v.push_back(ch);
 	}
 
 	return v;
@@ -141,8 +141,8 @@ std::vector<chan_id_t> CNoteChannelQueue::StopChannel(chan_id_t Channel)
 void CNoteChannelQueue::StopAll()
 {
 	std::unordered_map<int, chan_id_t> m {m_iNoteChannel};
-	for (const auto &x : m)
-		Cut(x.first, x.second);
+	for (auto [note, ch] : m)
+		Cut(note, ch);
 }
 
 void CNoteChannelQueue::MuteChannel(chan_id_t Channel)

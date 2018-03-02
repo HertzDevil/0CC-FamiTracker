@@ -35,9 +35,9 @@ MakeEffectConversion(std::initializer_list<std::pair<effect_t, effect_t>> List) 
 	EffTable forward = { }, backward = { };
 	for (int i = 0; i < EFFECT_COUNT; ++i)
 		forward[i] = backward[i] = static_cast<effect_t>(i);
-	for (const auto &p : List) {
-		forward[value_cast(p.first)] = p.second;
-		backward[value_cast(p.second)] = p.first;
+	for (auto [from, to] : List) {
+		forward[value_cast(from)] = to;
+		backward[value_cast(to)] = from;
 	}
 	return std::make_pair(forward, backward);
 }

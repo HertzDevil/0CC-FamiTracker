@@ -3103,16 +3103,16 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 	const int Frames = GetFrameCount();
 
 	if (!Env.GetSettings()->General.bShowSkippedRows) {
-		auto it = CPatternIterator::FromSelection(Sel, *m_pView->GetSongView());
-		for (; it.first <= it.second; ++it.first) {
+		auto [b, e] = CPatternIterator::FromSelection(Sel, *m_pView->GetSongView());
+		for (; b <= e; ++b) {
 			// bool HasSkip = false;
 			for (int i = 0; i < GetChannelCount(); i++) {
-				const auto &Note = it.first.Get(i);
+				const auto &Note = b.Get(i);
 				for (unsigned int c = 0, m = pSongView->GetEffectColumnCount(i); c < m; ++c)
 					switch (Note.EffNumber[c]) {
 					case effect_t::JUMP: case effect_t::SKIP: case effect_t::HALT:
 						if (Sel.IsColumnSelected(static_cast<column_t>(COLUMN_EFF1 + c), i))
-							return it.first == it.second ? sel_condition_t::TERMINAL_SKIP : sel_condition_t::NONTERMINAL_SKIP;
+							return b == e ? sel_condition_t::TERMINAL_SKIP : sel_condition_t::NONTERMINAL_SKIP;
 						/*else if (it != End)
 							HasSkip = true;*/
 					}
@@ -3444,12 +3444,12 @@ CStringW CPatternEditor::GetVolumeColumn() const {		// // //
 	// Copy the volume column as text
 
 	const int Channel = m_selection.GetChanStart();
-	auto it = GetIterators();
+	auto [b, e] = GetIterators();
 	if (Channel < 0 || Channel >= GetChannelCount())
 		return L"";
 
 	int vol = MAX_VOLUME - 1;		// // //
-	CPatternIterator s {it.first};
+	CPatternIterator s {b};
 	do {
 		if (--s.m_iFrame < 0) break;
 		const auto &NoteData = s.Get(Channel);
@@ -3460,8 +3460,8 @@ CStringW CPatternEditor::GetVolumeColumn() const {		// // //
 	} while (s.m_iFrame > 0 || s.m_iRow > 0);
 
 	CStringW str;
-	for (; it.first <= it.second; ++it.first) {
-		const auto &NoteData = it.first.Get(Channel);
+	for (; b <= e; ++b) {
+		const auto &NoteData = b.Get(Channel);
 		if (NoteData.Vol != MAX_VOLUME)
 			vol = NoteData.Vol;
 		AppendFormatW(str, L"%i ", vol);
@@ -3478,22 +3478,22 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 	if (Channel < 0 || Channel >= GetChannelCount() || !m_bSelecting)
 		return L"";
 
-	auto it = GetIterators();
+	auto [b, e] = GetIterators();
 	CStringW str;
 
 	int Row = 0;
-	int Size = m_bSelecting ? (GetSelectionSize() - 1) : (it.second.m_iRow - it.first.m_iRow + 1);
+	int Size = m_bSelecting ? (GetSelectionSize() - 1) : (e.m_iRow - b.m_iRow + 1);
 	int HexLength = 0;
 	do HexLength++; while (Size >>= 4);
 	if (HexLength < 2) HexLength = 2;
 
 	CStringW Header(L' ', HexLength + 3);
 	Header.Append(L"# ");
-	for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
+	for (int i = b.m_iChannel; i <= e.m_iChannel; ++i) {
 		AppendFormatW(Header, L": %-13s", conv::to_wide(GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(i))).data());
 		int Columns = pSongView->GetEffectColumnCount(i) - 1;
-		if (i == it.second.m_iChannel)
-			Columns = std::clamp(static_cast<int>(GetSelectColumn(it.second.m_iColumn)) - 3, 0, Columns);
+		if (i == e.m_iChannel)
+			Columns = std::clamp(static_cast<int>(GetSelectColumn(e.m_iColumn)) - 3, 0, Columns);
 		for (int j = 0; j < Columns; j++)
 			AppendFormatW(Header, L"fx%d ", j + 2);
 	}
@@ -3501,19 +3501,19 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 
 	const int COLUMN_CHAR_POS[] = {0, 4, 7, 9, 13, 17, 21};
 	const int COLUMN_CHAR_LEN[] = {3, 2, 1, 3, 3, 3, 3};
-	const int Last = pSongView->GetEffectColumnCount(it.second.m_iChannel) + 2;
-	const unsigned BegCol = GetSelectColumn(it.first.m_iColumn);
-	const unsigned EndCol = GetSelectColumn(it.second.m_iColumn);
-	for (; it.first <= it.second; ++it.first) {
+	const int Last = pSongView->GetEffectColumnCount(e.m_iChannel) + 2;
+	const unsigned BegCol = GetSelectColumn(b.m_iColumn);
+	const unsigned EndCol = GetSelectColumn(e.m_iColumn);
+	for (; b <= e; ++b) {
 		CStringW line;
 		AppendFormatW(line, L"ROW %0*X", HexLength, Row++);
-		for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
-			const auto &NoteData = it.first.Get(i);
+		for (int i = b.m_iChannel; i <= e.m_iChannel; ++i) {
+			const auto &NoteData = b.Get(i);
 			auto RowString = CTextExport::ExportCellText(NoteData, pSongView->GetEffectColumnCount(i),
 				pSongView->GetChannelOrder().TranslateChannel(i) == chan_id_t::NOISE);
-			if (i == it.first.m_iChannel) for (unsigned c = 0; c < BegCol; ++c)
+			if (i == b.m_iChannel) for (unsigned c = 0; c < BegCol; ++c)
 				for (int j = 0; j < COLUMN_CHAR_LEN[c]; ++j) RowString.SetAt(COLUMN_CHAR_POS[c] + j, ' ');
-			if (i == it.second.m_iChannel && EndCol < COLUMN_EFF4)
+			if (i == e.m_iChannel && EndCol < COLUMN_EFF4)
 				RowString = RowString.Left(COLUMN_CHAR_POS[EndCol + 1] - 1);
 			AppendFormatW(line, L" : %s", conv::to_wide(RowString).data());
 		}
@@ -3528,11 +3528,11 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 	// Returns a PPMCK MML translation of copied pattern
 
 	CSongView *pSongView = m_pView->GetSongView();		// // //
-	auto it = GetIterators();
+	auto [b, e] = GetIterators();
 
 	CStringW str;
 
-	for (int c = it.first.m_iChannel; c <= it.second.m_iChannel; ++c) {
+	for (int c = b.m_iChannel; c <= e.m_iChannel; ++c) {
 		chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(c);
 		unsigned Type = GetChannelSubIndex(ch);
 		switch (GetChipFromChannel(ch)) {
@@ -3553,11 +3553,11 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 		current.Note = note_t::HALT;
 		stChanNote echo[ECHO_BUFFER_LENGTH + 1] = { };
 
-		for (CPatternIterator s {it.first}; s <= it.second; ++s) {
+		for (CPatternIterator s {b}; s <= e; ++s) {
 			len++;
 			const auto &NoteData = s.Get(c);
 			bool dump = NoteData.Note != note_t::NONE || NoteData.Vol != MAX_VOLUME;
-			bool fin = s.m_iFrame == it.second.m_iFrame && s.m_iRow == it.second.m_iRow;
+			bool fin = s.m_iFrame == e.m_iFrame && s.m_iRow == e.m_iRow;
 
 			if (dump || fin) {
 				bool push = current.Note != note_t::NONE && current.Note != note_t::RELEASE;
