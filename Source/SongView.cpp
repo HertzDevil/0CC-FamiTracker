@@ -101,7 +101,7 @@ unsigned CConstSongView::GetFrameLength(unsigned Frame) const {
 
 	ForeachChannel([&] (std::size_t index) {
 		unsigned halt = [&] {
-			const unsigned Columns = GetEffectColumnCount(index) + 1;
+			const unsigned Columns = GetEffectColumnCount(index);
 			const auto &pat = GetPatternOnFrame(index, Frame);
 			for (unsigned j = 0; j < PatternLength - 1; ++j) {
 				const auto &Note = pat.GetNoteOn(j);

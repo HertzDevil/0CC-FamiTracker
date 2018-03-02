@@ -609,9 +609,9 @@ bool CPatternEditor::CalculatePatternLayout()
 	for (int i = 0; i < ChannelCount; ++i) {
 		int Width;		// // //
 		if (m_bCompactMode)
-			Width = (3 * m_iCharWidth + m_iColumnSpacing);
+			Width = m_iCharWidth * 3 + m_iColumnSpacing;
 		else
-			Width = m_iCharWidth * 9 + m_iColumnSpacing * 4 + pSongView->GetEffectColumnCount(i) * (3 * m_iCharWidth + m_iColumnSpacing);
+			Width = m_iCharWidth * 6 + m_iColumnSpacing * 3 + pSongView->GetEffectColumnCount(i) * (m_iCharWidth * 3 + m_iColumnSpacing);
 		m_iChannelWidths[i] = Width + 1;
 		m_iColumns[i] = GetChannelColumns(i);		// // //
 		m_iChannelOffsets[i] = Offset;
@@ -1323,7 +1323,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 				}
 				else {
 					bool Found = false;
-					for (unsigned int i = 0; i <= fxcols; i++) {
+					for (unsigned int i = 0; i < fxcols; i++) {
 						if (NoteData.EffNumber[i] != effect_t::NONE) {
 							DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[value_cast(NoteData.EffNumber[i])], DimEff);
 							DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, HEX[NoteData.EffParam[i] >> 4], DimEff);
@@ -1499,11 +1499,11 @@ void CPatternEditor::DrawHeader(CDC &DC)
 			DC.SetTextAlign(TA_CENTER);
 
 			unsigned fxcols = pSongView->GetEffectColumnCount(Channel);
-			for (unsigned int fx = 1; fx <= fxcols; ++fx)		// // //
+			for (unsigned int fx = 1; fx < fxcols; ++fx)		// // //
 				DC.TextOutW(Offset + GetChannelWidth(fx) - m_iCharWidth * 3 / 2, HEADER_CHAN_START + HEADER_CHAN_HEIGHT - 17, FormattedW(L"fx%d", fx + 1));
 
 			// Arrows for expanding/removing fx columns
-			if (fxcols > 0) {
+			if (fxcols > 1) {
 				ArrowPoints[0].SetPoint(Offset + m_iCharWidth * 15 / 2 + m_iColumnSpacing * 3 + 2, HEADER_CHAN_START + 6);		// // //
 				ArrowPoints[1].SetPoint(Offset + m_iCharWidth * 15 / 2 + m_iColumnSpacing * 3 + 2, HEADER_CHAN_START + 6 + 10);
 				ArrowPoints[2].SetPoint(Offset + m_iCharWidth * 15 / 2 + m_iColumnSpacing * 3 - 3, HEADER_CHAN_START + 6 + 5);
@@ -1517,7 +1517,7 @@ void CPatternEditor::DrawHeader(CDC &DC)
 				DC.SelectObject(pOldPen);
 			}
 
-			if (fxcols < (MAX_EFFECT_COLUMNS - 1)) {
+			if (fxcols < MAX_EFFECT_COLUMNS) {
 				ArrowPoints[0].SetPoint(Offset + m_iCharWidth * 17 / 2 + m_iColumnSpacing * 3 - 2, HEADER_CHAN_START + 6);		// // //
 				ArrowPoints[1].SetPoint(Offset + m_iCharWidth * 17 / 2 + m_iColumnSpacing * 3 - 2, HEADER_CHAN_START + 6 + 10);
 				ArrowPoints[2].SetPoint(Offset + m_iCharWidth * 17 / 2 + m_iColumnSpacing * 3 + 3, HEADER_CHAN_START + 6 + 5);
@@ -1802,11 +1802,11 @@ cursor_column_t CPatternEditor::GetChannelColumns(int Channel) const
 		return C_NOTE;
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	switch (pSongView->GetEffectColumnCount(Channel)) {
-	case 0: return C_EFF1_PARAM2;
-	case 1: return C_EFF2_PARAM2;
-	case 2: return C_EFF3_PARAM2;
-	case 3: return C_EFF4_PARAM2;
-	default: return C_EFF1_PARAM2;
+	case 1: return C_EFF1_PARAM2;
+	case 2: return C_EFF2_PARAM2;
+	case 3: return C_EFF3_PARAM2;
+	case 4: return C_EFF4_PARAM2;
+	default: return C_VOLUME;		// // //
 	}
 	return C_NOTE;
 }
@@ -2730,13 +2730,13 @@ bool CPatternEditor::OnMouseHover(UINT nFlags, const CPoint &point)
 		m_iMouseHoverChan = Channel;
 
 		if (Column == cursor_column_t::C_EFF1_PARAM1) {		// // //
-			if (fxcols > 0) {
+			if (fxcols > 1) {
 				bRedraw = m_iMouseHoverEffArrow != 1;
 				m_iMouseHoverEffArrow = 1;
 			}
 		}
 		else if (Column == cursor_column_t::C_EFF1_PARAM2) {
-			if (fxcols < (MAX_EFFECT_COLUMNS - 1)) {
+			if (fxcols < MAX_EFFECT_COLUMNS) {
 				bRedraw = m_iMouseHoverEffArrow != 2;
 				m_iMouseHoverEffArrow = 2;
 			}
@@ -2928,7 +2928,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 				auto NoteData = front.Get(i);
 				CopyNoteSection(NoteData, Source, PasteMode, (i == c) ? StartColumn : COLUMN_NOTE,
 					std::min((i == Channels + c - 1) ? EndColumn : COLUMN_EFF4,
-								static_cast<column_t>(COLUMN_EFF1 + pSongView->GetEffectColumnCount(i))));
+								static_cast<column_t>(COLUMN_VOLUME + pSongView->GetEffectColumnCount(i))));
 				front.Set(i, NoteData);
 			}
 			front.m_iRow--;
@@ -2945,7 +2945,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 			const auto &Source = *(ClipData.GetPattern(0, j % ClipData.ClipInfo.Rows));
 			for (unsigned int i = StartColumn - COLUMN_EFF1; i <= EndColumn - COLUMN_EFF1; ++i) {		// // //
 				const unsigned int Offset = i - StartColumn + ColStart;
-				if (Offset > pSongView->GetEffectColumnCount(c))
+				if (Offset >= pSongView->GetEffectColumnCount(c))
 					break;
 				bool Protected = false;
 				switch (PasteMode) {
@@ -2975,7 +2975,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 		for (unsigned int i = c; i < CEnd; ++i) {
 			int cGet = (i - c) % ClipData.ClipInfo.Channels;
 			const column_t ColEnd = std::min((i == Channels + c - 1) ? EndColumn : COLUMN_EFF4,
-				static_cast<column_t>(COLUMN_EFF1 + pSongView->GetEffectColumnCount(i)));
+				static_cast<column_t>(COLUMN_VOLUME + pSongView->GetEffectColumnCount(i)));
 			auto NoteData = it.Get(i);
 			const auto &Source = *(ClipData.GetPattern(cGet, j % ClipData.ClipInfo.Rows));
 			CopyNoteSection(NoteData, Source, PasteMode, (!cGet) ? StartColumn : COLUMN_NOTE, ColEnd);
@@ -3012,7 +3012,7 @@ void CPatternEditor::PasteRaw(const CPatternClipData &ClipData, const CCursorPos
 		int c = i + Pos.m_iChannel;
 		if (c == GetChannelCount())
 			return;
-		auto maxcol = static_cast<column_t>(COLUMN_EFF1 + pSongView->GetEffectColumnCount(c));
+		auto maxcol = static_cast<column_t>(COLUMN_VOLUME + pSongView->GetEffectColumnCount(c));
 
 		for (int r = 0; r < Rows; r++) {
 			auto pos = std::div(PackedPos + r, Length);
@@ -3108,7 +3108,7 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 			// bool HasSkip = false;
 			for (int i = 0; i < GetChannelCount(); i++) {
 				const auto &Note = it.first.Get(i);
-				for (unsigned int c = 0; c <= pSongView->GetEffectColumnCount(i); c++)
+				for (unsigned int c = 0, m = pSongView->GetEffectColumnCount(i); c < m; ++c)
 					switch (Note.EffNumber[c]) {
 					case effect_t::JUMP: case effect_t::SKIP: case effect_t::HALT:
 						if (Sel.IsColumnSelected(static_cast<column_t>(COLUMN_EFF1 + c), i))
@@ -3194,7 +3194,7 @@ void CPatternEditor::DecreaseEffectColumn(int Channel)
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	const int Columns = pSongView->GetEffectColumnCount(Channel) - 1;
 	if (GetMainFrame()->AddAction(std::make_unique<CPActionEffColumn>(Channel, Columns)))		// // //
-		if (static_cast<int>(m_cpCursorPos.m_iColumn) > Columns * 3 + 6)		// // //
+		if (static_cast<int>(m_cpCursorPos.m_iColumn) - static_cast<int>(cursor_column_t::C_VOLUME) > Columns * 3)		// // //fx
 			m_cpCursorPos.m_iColumn = static_cast<cursor_column_t>(m_cpCursorPos.m_iColumn - 3);
 }
 
@@ -3491,7 +3491,7 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 	Header.Append(L"# ");
 	for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
 		AppendFormatW(Header, L": %-13s", conv::to_wide(GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(i))).data());
-		int Columns = pSongView->GetEffectColumnCount(i);
+		int Columns = pSongView->GetEffectColumnCount(i) - 1;
 		if (i == it.second.m_iChannel)
 			Columns = std::clamp(static_cast<int>(GetSelectColumn(it.second.m_iColumn)) - 3, 0, Columns);
 		for (int j = 0; j < Columns; j++)
@@ -3501,7 +3501,7 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 
 	const int COLUMN_CHAR_POS[] = {0, 4, 7, 9, 13, 17, 21};
 	const int COLUMN_CHAR_LEN[] = {3, 2, 1, 3, 3, 3, 3};
-	const int Last = pSongView->GetEffectColumnCount(it.second.m_iChannel) + 3;
+	const int Last = pSongView->GetEffectColumnCount(it.second.m_iChannel) + 2;
 	const unsigned BegCol = GetSelectColumn(it.first.m_iColumn);
 	const unsigned EndCol = GetSelectColumn(it.second.m_iColumn);
 	for (; it.first <= it.second; ++it.first) {
@@ -3509,7 +3509,7 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 		AppendFormatW(line, L"ROW %0*X", HexLength, Row++);
 		for (int i = it.first.m_iChannel; i <= it.second.m_iChannel; ++i) {
 			const auto &NoteData = it.first.Get(i);
-			auto RowString = CTextExport::ExportCellText(NoteData, pSongView->GetEffectColumnCount(i) + 1,
+			auto RowString = CTextExport::ExportCellText(NoteData, pSongView->GetEffectColumnCount(i),
 				pSongView->GetChannelOrder().TranslateChannel(i) == chan_id_t::NOISE);
 			if (i == it.first.m_iChannel) for (unsigned c = 0; c < BegCol; ++c)
 				for (int j = 0; j < COLUMN_CHAR_LEN[c]; ++j) RowString.SetAt(COLUMN_CHAR_POS[c] + j, ' ');

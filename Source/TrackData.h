@@ -76,5 +76,5 @@ public:
 private:
 	std::array<CPatternData, MAX_PATTERN> m_pPatternData = { };
 	std::array<unsigned int, MAX_FRAMES> m_iFrameList = { };
-	unsigned char m_iEffectColumns = 0;
+	unsigned char m_iEffectColumns = 1;		// // //
 };

@@ -223,7 +223,7 @@ void CPatternIterator::Step() // resolves skip effects
 	song_view_.ForeachChannel([&] (std::size_t index) {
 		const stChanNote &Note = Get(index);
 		unsigned fx = song_view_.GetEffectColumnCount(index);
-		for (unsigned c = 0; c <= fx; ++c)
+		for (unsigned c = 0; c < fx; ++c)
 			switch (Note.EffNumber[c]) {
 			case effect_t::JUMP: Bxx = Note.EffParam[c]; break;
 			case effect_t::SKIP: Dxx = Note.EffParam[c]; break;

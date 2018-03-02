@@ -1085,7 +1085,7 @@ CPActionEffColumn::CPActionEffColumn(int Channel, int Count) :		// // //
 
 bool CPActionEffColumn::SaveState(const CMainFrame &MainFrm)
 {
-	if (m_iNewColumns >= static_cast<int>(MAX_EFFECT_COLUMNS))
+	if (m_iNewColumns > static_cast<unsigned>(MAX_EFFECT_COLUMNS) || !m_iNewColumns)
 		return false;
 	m_iOldColumns = GET_SONG_VIEW()->GetEffectColumnCount(m_iChannel);
 	return true;

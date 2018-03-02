@@ -53,7 +53,7 @@ public:
 
 			song_view_.ForeachChannel([&] (std::size_t index) {
 				const auto &Note = song_view_.GetPatternOnFrame(index, f_).GetNoteOn(r_);		// // //
-				for (int l = 0, m = song_view_.GetEffectColumnCount(index); l <= m; ++l) {
+				for (int l = 0, m = song_view_.GetEffectColumnCount(index); l < m; ++l) {
 					switch (Note.EffNumber[l]) {
 					case effect_t::JUMP:
 						Bxx = Note.EffParam[l];

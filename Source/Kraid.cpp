@@ -53,7 +53,7 @@ void Kraid::buildSong(CSongData &song) {
 	song.SetFrameCount(FRAMES);
 	song.SetPatternLength(ROWS);
 	song.SetSongSpeed(8);
-	song.SetEffectColumnCount(chan_id_t::SQUARE1, 1);
+	song.SetEffectColumnCount(chan_id_t::SQUARE1, 2);
 
 	for (int ch = 0; ch < FRAMES; ++ch)
 		for (int f = 0; f < ROWS; ++f)

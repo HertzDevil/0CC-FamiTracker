@@ -387,7 +387,7 @@ public:
 			throw MakeError("unrecognized volume token '%s'.", (LPCSTR)str);
 		}(ReadToken().MakeUpper());
 
-		for (unsigned int e = 0; e <= fxMax; ++e) {		// // //
+		for (unsigned int e = 0; e < fxMax; ++e) {		// // //
 			CStringA sEff = ReadToken().MakeUpper();
 			if (sEff.GetLength() != 3)
 				throw MakeError("effect column should be 3 characters wide, '%s' found.", (LPCSTR)sEff);
@@ -859,7 +859,7 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 			CHECK_COLON();
 			CSongData *pSong = modfile.GetSong(track - 1);		// // //
 			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t c) {
-				pSong->SetEffectColumnCount(c, t.ReadInt(1, MAX_EFFECT_COLUMNS) - 1);
+				pSong->SetEffectColumnCount(c, t.ReadInt(1, MAX_EFFECT_COLUMNS));
 			});
 			t.ReadEOL();
 		}
@@ -1246,7 +1246,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 
 		WriteString(FormattedA("%s :", CT[CT_COLUMNS]));
 		order.ForeachChannel([&] (chan_id_t c) {
-			WriteString(FormattedA(" %d", song.GetEffectColumnCount(c)+1));
+			WriteString(FormattedA(" %d", song.GetEffectColumnCount(c)));
 		});
 		WriteString("\n\n");
 
@@ -1276,7 +1276,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 				WriteString(FormattedA("%s %02X", CT[CT_ROW], r));
 				order.ForeachChannel([&] (chan_id_t c) {
 					WriteString(" : ");
-					WriteString(ExportCellText(song.GetPattern(c, p).GetNoteOn(r), song.GetEffectColumnCount(c)+1, c==chan_id_t::NOISE));		// // //
+					WriteString(ExportCellText(song.GetPattern(c, p).GetNoteOn(r), song.GetEffectColumnCount(c), c==chan_id_t::NOISE));		// // //
 				});
 				WriteString("\n");
 			}

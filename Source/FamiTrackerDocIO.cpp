@@ -392,7 +392,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 				AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANID_COUNT - 1, "Channel type index");
 				// Effect columns
 				Song.SetEffectColumnCount(i, AssertRange<MODULE_ERROR_STRICT>(
-					file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count"));
+					file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count") + 1);
 			}
 			catch (CModuleException e) {
 				e.AppendError("At channel %d", value_cast(i) + 1);
@@ -416,7 +416,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 				modfile.VisitSongs([&] (CSongData &song, unsigned index) {
 					try {
 						song.SetEffectColumnCount(i, AssertRange<MODULE_ERROR_STRICT>(
-							file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count"));
+							file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count") + 1);
 					}
 					catch (CModuleException e) {
 						e.AppendError("At song %d,", index + 1);
@@ -455,10 +455,10 @@ void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerModule &modfile, int ver) {
 
 		// Effect columns
 		if (ver <= 1)
-			file_.WriteBlockChar(modfile.GetSong(0)->GetEffectColumnCount(i));
+			file_.WriteBlockChar(modfile.GetSong(0)->GetEffectColumnCount(i) - 1);
 		else
 			modfile.VisitSongs([&] (const CSongData &song) {
-				file_.WriteBlockChar(song.GetEffectColumnCount(i));
+				file_.WriteBlockChar(song.GetEffectColumnCount(i) - 1);
 			});
 	});
 }
@@ -794,7 +794,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 					file_.GetBlockChar(), 0, MAX_VOLUME, "Channel volume");
 
 				int FX = compat200 ? 1 : ver >= 6 ? MAX_EFFECT_COLUMNS :
-					(pSong->GetEffectColumnCount(order.TranslateChannel(Channel)) + 1);		// // // 050B
+					pSong->GetEffectColumnCount(order.TranslateChannel(Channel));		// // // 050B
 				for (int n = 0; n < FX; ++n) try {
 					auto EffectNumber = (effect_t)file_.GetBlockChar();
 					if (Note.EffNumber[n] = static_cast<effect_t>(EffectNumber); Note.EffNumber[n] != effect_t::NONE) {
@@ -956,7 +956,7 @@ void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerModule &modfile, int ver)
 				file_.WriteBlockChar(note.Octave);
 				file_.WriteBlockChar(note.Instrument);
 				file_.WriteBlockChar(note.Vol);
-				for (int n = 0, EffColumns = x.GetEffectColumnCount(ch) + 1; n < EffColumns; ++n) {
+				for (int n = 0, EffColumns = x.GetEffectColumnCount(ch); n < EffColumns; ++n) {
 					file_.WriteBlockChar(value_cast(compat::EFF_CONVERSION_050.second[value_cast(note.EffNumber[n])]));		// // // 050B
 					file_.WriteBlockChar(note.EffParam[n]);
 				}

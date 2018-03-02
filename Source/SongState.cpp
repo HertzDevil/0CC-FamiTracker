@@ -34,7 +34,7 @@
 namespace {
 
 void UpdateEchoTranspose(const stChanNote &Note, int &Value, unsigned int EffColumns) {
-	for (int j = EffColumns; j >= 0; --j) {
+	for (int j = EffColumns - 1; j >= 0; --j) {
 		const int Param = Note.EffParam[j] & 0x0F;
 		switch (Note.EffNumber[j]) {
 		case effect_t::SLIDE_UP:
@@ -163,7 +163,6 @@ void stChannelState::HandleNote(const stChanNote &Note, unsigned EffColumns) {
 				Echo[i]--;
 		}
 		if (BufferPos >= 0 && BufferPos <= ECHO_BUFFER_LENGTH) {
-			// WriteEchoBuffer(&Note, BufferPos, EffColumns);
 			int Value;
 			switch (Note.Note) {
 			case note_t::HALT: Value = ECHO_BUFFER_HALT; break;
@@ -262,7 +261,7 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 
 			chState.HandleNote(Note, EffColumns);
 
-			for (int k = EffColumns; k >= 0; k--) {
+			for (int k = EffColumns - 1; k >= 0; --k) {
 				effect_t fx = Note.EffNumber[k];
 				unsigned char xy = Note.EffParam[k];
 				if (!IsEffectCompatible(c, fx, xy))

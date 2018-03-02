@@ -133,7 +133,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 		return;
 	const auto *pInstManager = modfile_.GetInstrumentManager();
 
-	int EffColumns = pSong->GetEffectColumnCount(Channel) + 1;
+	int EffColumns = pSong->GetEffectColumnCount(Channel);
 
 	// Global init
 	m_iHash = 0;
@@ -699,7 +699,7 @@ CPatternCompiler::stSpacingInfo CPatternCompiler::ScanNoteLengths(int Track, uns
 			NoteUsed = true;
 		else if (NoteData.Vol < MAX_VOLUME)
 			NoteUsed = true;
-		else for (unsigned j = 0, Count = pSong->GetEffectColumnCount(Channel); j <= Count; ++j)
+		else for (unsigned j = 0, Count = pSong->GetEffectColumnCount(Channel); j < Count; ++j)
 			if (NoteData.EffNumber[j] != effect_t::NONE)
 				NoteUsed = true;
 
