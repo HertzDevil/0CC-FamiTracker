@@ -3157,7 +3157,7 @@ int CPatternEditor::GetCurrentPatternLength(int Frame) const		// // //
 	return pSongView->GetCurrentPatternLength(f < 0 ? f + Frames : f);
 }
 
-void CPatternEditor::SetHighlight(const stHighlight Hl)		// // //
+void CPatternEditor::SetHighlight(const stHighlight &Hl)		// // //
 {
 	m_vHighlight = Hl;
 }
@@ -3440,14 +3440,13 @@ void CPatternEditor::SetSelection(int Scope)		// // //
 	m_bSelectionInvalidated = true;
 }
 
-void CPatternEditor::GetVolumeColumn(CStringW &str) const
-{
+CStringW CPatternEditor::GetVolumeColumn() const {		// // //
 	// Copy the volume column as text
 
 	const int Channel = m_selection.GetChanStart();
 	auto it = GetIterators();
 	if (Channel < 0 || Channel >= GetChannelCount())
-		return;
+		return L"";
 
 	int vol = MAX_VOLUME - 1;		// // //
 	CPatternIterator s {it.first};
@@ -3460,27 +3459,27 @@ void CPatternEditor::GetVolumeColumn(CStringW &str) const
 		}
 	} while (s.m_iFrame > 0 || s.m_iRow > 0);
 
-	str.Empty();
+	CStringW str;
 	for (; it.first <= it.second; ++it.first) {
 		const auto &NoteData = it.first.Get(Channel);
 		if (NoteData.Vol != MAX_VOLUME)
 			vol = NoteData.Vol;
 		AppendFormatW(str, L"%i ", vol);
 	}
+	return str;
 }
 
-void CPatternEditor::GetSelectionAsText(CStringW &str) const		// // //
-{
+CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 	// Copy selection as text
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 
 	const int Channel = m_selection.GetChanStart() + !m_selection.IsColumnSelected(COLUMN_VOLUME, m_selection.GetChanStart()); // // //
 
 	if (Channel < 0 || Channel >= GetChannelCount() || !m_bSelecting)
-		return;
+		return L"";
 
 	auto it = GetIterators();
-	str.Empty();
+	CStringW str;
 
 	int Row = 0;
 	int Size = m_bSelecting ? (GetSelectionSize() - 1) : (it.second.m_iRow - it.first.m_iRow + 1);
@@ -3521,15 +3520,17 @@ void CPatternEditor::GetSelectionAsText(CStringW &str) const		// // //
 		str.Append(line);
 		str.Append(L"\r\n");
 	}
+
+	return str;
 }
 
-void CPatternEditor::GetSelectionAsPPMCK(CStringW &str) const		// // //
-{
+CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 	// Returns a PPMCK MML translation of copied pattern
 
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	auto it = GetIterators();
-	str.Empty();
+
+	CStringW str;
 
 	for (int c = it.first.m_iChannel; c <= it.second.m_iChannel; ++c) {
 		chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(c);
@@ -3627,6 +3628,8 @@ void CPatternEditor::GetSelectionAsPPMCK(CStringW &str) const		// // //
 		}
 		str.Append(L"\r\n");
 	}
+
+	return str;
 }
 
 

@@ -156,16 +156,16 @@ public:
 	void SelectAllChannels();
 	void SelectAll();
 
-	void GetVolumeColumn(CStringW &str) const;
-	void GetSelectionAsText(CStringW &str) const;		// // //
-	void GetSelectionAsPPMCK(CStringW &str) const;		// // //
+	CStringW GetVolumeColumn() const;		// // //
+	CStringW GetSelectionAsText() const;		// // //
+	CStringW GetSelectionAsPPMCK() const;		// // //
 
 	// Various
 	int GetCurrentPatternLength(int Frame) const;		// // // allow negative frames
 	bool IsInRange(const CSelection &sel, int Frame, int Row, int Channel, cursor_column_t Column) const;		// // //
 
 	// Settings
-	void SetHighlight(const stHighlight Hl);		// // //
+	void SetHighlight(const stHighlight &Hl);		// // //
 	void SetFollowMove(bool bEnable);
 	void SetCompactMode(bool bEnable);		// // //
 

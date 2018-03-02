@@ -26,9 +26,7 @@
 #include "FamiTrackerView.h"
 #include "MainFrm.h"
 #include "FrameAction.h"
-#include "CompoundAction.h"		// // //
 #include "Accelerator.h"
-#include "PatternEditor.h"
 #include "SoundGen.h"
 #include "Settings.h"
 #include "Graphics.h"
