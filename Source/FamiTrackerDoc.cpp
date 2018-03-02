@@ -28,6 +28,7 @@
 #include "ModuleException.h"		// // //
 #include "DocumentFile.h"
 #include "SoundGen.h"
+#include "MainFrm.h"		// // //
 #include "ChannelMap.h"		// // //
 #include "FamiTrackerDocIO.h"		// // //
 #include "FamiTrackerDocOldIO.h"		// // //
@@ -118,8 +119,9 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCWSTR lpszPathName)
 
 	// Remove modified flag
 	SetModifiedFlag(FALSE);
-
 	SetExceededFlag(FALSE);		// // //
+
+	theApp.GetMainFrame()->SelectTrack(0);		// // //
 
 	return TRUE;
 }
