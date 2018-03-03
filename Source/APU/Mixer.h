@@ -39,6 +39,7 @@ enum chip_level_t : unsigned char {
 	CHIP_LEVEL_FDS,
 	CHIP_LEVEL_N163,
 	CHIP_LEVEL_S5B,
+	CHIP_LEVEL_NONE = static_cast<unsigned char>(-1),
 };
 
 class CMixer
@@ -76,17 +77,25 @@ private:
 
 	float GetAttenuation() const;
 
+	// template <typename T> void (*F)(CMixerChannel<T> &levels)
+	template <typename F>
+	void WithMixer(chip_level_t Mixer, F f);		// // //
+
+	// template <typename T> void (*F)(CMixerChannel<T> &levels)
+	template <typename F>
+	void VisitMixers(F f);		// // //
+
 private:
 	// Blip buffer object
 	Blip_Buffer	BlipBuffer;
 
-	CMixerChannel<stLevels2A03SS>  levels2A03SS_  {500};		// // //
-	CMixerChannel<stLevels2A03TND> levels2A03TND_ {500};
-	CMixerChannel<stLevelsVRC6>    levelsVRC6_    {500};
-	CMixerChannel<stLevelsFDS>     levelsFDS_     {3500};
-	CMixerChannel<stLevelsMMC5>    levelsMMC5_    {130};
-	CMixerChannel<stLevelsN163>    levelsN163_    {1600};
-	CMixerChannel<stLevelsS5B>     levelsS5B_     {1200};
+	CMixerChannel<stLevels2A03SS>  levels2A03SS_  { 500.00};		// // //
+	CMixerChannel<stLevels2A03TND> levels2A03TND_ { 500.00};
+	CMixerChannel<stLevelsVRC6>    levelsVRC6_    { 125.52};
+	CMixerChannel<stLevelsFDS>     levelsFDS_     {8628.2};
+	CMixerChannel<stLevelsMMC5>    levelsMMC5_    { 109.78};
+	CMixerChannel<stLevelsN163>    levelsN163_    {1454.5};
+	CMixerChannel<stLevelsS5B>     levelsS5B_     {1200.0};
 
 	CSoundChipSet m_iExternalChip;
 	uint32_t	m_iSampleRate = 0;

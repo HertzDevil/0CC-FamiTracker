@@ -28,7 +28,7 @@
 
 class CMixerChannelBase {
 public:
-	explicit CMixerChannelBase(unsigned maxVol);
+	explicit CMixerChannelBase(double maxVol);
 
 	void SetVolume(double vol);
 	void SetMixerLevel(double level);

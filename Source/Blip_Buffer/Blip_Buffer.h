@@ -162,7 +162,7 @@ template<int quality>		// // //
 class Blip_Synth {
 public:
 	// Set overall volume of waveform
-	void volume( double v ) { impl.volume_unit( v * (1.0 / range_) ); }
+	void volume( double v ) { impl.volume_unit( v / range_ ); }		// // //
 
 	// Configure low-pass filter (see notes.txt)
 	void treble_eq( blip_eq_t const& eq )       { impl.treble_eq( eq ); }
@@ -195,12 +195,12 @@ public:
 	}
 
 public:
-	explicit Blip_Synth(int range) : impl( impulses, quality ), range_( range < 0 ? -range : range ) { }		// // //
+	explicit Blip_Synth(double range) : impl( impulses, quality ), range_( range < 0. ? -range : range ) { }		// // //
 private:
 	typedef short imp_t;
 	imp_t impulses [blip_res * (quality / 2) + 1];
 	Blip_Synth_ impl;
-	int range_;
+	double range_;
 };
 
 // Low-pass equalization parameters

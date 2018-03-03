@@ -453,7 +453,7 @@ void CDetuneDlg::OnBnClickedButtonExport()
 	}
 
 	for (int i = 0; i < 6; i++) {
-		CString Line = FormattedW(L"%i", i);
+		CStringW Line = FormattedW(L"%i", i);
 		for (int j = 0; j < NOTE_COUNT; j++)
 			AppendFormatW(Line, L",%i", m_iDetuneTable[i][j]);
 		Line += L"\n";

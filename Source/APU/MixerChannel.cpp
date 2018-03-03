@@ -22,7 +22,7 @@
 
 #include "APU/MixerChannel.h"
 
-CMixerChannelBase::CMixerChannelBase(unsigned maxVol) :
+CMixerChannelBase::CMixerChannelBase(double maxVol) :
 	synth_ {maxVol}
 {
 }

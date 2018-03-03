@@ -64,7 +64,59 @@ namespace {
 const float LEVEL_FALL_OFF_RATE = 0.6f;
 const int   LEVEL_FALL_OFF_DELAY = 3;
 
+constexpr chip_level_t GetMixerFromChannel(chan_id_t ch) noexcept {		// // //
+	switch (ch) {
+	case chan_id_t::SQUARE1: case chan_id_t::SQUARE2:
+		return CHIP_LEVEL_APU1;
+	case chan_id_t::TRIANGLE: case chan_id_t::NOISE: case chan_id_t::DPCM:
+		return CHIP_LEVEL_APU2;
+	case chan_id_t::VRC6_PULSE1: case chan_id_t::VRC6_PULSE2: case chan_id_t::VRC6_SAWTOOTH:
+		return CHIP_LEVEL_VRC6;
+	case chan_id_t::VRC7_CH1: case chan_id_t::VRC7_CH2: case chan_id_t::VRC7_CH3:
+	case chan_id_t::VRC7_CH4: case chan_id_t::VRC7_CH5: case chan_id_t::VRC7_CH6:
+		return CHIP_LEVEL_VRC7;
+	case chan_id_t::FDS:
+		return CHIP_LEVEL_FDS;
+	case chan_id_t::MMC5_SQUARE1: case chan_id_t::MMC5_SQUARE2: case chan_id_t::MMC5_VOICE:
+		return CHIP_LEVEL_MMC5;
+	case chan_id_t::N163_CH1: case chan_id_t::N163_CH2: case chan_id_t::N163_CH3: case chan_id_t::N163_CH4:
+	case chan_id_t::N163_CH5: case chan_id_t::N163_CH6: case chan_id_t::N163_CH7: case chan_id_t::N163_CH8:
+		return CHIP_LEVEL_N163;
+	case chan_id_t::S5B_CH1: case chan_id_t::S5B_CH2: case chan_id_t::S5B_CH3:		// // // 050B
+		return CHIP_LEVEL_S5B;
+	default:
+		return CHIP_LEVEL_NONE;
+	}
+}
+
 } // namespace
+
+template <typename F>
+void CMixer::WithMixer(chip_level_t Mixer, F f) {		// // //
+	switch (Mixer) {
+	case CHIP_LEVEL_APU1: f(levels2A03SS_); break;
+	case CHIP_LEVEL_APU2: f(levels2A03TND_); break;
+	case CHIP_LEVEL_VRC6: f(levelsVRC6_); break;
+	case CHIP_LEVEL_MMC5: f(levelsMMC5_); break;
+	case CHIP_LEVEL_FDS:  f(levelsFDS_); break;
+	case CHIP_LEVEL_N163: f(levelsN163_); break;
+	case CHIP_LEVEL_S5B:  f(levelsS5B_); break;		// // // 050B
+	case CHIP_LEVEL_VRC7:
+	case CHIP_LEVEL_NONE:
+		break;
+	}
+}
+
+template <typename F>
+void CMixer::VisitMixers(F f) {
+	WithMixer(CHIP_LEVEL_APU1, f);
+	WithMixer(CHIP_LEVEL_APU2, f);
+	WithMixer(CHIP_LEVEL_VRC6, f);
+	WithMixer(CHIP_LEVEL_MMC5, f);
+	WithMixer(CHIP_LEVEL_FDS, f);
+	WithMixer(CHIP_LEVEL_N163, f);
+	WithMixer(CHIP_LEVEL_S5B, f);
+}
 
 void CMixer::ExternalSound(CSoundChipSet Chip) {		// // //
 	m_iExternalChip = Chip;
@@ -78,22 +130,9 @@ void CMixer::SetNamcoMixing(bool bLinear)		// // //
 
 void CMixer::SetChipLevel(chip_level_t Chip, float Level)
 {
-	switch (Chip) {
-	case CHIP_LEVEL_APU1:
-		levels2A03SS_.SetMixerLevel(Level); break;
-	case CHIP_LEVEL_APU2:
-		levels2A03TND_.SetMixerLevel(Level); break;
-	case CHIP_LEVEL_VRC6:
-		levelsVRC6_.SetMixerLevel(Level); break;
-	case CHIP_LEVEL_MMC5:
-		levelsMMC5_.SetMixerLevel(Level); break;
-	case CHIP_LEVEL_FDS:
-		levelsFDS_.SetMixerLevel(Level); break;
-	case CHIP_LEVEL_N163:
-		levelsN163_.SetMixerLevel(Level); break;
-	case CHIP_LEVEL_S5B:		// // // 050B
-		levelsS5B_.SetMixerLevel(Level); break;
-	}
+	WithMixer(Chip, [&] (auto &mixer) {
+		mixer.SetMixerLevel(Level);
+	});
 }
 
 float CMixer::GetAttenuation() const
@@ -153,24 +192,16 @@ void CMixer::UpdateSettings(int LowCut,	int HighCut, int HighDamp, float Overall
 	levelsFDS_.SetLowPass({-48, 1000, (long)m_iSampleRate});
 
 	float Volume = m_fOverallVol * GetAttenuation();
-
-	// Volume levels
-	levels2A03SS_.SetVolume(Volume);
-	levels2A03TND_.SetVolume(Volume);
-	levelsVRC6_.SetVolume(Volume * 3.98333f);
-	levelsFDS_.SetVolume(Volume * 0.40565f);		// // //
-	levelsMMC5_.SetVolume(Volume * 1.18421f);
-
-	// Not checked
-	levelsS5B_.SetVolume(Volume);		// // // 050B
-	levelsN163_.SetVolume(Volume * 1.1f);
+	VisitMixers([&] (auto &levels) {
+		levels.SetVolume(Volume);
+	});
 }
 
 void CMixer::SetNamcoVolume(float fVol)
 {
 	float fVolume = fVol * m_fOverallVol * GetAttenuation();
 
-	levelsN163_.SetVolume(fVolume * 1.1f);
+	levelsN163_.SetVolume(fVolume);
 }
 
 void CMixer::UpdateMeters() {		// // //
@@ -226,14 +257,9 @@ void CMixer::SetClockRate(uint32_t Rate)
 void CMixer::ClearBuffer()
 {
 	BlipBuffer.clear();
-
-	levels2A03SS_.ResetDelta();		// // //
-	levels2A03TND_.ResetDelta();
-	levelsVRC6_.ResetDelta();
-	levelsMMC5_.ResetDelta();
-	levelsFDS_.ResetDelta();
-	levelsN163_.ResetDelta();
-	levelsS5B_.ResetDelta();
+	VisitMixers([] (auto &levels) {
+		levels.ResetDelta();
+	});
 }
 
 int CMixer::SamplesAvail() const
@@ -260,25 +286,9 @@ int CMixer::FinishBuffer(int t)
 //
 
 void CMixer::AddValue(chan_id_t ChanID, int Value, int FrameCycles) {		// // //
-	switch (ChanID) {
-	case chan_id_t::SQUARE1: case chan_id_t::SQUARE2:
-		StoreChannelLevel(ChanID, levels2A03SS_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	case chan_id_t::TRIANGLE: case chan_id_t::NOISE: case chan_id_t::DPCM:
-		StoreChannelLevel(ChanID, levels2A03TND_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	case chan_id_t::VRC6_PULSE1: case chan_id_t::VRC6_PULSE2: case chan_id_t::VRC6_SAWTOOTH:
-		StoreChannelLevel(ChanID, levelsVRC6_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	case chan_id_t::FDS:
-		StoreChannelLevel(ChanID, levelsFDS_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	case chan_id_t::MMC5_SQUARE1: case chan_id_t::MMC5_SQUARE2: case chan_id_t::MMC5_VOICE:
-		StoreChannelLevel(ChanID, levelsMMC5_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	case chan_id_t::N163_CH1: case chan_id_t::N163_CH2: case chan_id_t::N163_CH3: case chan_id_t::N163_CH4:
-	case chan_id_t::N163_CH5: case chan_id_t::N163_CH6: case chan_id_t::N163_CH7: case chan_id_t::N163_CH8:
-		StoreChannelLevel(ChanID, levelsN163_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	case chan_id_t::S5B_CH1: case chan_id_t::S5B_CH2: case chan_id_t::S5B_CH3:		// // // 050B
-		StoreChannelLevel(ChanID, levelsS5B_.AddValue(ChanID, Value, FrameCycles, BlipBuffer)); break;
-	default:
-		return;
-	}
+	WithMixer(GetMixerFromChannel(ChanID), [&] (auto &mixer) {
+		StoreChannelLevel(ChanID, mixer.AddValue(ChanID, Value, FrameCycles, BlipBuffer));
+	});
 }
 
 int CMixer::ReadBuffer(int Size, void *Buffer, bool Stereo)
@@ -296,11 +306,11 @@ void CMixer::StoreChannelLevel(chan_id_t Channel, int Level)		// // //
 	double AbsVol = std::abs(Level);
 
 	// Adjust channel levels for some channels
-	if (Channel == chan_id_t::VRC6_SAWTOOTH)
-		AbsVol = AbsVol * .75;
-
 	if (Channel == chan_id_t::DPCM)
 		AbsVol /= 8.;
+
+	if (Channel == chan_id_t::VRC6_SAWTOOTH)
+		AbsVol = AbsVol * .75;
 
 	if (Channel == chan_id_t::FDS)
 		AbsVol /= 188.;
