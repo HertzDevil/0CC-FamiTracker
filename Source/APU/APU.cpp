@@ -107,8 +107,8 @@ void CAPU::StepSequence()		// // //
 	if (++m_iSequencerCount == SEQUENCER_FREQUENCY)
 		m_iSequencerClock = m_iSequencerCount = 0;
 	m_iSequencerNext = (uint64_t)BASE_FREQ_NTSC * (m_iSequencerCount + 1) / SEQUENCER_FREQUENCY;
-	m_p2A03->ClockSequence();
-	m_pMMC5->ClockSequence();		// // //
+	GetSoundChip<sound_chip_t::APU>()->ClockSequence();
+	GetSoundChip<sound_chip_t::MMC5>()->ClockSequence();		// // //
 }
 
 // End of audio frame, flush the buffer if enough samples has been produced, and start a new frame
@@ -146,6 +146,8 @@ void CAPU::Reset()
 	m_iCyclesToRun		= 0;
 	m_iFrameCycles		= 0;
 
+	GetSoundChip<sound_chip_t::APU>()->ClearSample();		// // //
+
 	for (auto *Chip : m_pExpansionChips) {		// // //
 		Chip->GetRegisterLogger().Reset();
 		Chip->Reset();
@@ -162,7 +164,7 @@ void CAPU::SetupMixer(int LowCut, int HighCut, int HighDamp, int Volume) const
 {
 	// New settings
 	m_pMixer->UpdateSettings(LowCut, HighCut, HighDamp, float(Volume) / 100.0f);
-	m_pVRC7->SetVolume((float(Volume) / 100.0f) * m_fLevelVRC7);
+	GetSoundChip<sound_chip_t::VRC7>()->SetVolume((float(Volume) / 100.0f) * m_fLevelVRC7);
 }
 
 // // //
@@ -178,19 +180,19 @@ void CAPU::SetExternalSound(const CSoundChipSet &Chip) {
 	m_pExpansionChips.clear();
 
 	if (Chip.ContainsChip(sound_chip_t::APU))		// // //
-		m_pExpansionChips.push_back(m_p2A03.get());
+		m_pExpansionChips.push_back(GetSoundChip<sound_chip_t::APU>());
 	if (Chip.ContainsChip(sound_chip_t::VRC6))
-		m_pExpansionChips.push_back(m_pVRC6.get());
+		m_pExpansionChips.push_back(GetSoundChip<sound_chip_t::VRC6>());
 	if (Chip.ContainsChip(sound_chip_t::VRC7))
-		m_pExpansionChips.push_back(m_pVRC7.get());
+		m_pExpansionChips.push_back(GetSoundChip<sound_chip_t::VRC7>());
 	if (Chip.ContainsChip(sound_chip_t::FDS))
-		m_pExpansionChips.push_back(m_pFDS.get());
+		m_pExpansionChips.push_back(GetSoundChip<sound_chip_t::FDS>());
 	if (Chip.ContainsChip(sound_chip_t::MMC5))
-		m_pExpansionChips.push_back(m_pMMC5.get());
+		m_pExpansionChips.push_back(GetSoundChip<sound_chip_t::MMC5>());
 	if (Chip.ContainsChip(sound_chip_t::N163))
-		m_pExpansionChips.push_back(m_pN163.get());
+		m_pExpansionChips.push_back(GetSoundChip<sound_chip_t::N163>());
 	if (Chip.ContainsChip(sound_chip_t::S5B))
-		m_pExpansionChips.push_back(m_pS5B.get());
+		m_pExpansionChips.push_back(GetSoundChip<sound_chip_t::S5B>());
 
 	Reset();
 }
@@ -201,9 +203,8 @@ void CAPU::ChangeMachineRate(int Machine, int Rate)		// // //
 	//
 
 	uint32_t BaseFreq = (Machine == MACHINE_NTSC) ? BASE_FREQ_NTSC : BASE_FREQ_PAL;
-	m_p2A03->ChangeMachine(Machine);
-
-	m_pVRC7->SetSampleSpeed(m_iSampleRate, BaseFreq, Rate);
+	GetSoundChip<sound_chip_t::APU>()->ChangeMachine(Machine);
+	GetSoundChip<sound_chip_t::VRC7>()->SetSampleSpeed(m_iSampleRate, BaseFreq, Rate);
 }
 
 bool CAPU::SetupSound(int SampleRate, int NrChannels, int Machine)		// // //
@@ -283,29 +284,18 @@ int32_t CAPU::GetVol(chan_id_t Chan) const		// // //
 	return m_pMixer->GetChanOutput(Chan);
 }
 
-uint8_t CAPU::GetSamplePos() const
-{
-	return m_p2A03->GetSamplePos();
-}
-
-uint8_t CAPU::GetDeltaCounter() const
-{
-	return m_p2A03->GetDeltaCounter();
-}
-
-bool CAPU::DPCMPlaying() const
-{
-	return m_p2A03->DPCMPlaying();
-}
-
-void CAPU::WriteSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSample)		// // //
-{
-	m_p2A03->WriteSample(std::move(pSample));
-}
-
-void CAPU::ClearSample()		// // //
-{
-	m_p2A03->GetSampleMemory().Clear();
+CSoundChip *CAPU::GetSoundChip(sound_chip_t Chip) const {		// // //
+	switch (Chip) {
+	case sound_chip_t::APU:  return m_p2A03.get();
+	case sound_chip_t::VRC6: return m_pVRC6.get();
+	case sound_chip_t::VRC7: return m_pVRC7.get();
+	case sound_chip_t::FDS:  return m_pFDS.get();
+	case sound_chip_t::MMC5: return m_pMMC5.get();
+	case sound_chip_t::N163: return m_pN163.get();
+	case sound_chip_t::S5B:  return m_pS5B.get();
+	}
+	DEBUG_BREAK();
+	return nullptr;
 }
 
 #ifdef LOGGING
@@ -355,19 +345,19 @@ void CAPU::SetChipLevel(chip_level_t Chip, float Level)
 	float fLevel = powf(10, Level / 20.0f);		// Convert dB to linear
 
 	switch (Chip) {
-		case CHIP_LEVEL_VRC7:
-			m_fLevelVRC7 = fLevel;
-			break;
-			// // // 050B
-		default:
-			m_pMixer->SetChipLevel(Chip, fLevel);
+	case CHIP_LEVEL_VRC7:
+		m_fLevelVRC7 = fLevel;
+		break;
+		// // // 050B
+	default:
+		m_pMixer->SetChipLevel(Chip, fLevel);
 	}
 }
 
 void CAPU::SetNamcoMixing(bool bLinear)		// // //
 {
 	m_pMixer->SetNamcoMixing(bLinear);
-	m_pN163->SetMixingMethod(bLinear);
+	GetSoundChip<sound_chip_t::N163>()->SetMixingMethod(bLinear);
 }
 
 void CAPU::SetMeterDecayRate(decay_rate_t Type) const		// // // 050B
@@ -388,40 +378,19 @@ void CAPU::LogWrite(uint16_t Address, uint8_t Value)
 
 uint8_t CAPU::GetReg(sound_chip_t Chip, int Reg) const
 {
-	if (auto r = GetRegState(Chip, Reg))		// // //
+	if (auto *r = GetRegState(Chip, Reg))		// // //
 		return r->GetValue();
 	return static_cast<uint8_t>(0);
 }
 
 double CAPU::GetFreq(sound_chip_t Chip, int Chan) const
 {
-	const CSoundChip *pChip = nullptr;
-	switch (Chip) {
-	case sound_chip_t::APU:  pChip = m_p2A03.get(); break;
-	case sound_chip_t::VRC6: pChip = m_pVRC6.get(); break;
-	case sound_chip_t::VRC7: pChip = m_pVRC7.get(); break;
-	case sound_chip_t::FDS:  pChip = m_pFDS.get(); break;
-	case sound_chip_t::MMC5: pChip = m_pMMC5.get(); break;
-	case sound_chip_t::N163: pChip = m_pN163.get(); break;
-	case sound_chip_t::S5B:  pChip = m_pS5B.get(); break;
-	default: DEBUG_BREAK(); return 0.;
-	}
-	return pChip->GetFreq(Chan);
+	const CSoundChip *pChip = GetSoundChip(Chip);		// // //
+	return pChip ? pChip->GetFreq(Chan) : 0.;
 }
 
 CRegisterState *CAPU::GetRegState(sound_chip_t Chip, int Reg) const		// // //
 {
-	const CSoundChip *pChip = nullptr;
-	switch (Chip) {
-	case sound_chip_t::APU:  pChip = m_p2A03.get(); break;
-	case sound_chip_t::VRC6: pChip = m_pVRC6.get(); break;
-	case sound_chip_t::VRC7: pChip = m_pVRC7.get(); break;
-	case sound_chip_t::FDS:  pChip = m_pFDS.get(); break;
-	case sound_chip_t::MMC5: pChip = m_pMMC5.get(); break;
-	case sound_chip_t::N163: pChip = m_pN163.get(); break;
-	case sound_chip_t::S5B:  pChip = m_pS5B.get(); break;
-	default: DEBUG_BREAK(); return nullptr;
-	}
-
-	return pChip->GetRegisterLogger().GetRegister(Reg);
+	const CSoundChip *pChip = GetSoundChip(Chip);
+	return pChip ? pChip->GetRegisterLogger().GetRegister(Reg) : nullptr;
 }

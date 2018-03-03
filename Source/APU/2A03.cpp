@@ -230,12 +230,11 @@ inline void C2A03::RunAPU2(uint32_t Time)
 void C2A03::WriteSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSample) {		// // //
 	// Sample may not be removed when used by the sample memory class!
 	preview_sample_ = std::move(pSample);
-	GetSampleMemory().SetMem(*preview_sample_);
+	m_DPCM.GetSampleMemory().SetMem(*preview_sample_);
 }
 
-CSampleMem &C2A03::GetSampleMemory()		// // //
-{
-	return m_DPCM.GetSampleMemory();
+void C2A03::ClearSample() {		// // //
+	m_DPCM.GetSampleMemory().Clear();
 }
 
 uint8_t C2A03::GetSamplePos() const

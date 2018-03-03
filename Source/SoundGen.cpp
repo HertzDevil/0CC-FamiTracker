@@ -48,6 +48,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "DirectSound.h"
 #include "WaveFile.h"		// // //
 #include "APU/APU.h"
+#include "APU/2A03.h"		// // //
 #include "APU/Mixer.h"		// // // CHIP_LEVEL_*
 #include "SoundChipSet.h"		// // //
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
@@ -338,7 +339,7 @@ void CSoundGen::CancelPreviewSample()
 {
 	// Remove references to selected sample.
 	// This must be done if a sample is about to be deleted!
-	m_pAPU->ClearSample();		// // //
+	m_pAPU->GetSoundChip<sound_chip_t::APU>()->ClearSample();		// // //
 }
 
 bool CSoundGen::IsRunning() const
@@ -696,7 +697,6 @@ void CSoundGen::HaltPlayer() {
 	// Move player to non-playing state
 
 	MakeSilent();
-	m_pAPU->ClearSample();		// // //
 
 	// Signal that playback has stopped
 	if (m_pTrackerView)
@@ -730,8 +730,6 @@ void CSoundGen::ResetAPU()
 
 	// MMC5
 	m_pAPU->Write(0x5015, 0x03);
-
-	m_pAPU->ClearSample();		// // //
 }
 
 uint8_t CSoundGen::GetReg(sound_chip_t Chip, int Reg) const
@@ -759,7 +757,6 @@ void CSoundGen::MakeSilent()
 	*m_pArpeggiator = CArpeggiator { };
 
 	m_pAPU->Reset();
-	m_pAPU->ClearSample();		// // //
 	m_pSoundDriver->ResetTracks();		// // //
 }
 
@@ -849,7 +846,10 @@ void CSoundGen::LoadMachineSettings()		// // //
 
 stDPCMState CSoundGen::GetDPCMState() const
 {
-	return m_pAPU ? stDPCMState {m_pAPU->GetSamplePos(), m_pAPU->GetDeltaCounter()} : stDPCMState {0, 0};		// // //
+	if (m_pAPU)		// // //
+		if (auto *chip = m_pAPU->GetSoundChip<sound_chip_t::APU>())
+			return {chip->GetSamplePos(), chip->GetDeltaCounter()};
+	return { };
 }
 
 int CSoundGen::GetChannelNote(chan_id_t chan) const {		// // //
@@ -935,7 +935,7 @@ void CSoundGen::PlayPreviewSample(int Offset, int Pitch) {		// // //
 	int Loop = 0;
 	int Length = ((m_pPreviewSample->size() - 1) >> 4) - (Offset << 2);
 
-	m_pAPU->WriteSample(std::move(m_pPreviewSample));		// // //
+	m_pAPU->GetSoundChip<sound_chip_t::APU>()->WriteSample(std::move(m_pPreviewSample));		// // //
 
 	m_pAPU->Write(0x4010, Pitch | Loop);
 	m_pAPU->Write(0x4012, Offset);			// load address, start at $C000
@@ -946,7 +946,10 @@ void CSoundGen::PlayPreviewSample(int Offset, int Pitch) {		// // //
 
 bool CSoundGen::PreviewDone() const
 {
-	return (m_pAPU->DPCMPlaying() == false);
+	if (m_pAPU)		// // //
+		if (auto *chip = m_pAPU->GetSoundChip<sound_chip_t::APU>())
+			return !chip->DPCMPlaying();
+	return true;
 }
 
 bool CSoundGen::WaitForStop() const

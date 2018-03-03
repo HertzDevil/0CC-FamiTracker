@@ -76,18 +76,33 @@ public:
 	double	GetFreq(sound_chip_t Chip, int Chan) const;		// // //
 	CRegisterState *GetRegState(sound_chip_t Chip, int Reg) const;		// // //
 
-	uint8_t	GetSamplePos() const;
-	uint8_t	GetDeltaCounter() const;
-	bool	DPCMPlaying() const;
-	void	WriteSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSample);		// // //
-	void	ClearSample();		// // //
-
 	void	SetChipLevel(chip_level_t Chip, float Level);
 
 	void	SetNamcoMixing(bool bLinear);		// // //
 
 	void	SetMeterDecayRate(decay_rate_t Type) const;		// // // 050B
 	decay_rate_t GetMeterDecayRate() const;		// // // 050B
+
+	template <sound_chip_t Chip>
+	auto GetSoundChip() const {		// // //
+		if constexpr (Chip == sound_chip_t::APU)
+			return m_p2A03.get();
+		else if constexpr (Chip == sound_chip_t::VRC6)
+			return m_pVRC6.get();
+		else if constexpr (Chip == sound_chip_t::VRC7)
+			return m_pVRC7.get();
+		else if constexpr (Chip == sound_chip_t::FDS)
+			return m_pFDS.get();
+		else if constexpr (Chip == sound_chip_t::MMC5)
+			return m_pMMC5.get();
+		else if constexpr (Chip == sound_chip_t::N163)
+			return m_pN163.get();
+		else if constexpr (Chip == sound_chip_t::S5B)
+			return m_pS5B.get();
+		else
+			return static_cast<CSoundChip *>(nullptr);
+	}
+	CSoundChip *GetSoundChip(sound_chip_t Chip) const override;		// // //
 
 #ifdef LOGGING
 	void	Log();

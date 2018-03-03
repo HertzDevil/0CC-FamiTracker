@@ -24,10 +24,15 @@
 #pragma once
 
 #include <cstdint>
+#include "APU/Types_fwd.h"
+
+class CSoundChip;
 
 class CAPUInterface {
 public:
 	virtual ~CAPUInterface() noexcept = default;
 
-	virtual void Write(uint16_t Address, uint8_t Value) = 0;		// // //
+	virtual CSoundChip *GetSoundChip(sound_chip_t Chip) const = 0;
+
+	virtual void Write(uint16_t Address, uint8_t Value) = 0;
 };

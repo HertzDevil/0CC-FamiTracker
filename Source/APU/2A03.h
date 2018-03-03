@@ -57,7 +57,7 @@ public:
 	void	ChangeMachine(int Machine);
 
 	void	WriteSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSample);		// // //
-	CSampleMem &GetSampleMemory();		// // //
+	void	ClearSample();		// // //
 	uint8_t	GetSamplePos() const;
 	uint8_t	GetDeltaCounter() const;
 	bool	DPCMPlaying() const;
