@@ -92,10 +92,10 @@ enum class arp_scheme_mode_t : unsigned char {
 	NegY = 0xC0u,
 	none = 0x00u,
 };
-template <>
-struct enum_traits<arp_scheme_mode_t> {
-	using category = enum_discrete<arp_scheme_mode_t, arp_scheme_mode_t::X, arp_scheme_mode_t::Y, arp_scheme_mode_t::NegY>;
-};
+//template <>
+//struct enum_traits<arp_scheme_mode_t> {
+//	using category = enum_discrete<arp_scheme_mode_t, arp_scheme_mode_t::X, arp_scheme_mode_t::Y, arp_scheme_mode_t::NegY>;
+//};
 
 const int ARPSCHEME_MAX = 36;		// // // highest note offset for arp schemes
 const int ARPSCHEME_MIN = ARPSCHEME_MAX - 0x3F;		// // //

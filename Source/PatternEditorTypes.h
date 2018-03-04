@@ -25,6 +25,7 @@
 
 #include <memory>
 #include <utility>
+#include "ft0cc/enum_traits.h"		// // //
 
 // Helper types for the pattern editor
 
@@ -65,14 +66,14 @@ enum cursor_column_t : unsigned int {		// // // moved from FamiTrackerDoc.h
 };
 
 // Column layout
-enum column_t : unsigned int {
-	COLUMN_NOTE,
-	COLUMN_INSTRUMENT,
-	COLUMN_VOLUME,
-	COLUMN_EFF1,
-	COLUMN_EFF2,
-	COLUMN_EFF3,
-	COLUMN_EFF4,
+enum class column_t : unsigned int {		// // //
+	Note,
+	Instrument,
+	Volume,
+	Effect1,
+	Effect2,
+	Effect3,
+	Effect4,
 };
 const unsigned int COLUMNS = 7;		// // // moved from FamiTrackerDoc.h
 
@@ -82,13 +83,13 @@ inline column_t GetSelectColumn(cursor_column_t Column)
 {
 	// Return first column for a specific column field
 	static const column_t COLUMN_INDICES[] = {
-		COLUMN_NOTE,
-		COLUMN_INSTRUMENT, COLUMN_INSTRUMENT,
-		COLUMN_VOLUME,
-		COLUMN_EFF1, COLUMN_EFF1, COLUMN_EFF1,
-		COLUMN_EFF2, COLUMN_EFF2, COLUMN_EFF2,
-		COLUMN_EFF3, COLUMN_EFF3, COLUMN_EFF3,
-		COLUMN_EFF4, COLUMN_EFF4, COLUMN_EFF4,
+		column_t::Note,
+		column_t::Instrument, column_t::Instrument,
+		column_t::Volume,
+		column_t::Effect1, column_t::Effect1, column_t::Effect1,
+		column_t::Effect2, column_t::Effect2, column_t::Effect2,
+		column_t::Effect3, column_t::Effect3, column_t::Effect3,
+		column_t::Effect4, column_t::Effect4, column_t::Effect4,
 	};
 
 	return COLUMN_INDICES[Column];
@@ -100,7 +101,7 @@ inline cursor_column_t GetCursorStartColumn(column_t Column)
 		C_NOTE, C_INSTRUMENT1, C_VOLUME, C_EFF1_NUM, C_EFF2_NUM, C_EFF3_NUM, C_EFF4_NUM,
 	};
 
-	return COL_START[Column];
+	return COL_START[value_cast(Column)];
 }
 
 inline cursor_column_t GetCursorEndColumn(column_t Column)
@@ -109,7 +110,7 @@ inline cursor_column_t GetCursorEndColumn(column_t Column)
 		C_NOTE, C_INSTRUMENT2, C_VOLUME, C_EFF1_PARAM2, C_EFF2_PARAM2, C_EFF3_PARAM2, C_EFF4_PARAM2,
 	};
 
-	return COL_END[Column];
+	return COL_END[value_cast(Column)];
 }
 
 // // // Paste modes

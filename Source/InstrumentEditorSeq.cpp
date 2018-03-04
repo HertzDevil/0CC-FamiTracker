@@ -159,7 +159,7 @@ void CInstrumentEditorSeq::OnLvnItemchangedInstsettings(NMHDR *pNMHDR, LRESULT *
 	if (pNMLV->uChanged & LVIF_STATE && m_pInstrument != NULL) {
 		// Selected new setting
 		if (pNMLV->uNewState & LVIS_SELECTED || pNMLV->uNewState & LCTRL_CHECKBOX_STATE) {
-			m_iSelectedSetting = enum_cast<sequence_t>((unsigned)pNMLV->iItem);		// // //
+			m_iSelectedSetting = static_cast<sequence_t>((unsigned)pNMLV->iItem);		// // //
 			int Sequence = m_pInstrument->GetSeqIndex(m_iSelectedSetting);
 			SetDlgItemInt(IDC_SEQ_INDEX, Sequence);
 			SelectSequence(m_iSelectedSetting);

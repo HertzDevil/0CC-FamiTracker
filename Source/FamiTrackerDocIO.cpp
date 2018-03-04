@@ -94,7 +94,7 @@ void VisitSequences(const CSequenceManager *manager, F&& f) {
 	if (!manager)
 		return;
 	for (unsigned j = 0, n = manager->GetCount(); j < n; ++j) {
-		auto s = enum_cast<sequence_t>(j);
+		auto s = static_cast<sequence_t>(j);
 		const auto &col = *manager->GetCollection(s);
 		for (int i = 0; i < MAX_SEQUENCES; ++i) {
 			if (auto pSeq = col.GetSequence(i); pSeq && pSeq->GetItemCount())
@@ -570,7 +570,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerModule &modfile, int ver) {
 		for (unsigned int i = 0; i < Count; ++i) {
 			COldSequence Seq;		// // //
 			unsigned int Index = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
-			auto Type = enum_cast<sequence_t>((unsigned)AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type"));
+			auto Type = static_cast<sequence_t>((unsigned)AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type"));
 			unsigned int SeqCount = static_cast<unsigned char>(file_.GetBlockChar());
 			AssertRange(SeqCount, 0U, static_cast<unsigned>(MAX_SEQUENCE_ITEMS - 1), "Sequence item count");
 			for (unsigned int j = 0; j < SeqCount; ++j) {
@@ -587,7 +587,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerModule &modfile, int ver) {
 
 		for (unsigned int i = 0; i < Count; ++i) {
 			unsigned int Index = Indices[i] = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
-			auto Type = Types[i] = enum_cast<sequence_t>((unsigned)AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type"));
+			auto Type = Types[i] = static_cast<sequence_t>((unsigned)AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type"));
 			try {
 				unsigned char SeqCount = file_.GetBlockChar();
 				// AssertRange(SeqCount, 0, MAX_SEQUENCE_ITEMS, "Sequence item count");
@@ -1033,7 +1033,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerModule &modfile, int ver) 
 	sequence_t Types[MAX_SEQUENCES * SEQ_COUNT];
 	for (unsigned int i = 0; i < Count; ++i) {
 		unsigned int Index = Indices[i] = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
-		sequence_t Type = Types[i] = enum_cast<sequence_t>((unsigned)AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type"));
+		sequence_t Type = Types[i] = static_cast<sequence_t>((unsigned)AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type"));
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
 			auto pSeq = pManager->GetCollection(Type)->GetSequence(Index);
@@ -1133,7 +1133,7 @@ void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerModule &modfile, int ver) 
 		unsigned int  Type		   = AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type");
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
-			auto pSeq = pManager->GetCollection(enum_cast<sequence_t>(Type))->GetSequence(Index);
+			auto pSeq = pManager->GetCollection(static_cast<sequence_t>(Type))->GetSequence(Index);
 			pSeq->Clear();
 			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
 
@@ -1191,7 +1191,7 @@ void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerModule &modfile, int ver) {
 		unsigned int  Type		   = AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type");
 		try {
 			unsigned char SeqCount = file_.GetBlockChar();
-			auto pSeq = pManager->GetCollection(enum_cast<sequence_t>(Type))->GetSequence(Index);
+			auto pSeq = pManager->GetCollection(static_cast<sequence_t>(Type))->GetSequence(Index);
 			pSeq->Clear();
 			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
 

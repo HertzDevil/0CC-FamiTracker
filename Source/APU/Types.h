@@ -24,7 +24,7 @@
 #pragma once
 
 #include "APU/Types_fwd.h"
-#include <type_traits>
+#include "ft0cc/enum_traits.h"		// // //
 
 enum class sound_chip_t : std::uint8_t {		// // //
 	APU,
@@ -38,14 +38,6 @@ enum class sound_chip_t : std::uint8_t {		// // //
 };
 
 inline constexpr std::size_t SOUND_CHIP_COUNT = 7;
-
-// // // TODO: use enum_traits (MSVC broke it)
-constexpr auto value_cast(sound_chip_t chip) noexcept {
-	using T = std::underlying_type_t<sound_chip_t>;
-	if (chip >= sound_chip_t::APU && chip <= sound_chip_t::S5B)
-		return static_cast<T>(chip);
-	return static_cast<T>(sound_chip_t::NONE);
-}
 
 constexpr sound_chip_t EXPANSION_CHIPS[] = {
 	sound_chip_t::VRC6, sound_chip_t::VRC7, sound_chip_t::FDS, sound_chip_t::MMC5, sound_chip_t::N163, sound_chip_t::S5B,
@@ -102,14 +94,6 @@ inline constexpr std::size_t MAX_CHANNELS_N163 = 8;
 inline constexpr std::size_t MAX_CHANNELS_S5B = 3;
 
 inline constexpr std::size_t CHANID_COUNT = (unsigned)chan_id_t::COUNT;
-
-// // // TODO: use enum_traits (MSVC broke it)
-constexpr auto value_cast(chan_id_t ch) noexcept {
-	auto x = static_cast<std::underlying_type_t<chan_id_t>>(ch);
-	if (x < static_cast<std::underlying_type_t<chan_id_t>>(chan_id_t::COUNT))
-		return x;
-	return static_cast<std::underlying_type_t<chan_id_t>>(chan_id_t::NONE);
-}
 
 constexpr sound_chip_t GetChipFromChannel(chan_id_t ch) noexcept {
 	if (ch <= chan_id_t::DPCM)

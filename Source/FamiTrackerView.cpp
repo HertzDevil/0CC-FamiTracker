@@ -3345,9 +3345,10 @@ void CFamiTrackerView::OnPickupRow()
 		SetInstrument(Note.Instrument);
 
 	column_t Col = GetSelectColumn(m_pPatternEditor->GetColumn());		// // //
-	if (Col >= COLUMN_EFF1) {
-		m_LastNote.EffNumber[0] = Note.EffNumber[Col - COLUMN_EFF1];
-		m_LastNote.EffParam[0] = Note.EffParam[Col - COLUMN_EFF1];
+	if (Col >= column_t::Effect1) {
+		unsigned fx = value_cast(Col) - value_cast(column_t::Effect1);
+		m_LastNote.EffNumber[0] = Note.EffNumber[fx];
+		m_LastNote.EffParam[0] = Note.EffParam[fx];
 	}
 }
 

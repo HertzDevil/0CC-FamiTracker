@@ -104,7 +104,7 @@ void CSequenceSetting::OnLButtonDown(UINT nFlags, CPoint point)
 	CRect rect;
 	GetWindowRect(rect);
 
-	if (!m_pSequence->GetSequenceType())
+	if (m_pSequence->GetSequenceType() == sequence_t::none)
 		return;
 	std::size_t seqType = value_cast(m_pSequence->GetSequenceType());		// // //
 

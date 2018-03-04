@@ -244,8 +244,7 @@ uint32_t CMixer::GetMixSampleCount(int t) const
 bool CMixer::AllocateBuffer(unsigned int BufferLength, uint32_t SampleRate, uint8_t NrChannels)
 {
 	m_iSampleRate = SampleRate;
-	BlipBuffer.set_sample_rate(SampleRate, (BufferLength * 1000 * 4) / SampleRate);		// // //
-	return true;
+	return !BlipBuffer.set_sample_rate(SampleRate, (BufferLength * 1000 * 4) / SampleRate);		// // //
 }
 
 void CMixer::SetClockRate(uint32_t Rate)

@@ -23,6 +23,7 @@
 #pragma once
 
 #include "APU/Types.h"		// // //
+#include "ft0cc/enum_traits.h"		// // //
 
 /*
  * Here are the constants that defines the limits in the tracker
@@ -154,10 +155,6 @@ enum class effect_t : unsigned char {
 
 const std::size_t EFFECT_COUNT = static_cast<unsigned>(effect_t::COUNT);
 
-constexpr auto value_cast(effect_t n) noexcept { // TODO: use enum_traits
-	return static_cast<unsigned char>(n);
-}
-
 // const effect_t VRC6_EFFECTS[] = {};
 const effect_t VRC7_EFFECTS[] = {effect_t::VRC7_PORT, effect_t::VRC7_WRITE};
 const effect_t FDS_EFFECTS[] = {effect_t::FDS_MOD_DEPTH, effect_t::FDS_MOD_SPEED_HI, effect_t::FDS_MOD_SPEED_LO, effect_t::FDS_VOLUME, effect_t::FDS_MOD_BIAS};
@@ -256,10 +253,6 @@ enum class note_t : unsigned char {
 	HALT,						// Halt, stops note
 	ECHO,						// // // Echo buffer access, octave determines position
 };
-
-constexpr auto value_cast(note_t n) noexcept { // TODO: use enum_traits
-	return static_cast<unsigned char>(n);
-}
 
 constexpr bool IsNote(note_t n) noexcept {
 	return n >= note_t::C && n <= note_t::B;

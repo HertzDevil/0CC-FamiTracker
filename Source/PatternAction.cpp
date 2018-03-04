@@ -109,7 +109,7 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 		End.m_iColumn = GetCursorEndColumn(
 			!((End.m_iChannel - Start.m_iChannel + 1) % m_pClipData->ClipInfo.Channels) ?
 			m_pClipData->ClipInfo.EndColumn :
-			static_cast<column_t>(COLUMN_EFF1 + pSongView->GetEffectColumnCount(End.m_iChannel)));
+			static_cast<column_t>(value_cast(column_t::Effect1) + pSongView->GetEffectColumnCount(End.m_iChannel)));
 		break;
 	case paste_pos_t::DRAG:
 		End.m_iChannel += m_pClipData->ClipInfo.Channels - 1;
@@ -128,8 +128,8 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 		End.m_iRow = pPatternEditor->GetCurrentPatternLength(End.m_iFrame) - 1;
 	}
 
-	const unsigned EFBEGIN = GetCursorStartColumn(COLUMN_EFF1);
-	int OFFS = 3 * (GetSelectColumn(m_pUndoState->Cursor.m_iColumn) - m_pClipData->ClipInfo.StartColumn);
+	const unsigned EFBEGIN = GetCursorStartColumn(column_t::Effect1);
+	int OFFS = 3 * (value_cast(GetSelectColumn(m_pUndoState->Cursor.m_iColumn)) - value_cast(m_pClipData->ClipInfo.StartColumn));
 	if (static_cast<int>(EFBEGIN - Start.m_iColumn) > OFFS)
 		OFFS = EFBEGIN - Start.m_iColumn;
 	if (Start.m_iChannel == End.m_iChannel && Start.m_iColumn >= EFBEGIN && End.m_iColumn >= EFBEGIN) {
@@ -185,8 +185,8 @@ void CPatternAction::DeleteSelection(CSongView &view, const CSelection &Sel) con
 	do for (int i = b.m_iChannel; i <= e.m_iChannel; ++i) {
 		auto NoteData = b.Get(i);
 		CopyNoteSection(NoteData, BLANK,
-			i == b.m_iChannel ? ColStart : COLUMN_NOTE,
-			i == e.m_iChannel ? ColEnd : COLUMN_EFF4);
+			i == b.m_iChannel ? ColStart : column_t::Note,
+			i == e.m_iChannel ? ColEnd : column_t::Effect4);
 		b.Set(i, NoteData);
 	} while (++b <= e);
 }
@@ -671,7 +671,7 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 		if (b.m_iRow <= oldRow)
 			Row += Length + b.m_iRow - oldRow - 1;
 		for (int i = ChanStart; i <= ChanEnd; ++i) {
-			if (!m_pUndoState->Selection.IsColumnSelected(COLUMN_NOTE, i))
+			if (!m_pUndoState->Selection.IsColumnSelected(column_t::Note, i))
 				continue;
 			stChanNote Note = *(m_pUndoClipData->GetPattern(i - ChanStart, Row));		// // //
 			if (Note.Note == note_t::ECHO) {
@@ -746,33 +746,37 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 			Row += Length + b.m_iRow - oldRow - 1;
 		for (int i = ChanStart; i <= ChanEnd; ++i) {
 			auto Note = *(m_pUndoClipData->GetPattern(i - ChanStart, Row));		// // //
-			for (unsigned k = COLUMN_INSTRUMENT; k < COLUMNS; ++k) {
+			for (column_t k = column_t::Instrument; k <= column_t::Effect4; k = static_cast<column_t>(value_cast(k) + 1)) {
 				if (i == ChanStart && k < ColStart)
 					continue;
 				if (i == ChanEnd && k > ColEnd)
 					continue;
 				switch (k) {
-				case COLUMN_INSTRUMENT:
+				case column_t::Instrument:
 					if (Note.Instrument == MAX_INSTRUMENTS || Note.Instrument == HOLD_INSTRUMENT) break;		// // // 050B
 					WarpFunc(Note.Instrument, MAX_INSTRUMENTS);
 					break;
-				case COLUMN_VOLUME:
+				case column_t::Volume:
 					if (Note.Vol == MAX_VOLUME) break;
 					WarpFunc(Note.Vol, MAX_VOLUME);
 					break;
-				case COLUMN_EFF1: case COLUMN_EFF2: case COLUMN_EFF3: case COLUMN_EFF4:
-					if (Note.EffNumber[k - COLUMN_EFF1] == effect_t::NONE) break;
-					if (bSingular) switch (Note.EffNumber[k - COLUMN_EFF1]) {
+				case column_t::Effect1: case column_t::Effect2: case column_t::Effect3: case column_t::Effect4:
+				{
+					unsigned fx = value_cast(k) - value_cast(column_t::Effect1);
+					if (Note.EffNumber[fx] == effect_t::NONE)
+						break;
+					if (bSingular) switch (Note.EffNumber[fx]) {
 					case effect_t::SWEEPUP: case effect_t::SWEEPDOWN: case effect_t::ARPEGGIO: case effect_t::VIBRATO: case effect_t::TREMOLO:
 					case effect_t::SLIDE_UP: case effect_t::SLIDE_DOWN: case effect_t::VOLUME_SLIDE: case effect_t::DELAYED_VOLUME: case effect_t::TRANSPOSE:
-						unsigned char Hi = Note.EffParam[k - COLUMN_EFF1] >> 4;
-						unsigned char Lo = Note.EffParam[k - COLUMN_EFF1] & 0x0F;
+						unsigned char Hi = Note.EffParam[fx] >> 4;
+						unsigned char Lo = Note.EffParam[fx] & 0x0F;
 						WarpFunc(pPatternEditor->GetColumn() % 3 == 2 ? Hi : Lo, 0x10);
-						Note.EffParam[k - COLUMN_EFF1] = (Hi << 4) | Lo;
+						Note.EffParam[fx] = (Hi << 4) | Lo;
 						continue;
 					}
-					WarpFunc(Note.EffParam[k - COLUMN_EFF1], 0x100);
+					WarpFunc(Note.EffParam[fx], 0x100);
 					break;
+				}
 				}
 			}
 			b.Set(i, Note);
@@ -811,14 +815,14 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 			double DeltaHi = 0., DeltaLo = 0.;
 			bool TwoParam = false;
 			effect_t Effect = effect_t::NONE;
-			switch (j) {
-			case COLUMN_NOTE:
+			switch (static_cast<column_t>(j)) {
+			case column_t::Note:
 				if (!IsNote(StartData.Note) || !IsNote(EndData.Note))
 					continue;
 				StartValLo = (float)MIDI_NOTE(StartData.Octave, StartData.Note);
 				EndValLo = (float)MIDI_NOTE(EndData.Octave, EndData.Note);
 				break;
-			case COLUMN_INSTRUMENT:
+			case column_t::Instrument:
 				if (StartData.Instrument == MAX_INSTRUMENTS || EndData.Instrument == MAX_INSTRUMENTS)
 					continue;
 				if (StartData.Instrument == HOLD_INSTRUMENT || EndData.Instrument == HOLD_INSTRUMENT)		// // // 050B
@@ -826,13 +830,13 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 				StartValLo = (float)StartData.Instrument;
 				EndValLo = (float)EndData.Instrument;
 				break;
-			case COLUMN_VOLUME:
+			case column_t::Volume:
 				if (StartData.Vol == MAX_VOLUME || EndData.Vol == MAX_VOLUME)
 					continue;
 				StartValLo = (float)StartData.Vol;
 				EndValLo = (float)EndData.Vol;
 				break;
-			case COLUMN_EFF1: case COLUMN_EFF2: case COLUMN_EFF3: case COLUMN_EFF4:
+			case column_t::Effect1: case column_t::Effect2: case column_t::Effect3: case column_t::Effect4:
 				if (StartData.EffNumber[j - 3] == effect_t::NONE || EndData.EffNumber[j - 3] == effect_t::NONE
 					|| StartData.EffNumber[j - 3] != EndData.EffNumber[j - 3])
 					continue;
@@ -863,18 +867,18 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 				StartValLo += DeltaLo;
 				StartValHi += DeltaHi;
 				auto Note = r.Get(i);
-				switch (j) {
-				case COLUMN_NOTE:
+				switch (static_cast<column_t>(j)) {
+				case column_t::Note:
 					Note.Note = GET_NOTE((int)StartValLo);
 					Note.Octave = GET_OCTAVE((int)StartValLo);
 					break;
-				case COLUMN_INSTRUMENT:
+				case column_t::Instrument:
 					Note.Instrument = (int)StartValLo;
 					break;
-				case COLUMN_VOLUME:
+				case column_t::Volume:
 					Note.Vol = (int)StartValLo;
 					break;
-				case COLUMN_EFF1: case COLUMN_EFF2: case COLUMN_EFF3: case COLUMN_EFF4:
+				case column_t::Effect1: case column_t::Effect2: case column_t::Effect3: case column_t::Effect4:
 					Note.EffNumber[j - 3] = Effect;
 					Note.EffParam[j - 3] = (int)StartValLo + ((int)StartValHi << 4);
 					break;
@@ -907,15 +911,15 @@ void CPActionReverse::Redo(CMainFrame &MainFrm)
 		for (int c = Sel.m_cpStart.m_iChannel; c <= Sel.m_cpEnd.m_iChannel; ++c) {
 			auto NoteBegin = b.Get(c);
 			auto NoteEnd = e.Get(c);
-			if (c == Sel.m_cpStart.m_iChannel && ColStart > 0) {		// // //
+			if (c == Sel.m_cpStart.m_iChannel && ColStart > column_t::Note) {		// // //
 				auto Temp = NoteEnd;
-				CopyNoteSection(NoteEnd, NoteBegin, COLUMN_NOTE, static_cast<column_t>(ColStart - 1));
-				CopyNoteSection(NoteBegin, Temp, COLUMN_NOTE, static_cast<column_t>(ColStart - 1));
+				CopyNoteSection(NoteEnd, NoteBegin, column_t::Note, static_cast<column_t>(value_cast(ColStart) - 1));
+				CopyNoteSection(NoteBegin, Temp, column_t::Note, static_cast<column_t>(value_cast(ColStart) - 1));
 			}
-			if (c == Sel.m_cpEnd.m_iChannel && ColEnd < COLUMN_EFF4) {
+			if (c == Sel.m_cpEnd.m_iChannel && ColEnd < column_t::Effect4) {
 				auto Temp = NoteEnd;
-				CopyNoteSection(NoteEnd, NoteBegin, static_cast<column_t>(ColEnd + 1), COLUMN_EFF4);
-				CopyNoteSection(NoteBegin, Temp, static_cast<column_t>(ColEnd + 1), COLUMN_EFF4);
+				CopyNoteSection(NoteEnd, NoteBegin, static_cast<column_t>(value_cast(ColEnd) + 1), column_t::Effect4);
+				CopyNoteSection(NoteBegin, Temp, static_cast<column_t>(value_cast(ColEnd) + 1), column_t::Effect4);
 			}
 			b.Set(c, NoteEnd);
 			e.Set(c, NoteBegin);
@@ -944,8 +948,8 @@ void CPActionReplaceInst::Redo(CMainFrame &MainFrm)
 	auto [b, e] = GetIterators(*GET_SONG_VIEW());
 	const CSelection &Sel = m_pUndoState->Selection;
 
-	const int cBegin = Sel.GetChanStart() + (Sel.IsColumnSelected(COLUMN_INSTRUMENT, Sel.GetChanStart()) ? 0 : 1);
-	const int cEnd = Sel.GetChanEnd() - (Sel.IsColumnSelected(COLUMN_INSTRUMENT, Sel.GetChanEnd()) ? 0 : 1);
+	const int cBegin = Sel.GetChanStart() + (Sel.IsColumnSelected(column_t::Instrument, Sel.GetChanStart()) ? 0 : 1);
+	const int cEnd = Sel.GetChanEnd() - (Sel.IsColumnSelected(column_t::Instrument, Sel.GetChanEnd()) ? 0 : 1);
 
 	do for (int i = cBegin; i <= cEnd; ++i) {
 		const auto &Note = b.Get(i);
@@ -1060,8 +1064,8 @@ void CPActionStretch::Redo(CMainFrame &MainFrm)
 				*(m_pUndoClipData->GetPattern(i - Sel.m_cpStart.m_iChannel, Offset)) : BLANK;		// // //
 			auto Target = b.Get(i);
 			CopyNoteSection(Target, Source,
-				i == Sel.m_cpStart.m_iChannel ? ColStart : COLUMN_NOTE,
-				i == Sel.m_cpEnd.m_iChannel ? ColEnd : COLUMN_EFF4);
+				i == Sel.m_cpStart.m_iChannel ? ColStart : column_t::Note,
+				i == Sel.m_cpEnd.m_iChannel ? ColEnd : column_t::Effect4);
 			b.Set(i, Target);
 		}
 		int dist = m_iStretchMap[Pos++];

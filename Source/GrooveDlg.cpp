@@ -326,8 +326,8 @@ void CGrooveDlg::OnBnClickedButtonGrooveCopyFxx()
 	}
 
 	CPatternClipData Fxx(1, size);
-	Fxx.ClipInfo.StartColumn = COLUMN_EFF1;
-	Fxx.ClipInfo.EndColumn   = COLUMN_EFF1;
+	Fxx.ClipInfo.StartColumn = column_t::Effect1;
+	Fxx.ClipInfo.EndColumn   = column_t::Effect1;
 
 	unsigned char prev = 0;
 	for (unsigned char i = 0; i < Groove->size(); i++) {

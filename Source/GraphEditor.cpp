@@ -929,7 +929,7 @@ void CArpeggioGraphEditor::ModifyItem(CPoint point, bool Redraw)
 	m_iHighlightedValue = ItemValue;
 
 	if (m_pSequence->GetSetting() == SETTING_ARP_SCHEME) {		// // //
-		auto value = enum_cast<arp_scheme_mode_t>((uint8_t)(m_pSequence->GetItem(ItemIndex) & 0xC0));
+		auto value = static_cast<arp_scheme_mode_t>((uint8_t)(m_pSequence->GetItem(ItemIndex) & 0xC0));
 		if (::GetKeyState(VK_NUMPAD0) & 0x80)
 			value = arp_scheme_mode_t::none;
 		else if (::GetKeyState(VK_NUMPAD1) & 0x80)
@@ -1246,9 +1246,11 @@ void CNoiseEditor::OnPaint()
 			DrawRect(m_BackDC, x, y, w, h);
 
 		// Draw switches
-		auto flags = enum_cast<s5b_mode_t>((uint8_t)m_pSequence->GetItem(i));		// // //
+//		auto flags = static_cast<s5b_mode_t>((uint8_t)m_pSequence->GetItem(i));		// // //
+		auto flags = (uint8_t)m_pSequence->GetItem(i);		// // //
 
-		const s5b_mode_t BAR_MODE[] = {s5b_mode_t::Envelope, s5b_mode_t::Square, s5b_mode_t::Noise};		// // //
+//		const s5b_mode_t BAR_MODE[] = {s5b_mode_t::Envelope, s5b_mode_t::Square, s5b_mode_t::Noise};		// // //
+		const uint8_t BAR_MODE[] = {value_cast(s5b_mode_t::Envelope), value_cast(s5b_mode_t::Square), value_cast(s5b_mode_t::Noise)};		// // //
 		const COLORREF BAR_COLOR[] = {0x00A0A0, 0xA0A000, 0xA000A0};
 
 		for (std::size_t j = 0; j < std::size(BAR_MODE); ++j) {
@@ -1300,7 +1302,7 @@ void CNoiseEditor::ModifyItem(CPoint point, bool Redraw)
 		if (ItemValue > m_iItems)
 			ItemValue = m_iItems;
 
-		ItemValue |= 0xE0 & value_cast<s5b_mode_t>((uint8_t)m_pSequence->GetItem(ItemIndex));		// // //
+		ItemValue |= 0xE0 & (uint8_t)m_pSequence->GetItem(ItemIndex);		// // //
 //		ItemValue |= value_cast<s5b_mode_t>((uint8_t)m_pSequence->GetItem(ItemIndex));		// // //
 	}
 

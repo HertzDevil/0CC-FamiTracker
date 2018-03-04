@@ -159,13 +159,20 @@ bool CSeqConversionDefault::GetNextTerm(std::string_view &sv, int &Out)
 std::string CSeqConversion5B::ToString(char Value) const
 {
 	std::string Str = std::to_string(Value & 0x1F);
-	auto m = enum_cast<s5b_mode_t>((unsigned char)Value);
-	if ((m & s5b_mode_t::Square) == s5b_mode_t::Square)
+	uint8_t m = (uint8_t)Value & 0xE0;
+	if ((m & value_cast(s5b_mode_t::Square)) == value_cast(s5b_mode_t::Square))
 		Str.push_back('t');
-	if ((m & s5b_mode_t::Noise) == s5b_mode_t::Noise)
+	if ((m & value_cast(s5b_mode_t::Noise)) == value_cast(s5b_mode_t::Noise))
 		Str.push_back('n');
-	if ((m & s5b_mode_t::Envelope) == s5b_mode_t::Envelope)
+	if ((m & value_cast(s5b_mode_t::Envelope)) == value_cast(s5b_mode_t::Envelope))
 		Str.push_back('e');
+//	auto m = enum_cast<s5b_mode_t>((unsigned char)Value);
+//	if ((m & s5b_mode_t::Square) == s5b_mode_t::Square)
+//		Str.push_back('t');
+//	if ((m & s5b_mode_t::Noise) == s5b_mode_t::Noise)
+//		Str.push_back('n');
+//	if ((m & s5b_mode_t::Envelope) == s5b_mode_t::Envelope)
+//		Str.push_back('e');
 	return Str;
 }
 
@@ -207,7 +214,7 @@ bool CSeqConversion5B::GetNextTerm(std::string_view &sv, int &Out)
 std::string CSeqConversionArpScheme::ToString(char Value) const		// // //
 {
 	int Offset = m_iMinValue + ((Value - m_iMinValue) & 0x3F);
-	auto Scheme = enum_cast<arp_scheme_mode_t>((unsigned char)(Value & 0xC0));
+	auto Scheme = static_cast<arp_scheme_mode_t>((unsigned char)(Value & 0xC0));
 	if (!Offset) {
 		switch (Scheme) {
 		case arp_scheme_mode_t::X: return "x";

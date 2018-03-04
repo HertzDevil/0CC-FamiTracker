@@ -119,7 +119,7 @@ void CInstrumentEditorFDSEnvelope::SetupParser() const		// // //
 void CInstrumentEditorFDSEnvelope::OnCbnSelchangeType()
 {
 	CComboBox *pTypeBox = static_cast<CComboBox*>(GetDlgItem(IDC_TYPE));
-	if (auto seqType = enum_cast<sequence_t>((unsigned)pTypeBox->GetCurSel()); !!seqType)		// // //
+	if (auto seqType = static_cast<sequence_t>((unsigned)pTypeBox->GetCurSel()); seqType != sequence_t::none)		// // //
 		LoadSequence(seqType);
 }
 

@@ -134,45 +134,49 @@ void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t 
 	if (Begin > End)
 		std::swap(Begin, End);
 
-	if (COLUMN_NOTE >= Begin && COLUMN_NOTE <= End && !isNoteProtected(Target, Source)) {
+	if (column_t::Note >= Begin && column_t::Note <= End && !isNoteProtected(Target, Source)) {
 		Target.Note = Source.Note;
 		Target.Octave = Source.Octave;
 	}
-	if (COLUMN_INSTRUMENT >= Begin && COLUMN_INSTRUMENT <= End && !isInstProtected(Target, Source))
+	if (column_t::Instrument >= Begin && column_t::Instrument <= End && !isInstProtected(Target, Source))
 		Target.Instrument = Source.Instrument;
-	if (COLUMN_VOLUME >= Begin && COLUMN_VOLUME <= End && !isVolProtected(Target, Source))
+	if (column_t::Volume >= Begin && column_t::Volume <= End && !isVolProtected(Target, Source))
 		Target.Vol = Source.Vol;
 
-	for (unsigned fx = 0; fx < MAX_EFFECT_COLUMNS; ++fx)
-		if (fx + COLUMN_EFF1 >= Begin && fx + COLUMN_EFF1 <= End && !isFxProtected(Target, Source, fx)) {
+	for (unsigned fx = 0; fx < MAX_EFFECT_COLUMNS; ++fx) {
+		auto col = static_cast<column_t>(fx + value_cast(column_t::Effect1));
+		if (col >= Begin && col <= End && !isFxProtected(Target, Source, fx)) {
 			Target.EffNumber[fx] = Source.EffNumber[fx];
 			Target.EffParam[fx] = Source.EffParam[fx];
 		}
+	}
 }
 
 void CopyNoteSection(stChanNote &Target, const stChanNote &Source, column_t Begin, column_t End)		// // //
 {
 	if (Begin > End)
 		std::swap(Begin, End);
-	if (Begin == COLUMN_NOTE && End == COLUMN_EFF4) {
+	if (Begin == column_t::Note && End == column_t::Effect4) {
 		Target = Source;
 		return;
 	}
 
-	if (COLUMN_NOTE >= Begin && COLUMN_NOTE <= End) {
+	if (column_t::Note >= Begin && column_t::Note <= End) {
 		Target.Note = Source.Note;
 		Target.Octave = Source.Octave;
 	}
-	if (COLUMN_INSTRUMENT >= Begin && COLUMN_INSTRUMENT <= End)
+	if (column_t::Instrument >= Begin && column_t::Instrument <= End)
 		Target.Instrument = Source.Instrument;
-	if (COLUMN_VOLUME >= Begin && COLUMN_VOLUME <= End)
+	if (column_t::Volume >= Begin && column_t::Volume <= End)
 		Target.Vol = Source.Vol;
 
-	for (unsigned fx = 0; fx < MAX_EFFECT_COLUMNS; ++fx)
-		if (fx + COLUMN_EFF1 >= Begin && fx + COLUMN_EFF1 <= End) {
+	for (unsigned fx = 0; fx < MAX_EFFECT_COLUMNS; ++fx) {
+		auto col = static_cast<column_t>(fx + value_cast(column_t::Effect1));
+		if (col >= Begin && col <= End) {
 			Target.EffNumber[fx] = Source.EffNumber[fx];
 			Target.EffParam[fx] = Source.EffParam[fx];
 		}
+	}
 }
 
 // CPatternEditor
@@ -2862,7 +2866,7 @@ std::unique_ptr<CPatternClipData> CPatternEditor::Copy() const
 		for (int i = 0; i < Channels; ++i) {
 			stChanNote *Target = pClipData->GetPattern(i, r);
 			/*CopyNoteSection(*Target, NoteData, paste_mode_t::DEFAULT,
-				i == 0 ? ColStart : COLUMN_NOTE, i == Channels - 1 ? ColEnd : COLUMN_EFF4);*/
+				i == 0 ? ColStart : column_t::Note, i == Channels - 1 ? ColEnd : column_t::Effect4);*/
 			*Target = it.Get(i + m_selection.GetChanStart());
 			// the clip data should store the entire field;
 			// other methods should check ClipInfo.StartColumn and ClipInfo.EndColumn before operating
@@ -2952,9 +2956,9 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 			for (unsigned int i = c; i < CEnd; i++) {
 				const auto &Source = back.Get(i);
 				auto NoteData = front.Get(i);
-				CopyNoteSection(NoteData, Source, PasteMode, (i == c) ? StartColumn : COLUMN_NOTE,
-					std::min((i == Channels + c - 1) ? EndColumn : COLUMN_EFF4,
-								static_cast<column_t>(COLUMN_VOLUME + pSongView->GetEffectColumnCount(i))));
+				CopyNoteSection(NoteData, Source, PasteMode, (i == c) ? StartColumn : column_t::Note,
+					std::min((i == Channels + c - 1) ? EndColumn : column_t::Effect4,
+								static_cast<column_t>(value_cast(column_t::Volume) + pSongView->GetEffectColumnCount(i))));
 				front.Set(i, NoteData);
 			}
 			front.m_iRow--;
@@ -2964,13 +2968,15 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 	}
 
 	// Special, single channel and effect columns only
-	if (Channels == 1 && StartColumn >= COLUMN_EFF1) {
-		const unsigned int ColStart = std::max(GetSelectColumn(AtSel ? m_selection.GetColStart() : m_cpCursorPos.m_iColumn), COLUMN_EFF1);
+	if (Channels == 1 && StartColumn >= column_t::Effect1) {
+		const column_t ColStart = std::max(GetSelectColumn(AtSel ? m_selection.GetColStart() : m_cpCursorPos.m_iColumn), column_t::Effect1);
 		for (unsigned int j = 0; j < Rows; ++j) {
 			auto NoteData = it.Get(c);
 			const auto &Source = *(ClipData.GetPattern(0, j % ClipData.ClipInfo.Rows));
-			for (unsigned int i = StartColumn - COLUMN_EFF1; i <= EndColumn - COLUMN_EFF1; ++i) {		// // //
-				const unsigned int Offset = i - StartColumn + ColStart;
+			unsigned bc = value_cast(StartColumn) - value_cast(column_t::Effect1);
+			unsigned ec = value_cast(EndColumn) - value_cast(column_t::Effect1);
+			for (unsigned i = bc; i <= ec; ++i) {		// // //
+				const unsigned int Offset = i - value_cast(StartColumn) + value_cast(ColStart);
 				if (Offset >= pSongView->GetEffectColumnCount(c))
 					break;
 				bool protectFx = false;
@@ -3000,11 +3006,11 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 	for (unsigned int j = 0; j < Rows; ++j) {
 		for (unsigned int i = c; i < CEnd; ++i) {
 			int cGet = (i - c) % ClipData.ClipInfo.Channels;
-			const column_t ColEnd = std::min((i == Channels + c - 1) ? EndColumn : COLUMN_EFF4,
-				static_cast<column_t>(COLUMN_VOLUME + pSongView->GetEffectColumnCount(i)));
+			const column_t ColEnd = std::min((i == Channels + c - 1) ? EndColumn : column_t::Effect4,
+				static_cast<column_t>(value_cast(column_t::Volume) + pSongView->GetEffectColumnCount(i)));
 			auto NoteData = it.Get(i);
 			const auto &Source = *(ClipData.GetPattern(cGet, j % ClipData.ClipInfo.Rows));
-			CopyNoteSection(NoteData, Source, PasteMode, (!cGet) ? StartColumn : COLUMN_NOTE, ColEnd);
+			CopyNoteSection(NoteData, Source, PasteMode, (!cGet) ? StartColumn : column_t::Note, ColEnd);
 			it.Set(i, NoteData);
 		}
 		if ((++it).m_iRow == 0) { // end of frame reached
@@ -3038,7 +3044,7 @@ void CPatternEditor::PasteRaw(const CPatternClipData &ClipData, const CCursorPos
 		int c = i + Pos.m_iChannel;
 		if (c == GetChannelCount())
 			return;
-		auto maxcol = static_cast<column_t>(COLUMN_VOLUME + pSongView->GetEffectColumnCount(c));
+		auto maxcol = static_cast<column_t>(value_cast(column_t::Volume) + pSongView->GetEffectColumnCount(c));
 
 		for (int r = 0; r < Rows; r++) {
 			auto pos = std::div(PackedPos + r, Length);
@@ -3048,8 +3054,8 @@ void CPatternEditor::PasteRaw(const CPatternClipData &ClipData, const CCursorPos
 			stChanNote &Target = pattern.GetNoteOn(line);
 			const stChanNote &Source = *(ClipData.GetPattern(i, r));
 			CopyNoteSection(Target, Source,
-				(i == 0) ? StartColumn : COLUMN_NOTE,
-				std::min((i == Channels + Pos.m_iChannel - 1) ? EndColumn : COLUMN_EFF4, maxcol));
+				(i == 0) ? StartColumn : column_t::Note,
+				std::min((i == Channels + Pos.m_iChannel - 1) ? EndColumn : column_t::Effect4, maxcol));
 		}
 	}
 }
@@ -3138,7 +3144,7 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 				for (unsigned int c = 0, m = pSongView->GetEffectColumnCount(i); c < m; ++c)
 					switch (Note.EffNumber[c]) {
 					case effect_t::JUMP: case effect_t::SKIP: case effect_t::HALT:
-						if (Sel.IsColumnSelected(static_cast<column_t>(COLUMN_EFF1 + c), i))
+						if (Sel.IsColumnSelected(static_cast<column_t>(value_cast(column_t::Effect1) + c), i))
 							return b == e ? sel_condition_t::TERMINAL_SKIP : sel_condition_t::NONTERMINAL_SKIP;
 						/*else if (it != End)
 							HasSkip = true;*/
@@ -3500,7 +3506,7 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 	// Copy selection as text
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 
-	const int Channel = m_selection.GetChanStart() + !m_selection.IsColumnSelected(COLUMN_VOLUME, m_selection.GetChanStart()); // // //
+	const int Channel = m_selection.GetChanStart() + !m_selection.IsColumnSelected(column_t::Volume, m_selection.GetChanStart()); // // //
 
 	if (Channel < 0 || Channel >= GetChannelCount() || !m_bSelecting)
 		return L"";
@@ -3529,8 +3535,8 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 	const int COLUMN_CHAR_POS[] = {0, 4, 7, 9, 13, 17, 21};
 	const int COLUMN_CHAR_LEN[] = {3, 2, 1, 3, 3, 3, 3};
 	const int Last = pSongView->GetEffectColumnCount(e.m_iChannel) + 2;
-	const unsigned BegCol = GetSelectColumn(b.m_iColumn);
-	const unsigned EndCol = GetSelectColumn(e.m_iColumn);
+	const column_t BegCol = GetSelectColumn(b.m_iColumn);
+	const column_t EndCol = GetSelectColumn(e.m_iColumn);
 	for (; b <= e; ++b) {
 		CStringW line;
 		AppendFormatW(line, L"ROW %0*X", HexLength, Row++);
@@ -3538,10 +3544,10 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 			const auto &NoteData = b.Get(i);
 			auto RowString = CTextExport::ExportCellText(NoteData, pSongView->GetEffectColumnCount(i),
 				pSongView->GetChannelOrder().TranslateChannel(i) == chan_id_t::NOISE);
-			if (i == b.m_iChannel) for (unsigned c = 0; c < BegCol; ++c)
+			if (i == b.m_iChannel) for (unsigned c = 0; c < value_cast(BegCol); ++c)
 				for (int j = 0; j < COLUMN_CHAR_LEN[c]; ++j) RowString.SetAt(COLUMN_CHAR_POS[c] + j, ' ');
-			if (i == e.m_iChannel && EndCol < COLUMN_EFF4)
-				RowString = RowString.Left(COLUMN_CHAR_POS[EndCol + 1] - 1);
+			if (i == e.m_iChannel && EndCol < column_t::Effect4)
+				RowString = RowString.Left(COLUMN_CHAR_POS[value_cast(EndCol) + 1] - 1);
 			AppendFormatW(line, L" : %s", conv::to_wide(RowString).data());
 		}
 		str.Append(line);
@@ -3756,9 +3762,9 @@ void CPatternEditor::UpdateDrag(const CPoint &point)
 	cursor_column_t ColumnStart = m_iDragStartCol;
 	cursor_column_t ColumnEnd = m_iDragEndCol;
 
-	if (m_iDragChannels == 0 && GetSelectColumn(m_iDragStartCol) >= COLUMN_EFF1) {
+	if (m_iDragChannels == 0 && GetSelectColumn(m_iDragStartCol) >= column_t::Effect1) {
 		// Allow dragging between effect columns in the same channel
-		if (GetSelectColumn(PointPos.m_iColumn) >= COLUMN_EFF1) {
+		if (GetSelectColumn(PointPos.m_iColumn) >= column_t::Effect1) {
 			ColumnStart = static_cast<cursor_column_t>(PointPos.m_iColumn - (PointPos.m_iColumn - 1) % 3);
 		}
 		else {

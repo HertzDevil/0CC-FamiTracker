@@ -49,8 +49,8 @@ public:
 	struct {
 		int Channels = 0;			// Number of channels
 		int Rows = 0;				// Number of rows
-		column_t StartColumn = COLUMN_NOTE;		// // // Start column in first channel
-		column_t EndColumn = COLUMN_NOTE;		// // // End column in last channel
+		column_t StartColumn = column_t::Note;		// // // Start column in first channel
+		column_t EndColumn = column_t::Note;		// // // End column in last channel
 		struct {				// OLE drag and drop info
 			int ChanOffset = 0;
 			int RowOffset = 0;
