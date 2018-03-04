@@ -43,6 +43,7 @@ struct RowColorInfo_t {
 	COLORREF Compact;		// // //
 };
 
+extern void CopyNoteSection(stChanNote &Target, const stChanNote &Source, column_t Begin, column_t End);		// // //
 extern void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t Mode, column_t Begin, column_t End);		// // //
 
 // External classes

@@ -66,87 +66,113 @@ const int CPatternEditor::DEFAULT_HEADER_FONT_SIZE	= 11;
 
 void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t Mode, column_t Begin, column_t End)		// // //
 {
+	const auto isNoteProtected = [Mode] (const stChanNote &dest, const stChanNote &src) {
+		constexpr stChanNote BLANK { };
+		switch (Mode) {
+		case paste_mode_t::MIX:
+			if (dest.Note != BLANK.Note)
+				return true;
+			if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
+				if (dest.Instrument != BLANK.Instrument || dest.Vol != BLANK.Vol)
+					return true;
+			[[fallthrough]];
+		case paste_mode_t::OVERWRITE:
+			if (src.Note == BLANK.Note)
+				return true;
+		}
+		return false;
+	};
+
+	const auto isInstProtected = [Mode] (const stChanNote &dest, const stChanNote &src) {
+		constexpr stChanNote BLANK { };
+		switch (Mode) {
+		case paste_mode_t::MIX:
+			if (dest.Instrument != BLANK.Instrument)
+				return true;
+			if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
+				if (dest.Note != BLANK.Note || dest.Vol != BLANK.Vol)
+					return true;
+			[[fallthrough]];
+		case paste_mode_t::OVERWRITE:
+			if (src.Instrument == BLANK.Instrument)
+				return true;
+		}
+		return false;
+	};
+
+	const auto isVolProtected = [Mode] (const stChanNote &dest, const stChanNote &src) {
+		constexpr stChanNote BLANK { };
+		switch (Mode) {
+		case paste_mode_t::MIX:
+			if (dest.Vol != BLANK.Vol)
+				return true;
+			if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
+				if (dest.Note != BLANK.Note || dest.Instrument != BLANK.Instrument || dest.Vol != BLANK.Vol)
+					return true;
+			[[fallthrough]];
+		case paste_mode_t::OVERWRITE:
+			if (src.Vol == BLANK.Vol)
+				return true;
+		}
+		return false;
+	};
+
+	const auto isFxProtected = [Mode] (const stChanNote &dest, const stChanNote &src, std::size_t fx) {
+		constexpr stChanNote BLANK { };
+		switch (Mode) {
+		case paste_mode_t::MIX:
+			if (dest.EffNumber[fx] != BLANK.EffNumber[fx])
+				return true;
+			[[fallthrough]];
+		case paste_mode_t::OVERWRITE:
+			if (src.EffNumber[fx] == BLANK.EffNumber[fx])
+				return true;
+		}
+		return false;
+	};
+
+	if (Begin > End)
+		std::swap(Begin, End);
+
+	if (COLUMN_NOTE >= Begin && COLUMN_NOTE <= End && !isNoteProtected(Target, Source)) {
+		Target.Note = Source.Note;
+		Target.Octave = Source.Octave;
+	}
+	if (COLUMN_INSTRUMENT >= Begin && COLUMN_INSTRUMENT <= End && !isInstProtected(Target, Source))
+		Target.Instrument = Source.Instrument;
+	if (COLUMN_VOLUME >= Begin && COLUMN_VOLUME <= End && !isVolProtected(Target, Source))
+		Target.Vol = Source.Vol;
+
+	for (unsigned fx = 0; fx < MAX_EFFECT_COLUMNS; ++fx)
+		if (fx + COLUMN_EFF1 >= Begin && fx + COLUMN_EFF1 <= End && !isFxProtected(Target, Source, fx)) {
+			Target.EffNumber[fx] = Source.EffNumber[fx];
+			Target.EffParam[fx] = Source.EffParam[fx];
+		}
+}
+
+void CopyNoteSection(stChanNote &Target, const stChanNote &Source, column_t Begin, column_t End)		// // //
+{
+	if (Begin > End)
+		std::swap(Begin, End);
 	if (Begin == COLUMN_NOTE && End == COLUMN_EFF4) {
 		Target = Source;
 		return;
 	}
-	const char Offset[] = {
-		offsetof(stChanNote, Note),
-		offsetof(stChanNote, Instrument),
-		offsetof(stChanNote, Vol),
-		offsetof(stChanNote, EffNumber),
-		offsetof(stChanNote, EffNumber) + 1,
-		offsetof(stChanNote, EffNumber) + 2,
-		offsetof(stChanNote, EffNumber) + 3,
-	};
-	bool Protected[sizeof(Offset)] = {};
-	for (size_t i = 0; i < sizeof(Offset); ++i) {
-		const unsigned char TByte = *(reinterpret_cast<unsigned char*>(&Target) + Offset[i]); // skip octave byte
-		const unsigned char SByte = *(reinterpret_cast<const unsigned char*>(&Source) + Offset[i]);
-		switch (Mode) {
-		case paste_mode_t::MIX:
-			switch (i) {
-			case COLUMN_NOTE:
-				if (TByte != value_cast(note_t::NONE)) Protected[i] = true;
-				break;
-			case COLUMN_INSTRUMENT:
-				if (TByte != MAX_INSTRUMENTS) Protected[i] = true;
-				break;
-			case COLUMN_VOLUME:
-				if (TByte != MAX_VOLUME) Protected[i] = true;
-				break;
-			default:
-				if (TByte != value_cast(effect_t::NONE)) Protected[i] = true;
-			}
-			// continue
-		case paste_mode_t::OVERWRITE:
-			switch (i) {
-			case COLUMN_NOTE:
-				if (SByte == value_cast(note_t::NONE)) Protected[i] = true;
-				break;
-			case COLUMN_INSTRUMENT:
-				if (SByte == MAX_INSTRUMENTS) Protected[i] = true;
-				break;
-			case COLUMN_VOLUME:
-				if (SByte == MAX_VOLUME) Protected[i] = true;
-				break;
-			default:
-				if (SByte == value_cast(effect_t::NONE)) Protected[i] = true;
-			}
-		}
-	}
 
-	if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT) {
-		switch (Mode) {
-		case paste_mode_t::MIX:
-			if (Target.Note != note_t::NONE || Target.Instrument != MAX_INSTRUMENTS || Target.Vol != MAX_VOLUME)
-				Protected[COLUMN_NOTE] = Protected[COLUMN_INSTRUMENT] = Protected[COLUMN_VOLUME] = true;
-			// continue
-		case paste_mode_t::OVERWRITE:
-			if (Source.Note == note_t::NONE && Source.Instrument == MAX_INSTRUMENTS && Source.Vol == MAX_VOLUME)
-				Protected[COLUMN_NOTE] = Protected[COLUMN_INSTRUMENT] = Protected[COLUMN_VOLUME] = true;
-		}
-	}
-
-	if (Begin > End) {
-		column_t Temp = End; End = Begin; Begin = Temp;
-	}
-
-	for (unsigned i = Begin; i <= End; i++) if (!Protected[i]) switch (i) {
-	case COLUMN_NOTE:
+	if (COLUMN_NOTE >= Begin && COLUMN_NOTE <= End) {
 		Target.Note = Source.Note;
 		Target.Octave = Source.Octave;
-		break;
-	case COLUMN_INSTRUMENT:
-		Target.Instrument = Source.Instrument;
-		break;
-	case COLUMN_VOLUME:
-		Target.Vol = Source.Vol;
-		break;
-	default:
-		Target.EffNumber[i - 3] = Source.EffNumber[i - 3];
-		Target.EffParam[i - 3] = Source.EffParam[i - 3];
 	}
+	if (COLUMN_INSTRUMENT >= Begin && COLUMN_INSTRUMENT <= End)
+		Target.Instrument = Source.Instrument;
+	if (COLUMN_VOLUME >= Begin && COLUMN_VOLUME <= End)
+		Target.Vol = Source.Vol;
+
+	for (unsigned fx = 0; fx < MAX_EFFECT_COLUMNS; ++fx)
+		if (fx + COLUMN_EFF1 >= Begin && fx + COLUMN_EFF1 <= End) {
+			Target.EffNumber[fx] = Source.EffNumber[fx];
+			Target.EffParam[fx] = Source.EffParam[fx];
+		}
 }
 
 // CPatternEditor
@@ -2947,15 +2973,15 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 				const unsigned int Offset = i - StartColumn + ColStart;
 				if (Offset >= pSongView->GetEffectColumnCount(c))
 					break;
-				bool Protected = false;
+				bool protectFx = false;
 				switch (PasteMode) {
 				case paste_mode_t::MIX:
-					if (NoteData.EffNumber[Offset] != effect_t::NONE) Protected = true;
+					if (NoteData.EffNumber[Offset] != effect_t::NONE) protectFx = true;
 					// continue
 				case paste_mode_t::OVERWRITE:
-					if (Source.EffNumber[i] == effect_t::NONE) Protected = true;
+					if (Source.EffNumber[i] == effect_t::NONE) protectFx = true;
 				}
-				if (!Protected) {
+				if (!protectFx) {
 					NoteData.EffNumber[Offset] = Source.EffNumber[i];
 					NoteData.EffParam[Offset] = Source.EffParam[i];
 				}
@@ -3021,7 +3047,8 @@ void CPatternEditor::PasteRaw(const CPatternClipData &ClipData, const CCursorPos
 			CPatternData &pattern = pSongView->GetPatternOnFrame(c, f);
 			stChanNote &Target = pattern.GetNoteOn(line);
 			const stChanNote &Source = *(ClipData.GetPattern(i, r));
-			CopyNoteSection(Target, Source, paste_mode_t::DEFAULT, (i == 0) ? StartColumn : COLUMN_NOTE,
+			CopyNoteSection(Target, Source,
+				(i == 0) ? StartColumn : COLUMN_NOTE,
 				std::min((i == Channels + Pos.m_iChannel - 1) ? EndColumn : COLUMN_EFF4, maxcol));
 		}
 	}

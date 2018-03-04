@@ -184,9 +184,9 @@ void CPatternAction::DeleteSelection(CSongView &view, const CSelection &Sel) con
 
 	do for (int i = b.m_iChannel; i <= e.m_iChannel; ++i) {
 		auto NoteData = b.Get(i);
-		CopyNoteSection(NoteData, BLANK, paste_mode_t::DEFAULT,
-						i == b.m_iChannel ? ColStart : COLUMN_NOTE,
-						i == e.m_iChannel ? ColEnd : COLUMN_EFF4);
+		CopyNoteSection(NoteData, BLANK,
+			i == b.m_iChannel ? ColStart : COLUMN_NOTE,
+			i == e.m_iChannel ? ColEnd : COLUMN_EFF4);
 		b.Set(i, NoteData);
 	} while (++b <= e);
 }
@@ -909,13 +909,13 @@ void CPActionReverse::Redo(CMainFrame &MainFrm)
 			auto NoteEnd = e.Get(c);
 			if (c == Sel.m_cpStart.m_iChannel && ColStart > 0) {		// // //
 				auto Temp = NoteEnd;
-				CopyNoteSection(NoteEnd, NoteBegin, paste_mode_t::DEFAULT, COLUMN_NOTE, static_cast<column_t>(ColStart - 1));
-				CopyNoteSection(NoteBegin, Temp, paste_mode_t::DEFAULT, COLUMN_NOTE, static_cast<column_t>(ColStart - 1));
+				CopyNoteSection(NoteEnd, NoteBegin, COLUMN_NOTE, static_cast<column_t>(ColStart - 1));
+				CopyNoteSection(NoteBegin, Temp, COLUMN_NOTE, static_cast<column_t>(ColStart - 1));
 			}
 			if (c == Sel.m_cpEnd.m_iChannel && ColEnd < COLUMN_EFF4) {
 				auto Temp = NoteEnd;
-				CopyNoteSection(NoteEnd, NoteBegin, paste_mode_t::DEFAULT, static_cast<column_t>(ColEnd + 1), COLUMN_EFF4);
-				CopyNoteSection(NoteBegin, Temp, paste_mode_t::DEFAULT, static_cast<column_t>(ColEnd + 1), COLUMN_EFF4);
+				CopyNoteSection(NoteEnd, NoteBegin, static_cast<column_t>(ColEnd + 1), COLUMN_EFF4);
+				CopyNoteSection(NoteBegin, Temp, static_cast<column_t>(ColEnd + 1), COLUMN_EFF4);
 			}
 			b.Set(c, NoteEnd);
 			e.Set(c, NoteBegin);
@@ -1059,9 +1059,9 @@ void CPActionStretch::Redo(CMainFrame &MainFrm)
 			const auto &Source = (Offset < m_pUndoClipData->ClipInfo.Rows && m_iStretchMap[Pos] > 0) ?
 				*(m_pUndoClipData->GetPattern(i - Sel.m_cpStart.m_iChannel, Offset)) : BLANK;		// // //
 			auto Target = b.Get(i);
-			CopyNoteSection(Target, Source, paste_mode_t::DEFAULT,
-							i == Sel.m_cpStart.m_iChannel ? ColStart : COLUMN_NOTE,
-							i == Sel.m_cpEnd.m_iChannel ? ColEnd : COLUMN_EFF4);
+			CopyNoteSection(Target, Source,
+				i == Sel.m_cpStart.m_iChannel ? ColStart : COLUMN_NOTE,
+				i == Sel.m_cpEnd.m_iChannel ? ColEnd : COLUMN_EFF4);
 			b.Set(i, Target);
 		}
 		int dist = m_iStretchMap[Pos++];
