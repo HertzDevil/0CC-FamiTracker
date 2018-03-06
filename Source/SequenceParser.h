@@ -27,6 +27,7 @@
 
 #include <string>
 #include <string_view>
+#include <optional>
 #include <memory>
 
 class CSequence;
@@ -78,8 +79,8 @@ public:
 	void OnFinish() override;
 
 protected:
-	bool GetNextInteger(std::string_view &sv, int &Out, bool Signed = false) const;
-	virtual bool GetNextTerm(std::string_view &sv, int &Out);
+	std::optional<int> GetNextInteger(std::string_view &sv, bool Signed = false) const;
+	virtual std::optional<int> GetNextTerm(std::string_view &sv);
 
 protected:
 	const int m_iMinValue = INT32_MIN;
@@ -102,7 +103,7 @@ public:
 	bool ToValue(std::string_view sv) override;
 	char GetValue() override;
 protected:
-	bool GetNextTerm(std::string_view &sv, int &Out) override;
+	std::optional<int> GetNextTerm(std::string_view &sv) override;
 private:
 	char m_iEnableFlags;
 };
@@ -115,7 +116,7 @@ public:
 	bool ToValue(std::string_view sv) override;
 	char GetValue() override;
 protected:
-	bool GetNextTerm(std::string_view &sv, int &Out) override;
+	std::optional<int> GetNextTerm(std::string_view &sv) override;
 private:
 	char m_iArpSchemeFlag;
 };
@@ -126,7 +127,7 @@ public:
 	CSeqConversionArpFixed() : CSeqConversionDefault(0, 95) { }
 	std::string ToString(char Value) const override;
 protected:
-	bool GetNextTerm(std::string_view &sv, int &Out) override;
+	std::optional<int> GetNextTerm(std::string_view &sv) override;
 };
 
 /*!

@@ -42,35 +42,49 @@ bool CSeqConversionDefault::ToValue(std::string_view sv)
 		return true;
 	}
 
-	if (!GetNextTerm(sv, m_iCurrentValue))
-		return false;
-	m_iTargetValue = m_iCurrentValue;
-	m_iRepeat = m_iValueDiv = 1;
-	if (!sv.empty() && sv.front() == ':') {
-		if (sv.remove_prefix(1), sv.empty())
-			return false;
-		if (!GetNextInteger(sv, m_iValueDiv))
-			return false;
-		if (m_iValueDiv <= 0)
-			return false;
+	if (auto nextTerm = GetNextTerm(sv)) {
+		m_iTargetValue = m_iCurrentValue = *nextTerm;
+		m_iRepeat = m_iValueDiv = 1;
 		if (!sv.empty() && sv.front() == ':') {
-			if (sv.remove_prefix(1), sv.empty())
-				return false;
-			if (!GetNextTerm(sv, m_iTargetValue))
+			if (sv.remove_prefix(1), !sv.empty()) {
+				if (auto divTerm = GetNextInteger(sv)) {
+					m_iValueDiv = *divTerm;
+					if (m_iValueDiv <= 0)
+						return false;
+					if (!sv.empty() && sv.front() == ':') {
+						if (sv.remove_prefix(1), sv.empty())
+							return false;
+						if (auto target = GetNextTerm(sv))
+							m_iTargetValue = *target;
+						else
+							return false;
+					}
+				}
+				else
+					return false;
+			}
+			else
 				return false;
 		}
+		if (!sv.empty() && sv.front() == '\'') {
+			if (sv.remove_prefix(1), !sv.empty()) {
+				if (auto repTerm = GetNextInteger(sv)) {
+					m_iRepeat = *repTerm;
+					if (m_iRepeat <= 0)
+						return false;
+				}
+			}
+			else
+				return false;
+		}
+		if (sv.empty()) {
+			m_iValueInc = m_iTargetValue - m_iCurrentValue;
+			m_iRepeatCounter = m_iCounter = m_iValueMod = 0;
+			return m_bReady = true;
+		}
 	}
-	if (!sv.empty() && sv.front() == '\'') {
-		if (sv.remove_prefix(1), sv.empty())
-			return false;
-		if (!GetNextInteger(sv, m_iRepeat))
-			return false;
-	}
-	if (!sv.empty() || m_iRepeat <= 0)
-		return false;
-	m_iValueInc = m_iTargetValue - m_iCurrentValue;
-	m_iRepeatCounter = m_iCounter = m_iValueMod = 0;
-	return m_bReady = true;
+
+	return false;
 }
 
 bool CSeqConversionDefault::IsReady() const
@@ -105,53 +119,46 @@ void CSeqConversionDefault::OnFinish()
 	m_bReady = false;
 }
 
-bool CSeqConversionDefault::GetNextInteger(std::string_view &sv, int &Out, bool Signed) const
+std::optional<int> CSeqConversionDefault::GetNextInteger(std::string_view &sv, bool Signed) const
 {
 	re::svmatch m;
 
 	if (m_bHex) {
 		static const std::regex HEX_RE {R"(^([\+-]?)[0-9A-Fa-f]+)", std::regex_constants::optimize};
-		if (!std::regex_search(sv.begin(), sv.end(), m, HEX_RE))
-			return false;
-		if (Signed && !m[1].length())
-			return false;
-		if (auto val = conv::to_int(re::sv_from_submatch(m[0]), 16))
-			Out = *val;
-		else
-			return false;
+		if (std::regex_search(sv.begin(), sv.end(), m, HEX_RE))
+			if (!(Signed && !m[1].length()))
+				if (auto val = conv::to_int(re::sv_from_submatch(m[0]), 16)) {
+					sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
+					return val;
+				}
 	}
 	else {
 		static const std::regex NUMBER_RE {R"(^([\+-]?)[0-9]+)", std::regex_constants::optimize};
-		static const std::regex HEX_PREFIX_RE {R"(([\+-]?)[\$x]([0-9A-Fa-f]+))", std::regex_constants::optimize}; // do not allow 0x prefix
+		static const std::regex HEX_PREFIX_RE {R"(^([\+-]?)[\$x]([0-9A-Fa-f]+))", std::regex_constants::optimize}; // do not allow 0x prefix
 		if (std::regex_search(sv.begin(), sv.end(), m, HEX_PREFIX_RE)) {
-			if (Signed && !m[1].length())
-				return false;
-			if (auto val = conv::to_int(re::sv_from_submatch(m[2]), 16))
-				Out = *val;
-			else
-				return false;
-			if (m[1] == "-")
-				Out = -Out;
+			if (!(Signed && !m[1].length()))
+				if (auto val = conv::to_int(re::sv_from_submatch(m[2]), 16)) {
+					if (m[1] == "-")
+						*val = -*val;
+					sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
+					return val;
+				}
 		}
 		else if (std::regex_search(sv.begin(), sv.end(), m, NUMBER_RE)) {
-			if (Signed && !m[1].length())
-				return false;
-			if (auto val = conv::to_int(re::sv_from_submatch(m[0])))
-				Out = *val;
-			else
-				return false;
+			if (!(Signed && !m[1].length()))
+				if (auto val = conv::to_int(re::sv_from_submatch(m[0]))) {
+					sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
+					return val;
+				}
 		}
-		else
-			return false;
 	}
 
-	sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
-	return true;
+	return std::nullopt;
 }
 
-bool CSeqConversionDefault::GetNextTerm(std::string_view &sv, int &Out)
+std::optional<int> CSeqConversionDefault::GetNextTerm(std::string_view &sv)
 {
-	return GetNextInteger(sv, Out);
+	return GetNextInteger(sv);
 }
 
 
@@ -187,26 +194,27 @@ char CSeqConversion5B::GetValue()
 	return CSeqConversionDefault::GetValue() | m_iEnableFlags;
 }
 
-bool CSeqConversion5B::GetNextTerm(std::string_view &sv, int &Out)
+std::optional<int> CSeqConversion5B::GetNextTerm(std::string_view &sv)
 {
-	if (!GetNextInteger(sv, Out))
-		return false;
-
-	static const std::regex S5B_FLAGS_RE {R"(^[TtNnEe]*)"};
-	if (re::svmatch m; std::regex_search(sv.begin(), sv.end(), m, S5B_FLAGS_RE)) {
-		if (m_iEnableFlags == -1) {
-			m_iEnableFlags = 0;
-			auto flags = re::sv_from_submatch(m[0]);
-			if (flags.find_first_of("Tt") != std::string::npos)
-				m_iEnableFlags |= value_cast(s5b_mode_t::Square);
-			if (flags.find_first_of("Nn") != std::string::npos)
-				m_iEnableFlags |= value_cast(s5b_mode_t::Noise);
-			if (flags.find_first_of("Ee") != std::string::npos)
-				m_iEnableFlags |= value_cast(s5b_mode_t::Envelope);
+	if (auto o = GetNextInteger(sv)) {
+		static const std::regex S5B_FLAGS_RE {R"(^[TtNnEe]*)", std::regex_constants::optimize};
+		if (re::svmatch m; std::regex_search(sv.begin(), sv.end(), m, S5B_FLAGS_RE)) {
+			if (m_iEnableFlags == -1) {
+				m_iEnableFlags = 0;
+				auto flags = re::sv_from_submatch(m[0]);
+				if (flags.find_first_of("Tt") != std::string::npos)
+					m_iEnableFlags |= value_cast(s5b_mode_t::Square);
+				if (flags.find_first_of("Nn") != std::string::npos)
+					m_iEnableFlags |= value_cast(s5b_mode_t::Noise);
+				if (flags.find_first_of("Ee") != std::string::npos)
+					m_iEnableFlags |= value_cast(s5b_mode_t::Envelope);
+			}
+			sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
 		}
-		sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
+		return o;
 	}
-	return true;
+
+	return std::nullopt;
 }
 
 
@@ -244,7 +252,7 @@ char CSeqConversionArpScheme::GetValue()
 	return (CSeqConversionDefault::GetValue() & 0x3F) | m_iArpSchemeFlag;
 }
 
-bool CSeqConversionArpScheme::GetNextTerm(std::string_view &sv, int &Out)
+std::optional<int> CSeqConversionArpScheme::GetNextTerm(std::string_view &sv)
 {
 	const auto SchemeFunc = [&] (std::string_view str) {
 		if (m_iArpSchemeFlag != -1)
@@ -259,24 +267,23 @@ bool CSeqConversionArpScheme::GetNextTerm(std::string_view &sv, int &Out)
 	};
 
 	re::svmatch m;
-	static const std::regex SCHEME_HEAD_RE {R"(^(x|y|-y))"};
-	static const std::regex SCHEME_TAIL_RE {R"(^(\+x|\+y|-y)?)"};
+	static const std::regex SCHEME_HEAD_RE {R"(^(x|y|-y))", std::regex_constants::optimize};
+	static const std::regex SCHEME_TAIL_RE {R"(^(\+x|\+y|-y)?)", std::regex_constants::optimize};
 
 	if (std::regex_search(sv.begin(), sv.end(), m, SCHEME_HEAD_RE)) {
 		SchemeFunc(re::sv_from_submatch(m[0]));
 		sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
-		Out = 0;
-		GetNextInteger(sv, Out, true); // optional
+		return GetNextInteger(sv, true).value_or(0);
 	}
-	else {
-		if (!GetNextInteger(sv, Out))
-			return false;
+
+	if (auto o = GetNextInteger(sv))
 		if (std::regex_search(sv.begin(), sv.end(), m, SCHEME_TAIL_RE)) {
-			SchemeFunc(re::sv_from_submatch(m[0])); // optional
+			SchemeFunc(re::sv_from_submatch(m[0]));
 			sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
+			return o;
 		}
-	}
-	return true;
+
+	return std::nullopt;
 }
 
 
@@ -286,39 +293,35 @@ std::string CSeqConversionArpFixed::ToString(char Value) const
 	return GetNoteString(GET_NOTE(static_cast<unsigned char>(Value)), GET_OCTAVE(static_cast<unsigned char>(Value)));
 }
 
-bool CSeqConversionArpFixed::GetNextTerm(std::string_view &sv, int &Out)
+std::optional<int> CSeqConversionArpFixed::GetNextTerm(std::string_view &sv)
 {
 	std::string_view sv_(sv);
-	if (CSeqConversionDefault::GetNextTerm(sv_, Out)) {
+	if (auto o = CSeqConversionDefault::GetNextTerm(sv_)) {
 		sv = sv_;
-		return true;
+		return o;
 	}
 
 	re::svmatch m;
-	static const std::regex FIXED_RE {R"(([A-Ga-g])([+\-#b]*)([0-9]+))"};
+	static const std::regex FIXED_RE {R"(^([A-Ga-g])([+#bfs]*|\-)([0-9]+))", std::regex_constants::optimize};
 	static const int NOTE_OFFSET[] = {9, 11, 0, 2, 4, 5, 7};
-	if (!std::regex_match(sv.begin(), sv.end(), m, FIXED_RE))
-		return false;
+	if (std::regex_search(sv.begin(), sv.end(), m, FIXED_RE)) {
+		char ch = re::sv_from_submatch(m[1])[0];
+		int Note = NOTE_OFFSET[ch >= 'a' ? ch - 'a' : ch - 'A'];
+		auto accstr = re::sv_from_submatch(m[2]);
+		for (const auto &acc : accstr) {
+			switch (acc) {
+			case '+': case '#': case 's': ++Note; break;
+			/*case '-':*/ case 'b': case 'f': --Note; break;
+			}
+		}
 
-	char ch = re::sv_from_submatch(m[1])[0];
-	int Note = NOTE_OFFSET[ch >= 'a' ? ch - 'a' : ch - 'A'];
-	auto accstr = re::sv_from_submatch(m[2]);
-	for (const auto &acc : accstr) {
-		switch (acc) {
-		case '+': case '#': ++Note; break;
-		/*case '-':*/ case 'b': --Note; break;
+		if (auto oct = conv::to_uint(re::sv_from_submatch(m[3]))) {
+			sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
+			return Note + *oct * NOTE_RANGE;
 		}
 	}
 
-	if (auto oct = conv::to_uint(re::sv_from_submatch(m[3])))
-		Note += NOTE_RANGE * *oct;
-	else
-		return false;
-
-	Out = Note;
-
-	sv.remove_prefix(std::distance(sv.begin(), m.suffix().first));
-	return true;
+	return std::nullopt;
 }
 
 
