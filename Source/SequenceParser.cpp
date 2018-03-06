@@ -95,9 +95,7 @@ bool CSeqConversionDefault::IsReady() const
 char CSeqConversionDefault::GetValue()
 {
 	// do not use float division
-	int Val = m_iCurrentValue;
-	if (Val > m_iMaxValue) Val = m_iMaxValue;
-	if (Val < m_iMinValue) Val = m_iMinValue;
+	int Val = std::clamp(m_iCurrentValue, m_iMinValue, m_iMaxValue);
 	if (++m_iRepeatCounter >= m_iRepeat) {
 		m_iValueMod += m_iValueInc;
 		m_iCurrentValue += m_iValueMod / m_iValueDiv;

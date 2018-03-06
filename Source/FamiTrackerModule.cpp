@@ -83,7 +83,7 @@ CChannelOrder &CFamiTrackerModule::GetChannelOrder() const {
 	return m_pChannelMap->GetChannelOrder();
 }
 
-const CSoundChipSet &CFamiTrackerModule::GetSoundChipSet() const {
+CSoundChipSet CFamiTrackerModule::GetSoundChipSet() const {
 	return m_pChannelMap->GetExpansionFlag();
 }
 

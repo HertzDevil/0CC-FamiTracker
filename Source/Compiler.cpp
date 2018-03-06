@@ -908,7 +908,7 @@ bool CCompiler::CompileData()
 	// // // Full chip export
 
 	// Select driver and channel order
-	const CSoundChipSet &Chip = m_pModule->GetSoundChipSet();
+	CSoundChipSet Chip = m_pModule->GetSoundChipSet();
 	if (!Chip.IsMultiChip())
 		switch (Chip.WithoutChip(sound_chip_t::APU).GetSoundChip()) {
 		case sound_chip_t::NONE:
@@ -1107,7 +1107,7 @@ void CCompiler::ScanSong()
 
 void CCompiler::CreateMainHeader()
 {
-	const CSoundChipSet &Chip = m_pModule->GetSoundChipSet();		// // //
+	CSoundChipSet Chip = m_pModule->GetSoundChipSet();		// // //
 
 	unsigned char Flags =		// // // bankswitch flag is set later
 		(m_pModule->GetVibratoStyle() == VIBRATO_OLD ? FLAG_VIBRATO : 0) |

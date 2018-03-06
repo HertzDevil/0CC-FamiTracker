@@ -650,7 +650,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 }
 
 unsigned char CPatternCompiler::Command(int cmd) const {
-	const CSoundChipSet &Chip = modfile_.GetSoundChipSet();		// // //
+	CSoundChipSet Chip = modfile_.GetSoundChipSet();		// // //
 
 	if (!Chip.IsMultiChip()) {		// // // truncate values if some chips do not exist
 		if (!Chip.ContainsChip(sound_chip_t::N163) && cmd > CMD_EFF_N163_WAVE_BUFFER) cmd -= std::size(N163_EFFECTS);

@@ -172,7 +172,7 @@ void CAPU::SetCallback(IAudioCallback &pCallback) {
 	m_pParent = &pCallback;
 }
 
-void CAPU::SetExternalSound(const CSoundChipSet &Chip) {
+void CAPU::SetExternalSound(CSoundChipSet Chip) {
 	// Set expansion chip
 	m_iExternalSoundChip = Chip;
 	m_pMixer->ExternalSound(Chip);

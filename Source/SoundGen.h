@@ -109,9 +109,9 @@ public:
 	void		SetVisualizerWindow(CVisualizerWnd *pWnd);
 
 	// Multiple times initialization
-	std::unique_ptr<CChannelMap>	MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const;		// // //
+	std::unique_ptr<CChannelMap>	MakeChannelMap(CSoundChipSet chips, unsigned n163chs) const;		// // //
 	void		ModuleChipChanged();		// // //
-	void		SelectChip(const CSoundChipSet &Chip);
+	void		SelectChip(CSoundChipSet Chip);
 	void		LoadMachineSettings();		// // // 050B
 
 	// Sound

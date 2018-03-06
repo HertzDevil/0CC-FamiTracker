@@ -35,14 +35,14 @@ class CChannelMap
 {
 public:
 	CChannelMap() = default;		// // //
-	CChannelMap(const CSoundChipSet &chips, unsigned n163chs);
+	CChannelMap(CSoundChipSet chips, unsigned n163chs);
 
 	CChannelOrder &GetChannelOrder();
 	const CChannelOrder &GetChannelOrder() const;
 
 	bool			SupportsChannel(chan_id_t ch) const;		// // //
 
-	const CSoundChipSet &GetExpansionFlag() const noexcept;		// // //
+	CSoundChipSet	GetExpansionFlag() const noexcept;		// // //
 	unsigned		GetChipChannelCount(sound_chip_t chip) const;
 	bool			HasExpansionChip(sound_chip_t chip) const noexcept; // all
 

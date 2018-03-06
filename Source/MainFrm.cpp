@@ -1619,7 +1619,7 @@ void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 {
 	CStringW String;
 
-	const CSoundChipSet &Chip = GetDoc().GetModule()->GetSoundChipSet();
+	CSoundChipSet Chip = GetDoc().GetModule()->GetSoundChipSet();
 
 	if (!Chip.IsMultiChip())		// // //
 		switch (Chip.WithoutChip(sound_chip_t::APU).GetSoundChip()) {
@@ -2602,7 +2602,7 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 	const CFamiTrackerDoc &Doc = GetDoc();
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 
-	const CSoundChipSet &Chip = Doc.GetModule()->GetSoundChipSet();		// // //
+	CSoundChipSet Chip = Doc.GetModule()->GetSoundChipSet();		// // //
 	sound_chip_t SelectedChip = GetChipFromChannel(pView->GetSelectedChannelID());		// // // where the cursor is located
 
 	if (Chip.ContainsChip(sound_chip_t::APU))

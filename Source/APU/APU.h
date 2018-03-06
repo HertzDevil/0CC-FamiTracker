@@ -62,7 +62,7 @@ public:
 	void	AddTime(int32_t Cycles);
 	void	EndFrame();		// // // public
 
-	void	SetExternalSound(const CSoundChipSet &Chip);
+	void	SetExternalSound(CSoundChipSet Chip);
 	void	Write(uint16_t Address, uint8_t Value) override;		// // //
 	uint8_t	Read(uint16_t Address);
 

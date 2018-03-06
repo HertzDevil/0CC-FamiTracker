@@ -71,7 +71,7 @@ public:
 
 	// sound chip
 	CChannelOrder &GetChannelOrder() const;
-	const CSoundChipSet &GetSoundChipSet() const;
+	CSoundChipSet GetSoundChipSet() const;
 	void SetChannelMap(std::unique_ptr<CChannelMap> pMap);
 
 	bool HasExpansionChips() const;

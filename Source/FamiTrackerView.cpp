@@ -2078,7 +2078,7 @@ void CFamiTrackerView::UpdateNoteQueues() {		// // //
 		m_pNoteQueue->AddMap({chan_id_t::NOISE});
 		m_pNoteQueue->AddMap({chan_id_t::DPCM});
 
-		const CSoundChipSet &chips = GetModuleData()->GetSoundChipSet();
+		CSoundChipSet chips = GetModuleData()->GetSoundChipSet();
 
 		if (chips.ContainsChip(sound_chip_t::VRC6)) {
 			m_pNoteQueue->AddMap({chan_id_t::VRC6_PULSE1, chan_id_t::VRC6_PULSE2});

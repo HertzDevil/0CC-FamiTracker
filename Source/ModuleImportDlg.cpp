@@ -84,8 +84,8 @@ void CModuleImportDlg::OnBnClickedOk()
 	auto &newModule = *m_pImportedDoc->GetModule();
 
 	// // // union of sound chip configurations
-	const CSoundChipSet &c1 = newModule.GetSoundChipSet();
-	const CSoundChipSet &c2 = oldModule.GetSoundChipSet();
+	CSoundChipSet c1 = newModule.GetSoundChipSet();
+	CSoundChipSet c2 = oldModule.GetSoundChipSet();
 	unsigned n1 = newModule.GetNamcoChannels();
 	unsigned n2 = oldModule.GetNamcoChannels();
 	if (n1 != n2 || c1 != c2) {

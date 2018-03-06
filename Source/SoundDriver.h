@@ -56,7 +56,7 @@ public:
 	void LoadAPU(CAPUInterface &apu);
 	void ConfigureDocument();
 
-	std::unique_ptr<CChannelMap> MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const;
+	std::unique_ptr<CChannelMap> MakeChannelMap(CSoundChipSet chips, unsigned n163chs) const;
 	CTrackerChannel *GetTrackerChannel(chan_id_t chan);
 	const CTrackerChannel *GetTrackerChannel(chan_id_t chan) const;
 

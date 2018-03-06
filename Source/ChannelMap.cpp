@@ -23,7 +23,7 @@
 #include "ChannelMap.h"
 #include "APU/Types.h"		// // //
 
-CChannelMap::CChannelMap(const CSoundChipSet &chips, unsigned n163chs) :
+CChannelMap::CChannelMap(CSoundChipSet chips, unsigned n163chs) :
 	chips_(chips), n163chs_(n163chs)
 {
 }
@@ -42,7 +42,7 @@ bool CChannelMap::SupportsChannel(chan_id_t ch) const {		// // //
 		GetChannelSubIndex(ch) >= GetChipChannelCount(sound_chip_t::N163));
 }
 
-const CSoundChipSet &CChannelMap::GetExpansionFlag() const noexcept {		// // //
+CSoundChipSet CChannelMap::GetExpansionFlag() const noexcept {		// // //
 	return chips_;
 }
 

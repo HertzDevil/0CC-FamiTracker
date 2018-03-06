@@ -65,7 +65,7 @@ BOOL CGotoDlg::OnInitDialog()
 	const CFamiTrackerView *pView = CFamiTrackerView::GetView();
 	const CFamiTrackerModule *pModule = pView->GetModuleData();
 
-	const CSoundChipSet &chips = pModule->GetSoundChipSet();
+	CSoundChipSet chips = pModule->GetSoundChipSet();
 	if (chips.ContainsChip(sound_chip_t::APU))
 		m_cChipEdit.AddString(L"2A03");
 	if (chips.ContainsChip(sound_chip_t::VRC6))

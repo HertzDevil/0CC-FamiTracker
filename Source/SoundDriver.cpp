@@ -104,7 +104,7 @@ void CSoundDriver::ConfigureDocument() {
 	});
 }
 
-std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(const CSoundChipSet &chips, unsigned n163chs) const {
+std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(CSoundChipSet chips, unsigned n163chs) const {
 	auto map = std::make_unique<CChannelMap>(chips, n163chs);		// // //
 
 	// Register the channels in the document
