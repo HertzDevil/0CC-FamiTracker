@@ -78,11 +78,8 @@ void CInstrumentListCtrl::CreateImageList() {
 int CInstrumentListCtrl::GetInstrumentIndex(int Selection) const
 {
 	// Get the instrument number from an item in the list (Selection = list index)
-	if (Selection != -1) {
-		CStringW Text = GetItemText(Selection, 0).Left(2);		// // //
-		if (auto x = conv::to_uint(Text, 16))
-			return *x;
-	}
+	if (Selection >= 0 && Selection < GetItemCount())		// // //
+		return GetItemData(Selection);
 	return INVALID_INSTRUMENT;
 }
 
@@ -138,6 +135,7 @@ void CInstrumentListCtrl::InsertInstrument(int Index)
 		// Name is of type index - name
 		auto sv = conv::to_wide(pInst->GetName());
 		InsertItem(Index, FormattedW(L"%02X - %.*s", Index, sv.size(), sv.data()), Type - 1);
+		SetItemData(FindInstrument(Index), Index);		// // //
 		SelectInstrument(Index);		// // //
 	}
 }

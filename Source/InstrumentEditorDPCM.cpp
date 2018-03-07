@@ -236,6 +236,7 @@ void CInstrumentEditorDPCM::BuildSampleList()
 	unsigned int Size(0), Index(0);
 
 	m_cComboSampleName.AddString(NO_SAMPLE_STR);
+	m_cComboSampleName.SetItemData(0, (unsigned)-1);
 
 	for (int i = 0; i < MAX_DSAMPLES; ++i) {
 		if (auto pDSample = GetDSampleManager()->GetDSample(i)) {		// // //
@@ -243,7 +244,9 @@ void CInstrumentEditorDPCM::BuildSampleList()
 			auto name = conv::to_wide(pDSample->name());
 			m_cSampleListCtrl.SetItemText(Index, 1, name.data());
 			m_cSampleListCtrl.SetItemText(Index, 2, FormattedW(L"%u", pDSample->size()));
+			m_cSampleListCtrl.SetItemData(Index, i);		// // //
 			m_cComboSampleName.AddString(FormattedW(L"%02i - %.*s", i, name.size(), name.data()));
+			m_cComboSampleName.SetItemData(Index + 1, i);		// // //
 			Size += pDSample->size();
 			++Index;
 		}
@@ -357,11 +360,9 @@ void CInstrumentEditorDPCM::OnBnClickedUnload()
 	for (int i = 0; i < SelCount; i++) {
 		nItem = m_cSampleListCtrl.GetNextItem(nItem, LVNI_SELECTED);
 		ASSERT(nItem != -1);
-		CStringW str = m_cSampleListCtrl.GetItemText(nItem, 0);
-		if (auto n = conv::to_int(str)) {
-			Env.GetSoundGenerator()->CancelPreviewSample();
-			GetDSampleManager()->RemoveDSample(*n);		// // //
-		}
+		int n = m_cSampleListCtrl.GetItemData(nItem);		// // //
+		Env.GetSoundGenerator()->CancelPreviewSample();
+		GetDSampleManager()->RemoveDSample(n);		// // //
 	}
 
 	BuildSampleList();
@@ -435,15 +436,11 @@ void CInstrumentEditorDPCM::OnNMClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 void CInstrumentEditorDPCM::OnCbnSelchangeSamples()
 {
 	int PrevSample = m_pInstrument->GetSampleIndex(m_iSelectedNote);
-	int Sample = m_cComboSampleName.GetCurSel();
+	int Sel = m_cComboSampleName.GetCurSel();
+	int Sample = 0;
 
-	if (Sample > 0) {
-		CStringW Name;		// // //
-		m_cComboSampleName.GetLBText(Sample, Name);
-		Name.Truncate(2);
-		if (auto n = conv::to_int(Name))		// // //
-			Sample = *n + 1;
-
+	if (Sel > 0) {
+		Sample = m_cComboSampleName.GetItemData(Sel) + 1;		// // //
 		if (PrevSample == 0)
 			m_pInstrument->SetSamplePitch(m_iSelectedNote, m_cComboSamplePitch.GetCurSel());
 	}
