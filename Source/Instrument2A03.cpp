@@ -31,13 +31,8 @@
 
 const char *const CInstrument2A03::SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "Duty / Noise"};
 
-CInstrument2A03::CInstrument2A03() : CSeqInstrument(INST_2A03),		// // //
-	m_cSamples(),
-	m_cSamplePitch(),
-	m_cSampleLoopOffset()
+CInstrument2A03::CInstrument2A03() : CSeqInstrument(INST_2A03)		// // //
 {
-	for (int n = 0; n < NOTE_COUNT; ++n)
-		m_cSampleDelta[n] = -1;
 }
 
 std::unique_ptr<CInstrument> CInstrument2A03::Clone() const
@@ -264,54 +259,54 @@ int CInstrument2A03::GetSampleCount() const		// // // 050B
 	return Count;
 }
 
-char CInstrument2A03::GetSampleIndex(int MidiNote) const
+int CInstrument2A03::GetSampleIndex(int MidiNote) const
 {
-	return m_cSamples[MidiNote];
+	return m_Assignments[MidiNote].Index;
 }
 
 char CInstrument2A03::GetSamplePitch(int MidiNote) const
 {
-	return m_cSamplePitch[MidiNote];
+	return m_Assignments[MidiNote].Pitch;
 }
 
 bool CInstrument2A03::GetSampleLoop(int MidiNote) const
 {
-	return (m_cSamplePitch[MidiNote] & 0x80) == 0x80;
+	return (m_Assignments[MidiNote].Pitch & 0x80u) == 0x80u;
 }
 
 char CInstrument2A03::GetSampleLoopOffset(int MidiNote) const
 {
-	return m_cSampleLoopOffset[MidiNote];
+	return m_Assignments[MidiNote].LoopOffset;
 }
 
 char CInstrument2A03::GetSampleDeltaValue(int MidiNote) const
 {
-	return m_cSampleDelta[MidiNote];
+	return m_Assignments[MidiNote].Delta;
 }
 
-void CInstrument2A03::SetSampleIndex(int MidiNote, char Sample)
+void CInstrument2A03::SetSampleIndex(int MidiNote, int Sample)
 {
-	m_cSamples[MidiNote] = Sample;
+	m_Assignments[MidiNote].Index = Sample;
 }
 
 void CInstrument2A03::SetSamplePitch(int MidiNote, char Pitch)
 {
-	m_cSamplePitch[MidiNote] = Pitch;
+	m_Assignments[MidiNote].Pitch = Pitch;
 }
 
 void CInstrument2A03::SetSampleLoop(int MidiNote, bool Loop)
 {
-	m_cSamplePitch[MidiNote] = (m_cSamplePitch[MidiNote] & 0x7F) | (Loop ? 0x80 : 0);
+	m_Assignments[MidiNote].Pitch = (m_Assignments[MidiNote].Pitch & 0x7Fu) | (Loop ? 0x80u : 0x00u);
 }
 
 void CInstrument2A03::SetSampleLoopOffset(int MidiNote, char Offset)
 {
-	m_cSampleLoopOffset[MidiNote] = Offset;
+	m_Assignments[MidiNote].LoopOffset = Offset;
 }
 
 void CInstrument2A03::SetSampleDeltaValue(int MidiNote, char Value)
 {
-	m_cSampleDelta[MidiNote] = Value;
+	m_Assignments[MidiNote].Delta = Value;
 }
 
 bool CInstrument2A03::AssignedSamples() const

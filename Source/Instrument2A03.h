@@ -24,6 +24,7 @@
 #pragma once
 
 #include "SeqInstrument.h"		// // //
+#include <array>		// // //
 
 namespace ft0cc::doc {
 class dpcm_sample;
@@ -41,12 +42,12 @@ private:
 
 public:
 	// // // Samples
-	char	GetSampleIndex(int MidiNote) const;
+	unsigned GetSampleIndex(int MidiNote) const;		// // //
 	char	GetSamplePitch(int MidiNote) const;
 	bool	GetSampleLoop(int MidiNote) const;
 	char	GetSampleLoopOffset(int MidiNote) const;
 	char	GetSampleDeltaValue(int MidiNote) const;
-	void	SetSampleIndex(int MidiNote, char Sample);
+	void	SetSampleIndex(int MidiNote, unsigned Sample);		// // //
 	void	SetSamplePitch(int MidiNote, char Pitch);
 	void	SetSampleLoop(int MidiNote, bool Loop);
 	void	SetSampleLoopOffset(int MidiNote, char Offset);
@@ -67,8 +68,12 @@ public:
 	const char *GetSequenceName(int Index) const override { return SEQUENCE_NAME[Index]; }		// // //
 
 private:
-	char	m_cSamples[NOTE_COUNT] = { };				// // // Samples
-	char	m_cSamplePitch[NOTE_COUNT] = { };			// Play pitch/loop
-	char	m_cSampleLoopOffset[NOTE_COUNT] = { };		// Loop offset
-	char	m_cSampleDelta[NOTE_COUNT] = { };			// Delta setting
+	struct DPCMAssignment {
+		unsigned Index = 0u;
+		uint8_t Pitch = 0x0Fu;
+		uint8_t LoopOffset = 0;
+		uint8_t Delta = (uint8_t)-1;
+	};
+
+	std::array<DPCMAssignment, NOTE_COUNT> m_Assignments;		// // //
 };
