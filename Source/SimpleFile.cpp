@@ -79,22 +79,22 @@ void CSimpleFile::WriteStringNull(std::string_view sv)
 
 char CSimpleFile::ReadChar()
 {
-	char buf[1];
-	m_fFile.read(buf, std::size(buf));
+	unsigned char buf[1];
+	ReadBytes(buf, std::size(buf));
 	return buf[0];
 }
 
 short CSimpleFile::ReadShort()
 {
-	char buf[2];
-	m_fFile.read(buf, std::size(buf));
+	unsigned char buf[2];
+	ReadBytes(buf, std::size(buf));
 	return buf[0] | (buf[1] << 8);
 }
 
 int CSimpleFile::ReadInt()
 {
-	char buf[4];
-	m_fFile.read(buf, std::size(buf));
+	unsigned char buf[4];
+	ReadBytes(buf, std::size(buf));
 	return buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24);
 }
 
