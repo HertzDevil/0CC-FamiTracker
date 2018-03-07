@@ -79,7 +79,7 @@ int CInstrumentListCtrl::GetInstrumentIndex(int Selection) const
 {
 	// Get the instrument number from an item in the list (Selection = list index)
 	if (Selection != -1) {
-		CStringW Text = GetItemText(Selection, 0);		// // //
+		CStringW Text = GetItemText(Selection, 0).Left(2);		// // //
 		if (auto x = conv::to_uint(Text, 16))
 			return *x;
 	}
