@@ -23,8 +23,10 @@
 #include "NoteName.h"
 #include "FamiTrackerTypes.h"
 #include "PatternNote.h"
+#ifndef AFL_FUZZ_ENABLED
 #include "FamiTrackerEnv.h"
 #include "Settings.h"
+#endif
 #include "NumConv.h"
 
 namespace {
@@ -57,7 +59,11 @@ std::string GetNoteString(note_t note, int octave) {
 		return "^-"s + std::to_string(octave);
 	default:
 		if (IsNote(note))
+#ifndef AFL_FUZZ_ENABLED
 			return std::string((Env.GetSettings()->Appearance.bDisplayFlats ? NOTE_NAME_FLAT : NOTE_NAME)[value_cast(note) - 1]) + std::to_string(octave);
+#else
+			return std::string((NOTE_NAME)[value_cast(note) - 1]) + std::to_string(octave);
+#endif
 		return "..."s;
 	}
 }

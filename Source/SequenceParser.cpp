@@ -22,7 +22,6 @@
 
 #include "SequenceParser.h"
 #include "Sequence.h"
-#include "PatternNote.h"
 #include "sv_regex.h"
 #include "NumConv.h"
 #include "NoteName.h"

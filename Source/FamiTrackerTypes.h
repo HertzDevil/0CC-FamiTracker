@@ -163,7 +163,7 @@ const effect_t N163_EFFECTS[] = {effect_t::N163_WAVE_BUFFER};
 const effect_t S5B_EFFECTS[] = {effect_t::SUNSOFT_ENV_TYPE, effect_t::SUNSOFT_ENV_HI, effect_t::SUNSOFT_ENV_LO, effect_t::SUNSOFT_NOISE};
 
 // Channel effect letters
-const char EFF_CHAR[] = {
+constexpr char EFF_CHAR[] = {
 	 0,		// // // blank
 	'F',	// Speed
 	'B',	// Jump
