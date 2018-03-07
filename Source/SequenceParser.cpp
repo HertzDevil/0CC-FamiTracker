@@ -340,12 +340,9 @@ void CSequenceParser::ParseSequence(std::string_view sv)
 	m_pSequence->SetSetting(Setting);
 	m_iPushedCount = 0;
 
-	const auto PushFunc = [&] () {
-		while (m_pConversion->IsReady()) {
-			m_pSequence->SetItem(m_iPushedCount, m_pConversion->GetValue());
-			if (++m_iPushedCount >= MAX_SEQUENCE_ITEMS)
-				break;
-		}
+	const auto PushFunc = [&] {
+		while (m_pConversion->IsReady() && m_iPushedCount < MAX_SEQUENCE_ITEMS)
+			m_pSequence->SetItem(m_iPushedCount++, m_pConversion->GetValue());
 	};
 
 	int Loop = -1, Release = -1;
