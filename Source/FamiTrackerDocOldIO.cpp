@@ -140,7 +140,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 					if (ImportedInstruments.AssignedSample > 0) {
 						int Pitch = 0;
 						for (int n = 0; n < 72; ++n) {		// // //
-							pInst->SetSampleIndex(n, ImportedInstruments.AssignedSample);
+							pInst->SetSampleIndex(n, ImportedInstruments.AssignedSample - 1);
 							pInst->SetSamplePitch(n, Pitch);
 							Pitch = (Pitch + 1) % 16;
 						}

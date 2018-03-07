@@ -399,7 +399,7 @@ void CFamiTrackerModule::RemoveUnusedDSamples() {
 							continue;
 						AssignUsed[Index][MIDI_NOTE(Note.Octave, Note.Note)] = true;
 						auto pInst = std::static_pointer_cast<CInstrument2A03>(InstManager.GetInstrument(Index));
-						if (pInst->GetSampleIndex(MIDI_NOTE(Note.Octave, Note.Note)) == i + 1)
+						if (pInst->GetSampleIndex(MIDI_NOTE(Note.Octave, Note.Note)) == i)
 							Used = true;
 					}
 				}
@@ -413,6 +413,6 @@ void CFamiTrackerModule::RemoveUnusedDSamples() {
 		if (auto pInst = dynamic_cast<CInstrument2A03 *>(&inst))
 			for (int n = 0; n < NOTE_COUNT; ++n)
 				if (!AssignUsed[i][n])
-					pInst->SetSampleIndex(n, 0);
+					pInst->SetSampleIndex(n, CInstrument2A03::NO_DPCM);
 	});
 }

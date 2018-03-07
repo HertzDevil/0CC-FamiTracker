@@ -66,10 +66,11 @@ void CInstrument2A03::Store(CDocumentFile *pDocFile) const
 		pDocFile->WriteBlockInt(GetSampleCount());
 	for (int n = 0; n < NOTE_RANGE * Octaves; ++n) {
 		if (Version >= 7) {		// // // 050B
-			if (!GetSampleIndex(n)) continue;
+			if (GetSampleIndex(n) == NO_DPCM)
+				continue;
 			pDocFile->WriteBlockChar(n);
 		}
-		pDocFile->WriteBlockChar(GetSampleIndex(n));
+		pDocFile->WriteBlockChar(GetSampleIndex(n) + 1);
 		pDocFile->WriteBlockChar(GetSamplePitch(n));
 		if (Version >= 6)
 			pDocFile->WriteBlockChar(GetSampleDeltaValue(n));
@@ -89,7 +90,7 @@ bool CInstrument2A03::Load(CDocumentFile *pDocFile)
 				pDocFile->GetBlockChar(), 0, MAX_DSAMPLES, "DPCM sample assignment index");
 			if (Index > MAX_DSAMPLES)
 				Index = 0;
-			SetSampleIndex(MidiNote, Index);
+			SetSampleIndex(MidiNote, Index - 1);
 			char Pitch = pDocFile->GetBlockChar();
 			CModuleException::AssertRangeFmt<MODULE_ERROR_STRICT>(Pitch & 0x7F, 0, 0xF, "DPCM sample pitch");
 			SetSamplePitch(MidiNote, Pitch & 0x8F);
@@ -144,14 +145,14 @@ void CInstrument2A03::DoSaveFTI(CSimpleFile &File) const
 
 	int UsedCount = 0;
 	for (int n = 0; n < NOTE_COUNT; ++n) {
-		if (unsigned char Sample = GetSampleIndex(n)) {
+		if (unsigned Sample = GetSampleIndex(n); Sample != NO_DPCM) {
 			File.WriteChar(n);
-			File.WriteChar(Sample);
+			File.WriteChar(Sample + 1);
 			File.WriteChar(GetSamplePitch(n));
 			File.WriteChar(GetSampleDeltaValue(n));
-			if (!UsedSamples[Sample - 1])
+			if (!UsedSamples[Sample])
 				++UsedCount;
-			UsedSamples[Sample - 1] = true;
+			UsedSamples[Sample] = true;
 		}
 	}
 
@@ -187,7 +188,7 @@ void CInstrument2A03::DoLoadFTI(CSimpleFile &File, int iVersion)
 			unsigned char Pitch = File.ReadChar();
 			CModuleException::AssertRangeFmt(Pitch & 0x7FU, 0U, 0xFU, "DPCM sample pitch");
 			SetSamplePitch(InstNote, Pitch);
-			SetSampleIndex(InstNote, Sample);
+			SetSampleIndex(InstNote, Sample - 1);
 			SetSampleDeltaValue(InstNote, CModuleException::AssertRangeFmt(
 				static_cast<char>(iVersion >= 24 ? File.ReadChar() : -1), -1, 0x7F, "DPCM sample delta value"));
 		}
@@ -224,8 +225,8 @@ void CInstrument2A03::DoLoadFTI(CSimpleFile &File, int iVersion)
 				Found = true;
 				// Assign sample
 				for (int n = 0; n < NOTE_COUNT; ++n)
-					if (GetSampleIndex(n) == (Index + 1) && !bAssigned[n]) {
-						SetSampleIndex(n, j + 1);
+					if (GetSampleIndex(n) == Index && !bAssigned[n]) {
+						SetSampleIndex(n, j);
 						bAssigned[n] = true;
 					}
 				break;
@@ -244,8 +245,8 @@ void CInstrument2A03::DoLoadFTI(CSimpleFile &File, int iVersion)
 		TotalSize += Size;
 		// Assign it
 		for (int n = 0; n < NOTE_COUNT; ++n)
-			if (GetSampleIndex(n) == (Index + 1) && !bAssigned[n]) {
-				SetSampleIndex(n, FreeSample + 1);
+			if (GetSampleIndex(n) == Index && !bAssigned[n]) {
+				SetSampleIndex(n, FreeSample);
 				bAssigned[n] = true;
 			}
 	}
@@ -255,11 +256,12 @@ int CInstrument2A03::GetSampleCount() const		// // // 050B
 {
 	int Count = 0;
 	for (int n = 0; n < NOTE_COUNT; ++n)
-		Count += (GetSampleIndex(n) > 0) ? 1 : 0;
+		if (GetSampleIndex(n) != NO_DPCM)
+			++Count;
 	return Count;
 }
 
-int CInstrument2A03::GetSampleIndex(int MidiNote) const
+unsigned CInstrument2A03::GetSampleIndex(int MidiNote) const		// // //
 {
 	return m_Assignments[MidiNote].Index;
 }
@@ -284,7 +286,7 @@ char CInstrument2A03::GetSampleDeltaValue(int MidiNote) const
 	return m_Assignments[MidiNote].Delta;
 }
 
-void CInstrument2A03::SetSampleIndex(int MidiNote, int Sample)
+void CInstrument2A03::SetSampleIndex(int MidiNote, unsigned Sample)		// // //
 {
 	m_Assignments[MidiNote].Index = Sample;
 }
@@ -314,15 +316,15 @@ bool CInstrument2A03::AssignedSamples() const
 	// Returns true if there are assigned samples in this instrument
 
 	for (int i = 0; i < NOTE_COUNT; ++i)
-		if (GetSampleIndex(i) != 0)
+		if (GetSampleIndex(i) != NO_DPCM)
 			return true;
 	return false;
 }
 
 std::shared_ptr<ft0cc::doc::dpcm_sample> CInstrument2A03::GetDSample(int MidiNote) const		// // //
 {
-	if (!m_pInstManager) return nullptr;
-	char Index = GetSampleIndex(MidiNote);
-	if (!Index) return nullptr;
-	return m_pInstManager->GetDSample(Index - 1);
+	if (!m_pInstManager)
+		return nullptr;
+	unsigned Index = GetSampleIndex(MidiNote);
+	return Index != NO_DPCM ? m_pInstManager->GetDSample(Index) : nullptr;
 }

@@ -763,7 +763,7 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 			int in = t.ReadInt(0, 11);		// // //
 			auto MidiNote = io * NOTE_RANGE + in;
 
-			pInst->SetSampleIndex(MidiNote, t.ReadInt(0, MAX_DSAMPLES - 1) + 1);
+			pInst->SetSampleIndex(MidiNote, t.ReadInt(0, MAX_DSAMPLES - 1));
 			pInst->SetSamplePitch(MidiNote, t.ReadInt(0, 15));
 			pInst->SetSampleLoop(MidiNote, t.ReadInt(0, 1) == 1);
 			pInst->SetSampleLoopOffset(MidiNote, t.ReadInt(0, 255));
@@ -1164,17 +1164,14 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		case INST_2A03:
 			{
 				auto pDI = std::static_pointer_cast<CInstrument2A03>(pInst);
-				for (int n = 0; n < NOTE_COUNT; ++n)
-				{
-					int smp = pDI->GetSampleIndex(n);
-					if (smp != 0)
-					{
+				for (int n = 0; n < NOTE_COUNT; ++n) {
+					if (unsigned smp = pDI->GetSampleIndex(n); smp != CInstrument2A03::NO_DPCM) {
 						int d = pDI->GetSampleDeltaValue(n);
-						WriteString(FormattedA("%s %3d %3d %3d   %3d %3d %3d %5d %3d\n",
+						WriteString(FormattedA("%s %3d %3d %3d   %3u %3d %3d %5d %3d\n",
 							CT[CT_KEYDPCM],
 							i,
 							GET_OCTAVE(n), value_cast(GET_NOTE(n)) - 1,
-							smp - 1,
+							smp,
 							pDI->GetSamplePitch(n) & 0x0F,
 							pDI->GetSampleLoop(n) ? 1 : 0,
 							pDI->GetSampleLoopOffset(n),

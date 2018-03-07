@@ -149,8 +149,8 @@ void CModuleImporter::ImportInstruments() {
 			// Update DPCM samples
 			if (auto p2A03 = dynamic_cast<CInstrument2A03 *>(pSeq))
 				for (int n = 0; n < NOTE_COUNT; ++n)
-					if (int Sample = p2A03->GetSampleIndex(n); Sample != 0)
-						p2A03->SetSampleIndex(n, SamplesTable[Sample - 1] + 1);
+					if (unsigned Sample = p2A03->GetSampleIndex(n); Sample != CInstrument2A03::NO_DPCM)
+						p2A03->SetSampleIndex(n, SamplesTable[Sample]);
 		}
 
 		int Index = pManager->GetFirstUnused();

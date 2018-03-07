@@ -282,7 +282,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 				if (LookUp > 0) {
 					NESNote = LookUp - 1;
 					if (auto pInstrument = std::dynamic_pointer_cast<CInstrument2A03>(pInstManager->GetInstrument(DPCMInst)))
-						m_bDSamplesAccessed[pInstrument->GetSampleIndex(MIDI_NOTE(Octave, Note)) - 1] = true;
+						m_bDSamplesAccessed[pInstrument->GetSampleIndex(MIDI_NOTE(Octave, Note))] = true;
 					// TODO: Print errors if incompatible or non-existing instrument is found
 				}
 				else {

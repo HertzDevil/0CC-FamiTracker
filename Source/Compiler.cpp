@@ -1324,11 +1324,10 @@ void CCompiler::CreateSampleList()
 
 			for (int n = 0; n < NOTE_COUNT; ++n) {
 				// Get sample
-				unsigned char iSample = pInstrument->GetSampleIndex(n);
-				if ((iSample > 0) && m_bSamplesAccessed[i][n] && Dm.IsSampleUsed(iSample - 1)) {
-
+				unsigned iSample = pInstrument->GetSampleIndex(n);
+				if ((iSample != CInstrument2A03::NO_DPCM) && m_bSamplesAccessed[i][n] && Dm.IsSampleUsed(iSample)) {		// // //
 					unsigned char SamplePitch = pInstrument->GetSamplePitch(n);
-					unsigned char SampleIndex = GetSampleIndex(iSample - 1);
+					unsigned char SampleIndex = GetSampleIndex(iSample);
 					unsigned int  SampleDelta = pInstrument->GetSampleDeltaValue(n);
 					SamplePitch |= (SamplePitch & 0x80) >> 1;
 

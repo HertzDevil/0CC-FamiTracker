@@ -67,9 +67,11 @@ public:
 	static const char *const SEQUENCE_NAME[];
 	const char *GetSequenceName(int Index) const override { return SEQUENCE_NAME[Index]; }		// // //
 
+	static constexpr unsigned NO_DPCM = (unsigned)-1;
+
 private:
 	struct DPCMAssignment {
-		unsigned Index = 0u;
+		unsigned Index = NO_DPCM;
 		uint8_t Pitch = 0x0Fu;
 		uint8_t LoopOffset = 0;
 		uint8_t Delta = (uint8_t)-1;
