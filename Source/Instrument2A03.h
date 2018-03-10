@@ -34,13 +34,7 @@ class CInstrument2A03 : public CSeqInstrument {
 public:
 	CInstrument2A03();
 	std::unique_ptr<CInstrument> Clone() const override;
-	void	Store(CDocumentFile *pFile) const override;
-	void	Load(CDocumentFile *pDocFile) override;
 
-private:
-	int		GetSampleCount() const;		// // // 050B
-
-public:
 	// // // Samples
 	unsigned GetSampleIndex(int MidiNote) const;		// // //
 	char	GetSamplePitch(int MidiNote) const;
@@ -53,6 +47,7 @@ public:
 	void	SetSampleLoopOffset(int MidiNote, char Offset);
 	void	SetSampleDeltaValue(int MidiNote, char Offset);
 
+	int		GetSampleCount() const;		// // // 050B
 	bool	AssignedSamples() const;
 	std::shared_ptr<ft0cc::doc::dpcm_sample> GetDSample(int MidiNote) const;		// // //
 

@@ -33,8 +33,6 @@ class CInstrumentFDS : public CSeqInstrument {
 public:
 	CInstrumentFDS();
 	std::unique_ptr<CInstrument> Clone() const override;
-	void	Store(CDocumentFile *pDocFile) const override;
-	void	Load(CDocumentFile *pDocFile) override;
 	bool	CanRelease() const override;
 
 public:
@@ -61,8 +59,6 @@ protected:
 	void	CloneFrom(const CInstrument *pInst) override;		// // //
 
 private:
-	void StoreSequence(CDocumentFile &DocFile, const CSequence &Seq) const;		// // //
-	std::shared_ptr<CSequence> LoadSequence(CDocumentFile &DocFile, sequence_t SeqType) const;
 	void StoreInstSequence(CSimpleFile &File, const CSequence &Seq) const;		// // //
 	std::shared_ptr<CSequence> LoadInstSequence(CSimpleFile &File, sequence_t SeqType) const;		// // //
 	void DoubleVolume() const;		// // //

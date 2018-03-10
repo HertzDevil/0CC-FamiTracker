@@ -22,7 +22,6 @@
 
 #include "InstrumentN163.h"		// // //
 #include "ModuleException.h"		// // //
-#include "DocumentFile.h"
 #include "SimpleFile.h"
 
 // // // Default wave
@@ -68,48 +67,6 @@ void CInstrumentN163::CloneFrom(const CInstrument *pInst)
 		SetWaveCount(pNew->GetWaveCount());
 
 		m_iSamples = pNew->m_iSamples;
-	}
-}
-
-void CInstrumentN163::Store(CDocumentFile *pDocFile) const
-{
-	// Store sequences
-	CSeqInstrument::Store(pDocFile);		// // //
-
-	// Store wave
-	pDocFile->WriteBlockInt(m_iWaveSize);
-	pDocFile->WriteBlockInt(m_iWavePos);
-	//pDocFile->WriteBlockInt(m_bAutoWavePos ? 1 : 0);
-	pDocFile->WriteBlockInt(m_iWaveCount);
-
-	for (int i = 0; i < m_iWaveCount; ++i) {
-		for (unsigned j = 0; j < m_iWaveSize; ++j) {
-			pDocFile->WriteBlockChar(m_iSamples[i][j]);
-		}
-	}
-}
-
-void CInstrumentN163::Load(CDocumentFile *pDocFile)
-{
-	CSeqInstrument::Load(pDocFile);		// // //
-
-	m_iWaveSize = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 4, MAX_WAVE_SIZE, "N163 wave size");
-	m_iWavePos = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 0, MAX_WAVE_SIZE - 1, "N163 wave position");
-	CModuleException::AssertRangeFmt<MODULE_ERROR_OFFICIAL>(m_iWavePos, 0, 0x7F, "N163 wave position");
-	if (pDocFile->GetBlockVersion() >= 8) {		// // // 050B
-		(void)(pDocFile->GetBlockInt() != 0);
-	}
-	m_iWaveCount = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 1, MAX_WAVE_COUNT, "N163 wave count");
-	CModuleException::AssertRangeFmt<MODULE_ERROR_OFFICIAL>(m_iWaveCount, 1, 0x10, "N163 wave count");
-
-	for (int i = 0; i < m_iWaveCount; ++i) {
-		for (unsigned j = 0; j < m_iWaveSize; ++j) try {
-			m_iSamples[i][j] = CModuleException::AssertRangeFmt(pDocFile->GetBlockChar(), 0, 15, "N163 wave sample");
-		}
-		catch (CModuleException e) {
-			e.AppendError("At wave %i, sample %i,", i, j);
-			throw e;
-		}
 	}
 }
 

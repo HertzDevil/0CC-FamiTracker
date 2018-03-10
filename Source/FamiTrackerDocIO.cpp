@@ -36,6 +36,8 @@
 #include "SoundGen.h"
 #include "ChannelMap.h"
 
+#include "InstrumentService.h"
+#include "InstrumentIO.h"
 #include "InstrumentManager.h"
 #include "Instrument2A03.h"
 #include "InstrumentVRC6.h" // error message
@@ -487,7 +489,7 @@ void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerModule &modfile, int ver) {
 		try {
 			// Load the instrument
 			AssertFileData(pInstrument.get() != nullptr, "Failed to create instrument");
-			pInstrument->Load(&file_);
+			Env.GetInstrumentService()->GetInstrumentIO(Type).ReadFromModule(*pInstrument, file_);		// // //
 			// Read name
 			int size = AssertRange(file_.GetBlockInt(), 0, CInstrument::INST_NAME_MAX, "Instrument name length");
 			char Name[CInstrument::INST_NAME_MAX + 1];
@@ -539,7 +541,7 @@ void CFamiTrackerDocIO::SaveInstruments(const CFamiTrackerModule &modfile, int v
 			file_.WriteBlockChar(static_cast<char>(pInst->GetType()));
 
 			// Store the instrument
-			pInst->Store(&file_);
+			Env.GetInstrumentService()->GetInstrumentIO(pInst->GetType()).WriteToModule(*pInst, file_);		// // //
 
 			// Store the name
 			file_.WriteStringCounted(pInst->GetName());		// // //

@@ -22,7 +22,6 @@
 
 #include "InstrumentVRC7.h"		// // //
 #include "ModuleException.h"		// // //
-#include "DocumentFile.h"
 #include "SimpleFile.h"
 
 /*
@@ -57,22 +56,6 @@ void CInstrumentVRC7::CloneFrom(const CInstrument *pInst)
 		for (int i = 0; i < 8; ++i)
 			SetCustomReg(i, pNew->GetCustomReg(i));
 	}
-}
-
-void CInstrumentVRC7::Store(CDocumentFile *pDocFile) const
-{
-	pDocFile->WriteBlockInt(m_iPatch);
-
-	for (int i = 0; i < 8; ++i)
-		pDocFile->WriteBlockChar(GetCustomReg(i));
-}
-
-void CInstrumentVRC7::Load(CDocumentFile *pDocFile)
-{
-	m_iPatch = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 0, 0xF, "VRC7 patch number");
-
-	for (int i = 0; i < 8; ++i)
-		SetCustomReg(i, pDocFile->GetBlockChar());
 }
 
 void CInstrumentVRC7::DoSaveFTI(CSimpleFile &File) const

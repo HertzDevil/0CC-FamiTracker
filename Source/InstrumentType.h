@@ -27,6 +27,7 @@
 
 class CInstrument;
 class CInstCompiler;
+class CInstrumentIO;
 enum inst_type_t : unsigned;
 
 class CInstrumentType {
@@ -34,5 +35,6 @@ public:
 	virtual ~CInstrumentType() noexcept = default;
 	virtual inst_type_t GetID() const = 0;
 	virtual std::unique_ptr<CInstrument> MakeInstrument() const = 0;
+	virtual const CInstrumentIO &GetInstrumentIO() const = 0;
 	virtual const CInstCompiler &GetChunkCompiler() const = 0;
 };

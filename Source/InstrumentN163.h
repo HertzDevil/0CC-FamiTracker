@@ -31,8 +31,6 @@ class CInstrumentN163 : public CSeqInstrument {
 public:
 	CInstrumentN163();
 	std::unique_ptr<CInstrument> Clone() const override;
-	void	Store(CDocumentFile *pDocFile) const override;
-	void	Load(CDocumentFile *pDocFile) override;
 
 public:
 	unsigned GetWaveSize() const;		// // //

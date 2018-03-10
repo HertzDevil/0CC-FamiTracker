@@ -22,7 +22,6 @@
 
 #include "SeqInstrument.h"
 #include "ModuleException.h"
-#include "DocumentFile.h"
 #include "InstrumentManagerInterface.h"
 #include "Sequence.h"
 #include "OldSequence.h"		// // //
@@ -69,29 +68,6 @@ void CSeqInstrument::OnBlankInstrument()		// // //
 		if (newIndex != -1)
 			index = newIndex;
 	}
-}
-
-void CSeqInstrument::Store(CDocumentFile *pDocFile) const
-{
-	pDocFile->WriteBlockInt(seq_indices_.size());
-
-	for (const auto &[_, v] : seq_indices_) {
-		(void)_;
-		pDocFile->WriteBlockChar(v.first ? 1 : 0);
-		pDocFile->WriteBlockChar(v.second);
-	}
-}
-
-void CSeqInstrument::Load(CDocumentFile *pDocFile)
-{
-	CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 0, (int)SEQ_COUNT, "Instrument sequence count"); // unused right now
-
-	foreachSeq([&] (sequence_t i) {
-		SetSeqEnable(i, 0 != CModuleException::AssertRangeFmt<MODULE_ERROR_STRICT>(
-			pDocFile->GetBlockChar(), 0, 1, "Instrument sequence enable flag"));
-		int Index = static_cast<unsigned char>(pDocFile->GetBlockChar());		// // //
-		SetSeqIndex(i, CModuleException::AssertRangeFmt(Index, 0, MAX_SEQUENCES - 1, "Instrument sequence index"));
-	});
 }
 
 void CSeqInstrument::DoSaveFTI(CSimpleFile &File) const
@@ -171,6 +147,10 @@ void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
 			throw e;
 		}
 	});
+}
+
+int CSeqInstrument::GetSeqCount() const {		// // //
+	return seq_indices_.size();
 }
 
 bool CSeqInstrument::GetSeqEnable(sequence_t SeqType) const

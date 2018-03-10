@@ -24,7 +24,6 @@
 #include "ModuleException.h"		// // //
 #include "InstrumentManagerInterface.h"		// // //
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
-#include "DocumentFile.h"
 #include "SimpleFile.h"
 
 // 2A03 instruments
@@ -53,72 +52,6 @@ void CInstrument2A03::CloneFrom(const CInstrument *pInst)
 			SetSampleDeltaValue(n, pNew->GetSampleDeltaValue(n));
 		}
 	}
-}
-
-void CInstrument2A03::Store(CDocumentFile *pDocFile) const
-{
-	CSeqInstrument::Store(pDocFile);		// // //
-
-	int Version = 6;
-	int Octaves = Version >= 2 ? OCTAVE_RANGE : 6;
-
-	if (Version >= 7)		// // // 050B
-		pDocFile->WriteBlockInt(GetSampleCount());
-	for (int n = 0; n < NOTE_RANGE * Octaves; ++n) {
-		if (Version >= 7) {		// // // 050B
-			if (GetSampleIndex(n) == NO_DPCM)
-				continue;
-			pDocFile->WriteBlockChar(n);
-		}
-		pDocFile->WriteBlockChar(GetSampleIndex(n) + 1);
-		pDocFile->WriteBlockChar(GetSamplePitch(n));
-		if (Version >= 6)
-			pDocFile->WriteBlockChar(GetSampleDeltaValue(n));
-	}
-}
-
-void CInstrument2A03::Load(CDocumentFile *pDocFile)
-{
-	CSeqInstrument::Load(pDocFile);		// // //
-
-	const int Version = pDocFile->GetBlockVersion();
-	const int Octaves = (Version == 1) ? 6 : OCTAVE_RANGE;
-
-	const auto ReadAssignment = [&] (int MidiNote) {
-		try {
-			int Index = CModuleException::AssertRangeFmt<MODULE_ERROR_STRICT>(
-				pDocFile->GetBlockChar(), 0, MAX_DSAMPLES, "DPCM sample assignment index");
-			if (Index > MAX_DSAMPLES)
-				Index = 0;
-			SetSampleIndex(MidiNote, Index - 1);
-			char Pitch = pDocFile->GetBlockChar();
-			CModuleException::AssertRangeFmt<MODULE_ERROR_STRICT>(Pitch & 0x7F, 0, 0xF, "DPCM sample pitch");
-			SetSamplePitch(MidiNote, Pitch & 0x8F);
-			if (Version > 5) {
-				char Value = pDocFile->GetBlockChar();
-				if (Value < -1) // not validated
-					Value = -1;
-				SetSampleDeltaValue(MidiNote, Value);
-			}
-		}
-		catch (CModuleException e) {
-			e.AppendError("At note %i, octave %i,", value_cast(GET_NOTE(MidiNote)), GET_OCTAVE(MidiNote));
-			throw e;
-		}
-	};
-
-	if (Version >= 7) {		// // // 050B
-		const int Count = CModuleException::AssertRangeFmt<MODULE_ERROR_STRICT>(
-			pDocFile->GetBlockInt(), 0, NOTE_COUNT, "DPCM sample assignment count");
-		for (int i = 0; i < Count; ++i) {
-			int Note = CModuleException::AssertRangeFmt<MODULE_ERROR_STRICT>(
-				pDocFile->GetBlockChar(), 0, NOTE_COUNT - 1, "DPCM sample assignment note index");
-			ReadAssignment(Note);
-		}
-	}
-	else
-		for (int n = 0; n < NOTE_COUNT; ++n)
-			ReadAssignment(n);
 }
 
 void CInstrument2A03::DoSaveFTI(CSimpleFile &File) const

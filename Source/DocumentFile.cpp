@@ -133,7 +133,7 @@ void CDocumentFile::WriteBlock(array_view<unsigned char> Data)		// // //
 
 	unsigned Previous = m_iBlockPointer;
 	while (!Data.empty()) {
-		auto Block = Data.subview(BLOCK_SIZE);
+		auto Block = Data.subview(0, BLOCK_SIZE);
 
 		if ((m_iBlockPointer + Block.size()) >= m_iMaxBlockSize)
 			ReallocateBlock();

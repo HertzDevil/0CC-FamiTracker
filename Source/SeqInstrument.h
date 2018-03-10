@@ -36,10 +36,9 @@ class CSeqInstrument : public CInstrument		// // //
 public:
 	CSeqInstrument(inst_type_t type);
 	std::unique_ptr<CInstrument> Clone() const override;
-	void	Store(CDocumentFile *pDocFile) const override;
-	void	Load(CDocumentFile *pDocFile) override;
 	bool	CanRelease() const override;
 
+	virtual int		GetSeqCount() const;		// // //
 	virtual bool	GetSeqEnable(sequence_t SeqType) const;		// // //
 	virtual void	SetSeqEnable(sequence_t SeqType, bool Enable);
 	virtual int		GetSeqIndex(sequence_t SeqType) const;

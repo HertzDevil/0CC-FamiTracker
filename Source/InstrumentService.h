@@ -29,11 +29,13 @@
 
 class CInstrument;
 class CInstCompiler;
+class CInstrumentIO;
 enum inst_type_t : unsigned;
 
 class CInstrumentService {
 public:
 	std::unique_ptr<CInstrument> Make(inst_type_t index) const;
+	const CInstrumentIO &GetInstrumentIO(inst_type_t index) const;
 	const CInstCompiler &GetChunkCompiler(inst_type_t index) const;
 
 	void AddType(std::unique_ptr<CInstrumentType> itype);

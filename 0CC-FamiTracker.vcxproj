@@ -467,6 +467,7 @@
     <ClCompile Include="Source\FrameClipData.cpp" />
     <ClCompile Include="Source\FrameEditorModel.cpp" />
     <ClCompile Include="Source\InstCompiler.cpp" />
+    <ClCompile Include="Source\InstrumentIO.cpp" />
     <ClCompile Include="Source\InstrumentService.cpp" />
     <ClCompile Include="Source\InstrumentTypeImpl.cpp" />
     <ClCompile Include="Source\Kraid.cpp" />
@@ -669,6 +670,7 @@
     <ClInclude Include="Source\FrameEditorTypes.h" />
     <ClInclude Include="Source\Highlight.h" />
     <ClInclude Include="Source\InstCompiler.h" />
+    <ClInclude Include="Source\InstrumentIO.h" />
     <ClInclude Include="Source\InstrumentListCtrl.h" />
     <ClInclude Include="Source\InstrumentType.h" />
     <ClInclude Include="Source\InstrumentTypeImpl.h" />

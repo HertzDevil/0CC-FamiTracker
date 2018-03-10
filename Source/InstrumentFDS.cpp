@@ -22,7 +22,6 @@
 
 #include "InstrumentFDS.h"		// // //
 #include "Sequence.h"		// // //
-#include "DocumentFile.h"
 #include "SimpleFile.h"
 #include "ModuleException.h"		// // //
 #include "Assertion.h"		// // //
@@ -111,114 +110,11 @@ std::shared_ptr<CSequence> CInstrumentFDS::LoadInstSequence(CSimpleFile &File, s
 	return pSeq;
 }
 
-void CInstrumentFDS::StoreSequence(CDocumentFile &DocFile, const CSequence &Seq) const
-{
-	// Store number of items in this sequence
-	DocFile.WriteBlockChar(Seq.GetItemCount());
-	// Store loop point
-	DocFile.WriteBlockInt(Seq.GetLoopPoint());
-	// Store release point (v4)
-	DocFile.WriteBlockInt(Seq.GetReleasePoint());
-	// Store setting (v4)
-	DocFile.WriteBlockInt(Seq.GetSetting());
-	// Store items
-	for (unsigned int j = 0; j < Seq.GetItemCount(); j++) {
-		DocFile.WriteBlockChar(Seq.GetItem(j));
-	}
-}
-
-std::shared_ptr<CSequence> CInstrumentFDS::LoadSequence(CDocumentFile &DocFile, sequence_t SeqType) const
-{
-	int SeqCount = static_cast<unsigned char>(DocFile.GetBlockChar());
-	unsigned int LoopPoint = CModuleException::AssertRangeFmt(DocFile.GetBlockInt(), -1, SeqCount - 1, "Sequence loop point");
-	unsigned int ReleasePoint = CModuleException::AssertRangeFmt(DocFile.GetBlockInt(), -1, SeqCount - 1, "Sequence release point");
-
-	// CModuleException::AssertRangeFmt(SeqCount, 0, MAX_SEQUENCE_ITEMS, "Sequence item count", "%i");
-
-	auto pSeq = std::make_shared<CSequence>(SeqType);
-	pSeq->SetItemCount(SeqCount > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : SeqCount);
-	pSeq->SetLoopPoint(LoopPoint);
-	pSeq->SetReleasePoint(ReleasePoint);
-	pSeq->SetSetting(static_cast<seq_setting_t>(DocFile.GetBlockInt()));		// // //
-
-	for (int x = 0; x < SeqCount; ++x) {
-		char Value = DocFile.GetBlockChar();
-		pSeq->SetItem(x, Value);
-	}
-
-	return pSeq;
-}
-
 void CInstrumentFDS::DoubleVolume() const
 {
 	auto &Vol = *GetSequence(sequence_t::Volume);
 	for (unsigned int i = 0; i < Vol.GetItemCount(); ++i)
 		Vol.SetItem(i, Vol.GetItem(i) * 2);
-}
-
-void CInstrumentFDS::Store(CDocumentFile *pDocFile) const
-{
-	// Write wave
-	for (auto x : m_iSamples)		// // //
-		pDocFile->WriteBlockChar(x);
-	for (auto x : m_iModulation)
-		pDocFile->WriteBlockChar(x);
-
-	// Modulation parameters
-	pDocFile->WriteBlockInt(GetModulationSpeed());
-	pDocFile->WriteBlockInt(GetModulationDepth());
-	pDocFile->WriteBlockInt(GetModulationDelay());
-
-	// Sequences
-	StoreSequence(*pDocFile, *GetSequence(sequence_t::Volume));		// // //
-	StoreSequence(*pDocFile, *GetSequence(sequence_t::Arpeggio));
-	StoreSequence(*pDocFile, *GetSequence(sequence_t::Pitch));
-}
-
-void CInstrumentFDS::Load(CDocumentFile *pDocFile)
-{
-	for (auto &x : m_iSamples)		// // //
-		x = pDocFile->GetBlockChar();
-	for (auto &x : m_iModulation)
-		x = pDocFile->GetBlockChar();
-
-	SetModulationSpeed(pDocFile->GetBlockInt());
-	SetModulationDepth(pDocFile->GetBlockInt());
-	SetModulationDelay(pDocFile->GetBlockInt());
-
-	// hack to fix earlier saved files (remove this eventually)
-/*
-	if (pDocFile->GetBlockVersion() > 2) {
-		LoadSequence(pDocFile, GetSequence(sequence_t::Volume));
-		LoadSequence(pDocFile, GetSequence(sequence_t::Arpeggio));
-		if (pDocFile->GetBlockVersion() > 2)
-			LoadSequence(pDocFile, GetSequence(sequence_t::Pitch));
-	}
-	else {
-*/
-	unsigned int a = pDocFile->GetBlockInt();
-	unsigned int b = pDocFile->GetBlockInt();
-	pDocFile->RollbackPointer(8);
-
-	if (a < 256 && (b & 0xFF) != 0x00) {
-	}
-	else {
-		SetSequence(sequence_t::Volume, LoadSequence(*pDocFile, sequence_t::Volume));		// // //
-		SetSequence(sequence_t::Arpeggio, LoadSequence(*pDocFile, sequence_t::Arpeggio));
-		//
-		// Note: Remove this line when files are unable to load
-		// (if a file contains FDS instruments but FDS is disabled)
-		// this was a problem in an earlier version.
-		//
-		if (pDocFile->GetBlockVersion() > 2)
-			SetSequence(sequence_t::Pitch, LoadSequence(*pDocFile, sequence_t::Pitch));
-	}
-
-//	}
-
-	// Older files was 0-15, new is 0-31
-	if (pDocFile->GetBlockVersion() <= 3)
-		DoubleVolume();
 }
 
 void CInstrumentFDS::OnBlankInstrument() {		// // //
