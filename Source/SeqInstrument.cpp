@@ -98,22 +98,22 @@ bool CSeqInstrument::Load(CDocumentFile *pDocFile)
 
 void CSeqInstrument::DoSaveFTI(CSimpleFile &File) const
 {
-	File.WriteChar(static_cast<char>(seq_indices_.size()));
+	File.WriteInt8(static_cast<char>(seq_indices_.size()));
 
 	foreachSeq([&] (sequence_t i) {
 		if (GetSeqEnable(i)) {
 			const auto pSeq = GetSequence(i);
-			File.WriteChar(1);
-			File.WriteInt(pSeq->GetItemCount());
-			File.WriteInt(pSeq->GetLoopPoint());
-			File.WriteInt(pSeq->GetReleasePoint());
-			File.WriteInt(pSeq->GetSetting());
+			File.WriteInt8(1);
+			File.WriteInt32(pSeq->GetItemCount());
+			File.WriteInt32(pSeq->GetLoopPoint());
+			File.WriteInt32(pSeq->GetReleasePoint());
+			File.WriteInt32(pSeq->GetSetting());
 			for (unsigned j = 0; j < pSeq->GetItemCount(); j++) {
-				File.WriteChar(pSeq->GetItem(j));
+				File.WriteInt8(pSeq->GetItem(j));
 			}
 		}
 		else {
-			File.WriteChar(0);
+			File.WriteInt8(0);
 		}
 	});
 }
@@ -123,12 +123,12 @@ void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
 	// Sequences
 	std::shared_ptr<CSequence> pSeq;		// // //
 
-	CModuleException::AssertRangeFmt(File.ReadChar(), 0, (int)SEQ_COUNT, "Sequence count"); // unused right now
+	CModuleException::AssertRangeFmt(File.ReadInt8(), 0, (int)SEQ_COUNT, "Sequence count"); // unused right now
 
 	// Loop through all instrument effects
 	foreachSeq([&] (sequence_t i) {
 		try {
-			if (File.ReadChar() != 1) {
+			if (File.ReadInt8() != 1) {
 				SetSeqEnable(i, false);
 				SetSeqIndex(i, 0);
 				return;
@@ -136,13 +136,13 @@ void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
 			SetSeqEnable(i, true);
 
 			// Read the sequence
-			int Count = CModuleException::AssertRangeFmt(File.ReadInt(), 0, 0xFF, "Sequence item count");
+			int Count = CModuleException::AssertRangeFmt(File.ReadInt32(), 0, 0xFF, "Sequence item count");
 
 			if (iVersion < 20) {
 				COldSequence OldSeq;
 				for (int j = 0; j < Count; ++j) {
-					char Length = File.ReadChar();
-					OldSeq.AddItem(Length, File.ReadChar());
+					char Length = File.ReadInt8();
+					OldSeq.AddItem(Length, File.ReadInt8());
 				}
 				pSeq = OldSeq.Convert(i);
 			}
@@ -151,15 +151,15 @@ void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
 				int Count2 = Count > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : Count;
 				pSeq->SetItemCount(Count2);
 				pSeq->SetLoopPoint(CModuleException::AssertRangeFmt(
-					static_cast<int>(File.ReadInt()), -1, Count2 - 1, "Sequence loop point"));
+					static_cast<int>(File.ReadInt32()), -1, Count2 - 1, "Sequence loop point"));
 				if (iVersion > 20) {
 					pSeq->SetReleasePoint(CModuleException::AssertRangeFmt(
-						static_cast<int>(File.ReadInt()), -1, Count2 - 1, "Sequence release point"));
+						static_cast<int>(File.ReadInt32()), -1, Count2 - 1, "Sequence release point"));
 					if (iVersion >= 22)
-						pSeq->SetSetting(static_cast<seq_setting_t>(File.ReadInt()));
+						pSeq->SetSetting(static_cast<seq_setting_t>(File.ReadInt32()));
 				}
 				for (int j = 0; j < Count; ++j) {
-					char item = File.ReadChar();
+					int8_t item = File.ReadInt8();
 					if (j < Count2)
 						pSeq->SetItem(j, item);
 				}

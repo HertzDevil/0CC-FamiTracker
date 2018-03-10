@@ -79,18 +79,18 @@ bool CInstrumentVRC7::Load(CDocumentFile *pDocFile)
 
 void CInstrumentVRC7::DoSaveFTI(CSimpleFile &File) const
 {
-	File.WriteInt(m_iPatch);
+	File.WriteInt32(m_iPatch);
 
 	for (int i = 0; i < 8; ++i)
-		File.WriteChar(GetCustomReg(i));
+		File.WriteInt8(GetCustomReg(i));
 }
 
 void CInstrumentVRC7::DoLoadFTI(CSimpleFile &File, int iVersion)
 {
-	m_iPatch = File.ReadInt();
+	m_iPatch = File.ReadInt32();
 
 	for (int i = 0; i < 8; ++i)
-		SetCustomReg(i, File.ReadChar());
+		SetCustomReg(i, File.ReadInt8());
 }
 
 bool CInstrumentVRC7::CanRelease() const

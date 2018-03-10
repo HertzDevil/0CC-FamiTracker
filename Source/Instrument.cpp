@@ -74,7 +74,7 @@ void CInstrument::SaveFTI(CSimpleFile &File) const {
 	File.WriteBytes(INST_VERSION);
 
 	// Write type
-	File.WriteChar(GetType());
+	File.WriteInt8(GetType());
 
 	// Write name
 	File.WriteString(GetName());

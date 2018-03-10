@@ -81,32 +81,32 @@ void CInstrumentFDS::CloneFrom(const CInstrument *pInst)
 void CInstrumentFDS::StoreInstSequence(CSimpleFile &File, const CSequence &Seq) const		// // //
 {
 	// Store number of items in this sequence
-	File.WriteInt(Seq.GetItemCount());
+	File.WriteInt32(Seq.GetItemCount());
 	// Store loop point
-	File.WriteInt(Seq.GetLoopPoint());
+	File.WriteInt32(Seq.GetLoopPoint());
 	// Store release point (v4)
-	File.WriteInt(Seq.GetReleasePoint());
+	File.WriteInt32(Seq.GetReleasePoint());
 	// Store setting (v4)
-	File.WriteInt(Seq.GetSetting());
+	File.WriteInt32(Seq.GetSetting());
 	// Store items
 	for (unsigned i = 0; i < Seq.GetItemCount(); ++i)
-		File.WriteChar(Seq.GetItem(i));
+		File.WriteInt8(Seq.GetItem(i));
 }
 
 std::shared_ptr<CSequence> CInstrumentFDS::LoadInstSequence(CSimpleFile &File, sequence_t SeqType) const		// // //
 {
-	int SeqCount = CModuleException::AssertRangeFmt(File.ReadInt(), 0, 0xFF, "Sequence item count");
-	int Loop = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), -1, SeqCount - 1, "Sequence loop point");
-	int Release = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), -1, SeqCount - 1, "Sequence release point");
+	int SeqCount = CModuleException::AssertRangeFmt(File.ReadInt32(), 0, 0xFF, "Sequence item count");
+	int Loop = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt32()), -1, SeqCount - 1, "Sequence loop point");
+	int Release = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt32()), -1, SeqCount - 1, "Sequence release point");
 
 	auto pSeq = std::make_shared<CSequence>(SeqType);
 	pSeq->SetItemCount(SeqCount > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : SeqCount);
 	pSeq->SetLoopPoint(Loop);
 	pSeq->SetReleasePoint(Release);
-	pSeq->SetSetting(static_cast<seq_setting_t>(File.ReadInt()));		// // //
+	pSeq->SetSetting(static_cast<seq_setting_t>(File.ReadInt32()));		// // //
 
 	for (int i = 0; i < SeqCount; ++i)
-		pSeq->SetItem(i, File.ReadChar());
+		pSeq->SetItem(i, File.ReadInt8());
 
 	return pSeq;
 }
@@ -231,14 +231,14 @@ void CInstrumentFDS::DoSaveFTI(CSimpleFile &File) const
 {
 	// Write wave
 	for (auto x : m_iSamples)		// // //
-		File.WriteChar(x);
+		File.WriteInt8(x);
 	for (auto x : m_iModulation)
-		File.WriteChar(x);
+		File.WriteInt8(x);
 
 	// Modulation parameters
-	File.WriteInt(GetModulationSpeed());
-	File.WriteInt(GetModulationDepth());
-	File.WriteInt(GetModulationDelay());
+	File.WriteInt32(GetModulationSpeed());
+	File.WriteInt32(GetModulationDepth());
+	File.WriteInt32(GetModulationDelay());
 
 	// Sequences
 	StoreInstSequence(File, *GetSequence(sequence_t::Volume));
@@ -250,14 +250,14 @@ void CInstrumentFDS::DoLoadFTI(CSimpleFile &File, int iVersion)
 {
 	// Read wave
 	for (auto &x : m_iSamples)		// // //
-		x = File.ReadChar();
+		x = File.ReadInt8();
 	for (auto &x : m_iModulation)
-		x = File.ReadChar();
+		x = File.ReadInt8();
 
 	// Modulation parameters
-	SetModulationSpeed(File.ReadInt());
-	SetModulationDepth(File.ReadInt());
-	SetModulationDelay(File.ReadInt());
+	SetModulationSpeed(File.ReadInt32());
+	SetModulationDepth(File.ReadInt32());
+	SetModulationDelay(File.ReadInt32());
 
 	// Sequences
 	SetSequence(sequence_t::Volume, LoadInstSequence(File, sequence_t::Volume));

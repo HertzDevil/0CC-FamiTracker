@@ -23,27 +23,29 @@
 
 #pragma once
 
-#include "stdafx.h"
 #include <string>
 #include <array>		// // //
 #include <vector>		// // //
+#include <memory>		// // //
 #include "array_view.h"		// // //
-
 #include <string_view>		// // //
 using namespace std::string_view_literals;
 
 // CDocumentFile, class for reading/writing document files
 
+class CFile;
 class CModuleException;
+class CFileException;
 
 class CDocumentFile {
 public:
+	CDocumentFile();
 	~CDocumentFile();		// // //
 
 	// // // delegations to CFile
 	CFile		&GetCFile();
-	BOOL		Open(LPCWSTR lpszFileName, UINT nOpenFlags, CFileException *pError = nullptr);
-	ULONGLONG	GetLength() const;
+	bool		Open(const wchar_t *lpszFileName, unsigned nOpenFlags, CFileException *pError = nullptr);
+	uintmax_t	GetLength() const;
 	void		Close();
 
 	bool		Finished() const;
@@ -76,7 +78,7 @@ public:
 	int			GetBlockPos() const;
 	int			GetBlockSize() const;
 
-	CStringA	ReadString();
+	std::string	ReadString();		// // //
 
 	void		RollbackPointer(int count);	// avoid this
 
@@ -87,9 +89,9 @@ public:
 	void SetDefaultFooter(CModuleException &e) const;
 	[[noreturn]] void RaiseModuleException(const std::string &Msg) const;
 
-	// // // Overrides
-	UINT Read(void *lpBuf, UINT nCount);
-	void Write(const void *lpBuf, UINT nCount);
+private:		// // //
+	unsigned Read(unsigned char *lpBuf, std::size_t nCount);
+	void Write(const unsigned char *lpBuf, std::size_t nCount);
 
 public:
 	// Constants
@@ -111,7 +113,7 @@ protected:
 	void ReallocateBlock();
 
 protected:
-	CFile			m_fFile;		// // //
+	std::unique_ptr<CFile> m_pFile;		// // //
 
 	unsigned int	m_iFileVersion;
 	bool			m_bFileDone;
@@ -120,11 +122,11 @@ protected:
 	std::array<char, BLOCK_HEADER_SIZE> m_cBlockID = { };		// // //
 	unsigned int	m_iBlockSize;
 	unsigned int	m_iBlockVersion;
-	std::vector<char> m_pBlockData;		// // //
+	std::vector<unsigned char> m_pBlockData;		// // //
 
 	unsigned int	m_iMaxBlockSize;
 
 	unsigned int	m_iBlockPointer;
 	unsigned int	m_iPreviousPointer;		// // //
-	ULONGLONG		m_iFilePosition, m_iPreviousPosition;		// // //
+	uintmax_t		m_iFilePosition, m_iPreviousPosition;		// // //
 };

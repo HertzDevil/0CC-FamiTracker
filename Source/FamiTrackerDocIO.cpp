@@ -408,7 +408,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 
 		// Track names
 		if (ver >= 3)
-			modfile.VisitSongs([&] (CSongData &song) { song.SetTitle((LPCSTR)file_.ReadString()); });
+			modfile.VisitSongs([&] (CSongData &song) { song.SetTitle(file_.ReadString()); });
 
 		modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
 			try {
@@ -1013,7 +1013,7 @@ void CFamiTrackerDocIO::SaveDSamples(const CFamiTrackerModule &modfile, int ver)
 
 void CFamiTrackerDocIO::LoadComments(CFamiTrackerModule &modfile, int ver) {
 	bool disp = file_.GetBlockInt() == 1;
-	modfile.SetComment((LPCSTR)file_.ReadString(), disp);
+	modfile.SetComment(file_.ReadString(), disp);
 }
 
 void CFamiTrackerDocIO::SaveComments(const CFamiTrackerModule &modfile, int ver) {
@@ -1384,7 +1384,7 @@ void CFamiTrackerDocIO::LoadBookmarks(CFamiTrackerModule &modfile, int ver) {
 		pMark->m_Highlight.First = file_.GetBlockInt();
 		pMark->m_Highlight.Second = file_.GetBlockInt();
 		pMark->m_bPersist = file_.GetBlockChar() != 0;
-		pMark->m_sName = (LPCSTR)file_.ReadString();
+		pMark->m_sName = file_.ReadString();
 		pSong->GetBookmarks().AddBookmark(std::move(pMark));
 	}
 }

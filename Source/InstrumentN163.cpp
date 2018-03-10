@@ -124,14 +124,14 @@ void CInstrumentN163::DoSaveFTI(CSimpleFile &File) const
 	int WaveCount = GetWaveCount();
 	int WaveSize = GetWaveSize();
 
-	File.WriteInt(WaveSize);
-	File.WriteInt(GetWavePos());
-//	File.WriteInt(m_bAutoWavePos);		// // // 050B
-	File.WriteInt(WaveCount);
+	File.WriteInt32(WaveSize);
+	File.WriteInt32(GetWavePos());
+//	File.WriteInt32(m_bAutoWavePos);		// // // 050B
+	File.WriteInt32(WaveCount);
 
 	for (int i = 0; i < WaveCount; ++i) {
 		for (int j = 0; j < WaveSize; ++j) {
-			File.WriteChar(GetSample(i, j));
+			File.WriteInt8(GetSample(i, j));
 		}
 	}
 }
@@ -142,12 +142,12 @@ void CInstrumentN163::DoLoadFTI(CSimpleFile &File, int iVersion)
 	CSeqInstrument::DoLoadFTI(File, iVersion);		// // //
 
 	// Read wave config
-	int WaveSize = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), 4, MAX_WAVE_SIZE, "N163 wave size");
-	int WavePos = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), 0, MAX_WAVE_SIZE - 1, "N163 wave position");
+	int WaveSize = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt32()), 4, MAX_WAVE_SIZE, "N163 wave size");
+	int WavePos = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt32()), 0, MAX_WAVE_SIZE - 1, "N163 wave position");
 	if (iVersion >= 25) {		// // // 050B
-		m_bAutoWavePos = File.ReadInt() != 0;
+		m_bAutoWavePos = File.ReadInt32() != 0;
 	}
-	int WaveCount = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt()), 1, MAX_WAVE_COUNT, "N163 wave count");
+	int WaveCount = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt32()), 1, MAX_WAVE_COUNT, "N163 wave count");
 
 	SetWaveSize(WaveSize);
 	SetWavePos(WavePos);
@@ -155,7 +155,7 @@ void CInstrumentN163::DoLoadFTI(CSimpleFile &File, int iVersion)
 
 	for (int i = 0; i < WaveCount; ++i)
 		for (int j = 0; j < WaveSize; ++j) try {
-			SetSample(i, j, CModuleException::AssertRangeFmt(File.ReadChar(), 0, 15, "N163 wave sample"));
+			SetSample(i, j, CModuleException::AssertRangeFmt(File.ReadInt8(), 0, 15, "N163 wave sample"));
 		}
 	catch (CModuleException e) {
 		e.AppendError("At wave %i, sample %i,", i, j);

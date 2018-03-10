@@ -1252,29 +1252,28 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// 
 	if (Index != INVALID_INSTRUMENT) {
 		if (CSimpleFile file(filename, std::ios::in | std::ios::binary); file) {
 			// FTI instruments files
-			const char INST_HEADER[] = "FTI";
+			const std::string_view INST_HEADER = "FTI";
 //			const char INST_VERSION[] = "2.4";
 
 			const unsigned I_CURRENT_VER_MAJ = 2;		// // // 050B
 			const unsigned I_CURRENT_VER_MIN = 5;		// // // 050B
 
 			// Signature
-			for (std::size_t i = 0; i < std::size(INST_HEADER) - 1; ++i)
-				if (file.ReadChar() != INST_HEADER[i])
-					return err(IDS_INSTRUMENT_FILE_FAIL);
+			if (file.ReadStringN(INST_HEADER.size()) != INST_HEADER)
+				return err(IDS_INSTRUMENT_FILE_FAIL);
 
 			// Version
-			unsigned iInstMaj = conv::from_digit(file.ReadChar());
-			if (file.ReadChar() != '.')
+			unsigned iInstMaj = conv::from_digit(file.ReadInt8());
+			if (file.ReadInt8() != '.')
 				return err(IDS_INST_VERSION_UNSUPPORTED);
-			unsigned iInstMin = conv::from_digit(file.ReadChar());
+			unsigned iInstMin = conv::from_digit(file.ReadInt8());
 			if (std::tie(iInstMaj, iInstMin) > std::tie(I_CURRENT_VER_MAJ, I_CURRENT_VER_MIN))
 				return err(IDS_INST_VERSION_UNSUPPORTED);
 
 			return GetDoc().Locked([&] {
 				try {
 					auto *pManager = GetDoc().GetModule()->GetInstrumentManager();
-					inst_type_t InstType = static_cast<inst_type_t>(file.ReadChar());
+					inst_type_t InstType = static_cast<inst_type_t>(file.ReadInt8());
 					if (auto pInstrument = pManager->CreateNew(InstType != INST_NONE ? InstType : INST_2A03)) {
 						pInstrument->OnBlankInstrument();
 						pInstrument->LoadFTI(file, iInstMaj * 10 + iInstMin);		// // //

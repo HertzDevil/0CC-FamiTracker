@@ -40,18 +40,19 @@ public:
 
 	void	Close();
 
-	void	WriteChar(char Value);
-	void	WriteShort(short Value);
-	void	WriteInt(int Value);
+	void	WriteInt8(int8_t Value);
+	void	WriteInt16(int16_t Value);
+	void	WriteInt32(int32_t Value);
 	void	WriteBytes(array_view<char> Buf);
 	void	WriteString(std::string_view sv);
 	void	WriteStringNull(std::string_view sv);
 
-	char	ReadChar();
-	short	ReadShort();
-	int		ReadInt();
+	int8_t	ReadInt8();
+	int16_t	ReadInt16();
+	int32_t	ReadInt32();
 	void	ReadBytes(void *pBuf, size_t count);
 	std::string	ReadString();
+	std::string ReadStringN(size_t count);
 	std::string ReadStringNull();
 
 private:

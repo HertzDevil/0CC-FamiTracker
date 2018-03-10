@@ -40,23 +40,23 @@ void CSimpleFile::Close()
 	m_fFile.close();
 }
 
-void CSimpleFile::WriteChar(char Value)
+void CSimpleFile::WriteInt8(int8_t Value)
 {
 	m_fFile.put(Value);
 }
 
-void CSimpleFile::WriteShort(short Value)
+void CSimpleFile::WriteInt16(int16_t Value)
 {
-	m_fFile.put(static_cast<char>(Value));
-	m_fFile.put(static_cast<char>(Value >> 8));
+	m_fFile.put(static_cast<unsigned char>(Value));
+	m_fFile.put(static_cast<unsigned char>(Value >> 8));
 }
 
-void CSimpleFile::WriteInt(int Value)
+void CSimpleFile::WriteInt32(int32_t Value)
 {
-	m_fFile.put(static_cast<char>(Value));
-	m_fFile.put(static_cast<char>(Value >> 8));
-	m_fFile.put(static_cast<char>(Value >> 16));
-	m_fFile.put(static_cast<char>(Value >> 24));
+	m_fFile.put(static_cast<unsigned char>(Value));
+	m_fFile.put(static_cast<unsigned char>(Value >> 8));
+	m_fFile.put(static_cast<unsigned char>(Value >> 16));
+	m_fFile.put(static_cast<unsigned char>(Value >> 24));
 }
 
 void CSimpleFile::WriteBytes(array_view<char> Buf)
@@ -67,7 +67,7 @@ void CSimpleFile::WriteBytes(array_view<char> Buf)
 void CSimpleFile::WriteString(std::string_view sv)
 {
 	int Len = sv.size();
-	WriteInt(Len);
+	WriteInt32(Len);
 	WriteBytes(sv);
 }
 
@@ -77,21 +77,21 @@ void CSimpleFile::WriteStringNull(std::string_view sv)
 	m_fFile.put('\0');
 }
 
-char CSimpleFile::ReadChar()
+int8_t CSimpleFile::ReadInt8()
 {
 	unsigned char buf[1];
 	ReadBytes(buf, std::size(buf));
 	return buf[0];
 }
 
-short CSimpleFile::ReadShort()
+int16_t CSimpleFile::ReadInt16()
 {
 	unsigned char buf[2];
 	ReadBytes(buf, std::size(buf));
 	return buf[0] | (buf[1] << 8);
 }
 
-int CSimpleFile::ReadInt()
+int32_t CSimpleFile::ReadInt32()
 {
 	unsigned char buf[4];
 	ReadBytes(buf, std::size(buf));
@@ -104,9 +104,23 @@ void CSimpleFile::ReadBytes(void *pBuf, size_t count) {
 
 std::string CSimpleFile::ReadString()
 {
-	const int Size = ReadInt();
+	const int32_t Size = ReadInt32();
 	std::string str(Size, '\0');
 	m_fFile.read(&str[0], Size);
+	return str;
+}
+
+std::string CSimpleFile::ReadStringN(size_t count) {
+	char buf[1024] = { };
+	std::string str;
+
+	while (count) {
+		size_t readCount = count > std::size(buf) ? std::size(buf) : count;
+		m_fFile.read(buf, readCount);
+		str.append(buf, readCount);
+		count -= readCount;
+	}
+
 	return str;
 }
 
