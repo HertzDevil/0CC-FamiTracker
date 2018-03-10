@@ -2964,7 +2964,7 @@ void CMainFrame::OnEditSelectother()		// // //
 
 			NewSel.m_cpStart.m_iRow = 0;
 			NewSel.m_cpStart.m_iColumn = C_NOTE;
-			NewSel.m_cpEnd.m_iRow = pView->GetSongView()->GetCurrentPatternLength(NewSel.m_cpEnd.m_iFrame) - 1;
+			NewSel.m_cpEnd.m_iRow = pView->GetSongView()->GetCurrentPatternLength(NewSel.m_cpEnd.m_iFrame, Env.GetSettings()->General.bShowSkippedRows) - 1;
 			NewSel.m_cpEnd.m_iColumn = pEditor->GetChannelColumns(NewSel.m_cpEnd.m_iChannel);
 
 			pEditor->SetSelection(NewSel);

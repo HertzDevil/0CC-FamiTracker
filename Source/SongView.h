@@ -47,7 +47,7 @@ public:
 	unsigned GetEffectColumnCount(std::size_t index) const;
 
 	unsigned GetFrameLength(unsigned Frame) const;
-	unsigned GetCurrentPatternLength(unsigned Frame) const;
+	unsigned GetCurrentPatternLength(unsigned Frame, bool showSkippedRows) const;
 
 	// void (*F)(std::size_t index)
 	template <typename F>

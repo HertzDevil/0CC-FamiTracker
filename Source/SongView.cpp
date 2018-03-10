@@ -23,8 +23,6 @@
 #include "SongView.h"
 #include "SongData.h"
 #include "TrackData.h"
-#include "FamiTrackerEnv.h"
-#include "Settings.h"
 
 CConstSongView::CConstSongView(const CChannelOrder &order, const CSongData &song) :
 	order_(order), song_(song)
@@ -119,8 +117,8 @@ unsigned CConstSongView::GetFrameLength(unsigned Frame) const {
 	return HaltPoint;
 }
 
-unsigned CConstSongView::GetCurrentPatternLength(unsigned Frame) const {
-	if (Env.GetSettings()->General.bShowSkippedRows)		// // //
+unsigned CConstSongView::GetCurrentPatternLength(unsigned Frame, bool showSkippedRows) const {
+	if (showSkippedRows)		// // //
 		return GetSong().GetPatternLength();
 	return GetFrameLength(Frame);
 }

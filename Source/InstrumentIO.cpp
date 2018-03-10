@@ -31,8 +31,8 @@
 #include "OldSequence.h"
 #include "ft0cc/doc/dpcm_sample.hpp"
 
-#include "Documentfile.h"
-#include "Simplefile.h"
+#include "DocumentFile.h"
+#include "SimpleFile.h"
 #include "ModuleException.h"
 
 

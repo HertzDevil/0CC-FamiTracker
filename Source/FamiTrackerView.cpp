@@ -1359,7 +1359,7 @@ bool CFamiTrackerView::IsMarkerValid() const		// // //
 
 	if (m_iMarkerFrame >= static_cast<int>(pSongView->GetSong().GetFrameCount()))
 		return false;
-	if (m_iMarkerRow >= (int)pSongView->GetCurrentPatternLength(m_iMarkerFrame))
+	if (m_iMarkerRow >= (int)pSongView->GetCurrentPatternLength(m_iMarkerFrame, theApp.GetSettings()->General.bShowSkippedRows))
 		return false;
 	return true;
 }

@@ -3187,7 +3187,7 @@ int CPatternEditor::GetCurrentPatternLength(int Frame) const		// // //
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	int Frames = pSongView->GetSong().GetFrameCount();
 	int f = Frame % Frames;
-	return pSongView->GetCurrentPatternLength(f < 0 ? f + Frames : f);
+	return pSongView->GetCurrentPatternLength(f < 0 ? f + Frames : f, Env.GetSettings()->General.bShowSkippedRows);
 }
 
 void CPatternEditor::SetHighlight(const stHighlight &Hl)		// // //

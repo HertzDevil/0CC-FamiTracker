@@ -24,6 +24,8 @@
 #include "PatternNote.h"		// // //
 #include "SongView.h"		// // //
 #include "SongData.h"		// // //
+#include "FamiTrackerEnv.h"		// // //
+#include "Settings.h"		// // //
 
 // CCursorPos /////////////////////////////////////////////////////////////////////
 
@@ -295,7 +297,7 @@ void CPatternIterator::Warp()
 {
 	if (m_iRow >= 0) {
 		while (true) {
-			if (int Length = song_view_.GetCurrentPatternLength(TranslateFrame()); m_iRow >= Length) {
+			if (int Length = song_view_.GetCurrentPatternLength(TranslateFrame(), Env.GetSettings()->General.bShowSkippedRows); m_iRow >= Length) {
 				m_iRow -= Length;
 				++m_iFrame;
 			}
@@ -306,7 +308,7 @@ void CPatternIterator::Warp()
 	else
 		while (m_iRow < 0) {
 			--m_iFrame;
-			m_iRow += song_view_.GetCurrentPatternLength(TranslateFrame());
+			m_iRow += song_view_.GetCurrentPatternLength(TranslateFrame(), Env.GetSettings()->General.bShowSkippedRows);
 		}
 }
 
