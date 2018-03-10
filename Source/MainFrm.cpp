@@ -73,6 +73,7 @@
 #include "SimpleFile.h"
 #include "Instrument.h"
 #include "InstrumentManager.h"
+#include "InstrumentIO.h"
 #include "Kraid.h"
 #include "NumConv.h"
 #include "str_conv/utf8_conv.hpp"
@@ -1275,7 +1276,7 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// 
 					inst_type_t InstType = static_cast<inst_type_t>(file.ReadInt8());
 					if (auto pInstrument = pManager->CreateNew(InstType != INST_NONE ? InstType : INST_2A03)) {
 						pInstrument->OnBlankInstrument();
-						pInstrument->LoadFTI(file, iInstMaj * 10 + iInstMin);		// // //
+						Env.GetInstrumentService()->GetInstrumentIO(InstType).ReadFromFTI(*pInstrument, file, iInstMaj * 10 + iInstMin);		// // //
 						return pManager->InsertInstrument(Index, std::move(pInstrument));
 					}
 
@@ -1362,7 +1363,7 @@ void CMainFrame::OnSaveInstrument()
 		return;
 	}
 
-	pInst->SaveFTI(file);		// // //
+	Env.GetInstrumentService()->GetInstrumentIO(pInst->GetType()).WriteToFTI(*pInst, file);		// // //
 
 	if (m_pInstrumentFileTree)
 		m_pInstrumentFileTree->Changed();

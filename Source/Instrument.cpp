@@ -22,7 +22,6 @@
 
 #include "Instrument.h"
 #include "InstrumentManagerInterface.h"		// // //
-#include "SimpleFile.h"		// // //
 
 namespace {
 
@@ -68,24 +67,8 @@ void CInstrument::RegisterManager(CInstrumentManagerInterface *pManager)		// // 
 	m_pInstManager = pManager;
 }
 
-void CInstrument::SaveFTI(CSimpleFile &File) const {
-	// Write header
-	File.WriteBytes(INST_HEADER);
-	File.WriteBytes(INST_VERSION);
-
-	// Write type
-	File.WriteInt8(GetType());
-
-	// Write name
-	File.WriteString(GetName());
-
-	// Write instrument data
-	DoSaveFTI(File);
-}
-
-void CInstrument::LoadFTI(CSimpleFile &File, int iVersion) {		// // //
-	SetName(File.ReadString());		// // //
-	DoLoadFTI(File, iVersion);
+CInstrumentManagerInterface *CInstrument::GetInstrumentManager() const noexcept {
+	return m_pInstManager;
 }
 
 inst_type_t CInstrument::GetType() const		// // //

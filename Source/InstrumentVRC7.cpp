@@ -21,8 +21,7 @@
 */
 
 #include "InstrumentVRC7.h"		// // //
-#include "ModuleException.h"		// // //
-#include "SimpleFile.h"
+#include <cstring>
 
 /*
  * class CInstrumentVRC7
@@ -31,13 +30,12 @@
 
 namespace {
 
-const unsigned char VRC7_SINE_PATCH[] = {0x01, 0x21, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x0F};		// // //
+const std::array<unsigned char, 8> VRC7_SINE_PATCH = {0x01, 0x21, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x0F};		// // //
 
 } // namespace
 
-CInstrumentVRC7::CInstrumentVRC7() : CInstrument(INST_VRC7), m_iPatch(0)		// // //
+CInstrumentVRC7::CInstrumentVRC7() : CInstrument(INST_VRC7), m_iRegs(VRC7_SINE_PATCH)		// // //
 {
-	memcpy(m_iRegs, VRC7_SINE_PATCH, std::size(VRC7_SINE_PATCH));
 }
 
 std::unique_ptr<CInstrument> CInstrumentVRC7::Clone() const
@@ -56,22 +54,6 @@ void CInstrumentVRC7::CloneFrom(const CInstrument *pInst)
 		for (int i = 0; i < 8; ++i)
 			SetCustomReg(i, pNew->GetCustomReg(i));
 	}
-}
-
-void CInstrumentVRC7::DoSaveFTI(CSimpleFile &File) const
-{
-	File.WriteInt32(m_iPatch);
-
-	for (int i = 0; i < 8; ++i)
-		File.WriteInt8(GetCustomReg(i));
-}
-
-void CInstrumentVRC7::DoLoadFTI(CSimpleFile &File, int iVersion)
-{
-	m_iPatch = File.ReadInt32();
-
-	for (int i = 0; i < 8; ++i)
-		SetCustomReg(i, File.ReadInt8());
 }
 
 bool CInstrumentVRC7::CanRelease() const

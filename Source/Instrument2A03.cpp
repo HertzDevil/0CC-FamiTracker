@@ -21,10 +21,8 @@
 */
 
 #include "Instrument2A03.h"
-#include "ModuleException.h"		// // //
 #include "InstrumentManagerInterface.h"		// // //
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
-#include "SimpleFile.h"
 
 // 2A03 instruments
 
@@ -51,135 +49,6 @@ void CInstrument2A03::CloneFrom(const CInstrument *pInst)
 			SetSamplePitch(n, pNew->GetSamplePitch(n));
 			SetSampleDeltaValue(n, pNew->GetSampleDeltaValue(n));
 		}
-	}
-}
-
-void CInstrument2A03::DoSaveFTI(CSimpleFile &File) const
-{
-	// Saves an 2A03 instrument
-	// Current version 2.4
-
-	// Sequences
-	CSeqInstrument::DoSaveFTI(File);		// // //
-
-	// DPCM
-	if (!m_pInstManager) {		// // //
-		File.WriteInt32(0);
-		File.WriteInt32(0);
-		return;
-	}
-
-	unsigned int Count = GetSampleCount();		// // // 050B
-	File.WriteInt32(Count);
-
-	bool UsedSamples[MAX_DSAMPLES] = { };
-
-	int UsedCount = 0;
-	for (int n = 0; n < NOTE_COUNT; ++n) {
-		if (unsigned Sample = GetSampleIndex(n); Sample != NO_DPCM) {
-			File.WriteInt8(n);
-			File.WriteInt8(Sample + 1);
-			File.WriteInt8(GetSamplePitch(n));
-			File.WriteInt8(GetSampleDeltaValue(n));
-			if (!UsedSamples[Sample])
-				++UsedCount;
-			UsedSamples[Sample] = true;
-		}
-	}
-
-	// Write the number
-	File.WriteInt32(UsedCount);
-
-	// List of sample names
-	for (int i = 0; i < MAX_DSAMPLES; ++i) if (UsedSamples[i]) {
-		if (auto pSample = m_pInstManager->GetDSample(i)) {		// // //
-			File.WriteInt32(i);
-			File.WriteString(pSample->name());
-			File.WriteString(std::string_view((const char *)pSample->data(), pSample->size()));
-		}
-	}
-}
-
-void CInstrument2A03::DoLoadFTI(CSimpleFile &File, int iVersion)
-{
-	char SampleNames[MAX_DSAMPLES][ft0cc::doc::dpcm_sample::max_name_length + 1];
-
-	CSeqInstrument::DoLoadFTI(File, iVersion);		// // //
-
-	unsigned int Count = File.ReadInt32();
-	CModuleException::AssertRangeFmt(Count, 0U, static_cast<unsigned>(NOTE_COUNT), "DPCM assignment count");
-
-	// DPCM instruments
-	for (unsigned int i = 0; i < Count; ++i) {
-		unsigned char InstNote = File.ReadInt8();
-		try {
-			unsigned char Sample = CModuleException::AssertRangeFmt(File.ReadInt8(), 0, 0x7F, "DPCM sample assignment index");
-			if (Sample > MAX_DSAMPLES)
-				Sample = 0;
-			unsigned char Pitch = File.ReadInt8();
-			CModuleException::AssertRangeFmt(Pitch & 0x7FU, 0U, 0xFU, "DPCM sample pitch");
-			SetSamplePitch(InstNote, Pitch);
-			SetSampleIndex(InstNote, Sample - 1);
-			SetSampleDeltaValue(InstNote, CModuleException::AssertRangeFmt(
-				static_cast<char>(iVersion >= 24 ? File.ReadInt8() : -1), -1, 0x7F, "DPCM sample delta value"));
-		}
-		catch (CModuleException e) {
-			e.AppendError("At note %i, octave %i,", value_cast(GET_NOTE(InstNote)), GET_OCTAVE(InstNote));
-			throw e;
-		}
-	}
-
-	// DPCM samples list
-	bool bAssigned[NOTE_COUNT] = {};
-	int TotalSize = 0;		// // // ???
-	for (int i = 0; i < MAX_DSAMPLES; ++i)
-		if (auto pSamp = m_pInstManager->GetDSample(i))
-			TotalSize += pSamp->size();
-
-	unsigned int SampleCount = File.ReadInt32();
-	for (unsigned int i = 0; i < SampleCount; ++i) {
-		int Index = CModuleException::AssertRangeFmt(
-			File.ReadInt32(), 0, MAX_DSAMPLES - 1, "DPCM sample index");
-		int Len = CModuleException::AssertRangeFmt(
-			File.ReadInt32(), 0, (int)ft0cc::doc::dpcm_sample::max_name_length, "DPCM sample name length");
-		File.ReadBytes(SampleNames[Index], Len);
-		SampleNames[Index][Len] = '\0';
-		int Size = File.ReadInt32();
-		std::vector<uint8_t> SampleData(Size);		// // //
-		File.ReadBytes(SampleData.data(), Size);
-		auto pSample = std::make_shared<ft0cc::doc::dpcm_sample>(SampleData, SampleNames[Index]);		// // //
-
-		bool Found = false;
-		for (int j = 0; j < MAX_DSAMPLES; ++j) if (auto s = m_pInstManager->GetDSample(j)) {		// // //
-			// Compare size and name to see if identical sample exists
-			if (*pSample == *s) {
-				Found = true;
-				// Assign sample
-				for (int n = 0; n < NOTE_COUNT; ++n)
-					if (GetSampleIndex(n) == Index && !bAssigned[n]) {
-						SetSampleIndex(n, j);
-						bAssigned[n] = true;
-					}
-				break;
-			}
-		}
-		if (Found)
-			continue;
-
-		// Load sample
-
-		if (TotalSize + Size > MAX_SAMPLE_SPACE)
-			throw CModuleException::WithMessage("Insufficient DPCM sample space (maximum %d KB)", MAX_SAMPLE_SPACE / 1024);
-		int FreeSample = m_pInstManager->AddDSample(pSample);
-		if (FreeSample == -1)
-			throw CModuleException::WithMessage("Document has no free DPCM sample slot");
-		TotalSize += Size;
-		// Assign it
-		for (int n = 0; n < NOTE_COUNT; ++n)
-			if (GetSampleIndex(n) == Index && !bAssigned[n]) {
-				SetSampleIndex(n, FreeSample);
-				bAssigned[n] = true;
-			}
 	}
 }
 

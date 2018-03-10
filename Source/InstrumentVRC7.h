@@ -24,6 +24,7 @@
 #pragma once
 
 #include "Instrument.h"
+#include <array>		// // //
 
 class CInstrumentVRC7 : public CInstrument {
 public:
@@ -41,10 +42,6 @@ protected:
 	void	CloneFrom(const CInstrument *pInst) override;		// // //
 
 private:
-	void	DoSaveFTI(CSimpleFile &pFile) const override;
-	void	DoLoadFTI(CSimpleFile &File, int iVersion) override;
-
-private:
-	unsigned int m_iPatch;
-	unsigned char m_iRegs[8];		// // // Custom patch settings
+	unsigned int m_iPatch = 0;
+	std::array<unsigned char, 8> m_iRegs = { };		// // // Custom patch settings
 };

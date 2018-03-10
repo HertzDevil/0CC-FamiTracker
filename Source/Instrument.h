@@ -39,8 +39,6 @@ enum inst_type_t : unsigned {
 
 // External classes
 class CChunk;
-class CDocumentFile;
-class CSimpleFile;
 class CInstrumentManagerInterface;		// // // break cyclic dependencies
 
 // Instrument base class
@@ -55,20 +53,15 @@ public:
 	void SetName(std::string_view Name);		// // //
 
 	void RegisterManager(CInstrumentManagerInterface *pManager);		// // //
+	CInstrumentManagerInterface *GetInstrumentManager() const noexcept;		// // //
+
 	virtual void OnBlankInstrument();									// // // Setup some initial values
 
 	inst_type_t GetType() const;										// // // Returns instrument type
 	virtual bool CanRelease() const = 0;
 
-	void SaveFTI(CSimpleFile &File) const;								// // // Saves to an FTI file
-	void LoadFTI(CSimpleFile &File, int iVersion);						// // // Loads from an FTI file
-
 protected:
 	virtual void CloneFrom(const CInstrument *pInst);					// // // virtual copying
-
-private:
-	virtual void DoSaveFTI(CSimpleFile &File) const = 0;				// // //
-	virtual void DoLoadFTI(CSimpleFile &File, int iVersion) = 0;		// // //
 
 public:
 	static const int INST_NAME_MAX = 128;

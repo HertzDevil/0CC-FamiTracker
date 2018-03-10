@@ -54,10 +54,6 @@ public:
 protected:
 	void	CloneFrom(const CInstrument *pInst) override;		// // //
 
-private:
-	void	DoSaveFTI(CSimpleFile &File) const override;
-	void	DoLoadFTI(CSimpleFile &File, int iVersion) override;
-
 public:
 	static const char *const SEQUENCE_NAME[];
 	const char *GetSequenceName(int Index) const override { return SEQUENCE_NAME[Index]; }		// // //

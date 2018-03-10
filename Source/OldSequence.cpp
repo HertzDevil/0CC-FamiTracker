@@ -21,7 +21,6 @@
 */
 
 #include "OldSequence.h"
-// #include "ModuleException.h"
 #include "Sequence.h"
 
 COldSequence::COldSequence() : Length(), Value() {}

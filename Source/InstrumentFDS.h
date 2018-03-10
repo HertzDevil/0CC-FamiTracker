@@ -59,13 +59,7 @@ protected:
 	void	CloneFrom(const CInstrument *pInst) override;		// // //
 
 private:
-	void StoreInstSequence(CSimpleFile &File, const CSequence &Seq) const;		// // //
-	std::shared_ptr<CSequence> LoadInstSequence(CSimpleFile &File, sequence_t SeqType) const;		// // //
-	void DoubleVolume() const;		// // //
-
 	void	OnBlankInstrument() override;		// // //
-	void	DoSaveFTI(CSimpleFile &File) const override;
-	void	DoLoadFTI(CSimpleFile &File, int iVersion) override;
 
 public:
 	static const int WAVE_SIZE = 64;

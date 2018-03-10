@@ -21,8 +21,7 @@
 */
 
 #include "InstrumentN163.h"		// // //
-#include "ModuleException.h"		// // //
-#include "SimpleFile.h"
+#include "Assertion.h"		// // //
 
 // // // Default wave
 
@@ -67,54 +66,6 @@ void CInstrumentN163::CloneFrom(const CInstrument *pInst)
 		SetWaveCount(pNew->GetWaveCount());
 
 		m_iSamples = pNew->m_iSamples;
-	}
-}
-
-void CInstrumentN163::DoSaveFTI(CSimpleFile &File) const
-{
-	// Sequences
-	CSeqInstrument::DoSaveFTI(File);		// // //
-
-	// Write wave config
-	int WaveCount = GetWaveCount();
-	int WaveSize = GetWaveSize();
-
-	File.WriteInt32(WaveSize);
-	File.WriteInt32(GetWavePos());
-//	File.WriteInt32(m_bAutoWavePos);		// // // 050B
-	File.WriteInt32(WaveCount);
-
-	for (int i = 0; i < WaveCount; ++i) {
-		for (int j = 0; j < WaveSize; ++j) {
-			File.WriteInt8(GetSample(i, j));
-		}
-	}
-}
-
-void CInstrumentN163::DoLoadFTI(CSimpleFile &File, int iVersion)
-{
-	// Sequences
-	CSeqInstrument::DoLoadFTI(File, iVersion);		// // //
-
-	// Read wave config
-	int WaveSize = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt32()), 4, MAX_WAVE_SIZE, "N163 wave size");
-	int WavePos = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt32()), 0, MAX_WAVE_SIZE - 1, "N163 wave position");
-	if (iVersion >= 25) {		// // // 050B
-		m_bAutoWavePos = File.ReadInt32() != 0;
-	}
-	int WaveCount = CModuleException::AssertRangeFmt(static_cast<int>(File.ReadInt32()), 1, MAX_WAVE_COUNT, "N163 wave count");
-
-	SetWaveSize(WaveSize);
-	SetWavePos(WavePos);
-	SetWaveCount(WaveCount);
-
-	for (int i = 0; i < WaveCount; ++i)
-		for (int j = 0; j < WaveSize; ++j) try {
-			SetSample(i, j, CModuleException::AssertRangeFmt(File.ReadInt8(), 0, 15, "N163 wave sample"));
-		}
-	catch (CModuleException e) {
-		e.AppendError("At wave %i, sample %i,", i, j);
-		throw e;
 	}
 }
 
@@ -213,7 +164,7 @@ bool CInstrumentN106::GetAutoWavePos() const
 */
 void CInstrumentN163::SetWaveCount(int count)
 {
-	ASSERT(count <= MAX_WAVE_COUNT);
+	Assert(count <= MAX_WAVE_COUNT);
 	m_iWaveCount = count;
 }
 

@@ -56,10 +56,6 @@ public:
 protected:
 	void	CloneFrom(const CInstrument *pInst) override;		// // //
 
-private:
-	void	DoSaveFTI(CSimpleFile &File) const override;
-	void	DoLoadFTI(CSimpleFile &File, int iVersion) override;
-
 public:
 	static const int MAX_WAVE_SIZE = 240;		// Wave size (240 samples)		// // //
 	static const int MAX_WAVE_COUNT = 64;		// Number of waves

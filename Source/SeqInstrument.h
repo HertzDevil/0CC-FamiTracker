@@ -55,9 +55,6 @@ protected:
 	void	CloneFrom(const CInstrument *pSeq) override;		// // //
 	CSeqInstrument *CopySequences(const CSeqInstrument *const src);		// // //
 
-	void	DoSaveFTI(CSimpleFile &File) const override;
-	void	DoLoadFTI(CSimpleFile &File, int iVersion) override;
-
 private:
 	std::unordered_map<sequence_t, std::pair<bool, int>> seq_indices_;		// // //
 };

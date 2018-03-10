@@ -21,11 +21,8 @@
 */
 
 #include "SeqInstrument.h"
-#include "ModuleException.h"
 #include "InstrumentManagerInterface.h"
 #include "Sequence.h"
-#include "OldSequence.h"		// // //
-#include "SimpleFile.h"
 
 /*
  * Base class for instruments using sequences
@@ -68,85 +65,6 @@ void CSeqInstrument::OnBlankInstrument()		// // //
 		if (newIndex != -1)
 			index = newIndex;
 	}
-}
-
-void CSeqInstrument::DoSaveFTI(CSimpleFile &File) const
-{
-	File.WriteInt8(static_cast<char>(seq_indices_.size()));
-
-	foreachSeq([&] (sequence_t i) {
-		if (GetSeqEnable(i)) {
-			const auto pSeq = GetSequence(i);
-			File.WriteInt8(1);
-			File.WriteInt32(pSeq->GetItemCount());
-			File.WriteInt32(pSeq->GetLoopPoint());
-			File.WriteInt32(pSeq->GetReleasePoint());
-			File.WriteInt32(pSeq->GetSetting());
-			for (unsigned j = 0; j < pSeq->GetItemCount(); j++) {
-				File.WriteInt8(pSeq->GetItem(j));
-			}
-		}
-		else {
-			File.WriteInt8(0);
-		}
-	});
-}
-
-void CSeqInstrument::DoLoadFTI(CSimpleFile &File, int iVersion)
-{
-	// Sequences
-	std::shared_ptr<CSequence> pSeq;		// // //
-
-	CModuleException::AssertRangeFmt(File.ReadInt8(), 0, (int)SEQ_COUNT, "Sequence count"); // unused right now
-
-	// Loop through all instrument effects
-	foreachSeq([&] (sequence_t i) {
-		try {
-			if (File.ReadInt8() != 1) {
-				SetSeqEnable(i, false);
-				SetSeqIndex(i, 0);
-				return;
-			}
-			SetSeqEnable(i, true);
-
-			// Read the sequence
-			int Count = CModuleException::AssertRangeFmt(File.ReadInt32(), 0, 0xFF, "Sequence item count");
-
-			if (iVersion < 20) {
-				COldSequence OldSeq;
-				for (int j = 0; j < Count; ++j) {
-					char Length = File.ReadInt8();
-					OldSeq.AddItem(Length, File.ReadInt8());
-				}
-				pSeq = OldSeq.Convert(i);
-			}
-			else {
-				pSeq = std::make_shared<CSequence>(i);		// // //
-				int Count2 = Count > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : Count;
-				pSeq->SetItemCount(Count2);
-				pSeq->SetLoopPoint(CModuleException::AssertRangeFmt(
-					static_cast<int>(File.ReadInt32()), -1, Count2 - 1, "Sequence loop point"));
-				if (iVersion > 20) {
-					pSeq->SetReleasePoint(CModuleException::AssertRangeFmt(
-						static_cast<int>(File.ReadInt32()), -1, Count2 - 1, "Sequence release point"));
-					if (iVersion >= 22)
-						pSeq->SetSetting(static_cast<seq_setting_t>(File.ReadInt32()));
-				}
-				for (int j = 0; j < Count; ++j) {
-					int8_t item = File.ReadInt8();
-					if (j < Count2)
-						pSeq->SetItem(j, item);
-				}
-			}
-			if (GetSequence(i) && GetSequence(i)->GetItemCount() > 0)
-				throw CModuleException::WithMessage("Document has no free sequence slot");
-			m_pInstManager->SetSequence(m_iType, i, GetSeqIndex(i), pSeq);
-		}
-		catch (CModuleException e) {
-			e.AppendError("At %s sequence,", GetSequenceName(value_cast(i)));
-			throw e;
-		}
-	});
 }
 
 int CSeqInstrument::GetSeqCount() const {		// // //

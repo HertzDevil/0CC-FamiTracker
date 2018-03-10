@@ -33,39 +33,43 @@ public:
 
 	virtual void WriteToModule(const CInstrument &inst, CDocumentFile &file) const = 0;
 	virtual void ReadFromModule(CInstrument &inst, CDocumentFile &file) const = 0;
-	virtual void WriteToFTI(const CInstrument &inst, CSimpleFile &file) const = 0;
-	virtual void ReadFromFTI(CInstrument &inst, CSimpleFile &file) const = 0;
+	void WriteToFTI(const CInstrument &inst, CSimpleFile &file) const;
+	void ReadFromFTI(CInstrument &inst, CSimpleFile &file, int fti_ver) const;
+
+private:
+	virtual void DoReadFromFTI(CInstrument &inst, CSimpleFile &file, int fti_ver) const = 0;
+	virtual void DoWriteToFTI(const CInstrument &inst, CSimpleFile &file) const = 0;
 };
 
 class CInstrumentIONull final : public CInstrumentIO {
 	void WriteToModule(const CInstrument &inst, CDocumentFile &file) const override;
 	void ReadFromModule(CInstrument &inst, CDocumentFile &file) const override;
-	void WriteToFTI(const CInstrument &inst, CSimpleFile &file) const override;
-	void ReadFromFTI(CInstrument &inst, CSimpleFile &file) const override;
+	void DoWriteToFTI(const CInstrument &inst, CSimpleFile &file) const override;
+	void DoReadFromFTI(CInstrument &inst, CSimpleFile &file, int fti_ver) const override;
 };
 
 class CInstrumentIOSeq : public CInstrumentIO {
 protected:
 	void WriteToModule(const CInstrument &inst, CDocumentFile &file) const override;
 	void ReadFromModule(CInstrument &inst, CDocumentFile &file) const override;
-	void WriteToFTI(const CInstrument &inst, CSimpleFile &file) const override;
-	void ReadFromFTI(CInstrument &inst, CSimpleFile &file) const override;
+	void DoWriteToFTI(const CInstrument &inst, CSimpleFile &file) const override;
+	void DoReadFromFTI(CInstrument &inst, CSimpleFile &file, int fti_ver) const override;
 };
 
 class CInstrumentIO2A03 : public CInstrumentIOSeq {
 protected:
 	void WriteToModule(const CInstrument &inst, CDocumentFile &file) const override;
 	void ReadFromModule(CInstrument &inst, CDocumentFile &file) const override;
-	void WriteToFTI(const CInstrument &inst, CSimpleFile &file) const override;
-	void ReadFromFTI(CInstrument &inst, CSimpleFile &file) const override;
+	void DoWriteToFTI(const CInstrument &inst, CSimpleFile &file) const override;
+	void DoReadFromFTI(CInstrument &inst, CSimpleFile &file, int fti_ver) const override;
 };
 
 class CInstrumentIOVRC7 : public CInstrumentIO {
 protected:
 	void WriteToModule(const CInstrument &inst, CDocumentFile &file) const override;
 	void ReadFromModule(CInstrument &inst, CDocumentFile &file) const override;
-	void WriteToFTI(const CInstrument &inst, CSimpleFile &file) const override;
-	void ReadFromFTI(CInstrument &inst, CSimpleFile &file) const override;
+	void DoWriteToFTI(const CInstrument &inst, CSimpleFile &file) const override;
+	void DoReadFromFTI(CInstrument &inst, CSimpleFile &file, int fti_ver) const override;
 };
 
 class CSequence;
@@ -74,8 +78,8 @@ class CInstrumentIOFDS : public CInstrumentIO {
 protected:
 	void WriteToModule(const CInstrument &inst, CDocumentFile &file) const override;
 	void ReadFromModule(CInstrument &inst, CDocumentFile &file) const override;
-	void WriteToFTI(const CInstrument &inst, CSimpleFile &file) const override;
-	void ReadFromFTI(CInstrument &inst, CSimpleFile &file) const override;
+	void DoWriteToFTI(const CInstrument &inst, CSimpleFile &file) const override;
+	void DoReadFromFTI(CInstrument &inst, CSimpleFile &file, int fti_ver) const override;
 
 	static void DoubleVolume(CSequence &seq);
 };
@@ -84,6 +88,6 @@ class CInstrumentION163 : public CInstrumentIOSeq {
 protected:
 	void WriteToModule(const CInstrument &inst, CDocumentFile &file) const override;
 	void ReadFromModule(CInstrument &inst, CDocumentFile &file) const override;
-	void WriteToFTI(const CInstrument &inst, CSimpleFile &file) const override;
-	void ReadFromFTI(CInstrument &inst, CSimpleFile &file) const override;
+	void DoWriteToFTI(const CInstrument &inst, CSimpleFile &file) const override;
+	void DoReadFromFTI(CInstrument &inst, CSimpleFile &file, int fti_ver) const override;
 };
