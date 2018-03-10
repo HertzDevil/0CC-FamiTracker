@@ -25,7 +25,6 @@
 #include "InstrumentManager.h"
 #include "ChannelMap.h"
 #include "SongView.h"
-#include "APU/APU.h" // default frame rate
 
 #include "InstrumentManager.h"
 #include "Instrument2A03.h"
@@ -124,7 +123,7 @@ unsigned int CFamiTrackerModule::GetEngineSpeed() const {
 unsigned int CFamiTrackerModule::GetFrameRate() const {
 	unsigned Rate = GetEngineSpeed();		// // //
 	if (Rate == 0)
-		return (GetMachine() == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
+		return (GetMachine() == NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
 	return Rate;
 }
 

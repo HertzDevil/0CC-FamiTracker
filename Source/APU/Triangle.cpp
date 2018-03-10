@@ -21,7 +21,6 @@
 */
 
 #include "APU/Triangle.h"
-#include "APU/APU.h"
 #include "APU/Types.h"		// // //
 
 const uint8_t CTriangle::TRIANGLE_WAVE[] = {
@@ -37,7 +36,7 @@ CTriangle::CTriangle(CMixer &Mixer, chan_id_t ID) : C2A03Chan(Mixer, sound_chip_
 	m_iHalt = 0;
 	m_iLinearCounter = 0;
 
-	CPU_RATE = CAPU::BASE_FREQ_NTSC;		// // //
+	CPU_RATE = MASTER_CLOCK_NTSC;		// // //
 }
 
 CTriangle::~CTriangle()
@@ -72,7 +71,7 @@ void CTriangle::Write(uint16_t Address, uint8_t Value)
 			break;
 		case 0x03:
 			m_iPeriod = ((Value & 0x07) << 8) | (m_iPeriod & 0xFF);
-			m_iLengthCounter = CAPU::LENGTH_TABLE[(Value & 0xF8) >> 3];
+			m_iLengthCounter = LENGTH_TABLE[(Value & 0xF8) >> 3];
 			m_iHalt = 1;
 			if (m_iControlReg)
 				m_iEnabled = 1;

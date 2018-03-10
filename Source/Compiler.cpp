@@ -40,7 +40,6 @@
 #include "ChunkRenderBinary.h"
 #include "Driver.h"
 #include "SoundGen.h"
-#include "APU/APU.h"
 #include "DSampleManager.h"		// // //
 #include "InstrumentManager.h"		// // //
 #include "InstrumentService.h"		// // //
@@ -643,8 +642,8 @@ stNSFHeader CCompiler::CreateHeader(int MachineType) const		// // //
 	// If speed is default, write correct NTSC/PAL speed periods
 	// else, set the same custom speed for both
 	int Speed = m_pModule->GetEngineSpeed();
-	Header.Speed_NTSC = Speed ? 1000000 / Speed : 1000000 / 60; //0x411A; // default ntsc speed
-	Header.Speed_PAL = Speed ? 1000000 / Speed : 1000000 / 50; //0x4E20; // default pal speed
+	Header.Speed_NTSC = Speed ? 1000000 / Speed : 1000000 / FRAME_RATE_NTSC; //0x411A; // default ntsc speed
+	Header.Speed_PAL = Speed ? 1000000 / Speed : 1000000 / FRAME_RATE_PAL; //0x4E20; // default pal speed
 
 	if (m_bBankSwitched) {
 		for (int i = 0; i < 4; ++i) {
@@ -676,7 +675,7 @@ stNSFeHeader CCompiler::CreateNSFeHeader(int MachineType)		// // //
 	Header.SoundChip = m_pModule->GetSoundChipSet().GetNSFFlag();
 
 	int Speed = m_pModule->GetEngineSpeed();
-	Header.Speed_NTSC = Speed ? 1000000 / Speed : 1000000 / 60; //0x411A; // default ntsc speed
+	Header.Speed_NTSC = Speed ? 1000000 / Speed : 1000000 / FRAME_RATE_NTSC; //0x411A; // default ntsc speed
 
 	if (m_bBankSwitched) {
 		for (int i = 0; i < 4; ++i) {
@@ -1128,8 +1127,8 @@ void CCompiler::CreateMainHeader()
 		Chunk.StorePointer({CHUNK_WAVETABLE});		// // //
 
 	const int TicksPerSec = m_pModule->GetEngineSpeed();
-	Chunk.StoreWord((TicksPerSec ? TicksPerSec : CAPU::FRAME_RATE_NTSC) * 60);
-	Chunk.StoreWord((TicksPerSec ? TicksPerSec : CAPU::FRAME_RATE_PAL) * 60);
+	Chunk.StoreWord((TicksPerSec ? TicksPerSec : FRAME_RATE_NTSC) * 60);
+	Chunk.StoreWord((TicksPerSec ? TicksPerSec : FRAME_RATE_PAL) * 60);
 
 	// N163 channel count
 	if (Chip.ContainsChip(sound_chip_t::N163) || Chip.IsMultiChip())

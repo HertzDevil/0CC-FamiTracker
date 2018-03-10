@@ -26,6 +26,11 @@
 #include "APU/Types_fwd.h"
 #include "ft0cc/enum_traits.h"		// // //
 
+inline constexpr unsigned MASTER_CLOCK_NTSC = 1789773;		// // // moved from CAPU
+inline constexpr unsigned MASTER_CLOCK_PAL  = 1662607;
+inline constexpr unsigned FRAME_RATE_NTSC   = 60;
+inline constexpr unsigned FRAME_RATE_PAL    = 50;
+
 enum class sound_chip_t : std::uint8_t {		// // //
 	APU,
 	VRC6,

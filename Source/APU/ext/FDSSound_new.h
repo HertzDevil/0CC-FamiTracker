@@ -29,7 +29,6 @@
 
 namespace xgm {
 
-inline const double DEFAULT_CLOCK = 1789772.0;
 inline const int DEFAULT_RATE = 48000;
 
 class NES_FDS

@@ -21,7 +21,6 @@
 */
 
 #include "APU/N163.h"
-#include "APU/APU.h"
 #include "APU/Mixer.h"		// // //
 #include "RegisterState.h"		// // //
 #include <algorithm>		// // //
@@ -376,5 +375,5 @@ void CN163Chan::ResetCounter()
 
 double CN163Chan::GetFrequency() const		// // //
 {
-	return CAPU::BASE_FREQ_NTSC / 983040. * m_iFrequency / (m_iWaveLength >> 16);
+	return MASTER_CLOCK_NTSC / 983040. * m_iFrequency / (m_iWaveLength >> 16);
 }

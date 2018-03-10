@@ -168,33 +168,29 @@ int CDetuneDlg::GetDetuneCent() const
 
 unsigned int CDetuneDlg::FreqToReg(double Freq, int Chip, int Octave)
 {
-	const double BASE_FREQ_NTSC = 236250000.0 / 132.0;
-	const double BASE_FREQ_PAL  = 4433618.75 * 6.0 / 16.0;
 	double dReg;
 	switch (Chip) {
 	default:
-	case 0: dReg = BASE_FREQ_NTSC / Freq / 16.0 - 1.0; break;
-	case 1: dReg = BASE_FREQ_PAL  / Freq / 16.0 - 1.0; break;
-	case 2: dReg = BASE_FREQ_NTSC / Freq / 14.0 - 1.0; break;
+	case 0: dReg = MASTER_CLOCK_NTSC / Freq / 16.0 - 1.0; break;
+	case 1: dReg = MASTER_CLOCK_PAL  / Freq / 16.0 - 1.0; break;
+	case 2: dReg = MASTER_CLOCK_NTSC / Freq / 14.0 - 1.0; break;
 	case 3: dReg = Freq / 49716.0 * (1 << (18 - Octave)); break;
-	case 4: dReg = Freq / BASE_FREQ_NTSC * (1 << 20); break;
-	case 5: dReg = Freq / BASE_FREQ_NTSC * 15.0 * (1 << 18) * modfile_->GetNamcoChannels(); break;
+	case 4: dReg = Freq / MASTER_CLOCK_NTSC * (1 << 20); break;
+	case 5: dReg = Freq / MASTER_CLOCK_NTSC * 15.0 * (1 << 18) * modfile_->GetNamcoChannels(); break;
 	}
 	return (unsigned int)(dReg + .5);
 }
 
 double CDetuneDlg::RegToFreq(unsigned int Reg, int Chip, int Octave)
 {
-	const double BASE_FREQ_NTSC = 236250000.0 / 132.0;
-	const double BASE_FREQ_PAL  = 4433618.75 * 6.0 / 16.0;
 	switch (Chip) {
 	default:
-	case 0: return BASE_FREQ_NTSC / 16.0 / (Reg + 1.0); break;
-	case 1: return BASE_FREQ_PAL  / 16.0 / (Reg + 1.0); break;
-	case 2: return BASE_FREQ_NTSC / 14.0 / (Reg + 1.0); break;
+	case 0: return MASTER_CLOCK_NTSC / 16.0 / (Reg + 1.0); break;
+	case 1: return MASTER_CLOCK_PAL  / 16.0 / (Reg + 1.0); break;
+	case 2: return MASTER_CLOCK_NTSC / 14.0 / (Reg + 1.0); break;
 	case 3: return 49716.0 * Reg / (1 << (18 - Octave)); break;
-	case 4: return BASE_FREQ_NTSC * Reg / (1 << 20); break;
-	case 5: return BASE_FREQ_NTSC * Reg / 15 / (1 << 18) / modfile_->GetNamcoChannels(); break;
+	case 4: return MASTER_CLOCK_NTSC * Reg / (1 << 20); break;
+	case 5: return MASTER_CLOCK_NTSC * Reg / 15 / (1 << 18) / modfile_->GetNamcoChannels(); break;
 	}
 }
 

@@ -71,7 +71,7 @@ IMPLEMENT_DYNAMIC(CInstrumentEditDlg, CDialog)
 CInstrumentEditDlg::CInstrumentEditDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CInstrumentEditDlg::IDD, pParent),
 	m_bOpened(false),
-	m_fRefreshRate(60.0f),		// // //
+	m_fRefreshRate(FRAME_RATE_NTSC),		// // //
 	m_iInstrument(-1),
 	m_pInstManager(nullptr)		// // //
 {

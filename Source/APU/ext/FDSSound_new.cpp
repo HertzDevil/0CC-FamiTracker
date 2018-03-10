@@ -21,6 +21,7 @@
 */
 
 #include "APU/ext/FDSSound_new.h"
+#include "APU/Types.h"
 #include <cstring>
 #include <cmath>
 
@@ -37,7 +38,7 @@ NES_FDS::NES_FDS ()
     rc_k = 0;
     rc_l = (1<<RC_BITS);
 
-    SetClock (DEFAULT_CLOCK);
+    SetClock (MASTER_CLOCK_NTSC);		// // //
     SetRate (DEFAULT_RATE);
 
     Reset();

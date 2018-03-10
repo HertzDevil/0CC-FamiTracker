@@ -29,7 +29,6 @@
 #include "Settings.h"
 #include "SoundGen.h"
 #include "WaveFile.h"		// // //
-#include "APU/APU.h"
 #include "APU/DPCM.h"
 #include "resampler/resample.hpp"
 #include "resampler/resample.inl"
@@ -340,7 +339,7 @@ void CPCMImport::UpdateFileInfo()
 
 	SetDlgItemTextW(IDC_SAMPLE_RATE, SampleRate);
 
-	float base_freq = (float)CAPU::BASE_FREQ_NTSC / (float)CDPCM::DMC_PERIODS_NTSC[m_iQuality];
+	float base_freq = (float)MASTER_CLOCK_NTSC / (float)CDPCM::DMC_PERIODS_NTSC[m_iQuality];
 
 	CStringW Resampling;
 	AfxFormatString1(Resampling, IDS_DPCM_IMPORT_TARGET_FORMAT, FormattedW(L"%g", base_freq));
@@ -377,7 +376,7 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ConvertFile() {		// // //
 	std::vector<uint8_t> pSamples(ft0cc::doc::dpcm_sample::max_size);		// // //
 
 	// Determine resampling factor
-	float base_freq = (float)CAPU::BASE_FREQ_NTSC / (float)CDPCM::DMC_PERIODS_NTSC[m_iQuality];
+	float base_freq = (float)MASTER_CLOCK_NTSC / (float)CDPCM::DMC_PERIODS_NTSC[m_iQuality];
 	float resample_factor = base_freq / (float)m_iSamplesPerSec;
 
 	resampler resmpler(*m_psinc, resample_factor, m_iChannels, m_iSampleSize, m_iWaveSize, m_fSampleFile);

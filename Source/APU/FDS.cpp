@@ -21,7 +21,6 @@
 */
 
 #include "APU/FDS.h"
-#include "APU/APU.h"
 #include "RegisterState.h"		// // //
 #include "APU/ext/FDSSound_new.h"		// // //
 #include "APU/Types.h"		// // //
@@ -86,5 +85,5 @@ double CFDS::GetFreq(int Channel) const		// // //
 	if (Hi & 0x80)
 		return 0.;
 	Lo |= (Hi << 8) & 0xF00;
-	return CAPU::BASE_FREQ_NTSC * (Lo / 4194304.);
+	return MASTER_CLOCK_NTSC * (Lo / 4194304.);
 }

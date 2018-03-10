@@ -160,20 +160,20 @@ void C2A03::ChangeMachine(int Machine)
 {
 	switch (Machine) {
 		case MACHINE_NTSC:
-			m_Square1.CPU_RATE = 1789773;		// // //
-			m_Square2.CPU_RATE = 1789773;
-			m_Triangle.CPU_RATE = 1789773;
+			m_Square1.CPU_RATE = MASTER_CLOCK_NTSC;		// // //
+			m_Square2.CPU_RATE = MASTER_CLOCK_NTSC;
+			m_Triangle.CPU_RATE = MASTER_CLOCK_NTSC;
 			m_Noise.PERIOD_TABLE = CNoise::NOISE_PERIODS_NTSC;
 			m_DPCM.PERIOD_TABLE = CDPCM::DMC_PERIODS_NTSC;
-			m_pMixer->SetClockRate(1789773);
+			m_pMixer->SetClockRate(MASTER_CLOCK_NTSC);
 			break;
 		case MACHINE_PAL:
-			m_Square1.CPU_RATE = 1662607;		// // //
-			m_Square2.CPU_RATE = 1662607;
-			m_Triangle.CPU_RATE = 1662607;
+			m_Square1.CPU_RATE = MASTER_CLOCK_PAL;		// // //
+			m_Square2.CPU_RATE = MASTER_CLOCK_PAL;
+			m_Triangle.CPU_RATE = MASTER_CLOCK_PAL;
 			m_Noise.PERIOD_TABLE = CNoise::NOISE_PERIODS_PAL;
 			m_DPCM.PERIOD_TABLE = CDPCM::DMC_PERIODS_PAL;
-			m_pMixer->SetClockRate(1662607);
+			m_pMixer->SetClockRate(MASTER_CLOCK_PAL);
 			break;
 	}
 }

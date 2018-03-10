@@ -21,7 +21,6 @@
 */
 
 #include "APU/DPCM.h"
-#include "APU/APU.h"
 #include "APU/Types.h"		// // //
 
 const uint16_t CDPCM::DMC_PERIODS_NTSC[] = {
@@ -186,6 +185,6 @@ double CDPCM::GetFrequency() const		// // //
 {
 	if (!m_bSampleFilled && !m_iDMA_BytesRemaining)
 		return 0.;
-	double Rate = PERIOD_TABLE == DMC_PERIODS_PAL ? CAPU::BASE_FREQ_PAL : CAPU::BASE_FREQ_NTSC;
+	double Rate = PERIOD_TABLE == DMC_PERIODS_PAL ? MASTER_CLOCK_PAL : MASTER_CLOCK_NTSC;
 	return Rate / m_iPeriod;
 }

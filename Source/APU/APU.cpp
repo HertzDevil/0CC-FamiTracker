@@ -36,19 +36,6 @@
 #include "RegisterState.h"		// // //
 #include "Assertion.h"		// // //
 
-const int		CAPU::SEQUENCER_FREQUENCY	= 240;		// // //
-const uint32_t	CAPU::BASE_FREQ_NTSC		= 1789773;		// 72.667
-const uint32_t	CAPU::BASE_FREQ_PAL			= 1662607;
-const uint8_t	CAPU::FRAME_RATE_NTSC		= 60;
-const uint8_t	CAPU::FRAME_RATE_PAL		= 50;
-
-const uint8_t CAPU::LENGTH_TABLE[] = {
-	0x0A, 0xFE, 0x14, 0x02, 0x28, 0x04, 0x50, 0x06,
-	0xA0, 0x08, 0x3C, 0x0A, 0x0E, 0x0C, 0x1A, 0x0E,
-	0x0C, 0x10, 0x18, 0x12, 0x30, 0x14, 0x60, 0x16,
-	0xC0, 0x18, 0x48, 0x1A, 0x10, 0x1C, 0x20, 0x1E,
-};
-
 CAPU::CAPU(IAudioCallback *pCallback) :		// // //
 	m_pMixer(std::make_unique<CMixer>()),		// // //
 	m_pParent(pCallback),
@@ -104,9 +91,9 @@ void CAPU::Process()
 
 void CAPU::StepSequence()		// // //
 {
-	if (++m_iSequencerCount == SEQUENCER_FREQUENCY)
+	if (++m_iSequencerCount == C2A03Chan::SEQUENCER_FREQUENCY)
 		m_iSequencerClock = m_iSequencerCount = 0;
-	m_iSequencerNext = (uint64_t)BASE_FREQ_NTSC * (m_iSequencerCount + 1) / SEQUENCER_FREQUENCY;
+	m_iSequencerNext = (uint64_t)MASTER_CLOCK_NTSC * (m_iSequencerCount + 1) / C2A03Chan::SEQUENCER_FREQUENCY;
 	GetSoundChip<sound_chip_t::APU>()->ClockSequence();
 	GetSoundChip<sound_chip_t::MMC5>()->ClockSequence();		// // //
 }
@@ -141,7 +128,7 @@ void CAPU::Reset()
 
 	m_iSequencerCount	= 0;		// // //
 	m_iSequencerClock	= 0;		// // //
-	m_iSequencerNext	= BASE_FREQ_NTSC / SEQUENCER_FREQUENCY;
+	m_iSequencerNext	= MASTER_CLOCK_NTSC / C2A03Chan::SEQUENCER_FREQUENCY;
 
 	m_iCyclesToRun		= 0;
 	m_iFrameCycles		= 0;
@@ -202,7 +189,7 @@ void CAPU::ChangeMachineRate(int Machine, int Rate)		// // //
 	// Allow to change speed on the fly
 	//
 
-	uint32_t BaseFreq = (Machine == MACHINE_NTSC) ? BASE_FREQ_NTSC : BASE_FREQ_PAL;
+	uint32_t BaseFreq = (Machine == MACHINE_NTSC) ? MASTER_CLOCK_NTSC : MASTER_CLOCK_PAL;
 	GetSoundChip<sound_chip_t::APU>()->ChangeMachine(Machine);
 	GetSoundChip<sound_chip_t::VRC7>()->SetSampleSpeed(m_iSampleRate, BaseFreq, Rate);
 }
@@ -214,7 +201,7 @@ bool CAPU::SetupSound(int SampleRate, int NrChannels, int Machine)		// // //
 	// Returns false if a buffer couldn't be allocated
 	//
 
-	uint32_t BaseFreq = (Machine == MACHINE_NTSC) ? BASE_FREQ_NTSC : BASE_FREQ_PAL;
+	uint32_t BaseFreq = (Machine == MACHINE_NTSC) ? MASTER_CLOCK_NTSC : MASTER_CLOCK_PAL;
 	uint8_t FrameRate = (Machine == MACHINE_NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
 	m_iSampleRate = SampleRate;		// // //
 

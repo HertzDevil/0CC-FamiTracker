@@ -22,7 +22,6 @@
 
 #include "APU/S5B.h"
 #include <algorithm>
-#include "APU/APU.h"
 #include "APU/Types.h"		// // //
 #include "RegisterState.h"
 
@@ -93,7 +92,7 @@ double CS5BChannel::GetFrequency() const		// // //
 {
 	if (m_bSquareDisable || !m_iPeriod)
 		return 0.;
-	return CAPU::BASE_FREQ_NTSC / 2. / m_iPeriod;
+	return MASTER_CLOCK_NTSC / 2. / m_iPeriod;
 }
 
 
@@ -188,7 +187,7 @@ double CS5B::GetFreq(int Channel) const		// // //
 			return 0.;
 		if (!(m_iEnvelopeShape & 0x08) || (m_iEnvelopeShape & 0x01))
 			return 0.;
-		return CAPU::BASE_FREQ_NTSC / ((m_iEnvelopeShape & 0x02) ? 64. : 32.) / m_iEnvelopePeriod;
+		return MASTER_CLOCK_NTSC / ((m_iEnvelopeShape & 0x02) ? 64. : 32.) / m_iEnvelopePeriod;
 	//case 4: TODO noise refresh rate
 	}
 	return 0.;

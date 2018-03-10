@@ -342,8 +342,8 @@ void CSoundDriver::SetupVibrato() {
 void CSoundDriver::SetupPeriodTables() {
 	machine_t Machine = modfile_->GetMachine();
 	const double A440_NOTE = 45. - modfile_->GetTuningSemitone() - modfile_->GetTuningCent() / 100.;
-	const double clock_ntsc = 236250000. / 132. / 16.;
-	const double clock_pal  = 4433618.75 * 6. / 16. / 16.;
+	const double clock_ntsc = MASTER_CLOCK_NTSC / 16.;
+	const double clock_pal  = MASTER_CLOCK_PAL / 16.;
 
 	for (int i = 0; i < NOTE_COUNT; ++i) {
 		// Frequency (in Hz)

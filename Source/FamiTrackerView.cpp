@@ -35,7 +35,6 @@
 #include "Accelerator.h"
 #include "TrackerChannel.h"
 #include "Clipboard.h"
-#include "APU/APU.h"
 // // //
 #include "FamiTrackerModule.h"
 #include "Bookmark.h"
@@ -54,6 +53,7 @@
 #include "InstrumentManager.h"
 #include "Instrument.h"
 #include "Sequence.h"
+#include "SoundChipSet.h"
 #include "Assertion.h"
 #include "str_conv/str_conv.hpp"
 

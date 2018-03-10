@@ -830,7 +830,7 @@ void CSoundGen::LoadMachineSettings()		// // //
 
 	m_iMachineType = m_pModule->GetMachine();		// // // 050B
 
-	int BaseFreq	= (m_iMachineType == NTSC) ? CAPU::BASE_FREQ_NTSC  : CAPU::BASE_FREQ_PAL;
+	int BaseFreq	= (m_iMachineType == NTSC) ? MASTER_CLOCK_NTSC  : MASTER_CLOCK_PAL;
 
 	// Choose a default rate if not predefined
 	int Rate = m_pModule->GetFrameRate();		// // //

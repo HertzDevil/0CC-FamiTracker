@@ -21,7 +21,6 @@
 */
 
 #include "APU/Noise.h"
-#include "APU/APU.h"
 #include "APU/Types.h"		// // //
 
 const uint16_t CNoise::NOISE_PERIODS_NTSC[] = {
@@ -84,7 +83,7 @@ void CNoise::Write(uint16_t Address, uint8_t Value)
 		m_iSampleRate = (Value & 0x80) ? 8 : 13;
 		break;
 	case 0x03:
-		m_iLengthCounter = CAPU::LENGTH_TABLE[(Value >> 3) & 0x1F];
+		m_iLengthCounter = LENGTH_TABLE[(Value >> 3) & 0x1F];
 		m_iEnvelopeVolume = 0x0F;
 		m_iEnvelopeCounter = m_iEnvelopeSpeed;		// // //
 		if (m_iControlReg)
@@ -127,7 +126,7 @@ double CNoise::GetFrequency() const		// // //
 {
 	if (!m_iEnabled || !m_iLengthCounter)
 		return 0.;
-	double Rate = PERIOD_TABLE == NOISE_PERIODS_PAL ? CAPU::BASE_FREQ_PAL : CAPU::BASE_FREQ_NTSC;
+	double Rate = PERIOD_TABLE == NOISE_PERIODS_PAL ? MASTER_CLOCK_PAL : MASTER_CLOCK_NTSC;
 	return Rate / m_iPeriod;
 }
 

@@ -108,16 +108,7 @@ public:
 	void	Log();
 #endif
 
-public:
-	static const uint8_t	LENGTH_TABLE[];
-	static const uint32_t	BASE_FREQ_NTSC;
-	static const uint32_t	BASE_FREQ_PAL;
-	static const uint8_t	FRAME_RATE_NTSC;
-	static const uint8_t	FRAME_RATE_PAL;
-
 private:
-	static const int SEQUENCER_FREQUENCY;		// // //
-
 	void StepSequence();		// // //
 
 	void LogWrite(uint16_t Address, uint8_t Value);

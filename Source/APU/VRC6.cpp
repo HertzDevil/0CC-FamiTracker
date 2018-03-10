@@ -21,7 +21,6 @@
 */
 
 #include "APU/VRC6.h"
-#include "APU/APU.h"
 #include "APU/Types.h"		// // //
 #include "RegisterState.h"		// // //
 
@@ -89,7 +88,7 @@ double CVRC6_Pulse::GetFrequency() const		// // //
 {
 	if (m_iGate || !m_iEnabled || !m_iPeriod)
 		return 0.;
-	return CAPU::BASE_FREQ_NTSC / 16. / (m_iPeriod + 1.);
+	return MASTER_CLOCK_NTSC / 16. / (m_iPeriod + 1.);
 }
 
 CVRC6_Sawtooth::CVRC6_Sawtooth(CMixer &Mixer, chan_id_t ID) : CChannel(Mixer, sound_chip_t::VRC6, ID)		// // //
@@ -160,7 +159,7 @@ double CVRC6_Sawtooth::GetFrequency() const		// // //
 {
 	if (!m_iEnabled || !m_iPeriod)
 		return 0.;
-	return CAPU::BASE_FREQ_NTSC / 14. / (m_iPeriod + 1.);
+	return MASTER_CLOCK_NTSC / 14. / (m_iPeriod + 1.);
 }
 
 CVRC6::CVRC6(CMixer &Mixer) :

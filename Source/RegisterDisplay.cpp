@@ -24,7 +24,6 @@
 #include "FamiTrackerEnv.h"		// // //
 #include "SoundGen.h"
 #include "Settings.h"
-#include "APU/APU.h"
 #include "APU/Noise.h"		// // //
 #include "APU/DPCM.h"		// // //
 #include "APU/Types.h"		// // //

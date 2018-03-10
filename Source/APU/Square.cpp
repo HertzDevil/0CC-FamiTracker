@@ -21,7 +21,6 @@
 */
 
 #include "APU/Square.h"
-#include "APU/APU.h"
 #include "APU/Mixer.h"		// // //
 
 // This is also shared with MMC5
@@ -52,7 +51,7 @@ CSquare::CSquare(CMixer &Mixer, chan_id_t ID, sound_chip_t Chip) : C2A03Chan(Mix
 	m_iFixedVolume = 0;
 	m_iEnvelopeCounter = 0;
 
-	CPU_RATE = CAPU::BASE_FREQ_NTSC;		// // //
+	CPU_RATE = MASTER_CLOCK_NTSC;		// // //
 }
 
 CSquare::~CSquare()
@@ -103,7 +102,7 @@ void CSquare::Write(uint16_t Address, uint8_t Value)
 		break;
 	case 0x03:
 		m_iPeriod = ((Value & 0x07) << 8) | (m_iPeriod & 0xFF);
-		m_iLengthCounter = CAPU::LENGTH_TABLE[(Value & 0xF8) >> 3];
+		m_iLengthCounter = LENGTH_TABLE[(Value & 0xF8) >> 3];
 		m_iDutyCycle = 0;
 		m_iEnvelopeVolume = 0x0F;
 		m_iEnvelopeCounter = m_iEnvelopeSpeed;		// // //

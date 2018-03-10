@@ -52,7 +52,6 @@
 #include "FrameAction.h"
 #include "PatternEditor.h"
 #include "FrameEditor.h"
-#include "APU/APU.h"
 // // //
 #include "FamiTrackerModule.h"
 #include "SongData.h"
@@ -3492,7 +3491,7 @@ void CMainFrame::OnSpeedCustom()
 	machine_t Machine = Module.GetMachine();
 	int Speed = Module.GetEngineSpeed();
 	if (Speed == 0)
-		Speed = (Machine == NTSC) ? CAPU::FRAME_RATE_NTSC : CAPU::FRAME_RATE_PAL;
+		Speed = (Machine == NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
 	Speed = SpeedDlg.GetSpeedFromDlg(Speed);
 
 	if (Speed == 0)
