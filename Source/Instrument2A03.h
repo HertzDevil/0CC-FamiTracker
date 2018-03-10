@@ -35,7 +35,7 @@ public:
 	CInstrument2A03();
 	std::unique_ptr<CInstrument> Clone() const override;
 	void	Store(CDocumentFile *pFile) const override;
-	bool	Load(CDocumentFile *pDocFile) override;
+	void	Load(CDocumentFile *pDocFile) override;
 
 private:
 	int		GetSampleCount() const;		// // // 050B

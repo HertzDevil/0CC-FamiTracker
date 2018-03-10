@@ -89,9 +89,9 @@ void CInstrumentN163::Store(CDocumentFile *pDocFile) const
 	}
 }
 
-bool CInstrumentN163::Load(CDocumentFile *pDocFile)
+void CInstrumentN163::Load(CDocumentFile *pDocFile)
 {
-	if (!CSeqInstrument::Load(pDocFile)) return false;		// // //
+	CSeqInstrument::Load(pDocFile);		// // //
 
 	m_iWaveSize = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 4, MAX_WAVE_SIZE, "N163 wave size");
 	m_iWavePos = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 0, MAX_WAVE_SIZE - 1, "N163 wave position");
@@ -111,8 +111,6 @@ bool CInstrumentN163::Load(CDocumentFile *pDocFile)
 			throw e;
 		}
 	}
-
-	return true;
 }
 
 void CInstrumentN163::DoSaveFTI(CSimpleFile &File) const

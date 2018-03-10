@@ -37,7 +37,7 @@ public:
 	CSeqInstrument(inst_type_t type);
 	std::unique_ptr<CInstrument> Clone() const override;
 	void	Store(CDocumentFile *pDocFile) const override;
-	bool	Load(CDocumentFile *pDocFile) override;
+	void	Load(CDocumentFile *pDocFile) override;
 	bool	CanRelease() const override;
 
 	virtual bool	GetSeqEnable(sequence_t SeqType) const;		// // //

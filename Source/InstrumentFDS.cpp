@@ -175,7 +175,7 @@ void CInstrumentFDS::Store(CDocumentFile *pDocFile) const
 	StoreSequence(*pDocFile, *GetSequence(sequence_t::Pitch));
 }
 
-bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
+void CInstrumentFDS::Load(CDocumentFile *pDocFile)
 {
 	for (auto &x : m_iSamples)		// // //
 		x = pDocFile->GetBlockChar();
@@ -219,8 +219,6 @@ bool CInstrumentFDS::Load(CDocumentFile *pDocFile)
 	// Older files was 0-15, new is 0-31
 	if (pDocFile->GetBlockVersion() <= 3)
 		DoubleVolume();
-
-	return true;
 }
 
 void CInstrumentFDS::OnBlankInstrument() {		// // //

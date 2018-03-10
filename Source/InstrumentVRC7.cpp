@@ -67,14 +67,12 @@ void CInstrumentVRC7::Store(CDocumentFile *pDocFile) const
 		pDocFile->WriteBlockChar(GetCustomReg(i));
 }
 
-bool CInstrumentVRC7::Load(CDocumentFile *pDocFile)
+void CInstrumentVRC7::Load(CDocumentFile *pDocFile)
 {
 	m_iPatch = CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 0, 0xF, "VRC7 patch number");
 
 	for (int i = 0; i < 8; ++i)
 		SetCustomReg(i, pDocFile->GetBlockChar());
-
-	return true;
 }
 
 void CInstrumentVRC7::DoSaveFTI(CSimpleFile &File) const

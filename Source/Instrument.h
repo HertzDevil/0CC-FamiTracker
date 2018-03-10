@@ -61,7 +61,7 @@ public:
 	virtual bool CanRelease() const = 0;
 
 	virtual void Store(CDocumentFile *pDocFile) const = 0;				// Saves the instrument to the module
-	virtual bool Load(CDocumentFile *pDocFile) = 0;						// Loads the instrument from a module
+	virtual void Load(CDocumentFile *pDocFile) = 0;						// Loads the instrument from a module
 	void SaveFTI(CSimpleFile &File) const;								// // // Saves to an FTI file
 	void LoadFTI(CSimpleFile &File, int iVersion);						// // // Loads from an FTI file
 

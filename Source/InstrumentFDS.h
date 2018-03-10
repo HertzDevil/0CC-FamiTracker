@@ -34,7 +34,7 @@ public:
 	CInstrumentFDS();
 	std::unique_ptr<CInstrument> Clone() const override;
 	void	Store(CDocumentFile *pDocFile) const override;
-	bool	Load(CDocumentFile *pDocFile) override;
+	void	Load(CDocumentFile *pDocFile) override;
 	bool	CanRelease() const override;
 
 public:

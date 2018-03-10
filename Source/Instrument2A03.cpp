@@ -77,9 +77,9 @@ void CInstrument2A03::Store(CDocumentFile *pDocFile) const
 	}
 }
 
-bool CInstrument2A03::Load(CDocumentFile *pDocFile)
+void CInstrument2A03::Load(CDocumentFile *pDocFile)
 {
-	if (!CSeqInstrument::Load(pDocFile)) return false;		// // //
+	CSeqInstrument::Load(pDocFile);		// // //
 
 	const int Version = pDocFile->GetBlockVersion();
 	const int Octaves = (Version == 1) ? 6 : OCTAVE_RANGE;
@@ -119,8 +119,6 @@ bool CInstrument2A03::Load(CDocumentFile *pDocFile)
 	else
 		for (int n = 0; n < NOTE_COUNT; ++n)
 			ReadAssignment(n);
-
-	return true;
 }
 
 void CInstrument2A03::DoSaveFTI(CSimpleFile &File) const

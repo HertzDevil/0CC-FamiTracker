@@ -82,7 +82,7 @@ void CSeqInstrument::Store(CDocumentFile *pDocFile) const
 	}
 }
 
-bool CSeqInstrument::Load(CDocumentFile *pDocFile)
+void CSeqInstrument::Load(CDocumentFile *pDocFile)
 {
 	CModuleException::AssertRangeFmt(pDocFile->GetBlockInt(), 0, (int)SEQ_COUNT, "Instrument sequence count"); // unused right now
 
@@ -92,8 +92,6 @@ bool CSeqInstrument::Load(CDocumentFile *pDocFile)
 		int Index = static_cast<unsigned char>(pDocFile->GetBlockChar());		// // //
 		SetSeqIndex(i, CModuleException::AssertRangeFmt(Index, 0, MAX_SEQUENCES - 1, "Instrument sequence index"));
 	});
-
-	return true;
 }
 
 void CSeqInstrument::DoSaveFTI(CSimpleFile &File) const
