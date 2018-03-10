@@ -45,8 +45,6 @@ class groove;
 } // namespace ft0cc::doc
 
 class CFamiTrackerModule {
-	using groove = ft0cc::doc::groove;
-
 public:
 	static constexpr std::size_t METADATA_FIELD_LENGTH		= 32;
 
@@ -153,10 +151,10 @@ public:
 	void SwapInstruments(unsigned first, unsigned second);
 
 	// grooves
-	std::shared_ptr<groove> GetGroove(unsigned index);		// // //
-	std::shared_ptr<const groove> GetGroove(unsigned index) const;		// // //
+	std::shared_ptr<ft0cc::doc::groove> GetGroove(unsigned index);		// // //
+	std::shared_ptr<const ft0cc::doc::groove> GetGroove(unsigned index) const;		// // //
 	bool HasGroove(unsigned index) const;		// // //
-	void SetGroove(unsigned index, std::shared_ptr<groove> pGroove);
+	void SetGroove(unsigned index, std::shared_ptr<ft0cc::doc::groove> pGroove);
 	unsigned GetGrooveCount() const;		// // //
 
 	// highlight
@@ -195,5 +193,5 @@ private:
 
 	std::unique_ptr<CInstrumentManager> m_pInstrumentManager;
 
-	std::array<std::shared_ptr<groove>, 32/*MAX_GROOVE*/> m_pGrooveTable;		// // // Grooves
+	std::array<std::shared_ptr<ft0cc::doc::groove>, 32/*MAX_GROOVE*/> m_pGrooveTable;		// // // Grooves
 };

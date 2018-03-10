@@ -810,6 +810,9 @@
     <ClCompile Include="Source\InstrumentIO.cpp">
       <Filter>Source Files\Document Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Source\FamiTrackerDocIOJson.cpp">
+      <Filter>Source Files\Document Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1518,6 +1521,9 @@
       <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\InstrumentIO.h">
+      <Filter>Header Files\Document Utilities Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\FamiTrackerDocIOJson.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
     </ClInclude>
   </ItemGroup>

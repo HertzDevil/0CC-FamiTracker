@@ -461,6 +461,7 @@
     <ClCompile Include="Source\ChipHandlerVRC7.cpp" />
     <ClCompile Include="Source\ClipboardResource.cpp" />
     <ClCompile Include="Source\FamiTrackerDocIO.cpp" />
+    <ClCompile Include="Source\FamiTrackerDocIOJson.cpp" />
     <ClCompile Include="Source\FamiTrackerDocOldIO.cpp" />
     <ClCompile Include="Source\FamiTrackerEnv.cpp" />
     <ClCompile Include="Source\FamiTrackerModule.cpp" />
@@ -661,6 +662,7 @@
     <ClInclude Include="Source\Color.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />
     <ClInclude Include="Source\FamiTrackerDocIOCommon.h" />
+    <ClInclude Include="Source\FamiTrackerDocIOJson.h" />
     <ClInclude Include="Source\FamiTrackerDocOldIO.h" />
     <ClInclude Include="Source\FamiTrackerEnv.h" />
     <ClInclude Include="Source\FamiTrackerModule.h" />

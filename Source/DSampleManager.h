@@ -32,17 +32,15 @@ class dpcm_sample;
 
 class CDSampleManager
 {
-	using dpcm_sample = ft0cc::doc::dpcm_sample;
-
 public:
 	CDSampleManager();
-	std::shared_ptr<dpcm_sample> GetDSample(unsigned Index);
-	std::shared_ptr<const dpcm_sample> GetDSample(unsigned Index) const;
+	std::shared_ptr<ft0cc::doc::dpcm_sample> GetDSample(unsigned Index);
+	std::shared_ptr<const ft0cc::doc::dpcm_sample> GetDSample(unsigned Index) const;
 
-	std::shared_ptr<dpcm_sample> ReleaseDSample(unsigned Index);
+	std::shared_ptr<ft0cc::doc::dpcm_sample> ReleaseDSample(unsigned Index);
 	void RemoveDSample(unsigned Index);
 
-	bool SetDSample(unsigned Index, std::shared_ptr<dpcm_sample> pSamp);
+	bool SetDSample(unsigned Index, std::shared_ptr<ft0cc::doc::dpcm_sample> pSamp);
 
 	bool IsSampleUsed(unsigned Index) const;
 	unsigned int GetDSampleCount() const;
@@ -52,5 +50,5 @@ public:
 	static const unsigned MAX_DSAMPLES;
 
 private:
-	std::vector<std::shared_ptr<dpcm_sample>> m_pDSample;
+	std::vector<std::shared_ptr<ft0cc::doc::dpcm_sample>> m_pDSample;
 };

@@ -57,7 +57,7 @@ std::unique_ptr<CSongData> Kraid::makeSong(CFamiTrackerModule &modfile) {
 	pSong->SetSongSpeed(8);
 	pSong->SetEffectColumnCount(chan_id_t::SQUARE1, 2);
 
-	for (int ch = 0; ch < std::size(PATTERNS); ++ch)
+	for (std::size_t ch = 0; ch < std::size(PATTERNS); ++ch)
 		for (int f = 0; f < FRAMES; ++f)
 			pSong->SetFramePattern(f, (chan_id_t)ch, PATTERNS[ch][f]);
 

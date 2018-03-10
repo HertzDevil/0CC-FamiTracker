@@ -47,7 +47,7 @@ std::shared_ptr<const ft0cc::doc::dpcm_sample> CDSampleManager::GetDSample(unsig
 	return Index < m_pDSample.size() ? m_pDSample[Index] : nullptr;
 }
 
-bool CDSampleManager::SetDSample(unsigned Index, std::shared_ptr<dpcm_sample> pSamp)
+bool CDSampleManager::SetDSample(unsigned Index, std::shared_ptr<ft0cc::doc::dpcm_sample> pSamp)
 {
 	if (Index >= m_pDSample.size())
 		return false;

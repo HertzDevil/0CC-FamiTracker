@@ -80,6 +80,7 @@
 #include "str_conv/str_conv.hpp"
 #include "InstrumentListCtrl.h"
 #include "ModuleException.h"
+#include "FamiTrackerDocIOJson.h"
 
 namespace {
 
@@ -290,6 +291,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_NOTIFY(UDN_DELTAPOS, IDC_HIGHLIGHTSPIN1, OnDeltaposHighlightSpin1)
 	ON_NOTIFY(UDN_DELTAPOS, IDC_HIGHLIGHTSPIN2, OnDeltaposHighlightSpin2)
 	ON_COMMAND(ID_FILE_EXPORTROWS, OnFileExportRows)
+	ON_COMMAND(ID_FILE_EXPORTJSON, OnFileExportJson)
 	ON_COMMAND(ID_COPYAS_TEXT, OnEditCopyAsText)
 	ON_COMMAND(ID_COPYAS_VOLUMESEQUENCE, OnEditCopyAsVolumeSequence)
 	ON_COMMAND(ID_COPYAS_PPMCK, OnEditCopyAsPPMCK)
@@ -2028,7 +2030,7 @@ void CMainFrame::OnFileExportText()
 	CStringA sResult = Exporter.ExportFile(FileDialog.GetPathName(), Doc);		// // //
 	if (sResult.GetLength() > 0)
 	{
-		AfxMessageBox(conv::to_wide(sResult).data(), MB_OK | MB_ICONEXCLAMATION);
+		AfxMessageBox(conv::to_wide(sResult).data(), MB_OK | MB_ICONERROR);
 	}
 	Doc.UpdateAllViews(NULL, UPDATE_PROPERTIES);
 }
@@ -2053,8 +2055,35 @@ void CMainFrame::OnFileExportRows()		// // //
 	CStringA sResult = Exporter.ExportRows(FileDialog.GetPathName(), *pDoc->GetModule());
 	if (sResult.GetLength() > 0)
 	{
-		AfxMessageBox(conv::to_wide(sResult).data(), MB_OK | MB_ICONEXCLAMATION);
+		AfxMessageBox(conv::to_wide(sResult).data(), MB_OK | MB_ICONERROR);
 	}
+}
+
+void CMainFrame::OnFileExportJson() {		// // //
+#ifdef DISABLE_SAVE		// // //
+	SetMessageText(IDS_DISABLE_SAVE);
+	return;
+#endif
+
+	CFamiTrackerDoc	*pDoc = (CFamiTrackerDoc*)GetActiveDocument();
+	CStringW DefFileName = pDoc->GetFileTitle();
+
+	CFileDialog FileDialog(FALSE, L".json", DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"JavaScript Object Notation (*.json)|*.json|All files|*.*||");
+	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_NSF);
+
+	if (FileDialog.DoModal() == IDCANCEL)
+		return;
+
+	CStdioFile f;
+	CFileException oFileException;
+	if (!f.Open(FileDialog.GetPathName(), CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException)) {
+		WCHAR szError[256];
+		oFileException.GetErrorMessage(szError, std::size(szError));
+		AfxMessageBox(szError, MB_OK | MB_ICONERROR);
+		return;
+	}
+
+	f.WriteString(conv::to_wide(nlohmann::json(*pDoc->GetModule()).dump()).data());
 }
 
 BOOL CMainFrame::DestroyWindow()

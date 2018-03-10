@@ -293,7 +293,7 @@ bool CFamiTrackerModule::HasGroove(unsigned index) const {
 	return index < MAX_GROOVE && static_cast<bool>(m_pGrooveTable[index]);
 }
 
-void CFamiTrackerModule::SetGroove(unsigned index, std::shared_ptr<groove> pGroove) {
+void CFamiTrackerModule::SetGroove(unsigned index, std::shared_ptr<ft0cc::doc::groove> pGroove) {
 	m_pGrooveTable[index] = std::move(pGroove);
 }
 

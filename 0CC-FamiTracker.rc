@@ -110,11 +110,19 @@ BEGIN
         MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
         MENUITEM SEPARATOR
         MENUITEM "Create NS&F...\tCtrl+E",      ID_FILE_CREATE_NSF
-        MENUITEM "Create WA&V...",              ID_FILE_CREATEWAV
+        MENUITEM "Create &WAV...",              ID_FILE_CREATEWAV
         MENUITEM SEPARATOR
-        MENUITEM "&Import Text...",             ID_FILE_IMPORTTEXT
-        MENUITEM "&Export Text...",             ID_FILE_EXPORTTEXT
-        MENUITEM "Export Ro&ws...",             ID_FILE_EXPORTROWS
+        POPUP "&Import"
+        BEGIN
+            MENUITEM "&Text...",                    ID_FILE_IMPORTTEXT
+            MENUITEM "&JSON...",                    ID_FILE_IMPORTJSON
+        END
+        POPUP "&Export"
+        BEGIN
+            MENUITEM "&Text...",                    ID_FILE_EXPORTTEXT
+            MENUITEM "&JSON...",                    ID_FILE_EXPORTJSON
+            MENUITEM "Rows As &CSV...",             ID_FILE_EXPORTROWS
+        END
         MENUITEM SEPARATOR
         MENUITEM "&Configuration...",           ID_FILE_GENERALSETTINGS
         MENUITEM SEPARATOR
@@ -2641,7 +2649,7 @@ STRINGTABLE
 BEGIN
     ID_MODULE_DETUNE        "Open the detune settings dialog\nDetune Settings"
     ID_MODULE_GROOVE        "Open the groove settings dialog\nGroove Settings"
-    ID_FILE_EXPORTROWS      "Dumps pattern data to comma-separated values\nExport Rows"
+    ID_FILE_EXPORTROWS      "Dumps pattern data to comma-separated values\nExport Rows As CSV"
     ID_MODULE_DUPLICATECURRENTPATTERN 
                             "Duplicate the current pattern or all patterns selected in the frame editor\nClone Pattern"
     ID_CLEANUP_REMOVEUNUSEDDPCMSAMPLES 
@@ -2771,6 +2779,12 @@ BEGIN
     ID_TRACKER_PLAY_MARKER  "Play pattern from row marker\nPlay from Marker"
     ID_TRACKER_SET_MARKER   "Set a row marker for playback\nSet Row Marker"
     ID_SELECT_OTHER         "Restore the current selection in the inactive editor window\nSelect in Other Editor"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_EXPORTJSON      "Exports module as a JSON file\nExport JSON"
+    ID_FILE_IMPORTJSON      "Imports module JSON files\nImport JSON"
 END
 
 #endif    // English (United States) resources
