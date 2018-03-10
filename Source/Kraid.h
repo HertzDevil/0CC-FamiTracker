@@ -24,6 +24,7 @@
 #pragma once
 
 #include <string_view>
+#include <memory>
 #include "APU/Types_fwd.h"
 
 class CFamiTrackerModule;
@@ -36,7 +37,7 @@ struct Kraid {
 
 private:
 	void buildDoc(CFamiTrackerModule &modfile);
-	void buildSong(CSongData &song);
+	std::unique_ptr<CSongData> makeSong(CFamiTrackerModule &modfile);
 	void makeInst(CFamiTrackerModule &modfile, unsigned index, char vol, std::string_view name);
 	void makePattern(CSongData &song, chan_id_t ch, unsigned pat, std::string_view mml);
 };

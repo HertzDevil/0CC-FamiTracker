@@ -29,7 +29,7 @@
 
 void Kraid::operator()(CFamiTrackerModule &modfile) {
 	buildDoc(modfile);
-	buildSong(*modfile.GetSong(0));
+	(void)modfile.ReplaceSong(0, makeSong(modfile));
 }
 
 void Kraid::buildDoc(CFamiTrackerModule &modfile) {
@@ -39,7 +39,9 @@ void Kraid::buildDoc(CFamiTrackerModule &modfile) {
 	makeInst(modfile, 2, 15, "Triangle");
 }
 
-void Kraid::buildSong(CSongData &song) {
+std::unique_ptr<CSongData> Kraid::makeSong(CFamiTrackerModule &modfile) {
+	auto pSong = modfile.MakeNewSong();
+
 	const unsigned FRAMES = 14;
 	const unsigned ROWS = 24;
 	const unsigned PATTERNS[][FRAMES] = {
@@ -50,31 +52,31 @@ void Kraid::buildSong(CSongData &song) {
 		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	};
 
-	song.SetFrameCount(FRAMES);
-	song.SetPatternLength(ROWS);
-	song.SetSongSpeed(8);
-	song.SetEffectColumnCount(chan_id_t::SQUARE1, 2);
+	pSong->SetFrameCount(FRAMES);
+	pSong->SetPatternLength(ROWS);
+	pSong->SetSongSpeed(8);
+	pSong->SetEffectColumnCount(chan_id_t::SQUARE1, 2);
 
-	for (int ch = 0; ch < FRAMES; ++ch)
-		for (int f = 0; f < ROWS; ++f)
-			song.SetFramePattern(f, (chan_id_t)ch, PATTERNS[ch][f]);
+	for (int ch = 0; ch < std::size(PATTERNS); ++ch)
+		for (int f = 0; f < FRAMES; ++f)
+			pSong->SetFramePattern(f, (chan_id_t)ch, PATTERNS[ch][f]);
 
-	makePattern(song, chan_id_t::TRIANGLE, 0, "<e.>e...<e.>e...<e.>e...<e.>e...");
-	makePattern(song, chan_id_t::TRIANGLE, 1, "<c.>c...<c.>c...<d.>d...<d.>d...");
-	makePattern(song, chan_id_t::TRIANGLE, 2, "<e.>e.>e.<<F.>F.>F.<<f.>f.>f.<<<b.>b.>b.");
-	makePattern(song, chan_id_t::TRIANGLE, 3, "<e...b.>c...<b.c...g.a...b.");
-	makePattern(song, chan_id_t::TRIANGLE, 4, "<<e");
+	makePattern(*pSong, chan_id_t::TRIANGLE, 0, "<e.>e...<e.>e...<e.>e...<e.>e...");
+	makePattern(*pSong, chan_id_t::TRIANGLE, 1, "<c.>c...<c.>c...<d.>d...<d.>d...");
+	makePattern(*pSong, chan_id_t::TRIANGLE, 2, "<e.>e.>e.<<F.>F.>F.<<f.>f.>f.<<<b.>b.>b.");
+	makePattern(*pSong, chan_id_t::TRIANGLE, 3, "<e...b.>c...<b.c...g.a...b.");
+	makePattern(*pSong, chan_id_t::TRIANGLE, 4, "<<e");
 
-	makePattern(song, chan_id_t::SQUARE2, 0, "@e...<b.>a... c. F...d.<b...A.");
-	makePattern(song, chan_id_t::SQUARE2, 1, "@g... d. e...<b.>F...d. a...e.");
-	makePattern(song, chan_id_t::SQUARE2, 2, "@g<b>g<b>g<b>AeAeAeacacacaDFDbD");
-	makePattern(song, chan_id_t::SQUARE2, 3, "Fgab>d<b>Fd<agFb>aFd<agFega>de-");
-	makePattern(song, chan_id_t::SQUARE2, 4, ">a-g-F-e-F-g-a-g-F-e-F-g-");
+	makePattern(*pSong, chan_id_t::SQUARE2, 0, "@e...<b.>a... c. F...d.<b...A.");
+	makePattern(*pSong, chan_id_t::SQUARE2, 1, "@g... d. e...<b.>F...d. a...e.");
+	makePattern(*pSong, chan_id_t::SQUARE2, 2, "@g<b>g<b>g<b>AeAeAeacacacaDFDbD");
+	makePattern(*pSong, chan_id_t::SQUARE2, 3, "Fgab>d<b>Fd<agFb>aFd<agFega>de-");
+	makePattern(*pSong, chan_id_t::SQUARE2, 4, ">a-g-F-e-F-g-a-g-F-e-F-g-");
 
 	int f = 0;
 	int r = 0;
 	do { // TODO: use CSongIterator
-		auto note = song.GetPatternOnFrame(chan_id_t::SQUARE2, f).GetNoteOn(r);
+		auto note = pSong->GetPatternOnFrame(chan_id_t::SQUARE2, f).GetNoteOn(r);
 		if (++r >= ROWS) {
 			r = 0;
 			if (++f >= FRAMES)
@@ -84,9 +86,11 @@ void Kraid::buildSong(CSongData &song) {
 			note.Instrument = 1;
 			note.EffNumber[1] = effect_t::DELAY;
 			note.EffParam[1] = 3;
-			song.GetPatternOnFrame(chan_id_t::SQUARE1, f).SetNoteOn(r, note);
+			pSong->GetPatternOnFrame(chan_id_t::SQUARE1, f).SetNoteOn(r, note);
 		}
 	} while (f || r);
+
+	return pSong;
 }
 
 void Kraid::makeInst(CFamiTrackerModule &modfile, unsigned index, char vol, std::string_view name) {

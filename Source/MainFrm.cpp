@@ -3363,9 +3363,11 @@ void CMainFrame::OnEasterEggKraid5()
 	if (m_iKraidCounter == 4) {
 		if (AfxMessageBox(IDS_KRAID, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO) {
 			m_iKraidCounter = 0;
-			return;}
+			return;
+		}
 		CFamiTrackerDoc &doc = GetDoc();
 		doc.CreateEmpty();
+		static_cast<CFamiTrackerView *>(GetActiveView())->OnInitialUpdate();
 		Kraid { }(*doc.GetModule());
 		SelectTrack(0);
 		SetSongInfo(*doc.GetModule());
