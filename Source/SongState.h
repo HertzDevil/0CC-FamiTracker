@@ -34,6 +34,11 @@ class stChanNote;
 
 std::string MakeCommandString(effect_t Effect, unsigned char Param);		// // //
 
+// // // special echo buffer constants
+inline constexpr int ECHO_BUFFER_NONE = 0xFF;
+inline constexpr int ECHO_BUFFER_HALT = 0x7F;
+inline constexpr int ECHO_BUFFER_ECHO = 0x80;
+
 // // // Channel state information
 class stChannelState {
 	friend class CSongState;

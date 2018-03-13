@@ -684,13 +684,13 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		if (str.Delete(0)) {
 			if (str.GetAt(0) == L'-')
 				str.Delete(0);
-			int BufPos = conv::to_int(str).value_or(ECHO_BUFFER_LENGTH + 1);
-			RaiseIf(BufPos > ECHO_BUFFER_LENGTH,
-				L"Echo buffer access \"^%s\" is out of range, maximum is %d.", (LPCWSTR)str, ECHO_BUFFER_LENGTH);
+			int BufPos = conv::to_int(str).value_or(ECHO_BUFFER_LENGTH);
+			RaiseIf(BufPos >= ECHO_BUFFER_LENGTH,
+				L"Echo buffer access \"^%s\" is out of range, maximum is %d.", (LPCWSTR)str, ECHO_BUFFER_LENGTH - 1);
 			Term.Oct->Set(BufPos, Half);
 		}
 		else {
-			Term.Oct->Min = 0; Term.Oct->Max = ECHO_BUFFER_LENGTH;
+			Term.Oct->Min = 0; Term.Oct->Max = ECHO_BUFFER_LENGTH - 1;
 		}
 		return;
 	}

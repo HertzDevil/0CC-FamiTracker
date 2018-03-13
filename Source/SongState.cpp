@@ -147,7 +147,7 @@ std::string stChannelState::GetStateString() const {
 
 void stChannelState::HandleNote(const stChanNote &Note, unsigned EffColumns) {
 	if (Note.Note != note_t::NONE && Note.Note != note_t::RELEASE) {
-		for (int i = 0; i < std::min(BufferPos, ECHO_BUFFER_LENGTH + 1); i++) {
+		for (int i = 0; i < std::min(BufferPos, (int)ECHO_BUFFER_LENGTH); i++) {
 			if (Echo[i] == ECHO_BUFFER_ECHO) {
 				UpdateEchoTranspose(Note, Transpose[i], EffColumns);
 				switch (Note.Note) {
@@ -159,10 +159,10 @@ void stChannelState::HandleNote(const stChanNote &Note, unsigned EffColumns) {
 					Echo[i] = NewNote;
 				}
 			}
-			else if (Echo[i] > ECHO_BUFFER_ECHO && Echo[i] <= ECHO_BUFFER_ECHO + ECHO_BUFFER_LENGTH)
-				Echo[i]--;
+			else if (Echo[i] > ECHO_BUFFER_ECHO && Echo[i] < ECHO_BUFFER_ECHO + ECHO_BUFFER_LENGTH)
+				--Echo[i];
 		}
-		if (BufferPos >= 0 && BufferPos <= ECHO_BUFFER_LENGTH) {
+		if (BufferPos >= 0 && BufferPos < ECHO_BUFFER_LENGTH) {
 			int Value;
 			switch (Note.Note) {
 			case note_t::HALT: Value = ECHO_BUFFER_HALT; break;

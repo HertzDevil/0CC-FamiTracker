@@ -298,7 +298,8 @@ void CChannelHandler::PlayNote(stChanNote NoteData)		// // //
 
 void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, int Pos)
 {
-	if (Pos < 0 || Pos > ECHO_BUFFER_LENGTH) return;
+	if (Pos < 0 || Pos >= ECHO_BUFFER_LENGTH)
+		return;
 	int Value;
 	switch (NoteData.Note) {
 	case note_t::NONE: Value = ECHO_BUFFER_NONE; break;
@@ -340,7 +341,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 	bool pushNone = false;
 
 	// // // Echo buffer
-	if (NoteData.Note == note_t::ECHO && NoteData.Octave <= ECHO_BUFFER_LENGTH)
+	if (NoteData.Note == note_t::ECHO && NoteData.Octave < ECHO_BUFFER_LENGTH)
 	{ // retrieve buffer
 		int NewNote = m_iEchoBuffer[NoteData.Octave];
 		if (NewNote == ECHO_BUFFER_NONE) {
@@ -355,7 +356,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 	}
 	if (NoteData.Note != note_t::RELEASE && (NoteData.Note != note_t::NONE) || pushNone)
 	{ // push buffer
-		for (int i = ECHO_BUFFER_LENGTH; i > 0; i--)
+		for (int i = ECHO_BUFFER_LENGTH - 1; i > 0; --i)
 			m_iEchoBuffer[i] = m_iEchoBuffer[i - 1];
 		WriteEchoBuffer(NoteData, 0);
 	}

@@ -20,6 +20,7 @@
 ** must bear this legend.
 */
 
+
 #pragma once
 
 #include "APU/Types.h"		// // //
@@ -88,7 +89,7 @@ const unsigned int DEFAULT_SPEED = 6;
 const int MAX_GROOVE = 32;
 
 // // // Maximum number of entries in the echo buffer
-const int ECHO_BUFFER_LENGTH = 3;
+const std::size_t ECHO_BUFFER_LENGTH = 4u;
 
 const int OCTAVE_RANGE = 8;
 const int DEFAULT_OCTAVE = 3;		// // //
@@ -257,11 +258,6 @@ enum class note_t : unsigned char {
 constexpr bool IsNote(note_t n) noexcept {
 	return n >= note_t::C && n <= note_t::B;
 }
-
-// // // special echo buffer constants
-const char ECHO_BUFFER_NONE = '\xFF';
-const char ECHO_BUFFER_HALT = '\x7F';
-const char ECHO_BUFFER_ECHO = '\x80';
 
 enum machine_t : unsigned char {
 	NTSC,

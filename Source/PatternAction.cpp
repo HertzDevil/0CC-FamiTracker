@@ -683,7 +683,7 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 						--Note.Octave;
 					break;
 				case TRANSPOSE_INC_NOTES: case TRANSPOSE_INC_OCTAVES:
-					if (Note.Octave < ECHO_BUFFER_LENGTH)
+					if (Note.Octave < ECHO_BUFFER_LENGTH - 1)
 						++Note.Octave;
 					break;
 				}

@@ -82,7 +82,7 @@ std::pair<note_t, int> ReadNoteFromString(std::string_view sv) {
 
 	auto pre = sv.substr(0, 2);
 	if (auto o = conv::to_uint(sv.substr(2))) {
-		if (pre == "^-" && *o <= ECHO_BUFFER_LENGTH)
+		if (pre == "^-" && *o < ECHO_BUFFER_LENGTH)
 			return {note_t::ECHO, (int)*o};
 		for (std::size_t i = 0; i < std::size(NOTE_NAME); ++i)
 			if (pre == NOTE_NAME[i] || pre == NOTE_NAME_FLAT[i])

@@ -180,7 +180,7 @@ public:
 	}
 
 	void FinishLine() {
-		if (int newpos = text.Find(L'\n', pos); newpos >= 0) {		// // //
+		if (int newpos = text.Find('\n', pos); newpos >= 0) {		// // //
 			++line;
 			pos = newpos + 1;
 		}
@@ -265,7 +265,7 @@ public:
 		if (CStringA s = ReadToken(); !s.IsEmpty())
 			throw MakeError("expected end of line, '%s' found.", (LPCSTR)s);
 		if (!Finished()) {
-			if (WCHAR eol = text.GetAt(pos); eol != L'\r' && eol != L'\n')
+			if (char eol = text.GetAt(pos); eol != '\r' && eol != '\n')
 				throw MakeError("expected end of line, '%c' found.", eol);
 			FinishLine();
 		}
@@ -280,7 +280,7 @@ public:
 			return true;
 		}
 
-		if (TrimChar(L'\n')) {		// // //
+		if (TrimChar('\n')) {		// // //
 			++line;
 			last_pos_ = linestart = pos;
 			return true;
@@ -322,9 +322,9 @@ public:
 				// importer is very tolerant about the second and third characters
 				// in a noise note, they can be anything
 			}
-			else if (sNote.GetAt(0) == L'^' && sNote.GetAt(1) == L'-') {		// // //
-				int o = sNote.GetAt(2) - L'0';
-				if (o < 0 || o > ECHO_BUFFER_LENGTH)
+			else if (sNote.GetAt(0) == '^' && sNote.GetAt(1) == '-') {		// // //
+				unsigned o = sNote.GetAt(2) - '0';
+				if (o >= ECHO_BUFFER_LENGTH)
 					throw MakeError("out-of-bound echo buffer accessed.");
 				Cell.Note = note_t::ECHO;
 				Cell.Octave = o;
@@ -332,20 +332,20 @@ public:
 			else {
 				int n = 1;
 				switch (sNote.GetAt(0)) {
-				case L'c': case L'C': n = value_cast(note_t::C); break;
-				case L'd': case L'D': n = value_cast(note_t::D); break;
-				case L'e': case L'E': n = value_cast(note_t::E); break;
-				case L'f': case L'F': n = value_cast(note_t::F); break;
-				case L'g': case L'G': n = value_cast(note_t::G); break;
-				case L'a': case L'A': n = value_cast(note_t::A); break;
-				case L'b': case L'B': n = value_cast(note_t::B); break;
+				case 'c': case 'C': n = value_cast(note_t::C); break;
+				case 'd': case 'D': n = value_cast(note_t::D); break;
+				case 'e': case 'E': n = value_cast(note_t::E); break;
+				case 'f': case 'F': n = value_cast(note_t::F); break;
+				case 'g': case 'G': n = value_cast(note_t::G); break;
+				case 'a': case 'A': n = value_cast(note_t::A); break;
+				case 'b': case 'B': n = value_cast(note_t::B); break;
 				default:
 					throw MakeError("unrecognized note '%s'.", (LPCSTR)sNote);
 				}
 				switch (sNote.GetAt(1)) {
-				case L'-': case L'.': break;
-				case L'#': case L'+': ++n; break;
-				case L'b': case L'f': --n; break;
+				case '-': case '.': break;
+				case '#': case '+': ++n; break;
+				case 'b': case 'f': --n; break;
 				default:
 					throw MakeError("unrecognized note '%s'.", (LPCSTR)sNote);
 				}
@@ -353,7 +353,7 @@ public:
 				while (n > value_cast(note_t::B)) n -= NOTE_RANGE;
 				Cell.Note = static_cast<note_t>(n);
 
-				int o = sNote.GetAt(2) - L'0';
+				int o = sNote.GetAt(2) - '0';
 				if (o < 0 || o >= OCTAVE_RANGE) {
 					throw MakeError("unrecognized octave '%s'.", (LPCSTR)sNote);
 				}
@@ -407,9 +407,9 @@ public:
 	}
 
 private:
-	bool TrimChar(WCHAR ch) {
+	bool TrimChar(char ch) {
 		if (!Finished())
-			if (WCHAR x = text.GetAt(pos); x == ch) {
+			if (char x = text.GetAt(pos); x == ch) {
 				++pos;
 				return true;
 			}
@@ -417,7 +417,7 @@ private:
 	}
 
 	void ConsumeSpace() {
-		while (TrimChar(L' ') || TrimChar(L'\t'))		// // //
+		while (TrimChar(' ') || TrimChar('\t'))		// // //
 			;
 	}
 

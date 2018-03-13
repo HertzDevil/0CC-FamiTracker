@@ -1800,8 +1800,8 @@ stChanNote CFamiTrackerView::GetInputNote(note_t Note, int Octave, std::size_t I
 				Cell.Vol = Velocity * MAX_VOLUME / 128;
 		}
 		if (Cell.Note == note_t::ECHO) {
-			if (Cell.Octave > ECHO_BUFFER_LENGTH)
-				Cell.Octave = ECHO_BUFFER_LENGTH;
+			if (Cell.Octave > ECHO_BUFFER_LENGTH - 1)
+				Cell.Octave = ECHO_BUFFER_LENGTH - 1;
 		}
 		else if (Cell.Note != note_t::NONE) {		// // //
 			if (Channel == chan_id_t::NOISE) {		// // //
@@ -2669,8 +2669,8 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 			else if (CheckEchoKey(nChar)) {		// // //
 				m_LastNote.Note = Note.Note = note_t::ECHO;
 				m_LastNote.Octave = Note.Octave = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedOctave();		// // //
-				if (Note.Octave > ECHO_BUFFER_LENGTH)
-					Note.Octave = ECHO_BUFFER_LENGTH;
+				if (Note.Octave > ECHO_BUFFER_LENGTH - 1)
+					Note.Octave = ECHO_BUFFER_LENGTH - 1;
 				if (!m_bMaskInstrument)
 					Note.Instrument = GetInstrument();
 			}

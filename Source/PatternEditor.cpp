@@ -3584,7 +3584,7 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 		bool first = true;
 		stChanNote current;
 		current.Note = note_t::HALT;
-		stChanNote echo[ECHO_BUFFER_LENGTH + 1] = { };
+		stChanNote echo[ECHO_BUFFER_LENGTH] = { };
 
 		for (CPatternIterator s {b}; s <= e; ++s) {
 			len++;
@@ -3604,15 +3604,15 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 				}
 
 				if (push) {
-					for (int i = ECHO_BUFFER_LENGTH - 1; i >= 0; i--)
-						echo[i + 1] = echo[i];
+					for (int i = ECHO_BUFFER_LENGTH - 1; i > 0; --i)
+						echo[i] = echo[i - 1];
 					echo[0] = current;
 				}
 
 				if (!first || (NoteData.Note != note_t::NONE)) switch (current.Note) {
-				case note_t::NONE: str.Append(L"w"); break;
-				case note_t::RELEASE: str.Append(L"k"); break;
-				case note_t::HALT: str.Append(L"r"); break;
+				case note_t::NONE: str.AppendChar(L'w'); break;
+				case note_t::RELEASE: str.AppendChar(L'k'); break;
+				case note_t::HALT: str.AppendChar(L'r'); break;
 				default:
 					if (o == -1) {
 						o = current.Octave;
@@ -3621,11 +3621,11 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 					else {
 						while (o < current.Octave) {
 							o++;
-							str.Append(L">");
+							str.AppendChar(L'>');
 						}
 						while (o > current.Octave) {
 							o--;
-							str.Append(L"<");
+							str.AppendChar(L'<');
 						}
 					}
 					AppendFormatW(str, L"%c", (value_cast(current.Note) * 7 + 18) / 12 % 7 + 'a');
@@ -3648,10 +3648,10 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 						len -= l;
 						l >>= 1;
 						if (len & l) {
-							str.Append(L".");
+							str.AppendChar(L'.');
 						}
 					} while (len & l);
-					if (len) str.Append(L"^");
+					if (len) str.AppendChar('"^');
 				}
 
 				current = NoteData;
