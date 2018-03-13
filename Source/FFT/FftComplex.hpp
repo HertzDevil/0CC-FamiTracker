@@ -72,7 +72,7 @@ constexpr double remez_sin(double x) {
 
 constexpr std::size_t reverseBits(std::size_t x, int n) {
 	std::size_t result = 0;
-	for (int i = 0; i < n; i++, x >>= 1)
+	for (int i = 0; i < n; ++i, x >>= 1)
 		result = (result << 1) | (x & 1U);
 	return result;
 }
@@ -118,7 +118,7 @@ public:
 			std::size_t halfsize = size / 2;
 			std::size_t tablestep = Points / size;
 			for (std::size_t i = 0; i < Points; i += size) {
-				for (std::size_t j = i, k = 0; j < i + halfsize; j++, k += tablestep) {
+				for (std::size_t j = i, k = 0; j < i + halfsize; ++j, k += tablestep) {
 					element_type temp = d_first[j + halfsize] * exp_table[k];
 					d_first[j + halfsize] = d_first[j] - temp;
 					d_first[j] += temp;

@@ -127,7 +127,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 			ReadCount = ReadInt(pOpenFile);
 			if (ReadCount > MAX_INSTRUMENTS)
 				ReadCount = MAX_INSTRUMENTS - 1;
-			for (i = 0; i < ReadCount; i++) {
+			for (i = 0; i < ReadCount; ++i) {
 				pOpenFile->Read(&ImportedInstruments, sizeof(ImportedInstruments));
 				if (ImportedInstruments.Free == false) {
 					auto pInst = std::make_unique<CInstrument2A03>();
@@ -153,7 +153,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 
 		case FB_SEQUENCES:
 			pOpenFile->Read(&ReadCount, sizeof(int));
-			for (i = 0; i < ReadCount; i++) {
+			for (i = 0; i < ReadCount; ++i) {
 				COldSequence Seq;
 				pOpenFile->Read(&ImportedSequence, sizeof(ImportedSequence));
 				if (ImportedSequence.Count > 0 && ImportedSequence.Count < MAX_SEQUENCE_ITEMS)
@@ -166,7 +166,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 		case FB_PATTERN_ROWS: {
 			unsigned FrameCount = ReadInt(pOpenFile);
 			Song.SetFrameCount(FrameCount);
-			for (c = 0; c < FrameCount; c++)
+			for (c = 0; c < FrameCount; ++c)
 				modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
 					Song.SetFramePattern(c, i, ReadInt(pOpenFile));
 				});
@@ -177,8 +177,8 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 			unsigned PatternLength = ReadInt(pOpenFile);
 			Song.SetPatternLength(PatternLength);
 			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t x) {
-				for (c = 0; c < ReadCount; c++) {
-					for (i = 0; i < PatternLength; i++) {
+				for (c = 0; c < ReadCount; ++c) {
+					for (i = 0; i < PatternLength; ++i) {
 						pOpenFile->Read(&ImportedNote, sizeof(ImportedNote));
 						if (ImportedNote.ExtraStuff1 == (int)effect_t::PORTAOFF) {
 							ImportedNote.ExtraStuff1 = (int)effect_t::PORTAMENTO;
@@ -186,7 +186,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 						}
 						else if (ImportedNote.ExtraStuff1 == (int)effect_t::PORTAMENTO) {
 							if (ImportedNote.ExtraStuff2 < 0xFF)
-								ImportedNote.ExtraStuff2++;
+								++ImportedNote.ExtraStuff2;
 						}
 						stChanNote Note;		// // //
 						Note.EffNumber[0] = static_cast<effect_t>(ImportedNote.ExtraStuff1);
@@ -215,7 +215,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 			} ImportedDSample;
 
 			pOpenFile->Read(&ReadCount, sizeof(int));
-			for (i = 0; i < ReadCount; i++) {
+			for (i = 0; i < ReadCount; ++i) {
 				std::vector<uint8_t> Sample;		// // //
 				pOpenFile->Read(&ImportedDSample, sizeof(ImportedDSample));
 				if (ImportedDSample.SampleSize != 0 && ImportedDSample.SampleSize < 0x4000) {

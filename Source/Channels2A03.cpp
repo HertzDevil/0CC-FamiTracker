@@ -599,7 +599,7 @@ void CDPCMChan::RefreshChannel()
 	}
 
 	if (m_iRetrigger != 0) {
-		m_iRetriggerCntr--;
+		--m_iRetriggerCntr;
 		if (m_iRetriggerCntr == 0) {
 			m_iRetriggerCntr = m_iRetrigger;
 			m_bEnabled = true;

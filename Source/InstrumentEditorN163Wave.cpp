@@ -334,7 +334,7 @@ void CInstrumentEditorN163Wave::PopulateWaveBox()		// // //
 	Waveforms.CreateBitmap(Width, 16, 1, 1, NULL);
 	m_WaveImage.DeleteImageList();
 	m_WaveImage.Create(Width, 16, ILC_COLOR8, 0, CInstrumentN163::MAX_WAVE_COUNT);
-	for (int i = 0; i < CInstrumentN163::MAX_WAVE_COUNT; i++)
+	for (int i = 0; i < CInstrumentN163::MAX_WAVE_COUNT; ++i)
 		m_WaveImage.Add(&Waveforms, &Waveforms);
 	m_cWaveListCtrl.SetImageList(&m_WaveImage, LVSIL_SMALL);
 
@@ -356,7 +356,7 @@ void CInstrumentEditorN163Wave::UpdateWaveBox(int Index)		// // //
 	WaveBits.fill(0xFFu);
 	int Width = m_pInstrument->GetWaveSize();
 	if (Width % 16) Width += 16 - Width % 16;
-	for (int j = 0; j < Width; j++) {
+	for (int j = 0; j < Width; ++j) {
 		int b = Width * (15 - m_pInstrument->GetSample(Index, j)) + j;
 		WaveBits[b / 8] &= ~static_cast<char>(1 << (7 - b % 8));
 	}
@@ -421,7 +421,7 @@ void CInstrumentEditorN163Wave::OnBnClickedN163Delete()		// // //
 		GetDocument()->ModifyIrreversible();
 		PopulateWaveBox();
 		if (m_iWaveIndex == m_pInstrument->GetWaveCount())
-			m_iWaveIndex--;
+			--m_iWaveIndex;
 		m_cWaveListCtrl.SetItemState(m_iWaveIndex, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
 	}
 }

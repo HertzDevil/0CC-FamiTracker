@@ -1068,7 +1068,7 @@ void CCompiler::ScanSong()
 
 			// Create a list of used sequences
 			inst_type_t it = Im.GetInstrumentType(i);		// // //
-			for (size_t z = 0; z < std::size(used); z++) if (it == INST[z]) {
+			for (size_t z = 0; z < std::size(used); ++z) if (it == INST[z]) {
 				auto pInstrument = static_cast<const CSeqInstrument *>(&inst);
 				foreachSeq([&] (sequence_t j) {
 					if (pInstrument->GetSeqEnable(j))
@@ -1152,7 +1152,7 @@ void CCompiler::CreateSequenceList()
 
 	// TODO: use the CSeqInstrument::GetSequence
 	// TODO: merge identical sequences from all chips
-	for (size_t c = 0; c < std::size(inst); c++) {
+	for (size_t c = 0; c < std::size(inst); ++c) {
 		for (int i = 0; i < MAX_SEQUENCES; ++i) foreachSeq([&] (sequence_t j) {
 			const auto pSeq = Im.GetSequence(inst[c], j, i);
 			if ((*used[c])[i][(unsigned)j] && pSeq->GetItemCount() > 0) {
@@ -1390,7 +1390,7 @@ void CCompiler::StoreSamples()
 			// Pad end of samples
 			unsigned int iAdjust = AdjustSampleAddress(iSampleAddress + iSize);
 
-			iAddedSamples++;
+			++iAddedSamples;
 			iSampleAddress += iSize + iAdjust;
 			m_iSamplesSize += iSize + iAdjust;
 		}
@@ -1402,12 +1402,12 @@ void CCompiler::StoreSamples()
 int CCompiler::GetSampleIndex(int SampleNumber)
 {
 	// Returns a sample pos from the sample bank
-	for (int i = 0; i < MAX_DSAMPLES; i++) {
+	for (int i = 0; i < MAX_DSAMPLES; ++i) {
 		if (m_iSampleBank[i] == SampleNumber)
 			return i;							// Sample is already stored
 		else if(m_iSampleBank[i] == 0xFF) {
 			m_iSampleBank[i] = SampleNumber;	// Allocate new position
-			m_iSamplesUsed++;
+			++m_iSamplesUsed;
 			return i;
 		}
 	}
@@ -1429,7 +1429,7 @@ void CCompiler::StoreGrooves()
 	CChunk &GrooveListChunk = CreateChunk({CHUNK_GROOVE_LIST});
 	GrooveListChunk.StoreByte(0); // padding; possibly used to disable groove
 
-	for (unsigned i = 0; i < MAX_GROOVE; i++) {
+	for (unsigned i = 0; i < MAX_GROOVE; ++i) {
 		if (const auto pGroove = m_pModule->GetGroove(i)) {
 			unsigned int Pos = Size;
 			CChunk &Chunk = CreateChunk({CHUNK_GROOVE, i});
@@ -1660,7 +1660,7 @@ void CCompiler::AddWavetable(CInstrumentFDS *pInstrument, CChunk *pChunk)
 	for (int i = 0; i < 64; ++i)
 		pChunk->StoreByte(pInstrument->GetSample(i));
 
-	m_iWaveTables++;
+	++m_iWaveTables;
 }
 
 // Object list functions

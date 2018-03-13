@@ -695,12 +695,12 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		return;
 	}
 
-	if (str.Mid(1, 2) != L"-#") for (int i = 0; i < 7; i++) {
+	if (str.Mid(1, 2) != L"-#") for (int i = 0; i < 7; ++i) {
 		if (str.Left(1).MakeUpper() == m_pNoteName[i]) {
 			Term.Definite[WC_NOTE] = true;
 			int Note = value_cast(m_iNoteOffset[i]);
 			int Oct = 0;
-			for (int j = 0; j < 3; j++) if (str[1] == m_pNoteSign[j]) {
+			for (int j = 0; j < 3; ++j) if (str[1] == m_pNoteSign[j]) {
 				Note += j - 1;
 				str.Delete(0); break;
 			}
@@ -815,13 +815,13 @@ void CFindDlg::ParseEff(searchTerm &Term, CStringW str, bool Half)
 	}
 	else if (str == L".") {
 		Term.Definite[WC_EFF] = true;
-		for (size_t i = 1; i < EFFECT_COUNT; i++)
+		for (size_t i = 1; i < EFFECT_COUNT; ++i)
 			Term.EffNumber[i] = true;
 	}
 	else {
 		char Name = conv::to_utf8(str.Left(1)).front();
 		bool found = false;
-		for (size_t i = 1; i < EFFECT_COUNT; i++) {
+		for (size_t i = 1; i < EFFECT_COUNT; ++i) {
 			if (Name == EFF_CHAR[i]) {
 				Term.Definite[WC_EFF] = true;
 				Term.EffNumber[i] = true;
@@ -874,7 +874,7 @@ void CFindDlg::GetFindTerm()
 		ParseEff(newTerm, str, false);
 	}
 
-	for (int i = 0; i <= 6; i++) {
+	for (int i = 0; i <= 6; ++i) {
 		RaiseIf(i == 6, L"Search query is empty.");
 		if (newTerm.Definite[i]) break;
 	}
@@ -904,7 +904,7 @@ void CFindDlg::GetReplaceTerm()
 		ParseEff(newTerm, str, false);
 	}
 
-	for (int i = 0; i <= 6; i++) {
+	for (int i = 0; i <= 6; ++i) {
 		RaiseIf(i == 6, L"Replacement query is empty.");
 		if (newTerm.Definite[i]) break;
 	}
@@ -945,7 +945,7 @@ replaceTerm CFindDlg::toReplace(const searchTerm &x) const
 	Term.Note.Instrument = x.Inst->Min;
 	Term.Note.Vol = x.Vol->Min;
 	Term.NoiseChan = x.NoiseChan;
-	for (size_t i = 0; i < EFFECT_COUNT; i++)
+	for (size_t i = 0; i < EFFECT_COUNT; ++i)
 		if (x.EffNumber[i]) {
 			Term.Note.EffNumber[0] = static_cast<effect_t>(i);
 			break;
@@ -1004,7 +1004,7 @@ bool CFindDlg::CompareFields(const stChanNote &Target, bool Noise, int EffCount)
 	int Limit = MAX_EFFECT_COLUMNS - 1;
 	if (EffCount < Limit) Limit = EffCount;
 	if (EffColumn < Limit) Limit = EffColumn;
-	for (int i = EffColumn % MAX_EFFECT_COLUMNS; i <= Limit; i++) {
+	for (int i = EffColumn % MAX_EFFECT_COLUMNS; i <= Limit; ++i) {
 		if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[value_cast(Target.EffNumber[i])])
 		&& (!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.EffParam[i])))
 			EffectMatch = true;

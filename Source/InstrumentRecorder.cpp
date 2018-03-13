@@ -78,7 +78,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 	if (Tick % Intv == 1 && Tick > Intv) {
 		if (*m_pDumpInstrument != nullptr && pView != nullptr) {
 			pView->PostMessageW(WM_USER_DUMP_INST);
-			m_pDumpInstrument++;
+			++m_pDumpInstrument;
 		}
 		--m_iDumpCount;
 	}
@@ -126,7 +126,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 	if (m_iRecordChannel == chan_id_t::NOISE) {
 		Note = PitchReg ^ 0xF; Detune = 0;
 	}
-	else for (int i = 0; i < NOTE_COUNT; i++) {
+	else for (int i = 0; i < NOTE_COUNT; ++i) {
 		int diff = PitchReg - m_pSoundGen->ReadPeriodTable(i, Table);
 		if (std::abs(diff) < std::abs(Detune)) {
 			Note = i; Detune = diff;
@@ -188,9 +188,9 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 						if (Count == m_iRecordWaveSize) {
 							int pos = REG(0x7E - (ID << 3));
 							auto Wave = std::make_unique<char[]>(Count);
-							for (int j = 0; j < Count; j++)
+							for (int j = 0; j < Count; ++j)
 								Wave[j] = 0x0F & REG((pos + j) >> 1) >> ((j & 0x01) ? 4 : 0);
-							for (int j = 1; j <= m_iRecordWaveCount; j++) {
+							for (int j = 1; j <= m_iRecordWaveCount; ++j) {
 								if (!memcmp(Wave.get(), m_iRecordWaveCache.get() + j * Count, Count)) {
 									Val = j; goto outer;
 								}
@@ -366,7 +366,7 @@ void CInstrumentRecorder::FinalizeRecordInstrument()
 	case INST_FDS:
 		ASSERT(FDSInst != NULL);
 		/*
-		for (int i = 0; i < CInstrumentFDS::SEQUENCE_COUNT; i++) {
+		for (int i = 0; i < CInstrumentFDS::SEQUENCE_COUNT; ++i) {
 			const auto Seq = FDSInst->GetSequence(i);
 			ASSERT(Seq != NULL);
 			m_pSequenceCache[i]->SetLoopPoint(m_pSequenceCache[i]->GetItemCount() - 1);
@@ -374,7 +374,7 @@ void CInstrumentRecorder::FinalizeRecordInstrument()
 			m_pSequenceCache[i] = std::make_shared<CSequence>(i);
 		}
 		*/
-		for (int i = 0; i < CInstrumentFDS::WAVE_SIZE; i++)
+		for (int i = 0; i < CInstrumentFDS::WAVE_SIZE; ++i)
 			FDSInst->SetSample(i, 0x3F & m_pSoundGen->GetReg(sound_chip_t::FDS, 0x4040 + i));
 		FDSInst->SetModulationDepth(0x3F & m_pSoundGen->GetReg(sound_chip_t::FDS, 0x4084));
 		FDSInst->SetModulationSpeed(m_pSoundGen->GetReg(sound_chip_t::FDS, 0x4086) | (0x0F & m_pSoundGen->GetReg(sound_chip_t::FDS, 0x4087)) << 8);
@@ -387,11 +387,11 @@ void CInstrumentRecorder::FinalizeRecordInstrument()
 		N163Inst->SetWaveSize(m_iRecordWaveSize);
 		N163Inst->SetWaveCount(m_iRecordWaveCount + 1);
 		if (m_iRecordWaveCache) {
-			for (int i = 0; i <= m_iRecordWaveCount; i++) for (int j = 0; j < m_iRecordWaveSize; j++)
+			for (int i = 0; i <= m_iRecordWaveCount; ++i) for (int j = 0; j < m_iRecordWaveSize; ++j)
 				N163Inst->SetSample(i, j, m_iRecordWaveCache[m_iRecordWaveSize * i + j]);
 			m_iRecordWaveCache.reset();
 		}
-		else for (int j = 0; j < m_iRecordWaveSize; j++) // fallback for blank recording
+		else for (int j = 0; j < m_iRecordWaveSize; ++j) // fallback for blank recording
 			N163Inst->SetSample(0, j, 0);
 		break;
 	}

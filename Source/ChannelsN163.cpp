@@ -255,7 +255,7 @@ void CChannelHandlerN163::ClearRegisters()
 	int Channel = GetSubIndex();
 	int ChannelAddrBase = 0x40 + Channel * 8;
 
-	for (int i = 0; i < 8; i++) {		// // //
+	for (int i = 0; i < 8; ++i) {		// // //
 		WriteReg(ChannelAddrBase + i, 0);
 		WriteReg(ChannelAddrBase + i - 0x40, 0);
 	}

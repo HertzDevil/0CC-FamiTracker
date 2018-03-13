@@ -105,7 +105,7 @@ void CModuleImporter::ImportInstruments() {
 	int seqTable[std::size(INST)][MAX_SEQUENCES][SEQ_COUNT] = { };
 	int SamplesTable[MAX_DSAMPLES] = { };
 
-	for (size_t i = 0; i < std::size(INST); i++) foreachSeq([&] (sequence_t t) {
+	for (size_t i = 0; i < std::size(INST); ++i) foreachSeq([&] (sequence_t t) {
 		for (unsigned int s = 0; s < MAX_SEQUENCES; ++s)
 			if (auto pImportSeq = pImportedInst->GetSequence(INST[i], t, s); pImportSeq && pImportSeq->GetItemCount() > 0) {
 				for (unsigned j = 0; j < MAX_SEQUENCES; ++j) {
@@ -139,7 +139,7 @@ void CModuleImporter::ImportInstruments() {
 		if (auto pSeq = dynamic_cast<CSeqInstrument *>(pInst.get())) {
 			foreachSeq([&] (sequence_t t) {
 				if (pSeq->GetSeqEnable(t)) {
-					for (size_t j = 0; j < std::size(INST); j++)
+					for (size_t j = 0; j < std::size(INST); ++j)
 						if (INST[j] == pInst->GetType()) {
 							pSeq->SetSeqIndex(t, seqTable[j][pSeq->GetSeqIndex(t)][value_cast(t)]);
 							break;
@@ -173,7 +173,7 @@ void CModuleImporter::ImportGrooves() {
 }
 
 void CModuleImporter::ImportDetune() {
-	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++)
+	for (int i = 0; i < 6; ++i) for (int j = 0; j < NOTE_COUNT; ++j)
 		modfile_.SetDetuneOffset(i, j, imported_.GetDetuneOffset(i, j));
 }
 

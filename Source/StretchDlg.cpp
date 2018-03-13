@@ -101,7 +101,7 @@ void CStretchDlg::UpdateTest()
 {
 	std::string str = "Test:";
 	unsigned int count = 0, mapPos = 0;
-	for (int i = 0; i < STRETCH_MAP_TEST_LEN; i++) {
+	for (int i = 0; i < STRETCH_MAP_TEST_LEN; ++i) {
 		if (count < STRETCH_MAP_TEST_LEN && m_iStretchMap[mapPos] != 0)
 			str += ' ' + conv::from_uint(count);
 		else
@@ -157,11 +157,11 @@ void CStretchDlg::OnBnClickedButtonStretchInvert()
 		while (m_iStretchMap[pos] == 0) {
 			if (pos >= m_iStretchMap.size())
 				break;
-			pos++;
-			y++;
+			++pos;
+			++y;
 		}
 		AppendFormatA(str, " %d", y + 1);
-		for (int i = 0; i < x - 1; i++)
+		for (int i = 0; i < x - 1; ++i)
 			AppendFormatA(str, " %d", 0);
 	}
 

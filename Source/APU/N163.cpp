@@ -101,7 +101,7 @@ void CN163::Process(uint32_t Time)
 		if (m_iChannelCntr >= CHAN_PERIOD) {
 			if (m_iActiveChan + m_iChansInUse < MAX_CHANNELS_N163)
 				m_iActiveChan = MAX_CHANNELS_N163;
-			m_iActiveChan--;
+			--m_iActiveChan;
 			m_iChannelCntr -= CHAN_PERIOD;
 		}
 	}

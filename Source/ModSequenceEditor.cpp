@@ -82,7 +82,7 @@ void CModSequenceEditor::OnPaint()
 	// Draw the sample
 	dc.FillSolidRect(0, 0, 32 * (SIZE_X + 2) + 4 /*388*/, 61, 0xA0A0A0);
 
-	for (int i = 0; i < 32; i++) {
+	for (int i = 0; i < 32; ++i) {
 		int x = 2 + i * (SIZE_X + 2);
 
 		int mod = m_pInstrument->GetModulation(i);

@@ -558,7 +558,7 @@ void CFamiTrackerDoc::AutoSave()
 	if (!m_iAutoSaveCounter || !m_bFileLoaded || m_sAutoSaveFile.GetLength() == 0)
 		return;
 
-	m_iAutoSaveCounter--;
+	--m_iAutoSaveCounter;
 
 	if (m_iAutoSaveCounter == 0) {
 		TRACE(L"Doc: Performing auto save\n");

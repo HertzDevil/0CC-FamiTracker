@@ -224,7 +224,7 @@ void CChannelHandler::ApplyChannelState(const stChannelState &State)
 		HandleInstrument(true, true);
 	if (State.Effect_LengthCounter >= 0)
 		HandleEffect(effect_t::VOLUME, State.Effect_LengthCounter);
-	for (unsigned int i = 0; i < EFFECT_COUNT; i++)
+	for (unsigned int i = 0; i < EFFECT_COUNT; ++i)
 		if (State.Effect[i] >= 0)
 			HandleEffect(static_cast<effect_t>(i), State.Effect[i]);
 	if (State.Effect[value_cast(effect_t::FDS_MOD_SPEED_HI)] >= 0x10)
@@ -376,7 +376,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 		m_iEffect = effect_t::NONE;
 
 	// Effects
-	for (int n = 0; n < MAX_EFFECT_COLUMNS; n++) {
+	for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 		effect_t      EffNum   = NoteData.EffNumber[n];
 		unsigned char EffParam = NoteData.EffParam[n];
 		HandleEffect(EffNum, EffParam);		// // // single method
@@ -729,7 +729,7 @@ void CChannelHandler::UpdateDelay()
 			PlayNote(m_cnDelayed);		// // //
 		}
 		else
-			m_cDelayCounter--;
+			--m_cDelayCounter;
 	}
 }
 

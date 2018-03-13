@@ -100,7 +100,7 @@ void CChannelHandlerVRC7::UpdateNoteRelease()		// // //
 {
 	// Note release (Lxx)
 	if (m_iNoteRelease > 0) {
-		m_iNoteRelease--;
+		--m_iNoteRelease;
 		if (m_iNoteRelease == 0) {
 			HandleRelease();
 		}

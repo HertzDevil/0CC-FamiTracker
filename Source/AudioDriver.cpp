@@ -94,7 +94,7 @@ bool CAudioDriver::DoPlayBuffer() {
 				return false;
 			case BUFFER_OUT_OF_SYNC:
 				// Buffer underrun detected
-				m_iAudioUnderruns++;
+				++m_iAudioUnderruns;
 				m_bBufferUnderrun = true;
 				break;
 		}

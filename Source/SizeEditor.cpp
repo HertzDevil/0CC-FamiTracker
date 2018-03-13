@@ -211,7 +211,7 @@ void CSizeEditor::MouseAction(UINT nFlags, CPoint point)
 void CSizeEditor::IncreaseValue()
 {
 	if (m_iValue < MAX_SEQUENCE_ITEMS)
-		m_iValue++;
+		++m_iValue;
 
 	m_pParentWnd->PostMessageW(WM_SIZE_CHANGE, (LPARAM)m_iValue);
 }
@@ -219,7 +219,7 @@ void CSizeEditor::IncreaseValue()
 void CSizeEditor::DecreaseValue()
 {
 	if (m_iValue > 0)
-		m_iValue--;
+		--m_iValue;
 
 	m_pParentWnd->PostMessageW(WM_SIZE_CHANGE, (LPARAM)m_iValue);
 }

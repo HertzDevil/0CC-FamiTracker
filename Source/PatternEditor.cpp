@@ -929,19 +929,19 @@ void CPatternEditor::PrintRow(CDC &DC, int Row, int Line, int Frame) const
 	else if (Env.GetSettings()->General.bFramePreview) {
 		if (Row >= rEnd) { // first frame
 			Row -= rEnd;
-			Frame++;
+			++Frame;
 		}
 		while (Row >= GetCurrentPatternLength(Frame)) {		// // //
 			Row -= GetCurrentPatternLength(Frame++);
 			/*if (Frame >= FrameCount) {
 				Frame = 0;
-				// if (Row) Row--; else { ClearRow(DC, Line); return; }
+				// if (Row) --Row; else { ClearRow(DC, Line); return; }
 			}*/
 		}
 		while (Row < 0) {		// // //
 			/*if (Frame <= 0) {
 				Frame = FrameCount;
-				// if (Row != -1) Row++; else { ClearRow(DC, Line); return; }
+				// if (Row != -1) ++Row; else { ClearRow(DC, Line); return; }
 			}*/
 			Row += GetCurrentPatternLength(--Frame);
 		}
@@ -1353,7 +1353,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 				}
 				else {
 					bool Found = false;
-					for (unsigned int i = 0; i < fxcols; i++) {
+					for (unsigned int i = 0; i < fxcols; ++i) {
 						if (NoteData.EffNumber[i] != effect_t::NONE) {
 							DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[value_cast(NoteData.EffNumber[i])], DimEff);
 							DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, HEX[NoteData.EffParam[i] >> 4], DimEff);
@@ -1698,7 +1698,7 @@ unsigned int CPatternEditor::GetColumnWidth(cursor_column_t Column) const		// //
 unsigned int CPatternEditor::GetColumnSpace(cursor_column_t Column) const		// // //
 {
 	int x = GetColumnWidth(Column);
-	for (int i = 0; i < 7; i++)
+	for (int i = 0; i < 7; ++i)
 		if (Column == GetCursorEndColumn(static_cast<column_t>(i))) return x + m_iColumnSpacing;
 	return x;
 }
@@ -1706,7 +1706,7 @@ unsigned int CPatternEditor::GetColumnSpace(cursor_column_t Column) const		// //
 unsigned int CPatternEditor::GetSelectWidth(cursor_column_t Column) const		// // //
 {
 	int x = GetColumnWidth(Column);
-	for (int i = 0; i < 7; i++)
+	for (int i = 0; i < 7; ++i)
 		if (Column == GetCursorStartColumn(static_cast<column_t>(i))) return x + m_iColumnSpacing;
 	return x;
 }
@@ -2147,9 +2147,9 @@ void CPatternEditor::MoveToFrame(int Frame)
 		if (m_bSelecting) {		// // //
 			if (Env.GetSettings()->General.bMultiFrameSel) {		// // //
 				if (Frame < 0)
-					m_iWarpCount--;
+					--m_iWarpCount;
 				else if (Frame / FrameCount > m_cpCursorPos.m_iFrame / FrameCount)
-					m_iWarpCount++;
+					++m_iWarpCount;
 			}
 		}
 		Frame %= FrameCount;
@@ -2226,7 +2226,7 @@ void CPatternEditor::ScrollLeft()
 		m_cpCursorPos.m_iColumn = static_cast<cursor_column_t>(m_cpCursorPos.m_iColumn - 1);
 	else {
 		if (m_cpCursorPos.m_iChannel > 0) {
-			m_cpCursorPos.m_iChannel--;
+			--m_cpCursorPos.m_iChannel;
 			m_cpCursorPos.m_iColumn = m_iColumns[m_cpCursorPos.m_iChannel];
 		}
 		else {
@@ -2244,7 +2244,7 @@ void CPatternEditor::ScrollRight()
 		m_cpCursorPos.m_iColumn = static_cast<cursor_column_t>(m_cpCursorPos.m_iColumn + 1);
 	else {
 		if (m_cpCursorPos.m_iChannel < GetChannelCount() - 1) {
-			m_cpCursorPos.m_iChannel++;
+			++m_cpCursorPos.m_iChannel;
 			m_cpCursorPos.m_iColumn = C_NOTE;
 		}
 		else {
@@ -2329,7 +2329,7 @@ void CPatternEditor::OnMouseDownPattern(const CPoint &point)
 	const int PatternLength = GetCurrentPatternLength(PointPos.m_iFrame);		// // //
 
 	m_iDragBeginWarp = PointPos.m_iFrame / GetFrameCount();		// // //
-	if (PointPos.m_iFrame % GetFrameCount() < 0) m_iDragBeginWarp--;
+	if (PointPos.m_iFrame % GetFrameCount() < 0) --m_iDragBeginWarp;
 
 	if (bShift && !IsInRange(m_selection, PointPos.m_iFrame, PointPos.m_iRow, PointPos.m_iChannel, PointPos.m_iColumn)) {		// // //
 		// Expand selection
@@ -2371,7 +2371,7 @@ void CPatternEditor::OnMouseDownPattern(const CPoint &point)
 					m_bDragging = false;
 					CancelSelection();
 					m_iDragBeginWarp = PointPos.m_iFrame / GetFrameCount();		// // //
-					if (PointPos.m_iFrame % GetFrameCount() < 0) m_iDragBeginWarp--;
+					if (PointPos.m_iFrame % GetFrameCount() < 0) --m_iDragBeginWarp;
 				}
 			}
 
@@ -2558,7 +2558,7 @@ void CPatternEditor::ContinueMouseSelection(const CPoint &point)
 			SetSelectionEnd(PointPos);
 
 		int Warp = PointPos.m_iFrame / FrameCount;		// // //
-		if (PointPos.m_iFrame % FrameCount < 0) Warp--;
+		if (PointPos.m_iFrame % FrameCount < 0) --Warp;
 		m_iWarpCount = Warp - m_iDragBeginWarp;
 
 		m_selection.m_cpEnd.m_iFrame %= FrameCount;
@@ -2862,7 +2862,7 @@ std::unique_ptr<CPatternClipData> CPatternEditor::Copy() const
 	pClipData->ClipInfo.StartColumn	= GetSelectColumn(m_selection.GetColStart());		// // //
 	pClipData->ClipInfo.EndColumn	= GetSelectColumn(m_selection.GetColEnd());		// // //
 
-	for (int r = 0; r < Rows; r++) {		// // //
+	for (int r = 0; r < Rows; ++r) {		// // //
 		for (int i = 0; i < Channels; ++i) {
 			stChanNote *Target = pClipData->GetPattern(i, r);
 			/*CopyNoteSection(*Target, NoteData, paste_mode_t::DEFAULT,
@@ -2905,7 +2905,7 @@ std::unique_ptr<CPatternClipData> CPatternEditor::CopyRaw(const CSelection &Sel)
 
 	const int PackedPos = (it.m_iFrame + Frames) * Length + it.m_iRow;
 	for (int i = 0; i < Channels; ++i)
-		for (int r = 0; r < Rows; r++) {
+		for (int r = 0; r < Rows; ++r) {
 			auto pos = std::div(PackedPos + r, Length);
 			*pClipData->GetPattern(i, r) = pSongView->GetPatternOnFrame(i + cBegin, pos.quot % Frames).GetNoteOn(pos.rem);
 		}
@@ -2953,7 +2953,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 		front.m_iRow = FrameLength - 1;
 		back.m_iRow = FrameLength - 1 - Rows;
 		while (back.m_iRow >= static_cast<int>(r)) {
-			for (unsigned int i = c; i < CEnd; i++) {
+			for (unsigned int i = c; i < CEnd; ++i) {
 				const auto &Source = back.Get(i);
 				auto NoteData = front.Get(i);
 				CopyNoteSection(NoteData, Source, PasteMode, (i == c) ? StartColumn : column_t::Note,
@@ -2961,8 +2961,8 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 								static_cast<column_t>(value_cast(column_t::Volume) + pSongView->GetEffectColumnCount(i))));
 				front.Set(i, NoteData);
 			}
-			front.m_iRow--;
-			back.m_iRow--;
+			--front.m_iRow;
+			--back.m_iRow;
 		}
 		m_selection.m_cpEnd.m_iRow = std::min(m_selection.m_cpStart.m_iRow + static_cast<int>(Rows), GetCurrentPatternLength(f)) - 1;
 	}
@@ -3046,7 +3046,7 @@ void CPatternEditor::PasteRaw(const CPatternClipData &ClipData, const CCursorPos
 			return;
 		auto maxcol = static_cast<column_t>(value_cast(column_t::Volume) + pSongView->GetEffectColumnCount(c));
 
-		for (int r = 0; r < Rows; r++) {
+		for (int r = 0; r < Rows; ++r) {
 			auto pos = std::div(PackedPos + r, Length);
 			unsigned f = pos.quot % Frames;
 			unsigned line = pos.rem;
@@ -3139,7 +3139,7 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 		auto [b, e] = CPatternIterator::FromSelection(Sel, *m_pView->GetSongView());
 		for (; b <= e; ++b) {
 			// bool HasSkip = false;
-			for (int i = 0; i < GetChannelCount(); i++) {
+			for (int i = 0; i < GetChannelCount(); ++i) {
 				const auto &Note = b.Get(i);
 				for (unsigned int c = 0, m = pSongView->GetEffectColumnCount(i); c < m; ++c)
 					switch (Note.EffNumber[c]) {
@@ -3157,11 +3157,11 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 
 	std::array<unsigned char, MAX_PATTERN> Lo;
 	std::array<unsigned char, MAX_PATTERN> Hi;
-	for (int c = Sel.GetChanStart(); c <= Sel.GetChanEnd(); c++) {
+	for (int c = Sel.GetChanStart(); c <= Sel.GetChanEnd(); ++c) {
 		Lo.fill(255u);
 		Hi.fill(0u);
 
-		for (int i = Sel.GetFrameStart(); i <= Sel.GetFrameEnd(); i++) {
+		for (int i = Sel.GetFrameStart(); i <= Sel.GetFrameEnd(); ++i) {
 			int Pattern = pSongView->GetFramePattern(c, (i + Frames) % Frames);
 			int RBegin = i == Sel.GetFrameStart() ? Sel.GetRowStart() : 0;
 			int REnd = i == Sel.GetFrameEnd() ? Sel.GetRowEnd() : GetCurrentPatternLength(i) - 1;
@@ -3290,12 +3290,12 @@ bool CPatternEditor::ScrollTimerCallback()
 
 	switch (m_iScrolling & 0x03) {		// // //
 	case SCROLL_UP:
-		m_cpCursorPos.m_iRow--;
-		m_iCenterRow--;
+		--m_cpCursorPos.m_iRow;
+		--m_iCenterRow;
 		break;
 	case SCROLL_DOWN:
-		m_cpCursorPos.m_iRow++;
-		m_iCenterRow++;
+		++m_cpCursorPos.m_iRow;
+		++m_iCenterRow;
 		break;
 	}
 	if (m_cpCursorPos.m_iRow == GetCurrentPatternLength(m_cpCursorPos.m_iFrame)) {		// // //
@@ -3312,17 +3312,17 @@ bool CPatternEditor::ScrollTimerCallback()
 	switch (m_iScrolling & 0x0C) {		// // //
 	case SCROLL_RIGHT:
 		if (m_iFirstChannel + m_iChannelsFullVisible < Channels) {
-			m_iFirstChannel++;
+			++m_iFirstChannel;
 			if (m_cpCursorPos.m_iChannel < m_iFirstChannel)
-				m_cpCursorPos.m_iChannel++;
+				++m_cpCursorPos.m_iChannel;
 			InvalidateBackground();
 		}
 		break;
 	case SCROLL_LEFT:
 		if (m_iFirstChannel > 0) {
-			m_iFirstChannel--;
+			--m_iFirstChannel;
 			if (m_cpCursorPos.m_iChannel >= m_iFirstChannel + m_iChannelsFullVisible)
-				m_cpCursorPos.m_iChannel--;
+				--m_cpCursorPos.m_iChannel;
 			InvalidateBackground();
 		}
 		break;
@@ -3517,7 +3517,7 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 	int Row = 0;
 	int Size = m_bSelecting ? (GetSelectionSize() - 1) : (e.m_iRow - b.m_iRow + 1);
 	int HexLength = 0;
-	do HexLength++; while (Size >>= 4);
+	do { ++HexLength; } while (Size >>= 4);
 	if (HexLength < 2) HexLength = 2;
 
 	CStringW Header(L' ', HexLength + 3);
@@ -3527,7 +3527,7 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 		int Columns = pSongView->GetEffectColumnCount(i) - 1;
 		if (i == e.m_iChannel)
 			Columns = std::clamp(static_cast<int>(GetSelectColumn(e.m_iColumn)) - 3, 0, Columns);
-		for (int j = 0; j < Columns; j++)
+		for (int j = 0; j < Columns; ++j)
 			AppendFormatW(Header, L"fx%d ", j + 2);
 	}
 	str = Header.TrimRight() + L"\r\n";
@@ -3587,7 +3587,7 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 		stChanNote echo[ECHO_BUFFER_LENGTH] = { };
 
 		for (CPatternIterator s {b}; s <= e; ++s) {
-			len++;
+			++len;
 			const auto &NoteData = s.Get(c);
 			bool dump = NoteData.Note != note_t::NONE || NoteData.Vol != MAX_VOLUME;
 			bool fin = s.m_iFrame == e.m_iFrame && s.m_iRow == e.m_iRow;
@@ -3620,11 +3620,11 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 					}
 					else {
 						while (o < current.Octave) {
-							o++;
+							++o;
 							str.AppendChar(L'>');
 						}
 						while (o > current.Octave) {
-							o--;
+							--o;
 							str.AppendChar(L'<');
 						}
 					}
@@ -3632,7 +3632,8 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 					if ((value_cast(current.Note) * 7 + 6) % 12 >= 7) str.Append(L"#");
 				}
 
-				if (fin) len++;
+				if (fin)
+					++len;
 				while (len >= 32) {
 					len -= 16;
 					str.Append(L"1^");

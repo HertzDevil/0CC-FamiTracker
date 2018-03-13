@@ -97,7 +97,7 @@ void CVisualizerSpectrum::Draw()
 
 	int LastStep = 0;
 
-	for (int i = 0; i < m_iWidth / m_iBarSize; i++) {		// // //
+	for (int i = 0; i < m_iWidth / m_iBarSize; ++i) {		// // //
 		int iStep = int(Pos + 0.5f);
 
 		float level = 0;

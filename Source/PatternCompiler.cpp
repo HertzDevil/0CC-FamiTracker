@@ -767,7 +767,7 @@ int CPatternCompiler::GetBlockSize(int Position)
 			iDuration = 1;
 	}
 
-	for (; Pos < m_vData.size(); Pos++) {
+	for (; Pos < m_vData.size(); ++Pos) {
 		unsigned char data = m_vData[Pos];
 		if (data < 0x80) {		// Note
 			//int size = (Pos + 1 + iDuration) - Position;
@@ -783,9 +783,9 @@ int CPatternCompiler::GetBlockSize(int Position)
 			iDuration = 1;
 		else {
 			if (data < 0xE0 || data > 0xEF)
-				Pos++;				// Command, skip parameter
+				++Pos;				// Command, skip parameter
 		}
-	//	Pos++;
+	//	++Pos;
 	}
 
 	// Error
@@ -840,17 +840,17 @@ void CPatternCompiler::OptimizeString()
 			for (j = i + l; j <= m_vData.size(); j += l) {
 				matched = true;
 				// Compare one word
-				for (k = 0; k < l; k++) {
+				for (k = 0; k < l; ++k) {
 					if (m_vData[i + k] != m_vData[j + k])
 						matched = false;
 				}
 				if (!matched)
 					break;
-				matches++;
+				++matches;
 				/*
 				if ((j + l) <= m_iDataPointer) {
 					if (memcmp(m_pData + i, m_pData + j, l) == 0)
-						matches++;
+						++matches;
 					else
 						break;
 				}
@@ -867,7 +867,7 @@ void CPatternCompiler::OptimizeString()
 		// Compress
 		if ((best_matches > 1 && best_length > 4) || best_matches > 2 /*&& (best_length > 2 && best_matches > 1)*/) {
 			// Include the first one
-			best_matches++;
+			++best_matches;
 			int size = best_length * best_matches;
 			//
 			// Last known instrument must also be added

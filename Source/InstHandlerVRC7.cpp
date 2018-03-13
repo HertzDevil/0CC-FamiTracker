@@ -49,7 +49,7 @@ void CInstHandlerVRC7::UpdateInstrument()
 	if (pVRC7Inst == nullptr) return;
 	pInterface->SetPatch(pVRC7Inst->GetPatch());
 	if (!pVRC7Inst->GetPatch())
-		for (size_t i = 0; i < 8; i++)
+		for (size_t i = 0; i < 8; ++i)
 			pInterface->SetCustomReg(i, pVRC7Inst->GetCustomReg(i));
 	m_bUpdate = false;
 }

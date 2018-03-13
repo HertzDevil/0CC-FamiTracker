@@ -453,7 +453,7 @@ void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
 	auto sv = conv::to_wide(m_pInstrument->GetName());
 	CStringW MML = FormattedW(L";%s\r\n;%.*s\r\n", (LPCWSTR)patchname, sv.size(), sv.data());
 	AppendFormatW(MML, L";TL FB\r\n %2d,%2d,\r\n;AR DR SL RR KL MT AM VB EG KR DT\r\n", reg[2] & 0x3F, reg[3] & 0x07);
-	for (int i = 0; i <= 1; i++)
+	for (int i = 0; i < 2; ++i)
 		AppendFormatW(MML, L" %2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,\r\n",
 			(reg[4 + i] >> 4) & 0x0F, reg[4 + i] & 0x0F, (reg[6 + i] >> 4) & 0x0F, reg[6 + i] & 0x0F,
 			(reg[2 + i] >> 6) & 0x03, reg[i] & 0x0F,

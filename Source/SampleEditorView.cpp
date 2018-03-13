@@ -413,7 +413,7 @@ void CSampleEditorView::OnEnd()
 
 void CSampleEditorView::OnRight()
 {
-	m_iStartCursor++;
+	++m_iStartCursor;
 
 	if (m_iStartCursor > (m_iSize / (64 * 8)))
 		m_iStartCursor = (m_iSize / (64 * 8));
@@ -423,7 +423,7 @@ void CSampleEditorView::OnRight()
 
 void CSampleEditorView::OnLeft()
 {
-	m_iStartCursor--;
+	--m_iStartCursor;
 
 	if (m_iStartCursor < 0)
 		m_iStartCursor = 0;

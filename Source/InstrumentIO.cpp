@@ -120,7 +120,7 @@ void CInstrumentIOSeq::DoWriteToFTI(const CInstrument &inst_, CSimpleFile &file)
 			file.WriteInt32(pSeq->GetLoopPoint());
 			file.WriteInt32(pSeq->GetReleasePoint());
 			file.WriteInt32(pSeq->GetSetting());
-			for (unsigned j = 0; j < pSeq->GetItemCount(); j++) {
+			for (unsigned j = 0; j < pSeq->GetItemCount(); ++j) {
 				file.WriteInt8(pSeq->GetItem(j));
 			}
 		}
@@ -452,7 +452,7 @@ void CInstrumentIOFDS::WriteToModule(const CInstrument &inst_, CDocumentFile &fi
 		// Store setting (v4)
 		file.WriteBlockInt(Seq.GetSetting());
 		// Store items
-		for (unsigned int j = 0; j < Seq.GetItemCount(); j++) {
+		for (unsigned int j = 0; j < Seq.GetItemCount(); ++j) {
 			file.WriteBlockChar(Seq.GetItem(j));
 		}
 	};

@@ -130,7 +130,7 @@ double CTriangle::GetFrequency() const		// // //
 void CTriangle::LengthCounterUpdate()
 {
 	if ((m_iLoop == 0) && (m_iLengthCounter > 0))
-		m_iLengthCounter--;
+		--m_iLengthCounter;
 }
 
 void CTriangle::LinearCounterUpdate()
@@ -146,7 +146,7 @@ void CTriangle::LinearCounterUpdate()
 		m_iLinearCounter = m_iLinearLoad;
 	else
 		if (m_iLinearCounter > 0)
-			m_iLinearCounter--;
+			--m_iLinearCounter;
 
 	if (m_iLoop == 0)
 		m_iHalt = 0;

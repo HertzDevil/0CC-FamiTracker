@@ -356,7 +356,7 @@ void CInstrumentEditorDPCM::OnBnClickedUnload()
 	if (!SelCount)
 		return;
 
-	for (int i = 0; i < SelCount; i++) {
+	for (int i = 0; i < SelCount; ++i) {
 		nItem = m_cSampleListCtrl.GetNextItem(nItem, LVNI_SELECTED);
 		ASSERT(nItem != -1);
 		int n = m_cSampleListCtrl.GetItemData(nItem);		// // //
@@ -655,7 +655,7 @@ void CInstrumentEditorDPCM::OnNMRClickTable(NMHDR *pNMHDR, LRESULT *pResult)
 	PopupMenu.AppendMenuW(MFT_STRING, (int)CInstrument2A03::NO_DPCM + 2, NO_SAMPLE_STR);		// // //
 
 	// Fill menu
-	for (int i = 0; i < MAX_DSAMPLES; i++)
+	for (int i = 0; i < MAX_DSAMPLES; ++i)
 		if (auto pDSample = GetDSampleManager()->GetDSample(i))		// // //
 			PopupMenu.AppendMenuW(MFT_STRING, i + 2, conv::to_wide(pDSample->name()).data());
 

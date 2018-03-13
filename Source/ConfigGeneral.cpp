@@ -273,7 +273,7 @@ BOOL CConfigGeneral::OnInitDialog()
 	pList->SendMessageW(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
 	pList->SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
-	for (int i = SETTINGS_BOOL_COUNT - 1; i > -1; i--) {
+	for (int i = SETTINGS_BOOL_COUNT - 1; i > -1; --i) {
 		pList->InsertItem(0, L"", 0);
 		pList->SetCheck(0, CONFIG_BOOL[i]);
 		pList->SetItemText(0, 1, CONFIG_STR[i]);
@@ -345,7 +345,7 @@ void CConfigGeneral::OnLvnItemchangedConfigList(NMHDR *pNMHDR, LRESULT *pResult)
 
 		if (pNMLV->uNewState & 0x3000) {
 			SetModified();
-			for (int i = 0; i < SETTINGS_BOOL_COUNT; i++)
+			for (int i = 0; i < SETTINGS_BOOL_COUNT; ++i)
 				this->*(CONFIG_BOOL[i]) = pList->GetCheck(i) != 0;
 		}
 	}

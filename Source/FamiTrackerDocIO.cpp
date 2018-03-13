@@ -809,7 +809,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 							}
 							else if (EffectNumber == effect_t::PORTAMENTO) {
 								if (EffectParam < 0xFF)
-									EffectParam++;
+									++EffectParam;
 							}
 						}
 						Note.EffParam[n] = EffectParam; // skip on no effect
@@ -827,12 +827,12 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 
 				if (compat200) {		// // //
 					if (Note.EffNumber[0] == effect_t::SPEED && Note.EffParam[0] < 20)
-						Note.EffParam[0]++;
+						++Note.EffParam[0];
 
 					if (Note.Vol == 0)
 						Note.Vol = MAX_VOLUME;
 					else {
-						Note.Vol--;
+						--Note.Vol;
 						Note.Vol &= 0x0F;
 					}
 
@@ -1130,7 +1130,7 @@ void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerModule &modfile, int ver) 
 
 	CSequenceManager *pManager = modfile.GetInstrumentManager()->GetSequenceManager(INST_N163);		// // //
 
-	for (unsigned int i = 0; i < Count; i++) {
+	for (unsigned int i = 0; i < Count; ++i) {
 		unsigned int  Index		   = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
 		unsigned int  Type		   = AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type");
 		try {
@@ -1188,7 +1188,7 @@ void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerModule &modfile, int ver) {
 
 	CSequenceManager *pManager = modfile.GetInstrumentManager()->GetSequenceManager(INST_S5B);		// // //
 
-	for (unsigned int i = 0; i < Count; i++) {
+	for (unsigned int i = 0; i < Count; ++i) {
 		unsigned int  Index		   = AssertRange(file_.GetBlockInt(), 0, MAX_SEQUENCES - 1, "Sequence index");
 		unsigned int  Type		   = AssertRange(file_.GetBlockInt(), 0, (int)SEQ_COUNT - 1, "Sequence type");
 		try {
@@ -1283,7 +1283,7 @@ void CFamiTrackerDocIO::SaveDetuneTables(const CFamiTrackerModule &modfile, int 
 	int NoteUsed[6] = { };
 	int ChipCount = 0;
 	for (size_t i = 0; i < std::size(NoteUsed); ++i) {
-		for (int j = 0; j < NOTE_COUNT; j++)
+		for (int j = 0; j < NOTE_COUNT; ++j)
 			if (modfile.GetDetuneOffset(i, j) != 0)
 				++NoteUsed[i];
 		if (NoteUsed[i])
@@ -1293,12 +1293,12 @@ void CFamiTrackerDocIO::SaveDetuneTables(const CFamiTrackerModule &modfile, int 
 		return;
 
 	file_.WriteBlockChar(ChipCount);
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 6; ++i) {
 		if (!NoteUsed[i])
 			continue;
 		file_.WriteBlockChar(i);
 		file_.WriteBlockChar(NoteUsed[i]);
-		for (int j = 0; j < NOTE_COUNT; j++)
+		for (int j = 0; j < NOTE_COUNT; ++j)
 			if (int detune = modfile.GetDetuneOffset(i, j)) {
 				file_.WriteBlockChar(j);
 				file_.WriteBlockInt(detune);
@@ -1309,7 +1309,7 @@ void CFamiTrackerDocIO::SaveDetuneTables(const CFamiTrackerModule &modfile, int 
 void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerModule &modfile, int ver) {
 	const int Count = AssertRange(file_.GetBlockChar(), 0, MAX_GROOVE, "Groove count");
 
-	for (int i = 0; i < Count; i++) {
+	for (int i = 0; i < Count; ++i) {
 		int Index = AssertRange(file_.GetBlockChar(), 0, MAX_GROOVE - 1, "Groove index");
 		try {
 			std::size_t Size = AssertRange((uint8_t)file_.GetBlockChar(), 1u, ft0cc::doc::groove::max_size, "Groove size");

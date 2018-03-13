@@ -147,7 +147,7 @@ std::string stChannelState::GetStateString() const {
 
 void stChannelState::HandleNote(const stChanNote &Note, unsigned EffColumns) {
 	if (Note.Note != note_t::NONE && Note.Note != note_t::RELEASE) {
-		for (int i = 0; i < std::min(BufferPos, (int)ECHO_BUFFER_LENGTH); i++) {
+		for (int i = 0; i < std::min(BufferPos, (int)ECHO_BUFFER_LENGTH); ++i) {
 			if (Echo[i] == ECHO_BUFFER_ECHO) {
 				UpdateEchoTranspose(Note, Transpose[i], EffColumns);
 				switch (Note.Note) {
@@ -248,7 +248,7 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 
 	while (true) {
 		if (Row)
-			Row--;
+			--Row;
 		else if (Frame)
 			Row = SongView.GetFrameLength(--Frame) - 1;
 		else
@@ -333,7 +333,7 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 		});
 		if (doHalt)
 			break;
-		totalRows++;
+		++totalRows;
 	}
 	if (GroovePos == -1 && song.GetSongGroove()) {
 		unsigned Index = song.GetSongSpeed();

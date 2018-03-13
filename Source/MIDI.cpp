@@ -314,13 +314,13 @@ void CMIDI::WriteNote(unsigned char Channel, note_t Note, unsigned char Octave, 
 	if (Note == note_t::NONE)
 		return;
 
-	Octave++;
+	++Octave;
 
 	if ((Channel == 4 || Channel == 3) && Octave < 3)
 		Octave += 3;
 
 	if (Velocity == 0x10)
-		Velocity--;
+		--Velocity;
 		/*
 		Velocity = LastVolume[Channel];
 	else

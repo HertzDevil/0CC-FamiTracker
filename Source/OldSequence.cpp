@@ -53,13 +53,13 @@ std::unique_ptr<CSequence> COldSequence::Convert(sequence_t SeqType) const
 	for (int i = 0; i < Count; ++i) {
 		if (Length[i] < 0) {
 			iLoopPoint = 0;
-			for (int x = Count + Length[i] - 1; x < Count - 1; x++)
+			for (int x = Count + Length[i] - 1; x < Count - 1; ++x)
 				iLoopPoint += (Length[x] + 1);
 		}
 		else {
-			for (int l = 0; l < Length[i] + 1; l++) {
+			for (int l = 0; l < Length[i] + 1; ++l) {
 				pSeq->SetItem(ValPtr++, (SeqType == sequence_t::Pitch || SeqType == sequence_t::HiPitch) && l ? 0 : Value[i]);
-				iLength++;
+				++iLength;
 			}
 		}
 	}

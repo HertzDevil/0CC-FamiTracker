@@ -429,7 +429,7 @@ void CGraphEditor::OnMouseMove(UINT nFlags, CPoint point)
 					float DeltaY = float(EndY - StartY) / float((EndX - StartX) + 1);
 					float fY = float(StartY);
 
-					for (int x = StartX; x < EndX; x++) {
+					for (int x = StartX; x < EndX; ++x) {
 						ModifyItem(CPoint(x, (int)fY), false);
 						fY += DeltaY;
 					}
@@ -607,7 +607,7 @@ void CBarGraphEditor::OnPaint()
 	}
 
 	// Draw items
-	for (int i = 0; i < Count; i++) {
+	for (int i = 0; i < Count; ++i) {
 		int x = m_GraphRect.left + i * StepWidth + 1;
 		int y = Top + StepHeight * (m_iLevels - m_pSequence->GetItem(i));
 		int w = StepWidth;
@@ -877,7 +877,7 @@ void CArpeggioGraphEditor::OnPaint()
 	m_BackDC.SetTextAlign(TA_CENTER);
 	m_BackDC.SetTextColor(0xFFFFFF);
 	m_BackDC.SetBkMode(TRANSPARENT);
-	for (int i = 0; i < Count; i++) {
+	for (int i = 0; i < Count; ++i) {
 		int item;			// // //
 		if (m_pSequence->GetSetting() == SETTING_ARP_SCHEME) {
 			int value = (m_pSequence->GetItem(i) + 0x100) % 0x40;
@@ -1117,7 +1117,7 @@ void CPitchGraphEditor::OnPaint()
 	}
 
 	// Draw items
-	for (int i = 0; i < Count; i++) {
+	for (int i = 0; i < Count; ++i) {
 		int item = m_pSequence->GetItem(i);
 		int x = m_GraphRect.left + i * StepWidth + 1;
 		int y = Top + m_GraphRect.Height() / 2;
@@ -1232,7 +1232,7 @@ void CNoiseEditor::OnPaint()
 	m_BackDC.FillSolidRect(m_GraphRect.left + 1, Top + (m_iItems + 1) * StepHeight, m_GraphRect.Width() - 2, 1, COLOR_LINES);
 
 	// Draw items
-	for (int i = 0; i < Count; i++) {
+	for (int i = 0; i < Count; ++i) {
 		// Draw noise frequency
 		int item = m_pSequence->GetItem(i) & 0x1F;
 		int x = m_GraphRect.left + i * StepWidth + 1;

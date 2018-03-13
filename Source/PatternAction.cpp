@@ -1155,7 +1155,7 @@ bool CPActionUniquePatterns::SaveState(const CMainFrame &MainFrm) {
 
 	GET_SONG_VIEW()->GetChannelOrder().ForeachChannel([&] (chan_id_t chan) {
 		songNew_->SetEffectColumnCount(chan, Song.GetEffectColumnCount(chan));
-		for (int f = 0; f < Frames; f++) {
+		for (int f = 0; f < Frames; ++f) {
 			songNew_->SetFramePattern(f, chan, f);
 			songNew_->GetPattern(chan, f) = Song.GetPatternOnFrame(chan, f);
 		}

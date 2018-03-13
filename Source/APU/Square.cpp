@@ -192,7 +192,7 @@ void CSquare::EnvelopeUpdate()
 			if (m_iLooping)
 				m_iEnvelopeVolume = (m_iEnvelopeVolume - 1) & 0x0F;
 			else if (m_iEnvelopeVolume > 0)
-				m_iEnvelopeVolume--;
+				--m_iEnvelopeVolume;
 		}
 	}
 }

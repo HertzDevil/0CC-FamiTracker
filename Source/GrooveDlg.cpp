@@ -159,7 +159,7 @@ void CGrooveDlg::OnBnClickedApply()
 {
 	CFamiTrackerDoc::GetDoc()->ModifyIrreversible();
 
-	for (int i = 0; i < MAX_GROOVE; i++)
+	for (int i = 0; i < MAX_GROOVE; ++i)
 		if (GrooveTable[i]->size())
 			modfile_->SetGroove(i, std::make_shared<groove>(*GrooveTable[i]));
 		else {
@@ -190,7 +190,7 @@ void CGrooveDlg::ReloadGrooves()
 
 	m_cGrooveTable.ResetContent();
 	m_cCurrentGroove.ResetContent();
-	for (int i = 0; i < MAX_GROOVE; i++) {
+	for (int i = 0; i < MAX_GROOVE; ++i) {
 		bool Used = false;
 		if (const auto orig = modfile_->GetGroove(i)) {
 			GrooveTable[i] = std::make_unique<groove>(*orig);
@@ -295,7 +295,7 @@ void CGrooveDlg::OnBnClickedButtonGrooveUp()
 	Groove->set_entry(m_iGroovePos, Groove->entry(m_iGroovePos - 1));
 	Groove->set_entry(m_iGroovePos - 1, Temp);
 
-	m_iGroovePos--;
+	--m_iGroovePos;
 	UpdateCurrentGroove();
 }
 
@@ -307,7 +307,7 @@ void CGrooveDlg::OnBnClickedButtonGrooveDown()
 	Groove->set_entry(m_iGroovePos, Groove->entry(m_iGroovePos + 1));
 	Groove->set_entry(m_iGroovePos + 1, Temp);
 
-	m_iGroovePos++;
+	++m_iGroovePos;
 	UpdateCurrentGroove();
 }
 
@@ -330,7 +330,7 @@ void CGrooveDlg::OnBnClickedButtonGrooveCopyFxx()
 	Fxx.ClipInfo.EndColumn   = column_t::Effect1;
 
 	unsigned char prev = 0;
-	for (unsigned char i = 0; i < Groove->size(); i++) {
+	for (unsigned char i = 0; i < Groove->size(); ++i) {
 		stChanNote row;
 		unsigned char x = Groove->entry(i);
 		if (x != prev || !i) {
@@ -371,7 +371,7 @@ void CGrooveDlg::OnBnClickedButtonGrooveExpand()
 		if (entry < 2)
 			return;
 	Groove->resize(Groove->size() * 2);
-	for (int i = Groove->size() - 1; i >= 0; i--)
+	for (int i = Groove->size() - 1; i >= 0; --i)
 		Groove->set_entry(i, Groove->entry(i / 2) / 2 + (i % 2 == 0) * (Groove->entry(i / 2) % 2 == 1));
 
 	m_iGroovePos *= 2;
@@ -419,7 +419,7 @@ void CGrooveDlg::OnBnClickedButtonGroovePad()
 			return;
 
 	Groove->resize(Groove->size() * 2);
-	for (int i = Groove->size() - 1; i >= 0; i--)
+	for (int i = Groove->size() - 1; i >= 0; --i)
 		Groove->set_entry(i, i % 2 == 1 ? Amount : Groove->entry(i / 2) - Amount);
 
 	m_iGroovePos *= 2;

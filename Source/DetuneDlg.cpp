@@ -94,7 +94,7 @@ BOOL CDetuneDlg::OnInitDialog()
 	m_iOctave = 3;
 	m_iNote = 36;
 	m_iCurrentChip = 0;
-	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++)
+	for (int i = 0; i < 6; ++i) for (int j = 0; j < NOTE_COUNT; ++j)
 		m_iDetuneTable[i][j] = modfile_->GetDetuneOffset(i, j);
 	m_iGlobalSemitone = modfile_->GetTuningSemitone();		// // // 050B
 	m_iGlobalCent = modfile_->GetTuningCent();
@@ -223,7 +223,7 @@ void CDetuneDlg::UpdateOffset()
 	m_cEditOffset.SetWindowTextW(FormattedW(L"%i", m_iDetuneTable[m_iCurrentChip][m_iNote]));
 
 	if (m_iCurrentChip == 3) // VRC7
-		for (int i = 0; i < OCTAVE_RANGE; i++)
+		for (int i = 0; i < OCTAVE_RANGE; ++i)
 			m_iDetuneTable[3][i * NOTE_RANGE + m_iNote % NOTE_RANGE] = m_iDetuneTable[3][m_iNote];
 
 	const auto DoubleFunc = [] (double x) {
@@ -234,7 +234,7 @@ void CDetuneDlg::UpdateOffset()
 		return L"\n%.2f";
 	};
 
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 6; ++i) {
 		CStringW fmt = L"%s\n%X\n%X";
 		if (i == 5 && !modfile_->GetNamcoChannels()) {
 			SetDlgItemTextW(IDC_DETUNE_INFO_N163, FormattedW(L"%s\n-\n-\n-\n-\n-\n-", CHIP_STR[i]));
@@ -330,7 +330,7 @@ void CDetuneDlg::OnEnKillfocusEditNote()
 {
 	CStringW String;
 	m_cEditNote.GetWindowTextW(String);
-	for (int i = 0; i < NOTE_RANGE; i++)
+	for (int i = 0; i < NOTE_RANGE; ++i)
 		if (String == m_pNote[i] || String == m_pNoteFlat[i])
 			m_iNote = m_iOctave * NOTE_RANGE + i;
 	UpdateNote();
@@ -448,9 +448,9 @@ void CDetuneDlg::OnBnClickedButtonExport()
 		return;
 	}
 
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 6; ++i) {
 		CStringW Line = FormattedW(L"%i", i);
-		for (int j = 0; j < NOTE_COUNT; j++)
+		for (int j = 0; j < NOTE_COUNT; ++j)
 			AppendFormatW(Line, L",%i", m_iDetuneTable[i][j]);
 		Line += L"\n";
 		csv.WriteString(Line);

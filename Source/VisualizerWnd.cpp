@@ -252,7 +252,7 @@ void CVisualizerWnd::OnRButtonUp(UINT nFlags, CPoint point)
 
 	m_csBuffer.Lock();
 
-	for (size_t i = 0; i < std::size(menuIds); i++)		// // //
+	for (size_t i = 0; i < std::size(menuIds); ++i)		// // //
 		if (Result == menuIds[i]) {
 			m_iCurrentState = i;
 			break;

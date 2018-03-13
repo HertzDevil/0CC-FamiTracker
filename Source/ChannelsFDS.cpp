@@ -206,7 +206,7 @@ void CChannelHandlerFDS::RefreshChannel()
 	else {
 		// Delayed modulation
 		m_pAPU->Write(0x4087, 0x80);
-		m_iModulationDelay--;
+		--m_iModulationDelay;
 	}
 
 }

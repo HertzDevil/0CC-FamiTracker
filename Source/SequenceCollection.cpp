@@ -60,7 +60,7 @@ std::shared_ptr<const CSequence> CSequenceCollection::GetSequence(unsigned int I
 
 unsigned int CSequenceCollection::GetFirstFree() const
 {
-	for (int i = 0; i < MAX_SEQUENCES; i++)
+	for (int i = 0; i < MAX_SEQUENCES; ++i)
 		if (!m_pSequence[i] || !m_pSequence[i]->GetItemCount())
 			return i;
 	return -1;

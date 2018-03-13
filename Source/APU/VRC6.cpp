@@ -140,7 +140,7 @@ void CVRC6_Sawtooth::Process(int Time)
 		if (m_iResetReg & 1)
 			m_iPhaseAccumulator = (m_iPhaseAccumulator + m_iPhaseInput) & 0xFF;
 
-		m_iResetReg++;
+		++m_iResetReg;
 
 		if (m_iResetReg == 14) {
 			m_iPhaseAccumulator = 0;

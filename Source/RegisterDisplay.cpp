@@ -81,7 +81,7 @@ void CRegisterDisplay::Draw() {
 	const auto DrawVolFunc = [&] (double Freq, int Volume) {
 		dc_.FillSolidRect(x - 1, BAR_OFFSET + vis_line * 10 - 1, 6 * 108 + 3, 9, 0x808080);
 		dc_.FillSolidRect(x, BAR_OFFSET + vis_line * 10, 6 * 108 + 1, 7, 0);
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 10; ++i)
 			dc_.SetPixelV(x + 72 * i, BAR_OFFSET + vis_line * 10 + 3, i == 4 ? 0x808080 : 0x303030);
 
 		const double note = NoteFromFreq(Freq);
@@ -185,7 +185,7 @@ void CRegisterDisplay::Draw() {
 		y += 18;
 		dc_.FillSolidRect(x + 300 - 1, y - 1, 2 * Length + 2, 17, 0x808080);
 		dc_.FillSolidRect(x + 300, y, 2 * Length, 15, 0);
-		for (int i = 0; i < Length; i++) {
+		for (int i = 0; i < Length; ++i) {
 			auto pState = pSoundGen->GetRegState(sound_chip_t::N163, i);
 			const int Hi = (pState->GetValue() >> 4) & 0x0F;
 			const int Lo = pState->GetValue() & 0x0F;
@@ -323,7 +323,7 @@ void CRegisterDisplay::DrawReg(const CStringA &header, int count) {
 	dc_.SetTextAlign(TA_UPDATECP);
 	dc_.MoveTo(x, y);
 	dc_.TextOutW(0, 0, conv::to_wide(header).data());
-	for (int j = 0; j < count; j++) {
+	for (int j = 0; j < count; ++j) {
 		dc_.SetTextColor(BLEND(GREY(192), DECAY_COLOR[update[j] >> 4], (double)(update[j] & 0x0F) / CRegisterState::DECAY_RATE));
 		dc_.TextOutW(0, 0, FormattedW(L" $%02X", reg[j]));
 	}

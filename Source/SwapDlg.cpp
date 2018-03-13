@@ -85,7 +85,7 @@ BOOL CSwapDlg::OnInitDialog()
 		m_cChipFirst.AddString(L"5B");
 
 	CStringW str;
-	for (int i = 0; i < m_cChipFirst.GetCount(); i++)
+	for (int i = 0; i < m_cChipFirst.GetCount(); ++i)
 	{
 	   m_cChipFirst.GetLBText(i, str);
 	   m_cChipSecond.AddString(str);

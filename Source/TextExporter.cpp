@@ -1061,7 +1061,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	WriteString("\n");
 
 	WriteString("# Detune settings\n");		// // //
-	for (int i = 0; i < 6; i++) for (int j = 0; j < NOTE_COUNT; j++) {
+	for (int i = 0; i < 6; ++i) for (int j = 0; j < NOTE_COUNT; ++j) {
 		int Offset = modfile.GetDetuneOffset(i, j);
 		if (Offset != 0) {
 			WriteString(FormattedA("%s %3d %3d %3d %5d\n", CT[CT_DETUNE], i, j / NOTE_RANGE, j % NOTE_RANGE, Offset));
@@ -1070,7 +1070,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	WriteString("\n");
 
 	WriteString("# Grooves\n");		// // //
-	for (int i = 0; i < MAX_GROOVE; i++) {
+	for (int i = 0; i < MAX_GROOVE; ++i) {
 		if (const auto pGroove = modfile.GetGroove(i)) {
 			WriteString(FormattedA("%s %3d %3d :", CT[CT_GROOVE], i, pGroove->size()));
 			for (uint8_t entry : *pGroove)
@@ -1139,7 +1139,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 			{
 				auto pDI = std::static_pointer_cast<CInstrumentVRC7>(pInst);
 				CStringA patch = FormattedA("%3d ", pDI->GetPatch());
-				for (int j = 0; j < 8; j++)
+				for (int j = 0; j < 8; ++j)
 					AppendFormatA(patch, "%02X ", pDI->GetCustomReg(j));
 				WriteString(patch);
 			}

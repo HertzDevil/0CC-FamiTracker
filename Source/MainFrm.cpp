@@ -1487,7 +1487,7 @@ bool CMainFrame::CheckRepeat()
 
 	if ((CurrentTime - m_iPressLastTime) < REPEAT_TIME) {		// // //
 		if (m_iPressRepeatCounter < REPEAT_DELAY)
-			m_iPressRepeatCounter++;
+			++m_iPressRepeatCounter;
 	}
 	else {
 		m_iPressRepeatCounter = 0;
@@ -3365,25 +3365,25 @@ void CMainFrame::OnUpdateToggleFixTempo(CCmdUI *pCmdUI)
 
 void CMainFrame::OnEasterEggKraid1()			// Easter Egg
 {
-	if (m_iKraidCounter == 0) m_iKraidCounter++;
+	if (m_iKraidCounter == 0) ++m_iKraidCounter;
 	else m_iKraidCounter = 0;
 }
 
 void CMainFrame::OnEasterEggKraid2()
 {
-	if (m_iKraidCounter == 1) m_iKraidCounter++;
+	if (m_iKraidCounter == 1) ++m_iKraidCounter;
 	else m_iKraidCounter = 0;
 }
 
 void CMainFrame::OnEasterEggKraid3()
 {
-	if (m_iKraidCounter == 2) m_iKraidCounter++;
+	if (m_iKraidCounter == 2) ++m_iKraidCounter;
 	else m_iKraidCounter = 0;
 }
 
 void CMainFrame::OnEasterEggKraid4()
 {
-	if (m_iKraidCounter == 3) m_iKraidCounter++;
+	if (m_iKraidCounter == 3) ++m_iKraidCounter;
 	else m_iKraidCounter = 0;
 }
 

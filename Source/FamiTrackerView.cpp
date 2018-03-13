@@ -952,8 +952,8 @@ void CFamiTrackerView::OnTrackerDetune()			// // //
 		return;
 	GetDocument()->ModifyIrreversible();
 	const int *Table = DetuneDlg.GetDetuneTable();
-	for (int i = 0; i < 6; i++)
-		for (int j = 0; j < NOTE_COUNT; j++)
+	for (int i = 0; i < 6; ++i)
+		for (int j = 0; j < NOTE_COUNT; ++j)
 			pModule->SetDetuneOffset(i, j, *(Table + j + i * NOTE_COUNT));
 	pModule->SetTuning(DetuneDlg.GetDetuneSemitone(), DetuneDlg.GetDetuneCent());		// // // 050B
 	theApp.GetSoundGenerator()->DocumentPropertiesChanged(GetDocument());

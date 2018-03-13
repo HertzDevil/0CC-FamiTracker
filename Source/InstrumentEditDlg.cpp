@@ -301,24 +301,24 @@ void CInstrumentEditDlg::OnPaint()
 	note_t Note = GET_NOTE(m_iActiveKey);		// // //
 	int Octave = GET_OCTAVE(m_iActiveKey);
 
-	for (int j = 0; j < 8; j++) {
+	for (int j = 0; j < 8; ++j) {
 		int Pos = (WHITE_KEY_W * 7) * j;
 
-		for (int i = 0; i < 7; i++) {
+		for (int i = 0; i < 7; ++i) {
 			bool Selected = (Note == WHITE[i]) && (Octave == j) && m_iActiveKey != -1;
 			WhiteKey.SelectObject(Selected ? WhiteKeyMarkBmp : WhiteKeyBmp);
 			int Offset = i * WHITE_KEY_W;
 			BackDC.BitBlt(Pos + Offset, 0, 100, 100, &WhiteKey, 0, 0, SRCCOPY);
 		}
 
-		for (int i = 0; i < 2; i++) {
+		for (int i = 0; i < 2; ++i) {
 			bool Selected = (Note == BLACK_1[i]) && (Octave == j) && m_iActiveKey != -1;
 			BlackKey.SelectObject(Selected ? BlackKeyMarkBmp : BlackKeyBmp);
 			int Offset = i * WHITE_KEY_W + WHITE_KEY_W / 2 + 1;
 			BackDC.BitBlt(Pos + Offset, 0, 100, 100, &BlackKey, 0, 0, SRCCOPY);
 		}
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 3; ++i) {
 			bool Selected = (Note == BLACK_2[i]) && (Octave == j) && m_iActiveKey != -1;
 			BlackKey.SelectObject(Selected ? BlackKeyMarkBmp : BlackKeyBmp);
 			int Offset = (i + 3) * WHITE_KEY_W + WHITE_KEY_W / 2 + 1;
