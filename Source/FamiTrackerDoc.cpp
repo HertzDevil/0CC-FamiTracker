@@ -332,7 +332,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 		return FALSE;
 	}
 
-	if (!CFamiTrackerDocIO {DocumentFile}.Save(*GetModule())) {		// // //
+	if (!CFamiTrackerDocIO {DocumentFile, (module_error_level_t)Env.GetSettings()->Version.iErrorLevel}.Save(*GetModule())) {		// // //
 		// The save process failed, delete temp file
 		DocumentFile.Close();
 		DeleteFileW(TempFile);
@@ -434,7 +434,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 			m_bForceBackup = true;
 		}
 		else {
-			if (!CFamiTrackerDocIO {OpenFile}.Load(*GetModule())) {
+			if (!CFamiTrackerDocIO {OpenFile, (module_error_level_t)Env.GetSettings()->Version.iErrorLevel}.Load(*GetModule())) {
 				CStringA msg;
 				msg.LoadStringW(IDS_FILE_LOAD_ERROR);
 				OpenFile.RaiseModuleException((LPCSTR)msg);

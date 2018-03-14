@@ -35,7 +35,7 @@ enum module_error_level_t : int; // Settings.h
 
 class CFamiTrackerDocIO {
 public:
-	explicit CFamiTrackerDocIO(CDocumentFile &file);
+	CFamiTrackerDocIO(CDocumentFile &file, module_error_level_t err_lv);
 
 	bool Load(CFamiTrackerModule &modfile);
 	bool Save(const CFamiTrackerModule &modfile);
@@ -99,6 +99,7 @@ private:
 	T AssertRange(T Value, U Min, V Max, const std::string &Desc) const;
 
 	CDocumentFile &file_;
+	module_error_level_t err_lv_;
 
 	std::vector<COldSequence> m_vTmpSequences;		// // //
 	bool fds_adjust_arps_ = false;

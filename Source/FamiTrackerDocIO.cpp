@@ -25,7 +25,6 @@
 #include "FamiTrackerDocOldIO.h"
 #include "DocumentFile.h" // stdafx.h
 #include "FamiTrackerModule.h"
-#include "Settings.h"
 #include "APU/Types.h"
 #include "SoundChipSet.h"
 #include "ChannelOrder.h"
@@ -108,8 +107,8 @@ void VisitSequences(const CSequenceManager *manager, F&& f) {
 
 // // // save/load functionality
 
-CFamiTrackerDocIO::CFamiTrackerDocIO(CDocumentFile &file) :
-	file_(file)
+CFamiTrackerDocIO::CFamiTrackerDocIO(CDocumentFile &file, module_error_level_t err_lv) :
+	file_(file), err_lv_(err_lv)
 {
 }
 
@@ -1414,7 +1413,7 @@ void CFamiTrackerDocIO::SaveBookmarks(const CFamiTrackerModule &modfile, int ver
 
 template <module_error_level_t l>
 void CFamiTrackerDocIO::AssertFileData(bool Cond, const std::string &Msg) const {
-	if (l <= Env.GetSettings()->Version.iErrorLevel && !Cond) {
+	if (l <= err_lv_ && !Cond) {
 		CModuleException e = file_.GetException();
 		e.AppendError(Msg);
 		throw e;
@@ -1422,12 +1421,15 @@ void CFamiTrackerDocIO::AssertFileData(bool Cond, const std::string &Msg) const 
 }
 
 template<module_error_level_t l, typename T, typename U, typename V>
-T CFamiTrackerDocIO::AssertRange(T Value, U Min, V Max, const std::string &Desc) const try {
-	return CModuleException::AssertRangeFmt<l>(Value, Min, Max, Desc);
-}
-catch (CModuleException e) {
-	file_.SetDefaultFooter(e);
-//	if (m_pCurrentDocument)
-//		m_pCurrentDocument->SetDefaultFooter(e);
-	throw e;
+T CFamiTrackerDocIO::AssertRange(T Value, U Min, V Max, const std::string &Desc) const {
+	if (l <= err_lv_ && !(Value >= Min && Value <= Max)) {
+		std::string msg = Desc + " out of range: expected ["
+			+ std::to_string(Min) + ","
+			+ std::to_string(Max) + "], got "
+			+ std::to_string(Value);
+		auto e = CModuleException::WithMessage(msg);
+		file_.SetDefaultFooter(e);
+		throw e;
+	}
+	return Value;
 }
