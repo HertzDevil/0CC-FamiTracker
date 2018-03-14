@@ -955,7 +955,7 @@ BOOL CDocManager0CC::DoPromptFileName(CStringW &fileName, UINT nIDSTitle, DWORD 
 {
 	// Copied from MFC
 	// // // disregard doc template
-	CStringW path = theApp.GetSettings()->GetPath(PATH_FTM) + L"\\";
+	CStringW path = theApp.GetSettings()->GetPath(PATH_FTM).c_str();
 
 	CFileDialog OpenFileDlg(bOpenFileDialog, L"0cc", NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 							L"0CC-FamiTracker modules (*.0cc;*.ftm)|*.0cc; *.ftm|All files (*.*)|*.*||",		// // //
@@ -971,7 +971,7 @@ BOOL CDocManager0CC::DoPromptFileName(CStringW &fileName, UINT nIDSTitle, DWORD 
 	path.ReleaseBuffer();
 
 	if (nResult == IDOK) {
-		theApp.GetSettings()->SetPath(fileName, PATH_FTM);
+		theApp.GetSettings()->SetDirectory(fileName, PATH_FTM);
 		return true;
 	}
 	return false;

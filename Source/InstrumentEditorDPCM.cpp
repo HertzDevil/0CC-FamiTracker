@@ -322,15 +322,16 @@ void CInstrumentEditorDPCM::OnBnClickedLoad()
 	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, L".dmc");
 	CDMCFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_ALLOWMULTISELECT | OFN_EXPLORER, fileFilter);
 
-	OpenFileDialog.m_pOFN->lpstrInitialDir = Env.GetSettings()->GetPath(PATH_DMC);
+	auto path = theApp.GetSettings()->GetPath(PATH_DMC);		// // //
+	OpenFileDialog.m_pOFN->lpstrInitialDir = path.c_str();
 
 	if (OpenFileDialog.DoModal() == IDCANCEL)
 		return;
 
-	Env.GetSettings()->SetPath(OpenFileDialog.GetPathName(), PATH_DMC);
+	Env.GetSettings()->SetDirectory(OpenFileDialog.GetPathName(), PATH_DMC);
 
 	if (OpenFileDialog.GetFileName().GetLength() == 0) {
-		Env.GetSettings()->SetPath(OpenFileDialog.GetPathName() + L"\\", PATH_DMC);		// // //
+		Env.GetSettings()->SetDirectory(OpenFileDialog.GetPathName() + L"\\", PATH_DMC);		// // //
 		// Multiple files
 		POSITION Pos = OpenFileDialog.GetStartPosition();
 		while (Pos) {
@@ -473,12 +474,13 @@ void CInstrumentEditorDPCM::OnBnClickedSave()
 	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, L".dmc");
 	CFileDialog SaveFileDialog(FALSE, L"dmc", conv::to_wide(pDSample->name()).data(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
 
-	SaveFileDialog.m_pOFN->lpstrInitialDir = Env.GetSettings()->GetPath(PATH_DMC);
+	auto path = theApp.GetSettings()->GetPath(PATH_DMC);		// // //
+	SaveFileDialog.m_pOFN->lpstrInitialDir = path.c_str();
 
 	if (SaveFileDialog.DoModal() == IDCANCEL)
 		return;
 
-	Env.GetSettings()->SetPath(SaveFileDialog.GetPathName(), PATH_DMC);
+	Env.GetSettings()->SetDirectory(SaveFileDialog.GetPathName(), PATH_DMC);
 
 	Path = SaveFileDialog.GetPathName();
 

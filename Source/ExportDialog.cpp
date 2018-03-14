@@ -206,7 +206,7 @@ void CExportDialog::CreateNSF()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
-	if (auto path = GetSavePath(pDoc->GetFileTitle(), theApp.GetSettings()->GetPath(PATH_NSF), NSF_FILTER[0], NSF_FILTER[1])) {		// // //
+	if (auto path = GetSavePath(pDoc->GetFileTitle(), theApp.GetSettings()->GetPath(PATH_NSF).c_str(), NSF_FILTER[0], NSF_FILTER[1])) {		// // //
 		CWaitCursor wait;
 
 		// Collect header info
@@ -221,7 +221,7 @@ void CExportDialog::CreateNSF()
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		UpdateMetadata(Compiler);		// // //
 		Compiler.ExportNSF(*path, MachineType);
-		theApp.GetSettings()->SetPath(*path, PATH_NSF);
+		theApp.GetSettings()->SetDirectory(*path, PATH_NSF);
 	}
 }
 
@@ -229,7 +229,7 @@ void CExportDialog::CreateNSFe()		// // //
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
-	if (auto path = GetSavePath(pDoc->GetFileTitle(), theApp.GetSettings()->GetPath(PATH_NSF), NSFE_FILTER[0], NSFE_FILTER[1])) {		// // //
+	if (auto path = GetSavePath(pDoc->GetFileTitle(), theApp.GetSettings()->GetPath(PATH_NSF).c_str(), NSFE_FILTER[0], NSFE_FILTER[1])) {		// // //
 		CWaitCursor wait;
 
 		// Collect header info
@@ -244,7 +244,7 @@ void CExportDialog::CreateNSFe()		// // //
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		UpdateMetadata(Compiler);		// // //
 		Compiler.ExportNSFE(*path, MachineType);
-		theApp.GetSettings()->SetPath(*path, PATH_NSF);
+		theApp.GetSettings()->SetDirectory(*path, PATH_NSF);
 	}
 }
 
@@ -260,18 +260,18 @@ void CExportDialog::CreateNES()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
-	if (auto path = GetSavePath(pDoc->GetFileTitle(), theApp.GetSettings()->GetPath(PATH_NSF), NES_FILTER[0], NES_FILTER[1])) {		// // //
+	if (auto path = GetSavePath(pDoc->GetFileTitle(), theApp.GetSettings()->GetPath(PATH_NSF).c_str(), NES_FILTER[0], NES_FILTER[1])) {		// // //
 		CWaitCursor wait;
 
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportNES(*path, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
-		theApp.GetSettings()->SetPath(*path, PATH_NSF);
+		theApp.GetSettings()->SetDirectory(*path, PATH_NSF);
 	}
 }
 
 void CExportDialog::CreateBIN()
 {
-	if (auto path = GetSavePath(L"music.bin", theApp.GetSettings()->GetPath(PATH_NSF), RAW_FILTER[0], RAW_FILTER[1])) {		// // //
+	if (auto path = GetSavePath(L"music.bin", theApp.GetSettings()->GetPath(PATH_NSF).c_str(), RAW_FILTER[0], RAW_FILTER[1])) {		// // //
 		CStringW SampleDir = *path;		// // //
 
 		const CStringW DEFAULT_SAMPLE_NAME = L"samples.bin";		// // //
@@ -300,31 +300,31 @@ void CExportDialog::CreateBIN()
 
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportBIN(*path, SampleDir);
-		theApp.GetSettings()->SetPath(*path, PATH_NSF);
+		theApp.GetSettings()->SetDirectory(*path, PATH_NSF);
 	}
 }
 
 void CExportDialog::CreatePRG()
 {
-	if (auto path = GetSavePath(L"music.prg", theApp.GetSettings()->GetPath(PATH_NSF), PRG_FILTER[0], PRG_FILTER[1])) {		// // //
+	if (auto path = GetSavePath(L"music.prg", theApp.GetSettings()->GetPath(PATH_NSF).c_str(), PRG_FILTER[0], PRG_FILTER[1])) {		// // //
 		CWaitCursor wait;
 
 		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportPRG(*path, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
-		theApp.GetSettings()->SetPath(*path, PATH_NSF);
+		theApp.GetSettings()->SetDirectory(*path, PATH_NSF);
 	}
 }
 
 void CExportDialog::CreateASM()
 {
-	if (auto path = GetSavePath(L"music.asm", theApp.GetSettings()->GetPath(PATH_NSF), ASM_FILTER[0], ASM_FILTER[1])) {		// // //
+	if (auto path = GetSavePath(L"music.asm", theApp.GetSettings()->GetPath(PATH_NSF).c_str(), ASM_FILTER[0], ASM_FILTER[1])) {		// // //
 		CWaitCursor wait;
 
 		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportASM(*path);
-		theApp.GetSettings()->SetPath(*path, PATH_NSF);
+		theApp.GetSettings()->SetDirectory(*path, PATH_NSF);
 	}
 }
 

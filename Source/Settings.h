@@ -24,8 +24,7 @@
 #pragma once
 
 #include "stdafx.h"		// // //
-#include <memory>		// // //
-#include <vector>		// // //
+#include "ft0cc/fs.h"		// // //
 
 // CSettings command target
 
@@ -56,8 +55,9 @@ private:
 	CSettings() = default;
 
 public:
-	const CStringW &GetPath(unsigned int PathType) const;		// // //
-	void SetPath(const CStringW &PathName, unsigned int PathType);
+	fs::path GetPath(unsigned int PathType) const;		// // //
+	void SetPath(fs::path PathName, unsigned int PathType);		// // //
+	void SetDirectory(const CStringW &PathNAme, unsigned int PathType);		// // //
 
 public:
 	static CSettings &GetInstance();		// // //
@@ -185,5 +185,5 @@ public:
 	CStringW InstrumentMenuPath;
 
 private:
-	CStringW Paths[PATH_COUNT];		// // //
+	fs::path Paths[PATH_COUNT];		// // //
 };

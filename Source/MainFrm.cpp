@@ -1310,7 +1310,8 @@ void CMainFrame::OnLoadInstrument()
 	CStringW filter = LoadDefaultFilter(IDS_FILTER_FTI, L".fti");
 	CFileDialog FileDialog(TRUE, L"fti", 0, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, filter);
 
-	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_FTI);
+	auto path = theApp.GetSettings()->GetPath(PATH_FTI);		// // //
+	FileDialog.m_pOFN->lpstrInitialDir = path.c_str();
 
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
@@ -1329,9 +1330,9 @@ void CMainFrame::OnLoadInstrument()
 	UpdateInstrumentList();
 
 	if (FileDialog.GetFileName().GetLength() == 0)		// // //
-		theApp.GetSettings()->SetPath(FileDialog.GetPathName() + L"\\", PATH_FTI);
+		theApp.GetSettings()->SetDirectory(FileDialog.GetPathName() + L"\\", PATH_FTI);
 	else
-		theApp.GetSettings()->SetPath(FileDialog.GetPathName(), PATH_FTI);
+		theApp.GetSettings()->SetDirectory(FileDialog.GetPathName(), PATH_FTI);
 }
 
 void CMainFrame::OnSaveInstrument()
@@ -1356,10 +1357,10 @@ void CMainFrame::OnSaveInstrument()
 	CStringW filter = LoadDefaultFilter(IDS_FILTER_FTI, L".fti");
 	CFileDialog FileDialog(FALSE, L"fti", Name.data(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
 
-	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_FTI);
+	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_FTI).c_str();
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
-	theApp.GetSettings()->SetPath(FileDialog.GetPathName(), PATH_FTI);
+	theApp.GetSettings()->SetDirectory(FileDialog.GetPathName(), PATH_FTI);
 
 	CSimpleFile file(FileDialog.GetPathName(), std::ios::out | std::ios::binary);
 	if (!file) {
@@ -2024,7 +2025,8 @@ void CMainFrame::OnFileExportText()
 
 	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, L".txt");
 	CFileDialog FileDialog(FALSE, L".txt", DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
-	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_NSF);
+	auto path = theApp.GetSettings()->GetPath(PATH_NSF);		// // //
+	FileDialog.m_pOFN->lpstrInitialDir = path.c_str();
 
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
@@ -2049,7 +2051,8 @@ void CMainFrame::OnFileExportRows()		// // //
 	CStringW	DefFileName = pDoc->GetFileTitle();
 
 	CFileDialog FileDialog(FALSE, L".csv", DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"Comma-separated values (*.csv)|*.csv|All files|*.*||");
-	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_NSF);
+	auto path = theApp.GetSettings()->GetPath(PATH_NSF);		// // //
+	FileDialog.m_pOFN->lpstrInitialDir = path.c_str();
 
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
@@ -2072,7 +2075,8 @@ void CMainFrame::OnFileExportJson() {		// // //
 	CStringW DefFileName = pDoc->GetFileTitle();
 
 	CFileDialog FileDialog(FALSE, L".json", DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"JavaScript Object Notation (*.json)|*.json|All files|*.*||");
-	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_NSF);
+	auto path = theApp.GetSettings()->GetPath(PATH_NSF);		// // //
+	FileDialog.m_pOFN->lpstrInitialDir = path.c_str();
 
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;

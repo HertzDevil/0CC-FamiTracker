@@ -152,7 +152,7 @@ public:
 
 private:
 	setting_type ReadSetting() const override {
-		return CSettings::GetInstance().GetPath(m_iPathType);
+		return CSettings::GetInstance().GetPath(m_iPathType).c_str();
 	}
 
 	setting_type GetDefaultSetting() const override {
@@ -160,7 +160,7 @@ private:
 	}
 
 	void WriteSetting(const setting_type &val) override {
-		CSettings::GetInstance().SetPath(val, m_iPathType);
+		CSettings::GetInstance().SetPath((LPCWSTR)val, m_iPathType);
 	}
 
 	PATHS m_iPathType;

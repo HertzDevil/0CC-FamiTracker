@@ -205,14 +205,15 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ShowDialog() {		// // //
 	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, L".wav");
 	CFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY, fileFilter);
 
-	OpenFileDialog.m_pOFN->lpstrInitialDir = Env.GetSettings()->GetPath(PATH_WAV);
+	auto path = Env.GetSettings()->GetPath(PATH_WAV);		// // //
+	OpenFileDialog.m_pOFN->lpstrInitialDir = path.c_str();
 	if (OpenFileDialog.DoModal() == IDCANCEL)
 		return nullptr;
 
 	// Stop any preview
 	PlaySound(NULL, NULL, SND_NODEFAULT | SND_SYNC);
 
-	Env.GetSettings()->SetPath(OpenFileDialog.GetPathName(), PATH_WAV);
+	Env.GetSettings()->SetDirectory(OpenFileDialog.GetPathName(), PATH_WAV);
 
 	m_strPath	  = OpenFileDialog.GetPathName();
 	m_strFileName = OpenFileDialog.GetFileName();

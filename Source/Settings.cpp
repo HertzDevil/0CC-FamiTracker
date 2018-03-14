@@ -29,30 +29,21 @@
 
 #include "Settings.h"
 
-// CSettings
-
-CSettings &CSettings::GetInstance()		// // //
-{
+CSettings &CSettings::GetInstance() {		// // //
 	static CSettings Object;
 	return Object;
 }
 
-// CSettings member functions
-
-const CStringW &CSettings::GetPath(unsigned int PathType) const
-{
+fs::path CSettings::GetPath(unsigned int PathType) const {		// // //
 	ASSERT(PathType < PATH_COUNT);
 	return Paths[PathType];
 }
 
-void CSettings::SetPath(const CStringW &PathName, unsigned int PathType)
-{
+void CSettings::SetPath(fs::path PathName, unsigned int PathType) {		// // //
 	ASSERT(PathType < PATH_COUNT);
+	Paths[PathType] = PathName;
+}
 
-	// Remove file name if there is a "\"
-	int index = PathName.ReverseFind(L'\\');		// // //
-	if (index == -1 || (!PathName.IsEmpty() && PathName.Right(1) == L"\\"))
-		Paths[PathType] = PathName;
-	else
-		Paths[PathType] = PathName.Left(index + 1);
+void CSettings::SetDirectory(const CStringW &PathName, unsigned int PathType) {
+	SetPath(fs::path {(LPCWSTR)PathName}.parent_path(), PathType);
 }
