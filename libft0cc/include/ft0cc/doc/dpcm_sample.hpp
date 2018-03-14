@@ -39,7 +39,7 @@ public:
 
 	dpcm_sample() = default;
 	explicit dpcm_sample(std::size_t sz);
-	dpcm_sample(const std::vector<sample_t> &samples, std::string_view name);
+	dpcm_sample(std::vector<sample_t> samples, std::string_view name);
 
 	bool operator==(const dpcm_sample &other) const;
 	bool operator!=(const dpcm_sample &other) const { return !(*this == other); }

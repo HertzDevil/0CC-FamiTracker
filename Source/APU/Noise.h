@@ -29,11 +29,11 @@
 #pragma once
 
 #include "APU/2A03Chan.h"		// // //
+#include "array_view.h"		// // //
 
 class CNoise : public C2A03Chan {
 public:
 	CNoise(CMixer &Mixer, chan_id_t ID);		// // //
-	~CNoise();
 
 	void	Reset();
 	void	Write(uint16_t Address, uint8_t Value);
@@ -46,10 +46,10 @@ public:
 	void	EnvelopeUpdate();
 
 public:
-	static const uint16_t	NOISE_PERIODS_NTSC[];
-	static const uint16_t	NOISE_PERIODS_PAL[];
+	static const uint16_t	NOISE_PERIODS_NTSC[16];
+	static const uint16_t	NOISE_PERIODS_PAL[16];
 
-	const uint16_t *PERIOD_TABLE;
+	array_view<uint16_t> PERIOD_TABLE;		// // //
 
 private:
 	uint8_t	m_iLooping, m_iEnvelopeFix, m_iEnvelopeSpeed;

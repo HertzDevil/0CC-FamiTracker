@@ -93,7 +93,7 @@ public:
 	/*!	\brief Locates a bookmark in the collection.
 		\param pMark Pointer to the bookmark.
 		\return The bookmark index, or -1 if the bookmark is not contained by the collection. */
-	int GetBookmarkIndex(const CBookmark *const pMark) const;
+	int GetBookmarkIndex(const CBookmark *pMark) const;
 	/*!	\brief Locates the first bookmark below a given position.
 		\details This method returns the bookmark with the least index if multiple bookmarks for the
 		same location exist. It always returns a bookmark whose position is not equal to the given

@@ -41,6 +41,7 @@ public:
 	CPatternData(CPatternData &&other) noexcept = default;
 	CPatternData &operator=(const CPatternData &other);
 	CPatternData &operator=(CPatternData &&other) noexcept = default;
+	~CPatternData() noexcept = default;
 
 	stChanNote &GetNoteOn(unsigned row);
 	const stChanNote &GetNoteOn(unsigned row) const;

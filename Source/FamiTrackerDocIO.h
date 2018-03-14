@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 #include "OldSequence.h"
+#include "ModuleException.h"
 
 class CFamiTrackerModule;
 class CDocumentFile;

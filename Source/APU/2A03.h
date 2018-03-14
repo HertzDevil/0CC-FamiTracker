@@ -77,8 +77,8 @@ private:
 	CNoise		m_Noise;
 	CDPCM		m_DPCM;
 
-	uint8_t		m_iFrameSequence;					// Frame sequence
-	uint8_t		m_iFrameMode;						// 4 or 5-steps frame sequence
+	uint8_t		m_iFrameSequence = 0;		// Frame sequence
+	uint8_t		m_iFrameMode = 0;			// 4 or 5-steps frame sequence
 
 	std::shared_ptr<const ft0cc::doc::dpcm_sample> preview_sample_;		// // //
 };

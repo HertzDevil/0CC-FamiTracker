@@ -26,13 +26,13 @@
 
 // Defaults when creating new modules
 const unsigned CSongData::DEFAULT_ROW_COUNT	= 64;
-const char CSongData::DEFAULT_TITLE[] = "New song";		// // //
 const stHighlight CSongData::DEFAULT_HIGHLIGHT = {4, 16, 0};		// // //
 
 // This class contains pattern data
 // A list of these objects exists inside the document one for each song
 
 CSongData::CSongData(unsigned int PatternLength) :		// // //
+	m_sTrackName("New song"),
 	m_iPatternLength(PatternLength)
 {
 	// // // Pre-allocate pattern 0 for all channels

@@ -22,6 +22,9 @@
 
 #include "Bookmark.h"
 
+CBookmark::CBookmark() : CBookmark(0, 0) {
+}
+
 CBookmark::CBookmark(unsigned Frame, unsigned Row) :
 	m_iFrame(Frame),
 	m_iRow(Row),

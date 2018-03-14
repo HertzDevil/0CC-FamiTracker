@@ -29,8 +29,8 @@ using namespace ft0cc::doc;
 dpcm_sample::dpcm_sample(std::size_t sz) : data_(sz, pad_value) {
 }
 
-dpcm_sample::dpcm_sample(const std::vector<sample_t>& samples, std::string_view name) :
-	data_(samples), name_(name)
+dpcm_sample::dpcm_sample(std::vector<sample_t> samples, std::string_view name) :
+	data_(std::move(samples)), name_(name)
 {
 }
 

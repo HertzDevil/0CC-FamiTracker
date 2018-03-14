@@ -29,31 +29,35 @@
 namespace compat {
 
 // // // helper function for effect conversion
+
+template <effect_t From, effect_t To>
+struct conv_pair { };
+
 using EffTable = std::array<effect_t, EFFECT_COUNT>;
+
+template <effect_t... Froms, effect_t... Tos>
 constexpr std::pair<EffTable, EffTable>
-MakeEffectConversion(std::initializer_list<std::pair<effect_t, effect_t>> List) {
+MakeEffectConversion(conv_pair<Froms, Tos>...) noexcept {
 	EffTable forward = { }, backward = { };
-	for (int i = 0; i < EFFECT_COUNT; ++i)
+	for (std::size_t i = 0; i < EFFECT_COUNT; ++i)
 		forward[i] = backward[i] = static_cast<effect_t>(i);
-	for (auto [from, to] : List) {
-		forward[value_cast(from)] = to;
-		backward[value_cast(to)] = from;
-	}
+	((forward[value_cast(Froms)] = Tos), ...);
+	((backward[value_cast(Tos)] = Froms), ...);
 	return std::make_pair(forward, backward);
 }
 
-const auto EFF_CONVERSION_050 = MakeEffectConversion({
-//	{effect_t::SUNSOFT_ENV_LO,		effect_t::SUNSOFT_ENV_TYPE},
-//	{effect_t::SUNSOFT_ENV_TYPE,	effect_t::SUNSOFT_ENV_LO},
-	{effect_t::SUNSOFT_NOISE,		effect_t::NOTE_RELEASE},
-	{effect_t::VRC7_PORT,			effect_t::GROOVE},
-	{effect_t::VRC7_WRITE,			effect_t::TRANSPOSE},
-	{effect_t::NOTE_RELEASE,		effect_t::N163_WAVE_BUFFER},
-	{effect_t::GROOVE,				effect_t::FDS_VOLUME},
-	{effect_t::TRANSPOSE,			effect_t::FDS_MOD_BIAS},
-	{effect_t::N163_WAVE_BUFFER,	effect_t::SUNSOFT_NOISE},
-	{effect_t::FDS_VOLUME,			effect_t::VRC7_PORT},
-	{effect_t::FDS_MOD_BIAS,		effect_t::VRC7_WRITE},
-});
+constexpr auto EFF_CONVERSION_050 = MakeEffectConversion(
+//	conv_pair<effect_t::SUNSOFT_ENV_LO,		effect_t::SUNSOFT_ENV_TYPE>(),
+//	conv_pair<effect_t::SUNSOFT_ENV_TYPE,	effect_t::SUNSOFT_ENV_LO>(),
+	conv_pair<effect_t::SUNSOFT_NOISE,		effect_t::NOTE_RELEASE>(),
+	conv_pair<effect_t::VRC7_PORT,			effect_t::GROOVE>(),
+	conv_pair<effect_t::VRC7_WRITE,			effect_t::TRANSPOSE>(),
+	conv_pair<effect_t::NOTE_RELEASE,		effect_t::N163_WAVE_BUFFER>(),
+	conv_pair<effect_t::GROOVE,				effect_t::FDS_VOLUME>(),
+	conv_pair<effect_t::TRANSPOSE,			effect_t::FDS_MOD_BIAS>(),
+	conv_pair<effect_t::N163_WAVE_BUFFER,	effect_t::SUNSOFT_NOISE>(),
+	conv_pair<effect_t::FDS_VOLUME,			effect_t::VRC7_PORT>(),
+	conv_pair<effect_t::FDS_MOD_BIAS,		effect_t::VRC7_WRITE>()
+);
 
 } // namespace compat

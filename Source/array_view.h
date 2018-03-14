@@ -274,6 +274,31 @@ constexpr bool operator>=(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs >= array_view<T> {rhs};
 }
 
+template <typename T, std::size_t N>
+constexpr bool operator==(const array_view<T> &lhs, const T (&rhs)[N]) {
+	return lhs == array_view<T> {rhs};
+}
+template <typename T, std::size_t N>
+constexpr bool operator!=(const array_view<T> &lhs, const T (&rhs)[N]) {
+	return lhs != array_view<T> {rhs};
+}
+template <typename T, std::size_t N>
+constexpr bool operator<(const array_view<T> &lhs, const T (&rhs)[N]) {
+	return lhs < array_view<T> {rhs};
+}
+template <typename T, std::size_t N>
+constexpr bool operator>(const array_view<T> &lhs, const T (&rhs)[N]) {
+	return lhs > array_view<T> {rhs};
+}
+template <typename T, std::size_t N>
+constexpr bool operator<=(const array_view<T> &lhs, const T (&rhs)[N]) {
+	return lhs <= array_view<T> {rhs};
+}
+template <typename T, std::size_t N>
+constexpr bool operator>=(const array_view<T> &lhs, const T (&rhs)[N]) {
+	return lhs >= array_view<T> {rhs};
+}
+
 template <typename T, typename ValT>
 constexpr bool operator==(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs == lhs;

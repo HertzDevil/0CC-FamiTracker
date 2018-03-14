@@ -23,11 +23,11 @@
 #include "APU/DPCM.h"
 #include "APU/Types.h"		// // //
 
-const uint16_t CDPCM::DMC_PERIODS_NTSC[] = {
+const uint16_t CDPCM::DMC_PERIODS_NTSC[16] = {
 	428, 380, 340, 320, 286, 254, 226, 214, 190, 160, 142, 128, 106, 84, 72, 54,
 };
 
-const uint16_t CDPCM::DMC_PERIODS_PAL[]  = {
+const uint16_t CDPCM::DMC_PERIODS_PAL[16] = {
 	398, 354, 316, 298, 276, 236, 210, 198, 176, 148, 132, 118,  98, 78, 66, 50,
 };
 
@@ -41,7 +41,7 @@ CDPCM::CDPCM(CMixer &Mixer, chan_id_t ID) :		// // //
 
 void CDPCM::Reset()
 {
-	m_iCounter = m_iPeriod = DMC_PERIODS_NTSC[0];
+	m_iCounter = m_iPeriod = PERIOD_TABLE[0];
 
 	m_iBitDivider = m_iShiftReg = 0;
 	m_iDMA_LoadReg = 0;

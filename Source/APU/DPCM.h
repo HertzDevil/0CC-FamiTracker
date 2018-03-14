@@ -25,6 +25,7 @@
 
 #include "APU/2A03Chan.h"		// // //
 #include "APU/SampleMem.h"		// // //
+#include "array_view.h"		// // //
 
 class CDPCM : public C2A03Chan {
 public:
@@ -46,24 +47,26 @@ public:
 	bool	IsPlaying() const { return (m_iDMA_BytesRemaining > 0); }
 
 public:
-	static const uint16_t	DMC_PERIODS_NTSC[];
-	static const uint16_t	DMC_PERIODS_PAL[];
+	static const uint16_t	DMC_PERIODS_NTSC[16];
+	static const uint16_t	DMC_PERIODS_PAL[16];
 
-	const uint16_t *PERIOD_TABLE;
+	array_view<uint16_t> PERIOD_TABLE;		// // //
 
 private:
-	uint8_t	m_iBitDivider;
-	uint8_t	m_iShiftReg;
+	uint8_t	m_iBitDivider = 0;
+	uint8_t	m_iShiftReg = 0;
 	uint8_t	m_iPlayMode;
-	uint8_t	m_iDeltaCounter;
+	uint8_t	m_iDeltaCounter = 0;
 	uint8_t	m_iSampleBuffer;
 
-	uint16_t	m_iDMA_LoadReg;
-	uint16_t	m_iDMA_LengthReg;
-	uint16_t	m_iDMA_Address;
-	uint16_t	m_iDMA_BytesRemaining;
+	uint16_t	m_iDMA_LoadReg = 0;
+	uint16_t	m_iDMA_LengthReg = 0;
+	uint16_t	m_iDMA_Address = 0;
+	uint16_t	m_iDMA_BytesRemaining = 0;
 
-	bool	m_bTriggeredIRQ, m_bSampleFilled, m_bSilenceFlag;
+	bool	m_bTriggeredIRQ = false;
+	bool	m_bSampleFilled = false;
+	bool	m_bSilenceFlag;
 
 	// Needed by FamiTracker
 	CSampleMem	m_SampleMem;		// // //

@@ -53,7 +53,6 @@ public:
 protected:
 	void	OnBlankInstrument() override;		// // //
 	void	CloneFrom(const CInstrument *pSeq) override;		// // //
-	CSeqInstrument *CopySequences(const CSeqInstrument *const src);		// // //
 
 private:
 	std::unordered_map<sequence_t, std::pair<bool, int>> seq_indices_;		// // //

@@ -360,11 +360,11 @@ void CFamiTrackerModule::RemoveUnusedInstruments() {
 	// Also remove unused sequences
 	for (unsigned int i = 0; i < MAX_SEQUENCES; ++i)
 		foreachSeq([&] (sequence_t j) {		// // //
-			for (size_t c = 0; c < std::size(inst); ++c)
-				if (auto pSeq = pManager->GetSequence(inst[c], j, i); pSeq && pSeq > 0) {		// // //
+			for (auto c : inst)
+				if (auto pSeq = pManager->GetSequence(c, j, i); pSeq && pSeq->GetItemCount() > 0) {		// // //
 					bool Used = false;
 					for (int k = 0; k < MAX_INSTRUMENTS; ++k) {
-						if (pManager->IsInstrumentUsed(k) && pManager->GetInstrumentType(k) == inst[c]) {
+						if (pManager->IsInstrumentUsed(k) && pManager->GetInstrumentType(k) == c) {
 							auto pInstrument = std::static_pointer_cast<CSeqInstrument>(pManager->GetInstrument(k));
 							if (pInstrument->GetSeqIndex(j) == i && pInstrument->GetSeqEnable(j)) {		// // //
 								Used = true; break;

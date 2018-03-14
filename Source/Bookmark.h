@@ -30,7 +30,8 @@
 class CBookmark
 {
 public:
-	CBookmark(unsigned Frame = 0, unsigned Row = 0);
+	CBookmark();
+	CBookmark(unsigned Frame, unsigned Row);
 	unsigned Distance(const CBookmark &other) const;
 	bool IsEqual(const CBookmark &other) const; // == overridden
 	bool operator==(const CBookmark &other) const;

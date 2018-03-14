@@ -24,7 +24,6 @@
 #include "FamiTrackerDocIOCommon.h"
 #include "FamiTrackerDocOldIO.h"
 #include "DocumentFile.h" // stdafx.h
-#include "ModuleException.h"
 #include "FamiTrackerModule.h"
 #include "Settings.h"
 #include "APU/Types.h"

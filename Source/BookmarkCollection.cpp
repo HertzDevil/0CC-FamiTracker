@@ -116,7 +116,7 @@ void CBookmarkCollection::SwapFrames(unsigned A, unsigned B)
 	});
 }
 
-int CBookmarkCollection::GetBookmarkIndex(const CBookmark *const pMark) const
+int CBookmarkCollection::GetBookmarkIndex(const CBookmark *pMark) const
 {
 	if (unsigned Count = GetCount())
 		for (size_t i = 0; i < Count; ++i)
@@ -139,7 +139,7 @@ void CBookmarkCollection::RemoveAt(unsigned Frame, unsigned Row)
 	const CBookmark tmp(Frame, Row);
 	m_pBookmark.erase(
 		std::remove_if(m_pBookmark.begin(), m_pBookmark.end(),
-			[&] (const std::unique_ptr<CBookmark> &a) { return *a.get() == tmp; }),
+			[&] (const std::unique_ptr<CBookmark> &a) { return *a == tmp; }),
 		m_pBookmark.end());
 }
 

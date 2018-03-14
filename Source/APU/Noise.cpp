@@ -23,11 +23,11 @@
 #include "APU/Noise.h"
 #include "APU/Types.h"		// // //
 
-const uint16_t CNoise::NOISE_PERIODS_NTSC[] = {
+const uint16_t CNoise::NOISE_PERIODS_NTSC[16] = {
 	4, 8, 16, 32, 64, 96, 128, 160, 202, 254, 380, 508, 762, 1016, 2034, 4068,
 };
 
-const uint16_t CNoise::NOISE_PERIODS_PAL[] = {
+const uint16_t CNoise::NOISE_PERIODS_PAL[16] = {
 	4, 8, 14, 30, 60, 88, 118, 148, 188, 236, 354, 472, 708,  944, 1890, 3778,
 };
 
@@ -43,10 +43,6 @@ CNoise::CNoise(CMixer &Mixer, chan_id_t ID) : C2A03Chan(Mixer, sound_chip_t::APU
 	m_iShiftReg = 0;
 
 	PERIOD_TABLE = NOISE_PERIODS_NTSC;
-}
-
-CNoise::~CNoise()
-{
 }
 
 void CNoise::Reset()

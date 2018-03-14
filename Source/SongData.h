@@ -174,13 +174,12 @@ public:
 
 public:
 	// // // moved from CFamiTrackerDoc
-	static const char DEFAULT_TITLE[];
 	static const stHighlight DEFAULT_HIGHLIGHT;
 	static const unsigned DEFAULT_ROW_COUNT;
 
 private:
 	// Track parameters
-	std::string	 m_sTrackName = DEFAULT_TITLE;			// // // moved
+	std::string	 m_sTrackName;							// // // moved
 	unsigned int m_iPatternLength;						// Amount of rows in one pattern
 	unsigned int m_iFrameCount = 1;						// Number of frames
 	unsigned int m_iSongSpeed = DEFAULT_SPEED;			// Song speed
