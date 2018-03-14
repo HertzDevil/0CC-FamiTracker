@@ -24,6 +24,7 @@
 #include "FamiTrackerEnv.h"
 #include "FamiTrackerTypes.h"
 #include "Settings.h"
+#include "ModuleException.h"
 
 namespace {
 

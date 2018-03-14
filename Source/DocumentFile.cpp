@@ -219,13 +219,13 @@ void CDocumentFile::ValidateFile()
 
 	// // // Older file version
 	if (GetFileVersion() < COMPATIBLE_VER)
-		throw CModuleException::WithMessage("FamiTracker module version too old (0x%X), expected 0x%X or above",
-			GetFileVersion(), COMPATIBLE_VER);
+		throw CModuleException::WithMessage("FamiTracker module version too old (0x" + conv::from_int_hex(GetFileVersion()) +
+			"), expected 0x" + conv::from_int_hex(COMPATIBLE_VER) + " or above");
 
 	// // // File version is too new
-	if (GetFileVersion() > 0x450U /*FILE_VER*/)		// // // 050B
-		throw CModuleException::WithMessage("FamiTracker module version too new (0x%X), expected 0x%X or below",
-			GetFileVersion(), FILE_VER);
+	if (GetFileVersion() > 0x450u /*FILE_VER*/)		// // // 050B
+		throw CModuleException::WithMessage("FamiTracker module version too new (0x" + conv::from_int_hex(GetFileVersion()) +
+			"), expected 0x" + conv::from_int_hex(0x450u) + " or below");
 
 	m_bFileDone = false;
 	m_bIncomplete = false;

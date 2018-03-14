@@ -29,12 +29,13 @@ class CInstrument;
 class CInstCompiler;
 class CInstrumentIO;
 enum inst_type_t : unsigned;
+enum module_error_level_t : unsigned char;
 
 class CInstrumentType {
 public:
 	virtual ~CInstrumentType() noexcept = default;
 	virtual inst_type_t GetID() const = 0;
 	virtual std::unique_ptr<CInstrument> MakeInstrument() const = 0;
-	virtual const CInstrumentIO &GetInstrumentIO() const = 0;
+	virtual std::unique_ptr<CInstrumentIO> GetInstrumentIO(module_error_level_t err_lv) const = 0;
 	virtual const CInstCompiler &GetChunkCompiler() const = 0;
 };

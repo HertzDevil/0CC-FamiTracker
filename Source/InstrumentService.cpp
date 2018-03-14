@@ -22,14 +22,16 @@
 
 #include "InstrumentService.h"
 #include "InstrumentTypeImpl.h"
+#include "InstrumentIO.h"
 #include "Assertion.h"
+#include "ModuleException.h"
 
 std::unique_ptr<CInstrument> CInstrumentService::Make(inst_type_t index) const {
 	return GetInstrumentType(index).MakeInstrument();
 }
 
-const CInstrumentIO &CInstrumentService::GetInstrumentIO(inst_type_t index) const {
-	return GetInstrumentType(index).GetInstrumentIO();
+std::unique_ptr<CInstrumentIO> CInstrumentService::GetInstrumentIO(inst_type_t index, module_error_level_t err_lv) const {
+	return GetInstrumentType(index).GetInstrumentIO(err_lv);
 }
 
 const CInstCompiler &CInstrumentService::GetChunkCompiler(inst_type_t index) const {

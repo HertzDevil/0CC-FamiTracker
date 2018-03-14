@@ -30,14 +30,14 @@ template <typename Inst, typename IOT, typename CompileT, inst_type_t ID>
 class CInstrumentTypeImpl : public CInstrumentType {
 	inst_type_t GetID() const override;
 	std::unique_ptr<CInstrument> MakeInstrument() const override;
-	const CInstrumentIO &GetInstrumentIO() const override;
+	std::unique_ptr<CInstrumentIO> GetInstrumentIO(module_error_level_t err_lv) const override;
 	const CInstCompiler &GetChunkCompiler() const override;
 };
 
 class CInstrumentTypeNull final : public CInstrumentType {
 	inst_type_t GetID() const override;
 	std::unique_ptr<CInstrument> MakeInstrument() const override;
-	const CInstrumentIO &GetInstrumentIO() const override;
+	std::unique_ptr<CInstrumentIO> GetInstrumentIO(module_error_level_t err_lv) const override;
 	const CInstCompiler &GetChunkCompiler() const override;
 };
 

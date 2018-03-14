@@ -30,6 +30,7 @@
 #include "Settings.h"
 #include "FamiTracker.h"
 #include "ColorScheme.h"
+#include "ModuleException.h"		// // //
 
 // // // registry context
 

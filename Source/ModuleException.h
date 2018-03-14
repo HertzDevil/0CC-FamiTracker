@@ -27,8 +27,12 @@
 #include <vector>
 #include <exception>
 
-#include "FamiTrackerEnv.h"
-#include "Settings.h"
+enum module_error_level_t : unsigned char {		// // //
+	MODULE_ERROR_NONE,		/*!< No error checking at all (warning) */
+	MODULE_ERROR_DEFAULT,	/*!< Usual error checking */
+	MODULE_ERROR_OFFICIAL,	/*!< Special bounds checking according to the official build */
+	MODULE_ERROR_STRICT,	/*!< Extra validation for some values */
+};
 
 /*!
 	\brief An exception object raised while reading and writing FTM files.
@@ -46,50 +50,18 @@ public:
 		constructor. This exception object does not use std::exception::what.
 		\return The error string. */
 	std::string GetErrorString() const;
-	/*!	\brief Appends a formatted error string to the exception.
-		\param fmt The format specifier.
-		\param ... Extra arguments for the formatted string. */
-	template <typename... T>
-	void AppendError(const std::string &fmt, T&&... args)
-	{
-		m_strError.emplace_back((LPCSTR)FormattedA(fmt.data(), std::forward<T>(args)...));
-	}
+	/*!	\brief Appends an error string to the exception.
+		\param str The error message. */
+	void AppendError(std::string str);
 	/*!	\brief Sets the footer string of the error message.
 		\param footer The new footer string. */
-	void SetFooter(const std::string &footer);
+	void SetFooter(std::string footer);
 
 public:
-	template <typename... T>
-	static CModuleException WithMessage(const std::string &fmt, T&&... args) {
+	static CModuleException WithMessage(std::string str) {
 		CModuleException e;
-		e.AppendError(fmt, std::forward<T>(args)...);
+		e.AppendError(std::move(str));
 		return e;
-	}
-
-	/*!	\brief Validates a numerical value so that it lies within the interval [Min, Max].
-		\details This method may throw a CModuleException object and automatically supply a suitable
-		error message based on the value description. This method handles signed and unsigned types
-		properly. Errors may be ignored if the current module error level is low enough.
-		\param Value The value to check against.
-		\param Min The minimum value permitted, inclusive.
-		\param Max The maximum value permitted, inclusive.
-		\param Desc A description of the checked value.
-		\param fmt Print format specifier for the value type.
-		\return The value argument, if the method returns.
-	*/
-	template <module_error_level_t l = MODULE_ERROR_DEFAULT, typename T, typename U, typename V>
-	static T AssertRangeFmt(T Value, U Min, V Max, const std::string &Desc)
-	{
-		if (l > Env.GetSettings()->Version.iErrorLevel)
-			return Value;
-		if (!(Value >= Min && Value <= Max)) {
-			std::string msg = Desc + " out of range: expected ["
-				+ std::to_string(Min) + ","
-				+ std::to_string(Max) + "], got "
-				+ std::to_string(Value);
-			throw WithMessage(msg);
-		}
-		return Value;
 	}
 
 private:

@@ -22,12 +22,11 @@
 
 #include "ModuleException.h"
 
-std::string CModuleException::GetErrorString() const
-{
+std::string CModuleException::GetErrorString() const {
 	std::string out;
 	for (const auto &x : m_strError)
 		out += x + '\n';
-	if (m_strFooter.size())
+	if (!m_strFooter.empty())
 		out += m_strFooter;
 	else
 		out.pop_back();
@@ -35,7 +34,10 @@ std::string CModuleException::GetErrorString() const
 	return out;
 }
 
-void CModuleException::SetFooter(const std::string &footer)
-{
-	m_strFooter = footer;
+void CModuleException::AppendError(std::string str) {
+	m_strError.push_back(std::move(str));
+}
+
+void CModuleException::SetFooter(std::string footer) {
+	m_strFooter = std::move(footer);
 }

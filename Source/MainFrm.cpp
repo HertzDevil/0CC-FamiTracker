@@ -54,6 +54,7 @@
 #include "FrameEditor.h"
 // // //
 #include "FamiTrackerModule.h"
+#include "FamiTrackerEnv.h"
 #include "SongData.h"
 #include "SongView.h"
 #include "SongLengthScanner.h"
@@ -1278,7 +1279,8 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// 
 					inst_type_t InstType = static_cast<inst_type_t>(file.ReadInt8());
 					if (auto pInstrument = pManager->CreateNew(InstType != INST_NONE ? InstType : INST_2A03)) {
 						pInstrument->OnBlankInstrument();
-						Env.GetInstrumentService()->GetInstrumentIO(InstType).ReadFromFTI(*pInstrument, file, iInstMaj * 10 + iInstMin);		// // //
+						Env.GetInstrumentService()->GetInstrumentIO(InstType, (module_error_level_t)Env.GetSettings()->Version.iErrorLevel)->
+							ReadFromFTI(*pInstrument, file, iInstMaj * 10 + iInstMin);		// // //
 						return pManager->InsertInstrument(Index, std::move(pInstrument));
 					}
 
@@ -1365,7 +1367,8 @@ void CMainFrame::OnSaveInstrument()
 		return;
 	}
 
-	Env.GetInstrumentService()->GetInstrumentIO(pInst->GetType()).WriteToFTI(*pInst, file);		// // //
+	Env.GetInstrumentService()->GetInstrumentIO(pInst->GetType(),
+		(module_error_level_t)Env.GetSettings()->Version.iErrorLevel)->WriteToFTI(*pInst, file);		// // //
 
 	if (m_pInstrumentFileTree)
 		m_pInstrumentFileTree->Changed();

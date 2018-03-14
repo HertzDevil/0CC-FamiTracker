@@ -31,8 +31,6 @@
 class CFamiTrackerModule;
 class CDocumentFile;
 
-enum module_error_level_t : int; // Settings.h
-
 class CFamiTrackerDocIO {
 public:
 	CFamiTrackerDocIO(CDocumentFile &file, module_error_level_t err_lv);

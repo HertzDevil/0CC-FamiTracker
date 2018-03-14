@@ -43,9 +43,8 @@ std::unique_ptr<CInstrument> CInstrumentTypeImpl<Inst, IOT, CompileT, ID>::MakeI
 }
 
 template<typename Inst, typename IOT, typename CompileT, inst_type_t ID>
-const CInstrumentIO &CInstrumentTypeImpl<Inst, IOT, CompileT, ID>::GetInstrumentIO() const {
-	static IOT io_ = { };
-	return io_;
+std::unique_ptr<CInstrumentIO> CInstrumentTypeImpl<Inst, IOT, CompileT, ID>::GetInstrumentIO(module_error_level_t err_lv) const {
+	return std::make_unique<IOT>(err_lv);
 }
 
 template<typename Inst, typename IOT, typename CompileT, inst_type_t ID>
@@ -69,9 +68,8 @@ std::unique_ptr<CInstrument> CInstrumentTypeNull::MakeInstrument() const {
 	return nullptr;
 }
 
-const CInstrumentIO &CInstrumentTypeNull::GetInstrumentIO() const {
-	static CInstrumentIONull io_ = { };
-	return io_;
+std::unique_ptr<CInstrumentIO> CInstrumentTypeNull::GetInstrumentIO(module_error_level_t err_lv) const {
+	return std::make_unique<CInstrumentIONull>(err_lv);
 }
 
 const CInstCompiler &CInstrumentTypeNull::GetChunkCompiler() const {
