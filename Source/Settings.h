@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include "stdafx.h"		// // //
 #include "ft0cc/fs.h"		// // //
 
 // CSettings command target
@@ -45,6 +44,7 @@ enum PATHS {
 	PATH_NSF,
 	PATH_DMC,
 	PATH_WAV,
+	PATH_INST,		// // //
 
 	PATH_COUNT,
 };
@@ -57,7 +57,7 @@ private:
 public:
 	fs::path GetPath(unsigned int PathType) const;		// // //
 	void SetPath(fs::path PathName, unsigned int PathType);		// // //
-	void SetDirectory(const CStringW &PathNAme, unsigned int PathType);		// // //
+	void SetDirectory(std::wstring PathName, unsigned int PathType);		// // //
 
 public:
 	static CSettings &GetInstance();		// // //
@@ -134,8 +134,8 @@ public:
 		int		iColCurrentRowEdit;
 		int		iColCurrentRowPlaying;
 
-		CStringW	strFont;		// // //
-		CStringW	strFrameFont;		// // // 050B
+		std::wstring strFont;		// // //
+		std::wstring strFrameFont;		// // // 050B
 		int		iFontSize;
 		bool	bPatternColor;
 		bool	bDisplayFlats;
@@ -181,8 +181,6 @@ public:
 		int		iLevelN163;
 		int		iLevelS5B;
 	} ChipLevels;
-
-	CStringW InstrumentMenuPath;
 
 private:
 	fs::path Paths[PATH_COUNT];		// // //

@@ -328,10 +328,10 @@ void CInstrumentEditorDPCM::OnBnClickedLoad()
 	if (OpenFileDialog.DoModal() == IDCANCEL)
 		return;
 
-	Env.GetSettings()->SetDirectory(OpenFileDialog.GetPathName(), PATH_DMC);
+	Env.GetSettings()->SetDirectory((LPCWSTR)OpenFileDialog.GetPathName(), PATH_DMC);
 
 	if (OpenFileDialog.GetFileName().GetLength() == 0) {
-		Env.GetSettings()->SetDirectory(OpenFileDialog.GetPathName() + L"\\", PATH_DMC);		// // //
+		Env.GetSettings()->SetDirectory((LPCWSTR)(OpenFileDialog.GetPathName() + L"\\"), PATH_DMC);		// // //
 		// Multiple files
 		POSITION Pos = OpenFileDialog.GetStartPosition();
 		while (Pos) {
@@ -480,7 +480,7 @@ void CInstrumentEditorDPCM::OnBnClickedSave()
 	if (SaveFileDialog.DoModal() == IDCANCEL)
 		return;
 
-	Env.GetSettings()->SetDirectory(SaveFileDialog.GetPathName(), PATH_DMC);
+	Env.GetSettings()->SetDirectory((LPCWSTR)SaveFileDialog.GetPathName(), PATH_DMC);
 
 	Path = SaveFileDialog.GetPathName();
 

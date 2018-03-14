@@ -143,7 +143,7 @@ void CConfigAppearance::OnPaint()
 
 	CFont Font;		// // //
 	Font.CreateFontW(-m_iFontSize, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, ANSI_CHARSET,
-		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, m_strFont);
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, m_strFont.data());
 	CFont *OldFont = OldFont = dc.SelectObject(&Font);
 
 	// Background
@@ -289,7 +289,7 @@ void CConfigAppearance::AddFontName(std::wstring_view Name)		// // //
 
 	pFontList->AddString(Name.data());
 
-	if (m_strFont.Compare(Name.data()) == 0)
+	if (m_strFont == Name)
 		pFontList->SelectString(0, Name.data());
 }
 
@@ -325,7 +325,7 @@ BOOL CConfigAppearance::OnApply()
 void CConfigAppearance::OnCbnSelchangeFont()
 {
 	CComboBox *pFontList = static_cast<CComboBox*>(GetDlgItem(IDC_FONT));
-	pFontList->GetLBText(pFontList->GetCurSel(), m_strFont);
+	pFontList->GetLBText(pFontList->GetCurSel(), m_strFont.data());
 	RedrawWindow();
 	SetModified();
 }
@@ -390,7 +390,7 @@ void CConfigAppearance::SelectColorScheme(const COLOR_SCHEME *pColorScheme)
 
 	m_strFont = pColorScheme->FONT_FACE;
 	m_iFontSize = pColorScheme->FONT_SIZE;
-	pFontList->SelectString(0, m_strFont);
+	pFontList->SelectString(0, m_strFont.data());
 	pFontSizeList->SelectString(0, FormattedW(L"%i", m_iFontSize));
 }
 
@@ -458,7 +458,7 @@ void CConfigAppearance::OnBnClickedButtonAppearanceLoad()		// // // 050B
 	CFileDialog fileDialog {TRUE, NULL, L"Theme.txt", OFN_HIDEREADONLY, fileFilter};
 	if (fileDialog.DoModal() == IDOK) {
 		ImportSettings(fileDialog.GetPathName().GetBuffer());
-		static_cast<CComboBox*>(GetDlgItem(IDC_FONT))->SelectString(0, m_strFont);
+		static_cast<CComboBox*>(GetDlgItem(IDC_FONT))->SelectString(0, m_strFont.data());
 		static_cast<CComboBox*>(GetDlgItem(IDC_FONT_SIZE))->SelectString(0, FormattedW(L"%i", m_iFontSize));
 		RedrawWindow();
 		SetModified();
@@ -473,7 +473,7 @@ void CConfigAppearance::ExportSettings(LPCWSTR Path) const		// // // 050B
 			file << COLOR_ITEMS[i] << SETTING_SEPARATOR << HEX_PREFIX << conv::from_uint_hex(m_iColors[i], 6) << std::endl;
 		file << "Pattern colors" << SETTING_SEPARATOR << m_bPatternColors << std::endl;
 		file << "Flags" << SETTING_SEPARATOR << m_bDisplayFlats << std::endl;
-		file << "Font" << SETTING_SEPARATOR << m_strFont << std::endl;
+		file << "Font" << SETTING_SEPARATOR << conv::to_utf8(m_strFont) << std::endl;
 		file << "Font size" << SETTING_SEPARATOR << m_iFontSize << std::endl;
 	}
 }

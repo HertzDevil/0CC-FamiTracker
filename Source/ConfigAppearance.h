@@ -42,6 +42,7 @@ enum color_items_t {
 
 #include "ColorScheme.h"
 #include "../resource.h"		// // //
+#include <string>		// // //
 #include <string_view>		// // //
 
 // CConfigAppearance dialog
@@ -82,7 +83,7 @@ protected:
 	void ImportSettings(LPCWSTR Path);		// // // 050B
 
 protected:
-	CStringW		m_strFont;
+	std::wstring	m_strFont;		// // //
 
 	int			m_iFontSize;
 	int			m_iSelectedItem;

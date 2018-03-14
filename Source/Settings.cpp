@@ -35,15 +35,14 @@ CSettings &CSettings::GetInstance() {		// // //
 }
 
 fs::path CSettings::GetPath(unsigned int PathType) const {		// // //
-	ASSERT(PathType < PATH_COUNT);
-	return Paths[PathType];
+	return PathType < std::size(Paths) ? Paths[PathType] : fs::current_path();
 }
 
 void CSettings::SetPath(fs::path PathName, unsigned int PathType) {		// // //
-	ASSERT(PathType < PATH_COUNT);
-	Paths[PathType] = PathName;
+	if (PathType < std::size(Paths))
+		Paths[PathType] = std::move(PathName);
 }
 
-void CSettings::SetDirectory(const CStringW &PathName, unsigned int PathType) {
-	SetPath(fs::path {(LPCWSTR)PathName}.parent_path(), PathType);
+void CSettings::SetDirectory(std::wstring PathName, unsigned int PathType) {
+	SetPath(fs::path {std::move(PathName)}.parent_path(), PathType);
 }

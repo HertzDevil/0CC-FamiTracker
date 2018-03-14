@@ -286,7 +286,7 @@ void CFamiTrackerDoc::OnFileSaveAs()
 	if (!AfxGetApp()->DoPromptFileName(newName, AFX_IDS_SAVEFILE, OFN_HIDEREADONLY | OFN_PATHMUSTEXIST, FALSE, NULL))
 		return;
 
-	theApp.GetSettings()->SetDirectory(newName, PATH_FTM);
+	theApp.GetSettings()->SetDirectory((LPCWSTR)newName, PATH_FTM);
 
 	DoSave(newName);
 }

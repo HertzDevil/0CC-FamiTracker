@@ -56,8 +56,15 @@ bool GetRegValue<bool>(LPCWSTR section, LPCWSTR entry, const bool &default_value
 }
 
 template <>
-CStringW GetRegValue<CStringW>(LPCWSTR section, LPCWSTR entry, const CStringW &default_value) {
-	return Env.GetMainApp()->GetProfileStringW(section, entry, default_value);
+std::wstring GetRegValue<std::wstring>(LPCWSTR section, LPCWSTR entry, const std::wstring &default_value) {
+	CStringW v = Env.GetMainApp()->GetProfileStringW(section, entry, default_value.data());
+	return std::wstring((LPCWSTR)v, v.GetLength());
+}
+
+template <>
+fs::path GetRegValue<fs::path>(LPCWSTR section, LPCWSTR entry, const fs::path &default_value) {
+	CStringW v = Env.GetMainApp()->GetProfileStringW(section, entry, default_value.c_str());
+	return fs::path {(LPCWSTR)v, (LPCWSTR)v + v.GetLength()};
 }
 
 template <typename T>
@@ -74,8 +81,13 @@ void SetRegValue<bool>(LPCWSTR section, LPCWSTR entry, const bool &val) {
 }
 
 template <>
-void SetRegValue<CStringW>(LPCWSTR section, LPCWSTR entry, const CStringW &val) {
-	Env.GetMainApp()->WriteProfileStringW(section, entry, val);
+void SetRegValue<std::wstring>(LPCWSTR section, LPCWSTR entry, const std::wstring &val) {
+	Env.GetMainApp()->WriteProfileStringW(section, entry, CStringW(val.data(), val.size()));
+}
+
+template <>
+void SetRegValue<fs::path>(LPCWSTR section, LPCWSTR entry, const fs::path &val) {
+	SetRegValue(section, entry, val.wstring());
 }
 
 } // namespace
@@ -141,9 +153,9 @@ private:
 	setting_type m_tDefaultValue;
 };
 
-class CSettingPath : public CSettingType<CStringW> {
+class CSettingPath : public CSettingType<fs::path> {
 public:
-	using setting_type = CStringW;
+	using setting_type = fs::path;
 
 	CSettingPath(LPCWSTR pSection, LPCWSTR pEntry, PATHS path_type) :
 		CSettingType(pSection, pEntry), m_iPathType(path_type)
@@ -152,7 +164,7 @@ public:
 
 private:
 	setting_type ReadSetting() const override {
-		return CSettings::GetInstance().GetPath(m_iPathType).c_str();
+		return CSettings::GetInstance().GetPath(m_iPathType);
 	}
 
 	setting_type GetDefaultSetting() const override {
@@ -160,7 +172,7 @@ private:
 	}
 
 	void WriteSetting(const setting_type &val) override {
-		CSettings::GetInstance().SetPath((LPCWSTR)val, m_iPathType);
+		CSettings::GetInstance().SetPath(val, m_iPathType);
 	}
 
 	PATHS m_iPathType;
@@ -241,8 +253,8 @@ void CSettingsService::SetupSettings() {
 	const auto SETTING_BOOL = [&] (LPCWSTR Section, LPCWSTR Entry, bool Default, bool *Variable) {
 		return m_pSettings.emplace_back(std::make_unique<CSettingPublic<bool>>(Section, Entry, Default, Variable)).get();
 	};
-	const auto SETTING_STRING = [&] (LPCWSTR Section, LPCWSTR Entry, CStringW Default, CStringW *Variable) {
-		return m_pSettings.emplace_back(std::make_unique<CSettingPublic<CStringW>>(Section, Entry, Default, Variable)).get();
+	const auto SETTING_STRING = [&] (LPCWSTR Section, LPCWSTR Entry, std::wstring Default, std::wstring *Variable) {
+		return m_pSettings.emplace_back(std::make_unique<CSettingPublic<std::wstring>>(Section, Entry, std::move(Default), Variable)).get();
 	};
 	const auto SETTING_PATH = [&] (LPCWSTR Section, LPCWSTR Entry, PATHS PathType) {
 		return m_pSettings.emplace_back(std::make_unique<CSettingPath>(Section, Entry, PathType)).get();
@@ -369,8 +381,7 @@ void CSettingsService::SetupSettings() {
 	SETTING_PATH(L"Paths", L"NSF path", PATH_NSF);
 	SETTING_PATH(L"Paths", L"DMC path", PATH_DMC);
 	SETTING_PATH(L"Paths", L"WAV path", PATH_WAV);
-
-	SETTING_STRING(L"Paths", L"Instrument menu", L"", &s.InstrumentMenuPath);
+	SETTING_PATH(L"Paths", L"Instrument menu", PATH_INST);		// // //
 
 	// Mixing
 	SETTING_INT(L"Mixer", L"APU1", 0, &s.ChipLevels.iLevelAPU1);

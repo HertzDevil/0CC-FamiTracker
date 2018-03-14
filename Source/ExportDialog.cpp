@@ -221,7 +221,7 @@ void CExportDialog::CreateNSF()
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		UpdateMetadata(Compiler);		// // //
 		Compiler.ExportNSF(*path, MachineType);
-		theApp.GetSettings()->SetDirectory(*path, PATH_NSF);
+		theApp.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
 	}
 }
 
@@ -244,7 +244,7 @@ void CExportDialog::CreateNSFe()		// // //
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		UpdateMetadata(Compiler);		// // //
 		Compiler.ExportNSFE(*path, MachineType);
-		theApp.GetSettings()->SetDirectory(*path, PATH_NSF);
+		theApp.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
 	}
 }
 
@@ -265,7 +265,7 @@ void CExportDialog::CreateNES()
 
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportNES(*path, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
-		theApp.GetSettings()->SetDirectory(*path, PATH_NSF);
+		theApp.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
 	}
 }
 
@@ -300,7 +300,7 @@ void CExportDialog::CreateBIN()
 
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportBIN(*path, SampleDir);
-		theApp.GetSettings()->SetDirectory(*path, PATH_NSF);
+		theApp.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
 	}
 }
 
@@ -312,7 +312,7 @@ void CExportDialog::CreatePRG()
 		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportPRG(*path, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
-		theApp.GetSettings()->SetDirectory(*path, PATH_NSF);
+		theApp.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
 	}
 }
 
@@ -324,7 +324,7 @@ void CExportDialog::CreateASM()
 		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportASM(*path);
-		theApp.GetSettings()->SetDirectory(*path, PATH_NSF);
+		theApp.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
 	}
 }
 

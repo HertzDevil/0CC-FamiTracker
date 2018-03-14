@@ -1330,9 +1330,9 @@ void CMainFrame::OnLoadInstrument()
 	UpdateInstrumentList();
 
 	if (FileDialog.GetFileName().GetLength() == 0)		// // //
-		theApp.GetSettings()->SetDirectory(FileDialog.GetPathName() + L"\\", PATH_FTI);
+		theApp.GetSettings()->SetDirectory((LPCWSTR)(FileDialog.GetPathName() + L"\\"), PATH_FTI);
 	else
-		theApp.GetSettings()->SetDirectory(FileDialog.GetPathName(), PATH_FTI);
+		theApp.GetSettings()->SetDirectory((LPCWSTR)FileDialog.GetPathName(), PATH_FTI);
 }
 
 void CMainFrame::OnSaveInstrument()
@@ -1360,7 +1360,7 @@ void CMainFrame::OnSaveInstrument()
 	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_FTI).c_str();
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
-	theApp.GetSettings()->SetDirectory(FileDialog.GetPathName(), PATH_FTI);
+	theApp.GetSettings()->SetDirectory((LPCWSTR)FileDialog.GetPathName(), PATH_FTI);
 
 	CSimpleFile file(FileDialog.GetPathName(), std::ios::out | std::ios::binary);
 	if (!file) {
@@ -2681,7 +2681,7 @@ void CMainFrame::OnLoadInstrumentMenu(NMHDR * pNotifyStruct, LRESULT * result)
 	if (!m_pInstrumentFileTree)
 		m_pInstrumentFileTree = std::make_unique<CInstrumentFileTree>();		// // //
 	if (m_pInstrumentFileTree->ShouldRebuild())
-		m_pInstrumentFileTree->BuildMenuTree(theApp.GetSettings()->InstrumentMenuPath);
+		m_pInstrumentFileTree->BuildMenuTree(theApp.GetSettings()->GetPath(PATH_INST).c_str());
 
 	UINT retValue = m_pInstrumentFileTree->GetMenu().TrackPopupMenu(
 		TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, rect.left, rect.bottom, this);
@@ -2723,7 +2723,7 @@ void CMainFrame::SelectInstrumentFolder()
 
 	if (lpID != NULL) {
 		SHGetPathFromIDListW(lpID, Path);
-		theApp.GetSettings()->InstrumentMenuPath = Path;
+		theApp.GetSettings()->SetDirectory((LPCWSTR)Path, PATH_INST);		// // //
 		m_pInstrumentFileTree->Changed();
 	}
 }

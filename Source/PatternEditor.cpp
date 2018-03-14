@@ -262,9 +262,6 @@ void CPatternEditor::ApplyColorScheme()
 
 	const CSettings *pSettings = Env.GetSettings();
 
-	LPCWSTR	FontName = pSettings->Appearance.strFont;		// // //
-	LPCWSTR	HeaderFace = DEFAULT_HEADER_FONT;
-
 	COLORREF ColBackground = pSettings->Appearance.iColBackground;
 
 	// Fetch font size
@@ -280,13 +277,13 @@ void CPatternEditor::ApplyColorScheme()
 	if (m_fontPattern.m_hObject != NULL)
 		m_fontPattern.DeleteObject();
 	m_fontPattern.CreateFontW(-m_iPatternFontSize, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
-		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, FontName);		// // //
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, pSettings->Appearance.strFont.data());		// // //
 
 	// Create header font
 	if (m_fontHeader.m_hObject != NULL)
 		m_fontHeader.DeleteObject();
 	m_fontHeader.CreateFontW(-DEFAULT_HEADER_FONT_SIZE, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
-		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_SWISS, HeaderFace);		// // //
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_SWISS, DEFAULT_HEADER_FONT);		// // //
 
 	if (m_fontCourierNew.m_hObject == NULL)		// // // smaller
 		m_fontCourierNew.CreateFontW(14, 0, 0, 0, 0, FALSE, FALSE, FALSE, 0, 0, 0, DRAFT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Courier New");
