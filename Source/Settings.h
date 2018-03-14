@@ -50,59 +50,15 @@ enum PATHS {
 	PATH_COUNT,
 };
 
-// // // helper class for loading settings from official famitracker
-struct stOldSettingContext
-{
-	stOldSettingContext();
-	~stOldSettingContext();
-};
-
-// Base class for settings, pure virtual
-class CSettingBase {
-public:
-	CSettingBase(LPCWSTR pSection, LPCWSTR pEntry) : m_pSection(pSection), m_pEntry(pEntry) { }
-	virtual ~CSettingBase() noexcept = default;		// // //
-	virtual void Load() = 0;
-	virtual void Save() = 0;
-	virtual void Default() = 0;
-	virtual void UpdateDefault(LPCWSTR pSection, LPCWSTR pEntry);		// // /
-	LPCWSTR GetSection() const { return m_pSection; }
-protected:
-	LPCWSTR m_pSection;
-	LPCWSTR m_pEntry;
-	LPCWSTR m_pSectionSecond = nullptr;		// // //
-	LPCWSTR m_pEntrySecond = nullptr;		// // //
-};
-
-// Templated setting class
-template <class T>
-class CSettingType : public CSettingBase {
-public:
-	CSettingType(LPCWSTR pSection, LPCWSTR pEntry, T defaultVal, T *pVar) : CSettingBase(pSection, pEntry), m_tDefaultValue(defaultVal), m_pVariable(pVar) { }
-	void Load() override;
-	void Save() override;
-	void Default() override;
-protected:
-	T *m_pVariable;
-	T m_tDefaultValue;
-};
-
 // Settings collection
 class CSettings {
 private:
-	CSettings();
-	CSettings(const CSettings &) = delete;		// // //
-	CSettings(CSettings &&) = delete;
+	CSettings() = default;
 
 public:
-	void	LoadSettings();
-	void	SaveSettings();
-	void	DefaultSettings();
-	void	DeleteSettings();
-	void	SetWindowPos(int Left, int Top, int Right, int Bottom, int State);
-
+	CStringW &GetPath(unsigned int PathType);		// // //
 	const CStringW &GetPath(unsigned int PathType) const;		// // //
-	void	SetPath(const CStringW &PathName, unsigned int PathType);
+	void SetPath(const CStringW &PathName, unsigned int PathType);
 
 public:
 	static CSettings &GetInstance();		// // //
@@ -230,17 +186,5 @@ public:
 	CStringW InstrumentMenuPath;
 
 private:
-	template<class T>
-	CSettingBase *AddSetting(LPCWSTR pSection, LPCWSTR pEntry, T tDefault, T *pVariable);		// // //
-	void SetupSettings();
-
-private:
-	static const int MAX_SETTINGS = 128;
-
-private:
-	std::vector<std::unique_ptr<CSettingBase>> m_pSettings;		// // //
-
-private:
-	// Paths
-	CStringW Paths[PATH_COUNT];
+	CStringW Paths[PATH_COUNT];		// // //
 };

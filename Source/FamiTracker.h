@@ -69,6 +69,7 @@ class CMainFrame;		// // //
 class CMIDI;
 class CSoundGen;
 class CSettings;
+class CSettingsService;		// // //
 class CAccelerator;
 class CRecentFileList;		// // //
 class CVersionChecker;		// // //
@@ -131,10 +132,10 @@ public:
 
 	// Get-functions
 	CMainFrame		*GetMainFrame() const;		// // //
-	CAccelerator	*GetAccelerator() const		{ ASSERT(m_pAccel); return m_pAccel.get(); }
-	CSoundGen		*GetSoundGenerator() const	{ ASSERT(m_pSoundGenerator); return m_pSoundGenerator.get(); }
-	CMIDI			*GetMIDI() const			{ ASSERT(m_pMIDI); return m_pMIDI.get(); }
-	CSettings		*GetSettings() const		{ ASSERT(m_pSettings); return m_pSettings; }
+	CAccelerator	*GetAccelerator() const;
+	CSoundGen		*GetSoundGenerator() const;
+	CMIDI			*GetMIDI() const;
+	CSettings		*GetSettings() const;
 
 	//
 	// Private functions
@@ -155,8 +156,7 @@ private:
 	std::unique_ptr<CMIDI>			m_pMIDI;		// // //
 	std::unique_ptr<CAccelerator>	m_pAccel;		// // // Keyboard accelerator
 	std::unique_ptr<CSoundGen>		m_pSoundGenerator;		// // // Sound synth & player
-
-	CSettings		*m_pSettings = nullptr;		// Program settings
+	std::unique_ptr<CSettingsService> m_pSettingsService;		// // //
 
 	// Single instance stuff
 	std::unique_ptr<CMutex>			m_pInstanceMutex;

@@ -33,6 +33,7 @@
 #include "SoundGen.h"
 #include "Accelerator.h"
 #include "Settings.h"
+#include "SettingsService.h"		// // //
 #include "CommandLineExport.h"
 #include "WinSDK/VersionHelpers.h"		// // //
 #include "WaveRenderer.h"		// // //
@@ -129,8 +130,10 @@ BOOL CFamiTrackerApp::InitInstance()
 	LoadStdProfileSettings(MAX_RECENT_FILES);  // Load standard INI file options (including MRU)
 
 	// Load program settings
-	m_pSettings = &CSettings::GetInstance();		// // //
-	m_pSettings->LoadSettings();
+	m_pSettingsService = make_unique_nothrow<CSettingsService>();		// // //
+	if (!m_pSettingsService)
+		return false;
+	m_pSettingsService->LoadSettings();
 
 	// Parse command line for standard shell commands, DDE, file open + some custom ones
 	CFTCommandLineInfo cmdInfo;
@@ -143,7 +146,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	m_pAccel = make_unique_nothrow<CAccelerator>();		// // //
 	if (!m_pAccel)
 		return FALSE;
-	m_pAccel->LoadShortcuts(m_pSettings);
+	m_pAccel->LoadShortcuts(GetSettings());
 	m_pAccel->Setup();
 
 	// Create the MIDI interface
@@ -159,8 +162,8 @@ BOOL CFamiTrackerApp::InitInstance()
 	// Start sound generator thread, initially suspended
 	if (!m_pSoundGenerator->CreateThread(CREATE_SUSPENDED)) {
 		// If failed, restore and save default settings
-		m_pSettings->DefaultSettings();
-		m_pSettings->SaveSettings();
+		m_pSettingsService->DefaultSettings();
+		m_pSettingsService->SaveSettings();
 		// Show message and quit
 		AfxMessageBox(IDS_START_ERROR, MB_ICONERROR);
 		return FALSE;
@@ -269,7 +272,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	if (!ProcessShellCommand(cmdInfo)) {
 		if (cmdInfo.m_nShellCommand == CCommandLineInfo::AppUnregister) {
 			// Also clear settings from registry when unregistering
-			m_pSettings->DeleteSettings();
+			m_pSettingsService->DeleteSettings();
 		}
 		return FALSE;
 	}
@@ -290,8 +293,8 @@ BOOL CFamiTrackerApp::InitInstance()
 	// Initialize the sound interface, also resumes the thread
 	if (!m_pSoundGenerator->InitializeSound(m_pMainWnd->m_hWnd)) {
 		// If failed, restore and save default settings
-		m_pSettings->DefaultSettings();
-		m_pSettings->SaveSettings();
+		m_pSettingsService->DefaultSettings();
+		m_pSettingsService->SaveSettings();
 		// Quit program
 		AfxMessageBox(IDS_START_ERROR, MB_ICONERROR);
 		return FALSE;
@@ -310,7 +313,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	m_pMainWnd->GetMenu()->GetSubMenu(4)->RemoveMenu(ID_MODULE_CHANNELS, MF_BYCOMMAND);		// // //
 #endif
 
-	if (m_pSettings->General.bCheckVersion)		// // //
+	if (GetSettings()->General.bCheckVersion)		// // //
 		CheckNewVersion(true);
 
 	// Initialization is done
@@ -336,14 +339,14 @@ int CFamiTrackerApp::ExitInstance()
 	}
 
 	if (m_pAccel) {
-		m_pAccel->SaveShortcuts(m_pSettings);
+		m_pAccel->SaveShortcuts(GetSettings());
 		m_pAccel->Shutdown();
 		m_pAccel.reset();
 	}
 
-	if (m_pSettings) {
-		m_pSettings->SaveSettings();
-		m_pSettings = nullptr;
+	if (m_pSettingsService) {
+		m_pSettingsService->SaveSettings();
+		m_pSettingsService.reset();
 	}
 
 #ifdef SUPPORT_TRANSLATIONS
@@ -589,6 +592,28 @@ void CFamiTrackerApp::SilentEverything()
 
 CMainFrame *CFamiTrackerApp::GetMainFrame() const {		// // //
 	return static_cast<CMainFrame *>(const_cast<CFamiTrackerApp *>(this)->GetMainWnd());
+}
+
+// // //
+
+CAccelerator *CFamiTrackerApp::GetAccelerator() const {
+	ASSERT(m_pAccel);
+	return m_pAccel.get();
+}
+
+CSoundGen *CFamiTrackerApp::GetSoundGenerator() const {
+	ASSERT(m_pSoundGenerator);
+	return m_pSoundGenerator.get();
+}
+
+CMIDI *CFamiTrackerApp::GetMIDI() const {
+	ASSERT(m_pMIDI);
+	return m_pMIDI.get();
+}
+
+CSettings *CFamiTrackerApp::GetSettings() const {
+	ASSERT(m_pSettingsService);
+	return m_pSettingsService->GetSettings();
 }
 
 int CFamiTrackerApp::GetCPUUsage() const

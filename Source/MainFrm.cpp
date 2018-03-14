@@ -2114,8 +2114,12 @@ BOOL CMainFrame::DestroyWindow()
 		DPI::ScaleRect(WinRect);		// // // 050B
 	}
 
-	// Save window position
-	theApp.GetSettings()->SetWindowPos(WinRect.left, WinRect.top, WinRect.right, WinRect.bottom, State);
+	// // // Save window position
+	theApp.GetSettings()->WindowPos.iLeft = WinRect.left;
+	theApp.GetSettings()->WindowPos.iTop = WinRect.top;
+	theApp.GetSettings()->WindowPos.iRight = WinRect.right;
+	theApp.GetSettings()->WindowPos.iBottom = WinRect.bottom;
+	theApp.GetSettings()->WindowPos.iState = State;
 
 	return CFrameWnd::DestroyWindow();
 }

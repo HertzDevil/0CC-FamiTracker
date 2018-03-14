@@ -23,7 +23,7 @@
 #include "Accelerator.h"
 #include "FamiTrackerEnv.h"		// // //
 #include "../resource.h"		// // //
-#include "Settings.h" // stOldSettingContext
+#include "SettingsService.h"		// // // stOldSettingContext
 
 /*
  * This class is used to translate key shortcuts -> command messages

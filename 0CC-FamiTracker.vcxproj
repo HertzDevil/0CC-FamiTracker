@@ -478,6 +478,7 @@
     <ClCompile Include="Source\PatternClipData.cpp" />
     <ClCompile Include="Source\PatternData.cpp" />
     <ClCompile Include="Source\RegisterDisplay.cpp" />
+    <ClCompile Include="Source\SettingsService.cpp" />
     <ClCompile Include="Source\SongLengthScanner.cpp" />
     <ClCompile Include="Source\SongView.cpp" />
     <ClCompile Include="Source\SoundChipSet.cpp" />
@@ -693,6 +694,7 @@
     <ClInclude Include="Source\CompoundAction.h" />
     <ClInclude Include="Source\DetuneTable.h" />
     <ClInclude Include="Source\DPI.h" />
+    <ClInclude Include="Source\SettingsService.h" />
     <ClInclude Include="Source\SongLengthScanner.h" />
     <ClInclude Include="Source\SongView.h" />
     <ClInclude Include="Source\SoundChipSet.h" />

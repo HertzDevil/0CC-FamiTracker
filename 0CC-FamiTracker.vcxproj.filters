@@ -813,6 +813,9 @@
     <ClCompile Include="Source\FamiTrackerDocIOJson.cpp">
       <Filter>Source Files\Document Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Source\SettingsService.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
