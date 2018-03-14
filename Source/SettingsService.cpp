@@ -26,6 +26,148 @@
 #include "ColorScheme.h"
 #include "ModuleException.h"
 
+// Settings types
+
+CSettingBase::CSettingBase(LPCWSTR pSection, LPCWSTR pEntry) :
+	m_pSection(pSection), m_pEntry(pEntry)
+{
+}
+
+void CSettingBase::UpdateDefault(LPCWSTR pSection, LPCWSTR pEntry) {		// // //
+	m_pSectionSecond = pSection;
+	m_pEntrySecond = pEntry;
+}
+
+
+
+namespace {
+
+template <typename T>
+T GetRegValue(LPCWSTR section, LPCWSTR key, const T &defaultVal) = delete;
+
+template <>
+int GetRegValue<int>(LPCWSTR section, LPCWSTR entry, const int &default_value) {
+	return Env.GetMainApp()->GetProfileIntW(section, entry, default_value);
+}
+
+template <>
+bool GetRegValue<bool>(LPCWSTR section, LPCWSTR entry, const bool &default_value) {
+	return Env.GetMainApp()->GetProfileIntW(section, entry, default_value) != 0;
+}
+
+template <>
+CStringW GetRegValue<CStringW>(LPCWSTR section, LPCWSTR entry, const CStringW &default_value) {
+	return Env.GetMainApp()->GetProfileStringW(section, entry, default_value);
+}
+
+template <typename T>
+void SetRegValue(LPCWSTR section, LPCWSTR key, const T &val) = delete;
+
+template <>
+void SetRegValue<int>(LPCWSTR section, LPCWSTR entry, const int &val) {
+	Env.GetMainApp()->WriteProfileInt(section, entry, val);
+}
+
+template <>
+void SetRegValue<bool>(LPCWSTR section, LPCWSTR entry, const bool &val) {
+	Env.GetMainApp()->WriteProfileInt(section, entry, val ? 1 : 0);
+}
+
+template <>
+void SetRegValue<CStringW>(LPCWSTR section, LPCWSTR entry, const CStringW &val) {
+	Env.GetMainApp()->WriteProfileStringW(section, entry, val);
+}
+
+} // namespace
+
+template <class T>
+class CSettingType : public CSettingBase {
+public:
+	using setting_type = T;
+
+	using CSettingBase::CSettingBase;
+
+private:
+	void LoadFromRegistry() override {
+		setting_type Value = GetDefaultSetting();		// // //
+		{
+			stOldSettingContext s;
+			if (m_pSectionSecond)
+				Value = GetRegValue(m_pSectionSecond, m_pEntrySecond, Value);
+			Value = GetRegValue(m_pSection, m_pEntry, Value);
+		}
+		if (m_pSectionSecond)
+			Value = GetRegValue(m_pSectionSecond, m_pEntrySecond, Value);
+		WriteSetting(GetRegValue(m_pSection, m_pEntry, Value));
+	}
+
+	void SaveToRegistry() override {
+		SetRegValue(m_pSection, m_pEntry, ReadSetting());
+	}
+
+	void UseDefaultSetting() override {
+		WriteSetting(GetDefaultSetting());
+	}
+
+	virtual setting_type ReadSetting() const = 0;
+	virtual setting_type GetDefaultSetting() const = 0;
+	virtual void WriteSetting(const setting_type &val) = 0;
+};
+
+template <class T>
+class CSettingPublic : public CSettingType<T> {
+public:
+	using setting_type = T;
+
+	CSettingPublic(LPCWSTR pSection, LPCWSTR pEntry, const setting_type &defaultVal, setting_type *pVar) :
+		CSettingType<T>(pSection, pEntry), m_tDefaultValue(defaultVal), m_pVariable(pVar)
+	{
+	}
+
+private:
+	setting_type ReadSetting() const override {
+		return *m_pVariable;
+	}
+
+	setting_type GetDefaultSetting() const override {
+		return m_tDefaultValue;
+	}
+
+	void WriteSetting(const setting_type &val) override {
+		*m_pVariable = val;
+	}
+
+	setting_type *m_pVariable = nullptr;
+	setting_type m_tDefaultValue;
+};
+
+class CSettingPath : public CSettingType<CStringW> {
+public:
+	using setting_type = CStringW;
+
+	CSettingPath(LPCWSTR pSection, LPCWSTR pEntry, PATHS path_type) :
+		CSettingType(pSection, pEntry), m_iPathType(path_type)
+	{
+	}
+
+private:
+	setting_type ReadSetting() const override {
+		return CSettings::GetInstance().GetPath(m_iPathType);
+	}
+
+	setting_type GetDefaultSetting() const override {
+		return L"";
+	}
+
+	void WriteSetting(const setting_type &val) override {
+		CSettings::GetInstance().SetPath(val, m_iPathType);
+	}
+
+	PATHS m_iPathType;
+};
+
+
+
 // // // registry context
 
 stOldSettingContext::stOldSettingContext()
@@ -60,17 +202,17 @@ const CSettings *CSettingsService::GetSettings() const {
 
 void CSettingsService::LoadSettings() {
 	for (auto &x : m_pSettings)
-		x->Load();
+		x->LoadFromRegistry();
 }
 
 void CSettingsService::SaveSettings() {
 	for (auto &x : m_pSettings)
-		x->Save();
+		x->SaveToRegistry();
 }
 
 void CSettingsService::DefaultSettings() {
 	for (auto &x : m_pSettings)
-		x->Default();
+		x->UseDefaultSetting();
 }
 
 void CSettingsService::DeleteSettings() {
@@ -94,13 +236,16 @@ void CSettingsService::SetupSettings() {
 	//
 
 	const auto SETTING_INT = [&] (LPCWSTR Section, LPCWSTR Entry, int Default, int *Variable) {		// // //
-		return AddSetting<int>(Section, Entry, Default, Variable);
+		return m_pSettings.emplace_back(std::make_unique<CSettingPublic<int>>(Section, Entry, Default, Variable)).get();
 	};
 	const auto SETTING_BOOL = [&] (LPCWSTR Section, LPCWSTR Entry, bool Default, bool *Variable) {
-		return AddSetting<bool>(Section, Entry, Default, Variable);
+		return m_pSettings.emplace_back(std::make_unique<CSettingPublic<bool>>(Section, Entry, Default, Variable)).get();
 	};
 	const auto SETTING_STRING = [&] (LPCWSTR Section, LPCWSTR Entry, CStringW Default, CStringW *Variable) {
-		return AddSetting<CStringW>(Section, Entry, Default, Variable);
+		return m_pSettings.emplace_back(std::make_unique<CSettingPublic<CStringW>>(Section, Entry, Default, Variable)).get();
+	};
+	const auto SETTING_PATH = [&] (LPCWSTR Section, LPCWSTR Entry, PATHS PathType) {
+		return m_pSettings.emplace_back(std::make_unique<CSettingPath>(Section, Entry, PathType)).get();
 	};
 
 	auto &s = CSettings::GetInstance();
@@ -147,9 +292,9 @@ void CSettingsService::SetupSettings() {
 	SETTING_INT(L"Version", L"Module error level", MODULE_ERROR_DEFAULT, &s.Version.iErrorLevel);
 
 	// Keys
-	SETTING_INT(L"Keys", L"Note cut", 0x31, &s.Keys.iKeyNoteCut);
-	SETTING_INT(L"Keys", L"Note release", 0xDC, &s.Keys.iKeyNoteRelease);
-	SETTING_INT(L"Keys", L"Clear field", 0xBD, &s.Keys.iKeyClear);
+	SETTING_INT(L"Keys", L"Note cut", '1', &s.Keys.iKeyNoteCut);
+	SETTING_INT(L"Keys", L"Note release", VK_OEM_5, &s.Keys.iKeyNoteRelease); // \|
+	SETTING_INT(L"Keys", L"Clear field", VK_OEM_MINUS, &s.Keys.iKeyClear);
 	SETTING_INT(L"Keys", L"Repeat", 0x00, &s.Keys.iKeyRepeat);
 	SETTING_INT(L"Keys", L"Echo buffer", 0x00, &s.Keys.iKeyEchoBuffer);		// // //
 
@@ -218,12 +363,12 @@ void CSettingsService::SetupSettings() {
 	SETTING_BOOL(L"Other", L"Follow mode", true, &s.FollowMode);
 	SETTING_BOOL(L"Other", L"Meter decay rate", false, &s.MeterDecayRate);		// // // 050B
 
-	// Paths
-	SETTING_STRING(L"Paths", L"FTM path", L"", &s.GetPath(PATH_FTM));
-	SETTING_STRING(L"Paths", L"FTI path", L"", &s.GetPath(PATH_FTI));
-	SETTING_STRING(L"Paths", L"NSF path", L"", &s.GetPath(PATH_NSF));
-	SETTING_STRING(L"Paths", L"DMC path", L"", &s.GetPath(PATH_DMC));
-	SETTING_STRING(L"Paths", L"WAV path", L"", &s.GetPath(PATH_WAV));
+	// // // Paths
+	SETTING_PATH(L"Paths", L"FTM path", PATH_FTM);
+	SETTING_PATH(L"Paths", L"FTI path", PATH_FTI);
+	SETTING_PATH(L"Paths", L"NSF path", PATH_NSF);
+	SETTING_PATH(L"Paths", L"DMC path", PATH_DMC);
+	SETTING_PATH(L"Paths", L"WAV path", PATH_WAV);
 
 	SETTING_STRING(L"Paths", L"Instrument menu", L"", &s.InstrumentMenuPath);
 
@@ -236,80 +381,4 @@ void CSettingsService::SetupSettings() {
 	SETTING_INT(L"Mixer", L"FDS", 0, &s.ChipLevels.iLevelFDS);
 	SETTING_INT(L"Mixer", L"N163", 0, &s.ChipLevels.iLevelN163);
 	SETTING_INT(L"Mixer", L"S5B", 0, &s.ChipLevels.iLevelS5B);
-}
-
-template<class T>
-CSettingBase *CSettingsService::AddSetting(LPCWSTR pSection, LPCWSTR pEntry, T tDefault, T *pVariable) {
-	return m_pSettings.emplace_back(std::make_unique<CSettingType<T>>(pSection, pEntry, tDefault, pVariable)).get();		// // //
-}
-
-// Settings types
-
-template<class T>
-void CSettingType<T>::Load()
-{
-	T Value = m_tDefaultValue;		// // //
-	{
-		stOldSettingContext s;
-		if (m_pSectionSecond)
-			Value = Env.GetMainApp()->GetProfileIntW(m_pSectionSecond, m_pEntrySecond, Value);
-		Value = Env.GetMainApp()->GetProfileIntW(m_pSection, m_pEntry, Value);
-	}
-	if (m_pSectionSecond)
-		Value = Env.GetMainApp()->GetProfileIntW(m_pSectionSecond, m_pEntrySecond, Value);
-	*m_pVariable = Env.GetMainApp()->GetProfileIntW(m_pSection, m_pEntry, Value);
-}
-
-template<>
-void CSettingType<bool>::Load()
-{
-	bool Value = m_tDefaultValue;		// // //
-	{
-		stOldSettingContext s;
-		if (m_pSectionSecond)
-			Value = Env.GetMainApp()->GetProfileIntW(m_pSectionSecond, m_pEntrySecond, Value) != 0;
-		Value = Env.GetMainApp()->GetProfileIntW(m_pSection, m_pEntry, Value) != 0;
-	}
-	if (m_pSectionSecond)
-		Value = Env.GetMainApp()->GetProfileIntW(m_pSectionSecond, m_pEntrySecond, Value) != 0;
-	*m_pVariable = Env.GetMainApp()->GetProfileIntW(m_pSection, m_pEntry, Value) != 0;
-}
-
-template<>
-void CSettingType<CStringW>::Load()
-{
-	CStringW Value = m_tDefaultValue;		// // //
-	{
-		stOldSettingContext s;
-		if (m_pSectionSecond)
-			Value = Env.GetMainApp()->GetProfileStringW(m_pSectionSecond, m_pEntrySecond, Value);
-		Value = Env.GetMainApp()->GetProfileStringW(m_pSection, m_pEntry, Value);
-	}
-	if (m_pSectionSecond)
-		Value = Env.GetMainApp()->GetProfileStringW(m_pSectionSecond, m_pEntrySecond, Value);
-	*m_pVariable = Env.GetMainApp()->GetProfileStringW(m_pSection, m_pEntry, Value);
-}
-
-template<class T>
-void CSettingType<T>::Save()
-{
-	Env.GetMainApp()->WriteProfileInt(m_pSection, m_pEntry, *m_pVariable);
-}
-
-template<>
-void CSettingType<CStringW>::Save()
-{
-	Env.GetMainApp()->WriteProfileStringW(m_pSection, m_pEntry, *m_pVariable);
-}
-
-template<class T>
-void CSettingType<T>::Default()
-{
-	*m_pVariable = m_tDefaultValue;
-}
-
-void CSettingBase::UpdateDefault(LPCWSTR pSection, LPCWSTR pEntry)		// // //
-{
-	m_pSectionSecond = pSection;
-	m_pEntrySecond = pEntry;
 }

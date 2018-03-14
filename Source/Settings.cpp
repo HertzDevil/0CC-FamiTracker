@@ -39,12 +39,6 @@ CSettings &CSettings::GetInstance()		// // //
 
 // CSettings member functions
 
-CStringW &CSettings::GetPath(unsigned int PathType)		// // //
-{
-	ASSERT(PathType < PATH_COUNT);
-	return Paths[PathType];
-}
-
 const CStringW &CSettings::GetPath(unsigned int PathType) const
 {
 	ASSERT(PathType < PATH_COUNT);
@@ -55,9 +49,10 @@ void CSettings::SetPath(const CStringW &PathName, unsigned int PathType)
 {
 	ASSERT(PathType < PATH_COUNT);
 
-	// Remove file name if there is a
-	if (PathName.Right(1) == L"\\" || PathName.Find(L'\\') == -1)
+	// Remove file name if there is a "\"
+	int index = PathName.ReverseFind(L'\\');		// // //
+	if (index == -1 || (!PathName.IsEmpty() && PathName.Right(1) == L"\\"))
 		Paths[PathType] = PathName;
 	else
-		Paths[PathType] = PathName.Left(PathName.ReverseFind(L'\\'));
+		Paths[PathType] = PathName.Left(index + 1);
 }

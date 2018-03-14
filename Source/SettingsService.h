@@ -41,32 +41,18 @@ struct stOldSettingContext {
 // Base class for settings
 class CSettingBase {
 public:
-	CSettingBase(LPCWSTR pSection, LPCWSTR pEntry) : m_pSection(pSection), m_pEntry(pEntry) { }
+	CSettingBase(LPCWSTR pSection, LPCWSTR pEntry);
 	virtual ~CSettingBase() noexcept = default;		// // //
-	virtual void Load() = 0;
-	virtual void Save() = 0;
-	virtual void Default() = 0;
+	virtual void LoadFromRegistry() = 0;
+	virtual void SaveToRegistry() = 0;
+	virtual void UseDefaultSetting() = 0;
 	virtual void UpdateDefault(LPCWSTR pSection, LPCWSTR pEntry);		// // /
-	LPCWSTR GetSection() const { return m_pSection; }
 
 protected:
 	LPCWSTR m_pSection;
 	LPCWSTR m_pEntry;
 	LPCWSTR m_pSectionSecond = nullptr;		// // //
 	LPCWSTR m_pEntrySecond = nullptr;		// // //
-};
-
-// Templated setting class
-template <class T>
-class CSettingType : public CSettingBase {
-public:
-	CSettingType(LPCWSTR pSection, LPCWSTR pEntry, T defaultVal, T *pVar) : CSettingBase(pSection, pEntry), m_tDefaultValue(defaultVal), m_pVariable(pVar) { }
-	void Load() override;
-	void Save() override;
-	void Default() override;
-protected:
-	T *m_pVariable;
-	T m_tDefaultValue;
 };
 
 class CSettingsService {
@@ -83,8 +69,6 @@ public:
 	void DeleteSettings();
 
 private:
-	template<class T>
-	CSettingBase *AddSetting(LPCWSTR pSection, LPCWSTR pEntry, T tDefault, T *pVariable);		// // //
 	void SetupSettings();
 
 	std::vector<std::unique_ptr<CSettingBase>> m_pSettings;

@@ -56,7 +56,6 @@ private:
 	CSettings() = default;
 
 public:
-	CStringW &GetPath(unsigned int PathType);		// // //
 	const CStringW &GetPath(unsigned int PathType) const;		// // //
 	void SetPath(const CStringW &PathName, unsigned int PathType);
 
