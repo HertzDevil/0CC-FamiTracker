@@ -189,7 +189,4 @@ public:
 
 extern CFamiTrackerApp theApp;
 
-// Global helper functions
-CStringW LoadDefaultFilter(LPCWSTR Name, LPCWSTR Ext);
-CStringW LoadDefaultFilter(UINT nID, LPCWSTR Ext);
-void AfxFormatString3(CStringW &rString, UINT nIDS, LPCWSTR lpsz1, LPCWSTR lpsz2, LPCWSTR lpsz3);
+void AfxFormatString3(CStringW &rString, UINT nIDS, LPCWSTR lpsz1, LPCWSTR lpsz2, LPCWSTR lpsz3); // TODO: move to stdafx.h

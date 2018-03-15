@@ -21,7 +21,7 @@
 */
 
 #include "PCMImport.h"
-#include "FamiTracker.h" // LoadDefaultFilter
+#include "FamiTracker.h" // AfxFormatString3
 #include "FamiTrackerEnv.h"
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "FamiTrackerTypes.h"		// // //
@@ -30,6 +30,7 @@
 #include "SoundGen.h"
 #include "WaveFile.h"		// // //
 #include "APU/DPCM.h"
+#include "FileDialogs.h"		// // //
 #include "resampler/resample.hpp"
 #include "resampler/resample.inl"
 #include <algorithm>		// // //
@@ -444,7 +445,7 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ConvertFile() {		// // //
 #endif
 
 	// Return a sample object
-	return std::make_shared<ft0cc::doc::dpcm_sample>(pSamples, "");		// // //
+	return std::make_shared<ft0cc::doc::dpcm_sample>(std::move(pSamples), "");		// // //
 }
 
 bool CPCMImport::OpenWaveFile()

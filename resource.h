@@ -14,6 +14,7 @@
 #define IDS_CLIPBOARD_COPY_ERROR        102
 #define IDS_CLIPBOARD_PASTE_ERROR       103
 #define IDS_DPCM_SPACE_FORMAT           104
+#define IDS_FILTER_0CC                  105
 #define IDS_INSTRUMENT_EDITOR_TITLE     106
 #define IDS_INST_VERSION_UNSUPPORTED    107
 #define IDS_FILE_SAVED                  108
@@ -49,7 +50,9 @@
 #define IDS_FILE_OPEN_ERROR             132
 #define ID_CMD_NEXT_INSTRUMENT          132
 #define ID_CMD_PREV_INSTRUMENT          133
+#define IDS_FILTER_CSV                  133
 #define ID_CMD_INCREASESTEPSIZE         134
+#define IDS_FILTER_JSON                 134
 #define IDS_INST_LIMIT                  135
 #define ID_CMD_DECREASESTEPSIZE         135
 #define IDS_CLIPBOARD_OPEN_ERROR        136
@@ -749,7 +752,7 @@
 #define ID_INDICATOR_DPCM_ENDPOS        53257
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        358

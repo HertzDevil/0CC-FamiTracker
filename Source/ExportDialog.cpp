@@ -34,7 +34,7 @@
 #include "DSampleManager.h"		// // //
 #include "Compiler.h"
 #include "Settings.h"
-#include <optional>		// // //
+#include "FileDialogs.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 
 // Define internal exporters
@@ -62,28 +62,13 @@ const int CExportDialog::DEFAULT_EXPORTERS = 6;		// // //
 int CExportDialog::m_iExportOption = 0;
 
 // File filters
-const LPCWSTR CExportDialog::NSF_FILTER[]   = { L"NSF file (*.nsf)", L".nsf" };
-const LPCWSTR CExportDialog::NES_FILTER[]   = { L"NES ROM image (*.nes)", L".nes" };
-const LPCWSTR CExportDialog::RAW_FILTER[]   = { L"Raw song data (*.bin)", L".bin" };
-const LPCWSTR CExportDialog::DPCMS_FILTER[] = { L"DPCM sample bank (*.bin)", L".bin" };
-const LPCWSTR CExportDialog::PRG_FILTER[]   = { L"NES program bank (*.prg)", L".prg" };
-const LPCWSTR CExportDialog::ASM_FILTER[]	  = { L"Assembly text (*.asm)", L".asm" };
-const LPCWSTR CExportDialog::NSFE_FILTER[]  = { L"NSFe file (*.nsfe)", L".nsfe" };		// // //
-
-namespace {		// // //
-
-std::optional<CStringW> GetSavePath(const CStringW &initFName, const CStringW &initPath, const CStringW &FilterName, const CStringW &FilterExt) {
-	CStringW filter = LoadDefaultFilter(FilterName, FilterExt);
-	CFileDialog FileDialog(FALSE, FilterExt, initFName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
-	FileDialog.m_pOFN->lpstrInitialDir = initPath;
-
-	if (FileDialog.DoModal() != IDOK)
-		return std::nullopt;
-
-	return FileDialog.GetPathName();
-}
-
-} // namespace
+const LPCWSTR CExportDialog::NSF_FILTER[]   = { L"NSF file (*.nsf)"        , L"*.nsf" };
+const LPCWSTR CExportDialog::NES_FILTER[]   = { L"NES ROM image (*.nes)"   , L"*.nes" };
+const LPCWSTR CExportDialog::RAW_FILTER[]   = { L"Raw song data (*.bin)"   , L"*.bin" };
+const LPCWSTR CExportDialog::DPCMS_FILTER[] = { L"DPCM sample bank (*.bin)", L"*.bin" };
+const LPCWSTR CExportDialog::PRG_FILTER[]   = { L"NES program bank (*.prg)", L"*.prg" };
+const LPCWSTR CExportDialog::ASM_FILTER[]   = { L"Assembly text (*.asm)"   , L"*.asm" };
+const LPCWSTR CExportDialog::NSFE_FILTER[]  = { L"NSFe file (*.nsfe)"      , L"*.nsfe" };		// // //
 
 // Compiler logger
 

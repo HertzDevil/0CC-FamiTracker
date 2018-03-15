@@ -25,6 +25,7 @@
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
+#include "FileDialogs.h"		// // //
 #include "SongData.h"		// // //
 #include "MainFrm.h"
 #include "ModuleImportDlg.h"
@@ -324,10 +325,7 @@ void CModulePropertiesDlg::OnBnClickedSongImport()
 {
 	CModuleImportDlg importDlg(m_pDocument);
 
-	// TODO use string table
-	CFileDialog OpenFileDlg(TRUE, L"0cc", 0, OFN_HIDEREADONLY,
-							L"0CC-FamiTracker modules (*.0cc;*.ftm)|*.0cc; *.ftm|All files (*.*)|*.*||",		// // //
-							AfxGetMainWnd(), 0);
+	CFileDialog OpenFileDlg(TRUE, L"0cc", 0, OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_0CC, L"*.0cc; *.ftm"));		// // //
 
 	if (OpenFileDlg.DoModal() == IDCANCEL)
 		return;

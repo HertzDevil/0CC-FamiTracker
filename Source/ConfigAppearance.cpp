@@ -28,6 +28,7 @@
 #include "Color.h"		// // //
 #include <fstream>
 #include <string>
+#include "FileDialogs.h"		// // //
 #include "NumConv.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 
@@ -446,18 +447,15 @@ void CConfigAppearance::OnBnClickedDisplayFlats()
 
 void CConfigAppearance::OnBnClickedButtonAppearanceSave()		// // // 050B
 {
-	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, L".txt");
-	CFileDialog fileDialog {FALSE, NULL, L"Theme.txt", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter};
-	if (fileDialog.DoModal() == IDOK)
-		ExportSettings(fileDialog.GetPathName());
+	if (auto path = GetSavePath(L"Theme.txt", L"", IDS_FILTER_TXT, L"*.txt"))
+		ExportSettings(*path);
 }
 
 void CConfigAppearance::OnBnClickedButtonAppearanceLoad()		// // // 050B
 {
-	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, L".txt");
-	CFileDialog fileDialog {TRUE, NULL, L"Theme.txt", OFN_HIDEREADONLY, fileFilter};
+	CFileDialog fileDialog {TRUE, L"txt", L"Theme.txt", OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_TXT, L"*.txt")};
 	if (fileDialog.DoModal() == IDOK) {
-		ImportSettings(fileDialog.GetPathName().GetBuffer());
+		ImportSettings(fileDialog.GetPathName());
 		static_cast<CComboBox*>(GetDlgItem(IDC_FONT))->SelectString(0, m_strFont.data());
 		static_cast<CComboBox*>(GetDlgItem(IDC_FONT_SIZE))->SelectString(0, FormattedW(L"%i", m_iFontSize));
 		RedrawWindow();

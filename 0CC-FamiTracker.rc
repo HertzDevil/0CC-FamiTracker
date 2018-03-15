@@ -2269,6 +2269,8 @@ BEGIN
     IDS_DPCM_IMPORT_QUALITY_FORMAT "Quality: %1"
     IDS_CLIPBOARD_ERROR     "Could not register clipboard format"
     IDS_FILE_OPEN_ERROR     "Could not open the file!"
+    IDS_FILTER_CSV          "Comma-separated values (*.csv)"
+    IDS_FILTER_JSON         "JavaScript Object Notation (*.json)"
     IDS_INST_LIMIT          "You cannot add more instruments"
     IDS_CLIPBOARD_OPEN_ERROR "Cannot open clipboard."
     IDS_CLIPBOARD_NOT_AVALIABLE "Clipboard data is not available."
@@ -2602,6 +2604,7 @@ BEGIN
     IDS_CLIPBOARD_PASTE_ERROR 
                             "An error occured while trying to paste data from the clipboard."
     IDS_DPCM_SPACE_FORMAT   "Space used %1 kB, left %2 kB (%3 kB available)"
+    IDS_FILTER_0CC          "0CC-FamiTracker modules (*.0cc;*.ftm)"
     IDS_INSTRUMENT_EDITOR_TITLE "Instrument editor - %1"
     IDS_INST_VERSION_UNSUPPORTED "File version not supported!"
     IDS_FILE_SAVED          "File saved (%1 bytes)"

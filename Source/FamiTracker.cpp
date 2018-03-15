@@ -40,6 +40,7 @@
 #include "WaveRendererFactory.h"		// // //
 #include "VersionChecker.h"		// // //
 #include "VisualizerWnd.h"		// // //
+#include "FileDialogs.h"		// // //
 #include <iostream>		// // //
 #include "str_conv/str_conv.hpp"		// // //
 #include "NumConv.h"		// // //
@@ -758,21 +759,6 @@ void CFamiTrackerApp::OnFileOpen()
 
 // Various global helper functions
 
-CStringW LoadDefaultFilter(LPCWSTR Name, LPCWSTR Ext)
-{
-	// Loads a single filter string including the all files option
-	CStringW allFilter;
-	VERIFY(allFilter.LoadStringW(AFX_IDS_ALLFILTER));
-	return FormattedW(L"%s|*%s|%s|*.*||", Name, Ext, (LPCWSTR)allFilter);
-}
-
-CStringW LoadDefaultFilter(UINT nID, LPCWSTR Ext)
-{
-	CStringW str;		// // //
-	VERIFY(str.LoadStringW(nID));
-	return LoadDefaultFilter((LPCWSTR)str, Ext);
-}
-
 void AfxFormatString3(CStringW &rString, UINT nIDS, LPCWSTR lpsz1, LPCWSTR lpsz2, LPCWSTR lpsz3)
 {
 	// AfxFormatString with three arguments
@@ -957,9 +943,7 @@ BOOL CDocManager0CC::DoPromptFileName(CStringW &fileName, UINT nIDSTitle, DWORD 
 	// // // disregard doc template
 	CStringW path = theApp.GetSettings()->GetPath(PATH_FTM).c_str();
 
-	CFileDialog OpenFileDlg(bOpenFileDialog, L"0cc", NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-							L"0CC-FamiTracker modules (*.0cc;*.ftm)|*.0cc; *.ftm|All files (*.*)|*.*||",		// // //
-							AfxGetMainWnd(), 0);
+	CFileDialog OpenFileDlg(bOpenFileDialog, L"0cc", NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, LoadDefaultFilter(IDS_FILTER_0CC, L"*.0cc; *.ftm"));		// // //
 	OpenFileDlg.m_ofn.Flags |= lFlags;
 	OpenFileDlg.m_ofn.lpstrFile = fileName.GetBuffer(_MAX_PATH);
 	OpenFileDlg.m_ofn.lpstrInitialDir = path.GetBuffer(_MAX_PATH);

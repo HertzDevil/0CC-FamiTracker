@@ -383,7 +383,7 @@ void CInstrumentIO2A03::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 		int Size = file.ReadInt32();
 		std::vector<uint8_t> SampleData(Size);
 		file.ReadBytes(SampleData.data(), Size);
-		auto pSample = std::make_shared<ft0cc::doc::dpcm_sample>(SampleData, SampleNames[Index]);
+		auto pSample = std::make_shared<ft0cc::doc::dpcm_sample>(std::move(SampleData), SampleNames[Index]);
 
 		bool Found = false;
 		for (int j = 0; j < MAX_DSAMPLES; ++j) if (auto s = pManager->GetDSample(j)) {

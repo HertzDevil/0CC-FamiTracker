@@ -21,7 +21,7 @@
 */
 
 #include "InstrumentEditorDPCM.h"
-#include "FamiTracker.h"
+#include "FamiTracker.h" // AfxFormatString3
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
@@ -31,6 +31,7 @@
 #include "SeqInstrument.h"		// // //
 #include "Instrument2A03.h"		// // //
 #include "DSampleManager.h"		// // //
+#include "FileDialogs.h"		// // //
 #include "PCMImport.h"
 #include "Settings.h"
 #include "SoundGen.h"
@@ -81,7 +82,7 @@ void CDMCFileSoundDialog::OnFileNameChange()
 			auto size = std::min<unsigned>(static_cast<unsigned>(file.GetLength()), ft0cc::doc::dpcm_sample::max_size);
 			std::vector<uint8_t> pBuf(size);
 			file.Read(pBuf.data(), size);
-			Env.GetSoundGenerator()->PreviewSample(std::make_shared<ft0cc::doc::dpcm_sample>(pBuf, ""),
+			Env.GetSoundGenerator()->PreviewSample(std::make_shared<ft0cc::doc::dpcm_sample>(std::move(pBuf), ""),
 				0, DEFAULT_PREVIEW_PITCH);		// // //
 			file.Close();
 			m_strLastFile = GetPathName();
@@ -287,7 +288,7 @@ bool CInstrumentEditorDPCM::LoadSample(const CStringW &FilePath, const CStringW 
 	SampleFile.Read(pBuf.data(), Size);
 	SampleFile.Close();
 
-	if (!InsertSample(std::make_shared<ft0cc::doc::dpcm_sample>(pBuf, conv::to_utf8(FileName))))
+	if (!InsertSample(std::make_shared<ft0cc::doc::dpcm_sample>(std::move(pBuf), conv::to_utf8(FileName))))
 		return false;
 
 	BuildSampleList();
@@ -322,7 +323,7 @@ void CInstrumentEditorDPCM::OnBnClickedLoad()
 	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, L".dmc");
 	CDMCFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_ALLOWMULTISELECT | OFN_EXPLORER, fileFilter);
 
-	auto path = theApp.GetSettings()->GetPath(PATH_DMC);		// // //
+	auto path = Env.GetSettings()->GetPath(PATH_DMC);		// // //
 	OpenFileDialog.m_pOFN->lpstrInitialDir = path.c_str();
 
 	if (OpenFileDialog.DoModal() == IDCANCEL)
@@ -461,9 +462,6 @@ void CInstrumentEditorDPCM::SetSelectedSample(std::shared_ptr<ft0cc::doc::dpcm_s
 
 void CInstrumentEditorDPCM::OnBnClickedSave()
 {
-	CStringW	Path;
-	CFile	SampleFile;
-
 	int Index = GetSelectedSampleIndex();		// // //
 	if (Index == -1)
 		return;
@@ -471,26 +469,19 @@ void CInstrumentEditorDPCM::OnBnClickedSave()
 	if (!pDSample)
 		return;
 
-	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, L".dmc");
-	CFileDialog SaveFileDialog(FALSE, L"dmc", conv::to_wide(pDSample->name()).data(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
+	auto initPath = Env.GetSettings()->GetPath(PATH_DMC);		// // //
+	if (auto path = GetSavePath(conv::to_wide(pDSample->name()).data(), initPath.c_str(), IDS_FILTER_DMC, L"*.dmc")) {
+		Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_DMC);
 
-	auto path = theApp.GetSettings()->GetPath(PATH_DMC);		// // //
-	SaveFileDialog.m_pOFN->lpstrInitialDir = path.c_str();
+		CFile SampleFile;
+		if (!SampleFile.Open(*path, CFile::modeWrite | CFile::modeCreate)) {
+			AfxMessageBox(IDS_FILE_OPEN_ERROR);
+			return;
+		}
 
-	if (SaveFileDialog.DoModal() == IDCANCEL)
-		return;
-
-	Env.GetSettings()->SetDirectory((LPCWSTR)SaveFileDialog.GetPathName(), PATH_DMC);
-
-	Path = SaveFileDialog.GetPathName();
-
-	if (!SampleFile.Open(Path, CFile::modeWrite | CFile::modeCreate)) {
-		AfxMessageBox(IDS_FILE_OPEN_ERROR);
-		return;
+		SampleFile.Write(pDSample->data(), pDSample->size());
+		SampleFile.Close();
 	}
-
-	SampleFile.Write(pDSample->data(), pDSample->size());
-	SampleFile.Close();
 }
 
 void CInstrumentEditorDPCM::OnBnClickedLoop()

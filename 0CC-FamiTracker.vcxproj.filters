@@ -816,6 +816,9 @@
     <ClCompile Include="Source\SettingsService.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
+    <ClCompile Include="Source\FileDialogs.cpp">
+      <Filter>Source Files\Dialog Boxes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1528,6 +1531,12 @@
     </ClInclude>
     <ClInclude Include="Source\FamiTrackerDocIOJson.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SettingsService.h">
+      <Filter>Header Files\Components Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\FileDialogs.h">
+      <Filter>Header Files\Dialog Boxes Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

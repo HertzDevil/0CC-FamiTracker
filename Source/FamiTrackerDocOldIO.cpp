@@ -223,7 +223,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 					pOpenFile->Read(Sample.data(), ImportedDSample.SampleSize);
 				}
 
-				modfile.GetDSampleManager()->SetDSample(i, std::make_shared<ft0cc::doc::dpcm_sample>(Sample, ImportedDSample.Name));
+				modfile.GetDSampleManager()->SetDSample(i, std::make_shared<ft0cc::doc::dpcm_sample>(std::move(Sample), ImportedDSample.Name));
 			}
 			break;
 		}

@@ -26,6 +26,7 @@
 #include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"
+#include "FileDialogs.h"
 #include "DetuneTable.h"
 #include "str_conv/str_conv.hpp"
 #include "NumConv.h"
@@ -390,16 +391,13 @@ void CDetuneDlg::OnBnClickedButtonReset()
 
 void CDetuneDlg::OnBnClickedButtonImport()
 {
-	CStringW    Path;
-	CStdioFile csv;
-
-	CFileDialog FileDialog(TRUE, L"csv", 0,
-		OFN_HIDEREADONLY, L"Comma-separated values (*.csv)|*.csv|All files|*.*||");
+	CFileDialog FileDialog(TRUE, L".csv", 0, OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_CSV, L"*.csv"));
 
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
 
-	Path = FileDialog.GetPathName();
+	CStringW Path = FileDialog.GetPathName();
+	CStdioFile csv;
 
 	if (!csv.Open(Path, CFile::modeRead)) {
 		AfxMessageBox(IDS_FILE_OPEN_ERROR);
@@ -434,28 +432,22 @@ void CDetuneDlg::OnBnClickedButtonImport()
 
 void CDetuneDlg::OnBnClickedButtonExport()
 {
-	CFileDialog SaveFileDialog(FALSE, L"csv", (LPCWSTR)CFamiTrackerDoc::GetDoc()->GetFileTitle(),
-		OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"Comma-separated values (*.csv)|*.csv|All files|*.*||");
+	if (auto path = GetSavePath(CFamiTrackerDoc::GetDoc()->GetFileTitle(), L"", IDS_FILTER_CSV, L"*.csv")) {
+		CStdioFile csv;
+		if (!csv.Open(*path, CFile::modeWrite | CFile::modeCreate)) {
+			AfxMessageBox(IDS_FILE_OPEN_ERROR);
+			return;
+		}
 
-	if (SaveFileDialog.DoModal() == IDCANCEL)
-		return;
+		for (int i = 0; i < 6; ++i) {
+			CStringW Line = FormattedW(L"%i", i);
+			for (int j = 0; j < NOTE_COUNT; ++j)
+				AppendFormatW(Line, L",%i", m_iDetuneTable[i][j]);
+			Line += L"\n";
+			csv.WriteString(Line);
+		}
 
-	CStringW Path = SaveFileDialog.GetPathName();
-
-	CStdioFile csv;
-	if (!csv.Open(Path, CFile::modeWrite | CFile::modeCreate)) {
-		AfxMessageBox(IDS_FILE_OPEN_ERROR);
-		return;
+		csv.Close();
+		UpdateOffset();
 	}
-
-	for (int i = 0; i < 6; ++i) {
-		CStringW Line = FormattedW(L"%i", i);
-		for (int j = 0; j < NOTE_COUNT; ++j)
-			AppendFormatW(Line, L",%i", m_iDetuneTable[i][j]);
-		Line += L"\n";
-		csv.WriteString(Line);
-	}
-
-	csv.Close();
-	UpdateOffset();
 }

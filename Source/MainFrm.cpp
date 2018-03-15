@@ -66,6 +66,7 @@
 #include "SpeedDlg.h"
 #include "FindDlg.h"
 #include "TransposeDlg.h"
+#include "FileDialogs.h"
 #include "DPI.h"
 #include "Color.h"
 #include "InstrumentService.h"
@@ -1307,8 +1308,7 @@ void CMainFrame::OnLoadInstrument()
 {
 	// Loads an instrument from a file
 
-	CStringW filter = LoadDefaultFilter(IDS_FILTER_FTI, L".fti");
-	CFileDialog FileDialog(TRUE, L"fti", 0, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, filter);
+	CFileDialog FileDialog(TRUE, L"fti", 0, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, LoadDefaultFilter(IDS_FILTER_FTI, L".fti"));
 
 	auto path = theApp.GetSettings()->GetPath(PATH_FTI);		// // //
 	FileDialog.m_pOFN->lpstrInitialDir = path.c_str();
@@ -1354,25 +1354,22 @@ void CMainFrame::OnSaveInstrument()
 		if (ch == L'/')
 			ch = L' ';
 
-	CStringW filter = LoadDefaultFilter(IDS_FILTER_FTI, L".fti");
-	CFileDialog FileDialog(FALSE, L"fti", Name.data(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter);
+	auto initPath = theApp.GetSettings()->GetPath(PATH_FTI);
+	if (auto path = GetSavePath(Name.data(), initPath.c_str(), IDS_FILTER_FTI, L"*.fti")) {
+		theApp.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_FTI);
 
-	FileDialog.m_pOFN->lpstrInitialDir = theApp.GetSettings()->GetPath(PATH_FTI).c_str();
-	if (FileDialog.DoModal() == IDCANCEL)
-		return;
-	theApp.GetSettings()->SetDirectory((LPCWSTR)FileDialog.GetPathName(), PATH_FTI);
+		CSimpleFile file(*path, std::ios::out | std::ios::binary);
+		if (!file) {
+			AfxMessageBox(IDS_FILE_OPEN_ERROR, MB_ICONERROR);
+			return;
+		}
 
-	CSimpleFile file(FileDialog.GetPathName(), std::ios::out | std::ios::binary);
-	if (!file) {
-		AfxMessageBox(IDS_FILE_OPEN_ERROR, MB_ICONERROR);
-		return;
+		Env.GetInstrumentService()->GetInstrumentIO(pInst->GetType(),
+			(module_error_level_t)Env.GetSettings()->Version.iErrorLevel)->WriteToFTI(*pInst, file);		// // //
+
+		if (m_pInstrumentFileTree)
+			m_pInstrumentFileTree->Changed();
 	}
-
-	Env.GetInstrumentService()->GetInstrumentIO(pInst->GetType(),
-		(module_error_level_t)Env.GetSettings()->Version.iErrorLevel)->WriteToFTI(*pInst, file);		// // //
-
-	if (m_pInstrumentFileTree)
-		m_pInstrumentFileTree->Changed();
 }
 
 void CMainFrame::OnDeltaposSpeedSpin(NMHDR *pNMHDR, LRESULT *pResult)
@@ -1985,12 +1982,10 @@ void CMainFrame::OnUpdateKeyRepeat(CCmdUI *pCmdUI)
 
 void CMainFrame::OnFileImportText()
 {
-	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, L".txt");
-	CFileDialog FileDialog(TRUE, 0, 0, OFN_HIDEREADONLY, fileFilter);
-
 	if (GetActiveDocument()->SaveModified() == 0)
 		return;
 
+	CFileDialog FileDialog(TRUE, L"txt", 0, OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_TXT, L".txt"));
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
 
@@ -2021,23 +2016,15 @@ void CMainFrame::OnFileExportText()
 #endif
 
 	CFamiTrackerDoc &Doc = GetDoc();
-	CStringW	DefFileName = Doc.GetFileTitle();
 
-	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_TXT, L".txt");
-	CFileDialog FileDialog(FALSE, L".txt", DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
-	auto path = theApp.GetSettings()->GetPath(PATH_NSF);		// // //
-	FileDialog.m_pOFN->lpstrInitialDir = path.c_str();
-
-	if (FileDialog.DoModal() == IDCANCEL)
-		return;
-
-	CTextExport Exporter;
-	CStringA sResult = Exporter.ExportFile(FileDialog.GetPathName(), Doc);		// // //
-	if (sResult.GetLength() > 0)
-	{
-		AfxMessageBox(conv::to_wide(sResult).data(), MB_OK | MB_ICONERROR);
+	auto initPath = theApp.GetSettings()->GetPath(PATH_NSF);		// // //
+	if (auto path = GetSavePath(Doc.GetFileTitle(), initPath.c_str(), IDS_FILTER_TXT, L"*.txt")) {
+		CTextExport Exporter;
+		CStringA sResult = Exporter.ExportFile(*path, Doc);
+		if (!sResult.IsEmpty())
+			AfxMessageBox(conv::to_wide(sResult).data(), MB_OK | MB_ICONERROR);
+		Doc.UpdateAllViews(NULL, UPDATE_PROPERTIES);
 	}
-	Doc.UpdateAllViews(NULL, UPDATE_PROPERTIES);
 }
 
 void CMainFrame::OnFileExportRows()		// // //
@@ -2048,20 +2035,13 @@ void CMainFrame::OnFileExportRows()		// // //
 #endif
 
 	CFamiTrackerDoc	*pDoc = (CFamiTrackerDoc*)GetActiveDocument();
-	CStringW	DefFileName = pDoc->GetFileTitle();
 
-	CFileDialog FileDialog(FALSE, L".csv", DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"Comma-separated values (*.csv)|*.csv|All files|*.*||");
-	auto path = theApp.GetSettings()->GetPath(PATH_NSF);		// // //
-	FileDialog.m_pOFN->lpstrInitialDir = path.c_str();
-
-	if (FileDialog.DoModal() == IDCANCEL)
-		return;
-
-	CTextExport Exporter;
-	CStringA sResult = Exporter.ExportRows(FileDialog.GetPathName(), *pDoc->GetModule());
-	if (sResult.GetLength() > 0)
-	{
-		AfxMessageBox(conv::to_wide(sResult).data(), MB_OK | MB_ICONERROR);
+	auto initPath = theApp.GetSettings()->GetPath(PATH_NSF);		// // //
+	if (auto path = GetSavePath(pDoc->GetFileTitle(), initPath.c_str(), IDS_FILTER_CSV, L"*.csv")) {
+		CTextExport Exporter;
+		CStringA sResult = Exporter.ExportRows(*path, *pDoc->GetModule());
+		if (!sResult.IsEmpty())
+			AfxMessageBox(conv::to_wide(sResult).data(), MB_OK | MB_ICONERROR);
 	}
 }
 
@@ -2072,25 +2052,20 @@ void CMainFrame::OnFileExportJson() {		// // //
 #endif
 
 	CFamiTrackerDoc	*pDoc = (CFamiTrackerDoc*)GetActiveDocument();
-	CStringW DefFileName = pDoc->GetFileTitle();
 
-	CFileDialog FileDialog(FALSE, L".json", DefFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"JavaScript Object Notation (*.json)|*.json|All files|*.*||");
-	auto path = theApp.GetSettings()->GetPath(PATH_NSF);		// // //
-	FileDialog.m_pOFN->lpstrInitialDir = path.c_str();
+	auto initPath = theApp.GetSettings()->GetPath(PATH_NSF);		// // //
+	if (auto path = GetSavePath(pDoc->GetFileTitle(), initPath.c_str(), IDS_FILTER_JSON, L"*.json")) {
+		CStdioFile f;
+		CFileException oFileException;
+		if (!f.Open(*path, CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException)) {
+			WCHAR szError[256];
+			oFileException.GetErrorMessage(szError, std::size(szError));
+			AfxMessageBox(szError, MB_OK | MB_ICONERROR);
+			return;
+		}
 
-	if (FileDialog.DoModal() == IDCANCEL)
-		return;
-
-	CStdioFile f;
-	CFileException oFileException;
-	if (!f.Open(FileDialog.GetPathName(), CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException)) {
-		WCHAR szError[256];
-		oFileException.GetErrorMessage(szError, std::size(szError));
-		AfxMessageBox(szError, MB_OK | MB_ICONERROR);
-		return;
+		f.WriteString(conv::to_wide(nlohmann::json(*pDoc->GetModule()).dump()).data());
 	}
-
-	f.WriteString(conv::to_wide(nlohmann::json(*pDoc->GetModule()).dump()).data());
 }
 
 BOOL CMainFrame::DestroyWindow()

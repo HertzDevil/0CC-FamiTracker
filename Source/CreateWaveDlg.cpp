@@ -21,10 +21,12 @@
 */
 
 #include "CreateWaveDlg.h"
-#include "FamiTracker.h" // LoadDefaultFilter
+#include "FamiTrackerEnv.h"		// // //
+#include "Settings.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
 #include "FamiTrackerModule.h"		// // //
+#include "FileDialogs.h"		// // //
 #include "SongData.h"		// // //
 #include "ChannelOrder.h"		// // //
 #include "MainFrm.h"
@@ -108,15 +110,13 @@ void CCreateWaveDlg::OnBnClickedBegin()
 		AppendFormatW(FileName, L" - Track %02i (%.*s)", Track + 1, sv.size(), sv.data());		// // //
 	}
 
-	CWavProgressDlg ProgressDlg;
-	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, L".wav");
-	CFileDialog SaveDialog(FALSE, L"wav", FileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, fileFilter);
-
 	// Close this dialog
 	EndDialog(0);
 
 	// Ask for file location
-	if (SaveDialog.DoModal() == IDCANCEL)
+	auto initPath = Env.GetSettings()->GetPath(PATH_WAV);
+	auto path = GetSavePath(FileName, initPath.c_str(), IDS_FILTER_WAV, L"*.wav");		// // //
+	if (!path)
 		return;
 
 	auto pRenderer = [&] () -> std::unique_ptr<CWaveRenderer> {		// // //
@@ -139,7 +139,8 @@ void CCreateWaveDlg::OnBnClickedBegin()
 			pView->ToggleChannel(pModule->GetChannelOrder().TranslateChannel(i));
 
 	// Show the render progress dialog, this will also start rendering
-	ProgressDlg.BeginRender(SaveDialog.GetPathName(), std::move(pRenderer));		// // //
+	CWavProgressDlg ProgressDlg;
+	ProgressDlg.BeginRender(*path, std::move(pRenderer));		// // //
 
 	// Unmute all channels
 	pView->UnmuteAllChannels();
