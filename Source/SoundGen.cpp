@@ -369,7 +369,7 @@ bool CSoundGen::InitializeSound(HWND hWnd)
 	// Start with NTSC by default
 
 	// Called from main thread
-	ASSERT(GetCurrentThread() == Env.m_hThread);
+	ASSERT(GetCurrentThread() == Env.GetMainApp()->m_hThread);
 	ASSERT(!m_pDSound);
 
 	m_bAutoDelete = FALSE;		// // //
@@ -967,7 +967,7 @@ bool CSoundGen::WaitForStop() const
 	// Wait for player to stop, timeout = 4s
 	// The player must have received the stop command or this will fail
 
-	ASSERT(GetCurrentThreadId() != GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() != Env.GetMainApp()->m_nThreadID);
 
 	//return ::WaitForSingleObject(m_hIsPlaying, 4000) == WAIT_OBJECT_0;
 
