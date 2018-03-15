@@ -21,7 +21,6 @@
 */
 
 #include "VisualizerSpectrum.h"
-#include "FamiTracker.h"
 #include "Graphics.h"
 #include "Color.h"		// // //
 

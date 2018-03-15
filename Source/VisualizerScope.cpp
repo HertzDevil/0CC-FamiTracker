@@ -22,7 +22,6 @@
 
 #include "VisualizerScope.h"
 #include <cmath>
-#include "FamiTracker.h"
 #include "Graphics.h"
 #include "Color.h"		// // //
 

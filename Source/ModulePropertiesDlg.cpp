@@ -125,8 +125,7 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 	// Namco channel count
 	m_cSliderN163Chans.SetRange(1, MAX_CHANNELS_N163);		// // //
 
-	CStringW channelsStr;
-	channelsStr.LoadStringW(IDS_PROPERTIES_CHANNELS);
+	CStringW channelsStr(MAKEINTRESOURCEW(IDS_PROPERTIES_CHANNELS));		// // //
 	if (m_iExpansions.ContainsChip(sound_chip_t::N163)) {
 		m_iN163Channels = m_pModule->GetNamcoChannels();
 
@@ -358,8 +357,7 @@ void CModulePropertiesDlg::OnCbnSelchangeExpansion()
 	// Expansion chip
 	unsigned int iExpansionChip = theApp.GetChannelMap()->GetChipIdent(pExpansionChipBox->GetCurSel());
 
-	CStringW channelsStr;
-	channelsStr.LoadStringW(IDS_PROPERTIES_CHANNELS);
+	CStringW channelsStr(MAKEINTRESOURCEW(IDS_PROPERTIES_CHANNELS));		// // //
 	if (iExpansionChip == sound_chip_t::N163) {
 		pSlider->EnableWindow(TRUE);
 		int Channels = m_pDocument->GetNamcoChannels();
@@ -377,9 +375,8 @@ void CModulePropertiesDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 {
 	m_iN163Channels = m_cSliderN163Chans.GetPos();
 
-	CStringW text;
-	text.LoadStringW(IDS_PROPERTIES_CHANNELS);
-	AppendFormatW(text, L" %i",  m_iN163Channels);
+	CStringW text(MAKEINTRESOURCEW(IDS_PROPERTIES_CHANNELS));		// // //
+	AppendFormatW(text, L" %i", m_iN163Channels);
 	m_cStaticN163Chans.SetWindowTextW(text);
 
 	CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
@@ -465,8 +462,7 @@ void CModulePropertiesDlg::OnBnClickedExpansionS5B()
 
 void CModulePropertiesDlg::OnBnClickedExpansionN163()
 {
-	CStringW channelsStr;
-	channelsStr.LoadStringW(IDS_PROPERTIES_CHANNELS);
+	CStringW channelsStr(MAKEINTRESOURCEW(IDS_PROPERTIES_CHANNELS));		// // //
 
 	// Expansion chip
 	if (m_cButtonEnableN163.GetCheck() == BST_CHECKED) {

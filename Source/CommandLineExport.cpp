@@ -21,7 +21,6 @@
 */
 
 #include "CommandLineExport.h"
-#include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
 #include "Compiler.h"

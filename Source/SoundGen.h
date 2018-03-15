@@ -113,6 +113,7 @@ public:
 	void		ModuleChipChanged();		// // //
 	void		SelectChip(CSoundChipSet Chip);
 	void		LoadMachineSettings();		// // // 050B
+	void		LoadSoundConfig();		// // //
 
 	// Sound
 	bool		InitializeSound(HWND hWnd);

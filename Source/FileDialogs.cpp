@@ -26,13 +26,11 @@ CStringW LoadDefaultFilter(LPCWSTR Name, LPCWSTR Ext) {
 	// Loads a single filter string including the all files option
 	CStringW allFilter;
 	VERIFY(allFilter.LoadStringW(AFX_IDS_ALLFILTER));
-	return FormattedW(L"%s|%s|%s|*.*||", Name, Ext, (LPCWSTR)allFilter);
+	return FormattedW(L"%s|%s|%s|*.*||", Name, Ext, (LPCWSTR)CStringW(MAKEINTRESOURCEW(AFX_IDS_ALLFILTER)));
 }
 
 CStringW LoadDefaultFilter(UINT nID, LPCWSTR Ext) {
-	CStringW str;		// // //
-	VERIFY(str.LoadStringW(nID));
-	return LoadDefaultFilter((LPCWSTR)str, Ext);
+	return LoadDefaultFilter(CStringW(MAKEINTRESOURCEW(nID)), Ext);
 }
 
 std::optional<CStringW> GetSavePath(const CStringW &initFName, const CStringW &initPath, const CStringW &FilterName, const CStringW &FilterExt) {
@@ -53,7 +51,5 @@ std::optional<CStringW> GetSavePath(const CStringW &initFName, const CStringW &i
 }
 
 std::optional<CStringW> GetSavePath(const CStringW &initFName, const CStringW &initPath, UINT nFilterID, const CStringW &FilterExt) {
-	CStringW str;
-	VERIFY(str.LoadStringW(nFilterID));
-	return GetSavePath(initFName, initPath, str, FilterExt);
+	return GetSavePath(initFName, initPath, CStringW(MAKEINTRESOURCEW(nFilterID)), FilterExt);
 }

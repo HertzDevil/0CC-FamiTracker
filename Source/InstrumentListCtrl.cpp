@@ -26,7 +26,7 @@
 #include "FamiTrackerModule.h"		// // //
 #include "InstrumentManager.h"		// // //
 #include "MainFrm.h"
-#include "FamiTracker.h"		// // //
+#include "FamiTrackerEnv.h"		// // //
 #include "Instrument.h"		// // //
 #include "NumConv.h"	// // //
 #include "str_conv/str_conv.hpp"		// // //
@@ -64,12 +64,12 @@ CInstrumentListCtrl::CInstrumentListCtrl(CMainFrame *pMainFrame) :
 void CInstrumentListCtrl::CreateImageList() {
 	m_pImageList = std::make_unique<CImageList>();
 	m_pImageList->Create(16, 16, ILC_COLOR32, 1, 1);
-	m_pImageList->Add(theApp.LoadIconW(IDI_INST_2A03));
-	m_pImageList->Add(theApp.LoadIconW(IDI_INST_VRC6));
-	m_pImageList->Add(theApp.LoadIconW(IDI_INST_VRC7));
-	m_pImageList->Add(theApp.LoadIconW(IDI_INST_FDS));
-	m_pImageList->Add(theApp.LoadIconW(IDI_INST_N163));
-	m_pImageList->Add(theApp.LoadIconW(IDI_INST_S5B));		// // //
+	m_pImageList->Add(Env.GetMainApp()->LoadIconW(IDI_INST_2A03));
+	m_pImageList->Add(Env.GetMainApp()->LoadIconW(IDI_INST_VRC6));
+	m_pImageList->Add(Env.GetMainApp()->LoadIconW(IDI_INST_VRC7));
+	m_pImageList->Add(Env.GetMainApp()->LoadIconW(IDI_INST_FDS));
+	m_pImageList->Add(Env.GetMainApp()->LoadIconW(IDI_INST_N163));
+	m_pImageList->Add(Env.GetMainApp()->LoadIconW(IDI_INST_S5B));		// // //
 
 	SetImageList(m_pImageList.get(), LVSIL_NORMAL);
 	SetImageList(m_pImageList.get(), LVSIL_SMALL);

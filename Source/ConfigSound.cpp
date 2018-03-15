@@ -21,7 +21,7 @@
 */
 
 #include "ConfigSound.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerTypes.h"		// // //
 #include "APU/Types.h"		// // //
 #include "SoundGen.h"
@@ -79,7 +79,7 @@ BOOL CConfigSound::OnInitDialog()
 	pTrebleSliderDamping->SetRange(0, 90);
 	pVolumeSlider->SetRange(0, 100);
 
-	const CSettings *pSettings = theApp.GetSettings();
+	const CSettings *pSettings = Env.GetSettings();
 
 	// Read settings
 	switch (pSettings->Sound.iSampleRate) {
@@ -103,7 +103,7 @@ BOOL CConfigSound::OnInitDialog()
 
 	UpdateTexts();
 
-	CDSound *pDSound = theApp.GetSoundGenerator()->GetSoundInterface();
+	CDSound *pDSound = Env.GetSoundGenerator()->GetSoundInterface();
 	const int iCount = pDSound->GetDeviceCount();
 
 	for (int i = 0; i < iCount; ++i)
@@ -129,7 +129,7 @@ BOOL CConfigSound::OnApply()
 	CComboBox *pSampleSize = static_cast<CComboBox*>(GetDlgItem(IDC_SAMPLE_SIZE));
 	CSliderCtrl *pBufSlider = static_cast<CSliderCtrl*>(GetDlgItem(IDC_BUF_LENGTH));
 
-	auto *pSettings = theApp.GetSettings();		// // //
+	auto *pSettings = Env.GetSettings();		// // //
 
 	switch (pSampleRate->GetCurSel()) {
 		case 0: pSettings->Sound.iSampleRate = 11025; break;
@@ -153,7 +153,7 @@ BOOL CConfigSound::OnApply()
 
 	pSettings->Sound.iDevice	= pDevices->GetCurSel();
 
-	theApp.LoadSoundConfig();
+	Env.GetSoundGenerator()->LoadSoundConfig();		// // //
 
 	return CPropertyPage::OnApply();
 }

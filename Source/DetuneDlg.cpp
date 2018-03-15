@@ -23,7 +23,6 @@
 #include "DetuneDlg.h"
 #include <algorithm>
 #include <cmath>
-#include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"
 #include "FileDialogs.h"

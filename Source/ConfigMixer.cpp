@@ -21,7 +21,8 @@
 */
 
 #include "ConfigMixer.h"
-#include "FamiTracker.h"
+#include "FamiTrackerEnv.h"		// // //
+#include "SoundGen.h"		// // //
 #include "Settings.h"
 
 
@@ -66,7 +67,7 @@ const int CConfigMixer::LEVEL_SCALE = 10;		// 0.1 dB resolution
 
 BOOL CConfigMixer::OnInitDialog()
 {
-	const CSettings *pSettings = theApp.GetSettings();
+	const CSettings *pSettings = Env.GetSettings();
 
 	m_iLevelAPU1 = -pSettings->ChipLevels.iLevelAPU1;
 	m_iLevelAPU2 = -pSettings->ChipLevels.iLevelAPU2;
@@ -94,7 +95,7 @@ BOOL CConfigMixer::OnInitDialog()
 
 BOOL CConfigMixer::OnApply()
 {
-	CSettings *pSettings = theApp.GetSettings();
+	CSettings *pSettings = Env.GetSettings();
 
 	pSettings->ChipLevels.iLevelAPU1 = -m_iLevelAPU1;
 	pSettings->ChipLevels.iLevelAPU2 = -m_iLevelAPU2;
@@ -105,7 +106,7 @@ BOOL CConfigMixer::OnApply()
 	pSettings->ChipLevels.iLevelN163 = -m_iLevelN163;
 	pSettings->ChipLevels.iLevelS5B = -m_iLevelS5B;
 
-	theApp.LoadSoundConfig();
+	Env.GetSoundGenerator()->LoadSoundConfig();		// // //
 
 	return CPropertyPage::OnApply();
 }

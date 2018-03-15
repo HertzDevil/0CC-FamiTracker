@@ -21,11 +21,10 @@
 */
 
 #include "FamiTrackerView.h"
-#include <cmath>
-#include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
 #include "MainFrm.h"
 #include "MIDI.h"
+#include <cmath>
 #include "InstrumentEditDlg.h"
 #include "SoundGen.h"
 #include "PatternAction.h"
@@ -36,6 +35,7 @@
 #include "TrackerChannel.h"
 #include "Clipboard.h"
 // // //
+#include "FamiTrackerEnv.h"
 #include "FamiTrackerModule.h"
 #include "Bookmark.h"
 #include "BookmarkCollection.h"
@@ -293,7 +293,7 @@ CFamiTrackerView::CFamiTrackerView() :
 	m_pPatternEditor(std::make_unique<CPatternEditor>())		// // //
 {
 	// Register this object in the sound generator
-	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	CSoundGen *pSoundGen = Env.GetSoundGenerator();
 	ASSERT_VALID(pSoundGen);
 
 	pSoundGen->AssignView(this);
@@ -407,7 +407,7 @@ void CFamiTrackerView::OnDraw(CDC* pDC)
 	}
 
 	// Don't draw when rendering to wave file
-	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	CSoundGen *pSoundGen = Env.GetSoundGenerator();
 	if (pSoundGen == NULL || pSoundGen->IsBackgroundTask())
 		return;
 
@@ -619,12 +619,12 @@ void CFamiTrackerView::OnRButtonUp(UINT nFlags, CPoint point)
 		// Pattern header
 		m_iMenuChannel = TranslateChannel(m_pPatternEditor->GetChannelAtPoint(point.x));		// // //
 		PopupMenuBar.LoadMenuW(IDR_PATTERN_HEADER_POPUP);
-		static_cast<CMainFrame*>(theApp.GetMainWnd())->UpdateMenu(&PopupMenuBar);
+		Env.GetMainFrame()->UpdateMenu(&PopupMenuBar);
 		pPopupMenu = PopupMenuBar.GetSubMenu(0);
-		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDTOINST, theApp.GetSoundGenerator()->IsPlaying() ? MFS_DISABLED : MFS_ENABLED);		// // //
-		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDERSETTINGS, theApp.GetSoundGenerator()->IsPlaying() ? MFS_DISABLED : MFS_ENABLED);		// // //
+		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDTOINST, Env.GetSoundGenerator()->IsPlaying() ? MFS_DISABLED : MFS_ENABLED);		// // //
+		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDERSETTINGS, Env.GetSoundGenerator()->IsPlaying() ? MFS_DISABLED : MFS_ENABLED);		// // //
 		CMenu *pMeterMenu = pPopupMenu->GetSubMenu(6);		// // // 050B
-		int Rate = theApp.GetSoundGenerator()->GetMeterDecayRate();
+		int Rate = Env.GetSoundGenerator()->GetMeterDecayRate();
 		pMeterMenu->CheckMenuItem(Rate == DECAY_FAST ? ID_DECAY_FAST : ID_DECAY_SLOW, MF_CHECKED | MF_BYCOMMAND);
 		pPopupMenu->TrackPopupMenu(TPM_RIGHTBUTTON, point.x + WinRect.left, point.y + WinRect.top, this);
 	}
@@ -632,7 +632,7 @@ void CFamiTrackerView::OnRButtonUp(UINT nFlags, CPoint point)
 		// Pattern area
 		m_iMenuChannel = chan_id_t::NONE;
 		PopupMenuBar.LoadMenuW(IDR_PATTERN_POPUP);
-		static_cast<CMainFrame*>(theApp.GetMainWnd())->UpdateMenu(&PopupMenuBar);
+		Env.GetMainFrame()->UpdateMenu(&PopupMenuBar);
 		pPopupMenu = PopupMenuBar.GetSubMenu(0);
 		// Send messages to parent in order to get the menu options working
 		pPopupMenu->TrackPopupMenu(TPM_RIGHTBUTTON, point.x + WinRect.left, point.y + WinRect.top, GetParentFrame());
@@ -668,7 +668,7 @@ void CFamiTrackerView::OnLButtonUp(UINT nFlags, CPoint point)
 	/*
 	if (m_bControlPressed && !m_pPatternEditor->IsSelecting()) {
 		m_pPatternEditor->JumpToRow(GetSelectedRow());
-		theApp.GetSoundGenerator()->StartPlayer(play_mode_t::CURSOR);
+		Env.GetSoundGenerator()->StartPlayer(play_mode_t::CURSOR);
 	}
 	*/
 
@@ -677,7 +677,7 @@ void CFamiTrackerView::OnLButtonUp(UINT nFlags, CPoint point)
 
 void CFamiTrackerView::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
-	if (theApp.GetSettings()->General.bDblClickSelect && !m_pPatternEditor->IsOverHeader(point))
+	if (Env.GetSettings()->General.bDblClickSelect && !m_pPatternEditor->IsOverHeader(point))
 		return;
 
 	m_pPatternEditor->OnMouseDblClk(point);
@@ -743,11 +743,11 @@ BOOL CFamiTrackerView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 		InvalidateFrameEditor();		// // //
 	}
 	else if (bControlPressed) {
-		if (!(theApp.GetSoundGenerator()->IsPlaying() && !IsSelecting() && m_bFollowMode))		// // //
+		if (!(Env.GetSoundGenerator()->IsPlaying() && !IsSelecting() && m_bFollowMode))		// // //
 			pAction = std::make_unique<CPActionTranspose>(zDelta > 0 ? TRANSPOSE_INC_NOTES : TRANSPOSE_DEC_NOTES);		// // //
 	}
 	else if (bShiftPressed) {
-		if (!(theApp.GetSoundGenerator()->IsPlaying() && !IsSelecting() && m_bFollowMode))
+		if (!(Env.GetSoundGenerator()->IsPlaying() && !IsSelecting() && m_bFollowMode))
 			pAction = std::make_unique<CPActionScrollValues>(zDelta > 0 ? 1 : -1);		// // //
 	}
 	else
@@ -805,7 +805,7 @@ void CFamiTrackerView::PeriodicUpdate()
 
 	CMainFrame *pMainFrm = GetMainFrame();		// // //
 
-	if (const CSoundGen *pSoundGen = theApp.GetSoundGenerator()) {
+	if (const CSoundGen *pSoundGen = Env.GetSoundGenerator()) {
 		// Skip updates when doing background tasks (WAV render for example)
 		if (!pSoundGen->IsBackgroundTask()) {
 
@@ -936,8 +936,8 @@ void CFamiTrackerView::OnTrackerEdit()
 LRESULT CFamiTrackerView::OnUserDumpInst(WPARAM wParam, LPARAM lParam)		// // //
 {
 	AddAction(std::make_unique<ModuleAction::CAddInst>(GetModuleData()->GetInstrumentManager()->GetFirstUnused(),
-		theApp.GetSoundGenerator()->GetRecordInstrument()));
-	theApp.GetSoundGenerator()->ResetDumpInstrument();
+		Env.GetSoundGenerator()->GetRecordInstrument()));
+	Env.GetSoundGenerator()->ResetDumpInstrument();
 	InvalidateHeader();
 
 	return 0;
@@ -956,7 +956,7 @@ void CFamiTrackerView::OnTrackerDetune()			// // //
 		for (int j = 0; j < NOTE_COUNT; ++j)
 			pModule->SetDetuneOffset(i, j, *(Table + j + i * NOTE_COUNT));
 	pModule->SetTuning(DetuneDlg.GetDetuneSemitone(), DetuneDlg.GetDetuneCent());		// // // 050B
-	theApp.GetSoundGenerator()->DocumentPropertiesChanged(GetDocument());
+	Env.GetSoundGenerator()->DocumentPropertiesChanged(GetDocument());
 }
 
 void CFamiTrackerView::OnTransposeDecreasenote()
@@ -1067,7 +1067,7 @@ void CFamiTrackerView::OnEditSelecttrack()		// // //
 
 void CFamiTrackerView::OnTrackerPlayrow()
 {
-	if (auto *pSoundGen = theApp.GetSoundGenerator(); pSoundGen && !pSoundGen->IsPlaying()) {		// // //
+	if (auto *pSoundGen = Env.GetSoundGenerator(); pSoundGen && !pSoundGen->IsPlaying()) {		// // //
 		pSoundGen->PlaySingleRow(static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack());
 		m_pPatternEditor->MoveDown(1);
 		InvalidateCursor();
@@ -1145,14 +1145,14 @@ void CFamiTrackerView::OnInitialUpdate()
 	pMainFrame->SetHighlightRows(pModule->GetHighlight(0));
 
 	// Follow mode
-	SetFollowMode(theApp.GetSettings()->FollowMode);
+	SetFollowMode(Env.GetSettings()->FollowMode);
 
 	// Setup speed/tempo (TODO remove?)
-	theApp.GetSoundGenerator()->AssignModule(*pModule);		// // //
-	theApp.GetSoundGenerator()->ResetState();
-	theApp.GetSoundGenerator()->ResetTempo();
-	theApp.GetSoundGenerator()->SetMeterDecayRate(theApp.GetSettings()->MeterDecayRate ? DECAY_FAST : DECAY_SLOW);		// // // 050B
-	theApp.GetSoundGenerator()->DocumentPropertiesChanged(pDoc);		// // //
+	Env.GetSoundGenerator()->AssignModule(*pModule);		// // //
+	Env.GetSoundGenerator()->ResetState();
+	Env.GetSoundGenerator()->ResetTempo();
+	Env.GetSoundGenerator()->SetMeterDecayRate(Env.GetSettings()->MeterDecayRate ? DECAY_FAST : DECAY_SLOW);		// // // 050B
+	Env.GetSoundGenerator()->DocumentPropertiesChanged(pDoc);		// // //
 
 	// Default
 	SetInstrument(0);
@@ -1171,7 +1171,7 @@ void CFamiTrackerView::OnInitialUpdate()
 	pFrameEditor->InvalidateFrameData();
 	RedrawFrameEditor();
 
-	if (theApp.m_pMainWnd->IsWindowVisible())
+	if (Env.GetMainFrame()->IsWindowVisible())		// // //
 		SetFocus();
 
 	// Display comment box
@@ -1191,8 +1191,8 @@ void CFamiTrackerView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHi
 	switch (lHint) {
 	// Track has been added, removed or changed
 	case UPDATE_TRACK:
-		if (theApp.GetSoundGenerator()->IsPlaying())
-			theApp.StopPlayer();
+		if (Env.GetSoundGenerator()->IsPlaying())
+			Env.GetSoundGenerator()->StopPlayer();		// // //
 		UpdateSongView();		// // //
 		pMainFrm->UpdateTrackBox();
 		m_pPatternEditor->InvalidateBackground();
@@ -1337,7 +1337,7 @@ void CFamiTrackerView::OnUpdatePasteSpecial(CCmdUI *pCmdUI)
 
 void CFamiTrackerView::OnUpdateDisableWhilePlaying(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!theApp.GetSoundGenerator()->IsPlaying());
+	pCmdUI->Enable(!Env.GetSoundGenerator()->IsPlaying());
 }
 
 void CFamiTrackerView::SetMarker(int Frame, int Row)		// // // 050B
@@ -1359,7 +1359,7 @@ bool CFamiTrackerView::IsMarkerValid() const		// // //
 
 	if (m_iMarkerFrame >= static_cast<int>(pSongView->GetSong().GetFrameCount()))
 		return false;
-	if (m_iMarkerRow >= (int)pSongView->GetCurrentPatternLength(m_iMarkerFrame, theApp.GetSettings()->General.bShowSkippedRows))
+	if (m_iMarkerRow >= (int)pSongView->GetCurrentPatternLength(m_iMarkerFrame, Env.GetSettings()->General.bShowSkippedRows))
 		return false;
 	return true;
 }
@@ -1396,7 +1396,7 @@ chan_id_t CFamiTrackerView::GetSelectedChannelID() const {		// // //
 }
 
 CTrackerChannel &CFamiTrackerView::GetTrackerChannel(std::size_t Index) const {		// // //
-	return *theApp.GetSoundGenerator()->GetTrackerChannel(TranslateChannel(Index));
+	return *Env.GetSoundGenerator()->GetTrackerChannel(TranslateChannel(Index));
 }
 
 CSongView *CFamiTrackerView::GetSongView() {		// // //
@@ -1522,7 +1522,7 @@ void CFamiTrackerView::SelectChannel(unsigned int Channel)
 
 void CFamiTrackerView::OnBookmarksToggle()
 {
-	if ((theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode) || !m_bEditEnable)
+	if ((Env.GetSoundGenerator()->IsPlaying() && m_bFollowMode) || !m_bEditEnable)
 		return;
 
 	const int Frame = GetSelectedFrame();
@@ -1550,7 +1550,7 @@ void CFamiTrackerView::OnBookmarksToggle()
 
 void CFamiTrackerView::OnBookmarksNext()
 {
-	if (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
+	if (Env.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
 		return;
 
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
@@ -1573,7 +1573,7 @@ void CFamiTrackerView::OnBookmarksNext()
 
 void CFamiTrackerView::OnBookmarksPrevious()
 {
-	if (theApp.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
+	if (Env.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
 		return;
 
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
@@ -1718,12 +1718,12 @@ void CFamiTrackerView::SetChannelMute(chan_id_t Channel, bool bMute)
 //		else
 //			m_pNoteQueue->UnmuteChannel(Channel);
 	}
-	theApp.GetSoundGenerator()->SetChannelMute(Channel, bMute);		// // //
+	Env.GetSoundGenerator()->SetChannelMute(Channel, bMute);		// // //
 }
 
 bool CFamiTrackerView::IsChannelMuted(chan_id_t Channel) const
 {
-	return theApp.GetSoundGenerator()->IsChannelMuted(Channel);
+	return Env.GetSoundGenerator()->IsChannelMuted(Channel);
 }
 
 void CFamiTrackerView::SetInstrument(int Instrument)
@@ -1767,8 +1767,8 @@ void CFamiTrackerView::InsertNote(const stChanNote &Cell) {		// // //
 	auto pAction = std::make_unique<CPActionEditNote>(Cell);		// // //
 	auto &Action = *pAction; // TODO: remove
 	if (AddAction(std::move(pAction))) {
-		const CSettings *pSettings = theApp.GetSettings();
-		if (m_pPatternEditor->GetColumn() == C_NOTE && !theApp.GetSoundGenerator()->IsPlaying() && m_iInsertKeyStepping > 0 && !pSettings->Midi.bMidiMasterSync) {
+		const CSettings *pSettings = Env.GetSettings();
+		if (m_pPatternEditor->GetColumn() == C_NOTE && !Env.GetSoundGenerator()->IsPlaying() && m_iInsertKeyStepping > 0 && !pSettings->Midi.bMidiMasterSync) {
 			StepDown();
 			Action.SaveRedoState(static_cast<CMainFrame &>(*GetParentFrame()));		// // //
 		}
@@ -1811,8 +1811,8 @@ stChanNote CFamiTrackerView::GetInputNote(note_t Note, int Octave, std::size_t I
 	}
 
 	// Quantization
-	if (theApp.GetSettings()->Midi.bMidiMasterSync) {
-		int Delay = theApp.GetMIDI()->GetQuantization();
+	if (Env.GetSettings()->Midi.bMidiMasterSync) {
+		int Delay = Env.GetMIDI()->GetQuantization();
 		if (Delay > 0) {
 			Cell.EffNumber[0] = effect_t::DELAY;
 			Cell.EffParam[0] = Delay;
@@ -1834,10 +1834,10 @@ void CFamiTrackerView::PlayNote(std::size_t Index, note_t Note, unsigned int Oct
 	NoteData.Note		= Note;
 	NoteData.Octave		= Octave;
 	NoteData.Instrument	= GetInstrument();
-	if (theApp.GetSettings()->Midi.bMidiVelocity)
+	if (Env.GetSettings()->Midi.bMidiVelocity)
 		NoteData.Vol = Velocity / 8;
 /*
-	if (theApp.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
+	if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
 		NoteData.Instrument	= m_LastNote.Instrument;
 	else
 		NoteData.Instrument	= GetInstrument();
@@ -1851,18 +1851,18 @@ void CFamiTrackerView::PlayNote(std::size_t Index, note_t Note, unsigned int Oct
 		chan_id_t ret = m_pNoteQueue->Trigger(MidiNote, Channel);
 		if (order.HasChannel(ret)) {
 			SplitKeyboardAdjust(NoteData, ret);
-			theApp.GetSoundGenerator()->QueueNote(ret, NoteData, NOTE_PRIO_2);		// // //
-			theApp.GetSoundGenerator()->ForceReloadInstrument(ret);		// // //
+			Env.GetSoundGenerator()->QueueNote(ret, NoteData, NOTE_PRIO_2);		// // //
+			Env.GetSoundGenerator()->ForceReloadInstrument(ret);		// // //
 		}
 	}
 
-	if (theApp.GetSettings()->General.bPreviewFullRow) {
+	if (Env.GetSettings()->General.bPreviewFullRow) {
 		int Frame = GetSelectedFrame();
 		int Row = GetSelectedRow();
 
 		order.ForeachChannel([&] (chan_id_t i) {
 			if (!IsChannelMuted(i) && i != Channel)
-				theApp.GetSoundGenerator()->QueueNote(i, song.GetActiveNote(i, Frame, Row),
+				Env.GetSoundGenerator()->QueueNote(i, song.GetActiveNote(i, Frame, Row),
 					(i == Channel) ? NOTE_PRIO_2 : NOTE_PRIO_1);		// // //
 		});
 	}
@@ -1882,15 +1882,15 @@ void CFamiTrackerView::ReleaseNote(std::size_t Index, note_t Note, unsigned int 
 		chan_id_t ch = m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), Channel);
 //		chan_id_t ch = m_pNoteQueue->Release(MIDI_NOTE(Octave, Note), Channel);
 		if (order.HasChannel(ch))
-			theApp.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
+			Env.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
-		if (theApp.GetSettings()->General.bPreviewFullRow) {
+		if (Env.GetSettings()->General.bPreviewFullRow) {
 			NoteData.Note = note_t::HALT;
 			NoteData.Instrument = MAX_INSTRUMENTS;
 
 			order.ForeachChannel([&] (chan_id_t i) {
 				if (i != ch)
-					theApp.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_1);
+					Env.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_1);
 			});
 		}
 	}
@@ -1909,14 +1909,14 @@ void CFamiTrackerView::HaltNote(std::size_t Index, note_t Note, unsigned int Oct
 	if (order.HasChannel(Channel)) {
 		chan_id_t ch = m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), Channel);
 		if (order.HasChannel(ch))
-			theApp.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
+			Env.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
-		if (theApp.GetSettings()->General.bPreviewFullRow) {
+		if (Env.GetSettings()->General.bPreviewFullRow) {
 			NoteData.Instrument = MAX_INSTRUMENTS;
 
 			order.ForeachChannel([&] (chan_id_t i) {
 				if (i != ch)
-					theApp.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_1);
+					Env.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_1);
 			});
 		}
 	}
@@ -1935,12 +1935,12 @@ void CFamiTrackerView::HaltNoteSingle(std::size_t Index) const
 	if (order.HasChannel(Channel)) {
 		for (const auto &i : m_pNoteQueue->StopChannel(Channel)) {
 			if (order.HasChannel(i))
-				theApp.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_2);
+				Env.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_2);
 		}
 	}
 
-	if (theApp.GetSoundGenerator()->IsPlaying())
-		theApp.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
+	if (Env.GetSoundGenerator()->IsPlaying())
+		Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1972,16 +1972,16 @@ void CFamiTrackerView::TriggerMIDINote(std::size_t Index, unsigned int MidiNote,
 //	if (TranslateChannel(Channel) == chan_id_t::NOISE)
 //		FixNoise(MidiNote, Octave, Note);
 
-	if (!theApp.GetSettings()->Midi.bMidiVelocity)
-		Velocity = theApp.GetSettings()->General.iEditStyle == EDIT_STYLE_IT ? m_LastNote.Vol * 8 : 127;
+	if (!Env.GetSettings()->Midi.bMidiVelocity)
+		Velocity = Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT ? m_LastNote.Vol * 8 : 127;
 
-	if (!(theApp.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
+	if (!(Env.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		PlayNote(Index, Note, Octave, Velocity);
 
 	if (Insert)
 		InsertNote(GetInputNote(Note, Octave, Index, Velocity + 1));
 
-	if (theApp.GetSettings()->Midi.bMidiArpeggio) {		// // //
+	if (Env.GetSettings()->Midi.bMidiArpeggio) {		// // //
 		m_pArpeggiator->TriggerNote(MidiNote);
 		UpdateArpDisplay();
 	}
@@ -2003,20 +2003,20 @@ void CFamiTrackerView::CutMIDINote(std::size_t Index, unsigned int MidiNote, boo
 //		FixNoise(MidiNote, Octave, Note);
 
 	// Cut note
-	if (!(theApp.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
+	if (!(Env.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		if (!m_bEditEnable || m_iLastMIDINote == MidiNote)
 			HaltNote(Index, Note, Octave);
 
 	if (InsertCut)
 		InsertNote(GetInputNote(note_t::HALT, 0, Index, 0));
 
-	if (theApp.GetSettings()->Midi.bMidiArpeggio) {		// // //
+	if (Env.GetSettings()->Midi.bMidiArpeggio) {		// // //
 		m_pArpeggiator->CutNote(MidiNote);
 		UpdateArpDisplay();
 	}
 
 	// IT-mode, cut note on cuts
-	if (theApp.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
+	if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
 		HaltNote(Index, Note, Octave);		// // //
 
 	TRACE(L"%i: Cut note %i on channel %i\n", GetTickCount(), MidiNote, Index);
@@ -2034,20 +2034,20 @@ void CFamiTrackerView::ReleaseMIDINote(std::size_t Index, unsigned int MidiNote,
 //		FixNoise(MidiNote, Octave, Note);
 
 	// Cut note
-	if (!(theApp.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
+	if (!(Env.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		if (!m_bEditEnable || m_iLastMIDINote == MidiNote)
 			ReleaseNote(Index, Note, Octave);
 
 	if (InsertCut)
 		InsertNote(GetInputNote(note_t::RELEASE, 0, Index, 0));
 
-	if (theApp.GetSettings()->Midi.bMidiArpeggio) {		// // //
+	if (Env.GetSettings()->Midi.bMidiArpeggio) {		// // //
 		m_pArpeggiator->ReleaseNote(MidiNote);
 		UpdateArpDisplay();
 	}
 
 	// IT-mode, release note
-	if (theApp.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
+	if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
 		ReleaseNote(Index, Note, Octave);		// // //
 
 	TRACE(L"%i: Release note %i on channel %i\n", GetTickCount(), MidiNote, Index);
@@ -2065,7 +2065,7 @@ void CFamiTrackerView::UpdateNoteQueues() {		// // //
 
 	m_pNoteQueue->ClearMaps();
 
-	if (m_bEditEnable || theApp.GetSettings()->Midi.bMidiArpeggio)
+	if (m_bEditEnable || Env.GetSettings()->Midi.bMidiArpeggio)
 		pSongView->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
 			m_pNoteQueue->AddMap({i});
 		});
@@ -2141,9 +2141,9 @@ void CFamiTrackerView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		}
 	}
 
-	if ((nChar == VK_ADD || nChar == VK_SUBTRACT) && theApp.GetSettings()->General.bHexKeypad)		// // //
+	if ((nChar == VK_ADD || nChar == VK_SUBTRACT) && Env.GetSettings()->General.bHexKeypad)		// // //
 		HandleKeyboardInput(nChar);
-	else if (!theApp.GetSettings()->General.bHexKeypad || !(nChar == VK_RETURN && !(nFlags & KF_EXTENDED))) switch (nChar) {
+	else if (!Env.GetSettings()->General.bHexKeypad || !(nChar == VK_RETURN && !(nFlags & KF_EXTENDED))) switch (nChar) {
 		case VK_UP:
 			OnKeyDirUp();
 			break;
@@ -2284,7 +2284,7 @@ void CFamiTrackerView::OnKeyTab()
 void CFamiTrackerView::OnKeyPageUp()
 {
 	// Move page up
-	int PageSize = theApp.GetSettings()->General.iPageStepSize;
+	int PageSize = Env.GetSettings()->General.iPageStepSize;
 	m_pPatternEditor->MoveUp(PageSize);
 	InvalidateCursor();
 }
@@ -2292,7 +2292,7 @@ void CFamiTrackerView::OnKeyPageUp()
 void CFamiTrackerView::OnKeyPageDown()
 {
 	// Move page down
-	int PageSize = theApp.GetSettings()->General.iPageStepSize;
+	int PageSize = Env.GetSettings()->General.iPageStepSize;
 	m_pPatternEditor->MoveDown(PageSize);
 	InvalidateCursor();
 }
@@ -2357,7 +2357,7 @@ void CFamiTrackerView::OnKeyDelete()
 		OnEditDelete();
 	}
 	else {
-		bool bPullUp = theApp.GetSettings()->General.bPullUpDelete || bShiftPressed;
+		bool bPullUp = Env.GetSettings()->General.bPullUpDelete || bShiftPressed;
 		auto pAction = std::make_unique<CPActionDeleteRow>(bPullUp, false);		// // //
 		auto &Action = *pAction; // TODO: remove
 		if (AddAction(std::move(pAction)))
@@ -2386,7 +2386,7 @@ void CFamiTrackerView::KeyDecreaseAction()
 
 bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &StepDown, bool &MoveRight, bool &MoveLeft)
 {
-	int EditStyle = theApp.GetSettings()->General.iEditStyle;
+	int EditStyle = Env.GetSettings()->General.iEditStyle;
 	const cursor_column_t Column = m_pPatternEditor->GetColumn();		// // //
 
 	if (!m_bEditEnable)
@@ -2414,7 +2414,7 @@ bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &Ste
 	int Value = ConvertKeyToHex(Key);
 	unsigned char Mask, Shift;
 
-	if (Value == -1 && theApp.GetSettings()->General.bHexKeypad)		// // //
+	if (Value == -1 && Env.GetSettings()->General.bHexKeypad)		// // //
 		Value = ConvertKeyExtra(Key);
 	if (Value == -1)
 		return false;
@@ -2462,7 +2462,7 @@ bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &Ste
 
 bool CFamiTrackerView::EditVolumeColumn(stChanNote &Note, int Key, bool &bStepDown)
 {
-	int EditStyle = theApp.GetSettings()->General.iEditStyle;
+	int EditStyle = Env.GetSettings()->General.iEditStyle;
 
 	if (!m_bEditEnable)
 		return false;
@@ -2483,7 +2483,7 @@ bool CFamiTrackerView::EditVolumeColumn(stChanNote &Note, int Key, bool &bStepDo
 
 	int Value = ConvertKeyToHex(Key);
 
-	if (Value == -1 && theApp.GetSettings()->General.bHexKeypad)		// // //
+	if (Value == -1 && Env.GetSettings()->General.bHexKeypad)		// // //
 		Value = ConvertKeyExtra(Key);
 	if (Value == -1)
 		return false;
@@ -2498,7 +2498,7 @@ bool CFamiTrackerView::EditVolumeColumn(stChanNote &Note, int Key, bool &bStepDo
 
 bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar, int EffectIndex, bool &bStepDown)
 {
-	int EditStyle = theApp.GetSettings()->General.iEditStyle;
+	int EditStyle = Env.GetSettings()->General.iEditStyle;
 
 	if (!m_bEditEnable)
 		return false;
@@ -2548,7 +2548,7 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectIndex, bool &bStepDown, bool &bMoveRight, bool &bMoveLeft)
 {
 
-	int EditStyle = theApp.GetSettings()->General.iEditStyle;
+	int EditStyle = Env.GetSettings()->General.iEditStyle;
 	const cursor_column_t Column = m_pPatternEditor->GetColumn();		// // //
 	int Value = ConvertKeyToHex(Key);
 
@@ -2572,7 +2572,7 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 		return true;
 	}
 
-	if (Value == -1 && theApp.GetSettings()->General.bHexKeypad)		// // //
+	if (Value == -1 && Env.GetSettings()->General.bHexKeypad)		// // //
 		Value = ConvertKeyExtra(Key);
 	if (Value == -1)
 		return false;
@@ -2617,9 +2617,9 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 
 void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 {
-	if (theApp.GetAccelerator()->IsKeyUsed(nChar)) return;		// // //
+	if (Env.GetAccelerator()->IsKeyUsed(nChar)) return;		// // //
 
-	int EditStyle = theApp.GetSettings()->General.iEditStyle;
+	int EditStyle = Env.GetSettings()->General.iEditStyle;
 	int Index = 0;
 
 	int Frame = GetSelectedFrame();
@@ -2737,7 +2737,7 @@ bool CFamiTrackerView::DoRelease() const
 
 void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 {
-	if (theApp.GetAccelerator()->IsKeyUsed(nChar))
+	if (Env.GetAccelerator()->IsKeyUsed(nChar))
 		return;		// // //
 
 	// Play a note from the keyboard
@@ -2776,7 +2776,7 @@ void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 		if (Note == -1)
 			return;
 		// IT doesn't cut the note when key is released
-		if (theApp.GetSettings()->General.iEditStyle != EDIT_STYLE_IT) {
+		if (Env.GetSettings()->General.iEditStyle != EDIT_STYLE_IT) {
 			// Find if note release should be used
 			// TODO: make this an option instead?
 			if (DoRelease())
@@ -2820,27 +2820,27 @@ chan_id_t CFamiTrackerView::SplitAdjustChannel(chan_id_t Channel, const stChanNo
 
 bool CFamiTrackerView::CheckClearKey(unsigned char Key) const
 {
-	return (Key == theApp.GetSettings()->Keys.iKeyClear);
+	return (Key == Env.GetSettings()->Keys.iKeyClear);
 }
 
 bool CFamiTrackerView::CheckReleaseKey(unsigned char Key) const
 {
-	return (Key == theApp.GetSettings()->Keys.iKeyNoteRelease);
+	return (Key == Env.GetSettings()->Keys.iKeyNoteRelease);
 }
 
 bool CFamiTrackerView::CheckHaltKey(unsigned char Key) const
 {
-	return (Key == theApp.GetSettings()->Keys.iKeyNoteCut);
+	return (Key == Env.GetSettings()->Keys.iKeyNoteCut);
 }
 
 bool CFamiTrackerView::CheckEchoKey(unsigned char Key) const		// // //
 {
-	return (Key == theApp.GetSettings()->Keys.iKeyEchoBuffer);
+	return (Key == Env.GetSettings()->Keys.iKeyEchoBuffer);
 }
 
 bool CFamiTrackerView::CheckRepeatKey(unsigned char Key) const
 {
-	return (Key == theApp.GetSettings()->Keys.iKeyRepeat);
+	return (Key == Env.GetSettings()->Keys.iKeyRepeat);
 }
 
 int CFamiTrackerView::TranslateKeyModplug(unsigned char Key) const
@@ -2978,7 +2978,7 @@ int CFamiTrackerView::TranslateKey(unsigned char Key) const
 	// Translates a keyboard character into a MIDI note
 
 	// For modplug users
-	if (theApp.GetSettings()->General.iEditStyle == EDIT_STYLE_MPT)
+	if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_MPT)
 		return TranslateKeyModplug(Key);
 
 	// Default
@@ -2990,7 +2990,7 @@ bool CFamiTrackerView::PreventRepeat(unsigned char Key, bool Insert)
 	if (m_cKeyList[Key] == 0)
 		m_cKeyList[Key] = 1;
 	else {
-		if ((!theApp.GetSettings()->General.bKeyRepeat || !Insert))
+		if ((!Env.GetSettings()->General.bKeyRepeat || !Insert))
 			return true;
 	}
 
@@ -3045,7 +3045,7 @@ void CFamiTrackerView::TranslateMidiMessage()
 {
 	// Check and handle MIDI messages
 
-	CMIDI *pMIDI = theApp.GetMIDI();
+	CMIDI *pMIDI = Env.GetMIDI();
 	CSongView *pSongView = GetSongView();		// // //
 	CStringW Status;
 
@@ -3056,7 +3056,7 @@ void CFamiTrackerView::TranslateMidiMessage()
 	while (pMIDI->ReadMessage(Message, Channel, Data1, Data2)) {
 
 		if (Message != 0x0F) {
-			if (!theApp.GetSettings()->Midi.bMidiChannelMap)
+			if (!Env.GetSettings()->Midi.bMidiChannelMap)
 				Channel = GetSelectedChannel();
 			Channel = std::clamp((int)Channel, 0, (int)pSongView->GetChannelOrder().GetChannelCount() - 1);		// // //
 		}
@@ -3088,7 +3088,7 @@ void CFamiTrackerView::TranslateMidiMessage()
 					ReleaseMIDINote(Channel, Data1, false);
 				else
 					CutMIDINote(Channel, Data1, false);
-				Status.LoadStringW(IDS_MIDI_MESSAGE_OFF);
+				Status = CStringW(MAKEINTRESOURCEW(IDS_MIDI_MESSAGE_OFF));
 				break;
 
 			case MIDI_MSG_PITCH_WHEEL:
@@ -3199,14 +3199,14 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 
 	if (IsChannelMuted(GetSelectedChannelID()))
 		ToggleChannel(GetSelectedChannelID());
-	theApp.GetSoundGenerator()->SetRecordChannel(Channel == theApp.GetSoundGenerator()->GetRecordChannel() ? chan_id_t::NONE : Channel);
+	Env.GetSoundGenerator()->SetRecordChannel(Channel == Env.GetSoundGenerator()->GetRecordChannel() ? chan_id_t::NONE : Channel);
 	InvalidateHeader();
 }
 
 void CFamiTrackerView::OnTrackerRecorderSettings()
 {
 	if (CRecordSettingsDlg dlg; dlg.DoModal() == IDOK)
-		theApp.GetSoundGenerator()->SetRecordSetting(dlg.GetRecordSetting());
+		Env.GetSoundGenerator()->SetRecordSetting(dlg.GetRecordSetting());
 }
 
 void CFamiTrackerView::AdjustOctave(int Delta)		// // //
@@ -3231,7 +3231,7 @@ void CFamiTrackerView::SetStepping(int Step)
 {
 	m_iInsertKeyStepping = Step;
 
-	if (Step > 0 && !theApp.GetSettings()->General.bNoStepMove)
+	if (Step > 0 && !Env.GetSettings()->General.bNoStepMove)
 		m_iMoveKeyStepping = Step;
 	else
 		m_iMoveKeyStepping = 1;
@@ -3501,7 +3501,7 @@ void CFamiTrackerView::OnUpdateFind(CCmdUI *pCmdUI)		// // //
 }
 
 void CFamiTrackerView::OnRecallChannelState() {		// // //
-	GetParentFrame()->SetMessageText(conv::to_wide(theApp.GetSoundGenerator()->RecallChannelState(GetSelectedChannelID())).data());
+	GetParentFrame()->SetMessageText(conv::to_wide(Env.GetSoundGenerator()->RecallChannelState(GetSelectedChannelID())).data());
 }
 
 CStringW CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) const		// // //

@@ -52,7 +52,7 @@ class CFamiTrackerModule;		// // //
 class CTrackerChannel;		// // //
 
 // // // Player modes
-enum class play_mode_t {
+enum class play_mode_t : unsigned char {
 	Frame,			// Play from top of pattern
 	Song,			// Play from start of song
 	RepeatFrame,	// Play and repeat

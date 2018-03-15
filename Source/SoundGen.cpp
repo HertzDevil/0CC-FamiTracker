@@ -38,8 +38,8 @@ CSoundGen depends on CFamiTrackerView for:
 // // /*/
 
 #include "SoundGen.h"
-#include "FamiTracker.h"
 #include "SongState.h"		// // //
+#include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
 #include "FamiTrackerView.h"
@@ -133,7 +133,7 @@ CSoundGen::~CSoundGen()
 void CSoundGen::AssignDocument(CFamiTrackerDoc *pDoc)
 {
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 
 	// Ignore all but the first document (as new documents are used to import files)
 	if (m_pDocument)
@@ -159,7 +159,7 @@ void CSoundGen::AssignModule(CFamiTrackerModule &modfile) {
 void CSoundGen::AssignView(CFamiTrackerView *pView)
 {
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 
 	if (m_pTrackerView != NULL)
 		return;
@@ -173,7 +173,7 @@ void CSoundGen::RemoveDocument()
 	// Removes both the document and view from this object
 
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 	ASSERT(m_pDocument != NULL);
 	ASSERT(m_hThread != NULL);
 
@@ -196,7 +196,7 @@ void CSoundGen::RemoveDocument()
 void CSoundGen::SetVisualizerWindow(CVisualizerWnd *pWnd)
 {
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 
 	m_csVisualizerWndLock.Lock();
 	m_pVisualizerWnd = pWnd;
@@ -208,7 +208,7 @@ std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(CSoundChipSet chips, unsi
 	// Called from the document object (from the main thread)
 
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 	ASSERT(n163chs <= MAX_CHANNELS_N163 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
 
 	return m_pSoundDriver->MakeChannelMap(chips, n163chs);		// // //
@@ -264,6 +264,8 @@ void CSoundGen::StopPlayer()
 		return;
 
 	PostThreadMessageW(WM_USER_STOP, 0, 0);
+
+	Env.GetMIDI()->ResetOutput();		// // //
 }
 
 void CSoundGen::ResetPlayer(int Track)
@@ -367,7 +369,7 @@ bool CSoundGen::InitializeSound(HWND hWnd)
 	// Start with NTSC by default
 
 	// Called from main thread
-	ASSERT(GetCurrentThread() == theApp.m_hThread);
+	ASSERT(GetCurrentThread() == Env.m_hThread);
 	ASSERT(!m_pDSound);
 
 	m_bAutoDelete = FALSE;		// // //
@@ -404,10 +406,10 @@ bool CSoundGen::ResetAudioDevice()
 	//
 
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 	ASSERT(m_pDSound != NULL);
 
-	CSettings *pSettings = theApp.GetSettings();
+	CSettings *pSettings = Env.GetSettings();
 
 	unsigned int SampleSize = pSettings->Sound.iSampleSize;
 	unsigned int SampleRate = pSettings->Sound.iSampleRate;
@@ -483,7 +485,7 @@ bool CSoundGen::ResetAudioDevice()
 void CSoundGen::CloseAudio()
 {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 
 	if (m_pAudioDriver) {		// // //
 		m_pAudioDriver->CloseAudioDevice();
@@ -508,7 +510,7 @@ bool CSoundGen::IsAudioReady() const {		// // //
 void CSoundGen::ResetBuffer()
 {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 
 	m_pAudioDriver->Reset();		// // //
 	m_pAPU->Reset();
@@ -519,7 +521,7 @@ void CSoundGen::FlushBuffer(array_view<int16_t> Buffer)		// // //
 	// Callback method from emulation
 
 	// May only be called from sound player thread
-	ASSERT(GetCurrentThreadId() == m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 
 	m_pAudioDriver->FlushBuffer(Buffer);		// // //
 }
@@ -535,7 +537,7 @@ CAudioDriver *CSoundGen::GetAudioDriver() const {
 
 bool CSoundGen::PlayBuffer()
 {
-	ASSERT(GetCurrentThreadId() == m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 
 	if (m_pWaveRenderer) {		// // //
 		CSingleLock l(&m_csRenderer); l.Lock();
@@ -580,7 +582,7 @@ int CSoundGen::ReadPeriodTable(int Index, int Table) const		// // //
 void CSoundGen::BeginPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 //	ASSERT(m_pTrackerView != NULL);
 
 	if (!IsAudioReady())		// // //
@@ -597,7 +599,7 @@ void CSoundGen::BeginPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 	m_pVGMWriter = std::make_unique<CVGMWriter>();
 #endif
 
-	if (theApp.GetSettings()->Display.bAverageBPM)		// // // 050B
+	if (Env.GetSettings()->Display.bAverageBPM)		// // // 050B
 		m_pTempoDisplay = std::make_unique<CTempoDisplay>(*m_pTempoCounter, DEFAULT_AVERAGE_BPM_SIZE);
 
 	ResetTempo();
@@ -605,7 +607,7 @@ void CSoundGen::BeginPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 
 	MakeSilent();
 
-	if (theApp.GetSettings()->General.bRetrieveChanState)		// // //
+	if (Env.GetSettings()->General.bRetrieveChanState)		// // //
 		ApplyGlobalState();
 
 	if (m_pInstRecorder->GetRecordChannel() != chan_id_t::NONE)		// // //
@@ -646,7 +648,7 @@ void CSoundGen::OnPlayNote(chan_id_t chan, const stChanNote &note) {
 	if (!IsChannelMuted(chan)) {
 		if (m_pTrackerView)
 			m_pTrackerView->PlayerPlayNote(chan, note);
-		theApp.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(chan), note.Note, note.Octave, note.Vol);
+		Env.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(chan), note.Note, note.Octave, note.Vol);
 	}
 }
 
@@ -674,7 +676,7 @@ bool CSoundGen::ShouldStopPlayer() const {
 }
 
 int CSoundGen::GetArpNote(chan_id_t chan) const {
-	if (theApp.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
+	if (Env.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
 		return m_pArpeggiator->GetNextNote(chan);
 	return -1;
 }
@@ -692,7 +694,7 @@ std::string CSoundGen::RecallChannelState(chan_id_t Channel) const		// // //
 
 void CSoundGen::HaltPlayer() {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 
 	// Move player to non-playing state
 
@@ -718,7 +720,7 @@ void CSoundGen::HaltPlayer() {
 void CSoundGen::ResetAPU()
 {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 
 	// Reset the APU
 	m_pAPU->Reset();
@@ -750,7 +752,7 @@ double CSoundGen::GetChannelFrequency(sound_chip_t Chip, int Channel) const		// 
 void CSoundGen::MakeSilent()
 {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 
 	if (m_pTrackerView)		// // //
 		m_pTrackerView->MakeSilent();
@@ -825,7 +827,7 @@ void CSoundGen::LoadMachineSettings()		// // //
 	//
 
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 	ASSERT(m_pAPU != NULL);
 
 	m_iMachineType = m_pModule->GetMachine();		// // // 050B
@@ -842,6 +844,14 @@ void CSoundGen::LoadMachineSettings()		// // //
 		CSingleLock l(&m_csAPULock, TRUE);		// // //
 		m_pAPU->ChangeMachineRate(m_iMachineType == NTSC ? MACHINE_NTSC : MACHINE_PAL, Rate);		// // //
 	}
+}
+
+void CSoundGen::LoadSoundConfig() {		// // //
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+
+	LoadSettings();
+	Interrupt();
+	static_cast<CFrameWnd *>(AfxGetMainWnd())->SetMessageText(IDS_NEW_SOUND_CONFIG);
 }
 
 stDPCMState CSoundGen::GetDPCMState() const
@@ -865,7 +875,7 @@ int CSoundGen::GetChannelVolume(chan_id_t chan) const {		// // //
 bool CSoundGen::RenderToFile(LPCWSTR pFile, const std::shared_ptr<CWaveRenderer> &pRender)		// // //
 {
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == theApp.m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 	ASSERT(m_pDocument != NULL);
 
 	if (!pRender)
@@ -881,7 +891,7 @@ bool CSoundGen::RenderToFile(LPCWSTR pFile, const std::shared_ptr<CWaveRenderer>
 	m_pWaveRenderer = pRender;		// // //
 
 	if (auto pWave = std::make_unique<CWaveFile>(); pWave &&		// // //
-		pWave->OpenFile(pFile, theApp.GetSettings()->Sound.iSampleRate, theApp.GetSettings()->Sound.iSampleSize, 1)) {
+		pWave->OpenFile(pFile, Env.GetSettings()->Sound.iSampleRate, Env.GetSettings()->Sound.iSampleSize, 1)) {
 		m_pWaveRenderer->SetOutputFile(std::move(pWave));
 		PostThreadMessageW(WM_USER_START_RENDER, 0, 0);
 		return true;
@@ -902,7 +912,7 @@ void CSoundGen::StartRendering() {
 void CSoundGen::StopRendering()
 {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == m_nThreadID);
+	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
 
 //	CSingleLock l(&m_csRenderer); l.Lock();
 	if (!is_rendering_impl())
@@ -957,7 +967,7 @@ bool CSoundGen::WaitForStop() const
 	// Wait for player to stop, timeout = 4s
 	// The player must have received the stop command or this will fail
 
-	ASSERT(GetCurrentThreadId() != m_nThreadID);
+	ASSERT(GetCurrentThreadId() != GetMainApp()->m_nThreadID);
 
 	//return ::WaitForSingleObject(m_hIsPlaying, 4000) == WAIT_OBJECT_0;
 
@@ -997,7 +1007,7 @@ BOOL CSoundGen::InitInstance()
 
 	ResetAPU();
 
-	TRACE(L"SoundGen: Created thread (0x%04x)\n", m_nThreadID);
+	TRACE(L"SoundGen: Created thread (0x%04x)\n", Env.GetMainApp()->m_nThreadID);
 
 	SetThreadPriority(THREAD_PRIORITY_TIME_CRITICAL);
 
@@ -1012,7 +1022,7 @@ int CSoundGen::ExitInstance()
 {
 	// Shutdown the thread
 
-	TRACE(L"SoundGen: Closing thread (0x%04x)\n", m_nThreadID);
+	TRACE(L"SoundGen: Closing thread (0x%04x)\n", Env.GetMainApp()->m_nThreadID);
 
 	// Make sure sound interface is shut down
 	CloseAudio();
@@ -1049,7 +1059,7 @@ BOOL CSoundGen::IdleLoop() {
 		TrackerChan.SetVolumeMeter(m_pAPU->GetVol(ID));		// // //
 	});
 
-	if (theApp.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
+	if (Env.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
 		m_pArpeggiator->Tick(m_pTrackerView->GetSelectedChannelID());
 
 	// Rendering
@@ -1243,7 +1253,7 @@ void CSoundGen::QueueNote(chan_id_t Channel, const stChanNote &NoteData, note_pr
 {
 	// Queue a note for play
 	m_pSoundDriver->QueueNote(Channel, NoteData, Priority);
-	theApp.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(Channel), NoteData.Note, NoteData.Octave, NoteData.Vol);
+	Env.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(Channel), NoteData.Note, NoteData.Octave, NoteData.Vol);
 }
 
 void CSoundGen::ForceReloadInstrument(chan_id_t Channel)		// // //

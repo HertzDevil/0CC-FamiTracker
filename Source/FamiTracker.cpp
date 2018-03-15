@@ -305,7 +305,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	m_pMIDI->Init();
 
 	if (cmdInfo.m_bPlay)
-		StartPlayer(play_mode_t::Frame);
+		m_pSoundGenerator->StartPlayer(GetMainFrame()->GetPlayerCursor(play_mode_t::Frame));		// // //
 
 	// Save the main window handle
 	RegisterSingleInstance();
@@ -540,7 +540,7 @@ bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
 						LPWSTR pFilePath = cmdInfo.m_strFileName.GetBuffer();
 						// We have the window handle & file, send a message to open the file
 						COPYDATASTRUCT data;
-						data.dwData = cmdInfo.m_bPlay ? IPC_LOAD_PLAY : IPC_LOAD;
+						data.dwData = value_cast(cmdInfo.m_bPlay ? ipc_command_t::load_play : ipc_command_t::load);
 						data.cbData = (DWORD)((cmdInfo.m_strFileName.GetLength() + 1) * sizeof(WCHAR));
 						data.lpData = pFilePath;
 						DWORD result;
@@ -563,30 +563,10 @@ bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
 	return false;
 }
 
-////////////////////////////////////////////////////////
-//  Things that belongs to the synth are kept below!  //
-////////////////////////////////////////////////////////
-
-// Load sound configuration
-void CFamiTrackerApp::LoadSoundConfig()
-{
-	GetSoundGenerator()->LoadSettings();
-	GetSoundGenerator()->Interrupt();
-	static_cast<CFrameWnd*>(GetMainWnd())->SetMessageText(IDS_NEW_SOUND_CONFIG);
-}
-
 void CFamiTrackerApp::UpdateMenuShortcuts()		// // //
 {
-	CMainFrame *pMainFrm = GetMainFrame();		// // //
-	if (pMainFrm != nullptr)
+	if (auto *pMainFrm = GetMainFrame())
 		pMainFrm->UpdateMenus();
-}
-
-// Silences everything
-void CFamiTrackerApp::SilentEverything()
-{
-	GetSoundGenerator()->SilentAll();
-	CFamiTrackerView::GetView()->MakeSilent();
 }
 
 // Get-functions
@@ -688,53 +668,6 @@ void CFamiTrackerApp::OnAppAbout()
 {
 	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
-}
-
-// CFamiTrackerApp message handlers
-
-void CFamiTrackerApp::StartPlayer(play_mode_t Mode)
-{
-	if (m_pSoundGenerator) {		// // //
-		auto cur = std::make_unique<CPlayerCursor>(CFamiTrackerView::GetView()->GetPlayerCursor(Mode));
-		m_pSoundGenerator->StartPlayer(std::move(cur));
-	}
-}
-
-void CFamiTrackerApp::StopPlayer()
-{
-	if (m_pSoundGenerator)
-		m_pSoundGenerator->StopPlayer();
-
-	m_pMIDI->ResetOutput();
-}
-
-void CFamiTrackerApp::StopPlayerAndWait()
-{
-	// Synchronized stop
-	if (m_pSoundGenerator) {
-		m_pSoundGenerator->StopPlayer();
-		m_pSoundGenerator->WaitForStop();
-	}
-	m_pMIDI->ResetOutput();
-}
-
-void CFamiTrackerApp::TogglePlayer()
-{
-	if (m_pSoundGenerator) {
-		if (m_pSoundGenerator->IsPlaying())
-			StopPlayer();
-		else
-			StartPlayer(play_mode_t::Frame);
-	}
-}
-
-// Player interface
-
-void CFamiTrackerApp::ResetPlayer()
-{
-	// Called when changing track
-	if (m_pSoundGenerator)
-		m_pSoundGenerator->ResetPlayer(GetMainFrame()->GetSelectedTrack());		// // //
 }
 
 // File load/save
@@ -938,8 +871,7 @@ BOOL CDocManager0CC::DoPromptFileName(CStringW &fileName, UINT nIDSTitle, DWORD 
 	OpenFileDlg.m_ofn.Flags |= lFlags;
 	OpenFileDlg.m_ofn.lpstrFile = fileName.GetBuffer(_MAX_PATH);
 	OpenFileDlg.m_ofn.lpstrInitialDir = path.GetBuffer(_MAX_PATH);
-	CStringW title;
-	ENSURE(title.LoadStringW(nIDSTitle));
+	CStringW title(MAKEINTRESOURCEW(nIDSTitle));
 	OpenFileDlg.m_ofn.lpstrTitle = title;
 	INT_PTR nResult = OpenFileDlg.DoModal();
 	fileName.ReleaseBuffer();

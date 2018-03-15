@@ -22,7 +22,6 @@
 
 #include "BookmarkDlg.h"
 #include <string>
-#include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"
 #include "FamiTrackerView.h"

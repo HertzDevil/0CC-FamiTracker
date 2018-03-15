@@ -65,11 +65,19 @@ class CSwapDlg;
 class CFindDlg;		// // //
 struct stHighlight;		// // //
 class CSongData;		// // //
+class CPlayerCursor;		// // //
 enum inst_type_t : unsigned;		// // //
+enum class play_mode_t : unsigned char;		// // //
 
 class CBannerEdit;
 class CLockedEdit;
 class CInstrumentListCtrl;
+
+// // // Inter-process commands
+enum class ipc_command_t {
+	load = 1,
+	load_play,
+};
 
 class CMainFrame : public CFrameWnd
 {
@@ -85,6 +93,8 @@ public:
 // Operations
 public:
 	void	ChangeNoteState(int Note);
+
+	std::unique_ptr<CPlayerCursor> GetPlayerCursor(play_mode_t Mode) const;		// // //
 
 	// Indicators & controls
 	void	SetIndicatorTime(int Min, int Sec, int MSec);

@@ -21,7 +21,6 @@
 */
 
 #include "ChannelsDlg.h"
-#include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"		// // //
 #include "SongView.h"		// // //

@@ -23,7 +23,6 @@
 #include "MainFrm.h"
 #include "version.h"		// // //
 #include <algorithm>
-#include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
 #include "ExportDialog.h"
@@ -369,7 +368,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 
 BOOL CMainFrame::Create(LPCWSTR lpszClassName, LPCWSTR lpszWindowName, DWORD dwStyle , const RECT& rect , CWnd* pParentWnd , LPCWSTR lpszMenuName , DWORD dwExStyle , CCreateContext* pContext)
 {
-	CSettings *pSettings = theApp.GetSettings();
+	CSettings *pSettings = Env.GetSettings();
 	RECT newrect;
 
 	// Load stored position
@@ -435,7 +434,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	SetTimer((UINT_PTR)timer_id_t::AUTOSAVE, 1000, NULL);
 #endif
 
-	m_wndOctaveBar.CheckDlgButton(IDC_FOLLOW, theApp.GetSettings()->FollowMode);
+	m_wndOctaveBar.CheckDlgButton(IDC_FOLLOW, Env.GetSettings()->FollowMode);
 	m_wndOctaveBar.CheckDlgButton(IDC_CHECK_COMPACT, false);		// // //
 	m_wndOctaveBar.SetDlgItemInt(IDC_HIGHLIGHT1, CSongData::DEFAULT_HIGHLIGHT.First, 0);		// // //
 	m_wndOctaveBar.SetDlgItemInt(IDC_HIGHLIGHT2, CSongData::DEFAULT_HIGHLIGHT.Second, 0);
@@ -443,7 +442,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	UpdateMenus();
 
 	// Setup saved frame editor position
-	SetFrameEditorPosition(theApp.GetSettings()->FrameEditPos);
+	SetFrameEditorPosition(Env.GetSettings()->FrameEditPos);
 
 #ifdef _DEBUG
 	m_strTitle.Append(L" [DEBUG]");
@@ -650,7 +649,7 @@ bool CMainFrame::CreateVisualizerWindow()
 		return false;
 
 	// Assign this to the sound generator
-	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	CSoundGen *pSoundGen = Env.GetSoundGenerator();
 
 	if (pSoundGen)
 		pSoundGen->SetVisualizerWindow(m_pVisualizerWnd.get());
@@ -773,9 +772,9 @@ void CMainFrame::SetupColors()
 	ASSERT(m_pInstrumentList != NULL);
 
 	// Instrument list colors
-	m_pInstrumentList->SetBkColor(theApp.GetSettings()->Appearance.iColBackground);
-	m_pInstrumentList->SetTextBkColor(theApp.GetSettings()->Appearance.iColBackground);
-	m_pInstrumentList->SetTextColor(theApp.GetSettings()->Appearance.iColPatternText);
+	m_pInstrumentList->SetBkColor(Env.GetSettings()->Appearance.iColBackground);
+	m_pInstrumentList->SetTextBkColor(Env.GetSettings()->Appearance.iColBackground);
+	m_pInstrumentList->SetTextColor(Env.GetSettings()->Appearance.iColPatternText);
 	m_pInstrumentList->RedrawWindow();
 }
 
@@ -787,7 +786,7 @@ void CMainFrame::SetTempo(int Tempo)
 	if (Tempo != song.GetSongTempo()) {		// // //
 		GetDoc().ModifyIrreversible();
 		song.SetSongTempo(Tempo);
-		theApp.GetSoundGenerator()->ResetTempo();
+		Env.GetSoundGenerator()->ResetTempo();
 
 		if (m_wndDialogBar.GetDlgItemInt(IDC_TEMPO) != Tempo)
 			m_wndDialogBar.SetDlgItemInt(IDC_TEMPO, Tempo, FALSE);
@@ -803,7 +802,7 @@ void CMainFrame::SetSpeed(int Speed)
 		GetDoc().ModifyIrreversible();
 		song.SetSongGroove(false);
 		song.SetSongSpeed(Speed);
-		theApp.GetSoundGenerator()->ResetTempo();
+		Env.GetSoundGenerator()->ResetTempo();
 
 		if (m_wndDialogBar.GetDlgItemInt(IDC_SPEED) != Speed)
 			m_wndDialogBar.SetDlgItemInt(IDC_SPEED, Speed, FALSE);
@@ -817,7 +816,7 @@ void CMainFrame::SetGroove(int Groove) {
 		GetDoc().ModifyIrreversible();
 		song.SetSongGroove(true);
 		song.SetSongSpeed(Groove);
-		theApp.GetSoundGenerator()->ResetTempo();
+		Env.GetSoundGenerator()->ResetTempo();
 
 		if (m_wndDialogBar.GetDlgItemInt(IDC_SPEED) != Groove)
 			m_wndDialogBar.SetDlgItemInt(IDC_SPEED, Groove, FALSE);
@@ -1130,7 +1129,7 @@ void CMainFrame::SetIndicatorTime(int Min, int Sec, int MSec)
 
 void CMainFrame::SetIndicatorPos(int Frame, int Row)
 {
-	std::string String = theApp.GetSettings()->General.bRowInHex ?		// // //
+	std::string String = Env.GetSettings()->General.bRowInHex ?		// // //
 		(conv::from_int_hex(Row, 2) + " / " + conv::from_int_hex(Frame, 2)) :
 		(conv::from_int(Row, 3) + " / " + conv::from_int(Frame, 3));
 	m_wndStatusBar.SetPaneText(7, conv::to_wide(String).data());
@@ -1308,7 +1307,7 @@ void CMainFrame::OnLoadInstrument()
 
 	CFileDialog FileDialog(TRUE, L"fti", 0, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, LoadDefaultFilter(IDS_FILTER_FTI, L".fti"));
 
-	auto path = theApp.GetSettings()->GetPath(PATH_FTI);		// // //
+	auto path = Env.GetSettings()->GetPath(PATH_FTI);		// // //
 	FileDialog.m_pOFN->lpstrInitialDir = path.c_str();
 
 	if (FileDialog.DoModal() == IDCANCEL)
@@ -1328,9 +1327,9 @@ void CMainFrame::OnLoadInstrument()
 	UpdateInstrumentList();
 
 	if (FileDialog.GetFileName().GetLength() == 0)		// // //
-		theApp.GetSettings()->SetDirectory((LPCWSTR)(FileDialog.GetPathName() + L"\\"), PATH_FTI);
+		Env.GetSettings()->SetDirectory((LPCWSTR)(FileDialog.GetPathName() + L"\\"), PATH_FTI);
 	else
-		theApp.GetSettings()->SetDirectory((LPCWSTR)FileDialog.GetPathName(), PATH_FTI);
+		Env.GetSettings()->SetDirectory((LPCWSTR)FileDialog.GetPathName(), PATH_FTI);
 }
 
 void CMainFrame::OnSaveInstrument()
@@ -1352,9 +1351,9 @@ void CMainFrame::OnSaveInstrument()
 		if (ch == L'/')
 			ch = L' ';
 
-	auto initPath = theApp.GetSettings()->GetPath(PATH_FTI);
+	auto initPath = Env.GetSettings()->GetPath(PATH_FTI);
 	if (auto path = GetSavePath(Name.data(), initPath.c_str(), IDS_FILTER_FTI, L"*.fti")) {
-		theApp.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_FTI);
+		Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_FTI);
 
 		CSimpleFile file(*path, std::ios::out | std::ios::binary);
 		if (!file) {
@@ -1414,35 +1413,39 @@ void CMainFrame::OnDeltaposFrameSpin(NMHDR *pNMHDR, LRESULT *pResult)
 	SetFrameCount(NewFrames);
 }
 
+std::unique_ptr<CPlayerCursor> CMainFrame::GetPlayerCursor(play_mode_t Mode) const {		// // //
+	return std::make_unique<CPlayerCursor>(static_cast<const CFamiTrackerView *>(GetActiveView())->GetPlayerCursor(Mode));
+}
+
 void CMainFrame::OnTrackerPlay()
 {
 	// Play
-	theApp.StartPlayer(play_mode_t::Frame);
+	Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Frame));
 }
 
 void CMainFrame::OnTrackerPlaypattern()
 {
 	// Loop pattern
-	theApp.StartPlayer(play_mode_t::RepeatFrame);
+	Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::RepeatFrame));
 }
 
 void CMainFrame::OnTrackerPlayStart()
 {
 	// Play from start of song
-	theApp.StartPlayer(play_mode_t::Song);
+	Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Song));
 }
 
 void CMainFrame::OnTrackerPlayCursor()
 {
 	// Play from cursor
-	theApp.StartPlayer(play_mode_t::Cursor);
+	Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Cursor));
 }
 
 void CMainFrame::OnTrackerPlayMarker()		// // // 050B
 {
 	// Play from row marker
 	if (static_cast<CFamiTrackerView*>(GetActiveView())->IsMarkerValid())
-		theApp.StartPlayer(play_mode_t::Marker);
+		Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Marker));
 }
 
 void CMainFrame::OnUpdateTrackerPlayMarker(CCmdUI *pCmdUI)		// // // 050B
@@ -1465,19 +1468,24 @@ void CMainFrame::OnTrackerSetMarker()		// // // 050B
 void CMainFrame::OnTrackerTogglePlay()
 {
 	// Toggle playback
-	theApp.TogglePlayer();
+	if (auto *pSoundGen = Env.GetSoundGenerator())		// // //
+		if (pSoundGen->IsPlaying())
+			pSoundGen->StopPlayer();
+		else
+			pSoundGen->StartPlayer(GetPlayerCursor(play_mode_t::Frame));		// // //
 }
 
 void CMainFrame::OnTrackerStop()
 {
 	// Stop playback
-	theApp.StopPlayer();
+	Env.GetSoundGenerator()->StopPlayer();		// // //
 }
 
 void CMainFrame::OnTrackerKillsound()
 {
-	theApp.LoadSoundConfig();
-	theApp.SilentEverything();
+	Env.GetSoundGenerator()->LoadSoundConfig();		// // //
+	Env.GetSoundGenerator()->SilentAll();		// // //
+	static_cast<CFamiTrackerView *>(GetActiveView())->MakeSilent();
 }
 
 bool CMainFrame::CheckRepeat()
@@ -1526,7 +1534,7 @@ bool CMainFrame::ChangeAllPatterns() const
 
 void CMainFrame::OnKeyRepeat()
 {
-	theApp.GetSettings()->General.bKeyRepeat = (m_wndDialogBar.IsDlgButtonChecked(IDC_KEYREPEAT) == 1);
+	Env.GetSettings()->General.bKeyRepeat = (m_wndDialogBar.IsDlgButtonChecked(IDC_KEYREPEAT) == 1);
 }
 
 void CMainFrame::OnDeltaposKeyStepSpin(NMHDR *pNMHDR, LRESULT *pResult)
@@ -1604,7 +1612,7 @@ void CMainFrame::OnUpdateSBFrequency(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateSBTempo(CCmdUI *pCmdUI)
 {
-	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	CSoundGen *pSoundGen = Env.GetSoundGenerator();
 	if (pSoundGen && !pSoundGen->IsBackgroundTask()) {
 		pCmdUI->Enable();
 		pCmdUI->SetText(FormattedW(L"%.2f BPM", pSoundGen->GetCurrentBPM()));		// // //
@@ -1967,7 +1975,7 @@ void CMainFrame::UpdateBookmarkList(int Pos)		// // //
 
 void CMainFrame::OnUpdateKeyRepeat(CCmdUI *pCmdUI)
 {
-	if (theApp.GetSettings()->General.bKeyRepeat)
+	if (Env.GetSettings()->General.bKeyRepeat)
 		pCmdUI->SetCheck(1);
 	else
 		pCmdUI->SetCheck(0);
@@ -1998,7 +2006,7 @@ void CMainFrame::OnFileImportText()
 	//Doc.UpdateAllViews(NULL, CHANGED_ERASE);		// Remove
 	Doc.UpdateAllViews(NULL, UPDATE_PROPERTIES);
 	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-	theApp.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
+	Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
 }
 
 void CMainFrame::OnFileExportText()
@@ -2010,7 +2018,7 @@ void CMainFrame::OnFileExportText()
 
 	CFamiTrackerDoc &Doc = GetDoc();
 
-	auto initPath = theApp.GetSettings()->GetPath(PATH_NSF);		// // //
+	auto initPath = Env.GetSettings()->GetPath(PATH_NSF);		// // //
 	if (auto path = GetSavePath(Doc.GetFileTitle(), initPath.c_str(), IDS_FILTER_TXT, L"*.txt")) {
 		CTextExport Exporter;
 		CStringA sResult = Exporter.ExportFile(*path, Doc);
@@ -2029,7 +2037,7 @@ void CMainFrame::OnFileExportRows()		// // //
 
 	CFamiTrackerDoc	*pDoc = (CFamiTrackerDoc*)GetActiveDocument();
 
-	auto initPath = theApp.GetSettings()->GetPath(PATH_NSF);		// // //
+	auto initPath = Env.GetSettings()->GetPath(PATH_NSF);		// // //
 	if (auto path = GetSavePath(pDoc->GetFileTitle(), initPath.c_str(), IDS_FILTER_CSV, L"*.csv")) {
 		CTextExport Exporter;
 		CStringA sResult = Exporter.ExportRows(*path, *pDoc->GetModule());
@@ -2046,7 +2054,7 @@ void CMainFrame::OnFileExportJson() {		// // //
 
 	CFamiTrackerDoc	*pDoc = (CFamiTrackerDoc*)GetActiveDocument();
 
-	auto initPath = theApp.GetSettings()->GetPath(PATH_NSF);		// // //
+	auto initPath = Env.GetSettings()->GetPath(PATH_NSF);		// // //
 	if (auto path = GetSavePath(pDoc->GetFileTitle(), initPath.c_str(), IDS_FILTER_JSON, L"*.json")) {
 		CStdioFile f;
 		CFileException oFileException;
@@ -2073,10 +2081,10 @@ BOOL CMainFrame::DestroyWindow()
 	if (IsZoomed()) {
 		State = STATE_MAXIMIZED;
 		// Ignore window position if maximized
-		WinRect.top = theApp.GetSettings()->WindowPos.iTop;
-		WinRect.bottom = theApp.GetSettings()->WindowPos.iBottom;
-		WinRect.left = theApp.GetSettings()->WindowPos.iLeft;
-		WinRect.right = theApp.GetSettings()->WindowPos.iRight;
+		WinRect.top = Env.GetSettings()->WindowPos.iTop;
+		WinRect.bottom = Env.GetSettings()->WindowPos.iBottom;
+		WinRect.left = Env.GetSettings()->WindowPos.iLeft;
+		WinRect.right = Env.GetSettings()->WindowPos.iRight;
 	}
 
 	if (IsIconic()) {
@@ -2087,11 +2095,11 @@ BOOL CMainFrame::DestroyWindow()
 	}
 
 	// // // Save window position
-	theApp.GetSettings()->WindowPos.iLeft = WinRect.left;
-	theApp.GetSettings()->WindowPos.iTop = WinRect.top;
-	theApp.GetSettings()->WindowPos.iRight = WinRect.right;
-	theApp.GetSettings()->WindowPos.iBottom = WinRect.bottom;
-	theApp.GetSettings()->WindowPos.iState = State;
+	Env.GetSettings()->WindowPos.iLeft = WinRect.left;
+	Env.GetSettings()->WindowPos.iTop = WinRect.top;
+	Env.GetSettings()->WindowPos.iRight = WinRect.right;
+	Env.GetSettings()->WindowPos.iBottom = WinRect.bottom;
+	Env.GetSettings()->WindowPos.iState = State;
 
 	return CFrameWnd::DestroyWindow();
 }
@@ -2111,32 +2119,32 @@ void CMainFrame::OnTrackerSwitchToInstrument()
 
 void CMainFrame::OnTrackerDisplayAverageBPM()		// // // 050B
 {
-	theApp.GetSettings()->Display.bAverageBPM = !theApp.GetSettings()->Display.bAverageBPM;
+	Env.GetSettings()->Display.bAverageBPM = !Env.GetSettings()->Display.bAverageBPM;
 }
 
 void CMainFrame::OnTrackerDisplayChannelState()		// // // 050B
 {
-	theApp.GetSettings()->Display.bChannelState = !theApp.GetSettings()->Display.bChannelState;
+	Env.GetSettings()->Display.bChannelState = !Env.GetSettings()->Display.bChannelState;
 }
 
 void CMainFrame::OnTrackerDisplayRegisterState()
 {
-	theApp.GetSettings()->Display.bRegisterState = !theApp.GetSettings()->Display.bRegisterState;		// // //
+	Env.GetSettings()->Display.bRegisterState = !Env.GetSettings()->Display.bRegisterState;		// // //
 }
 
 void CMainFrame::OnUpdateDisplayAverageBPM(CCmdUI *pCmdUI)		// // // 050B
 {
-	pCmdUI->SetCheck(theApp.GetSettings()->Display.bAverageBPM ? MF_CHECKED : MF_UNCHECKED);
+	pCmdUI->SetCheck(Env.GetSettings()->Display.bAverageBPM ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnUpdateDisplayChannelState(CCmdUI *pCmdUI)		// // // 050B
 {
-	pCmdUI->SetCheck(theApp.GetSettings()->Display.bChannelState ? MF_CHECKED : MF_UNCHECKED);
+	pCmdUI->SetCheck(Env.GetSettings()->Display.bChannelState ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnUpdateDisplayRegisterState(CCmdUI *pCmdUI)		// // //
 {
-	pCmdUI->SetCheck(theApp.GetSettings()->Display.bRegisterState ? MF_CHECKED : MF_UNCHECKED);
+	pCmdUI->SetCheck(Env.GetSettings()->Display.bRegisterState ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnUpdateTrackerSwitchToInstrument(CCmdUI *pCmdUI)
@@ -2300,7 +2308,7 @@ void CMainFrame::OnClickedFollow()
 {
 	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
 	bool FollowMode = m_wndOctaveBar.IsDlgButtonChecked(IDC_FOLLOW) != 0;
-	theApp.GetSettings()->FollowMode = FollowMode;
+	Env.GetSettings()->FollowMode = FollowMode;
 	pView->SetFollowMode(FollowMode);
 	pView->SetFocus();
 }
@@ -2360,7 +2368,7 @@ void CMainFrame::OnDeltaposHighlightSpin1(NMHDR *pNMHDR, LRESULT *pResult)		// /
 		stHighlight Hl = GetCurrentSong()->GetRowHighlight();
 		Hl.First = std::clamp(Hl.First - ((NMUPDOWN*)pNMHDR)->iDelta, 0, MAX_PATTERN_LENGTH);
 		AddAction(std::make_unique<CPActionHighlight>(Hl));
-		theApp.GetSoundGenerator()->SetHighlightRows(Hl.First);		// // //
+		Env.GetSoundGenerator()->SetHighlightRows(Hl.First);		// // //
 	}
 }
 
@@ -2447,7 +2455,7 @@ void CMainFrame::OnUpdateEditCopySpecial(CCmdUI *pCmdUI)		// // //
 
 void CMainFrame::OnUpdateSelectMultiFrame(CCmdUI *pCmdUI)		// // //
 {
-	pCmdUI->Enable(theApp.GetSettings()->General.bMultiFrameSel ? TRUE : FALSE);
+	pCmdUI->Enable(Env.GetSettings()->General.bMultiFrameSel ? TRUE : FALSE);
 }
 
 void CMainFrame::OnUpdateEditPaste(CCmdUI *pCmdUI)
@@ -2488,13 +2496,13 @@ CVisualizerWnd *CMainFrame::GetVisualizerWnd() const {		// // //
 
 void CMainFrame::OnEditEnableMIDI()
 {
-	theApp.GetMIDI()->ToggleInput();
+	Env.GetMIDI()->ToggleInput();
 }
 
 void CMainFrame::OnUpdateEditEnablemidi(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(theApp.GetMIDI()->IsAvailable());
-	pCmdUI->SetCheck(theApp.GetMIDI()->IsOpened());
+	pCmdUI->Enable(Env.GetMIDI()->IsAvailable());
+	pCmdUI->SetCheck(Env.GetMIDI()->IsOpened());
 }
 
 void CMainFrame::OnShowWindow(BOOL bShow, UINT nStatus)
@@ -2503,7 +2511,7 @@ void CMainFrame::OnShowWindow(BOOL bShow, UINT nStatus)
 
 	if (bShow == TRUE) {
 		// Set the window state as saved in settings
-		if (theApp.GetSettings()->WindowPos.iState == STATE_MAXIMIZED)
+		if (Env.GetSettings()->WindowPos.iState == STATE_MAXIMIZED)
 			CFrameWnd::ShowWindow(SW_MAXIMIZE);
 	}
 }
@@ -2512,7 +2520,7 @@ void CMainFrame::OnDestroy()
 {
 	TRACE(L"FrameWnd: Destroying main frame window\n");
 
-	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	CSoundGen *pSoundGen = Env.GetSoundGenerator();
 
 	KillTimer((UINT_PTR)timer_id_t::AUDIO_CHECK);
 
@@ -2548,8 +2556,8 @@ void CMainFrame::SelectTrack(unsigned int Track)
 
 	m_iTrack = Track;
 
-	if (theApp.GetSoundGenerator()->IsPlaying() && Track != theApp.GetSoundGenerator()->GetPlayerTrack())		// // // 050B
-		theApp.ResetPlayer();
+	if (Env.GetSoundGenerator()->IsPlaying() && Track != Env.GetSoundGenerator()->GetPlayerTrack())		// // // 050B
+		Env.GetSoundGenerator()->ResetPlayer(Track);
 
 	pTrackBox->SetCurSel(m_iTrack);
 	//GetDoc().UpdateAllViews(NULL, CHANGED_TRACK);
@@ -2649,7 +2657,7 @@ void CMainFrame::OnLoadInstrumentMenu(NMHDR * pNotifyStruct, LRESULT * result)
 	if (!m_pInstrumentFileTree)
 		m_pInstrumentFileTree = std::make_unique<CInstrumentFileTree>();		// // //
 	if (m_pInstrumentFileTree->ShouldRebuild())
-		m_pInstrumentFileTree->BuildMenuTree(theApp.GetSettings()->GetPath(PATH_INST).c_str());
+		m_pInstrumentFileTree->BuildMenuTree(Env.GetSettings()->GetPath(PATH_INST).c_str());
 
 	UINT retValue = m_pInstrumentFileTree->GetMenu().TrackPopupMenu(
 		TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, rect.left, rect.bottom, this);
@@ -2676,10 +2684,8 @@ void CMainFrame::SelectInstrumentFolder()
 {
 	BROWSEINFOW Browse;
 	LPITEMIDLIST lpID;
-	WCHAR Path[MAX_PATH];
-	CStringW Title;
-
-	Title.LoadStringW(IDS_INSTRUMENT_FOLDER);
+	WCHAR Path[MAX_PATH] = { };
+	CStringW Title(MAKEINTRESOURCEW(IDS_INSTRUMENT_FOLDER));		// // //
 	Browse.lpszTitle	= Title;
 	Browse.hwndOwner	= m_hWnd;
 	Browse.pidlRoot		= NULL;
@@ -2691,29 +2697,30 @@ void CMainFrame::SelectInstrumentFolder()
 
 	if (lpID != NULL) {
 		SHGetPathFromIDListW(lpID, Path);
-		theApp.GetSettings()->SetDirectory((LPCWSTR)Path, PATH_INST);		// // //
+		Env.GetSettings()->SetDirectory((LPCWSTR)Path, PATH_INST);		// // //
 		m_pInstrumentFileTree->Changed();
 	}
 }
 
 BOOL CMainFrame::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct)
 {
-	bool hasFile = pCopyDataStruct->lpData && *(LPCWSTR)pCopyDataStruct->lpData != L'\0';		// // //
+	auto fileName = (LPCWSTR)pCopyDataStruct->lpData;		// // //
+	bool hasFile = fileName && fileName[0] != L'\0';		// // //
 
 	switch (pCopyDataStruct->dwData) {
-	case IPC_LOAD:
+	case value_cast(ipc_command_t::load):
 		// Load file
 		if (hasFile)
-			theApp.OpenDocumentFile((LPCWSTR)pCopyDataStruct->lpData);
+			Env.GetMainApp()->OpenDocumentFile(fileName);		// // //
 		return TRUE;
-	case IPC_LOAD_PLAY:
+	case value_cast(ipc_command_t::load_play):
 		// Load file
 		if (hasFile)
-			theApp.OpenDocumentFile((LPCWSTR)pCopyDataStruct->lpData);
+			Env.GetMainApp()->OpenDocumentFile(fileName);
 		// and play
 		if (CFamiTrackerDoc::GetDoc()->IsFileLoaded() &&
 			!CFamiTrackerDoc::GetDoc()->HasLastLoadFailed())
-			theApp.StartPlayer(play_mode_t::Song);		// // //
+			Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Song));		// // //
 		return TRUE;
 	}
 
@@ -2774,7 +2781,7 @@ void CMainFrame::UpdateMenus()
 
 void CMainFrame::UpdateMenu(CMenu *pMenu)
 {
-	CAccelerator *pAccel = theApp.GetAccelerator();
+	CAccelerator *pAccel = Env.GetAccelerator();
 
 	for (UINT i = 0; i < static_cast<unsigned int>(pMenu->GetMenuItemCount()); ++i) {		// // //
 		UINT state = pMenu->GetMenuState(i, MF_BYPOSITION);
@@ -2986,24 +2993,24 @@ void CMainFrame::OnEditSelectother()		// // //
 
 void CMainFrame::OnDecayFast()
 {
-	theApp.GetSettings()->MeterDecayRate = DECAY_FAST;
-	theApp.GetSoundGenerator()->SetMeterDecayRate(DECAY_FAST);		// // // 050B
+	Env.GetSettings()->MeterDecayRate = DECAY_FAST;
+	Env.GetSoundGenerator()->SetMeterDecayRate(DECAY_FAST);		// // // 050B
 }
 
 void CMainFrame::OnDecaySlow()
 {
-	theApp.GetSettings()->MeterDecayRate = DECAY_SLOW;
-	theApp.GetSoundGenerator()->SetMeterDecayRate(DECAY_SLOW);		// // // 050B
+	Env.GetSettings()->MeterDecayRate = DECAY_SLOW;
+	Env.GetSoundGenerator()->SetMeterDecayRate(DECAY_SLOW);		// // // 050B
 }
 
 void CMainFrame::OnUpdateDecayFast(CCmdUI *pCmdUI)		// // // 050B
 {
-	pCmdUI->SetCheck(theApp.GetSoundGenerator()->GetMeterDecayRate() == DECAY_FAST ? MF_CHECKED : MF_UNCHECKED);
+	pCmdUI->SetCheck(Env.GetSoundGenerator()->GetMeterDecayRate() == DECAY_FAST ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnUpdateDecaySlow(CCmdUI *pCmdUI)		// // // 050B
 {
-	pCmdUI->SetCheck(theApp.GetSoundGenerator()->GetMeterDecayRate() == DECAY_SLOW ? MF_CHECKED : MF_UNCHECKED);
+	pCmdUI->SetCheck(Env.GetSoundGenerator()->GetMeterDecayRate() == DECAY_SLOW ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnEditExpandpatterns()
@@ -3119,7 +3126,7 @@ void CMainFrame::SetFrameEditorPosition(int Position)
 	ResizeFrameWindow();	// This must be called twice or the editor disappears, I don't know why
 
 	// Save to settings
-	theApp.GetSettings()->FrameEditPos = Position;
+	Env.GetSettings()->FrameEditPos = Position;
 }
 
 void CMainFrame::SetControlPanelPosition(control_panel_pos_t Position)		// // // 050B
@@ -3184,7 +3191,7 @@ void CMainFrame::OnToggleSpeed()
 
 	Doc.GetModule()->SetSpeedSplitPoint(Speed);
 	Doc.ModifyIrreversible();		// // //
-	theApp.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
+	Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
 
 	SetStatusText(L"Speed/tempo split-point set to %i", Speed);
 }
@@ -3227,13 +3234,13 @@ void CMainFrame::CheckAudioStatus()
 
 	// Monitor audio playback
 
-	if (!theApp.GetSoundGenerator()) {
+	if (!Env.GetSoundGenerator()) {
 		// Should really never be displayed (only during debugging)
 		SetMessageText(L"Audio is not working");
 		return;
 	}
 
-	auto pDriver = theApp.GetSoundGenerator()->GetAudioDriver();		// // //
+	auto pDriver = Env.GetSoundGenerator()->GetAudioDriver();		// // //
 	if (!pDriver)
 		return;
 
@@ -3279,16 +3286,16 @@ void CMainFrame::OnViewToolbar()
 
 void CMainFrame::OnToggleMultiplexer()
 {
-	CSettings *pSettings = theApp.GetSettings();
-	CSoundGen *pSoundGen = theApp.GetSoundGenerator();
+	CSettings *pSettings = Env.GetSettings();
+	CSoundGen *pSoundGen = Env.GetSoundGenerator();
 	if (!pSettings->m_bNamcoMixing) {
 		pSettings->m_bNamcoMixing = true;
-		pSoundGen->SetNamcoMixing(theApp.GetSettings()->m_bNamcoMixing);
+		pSoundGen->SetNamcoMixing(Env.GetSettings()->m_bNamcoMixing);
 		SetStatusText(L"Namco 163 multiplexer emulation disabled");
 	}
 	else{
 		pSettings->m_bNamcoMixing = false;
-		pSoundGen->SetNamcoMixing(theApp.GetSettings()->m_bNamcoMixing);
+		pSoundGen->SetNamcoMixing(Env.GetSettings()->m_bNamcoMixing);
 		SetStatusText(L"Namco 163 multiplexer emulation enabled");
 	}
 }
@@ -3465,8 +3472,8 @@ void CMainFrame::OnTrackerPal()
 
 	Doc.GetModule()->SetMachine(PAL);
 	Doc.ModifyIrreversible();
-	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
-	theApp.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);		// // //
+	Env.GetSoundGenerator()->LoadMachineSettings();		// // //
+	Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);		// // //
 	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetModule()->GetFrameRate()));		// // //
 }
 
@@ -3476,8 +3483,8 @@ void CMainFrame::OnTrackerNtsc()
 
 	Doc.GetModule()->SetMachine(NTSC);
 	Doc.ModifyIrreversible();
-	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
-	theApp.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);		// // //
+	Env.GetSoundGenerator()->LoadMachineSettings();		// // //
+	Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);		// // //
 	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetModule()->GetFrameRate()));		// // //
 }
 
@@ -3488,7 +3495,7 @@ void CMainFrame::OnSpeedDefault()
 	int Speed = 0;
 	Doc.GetModule()->SetEngineSpeed(Speed);
 	Doc.ModifyIrreversible();
-	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
+	Env.GetSoundGenerator()->LoadMachineSettings();		// // //
 	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetModule()->GetFrameRate()));		// // //
 }
 
@@ -3510,7 +3517,7 @@ void CMainFrame::OnSpeedCustom()
 
 	Module.SetEngineSpeed(Speed);
 	Doc.ModifyIrreversible();
-	theApp.GetSoundGenerator()->LoadMachineSettings();		// // //
+	Env.GetSoundGenerator()->LoadMachineSettings();		// // //
 	m_wndInstEdit.SetRefreshRate(static_cast<float>(Module.GetFrameRate()));		// // //
 }
 
@@ -3518,7 +3525,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 {
 	const CFamiTrackerDoc &Doc = GetDoc();
 
-	pCmdUI->Enable(!Doc.GetModule()->HasExpansionChips() && !theApp.GetSoundGenerator()->IsPlaying());		// // //
+	pCmdUI->Enable(!Doc.GetModule()->HasExpansionChips() && !Env.GetSoundGenerator()->IsPlaying());		// // //
 	UINT item = Doc.GetModule()->GetMachine() == PAL ? ID_TRACKER_PAL : ID_TRACKER_NTSC;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);
@@ -3526,7 +3533,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateTrackerNtsc(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!theApp.GetSoundGenerator()->IsPlaying());		// // //
+	pCmdUI->Enable(!Env.GetSoundGenerator()->IsPlaying());		// // //
 	UINT item = GetDoc().GetModule()->GetMachine() == NTSC ? ID_TRACKER_NTSC : ID_TRACKER_PAL;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);
@@ -3534,12 +3541,12 @@ void CMainFrame::OnUpdateTrackerNtsc(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateSpeedDefault(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!theApp.GetSoundGenerator()->IsPlaying());		// // //
+	pCmdUI->Enable(!Env.GetSoundGenerator()->IsPlaying());		// // //
 	pCmdUI->SetCheck(GetDoc().GetModule()->GetEngineSpeed() == 0);
 }
 
 void CMainFrame::OnUpdateSpeedCustom(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!theApp.GetSoundGenerator()->IsPlaying());		// // //
+	pCmdUI->Enable(!Env.GetSoundGenerator()->IsPlaying());		// // //
 	pCmdUI->SetCheck(GetDoc().GetModule()->GetEngineSpeed() != 0);
 }

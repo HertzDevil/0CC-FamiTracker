@@ -190,8 +190,7 @@ stOldSettingContext::stOldSettingContext()
 
 stOldSettingContext::~stOldSettingContext()
 {
-	CStringW s;
-	s.LoadStringW(AFX_IDS_APP_TITLE);
+	CStringW s(MAKEINTRESOURCEW(AFX_IDS_APP_TITLE));
 	Env.GetMainApp()->m_pszProfileName = _wcsdup(s);
 }
 

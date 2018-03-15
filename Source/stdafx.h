@@ -72,9 +72,7 @@ class CRenderTarget;		// // //
 #include <afxmt.h>		// // // For CMutex
 #include <type_traits>		// // //
 
-#ifdef TRACE
-#undef TRACE
-#endif
+
 
 namespace details {
 

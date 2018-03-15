@@ -46,7 +46,6 @@ private:
 	int m_iValue = 0;
 public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
-	afx_msg void OnFileAddsong();
 };
 
 

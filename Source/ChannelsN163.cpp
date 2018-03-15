@@ -21,7 +21,6 @@
 */
 
 #include "ChannelsN163.h"
-//#include "FamiTracker.h"
 #include "APU/Types.h"		// // //
 #include "APU/APUInterface.h"		// // //
 #include "SeqInstrument.h"		// // //
@@ -31,9 +30,7 @@
 #include "SeqInstHandlerN163.h"		// // //
 #include "SongState.h"		// // //
 #include "FamiTrackerModule.h"		// // //
-#ifdef _DEBUG
-#include "stdafx.h" // ASSERT
-#endif
+#include "Assertion.h"		// // //
 
 const int N163_PITCH_SLIDE_SHIFT = 2;	// Increase amplitude of pitch slides
 
@@ -206,25 +203,19 @@ void CChannelHandlerN163::RefreshChannel()
 
 void CChannelHandlerN163::SetWaveLength(int Length)		// // //
 {
-#ifdef _DEBUG
-	ASSERT(Length >= 4 && Length <= CInstrumentN163::MAX_WAVE_SIZE && !(Length % 4));
-#endif
+	Assert(Length >= 4 && Length <= CInstrumentN163::MAX_WAVE_SIZE && !(Length % 4));
 	m_iWaveLen = Length;
 }
 
 void CChannelHandlerN163::SetWavePosition(int Pos)		// // //
 {
-#ifdef _DEBUG
-	ASSERT(Pos >= 0 && Pos <= 0xFF);
-#endif
+	Assert(Pos >= 0 && Pos <= 0xFF);
 	m_iWavePosOld = Pos;
 }
 
 void CChannelHandlerN163::SetWaveCount(int Count)		// // //
 {
-#ifdef _DEBUG
-	ASSERT(Count > 0 && Count <= CInstrumentN163::MAX_WAVE_COUNT);
-#endif
+	Assert(Count > 0 && Count <= CInstrumentN163::MAX_WAVE_COUNT);
 	m_iWaveCount = Count;
 }
 

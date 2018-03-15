@@ -37,12 +37,6 @@
 
 #include "../resource.h"       // main symbols
 
-// Inter-process commands
-enum {
-	IPC_LOAD = 1,
-	IPC_LOAD_PLAY,
-};
-
 enum class render_type_t : unsigned char;
 
 // Custom command line reader
@@ -76,7 +70,7 @@ class CVersionChecker;		// // //
 
 class CMutex;
 
-enum class play_mode_t;		// // // Defined in PlayerCursor.h
+enum class play_mode_t : unsigned char;		// // // Defined in PlayerCursor.h
 
 /*!
 	\brief A MFC document template supporting both .0cc and .ftm file extensions.
@@ -116,19 +110,10 @@ public:
 	//
 public:
 	void			CheckNewVersion(bool StartUp);		// // //
-	void			LoadSoundConfig();
 	void			UpdateMenuShortcuts();		// // //
 	void			ReloadColorScheme();
 	int				GetCPUUsage() const;
 	bool			IsThemeActive() const;
-
-	// Tracker player functions
-	void			StartPlayer(play_mode_t Mode);
-	void			StopPlayer();
-	void			StopPlayerAndWait();
-	void			TogglePlayer();
-	void			ResetPlayer();
-	void			SilentEverything();
 
 	// Get-functions
 	CMainFrame		*GetMainFrame() const;		// // //
