@@ -188,5 +188,3 @@ public:
 };
 
 extern CFamiTrackerApp theApp;
-
-void AfxFormatString3(CStringW &rString, UINT nIDS, LPCWSTR lpsz1, LPCWSTR lpsz2, LPCWSTR lpsz3); // TODO: move to stdafx.h

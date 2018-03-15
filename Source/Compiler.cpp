@@ -170,11 +170,9 @@ bool CCompiler::OpenFile(LPCWSTR lpszFileName, CFile &file) const
 
 	if (!file.Open(lpszFileName, CFile::modeWrite | CFile::modeCreate, &ex)) {
 		// Display formatted file exception message
-		WCHAR szCause[255];
-		CStringW strFormatted;
+		WCHAR szCause[255] = { };
 		ex.GetErrorMessage(szCause, std::size(szCause));
-		AfxFormatString1(strFormatted, IDS_OPEN_FILE_ERROR, szCause);
-		AfxMessageBox(strFormatted, MB_OK | MB_ICONERROR);
+		AfxMessageBox(AfxFormattedW(IDS_OPEN_FILE_ERROR, szCause), MB_OK | MB_ICONERROR);		// // //
 		return false;
 	}
 

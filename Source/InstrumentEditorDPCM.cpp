@@ -21,7 +21,6 @@
 */
 
 #include "InstrumentEditorDPCM.h"
-#include "FamiTracker.h" // AfxFormatString3
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"		// // //
@@ -252,13 +251,10 @@ void CInstrumentEditorDPCM::BuildSampleList()
 		}
 	}
 
-	CStringW Text;
-	AfxFormatString3(Text, IDS_DPCM_SPACE_FORMAT,
+	SetDlgItemTextW(IDC_SPACE, AfxFormattedW(IDS_DPCM_SPACE_FORMAT,
 		conv::to_wide(conv::from_int(Size / 0x400)).data(),		// // //
 		conv::to_wide(conv::from_int((MAX_SAMPLE_SPACE - Size) / 0x400)).data(),
-		conv::to_wide(conv::from_int(MAX_SAMPLE_SPACE / 0x400)).data());
-
-	SetDlgItemTextW(IDC_SPACE, Text);
+		conv::to_wide(conv::from_int(MAX_SAMPLE_SPACE / 0x400)).data()));		// // //
 }
 
 // When saved in NSF, the samples has to be aligned at even 6-bits addresses
@@ -307,11 +303,8 @@ bool CInstrumentEditorDPCM::InsertSample(std::shared_ptr<ft0cc::doc::dpcm_sample
 
 	int Size = pManager->GetTotalSize();
 
-	if ((Size + pNewSample->size()) > MAX_SAMPLE_SPACE) {
-		CStringW message;
-		AfxFormatString1(message, IDS_OUT_OF_SAMPLEMEM_FORMAT, conv::to_wide(conv::sv_from_int(MAX_SAMPLE_SPACE / 1024)).data());
-		AfxMessageBox(message, MB_ICONERROR);
-	}
+	if ((Size + pNewSample->size()) > MAX_SAMPLE_SPACE)
+		AfxMessageBox(AfxFormattedW(IDS_OUT_OF_SAMPLEMEM_FORMAT, conv::to_wide(conv::sv_from_int(MAX_SAMPLE_SPACE / 1024)).data()), MB_ICONERROR);		// // //
 	else if (pManager->SetDSample(FreeSlot, std::move(pNewSample)))		// // //
 		GetDocument()->ModifyIrreversible();
 

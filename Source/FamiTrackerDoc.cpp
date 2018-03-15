@@ -325,11 +325,9 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 
 	if (!DocumentFile.Open(TempFile, CFile::modeWrite | CFile::modeCreate, &ex)) {
 		// Could not open file
-		WCHAR szCause[255];
-		CStringW strFormatted;
+		WCHAR szCause[255] = { };
 		ex.GetErrorMessage(szCause, std::size(szCause));
-		AfxFormatString1(strFormatted, IDS_SAVE_FILE_ERROR, szCause);
-		AfxMessageBox(strFormatted, MB_OK | MB_ICONERROR);
+		AfxMessageBox(AfxFormattedW(IDS_SAVE_FILE_ERROR, szCause), MB_OK | MB_ICONERROR);
 		return FALSE;
 	}
 
@@ -363,9 +361,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 		AfxDebugBreak();		// // //
 		LPWSTR lpMsgBuf;
 		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&lpMsgBuf, 0, NULL);
-		CStringW	strFormatted;
-		AfxFormatString1(strFormatted, IDS_SAVE_FILE_ERROR, lpMsgBuf);
-		AfxMessageBox(strFormatted, MB_OK | MB_ICONERROR);
+		AfxMessageBox(AfxFormattedW(IDS_SAVE_FILE_ERROR, lpMsgBuf), MB_OK | MB_ICONERROR);
 		LocalFree(lpMsgBuf);
 		// Remove temp file
 		DeleteFileW(TempFile);
@@ -377,12 +373,8 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 	SetFileTime(hOldFile, &creationTime, NULL, NULL);
 	CloseHandle(hOldFile);
 
-	// Todo: avoid calling the main window from document class
-	if (CFrameWnd *pMainFrame = static_cast<CFrameWnd*>(AfxGetMainWnd())) {		// // //
-		CStringW text;
-		AfxFormatString1(text, IDS_FILE_SAVED, conv::to_wide(std::to_string(FileSize)).data());		// // //
-		pMainFrame->SetMessageText(text);
-	}
+	if (auto *pMainFrame = static_cast<CFrameWnd *>(AfxGetMainWnd()))		// // //
+		pMainFrame->SetMessageText(AfxFormattedW(IDS_FILE_SAVED, conv::to_wide(std::to_string(FileSize)).data()));
 
 	return TRUE;
 }

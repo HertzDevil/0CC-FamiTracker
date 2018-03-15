@@ -87,9 +87,7 @@ BOOL CWavProgressDlg::OnInitDialog()
 	pView->RedrawWindow();
 
 	// Start rendering
-	CStringW FileStr;
-	AfxFormatString1(FileStr, IDS_WAVE_PROGRESS_FILE_FORMAT, m_sFile);
-	SetDlgItemTextW(IDC_PROGRESS_FILE, FileStr);
+	SetDlgItemTextW(IDC_PROGRESS_FILE, AfxFormattedW(IDS_WAVE_PROGRESS_FILE_FORMAT, m_sFile));
 
 	if (!pSoundGen->RenderToFile(m_sFile, m_pWaveRenderer))		// // //
 		EndDialog(0);
@@ -110,10 +108,8 @@ void CWavProgressDlg::OnTimer(UINT_PTR nIDEvent)
 	SetDlgItemTextW(IDC_PROGRESS_LBL, conv::to_wide(m_pWaveRenderer->GetProgressString()).data());
 	pProgressBar->SetPos(m_pWaveRenderer->GetProgressPercent());		// // //
 
-	CStringW Text;
 	const DWORD Time = (GetTickCount() - m_dwStartTime) / 1000;		// // //
-	AfxFormatString1(Text, IDS_WAVE_PROGRESS_ELAPSED_FORMAT, FormattedW(L"%02i:%02i", Time / 60, Time % 60));
-	SetDlgItemTextW(IDC_TIME, Text);
+	SetDlgItemTextW(IDC_TIME, AfxFormattedW(IDS_WAVE_PROGRESS_ELAPSED_FORMAT, FormattedW(L"%02i:%02i", Time / 60, Time % 60)));
 
 	if (!pSoundGen->IsRendering()) {
 		m_pWaveRenderer->CloseOutputFile();		// // //

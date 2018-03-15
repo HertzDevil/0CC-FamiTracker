@@ -272,10 +272,8 @@ void CExportDialog::CreateBIN()
 			int Pos = SampleDir.ReverseFind(L'\\');
 			ASSERT(Pos != -1);
 			SampleDir = SampleDir.Left(Pos + 1) + DEFAULT_SAMPLE_NAME;
-			if (PathFileExists(SampleDir)) {
-				CStringW msg;
-				AfxFormatString1(msg, IDS_EXPORT_SAMPLES_FILE, DEFAULT_SAMPLE_NAME);
-				if (AfxMessageBox(msg, MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
+			if (PathFileExistsW(SampleDir)) {
+				if (AfxMessageBox(AfxFormattedW(IDS_EXPORT_SAMPLES_FILE, DEFAULT_SAMPLE_NAME), MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
 					return;
 			}
 		}

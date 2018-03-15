@@ -1112,9 +1112,7 @@ void CMainFrame::ShowInstrumentNumberText()		// // //
 		else
 			digit += conv::to_digit<char>((m_iInstNumCurrent >> (4 * (INST_DIGITS - i - 1))) & 0xF);
 
-	CStringW msg;
-	AfxFormatString1(msg, IDS_TYPE_INST_NUM, conv::to_wide(digit).data());
-	SetMessageText(msg);
+	SetMessageText(AfxFormattedW(IDS_TYPE_INST_NUM, conv::to_wide(digit).data()));
 }
 
 void CMainFrame::SetInstrumentEditName(std::wstring_view pText)		// // //
@@ -1588,18 +1586,14 @@ void CMainFrame::OnUpdateSBInstrument(CCmdUI *pCmdUI)
 	unsigned int Split = static_cast<CFamiTrackerView*>(GetActiveView())->GetSplitInstrument();
 	if (Split != MAX_INSTRUMENTS)
 		String = conv::from_int_hex(Split, 2) + " / " + String;
-	CStringW msg;
-	AfxFormatString1(msg, ID_INDICATOR_INSTRUMENT, conv::to_wide(String).data());
 	pCmdUI->Enable();
-	pCmdUI->SetText(msg);
+	pCmdUI->SetText(AfxFormattedW(ID_INDICATOR_INSTRUMENT, conv::to_wide(String).data()));
 }
 
 void CMainFrame::OnUpdateSBOctave(CCmdUI *pCmdUI)
 {
-	CStringW String;
-	AfxFormatString1(String, ID_INDICATOR_OCTAVE, FormattedW(L"%i", GetSelectedOctave()));		// // //
 	pCmdUI->Enable();
-	pCmdUI->SetText(String);
+	pCmdUI->SetText(AfxFormattedW(ID_INDICATOR_OCTAVE, FormattedW(L"%i", GetSelectedOctave())));		// // //
 }
 
 void CMainFrame::OnUpdateSBFrequency(CCmdUI *pCmdUI)
@@ -1735,8 +1729,7 @@ void CMainFrame::OnTimer(UINT nIDEvent)
 	switch ((timer_id_t)nIDEvent) {
 		// Welcome message
 		case timer_id_t::WELCOME:
-			AfxFormatString1(text, IDS_WELCOME_VER_FORMAT, conv::to_wide(Get0CCFTVersionString()).data());
-			SetMessageText(text);
+			SetMessageText(AfxFormattedW(IDS_WELCOME_VER_FORMAT, conv::to_wide(Get0CCFTVersionString()).data()));		// // //
 			KillTimer((UINT_PTR)timer_id_t::WELCOME);
 			break;
 		// Check sound player

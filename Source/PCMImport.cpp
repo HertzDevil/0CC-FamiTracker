@@ -21,7 +21,6 @@
 */
 
 #include "PCMImport.h"
-#include "FamiTracker.h" // AfxFormatString3
 #include "FamiTrackerEnv.h"
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "FamiTrackerTypes.h"		// // //
@@ -254,15 +253,11 @@ BOOL CPCMImport::OnInitDialog()
 
 	UpdateText();
 
-	CStringW text;
-	AfxFormatString1(text, IDS_DPCM_IMPORT_SIZE_FORMAT, L"(unknown)");
-	SetDlgItemTextW(IDC_SAMPLESIZE, text);
+	SetDlgItemTextW(IDC_SAMPLESIZE, AfxFormattedW(IDS_DPCM_IMPORT_SIZE_FORMAT, L"(unknown)"));		// // //
 
 	UpdateFileInfo();
 
-	CStringW Title;
-	AfxFormatString1(Title, IDS_DPCM_IMPORT_TITLE_FORMAT, m_strFileName);
-	SetWindowTextW(Title);
+	SetWindowTextW(AfxFormattedW(IDS_DPCM_IMPORT_TITLE_FORMAT, m_strFileName));
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
@@ -284,11 +279,8 @@ void CPCMImport::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 
 void CPCMImport::UpdateText()
 {
-	CStringW Text;
-	AfxFormatString1(Text, IDS_DPCM_IMPORT_QUALITY_FORMAT, FormattedW(L"%i", m_iQuality));
-	SetDlgItemTextW(IDC_QUALITY_FRM, Text);
-	AfxFormatString1(Text, IDS_DPCM_IMPORT_GAIN_FORMAT, FormattedW(L"%+.0f", (float)m_iVolume));		// // //
-	SetDlgItemTextW(IDC_VOLUME_FRM, Text);
+	SetDlgItemTextW(IDC_QUALITY_FRM, AfxFormattedW(IDS_DPCM_IMPORT_QUALITY_FORMAT, FormattedW(L"%i", m_iQuality)));		// // //
+	SetDlgItemTextW(IDC_VOLUME_FRM, AfxFormattedW(IDS_DPCM_IMPORT_GAIN_FORMAT, FormattedW(L"%+.0f", (float)m_iVolume)));
 }
 
 void CPCMImport::OnBnClickedCancel()
@@ -321,9 +313,7 @@ void CPCMImport::OnBnClickedOk()
 void CPCMImport::OnBnClickedPreview()
 {
 	if (auto pSample = GetSample()) {		// // //
-		CStringW text;
-		AfxFormatString1(text, IDS_DPCM_IMPORT_SIZE_FORMAT, FormattedW(L"%i", pSample->size()));
-		SetDlgItemTextW(IDC_SAMPLESIZE, text);
+		SetDlgItemTextW(IDC_SAMPLESIZE, AfxFormattedW(IDS_DPCM_IMPORT_SIZE_FORMAT, FormattedW(L"%i", pSample->size())));
 
 		// Preview the sample
 		Env.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, m_iQuality);
@@ -332,20 +322,14 @@ void CPCMImport::OnBnClickedPreview()
 
 void CPCMImport::UpdateFileInfo()
 {
-	CStringW SampleRate;
-
-	AfxFormatString3(SampleRate, IDS_DPCM_IMPORT_WAVE_FORMAT,
+	SetDlgItemTextW(IDC_SAMPLE_RATE, AfxFormattedW(IDS_DPCM_IMPORT_WAVE_FORMAT,
 		FormattedW(L"%i", m_iSamplesPerSec),
 		FormattedW(L"%i", m_iSampleSize * 8),
-		(m_iChannels == 2) ? L"Stereo" : L"Mono");
-
-	SetDlgItemTextW(IDC_SAMPLE_RATE, SampleRate);
+		(m_iChannels == 2) ? L"Stereo" : L"Mono"));		// // //
 
 	float base_freq = (float)MASTER_CLOCK_NTSC / (float)CDPCM::DMC_PERIODS_NTSC[m_iQuality];
 
-	CStringW Resampling;
-	AfxFormatString1(Resampling, IDS_DPCM_IMPORT_TARGET_FORMAT, FormattedW(L"%g", base_freq));
-	SetDlgItemTextW(IDC_RESAMPLING, Resampling);
+	SetDlgItemTextW(IDC_RESAMPLING, AfxFormattedW(IDS_DPCM_IMPORT_TARGET_FORMAT, FormattedW(L"%g", base_freq)));
 }
 
 std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::GetSample() {		// // //
@@ -451,8 +435,8 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ConvertFile() {		// // //
 bool CPCMImport::OpenWaveFile()
 {
 	// Open and read wave file header
-	PCMWAVEFORMAT WaveFormat;
-	char Header[4];
+	PCMWAVEFORMAT WaveFormat = { };		// // //
+	char Header[4] = { };
 	bool Scanning = true;
 	bool WaveFormatFound = false;
 	bool ValidWave = false;
@@ -460,18 +444,15 @@ bool CPCMImport::OpenWaveFile()
 	unsigned int FileSize;
 	CFileException ex;
 
-	ZeroMemory(&WaveFormat, sizeof(PCMWAVEFORMAT));
 	m_iWaveSize = 0;
 	m_ullSampleStart = 0;
 
 	TRACE(L"DPCM import: Loading wave file %s...\n", m_strPath);
 
 	if (!m_fSampleFile.Open(m_strPath, CFile::modeRead, &ex)) {
-		WCHAR   szCause[255];
-		CStringW strFormatted;
+		WCHAR szCause[255] = { };
 		ex.GetErrorMessage(szCause, std::size(szCause));
-		AfxFormatString1(strFormatted, IDS_OPEN_FILE_ERROR, szCause);
-		AfxMessageBox(strFormatted);
+		AfxMessageBox(AfxFormattedW(IDS_OPEN_FILE_ERROR, szCause));		// // //
 		return false;
 	}
 

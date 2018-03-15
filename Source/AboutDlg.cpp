@@ -139,8 +139,7 @@ BOOL CAboutDlg::OnInitDialog()
 #ifdef WIP
 	CStringW aboutString = FormattedW(L"0CC-FamiTracker %s", conv::to_wide(Get0CCFTVersionString()).data());		// // //
 #else
-	CStringW aboutString;
-	AfxFormatString1(aboutString, IDS_ABOUT_VERSION_FORMAT, Get0CCFTVersionString());
+	CStringW aboutString = AfxFormattedW(IDS_ABOUT_VERSION_FORMAT, conv::to_wide(Get0CCFTVersionString()).data());
 #endif
 
 	SetDlgItemTextW(IDC_ABOUT1, aboutString);

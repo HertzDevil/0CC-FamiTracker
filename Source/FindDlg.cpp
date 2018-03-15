@@ -302,9 +302,8 @@ void CFindResultsBox::SelectItem(int Index)
 void CFindResultsBox::UpdateCount() const
 {
 	int Count = m_cListResults.GetItemCount();
-	CStringW str;
-	AfxFormatString2(str, IDS_FINDRESULT_COUNT, FormattedW(L"%d", Count), Count == 1 ? L"result" : L"results");
-	GetDlgItem(IDC_STATIC_FINDRESULT_COUNT)->SetWindowTextW(str);
+	GetDlgItem(IDC_STATIC_FINDRESULT_COUNT)->SetWindowTextW(AfxFormattedW(
+		IDS_FINDRESULT_COUNT, FormattedW(L"%d", Count), Count == 1 ? L"result" : L"results"));
 }
 
 

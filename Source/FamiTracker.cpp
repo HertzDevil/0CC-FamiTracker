@@ -757,15 +757,6 @@ void CFamiTrackerApp::OnFileOpen()
 		pFrameWnd->SetMessageText(IDS_LOADING_DONE);
 }
 
-// Various global helper functions
-
-void AfxFormatString3(CStringW &rString, UINT nIDS, LPCWSTR lpsz1, LPCWSTR lpsz2, LPCWSTR lpsz3)
-{
-	// AfxFormatString with three arguments
-	LPCWSTR arr[] = {lpsz1, lpsz2, lpsz3};
-	AfxFormatStrings(rString, nIDS, arr, std::size(arr));
-}
-
 /**
  * CFTCommandLineInfo, a custom command line parser
  *

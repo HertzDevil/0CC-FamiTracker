@@ -172,9 +172,7 @@ void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 
 	// Dialog title
 	auto sv = conv::to_wide(pInstrument->GetName());
-	CStringW Title;
-	AfxFormatString1(Title, IDS_INSTRUMENT_EDITOR_TITLE, FormattedW(L"%02X. %.*s (%s)", Index, sv.size(), sv.data(), CHIP_NAMES[InstType]));		// // //
-	SetWindowTextW(Title);
+	SetWindowTextW(AfxFormattedW(IDS_INSTRUMENT_EDITOR_TITLE, FormattedW(L"%02X. %.*s (%s)", Index, sv.size(), sv.data(), CHIP_NAMES[InstType])));		// // //
 
 	if (InstType != m_iSelectedInstType) {
 		ShowWindow(SW_HIDE);

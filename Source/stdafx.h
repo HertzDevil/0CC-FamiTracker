@@ -112,6 +112,14 @@ inline void AppendFormatW(CStringW &str, LPCWSTR fmt, Args&&... args) {
 	str.AppendFormat(fmt, std::forward<Args>(args)...);
 }
 
+template <typename... Args>
+inline CStringW AfxFormattedW(UINT nID, const Args &... args) {
+	CStringW str;
+	const LPCWSTR strs[] = {static_cast<LPCWSTR>(args)...};
+	::AfxFormatStrings(str, nID, &strs[0], sizeof...(args));
+	return str;
+}
+
 
 
 namespace details {
