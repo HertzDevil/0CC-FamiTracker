@@ -112,6 +112,10 @@ CS5B::CS5B(CMixer &Mixer) : CSoundChip(Mixer),
 	Reset();
 }
 
+sound_chip_t CS5B::GetID() const {		// // //
+	return sound_chip_t::S5B;
+}
+
 void CS5B::Reset()
 {
 	m_iNoiseState = 0xFFFF;

@@ -173,6 +173,10 @@ CVRC6::CVRC6(CMixer &Mixer) :
 	m_pRegisterLogger->AddRegisterRange(0xB000, 0xB002);
 }
 
+sound_chip_t CVRC6::GetID() const {		// // //
+	return sound_chip_t::VRC6;
+}
+
 void CVRC6::Reset()
 {
 	m_Pulse1.Reset();

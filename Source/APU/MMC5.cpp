@@ -37,6 +37,10 @@ CMMC5::CMMC5(CMixer &Mixer) :
 	m_pRegisterLogger->AddRegisterRange(0x5015, 0x5015);
 }
 
+sound_chip_t CMMC5::GetID() const {		// // //
+	return sound_chip_t::MMC5;
+}
+
 void CMMC5::Reset()
 {
 	m_Square1.Reset();

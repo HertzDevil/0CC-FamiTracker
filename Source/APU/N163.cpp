@@ -55,6 +55,10 @@ CN163::CN163(CMixer &Mixer) :
 	m_pRegisterLogger->AddRegisterRange(0x00, 0x7F);		// // //
 }
 
+sound_chip_t CN163::GetID() const {		// // //
+	return sound_chip_t::N163;
+}
+
 void CN163::Reset()
 {
 	for (auto &ch : m_Channels)		// // //

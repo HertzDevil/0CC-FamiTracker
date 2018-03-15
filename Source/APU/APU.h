@@ -31,15 +31,6 @@
 #include "SoundChipSet.h"		// // //
 #include "APUInterface.h"		// // //
 
-// External classes
-class C2A03;		// // //
-class CVRC6;
-class CVRC7;
-class CFDS;
-class CMMC5;
-class CN163;
-class CS5B;
-
 namespace ft0cc::doc {
 class dpcm_sample;
 } // namespace ft0cc::doc
@@ -62,7 +53,7 @@ public:
 	void	AddTime(int32_t Cycles);
 	void	EndFrame();		// // // public
 
-	void	SetExternalSound(CSoundChipSet Chip);
+	void	SetExternalSound(CSoundChipSet Chips);
 	void	Write(uint16_t Address, uint8_t Value) override;		// // //
 	uint8_t	Read(uint16_t Address);
 
@@ -83,25 +74,6 @@ public:
 	void	SetMeterDecayRate(decay_rate_t Type) const;		// // // 050B
 	decay_rate_t GetMeterDecayRate() const;		// // // 050B
 
-	template <sound_chip_t Chip>
-	auto GetSoundChip() const {		// // //
-		if constexpr (Chip == sound_chip_t::APU)
-			return m_p2A03.get();
-		else if constexpr (Chip == sound_chip_t::VRC6)
-			return m_pVRC6.get();
-		else if constexpr (Chip == sound_chip_t::VRC7)
-			return m_pVRC7.get();
-		else if constexpr (Chip == sound_chip_t::FDS)
-			return m_pFDS.get();
-		else if constexpr (Chip == sound_chip_t::MMC5)
-			return m_pMMC5.get();
-		else if constexpr (Chip == sound_chip_t::N163)
-			return m_pN163.get();
-		else if constexpr (Chip == sound_chip_t::S5B)
-			return m_pS5B.get();
-		else
-			return static_cast<CSoundChip *>(nullptr);
-	}
 	CSoundChip *GetSoundChip(sound_chip_t Chip) const override;		// // //
 
 #ifdef LOGGING
@@ -118,15 +90,8 @@ private:
 	IAudioCallback *m_pParent;
 
 	// Expansion chips
-	std::unique_ptr<C2A03> m_p2A03;		// // //
-	std::unique_ptr<CVRC6> m_pVRC6;
-	std::unique_ptr<CMMC5> m_pMMC5;
-	std::unique_ptr<CFDS> m_pFDS;
-	std::unique_ptr<CN163> m_pN163;
-	std::unique_ptr<CVRC7> m_pVRC7;
-	std::unique_ptr<CS5B> m_pS5B;
-
-	std::vector<CSoundChip *> m_pExpansionChips;		// // //
+	std::vector<std::unique_ptr<CSoundChip>> m_pSoundChips;		// // //
+	std::vector<CSoundChip *> m_pActiveChips;		// // //
 
 	CSoundChipSet m_iExternalSoundChip;				// // // External sound chip, if used
 

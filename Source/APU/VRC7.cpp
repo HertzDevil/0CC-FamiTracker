@@ -36,6 +36,10 @@ CVRC7::CVRC7(CMixer &Mixer) : CSoundChip(Mixer)
 	Reset();
 }
 
+sound_chip_t CVRC7::GetID() const {		// // //
+	return sound_chip_t::VRC7;
+}
+
 void CVRC7::Reset()
 {
 	m_iBufferPtr = 0;

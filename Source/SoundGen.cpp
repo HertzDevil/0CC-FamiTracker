@@ -341,7 +341,8 @@ void CSoundGen::CancelPreviewSample()
 {
 	// Remove references to selected sample.
 	// This must be done if a sample is about to be deleted!
-	m_pAPU->GetSoundChip<sound_chip_t::APU>()->ClearSample();		// // //
+	if (auto *p2A03 = dynamic_cast<C2A03 *>(m_pAPU->GetSoundChip(sound_chip_t::APU)))		// // //
+		p2A03->ClearSample();
 }
 
 bool CSoundGen::IsRunning() const
@@ -857,8 +858,8 @@ void CSoundGen::LoadSoundConfig() {		// // //
 stDPCMState CSoundGen::GetDPCMState() const
 {
 	if (m_pAPU)		// // //
-		if (auto *chip = m_pAPU->GetSoundChip<sound_chip_t::APU>())
-			return {chip->GetSamplePos(), chip->GetDeltaCounter()};
+		if (auto *p2A03 = dynamic_cast<C2A03 *>(m_pAPU->GetSoundChip(sound_chip_t::APU)))		// // //
+			return {p2A03->GetSamplePos(), p2A03->GetDeltaCounter()};
 	return { };
 }
 
@@ -945,7 +946,8 @@ void CSoundGen::PlayPreviewSample(int Offset, int Pitch) {		// // //
 	int Loop = 0;
 	int Length = ((m_pPreviewSample->size() - 1) >> 4) - (Offset << 2);
 
-	m_pAPU->GetSoundChip<sound_chip_t::APU>()->WriteSample(std::move(m_pPreviewSample));		// // //
+	if (auto *p2A03 = dynamic_cast<C2A03 *>(m_pAPU->GetSoundChip(sound_chip_t::APU)))		// // //
+		p2A03->WriteSample(std::move(m_pPreviewSample));		// // //
 
 	m_pAPU->Write(0x4010, Pitch | Loop);
 	m_pAPU->Write(0x4012, Offset);			// load address, start at $C000
@@ -957,8 +959,8 @@ void CSoundGen::PlayPreviewSample(int Offset, int Pitch) {		// // //
 bool CSoundGen::PreviewDone() const
 {
 	if (m_pAPU)		// // //
-		if (auto *chip = m_pAPU->GetSoundChip<sound_chip_t::APU>())
-			return !chip->DPCMPlaying();
+		if (auto *p2A03 = dynamic_cast<C2A03 *>(m_pAPU->GetSoundChip(sound_chip_t::APU)))		// // //
+			return !p2A03->DPCMPlaying();
 	return true;
 }
 

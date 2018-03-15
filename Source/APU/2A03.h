@@ -42,6 +42,8 @@ class C2A03 : public CSoundChip
 public:
 	explicit C2A03(CMixer &Mixer);
 
+	sound_chip_t GetID() const override;		// // //
+
 	void Reset() override;
 	void Process(uint32_t Time) override;
 	void EndFrame() override;

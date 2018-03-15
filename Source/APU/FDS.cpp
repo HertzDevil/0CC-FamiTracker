@@ -39,6 +39,10 @@ CFDS::~CFDS()
 {
 }
 
+sound_chip_t CFDS::GetID() const {		// // //
+	return sound_chip_t::FDS;
+}
+
 void CFDS::Reset()
 {
 	emu_->Reset();

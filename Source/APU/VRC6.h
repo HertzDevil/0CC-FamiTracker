@@ -69,11 +69,15 @@ class CVRC6 : public CSoundChip {
 public:
 	explicit CVRC6(CMixer &Mixer);
 
+	sound_chip_t GetID() const override;		// // //
+
 	void Reset() override;
+	void Process(uint32_t Time) override;
+	void EndFrame() override;
+
 	void Write(uint16_t Address, uint8_t Value) override;
 	uint8_t Read(uint16_t Address, bool &Mapped) override;
-	void EndFrame() override;
-	void Process(uint32_t Time) override;
+
 	double GetFreq(int Channel) const override;		// // //
 
 private:

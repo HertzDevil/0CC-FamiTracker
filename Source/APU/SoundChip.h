@@ -25,6 +25,7 @@
 
 #include <cstdint>		// // //
 #include <memory>		// // //
+#include "APU/Types_fwd.h"		// // //
 
 class CMixer;
 class CRegisterLogger;		// // //
@@ -33,6 +34,8 @@ class CSoundChip {
 public:
 	explicit CSoundChip(CMixer &Mixer);		// // //
 	virtual ~CSoundChip() noexcept = default;
+
+	virtual sound_chip_t GetID() const = 0;		// // //
 
 	virtual void	Reset() = 0;
 	virtual void	Process(uint32_t Time) = 0;

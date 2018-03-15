@@ -40,6 +40,10 @@ C2A03::C2A03(CMixer &Mixer) :
 	m_pRegisterLogger->AddRegisterRange(0x4000, 0x4017);		// // //
 }
 
+sound_chip_t C2A03::GetID() const {		// // //
+	return sound_chip_t::APU;
+}
+
 void C2A03::Reset()
 {
 	m_iFrameSequence	= 0;

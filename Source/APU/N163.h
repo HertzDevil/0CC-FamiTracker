@@ -63,15 +63,20 @@ class CN163 : public CSoundChip {
 public:
 	explicit CN163(CMixer &Mixer);
 
+	sound_chip_t GetID() const override;		// // //
+
 	void Reset() override;
 	void Process(uint32_t Time) override;
 	void EndFrame() override;
-	void Write(uint16_t Address, uint8_t Value) override;
-	void Log(uint16_t Address, uint8_t Value) override;		// // //
-	double GetFreq(int Channel) const override;		// // //
 
+	void Write(uint16_t Address, uint8_t Value) override;
 	uint8_t Read(uint16_t Address, bool &Mapped);
 	uint8_t ReadMem(uint8_t Reg);
+
+	void Log(uint16_t Address, uint8_t Value) override;		// // //
+
+	double GetFreq(int Channel) const override;		// // //
+
 	void Mix(int32_t Value, uint32_t Time, chan_id_t ChanID);		// // //
 	void SetMixingMethod(bool bLinear);		// // //
 
