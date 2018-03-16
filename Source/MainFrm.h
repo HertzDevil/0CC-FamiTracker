@@ -164,8 +164,7 @@ public:
 	bool HasDocument() const;		// // //
 
 private:
-	template <typename... T>
-	void	SetStatusText(LPCWSTR Text, T&&... args);		// // //
+	void	SetStatusText(std::string_view sv);		// // //
 	bool	CreateDialogPanels();
 	bool	CreateToolbars();
 	bool	CreateInstrumentToolbar();

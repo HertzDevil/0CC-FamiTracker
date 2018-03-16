@@ -455,7 +455,6 @@
     <ClCompile Include="Source\BookmarkCollection.cpp" />
     <ClCompile Include="Source\BookmarkDlg.cpp" />
     <ClCompile Include="Source\ChannelOrder.cpp" />
-    <ClCompile Include="Source\ChipFactory.cpp" />
     <ClCompile Include="Source\ChipHandler.cpp" />
     <ClCompile Include="Source\ChipHandlerS5B.cpp" />
     <ClCompile Include="Source\ChipHandlerVRC7.cpp" />
@@ -482,7 +481,9 @@
     <ClCompile Include="Source\SettingsService.cpp" />
     <ClCompile Include="Source\SongLengthScanner.cpp" />
     <ClCompile Include="Source\SongView.cpp" />
+    <ClCompile Include="Source\SoundChipService.cpp" />
     <ClCompile Include="Source\SoundChipSet.cpp" />
+    <ClCompile Include="Source\SoundChipTypeImpl.cpp" />
     <ClCompile Include="Source\SoundDriver.cpp" />
     <ClCompile Include="Source\SongState.cpp" />
     <ClCompile Include="Source\FrameEditorTypes.cpp" />
@@ -656,7 +657,6 @@
     <ClInclude Include="Source\BookmarkDlg.h" />
     <ClInclude Include="Source\ChannelName.h" />
     <ClInclude Include="Source\ChannelOrder.h" />
-    <ClInclude Include="Source\ChipFactory.h" />
     <ClInclude Include="Source\ChipHandler.h" />
     <ClInclude Include="Source\ChipHandlerS5B.h" />
     <ClInclude Include="Source\ChipHandlerVRC7.h" />
@@ -699,7 +699,10 @@
     <ClInclude Include="Source\SettingsService.h" />
     <ClInclude Include="Source\SongLengthScanner.h" />
     <ClInclude Include="Source\SongView.h" />
+    <ClInclude Include="Source\SoundChipService.h" />
     <ClInclude Include="Source\SoundChipSet.h" />
+    <ClInclude Include="Source\SoundChipType.h" />
+    <ClInclude Include="Source\SoundChipTypeImpl.h" />
     <ClInclude Include="Source\SoundDriver.h" />
     <ClInclude Include="Source\SongState.h" />
     <ClInclude Include="Source\drivers\drv_2a03.h" />

@@ -232,6 +232,12 @@
     <Filter Include="Header Files\Sound Driver Headers\Chips Headers">
       <UniqueIdentifier>{c07c64f3-db28-48d8-bc26-3654bf491561}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Services">
+      <UniqueIdentifier>{83a6f0ad-caed-426f-861e-02ad757284de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Services Headers">
+      <UniqueIdentifier>{e388b7db-733b-4b54-82ff-b5971cfe9931}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Exception.cpp">
@@ -473,9 +479,6 @@
     </ClCompile>
     <ClCompile Include="Source\DirectSound.cpp">
       <Filter>Source Files\Sound Driver\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\MIDI.cpp">
-      <Filter>Source Files\MIDI</Filter>
     </ClCompile>
     <ClCompile Include="Source\PatternAction.cpp">
       <Filter>Source Files\Pattern Editor</Filter>
@@ -750,14 +753,8 @@
     <ClCompile Include="Source\FamiTrackerEnv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\InstrumentTypeImpl.cpp">
-      <Filter>Source Files\Document Data Types\Instruments</Filter>
-    </ClCompile>
     <ClCompile Include="Source\InstCompiler.cpp">
       <Filter>Source Files\Exporter</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\InstrumentService.cpp">
-      <Filter>Source Files\Document Data Types\Instruments</Filter>
     </ClCompile>
     <ClCompile Include="Source\FamiTrackerModule.cpp">
       <Filter>Source Files\Document Components</Filter>
@@ -798,9 +795,6 @@
     <ClCompile Include="Source\ChipHandlerVRC7.cpp">
       <Filter>Source Files\Sound Driver\Chips</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ChipFactory.cpp">
-      <Filter>Source Files\Sound Driver\Chips</Filter>
-    </ClCompile>
     <ClCompile Include="Source\ChipHandlerS5B.cpp">
       <Filter>Source Files\Sound Driver\Chips</Filter>
     </ClCompile>
@@ -813,11 +807,26 @@
     <ClCompile Include="Source\FamiTrackerDocIOJson.cpp">
       <Filter>Source Files\Document Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\SettingsService.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Source\FileDialogs.cpp">
       <Filter>Source Files\Dialog Boxes</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SoundChipService.cpp">
+      <Filter>Source Files\Services</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SoundChipTypeImpl.cpp">
+      <Filter>Source Files\Services</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\InstrumentService.cpp">
+      <Filter>Source Files\Services</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\InstrumentTypeImpl.cpp">
+      <Filter>Source Files\Services</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\MIDI.cpp">
+      <Filter>Source Files\MIDI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SettingsService.cpp">
+      <Filter>Source Files\Services</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1436,17 +1445,8 @@
     <ClInclude Include="Source\FamiTrackerEnv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\InstrumentType.h">
-      <Filter>Header Files\Document Data Type Headers\Instrument Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\InstrumentTypeImpl.h">
-      <Filter>Header Files\Document Data Type Headers\Instrument Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\InstCompiler.h">
       <Filter>Header Files\Export Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\InstrumentService.h">
-      <Filter>Header Files\Document Data Type Headers\Instrument Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\sv_regex.h">
       <Filter>Header Files\Other Headers</Filter>
@@ -1514,9 +1514,6 @@
     <ClInclude Include="Source\ChipHandlerVRC7.h">
       <Filter>Header Files\Sound Driver Headers\Chips Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ChipFactory.h">
-      <Filter>Header Files\Sound Driver Headers\Chips Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\ChipHandlerS5B.h">
       <Filter>Header Files\Sound Driver Headers\Chips Headers</Filter>
     </ClInclude>
@@ -1532,11 +1529,29 @@
     <ClInclude Include="Source\FamiTrackerDocIOJson.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\SettingsService.h">
-      <Filter>Header Files\Components Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\FileDialogs.h">
       <Filter>Header Files\Dialog Boxes Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\InstrumentService.h">
+      <Filter>Header Files\Services Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\InstrumentType.h">
+      <Filter>Header Files\Services Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\InstrumentTypeImpl.h">
+      <Filter>Header Files\Services Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SoundChipService.h">
+      <Filter>Header Files\Services Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SoundChipType.h">
+      <Filter>Header Files\Services Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SoundChipTypeImpl.h">
+      <Filter>Header Files\Services Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SettingsService.h">
+      <Filter>Header Files\Services Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -27,7 +27,8 @@
 #include "TempoCounter.h"
 #include "ChannelHandler.h"
 #include "ChipHandler.h"
-#include "ChipFactory.h"
+#include "FamiTrackerEnv.h"
+#include "SoundChipService.h"
 #include "TrackerChannel.h"
 #include "PlayerCursor.h"
 #include "DetuneTable.h"
@@ -67,13 +68,8 @@ void CSoundDriver::SetupTracks() {
 	for (std::size_t i = 0; i < CHANID_COUNT; ++i)
 		tracks_.emplace_back(nullptr, std::make_unique<CTrackerChannel>());
 
-	chips_.push_back(CChipFactory::Make(sound_chip_t::APU));
-	chips_.push_back(CChipFactory::Make(sound_chip_t::VRC6));
-	chips_.push_back(CChipFactory::Make(sound_chip_t::VRC7));
-	chips_.push_back(CChipFactory::Make(sound_chip_t::FDS));
-	chips_.push_back(CChipFactory::Make(sound_chip_t::MMC5));
-	chips_.push_back(CChipFactory::Make(sound_chip_t::N163));
-	chips_.push_back(CChipFactory::Make(sound_chip_t::S5B));
+	for (sound_chip_t c : SOUND_CHIPS)
+		chips_.push_back(Env.GetSoundChipService()->MakeChipHandler(c));
 
 	for (auto &x : chips_) {
 		x->VisitChannelHandlers([&] (CChannelHandler &ch) {

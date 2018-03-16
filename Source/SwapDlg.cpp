@@ -23,10 +23,13 @@
 #include "SwapDlg.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"
+#include "FamiTrackerEnv.h"
+#include "SoundChipService.h"
 #include "SoundChipSet.h"
 #include "FamiTrackerViewMessage.h"
 #include "SongData.h"
 #include "APU/Types.h"
+#include "str_conv/str_conv.hpp"
 
 // CSwapDlg dialog
 
@@ -108,25 +111,6 @@ void CSwapDlg::CheckDestination() const
 								   (m_iDestChannel1 != m_iDestChannel2 || m_iDestChip1 != m_iDestChip2));
 }
 
-sound_chip_t CSwapDlg::GetChipFromString(const CStringW &str)
-{
-	if (str == L"2A03")
-		return sound_chip_t::APU;
-	if (str == L"VRC6")
-		return sound_chip_t::VRC6;
-	if (str == L"VRC7")
-		return sound_chip_t::VRC7;
-	if (str == L"FDS")
-		return sound_chip_t::FDS;
-	if (str == L"MMC5")
-		return sound_chip_t::MMC5;
-	if (str == L"N163")
-		return sound_chip_t::N163;
-	if (str == L"5B")
-		return sound_chip_t::S5B;
-	return sound_chip_t::NONE;
-}
-
 void CSwapDlg::OnEnChangeEditSwapChan1()
 {
 	CStringW str;
@@ -147,7 +131,7 @@ void CSwapDlg::OnCbnSelchangeComboSwapChip1()
 {
 	CStringW str;
 	m_cChipFirst.GetWindowTextW(str);
-	m_iDestChip1 = GetChipFromString(str);
+	m_iDestChip1 = Env.GetSoundChipService()->GetChipFromString(conv::to_utf8(str));
 	CheckDestination();
 }
 
@@ -155,7 +139,7 @@ void CSwapDlg::OnCbnSelchangeComboSwapChip2()
 {
 	CStringW str;
 	m_cChipSecond.GetWindowTextW(str);
-	m_iDestChip2 = GetChipFromString(str);
+	m_iDestChip2 = Env.GetSoundChipService()->GetChipFromString(conv::to_utf8(str));
 	CheckDestination();
 }
 

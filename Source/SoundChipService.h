@@ -23,11 +23,23 @@
 
 #pragma once
 
-#include <memory>
-#include "APU/Types_fwd.h"
+#include <unordered_map>
+#include "SoundChipType.h"
 
-class CChipHandler;
+class CSoundChipService {
+public:
+	void AddType(std::unique_ptr<CSoundChipType> stype);
+	void AddDefaultTypes();
 
-struct CChipFactory {
-	static std::unique_ptr<CChipHandler> Make(sound_chip_t id);
+	std::string_view GetShortChipName(sound_chip_t chip) const;
+	std::string_view GetFullChipName(sound_chip_t chip) const;
+	sound_chip_t GetChipFromString(std::string_view sv) const;
+
+	std::unique_ptr<CSoundChip> MakeSoundChipDriver(sound_chip_t chip, CMixer &mixer) const;
+	std::unique_ptr<CChipHandler> MakeChipHandler(sound_chip_t chip) const;
+
+private:
+	const CSoundChipType &GetType(sound_chip_t chip) const;
+
+	std::unordered_map<sound_chip_t, std::unique_ptr<CSoundChipType>> types_;
 };

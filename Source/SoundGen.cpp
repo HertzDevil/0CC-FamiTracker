@@ -465,15 +465,7 @@ bool CSoundGen::ResetAudioDevice()
 	m_pAPU->SetChipLevel(CHIP_LEVEL_FDS, float(pSettings->ChipLevels.iLevelFDS / 10.0f));
 	m_pAPU->SetChipLevel(CHIP_LEVEL_N163, float(pSettings->ChipLevels.iLevelN163 / 10.0f));
 	m_pAPU->SetChipLevel(CHIP_LEVEL_S5B, float(pSettings->ChipLevels.iLevelS5B / 10.0f));
-/*
-	m_pAPU->SetChipLevel(sound_chip_t::APU, 0);//pSettings->ChipLevels.iLevel2A03);
-	m_pAPU->SetChipLevel(sound_chip_t::VRC6, 0);//pSettings->ChipLevels.iLevelVRC6);
-	m_pAPU->SetChipLevel(sound_chip_t::VRC7, 0);//pSettings->ChipLevels.iLevelVRC7);
-	m_pAPU->SetChipLevel(sound_chip_t::MMC5, 0);//pSettings->ChipLevels.iLevelMMC5);
-	m_pAPU->SetChipLevel(sound_chip_t::FDS, 0);//pSettings->ChipLevels.iLevelFDS);
-//	m_pAPU->SetChipLevel(sound_chip_t::N163, pSettings->ChipLevels.iLevelN163);
-//	m_pAPU->SetChipLevel(sound_chip_t::S5B, pSettings->ChipLevels.iLevelS5B);
-*/
+
 	// Update blip-buffer filtering
 	m_pAPU->SetupMixer(pSettings->Sound.iBassFilter, pSettings->Sound.iTrebleFilter,
 					   pSettings->Sound.iTrebleDamping, pSettings->Sound.iMixVolume);

@@ -23,41 +23,19 @@
 
 #pragma once
 
-#include "stdafx.h"
-#include "../resource.h"
 #include "APU/Types_fwd.h"
+#include <string_view>
+#include <memory>
 
-// CSwapDlg dialog
+class CSoundChip;
+class CMixer;
+class CChipHandler;
 
-class CSwapDlg : public CDialog
-{
-	DECLARE_DYNAMIC(CSwapDlg)
-
+class CSoundChipType {
 public:
-	CSwapDlg(CWnd* pParent = NULL);   // standard constructor
-	void SetTrack(unsigned int Track);
-
-// Dialog Data
-	enum { IDD = IDD_SWAP };
-
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-	void CheckDestination() const;
-
-	unsigned int m_iDestChannel1, m_iDestChannel2;
-	sound_chip_t m_iDestChip1, m_iDestChip2;
-	unsigned int m_iTrack;
-
-	CEdit m_cChannelFirst, m_cChannelSecond;
-	CComboBox m_cChipFirst, m_cChipSecond;
-
-	DECLARE_MESSAGE_MAP()
-public:
-	virtual BOOL OnInitDialog();
-	afx_msg void OnEnChangeEditSwapChan1();
-	afx_msg void OnEnChangeEditSwapChan2();
-	afx_msg void OnCbnSelchangeComboSwapChip1();
-	afx_msg void OnCbnSelchangeComboSwapChip2();
-	afx_msg void OnBnClickedOk();
+	virtual sound_chip_t GetID() const = 0;
+	virtual std::string_view GetShortName() const = 0;
+	virtual std::string_view GetFullName() const = 0;
+	virtual std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer) const = 0;
+	virtual std::unique_ptr<CChipHandler> MakeChipHandler() const = 0;
 };

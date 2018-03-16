@@ -68,6 +68,7 @@
 #include "FileDialogs.h"
 #include "DPI.h"
 #include "Color.h"
+#include "SoundChipService.h"
 #include "InstrumentService.h"
 #include "ActionHandler.h"
 #include "ModuleAction.h"
@@ -902,11 +903,9 @@ bool CMainFrame::HasDocument() const {		// // //
 
 // CMainFrame message handlers
 
-template <typename... T>
-void CMainFrame::SetStatusText(LPCWSTR Text, T&&... args)		// // //
-{
-	if (Text)
-		m_wndStatusBar.SetWindowTextW(FormattedW(Text, std::forward<T>(args)...));
+void CMainFrame::SetStatusText(std::string_view sv) {		// // //
+	if (!sv.empty())
+		m_wndStatusBar.SetWindowTextW(conv::to_wide(sv).data());
 }
 
 void CMainFrame::ClearInstrumentList()
@@ -1621,38 +1620,25 @@ void CMainFrame::OnUpdateSBTempo(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 {
-	CStringW String;
+	std::string String;
 
 	CSoundChipSet Chip = GetDoc().GetModule()->GetSoundChipSet();
 
-	if (!Chip.IsMultiChip())		// // //
-		switch (Chip.WithoutChip(sound_chip_t::APU).GetSoundChip()) {
-		case sound_chip_t::VRC6: String = L" Konami VRC6";       break;
-		case sound_chip_t::VRC7: String = L" Konami VRC7";       break;
-		case sound_chip_t::FDS:  String = L" Nintendo FDS";      break;
-		case sound_chip_t::MMC5: String = L" Nintendo MMC5";     break;
-		case sound_chip_t::N163: String = L" Namco 163";         break;
-		case sound_chip_t::S5B:  String = L" Sunsoft 5B";        break;
-		case sound_chip_t::NONE: String = L" No expansion chip"; break;
-		}
+	if (!Chip.IsMultiChip()) {		// // //
+		auto c = Chip.WithoutChip(sound_chip_t::APU).GetSoundChip();
+		String = c != sound_chip_t::NONE ? Env.GetSoundChipService()->GetFullChipName(c) : "No expansion chip";
+	}
 	else {
-		if (Chip.ContainsChip(sound_chip_t::VRC6))
-			String += L" + VRC6";
-		if (Chip.ContainsChip(sound_chip_t::VRC7))
-			String += L" + VRC7";
-		if (Chip.ContainsChip(sound_chip_t::FDS))
-			String += L" + FDS";
-		if (Chip.ContainsChip(sound_chip_t::MMC5))
-			String += L" + MMC5";
-		if (Chip.ContainsChip(sound_chip_t::N163))
-			String += L" + N163";
-		if (Chip.ContainsChip(sound_chip_t::S5B))
-			String += L" + S5B";
-		String.Delete(0, 3);
+		for (sound_chip_t c : EXPANSION_CHIPS)
+			if (Chip.ContainsChip(c)) {
+				if (!String.empty())
+					String += " + ";
+				String += std::string {Env.GetSoundChipService()->GetShortChipName(c)};
+			}
 	}
 
 	pCmdUI->Enable();
-	pCmdUI->SetText(String);
+	pCmdUI->SetText(conv::to_wide(String).data());
 }
 
 void CMainFrame::OnUpdateInsertFrame(CCmdUI *pCmdUI)
@@ -1983,7 +1969,7 @@ void CMainFrame::OnUpdateKeyRepeat(CCmdUI *pCmdUI)
 
 void CMainFrame::OnFileImportText()
 {
-	if (GetActiveDocument()->SaveModified() == 0)
+	if (!GetDoc().SaveModified())
 		return;
 
 	CFileDialog FileDialog(TRUE, L"txt", 0, OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_TXT, L".txt"));
@@ -2035,12 +2021,12 @@ void CMainFrame::OnFileExportRows()		// // //
 	return;
 #endif
 
-	CFamiTrackerDoc	*pDoc = (CFamiTrackerDoc*)GetActiveDocument();
+	CFamiTrackerDoc	&Doc = GetDoc();
 
 	auto initPath = Env.GetSettings()->GetPath(PATH_NSF);		// // //
-	if (auto path = GetSavePath(pDoc->GetFileTitle(), initPath.c_str(), IDS_FILTER_CSV, L"*.csv")) {
+	if (auto path = GetSavePath(Doc.GetFileTitle(), initPath.c_str(), IDS_FILTER_CSV, L"*.csv")) {
 		CTextExport Exporter;
-		CStringA sResult = Exporter.ExportRows(*path, *pDoc->GetModule());
+		CStringA sResult = Exporter.ExportRows(*path, *Doc.GetModule());
 		if (!sResult.IsEmpty())
 			AfxMessageBox(conv::to_wide(sResult).data(), MB_OK | MB_ICONERROR);
 	}
@@ -2052,10 +2038,10 @@ void CMainFrame::OnFileExportJson() {		// // //
 	return;
 #endif
 
-	CFamiTrackerDoc	*pDoc = (CFamiTrackerDoc*)GetActiveDocument();
+	CFamiTrackerDoc	&Doc = GetDoc();
 
 	auto initPath = Env.GetSettings()->GetPath(PATH_NSF);		// // //
-	if (auto path = GetSavePath(pDoc->GetFileTitle(), initPath.c_str(), IDS_FILTER_JSON, L"*.json")) {
+	if (auto path = GetSavePath(Doc.GetFileTitle(), initPath.c_str(), IDS_FILTER_JSON, L"*.json")) {
 		CStdioFile f;
 		CFileException oFileException;
 		if (!f.Open(*path, CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException)) {
@@ -2065,7 +2051,7 @@ void CMainFrame::OnFileExportJson() {		// // //
 			return;
 		}
 
-		f.WriteString(conv::to_wide(nlohmann::json(*pDoc->GetModule()).dump()).data());
+		f.WriteString(conv::to_wide(nlohmann::json(*Doc.GetModule()).dump()).data());
 	}
 }
 
@@ -2620,32 +2606,24 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 	CSoundChipSet Chip = Doc.GetModule()->GetSoundChipSet();		// // //
 	sound_chip_t SelectedChip = GetChipFromChannel(pView->GetSelectedChannelID());		// // // where the cursor is located
 
-	if (Chip.ContainsChip(sound_chip_t::APU))
-		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_2A03, L"New 2A03 instrument");
-	if (Chip.ContainsChip(sound_chip_t::VRC6))
-		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_VRC6, L"New VRC6 instrument");
-	if (Chip.ContainsChip(sound_chip_t::VRC7))
-		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_VRC7, L"New VRC7 instrument");
-	if (Chip.ContainsChip(sound_chip_t::FDS))
-		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_FDS, L"New FDS instrument");
-	if (Chip.ContainsChip(sound_chip_t::MMC5))
-		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_MMC5, L"New MMC5 instrument");
-	if (Chip.ContainsChip(sound_chip_t::N163))
-		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_N163, L"New Namco instrument");
-	if (Chip.ContainsChip(sound_chip_t::S5B))
-		menu.AppendMenuW(MFT_STRING, ID_INSTRUMENT_ADD_S5B, L"New Sunsoft instrument");
+	auto *scs = Env.GetSoundChipService();
+	for (sound_chip_t c : SOUND_CHIPS)
+		if (Chip.ContainsChip(c))
+			menu.AppendMenuW(MFT_STRING, value_cast(c) + 1, (L"New " + conv::to_wide(scs->GetShortChipName(c)) + L" instrument").data());
 
-	switch (SelectedChip) {
-	case sound_chip_t::APU:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_2A03); break;
-	case sound_chip_t::VRC6: menu.SetDefaultItem(ID_INSTRUMENT_ADD_VRC6); break;
-	case sound_chip_t::VRC7: menu.SetDefaultItem(ID_INSTRUMENT_ADD_VRC7); break;
-	case sound_chip_t::FDS:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_FDS);  break;
-	case sound_chip_t::MMC5: menu.SetDefaultItem(ID_INSTRUMENT_ADD_MMC5); break;
-	case sound_chip_t::N163: menu.SetDefaultItem(ID_INSTRUMENT_ADD_N163); break;
-	case sound_chip_t::S5B:  menu.SetDefaultItem(ID_INSTRUMENT_ADD_S5B);  break;
-	}
+	if (SelectedChip != sound_chip_t::NONE)
+		menu.SetDefaultItem(value_cast(SelectedChip) + 1);
 
-	menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, rect.left, rect.bottom, this);
+	if (UINT retValue = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, rect.left, rect.bottom, this))		// // //
+		switch ((sound_chip_t)(retValue - 1u)) {
+		case sound_chip_t::APU:  OnAddInstrument2A03(); break;
+		case sound_chip_t::VRC6: OnAddInstrumentVRC6(); break;
+		case sound_chip_t::VRC7: OnAddInstrumentVRC7(); break;
+		case sound_chip_t::FDS:  OnAddInstrumentFDS();  break;
+		case sound_chip_t::MMC5: OnAddInstrumentMMC5(); break;
+		case sound_chip_t::N163: OnAddInstrumentN163(); break;
+		case sound_chip_t::S5B:  OnAddInstrumentS5B();  break;
+		}
 }
 
 void CMainFrame::OnLoadInstrumentMenu(NMHDR * pNotifyStruct, LRESULT * result)
@@ -2749,7 +2727,7 @@ void CMainFrame::ResetUndo()
 
 void CMainFrame::OnEditUndo()
 {
-	auto &doc = static_cast<CFamiTrackerDoc &>(*GetActiveDocument());
+	CFamiTrackerDoc	&doc = GetDoc();
 	m_pActionHandler->UndoLastAction(*this);		// // //
 	doc.SetModifiedFlag(true);
 	if (!m_pActionHandler->CanUndo() && !doc.GetExceededFlag())
@@ -2759,7 +2737,7 @@ void CMainFrame::OnEditUndo()
 void CMainFrame::OnEditRedo()
 {
 	m_pActionHandler->RedoLastAction(*this);		// // //
-	auto &doc = static_cast<CFamiTrackerDoc &>(*GetActiveDocument());
+	CFamiTrackerDoc	&doc = GetDoc();
 	doc.SetModifiedFlag(true); // TODO: not always
 }
 
@@ -3193,7 +3171,7 @@ void CMainFrame::OnToggleSpeed()
 	Doc.ModifyIrreversible();		// // //
 	Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
 
-	SetStatusText(L"Speed/tempo split-point set to %i", Speed);
+	SetStatusText("Speed/tempo split-point set to " + conv::from_int(Speed));
 }
 
 void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
@@ -3291,12 +3269,12 @@ void CMainFrame::OnToggleMultiplexer()
 	if (!pSettings->m_bNamcoMixing) {
 		pSettings->m_bNamcoMixing = true;
 		pSoundGen->SetNamcoMixing(Env.GetSettings()->m_bNamcoMixing);
-		SetStatusText(L"Namco 163 multiplexer emulation disabled");
+		SetStatusText("Namco 163 multiplexer emulation disabled");
 	}
 	else{
 		pSettings->m_bNamcoMixing = false;
 		pSoundGen->SetNamcoMixing(Env.GetSettings()->m_bNamcoMixing);
-		SetStatusText(L"Namco 163 multiplexer emulation enabled");
+		SetStatusText("Namco 163 multiplexer emulation enabled");
 	}
 }
 
@@ -3391,10 +3369,10 @@ void CMainFrame::OnEasterEggKraid5()
 		UpdateTrackBox();
 		ResetUndo();
 		ResizeFrameWindow();
-		SetStatusText(conv::to_wide(
+		SetStatusText(
 			"Famitracker - Metroid - Kraid's Lair "
 			"(Uploaded on Jun 9, 2010 http://www.youtube.com/watch?v=9yzCLy-fZVs) "
-			"The FTM straight from the tutorial. - 8BitDanooct1").data());
+			"The FTM straight from the tutorial. - 8BitDanooct1");
 	}
 	m_iKraidCounter = 0;
 }

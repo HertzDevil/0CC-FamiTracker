@@ -23,10 +23,13 @@
 #include "GotoDlg.h"
 #include "FamiTrackerModule.h"
 #include "FamiTrackerView.h"
+#include "FamiTrackerEnv.h"
+#include "SoundChipService.h"
 #include "SoundChipSet.h"
 #include "SongData.h"
 #include "SongView.h"
 #include "APU/Types.h"
+#include "str_conv/str_conv.hpp"
 
 // CGotoDlg dialog
 
@@ -66,31 +69,13 @@ BOOL CGotoDlg::OnInitDialog()
 	const CFamiTrackerModule *pModule = pView->GetModuleData();
 
 	CSoundChipSet chips = pModule->GetSoundChipSet();
-	if (chips.ContainsChip(sound_chip_t::APU))
-		m_cChipEdit.AddString(L"2A03");
-	if (chips.ContainsChip(sound_chip_t::VRC6))
-		m_cChipEdit.AddString(L"VRC6");
-	if (chips.ContainsChip(sound_chip_t::VRC7))
-		m_cChipEdit.AddString(L"VRC7");
-	if (chips.ContainsChip(sound_chip_t::FDS))
-		m_cChipEdit.AddString(L"FDS");
-	if (chips.ContainsChip(sound_chip_t::MMC5))
-		m_cChipEdit.AddString(L"MMC5");
-	if (chips.ContainsChip(sound_chip_t::N163))
-		m_cChipEdit.AddString(L"N163");
-	if (chips.ContainsChip(sound_chip_t::S5B))
-		m_cChipEdit.AddString(L"5B");
+	for (sound_chip_t c : SOUND_CHIPS)
+		if (chips.ContainsChip(c))
+			m_cChipEdit.AddString(conv::to_wide(Env.GetSoundChipService()->GetShortChipName(c)).data());
 
 	chan_id_t Channel = pView->GetSelectedChannelID();
-	switch (GetChipFromChannel(Channel)) {
-	case sound_chip_t::APU : m_cChipEdit.SelectString(-1, L"2A03"); break;
-	case sound_chip_t::VRC6: m_cChipEdit.SelectString(-1, L"VRC6"); break;
-	case sound_chip_t::VRC7: m_cChipEdit.SelectString(-1, L"VRC7"); break;
-	case sound_chip_t::FDS:  m_cChipEdit.SelectString(-1, L"FDS");  break;
-	case sound_chip_t::MMC5: m_cChipEdit.SelectString(-1, L"MMC5"); break;
-	case sound_chip_t::N163: m_cChipEdit.SelectString(-1, L"N163"); break;
-	case sound_chip_t::S5B:  m_cChipEdit.SelectString(-1, L"5B");   break;
-	}
+	if (auto c = GetChipFromChannel(Channel); c != sound_chip_t::NONE)
+		m_cChipEdit.SelectString(-1, conv::to_wide(Env.GetSoundChipService()->GetShortChipName(c)).data());
 
 	SetDlgItemInt(IDC_EDIT_GOTO_FRAME, pView->GetSelectedFrame());
 	SetDlgItemInt(IDC_EDIT_GOTO_ROW, pView->GetSelectedRow());
@@ -123,26 +108,6 @@ void CGotoDlg::CheckDestination() const
 	GetDlgItem(IDOK)->EnableWindow(Valid);
 }
 
-sound_chip_t CGotoDlg::GetChipFromString(const CStringW &str)
-{
-	if (str == L"2A03")
-		return sound_chip_t::APU;
-	else if (str == L"VRC6")
-		return sound_chip_t::VRC6;
-	else if (str == L"VRC7")
-		return sound_chip_t::VRC7;
-	else if (str == L"FDS")
-		return sound_chip_t::FDS;
-	else if (str == L"MMC5")
-		return sound_chip_t::MMC5;
-	else if (str == L"N163")
-		return sound_chip_t::N163;
-	else if (str == L"5B")
-		return sound_chip_t::S5B;
-	else
-		return sound_chip_t::NONE;
-}
-
 int CGotoDlg::GetFinalChannel() const
 {
 	const CFamiTrackerModule *pModule = CFamiTrackerView::GetView()->GetModuleData();
@@ -171,7 +136,7 @@ void CGotoDlg::OnCbnSelchangeComboGotoChip()
 {
 	CStringW str;
 	m_cChipEdit.GetWindowTextW(str);
-	m_iDestChip = GetChipFromString(str);
+	m_iDestChip = Env.GetSoundChipService()->GetChipFromString(conv::to_utf8(str));
 	CheckDestination();
 }
 

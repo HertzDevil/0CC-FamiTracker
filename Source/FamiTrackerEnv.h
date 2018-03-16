@@ -30,6 +30,7 @@ class CSoundGen;
 class CMIDI;
 class CSettings;
 class CInstrumentService;
+class CSoundChipService;
 
 // global tracker environment
 
@@ -41,6 +42,7 @@ struct CFamiTrackerEnv {
 	static CMIDI		*GetMIDI();
 	static CSettings	*GetSettings();
 	static CInstrumentService *GetInstrumentService();		// // //
+	static CSoundChipService *GetSoundChipService();		// // //
 
 	static bool IsFileLoaded();
 };

@@ -24,6 +24,7 @@
 #include "stdafx.h"
 #include "FamiTracker.h"
 #include "InstrumentService.h"		// // //
+#include "SoundChipService.h"		// // //
 #include "FamiTrackerDoc.h"
 
 CFamiTrackerEnv Env;
@@ -55,6 +56,15 @@ CSettings *CFamiTrackerEnv::GetSettings() {
 CInstrumentService *CFamiTrackerEnv::GetInstrumentService() {
 	static auto factory = [] {
 		CInstrumentService f;
+		f.AddDefaultTypes();
+		return f;
+	}();
+	return &factory;
+}
+
+CSoundChipService *CFamiTrackerEnv::GetSoundChipService() {
+	static auto factory = [] {
+		CSoundChipService f;
 		f.AddDefaultTypes();
 		return f;
 	}();
