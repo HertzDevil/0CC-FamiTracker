@@ -26,10 +26,8 @@
 #include "stdafx.h"
 #include "../resource.h"
 
-#include <stdexcept>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <limits>
 
 #include "PatternNote.h"
@@ -189,7 +187,6 @@ protected:
 
 	static result_column_t m_iLastsortColumn;
 	static bool m_bLastSortDescending;
-	static std::unordered_map<std::string, chan_id_t> m_iChannelPositionCache;
 
 	static int CALLBACK IntCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 	static int CALLBACK HexCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);

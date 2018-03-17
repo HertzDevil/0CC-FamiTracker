@@ -188,13 +188,11 @@ IMPLEMENT_DYNAMIC(CFindResultsBox, CDialog)
 
 CFindResultsBox::result_column_t CFindResultsBox::m_iLastsortColumn = ID;
 bool CFindResultsBox::m_bLastSortDescending = false;
-std::unordered_map<std::string, chan_id_t> CFindResultsBox::m_iChannelPositionCache = { };
 
 CFindResultsBox::CFindResultsBox(CWnd* pParent) : CDialog(IDD_FINDRESULTS, pParent)
 {
 	m_iLastsortColumn = ID;
 	m_bLastSortDescending = false;
-	m_iChannelPositionCache.clear();
 }
 
 void CFindResultsBox::DoDataExchange(CDataExchange* pDX)
@@ -209,6 +207,7 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 
 	const CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
 	const CConstSongView *pSongView = pView->GetSongView();
+	m_cListResults.SetItemData(Pos, value_cast(pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel)));
 	m_cListResults.SetItemText(Pos, CHANNEL, conv::to_wide(GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel))).data());
 	m_cListResults.SetItemText(Pos, PATTERN, conv::to_wide(conv::sv_from_int_hex(pSongView->GetFramePattern(Cursor.m_iChannel, Cursor.m_iFrame), 2)).data());
 
@@ -253,44 +252,13 @@ void CFindResultsBox::ClearResults()
 	m_cListResults.DeleteAllItems();
 	m_iLastsortColumn = ID;
 	m_bLastSortDescending = false;
-	m_iChannelPositionCache.clear();
 	UpdateCount();
 }
 
 void CFindResultsBox::SelectItem(int Index)
 {
-	const auto ToChannelID = [] (std::string_view x) {
-		const std::tuple<std::string_view, sound_chip_t, unsigned> HEADERS[] = {
-			{"Pulse "     , sound_chip_t::APU , GetChannelSubIndex(chan_id_t::SQUARE1)},
-			{"Triangle"   , sound_chip_t::APU , GetChannelSubIndex(chan_id_t::TRIANGLE)},
-			{"Noise"      , sound_chip_t::APU , GetChannelSubIndex(chan_id_t::NOISE)},
-			{"DPCM"       , sound_chip_t::APU , GetChannelSubIndex(chan_id_t::DPCM)},
-			{"VRC6 Pulse ", sound_chip_t::VRC6, GetChannelSubIndex(chan_id_t::VRC6_PULSE1)},
-			{"Sawtooth"   , sound_chip_t::VRC6, GetChannelSubIndex(chan_id_t::VRC6_SAWTOOTH)},
-			{"MMC5 Pulse ", sound_chip_t::MMC5, GetChannelSubIndex(chan_id_t::MMC5_SQUARE1)},
-			{"Namco "     , sound_chip_t::N163, GetChannelSubIndex(chan_id_t::N163_CH1)},
-			{"FDS"        , sound_chip_t::FDS , GetChannelSubIndex(chan_id_t::FDS)},
-			{"FM Channel ", sound_chip_t::VRC7, GetChannelSubIndex(chan_id_t::VRC7_CH1)},
-			{"5B Square " , sound_chip_t::S5B,  GetChannelSubIndex(chan_id_t::S5B_CH1)},
-		};
-		for (auto [prefix, chip, subindex] : HEADERS)
-			if (0 == x.compare(0, prefix.size(), prefix)) {
-				auto s = subindex;
-				if (prefix.size() != x.size())
-					s += x.back() - '1';
-				return MakeChannelIndex(chip, s);
-			}
-		return chan_id_t::NONE;
-	};
-	const auto Cache = [&] (const std::string &x) {
-		auto it = m_iChannelPositionCache.find(x);
-		if (it == m_iChannelPositionCache.end())
-			return m_iChannelPositionCache[x] = ToChannelID(x);
-		return it->second;
-	};
-
 	auto pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
-	int Channel = pView->GetSongView()->GetChannelOrder().GetChannelIndex(Cache(conv::to_utf8(m_cListResults.GetItemText(Index, CHANNEL))));
+	int Channel = pView->GetSongView()->GetChannelOrder().GetChannelIndex((chan_id_t)m_cListResults.GetItemData(Index));
 	if (Channel != -1) {
 		pView->SelectChannel(Channel);
 		pView->SelectFrame(*conv::to_uint(m_cListResults.GetItemText(Index, FRAME), 16u));
@@ -419,7 +387,7 @@ void CFindResultsBox::OnLvnColumnClickFindResults(NMHDR *pNMHDR, LRESULT *pResul
 
 int CFindResultsBox::IntCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
-	CListCtrl *pList = reinterpret_cast<CListCtrl*>(lParamSort);
+	CListCtrl *pList = reinterpret_cast<CListCtrl *>(lParamSort);
 	auto x = conv::to_int(pList->GetItemText(lParam1, m_iLastsortColumn));
 	auto y = conv::to_int(pList->GetItemText(lParam1, m_iLastsortColumn));
 
@@ -429,7 +397,7 @@ int CFindResultsBox::IntCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lPara
 
 int CFindResultsBox::HexCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
-	CListCtrl *pList = reinterpret_cast<CListCtrl*>(lParamSort);
+	CListCtrl *pList = reinterpret_cast<CListCtrl *>(lParamSort);
 	auto x = conv::to_int(pList->GetItemText(lParam1, m_iLastsortColumn), 16u);
 	auto y = conv::to_int(pList->GetItemText(lParam1, m_iLastsortColumn), 16u);
 
@@ -439,7 +407,7 @@ int CFindResultsBox::HexCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lPara
 
 int CFindResultsBox::StringCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
-	CListCtrl *pList = reinterpret_cast<CListCtrl*>(lParamSort);
+	CListCtrl *pList = reinterpret_cast<CListCtrl *>(lParamSort);
 	CStringW x = pList->GetItemText(lParam1, m_iLastsortColumn);
 	CStringW y = pList->GetItemText(lParam2, m_iLastsortColumn);
 
@@ -450,46 +418,19 @@ int CFindResultsBox::StringCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lP
 
 int CFindResultsBox::ChannelCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
-	CListCtrl *pList = reinterpret_cast<CListCtrl*>(lParamSort);
-	CStringW x = pList->GetItemText(lParam1, m_iLastsortColumn);
-	CStringW y = pList->GetItemText(lParam2, m_iLastsortColumn);
+	CListCtrl *pList = reinterpret_cast<CListCtrl *>(lParamSort);
+	DWORD x = pList->GetItemData(lParam1);
+	DWORD y = pList->GetItemData(lParam2);
 
-	const auto ToIndex = [] (const CStringW &x) {
-		const std::wstring_view HEADER_STR[] = {
-			L"Pulse ", L"Triangle", L"Noise", L"DPCM",
-			L"VRC6 Pulse ", L"Sawtooth",
-			L"MMC5 Pulse ", L"Namco ", L"FDS", L"FM Channel ", L"5B Square ",
-		};
-		int Pos = 0;
-		for (const auto &n : HEADER_STR) {
-			int Size = n.size();
-			if (x.Left(Size) == n.data()) {
-				if (x != n.data())
-					Pos += x.GetAt(x.GetLength() - 1);
-				return Pos;
-			}
-			Pos += 0x100;
-		}
-		return -1;
-	};
-	const auto Cache = [&] (const CStringW &x) {
-		static std::map<CStringW, int> m;
-		auto it = m.find(x);
-		if (it == m.end())
-			return m[x] = ToIndex(x);
-		return it->second;
-	};
-
-	int result = Cache(x) - Cache(y);
-
+	int result = x > y ? 1 : x < y ? -1 : 0; // x <=> y;
 	return m_bLastSortDescending ? -result : result;
 }
 
 int CFindResultsBox::NoteCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
-	CListCtrl *pList = reinterpret_cast<CListCtrl*>(lParamSort);
-	CStringW x = pList->GetItemText(lParam1, m_iLastsortColumn);
-	CStringW y = pList->GetItemText(lParam2, m_iLastsortColumn);
+	CListCtrl *pList = reinterpret_cast<CListCtrl *>(lParamSort);
+	CStringW x = pList->GetItemText(lParam1, NOTE);
+	CStringW y = pList->GetItemText(lParam2, NOTE);
 
 	const auto ToIndex = [] (std::string_view x) {
 		auto [note, octave] = ReadNoteFromString(x);
