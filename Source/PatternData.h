@@ -69,22 +69,24 @@ public:
 	// void (*F)(stChanNote &note [, unsigned row])
 	template <typename F>
 	void VisitRows(unsigned rows, F f) {
-		if (data_)
+		if (data_) {
 			for (unsigned row = 0; row < rows; ++row)
 				if constexpr (std::is_invocable_v<F, stChanNote &>)
 					f((*data_)[row]);
 				else
 					f((*data_)[row], row);
+		}
 	}
 	// void (*F)(const stChanNote &note [, unsigned row])
 	template <typename F>
 	void VisitRows(unsigned rows, F f) const {
-		if (data_)
+		if (data_) {
 			for (unsigned row = 0; row < rows; ++row)
 				if constexpr (std::is_invocable_v<F, stChanNote &>)
 					f((*data_)[row]);
 				else
 					f((*data_)[row], row);
+		}
 	}
 
 private:

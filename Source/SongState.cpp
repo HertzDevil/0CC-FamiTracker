@@ -159,10 +159,10 @@ void stChannelState::HandleNote(const stChanNote &Note, unsigned EffColumns) {
 					Echo[i] = NewNote;
 				}
 			}
-			else if (Echo[i] > ECHO_BUFFER_ECHO && Echo[i] < ECHO_BUFFER_ECHO + ECHO_BUFFER_LENGTH)
+			else if (Echo[i] > ECHO_BUFFER_ECHO && Echo[i] < ECHO_BUFFER_ECHO + (int)ECHO_BUFFER_LENGTH)
 				--Echo[i];
 		}
-		if (BufferPos >= 0 && BufferPos < ECHO_BUFFER_LENGTH) {
+		if (BufferPos >= 0 && BufferPos < (int)ECHO_BUFFER_LENGTH) {
 			int Value;
 			switch (Note.Note) {
 			case note_t::HALT: Value = ECHO_BUFFER_HALT; break;

@@ -30,8 +30,8 @@
 CSeqInstHandlerN163::CSeqInstHandlerN163(CChannelHandlerInterface *pInterface, int Vol, int Duty) :
 	CSeqInstHandler(pInterface, Vol, Duty),
 	m_pBufferCurrent(m_cBuffer),
-	m_bForceUpdate(false),
-	m_pBufferPrevious(m_cBuffer + CInstrumentN163::MAX_WAVE_SIZE)
+	m_pBufferPrevious(m_cBuffer + CInstrumentN163::MAX_WAVE_SIZE),
+	m_bForceUpdate(false)
 {
 }
 
@@ -58,11 +58,9 @@ void CSeqInstHandlerN163::UpdateInstrument()
 {
 	CSeqInstHandler::UpdateInstrument();
 
-	if (auto pInterface = dynamic_cast<CChannelHandlerInterfaceN163*>(m_pInterface)) {
-		if (auto pN163Inst = std::dynamic_pointer_cast<const CInstrumentN163>(m_pInstrument)) {
+	if (dynamic_cast<CChannelHandlerInterfaceN163*>(m_pInterface))
+		if (auto pN163Inst = std::dynamic_pointer_cast<const CInstrumentN163>(m_pInstrument))
 			UpdateWave(*pN163Inst);
-		}
-	}
 	m_bForceUpdate = false;
 }
 

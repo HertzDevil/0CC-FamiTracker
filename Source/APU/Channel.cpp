@@ -24,7 +24,7 @@
 #include "APU/Mixer.h"
 
 CChannel::CChannel(CMixer &Mixer, sound_chip_t Chip, chan_id_t ID) :
-	m_pMixer(&Mixer), m_iChip(Chip), m_iChanId(ID) {
+	m_pMixer(&Mixer), m_iChanId(ID), m_iChip(Chip) {
 }
 
 void CChannel::EndFrame() {

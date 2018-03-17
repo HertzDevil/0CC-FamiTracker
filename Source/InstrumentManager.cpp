@@ -34,8 +34,8 @@ const int CInstrumentManager::MAX_INSTRUMENTS = 64;
 const int CInstrumentManager::SEQ_MANAGER_COUNT = 5;
 
 CInstrumentManager::CInstrumentManager() :
-	m_pDSampleManager(std::make_unique<CDSampleManager>()),
-	m_pInstruments(MAX_INSTRUMENTS)
+	m_pInstruments(MAX_INSTRUMENTS),
+	m_pDSampleManager(std::make_unique<CDSampleManager>())
 {
 	for (int i = 0; i < SEQ_MANAGER_COUNT; ++i)
 		m_pSequenceManager.push_back(std::make_unique<CSequenceManager>(i == 2 ? 3 : SEQ_COUNT));
@@ -178,7 +178,7 @@ int CInstrumentManager::GetFreeSequenceIndex(inst_type_t InstType, sequence_t Ty
 	std::vector<bool> Used(CSequenceCollection::MAX_SEQUENCES, false);
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) if (GetInstrumentType(i) == InstType) {		// // //
 		auto pInstrument = std::static_pointer_cast<CSeqInstrument>(GetInstrument(i));
-		if (pInstrument->GetSeqEnable(Type) && (pInst && pInst->GetSequence(Type)->GetItemCount() || pInst != pInstrument.get()))
+		if (pInstrument->GetSeqEnable(Type) && ((pInst && pInst->GetSequence(Type)->GetItemCount()) || pInst != pInstrument.get()))
 			Used[pInstrument->GetSeqIndex(Type)] = true;
 	}
 	for (int i = 0; i < CSequenceCollection::MAX_SEQUENCES; ++i)

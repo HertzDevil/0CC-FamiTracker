@@ -32,7 +32,7 @@ public:
 
 	constexpr bool operator==(const stChanNote &other) const noexcept {
 		for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
-			if (EffNumber[i] != other.EffNumber[i] || EffNumber[i] != effect_t::NONE && EffParam[i] != other.EffParam[i])
+			if (EffNumber[i] != other.EffNumber[i] || (EffNumber[i] != effect_t::NONE && EffParam[i] != other.EffParam[i]))
 				return false;
 		return Note == other.Note && Vol == other.Vol && Instrument == other.Instrument &&
 			(Note == note_t::NONE || Octave == other.Octave || Note == note_t::HALT || Note == note_t::RELEASE);

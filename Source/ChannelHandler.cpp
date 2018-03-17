@@ -48,23 +48,8 @@
 CChannelHandler::CChannelHandler(chan_id_t ch, int MaxPeriod, int MaxVolume) :		// // //
 	m_iChannelID(ch),		// // //
 	m_iInstTypeCurrent(INST_NONE),		// // //
-	m_iInstrument(0),
-	m_pNoteLookupTable(NULL),
-	m_pVibratoTable(NULL),
-	m_pAPU(NULL),
-	m_pInstHandler(),		// // //
-	m_iPitch(0),
-	m_iNote(-1),		// // //
-	m_iInstVolume(0),
-	m_iDefaultDuty(0),
-	m_iDutyPeriod(0),
 	m_iMaxPeriod(MaxPeriod),
-	m_iMaxVolume(MaxVolume),
-	m_bGate(false),
-	m_bNewVibratoMode(false),
-	m_bLinearPitch(false),
-	m_bForceReload(false),		// // //
-	m_iEffectParam(0)		// // //
+	m_iMaxVolume(MaxVolume)
 {
 }
 
@@ -296,9 +281,9 @@ void CChannelHandler::PlayNote(stChanNote NoteData)		// // //
 	HandleNoteData(NoteData);
 }
 
-void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, int Pos)
+void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, std::size_t Pos)
 {
-	if (Pos < 0 || Pos >= ECHO_BUFFER_LENGTH)
+	if (Pos >= ECHO_BUFFER_LENGTH)
 		return;
 	int Value;
 	switch (NoteData.Note) {
@@ -334,15 +319,14 @@ void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, int Pos)
 
 void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 {
-	int LastInstrument = m_iInstrument;
+	unsigned LastInstrument = m_iInstrument;
 	int Instrument = NoteData.Instrument;
 	bool Trigger = (NoteData.Note != note_t::NONE) && (NoteData.Note != note_t::HALT) && (NoteData.Note != note_t::RELEASE) &&
 		Instrument != HOLD_INSTRUMENT;		// // // 050B
 	bool pushNone = false;
 
 	// // // Echo buffer
-	if (NoteData.Note == note_t::ECHO && NoteData.Octave < ECHO_BUFFER_LENGTH)
-	{ // retrieve buffer
+	if (NoteData.Note == note_t::ECHO && NoteData.Octave < ECHO_BUFFER_LENGTH) { // retrieve buffer
 		int NewNote = m_iEchoBuffer[NoteData.Octave];
 		if (NewNote == ECHO_BUFFER_NONE) {
 			NoteData.Note = note_t::NONE;
@@ -354,8 +338,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 			NoteData.Octave = GET_OCTAVE(NewNote);
 		}
 	}
-	if (NoteData.Note != note_t::RELEASE && (NoteData.Note != note_t::NONE) || pushNone)
-	{ // push buffer
+	if ((NoteData.Note != note_t::RELEASE && NoteData.Note != note_t::NONE) || pushNone) { // push buffer
 		for (int i = ECHO_BUFFER_LENGTH - 1; i > 0; --i)
 			m_iEchoBuffer[i] = m_iEchoBuffer[i - 1];
 		WriteEchoBuffer(NoteData, 0);

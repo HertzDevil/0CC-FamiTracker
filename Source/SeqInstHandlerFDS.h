@@ -58,5 +58,5 @@ public:
 	void UpdateInstrument() override;
 
 private:
-	void UpdateTables(const CInstrumentFDS *pInst);
+	void UpdateTables(const CInstrumentFDS &Inst);
 };

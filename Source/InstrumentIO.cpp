@@ -282,7 +282,7 @@ void CInstrumentIO2A03::ReadFromModule(CInstrument &inst_, CDocumentFile &file) 
 		}
 	}
 	else
-		for (int n = 0; n < NOTE_COUNT; ++n)
+		for (int n = 0; n < NOTE_RANGE * Octaves; ++n)
 			ReadAssignment(n);
 }
 

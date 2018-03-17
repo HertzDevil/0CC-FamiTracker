@@ -30,12 +30,12 @@
 
 // CCursorPos /////////////////////////////////////////////////////////////////////
 
-CCursorPos::CCursorPos() : m_iRow(0), m_iChannel(0), m_iColumn(C_NOTE), m_iFrame(0)		// // //
+CCursorPos::CCursorPos() : m_iFrame(0), m_iRow(0), m_iColumn(C_NOTE), m_iChannel(0)		// // //
 {
 }
 
 CCursorPos::CCursorPos(int Row, int Channel, cursor_column_t Column, int Frame) :		// // //
-	m_iRow(Row), m_iChannel(Channel), m_iColumn(Column), m_iFrame(Frame)
+	m_iFrame(Frame), m_iRow(Row), m_iColumn(Column), m_iChannel(Channel)
 {
 }
 
@@ -185,7 +185,7 @@ CSelection CSelection::GetNormalized() const
 // // // CPatternIterator //////////////////////////////////////////////////////
 
 CPatternIterator::CPatternIterator(CSongView &view, const CCursorPos &Pos) :
-	song_view_(view), CCursorPos(Pos)
+	CCursorPos(Pos), song_view_(view)
 {
 	Warp();
 }

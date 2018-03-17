@@ -401,7 +401,7 @@ void to_json(json &j, const CInstrumentN163 &inst) {
 	to_json(j, static_cast<const CSeqInstrument &>(inst));
 
 	j["waves"] = json::array();
-	for (unsigned i = 0; i < inst.GetWaveCount(); ++i)
+	for (int i = 0; i < inst.GetWaveCount(); ++i)
 		j["waves"].push_back(inst.GetSamples(i));
 	j["wave_position"] = inst.GetWavePos();
 }

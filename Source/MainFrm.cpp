@@ -38,7 +38,6 @@
 #include "ConfigMIDI.h"
 #include "ConfigSound.h"
 #include "ConfigShortcuts.h"
-#include "ConfigWindow.h"
 #include "ConfigMixer.h"
 #include "Settings.h"
 #include "Accelerator.h"

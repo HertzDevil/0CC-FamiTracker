@@ -37,9 +37,9 @@ const int N163_PITCH_SLIDE_SHIFT = 2;	// Increase amplitude of pitch slides
 CChannelHandlerN163::CChannelHandlerN163(chan_id_t ch) :		// / //
 	CChannelHandlerInverted(ch, 0xFFFF, 0x0F),
 	m_bDisableLoad(false),		// // //
-	m_bResetPhase(false),
 	m_iWaveLen(4),		// // //
-	m_iWaveCount(0)
+	m_iWaveCount(0),
+	m_bResetPhase(false)
 {
 	m_iDutyPeriod = 0;
 }
@@ -183,7 +183,7 @@ void CChannelHandlerN163::RefreshChannel()
 		Volume = 0;
 
 	// Update channel
-	if (Channel + m_iChannels >= MAX_CHANNELS_N163) {		// // //
+	if (Channel + m_iChannels >= (int)MAX_CHANNELS_N163) {		// // //
 		WriteData(ChannelAddrBase + 7, ((m_iChannels - 1) << 4) | Volume);
 		if (!m_bGate)
 			return;

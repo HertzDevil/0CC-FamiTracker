@@ -276,7 +276,7 @@ protected:
 		\details Transposing effects in the note data are resolved immediately.
 		\param NoteData The note data.
 		\param Pos The index of the echo buffer at which the note will be inserted. */
-	void	WriteEchoBuffer(const stChanNote &NoteData, int Pos);		// // //
+	void	WriteEchoBuffer(const stChanNote &NoteData, std::size_t Pos);		// // //
 
 	/*!	\brief Converts a duty value from the current instrument into an equivalent value for the
 		current sound channel.
@@ -361,20 +361,20 @@ protected:
 
 	// General
 	/*!	\brief A flag indicating that a note has been triggered on the current tick. */
-	bool			m_bTrigger;
+	bool			m_bTrigger = false;
 	/*!	\brief A flag indicating that the current active note of the channel handler has been released. */
-	bool			m_bRelease;
+	bool			m_bRelease = false;
 	/*!	\brief A flag indicating that the channel handler runs an active note. */
-	bool			m_bGate;
+	bool			m_bGate = false;
 
 	/*!	\brief The current instrument index of the channel. */
-	unsigned int	m_iInstrument;
+	unsigned int	m_iInstrument = 0u;
 	/*!	\brief A flag indicating that the current instrument should be reloaded by the instrument handler. */
-	bool			m_bForceReload;					// // //
+	bool			m_bForceReload = false;		// // //
 
 	/*!	\brief The current note value of the channel.
 		\details Its value may be altered by transposing effects and the instrument handler. */
-	int				m_iNote;
+	int				m_iNote = -1;
 	/*!	\brief The active note value of the channel.
 		\details This may be different from the current note because notes can be triggered without
 		reading a new note. */
@@ -386,7 +386,7 @@ protected:
 	int				m_iPeriod;
 	/*!	\brief The current instrument volume of the channel.
 		\details The instrument volume is limited by the maximum volume level provided in the constructor. */
-	int				m_iInstVolume;					// // //
+	int				m_iInstVolume = 0;		// // //
 	/*!	\brief The current channel volume of the channel.
 		\details The channel volume is always limited by CChannelHandler::VOL_COLUMN_MAX rather than
 		the maximum volume level provided in the constructor. */
@@ -397,16 +397,16 @@ protected:
 		supporting wave tables may treat this member as a table index.
 		\warning Derived classes should be expected to handle the case where this value equals -1
 		if CChannelHandler::ConvertDuty returns no sensible value for the current instrument type. */
-	char			m_iDutyPeriod;
+	char			m_iDutyPeriod = 0;
 	/*!	\brief A queue of the most recent notes triggered by the channel.
 		\details In order to represent the blank note and the note cut, the special constants
 		ECHO_BUFFER_NONE and ECHO_BUFFER_HALT are defined for use with this echo buffer. */
-	std::array<int, ECHO_BUFFER_LENGTH + 1> m_iEchoBuffer;		// // //
+	std::array<int, ECHO_BUFFER_LENGTH + 1> m_iEchoBuffer = { };		// // //
 
 	/*!	\brief A flag indicating the direction of the 4xy vibrato effect. */
-	bool			m_bNewVibratoMode;
+	bool			m_bNewVibratoMode = false;
 	/*!	\brief A flag indicating that pitch bends are proportional to the current pitch register. */
-	bool			m_bLinearPitch;
+	bool			m_bLinearPitch = false;
 
 	// Delay effect variables
 	/*!	\brief A flag indicating that a note has been delayed by a Gxx effect command. */
@@ -441,7 +441,7 @@ protected:
 	effect_t		m_iEffect;
 	/*!	\brief The effect command parameter for the active slide effect.
 		\details This member is used by the instrument interface to handle arpeggio schemes. */
-	unsigned char	m_iEffectParam;					// // //
+	unsigned char	m_iEffectParam = 0u;					// // //
 	/*!	\brief The current state of the 0xy arpeggio effect.
 		\details Each state corresponds to a different note offset. A 0xy arpeggio cycle may
 		contain 2 or 3 states depending on the current effect parameter. */
@@ -481,7 +481,7 @@ protected:
 	/*!	\brief The effect command parameter of the Pxx fine pitch effect. */
 	unsigned int	m_iFinePitch;
 	/*!	\brief The effect command parameter of the Vxx duty cycle effect. */
-	unsigned char	m_iDefaultDuty;
+	unsigned char	m_iDefaultDuty = 0;
 	/*!	\brief The effect command parameter of the Axy volume slide effect. */
 	unsigned char	m_iVolSlide;
 
@@ -507,7 +507,7 @@ protected:
 	/*!	\brief The MIDI pitch wheel offset of the current channel.
 		\details A positive value represents a lower pitch. The value of this member is limited
 		within [-512, 511]. */
-	int				m_iPitch;
+	int				m_iPitch = 0;
 
 	/*!	\brief The instrument type of the previously loaded instrument.
 		\details The channel handler uses this value to determine different actions for supporting

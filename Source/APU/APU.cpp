@@ -36,10 +36,9 @@
 CAPU::CAPU(IAudioCallback *pCallback) :		// // //
 	m_pMixer(std::make_unique<CMixer>()),		// // //
 	m_pParent(pCallback),
-	m_iFrameCycles(0),
-	m_pSoundBuffer(NULL),
-	m_iCyclesToRun(0),
 	m_iSampleRate(44100),		// // //
+	m_iCyclesToRun(0),
+	m_iFrameCycles(0),
 	m_fLevelVRC7(1.f)
 {
 	for (sound_chip_t c : SOUND_CHIPS)

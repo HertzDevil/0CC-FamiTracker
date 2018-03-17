@@ -216,7 +216,7 @@ constexpr char EFF_CHAR[] = {
 };
 
 constexpr effect_t GetEffectFromChar(char ch, sound_chip_t Chip) noexcept {		// // //
-	for (int i = value_cast(effect_t::NONE) + 1; i < EFFECT_COUNT; ++i)
+	for (std::size_t i = value_cast(effect_t::NONE) + 1; i < EFFECT_COUNT; ++i)
 		if (EFF_CHAR[i] == ch) {
 			auto Eff = static_cast<effect_t>(i);
 			switch (Chip) {
