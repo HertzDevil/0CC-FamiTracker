@@ -26,6 +26,7 @@
 #include "SongData.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
 #include "Settings.h"		// // //
+#include <algorithm>		// // //
 
 // CCursorPos /////////////////////////////////////////////////////////////////////
 

@@ -53,7 +53,7 @@ protected:
     uint32_t last_vol;  // for trackinfo
 
     // two wavetables
-    const enum { TMOD=0, TWAV=1 };
+    enum { TMOD=0, TWAV=1 };
     int32_t wave[2][64];
     uint32_t freq[2];
     uint32_t phase[2];
@@ -65,7 +65,7 @@ protected:
     uint32_t mod_write_pos;
 
     // two ramp envelopes
-    const enum { EMOD=0, EVOL=1 };
+    enum { EMOD=0, EVOL=1 };
     bool env_mode[2];
     bool env_disable[2];
     uint32_t env_timer[2];

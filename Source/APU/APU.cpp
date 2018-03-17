@@ -21,6 +21,7 @@
 */
 
 #include "APU/APU.h"
+#include <cmath>
 #include <algorithm>		// // //
 #include "APU/Mixer.h"		// // //
 #include "APU/2A03.h"		// // //
@@ -313,7 +314,7 @@ void CAPU::Log()
 
 void CAPU::SetChipLevel(chip_level_t Chip, float Level)
 {
-	float fLevel = powf(10, Level / 20.0f);		// Convert dB to linear
+	float fLevel = std::pow(10, Level / 20.0f);		// Convert dB to linear
 
 	switch (Chip) {
 	case CHIP_LEVEL_VRC7:

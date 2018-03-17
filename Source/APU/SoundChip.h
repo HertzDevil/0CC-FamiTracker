@@ -33,7 +33,7 @@ class CRegisterLogger;		// // //
 class CSoundChip {
 public:
 	explicit CSoundChip(CMixer &Mixer);		// // //
-	virtual ~CSoundChip() noexcept = default;
+	virtual ~CSoundChip() noexcept;
 
 	virtual sound_chip_t GetID() const = 0;		// // //
 

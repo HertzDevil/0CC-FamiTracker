@@ -29,6 +29,9 @@ CSoundChip::CSoundChip(CMixer &Mixer) :
 {
 }
 
+CSoundChip::~CSoundChip() noexcept {
+}
+
 double CSoundChip::GetFreq(int Channel) const		// // //
 {
 	return 0.0;
