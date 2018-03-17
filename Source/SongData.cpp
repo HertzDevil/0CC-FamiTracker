@@ -210,8 +210,8 @@ void CSongData::SetRowHighlight(const stHighlight &Hl)		// // //
 }
 
 stHighlight CSongData::GetHighlightAt(unsigned Frame, unsigned Row) const {		// // //
-	while (Frame < 0)
-		Frame += GetFrameCount();
+//	while (Frame < 0)
+//		Frame += GetFrameCount();
 	Frame %= GetFrameCount();
 
 	stHighlight Hl = GetRowHighlight();

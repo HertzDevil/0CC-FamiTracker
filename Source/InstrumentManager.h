@@ -67,8 +67,8 @@ public:
 
 	inst_type_t GetInstrumentType(unsigned int Index) const;
 
-	CSequenceManager *const GetSequenceManager(int InstType) const;
-	CDSampleManager *const GetDSampleManager() const;
+	CSequenceManager *GetSequenceManager(int InstType) const;
+	CDSampleManager *GetDSampleManager() const;
 
 	// from interface
 	std::shared_ptr<CSequence> GetSequence(inst_type_t InstType, sequence_t SeqType, int Index) const override; // TODO: use SetSequence and provide const getter

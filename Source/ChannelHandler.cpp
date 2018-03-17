@@ -234,7 +234,7 @@ std::string CChannelHandler::GetEffectString() const		// // //
 		str += MakeCommandString(effect_t::DUTY_CYCLE, m_iDefaultDuty);
 
 	// run-time effects
-	if (m_cDelayCounter >= 0 && m_bDelayEnabled)
+	if (m_bDelayEnabled)
 		str += MakeCommandString(effect_t::DELAY, m_cDelayCounter + 1);
 	if (m_iNoteRelease)
 		str += MakeCommandString(effect_t::NOTE_RELEASE, m_iNoteRelease);

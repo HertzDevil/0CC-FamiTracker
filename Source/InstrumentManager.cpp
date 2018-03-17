@@ -214,7 +214,7 @@ inst_type_t CInstrumentManager::GetInstrumentType(unsigned int Index) const
 // Sequence methods
 //
 
-CSequenceManager *const CInstrumentManager::GetSequenceManager(int InstType) const
+CSequenceManager *CInstrumentManager::GetSequenceManager(int InstType) const
 {
 	int Index = -1;
 	switch (InstType) {
@@ -228,7 +228,7 @@ CSequenceManager *const CInstrumentManager::GetSequenceManager(int InstType) con
 	return m_pSequenceManager[Index].get();
 }
 
-CDSampleManager *const CInstrumentManager::GetDSampleManager() const
+CDSampleManager *CInstrumentManager::GetDSampleManager() const
 {
 	return m_pDSampleManager.get();
 }

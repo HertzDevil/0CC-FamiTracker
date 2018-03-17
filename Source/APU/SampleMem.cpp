@@ -27,11 +27,11 @@ uint8_t CSampleMem::ReadMem(uint16_t Address) const {
 	if (Addr >= m_pMemory.size())		// // //
 		return 0;
 	return m_pMemory[Addr];
-};
+}
 
 void CSampleMem::SetMem(array_view<uint8_t> Memory) {
 	m_pMemory = Memory;
-};
+}
 
 void CSampleMem::Clear() {
 	m_pMemory.clear();
