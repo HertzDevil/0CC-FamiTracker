@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include "stdafx.h"		// // //
 #include <vector>		// // //
 #include <array>		// // //
 #include <memory>
@@ -83,6 +82,7 @@ class CFamiTrackerModule;		// // //
 class CSequence;		// // //
 class CInstrumentFDS;		// // //
 class CConstSongView;		// // //
+class CFile;		// // //
 
 /*
  * Logger class
@@ -91,7 +91,7 @@ class CCompilerLog
 {
 public:
 	virtual ~CCompilerLog() noexcept = default;
-	virtual void WriteLog(LPCWSTR text) = 0;
+	virtual void WriteLog(std::string_view text) = 0;		// // //
 	virtual void Clear() = 0;
 };
 
@@ -104,21 +104,21 @@ public:
 	CCompiler(const CFamiTrackerModule &modfile, std::shared_ptr<CCompilerLog> pLogger);		// // //
 	~CCompiler();
 
-	void	ExportNSF(LPCWSTR lpszFileName, int MachineType);
-	void	ExportNSFE(LPCWSTR lpszFileName, int MachineType);		// // //
-	void	ExportNES(LPCWSTR lpszFileName, bool EnablePAL);
-	void	ExportBIN(LPCWSTR lpszBIN_File, LPCWSTR lpszDPCM_File);
-	void	ExportPRG(LPCWSTR lpszFileName, bool EnablePAL);
-	void	ExportASM(LPCWSTR lpszFileName);
+	void	ExportNSF(const wchar_t *lpszFileName, int MachineType);
+	void	ExportNSFE(const wchar_t *lpszFileName, int MachineType);		// // //
+	void	ExportNES(const wchar_t *lpszFileName, bool EnablePAL);
+	void	ExportBIN(const wchar_t *lpszBIN_File, const wchar_t *lpszDPCM_File);
+	void	ExportPRG(const wchar_t *lpszFileName, bool EnablePAL);
+	void	ExportASM(const wchar_t *lpszFileName);
 
 	void	SetMetadata(std::string_view title, std::string_view artist, std::string_view copyright);		// // //
 
 private:
-	void	ExportNSF_NSFE(LPCWSTR lpszFileName, int MachineType, bool isNSFE);		// // //
-	void	ExportNES_PRG(LPCWSTR lpszFileName, bool EnablePAL, bool isPRG);		// // //
-	void	ExportBIN_ASM(LPCWSTR lpszFileName, LPCWSTR lpszDPCM_File, bool isASM);		// // //
+	void	ExportNSF_NSFE(const wchar_t *lpszFileName, int MachineType, bool isNSFE);		// // //
+	void	ExportNES_PRG(const wchar_t *lpszFileName, bool EnablePAL, bool isPRG);		// // //
+	void	ExportBIN_ASM(const wchar_t *lpszFileName, const wchar_t *lpszDPCM_File, bool isASM);		// // //
 
-	bool	OpenFile(LPCWSTR lpszFileName, CFile &file) const;
+	bool	OpenFile(const wchar_t *lpszFileName, CFile &file) const;
 
 	stNSFHeader CreateHeader(int MachineType) const;		// // //
 	stNSFeHeader CreateNSFeHeader(int MachineType);		// // //
@@ -128,7 +128,7 @@ private:
 	void	WriteChannelTypes();
 #endif
 
-	std::unique_ptr<unsigned char[]> LoadDriver(const driver_t &Driver, unsigned short Origin) const;		// // //
+	std::vector<unsigned char> LoadDriver(const driver_t &Driver, unsigned short Origin) const;		// // //
 
 	// Compiler
 	bool	CompileData();
@@ -172,8 +172,7 @@ private:
 	int		CountData() const;
 
 	// Debugging
-	template <typename... Args>
-	void	Print(LPCWSTR text, Args&&... args) const;		// // //
+	void	Print(std::string_view text) const;		// // //
 	void	ClearLog() const;
 
 public:

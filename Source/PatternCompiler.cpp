@@ -31,6 +31,8 @@
 #include "FamiTrackerModule.h"		// // //
 #include "InstrumentManager.h"		// // //
 #include "SongData.h"		// // //
+#include "NumConv.h"		// // //
+#include <algorithm>		// // //
 
 /**
  * CPatternCompiler - Compress patterns to strings for the NSF code
@@ -116,9 +118,9 @@ enum command_t {
 const unsigned char CMD_LOOP_POINT = 26;	// Currently unused
 
 CPatternCompiler::CPatternCompiler(const CFamiTrackerModule &ModFile, const std::vector<unsigned> &InstList, const DPCM_List_t *pDPCMList, std::shared_ptr<CCompilerLog> pLogger) :		// // //
-	modfile_(ModFile),
 	m_iInstrumentList(InstList),
 	m_pDPCMList(pDPCMList),
+	modfile_(ModFile),
 	m_pLogger(std::move(pLogger))
 {
 }
@@ -163,7 +165,8 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 
 		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT && (IsNote(Note) || Note == note_t::ECHO))		// // //
 			if (!IsInstrumentCompatible(ChipID, pInstManager->GetInstrumentType(ChanNote.Instrument)))		// // //
-				Print(FormattedW(L"Error: Missing or incompatible instrument (on row %i, channel %i, pattern %i)\n", i, Channel, Pattern));
+				Print("Error: Missing or incompatible instrument (on row " + conv::from_uint(i) +
+					", channel " + conv::from_uint(value_cast(Channel)) + ", pattern " + conv::from_uint(Pattern) + ")\n");
 
 		// Check for delays, must come first
 		for (int j = 0; j < EffColumns; ++j) {
@@ -287,7 +290,8 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 				}
 				else {
 					NESNote = 0xFF;		// Invalid sample, skip
-					Print(FormattedW(L"Error: Missing DPCM sample (on row %i, channel %i, pattern %i)\n", i, Channel, Pattern));
+					Print("Error: Missing DPCM sample (on row " + conv::from_uint(i) +
+						", channel " + conv::from_uint(value_cast(Channel)) + ", pattern " + conv::from_uint(Pattern) + ")\n");
 				}
 			}
 			else if (Channel == chan_id_t::NOISE) {
@@ -359,6 +363,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 									WriteData(Command(CMD_EFF_PORTAUP));
 									break;
 								}
+								[[fallthrough]];
 							default:
 								WriteData(Command(CMD_EFF_PORTADOWN));
 								break;
@@ -378,6 +383,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 									WriteData(Command(CMD_EFF_PORTADOWN));
 									break;
 								}
+								[[fallthrough]];
 							default:
 								WriteData(Command(CMD_EFF_PORTAUP));
 								break;
@@ -436,7 +442,9 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 						else {
 							switch (ChipID) {
 							case sound_chip_t::APU: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:		// // //
-								if (!modfile_.GetLinearPitch()) break;
+								if (!modfile_.GetLinearPitch())
+									break;
+								[[fallthrough]];
 							default:
 								EffParam = (char)(256 - (int)EffParam);
 								if (EffParam == 0)
@@ -803,7 +811,7 @@ void CPatternCompiler::OptimizeString()
 	//
 
 	unsigned int i, j, k, l;
-	int matches, best_length, last_inst;
+	int matches, best_length = 0, last_inst;
 	bool matched;
 
 	/*
@@ -886,6 +894,8 @@ void CPatternCompiler::OptimizeString()
 			i += size;
 		}
 	}
+
+	(void)last_inst;		// // //
 }
 
 unsigned int CPatternCompiler::GetHash() const
@@ -893,9 +903,9 @@ unsigned int CPatternCompiler::GetHash() const
 	return m_iHash;
 }
 
-void CPatternCompiler::Print(const wchar_t *text) const		// // //
+void CPatternCompiler::Print(std::string_view text) const		// // //
 {
-	if (m_pLogger != NULL)
+	if (m_pLogger)
 		m_pLogger->WriteLog(text);
 }
 

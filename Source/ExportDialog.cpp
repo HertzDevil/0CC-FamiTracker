@@ -75,26 +75,20 @@ const LPCWSTR CExportDialog::NSFE_FILTER[]  = { L"NSFe file (*.nsfe)"      , L"*
 class CEditLog : public CCompilerLog
 {
 public:
-	CEditLog(CWnd *pEdit) : m_pEdit(static_cast<CEdit*>(pEdit)) {};
-	void WriteLog(LPCWSTR text);
-	void Clear();
+	explicit CEditLog(CWnd *pEdit) : m_pEdit(static_cast<CEdit *>(pEdit)) { }
+	void WriteLog(std::string_view text) override {		// // //
+		int Len = m_pEdit->GetWindowTextLengthW();
+		m_pEdit->SetSel(Len, Len, 0);
+		m_pEdit->ReplaceSel(conv::to_wide(text).data(), 0);
+		m_pEdit->RedrawWindow();
+	}
+	void Clear() override {
+		m_pEdit->SetWindowTextW(L"");
+		m_pEdit->RedrawWindow();
+	}
 private:
 	CEdit *m_pEdit;
 };
-
-void CEditLog::WriteLog(LPCWSTR text)
-{
-	int Len = m_pEdit->GetWindowTextLength();
-	m_pEdit->SetSel(Len, Len, 0);
-	m_pEdit->ReplaceSel(text, 0);
-	m_pEdit->RedrawWindow();
-}
-
-void CEditLog::Clear()
-{
-	m_pEdit->SetWindowTextW(L"");
-	m_pEdit->RedrawWindow();
-}
 
 // CExportDialog dialog
 

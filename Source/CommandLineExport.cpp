@@ -32,10 +32,11 @@
 class CCommandLineLog : public CCompilerLog {
 public:
 	explicit CCommandLineLog(CStdioFile *pFile) : m_pFile(pFile) { }
-	void WriteLog(LPCWSTR text) {
-		m_pFile->WriteString(text);
+	void WriteLog(std::string_view text) override {
+		m_pFile->Write(text.data(), text.size());
 	};
-	void Clear() { }
+	void Clear() override { }
+
 private:
 	CStdioFile *m_pFile;
 };

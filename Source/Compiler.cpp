@@ -45,6 +45,7 @@
 #include "InstrumentService.h"		// // //
 #include "InstCompiler.h"		// // //
 #include "SongLengthScanner.h"		// // //
+#include "NumConv.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 
 //
@@ -92,8 +93,6 @@
  * - Driver, music data, DPCM samples
  *
  */
-
-// Note: Each CCompiler object may only be used once (fix this)
 
 // Remove duplicated patterns (default on)
 #define REMOVE_DUPLICATE_PATTERNS
@@ -147,15 +146,12 @@ CCompiler::CCompiler(const CFamiTrackerModule &modfile, std::shared_ptr<CCompile
 CCompiler::~CCompiler() {
 }
 
-template <typename... Args>
-void CCompiler::Print(LPCWSTR text, Args&&... args) const		// // //
+void CCompiler::Print(std::string_view text) const		// // //
 {
-	if (!m_pLogger || !text)
+	if (!m_pLogger)
 		return;
 
-	CStringW buf = FormattedW(text, std::forward<Args>(args)...);		// // //
-	buf.Replace(L"\n", L"\r\n");
-	m_pLogger->WriteLog((LPCWSTR)buf);
+	m_pLogger->WriteLog(text);
 }
 
 void CCompiler::ClearLog() const
@@ -164,7 +160,7 @@ void CCompiler::ClearLog() const
 		m_pLogger->Clear();
 }
 
-bool CCompiler::OpenFile(LPCWSTR lpszFileName, CFile &file) const
+bool CCompiler::OpenFile(const wchar_t *lpszFileName, CFile &file) const
 {
 	CFileException ex;
 
@@ -232,7 +228,7 @@ ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerModule &modfile,
 
 } // namespace
 
-void CCompiler::ExportNSF_NSFE(LPCWSTR lpszFileName, int MachineType, bool isNSFE) {
+void CCompiler::ExportNSF_NSFE(const wchar_t *lpszFileName, int MachineType, bool isNSFE) {
 	if (m_bBankSwitched) {
 		// Expand and allocate label addresses
 		AddBankswitching();
@@ -272,16 +268,15 @@ void CCompiler::ExportNSF_NSFE(LPCWSTR lpszFileName, int MachineType, bool isNSF
 	m_iInitAddress = m_iDriverAddress + DATA_HEADER_SIZE;		// // //
 
 	// Load driver
-	auto pDriverPtr = LoadDriver(*m_pDriverData, m_iDriverAddress);		// // //
-	unsigned char *pDriver = pDriverPtr.get();
-
-	// Write music data address
-	SetDriverSongAddress(pDriver, MusicDataAddress);
+	auto Driver = LoadDriver(*m_pDriverData, m_iDriverAddress);		// // //
+	ASSERT(Driver.size() == m_iDriverSize);
+	Driver[m_iDriverSize - 2] = MusicDataAddress & 0xFF;
+	Driver[m_iDriverSize - 1] = MusicDataAddress >> 8;
 
 	// Open output file
 	CFile OutputFile;
 	if (!OpenFile(lpszFileName, OutputFile)) {
-		Print(L"Error: Could not open output file\n");
+		Print("Error: Could not open output file\n");
 		return;
 	}
 
@@ -301,18 +296,18 @@ void CCompiler::ExportNSF_NSFE(LPCWSTR lpszFileName, int MachineType, bool isNSF
 	CChunkRenderNSF Render(&OutputFile, m_iLoadAddress);
 
 	if (m_bBankSwitched) {
-		Render.StoreDriver({pDriver, m_iDriverSize});
+		Render.StoreDriver(Driver);
 		Render.StoreChunksBankswitched(m_vChunks);
 		Render.StoreSamplesBankswitched(m_vSamples);
 	}
 	else {
 		if (bCompressedMode) {
 			Render.StoreChunks(m_vChunks);
-			Render.StoreDriver({pDriver, m_iDriverSize});
+			Render.StoreDriver(Driver);
 			Render.StoreSamples(m_vSamples);
 		}
 		else {
-			Render.StoreDriver({pDriver, m_iDriverSize});
+			Render.StoreDriver(Driver);
 			Render.StoreChunks(m_vChunks);
 			Render.StoreSamples(m_vSamples);
 		}
@@ -326,30 +321,30 @@ void CCompiler::ExportNSF_NSFE(LPCWSTR lpszFileName, int MachineType, bool isNSF
 	}
 
 	// Writing done, print some stats
-	Print(L" * NSF load address: $%04X\n", m_iLoadAddress);
-	Print(L"Writing output file...\n");
-	Print(L" * Driver size: %i bytes\n", m_iDriverSize);
+	Print(" * NSF load address: $" + conv::from_uint_hex(m_iLoadAddress) + "\n");
+	Print("Writing output file...\n");
+	Print(" * Driver size: " + conv::from_uint(m_iDriverSize) + " bytes\n");
 
 	if (m_bBankSwitched) {
 		int Percent = (100 * m_iMusicDataSize) / (0x80000 - m_iDriverSize - m_iSamplesSize);
 		int Banks = Render.GetBankCount();
-		Print(L" * Song data size: %i bytes (%i%%)\n", m_iMusicDataSize, Percent);
-		Print(L" * NSF type: Bankswitched (%i banks)\n", Banks - 1);
+		Print(" * Song data size: " + conv::from_uint(m_iMusicDataSize) + " bytes (" + conv::from_int(Percent) + "%)\n");
+		Print(" * NSF type: Bankswitched (" + conv::from_int(Banks - 1) + " banks)\n");
 	}
 	else {
 		int Percent = (100 * m_iMusicDataSize) / (0x8000 - m_iDriverSize - m_iSamplesSize);
-		Print(L" * Song data size: %i bytes (%i%%)\n", m_iMusicDataSize, Percent);
-		Print(L" * NSF type: Linear (driver @ $%04X)\n", m_iDriverAddress);
+		Print(" * Song data size: " + conv::from_uint(m_iMusicDataSize) + " bytes (" + conv::from_int(Percent) + "%)\n");
+		Print(" * NSF type: Linear (driver @ $" + conv::from_uint_hex(m_iDriverAddress, 4) + ")\n");
 	}
 
-	Print(L"Done, total file size: %i bytes\n", OutputFile.GetLength());
+	Print("Done, total file size: " + conv::from_uint(OutputFile.GetLength()) + " bytes\n");
 
 	OutputFile.Close();
 }
 
-void CCompiler::ExportNES_PRG(LPCWSTR lpszFileName, bool EnablePAL, bool isPRG) {
+void CCompiler::ExportNES_PRG(const wchar_t *lpszFileName, bool EnablePAL, bool isPRG) {
 	if (m_bBankSwitched) {
-		Print(L"Error: Can't write bankswitched songs!\n");
+		Print("Error: Can't write bankswitched songs!\n");
 		return;
 	}
 
@@ -369,17 +364,16 @@ void CCompiler::ExportNES_PRG(LPCWSTR lpszFileName, bool EnablePAL, bool isPRG) 
 	m_iInitAddress = m_iDriverAddress + DATA_HEADER_SIZE;		// // //
 
 	// Load driver
-	auto pDriverPtr = LoadDriver(*m_pDriverData, m_iDriverAddress);		// // //
-	unsigned char *pDriver = pDriverPtr.get();
-
-	// Write music data address
-	SetDriverSongAddress(pDriver, MusicDataAddress);
+	auto Driver = LoadDriver(*m_pDriverData, m_iDriverAddress);		// // //
+	ASSERT(Driver.size() == m_iDriverSize);
+	Driver[m_iDriverSize - 2] = MusicDataAddress & 0xFF;
+	Driver[m_iDriverSize - 1] = MusicDataAddress >> 8;
 
 	CFile OutputFile;
 	if (!OpenFile(lpszFileName, OutputFile))
 		return;
 
-	Print(L"Writing output file...\n");
+	Print("Writing output file...\n");
 
 	// Write header
 	const char NES_HEADER[] = { // 32kb NROM, no CHR
@@ -391,23 +385,23 @@ void CCompiler::ExportNES_PRG(LPCWSTR lpszFileName, bool EnablePAL, bool isPRG) 
 
 	// Write NES data
 	CChunkRenderNES Render(&OutputFile, m_iLoadAddress);
-	Render.StoreDriver({pDriver, m_iDriverSize});
+	Render.StoreDriver(Driver);
 	Render.StoreChunks(m_vChunks);
 	Render.StoreSamples(m_vSamples);
 	Render.StoreCaller(NSF_CALLER_BIN);
 
 	int Percent = (100 * m_iMusicDataSize) / (0x8000 - m_iDriverSize - m_iSamplesSize);
-	Print(L" * Driver size: %i bytes\n", m_iDriverSize);
-	Print(L" * Song data size: %i bytes (%i%%)\n", m_iMusicDataSize, Percent);
-	Print(L"Done, total file size: %i bytes\n", 0x8000 + (isPRG ? 0 : std::size(NES_HEADER)));
+	Print(" * Driver size: " + conv::from_int(m_iDriverSize) + " bytes\n");
+	Print(" * Song data size: " + conv::from_int(m_iMusicDataSize) + " bytes (" + conv::from_int(Percent) + "%)\n");
+	Print("Done, total file size: " + conv::from_int(0x8000 + (isPRG ? 0 : std::size(NES_HEADER))) + " bytes\n");
 
 	// Done
 	OutputFile.Close();
 }
 
-void CCompiler::ExportBIN_ASM(LPCWSTR lpszFileName, LPCWSTR lpszDPCM_File, bool isASM) {
+void CCompiler::ExportBIN_ASM(const wchar_t *lpszFileName, const wchar_t *lpszDPCM_File, bool isASM) {
 	if (m_bBankSwitched) {
-		Print(L"Error: Can't write bankswitched songs!\n");
+		Print("Error: Can't write bankswitched songs!\n");
 		return;
 	}
 
@@ -431,7 +425,7 @@ void CCompiler::ExportBIN_ASM(LPCWSTR lpszFileName, LPCWSTR lpszDPCM_File, bool 
 		}
 	}
 
-	Print(L"Writing output files...\n");
+	Print("Writing output files...\n");
 
 	if (isASM) {
 		CChunkRenderText Render(OutputFile);		// // //
@@ -448,9 +442,9 @@ void CCompiler::ExportBIN_ASM(LPCWSTR lpszFileName, LPCWSTR lpszDPCM_File, bool 
 		}
 	}
 
-	Print(L" * Music data size: %i bytes\n", m_iMusicDataSize);
-	Print(L" * DPCM samples size: %i bytes\n", m_iSamplesSize);
-	Print(L"Done\n");
+	Print(" * Music data size: " + conv::from_int(m_iMusicDataSize) + " bytes\n");
+	Print(" * DPCM samples size: " + conv::from_int(m_iSamplesSize) + " bytes\n");
+	Print("Done\n");
 
 	// Done
 	OutputFile.Close();
@@ -458,7 +452,7 @@ void CCompiler::ExportBIN_ASM(LPCWSTR lpszFileName, LPCWSTR lpszDPCM_File, bool 
 		OutputFileDPCM.Close();
 }
 
-void CCompiler::ExportNSF(LPCWSTR lpszFileName, int MachineType)
+void CCompiler::ExportNSF(const wchar_t *lpszFileName, int MachineType)
 {
 	ClearLog();
 	if (!CompileData())
@@ -466,7 +460,7 @@ void CCompiler::ExportNSF(LPCWSTR lpszFileName, int MachineType)
 	ExportNSF_NSFE(lpszFileName, MachineType, false);		// // //
 }
 
-void CCompiler::ExportNSFE(LPCWSTR lpszFileName, int MachineType)		// // //
+void CCompiler::ExportNSFE(const wchar_t *lpszFileName, int MachineType)		// // //
 {
 	ClearLog();
 	if (!CompileData())
@@ -474,11 +468,11 @@ void CCompiler::ExportNSFE(LPCWSTR lpszFileName, int MachineType)		// // //
 	ExportNSF_NSFE(lpszFileName, MachineType, true);
 }
 
-void CCompiler::ExportNES(LPCWSTR lpszFileName, bool EnablePAL)
+void CCompiler::ExportNES(const wchar_t *lpszFileName, bool EnablePAL)
 {
 	ClearLog();
 	if (m_pModule->HasExpansionChips()) {
-		Print(L"Error: Expansion chips not supported.\n");
+		Print("Error: Expansion chips not supported.\n");
 		AfxMessageBox(L"Expansion chips are currently not supported!", 0, 0);
 		return;
 	}
@@ -487,13 +481,13 @@ void CCompiler::ExportNES(LPCWSTR lpszFileName, bool EnablePAL)
 	ExportNES_PRG(lpszFileName, EnablePAL, false);		// // //
 }
 
-void CCompiler::ExportPRG(LPCWSTR lpszFileName, bool EnablePAL)
+void CCompiler::ExportPRG(const wchar_t *lpszFileName, bool EnablePAL)
 {
 	// Same as export to .NES but without the header
 
 	ClearLog();
 	if (m_pModule->HasExpansionChips()) {
-		Print(L"Error: Expansion chips not supported.\n");
+		Print("Error: Expansion chips not supported.\n");
 		AfxMessageBox(L"Expansion chips are currently not supported!", 0, 0);
 		return;
 	}
@@ -502,7 +496,7 @@ void CCompiler::ExportPRG(LPCWSTR lpszFileName, bool EnablePAL)
 	ExportNES_PRG(lpszFileName, EnablePAL, true);		// // //
 }
 
-void CCompiler::ExportBIN(LPCWSTR lpszBIN_File, LPCWSTR lpszDPCM_File)
+void CCompiler::ExportBIN(const wchar_t *lpszBIN_File, const wchar_t *lpszDPCM_File)
 {
 	ClearLog();
 	if (!CompileData())
@@ -510,7 +504,7 @@ void CCompiler::ExportBIN(LPCWSTR lpszBIN_File, LPCWSTR lpszDPCM_File)
 	ExportBIN_ASM(lpszBIN_File, lpszDPCM_File, false);		// // //
 }
 
-void CCompiler::ExportASM(LPCWSTR lpszFileName)
+void CCompiler::ExportASM(const wchar_t *lpszFileName)
 {
 	ClearLog();
 	if (!CompileData())
@@ -524,10 +518,9 @@ void CCompiler::SetMetadata(std::string_view title, std::string_view artist, std
 	copyright_ = copyright.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1);
 }
 
-std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, unsigned short Origin) const {		// // //
+std::vector<unsigned char> CCompiler::LoadDriver(const driver_t &Driver, unsigned short Origin) const {		// // //
 	// Copy embedded driver
-	auto pData = std::make_unique<unsigned char[]>(Driver.driver.size());
-	memcpy(pData.get(), Driver.driver.data(), Driver.driver.size());
+	std::vector<unsigned char> Data(Driver.driver.begin(), Driver.driver.end());
 
 	// // // Custom pitch tables
 	const CSoundGen *pSoundGen = Env.GetSoundGenerator();		// // //
@@ -541,15 +534,15 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 		case CDetuneTable::DETUNE_N163:
 			for (int j = 0; j < NOTE_COUNT; ++j) {
 				int Reg = pSoundGen->ReadPeriodTable(j, Table);
-				pData[Driver.freq_table[i] + 2 * j    ] = Reg & 0xFF;
-				pData[Driver.freq_table[i] + 2 * j + 1] = Reg >> 8;
+				Data[Driver.freq_table[i] + 2 * j    ] = Reg & 0xFF;
+				Data[Driver.freq_table[i] + 2 * j + 1] = Reg >> 8;
 			} break;
 		case CDetuneTable::DETUNE_VRC7:
 			for (int j = 0; j <= NOTE_RANGE; ++j) { // one extra item
 				int Reg = pSoundGen->ReadPeriodTable(j % NOTE_RANGE, Table) * 4;
 				if (j == NOTE_RANGE) Reg <<= 1;
-				pData[Driver.freq_table[i] + j                 ] = Reg & 0xFF;
-				pData[Driver.freq_table[i] + j + NOTE_RANGE + 1] = Reg >> 8;
+				Data[Driver.freq_table[i] + j                 ] = Reg & 0xFF;
+				Data[Driver.freq_table[i] + j + NOTE_RANGE + 1] = Reg >> 8;
 			} break;
 		default:
 			AfxDebugBreak();
@@ -559,31 +552,31 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 	// Relocate driver
 	for (size_t i = 0; i < Driver.word_reloc.size(); ++i) {
 		// Words
-		unsigned short value = pData[Driver.word_reloc[i]] + (pData[Driver.word_reloc[i] + 1] << 8);
+		unsigned short value = Data[Driver.word_reloc[i]] + (Data[Driver.word_reloc[i] + 1] << 8);
 		value += Origin;
-		pData[Driver.word_reloc[i]] = value & 0xFF;
-		pData[Driver.word_reloc[i] + 1] = value >> 8;
+		Data[Driver.word_reloc[i]] = value & 0xFF;
+		Data[Driver.word_reloc[i] + 1] = value >> 8;
 	}
 
 	for (size_t i = 0; i < Driver.adr_reloc.size(); i += 2) {		// // //
-		unsigned short value = pData[Driver.adr_reloc[i]] + (pData[Driver.adr_reloc[i + 1]] << 8);
+		unsigned short value = Data[Driver.adr_reloc[i]] + (Data[Driver.adr_reloc[i + 1]] << 8);
 		value += Origin;
-		pData[Driver.adr_reloc[i]] = value & 0xFF;
-		pData[Driver.adr_reloc[i + 1]] = value >> 8;
+		Data[Driver.adr_reloc[i]] = value & 0xFF;
+		Data[Driver.adr_reloc[i + 1]] = value >> 8;
 	}
 
 	if (m_pModule->HasExpansionChip(sound_chip_t::N163)) {
-		pData[m_iDriverSize - 2 - 0x100 - 0xC0 * 2 - 8 - 1 - MAX_CHANNELS_N163 + m_pModule->GetNamcoChannels()] = 3;
+		Data[m_iDriverSize - 2 - 0x100 - 0xC0 * 2 - 8 - 1 - MAX_CHANNELS_N163 + m_pModule->GetNamcoChannels()] = 3;
 	}
 
 	if (m_pModule->GetSoundChipSet().IsMultiChip()) {		// // // special processing for multichip
 		int ptr = FT_UPDATE_EXT_ADR;
 		for (auto chip : EXPANSION_CHIPS) {
-			ASSERT(pData[ptr] == 0x20); // jsr
+			ASSERT(Data[ptr] == 0x20); // jsr
 			if (!m_pModule->HasExpansionChip(chip)) {
-				pData[ptr++] = 0xEA; // nop
-				pData[ptr++] = 0xEA;
-				pData[ptr++] = 0xEA;
+				Data[ptr++] = 0xEA; // nop
+				Data[ptr++] = 0xEA;
+				Data[ptr++] = 0xEA;
 			}
 			else
 				ptr += 3;
@@ -600,17 +593,17 @@ std::unique_ptr<unsigned char[]> CCompiler::LoadDriver(const driver_t &Driver, u
 		};
 
 		for (int i = 0; i < CHANID_COUNT; ++i)
-			pData[FT_CH_ENABLE_ADR + i] = 0;
+			Data[FT_CH_ENABLE_ADR + i] = 0;
 		m_ChannelOrder.ForeachChannel([&] (chan_id_t x) {
-			pData[FT_CH_ENABLE_ADR + CH_MAP[value_cast(x)]] = 1;
+			Data[FT_CH_ENABLE_ADR + CH_MAP[value_cast(x)]] = 1;
 		});
 	}
 
 	// // // Copy the vibrato table, the stock one only works for new vibrato mode
 	for (int i = 0; i < 256; ++i)
-		pData[m_iVibratoTableLocation + i] = (char)pSoundGen->ReadVibratoTable(i);
+		Data[m_iVibratoTableLocation + i] = (char)pSoundGen->ReadVibratoTable(i);
 
-	return pData;
+	return Data;
 }
 
 void CCompiler::SetDriverSongAddress(unsigned char *pDriver, unsigned short Address) const
@@ -728,14 +721,14 @@ void CCompiler::UpdateSamplePointers(unsigned int Origin)
 		m_pSamplePointersChunk->StoreByte(Bank);
 
 #ifdef _DEBUG
-		auto name = conv::to_wide(pDSample->name());
-		Print(L" * DPCM sample %.*s: $%04X, bank %i (%i bytes)\n", name.size(), name.data(), Address, Bank, Size);
+		Print(" * DPCM sample " + std::string {pDSample->name()} + ": $" + conv::from_uint_hex(Address, 4) +
+			", bank " + conv::from_uint(Bank) + " (" + conv::from_uint(Size) + " bytes)\n");
 #endif
 		Address += Size;
 		Address += AdjustSampleAddress(Address);
 	}
 #ifdef _DEBUG
-	Print(L" * DPCM sample banks: %i\n", Bank - m_iFirstSampleBank + DPCM_PAGE_WINDOW);
+	Print(" * DPCM sample banks: " + conv::from_uint(Bank - m_iFirstSampleBank + DPCM_PAGE_WINDOW) + "\n");
 #endif
 
 	// Save last bank number for NSF header
@@ -845,7 +838,7 @@ bool CCompiler::CollectLabelsBankswitched(std::map<stChunkLabel, int> &labelMap)
 
 	if (Offset + m_iDriverSize > 0x3000) {
 		// Instrument data did not fit within the limit, display an error and abort?
-		Print(L"Error: Instrument data overflow, can't export file!\n");
+		Print("Error: Instrument data overflow, can't export file!\n");
 		return false;
 	}
 
@@ -911,43 +904,43 @@ bool CCompiler::CompileData()
 		case sound_chip_t::NONE:
 			m_pDriverData = &DRIVER_PACK_2A03;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_2A03;
-			Print(L" * No expansion chip\n");
+			Print(" * No expansion chip\n");
 			break;
 		case sound_chip_t::VRC6:
 			m_pDriverData = &DRIVER_PACK_VRC6;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_VRC6;
-			Print(L" * VRC6 expansion enabled\n");
+			Print(" * VRC6 expansion enabled\n");
 			break;
 		case sound_chip_t::MMC5:
 			m_pDriverData = &DRIVER_PACK_MMC5;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_MMC5;
-			Print(L" * MMC5 expansion enabled\n");
+			Print(" * MMC5 expansion enabled\n");
 			break;
 		case sound_chip_t::VRC7:
 			m_pDriverData = &DRIVER_PACK_VRC7;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_VRC7;
-			Print(L" * VRC7 expansion enabled\n");
+			Print(" * VRC7 expansion enabled\n");
 			break;
 		case sound_chip_t::FDS:
 			m_pDriverData = &DRIVER_PACK_FDS;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_FDS;
-			Print(L" * FDS expansion enabled\n");
+			Print(" * FDS expansion enabled\n");
 			break;
 		case sound_chip_t::N163:
 			m_pDriverData = &DRIVER_PACK_N163;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_N163;
-			Print(L" * N163 expansion enabled\n");
+			Print(" * N163 expansion enabled\n");
 			break;
 		case sound_chip_t::S5B:
 			m_pDriverData = &DRIVER_PACK_S5B;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_S5B;
-			Print(L" * S5B expansion enabled\n");
+			Print(" * S5B expansion enabled\n");
 			break;
 		}
 	else {		// // //
 		m_pDriverData = &DRIVER_PACK_ALL;
 		m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_ALL;
-		Print(L" * Multiple expansion chips enabled\n");
+		Print(" * Multiple expansion chips enabled\n");
 	}
 
 	// Driver size
@@ -956,7 +949,7 @@ bool CCompiler::CompileData()
 	// Scan and optimize song
 	ScanSong();
 
-	Print(L"Building music data...\n");
+	Print("Building music data...\n");
 
 	// Build music data
 	CreateMainHeader();
@@ -992,7 +985,7 @@ bool CCompiler::CompileData()
 		m_iSampleStart = PAGE_SAMPLES;
 
 	// Compiling done
-	Print(L" * Samples located at: $%04X\n", m_iSampleStart);
+	Print(" * Samples located at: $" + conv::from_uint_hex(m_iSampleStart, 4) + "\n");
 
 #ifdef FORCE_BANKSWITCH
 	m_bBankSwitched = true;
@@ -1173,7 +1166,7 @@ void CCompiler::CreateSequenceList()
 		}
 	}
 
-	Print(L" * Sequences used: %i (%i bytes)\n", StoredCount, Size);
+	Print(" * Sequences used: " + conv::from_int(StoredCount) + " (" + conv::from_int(Size) + " bytes)\n");
 }
 
 int CCompiler::StoreSequence(const CSequence &Seq, const stChunkLabel &label)		// // //
@@ -1286,10 +1279,10 @@ void CCompiler::CreateInstrumentList()
 		}
 	}
 
-	Print(L" * Instruments used: %i (%i bytes)\n", m_iAssignedInstruments.size(), iTotalSize);
+	Print(" * Instruments used: " + conv::from_uint(m_iAssignedInstruments.size()) + " (" + conv::from_int(iTotalSize) + " bytes)\n");
 
 	if (iWaveSize > 0)
-		Print(L" * N163 waves size: %i bytes\n", iWaveSize);
+		Print(" * N163 waves size: " + conv::from_int(iWaveSize) + " bytes\n");
 }
 
 // Samples
@@ -1394,7 +1387,7 @@ void CCompiler::StoreSamples()
 		}
 	}
 
-	Print(L" * DPCM samples used: %i (%i bytes)\n", m_iSamplesUsed, m_iSamplesSize);
+	Print(" * DPCM samples used: " + conv::from_int(m_iSamplesUsed) + " (" + conv::from_int(m_iSamplesSize) + " bytes)\n");
 }
 
 int CCompiler::GetSampleIndex(int SampleNumber)
@@ -1440,7 +1433,7 @@ void CCompiler::StoreGrooves()
 		}
 	}
 
-	Print(L" * Grooves used: %i (%i bytes)\n", Count, Size);
+	Print(" * Grooves used: " + conv::from_int(Count) + " (" + conv::from_int(Size) + " bytes)\n");
 }
 
 // Songs
@@ -1492,7 +1485,7 @@ void CCompiler::StoreSongs()
 
 	// Store actual songs
 	m_pModule->VisitSongs([this] (const CSongData &, unsigned i) {
-		Print(L" * Song %i: ", i);
+		Print(" * Song " + conv::from_int(i) + ": ");
 		// Store frames
 		CreateFrameList(i);
 		// Store pattern data
@@ -1500,10 +1493,10 @@ void CCompiler::StoreSongs()
 	});
 
 	if (m_iDuplicatePatterns > 0)
-		Print(L" * %i duplicated pattern(s) removed\n", m_iDuplicatePatterns);
+		Print(" * " + conv::from_int(m_iDuplicatePatterns) + " duplicated pattern(s) removed\n");
 
 #ifdef _DEBUG
-	Print(L"Hash collisions: %i (of %i items)\r\n", m_iHashCollisions, m_PatternMap.size());		// // //
+	Print("Hash collisions: " + conv::from_uint(m_iHashCollisions) + " (of " + conv::from_uint(m_PatternMap.size()) + " items)\r\n");		// // //
 #endif
 }
 
@@ -1555,7 +1548,7 @@ void CCompiler::CreateFrameList(unsigned int Track)
 
 	m_iTrackFrameSize[Track] = TotalSize;
 
-	Print(L"%i frames (%i bytes), ", FrameCount, TotalSize);
+	Print(conv::from_int(FrameCount) + " frames (" + conv::from_int(TotalSize) + " bytes), ");
 }
 
 // Patterns
@@ -1635,7 +1628,7 @@ void CCompiler::StorePatterns(unsigned int Track)
 	m_DuplicateMap.RemoveAll();
 #endif /* LOCAL_DUPLICATE_PATTERN_REMOVAL */
 
-	Print(L"%i patterns (%i bytes)\r\n", PatternCount, PatternSize);
+	Print(conv::from_int(PatternCount) + " patterns (" + conv::from_int(PatternSize) + " bytes)\r\n");
 }
 
 bool CCompiler::IsPatternAddressed(unsigned int Track, int Pattern, chan_id_t Channel) const

@@ -687,9 +687,6 @@
     <ClCompile Include="Source\ModuleAction.cpp">
       <Filter>Source Files\Document Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ActionHandler.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Source\PatternClipData.cpp">
       <Filter>Source Files\Pattern Editor</Filter>
     </ClCompile>
@@ -827,6 +824,9 @@
     </ClCompile>
     <ClCompile Include="Source\SettingsService.cpp">
       <Filter>Source Files\Services</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ActionHandler.cpp">
+      <Filter>Source Files\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

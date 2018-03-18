@@ -26,6 +26,7 @@
 #include "Compiler.h"
 #include "Chunk.h"
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
+#include "stdafx.h"		// // //
 
 /**
  * Binary file writer, base class binary renderers

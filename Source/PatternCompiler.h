@@ -27,6 +27,7 @@
 #include "FamiTrackerTypes.h"		// // //
 #include "APU/Types_fwd.h"		// // //
 #include <memory>		// // //
+#include <string_view>		// // //
 
 class CFamiTrackerModule;		// // //
 class CCompilerLog;
@@ -70,7 +71,7 @@ private:
 	stSpacingInfo	ScanNoteLengths(int Track, unsigned int StartRow, int Pattern, chan_id_t Channel);		// // //
 
 	// Debugging
-	void			Print(const wchar_t *text) const;		// // //
+	void			Print(std::string_view text) const;		// // //
 
 private:
 	std::vector<unsigned char> m_vData;		// // //
