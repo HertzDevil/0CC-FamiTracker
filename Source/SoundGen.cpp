@@ -407,7 +407,7 @@ bool CSoundGen::ResetAudioDevice()
 	//
 
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == m_nThreadID);
 	ASSERT(m_pDSound != NULL);
 
 	CSettings *pSettings = Env.GetSettings();
@@ -478,7 +478,7 @@ bool CSoundGen::ResetAudioDevice()
 void CSoundGen::CloseAudio()
 {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
 	if (m_pAudioDriver) {		// // //
 		m_pAudioDriver->CloseAudioDevice();
@@ -503,7 +503,7 @@ bool CSoundGen::IsAudioReady() const {		// // //
 void CSoundGen::ResetBuffer()
 {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
 	m_pAudioDriver->Reset();		// // //
 	m_pAPU->Reset();
@@ -514,7 +514,7 @@ void CSoundGen::FlushBuffer(array_view<int16_t> Buffer)		// // //
 	// Callback method from emulation
 
 	// May only be called from sound player thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
 	m_pAudioDriver->FlushBuffer(Buffer);		// // //
 }
@@ -530,7 +530,7 @@ CAudioDriver *CSoundGen::GetAudioDriver() const {
 
 bool CSoundGen::PlayBuffer()
 {
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
 	if (m_pWaveRenderer) {		// // //
 		CSingleLock l(&m_csRenderer); l.Lock();
@@ -575,7 +575,7 @@ int CSoundGen::ReadPeriodTable(int Index, int Table) const		// // //
 void CSoundGen::BeginPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == m_nThreadID);
 //	ASSERT(m_pTrackerView != NULL);
 
 	if (!IsAudioReady())		// // //
@@ -687,7 +687,7 @@ std::string CSoundGen::RecallChannelState(chan_id_t Channel) const		// // //
 
 void CSoundGen::HaltPlayer() {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
 	// Move player to non-playing state
 
@@ -713,7 +713,7 @@ void CSoundGen::HaltPlayer() {
 void CSoundGen::ResetAPU()
 {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
 	// Reset the APU
 	m_pAPU->Reset();
@@ -745,7 +745,7 @@ double CSoundGen::GetChannelFrequency(sound_chip_t Chip, int Channel) const		// 
 void CSoundGen::MakeSilent()
 {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
 	if (m_pTrackerView)		// // //
 		m_pTrackerView->MakeSilent();
@@ -905,7 +905,7 @@ void CSoundGen::StartRendering() {
 void CSoundGen::StopRendering()
 {
 	// Called from player thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == m_nThreadID);
 
 //	CSingleLock l(&m_csRenderer); l.Lock();
 	if (!is_rendering_impl())
@@ -961,7 +961,7 @@ bool CSoundGen::WaitForStop() const
 	// Wait for player to stop, timeout = 4s
 	// The player must have received the stop command or this will fail
 
-	ASSERT(GetCurrentThreadId() != Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() != m_nThreadID);
 
 	//return ::WaitForSingleObject(m_hIsPlaying, 4000) == WAIT_OBJECT_0;
 
@@ -1001,7 +1001,7 @@ BOOL CSoundGen::InitInstance()
 
 	ResetAPU();
 
-	TRACE(L"SoundGen: Created thread (0x%04x)\n", Env.GetMainApp()->m_nThreadID);
+	TRACE(L"SoundGen: Created thread (0x%04x)\n", m_nThreadID);
 
 	SetThreadPriority(THREAD_PRIORITY_TIME_CRITICAL);
 
@@ -1016,7 +1016,7 @@ int CSoundGen::ExitInstance()
 {
 	// Shutdown the thread
 
-	TRACE(L"SoundGen: Closing thread (0x%04x)\n", Env.GetMainApp()->m_nThreadID);
+	TRACE(L"SoundGen: Closing thread (0x%04x)\n", m_nThreadID);
 
 	// Make sure sound interface is shut down
 	CloseAudio();
