@@ -77,25 +77,40 @@ void CSimpleFile::WriteStringNull(std::string_view sv)
 	m_fFile.put('\0');
 }
 
-int8_t CSimpleFile::ReadInt8()
+uint8_t CSimpleFile::ReadUint8()
 {
-	unsigned char buf[1];
+	unsigned char buf[1] = { };
 	ReadBytes(buf, std::size(buf));
 	return buf[0];
 }
 
-int16_t CSimpleFile::ReadInt16()
+int8_t CSimpleFile::ReadInt8()
 {
-	unsigned char buf[2];
+	return static_cast<int8_t>(ReadUint8());
+}
+
+uint16_t CSimpleFile::ReadUint16()
+{
+	unsigned char buf[2] = { };
 	ReadBytes(buf, std::size(buf));
 	return buf[0] | (buf[1] << 8);
 }
 
-int32_t CSimpleFile::ReadInt32()
+int16_t CSimpleFile::ReadInt16()
 {
-	unsigned char buf[4];
+	return static_cast<int8_t>(ReadUint16());
+}
+
+uint32_t CSimpleFile::ReadUint32()
+{
+	unsigned char buf[4] = { };
 	ReadBytes(buf, std::size(buf));
 	return buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24);
+}
+
+int32_t CSimpleFile::ReadInt32()
+{
+	return static_cast<int8_t>(ReadUint32());
 }
 
 void CSimpleFile::ReadBytes(void *pBuf, size_t count) {
@@ -104,9 +119,9 @@ void CSimpleFile::ReadBytes(void *pBuf, size_t count) {
 
 std::string CSimpleFile::ReadString()
 {
-	const int32_t Size = ReadInt32();
+	const auto Size = ReadUint32();
 	std::string str(Size, '\0');
-	m_fFile.read(&str[0], Size);
+	m_fFile.read(str.data(), Size);
 	return str;
 }
 

@@ -47,13 +47,16 @@ public:
 	void	WriteString(std::string_view sv);
 	void	WriteStringNull(std::string_view sv);
 
-	int8_t	ReadInt8();
-	int16_t	ReadInt16();
-	int32_t	ReadInt32();
-	void	ReadBytes(void *pBuf, size_t count);
+	uint8_t		ReadUint8();
+	int8_t		ReadInt8();
+	uint16_t	ReadUint16();
+	int16_t		ReadInt16();
+	uint32_t	ReadUint32();
+	int32_t		ReadInt32();
+	void		ReadBytes(void *pBuf, size_t count);
 	std::string	ReadString();
-	std::string ReadStringN(size_t count);
-	std::string ReadStringNull();
+	std::string	ReadStringN(size_t count);
+	std::string	ReadStringNull();
 
 private:
 	std::fstream m_fFile;

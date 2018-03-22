@@ -38,10 +38,74 @@
 #include "DSampleManager.h"
 #include "ft0cc/doc/dpcm_sample.hpp"
 #include "ft0cc/doc/groove.hpp"
+#include <optional>
+#include "clip.h"
 
 using json = nlohmann::json;
 using namespace std::string_literals;
 using namespace std::string_view_literals;
+
+namespace {
+
+template <typename T, typename KeyT>
+auto get_maybe(const json &j, const KeyT &k) {
+	if (auto it = j.find(k); it != j.end())
+		return it->template get<T>();
+	return T { };
+}
+
+template <typename T>
+T json_get_between(const json &j, const std::string &k, T lo, T hi) {
+	auto v = j.at(k).get<json::number_integer_t>();
+	if (v < static_cast<json::number_integer_t>(lo) || static_cast<json::number_integer_t>(hi) < v)
+		throw std::invalid_argument {"Value at " + k + " must be between [" +
+			std::to_string(lo) + ", " + std::to_string(hi) + "], got " + std::to_string(v)};
+	return static_cast<T>(v);
+}
+
+template <typename T>
+T json_get_between(const json &j, std::size_t k, T lo, T hi) {
+	auto v = j.at(k).get<json::number_integer_t>();
+	if (v < static_cast<json::number_integer_t>(lo) || static_cast<json::number_integer_t>(hi) < v)
+		throw std::invalid_argument {"Value at " + std::to_string(k) + " must be between [" +
+			std::to_string(lo) + ", " + std::to_string(hi) + "], got " + std::to_string(v)};
+	return static_cast<T>(v);
+}
+
+template <typename T, typename KeyT>
+auto get_maybe(const json &j, const KeyT &k, T&& def) {
+	auto it = j.find(k);
+	return it != j.end() ? it->template get<T>() : std::forward<T>(def);
+}
+
+template <typename F, typename KeyT>
+void json_maybe(const json &j, const KeyT &k, F f) {
+	if (auto it = j.find(k); it != j.end())
+		f(*it);
+}
+
+} // namespace
+
+namespace nlohmann {
+
+template <typename T>
+struct adl_serializer<std::optional<T>> {
+	static void to_json(json &j, const std::optional<T> &x) {
+		if (x.has_value())
+			j = *x;
+		else
+			j = nullptr;
+	}
+
+	static void from_json(const json &j, std::optional<T> &x) {
+		if (j.is_null())
+			x = std::nullopt;
+		else
+			x = j.get<T>();
+	}
+};
+
+} // namespace nlohmann
 
 namespace {
 
@@ -93,7 +157,7 @@ void to_json(json &j, const stChanNote &note) {
 	if (note.Instrument < MAX_INSTRUMENTS)
 		j["inst_index"] = note.Instrument;
 	else if (note.Instrument == HOLD_INSTRUMENT)
-		j["inst_index"] = "&&";
+		j["inst_index"] = -1;
 
 	for (const auto &fx_ : note.EffNumber)
 		if (fx_ != effect_t::NONE) {
@@ -210,7 +274,10 @@ void to_json(json &j, const CFamiTrackerModule &modfile) {
 			{"vibrato_style", modfile.GetVibratoStyle() == vibrato_t::VIBRATO_OLD ? "old" : "new"},
 			{"linear_pitch", modfile.GetLinearPitch()},
 			{"fxx_split_point", modfile.GetSpeedSplitPoint()},
-			{"detune", modfile.GetTuningSemitone() + modfile.GetTuningCent() / 100.},
+			{"detune", {
+				{"semitones", modfile.GetTuningSemitone()},
+				{"cents", modfile.GetTuningCent()},
+			}},
 		}},
 		{"channels", json(modfile.GetChannelOrder())},
 		{"songs", json::array()},
@@ -425,6 +492,79 @@ void to_json(json &j, const groove &groove) {
 	};
 	for (auto x : groove)
 		j["values"].push_back(x);
+}
+
+} // namespace ft0cc::doc
+
+
+
+void from_json(const json &j, stChanNote &note) {
+	json_maybe(j, "kind", [&] (std::string &&kind) {
+		if (kind == "note") {
+			int midiNote = json_get_between(j, "value", 0, 95);
+			note.Note = GET_NOTE(midiNote);
+			note.Octave = GET_OCTAVE(midiNote);
+		}
+		else if (kind == "halt")
+			note.Note = note_t::HALT;
+		else if (kind == "release")
+			note.Note = note_t::RELEASE;
+		else if (kind == "echo") {
+			note.Note = note_t::ECHO;
+			note.Octave = json_get_between(j, "value", (std::size_t)0u, ECHO_BUFFER_LENGTH - 1);
+		}
+		else if (kind == "none")
+			note.Note = note_t::NONE;
+	});
+
+	if (j.count("volume"))
+		note.Vol = json_get_between(j, "volume", 0, MAX_VOLUME - 1);
+
+	if (j.count("inst_index")) {
+		auto inst = json_get_between(j, "inst_index", -1, MAX_INSTRUMENTS - 1);
+		if (inst == -1)
+			note.Instrument = HOLD_INSTRUMENT;
+		else
+			note.Instrument = inst;
+	}
+
+	json_maybe(j, "effects", [&] (std::vector<json> &&fxj) {
+		for (const auto &fx : fxj) {
+			int col = json_get_between(fx, "column", 0, MAX_EFFECT_COLUMNS - 1);
+			auto ch = fx.at("name").get<std::string>();
+			if (ch.size() != 1u)
+				throw std::invalid_argument {"Effect name must be 1 character long"};
+			effect_t effect = GetEffectFromChar(ch.front(), sound_chip_t::APU);
+			if (effect == effect_t::NONE)
+				throw std::invalid_argument {"Invalid effect name"};
+			note.EffNumber[col] = effect;
+			note.EffParam[col] = json_get_between(fx, "param", 0, 255);
+		}
+	});
+}
+
+
+
+namespace ft0cc::doc {
+
+void from_json(const json &j, dpcm_sample &dpcm) {
+	json_maybe(j, "name", [&] (std::string &&name) {
+		dpcm.rename(name);
+	});
+
+	json_maybe(j, "samples", [&] (std::vector<int64_t> &&samps) {
+		dpcm.resize(std::min(samps.size(), dpcm_sample::max_size));
+		for (std::size_t i = 0; i < dpcm.size(); ++i)
+			dpcm.set_sample_at(i, clip<dpcm_sample::sample_t>(samps[i]));
+	});
+}
+
+void from_json(const json &j, groove &g) {
+	json_maybe(j, "values", [&] (std::vector<int64_t> &&vals) {
+		g.resize(std::min(vals.size(), groove::max_size));
+		for (std::size_t i = 0; i < g.size(); ++i)
+			g.set_entry(i, clip<groove::entry_type>(vals[i]));
+	});
 }
 
 } // namespace ft0cc::doc
