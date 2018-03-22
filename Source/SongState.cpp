@@ -147,7 +147,7 @@ std::string stChannelState::GetStateString() const {
 
 void stChannelState::HandleNote(const stChanNote &Note, unsigned EffColumns) {
 	if (Note.Note != note_t::NONE && Note.Note != note_t::RELEASE) {
-		for (int i = 0; i < std::min(BufferPos, (int)ECHO_BUFFER_LENGTH); ++i) {
+		for (int i = 0; i < std::min(BufferPos, (int)std::size(Echo)); ++i) {
 			if (Echo[i] == ECHO_BUFFER_ECHO) {
 				UpdateEchoTranspose(Note, Transpose[i], EffColumns);
 				switch (Note.Note) {

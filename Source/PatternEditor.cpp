@@ -3601,7 +3601,7 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 				}
 
 				if (push) {
-					for (int i = ECHO_BUFFER_LENGTH - 1; i > 0; --i)
+					for (int i = std::size(echo) - 1; i > 0; --i)
 						echo[i] = echo[i - 1];
 					echo[0] = current;
 				}

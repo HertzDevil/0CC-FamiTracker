@@ -339,7 +339,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 		}
 	}
 	if ((NoteData.Note != note_t::RELEASE && NoteData.Note != note_t::NONE) || pushNone) { // push buffer
-		for (int i = ECHO_BUFFER_LENGTH - 1; i > 0; --i)
+		for (int i = std::size(m_iEchoBuffer) - 1; i > 0; --i)
 			m_iEchoBuffer[i] = m_iEchoBuffer[i - 1];
 		WriteEchoBuffer(NoteData, 0);
 	}

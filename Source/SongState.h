@@ -61,7 +61,7 @@ public:
 	std::array<int, EFFECT_COUNT> Effect = { };
 	int Effect_LengthCounter = -1;
 	int Effect_AutoFMMult = -1;
-	std::array<int, ECHO_BUFFER_LENGTH + 1> Echo = { };
+	std::array<int, ECHO_BUFFER_LENGTH> Echo = { };
 
 private:
 	void HandleNote(const stChanNote &Note, unsigned EffColumns);
@@ -71,7 +71,7 @@ private:
 	void HandleSxxCommand(unsigned char param);
 
 	int BufferPos = 0;
-	std::array<int, ECHO_BUFFER_LENGTH + 1> Transpose = { };
+	std::array<int, ECHO_BUFFER_LENGTH> Transpose = { };
 };
 
 class CSongState {

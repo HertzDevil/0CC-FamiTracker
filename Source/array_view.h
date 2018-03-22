@@ -25,7 +25,6 @@
 
 #include <iterator>
 #include <limits>
-#include <string>
 #include <type_traits>
 
 namespace details {
@@ -97,8 +96,7 @@ public:
 	}
 	constexpr const_reference at(size_type pos) const {
 		if (pos >= size())
-			throw std::out_of_range {"array_view::at(" + std::to_string(pos) +
-				") called, but size() is " + std::to_string(size())};
+			throw std::out_of_range {"array_view::at() out of range"};
 		return operator[](pos);
 	}
 	constexpr const_reference front() const {

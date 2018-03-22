@@ -47,7 +47,7 @@ void CChannelHandlerFDS::HandleNoteData(stChanNote &NoteData)		// // //
 	}
 	m_bVolModTrigger = false;		// // //
 
-	CChannelHandler::HandleNoteData(NoteData);
+	CChannelHandlerInverted::HandleNoteData(NoteData);
 	// // //
 	if (IsNote(NoteData.Note) || NoteData.Note == note_t::ECHO)
 		m_bVolModTrigger = true;
