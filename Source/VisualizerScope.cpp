@@ -120,17 +120,17 @@ void CVisualizerScope::Draw()
 	static int LastPos = 0;
 	static int Accum = 0;
 
-	for (unsigned int i = 0; i < m_iSampleCount; ++i) {
+	for (auto sample : m_pSamples) {		// // //
 #ifdef _DEBUG
-		if (min_ > m_pSamples[i])
-			min_ = m_pSamples[i];
-		if (max_ < m_pSamples[i])
-			max_ = m_pSamples[i];
+		if (min_ > sample)
+			min_ = sample;
+		if (max_ < sample)
+			max_ = sample;
 #endif
 
 		int Pos = m_iWindowBufPtr++ / TIME_SCALING;
 
-		Accum += m_pSamples[i];
+		Accum += sample;
 
 		if (Pos != LastPos) {
 			m_pWindowBuf[LastPos] = Accum / TIME_SCALING;

@@ -27,7 +27,7 @@
 
 #include "stdafx.h"		// // //
 #include <memory>		// // //
-#include <array>		// // //
+#include <vector>		// // //
 #include "array_view.h"		// // //
 
 class CVisualizerBase;		// // //
@@ -51,32 +51,29 @@ public:
 private:
 	static UINT ThreadProcFunc(LPVOID pParam);
 
-private:
 	void NextState();
 	UINT ThreadProc();
+	template <typename F>
+	void LockedState(F f) const;
+	template <typename F>
+	void LockedBuffer(F f) const;
 
-private:
-	static const int STATE_COUNT = 5;		// // //
-
-private:
-	std::array<std::unique_ptr<CVisualizerBase>, STATE_COUNT> m_pStates;		// // //
+	std::vector<std::unique_ptr<CVisualizerBase>> m_pStates;		// // //
 	unsigned int m_iCurrentState;
 
-	int	m_iBufferSize;
-	std::unique_ptr<int16_t[]> m_pBuffer1;		// // //
-	std::unique_ptr<int16_t[]> m_pBuffer2;
-	std::unique_ptr<int16_t[]> *m_pFillBuffer = nullptr;
+	std::vector<int16_t> m_pBuffer1;		// // //
+	std::vector<int16_t> m_pBuffer2;
 
 	HANDLE m_hNewSamples;
 
 	bool m_bNoAudio;
 
 	// Thread
-	CWinThread *m_pWorkerThread;
+	CWinThread *m_pWorkerThread = nullptr;
 	bool m_bThreadRunning;
 
-	CCriticalSection m_csBufferSelect;
-	CCriticalSection m_csBuffer;
+	mutable CCriticalSection m_csBufferSelect;
+	mutable CCriticalSection m_csBuffer;
 
 public:
 	virtual BOOL CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, CCreateContext* pContext = NULL);

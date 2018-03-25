@@ -45,20 +45,16 @@ UINT CVisualizerWnd::ThreadProcFunc(LPVOID pParam)
 IMPLEMENT_DYNAMIC(CVisualizerWnd, CWnd)
 
 CVisualizerWnd::CVisualizerWnd() :
-	m_pStates {
-		std::make_unique<CVisualizerScope>(false),
-		std::make_unique<CVisualizerScope>(true),
-		std::make_unique<CVisualizerSpectrum>(4),		// // //
-		std::make_unique<CVisualizerSpectrum>(1),
-		std::make_unique<CVisualizerStatic>(),
-	},
 	m_iCurrentState(0),
 	m_bThreadRunning(false),
-	m_pWorkerThread(NULL),
-	m_iBufferSize(0),
 	m_hNewSamples(NULL),
 	m_bNoAudio(false)
 {
+	m_pStates.push_back(std::make_unique<CVisualizerScope>(false));
+	m_pStates.push_back(std::make_unique<CVisualizerScope>(true));
+	m_pStates.push_back(std::make_unique<CVisualizerSpectrum>(4));		// // //
+	m_pStates.push_back(std::make_unique<CVisualizerSpectrum>(1));
+	m_pStates.push_back(std::make_unique<CVisualizerStatic>());
 }
 
 CVisualizerWnd::~CVisualizerWnd()
@@ -67,6 +63,18 @@ CVisualizerWnd::~CVisualizerWnd()
 
 HANDLE CVisualizerWnd::GetThreadHandle() const {		// // //
 	return m_pWorkerThread->m_hThread;
+}
+
+template <typename F>
+void CVisualizerWnd::LockedState(F f) const {		// // //
+	CSingleLock l(&m_csBuffer, TRUE);
+	f();
+}
+
+template <typename F>
+void CVisualizerWnd::LockedBuffer(F f) const {		// // //
+	CSingleLock l(&m_csBufferSelect, TRUE);
+	f();
 }
 
 BEGIN_MESSAGE_MAP(CVisualizerWnd, CWnd)
@@ -82,9 +90,9 @@ END_MESSAGE_MAP()
 
 void CVisualizerWnd::NextState()
 {
-	m_csBuffer.Lock();
-	m_iCurrentState = (m_iCurrentState + 1) % std::size(m_pStates);
-	m_csBuffer.Unlock();
+	LockedState([this] {
+		m_iCurrentState = (m_iCurrentState + 1) % std::size(m_pStates);
+	});
 
 	Invalidate();
 
@@ -105,18 +113,13 @@ void CVisualizerWnd::FlushSamples(array_view<int16_t> Samples)		// // //
 	if (!m_bThreadRunning)
 		return;
 
-	if (Samples.size() != m_iBufferSize) {
-		m_csBuffer.Lock();
-		m_iBufferSize = Samples.size();
-		m_pBuffer1 = std::make_unique<short[]>(m_iBufferSize);		// // //
-		m_pBuffer2 = std::make_unique<short[]>(m_iBufferSize);
-		m_pFillBuffer = &m_pBuffer1;
-		m_csBuffer.Unlock();
-	}
-
-	m_csBufferSelect.Lock();
-	Samples.copy(m_pFillBuffer->get(), Samples.size());
-	m_csBufferSelect.Unlock();
+	LockedBuffer([&] {
+		if (Samples.size() != m_pBuffer1.size()) {
+			m_pBuffer1 = std::vector<int16_t>(Samples.size());		// // //
+			m_pBuffer2 = std::vector<int16_t>(Samples.size());
+		}
+		Samples.copy(m_pBuffer1.data(), Samples.size());
+	});
 
 	SetEvent(m_hNewSamples);
 }
@@ -135,33 +138,22 @@ UINT CVisualizerWnd::ThreadProc()
 	TRACE(L"Visualizer: Started thread (0x%04x)\n", nThreadID);
 
 	while (m_bThreadRunning && ::WaitForSingleObject(m_hNewSamples, INFINITE) == WAIT_OBJECT_0) {
-
 		m_bNoAudio = false;
 
 		// Switch buffers
-		m_csBufferSelect.Lock();
-
-		auto pDrawBuffer = m_pFillBuffer->get();
-
-		if (m_pFillBuffer == &m_pBuffer1)
-			m_pFillBuffer = &m_pBuffer2;
-		else
-			m_pFillBuffer = &m_pBuffer1;
-
-		m_csBufferSelect.Unlock();
+		LockedBuffer([&] {
+			m_pBuffer1.swap(m_pBuffer2);
+		});
 
 		// Draw
-		m_csBuffer.Lock();
-
-		CDC *pDC = GetDC();
-		if (pDC != NULL) {
-			m_pStates[m_iCurrentState]->SetSampleData(pDrawBuffer, m_iBufferSize);
-			m_pStates[m_iCurrentState]->Draw();
-			m_pStates[m_iCurrentState]->Display(pDC, false);
-			ReleaseDC(pDC);
-		}
-
-		m_csBuffer.Unlock();
+		LockedState([&] {
+			if (CDC *pDC = GetDC()) {
+				m_pStates[m_iCurrentState]->SetSampleData(m_pBuffer2);
+				m_pStates[m_iCurrentState]->Draw();
+				m_pStates[m_iCurrentState]->Display(pDC, false);
+				ReleaseDC(pDC);
+			}
+		});
 	}
 
 	TRACE(L"Visualizer: Closed thread (0x%04x)\n", nThreadID);
@@ -183,9 +175,8 @@ BOOL CVisualizerWnd::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lp
 		// Get client rect and create visualizers
 		CRect crect;
 		GetClientRect(&crect);
-		for (int i = 0; i < STATE_COUNT; ++i) {
-			m_pStates[i]->Create(crect.Width(), crect.Height());
-		}
+		for (auto &state : m_pStates)
+			state->Create(crect.Width(), crect.Height());
 
 		// Create a worker thread
 		m_pWorkerThread = AfxBeginThread(&ThreadProcFunc, (LPVOID)this, THREAD_PRIORITY_BELOW_NORMAL);
@@ -208,19 +199,17 @@ void CVisualizerWnd::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 void CVisualizerWnd::OnPaint()
 {
-	m_csBuffer.Lock();
+	LockedState([&] {
+		CPaintDC dc(this); // device context for painting
 
-	CPaintDC dc(this); // device context for painting
-
-	if (m_bNoAudio) {
-		CRect rect;
-		GetClientRect(rect);
-		dc.DrawTextW(L"No audio", rect, DT_CENTER | DT_VCENTER);
-	}
-	else
-		m_pStates[m_iCurrentState]->Display(&dc, true);
-
-	m_csBuffer.Unlock();
+		if (m_bNoAudio) {
+			CRect rect;
+			GetClientRect(rect);
+			dc.DrawTextW(L"No audio", rect, DT_CENTER | DT_VCENTER);
+		}
+		else
+			m_pStates[m_iCurrentState]->Display(&dc, true);
+	});
 }
 
 void CVisualizerWnd::OnRButtonUp(UINT nFlags, CPoint point)
@@ -250,15 +239,13 @@ void CVisualizerWnd::OnRButtonUp(UINT nFlags, CPoint point)
 
 	UINT Result = pPopupMenu->TrackPopupMenu(TPM_RETURNCMD, menuPoint.x, menuPoint.y, this);
 
-	m_csBuffer.Lock();
-
-	for (size_t i = 0; i < std::size(menuIds); ++i)		// // //
-		if (Result == menuIds[i]) {
-			m_iCurrentState = i;
-			break;
-		}
-
-	m_csBuffer.Unlock();
+	LockedState([&] {
+		for (size_t i = 0; i < std::size(menuIds); ++i)		// // //
+			if (Result == menuIds[i]) {
+				m_iCurrentState = i;
+				break;
+			}
+	});
 
 	Invalidate();
 	Env.GetSettings()->SampleWinState = m_iCurrentState;

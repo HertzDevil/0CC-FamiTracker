@@ -37,11 +37,8 @@ public:
 
 	void Create(int Width, int Height) override;
 	void SetSampleRate(int SampleRate) override;
-	void SetSampleData(const int16_t *iSamples, unsigned int iCount) override;		// // //
+	void SetSampleData(array_view<int16_t> Samples) override;		// // //
 	void Draw() override;
-
-protected:
-	void Transform(const int16_t *pSamples, unsigned int Count);
 
 private:
 	static const COLORREF BG_COLOR = 0;

@@ -47,42 +47,16 @@ void CVisualizerSpectrum::SetSampleRate(int SampleRate)
 
 	m_fFftPoint.fill(0.f);		// // //
 
-	m_iSampleCount = 0;
+	m_pSamples = { };		// // //
 	m_iFillPos = 0;
 }
 
-void CVisualizerSpectrum::Transform(const int16_t *pSamples, unsigned int Count)
+void CVisualizerSpectrum::SetSampleData(array_view<int16_t> Samples)		// // //
 {
-	fft_buffer_.CopyIn(pSamples, Count);
+	CVisualizerBase::SetSampleData(Samples);
+
+	fft_buffer_.CopyIn(Samples.begin(), Samples.size());
 	fft_buffer_.Transform();
-}
-
-void CVisualizerSpectrum::SetSampleData(const int16_t *pSamples, unsigned int iCount)		// // //
-{
-	CVisualizerBase::SetSampleData(pSamples, iCount);
-
-	Transform(pSamples, iCount);
-	/*
-	int offset = 0;
-
-	if (m_iFillPos > 0) {
-		const int size = FFT_POINTS - m_iFillPos;
-		std::copy_n(pSamples, size, m_pSampleBuffer.begin() + m_iFillPos);
-		Transform(m_pSampleBuffer.data(), FFT_POINTS);
-		offset += size;
-		iCount -= size;
-	}
-
-	while (iCount >= FFT_POINTS) {
-		Transform(pSamples + offset, FFT_POINTS);
-		offset += FFT_POINTS;
-		iCount -= FFT_POINTS;
-	}
-
-	// Copy rest
-	std::copy_n(pSamples + offset, iCount, m_pSampleBuffer.begin());
-	m_iFillPos = iCount;
-	*/
 }
 
 void CVisualizerSpectrum::Draw()

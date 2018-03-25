@@ -25,6 +25,7 @@
 
 #include "stdafx.h"
 #include <memory>		// // //
+#include "array_view.h"		// // //
 
 class CVisualizerBase {		// // //
 public:
@@ -35,7 +36,7 @@ public:
 	// Set rate of samples
 	virtual void SetSampleRate(int SampleRate) = 0;
 	// Set new sample data
-	virtual void SetSampleData(const int16_t *iSamples, unsigned int iCount);		// // //
+	virtual void SetSampleData(array_view<int16_t> Samples);		// // //
 	// Render an image from the sample data
 	virtual void Draw() = 0;
 	// Display the image
@@ -48,6 +49,5 @@ protected:
 	int m_iWidth = 0;
 	int m_iHeight = 0;
 
-	unsigned int m_iSampleCount = 0;
-	const int16_t *m_pSamples = nullptr;
+	array_view<int16_t> m_pSamples;		// // //
 };
