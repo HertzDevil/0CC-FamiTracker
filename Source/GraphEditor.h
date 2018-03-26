@@ -53,13 +53,10 @@ protected:
 	virtual int GetItemTop() const = 0;		// // //
 	virtual int GetItemBottom() const;		// // //
 	virtual int GetItemHeight() const = 0;
-	virtual int GetItemValue(CPoint point) const = 0;		// // //
-	virtual int GetSequenceItemValue(int Index, int Value) const;		// // //
 
 	void ModifyItem(CPoint point, bool Redraw);		// // //
 	void ItemModified(bool Redraw);		// // //
 
-	virtual void HighlightItem(CPoint point) = 0;
 	virtual void ModifyLoopPoint(CPoint point, bool Redraw);
 	virtual void ModifyReleasePoint(CPoint point, bool Redraw);
 	virtual void ModifyReleased();
@@ -68,9 +65,7 @@ protected:
 
 	virtual void DrawRange(CDC &DC, int Max, int Min);
 	void DrawBackground(CDC &DC, int Lines, bool DrawMarks, int MarkOffset);		// // //
-	void DrawLoopPoint(CDC &DC, int StepWidth);
-	void DrawReleasePoint(CDC &DC, int StepWidth);
-	void DrawLoopRelease(CDC &DC, int StepWidth);		// // //
+	void DrawLoopRelease(CDC &DC);		// // //
 	void DrawLine(CDC &DC);
 
 	template<COLORREF COL_BG1, COLORREF COL_BG2, COLORREF COL_EDGE1, COLORREF COL_EDGE2>
@@ -81,6 +76,14 @@ protected:
 	void DrawShadowRect(CDC &DC, int x, int y, int w, int h);
 
 	void PaintBuffer(CDC &BackDC, CDC &FrontDC);
+
+private:
+	virtual int GetItemValue(CPoint point) const = 0;		// // //
+	virtual int GetSequenceItemValue(int Index, int Value) const;		// // //
+
+	void HighlightItem(CPoint point);		// // //
+
+	void DrawTagPoint(CDC &DC, int index, LPCWSTR str, COLORREF col);		// // //
 
 protected:
 	static const int GRAPH_LEFT = 28;			// Left side marigin
@@ -134,7 +137,6 @@ public:
 	void SetMaxItems(int Levels);		// // //
 
 private:
-	void HighlightItem(CPoint point) override;
 	int GetItemHeight() const override;
 	int GetItemTop() const override;		// // //
 	int GetItemValue(CPoint point) const override;		// // //
@@ -157,7 +159,6 @@ public:
 private:
 	void Initialize() override;
 	void DrawRange(CDC &DC, int Max, int Min) override;
-	void HighlightItem(CPoint point) override;
 	int GetItemHeight() const override;
 	int GetItemTop() const override;		// // //
 
@@ -186,7 +187,6 @@ public:
 	explicit CPitchGraphEditor(std::shared_ptr<CSequence> pSequence) : CGraphEditor(std::move(pSequence)) { }		// // //
 
 private:
-	void HighlightItem(CPoint point) override;
 	int GetItemHeight() const override;
 	int GetItemTop() const override;		// // //
 	int GetItemValue(CPoint point) const override;		// // //
@@ -212,7 +212,6 @@ private:
 	int GetItemValue(CPoint point) const override;		// // //
 	int GetSequenceItemValue(int Index, int Value) const override;		// // //
 
-	void HighlightItem(CPoint point) override;
 	void ModifyReleased() override;
 	void ModifyNoise(CPoint point, bool Redraw);		// // //
 	bool CheckNoiseFlags(CPoint point) const;		// // //

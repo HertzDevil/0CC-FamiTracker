@@ -105,15 +105,13 @@ void CSizeEditor::OnPaint()
 	else
 		dc.Draw3dRect(buttonRect, BUTTON_HILIGHT, BUTTON_SHADOW);
 
-	CRect textRect;
-	textRect = rect;
-	textRect.DeflateRect(rect.bottom + 6, 1, rect.bottom + 6, 0);
-
 	// Text
 	dc.SetBkMode(TRANSPARENT);
 	dc.SetTextColor(0xFFFFFF);
-	dc.DrawTextW(FormattedW(L"%i", m_iValue), &textRect, DT_RIGHT);
+	dc.SetTextAlign(TA_RIGHT);
+	dc.TextOutW(rect.right - rect.bottom - 4, rect.top + 1, FormattedW(L"%i", m_iValue));		// // //
 	dc.SetTextColor(0);
+	dc.SetTextAlign(TA_LEFT);
 	dc.TextOutW(6, 1 + ((m_iButtonPressed == 1) ? 1 : 0), L"-");
 	dc.TextOutW(rect.right - 14, 1 + ((m_iButtonPressed == 2) ? 1 : 0), L"+");
 

@@ -201,90 +201,48 @@ void CGraphEditor::DrawRange(CDC &DC, int Max, int Min)
 
 	DC.FillSolidRect(m_ClientRect.left, Top, m_GraphRect.left, Bottom, 0x00);
 
-	DC.SetBkMode(OPAQUE);
+	DC.SetBkMode(TRANSPARENT);
 	DC.SetTextColor(0xFFFFFF);
-	DC.SetBkColor(DC.GetPixel(0, 0));	// Ugly but works
+	DC.SetTextAlign(TA_RIGHT);
 
-	CRect textRect(2, 0, GRAPH_LEFT - 5, 10);
-	CRect topRect = textRect, bottomRect = textRect;
-
-	topRect.MoveToY(Top - 3);
-	DC.DrawTextW(FormattedW(L"%02i", Max), topRect, DT_RIGHT);
-
-	bottomRect.MoveToY(Bottom - 11);
-	DC.DrawTextW(FormattedW(L"%02i", Min), bottomRect, DT_RIGHT);
+	DC.TextOutW(GRAPH_LEFT - 4, Top - 3, FormattedW(L"%02i", Max));
+	DC.TextOutW(GRAPH_LEFT - 4, Bottom - 10, FormattedW(L"%02i", Min));
 
 	DC.SelectObject(pOldFont);
 }
 
-void CGraphEditor::DrawLoopPoint(CDC &DC, int StepWidth)
-{
-	// Draw loop point
-	int LoopPoint = m_pSequence->GetLoopPoint();
+void CGraphEditor::DrawTagPoint(CDC &DC, int index, LPCWSTR str, COLORREF col) {		// // //
+	if (index > -1) {
+		CFont *pOldFont = DC.SelectObject(&m_SmallFont);
 
-	CFont *pOldFont = DC.SelectObject(&m_SmallFont);
-
-	if (LoopPoint > -1) {
-		int x = StepWidth * LoopPoint + GRAPH_LEFT + 1;
-
-		GradientBar(DC, x + 1, m_BottomRect.top, m_BottomRect.right - x, m_BottomRect.Height(), 0x808000, 0x202000);		// // //
-		DC.FillSolidRect(x, m_BottomRect.top, 1, m_BottomRect.bottom, 0xF0F000);
+		int x = GetItemWidth() * index + GRAPH_LEFT + 1;
+		GradientBar(DC, x + 1, m_BottomRect.top, m_BottomRect.right - x, m_BottomRect.Height(), DIM(col, 8. / 15.), DIM(col, 2. / 15.));		// // //
+		DC.FillSolidRect(x, m_BottomRect.top, 1, m_BottomRect.bottom, col);
 
 		DC.SetTextColor(0xFFFFFF);
 		DC.SetBkMode(TRANSPARENT);
-		DC.TextOutW(x + 4, m_BottomRect.top, L"Loop");
-	}
+		DC.SetTextAlign(TA_LEFT);
+		DC.TextOutW(x + 4, m_BottomRect.top, str);
 
-	DC.SelectObject(pOldFont);
+		DC.SelectObject(pOldFont);
+	}
 }
 
-void CGraphEditor::DrawReleasePoint(CDC &DC, int StepWidth)
-{
-	// Draw loop point
-	int ReleasePoint = m_pSequence->GetReleasePoint();
-
-	CFont *pOldFont = DC.SelectObject(&m_SmallFont);
-
-	if (ReleasePoint > -1) {
-		int x = StepWidth * ReleasePoint + GRAPH_LEFT + 1;
-
-		GradientBar(DC, x + 1, m_BottomRect.top, m_BottomRect.right - x, m_BottomRect.Height(), 0x800080, 0x200020);		// // //
-		DC.FillSolidRect(x, m_BottomRect.top, 1, m_BottomRect.bottom, 0xF000F0);
-
-		DC.SetTextColor(0xFFFFFF);
-		DC.SetBkMode(TRANSPARENT);
-		DC.TextOutW(x + 4, m_BottomRect.top, L"Release");
-	}
-
-	DC.SelectObject(pOldFont);
-}
-
-void CGraphEditor::DrawLoopRelease(CDC &DC, int StepWidth)		// // //
+void CGraphEditor::DrawLoopRelease(CDC &DC)		// // //
 {
 	int LoopPoint = m_pSequence->GetLoopPoint();
 	int ReleasePoint = m_pSequence->GetReleasePoint();
 
 	if (ReleasePoint > LoopPoint) {
-		DrawLoopPoint(DC, StepWidth);
-		DrawReleasePoint(DC, StepWidth);
+		DrawTagPoint(DC, LoopPoint, L"Loop", MakeRGB(0, 240, 240));
+		DrawTagPoint(DC, ReleasePoint, L"Release", MakeRGB(240, 0, 240));
 	}
 	else if (ReleasePoint < LoopPoint) {
-		DrawReleasePoint(DC, StepWidth);
-		DrawLoopPoint(DC, StepWidth);
+		DrawTagPoint(DC, ReleasePoint, L"Release", MakeRGB(240, 0, 240));
+		DrawTagPoint(DC, LoopPoint, L"Loop", MakeRGB(0, 240, 240));
 	}
 	else if (LoopPoint > -1) { // LoopPoint == ReleasePoint
-		CFont *pOldFont = DC.SelectObject(&m_SmallFont);
-
-		int x = StepWidth * LoopPoint + GRAPH_LEFT + 1;
-
-		GradientBar(DC, x + 1, m_BottomRect.top, m_BottomRect.right - x, m_BottomRect.Height(), 0x008080, 0x002020);		// // //
-		DC.FillSolidRect(x, m_BottomRect.top, 1, m_BottomRect.bottom, 0x00F0F0);
-
-		DC.SetTextColor(0xFFFFFF);
-		DC.SetBkMode(TRANSPARENT);
-		DC.TextOutW(x + 4, m_BottomRect.top, L"Loop, Release");
-
-		DC.SelectObject(pOldFont);
+		DrawTagPoint(DC, LoopPoint, L"Loop, Release", MakeRGB(240, 240, 0));
 	}
 }
 
@@ -363,6 +321,25 @@ int CGraphEditor::GetItemGridIndex(CPoint point) const {		// // //
 
 int CGraphEditor::GetSequenceItemValue(int Index, int Value) const {		// // //
 	return Value;
+}
+
+void CGraphEditor::HighlightItem(CPoint point) {		// // //
+	int ItemIndex = GetItemIndex(point);
+	int ItemValue = GetItemValue(point);
+	int LastItem = m_iHighlightedItem;
+	int LastValue = m_iHighlightedValue;
+
+	if (!m_GraphRect.PtInRect(point) || ItemIndex < 0 || ItemIndex >= (int)m_pSequence->GetItemCount()) {
+		m_iHighlightedItem = -1;
+		m_iHighlightedValue = 0;
+	}
+	else {
+		m_iHighlightedItem = ItemIndex;
+		m_iHighlightedValue = ItemValue;
+	}
+
+	if (m_iHighlightedItem != LastItem || m_iHighlightedValue != LastValue)
+		RedrawWindow(NULL);
 }
 
 void CGraphEditor::OnLButtonDown(UINT nFlags, CPoint point)
@@ -582,8 +559,8 @@ void CBarGraphEditor::OnPaint()
 		return;
 	}
 
-	int StepWidth = GetItemWidth();
-	int StepHeight = GetItemHeight();		// // //
+	const int StepWidth = GetItemWidth();
+	const int StepHeight = GetItemHeight();		// // //
 	const int Top = GetItemTop();		// // //
 
 	if (m_iHighlightedValue > 0 && m_iHighlightedItem >= 0 && m_iHighlightedItem < Count) {
@@ -609,30 +586,10 @@ void CBarGraphEditor::OnPaint()
 			DrawRect(m_BackDC, x, y, w, h);
 	}
 
-	DrawLoopRelease(m_BackDC, StepWidth);		// // //
+	DrawLoopRelease(m_BackDC);		// // //
 	DrawLine(m_BackDC);
 
 	PaintBuffer(m_BackDC, dc);
-}
-
-void CBarGraphEditor::HighlightItem(CPoint point)
-{
-	int ItemIndex = GetItemIndex(point);		// // //
-	int ItemValue = GetItemValue(point);
-	int LastItem = m_iHighlightedItem;
-	int LastValue = m_iHighlightedValue;
-
-	if (!m_GraphRect.PtInRect(point) || ItemIndex >= (int)m_pSequence->GetItemCount()) {
-		m_iHighlightedItem = -1;
-		m_iHighlightedValue = 0;
-	}
-	else {
-		m_iHighlightedItem = ItemIndex;
-		m_iHighlightedValue = ItemValue;
-	}
-
-	if (LastItem != m_iHighlightedItem || LastValue != m_iHighlightedValue)
-		RedrawWindow(NULL);
 }
 
 int CBarGraphEditor::GetItemHeight() const
@@ -720,14 +677,15 @@ void CArpeggioGraphEditor::DrawRange(CDC &DC, int Max, int Min)
 		CFont *pOldFont = DC.SelectObject(&m_SmallFont);
 
 		DC.SetTextColor(0xFFFFFF);
+		DC.SetTextAlign(TA_RIGHT);
 
 		// Top
 		int NoteValue = m_iScrollOffset + 20;
-		DC.TextOutW(2, m_GraphRect.top - 3, conv::to_wide(GetNoteString(GET_NOTE(NoteValue), GET_OCTAVE(NoteValue))).data());		// // //
+		DC.TextOutW(GRAPH_LEFT - 4, GetItemTop() - 3, conv::to_wide(GetNoteString(GET_NOTE(NoteValue), GET_OCTAVE(NoteValue))).data());		// // //
 
 		// Bottom
 		NoteValue = m_iScrollOffset;
-		DC.TextOutW(2, m_GraphRect.bottom - 13, conv::to_wide(GetNoteString(GET_NOTE(NoteValue), GET_OCTAVE(NoteValue))).data());
+		DC.TextOutW(GRAPH_LEFT - 4, GetItemBottom() - 10, conv::to_wide(GetNoteString(GET_NOTE(NoteValue), GET_OCTAVE(NoteValue))).data());
 
 		DC.SelectObject(pOldFont);
 	}
@@ -755,8 +713,8 @@ void CArpeggioGraphEditor::OnPaint()
 		return;
 	}
 
-	int StepWidth = GetItemWidth();
-	int StepHeight = GetItemHeight();		// // //
+	const int StepWidth = GetItemWidth();
+	const int StepHeight = GetItemHeight();		// // //
 	const int Top = GetItemTop();		// // //
 
 	// One last line
@@ -820,30 +778,10 @@ void CArpeggioGraphEditor::OnPaint()
 	m_BackDC.SetTextAlign(TA_LEFT);
 	m_BackDC.SelectObject(pOldFont);
 
-	DrawLoopRelease(m_BackDC, StepWidth);		// // //
+	DrawLoopRelease(m_BackDC);		// // //
 	DrawLine(m_BackDC);
 
 	PaintBuffer(m_BackDC, dc);
-}
-
-void CArpeggioGraphEditor::HighlightItem(CPoint point)
-{
-	int ItemIndex = GetItemIndex(point);		// // //
-	int ItemValue = GetItemValue(point.y);
-	int LastItem = m_iHighlightedItem;
-	int LastValue = m_iHighlightedValue;
-
-	m_iHighlightedItem = ItemIndex;
-	m_iHighlightedValue = ItemValue;
-
-	if (m_GraphRect.PtInRect(point) == 0 || unsigned(ItemIndex) >= m_pSequence->GetItemCount()) {
-		m_iHighlightedItem = -1;
-		m_iHighlightedValue = 0;
-	}
-
-	if (m_iHighlightedItem != LastItem || m_iHighlightedValue != LastValue) {
-		RedrawWindow(NULL);
-	}
 }
 
 int CArpeggioGraphEditor::GetItemValue(CPoint point) const {		// // //
@@ -993,7 +931,7 @@ void CPitchGraphEditor::OnPaint()
 		return;
 	}
 
-	int StepWidth = GetItemWidth();
+	const int StepWidth = GetItemWidth();
 	const int Top = GetItemTop();		// // //
 
 	// One last line
@@ -1035,7 +973,7 @@ void CPitchGraphEditor::OnPaint()
 			DrawRect(m_BackDC, x, y, w, h);
 	}
 
-	DrawLoopRelease(m_BackDC, StepWidth);		// // //
+	DrawLoopRelease(m_BackDC);		// // //
 	DrawLine(m_BackDC);
 
 	PaintBuffer(m_BackDC, dc);
@@ -1056,26 +994,6 @@ int CPitchGraphEditor::GetItemValue(CPoint point) const {		// // //
 	return std::clamp(-MouseY * 255 / m_GraphRect.Height(), -128, 127);
 }
 
-void CPitchGraphEditor::HighlightItem(CPoint point)
-{
-	int ItemIndex = GetItemIndex(point);		// // //
-	int ItemValue = std::clamp(GetItemValue(point), -128, 127);		// // //
-
-	int LastItem = m_iHighlightedItem;
-	int LastValue = m_iHighlightedValue;
-	m_iHighlightedItem = ItemIndex;
-	m_iHighlightedValue = ItemValue;
-
-	if (!m_GraphRect.PtInRect(point) || ItemIndex < 0 || unsigned(ItemIndex) >= m_pSequence->GetItemCount()) {
-		m_iHighlightedItem = -1;
-		m_iHighlightedValue = 0;
-	}
-
-	if (m_iHighlightedItem != LastItem || m_iHighlightedValue != LastValue) {
-		RedrawWindow(NULL);
-	}
-}
-
 // Sunsoft noise editor
 
 IMPLEMENT_DYNAMIC(CNoiseEditor, CGraphEditor)
@@ -1089,7 +1007,7 @@ void CNoiseEditor::OnPaint()
 {
 	CPaintDC dc(this);
 
-	DrawBackground(m_BackDC, m_iItems, false, 0);
+	DrawBackground(m_BackDC, m_iItems + 1, false, 0);
 	DrawRange(m_BackDC, m_iItems, 0);
 
 	// Return now if no sequence is selected
@@ -1106,12 +1024,20 @@ void CNoiseEditor::OnPaint()
 		return;
 	}
 
-	int StepWidth = GetItemWidth();
-	int StepHeight = GetItemHeight();		// // //
+	const int StepWidth = GetItemWidth();
+	const int StepHeight = GetItemHeight();		// // //
 	const int Top = GetItemTop();		// // //
 
 	// // // One last line
 	m_BackDC.FillSolidRect(m_GraphRect.left + 1, Top + (m_iItems + 1) * StepHeight, m_GraphRect.Width() - 2, 1, COLOR_LINES);
+
+	if (m_iHighlightedItem >= 0 && m_iHighlightedItem < Count) {		// // //
+		int x = m_GraphRect.left + m_iHighlightedItem * StepWidth + 1;
+		int y = Top + StepHeight * (m_iItems - m_iHighlightedValue) + 1;
+		int w = StepWidth;
+		int h = StepHeight - 1;
+		DrawShadowRect(m_BackDC, x, y, w, h);
+	}
 
 	// Draw items
 	for (int i = 0; i < Count; ++i) {
@@ -1144,15 +1070,10 @@ void CNoiseEditor::OnPaint()
 		}
 	}
 
-	DrawLoopRelease(m_BackDC, StepWidth);		// // //
+	DrawLoopRelease(m_BackDC);		// // //
 	DrawLine(m_BackDC);
 
 	PaintBuffer(m_BackDC, dc);
-}
-
-void CNoiseEditor::HighlightItem(CPoint point)
-{
-	// TODO
 }
 
 void CNoiseEditor::DrawRange(CDC &DC, int Max, int Min) {		// // // 050B
@@ -1163,10 +1084,11 @@ void CNoiseEditor::DrawRange(CDC &DC, int Max, int Min) {		// // // 050B
 
 	DC.SetBkMode(TRANSPARENT);
 	DC.SetTextColor(0xFFFFFF);
+	DC.SetTextAlign(TA_RIGHT);
 
 	const LPCWSTR FLAG_STR[] = {L"T", L"N", L"E"};
 	for (std::size_t i = 0; i < std::size(FLAG_STR); ++i)
-		DC.TextOutW(GRAPH_LEFT - 11, Bottom + BUTTON_HEIGHT * i - 2, FLAG_STR[i]);
+		DC.TextOutW(GRAPH_LEFT - 4, Bottom + BUTTON_HEIGHT * i - 1, FLAG_STR[i]);
 
 	DC.SelectObject(pOldFont);
 }
