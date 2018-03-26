@@ -32,6 +32,7 @@ enum edit_t {
 	EDIT_POINT,
 	EDIT_LOOP,
 	EDIT_RELEASE,
+	EDIT_NOISE,		// // //
 };
 
 class CSequence;		// // //
@@ -45,20 +46,26 @@ public:
 
 protected:
 	virtual void Initialize();
+
 	int GetItemWidth() const;
+	int GetItemIndex(CPoint point) const;		// // //
+	int GetItemGridIndex(CPoint point) const;		// // //
 	virtual int GetItemTop() const = 0;		// // //
 	virtual int GetItemBottom() const;		// // //
 	virtual int GetItemHeight() const = 0;
+	virtual int GetItemValue(CPoint point) const = 0;		// // //
+	virtual int GetSequenceItemValue(int Index, int Value) const;		// // //
+
+	void ModifyItem(CPoint point, bool Redraw);		// // //
+	void ItemModified(bool Redraw);		// // //
+
 	virtual void HighlightItem(CPoint point) = 0;
-	virtual void ModifyItem(CPoint point, bool Redraw);
 	virtual void ModifyLoopPoint(CPoint point, bool Redraw);
 	virtual void ModifyReleasePoint(CPoint point, bool Redraw);
 	virtual void ModifyReleased();
-	void PaintBuffer(CDC &BackDC, CDC &FrontDC);
 	void CursorChanged(int x);
 	bool IsEditLine() const;
 
-	// Drawing
 	virtual void DrawRange(CDC &DC, int Max, int Min);
 	void DrawBackground(CDC &DC, int Lines, bool DrawMarks, int MarkOffset);		// // //
 	void DrawLoopPoint(CDC &DC, int StepWidth);
@@ -66,14 +73,14 @@ protected:
 	void DrawLoopRelease(CDC &DC, int StepWidth);		// // //
 	void DrawLine(CDC &DC);
 
+	template<COLORREF COL_BG1, COLORREF COL_BG2, COLORREF COL_EDGE1, COLORREF COL_EDGE2>
+	void DrawRect(CDC &DC, int x, int y, int w, int h, bool flat);
 	void DrawRect(CDC &DC, int x, int y, int w, int h);
 	void DrawPlayRect(CDC &DC, int x, int y, int w, int h);
 	void DrawCursorRect(CDC &DC, int x, int y, int w, int h);
 	void DrawShadowRect(CDC &DC, int x, int y, int w, int h);
 
-private:
-	template<COLORREF COL_BG1, COLORREF COL_BG2, COLORREF COL_EDGE1, COLORREF COL_EDGE2>
-	void DrawRect(CDC &DC, int x, int y, int w, int h, bool flat);
+	void PaintBuffer(CDC &BackDC, CDC &FrontDC);
 
 protected:
 	static const int GRAPH_LEFT = 28;			// Left side marigin
@@ -96,7 +103,9 @@ protected:
 	int m_iHighlightedValue;
 	bool m_bButtonState;
 
-private:
+	int m_iLastIndex = -1;		// // //
+	int m_iLastValue = 0;		// // //
+
 	CPoint m_ptLineStart, m_ptLineEnd;
 	edit_t m_iEditing;
 
@@ -119,17 +128,21 @@ public:
 // Bar graph editor
 class CBarGraphEditor : public CGraphEditor
 {
-private:
-	int m_iLevels;
 public:
-	CBarGraphEditor(std::shared_ptr<CSequence> pSequence, int Levels) : CGraphEditor(pSequence), m_iLevels(Levels) { }		// // //
-	afx_msg void OnPaint();
-	void HighlightItem(CPoint point);
-	void ModifyItem(CPoint point, bool Redraw);
-	int GetItemHeight() const;
-	int GetItemTop() const override;		// // //
+	CBarGraphEditor(std::shared_ptr<CSequence> pSequence, int Levels) : CGraphEditor(std::move(pSequence)), m_iLevels(Levels) { }		// // //
 
 	void SetMaxItems(int Levels);		// // //
+
+private:
+	void HighlightItem(CPoint point) override;
+	int GetItemHeight() const override;
+	int GetItemTop() const override;		// // //
+	int GetItemValue(CPoint point) const override;		// // //
+
+	int m_iLevels;
+
+public:
+	afx_msg void OnPaint() override;
 };
 
 // Arpeggio graph editor
@@ -137,61 +150,86 @@ class CArpeggioGraphEditor : public CGraphEditor
 {
 public:
 	DECLARE_DYNAMIC(CArpeggioGraphEditor)
-	explicit CArpeggioGraphEditor(std::shared_ptr<CSequence> pSequence);		// // //
-	void ChangeSetting();
+	explicit CArpeggioGraphEditor(std::shared_ptr<CSequence> pSequence) : CGraphEditor(std::move(pSequence)) { }		// // //
+
+	void UpdateScrollBar();		// // //
+
 private:
-	int GetItemValue(int pos);
-private:
-	static const int ITEMS = 20;
-	int m_iScrollOffset;
-	int m_iScrollMax;
-	CScrollBar m_cScrollBar;		// // //
-protected:
-	void Initialize();
+	void Initialize() override;
 	void DrawRange(CDC &DC, int Max, int Min) override;
-	afx_msg void OnPaint();
-	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
-	void ModifyItem(CPoint point, bool Redraw);
-	void HighlightItem(CPoint point);
-	int GetItemHeight() const;
+	void HighlightItem(CPoint point) override;
+	int GetItemHeight() const override;
 	int GetItemTop() const override;		// // //
 
+private:
+	int GetItemValue(CPoint point) const override;		// // //
+	int GetSequenceItemValue(int Index, int Value) const override;		// // //
+	SCROLLINFO MakeScrollInfo() const;		// // //
+
+	static const int ITEMS = 20;
+	int m_iScrollOffset = 0;
+	int m_iScrollMax;
+	CScrollBar m_cScrollBar;		// // //
+
+protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	afx_msg void OnPaint() override;
+	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 };
 
 // Pitch graph editor
 class CPitchGraphEditor : public CGraphEditor
 {
-private:
-	static const int ITEMS = 20;
 public:
-	explicit CPitchGraphEditor(std::shared_ptr<CSequence> pSequence) : CGraphEditor(pSequence) { }		// // //
-	afx_msg void OnPaint();
-	void ModifyItem(CPoint point, bool Redraw);
-	void HighlightItem(CPoint point);
-	int GetItemHeight() const;
+	explicit CPitchGraphEditor(std::shared_ptr<CSequence> pSequence) : CGraphEditor(std::move(pSequence)) { }		// // //
+
+private:
+	void HighlightItem(CPoint point) override;
+	int GetItemHeight() const override;
 	int GetItemTop() const override;		// // //
+	int GetItemValue(CPoint point) const override;		// // //
+
+	static const int ITEMS = 20;
+
+public:
+	afx_msg void OnPaint() override;
 };
 
 // Sunsoft noise editor
 class CNoiseEditor : public CGraphEditor
 {
+public:
+	DECLARE_DYNAMIC(CNoiseEditor)
+	CNoiseEditor(std::shared_ptr<CSequence> pSequence, int Items) : CGraphEditor(std::move(pSequence)), m_iItems(Items) { }		// // //
+
+private:
+	void DrawRange(CDC &DC, int Max, int Min) override;		// // // 050B
+	int GetItemHeight() const override;
+	int GetItemTop() const override;		// // //
+	int GetItemBottom() const override;		// // //
+	int GetItemValue(CPoint point) const override;		// // //
+	int GetSequenceItemValue(int Index, int Value) const override;		// // //
+
+	void HighlightItem(CPoint point) override;
+	void ModifyReleased() override;
+	void ModifyNoise(CPoint point, bool Redraw);		// // //
+	bool CheckNoiseFlags(CPoint point) const;		// // //
+
 private:
 	static const int BUTTON_HEIGHT = 9;		// // //
 	static const int BUTTON_MARGIN = 26;		// // //
+
 	int m_iItems;
 	int m_iLastIndexX = -1;		// // //
 	int m_iLastIndexY = -1;		// // //
+	bool m_bAddNoiseFlags = false;		// // //
+
 protected:
-	void ModifyReleased();
+	DECLARE_MESSAGE_MAP()
 public:
-	CNoiseEditor(std::shared_ptr<CSequence> pSequence, int Items) : CGraphEditor(pSequence), m_iItems(Items) { }		// // //
-	afx_msg void OnPaint();
-	void ModifyItem(CPoint point, bool Redraw);
-	void HighlightItem(CPoint point);
-	int GetItemHeight() const;
-	int GetItemTop() const override;		// // //
-	int GetItemBottom() const override;		// // //
+	afx_msg void OnPaint() override;
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 };

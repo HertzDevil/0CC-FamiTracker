@@ -173,7 +173,7 @@ LRESULT CSequenceEditor::OnSettingChanged(WPARAM wParam, LPARAM lParam)		// // /
 		break;
 	case sequence_t::Arpeggio:
 		ASSERT(dynamic_cast<CArpeggioGraphEditor*>(m_pGraphEditor.get()));
-		static_cast<CArpeggioGraphEditor*>(m_pGraphEditor.get())->ChangeSetting();
+		static_cast<CArpeggioGraphEditor*>(m_pGraphEditor.get())->UpdateScrollBar();
 		break;
 	}
 
