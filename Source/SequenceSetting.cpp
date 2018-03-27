@@ -143,7 +143,7 @@ void CSequenceSetting::OnMenuSettingChanged(UINT ID)		// // //
 	unsigned New = ID - MENU_ID_BASE;
 	ASSERT(New < SEQ_SETTING_COUNT[value_cast(m_pSequence->GetSequenceType())]);
 
-	const auto MapFunc = [&] (signed char(*f) (signed char)) {
+	const auto MapFunc = [&] (auto f) {
 		for (unsigned int i = 0, Count = m_pSequence->GetItemCount(); i < Count; ++i)
 			m_pSequence->SetItem(i, f(m_pSequence->GetItem(i)));
 	};
@@ -151,22 +151,29 @@ void CSequenceSetting::OnMenuSettingChanged(UINT ID)		// // //
 	if (New != Setting) switch (m_pSequence->GetSequenceType()) {
 	case sequence_t::Volume:
 		switch (New) {
-		case SETTING_VOL_16_STEPS: MapFunc([] (signed char x) -> signed char { return x / 4; }); break;
-		case SETTING_VOL_64_STEPS: MapFunc([] (signed char x) -> signed char { return x * 4; }); break;
+		case SETTING_VOL_16_STEPS:
+			MapFunc([] (int8_t x) { return x / 4; }); break;
+		case SETTING_VOL_64_STEPS:
+			MapFunc([] (int8_t x) { return x * 4; }); break;
 		}
 		break;
 	case sequence_t::Arpeggio:
 		switch (Setting) {
-		case SETTING_ARP_SCHEME: MapFunc([] (signed char x) -> signed char {
-			signed char Item = x & 0x3F;
-			return Item > ARPSCHEME_MAX ? Item - 0x40 : Item;
-		}); break;
+		case SETTING_ARP_SCHEME:
+			MapFunc([] (int8_t x) {
+				int8_t Item = x & 0x3F;
+				return Item > ARPSCHEME_MAX ? Item - 0x40 : Item;
+			}); break;
 		}
 		switch (New) {
-		case SETTING_ARP_SCHEME: MapFunc([] (signed char x) -> signed char {
-			return (x > ARPSCHEME_MAX ? ARPSCHEME_MAX : (x < ARPSCHEME_MIN ? ARPSCHEME_MIN : x)) & 0x3F;
-		}); break;
-		case SETTING_ARP_FIXED: MapFunc([] (signed char x) -> signed char { return x < 0 ? 0 : x; }); break;
+		case SETTING_ARP_SCHEME:
+			MapFunc([] (int x) {
+				return std::clamp(x, ARPSCHEME_MIN, ARPSCHEME_MAX) & 0x3F;
+			}); break;
+		case SETTING_ARP_FIXED:
+			MapFunc([] (int x) {
+				return std::clamp(x, 0, NOTE_COUNT - 1);
+			}); break;
 		}
 		break;
 	}

@@ -167,7 +167,7 @@ private:
 	int GetSequenceItemValue(int Index, int Value) const override;		// // //
 	SCROLLINFO MakeScrollInfo() const;		// // //
 
-	static const int ITEMS = 20;
+	static const int ITEMS = 21;		// // //
 	int m_iScrollOffset = 0;
 	int m_iScrollMax;
 	CScrollBar m_cScrollBar;		// // //

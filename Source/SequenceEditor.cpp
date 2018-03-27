@@ -241,7 +241,7 @@ void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int I
 
 	CRect GraphRect;
 	GetClientRect(GraphRect);
-	GraphRect.bottom -= 25;
+	GraphRect.bottom -= DPI::SY(25);		// // //
 
 	if (m_pGraphEditor->CreateEx(NULL, NULL, L"", WS_CHILD, GraphRect, this, 0) == -1)
 		return;

@@ -137,6 +137,23 @@ void CGraphEditor::PaintBuffer(CDC &BackDC, CDC &FrontDC)
 		BackDC.DrawFocusRect(focusRect);
 	}
 
+#ifdef _DEBUG		// // //
+	BackDC.FillSolidRect(m_ClientRect.left, m_ClientRect.top, m_ClientRect.Width(), 1, MakeRGB(255, 255, 0));
+	BackDC.FillSolidRect(m_ClientRect.left, m_ClientRect.top, 1, m_ClientRect.Height(), MakeRGB(255, 255, 0));
+	BackDC.FillSolidRect(m_ClientRect.left, m_ClientRect.bottom - 1, m_ClientRect.Width(), 1, MakeRGB(255, 255, 0));
+	BackDC.FillSolidRect(m_ClientRect.right - 1, m_ClientRect.top, 1, m_ClientRect.Height(), MakeRGB(255, 255, 0));
+
+	BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.top, m_GraphRect.Width(), 1, MakeRGB(0, 255, 0));
+	BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.top, 1, m_GraphRect.Height(), MakeRGB(0, 255, 0));
+	BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.bottom - 1, m_GraphRect.Width(), 1, MakeRGB(0, 255, 0));
+	BackDC.FillSolidRect(m_GraphRect.right - 1, m_GraphRect.top, 1, m_GraphRect.Height(), MakeRGB(0, 255, 0));
+
+	BackDC.FillSolidRect(m_BottomRect.left, m_BottomRect.top, m_BottomRect.Width(), 1, MakeRGB(0, 255, 255));
+	BackDC.FillSolidRect(m_BottomRect.left, m_BottomRect.top, 1, m_BottomRect.Height(), MakeRGB(0, 255, 255));
+	BackDC.FillSolidRect(m_BottomRect.left, m_BottomRect.bottom - 1, m_BottomRect.Width(), 1, MakeRGB(0, 255, 255));
+	BackDC.FillSolidRect(m_BottomRect.right - 1, m_BottomRect.top, 1, m_BottomRect.Height(), MakeRGB(0, 255, 255));
+#endif
+
 	FrontDC.BitBlt(0, 0, m_ClientRect.Width(), m_ClientRect.Height(), &BackDC, 0, 0, SRCCOPY);
 }
 
@@ -604,7 +621,7 @@ int CBarGraphEditor::GetItemTop() const		// // //
 
 void CBarGraphEditor::SetMaxItems(int Levels)		// // //
 {
-	m_iLevels = Levels;
+	m_iLevels = Levels + 1;
 	RedrawWindow();
 }
 
@@ -628,7 +645,8 @@ void CArpeggioGraphEditor::Initialize()
 	const int SCROLLBAR_WIDTH = ::GetSystemMetrics(SM_CXHSCROLL);		// // //
 
 	m_GraphRect.right -= SCROLLBAR_WIDTH;
-	m_cScrollBar.Create(SBS_VERT | SBS_LEFTALIGN | WS_CHILD | WS_VISIBLE, CRect(m_GraphRect.right, m_GraphRect.top, m_GraphRect.right + SCROLLBAR_WIDTH, m_GraphRect.bottom), this, 0);
+	CRect scrollBarRect {m_GraphRect.right, m_ClientRect.top, m_GraphRect.right + SCROLLBAR_WIDTH, m_ClientRect.bottom};		// // //
+	m_cScrollBar.Create(SBS_VERT | SBS_LEFTALIGN | WS_CHILD | WS_VISIBLE, scrollBarRect, this, 0);
 
 	SCROLLINFO info = MakeScrollInfo();		// // //
 	m_iScrollMax = info.nPos;
@@ -718,7 +736,7 @@ void CArpeggioGraphEditor::OnPaint()
 	const int Top = GetItemTop();		// // //
 
 	// One last line
-	m_BackDC.FillSolidRect(m_GraphRect.left + 1, Top + ITEMS * StepHeight, m_GraphRect.Width() - 2, 1, COLOR_LINES);
+//	m_BackDC.FillSolidRect(m_GraphRect.left + 1, Top + ITEMS * StepHeight, m_GraphRect.Width() - 2, 1, COLOR_LINES);
 
 	if (m_iHighlightedItem >= 0 && m_iHighlightedItem < Count) {
 		int item;			// // //
@@ -756,7 +774,7 @@ void CArpeggioGraphEditor::OnPaint()
 			item = (ITEMS / 2) - m_pSequence->GetItem(i) + m_iScrollOffset;
 		if (m_pSequence->GetSetting() == SETTING_ARP_FIXED)
 			item += (ITEMS / 2);
-		if (item >= 0 && item <= ITEMS) {
+		if (item >= 0 && item < ITEMS) {
 			int x = m_GraphRect.left + i * StepWidth + 1;
 			int y = Top + StepHeight * item;
 			int w = StepWidth;
@@ -789,7 +807,7 @@ int CArpeggioGraphEditor::GetItemValue(CPoint point) const {		// // //
 
 	switch (m_pSequence->GetSetting()) {		// // //
 	case SETTING_ARP_FIXED:
-		return std::clamp(ITEMS - y, 0, NOTE_COUNT - 1);
+		return std::clamp(ITEMS - 1 - y, 0, NOTE_COUNT - 1);
 	case SETTING_ARP_SCHEME:
 		return std::clamp(ITEMS / 2 - y, ARPSCHEME_MIN, ARPSCHEME_MAX);
 	default:
@@ -840,12 +858,12 @@ SCROLLINFO CArpeggioGraphEditor::MakeScrollInfo() const {		// // //
 
 int CArpeggioGraphEditor::GetItemHeight() const
 {
-	return (GetItemBottom() - GetItemTop()) / (ITEMS + 1);		// // //
+	return (GetItemBottom() - GetItemTop()) / ITEMS;		// // //
 }
 
 int CArpeggioGraphEditor::GetItemTop() const		// // //
 {
-	return m_GraphRect.top + m_GraphRect.Height() % (ITEMS + 1);
+	return m_GraphRect.top + m_GraphRect.Height() % ITEMS;
 }
 
 void CArpeggioGraphEditor::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
