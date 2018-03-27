@@ -3,27 +3,6 @@
 #include <type_traits>
 #include <limits>
 
-#ifdef _MSC_VER
-
-template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-constexpr auto value_cast(T x) noexcept {
-	return static_cast<std::underlying_type_t<T>>(x);
-}
-
-#define ENUM_CLASS_WITH_CATEGORY(NAME, TYPE) \
-enum class NAME : TYPE
-
-#define ENUM_CLASS_STANDARD(NAME, TYPE) \
-enum class NAME : TYPE
-
-#define ENUM_CLASS_LINEAR(NAME, TYPE) \
-enum class NAME : TYPE
-
-#define ENUM_CLASS_BITMASK(NAME, TYPE) \
-enum class NAME : TYPE
-
-#else
-
 // The default enumeration category. Conversion is equivalent to static_cast.
 // Unspecialized enumeration traits use this category.
 struct enum_default { };
@@ -157,20 +136,27 @@ constexpr T bitwise_clamp(T x, T lo, T hi) noexcept {
 	return (x & hi) | lo;
 }
 
+template <typename EnumT>
+using none_member_t = decltype(EnumT::none);
+template <typename EnumT>
+using min_member_t = decltype(EnumT::min);
+template <typename EnumT>
+using max_member_t = decltype(EnumT::max);
+
 template <typename EnumT, typename = void>
 struct enum_has_none_member : std::false_type { };
 template <typename EnumT>
-struct enum_has_none_member<EnumT, std::void_t<decltype(EnumT::none)>> : std::true_type { };
+struct enum_has_none_member<EnumT, std::void_t<none_member_t<EnumT>>> : std::true_type { };
 
 template <typename EnumT, typename = void>
 struct enum_has_min_member : std::false_type { };
 template <typename EnumT>
-struct enum_has_min_member<EnumT, std::void_t<decltype(EnumT::min)>> : std::true_type { };
+struct enum_has_min_member<EnumT, std::void_t<min_member_t<EnumT>>> : std::true_type { };
 
 template <typename EnumT, typename = void>
 struct enum_has_max_member : std::false_type { };
 template <typename EnumT>
-struct enum_has_max_member<EnumT, std::void_t<decltype(EnumT::max)>> : std::true_type { };
+struct enum_has_max_member<EnumT, std::void_t<max_member_t<EnumT>>> : std::true_type { };
 
 } // namespace details
 
@@ -573,5 +559,3 @@ enum class NAME : TYPE
 //  enum class NAME : TYPE
 // with a specialization of enum_traits<NAME>.
 #define ENUM_CLASS_BITMASK(NAME, TYPE) ENUM_CLASS_WITH_CATEGORY(NAME, TYPE, enum_bitmask)
-
-#endif
