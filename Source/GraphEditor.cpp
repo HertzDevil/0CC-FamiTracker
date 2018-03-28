@@ -277,7 +277,7 @@ void CBarGraphEditor::CreateComponents() {		// // //
 	auto &graph = MakeGraphComponent<GraphEditorComponents::CBarGraph>(*this, graphRect, m_iLevels);
 
 	CRect bottomRect = m_ClientRect;		// // //
-	bottomRect.left += GRAPH_LEFT;
+	bottomRect.left += DPI::SX(GRAPH_LEFT);
 	bottomRect.top = bottomRect.bottom - DPI::SY(16);
 	MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect, graph);
 }
@@ -292,7 +292,7 @@ void CPitchGraphEditor::CreateComponents() {		// // //
 	auto &graph = MakeGraphComponent<GraphEditorComponents::CPitchGraph>(*this, graphRect);
 
 	CRect bottomRect = m_ClientRect;		// // //
-	bottomRect.left += GRAPH_LEFT;
+	bottomRect.left += DPI::SX(GRAPH_LEFT);
 	bottomRect.top = bottomRect.bottom - DPI::SY(16);
 	MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect, graph);
 }
@@ -303,17 +303,17 @@ void CNoiseEditor::CreateComponents() {		// // //
 	CRect graphRect = m_ClientRect;
 	graphRect.left += DPI::SX(GRAPH_LEFT);		// // //
 	graphRect.top += DPI::SY(5);
-	graphRect.bottom -= DPI::SY(16);
+	graphRect.bottom -= DPI::SY(16) + GraphEditorComponents::CNoiseSelector::BUTTON_HEIGHT * 3;
 	auto &graph = MakeGraphComponent<GraphEditorComponents::CNoiseGraph>(*this, graphRect, m_iItems);
 
 	CRect flagsRect = m_ClientRect;		// // //
-	flagsRect.left += GRAPH_LEFT;
+	flagsRect.left += DPI::SX(GRAPH_LEFT);
 	flagsRect.bottom -= DPI::SY(16);
-	flagsRect.top = flagsRect.bottom - GraphEditorComponents::CNoiseSelector::BUTTON_HEIGHT * 3;
+	flagsRect.top = graphRect.bottom;
 	MakeGraphComponent<GraphEditorComponents::CNoiseSelector>(*this, flagsRect, graph);
 
 	CRect bottomRect = m_ClientRect;		// // //
-	bottomRect.left += GRAPH_LEFT;
+	bottomRect.left += DPI::SX(GRAPH_LEFT);
 	bottomRect.top = bottomRect.bottom - DPI::SY(16);
 	MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect, graph);
 }
@@ -366,12 +366,11 @@ void CArpeggioGraphEditor::CreateComponents() {
 	CRect graphRect = m_ClientRect;
 	graphRect.left += DPI::SX(GRAPH_LEFT);		// // //
 	graphRect.top += DPI::SY(5);
-	graphRect.right -= ::GetSystemMetrics(SM_CXHSCROLL);
 	graphRect.bottom -= DPI::SY(16);
 	auto &graph = MakeGraphComponent<GraphEditorComponents::CCellGraph>(*this, graphRect, ITEMS);
 
 	CRect bottomRect = m_ClientRect;		// // //
-	bottomRect.left += GRAPH_LEFT;
+	bottomRect.left += DPI::SX(GRAPH_LEFT);
 	bottomRect.top = bottomRect.bottom - DPI::SY(16);
 	MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect, graph);
 }

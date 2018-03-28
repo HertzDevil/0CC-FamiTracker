@@ -25,6 +25,7 @@
 
 #include "stdafx.h"		// // //
 #include <memory>		// // //
+#include <cstdint>		// // //
 
 class CSequence;
 class CGraphEditor;
@@ -57,6 +58,8 @@ private:
 	int m_iInstrumentType;
 	int m_iMaxVol;
 	int m_iMaxDuty;
+	int m_iLastIndex = -1;		// // //
+	int8_t m_iLastValue = 0;		// // //
 private:
 	void DestroyGraphEditor();
 	void SequenceChangedMessage(bool Changed);
@@ -64,6 +67,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnPaint();
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);		// // //
 	//virtual BOOL PreTranslateMessage(MSG* pMsg);
 	virtual BOOL DestroyWindow();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);

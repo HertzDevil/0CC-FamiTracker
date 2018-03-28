@@ -22,7 +22,6 @@
 
 #include "SequenceEditor.h"
 #include <memory>		// // //
-#include <string>
 #include "Instrument.h"		// // // inst_type_t
 #include "Sequence.h"
 #include "../resource.h"		// // // CInstrumentEditDlg
@@ -35,6 +34,7 @@
 #include "DPI.h"		// // //
 #include "SequenceParser.h"		// // //
 #include "str_conv/str_conv.hpp"		// / ///
+#include "Color.h"		// // //
 
 // This file contains the sequence editor and sequence size control
 
@@ -59,6 +59,7 @@ CSequenceEditor::~CSequenceEditor()
 
 BEGIN_MESSAGE_MAP(CSequenceEditor, CWnd)
 	ON_WM_PAINT()
+	ON_WM_ERASEBKGND()		// // //
 	ON_WM_LBUTTONDOWN()
 	ON_MESSAGE(WM_SIZE_CHANGE, OnSizeChange)
 	ON_MESSAGE(WM_CURSOR_CHANGE, OnCursorChange)
@@ -102,6 +103,8 @@ void CSequenceEditor::OnPaint()
 	CRect rect;
 	GetClientRect(rect);
 
+	dc.FillSolidRect(rect.left, rect.bottom - DPI::SY(25), rect.Width(), DPI::SY(25), GREY(240));		// // //
+
 	if (this == GetFocus()) {
 		CRect focusRect = rect;
 		focusRect.DeflateRect(rect.Height() - 1, 2, rect.Height() + 1, 2);
@@ -116,7 +119,18 @@ void CSequenceEditor::OnPaint()
 	dc.TextOutW(7, rect.bottom - 19, L"Size:");
 
 	float Rate = static_cast<CInstrumentEditDlg*>(static_cast<CSequenceInstrumentEditPanel*>(m_pParent)->GetParent())->GetRefreshRate();
-	dc.TextOutW(120, rect.bottom - 19, FormattedW(L"%.0f ms  ", (1000.0f * m_pSizeEditor->GetValue()) / Rate));
+	dc.TextOutW(120, rect.bottom - 19, FormattedW(L"%.0f ms", (1000.0f * m_pSizeEditor->GetValue()) / Rate));
+
+	if (m_iLastIndex != -1) {		// // //
+		CStringW Text = m_pConversion ?
+			FormattedW(L"{%i, %s}", m_iLastIndex, conv::to_wide(m_pConversion->ToString(m_iLastValue)).data()) :
+			FormattedW(L"{%i, %i}", m_iLastIndex, m_iLastValue);
+		dc.TextOutW(170, rect.bottom - 19, Text);
+	}
+}
+
+BOOL CSequenceEditor::OnEraseBkgnd(CDC *pDC) {		// // //
+	return FALSE;
 }
 
 LRESULT CSequenceEditor::OnSizeChange(WPARAM wParam, LPARAM lParam)
@@ -133,18 +147,13 @@ LRESULT CSequenceEditor::OnSizeChange(WPARAM wParam, LPARAM lParam)
 LRESULT CSequenceEditor::OnCursorChange(WPARAM wParam, LPARAM lParam)
 {
 	// Graph cursor has changed
-	CDC *pDC = GetDC();
-	pDC->SelectObject(&m_cFont);
-
-	CRect rect;
-	GetClientRect(rect);
-
-	CStringW Text = m_pConversion ?
-		FormattedW(L"{%i, %s}        ", wParam, conv::to_wide(m_pConversion->ToString(static_cast<char>(lParam))).data()) :
-		FormattedW(L"{%i, %i}        ", wParam, lParam);
-	pDC->TextOutW(170, rect.bottom - 19, Text);
-
-	ReleaseDC(pDC);
+	auto idx = static_cast<int>(wParam);		// // //
+	auto val = static_cast<int8_t>(lParam);
+	if (m_iLastIndex != idx || m_iLastValue != val) {
+		m_iLastIndex = idx;
+		m_iLastValue = val;
+		RedrawWindow();
+	}
 	return TRUE;
 }
 

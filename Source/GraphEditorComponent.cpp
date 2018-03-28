@@ -115,7 +115,7 @@ void CGraphBase::CursorChanged(CPoint point) {
 	if (int Pos = GetItemIndex(point); Pos >= 0 && Pos < parent_.GetItemCount())
 		parent_.OnHoverSequenceItem(Pos, parent_.GetSequence()->GetItem(Pos));
 	else
-		parent_.OnHoverSequenceItem(0, 0);
+		parent_.OnHoverSequenceItem(-1, 0);
 }
 
 void CGraphBase::DrawRect(CDC &dc, int x, int y, int w, int h) {
@@ -615,11 +615,7 @@ int CNoiseGraph::GetSequenceItemValue(int idx, int value) const {
 }
 
 int CNoiseGraph::GetItemTop() const {
-	return region_.top + (region_.Height() - CNoiseSelector::BUTTON_HEIGHT * 3) % items_;
-}
-
-int CNoiseGraph::GetItemBottom() const {
-	return region_.bottom - CNoiseSelector::BUTTON_HEIGHT * 3;
+	return region_.top + region_.Height() % items_;
 }
 
 int CNoiseGraph::GetItemHeight() const {

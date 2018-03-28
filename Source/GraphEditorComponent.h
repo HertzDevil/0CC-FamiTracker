@@ -74,7 +74,7 @@ public:
 	using CGraphEditorComponent::CGraphEditorComponent;
 
 	virtual int GetItemTop() const = 0;
-	virtual int GetItemBottom() const;
+	int GetItemBottom() const;
 	virtual int GetItemHeight() const = 0;
 	int GetItemWidth() const;
 	int GetItemIndex(CPoint point) const;
@@ -185,7 +185,6 @@ private:
 	int GetSequenceItemValue(int Index, int Value) const override;
 
 	int GetItemTop() const override;
-	int GetItemBottom() const override; // TODO: remove
 	int GetItemHeight() const override;
 
 	void DoOnPaint(CDC &dc) override;
