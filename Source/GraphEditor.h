@@ -124,7 +124,8 @@ protected:
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
-	virtual afx_msg void OnPaint();
+	BOOL PreTranslateMessage(MSG* pMsg) override;		// // //
+	virtual afx_msg void OnPaint() = 0;		// // //
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);

@@ -68,9 +68,6 @@ public:
 	CLoopReleaseBar(CGraphEditor &parent, CRect region);
 
 private:
-	void ModifyLoopPoint(CPoint point, bool Redraw);
-	void ModifyReleasePoint(CPoint point, bool Redraw);
-
 	void DrawTagPoint(CDC &dc, int index, LPCWSTR str, COLORREF col);		// // //
 
 	void DoOnLButtonDown(CPoint point) override;
@@ -80,6 +77,7 @@ private:
 	void DoOnPaint(CDC &dc) override;
 
 	CFont font_;
+	bool enable_loop_ = true;
 };
 
 class CArpSchemeSelector : public CGraphEditorComponent {

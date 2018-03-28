@@ -140,9 +140,21 @@ void CGraphEditor::OnTimer(UINT nIDEvent)
 	}
 }
 
-void CGraphEditor::OnPaint()
-{
-	CPaintDC dc(this);
+BOOL CGraphEditor::PreTranslateMessage(MSG *pMsg) {		// // //
+	// disable double-clicking
+	switch (pMsg->message) {
+	case WM_LBUTTONDBLCLK:
+		pMsg->message = WM_LBUTTONDOWN;
+		break;
+	case WM_MBUTTONDBLCLK:
+		pMsg->message = WM_MBUTTONDOWN;
+		break;
+	case WM_RBUTTONDBLCLK:
+		pMsg->message = WM_RBUTTONDOWN;
+		break;
+	}
+
+	return CWnd::PreTranslateMessage(pMsg);
 }
 
 void CGraphEditor::PaintBuffer(CDC &BackDC, CDC &FrontDC)
@@ -385,21 +397,19 @@ void CGraphEditor::OnMouseMove(UINT nFlags, CPoint point)
 
 	if (nFlags & MK_LBUTTON) {
 		for (auto &pCom : components_)
-			if (pCom->ContainsPoint(point) && pCom.get() == focused_)
+			if (/*pCom->ContainsPoint(point) &&*/ pCom.get() == focused_)
 				pCom->OnLButtonMove(point);
-		switch (m_iEditing) {
-		case EDIT_POINT:
+
+		if (m_iEditing == EDIT_POINT)
 			ModifyItem(point, true);
-			break;
-		}
 	}
 	else if (nFlags & MK_RBUTTON) {
 		for (auto &pCom : components_)
-			if (pCom->ContainsPoint(point) && pCom.get() == focused_)
+			if (/*pCom->ContainsPoint(point) &&*/ pCom.get() == focused_)
 				if (auto *pBar = dynamic_cast<GraphEditorComponents::CLoopReleaseBar *>(pCom.get()))
 					pCom->OnRButtonMove(point);
 
-		if (m_iEditing == EDIT_LINE) {
+		if (IsEditLine()) {
 			m_ptLineEnd = point;		// // //
 
 			const CPoint &StartPt = m_ptLineStart.x < m_ptLineEnd.x ? m_ptLineStart : m_ptLineEnd;
@@ -1192,17 +1202,13 @@ void CNoiseEditor::OnMouseMove(UINT nFlags, CPoint point)		// // //
 
 	if (nFlags & MK_LBUTTON) {
 		for (auto &pCom : components_)
-			if (pCom->ContainsPoint(point) && pCom.get() == focused_)
+			if (/*pCom->ContainsPoint(point) &&*/ pCom.get() == focused_)
 				pCom->OnLButtonMove(point);
 
-		switch (m_iEditing) {
-		case EDIT_POINT:
+		if (m_iEditing == EDIT_POINT)
 			ModifyItem(point, true);
-			break;
-		case EDIT_NOISE:		// // //
+		else if (m_iEditing == EDIT_NOISE)		// // //
 			ModifyNoise(point, true);
-			break;
-		}
 
 		// Notify parent
 		if (m_pSequence->GetItemCount() > 0 && point.x > GRAPH_LEFT) {

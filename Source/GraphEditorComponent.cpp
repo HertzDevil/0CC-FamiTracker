@@ -43,34 +43,38 @@ CLoopReleaseBar::CLoopReleaseBar(CGraphEditor &parent, CRect region) :
 		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_SWISS, L"Verdana");		// // //
 }
 
-void CLoopReleaseBar::ModifyLoopPoint(CPoint point, bool Redraw) {
-	if (auto pSeq = parent_.GetSequence()) {
-		pSeq->SetLoopPoint(parent_.GetItemGridIndex(point));		// // // -1 handled by sequence class
-		parent_.ItemModified(Redraw);
-	}
-}
-
-void CLoopReleaseBar::ModifyReleasePoint(CPoint point, bool Redraw) {
-	if (auto pSeq = parent_.GetSequence()) {
-		pSeq->SetReleasePoint(parent_.GetItemGridIndex(point));		// // // -1 handled by sequence class
-		parent_.ItemModified(Redraw);
-	}
-}
-
 void CLoopReleaseBar::DoOnLButtonDown(CPoint point) {
-	ModifyLoopPoint(point, true);
+	if (auto pSeq = parent_.GetSequence()) {
+		int idx = std::clamp(parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
+		enable_loop_ = pSeq->GetLoopPoint() != idx;
+		pSeq->SetLoopPoint(enable_loop_ ? idx : -1);
+		parent_.ItemModified(true);
+	}
 }
 
 void CLoopReleaseBar::DoOnLButtonMove(CPoint point) {
-	ModifyLoopPoint(point, true);
+	if (auto pSeq = parent_.GetSequence(); pSeq && enable_loop_) {
+		int idx = std::clamp(parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
+		pSeq->SetLoopPoint(idx);
+		parent_.ItemModified(true);
+	}
 }
 
 void CLoopReleaseBar::DoOnRButtonDown(CPoint point) {
-	ModifyReleasePoint(point, true);
+	if (auto pSeq = parent_.GetSequence()) {
+		int idx = std::clamp(parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
+		enable_loop_ = pSeq->GetReleasePoint() != idx;
+		pSeq->SetReleasePoint(enable_loop_ ? idx : -1);
+		parent_.ItemModified(true);
+	}
 }
 
 void CLoopReleaseBar::DoOnRButtonMove(CPoint point) {
-	ModifyReleasePoint(point, true);
+	if (auto pSeq = parent_.GetSequence(); pSeq && enable_loop_) {
+		int idx = std::clamp(parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
+		pSeq->SetReleasePoint(idx);
+		parent_.ItemModified(true);
+	}
 }
 
 void CLoopReleaseBar::DrawTagPoint(CDC &dc, int index, LPCWSTR str, COLORREF col) {
