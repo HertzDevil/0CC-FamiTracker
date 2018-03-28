@@ -78,21 +78,12 @@ BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpsz
 	// Calculate the draw areas
 	GetClientRect(m_ClientRect);
 
-	m_GraphRect = m_ClientRect;
-	m_GraphRect.left += DPI::SX(GRAPH_LEFT);		// // //
-	m_GraphRect.top += DPI::SY(5);
-	m_GraphRect.bottom -= DPI::SY(16);
-
 	m_pParentWnd = pParentWnd;
 
-	RedrawWindow();
-
 	CDC *pDC = GetDC();
-
 	m_BackDC.CreateCompatibleDC(pDC);
 	m_Bitmap.CreateCompatibleBitmap(pDC, m_ClientRect.Width(), m_ClientRect.Height());
 	m_BackDC.SelectObject(&m_Bitmap);
-
 	ReleaseDC(pDC);
 
 	Initialize();
@@ -106,10 +97,6 @@ BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpsz
 void CGraphEditor::Initialize()
 {
 	// Allow extra initialization
-}
-
-void CGraphEditor::AddGraphComponent(std::unique_ptr<CGraphEditorComponent> pCom) {		// // //
-	components_.push_back(std::move(pCom));
 }
 
 void CGraphEditor::OnTimer(UINT nIDEvent)
@@ -152,11 +139,6 @@ void CGraphEditor::OnPaint() {
 	m_BackDC.FillSolidRect(m_ClientRect.left, m_ClientRect.top, 1, m_ClientRect.Height(), MakeRGB(255, 255, 0));
 	m_BackDC.FillSolidRect(m_ClientRect.left, m_ClientRect.bottom - 1, m_ClientRect.Width(), 1, MakeRGB(255, 255, 0));
 	m_BackDC.FillSolidRect(m_ClientRect.right - 1, m_ClientRect.top, 1, m_ClientRect.Height(), MakeRGB(255, 255, 0));
-
-	m_BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.top, m_GraphRect.Width(), 1, MakeRGB(0, 255, 0));
-	m_BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.top, 1, m_GraphRect.Height(), MakeRGB(0, 255, 0));
-	m_BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.bottom - 1, m_GraphRect.Width(), 1, MakeRGB(0, 255, 0));
-	m_BackDC.FillSolidRect(m_GraphRect.right - 1, m_GraphRect.top, 1, m_GraphRect.Height(), MakeRGB(0, 255, 0));
 #endif
 
 	if (this == GetFocus()) {
@@ -168,28 +150,12 @@ void CGraphEditor::OnPaint() {
 	dc.BitBlt(0, 0, m_ClientRect.Width(), m_ClientRect.Height(), &m_BackDC, 0, 0, SRCCOPY);
 }
 
-int CGraphEditor::GetItemWidth() const
-{
-	unsigned Count = GetItemCount();		// // //
-	return Count ? std::min(m_GraphRect.Width() / static_cast<int>(Count), ITEM_MAX_WIDTH) : 0;		// // //
-}
-
 int CGraphEditor::GetCurrentPlayPos() const {		// // //
 	return m_iCurrentPlayPos;
 }
 
 CRect CGraphEditor::GetClientArea() const {		// // //
 	return m_ClientRect;
-}
-
-int CGraphEditor::GetItemIndex(CPoint point) const {		// // //
-	return GetItemCount() && point.x >= GRAPH_LEFT ? (point.x - GRAPH_LEFT) / GetItemWidth() : -1;
-}
-
-int CGraphEditor::GetItemGridIndex(CPoint point) const {		// // //
-	int ItemWidth = GetItemWidth();
-	int idx = point.x - GRAPH_LEFT + ItemWidth / 2;
-	return idx >= 0 ? idx / ItemWidth : -1;
 }
 
 int CGraphEditor::GetItemCount() const {		// // //
@@ -210,9 +176,6 @@ void CGraphEditor::OnLButtonDown(UINT nFlags, CPoint point)
 			pCom->OnLButtonDown(point);
 			break;
 		}
-
-	// Notify parent
-	CursorChanged(point);
 
 	CWnd::OnLButtonDown(nFlags, point);
 }
@@ -245,9 +208,6 @@ void CGraphEditor::OnRButtonDown(UINT nFlags, CPoint point)
 			pCom->OnRButtonDown(point);
 			break;
 		}
-
-	// Notify parent
-	CursorChanged(point);
 
 	CWnd::OnRButtonDown(nFlags, point);
 }
@@ -283,9 +243,6 @@ void CGraphEditor::OnMouseMove(UINT nFlags, CPoint point)
 		for (auto &pCom : components_)
 			pCom->OnMouseHover(point);
 
-	// Notify parent
-	CursorChanged(point);
-
 	CWnd::OnMouseMove(nFlags, point);
 }
 
@@ -294,12 +251,8 @@ void CGraphEditor::ItemModified() {		// // //
 	m_pParentWnd->PostMessageW(WM_SEQUENCE_CHANGED, 1);
 }
 
-void CGraphEditor::CursorChanged(CPoint point)
-{
-	if (int Pos = GetItemIndex(point); Pos >= 0 && Pos < GetItemCount())
-		m_pParentWnd->PostMessageW(WM_CURSOR_CHANGE, Pos, m_pSequence->GetItem(Pos));
-	else
-		m_pParentWnd->PostMessageW(WM_CURSOR_CHANGE, 0, 0);
+void CGraphEditor::OnHoverSequenceItem(int idx, int val) {		// // //
+	m_pParentWnd->PostMessageW(WM_CURSOR_CHANGE, idx, val);
 }
 
 void CGraphEditor::OnSetFocus(CWnd* pOldWnd)
@@ -317,40 +270,52 @@ void CGraphEditor::OnKillFocus(CWnd* pNewWnd)
 // Bar graph editor (volume and duty setting)
 
 void CBarGraphEditor::CreateComponents() {		// // //
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CBarGraph>(*this, m_GraphRect, m_iLevels));
+	CRect graphRect = m_ClientRect;
+	graphRect.left += DPI::SX(GRAPH_LEFT);		// // //
+	graphRect.top += DPI::SY(5);
+	graphRect.bottom -= DPI::SY(16);
+	auto &graph = MakeGraphComponent<GraphEditorComponents::CBarGraph>(*this, graphRect, m_iLevels);
 
 	CRect bottomRect = m_ClientRect;		// // //
 	bottomRect.left += GRAPH_LEFT;
 	bottomRect.top = bottomRect.bottom - DPI::SY(16);
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect));
+	MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect, graph);
 }
 
 // Pitch graph editor
 
 void CPitchGraphEditor::CreateComponents() {		// // //
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CPitchGraph>(*this, m_GraphRect));
+	CRect graphRect = m_ClientRect;
+	graphRect.left += DPI::SX(GRAPH_LEFT);		// // //
+	graphRect.top += DPI::SY(5);
+	graphRect.bottom -= DPI::SY(16);
+	auto &graph = MakeGraphComponent<GraphEditorComponents::CPitchGraph>(*this, graphRect);
 
 	CRect bottomRect = m_ClientRect;		// // //
 	bottomRect.left += GRAPH_LEFT;
 	bottomRect.top = bottomRect.bottom - DPI::SY(16);
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect));
+	MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect, graph);
 }
 
 // Sunsoft noise editor
 
 void CNoiseEditor::CreateComponents() {		// // //
+	CRect graphRect = m_ClientRect;
+	graphRect.left += DPI::SX(GRAPH_LEFT);		// // //
+	graphRect.top += DPI::SY(5);
+	graphRect.bottom -= DPI::SY(16);
+	auto &graph = MakeGraphComponent<GraphEditorComponents::CNoiseGraph>(*this, graphRect, m_iItems);
+
 	CRect flagsRect = m_ClientRect;		// // //
 	flagsRect.left += GRAPH_LEFT;
 	flagsRect.bottom -= DPI::SY(16);
 	flagsRect.top = flagsRect.bottom - GraphEditorComponents::CNoiseSelector::BUTTON_HEIGHT * 3;
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CNoiseSelector>(*this, flagsRect));
-
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CNoiseGraph>(*this, m_GraphRect, m_iItems));
+	MakeGraphComponent<GraphEditorComponents::CNoiseSelector>(*this, flagsRect, graph);
 
 	CRect bottomRect = m_ClientRect;		// // //
 	bottomRect.left += GRAPH_LEFT;
 	bottomRect.top = bottomRect.bottom - DPI::SY(16);
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect));
+	MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect, graph);
 }
 
 // Arpeggio graph editor
@@ -371,8 +336,7 @@ void CArpeggioGraphEditor::Initialize()
 	// Setup scrollbar
 	const int SCROLLBAR_WIDTH = ::GetSystemMetrics(SM_CXHSCROLL);		// // //
 
-	m_GraphRect.right -= SCROLLBAR_WIDTH;
-	CRect scrollBarRect {m_GraphRect.right, m_ClientRect.top, m_GraphRect.right + SCROLLBAR_WIDTH, m_ClientRect.bottom};		// // //
+	CRect scrollBarRect {m_ClientRect.right - SCROLLBAR_WIDTH, m_ClientRect.top, m_ClientRect.right, m_ClientRect.bottom};		// // //
 	m_cScrollBar.Create(SBS_VERT | SBS_LEFTALIGN | WS_CHILD | WS_VISIBLE, scrollBarRect, this, 0);
 
 	SCROLLINFO info = MakeScrollInfo();		// // //
@@ -399,12 +363,17 @@ void CArpeggioGraphEditor::Initialize()
 }
 
 void CArpeggioGraphEditor::CreateComponents() {
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CCellGraph>(*this, m_GraphRect, ITEMS));
+	CRect graphRect = m_ClientRect;
+	graphRect.left += DPI::SX(GRAPH_LEFT);		// // //
+	graphRect.top += DPI::SY(5);
+	graphRect.right -= ::GetSystemMetrics(SM_CXHSCROLL);
+	graphRect.bottom -= DPI::SY(16);
+	auto &graph = MakeGraphComponent<GraphEditorComponents::CCellGraph>(*this, graphRect, ITEMS);
 
 	CRect bottomRect = m_ClientRect;		// // //
 	bottomRect.left += GRAPH_LEFT;
 	bottomRect.top = bottomRect.bottom - DPI::SY(16);
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect));
+	MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect, graph);
 }
 
 SCROLLINFO CArpeggioGraphEditor::MakeScrollInfo() const {		// // //

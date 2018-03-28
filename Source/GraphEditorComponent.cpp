@@ -44,11 +44,23 @@ bool CGraphEditorComponent::ContainsPoint(CPoint point) const {
 	return region_.PtInRect(point) == TRUE;
 }
 
+void CGraphEditorComponent::OnPaint(CDC &dc) {
+	DoOnPaint(dc);
+
+#ifdef _DEBUG
+	const COLORREF COL_DEBUG_RECT = MakeRGB(255, 0, 0);
+	dc.FillSolidRect(region_.left, region_.top, region_.Width(), 1, COL_DEBUG_RECT);
+	dc.FillSolidRect(region_.left, region_.top, 1, region_.Height(), COL_DEBUG_RECT);
+	dc.FillSolidRect(region_.left, region_.bottom - 1, region_.Width(), 1, COL_DEBUG_RECT);
+	dc.FillSolidRect(region_.right - 1, region_.top, 1, region_.Height(), COL_DEBUG_RECT);
+#endif
+}
+
 
 
 void CGraphBase::ModifyItem(CPoint point, bool redraw) {
 	if (auto pSeq = parent_.GetSequence()) {
-		int ItemIndex = std::clamp(parent_.GetItemIndex(point), 0, (int)pSeq->GetItemCount() - 1);		// // //
+		int ItemIndex = std::clamp(GetItemIndex(point), 0, (int)pSeq->GetItemCount() - 1);		// // //
 		int ItemY = std::clamp(GetItemValue(point), GetMinItemValue(), GetMaxItemValue());		// // //
 
 		m_iHighlightedItem = ItemIndex;
@@ -82,6 +94,28 @@ void CGraphBase::DrawRect(CDC &dc, int x, int y, int w, int h, bool flat)
 
 int CGraphBase::GetItemBottom() const {
 	return region_.bottom;
+}
+
+int CGraphBase::GetItemWidth() const {
+	unsigned Count = parent_.GetItemCount();		// // //
+	return Count ? std::min(region_.Width() / static_cast<int>(Count), ITEM_MAX_WIDTH) : 0;		// // //
+}
+
+int CGraphBase::GetItemIndex(CPoint point) const {		// // //
+	return parent_.GetItemCount() && point.x >= CGraphEditor::GRAPH_LEFT ? (point.x - CGraphEditor::GRAPH_LEFT) / GetItemWidth() : -1;
+}
+
+int CGraphBase::GetItemGridIndex(CPoint point) const {		// // //
+	int ItemWidth = GetItemWidth();
+	int idx = point.x - CGraphEditor::GRAPH_LEFT + ItemWidth / 2;
+	return idx >= 0 ? idx / ItemWidth : -1;
+}
+
+void CGraphBase::CursorChanged(CPoint point) {
+	if (int Pos = GetItemIndex(point); Pos >= 0 && Pos < parent_.GetItemCount())
+		parent_.OnHoverSequenceItem(Pos, parent_.GetSequence()->GetItem(Pos));
+	else
+		parent_.OnHoverSequenceItem(0, 0);
 }
 
 void CGraphBase::DrawRect(CDC &dc, int x, int y, int w, int h) {
@@ -127,7 +161,7 @@ void CGraphBase::DrawBackground(CDC &dc, int Lines, bool DrawMarks, int MarkOffs
 	dc.FillSolidRect(region_.left, Top, 1, region_.bottom, COL_BOTTOM);
 
 	if (auto pSeq = parent_.GetSequence()) {
-		int ItemWidth = parent_.GetItemWidth();
+		int ItemWidth = GetItemWidth();
 
 		// Draw horizontal bars
 		int count = pSeq->GetItemCount();
@@ -181,7 +215,7 @@ void CGraphBase::DrawRange(CDC &dc, int Max, int Min) {
 }
 
 void CGraphBase::DoOnMouseHover(CPoint point) {
-	int ItemIndex = parent_.GetItemIndex(point);
+	int ItemIndex = GetItemIndex(point);
 	int ItemValue = GetItemValue(point);
 	int LastItem = m_iHighlightedItem;
 	int LastValue = m_iHighlightedValue;
@@ -197,21 +231,26 @@ void CGraphBase::DoOnMouseHover(CPoint point) {
 
 	if (m_iHighlightedItem != LastItem || m_iHighlightedValue != LastValue)
 		parent_.RedrawWindow();
+
+	CursorChanged(point);
 }
 
 void CGraphBase::DoOnLButtonDown(CPoint point) {
 	m_iEditing = edit_t::Point;
 	ModifyItem(point, true);
+	CursorChanged(point);
 }
 
 void CGraphBase::DoOnLButtonMove(CPoint point) {
 	if (m_iEditing == edit_t::Point)
 		ModifyItem(point, true);
+	CursorChanged(point);
 }
 
 void CGraphBase::DoOnRButtonDown(CPoint point) {
 	m_ptLineStart = m_ptLineEnd = point;
 	m_iEditing = edit_t::Line;
+	CursorChanged(point);
 }
 
 void CGraphBase::DoOnRButtonMove(CPoint point) {
@@ -231,11 +270,13 @@ void CGraphBase::DoOnRButtonMove(CPoint point) {
 
 		parent_.ItemModified();
 	}
+	CursorChanged(point);
 }
 
 void CGraphBase::DoOnRButtonUp(CPoint point) {
 	m_ptLineStart = { };
 	m_iEditing = edit_t::None;
+	CursorChanged(point);
 }
 
 
@@ -258,11 +299,11 @@ int CBarGraph::GetMaxItemValue() const {
 	return items_;
 }
 
-int GraphEditorComponents::CBarGraph::GetItemTop() const {
+int CBarGraph::GetItemTop() const {
 	return region_.top + region_.Height() % items_;
 }
 
-int GraphEditorComponents::CBarGraph::GetItemHeight() const {
+int CBarGraph::GetItemHeight() const {
 	return (GetItemBottom() - GetItemTop()) / items_;		// // //
 }
 
@@ -275,7 +316,7 @@ void CBarGraph::DoOnPaint(CDC &dc) {
 		return;
 	int Count = pSeq->GetItemCount();
 
-	const int StepWidth = parent_.GetItemWidth();
+	const int StepWidth = GetItemWidth();
 	const int StepHeight = GetItemHeight();		// // //
 	const int Top = GetItemTop();		// // //
 
@@ -356,11 +397,11 @@ int CCellGraph::GetSequenceItemValue(int idx, int val) const {
 	return val;
 }
 
-int GraphEditorComponents::CCellGraph::GetItemTop() const {
+int CCellGraph::GetItemTop() const {
 	return region_.top + region_.Height() % items_;
 }
 
-int GraphEditorComponents::CCellGraph::GetItemHeight() const {
+int CCellGraph::GetItemHeight() const {
 	return (GetItemBottom() - GetItemTop()) / items_;		// // //
 }
 
@@ -400,7 +441,7 @@ void CCellGraph::DoOnPaint(CDC &dc) {
 		return;
 	int Count = pSeq->GetItemCount();
 
-	const int StepWidth = parent_.GetItemWidth();
+	const int StepWidth = GetItemWidth();
 	const int StepHeight = GetItemHeight();		// // //
 	const int Top = GetItemTop();		// // //
 
@@ -502,7 +543,7 @@ void CPitchGraph::DoOnPaint(CDC &dc) {
 	}
 	int Count = pSeq->GetItemCount();
 
-	const int StepWidth = parent_.GetItemWidth();
+	const int StepWidth = GetItemWidth();
 	const int Top = GetItemTop();		// // //
 
 	// One last line
@@ -574,32 +615,15 @@ int CNoiseGraph::GetSequenceItemValue(int idx, int value) const {
 }
 
 int CNoiseGraph::GetItemTop() const {
-	return region_.top + (region_.Height() - GraphEditorComponents::CNoiseSelector::BUTTON_HEIGHT * 3) % items_;
+	return region_.top + (region_.Height() - CNoiseSelector::BUTTON_HEIGHT * 3) % items_;
 }
 
 int CNoiseGraph::GetItemBottom() const {
-	return region_.bottom - GraphEditorComponents::CNoiseSelector::BUTTON_HEIGHT * 3;
+	return region_.bottom - CNoiseSelector::BUTTON_HEIGHT * 3;
 }
 
 int CNoiseGraph::GetItemHeight() const {
 	return (GetItemBottom() - GetItemTop()) / items_;		// // //
-}
-
-void CNoiseGraph::DrawRange(CDC &dc, int Max, int Min) {
-	CGraphBase::DrawRange(dc, Max, Min);
-
-	CFont *pOldFont = dc.SelectObject(&font_);
-	const int Bottom = GetItemBottom();
-
-	dc.SetBkMode(TRANSPARENT);
-	dc.SetTextColor(WHITE);
-	dc.SetTextAlign(TA_RIGHT);
-
-	const LPCWSTR FLAG_STR[] = {L"T", L"N", L"E"};
-	for (std::size_t i = 0; i < std::size(FLAG_STR); ++i)
-		dc.TextOutW(CGraphEditor::GRAPH_LEFT - 4, Bottom + GraphEditorComponents::CNoiseSelector::BUTTON_HEIGHT * i - 1, FLAG_STR[i]);
-
-	dc.SelectObject(pOldFont);
 }
 
 void CNoiseGraph::DoOnPaint(CDC &dc) {
@@ -611,7 +635,7 @@ void CNoiseGraph::DoOnPaint(CDC &dc) {
 		return;
 	int Count = pSeq->GetItemCount();
 
-	const int StepWidth = parent_.GetItemWidth();
+	const int StepWidth = GetItemWidth();
 	const int StepHeight = GetItemHeight();		// // //
 	const int Top = GetItemTop();		// // //
 
@@ -646,9 +670,14 @@ void CNoiseGraph::DoOnPaint(CDC &dc) {
 
 
 
+CLoopReleaseBar::CLoopReleaseBar(CGraphEditor &parent, CRect region, CGraphBase &graph_parent) :
+	CGraphEditorComponent(parent, region), graph_parent_(graph_parent)
+{
+}
+
 void CLoopReleaseBar::DoOnLButtonDown(CPoint point) {
 	if (auto pSeq = parent_.GetSequence()) {
-		int idx = std::clamp(parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
+		int idx = std::clamp(graph_parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
 		enable_loop_ = pSeq->GetLoopPoint() != idx;
 		pSeq->SetLoopPoint(enable_loop_ ? idx : -1);
 		parent_.ItemModified();
@@ -657,7 +686,7 @@ void CLoopReleaseBar::DoOnLButtonDown(CPoint point) {
 
 void CLoopReleaseBar::DoOnLButtonMove(CPoint point) {
 	if (auto pSeq = parent_.GetSequence(); pSeq && enable_loop_) {
-		int idx = std::clamp(parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
+		int idx = std::clamp(graph_parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
 		pSeq->SetLoopPoint(idx);
 		parent_.ItemModified();
 	}
@@ -665,7 +694,7 @@ void CLoopReleaseBar::DoOnLButtonMove(CPoint point) {
 
 void CLoopReleaseBar::DoOnRButtonDown(CPoint point) {
 	if (auto pSeq = parent_.GetSequence()) {
-		int idx = std::clamp(parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
+		int idx = std::clamp(graph_parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
 		enable_loop_ = pSeq->GetReleasePoint() != idx;
 		pSeq->SetReleasePoint(enable_loop_ ? idx : -1);
 		parent_.ItemModified();
@@ -674,7 +703,7 @@ void CLoopReleaseBar::DoOnRButtonDown(CPoint point) {
 
 void CLoopReleaseBar::DoOnRButtonMove(CPoint point) {
 	if (auto pSeq = parent_.GetSequence(); pSeq && enable_loop_) {
-		int idx = std::clamp(parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
+		int idx = std::clamp(graph_parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
 		pSeq->SetReleasePoint(idx);
 		parent_.ItemModified();
 	}
@@ -684,7 +713,7 @@ void CLoopReleaseBar::DrawTagPoint(CDC &dc, int index, LPCWSTR str, COLORREF col
 	if (index > -1) {
 		CFont *pOldFont = dc.SelectObject(&font_);
 
-		int x = parent_.GetItemWidth() * index + CGraphEditor::GRAPH_LEFT + 1;
+		int x = graph_parent_.GetItemWidth() * index + CGraphEditor::GRAPH_LEFT + 1;
 		GradientBar(dc, x + 1, region_.top, region_.right - x, region_.Height(), DIM(col, 8. / 15.), DIM(col, 2. / 15.));		// // //
 		dc.FillSolidRect(x, region_.top, 1, region_.bottom, col);
 
@@ -717,14 +746,6 @@ void CLoopReleaseBar::DoOnPaint(CDC &dc) {
 			DrawTagPoint(dc, LoopPoint, L"Loop, Release", MakeRGB(240, 240, 0));
 		}
 	}
-
-#ifdef _DEBUG
-	const COLORREF COL_DEBUG_RECT = MakeRGB(0, 255, 255);
-	dc.FillSolidRect(region_.left, region_.top, region_.Width(), 1, COL_DEBUG_RECT);
-	dc.FillSolidRect(region_.left, region_.top, 1, region_.Height(), COL_DEBUG_RECT);
-	dc.FillSolidRect(region_.left, region_.bottom - 1, region_.Width(), 1, COL_DEBUG_RECT);
-	dc.FillSolidRect(region_.right - 1, region_.top, 1, region_.Height(), COL_DEBUG_RECT);
-#endif
 }
 
 
@@ -735,6 +756,11 @@ constexpr s5b_mode_t S5B_FLAGS[] = {s5b_mode_t::Envelope, s5b_mode_t::Square, s5
 constexpr auto BUTTON_MARGIN = CNoiseSelector::BUTTON_HEIGHT * 3;
 
 } // namespace
+
+CNoiseSelector::CNoiseSelector(CGraphEditor &parent, CRect region, CGraphBase &graph_parent) :
+	CGraphEditorComponent(parent, region), graph_parent_(graph_parent)
+{
+}
 
 void CNoiseSelector::ModifyFlag(int idx, int flag) {
 	if (auto pSeq = parent_.GetSequence()) {
@@ -760,7 +786,7 @@ bool CNoiseSelector::CheckFlag(int8_t val, int flag) {
 
 void CNoiseSelector::DoOnLButtonDown(CPoint point) {
 	if (auto pSeq = parent_.GetSequence()) {
-		int idx = parent_.GetItemIndex(point);
+		int idx = graph_parent_.GetItemIndex(point);
 		if (idx < 0 || idx >= static_cast<int>(pSeq->GetItemCount()))
 			return;
 		int flag = (point.y - (region_.bottom - BUTTON_MARGIN)) / BUTTON_HEIGHT;		// // //
@@ -768,12 +794,13 @@ void CNoiseSelector::DoOnLButtonDown(CPoint point) {
 			return;
 		enable_flag_ = !CheckFlag(pSeq->GetItem(idx), flag);
 		ModifyFlag(idx, flag);
+		graph_parent_.CursorChanged(point);
 	}
 }
 
 void CNoiseSelector::DoOnLButtonMove(CPoint point) {
 	if (auto pSeq = parent_.GetSequence()) {
-		int idx = parent_.GetItemIndex(point);
+		int idx = graph_parent_.GetItemIndex(point);
 		if (idx < 0 || idx >= static_cast<int>(pSeq->GetItemCount()))
 			return;
 		int flag = (point.y - (region_.bottom - BUTTON_MARGIN)) / BUTTON_HEIGHT;		// // //
@@ -781,37 +808,36 @@ void CNoiseSelector::DoOnLButtonMove(CPoint point) {
 			return;
 		if (idx != last_idx_ || flag != last_flag_)
 			ModifyFlag(idx, flag);
+		graph_parent_.CursorChanged(point);
 	}
 }
 
 void CNoiseSelector::DoOnPaint(CDC &dc) {
-	auto pSeq = parent_.GetSequence();
-	if (!pSeq)
-		return;
-	int Count = pSeq->GetItemCount();
+	if (auto pSeq = parent_.GetSequence()) {
+		int Count = pSeq->GetItemCount();
 
-	int StepWidth = parent_.GetItemWidth();
+		int StepWidth = graph_parent_.GetItemWidth();
 
-	for (int i = 0; i < Count; ++i) {
-		int x = region_.left + i * StepWidth + 1;
-		int w = StepWidth;
+		for (int i = 0; i < Count; ++i) {
+			int x = region_.left + i * StepWidth + 1;
+			int w = StepWidth;
 
-		auto flags = enum_cast<s5b_mode_t>(static_cast<uint8_t>(pSeq->GetItem(i)));		// // //
+			auto flags = enum_cast<s5b_mode_t>(static_cast<uint8_t>(pSeq->GetItem(i)));		// // //
 
-		const COLORREF BAR_COLOR[] = {MakeRGB(160, 160, 0), MakeRGB(0, 160, 160), MakeRGB(160, 0, 160)};
+			const COLORREF BAR_COLOR[] = {MakeRGB(160, 160, 0), MakeRGB(0, 160, 160), MakeRGB(160, 0, 160)};
 
-		for (std::size_t j = 0; j < std::size(S5B_FLAGS); ++j) {
-			int y = region_.bottom - BUTTON_MARGIN + j * BUTTON_HEIGHT + 1;
-			int h = BUTTON_HEIGHT - 1;
-			const COLORREF Color = (flags & S5B_FLAGS[j]) == S5B_FLAGS[j] ? BAR_COLOR[j] : GREY(80);
-			dc.FillSolidRect(x, y, w, h, Color);
-			dc.Draw3dRect(x, y, w, h, BLEND(Color, WHITE, .8), BLEND(Color, BLACK, .8));
+			for (std::size_t j = 0; j < std::size(S5B_FLAGS); ++j) {
+				int y = region_.bottom - BUTTON_MARGIN + j * BUTTON_HEIGHT + 1;
+				int h = BUTTON_HEIGHT - 1;
+				const COLORREF Color = (flags & S5B_FLAGS[j]) == S5B_FLAGS[j] ? BAR_COLOR[j] : GREY(80);
+				dc.FillSolidRect(x, y, w, h, Color);
+				dc.Draw3dRect(x, y, w, h, BLEND(Color, WHITE, .8), BLEND(Color, BLACK, .8));
+			}
 		}
 	}
 
-	/*
 	CFont *pOldFont = dc.SelectObject(&font_);
-	const int Bottom = GetItemBottom();
+	const int Bottom = graph_parent_.GetItemBottom();
 
 	dc.SetBkMode(TRANSPARENT);
 	dc.SetTextColor(WHITE);
@@ -819,16 +845,7 @@ void CNoiseSelector::DoOnPaint(CDC &dc) {
 
 	const LPCWSTR FLAG_STR[] = {L"T", L"N", L"E"};
 	for (std::size_t i = 0; i < std::size(FLAG_STR); ++i)
-		dc.TextOutW(CGraphEditor::GRAPH_LEFT - 4, Bottom + GraphEditorComponents::CNoiseSelector::BUTTON_HEIGHT * i - 1, FLAG_STR[i]);
+		dc.TextOutW(CGraphEditor::GRAPH_LEFT - 4, Bottom + BUTTON_HEIGHT * i - 1, FLAG_STR[i]);
 
 	dc.SelectObject(pOldFont);
-	*/
-
-#ifdef _DEBUG
-	const COLORREF COL_DEBUG_RECT = MakeRGB(255, 128, 255);
-	dc.FillSolidRect(region_.left, region_.top, region_.Width(), 1, COL_DEBUG_RECT);
-	dc.FillSolidRect(region_.left, region_.top, 1, region_.Height(), COL_DEBUG_RECT);
-	dc.FillSolidRect(region_.left, region_.bottom - 1, region_.Width(), 1, COL_DEBUG_RECT);
-	dc.FillSolidRect(region_.right - 1, region_.top, 1, region_.Height(), COL_DEBUG_RECT);
-#endif
 }

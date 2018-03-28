@@ -46,7 +46,7 @@ public:
 	void OnRButtonMove(CPoint point) { DoOnRButtonMove(point); }
 	void OnRButtonUp(CPoint point) { DoOnRButtonUp(point); }
 
-	void OnPaint(CDC &dc) { DoOnPaint(dc); }
+	void OnPaint(CDC &dc);
 
 private:
 	virtual void DoOnMouseHover(CPoint point) { }
@@ -73,6 +73,15 @@ class CGraphBase : public CGraphEditorComponent {
 public:
 	using CGraphEditorComponent::CGraphEditorComponent;
 
+	virtual int GetItemTop() const = 0;
+	virtual int GetItemBottom() const;
+	virtual int GetItemHeight() const = 0;
+	int GetItemWidth() const;
+	int GetItemIndex(CPoint point) const;
+	int GetItemGridIndex(CPoint point) const;
+
+	void CursorChanged(CPoint point);
+
 private:
 	void ModifyItem(CPoint point, bool redraw);
 	virtual int GetItemValue(CPoint point) const = 0;
@@ -91,10 +100,6 @@ private:
 	void DrawRect(CDC &dc, int x, int y, int w, int h, bool flat);
 
 protected:
-	virtual int GetItemTop() const = 0;
-	virtual int GetItemBottom() const;
-	virtual int GetItemHeight() const = 0;
-
 	void DrawRect(CDC &dc, int x, int y, int w, int h);
 	void DrawPlayRect(CDC &dc, int x, int y, int w, int h);
 	void DrawCursorRect(CDC &dc, int x, int y, int w, int h);
@@ -104,6 +109,10 @@ protected:
 	void DrawBackground(CDC &dc, int Lines, bool DrawMarks, int MarkOffset);
 	virtual void DrawRange(CDC &dc, int Max, int Min);
 
+private:
+	static constexpr int ITEM_MAX_WIDTH = 40;
+
+protected:
 	int m_iHighlightedItem = -1;
 	int m_iHighlightedValue = 0;
 	CPoint m_ptLineStart = { };
@@ -179,8 +188,6 @@ private:
 	int GetItemBottom() const override; // TODO: remove
 	int GetItemHeight() const override;
 
-	void DrawRange(CDC &dc, int Max, int Min) override;
-
 	void DoOnPaint(CDC &dc) override;
 
 	int items_;
@@ -188,7 +195,7 @@ private:
 
 class CLoopReleaseBar : public CGraphEditorComponent {
 public:
-	using CGraphEditorComponent::CGraphEditorComponent;
+	CLoopReleaseBar(CGraphEditor &parent, CRect region, CGraphBase &graph_parent);
 
 private:
 	void DrawTagPoint(CDC &dc, int index, LPCWSTR str, COLORREF col);
@@ -199,6 +206,7 @@ private:
 	void DoOnRButtonMove(CPoint point) override;
 	void DoOnPaint(CDC &dc) override;
 
+	CGraphBase &graph_parent_;
 	bool enable_loop_ = true;
 };
 
@@ -209,7 +217,7 @@ class CNoiseSelector : public CGraphEditorComponent {
 public:
 	static constexpr int BUTTON_HEIGHT = 9;
 
-	using CGraphEditorComponent::CGraphEditorComponent;
+	CNoiseSelector(CGraphEditor &parent, CRect region, CGraphBase &graph_parent);
 
 private:
 	void ModifyFlag(int idx, int flag);
@@ -220,9 +228,10 @@ private:
 	void DoOnLButtonMove(CPoint point) override;
 	void DoOnPaint(CDC &dc) override;
 
-	bool enable_flag_ = true;
+	CGraphBase &graph_parent_;
 	int last_idx_ = -1;
 	int last_flag_ = -1;
+	bool enable_flag_ = true;
 };
 
 } // namespace GraphEditorComponents

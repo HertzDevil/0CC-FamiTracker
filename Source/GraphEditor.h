@@ -41,32 +41,31 @@ public:
 	std::shared_ptr<CSequence> GetSequence();		// // //
 	std::shared_ptr<const CSequence> GetSequence() const;		// // //
 
-	int GetItemWidth() const;		// // //
-	int GetItemIndex(CPoint point) const;		// // //
-	int GetItemGridIndex(CPoint point) const;		// // //
 	int GetItemCount() const;		// // //
 	int GetCurrentPlayPos() const;		// // //
 
 	CRect GetClientArea() const;		// // //
 
 	void ItemModified();		// // //
+	void OnHoverSequenceItem(int idx, int val);		// // //
 
 protected:
 	virtual void Initialize();
 	virtual void CreateComponents() = 0;
-	void AddGraphComponent(std::unique_ptr<CGraphEditorComponent> pCom);		// // //
-
-private:
-	void CursorChanged(CPoint point);		// // //
+	template <typename T, typename... Args>
+	T &MakeGraphComponent(Args&&... args) {		// // //
+		auto ptr = std::make_unique<T>(std::forward<Args>(args)...);
+		auto &x = *ptr;
+		components_.push_back(std::move(ptr));
+		return x;
+	}
 
 public:		// // //
 	static const int GRAPH_LEFT = 28;			// Left side marigin
-	static const int ITEM_MAX_WIDTH = 40;
 
 protected:
 	CWnd *m_pParentWnd = nullptr;
 	const std::shared_ptr<CSequence> m_pSequence;		// // //
-	CRect m_GraphRect;
 	CRect m_ClientRect;
 	CBitmap m_Bitmap;		// // //
 	CDC m_BackDC;		// // //
