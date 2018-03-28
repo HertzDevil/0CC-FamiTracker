@@ -123,3 +123,94 @@ void CLoopReleaseBar::DoOnPaint(CDC &dc) {
 	dc.FillSolidRect(region_.right - 1, region_.top, 1, region_.Height(), COL_DEBUG_RECT);
 #endif
 }
+
+
+
+namespace {
+
+constexpr s5b_mode_t S5B_FLAGS[] = {s5b_mode_t::Envelope, s5b_mode_t::Square, s5b_mode_t::Noise};
+constexpr auto BUTTON_MARGIN = CNoiseSelector::BUTTON_HEIGHT * 3;
+
+} // namespace
+
+void CNoiseSelector::ModifyFlag(int idx, int flag) {
+	if (auto pSeq = parent_.GetSequence()) {
+		last_idx_ = idx;
+		last_flag_ = flag;
+		int8_t ItemValue = pSeq->GetItem(idx);
+		auto flagMode = flag == 0 ? s5b_mode_t::Envelope : flag == 1 ? s5b_mode_t::Square : s5b_mode_t::Noise;
+		if (enable_flag_)
+			ItemValue |= value_cast(flagMode);
+		else
+			ItemValue &= ~value_cast(flagMode);
+
+		pSeq->SetItem(idx, ItemValue);
+		parent_.ItemModified(true);		// // //
+	}
+}
+
+bool CNoiseSelector::CheckFlag(int8_t val, int flag) {
+	if (flag >= 0 && flag < (int)std::size(S5B_FLAGS))
+		return val & value_cast(S5B_FLAGS[flag]);
+	return false;
+}
+
+void CNoiseSelector::DoOnLButtonDown(CPoint point) {
+	if (auto pSeq = parent_.GetSequence()) {
+		int idx = parent_.GetItemIndex(point);
+		if (idx < 0 || idx >= static_cast<int>(pSeq->GetItemCount()))
+			return;
+		int flag = (point.y - (region_.bottom - BUTTON_MARGIN)) / BUTTON_HEIGHT;		// // //
+		if (flag < 0 || flag >= static_cast<int>(std::size(S5B_FLAGS)))
+			return;
+		enable_flag_ = !CheckFlag(pSeq->GetItem(idx), flag);
+		ModifyFlag(idx, flag);
+	}
+}
+
+void CNoiseSelector::DoOnLButtonMove(CPoint point) {
+	if (auto pSeq = parent_.GetSequence()) {
+		int idx = parent_.GetItemIndex(point);
+		if (idx < 0 || idx >= static_cast<int>(pSeq->GetItemCount()))
+			return;
+		int flag = (point.y - (region_.bottom - BUTTON_MARGIN)) / BUTTON_HEIGHT;		// // //
+		if (flag < 0 || flag >= static_cast<int>(std::size(S5B_FLAGS)))
+			return;
+		if (idx != last_idx_ || flag != last_flag_)
+			ModifyFlag(idx, flag);
+	}
+}
+
+void CNoiseSelector::DoOnPaint(CDC &dc) {
+	auto pSeq = parent_.GetSequence();
+	if (!pSeq)
+		return;
+	int Count = pSeq->GetItemCount();
+
+	int StepWidth = parent_.GetItemWidth();
+
+	for (int i = 0; i < Count; ++i) {
+		int x = region_.left + i * StepWidth + 1;
+		int w = StepWidth;
+
+		auto flags = enum_cast<s5b_mode_t>(static_cast<uint8_t>(pSeq->GetItem(i)));		// // //
+
+		const COLORREF BAR_COLOR[] = {0x00A0A0, 0xA0A000, 0xA000A0};
+
+		for (std::size_t j = 0; j < std::size(S5B_FLAGS); ++j) {
+			int y = region_.bottom - BUTTON_MARGIN + j * BUTTON_HEIGHT + 1;
+			int h = BUTTON_HEIGHT - 1;
+			const COLORREF Color = (flags & S5B_FLAGS[j]) == S5B_FLAGS[j] ? BAR_COLOR[j] : 0x505050;
+			dc.FillSolidRect(x, y, w, h, Color);
+			dc.Draw3dRect(x, y, w, h, BLEND(Color, WHITE, .8), BLEND(Color, BLACK, .8));
+		}
+	}
+
+#ifdef _DEBUG
+	const COLORREF COL_DEBUG_RECT = MakeRGB(255, 128, 255);
+	dc.FillSolidRect(region_.left, region_.top, region_.Width(), 1, COL_DEBUG_RECT);
+	dc.FillSolidRect(region_.left, region_.top, 1, region_.Height(), COL_DEBUG_RECT);
+	dc.FillSolidRect(region_.left, region_.bottom - 1, region_.Width(), 1, COL_DEBUG_RECT);
+	dc.FillSolidRect(region_.right - 1, region_.top, 1, region_.Height(), COL_DEBUG_RECT);
+#endif
+}

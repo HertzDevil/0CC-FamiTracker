@@ -31,9 +31,6 @@ enum edit_t {
 	EDIT_NONE,
 	EDIT_LINE,
 	EDIT_POINT,
-	EDIT_LOOP,
-	EDIT_RELEASE,
-	EDIT_NOISE,		// // //
 };
 
 class CSequence;		// // //
@@ -66,12 +63,10 @@ protected:
 
 	void ModifyItem(CPoint point, bool Redraw);		// // //
 
-	virtual void ModifyReleased();
 	bool IsEditLine() const;
 
 	virtual void DrawRange(CDC &DC, int Max, int Min);
 	void DrawBackground(CDC &DC, int Lines, bool DrawMarks, int MarkOffset);		// // //
-	void DrawLoopRelease(CDC &DC);		// // //
 	void DrawLine(CDC &DC);
 
 	template<COLORREF COL_BG1, COLORREF COL_BG2, COLORREF COL_EDGE1, COLORREF COL_EDGE2>
@@ -209,7 +204,6 @@ public:
 class CNoiseEditor : public CGraphEditor
 {
 public:
-	DECLARE_DYNAMIC(CNoiseEditor)
 	CNoiseEditor(std::shared_ptr<CSequence> pSequence, int Items) : CGraphEditor(std::move(pSequence)), m_iItems(Items) { }		// // //
 
 private:
@@ -221,23 +215,9 @@ private:
 	int GetItemValue(CPoint point) const override;		// // //
 	int GetSequenceItemValue(int Index, int Value) const override;		// // //
 
-	void ModifyReleased() override;
-	void ModifyNoise(CPoint point, bool Redraw);		// // //
-	bool CheckNoiseFlags(CPoint point) const;		// // //
-
 private:
-	static const int BUTTON_HEIGHT = 9;		// // //
-	static const int BUTTON_MARGIN = 26;		// // //
-
 	int m_iItems;
-	int m_iLastIndexX = -1;		// // //
-	int m_iLastIndexY = -1;		// // //
-	bool m_bAddNoiseFlags = false;		// // //
 
-protected:
-	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnPaint() override;
-	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 };

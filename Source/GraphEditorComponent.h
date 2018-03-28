@@ -24,8 +24,10 @@
 #pragma once
 
 #include "stdafx.h"
+#include <cstdint>
 
 class CGraphEditor;
+class CSequence;
 
 class CGraphEditorComponent {
 public:
@@ -41,11 +43,11 @@ public:
 	void OnPaint(CDC &dc) { DoOnPaint(dc); }
 
 private:
-	virtual void DoOnLButtonDown(CPoint point) = 0;
-	virtual void DoOnLButtonMove(CPoint point) = 0;
-	virtual void DoOnRButtonDown(CPoint point) = 0;
-	virtual void DoOnRButtonMove(CPoint point) = 0;
-	virtual void DoOnPaint(CDC &dc) = 0;
+	virtual void DoOnLButtonDown(CPoint point) { }
+	virtual void DoOnLButtonMove(CPoint point) { }
+	virtual void DoOnRButtonDown(CPoint point) { }
+	virtual void DoOnRButtonMove(CPoint point) { }
+	virtual void DoOnPaint(CDC &dc) { }
 
 protected:
 	CGraphEditor &parent_;
@@ -68,7 +70,7 @@ public:
 	CLoopReleaseBar(CGraphEditor &parent, CRect region);
 
 private:
-	void DrawTagPoint(CDC &dc, int index, LPCWSTR str, COLORREF col);		// // //
+	void DrawTagPoint(CDC &dc, int index, LPCWSTR str, COLORREF col);
 
 	void DoOnLButtonDown(CPoint point) override;
 	void DoOnLButtonMove(CPoint point) override;
@@ -84,6 +86,23 @@ class CArpSchemeSelector : public CGraphEditorComponent {
 };
 
 class CNoiseSelector : public CGraphEditorComponent {
+public:
+	static constexpr int BUTTON_HEIGHT = 9;
+
+	using CGraphEditorComponent::CGraphEditorComponent;
+
+private:
+	void ModifyFlag(int idx, int flag);
+
+	static bool CheckFlag(int8_t val, int flag);
+
+	void DoOnLButtonDown(CPoint point) override;
+	void DoOnLButtonMove(CPoint point) override;
+	void DoOnPaint(CDC &dc) override;
+
+	bool enable_flag_ = true;
+	int last_idx_ = -1;
+	int last_flag_ = -1;
 };
 
 } // namespace GraphEditorComponents
