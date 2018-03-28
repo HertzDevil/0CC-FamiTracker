@@ -22,16 +22,11 @@
 
 #include "GraphEditor.h"
 #include "Sequence.h"		// // //
-#include "Graphics.h"
 #include "FamiTrackerEnv.h"		// // //
-#include "APU/Types.h"		// // //
 #include "SoundGen.h"
 #include "SequenceEditorMessage.h"		// // //
 #include "DPI.h"		// // //
-#include "PatternNote.h"		// // //
 #include "Color.h"		// // //
-#include "str_conv/str_conv.hpp"		// // //
-#include "NoteName.h"		// // //
 #include "GraphEditorComponent.h"		// // //
 
 // CGraphEditor
@@ -45,13 +40,19 @@ BEGIN_MESSAGE_MAP(CGraphEditor, CWnd)
 	ON_WM_ERASEBKGND()
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
-	ON_WM_MOUSEMOVE()
 	ON_WM_RBUTTONDOWN()
 	ON_WM_RBUTTONUP()
+	ON_WM_MOUSEMOVE()
 	ON_WM_TIMER()
 	ON_WM_SETFOCUS()
 	ON_WM_KILLFOCUS()
 END_MESSAGE_MAP()
+
+CGraphEditor::CGraphEditor(std::shared_ptr<CSequence> pSequence) :		// // //
+	m_pSequence(std::move(pSequence)),
+	m_iLastPlayPos(0)
+{
+}
 
 CGraphEditor::~CGraphEditor() noexcept {		// // //
 }
@@ -64,12 +65,6 @@ std::shared_ptr<const CSequence> CGraphEditor::GetSequence() const {		// // //
 	return m_pSequence && m_pSequence->GetItemCount() ? m_pSequence : nullptr;
 }
 
-CGraphEditor::CGraphEditor(std::shared_ptr<CSequence> pSequence) :		// // //
-	m_pSequence(std::move(pSequence)),
-	m_iLastPlayPos(0)
-{
-}
-
 BOOL CGraphEditor::OnEraseBkgnd(CDC* DC)
 {
 	return FALSE;
@@ -80,15 +75,12 @@ BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpsz
 	if (CWnd::CreateEx(dwExStyle, lpszClassName, lpszWindowName, dwStyle, rect, pParentWnd, nID, lpParam) == -1)
 		return -1;
 
-	m_SmallFont.CreateFontW(-10, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET,
-		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_SWISS, L"Verdana");		// // //
-
 	// Calculate the draw areas
 	GetClientRect(m_ClientRect);
 
 	m_GraphRect = m_ClientRect;
 	m_GraphRect.left += DPI::SX(GRAPH_LEFT);		// // //
-	m_GraphRect.top += DPI::SY(GRAPH_BOTTOM);
+	m_GraphRect.top += DPI::SY(5);
 	m_GraphRect.bottom -= DPI::SY(16);
 
 	m_pParentWnd = pParentWnd;
@@ -104,6 +96,7 @@ BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpsz
 	ReleaseDC(pDC);
 
 	Initialize();
+	CreateComponents();		// // //
 
 	CWnd::SetTimer(0, 30, NULL);
 
@@ -113,10 +106,6 @@ BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpsz
 void CGraphEditor::Initialize()
 {
 	// Allow extra initialization
-	CRect bottomRect = m_ClientRect;		// // //
-	bottomRect.left += GRAPH_LEFT;
-	bottomRect.top = bottomRect.bottom - DPI::SY(16);
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect));
 }
 
 void CGraphEditor::AddGraphComponent(std::unique_ptr<CGraphEditorComponent> pCom) {		// // //
@@ -153,100 +142,30 @@ BOOL CGraphEditor::PreTranslateMessage(MSG *pMsg) {		// // //
 	return CWnd::PreTranslateMessage(pMsg);
 }
 
-void CGraphEditor::PaintBuffer(CDC &BackDC, CDC &FrontDC)
-{
-	if (this == GetFocus()) {
-		CRect focusRect = m_ClientRect;
-		BackDC.SetBkColor(0);
-		BackDC.DrawFocusRect(focusRect);
-	}
+void CGraphEditor::OnPaint() {
+	CPaintDC dc {this};
+	for (auto &pCom : components_)		// // //
+		pCom->OnPaint(m_BackDC);
 
 #ifdef _DEBUG		// // //
-	BackDC.FillSolidRect(m_ClientRect.left, m_ClientRect.top, m_ClientRect.Width(), 1, MakeRGB(255, 255, 0));
-	BackDC.FillSolidRect(m_ClientRect.left, m_ClientRect.top, 1, m_ClientRect.Height(), MakeRGB(255, 255, 0));
-	BackDC.FillSolidRect(m_ClientRect.left, m_ClientRect.bottom - 1, m_ClientRect.Width(), 1, MakeRGB(255, 255, 0));
-	BackDC.FillSolidRect(m_ClientRect.right - 1, m_ClientRect.top, 1, m_ClientRect.Height(), MakeRGB(255, 255, 0));
+	m_BackDC.FillSolidRect(m_ClientRect.left, m_ClientRect.top, m_ClientRect.Width(), 1, MakeRGB(255, 255, 0));
+	m_BackDC.FillSolidRect(m_ClientRect.left, m_ClientRect.top, 1, m_ClientRect.Height(), MakeRGB(255, 255, 0));
+	m_BackDC.FillSolidRect(m_ClientRect.left, m_ClientRect.bottom - 1, m_ClientRect.Width(), 1, MakeRGB(255, 255, 0));
+	m_BackDC.FillSolidRect(m_ClientRect.right - 1, m_ClientRect.top, 1, m_ClientRect.Height(), MakeRGB(255, 255, 0));
 
-	BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.top, m_GraphRect.Width(), 1, MakeRGB(0, 255, 0));
-	BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.top, 1, m_GraphRect.Height(), MakeRGB(0, 255, 0));
-	BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.bottom - 1, m_GraphRect.Width(), 1, MakeRGB(0, 255, 0));
-	BackDC.FillSolidRect(m_GraphRect.right - 1, m_GraphRect.top, 1, m_GraphRect.Height(), MakeRGB(0, 255, 0));
+	m_BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.top, m_GraphRect.Width(), 1, MakeRGB(0, 255, 0));
+	m_BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.top, 1, m_GraphRect.Height(), MakeRGB(0, 255, 0));
+	m_BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.bottom - 1, m_GraphRect.Width(), 1, MakeRGB(0, 255, 0));
+	m_BackDC.FillSolidRect(m_GraphRect.right - 1, m_GraphRect.top, 1, m_GraphRect.Height(), MakeRGB(0, 255, 0));
 #endif
 
-	FrontDC.BitBlt(0, 0, m_ClientRect.Width(), m_ClientRect.Height(), &BackDC, 0, 0, SRCCOPY);
-}
-
-void CGraphEditor::DrawBackground(CDC &DC, int Lines, bool DrawMarks, int MarkOffset)
-{
-	const COLORREF COL_BACKGROUND	= 0x000000;
-	const COLORREF COL_BOTTOM		= 0x404040;
-	const COLORREF COL_HORZ_BAR		= 0x202020;
-
-	const int Top = GetItemTop();		// // //
-	const int Bottom = GetItemBottom();
-
-	// Fill background
-	DC.FillSolidRect(m_ClientRect, COL_BACKGROUND);
-	DC.FillSolidRect(m_GraphRect.left, Top, 1, m_GraphRect.bottom, COL_BOTTOM);
-
-	if (m_pSequence) {
-		int ItemWidth = GetItemWidth();
-
-		// Draw horizontal bars
-		int count = m_pSequence->GetItemCount();
-		for (int i = 1; i < count; i += 2) {
-			int x = m_GraphRect.left + i * ItemWidth + 1;
-			int y = Top + 1;
-			int w = ItemWidth;
-			int h = Bottom - Top;		// // //
-			DC.FillSolidRect(x, y, w, h, COL_HORZ_BAR);
-		}
+	if (this == GetFocus()) {
+		CRect focusRect = m_ClientRect;
+		m_BackDC.SetBkColor(0);
+		m_BackDC.DrawFocusRect(focusRect);
 	}
 
-	int marker = MarkOffset;
-
-	if (Lines > 0) {
-		int StepHeight = (Bottom - Top) / Lines;
-
-		// Draw vertical bars
-		for (int i = 0; i <= Lines; ++i) {
-			int x = m_GraphRect.left + 1;
-			int y = Top + StepHeight * i;
-			int w = m_GraphRect.Width() - 2;
-			int h = 1;
-
-			if (DrawMarks) {
-				if ((++marker + 1) % 12 == 0) {
-					DC.FillSolidRect(x, y, w, StepHeight, COL_HORZ_BAR);
-				}
-			}
-
-			DC.FillSolidRect(x, y, w, h, MakeRGB(64, 64, 64));
-		}
-	}
-}
-
-void CGraphEditor::DrawComponents(CDC &DC) {
-	for (auto &pCom : components_)		// // //
-		pCom->OnPaint(DC);
-}
-
-void CGraphEditor::DrawRange(CDC &DC, int Max, int Min)
-{
-	CFont *pOldFont = DC.SelectObject(&m_SmallFont);		// // //
-	const int Top = GetItemTop();		// // //
-	const int Bottom = GetItemBottom();
-
-	DC.FillSolidRect(m_ClientRect.left, Top, m_GraphRect.left, Bottom, 0x00);
-
-	DC.SetBkMode(TRANSPARENT);
-	DC.SetTextColor(0xFFFFFF);
-	DC.SetTextAlign(TA_RIGHT);
-
-	DC.TextOutW(GRAPH_LEFT - 4, Top - 3, FormattedW(L"%02i", Max));
-	DC.TextOutW(GRAPH_LEFT - 4, Bottom - 10, FormattedW(L"%02i", Min));
-
-	DC.SelectObject(pOldFont);
+	dc.BitBlt(0, 0, m_ClientRect.Width(), m_ClientRect.Height(), &m_BackDC, 0, 0, SRCCOPY);
 }
 
 int CGraphEditor::GetItemWidth() const
@@ -255,13 +174,12 @@ int CGraphEditor::GetItemWidth() const
 	return Count ? std::min(m_GraphRect.Width() / static_cast<int>(Count), ITEM_MAX_WIDTH) : 0;		// // //
 }
 
-int CGraphEditor::GetItemBottom() const		// // //
-{
-	return m_GraphRect.bottom;
-}
-
 int CGraphEditor::GetCurrentPlayPos() const {		// // //
 	return m_iCurrentPlayPos;
+}
+
+CRect CGraphEditor::GetClientArea() const {		// // //
+	return m_ClientRect;
 }
 
 int CGraphEditor::GetItemIndex(CPoint point) const {		// // //
@@ -398,31 +316,41 @@ void CGraphEditor::OnKillFocus(CWnd* pNewWnd)
 
 // Bar graph editor (volume and duty setting)
 
-void CBarGraphEditor::OnPaint()
-{
-	CPaintDC dc(this);
-
-	DrawBackground(m_BackDC, m_iLevels, false, 0);
-	DrawRange(m_BackDC, m_iLevels, 0);
-	DrawComponents(m_BackDC);
-
-	PaintBuffer(m_BackDC, dc);
-}
-
-void CBarGraphEditor::Initialize() {		// // //
-	CGraphEditor::Initialize();
-
+void CBarGraphEditor::CreateComponents() {		// // //
 	AddGraphComponent(std::make_unique<GraphEditorComponents::CBarGraph>(*this, m_GraphRect, m_iLevels));
+
+	CRect bottomRect = m_ClientRect;		// // //
+	bottomRect.left += GRAPH_LEFT;
+	bottomRect.top = bottomRect.bottom - DPI::SY(16);
+	AddGraphComponent(std::make_unique<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect));
 }
 
-int CBarGraphEditor::GetItemHeight() const
-{
-	return (GetItemBottom() - GetItemTop()) / m_iLevels;		// // //
+// Pitch graph editor
+
+void CPitchGraphEditor::CreateComponents() {		// // //
+	AddGraphComponent(std::make_unique<GraphEditorComponents::CPitchGraph>(*this, m_GraphRect));
+
+	CRect bottomRect = m_ClientRect;		// // //
+	bottomRect.left += GRAPH_LEFT;
+	bottomRect.top = bottomRect.bottom - DPI::SY(16);
+	AddGraphComponent(std::make_unique<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect));
 }
 
-int CBarGraphEditor::GetItemTop() const		// // //
-{
-	return m_GraphRect.top + m_GraphRect.Height() % m_iLevels;
+// Sunsoft noise editor
+
+void CNoiseEditor::CreateComponents() {		// // //
+	CRect flagsRect = m_ClientRect;		// // //
+	flagsRect.left += GRAPH_LEFT;
+	flagsRect.bottom -= DPI::SY(16);
+	flagsRect.top = flagsRect.bottom - GraphEditorComponents::CNoiseSelector::BUTTON_HEIGHT * 3;
+	AddGraphComponent(std::make_unique<GraphEditorComponents::CNoiseSelector>(*this, flagsRect));
+
+	AddGraphComponent(std::make_unique<GraphEditorComponents::CNoiseGraph>(*this, m_GraphRect, m_iItems));
+
+	CRect bottomRect = m_ClientRect;		// // //
+	bottomRect.left += GRAPH_LEFT;
+	bottomRect.top = bottomRect.bottom - DPI::SY(16);
+	AddGraphComponent(std::make_unique<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect));
 }
 
 // Arpeggio graph editor
@@ -468,49 +396,15 @@ void CArpeggioGraphEditor::Initialize()
 	m_cScrollBar.EnableScrollBar(ESB_ENABLE_BOTH);
 
 	m_ClientRect.right -= SCROLLBAR_WIDTH;
-
-	CGraphEditor::Initialize();
-
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CCellGraph>(*this, m_GraphRect));
 }
 
-void CArpeggioGraphEditor::DrawRange(CDC &DC, int Max, int Min)
-{
-	if (m_pSequence->GetSetting() != SETTING_ARP_FIXED) {
-		// Absolute, relative
-		CGraphEditor::DrawRange(DC, Max, Min);
-	}
-	else {
-		// Fixed
-		DC.FillSolidRect(m_ClientRect.left, m_GraphRect.top, m_GraphRect.left, m_GraphRect.bottom, 0x00);
+void CArpeggioGraphEditor::CreateComponents() {
+	AddGraphComponent(std::make_unique<GraphEditorComponents::CCellGraph>(*this, m_GraphRect, ITEMS));
 
-		CFont *pOldFont = DC.SelectObject(&m_SmallFont);
-
-		DC.SetTextColor(0xFFFFFF);
-		DC.SetTextAlign(TA_RIGHT);
-
-		// Top
-		int NoteValue = m_iScrollOffset + 20;
-		DC.TextOutW(GRAPH_LEFT - 4, GetItemTop() - 3, conv::to_wide(GetNoteString(GET_NOTE(NoteValue), GET_OCTAVE(NoteValue))).data());		// // //
-
-		// Bottom
-		NoteValue = m_iScrollOffset;
-		DC.TextOutW(GRAPH_LEFT - 4, GetItemBottom() - 10, conv::to_wide(GetNoteString(GET_NOTE(NoteValue), GET_OCTAVE(NoteValue))).data());
-
-		DC.SelectObject(pOldFont);
-	}
-}
-
-void CArpeggioGraphEditor::OnPaint()
-{
-	CPaintDC dc(this);
-
-	DrawBackground(m_BackDC, GraphEditorComponents::CCellGraph::ITEMS, true,		// // //
-		m_pSequence && m_pSequence->GetSetting() == SETTING_ARP_FIXED ? 2 - m_iScrollOffset : -m_iScrollOffset);
-	DrawRange(m_BackDC, m_iScrollOffset + 10, m_iScrollOffset - 10);
-	DrawComponents(m_BackDC);
-
-	PaintBuffer(m_BackDC, dc);
+	CRect bottomRect = m_ClientRect;		// // //
+	bottomRect.left += GRAPH_LEFT;
+	bottomRect.top = bottomRect.bottom - DPI::SY(16);
+	AddGraphComponent(std::make_unique<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect));
 }
 
 SCROLLINFO CArpeggioGraphEditor::MakeScrollInfo() const {		// // //
@@ -540,16 +434,6 @@ SCROLLINFO CArpeggioGraphEditor::MakeScrollInfo() const {		// // //
 	return info;
 }
 
-int CArpeggioGraphEditor::GetItemHeight() const
-{
-	return (GetItemBottom() - GetItemTop()) / GraphEditorComponents::CCellGraph::ITEMS;		// // //
-}
-
-int CArpeggioGraphEditor::GetItemTop() const		// // //
-{
-	return m_GraphRect.top + m_GraphRect.Height() % GraphEditorComponents::CCellGraph::ITEMS;
-}
-
 void CArpeggioGraphEditor::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	switch (nSBCode) {
@@ -560,10 +444,10 @@ void CArpeggioGraphEditor::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 			++m_iScrollOffset;
 			break;
 		case SB_PAGEDOWN:
-			m_iScrollOffset -= GraphEditorComponents::CCellGraph::ITEMS / 2;
+			m_iScrollOffset -= ITEMS / 2;
 			break;
 		case SB_PAGEUP:
-			m_iScrollOffset += GraphEditorComponents::CCellGraph::ITEMS / 2;
+			m_iScrollOffset += ITEMS / 2;
 			break;
 		case SB_TOP:
 			m_iScrollOffset = m_iScrollMax;
@@ -606,92 +490,4 @@ BOOL CArpeggioGraphEditor::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	else
 		OnVScroll(SB_LINEUP, 0, &m_cScrollBar);
 	return CWnd::OnMouseWheel(nFlags, zDelta, pt);
-}
-
-// Pitch graph editor
-
-void CPitchGraphEditor::OnPaint()
-{
-	CPaintDC dc(this);
-
-	DrawBackground(m_BackDC, 0, false, 0);
-	DrawRange(m_BackDC, 127, -128);
-	DrawComponents(m_BackDC);
-
-	m_BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.top + m_GraphRect.Height() / 2, m_GraphRect.Width(), 1, MakeRGB(64, 64, 64));
-
-	PaintBuffer(m_BackDC, dc);
-}
-
-void CPitchGraphEditor::Initialize() {		// // //
-	CGraphEditor::Initialize();
-
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CPitchGraph>(*this, m_GraphRect));
-}
-
-int CPitchGraphEditor::GetItemHeight() const
-{
-	return (GetItemBottom() - GetItemTop()) / ITEMS;		// // //
-}
-
-int CPitchGraphEditor::GetItemTop() const		// // //
-{
-	return m_GraphRect.top;
-}
-
-// Sunsoft noise editor
-
-void CNoiseEditor::OnPaint()
-{
-	CPaintDC dc(this);
-
-	DrawBackground(m_BackDC, m_iItems, false, 0);
-	DrawRange(m_BackDC, m_iItems - 1, 0);
-	DrawComponents(m_BackDC);
-
-	PaintBuffer(m_BackDC, dc);
-}
-
-void CNoiseEditor::Initialize() {		// // //
-	CGraphEditor::Initialize();
-
-	CRect flagsRect = m_ClientRect;		// // //
-	flagsRect.left += GRAPH_LEFT;
-	flagsRect.bottom = flagsRect.bottom - DPI::SY(16);
-	flagsRect.top = GetItemBottom();
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CNoiseSelector>(*this, flagsRect));
-
-	AddGraphComponent(std::make_unique<GraphEditorComponents::CNoiseGraph>(*this, m_GraphRect, m_iItems));
-}
-
-void CNoiseEditor::DrawRange(CDC &DC, int Max, int Min) {		// // // 050B
-	CGraphEditor::DrawRange(DC, Max, Min);
-
-	CFont *pOldFont = DC.SelectObject(&m_SmallFont);
-	const int Bottom = GetItemBottom();
-
-	DC.SetBkMode(TRANSPARENT);
-	DC.SetTextColor(0xFFFFFF);
-	DC.SetTextAlign(TA_RIGHT);
-
-	const LPCWSTR FLAG_STR[] = {L"T", L"N", L"E"};
-	for (std::size_t i = 0; i < std::size(FLAG_STR); ++i)
-		DC.TextOutW(GRAPH_LEFT - 4, Bottom + GraphEditorComponents::CNoiseSelector::BUTTON_HEIGHT * i - 1, FLAG_STR[i]);
-
-	DC.SelectObject(pOldFont);
-}
-
-int CNoiseEditor::GetItemHeight() const
-{
-	return (GetItemBottom() - GetItemTop()) / m_iItems;		// // //
-}
-
-int CNoiseEditor::GetItemTop() const		// // //
-{
-	return m_GraphRect.top + (GetItemBottom() - m_GraphRect.top) % m_iItems;
-}
-
-int CNoiseEditor::GetItemBottom() const		// // //
-{
-	return m_GraphRect.bottom - GraphEditorComponents::CNoiseSelector::BUTTON_HEIGHT * 3;
 }

@@ -31,7 +31,7 @@ class CSequence;
 
 class CGraphEditorComponent {
 public:
-	CGraphEditorComponent(CGraphEditor &parent, CRect region) : parent_(parent), region_(region) { }
+	CGraphEditorComponent(CGraphEditor &parent, CRect region);
 	virtual ~CGraphEditorComponent() noexcept = default;
 
 	bool ContainsPoint(CPoint point) const;
@@ -64,6 +64,7 @@ private:
 protected:
 	CGraphEditor &parent_;
 	CRect region_;
+	CFont font_;
 };
 
 namespace GraphEditorComponents {
@@ -90,11 +91,18 @@ private:
 	void DrawRect(CDC &dc, int x, int y, int w, int h, bool flat);
 
 protected:
+	virtual int GetItemTop() const = 0;
+	virtual int GetItemBottom() const;
+	virtual int GetItemHeight() const = 0;
+
 	void DrawRect(CDC &dc, int x, int y, int w, int h);
 	void DrawPlayRect(CDC &dc, int x, int y, int w, int h);
 	void DrawCursorRect(CDC &dc, int x, int y, int w, int h);
 	void DrawShadowRect(CDC &dc, int x, int y, int w, int h);
 	void DrawLine(CDC &dc);
+
+	void DrawBackground(CDC &dc, int Lines, bool DrawMarks, int MarkOffset);
+	virtual void DrawRange(CDC &dc, int Max, int Min);
 
 	int m_iHighlightedItem = -1;
 	int m_iHighlightedValue = 0;
@@ -114,6 +122,9 @@ private:
 	int GetMinItemValue() const override;
 	int GetMaxItemValue() const override;
 
+	int GetItemTop() const override;
+	int GetItemHeight() const override;
+
 	void DoOnPaint(CDC &dc) override;
 
 	int items_;
@@ -121,9 +132,7 @@ private:
 
 class CCellGraph : public CGraphBase {
 public:
-	static constexpr int ITEMS = 21;
-
-	CCellGraph(CGraphEditor &parent, CRect region);
+	CCellGraph(CGraphEditor &parent, CRect region, int items);
 
 private:
 	int GetItemValue(CPoint point) const override;
@@ -131,9 +140,14 @@ private:
 	int GetMaxItemValue() const override;
 	int GetSequenceItemValue(int Index, int Value) const override;
 
+	int GetItemTop() const override;
+	int GetItemHeight() const override;
+
+	void DrawRange(CDC &dc, int Max, int Min) override;
+
 	void DoOnPaint(CDC &dc) override;
 
-	CFont font_;
+	int items_;
 };
 
 class CPitchGraph : public CGraphBase {
@@ -144,6 +158,9 @@ private:
 	int GetItemValue(CPoint point) const override;
 	int GetMinItemValue() const override;
 	int GetMaxItemValue() const override;
+
+	int GetItemTop() const override;
+	int GetItemHeight() const override;
 
 	void DoOnPaint(CDC &dc) override;
 };
@@ -158,6 +175,12 @@ private:
 	int GetMaxItemValue() const override;
 	int GetSequenceItemValue(int Index, int Value) const override;
 
+	int GetItemTop() const override;
+	int GetItemBottom() const override; // TODO: remove
+	int GetItemHeight() const override;
+
+	void DrawRange(CDC &dc, int Max, int Min) override;
+
 	void DoOnPaint(CDC &dc) override;
 
 	int items_;
@@ -165,7 +188,7 @@ private:
 
 class CLoopReleaseBar : public CGraphEditorComponent {
 public:
-	CLoopReleaseBar(CGraphEditor &parent, CRect region);
+	using CGraphEditorComponent::CGraphEditorComponent;
 
 private:
 	void DrawTagPoint(CDC &dc, int index, LPCWSTR str, COLORREF col);
@@ -176,7 +199,6 @@ private:
 	void DoOnRButtonMove(CPoint point) override;
 	void DoOnPaint(CDC &dc) override;
 
-	CFont font_;
 	bool enable_loop_ = true;
 };
 

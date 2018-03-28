@@ -45,37 +45,27 @@ public:
 	int GetItemIndex(CPoint point) const;		// // //
 	int GetItemGridIndex(CPoint point) const;		// // //
 	int GetItemCount() const;		// // //
-	virtual int GetItemTop() const = 0;		// // //
-	virtual int GetItemBottom() const;		// // //
-	virtual int GetItemHeight() const = 0;
 	int GetCurrentPlayPos() const;		// // //
+
+	CRect GetClientArea() const;		// // //
 
 	void ItemModified();		// // //
 
 protected:
 	virtual void Initialize();
+	virtual void CreateComponents() = 0;
 	void AddGraphComponent(std::unique_ptr<CGraphEditorComponent> pCom);		// // //
-
-	virtual void DrawRange(CDC &DC, int Max, int Min);
-	void DrawBackground(CDC &DC, int Lines, bool DrawMarks, int MarkOffset);		// // //
-	void DrawComponents(CDC &DC);		// // //
-
-	void PaintBuffer(CDC &BackDC, CDC &FrontDC);
 
 private:
 	void CursorChanged(CPoint point);		// // //
 
 public:		// // //
 	static const int GRAPH_LEFT = 28;			// Left side marigin
-
-protected:
-	static const int GRAPH_BOTTOM = 5;			// Bottom marigin
 	static const int ITEM_MAX_WIDTH = 40;
 
 protected:
-	CWnd *m_pParentWnd;
+	CWnd *m_pParentWnd = nullptr;
 	const std::shared_ptr<CSequence> m_pSequence;		// // //
-	CFont m_SmallFont;		// // //
 	CRect m_GraphRect;
 	CRect m_ClientRect;
 	CBitmap m_Bitmap;		// // //
@@ -91,13 +81,13 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	BOOL PreTranslateMessage(MSG* pMsg) override;		// // //
-	virtual afx_msg void OnPaint() = 0;		// // //
+	afx_msg void OnPaint();		// // //
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnTimer(UINT nIDEvent);
 	BOOL CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, LPVOID lpParam = NULL);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
@@ -111,14 +101,9 @@ public:
 	CBarGraphEditor(std::shared_ptr<CSequence> pSequence, int Levels) : CGraphEditor(std::move(pSequence)), m_iLevels(Levels) { }		// // //
 
 private:
-	void Initialize() override;		// // //
-	int GetItemHeight() const override;
-	int GetItemTop() const override;		// // //
+	void CreateComponents() override;		// // //
 
 	int m_iLevels;
-
-public:
-	afx_msg void OnPaint() override;
 };
 
 // Arpeggio graph editor
@@ -132,12 +117,12 @@ public:
 
 private:
 	void Initialize() override;
-	void DrawRange(CDC &DC, int Max, int Min) override;
-	int GetItemHeight() const override;
-	int GetItemTop() const override;		// // //
+	void CreateComponents() override;
 
 private:
 	SCROLLINFO MakeScrollInfo() const;		// // //
+
+	static constexpr int ITEMS = 21;		// // //
 
 	int m_iScrollOffset = 0;
 	int m_iScrollMax;
@@ -147,7 +132,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
-	afx_msg void OnPaint() override;
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 };
 
@@ -158,14 +142,7 @@ public:
 	explicit CPitchGraphEditor(std::shared_ptr<CSequence> pSequence) : CGraphEditor(std::move(pSequence)) { }		// // //
 
 private:
-	void Initialize() override;		// // //
-	int GetItemHeight() const override;
-	int GetItemTop() const override;		// // //
-
-	static const int ITEMS = 20;
-
-public:
-	afx_msg void OnPaint() override;
+	void CreateComponents() override;		// // //
 };
 
 // Sunsoft noise editor
@@ -175,15 +152,8 @@ public:
 	CNoiseEditor(std::shared_ptr<CSequence> pSequence, int Items) : CGraphEditor(std::move(pSequence)), m_iItems(Items) { }		// // //
 
 private:
-	void Initialize() override;		// // //
-	void DrawRange(CDC &DC, int Max, int Min) override;		// // // 050B
-	int GetItemHeight() const override;
-	int GetItemTop() const override;		// // //
-	int GetItemBottom() const override;		// // //
+	void CreateComponents() override;		// // //
 
 private:
 	int m_iItems;
-
-public:
-	afx_msg void OnPaint() override;
 };
