@@ -162,21 +162,6 @@ LRESULT CSequenceEditor::OnSettingChanged(WPARAM wParam, LPARAM lParam)		// // /
 {
 	// Called when the setting selector has changed
 	SelectSequence(m_pSequence, m_iInstrumentType);
-
-	switch (m_pSequence->GetSequenceType()) {
-	case sequence_t::Volume:		// // //
-		if (m_iInstrumentType == INST_VRC6) {
-			ASSERT(dynamic_cast<CBarGraphEditor*>(m_pGraphEditor.get()));
-			static_cast<CBarGraphEditor*>(m_pGraphEditor.get())->SetMaxItems(
-				m_pSequence->GetSetting() == SETTING_VOL_64_STEPS ? 0x3F : 0x0F);
-		}
-		break;
-	case sequence_t::Arpeggio:
-		ASSERT(dynamic_cast<CArpeggioGraphEditor*>(m_pGraphEditor.get()));
-		static_cast<CArpeggioGraphEditor*>(m_pGraphEditor.get())->UpdateScrollBar();
-		break;
-	}
-
 	m_pSetting->RedrawWindow();
 	RedrawWindow();
 
@@ -217,10 +202,8 @@ void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int I
 	// Create the graph
 	switch (m_pSequence->GetSequenceType()) {
 	case sequence_t::Volume:
-		if (m_iInstrumentType == INST_VRC6 && m_pSequence->GetSetting() == SETTING_VOL_64_STEPS)
-			m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, 0x3F);		// // //
-		else
-			m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, m_iMaxVol);
+		m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence,
+			m_iInstrumentType == INST_VRC6 && m_pSequence->GetSetting() == SETTING_VOL_64_STEPS ? 0x3F : m_iMaxVol);		// // //
 		break;
 	case sequence_t::Arpeggio:
 		m_pGraphEditor = std::make_unique<CArpeggioGraphEditor>(m_pSequence);

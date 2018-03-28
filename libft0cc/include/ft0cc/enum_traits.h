@@ -252,15 +252,6 @@ constexpr EnumT enum_cast(EnumT x) noexcept {
 
 inline namespace enum_operators {
 
-// Returns true if lhs is equal to EnumT::none. Only supports enum class types
-// that have a none-element.
-template <typename EnumT,
-	typename = std::enable_if_t<details::is_scoped_enum_v<EnumT>>,
-	typename = std::enable_if_t<enum_has_none<EnumT>()>>
-constexpr bool operator!(const EnumT &lhs) noexcept {
-	return lhs == enum_none<EnumT>();
-}
-
 // Pre-increments lhs if it is equal to neither the none-element nor the maximum
 // element. Only supports linear enum class types.
 template <typename EnumT,

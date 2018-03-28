@@ -32,6 +32,7 @@
 #include "Color.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 #include "NoteName.h"		// // //
+#include "GraphEditorComponent.h"		// // //
 
 // CGraphEditor
 
@@ -52,6 +53,16 @@ BEGIN_MESSAGE_MAP(CGraphEditor, CWnd)
 	ON_WM_KILLFOCUS()
 END_MESSAGE_MAP()
 
+CGraphEditor::~CGraphEditor() noexcept {		// // //
+}
+
+std::shared_ptr<CSequence> CGraphEditor::GetSequence() {		// // //
+	return m_pSequence && m_pSequence->GetItemCount() ? m_pSequence : nullptr;
+}
+
+std::shared_ptr<const CSequence> CGraphEditor::GetSequence() const {		// // //
+	return m_pSequence && m_pSequence->GetItemCount() ? m_pSequence : nullptr;
+}
 
 CGraphEditor::CGraphEditor(std::shared_ptr<CSequence> pSequence) :		// // //
 	m_iHighlightedItem(-1),
@@ -77,15 +88,12 @@ BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpsz
 		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_SWISS, L"Verdana");		// // //
 
 	// Calculate the draw areas
-	GetClientRect(m_GraphRect);
-	GetClientRect(m_BottomRect);
 	GetClientRect(m_ClientRect);
 
+	m_GraphRect = m_ClientRect;
 	m_GraphRect.left += DPI::SX(GRAPH_LEFT);		// // //
 	m_GraphRect.top += DPI::SY(GRAPH_BOTTOM);
 	m_GraphRect.bottom -= DPI::SY(16);
-	m_BottomRect.left += GRAPH_LEFT;
-	m_BottomRect.top = m_GraphRect.bottom + 1;
 
 	m_pParentWnd = pParentWnd;
 
@@ -108,7 +116,15 @@ BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpsz
 
 void CGraphEditor::Initialize()
 {
+	CRect bottomRect = m_ClientRect;		// // //
+	bottomRect.left += GRAPH_LEFT;
+	bottomRect.top = bottomRect.bottom - DPI::SY(16);
+	AddGraphComponent(std::make_unique<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect));
 	// Allow extra initialization
+}
+
+void CGraphEditor::AddGraphComponent(std::unique_ptr<CGraphEditorComponent> pCom) {		// // //
+	components_.push_back(std::move(pCom));
 }
 
 void CGraphEditor::OnTimer(UINT nIDEvent)
@@ -147,11 +163,6 @@ void CGraphEditor::PaintBuffer(CDC &BackDC, CDC &FrontDC)
 	BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.top, 1, m_GraphRect.Height(), MakeRGB(0, 255, 0));
 	BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.bottom - 1, m_GraphRect.Width(), 1, MakeRGB(0, 255, 0));
 	BackDC.FillSolidRect(m_GraphRect.right - 1, m_GraphRect.top, 1, m_GraphRect.Height(), MakeRGB(0, 255, 0));
-
-	BackDC.FillSolidRect(m_BottomRect.left, m_BottomRect.top, m_BottomRect.Width(), 1, MakeRGB(0, 255, 255));
-	BackDC.FillSolidRect(m_BottomRect.left, m_BottomRect.top, 1, m_BottomRect.Height(), MakeRGB(0, 255, 255));
-	BackDC.FillSolidRect(m_BottomRect.left, m_BottomRect.bottom - 1, m_BottomRect.Width(), 1, MakeRGB(0, 255, 255));
-	BackDC.FillSolidRect(m_BottomRect.right - 1, m_BottomRect.top, 1, m_BottomRect.Height(), MakeRGB(0, 255, 255));
 #endif
 
 	FrontDC.BitBlt(0, 0, m_ClientRect.Width(), m_ClientRect.Height(), &BackDC, 0, 0, SRCCOPY);
@@ -169,9 +180,6 @@ void CGraphEditor::DrawBackground(CDC &DC, int Lines, bool DrawMarks, int MarkOf
 	// Fill background
 	DC.FillSolidRect(m_ClientRect, COL_BACKGROUND);
 	DC.FillSolidRect(m_GraphRect.left, Top, 1, m_GraphRect.bottom, COL_BOTTOM);
-
-	// Fill bottom area
-	DC.FillSolidRect(m_BottomRect, COL_BOTTOM);
 
 	if (m_pSequence) {
 		int ItemWidth = GetItemWidth();
@@ -228,39 +236,11 @@ void CGraphEditor::DrawRange(CDC &DC, int Max, int Min)
 	DC.SelectObject(pOldFont);
 }
 
-void CGraphEditor::DrawTagPoint(CDC &DC, int index, LPCWSTR str, COLORREF col) {		// // //
-	if (index > -1) {
-		CFont *pOldFont = DC.SelectObject(&m_SmallFont);
-
-		int x = GetItemWidth() * index + GRAPH_LEFT + 1;
-		GradientBar(DC, x + 1, m_BottomRect.top, m_BottomRect.right - x, m_BottomRect.Height(), DIM(col, 8. / 15.), DIM(col, 2. / 15.));		// // //
-		DC.FillSolidRect(x, m_BottomRect.top, 1, m_BottomRect.bottom, col);
-
-		DC.SetTextColor(0xFFFFFF);
-		DC.SetBkMode(TRANSPARENT);
-		DC.SetTextAlign(TA_LEFT);
-		DC.TextOutW(x + 4, m_BottomRect.top, str);
-
-		DC.SelectObject(pOldFont);
-	}
-}
-
 void CGraphEditor::DrawLoopRelease(CDC &DC)		// // //
 {
-	int LoopPoint = m_pSequence->GetLoopPoint();
-	int ReleasePoint = m_pSequence->GetReleasePoint();
-
-	if (ReleasePoint > LoopPoint) {
-		DrawTagPoint(DC, LoopPoint, L"Loop", MakeRGB(0, 240, 240));
-		DrawTagPoint(DC, ReleasePoint, L"Release", MakeRGB(240, 0, 240));
-	}
-	else if (ReleasePoint < LoopPoint) {
-		DrawTagPoint(DC, ReleasePoint, L"Release", MakeRGB(240, 0, 240));
-		DrawTagPoint(DC, LoopPoint, L"Loop", MakeRGB(0, 240, 240));
-	}
-	else if (LoopPoint > -1) { // LoopPoint == ReleasePoint
-		DrawTagPoint(DC, LoopPoint, L"Loop, Release", MakeRGB(240, 240, 0));
-	}
+	for (auto &pCom : components_) // TODO: remove
+		if (auto *pBar = dynamic_cast<GraphEditorComponents::CLoopReleaseBar *>(pCom.get()))
+			pBar->OnPaint(DC);
 }
 
 void CGraphEditor::DrawLine(CDC &DC)
@@ -369,21 +349,29 @@ void CGraphEditor::OnLButtonDown(UINT nFlags, CPoint point)
 	if (!m_pSequence || !m_pSequence->GetItemCount())
 		return;
 
+	for (auto &pCom : components_)
+		if (pCom->ContainsPoint(point)) {
+			focused_ = pCom.get();		// // //
+			if (auto *pBar = dynamic_cast<GraphEditorComponents::CLoopReleaseBar *>(pCom.get())) // TODO: remove
+				m_iEditing = EDIT_LOOP;
+			pCom->OnLButtonDown(point);
+			break;
+		}
+
 	if (point.y < m_GraphRect.bottom) {
 		m_iEditing = EDIT_POINT;
 		ModifyItem(point, true);
 		if (point.x > GRAPH_LEFT)
 			CursorChanged(point.x - GRAPH_LEFT);
 	}
-	else if (point.y > m_GraphRect.bottom) {
-		m_iEditing = EDIT_LOOP;
-		ModifyLoopPoint(point, true);
-	}
+
+	CWnd::OnLButtonDown(nFlags, point);
 }
 
 void CGraphEditor::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	m_bButtonState = false;
+	focused_ = nullptr;		// // //
 
 	ModifyReleased();
 	ReleaseCapture();
@@ -396,43 +384,37 @@ void CGraphEditor::OnMouseMove(UINT nFlags, CPoint point)
 		return;
 
 	if (nFlags & MK_LBUTTON) {
+		for (auto &pCom : components_)
+			if (pCom->ContainsPoint(point) && pCom.get() == focused_)
+				pCom->OnLButtonMove(point);
 		switch (m_iEditing) {
-			case EDIT_POINT:
-				ModifyItem(point, true);
-				break;
-			case EDIT_LOOP:
-				ModifyLoopPoint(point, true);
-				break;
+		case EDIT_POINT:
+			ModifyItem(point, true);
+			break;
 		}
 	}
 	else if (nFlags & MK_RBUTTON) {
-		switch (m_iEditing) {
-			case EDIT_LINE:	{
-				int PosX = point.x;
-				int PosY = point.y;
+		for (auto &pCom : components_)
+			if (pCom->ContainsPoint(point) && pCom.get() == focused_)
+				if (auto *pBar = dynamic_cast<GraphEditorComponents::CLoopReleaseBar *>(pCom.get()))
+					pCom->OnRButtonMove(point);
 
-				if (m_iEditing == EDIT_LINE) {
-					m_ptLineEnd = {PosX, PosY};		// // //
+		if (m_iEditing == EDIT_LINE) {
+			m_ptLineEnd = point;		// // //
 
-					const CPoint &StartPt = m_ptLineStart.x < m_ptLineEnd.x ? m_ptLineStart : m_ptLineEnd;
-					const CPoint &EndPt   = m_ptLineStart.x < m_ptLineEnd.x ? m_ptLineEnd : m_ptLineStart;
+			const CPoint &StartPt = m_ptLineStart.x < m_ptLineEnd.x ? m_ptLineStart : m_ptLineEnd;
+			const CPoint &EndPt = m_ptLineStart.x < m_ptLineEnd.x ? m_ptLineEnd : m_ptLineStart;
 
-					auto DeltaY = (double)(EndPt.y - StartPt.y) / (EndPt.x - StartPt.x + 1);
-					auto fY = (double)StartPt.y;
+			auto DeltaY = (double)(EndPt.y - StartPt.y) / (EndPt.x - StartPt.x + 1);
+			auto fY = (double)StartPt.y;
 
-					for (int x = StartPt.x; x < EndPt.x; ++x) {
-						ModifyItem({x, (int)fY}, false);
-						fY += DeltaY;
-					}
+			for (int x = StartPt.x; x < EndPt.x; ++x) {
+				ModifyItem({x, (int)fY}, false);
+				fY += DeltaY;
+			}
 
-					RedrawWindow();
-					m_pParentWnd->PostMessageW(WM_SEQUENCE_CHANGED, 1);
-				}
-				}
-				break;
-			case EDIT_RELEASE:
-				ModifyReleasePoint(point, true);
-				break;
+			RedrawWindow();
+			m_pParentWnd->PostMessageW(WM_SEQUENCE_CHANGED, 1);
 		}
 	}
 	else {
@@ -446,19 +428,25 @@ void CGraphEditor::OnMouseMove(UINT nFlags, CPoint point)
 	}
 	else
 		m_pParentWnd->PostMessageW(WM_CURSOR_CHANGE, 0, 0);
+
+	CWnd::OnMouseMove(nFlags, point);
 }
 
 void CGraphEditor::OnRButtonDown(UINT nFlags, CPoint point)
 {
 	SetCapture();
 
+	for (auto &pCom : components_)
+		if (pCom->ContainsPoint(point)) {
+			focused_ = pCom.get();		// // //
+			if (auto *pBar = dynamic_cast<GraphEditorComponents::CLoopReleaseBar *>(pCom.get())) // TODO: remove
+				m_iEditing = EDIT_RELEASE;
+			pCom->OnRButtonDown(point);
+		}
+
 	if (point.y < m_GraphRect.bottom) {
 		m_ptLineStart = m_ptLineEnd = point;
 		m_iEditing = EDIT_LINE;
-	}
-	else if (point.y > m_GraphRect.bottom) {
-		m_iEditing = EDIT_RELEASE;
-		ModifyReleasePoint(point, true);
 	}
 
 	CWnd::OnRButtonDown(nFlags, point);
@@ -466,6 +454,8 @@ void CGraphEditor::OnRButtonDown(UINT nFlags, CPoint point)
 
 void CGraphEditor::OnRButtonUp(UINT nFlags, CPoint point)
 {
+	focused_ = nullptr;		// // //
+
 	ReleaseCapture();
 
 	m_ptLineStart = CPoint(0, 0);
@@ -497,24 +487,6 @@ void CGraphEditor::ModifyItem(CPoint point, bool Redraw) {		// // //
 
 	m_pSequence->SetItem(ItemIndex, GetSequenceItemValue(ItemIndex, ItemY));
 	ItemModified(Redraw);		// // //
-}
-
-void CGraphEditor::ModifyLoopPoint(CPoint point, bool Redraw)
-{
-	if (!m_pSequence || !m_pSequence->GetItemCount())
-		return;
-
-	m_pSequence->SetLoopPoint(GetItemGridIndex(point));		// // // -1 handled by sequence class
-	ItemModified(Redraw);
-}
-
-void CGraphEditor::ModifyReleasePoint(CPoint point, bool Redraw)
-{
-	if (!m_pSequence || !m_pSequence->GetItemCount())
-		return;
-
-	m_pSequence->SetReleasePoint(GetItemGridIndex(point));		// // //
-	ItemModified(Redraw);
 }
 
 void CGraphEditor::CursorChanged(int x)
@@ -561,6 +533,7 @@ void CBarGraphEditor::OnPaint()
 
 	DrawBackground(m_BackDC, m_iLevels, false, 0);
 	DrawRange(m_BackDC, m_iLevels, 0);
+	DrawLoopRelease(m_BackDC);		// // //
 
 	// Return now if no sequence is selected
 	if (!m_pSequence) {
@@ -603,10 +576,15 @@ void CBarGraphEditor::OnPaint()
 			DrawRect(m_BackDC, x, y, w, h);
 	}
 
-	DrawLoopRelease(m_BackDC);		// // //
 	DrawLine(m_BackDC);
 
 	PaintBuffer(m_BackDC, dc);
+}
+
+void CBarGraphEditor::Initialize() {		// // //
+//	AddGraphComponent(std::make_unique<GraphEditorComponents::CBarGraph>(*this, m_GraphRect));
+
+	CGraphEditor::Initialize();
 }
 
 int CBarGraphEditor::GetItemHeight() const
@@ -617,12 +595,6 @@ int CBarGraphEditor::GetItemHeight() const
 int CBarGraphEditor::GetItemTop() const		// // //
 {
 	return m_GraphRect.top + m_GraphRect.Height() % m_iLevels;
-}
-
-void CBarGraphEditor::SetMaxItems(int Levels)		// // //
-{
-	m_iLevels = Levels + 1;
-	RedrawWindow();
 }
 
 int CBarGraphEditor::GetItemValue(CPoint point) const {		// // //
@@ -673,15 +645,6 @@ void CArpeggioGraphEditor::Initialize()
 	CGraphEditor::Initialize();
 }
 
-void CArpeggioGraphEditor::UpdateScrollBar()
-{
-	// Reset the scrollbar
-	SCROLLINFO info = MakeScrollInfo();		// // //
-	m_iScrollMax = info.nPos;
-	m_iScrollOffset = 0;
-	m_cScrollBar.SetScrollInfo(&info);
-}
-
 void CArpeggioGraphEditor::DrawRange(CDC &DC, int Max, int Min)
 {
 	if (m_pSequence->GetSetting() != SETTING_ARP_FIXED) {
@@ -716,6 +679,7 @@ void CArpeggioGraphEditor::OnPaint()
 	DrawBackground(m_BackDC, ITEMS, true,		// // //
 		m_pSequence && m_pSequence->GetSetting() == SETTING_ARP_FIXED ? 2 - m_iScrollOffset : -m_iScrollOffset);
 	DrawRange(m_BackDC, m_iScrollOffset + 10, m_iScrollOffset - 10);
+	DrawLoopRelease(m_BackDC);		// // //
 
 	// Return now if no sequence is selected
 	if (!m_pSequence) {
@@ -796,7 +760,6 @@ void CArpeggioGraphEditor::OnPaint()
 	m_BackDC.SetTextAlign(TA_LEFT);
 	m_BackDC.SelectObject(pOldFont);
 
-	DrawLoopRelease(m_BackDC);		// // //
 	DrawLine(m_BackDC);
 
 	PaintBuffer(m_BackDC, dc);
@@ -932,6 +895,7 @@ void CPitchGraphEditor::OnPaint()
 
 	DrawBackground(m_BackDC, 0, false, 0);
 	DrawRange(m_BackDC, 127, -128);
+	DrawLoopRelease(m_BackDC);		// // //
 
 	m_BackDC.FillSolidRect(m_GraphRect.left, m_GraphRect.top + m_GraphRect.Height() / 2, m_GraphRect.Width(), 1, COLOR_LINES);
 
@@ -991,10 +955,13 @@ void CPitchGraphEditor::OnPaint()
 			DrawRect(m_BackDC, x, y, w, h);
 	}
 
-	DrawLoopRelease(m_BackDC);		// // //
 	DrawLine(m_BackDC);
 
 	PaintBuffer(m_BackDC, dc);
+}
+
+void CPitchGraphEditor::Initialize() {		// // //
+	CGraphEditor::Initialize();
 }
 
 int CPitchGraphEditor::GetItemHeight() const
@@ -1027,6 +994,7 @@ void CNoiseEditor::OnPaint()
 
 	DrawBackground(m_BackDC, m_iItems + 1, false, 0);
 	DrawRange(m_BackDC, m_iItems, 0);
+	DrawLoopRelease(m_BackDC);		// // //
 
 	// Return now if no sequence is selected
 	if (!m_pSequence) {
@@ -1072,11 +1040,9 @@ void CNoiseEditor::OnPaint()
 			DrawRect(m_BackDC, x, y, w, h);
 
 		// Draw switches
-//		auto flags = static_cast<s5b_mode_t>((uint8_t)m_pSequence->GetItem(i));		// // //
-		auto flags = (uint8_t)m_pSequence->GetItem(i);		// // //
+		auto flags = enum_cast<s5b_mode_t>(static_cast<uint8_t>(m_pSequence->GetItem(i)));		// // //
 
-//		const s5b_mode_t BAR_MODE[] = {s5b_mode_t::Envelope, s5b_mode_t::Square, s5b_mode_t::Noise};		// // //
-		const uint8_t BAR_MODE[] = {value_cast(s5b_mode_t::Envelope), value_cast(s5b_mode_t::Square), value_cast(s5b_mode_t::Noise)};		// // //
+		const s5b_mode_t BAR_MODE[] = {s5b_mode_t::Envelope, s5b_mode_t::Square, s5b_mode_t::Noise};		// // //
 		const COLORREF BAR_COLOR[] = {0x00A0A0, 0xA0A000, 0xA000A0};
 
 		for (std::size_t j = 0; j < std::size(BAR_MODE); ++j) {
@@ -1088,10 +1054,13 @@ void CNoiseEditor::OnPaint()
 		}
 	}
 
-	DrawLoopRelease(m_BackDC);		// // //
 	DrawLine(m_BackDC);
 
 	PaintBuffer(m_BackDC, dc);
+}
+
+void CNoiseEditor::Initialize() {		// // //
+	CGraphEditor::Initialize();
 }
 
 void CNoiseEditor::DrawRange(CDC &DC, int Max, int Min) {		// // // 050B
@@ -1190,8 +1159,16 @@ void CNoiseEditor::OnLButtonDown(UINT nFlags, CPoint point)		// // //
 	if (!m_pSequence || !m_pSequence->GetItemCount())
 		return;
 
-	int Offset = m_GraphRect.bottom - BUTTON_MARGIN;		// // //
-	if (point.y >= Offset) {
+	for (auto &pCom : components_)
+		if (pCom->ContainsPoint(point)) {
+			focused_ = pCom.get();		// // //
+			if (auto *pBar = dynamic_cast<GraphEditorComponents::CLoopReleaseBar *>(pCom.get())) // TODO: remove
+				m_iEditing = EDIT_LOOP;
+			pCom->OnLButtonDown(point);
+			break;
+		}
+
+	if (point.y >= m_GraphRect.bottom - BUTTON_MARGIN && point.y < m_GraphRect.bottom) {		// // //
 		m_iEditing = EDIT_NOISE;
 		m_bAddNoiseFlags = !CheckNoiseFlags(point);		// // //
 		ModifyNoise(point, true);
@@ -1204,10 +1181,8 @@ void CNoiseEditor::OnLButtonDown(UINT nFlags, CPoint point)		// // //
 		if (point.x > GRAPH_LEFT)
 			CursorChanged(point.x - GRAPH_LEFT);
 	}
-	else if (point.y > m_GraphRect.bottom) {
-		m_iEditing = EDIT_LOOP;
-		ModifyLoopPoint(point, true);
-	}
+
+	CWnd::OnLButtonDown(nFlags, point);
 }
 
 void CNoiseEditor::OnMouseMove(UINT nFlags, CPoint point)		// // //
@@ -1216,12 +1191,13 @@ void CNoiseEditor::OnMouseMove(UINT nFlags, CPoint point)		// // //
 		return;
 
 	if (nFlags & MK_LBUTTON) {
+		for (auto &pCom : components_)
+			if (pCom->ContainsPoint(point) && pCom.get() == focused_)
+				pCom->OnLButtonMove(point);
+
 		switch (m_iEditing) {
 		case EDIT_POINT:
 			ModifyItem(point, true);
-			break;
-		case EDIT_LOOP:
-			ModifyLoopPoint(point, true);
 			break;
 		case EDIT_NOISE:		// // //
 			ModifyNoise(point, true);
@@ -1235,7 +1211,7 @@ void CNoiseEditor::OnMouseMove(UINT nFlags, CPoint point)		// // //
 		else
 			m_pParentWnd->PostMessageW(WM_CURSOR_CHANGE, 0, 0);
 
-		return;
+		return CWnd::OnMouseMove(nFlags, point);
 	}
 
 	return CGraphEditor::OnMouseMove(nFlags, point);

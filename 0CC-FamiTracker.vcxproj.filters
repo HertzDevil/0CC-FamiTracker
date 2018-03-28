@@ -828,6 +828,9 @@
     <ClCompile Include="Source\ActionHandler.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
+    <ClCompile Include="Source\GraphEditorComponent.cpp">
+      <Filter>Source Files\Dialog Boxes\Instrument\Related\Sequence editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1552,6 +1555,9 @@
     </ClInclude>
     <ClInclude Include="Source\SettingsService.h">
       <Filter>Header Files\Services Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GraphEditorComponent.h">
+      <Filter>Header Files\Dialog Boxes Headers\Instrument Headers\Related Headers\Sequence editor Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

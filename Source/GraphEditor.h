@@ -25,6 +25,7 @@
 
 #include "stdafx.h"		// // //
 #include <memory>		// // //
+#include <vector>		// // //
 
 enum edit_t {
 	EDIT_NONE,
@@ -36,31 +37,36 @@ enum edit_t {
 };
 
 class CSequence;		// // //
+class CGraphEditorComponent;		// // //
 
 // Graph editor base class
 class CGraphEditor : public CWnd
 {
 public:
 	explicit CGraphEditor(std::shared_ptr<CSequence> pSequence);		// // //
+	virtual ~CGraphEditor() noexcept;
 	DECLARE_DYNAMIC(CGraphEditor)
 
-protected:
-	virtual void Initialize();
+	std::shared_ptr<CSequence> GetSequence();		// // //
+	std::shared_ptr<const CSequence> GetSequence() const;		// // //
 
-	int GetItemWidth() const;
+	int GetItemWidth() const;		// // //
 	int GetItemIndex(CPoint point) const;		// // //
 	int GetItemGridIndex(CPoint point) const;		// // //
 	virtual int GetItemTop() const = 0;		// // //
 	virtual int GetItemBottom() const;		// // //
 	virtual int GetItemHeight() const = 0;
 
-	void ModifyItem(CPoint point, bool Redraw);		// // //
+	void CursorChanged(int x);
 	void ItemModified(bool Redraw);		// // //
 
-	virtual void ModifyLoopPoint(CPoint point, bool Redraw);
-	virtual void ModifyReleasePoint(CPoint point, bool Redraw);
+protected:
+	virtual void Initialize();
+	void AddGraphComponent(std::unique_ptr<CGraphEditorComponent> pCom);		// // //
+
+	void ModifyItem(CPoint point, bool Redraw);		// // //
+
 	virtual void ModifyReleased();
-	void CursorChanged(int x);
 	bool IsEditLine() const;
 
 	virtual void DrawRange(CDC &DC, int Max, int Min);
@@ -83,10 +89,10 @@ private:
 
 	void HighlightItem(CPoint point);		// // //
 
-	void DrawTagPoint(CDC &DC, int index, LPCWSTR str, COLORREF col);		// // //
+public:		// // //
+	static const int GRAPH_LEFT = 28;			// Left side marigin
 
 protected:
-	static const int GRAPH_LEFT = 28;			// Left side marigin
 	static const int GRAPH_BOTTOM = 5;			// Bottom marigin
 	static const int ITEM_MAX_WIDTH = 40;
 	static const int COLOR_LINES = 0x404040;
@@ -96,7 +102,6 @@ protected:
 	const std::shared_ptr<CSequence> m_pSequence;		// // //
 	CFont m_SmallFont;		// // //
 	CRect m_GraphRect;
-	CRect m_BottomRect;
 	CRect m_ClientRect;
 	CBitmap m_Bitmap;		// // //
 	CDC m_BackDC;		// // //
@@ -111,6 +116,10 @@ protected:
 
 	CPoint m_ptLineStart, m_ptLineEnd;
 	edit_t m_iEditing;
+
+//private:
+	std::vector<std::unique_ptr<CGraphEditorComponent>> components_;		// // //
+	const CGraphEditorComponent *focused_ = nullptr;		// // //
 
 protected:
 	DECLARE_MESSAGE_MAP()
@@ -134,9 +143,8 @@ class CBarGraphEditor : public CGraphEditor
 public:
 	CBarGraphEditor(std::shared_ptr<CSequence> pSequence, int Levels) : CGraphEditor(std::move(pSequence)), m_iLevels(Levels) { }		// // //
 
-	void SetMaxItems(int Levels);		// // //
-
 private:
+	void Initialize() override;		// // //
 	int GetItemHeight() const override;
 	int GetItemTop() const override;		// // //
 	int GetItemValue(CPoint point) const override;		// // //
@@ -153,8 +161,6 @@ class CArpeggioGraphEditor : public CGraphEditor
 public:
 	DECLARE_DYNAMIC(CArpeggioGraphEditor)
 	explicit CArpeggioGraphEditor(std::shared_ptr<CSequence> pSequence) : CGraphEditor(std::move(pSequence)) { }		// // //
-
-	void UpdateScrollBar();		// // //
 
 private:
 	void Initialize() override;
@@ -187,6 +193,7 @@ public:
 	explicit CPitchGraphEditor(std::shared_ptr<CSequence> pSequence) : CGraphEditor(std::move(pSequence)) { }		// // //
 
 private:
+	void Initialize() override;		// // //
 	int GetItemHeight() const override;
 	int GetItemTop() const override;		// // //
 	int GetItemValue(CPoint point) const override;		// // //
@@ -205,6 +212,7 @@ public:
 	CNoiseEditor(std::shared_ptr<CSequence> pSequence, int Items) : CGraphEditor(std::move(pSequence)), m_iItems(Items) { }		// // //
 
 private:
+	void Initialize() override;		// // //
 	void DrawRange(CDC &DC, int Max, int Min) override;		// // // 050B
 	int GetItemHeight() const override;
 	int GetItemTop() const override;		// // //
