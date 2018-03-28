@@ -36,17 +36,29 @@ public:
 
 	bool ContainsPoint(CPoint point) const;
 
+	void OnMouseHover(CPoint point) { DoOnMouseHover(point); }
+
 	void OnLButtonDown(CPoint point) { DoOnLButtonDown(point); }
 	void OnLButtonMove(CPoint point) { DoOnLButtonMove(point); }
+	void OnLButtonUp(CPoint point) { DoOnLButtonUp(point); }
+
 	void OnRButtonDown(CPoint point) { DoOnRButtonDown(point); }
 	void OnRButtonMove(CPoint point) { DoOnRButtonMove(point); }
+	void OnRButtonUp(CPoint point) { DoOnRButtonUp(point); }
+
 	void OnPaint(CDC &dc) { DoOnPaint(dc); }
 
 private:
+	virtual void DoOnMouseHover(CPoint point) { }
+
 	virtual void DoOnLButtonDown(CPoint point) { }
 	virtual void DoOnLButtonMove(CPoint point) { }
+	virtual void DoOnLButtonUp(CPoint point) { }
+
 	virtual void DoOnRButtonDown(CPoint point) { }
 	virtual void DoOnRButtonMove(CPoint point) { }
+	virtual void DoOnRButtonUp(CPoint point) { }
+
 	virtual void DoOnPaint(CDC &dc) { }
 
 protected:
@@ -56,13 +68,99 @@ protected:
 
 namespace GraphEditorComponents {
 
-class CBarGraph : public CGraphEditorComponent {
+class CGraphBase : public CGraphEditorComponent {
+public:
+	using CGraphEditorComponent::CGraphEditorComponent;
+
+private:
+	void ModifyItem(CPoint point, bool redraw);
+	virtual int GetItemValue(CPoint point) const = 0;
+	virtual int GetMinItemValue() const = 0;
+	virtual int GetMaxItemValue() const = 0;
+	virtual int GetSequenceItemValue(int idx, int val) const;
+
+	void DoOnMouseHover(CPoint point) override;
+	void DoOnLButtonDown(CPoint point) override;
+	void DoOnLButtonMove(CPoint point) override;
+	void DoOnRButtonDown(CPoint point) override;
+	void DoOnRButtonMove(CPoint point) override;
+	void DoOnRButtonUp(CPoint point) override;
+
+	template <COLORREF COL_BG1, COLORREF COL_BG2, COLORREF COL_EDGE1, COLORREF COL_EDGE2>
+	void DrawRect(CDC &dc, int x, int y, int w, int h, bool flat);
+
+protected:
+	void DrawRect(CDC &dc, int x, int y, int w, int h);
+	void DrawPlayRect(CDC &dc, int x, int y, int w, int h);
+	void DrawCursorRect(CDC &dc, int x, int y, int w, int h);
+	void DrawShadowRect(CDC &dc, int x, int y, int w, int h);
+	void DrawLine(CDC &dc);
+
+	int m_iHighlightedItem = -1;
+	int m_iHighlightedValue = 0;
+	CPoint m_ptLineStart = { };
+	CPoint m_ptLineEnd = { };
+
+	enum class edit_t { None, Line, Point };
+	edit_t m_iEditing = edit_t::None;
 };
 
-class CCellGraph : public CGraphEditorComponent {
+class CBarGraph : public CGraphBase {
+public:
+	CBarGraph(CGraphEditor &parent, CRect region, int items);
+
+private:
+	int GetItemValue(CPoint point) const override;
+	int GetMinItemValue() const override;
+	int GetMaxItemValue() const override;
+
+	void DoOnPaint(CDC &dc) override;
+
+	int items_;
 };
 
-class CPitchGraph : public CGraphEditorComponent {
+class CCellGraph : public CGraphBase {
+public:
+	static constexpr int ITEMS = 21;
+
+	CCellGraph(CGraphEditor &parent, CRect region);
+
+private:
+	int GetItemValue(CPoint point) const override;
+	int GetMinItemValue() const override;
+	int GetMaxItemValue() const override;
+	int GetSequenceItemValue(int Index, int Value) const override;
+
+	void DoOnPaint(CDC &dc) override;
+
+	CFont font_;
+};
+
+class CPitchGraph : public CGraphBase {
+public:
+	using CGraphBase::CGraphBase;
+
+private:
+	int GetItemValue(CPoint point) const override;
+	int GetMinItemValue() const override;
+	int GetMaxItemValue() const override;
+
+	void DoOnPaint(CDC &dc) override;
+};
+
+class CNoiseGraph : public CGraphBase {
+public:
+	CNoiseGraph(CGraphEditor &parent, CRect region, int items);
+
+private:
+	int GetItemValue(CPoint point) const override;
+	int GetMinItemValue() const override;
+	int GetMaxItemValue() const override;
+	int GetSequenceItemValue(int Index, int Value) const override;
+
+	void DoOnPaint(CDC &dc) override;
+
+	int items_;
 };
 
 class CLoopReleaseBar : public CGraphEditorComponent {

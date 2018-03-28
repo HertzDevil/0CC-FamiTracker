@@ -214,7 +214,7 @@ void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int I
 		break;
 	case sequence_t::DutyCycle:
 		if (InstrumentType == INST_S5B)
-			m_pGraphEditor = std::make_unique<CNoiseEditor>(m_pSequence, 31);
+			m_pGraphEditor = std::make_unique<CNoiseEditor>(m_pSequence, 0x20);
 		else
 			m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, m_iMaxDuty);
 		break;

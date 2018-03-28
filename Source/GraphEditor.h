@@ -27,12 +27,6 @@
 #include <memory>		// // //
 #include <vector>		// // //
 
-enum edit_t {
-	EDIT_NONE,
-	EDIT_LINE,
-	EDIT_POINT,
-};
-
 class CSequence;		// // //
 class CGraphEditorComponent;		// // //
 
@@ -50,39 +44,26 @@ public:
 	int GetItemWidth() const;		// // //
 	int GetItemIndex(CPoint point) const;		// // //
 	int GetItemGridIndex(CPoint point) const;		// // //
+	int GetItemCount() const;		// // //
 	virtual int GetItemTop() const = 0;		// // //
 	virtual int GetItemBottom() const;		// // //
 	virtual int GetItemHeight() const = 0;
+	int GetCurrentPlayPos() const;		// // //
 
-	void CursorChanged(int x);
-	void ItemModified(bool Redraw);		// // //
+	void ItemModified();		// // //
 
 protected:
 	virtual void Initialize();
 	void AddGraphComponent(std::unique_ptr<CGraphEditorComponent> pCom);		// // //
 
-	void ModifyItem(CPoint point, bool Redraw);		// // //
-
-	bool IsEditLine() const;
-
 	virtual void DrawRange(CDC &DC, int Max, int Min);
 	void DrawBackground(CDC &DC, int Lines, bool DrawMarks, int MarkOffset);		// // //
-	void DrawLine(CDC &DC);
-
-	template<COLORREF COL_BG1, COLORREF COL_BG2, COLORREF COL_EDGE1, COLORREF COL_EDGE2>
-	void DrawRect(CDC &DC, int x, int y, int w, int h, bool flat);
-	void DrawRect(CDC &DC, int x, int y, int w, int h);
-	void DrawPlayRect(CDC &DC, int x, int y, int w, int h);
-	void DrawCursorRect(CDC &DC, int x, int y, int w, int h);
-	void DrawShadowRect(CDC &DC, int x, int y, int w, int h);
+	void DrawComponents(CDC &DC);		// // //
 
 	void PaintBuffer(CDC &BackDC, CDC &FrontDC);
 
 private:
-	virtual int GetItemValue(CPoint point) const = 0;		// // //
-	virtual int GetSequenceItemValue(int Index, int Value) const;		// // //
-
-	void HighlightItem(CPoint point);		// // //
+	void CursorChanged(CPoint point);		// // //
 
 public:		// // //
 	static const int GRAPH_LEFT = 28;			// Left side marigin
@@ -90,7 +71,6 @@ public:		// // //
 protected:
 	static const int GRAPH_BOTTOM = 5;			// Bottom marigin
 	static const int ITEM_MAX_WIDTH = 40;
-	static const int COLOR_LINES = 0x404040;
 
 protected:
 	CWnd *m_pParentWnd;
@@ -102,19 +82,10 @@ protected:
 	CDC m_BackDC;		// // //
 	int m_iLastPlayPos;
 	int m_iCurrentPlayPos;
-	int m_iHighlightedItem;
-	int m_iHighlightedValue;
-	bool m_bButtonState;
 
-	int m_iLastIndex = -1;		// // //
-	int m_iLastValue = 0;		// // //
-
-	CPoint m_ptLineStart, m_ptLineEnd;
-	edit_t m_iEditing;
-
-//private:
+private:
 	std::vector<std::unique_ptr<CGraphEditorComponent>> components_;		// // //
-	const CGraphEditorComponent *focused_ = nullptr;		// // //
+	CGraphEditorComponent *focused_ = nullptr;		// // //
 
 protected:
 	DECLARE_MESSAGE_MAP()
@@ -143,7 +114,6 @@ private:
 	void Initialize() override;		// // //
 	int GetItemHeight() const override;
 	int GetItemTop() const override;		// // //
-	int GetItemValue(CPoint point) const override;		// // //
 
 	int m_iLevels;
 
@@ -158,6 +128,8 @@ public:
 	DECLARE_DYNAMIC(CArpeggioGraphEditor)
 	explicit CArpeggioGraphEditor(std::shared_ptr<CSequence> pSequence) : CGraphEditor(std::move(pSequence)) { }		// // //
 
+	int GetGraphScrollOffset() const;		// // //
+
 private:
 	void Initialize() override;
 	void DrawRange(CDC &DC, int Max, int Min) override;
@@ -165,11 +137,8 @@ private:
 	int GetItemTop() const override;		// // //
 
 private:
-	int GetItemValue(CPoint point) const override;		// // //
-	int GetSequenceItemValue(int Index, int Value) const override;		// // //
 	SCROLLINFO MakeScrollInfo() const;		// // //
 
-	static const int ITEMS = 21;		// // //
 	int m_iScrollOffset = 0;
 	int m_iScrollMax;
 	CScrollBar m_cScrollBar;		// // //
@@ -192,7 +161,6 @@ private:
 	void Initialize() override;		// // //
 	int GetItemHeight() const override;
 	int GetItemTop() const override;		// // //
-	int GetItemValue(CPoint point) const override;		// // //
 
 	static const int ITEMS = 20;
 
@@ -212,8 +180,6 @@ private:
 	int GetItemHeight() const override;
 	int GetItemTop() const override;		// // //
 	int GetItemBottom() const override;		// // //
-	int GetItemValue(CPoint point) const override;		// // //
-	int GetSequenceItemValue(int Index, int Value) const override;		// // //
 
 private:
 	int m_iItems;
