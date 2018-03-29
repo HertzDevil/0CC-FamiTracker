@@ -83,7 +83,7 @@ void CSequenceSetting::OnPaint()
 	unsigned mode = m_pSequence->GetSetting();		// // //
 	std::wstring_view sv = mode < std::size(SEQ_SETTING_TEXT) ? SEQ_SETTING_TEXT[mode][(unsigned)m_pSequence->GetSequenceType()] : std::wstring_view { };
 	if (sv.empty()) {
-		dc.FillSolidRect(rect, 0xFFFFFF);
+		dc.FillSolidRect(rect, 0xF0F0F0);
 		return;
 	}
 

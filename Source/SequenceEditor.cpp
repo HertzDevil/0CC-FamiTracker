@@ -29,6 +29,7 @@
 #include "InstrumentEditPanel.h"
 #include "SizeEditor.h"
 #include "GraphEditor.h"
+#include "GraphEditorFactory.h"		// // //
 #include "SequenceSetting.h"
 #include "SequenceEditorMessage.h"		// // //
 #include "DPI.h"		// // //
@@ -104,12 +105,6 @@ void CSequenceEditor::OnPaint()
 	GetClientRect(rect);
 
 	dc.FillSolidRect(rect.left, rect.bottom - DPI::SY(25), rect.Width(), DPI::SY(25), GREY(240));		// // //
-
-	if (this == GetFocus()) {
-		CRect focusRect = rect;
-		focusRect.DeflateRect(rect.Height() - 1, 2, rect.Height() + 1, 2);
-		dc.DrawFocusRect(focusRect);
-	}
 
 	// Update size editor
 	if (m_pSequence)
@@ -208,35 +203,14 @@ void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int I
 
 	DestroyGraphEditor();
 
-	// Create the graph
-	switch (m_pSequence->GetSequenceType()) {
-	case sequence_t::Volume:
-		m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence,
-			m_iInstrumentType == INST_VRC6 && m_pSequence->GetSetting() == SETTING_VOL_64_STEPS ? 0x3F : m_iMaxVol);		// // //
-		break;
-	case sequence_t::Arpeggio:
-		m_pGraphEditor = std::make_unique<CArpeggioGraphEditor>(m_pSequence);
-		break;
-	case sequence_t::Pitch:
-	case sequence_t::HiPitch:
-		m_pGraphEditor = std::make_unique<CPitchGraphEditor>(m_pSequence);
-		break;
-	case sequence_t::DutyCycle:
-		if (InstrumentType == INST_S5B)
-			m_pGraphEditor = std::make_unique<CNoiseEditor>(m_pSequence, 0x20);
-		else
-			m_pGraphEditor = std::make_unique<CBarGraphEditor>(m_pSequence, m_iMaxDuty);
-		break;
-	}
-
-	m_pSetting->SelectSequence(m_pSequence, InstrumentType);
-
 	CRect GraphRect;
 	GetClientRect(GraphRect);
 	GraphRect.bottom -= DPI::SY(25);		// // //
 
-	if (m_pGraphEditor->CreateEx(NULL, NULL, L"", WS_CHILD, GraphRect, this, 0) == -1)
-		return;
+	CGraphEditorFactory factory;		// // //
+	m_pGraphEditor = factory.Make(this, GraphRect, m_pSequence, InstrumentType, m_iMaxVol, m_iMaxDuty);
+
+	m_pSetting->SelectSequence(m_pSequence, InstrumentType);
 
 	m_pGraphEditor->UpdateWindow();
 	m_pGraphEditor->ShowWindow(SW_SHOW);

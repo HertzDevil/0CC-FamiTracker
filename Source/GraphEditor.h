@@ -44,14 +44,9 @@ public:
 	int GetItemCount() const;		// // //
 	int GetCurrentPlayPos() const;		// // //
 
-	CRect GetClientArea() const;		// // //
-
 	void ItemModified();		// // //
 	void OnHoverSequenceItem(int idx, int val);		// // //
 
-protected:
-	virtual void Initialize();
-	virtual void CreateComponents() = 0;
 	template <typename T, typename... Args>
 	T &MakeGraphComponent(Args&&... args) {		// // //
 		auto ptr = std::make_unique<T>(std::forward<Args>(args)...);
@@ -59,6 +54,9 @@ protected:
 		components_.push_back(std::move(ptr));
 		return x;
 	}
+
+protected:
+	virtual void Initialize();
 
 public:		// // //
 	static const int GRAPH_LEFT = 28;			// Left side marigin
@@ -93,18 +91,6 @@ public:
 	afx_msg void OnKillFocus(CWnd* pNewWnd);
 };
 
-// Bar graph editor
-class CBarGraphEditor : public CGraphEditor
-{
-public:
-	CBarGraphEditor(std::shared_ptr<CSequence> pSequence, int Levels) : CGraphEditor(std::move(pSequence)), m_iLevels(Levels) { }		// // //
-
-private:
-	void CreateComponents() override;		// // //
-
-	int m_iLevels;
-};
-
 // Arpeggio graph editor
 class CArpeggioGraphEditor : public CGraphEditor
 {
@@ -116,7 +102,6 @@ public:
 
 private:
 	void Initialize() override;
-	void CreateComponents() override;
 
 private:
 	SCROLLINFO MakeScrollInfo() const;		// // //
@@ -132,27 +117,4 @@ protected:
 public:
 	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
-};
-
-// Pitch graph editor
-class CPitchGraphEditor : public CGraphEditor
-{
-public:
-	explicit CPitchGraphEditor(std::shared_ptr<CSequence> pSequence) : CGraphEditor(std::move(pSequence)) { }		// // //
-
-private:
-	void CreateComponents() override;		// // //
-};
-
-// Sunsoft noise editor
-class CNoiseEditor : public CGraphEditor
-{
-public:
-	CNoiseEditor(std::shared_ptr<CSequence> pSequence, int Items) : CGraphEditor(std::move(pSequence)), m_iItems(Items) { }		// // //
-
-private:
-	void CreateComponents() override;		// // //
-
-private:
-	int m_iItems;
 };

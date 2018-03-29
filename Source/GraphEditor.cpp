@@ -58,11 +58,11 @@ CGraphEditor::~CGraphEditor() noexcept {		// // //
 }
 
 std::shared_ptr<CSequence> CGraphEditor::GetSequence() {		// // //
-	return m_pSequence && m_pSequence->GetItemCount() ? m_pSequence : nullptr;
+	return m_pSequence;
 }
 
 std::shared_ptr<const CSequence> CGraphEditor::GetSequence() const {		// // //
-	return m_pSequence && m_pSequence->GetItemCount() ? m_pSequence : nullptr;
+	return m_pSequence;
 }
 
 BOOL CGraphEditor::OnEraseBkgnd(CDC* DC)
@@ -87,7 +87,6 @@ BOOL CGraphEditor::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpsz
 	ReleaseDC(pDC);
 
 	Initialize();
-	CreateComponents();		// // //
 
 	CWnd::SetTimer(0, 30, NULL);
 
@@ -152,10 +151,6 @@ void CGraphEditor::OnPaint() {
 
 int CGraphEditor::GetCurrentPlayPos() const {		// // //
 	return m_iCurrentPlayPos;
-}
-
-CRect CGraphEditor::GetClientArea() const {		// // //
-	return m_ClientRect;
 }
 
 int CGraphEditor::GetItemCount() const {		// // //
@@ -267,57 +262,6 @@ void CGraphEditor::OnKillFocus(CWnd* pNewWnd)
 	RedrawWindow();
 }
 
-// Bar graph editor (volume and duty setting)
-
-void CBarGraphEditor::CreateComponents() {		// // //
-	CRect graphRect = m_ClientRect;
-	graphRect.left += DPI::SX(GRAPH_LEFT);		// // //
-	graphRect.top += DPI::SY(5);
-	graphRect.bottom -= DPI::SY(16);
-	auto &graph = MakeGraphComponent<GraphEditorComponents::CBarGraph>(*this, graphRect, m_iLevels);
-
-	CRect bottomRect = m_ClientRect;		// // //
-	bottomRect.left += DPI::SX(GRAPH_LEFT);
-	bottomRect.top = bottomRect.bottom - DPI::SY(16);
-	MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect, graph);
-}
-
-// Pitch graph editor
-
-void CPitchGraphEditor::CreateComponents() {		// // //
-	CRect graphRect = m_ClientRect;
-	graphRect.left += DPI::SX(GRAPH_LEFT);		// // //
-	graphRect.top += DPI::SY(5);
-	graphRect.bottom -= DPI::SY(16);
-	auto &graph = MakeGraphComponent<GraphEditorComponents::CPitchGraph>(*this, graphRect);
-
-	CRect bottomRect = m_ClientRect;		// // //
-	bottomRect.left += DPI::SX(GRAPH_LEFT);
-	bottomRect.top = bottomRect.bottom - DPI::SY(16);
-	MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect, graph);
-}
-
-// Sunsoft noise editor
-
-void CNoiseEditor::CreateComponents() {		// // //
-	CRect graphRect = m_ClientRect;
-	graphRect.left += DPI::SX(GRAPH_LEFT);		// // //
-	graphRect.top += DPI::SY(5);
-	graphRect.bottom -= DPI::SY(16) + GraphEditorComponents::CNoiseSelector::BUTTON_HEIGHT * 3;
-	auto &graph = MakeGraphComponent<GraphEditorComponents::CNoiseGraph>(*this, graphRect, m_iItems);
-
-	CRect flagsRect = m_ClientRect;		// // //
-	flagsRect.left += DPI::SX(GRAPH_LEFT);
-	flagsRect.bottom -= DPI::SY(16);
-	flagsRect.top = graphRect.bottom;
-	MakeGraphComponent<GraphEditorComponents::CNoiseSelector>(*this, flagsRect, graph);
-
-	CRect bottomRect = m_ClientRect;		// // //
-	bottomRect.left += DPI::SX(GRAPH_LEFT);
-	bottomRect.top = bottomRect.bottom - DPI::SY(16);
-	MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect, graph);
-}
-
 // Arpeggio graph editor
 
 IMPLEMENT_DYNAMIC(CArpeggioGraphEditor, CGraphEditor)
@@ -360,19 +304,6 @@ void CArpeggioGraphEditor::Initialize()
 	m_cScrollBar.EnableScrollBar(ESB_ENABLE_BOTH);
 
 	m_ClientRect.right -= SCROLLBAR_WIDTH;
-}
-
-void CArpeggioGraphEditor::CreateComponents() {
-	CRect graphRect = m_ClientRect;
-	graphRect.left += DPI::SX(GRAPH_LEFT);		// // //
-	graphRect.top += DPI::SY(5);
-	graphRect.bottom -= DPI::SY(16);
-	auto &graph = MakeGraphComponent<GraphEditorComponents::CCellGraph>(*this, graphRect, ITEMS);
-
-	CRect bottomRect = m_ClientRect;		// // //
-	bottomRect.left += DPI::SX(GRAPH_LEFT);
-	bottomRect.top = bottomRect.bottom - DPI::SY(16);
-	MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*this, bottomRect, graph);
 }
 
 SCROLLINFO CArpeggioGraphEditor::MakeScrollInfo() const {		// // //

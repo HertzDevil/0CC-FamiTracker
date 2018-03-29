@@ -468,6 +468,8 @@
     <ClCompile Include="Source\FrameClipData.cpp" />
     <ClCompile Include="Source\FrameEditorModel.cpp" />
     <ClCompile Include="Source\GraphEditorComponent.cpp" />
+    <ClCompile Include="Source\GraphEditorComponentImpl.cpp" />
+    <ClCompile Include="Source\GraphEditorFactory.cpp" />
     <ClCompile Include="Source\InstCompiler.cpp" />
     <ClCompile Include="Source\InstrumentIO.cpp" />
     <ClCompile Include="Source\InstrumentService.cpp" />
@@ -675,6 +677,8 @@
     <ClInclude Include="Source\FrameEditorModel.h" />
     <ClInclude Include="Source\FrameEditorTypes.h" />
     <ClInclude Include="Source\GraphEditorComponent.h" />
+    <ClInclude Include="Source\GraphEditorComponentImpl.h" />
+    <ClInclude Include="Source\GraphEditorFactory.h" />
     <ClInclude Include="Source\Highlight.h" />
     <ClInclude Include="Source\InstCompiler.h" />
     <ClInclude Include="Source\InstrumentIO.h" />
