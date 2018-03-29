@@ -25,6 +25,8 @@
 
 #include "GraphEditorComponent.h"
 
+enum class arp_scheme_mode_t : unsigned char;
+
 namespace GraphEditorComponents {
 
 class CGraphBase : public CGraphEditorComponent {
@@ -168,6 +170,22 @@ private:
 };
 
 class CArpSchemeSelector : public CGraphEditorComponent {
+public:
+	CArpSchemeSelector(CGraphEditor &parent, CRect region, CGraphBase &graph_parent);
+
+private:
+	void ModifyArpScheme(int idx);
+
+	static arp_scheme_mode_t GetNextScheme(arp_scheme_mode_t scheme, bool fwd);
+
+	void DoOnLButtonDown(CPoint point) override;
+	void DoOnLButtonMove(CPoint point) override;
+	void DoOnRButtonDown(CPoint point) override;
+	void DoOnRButtonMove(CPoint point) override;
+	void DoOnPaint(CDC &dc) override;
+
+	CGraphBase &graph_parent_;
+	arp_scheme_mode_t next_scheme_;
 };
 
 class CNoiseSelector : public CGraphEditorComponent {

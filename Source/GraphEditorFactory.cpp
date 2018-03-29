@@ -57,17 +57,19 @@ std::unique_ptr<CGraphEditor> CGraphEditorFactory::MakeBarEditor(CWnd *parent, C
 	graphRect.left += DPI::SX(CGraphEditor::GRAPH_LEFT);		// // //
 	graphRect.top += DPI::SY(5);
 	graphRect.bottom -= DPI::SY(16);
-	auto &graph = pEditor->MakeGraphComponent<GraphEditorComponents::CBarGraph>(*pEditor, graphRect, items);
 
 	CRect bottomRect = region;		// // //
 	bottomRect.left += DPI::SX(CGraphEditor::GRAPH_LEFT);
 	bottomRect.top = bottomRect.bottom - DPI::SY(16);
+
+	auto &graph = pEditor->MakeGraphComponent<GraphEditorComponents::CBarGraph>(*pEditor, graphRect, items);
 	pEditor->MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*pEditor, bottomRect, graph);
 
 	return pEditor;
 }
 
 std::unique_ptr<CGraphEditor> CGraphEditorFactory::MakeCellEditor(CWnd *parent, CRect region, std::shared_ptr<CSequence> pSeq, int items) const {
+	bool isScheme = pSeq->GetSetting() == SETTING_ARP_SCHEME;
 	auto pEditor = std::make_unique<CArpeggioGraphEditor>(std::move(pSeq));
 	if (pEditor->CreateEx(NULL, NULL, L"", WS_CHILD, region, parent, 0) == -1)
 		return nullptr;
@@ -76,12 +78,26 @@ std::unique_ptr<CGraphEditor> CGraphEditorFactory::MakeCellEditor(CWnd *parent, 
 	graphRect.left += DPI::SX(CGraphEditor::GRAPH_LEFT);		// // //
 	graphRect.top += DPI::SY(5);
 	graphRect.bottom -= DPI::SY(16);
-	auto &graph = pEditor->MakeGraphComponent<GraphEditorComponents::CCellGraph>(*pEditor, graphRect, items);
+	graphRect.right -= ::GetSystemMetrics(SM_CXHSCROLL);
 
 	CRect bottomRect = region;		// // //
 	bottomRect.left += DPI::SX(CGraphEditor::GRAPH_LEFT);
-	bottomRect.top = bottomRect.bottom - DPI::SY(16);
+	bottomRect.top = graphRect.bottom;
+	bottomRect.right -= ::GetSystemMetrics(SM_CXHSCROLL);
+
+	CRect schemeRect = region;
+	if (isScheme) {
+		schemeRect.left += DPI::SX(CGraphEditor::GRAPH_LEFT);
+		schemeRect.bottom = bottomRect.top;
+		schemeRect.top = schemeRect.bottom - DPI::SY(12);
+		schemeRect.right -= ::GetSystemMetrics(SM_CXHSCROLL);
+		graphRect.bottom = schemeRect.top;
+	}
+
+	auto &graph = pEditor->MakeGraphComponent<GraphEditorComponents::CCellGraph>(*pEditor, graphRect, items);
 	pEditor->MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*pEditor, bottomRect, graph);
+	if (isScheme)
+		pEditor->MakeGraphComponent<GraphEditorComponents::CArpSchemeSelector>(*pEditor, schemeRect, graph);
 
 	return pEditor;
 }
@@ -95,11 +111,12 @@ std::unique_ptr<CGraphEditor> CGraphEditorFactory::MakePitchEditor(CWnd *parent,
 	graphRect.left += DPI::SX(CGraphEditor::GRAPH_LEFT);		// // //
 	graphRect.top += DPI::SY(5);
 	graphRect.bottom -= DPI::SY(16);
-	auto &graph = pEditor->MakeGraphComponent<GraphEditorComponents::CPitchGraph>(*pEditor, graphRect);
 
 	CRect bottomRect = region;		// // //
 	bottomRect.left += DPI::SX(CGraphEditor::GRAPH_LEFT);
 	bottomRect.top = bottomRect.bottom - DPI::SY(16);
+
+	auto &graph = pEditor->MakeGraphComponent<GraphEditorComponents::CPitchGraph>(*pEditor, graphRect);
 	pEditor->MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*pEditor, bottomRect, graph);
 
 	return pEditor;
@@ -114,17 +131,18 @@ std::unique_ptr<CGraphEditor> CGraphEditorFactory::MakeNoiseEditor(CWnd *parent,
 	graphRect.left += DPI::SX(CGraphEditor::GRAPH_LEFT);		// // //
 	graphRect.top += DPI::SY(5);
 	graphRect.bottom -= DPI::SY(16) + GraphEditorComponents::CNoiseSelector::BUTTON_HEIGHT * 3;
-	auto &graph = pEditor->MakeGraphComponent<GraphEditorComponents::CNoiseGraph>(*pEditor, graphRect, items);
 
 	CRect flagsRect = region;		// // //
 	flagsRect.left += DPI::SX(CGraphEditor::GRAPH_LEFT);
 	flagsRect.bottom -= DPI::SY(16);
 	flagsRect.top = graphRect.bottom;
-	pEditor->MakeGraphComponent<GraphEditorComponents::CNoiseSelector>(*pEditor, flagsRect, graph);
 
 	CRect bottomRect = region;		// // //
 	bottomRect.left += DPI::SX(CGraphEditor::GRAPH_LEFT);
 	bottomRect.top = bottomRect.bottom - DPI::SY(16);
+
+	auto &graph = pEditor->MakeGraphComponent<GraphEditorComponents::CNoiseGraph>(*pEditor, graphRect, items);
+	pEditor->MakeGraphComponent<GraphEditorComponents::CNoiseSelector>(*pEditor, flagsRect, graph);
 	pEditor->MakeGraphComponent<GraphEditorComponents::CLoopReleaseBar>(*pEditor, bottomRect, graph);
 
 	return pEditor;

@@ -359,16 +359,8 @@ int CCellGraph::GetMaxItemValue() const {
 
 int CCellGraph::GetSequenceItemValue(int idx, int val) const {
 	if (auto pSeq = parent_.GetSequence())
-		if (pSeq->GetSetting() == SETTING_ARP_SCHEME) {		// // //
-			if (::GetKeyState(VK_NUMPAD0) & 0x80)
-				return (val & 0x3F) | value_cast(arp_scheme_mode_t::none);
-			else if (::GetKeyState(VK_NUMPAD1) & 0x80)
-				return (val & 0x3F) | value_cast(arp_scheme_mode_t::X);
-			else if (::GetKeyState(VK_NUMPAD2) & 0x80)
-				return (val & 0x3F) | value_cast(arp_scheme_mode_t::Y);
-			else if (::GetKeyState(VK_NUMPAD3) & 0x80)
-				return (val & 0x3F) | value_cast(arp_scheme_mode_t::NegY);
-		}
+		if (pSeq->GetSetting() == SETTING_ARP_SCHEME)		// // //
+			return (pSeq->GetItem(idx) & 0xC0) | static_cast<uint8_t>(val & 0x3F);
 	return val;
 }
 
@@ -717,6 +709,124 @@ void CLoopReleaseBar::DoOnPaint(CDC &dc) {
 			DrawTagPoint(dc, LoopPoint, L"Loop, Release", MakeRGB(240, 240, 0));
 		}
 	}
+}
+
+
+
+CArpSchemeSelector::CArpSchemeSelector(CGraphEditor &parent, CRect region, CGraphBase &graph_parent) :
+	CGraphEditorComponent(parent, region), graph_parent_(graph_parent)
+{
+}
+
+void CArpSchemeSelector::ModifyArpScheme(int idx) {
+	if (auto pSeq = parent_.GetSequence()) {
+		auto ItemValue = static_cast<uint8_t>(pSeq->GetItem(idx) & 0x3F) | static_cast<uint8_t>(value_cast(next_scheme_));
+		pSeq->SetItem(idx, ItemValue);
+		parent_.ItemModified();		// // //
+	}
+}
+
+arp_scheme_mode_t CArpSchemeSelector::GetNextScheme(arp_scheme_mode_t scheme, bool fwd) {
+	switch (scheme) {
+	case arp_scheme_mode_t::none:
+		return fwd ? arp_scheme_mode_t::X : arp_scheme_mode_t::NegY;
+	case arp_scheme_mode_t::X:
+		return fwd ? arp_scheme_mode_t::Y : arp_scheme_mode_t::none;
+	case arp_scheme_mode_t::Y:
+		return fwd ? arp_scheme_mode_t::NegY : arp_scheme_mode_t::X;
+	case arp_scheme_mode_t::NegY:
+		return fwd ? arp_scheme_mode_t::none : arp_scheme_mode_t::Y;
+	}
+	return arp_scheme_mode_t::none;
+}
+
+void CArpSchemeSelector::DoOnLButtonDown(CPoint point) {
+	if (auto pSeq = parent_.GetSequence()) {
+		int idx = graph_parent_.GetItemIndex(point);
+		if (idx < 0 || idx >= static_cast<int>(pSeq->GetItemCount()))
+			return;
+		next_scheme_ = GetNextScheme(enum_cast<arp_scheme_mode_t>(static_cast<uint8_t>(pSeq->GetItem(idx) & 0xC0)), true);
+		ModifyArpScheme(idx);
+		graph_parent_.CursorChanged(point);
+	}
+}
+
+void CArpSchemeSelector::DoOnLButtonMove(CPoint point) {
+	if (auto pSeq = parent_.GetSequence()) {
+		int idx = graph_parent_.GetItemIndex(point);
+		if (idx < 0 || idx >= static_cast<int>(pSeq->GetItemCount()))
+			return;
+		ModifyArpScheme(idx);
+		graph_parent_.CursorChanged(point);
+	}
+}
+
+void CArpSchemeSelector::DoOnRButtonDown(CPoint point) {
+	if (auto pSeq = parent_.GetSequence()) {
+		int idx = graph_parent_.GetItemIndex(point);
+		if (idx < 0 || idx >= static_cast<int>(pSeq->GetItemCount()))
+			return;
+		next_scheme_ = GetNextScheme(enum_cast<arp_scheme_mode_t>(static_cast<uint8_t>(pSeq->GetItem(idx) & 0xC0)), false);
+		ModifyArpScheme(idx);
+		graph_parent_.CursorChanged(point);
+	}
+}
+
+void CArpSchemeSelector::DoOnRButtonMove(CPoint point) {
+	if (auto pSeq = parent_.GetSequence()) {
+		int idx = graph_parent_.GetItemIndex(point);
+		if (idx < 0 || idx >= static_cast<int>(pSeq->GetItemCount()))
+			return;
+		ModifyArpScheme(idx);
+		graph_parent_.CursorChanged(point);
+	}
+}
+
+void CArpSchemeSelector::DoOnPaint(CDC &dc) {
+	dc.FillSolidRect(region_, BLACK);
+
+	dc.SetBkMode(TRANSPARENT);
+	dc.SetTextColor(WHITE);
+	dc.SetTextAlign(TA_CENTER);
+
+	CFont *oldFont = dc.SelectObject(&font_);
+
+	if (auto pSeq = parent_.GetSequence()) {
+		int Count = pSeq->GetItemCount();
+
+		int StepWidth = graph_parent_.GetItemWidth();
+
+		for (int i = 0; i < Count; ++i) {
+			int x = region_.left + i * StepWidth + 1;
+			int y = region_.top;
+			int w = StepWidth;
+			int h = region_.Height();
+
+			auto scheme = enum_cast<arp_scheme_mode_t>(static_cast<uint8_t>(pSeq->GetItem(i) & 0xC0u));		// // //
+			const COLORREF col = [] (arp_scheme_mode_t scheme) {
+				switch (scheme) {
+				case arp_scheme_mode_t::X: return MakeRGB(192, 32, 32);
+				case arp_scheme_mode_t::Y: return MakeRGB(32, 160, 32);
+				case arp_scheme_mode_t::NegY: return MakeRGB(32, 32, 255);
+				case arp_scheme_mode_t::none: default: return GREY(96);
+				}
+			}(scheme);
+			const LPCWSTR label = [] (arp_scheme_mode_t scheme) {
+				switch (scheme) {
+				case arp_scheme_mode_t::X: return L"x";
+				case arp_scheme_mode_t::Y: return L"y";
+				case arp_scheme_mode_t::NegY: return L"-y";
+				case arp_scheme_mode_t::none: default: return L"";
+				}
+			}(scheme);
+
+			dc.FillSolidRect(x, y, w, h, col);
+			dc.Draw3dRect(x, y, w, h, BLEND(col, WHITE, .8), BLEND(col, BLACK, .8));
+			dc.TextOutW(x + w / 2, y - 2, label);
+		}
+	}
+
+	dc.SelectObject(oldFont);
 }
 
 
