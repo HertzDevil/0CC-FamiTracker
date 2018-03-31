@@ -34,15 +34,41 @@ using namespace GraphEditorComponents;
 
 
 
-void CGraphBase::ModifyItem(CPoint point, bool redraw) {
+void CGraphBase::ModifyItems(bool redraw) {
 	if (auto pSeq = parent_.GetSequence()) {
-		int ItemIndex = std::clamp(GetItemIndex(point), 0, (int)pSeq->GetItemCount() - 1);		// // //
-		int ItemY = std::clamp(GetItemValue(point), GetMinItemValue(), GetMaxItemValue());		// // //
+		m_iHighlightedItem = -1;
+		m_iHighlightedValue = 0;
 
-		m_iHighlightedItem = ItemIndex;
-		m_iHighlightedValue = ItemY;
+		int index1 = GetItemIndex(m_ptLineStart);
+		int index2 = GetItemIndex(m_ptLineEnd);
+		int value1 = GetItemValue(m_ptLineStart);
+		int value2 = GetItemValue(m_ptLineEnd);
 
-		pSeq->SetItem(ItemIndex, GetSequenceItemValue(ItemIndex, ItemY));
+		if (index1 == index2)
+			pSeq->SetItem(index1, GetSequenceItemValue(index1, std::clamp(value1, GetMinItemValue(), GetMaxItemValue())));
+		else {
+			if (index1 > index2) {
+				std::swap(index1, index2);
+				std::swap(value1, value2);
+			}
+			if (value1 <= value2) {
+				int offs = 0;
+				for (int i = index1; i <= index2; ++i) {
+					auto delta = static_cast<int>(.5 + static_cast<double>(offs) / (index2 - index1));
+					pSeq->SetItem(i, GetSequenceItemValue(i, std::clamp(value1 + delta, GetMinItemValue(), GetMaxItemValue())));
+					offs += value2 - value1;
+				}
+			}
+			else {
+				int offs = 0;
+				for (int i = index2; i >= index1; --i) {
+					auto delta = static_cast<int>(.5 + static_cast<double>(offs) / (index2 - index1));
+					pSeq->SetItem(i, GetSequenceItemValue(i, std::clamp(value2 + delta, GetMinItemValue(), GetMaxItemValue())));
+					offs += value1 - value2;
+				}
+			}
+		}
+
 		if (redraw)
 			parent_.ItemModified();		// // //
 	}
@@ -107,7 +133,7 @@ void CGraphBase::DrawShadowRect(CDC &dc, int x, int y, int w, int h) {
 }
 
 void CGraphBase::DrawLine(CDC &dc) {
-	if (m_ptLineStart.x != 0 && m_ptLineStart.y != 0) {
+	if (m_iEditing == edit_t::Line) {		// // //
 		CPen Pen;
 		Pen.CreatePen(1, 3, WHITE);
 		CPen *pOldPen = dc.SelectObject(&Pen);
@@ -205,38 +231,31 @@ void CGraphBase::DoOnMouseHover(CPoint point) {
 
 void CGraphBase::DoOnLButtonDown(CPoint point) {
 	m_iEditing = edit_t::Point;
-	ModifyItem(point, true);
+	m_ptLineStart = m_ptLineEnd = point;
+	ModifyItems(true);
 	CursorChanged(GetItemIndex(point));
 }
 
 void CGraphBase::DoOnLButtonMove(CPoint point) {
-	if (m_iEditing == edit_t::Point)
-		ModifyItem(point, true);
+	if (m_iEditing == edit_t::Point) {
+		m_ptLineEnd = point;		// // //
+		ModifyItems(true);
+		m_ptLineStart = m_ptLineEnd;
+	}
 	CursorChanged(GetItemIndex(point));
 }
 
 void CGraphBase::DoOnRButtonDown(CPoint point) {
-	m_ptLineStart = m_ptLineEnd = point;
 	m_iEditing = edit_t::Line;
+	m_ptLineStart = m_ptLineEnd = point;
+	ModifyItems(true);
 	CursorChanged(GetItemIndex(point));
 }
 
 void CGraphBase::DoOnRButtonMove(CPoint point) {
 	if (m_iEditing == edit_t::Line) {
 		m_ptLineEnd = point;		// // //
-
-		const CPoint &StartPt = m_ptLineStart.x < m_ptLineEnd.x ? m_ptLineStart : m_ptLineEnd;
-		const CPoint &EndPt = m_ptLineStart.x < m_ptLineEnd.x ? m_ptLineEnd : m_ptLineStart;
-
-		auto DeltaY = (double)(EndPt.y - StartPt.y) / (EndPt.x - StartPt.x + 1);
-		auto fY = (double)StartPt.y;
-
-		for (int x = StartPt.x; x < EndPt.x; ++x) {
-			ModifyItem({x, (int)fY}, false);
-			fY += DeltaY;
-		}
-
-		parent_.ItemModified();
+		ModifyItems(true);
 	}
 	CursorChanged(GetItemIndex(point));
 }
@@ -305,7 +324,7 @@ void CBarGraph::DoOnPaint(CDC &dc) {
 
 		if (parent_.GetCurrentPlayPos() == i)
 			DrawPlayRect(dc, x, y, w, h);
-		else if ((m_iHighlightedItem == i) && (pSeq->GetItem(i) >= m_iHighlightedValue) && m_iEditing != edit_t::Line)
+		else if ((m_iHighlightedItem == i) && (pSeq->GetItem(i) >= m_iHighlightedValue))
 			DrawCursorRect(dc, x, y, w, h);
 		else
 			DrawRect(dc, x, y, w, h);

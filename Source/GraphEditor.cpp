@@ -130,6 +130,7 @@ BOOL CGraphEditor::PreTranslateMessage(MSG *pMsg) {		// // //
 
 void CGraphEditor::OnPaint() {
 	CPaintDC dc {this};
+	m_BackDC.FillSolidRect(m_ClientRect, BLACK);
 	for (auto &pCom : components_)		// // //
 		pCom->OnPaint(m_BackDC);
 

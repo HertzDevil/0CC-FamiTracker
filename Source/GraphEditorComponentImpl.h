@@ -41,7 +41,7 @@ public:
 	int GetItemGridIndex(CPoint point) const;
 
 private:
-	void ModifyItem(CPoint point, bool redraw);
+	void ModifyItems(bool redraw);
 	virtual int GetItemValue(CPoint point) const = 0;
 	virtual int GetMinItemValue() const = 0;
 	virtual int GetMaxItemValue() const = 0;
