@@ -40,8 +40,6 @@ public:
 	int GetItemIndex(CPoint point) const;
 	int GetItemGridIndex(CPoint point) const;
 
-	void CursorChanged(CPoint point);
-
 private:
 	void ModifyItem(CPoint point, bool redraw);
 	virtual int GetItemValue(CPoint point) const = 0;
@@ -75,11 +73,13 @@ private:
 protected:
 	int m_iHighlightedItem = -1;
 	int m_iHighlightedValue = 0;
-	CPoint m_ptLineStart = { };
-	CPoint m_ptLineEnd = { };
 
 	enum class edit_t { None, Line, Point };
 	edit_t m_iEditing = edit_t::None;
+
+private:
+	CPoint m_ptLineStart = { };
+	CPoint m_ptLineEnd = { };
 };
 
 class CBarGraph : public CGraphBase {
@@ -159,6 +159,7 @@ public:
 private:
 	void DrawTagPoint(CDC &dc, int index, LPCWSTR str, COLORREF col);
 
+	void DoOnMouseHover(CPoint point) override;
 	void DoOnLButtonDown(CPoint point) override;
 	void DoOnLButtonMove(CPoint point) override;
 	void DoOnRButtonDown(CPoint point) override;
@@ -166,6 +167,7 @@ private:
 	void DoOnPaint(CDC &dc) override;
 
 	CGraphBase &graph_parent_;
+	int highlighted_ = -1;
 	bool enable_loop_ = true;
 };
 

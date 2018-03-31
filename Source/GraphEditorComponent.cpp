@@ -21,6 +21,8 @@
 */
 
 #include "GraphEditorComponent.h"
+#include "GraphEditor.h"
+#include "Sequence.h"
 #include "Color.h"
 
 
@@ -46,4 +48,11 @@ void CGraphEditorComponent::OnPaint(CDC &dc) {
 	dc.FillSolidRect(region_.left, region_.bottom - 1, region_.Width(), 1, COL_DEBUG_RECT);
 	dc.FillSolidRect(region_.right - 1, region_.top, 1, region_.Height(), COL_DEBUG_RECT);
 #endif
+}
+
+void CGraphEditorComponent::CursorChanged(int idx) {		// // //
+	if (idx >= 0 && idx < parent_.GetItemCount())
+		parent_.OnHoverSequenceItem(idx, parent_.GetSequence()->GetItem(idx));
+	else
+		parent_.OnHoverSequenceItem(-1, 0);
 }

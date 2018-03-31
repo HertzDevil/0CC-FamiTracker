@@ -48,6 +48,9 @@ public:
 
 	void OnPaint(CDC &dc);
 
+protected:
+	void CursorChanged(int idx);
+
 private:
 	virtual void DoOnMouseHover(CPoint point) { }
 

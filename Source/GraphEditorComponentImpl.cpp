@@ -87,13 +87,6 @@ int CGraphBase::GetItemGridIndex(CPoint point) const {		// // //
 	return idx >= 0 ? idx / ItemWidth : -1;
 }
 
-void CGraphBase::CursorChanged(CPoint point) {
-	if (int Pos = GetItemIndex(point); Pos >= 0 && Pos < parent_.GetItemCount())
-		parent_.OnHoverSequenceItem(Pos, parent_.GetSequence()->GetItem(Pos));
-	else
-		parent_.OnHoverSequenceItem(-1, 0);
-}
-
 void CGraphBase::DrawRect(CDC &dc, int x, int y, int w, int h) {
 	DrawRect<GREY(240), GREY(208), WHITE, GREY(160)>(dc, x, y, w, h, false);
 }
@@ -190,10 +183,10 @@ void CGraphBase::DrawRange(CDC &dc, int Max, int Min) {
 }
 
 void CGraphBase::DoOnMouseHover(CPoint point) {
-	int ItemIndex = GetItemIndex(point);
-	int ItemValue = GetItemValue(point);
-	int LastItem = m_iHighlightedItem;
-	int LastValue = m_iHighlightedValue;
+	const int ItemIndex = GetItemIndex(point);
+	const int ItemValue = GetItemValue(point);
+	const int LastItem = m_iHighlightedItem;
+	const int LastValue = m_iHighlightedValue;
 
 	if (ItemIndex < 0 || ItemIndex >= parent_.GetItemCount() || ItemValue < GetMinItemValue() || ItemValue > GetMaxItemValue()) {
 		m_iHighlightedItem = -1;
@@ -207,25 +200,25 @@ void CGraphBase::DoOnMouseHover(CPoint point) {
 	if (m_iHighlightedItem != LastItem || m_iHighlightedValue != LastValue)
 		parent_.RedrawWindow();
 
-	CursorChanged(point);
+	CursorChanged(ItemIndex);
 }
 
 void CGraphBase::DoOnLButtonDown(CPoint point) {
 	m_iEditing = edit_t::Point;
 	ModifyItem(point, true);
-	CursorChanged(point);
+	CursorChanged(GetItemIndex(point));
 }
 
 void CGraphBase::DoOnLButtonMove(CPoint point) {
 	if (m_iEditing == edit_t::Point)
 		ModifyItem(point, true);
-	CursorChanged(point);
+	CursorChanged(GetItemIndex(point));
 }
 
 void CGraphBase::DoOnRButtonDown(CPoint point) {
 	m_ptLineStart = m_ptLineEnd = point;
 	m_iEditing = edit_t::Line;
-	CursorChanged(point);
+	CursorChanged(GetItemIndex(point));
 }
 
 void CGraphBase::DoOnRButtonMove(CPoint point) {
@@ -245,13 +238,13 @@ void CGraphBase::DoOnRButtonMove(CPoint point) {
 
 		parent_.ItemModified();
 	}
-	CursorChanged(point);
+	CursorChanged(GetItemIndex(point));
 }
 
 void CGraphBase::DoOnRButtonUp(CPoint point) {
 	m_ptLineStart = { };
 	m_iEditing = edit_t::None;
-	CursorChanged(point);
+	CursorChanged(GetItemIndex(point));
 }
 
 
@@ -436,10 +429,6 @@ void CCellGraph::DoOnPaint(CDC &dc) {
 	}
 
 	// Draw items
-	CFont *pOldFont = dc.SelectObject(&font_);		// // //
-	dc.SetTextAlign(TA_CENTER);
-	dc.SetTextColor(WHITE);
-	dc.SetBkMode(TRANSPARENT);
 	for (int i = 0; i < Count; ++i) {
 		int item;			// // //
 		if (pSeq->GetSetting() == SETTING_ARP_SCHEME) {
@@ -463,15 +452,8 @@ void CCellGraph::DoOnPaint(CDC &dc) {
 				DrawCursorRect(dc, x, y, w, h);
 			else
 				DrawRect(dc, x, y, w, h);
-
-			if (pSeq->GetSetting() == SETTING_ARP_SCHEME) {
-				const LPCWSTR HEAD[] = {L"", L"x", L"y", L"-y"};
-				dc.TextOutW(x + w / 2, y - 2 * h, HEAD[(pSeq->GetItem(i) & 0xFF) >> 6]);
-			}
 		}
 	}
-	dc.SetTextAlign(TA_LEFT);
-	dc.SelectObject(pOldFont);
 
 	DrawLine(dc);
 }
@@ -520,7 +502,7 @@ void CPitchGraph::DoOnPaint(CDC &dc) {
 		int x = region_.left + m_iHighlightedItem * StepWidth + 1;
 		int y = Top + (region_.bottom - Top) / 2;
 		int w = StepWidth;
-		int h = -(m_iHighlightedValue * region_.Height()) / 255 ;
+		int h = -(m_iHighlightedValue * region_.Height()) / 255;
 		DrawShadowRect(dc, x, y, w, h);
 	}
 
@@ -638,6 +620,21 @@ CLoopReleaseBar::CLoopReleaseBar(CGraphEditor &parent, CRect region, CGraphBase 
 {
 }
 
+void CLoopReleaseBar::DoOnMouseHover(CPoint point) {
+	int ItemIndex = graph_parent_.GetItemIndex(point);
+	int LastItem = highlighted_;
+
+	if (ItemIndex < 0 || ItemIndex >= parent_.GetItemCount() || !ContainsPoint(point))
+		highlighted_ = -1;
+	else
+		highlighted_ = ItemIndex;
+
+	if (highlighted_ != LastItem)
+		parent_.RedrawWindow();
+
+	CursorChanged(ItemIndex);
+}
+
 void CLoopReleaseBar::DoOnLButtonDown(CPoint point) {
 	if (auto pSeq = parent_.GetSequence()) {
 		int idx = std::clamp(graph_parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
@@ -677,7 +674,7 @@ void CLoopReleaseBar::DrawTagPoint(CDC &dc, int index, LPCWSTR str, COLORREF col
 		CFont *pOldFont = dc.SelectObject(&font_);
 
 		int x = graph_parent_.GetItemWidth() * index + CGraphEditor::GRAPH_LEFT + 1;
-		GradientBar(dc, x + 1, region_.top, region_.right - x, region_.Height(), DIM(col, 8. / 15.), DIM(col, 2. / 15.));		// // //
+		GradientBar(dc, x + 1, region_.top, region_.right - x, region_.Height(), DIM(col, 2. / 3.), DIM(col, 1. / 6.));		// // //
 		dc.FillSolidRect(x, region_.top, 1, region_.bottom, col);
 
 		dc.SetTextColor(WHITE);
@@ -693,20 +690,22 @@ void CLoopReleaseBar::DoOnPaint(CDC &dc) {
 	const COLORREF COL_BOTTOM = GREY(64);
 	dc.FillSolidRect(region_, COL_BOTTOM);
 
+	DrawTagPoint(dc, highlighted_, L"", GREY(128));
+
 	if (auto pSeq = parent_.GetSequence()) {
 		int LoopPoint = pSeq->GetLoopPoint();
 		int ReleasePoint = pSeq->GetReleasePoint();
 
 		if (ReleasePoint > LoopPoint) {
-			DrawTagPoint(dc, LoopPoint, L"Loop", MakeRGB(0, 240, 240));
-			DrawTagPoint(dc, ReleasePoint, L"Release", MakeRGB(240, 0, 240));
+			DrawTagPoint(dc, LoopPoint, L"Loop", MakeRGB(0, 192, 192));
+			DrawTagPoint(dc, ReleasePoint, L"Release", MakeRGB(192, 0, 192));
 		}
 		else if (ReleasePoint < LoopPoint) {
-			DrawTagPoint(dc, ReleasePoint, L"Release", MakeRGB(240, 0, 240));
-			DrawTagPoint(dc, LoopPoint, L"Loop", MakeRGB(0, 240, 240));
+			DrawTagPoint(dc, ReleasePoint, L"Release", MakeRGB(192, 0, 192));
+			DrawTagPoint(dc, LoopPoint, L"Loop", MakeRGB(0, 192, 192));
 		}
 		else if (LoopPoint > -1) { // LoopPoint == ReleasePoint
-			DrawTagPoint(dc, LoopPoint, L"Loop, Release", MakeRGB(240, 240, 0));
+			DrawTagPoint(dc, LoopPoint, L"Loop, Release", MakeRGB(192, 192, 0));
 		}
 	}
 }
@@ -747,7 +746,7 @@ void CArpSchemeSelector::DoOnLButtonDown(CPoint point) {
 			return;
 		next_scheme_ = GetNextScheme(enum_cast<arp_scheme_mode_t>(static_cast<uint8_t>(pSeq->GetItem(idx) & 0xC0)), true);
 		ModifyArpScheme(idx);
-		graph_parent_.CursorChanged(point);
+		CursorChanged(idx);
 	}
 }
 
@@ -757,7 +756,7 @@ void CArpSchemeSelector::DoOnLButtonMove(CPoint point) {
 		if (idx < 0 || idx >= static_cast<int>(pSeq->GetItemCount()))
 			return;
 		ModifyArpScheme(idx);
-		graph_parent_.CursorChanged(point);
+		CursorChanged(idx);
 	}
 }
 
@@ -768,7 +767,7 @@ void CArpSchemeSelector::DoOnRButtonDown(CPoint point) {
 			return;
 		next_scheme_ = GetNextScheme(enum_cast<arp_scheme_mode_t>(static_cast<uint8_t>(pSeq->GetItem(idx) & 0xC0)), false);
 		ModifyArpScheme(idx);
-		graph_parent_.CursorChanged(point);
+		CursorChanged(idx);
 	}
 }
 
@@ -778,7 +777,7 @@ void CArpSchemeSelector::DoOnRButtonMove(CPoint point) {
 		if (idx < 0 || idx >= static_cast<int>(pSeq->GetItemCount()))
 			return;
 		ModifyArpScheme(idx);
-		graph_parent_.CursorChanged(point);
+		CursorChanged(idx);
 	}
 }
 
@@ -875,7 +874,7 @@ void CNoiseSelector::DoOnLButtonDown(CPoint point) {
 			return;
 		enable_flag_ = !CheckFlag(pSeq->GetItem(idx), flag);
 		ModifyFlag(idx, flag);
-		graph_parent_.CursorChanged(point);
+		CursorChanged(idx);
 	}
 }
 
@@ -889,7 +888,7 @@ void CNoiseSelector::DoOnLButtonMove(CPoint point) {
 			return;
 		if (idx != last_idx_ || flag != last_flag_)
 			ModifyFlag(idx, flag);
-		graph_parent_.CursorChanged(point);
+		CursorChanged(idx);
 	}
 }
 
