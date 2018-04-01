@@ -48,6 +48,8 @@ public:
 
 private:
 	CWnd *m_pParent = nullptr;
+	CDC m_BackDC;		// // //
+	CBitmap m_Bitmap;		// // //
 	CFont m_cFont;		// // //
 	std::unique_ptr<CSizeEditor> m_pSizeEditor;
 	std::unique_ptr<CGraphEditor> m_pGraphEditor;

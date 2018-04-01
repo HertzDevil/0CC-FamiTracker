@@ -34,10 +34,13 @@ class CSizeEditor : public CWnd
 public:
 	void SetValue(int Value);
 	int GetValue() const;
+	void Paint(CDC &dc, CPoint orig);		// // //
+
 private:
 	int m_iValue;
 	int m_iButtonPressed;
 	CWnd *m_pParentWnd;
+	CFont m_Font;		// // //
 	bool m_bSizeCursor;
 private:
 	void MouseAction(UINT nFlags, CPoint point);
@@ -46,7 +49,6 @@ private:
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnPaint();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);

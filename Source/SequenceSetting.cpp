@@ -61,7 +61,6 @@ CSequenceSetting::~CSequenceSetting()
 }
 
 BEGIN_MESSAGE_MAP(CSequenceSetting, CWnd)
-	ON_WM_PAINT()
 	ON_WM_LBUTTONDOWN()
 	ON_COMMAND_RANGE(MENU_ID_BASE, MENU_ID_MAX, OnMenuSettingChanged)		// // //
 	ON_WM_MOUSEMOVE()
@@ -74,11 +73,10 @@ void CSequenceSetting::Setup(CFont *pFont)
 	m_pFont = pFont;
 }
 
-void CSequenceSetting::OnPaint()
-{
-	CPaintDC dc {this};
+void CSequenceSetting::Paint(CDC &dc, CPoint orig) {		// // //
 	CRect rect;
 	GetClientRect(&rect);
+	rect.MoveToXY(orig);
 
 	unsigned mode = m_pSequence->GetSetting();		// // //
 	std::wstring_view sv = mode < std::size(SEQ_SETTING_TEXT) ? SEQ_SETTING_TEXT[mode][(unsigned)m_pSequence->GetSequenceType()] : std::wstring_view { };
@@ -92,11 +90,12 @@ void CSequenceSetting::OnPaint()
 	dc.FillSolidRect(rect, BgColor);
 	dc.DrawEdge(rect, EDGE_SUNKEN, BF_RECT);
 	dc.SelectObject(m_pFont);
-	dc.SetTextColor(0xFFFFFF);
+	dc.SetBkMode(TRANSPARENT);		// // //
 	dc.SetBkColor(BgColor);
+	dc.SetTextColor(0xFFFFFF);
+	dc.SetTextAlign(TA_CENTER);
 
-	rect.top += 2;
-	dc.DrawTextW(sv.data(), sv.size(), rect, DT_CENTER);
+	dc.TextOutW(rect.CenterPoint().x, rect.top + 2, sv.data(), sv.size());		// // //
 }
 
 void CSequenceSetting::OnLButtonDown(UINT nFlags, CPoint point)

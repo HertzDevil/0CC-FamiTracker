@@ -39,6 +39,12 @@
 
 // This file contains the sequence editor and sequence size control
 
+namespace {
+
+constexpr int BOTTOM_MARGIN = 25;		// // //
+
+} // namespace
+
 // CSequenceEditor
 
 IMPLEMENT_DYNAMIC(CSequenceEditor, CWnd)
@@ -81,7 +87,13 @@ BOOL CSequenceEditor::CreateEditor(CWnd *pParentWnd, const RECT &rect)
 
 	CRect GraphRect;
 	GetClientRect(GraphRect);
-	GraphRect.bottom -= 25;
+	GraphRect.bottom -= DPI::SY(BOTTOM_MARGIN);
+
+	CDC *pDC = GetDC();		// // //
+	m_BackDC.CreateCompatibleDC(pDC);
+	m_Bitmap.CreateCompatibleBitmap(pDC, GraphRect.Width(), DPI::SY(BOTTOM_MARGIN));
+	m_BackDC.SelectObject(&m_Bitmap);
+	ReleaseDC(pDC);
 
 	if (m_pSizeEditor->CreateEx(NULL, NULL, L"", WS_CHILD | WS_VISIBLE, CRect(34, GraphRect.bottom + 5, 94, GraphRect.bottom + 22), this, 0) == -1)
 		return -1;
@@ -103,25 +115,34 @@ void CSequenceEditor::OnPaint()
 
 	CRect rect;
 	GetClientRect(rect);
+	rect.top = rect.bottom - DPI::SY(BOTTOM_MARGIN);
 
-	dc.FillSolidRect(rect.left, rect.bottom - DPI::SY(25), rect.Width(), DPI::SY(25), GREY(240));		// // //
+	m_BackDC.FillSolidRect(0, 0, rect.Width(), BOTTOM_MARGIN, GREY(240));		// // //
 
 	// Update size editor
 	if (m_pSequence)
 		m_pSizeEditor->SetValue(m_pSequence->GetItemCount());
 
-	dc.SelectObject(&m_cFont);
-	dc.TextOutW(7, rect.bottom - 19, L"Size:");
+	m_BackDC.SelectObject(&m_cFont);
+	m_BackDC.SetBkMode(TRANSPARENT);		// // //
+	m_BackDC.SetTextColor(BLACK);
+	m_BackDC.SetTextAlign(TA_LEFT);
+	m_BackDC.TextOutW(7, DPI::SY(6), L"Size:");
 
 	float Rate = static_cast<CInstrumentEditDlg*>(static_cast<CSequenceInstrumentEditPanel*>(m_pParent)->GetParent())->GetRefreshRate();
-	dc.TextOutW(120, rect.bottom - 19, FormattedW(L"%.0f ms", (1000.0f * m_pSizeEditor->GetValue()) / Rate));
+	m_BackDC.TextOutW(120, DPI::SY(6), FormattedW(L"%.0f ms", (1000.0f * m_pSizeEditor->GetValue()) / Rate));
 
 	if (m_iLastIndex != -1) {		// // //
 		CStringW Text = m_pConversion ?
 			FormattedW(L"{%i, %s}", m_iLastIndex, conv::to_wide(m_pConversion->ToString(m_iLastValue)).data()) :
 			FormattedW(L"{%i, %i}", m_iLastIndex, m_iLastValue);
-		dc.TextOutW(170, rect.bottom - 19, Text);
+		m_BackDC.TextOutW(170, DPI::SY(6), Text);
 	}
+
+	m_pSizeEditor->Paint(m_BackDC, {34, 5});		// // //
+	m_pSetting->Paint(m_BackDC, {rect.Width() - 72, 5});
+
+	dc.BitBlt(rect.left, rect.top, rect.Width(), rect.Height(), &m_BackDC, 0, 0, SRCCOPY);		// // //
 }
 
 BOOL CSequenceEditor::OnEraseBkgnd(CDC *pDC) {		// // //
@@ -205,7 +226,7 @@ void CSequenceEditor::SelectSequence(std::shared_ptr<CSequence> pSequence, int I
 
 	CRect GraphRect;
 	GetClientRect(GraphRect);
-	GraphRect.bottom -= DPI::SY(25);		// // //
+	GraphRect.bottom -= DPI::SY(BOTTOM_MARGIN);		// // //
 
 	CGraphEditorFactory factory;		// // //
 	m_pGraphEditor = factory.Make(this, GraphRect, m_pSequence, InstrumentType, m_iMaxVol, m_iMaxDuty);

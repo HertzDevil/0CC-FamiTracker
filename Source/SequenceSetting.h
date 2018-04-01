@@ -36,6 +36,7 @@ class CSequenceSetting : public CWnd
 public:
 	void Setup(CFont *pFont);
 	void SelectSequence(std::shared_ptr<CSequence> pSequence, int InstrumentType);		// // //
+	void Paint(CDC &dc, CPoint orig);		// // //
 
 private:
 	CWnd *m_pParent;
@@ -51,7 +52,6 @@ private:
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnPaint();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnMenuSettingChanged(UINT ID);		// // //
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);

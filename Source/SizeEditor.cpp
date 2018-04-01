@@ -36,7 +36,6 @@ const int CHANGE_SPEED = 50;
 IMPLEMENT_DYNAMIC(CSizeEditor, CWnd)
 
 BEGIN_MESSAGE_MAP(CSizeEditor, CWnd)
-	ON_WM_PAINT()
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
 	ON_WM_LBUTTONDBLCLK()
@@ -54,23 +53,20 @@ CSizeEditor::CSizeEditor(CWnd *pParent) :
 	m_pParentWnd(pParent),
 	m_bSizeCursor(false)
 {
+	m_Font.CreateFontW(-11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, ANSI_CHARSET,
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Tahoma");		// // //
 }
 
 CSizeEditor::~CSizeEditor()
 {
 }
 
-void CSizeEditor::OnPaint()
-{
-	CPaintDC dc(this);
-
-	CFont Font;
-	Font.CreateFontW(-11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Tahoma");
-
-	CFont *pOldFont = dc.SelectObject(&Font);
+void CSizeEditor::Paint(CDC &dc, CPoint orig) {		// // //
+	CFont *pOldFont = dc.SelectObject(&m_Font);		// // //
 
 	CRect rect;
 	GetClientRect(rect);
+	rect.MoveToXY(orig);
 
 	COLORREF BUTTON_FACE = GetSysColor(COLOR_BTNFACE);
 	COLORREF BUTTON_HILIGHT = GetSysColor(COLOR_BTNHILIGHT);
@@ -82,7 +78,7 @@ void CSizeEditor::OnPaint()
 
 	if (this == GetFocus()) {
 		CRect focusRect = rect;
-		focusRect.DeflateRect(rect.Height() - 1, 2, rect.Height() + 1, 2);
+		focusRect.DeflateRect(rect.Height() - 1, 2, rect.Height() - 1, 2);
 		dc.SetBkColor(0xFFFFFF);
 		dc.DrawFocusRect(focusRect);
 	}
@@ -90,7 +86,7 @@ void CSizeEditor::OnPaint()
 	CRect buttonRect;
 
 	// The '-'-button
-	buttonRect = CRect(2, 2, rect.bottom - 2, rect.bottom - 2);
+	buttonRect = {{rect.left + 2, rect.top + 2}, SIZE {rect.Height() - 4, rect.Height() - 4}};
 	dc.FillSolidRect(buttonRect, BUTTON_FACE);
 	if (m_iButtonPressed == 1)
 		dc.Draw3dRect(buttonRect, BUTTON_SHADOW, BUTTON_HILIGHT);
@@ -98,7 +94,7 @@ void CSizeEditor::OnPaint()
 		dc.Draw3dRect(buttonRect, BUTTON_HILIGHT, BUTTON_SHADOW);
 
 	// The '+'-button
-	buttonRect = CRect(rect.right - rect.bottom, 2, rect.right - 2, rect.bottom - 2);
+	buttonRect = {{rect.right - rect.Height() + 2, rect.top + 2}, SIZE {rect.Height() - 4, rect.Height() - 4}};
 	dc.FillSolidRect(buttonRect, BUTTON_FACE);
 	if (m_iButtonPressed == 2)
 		dc.Draw3dRect(buttonRect, BUTTON_SHADOW, BUTTON_HILIGHT);
@@ -109,11 +105,11 @@ void CSizeEditor::OnPaint()
 	dc.SetBkMode(TRANSPARENT);
 	dc.SetTextColor(0xFFFFFF);
 	dc.SetTextAlign(TA_RIGHT);
-	dc.TextOutW(rect.right - rect.bottom - 4, rect.top + 1, FormattedW(L"%i", m_iValue));		// // //
+	dc.TextOutW(rect.right - rect.Height() - 4, rect.top + 1, FormattedW(L"%i", m_iValue));		// // //
 	dc.SetTextColor(0);
-	dc.SetTextAlign(TA_LEFT);
-	dc.TextOutW(6, 1 + ((m_iButtonPressed == 1) ? 1 : 0), L"-");
-	dc.TextOutW(rect.right - 14, 1 + ((m_iButtonPressed == 2) ? 1 : 0), L"+");
+	dc.SetTextAlign(TA_CENTER);
+	dc.TextOutW(rect.left + rect.Height() / 2, rect.top + 1 + (m_iButtonPressed == 1 ? 1 : 0), L"-");
+	dc.TextOutW(rect.right - rect.Height() / 2, rect.top + 1 + (m_iButtonPressed == 2 ? 1 : 0), L"+");
 
 	dc.SelectObject(pOldFont);
 }
@@ -147,7 +143,7 @@ void CSizeEditor::OnLButtonUp(UINT nFlags, CPoint point)
 	ReleaseCapture();
 	m_iButtonPressed = 0;
 	KillTimer(0);
-	RedrawWindow(NULL);
+	m_pParentWnd->RedrawWindow(NULL);		// // //
 }
 
 void CSizeEditor::OnLButtonDblClk(UINT nFlags, CPoint point)
