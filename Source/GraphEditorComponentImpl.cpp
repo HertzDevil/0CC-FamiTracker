@@ -35,6 +35,8 @@ using namespace GraphEditorComponents;
 
 
 void CGraphBase::ModifyItems(bool redraw) {
+	int count = parent_.GetItemCount();
+
 	if (auto pSeq = parent_.GetSequence()) {
 		m_iHighlightedItem = -1;
 		m_iHighlightedValue = 0;
@@ -44,8 +46,10 @@ void CGraphBase::ModifyItems(bool redraw) {
 		int value1 = GetItemValue(m_ptLineStart);
 		int value2 = GetItemValue(m_ptLineEnd);
 
-		if (index1 == index2)
-			pSeq->SetItem(index1, GetSequenceItemValue(index1, std::clamp(value1, GetMinItemValue(), GetMaxItemValue())));
+		if (index1 == index2) {
+			if (index1 >= 0 && index1 < count)
+				pSeq->SetItem(index1, GetSequenceItemValue(index1, std::clamp(value1, GetMinItemValue(), GetMaxItemValue())));
+		}
 		else {
 			if (index1 > index2) {
 				std::swap(index1, index2);
@@ -55,7 +59,8 @@ void CGraphBase::ModifyItems(bool redraw) {
 				int offs = 0;
 				for (int i = index1; i <= index2; ++i) {
 					auto delta = static_cast<int>(.5 + static_cast<double>(offs) / (index2 - index1));
-					pSeq->SetItem(i, GetSequenceItemValue(i, std::clamp(value1 + delta, GetMinItemValue(), GetMaxItemValue())));
+					if (i >= 0 && i < count)
+						pSeq->SetItem(i, GetSequenceItemValue(i, std::clamp(value1 + delta, GetMinItemValue(), GetMaxItemValue())));
 					offs += value2 - value1;
 				}
 			}
@@ -63,7 +68,8 @@ void CGraphBase::ModifyItems(bool redraw) {
 				int offs = 0;
 				for (int i = index2; i >= index1; --i) {
 					auto delta = static_cast<int>(.5 + static_cast<double>(offs) / (index2 - index1));
-					pSeq->SetItem(i, GetSequenceItemValue(i, std::clamp(value2 + delta, GetMinItemValue(), GetMaxItemValue())));
+					if (i >= 0 && i < count)
+						pSeq->SetItem(i, GetSequenceItemValue(i, std::clamp(value2 + delta, GetMinItemValue(), GetMaxItemValue())));
 					offs += value1 - value2;
 				}
 			}
@@ -640,7 +646,7 @@ CLoopReleaseBar::CLoopReleaseBar(CGraphEditor &parent, CRect region, CGraphBase 
 }
 
 void CLoopReleaseBar::DoOnMouseHover(CPoint point) {
-	int ItemIndex = graph_parent_.GetItemIndex(point);
+	int ItemIndex = graph_parent_.GetItemGridIndex(point);
 	int LastItem = highlighted_;
 
 	if (ItemIndex < 0 || ItemIndex >= parent_.GetItemCount() || !ContainsPoint(point))
@@ -656,6 +662,7 @@ void CLoopReleaseBar::DoOnMouseHover(CPoint point) {
 
 void CLoopReleaseBar::DoOnLButtonDown(CPoint point) {
 	if (auto pSeq = parent_.GetSequence()) {
+		highlighted_ = -1;
 		int idx = std::clamp(graph_parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
 		enable_loop_ = pSeq->GetLoopPoint() != idx;
 		pSeq->SetLoopPoint(enable_loop_ ? idx : -1);
@@ -673,6 +680,7 @@ void CLoopReleaseBar::DoOnLButtonMove(CPoint point) {
 
 void CLoopReleaseBar::DoOnRButtonDown(CPoint point) {
 	if (auto pSeq = parent_.GetSequence()) {
+		highlighted_ = -1;
 		int idx = std::clamp(graph_parent_.GetItemGridIndex(point), 0, (int)pSeq->GetItemCount() - 1);
 		enable_loop_ = pSeq->GetReleasePoint() != idx;
 		pSeq->SetReleasePoint(enable_loop_ ? idx : -1);
