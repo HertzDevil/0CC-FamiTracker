@@ -33,7 +33,7 @@
 #include "NumConv.h"
 #include "SongData.h"
 #include "SongView.h"
-#include "ChannelName.h"
+#include "SoundChipService.h"
 #include "NoteName.h"
 #include "str_conv/str_conv.hpp"
 
@@ -207,8 +207,9 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 
 	const CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
 	const CConstSongView *pSongView = pView->GetSongView();
-	m_cListResults.SetItemData(Pos, value_cast(pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel)));
-	m_cListResults.SetItemText(Pos, CHANNEL, conv::to_wide(GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel))).data());
+	chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel);
+	m_cListResults.SetItemData(Pos, value_cast(ch));
+	m_cListResults.SetItemText(Pos, CHANNEL, conv::to_wide(Env.GetSoundChipService()->GetChannelFullName(ch)).data());
 	m_cListResults.SetItemText(Pos, PATTERN, conv::to_wide(conv::sv_from_int_hex(pSongView->GetFramePattern(Cursor.m_iChannel, Cursor.m_iFrame), 2)).data());
 
 	m_cListResults.SetItemText(Pos, FRAME, conv::to_wide(conv::sv_from_int_hex(Cursor.m_iFrame, 2)).data());

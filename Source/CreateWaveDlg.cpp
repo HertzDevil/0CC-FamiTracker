@@ -22,6 +22,7 @@
 
 #include "CreateWaveDlg.h"
 #include "FamiTrackerEnv.h"		// // //
+#include "SoundChipService.h"		// // //
 #include "Settings.h"		// // //
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerView.h"
@@ -34,7 +35,6 @@
 #include "WavProgressDlg.h"
 #include "WaveRenderer.h"		// // //
 #include "WaveRendererFactory.h"		// // //
-#include "ChannelName.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 
 const int MAX_LOOP_TIMES = 99;
@@ -165,7 +165,7 @@ BOOL CCreateWaveDlg::OnInitDialog()
 	const CChannelOrder &order = pModule->GetChannelOrder(); // CFamiTrackerView::GetView()->GetSongView()->
 
 	order.ForeachChannel([&] (chan_id_t i) {
-		m_ctlChannelList.AddString(conv::to_wide(GetChannelFullName(i)).data());		// // //
+		m_ctlChannelList.AddString(conv::to_wide(Env.GetSoundChipService()->GetChannelFullName(i)).data());		// // //
 		m_ctlChannelList.SetCheck(order.GetChannelIndex(i), 1);
 	});
 

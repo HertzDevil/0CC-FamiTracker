@@ -73,11 +73,15 @@ BOOL CSwapDlg::OnInitDialog()
 	m_cChipSecond.SubclassDlgItem(IDC_COMBO_SWAP_CHIP2, this);
 
 	const auto &chips = CFamiTrackerDoc::GetDoc()->GetModule()->GetSoundChipSet();
+	int i = 0;
 	Env.GetSoundChipService()->ForeachType([&] (sound_chip_t ch) {
 		if (chips.ContainsChip(ch)) {
-			auto wstr = conv::to_wide(Env.GetSoundChipService()->GetShortChipName(ch));
+			auto wstr = conv::to_wide(Env.GetSoundChipService()->GetChipShortName(ch));
 			m_cChipFirst.AddString(wstr.data());
 			m_cChipSecond.AddString(wstr.data());
+			m_cChipFirst.SetItemData(i, value_cast(ch));
+			m_cChipSecond.SetItemData(i, value_cast(ch));
+			++i;
 		}
 	});
 
@@ -94,9 +98,10 @@ BOOL CSwapDlg::OnInitDialog()
 
 void CSwapDlg::CheckDestination() const
 {
-	GetDlgItem(IDOK)->EnableWindow(MakeChannelIndex(m_iDestChip1, m_iDestChannel1) != chan_id_t::NONE &&
-								   MakeChannelIndex(m_iDestChip2, m_iDestChannel2) != chan_id_t::NONE &&
-								   (m_iDestChannel1 != m_iDestChannel2 || m_iDestChip1 != m_iDestChip2));
+	GetDlgItem(IDOK)->EnableWindow(
+		MakeChannelIndex(m_iDestChip1, m_iDestChannel1) != chan_id_t::NONE &&
+		MakeChannelIndex(m_iDestChip2, m_iDestChannel2) != chan_id_t::NONE &&
+		(m_iDestChannel1 != m_iDestChannel2 || m_iDestChip1 != m_iDestChip2));
 }
 
 void CSwapDlg::OnEnChangeEditSwapChan1()
@@ -117,17 +122,13 @@ void CSwapDlg::OnEnChangeEditSwapChan2()
 
 void CSwapDlg::OnCbnSelchangeComboSwapChip1()
 {
-	CStringW str;
-	m_cChipFirst.GetWindowTextW(str);
-	m_iDestChip1 = Env.GetSoundChipService()->GetChipFromString(conv::to_utf8(str));
+	m_iDestChip1 = enum_cast<sound_chip_t>(m_cChipFirst.GetItemData(m_cChipFirst.GetCurSel()));
 	CheckDestination();
 }
 
 void CSwapDlg::OnCbnSelchangeComboSwapChip2()
 {
-	CStringW str;
-	m_cChipSecond.GetWindowTextW(str);
-	m_iDestChip2 = Env.GetSoundChipService()->GetChipFromString(conv::to_utf8(str));
+	m_iDestChip2 = enum_cast<sound_chip_t>(m_cChipSecond.GetItemData(m_cChipSecond.GetCurSel()));
 	CheckDestination();
 }
 

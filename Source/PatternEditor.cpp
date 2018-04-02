@@ -40,7 +40,7 @@
 #include "PatternClipData.h"		// // //
 #include "RegisterDisplay.h"		// // //
 #include "SongView.h"		// // //
-#include "ChannelName.h"		// // //
+#include "SoundChipService.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 
 /*
@@ -1470,6 +1470,7 @@ void CPatternEditor::DrawHeader(CDC &DC)
 	unsigned int Offset = m_iRowColumnWidth;
 
 	CSongView *pSongView = m_pView->GetSongView();		// // //
+	auto *pSCS = Env.GetSoundChipService();
 
 	CFont *pOldFont = DC.SelectObject(&m_fontHeader);
 
@@ -1503,7 +1504,7 @@ void CPatternEditor::DrawHeader(CDC &DC)
 
 		// Text
 		auto pChanName = (m_bCompactMode && m_iCharWidth < 6) ? L"" :
-			conv::to_wide((m_bCompactMode || m_iCharWidth < 9) ? GetChannelShortName(ch) : GetChannelFullName(ch));		// // //
+			conv::to_wide((m_bCompactMode || m_iCharWidth < 9) ? pSCS->GetChannelShortName(ch) : pSCS->GetChannelFullName(ch));		// // //
 
 		COLORREF HeadTextCol = bMuted ? STATIC_COLOR_SCHEME.CHANNEL_MUTED : STATIC_COLOR_SCHEME.CHANNEL_NORMAL;
 
@@ -3502,6 +3503,7 @@ CStringW CPatternEditor::GetVolumeColumn() const {		// // //
 CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 	// Copy selection as text
 	CSongView *pSongView = m_pView->GetSongView();		// // //
+	auto *pSCS = Env.GetSoundChipService();
 
 	const int Channel = m_selection.GetChanStart() + !m_selection.IsColumnSelected(column_t::Volume, m_selection.GetChanStart()); // // //
 
@@ -3520,7 +3522,7 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 	CStringW Header(L' ', HexLength + 3);
 	Header.Append(L"# ");
 	for (int i = b.m_iChannel; i <= e.m_iChannel; ++i) {
-		AppendFormatW(Header, L": %-13s", conv::to_wide(GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(i))).data());
+		AppendFormatW(Header, L": %-13s", conv::to_wide(pSCS->GetChannelFullName(pSongView->GetChannelOrder().TranslateChannel(i))).data());
 		int Columns = pSongView->GetEffectColumnCount(i) - 1;
 		if (i == e.m_iChannel)
 			Columns = std::clamp(static_cast<int>(GetSelectColumn(e.m_iColumn)) - 3, 0, Columns);

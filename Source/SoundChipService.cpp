@@ -69,30 +69,30 @@ chan_id_t CSoundChipService::MakeChannelIndex(sound_chip_t chip, std::size_t sub
 	return chan_id_t::NONE;
 }
 
-std::string_view CSoundChipService::GetShortChipName(sound_chip_t chip) const {
+std::string_view CSoundChipService::GetChipShortName(sound_chip_t chip) const {
 	return GetType(chip).GetShortName();
 }
 
-std::string_view CSoundChipService::GetFullChipName(sound_chip_t chip) const {
+std::string_view CSoundChipService::GetChipFullName(sound_chip_t chip) const {
 	return GetType(chip).GetFullName();
 }
 
-std::string_view CSoundChipService::GetShortChannelName(chan_id_t ch) const {
+std::string_view CSoundChipService::GetChannelShortName(chan_id_t ch) const {
 	auto id = value_cast(ch);
 	for (auto &x : types_) {
 		auto f = value_cast(x.second->GetFirstChannelID());
 		if (id >= f && id < f + x.second->GetSupportedChannelCount())
-			return x.second->GetShortChannelName(id - f);
+			return x.second->GetChannelShortName(id - f);
 	}
 	throw std::invalid_argument {"Channel with given ID does not exist"};
 }
 
-std::string_view CSoundChipService::GetFullChannelName(chan_id_t ch) const {
+std::string_view CSoundChipService::GetChannelFullName(chan_id_t ch) const {
 	auto id = value_cast(ch);
 	for (auto &x : types_) {
 		auto f = value_cast(x.second->GetFirstChannelID());
 		if (id >= f && id < f + x.second->GetSupportedChannelCount())
-			return x.second->GetFullChannelName(id - f);
+			return x.second->GetChannelFullName(id - f);
 	}
 	throw std::invalid_argument {"Channel with given ID does not exist"};
 }

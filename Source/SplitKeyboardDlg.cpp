@@ -25,9 +25,10 @@
 #include "PatternNote.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"
+#include "FamiTrackerEnv.h"
+#include "SoundChipService.h"
 #include "InstrumentManager.h"
 #include "APU/Types.h"
-#include "ChannelName.h"
 #include "ChannelOrder.h"
 #include "str_conv/str_conv.hpp"
 #include "NumConv.h"
@@ -91,9 +92,10 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_CHAN));
 	pCombo->AddString(KEEP_INST_STRING);
 	pCombo->SetCurSel(0);
+	auto *pSCS = Env.GetSoundChipService();
 	int i = 0;
 	pDoc->GetModule()->GetChannelOrder().ForeachChannel([&] (chan_id_t ch) {
-		pCombo->AddString(conv::to_wide(GetChannelFullName(ch)).data());
+		pCombo->AddString(conv::to_wide(pSCS->GetChannelFullName(ch)).data());
 		if (m_iSplitChannel == ch)
 			pCombo->SetCurSel(i + 1);
 		++i;

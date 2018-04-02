@@ -22,11 +22,12 @@
 
 #include "FamiTrackerDocIOJson.h"
 #include "FamiTrackerModule.h"
+#include "FamiTrackerEnv.h"
+#include "SoundChipService.h"
 #include "SongData.h"
 #include "Bookmark.h"
 #include "BookmarkCollection.h"
 #include "ChannelMap.h"
-#include "ChannelName.h"
 #include "Instrument2A03.h"
 #include "InstrumentVRC7.h"
 #include "InstrumentFDS.h"
@@ -109,19 +110,6 @@ struct adl_serializer<std::optional<T>> {
 
 namespace {
 
-constexpr std::string_view GetChipName(sound_chip_t chip) noexcept {
-	switch (chip) {
-	case sound_chip_t::APU:  return "2A03"sv;
-	case sound_chip_t::VRC6: return "VRC6"sv;
-	case sound_chip_t::VRC7: return "VRC7"sv;
-	case sound_chip_t::FDS:  return "FDS"sv;
-	case sound_chip_t::MMC5: return "MMC5"sv;
-	case sound_chip_t::N163: return "N163"sv;
-	case sound_chip_t::S5B:  return "S5B"sv;
-	}
-	return ""sv;
-}
-
 constexpr std::string_view GetChipName(inst_type_t inst_type) noexcept {
 	switch (inst_type) {
 	case inst_type_t::INST_2A03: return "2A03"sv;
@@ -129,7 +117,7 @@ constexpr std::string_view GetChipName(inst_type_t inst_type) noexcept {
 	case inst_type_t::INST_VRC7: return "VRC7"sv;
 	case inst_type_t::INST_FDS:  return "FDS"sv;
 	case inst_type_t::INST_N163: return "N163"sv;
-	case inst_type_t::INST_S5B:  return "S5B"sv;
+	case inst_type_t::INST_S5B:  return "5B"sv;
 	}
 	return ""sv;
 }
@@ -243,7 +231,7 @@ void to_json(json &j, const CSongData &song) {
 		auto tj = json(track);
 		auto &frame_list = tj["frame_list"];
 		frame_list.erase(frame_list.begin() + song.GetFrameCount(), frame_list.end());
-		tj["chip"] = std::string {GetChipName(GetChipFromChannel(ch))};
+		tj["chip"] = std::string {Env.GetSoundChipService()->GetChipShortName(GetChipFromChannel(ch))};
 		tj["subindex"] = GetChannelSubIndex(ch);
 		j["tracks"].push_back(std::move(tj));
 	});
@@ -253,7 +241,7 @@ void to_json(json &j, const CChannelOrder &order) {
 	j = json::array();
 	order.ForeachChannel([&] (chan_id_t ch) {
 		j.push_back(json {
-			{"chip", std::string {GetChipName(GetChipFromChannel(ch))}},
+			{"chip", std::string {Env.GetSoundChipService()->GetChipShortName(GetChipFromChannel(ch))}},
 			{"subindex", GetChannelSubIndex(ch)},
 		});
 	});

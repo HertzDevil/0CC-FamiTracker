@@ -47,6 +47,7 @@
 #include "SongLengthScanner.h"		// // //
 #include "NumConv.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
+#include "SoundChipService.h"		// // //
 
 //
 // This is the new NSF data compiler, music is compiled to an object list instead of a binary chunk
@@ -571,16 +572,18 @@ std::vector<unsigned char> CCompiler::LoadDriver(const driver_t &Driver, unsigne
 
 	if (m_pModule->GetSoundChipSet().IsMultiChip()) {		// // // special processing for multichip
 		int ptr = FT_UPDATE_EXT_ADR;
-		for (auto chip : EXPANSION_CHIPS) {
-			ASSERT(Data[ptr] == 0x20); // jsr
-			if (!m_pModule->HasExpansionChip(chip)) {
-				Data[ptr++] = 0xEA; // nop
-				Data[ptr++] = 0xEA;
-				Data[ptr++] = 0xEA;
+		Env.GetSoundChipService()->ForeachType([&] (sound_chip_t chip) {
+			if (chip != sound_chip_t::APU) {
+				ASSERT(Data[ptr] == 0x20); // jsr
+				if (!m_pModule->HasExpansionChip(chip)) {
+					Data[ptr++] = 0xEA; // nop
+					Data[ptr++] = 0xEA;
+					Data[ptr++] = 0xEA;
+				}
+				else
+					ptr += 3;
 			}
-			else
-				ptr += 3;
-		}
+		});
 
 		const int CH_MAP[] = {
 			0, 1, 2, 3, 27,

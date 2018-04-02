@@ -76,11 +76,11 @@ BOOL CChannelsDlg::OnInitDialog()
 
 	auto *pSCS = Env.GetSoundChipService();		// // //
 	pSCS->ForeachType([&] (sound_chip_t ch) {
-		HTREEITEM hItem = m_cAvailableTree.InsertItem(conv::to_wide(pSCS->GetFullChipName(ch)).data());
+		HTREEITEM hItem = m_cAvailableTree.InsertItem(conv::to_wide(pSCS->GetChipFullName(ch)).data());
 		m_cAvailableTree.SetItemData(hItem, value_cast(ch));
 		for (std::size_t subindex = 0, n = pSCS->GetSupportedChannelCount(ch); subindex < n; ++subindex) {
 			auto chan = pSCS->MakeChannelIndex(ch, subindex);
-			HTREEITEM hChild = m_cAvailableTree.InsertItem(FormattedW(L"%i: %s", subindex, conv::to_wide(pSCS->GetFullChannelName(chan)).data()), hItem);
+			HTREEITEM hChild = m_cAvailableTree.InsertItem(FormattedW(L"%i: %s", subindex, conv::to_wide(pSCS->GetChannelFullName(chan)).data()), hItem);
 			m_cAvailableTree.SetItemData(hChild, value_cast(chan));
 		}
 		m_cAvailableTree.SortChildren(hItem);
@@ -160,9 +160,9 @@ void CChannelsDlg::InsertChannel(HTREEITEM hItem) {
 	if (HTREEITEM hParentItem = m_cAvailableTree.GetParentItem(hItem)) {
 		auto ChanId = enum_cast<chan_id_t>(m_cAvailableTree.GetItemData(hItem));
 
-		auto AddStr = std::string {pSCS->GetShortChipName(pSCS->GetChipFromChannel(ChanId))};
+		auto AddStr = std::string {pSCS->GetChipShortName(pSCS->GetChipFromChannel(ChanId))};
 		AddStr += " :: ";
-		AddStr += pSCS->GetFullChannelName(ChanId);
+		AddStr += pSCS->GetChannelFullName(ChanId);
 
 		int ChansAdded = m_cAddedChannels.GetItemCount();
 		int Index = m_cAddedChannels.InsertItem(ChansAdded, conv::to_wide(AddStr).data());
@@ -183,7 +183,7 @@ void CChannelsDlg::RemoveChannel(int nId) {		// // //
 	// Put back in available list
 	for (HTREEITEM hChip = m_cAvailableTree.GetRootItem(); hChip; hChip = m_cAvailableTree.GetNextItem(hChip, TVGN_NEXT)) {
 		if (enum_cast<sound_chip_t>(m_cAvailableTree.GetItemData(hChip)) == Chip) {
-			HTREEITEM hChild = m_cAvailableTree.InsertItem(FormattedW(L"%i: %s", subindex, conv::to_wide(pSCS->GetFullChannelName(ChanID)).data()), hChip);
+			HTREEITEM hChild = m_cAvailableTree.InsertItem(FormattedW(L"%i: %s", subindex, conv::to_wide(pSCS->GetChannelFullName(ChanID)).data()), hChip);
 			m_cAvailableTree.SetItemData(hChild, value_cast(ChanID));
 			m_cAvailableTree.Expand(hChip, TVE_EXPAND);
 			m_cAvailableTree.SortChildren(hChip);

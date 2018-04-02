@@ -34,6 +34,10 @@ CSoundChipSet::value_type CSoundChipSet::GetNSFFlag() const {
 	return GetFlag() >> 1;
 }
 
+std::size_t CSoundChipSet::GetChipCount() const {
+	return chips_.count();
+}
+
 bool CSoundChipSet::ContainsChip(sound_chip_t chip) const {
 	return chips_.test(value_cast(chip));
 }

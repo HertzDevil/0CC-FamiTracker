@@ -67,15 +67,17 @@ BOOL CGotoDlg::OnInitDialog()
 
 	const CFamiTrackerView *pView = CFamiTrackerView::GetView();
 	const CFamiTrackerModule *pModule = pView->GetModuleData();
+	auto *pSCS = Env.GetSoundChipService();
 
 	CSoundChipSet chips = pModule->GetSoundChipSet();
-	for (sound_chip_t c : SOUND_CHIPS)
+	pSCS->ForeachType([&] (sound_chip_t c) {
 		if (chips.ContainsChip(c))
-			m_cChipEdit.AddString(conv::to_wide(Env.GetSoundChipService()->GetShortChipName(c)).data());
+			m_cChipEdit.AddString(conv::to_wide(pSCS->GetChipShortName(c)).data());
+	});
 
 	chan_id_t Channel = pView->GetSelectedChannelID();
 	if (auto c = GetChipFromChannel(Channel); c != sound_chip_t::NONE)
-		m_cChipEdit.SelectString(-1, conv::to_wide(Env.GetSoundChipService()->GetShortChipName(c)).data());
+		m_cChipEdit.SelectString(-1, conv::to_wide(pSCS->GetChipShortName(c)).data());
 
 	SetDlgItemInt(IDC_EDIT_GOTO_FRAME, pView->GetSelectedFrame());
 	SetDlgItemInt(IDC_EDIT_GOTO_ROW, pView->GetSelectedRow());

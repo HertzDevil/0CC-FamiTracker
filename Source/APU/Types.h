@@ -45,13 +45,6 @@ enum class sound_chip_t : std::uint8_t {		// // //
 
 inline constexpr std::size_t SOUND_CHIP_COUNT = 7;
 
-constexpr sound_chip_t SOUND_CHIPS[] = {
-	sound_chip_t::APU, sound_chip_t::VRC6, sound_chip_t::VRC7, sound_chip_t::FDS, sound_chip_t::MMC5, sound_chip_t::N163, sound_chip_t::S5B,
-};
-constexpr sound_chip_t EXPANSION_CHIPS[] = {
-	sound_chip_t::VRC6, sound_chip_t::VRC7, sound_chip_t::FDS, sound_chip_t::MMC5, sound_chip_t::N163, sound_chip_t::S5B,
-};
-
 enum class chan_id_t : unsigned {
 	SQUARE1,
 	SQUARE2,

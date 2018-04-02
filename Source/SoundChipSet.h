@@ -56,6 +56,7 @@ public:
 	value_type GetFlag() const;
 	value_type GetNSFFlag() const;
 
+	std::size_t GetChipCount() const;
 	bool ContainsChip(sound_chip_t chip) const;
 	bool IsMultiChip() const noexcept;
 	sound_chip_t GetSoundChip() const;

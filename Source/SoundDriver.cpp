@@ -68,8 +68,9 @@ void CSoundDriver::SetupTracks() {
 	for (std::size_t i = 0; i < CHANID_COUNT; ++i)
 		tracks_.emplace_back(nullptr, std::make_unique<CTrackerChannel>());
 
-	for (sound_chip_t c : SOUND_CHIPS)
+	Env.GetSoundChipService()->ForeachType([&] (sound_chip_t c) {
 		chips_.push_back(Env.GetSoundChipService()->MakeChipHandler(c));
+	});
 
 	for (auto &x : chips_) {
 		x->VisitChannelHandlers([&] (CChannelHandler &ch) {

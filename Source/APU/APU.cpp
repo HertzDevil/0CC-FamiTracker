@@ -41,8 +41,10 @@ CAPU::CAPU(IAudioCallback *pCallback) :		// // //
 	m_iFrameCycles(0),
 	m_fLevelVRC7(1.f)
 {
-	for (sound_chip_t c : SOUND_CHIPS)
-		m_pSoundChips.push_back(Env.GetSoundChipService()->MakeSoundChipDriver(c, *m_pMixer));
+	auto *pSCS = Env.GetSoundChipService();
+	pSCS->ForeachType([&] (sound_chip_t c) {
+		m_pSoundChips.push_back(pSCS->MakeSoundChipDriver(c, *m_pMixer));
+	});
 
 #ifdef LOGGING
 	m_pLog = std::make_unique<CFile>("apu_log.txt", CFile::modeCreate | CFile::modeWrite);

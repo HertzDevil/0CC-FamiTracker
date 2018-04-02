@@ -1487,9 +1487,6 @@
     <ClInclude Include="Source\SongLengthScanner.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ChannelName.h">
-      <Filter>Header Files\Sound Driver Headers\Emulation Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\ModuleImporter.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
     </ClInclude>

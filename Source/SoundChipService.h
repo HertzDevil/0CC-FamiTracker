@@ -35,10 +35,10 @@ public:
 	std::size_t GetChannelSubindex(chan_id_t ch) const;
 	chan_id_t MakeChannelIndex(sound_chip_t chip, std::size_t subindex) const;
 
-	std::string_view GetShortChipName(sound_chip_t chip) const;
-	std::string_view GetFullChipName(sound_chip_t chip) const;
-	std::string_view GetShortChannelName(chan_id_t ch) const;
-	std::string_view GetFullChannelName(chan_id_t ch) const;
+	std::string_view GetChipShortName(sound_chip_t chip) const;
+	std::string_view GetChipFullName(sound_chip_t chip) const;
+	std::string_view GetChannelShortName(chan_id_t ch) const;
+	std::string_view GetChannelFullName(chan_id_t ch) const;
 
 	sound_chip_t GetChipFromChannel(chan_id_t ch) const;
 	sound_chip_t GetChipFromString(std::string_view sv) const;

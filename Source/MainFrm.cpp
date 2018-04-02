@@ -1622,19 +1622,18 @@ void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 	std::string String;
 
 	CSoundChipSet Chip = GetDoc().GetModule()->GetSoundChipSet();
+	ASSERT(Chip.HasChips());
 
-	if (!Chip.IsMultiChip()) {		// // //
-		auto c = Chip.WithoutChip(sound_chip_t::APU).GetSoundChip();
-		String = c != sound_chip_t::NONE ? Env.GetSoundChipService()->GetFullChipName(c) : "No expansion chip";
-	}
-	else {
-		for (sound_chip_t c : EXPANSION_CHIPS)
+	if (Chip.GetChipCount() == 1)		// // //
+		String = Env.GetSoundChipService()->GetChipFullName(Chip.GetSoundChip());
+	else
+		Env.GetSoundChipService()->ForeachType([&] (sound_chip_t c) {
 			if (Chip.ContainsChip(c)) {
 				if (!String.empty())
 					String += " + ";
-				String += std::string {Env.GetSoundChipService()->GetShortChipName(c)};
+				String += std::string {Env.GetSoundChipService()->GetChipShortName(c)};
 			}
-	}
+		});
 
 	pCmdUI->Enable();
 	pCmdUI->SetText(conv::to_wide(String).data());
@@ -2605,10 +2604,11 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 	CSoundChipSet Chip = Doc.GetModule()->GetSoundChipSet();		// // //
 	sound_chip_t SelectedChip = GetChipFromChannel(pView->GetSelectedChannelID());		// // // where the cursor is located
 
-	auto *scs = Env.GetSoundChipService();
-	for (sound_chip_t c : SOUND_CHIPS)
+	auto *pSCS = Env.GetSoundChipService();
+	pSCS->ForeachType([&] (sound_chip_t c) {
 		if (Chip.ContainsChip(c))
-			menu.AppendMenuW(MFT_STRING, value_cast(c) + 1, (L"New " + conv::to_wide(scs->GetShortChipName(c)) + L" instrument").data());
+			menu.AppendMenuW(MFT_STRING, value_cast(c) + 1, (L"New " + conv::to_wide(pSCS->GetChipShortName(c)) + L" instrument").data());
+	});
 
 	if (SelectedChip != sound_chip_t::NONE)
 		menu.SetDefaultItem(value_cast(SelectedChip) + 1);

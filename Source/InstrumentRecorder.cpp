@@ -31,8 +31,8 @@
 #include "InstrumentService.h"
 #include "DetuneTable.h"
 #include "FamiTrackerEnv.h"
+#include "SoundChipService.h"
 #include "Sequence.h"
-#include "ChannelName.h"
 
 CInstrumentRecorder::CInstrumentRecorder(CSoundGen *pSG) :
 	m_pSoundGen(pSG),
@@ -322,7 +322,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 	*m_pDumpInstrument = Env.GetInstrumentService()->Make(Type);		// // //
 	if (!*m_pDumpInstrument) return;
 
-	auto str = std::string {GetChannelFullName(m_iRecordChannel)};
+	auto str = std::string {Env.GetSoundChipService()->GetChannelFullName(m_iRecordChannel)};
 	(*m_pDumpInstrument)->SetName(u8"from " + str);
 
 	if (Type == INST_FDS) {
