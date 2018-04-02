@@ -145,16 +145,15 @@ BOOL CAboutDlg::OnInitDialog()
 	SetDlgItemTextW(IDC_ABOUT1, aboutString);
 	SetDlgItemTextW(IDC_ABOUT_CONTRIB,
 		L"- Original software by jsr\r\n"
-		L"- Export plugin support by Gradualore\r\n"
 		L"- Toolbar icons are made by ilkke\r\n"
 		L"- DPCM import resampler by Jarhmander\r\n"
 		L"- Module text import/export by rainwarrior");		// // //
 	SetDlgItemTextW(IDC_ABOUT_LIB,
-		L"- Blip_buffer 0.4.0 is Copyright (C) blargg (LGPL v2.1)\r\n"
+		L"- Blip_buffer 0.4.0 is (C) blargg (LGPL v2.1)\r\n"
 		L"- Fast Fourier Transform code is (C) 2017 Project Nayuki (MIT)\r\n"
-		L"- YM2413 emulator is written by Mitsutaka Okazaki (MIT)\r\n"
+		L"- VRC7 sound emulator is (C) Mitsutaka Okazaki (MIT)\r\n"
 		L"- FDS sound emulator from rainwarrior's NSFPlay\r\n"
-		L"- JSON for Modern C++ is Copyright (C) Niels Lohmann (MIT)");
+		L"- JSON for Modern C++ is (C) Niels Lohmann (MIT)");
 
 	m_cHead.SubclassDlgItem(IDC_HEAD, this);
 

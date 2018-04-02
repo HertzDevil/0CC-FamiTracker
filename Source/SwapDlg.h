@@ -49,7 +49,7 @@ protected:
 	sound_chip_t m_iDestChip1, m_iDestChip2;
 	unsigned int m_iTrack;
 
-	CEdit m_cChannelFirst, m_cChannelSecond;
+	CEdit m_cSubindexFirst, m_cSubindexSecond;
 	CComboBox m_cChipFirst, m_cChipSecond;
 
 	DECLARE_MESSAGE_MAP()

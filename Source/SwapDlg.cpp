@@ -30,6 +30,7 @@
 #include "SongData.h"
 #include "APU/Types.h"
 #include "str_conv/str_conv.hpp"
+#include "NumConv.h"
 
 // CSwapDlg dialog
 
@@ -66,40 +67,27 @@ END_MESSAGE_MAP()
 
 BOOL CSwapDlg::OnInitDialog()
 {
-	m_cChannelFirst.SubclassDlgItem(IDC_EDIT_SWAP_CHAN1, this);
-	m_cChannelSecond.SubclassDlgItem(IDC_EDIT_SWAP_CHAN2, this);
+	m_cSubindexFirst.SubclassDlgItem(IDC_EDIT_SWAP_CHAN1, this);
+	m_cSubindexSecond.SubclassDlgItem(IDC_EDIT_SWAP_CHAN2, this);
 	m_cChipFirst.SubclassDlgItem(IDC_COMBO_SWAP_CHIP1, this);
 	m_cChipSecond.SubclassDlgItem(IDC_COMBO_SWAP_CHIP2, this);
 
 	const auto &chips = CFamiTrackerDoc::GetDoc()->GetModule()->GetSoundChipSet();
-	if (chips.ContainsChip(sound_chip_t::APU))
-		m_cChipFirst.AddString(L"2A03");
-	if (chips.ContainsChip(sound_chip_t::VRC6))
-		m_cChipFirst.AddString(L"VRC6");
-	if (chips.ContainsChip(sound_chip_t::VRC7))
-		m_cChipFirst.AddString(L"VRC7");
-	if (chips.ContainsChip(sound_chip_t::FDS))
-		m_cChipFirst.AddString(L"FDS");
-	if (chips.ContainsChip(sound_chip_t::MMC5))
-		m_cChipFirst.AddString(L"MMC5");
-	if (chips.ContainsChip(sound_chip_t::N163))
-		m_cChipFirst.AddString(L"N163");
-	if (chips.ContainsChip(sound_chip_t::S5B))
-		m_cChipFirst.AddString(L"5B");
+	Env.GetSoundChipService()->ForeachType([&] (sound_chip_t ch) {
+		if (chips.ContainsChip(ch)) {
+			auto wstr = conv::to_wide(Env.GetSoundChipService()->GetShortChipName(ch));
+			m_cChipFirst.AddString(wstr.data());
+			m_cChipSecond.AddString(wstr.data());
+		}
+	});
 
-	CStringW str;
-	for (int i = 0; i < m_cChipFirst.GetCount(); ++i)
-	{
-	   m_cChipFirst.GetLBText(i, str);
-	   m_cChipSecond.AddString(str);
-	}
-	m_cChannelFirst.SetWindowTextW(L"1");
-	m_cChannelSecond.SetWindowTextW(L"2");
+	m_cSubindexFirst.SetWindowTextW(L"1");
+	m_cSubindexSecond.SetWindowTextW(L"2");
 	m_cChipFirst.SetCurSel(0);
 	m_cChipSecond.SetCurSel(0);
 	CheckDlgButton(IDC_CHECK_SWAP_ALL, BST_UNCHECKED);
 
-	m_cChannelFirst.SetFocus();
+	m_cSubindexFirst.SetFocus();
 
 	return CDialog::OnInitDialog();
 }
@@ -114,16 +102,16 @@ void CSwapDlg::CheckDestination() const
 void CSwapDlg::OnEnChangeEditSwapChan1()
 {
 	CStringW str;
-	m_cChannelFirst.GetWindowTextW(str);
-	m_iDestChannel1 = StrToIntW(str) - 1;
+	m_cSubindexFirst.GetWindowTextW(str);
+	m_iDestChannel1 = conv::to_uint(str).value_or(0) - 1;
 	CheckDestination();
 }
 
 void CSwapDlg::OnEnChangeEditSwapChan2()
 {
 	CStringW str;
-	m_cChannelSecond.GetWindowTextW(str);
-	m_iDestChannel2 = StrToIntW(str) - 1;
+	m_cSubindexSecond.GetWindowTextW(str);
+	m_iDestChannel2 = conv::to_uint(str).value_or(0) - 1;
 	CheckDestination();
 }
 

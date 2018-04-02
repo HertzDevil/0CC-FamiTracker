@@ -172,8 +172,8 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "&Pattern",                    ID_SELECT_PATTERN
             MENUITEM "&Frame",                      ID_SELECT_FRAME
-            MENUITEM "C&hannel",                    ID_SELECT_CHANNEL
-            MENUITEM "&Track",                      ID_SELECT_TRACK
+            MENUITEM "&Track",                      ID_SELECT_CHANNEL
+            MENUITEM "&Song",                       ID_SELECT_TRACK
             MENUITEM SEPARATOR
             MENUITEM "In &Other Editor",            ID_SELECT_OTHER
         END
@@ -216,8 +216,6 @@ BEGIN
             MENUITEM "D&ecrease Octave",            ID_TRANSPOSE_DECREASEOCTAVE
             MENUITEM "I&ncrease Octave",            ID_TRANSPOSE_INCREASEOCTAVE
         END
-        MENUITEM SEPARATOR
-        MENUITEM "S&wap Channels...",           ID_EDIT_SWAPCHANNELS
     END
     POPUP "&Song"
     BEGIN
@@ -235,6 +233,7 @@ BEGIN
         MENUITEM "Populate Uni&que Patterns",   ID_CLEANUP_POPULATEUNIQUEPATTERNS
         MENUITEM SEPARATOR
         MENUITEM "&Transpose Song...",          ID_TRANSPOSE_CUSTOM
+        MENUITEM "&Swap Tracks...",             ID_EDIT_SWAPCHANNELS
         MENUITEM SEPARATOR
         MENUITEM "&Estimate Song Length",       ID_MODULE_ESTIMATESONGLENGTH
     END
@@ -256,7 +255,7 @@ BEGIN
         MENUITEM "&Detune Settings...",         ID_MODULE_DETUNE
         MENUITEM "&Groove Settings",            ID_MODULE_GROOVE
         MENUITEM "&Bookmark Manager",           ID_MODULE_BOOKMARK
-        MENUITEM "C&hannels",                   ID_MODULE_CHANNELS
+        MENUITEM "&Tracks...",                  ID_MODULE_CHANNELS
         MENUITEM SEPARATOR
         POPUP "Clean&up"
         BEGIN
@@ -289,8 +288,8 @@ BEGIN
         MENUITEM "Toggle &Edit Mode",           ID_TRACKER_EDIT
         MENUITEM "Set Ro&w Marker",             ID_TRACKER_SET_MARKER
         MENUITEM SEPARATOR
-        MENUITEM "&Toggle Channel",             ID_TRACKER_TOGGLECHANNEL
-        MENUITEM "S&olo Channel",               ID_TRACKER_SOLOCHANNEL
+        MENUITEM "&Toggle Track",               ID_TRACKER_TOGGLECHANNEL
+        MENUITEM "S&olo Track",                 ID_TRACKER_SOLOCHANNEL
         MENUITEM "To&ggle Chip",                ID_TRACKER_TOGGLECHIP
         MENUITEM "So&lo Chip",                  ID_TRACKER_SOLOCHIP
         MENUITEM SEPARATOR
@@ -315,7 +314,7 @@ BEGIN
         END
         MENUITEM SEPARATOR
         MENUITEM "Average &BPM",                ID_VIEW_AVERAGEBPM
-        MENUITEM "C&hannel State",              ID_VIEW_CHANNELSTATE
+        MENUITEM "Trac&k State",                ID_VIEW_CHANNELSTATE
         MENUITEM "&Register State",             ID_TRACKER_DISPLAYREGISTERSTATE
         MENUITEM SEPARATOR
         POPUP "Frame Editor &Position"
@@ -370,8 +369,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Pic&k Up Row",                ID_POPUP_PICKUPROW
         MENUITEM SEPARATOR
-        MENUITEM "T&oggle Channel",             ID_TRACKER_TOGGLECHANNEL
-        MENUITEM "&Solo Channel",               ID_TRACKER_SOLOCHANNEL
+        MENUITEM "T&oggle Track",               ID_TRACKER_TOGGLECHANNEL
+        MENUITEM "&Solo Track",                 ID_TRACKER_SOLOCHANNEL
         MENUITEM "To&ggle Chip",                ID_TRACKER_TOGGLECHIP
         MENUITEM "So&lo Chip",                  ID_TRACKER_SOLOCHIP
     END
@@ -447,11 +446,11 @@ IDR_PATTERN_HEADER_POPUP MENU
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "&Toggle Channel",             ID_TRACKER_TOGGLECHANNEL
-        MENUITEM "&Solo Channel",               ID_TRACKER_SOLOCHANNEL
+        MENUITEM "&Toggle Track",               ID_TRACKER_TOGGLECHANNEL
+        MENUITEM "&Solo Track",                 ID_TRACKER_SOLOCHANNEL
         MENUITEM "To&ggle Chip",                ID_TRACKER_TOGGLECHIP
         MENUITEM "So&lo Chip",                  ID_TRACKER_SOLOCHIP
-        MENUITEM "&Unmute All Channels",        ID_POPUP_UNMUTEALLCHANNELS
+        MENUITEM "&Unmute All Tracks",          ID_POPUP_UNMUTEALLCHANNELS
         MENUITEM SEPARATOR
         POPUP "&Meter Decay Rate"
         BEGIN
@@ -908,6 +907,10 @@ BEGIN
         HORZGUIDE, 138
     END
 
+    IDD_PERFORMANCE, DIALOG
+    BEGIN
+    END
+
     IDD_SPEED, DIALOG
     BEGIN
     END
@@ -915,6 +918,10 @@ BEGIN
     IDD_PROPERTIES, DIALOG
     BEGIN
         BOTTOMMARGIN, 296
+    END
+
+    IDD_WAVE_PROGRESS, DIALOG
+    BEGIN
     END
 
     IDD_SAMPLE_EDITOR, DIALOG
@@ -1372,7 +1379,7 @@ BEGIN
     EDITTEXT        IDC_SECONDS,53,37,44,12,ES_AUTOHSCROLL
     CONTROL         "",IDC_SPIN_TIME,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,93,36,11,14
     LTEXT           "mm:ss",IDC_STATIC,106,38,21,10,SS_CENTERIMAGE
-    GROUPBOX        "Channels",IDC_STATIC,7,96,137,87
+    GROUPBOX        "Tracks",IDC_STATIC,7,96,137,87
     LISTBOX         IDC_CHANNELS,14,107,124,70,LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Song",IDC_STATIC,7,60,137,30
     COMBOBOX        IDC_TRACKS,14,72,124,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
@@ -1432,7 +1439,7 @@ END
 
 IDD_CHANNELS DIALOGEX 0, 0, 303, 236
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Channels"
+CAPTION "Tracks"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,194,215,50,14
@@ -1528,7 +1535,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,51,210,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,104,210,50,14
-    GROUPBOX        "Tracks",IDC_STATIC,7,7,147,137
+    GROUPBOX        "Songs",IDC_STATIC,7,7,147,137
     CONTROL         "Include instruments",IDC_INSTRUMENTS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,160,116,10
     CONTROL         "Overwrite detune table",IDC_IMPORT_DETUNE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,182,116,10
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,203,147,1
@@ -1579,7 +1586,7 @@ BEGIN
     PUSHBUTTON      "Import file",IDC_SONG_IMPORT,138,97,60,14
     LTEXT           " Title",IDC_STATIC,14,135,17,12,SS_CENTERIMAGE
     EDITTEXT        IDC_SONGNAME,34,135,100,12,ES_AUTOHSCROLL
-    GROUPBOX        "Expansion sound",IDC_STATIC,7,156,199,43
+    GROUPBOX        "Expansion chips",IDC_STATIC,7,156,199,43
     CONTROL         "VRC6",IDC_EXPANSION_VRC6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,168,33,10
     CONTROL         "MMC5",IDC_EXPANSION_MMC5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,59,168,35,10
     CONTROL         "N163",IDC_EXPANSION_N163,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,106,168,33,10
@@ -1814,7 +1821,7 @@ BEGIN
     LTEXT           "Frame:",IDC_STATIC,9,6,24,8
     LTEXT           "Row:",IDC_STATIC,45,6,18,8
     LTEXT           "Chip:",IDC_STATIC,81,6,18,8
-    LTEXT           "Channel:",IDC_STATIC,124,6,30,8
+    LTEXT           "Track:",IDC_STATIC,124,6,21,8
     EDITTEXT        IDC_EDIT_GOTO_FRAME,8,19,28,14,ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        IDC_EDIT_GOTO_ROW,44,19,28,14,ES_AUTOHSCROLL | ES_NUMBER
     COMBOBOX        IDC_COMBO_GOTO_CHIP,80,19,35,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
@@ -1825,19 +1832,19 @@ END
 
 IDD_SWAP DIALOGEX 0, 0, 87, 112
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Swap Channels"
+CAPTION "Swap Tracks"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,7,91,31,14
     PUSHBUTTON      "Cancel",IDCANCEL,49,91,31,14
     LTEXT           "Chip:",IDC_STATIC,9,6,18,8
-    LTEXT           "Channel:",IDC_STATIC,49,6,30,8
+    LTEXT           "Track:",IDC_STATIC,49,6,21,8
     LTEXT           "Warning: Resets undo after swapping!",IDC_STATIC,7,70,73,17
     COMBOBOX        IDC_COMBO_SWAP_CHIP1,7,19,34,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBO_SWAP_CHIP2,7,38,34,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDC_EDIT_SWAP_CHAN1,49,19,28,14,ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        IDC_EDIT_SWAP_CHAN2,49,38,28,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Apply to all tracks",IDC_CHECK_SWAP_ALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,57,73,10
+    CONTROL         "Apply to all songs",IDC_CHECK_SWAP_ALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,57,72,10
 END
 
 IDD_RECORD_SETTINGS DIALOGEX 0, 0, 167, 105
@@ -1883,7 +1890,7 @@ BEGIN
     LTEXT           "Warning: Resets undo history!",IDC_STATIC,15,185,99,8
     DEFPUSHBUTTON   "OK",IDOK,106,205,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,160,205,50,14
-    CONTROL         "Transpose all tracks",IDC_CHECK_TRSP_ALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,36,79,10
+    CONTROL         "Transpose all songs",IDC_CHECK_TRSP_ALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,36,79,10
     PUSHBUTTON      "Reverse",IDC_BUTTON_TRSP_REVERSE,47,166,50,14
     PUSHBUTTON      "Clear All",IDC_BUTTON_TRSP_CLEAR,120,166,50,14
 END
@@ -1907,7 +1914,7 @@ BEGIN
     RTEXT           "Split point:",IDC_STATIC,16,35,35,8
     COMBOBOX        IDC_COMBO_SPLIT_NOTE,55,33,37,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBO_SPLIT_OCTAVE,99,33,21,15,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    RTEXT           "Channel:",IDC_STATIC,21,53,30,8
+    RTEXT           "Track:",IDC_STATIC,30,53,21,8
     COMBOBOX        IDC_COMBO_SPLIT_CHAN,55,51,65,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     RTEXT           "Instrument:",IDC_STATIC,12,71,39,8
     COMBOBOX        IDC_COMBO_SPLIT_INST,55,69,65,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
@@ -2261,6 +2268,11 @@ BEGIN
     0
 END
 
+IDD_IMPORT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2296,10 +2308,10 @@ BEGIN
     IDS_PASTE_REPEATED_ROW  "Warning: Clip data may overwrite itself during pasting. Do you want to apply the paste operation?"
     IDS_PASTE_NONTERMINAL   "Warning: Clip data may alter frame lengths during pasting. Do you want to apply the paste operation?"
     IDS_DISABLE_SAVE        "Saving to external files is disabled in this build of 0CC-FamiTracker."
-    IDS_BOOKMARK_EMPTY      "The current track does not contain any bookmarks."
+    IDS_BOOKMARK_EMPTY      "The current song does not contain any bookmarks."
     IDS_POPULATE_PATTERNS   "Do you want to copy a unique pattern for all frames? There is no undo for this command."
     IDS_BOOKMARK_FORMAT     "Moved to bookmark %1. (Highlight: %2, %3)"
-    IDS_DUMP_NOT_SUPPORTED  "This channel does not support logging output to create a new instrument."
+    IDS_DUMP_NOT_SUPPORTED  "Instrument logging is not supported on this track."
     IDS_SEQUENCE_LIMIT      "You cannot add more instrument sequences"
     IDS_FIND_NONE           "Could not find the search query in the current search area."
     IDS_FINDRESULT_COUNT    "%1 %2 found."
@@ -2498,7 +2510,7 @@ BEGIN
     ID_PREV_SONG            "Select previous song\nPrevious song"
     ID_EDIT_INSTRUMENTMASK  "Disable writing to the instrument column while entering a note\nInstrument Mask"
     ID_TRACKER_SWITCHTOTRACKINSTRUMENT 
-                            "Switch to channel instruments when playing\nSwitch to Track Instrument"
+                            "Switch to currently played instrument when playing\nSwitch to Track Instrument"
     ID_FILE_CREATEWAV       "Save the file as a WAV-file\nCreate WAV"
     ID_VIEW_CONTROLPANEL    "Show or hide the control panel\nToggle Control Panel"
     ID_EDIT_CLEARPATTERNS   "Reset all patterns and frames\nClear Patterns"
@@ -2507,8 +2519,8 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_TRACKER_SOLOCHANNEL  "Mute / unmute all but the selected channel\nSolo Channel"
-    ID_TRACKER_TOGGLECHANNEL "Mute / unmute selected channel\nToggle Channel"
+    ID_TRACKER_SOLOCHANNEL  "Mute / unmute all but the selected track\nSolo Track"
+    ID_TRACKER_TOGGLECHANNEL "Mute / unmute selected track\nToggle Track"
     ID_MODULE_EDITINSTRUMENT "Open instrument editor\nEdit instrument"
 END
 
@@ -2591,7 +2603,7 @@ END
 STRINGTABLE
 BEGIN
     ID_DECAY_SLOW           "Volume meters slowly decrease over time\nSlow Decay Rate"
-    ID_DECAY_FAST           "Volume meters reflect instant channel amplitude\nFast Decay Rate"
+    ID_DECAY_FAST           "Volume meters reflect instant track amplitude\nFast Decay Rate"
     ID_INSTRUMENT_DEEPCLONE "Create a copy of selected instrument including all sequences\nDeep Clone Instrument"
     ID_EDIT_FIND_TOGGLE     "Bring up the find / replace tab\nToggle Find / Replace Tab"
 END
@@ -2736,12 +2748,12 @@ BEGIN
     ID_SELECT_ROW           "Select the current row\nSelect Row"
     ID_SELECT_PATTERN       "Select the current patterm\nSelect Pattern"
     ID_SELECT_FRAME         "Select the current frame\nSelect Frame"
-    ID_SELECT_CHANNEL       "Select the current channel\nSelect Channel"
-    ID_SELECT_TRACK         "Select the entire track\nSelect Track"
+    ID_SELECT_CHANNEL       "Select the current track\nSelect Track"
+    ID_SELECT_TRACK         "Select the entire song\nSelect Song"
     ID_SELECT_COLUMN        "Select the entire column in the current pattern\nSelect Column"
     ID_COPYAS_TEXT          "Copy the current selection as pretty-printed text\nCopy As Text"
     ID_COPYAS_VOLUMESEQUENCE 
-                            "Copy the volume sequence in the first selected channel\nCopy As Volume Sequence"
+                            "Copy the volume sequence in the first selected track\nCopy As Volume Sequence"
     ID_COPYAS_PPMCK         "Copy the current selection as a PPMCK-compatible MML data\nCopy As PPMCK Data"
 END
 
@@ -2753,7 +2765,7 @@ END
 STRINGTABLE
 BEGIN
     ID_POPUP_PICKUPROW      "Select current row's instrument\nPick Up Row"
-    ID_POPUP_UNMUTEALLCHANNELS "Unmute all channel\nUnmute all channels"
+    ID_POPUP_UNMUTEALLCHANNELS "Unmute all tracks\nUnmute all tracks"
 END
 
 STRINGTABLE
@@ -2763,13 +2775,13 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_EDIT_GOTO            "Go to the specified position in the current track\nGo To"
+    ID_EDIT_GOTO            "Go to the specified position in the current song\nGo To"
     ID_MODULE_BOOKMARK      "Open the bookmark settings dialog\nBookmark Manager"
     ID_BOOKMARKS_TOGGLE     "Create or delete a bookmark on the current row\nToggle Bookmark"
     ID_BOOKMARKS_PREVIOUS   "Navigate to the previous bookmark\nPrevious Bookmark"
     ID_BOOKMARKS_NEXT       "Navigate to the next bookmark\nNext Bookmark"
-    ID_EDIT_SWAPCHANNELS    "Exchange the position of two channels\nSwap Channels"
-    ID_TRACKER_RECORDTOINST "Create a new instrument by logging output from current channel\nRecord to Instrument"
+    ID_EDIT_SWAPCHANNELS    "Exchange the data of two tracks\nSwap Tracks"
+    ID_TRACKER_RECORDTOINST "Create a new instrument by logging output from current track\nRecord to Instrument"
     ID_TRACKER_RECORDERSETTINGS 
                             "Open the instrument recorder settings dialog\nRecorder Settings"
     ID_TRANSPOSE_CUSTOM     "Transpose song by custom amount\nTranspose Song"
@@ -2783,7 +2795,7 @@ BEGIN
     ID_RECENTFILES_CLEAR    "Clear the recent file list\nClear Recent File List"
     ID_EDIT_SPLITKEYBOARD   "Open the split keyboard settings dialog\nSplit Keyboard"
     ID_VIEW_AVERAGEBPM      "Display average BPM value instead of instant BPM value\nDisplay Average BPM"
-    ID_VIEW_CHANNELSTATE    "Display information about active effects\nDisplay Channel State"
+    ID_VIEW_CHANNELSTATE    "Display information about active effects\nDisplay Track State"
     ID_TRACKER_PLAY_MARKER  "Play pattern from row marker\nPlay from Marker"
     ID_TRACKER_SET_MARKER   "Set a row marker for playback\nSet Row Marker"
     ID_SELECT_OTHER         "Restore the current selection in the inactive editor window\nSelect in Other Editor"
