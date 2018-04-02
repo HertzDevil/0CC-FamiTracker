@@ -49,12 +49,40 @@ sound_chip_t CSoundChipType2A03::GetID() const {
 	return sound_chip_t::APU;
 }
 
+std::size_t CSoundChipType2A03::GetSupportedChannelCount() const {
+	return 5;
+}
+
+chan_id_t CSoundChipType2A03::GetFirstChannelID() const {
+	return chan_id_t::SQUARE1;
+}
+
 std::string_view CSoundChipType2A03::GetShortName() const {
 	return "2A03";
 }
 
 std::string_view CSoundChipType2A03::GetFullName() const {
 	return "Nintendo 2A03";
+}
+
+std::string_view CSoundChipType2A03::GetShortChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {"PU1"sv, "PU2"sv, "TRI"sv, "NOI"sv, "DMC"sv};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
+}
+
+std::string_view CSoundChipType2A03::GetFullChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {
+		"Pulse 1"sv,
+		"Pulse 2"sv,
+		"Triangle"sv,
+		"Noise"sv,
+		"DPCM"sv,
+	};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
 std::unique_ptr<CSoundChip> CSoundChipType2A03::MakeSoundDriver(CMixer &mixer) const {
@@ -77,12 +105,38 @@ sound_chip_t CSoundChipTypeVRC6::GetID() const {
 	return sound_chip_t::VRC6;
 }
 
+std::size_t CSoundChipTypeVRC6::GetSupportedChannelCount() const {
+	return 3;
+}
+
+chan_id_t CSoundChipTypeVRC6::GetFirstChannelID() const {
+	return chan_id_t::VRC6_PULSE1;
+}
+
 std::string_view CSoundChipTypeVRC6::GetShortName() const {
 	return "VRC6";
 }
 
 std::string_view CSoundChipTypeVRC6::GetFullName() const {
 	return "Konami VRC6";
+}
+
+std::string_view CSoundChipTypeVRC6::GetShortChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {"V1"sv, "V2"sv, "SAW"sv};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
+}
+
+std::string_view CSoundChipTypeVRC6::GetFullChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {
+		"VRC6 Pulse 1"sv,
+		"VRC6 Pulse 2"sv,
+		"Sawtooth"sv,
+	};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
 std::unique_ptr<CSoundChip> CSoundChipTypeVRC6::MakeSoundDriver(CMixer &mixer) const {
@@ -103,12 +157,41 @@ sound_chip_t CSoundChipTypeVRC7::GetID() const {
 	return sound_chip_t::VRC7;
 }
 
+std::size_t CSoundChipTypeVRC7::GetSupportedChannelCount() const {
+	return 6;
+}
+
+chan_id_t CSoundChipTypeVRC7::GetFirstChannelID() const {
+	return chan_id_t::VRC7_CH1;
+}
+
 std::string_view CSoundChipTypeVRC7::GetShortName() const {
 	return "VRC7";
 }
 
 std::string_view CSoundChipTypeVRC7::GetFullName() const {
 	return "Konami VRC7";
+}
+
+std::string_view CSoundChipTypeVRC7::GetShortChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {"FM1"sv, "FM2"sv, "FM3"sv, "FM4"sv, "FM5"sv, "FM6"sv};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
+}
+
+std::string_view CSoundChipTypeVRC7::GetFullChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {
+		"FM Channel 1"sv,
+		"FM Channel 2"sv,
+		"FM Channel 3"sv,
+		"FM Channel 4"sv,
+		"FM Channel 5"sv,
+		"FM Channel 6"sv,
+	};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
 std::unique_ptr<CSoundChip> CSoundChipTypeVRC7::MakeSoundDriver(CMixer &mixer) const {
@@ -128,12 +211,36 @@ sound_chip_t CSoundChipTypeFDS::GetID() const {
 	return sound_chip_t::FDS;
 }
 
+std::size_t CSoundChipTypeFDS::GetSupportedChannelCount() const {
+	return 1;
+}
+
+chan_id_t CSoundChipTypeFDS::GetFirstChannelID() const {
+	return chan_id_t::FDS;
+}
+
 std::string_view CSoundChipTypeFDS::GetShortName() const {
 	return "FDS";
 }
 
 std::string_view CSoundChipTypeFDS::GetFullName() const {
 	return "Nintendo FDS";
+}
+
+std::string_view CSoundChipTypeFDS::GetShortChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {"FDS"sv};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
+}
+
+std::string_view CSoundChipTypeFDS::GetFullChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {
+		"FDS"sv,
+	};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
 std::unique_ptr<CSoundChip> CSoundChipTypeFDS::MakeSoundDriver(CMixer &mixer) const {
@@ -152,12 +259,38 @@ sound_chip_t CSoundChipTypeMMC5::GetID() const {
 	return sound_chip_t::MMC5;
 }
 
+std::size_t CSoundChipTypeMMC5::GetSupportedChannelCount() const {
+	return 3; // 2
+}
+
+chan_id_t CSoundChipTypeMMC5::GetFirstChannelID() const {
+	return chan_id_t::MMC5_SQUARE1;
+}
+
 std::string_view CSoundChipTypeMMC5::GetShortName() const {
 	return "MMC5";
 }
 
 std::string_view CSoundChipTypeMMC5::GetFullName() const {
 	return "Nintendo MMC5";
+}
+
+std::string_view CSoundChipTypeMMC5::GetShortChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {"PU3"sv, "PU4"sv, "PCM"sv};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
+}
+
+std::string_view CSoundChipTypeMMC5::GetFullChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {
+		"MMC5 Pulse 1"sv,
+		"MMC5 Pulse 2"sv,
+		"MMC5 PCM"sv,
+	};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
 std::unique_ptr<CSoundChip> CSoundChipTypeMMC5::MakeSoundDriver(CMixer &mixer) const {
@@ -177,12 +310,43 @@ sound_chip_t CSoundChipTypeN163::GetID() const {
 	return sound_chip_t::N163;
 }
 
+std::size_t CSoundChipTypeN163::GetSupportedChannelCount() const {
+	return 8;
+}
+
+chan_id_t CSoundChipTypeN163::GetFirstChannelID() const {
+	return chan_id_t::N163_CH1;
+}
+
 std::string_view CSoundChipTypeN163::GetShortName() const {
 	return "N163";
 }
 
 std::string_view CSoundChipTypeN163::GetFullName() const {
 	return "Namco 163";
+}
+
+std::string_view CSoundChipTypeN163::GetShortChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {"N1"sv, "N2"sv, "N3"sv, "N4"sv, "N5"sv, "N6"sv, "N7"sv, "N8"sv};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
+}
+
+std::string_view CSoundChipTypeN163::GetFullChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {
+		"Namco 1"sv,
+		"Namco 2"sv,
+		"Namco 3"sv,
+		"Namco 4"sv,
+		"Namco 5"sv,
+		"Namco 6"sv,
+		"Namco 7"sv,
+		"Namco 8"sv,
+	};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
 std::unique_ptr<CSoundChip> CSoundChipTypeN163::MakeSoundDriver(CMixer &mixer) const {
@@ -202,12 +366,38 @@ sound_chip_t CSoundChipTypeS5B::GetID() const {
 	return sound_chip_t::S5B;
 }
 
+std::size_t CSoundChipTypeS5B::GetSupportedChannelCount() const {
+	return 3;
+}
+
+chan_id_t CSoundChipTypeS5B::GetFirstChannelID() const {
+	return chan_id_t::S5B_CH1;
+}
+
 std::string_view CSoundChipTypeS5B::GetShortName() const {
 	return "5B";
 }
 
 std::string_view CSoundChipTypeS5B::GetFullName() const {
 	return "Sunsoft 5B";
+}
+
+std::string_view CSoundChipTypeS5B::GetShortChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {"5B1"sv, "5B2"sv, "5B3"sv};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
+}
+
+std::string_view CSoundChipTypeS5B::GetFullChannelName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {
+		"5B Square 1"sv,
+		"5B Square 2"sv,
+		"5B Square 3"sv,
+	};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
 std::unique_ptr<CSoundChip> CSoundChipTypeS5B::MakeSoundDriver(CMixer &mixer) const {

@@ -40,6 +40,7 @@ enum class sound_chip_t : std::uint8_t {		// // //
 	N163,
 	S5B,
 	NONE = (std::uint8_t)-1,
+	none = NONE,
 };
 
 inline constexpr std::size_t SOUND_CHIP_COUNT = 7;
@@ -90,6 +91,7 @@ enum class chan_id_t : unsigned {
 
 	COUNT,		/* Total number of channels */
 	NONE = (unsigned)-1,		// // //
+	none = NONE,
 };
 
 // // // moved from FamiTrackerTypes.h

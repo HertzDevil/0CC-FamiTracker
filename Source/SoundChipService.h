@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <unordered_map>
+#include <map>
 #include "SoundChipType.h"
 
 class CSoundChipService {
@@ -31,15 +31,31 @@ public:
 	void AddType(std::unique_ptr<CSoundChipType> stype);
 	void AddDefaultTypes();
 
+	std::size_t GetSupportedChannelCount(sound_chip_t chip) const;
+	std::size_t GetChannelSubindex(chan_id_t ch) const;
+	chan_id_t MakeChannelIndex(sound_chip_t chip, std::size_t subindex) const;
+
 	std::string_view GetShortChipName(sound_chip_t chip) const;
 	std::string_view GetFullChipName(sound_chip_t chip) const;
+	std::string_view GetShortChannelName(chan_id_t ch) const;
+	std::string_view GetFullChannelName(chan_id_t ch) const;
+
+	sound_chip_t GetChipFromChannel(chan_id_t ch) const;
 	sound_chip_t GetChipFromString(std::string_view sv) const;
 
 	std::unique_ptr<CSoundChip> MakeSoundChipDriver(sound_chip_t chip, CMixer &mixer) const;
 	std::unique_ptr<CChipHandler> MakeChipHandler(sound_chip_t chip) const;
 
+	// void (*F)(sound_chip_t chip)
+	template <typename F>
+	void ForeachType(F f) const {
+		for (auto &x : types_)
+			f(x.first);
+	}
+
 private:
 	const CSoundChipType &GetType(sound_chip_t chip) const;
+	const CSoundChipType *GetTypePtr(sound_chip_t chip) const;
 
-	std::unordered_map<sound_chip_t, std::unique_ptr<CSoundChipType>> types_;
+	std::map<sound_chip_t, std::unique_ptr<CSoundChipType>> types_;
 };

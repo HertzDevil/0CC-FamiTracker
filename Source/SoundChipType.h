@@ -34,8 +34,14 @@ class CChipHandler;
 class CSoundChipType {
 public:
 	virtual sound_chip_t GetID() const = 0;
+	virtual std::size_t GetSupportedChannelCount() const = 0;
+	virtual chan_id_t GetFirstChannelID() const = 0;
+
 	virtual std::string_view GetShortName() const = 0;
 	virtual std::string_view GetFullName() const = 0;
+	virtual std::string_view GetShortChannelName(std::size_t subindex) const = 0;
+	virtual std::string_view GetFullChannelName(std::size_t subindex) const = 0;
+
 	virtual std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer) const = 0;
 	virtual std::unique_ptr<CChipHandler> MakeChipHandler() const = 0;
 };

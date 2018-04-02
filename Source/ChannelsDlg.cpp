@@ -27,52 +27,9 @@
 #include "ChannelOrder.h"		// // //
 #include "TrackerChannel.h"
 #include "APU/Types.h"		// // //
-
-// Used to handle channels in a future version. Not finished.
-
-const LPCWSTR ROOT_ITEMS[] = {		// // //
-	L"2A03/2A07",
-	L"Konami VRC6",
-	L"Konami VRC7",
-	L"Nintendo FDS",
-	L"Nintendo MMC5",
-	L"Namco 106",
-	L"Sunsoft 5B",
-};
-
-const chan_id_t CHILD_ITEMS_ID[ROOT_ITEM_COUNT][9] = {		// // //
-	// 2A03
-	{chan_id_t::SQUARE1, chan_id_t::SQUARE2, chan_id_t::TRIANGLE, chan_id_t::NOISE, chan_id_t::DPCM},
-	// VRC 6
-	{chan_id_t::VRC6_PULSE1, chan_id_t::VRC6_PULSE2, chan_id_t::VRC6_SAWTOOTH},
-	// VRC 7
-	{chan_id_t::VRC7_CH1, chan_id_t::VRC7_CH2, chan_id_t::VRC7_CH3, chan_id_t::VRC7_CH4, chan_id_t::VRC7_CH5, chan_id_t::VRC7_CH6},
-	// FDS
-	{chan_id_t::FDS},
-	// MMC5
-	{chan_id_t::MMC5_SQUARE1, chan_id_t::MMC5_SQUARE2},
-	// N163
-	{chan_id_t::N163_CH1, chan_id_t::N163_CH2, chan_id_t::N163_CH3, chan_id_t::N163_CH4, chan_id_t::N163_CH5, chan_id_t::N163_CH6, chan_id_t::N163_CH7, chan_id_t::N163_CH8},
-	 // S5B
-	{chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3},
-};
-
-const LPCWSTR CHILD_ITEMS[ROOT_ITEM_COUNT][9] = {		// // //
-	// 2A03
-	{L"Square 1", L"Square 2", L"Triangle", L"Noise", L"DPCM"},
-	// VRC 6
-	{L"Pulse 1", L"Pulse 2", L"Sawtooth"},
-	// VRC 7
-	{L"Channel 1", L"Channel 2", L"Channel 3", L"Channel 4", L"Channel 5", L"Channel 6"},
-	// FDS
-	{L"FDS"},
-	// MMC5
-	{L"Square 1", L"Square 2"},
-	// N163
-	{L"Channel 1", L"Channel 2", L"Channel 3", L"Channel 4", L"Channel 5", L"Channel 6", L"Channel 7", L"Channel 8"},
-	 // S5B
-	{L"Square 1", L"Square 2", L"Square 3"},
-};
+#include "FamiTrackerEnv.h"		// // //
+#include "SoundChipService.h"		// // //
+#include "str_conv/str_conv.hpp"		// // //
 
 // CChannelsDlg dialog
 
@@ -95,12 +52,13 @@ void CChannelsDlg::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CChannelsDlg, CDialog)
+	ON_BN_CLICKED(IDOK, OnBnClickedOk)
 	ON_NOTIFY(NM_CLICK, IDC_AVAILABLE_TREE, OnClickAvailable)
 	ON_NOTIFY(NM_DBLCLK, IDC_AVAILABLE_TREE, OnDblClickAvailable)
 	ON_NOTIFY(NM_DBLCLK, IDC_ADDED_LIST, OnDblClickAdded)
-	ON_BN_CLICKED(IDC_MOVE_DOWN, &CChannelsDlg::OnBnClickedMoveDown)
-	ON_NOTIFY(NM_RCLICK, IDC_AVAILABLE_TREE, &CChannelsDlg::OnNMRClickAvailableTree)
-	ON_BN_CLICKED(IDC_MOVE_UP, &CChannelsDlg::OnBnClickedMoveUp)
+	ON_BN_CLICKED(IDC_MOVE_DOWN, OnBnClickedMoveDown)
+	ON_NOTIFY(NM_RCLICK, IDC_AVAILABLE_TREE, OnNMRClickAvailableTree)
+	ON_BN_CLICKED(IDC_MOVE_UP, OnBnClickedMoveUp)
 END_MESSAGE_MAP()
 
 // CChannelsDlg message handlers
@@ -109,30 +67,47 @@ BOOL CChannelsDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	m_pAvailableTree = static_cast<CTreeCtrl*>(GetDlgItem(IDC_AVAILABLE_TREE));
-	m_pAddedChannels = static_cast<CListCtrl*>(GetDlgItem(IDC_ADDED_LIST));
+	m_cAvailableTree.SubclassDlgItem(IDC_AVAILABLE_TREE, this);		// // //
+	m_cAddedChannels.SubclassDlgItem(IDC_ADDED_LIST, this);
 
-//	m_pAddedChannels->GetWIndowLon
+	CRect rect;		// // //
+	m_cAddedChannels.GetClientRect(rect);
+	m_cAddedChannels.InsertColumn(0, L"Name", 0, rect.Width());
 
-	m_pAddedChannels->InsertColumn(0, L"Name", 0, 150);
-
-	for (int i = 0; i < ROOT_ITEM_COUNT; ++i) {
-		HTREEITEM hItem = m_pAvailableTree->InsertItem(ROOT_ITEMS[i]);
-		m_hRootItems[i] = hItem;
-		for (int j = 0; CHILD_ITEMS[i][j] != NULL; ++j) {
-			HTREEITEM hChild = m_pAvailableTree->InsertItem(FormattedW(L"%i: %s", j + 1, CHILD_ITEMS[i][j]), hItem);
-			m_pAvailableTree->SetItemData(hChild, value_cast(CHILD_ITEMS_ID[i][j]));
+	auto *pSCS = Env.GetSoundChipService();		// // //
+	pSCS->ForeachType([&] (sound_chip_t ch) {
+		HTREEITEM hItem = m_cAvailableTree.InsertItem(conv::to_wide(pSCS->GetFullChipName(ch)).data());
+		m_cAvailableTree.SetItemData(hItem, value_cast(ch));
+		for (std::size_t subindex = 0, n = pSCS->GetSupportedChannelCount(ch); subindex < n; ++subindex) {
+			auto chan = pSCS->MakeChannelIndex(ch, subindex);
+			HTREEITEM hChild = m_cAvailableTree.InsertItem(FormattedW(L"%i: %s", subindex, conv::to_wide(pSCS->GetFullChannelName(chan)).data()), hItem);
+			m_cAvailableTree.SetItemData(hChild, value_cast(chan));
 		}
-		m_pAvailableTree->SortChildren(hItem);
-	}
+		m_cAvailableTree.SortChildren(hItem);
+	});
 
-	// // // TODO: use song view instead
 	CFamiTrackerView::GetView()->GetSongView()->GetChannelOrder().ForeachChannel([&] (chan_id_t ch) {
-		AddChannel(ch);
+		for (HTREEITEM hChip = m_cAvailableTree.GetRootItem(); hChip; hChip = m_cAvailableTree.GetNextItem(hChip, TVGN_NEXT)) {
+			for (HTREEITEM hItem = m_cAvailableTree.GetNextItem(hChip, TVGN_CHILD); hItem; hItem = m_cAvailableTree.GetNextItem(hItem, TVGN_NEXT)) {
+				if (enum_cast<chan_id_t>(m_cAvailableTree.GetItemData(hItem)) == ch) {		// // //
+					InsertChannel(hItem);
+					return;
+				}
+			}
+		}
 	});
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
+}
+
+void CChannelsDlg::OnBnClickedOk() {		// // //
+	if (!m_cAddedChannels.GetItemCount()) {
+		AfxMessageBox(L"At least one track must be added.", MB_ICONERROR);
+		return;
+	}
+
+	OnOK();
 }
 
 void CChannelsDlg::OnClickAvailable(NMHDR *pNMHDR, LRESULT *result)
@@ -142,126 +117,122 @@ void CChannelsDlg::OnClickAvailable(NMHDR *pNMHDR, LRESULT *result)
 
 void CChannelsDlg::OnDblClickAvailable(NMHDR *pNMHDR, LRESULT *result)
 {
-	// Add channel
+	// Add channel/chip
 
-	HTREEITEM hItem = m_pAvailableTree->GetSelectedItem();
+	m_cAvailableTree.SetRedraw(FALSE);
+	m_cAddedChannels.SetRedraw(FALSE);
 
-	if ((hItem != NULL) && !m_pAvailableTree->ItemHasChildren(hItem)) {
-		InsertChannel(hItem);
+	if (HTREEITEM hItem = m_cAvailableTree.GetSelectedItem()) {		// // //
+		if (!m_cAvailableTree.GetNextItem(hItem, TVGN_PARENT)) {
+			if (m_cAvailableTree.ItemHasChildren(hItem)) {
+				while (m_cAvailableTree.ItemHasChildren(hItem))
+					InsertChannel(m_cAvailableTree.GetNextItem(hItem, TVGN_CHILD));
+			}
+			else {
+				auto Chip = enum_cast<sound_chip_t>(m_cAvailableTree.GetItemData(hItem));
+				auto *pSCS = Env.GetSoundChipService();		// // //
+				int i = 0;
+				while (i < m_cAddedChannels.GetItemCount())
+					if (pSCS->GetChipFromChannel(enum_cast<chan_id_t>(m_cAddedChannels.GetItemData(i))) == Chip)
+						RemoveChannel(i);
+					else
+						++i;
+			}
+		}
+		else
+			InsertChannel(hItem);
 	}
+
+	m_cAvailableTree.SetRedraw(TRUE);
+	m_cAddedChannels.SetRedraw(TRUE);
+	*result = 0;
 }
 
 void CChannelsDlg::OnDblClickAdded(NMHDR *pNMHDR, LRESULT *result)
 {
-	int Index = m_pAddedChannels->GetSelectionMark();
-	int Count = m_pAddedChannels->GetItemCount();
-
-	if (Index != -1 && Count > 1) {
-		auto ChanID = (chan_id_t)m_pAddedChannels->GetItemData(Index);		// // //
-
-		m_pAvailableTree->GetRootItem();
-
-		// Put back in available list
-		for (int i = 0; i < ROOT_ITEM_COUNT; ++i) {
-			HTREEITEM hParent = m_hRootItems[i];
-			HTREEITEM hItem = m_pAvailableTree->GetNextItem(hParent, TVGN_CHILD);
-			for (int j = 0; CHILD_ITEMS[i][j] != NULL; ++j) {
-				if (CHILD_ITEMS_ID[i][j] == ChanID) {
-					HTREEITEM hChild = m_pAvailableTree->InsertItem(FormattedW(L"%i: %s", j, CHILD_ITEMS[i][j]), hParent, hParent);
-					m_pAvailableTree->SetItemData(hChild, value_cast(CHILD_ITEMS_ID[i][j]));
-					m_pAvailableTree->Expand(hParent, TVE_EXPAND);
-				}
-				hItem = m_pAvailableTree->GetNextItem(hItem, TVGN_NEXT);
-			}
-			m_pAvailableTree->SortChildren(hParent);
-		}
-
-		m_pAddedChannels->DeleteItem(Index);
-	}
+	if (int Index = m_cAddedChannels.GetSelectionMark(); Index != -1)		// // //
+		RemoveChannel(Index);
 }
 
-void CChannelsDlg::AddChannel(chan_id_t ChanID)		// // //
-{
-	for (int i = 0; i < ROOT_ITEM_COUNT; ++i) {
-		HTREEITEM hItem = m_pAvailableTree->GetNextItem(m_hRootItems[i], TVGN_CHILD);
-		for (int j = 0; hItem != NULL; ++j) {
+void CChannelsDlg::InsertChannel(HTREEITEM hItem) {
+	auto *pSCS = Env.GetSoundChipService();		// // //
 
-			auto ID = (chan_id_t)m_pAvailableTree->GetItemData(hItem);		// // //
+	if (HTREEITEM hParentItem = m_cAvailableTree.GetParentItem(hItem)) {
+		auto ChanId = enum_cast<chan_id_t>(m_cAvailableTree.GetItemData(hItem));
 
-			if (ID == ChanID) {
-				InsertChannel(hItem);
-				return;
-			}
+		auto AddStr = std::string {pSCS->GetShortChipName(pSCS->GetChipFromChannel(ChanId))};
+		AddStr += " :: ";
+		AddStr += pSCS->GetFullChannelName(ChanId);
 
-			hItem = m_pAvailableTree->GetNextItem(hItem, TVGN_NEXT);
-		}
-	}
-}
+		int ChansAdded = m_cAddedChannels.GetItemCount();
+		int Index = m_cAddedChannels.InsertItem(ChansAdded, conv::to_wide(AddStr).data());
 
-void CChannelsDlg::InsertChannel(HTREEITEM hItem)
-{
-	HTREEITEM hParentItem = m_pAvailableTree->GetParentItem(hItem);
-
-	if (hParentItem != NULL) {
-
-		CStringW ChanName = m_pAvailableTree->GetItemText(hItem);
-		CStringW ChipName = m_pAvailableTree->GetItemText(hParentItem);
-
-		CStringW AddStr = ChipName + L" :: " + ChanName.Right(ChanName.GetLength() - 3);
-
-		// Channel ID
-		int ChanId = m_pAvailableTree->GetItemData(hItem);
-
-		int ChansAdded = m_pAddedChannels->GetItemCount();
-		int Index = m_pAddedChannels->InsertItem(ChansAdded, AddStr);
-
-		m_pAddedChannels->SetItemData(Index, ChanId);
+		m_cAddedChannels.SetItemData(Index, value_cast(ChanId));
 
 		// Remove channel from available list
-		m_pAvailableTree->DeleteItem(hItem);
+		m_cAvailableTree.DeleteItem(hItem);
+	}
+}
+
+void CChannelsDlg::RemoveChannel(int nId) {		// // //
+	auto *pSCS = Env.GetSoundChipService();		// // //
+	auto ChanID = enum_cast<chan_id_t>(m_cAddedChannels.GetItemData(nId));
+	auto Chip = pSCS->GetChipFromChannel(ChanID);
+	auto subindex = pSCS->GetChannelSubindex(ChanID);
+
+	// Put back in available list
+	for (HTREEITEM hChip = m_cAvailableTree.GetRootItem(); hChip; hChip = m_cAvailableTree.GetNextItem(hChip, TVGN_NEXT)) {
+		if (enum_cast<sound_chip_t>(m_cAvailableTree.GetItemData(hChip)) == Chip) {
+			HTREEITEM hChild = m_cAvailableTree.InsertItem(FormattedW(L"%i: %s", subindex, conv::to_wide(pSCS->GetFullChannelName(ChanID)).data()), hChip);
+			m_cAvailableTree.SetItemData(hChild, value_cast(ChanID));
+			m_cAvailableTree.Expand(hChip, TVE_EXPAND);
+			m_cAvailableTree.SortChildren(hChip);
+			m_cAddedChannels.DeleteItem(nId);
+			return;
+		}
 	}
 }
 
 void CChannelsDlg::OnBnClickedMoveDown()
 {
-	int Index = m_pAddedChannels->GetSelectionMark();
+	int Index = m_cAddedChannels.GetSelectionMark();
 
-	if (Index >= m_pAddedChannels->GetItemCount() - 1 || Index == -1)
+	if (Index >= m_cAddedChannels.GetItemCount() - 1 || Index == -1)
 		return;
 
-	CStringW text = m_pAddedChannels->GetItemText(Index, 0);
-	int data = m_pAddedChannels->GetItemData(Index);
+	CStringW text = m_cAddedChannels.GetItemText(Index, 0);
+	int data = m_cAddedChannels.GetItemData(Index);
 
-	m_pAddedChannels->SetItemText(Index, 0, m_pAddedChannels->GetItemText(Index + 1, 0));
-	m_pAddedChannels->SetItemData(Index, m_pAddedChannels->GetItemData(Index + 1));
+	m_cAddedChannels.SetItemText(Index, 0, m_cAddedChannels.GetItemText(Index + 1, 0));
+	m_cAddedChannels.SetItemData(Index, m_cAddedChannels.GetItemData(Index + 1));
 
-	m_pAddedChannels->SetItemText(Index + 1, 0, text);
-	m_pAddedChannels->SetItemData(Index + 1, data);
+	m_cAddedChannels.SetItemText(Index + 1, 0, text);
+	m_cAddedChannels.SetItemData(Index + 1, data);
 
-	m_pAddedChannels->SetSelectionMark(Index + 1);
-	m_pAddedChannels->SetItemState(Index + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-	m_pAddedChannels->EnsureVisible(Index + 1, FALSE);
+	m_cAddedChannels.SetSelectionMark(Index + 1);
+	m_cAddedChannels.SetItemState(Index + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+	m_cAddedChannels.EnsureVisible(Index + 1, FALSE);
 }
 
 void CChannelsDlg::OnBnClickedMoveUp()
 {
-	int Index = m_pAddedChannels->GetSelectionMark();
+	int Index = m_cAddedChannels.GetSelectionMark();
 
 	if (Index == 0 || Index == -1)
 		return;
 
-	CStringW text = m_pAddedChannels->GetItemText(Index, 0);
-	int data = m_pAddedChannels->GetItemData(Index);
+	CStringW text = m_cAddedChannels.GetItemText(Index, 0);
+	int data = m_cAddedChannels.GetItemData(Index);
 
-	m_pAddedChannels->SetItemText(Index, 0, m_pAddedChannels->GetItemText(Index - 1, 0));
-	m_pAddedChannels->SetItemData(Index, m_pAddedChannels->GetItemData(Index - 1));
+	m_cAddedChannels.SetItemText(Index, 0, m_cAddedChannels.GetItemText(Index - 1, 0));
+	m_cAddedChannels.SetItemData(Index, m_cAddedChannels.GetItemData(Index - 1));
 
-	m_pAddedChannels->SetItemText(Index - 1, 0, text);
-	m_pAddedChannels->SetItemData(Index - 1, data);
+	m_cAddedChannels.SetItemText(Index - 1, 0, text);
+	m_cAddedChannels.SetItemData(Index - 1, data);
 
-	m_pAddedChannels->SetSelectionMark(Index - 1);
-	m_pAddedChannels->SetItemState(Index - 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-	m_pAddedChannels->EnsureVisible(Index - 1, FALSE);
+	m_cAddedChannels.SetSelectionMark(Index - 1);
+	m_cAddedChannels.SetItemState(Index - 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+	m_cAddedChannels.EnsureVisible(Index - 1, FALSE);
 }
 
 void CChannelsDlg::OnNMRClickAvailableTree(NMHDR *pNMHDR, LRESULT *pResult)

@@ -27,8 +27,6 @@
 #include "../resource.h"		// // //
 #include "APU/Types_fwd.h"		// // //
 
-const int ROOT_ITEM_COUNT = 7;
-
 // CChannelsDlg dialog
 
 class CChannelsDlg : public CDialog
@@ -43,13 +41,11 @@ public:
 	enum { IDD = IDD_CHANNELS };
 
 protected:
-	CTreeCtrl *m_pAvailableTree;
-	CListCtrl *m_pAddedChannels;
+	CTreeCtrl m_cAvailableTree;		// // //
+	CListCtrl m_cAddedChannels;
 
-	HTREEITEM m_hRootItems[ROOT_ITEM_COUNT];
-
-	void AddChannel(chan_id_t ChanID);		// // //
 	void InsertChannel(HTREEITEM hItem);
+	void RemoveChannel(int nId);		// // //
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
@@ -57,6 +53,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	virtual BOOL OnInitDialog();
+	afx_msg void OnBnClickedOk();		// // //
 	afx_msg void OnClickAvailable(NMHDR *pNMHDR, LRESULT *result);
 	afx_msg void OnDblClickAvailable(NMHDR *pNMHDR, LRESULT *result);
 	afx_msg void OnDblClickAdded(NMHDR *pNMHDR, LRESULT *result);

@@ -27,56 +27,98 @@
 
 class CSoundChipType2A03 : public CSoundChipType {
 	sound_chip_t GetID() const override;
+	std::size_t GetSupportedChannelCount() const override;
+	chan_id_t GetFirstChannelID() const override;
+
 	std::string_view GetShortName() const override;
 	std::string_view GetFullName() const override;
+	std::string_view GetShortChannelName(std::size_t subindex) const override;
+	std::string_view GetFullChannelName(std::size_t subindex) const override;
+
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler() const override;
 };
 
 class CSoundChipTypeVRC6 : public CSoundChipType {
 	sound_chip_t GetID() const override;
+	std::size_t GetSupportedChannelCount() const override;
+	chan_id_t GetFirstChannelID() const override;
+
 	std::string_view GetShortName() const override;
 	std::string_view GetFullName() const override;
+	std::string_view GetShortChannelName(std::size_t subindex) const override;
+	std::string_view GetFullChannelName(std::size_t subindex) const override;
+
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler() const override;
 };
 
 class CSoundChipTypeVRC7 : public CSoundChipType {
 	sound_chip_t GetID() const override;
+	std::size_t GetSupportedChannelCount() const override;
+	chan_id_t GetFirstChannelID() const override;
+
 	std::string_view GetShortName() const override;
 	std::string_view GetFullName() const override;
+	std::string_view GetShortChannelName(std::size_t subindex) const override;
+	std::string_view GetFullChannelName(std::size_t subindex) const override;
+
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler() const override;
 };
 
 class CSoundChipTypeFDS : public CSoundChipType {
 	sound_chip_t GetID() const override;
+	std::size_t GetSupportedChannelCount() const override;
+	chan_id_t GetFirstChannelID() const override;
+
 	std::string_view GetShortName() const override;
 	std::string_view GetFullName() const override;
+	std::string_view GetShortChannelName(std::size_t subindex) const override;
+	std::string_view GetFullChannelName(std::size_t subindex) const override;
+
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler() const override;
 };
 
 class CSoundChipTypeMMC5 : public CSoundChipType {
 	sound_chip_t GetID() const override;
+	std::size_t GetSupportedChannelCount() const override;
+	chan_id_t GetFirstChannelID() const override;
+
 	std::string_view GetShortName() const override;
 	std::string_view GetFullName() const override;
+	std::string_view GetShortChannelName(std::size_t subindex) const override;
+	std::string_view GetFullChannelName(std::size_t subindex) const override;
+
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler() const override;
 };
 
 class CSoundChipTypeN163 : public CSoundChipType {
 	sound_chip_t GetID() const override;
+	std::size_t GetSupportedChannelCount() const override;
+	chan_id_t GetFirstChannelID() const override;
+
 	std::string_view GetShortName() const override;
 	std::string_view GetFullName() const override;
+	std::string_view GetShortChannelName(std::size_t subindex) const override;
+	std::string_view GetFullChannelName(std::size_t subindex) const override;
+
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler() const override;
 };
 
 class CSoundChipTypeS5B : public CSoundChipType {
 	sound_chip_t GetID() const override;
+	std::size_t GetSupportedChannelCount() const override;
+	chan_id_t GetFirstChannelID() const override;
+
 	std::string_view GetShortName() const override;
 	std::string_view GetFullName() const override;
+	std::string_view GetShortChannelName(std::size_t subindex) const override;
+	std::string_view GetFullChannelName(std::size_t subindex) const override;
+
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler() const override;
 };
