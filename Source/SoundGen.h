@@ -141,8 +141,8 @@ public:
 	void		 SilentAll();
 	void		 PlaySingleRow(int track);		// // //
 
-	void		 SetChannelMute(chan_id_t chan, bool mute);		// // // TODO: move into CChannel
-	bool		 IsChannelMuted(chan_id_t chan) const override;
+	void		 SetChannelMute(stChannelID chan, bool mute);		// // // TODO: move into CChannel
+	bool		 IsChannelMuted(stChannelID chan) const override;
 
 	void		 ResetState();
 	void		 ResetTempo();
@@ -150,8 +150,8 @@ public:
 	float		 GetCurrentBPM() const;		// // //
 	bool		 IsPlaying() const;
 
-	CTrackerChannel *GetTrackerChannel(chan_id_t chan);		// // //
-	const CTrackerChannel *GetTrackerChannel(chan_id_t chan) const;		// // //
+	CTrackerChannel *GetTrackerChannel(stChannelID chan);		// // //
+	const CTrackerChannel *GetTrackerChannel(stChannelID chan) const;		// // //
 
 	CArpeggiator &GetArpeggiator();		// // //
 
@@ -160,8 +160,8 @@ public:
 
 	// Tracker playing
 	stDPCMState	 GetDPCMState() const;
-	int			 GetChannelNote(chan_id_t chan) const;		// // //
-	int			 GetChannelVolume(chan_id_t chan) const;		// // //
+	int			 GetChannelNote(stChannelID chan) const;		// // //
+	int			 GetChannelVolume(stChannelID chan) const;		// // //
 
 	// Rendering
 	bool		 RenderToFile(LPCWSTR pFile, const std::shared_ptr<CWaveRenderer> &pRender);		// // //
@@ -182,7 +182,7 @@ public:
 	uint8_t		GetReg(sound_chip_t Chip, int Reg) const;
 	CRegisterState *GetRegState(sound_chip_t Chip, unsigned Reg) const;		// // //
 	double		GetChannelFrequency(sound_chip_t Chip, int Channel) const;		// // //
-	std::string	RecallChannelState(chan_id_t Channel) const;		// // //
+	std::string	RecallChannelState(stChannelID Channel) const;		// // //
 
 	// FDS & N163 wave preview
 	void		WaveChanged();
@@ -194,8 +194,8 @@ public:
 	std::pair<unsigned, unsigned> GetPlayerPos() const;		// // // frame / row
 	int			GetPlayerTrack() const;
 	int			GetPlayerTicks() const;
-	void		QueueNote(chan_id_t Channel, const stChanNote &NoteData, note_prio_t Priority) const;		// // //
-	void		ForceReloadInstrument(chan_id_t Channel);		// // //
+	void		QueueNote(stChannelID Channel, const stChanNote &NoteData, note_prio_t Priority) const;		// // //
+	void		ForceReloadInstrument(stChannelID Channel);		// // //
 	void		MoveToFrame(int Frame);
 	void		SetQueueFrame(unsigned Frame);		// // //
 	unsigned	GetQueueFrame() const;		// // //
@@ -203,8 +203,8 @@ public:
 	// // // Instrument recorder
 	std::unique_ptr<CInstrument> GetRecordInstrument() const;
 	void			ResetDumpInstrument();
-	chan_id_t		GetRecordChannel() const;
-	void			SetRecordChannel(chan_id_t Channel);
+	stChannelID		GetRecordChannel() const;
+	void			SetRecordChannel(stChannelID Channel);
 	const stRecordSetting &GetRecordSetting() const;
 	void			SetRecordSetting(const stRecordSetting &Setting);
 
@@ -253,10 +253,10 @@ private:
 	CInstrumentManager *GetInstrumentManager() const override;
 	void		OnTick() override;
 	void		OnStepRow() override;
-	void		OnPlayNote(chan_id_t chan, const stChanNote &note) override;
+	void		OnPlayNote(stChannelID chan, const stChanNote &note) override;
 	void		OnUpdateRow(int frame, int row) override;
 	bool		ShouldStopPlayer() const override;
-	int			GetArpNote(chan_id_t chan) const override; // TODO: remove
+	int			GetArpNote(stChannelID chan) const override; // TODO: remove
 
 	//
 	// Private variables

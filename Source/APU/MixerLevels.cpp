@@ -29,10 +29,10 @@ const double AMP_2A03 = 400.0;
 
 } // namespace
 
-int stLevels2A03SS::Offset(chan_id_t ChanID, int Value) {
-	switch (ChanID) {
-	case chan_id_t::SQUARE1: return sq1_ += Value;
-	case chan_id_t::SQUARE2: return sq2_ += Value;
+int stLevels2A03SS::Offset(apu_subindex_t subindex, int val) {
+	switch (subindex) {
+	case apu_subindex_t::pulse1: return sq1_ += val;
+	case apu_subindex_t::pulse2: return sq2_ += val;
 	}
 	return 0;
 }
@@ -49,11 +49,11 @@ double stLevels2A03SS::CalcPin() const {
 
 
 
-int stLevels2A03TND::Offset(chan_id_t ChanID, int Value) {
-	switch (ChanID) {
-	case chan_id_t::TRIANGLE: return tri_ += Value;
-	case chan_id_t::NOISE:    return noi_ += Value;
-	case chan_id_t::DPCM:     return dmc_ += Value;
+int stLevels2A03TND::Offset(apu_subindex_t subindex, int val) {
+	switch (subindex) {
+	case apu_subindex_t::triangle: return tri_ += val;
+	case apu_subindex_t::noise:    return noi_ += val;
+	case apu_subindex_t::dpcm:     return dmc_ += val;
 	}
 	return 0;
 }
@@ -66,14 +66,4 @@ double stLevels2A03TND::CalcPin() const {
 	if ((tri_ + noi_ + dmc_) > 0)
 		return AMP_2A03 * 159.79 / (100.0 + 1.0 / (tri_ / 8227.0 + noi_ / 12241.0 + dmc_ / 22638.0));
 	return 0.;
-}
-
-
-
-int stLevelsMono::Offset(chan_id_t /*ChanID*/, int Value) {
-	return lvl_ += Value;
-}
-
-double stLevelsMono::CalcPin() const {
-	return lvl_;
 }

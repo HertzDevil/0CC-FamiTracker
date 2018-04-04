@@ -32,7 +32,8 @@ const uint8_t CSquare::DUTY_TABLE[4][16] = {
 	{1, 1, 0, 0,  0, 0, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1},
 };
 
-CSquare::CSquare(CMixer &Mixer, chan_id_t ID, sound_chip_t Chip) : C2A03Chan(Mixer, Chip, ID)		// // //
+CSquare::CSquare(CMixer &Mixer, std::size_t nInstance, sound_chip_t Chip, std::size_t subindex) :
+	C2A03Chan(Mixer, {nInstance, Chip, subindex})		// // //
 {
 	m_iDutyLength = 0;
 	m_iDutyCycle = 0;
@@ -132,7 +133,7 @@ void CSquare::Process(uint32_t Time)
 		return;
 	}
 
-	bool Valid = (m_iPeriod > 7 || (m_iPeriod > 0 && m_iChip == sound_chip_t::MMC5))		// // //
+	bool Valid = (m_iPeriod > 7 || (m_iPeriod > 0 && GetChannelType().Chip == sound_chip_t::MMC5))		// // //
 		&& (m_iEnabled != 0) && (m_iLengthCounter > 0) && (m_iSweepResult < 0x800);
 
 	while (Time >= m_iCounter) {
@@ -150,7 +151,7 @@ void CSquare::Process(uint32_t Time)
 
 double CSquare::GetFrequency() const		// // //
 {
-	bool Valid = (m_iPeriod > 7 || (m_iPeriod > 0 && m_iChip == sound_chip_t::MMC5))
+	bool Valid = (m_iPeriod > 7 || (m_iPeriod > 0 && GetChannelType().Chip == sound_chip_t::MMC5))
 		&& m_iEnabled && m_iLengthCounter && m_iSweepResult < 0x800;
 	if (!Valid)
 		return 0.;

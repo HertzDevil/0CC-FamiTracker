@@ -41,9 +41,11 @@ CAPU::CAPU(IAudioCallback *pCallback) :		// // //
 	m_iFrameCycles(0),
 	m_fLevelVRC7(1.f)
 {
+	constexpr std::size_t INSTANCE_ID = 0u;
+
 	auto *pSCS = Env.GetSoundChipService();
 	pSCS->ForeachType([&] (sound_chip_t c) {
-		m_pSoundChips.push_back(pSCS->MakeSoundChipDriver(c, *m_pMixer));
+		m_pSoundChips.push_back(pSCS->MakeSoundChipDriver(c, *m_pMixer, INSTANCE_ID));
 	});
 
 #ifdef LOGGING
@@ -258,7 +260,7 @@ uint8_t CAPU::Read(uint16_t Address)
 
 // Expansion for famitracker
 
-int32_t CAPU::GetVol(chan_id_t Chan) const		// // //
+int32_t CAPU::GetVol(stChannelID Chan) const		// // //
 {
 	return m_pMixer->GetChanOutput(Chan);
 }

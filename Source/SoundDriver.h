@@ -57,8 +57,8 @@ public:
 	void ConfigureDocument();
 
 	std::unique_ptr<CChannelMap> MakeChannelMap(CSoundChipSet chips, unsigned n163chs) const;
-	CTrackerChannel *GetTrackerChannel(chan_id_t chan);
-	const CTrackerChannel *GetTrackerChannel(chan_id_t chan) const;
+	CTrackerChannel *GetTrackerChannel(stChannelID chan);
+	const CTrackerChannel *GetTrackerChannel(stChannelID chan) const;
 
 	void StartPlayer(std::unique_ptr<CPlayerCursor> cur);
 	void StopPlayer();
@@ -69,22 +69,22 @@ public:
 
 	void Tick();
 
-	void QueueNote(chan_id_t chan, const stChanNote &note, note_prio_t priority);
-	void ForceReloadInstrument(chan_id_t chan);
+	void QueueNote(stChannelID chan, const stChanNote &note, note_prio_t priority);
+	void ForceReloadInstrument(stChannelID chan);
 
 	bool IsPlaying() const;
 	bool ShouldHalt() const;
 
 	CPlayerCursor *GetPlayerCursor() const;
 
-	int GetChannelNote(chan_id_t chan) const;
-	int GetChannelVolume(chan_id_t chan) const;
-	std::string GetChannelStateString(chan_id_t chan) const;
+	int GetChannelNote(stChannelID chan) const;
+	int GetChannelVolume(stChannelID chan) const;
+	std::string GetChannelStateString(stChannelID chan) const;
 
 	int ReadPeriodTable(int Index, int Table) const;
 	int ReadVibratoTable(int index) const;
 
-	// void (*F)(CChannelHandler &channel, CTrackerChannel &track [, chan_id_t id])
+	// void (*F)(CChannelHandler &channel, CTrackerChannel &track [, stChannelID id])
 	template <typename F>
 	void ForeachTrack(F f) const {
 		if constexpr (std::is_invocable_v<F, CChannelHandler &, CTrackerChannel &>) {
@@ -92,11 +92,11 @@ public:
 				if (ch && tr)
 					f(*ch, *tr);
 		}
-		else if constexpr (std::is_invocable_v<F, CChannelHandler &, CTrackerChannel &, chan_id_t>) {
+		else if constexpr (std::is_invocable_v<F, CChannelHandler &, CTrackerChannel &, stChannelID>) {
 			std::size_t x = 0;
 			for (auto &[ch, tr] : tracks_) {
 				if (ch && tr)
-					f(*ch, *tr, (chan_id_t)x);
+					f(*ch, *tr, stChannelID {(chan_id_t)x});
 				++x;
 			}
 		}
@@ -105,13 +105,13 @@ public:
 	}
 
 private:
-	CChannelHandler *GetChannelHandler(chan_id_t chan) const;
+	CChannelHandler *GetChannelHandler(stChannelID chan) const;
 
 	void SetupVibrato();
 	void SetupPeriodTables();
 
 	void PlayerTick();
-	void StepRow(chan_id_t chan);
+	void StepRow(stChannelID chan);
 	void UpdateChannels();
 	void HandleGlobalEffects(stChanNote &note);
 

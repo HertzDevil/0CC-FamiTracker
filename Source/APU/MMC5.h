@@ -28,7 +28,7 @@
 
 class CMMC5 : public CSoundChip {
 public:
-	explicit CMMC5(CMixer &Mixer);
+	CMMC5(CMixer &Mixer, std::size_t nInstance);		// // //
 
 	sound_chip_t GetID() const override;		// // //
 

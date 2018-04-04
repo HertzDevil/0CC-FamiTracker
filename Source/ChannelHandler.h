@@ -20,8 +20,8 @@
 ** must bear this legend.
 */
 
-#pragma once
 
+#pragma once
 
 static const int DUTY_2A03_FROM_VRC6[] = {0, 0, 1, 1, 1, 1, 2, 2};		// // //
 static const int DUTY_VRC6_FROM_2A03[] = {1, 3, 7, 3};		// // //
@@ -53,7 +53,7 @@ protected:
 		\param ch Identifier of the channel.
 		\param MaxPeriod The maximum pitch register value that the channel handler can attain.
 		\param MaxVolume The maximum instrument volume level that the channel handler can attain. */
-	CChannelHandler(chan_id_t ch, int MaxPeriod, int MaxVolume);
+	CChannelHandler(stChannelID ch, int MaxPeriod, int MaxVolume);
 
 public:
 	/*!	\brief Destructor of the channel handler. */
@@ -122,9 +122,7 @@ public:
 
 	/*!	\brief Retrieves the identifier of the channel.
 		\return The channel's identifier value. */
-	chan_id_t		GetChannelID() const;		// // //
-	/*! \brief Gets the subindex of the channel. */
-	std::size_t		GetSubIndex() const;		// // //
+	stChannelID		GetChannelID() const;		// // //
 
 	//
 	// Internal virtual functions
@@ -357,7 +355,7 @@ public:
 protected:
 	// Channel variables
 	/*!	\brief The channel identifier. */
-	chan_id_t		m_iChannelID;		// // //
+	stChannelID		m_iChannelID;		// // //
 
 	// General
 	/*!	\brief A flag indicating that a note has been triggered on the current tick. */
@@ -526,7 +524,7 @@ protected:
 // Channel handler for channels with frequency registers
 class CChannelHandlerInverted : public CChannelHandler {
 protected:
-	CChannelHandlerInverted(chan_id_t ch, int MaxPeriod, int MaxVolume) :
+	CChannelHandlerInverted(stChannelID ch, int MaxPeriod, int MaxVolume) :
 		CChannelHandler(ch, MaxPeriod, MaxVolume) { }
 	// // //
 	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //

@@ -34,7 +34,7 @@
 
 const int N163_PITCH_SLIDE_SHIFT = 2;	// Increase amplitude of pitch slides
 
-CChannelHandlerN163::CChannelHandlerN163(chan_id_t ch) :		// / //
+CChannelHandlerN163::CChannelHandlerN163(stChannelID ch) :		// / //
 	CChannelHandlerInverted(ch, 0xFFFF, 0x0F),
 	m_bDisableLoad(false),		// // //
 	m_iWaveLen(4),		// // //
@@ -108,7 +108,7 @@ bool CChannelHandlerN163::HandleInstrument(bool Trigger, bool NewInstrument)
 		m_iDefaultDuty = m_iDutyPeriod = 0;
 
 	if (!m_bDisableLoad) {
-		m_iWavePos = /*pInstrument->GetAutoWavePos() ? GetSubIndex() * 16 :*/ m_iWavePosOld;
+		m_iWavePos = /*pInstrument->GetAutoWavePos() ? GetChannelID().Subindex * 16 :*/ m_iWavePosOld;
 	}
 
 	return true;
@@ -169,7 +169,7 @@ void CChannelHandlerN163::SetupSlide()		// // //
 
 void CChannelHandlerN163::RefreshChannel()
 {
-	int Channel = 7 - GetSubIndex();		// Channel #
+	int Channel = 7 - GetChannelID().Subindex;		// Channel #
 	int WaveSize = 256 - (m_iWaveLen >> 2);
 	int Frequency = CalculatePeriod();		// // //
 
@@ -243,7 +243,7 @@ int CChannelHandlerN163::ConvertDuty(int Duty) const		// // //
 
 void CChannelHandlerN163::ClearRegisters()
 {
-	int Channel = GetSubIndex();
+	int Channel = GetChannelID().Subindex;
 	int ChannelAddrBase = 0x40 + Channel * 8;
 
 	for (int i = 0; i < 8; ++i) {		// // //

@@ -33,7 +33,7 @@ class CChipHandlerS5B;		// // //
 
 class CChannelHandlerS5B : public CChannelHandler, public CChannelHandlerInterfaceS5B {
 public:
-	CChannelHandlerS5B(chan_id_t ch, CChipHandlerS5B &parent);		// / //
+	CChannelHandlerS5B(stChannelID ch, CChipHandlerS5B &parent);		// / //
 	void	ResetChannel() override;
 	void	RefreshChannel() override;
 

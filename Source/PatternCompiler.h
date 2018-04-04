@@ -40,7 +40,7 @@ public:
 	CPatternCompiler(const CFamiTrackerModule &ModFile, const std::vector<unsigned> &InstList, const DPCM_List_t *pDPCMList, std::shared_ptr<CCompilerLog> pLogger);		// // //
 	~CPatternCompiler();
 
-	void			CompileData(int Track, int Pattern, chan_id_t Channel);
+	void			CompileData(int Track, int Pattern, stChannelID Channel);
 
 	unsigned int	GetHash() const;
 	bool			CompareData(const std::vector<unsigned char> &data) const;		// // //
@@ -68,7 +68,7 @@ private:
 	void			AccumulateDuration();
 	void			OptimizeString();
 	int				GetBlockSize(int Position);
-	stSpacingInfo	ScanNoteLengths(int Track, unsigned int StartRow, int Pattern, chan_id_t Channel);		// // //
+	stSpacingInfo	ScanNoteLengths(int Track, unsigned int StartRow, int Pattern, stChannelID Channel);		// // //
 
 	// Debugging
 	void			Print(std::string_view text) const;		// // //

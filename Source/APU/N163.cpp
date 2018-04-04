@@ -39,17 +39,17 @@
 // Namco 163 (previously called N106)
 //
 
-CN163::CN163(CMixer &Mixer) :
-	CSoundChip(Mixer),		// // //
+CN163::CN163(CMixer &Mixer, std::size_t nInstance) :
+	CSoundChip(Mixer, nInstance),		// // //
 	m_Channels {
-		{Mixer, *this, chan_id_t::N163_CH1, m_iWaveData},
-		{Mixer, *this, chan_id_t::N163_CH2, m_iWaveData},
-		{Mixer, *this, chan_id_t::N163_CH3, m_iWaveData},
-		{Mixer, *this, chan_id_t::N163_CH4, m_iWaveData},
-		{Mixer, *this, chan_id_t::N163_CH5, m_iWaveData},
-		{Mixer, *this, chan_id_t::N163_CH6, m_iWaveData},
-		{Mixer, *this, chan_id_t::N163_CH7, m_iWaveData},
-		{Mixer, *this, chan_id_t::N163_CH8, m_iWaveData},
+		{Mixer, nInstance, *this, n163_subindex_t::ch1, m_iWaveData},
+		{Mixer, nInstance, *this, n163_subindex_t::ch2, m_iWaveData},
+		{Mixer, nInstance, *this, n163_subindex_t::ch3, m_iWaveData},
+		{Mixer, nInstance, *this, n163_subindex_t::ch4, m_iWaveData},
+		{Mixer, nInstance, *this, n163_subindex_t::ch5, m_iWaveData},
+		{Mixer, nInstance, *this, n163_subindex_t::ch6, m_iWaveData},
+		{Mixer, nInstance, *this, n163_subindex_t::ch7, m_iWaveData},
+		{Mixer, nInstance, *this, n163_subindex_t::ch8, m_iWaveData},
 	}
 {
 	m_pRegisterLogger->AddRegisterRange(0x00, 0x7F);		// // //
@@ -119,7 +119,7 @@ void CN163::ProcessOld(uint32_t Time)		// // //
 		m_Channels[i].ProcessClean(Time, m_iChansInUse + 1);
 }
 
-void CN163::Mix(int32_t Value, uint32_t Time, chan_id_t ChanID)		// // //
+void CN163::Mix(int32_t Value, uint32_t Time, stChannelID ChanID)		// // //
 {
 	// N163 amplitude:
 	// One channel: 1.1V P-P
@@ -229,8 +229,8 @@ uint8_t CN163::ReadMem(uint8_t Reg)
 // N163 channels
 //
 
-CN163Chan::CN163Chan(CMixer &Mixer, CN163 &parent, chan_id_t ID, uint8_t *pWaveData) :		// // //
-	CChannel(Mixer, sound_chip_t::N163, ID),
+CN163Chan::CN163Chan(CMixer &Mixer, std::size_t nInstance, CN163 &parent, n163_subindex_t subindex, uint8_t *pWaveData) :		// // //
+	CChannel(Mixer, {nInstance, sound_chip_t::N163, value_cast(subindex)}),
 	m_pWaveData(pWaveData), parent_(parent)
 {
 	Reset();

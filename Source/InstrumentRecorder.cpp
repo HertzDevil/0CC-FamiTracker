@@ -36,7 +36,6 @@
 
 CInstrumentRecorder::CInstrumentRecorder(CSoundGen *pSG) :
 	m_pSoundGen(pSG),
-	m_iRecordChannel(chan_id_t::NONE),
 	m_iDumpCount(0),
 	m_iRecordWaveCache(nullptr)
 {
@@ -74,7 +73,7 @@ void CInstrumentRecorder::StopRecording(CWnd *pView)
 void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		// // //
 {
 	unsigned int Intv = static_cast<unsigned>(m_stRecordSetting.Interval);
-	if (m_iRecordChannel == chan_id_t::NONE || Tick > Intv * m_stRecordSetting.InstCount + 1) return;
+	if (m_iRecordChannel.Chip == sound_chip_t::NONE || Tick > Intv * m_stRecordSetting.InstCount + 1) return;
 	if (Tick % Intv == 1 && Tick > Intv) {
 		if (*m_pDumpInstrument != nullptr && pView != nullptr) {
 			pView->PostMessageW(WM_USER_DUMP_INST);
@@ -88,34 +87,33 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 
 	int PitchReg = 0;
 	int Detune = 0x7FFFFFFF;
-	unsigned ID = GetChannelSubIndex(m_iRecordChannel);
+	const auto &Subindex = m_iRecordChannel.Subindex;
 
-	sound_chip_t Chip = GetChipFromChannel(m_iRecordChannel);
-	const auto REG = [&] (int x) { return m_pSoundGen->GetReg(Chip, x); };
+	const auto REG = [&] (int x) { return m_pSoundGen->GetReg(m_iRecordChannel.Chip, x); };
 
-	switch (Chip) {
+	switch (m_iRecordChannel.Chip) {
 	case sound_chip_t::APU:
-		PitchReg = m_iRecordChannel == chan_id_t::NOISE ? (0x0F & REG(0x400E)) :
-					(REG(0x4002 | (ID << 2)) | (0x07 & REG(0x4003 | (ID << 2))) << 8); break;
+		PitchReg = IsAPUNoise(m_iRecordChannel) ? (0x0F & REG(0x400E)) :
+					(REG(0x4002 | (Subindex << 2)) | (0x07 & REG(0x4003 | (Subindex << 2))) << 8); break;
 	case sound_chip_t::VRC6:
-		PitchReg = REG(0x9001 + (ID << 12)) | ((0x0F & REG(0x9002 + (ID << 12))) << 8); break;
+		PitchReg = REG(0x9001 + (Subindex << 12)) | ((0x0F & REG(0x9002 + (Subindex << 12))) << 8); break;
 	case sound_chip_t::FDS:
 		PitchReg = REG(0x4082) | (0x0F & REG(0x4083)) << 8; break;
 	case sound_chip_t::MMC5:
-		PitchReg = (REG(0x5002 | (ID << 2)) | (0x07 & REG(0x5003 | (ID << 2))) << 8); break;
+		PitchReg = (REG(0x5002 | (Subindex << 2)) | (0x07 & REG(0x5003 | (Subindex << 2))) << 8); break;
 	case sound_chip_t::N163:
-		PitchReg = (REG(0x78 - (ID << 3))
-					| (REG(0x7A - (ID << 3))) << 8
-					| (0x03 & REG(0x7C - (ID << 3))) << 16) >> 2; // N163_PITCH_SLIDE_SHIFT;
+		PitchReg = (REG(0x78 - (Subindex << 3))
+					| (REG(0x7A - (Subindex << 3))) << 8
+					| (0x03 & REG(0x7C - (Subindex << 3))) << 16) >> 2; // N163_PITCH_SLIDE_SHIFT;
 		break;
 	case sound_chip_t::S5B:
-		PitchReg = (REG(ID << 1) | (0x0F & REG(1 + (ID << 1))) << 8); break;
+		PitchReg = (REG(Subindex << 1) | (0x0F & REG(1 + (Subindex << 1))) << 8); break;
 	}
 
 	CDetuneTable::type_t Table = CDetuneTable::DETUNE_NTSC;
-	switch (Chip) {
+	switch (m_iRecordChannel.Chip) {
 	case sound_chip_t::APU:  Table = m_pModule->GetMachine() == PAL ? CDetuneTable::DETUNE_PAL : CDetuneTable::DETUNE_NTSC; break;
-	case sound_chip_t::VRC6: Table = m_iRecordChannel == chan_id_t::VRC6_SAWTOOTH ? CDetuneTable::DETUNE_SAW : CDetuneTable::DETUNE_NTSC; break;
+	case sound_chip_t::VRC6: Table = IsVRC6Sawtooth(m_iRecordChannel) ? CDetuneTable::DETUNE_SAW : CDetuneTable::DETUNE_NTSC; break;
 	case sound_chip_t::VRC7: Table = CDetuneTable::DETUNE_VRC7; break;
 	case sound_chip_t::FDS:  Table = CDetuneTable::DETUNE_FDS; break;
 	case sound_chip_t::MMC5: Table = CDetuneTable::DETUNE_NTSC; break;
@@ -123,7 +121,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 	case sound_chip_t::S5B:  Table = CDetuneTable::DETUNE_S5B; break;
 	}
 	int Note = 0;
-	if (m_iRecordChannel == chan_id_t::NOISE) {
+	if (IsAPUNoise(m_iRecordChannel)) {
 		Note = PitchReg ^ 0xF; Detune = 0;
 	}
 	else for (int i = 0; i < NOTE_COUNT; ++i) {
@@ -134,7 +132,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 	}
 
 	inst_type_t InstType = INST_NONE; // optimize this
-	switch (Chip) {
+	switch (m_iRecordChannel.Chip) {
 	case sound_chip_t::APU: case sound_chip_t::MMC5: InstType = INST_2A03; break;
 	case sound_chip_t::VRC6: InstType = INST_VRC6; break;
 	// case sound_chip_t::VRC7: Type = INST_VRC7; break;
@@ -148,35 +146,35 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 		foreachSeq([&] (sequence_t s) {
 			switch (s) {
 			case sequence_t::Volume:
-				switch (Chip) {
+				switch (m_iRecordChannel.Chip) {
 				case sound_chip_t::APU:
-					Val = m_iRecordChannel == chan_id_t::TRIANGLE ? ((0x7F & REG(0x4008)) ? 15 : 0) : (0x0F & REG(0x4000 | (ID << 2))); break;
+					Val = IsAPUTriangle(m_iRecordChannel) ? ((0x7F & REG(0x4008)) ? 15 : 0) : (0x0F & REG(0x4000 | (Subindex << 2))); break;
 				case sound_chip_t::VRC6:
-					Val = m_iRecordChannel == chan_id_t::VRC6_SAWTOOTH ? (0x0F & (REG(0xB000) >> 1)) : (0x0F & REG(0x9000 + (ID << 12))); break;
+					Val = IsVRC6Sawtooth(m_iRecordChannel) ? (0x0F & (REG(0xB000) >> 1)) : (0x0F & REG(0x9000 + (Subindex << 12))); break;
 				case sound_chip_t::MMC5:
-					Val = 0x0F & REG(0x5000 | (ID << 2)); break;
+					Val = 0x0F & REG(0x5000 | (Subindex << 2)); break;
 				case sound_chip_t::N163:
-					Val = 0x0F & REG(0x7F - (ID << 3)); break;
+					Val = 0x0F & REG(0x7F - (Subindex << 3)); break;
 				case sound_chip_t::S5B:
-					Val = 0x0F & REG(0x08 + ID); break;
+					Val = 0x0F & REG(0x08 + Subindex); break;
 				}
 				break;
 			case sequence_t::Arpeggio: Val = static_cast<char>(Note); break;
 			case sequence_t::Pitch: Val = static_cast<char>(Detune % 16); break;
 			case sequence_t::HiPitch: Val = static_cast<char>(Detune / 16); break;
 			case sequence_t::DutyCycle:
-				switch (Chip) {
+				switch (m_iRecordChannel.Chip) {
 				case sound_chip_t::APU:
-					Val = m_iRecordChannel == chan_id_t::TRIANGLE ? 0 :
-						m_iRecordChannel == chan_id_t::NOISE ? (0x01 & REG(0x400E) >> 7) : (0x03 & REG(0x4000 | (ID << 2)) >> 6); break;
+					Val = IsAPUTriangle(m_iRecordChannel) ? 0 :
+						IsAPUNoise(m_iRecordChannel) ? (0x01 & REG(0x400E) >> 7) : (0x03 & REG(0x4000 | (Subindex << 2)) >> 6); break;
 				case sound_chip_t::VRC6:
-					Val = m_iRecordChannel == chan_id_t::VRC6_SAWTOOTH ? (0x01 & (REG(0xB000) >> 5)) : (0x07 & REG(0x9000 + (ID << 12)) >> 4); break;
+					Val = IsVRC6Sawtooth(m_iRecordChannel) ? (0x01 & (REG(0xB000) >> 5)) : (0x07 & REG(0x9000 + (Subindex << 12)) >> 4); break;
 				case sound_chip_t::MMC5:
-					Val = 0x03 & REG(0x5000 | (ID << 2)) >> 6; break;
+					Val = 0x03 & REG(0x5000 | (Subindex << 2)) >> 6; break;
 				case sound_chip_t::N163:
 					Val = 0;
 					if (m_iRecordWaveCache == NULL) {
-						int Size = 0x100 - (0xFC & REG(0x7C - (ID << 3)));
+						int Size = 0x100 - (0xFC & REG(0x7C - (Subindex << 3)));
 						if (Size <= CInstrumentN163::MAX_WAVE_SIZE) {
 							m_iRecordWaveSize = Size;
 							m_iRecordWaveCache = std::make_unique<char[]>(m_iRecordWaveSize * CInstrumentN163::MAX_WAVE_COUNT);
@@ -184,9 +182,9 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 						}
 					}
 					if (m_iRecordWaveCache != nullptr) {
-						int Count = 0x100 - (0xFC & REG(0x7C - (ID << 3)));
+						int Count = 0x100 - (0xFC & REG(0x7C - (Subindex << 3)));
 						if (Count == m_iRecordWaveSize) {
-							int pos = REG(0x7E - (ID << 3));
+							int pos = REG(0x7E - (Subindex << 3));
 							auto Wave = std::make_unique<char[]>(Count);
 							for (int j = 0; j < Count; ++j)
 								Wave[j] = 0x0F & REG((pos + j) >> 1) >> ((j & 0x01) ? 4 : 0);
@@ -207,8 +205,8 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 					}
 					break;
 				case sound_chip_t::S5B:
-					Val = 0x1F & REG(0x06) | (0x10 & REG(0x08 + ID)) << 1
-						| (0x01 << ID & ~REG(0x07)) << (6 - ID) | (0x08 << ID & ~REG(0x07)) << (4 - ID); break;
+					Val = 0x1F & REG(0x06) | (0x10 & REG(0x08 + Subindex)) << 1
+						| (0x01 << Subindex & ~REG(0x07)) << (6 - Subindex) | (0x08 << Subindex & ~REG(0x07)) << (4 - Subindex); break;
 				}
 				break;
 			}
@@ -239,12 +237,12 @@ std::unique_ptr<CInstrument> CInstrumentRecorder::GetRecordInstrument(unsigned T
 	return std::move(m_pDumpCache[Tick / m_stRecordSetting.Interval - (m_pSoundGen->IsPlaying() ? 1 : 0)]);
 }
 
-chan_id_t CInstrumentRecorder::GetRecordChannel() const
+stChannelID CInstrumentRecorder::GetRecordChannel() const
 {
 	return m_iRecordChannel;
 }
 
-void CInstrumentRecorder::SetRecordChannel(chan_id_t Channel)
+void CInstrumentRecorder::SetRecordChannel(stChannelID Channel)
 {
 	m_iRecordChannel = Channel;
 }
@@ -275,7 +273,7 @@ void CInstrumentRecorder::ResetDumpInstrument()
 //		if (*m_pDumpInstrument != nullptr)
 //			FinalizeRecordInstrument();
 		if (!m_iDumpCount || !m_pSoundGen->IsPlaying()) {
-			m_iRecordChannel = chan_id_t::NONE;
+			m_iRecordChannel = { };
 			if (m_stRecordSetting.Reset) {
 				m_stRecordSetting.Interval = MAX_SEQUENCE_ITEMS;
 				m_stRecordSetting.InstCount = 1;
@@ -306,10 +304,10 @@ void CInstrumentRecorder::ReleaseCurrent()
 void CInstrumentRecorder::InitRecordInstrument()
 {
 	if (m_pModule->GetInstrumentManager()->GetInstrumentCount() >= MAX_INSTRUMENTS) {
-		m_iDumpCount = 0; m_iRecordChannel = chan_id_t::NONE; return;
+		m_iDumpCount = 0; m_iRecordChannel = { }; return;
 	}
 	inst_type_t Type = [&] { // optimize this
-		switch (GetChipFromChannel(m_iRecordChannel)) {
+		switch (m_iRecordChannel.Chip) {
 		case sound_chip_t::APU: case sound_chip_t::MMC5: return INST_2A03;
 		case sound_chip_t::VRC6: return INST_VRC6;
 		// case sound_chip_t::VRC7: return INST_VRC7;
@@ -338,7 +336,7 @@ void CInstrumentRecorder::InitRecordInstrument()
 		// m_pSequenceCache[sequence_t::Pitch]->SetSetting(SETTING_PITCH_ABSOLUTE);
 		// m_pSequenceCache[sequence_t::HiPitch]->SetSetting(SETTING_PITCH_ABSOLUTE);
 		// VRC6 sawtooth 64-step volume
-		if (m_iRecordChannel == chan_id_t::TRIANGLE)
+		if (IsAPUTriangle(m_iRecordChannel))
 			Inst->SetSeqEnable(sequence_t::DutyCycle, 0);
 	}
 	m_iRecordWaveSize = 32; // DEFAULT_WAVE_SIZE
@@ -381,7 +379,7 @@ void CInstrumentRecorder::FinalizeRecordInstrument()
 		break;
 	case INST_N163:
 		ASSERT(N163Inst != NULL);
-		int offs = GetChannelSubIndex(m_iRecordChannel) << 3;
+		int offs = m_iRecordChannel.Subindex << 3;
 		int pos = m_pSoundGen->GetReg(sound_chip_t::N163, 0x7E - offs);
 		N163Inst->SetWavePos(pos);
 		N163Inst->SetWaveSize(m_iRecordWaveSize);

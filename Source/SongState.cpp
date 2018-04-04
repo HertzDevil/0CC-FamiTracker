@@ -28,6 +28,8 @@
 #include "ft0cc/doc/groove.hpp"
 #include <algorithm>
 #include "NumConv.h"
+#include "FamiTrackerEnv.h"
+#include "SoundChipService.h"
 
 
 
@@ -91,45 +93,43 @@ std::string stChannelState::GetStateString() const {
 		effStr += MakeCommandString(x, p);
 	}
 
-	if ((ChannelID >= chan_id_t::SQUARE1 && ChannelID <= chan_id_t::SQUARE2) ||
-		ChannelID == chan_id_t::NOISE ||
-		(ChannelID >= chan_id_t::MMC5_SQUARE1 && ChannelID <= chan_id_t::MMC5_SQUARE2))
+	if (IsAPUPulse(ChannelID) || IsAPUNoise(ChannelID) || ChannelID.Chip == sound_chip_t::MMC5)
 		for (const auto &x : {effect_t::VOLUME}) {
 			int p = Effect[value_cast(x)];
 			if (p < 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (ChannelID == chan_id_t::TRIANGLE)
+	else if (IsAPUTriangle(ChannelID))
 		for (const auto &x : {effect_t::VOLUME, effect_t::NOTE_CUT}) {
 			int p = Effect[value_cast(x)];
 			if (p < 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (ChannelID == chan_id_t::DPCM)
+	else if (IsDPCM(ChannelID))
 		for (const auto &x : {effect_t::SAMPLE_OFFSET, /*effect_t::DPCM_PITCH*/}) {
 			int p = Effect[value_cast(x)];
 			if (p <= 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (GetChipFromChannel(ChannelID) == sound_chip_t::VRC7)
+	else if (ChannelID.Chip == sound_chip_t::VRC7)
 		for (const auto &x : VRC7_EFFECTS) {
 			int p = Effect[value_cast(x)];
 			if (p < 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (GetChipFromChannel(ChannelID) == sound_chip_t::FDS)
+	else if (ChannelID.Chip == sound_chip_t::FDS)
 		for (const auto &x : FDS_EFFECTS) {
 			int p = Effect[value_cast(x)];
 			if (p < 0 || (x == effect_t::FDS_MOD_BIAS && p == 0x80)) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (GetChipFromChannel(ChannelID) == sound_chip_t::S5B)
+	else if (ChannelID.Chip == sound_chip_t::S5B)
 		for (const auto &x : S5B_EFFECTS) {
 			int p = Effect[value_cast(x)];
 			if (p < 0) continue;
 			effStr += MakeCommandString(x, p);
 		}
-	else if (GetChipFromChannel(ChannelID) == sound_chip_t::N163)
+	else if (ChannelID.Chip == sound_chip_t::N163)
 		for (const auto &x : N163_EFFECTS) {
 			int p = Effect[value_cast(x)];
 			if (p < 0 || (x == effect_t::N163_WAVE_BUFFER && p == 0x7F)) continue;
@@ -209,12 +209,12 @@ void stChannelState::HandleExxCommand2A03(unsigned char param) {
 	else if (Effect[value_cast(effect_t::VOLUME)] == -1 && param <= 0x1F) {
 		Effect[value_cast(effect_t::VOLUME)] = param;
 		if (Effect_LengthCounter == -1)
-			Effect_LengthCounter = ChannelID == chan_id_t::TRIANGLE ? 0xE1 : 0xE2;
+			Effect_LengthCounter = IsAPUTriangle(ChannelID) ? 0xE1 : 0xE2;
 	}
 }
 
 void stChannelState::HandleSxxCommand(unsigned char xy) {
-	if (ChannelID != chan_id_t::TRIANGLE)
+	if (!IsAPUTriangle(ChannelID))
 		return;
 	if (Effect[value_cast(effect_t::NOTE_CUT)] == -1) {
 		if (xy <= 0x7F) {
@@ -233,8 +233,10 @@ void stChannelState::HandleSxxCommand(unsigned char xy) {
 
 
 CSongState::CSongState() {
-	for (chan_id_t i = (chan_id_t)0; i < chan_id_t::COUNT; i = (chan_id_t)(value_cast(i) + 1))
-		State[value_cast(i)].ChannelID = i;
+	std::size_t i = 0;
+	Env.GetSoundChipService()->ForeachTrack([&] (stChannelID id) {
+		State[i++].ChannelID = id;
+	});
 }
 
 void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, unsigned Frame, unsigned Row) {
@@ -254,8 +256,8 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 		else
 			break;
 
-		SongView.ForeachTrack([&] (const CTrackData &track, chan_id_t c) {
-			stChannelState &chState = State[value_cast(c)];
+		SongView.ForeachTrack([&] (const CTrackData &track, stChannelID c) {
+			stChannelState &chState = State[value_cast(chan_id_t {c})];
 			int EffColumns = track.GetEffectColumnCount();
 			const auto &Note = track.GetPatternOnFrame(Frame).GetNoteOn(Row);		// // //
 
@@ -313,7 +315,7 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 					maskFDS = true;
 					break;
 				case effect_t::DUTY_CYCLE:
-					if (GetChipFromChannel(c) == sound_chip_t::VRC7)		// // // 050B
+					if (c.Chip == sound_chip_t::VRC7)		// // // 050B
 						break;
 					[[fallthrough]];
 				case effect_t::SAMPLE_OFFSET:
@@ -344,7 +346,7 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 	}
 }
 
-std::string CSongState::GetChannelStateString(const CFamiTrackerModule &modfile, chan_id_t chan) const {
+std::string CSongState::GetChannelStateString(const CFamiTrackerModule &modfile, stChannelID chan) const {
 	std::string str = State[modfile.GetChannelOrder().GetChannelIndex(chan)].GetStateString();
 	if (Tempo >= 0)
 		str += "        Tempo: " + std::to_string(Tempo);

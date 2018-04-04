@@ -40,30 +40,30 @@ public:
 	explicit CSongData(unsigned int PatternLength);		// // //
 	~CSongData();
 
-	CTrackData *GetTrack(chan_id_t chan);		// // //
-	const CTrackData *GetTrack(chan_id_t chan) const;
+	CTrackData *GetTrack(stChannelID chan);		// // //
+	const CTrackData *GetTrack(stChannelID chan) const;
 
-	bool IsPatternInUse(chan_id_t Channel, unsigned int Pattern) const;
+	bool IsPatternInUse(stChannelID Channel, unsigned int Pattern) const;
 
-	unsigned GetFreePatternIndex(chan_id_t Channel, unsigned Whence = (unsigned)-1) const;		// // //
+	unsigned GetFreePatternIndex(stChannelID Channel, unsigned Whence = (unsigned)-1) const;		// // //
 
-	stChanNote &GetPatternData(chan_id_t Channel, unsigned Pattern, unsigned Row);		// // //
-	const stChanNote &GetPatternData(chan_id_t Channel, unsigned Pattern, unsigned Row) const;		// // //
-	void SetPatternData(chan_id_t Channel, unsigned Pattern, unsigned Row, const stChanNote &Note);		// // //
+	stChanNote &GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row);		// // //
+	const stChanNote &GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row) const;		// // //
+	void SetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row, const stChanNote &Note);		// // //
 
-	CPatternData &GetPattern(chan_id_t Channel, unsigned Pattern);		// // //
-	const CPatternData &GetPattern(chan_id_t Channel, unsigned Pattern) const;		// // //
-	CPatternData &GetPatternOnFrame(chan_id_t Channel, unsigned Frame);		// // //
-	const CPatternData &GetPatternOnFrame(chan_id_t Channel, unsigned Frame) const;		// // //
+	CPatternData &GetPattern(stChannelID Channel, unsigned Pattern);		// // //
+	const CPatternData &GetPattern(stChannelID Channel, unsigned Pattern) const;		// // //
+	CPatternData &GetPatternOnFrame(stChannelID Channel, unsigned Frame);		// // //
+	const CPatternData &GetPatternOnFrame(stChannelID Channel, unsigned Frame) const;		// // //
 
-	stChanNote GetActiveNote(chan_id_t Channel, unsigned Frame, unsigned Row) const;		// // //
+	stChanNote GetActiveNote(stChannelID Channel, unsigned Frame, unsigned Row) const;		// // //
 
 	std::string_view GetTitle() const;		// // //
 	unsigned int GetPatternLength() const;
 	unsigned int GetFrameCount() const;
 	unsigned int GetSongSpeed() const;
 	unsigned int GetSongTempo() const;
-	unsigned GetEffectColumnCount(chan_id_t Channel) const;
+	unsigned GetEffectColumnCount(stChannelID Channel) const;
 	bool GetSongGroove() const;		// // //
 
 	void SetTitle(std::string_view str);		// // //
@@ -71,11 +71,11 @@ public:
 	void SetFrameCount(unsigned int Count);
 	void SetSongSpeed(unsigned int Speed);
 	void SetSongTempo(unsigned int Tempo);
-	void SetEffectColumnCount(chan_id_t Channel, unsigned Count);
+	void SetEffectColumnCount(stChannelID Channel, unsigned Count);
 	void SetSongGroove(bool Groove);		// // //
 
-	unsigned int GetFramePattern(unsigned int Frame, chan_id_t Channel) const;
-	void SetFramePattern(unsigned int Frame, chan_id_t Channel, unsigned int Pattern);
+	unsigned int GetFramePattern(unsigned int Frame, stChannelID Channel) const;
+	void SetFramePattern(unsigned int Frame, stChannelID Channel, unsigned int Pattern);
 
 	const stHighlight &GetRowHighlight() const;
 	void SetRowHighlight(const stHighlight &Hl);		// // //
@@ -83,10 +83,10 @@ public:
 	stHighlight GetHighlightAt(unsigned Frame, unsigned Row) const;		// // //
 	highlight_state_t GetHighlightState(unsigned Frame, unsigned Row) const;		// // //
 
-	void PullUp(chan_id_t Chan, unsigned Frame, unsigned Row);
-	void InsertRow(chan_id_t Chan, unsigned Frame, unsigned Row);
-	void CopyTrack(chan_id_t Chan, const CSongData &From, chan_id_t ChanFrom);		// // //
-	void SwapChannels(chan_id_t First, chan_id_t Second);		// // //
+	void PullUp(stChannelID Chan, unsigned Frame, unsigned Row);
+	void InsertRow(stChannelID Chan, unsigned Frame, unsigned Row);
+	void CopyTrack(stChannelID Chan, const CSongData &From, stChannelID ChanFrom);		// // //
+	void SwapChannels(stChannelID First, stChannelID Second);		// // //
 
 	// // // Frame operations
 
@@ -102,15 +102,13 @@ public:
 	void SetBookmarks(const CBookmarkCollection &bookmarks);
 	void SetBookmarks(CBookmarkCollection &&bookmarks);
 
-	// void (*F)(CTrackData &track [, chan_id_t ch])
+	// void (*F)(CTrackData &track [, stChannelID ch])
 	template <typename F>
 	void VisitTracks(F f) {
-		if constexpr (std::is_invocable_v<F, CTrackData &, chan_id_t>) {
+		if constexpr (std::is_invocable_v<F, CTrackData &, stChannelID>) {
 			unsigned ch_pos = 0;
-			for (auto &track : tracks_) {
-				f(track, (chan_id_t)ch_pos);
-				++ch_pos;
-			}
+			for (auto &track : tracks_)
+				f(track, stChannelID {(chan_id_t)ch_pos++});
 		}
 		else if constexpr (std::is_invocable_v<F, CTrackData &>) {
 			for (auto &track : tracks_)
@@ -120,15 +118,13 @@ public:
 			static_assert(sizeof(F) == 0, "Unknown function signature");
 	}
 
-	// void (*F)(const CTrackData &track [, chan_id_t ch])
+	// void (*F)(const CTrackData &track [, stChannelID ch])
 	template <typename F>
 	void VisitTracks(F f) const {
-		if constexpr (std::is_invocable_v<F, const CTrackData &, chan_id_t>) {
+		if constexpr (std::is_invocable_v<F, const CTrackData &, stChannelID>) {
 			unsigned ch_pos = 0;
-			for (auto &track : tracks_) {
-				f(track, (chan_id_t)ch_pos);
-				++ch_pos;
-			}
+			for (auto &track : tracks_)
+				f(track, stChannelID {(chan_id_t)ch_pos++});
 		}
 		else if constexpr (std::is_invocable_v<F, const CTrackData &>) {
 			for (auto &track : tracks_)
@@ -138,11 +134,11 @@ public:
 			static_assert(sizeof(F) == 0, "Unknown function signature");
 	}
 
-	// void (*F)(CPatternData &pattern [, chan_id_t ch, std::size_t p_index])
+	// void (*F)(CPatternData &pattern [, stChannelID ch, std::size_t p_index])
 	template <typename F>
 	void VisitPatterns(F f) {		// // //
-		if constexpr (std::is_invocable_v<F, CPatternData &, chan_id_t, std::size_t>)
-			VisitTracks([&] (CTrackData &track, chan_id_t ch) {
+		if constexpr (std::is_invocable_v<F, CPatternData &, stChannelID, std::size_t>)
+			VisitTracks([&] (CTrackData &track, stChannelID ch) {
 				track.VisitPatterns([&] (CPatternData &pattern, std::size_t p_index) {
 					f(pattern, ch, p_index);
 				});
@@ -155,11 +151,11 @@ public:
 			static_assert(sizeof(F) == 0, "Unknown function signature");
 	}
 
-	// void (*F)(const CPatternData &pattern [, chan_id_t ch, std::size_t p_index])
+	// void (*F)(const CPatternData &pattern [, stChannelID ch, std::size_t p_index])
 	template <typename F>
 	void VisitPatterns(F f) const {
-		if constexpr (std::is_invocable_v<F, const CPatternData &, chan_id_t, std::size_t>)
-			VisitTracks([&] (const CTrackData &track, chan_id_t ch) {
+		if constexpr (std::is_invocable_v<F, const CPatternData &, stChannelID, std::size_t>)
+			VisitTracks([&] (const CTrackData &track, stChannelID ch) {
 				track.VisitPatterns([&] (const CPatternData &pattern, std::size_t p_index) {
 					f(pattern, ch, p_index);
 				});

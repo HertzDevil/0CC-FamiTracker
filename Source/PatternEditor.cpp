@@ -1303,13 +1303,13 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	unsigned fxcols = pSongView->GetEffectColumnCount(Channel);
-	chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(Channel);
+	stChannelID ch = pSongView->GetChannelOrder().TranslateChannel(Channel);
 
 	// Make non-available instruments red in the pattern editor
 	const auto *pManager = m_pModule->GetInstrumentManager();
 	if (NoteData.Instrument < MAX_INSTRUMENTS &&
 		(!pManager->IsInstrumentUsed(NoteData.Instrument) ||
-		!IsInstrumentCompatible(GetChipFromChannel(ch), pManager->GetInstrumentType(NoteData.Instrument)))) {		// // //
+		!IsInstrumentCompatible(ch.Chip, pManager->GetInstrumentType(NoteData.Instrument)))) {		// // //
 		DimInst = InstColor = MakeRGB(255, 0, 0);
 	}
 
@@ -1386,7 +1386,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 			DrawChar(DC, PosX + m_iCharWidth * 2, PosY, NOTES_C[NoteData.Octave], ColorInfo.Note);
 			break;
 		default:
-			if (ch == chan_id_t::NOISE) {
+			if (IsAPUNoise(ch)) {
 				// Noise
 				char NoiseFreq = MIDI_NOTE(NoteData.Octave, NoteData.Note) & 0x0F;
 				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoiseFreq], ColorInfo.Note);		// // //
@@ -1422,7 +1422,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		break;
 	case C_VOLUME:
 		// Volume
-		if (NoteData.Vol == MAX_VOLUME || ch == chan_id_t::DPCM)
+		if (NoteData.Vol == MAX_VOLUME || IsDPCM(ch))
 			BAR(PosX, PosY);
 		else
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.Vol & 0x0F], ColorInfo.Volume);		// // //
@@ -1485,7 +1485,7 @@ void CPatternEditor::DrawHeader(CDC &DC)
 
 	for (int i = 0; i < m_iChannelsVisible; ++i) {
 		const int Channel = i + m_iFirstChannel;
-		chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(Channel);
+		stChannelID ch = pSongView->GetChannelOrder().TranslateChannel(Channel);
 		const bool bMuted = m_pView->IsChannelMuted(ch);
 		const bool Pushed = bMuted || (m_iChannelPushed == Channel) && m_bChannelPushed;
 
@@ -3542,7 +3542,7 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 		for (int i = b.m_iChannel; i <= e.m_iChannel; ++i) {
 			const auto &NoteData = b.Get(i);
 			auto RowString = CTextExport::ExportCellText(NoteData, pSongView->GetEffectColumnCount(i),
-				pSongView->GetChannelOrder().TranslateChannel(i) == chan_id_t::NOISE);
+				IsAPUNoise(pSongView->GetChannelOrder().TranslateChannel(i)));
 			if (i == b.m_iChannel) for (unsigned c = 0; c < value_cast(BegCol); ++c)
 				for (int j = 0; j < COLUMN_CHAR_LEN[c]; ++j) RowString.SetAt(COLUMN_CHAR_POS[c] + j, ' ');
 			if (i == e.m_iChannel && EndCol < column_t::Effect4)
@@ -3565,9 +3565,9 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 	CStringW str;
 
 	for (int c = b.m_iChannel; c <= e.m_iChannel; ++c) {
-		chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(c);
-		unsigned Type = GetChannelSubIndex(ch);
-		switch (GetChipFromChannel(ch)) {
+		stChannelID ch = pSongView->GetChannelOrder().TranslateChannel(c);
+		unsigned Type = ch.Subindex;
+		switch (ch.Chip) {
 		case sound_chip_t::APU:  Type += 'A'; break;
 		case sound_chip_t::FDS:  Type += 'F'; break;
 		case sound_chip_t::VRC7: Type += 'G'; break;

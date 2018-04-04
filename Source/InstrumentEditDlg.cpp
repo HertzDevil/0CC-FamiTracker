@@ -180,8 +180,8 @@ void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 
 		switch (InstType) {
 			case INST_2A03: {
-					chan_id_t Type = CFamiTrackerView::GetView()->GetSelectedChannelID();		// // //
-					bool bShowDPCM = (Type == chan_id_t::DPCM) || (std::static_pointer_cast<CInstrument2A03>(pInstrument)->AssignedSamples());
+					stChannelID Type = CFamiTrackerView::GetView()->GetSelectedChannelID();		// // //
+					bool bShowDPCM = IsDPCM(Type) || (std::static_pointer_cast<CInstrument2A03>(pInstrument)->AssignedSamples());
 					InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, L"2A03 settings",
 						CInstrument2A03::SEQUENCE_NAME, 15, 3, INST_2A03), !bShowDPCM);		// // //
 					InsertPane(std::make_unique<CInstrumentEditorDPCM>(), bShowDPCM);
@@ -342,30 +342,30 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 	CFamiTrackerView *pView = CFamiTrackerView::GetView();
 	const CChannelOrder &Order = pView->GetSongView()->GetChannelOrder();
 	CMainFrame *pFrameWnd = static_cast<CMainFrame*>(GetParent());
-	chan_id_t Channel = pView->GetSelectedChannelID();		// // //
+	stChannelID Channel = pView->GetSelectedChannelID();		// // //
 
 	// // // Send to respective channels whenever cursor is outside instrument chip
 	if (m_iSelectedInstType == INST_2A03) {
 		if (m_pPanels[0]->IsWindowVisible()) {
-			if (Order.HasChannel(chan_id_t::SQUARE1) && (GetChipFromChannel(chan_id_t::SQUARE1) != GetChipFromChannel(Channel) || Channel == chan_id_t::DPCM))
-				pView->SelectChannel(Order.GetChannelIndex(chan_id_t::SQUARE1));
+			if (Order.HasChannel(apu_subindex_t::pulse1) && (Channel.Chip != sound_chip_t::APU || IsDPCM(Channel)))
+				pView->SelectChannel(Order.GetChannelIndex(apu_subindex_t::pulse1));
 		}
 		else if (m_pPanels[1]->IsWindowVisible()) {
-			if (Order.HasChannel(chan_id_t::DPCM) && Channel != chan_id_t::DPCM)
-				pView->SelectChannel(Order.GetChannelIndex(chan_id_t::DPCM));
+			if (Order.HasChannel(apu_subindex_t::dpcm) && !IsDPCM(Channel))
+				pView->SelectChannel(Order.GetChannelIndex(apu_subindex_t::dpcm));
 		}
 	}
 	else {
-		chan_id_t First = chan_id_t::NONE;
+		stChannelID First;
 		switch (m_iSelectedInstType) {
-//		case INST_2A03: First = chan_id_t::SQUARE1; break;
-		case INST_VRC6: First = chan_id_t::VRC6_PULSE1; break;
-		case INST_N163: First = chan_id_t::N163_CH1; break;
-		case INST_FDS:  First = chan_id_t::FDS; break;
-		case INST_VRC7: First = chan_id_t::VRC7_CH1; break;
-		case INST_S5B:  First = chan_id_t::S5B_CH1; break;
+//		case INST_2A03: First = apu_subindex_t::pulse1; break;
+		case INST_VRC6: First = vrc6_subindex_t::pulse1; break;
+		case INST_N163: First = n163_subindex_t::ch1; break;
+		case INST_FDS:  First = fds_subindex_t::wave; break;
+		case INST_VRC7: First = vrc7_subindex_t::ch1; break;
+		case INST_S5B:  First = s5b_subindex_t::square1; break;
 		}
-		if (Order.HasChannel(First) && GetChipFromChannel(First) != GetChipFromChannel(Channel))
+		if (Order.HasChannel(First) && First.Chip != Channel.Chip)
 			pView->SelectChannel(Order.GetChannelIndex(First));
 	}
 	Channel = pView->GetSelectedChannelID();		// // //

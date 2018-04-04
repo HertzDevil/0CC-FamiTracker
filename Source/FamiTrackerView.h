@@ -36,7 +36,7 @@
 #include "PatternEditorTypes.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
 #include "PlayerCursor.h"		// // //
-#include "APU/Types_fwd.h"		// // //
+#include "APU/Types.h"		// // //
 
 // External classes
 class CFamiTrackerDoc;
@@ -101,8 +101,8 @@ public:
 	unsigned int GetSelectedChannel() const;
 
 	// forwards to song view, not channel map
-	chan_id_t TranslateChannel(unsigned Index) const;		// // //
-	chan_id_t GetSelectedChannelID() const;		// // //
+	stChannelID TranslateChannel(unsigned Index) const;		// // //
+	stChannelID GetSelectedChannelID() const;		// // //
 	CTrackerChannel &GetTrackerChannel(std::size_t Index) const;		// // //
 
 	CSongView	*GetSongView();		// // //
@@ -128,7 +128,7 @@ public:
 	bool		IsMarkerValid() const;		// // //
 
 	// Player callback (TODO move to new interface)
-	void		 PlayerPlayNote(chan_id_t Channel, const stChanNote &pNote);		// // //
+	void		 PlayerPlayNote(stChannelID Channel, const stChanNote &pNote);		// // //
 
 	void		 MakeSilent();
 
@@ -139,13 +139,13 @@ public:
 	void	UpdateNoteQueues();		// // //
 
 	// Mute methods
-	void		 SoloChannel(chan_id_t Channel);
-	void		 ToggleChannel(chan_id_t Channel);
-	void		 SoloChip(chan_id_t Channel);		// // //
-	void		 ToggleChip(chan_id_t Channel);		// // //
+	void		 SoloChannel(stChannelID Channel);
+	void		 ToggleChannel(stChannelID Channel);
+	void		 SoloChip(stChannelID Channel);		// // //
+	void		 ToggleChip(stChannelID Channel);		// // //
 	void		 UnmuteAllChannels();
-	bool		 IsChannelMuted(chan_id_t Channel) const;
-	void		 SetChannelMute(chan_id_t Channel, bool bMute);
+	bool		 IsChannelMuted(stChannelID Channel) const;
+	void		 SetChannelMute(stChannelID Channel, bool bMute);
 
 	// For UI updates
 	bool		 IsSelecting() const;
@@ -243,8 +243,8 @@ private:
 
 	// MIDI keyboard emulation
 	void	HandleKeyboardNote(char nChar, bool Pressed);
-	void	SplitKeyboardAdjust(stChanNote &Note, chan_id_t Channel) const;		// // //
-	chan_id_t SplitAdjustChannel(chan_id_t Channel, const stChanNote &Note) const;		// // //
+	void	SplitKeyboardAdjust(stChanNote &Note, stChannelID Channel) const;		// // //
+	stChannelID SplitAdjustChannel(stChannelID Channel, const stChanNote &Note) const;		// // //
 
 	// MIDI note functions
 	void	TriggerMIDINote(std::size_t Index, unsigned int MidiNote, unsigned int Velocity, bool Insert);
@@ -260,7 +260,7 @@ private:
 	void	UpdateArpDisplay();
 
 	// Mute methods
-	bool	IsChannelSolo(chan_id_t Channel) const;		// // //
+	bool	IsChannelSolo(stChannelID Channel) const;		// // //
 	bool	IsChipSolo(sound_chip_t Chip) const;		// // //
 
 	// Other
@@ -295,7 +295,7 @@ private:
 	// General
 	bool				m_bHasFocus;
 	UINT				m_iClipboard;
-	chan_id_t			m_iMenuChannel;							// // // Which channel a popup-menu belongs to
+	stChannelID			m_iMenuChannel;							// // // Which channel a popup-menu belongs to
 
 	// Cursor & editing
 	unsigned int		m_iMoveKeyStepping;						// Number of rows to jump when moving
@@ -331,7 +331,7 @@ private:
 	int					m_iLastNoteState = -1;					// // //
 
 	int					m_iSplitNote;							// // // Split keyboard settings
-	chan_id_t			m_iSplitChannel;
+	stChannelID			m_iSplitChannel;
 	int					m_iSplitInstrument;
 	int					m_iSplitTranspose;
 

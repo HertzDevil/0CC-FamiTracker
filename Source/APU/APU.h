@@ -62,7 +62,7 @@ public:
 	void	SetupMixer(int LowCut, int HighCut, int HighDamp, int Volume) const;
 	void	SetCallback(IAudioCallback &pCallback);		// // //
 
-	int32_t	GetVol(chan_id_t Chan) const;		// // //
+	int32_t	GetVol(stChannelID Chan) const;		// // //
 	uint8_t	GetReg(sound_chip_t Chip, int Reg) const;
 	double	GetFreq(sound_chip_t Chip, int Chan) const;		// // //
 	CRegisterState *GetRegState(sound_chip_t Chip, int Reg) const;		// // //

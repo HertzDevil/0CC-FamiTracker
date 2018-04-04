@@ -44,7 +44,6 @@ IMPLEMENT_DYNAMIC(CSplitKeyboardDlg, CDialog)
 CSplitKeyboardDlg::CSplitKeyboardDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(IDD_SPLIT_KEYBOARD, pParent),
 	m_bSplitEnable(false),
-	m_iSplitChannel(chan_id_t::NONE),
 	m_iSplitNote(-1),
 	m_iSplitInstrument(MAX_INSTRUMENTS),
 	m_iSplitTranspose(0)
@@ -94,7 +93,7 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	pCombo->SetCurSel(0);
 	auto *pSCS = Env.GetSoundChipService();
 	int i = 0;
-	pDoc->GetModule()->GetChannelOrder().ForeachChannel([&] (chan_id_t ch) {
+	pDoc->GetModule()->GetChannelOrder().ForeachChannel([&] (stChannelID ch) {
 		pCombo->AddString(conv::to_wide(pSCS->GetChannelFullName(ch)).data());
 		if (m_iSplitChannel == ch)
 			pCombo->SetCurSel(i + 1);
@@ -148,7 +147,7 @@ void CSplitKeyboardDlg::OnCbnSelchangeComboSplitChan()
 	if (int Pos = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_CHAN))->GetCurSel())
 		m_iSplitChannel = CFamiTrackerDoc::GetDoc()->GetModule()->GetChannelOrder().TranslateChannel(Pos - 1);
 	else
-		m_iSplitChannel = chan_id_t::NONE;
+		m_iSplitChannel = { };
 }
 
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitInst()

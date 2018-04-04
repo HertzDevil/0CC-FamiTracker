@@ -597,8 +597,8 @@ std::vector<unsigned char> CCompiler::LoadDriver(const driver_t &Driver, unsigne
 
 		for (int i = 0; i < CHANID_COUNT; ++i)
 			Data[FT_CH_ENABLE_ADR + i] = 0;
-		m_ChannelOrder.ForeachChannel([&] (chan_id_t x) {
-			Data[FT_CH_ENABLE_ADR + CH_MAP[value_cast(x)]] = 1;
+		m_ChannelOrder.ForeachChannel([&] (stChannelID x) {
+			Data[FT_CH_ENABLE_ADR + CH_MAP[value_cast(chan_id_t {x})]] = 1;
 		});
 	}
 
@@ -1045,7 +1045,7 @@ void CCompiler::ScanSong()
 	// // // Scan patterns in entire module
 	m_pModule->VisitSongs([&] (const CSongData &song) {
 		int PatternLength = song.GetPatternLength();
-		m_ChannelOrder.ForeachChannel([&] (chan_id_t j) {
+		m_ChannelOrder.ForeachChannel([&] (stChannelID j) {
 			for (int k = 0; k < MAX_PATTERN; ++k)
 				for (int l = 0; l < PatternLength; ++l) {
 					const auto &note = song.GetPattern(j, k).GetNoteOn(l);
@@ -1084,7 +1084,7 @@ void CCompiler::ScanSong()
 	m_pModule->VisitSongs([&] (const CSongData &song) {		// // //
 		const int patternlen = song.GetPatternLength();
 		const int frames = song.GetFrameCount();
-		const auto *pTrack = song.GetTrack(chan_id_t::DPCM);
+		const auto *pTrack = song.GetTrack({sound_chip_t::APU, value_cast(apu_subindex_t::dpcm)});
 		for (int j = 0; j < frames; ++j) {
 			const auto &Pattern = pTrack->GetPatternOnFrame(j);
 			for (int k = 0; k < patternlen; ++k) {
@@ -1542,9 +1542,9 @@ void CCompiler::CreateFrameList(unsigned int Track)
 		TotalSize += 2;
 
 		// Pattern pointers
-		m_ChannelOrder.ForeachChannel([&] (chan_id_t Chan) {
+		m_ChannelOrder.ForeachChannel([&] (stChannelID Chan) {
 			unsigned Pattern = pSong->GetFramePattern(i, Chan);
-			Chunk.StorePointer({CHUNK_PATTERN, Track, Pattern, value_cast(Chan)});		// // //
+			Chunk.StorePointer({CHUNK_PATTERN, Track, Pattern, value_cast(chan_id_t {Chan})});		// // //
 			TotalSize += 2;
 		});
 	}
@@ -1570,14 +1570,14 @@ void CCompiler::StorePatterns(unsigned int Track)
 
 	// Iterate through all patterns
 	for (unsigned i = 0; i < MAX_PATTERN; ++i) {
-		m_ChannelOrder.ForeachChannel([&] (chan_id_t j) {		// // //
+		m_ChannelOrder.ForeachChannel([&] (stChannelID j) {		// // //
 			// And store only used ones
 			if (IsPatternAddressed(Track, i, j)) {
 
 				// Compile pattern data
 				PatternCompiler.CompileData(Track, i, j);
 
-				auto label = stChunkLabel {CHUNK_PATTERN, Track, i, value_cast(j)};		// // //
+				auto label = stChunkLabel {CHUNK_PATTERN, Track, i, value_cast(chan_id_t {j})};		// // //
 
 				bool StoreNew = true;
 
@@ -1634,7 +1634,7 @@ void CCompiler::StorePatterns(unsigned int Track)
 	Print(conv::from_int(PatternCount) + " patterns (" + conv::from_int(PatternSize) + " bytes)\r\n");
 }
 
-bool CCompiler::IsPatternAddressed(unsigned int Track, int Pattern, chan_id_t Channel) const
+bool CCompiler::IsPatternAddressed(unsigned int Track, int Pattern, stChannelID Channel) const
 {
 	// Scan the frame list to see if a pattern is accessed for that frame
 	if (const auto *pSong = m_pModule->GetSong(Track))		// // //
@@ -1686,91 +1686,3 @@ CChunk *CCompiler::GetObjectByLabel(const stChunkLabel &Label) const		// // //
 			return pChunk.get();
 	return nullptr;
 }
-
-#if 0
-
-void CCompiler::WriteChannelMap()
-{
-	CChunk &Chunk = CreateChunk(CHUNK_CHANNEL_MAP, "");
-
-	pChunk->StoreByte(chan_id_t::SQUARE1 + 1);
-	pChunk->StoreByte(chan_id_t::SQUARE2 + 1);
-	pChunk->StoreByte(chan_id_t::TRIANGLE + 1);
-	pChunk->StoreByte(chan_id_t::NOISE + 1);
-
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::VRC6)) {
-		pChunk->StoreByte(chan_id_t::VRC6_PULSE1 + 1);
-		pChunk->StoreByte(chan_id_t::VRC6_PULSE2 + 1);
-		pChunk->StoreByte(chan_id_t::VRC6_SAWTOOTH + 1);
-	}
-
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::VRC7)) {
-		pChunk->StoreByte(chan_id_t::VRC7_CH1 + 1);
-		pChunk->StoreByte(chan_id_t::VRC7_CH2 + 1);
-		pChunk->StoreByte(chan_id_t::VRC7_CH3 + 1);
-		pChunk->StoreByte(chan_id_t::VRC7_CH4 + 1);
-		pChunk->StoreByte(chan_id_t::VRC7_CH5 + 1);
-		pChunk->StoreByte(chan_id_t::VRC7_CH6 + 1);
-	}
-
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::FDS)) {
-		pChunk->StoreByte(chan_id_t::FDS + 1);
-	}
-
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::MMC5)) {
-		pChunk->StoreByte(chan_id_t::MMC5_SQUARE1 + 1);
-		pChunk->StoreByte(chan_id_t::MMC5_SQUARE2 + 1);
-	}
-
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::N163)) {
-		for (unsigned int i = 0; i < m_pDocument->GetNamcoChannels(); ++i) {
-			pChunk->StoreByte(chan_id_t::N163_CH1 + i + 1);
-		}
-	}
-
-	pChunk->StoreByte(chan_id_t::DPCM + 1);
-}
-
-void CCompiler::WriteChannelTypes()
-{
-	const int TYPE_2A03 = 0;
-	const int TYPE_VRC6 = 2;
-	const int TYPE_VRC7 = 4;
-	const int TYPE_FDS	= 6;
-	const int TYPE_MMC5 = 8;
-	const int TYPE_N163 = 10;
-	const int TYPE_S5B	= 12;
-
-	CChunk &Chunk = CreateChunk(CHUNK_CHANNEL_TYPES, "");
-
-	for (int i = 0; i < MAX_CHANNELS_2A03 - 1; ++i)
-		pChunk->StoreByte(TYPE_2A03);
-
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::VRC6)) {
-		for (int i = 0; i < MAX_CHANNELS_VRC6; ++i)
-			pChunk->StoreByte(TYPE_VRC6);
-	}
-
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::VRC7)) {
-		for (int i = 0; i < MAX_CHANNELS_VRC7; ++i)
-			pChunk->StoreByte(TYPE_VRC7);
-	}
-
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::FDS)) {
-		pChunk->StoreByte(TYPE_FDS);
-	}
-
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::MMC5)) {
-		for (int i = 0; i < MAX_CHANNELS_MMC5 - 1; ++i)
-			pChunk->StoreByte(TYPE_MMC5);
-	}
-
-	if (m_pDocument->ExpansionEnabled(sound_chip_t::N163)) {
-		for (unsigned int i = 0; i < m_pDocument->GetNamcoChannels(); ++i)
-			pChunk->StoreByte(TYPE_N163);
-	}
-
-	pChunk->StoreByte(TYPE_2A03);
-}
-
-#endif

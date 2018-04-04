@@ -36,10 +36,9 @@ const CChannelOrder &CChannelMap::GetChannelOrder() const {
 	return order_;
 }
 
-bool CChannelMap::SupportsChannel(chan_id_t ch) const {		// // //
-	sound_chip_t chip = GetChipFromChannel(ch);
-	return HasExpansionChip(chip) && !(chip == sound_chip_t::N163 &&
-		GetChannelSubIndex(ch) >= GetChipChannelCount(sound_chip_t::N163));
+bool CChannelMap::SupportsChannel(stChannelID ch) const {		// // //
+	return HasExpansionChip(ch.Chip) && !(ch.Chip == sound_chip_t::N163 &&
+		ch.Subindex >= GetChipChannelCount(sound_chip_t::N163));
 }
 
 CSoundChipSet CChannelMap::GetExpansionFlag() const noexcept {		// // //

@@ -32,25 +32,29 @@ public:
 	void AddDefaultTypes();
 
 	std::size_t GetSupportedChannelCount(sound_chip_t chip) const;
-	std::size_t GetChannelSubindex(chan_id_t ch) const;
-	chan_id_t MakeChannelIndex(sound_chip_t chip, std::size_t subindex) const;
+	stChannelID MakeChannelIndex(sound_chip_t chip, std::size_t subindex) const;
 
 	std::string_view GetChipShortName(sound_chip_t chip) const;
 	std::string_view GetChipFullName(sound_chip_t chip) const;
-	std::string_view GetChannelShortName(chan_id_t ch) const;
-	std::string_view GetChannelFullName(chan_id_t ch) const;
+	std::string_view GetChannelShortName(stChannelID ch) const;
+	std::string_view GetChannelFullName(stChannelID ch) const;
 
-	sound_chip_t GetChipFromChannel(chan_id_t ch) const;
-	sound_chip_t GetChipFromString(std::string_view sv) const;
-
-	std::unique_ptr<CSoundChip> MakeSoundChipDriver(sound_chip_t chip, CMixer &mixer) const;
-	std::unique_ptr<CChipHandler> MakeChipHandler(sound_chip_t chip) const;
+	std::unique_ptr<CSoundChip> MakeSoundChipDriver(sound_chip_t chip, CMixer &mixer, std::size_t nInstance) const;
+	std::unique_ptr<CChipHandler> MakeChipHandler(sound_chip_t chip, std::size_t nInstance) const;
 
 	// void (*F)(sound_chip_t chip)
 	template <typename F>
 	void ForeachType(F f) const {
 		for (auto &x : types_)
 			f(x.first);
+	}
+
+	// void (*F)(stChannelID track)
+	template <typename F>
+	void ForeachTrack(F f) const {
+		for (auto &x : types_)
+			for (std::size_t i = 0, n = x.second->GetSupportedChannelCount(); i < n; ++i)
+				f(stChannelID {x.first, i});
 	}
 
 private:

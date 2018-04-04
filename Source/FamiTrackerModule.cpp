@@ -327,7 +327,7 @@ void CFamiTrackerModule::RemoveUnusedPatterns() {
 			if (!order.HasChannel((chan_id_t)i))
 				for (int p = 0; p < MAX_PATTERN; ++p)
 					song.GetPattern((chan_id_t)i, p) = CPatternData { };
-		song.VisitPatterns([&song] (CPatternData &pattern, chan_id_t c, unsigned p) {
+		song.VisitPatterns([&song] (CPatternData &pattern, stChannelID c, unsigned p) {
 			if (!song.IsPatternInUse(c, p))
 				pattern = CPatternData { };
 		});
@@ -339,7 +339,7 @@ void CFamiTrackerModule::RemoveUnusedInstruments() {
 
 	VisitSongs([&] (const CSongData &song) {		// // //
 		int length = song.GetPatternLength();
-		GetChannelOrder().ForeachChannel([&] (chan_id_t Channel) {
+		GetChannelOrder().ForeachChannel([&] (stChannelID Channel) {
 			for (unsigned int Frame = 0; Frame < song.GetFrameCount(); ++Frame)
 				song.GetPatternOnFrame(Channel, Frame).VisitRows(length, [&] (const stChanNote &note) {
 					if (note.Instrument < MAX_INSTRUMENTS)
@@ -388,9 +388,9 @@ void CFamiTrackerModule::RemoveUnusedDSamples() {
 			bool Used = false;
 			VisitSongs([&] (const CSongData &song) {
 				for (unsigned int Frame = 0; Frame < song.GetFrameCount(); ++Frame) {
-					unsigned int Pattern = song.GetFramePattern(Frame, chan_id_t::DPCM);
+					unsigned int Pattern = song.GetFramePattern(Frame, apu_subindex_t::dpcm);
 					for (unsigned int Row = 0; Row < song.GetPatternLength(); ++Row) {
-						const auto &Note = song.GetPatternData(chan_id_t::DPCM, Pattern, Row);		// // //
+						const auto &Note = song.GetPatternData(apu_subindex_t::dpcm, Pattern, Row);		// // //
 						int Index = Note.Instrument;
 						if (!IsNote(Note.Note) || Index == MAX_INSTRUMENTS)
 							continue;		// // //

@@ -30,7 +30,8 @@
 //#define LINEAR_MIXING
 
 struct stLevels2A03SS {
-	int Offset(chan_id_t ChanID, int Value);
+	using subindex_t = apu_subindex_t;
+	int Offset(apu_subindex_t subindex, int val);
 	double CalcPin() const;
 
 private:
@@ -41,7 +42,8 @@ private:
 
 
 struct stLevels2A03TND {
-	int Offset(chan_id_t ChanID, int Value);
+	using subindex_t = apu_subindex_t;
+	int Offset(apu_subindex_t subindex, int val);
 	double CalcPin() const;
 
 private:
@@ -52,22 +54,18 @@ private:
 
 
 
-struct stLevelsMono {
-	int Offset(chan_id_t ChanID, int Value);
-	double CalcPin() const;
+template <typename EnumT, EnumT... Subindices>
+struct stLevelsLinear {
+	using subindex_t = EnumT;
 
 private:
-	int lvl_ = 0;
-};
+	using T2 = std::underlying_type_t<EnumT>;
 
-
-
-template <chan_id_t... ChanIDs>
-struct stLevelsLinear {
-	int Offset(chan_id_t ChanID, int Value) {
-		return Offset(ChanID, Value,
-			std::integer_sequence<unsigned, value_cast(ChanIDs)...> { },
-			std::make_index_sequence<sizeof...(ChanIDs)> { });
+public:
+	int Offset(EnumT ChanID, int val) {
+		return Offset(ChanID, val,
+			std::integer_sequence<T2, value_cast(Subindices)...> { },
+			std::make_index_sequence<sizeof...(Subindices)> { });
 	}
 
 	double CalcPin() const {
@@ -75,29 +73,34 @@ struct stLevelsLinear {
 	}
 
 private:
-	int Offset(chan_id_t ChanID, int Value, std::integer_sequence<unsigned>, std::index_sequence<>) {
+	int Offset(EnumT ChanID, int val, std::integer_sequence<T2>, std::index_sequence<>) {
 		return 0;
 	}
 
-	template <unsigned I, unsigned... Is, std::size_t J, std::size_t... Js>
-	int Offset(chan_id_t ChanID, int Value, std::integer_sequence<unsigned, I, Is...>, std::index_sequence<J, Js...>) {
-		if (ChanID == (chan_id_t)I) {
-			tot_ += Value;
-			return lvl_[J] += Value;
+	template <T2 I, T2... Is, std::size_t J, std::size_t... Js>
+	int Offset(EnumT ChanID, int val, std::integer_sequence<T2, I, Is...>, std::index_sequence<J, Js...>) {
+		if (value_cast(ChanID) == I) {
+			tot_ += val;
+			return lvl_[J] += val;
 		}
-		return Offset(ChanID, Value,
-			std::integer_sequence<unsigned, Is...> { },
+		return Offset(ChanID, val,
+			std::integer_sequence<T2, Is...> { },
 			std::index_sequence<Js...> { });
 	}
 
 private:
-	int lvl_[sizeof...(ChanIDs)] = { };
+	int lvl_[sizeof...(Subindices)] = { };
 	int tot_ = 0;
 };
 
-using stLevelsVRC6 = stLevelsLinear<chan_id_t::VRC6_PULSE1, chan_id_t::VRC6_PULSE2, chan_id_t::VRC6_SAWTOOTH>;
-using stLevelsFDS = stLevelsLinear<chan_id_t::FDS>;
-using stLevelsMMC5 = stLevelsLinear<chan_id_t::MMC5_SQUARE1, chan_id_t::MMC5_SQUARE2, chan_id_t::MMC5_VOICE>;
-using stLevelsN163 = stLevelsLinear<chan_id_t::N163_CH1, chan_id_t::N163_CH2, chan_id_t::N163_CH3, chan_id_t::N163_CH4,
-	chan_id_t::N163_CH5, chan_id_t::N163_CH6, chan_id_t::N163_CH7, chan_id_t::N163_CH8>;
-using stLevelsS5B = stLevelsLinear<chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3>;
+using stLevelsVRC6 = stLevelsLinear<vrc6_subindex_t,
+	vrc6_subindex_t::pulse1, vrc6_subindex_t::pulse2, vrc6_subindex_t::sawtooth>;
+using stLevelsFDS = stLevelsLinear<fds_subindex_t,
+	fds_subindex_t::wave>;
+using stLevelsMMC5 = stLevelsLinear<mmc5_subindex_t,
+	mmc5_subindex_t::pulse1, mmc5_subindex_t::pulse2, mmc5_subindex_t::pcm>;
+using stLevelsN163 = stLevelsLinear<n163_subindex_t,
+	n163_subindex_t::ch1, n163_subindex_t::ch2, n163_subindex_t::ch3, n163_subindex_t::ch4,
+	n163_subindex_t::ch5, n163_subindex_t::ch6, n163_subindex_t::ch7, n163_subindex_t::ch8>;
+using stLevelsS5B = stLevelsLinear<s5b_subindex_t,
+	s5b_subindex_t::square1, s5b_subindex_t::square2, s5b_subindex_t::square3>;

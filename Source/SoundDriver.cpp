@@ -68,13 +68,15 @@ void CSoundDriver::SetupTracks() {
 	for (std::size_t i = 0; i < CHANID_COUNT; ++i)
 		tracks_.emplace_back(nullptr, std::make_unique<CTrackerChannel>());
 
+	constexpr std::size_t INSTANCE_ID = 0u;
+
 	Env.GetSoundChipService()->ForeachType([&] (sound_chip_t c) {
-		chips_.push_back(Env.GetSoundChipService()->MakeChipHandler(c));
+		chips_.push_back(Env.GetSoundChipService()->MakeChipHandler(c, INSTANCE_ID));
 	});
 
 	for (auto &x : chips_) {
 		x->VisitChannelHandlers([&] (CChannelHandler &ch) {
-			tracks_[value_cast(ch.GetChannelID())].first = &ch;
+			tracks_[value_cast(chan_id_t {ch.GetChannelID()})].first = &ch;
 		});
 	}
 }
@@ -106,7 +108,7 @@ std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(CSoundChipSet chips, u
 
 	// Register the channels in the document
 	// Expansion & internal channels
-	ForeachTrack([&] (CChannelHandler &, CTrackerChannel &, chan_id_t ch) {
+	ForeachTrack([&] (CChannelHandler &, CTrackerChannel &, stChannelID ch) {
 		if (map->SupportsChannel(ch))
 			map->GetChannelOrder().AddChannel(ch);
 	});
@@ -114,11 +116,11 @@ std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(CSoundChipSet chips, u
 	return map;
 }
 
-CTrackerChannel *CSoundDriver::GetTrackerChannel(chan_id_t chan) {
-	return chan != chan_id_t::NONE ? tracks_[value_cast(chan)].second.get() : nullptr;
+CTrackerChannel *CSoundDriver::GetTrackerChannel(stChannelID chan) {
+	return chan.Chip != sound_chip_t::NONE ? tracks_[value_cast(chan_id_t {chan})].second.get() : nullptr;
 }
 
-const CTrackerChannel *CSoundDriver::GetTrackerChannel(chan_id_t chan) const {
+const CTrackerChannel *CSoundDriver::GetTrackerChannel(stChannelID chan) const {
 	return const_cast<CSoundDriver *>(this)->GetTrackerChannel(chan);
 }
 
@@ -151,9 +153,9 @@ void CSoundDriver::ResetTracks() {
 void CSoundDriver::LoadSoundState(const CSongState &state) {
 	if (m_pTempoCounter)
 		m_pTempoCounter->LoadSoundState(state);
-	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &tr, chan_id_t id) {		// // //
+	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &tr, stChannelID id) {		// // //
 		if (modfile_->GetChannelOrder().HasChannel(id))
-			ch.ApplyChannelState(state.State[value_cast(id)]);
+			ch.ApplyChannelState(state.State[value_cast(chan_id_t {id})]);
 	});
 }
 
@@ -168,7 +170,7 @@ void CSoundDriver::Tick() {
 	UpdateChannels();
 }
 
-void CSoundDriver::StepRow(chan_id_t chan) {
+void CSoundDriver::StepRow(stChannelID chan) {
 	stChanNote NoteData = m_pPlayerCursor->GetSong().GetActiveNote(
 		chan, m_pPlayerCursor->GetCurrentFrame(), m_pPlayerCursor->GetCurrentRow());		// // //
 	HandleGlobalEffects(NoteData);
@@ -197,7 +199,7 @@ void CSoundDriver::PlayerTick() {
 			++SteppedRows;
 		m_pTempoCounter->StepRow();		// // //
 
-		modfile_->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
+		modfile_->GetChannelOrder().ForeachChannel([&] (stChannelID i) {
 			StepRow(i);
 		});
 
@@ -233,7 +235,7 @@ void CSoundDriver::UpdateChannels() {
 	for (auto &chip : chips_)
 		chip->RefreshBefore(*apu_);
 
-	ForeachTrack([&] (CChannelHandler &Chan, CTrackerChannel &TrackerChan, chan_id_t ID) {		// // //
+	ForeachTrack([&] (CChannelHandler &Chan, CTrackerChannel &TrackerChan, stChannelID ID) {		// // //
 		if (!modfile_->GetChannelOrder().HasChannel(ID))
 			return;
 
@@ -258,14 +260,14 @@ void CSoundDriver::UpdateChannels() {
 		chip->RefreshAfter(*apu_);
 }
 
-void CSoundDriver::QueueNote(chan_id_t chan, const stChanNote &note, note_prio_t priority) {
-	if (auto &x = tracks_[value_cast(chan)].second)
+void CSoundDriver::QueueNote(stChannelID chan, const stChanNote &note, note_prio_t priority) {
+	if (auto &x = tracks_[value_cast(chan_id_t {chan})].second)
 		x->SetNote(note, priority);
 }
 
-void CSoundDriver::ForceReloadInstrument(chan_id_t chan) {
+void CSoundDriver::ForceReloadInstrument(stChannelID chan) {
 	if (modfile_)
-		tracks_[value_cast(chan)].first->ForceReloadInstrument();
+		tracks_[value_cast(chan_id_t {chan})].first->ForceReloadInstrument();
 }
 
 bool CSoundDriver::IsPlaying() const {
@@ -280,21 +282,21 @@ CPlayerCursor *CSoundDriver::GetPlayerCursor() const {
 	return m_pPlayerCursor.get();
 }
 
-CChannelHandler *CSoundDriver::GetChannelHandler(chan_id_t chan) const {
-	return tracks_[value_cast(chan)].first;
+CChannelHandler *CSoundDriver::GetChannelHandler(stChannelID chan) const {
+	return tracks_[value_cast(chan_id_t {chan})].first;
 }
 
-int CSoundDriver::GetChannelNote(chan_id_t chan) const {
+int CSoundDriver::GetChannelNote(stChannelID chan) const {
 	const auto *ch = GetChannelHandler(chan);
 	return ch ? ch->GetActiveNote() : -1;
 }
 
-int CSoundDriver::GetChannelVolume(chan_id_t chan) const {
+int CSoundDriver::GetChannelVolume(stChannelID chan) const {
 	const auto *ch = GetChannelHandler(chan);
 	return ch ? ch->GetChannelVolume() : 0;
 }
 
-std::string CSoundDriver::GetChannelStateString(chan_id_t chan) const {
+std::string CSoundDriver::GetChannelStateString(stChannelID chan) const {
 	const auto *ch = GetChannelHandler(chan);
 	return ch ? ch->GetStateString() : "";
 }
@@ -383,30 +385,29 @@ void CSoundDriver::SetupPeriodTables() {
 	}
 
 	// // // Setup note tables
-	const auto GetNoteTable = [&] (chan_id_t ch) -> const unsigned * {
-		switch (ch) {
-		case chan_id_t::SQUARE1: case chan_id_t::SQUARE2: case chan_id_t::TRIANGLE:
-			return Machine == PAL ? m_iNoteLookupTablePAL : m_iNoteLookupTableNTSC;
-		case chan_id_t::VRC6_PULSE1: case chan_id_t::VRC6_PULSE2:
-		case chan_id_t::MMC5_SQUARE1: case chan_id_t::MMC5_SQUARE2:
-			return m_iNoteLookupTableNTSC;
-		case chan_id_t::VRC6_SAWTOOTH:
-			return m_iNoteLookupTableSaw;
-		case chan_id_t::VRC7_CH1: case chan_id_t::VRC7_CH2: case chan_id_t::VRC7_CH3:
-		case chan_id_t::VRC7_CH4: case chan_id_t::VRC7_CH5: case chan_id_t::VRC7_CH6:
+	const auto GetNoteTable = [&] (stChannelID ch) -> const unsigned * {
+		switch (ch.Chip) {
+		case sound_chip_t::APU:
+			if (!IsAPUNoise(ch) && !IsDPCM(ch))
+				return Machine == PAL ? m_iNoteLookupTablePAL : m_iNoteLookupTableNTSC;
+			break;
+		case sound_chip_t::VRC6:
+			return IsVRC6Sawtooth(ch) ? m_iNoteLookupTableSaw : m_iNoteLookupTableNTSC;
+		case sound_chip_t::VRC7:
 			return m_iNoteLookupTableVRC7;
-		case chan_id_t::FDS:
+		case sound_chip_t::FDS:
 			return m_iNoteLookupTableFDS;
-		case chan_id_t::N163_CH1: case chan_id_t::N163_CH2: case chan_id_t::N163_CH3: case chan_id_t::N163_CH4:
-		case chan_id_t::N163_CH5: case chan_id_t::N163_CH6: case chan_id_t::N163_CH7: case chan_id_t::N163_CH8:
+		case sound_chip_t::MMC5:
+			return m_iNoteLookupTableNTSC;
+		case sound_chip_t::N163:
 			return m_iNoteLookupTableN163;
-		case chan_id_t::S5B_CH1: case chan_id_t::S5B_CH2: case chan_id_t::S5B_CH3:
+		case sound_chip_t::S5B:
 			return m_iNoteLookupTableS5B;
 		}
 		return nullptr;
 	};
 
-	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &, chan_id_t id) {
+	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &, stChannelID id) {
 		if (auto Table = GetNoteTable(id))
 			ch.SetNoteTable(Table);
 	});

@@ -39,5 +39,5 @@ private:
 	void buildDoc(CFamiTrackerModule &modfile);
 	std::unique_ptr<CSongData> makeSong(CFamiTrackerModule &modfile);
 	void makeInst(CFamiTrackerModule &modfile, unsigned index, char vol, std::string_view name);
-	void makePattern(CSongData &song, chan_id_t ch, unsigned pat, std::string_view mml);
+	void makePattern(CSongData &song, stChannelID ch, unsigned pat, std::string_view mml);
 };

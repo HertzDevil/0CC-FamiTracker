@@ -32,7 +32,7 @@
 #include "FamiTrackerEnv.h"		// // //
 #include "Settings.h"		// // //
 
-CChannelHandlerVRC6::CChannelHandlerVRC6(chan_id_t ch, int MaxPeriod, int MaxVolume) :		// // //
+CChannelHandlerVRC6::CChannelHandlerVRC6(stChannelID ch, int MaxPeriod, int MaxVolume) :		// // //
 	CChannelHandler(ch, MaxPeriod, MaxVolume)
 {
 }
@@ -80,7 +80,7 @@ bool CChannelHandlerVRC6::CreateInstHandler(inst_type_t Type)
 
 void CChannelHandlerVRC6::ClearRegisters()		// // //
 {
-	unsigned Address = (GetSubIndex() << 12) + 0x9000;		// // //
+	unsigned Address = (GetChannelID().Subindex << 12) + 0x9000;		// // //
 	m_pAPU->Write(Address, 0);
 	m_pAPU->Write(Address + 1, 0);
 	m_pAPU->Write(Address + 2, 0);
@@ -92,7 +92,7 @@ void CChannelHandlerVRC6::ClearRegisters()		// // //
 
 void CVRC6Square::RefreshChannel()
 {
-	unsigned Address = (GetSubIndex() << 12) + 0x9000;		// // //
+	unsigned Address = (GetChannelID().Subindex << 12) + 0x9000;		// // //
 
 	unsigned int Period = CalculatePeriod();
 	unsigned int Volume = CalculateVolume();

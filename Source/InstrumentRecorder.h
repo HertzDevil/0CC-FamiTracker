@@ -24,7 +24,7 @@
 #pragma once
 
 #include "FamiTrackerTypes.h"
-#include "APU/Types_fwd.h"
+#include "APU/Types.h"
 #include <memory>
 #include <array>
 #include <unordered_map>
@@ -56,8 +56,8 @@ public:
 	void			RecordInstrument(const unsigned Tick, CWnd *pView);
 
 	std::unique_ptr<CInstrument> GetRecordInstrument(unsigned Tick);
-	chan_id_t		GetRecordChannel() const;
-	void			SetRecordChannel(chan_id_t Channel);
+	stChannelID		GetRecordChannel() const;
+	void			SetRecordChannel(stChannelID Channel);
 	const stRecordSetting &GetRecordSetting() const;
 	void			SetRecordSetting(const stRecordSetting &Setting);
 	void			SetDumpCount(int Count) { m_iDumpCount = Count; }
@@ -72,7 +72,7 @@ private:
 
 	CFamiTrackerModule *m_pModule = nullptr;
 	CSoundGen		*m_pSoundGen = nullptr;
-	chan_id_t		m_iRecordChannel;
+	stChannelID		m_iRecordChannel;
 	int				m_iDumpCount;
 	std::unique_ptr<CInstrument> *m_pDumpInstrument = nullptr;
 	std::array<std::unique_ptr<CInstrument>, MAX_INSTRUMENTS> m_pDumpCache = { };

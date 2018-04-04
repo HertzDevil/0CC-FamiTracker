@@ -164,7 +164,7 @@ BOOL CCreateWaveDlg::OnInitDialog()
 	const CFamiTrackerModule *pModule = CFamiTrackerView::GetView()->GetModuleData();		// // //
 	const CChannelOrder &order = pModule->GetChannelOrder(); // CFamiTrackerView::GetView()->GetSongView()->
 
-	order.ForeachChannel([&] (chan_id_t i) {
+	order.ForeachChannel([&] (stChannelID i) {
 		m_ctlChannelList.AddString(conv::to_wide(Env.GetSoundChipService()->GetChannelFullName(i)).data());		// // //
 		m_ctlChannelList.SetCheck(order.GetChannelIndex(i), 1);
 	});

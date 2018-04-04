@@ -29,12 +29,12 @@
 // // // auto-arpeggiation support
 class CArpeggiator {
 public:
-	void Tick(chan_id_t CurrentChannel);
+	void Tick(stChannelID CurrentChannel);
 	void TriggerNote(unsigned MidiNote);
 	void ReleaseNote(unsigned MidiNote);
 	void CutNote(unsigned MidiNote);
 
-	int GetNextNote(chan_id_t Channel);
+	int GetNextNote(stChannelID Channel);
 	std::string GetStateString() const;
 
 private:

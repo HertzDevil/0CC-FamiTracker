@@ -54,7 +54,7 @@ void ClonePatterns(const CFrameSelection &Sel, CSongView &view) {		// // //
 		for (int c = b.m_iChannel; c < e.m_iChannel; ++c) {
 			int OldPattern = b.Get(c);
 			auto Index = std::make_pair(c, OldPattern);
-			chan_id_t ch = view.GetChannelOrder().TranslateChannel(c);
+			stChannelID ch = view.GetChannelOrder().TranslateChannel(c);
 			if (auto p = NewPatterns.find(Index); p == NewPatterns.end()) {		// // // share common patterns
 				NewPatterns[Index] = song.GetFreePatternIndex(ch);
 				song.GetPattern(ch, NewPatterns[Index]) = song.GetPattern(ch, OldPattern);

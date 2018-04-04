@@ -39,7 +39,7 @@ enum note_prio_t : unsigned {
 };
 
 bool IsInstrumentCompatible(sound_chip_t chip, inst_type_t Type);		// // //
-bool IsEffectCompatible(chan_id_t ch, effect_t EffNumber, uint8_t EffParam);		// // //
+bool IsEffectCompatible(stChannelID ch, effect_t EffNumber, uint8_t EffParam);		// // //
 
 class CTrackerChannel
 {

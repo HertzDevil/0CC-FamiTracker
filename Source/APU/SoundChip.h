@@ -32,7 +32,7 @@ class CRegisterLogger;		// // //
 
 class CSoundChip {
 public:
-	explicit CSoundChip(CMixer &Mixer);		// // //
+	CSoundChip(CMixer &Mixer, std::size_t nInstance);		// // //
 	virtual ~CSoundChip() noexcept;
 
 	virtual sound_chip_t GetID() const = 0;		// // //
@@ -52,4 +52,5 @@ public:
 protected:
 	CMixer *m_pMixer;
 	std::unique_ptr<CRegisterLogger> m_pRegisterLogger;		// // //
+	std::size_t instance_;
 };

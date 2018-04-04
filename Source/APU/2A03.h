@@ -40,7 +40,7 @@ class dpcm_sample;
 class C2A03 : public CSoundChip
 {
 public:
-	explicit C2A03(CMixer &Mixer);
+	C2A03(CMixer &Mixer, std::size_t nInstance);
 
 	sound_chip_t GetID() const override;		// // //
 

@@ -55,28 +55,28 @@ std::unique_ptr<CSongData> Kraid::makeSong(CFamiTrackerModule &modfile) {
 	pSong->SetFrameCount(FRAMES);
 	pSong->SetPatternLength(ROWS);
 	pSong->SetSongSpeed(8);
-	pSong->SetEffectColumnCount(chan_id_t::SQUARE1, 2);
+	pSong->SetEffectColumnCount(apu_subindex_t::pulse1, 2);
 
-	for (std::size_t ch = 0; ch < std::size(PATTERNS); ++ch)
+	for (std::size_t subindex = 0; subindex < std::size(PATTERNS); ++subindex)
 		for (int f = 0; f < FRAMES; ++f)
-			pSong->SetFramePattern(f, (chan_id_t)ch, PATTERNS[ch][f]);
+			pSong->SetFramePattern(f, {sound_chip_t::APU, subindex}, PATTERNS[subindex][f]);
 
-	makePattern(*pSong, chan_id_t::TRIANGLE, 0, "<e.>e...<e.>e...<e.>e...<e.>e...");
-	makePattern(*pSong, chan_id_t::TRIANGLE, 1, "<c.>c...<c.>c...<d.>d...<d.>d...");
-	makePattern(*pSong, chan_id_t::TRIANGLE, 2, "<e.>e.>e.<<F.>F.>F.<<f.>f.>f.<<<b.>b.>b.");
-	makePattern(*pSong, chan_id_t::TRIANGLE, 3, "<e...b.>c...<b.c...g.a...b.");
-	makePattern(*pSong, chan_id_t::TRIANGLE, 4, "<<e");
+	makePattern(*pSong, apu_subindex_t::triangle, 0, "<e.>e...<e.>e...<e.>e...<e.>e...");
+	makePattern(*pSong, apu_subindex_t::triangle, 1, "<c.>c...<c.>c...<d.>d...<d.>d...");
+	makePattern(*pSong, apu_subindex_t::triangle, 2, "<e.>e.>e.<<F.>F.>F.<<f.>f.>f.<<<b.>b.>b.");
+	makePattern(*pSong, apu_subindex_t::triangle, 3, "<e...b.>c...<b.c...g.a...b.");
+	makePattern(*pSong, apu_subindex_t::triangle, 4, "<<e");
 
-	makePattern(*pSong, chan_id_t::SQUARE2, 0, "@e...<b.>a... c. F...d.<b...A.");
-	makePattern(*pSong, chan_id_t::SQUARE2, 1, "@g... d. e...<b.>F...d. a...e.");
-	makePattern(*pSong, chan_id_t::SQUARE2, 2, "@g<b>g<b>g<b>AeAeAeacacacaDFDbD");
-	makePattern(*pSong, chan_id_t::SQUARE2, 3, "Fgab>d<b>Fd<agFb>aFd<agFega>de-");
-	makePattern(*pSong, chan_id_t::SQUARE2, 4, ">a-g-F-e-F-g-a-g-F-e-F-g-");
+	makePattern(*pSong, apu_subindex_t::pulse2, 0, "@e...<b.>a... c. F...d.<b...A.");
+	makePattern(*pSong, apu_subindex_t::pulse2, 1, "@g... d. e...<b.>F...d. a...e.");
+	makePattern(*pSong, apu_subindex_t::pulse2, 2, "@g<b>g<b>g<b>AeAeAeacacacaDFDbD");
+	makePattern(*pSong, apu_subindex_t::pulse2, 3, "Fgab>d<b>Fd<agFb>aFd<agFega>de-");
+	makePattern(*pSong, apu_subindex_t::pulse2, 4, ">a-g-F-e-F-g-a-g-F-e-F-g-");
 
 	int f = 0;
 	int r = 0;
 	do { // TODO: use CSongIterator
-		auto note = pSong->GetPatternOnFrame(chan_id_t::SQUARE2, f).GetNoteOn(r);
+		auto note = pSong->GetPatternOnFrame(apu_subindex_t::pulse2, f).GetNoteOn(r);
 		if (++r >= ROWS) {
 			r = 0;
 			if (++f >= FRAMES)
@@ -86,7 +86,7 @@ std::unique_ptr<CSongData> Kraid::makeSong(CFamiTrackerModule &modfile) {
 			note.Instrument = 1;
 			note.EffNumber[1] = effect_t::DELAY;
 			note.EffParam[1] = 3;
-			pSong->GetPatternOnFrame(chan_id_t::SQUARE1, f).SetNoteOn(r, note);
+			pSong->GetPatternOnFrame(apu_subindex_t::pulse1, f).SetNoteOn(r, note);
 		}
 	} while (f || r);
 
@@ -108,8 +108,8 @@ void Kraid::makeInst(CFamiTrackerModule &modfile, unsigned index, char vol, std:
 	leadEnv.SetReleasePoint(-1);
 }
 
-void Kraid::makePattern(CSongData &song, chan_id_t ch, unsigned pat, std::string_view mml) {
-	const uint8_t INST = ch == chan_id_t::SQUARE2 ? 0 : 2;
+void Kraid::makePattern(CSongData &song, stChannelID ch, unsigned pat, std::string_view mml) {
+	const uint8_t INST = ch.Chip == sound_chip_t::APU && ch.Subindex == value_cast(apu_subindex_t::pulse2) ? 0 : 2;
 	uint8_t octave = 3;
 	int row = 0;
 	auto &pattern = song.GetPattern(ch, pat);

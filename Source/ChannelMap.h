@@ -40,7 +40,7 @@ public:
 	CChannelOrder &GetChannelOrder();
 	const CChannelOrder &GetChannelOrder() const;
 
-	bool			SupportsChannel(chan_id_t ch) const;		// // //
+	bool			SupportsChannel(stChannelID ch) const;		// // //
 
 	CSoundChipSet	GetExpansionFlag() const noexcept;		// // //
 	unsigned		GetChipChannelCount(sound_chip_t chip) const;

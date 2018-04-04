@@ -1153,7 +1153,7 @@ bool CPActionUniquePatterns::SaveState(const CMainFrame &MainFrm) {
 	songNew_->SetBookmarks(Song.GetBookmarks());
 	songNew_->SetRowHighlight(Song.GetRowHighlight());
 
-	GET_SONG_VIEW()->GetChannelOrder().ForeachChannel([&] (chan_id_t chan) {
+	GET_SONG_VIEW()->GetChannelOrder().ForeachChannel([&] (stChannelID chan) {
 		songNew_->SetEffectColumnCount(chan, Song.GetEffectColumnCount(chan));
 		for (int f = 0; f < Frames; ++f) {
 			songNew_->SetFramePattern(f, chan, f);

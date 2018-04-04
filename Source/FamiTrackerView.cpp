@@ -36,6 +36,7 @@
 #include "Clipboard.h"
 // // //
 #include "FamiTrackerEnv.h"
+#include "SoundChipService.h"
 #include "FamiTrackerModule.h"
 #include "Bookmark.h"
 #include "BookmarkCollection.h"
@@ -282,12 +283,10 @@ CFamiTrackerView::CFamiTrackerView() :
 	m_iMarkerFrame(-1),		// // // 050B
 	m_iMarkerRow(-1),		// // // 050B
 	m_iSplitNote(-1),		// // //
-	m_iSplitChannel(chan_id_t::NONE),		// // //
 	m_iSplitInstrument(MAX_INSTRUMENTS),		// // //
 	m_iSplitTranspose(0),		// // //
 	m_iNoteCorrection(),		// // //
 	m_pNoteQueue(std::make_unique<CNoteQueue>()),		// // //
-	m_iMenuChannel(chan_id_t::NONE),
 	m_nDropEffect(DROPEFFECT_NONE),
 	m_bDragSource(false),
 	m_pPatternEditor(std::make_unique<CPatternEditor>())		// // //
@@ -630,7 +629,7 @@ void CFamiTrackerView::OnRButtonUp(UINT nFlags, CPoint point)
 	}
 	else if (m_pPatternEditor->IsOverPattern(point)) {		// // // 050B todo
 		// Pattern area
-		m_iMenuChannel = chan_id_t::NONE;
+		m_iMenuChannel = { };
 		PopupMenuBar.LoadMenuW(IDR_PATTERN_POPUP);
 		Env.GetMainFrame()->UpdateMenu(&PopupMenuBar);
 		pPopupMenu = PopupMenuBar.GetSubMenu(0);
@@ -1157,9 +1156,7 @@ void CFamiTrackerView::OnInitialUpdate()
 	// Default
 	SetInstrument(0);
 
-	// Unmute all channels
-	for (int i = 0; i < CHANID_COUNT; ++i)
-		SetChannelMute((chan_id_t)i, false);
+	UnmuteAllChannels();		// // //
 
 	UpdateNoteQueues();		// // //
 
@@ -1369,7 +1366,7 @@ bool CFamiTrackerView::IsMarkerValid() const		// // //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // // //
-void CFamiTrackerView::PlayerPlayNote(chan_id_t Channel, const stChanNote &pNote)
+void CFamiTrackerView::PlayerPlayNote(stChannelID Channel, const stChanNote &pNote)
 {
 	// Callback from sound thread
 	if (m_bSwitchToInstrument && pNote.Instrument < MAX_INSTRUMENTS && pNote.Note != note_t::NONE &&
@@ -1387,11 +1384,11 @@ unsigned int CFamiTrackerView::GetSelectedChannel() const
 	return m_pPatternEditor->GetChannel();
 }
 
-chan_id_t CFamiTrackerView::TranslateChannel(unsigned Index) const {		// // //
+stChannelID CFamiTrackerView::TranslateChannel(unsigned Index) const {		// // //
 	return GetSongView()->GetChannelOrder().TranslateChannel(Index);
 }
 
-chan_id_t CFamiTrackerView::GetSelectedChannelID() const {		// // //
+stChannelID CFamiTrackerView::GetSelectedChannelID() const {		// // //
 	return TranslateChannel(GetSelectedChannel());
 }
 
@@ -1612,66 +1609,64 @@ void CFamiTrackerView::OnEditSplitKeyboard()		// // //
 		}
 		else {
 			m_iSplitNote = -1;
-			m_iSplitChannel = chan_id_t::NONE;
+			m_iSplitChannel = { };
 			m_iSplitInstrument = MAX_INSTRUMENTS;
 			m_iSplitTranspose = 0;
 		}
 	}
 }
 
-void CFamiTrackerView::ToggleChannel(chan_id_t Channel)
+void CFamiTrackerView::ToggleChannel(stChannelID Channel)
 {
 	SetChannelMute(Channel, !IsChannelMuted(Channel));
 	InvalidateHeader();
 }
 
-void CFamiTrackerView::SoloChannel(chan_id_t Channel)
+void CFamiTrackerView::SoloChannel(stChannelID Channel)
 {
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();		// // //
 
 	if (IsChannelSolo(Channel))
-		order.ForeachChannel([&] (chan_id_t i) { // Revert channels
+		order.ForeachChannel([&] (stChannelID i) { // Revert channels
 			SetChannelMute(i, false);
 		});
 	else
-		order.ForeachChannel([&] (chan_id_t i) { // Solo selected channel
+		order.ForeachChannel([&] (stChannelID i) { // Solo selected channel
 			SetChannelMute(i, i != Channel);
 		});
 
 	InvalidateHeader();
 }
 
-void CFamiTrackerView::ToggleChip(chan_id_t Channel)		// // //
+void CFamiTrackerView::ToggleChip(stChannelID Channel)		// // //
 {
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
-	sound_chip_t Chip = GetChipFromChannel(Channel);
 	bool shouldMute = false;
 
-	order.ForeachChannel([&] (chan_id_t i) {
-		if (!shouldMute && GetChipFromChannel(i) == Chip && !IsChannelMuted(i))
+	order.ForeachChannel([&] (stChannelID i) {
+		if (!shouldMute && i.Chip == Channel.Chip && !IsChannelMuted(i))
 			shouldMute = true;
 	});
 
-	order.ForeachChannel([&] (chan_id_t i) {
-		if (GetChipFromChannel(i) == Chip)
+	order.ForeachChannel([&] (stChannelID i) {
+		if (i.Chip == Channel.Chip)
 			SetChannelMute(i, shouldMute);
 	});
 
 	InvalidateHeader();
 }
 
-void CFamiTrackerView::SoloChip(chan_id_t Channel)		// // //
+void CFamiTrackerView::SoloChip(stChannelID Channel)		// // //
 {
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
-	sound_chip_t Chip = GetChipFromChannel(Channel);
 
-	if (IsChipSolo(Chip))
-		order.ForeachChannel([&] (chan_id_t i) {
+	if (IsChipSolo(Channel.Chip))
+		order.ForeachChannel([&] (stChannelID i) {
 			SetChannelMute(i, false);
 		});
 	else
-		order.ForeachChannel([&] (chan_id_t i) {
-			SetChannelMute(i, GetChipFromChannel(i) != Chip);
+		order.ForeachChannel([&] (stChannelID i) {
+			SetChannelMute(i, i.Chip != Channel.Chip);
 		});
 
 	InvalidateHeader();
@@ -1679,17 +1674,18 @@ void CFamiTrackerView::SoloChip(chan_id_t Channel)		// // //
 
 void CFamiTrackerView::UnmuteAllChannels()
 {
-	for (int i = 0; i < CHANID_COUNT; ++i)
-		SetChannelMute((chan_id_t)i, false);
+	Env.GetSoundChipService()->ForeachTrack([&] (stChannelID id) {		// // //
+		SetChannelMute(id, false);
+	});
 
 	InvalidateHeader();
 }
 
-bool CFamiTrackerView::IsChannelSolo(chan_id_t Channel) const		// // //
+bool CFamiTrackerView::IsChannelSolo(stChannelID Channel) const		// // //
 {
 	bool solo = true;
 
-	GetSongView()->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
+	GetSongView()->GetChannelOrder().ForeachChannel([&] (stChannelID i) {
 		if (solo && !IsChannelMuted(i) && i != Channel)
 			solo = false;
 	});
@@ -1701,15 +1697,15 @@ bool CFamiTrackerView::IsChipSolo(sound_chip_t Chip) const		// // //
 {
 	bool solo = true;
 
-	GetSongView()->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
-		if (solo && !IsChannelMuted(i) && GetChipFromChannel(i) != Chip)
+	GetSongView()->GetChannelOrder().ForeachChannel([&] (stChannelID i) {
+		if (solo && !IsChannelMuted(i) && i.Chip != Chip)
 			solo = false;
 	});
 
 	return solo;
 }
 
-void CFamiTrackerView::SetChannelMute(chan_id_t Channel, bool bMute)
+void CFamiTrackerView::SetChannelMute(stChannelID Channel, bool bMute)
 {
 	if (IsChannelMuted(Channel) != bMute) {		// // //
 		HaltNoteSingle(GetSongView()->GetChannelOrder().GetChannelIndex(Channel));
@@ -1721,7 +1717,7 @@ void CFamiTrackerView::SetChannelMute(chan_id_t Channel, bool bMute)
 	Env.GetSoundGenerator()->SetChannelMute(Channel, bMute);		// // //
 }
 
-bool CFamiTrackerView::IsChannelMuted(chan_id_t Channel) const
+bool CFamiTrackerView::IsChannelMuted(stChannelID Channel) const
 {
 	return Env.GetSoundGenerator()->IsChannelMuted(Channel);
 }
@@ -1776,7 +1772,7 @@ void CFamiTrackerView::InsertNote(const stChanNote &Cell) {		// // //
 }
 
 stChanNote CFamiTrackerView::GetInputNote(note_t Note, int Octave, std::size_t Index, int Velocity) {		// // //
-	chan_id_t Channel = TranslateChannel(Index);		// // //
+	stChannelID Channel = TranslateChannel(Index);		// // //
 	const int Frame = GetSelectedFrame();
 	const int Row = GetSelectedRow();
 
@@ -1800,7 +1796,7 @@ stChanNote CFamiTrackerView::GetInputNote(note_t Note, int Octave, std::size_t I
 				Cell.Octave = ECHO_BUFFER_LENGTH - 1;
 		}
 		else if (Cell.Note != note_t::NONE) {		// // //
-			if (Channel == chan_id_t::NOISE) {		// // //
+			if (IsAPUNoise(Channel)) {		// // //
 				unsigned int MidiNote = (MIDI_NOTE(Cell.Octave, Cell.Note) % 16) + 16;
 				Cell.Octave = GET_OCTAVE(MidiNote);
 				Cell.Note = GET_NOTE(MidiNote);
@@ -1845,10 +1841,10 @@ void CFamiTrackerView::PlayNote(std::size_t Index, note_t Note, unsigned int Oct
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
 	const CSongData &song = GetSongView()->GetSong();
 
-	chan_id_t Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
+	stChannelID Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
 	if (order.HasChannel(Channel)) {
 		int MidiNote = MIDI_NOTE(NoteData.Octave, NoteData.Note);		// // //
-		chan_id_t ret = m_pNoteQueue->Trigger(MidiNote, Channel);
+		stChannelID ret = m_pNoteQueue->Trigger(MidiNote, Channel);
 		if (order.HasChannel(ret)) {
 			SplitKeyboardAdjust(NoteData, ret);
 			Env.GetSoundGenerator()->QueueNote(ret, NoteData, NOTE_PRIO_2);		// // //
@@ -1860,7 +1856,7 @@ void CFamiTrackerView::PlayNote(std::size_t Index, note_t Note, unsigned int Oct
 		int Frame = GetSelectedFrame();
 		int Row = GetSelectedRow();
 
-		order.ForeachChannel([&] (chan_id_t i) {
+		order.ForeachChannel([&] (stChannelID i) {
 			if (!IsChannelMuted(i) && i != Channel)
 				Env.GetSoundGenerator()->QueueNote(i, song.GetActiveNote(i, Frame, Row),
 					(i == Channel) ? NOTE_PRIO_2 : NOTE_PRIO_1);		// // //
@@ -1876,11 +1872,11 @@ void CFamiTrackerView::ReleaseNote(std::size_t Index, note_t Note, unsigned int 
 	NoteData.Note = note_t::RELEASE;
 	NoteData.Instrument = GetInstrument();
 
-	chan_id_t Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
+	stChannelID Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
 	if (order.HasChannel(Channel)) {
-		chan_id_t ch = m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), Channel);
-//		chan_id_t ch = m_pNoteQueue->Release(MIDI_NOTE(Octave, Note), Channel);
+		stChannelID ch = m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), Channel);
+//		stChannelID ch = m_pNoteQueue->Release(MIDI_NOTE(Octave, Note), Channel);
 		if (order.HasChannel(ch))
 			Env.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
@@ -1888,7 +1884,7 @@ void CFamiTrackerView::ReleaseNote(std::size_t Index, note_t Note, unsigned int 
 			NoteData.Note = note_t::HALT;
 			NoteData.Instrument = MAX_INSTRUMENTS;
 
-			order.ForeachChannel([&] (chan_id_t i) {
+			order.ForeachChannel([&] (stChannelID i) {
 				if (i != ch)
 					Env.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_1);
 			});
@@ -1904,17 +1900,17 @@ void CFamiTrackerView::HaltNote(std::size_t Index, note_t Note, unsigned int Oct
 	NoteData.Note = note_t::HALT;
 	NoteData.Instrument = GetInstrument();
 
-	chan_id_t Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
+	stChannelID Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
 	if (order.HasChannel(Channel)) {
-		chan_id_t ch = m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), Channel);
+		stChannelID ch = m_pNoteQueue->Cut(MIDI_NOTE(Octave, Note), Channel);
 		if (order.HasChannel(ch))
 			Env.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
 		if (Env.GetSettings()->General.bPreviewFullRow) {
 			NoteData.Instrument = MAX_INSTRUMENTS;
 
-			order.ForeachChannel([&] (chan_id_t i) {
+			order.ForeachChannel([&] (stChannelID i) {
 				if (i != ch)
 					Env.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_1);
 			});
@@ -1930,7 +1926,7 @@ void CFamiTrackerView::HaltNoteSingle(std::size_t Index) const
 	NoteData.Note = note_t::HALT;
 	NoteData.Instrument = GetInstrument();
 
-	chan_id_t Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData); // ?
+	stChannelID Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData); // ?
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
 	if (order.HasChannel(Channel)) {
 		for (const auto &i : m_pNoteQueue->StopChannel(Channel)) {
@@ -1969,7 +1965,7 @@ void CFamiTrackerView::TriggerMIDINote(std::size_t Index, unsigned int MidiNote,
 	// Play a MIDI note
 	unsigned int Octave = GET_OCTAVE(MidiNote);
 	note_t Note = GET_NOTE(MidiNote);
-//	if (TranslateChannel(Channel) == chan_id_t::NOISE)
+//	if (TranslateChannel(Channel) == stChannelID::NOISE)
 //		FixNoise(MidiNote, Octave, Note);
 
 	if (!Env.GetSettings()->Midi.bMidiVelocity)
@@ -1999,7 +1995,7 @@ void CFamiTrackerView::CutMIDINote(std::size_t Index, unsigned int MidiNote, boo
 	// Cut a MIDI note
 	unsigned int Octave = GET_OCTAVE(MidiNote);
 	note_t Note = GET_NOTE(MidiNote);
-//	if (TranslateChannel(Channel) == chan_id_t::NOISE)
+//	if (TranslateChannel(Channel) == stChannelID::NOISE)
 //		FixNoise(MidiNote, Octave, Note);
 
 	// Cut note
@@ -2030,7 +2026,7 @@ void CFamiTrackerView::ReleaseMIDINote(std::size_t Index, unsigned int MidiNote,
 	// Release a MIDI note
 	unsigned int Octave = GET_OCTAVE(MidiNote);
 	note_t Note = GET_NOTE(MidiNote);
-//	if (TranslateChannel(Channel) == chan_id_t::NOISE)
+//	if (TranslateChannel(Channel) == stChannelID::NOISE)
 //		FixNoise(MidiNote, Octave, Note);
 
 	// Cut note
@@ -2066,38 +2062,40 @@ void CFamiTrackerView::UpdateNoteQueues() {		// // //
 	m_pNoteQueue->ClearMaps();
 
 	if (m_bEditEnable || Env.GetSettings()->Midi.bMidiArpeggio)
-		pSongView->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
+		pSongView->GetChannelOrder().ForeachChannel([&] (stChannelID i) {
 			m_pNoteQueue->AddMap({i});
 		});
 	else {
-		m_pNoteQueue->AddMap({chan_id_t::TRIANGLE});
-		m_pNoteQueue->AddMap({chan_id_t::NOISE});
-		m_pNoteQueue->AddMap({chan_id_t::DPCM});
+		m_pNoteQueue->AddMap({apu_subindex_t::triangle});
+		m_pNoteQueue->AddMap({apu_subindex_t::noise});
+		m_pNoteQueue->AddMap({apu_subindex_t::dpcm});
 
 		CSoundChipSet chips = GetModuleData()->GetSoundChipSet();
 
 		if (chips.ContainsChip(sound_chip_t::VRC6)) {
-			m_pNoteQueue->AddMap({chan_id_t::VRC6_PULSE1, chan_id_t::VRC6_PULSE2});
-			m_pNoteQueue->AddMap({chan_id_t::VRC6_SAWTOOTH});
+			m_pNoteQueue->AddMap({vrc6_subindex_t::pulse1, vrc6_subindex_t::pulse2});
+			m_pNoteQueue->AddMap({vrc6_subindex_t::sawtooth});
 		}
 		if (chips.ContainsChip(sound_chip_t::VRC7))
-			m_pNoteQueue->AddMap({chan_id_t::VRC7_CH1, chan_id_t::VRC7_CH2, chan_id_t::VRC7_CH3,
-								  chan_id_t::VRC7_CH4, chan_id_t::VRC7_CH5, chan_id_t::VRC7_CH6});
+			m_pNoteQueue->AddMap({
+				vrc7_subindex_t::ch1, vrc7_subindex_t::ch2, vrc7_subindex_t::ch3,
+				vrc7_subindex_t::ch4, vrc7_subindex_t::ch5, vrc7_subindex_t::ch6,
+			});
 		if (chips.ContainsChip(sound_chip_t::FDS))
-			m_pNoteQueue->AddMap({chan_id_t::FDS});
+			m_pNoteQueue->AddMap({fds_subindex_t::wave});
 		if (chips.ContainsChip(sound_chip_t::MMC5))
-			m_pNoteQueue->AddMap({chan_id_t::SQUARE1, chan_id_t::SQUARE2, chan_id_t::MMC5_SQUARE1, chan_id_t::MMC5_SQUARE2});
+			m_pNoteQueue->AddMap({apu_subindex_t::pulse1, apu_subindex_t::pulse2, mmc5_subindex_t::pulse1, mmc5_subindex_t::pulse2});
 		else
-			m_pNoteQueue->AddMap({chan_id_t::SQUARE1, chan_id_t::SQUARE2});
+			m_pNoteQueue->AddMap({apu_subindex_t::pulse1, apu_subindex_t::pulse2});
 		if (chips.ContainsChip(sound_chip_t::N163)) {
-			std::vector<chan_id_t> n;
-			int NamcoChannels = GetModuleData()->GetNamcoChannels();
-			for (int i = 0; i < NamcoChannels; ++i)
-				n.push_back(MakeChannelIndex(sound_chip_t::N163, i));
+			std::vector<stChannelID> n;
+			std::size_t NamcoChannels = GetModuleData()->GetNamcoChannels();
+			for (std::size_t i = 0; i < NamcoChannels; ++i)
+				n.emplace_back(sound_chip_t::N163, i);
 			m_pNoteQueue->AddMap(n);
 		}
 		if (chips.ContainsChip(sound_chip_t::S5B))
-			m_pNoteQueue->AddMap({chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3});
+			m_pNoteQueue->AddMap({s5b_subindex_t::square1, s5b_subindex_t::square2, s5b_subindex_t::square3});
 	}
 
 //	for (int i = 0; i < Channels; ++i)
@@ -2520,12 +2518,10 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 		return true;
 	}
 
-	sound_chip_t Chip = GetChipFromChannel(GetSelectedChannelID());		// // //
-
 	if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9)
 		nChar = '0' + nChar - VK_NUMPAD0;
 
-	if (effect_t Effect = GetEffectFromChar(nChar, Chip); Effect != effect_t::NONE) {		// // //
+	if (effect_t Effect = GetEffectFromChar(nChar, GetSelectedChannelID().Chip); Effect != effect_t::NONE) {		// // //
 		Note.EffNumber[EffectIndex] = Effect;
 		if (m_bEditEnable && Note.EffNumber[EffectIndex] != effect_t::NONE)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
@@ -2793,10 +2789,10 @@ void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 	}
 }
 
-void CFamiTrackerView::SplitKeyboardAdjust(stChanNote &Note, chan_id_t Channel) const		// // //
+void CFamiTrackerView::SplitKeyboardAdjust(stChanNote &Note, stChannelID Channel) const		// // //
 {
 	ASSERT(Note.Note >= note_t::C && Note.Note <= note_t::B);
-	if (m_iSplitNote != -1 && Channel != chan_id_t::NOISE) {
+	if (m_iSplitNote != -1 && !IsAPUNoise(Channel)) {
 		int MidiNote = MIDI_NOTE(Note.Octave, Note.Note);
 		if (MidiNote <= m_iSplitNote) {
 			MidiNote = std::clamp(MidiNote + m_iSplitTranspose, 0, NOTE_COUNT - 1);
@@ -2809,9 +2805,9 @@ void CFamiTrackerView::SplitKeyboardAdjust(stChanNote &Note, chan_id_t Channel) 
 	}
 }
 
-chan_id_t CFamiTrackerView::SplitAdjustChannel(chan_id_t Channel, const stChanNote &Note) const		// // //
+stChannelID CFamiTrackerView::SplitAdjustChannel(stChannelID Channel, const stChanNote &Note) const		// // //
 {
-	if (!m_bEditEnable && m_iSplitChannel != chan_id_t::NONE)
+	if (!m_bEditEnable && m_iSplitChannel.Chip != sound_chip_t::NONE)
 		if (m_iSplitNote != -1 && MIDI_NOTE(Note.Octave, Note.Note) <= m_iSplitNote)
 			if (GetSongView()->GetChannelOrder().HasChannel(m_iSplitChannel))
 				return m_iSplitChannel;
@@ -3117,42 +3113,42 @@ void CFamiTrackerView::TranslateMidiMessage()
 
 void CFamiTrackerView::OnTrackerToggleChannel()
 {
-	if (m_iMenuChannel == chan_id_t::NONE)
+	if (m_iMenuChannel.Chip == sound_chip_t::NONE)
 		m_iMenuChannel = GetSelectedChannelID();
 
 	ToggleChannel(m_iMenuChannel);
 
-	m_iMenuChannel = chan_id_t::NONE;
+	m_iMenuChannel = { };
 }
 
 void CFamiTrackerView::OnTrackerSoloChannel()
 {
-	if (m_iMenuChannel == chan_id_t::NONE)
+	if (m_iMenuChannel.Chip == sound_chip_t::NONE)
 		m_iMenuChannel = GetSelectedChannelID();
 
 	SoloChannel(m_iMenuChannel);
 
-	m_iMenuChannel = chan_id_t::NONE;
+	m_iMenuChannel = { };
 }
 
 void CFamiTrackerView::OnTrackerToggleChip()		// // //
 {
-	if (m_iMenuChannel == chan_id_t::NONE)
+	if (m_iMenuChannel.Chip == sound_chip_t::NONE)
 		m_iMenuChannel = GetSelectedChannelID();
 
 	ToggleChip(m_iMenuChannel);
 
-	m_iMenuChannel = chan_id_t::NONE;
+	m_iMenuChannel = { };
 }
 
 void CFamiTrackerView::OnTrackerSoloChip()		// // //
 {
-	if (m_iMenuChannel == chan_id_t::NONE)
+	if (m_iMenuChannel.Chip == sound_chip_t::NONE)
 		m_iMenuChannel = GetSelectedChannelID();
 
 	SoloChip(m_iMenuChannel);
 
-	m_iMenuChannel = chan_id_t::NONE;
+	m_iMenuChannel = { };
 }
 
 void CFamiTrackerView::OnTrackerUnmuteAllChannels()
@@ -3162,23 +3158,21 @@ void CFamiTrackerView::OnTrackerUnmuteAllChannels()
 
 void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 {
-	if (m_iMenuChannel == chan_id_t::NONE)
+	if (m_iMenuChannel.Chip == sound_chip_t::NONE)
 		m_iMenuChannel = GetSelectedChannelID();
 
 	CInstrumentManager *pManager = GetModuleData()->GetInstrumentManager();
-	chan_id_t Channel = m_iMenuChannel;		// // //
-	sound_chip_t Chip = GetChipFromChannel(m_iMenuChannel);
-	m_iMenuChannel = chan_id_t::NONE;
+	m_iMenuChannel = { };
 
-	if (Channel == chan_id_t::DPCM || Chip == sound_chip_t::VRC7) {
+	if (IsDPCM(m_iMenuChannel) || m_iMenuChannel.Chip == sound_chip_t::VRC7) {
 		AfxMessageBox(IDS_DUMP_NOT_SUPPORTED, MB_ICONERROR); return;
 	}
 	if (pManager->GetInstrumentCount() >= MAX_INSTRUMENTS) {
 		AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR); return;
 	}
-	if (Chip != sound_chip_t::FDS) {
+	if (m_iMenuChannel.Chip != sound_chip_t::FDS) {
 		inst_type_t Type = INST_NONE;
-		switch (Chip) {
+		switch (m_iMenuChannel.Chip) {
 		case sound_chip_t::APU: case sound_chip_t::MMC5: Type = INST_2A03; break;
 		case sound_chip_t::VRC6: Type = INST_VRC6; break;
 		case sound_chip_t::N163: Type = INST_N163; break;
@@ -3199,7 +3193,7 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 
 	if (IsChannelMuted(GetSelectedChannelID()))
 		ToggleChannel(GetSelectedChannelID());
-	Env.GetSoundGenerator()->SetRecordChannel(Channel == Env.GetSoundGenerator()->GetRecordChannel() ? chan_id_t::NONE : Channel);
+	Env.GetSoundGenerator()->SetRecordChannel(m_iMenuChannel == Env.GetSoundGenerator()->GetRecordChannel() ? stChannelID { } : m_iMenuChannel);
 	InvalidateHeader();
 }
 
@@ -3511,7 +3505,7 @@ CStringW CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) con
 	if (Index >= EFFECT_COUNT)
 		return L"Undefined effect";
 
-	sound_chip_t Chip = GetChipFromChannel(GetSelectedChannelID());
+	sound_chip_t Chip = GetSelectedChannelID().Chip;
 	const int xy = 0;
 	if (Index > value_cast(effect_t::FDS_VOLUME)       || (Index == value_cast(effect_t::FDS_VOLUME)       && Param >= 0x40))
 		++Index;
@@ -3523,7 +3517,7 @@ CStringW CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) con
 		++Index;
 	if (Index > value_cast(effect_t::FDS_MOD_DEPTH)    || (Index == value_cast(effect_t::FDS_MOD_DEPTH)    && Param >= 0x80))
 		++Index;
-	if (Index > value_cast(effect_t::NOTE_CUT)         || (Index == value_cast(effect_t::NOTE_CUT)         && Param >= 0x80 && GetSelectedChannelID() == chan_id_t::TRIANGLE))
+	if (Index > value_cast(effect_t::NOTE_CUT)         || (Index == value_cast(effect_t::NOTE_CUT)         && Param >= 0x80 && IsAPUTriangle(GetSelectedChannelID())))
 		++Index;
 	if (Index > value_cast(effect_t::DUTY_CYCLE)       || (Index == value_cast(effect_t::DUTY_CYCLE)       && (Chip == sound_chip_t::VRC7 || Chip == sound_chip_t::N163)))
 		++Index;

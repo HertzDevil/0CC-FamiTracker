@@ -25,7 +25,7 @@
 
 #include "stdafx.h"
 #include "../resource.h"
-#include "APU/Types_fwd.h"
+#include "APU/Types.h"
 
 // CSplitKeyboardDlg dialog
 
@@ -38,7 +38,7 @@ public:
 	virtual ~CSplitKeyboardDlg();
 
 	bool m_bSplitEnable;
-	chan_id_t m_iSplitChannel;
+	stChannelID m_iSplitChannel;
 	int m_iSplitNote;
 	int m_iSplitInstrument;
 	int m_iSplitTranspose;

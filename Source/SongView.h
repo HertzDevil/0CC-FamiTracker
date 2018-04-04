@@ -56,14 +56,14 @@ public:
 			f(i);
 	}
 
-	// void (*F)(const CTrackData &track [, chan_id_t id])
+	// void (*F)(const CTrackData &track [, stChannelID id])
 	template <typename F>
 	void ForeachTrack(F f) const {
 		if constexpr (std::is_invocable_v<F, const CTrackData &>) {
 			for (std::size_t i = 0, n = order_.GetChannelCount(); i < n; ++i)
 				f(*GetTrack(i));
 		}
-		else if constexpr (std::is_invocable_v<F, const CTrackData &, chan_id_t>) {
+		else if constexpr (std::is_invocable_v<F, const CTrackData &, stChannelID>) {
 			for (std::size_t i = 0, n = order_.GetChannelCount(); i < n; ++i)
 				f(*GetTrack(i), GetChannelOrder().TranslateChannel(i));
 		}

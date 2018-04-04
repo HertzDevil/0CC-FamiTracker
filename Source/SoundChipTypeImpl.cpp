@@ -43,6 +43,41 @@
 #include "ChipHandlerVRC7.h"
 #include "ChipHandlerS5B.h"
 
+namespace {
+
+template <typename T>
+struct CChipHandlerBuilder {
+	CChipHandlerBuilder(std::size_t nInstance, sound_chip_t chip) :
+		CChipHandlerBuilder(std::make_unique<T>(), nInstance, chip)
+	{
+	}
+
+	template <typename U, typename SubindexT>
+	CChipHandlerBuilder With(SubindexT subindex) && {
+		if constexpr (std::is_constructible_v<U, stChannelID, T &>)
+			chip_->AddChannelHandler(std::make_unique<U>(stChannelID {instance_, id_, value_cast(subindex)}, *chip_));
+		else
+			chip_->AddChannelHandler(std::make_unique<U>(stChannelID {instance_, id_, value_cast(subindex)}));
+		return {std::move(chip_), instance_, id_};
+	}
+
+	operator std::unique_ptr<CChipHandler>() && noexcept {
+		return std::move(chip_);
+	}
+
+private:
+	CChipHandlerBuilder(std::unique_ptr<T> handler, std::size_t nInstance, sound_chip_t chip) :
+		instance_(nInstance), id_(chip), chip_(std::move(handler))
+	{
+	}
+
+	std::size_t instance_;
+	sound_chip_t id_;
+	std::unique_ptr<T> chip_;
+};
+
+} // namespace
+
 // implementations of built-in sound chip types
 
 sound_chip_t CSoundChipType2A03::GetID() const {
@@ -51,10 +86,6 @@ sound_chip_t CSoundChipType2A03::GetID() const {
 
 std::size_t CSoundChipType2A03::GetSupportedChannelCount() const {
 	return 5;
-}
-
-chan_id_t CSoundChipType2A03::GetFirstChannelID() const {
-	return chan_id_t::SQUARE1;
 }
 
 std::string_view CSoundChipType2A03::GetShortName() const {
@@ -85,18 +116,17 @@ std::string_view CSoundChipType2A03::GetChannelFullName(std::size_t subindex) co
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
-std::unique_ptr<CSoundChip> CSoundChipType2A03::MakeSoundDriver(CMixer &mixer) const {
-	return std::make_unique<C2A03>(mixer);
+std::unique_ptr<CSoundChip> CSoundChipType2A03::MakeSoundDriver(CMixer &mixer, std::size_t nInstance) const {
+	return std::make_unique<C2A03>(mixer, nInstance);
 }
 
-std::unique_ptr<CChipHandler> CSoundChipType2A03::MakeChipHandler() const {
-	auto chip = std::make_unique<CChipHandler>();
-	chip->AddChannelHandler(std::make_unique<C2A03Square>(chan_id_t::SQUARE1));
-	chip->AddChannelHandler(std::make_unique<C2A03Square>(chan_id_t::SQUARE2));
-	chip->AddChannelHandler(std::make_unique<CTriangleChan>(chan_id_t::TRIANGLE));
-	chip->AddChannelHandler(std::make_unique<CNoiseChan>(chan_id_t::NOISE));
-	chip->AddChannelHandler(std::make_unique<CDPCMChan>(chan_id_t::DPCM));
-	return chip;
+std::unique_ptr<CChipHandler> CSoundChipType2A03::MakeChipHandler(std::size_t nInstance) const {
+	return CChipHandlerBuilder<CChipHandler> {nInstance, GetID()}
+		.With<C2A03Square>(apu_subindex_t::pulse1)
+		.With<C2A03Square>(apu_subindex_t::pulse2)
+		.With<CTriangleChan>(apu_subindex_t::triangle)
+		.With<CNoiseChan>(apu_subindex_t::noise)
+		.With<CDPCMChan>(apu_subindex_t::dpcm);
 }
 
 
@@ -107,10 +137,6 @@ sound_chip_t CSoundChipTypeVRC6::GetID() const {
 
 std::size_t CSoundChipTypeVRC6::GetSupportedChannelCount() const {
 	return 3;
-}
-
-chan_id_t CSoundChipTypeVRC6::GetFirstChannelID() const {
-	return chan_id_t::VRC6_PULSE1;
 }
 
 std::string_view CSoundChipTypeVRC6::GetShortName() const {
@@ -139,16 +165,15 @@ std::string_view CSoundChipTypeVRC6::GetChannelFullName(std::size_t subindex) co
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
-std::unique_ptr<CSoundChip> CSoundChipTypeVRC6::MakeSoundDriver(CMixer &mixer) const {
-	return std::make_unique<CVRC6>(mixer);
+std::unique_ptr<CSoundChip> CSoundChipTypeVRC6::MakeSoundDriver(CMixer &mixer, std::size_t nInstance) const {
+	return std::make_unique<CVRC6>(mixer, nInstance);
 }
 
-std::unique_ptr<CChipHandler> CSoundChipTypeVRC6::MakeChipHandler() const {
-	auto chip = std::make_unique<CChipHandler>();
-	chip->AddChannelHandler(std::make_unique<CVRC6Square>(chan_id_t::VRC6_PULSE1));
-	chip->AddChannelHandler(std::make_unique<CVRC6Square>(chan_id_t::VRC6_PULSE2));
-	chip->AddChannelHandler(std::make_unique<CVRC6Sawtooth>(chan_id_t::VRC6_SAWTOOTH));
-	return chip;
+std::unique_ptr<CChipHandler> CSoundChipTypeVRC6::MakeChipHandler(std::size_t nInstance) const {
+	return CChipHandlerBuilder<CChipHandler> {nInstance, GetID()}
+		.With<CVRC6Square>(vrc6_subindex_t::pulse1)
+		.With<CVRC6Square>(vrc6_subindex_t::pulse2)
+		.With<CVRC6Sawtooth>(vrc6_subindex_t::sawtooth);
 }
 
 
@@ -159,10 +184,6 @@ sound_chip_t CSoundChipTypeVRC7::GetID() const {
 
 std::size_t CSoundChipTypeVRC7::GetSupportedChannelCount() const {
 	return 6;
-}
-
-chan_id_t CSoundChipTypeVRC7::GetFirstChannelID() const {
-	return chan_id_t::VRC7_CH1;
 }
 
 std::string_view CSoundChipTypeVRC7::GetShortName() const {
@@ -194,15 +215,18 @@ std::string_view CSoundChipTypeVRC7::GetChannelFullName(std::size_t subindex) co
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
-std::unique_ptr<CSoundChip> CSoundChipTypeVRC7::MakeSoundDriver(CMixer &mixer) const {
-	return std::make_unique<CVRC7>(mixer);
+std::unique_ptr<CSoundChip> CSoundChipTypeVRC7::MakeSoundDriver(CMixer &mixer, std::size_t nInstance) const {
+	return std::make_unique<CVRC7>(mixer, nInstance);
 }
 
-std::unique_ptr<CChipHandler> CSoundChipTypeVRC7::MakeChipHandler() const {
-	auto chip = std::make_unique<CChipHandlerVRC7>();
-	for (unsigned i = 0; i < MAX_CHANNELS_VRC7; ++i)
-		chip->AddChannelHandler(std::make_unique<CChannelHandlerVRC7>(MakeChannelIndex(GetID(), i), *chip));
-	return chip;
+std::unique_ptr<CChipHandler> CSoundChipTypeVRC7::MakeChipHandler(std::size_t nInstance) const {
+	return CChipHandlerBuilder<CChipHandlerVRC7> {nInstance, GetID()}
+		.With<CChannelHandlerVRC7>(vrc7_subindex_t::ch1)
+		.With<CChannelHandlerVRC7>(vrc7_subindex_t::ch2)
+		.With<CChannelHandlerVRC7>(vrc7_subindex_t::ch3)
+		.With<CChannelHandlerVRC7>(vrc7_subindex_t::ch4)
+		.With<CChannelHandlerVRC7>(vrc7_subindex_t::ch5)
+		.With<CChannelHandlerVRC7>(vrc7_subindex_t::ch6);
 }
 
 
@@ -213,10 +237,6 @@ sound_chip_t CSoundChipTypeFDS::GetID() const {
 
 std::size_t CSoundChipTypeFDS::GetSupportedChannelCount() const {
 	return 1;
-}
-
-chan_id_t CSoundChipTypeFDS::GetFirstChannelID() const {
-	return chan_id_t::FDS;
 }
 
 std::string_view CSoundChipTypeFDS::GetShortName() const {
@@ -243,14 +263,13 @@ std::string_view CSoundChipTypeFDS::GetChannelFullName(std::size_t subindex) con
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
-std::unique_ptr<CSoundChip> CSoundChipTypeFDS::MakeSoundDriver(CMixer &mixer) const {
-	return std::make_unique<CFDS>(mixer);
+std::unique_ptr<CSoundChip> CSoundChipTypeFDS::MakeSoundDriver(CMixer &mixer, std::size_t nInstance) const {
+	return std::make_unique<CFDS>(mixer, nInstance);
 }
 
-std::unique_ptr<CChipHandler> CSoundChipTypeFDS::MakeChipHandler() const {
-	auto chip = std::make_unique<CChipHandler>();
-	chip->AddChannelHandler(std::make_unique<CChannelHandlerFDS>(chan_id_t::FDS));
-	return chip;
+std::unique_ptr<CChipHandler> CSoundChipTypeFDS::MakeChipHandler(std::size_t nInstance) const {
+	return CChipHandlerBuilder<CChipHandler> {nInstance, GetID()}
+		.With<CChannelHandlerFDS>(fds_subindex_t::wave);
 }
 
 
@@ -261,10 +280,6 @@ sound_chip_t CSoundChipTypeMMC5::GetID() const {
 
 std::size_t CSoundChipTypeMMC5::GetSupportedChannelCount() const {
 	return 3; // 2
-}
-
-chan_id_t CSoundChipTypeMMC5::GetFirstChannelID() const {
-	return chan_id_t::MMC5_SQUARE1;
 }
 
 std::string_view CSoundChipTypeMMC5::GetShortName() const {
@@ -293,15 +308,14 @@ std::string_view CSoundChipTypeMMC5::GetChannelFullName(std::size_t subindex) co
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
-std::unique_ptr<CSoundChip> CSoundChipTypeMMC5::MakeSoundDriver(CMixer &mixer) const {
-	return std::make_unique<CMMC5>(mixer);
+std::unique_ptr<CSoundChip> CSoundChipTypeMMC5::MakeSoundDriver(CMixer &mixer, std::size_t nInstance) const {
+	return std::make_unique<CMMC5>(mixer, nInstance);
 }
 
-std::unique_ptr<CChipHandler> CSoundChipTypeMMC5::MakeChipHandler() const {
-	auto chip = std::make_unique<CChipHandler>();
-	chip->AddChannelHandler(std::make_unique<CChannelHandlerMMC5>(chan_id_t::MMC5_SQUARE1));
-	chip->AddChannelHandler(std::make_unique<CChannelHandlerMMC5>(chan_id_t::MMC5_SQUARE2));
-	return chip;
+std::unique_ptr<CChipHandler> CSoundChipTypeMMC5::MakeChipHandler(std::size_t nInstance) const {
+	return CChipHandlerBuilder<CChipHandler> {nInstance, GetID()}
+		.With<CChannelHandlerMMC5>(mmc5_subindex_t::pulse1)
+		.With<CChannelHandlerMMC5>(mmc5_subindex_t::pulse2);
 }
 
 
@@ -312,10 +326,6 @@ sound_chip_t CSoundChipTypeN163::GetID() const {
 
 std::size_t CSoundChipTypeN163::GetSupportedChannelCount() const {
 	return 8;
-}
-
-chan_id_t CSoundChipTypeN163::GetFirstChannelID() const {
-	return chan_id_t::N163_CH1;
 }
 
 std::string_view CSoundChipTypeN163::GetShortName() const {
@@ -349,15 +359,20 @@ std::string_view CSoundChipTypeN163::GetChannelFullName(std::size_t subindex) co
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
-std::unique_ptr<CSoundChip> CSoundChipTypeN163::MakeSoundDriver(CMixer &mixer) const {
-	return std::make_unique<CN163>(mixer);
+std::unique_ptr<CSoundChip> CSoundChipTypeN163::MakeSoundDriver(CMixer &mixer, std::size_t nInstance) const {
+	return std::make_unique<CN163>(mixer, nInstance);
 }
 
-std::unique_ptr<CChipHandler> CSoundChipTypeN163::MakeChipHandler() const {
-	auto chip = std::make_unique<CChipHandler>();
-	for (unsigned i = 0; i < MAX_CHANNELS_N163; ++i)
-		chip->AddChannelHandler(std::make_unique<CChannelHandlerN163>(MakeChannelIndex(GetID(), i)));
-	return chip;
+std::unique_ptr<CChipHandler> CSoundChipTypeN163::MakeChipHandler(std::size_t nInstance) const {
+	return CChipHandlerBuilder<CChipHandler> {nInstance, GetID()}
+		.With<CChannelHandlerN163>(n163_subindex_t::ch1)
+		.With<CChannelHandlerN163>(n163_subindex_t::ch2)
+		.With<CChannelHandlerN163>(n163_subindex_t::ch3)
+		.With<CChannelHandlerN163>(n163_subindex_t::ch4)
+		.With<CChannelHandlerN163>(n163_subindex_t::ch5)
+		.With<CChannelHandlerN163>(n163_subindex_t::ch6)
+		.With<CChannelHandlerN163>(n163_subindex_t::ch7)
+		.With<CChannelHandlerN163>(n163_subindex_t::ch8);
 }
 
 
@@ -368,10 +383,6 @@ sound_chip_t CSoundChipTypeS5B::GetID() const {
 
 std::size_t CSoundChipTypeS5B::GetSupportedChannelCount() const {
 	return 3;
-}
-
-chan_id_t CSoundChipTypeS5B::GetFirstChannelID() const {
-	return chan_id_t::S5B_CH1;
 }
 
 std::string_view CSoundChipTypeS5B::GetShortName() const {
@@ -400,13 +411,13 @@ std::string_view CSoundChipTypeS5B::GetChannelFullName(std::size_t subindex) con
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
 
-std::unique_ptr<CSoundChip> CSoundChipTypeS5B::MakeSoundDriver(CMixer &mixer) const {
-	return std::make_unique<CS5B>(mixer);
+std::unique_ptr<CSoundChip> CSoundChipTypeS5B::MakeSoundDriver(CMixer &mixer, std::size_t nInstance) const {
+	return std::make_unique<CS5B>(mixer, nInstance);
 }
 
-std::unique_ptr<CChipHandler> CSoundChipTypeS5B::MakeChipHandler() const {
-	auto chip = std::make_unique<CChipHandlerS5B>();
-	for (unsigned i = 0; i < MAX_CHANNELS_S5B; ++i)
-		chip->AddChannelHandler(std::make_unique<CChannelHandlerS5B>(MakeChannelIndex(GetID(), i), *chip));
-	return chip;
+std::unique_ptr<CChipHandler> CSoundChipTypeS5B::MakeChipHandler(std::size_t nInstance) const {
+	return CChipHandlerBuilder<CChipHandlerS5B> {nInstance, GetID()}
+		.With<CChannelHandlerS5B>(s5b_subindex_t::square1)
+		.With<CChannelHandlerS5B>(s5b_subindex_t::square2)
+		.With<CChannelHandlerS5B>(s5b_subindex_t::square3);
 }

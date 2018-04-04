@@ -123,10 +123,6 @@ private:
 	stNSFHeader CreateHeader(int MachineType) const;		// // //
 	stNSFeHeader CreateNSFeHeader(int MachineType);		// // //
 	void	SetDriverSongAddress(unsigned char *pDriver, unsigned short Address) const;		// // //
-#if 0
-	void	WriteChannelMap();
-	void	WriteChannelTypes();
-#endif
 
 	std::vector<unsigned char> LoadDriver(const driver_t &Driver, unsigned short Origin) const;		// // //
 
@@ -141,7 +137,7 @@ private:
 
 	void	ScanSong();
 	int		GetSampleIndex(int SampleNumber);
-	bool	IsPatternAddressed(unsigned int Track, int Pattern, chan_id_t Channel) const;
+	bool	IsPatternAddressed(unsigned int Track, int Pattern, stChannelID Channel) const;
 
 	void	CreateMainHeader();
 	void	CreateSequenceList();

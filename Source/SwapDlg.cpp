@@ -99,8 +99,8 @@ BOOL CSwapDlg::OnInitDialog()
 void CSwapDlg::CheckDestination() const
 {
 	GetDlgItem(IDOK)->EnableWindow(
-		MakeChannelIndex(m_iDestChip1, m_iDestChannel1) != chan_id_t::NONE &&
-		MakeChannelIndex(m_iDestChip2, m_iDestChannel2) != chan_id_t::NONE &&
+		stChannelID {m_iDestChip1, m_iDestChannel1}.Chip != sound_chip_t::NONE &&
+		stChannelID {m_iDestChip2, m_iDestChannel2}.Chip != sound_chip_t::NONE &&
 		(m_iDestChannel1 != m_iDestChannel2 || m_iDestChip1 != m_iDestChip2));
 }
 
@@ -134,8 +134,8 @@ void CSwapDlg::OnCbnSelchangeComboSwapChip2()
 
 void CSwapDlg::OnBnClickedOk()
 {
-	auto lhs = MakeChannelIndex(m_iDestChip1, m_iDestChannel1);
-	auto rhs = MakeChannelIndex(m_iDestChip2, m_iDestChannel2);
+	auto lhs = stChannelID {m_iDestChip1, m_iDestChannel1};
+	auto rhs = stChannelID {m_iDestChip2, m_iDestChannel2};
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 	CFamiTrackerModule *pModule = pDoc->GetModule();

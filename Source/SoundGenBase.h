@@ -39,13 +39,13 @@ public:
 	virtual void OnTick() = 0;
 	virtual void OnStepRow() = 0;
 
-	virtual void OnPlayNote(chan_id_t chan, const stChanNote &note) = 0;
+	virtual void OnPlayNote(stChannelID chan, const stChanNote &note) = 0;
 	virtual void OnUpdateRow(int frame, int row) = 0;
 
-	virtual bool IsChannelMuted(chan_id_t chan) const = 0; // TODO: remove
+	virtual bool IsChannelMuted(stChannelID chan) const = 0; // TODO: remove
 	virtual bool ShouldStopPlayer() const = 0;
 
-	virtual int GetArpNote(chan_id_t chan) const { // TODO: remove
+	virtual int GetArpNote(stChannelID chan) const { // TODO: remove
 		return -1;
 	}
 };

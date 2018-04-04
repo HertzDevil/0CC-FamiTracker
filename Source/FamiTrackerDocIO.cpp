@@ -213,7 +213,7 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerModule &modfile) {
 			modfile.VisitSongs([&] (CSongData &song) {
 				for (int p = 0; p < MAX_PATTERN; ++p)
 					for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
-						stChanNote &Note = song.GetPatternData(chan_id_t::FDS, p, r);		// // //
+						stChanNote &Note = song.GetPatternData(fds_subindex_t::wave, p, r);		// // //
 						if (IsNote(Note.Note)) {
 							auto NewNote = Note;
 							int Trsp = MIDI_NOTE(Note.Octave, Note.Note) + NOTE_RANGE * 2;
@@ -387,7 +387,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 	if (ver == 1) {
 		// Single track
 		auto &Song = *modfile.GetSong(0);
-		modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
+		modfile.GetChannelOrder().ForeachChannel([&] (stChannelID i) {
 			try {
 				// Channel type (unused)
 				AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANID_COUNT - 1, "Channel type index");
@@ -396,7 +396,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 					file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count") + 1);
 			}
 			catch (CModuleException e) {
-				e.AppendError("At channel + " + conv::from_int(value_cast(i) + 1));
+				e.AppendError("At channel + " + conv::from_int(value_cast(chan_id_t {i}) + 1));
 				throw e;
 			}
 		});
@@ -411,7 +411,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 		if (ver >= 3)
 			modfile.VisitSongs([&] (CSongData &song) { song.SetTitle(file_.ReadString()); });
 
-		modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
+		modfile.GetChannelOrder().ForeachChannel([&] (stChannelID i) {
 			try {
 				AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, (int)CHANID_COUNT - 1, "Channel type index"); // Channel type (unused)
 				modfile.VisitSongs([&] (CSongData &song, unsigned index) {
@@ -426,7 +426,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 				});
 			}
 			catch (CModuleException e) {
-				e.AppendError("At channel " + conv::from_int(value_cast(i) + 1) + ',');
+				e.AppendError("At channel " + conv::from_int(value_cast(chan_id_t {i}) + 1) + ',');
 				throw e;
 			}
 		});
@@ -450,9 +450,9 @@ void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerModule &modfile, int ver) {
 	if (ver >= 3)
 		modfile.VisitSongs([&] (const CSongData &song) { file_.WriteString(song.GetTitle()); });
 
-	modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
+	modfile.GetChannelOrder().ForeachChannel([&] (stChannelID i) {
 		// Channel type
-		file_.WriteBlockChar(value_cast(i));		// // //
+		file_.WriteBlockChar(value_cast(chan_id_t {i}));		// // //
 
 		// Effect columns
 		if (ver <= 1)
@@ -681,7 +681,7 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerModule &modfile, int ver) {
 		auto &Song = *modfile.GetSong(0);
 		Song.SetFrameCount(FrameCount);
 		for (unsigned i = 0; i < FrameCount; ++i) {
-			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t j) {
+			modfile.GetChannelOrder().ForeachChannel([&] (stChannelID j) {
 				unsigned Pattern = static_cast<unsigned char>(file_.GetBlockChar());
 				AssertRange(Pattern, 0U, static_cast<unsigned>(MAX_PATTERN - 1), "Pattern index");
 				Song.SetFramePattern(i, j, Pattern);
@@ -714,7 +714,7 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerModule &modfile, int ver) {
 			song.SetPatternLength(PatternLength);
 
 			for (unsigned i = 0; i < FrameCount; ++i) {
-				modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t j) {
+				modfile.GetChannelOrder().ForeachChannel([&] (stChannelID j) {
 					// Read pattern index
 					int Pattern = static_cast<unsigned char>(file_.GetBlockChar());
 					song.SetFramePattern(i, j, AssertRange(Pattern, 0, MAX_PATTERN - 1, "Pattern index"));
@@ -732,7 +732,7 @@ void CFamiTrackerDocIO::SaveFrames(const CFamiTrackerModule &modfile, int ver) {
 		file_.WriteBlockInt(Song.GetPatternLength());
 
 		for (unsigned int j = 0; j < Song.GetFrameCount(); ++j)
-			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t k) {
+			modfile.GetChannelOrder().ForeachChannel([&] (stChannelID k) {
 				file_.WriteBlockChar((unsigned char)Song.GetFramePattern(j, k));
 			});
 	});
@@ -758,7 +758,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 		AssertRange<MODULE_ERROR_OFFICIAL>(Channel, 0u, MAX_CHANNELS - 1, "Pattern channel index");
 		unsigned Pattern = AssertRange(file_.GetBlockInt(), 0, MAX_PATTERN - 1, "Pattern index");
 		unsigned Items	= AssertRange(file_.GetBlockInt(), 0, MAX_PATTERN_LENGTH, "Pattern data count");
-		chan_id_t ch = order.TranslateChannel(Channel);
+		stChannelID ch = order.TranslateChannel(Channel);
 
 		auto *pSong = modfile.GetSong(Track);
 
@@ -828,7 +828,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 						Note.Instrument = MAX_INSTRUMENTS;
 				}
 
-				if (modfile.GetSoundChipSet().ContainsChip(sound_chip_t::N163) && GetChipFromChannel(ch) == sound_chip_t::N163) {		// // //
+				if (modfile.GetSoundChipSet().ContainsChip(sound_chip_t::N163) && ch.Chip == sound_chip_t::N163) {		// // //
 					for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n)
 						if (Note.EffNumber[n] == effect_t::SAMPLE_OFFSET)
 							Note.EffNumber[n] = effect_t::N163_WAVE_BUFFER;
@@ -836,7 +836,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 
 				if (ver == 3) {
 					// Fix for VRC7 portamento
-					if (GetChipFromChannel(ch) == sound_chip_t::VRC7) {		// // //
+					if (ch.Chip == sound_chip_t::VRC7) {		// // //
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
 							case effect_t::PORTA_DOWN:
@@ -849,7 +849,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 						}
 					}
 					// FDS pitch effect fix
-					else if (GetChipFromChannel(ch) == sound_chip_t::FDS) {
+					else if (ch.Chip == sound_chip_t::FDS) {
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
 							case effect_t::PITCH:
@@ -869,7 +869,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 				/*
 				if (ver < 6) {
 					// Noise pitch slide fix
-					if (GetChannelType(Channel) == chan_id_t::NOISE) {
+					if (IsAPUNoise(Channel)) {
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
 							switch (Note.EffNumber[n]) {
 								case effect_t::PORTA_DOWN:
@@ -922,7 +922,7 @@ void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerModule &modfile, int ver)
 	 */
 
 	modfile.VisitSongs([&] (const CSongData &x, unsigned song) {
-		x.VisitPatterns([&] (const CPatternData &pattern, chan_id_t ch, unsigned index) {
+		x.VisitPatterns([&] (const CPatternData &pattern, stChannelID ch, unsigned index) {
 			if (!x.IsPatternInUse(ch, index))		// // //
 				return;
 

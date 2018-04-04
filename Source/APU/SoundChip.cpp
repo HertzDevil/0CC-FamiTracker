@@ -23,9 +23,10 @@
 #include "APU/SoundChip.h"
 #include "RegisterState.h"
 
-CSoundChip::CSoundChip(CMixer &Mixer) :
+CSoundChip::CSoundChip(CMixer &Mixer, std::size_t nInstance) :		// // //
 	m_pMixer(&Mixer),
-	m_pRegisterLogger(std::make_unique<CRegisterLogger>())
+	m_pRegisterLogger(std::make_unique<CRegisterLogger>()),
+	instance_(nInstance)
 {
 }
 

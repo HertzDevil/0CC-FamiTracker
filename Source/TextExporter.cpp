@@ -303,7 +303,7 @@ public:
 		return std::runtime_error {(LPCSTR)str};
 	}
 
-	stChanNote ImportCellText(unsigned fxMax, chan_id_t chan) {		// // //
+	stChanNote ImportCellText(unsigned fxMax, stChannelID chan) {		// // //
 		stChanNote Cell;		// // //
 
 		CStringA sNote = ReadToken();
@@ -314,7 +314,7 @@ public:
 			if (sNote.GetLength() != 3)
 				throw MakeError("note column should be 3 characters wide, '%s' found.", (LPCSTR)sNote);
 
-			if (chan == chan_id_t::NOISE) {		// // // noise
+			if (IsAPUNoise(chan)) {		// // // noise
 				int h = ImportHex(sNote.Left(1));		// // //
 				Cell.Note = GET_NOTE(h);
 				Cell.Octave = GET_OCTAVE(h);
@@ -393,7 +393,7 @@ public:
 				throw MakeError("effect column should be 3 characters wide, '%s' found.", (LPCSTR)sEff);
 
 			if (sEff != "...") {
-				effect_t Eff = GetEffectFromChar(sEff.GetAt(0), GetChipFromChannel(chan));		// // //
+				effect_t Eff = GetEffectFromChar(sEff.GetAt(0), chan.Chip);		// // //
 				if (Eff == effect_t::NONE)
 					throw MakeError("unrecognized effect '%s'.", (LPCSTR)sEff);
 				Cell.EffNumber[e] = Eff;
@@ -858,7 +858,7 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 		{
 			CHECK_COLON();
 			CSongData *pSong = modfile.GetSong(track - 1);		// // //
-			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t c) {
+			modfile.GetChannelOrder().ForeachChannel([&] (stChannelID c) {
 				pSong->SetEffectColumnCount(c, t.ReadInt(1, MAX_EFFECT_COLUMNS));
 			});
 			t.ReadEOL();
@@ -871,7 +871,7 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 			if (ifr >= (int)pSong->GetFrameCount()) // expand to accept frames
 				pSong->SetFrameCount(ifr + 1);
 			CHECK_COLON();
-			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t c) {
+			modfile.GetChannelOrder().ForeachChannel([&] (stChannelID c) {
 				pSong->SetFramePattern(ifr, c, t.ReadHex(0, MAX_PATTERN - 1));
 			});
 			t.ReadEOL();
@@ -887,7 +887,7 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 				throw t.MakeError("no TRACK defined, cannot add ROW data.");
 
 			int row = t.ReadHex(0, MAX_PATTERN_LENGTH - 1);
-			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t c) {
+			modfile.GetChannelOrder().ForeachChannel([&] (stChannelID c) {
 				CHECK_COLON();
 				auto *pTrack = modfile.GetSong(track - 1)->GetTrack(c);		// // //
 				pTrack->GetPattern(pattern).SetNoteOn(row, t.ImportCellText(pTrack->GetEffectColumnCount(), c));
@@ -937,11 +937,11 @@ CStringA CTextExport::ExportRows(LPCWSTR FileName, const CFamiTrackerModule &mod
 
 	modfile.VisitSongs([&] (const CSongData &song, unsigned t) {
 		unsigned rows = song.GetPatternLength();
-		song.VisitPatterns([&] (const CPatternData &pat, chan_id_t c, unsigned p) {
+		song.VisitPatterns([&] (const CPatternData &pat, stChannelID c, unsigned p) {
 			if (song.IsPatternInUse(c, p))
 				pat.VisitRows(rows, [&] (const stChanNote &stCell, unsigned r) {
 					if (stCell != stChanNote { })
-						WriteString(FormattedA(FMT, id++, t, c, p, r,
+						WriteString(FormattedA(FMT, id++, t, chan_id_t {c}, p, r,
 							stCell.Note, stCell.Octave, stCell.Instrument, stCell.Vol,
 							stCell.EffNumber[0], stCell.EffParam[0],
 							stCell.EffNumber[1], stCell.EffParam[1],
@@ -1242,14 +1242,14 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 			(LPCSTR)ExportString(song.GetTitle())));
 
 		WriteString(FormattedA("%s :", CT[CT_COLUMNS]));
-		order.ForeachChannel([&] (chan_id_t c) {
+		order.ForeachChannel([&] (stChannelID c) {
 			WriteString(FormattedA(" %d", song.GetEffectColumnCount(c)));
 		});
 		WriteString("\n\n");
 
 		for (unsigned int o=0; o < song.GetFrameCount(); ++o) {
 			WriteString(FormattedA("%s %02X :", CT[CT_ORDER], o));
-			order.ForeachChannel([&] (chan_id_t c) {
+			order.ForeachChannel([&] (stChannelID c) {
 				WriteString(FormattedA(" %02X", song.GetFramePattern(o, c)));
 			});
 			WriteString("\n");
@@ -1260,7 +1260,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		{
 			// detect and skip empty patterns
 			bool bUsed = false;
-			order.ForeachChannel([&] (chan_id_t c) {
+			order.ForeachChannel([&] (stChannelID c) {
 				if (!bUsed && !song.GetPattern(c, p).IsEmpty())
 					bUsed = true;
 			});
@@ -1271,9 +1271,9 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 
 			for (unsigned int r=0; r < song.GetPatternLength(); ++r) {
 				WriteString(FormattedA("%s %02X", CT[CT_ROW], r));
-				order.ForeachChannel([&] (chan_id_t c) {
+				order.ForeachChannel([&] (stChannelID c) {
 					WriteString(" : ");
-					WriteString(ExportCellText(song.GetPattern(c, p).GetNoteOn(r), song.GetEffectColumnCount(c), c==chan_id_t::NOISE));		// // //
+					WriteString(ExportCellText(song.GetPattern(c, p).GetNoteOn(r), song.GetEffectColumnCount(c), IsAPUNoise(c)));		// // //
 				});
 				WriteString("\n");
 			}

@@ -1177,7 +1177,7 @@ void CMainFrame::OnAddInstrument()
 
 	// Chip type depends on selected channel
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
-	switch (GetChipFromChannel(pView->GetSelectedChannelID())) {		// // // TODO: remove eventually
+	switch (pView->GetSelectedChannelID().Chip) {		// // // TODO: remove eventually
 	case sound_chip_t::APU:  return OnAddInstrument2A03();
 	case sound_chip_t::VRC6: return OnAddInstrumentVRC6();
 	case sound_chip_t::VRC7: return OnAddInstrumentVRC7();
@@ -2602,7 +2602,7 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 
 	CSoundChipSet Chip = Doc.GetModule()->GetSoundChipSet();		// // //
-	sound_chip_t SelectedChip = GetChipFromChannel(pView->GetSelectedChannelID());		// // // where the cursor is located
+	sound_chip_t SelectedChip = pView->GetSelectedChannelID().Chip;		// // // where the cursor is located
 
 	auto *pSCS = Env.GetSoundChipService();
 	pSCS->ForeachType([&] (sound_chip_t c) {

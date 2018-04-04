@@ -39,7 +39,7 @@ const int VRC7_PITCH_RESOLUTION = 2;		// // // extra bits for internal pitch
 
 } // namespace
 
-CChannelHandlerVRC7::CChannelHandlerVRC7(chan_id_t ch, CChipHandlerVRC7 &parent) :		// // //
+CChannelHandlerVRC7::CChannelHandlerVRC7(stChannelID ch, CChipHandlerVRC7 &parent) :		// // //
 	CChannelHandlerInverted(ch, (1 << (VRC7_PITCH_RESOLUTION + 9)) - 1, 15),		// // //
 	chip_handler_(parent)
 {
@@ -261,7 +261,7 @@ void CChannelHandlerVRC7::RefreshChannel()
 		m_iPatch = -1;
 	}
 
-	unsigned subindex = GetSubIndex();		// // //
+	unsigned subindex = GetChannelID().Subindex;		// // //
 
 	// Write custom instrument
 	if (m_iDutyPeriod == 0 && m_iCommand == CMD_NOTE_TRIGGER)		// // //
@@ -302,7 +302,7 @@ void CChannelHandlerVRC7::RefreshChannel()
 
 void CChannelHandlerVRC7::ClearRegisters()
 {
-	unsigned subindex = GetSubIndex();		// // //
+	unsigned subindex = GetChannelID().Subindex;		// // //
 	RegWrite(0x10 + subindex, 0x00);
 	RegWrite(0x20 + subindex, 0x00);
 	RegWrite(0x30 + subindex, 0x0F);

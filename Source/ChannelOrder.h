@@ -24,30 +24,30 @@
 #pragma once
 
 #include <vector>
-#include <unordered_map>
-#include "APU/Types_fwd.h"
+#include <map>
+#include "APU/Types.h"
 
 // // // common functionality between CChannelMap and CSongView
 
 class CChannelOrder {
 public:
-	chan_id_t TranslateChannel(std::size_t index) const;
-	bool HasChannel(chan_id_t chan) const;
-	std::size_t GetChannelIndex(chan_id_t chan) const;
+	stChannelID TranslateChannel(std::size_t index) const;
+	bool HasChannel(stChannelID chan) const;
+	std::size_t GetChannelIndex(stChannelID chan) const;
 	std::size_t GetChannelCount() const;
 
-	bool AddChannel(chan_id_t chan);
+	bool AddChannel(stChannelID chan);
 
 	CChannelOrder Canonicalize() const;
 
-	// void (*F)(chan_id_t chan)
+	// void (*F)(stChannelID chan)
 	template <typename F>
 	void ForeachChannel(F f) const {
-		for (chan_id_t ch : order_)
+		for (stChannelID ch : order_)
 			f(ch);
 	}
 
 private:
-	std::vector<chan_id_t> order_;
-	std::unordered_map<chan_id_t, std::size_t> indices_;
+	std::vector<stChannelID> order_;
+	std::map<stChannelID, std::size_t> indices_;
 };

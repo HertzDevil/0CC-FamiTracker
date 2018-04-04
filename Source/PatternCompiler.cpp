@@ -33,6 +33,8 @@
 #include "SongData.h"		// // //
 #include "NumConv.h"		// // //
 #include <algorithm>		// // //
+#include "FamiTrackerEnv.h"		// // //
+#include "SoundChipService.h"		// // //
 
 /**
  * CPatternCompiler - Compress patterns to strings for the NSF code
@@ -129,7 +131,7 @@ CPatternCompiler::~CPatternCompiler()
 {
 }
 
-void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
+void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) {
 	const auto *pSong = modfile_.GetSong(Track);		// // //
 	if (!pSong)
 		return;
@@ -161,12 +163,10 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 
 		bool Action = false;
 
-		sound_chip_t ChipID = GetChipFromChannel(Channel);		// // //
-
 		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT && (IsNote(Note) || Note == note_t::ECHO))		// // //
-			if (!IsInstrumentCompatible(ChipID, pInstManager->GetInstrumentType(ChanNote.Instrument)))		// // //
+			if (!IsInstrumentCompatible(Channel.Chip, pInstManager->GetInstrumentType(ChanNote.Instrument)))		// // //
 				Print("Error: Missing or incompatible instrument (on row " + conv::from_uint(i) +
-					", channel " + conv::from_uint(value_cast(Channel)) + ", pattern " + conv::from_uint(Pattern) + ")\n");
+					", channel " + std::string {Env.GetSoundChipService()->GetChannelFullName(Channel)} + ", pattern " + conv::from_uint(Pattern) + ")\n");
 
 		// Check for delays, must come first
 		for (int j = 0; j < EffColumns; ++j) {
@@ -232,7 +232,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 				LastInstrument = Instrument;
 				// Write instrument change command
 				//if (Channel < InstrChannels) {
-				if (Channel != chan_id_t::DPCM) {		// Skip DPCM
+				if (!IsDPCM(Channel)) {		// Skip DPCM
 					WriteDuration();
 #ifdef PACKED_INST_CHANGE
 					if (Instrument < 0x10)
@@ -251,14 +251,14 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 					DPCMInst = ChanNote.Instrument;
 				}
 			}
-			if (Instrument == HOLD_INSTRUMENT && Channel != chan_id_t::DPCM) {		// // // 050B
+			if (Instrument == HOLD_INSTRUMENT && !IsDPCM(Channel)) {		// // // 050B
 				WriteDuration();
 				WriteData(Command(CMD_HOLD));
 				Action = true;
 			}
 #ifdef OPTIMIZE_DURATIONS
 			if (Instrument == LastInstrument && Instrument < MAX_INSTRUMENTS) {		// // //
-				if (Channel != chan_id_t::DPCM) {
+				if (!IsDPCM(Channel)) {
 					WriteDuration();
 					Action = true;
 				}
@@ -279,7 +279,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 			NESNote = 0x6F + Octave;
 		}
 		else {
-			if (Channel == chan_id_t::DPCM) {
+			if (IsDPCM(Channel)) {
 				// 2A03 DPCM
 				int LookUp = FindSample(DPCMInst, MIDI_NOTE(Octave, Note));
 				if (LookUp > 0) {
@@ -291,10 +291,10 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 				else {
 					NESNote = 0xFF;		// Invalid sample, skip
 					Print("Error: Missing DPCM sample (on row " + conv::from_uint(i) +
-						", channel " + conv::from_uint(value_cast(Channel)) + ", pattern " + conv::from_uint(Pattern) + ")\n");
+						", channel " + std::string {Env.GetSoundChipService()->GetChannelFullName(Channel)} + ", pattern " + conv::from_uint(Pattern) + ")\n");
 				}
 			}
-			else if (Channel == chan_id_t::NOISE) {
+			else if (IsAPUNoise(Channel)) {
 				// 2A03 Noise
 				NESNote = MIDI_NOTE(Octave, Note);
 				NESNote = (NESNote & 0x0F) | 0x10;
@@ -334,16 +334,14 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 					WriteData(EffParam);
 					break;
 				case effect_t::VOLUME:		// // //
-					switch (Channel) {
-					case chan_id_t::SQUARE1: case chan_id_t::SQUARE2: case chan_id_t::TRIANGLE: case chan_id_t::NOISE:
-					case chan_id_t::MMC5_SQUARE1: case chan_id_t::MMC5_SQUARE2:
+					if ((Channel.Chip == sound_chip_t::APU && !IsDPCM(Channel)) || Channel.Chip == sound_chip_t::MMC5) {
 						WriteData(Command(CMD_EFF_VOLUME));
 						if ((EffParam <= 0x1F) || (EffParam >= 0xE0 && EffParam <= 0xE3))
 							WriteData(EffParam & 0x9F);
 					}
 					break;
 				case effect_t::PORTAMENTO:
-					if (Channel != chan_id_t::DPCM) {
+					if (!IsDPCM(Channel)) {
 						if (EffParam == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
@@ -353,11 +351,11 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 					}
 					break;
 				case effect_t::PORTA_UP:
-					if (Channel != chan_id_t::DPCM) {
+					if (!IsDPCM(Channel)) {
 						if (EffParam == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
-							switch (ChipID) {		// // //
+							switch (Channel.Chip) {		// // //
 							case sound_chip_t::APU: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:
 								if (!modfile_.GetLinearPitch()) {
 									WriteData(Command(CMD_EFF_PORTAUP));
@@ -373,11 +371,11 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 					}
 					break;
 				case effect_t::PORTA_DOWN:
-					if (Channel != chan_id_t::DPCM) {
+					if (!IsDPCM(Channel)) {
 						if (EffParam == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
-							switch (ChipID) {		// // //
+							switch (Channel.Chip) {		// // //
 							case sound_chip_t::APU: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:
 								if (!modfile_.GetLinearPitch()) {
 									WriteData(Command(CMD_EFF_PORTADOWN));
@@ -394,25 +392,25 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 					break;
 					/*
 				case effect_t::PORTAOFF:
-					if (ChipID == sound_chip_t::APU) {
+					if (Channel.Chip == sound_chip_t::APU) {
 						WriteData(CMD_EFF_PORTAOFF);
 						//WriteData(EffParam);
 					}
 					break;*/
 				case effect_t::SWEEPUP:
-					if (Channel == chan_id_t::SQUARE1 || Channel == chan_id_t::SQUARE2) {
+					if (IsAPUPulse(Channel)) {
 						WriteData(Command(CMD_EFF_SWEEP));
 						WriteData(0x88 | (EffParam & 0x77));	// Calculate sweep
 					}
 					break;
 				case effect_t::SWEEPDOWN:
-					if (Channel == chan_id_t::SQUARE1 || Channel == chan_id_t::SQUARE2) {
+					if (IsAPUPulse(Channel)) {
 						WriteData(Command(CMD_EFF_SWEEP));
 						WriteData(0x80 | (EffParam & 0x77));	// Calculate sweep
 					}
 					break;
 				case effect_t::ARPEGGIO:
-					if (Channel != chan_id_t::DPCM) {
+					if (!IsDPCM(Channel)) {
 						if (EffParam == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
@@ -422,25 +420,25 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 					}
 					break;
 				case effect_t::VIBRATO:
-					if (Channel != chan_id_t::DPCM) {
+					if (!IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_VIBRATO));
 						//WriteData(EffParam);
 						WriteData((EffParam & 0xF) << 4 | (EffParam >> 4));
 					}
 					break;
 				case effect_t::TREMOLO:
-					if (Channel != chan_id_t::DPCM) {
+					if (!IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_TREMOLO));
 //						WriteData(EffParam & 0xF7);
 						WriteData((EffParam & 0xF) << 4 | (EffParam >> 4));
 					}
 					break;
 				case effect_t::PITCH:
-					if (Channel != chan_id_t::DPCM) {
+					if (!IsDPCM(Channel)) {
 						if (EffParam == 0x80)
 							WriteData(Command(CMD_EFF_RESET_PITCH));
 						else {
-							switch (ChipID) {
+							switch (Channel.Chip) {
 							case sound_chip_t::APU: case sound_chip_t::VRC6: case sound_chip_t::MMC5: case sound_chip_t::S5B:		// // //
 								if (!modfile_.GetLinearPitch())
 									break;
@@ -457,51 +455,51 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 					}
 					break;
 				case effect_t::DAC:
-					if (Channel == chan_id_t::DPCM) {
+					if (IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_DAC));
 						WriteData(EffParam & 0x7F);
 					}
 					break;
 				case effect_t::DUTY_CYCLE:
-					if (ChipID == sound_chip_t::VRC7) {		// // // 050B
+					if (Channel.Chip == sound_chip_t::VRC7) {		// // // 050B
 						WriteData(Command(CMD_EFF_VRC7_PATCH));
 						WriteData(EffParam << 4);
 					}
-					else if (ChipID == sound_chip_t::S5B) {
+					else if (Channel.Chip == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_DUTY));
 						WriteData((EffParam << 6) | ((EffParam & 0x04) << 3));
 					}
-					else if (Channel != chan_id_t::TRIANGLE && Channel != chan_id_t::DPCM) {	// Not triangle and dpcm
+					else if (!IsAPUTriangle(Channel) && !IsDPCM(Channel)) {	// Not triangle and dpcm
 						WriteData(Command(CMD_EFF_DUTY));
 						WriteData(EffParam);
 					}
 					break;
 				case effect_t::SAMPLE_OFFSET:
-					if (Channel == chan_id_t::DPCM) {	// DPCM
+					if (IsDPCM(Channel)) {	// DPCM
 						WriteData(Command(CMD_EFF_OFFSET));
 						WriteData(EffParam);
 					}
 					break;
 				case effect_t::SLIDE_UP:
-					if (Channel != chan_id_t::DPCM) {
+					if (!IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_SLIDE_UP));
 						WriteData(EffParam);
 					}
 					break;
 				case effect_t::SLIDE_DOWN:
-					if (Channel != chan_id_t::DPCM) {
+					if (!IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_SLIDE_DOWN));
 						WriteData(EffParam);
 					}
 					break;
 				case effect_t::VOLUME_SLIDE:
-					if (Channel != chan_id_t::DPCM) {
+					if (!IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_VOL_SLIDE));
 						WriteData(EffParam);
 					}
 					break;
 				case effect_t::NOTE_CUT:
-					if (EffParam >= 0x80 && Channel == chan_id_t::TRIANGLE) {		// // //
+					if (EffParam >= 0x80 && IsAPUTriangle(Channel)) {		// // //
 						WriteData(Command(CMD_EFF_LINEAR_COUNTER));
 						WriteData(EffParam - 0x80);
 					}
@@ -511,13 +509,13 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 					}
 					break;
 				case effect_t::RETRIGGER:
-					if (Channel == chan_id_t::DPCM) {
+					if (IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_RETRIGGER));
 						WriteData(EffParam + 1);
 					}
 					break;
 				case effect_t::DPCM_PITCH:
-					if (Channel == chan_id_t::DPCM) {
+					if (IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_DPCM_PITCH));
 						WriteData(EffParam);
 					}
@@ -540,89 +538,89 @@ void CPatternCompiler::CompileData(int Track, int Pattern, chan_id_t Channel) {
 					}
 					break;
 				case effect_t::DELAYED_VOLUME:		// // //
-					if (Channel != chan_id_t::DPCM && (EffParam >> 4) && (EffParam & 0x0F)) {
+					if (!IsDPCM(Channel) && (EffParam >> 4) && (EffParam & 0x0F)) {
 						WriteData(Command(CMD_EFF_DELAYED_VOLUME));
 						WriteData(EffParam);
 					}
 					break;
 				case effect_t::TRANSPOSE:			// // //
-					if (Channel != chan_id_t::DPCM) {
+					if (!IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_TRANSPOSE));
 						WriteData(EffParam);
 					}
 					break;
 				// // // VRC7
 				case effect_t::VRC7_PORT:
-					if (ChipID == sound_chip_t::VRC7) {
+					if (Channel.Chip == sound_chip_t::VRC7) {
 						WriteData(Command(CMD_EFF_VRC7_PORT));
 						WriteData(EffParam & 0x07);
 					}
 					break;
 				case effect_t::VRC7_WRITE:
-					if (ChipID == sound_chip_t::VRC7) {
+					if (Channel.Chip == sound_chip_t::VRC7) {
 						WriteData(Command(CMD_EFF_VRC7_WRITE));
 						WriteData(EffParam);
 					}
 					break;
 				// FDS
 				case effect_t::FDS_MOD_DEPTH:
-					if (Channel == chan_id_t::FDS) {
+					if (Channel.Chip == sound_chip_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_DEPTH));
 						WriteData(EffParam);
 					}
 					break;
 				case effect_t::FDS_MOD_SPEED_HI:
-					if (Channel == chan_id_t::FDS) {
+					if (Channel.Chip == sound_chip_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_RATE_HI));
 						WriteData(EffParam);		// // //
 					}
 					break;
 				case effect_t::FDS_MOD_SPEED_LO:
-					if (Channel == chan_id_t::FDS) {
+					if (Channel.Chip == sound_chip_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_RATE_LO));
 						WriteData(EffParam);
 					}
 					break;
 				case effect_t::FDS_MOD_BIAS:		// // //
-					if (Channel == chan_id_t::FDS) {
+					if (Channel.Chip == sound_chip_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_BIAS));
 						WriteData(EffParam);
 					}
 					break;
 				case effect_t::FDS_VOLUME:		// // //
-					if (Channel == chan_id_t::FDS) {
+					if (Channel.Chip == sound_chip_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_VOLUME));
 						WriteData(EffParam == 0xE0 ? 0x80 : (EffParam ^ 0x40));
 					}
 					break;
 				// // // Sunsoft 5B
 				case effect_t::SUNSOFT_ENV_TYPE:
-					if (ChipID == sound_chip_t::S5B) {
+					if (Channel.Chip == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_ENV_TYPE));
 						WriteData(EffParam);
 					}
 					break;
 				case effect_t::SUNSOFT_ENV_HI:
-					if (ChipID == sound_chip_t::S5B) {
+					if (Channel.Chip == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_ENV_RATE_HI));
 						WriteData(EffParam);
 					}
 					break;
 				case effect_t::SUNSOFT_ENV_LO:
-					if (ChipID == sound_chip_t::S5B) {
+					if (Channel.Chip == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_ENV_RATE_LO));
 						WriteData(EffParam);
 					}
 					break;
 				case effect_t::SUNSOFT_NOISE:		// // // 050B
-					if (ChipID == sound_chip_t::S5B) {
+					if (Channel.Chip == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_NOISE));
 						WriteData(EffParam & 0x1F);
 					}
 					break;
 				// // // N163
 				case effect_t::N163_WAVE_BUFFER:
-					if (ChipID == sound_chip_t::N163 && EffParam <= 0x7F) {
+					if (Channel.Chip == sound_chip_t::N163 && EffParam <= 0x7F) {
 						WriteData(Command(CMD_EFF_N163_WAVE_BUFFER));
 						WriteData(EffParam == 0x7F ? 0x80 : EffParam);
 					}
@@ -690,7 +688,7 @@ unsigned int CPatternCompiler::FindSample(int Instrument, int MidiNote) const		/
 	return (*m_pDPCMList)[Instrument][MidiNote];
 }
 
-CPatternCompiler::stSpacingInfo CPatternCompiler::ScanNoteLengths(int Track, unsigned int StartRow, int Pattern, chan_id_t Channel) {		// // //
+CPatternCompiler::stSpacingInfo CPatternCompiler::ScanNoteLengths(int Track, unsigned int StartRow, int Pattern, stChannelID Channel) {		// // //
 	const auto *pSong = modfile_.GetSong(Track);		// // //
 	if (!pSong)
 		return { };

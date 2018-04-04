@@ -55,7 +55,7 @@ public:
 	*/
 	std::string GetStateString() const;
 
-	chan_id_t ChannelID = chan_id_t::NONE;
+	stChannelID ChannelID;
 	int Instrument = MAX_INSTRUMENTS;
 	int Volume = MAX_VOLUME;
 	std::array<int, EFFECT_COUNT> Effect = { };
@@ -79,7 +79,7 @@ public:
 	CSongState();
 
 	void Retrieve(const CFamiTrackerModule &modfile, unsigned Track, unsigned Frame, unsigned Row);
-	std::string GetChannelStateString(const CFamiTrackerModule &modfile, chan_id_t chan) const;
+	std::string GetChannelStateString(const CFamiTrackerModule &modfile, stChannelID chan) const;
 
 	std::array<stChannelState, CHANID_COUNT> State = { };
 	int Tempo = -1;

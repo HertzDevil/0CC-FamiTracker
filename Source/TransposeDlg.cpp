@@ -57,8 +57,8 @@ void CTransposeDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 void CTransposeDlg::Transpose(int Trsp, CSongData &song) {
-	song.VisitPatterns([&] (CPatternData &pat, chan_id_t c, unsigned) {
-		if (c == chan_id_t::NOISE || c == chan_id_t::DPCM)
+	song.VisitPatterns([&] (CPatternData &pat, stChannelID c, unsigned) {
+		if (IsAPUNoise(c) || IsDPCM(c))
 			return;
 		pat.VisitRows([&] (stChanNote &note) {
 			if (note.Instrument == MAX_INSTRUMENTS || note.Instrument == HOLD_INSTRUMENT)
@@ -84,13 +84,8 @@ END_MESSAGE_MAP()
 
 BOOL CTransposeDlg::OnInitDialog()
 {
-	LOGFONTW LogFont = { };
-	const LPCWSTR SMALL_FONT_FACE = L"Verdana";
-
-	wcscpy_s(LogFont.lfFaceName, SMALL_FONT_FACE);
-	LogFont.lfHeight = -DPI::SY(10);
-	LogFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
-	m_cFont.CreateFontIndirect(&LogFont);
+	m_cFont.CreateFontW(-DPI::SY(10), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET,
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_SWISS, L"Verdana");
 
 	m_pDocument = CFamiTrackerDoc::GetDoc();
 	CRect r;

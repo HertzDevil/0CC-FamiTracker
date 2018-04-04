@@ -49,7 +49,7 @@ void CChannelHandlerS5B::UpdateAutoEnvelope(int Period)		// // // 050B
 
 // Instance functions
 
-CChannelHandlerS5B::CChannelHandlerS5B(chan_id_t ch, CChipHandlerS5B &parent) :		// // //
+CChannelHandlerS5B::CChannelHandlerS5B(stChannelID ch, CChipHandlerS5B &parent) :		// // //
 	CChannelHandler(ch, 0xFFF, 0x0F),
 	chip_handler_(parent),		// // //
 	m_bEnvelopeEnabled(false),		// // // 050B
@@ -156,7 +156,7 @@ int CChannelHandlerS5B::ConvertDuty(int Duty) const		// // //
 
 void CChannelHandlerS5B::ClearRegisters()
 {
-	WriteReg(8 + GetSubIndex(), 0);		// Clear volume
+	WriteReg(8 + GetChannelID().Subindex, 0);		// Clear volume
 }
 
 std::string CChannelHandlerS5B::GetCustomEffectString() const		// // //
@@ -176,9 +176,9 @@ void CChannelHandlerS5B::RefreshChannel()
 	unsigned char Envelope = (m_bGate && (m_iDutyPeriod & value_cast(s5b_mode_t::Envelope))) ? 0x10 : 0; // m_bEnvelopeEnabled ? 0x10 : 0;
 
 	UpdateAutoEnvelope(Period);		// // // 050B
-	chip_handler_.SetChannelOutput(GetSubIndex(), Square, Noise);
+	chip_handler_.SetChannelOutput(GetChannelID().Subindex, Square, Noise);
 
-	unsigned subindex = GetSubIndex();		// // //
+	unsigned subindex = GetChannelID().Subindex;		// // //
 	WriteReg(subindex * 2    , LoPeriod);
 	WriteReg(subindex * 2 + 1, HiPeriod);
 	WriteReg(subindex + 8    , Volume | Envelope);

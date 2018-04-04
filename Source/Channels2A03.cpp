@@ -38,7 +38,7 @@
 
 //#define NOISE_PITCH_SCALE
 
-CChannelHandler2A03::CChannelHandler2A03(chan_id_t ch) :		// // //
+CChannelHandler2A03::CChannelHandler2A03(stChannelID ch) :		// // //
 	CChannelHandler(ch, 0x7FF, 0x0F),
 	m_bHardwareEnvelope(false),
 	m_bEnvelopeLoop(true),
@@ -136,7 +136,7 @@ void CChannelHandler2A03::ResetChannel()
 // // // 2A03 Square
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-C2A03Square::C2A03Square(chan_id_t ch) :		// // //
+C2A03Square::C2A03Square(stChannelID ch) :		// // //
 	CChannelHandler2A03(ch),
 	m_cSweep(0),
 	m_bSweeping(0),
@@ -153,7 +153,7 @@ void C2A03Square::RefreshChannel()
 	unsigned char HiFreq = (Period & 0xFF);
 	unsigned char LoFreq = (Period >> 8);
 
-	int Address = 0x4000 + GetSubIndex() * 4;		// // //
+	int Address = 0x4000 + GetChannelID().Subindex * 4;		// // //
 	if (m_bGate)		// // //
 		m_pAPU->Write(Address, (DutyCycle << 6) | (m_bEnvelopeLoop << 5) | (!m_bHardwareEnvelope << 4) | Volume);		// // //
 	else {
@@ -198,7 +198,7 @@ int C2A03Square::ConvertDuty(int Duty) const		// // //
 
 void C2A03Square::ClearRegisters()
 {
-	int Address = 0x4000 + GetSubIndex() * 4;		// // //
+	int Address = 0x4000 + GetChannelID().Subindex * 4;		// // //
 	m_pAPU->Write(Address + 0, 0x30);
 	m_pAPU->Write(Address + 1, 0x08);
 	m_pAPU->Write(Address + 2, 0x00);
@@ -269,7 +269,7 @@ std::string C2A03Square::GetCustomEffectString() const		// // //
 // Triangle
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CTriangleChan::CTriangleChan(chan_id_t ch) :		// // //
+CTriangleChan::CTriangleChan(stChannelID ch) :		// // //
 	CChannelHandler2A03(ch),
 	m_iLinearCounter(-1)
 {
@@ -427,7 +427,7 @@ int CNoiseChan::CalculatePeriod() const
 }
 */
 
-CNoiseChan::CNoiseChan(chan_id_t ch) : CChannelHandler2A03(ch)		// // //
+CNoiseChan::CNoiseChan(stChannelID ch) : CChannelHandler2A03(ch)		// // //
 {
 }
 
@@ -502,7 +502,7 @@ int CNoiseChan::TriggerNote(int Note)
 // DPCM
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CDPCMChan::CDPCMChan(chan_id_t ch) :		// // //
+CDPCMChan::CDPCMChan(stChannelID ch) :		// // //
 	CChannelHandler(ch, 0xF, 0x3F),		// // // does not use these anyway
 	m_bEnabled(false),
 	m_bRetrigger(false),

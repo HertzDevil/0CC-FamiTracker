@@ -31,7 +31,7 @@
 
 class CChannelHandlerVRC6 : public CChannelHandler {
 public:
-	CChannelHandlerVRC6(chan_id_t ch, int MaxPeriod, int MaxVolume);		// // //
+	CChannelHandlerVRC6(stChannelID ch, int MaxPeriod, int MaxVolume);		// // //
 
 protected:
 	// // //
@@ -46,7 +46,7 @@ protected:
 
 class CVRC6Square : public CChannelHandlerVRC6 {
 public:
-	explicit CVRC6Square(chan_id_t ch) : CChannelHandlerVRC6(ch, 0xFFF, 0x0F) { }
+	explicit CVRC6Square(stChannelID ch) : CChannelHandlerVRC6(ch, 0xFFF, 0x0F) { }
 	void	RefreshChannel() override;
 protected:
 	int		ConvertDuty(int Duty) const override;		// // //
@@ -54,7 +54,7 @@ protected:
 
 class CVRC6Sawtooth : public CChannelHandlerVRC6 {
 public:
-	explicit CVRC6Sawtooth(chan_id_t ch) : CChannelHandlerVRC6(ch, 0xFFF, 0x3F) { }
+	explicit CVRC6Sawtooth(stChannelID ch) : CChannelHandlerVRC6(ch, 0xFFF, 0x3F) { }
 	void	RefreshChannel() override;
 protected:
 	bool	CreateInstHandler(inst_type_t Type) override;		// // //

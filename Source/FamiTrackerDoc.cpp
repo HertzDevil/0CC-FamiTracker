@@ -95,7 +95,7 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCWSTR lpszPathName)
 
 	//DeleteContents();
 	Env.GetSoundGenerator()->ResetDumpInstrument();
-	Env.GetSoundGenerator()->SetRecordChannel(chan_id_t::NONE);		// // //
+	Env.GetSoundGenerator()->SetRecordChannel({ });		// // //
 
 	// Load file
 	if (!Locked([&] { return OpenDocument(lpszPathName); })) {		// // //

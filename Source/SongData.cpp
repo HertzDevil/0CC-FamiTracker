@@ -43,16 +43,15 @@ CSongData::CSongData(unsigned int PatternLength) :		// // //
 CSongData::~CSongData() {
 }
 
-CTrackData *CSongData::GetTrack(chan_id_t chan) {		// // //
-	auto idx = value_cast(chan);
-	return idx != value_cast(chan_id_t::NONE) ? &tracks_[idx] : nullptr;
+CTrackData *CSongData::GetTrack(stChannelID chan) {		// // //
+	return chan.Chip != sound_chip_t::NONE ? &tracks_[value_cast(chan_id_t {chan})] : nullptr;
 }
 
-const CTrackData *CSongData::GetTrack(chan_id_t chan) const {
+const CTrackData *CSongData::GetTrack(stChannelID chan) const {
 	return const_cast<CSongData *>(this)->GetTrack(chan);
 }
 
-bool CSongData::IsPatternInUse(chan_id_t Channel, unsigned int Pattern) const
+bool CSongData::IsPatternInUse(stChannelID Channel, unsigned int Pattern) const
 {
 	// Check if pattern is addressed in frame list
 	if (Pattern < MAX_PATTERN)
@@ -63,7 +62,7 @@ bool CSongData::IsPatternInUse(chan_id_t Channel, unsigned int Pattern) const
 	return false;
 }
 
-unsigned CSongData::GetFreePatternIndex(chan_id_t Channel, unsigned Whence) const {		// // //
+unsigned CSongData::GetFreePatternIndex(stChannelID Channel, unsigned Whence) const {		// // //
 	while (++Whence < MAX_PATTERN)
 		if (!IsPatternInUse(Channel, Whence) && GetPattern(Channel, Whence).IsEmpty())
 			return Whence;
@@ -71,47 +70,47 @@ unsigned CSongData::GetFreePatternIndex(chan_id_t Channel, unsigned Whence) cons
 	return -1;
 }
 
-stChanNote &CSongData::GetPatternData(chan_id_t Channel, unsigned Pattern, unsigned Row)		// // //
+stChanNote &CSongData::GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row)		// // //
 {
 	return GetPattern(Channel, Pattern).GetNoteOn(Row);
 }
 
-const stChanNote &CSongData::GetPatternData(chan_id_t Channel, unsigned Pattern, unsigned Row) const		// // //
+const stChanNote &CSongData::GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row) const		// // //
 {
 	return GetPattern(Channel, Pattern).GetNoteOn(Row);
 }
 
-stChanNote CSongData::GetActiveNote(chan_id_t Channel, unsigned Frame, unsigned Row) const {		// // //
+stChanNote CSongData::GetActiveNote(stChannelID Channel, unsigned Frame, unsigned Row) const {		// // //
 	stChanNote Note = GetPatternOnFrame(Channel, Frame).GetNoteOn(Row);
 	for (int i = GetEffectColumnCount(Channel); i < MAX_EFFECT_COLUMNS; ++i)
 		Note.EffNumber[i] = effect_t::NONE;
 	return Note;
 }
 
-void CSongData::SetPatternData(chan_id_t Channel, unsigned Pattern, unsigned Row, const stChanNote &Note)		// // //
+void CSongData::SetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row, const stChanNote &Note)		// // //
 {
 	GetPattern(Channel, Pattern).SetNoteOn(Row, Note);
 }
 
-CPatternData &CSongData::GetPattern(chan_id_t Channel, unsigned Pattern) {
+CPatternData &CSongData::GetPattern(stChannelID Channel, unsigned Pattern) {
 	auto track = GetTrack(Channel);		// // //
 	if (!track)
-		throw std::out_of_range {"Bad chan_id_t in CSongData::GetPattern(chan_id_t, unsigned)"};
+		throw std::out_of_range {"Bad stChannelID in CSongData::GetPattern(stChannelID, unsigned)"};
 	return track->GetPattern(Pattern);
 }
 
-const CPatternData &CSongData::GetPattern(chan_id_t Channel, unsigned Pattern) const {
+const CPatternData &CSongData::GetPattern(stChannelID Channel, unsigned Pattern) const {
 	return const_cast<CSongData *>(this)->GetPattern(Channel, Pattern);
 }
 
-CPatternData &CSongData::GetPatternOnFrame(chan_id_t Channel, unsigned Frame) {
+CPatternData &CSongData::GetPatternOnFrame(stChannelID Channel, unsigned Frame) {
 	auto track = GetTrack(Channel);		// // //
 	if (!track)
-		throw std::out_of_range {"Bad chan_id_t in CSongData::GetPattern(chan_id_t, unsigned)"};
+		throw std::out_of_range {"Bad stChannelID in CSongData::GetPattern(stChannelID, unsigned)"};
 	return track->GetPatternOnFrame(Frame);
 }
 
-const CPatternData &CSongData::GetPatternOnFrame(chan_id_t Channel, unsigned Frame) const {
+const CPatternData &CSongData::GetPatternOnFrame(stChannelID Channel, unsigned Frame) const {
 	return const_cast<CSongData *>(this)->GetPatternOnFrame(Channel, Frame);
 }
 
@@ -140,7 +139,7 @@ unsigned int CSongData::GetSongTempo() const
 	return m_iSongTempo;
 }
 
-unsigned CSongData::GetEffectColumnCount(chan_id_t Channel) const
+unsigned CSongData::GetEffectColumnCount(stChannelID Channel) const
 {
 	auto track = GetTrack(Channel);		// // //
 	return track ? track->GetEffectColumnCount() : 0;
@@ -176,7 +175,7 @@ void CSongData::SetSongTempo(unsigned int Tempo)
 	m_iSongTempo = Tempo;
 }
 
-void CSongData::SetEffectColumnCount(chan_id_t Channel, unsigned Count)
+void CSongData::SetEffectColumnCount(stChannelID Channel, unsigned Count)
 {
 	if (auto track = GetTrack(Channel))		// // //
 		track->SetEffectColumnCount(Count);
@@ -187,13 +186,13 @@ void CSongData::SetSongGroove(bool Groove)		// // //
 	m_bUseGroove = Groove;
 }
 
-unsigned int CSongData::GetFramePattern(unsigned int Frame, chan_id_t Channel) const
+unsigned int CSongData::GetFramePattern(unsigned int Frame, stChannelID Channel) const
 {
 	auto track = GetTrack(Channel);		// // //
 	return track ? track->GetFramePattern(Frame) : MAX_PATTERN;
 }
 
-void CSongData::SetFramePattern(unsigned int Frame, chan_id_t Channel, unsigned int Pattern)
+void CSongData::SetFramePattern(unsigned int Frame, stChannelID Channel, unsigned int Pattern)
 {
 	if (auto track = GetTrack(Channel))		// // //
 		track->SetFramePattern(Frame, Pattern);
@@ -247,7 +246,7 @@ highlight_state_t CSongData::GetHighlightState(unsigned Frame, unsigned Row) con
 	return highlight_state_t::none;
 }
 
-void CSongData::PullUp(chan_id_t Chan, unsigned Frame, unsigned Row) {
+void CSongData::PullUp(stChannelID Chan, unsigned Frame, unsigned Row) {
 	auto &Pattern = GetPatternOnFrame(Chan, Frame);
 	int PatternLen = GetPatternLength();
 
@@ -256,7 +255,7 @@ void CSongData::PullUp(chan_id_t Chan, unsigned Frame, unsigned Row) {
 	Pattern.SetNoteOn(PatternLen - 1, { });
 }
 
-void CSongData::InsertRow(chan_id_t Chan, unsigned Frame, unsigned Row) {
+void CSongData::InsertRow(stChannelID Chan, unsigned Frame, unsigned Row) {
 	auto &Pattern = GetPatternOnFrame(Chan, Frame);		// // //
 
 	for (unsigned int i = GetPatternLength() - 1; i > Row; --i)
@@ -264,13 +263,13 @@ void CSongData::InsertRow(chan_id_t Chan, unsigned Frame, unsigned Row) {
 	Pattern.SetNoteOn(Row, { });
 }
 
-void CSongData::CopyTrack(chan_id_t Chan, const CSongData &From, chan_id_t ChanFrom) {
+void CSongData::CopyTrack(stChannelID Chan, const CSongData &From, stChannelID ChanFrom) {
 	if (auto *lhs = GetTrack(Chan))
 		if (auto *rhs = From.GetTrack(ChanFrom))
 			*lhs = *rhs;
 }
 
-void CSongData::SwapChannels(chan_id_t First, chan_id_t Second)		// // //
+void CSongData::SwapChannels(stChannelID First, stChannelID Second)		// // //
 {
 	if (auto *lhs = GetTrack(First))
 		if (auto *rhs = GetTrack(Second))
@@ -335,7 +334,7 @@ bool CSongData::InsertFrame(unsigned Frame) {
 		return false;
 
 	// Select free patterns
-	VisitTracks([&] (CTrackData &track, chan_id_t ch) {
+	VisitTracks([&] (CTrackData &track, stChannelID ch) {
 		unsigned Pattern = GetFreePatternIndex(ch);		// // //
 		track.SetFramePattern(Frame, Pattern < MAX_PATTERN ? Pattern : 0);
 	});
@@ -360,7 +359,7 @@ bool CSongData::CloneFrame(unsigned Frame) {
 		return false;
 
 	// copy old patterns into new
-	VisitTracks([&] (CTrackData &, chan_id_t ch) {
+	VisitTracks([&] (CTrackData &, stChannelID ch) {
 		GetPatternOnFrame(ch, Frame) = GetPatternOnFrame(ch, Frame - 1);
 	});
 

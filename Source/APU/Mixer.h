@@ -45,7 +45,7 @@ enum chip_level_t : unsigned char {
 class CMixer
 {
 public:
-	void	AddValue(chan_id_t ChanID, int Value, int FrameCycles);		// // //
+	void	AddValue(stChannelID ChanID, int Value, int FrameCycles);		// // //
 
 	void	ExternalSound(CSoundChipSet Chip);		// // //
 	void	UpdateSettings(int LowCut, int HighCut, int HighDamp, float OverallVol);
@@ -61,7 +61,7 @@ public:
 	void	AddSample(int ChanID, int Value);
 	int		ReadBuffer(int Size, void *Buffer, bool Stereo);
 
-	int32_t	GetChanOutput(chan_id_t Chan) const;		// // //
+	int32_t	GetChanOutput(stChannelID Chan) const;		// // //
 	void	SetChipLevel(chip_level_t Chip, float Level);
 	uint32_t	ResampleDuration(uint32_t Time) const;
 	void	SetNamcoMixing(bool bLinear);		// // //
@@ -72,7 +72,7 @@ public:
 
 private:
 	void UpdateMeters();		// // //
-	void StoreChannelLevel(chan_id_t Channel, int Level);		// // //
+	void StoreChannelLevel(stChannelID Channel, int Level);		// // //
 	void ClearChannelLevels();
 
 	float GetAttenuation() const;

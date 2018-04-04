@@ -23,15 +23,16 @@
 #include "APU/Channel.h"
 #include "APU/Mixer.h"
 
-CChannel::CChannel(CMixer &Mixer, sound_chip_t Chip, chan_id_t ID) :
-	m_pMixer(&Mixer), m_iChanId(ID), m_iChip(Chip) {
+CChannel::CChannel(CMixer &Mixer, stChannelID ID) :
+	m_pMixer(&Mixer), m_iChanId(ID)
+{
 }
 
 void CChannel::EndFrame() {
 	m_iTime = 0;
 }
 
-chan_id_t CChannel::GetChannelType() const {		// // //
+stChannelID CChannel::GetChannelType() const {		// // //
 	return m_iChanId;
 }
 

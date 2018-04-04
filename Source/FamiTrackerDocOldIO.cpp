@@ -167,7 +167,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 			unsigned FrameCount = ReadInt(pOpenFile);
 			Song.SetFrameCount(FrameCount);
 			for (c = 0; c < FrameCount; ++c)
-				modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
+				modfile.GetChannelOrder().ForeachChannel([&] (stChannelID i) {
 					Song.SetFramePattern(c, i, ReadInt(pOpenFile));
 				});
 			break;
@@ -176,7 +176,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 			ReadCount = ReadInt(pOpenFile);
 			unsigned PatternLength = ReadInt(pOpenFile);
 			Song.SetPatternLength(PatternLength);
-			modfile.GetChannelOrder().ForeachChannel([&] (chan_id_t x) {
+			modfile.GetChannelOrder().ForeachChannel([&] (stChannelID x) {
 				for (c = 0; c < ReadCount; ++c) {
 					for (i = 0; i < PatternLength; ++i) {
 						pOpenFile->Read(&ImportedNote, sizeof(ImportedNote));

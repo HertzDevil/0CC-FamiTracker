@@ -29,3 +29,4 @@
 enum class chan_id_t : unsigned;
 enum apu_machine_t : unsigned char;
 enum class sound_chip_t : std::uint8_t;
+struct stChannelID;

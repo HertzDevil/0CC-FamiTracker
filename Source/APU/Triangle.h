@@ -32,7 +32,7 @@
 
 class CTriangle : public C2A03Chan {
 public:
-	CTriangle(CMixer &Mixer, chan_id_t ID);		// // //
+	CTriangle(CMixer &Mixer, std::size_t nInstance);		// // //
 	~CTriangle();
 
 	void	Reset();

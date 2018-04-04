@@ -28,7 +28,7 @@
 
 class CVRC6_Pulse : public CChannel {
 public:
-	CVRC6_Pulse(CMixer &Mixer, chan_id_t ID);		// // //
+	CVRC6_Pulse(CMixer &Mixer, std::size_t nInstance, vrc6_subindex_t subindex);		// // //
 	void Reset();
 	void Write(uint16_t Address, uint8_t Value);
 	void Process(int Time);
@@ -48,7 +48,7 @@ private:
 
 class CVRC6_Sawtooth : public CChannel {
 public:
-	CVRC6_Sawtooth(CMixer &Mixer, chan_id_t ID);		// // //
+	CVRC6_Sawtooth(CMixer &Mixer, std::size_t nInstance);		// // //
 	void Reset();
 	void Write(uint16_t Address, uint8_t Value);
 	void Process(int Time);
@@ -67,7 +67,7 @@ private:
 
 class CVRC6 : public CSoundChip {
 public:
-	explicit CVRC6(CMixer &Mixer);
+	explicit CVRC6(CMixer &Mixer, std::size_t nInstance);
 
 	sound_chip_t GetID() const override;		// // //
 

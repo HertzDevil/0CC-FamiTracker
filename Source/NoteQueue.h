@@ -24,9 +24,10 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include <unordered_map>
 #include <memory>
-#include "APU/Types_fwd.h"
+#include "APU/Types.h"
 
 /*!
 	\brief A queue which automatically reassigns notes in the same logical track to different
@@ -38,46 +39,46 @@ class CNoteChannelQueue
 public:
 	/*!	\brief Constructor of the note queue for a single track.
 		\param Ch List of channel identifiers for this queue. */
-	CNoteChannelQueue(const std::vector<chan_id_t> &Ch);
+	CNoteChannelQueue(std::vector<stChannelID> Ch);
 
 	/*!	\brief Triggers a note on a given channel.
 		\param Note The note number.
 		\param Channel The channel identifier. */
-	chan_id_t Trigger(int Note, chan_id_t Channel);
+	stChannelID Trigger(int Note, stChannelID Channel);
 	/*!	\brief Releases a note on a given channel.
 		\param Note The note number.
 		\param Channel The channel identifier. */
-	chan_id_t Release(int Note, chan_id_t Channel);
+	stChannelID Release(int Note, stChannelID Channel);
 	/*!	\brief Cuts a note on a given channel.
 		\param Note The note number.
 		\param Channel The channel identifier. */
-	chan_id_t Cut(int Note, chan_id_t Channel);
+	stChannelID Cut(int Note, stChannelID Channel);
 	/*!	\brief Stops whatever is played from a specific channel.
 		\param Channel The channel identifier.
 		\return A vector containing the channel indices that have a note halted. */
-	std::vector<chan_id_t> StopChannel(chan_id_t Channel);
+	std::vector<stChannelID> StopChannel(stChannelID Channel);
 	/*!	\brief Stops all currently playing notes. */
 	void StopAll();
 
 	/*!	\brief Stops accepting notes from a given channel.
 		\param Channel The channel identifier. */
-	void MuteChannel(chan_id_t Channel);
+	void MuteChannel(stChannelID Channel);
 	/*!	\brief Resumes accepting notes from a given channel.
 		\param Channel The channel identifier. */
-	void UnmuteChannel(chan_id_t Channel);
+	void UnmuteChannel(stChannelID Channel);
 
 private:
 	enum class note_state_t : unsigned char;
 
 	const int m_iChannelCount;
 
-	std::vector<chan_id_t> m_iChannelMapID;
+	std::vector<stChannelID> m_iChannelMapID;
 	std::vector<unsigned> m_iCurrentNote;
 	std::vector<bool> m_bChannelMute;
 
 	std::unordered_map<int, note_state_t> m_iNoteState;
 	std::unordered_map<int, int> m_iNotePriority;
-	std::unordered_map<int, chan_id_t> m_iNoteChannel;
+	std::unordered_map<int, stChannelID> m_iNoteChannel;
 };
 
 /*!
@@ -88,19 +89,19 @@ class CNoteQueue
 public:
 	/*!	\brief Adds physical channels as a single logical track.
 		\param Ch List of channel identifiers for the queue. */
-	void AddMap(const std::vector<chan_id_t> &Ch);
+	void AddMap(const std::vector<stChannelID> &Ch);
 	/*!	\brief Removes all logical tracks. */
 	void ClearMaps();
 
-	chan_id_t Trigger(int Note, chan_id_t Channel);
-	chan_id_t Release(int Note, chan_id_t Channel);
-	chan_id_t Cut(int Note, chan_id_t Channel);
-	std::vector<chan_id_t> StopChannel(chan_id_t Channel);
+	stChannelID Trigger(int Note, stChannelID Channel);
+	stChannelID Release(int Note, stChannelID Channel);
+	stChannelID Cut(int Note, stChannelID Channel);
+	std::vector<stChannelID> StopChannel(stChannelID Channel);
 	void StopAll();
 
-	void MuteChannel(chan_id_t Channel);
-	void UnmuteChannel(chan_id_t Channel);
+	void MuteChannel(stChannelID Channel);
+	void UnmuteChannel(stChannelID Channel);
 
 private:
-	std::unordered_map<chan_id_t, std::shared_ptr<CNoteChannelQueue>> m_Part;
+	std::map<stChannelID, std::shared_ptr<CNoteChannelQueue>> m_Part;
 };

@@ -21,18 +21,17 @@
 */
 
 #include "ChannelOrder.h"
-#include "APU/Types.h"
 
-chan_id_t CChannelOrder::TranslateChannel(std::size_t index) const {
-	return index < order_.size() ? order_[index] : chan_id_t::NONE;
+stChannelID CChannelOrder::TranslateChannel(std::size_t index) const {
+	return index < order_.size() ? stChannelID {order_[index]} : stChannelID { };
 }
 
-bool CChannelOrder::HasChannel(chan_id_t chan) const {
+bool CChannelOrder::HasChannel(stChannelID chan) const {
 	auto it = indices_.find(chan);
 	return it != indices_.end();
 }
 
-std::size_t CChannelOrder::GetChannelIndex(chan_id_t chan) const {
+std::size_t CChannelOrder::GetChannelIndex(stChannelID chan) const {
 	auto it = indices_.find(chan);
 	return it != indices_.end() ? it->second : (std::size_t)-1;
 }
@@ -41,7 +40,7 @@ std::size_t CChannelOrder::GetChannelCount() const {
 	return order_.size();
 }
 
-bool CChannelOrder::AddChannel(chan_id_t chan) {
+bool CChannelOrder::AddChannel(stChannelID chan) {
 	std::size_t index = order_.size();
 	if (indices_.try_emplace(chan, index).second) {
 		order_.push_back(chan);
@@ -51,22 +50,22 @@ bool CChannelOrder::AddChannel(chan_id_t chan) {
 }
 
 CChannelOrder CChannelOrder::Canonicalize() const {
-	const chan_id_t CANONICAL_ORDER[] = {
-		chan_id_t::SQUARE1, chan_id_t::SQUARE2, chan_id_t::TRIANGLE, chan_id_t::NOISE,
-		chan_id_t::MMC5_SQUARE1, chan_id_t::MMC5_SQUARE2, chan_id_t::MMC5_VOICE,
-		chan_id_t::VRC6_PULSE1, chan_id_t::VRC6_PULSE2, chan_id_t::VRC6_SAWTOOTH,
-		chan_id_t::N163_CH1, chan_id_t::N163_CH2, chan_id_t::N163_CH3, chan_id_t::N163_CH4,
-		chan_id_t::N163_CH5, chan_id_t::N163_CH6, chan_id_t::N163_CH7, chan_id_t::N163_CH8,
-		chan_id_t::FDS,
-		chan_id_t::S5B_CH1, chan_id_t::S5B_CH2, chan_id_t::S5B_CH3,
-		chan_id_t::VRC7_CH1, chan_id_t::VRC7_CH2, chan_id_t::VRC7_CH3,
-		chan_id_t::VRC7_CH4, chan_id_t::VRC7_CH5, chan_id_t::VRC7_CH6,
-		chan_id_t::DPCM,
+	const stChannelID CANONICAL_ORDER[] = {
+		apu_subindex_t::pulse1, apu_subindex_t::pulse2, apu_subindex_t::triangle, apu_subindex_t::noise,
+		mmc5_subindex_t::pulse1, mmc5_subindex_t::pulse2, mmc5_subindex_t::pcm,
+		vrc6_subindex_t::pulse1, vrc6_subindex_t::pulse2, vrc6_subindex_t::sawtooth,
+		n163_subindex_t::ch1, n163_subindex_t::ch2, n163_subindex_t::ch3, n163_subindex_t::ch4,
+		n163_subindex_t::ch5, n163_subindex_t::ch6, n163_subindex_t::ch7, n163_subindex_t::ch8,
+		fds_subindex_t::wave,
+		s5b_subindex_t::square1, s5b_subindex_t::square2, s5b_subindex_t::square3,
+		vrc7_subindex_t::ch1, vrc7_subindex_t::ch2, vrc7_subindex_t::ch3,
+		vrc7_subindex_t::ch4, vrc7_subindex_t::ch5, vrc7_subindex_t::ch6,
+		apu_subindex_t::dpcm,
 	};
 
 	CChannelOrder orderNew;
 
-	for (chan_id_t ch : CANONICAL_ORDER)
+	for (const auto &ch : CANONICAL_ORDER)
 		if (HasChannel(ch))
 			orderNew.AddChannel(ch);
 

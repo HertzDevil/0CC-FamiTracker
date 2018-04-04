@@ -42,7 +42,7 @@ class CChipHandlerVRC7;		// // //
 
 class CChannelHandlerVRC7 : public CChannelHandlerInverted, public CChannelHandlerInterfaceVRC7 {		// // //
 public:
-	CChannelHandlerVRC7(chan_id_t ch, CChipHandlerVRC7 &parent);		// // //
+	CChannelHandlerVRC7(stChannelID ch, CChipHandlerVRC7 &parent);		// // //
 
 	void	SetPatch(unsigned char Patch);		// // //
 	void	SetCustomReg(size_t Index, unsigned char Val);		// // //

@@ -41,13 +41,13 @@ private:
 	double lastSum_ = 0.;
 };
 
-template <typename T>
+template <typename LevelsT>
 class CMixerChannel : public CMixerChannelBase {
 public:
 	using CMixerChannelBase::CMixerChannelBase;
 
-	int AddValue(chan_id_t ChanID, int Value, int FrameCycles, Blip_Buffer &bb) {
-		const int level = levels_.Offset(ChanID, Value);
+	int AddValue(stChannelID ChanID, int Value, int FrameCycles, Blip_Buffer &bb) {
+		const int level = levels_.Offset(enum_cast<typename LevelsT::subindex_t>(ChanID.Subindex), Value);
 		const double prev = lastSum_;
 		lastSum_ = levels_.CalcPin();
 		const double Delta = lastSum_ - prev;
@@ -57,13 +57,9 @@ public:
 
 	void ResetDelta() {
 		lastSum_ = 0;
-		levels_ = T { };
-	}
-
-	double GetLevel(chan_id_t ChanID) const {
-		return levels_.GetLevel(ChanID);
+		levels_ = LevelsT { };
 	}
 
 private:
-	T levels_;
+	LevelsT levels_;
 };

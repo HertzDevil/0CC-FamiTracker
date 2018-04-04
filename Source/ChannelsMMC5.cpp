@@ -30,7 +30,7 @@
 #include "SeqInstHandler.h"		// // //
 #include "SongState.h"		// // //
 
-CChannelHandlerMMC5::CChannelHandlerMMC5(chan_id_t ch) : CChannelHandler(ch, 0x7FF, 0x0F)		// // //
+CChannelHandlerMMC5::CChannelHandlerMMC5(stChannelID ch) : CChannelHandler(ch, 0x7FF, 0x0F)		// // //
 {
 	m_bHardwareEnvelope = false;		// // //
 	m_bEnvelopeLoop = true;
@@ -123,7 +123,7 @@ void CChannelHandlerMMC5::RefreshChannel()		// // //
 
 	unsigned char HiFreq		= (Period & 0xFF);
 	unsigned char LoFreq		= (Period >> 8);
-	unsigned int  Offs			= 0x5000 + 4 * GetSubIndex();
+	unsigned int  Offs			= 0x5000 + 4 * GetChannelID().Subindex;
 
 	m_pAPU->Write(0x5015, 0x03);
 
@@ -153,7 +153,7 @@ int CChannelHandlerMMC5::ConvertDuty(int Duty) const		// // //
 
 void CChannelHandlerMMC5::ClearRegisters()
 {
-	unsigned Offs = 0x5000 + 4 * GetSubIndex();		// // //
+	unsigned Offs = 0x5000 + 4 * GetChannelID().Subindex;		// // //
 	m_pAPU->Write(Offs, 0x30);
 	m_pAPU->Write(Offs + 2, 0);
 	m_pAPU->Write(Offs + 3, 0);

@@ -63,25 +63,21 @@ namespace {
 const float LEVEL_FALL_OFF_RATE = 0.6f;
 const int   LEVEL_FALL_OFF_DELAY = 3;
 
-constexpr chip_level_t GetMixerFromChannel(chan_id_t ch) noexcept {		// // //
-	switch (ch) {
-	case chan_id_t::SQUARE1: case chan_id_t::SQUARE2:
-		return CHIP_LEVEL_APU1;
-	case chan_id_t::TRIANGLE: case chan_id_t::NOISE: case chan_id_t::DPCM:
-		return CHIP_LEVEL_APU2;
-	case chan_id_t::VRC6_PULSE1: case chan_id_t::VRC6_PULSE2: case chan_id_t::VRC6_SAWTOOTH:
+constexpr chip_level_t GetMixerFromChannel(stChannelID ch) noexcept {		// // //
+	switch (ch.Chip) {
+	case sound_chip_t::APU:
+		return IsAPUPulse(ch) ? CHIP_LEVEL_APU1 : CHIP_LEVEL_APU2;
+	case sound_chip_t::VRC6:
 		return CHIP_LEVEL_VRC6;
-	case chan_id_t::VRC7_CH1: case chan_id_t::VRC7_CH2: case chan_id_t::VRC7_CH3:
-	case chan_id_t::VRC7_CH4: case chan_id_t::VRC7_CH5: case chan_id_t::VRC7_CH6:
+	case sound_chip_t::VRC7:
 		return CHIP_LEVEL_VRC7;
-	case chan_id_t::FDS:
+	case sound_chip_t::FDS:
 		return CHIP_LEVEL_FDS;
-	case chan_id_t::MMC5_SQUARE1: case chan_id_t::MMC5_SQUARE2: case chan_id_t::MMC5_VOICE:
+	case sound_chip_t::MMC5:
 		return CHIP_LEVEL_MMC5;
-	case chan_id_t::N163_CH1: case chan_id_t::N163_CH2: case chan_id_t::N163_CH3: case chan_id_t::N163_CH4:
-	case chan_id_t::N163_CH5: case chan_id_t::N163_CH6: case chan_id_t::N163_CH7: case chan_id_t::N163_CH8:
+	case sound_chip_t::N163:
 		return CHIP_LEVEL_N163;
-	case chan_id_t::S5B_CH1: case chan_id_t::S5B_CH2: case chan_id_t::S5B_CH3:		// // // 050B
+	case sound_chip_t::S5B:
 		return CHIP_LEVEL_S5B;
 	default:
 		return CHIP_LEVEL_NONE;
@@ -270,8 +266,8 @@ int CMixer::FinishBuffer(int t)
 	BlipBuffer.end_frame(t);
 
 	// Get channel levels for VRC7
-	for (int i = 0; i < MAX_CHANNELS_VRC7; ++i)
-		StoreChannelLevel(MakeChannelIndex(sound_chip_t::VRC7, i), OPLL_getchanvol(i));
+	for (std::size_t i = 0; i < MAX_CHANNELS_VRC7; ++i)
+		StoreChannelLevel(stChannelID {sound_chip_t::VRC7, i}, OPLL_getchanvol(i));
 
 	UpdateMeters();		// // //
 
@@ -283,7 +279,7 @@ int CMixer::FinishBuffer(int t)
 // Mixing
 //
 
-void CMixer::AddValue(chan_id_t ChanID, int Value, int FrameCycles) {		// // //
+void CMixer::AddValue(stChannelID ChanID, int Value, int FrameCycles) {		// // //
 	WithMixer(GetMixerFromChannel(ChanID), [&] (auto &mixer) {
 		StoreChannelLevel(ChanID, mixer.AddValue(ChanID, Value, FrameCycles, BlipBuffer));
 	});
@@ -294,39 +290,42 @@ int CMixer::ReadBuffer(int Size, void *Buffer, bool Stereo)
 	return BlipBuffer.read_samples((blip_sample_t*)Buffer, Size);
 }
 
-int32_t CMixer::GetChanOutput(chan_id_t Chan) const		// // //
+int32_t CMixer::GetChanOutput(stChannelID Chan) const		// // //
 {
-	return (int32_t)m_fChannelLevelsLast[value_cast(Chan)];		// // //
+	return (int32_t)m_fChannelLevelsLast[value_cast(chan_id_t {Chan})];		// // //
 }
 
-void CMixer::StoreChannelLevel(chan_id_t Channel, int Level)		// // //
+void CMixer::StoreChannelLevel(stChannelID Channel, int Level)		// // //
 {
 	double AbsVol = std::abs(Level);
+	stChannelID id = Channel;
 
 	// Adjust channel levels for some channels
-	if (Channel == chan_id_t::DPCM)
+	if (IsAPUNoise(id))
 		AbsVol /= 8.;
 
-	if (Channel == chan_id_t::VRC6_SAWTOOTH)
+	if (IsVRC6Sawtooth(id))
 		AbsVol = AbsVol * .75;
 
-	if (Channel == chan_id_t::FDS)
+	if (id.Chip == sound_chip_t::FDS)
 		AbsVol /= 188.;
 
-	if (GetChipFromChannel(Channel) == sound_chip_t::N163) {		// // //
+	if (id.Chip == sound_chip_t::N163) {		// // //
 		AbsVol /= 15.;
-		Channel = MakeChannelIndex(sound_chip_t::N163, MAX_CHANNELS_N163 - 1 - GetChannelSubIndex(Channel));
+		id.Subindex = value_cast(n163_subindex_t::count) - 1 - id.Subindex;
+		Channel = id;
 	}
 
-	if (GetChipFromChannel(Channel) == sound_chip_t::VRC7)		// // //
+	if (id.Chip == sound_chip_t::VRC7)		// // //
 		AbsVol = std::log(AbsVol) * 3.;
 
-	if (GetChipFromChannel(Channel) == sound_chip_t::S5B)		// // //
+	if (id.Chip == sound_chip_t::S5B)		// // //
 		AbsVol = std::log(AbsVol) * 2.8;
 
-	if (AbsVol >= m_fChannelLevels[value_cast(Channel)]) {
-		m_fChannelLevels[value_cast(Channel)] = float(AbsVol);
-		m_iChanLevelFallOff[value_cast(Channel)] = LEVEL_FALL_OFF_DELAY;
+	std::size_t idx = value_cast(chan_id_t {Channel});
+	if (AbsVol >= m_fChannelLevels[idx]) {
+		m_fChannelLevels[idx] = float(AbsVol);
+		m_iChanLevelFallOff[idx] = LEVEL_FALL_OFF_DELAY;
 	}
 }
 

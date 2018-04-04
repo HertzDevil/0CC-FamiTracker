@@ -303,7 +303,7 @@ void CSoundGen::PlaySingleRow(int track) {		// // //
 
 	auto [frame, row] = m_pTrackerView->GetSelectedPos();
 	const CSongData &song = *m_pModule->GetSong(track);
-	m_pModule->GetChannelOrder().ForeachChannel([&] (chan_id_t i) {
+	m_pModule->GetChannelOrder().ForeachChannel([&] (stChannelID i) {
 		if (!IsChannelMuted(i))
 			QueueNote(i, song.GetActiveNote(i, frame, row), NOTE_PRIO_1);
 	});
@@ -603,7 +603,7 @@ void CSoundGen::BeginPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 	if (Env.GetSettings()->General.bRetrieveChanState)		// // //
 		ApplyGlobalState();
 
-	if (m_pInstRecorder->GetRecordChannel() != chan_id_t::NONE)		// // //
+	if (m_pInstRecorder->GetRecordChannel().Chip != sound_chip_t::NONE)		// // //
 		m_pInstRecorder->StartRecording();
 }
 
@@ -637,7 +637,7 @@ void CSoundGen::OnStepRow() {
 		m_pWaveRenderer->StepRow();		// // //
 }
 
-void CSoundGen::OnPlayNote(chan_id_t chan, const stChanNote &note) {
+void CSoundGen::OnPlayNote(stChannelID chan, const stChanNote &note) {
 	if (!IsChannelMuted(chan)) {
 		if (m_pTrackerView)
 			m_pTrackerView->PlayerPlayNote(chan, note);
@@ -653,14 +653,14 @@ void CSoundGen::OnUpdateRow(int frame, int row) {
 		m_pTrackerView->PostMessageW(WM_USER_PLAYER, frame, row);
 }
 
-void CSoundGen::SetChannelMute(chan_id_t chan, bool mute) {		// // //
-	muted_[value_cast(chan)] = mute;
+void CSoundGen::SetChannelMute(stChannelID chan, bool mute) {		// // //
+	muted_[value_cast(chan_id_t {chan})] = mute;
 	if (mute && chan == GetRecordChannel())
-		SetRecordChannel(chan_id_t::NONE);
+		SetRecordChannel({ });
 }
 
-bool CSoundGen::IsChannelMuted(chan_id_t chan) const {		// // //
-	return muted_[value_cast(chan)];
+bool CSoundGen::IsChannelMuted(stChannelID chan) const {		// // //
+	return muted_[value_cast(chan_id_t {chan})];
 }
 
 bool CSoundGen::ShouldStopPlayer() const {
@@ -668,13 +668,13 @@ bool CSoundGen::ShouldStopPlayer() const {
 	return is_rendering_impl() && m_pWaveRenderer->ShouldStopPlayer();
 }
 
-int CSoundGen::GetArpNote(chan_id_t chan) const {
+int CSoundGen::GetArpNote(stChannelID chan) const {
 	if (Env.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
 		return m_pArpeggiator->GetNextNote(chan);
 	return -1;
 }
 
-std::string CSoundGen::RecallChannelState(chan_id_t Channel) const		// // //
+std::string CSoundGen::RecallChannelState(stChannelID Channel) const		// // //
 {
 	if (IsPlaying())
 		return m_pSoundDriver->GetChannelStateString(Channel);
@@ -798,11 +798,11 @@ bool CSoundGen::IsPlaying() const {
 	return m_pSoundDriver && m_pSoundDriver->IsPlaying();		// // //
 }
 
-CTrackerChannel *CSoundGen::GetTrackerChannel(chan_id_t chan) {		// // //
+CTrackerChannel *CSoundGen::GetTrackerChannel(stChannelID chan) {		// // //
 	return m_pSoundDriver->GetTrackerChannel(chan);
 }
 
-const CTrackerChannel *CSoundGen::GetTrackerChannel(chan_id_t chan) const {
+const CTrackerChannel *CSoundGen::GetTrackerChannel(stChannelID chan) const {
 	return m_pSoundDriver->GetTrackerChannel(chan);
 }
 
@@ -855,11 +855,11 @@ stDPCMState CSoundGen::GetDPCMState() const
 	return { };
 }
 
-int CSoundGen::GetChannelNote(chan_id_t chan) const {		// // //
+int CSoundGen::GetChannelNote(stChannelID chan) const {		// // //
 	return m_pSoundDriver ? m_pSoundDriver->GetChannelNote(chan) : -1;
 }
 
-int CSoundGen::GetChannelVolume(chan_id_t chan) const {		// // //
+int CSoundGen::GetChannelVolume(stChannelID chan) const {		// // //
 	return m_pSoundDriver ? m_pSoundDriver->GetChannelVolume(chan) : 0;
 }
 
@@ -1049,7 +1049,7 @@ BOOL CSoundGen::IdleLoop() {
 		m_pSoundDriver->Tick();		// // //
 	}, 0);
 
-	m_pSoundDriver->ForeachTrack([&] (CChannelHandler &, CTrackerChannel &TrackerChan, chan_id_t ID) {		// // //
+	m_pSoundDriver->ForeachTrack([&] (CChannelHandler &, CTrackerChannel &TrackerChan, stChannelID ID) {		// // //
 		TrackerChan.SetVolumeMeter(m_pAPU->GetVol(ID));		// // //
 	});
 
@@ -1069,7 +1069,7 @@ BOOL CSoundGen::IdleLoop() {
 	UpdateAPU();
 
 	if (IsPlaying())		// // //
-		if (chan_id_t Channel = m_pInstRecorder->GetRecordChannel(); Channel != chan_id_t::NONE)		// // //
+		if (stChannelID Channel = m_pInstRecorder->GetRecordChannel(); Channel.Chip != sound_chip_t::NONE)		// // //
 			m_pInstRecorder->RecordInstrument(GetPlayerTicks(), m_pTrackerView);
 
 	if (m_pSoundDriver->ShouldHalt() || m_bHaltRequest) {		// // //
@@ -1091,16 +1091,15 @@ void CSoundGen::UpdateAPU()
 		int cycles = m_iUpdateCycles;
 		sound_chip_t LastChip = sound_chip_t::NONE;		// // // 050B
 
-		m_pSoundDriver->ForeachTrack([&] (CChannelHandler &Chan, CTrackerChannel &, chan_id_t ID) {		// // //
+		m_pSoundDriver->ForeachTrack([&] (CChannelHandler &Chan, CTrackerChannel &, stChannelID ID) {		// // //
 			if (m_pModule->GetChannelOrder().HasChannel(ID)) {
-				sound_chip_t Chip = GetChipFromChannel(ID);
-				int Delay = (Chip == LastChip) ? 150 : 250;
+				int Delay = (ID.Chip == LastChip) ? 150 : 250;
 				if (Delay < cycles) {
 					// Add APU cycles
 					cycles -= Delay;
 					m_pAPU->AddTime(Delay);
 				}
-				LastChip = Chip;
+				LastChip = ID.Chip;
 			}
 			m_pAPU->Process();
 		});
@@ -1243,14 +1242,14 @@ void CSoundGen::SetNamcoMixing(bool bLinear)		// // //
 
 // Player state functions
 
-void CSoundGen::QueueNote(chan_id_t Channel, const stChanNote &NoteData, note_prio_t Priority) const		// // //
+void CSoundGen::QueueNote(stChannelID Channel, const stChanNote &NoteData, note_prio_t Priority) const		// // //
 {
 	// Queue a note for play
 	m_pSoundDriver->QueueNote(Channel, NoteData, Priority);
 	Env.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(Channel), NoteData.Note, NoteData.Octave, NoteData.Vol);
 }
 
-void CSoundGen::ForceReloadInstrument(chan_id_t Channel)		// // //
+void CSoundGen::ForceReloadInstrument(stChannelID Channel)		// // //
 {
 	m_pSoundDriver->ForceReloadInstrument(Channel);
 }
@@ -1344,12 +1343,12 @@ void CSoundGen::ResetDumpInstrument()
 	m_pInstRecorder->ResetDumpInstrument();
 }
 
-chan_id_t CSoundGen::GetRecordChannel() const
+stChannelID CSoundGen::GetRecordChannel() const
 {
 	return m_pInstRecorder->GetRecordChannel();
 }
 
-void CSoundGen::SetRecordChannel(chan_id_t Channel)
+void CSoundGen::SetRecordChannel(stChannelID Channel)
 {
 	m_pInstRecorder->SetRecordChannel(Channel);
 }

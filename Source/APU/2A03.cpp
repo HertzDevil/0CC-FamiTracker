@@ -29,13 +29,13 @@
 
 // // // 2A03 sound chip class
 
-C2A03::C2A03(CMixer &Mixer) :
-	CSoundChip(Mixer),
-	m_Square1(Mixer, chan_id_t::SQUARE1, sound_chip_t::APU),
-	m_Square2(Mixer, chan_id_t::SQUARE2, sound_chip_t::APU),
-	m_Triangle(Mixer, chan_id_t::TRIANGLE),
-	m_Noise(Mixer, chan_id_t::NOISE),
-	m_DPCM(Mixer, chan_id_t::DPCM)		// // //
+C2A03::C2A03(CMixer &Mixer, std::size_t nInstance) :
+	CSoundChip(Mixer, nInstance),
+	m_Square1(Mixer, nInstance, sound_chip_t::APU, value_cast(apu_subindex_t::pulse1)),
+	m_Square2(Mixer, nInstance, sound_chip_t::APU, value_cast(apu_subindex_t::pulse2)),
+	m_Triangle(Mixer, nInstance),
+	m_Noise(Mixer, nInstance),
+	m_DPCM(Mixer, nInstance)		// // //
 {
 	m_pRegisterLogger->AddRegisterRange(0x4000, 0x4017);		// // //
 }

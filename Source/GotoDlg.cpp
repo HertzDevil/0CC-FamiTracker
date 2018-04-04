@@ -70,18 +70,21 @@ BOOL CGotoDlg::OnInitDialog()
 	auto *pSCS = Env.GetSoundChipService();
 
 	CSoundChipSet chips = pModule->GetSoundChipSet();
+	int i = 0;
 	pSCS->ForeachType([&] (sound_chip_t c) {
-		if (chips.ContainsChip(c))
+		if (chips.ContainsChip(c)) {
 			m_cChipEdit.AddString(conv::to_wide(pSCS->GetChipShortName(c)).data());
+			m_cChipEdit.SetItemData(i++, value_cast(c));
+		}
 	});
 
-	chan_id_t Channel = pView->GetSelectedChannelID();
-	if (auto c = GetChipFromChannel(Channel); c != sound_chip_t::NONE)
-		m_cChipEdit.SelectString(-1, conv::to_wide(pSCS->GetChipShortName(c)).data());
+	stChannelID Channel = pView->GetSelectedChannelID();
+	if (Channel.Chip != sound_chip_t::NONE)
+		m_cChipEdit.SelectString(-1, conv::to_wide(pSCS->GetChipShortName(Channel.Chip)).data());
 
 	SetDlgItemInt(IDC_EDIT_GOTO_FRAME, pView->GetSelectedFrame());
 	SetDlgItemInt(IDC_EDIT_GOTO_ROW, pView->GetSelectedRow());
-	SetDlgItemInt(IDC_EDIT_GOTO_CHANNEL, GetChannelSubIndex(Channel) + 1);
+	SetDlgItemInt(IDC_EDIT_GOTO_CHANNEL, Channel.Subindex + 1);
 
 	CEdit *pEdit = static_cast<CEdit*>(GetDlgItem(IDC_EDIT_GOTO_CHANNEL));
 	pEdit->SetLimitText(1);
@@ -113,7 +116,7 @@ void CGotoDlg::CheckDestination() const
 int CGotoDlg::GetFinalChannel() const
 {
 	const CFamiTrackerModule *pModule = CFamiTrackerView::GetView()->GetModuleData();
-	return pModule->GetChannelOrder().GetChannelIndex(MakeChannelIndex(m_iDestChip, m_iDestSubIndex));
+	return pModule->GetChannelOrder().GetChannelIndex(stChannelID {m_iDestChip, m_iDestSubIndex});
 }
 
 void CGotoDlg::OnEnChangeEditGotoFrame()
@@ -136,9 +139,7 @@ void CGotoDlg::OnEnChangeEditGotoChannel()
 
 void CGotoDlg::OnCbnSelchangeComboGotoChip()
 {
-	CStringW str;
-	m_cChipEdit.GetWindowTextW(str);
-	m_iDestChip = Env.GetSoundChipService()->GetChipFromString(conv::to_utf8(str));
+	m_iDestChip = enum_cast<sound_chip_t>(m_cChipEdit.GetItemData(m_cChipEdit.GetCurSel()));
 	CheckDestination();
 }
 

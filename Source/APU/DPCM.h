@@ -29,7 +29,7 @@
 
 class CDPCM : public C2A03Chan {
 public:
-	CDPCM(CMixer &Mixer, chan_id_t ID);		// // //
+	CDPCM(CMixer &Mixer, std::size_t nInstance);		// // //
 
 	void	Reset();
 	void	Write(uint16_t Address, uint8_t Value);

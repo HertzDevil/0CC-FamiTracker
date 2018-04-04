@@ -227,22 +227,22 @@ void to_json(json &j, const CSongData &song) {
 		{"bookmarks", json(song.GetBookmarks())},
 	};
 
-	song.VisitTracks([&] (const CTrackData &track, chan_id_t ch) {
+	song.VisitTracks([&] (const CTrackData &track, stChannelID ch) {
 		auto tj = json(track);
 		auto &frame_list = tj["frame_list"];
 		frame_list.erase(frame_list.begin() + song.GetFrameCount(), frame_list.end());
-		tj["chip"] = std::string {Env.GetSoundChipService()->GetChipShortName(GetChipFromChannel(ch))};
-		tj["subindex"] = GetChannelSubIndex(ch);
+		tj["chip"] = std::string {Env.GetSoundChipService()->GetChipShortName(ch.Chip)};
+		tj["subindex"] = ch.Subindex;
 		j["tracks"].push_back(std::move(tj));
 	});
 }
 
 void to_json(json &j, const CChannelOrder &order) {
 	j = json::array();
-	order.ForeachChannel([&] (chan_id_t ch) {
+	order.ForeachChannel([&] (stChannelID ch) {
 		j.push_back(json {
-			{"chip", std::string {Env.GetSoundChipService()->GetChipShortName(GetChipFromChannel(ch))}},
-			{"subindex", GetChannelSubIndex(ch)},
+			{"chip", std::string {Env.GetSoundChipService()->GetChipShortName(ch.Chip)}},
+			{"subindex", ch.Subindex},
 		});
 	});
 }

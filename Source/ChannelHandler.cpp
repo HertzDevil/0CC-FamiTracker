@@ -45,7 +45,7 @@
  *
  */
 
-CChannelHandler::CChannelHandler(chan_id_t ch, int MaxPeriod, int MaxVolume) :		// // //
+CChannelHandler::CChannelHandler(stChannelID ch, int MaxPeriod, int MaxVolume) :		// // //
 	m_iChannelID(ch),		// // //
 	m_iInstTypeCurrent(INST_NONE),		// // //
 	m_iMaxPeriod(MaxPeriod),
@@ -93,12 +93,8 @@ void CChannelHandler::SetPitch(int Pitch)
 /*!	\brief Retrieves the identifier of the channel.
 \return The channel's identifier value. */
 
-chan_id_t CChannelHandler::GetChannelID() const {		// // //
+stChannelID CChannelHandler::GetChannelID() const {		// // //
 	return m_iChannelID;
-}
-
-std::size_t CChannelHandler::GetSubIndex() const {		// // //
-	return GetChannelSubIndex(GetChannelID());
 }
 
 int CChannelHandler::GetPitch() const
@@ -230,7 +226,7 @@ std::string CChannelHandler::GetEffectString() const		// // //
 		str += MakeCommandString(effect_t::VOLUME_SLIDE, m_iVolSlide);
 	if (m_iFinePitch != 0x80)
 		str += MakeCommandString(effect_t::PITCH, m_iFinePitch);
-	if ((m_iDefaultDuty && m_iChannelID < chan_id_t::S5B_CH1) || (m_iDefaultDuty != 0x40 && m_iChannelID >= chan_id_t::S5B_CH1))
+	if ((m_iDefaultDuty && m_iChannelID.Chip != sound_chip_t::S5B) || (m_iDefaultDuty != 0x40 && m_iChannelID.Chip == sound_chip_t::S5B))
 		str += MakeCommandString(effect_t::DUTY_CYCLE, m_iDefaultDuty);
 
 	// run-time effects

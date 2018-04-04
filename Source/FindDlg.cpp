@@ -207,8 +207,8 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 
 	const CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
 	const CConstSongView *pSongView = pView->GetSongView();
-	chan_id_t ch = pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel);
-	m_cListResults.SetItemData(Pos, value_cast(ch));
+	stChannelID ch = pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel);
+	m_cListResults.SetItemData(Pos, value_cast(chan_id_t {ch}));
 	m_cListResults.SetItemText(Pos, CHANNEL, conv::to_wide(Env.GetSoundChipService()->GetChannelFullName(ch)).data());
 	m_cListResults.SetItemText(Pos, PATTERN, conv::to_wide(conv::sv_from_int_hex(pSongView->GetFramePattern(Cursor.m_iChannel, Cursor.m_iFrame), 2)).data());
 
@@ -259,7 +259,7 @@ void CFindResultsBox::ClearResults()
 void CFindResultsBox::SelectItem(int Index)
 {
 	auto pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
-	int Channel = pView->GetSongView()->GetChannelOrder().GetChannelIndex((chan_id_t)m_cListResults.GetItemData(Index));
+	int Channel = pView->GetSongView()->GetChannelOrder().GetChannelIndex(enum_cast<chan_id_t>(m_cListResults.GetItemData(Index)));
 	if (Channel != -1) {
 		pView->SelectChannel(Channel);
 		pView->SelectFrame(*conv::to_uint(m_cListResults.GetItemText(Index, FRAME), 16u));
@@ -984,7 +984,7 @@ bool CFindDlg::Find(bool ShowEnd)
 			m_pFindCursor->Move(m_iSearchDirection);
 		}
 		const auto &Target = m_pFindCursor->Get();
-		if (CompareFields(Target, Order.TranslateChannel(m_pFindCursor->m_iChannel) == chan_id_t::NOISE,
+		if (CompareFields(Target, IsAPUNoise(Order.TranslateChannel(m_pFindCursor->m_iChannel)),
 			pSongView->GetEffectColumnCount(m_pFindCursor->m_iChannel))) {
 			auto pCursor = std::move(m_pFindCursor);
 			m_pView->SelectFrame(pCursor->m_iFrame % Frames);
@@ -1040,7 +1040,7 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 
 			if (m_replaceTerm.Definite[WC_EFF]) {
 				effect_t fx = GetEffectFromChar(EFF_CHAR[value_cast(m_replaceTerm.Note.EffNumber[0])],
-					GetChipFromChannel(pSongView->GetChannelOrder().TranslateChannel(m_pFindCursor->m_iChannel)));
+					pSongView->GetChannelOrder().TranslateChannel(m_pFindCursor->m_iChannel).Chip);
 				if (fx != effect_t::NONE)
 					for (const int &i : MatchedColumns)
 						Target.EffNumber[i] = fx;
@@ -1212,7 +1212,7 @@ void CFindDlg::OnBnClickedButtonFindAll()
 	m_cResultsBox.ClearResults();
 	do {
 		const auto &Target = m_pFindCursor->Get();
-		bool isNoise = Order.TranslateChannel(m_pFindCursor->m_iChannel) == chan_id_t::NOISE;
+		bool isNoise = IsAPUNoise(Order.TranslateChannel(m_pFindCursor->m_iChannel));
 		if (CompareFields(Target, isNoise, pSongView->GetEffectColumnCount(m_pFindCursor->m_iChannel)))
 			m_cResultsBox.AddResult(Target, *m_pFindCursor, isNoise);
 		m_pFindCursor->Move(m_iSearchDirection);
@@ -1239,7 +1239,7 @@ void CFindDlg::OnBnClickedButtonReplaceall()
 	PrepareCursor(true);
 	do {
 		const auto &Target = m_pFindCursor->Get();
-		bool isNoise = Order.TranslateChannel(m_pFindCursor->m_iChannel) == chan_id_t::NOISE;
+		bool isNoise = IsAPUNoise(Order.TranslateChannel(m_pFindCursor->m_iChannel));
 		if (CompareFields(Target, isNoise, pSongView->GetEffectColumnCount(m_pFindCursor->m_iChannel))) {
 			m_bFound = true;
 			Replace(static_cast<CCompoundAction *>(pAction.get()));
