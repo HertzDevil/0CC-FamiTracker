@@ -117,14 +117,15 @@ static LONG WINAPI ExceptionHandler(__in struct _EXCEPTION_POINTERS *ep)
 
 	// Display a message
 	CStringW text = L"This application has encountered a problem and needs to close.\n\n";
-	if (ep->ExceptionRecord->ExceptionCode == 0xE06D7363)		// // //
-		AppendFormatW(text, L"Unhandled C++ exception:\" %s\".\n\n", conv::to_wide(
-			reinterpret_cast<const std::exception *>(ep->ExceptionRecord->ExceptionInformation[1])->what()).data());
+	if (ep->ExceptionRecord->ExceptionCode == 0xE06D7363) {		// // //
+		auto wmsg = conv::to_wide(reinterpret_cast<const std::exception *>(ep->ExceptionRecord->ExceptionInformation[1])->what());
+		AppendFormatW(text, L"Unhandled C++ exception:\" %.*s\".\n\n", wmsg.size(), wmsg.data());
+	}
 	else
 		AppendFormatW(text, L"Unhandled exception %X.\n\n", ep->ExceptionRecord->ExceptionCode);
 	AppendFormatW(text, L"A memory dump file has been created (%s), please include this if you file a bug report!\n\n", LPCWSTR(MinidumpFile));
 	AppendFormatW(text, L"Attempting to save current module as %s.", LPCWSTR(DocDumpFile));
-//	text.Append("Application will now close.");
+//	text.Append(L"Application will now close.");
 	AfxMessageBox(text, MB_ICONSTOP);
 
 	// Try to save the document

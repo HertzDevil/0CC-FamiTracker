@@ -98,7 +98,7 @@ uint16_t CSimpleFile::ReadUint16()
 
 int16_t CSimpleFile::ReadInt16()
 {
-	return static_cast<int8_t>(ReadUint16());
+	return static_cast<int16_t>(ReadUint16());
 }
 
 uint32_t CSimpleFile::ReadUint32()
@@ -110,7 +110,7 @@ uint32_t CSimpleFile::ReadUint32()
 
 int32_t CSimpleFile::ReadInt32()
 {
-	return static_cast<int8_t>(ReadUint32());
+	return static_cast<int32_t>(ReadUint32());
 }
 
 void CSimpleFile::ReadBytes(void *pBuf, size_t count) {
