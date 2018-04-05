@@ -32,10 +32,13 @@ std::unique_ptr<CWaveRenderer> CWaveRendererFactory::Make(const CFamiTrackerModu
 		auto pSongView = modfile.MakeSongView(track);
 		CSongLengthScanner scanner {modfile, *pSongView};
 		auto [FirstLoop, SecondLoop] = scanner.GetRowCount();
-		return std::make_unique<CWaveRendererRow>(FirstLoop + SecondLoop * (param - 1));
+		auto rows = FirstLoop + SecondLoop * param;
+		return rows ? std::make_unique<CWaveRendererRow>(rows) : nullptr;
 	}
-	case render_type_t::Seconds:
-		return std::make_unique<CWaveRendererTick>(param * modfile.GetFrameRate(), modfile.GetFrameRate());
+	case render_type_t::Seconds: {
+		auto ticks = param * modfile.GetFrameRate();
+		return ticks ? std::make_unique<CWaveRendererTick>(ticks, modfile.GetFrameRate()) : nullptr;
+	}
 	}
 	return nullptr;
 }
