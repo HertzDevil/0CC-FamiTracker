@@ -30,6 +30,7 @@
 #include "ChannelOrder.h"
 #include "str_conv/str_conv.hpp"
 #include "NumConv.h"
+#include "Assertion.h"
 
 #include "FamiTrackerEnv.h"
 #include "SoundChipService.h"
@@ -256,7 +257,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerModule &modfile, int ver) {
 	AssertRange<MODULE_ERROR_OFFICIAL>(channels, 1, (int)MAX_CHANNELS - 1, "Track count");
 
 	auto machine = static_cast<machine_t>(file_.GetBlockInt());
-	AssertFileData(machine == NTSC || machine == PAL, "Unknown machine");
+	AssertFileData(machine == machine_t::NTSC || machine == machine_t::PAL, "Unknown machine");
 	modfile.SetMachine(machine);
 
 	if (ver >= 7) {		// // // 050B
@@ -308,7 +309,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerModule &modfile, int ver) {
 			Song.SetSongSpeed(6);
 		}
 		else {
-			Song.SetSongTempo(machine == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
+			Song.SetSongTempo(machine == machine_t::NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
 		}
 	}
 
@@ -340,7 +341,7 @@ void CFamiTrackerDocIO::SaveParams(const CFamiTrackerModule &modfile, int ver) {
 		file_.WriteBlockInt(modfile.GetSong(0)->GetSongSpeed());
 
 	file_.WriteBlockInt(modfile.GetChannelOrder().GetChannelCount());
-	file_.WriteBlockInt(modfile.GetMachine());
+	file_.WriteBlockInt(value_cast(modfile.GetMachine()));
 	file_.WriteBlockInt(modfile.GetEngineSpeed());
 
 	if (ver >= 3) {
@@ -445,6 +446,50 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 }
 
 void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerModule &modfile, int ver) {
+	const auto ChannelIDToChar = [&] (stChannelID id) {
+		enum : unsigned {
+			apu_start  = 0u,
+			vrc6_start = apu_start + MAX_CHANNELS_2A03,
+			mmc5_start = vrc6_start + MAX_CHANNELS_VRC6,
+			n163_start = mmc5_start + MAX_CHANNELS_MMC5,
+			fds_start  = n163_start + MAX_CHANNELS_N163,
+			vrc7_start = fds_start + MAX_CHANNELS_FDS,
+			s5b_start  = vrc7_start + MAX_CHANNELS_VRC7,
+		};
+
+		switch (id.Chip) {
+		case sound_chip_t::APU:
+			if (id.Subindex < MAX_CHANNELS_2A03)
+				return static_cast<std::uint8_t>(apu_start + id.Subindex);
+			break;
+		case sound_chip_t::VRC6:
+			if (id.Subindex < MAX_CHANNELS_VRC6)
+				return static_cast<std::uint8_t>(vrc6_start + id.Subindex);
+			break;
+		case sound_chip_t::MMC5:
+			if (id.Subindex < MAX_CHANNELS_MMC5)
+				return static_cast<std::uint8_t>(mmc5_start + id.Subindex);
+			break;
+		case sound_chip_t::N163:
+			if (id.Subindex < MAX_CHANNELS_N163)
+				return static_cast<std::uint8_t>(n163_start + id.Subindex);
+			break;
+		case sound_chip_t::FDS:
+			if (id.Subindex < MAX_CHANNELS_FDS)
+				return static_cast<std::uint8_t>(fds_start + id.Subindex);
+			break;
+		case sound_chip_t::VRC7:
+			if (id.Subindex < MAX_CHANNELS_VRC7)
+				return static_cast<std::uint8_t>(vrc7_start + id.Subindex);
+			break;
+		case sound_chip_t::S5B:
+			if (id.Subindex < MAX_CHANNELS_S5B)
+				return static_cast<std::uint8_t>(s5b_start + id.Subindex);
+			break;
+		}
+		return static_cast<std::uint8_t>(-1);
+	};
+
 	// Write number of tracks
 	if (ver >= 2)
 		file_.WriteBlockChar((unsigned char)modfile.GetSongCount() - 1);
@@ -455,7 +500,9 @@ void CFamiTrackerDocIO::SaveHeader(const CFamiTrackerModule &modfile, int ver) {
 
 	modfile.GetChannelOrder().ForeachChannel([&] (stChannelID i) {
 		// Channel type
-		file_.WriteBlockChar(value_cast(chan_id_t {i}));		// // //
+		std::uint8_t id = ChannelIDToChar(i);		// // //
+		Assert(id != static_cast<std::uint8_t>(-1));
+		file_.WriteBlockChar(id);
 
 		// Effect columns
 		if (ver <= 1)
@@ -704,7 +751,7 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerModule &modfile, int ver) {
 			}
 			else {
 				if (Speed < 20) {
-					song.SetSongTempo(modfile.GetMachine() == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
+					song.SetSongTempo(modfile.GetMachine() == machine_t::NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
 					song.SetSongSpeed(Speed);
 				}
 				else {

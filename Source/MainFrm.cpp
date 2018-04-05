@@ -3447,7 +3447,7 @@ void CMainFrame::OnTrackerPal()
 {
 	CFamiTrackerDoc &Doc = GetDoc();
 
-	Doc.GetModule()->SetMachine(PAL);
+	Doc.GetModule()->SetMachine(machine_t::PAL);
 	Doc.ModifyIrreversible();
 	Env.GetSoundGenerator()->LoadMachineSettings();		// // //
 	Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);		// // //
@@ -3458,7 +3458,7 @@ void CMainFrame::OnTrackerNtsc()
 {
 	CFamiTrackerDoc &Doc = GetDoc();
 
-	Doc.GetModule()->SetMachine(NTSC);
+	Doc.GetModule()->SetMachine(machine_t::NTSC);
 	Doc.ModifyIrreversible();
 	Env.GetSoundGenerator()->LoadMachineSettings();		// // //
 	Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);		// // //
@@ -3486,7 +3486,7 @@ void CMainFrame::OnSpeedCustom()
 	machine_t Machine = Module.GetMachine();
 	int Speed = Module.GetEngineSpeed();
 	if (Speed == 0)
-		Speed = (Machine == NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
+		Speed = (Machine == machine_t::NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
 	Speed = SpeedDlg.GetSpeedFromDlg(Speed);
 
 	if (Speed == 0)
@@ -3503,7 +3503,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 	const CFamiTrackerDoc &Doc = GetDoc();
 
 	pCmdUI->Enable(!Doc.GetModule()->HasExpansionChips() && !Env.GetSoundGenerator()->IsPlaying());		// // //
-	UINT item = Doc.GetModule()->GetMachine() == PAL ? ID_TRACKER_PAL : ID_TRACKER_NTSC;
+	UINT item = Doc.GetModule()->GetMachine() == machine_t::PAL ? ID_TRACKER_PAL : ID_TRACKER_NTSC;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);
 }
@@ -3511,7 +3511,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateTrackerNtsc(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(!Env.GetSoundGenerator()->IsPlaying());		// // //
-	UINT item = GetDoc().GetModule()->GetMachine() == NTSC ? ID_TRACKER_NTSC : ID_TRACKER_PAL;
+	UINT item = GetDoc().GetModule()->GetMachine() == machine_t::NTSC ? ID_TRACKER_NTSC : ID_TRACKER_PAL;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);
 }

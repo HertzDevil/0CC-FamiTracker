@@ -61,13 +61,6 @@ std::size_t CSoundChipService::GetSupportedChannelCount(sound_chip_t chip) const
 	return pChip ? pChip->GetSupportedChannelCount() : static_cast<std::size_t>(0u);
 }
 
-stChannelID CSoundChipService::MakeChannelIndex(sound_chip_t chip, std::size_t subindex) const {
-	if (auto *pChip = GetTypePtr(chip))
-		if (subindex < pChip->GetSupportedChannelCount())
-			return {chip, subindex};
-	return { };
-}
-
 std::string_view CSoundChipService::GetChipShortName(sound_chip_t chip) const {
 	return GetType(chip).GetShortName();
 }
@@ -90,11 +83,11 @@ std::string_view CSoundChipService::GetChannelFullName(stChannelID ch) const {
 	throw std::invalid_argument {"Channel with given ID does not exist"};
 }
 
-std::unique_ptr<CSoundChip> CSoundChipService::MakeSoundChipDriver(sound_chip_t chip, CMixer &mixer, std::size_t nInstance) const {
+std::unique_ptr<CSoundChip> CSoundChipService::MakeSoundChipDriver(sound_chip_t chip, CMixer &mixer, std::uint8_t nInstance) const {
 	return GetType(chip).MakeSoundDriver(mixer, nInstance);
 }
 
-std::unique_ptr<CChipHandler> CSoundChipService::MakeChipHandler(sound_chip_t chip, std::size_t nInstance) const {
+std::unique_ptr<CChipHandler> CSoundChipService::MakeChipHandler(sound_chip_t chip, std::uint8_t nInstance) const {
 	return GetType(chip).MakeChipHandler(nInstance);
 }
 

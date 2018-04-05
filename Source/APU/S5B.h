@@ -33,7 +33,7 @@ class CS5BChannel : public CChannel
 public:
 	friend class CS5B;
 
-	CS5BChannel(CMixer &Mixer, std::size_t nInstance, s5b_subindex_t subindex);		// // //
+	CS5BChannel(CMixer &Mixer, std::uint8_t nInstance, s5b_subindex_t subindex);		// // //
 
 	void Process(uint32_t Time);
 	void Reset();
@@ -56,7 +56,7 @@ private:
 class CS5B : public CSoundChip
 {
 public:
-	CS5B(CMixer &Mixer, std::size_t nInstance);
+	CS5B(CMixer &Mixer, std::uint8_t nInstance);
 
 	sound_chip_t GetID() const override;		// // //
 

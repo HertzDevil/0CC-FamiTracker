@@ -32,7 +32,7 @@ class NES_FDS;
 
 class CFDS : public CSoundChip, public CChannel {
 public:
-	CFDS(CMixer &Mixer, std::size_t nInstance);		// // //
+	CFDS(CMixer &Mixer, std::uint8_t nInstance);		// // //
 	virtual ~CFDS();
 
 	sound_chip_t GetID() const override;		// // //

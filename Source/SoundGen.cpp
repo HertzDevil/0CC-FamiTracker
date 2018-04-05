@@ -108,7 +108,7 @@ CSoundGen::CSoundGen() :
 	m_bHaltRequest(false),
 	m_pInstRecorder(std::make_unique<CInstrumentRecorder>(this)),		// // //
 	m_bWaveChanged(0),
-	m_iMachineType(NTSC),
+	m_iMachineType(machine_t::NTSC),
 	m_bRunning(false),
 	m_hInterruptEvent(NULL),
 	m_pArpeggiator(std::make_unique<CArpeggiator>()),		// // //
@@ -454,7 +454,7 @@ bool CSoundGen::ResetAudioDevice()
 	m_csVisualizerWndLock.Unlock();
 
 	m_pAPU->SetCallback(*m_pAudioDriver);
-	if (!m_pAPU->SetupSound(SampleRate, 1, (m_iMachineType == NTSC) ? MACHINE_NTSC : MACHINE_PAL))
+	if (!m_pAPU->SetupSound(SampleRate, 1, m_iMachineType))		// // //
 		return false;
 
 	m_pAPU->SetChipLevel(CHIP_LEVEL_APU1, float(pSettings->ChipLevels.iLevelAPU1 / 10.0f));
@@ -826,7 +826,7 @@ void CSoundGen::LoadMachineSettings()		// // //
 
 	m_iMachineType = m_pModule->GetMachine();		// // // 050B
 
-	int BaseFreq	= (m_iMachineType == NTSC) ? MASTER_CLOCK_NTSC  : MASTER_CLOCK_PAL;
+	int BaseFreq	= (m_iMachineType == machine_t::NTSC) ? MASTER_CLOCK_NTSC : MASTER_CLOCK_PAL;
 
 	// Choose a default rate if not predefined
 	int Rate = m_pModule->GetFrameRate();		// // //
@@ -836,7 +836,7 @@ void CSoundGen::LoadMachineSettings()		// // //
 
 	{
 		CSingleLock l(&m_csAPULock, TRUE);		// // //
-		m_pAPU->ChangeMachineRate(m_iMachineType == NTSC ? MACHINE_NTSC : MACHINE_PAL, Rate);		// // //
+		m_pAPU->ChangeMachineRate(m_iMachineType, Rate);		// // //
 	}
 }
 

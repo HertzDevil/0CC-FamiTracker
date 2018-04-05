@@ -2091,7 +2091,7 @@ void CFamiTrackerView::UpdateNoteQueues() {		// // //
 			std::vector<stChannelID> n;
 			std::size_t NamcoChannels = GetModuleData()->GetNamcoChannels();
 			for (std::size_t i = 0; i < NamcoChannels; ++i)
-				n.emplace_back(sound_chip_t::N163, i);
+				n.emplace_back(sound_chip_t::N163, static_cast<std::uint8_t>(i));
 			m_pNoteQueue->AddMap(n);
 		}
 		if (chips.ContainsChip(sound_chip_t::S5B))

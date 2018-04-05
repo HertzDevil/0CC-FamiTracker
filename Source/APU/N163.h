@@ -33,7 +33,7 @@ class CN163;		// // //
 
 class CN163Chan : public CChannel {
 public:
-	CN163Chan(CMixer &Mixer, std::size_t nInstance, CN163 &parent, n163_subindex_t subindex, uint8_t *pWaveData);		// // //
+	CN163Chan(CMixer &Mixer, std::uint8_t nInstance, CN163 &parent, n163_subindex_t subindex, uint8_t *pWaveData);		// // //
 
 	void Reset();
 	void Write(uint16_t Address, uint8_t Value);
@@ -61,7 +61,7 @@ private:
 
 class CN163 : public CSoundChip {
 public:
-	CN163(CMixer &Mixer, std::size_t nInstance);		// // //
+	CN163(CMixer &Mixer, std::uint8_t nInstance);		// // //
 
 	sound_chip_t GetID() const override;		// // //
 

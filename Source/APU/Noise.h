@@ -33,7 +33,7 @@
 
 class CNoise : public C2A03Chan {
 public:
-	CNoise(CMixer &Mixer, std::size_t nInstance);		// // //
+	CNoise(CMixer &Mixer, std::uint8_t nInstance);		// // //
 
 	void	Reset();
 	void	Write(uint16_t Address, uint8_t Value);

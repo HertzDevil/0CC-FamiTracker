@@ -32,7 +32,7 @@
 
 class CSquare : public C2A03Chan {
 public:
-	CSquare(CMixer &Mixer, std::size_t nInstance, sound_chip_t Chip, std::size_t subindex);		// // //
+	CSquare(CMixer &Mixer, std::uint8_t nInstance, sound_chip_t Chip, std::uint8_t subindex);		// // //
 	~CSquare();
 
 	void	Reset();

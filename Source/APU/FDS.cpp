@@ -27,7 +27,7 @@
 
 // FDS interface, actual FDS emulation is in FDSSound.cpp
 
-CFDS::CFDS(CMixer &Mixer, std::size_t nInstance) :
+CFDS::CFDS(CMixer &Mixer, std::uint8_t nInstance) :
 	CSoundChip(Mixer, nInstance),
 	CChannel(Mixer, {nInstance, sound_chip_t::FDS, value_cast(fds_subindex_t::wave)}),
 	emu_(std::make_unique<xgm::NES_FDS>())

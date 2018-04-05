@@ -116,7 +116,7 @@ void CGotoDlg::CheckDestination() const
 int CGotoDlg::GetFinalChannel() const
 {
 	const CFamiTrackerModule *pModule = CFamiTrackerView::GetView()->GetModuleData();
-	return pModule->GetChannelOrder().GetChannelIndex(stChannelID {m_iDestChip, m_iDestSubIndex});
+	return pModule->GetChannelOrder().GetChannelIndex(stChannelID {m_iDestChip, static_cast<std::uint8_t>(m_iDestSubIndex)});
 }
 
 void CGotoDlg::OnEnChangeEditGotoFrame()

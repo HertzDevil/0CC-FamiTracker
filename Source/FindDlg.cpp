@@ -208,7 +208,7 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 	const CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
 	const CConstSongView *pSongView = pView->GetSongView();
 	stChannelID ch = pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel);
-	m_cListResults.SetItemData(Pos, value_cast(chan_id_t {ch}));
+	m_cListResults.SetItemData(Pos, ch.ToInteger());
 	m_cListResults.SetItemText(Pos, CHANNEL, conv::to_wide(Env.GetSoundChipService()->GetChannelFullName(ch)).data());
 	m_cListResults.SetItemText(Pos, PATTERN, conv::to_wide(conv::sv_from_int_hex(pSongView->GetFramePattern(Cursor.m_iChannel, Cursor.m_iFrame), 2)).data());
 
@@ -259,7 +259,7 @@ void CFindResultsBox::ClearResults()
 void CFindResultsBox::SelectItem(int Index)
 {
 	auto pView = static_cast<CFamiTrackerView*>(((CFrameWnd*)AfxGetMainWnd())->GetActiveView());
-	int Channel = pView->GetSongView()->GetChannelOrder().GetChannelIndex(enum_cast<chan_id_t>(m_cListResults.GetItemData(Index)));
+	int Channel = pView->GetSongView()->GetChannelOrder().GetChannelIndex(stChannelID::FromInteger(m_cListResults.GetItemData(Index)));
 	if (Channel != -1) {
 		pView->SelectChannel(Channel);
 		pView->SelectFrame(*conv::to_uint(m_cListResults.GetItemText(Index, FRAME), 16u));

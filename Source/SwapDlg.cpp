@@ -98,9 +98,12 @@ BOOL CSwapDlg::OnInitDialog()
 
 void CSwapDlg::CheckDestination() const
 {
+	auto *pSCS = Env.GetSoundChipService();
+
 	GetDlgItem(IDOK)->EnableWindow(
-		stChannelID {m_iDestChip1, m_iDestChannel1}.Chip != sound_chip_t::NONE &&
-		stChannelID {m_iDestChip2, m_iDestChannel2}.Chip != sound_chip_t::NONE &&
+		m_iDestChip1 != sound_chip_t::NONE && m_iDestChip2 != sound_chip_t::NONE &&
+		m_iDestChannel1 < pSCS->GetSupportedChannelCount(m_iDestChip1) &&
+		m_iDestChannel2 < pSCS->GetSupportedChannelCount(m_iDestChip2) &&
 		(m_iDestChannel1 != m_iDestChannel2 || m_iDestChip1 != m_iDestChip2));
 }
 
@@ -134,8 +137,8 @@ void CSwapDlg::OnCbnSelchangeComboSwapChip2()
 
 void CSwapDlg::OnBnClickedOk()
 {
-	auto lhs = stChannelID {m_iDestChip1, m_iDestChannel1};
-	auto rhs = stChannelID {m_iDestChip2, m_iDestChannel2};
+	auto lhs = stChannelID {m_iDestChip1, static_cast<std::uint8_t>(m_iDestChannel1)};
+	auto rhs = stChannelID {m_iDestChip2, static_cast<std::uint8_t>(m_iDestChannel2)};
 
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 	CFamiTrackerModule *pModule = pDoc->GetModule();

@@ -59,7 +59,7 @@ std::unique_ptr<CSongData> Kraid::makeSong(CFamiTrackerModule &modfile) {
 
 	for (std::size_t subindex = 0; subindex < std::size(PATTERNS); ++subindex)
 		for (int f = 0; f < FRAMES; ++f)
-			pSong->SetFramePattern(f, {sound_chip_t::APU, subindex}, PATTERNS[subindex][f]);
+			pSong->SetFramePattern(f, {sound_chip_t::APU, static_cast<std::uint8_t>(subindex)}, PATTERNS[subindex][f]);
 
 	makePattern(*pSong, apu_subindex_t::triangle, 0, "<e.>e...<e.>e...<e.>e...<e.>e...");
 	makePattern(*pSong, apu_subindex_t::triangle, 1, "<c.>c...<c.>c...<d.>d...<d.>d...");

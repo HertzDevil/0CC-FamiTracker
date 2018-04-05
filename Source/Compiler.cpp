@@ -1538,7 +1538,7 @@ void CCompiler::CreateFrameList(unsigned int Track)
 		// Pattern pointers
 		m_ChannelOrder.ForeachChannel([&] (stChannelID Chan) {
 			unsigned Pattern = pSong->GetFramePattern(i, Chan);
-			Chunk.StorePointer({CHUNK_PATTERN, Track, Pattern, value_cast(chan_id_t {Chan})});		// // //
+			Chunk.StorePointer({CHUNK_PATTERN, Track, Pattern, Chan.ToInteger()});		// // //
 			TotalSize += 2;
 		});
 	}
@@ -1571,7 +1571,7 @@ void CCompiler::StorePatterns(unsigned int Track)
 				// Compile pattern data
 				PatternCompiler.CompileData(Track, i, j);
 
-				auto label = stChunkLabel {CHUNK_PATTERN, Track, i, value_cast(chan_id_t {j})};		// // //
+				auto label = stChunkLabel {CHUNK_PATTERN, Track, i, j.ToInteger()};		// // //
 
 				bool StoreNew = true;
 

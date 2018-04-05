@@ -89,7 +89,7 @@ CSoundChipSet CFamiTrackerModule::GetSoundChipSet() const {
 void CFamiTrackerModule::SetChannelMap(std::unique_ptr<CChannelMap> pMap) {
 	m_pChannelMap = std::move(pMap);
 	if (HasExpansionChips())
-		SetMachine(NTSC);
+		SetMachine(machine_t::NTSC);
 }
 
 bool CFamiTrackerModule::HasExpansionChips() const {
@@ -123,7 +123,7 @@ unsigned int CFamiTrackerModule::GetEngineSpeed() const {
 unsigned int CFamiTrackerModule::GetFrameRate() const {
 	unsigned Rate = GetEngineSpeed();		// // //
 	if (Rate == 0)
-		return (GetMachine() == NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
+		return (GetMachine() == machine_t::NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
 	return Rate;
 }
 
@@ -204,7 +204,7 @@ std::size_t CFamiTrackerModule::GetSongCount() const {
 
 std::unique_ptr<CSongData> CFamiTrackerModule::MakeNewSong() const {
 	auto pSong = std::make_unique<CSongData>(CSongData::DEFAULT_ROW_COUNT);
-	pSong->SetSongTempo(GetMachine() == NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
+	pSong->SetSongTempo(GetMachine() == machine_t::NTSC ? DEFAULT_TEMPO_NTSC : DEFAULT_TEMPO_PAL);
 	if (GetSongCount() > 0)
 		pSong->SetRowHighlight(GetSong(0)->GetRowHighlight());
 	return pSong;

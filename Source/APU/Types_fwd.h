@@ -26,7 +26,6 @@
 #include <cstdint>
 #include <cstddef>
 
-enum class chan_id_t : unsigned;
-enum apu_machine_t : unsigned char;
+enum class machine_t : std::uint8_t;
 enum class sound_chip_t : std::uint8_t;
 struct stChannelID;

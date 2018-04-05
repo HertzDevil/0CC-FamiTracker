@@ -112,7 +112,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 
 	CDetuneTable::type_t Table = CDetuneTable::DETUNE_NTSC;
 	switch (m_iRecordChannel.Chip) {
-	case sound_chip_t::APU:  Table = m_pModule->GetMachine() == PAL ? CDetuneTable::DETUNE_PAL : CDetuneTable::DETUNE_NTSC; break;
+	case sound_chip_t::APU:  Table = m_pModule->GetMachine() == machine_t::PAL ? CDetuneTable::DETUNE_PAL : CDetuneTable::DETUNE_NTSC; break;
 	case sound_chip_t::VRC6: Table = IsVRC6Sawtooth(m_iRecordChannel) ? CDetuneTable::DETUNE_SAW : CDetuneTable::DETUNE_NTSC; break;
 	case sound_chip_t::VRC7: Table = CDetuneTable::DETUNE_VRC7; break;
 	case sound_chip_t::FDS:  Table = CDetuneTable::DETUNE_FDS; break;

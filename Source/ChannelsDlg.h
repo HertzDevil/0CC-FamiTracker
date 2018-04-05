@@ -48,9 +48,6 @@ protected:
 	void InsertChannel(HTREEITEM hItem);
 	void RemoveChannel(int nId);		// // //
 
-private:
-	std::forward_list<stChannelID> id_cache_;		// // //
-
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 

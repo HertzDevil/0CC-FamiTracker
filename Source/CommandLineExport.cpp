@@ -93,7 +93,7 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 	// export
 	if (0 == ext.CompareNoCase(L".nsf")) {
 		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
-		compiler.ExportNSF(fileOut, pModule->GetMachine());
+		compiler.ExportNSF(fileOut, value_cast(pModule->GetMachine()));
 		if (bLog) {
 			fLog.WriteString(L"\nNSF export complete.\n");
 		}
@@ -135,7 +135,7 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 	else if (0 == ext.CompareNoCase(L".nsfe"))		// // //
 	{
 		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
-		compiler.ExportNSFE(fileOut, pModule->GetMachine());
+		compiler.ExportNSFE(fileOut, value_cast(pModule->GetMachine()));
 		if (bLog) {
 			fLog.WriteString(L"\nNSFe export complete.\n");
 		}

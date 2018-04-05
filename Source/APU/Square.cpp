@@ -32,7 +32,7 @@ const uint8_t CSquare::DUTY_TABLE[4][16] = {
 	{1, 1, 0, 0,  0, 0, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1},
 };
 
-CSquare::CSquare(CMixer &Mixer, std::size_t nInstance, sound_chip_t Chip, std::size_t subindex) :
+CSquare::CSquare(CMixer &Mixer, std::uint8_t nInstance, sound_chip_t Chip, std::uint8_t subindex) :
 	C2A03Chan(Mixer, {nInstance, Chip, subindex})		// // //
 {
 	m_iDutyLength = 0;

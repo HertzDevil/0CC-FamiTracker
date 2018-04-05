@@ -40,7 +40,7 @@ class dpcm_sample;
 class C2A03 : public CSoundChip
 {
 public:
-	C2A03(CMixer &Mixer, std::size_t nInstance);
+	C2A03(CMixer &Mixer, std::uint8_t nInstance);
 
 	sound_chip_t GetID() const override;		// // //
 
@@ -56,7 +56,7 @@ public:
 public:
 	void	ClockSequence();		// // //
 
-	void	ChangeMachine(int Machine);
+	void	ChangeMachine(machine_t Machine);
 
 	void	WriteSample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSample);		// // //
 	void	ClearSample();		// // //

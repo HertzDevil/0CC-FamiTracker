@@ -36,15 +36,14 @@ public:
 	CChannelOrder MakeFullOrder() const;
 
 	std::size_t GetSupportedChannelCount(sound_chip_t chip) const;
-	stChannelID MakeChannelIndex(sound_chip_t chip, std::size_t subindex) const;
 
 	std::string_view GetChipShortName(sound_chip_t chip) const;
 	std::string_view GetChipFullName(sound_chip_t chip) const;
 	std::string_view GetChannelShortName(stChannelID ch) const;
 	std::string_view GetChannelFullName(stChannelID ch) const;
 
-	std::unique_ptr<CSoundChip> MakeSoundChipDriver(sound_chip_t chip, CMixer &mixer, std::size_t nInstance) const;
-	std::unique_ptr<CChipHandler> MakeChipHandler(sound_chip_t chip, std::size_t nInstance) const;
+	std::unique_ptr<CSoundChip> MakeSoundChipDriver(sound_chip_t chip, CMixer &mixer, std::uint8_t nInstance) const;
+	std::unique_ptr<CChipHandler> MakeChipHandler(sound_chip_t chip, std::uint8_t nInstance) const;
 
 	// void (*F)(sound_chip_t chip)
 	template <typename F>
@@ -58,7 +57,7 @@ public:
 	void ForeachTrack(F f) const {
 		for (auto &x : types_)
 			for (std::size_t i = 0, n = x.second->GetSupportedChannelCount(); i < n; ++i)
-				f(stChannelID {x.first, i});
+				f(stChannelID {x.first, static_cast<std::uint8_t>(i)});
 	}
 
 private:

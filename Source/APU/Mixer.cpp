@@ -268,7 +268,7 @@ int CMixer::FinishBuffer(int t)
 
 	// Get channel levels for VRC7
 	for (std::size_t i = 0; i < MAX_CHANNELS_VRC7; ++i)
-		StoreChannelLevel(stChannelID {sound_chip_t::VRC7, i}, OPLL_getchanvol(i));
+		StoreChannelLevel(stChannelID {sound_chip_t::VRC7, static_cast<std::uint8_t>(i)}, OPLL_getchanvol(i));
 
 	UpdateMeters();		// // //
 

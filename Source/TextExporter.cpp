@@ -560,7 +560,7 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 		}
 		break;
 		case CT_MACHINE:
-			modfile.SetMachine(static_cast<machine_t>(t.ReadInt(0, PAL)));
+			modfile.SetMachine(enum_cast<machine_t>(static_cast<std::uint8_t>(t.ReadInt(0, 1))));
 			t.ReadEOL();
 			break;
 		case CT_FRAMERATE:

@@ -65,7 +65,7 @@ void CSoundDriver::SetupTracks() {
 	// Clear all channels
 	tracks_.clear();		// // //
 
-	constexpr std::size_t INSTANCE_ID = 0u;
+	constexpr std::uint8_t INSTANCE_ID = 0u;
 
 	auto *pSCS = Env.GetSoundChipService();
 	pSCS->ForeachTrack([&] (stChannelID id) {
@@ -398,7 +398,7 @@ void CSoundDriver::SetupPeriodTables() {
 		switch (ch.Chip) {
 		case sound_chip_t::APU:
 			if (!IsAPUNoise(ch) && !IsDPCM(ch))
-				return Machine == PAL ? m_iNoteLookupTablePAL : m_iNoteLookupTableNTSC;
+				return Machine == machine_t::PAL ? m_iNoteLookupTablePAL : m_iNoteLookupTableNTSC;
 			break;
 		case sound_chip_t::VRC6:
 			return IsVRC6Sawtooth(ch) ? m_iNoteLookupTableSaw : m_iNoteLookupTableNTSC;

@@ -41,7 +41,7 @@ CAPU::CAPU(IAudioCallback *pCallback) :		// // //
 	m_iFrameCycles(0),
 	m_fLevelVRC7(1.f)
 {
-	constexpr std::size_t INSTANCE_ID = 0u;
+	constexpr std::uint8_t INSTANCE_ID = 0u;
 
 	auto *pSCS = Env.GetSoundChipService();
 	pSCS->ForeachType([&] (sound_chip_t c) {
@@ -175,12 +175,12 @@ void CAPU::SetExternalSound(CSoundChipSet Chip) {
 	Reset();
 }
 
-void CAPU::ChangeMachineRate(int Machine, int Rate)		// // //
+void CAPU::ChangeMachineRate(machine_t Machine, int Rate)		// // //
 {
 	// Allow to change speed on the fly
 	//
 
-	uint32_t BaseFreq = (Machine == MACHINE_NTSC) ? MASTER_CLOCK_NTSC : MASTER_CLOCK_PAL;
+	uint32_t BaseFreq = (Machine == machine_t::NTSC) ? MASTER_CLOCK_NTSC : MASTER_CLOCK_PAL;
 	for (auto &c : m_pSoundChips)		// // //
 		if (auto *p2A03 = dynamic_cast<C2A03 *>(c.get()))
 			p2A03->ChangeMachine(Machine);
@@ -188,15 +188,15 @@ void CAPU::ChangeMachineRate(int Machine, int Rate)		// // //
 			pVRC7->SetSampleSpeed(m_iSampleRate, BaseFreq, Rate);
 }
 
-bool CAPU::SetupSound(int SampleRate, int NrChannels, int Machine)		// // //
+bool CAPU::SetupSound(int SampleRate, int NrChannels, machine_t Machine)		// // //
 {
 	// Allocate a sound buffer
 	//
 	// Returns false if a buffer couldn't be allocated
 	//
 
-	uint32_t BaseFreq = (Machine == MACHINE_NTSC) ? MASTER_CLOCK_NTSC : MASTER_CLOCK_PAL;
-	uint8_t FrameRate = (Machine == MACHINE_NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
+	uint32_t BaseFreq = (Machine == machine_t::NTSC) ? MASTER_CLOCK_NTSC : MASTER_CLOCK_PAL;
+	uint8_t FrameRate = (Machine == machine_t::NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
 	m_iSampleRate = SampleRate;		// // //
 
 	m_iSoundBufferSamples = uint32_t(m_iSampleRate / FRAME_RATE_PAL);	// Samples / frame. Allocate for PAL, since it's more

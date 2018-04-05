@@ -29,7 +29,7 @@
 
 // // // 2A03 sound chip class
 
-C2A03::C2A03(CMixer &Mixer, std::size_t nInstance) :
+C2A03::C2A03(CMixer &Mixer, std::uint8_t nInstance) :
 	CSoundChip(Mixer, nInstance),
 	m_Square1(Mixer, nInstance, sound_chip_t::APU, value_cast(apu_subindex_t::pulse1)),
 	m_Square2(Mixer, nInstance, sound_chip_t::APU, value_cast(apu_subindex_t::pulse2)),
@@ -160,25 +160,25 @@ void C2A03::ClockSequence()
 	}
 }
 
-void C2A03::ChangeMachine(int Machine)
+void C2A03::ChangeMachine(machine_t Machine)
 {
 	switch (Machine) {
-		case MACHINE_NTSC:
-			m_Square1.CPU_RATE = MASTER_CLOCK_NTSC;		// // //
-			m_Square2.CPU_RATE = MASTER_CLOCK_NTSC;
-			m_Triangle.CPU_RATE = MASTER_CLOCK_NTSC;
-			m_Noise.PERIOD_TABLE = CNoise::NOISE_PERIODS_NTSC;
-			m_DPCM.PERIOD_TABLE = CDPCM::DMC_PERIODS_NTSC;
-			m_pMixer->SetClockRate(MASTER_CLOCK_NTSC);
-			break;
-		case MACHINE_PAL:
-			m_Square1.CPU_RATE = MASTER_CLOCK_PAL;		// // //
-			m_Square2.CPU_RATE = MASTER_CLOCK_PAL;
-			m_Triangle.CPU_RATE = MASTER_CLOCK_PAL;
-			m_Noise.PERIOD_TABLE = CNoise::NOISE_PERIODS_PAL;
-			m_DPCM.PERIOD_TABLE = CDPCM::DMC_PERIODS_PAL;
-			m_pMixer->SetClockRate(MASTER_CLOCK_PAL);
-			break;
+	case machine_t::NTSC:		// // //
+		m_Square1.CPU_RATE = MASTER_CLOCK_NTSC;		// // //
+		m_Square2.CPU_RATE = MASTER_CLOCK_NTSC;
+		m_Triangle.CPU_RATE = MASTER_CLOCK_NTSC;
+		m_Noise.PERIOD_TABLE = CNoise::NOISE_PERIODS_NTSC;
+		m_DPCM.PERIOD_TABLE = CDPCM::DMC_PERIODS_NTSC;
+		m_pMixer->SetClockRate(MASTER_CLOCK_NTSC);
+		break;
+	case machine_t::PAL:
+		m_Square1.CPU_RATE = MASTER_CLOCK_PAL;		// // //
+		m_Square2.CPU_RATE = MASTER_CLOCK_PAL;
+		m_Triangle.CPU_RATE = MASTER_CLOCK_PAL;
+		m_Noise.PERIOD_TABLE = CNoise::NOISE_PERIODS_PAL;
+		m_DPCM.PERIOD_TABLE = CDPCM::DMC_PERIODS_PAL;
+		m_pMixer->SetClockRate(MASTER_CLOCK_PAL);
+		break;
 	}
 }
 

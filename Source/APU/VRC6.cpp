@@ -26,7 +26,7 @@
 
 // Konami VRC6 external sound chip emulation
 
-CVRC6_Pulse::CVRC6_Pulse(CMixer &Mixer, std::size_t nInstance, vrc6_subindex_t subindex) :
+CVRC6_Pulse::CVRC6_Pulse(CMixer &Mixer, std::uint8_t nInstance, vrc6_subindex_t subindex) :
 	CChannel(Mixer, {nInstance, sound_chip_t::VRC6, value_cast(subindex)})		// // //
 {
 	Reset();
@@ -92,7 +92,7 @@ double CVRC6_Pulse::GetFrequency() const		// // //
 	return MASTER_CLOCK_NTSC / 16. / (m_iPeriod + 1.);
 }
 
-CVRC6_Sawtooth::CVRC6_Sawtooth(CMixer &Mixer, std::size_t nInstance) :
+CVRC6_Sawtooth::CVRC6_Sawtooth(CMixer &Mixer, std::uint8_t nInstance) :
 	CChannel(Mixer, {nInstance, sound_chip_t::VRC6, value_cast(vrc6_subindex_t::sawtooth)})		// // //
 {
 	Reset();
@@ -164,7 +164,7 @@ double CVRC6_Sawtooth::GetFrequency() const		// // //
 	return MASTER_CLOCK_NTSC / 14. / (m_iPeriod + 1.);
 }
 
-CVRC6::CVRC6(CMixer &Mixer, std::size_t nInstance) :
+CVRC6::CVRC6(CMixer &Mixer, std::uint8_t nInstance) :
 	CSoundChip(Mixer, nInstance),		// // //
 	m_Pulse1(Mixer, nInstance, vrc6_subindex_t::pulse1),
 	m_Pulse2(Mixer, nInstance, vrc6_subindex_t::pulse2),

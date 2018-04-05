@@ -35,7 +35,7 @@ struct OPLL_deleter {
 
 class CVRC7 : public CSoundChip {
 public:
-	CVRC7(CMixer &Mixer, std::size_t nInstance);		// // //
+	CVRC7(CMixer &Mixer, std::uint8_t nInstance);		// // //
 
 	sound_chip_t GetID() const override;		// // //
 

@@ -26,7 +26,7 @@
 
 // MMC5 external sound
 
-CMMC5::CMMC5(CMixer &Mixer, std::size_t nInstance) :
+CMMC5::CMMC5(CMixer &Mixer, std::uint8_t nInstance) :
 	CSoundChip(Mixer, nInstance),		// // //
 	m_Square1(Mixer, nInstance, sound_chip_t::MMC5, value_cast(mmc5_subindex_t::pulse1)),
 	m_Square2(Mixer, nInstance, sound_chip_t::MMC5, value_cast(mmc5_subindex_t::pulse2)),

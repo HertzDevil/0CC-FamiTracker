@@ -39,7 +39,7 @@
 // Namco 163 (previously called N106)
 //
 
-CN163::CN163(CMixer &Mixer, std::size_t nInstance) :
+CN163::CN163(CMixer &Mixer, std::uint8_t nInstance) :
 	CSoundChip(Mixer, nInstance),		// // //
 	m_Channels {
 		{Mixer, nInstance, *this, n163_subindex_t::ch1, m_iWaveData},
@@ -229,7 +229,7 @@ uint8_t CN163::ReadMem(uint8_t Reg)
 // N163 channels
 //
 
-CN163Chan::CN163Chan(CMixer &Mixer, std::size_t nInstance, CN163 &parent, n163_subindex_t subindex, uint8_t *pWaveData) :		// // //
+CN163Chan::CN163Chan(CMixer &Mixer, std::uint8_t nInstance, CN163 &parent, n163_subindex_t subindex, uint8_t *pWaveData) :		// // //
 	CChannel(Mixer, {nInstance, sound_chip_t::N163, value_cast(subindex)}),
 	m_pWaveData(pWaveData), parent_(parent)
 {

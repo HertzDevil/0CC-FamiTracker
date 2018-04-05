@@ -57,8 +57,8 @@ public:
 	void	Write(uint16_t Address, uint8_t Value) override;		// // //
 	uint8_t	Read(uint16_t Address);
 
-	void	ChangeMachineRate(int Machine, int Rate);		// // //
-	bool	SetupSound(int SampleRate, int NrChannels, int Speed);
+	void	ChangeMachineRate(machine_t Machine, int Rate);		// // //
+	bool	SetupSound(int SampleRate, int NrChannels, machine_t Speed);		// // //
 	void	SetupMixer(int LowCut, int HighCut, int HighDamp, int Volume) const;
 	void	SetCallback(IAudioCallback &pCallback);		// // //
 

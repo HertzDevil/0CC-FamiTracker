@@ -79,9 +79,9 @@ BOOL CChannelsDlg::OnInitDialog()
 		HTREEITEM hItem = m_cAvailableTree.InsertItem(conv::to_wide(pSCS->GetChipFullName(ch)).data());
 		m_cAvailableTree.SetItemData(hItem, value_cast(ch));
 		for (std::size_t subindex = 0, n = pSCS->GetSupportedChannelCount(ch); subindex < n; ++subindex) {
-			const auto &chan = id_cache_.emplace_front(pSCS->MakeChannelIndex(ch, subindex));
+			stChannelID chan {ch, static_cast<std::uint8_t>(subindex)};
 			HTREEITEM hChild = m_cAvailableTree.InsertItem(FormattedW(L"%u: %s", subindex, conv::to_wide(pSCS->GetChannelFullName(chan)).data()), hItem);
-			m_cAvailableTree.SetItemData(hChild, reinterpret_cast<DWORD_PTR>(&chan));
+			m_cAvailableTree.SetItemData(hChild, chan.ToInteger());
 		}
 		m_cAvailableTree.SortChildren(hItem);
 	});
@@ -89,7 +89,7 @@ BOOL CChannelsDlg::OnInitDialog()
 	CFamiTrackerView::GetView()->GetSongView()->GetChannelOrder().ForeachChannel([&] (stChannelID ch) {
 		for (HTREEITEM hChip = m_cAvailableTree.GetRootItem(); hChip; hChip = m_cAvailableTree.GetNextItem(hChip, TVGN_NEXT)) {
 			for (HTREEITEM hItem = m_cAvailableTree.GetNextItem(hChip, TVGN_CHILD); hItem; hItem = m_cAvailableTree.GetNextItem(hItem, TVGN_NEXT)) {
-				if (*reinterpret_cast<const stChannelID *>(m_cAvailableTree.GetItemData(hItem)) == ch) {		// // //
+				if (stChannelID::FromInteger(m_cAvailableTree.GetItemData(hItem)) == ch) {		// // //
 					InsertChannel(hItem);
 					return;
 				}
@@ -158,7 +158,7 @@ void CChannelsDlg::InsertChannel(HTREEITEM hItem) {
 
 	if (HTREEITEM hParentItem = m_cAvailableTree.GetParentItem(hItem)) {
 		auto iData = m_cAvailableTree.GetItemData(hItem);
-		const auto &ChanID = *reinterpret_cast<const stChannelID *>(iData);
+		const auto &ChanID = stChannelID::FromInteger(iData);
 
 		auto AddStr = std::string {pSCS->GetChipShortName(ChanID.Chip)};
 		AddStr += " :: ";
@@ -177,7 +177,7 @@ void CChannelsDlg::InsertChannel(HTREEITEM hItem) {
 void CChannelsDlg::RemoveChannel(int nId) {		// // //
 	auto *pSCS = Env.GetSoundChipService();		// // //
 	DWORD_PTR iData = m_cAddedChannels.GetItemData(nId);
-	const auto &ChanID = *reinterpret_cast<const stChannelID *>(iData);
+	const auto &ChanID = stChannelID::FromInteger(iData);
 
 	// Put back in available list
 	for (HTREEITEM hChip = m_cAvailableTree.GetRootItem(); hChip; hChip = m_cAvailableTree.GetNextItem(hChip, TVGN_NEXT)) {

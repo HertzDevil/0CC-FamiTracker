@@ -67,7 +67,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 	auto &Song = *modfile.GetSong(0);
 
 	modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
-	modfile.SetMachine(NTSC);		// // //
+	modfile.SetMachine(machine_t::NTSC);		// // //
 	modfile.SetVibratoStyle(VIBRATO_OLD);
 	modfile.SetLinearPitch(false);
 
@@ -116,7 +116,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 			break;
 
 		case FB_MACHINE:
-			modfile.SetMachine(ReadInt(pOpenFile) ? PAL : NTSC);
+			modfile.SetMachine(ReadInt(pOpenFile) ? machine_t::PAL : machine_t::NTSC);
 			break;
 
 		case FB_ENGINESPEED:
