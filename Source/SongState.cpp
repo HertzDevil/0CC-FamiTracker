@@ -232,16 +232,14 @@ void stChannelState::HandleSxxCommand(unsigned char xy) {
 
 
 
-CSongState::CSongState() {
-	std::size_t i = 0;
-	Env.GetSoundChipService()->ForeachTrack([&] (stChannelID id) {
-		State[i++].ChannelID = id;
-	});
-}
-
 void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, unsigned Frame, unsigned Row) {
 	CConstSongView SongView {modfile.GetChannelOrder().Canonicalize(), *modfile.GetSong(Track)};
 	const auto &song = SongView.GetSong();
+
+	State.clear();
+	SongView.GetChannelOrder().ForeachChannel([&] (stChannelID id) {
+		State.try_emplace(id, stChannelState { });
+	});
 
 	int totalRows = 0;
 
@@ -257,7 +255,7 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 			break;
 
 		SongView.ForeachTrack([&] (const CTrackData &track, stChannelID c) {
-			stChannelState &chState = State[value_cast(chan_id_t {c})];
+			stChannelState &chState = State.find(c)->second;
 			int EffColumns = track.GetEffectColumnCount();
 			const auto &Note = track.GetPatternOnFrame(Frame).GetNoteOn(Row);		// // //
 
@@ -347,7 +345,10 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 }
 
 std::string CSongState::GetChannelStateString(const CFamiTrackerModule &modfile, stChannelID chan) const {
-	std::string str = State[modfile.GetChannelOrder().GetChannelIndex(chan)].GetStateString();
+	if (State.empty())
+		return "State is not ready";
+
+	std::string str = State.find(chan)->second.GetStateString();
 	if (Tempo >= 0)
 		str += "        Tempo: " + std::to_string(Tempo);
 	if (Speed >= 0) {

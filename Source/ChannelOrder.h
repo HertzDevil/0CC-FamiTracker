@@ -37,7 +37,9 @@ public:
 	std::size_t GetChannelCount() const;
 
 	bool AddChannel(stChannelID chan);
+	bool RemoveChannel(stChannelID chan);
 
+	CChannelOrder BuiltinOrder() const;
 	CChannelOrder Canonicalize() const;
 
 	// void (*F)(stChannelID chan)

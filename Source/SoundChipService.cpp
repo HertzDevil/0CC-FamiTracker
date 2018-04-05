@@ -25,6 +25,7 @@
 #include "APU/Types.h"
 #include "APU/SoundChip.h"
 #include "ChipHandler.h"
+#include "ChannelOrder.h"
 
 void CSoundChipService::AddType(std::unique_ptr<CSoundChipType> stype) {
 	sound_chip_t id = stype->GetID();
@@ -45,6 +46,14 @@ void CSoundChipService::AddDefaultTypes() {
 	AddType(std::make_unique<CSoundChipTypeMMC5>());
 	AddType(std::make_unique<CSoundChipTypeN163>());
 	AddType(std::make_unique<CSoundChipTypeS5B>());
+}
+
+CChannelOrder CSoundChipService::MakeFullOrder() const {
+	CChannelOrder order;
+	ForeachTrack([&] (stChannelID id) {
+		order.AddChannel(id);
+	});
+	return order;
 }
 
 std::size_t CSoundChipService::GetSupportedChannelCount(sound_chip_t chip) const {

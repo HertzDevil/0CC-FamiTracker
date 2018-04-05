@@ -39,11 +39,12 @@ void CInstHandlerDPCM::TriggerInstrument()
 	CChannelHandlerInterfaceDPCM *pInterface = dynamic_cast<CChannelHandlerInterfaceDPCM*>(m_pInterface);
 	if (pInterface == nullptr) return;
 	if (auto pDPCMInst = std::dynamic_pointer_cast<const CInstrument2A03>(m_pInstrument)) {
-		const int Val = m_pInterface->GetNote();
-		if (auto pSamp = pDPCMInst->GetDSample(Val)) {
-			pInterface->WriteDCOffset(pDPCMInst->GetSampleDeltaValue(Val));
-			pInterface->SetLoopOffset(pDPCMInst->GetSampleLoopOffset(Val));
-			pInterface->PlaySample(pSamp, pDPCMInst->GetSamplePitch(Val));
+		if (const int Val = m_pInterface->GetNote(); Val != -1) {
+			if (auto pSamp = pDPCMInst->GetDSample(Val)) {
+				pInterface->WriteDCOffset(pDPCMInst->GetSampleDeltaValue(Val));
+				pInterface->SetLoopOffset(pDPCMInst->GetSampleLoopOffset(Val));
+				pInterface->PlaySample(pSamp, pDPCMInst->GetSamplePitch(Val));
+			}
 		}
 	}
 }

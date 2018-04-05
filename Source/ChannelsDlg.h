@@ -25,7 +25,8 @@
 
 #include "stdafx.h"		// // //
 #include "../resource.h"		// // //
-#include "APU/Types_fwd.h"		// // //
+#include "APU/Types.h"		// // //
+#include <forward_list>		// // //
 
 // CChannelsDlg dialog
 
@@ -46,6 +47,9 @@ protected:
 
 	void InsertChannel(HTREEITEM hItem);
 	void RemoveChannel(int nId);		// // //
+
+private:
+	std::forward_list<stChannelID> id_cache_;		// // //
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

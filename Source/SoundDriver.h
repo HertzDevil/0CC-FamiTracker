@@ -25,6 +25,7 @@
 
 #include <memory>
 #include <vector>
+#include <map>
 #include <string>
 #include "FamiTrackerTypes.h"
 #include "APU/Types_fwd.h"
@@ -88,17 +89,14 @@ public:
 	template <typename F>
 	void ForeachTrack(F f) const {
 		if constexpr (std::is_invocable_v<F, CChannelHandler &, CTrackerChannel &>) {
-			for (auto &[ch, tr] : tracks_)
-				if (ch && tr)
+			for (auto &x : tracks_)
+				if (auto &[ch, tr] = x.second; ch && tr)
 					f(*ch, *tr);
 		}
 		else if constexpr (std::is_invocable_v<F, CChannelHandler &, CTrackerChannel &, stChannelID>) {
-			std::size_t x = 0;
-			for (auto &[ch, tr] : tracks_) {
-				if (ch && tr)
-					f(*ch, *tr, stChannelID {(chan_id_t)x});
-				++x;
-			}
+			for (auto &[id, x] : tracks_)
+				if (auto &[ch, tr] = x; ch && tr)
+					f(*ch, *tr, id);
 		}
 		else
 			static_assert(sizeof(F) == 0, "Unknown function signature");
@@ -116,7 +114,7 @@ private:
 	void HandleGlobalEffects(stChanNote &note);
 
 private:
-	std::vector<std::pair<CChannelHandler *, std::unique_ptr<CTrackerChannel>>> tracks_;
+	std::map<stChannelID, std::pair<CChannelHandler *, std::unique_ptr<CTrackerChannel>>, stChannelID_ident_less> tracks_;
 	std::vector<std::unique_ptr<CChipHandler>> chips_;		// // //
 	const CFamiTrackerModule *modfile_ = nullptr;		// // //
 	CSoundGenBase *parent_ = nullptr;		// // //

@@ -2766,6 +2766,7 @@ STRINGTABLE
 BEGIN
     ID_POPUP_PICKUPROW      "Select current row's instrument\nPick Up Row"
     ID_POPUP_UNMUTEALLCHANNELS "Unmute all tracks\nUnmute all tracks"
+    ID_MODULE_CHANNELS      "Add or remove tracks\nTracks"
 END
 
 STRINGTABLE

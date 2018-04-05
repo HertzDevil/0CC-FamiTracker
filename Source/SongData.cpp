@@ -23,6 +23,8 @@
 #include "SongData.h"
 #include "Bookmark.h"		// // //
 #include "ChannelOrder.h"		// // //
+#include "FamiTrackerEnv.h"		// // //
+#include "SoundChipService.h"		// // //
 
 // Defaults when creating new modules
 const unsigned CSongData::DEFAULT_ROW_COUNT	= 64;
@@ -35,16 +37,19 @@ CSongData::CSongData(unsigned int PatternLength) :		// // //
 	m_sTrackName("New song"),
 	m_iPatternLength(PatternLength)
 {
-	// // // Pre-allocate pattern 0 for all channels
-//	for (int i = 0; i < MAX_CHANNELS; ++i)
-//		tracks_[i].m_pPatternData[0].Allocate();		// // //
+	Env.GetSoundChipService()->ForeachTrack([&] (stChannelID track) {		// // //
+		tracks_.try_emplace(track);
+	});
 }
 
 CSongData::~CSongData() {
 }
 
 CTrackData *CSongData::GetTrack(stChannelID chan) {		// // //
-	return chan.Chip != sound_chip_t::NONE ? &tracks_[value_cast(chan_id_t {chan})] : nullptr;
+	if (chan.Chip != sound_chip_t::NONE)
+		if (auto it = tracks_.find(chan); it != tracks_.end())
+			return std::addressof(it->second);
+	return nullptr;
 }
 
 const CTrackData *CSongData::GetTrack(stChannelID chan) const {

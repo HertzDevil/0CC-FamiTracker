@@ -65,18 +65,19 @@ void CSoundDriver::SetupTracks() {
 	// Clear all channels
 	tracks_.clear();		// // //
 
-	for (std::size_t i = 0; i < CHANID_COUNT; ++i)
-		tracks_.emplace_back(nullptr, std::make_unique<CTrackerChannel>());
-
 	constexpr std::size_t INSTANCE_ID = 0u;
 
-	Env.GetSoundChipService()->ForeachType([&] (sound_chip_t c) {
+	auto *pSCS = Env.GetSoundChipService();
+	pSCS->ForeachTrack([&] (stChannelID id) {
+		tracks_.try_emplace(id, nullptr, std::make_unique<CTrackerChannel>());
+	});
+	pSCS->ForeachType([&] (sound_chip_t c) {
 		chips_.push_back(Env.GetSoundChipService()->MakeChipHandler(c, INSTANCE_ID));
 	});
 
 	for (auto &x : chips_) {
 		x->VisitChannelHandlers([&] (CChannelHandler &ch) {
-			tracks_[value_cast(chan_id_t {ch.GetChannelID()})].first = &ch;
+			tracks_[ch.GetChannelID()].first = &ch;
 		});
 	}
 }
@@ -116,8 +117,18 @@ std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(CSoundChipSet chips, u
 	return map;
 }
 
+CChannelHandler *CSoundDriver::GetChannelHandler(stChannelID chan) const {
+	if (chan.Chip != sound_chip_t::NONE)
+		if (auto it = tracks_.find(chan); it != tracks_.end())
+			return it->second.first;
+	return nullptr;
+}
+
 CTrackerChannel *CSoundDriver::GetTrackerChannel(stChannelID chan) {
-	return chan.Chip != sound_chip_t::NONE ? tracks_[value_cast(chan_id_t {chan})].second.get() : nullptr;
+	if (chan.Chip != sound_chip_t::NONE)
+		if (auto it = tracks_.find(chan); it != tracks_.end())
+			return it->second.second.get();
+	return nullptr;
 }
 
 const CTrackerChannel *CSoundDriver::GetTrackerChannel(stChannelID chan) const {
@@ -155,7 +166,8 @@ void CSoundDriver::LoadSoundState(const CSongState &state) {
 		m_pTempoCounter->LoadSoundState(state);
 	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &tr, stChannelID id) {		// // //
 		if (modfile_->GetChannelOrder().HasChannel(id))
-			ch.ApplyChannelState(state.State[value_cast(chan_id_t {id})]);
+			if (auto it = state.State.find(id); it != state.State.end())
+				ch.ApplyChannelState(it->second);
 	});
 }
 
@@ -261,13 +273,14 @@ void CSoundDriver::UpdateChannels() {
 }
 
 void CSoundDriver::QueueNote(stChannelID chan, const stChanNote &note, note_prio_t priority) {
-	if (auto &x = tracks_[value_cast(chan_id_t {chan})].second)
-		x->SetNote(note, priority);
+	if (auto *track = GetTrackerChannel(chan))
+		track->SetNote(note, priority);
 }
 
 void CSoundDriver::ForceReloadInstrument(stChannelID chan) {
 	if (modfile_)
-		tracks_[value_cast(chan_id_t {chan})].first->ForceReloadInstrument();
+		if (auto *handler = GetChannelHandler(chan))
+			handler->ForceReloadInstrument();
 }
 
 bool CSoundDriver::IsPlaying() const {
@@ -280,10 +293,6 @@ bool CSoundDriver::ShouldHalt() const {
 
 CPlayerCursor *CSoundDriver::GetPlayerCursor() const {
 	return m_pPlayerCursor.get();
-}
-
-CChannelHandler *CSoundDriver::GetChannelHandler(stChannelID chan) const {
-	return tracks_[value_cast(chan_id_t {chan})].first;
 }
 
 int CSoundDriver::GetChannelNote(stChannelID chan) const {

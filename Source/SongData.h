@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <array>		// // //
+#include <map>		// // //
 #include <string>		// // //
 #include "FamiTrackerTypes.h"		// // //
 #include "APU/Types.h"		// // //
@@ -106,32 +106,30 @@ public:
 	template <typename F>
 	void VisitTracks(F f) {
 		if constexpr (std::is_invocable_v<F, CTrackData &, stChannelID>) {
-			unsigned ch_pos = 0;
-			for (auto &track : tracks_)
-				f(track, stChannelID {(chan_id_t)ch_pos++});
+			for (auto &[id, track] : tracks_)
+				f(track, id);
 		}
 		else if constexpr (std::is_invocable_v<F, CTrackData &>) {
-			for (auto &track : tracks_)
-				f(track);
+			for (auto &x : tracks_)
+				f(x.second);
 		}
 		else
-			static_assert(sizeof(F) == 0, "Unknown function signature");
+			static_assert(!sizeof(F), "Unknown function signature");
 	}
 
 	// void (*F)(const CTrackData &track [, stChannelID ch])
 	template <typename F>
 	void VisitTracks(F f) const {
 		if constexpr (std::is_invocable_v<F, const CTrackData &, stChannelID>) {
-			unsigned ch_pos = 0;
-			for (auto &track : tracks_)
-				f(track, stChannelID {(chan_id_t)ch_pos++});
+			for (auto &[id, track] : tracks_)
+				f(track, id);
 		}
 		else if constexpr (std::is_invocable_v<F, const CTrackData &>) {
-			for (auto &track : tracks_)
-				f(track);
+			for (auto &x : tracks_)
+				f(x.second);
 		}
 		else
-			static_assert(sizeof(F) == 0, "Unknown function signature");
+			static_assert(!sizeof(F), "Unknown function signature");
 	}
 
 	// void (*F)(CPatternData &pattern [, stChannelID ch, std::size_t p_index])
@@ -148,7 +146,7 @@ public:
 				track.VisitPatterns(f);
 			});
 		else
-			static_assert(sizeof(F) == 0, "Unknown function signature");
+			static_assert(!sizeof(F), "Unknown function signature");
 	}
 
 	// void (*F)(const CPatternData &pattern [, stChannelID ch, std::size_t p_index])
@@ -165,7 +163,7 @@ public:
 				track.VisitPatterns(f);
 			});
 		else
-			static_assert(sizeof(F) == 0, "Unknown function signature");
+			static_assert(!sizeof(F), "Unknown function signature");
 	}
 
 public:
@@ -188,5 +186,5 @@ private:
 	// Bookmarks
 	CBookmarkCollection bookmarks_;		// // //
 
-	std::array<CTrackData, CHANID_COUNT> tracks_ = { };		// // //
+	std::map<stChannelID, CTrackData> tracks_;		// // //
 };

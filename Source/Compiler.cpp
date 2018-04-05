@@ -585,20 +585,14 @@ std::vector<unsigned char> CCompiler::LoadDriver(const driver_t &Driver, unsigne
 			}
 		});
 
-		const int CH_MAP[] = {
-			0, 1, 2, 3, 27,
-			6, 7, 8,
-			4, 5, -1,
-			9, 10, 11, 12, 13, 14, 15, 16,
-			17,
-			21, 22, 23, 24, 25, 26,
-			18, 19, 20,
-		};
+		auto full = Env.GetSoundChipService()->MakeFullOrder().Canonicalize();
+		full.RemoveChannel(mmc5_subindex_t::pcm);
 
-		for (int i = 0; i < CHANID_COUNT; ++i)
+		for (std::size_t i = 0, n = full.GetChannelCount(); i < n; ++i)
 			Data[FT_CH_ENABLE_ADR + i] = 0;
 		m_ChannelOrder.ForeachChannel([&] (stChannelID x) {
-			Data[FT_CH_ENABLE_ADR + CH_MAP[value_cast(chan_id_t {x})]] = 1;
+			if (std::size_t offs = full.GetChannelIndex(x); offs != static_cast<std::size_t>(-1))
+				Data[FT_CH_ENABLE_ADR + offs] = 1;
 		});
 	}
 

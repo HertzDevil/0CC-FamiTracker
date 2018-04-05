@@ -654,13 +654,14 @@ void CSoundGen::OnUpdateRow(int frame, int row) {
 }
 
 void CSoundGen::SetChannelMute(stChannelID chan, bool mute) {		// // //
-	muted_[value_cast(chan_id_t {chan})] = mute;
+	muted_[chan] = mute;
 	if (mute && chan == GetRecordChannel())
 		SetRecordChannel({ });
 }
 
 bool CSoundGen::IsChannelMuted(stChannelID chan) const {		// // //
-	return muted_[value_cast(chan_id_t {chan})];
+	auto it = muted_.find(chan);
+	return it != muted_.end() ? it->second : true;
 }
 
 bool CSoundGen::ShouldStopPlayer() const {

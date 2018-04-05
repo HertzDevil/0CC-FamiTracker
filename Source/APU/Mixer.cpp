@@ -200,16 +200,17 @@ void CMixer::SetNamcoVolume(float fVol)
 }
 
 void CMixer::UpdateMeters() {		// // //
-	for (int i = 0; i < CHANID_COUNT; ++i) {
-		m_fChannelLevelsLast[i] = m_fChannelLevels[i];		// // //
+	for (auto &x : m_ChannelLevels) {
+		auto &lv = x.second;
+		lv.LastLevel = lv.Level;		// // //
 		if (m_iMeterDecayRate == DECAY_FAST)		// // // 050B
-			m_fChannelLevels[i] = 0;
-		else if (m_iChanLevelFallOff[i] > 0)
-			--m_iChanLevelFallOff[i];
+			lv.Level = 0;
+		else if (lv.FallOff > 0)
+			--lv.FallOff;
 		else {
-			m_fChannelLevels[i] -= LEVEL_FALL_OFF_RATE;
-			if (m_fChannelLevels[i] < 0)
-				m_fChannelLevels[i] = 0;
+			lv.Level -= LEVEL_FALL_OFF_RATE;
+			if (lv.Level < 0.f)
+				lv.Level = 0.f;
 		}
 	}
 
@@ -292,48 +293,40 @@ int CMixer::ReadBuffer(int Size, void *Buffer, bool Stereo)
 
 int32_t CMixer::GetChanOutput(stChannelID Chan) const		// // //
 {
-	return (int32_t)m_fChannelLevelsLast[value_cast(chan_id_t {Chan})];		// // //
+	auto it = m_ChannelLevels.find(Chan);
+	return it != m_ChannelLevels.end() ? it->second.LastLevel : 0;
 }
 
 void CMixer::StoreChannelLevel(stChannelID Channel, int Level)		// // //
 {
 	double AbsVol = std::abs(Level);
-	stChannelID id = Channel;
 
 	// Adjust channel levels for some channels
-	if (IsAPUNoise(id))
+	if (IsDPCM(Channel))
 		AbsVol /= 8.;
 
-	if (IsVRC6Sawtooth(id))
+	if (IsVRC6Sawtooth(Channel))
 		AbsVol = AbsVol * .75;
 
-	if (id.Chip == sound_chip_t::FDS)
+	if (Channel.Chip == sound_chip_t::FDS)
 		AbsVol /= 188.;
 
-	if (id.Chip == sound_chip_t::N163) {		// // //
+	if (Channel.Chip == sound_chip_t::N163) {		// // //
 		AbsVol /= 15.;
-		id.Subindex = value_cast(n163_subindex_t::count) - 1 - id.Subindex;
-		Channel = id;
+		Channel.Subindex = value_cast(n163_subindex_t::count) - 1 - Channel.Subindex;
 	}
 
-	if (id.Chip == sound_chip_t::VRC7)		// // //
+	if (Channel.Chip == sound_chip_t::VRC7)		// // //
 		AbsVol = std::log(AbsVol) * 3.;
 
-	if (id.Chip == sound_chip_t::S5B)		// // //
+	if (Channel.Chip == sound_chip_t::S5B)		// // //
 		AbsVol = std::log(AbsVol) * 2.8;
 
-	std::size_t idx = value_cast(chan_id_t {Channel});
-	if (AbsVol >= m_fChannelLevels[idx]) {
-		m_fChannelLevels[idx] = float(AbsVol);
-		m_iChanLevelFallOff[idx] = LEVEL_FALL_OFF_DELAY;
+	auto &lv = m_ChannelLevels[Channel];
+	if (AbsVol >= lv.Level) {
+		lv.Level = (float)AbsVol;
+		lv.FallOff = LEVEL_FALL_OFF_DELAY;
 	}
-}
-
-void CMixer::ClearChannelLevels()
-{
-	m_fChannelLevels.fill(0.f);		// // //
-	m_fChannelLevelsLast.fill(0.f);
-	m_iChanLevelFallOff.fill(0u);
 }
 
 uint32_t CMixer::ResampleDuration(uint32_t Time) const

@@ -24,6 +24,7 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include "APU/Types.h"
 
 // // // auto-arpeggiation support
@@ -42,6 +43,6 @@ private:
 	int m_iLastAutoArpPtr = 0;
 	int m_iAutoArpKeyCount = 0;
 	char m_iAutoArpNotes[128] = { };
-	unsigned int m_iArpeggiate[CHANID_COUNT] = { };
+	std::map<stChannelID, unsigned> m_iArpeggiate;		// // //
 };
 

@@ -31,11 +31,11 @@
 #include "Common.h"
 #include <string>
 #include <vector>		// // //
-#include <array>		// // //
+#include <map>		// // //
 #include <memory>		// // //
 #include "FamiTrackerTypes.h"		// // //
 #include "SoundGenBase.h"		// // //
-#include "APU/Types.h" // CHANID_COUNT
+#include "APU/Types.h"
 
 // Custom messages
 enum {
@@ -308,7 +308,7 @@ private:
 	std::shared_ptr<CWaveRenderer> m_pWaveRenderer;			// // //
 	std::unique_ptr<CInstrumentRecorder> m_pInstRecorder;
 
-	std::array<bool, CHANID_COUNT> muted_ = { };				// // //
+	std::map<stChannelID, bool> muted_;						// // //
 
 	// FDS & N163 waves
 	volatile bool		m_bWaveChanged;

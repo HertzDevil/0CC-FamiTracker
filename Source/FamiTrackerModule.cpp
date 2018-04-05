@@ -323,12 +323,8 @@ void CFamiTrackerModule::RemoveUnusedPatterns() {
 	const CChannelOrder &order = GetChannelOrder();
 
 	VisitSongs([&] (CSongData &song) {
-		for (unsigned i = 0; i < CHANID_COUNT; ++i)
-			if (!order.HasChannel((chan_id_t)i))
-				for (int p = 0; p < MAX_PATTERN; ++p)
-					song.GetPattern((chan_id_t)i, p) = CPatternData { };
-		song.VisitPatterns([&song] (CPatternData &pattern, stChannelID c, unsigned p) {
-			if (!song.IsPatternInUse(c, p))
+		song.VisitPatterns([&] (CPatternData &pattern, stChannelID c, unsigned p) {
+			if (!order.HasChannel(c) || !song.IsPatternInUse(c, p))
 				pattern = CPatternData { };
 		});
 	});

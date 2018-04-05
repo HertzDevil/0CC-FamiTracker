@@ -250,6 +250,29 @@ private:
 	}
 };
 
+struct stChannelID_ident_less {
+	static constexpr int compare(const stChannelID &lhs, const stChannelID &rhs) noexcept {
+		if (lhs.Chip == sound_chip_t::NONE && rhs.Chip == sound_chip_t::NONE)
+			return 0;
+		if (lhs.Ident > rhs.Ident)
+			return 1;
+		if (lhs.Ident < rhs.Ident)
+			return -1;
+		if (lhs.Chip > rhs.Chip)
+			return 1;
+		if (lhs.Chip < rhs.Chip)
+			return -1;
+		if (lhs.Subindex > rhs.Subindex)
+			return 1;
+		if (lhs.Subindex < rhs.Subindex)
+			return -1;
+		return 0;
+	}
+	constexpr bool operator()(const stChannelID &lhs, const stChannelID &rhs) const noexcept {
+		return compare(lhs, rhs) < 0;
+	}
+};
+
 constexpr bool IsAPUPulse(stChannelID id) noexcept {
 	return id.Chip == sound_chip_t::APU && (
 		id.Subindex == value_cast(apu_subindex_t::pulse1) || id.Subindex == value_cast(apu_subindex_t::pulse2));

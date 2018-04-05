@@ -36,6 +36,7 @@ class CConstSongView {
 public:
 	CConstSongView(const CChannelOrder &order, const CSongData &song);
 
+	CChannelOrder &GetChannelOrder();
 	const CChannelOrder &GetChannelOrder() const;
 	const CSongData &GetSong() const;
 

@@ -32,6 +32,7 @@
 #include "NumConv.h"
 
 #include "FamiTrackerEnv.h"
+#include "SoundChipService.h"
 #include "SoundGen.h"
 #include "ChannelMap.h"
 
@@ -251,8 +252,8 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerModule &modfile, int ver) {
 		Expansion = CSoundChipSet::FromNSFFlag(flag);
 	}
 
-	int channels = AssertRange(file_.GetBlockInt(), 1, (int)CHANID_COUNT, "Channel count");		// // //
-	AssertRange<MODULE_ERROR_OFFICIAL>(channels, 1, (int)MAX_CHANNELS - 1, "Channel count");
+	int channels = AssertRange(file_.GetBlockInt(), 1, (int)CHANID_COUNT, "Track count");		// // //
+	AssertRange<MODULE_ERROR_OFFICIAL>(channels, 1, (int)MAX_CHANNELS - 1, "Track count");
 
 	auto machine = static_cast<machine_t>(file_.GetBlockInt());
 	AssertFileData(machine == NTSC || machine == PAL, "Unknown machine");
@@ -314,7 +315,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerModule &modfile, int ver) {
 	// Read namco channel count
 	unsigned n163chans = 0;
 	if (ver >= 5 && (Expansion.ContainsChip(sound_chip_t::N163)))
-		n163chans = AssertRange((unsigned)file_.GetBlockInt(), 1u, MAX_CHANNELS_N163, "N163 channel count");
+		n163chans = AssertRange((unsigned)file_.GetBlockInt(), 1u, MAX_CHANNELS_N163, "N163 track count");
 
 	// Determine if new or old split point is preferred
 	int Split = AssertRange<MODULE_ERROR_STRICT>(ver >= 6 ? file_.GetBlockInt() : (int)CFamiTrackerModule::OLD_SPEED_SPLIT_POINT,
@@ -327,7 +328,9 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerModule &modfile, int ver) {
 	}
 
 	modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(Expansion, n163chans));		// // //
-	AssertFileData<MODULE_ERROR_STRICT>(modfile.GetChannelOrder().GetChannelCount() == channels, "Channel count mismatch");
+	auto &order = modfile.GetChannelOrder();
+	order = order.BuiltinOrder();
+	AssertFileData<MODULE_ERROR_STRICT>(order.GetChannelCount() == channels, "Track count mismatch");
 }
 
 void CFamiTrackerDocIO::SaveParams(const CFamiTrackerModule &modfile, int ver) {
@@ -396,18 +399,18 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 					file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count") + 1);
 			}
 			catch (CModuleException e) {
-				e.AppendError("At channel + " + conv::from_int(value_cast(chan_id_t {i}) + 1));
+				e.AppendError("At track + " + std::string {Env.GetSoundChipService()->GetChannelFullName(i)});
 				throw e;
 			}
 		});
 	}
 	else if (ver >= 2) {
 		// Multiple tracks
-		unsigned Tracks = AssertRange(file_.GetBlockChar() + 1, 1, static_cast<int>(MAX_TRACKS), "Track count");	// 0 means one track
+		unsigned Tracks = AssertRange(file_.GetBlockChar() + 1, 1, static_cast<int>(MAX_TRACKS), "Song count");	// 0 means one song
 		if (!modfile.GetSong(Tracks - 1)) // allocate
 			throw CModuleException::WithMessage("Unable to allocate song");
 
-		// Track names
+		// Song names
 		if (ver >= 3)
 			modfile.VisitSongs([&] (CSongData &song) { song.SetTitle(file_.ReadString()); });
 
@@ -426,7 +429,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 				});
 			}
 			catch (CModuleException e) {
-				e.AppendError("At channel " + conv::from_int(value_cast(chan_id_t {i}) + 1) + ',');
+				e.AppendError("At track " + std::string {Env.GetSoundChipService()->GetChannelFullName(i)} + ',');
 				throw e;
 			}
 		});
@@ -675,9 +678,9 @@ void CFamiTrackerDocIO::SaveSequences(const CFamiTrackerModule &modfile, int ver
 
 void CFamiTrackerDocIO::LoadFrames(CFamiTrackerModule &modfile, int ver) {
 	if (ver == 1) {
-		unsigned int FrameCount = AssertRange(file_.GetBlockInt(), 1, MAX_FRAMES, "Track frame count");
+		unsigned int FrameCount = AssertRange(file_.GetBlockInt(), 1, MAX_FRAMES, "Song frame count");
 		/*m_iChannelsAvailable =*/ AssertRange<MODULE_ERROR_OFFICIAL>(AssertRange(file_.GetBlockInt(),
-			0, (int)CHANID_COUNT, "Channel count"), 0, (int)MAX_CHANNELS, "Channel count");
+			0, (int)CHANID_COUNT, "Track count"), 0, (int)MAX_CHANNELS, "Track count");
 		auto &Song = *modfile.GetSong(0);
 		Song.SetFrameCount(FrameCount);
 		for (unsigned i = 0; i < FrameCount; ++i) {
@@ -690,12 +693,12 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerModule &modfile, int ver) {
 	}
 	else if (ver > 1) {
 		modfile.VisitSongs([&] (CSongData &song) {
-			unsigned int FrameCount = AssertRange(file_.GetBlockInt(), 1, MAX_FRAMES, "Track frame count");
-			unsigned int Speed = AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockInt(), 0, MAX_TEMPO, "Track default speed");
+			unsigned int FrameCount = AssertRange(file_.GetBlockInt(), 1, MAX_FRAMES, "Song frame count");
+			unsigned int Speed = AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockInt(), 0, MAX_TEMPO, "Song default speed");
 			song.SetFrameCount(FrameCount);
 
 			if (ver >= 3) {
-				unsigned int Tempo = AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockInt(), 0, MAX_TEMPO, "Track default tempo");
+				unsigned int Tempo = AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockInt(), 0, MAX_TEMPO, "Song default tempo");
 				song.SetSongTempo(Tempo);
 				song.SetSongSpeed(Speed);
 			}
@@ -710,7 +713,7 @@ void CFamiTrackerDocIO::LoadFrames(CFamiTrackerModule &modfile, int ver) {
 				}
 			}
 
-			unsigned PatternLength = AssertRange(file_.GetBlockInt(), 1, MAX_PATTERN_LENGTH, "Track default row count");
+			unsigned PatternLength = AssertRange(file_.GetBlockInt(), 1, MAX_PATTERN_LENGTH, "Song default row count");
 			song.SetPatternLength(PatternLength);
 
 			for (unsigned i = 0; i < FrameCount; ++i) {
@@ -752,10 +755,10 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 	while (!file_.BlockDone()) {
 		unsigned Track = 0;
 		if (ver > 1)
-			Track = AssertRange(file_.GetBlockInt(), 0, static_cast<int>(MAX_TRACKS) - 1, "Pattern track index");
+			Track = AssertRange(file_.GetBlockInt(), 0, static_cast<int>(MAX_TRACKS) - 1, "Pattern song index");
 
-		unsigned Channel = AssertRange((unsigned)file_.GetBlockInt(), 0u, CHANID_COUNT - 1, "Pattern channel index");
-		AssertRange<MODULE_ERROR_OFFICIAL>(Channel, 0u, MAX_CHANNELS - 1, "Pattern channel index");
+		unsigned Channel = AssertRange((unsigned)file_.GetBlockInt(), 0u, CHANID_COUNT - 1, "Pattern track index");
+		AssertRange<MODULE_ERROR_OFFICIAL>(Channel, 0u, MAX_CHANNELS - 1, "Pattern track index");
 		unsigned Pattern = AssertRange(file_.GetBlockInt(), 0, MAX_PATTERN - 1, "Pattern index");
 		unsigned Items	= AssertRange(file_.GetBlockInt(), 0, MAX_PATTERN_LENGTH, "Pattern data count");
 		stChannelID ch = order.TranslateChannel(Channel);
@@ -903,7 +906,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 			}
 		}
 		catch (CModuleException e) {
-			e.AppendError("At pattern " + conv::from_int_hex(Pattern, 2) + ", channel " + conv::from_int(Channel) + ", track " + conv::from_int(Track + 1) + ',');
+			e.AppendError("At pattern " + conv::from_int_hex(Pattern, 2) + ", channel " + conv::from_int(Channel) + ", song " + conv::from_int(Track + 1) + ',');
 			throw e;
 		}
 	}
@@ -1320,7 +1323,7 @@ void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerModule &modfile, int ver) {
 	}
 
 	unsigned int Tracks = file_.GetBlockChar();
-	AssertFileData<MODULE_ERROR_STRICT>(Tracks == modfile.GetSongCount(), "Use-groove flag count does not match track count");
+	AssertFileData<MODULE_ERROR_STRICT>(Tracks == modfile.GetSongCount(), "Use-groove flag count does not match song count");
 	for (unsigned i = 0; i < Tracks; ++i) try {
 		bool Use = file_.GetBlockChar() == 1;
 		if (i >= modfile.GetSongCount())
@@ -1328,12 +1331,12 @@ void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerModule &modfile, int ver) {
 		int Speed = modfile.GetSong(i)->GetSongSpeed();
 		modfile.GetSong(i)->SetSongGroove(Use);
 		if (Use)
-			AssertRange(Speed, 0, MAX_GROOVE - 1, "Track default groove index");
+			AssertRange(Speed, 0, MAX_GROOVE - 1, "Song default groove index");
 		else
-			AssertRange(Speed, 1, MAX_TEMPO, "Track default speed");
+			AssertRange(Speed, 1, MAX_TEMPO, "Song default speed");
 	}
 	catch (CModuleException e) {
-		e.AppendError("At track " + conv::from_int(i + 1) + ',');
+		e.AppendError("At song " + conv::from_int(i + 1) + ',');
 		throw e;
 	}
 }
@@ -1364,7 +1367,7 @@ void CFamiTrackerDocIO::LoadBookmarks(CFamiTrackerModule &modfile, int ver) {
 	for (int i = 0, n = file_.GetBlockInt(); i < n; ++i) {
 		auto pMark = std::make_unique<CBookmark>();
 		unsigned int Track = AssertRange(
-			static_cast<unsigned char>(file_.GetBlockChar()), 0, modfile.GetSongCount() - 1, "Bookmark track index");
+			static_cast<unsigned char>(file_.GetBlockChar()), 0, modfile.GetSongCount() - 1, "Bookmark song index");
 		int Frame = static_cast<unsigned char>(file_.GetBlockChar());
 		int Row = static_cast<unsigned char>(file_.GetBlockChar());
 

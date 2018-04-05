@@ -930,7 +930,7 @@ CStringA CTextExport::ExportRows(LPCWSTR FileName, const CFamiTrackerModule &mod
 		f.Write(str.GetString(), str.GetLength());
 	};
 
-	WriteString("ID,TRACK,CHANNEL,PATTERN,ROW,NOTE,OCTAVE,INST,VOLUME,FX1,FX1PARAM,FX2,FX2PARAM,FX3,FX3PARAM,FX4,FX4PARAM\n");
+	WriteString("ID,SONG,CHIP,SUBINDEX,PATTERN,ROW,NOTE,OCTAVE,INST,VOLUME,FX1,FX1PARAM,FX2,FX2PARAM,FX3,FX3PARAM,FX4,FX4PARAM\n");
 
 	const LPCSTR FMT = "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n";
 	int id = 0;
@@ -941,7 +941,7 @@ CStringA CTextExport::ExportRows(LPCWSTR FileName, const CFamiTrackerModule &mod
 			if (song.IsPatternInUse(c, p))
 				pat.VisitRows(rows, [&] (const stChanNote &stCell, unsigned r) {
 					if (stCell != stChanNote { })
-						WriteString(FormattedA(FMT, id++, t, chan_id_t {c}, p, r,
+						WriteString(FormattedA(FMT, id++, t, value_cast(c.Chip), c.Subindex, p, r,
 							stCell.Note, stCell.Octave, stCell.Instrument, stCell.Vol,
 							stCell.EffNumber[0], stCell.EffParam[0],
 							stCell.EffNumber[1], stCell.EffParam[1],

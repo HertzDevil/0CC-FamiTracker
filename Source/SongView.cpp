@@ -34,6 +34,10 @@ CSongView::CSongView(const CChannelOrder &order, CSongData &song) :
 {
 }
 
+CChannelOrder &CConstSongView::GetChannelOrder() {
+	return order_;
+}
+
 const CChannelOrder &CConstSongView::GetChannelOrder() const {
 	return order_;
 }

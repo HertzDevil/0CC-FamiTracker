@@ -28,6 +28,7 @@
 #include <memory>
 #include <string>
 #include <array>
+#include <map>
 
 class CFamiTrackerModule;
 class stChanNote;
@@ -76,12 +77,10 @@ private:
 
 class CSongState {
 public:
-	CSongState();
-
 	void Retrieve(const CFamiTrackerModule &modfile, unsigned Track, unsigned Frame, unsigned Row);
 	std::string GetChannelStateString(const CFamiTrackerModule &modfile, stChannelID chan) const;
 
-	std::array<stChannelState, CHANID_COUNT> State = { };
+	std::map<stChannelID, stChannelState> State;
 	int Tempo = -1;
 	int Speed = -1;
 	int GroovePos = -1; // -1: disable groove

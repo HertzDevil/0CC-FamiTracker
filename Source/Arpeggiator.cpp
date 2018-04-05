@@ -33,7 +33,7 @@ void CArpeggiator::Tick(stChannelID CurrentChannel) {
 		m_iAutoArpPtr = (m_iAutoArpPtr + 1) & 127;
 		if (m_iAutoArpNotes[m_iAutoArpPtr] == 1) {
 			m_iLastAutoArpPtr = m_iAutoArpPtr;
-			m_iArpeggiate[value_cast(chan_id_t {CurrentChannel})] = m_iAutoArpPtr;
+			m_iArpeggiate[CurrentChannel] = m_iAutoArpPtr;
 			break;
 		}
 		else if (m_iAutoArpNotes[m_iAutoArpPtr] == 2) {
@@ -63,7 +63,7 @@ void CArpeggiator::CutNote(unsigned MidiNote) {
 }
 
 int CArpeggiator::GetNextNote(stChannelID Channel) {
-	return std::exchange(m_iArpeggiate[value_cast(chan_id_t {Channel})], 0);
+	return std::exchange(m_iArpeggiate[Channel], 0);
 }
 
 std::string CArpeggiator::GetStateString() const {

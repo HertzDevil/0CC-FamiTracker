@@ -28,6 +28,7 @@
 #include "Common.h"
 #include "Blip_Buffer/Blip_Buffer.h"
 #include <array>		// // //
+#include <map>		// // //
 #include "SoundChipSet.h"		// // //
 
 enum chip_level_t : unsigned char {
@@ -73,7 +74,6 @@ public:
 private:
 	void UpdateMeters();		// // //
 	void StoreChannelLevel(stChannelID Channel, int Level);		// // //
-	void ClearChannelLevels();
 
 	float GetAttenuation() const;
 
@@ -100,9 +100,13 @@ private:
 	CSoundChipSet m_iExternalChip;
 	uint32_t	m_iSampleRate = 0;
 
-	std::array<float, CHANID_COUNT>		m_fChannelLevels = { };
-	std::array<float, CHANID_COUNT>		m_fChannelLevelsLast = { };		// // //
-	std::array<uint32_t, CHANID_COUNT>	m_iChanLevelFallOff = { };
+	struct stTrackLevel {		// // //
+		float Level = 0.f;
+		float LastLevel = 0.f;
+		uint32_t FallOff = 0u;
+	};
+
+	std::map<stChannelID, stTrackLevel> m_ChannelLevels;		// // //
 
 	decay_rate_t m_iMeterDecayRate = DECAY_SLOW;		// // // 050B
 	int			m_iLowCut = 0;

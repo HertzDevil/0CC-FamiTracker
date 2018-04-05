@@ -79,9 +79,9 @@ BOOL CChannelsDlg::OnInitDialog()
 		HTREEITEM hItem = m_cAvailableTree.InsertItem(conv::to_wide(pSCS->GetChipFullName(ch)).data());
 		m_cAvailableTree.SetItemData(hItem, value_cast(ch));
 		for (std::size_t subindex = 0, n = pSCS->GetSupportedChannelCount(ch); subindex < n; ++subindex) {
-			auto chan = pSCS->MakeChannelIndex(ch, subindex);
+			const auto &chan = id_cache_.emplace_front(pSCS->MakeChannelIndex(ch, subindex));
 			HTREEITEM hChild = m_cAvailableTree.InsertItem(FormattedW(L"%u: %s", subindex, conv::to_wide(pSCS->GetChannelFullName(chan)).data()), hItem);
-			m_cAvailableTree.SetItemData(hChild, value_cast(chan_id_t {chan}));
+			m_cAvailableTree.SetItemData(hChild, reinterpret_cast<DWORD_PTR>(&chan));
 		}
 		m_cAvailableTree.SortChildren(hItem);
 	});
@@ -89,7 +89,7 @@ BOOL CChannelsDlg::OnInitDialog()
 	CFamiTrackerView::GetView()->GetSongView()->GetChannelOrder().ForeachChannel([&] (stChannelID ch) {
 		for (HTREEITEM hChip = m_cAvailableTree.GetRootItem(); hChip; hChip = m_cAvailableTree.GetNextItem(hChip, TVGN_NEXT)) {
 			for (HTREEITEM hItem = m_cAvailableTree.GetNextItem(hChip, TVGN_CHILD); hItem; hItem = m_cAvailableTree.GetNextItem(hItem, TVGN_NEXT)) {
-				if (enum_cast<chan_id_t>(m_cAvailableTree.GetItemData(hItem)) == chan_id_t {ch}) {		// // //
+				if (*reinterpret_cast<const stChannelID *>(m_cAvailableTree.GetItemData(hItem)) == ch) {		// // //
 					InsertChannel(hItem);
 					return;
 				}
@@ -130,10 +130,9 @@ void CChannelsDlg::OnDblClickAvailable(NMHDR *pNMHDR, LRESULT *result)
 			}
 			else {
 				auto Chip = enum_cast<sound_chip_t>(m_cAvailableTree.GetItemData(hItem));
-				auto *pSCS = Env.GetSoundChipService();		// // //
 				int i = 0;
 				while (i < m_cAddedChannels.GetItemCount())
-					if (stChannelID {enum_cast<chan_id_t>(m_cAddedChannels.GetItemData(i))}.Chip == Chip)
+					if (reinterpret_cast<const stChannelID *>(m_cAddedChannels.GetItemData(i))->Chip == Chip)
 						RemoveChannel(i);
 					else
 						++i;
@@ -159,11 +158,11 @@ void CChannelsDlg::InsertChannel(HTREEITEM hItem) {
 
 	if (HTREEITEM hParentItem = m_cAvailableTree.GetParentItem(hItem)) {
 		auto iData = m_cAvailableTree.GetItemData(hItem);
-		auto ChanId = stChannelID {enum_cast<chan_id_t>(iData)};
+		const auto &ChanID = *reinterpret_cast<const stChannelID *>(iData);
 
-		auto AddStr = std::string {pSCS->GetChipShortName(ChanId.Chip)};
+		auto AddStr = std::string {pSCS->GetChipShortName(ChanID.Chip)};
 		AddStr += " :: ";
-		AddStr += pSCS->GetChannelFullName(ChanId);
+		AddStr += pSCS->GetChannelFullName(ChanID);
 
 		int ChansAdded = m_cAddedChannels.GetItemCount();
 		int Index = m_cAddedChannels.InsertItem(ChansAdded, conv::to_wide(AddStr).data());
@@ -177,8 +176,8 @@ void CChannelsDlg::InsertChannel(HTREEITEM hItem) {
 
 void CChannelsDlg::RemoveChannel(int nId) {		// // //
 	auto *pSCS = Env.GetSoundChipService();		// // //
-	auto iData = m_cAddedChannels.GetItemData(nId);
-	auto ChanID = stChannelID {enum_cast<chan_id_t>(iData)};
+	DWORD_PTR iData = m_cAddedChannels.GetItemData(nId);
+	const auto &ChanID = *reinterpret_cast<const stChannelID *>(iData);
 
 	// Put back in available list
 	for (HTREEITEM hChip = m_cAvailableTree.GetRootItem(); hChip; hChip = m_cAvailableTree.GetNextItem(hChip, TVGN_NEXT)) {

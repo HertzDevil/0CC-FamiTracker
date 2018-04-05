@@ -26,10 +26,14 @@
 #include <map>
 #include "SoundChipType.h"
 
+class CChannelOrder;
+
 class CSoundChipService {
 public:
 	void AddType(std::unique_ptr<CSoundChipType> stype);
 	void AddDefaultTypes();
+
+	CChannelOrder MakeFullOrder() const;
 
 	std::size_t GetSupportedChannelCount(sound_chip_t chip) const;
 	stChannelID MakeChannelIndex(sound_chip_t chip, std::size_t subindex) const;
