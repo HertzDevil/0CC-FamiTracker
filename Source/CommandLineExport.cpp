@@ -31,14 +31,14 @@
 // Command line export logger
 class CCommandLineLog : public CCompilerLog {
 public:
-	explicit CCommandLineLog(CStdioFile *pFile) : m_pFile(pFile) { }
+	explicit CCommandLineLog(CStdioFile &File) : m_fFile(File) { }		// // //
 	void WriteLog(std::string_view text) override {
-		m_pFile->Write(text.data(), text.size());
+		m_fFile.Write(text.data(), text.size());
 	};
 	void Clear() override { }
 
 private:
-	CStdioFile *m_pFile;
+	CStdioFile &m_fFile;
 };
 
 // Command line export function
@@ -76,8 +76,17 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 		fLog.WriteString(L"\n");
 	}
 
+	CFile OutputFile;		// // //
+	CFileException ex;
+	if (!OutputFile.Open(fileOut, CFile::modeWrite | CFile::modeCreate, &ex)) {
+		WCHAR szCause[255] = { };
+		ex.GetErrorMessage(szCause, std::size(szCause));
+		fLog.WriteString(FormattedW(L"Error: Could not open output file: %s\n", szCause));
+		return;
+	}
+
 	// find extension
-	int nPos = fileOut.ReverseFind(WCHAR('.'));
+	int nPos = fileOut.ReverseFind(L'.');
 	if (nPos < 0) {
 		if (bLog) {
 			fLog.WriteString(L"Error: export filename has no extension: ");
@@ -92,16 +101,16 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 
 	// export
 	if (0 == ext.CompareNoCase(L".nsf")) {
-		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
-		compiler.ExportNSF(fileOut, value_cast(pModule->GetMachine()));
+		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(fLog) : nullptr);		// // //
+		compiler.ExportNSF(OutputFile, value_cast(pModule->GetMachine()));
 		if (bLog) {
 			fLog.WriteString(L"\nNSF export complete.\n");
 		}
 		return;
 	}
 	else if (0 == ext.CompareNoCase(L".nes")) {
-		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
-		compiler.ExportNES(fileOut, pModule->GetMachine() == machine_t::PAL);
+		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(fLog) : nullptr);		// // //
+		compiler.ExportNES(OutputFile, pModule->GetMachine() == machine_t::PAL);
 		if (bLog) {
 			fLog.WriteString(L"\nNES export complete.\n");
 		}
@@ -109,24 +118,32 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 	}
 	// BIN export requires two files
 	else if (0 == ext.CompareNoCase(L".bin")) {
-		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
-		compiler.ExportBIN(fileOut, fileDPCM);
+		CFile DPCMFile;		// // //
+		if (!DPCMFile.Open(fileDPCM, CFile::modeWrite | CFile::modeCreate, &ex)) {
+			WCHAR szCause[255] = { };
+			ex.GetErrorMessage(szCause, std::size(szCause));
+			fLog.WriteString(FormattedW(L"Error: Could not open output file: %s\n", szCause));
+			return;
+		}
+
+		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(fLog) : nullptr);		// // //
+		compiler.ExportBIN(OutputFile, DPCMFile);
 		if (bLog) {
 			fLog.WriteString(L"\nBIN export complete.\n");
 		}
 		return;
 	}
 	else if (0 == ext.CompareNoCase(L".prg")) {
-		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
-		compiler.ExportPRG(fileOut, pModule->GetMachine() == machine_t::PAL);
+		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(fLog) : nullptr);		// // //
+		compiler.ExportPRG(OutputFile, pModule->GetMachine() == machine_t::PAL);
 		if (bLog) {
 			fLog.WriteString(L"\nPRG export complete.\n");
 		}
 		return;
 	}
 	else if (0 == ext.CompareNoCase(L".asm")) {
-		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
-		compiler.ExportASM(fileOut);
+		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(fLog) : nullptr);		// // //
+		compiler.ExportASM(OutputFile);
 		if (bLog) {
 			fLog.WriteString(L"\nASM export complete.\n");
 		}
@@ -134,8 +151,8 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 	}
 	else if (0 == ext.CompareNoCase(L".nsfe"))		// // //
 	{
-		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(&fLog) : nullptr);		// // //
-		compiler.ExportNSFE(fileOut, value_cast(pModule->GetMachine()));
+		CCompiler compiler(*pModule, bLog ? std::make_shared<CCommandLineLog>(fLog) : nullptr);		// // //
+		compiler.ExportNSFE(OutputFile, value_cast(pModule->GetMachine()));
 		if (bLog) {
 			fLog.WriteString(L"\nNSFe export complete.\n");
 		}

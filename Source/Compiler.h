@@ -104,21 +104,19 @@ public:
 	CCompiler(const CFamiTrackerModule &modfile, std::shared_ptr<CCompilerLog> pLogger);		// // //
 	~CCompiler();
 
-	void	ExportNSF(const wchar_t *lpszFileName, int MachineType);
-	void	ExportNSFE(const wchar_t *lpszFileName, int MachineType);		// // //
-	void	ExportNES(const wchar_t *lpszFileName, bool EnablePAL);
-	void	ExportBIN(const wchar_t *lpszBIN_File, const wchar_t *lpszDPCM_File);
-	void	ExportPRG(const wchar_t *lpszFileName, bool EnablePAL);
-	void	ExportASM(const wchar_t *lpszFileName);
+	void	ExportNSF(CFile &file, int MachineType);		// // //
+	void	ExportNSFE(CFile &file, int MachineType);		// // //
+	void	ExportNES(CFile &file, bool EnablePAL);
+	void	ExportBIN(CFile &binFile, CFile &dpcmFile);
+	void	ExportPRG(CFile &file, bool EnablePAL);
+	void	ExportASM(CFile &file);
 
 	void	SetMetadata(std::string_view title, std::string_view artist, std::string_view copyright);		// // //
 
 private:
-	void	ExportNSF_NSFE(const wchar_t *lpszFileName, int MachineType, bool isNSFE);		// // //
-	void	ExportNES_PRG(const wchar_t *lpszFileName, bool EnablePAL, bool isPRG);		// // //
-	void	ExportBIN_ASM(const wchar_t *lpszFileName, const wchar_t *lpszDPCM_File, bool isASM);		// // //
-
-	bool	OpenFile(const wchar_t *lpszFileName, CFile &file) const;
+	void	ExportNSF_NSFE(CFile &file, int MachineType, bool isNSFE);		// // //
+	void	ExportNES_PRG(CFile &file, bool EnablePAL, bool isPRG);		// // //
+	void	ExportBIN_ASM(CFile &binFile, CFile *dpcmFile, bool isASM);		// // //
 
 	stNSFHeader CreateHeader(int MachineType) const;		// // //
 	stNSFeHeader CreateNSFeHeader(int MachineType);		// // //

@@ -324,7 +324,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 		// Could not open file
 		WCHAR szCause[255] = { };
 		ex.GetErrorMessage(szCause, std::size(szCause));
-		AfxMessageBox(AfxFormattedW(IDS_SAVE_FILE_ERROR, szCause), MB_OK | MB_ICONERROR);
+		AfxMessageBox(FormattedW(L"Could not save file: %s", szCause), MB_OK | MB_ICONERROR);
 		return FALSE;
 	}
 
@@ -357,7 +357,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 		LPWSTR lpMsgBuf;
 		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 			NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&lpMsgBuf, 0, NULL);
-		AfxMessageBox(AfxFormattedW(IDS_SAVE_FILE_ERROR, lpMsgBuf), MB_OK | MB_ICONERROR);
+		AfxMessageBox(FormattedW(L"Could not save file: %s", lpMsgBuf), MB_OK | MB_ICONERROR);
 		LocalFree(lpMsgBuf);
 		// Remove temp file
 		DeleteFileW(TempFile);

@@ -142,6 +142,7 @@ CCompiler::CCompiler(const CFamiTrackerModule &modfile, std::shared_ptr<CCompile
 	copyright_(m_pModule->GetModuleCopyright()),
 	m_pLogger(std::move(pLogger))
 {
+	ClearLog();		// // //
 }
 
 CCompiler::~CCompiler() {
@@ -159,21 +160,6 @@ void CCompiler::ClearLog() const
 {
 	if (m_pLogger)
 		m_pLogger->Clear();
-}
-
-bool CCompiler::OpenFile(const wchar_t *lpszFileName, CFile &file) const
-{
-	CFileException ex;
-
-	if (!file.Open(lpszFileName, CFile::modeWrite | CFile::modeCreate, &ex)) {
-		// Display formatted file exception message
-		WCHAR szCause[255] = { };
-		ex.GetErrorMessage(szCause, std::size(szCause));
-		AfxMessageBox(AfxFormattedW(IDS_OPEN_FILE_ERROR, szCause), MB_OK | MB_ICONERROR);		// // //
-		return false;
-	}
-
-	return true;
 }
 
 namespace {
@@ -229,7 +215,7 @@ ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerModule &modfile,
 
 } // namespace
 
-void CCompiler::ExportNSF_NSFE(const wchar_t *lpszFileName, int MachineType, bool isNSFE) {
+void CCompiler::ExportNSF_NSFE(CFile &file, int MachineType, bool isNSFE) {
 	if (m_bBankSwitched) {
 		// Expand and allocate label addresses
 		AddBankswitching();
@@ -274,27 +260,20 @@ void CCompiler::ExportNSF_NSFE(const wchar_t *lpszFileName, int MachineType, boo
 	Driver[m_iDriverSize - 2] = MusicDataAddress & 0xFF;
 	Driver[m_iDriverSize - 1] = MusicDataAddress >> 8;
 
-	// Open output file
-	CFile OutputFile;
-	if (!OpenFile(lpszFileName, OutputFile)) {
-		Print("Error: Could not open output file\n");
-		return;
-	}
-
 	// Create NSF header
 	ULONGLONG iDataSizePos = 0;		// // //
 	if (isNSFE) {
 		auto Header = CreateNSFeHeader(MachineType);		// // //
-		OutputFile.Write(&Header, sizeof(Header));
-		iDataSizePos = NSFEWriteBlocks(OutputFile, *m_pModule, title_, artist_, copyright_);
+		file.Write(&Header, sizeof(Header));
+		iDataSizePos = NSFEWriteBlocks(file, *m_pModule, title_, artist_, copyright_);
 	}
 	else {
 		auto Header = CreateHeader(MachineType);		// // //
-		OutputFile.Write(&Header, sizeof(Header));
+		file.Write(&Header, sizeof(Header));
 	}
 
 	// Write NSF data
-	CChunkRenderNSF Render(&OutputFile, m_iLoadAddress);
+	CChunkRenderNSF Render(&file, m_iLoadAddress);
 
 	if (m_bBankSwitched) {
 		Render.StoreDriver(Driver);
@@ -315,9 +294,9 @@ void CCompiler::ExportNSF_NSFE(const wchar_t *lpszFileName, int MachineType, boo
 	}
 
 	if (isNSFE) {
-		NSFEWriteBlockIdent(OutputFile, "NEND", 0);		// // //
-		OutputFile.Seek(iDataSizePos, CFile::begin);
-		NSFEWriteBlockIdent(OutputFile, "DATA", m_bBankSwitched ? 0x1000 * (Render.GetBankCount() - 1) :
+		NSFEWriteBlockIdent(file, "NEND", 0);		// // //
+		file.Seek(iDataSizePos, CFile::begin);
+		NSFEWriteBlockIdent(file, "DATA", m_bBankSwitched ? 0x1000 * (Render.GetBankCount() - 1) :
 			m_iDriverSize + m_iMusicDataSize + m_iSamplesSize);		// // //
 	}
 
@@ -338,12 +317,10 @@ void CCompiler::ExportNSF_NSFE(const wchar_t *lpszFileName, int MachineType, boo
 		Print(" * NSF type: Linear (driver @ $" + conv::from_uint_hex(m_iDriverAddress, 4) + ")\n");
 	}
 
-	Print("Done, total file size: " + conv::from_uint(OutputFile.GetLength()) + " bytes\n");
-
-	OutputFile.Close();
+	Print("Done, total file size: " + conv::from_uint(file.GetLength()) + " bytes\n");
 }
 
-void CCompiler::ExportNES_PRG(const wchar_t *lpszFileName, bool EnablePAL, bool isPRG) {
+void CCompiler::ExportNES_PRG(CFile &file, bool EnablePAL, bool isPRG) {
 	if (m_bBankSwitched) {
 		Print("Error: Can't write bankswitched songs!\n");
 		return;
@@ -370,10 +347,6 @@ void CCompiler::ExportNES_PRG(const wchar_t *lpszFileName, bool EnablePAL, bool 
 	Driver[m_iDriverSize - 2] = MusicDataAddress & 0xFF;
 	Driver[m_iDriverSize - 1] = MusicDataAddress >> 8;
 
-	CFile OutputFile;
-	if (!OpenFile(lpszFileName, OutputFile))
-		return;
-
 	Print("Writing output file...\n");
 
 	// Write header
@@ -382,10 +355,10 @@ void CCompiler::ExportNES_PRG(const wchar_t *lpszFileName, bool EnablePAL, bool 
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	};
 	if (!isPRG)		// // //
-		OutputFile.Write(NES_HEADER, std::size(NES_HEADER));
+		file.Write(NES_HEADER, std::size(NES_HEADER));
 
 	// Write NES data
-	CChunkRenderNES Render(&OutputFile, m_iLoadAddress);
+	CChunkRenderNES Render(&file, m_iLoadAddress);
 	Render.StoreDriver(Driver);
 	Render.StoreChunks(m_vChunks);
 	Render.StoreSamples(m_vSamples);
@@ -395,18 +368,13 @@ void CCompiler::ExportNES_PRG(const wchar_t *lpszFileName, bool EnablePAL, bool 
 	Print(" * Driver size: " + conv::from_int(m_iDriverSize) + " bytes\n");
 	Print(" * Song data size: " + conv::from_int(m_iMusicDataSize) + " bytes (" + conv::from_int(Percent) + "%)\n");
 	Print("Done, total file size: " + conv::from_int(0x8000 + (isPRG ? 0 : std::size(NES_HEADER))) + " bytes\n");
-
-	// Done
-	OutputFile.Close();
 }
 
-void CCompiler::ExportBIN_ASM(const wchar_t *lpszFileName, const wchar_t *lpszDPCM_File, bool isASM) {
+void CCompiler::ExportBIN_ASM(CFile &binFile, CFile *dpcmFile, bool isASM) {
 	if (m_bBankSwitched) {
 		Print("Error: Can't write bankswitched songs!\n");
 		return;
 	}
-
-	bool exportDPCM = lpszDPCM_File && *lpszDPCM_File != '\0';		// // //
 
 	// Convert to binary
 	ResolveLabels();
@@ -414,31 +382,19 @@ void CCompiler::ExportBIN_ASM(const wchar_t *lpszFileName, const wchar_t *lpszDP
 	if (isASM)
 		UpdateSamplePointers(PAGE_SAMPLES);		// Always start at C000 when exporting to ASM
 
-	CFile OutputFile;
-	if (!OpenFile(lpszFileName, OutputFile))
-		return;
-
-	CFile OutputFileDPCM;
-	if (exportDPCM) {
-		if (!OpenFile(lpszDPCM_File, OutputFileDPCM)) {
-			OutputFile.Close();
-			return;
-		}
-	}
-
 	Print("Writing output files...\n");
 
 	if (isASM) {
-		CChunkRenderText Render(OutputFile);		// // //
+		CChunkRenderText Render(binFile);		// // //
 		Render.StoreChunks(m_vChunks);
 		Render.StoreSamples(m_vSamples);
 	}
 	else {
-		CChunkRenderBinary Render(&OutputFile);
+		CChunkRenderBinary Render(&binFile);
 		Render.StoreChunks(m_vChunks);
 
-		if (exportDPCM) {
-			CChunkRenderBinary RenderDPCM(&OutputFileDPCM);
+		if (dpcmFile) {
+			CChunkRenderBinary RenderDPCM(dpcmFile);
 			RenderDPCM.StoreSamples(m_vSamples);
 		}
 	}
@@ -446,77 +402,57 @@ void CCompiler::ExportBIN_ASM(const wchar_t *lpszFileName, const wchar_t *lpszDP
 	Print(" * Music data size: " + conv::from_int(m_iMusicDataSize) + " bytes\n");
 	Print(" * DPCM samples size: " + conv::from_int(m_iSamplesSize) + " bytes\n");
 	Print("Done\n");
-
-	// Done
-	OutputFile.Close();
-	if (exportDPCM)
-		OutputFileDPCM.Close();
 }
 
-void CCompiler::ExportNSF(const wchar_t *lpszFileName, int MachineType)
-{
-	ClearLog();
+void CCompiler::ExportNSF(CFile &file, int MachineType) {		// // //
 	if (!CompileData())
 		return;
-	ExportNSF_NSFE(lpszFileName, MachineType, false);		// // //
+	ExportNSF_NSFE(file, MachineType, false);		// // //
 }
 
-void CCompiler::ExportNSFE(const wchar_t *lpszFileName, int MachineType)		// // //
-{
-	ClearLog();
+void CCompiler::ExportNSFE(CFile &file, int MachineType) {		// // //
 	if (!CompileData())
 		return;
-	ExportNSF_NSFE(lpszFileName, MachineType, true);
+	ExportNSF_NSFE(file, MachineType, true);
 }
 
-void CCompiler::ExportNES(const wchar_t *lpszFileName, bool EnablePAL)
-{
-	ClearLog();
+void CCompiler::ExportNES(CFile &file, bool EnablePAL) {
 	if (m_pModule->HasExpansionChips()) {
-		Print("Error: Expansion chips not supported.\n");
-		AfxMessageBox(L"Expansion chips are currently not supported!", 0, 0);
+		Print("Error: Expansion chips are currently not supported for this export format.\n");
 		return;
 	}
 	if (!CompileData())
 		return;
-	ExportNES_PRG(lpszFileName, EnablePAL, false);		// // //
+	ExportNES_PRG(file, EnablePAL, false);		// // //
 }
 
-void CCompiler::ExportPRG(const wchar_t *lpszFileName, bool EnablePAL)
-{
+void CCompiler::ExportPRG(CFile &file, bool EnablePAL) {
 	// Same as export to .NES but without the header
-
-	ClearLog();
 	if (m_pModule->HasExpansionChips()) {
-		Print("Error: Expansion chips not supported.\n");
-		AfxMessageBox(L"Expansion chips are currently not supported!", 0, 0);
+		Print("Error: Expansion chips are currently not supported for this export format.\n");
 		return;
 	}
 	if (!CompileData())
 		return;
-	ExportNES_PRG(lpszFileName, EnablePAL, true);		// // //
+	ExportNES_PRG(file, EnablePAL, true);		// // //
 }
 
-void CCompiler::ExportBIN(const wchar_t *lpszBIN_File, const wchar_t *lpszDPCM_File)
-{
-	ClearLog();
+void CCompiler::ExportBIN(CFile &binFile, CFile &dpcmFile) {
 	if (!CompileData())
 		return;
-	ExportBIN_ASM(lpszBIN_File, lpszDPCM_File, false);		// // //
+	ExportBIN_ASM(binFile, &dpcmFile, false);		// // //
 }
 
-void CCompiler::ExportASM(const wchar_t *lpszFileName)
-{
-	ClearLog();
+void CCompiler::ExportASM(CFile &file) {
 	if (!CompileData())
 		return;
-	ExportBIN_ASM(lpszFileName, L"", true);		// // //
+	ExportBIN_ASM(file, nullptr, true);		// // //
 }
 
 void CCompiler::SetMetadata(std::string_view title, std::string_view artist, std::string_view copyright) {		// // //
-	title_ = title.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1);
-	artist_ = artist.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1);
-	copyright_ = copyright.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1);
+	title_ = conv::utf8_trim(title.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1));
+	artist_ = conv::utf8_trim(artist.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1));
+	copyright_ = conv::utf8_trim(copyright.substr(0, CFamiTrackerModule::METADATA_FIELD_LENGTH - 1));
 }
 
 std::vector<unsigned char> CCompiler::LoadDriver(const driver_t &Driver, unsigned short Origin) const {		// // //

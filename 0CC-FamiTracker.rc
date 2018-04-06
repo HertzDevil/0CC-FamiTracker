@@ -2295,7 +2295,6 @@ BEGIN
     IDS_INSTRUMENT_FILE_FAIL "Instrument file was not vaild"
     IDS_CLIPPING_MESSAGE    "Warning: Audio is clipping, decrease mixing levels!"
     IDS_FILTER_FTI          "FamiTracker Instrument (*.fti)"
-    IDS_SAVE_FILE_ERROR     "Could not save file: %1"
     IDS_START_ERROR         "Program could not start properly, default settings has been restored. Please restart the program."
 END
 
@@ -2532,7 +2531,6 @@ BEGIN
     IDS_OUT_OF_SAMPLEMEM_FORMAT 
                             "Couldn't load sample, out of sample memory (max %1 kB is avaliable)"
     IDS_DPCM_IMPORT_GAIN_FORMAT "Gain: %1 dB"
-    IDS_OPEN_FILE_ERROR     "Could not open file: %1"
     IDS_INFO_COPYRIGHT      "(copyright)"
     IDS_IMPORT_FAILED       "Import module failed"
     IDS_IMPORT_INSTRUMENT_COUNT 
