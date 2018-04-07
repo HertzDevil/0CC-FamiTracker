@@ -1013,7 +1013,7 @@ std::unique_ptr<CFrameClipData> CFrameEditor::CopyEntire() const		// // //
 void CFrameEditor::PasteInsert(int Frame, const CFrameClipData &ClipData)		// // //
 {
 	m_pView->GetSongView()->GetSong().AddFrames(Frame, ClipData.ClipInfo.Frames);
-	PasteAt(ClipData, CFrameSelection {ClipData, Frame}.GetCursorStart());
+	PasteAt(ClipData, ClipData.AsSelection(Frame).GetCursorStart());
 }
 
 void CFrameEditor::PasteAt(const CFrameClipData &ClipData, const CFrameCursorPos &Pos)		// // //

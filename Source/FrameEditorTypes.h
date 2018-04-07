@@ -28,7 +28,6 @@
 // // // common classes for frame editor
 
 class CSongView;		// // //
-class CFrameClipData;		// // //
 
 // // // Frame editor cursor
 struct CFrameCursorPos
@@ -46,7 +45,6 @@ struct CFrameSelection
 	CFrameSelection() = default;
 	CFrameSelection(const CFrameCursorPos &cursor);
 	CFrameSelection(const CFrameCursorPos &b, const CFrameCursorPos &e);
-	CFrameSelection(const CFrameClipData &clipdata, int frame);
 
 	static CFrameSelection Including(const CFrameCursorPos &lhs, const CFrameCursorPos &rhs);
 

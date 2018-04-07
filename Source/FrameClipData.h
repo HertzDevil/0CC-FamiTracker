@@ -26,10 +26,14 @@
 #include <memory>
 #include "ClipboardResource.h"		// // //
 
+struct CFrameSelection;		// // //
+
 class CFrameClipData : public CClipboardResource {		// // //
 public:
 	CFrameClipData() = default;
 	CFrameClipData(int Channels, int Frames);
+
+	CFrameSelection AsSelection(int startFrame) const;		// // //
 
 	int  GetFrame(int Frame, int Channel) const;
 	void SetFrame(int Frame, int Channel, int Pattern);

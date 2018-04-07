@@ -180,7 +180,7 @@ void CFActionRemoveFrame::Undo(CMainFrame &MainFrm)
 {
 	GET_SONG().InsertFrame(m_pUndoState->Cursor.m_iFrame);
 	GET_FRAME_EDITOR()->PasteInsert(m_pUndoState->Cursor.m_iFrame, *m_pRowClipData);
-	GET_FRAME_EDITOR()->SetSelection({*m_pRowClipData, m_pUndoState->Cursor.m_iFrame});
+	GET_FRAME_EDITOR()->SetSelection(m_pRowClipData->AsSelection(m_pUndoState->Cursor.m_iFrame));
 }
 
 void CFActionRemoveFrame::Redo(CMainFrame &MainFrm)
@@ -523,7 +523,7 @@ void CFActionPaste::Undo(CMainFrame &MainFrm)
 void CFActionPaste::Redo(CMainFrame &MainFrm)
 {
 	CFrameEditor *pFrameEditor = GET_FRAME_EDITOR();
-	CFrameSelection sel {*m_pClipData, m_iTargetFrame};
+	CFrameSelection sel = m_pClipData->AsSelection(m_iTargetFrame);
 	pFrameEditor->PasteInsert(m_iTargetFrame, *m_pClipData);
 	if (m_bClone)
 		ClonePatterns(sel, *GET_SONG_VIEW());
@@ -550,7 +550,7 @@ bool CFActionPasteOverwrite::SaveState(const CMainFrame &MainFrm)		// // //
 	if (!m_pClipData)
 		return false;
 
-	m_TargetSelection = CFrameSelection(*m_pClipData, m_pUndoState->Cursor.m_iFrame);
+	m_TargetSelection = m_pClipData->AsSelection(m_pUndoState->Cursor.m_iFrame);
 
 	int Frames = GET_SONG().GetFrameCount();
 	if (m_TargetSelection.m_cpEnd.m_iFrame > Frames)
@@ -669,7 +669,7 @@ void CFActionDeleteSel::Undo(CMainFrame &MainFrm)
 {
 	CFrameEditor *pFrameEditor = GET_FRAME_EDITOR();
 	pFrameEditor->PasteInsert(m_pUndoState->Selection.m_cpStart.m_iFrame, *m_pClipData);
-	pFrameEditor->SetSelection({*m_pClipData, m_pUndoState->Selection.m_cpStart.m_iFrame});
+	pFrameEditor->SetSelection(m_pClipData->AsSelection(m_pUndoState->Selection.m_cpStart.m_iFrame));
 }
 
 void CFActionDeleteSel::Redo(CMainFrame &MainFrm)

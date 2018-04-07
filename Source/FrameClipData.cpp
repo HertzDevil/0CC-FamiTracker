@@ -21,11 +21,19 @@
 */
 
 #include "FrameClipData.h"
+#include "FrameEditorTypes.h"		// // //
 
 CFrameClipData::CFrameClipData(int Channels, int Frames) :
 	pFrames(std::make_unique<int[]>(Channels * Frames)), iSize(Channels * Frames),
 	ClipInfo({Channels, Frames})		// // //
 {
+}
+
+CFrameSelection CFrameClipData::AsSelection(int startFrame) const {		// // //
+	return {
+		{startFrame, ClipInfo.FirstChannel},
+		{startFrame + ClipInfo.Frames, ClipInfo.FirstChannel + ClipInfo.Channels},
+	};
 }
 
 SIZE_T CFrameClipData::GetAllocSize() const

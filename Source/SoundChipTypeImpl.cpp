@@ -23,6 +23,7 @@
 #include "SoundChipTypeImpl.h"
 #include "APU/Types.h"
 
+#ifndef FT0CC_EXT_BUILD
 #include "APU/2A03.h"
 #include "APU/VRC6.h"
 #include "APU/VRC7.h"
@@ -42,9 +43,14 @@
 #include "ChipHandler.h"
 #include "ChipHandlerVRC7.h"
 #include "ChipHandlerS5B.h"
+#else
+class CSoundChip { };
+class CChipHandler { };
+#endif
 
 namespace {
 
+#ifndef FT0CC_EXT_BUILD
 template <typename T>
 struct CChipHandlerBuilder {
 	CChipHandlerBuilder(std::uint8_t nInstance, sound_chip_t chip) :
@@ -76,6 +82,7 @@ private:
 	std::uint8_t instance_;
 	sound_chip_t id_;
 };
+#endif
 
 } // namespace
 
@@ -118,16 +125,24 @@ std::string_view CSoundChipType2A03::GetChannelFullName(std::size_t subindex) co
 }
 
 std::unique_ptr<CSoundChip> CSoundChipType2A03::MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return std::make_unique<C2A03>(mixer, nInstance);
+#endif
 }
 
 std::unique_ptr<CChipHandler> CSoundChipType2A03::MakeChipHandler(std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return CChipHandlerBuilder<CChipHandler> {nInstance, GetID()}
 		.With<C2A03Square>(apu_subindex_t::pulse1)
 		.With<C2A03Square>(apu_subindex_t::pulse2)
 		.With<CTriangleChan>(apu_subindex_t::triangle)
 		.With<CNoiseChan>(apu_subindex_t::noise)
 		.With<CDPCMChan>(apu_subindex_t::dpcm);
+#endif
 }
 
 
@@ -167,14 +182,22 @@ std::string_view CSoundChipTypeVRC6::GetChannelFullName(std::size_t subindex) co
 }
 
 std::unique_ptr<CSoundChip> CSoundChipTypeVRC6::MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return std::make_unique<CVRC6>(mixer, nInstance);
+#endif
 }
 
 std::unique_ptr<CChipHandler> CSoundChipTypeVRC6::MakeChipHandler(std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return CChipHandlerBuilder<CChipHandler> {nInstance, GetID()}
 		.With<CVRC6Square>(vrc6_subindex_t::pulse1)
 		.With<CVRC6Square>(vrc6_subindex_t::pulse2)
 		.With<CVRC6Sawtooth>(vrc6_subindex_t::sawtooth);
+#endif
 }
 
 
@@ -217,10 +240,17 @@ std::string_view CSoundChipTypeVRC7::GetChannelFullName(std::size_t subindex) co
 }
 
 std::unique_ptr<CSoundChip> CSoundChipTypeVRC7::MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return std::make_unique<CVRC7>(mixer, nInstance);
+#endif
 }
 
 std::unique_ptr<CChipHandler> CSoundChipTypeVRC7::MakeChipHandler(std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return CChipHandlerBuilder<CChipHandlerVRC7> {nInstance, GetID()}
 		.With<CChannelHandlerVRC7>(vrc7_subindex_t::ch1)
 		.With<CChannelHandlerVRC7>(vrc7_subindex_t::ch2)
@@ -228,6 +258,7 @@ std::unique_ptr<CChipHandler> CSoundChipTypeVRC7::MakeChipHandler(std::uint8_t n
 		.With<CChannelHandlerVRC7>(vrc7_subindex_t::ch4)
 		.With<CChannelHandlerVRC7>(vrc7_subindex_t::ch5)
 		.With<CChannelHandlerVRC7>(vrc7_subindex_t::ch6);
+#endif
 }
 
 
@@ -265,12 +296,20 @@ std::string_view CSoundChipTypeFDS::GetChannelFullName(std::size_t subindex) con
 }
 
 std::unique_ptr<CSoundChip> CSoundChipTypeFDS::MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return std::make_unique<CFDS>(mixer, nInstance);
+#endif
 }
 
 std::unique_ptr<CChipHandler> CSoundChipTypeFDS::MakeChipHandler(std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return CChipHandlerBuilder<CChipHandler> {nInstance, GetID()}
 		.With<CChannelHandlerFDS>(fds_subindex_t::wave);
+#endif
 }
 
 
@@ -310,13 +349,21 @@ std::string_view CSoundChipTypeMMC5::GetChannelFullName(std::size_t subindex) co
 }
 
 std::unique_ptr<CSoundChip> CSoundChipTypeMMC5::MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return std::make_unique<CMMC5>(mixer, nInstance);
+#endif
 }
 
 std::unique_ptr<CChipHandler> CSoundChipTypeMMC5::MakeChipHandler(std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return CChipHandlerBuilder<CChipHandler> {nInstance, GetID()}
 		.With<CChannelHandlerMMC5>(mmc5_subindex_t::pulse1)
 		.With<CChannelHandlerMMC5>(mmc5_subindex_t::pulse2);
+#endif
 }
 
 
@@ -361,10 +408,17 @@ std::string_view CSoundChipTypeN163::GetChannelFullName(std::size_t subindex) co
 }
 
 std::unique_ptr<CSoundChip> CSoundChipTypeN163::MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return std::make_unique<CN163>(mixer, nInstance);
+#endif
 }
 
 std::unique_ptr<CChipHandler> CSoundChipTypeN163::MakeChipHandler(std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return CChipHandlerBuilder<CChipHandler> {nInstance, GetID()}
 		.With<CChannelHandlerN163>(n163_subindex_t::ch1)
 		.With<CChannelHandlerN163>(n163_subindex_t::ch2)
@@ -374,6 +428,7 @@ std::unique_ptr<CChipHandler> CSoundChipTypeN163::MakeChipHandler(std::uint8_t n
 		.With<CChannelHandlerN163>(n163_subindex_t::ch6)
 		.With<CChannelHandlerN163>(n163_subindex_t::ch7)
 		.With<CChannelHandlerN163>(n163_subindex_t::ch8);
+#endif
 }
 
 
@@ -413,12 +468,20 @@ std::string_view CSoundChipTypeS5B::GetChannelFullName(std::size_t subindex) con
 }
 
 std::unique_ptr<CSoundChip> CSoundChipTypeS5B::MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return std::make_unique<CS5B>(mixer, nInstance);
+#endif
 }
 
 std::unique_ptr<CChipHandler> CSoundChipTypeS5B::MakeChipHandler(std::uint8_t nInstance) const {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return CChipHandlerBuilder<CChipHandlerS5B> {nInstance, GetID()}
 		.With<CChannelHandlerS5B>(s5b_subindex_t::square1)
 		.With<CChannelHandlerS5B>(s5b_subindex_t::square2)
 		.With<CChannelHandlerS5B>(s5b_subindex_t::square3);
+#endif
 }
