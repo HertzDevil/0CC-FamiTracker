@@ -24,10 +24,9 @@
 
 // // // File load / store
 
-CSimpleFile::~CSimpleFile()
+CSimpleFile::CSimpleFile(const wchar_t *fname, std::ios_base::openmode mode) :
+	m_fFile(fname, mode)
 {
-	if (m_fFile.is_open())
-		m_fFile.close();
 }
 
 CSimpleFile::operator bool() const
@@ -60,6 +59,16 @@ void CSimpleFile::WriteInt32(int32_t Value)
 }
 
 void CSimpleFile::WriteBytes(array_view<char> Buf)
+{
+	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
+}
+
+void CSimpleFile::WriteBytes(array_view<unsigned char> Buf)
+{
+	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
+}
+
+void CSimpleFile::WriteBytes(array_view<std::byte> Buf)
 {
 	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
 }
@@ -149,4 +158,12 @@ std::string CSimpleFile::ReadStringNull()
 		str += ch;
 	}
 	return str;
+}
+
+void CSimpleFile::Seek(std::size_t pos) {
+	m_fFile.seekp(pos);
+}
+
+std::size_t CSimpleFile::GetPosition() {
+	return m_fFile.tellp();
 }

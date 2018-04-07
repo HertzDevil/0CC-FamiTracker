@@ -35,6 +35,7 @@
 #include "Compiler.h"
 #include "Settings.h"
 #include "FileDialogs.h"		// // //
+#include "SimpleFile.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 
 // Define internal exporters
@@ -62,13 +63,16 @@ const int CExportDialog::DEFAULT_EXPORTERS = 6;		// // //
 int CExportDialog::m_iExportOption = 0;
 
 // File filters
-const LPCWSTR CExportDialog::NSF_FILTER[]   = { L"NSF file (*.nsf)"        , L"*.nsf" };
-const LPCWSTR CExportDialog::NES_FILTER[]   = { L"NES ROM image (*.nes)"   , L"*.nes" };
-const LPCWSTR CExportDialog::RAW_FILTER[]   = { L"Raw song data (*.bin)"   , L"*.bin" };
-const LPCWSTR CExportDialog::DPCMS_FILTER[] = { L"DPCM sample bank (*.bin)", L"*.bin" };
-const LPCWSTR CExportDialog::PRG_FILTER[]   = { L"NES program bank (*.prg)", L"*.prg" };
-const LPCWSTR CExportDialog::ASM_FILTER[]   = { L"Assembly text (*.asm)"   , L"*.asm" };
-const LPCWSTR CExportDialog::NSFE_FILTER[]  = { L"NSFe file (*.nsfe)"      , L"*.nsfe" };		// // //
+const LPCWSTR CExportDialog::DEFAULT_FILTERS[][2] = {
+	{L"NSF file (*.nsf)"        , L"*.nsf" },
+	{L"NES ROM image (*.nes)"   , L"*.nes" },
+	{L"Raw song data (*.bin)"   , L"*.bin" },
+	{L"NES program bank (*.prg)", L"*.prg" },
+	{L"Assembly text (*.asm)"   , L"*.asm" },
+	{L"NSFe file (*.nsfe)"      , L"*.nsfe"},		// // //
+};
+
+const LPCWSTR CExportDialog::DPCMS_FILTER[] = {L"DPCM sample bank (*.bin)", L"*.bin"};
 
 // Compiler logger
 
@@ -145,16 +149,16 @@ BOOL CExportDialog::OnInitDialog()
 	SetDlgItemTextW(IDC_COPYRIGHT, conv::to_wide(pModule->GetModuleCopyright()).data());
 
 	// Fill the export box
-	CComboBox *pTypeBox = static_cast<CComboBox*>(GetDlgItem(IDC_TYPE));
+	m_cExportTypes.SubclassDlgItem(IDC_TYPE, this);		// // //
 
 	// Add built in exporters
 	for (int i = 0; i < DEFAULT_EXPORTERS; ++i)
-		pTypeBox->AddString(DEFAULT_EXPORT_NAMES[i]);
+		m_cExportTypes.AddString(DEFAULT_EXPORT_NAMES[i]);
 
 	// // //
 
 	// Set default selection
-	pTypeBox->SetCurSel(m_iExportOption);
+	m_cExportTypes.SetCurSel(m_iExportOption);
 
 #ifdef _DEBUG
 	GetDlgItem(IDC_PLAY)->ShowWindow(SW_SHOW);
@@ -166,17 +170,42 @@ BOOL CExportDialog::OnInitDialog()
 
 void CExportDialog::OnBnClickedExport()
 {
-	CComboBox *pTypeCombo = static_cast<CComboBox*>(GetDlgItem(IDC_TYPE));
 	CStringW ItemText;
 
-	m_iExportOption = pTypeCombo->GetCurSel();
-	pTypeCombo->GetLBText(m_iExportOption, ItemText);
+	m_iExportOption = m_cExportTypes.GetCurSel();
+	m_cExportTypes.GetLBText(m_iExportOption, ItemText);
 
 	// Check built in exporters
-	for (int i = 0; i < DEFAULT_EXPORTERS; ++i) {
-		if (!ItemText.Compare(DEFAULT_EXPORT_NAMES[i])) {
-			(this->*DEFAULT_EXPORT_FUNCS[i])();
-			return;
+	if (m_iExportOption < DEFAULT_EXPORTERS) {		// // //
+		(this->*DEFAULT_EXPORT_FUNCS[m_iExportOption])();
+	}
+}
+
+std::optional<CSimpleFile> CExportDialog::OpenFile(const CStringW &fileName) {		// // //
+	CSimpleFile f((LPCWSTR)fileName, std::ios::out | std::ios::binary);
+	if (!f) {
+		char msg[512] = { };
+		::strerror_s(msg, errno);
+		AfxMessageBox(FormattedW(L"Error: Could not open output file: %s\n", conv::to_wide(msg).data()), MB_ICONERROR);
+		return std::nullopt;
+	}
+
+	return f;
+}
+
+template <typename F>
+void CExportDialog::WithFile(const CStringW &initFName, F f) {		// // //
+	WithFile(initFName, DEFAULT_FILTERS[m_iExportOption][0], DEFAULT_FILTERS[m_iExportOption][1], f);
+}
+
+template <typename F>
+void CExportDialog::WithFile(const CStringW &initFName, const CStringW &filterName, const CStringW &filterExt, F f) {
+//	CStringW title = CFamiTrackerDoc::GetDoc()->GetFileTitle();
+//	CStringW initPath = Env.GetSettings()->GetPath(PATH_NSF).c_str();
+	if (auto path = GetSavePath(initFName, Env.GetSettings()->GetPath(PATH_NSF).c_str(), filterName, filterExt)) {		// // //
+		if (auto file = OpenFile(*path)) {
+			f(*file);
+			Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
 		}
 	}
 }
@@ -185,64 +214,36 @@ void CExportDialog::CreateNSF()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
-	if (auto path = GetSavePath(pDoc->GetFileTitle(), Env.GetSettings()->GetPath(PATH_NSF).c_str(), NSF_FILTER[0], NSF_FILTER[1])) {		// // //
+	WithFile(pDoc->GetFileTitle(), [&] (CSimpleFile &OutputFile) {
 		CWaitCursor wait;
-
-		CFile OutputFile;		// // //
-		CFileException ex;
-		if (!OutputFile.Open(*path, CFile::modeWrite | CFile::modeCreate, &ex)) {
-			WCHAR szCause[255] = { };
-			ex.GetErrorMessage(szCause, std::size(szCause));
-			AfxMessageBox(FormattedW(L"Error: Could not open output file: %s\n", szCause), MB_ICONERROR);
-			return;
-		}
-
-		// Collect header info
-		int MachineType = 0;
-		if (IsDlgButtonChecked(IDC_NTSC) == BST_CHECKED)
-			MachineType = 0;
-		else if (IsDlgButtonChecked(IDC_PAL) == BST_CHECKED)
-			MachineType = 1;
-		else if (IsDlgButtonChecked(IDC_DUAL) == BST_CHECKED)
-			MachineType = 2;
 
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		UpdateMetadata(Compiler);		// // //
-		Compiler.ExportNSF(OutputFile, MachineType);
-		Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
-	}
+		Compiler.ExportNSF(OutputFile, GetMachineType());
+	});
 }
 
 void CExportDialog::CreateNSFe()		// // //
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
-	if (auto path = GetSavePath(pDoc->GetFileTitle(), Env.GetSettings()->GetPath(PATH_NSF).c_str(), NSFE_FILTER[0], NSFE_FILTER[1])) {		// // //
+	WithFile(pDoc->GetFileTitle(), [&] (CSimpleFile &OutputFile) {
 		CWaitCursor wait;
-
-		CFile OutputFile;		// // //
-		CFileException ex;
-		if (!OutputFile.Open(*path, CFile::modeWrite | CFile::modeCreate, &ex)) {
-			WCHAR szCause[255] = { };
-			ex.GetErrorMessage(szCause, std::size(szCause));
-			AfxMessageBox(FormattedW(L"Error: Could not open output file: %s\n", szCause), MB_ICONERROR);
-			return;
-		}
-
-		// Collect header info
-		int MachineType = 0;
-		if (IsDlgButtonChecked(IDC_NTSC) == BST_CHECKED)
-			MachineType = 0;
-		else if (IsDlgButtonChecked(IDC_PAL) == BST_CHECKED)
-			MachineType = 1;
-		else if (IsDlgButtonChecked(IDC_DUAL) == BST_CHECKED)
-			MachineType = 2;
 
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		UpdateMetadata(Compiler);		// // //
-		Compiler.ExportNSFE(OutputFile, MachineType);
-		Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
-	}
+		Compiler.ExportNSFE(OutputFile, GetMachineType());
+	});
+}
+
+int CExportDialog::GetMachineType() const {		// // //
+	if (IsDlgButtonChecked(IDC_NTSC) == BST_CHECKED)
+		return 0;
+	else if (IsDlgButtonChecked(IDC_PAL) == BST_CHECKED)
+		return 1;
+	else if (IsDlgButtonChecked(IDC_DUAL) == BST_CHECKED)
+		return 2;
+	return 0;
 }
 
 void CExportDialog::UpdateMetadata(CCompiler &compiler) {
@@ -257,107 +258,69 @@ void CExportDialog::CreateNES()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
-	if (auto path = GetSavePath(pDoc->GetFileTitle(), Env.GetSettings()->GetPath(PATH_NSF).c_str(), NES_FILTER[0], NES_FILTER[1])) {		// // //
+	WithFile(pDoc->GetFileTitle(), [&] (CSimpleFile &OutputFile) {
 		CWaitCursor wait;
-
-		CFile OutputFile;		// // //
-		CFileException ex;
-		if (!OutputFile.Open(*path, CFile::modeWrite | CFile::modeCreate, &ex)) {
-			WCHAR szCause[255] = { };
-			ex.GetErrorMessage(szCause, std::size(szCause));
-			AfxMessageBox(FormattedW(L"Error: Could not open output file: %s\n", szCause), MB_ICONERROR);
-			return;
-		}
 
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportNES(OutputFile, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
-		Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
-	}
+	});
 }
 
 void CExportDialog::CreateBIN()
 {
-	if (auto path = GetSavePath(L"music.bin", Env.GetSettings()->GetPath(PATH_NSF).c_str(), RAW_FILTER[0], RAW_FILTER[1])) {		// // //
-		CStringW samplePath = *path;		// // //
+	if (auto path = GetSavePath(L"music.bin", Env.GetSettings()->GetPath(PATH_NSF).c_str(), DEFAULT_FILTERS[m_iExportOption][0], DEFAULT_FILTERS[m_iExportOption][1])) {		// // //
+		if (auto BINFile = OpenFile(*path)) {
+			CStringW samplePath = *path;		// // //
 
-		const CStringW DEFAULT_SAMPLE_NAME = L"samples.bin";		// // //
+			const CStringW DEFAULT_SAMPLE_NAME = L"samples.bin";		// // //
 
-		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-		if (pDoc->GetModule()->GetDSampleManager()->GetDSampleCount() > 0) {
-			if (auto sampPath = GetSavePath(DEFAULT_SAMPLE_NAME, *path, DPCMS_FILTER[0], DPCMS_FILTER[1]))
-				samplePath = *sampPath;
-			else
-				return;
-		}
-		else {
-			int Pos = samplePath.ReverseFind(L'\\');
-			ASSERT(Pos != -1);
-			samplePath = samplePath.Left(Pos + 1) + DEFAULT_SAMPLE_NAME;
-			if (PathFileExistsW(samplePath)) {
-				if (AfxMessageBox(AfxFormattedW(IDS_EXPORT_SAMPLES_FILE, DEFAULT_SAMPLE_NAME), MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
+			CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
+			if (pDoc->GetModule()->GetDSampleManager()->GetDSampleCount() > 0) {
+				if (auto sampPath = GetSavePath(DEFAULT_SAMPLE_NAME, *path, DPCMS_FILTER[0], DPCMS_FILTER[1]))
+					samplePath = *sampPath;
+				else
 					return;
 			}
+			else {
+				int Pos = samplePath.ReverseFind(L'\\');
+				ASSERT(Pos != -1);
+				samplePath = samplePath.Left(Pos + 1) + DEFAULT_SAMPLE_NAME;
+				if (PathFileExistsW(samplePath)) {
+					if (AfxMessageBox(AfxFormattedW(IDS_EXPORT_SAMPLES_FILE, DEFAULT_SAMPLE_NAME), MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDNO)
+						return;
+				}
+			}
+
+			if (auto DPCMFile = OpenFile(*path)) {
+				// Display wait cursor
+				CWaitCursor wait;
+
+				CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+				Compiler.ExportBIN(*BINFile, *DPCMFile);
+				Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
+			}
 		}
-
-		// Display wait cursor
-		CWaitCursor wait;
-
-		CFile BINFile;		// // //
-		CFile DPCMFile;
-		CFileException ex;
-		if (!BINFile.Open(*path, CFile::modeWrite | CFile::modeCreate, &ex) || !DPCMFile.Open(*path, CFile::modeWrite | CFile::modeCreate, &ex)) {
-			WCHAR szCause[255] = { };
-			ex.GetErrorMessage(szCause, std::size(szCause));
-			AfxMessageBox(FormattedW(L"Error: Could not open output file: %s\n", szCause), MB_ICONERROR);
-			return;
-		}
-
-		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
-		Compiler.ExportBIN(BINFile, DPCMFile);
-		Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
 	}
 }
 
 void CExportDialog::CreatePRG()
 {
-	if (auto path = GetSavePath(L"music.prg", Env.GetSettings()->GetPath(PATH_NSF).c_str(), PRG_FILTER[0], PRG_FILTER[1])) {		// // //
+	WithFile(L"music.prg", [&] (CSimpleFile &OutputFile) {
 		CWaitCursor wait;
 
-		CFile OutputFile;		// // //
-		CFileException ex;
-		if (!OutputFile.Open(*path, CFile::modeWrite | CFile::modeCreate, &ex)) {
-			WCHAR szCause[255] = { };
-			ex.GetErrorMessage(szCause, std::size(szCause));
-			AfxMessageBox(FormattedW(L"Error: Could not open output file: %s\n", szCause), MB_ICONERROR);
-			return;
-		}
-
-		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		CCompiler Compiler(*CFamiTrackerDoc::GetDoc()->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportPRG(OutputFile, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
-		Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
-	}
+	});
 }
 
 void CExportDialog::CreateASM()
 {
-	if (auto path = GetSavePath(L"music.asm", Env.GetSettings()->GetPath(PATH_NSF).c_str(), ASM_FILTER[0], ASM_FILTER[1])) {		// // //
+	WithFile(L"music.asm", [&] (CSimpleFile &OutputFile) {
 		CWaitCursor wait;
 
-		CFile OutputFile;		// // //
-		CFileException ex;
-		if (!OutputFile.Open(*path, CFile::modeWrite | CFile::modeCreate, &ex)) {
-			WCHAR szCause[255] = { };
-			ex.GetErrorMessage(szCause, std::size(szCause));
-			AfxMessageBox(FormattedW(L"Error: Could not open output file: %s\n", szCause), MB_ICONERROR);
-			return;
-		}
-
-		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		CCompiler Compiler(*CFamiTrackerDoc::GetDoc()->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 		Compiler.ExportASM(OutputFile);
-		Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_NSF);
-	}
+	});
 }
 
 void CExportDialog::OnBnClickedPlay()

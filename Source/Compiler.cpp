@@ -22,7 +22,6 @@
 
 #include "Compiler.h"
 #include "version.h"		// // //
-#include "../resource.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
 #include "FamiTrackerModule.h"		// // //
 #include "SongData.h"		// // //
@@ -48,6 +47,7 @@
 #include "NumConv.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 #include "SoundChipService.h"		// // //
+#include "SimpleFile.h"		// // //
 
 //
 // This is the new NSF data compiler, music is compiled to an object list instead of a binary chunk
@@ -164,28 +164,24 @@ void CCompiler::ClearLog() const
 
 namespace {
 
-void NSFEWriteBlockIdent(CFile &file, const char(&ident)[5], uint32_t sz) {		// // //
-	file.Write(reinterpret_cast<const char *>(&sz), sizeof(sz));
-	file.Write(ident, 4);
+void NSFEWriteBlockIdent(CSimpleFile &file, const char (&ident)[5], uint32_t sz) {		// // //
+	file.WriteInt32(sz);
+	file.WriteBytes({ident, 4});
 }
 
-ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerModule &modfile,
+ULONGLONG NSFEWriteBlocks(CSimpleFile &file, const CFamiTrackerModule &modfile,
 	std::string_view title, std::string_view artist, std::string_view copyright) {		// // //
 	int iAuthSize = 0, iTimeSize = 0, iTlblSize = 0;
-	CStringA str = "0CC-FamiTracker ";
-	str.Append(Get0CCFTVersionString());		// // //
-	iAuthSize = title.size() + artist.size() + copyright.size() + str.GetLength() + 4;
+	auto str = std::string {"0CC-FamiTracker "} + Get0CCFTVersionString();		// // //
+	iAuthSize = title.size() + artist.size() + copyright.size() + str.size() + 4;
 
 	NSFEWriteBlockIdent(file, "auth", iAuthSize);
 
 	const unsigned char nullch = 0;
-	file.Write(title.data(), title.size());
-	file.Write(&nullch, 1);
-	file.Write(artist.data(), artist.size());
-	file.Write(&nullch, 1);
-	file.Write(copyright.data(), copyright.size());
-	file.Write(&nullch, 1);
-	file.Write((LPCSTR)str, str.GetLength() + 1);
+	file.WriteStringNull(title);
+	file.WriteStringNull(artist);
+	file.WriteStringNull(copyright);
+	file.WriteStringNull(str);
 
 	modfile.VisitSongs([&] (const CSongData &song) {
 		iTimeSize += 4;
@@ -198,14 +194,13 @@ ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerModule &modfile,
 		auto pSongView = modfile.MakeSongView(i);
 		CSongLengthScanner scanner {modfile, *pSongView};
 		auto [FirstLoop, SecondLoop] = scanner.GetSecondsCount();
-		int t = static_cast<int>((FirstLoop + SecondLoop) * 1000.0 + 0.5);
-		file.Write(reinterpret_cast<const char *>(&t), sizeof(int));
+		file.WriteInt32(static_cast<int>((FirstLoop + SecondLoop) * 1000.0 + 0.5));
 	});
 
 	NSFEWriteBlockIdent(file, "tlbl", iTlblSize);
 
 	modfile.VisitSongs([&] (const CSongData &song) {
-		file.Write(song.GetTitle().data(), song.GetTitle().size() + 1);
+		file.WriteStringNull(song.GetTitle());
 	});
 
 	ULONGLONG iDataSizePos = file.GetPosition();
@@ -215,7 +210,7 @@ ULONGLONG NSFEWriteBlocks(CFile &file, const CFamiTrackerModule &modfile,
 
 } // namespace
 
-void CCompiler::ExportNSF_NSFE(CFile &file, int MachineType, bool isNSFE) {
+void CCompiler::ExportNSF_NSFE(CSimpleFile &file, int MachineType, bool isNSFE) {
 	if (m_bBankSwitched) {
 		// Expand and allocate label addresses
 		AddBankswitching();
@@ -264,16 +259,16 @@ void CCompiler::ExportNSF_NSFE(CFile &file, int MachineType, bool isNSFE) {
 	ULONGLONG iDataSizePos = 0;		// // //
 	if (isNSFE) {
 		auto Header = CreateNSFeHeader(MachineType);		// // //
-		file.Write(&Header, sizeof(Header));
+		file.WriteBytes({reinterpret_cast<const char *>(&Header), sizeof(Header)});
 		iDataSizePos = NSFEWriteBlocks(file, *m_pModule, title_, artist_, copyright_);
 	}
 	else {
 		auto Header = CreateHeader(MachineType);		// // //
-		file.Write(&Header, sizeof(Header));
+		file.WriteBytes({reinterpret_cast<const char *>(&Header), sizeof(Header)});
 	}
 
 	// Write NSF data
-	CChunkRenderNSF Render(&file, m_iLoadAddress);
+	CChunkRenderNSF Render(file, m_iLoadAddress);
 
 	if (m_bBankSwitched) {
 		Render.StoreDriver(Driver);
@@ -295,7 +290,7 @@ void CCompiler::ExportNSF_NSFE(CFile &file, int MachineType, bool isNSFE) {
 
 	if (isNSFE) {
 		NSFEWriteBlockIdent(file, "NEND", 0);		// // //
-		file.Seek(iDataSizePos, CFile::begin);
+		file.Seek(iDataSizePos);
 		NSFEWriteBlockIdent(file, "DATA", m_bBankSwitched ? 0x1000 * (Render.GetBankCount() - 1) :
 			m_iDriverSize + m_iMusicDataSize + m_iSamplesSize);		// // //
 	}
@@ -317,10 +312,10 @@ void CCompiler::ExportNSF_NSFE(CFile &file, int MachineType, bool isNSFE) {
 		Print(" * NSF type: Linear (driver @ $" + conv::from_uint_hex(m_iDriverAddress, 4) + ")\n");
 	}
 
-	Print("Done, total file size: " + conv::from_uint(file.GetLength()) + " bytes\n");
+	Print("Done, total file size: " + conv::from_uint(file.GetPosition()) + " bytes\n");
 }
 
-void CCompiler::ExportNES_PRG(CFile &file, bool EnablePAL, bool isPRG) {
+void CCompiler::ExportNES_PRG(CSimpleFile &file, bool EnablePAL, bool isPRG) {
 	if (m_bBankSwitched) {
 		Print("Error: Can't write bankswitched songs!\n");
 		return;
@@ -355,10 +350,10 @@ void CCompiler::ExportNES_PRG(CFile &file, bool EnablePAL, bool isPRG) {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	};
 	if (!isPRG)		// // //
-		file.Write(NES_HEADER, std::size(NES_HEADER));
+		file.WriteBytes(NES_HEADER);
 
 	// Write NES data
-	CChunkRenderNES Render(&file, m_iLoadAddress);
+	CChunkRenderNES Render(file, m_iLoadAddress);
 	Render.StoreDriver(Driver);
 	Render.StoreChunks(m_vChunks);
 	Render.StoreSamples(m_vSamples);
@@ -370,7 +365,7 @@ void CCompiler::ExportNES_PRG(CFile &file, bool EnablePAL, bool isPRG) {
 	Print("Done, total file size: " + conv::from_int(0x8000 + (isPRG ? 0 : std::size(NES_HEADER))) + " bytes\n");
 }
 
-void CCompiler::ExportBIN_ASM(CFile &binFile, CFile *dpcmFile, bool isASM) {
+void CCompiler::ExportBIN_ASM(CSimpleFile &binFile, CSimpleFile *dpcmFile, bool isASM) {
 	if (m_bBankSwitched) {
 		Print("Error: Can't write bankswitched songs!\n");
 		return;
@@ -390,11 +385,11 @@ void CCompiler::ExportBIN_ASM(CFile &binFile, CFile *dpcmFile, bool isASM) {
 		Render.StoreSamples(m_vSamples);
 	}
 	else {
-		CChunkRenderBinary Render(&binFile);
+		CChunkRenderBinary Render(binFile);
 		Render.StoreChunks(m_vChunks);
 
 		if (dpcmFile) {
-			CChunkRenderBinary RenderDPCM(dpcmFile);
+			CChunkRenderBinary RenderDPCM(*dpcmFile);
 			RenderDPCM.StoreSamples(m_vSamples);
 		}
 	}
@@ -404,19 +399,19 @@ void CCompiler::ExportBIN_ASM(CFile &binFile, CFile *dpcmFile, bool isASM) {
 	Print("Done\n");
 }
 
-void CCompiler::ExportNSF(CFile &file, int MachineType) {		// // //
+void CCompiler::ExportNSF(CSimpleFile &file, int MachineType) {		// // //
 	if (!CompileData())
 		return;
 	ExportNSF_NSFE(file, MachineType, false);		// // //
 }
 
-void CCompiler::ExportNSFE(CFile &file, int MachineType) {		// // //
+void CCompiler::ExportNSFE(CSimpleFile &file, int MachineType) {		// // //
 	if (!CompileData())
 		return;
 	ExportNSF_NSFE(file, MachineType, true);
 }
 
-void CCompiler::ExportNES(CFile &file, bool EnablePAL) {
+void CCompiler::ExportNES(CSimpleFile &file, bool EnablePAL) {
 	if (m_pModule->HasExpansionChips()) {
 		Print("Error: Expansion chips are currently not supported for this export format.\n");
 		return;
@@ -426,7 +421,7 @@ void CCompiler::ExportNES(CFile &file, bool EnablePAL) {
 	ExportNES_PRG(file, EnablePAL, false);		// // //
 }
 
-void CCompiler::ExportPRG(CFile &file, bool EnablePAL) {
+void CCompiler::ExportPRG(CSimpleFile &file, bool EnablePAL) {
 	// Same as export to .NES but without the header
 	if (m_pModule->HasExpansionChips()) {
 		Print("Error: Expansion chips are currently not supported for this export format.\n");
@@ -437,13 +432,13 @@ void CCompiler::ExportPRG(CFile &file, bool EnablePAL) {
 	ExportNES_PRG(file, EnablePAL, true);		// // //
 }
 
-void CCompiler::ExportBIN(CFile &binFile, CFile &dpcmFile) {
+void CCompiler::ExportBIN(CSimpleFile &binFile, CSimpleFile &dpcmFile) {
 	if (!CompileData())
 		return;
 	ExportBIN_ASM(binFile, &dpcmFile, false);		// // //
 }
 
-void CCompiler::ExportASM(CFile &file) {
+void CCompiler::ExportASM(CSimpleFile &file) {
 	if (!CompileData())
 		return;
 	ExportBIN_ASM(file, nullptr, true);		// // //

@@ -35,19 +35,21 @@ namespace ft0cc::doc {
 class dpcm_sample;
 } // namespace ft0cc::doc
 class CChunk;		// // //
-class CFile;		// // //
+class CSimpleFile;		// // //
 
 // Base class
 class CBinaryFileWriter
 {
+public:
+	CBinaryFileWriter(CSimpleFile &File);		// // //
+
 protected:
-	CBinaryFileWriter(CFile *pFile);
 	void Store(array_view<std::uint8_t> Data);
 	void Fill(unsigned int Size);
 	unsigned int GetWritten() const;
 
 private:
-	CFile		*m_pFile;
+	CSimpleFile  &m_fFile;		// // //
 	unsigned int m_iDataWritten;
 };
 
@@ -55,7 +57,7 @@ private:
 class CChunkRenderBinary : public CBinaryFileWriter
 {
 public:
-	CChunkRenderBinary(CFile *pFile);
+	using CBinaryFileWriter::CBinaryFileWriter;		// // //
 	void StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks);		// // //
 	void StoreSamples(const std::vector<std::shared_ptr<const ft0cc::doc::dpcm_sample>> &Samples);		// // //
 
@@ -64,14 +66,14 @@ private:
 	void StoreSample(const ft0cc::doc::dpcm_sample &DSample);		// // //
 
 private:
-	int m_iSampleAddress;
+	int m_iSampleAddress = 0;
 };
 
 // NSF render
 class CChunkRenderNSF : public CBinaryFileWriter
 {
 public:
-	CChunkRenderNSF(CFile *pFile, unsigned int StartAddr);
+	CChunkRenderNSF(CSimpleFile &File, unsigned int StartAddr);		// // //
 
 	void StoreDriver(array_view<std::uint8_t> Driver);		// // //
 	void StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks);		// // //
@@ -100,6 +102,6 @@ protected:
 class CChunkRenderNES : public CChunkRenderNSF
 {
 public:
-	CChunkRenderNES(CFile *pFile, unsigned int StartAddr);
+	CChunkRenderNES(CSimpleFile &File, unsigned int StartAddr);		// // //
 	void StoreCaller(array_view<std::uint8_t> Data);		// // //
 };

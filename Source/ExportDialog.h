@@ -25,9 +25,11 @@
 
 #include "stdafx.h"		// // //
 #include "../resource.h"		// // //
+#include <optional>		// // //
 
 class CCompiler;		// // //
 class CExportDialog;
+class CSimpleFile;		// // //
 
 typedef void (CExportDialog::*exportFunc_t)();
 
@@ -47,18 +49,15 @@ public:
 protected:
 	static int m_iExportOption;
 
+	CComboBox m_cExportTypes;		// // //
+
 protected:
 	static const exportFunc_t DEFAULT_EXPORT_FUNCS[];
 	static const LPCWSTR	  DEFAULT_EXPORT_NAMES[];		// // //
+	static const LPCWSTR	  DEFAULT_FILTERS[][2];		// // //
 	static const int		  DEFAULT_EXPORTERS;
 
-	static const LPCWSTR NSF_FILTER[2];
-	static const LPCWSTR NES_FILTER[2];
-	static const LPCWSTR RAW_FILTER[2];
-	static const LPCWSTR DPCMS_FILTER[2];
-	static const LPCWSTR PRG_FILTER[2];
-	static const LPCWSTR ASM_FILTER[2];
-	static const LPCWSTR NSFE_FILTER[2];		// // //
+	static const LPCWSTR	  DPCMS_FILTER[2];
 
 #ifdef _DEBUG
 	CStringW m_strFile;
@@ -72,7 +71,18 @@ protected:
 	void CreatePRG();
 	void CreateASM();
 	void CreateNSFe();		// // //
+
+	int GetMachineType() const;		// // //
 	void UpdateMetadata(CCompiler &compiler);		// // //
+
+	std::optional<CSimpleFile> OpenFile(const CStringW &fileName);		// // //
+
+	// void (*F)(CFile &)
+	template <typename F>
+	void WithFile(const CStringW &initFName, F f);
+	// void (*F)(CFile &)
+	template <typename F>
+	void WithFile(const CStringW &initFName, const CStringW &filterName, const CStringW &filterExt, F f);
 
 	DECLARE_MESSAGE_MAP()
 public:

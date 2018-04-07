@@ -21,7 +21,7 @@
 */
 
 #include "ChunkRenderText.h"
-#include "stdafx.h"
+#include "SimpleFile.h"		// // //
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "FamiTrackerDoc.h"		// // // output title
 #include "Compiler.h"
@@ -98,7 +98,7 @@ const CChunkRenderText::stChunkRenderFunc CChunkRenderText::RENDER_FUNCTIONS[] =
 	{CHUNK_WAVES,			&CChunkRenderText::StoreWavesChunk},
 };
 
-CChunkRenderText::CChunkRenderText(CFile &File) : m_File(File)
+CChunkRenderText::CChunkRenderText(CSimpleFile &File) : m_File(File)
 {
 }
 
@@ -458,7 +458,7 @@ void CChunkRenderText::StoreWavesChunk(const CChunk *pChunk)
 
 void CChunkRenderText::WriteFileString(std::string_view sv) const		// // //
 {
-	m_File.Write(sv.data(), sv.size());		// // //
+	m_File.WriteBytes(sv);		// // //
 }
 
 std::string CChunkRenderText::GetByteString(array_view<unsigned char> Data, int LineBreak) {		// // //

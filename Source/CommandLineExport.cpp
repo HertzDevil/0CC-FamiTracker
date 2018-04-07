@@ -26,6 +26,7 @@
 #include "Compiler.h"
 #include "SoundGen.h"
 #include "TextExporter.h"
+#include "SimpleFile.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 
 // Command line export logger
@@ -76,12 +77,11 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 		fLog.WriteString(L"\n");
 	}
 
-	CFile OutputFile;		// // //
-	CFileException ex;
-	if (!OutputFile.Open(fileOut, CFile::modeWrite | CFile::modeCreate, &ex)) {
-		WCHAR szCause[255] = { };
-		ex.GetErrorMessage(szCause, std::size(szCause));
-		fLog.WriteString(FormattedW(L"Error: Could not open output file: %s\n", szCause));
+	CSimpleFile OutputFile((LPCWSTR)fileOut, std::ios::out | std::ios::binary);
+	if (!OutputFile) {
+		char msg[512] = { };
+		::strerror_s(msg, errno);
+		fLog.WriteString(FormattedW(L"Error: Could not open output file: %s\n", conv::to_wide(msg).data()));
 		return;
 	}
 
@@ -118,11 +118,11 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 	}
 	// BIN export requires two files
 	else if (0 == ext.CompareNoCase(L".bin")) {
-		CFile DPCMFile;		// // //
-		if (!DPCMFile.Open(fileDPCM, CFile::modeWrite | CFile::modeCreate, &ex)) {
-			WCHAR szCause[255] = { };
-			ex.GetErrorMessage(szCause, std::size(szCause));
-			fLog.WriteString(FormattedW(L"Error: Could not open output file: %s\n", szCause));
+		CSimpleFile DPCMFile((LPCWSTR)fileDPCM, std::ios::out | std::ios::binary);
+		if (!OutputFile) {
+			char msg[512] = { };
+			::strerror_s(msg, errno);
+			fLog.WriteString(FormattedW(L"Error: Could not open output file: %s\n", conv::to_wide(msg).data()));
 			return;
 		}
 

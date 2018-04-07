@@ -32,9 +32,7 @@ class CSimpleFile
 public:
 	static_assert(sizeof(char) == sizeof(uint8_t));
 
-	template <typename... Arg>
-	CSimpleFile(Arg&&... args) : m_fFile(std::forward<Arg>(args)...) { }
-	~CSimpleFile();
+	CSimpleFile(const wchar_t *fname, std::ios_base::openmode mode);
 
 	explicit operator bool() const;
 
@@ -44,6 +42,8 @@ public:
 	void	WriteInt16(int16_t Value);
 	void	WriteInt32(int32_t Value);
 	void	WriteBytes(array_view<char> Buf);
+	void	WriteBytes(array_view<unsigned char> Buf);
+	void	WriteBytes(array_view<std::byte> Buf);
 	void	WriteString(std::string_view sv);
 	void	WriteStringNull(std::string_view sv);
 
@@ -57,6 +57,9 @@ public:
 	std::string	ReadString();
 	std::string	ReadStringN(size_t count);
 	std::string	ReadStringNull();
+
+	void	Seek(std::size_t pos);
+	std::size_t GetPosition();
 
 private:
 	std::fstream m_fFile;

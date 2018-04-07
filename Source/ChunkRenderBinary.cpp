@@ -26,27 +26,26 @@
 #include "Compiler.h"
 #include "Chunk.h"
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
-#include "stdafx.h"		// // //
+#include "SimpleFile.h"		// // //
 
 /**
  * Binary file writer, base class binary renderers
  */
 
-CBinaryFileWriter::CBinaryFileWriter(CFile *pFile) : m_pFile(pFile), m_iDataWritten(0)
+CBinaryFileWriter::CBinaryFileWriter(CSimpleFile &File) : m_fFile(File), m_iDataWritten(0)		// // //
 {
 }
 
 void CBinaryFileWriter::Store(array_view<std::uint8_t> Data)
 {
-	m_pFile->Write(Data.data(), Data.size());
+	m_fFile.WriteBytes(Data);
 	m_iDataWritten += Data.size();
 }
 
 void CBinaryFileWriter::Fill(unsigned int Size)
 {
-	char d = 0;
 	for (unsigned int i = 0; i < Size; ++i)
-		m_pFile->Write(&d, 1);
+		m_fFile.WriteInt8(0);
 	m_iDataWritten += Size;
 }
 
@@ -59,10 +58,6 @@ unsigned int CBinaryFileWriter::GetWritten() const
  * Binary chunk render, used to write binary files
  *
  */
-
-CChunkRenderBinary::CChunkRenderBinary(CFile *pFile) : CBinaryFileWriter(pFile), m_iSampleAddress(0)
-{
-}
 
 void CChunkRenderBinary::StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks)
 {
@@ -110,8 +105,8 @@ void CChunkRenderBinary::StoreSample(const ft0cc::doc::dpcm_sample &DSample)
  *
  */
 
-CChunkRenderNSF::CChunkRenderNSF(CFile *pFile, unsigned int StartAddr) :
-	CBinaryFileWriter(pFile),
+CChunkRenderNSF::CChunkRenderNSF(CSimpleFile &File, unsigned int StartAddr) :
+	CBinaryFileWriter(File),
 	m_iStartAddr(StartAddr),
 	m_iSampleAddr(0)
 {
@@ -247,7 +242,7 @@ int CChunkRenderNSF::GetAbsoluteAddr() const
  *
  */
 
-CChunkRenderNES::CChunkRenderNES(CFile *pFile, unsigned int StartAddr) : CChunkRenderNSF(pFile, StartAddr)
+CChunkRenderNES::CChunkRenderNES(CSimpleFile &File, unsigned int StartAddr) : CChunkRenderNSF(File, StartAddr)
 {
 }
 
