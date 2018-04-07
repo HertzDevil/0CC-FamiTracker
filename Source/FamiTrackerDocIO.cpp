@@ -275,9 +275,9 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerModule &modfile, int ver) {
 		modfile.SetEngineSpeed(file_.GetBlockInt());
 
 	if (ver > 2)
-		modfile.SetVibratoStyle(file_.GetBlockInt() ? VIBRATO_NEW : VIBRATO_OLD);		// // //
+		modfile.SetVibratoStyle(file_.GetBlockInt() ? vibrato_t::Bidir : vibrato_t::Up);		// // //
 	else
-		modfile.SetVibratoStyle(VIBRATO_OLD);
+		modfile.SetVibratoStyle(vibrato_t::Up);
 
 	// TODO read m_bLinearPitch
 	if (ver >= 9) {		// // // 050B
@@ -345,7 +345,7 @@ void CFamiTrackerDocIO::SaveParams(const CFamiTrackerModule &modfile, int ver) {
 	file_.WriteBlockInt(modfile.GetEngineSpeed());
 
 	if (ver >= 3) {
-		file_.WriteBlockInt(modfile.GetVibratoStyle());
+		file_.WriteBlockInt(value_cast(modfile.GetVibratoStyle()));
 
 		if (ver >= 4) {
 			const stHighlight &hl = modfile.GetHighlight(0);

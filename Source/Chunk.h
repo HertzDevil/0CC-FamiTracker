@@ -33,7 +33,7 @@
 // Chunk data classes
 //
 
-enum chunk_type_t {
+enum chunk_type_t : int {
 	CHUNK_NONE,		// // //
 	CHUNK_HEADER,
 	CHUNK_SEQUENCE,

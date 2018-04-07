@@ -259,7 +259,7 @@ void to_json(json &j, const CFamiTrackerModule &modfile) {
 		{"global", {
 			{"machine", modfile.GetMachine() == machine_t::PAL ? "pal" : "ntsc"},
 			{"engine_speed", modfile.GetEngineSpeed()},
-			{"vibrato_style", modfile.GetVibratoStyle() == vibrato_t::VIBRATO_OLD ? "old" : "new"},
+			{"vibrato_style", modfile.GetVibratoStyle() == vibrato_t::Up ? "old" : "new"},
 			{"linear_pitch", modfile.GetLinearPitch()},
 			{"fxx_split_point", modfile.GetSpeedSplitPoint()},
 			{"detune", {

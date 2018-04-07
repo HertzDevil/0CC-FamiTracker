@@ -20,34 +20,20 @@
 ** must bear this legend.
 */
 
+#include "PeriodTables.h"
+#include "DetuneTable.h"
+#include "Assertion.h"
 
-#pragma once
-
-#include <string>
-
-class CWinApp;
-class CMainFrame;
-class CAccelerator;
-class CSoundGen;
-class CMIDI;
-class CSettings;
-class CInstrumentService;
-class CSoundChipService;
-
-// global tracker environment
-
-struct CFamiTrackerEnv {
-	static CWinApp		*GetMainApp();
-	static CMainFrame	*GetMainFrame();
-	static CAccelerator	*GetAccelerator();
-	static CSoundGen	*GetSoundGenerator();
-	static CMIDI		*GetMIDI();
-	static CSettings	*GetSettings();
-	static CInstrumentService *GetInstrumentService();		// // //
-	static CSoundChipService *GetSoundChipService();		// // //
-
-	static bool IsFileLoaded();
-	static std::string GetDocumentTitle();
-};
-
-extern CFamiTrackerEnv Env; // saves some typing
+unsigned CPeriodTables::ReadTable(int Index, int Table) const {
+	switch (Table) {
+	case CDetuneTable::DETUNE_NTSC: return ntsc_period[Index]; break;
+	case CDetuneTable::DETUNE_PAL:  return pal_period[Index]; break;
+	case CDetuneTable::DETUNE_SAW:  return saw_period[Index]; break;
+	case CDetuneTable::DETUNE_VRC7: return vrc7_freq[Index]; break;
+	case CDetuneTable::DETUNE_FDS:  return fds_freq[Index]; break;
+	case CDetuneTable::DETUNE_N163: return n163_freq[Index]; break;
+	case CDetuneTable::DETUNE_S5B:  return s5b_period[Index]; break;
+	}
+	DEBUG_BREAK();
+	return ntsc_period[Index];
+}

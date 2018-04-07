@@ -38,6 +38,7 @@ class CSongView;
 class CInstrumentManager;
 class CSequenceManager;
 class CDSampleManager;
+struct CPeriodTables;
 struct stHighlight;
 
 namespace ft0cc::doc {
@@ -48,7 +49,7 @@ class CFamiTrackerModule {
 public:
 	static constexpr std::size_t METADATA_FIELD_LENGTH		= 32;
 
-	static constexpr vibrato_t	 DEFAULT_VIBRATO_STYLE		= vibrato_t::VIBRATO_NEW;
+	static constexpr vibrato_t	 DEFAULT_VIBRATO_STYLE		= vibrato_t::Bidir;
 	static constexpr bool		 DEFAULT_LINEAR_PITCH		= false;
 	static constexpr unsigned	 DEFAULT_SPEED_SPLIT_POINT	= 32;
 	static constexpr unsigned	 OLD_SPEED_SPLIT_POINT		= 21;
@@ -92,6 +93,9 @@ public:
 	void SetVibratoStyle(vibrato_t style);
 	void SetLinearPitch(bool enable);
 	void SetSpeedSplitPoint(int splitPoint);
+
+	std::array<int, 256> MakeVibratoTable() const;		// // //
+	CPeriodTables MakePeriodTables() const;		// // //
 
 	// detune
 	int GetDetuneOffset(int chip, int note) const;

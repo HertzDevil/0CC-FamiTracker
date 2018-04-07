@@ -68,7 +68,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CFile *pOpenFile) {
 
 	modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
 	modfile.SetMachine(machine_t::NTSC);		// // //
-	modfile.SetVibratoStyle(VIBRATO_OLD);
+	modfile.SetVibratoStyle(vibrato_t::Up);
 	modfile.SetLinearPitch(false);
 
 	// // // local structs

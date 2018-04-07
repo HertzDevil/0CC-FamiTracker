@@ -119,7 +119,7 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 	m_cButtonEnableS5B .SetCheck(m_iExpansions.ContainsChip(sound_chip_t::S5B ));
 
 	// Vibrato
-	m_cComboVibrato.SetCurSel((m_pModule->GetVibratoStyle() == VIBRATO_NEW) ? 0 : 1);
+	m_cComboVibrato.SetCurSel((m_pModule->GetVibratoStyle() == vibrato_t::Bidir) ? 0 : 1);
 	m_cComboLinearPitch.SetCurSel(m_pModule->GetLinearPitch() ? 1 : 0);
 
 	// Namco channel count
@@ -161,7 +161,7 @@ void CModulePropertiesDlg::OnBnClickedOk()
 	}
 
 	// Vibrato
-	vibrato_t newVib = m_cComboVibrato.GetCurSel() == 0 ? VIBRATO_NEW : VIBRATO_OLD;		// // //
+	vibrato_t newVib = m_cComboVibrato.GetCurSel() == 0 ? vibrato_t::Bidir : vibrato_t::Up;		// // //
 	bool newLinear = m_cComboLinearPitch.GetCurSel() == 1;
 	if (newVib != m_pModule->GetVibratoStyle() || newLinear != m_pModule->GetLinearPitch())
 		m_pDocument->ModifyIrreversible();

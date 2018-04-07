@@ -23,31 +23,18 @@
 
 #pragma once
 
-#include <string>
+#include "FamiTrackerTypes.h"
 
-class CWinApp;
-class CMainFrame;
-class CAccelerator;
-class CSoundGen;
-class CMIDI;
-class CSettings;
-class CInstrumentService;
-class CSoundChipService;
+// // // TODO: use CDetuneTable eventually
 
-// global tracker environment
+struct CPeriodTables {
+	unsigned ntsc_period[NOTE_COUNT] = { };
+	unsigned pal_period[NOTE_COUNT] = { };
+	unsigned saw_period[NOTE_COUNT] = { };
+	unsigned vrc7_freq[NOTE_COUNT] = { };
+	unsigned fds_freq[NOTE_COUNT] = { };
+	unsigned n163_freq[NOTE_COUNT] = { };
+	unsigned s5b_period[NOTE_COUNT] = { };
 
-struct CFamiTrackerEnv {
-	static CWinApp		*GetMainApp();
-	static CMainFrame	*GetMainFrame();
-	static CAccelerator	*GetAccelerator();
-	static CSoundGen	*GetSoundGenerator();
-	static CMIDI		*GetMIDI();
-	static CSettings	*GetSettings();
-	static CInstrumentService *GetInstrumentService();		// // //
-	static CSoundChipService *GetSoundChipService();		// // //
-
-	static bool IsFileLoaded();
-	static std::string GetDocumentTitle();
+	unsigned ReadTable(int Index, int Table) const;
 };
-
-extern CFamiTrackerEnv Env; // saves some typing

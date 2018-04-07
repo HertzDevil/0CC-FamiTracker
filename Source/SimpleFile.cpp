@@ -24,7 +24,7 @@
 
 // // // File load / store
 
-CSimpleFile::CSimpleFile(const wchar_t *fname, std::ios_base::openmode mode) :
+CSimpleFile::CSimpleFile(const fname_char_t *fname, std::ios_base::openmode mode) :
 	m_fFile(fname, mode)
 {
 }

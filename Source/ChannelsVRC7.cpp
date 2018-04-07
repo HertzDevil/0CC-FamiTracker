@@ -215,7 +215,7 @@ int CChannelHandlerVRC7::TriggerNote(int Note)
 
 unsigned int CChannelHandlerVRC7::GetFnum(int Note) const
 {
-	return m_pNoteLookupTable[Note % NOTE_RANGE] << VRC7_PITCH_RESOLUTION;		// // //
+	return m_iNoteLookupTable[Note % NOTE_RANGE] << VRC7_PITCH_RESOLUTION;		// // //
 }
 
 int CChannelHandlerVRC7::CalculateVolume() const
@@ -232,7 +232,7 @@ int CChannelHandlerVRC7::CalculatePeriod() const
 {
 	int Detune = GetVibrato() - GetFinePitch() - GetPitch();
 	int Period = LimitPeriod(GetPeriod() + (Detune << VRC7_PITCH_RESOLUTION));		// // //
-	if (m_bLinearPitch && m_pNoteLookupTable != nullptr) {
+	if (m_bLinearPitch && !m_iNoteLookupTable.empty()) {
 		Period = LimitPeriod(GetPeriod() + Detune);		// // //
 		int Note = (Period >> LINEAR_PITCH_AMOUNT) % NOTE_RANGE;
 		int Sub = Period % (1 << LINEAR_PITCH_AMOUNT);

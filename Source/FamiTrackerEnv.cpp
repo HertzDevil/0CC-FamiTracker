@@ -21,36 +21,63 @@
 */
 
 #include "FamiTrackerEnv.h"
-#include "stdafx.h"
-#include "FamiTracker.h"
 #include "InstrumentService.h"		// // //
 #include "SoundChipService.h"		// // //
+#ifndef FT0CC_EXT_BUILD
+#include "stdafx.h"
+#include "FamiTracker.h"
 #include "FamiTrackerDoc.h"
+#include "str_conv/str_conv.hpp"
+#endif
 
 CFamiTrackerEnv Env;
 
 CWinApp *CFamiTrackerEnv::GetMainApp() {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return &theApp;
+#endif
 }
 
 CMainFrame *CFamiTrackerEnv::GetMainFrame() {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return theApp.GetMainFrame();
+#endif
 }
 
 CAccelerator *CFamiTrackerEnv::GetAccelerator() {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return theApp.GetAccelerator();
+#endif
 }
 
 CSoundGen *CFamiTrackerEnv::GetSoundGenerator() {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return theApp.GetSoundGenerator();
+#endif
 }
 
 CMIDI *CFamiTrackerEnv::GetMIDI() {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return theApp.GetMIDI();
+#endif
 }
 
 CSettings *CFamiTrackerEnv::GetSettings() {
+#ifdef FT0CC_EXT_BUILD
+	return nullptr;
+#else
 	return theApp.GetSettings();
+#endif
 }
 
 CInstrumentService *CFamiTrackerEnv::GetInstrumentService() {
@@ -72,5 +99,17 @@ CSoundChipService *CFamiTrackerEnv::GetSoundChipService() {
 }
 
 bool CFamiTrackerEnv::IsFileLoaded() {
+#ifdef FT0CC_EXT_BUILD
+	return false;
+#else
 	return CFamiTrackerDoc::GetDoc()->IsFileLoaded();
+#endif
+}
+
+std::string CFamiTrackerEnv::GetDocumentTitle() {
+#ifdef FT0CC_EXT_BUILD
+	return "Untitled";
+#else
+	return conv::to_utf8(CFamiTrackerDoc::GetDoc()->GetTitle());
+#endif
 }

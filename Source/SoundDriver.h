@@ -26,12 +26,11 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <array>
 #include <string>
 #include "FamiTrackerTypes.h"
 #include "APU/Types_fwd.h"
-
-const int VIBRATO_LENGTH = 256;
-const int TREMOLO_LENGTH = 256;
+#include "PeriodTables.h"
 
 class CFamiTrackerModule;
 class CChannelMap;
@@ -128,14 +127,8 @@ private:
 	int					m_iSkipToRow = -1;
 	bool				m_bDoHalt = false;					// // // Cxx effect
 
-	unsigned int		m_iNoteLookupTableNTSC[NOTE_COUNT];			// For 2A03
-	unsigned int		m_iNoteLookupTablePAL[NOTE_COUNT];			// For 2A07
-	unsigned int		m_iNoteLookupTableSaw[NOTE_COUNT];			// For VRC6 sawtooth
-	unsigned int		m_iNoteLookupTableVRC7[NOTE_COUNT];			// // // For VRC7
-	unsigned int		m_iNoteLookupTableFDS[NOTE_COUNT];			// For FDS
-	unsigned int		m_iNoteLookupTableN163[NOTE_COUNT];			// For N163
-	unsigned int		m_iNoteLookupTableS5B[NOTE_COUNT];			// // // For 5B, internal use only
-	int					m_iVibratoTable[VIBRATO_LENGTH];
+	CPeriodTables		m_iNoteLookupTable;		// // //
+	std::array<int, 256> m_iVibratoTable = { };
 
 	std::shared_ptr<CTempoCounter> m_pTempoCounter;			// // // tempo calculation
 	// Player state

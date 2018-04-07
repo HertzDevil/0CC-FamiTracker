@@ -25,14 +25,20 @@
 
 #include <fstream>
 #include <cstdint>
+#include <cstddef>
 #include "array_view.h"
 
 class CSimpleFile
 {
 public:
 	static_assert(sizeof(char) == sizeof(uint8_t));
+#ifdef WIN32
+	using fname_char_t = wchar_t;
+#else
+	using fname_char_t = char;
+#endif
 
-	CSimpleFile(const wchar_t *fname, std::ios_base::openmode mode);
+	CSimpleFile(const fname_char_t *fname, std::ios_base::openmode mode);
 
 	explicit operator bool() const;
 

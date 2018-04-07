@@ -31,6 +31,7 @@
 #include "Instrument2A03.h"		// // //
 #include "InstrumentFDS.h"		// // //
 #include "InstrumentN163.h"		// // //
+#include "PeriodTables.h"		// // //
 #include "PatternCompiler.h"
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "ft0cc/doc/groove.hpp"		// // //
@@ -38,7 +39,6 @@
 #include "ChunkRenderText.h"
 #include "ChunkRenderBinary.h"
 #include "Driver.h"
-#include "SoundGen.h"
 #include "DSampleManager.h"		// // //
 #include "InstrumentManager.h"		// // //
 #include "InstrumentService.h"		// // //
@@ -48,6 +48,7 @@
 #include "str_conv/str_conv.hpp"		// // //
 #include "SoundChipService.h"		// // //
 #include "SimpleFile.h"		// // //
+#include "Assertion.h"		// // //
 
 //
 // This is the new NSF data compiler, music is compiled to an object list instead of a binary chunk
@@ -169,7 +170,7 @@ void NSFEWriteBlockIdent(CSimpleFile &file, const char (&ident)[5], uint32_t sz)
 	file.WriteBytes({ident, 4});
 }
 
-ULONGLONG NSFEWriteBlocks(CSimpleFile &file, const CFamiTrackerModule &modfile,
+std::size_t NSFEWriteBlocks(CSimpleFile &file, const CFamiTrackerModule &modfile,
 	std::string_view title, std::string_view artist, std::string_view copyright) {		// // //
 	int iAuthSize = 0, iTimeSize = 0, iTlblSize = 0;
 	auto str = std::string {"0CC-FamiTracker "} + Get0CCFTVersionString();		// // //
@@ -177,7 +178,6 @@ ULONGLONG NSFEWriteBlocks(CSimpleFile &file, const CFamiTrackerModule &modfile,
 
 	NSFEWriteBlockIdent(file, "auth", iAuthSize);
 
-	const unsigned char nullch = 0;
 	file.WriteStringNull(title);
 	file.WriteStringNull(artist);
 	file.WriteStringNull(copyright);
@@ -203,7 +203,7 @@ ULONGLONG NSFEWriteBlocks(CSimpleFile &file, const CFamiTrackerModule &modfile,
 		file.WriteStringNull(song.GetTitle());
 	});
 
-	ULONGLONG iDataSizePos = file.GetPosition();
+	std::size_t iDataSizePos = file.GetPosition();
 	NSFEWriteBlockIdent(file, "DATA", 0);
 	return iDataSizePos;
 }
@@ -251,12 +251,12 @@ void CCompiler::ExportNSF_NSFE(CSimpleFile &file, int MachineType, bool isNSFE) 
 
 	// Load driver
 	auto Driver = LoadDriver(*m_pDriverData, m_iDriverAddress);		// // //
-	ASSERT(Driver.size() == m_iDriverSize);
+	Assert(Driver.size() == m_iDriverSize);
 	Driver[m_iDriverSize - 2] = MusicDataAddress & 0xFF;
 	Driver[m_iDriverSize - 1] = MusicDataAddress >> 8;
 
 	// Create NSF header
-	ULONGLONG iDataSizePos = 0;		// // //
+	std::size_t iDataSizePos = 0;		// // //
 	if (isNSFE) {
 		auto Header = CreateNSFeHeader(MachineType);		// // //
 		file.WriteBytes({reinterpret_cast<const char *>(&Header), sizeof(Header)});
@@ -338,7 +338,7 @@ void CCompiler::ExportNES_PRG(CSimpleFile &file, bool EnablePAL, bool isPRG) {
 
 	// Load driver
 	auto Driver = LoadDriver(*m_pDriverData, m_iDriverAddress);		// // //
-	ASSERT(Driver.size() == m_iDriverSize);
+	Assert(Driver.size() == m_iDriverSize);
 	Driver[m_iDriverSize - 2] = MusicDataAddress & 0xFF;
 	Driver[m_iDriverSize - 1] = MusicDataAddress >> 8;
 
@@ -455,7 +455,7 @@ std::vector<unsigned char> CCompiler::LoadDriver(const driver_t &Driver, unsigne
 	std::vector<unsigned char> Data(Driver.driver.begin(), Driver.driver.end());
 
 	// // // Custom pitch tables
-	const CSoundGen *pSoundGen = Env.GetSoundGenerator();		// // //
+	CPeriodTables PeriodTables = m_pModule->MakePeriodTables();		// // //
 	for (size_t i = 0; i < Driver.freq_table.size(); i += 2) {		// // //
 		int Table = Driver.freq_table[i + 1];
 		switch (Table) {
@@ -465,19 +465,19 @@ std::vector<unsigned char> CCompiler::LoadDriver(const driver_t &Driver, unsigne
 		case CDetuneTable::DETUNE_FDS:
 		case CDetuneTable::DETUNE_N163:
 			for (int j = 0; j < NOTE_COUNT; ++j) {
-				int Reg = pSoundGen->ReadPeriodTable(j, Table);
+				int Reg = PeriodTables.ReadTable(j, Table);
 				Data[Driver.freq_table[i] + 2 * j    ] = Reg & 0xFF;
 				Data[Driver.freq_table[i] + 2 * j + 1] = Reg >> 8;
 			} break;
 		case CDetuneTable::DETUNE_VRC7:
 			for (int j = 0; j <= NOTE_RANGE; ++j) { // one extra item
-				int Reg = pSoundGen->ReadPeriodTable(j % NOTE_RANGE, Table) * 4;
+				int Reg = PeriodTables.ReadTable(j % NOTE_RANGE, Table) * 4;
 				if (j == NOTE_RANGE) Reg <<= 1;
 				Data[Driver.freq_table[i] + j                 ] = Reg & 0xFF;
 				Data[Driver.freq_table[i] + j + NOTE_RANGE + 1] = Reg >> 8;
 			} break;
 		default:
-			AfxDebugBreak();
+			DEBUG_BREAK();
 		}
 	}
 
@@ -505,7 +505,7 @@ std::vector<unsigned char> CCompiler::LoadDriver(const driver_t &Driver, unsigne
 		int ptr = FT_UPDATE_EXT_ADR;
 		Env.GetSoundChipService()->ForeachType([&] (sound_chip_t chip) {
 			if (chip != sound_chip_t::APU) {
-				ASSERT(Data[ptr] == 0x20); // jsr
+				Assert(Data[ptr] == 0x20); // jsr
 				if (!m_pModule->HasExpansionChip(chip)) {
 					Data[ptr++] = 0xEA; // nop
 					Data[ptr++] = 0xEA;
@@ -528,8 +528,9 @@ std::vector<unsigned char> CCompiler::LoadDriver(const driver_t &Driver, unsigne
 	}
 
 	// // // Copy the vibrato table, the stock one only works for new vibrato mode
+	std::array<int, 256> VibTable = m_pModule->MakeVibratoTable();		// // //
 	for (int i = 0; i < 256; ++i)
-		Data[m_iVibratoTableLocation + i] = (char)pSoundGen->ReadVibratoTable(i);
+		Data[m_iVibratoTableLocation + i] = (char)VibTable[i];
 
 	return Data;
 }
@@ -553,9 +554,9 @@ stNSFHeader CCompiler::CreateHeader(int MachineType) const		// // //
 	Header.LoadAddr = m_iLoadAddress;
 	Header.InitAddr = m_iInitAddress;
 	Header.PlayAddr = m_iInitAddress + 3;
-	strncpy_s(Header.SongName,   title_.data(), std::size(Header.SongName) - 1);
-	strncpy_s(Header.ArtistName, artist_.data(), std::size(Header.ArtistName) - 1);
-	strncpy_s(Header.Copyright,  copyright_.data(), std::size(Header.Copyright) - 1);
+	std::copy_n(title_.begin(), std::min(title_.size(), CFamiTrackerModule::METADATA_FIELD_LENGTH - 1), Header.SongName);
+	std::copy_n(artist_.begin(), std::min(artist_.size(), CFamiTrackerModule::METADATA_FIELD_LENGTH - 1), Header.ArtistName);
+	std::copy_n(copyright_.begin(), std::min(copyright_.size(), CFamiTrackerModule::METADATA_FIELD_LENGTH - 1), Header.Copyright);
 	Header.SoundChip = m_pModule->GetSoundChipSet().GetNSFFlag();
 
 	// If speed is default, write correct NTSC/PAL speed periods
@@ -621,7 +622,7 @@ void CCompiler::UpdateSamplePointers(unsigned int Origin)
 	// TODO: rewrite this to utilize the CChunkDataBank to resolve bank numbers automatically
 	//
 
-	ASSERT(m_pSamplePointersChunk != NULL);
+	Assert(m_pSamplePointersChunk != NULL);
 
 	unsigned int Address = Origin;
 	unsigned int Bank = m_iFirstSampleBank;
@@ -701,7 +702,7 @@ void CCompiler::ClearSongBanks()
 void CCompiler::EnableBankswitching()
 {
 	// Set bankswitching flag in the song header
-	ASSERT(m_pHeaderChunk != NULL);
+	Assert(m_pHeaderChunk != NULL);
 	unsigned char flags = (unsigned char)m_pHeaderChunk->GetData(m_iHeaderFlagOffset);
 	flags |= FLAG_BANKSWITCHED;
 	m_pHeaderChunk->ChangeByte(m_iHeaderFlagOffset, flags);
@@ -1028,7 +1029,7 @@ void CCompiler::CreateMainHeader()
 	CSoundChipSet Chip = m_pModule->GetSoundChipSet();		// // //
 
 	unsigned char Flags =		// // // bankswitch flag is set later
-		(m_pModule->GetVibratoStyle() == VIBRATO_OLD ? FLAG_VIBRATO : 0) |
+		(m_pModule->GetVibratoStyle() == vibrato_t::Up ? FLAG_VIBRATO : 0) |
 		(m_pModule->GetLinearPitch() ? FLAG_LINEARPITCH : 0);
 
 	CChunk &Chunk = CreateChunk({CHUNK_HEADER});		// // //
@@ -1288,7 +1289,7 @@ void CCompiler::StoreSamples()
 	for (unsigned int i = 0; i < m_iSamplesUsed; ++i) {
 
 		unsigned int iIndex = m_iSampleBank[i];
-		ASSERT(iIndex != 0xFF);
+		Assert(iIndex != 0xFF);
 		auto pDSample = Dm.GetDSample(iIndex);
 		unsigned int iSize = pDSample->size();
 

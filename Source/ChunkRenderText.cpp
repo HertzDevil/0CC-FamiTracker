@@ -23,7 +23,7 @@
 #include "ChunkRenderText.h"
 #include "SimpleFile.h"		// // //
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
-#include "FamiTrackerDoc.h"		// // // output title
+#include "FamiTrackerEnv.h"		// // // output title
 #include "Compiler.h"
 #include "Chunk.h"
 #include "NumConv.h"		// // //
@@ -112,7 +112,7 @@ void CChunkRenderText::StoreChunks(const std::vector<std::shared_ptr<CChunk>> &C
 
 	// Write strings to file
 	WriteFileString("; 0CC-FamiTracker exported music data: ");
-	WriteFileString(conv::to_utf8(CFamiTrackerDoc::GetDoc()->GetTitle()));
+	WriteFileString(Env.GetDocumentTitle());		// // //
 	WriteFileString("\n;\n\n");
 
 	// Module header
@@ -470,11 +470,12 @@ std::string CChunkRenderText::GetByteString(array_view<unsigned char> Data, int 
 		str += conv::sv_from_uint_hex(Data.front(), 2);
 		Data.pop_front();
 
-		if (!Data.empty())
+		if (!Data.empty()) {
 			if ((i % LineBreak == (LineBreak - 1)))
 				str += "\n\t.byte ";
 			else
 				str += ", ";
+		}
 
 		++i;
 	}

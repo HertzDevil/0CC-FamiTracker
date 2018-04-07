@@ -31,25 +31,9 @@
 #include "SoundChipService.h"
 #include "TrackerChannel.h"
 #include "PlayerCursor.h"
-#include "DetuneTable.h"
 #include "SongState.h"
 #include "ChannelMap.h"
-#include <cmath>
 #include "Assertion.h"
-
-
-
-namespace {
-
-const double NEW_VIBRATO_DEPTH[] = {
-	1.0, 1.5, 2.5, 4.0, 5.0, 7.0, 10.0, 12.0, 14.0, 17.0, 22.0, 30.0, 44.0, 64.0, 96.0, 128.0,
-};
-
-const double OLD_VIBRATO_DEPTH[] = {
-	1.0, 1.0, 2.0, 3.0, 4.0, 7.0, 8.0, 15.0, 16.0, 31.0, 32.0, 63.0, 64.0, 127.0, 128.0, 255.0,
-};
-
-} // namespace
 
 
 
@@ -311,17 +295,7 @@ std::string CSoundDriver::GetChannelStateString(stChannelID chan) const {
 }
 
 int CSoundDriver::ReadPeriodTable(int Index, int Table) const {
-	switch (Table) {
-	case CDetuneTable::DETUNE_NTSC: return m_iNoteLookupTableNTSC[Index]; break;
-	case CDetuneTable::DETUNE_PAL:  return m_iNoteLookupTablePAL[Index]; break;
-	case CDetuneTable::DETUNE_SAW:  return m_iNoteLookupTableSaw[Index]; break;
-	case CDetuneTable::DETUNE_VRC7: return m_iNoteLookupTableVRC7[Index]; break;
-	case CDetuneTable::DETUNE_FDS:  return m_iNoteLookupTableFDS[Index]; break;
-	case CDetuneTable::DETUNE_N163: return m_iNoteLookupTableN163[Index]; break;
-	case CDetuneTable::DETUNE_S5B:  return m_iNoteLookupTableNTSC[Index] + 1; break;
-	}
-	DEBUG_BREAK();
-	return m_iNoteLookupTableNTSC[Index];
+	return m_iNoteLookupTable.ReadTable(Index, Table);		// // //
 }
 
 int CSoundDriver::ReadVibratoTable(int index) const {
@@ -329,95 +303,37 @@ int CSoundDriver::ReadVibratoTable(int index) const {
 }
 
 void CSoundDriver::SetupVibrato() {
-	const vibrato_t style = modfile_->GetVibratoStyle();
-
-	for (int i = 0; i < 16; ++i) {	// depth
-		for (int j = 0; j < 16; ++j) {	// phase
-			int value = 0;
-			double angle = (double(j) / 16.0) * (3.1415 / 2.0);
-
-			if (style == VIBRATO_NEW)
-				value = int(std::sin(angle) * NEW_VIBRATO_DEPTH[i] /*+ 0.5f*/);
-			else {
-				value = (int)((double(j * OLD_VIBRATO_DEPTH[i]) / 16.0) + 1);
-			}
-
-			m_iVibratoTable[i * 16 + j] = value;
-		}
-	}
+	m_iVibratoTable = modfile_->MakeVibratoTable();		// // //
 }
 
 void CSoundDriver::SetupPeriodTables() {
-	machine_t Machine = modfile_->GetMachine();
-	const double A440_NOTE = 45. - modfile_->GetTuningSemitone() - modfile_->GetTuningCent() / 100.;
-	const double clock_ntsc = MASTER_CLOCK_NTSC / 16.;
-	const double clock_pal  = MASTER_CLOCK_PAL / 16.;
-
-	for (int i = 0; i < NOTE_COUNT; ++i) {
-		// Frequency (in Hz)
-		double Freq = 440. * std::pow(2.0, (i - A440_NOTE) / 12.);
-		double Pitch;
-
-		// 2A07
-		Pitch = (clock_pal / Freq) - 0.5;
-		m_iNoteLookupTablePAL[i] = (unsigned int)(Pitch - modfile_->GetDetuneOffset(1, i));		// // //
-
-		// 2A03 / MMC5 / VRC6
-		Pitch = (clock_ntsc / Freq) - 0.5;
-		m_iNoteLookupTableNTSC[i] = (unsigned int)(Pitch - modfile_->GetDetuneOffset(0, i));		// // //
-		m_iNoteLookupTableS5B[i] = m_iNoteLookupTableNTSC[i] + 1;		// correction
-
-		// VRC6 Saw
-		Pitch = ((clock_ntsc * 16.0) / (Freq * 14.0)) - 0.5;
-		m_iNoteLookupTableSaw[i] = (unsigned int)(Pitch - modfile_->GetDetuneOffset(2, i));		// // //
-
-		// FDS
-		Pitch = (Freq * 65536.0) / (clock_ntsc / 1.0) + 0.5;
-		m_iNoteLookupTableFDS[i] = (unsigned int)(Pitch + modfile_->GetDetuneOffset(4, i));		// // //
-
-		// N163
-		Pitch = ((Freq * modfile_->GetNamcoChannels() * 983040.0) / clock_ntsc + 0.5) / 4;		// // //
-		m_iNoteLookupTableN163[i] = (unsigned int)(Pitch + modfile_->GetDetuneOffset(5, i));		// // //
-
-		if (m_iNoteLookupTableN163[i] > 0xFFFF)	// 0x3FFFF
-			m_iNoteLookupTableN163[i] = 0xFFFF;	// 0x3FFFF
-
-		// // // Sunsoft 5B uses NTSC table
-
-		// // // VRC7
-		if (i < NOTE_RANGE) {
-			Pitch = Freq * 262144.0 / 49716.0 + 0.5;
-			unsigned Reg = (unsigned int)(Pitch + modfile_->GetDetuneOffset(3, i));
-			for (int j = 0; j < OCTAVE_RANGE; ++j)
-				m_iNoteLookupTableVRC7[i + j * NOTE_RANGE] = Reg;		// // //
-		}
-	}
+	m_iNoteLookupTable = modfile_->MakePeriodTables();		// // //
 
 	// // // Setup note tables
-	const auto GetNoteTable = [&] (stChannelID ch) -> const unsigned * {
+	const auto GetNoteTable = [&] (stChannelID ch) -> array_view<unsigned> {
 		switch (ch.Chip) {
 		case sound_chip_t::APU:
 			if (!IsAPUNoise(ch) && !IsDPCM(ch))
-				return Machine == machine_t::PAL ? m_iNoteLookupTablePAL : m_iNoteLookupTableNTSC;
+				return modfile_->GetMachine() == machine_t::PAL ? m_iNoteLookupTable.pal_period : m_iNoteLookupTable.ntsc_period;
 			break;
 		case sound_chip_t::VRC6:
-			return IsVRC6Sawtooth(ch) ? m_iNoteLookupTableSaw : m_iNoteLookupTableNTSC;
+			return IsVRC6Sawtooth(ch) ? m_iNoteLookupTable.saw_period : m_iNoteLookupTable.ntsc_period;
 		case sound_chip_t::VRC7:
-			return m_iNoteLookupTableVRC7;
+			return m_iNoteLookupTable.vrc7_freq;
 		case sound_chip_t::FDS:
-			return m_iNoteLookupTableFDS;
+			return m_iNoteLookupTable.fds_freq;
 		case sound_chip_t::MMC5:
-			return m_iNoteLookupTableNTSC;
+			return m_iNoteLookupTable.ntsc_period;
 		case sound_chip_t::N163:
-			return m_iNoteLookupTableN163;
+			return m_iNoteLookupTable.n163_freq;
 		case sound_chip_t::S5B:
-			return m_iNoteLookupTableS5B;
+			return m_iNoteLookupTable.s5b_period;
 		}
-		return nullptr;
+		return { };
 	};
 
 	ForeachTrack([&] (CChannelHandler &ch, CTrackerChannel &, stChannelID id) {
-		if (auto Table = GetNoteTable(id))
+		if (auto Table = GetNoteTable(id); !Table.empty())
 			ch.SetNoteTable(Table);
 	});
 }

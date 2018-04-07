@@ -574,7 +574,7 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 			break;
 		}
 		case CT_VIBRATO:
-			modfile.SetVibratoStyle(static_cast<vibrato_t>(t.ReadInt(0, VIBRATO_NEW)));
+			modfile.SetVibratoStyle(enum_cast<vibrato_t>(t.ReadInt(0, 1)));
 			t.ReadEOL();
 			break;
 		case CT_SPLIT:

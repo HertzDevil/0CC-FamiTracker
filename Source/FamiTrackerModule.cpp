@@ -25,6 +25,8 @@
 #include "InstrumentManager.h"
 #include "ChannelMap.h"
 #include "SongView.h"
+#include "PeriodTables.h"
+#include <cmath>
 
 #include "InstrumentManager.h"
 #include "Instrument2A03.h"
@@ -159,6 +161,80 @@ void CFamiTrackerModule::SetLinearPitch(bool enable) {
 
 void CFamiTrackerModule::SetSpeedSplitPoint(int splitPoint) {
 	m_iSpeedSplitPoint = splitPoint;
+}
+
+std::array<int, 256> CFamiTrackerModule::MakeVibratoTable() const {		// // //
+	const double NEW_VIBRATO_DEPTH[] = {
+		1.0, 1.5, 2.5, 4.0, 5.0, 7.0, 10.0, 12.0, 14.0, 17.0, 22.0, 30.0, 44.0, 64.0, 96.0, 128.0,
+	};
+
+	const double OLD_VIBRATO_DEPTH[] = {
+		1.0, 1.0, 2.0, 3.0, 4.0, 7.0, 8.0, 15.0, 16.0, 31.0, 32.0, 63.0, 64.0, 127.0, 128.0, 255.0,
+	};
+
+	std::array<int, 256> table = { };
+	const double PI = std::acos(-1);
+
+	for (int depth = 0; depth < 16; ++depth) {
+		for (int phase = 0; phase < 16; ++phase) {
+			auto t = (double)phase;
+			table[depth * 16 + phase] = (int)(GetVibratoStyle() == vibrato_t::Bidir ?
+				(std::sin(t * PI / 32.) * NEW_VIBRATO_DEPTH[depth] /*+ .5*/) :
+				(t * OLD_VIBRATO_DEPTH[depth] / 16. + 1.));
+		}
+	}
+
+	return table;
+}
+
+CPeriodTables CFamiTrackerModule::MakePeriodTables() const {		// // //
+	CPeriodTables table;
+
+	const double A440_NOTE = 45. - GetTuningSemitone() - GetTuningCent() / 100.;
+	const double clock_ntsc = MASTER_CLOCK_NTSC / 16.;
+	const double clock_pal  = MASTER_CLOCK_PAL / 16.;
+
+	for (int i = 0; i < NOTE_COUNT; ++i) {
+		// Frequency (in Hz)
+		double Freq = 440. * std::pow(2.0, (i - A440_NOTE) / 12.);
+		double Pitch;
+
+		// 2A07
+		Pitch = (clock_pal / Freq) - 0.5;
+		table.pal_period[i] = (unsigned int)(Pitch - GetDetuneOffset(1, i));		// // //
+
+		// 2A03 / MMC5 / VRC6
+		Pitch = (clock_ntsc / Freq) - 0.5;
+		table.ntsc_period[i] = (unsigned int)(Pitch - GetDetuneOffset(0, i));		// // //
+		table.s5b_period[i] = table.ntsc_period[i] + 1;		// correction
+
+		// VRC6 Saw
+		Pitch = ((clock_ntsc * 16.0) / (Freq * 14.0)) - 0.5;
+		table.saw_period[i] = (unsigned int)(Pitch - GetDetuneOffset(2, i));		// // //
+
+		// FDS
+		Pitch = (Freq * 65536.0) / (clock_ntsc / 1.0) + 0.5;
+		table.fds_freq[i] = (unsigned int)(Pitch + GetDetuneOffset(4, i));		// // //
+
+		// N163
+		Pitch = ((Freq * GetNamcoChannels() * 983040.0) / clock_ntsc + 0.5) / 4;		// // //
+		table.n163_freq[i] = (unsigned int)(Pitch + GetDetuneOffset(5, i));		// // //
+
+		if (table.n163_freq[i] > 0xFFFF)	// 0x3FFFF
+			table.n163_freq[i] = 0xFFFF;	// 0x3FFFF
+
+		// // // Sunsoft 5B uses NTSC table
+
+		// // // VRC7
+		if (i < NOTE_RANGE) {
+			Pitch = Freq * 262144.0 / 49716.0 + 0.5;
+			unsigned Reg = (unsigned int)(Pitch + GetDetuneOffset(3, i));
+			for (int j = 0; j < OCTAVE_RANGE; ++j)
+				table.vrc7_freq[i + j * NOTE_RANGE] = Reg;		// // //
+		}
+	}
+
+	return table;
 }
 
 int CFamiTrackerModule::GetDetuneOffset(int chip, int note) const {		// // //

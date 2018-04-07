@@ -247,7 +247,7 @@ constexpr effect_t GetEffectFromChar(char ch, sound_chip_t Chip) noexcept {		// 
 }
 
 enum class note_t : unsigned char {
-	NONE = 0,					// No note
+	NONE,						// No note
 	C,  Cs, D,  Ds, E,  F,		// // // renamed
 	Fs, G,  Gs, A,  As, B,
 	RELEASE,					// Release, begin note release sequence
@@ -261,9 +261,9 @@ constexpr bool IsNote(note_t n) noexcept {
 
 inline constexpr int DEFAULT_TEMPO = DEFAULT_MACHINE_TYPE == machine_t::PAL ? DEFAULT_TEMPO_PAL : DEFAULT_TEMPO_NTSC;		// // //
 
-enum vibrato_t : unsigned char {
-	VIBRATO_OLD = 0,
-	VIBRATO_NEW,
+enum class vibrato_t : unsigned char {
+	Up,
+	Bidir,
 };
 
 constexpr int MIDI_NOTE(int octave, note_t note) noexcept {		// // //

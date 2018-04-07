@@ -837,6 +837,9 @@
     <ClCompile Include="Source\GraphEditorFactory.cpp">
       <Filter>Source Files\Dialog Boxes\Instrument\Related\Sequence editor</Filter>
     </ClCompile>
+    <ClCompile Include="Source\PeriodTables.cpp">
+      <Filter>Source Files\Document Data Types</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1567,6 +1570,9 @@
     </ClInclude>
     <ClInclude Include="Source\GraphEditorFactory.h">
       <Filter>Header Files\Dialog Boxes Headers\Instrument Headers\Related Headers\Sequence editor Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\PeriodTables.h">
+      <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

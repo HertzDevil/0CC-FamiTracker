@@ -480,6 +480,7 @@
     <ClCompile Include="Source\NoteName.cpp" />
     <ClCompile Include="Source\PatternClipData.cpp" />
     <ClCompile Include="Source\PatternData.cpp" />
+    <ClCompile Include="Source\PeriodTables.cpp" />
     <ClCompile Include="Source\RegisterDisplay.cpp" />
     <ClCompile Include="Source\SettingsService.cpp" />
     <ClCompile Include="Source\SongLengthScanner.cpp" />
@@ -695,6 +696,7 @@
     <ClInclude Include="Source\PatternClipData.h" />
     <ClInclude Include="Source\PatternComponent.h" />
     <ClInclude Include="Source\PatternData.h" />
+    <ClInclude Include="Source\PeriodTables.h" />
     <ClInclude Include="Source\PlayerCursor.h" />
     <ClInclude Include="Source\RegisterDisplay.h" />
     <ClInclude Include="Source\RegisterState.h" />

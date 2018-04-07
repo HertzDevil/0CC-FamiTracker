@@ -22,7 +22,9 @@
 
 #include "ActionHandler.h"
 #include "Action.h"
+#ifndef FT0CC_EXT_BUILD
 #include "stdafx.h" // ???
+#endif
 
 CActionHandler::CActionHandler(unsigned capacity) :
 	redoPtr_(undoList_.cbegin()), capacity_(capacity)

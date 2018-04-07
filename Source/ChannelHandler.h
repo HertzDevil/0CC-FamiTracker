@@ -42,6 +42,7 @@ enum inst_type_t : unsigned;		// // //
 #include <memory>		// // //
 #include <string>		// // //
 #include <array>		// // //
+#include "array_view.h"		// // //
 #include <cstdint>
 
 /*!
@@ -66,9 +67,9 @@ public:
 	// Public functions
 	/*!	\brief Initializes the channel handler and sets up member pointers.
 		\param pAPU Reference to the sound channel object.
-		\param pVibTable Pointer to the vibrato lookup table.
+		\param pVibTable View into the vibrato lookup table.
 		\param pSoundGen Pointer to the sound generator object. */
-	void	InitChannel(CAPUInterface &apu, const int *pVibTable, CSoundGenBase *pSoundGen);		// // //
+	void	InitChannel(CAPUInterface &apu, array_view<int> VibTable, CSoundGenBase *pSoundGen);		// // //
 	/*! \brief Updates the channel handler after the module is modified.
 		\param modfile Reference to the module object. */
 	virtual void ConfigureDocument(const CFamiTrackerModule &modfile);		// // //
@@ -114,8 +115,8 @@ public:
 	virtual void	ApplyChannelState(const stChannelState &State);	// // //
 
 	/*!	\brief Sets the channel handler's note lookup table.
-		\param pNoteLookupTable Pointer to the note lookup table. */
-	virtual void	SetNoteTable(const unsigned int *pNoteLookupTable);
+		\param pNoteLookupTable View into the note lookup table. */
+	virtual void	SetNoteTable(array_view<unsigned int> pNoteLookupTable);		// // //
 	/*!	\brief Sets the MIDI pitch wheel offset.
 		\param Pitch The new offset value. */
 	virtual void	SetPitch(int Pitch);
@@ -402,7 +403,7 @@ protected:
 	std::array<int, ECHO_BUFFER_LENGTH> m_iEchoBuffer = { };		// // //
 
 	/*!	\brief A flag indicating the direction of the 4xy vibrato effect. */
-	bool			m_bNewVibratoMode = false;
+	vibrato_t		m_iVibratoMode = vibrato_t::Bidir;		// // //
 	/*!	\brief A flag indicating that pitch bends are proportional to the current pitch register. */
 	bool			m_bLinearPitch = false;
 
@@ -489,18 +490,18 @@ protected:
 	/*!	\brief A pointer to the sound generator object. */
 	CSoundGenBase	*m_pSoundGen = nullptr;		// // //
 
-	/*!	\brief A pointer to the channel's note lookup table.
+	/*!	\brief A view into the channel's note lookup table.
 		\details The lookup table contains either period or frequency register values according to
 		the sound channel. Except for the Konami VRC7, which only requires register values for a
 		single octave, all other lookup tables should contain at least as many entries as the number
 		of notes available in the tracker. */
-	const unsigned int *m_pNoteLookupTable = nullptr;
-	/*!	\brief A pointer to the channel's vibrato lookup table.
+	array_view<unsigned> m_iNoteLookupTable;		// // //
+	/*!	\brief A view into the channel's vibrato lookup table.
 		\details A vibrato lookup table contains as many rows as the number of vibrato depths
 		available, each row containing the first quarter of the vibrato amplitude values; values for
 		other 4xy vibrato effect phases are calculated within the channel handler. The 7xy tremolo
 		effect shares the same lookup table. */
-	const int		*m_pVibratoTable = nullptr;
+	array_view<int> m_iVibratoTable;		// // //
 
 	/*!	\brief The MIDI pitch wheel offset of the current channel.
 		\details A positive value represents a lower pitch. The value of this member is limited

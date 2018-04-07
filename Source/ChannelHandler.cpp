@@ -57,12 +57,13 @@ CChannelHandler::~CChannelHandler()
 {
 }
 
-void CChannelHandler::InitChannel(CAPUInterface &apu, const int *pVibTable, CSoundGenBase *pSoundGen)		// // //
+void CChannelHandler::InitChannel(CAPUInterface &apu, array_view<int> VibTable, CSoundGenBase *pSoundGen)		// // //
 {
 	// Called from main thread
 
 	m_pAPU = &apu;
-	m_pVibratoTable = pVibTable;
+	if (VibTable.size() == 256u)		// // //
+		m_iVibratoTable = VibTable;
 	m_pSoundGen = pSoundGen;
 
 	m_bDelayEnabled = false;
@@ -80,7 +81,7 @@ void CChannelHandler::SetLinearPitch(bool bEnable)		// // //
 
 void CChannelHandler::SetVibratoStyle(vibrato_t Style)		// // //
 {
-	m_bNewVibratoMode = Style == VIBRATO_NEW;
+	m_iVibratoMode = Style;
 }
 
 void CChannelHandler::SetPitch(int Pitch)
@@ -99,13 +100,13 @@ stChannelID CChannelHandler::GetChannelID() const {		// // //
 
 int CChannelHandler::GetPitch() const
 {
-	if (m_iPitch != 0 && m_iNote != -1 && m_pNoteLookupTable != NULL) {
+	if (m_iPitch != 0 && m_iNote != -1 && !m_iNoteLookupTable.empty()) {
 		// Interpolate pitch
 		int LowNote  = std::clamp(m_iNote - PITCH_WHEEL_RANGE, 0, NOTE_COUNT - 1);		// // //
 		int HighNote = std::clamp(m_iNote + PITCH_WHEEL_RANGE, 0, NOTE_COUNT - 1);
-		int Freq	 = m_pNoteLookupTable[m_iNote];
-		int Lower	 = m_pNoteLookupTable[LowNote];
-		int Higher	 = m_pNoteLookupTable[HighNote];
+		int Freq	 = m_iNoteLookupTable[m_iNote];
+		int Lower	 = m_iNoteLookupTable[LowNote];
+		int Higher	 = m_iNoteLookupTable[HighNote];
 		int Pitch	 = (m_iPitch < 0) ? (Freq - Lower) : (Higher - Freq);
 		return (Pitch * m_iPitch) / 511;
 	}
@@ -153,7 +154,7 @@ void CChannelHandler::ResetChannel()
 	m_iPortaTo			= 0;
 	m_iArpState			= 0;
 	m_iVibratoSpeed		= 0;
-	m_iVibratoPhase		= !m_bNewVibratoMode ? 48 : 0;
+	m_iVibratoPhase		= m_iVibratoMode == vibrato_t::Up ? 48 : 0;
 	m_iTremoloSpeed		= 0;
 	m_iTremoloPhase		= 0;
 	m_iFinePitch		= 0x80;
@@ -451,10 +452,11 @@ bool CChannelHandler::CreateInstHandler(inst_type_t Type)
 	return false;
 }
 
-void CChannelHandler::SetNoteTable(const unsigned int *pNoteLookupTable)
+void CChannelHandler::SetNoteTable(array_view<unsigned> NoteLookupTable)		// // //
 {
 	// Installs the note lookup table
-	m_pNoteLookupTable = pNoteLookupTable;
+	if (NoteLookupTable.size() == NOTE_COUNT)
+		m_iNoteLookupTable = NoteLookupTable;
 }
 
 int CChannelHandler::TriggerNote(int Note)
@@ -467,10 +469,10 @@ int CChannelHandler::TriggerNote(int Note)
 	if (m_bLinearPitch)		// // //
 		return Note << LINEAR_PITCH_AMOUNT;
 
-	if (!m_pNoteLookupTable)
+	if (m_iNoteLookupTable.empty())
 		return Note;
 
-	return m_pNoteLookupTable[Note];
+	return m_iNoteLookupTable[Note];
 }
 
 void CChannelHandler::FinishTick()		// // //
@@ -567,7 +569,7 @@ bool CChannelHandler::HandleEffect(effect_t EffCmd, unsigned char EffParam)
 		m_iVibratoDepth = (EffParam & 0x0F) << 4;
 		m_iVibratoSpeed = EffParam >> 4;
 		if (!EffParam)
-			m_iVibratoPhase = !m_bNewVibratoMode ? 48 : 0;
+			m_iVibratoPhase = m_iVibratoMode == vibrato_t::Up ? 48 : 0;
 		break;
 	case effect_t::TREMOLO:
 		m_iTremoloDepth = (EffParam & 0x0F) << 4;
@@ -853,16 +855,16 @@ int CChannelHandler::GetVibrato() const
 	int VibFreq = 0;
 
 	if ((m_iVibratoPhase & 0xF0) == 0x00)
-		VibFreq = m_pVibratoTable[m_iVibratoDepth + m_iVibratoPhase];
+		VibFreq = m_iVibratoTable[m_iVibratoDepth + m_iVibratoPhase];
 	else if ((m_iVibratoPhase & 0xF0) == 0x10)
-		VibFreq = m_pVibratoTable[m_iVibratoDepth + 15 - (m_iVibratoPhase - 16)];
+		VibFreq = m_iVibratoTable[m_iVibratoDepth + 15 - (m_iVibratoPhase - 16)];
 	else if ((m_iVibratoPhase & 0xF0) == 0x20)
-		VibFreq = -m_pVibratoTable[m_iVibratoDepth + (m_iVibratoPhase - 32)];
+		VibFreq = -m_iVibratoTable[m_iVibratoDepth + (m_iVibratoPhase - 32)];
 	else if ((m_iVibratoPhase & 0xF0) == 0x30)
-		VibFreq = -m_pVibratoTable[m_iVibratoDepth + 15 - (m_iVibratoPhase - 48)];
+		VibFreq = -m_iVibratoTable[m_iVibratoDepth + 15 - (m_iVibratoPhase - 48)];
 
-	if (!m_bNewVibratoMode) {
-		VibFreq += m_pVibratoTable[m_iVibratoDepth + 15] + 1;
+	if (m_iVibratoMode == vibrato_t::Up) {
+		VibFreq += m_iVibratoTable[m_iVibratoDepth + 15] + 1;
 		VibFreq >>= 1;
 	}
 
@@ -879,9 +881,9 @@ int CChannelHandler::GetTremolo() const
 	int Phase = m_iTremoloPhase >> 1;
 
 	if ((Phase & 0xF0) == 0x00)
-		TremVol = m_pVibratoTable[m_iTremoloDepth + Phase];
+		TremVol = m_iVibratoTable[m_iTremoloDepth + Phase];
 	else if ((Phase & 0xF0) == 0x10)
-		TremVol = m_pVibratoTable[m_iTremoloDepth + 15 - (Phase - 16)];
+		TremVol = m_iVibratoTable[m_iTremoloDepth + 15 - (Phase - 16)];
 
 	return (TremVol >> 1);
 }
@@ -896,14 +898,14 @@ int CChannelHandler::CalculatePeriod() const
 {
 	int Detune = GetVibrato() - GetFinePitch() - GetPitch();
 	int Period = LimitPeriod(GetPeriod() - Detune);		// // //
-	if (m_bLinearPitch && m_pNoteLookupTable != nullptr) {
+	if (m_bLinearPitch && !m_iNoteLookupTable.empty()) {
 		Period = LimitPeriod(GetPeriod() + Detune);
 		int Note = Period >> LINEAR_PITCH_AMOUNT;
 		int Sub = Period % (1 << LINEAR_PITCH_AMOUNT);
-		int Offset = Note < NOTE_COUNT - 1 ? m_pNoteLookupTable[Note] - m_pNoteLookupTable[Note + 1] : 0;
+		int Offset = Note < NOTE_COUNT - 1 ? m_iNoteLookupTable[Note] - m_iNoteLookupTable[Note + 1] : 0;
 		Offset = Offset * Sub >> LINEAR_PITCH_AMOUNT;
 		if (Sub && !Offset) Offset = 1;
-		Period = m_pNoteLookupTable[Note] - Offset;
+		Period = m_iNoteLookupTable[Note] - Offset;
 	}
 	return LimitRawPeriod(Period);
 }
@@ -1022,13 +1024,13 @@ bool CChannelHandlerInverted::HandleEffect(effect_t EffNum, unsigned char EffPar
 int CChannelHandlerInverted::CalculatePeriod() const
 {
 	int Period = LimitPeriod(GetPeriod() + GetVibrato() - GetFinePitch() - GetPitch());		// // //
-	if (m_bLinearPitch && m_pNoteLookupTable != nullptr) {
+	if (m_bLinearPitch && !m_iNoteLookupTable.empty()) {
 		int Note = Period >> LINEAR_PITCH_AMOUNT;
 		int Sub = Period % (1 << LINEAR_PITCH_AMOUNT);
-		int Offset = Note < NOTE_COUNT - 1 ? m_pNoteLookupTable[Note + 1] - m_pNoteLookupTable[Note] : 0;
+		int Offset = Note < NOTE_COUNT - 1 ? m_iNoteLookupTable[Note + 1] - m_iNoteLookupTable[Note] : 0;
 		Offset = Offset * Sub >> LINEAR_PITCH_AMOUNT;
 		if (Sub && !Offset) Offset = 1;
-		Period = m_pNoteLookupTable[Note] + Offset;
+		Period = m_iNoteLookupTable[Note] + Offset;
 	}
 	return LimitRawPeriod(Period);
 }

@@ -262,14 +262,14 @@ int CChannelHandlerN163::CalculatePeriod() const		// // //
 {
 	int Detune = GetVibrato() - GetFinePitch() - GetPitch();
 	int Period = LimitPeriod(GetPeriod() + (Detune << 4));		// // //
-	if (m_bLinearPitch && m_pNoteLookupTable != nullptr) {
+	if (m_bLinearPitch && !m_iNoteLookupTable.empty()) {
 		Period = LimitPeriod(GetPeriod() + Detune);		// // //
 		int Note = Period >> LINEAR_PITCH_AMOUNT;
 		int Sub = Period % (1 << LINEAR_PITCH_AMOUNT);
-		int Offset = Note < NOTE_COUNT - 1 ? m_pNoteLookupTable[Note + 1] - m_pNoteLookupTable[Note] : 0;
+		int Offset = Note < NOTE_COUNT - 1 ? m_iNoteLookupTable[Note + 1] - m_iNoteLookupTable[Note] : 0;
 		Offset = Offset * Sub >> LINEAR_PITCH_AMOUNT;
 		if (Sub && !Offset) Offset = 1;
-		Period = m_pNoteLookupTable[Note] + Offset;
+		Period = m_iNoteLookupTable[Note] + Offset;
 	}
 	return LimitRawPeriod(Period) << N163_PITCH_SLIDE_SHIFT;
 }
