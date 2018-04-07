@@ -320,11 +320,11 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 	GetTempPathW(MAX_PATH, TempPath);
 	GetTempFileNameW(TempPath, L"FTM", 0, TempFile);
 
-	if (!DocumentFile.Open(TempFile, CFile::modeWrite | CFile::modeCreate, &ex)) {
-		// Could not open file
-		WCHAR szCause[255] = { };
-		ex.GetErrorMessage(szCause, std::size(szCause));
-		AfxMessageBox(FormattedW(L"Could not save file: %s", szCause), MB_OK | MB_ICONERROR);
+	try {		// // //
+		DocumentFile.Open(conv::to_utf8(TempFile).data(), std::ios::out | std::ios::binary);
+	}
+	catch (std::runtime_error err) {
+		AfxMessageBox(FormattedW(L"Could not save file: %s", conv::to_wide(err.what()).data()), MB_OK | MB_ICONERROR);
 		return FALSE;
 	}
 
@@ -336,8 +336,6 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 		AfxMessageBox(CStringW(MAKEINTRESOURCEW(IDS_SAVE_ERROR)), MB_OK | MB_ICONERROR);
 		return FALSE;
 	}
-
-	ULONGLONG FileSize = DocumentFile.GetLength();
 
 	DocumentFile.Close();
 
@@ -369,8 +367,11 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 	SetFileTime(hOldFile, &creationTime, NULL, NULL);
 	CloseHandle(hOldFile);
 
-	if (auto *pMainFrame = static_cast<CFrameWnd *>(AfxGetMainWnd()))		// // //
-		pMainFrame->SetMessageText(AfxFormattedW(IDS_FILE_SAVED, conv::to_wide(std::to_string(FileSize)).data()));
+	if (auto *pMainFrame = static_cast<CFrameWnd *>(AfxGetMainWnd())) {		// // //
+		CFileStatus status;		// // //
+		CFile::GetStatus(lpszPathName, status);
+		pMainFrame->SetMessageText(AfxFormattedW(IDS_FILE_SAVED, conv::to_wide(std::to_string(status.m_size)).data()));
+	}
 
 	return TRUE;
 }
@@ -396,13 +397,11 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 	}
 
 	// Open file
-	if (!OpenFile.Open(lpszPathName, CFile::modeRead | CFile::shareDenyWrite, &ex)) {
-		WCHAR   szCause[1024];		// // //
-		CStringW strFormatted;
-		ex.GetErrorMessage(szCause, std::size(szCause));
-		strFormatted = L"Could not open file.\n\n";
-		strFormatted += szCause;
-		AfxMessageBox(strFormatted);
+	try {		// // //
+		OpenFile.Open(conv::to_utf8(lpszPathName).data(), std::ios::in | std::ios::binary);
+	}
+	catch (std::runtime_error err) {
+		AfxMessageBox(FormattedW(L"Could not open file: %s", conv::to_wide(err.what()).data()), MB_OK | MB_ICONERROR);
 		//OnNewDocument();
 		return FALSE;
 	}
@@ -415,7 +414,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 		DeleteContents();		// // //
 
 		if (m_iFileVersion < 0x0200U) {
-			if (!compat::OpenDocumentOld(*GetModule(), &OpenFile.GetCFile()))
+			if (!compat::OpenDocumentOld(*GetModule(), OpenFile.GetCSimpleFile()))
 				OpenFile.RaiseModuleException("General error");
 
 			// Create a backup of this file, since it's an old version

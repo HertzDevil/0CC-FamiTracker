@@ -32,16 +32,13 @@ class CSimpleFile
 {
 public:
 	static_assert(sizeof(char) == sizeof(uint8_t));
-#ifdef WIN32
-	using fname_char_t = wchar_t;
-#else
-	using fname_char_t = char;
-#endif
 
-	CSimpleFile(const fname_char_t *fname, std::ios_base::openmode mode);
+	CSimpleFile() = default;
+	CSimpleFile(const char *fname, std::ios_base::openmode mode);
 
 	explicit operator bool() const;
 
+	void	Open(const char *fname, std::ios_base::openmode mode);
 	void	Close();
 
 	void	WriteInt8(int8_t Value);
@@ -59,7 +56,7 @@ public:
 	int16_t		ReadInt16();
 	uint32_t	ReadUint32();
 	int32_t		ReadInt32();
-	void		ReadBytes(void *pBuf, size_t count);
+	std::size_t	ReadBytes(void *pBuf, size_t count);
 	std::string	ReadString();
 	std::string	ReadStringN(size_t count);
 	std::string	ReadStringNull();

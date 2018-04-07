@@ -21,10 +21,11 @@
 */
 
 #include "SimpleFile.h"
+#include <string.h>
 
 // // // File load / store
 
-CSimpleFile::CSimpleFile(const fname_char_t *fname, std::ios_base::openmode mode) :
+CSimpleFile::CSimpleFile(const char *fname, std::ios_base::openmode mode) :
 	m_fFile(fname, mode)
 {
 }
@@ -34,9 +35,28 @@ CSimpleFile::operator bool() const
 	return m_fFile.is_open() && (bool)m_fFile;
 }
 
+void CSimpleFile::Open(const char *fname, std::ios_base::openmode mode) {
+	m_fFile.open(fname, mode);
+	if (!m_fFile) {
+		char err[512] = { };
+#ifdef _MSC_VER
+		::strerror_s(err, errno);
+		throw std::runtime_error {err};
+#else
+		if (0 == ::strerror_r(errno, err, std::size(err)))
+			throw std::runtime_error {err};
+		else
+			throw std::runtime_error {"Unknown error"};
+#endif
+	}
+}
+
 void CSimpleFile::Close()
 {
-	m_fFile.close();
+	if (m_fFile.is_open()) {
+		m_fFile.flush();
+		m_fFile.close();
+	}
 }
 
 void CSimpleFile::WriteInt8(int8_t Value)
@@ -122,8 +142,9 @@ int32_t CSimpleFile::ReadInt32()
 	return static_cast<int32_t>(ReadUint32());
 }
 
-void CSimpleFile::ReadBytes(void *pBuf, size_t count) {
+std::size_t CSimpleFile::ReadBytes(void *pBuf, size_t count) {
 	m_fFile.read(reinterpret_cast<char *>(pBuf), count);
+	return m_fFile.gcount();
 }
 
 std::string CSimpleFile::ReadString()

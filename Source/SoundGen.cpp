@@ -562,11 +562,6 @@ unsigned int CSoundGen::GetFrameRate()
 
 //// Tracker playing routines //////////////////////////////////////////////////////////////////////////////
 
-int CSoundGen::ReadVibratoTable(int index) const
-{
-	return m_pSoundDriver->ReadVibratoTable(index);		// // //
-}
-
 int CSoundGen::ReadPeriodTable(int Index, int Table) const		// // //
 {
 	return m_pSoundDriver->ReadPeriodTable(Index, Table);		// // //

@@ -29,30 +29,29 @@
 #include <memory>		// // //
 #include "array_view.h"		// // //
 #include <string_view>		// // //
+#include <iosfwd>		// // //
 using namespace std::string_view_literals;
 
 // CDocumentFile, class for reading/writing document files
 
-class CFile;
+class CSimpleFile;
 class CModuleException;
-class CFileException;
 
 class CDocumentFile {
 public:
 	CDocumentFile();
 	~CDocumentFile();		// // //
 
-	// // // delegations to CFile
-	CFile		&GetCFile();
-	bool		Open(const wchar_t *lpszFileName, unsigned nOpenFlags, CFileException *pError = nullptr);
-	uintmax_t	GetLength() const;
+	// // // delegations to CSimpleFile
+	CSimpleFile	&GetCSimpleFile();
+	void		Open(const char *lpszFileName, std::ios::openmode nOpenFlags);		// // //
 	void		Close();
 
 	bool		Finished() const;
 
 	// Write functions
-	bool		BeginDocument();
-	bool		EndDocument();
+	void		BeginDocument();		// // //
+	void		EndDocument();
 
 	void		CreateBlock(std::string_view ID, int Version);		// // //
 	void		WriteBlock(array_view<unsigned char> Data);		// // //
@@ -113,7 +112,7 @@ protected:
 	void ReallocateBlock();
 
 protected:
-	std::unique_ptr<CFile> m_pFile;		// // //
+	std::unique_ptr<CSimpleFile> m_pFile;		// // //
 
 	unsigned int	m_iFileVersion;
 	bool			m_bFileDone;

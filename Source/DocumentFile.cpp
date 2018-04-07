@@ -22,13 +22,15 @@
 
 #define _SCL_SECURE_NO_WARNINGS
 #include "DocumentFile.h"
-#include "stdafx.h"
+#include "SimpleFile.h"
 #include "ModuleException.h"
 #include "array_view.h"
 #include "NumConv.h"
+#include <cstring>		// // //
+#include "Assertion.h"		// // //
 
 //
-// This class is based on CFile and has some simple extensions to create and read FTM files
+// This class is based on CSimpleFile and has some simple extensions to create and read FTM files
 //
 
 // Class constants
@@ -42,7 +44,7 @@ const unsigned int CDocumentFile::MAX_BLOCK_SIZE = 0x80000;
 const unsigned int CDocumentFile::BLOCK_SIZE = 0x10000;
 
 CDocumentFile::CDocumentFile() :
-	m_pFile(std::make_unique<CFile>())
+	m_pFile(std::make_unique<CSimpleFile>())
 {
 }
 
@@ -50,23 +52,18 @@ CDocumentFile::~CDocumentFile() {
 	Close();
 }
 
-// // // delegations to CFile
+// // // delegations to CSimpleFile
 
-CFile &CDocumentFile::GetCFile() {
+CSimpleFile &CDocumentFile::GetCSimpleFile() {
 	return *m_pFile;
 }
 
-bool CDocumentFile::Open(const wchar_t *lpszFileName, unsigned nOpenFlags, CFileException *pError) {
-	return m_pFile->Open(lpszFileName, nOpenFlags, pError);
-}
-
-uintmax_t CDocumentFile::GetLength() const {
-	return m_pFile->GetLength();
+void CDocumentFile::Open(const char *lpszFileName, std::ios::openmode nOpenFlags) {
+	m_pFile->Open(lpszFileName, nOpenFlags);
 }
 
 void CDocumentFile::Close() {
-	if (m_pFile->m_hFile != CFile::hFileNull)
-		m_pFile->Close();
+	m_pFile->Close();
 }
 
 // CDocumentFile
@@ -76,36 +73,20 @@ bool CDocumentFile::Finished() const
 	return m_bFileDone;
 }
 
-bool CDocumentFile::BeginDocument()
+void CDocumentFile::BeginDocument()		// // //
 {
-	try {
-		Write(reinterpret_cast<const unsigned char *>(FILE_HEADER_ID.data()), FILE_HEADER_ID.size());		// // //
-		Write(reinterpret_cast<const unsigned char *>(&FILE_VER), sizeof(FILE_VER));
-	}
-	catch (CFileException *e) {
-		e->Delete();
-		return false;
-	}
-
-	return true;
+	Write(reinterpret_cast<const unsigned char *>(FILE_HEADER_ID.data()), FILE_HEADER_ID.size());		// // //
+	Write(reinterpret_cast<const unsigned char *>(&FILE_VER), sizeof(FILE_VER));
 }
 
-bool CDocumentFile::EndDocument()
+void CDocumentFile::EndDocument()
 {
-	try {
-		Write(reinterpret_cast<const unsigned char *>(FILE_END_ID.data()), FILE_END_ID.size());		// // //
-	}
-	catch (CFileException *e) {
-		e->Delete();
-		return false;
-	}
-
-	return true;
+	Write(reinterpret_cast<const unsigned char *>(FILE_END_ID.data()), FILE_END_ID.size());		// // //
 }
 
 void CDocumentFile::CreateBlock(std::string_view ID, int Version)		// // //
 {
-	ASSERT(ID.size() < BLOCK_HEADER_SIZE);		// // //
+	Assert(ID.size() < BLOCK_HEADER_SIZE);		// // //
 	m_cBlockID.fill(0);		// // //
 	ID = ID.substr(0, std::size(m_cBlockID) - 1);
 	ID.copy(m_cBlockID.data(), ID.size());
@@ -127,7 +108,7 @@ void CDocumentFile::ReallocateBlock()
 
 void CDocumentFile::WriteBlock(array_view<unsigned char> Data)		// // //
 {
-	ASSERT(!m_pBlockData.empty());		// // //
+	Assert(!m_pBlockData.empty());		// // //
 
 	// Allow block to grow in size
 
@@ -184,17 +165,12 @@ bool CDocumentFile::FlushBlock()
 	if (m_pBlockData.empty())
 		return false;
 
-	if (m_iBlockPointer)		// // //
-		try {
-			Write(reinterpret_cast<unsigned char *>(m_cBlockID.data()), std::size(m_cBlockID) * sizeof(char));
-			Write(reinterpret_cast<unsigned char *>(&m_iBlockVersion), sizeof(m_iBlockVersion));
-			Write(reinterpret_cast<unsigned char *>(&m_iBlockPointer), sizeof(m_iBlockPointer));
-			Write(m_pBlockData.data(), m_iBlockPointer);		// // //
-		}
-		catch (CFileException *e) {
-			e->Delete();
-			return false;
-		}
+	if (m_iBlockPointer) {		// // //
+		Write(reinterpret_cast<unsigned char *>(m_cBlockID.data()), std::size(m_cBlockID) * sizeof(char));
+		Write(reinterpret_cast<unsigned char *>(&m_iBlockVersion), sizeof(m_iBlockVersion));
+		Write(reinterpret_cast<unsigned char *>(&m_iBlockPointer), sizeof(m_iBlockPointer));
+		Write(m_pBlockData.data(), m_iBlockPointer);		// // //
+	}
 
 	m_pBlockData.clear();		// // //
 
@@ -291,7 +267,7 @@ void CDocumentFile::RollbackPointer(int count)
 int CDocumentFile::GetBlockInt()
 {
 	int Value;
-	memcpy(&Value, m_pBlockData.data() + m_iBlockPointer, sizeof(Value));		// // //
+	std::memcpy(&Value, m_pBlockData.data() + m_iBlockPointer, sizeof(Value));		// // //
 	m_iPreviousPointer = m_iBlockPointer;
 	m_iBlockPointer += sizeof(Value);
 	m_iPreviousPosition = m_iFilePosition;		// // //
@@ -302,7 +278,7 @@ int CDocumentFile::GetBlockInt()
 char CDocumentFile::GetBlockChar()
 {
 	char Value;
-	memcpy(&Value, m_pBlockData.data() + m_iBlockPointer, sizeof(Value));		// // //
+	std::memcpy(&Value, m_pBlockData.data() + m_iBlockPointer, sizeof(Value));		// // //
 	m_iPreviousPointer = m_iBlockPointer;
 	m_iBlockPointer += sizeof(Value);
 	m_iPreviousPosition = m_iFilePosition;		// // //
@@ -340,10 +316,10 @@ std::string CDocumentFile::ReadString()
 
 void CDocumentFile::GetBlock(void *Buffer, int Size)
 {
-	ASSERT(Size < MAX_BLOCK_SIZE);
-	ASSERT(Buffer != NULL);
+	Assert(Size < MAX_BLOCK_SIZE);
+	Assert(Buffer != NULL);
 
-	memcpy(Buffer, m_pBlockData.data() + m_iBlockPointer, Size);		// // //
+	std::memcpy(Buffer, m_pBlockData.data() + m_iBlockPointer, Size);		// // //
 	m_iPreviousPointer = m_iBlockPointer;
 	m_iBlockPointer += Size;
 	m_iPreviousPosition = m_iFilePosition;		// // //
@@ -396,12 +372,12 @@ unsigned CDocumentFile::Read(unsigned char *lpBuf, std::size_t nCount)		// // //
 {
 	m_iPreviousPosition = m_iFilePosition;
 	m_iFilePosition = m_pFile->GetPosition();
-	return m_pFile->Read(lpBuf, nCount);
+	return m_pFile->ReadBytes(lpBuf, nCount);
 }
 
 void CDocumentFile::Write(const unsigned char *lpBuf, std::size_t nCount)		// // //
 {
 	m_iPreviousPosition = m_iFilePosition;
 	m_iFilePosition = m_pFile->GetPosition();
-	m_pFile->Write(lpBuf, nCount);
+	m_pFile->WriteBytes({lpBuf, nCount});
 }

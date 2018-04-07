@@ -130,7 +130,6 @@ public:
 	void		DocumentPropertiesChanged(CFamiTrackerDoc *pDocument);
 
 public:
-	int			 ReadVibratoTable(int index) const;
 	int			 ReadPeriodTable(int Index, int Table) const;		// // //
 
 	// Player interface

@@ -88,7 +88,7 @@ set(SRCS
 	${FT0CC_ROOT}/DetuneTable.cpp
 #	${FT0CC_ROOT}/DialogReBar.cpp
 #	${FT0CC_ROOT}/DirectSound.cpp
-#	${FT0CC_ROOT}/DocumentFile.cpp
+	${FT0CC_ROOT}/DocumentFile.cpp
 #	${FT0CC_ROOT}/DPI.cpp
 	${FT0CC_ROOT}/DSampleManager.cpp
 #	${FT0CC_ROOT}/Exception.cpp
@@ -239,8 +239,11 @@ set(TEST_SRCS
 	${FT0CC_ROOT}/ChunkRenderText.cpp
 	${FT0CC_ROOT}/Compiler.cpp
 	${FT0CC_ROOT}/DetuneTable.cpp
+	${FT0CC_ROOT}/DocumentFile.cpp
 	${FT0CC_ROOT}/DSampleManager.cpp
+#	${FT0CC_ROOT}/FamiTrackerDocIO.cpp
 	${FT0CC_ROOT}/FamiTrackerDocIOJson.cpp
+#	${FT0CC_ROOT}/FamiTrackerDocOldIO.cpp
 	${FT0CC_ROOT}/FamiTrackerEnv.cpp
 	${FT0CC_ROOT}/FamiTrackerModule.cpp
 	${FT0CC_ROOT}/InstCompiler.cpp

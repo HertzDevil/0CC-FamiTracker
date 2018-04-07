@@ -182,7 +182,7 @@ void CExportDialog::OnBnClickedExport()
 }
 
 std::optional<CSimpleFile> CExportDialog::OpenFile(const CStringW &fileName) {		// // //
-	CSimpleFile f((LPCWSTR)fileName, std::ios::out | std::ios::binary);
+	CSimpleFile f(conv::to_utf8(fileName).data(), std::ios::out | std::ios::binary);
 	if (!f) {
 		char msg[512] = { };
 		::strerror_s(msg, errno);

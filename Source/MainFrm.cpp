@@ -1249,7 +1249,7 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// 
 	};
 
 	if (Index != INVALID_INSTRUMENT) {
-		if (CSimpleFile file(filename, std::ios::in | std::ios::binary); file) {
+		if (CSimpleFile file(conv::to_utf8(filename).data(), std::ios::in | std::ios::binary); file) {
 			// FTI instruments files
 			const std::string_view INST_HEADER = "FTI";
 //			const char INST_VERSION[] = "2.4";
@@ -1353,7 +1353,7 @@ void CMainFrame::OnSaveInstrument()
 	if (auto path = GetSavePath(Name.data(), initPath.c_str(), IDS_FILTER_FTI, L"*.fti")) {
 		Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_FTI);
 
-		CSimpleFile file(*path, std::ios::out | std::ios::binary);
+		CSimpleFile file(conv::to_utf8(*path).data(), std::ios::out | std::ios::binary);
 		if (!file) {
 			AfxMessageBox(IDS_FILE_OPEN_ERROR, MB_ICONERROR);
 			return;
