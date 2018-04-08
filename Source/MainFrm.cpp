@@ -126,7 +126,6 @@ CMainFrame::CMainFrame() :
 	m_cBannerEditName(IDS_INFO_TITLE),		// // //
 	m_cBannerEditArtist(IDS_INFO_AUTHOR),		// // //
 	m_cBannerEditCopyright(IDS_INFO_COPYRIGHT),		// // //
-	m_iFrameEditorPos(FRAME_EDIT_POS_TOP),
 	m_iInstrument(0),
 	m_iTrack(0),
 	m_iOctave(DEFAULT_OCTAVE),
@@ -434,7 +433,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	SetTimer((UINT_PTR)timer_id_t::AUTOSAVE, 1000, NULL);
 #endif
 
-	m_wndOctaveBar.CheckDlgButton(IDC_FOLLOW, Env.GetSettings()->FollowMode);
+	m_wndOctaveBar.CheckDlgButton(IDC_FOLLOW, Env.GetSettings()->bFollowMode);
 	m_wndOctaveBar.CheckDlgButton(IDC_CHECK_COMPACT, false);		// // //
 	m_wndOctaveBar.SetDlgItemInt(IDC_HIGHLIGHT1, CSongData::DEFAULT_HIGHLIGHT.First, 0);		// // //
 	m_wndOctaveBar.SetDlgItemInt(IDC_HIGHLIGHT2, CSongData::DEFAULT_HIGHLIGHT.Second, 0);
@@ -442,7 +441,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	UpdateMenus();
 
 	// Setup saved frame editor position
-	SetFrameEditorPosition(Env.GetSettings()->FrameEditPos);
+	SetFrameEditorPosition(enum_cast<frame_edit_pos_t>(Env.GetSettings()->FrameEditPos));		// // //
 
 #ifdef _DEBUG
 	m_strTitle.Append(L" [DEBUG]");
@@ -716,7 +715,7 @@ void CMainFrame::ResizeFrameWindow()
 		int Height = 0, Width = 0;
 
 		// Located to the right
-		if (m_iFrameEditorPos == FRAME_EDIT_POS_TOP) {
+		if (m_iFrameEditorPos == frame_edit_pos_t::Top) {
 			// Frame editor window
 			Height = CFrameEditor::DEFAULT_HEIGHT;		// // // 050B
 			Width = m_pFrameEditor->CalcWidth(Channels);
@@ -749,7 +748,7 @@ void CMainFrame::ResizeFrameWindow()
 
 
 	int DialogStartPos = 0;
-	if (m_iFrameEditorPos == FRAME_EDIT_POS_TOP) {
+	if (m_iFrameEditorPos == frame_edit_pos_t::Top) {
 		CRect FrameEditorRect;
 		m_pFrameEditor->GetClientRect(&FrameEditorRect);
 		DialogStartPos = FrameEditorRect.right + DPI::SX(32);		// // // 050B
@@ -2058,12 +2057,9 @@ BOOL CMainFrame::DestroyWindow()
 	// Store window position
 
 	CRect WinRect;
-	int State = STATE_NORMAL;
-
 	GetWindowRect(WinRect);
 
 	if (IsZoomed()) {
-		State = STATE_MAXIMIZED;
 		// Ignore window position if maximized
 		WinRect.top = Env.GetSettings()->WindowPos.iTop;
 		WinRect.bottom = Env.GetSettings()->WindowPos.iBottom;
@@ -2083,7 +2079,7 @@ BOOL CMainFrame::DestroyWindow()
 	Env.GetSettings()->WindowPos.iTop = WinRect.top;
 	Env.GetSettings()->WindowPos.iRight = WinRect.right;
 	Env.GetSettings()->WindowPos.iBottom = WinRect.bottom;
-	Env.GetSettings()->WindowPos.iState = State;
+	Env.GetSettings()->WindowPos.iState = IsZoomed() ? win_state_t::Maximized : win_state_t::Normal;		// // //
 
 	return CFrameWnd::DestroyWindow();
 }
@@ -2292,7 +2288,7 @@ void CMainFrame::OnClickedFollow()
 {
 	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
 	bool FollowMode = m_wndOctaveBar.IsDlgButtonChecked(IDC_FOLLOW) != 0;
-	Env.GetSettings()->FollowMode = FollowMode;
+	Env.GetSettings()->bFollowMode = FollowMode;
 	pView->SetFollowMode(FollowMode);
 	pView->SetFocus();
 }
@@ -2495,7 +2491,7 @@ void CMainFrame::OnShowWindow(BOOL bShow, UINT nStatus)
 
 	if (bShow == TRUE) {
 		// Set the window state as saved in settings
-		if (Env.GetSettings()->WindowPos.iState == STATE_MAXIMIZED)
+		if (Env.GetSettings()->WindowPos.iState == win_state_t::Maximized)
 			CFrameWnd::ShowWindow(SW_MAXIMIZE);
 	}
 }
@@ -2970,24 +2966,24 @@ void CMainFrame::OnEditSelectother()		// // //
 
 void CMainFrame::OnDecayFast()
 {
-	Env.GetSettings()->MeterDecayRate = DECAY_FAST;
-	Env.GetSoundGenerator()->SetMeterDecayRate(DECAY_FAST);		// // // 050B
+	Env.GetSettings()->bFastMeterDecayRate = true;
+	Env.GetSoundGenerator()->SetMeterDecayRate(decay_rate_t::Fast);		// // // 050B
 }
 
 void CMainFrame::OnDecaySlow()
 {
-	Env.GetSettings()->MeterDecayRate = DECAY_SLOW;
-	Env.GetSoundGenerator()->SetMeterDecayRate(DECAY_SLOW);		// // // 050B
+	Env.GetSettings()->bFastMeterDecayRate = false;
+	Env.GetSoundGenerator()->SetMeterDecayRate(decay_rate_t::Slow);		// // // 050B
 }
 
 void CMainFrame::OnUpdateDecayFast(CCmdUI *pCmdUI)		// // // 050B
 {
-	pCmdUI->SetCheck(Env.GetSoundGenerator()->GetMeterDecayRate() == DECAY_FAST ? MF_CHECKED : MF_UNCHECKED);
+	pCmdUI->SetCheck(Env.GetSoundGenerator()->GetMeterDecayRate() == decay_rate_t::Fast ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnUpdateDecaySlow(CCmdUI *pCmdUI)		// // // 050B
 {
-	pCmdUI->SetCheck(Env.GetSoundGenerator()->GetMeterDecayRate() == DECAY_SLOW ? MF_CHECKED : MF_UNCHECKED);
+	pCmdUI->SetCheck(Env.GetSoundGenerator()->GetMeterDecayRate() == decay_rate_t::Slow ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnEditExpandpatterns()
@@ -3074,20 +3070,19 @@ void CMainFrame::OnUpdateCurrentSelectionEnabled(CCmdUI *pCmdUI)		// // //
 		pCmdUI->Enable(GetFrameEditor()->IsSelecting() ? 1 : 0);
 }
 
-void CMainFrame::SetFrameEditorPosition(int Position)
-{
+void CMainFrame::SetFrameEditorPosition(frame_edit_pos_t Position) {		// // //
 	// Change frame editor position
 	m_iFrameEditorPos = Position;
 
 	m_pFrameEditor->ShowWindow(SW_HIDE);
 
 	switch (Position) {
-		case FRAME_EDIT_POS_TOP:
+		case frame_edit_pos_t::Top:
 			m_wndVerticalControlBar.ShowWindow(SW_HIDE);
 			m_pFrameEditor->SetParent(&m_wndControlBar);
 			m_wndFrameControls.SetParent(&m_wndControlBar);
 			break;
-		case FRAME_EDIT_POS_LEFT:
+		case frame_edit_pos_t::Left:
 			m_wndVerticalControlBar.ShowWindow(SW_SHOW);
 			m_pFrameEditor->SetParent(&m_wndVerticalControlBar);
 			m_wndFrameControls.SetParent(&m_wndVerticalControlBar);
@@ -3103,28 +3098,28 @@ void CMainFrame::SetFrameEditorPosition(int Position)
 	ResizeFrameWindow();	// This must be called twice or the editor disappears, I don't know why
 
 	// Save to settings
-	Env.GetSettings()->FrameEditPos = Position;
+	Env.GetSettings()->FrameEditPos = value_cast(Position);
 }
 
 void CMainFrame::SetControlPanelPosition(control_panel_pos_t Position)		// // // 050B
 {
 	m_iControlPanelPos = Position;
-	if (m_iControlPanelPos)
-		SetFrameEditorPosition(FRAME_EDIT_POS_LEFT);
+	if (m_iControlPanelPos != control_panel_pos_t::Top)
+		SetFrameEditorPosition(frame_edit_pos_t::Left);
 /*
 	auto Rect = DPI::Rect(193, 0, 193, 126);
 	MapDialogRect(m_wndInstToolBarWnd, &Rect);
 
 	switch (m_iControlPanelPos) {
-	case CONTROL_PANEL_POS_TOP:
+	case control_panel_pos_t::Top:
 		m_wndToolBar.SetBarStyle(CBRS_ALIGN_TOP | CBRS_BORDER_BOTTOM | CBRS_TOOLTIPS | CBRS_FLYBY);
 		m_wndToolBar.CalcFixedLayout(TRUE, FALSE);
 		break;
-	case CONTROL_PANEL_POS_LEFT:
+	case control_panel_pos_t::Left:
 		m_wndToolBar.SetBarStyle(CBRS_ALIGN_LEFT | CBRS_BORDER_RIGHT | CBRS_TOOLTIPS | CBRS_FLYBY);
 		m_wndToolBar.CalcFixedLayout(TRUE, FALSE);
 		break;
-	case CONTROL_PANEL_POS_RIGHT:
+	case control_panel_pos_t::Right:
 		m_wndToolBar.SetBarStyle(CBRS_ALIGN_RIGHT | CBRS_BORDER_LEFT | CBRS_TOOLTIPS | CBRS_FLYBY);
 		m_wndToolBar.CalcFixedLayout(TRUE, FALSE);
 		break;
@@ -3138,22 +3133,22 @@ void CMainFrame::SetControlPanelPosition(control_panel_pos_t Position)		// // //
 
 void CMainFrame::OnFrameeditorTop()
 {
-	SetFrameEditorPosition(FRAME_EDIT_POS_TOP);
+	SetFrameEditorPosition(frame_edit_pos_t::Top);
 }
 
 void CMainFrame::OnFrameeditorLeft()
 {
-	SetFrameEditorPosition(FRAME_EDIT_POS_LEFT);
+	SetFrameEditorPosition(frame_edit_pos_t::Left);
 }
 
 void CMainFrame::OnUpdateFrameeditorTop(CCmdUI *pCmdUI)
 {
-	pCmdUI->SetCheck(m_iFrameEditorPos == FRAME_EDIT_POS_TOP);
+	pCmdUI->SetCheck(m_iFrameEditorPos == frame_edit_pos_t::Top);
 }
 
 void CMainFrame::OnUpdateFrameeditorLeft(CCmdUI *pCmdUI)
 {
-	pCmdUI->SetCheck(m_iFrameEditorPos == FRAME_EDIT_POS_LEFT);
+	pCmdUI->SetCheck(m_iFrameEditorPos == frame_edit_pos_t::Left);
 }
 
 void CMainFrame::OnToggleSpeed()
@@ -3265,14 +3260,14 @@ void CMainFrame::OnToggleMultiplexer()
 {
 	CSettings *pSettings = Env.GetSettings();
 	CSoundGen *pSoundGen = Env.GetSoundGenerator();
-	if (!pSettings->m_bNamcoMixing) {
-		pSettings->m_bNamcoMixing = true;
-		pSoundGen->SetNamcoMixing(Env.GetSettings()->m_bNamcoMixing);
+	if (!pSettings->bLinearNamcoMixing) {
+		pSettings->bLinearNamcoMixing = true;
+		pSoundGen->SetNamcoMixing(Env.GetSettings()->bLinearNamcoMixing);
 		SetStatusText("Namco 163 multiplexer emulation disabled");
 	}
 	else{
-		pSettings->m_bNamcoMixing = false;
-		pSoundGen->SetNamcoMixing(Env.GetSettings()->m_bNamcoMixing);
+		pSettings->bLinearNamcoMixing = false;
+		pSoundGen->SetNamcoMixing(Env.GetSettings()->bLinearNamcoMixing);
 		SetStatusText("Namco 163 multiplexer emulation enabled");
 	}
 }

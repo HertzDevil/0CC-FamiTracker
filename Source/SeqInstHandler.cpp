@@ -54,11 +54,11 @@ void CSeqInstHandler::LoadInstrument(std::shared_ptr<CInstrument> pInst)
 		return;
 
 	for (auto &[seqType, info] : m_SequenceInfo)
-		if (pSeqInst->GetSeqEnable(seqType) != SEQ_STATE_RUNNING)
+		if (!pSeqInst->GetSeqEnable(seqType))
 			ClearSequence(seqType);
 		else {
 			const auto pSequence = pSeqInst->GetSequence(seqType);
-			if (pSequence != info.m_pSequence || info.m_iSeqState == SEQ_STATE_DISABLED)
+			if (pSequence != info.m_pSequence || info.m_iSeqState == seq_state_t::Disabled)
 				SetupSequence(seqType, std::move(pSequence));
 		}
 }
@@ -96,33 +96,27 @@ void CSeqInstHandler::UpdateInstrument()
 		if (!pSeq || pSeq->GetItemCount() == 0)
 			continue;
 		switch (info.m_iSeqState) {
-		case SEQ_STATE_RUNNING:
+		case seq_state_t::Running:
 			ProcessSequence(*pSeq, info.m_iSeqPointer);
 			info.Step(m_pInterface->IsReleasing());
 			break;
 
-		case SEQ_STATE_END:
+		case seq_state_t::End:
 			switch (pSeq->GetSequenceType()) {
 			case sequence_t::Arpeggio:
 				if (pSeq->GetSetting() == SETTING_ARP_FIXED)
 					m_pInterface->SetPeriod(m_pInterface->TriggerNote(m_pInterface->GetNote()));
 				break;
 			}
-			info.m_iSeqState = SEQ_STATE_HALT;
+			info.m_iSeqState = seq_state_t::Halt;
 			Env.GetSoundGenerator()->SetSequencePlayPos(pSeq, -1);
 			break;
 
-		case SEQ_STATE_HALT:
-		case SEQ_STATE_DISABLED:
+		case seq_state_t::Halt:
+		case seq_state_t::Disabled:
 			break;
 		}
 	}
-}
-
-CSeqInstHandler::seq_state_t CSeqInstHandler::GetSequenceState(sequence_t Index) const {
-	if (auto it = m_SequenceInfo.find(Index); it != m_SequenceInfo.end())
-		return it->second.m_iSeqState;
-	return SEQ_STATE_DISABLED;
 }
 
 bool CSeqInstHandler::ProcessSequence(const CSequence &Seq, int Pos)
@@ -191,7 +185,7 @@ bool CSeqInstHandler::ProcessSequence(const CSequence &Seq, int Pos)
 
 void CSeqInstHandler::SetupSequence(sequence_t Index, std::shared_ptr<const CSequence> pSequence)		// // //
 {
-	m_SequenceInfo[Index] = {std::move(pSequence), SEQ_STATE_RUNNING, 0};
+	m_SequenceInfo[Index] = {std::move(pSequence), seq_state_t::Running, 0};
 }
 
 void CSeqInstHandler::ClearSequence(sequence_t Index)
@@ -201,17 +195,17 @@ void CSeqInstHandler::ClearSequence(sequence_t Index)
 
 void CSeqInstHandler::seq_info_t::Trigger() {
 	if (m_pSequence) {
-		m_iSeqState = SEQ_STATE_RUNNING;
+		m_iSeqState = seq_state_t::Running;
 		m_iSeqPointer = 0;
 	}
 }
 
 void CSeqInstHandler::seq_info_t::Release() {
-	if (m_pSequence && (m_iSeqState == SEQ_STATE_RUNNING || m_iSeqState == SEQ_STATE_END)) {
+	if (m_pSequence && (m_iSeqState == seq_state_t::Running || m_iSeqState == seq_state_t::End)) {
 		int ReleasePoint = m_pSequence->GetReleasePoint();
 		if (ReleasePoint != -1) {
 			m_iSeqPointer = ReleasePoint;
-			m_iSeqState = SEQ_STATE_RUNNING;
+			m_iSeqState = seq_state_t::Running;
 		}
 	}
 }
@@ -231,7 +225,7 @@ void CSeqInstHandler::seq_info_t::Step(bool isReleasing) {
 			if (Loop >= Release && Loop != -1)		// // //
 				m_iSeqPointer = Loop;
 			else
-				m_iSeqState = SEQ_STATE_END;
+				m_iSeqState = seq_state_t::End;
 		}
 		else if (!isReleasing) {
 			// Waiting for release

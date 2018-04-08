@@ -34,18 +34,6 @@
 #include <memory>		// // //
 #include <tuple>		// // //
 
-enum frame_edit_pos_t {
-	FRAME_EDIT_POS_TOP,
-	FRAME_EDIT_POS_LEFT,
-};
-
-enum control_panel_pos_t		// // // 050B
-{
-	CONTROL_PANEL_POS_TOP,
-	CONTROL_PANEL_POS_LEFT,
-	CONTROL_PANEL_POS_RIGHT,
-};
-
 enum {
 	WM_USER_DISPLAY_MESSAGE_STRING = WM_USER,
 	WM_USER_DISPLAY_MESSAGE_ID,
@@ -84,6 +72,9 @@ class CMainFrame : public CFrameWnd
 protected: // create from serialization only
 	CMainFrame();
 	DECLARE_DYNCREATE(CMainFrame)
+
+	enum class frame_edit_pos_t { Top, Left };
+	enum class control_panel_pos_t { Top, Left, Right };		// // // 050B
 
 // Attributes
 public:
@@ -182,7 +173,7 @@ private:
 	bool	LoadInstrument(unsigned Index, const CStringW &filename);		// // //
 	std::shared_ptr<CInstrument> GetSelectedInstrument() const;		// // //
 
-	void	SetFrameEditorPosition(int Position);
+	void	SetFrameEditorPosition(frame_edit_pos_t Position);		// // //
 	void	SetControlPanelPosition(control_panel_pos_t Position);		// // // 050B
 	void	SelectInstrumentFolder();
 
@@ -238,8 +229,8 @@ private:  // control bar embedded members
 
 	std::unique_ptr<CActionHandler> m_pActionHandler;		// // //
 
-	int					m_iFrameEditorPos;
-	control_panel_pos_t	m_iControlPanelPos;		// // // 050B
+	frame_edit_pos_t	m_iFrameEditorPos = frame_edit_pos_t::Top;		// // //
+	control_panel_pos_t	m_iControlPanelPos = control_panel_pos_t::Top;		// // // 050B
 
 	std::unique_ptr<CInstrumentFileTree> m_pInstrumentFileTree;		// // //
 

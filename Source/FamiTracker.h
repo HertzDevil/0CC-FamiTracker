@@ -79,7 +79,7 @@ class CDocTemplate0CC : public CSingleDocTemplate
 {
 public:
 	CDocTemplate0CC(UINT nIDResource, CRuntimeClass* pDocClass, CRuntimeClass* pFrameClass, CRuntimeClass* pViewClass);
-	BOOL GetDocString(CStringW& rString, enum DocStringIndex i) const;
+	BOOL GetDocString(CStringW& rString, DocStringIndex i) const;
 	CDocTemplate::Confidence MatchDocType(LPCWSTR lpszPathName, CDocument*& rpDocMatch);
 };
 

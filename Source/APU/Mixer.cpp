@@ -203,7 +203,7 @@ void CMixer::UpdateMeters() {		// // //
 	for (auto &x : m_ChannelLevels) {
 		auto &lv = x.second;
 		lv.LastLevel = lv.Level;		// // //
-		if (m_iMeterDecayRate == DECAY_FAST)		// // // 050B
+		if (m_iMeterDecayRate == decay_rate_t::Fast)		// // // 050B
 			lv.Level = 0;
 		else if (lv.FallOff > 0)
 			--lv.FallOff;

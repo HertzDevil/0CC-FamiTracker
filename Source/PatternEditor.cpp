@@ -72,7 +72,7 @@ void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t 
 		case paste_mode_t::MIX:
 			if (dest.Note != BLANK.Note)
 				return true;
-			if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
+			if (Env.GetSettings()->General.iEditStyle == edit_style_t::IT)
 				if (dest.Instrument != BLANK.Instrument || dest.Vol != BLANK.Vol)
 					return true;
 			[[fallthrough]];
@@ -89,7 +89,7 @@ void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t 
 		case paste_mode_t::MIX:
 			if (dest.Instrument != BLANK.Instrument)
 				return true;
-			if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
+			if (Env.GetSettings()->General.iEditStyle == edit_style_t::IT)
 				if (dest.Note != BLANK.Note || dest.Vol != BLANK.Vol)
 					return true;
 			[[fallthrough]];
@@ -106,7 +106,7 @@ void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t 
 		case paste_mode_t::MIX:
 			if (dest.Vol != BLANK.Vol)
 				return true;
-			if (Env.GetSettings()->General.iEditStyle == EDIT_STYLE_IT)
+			if (Env.GetSettings()->General.iEditStyle == edit_style_t::IT)
 				if (dest.Note != BLANK.Note || dest.Instrument != BLANK.Instrument || dest.Vol != BLANK.Vol)
 					return true;
 			[[fallthrough]];
@@ -1933,7 +1933,7 @@ CPatternEditor::CSelectionGuard::~CSelectionGuard()		// // //
 	else {
 		m_pPatternEditor->m_bCurrentlySelecting = false;
 
-		if (Env.GetSettings()->General.iEditStyle != EDIT_STYLE_IT || !m_pPatternEditor->m_bSelecting)
+		if (Env.GetSettings()->General.iEditStyle != edit_style_t::IT || !m_pPatternEditor->m_bSelecting)
 			m_pPatternEditor->CancelSelection();
 	}
 
@@ -2066,7 +2066,7 @@ void CPatternEditor::OnHomeKey()
 
 	const bool bControl = IsControlPressed();
 
-	if (bControl || Env.GetSettings()->General.iEditStyle == EDIT_STYLE_FT2) {
+	if (bControl || Env.GetSettings()->General.iEditStyle == edit_style_t::FT2) {
 		// Control or FT2 edit style
 		MoveToTop();
 	}
@@ -2088,7 +2088,7 @@ void CPatternEditor::OnEndKey()
 	const int Channels = GetChannelCount();
 	const cursor_column_t Columns = GetChannelColumns(GetChannel());
 
-	if (bControl || Env.GetSettings()->General.iEditStyle == EDIT_STYLE_FT2) {
+	if (bControl || Env.GetSettings()->General.iEditStyle == edit_style_t::FT2) {
 		// Control or FT2 edit style
 		MoveToBottom();
 	}
@@ -2697,7 +2697,7 @@ void CPatternEditor::OnMouseScroll(int Delta)
 			m_cpCursorPos.m_iRow = std::clamp(m_cpCursorPos.m_iRow, 0, m_iPatternLength - 1);		// // //
 
 		m_iCenterRow = m_cpCursorPos.m_iRow;
-		if (Env.GetSettings()->General.iEditStyle != EDIT_STYLE_IT && m_bSelecting == false)
+		if (Env.GetSettings()->General.iEditStyle != edit_style_t::IT && m_bSelecting == false)
 			CancelSelection();
 	}
 }

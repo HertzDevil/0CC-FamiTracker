@@ -140,7 +140,7 @@ BOOL CConfigGeneral::OnApply()
 	pSettings->General.bWavePreview			= m_bPreviewWAV;
 	pSettings->General.bKeyRepeat			= m_bKeyRepeat;
 	pSettings->General.bRowInHex			= m_bRowInHex;
-	pSettings->General.iEditStyle			= m_iEditStyle;
+	pSettings->General.iEditStyle			= enum_cast<edit_style_t>(m_iEditStyle);
 	pSettings->General.bFramePreview		= m_bFramePreview;
 	pSettings->General.bNoDPCMReset			= m_bNoDPCMReset;
 	pSettings->General.bNoStepMove			= m_bNoStepMove;
@@ -184,7 +184,7 @@ BOOL CConfigGeneral::OnInitDialog()
 	m_bPreviewWAV			= pSettings->General.bWavePreview;
 	m_bKeyRepeat			= pSettings->General.bKeyRepeat;
 	m_bRowInHex				= pSettings->General.bRowInHex;
-	m_iEditStyle			= pSettings->General.iEditStyle;
+	m_iEditStyle			= value_cast(pSettings->General.iEditStyle);
 	m_bFramePreview			= pSettings->General.bFramePreview;
 	m_bNoDPCMReset			= pSettings->General.bNoDPCMReset;
 	m_bNoStepMove			= pSettings->General.bNoStepMove;

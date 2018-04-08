@@ -26,9 +26,9 @@
 #include <cstdint>
 #include "array_view.h"		// // //
 
-enum decay_rate_t {		// // // 050B
-	DECAY_SLOW,
-	DECAY_FAST,
+enum class decay_rate_t {		// // // 050B
+	Slow,
+	Fast,
 };
 
 // Used to get the DPCM state

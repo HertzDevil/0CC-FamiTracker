@@ -36,15 +36,15 @@ class CSeqInstrument;
 */
 class CSeqInstHandler : public CInstHandler
 {
-public:
 	/*!	\brief Constants representing the state of each sequence. */
-	enum seq_state_t {		// // //
-		SEQ_STATE_DISABLED, /*!< Current sequence is not enabled. */
-		SEQ_STATE_RUNNING,	/*!< Current sequence is running. */
-		SEQ_STATE_END,		/*!< Current sequence has just finished running the last tick. */
-		SEQ_STATE_HALT,		/*!< Current sequence has finished running until the next note. */
+	enum class seq_state_t {		// // //
+		Disabled,	/*!< Current sequence is not enabled. */
+		Running,	/*!< Current sequence is running. */
+		End,		/*!< Current sequence has just finished running the last tick. */
+		Halt,		/*!< Current sequence has finished running until the next note. */
 	};
 
+public:
 	/*!	\brief Constructor of the sequence instrument handler.
 		\details A default duty value must be provided in the parameters.
 		\param pInterface Pointer to the channel interface.
@@ -56,11 +56,6 @@ public:
 	void TriggerInstrument() override;
 	void ReleaseInstrument() override;
 	void UpdateInstrument() override;
-
-	/*!	\brief Obtains the current sequence state of a given sequence type.
-		\param Index The sequence type.
-		\return The sequence state of the given sequence type. */
-	seq_state_t GetSequenceState(sequence_t Index) const;
 
 protected:
 	/*!	\brief Processes the value retrieved from a sequence.
@@ -88,7 +83,7 @@ protected:
 		/*!	\brief Pointer to the sequence used by the current instrument. */
 		std::shared_ptr<const CSequence> m_pSequence;
 		/*!	\brief State of the current sequence type. */
-		seq_state_t m_iSeqState = SEQ_STATE_DISABLED;
+		seq_state_t m_iSeqState = seq_state_t::Disabled;
 		/*!	\brief Tick index of the current sequence type. */
 		int m_iSeqPointer = 0;
 	};

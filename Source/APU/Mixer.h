@@ -108,7 +108,7 @@ private:
 
 	std::map<stChannelID, stTrackLevel> m_ChannelLevels;		// // //
 
-	decay_rate_t m_iMeterDecayRate = DECAY_SLOW;		// // // 050B
+	decay_rate_t m_iMeterDecayRate = decay_rate_t::Slow;		// // // 050B
 	int			m_iLowCut = 0;
 	int			m_iHighCut = 0;
 	int			m_iHighDamp = 0;

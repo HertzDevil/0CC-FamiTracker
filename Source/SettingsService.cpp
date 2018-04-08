@@ -25,6 +25,7 @@
 #include "FamiTrackerEnv.h"
 #include "ColorScheme.h"
 #include "ModuleException.h"
+#include "ft0cc/enum_traits.h"
 
 // Settings types
 
@@ -43,54 +44,42 @@ void CSettingBase::UpdateDefault(LPCWSTR pSection, LPCWSTR pEntry) {		// // //
 namespace {
 
 template <typename T>
-T GetRegValue(LPCWSTR section, LPCWSTR key, const T &defaultVal) = delete;
-
-template <>
-int GetRegValue<int>(LPCWSTR section, LPCWSTR entry, const int &default_value) {
-	return Env.GetMainApp()->GetProfileIntW(section, entry, default_value);
-}
-
-template <>
-bool GetRegValue<bool>(LPCWSTR section, LPCWSTR entry, const bool &default_value) {
-	return Env.GetMainApp()->GetProfileIntW(section, entry, default_value) != 0;
-}
-
-template <>
-std::wstring GetRegValue<std::wstring>(LPCWSTR section, LPCWSTR entry, const std::wstring &default_value) {
-	CStringW v = Env.GetMainApp()->GetProfileStringW(section, entry, default_value.data());
-	return std::wstring((LPCWSTR)v, v.GetLength());
-}
-
-template <>
-fs::path GetRegValue<fs::path>(LPCWSTR section, LPCWSTR entry, const fs::path &default_value) {
-	CStringW v = Env.GetMainApp()->GetProfileStringW(section, entry, default_value.c_str());
-	return fs::path {(LPCWSTR)v, (LPCWSTR)v + v.GetLength()};
+T GetRegValue(LPCWSTR section, LPCWSTR entry, const T &default_value) {
+	if constexpr (std::is_enum_v<T>)
+		return enum_cast<T>(Env.GetMainApp()->GetProfileIntW(section, entry, static_cast<int>(default_value)));
+	else if constexpr (std::is_integral_v<T>)
+		return static_cast<T>(Env.GetMainApp()->GetProfileIntW(section, entry, static_cast<int>(default_value)));
+	else if constexpr (std::is_same_v<T, std::wstring>) {
+		CStringW v = Env.GetMainApp()->GetProfileStringW(section, entry, default_value.data());
+		return std::wstring {(LPCWSTR)v, static_cast<std::size_t>(v.GetLength())};
+	}
+	else if constexpr (std::is_same_v<T, fs::path>) {
+		CStringW v = Env.GetMainApp()->GetProfileStringW(section, entry, default_value.c_str());
+		return fs::path {(LPCWSTR)v, (LPCWSTR)v + v.GetLength()};
+	}
+	else
+		static_assert(!sizeof(T), "Unknown value type");
 }
 
 template <typename T>
-void SetRegValue(LPCWSTR section, LPCWSTR key, const T &val) = delete;
-
-template <>
-void SetRegValue<int>(LPCWSTR section, LPCWSTR entry, const int &val) {
-	Env.GetMainApp()->WriteProfileInt(section, entry, val);
-}
-
-template <>
-void SetRegValue<bool>(LPCWSTR section, LPCWSTR entry, const bool &val) {
-	Env.GetMainApp()->WriteProfileInt(section, entry, val ? 1 : 0);
-}
-
-template <>
-void SetRegValue<std::wstring>(LPCWSTR section, LPCWSTR entry, const std::wstring &val) {
-	Env.GetMainApp()->WriteProfileStringW(section, entry, CStringW(val.data(), val.size()));
-}
-
-template <>
-void SetRegValue<fs::path>(LPCWSTR section, LPCWSTR entry, const fs::path &val) {
-	SetRegValue(section, entry, val.wstring());
+void SetRegValue(LPCWSTR section, LPCWSTR entry, const T &val) {
+	if constexpr (std::is_enum_v<T>)
+		Env.GetMainApp()->WriteProfileInt(section, entry, static_cast<int>(val));
+	else if constexpr (std::is_integral_v<T>)
+		Env.GetMainApp()->WriteProfileInt(section, entry, static_cast<int>(val));
+	else if constexpr (std::is_same_v<T, std::wstring>)
+		Env.GetMainApp()->WriteProfileStringW(section, entry, CStringW {val.data(), static_cast<int>(val.size())});
+	else if constexpr (std::is_same_v<T, fs::path>) {
+		auto wstr = val.wstring();
+		Env.GetMainApp()->WriteProfileStringW(section, entry, CStringW {wstr.data(), static_cast<int>(wstr.size())});
+	}
+	else
+		static_assert(!sizeof(T), "Unknown value type");
 }
 
 } // namespace
+
+
 
 template <class T>
 class CSettingType : public CSettingBase {
@@ -232,30 +221,18 @@ void CSettingsService::DeleteSettings() {
 	Env.GetMainApp()->DelRegTree(hKey, L"");
 }
 
+template <typename T>
+CSettingBase &CSettingsService::NewSetting(LPCWSTR Section, LPCWSTR Entry, T Default, T &Variable) {
+	return *m_pSettings.emplace_back(std::make_unique<CSettingPublic<T>>(Section, Entry, std::move(Default), &Variable));
+}
+
 void CSettingsService::SetupSettings() {
 	//
 	// This function defines all settings in the program that are stored in registry
 	// All settings are loaded on program start and saved when closing the program
 	//
 
-	// The SETTING macros takes four arguments:
-	//
-	//  1. Registry section
-	//  2. Registry key name
-	//  3. Default value
-	//  4. A variable that contains the setting, loaded on program startup and saved on shutdown
-	//
-
-	const auto SETTING_INT = [&] (LPCWSTR Section, LPCWSTR Entry, int Default, int *Variable) {		// // //
-		return m_pSettings.emplace_back(std::make_unique<CSettingPublic<int>>(Section, Entry, Default, Variable)).get();
-	};
-	const auto SETTING_BOOL = [&] (LPCWSTR Section, LPCWSTR Entry, bool Default, bool *Variable) {
-		return m_pSettings.emplace_back(std::make_unique<CSettingPublic<bool>>(Section, Entry, Default, Variable)).get();
-	};
-	const auto SETTING_STRING = [&] (LPCWSTR Section, LPCWSTR Entry, std::wstring Default, std::wstring *Variable) {
-		return m_pSettings.emplace_back(std::make_unique<CSettingPublic<std::wstring>>(Section, Entry, std::move(Default), Variable)).get();
-	};
-	const auto SETTING_PATH = [&] (LPCWSTR Section, LPCWSTR Entry, PATHS PathType) {
+	const auto NewPathSetting = [&] (LPCWSTR Section, LPCWSTR Entry, PATHS PathType) {
 		return m_pSettings.emplace_back(std::make_unique<CSettingPath>(Section, Entry, PathType)).get();
 	};
 
@@ -272,123 +249,123 @@ void CSettingsService::SetupSettings() {
 	*/
 
 	// General
-	SETTING_INT(L"General", L"Edit style", EDIT_STYLE_FT2, &s.General.iEditStyle);
-	SETTING_INT(L"General", L"Page step size", 4, &s.General.iPageStepSize);
-	SETTING_BOOL(L"General", L"Wrap cursor", true, &s.General.bWrapCursor);
-	SETTING_BOOL(L"General", L"Wrap across frames", true, &s.General.bWrapFrames);
-	SETTING_BOOL(L"General", L"Free cursor edit",	false, &s.General.bFreeCursorEdit);
-	SETTING_BOOL(L"General", L"Wave preview", true, &s.General.bWavePreview);
-	SETTING_BOOL(L"General", L"Key repeat", true, &s.General.bKeyRepeat);
-	SETTING_BOOL(L"General", L"Hex row display", true, &s.General.bRowInHex);
-	SETTING_BOOL(L"General", L"Frame preview", true, &s.General.bFramePreview);
-	SETTING_BOOL(L"General", L"No DPCM reset", false, &s.General.bNoDPCMReset);
-	SETTING_BOOL(L"General", L"No Step moving", false, &s.General.bNoStepMove);
-	SETTING_BOOL(L"General", L"Delete pull up", false, &s.General.bPullUpDelete);
-	SETTING_BOOL(L"General", L"Backups", false, &s.General.bBackups);
-	SETTING_BOOL(L"General", L"Single instance", false, &s.General.bSingleInstance);
-	SETTING_BOOL(L"General", L"Preview full row", false, &s.General.bPreviewFullRow);
-	SETTING_BOOL(L"General", L"Double click selection", false, &s.General.bDblClickSelect);
+	NewSetting(L"General", L"Edit style", edit_style_t::FT2, s.General.iEditStyle);
+	NewSetting(L"General", L"Page step size", 4, s.General.iPageStepSize);
+	NewSetting(L"General", L"Wrap cursor", true, s.General.bWrapCursor);
+	NewSetting(L"General", L"Wrap across frames", true, s.General.bWrapFrames);
+	NewSetting(L"General", L"Free cursor edit",	false, s.General.bFreeCursorEdit);
+	NewSetting(L"General", L"Wave preview", true, s.General.bWavePreview);
+	NewSetting(L"General", L"Key repeat", true, s.General.bKeyRepeat);
+	NewSetting(L"General", L"Hex row display", true, s.General.bRowInHex);
+	NewSetting(L"General", L"Frame preview", true, s.General.bFramePreview);
+	NewSetting(L"General", L"No DPCM reset", false, s.General.bNoDPCMReset);
+	NewSetting(L"General", L"No Step moving", false, s.General.bNoStepMove);
+	NewSetting(L"General", L"Delete pull up", false, s.General.bPullUpDelete);
+	NewSetting(L"General", L"Backups", false, s.General.bBackups);
+	NewSetting(L"General", L"Single instance", false, s.General.bSingleInstance);
+	NewSetting(L"General", L"Preview full row", false, s.General.bPreviewFullRow);
+	NewSetting(L"General", L"Double click selection", false, s.General.bDblClickSelect);
 	// // //
-	SETTING_BOOL(L"General", L"Wrap pattern values", false, &s.General.bWrapPatternValue);
-	SETTING_BOOL(L"General", L"Cut sub-volume", false, &s.General.bCutVolume);
-	SETTING_BOOL(L"General", L"Use old FDS volume table", false, &s.General.bFDSOldVolume);
-	SETTING_BOOL(L"General", L"Retrieve channel state", false, &s.General.bRetrieveChanState);
-	SETTING_BOOL(L"General", L"Overflow paste mode", false, &s.General.bOverflowPaste);
-	SETTING_BOOL(L"General", L"Show skipped rows", false, &s.General.bShowSkippedRows);
-	SETTING_BOOL(L"General", L"Hexadecimal keypad", false, &s.General.bHexKeypad);
-	SETTING_BOOL(L"General", L"Multi-frame selection", false, &s.General.bMultiFrameSel);
-	SETTING_BOOL(L"General", L"Check for new versions", true, &s.General.bCheckVersion);
+	NewSetting(L"General", L"Wrap pattern values", false, s.General.bWrapPatternValue);
+	NewSetting(L"General", L"Cut sub-volume", false, s.General.bCutVolume);
+	NewSetting(L"General", L"Use old FDS volume table", false, s.General.bFDSOldVolume);
+	NewSetting(L"General", L"Retrieve channel state", false, s.General.bRetrieveChanState);
+	NewSetting(L"General", L"Overflow paste mode", false, s.General.bOverflowPaste);
+	NewSetting(L"General", L"Show skipped rows", false, s.General.bShowSkippedRows);
+	NewSetting(L"General", L"Hexadecimal keypad", false, s.General.bHexKeypad);
+	NewSetting(L"General", L"Multi-frame selection", false, s.General.bMultiFrameSel);
+	NewSetting(L"General", L"Check for new versions", true, s.General.bCheckVersion);
 
 	// // // Version / Compatibility info
-	SETTING_INT(L"Version", L"Module error level", MODULE_ERROR_DEFAULT, &s.Version.iErrorLevel);
+	NewSetting(L"Version", L"Module error level", MODULE_ERROR_DEFAULT, s.Version.iErrorLevel);
 
 	// Keys
-	SETTING_INT(L"Keys", L"Note cut", '1', &s.Keys.iKeyNoteCut);
-	SETTING_INT(L"Keys", L"Note release", VK_OEM_5, &s.Keys.iKeyNoteRelease); // \|
-	SETTING_INT(L"Keys", L"Clear field", VK_OEM_MINUS, &s.Keys.iKeyClear);
-	SETTING_INT(L"Keys", L"Repeat", 0x00, &s.Keys.iKeyRepeat);
-	SETTING_INT(L"Keys", L"Echo buffer", 0x00, &s.Keys.iKeyEchoBuffer);		// // //
+	NewSetting(L"Keys", L"Note cut", (int)'1', s.Keys.iKeyNoteCut);
+	NewSetting(L"Keys", L"Note release", VK_OEM_5, s.Keys.iKeyNoteRelease); // \|
+	NewSetting(L"Keys", L"Clear field", VK_OEM_MINUS, s.Keys.iKeyClear);
+	NewSetting(L"Keys", L"Repeat", 0x00, s.Keys.iKeyRepeat);
+	NewSetting(L"Keys", L"Echo buffer", 0x00, s.Keys.iKeyEchoBuffer);		// // //
 
 	// Sound
-	SETTING_INT(L"Sound", L"Audio Device", 0, &s.Sound.iDevice);
-	SETTING_INT(L"Sound", L"Sample rate", 44100, &s.Sound.iSampleRate);
-	SETTING_INT(L"Sound", L"Sample size", 16, &s.Sound.iSampleSize);
-	SETTING_INT(L"Sound", L"Buffer length", 40, &s.Sound.iBufferLength);
-	SETTING_INT(L"Sound", L"Bass filter freq", 30, &s.Sound.iBassFilter);
-	SETTING_INT(L"Sound", L"Treble filter freq", 12000, &s.Sound.iTrebleFilter);
-	SETTING_INT(L"Sound", L"Treble filter damping", 24, &s.Sound.iTrebleDamping);
-	SETTING_INT(L"Sound", L"Volume", 100, &s.Sound.iMixVolume);
+	NewSetting(L"Sound", L"Audio Device", 0, s.Sound.iDevice);
+	NewSetting(L"Sound", L"Sample rate", 44100, s.Sound.iSampleRate);
+	NewSetting(L"Sound", L"Sample size", 16, s.Sound.iSampleSize);
+	NewSetting(L"Sound", L"Buffer length", 40, s.Sound.iBufferLength);
+	NewSetting(L"Sound", L"Bass filter freq", 30, s.Sound.iBassFilter);
+	NewSetting(L"Sound", L"Treble filter freq", 12000, s.Sound.iTrebleFilter);
+	NewSetting(L"Sound", L"Treble filter damping", 24, s.Sound.iTrebleDamping);
+	NewSetting(L"Sound", L"Volume", 100, s.Sound.iMixVolume);
 
 	// Midi
-	SETTING_INT(L"MIDI", L"Device", 0, &s.Midi.iMidiDevice);
-	SETTING_INT(L"MIDI", L"Out Device", 0, &s.Midi.iMidiOutDevice);
-	SETTING_BOOL(L"MIDI", L"Master sync", false, &s.Midi.bMidiMasterSync);
-	SETTING_BOOL(L"MIDI", L"Key release", false, &s.Midi.bMidiKeyRelease);
-	SETTING_BOOL(L"MIDI", L"Channel map", false, &s.Midi.bMidiChannelMap);
-	SETTING_BOOL(L"MIDI", L"Velocity control", false, &s.Midi.bMidiVelocity);
-	SETTING_BOOL(L"MIDI", L"Auto Arpeggio", false, &s.Midi.bMidiArpeggio);
+	NewSetting(L"MIDI", L"Device", 0, s.Midi.iMidiDevice);
+	NewSetting(L"MIDI", L"Out Device", 0, s.Midi.iMidiOutDevice);
+	NewSetting(L"MIDI", L"Master sync", false, s.Midi.bMidiMasterSync);
+	NewSetting(L"MIDI", L"Key release", false, s.Midi.bMidiKeyRelease);
+	NewSetting(L"MIDI", L"Channel map", false, s.Midi.bMidiChannelMap);
+	NewSetting(L"MIDI", L"Velocity control", false, s.Midi.bMidiVelocity);
+	NewSetting(L"MIDI", L"Auto Arpeggio", false, s.Midi.bMidiArpeggio);
 
 	// Appearance
-	SETTING_INT(L"Appearance", L"Background", DEFAULT_COLOR_SCHEME.BACKGROUND, &s.Appearance.iColBackground);
-	SETTING_INT(L"Appearance", L"Background highlighted", DEFAULT_COLOR_SCHEME.BACKGROUND_HILITE, &s.Appearance.iColBackgroundHilite);
-	SETTING_INT(L"Appearance", L"Background highlighted 2", DEFAULT_COLOR_SCHEME.BACKGROUND_HILITE2, &s.Appearance.iColBackgroundHilite2);
-	SETTING_INT(L"Appearance", L"Pattern text", DEFAULT_COLOR_SCHEME.TEXT_NORMAL, &s.Appearance.iColPatternText);
-	SETTING_INT(L"Appearance", L"Pattern text highlighted", DEFAULT_COLOR_SCHEME.TEXT_HILITE, &s.Appearance.iColPatternTextHilite);
-	SETTING_INT(L"Appearance", L"Pattern text highlighted 2", DEFAULT_COLOR_SCHEME.TEXT_HILITE2, &s.Appearance.iColPatternTextHilite2);
-	SETTING_INT(L"Appearance", L"Pattern instrument", DEFAULT_COLOR_SCHEME.TEXT_INSTRUMENT, &s.Appearance.iColPatternInstrument);
-	SETTING_INT(L"Appearance", L"Pattern volume", DEFAULT_COLOR_SCHEME.TEXT_VOLUME, &s.Appearance.iColPatternVolume);
-	SETTING_INT(L"Appearance", L"Pattern effect", DEFAULT_COLOR_SCHEME.TEXT_EFFECT, &s.Appearance.iColPatternEffect);
-	SETTING_INT(L"Appearance", L"Selection", DEFAULT_COLOR_SCHEME.SELECTION, &s.Appearance.iColSelection);
-	SETTING_INT(L"Appearance", L"Cursor", DEFAULT_COLOR_SCHEME.CURSOR, &s.Appearance.iColCursor);
+	NewSetting(L"Appearance", L"Background", DEFAULT_COLOR_SCHEME.BACKGROUND, s.Appearance.iColBackground);
+	NewSetting(L"Appearance", L"Background highlighted", DEFAULT_COLOR_SCHEME.BACKGROUND_HILITE, s.Appearance.iColBackgroundHilite);
+	NewSetting(L"Appearance", L"Background highlighted 2", DEFAULT_COLOR_SCHEME.BACKGROUND_HILITE2, s.Appearance.iColBackgroundHilite2);
+	NewSetting(L"Appearance", L"Pattern text", DEFAULT_COLOR_SCHEME.TEXT_NORMAL, s.Appearance.iColPatternText);
+	NewSetting(L"Appearance", L"Pattern text highlighted", DEFAULT_COLOR_SCHEME.TEXT_HILITE, s.Appearance.iColPatternTextHilite);
+	NewSetting(L"Appearance", L"Pattern text highlighted 2", DEFAULT_COLOR_SCHEME.TEXT_HILITE2, s.Appearance.iColPatternTextHilite2);
+	NewSetting(L"Appearance", L"Pattern instrument", DEFAULT_COLOR_SCHEME.TEXT_INSTRUMENT, s.Appearance.iColPatternInstrument);
+	NewSetting(L"Appearance", L"Pattern volume", DEFAULT_COLOR_SCHEME.TEXT_VOLUME, s.Appearance.iColPatternVolume);
+	NewSetting(L"Appearance", L"Pattern effect", DEFAULT_COLOR_SCHEME.TEXT_EFFECT, s.Appearance.iColPatternEffect);
+	NewSetting(L"Appearance", L"Selection", DEFAULT_COLOR_SCHEME.SELECTION, s.Appearance.iColSelection);
+	NewSetting(L"Appearance", L"Cursor", DEFAULT_COLOR_SCHEME.CURSOR, s.Appearance.iColCursor);
 	// // //
-	SETTING_INT(L"Appearance", L"Current row (normal mode)", DEFAULT_COLOR_SCHEME.ROW_NORMAL, &s.Appearance.iColCurrentRowNormal);
-	SETTING_INT(L"Appearance", L"Current row (edit mode)", DEFAULT_COLOR_SCHEME.ROW_EDIT, &s.Appearance.iColCurrentRowEdit);
-	SETTING_INT(L"Appearance", L"Current row (playing)", DEFAULT_COLOR_SCHEME.ROW_PLAYING, &s.Appearance.iColCurrentRowPlaying);
-	SETTING_STRING(L"Appearance", L"Pattern font", FONT_FACE, &s.Appearance.strFont)
-		->UpdateDefault(L"General", L"Pattern font");
-	SETTING_INT(L"Appearance", L"Pattern font size", FONT_SIZE, &s.Appearance.iFontSize)
-		->UpdateDefault(L"General", L"Pattern font size");
-	SETTING_STRING(L"Appearance", L"Frame font", FONT_FACE, &s.Appearance.strFrameFont)
-		->UpdateDefault(L"General", L"Frame font");		// // // 050B
-	SETTING_BOOL(L"Appearance", L"Pattern colors", true, &s.Appearance.bPatternColor)
-		->UpdateDefault(L"Appearance", L"Pattern colors");
-	SETTING_BOOL(L"Appearance", L"Display flats", false, &s.Appearance.bDisplayFlats)
-		->UpdateDefault(L"Appearance", L"Display flats");
+	NewSetting(L"Appearance", L"Current row (normal mode)", DEFAULT_COLOR_SCHEME.ROW_NORMAL, s.Appearance.iColCurrentRowNormal);
+	NewSetting(L"Appearance", L"Current row (edit mode)", DEFAULT_COLOR_SCHEME.ROW_EDIT, s.Appearance.iColCurrentRowEdit);
+	NewSetting(L"Appearance", L"Current row (playing)", DEFAULT_COLOR_SCHEME.ROW_PLAYING, s.Appearance.iColCurrentRowPlaying);
+	NewSetting(L"Appearance", L"Pattern font", std::wstring {FONT_FACE}, s.Appearance.strFont)
+		.UpdateDefault(L"General", L"Pattern font");
+	NewSetting(L"Appearance", L"Pattern font size", FONT_SIZE, s.Appearance.iFontSize)
+		.UpdateDefault(L"General", L"Pattern font size");
+	NewSetting(L"Appearance", L"Frame font", std::wstring {FONT_FACE}, s.Appearance.strFrameFont)
+		.UpdateDefault(L"General", L"Frame font");		// // // 050B
+	NewSetting(L"Appearance", L"Pattern colors", true, s.Appearance.bPatternColor)
+		.UpdateDefault(L"Appearance", L"Pattern colors");
+	NewSetting(L"Appearance", L"Display flats", false, s.Appearance.bDisplayFlats)
+		.UpdateDefault(L"Appearance", L"Display flats");
 
 	// Window position
-	SETTING_INT(L"Window position", L"Left", 100, &s.WindowPos.iLeft);
-	SETTING_INT(L"Window position", L"Top", 100, &s.WindowPos.iTop);
-	SETTING_INT(L"Window position", L"Right", 950, &s.WindowPos.iRight);
-	SETTING_INT(L"Window position", L"Bottom", 920, &s.WindowPos.iBottom);
-	SETTING_INT(L"Window position", L"State", STATE_NORMAL, &s.WindowPos.iState);
+	NewSetting(L"Window position", L"Left", 100, s.WindowPos.iLeft);
+	NewSetting(L"Window position", L"Top", 100, s.WindowPos.iTop);
+	NewSetting(L"Window position", L"Right", 950, s.WindowPos.iRight);
+	NewSetting(L"Window position", L"Bottom", 920, s.WindowPos.iBottom);
+	NewSetting(L"Window position", L"State", win_state_t::Normal, s.WindowPos.iState);
 
 	// Display
-	SETTING_BOOL(L"Display", L"Average BPM", false, &s.Display.bAverageBPM);		// // // 050B
-	SETTING_BOOL(L"Display", L"Channel state", false, &s.Display.bChannelState);		// // // 050B todo
-	SETTING_BOOL(L"Display", L"Register state", false, &s.Display.bRegisterState);		// // // 050B
+	NewSetting(L"Display", L"Average BPM", false, s.Display.bAverageBPM);		// // // 050B
+	NewSetting(L"Display", L"Channel state", false, s.Display.bChannelState);		// // // 050B todo
+	NewSetting(L"Display", L"Register state", false, s.Display.bRegisterState);		// // // 050B
 
 	// Other
-	SETTING_INT(L"Other", L"Sample window state", 0, &s.SampleWinState);
-	SETTING_INT(L"Other", L"Frame editor position", 0, &s.FrameEditPos);
-	SETTING_INT(L"Other", L"Control panel position", 0, &s.ControlPanelPos);		// // // 050B todo
-	SETTING_BOOL(L"Other", L"Follow mode", true, &s.FollowMode);
-	SETTING_BOOL(L"Other", L"Meter decay rate", false, &s.MeterDecayRate);		// // // 050B
+	NewSetting(L"Other", L"Sample window state", 0, s.SampleWinState);
+	NewSetting(L"Other", L"Frame editor position", 0, s.FrameEditPos);
+	NewSetting(L"Other", L"Control panel position", 0, s.ControlPanelPos);		// // // 050B todo
+	NewSetting(L"Other", L"Follow mode", true, s.bFollowMode);
+	NewSetting(L"Other", L"Meter decay rate", false, s.bFastMeterDecayRate);		// // // 050B
 
 	// // // Paths
-	SETTING_PATH(L"Paths", L"FTM path", PATH_FTM);
-	SETTING_PATH(L"Paths", L"FTI path", PATH_FTI);
-	SETTING_PATH(L"Paths", L"NSF path", PATH_NSF);
-	SETTING_PATH(L"Paths", L"DMC path", PATH_DMC);
-	SETTING_PATH(L"Paths", L"WAV path", PATH_WAV);
-	SETTING_PATH(L"Paths", L"Instrument menu", PATH_INST);		// // //
+	NewPathSetting(L"Paths", L"FTM path", PATH_FTM);
+	NewPathSetting(L"Paths", L"FTI path", PATH_FTI);
+	NewPathSetting(L"Paths", L"NSF path", PATH_NSF);
+	NewPathSetting(L"Paths", L"DMC path", PATH_DMC);
+	NewPathSetting(L"Paths", L"WAV path", PATH_WAV);
+	NewPathSetting(L"Paths", L"Instrument menu", PATH_INST);		// // //
 
 	// Mixing
-	SETTING_INT(L"Mixer", L"APU1", 0, &s.ChipLevels.iLevelAPU1);
-	SETTING_INT(L"Mixer", L"APU2", 0, &s.ChipLevels.iLevelAPU2);
-	SETTING_INT(L"Mixer", L"VRC6", 0, &s.ChipLevels.iLevelVRC6);
-	SETTING_INT(L"Mixer", L"VRC7", 0, &s.ChipLevels.iLevelVRC7);
-	SETTING_INT(L"Mixer", L"MMC5", 0, &s.ChipLevels.iLevelMMC5);
-	SETTING_INT(L"Mixer", L"FDS", 0, &s.ChipLevels.iLevelFDS);
-	SETTING_INT(L"Mixer", L"N163", 0, &s.ChipLevels.iLevelN163);
-	SETTING_INT(L"Mixer", L"S5B", 0, &s.ChipLevels.iLevelS5B);
+	NewSetting(L"Mixer", L"APU1", 0, s.ChipLevels.iLevelAPU1);
+	NewSetting(L"Mixer", L"APU2", 0, s.ChipLevels.iLevelAPU2);
+	NewSetting(L"Mixer", L"VRC6", 0, s.ChipLevels.iLevelVRC6);
+	NewSetting(L"Mixer", L"VRC7", 0, s.ChipLevels.iLevelVRC7);
+	NewSetting(L"Mixer", L"MMC5", 0, s.ChipLevels.iLevelMMC5);
+	NewSetting(L"Mixer", L"FDS", 0, s.ChipLevels.iLevelFDS);
+	NewSetting(L"Mixer", L"N163", 0, s.ChipLevels.iLevelN163);
+	NewSetting(L"Mixer", L"S5B", 0, s.ChipLevels.iLevelS5B);
 }

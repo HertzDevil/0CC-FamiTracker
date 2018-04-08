@@ -27,16 +27,9 @@
 
 // CSettings command target
 
-enum EDIT_STYLES {		// // // renamed
-	EDIT_STYLE_FT2 = 0,		// FT2
-	EDIT_STYLE_MPT = 1,		// ModPlug
-	EDIT_STYLE_IT = 2,		// IT
-};
+enum class edit_style_t { FT2, MPT, IT };		// // // renamed
 
-enum WIN_STATES {
-	STATE_NORMAL,
-	STATE_MAXIMIZED,
-};
+enum class win_state_t { Normal, Maximized };		// // //
 
 enum PATHS {
 	PATH_FTM,
@@ -48,6 +41,8 @@ enum PATHS {
 
 	PATH_COUNT,
 };
+
+enum module_error_level_t : unsigned char;		// // //
 
 // Settings collection
 class CSettings {
@@ -73,7 +68,7 @@ public:
 		bool	bKeyRepeat;
 		bool	bRowInHex;
 		bool	bFramePreview;
-		int		iEditStyle;
+		edit_style_t iEditStyle;		// // //
 		bool	bNoDPCMReset;
 		bool	bNoStepMove;
 		int		iPageStepSize;
@@ -94,7 +89,7 @@ public:
 	} General;
 
 	struct {
-		int		iErrorLevel;
+		module_error_level_t iErrorLevel;
 	} Version;		// // //
 
 	struct {
@@ -119,20 +114,20 @@ public:
 	} Midi;
 
 	struct {
-		int		iColBackground;
-		int		iColBackgroundHilite;
-		int		iColBackgroundHilite2;
-		int		iColPatternText;
-		int		iColPatternTextHilite;
-		int		iColPatternTextHilite2;
-		int		iColPatternInstrument;
-		int		iColPatternVolume;
-		int		iColPatternEffect;
-		int		iColSelection;
-		int		iColCursor;
-		int		iColCurrentRowNormal;		// // //
-		int		iColCurrentRowEdit;
-		int		iColCurrentRowPlaying;
+		unsigned long	iColBackground;
+		unsigned long	iColBackgroundHilite;
+		unsigned long	iColBackgroundHilite2;
+		unsigned long	iColPatternText;
+		unsigned long	iColPatternTextHilite;
+		unsigned long	iColPatternTextHilite2;
+		unsigned long	iColPatternInstrument;
+		unsigned long	iColPatternVolume;
+		unsigned long	iColPatternEffect;
+		unsigned long	iColSelection;
+		unsigned long	iColCursor;
+		unsigned long	iColCurrentRowNormal;		// // //
+		unsigned long	iColCurrentRowEdit;
+		unsigned long	iColCurrentRowPlaying;
 
 		std::wstring strFont;		// // //
 		std::wstring strFrameFont;		// // // 050B
@@ -146,7 +141,7 @@ public:
 		int		iTop;
 		int		iRight;
 		int		iBottom;
-		int		iState;
+		win_state_t iState;
 	} WindowPos;
 
 	struct {
@@ -167,9 +162,9 @@ public:
 	int SampleWinState;
 	int FrameEditPos;
 	int ControlPanelPos;		// // // 050B
-	bool FollowMode;
-	bool MeterDecayRate;		// // // 050B
-	bool m_bNamcoMixing;		// // //
+	bool bFollowMode;
+	bool bFastMeterDecayRate;		// // // 050B
+	bool bLinearNamcoMixing;		// // //
 
 	struct {
 		int		iLevelAPU1;

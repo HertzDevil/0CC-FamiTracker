@@ -650,7 +650,7 @@ void CPActionInsertAtSel::Redo(CMainFrame &MainFrm)
 
 
 
-CPActionTranspose::CPActionTranspose(transpose_t Type) : m_iTransposeMode(Type)
+CPActionTranspose::CPActionTranspose(int Amount) : m_iTransposeAmount(Amount)
 {
 }
 
@@ -677,22 +677,19 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 			if (Note.Note == note_t::ECHO) {
 				if (!bSingular)
 					continue;
-				switch (m_iTransposeMode) {		// // //
-				case TRANSPOSE_DEC_NOTES: case TRANSPOSE_DEC_OCTAVES:
+				switch (m_iTransposeAmount) {		// // //
+				case -1: case 1:
 					if (Note.Octave > 0)
 						--Note.Octave;
 					break;
-				case TRANSPOSE_INC_NOTES: case TRANSPOSE_INC_OCTAVES:
+				case -NOTE_RANGE: case NOTE_RANGE:
 					if (Note.Octave < ECHO_BUFFER_LENGTH - 1)
 						++Note.Octave;
 					break;
 				}
 			}
 			else if (IsNote(Note.Note)) {		// // //
-				const int AMOUNT[] = {-1, 1, -NOTE_RANGE, NOTE_RANGE};
-				int NewNote = MIDI_NOTE(Note.Octave, Note.Note) + AMOUNT[m_iTransposeMode];
-				if (NewNote < 0) NewNote = 0;
-				if (NewNote >= NOTE_COUNT) NewNote = NOTE_COUNT - 1;
+				int NewNote = std::clamp(MIDI_NOTE(Note.Octave, Note.Note) + m_iTransposeAmount, 0, NOTE_COUNT - 1);
 				Note.Note = GET_NOTE(NewNote);
 				Note.Octave = GET_OCTAVE(NewNote);
 			}

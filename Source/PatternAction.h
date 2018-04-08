@@ -31,13 +31,6 @@
 #include <memory>		// // //
 #include "PatternClipData.h"		// // // TODO: remove
 
-enum transpose_t {
-	TRANSPOSE_DEC_NOTES,
-	TRANSPOSE_INC_NOTES,
-	TRANSPOSE_DEC_OCTAVES,
-	TRANSPOSE_INC_OCTAVES,
-};
-
 class CPatternEditor;		// // //
 class CSongView;		// // //
 class CMainFrame;		// // //
@@ -232,11 +225,11 @@ private:
 class CPActionTranspose : public CPSelectionAction
 {
 public:
-	CPActionTranspose(transpose_t Type);
+	CPActionTranspose(int Amount);
 private:
 	void Redo(CMainFrame &MainFrm) override;
 
-	transpose_t m_iTransposeMode;
+	int m_iTransposeAmount;		// // //
 };
 
 class CPActionScrollValues : public CPSelectionAction

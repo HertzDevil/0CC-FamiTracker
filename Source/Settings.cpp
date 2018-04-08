@@ -20,13 +20,6 @@
 ** must bear this legend.
 */
 
-/*
- *  Add new program settings to the SetupSettings function,
- *  three macros are provided for the type of setting you want to add.
- *  (SETTING_INT, SETTING_BOOL, SETTING_STRING)
- *
- */
-
 #include "Settings.h"
 
 CSettings &CSettings::GetInstance() {		// // //

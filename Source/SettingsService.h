@@ -69,6 +69,9 @@ public:
 	void DeleteSettings();
 
 private:
+	template <typename T>
+	CSettingBase &NewSetting(LPCWSTR Section, LPCWSTR Entry, T Default, T &Variable);
+
 	void SetupSettings();
 
 	std::vector<std::unique_ptr<CSettingBase>> m_pSettings;
