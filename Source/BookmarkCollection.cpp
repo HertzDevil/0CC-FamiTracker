@@ -47,7 +47,7 @@ bool CBookmarkCollection::AddBookmark(std::unique_ptr<CBookmark> pMark)
 		m_pBookmark.push_back(std::move(pMark));
 		return true;
 	}
-	catch (std::exception) {
+	catch (const std::exception &) {
 		return false;
 	}
 }

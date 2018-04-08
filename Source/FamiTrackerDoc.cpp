@@ -426,7 +426,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 				OpenFile.RaiseModuleException((LPCSTR)CStringA(MAKEINTRESOURCEA(IDS_FILE_LOAD_ERROR)));
 		}
 	}
-	catch (CModuleException e) {
+	catch (CModuleException &e) {
 		AfxMessageBox(conv::to_wide(e.GetErrorString()).data(), MB_ICONERROR);
 		DeleteContents();
 		return FALSE;

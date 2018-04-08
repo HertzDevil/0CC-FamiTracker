@@ -399,7 +399,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 				Song.SetEffectColumnCount(i, AssertRange<MODULE_ERROR_STRICT>(
 					file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count") + 1);
 			}
-			catch (CModuleException e) {
+			catch (CModuleException &e) {
 				e.AppendError("At track + " + std::string {Env.GetSoundChipService()->GetChannelFullName(i)});
 				throw e;
 			}
@@ -423,13 +423,13 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 						song.SetEffectColumnCount(i, AssertRange<MODULE_ERROR_STRICT>(
 							file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count") + 1);
 					}
-					catch (CModuleException e) {
+					catch (CModuleException &e) {
 						e.AppendError("At song " + conv::from_int(index + 1) + ',');
 						throw e;
 					}
 				});
 			}
-			catch (CModuleException e) {
+			catch (CModuleException &e) {
 				e.AppendError("At track " + std::string {Env.GetSoundChipService()->GetChannelFullName(i)} + ',');
 				throw e;
 			}
@@ -546,7 +546,7 @@ void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerModule &modfile, int ver) {
 			pInstrument->SetName(Name);
 			Manager.InsertInstrument(index, std::move(pInstrument));		// // // this registers the instrument content provider
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			file_.SetDefaultFooter(e);
 			e.AppendError("At instrument " + conv::from_int_hex(index, 2) + ',');
 			Manager.RemoveInstrument(index);
@@ -655,7 +655,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerModule &modfile, int ver) {
 				}
 				pManager->GetCollection(Type)->SetSequence(Index, std::move(pSeq));
 			}
-			catch (CModuleException e) {
+			catch (CModuleException &e) {
 				e.AppendError("At 2A03 " + std::string {CInstrument2A03::SEQUENCE_NAME[value_cast(Type)]} + " sequence " + conv::from_int(Index) + ',');
 				throw e;
 			}
@@ -676,7 +676,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerModule &modfile, int ver) {
 							pSeq->SetSetting(static_cast<seq_setting_t>(Settings));		// // //
 						}
 					}
-					catch (CModuleException e) {
+					catch (CModuleException &e) {
 						e.AppendError("At 2A03 " + std::string {CInstrument2A03::SEQUENCE_NAME[value_cast(j)]} +" sequence " + conv::from_int(i) + ',');
 						throw e;
 					}
@@ -691,7 +691,7 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerModule &modfile, int ver) {
 					file_.GetBlockInt(), -1, static_cast<int>(pSeq->GetItemCount()) - 1, "Sequence release point"));
 				pSeq->SetSetting(static_cast<seq_setting_t>(file_.GetBlockInt()));		// // //
 			}
-			catch (CModuleException e) {
+			catch (CModuleException &e) {
 				e.AppendError("At 2A03 " + std::string {CInstrument2A03::SEQUENCE_NAME[value_cast(Types[i])]} + " sequence " + conv::from_int(Indices[i]) + ',');
 				throw e;
 			}
@@ -855,7 +855,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 					else if (ver < 6)
 						file_.GetBlockChar(); // unused blank parameter
 				}
-				catch (CModuleException e) {
+				catch (CModuleException &e) {
 					e.AppendError("At effect column fx" + conv::from_int(n + 1) + ',');
 					throw e;
 				}
@@ -947,12 +947,12 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 
 				pSong->SetPatternData(order.TranslateChannel(Channel), Pattern, Row, Note);		// // //
 			}
-			catch (CModuleException e) {
+			catch (CModuleException &e) {
 				e.AppendError("At row " + conv::from_int_hex(Row, 2) + ',');
 				throw e;
 			}
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			e.AppendError("At pattern " + conv::from_int_hex(Pattern, 2) + ", channel " + conv::from_int(Channel) + ", song " + conv::from_int(Track + 1) + ',');
 			throw e;
 		}
@@ -1026,7 +1026,7 @@ void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerModule &modfile, int ver) {
 
 			manager.SetDSample(Index, std::make_unique<ft0cc::doc::dpcm_sample>(samples, Name));		// // //
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			e.AppendError("At DPCM sample " + conv::from_int(Index) + ',');
 			throw e;
 		}
@@ -1096,7 +1096,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerModule &modfile, int ver) 
 					pSeq->SetItem(j, Value);
 			}
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			e.AppendError("At VRC6 " + std::string {CInstrumentVRC6::SEQUENCE_NAME[value_cast(Type)]} + " sequence " + conv::from_int(Index) + ',');
 			throw e;
 		}
@@ -1117,7 +1117,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerModule &modfile, int ver) 
 						pSeq->SetSetting(static_cast<seq_setting_t>(Settings));		// // //
 					}
 				}
-				catch (CModuleException e) {
+				catch (CModuleException &e) {
 					e.AppendError("At VRC6 " + std::string {CInstrumentVRC6::SEQUENCE_NAME[value_cast(j)]} + " sequence " + conv::from_int(i) + ',');
 					throw e;
 				}
@@ -1131,7 +1131,7 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerModule &modfile, int ver) 
 				file_.GetBlockInt(), -1, static_cast<int>(pSeq->GetItemCount()) - 1, "Sequence release point"));
 			pSeq->SetSetting(static_cast<seq_setting_t>(file_.GetBlockInt()));		// // //
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			e.AppendError("At VRC6 " + std::string {CInstrumentVRC6::SEQUENCE_NAME[value_cast(Types[i])]} + " sequence " + conv::from_int(Indices[i]) + ',');
 			throw e;
 		}
@@ -1190,7 +1190,7 @@ void CFamiTrackerDocIO::LoadSequencesN163(CFamiTrackerModule &modfile, int ver) 
 					pSeq->SetItem(j, Value);
 			}
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			e.AppendError("At N163 " + std::string {CInstrumentN163::SEQUENCE_NAME[Type]} + " sequence " + conv::from_int(Index) + ',');
 			throw e;
 		}
@@ -1248,7 +1248,7 @@ void CFamiTrackerDocIO::LoadSequencesS5B(CFamiTrackerModule &modfile, int ver) {
 					pSeq->SetItem(j, Value);
 			}
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			e.AppendError("At 5B " + std::string {CInstrumentS5B::SEQUENCE_NAME[Type]} + " sequence " + conv::from_int(Index) + ',');
 			throw e;
 		}
@@ -1310,7 +1310,7 @@ void CFamiTrackerDocIO::LoadDetuneTables(CFamiTrackerModule &modfile, int ver) {
 				modfile.SetDetuneOffset(Chip, Note, Offset);
 			}
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			e.AppendError("At " + conv::to_utf8(CDetuneDlg::CHIP_STR[Chip]) + " detune table,");
 			throw e;
 		}
@@ -1357,13 +1357,13 @@ void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerModule &modfile, int ver) {
 				pGroove->set_entry(j, AssertRange(
 					static_cast<unsigned char>(file_.GetBlockChar()), 1U, 0xFFU, "Groove item"));
 			}
-			catch (CModuleException e) {
+			catch (CModuleException &e) {
 				e.AppendError("At position " + conv::from_int(j) + ',');
 				throw e;
 			}
 			modfile.SetGroove(Index, std::move(pGroove));
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			e.AppendError("At groove " + conv::from_int(Index) + ',');
 			throw e;
 		}
@@ -1382,7 +1382,7 @@ void CFamiTrackerDocIO::LoadGrooves(CFamiTrackerModule &modfile, int ver) {
 		else
 			AssertRange(Speed, 1, MAX_TEMPO, "Song default speed");
 	}
-	catch (CModuleException e) {
+	catch (CModuleException &e) {
 		e.AppendError("At song " + conv::from_int(i + 1) + ',');
 		throw e;
 	}

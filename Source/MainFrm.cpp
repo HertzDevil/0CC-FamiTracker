@@ -1282,7 +1282,7 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// 
 					AfxMessageBox(L"Failed to create instrument", MB_ICONERROR);
 					return false;
 				}
-				catch (CModuleException e) {
+				catch (CModuleException &e) {
 					AfxMessageBox(conv::to_wide(e.GetErrorString()).data(), MB_ICONERROR);
 					return false;
 				}

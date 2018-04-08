@@ -209,7 +209,7 @@ void CInstrumentIOSeq::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int 
 				throw CModuleException::WithMessage("Document has no free sequence slot");
 			inst.GetInstrumentManager()->SetSequence(inst.GetType(), i, inst.GetSeqIndex(i), pSeq);
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			e.AppendError("At " + std::string {inst.GetSequenceName(value_cast(i))} + " sequence,");
 			throw e;
 		}
@@ -264,7 +264,7 @@ void CInstrumentIO2A03::ReadFromModule(CInstrument &inst_, CDocumentFile &file) 
 				inst.SetSampleDeltaValue(MidiNote, Value);
 			}
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			auto n = value_cast(GET_NOTE(MidiNote));
 			auto o = GET_OCTAVE(MidiNote);
 			e.AppendError("At note " + conv::from_int(n) + ", octave " + conv::from_int(o) + ',');
@@ -357,7 +357,7 @@ void CInstrumentIO2A03::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 			inst.SetSampleDeltaValue(InstNote, AssertRange(
 				static_cast<char>(fti_ver >= 24 ? file.ReadInt8() : -1), -1, 0x7F, "DPCM sample delta value"));
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			auto n = value_cast(GET_NOTE(InstNote));
 			auto o = GET_OCTAVE(InstNote);
 			e.AppendError("At note " + conv::from_int(n) + ", octave " + conv::from_int(o) + ',');
@@ -682,7 +682,7 @@ void CInstrumentION163::ReadFromModule(CInstrument &inst_, CDocumentFile &file) 
 		for (unsigned j = 0; j < inst.GetWaveSize(); ++j) try {
 			inst.SetSample(i, j, AssertRange(file.GetBlockChar(), 0, 15, "N163 wave sample"));
 		}
-		catch (CModuleException e) {
+		catch (CModuleException &e) {
 			e.AppendError("At wave " + conv::from_int(i) + ", sample " + conv::from_int(j) + ',');
 			throw e;
 		}
@@ -728,7 +728,7 @@ void CInstrumentION163::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 		for (int j = 0; j < WaveSize; ++j) try {
 			inst.SetSample(i, j, AssertRange(file.ReadInt8(), 0, 15, "N163 wave sample"));
 		}
-	catch (CModuleException e) {
+	catch (CModuleException &e) {
 		e.AppendError("At wave " + conv::from_int(i) + ", sample " + conv::from_int(j) + ',');
 		throw e;
 	}
