@@ -9,8 +9,12 @@
 #		include <experimental/filesystem>
 		namespace fs = std::experimental::filesystem::v1;
 #	endif
+#elif defined(_MSC_FULL_VER) && _MSC_FULL_VER >= 191426329
+// VS2017 version 15.7 preview 3 and above
+#	include <filesystem>
+	namespace fs = std::filesystem;
 #elif defined(_MSVC_LANG) && _MSVC_LANG > 201402L
-// VS2017 does not put this in the std namespace directly yet
+// older versions of VS2017
 #	include <experimental/filesystem>
 	namespace fs = std::experimental::filesystem::v1;
 #elif defined(__has_include)
