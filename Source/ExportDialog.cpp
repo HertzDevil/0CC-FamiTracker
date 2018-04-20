@@ -330,14 +330,14 @@ void CExportDialog::OnBnClickedPlay()
 //	if (m_strFile.GetLength() == 0)
 //		return;
 
-	const LPCWSTR file = L"d:\\test.nsf";		// // //
-
-	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
-	CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
-	Compiler.ExportNSF(file, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
-
 	// Play exported file (available in debug)
-	ShellExecuteW(NULL, L"open", file, NULL, NULL, SW_SHOWNORMAL);
+	const LPCWSTR fname = L"d:\\test.nsf";		// // //
 
+	if (auto file = OpenFile(fname)) {
+		CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
+		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
+		Compiler.ExportNSF(*file, IsDlgButtonChecked(IDC_PAL) == BST_CHECKED);
+		ShellExecuteW(NULL, L"open", fname, NULL, NULL, SW_SHOWNORMAL);
+	}
 #endif
 }
