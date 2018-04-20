@@ -2929,9 +2929,9 @@ void CMainFrame::OnEditSelectother()		// // //
 				NewSel.m_cpStart.m_iFrame += Frames;
 				NewSel.m_cpEnd.m_iFrame += Frames;
 			}
-			NewSel.m_cpEnd.m_iFrame = std::min(NewSel.m_cpEnd.m_iFrame, Frames - 1);
+			NewSel.m_cpEnd.m_iFrame = std::min(NewSel.m_cpEnd.m_iFrame, Frames) + 1;
 			NewSel.m_cpStart.m_iChannel = Sel.m_cpStart.m_iChannel;
-			NewSel.m_cpEnd.m_iChannel = Sel.m_cpEnd.m_iChannel;
+			NewSel.m_cpEnd.m_iChannel = Sel.m_cpEnd.m_iChannel + 1;
 
 			m_pFrameEditor->SetSelection(NewSel);
 		}
