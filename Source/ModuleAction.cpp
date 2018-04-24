@@ -198,7 +198,12 @@ bool ModuleAction::CRemoveInst::SaveState(const CMainFrame &MainFrm) {
 		for (unsigned i = index_ + 1; i < MAX_INSTRUMENTS; ++i)
 			if (pManager->IsInstrumentUsed(i)) {
 				nextIndex_ = i;
-				break;
+				return true;
+			}
+		for (int i = index_ - 1; i >= 0; --i)
+			if (pManager->IsInstrumentUsed(i)) {
+				nextIndex_ = i;
+				return true;
 			}
 		return true;
 	}
