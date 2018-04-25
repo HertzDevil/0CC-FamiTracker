@@ -121,11 +121,11 @@ void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t 
 		constexpr stChanNote BLANK { };
 		switch (Mode) {
 		case paste_mode_t::MIX:
-			if (dest.EffNumber[fx] != BLANK.EffNumber[fx])
+			if (dest.Effects[fx].fx != BLANK.Effects[fx].fx)
 				return true;
 			[[fallthrough]];
 		case paste_mode_t::OVERWRITE:
-			if (src.EffNumber[fx] == BLANK.EffNumber[fx])
+			if (src.Effects[fx].fx == BLANK.Effects[fx].fx)
 				return true;
 		}
 		return false;
@@ -145,10 +145,8 @@ void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t 
 
 	for (unsigned fx = 0; fx < MAX_EFFECT_COLUMNS; ++fx) {
 		auto col = static_cast<column_t>(fx + value_cast(column_t::Effect1));
-		if (col >= Begin && col <= End && !isFxProtected(Target, Source, fx)) {
-			Target.EffNumber[fx] = Source.EffNumber[fx];
-			Target.EffParam[fx] = Source.EffParam[fx];
-		}
+		if (col >= Begin && col <= End && !isFxProtected(Target, Source, fx))
+			Target.Effects[fx] = Source.Effects[fx];
 	}
 }
 
@@ -172,10 +170,8 @@ void CopyNoteSection(stChanNote &Target, const stChanNote &Source, column_t Begi
 
 	for (unsigned fx = 0; fx < MAX_EFFECT_COLUMNS; ++fx) {
 		auto col = static_cast<column_t>(fx + value_cast(column_t::Effect1));
-		if (col >= Begin && col <= End) {
-			Target.EffNumber[fx] = Source.EffNumber[fx];
-			Target.EffParam[fx] = Source.EffParam[fx];
-		}
+		if (col >= Begin && col <= End)
+			Target.Effects[fx] = Source.Effects[fx];
 	}
 }
 
@@ -1280,8 +1276,8 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	const wchar_t *NOTES_A = m_bDisplayFlat ? NOTES_A_FLAT : NOTES_A_SHARP;
 	const wchar_t *NOTES_B = m_bDisplayFlat ? NOTES_B_FLAT : NOTES_B_SHARP;
 
-	effect_t EffNumber = Column >= 4 ? NoteData.EffNumber[(Column - 4) / 3] : effect_t::NONE;		// // //
-	uint8_t EffParam  = Column >= 4 ? NoteData.EffParam[(Column - 4) / 3] : static_cast<uint8_t>(0u);
+	effect_t EffNumber = Column >= 4 ? NoteData.Effects[(Column - 4) / 3].fx : effect_t::NONE;		// // //
+	uint8_t EffParam  = Column >= 4 ? NoteData.Effects[(Column - 4) / 3].param : static_cast<uint8_t>(0u);
 
 	// Detect invalid note data
 	if (NoteData.Note > note_t::ECHO ||		// // //
@@ -1351,10 +1347,10 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 				else {
 					bool Found = false;
 					for (unsigned int i = 0; i < fxcols; ++i) {
-						if (NoteData.EffNumber[i] != effect_t::NONE) {
-							DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[value_cast(NoteData.EffNumber[i])], DimEff);
-							DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, HEX[NoteData.EffParam[i] >> 4], DimEff);
-							DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, HEX[NoteData.EffParam[i] & 0x0F], DimEff);
+						if (NoteData.Effects[i].fx != effect_t::NONE) {
+							DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[value_cast(NoteData.Effects[i].fx)], DimEff);
+							DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, HEX[NoteData.Effects[i].param >> 4], DimEff);
+							DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, HEX[NoteData.Effects[i].param & 0x0F], DimEff);
 							Found = true;
 							break;
 						}
@@ -2980,14 +2976,14 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 				bool protectFx = false;
 				switch (PasteMode) {
 				case paste_mode_t::MIX:
-					if (NoteData.EffNumber[Offset] != effect_t::NONE) protectFx = true;
+					if (NoteData.Effects[Offset].fx != effect_t::NONE) protectFx = true;
 					// continue
 				case paste_mode_t::OVERWRITE:
-					if (Source.EffNumber[i] == effect_t::NONE) protectFx = true;
+					if (Source.Effects[i].fx == effect_t::NONE) protectFx = true;
 				}
 				if (!protectFx) {
-					NoteData.EffNumber[Offset] = Source.EffNumber[i];
-					NoteData.EffParam[Offset] = Source.EffParam[i];
+					NoteData.Effects[Offset].fx = Source.Effects[i].fx;
+					NoteData.Effects[Offset].param = Source.Effects[i].param;
 				}
 			}
 			it.Set(c, NoteData);
@@ -3140,7 +3136,7 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 			for (int i = 0; i < GetChannelCount(); ++i) {
 				const auto &Note = b.Get(i);
 				for (unsigned int c = 0, m = pSongView->GetEffectColumnCount(i); c < m; ++c)
-					switch (Note.EffNumber[c]) {
+					switch (Note.Effects[c].fx) {
 					case effect_t::JUMP: case effect_t::SKIP: case effect_t::HALT:
 						if (Sel.IsColumnSelected(static_cast<column_t>(value_cast(column_t::Effect1) + c), i))
 							return b == e ? sel_condition_t::TERMINAL_SKIP : sel_condition_t::NONTERMINAL_SKIP;

@@ -339,26 +339,25 @@ void CSoundDriver::SetupPeriodTables() {
 }
 
 void CSoundDriver::HandleGlobalEffects(stChanNote &note) {
-	for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i) {
-		unsigned char EffParam = note.EffParam[i];
-		switch (note.EffNumber[i]) {
+	for (auto &cmd : note.Effects) {
+		switch (cmd.fx) {
 		// Fxx: Sets speed to xx
 		case effect_t::SPEED:
 			if (m_pTempoCounter)
-				m_pTempoCounter->DoFxx(EffParam ? EffParam : 1);		// // //
+				m_pTempoCounter->DoFxx(cmd.param ? cmd.param : 1);		// // //
 			break;
 		// Oxx: Sets groove to xx
 		case effect_t::GROOVE:		// // //
 			if (m_pTempoCounter)
-				m_pTempoCounter->DoOxx(EffParam % MAX_GROOVE);		// // //
+				m_pTempoCounter->DoOxx(cmd.param % MAX_GROOVE);		// // //
 			break;
 		// Bxx: Jump to pattern xx
 		case effect_t::JUMP:
-			m_iJumpToPattern = EffParam;
+			m_iJumpToPattern = cmd.param;
 			break;
 		// Dxx: Skip to next track and start at row xx
 		case effect_t::SKIP:
-			m_iSkipToRow = EffParam;
+			m_iSkipToRow = cmd.param;
 			break;
 		// Cxx: Halt playback
 		case effect_t::HALT:
@@ -369,6 +368,6 @@ void CSoundDriver::HandleGlobalEffects(stChanNote &note) {
 			continue;		// // //
 		}
 
-		note.EffNumber[i] = effect_t::NONE;
+		cmd = { };
 	}
 }

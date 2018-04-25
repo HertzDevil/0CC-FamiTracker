@@ -84,8 +84,7 @@ std::unique_ptr<CSongData> Kraid::makeSong(CFamiTrackerModule &modfile) {
 		}
 		if (note != stChanNote { }) {
 			note.Instrument = 1;
-			note.EffNumber[1] = effect_t::DELAY;
-			note.EffParam[1] = 3;
+			note.Effects[1] = {effect_t::DELAY, 3u};
 			pSong->GetPatternOnFrame(apu_subindex_t::pulse1, f).SetNoteOn(r, note);
 		}
 	} while (f || r);
@@ -134,7 +133,7 @@ void Kraid::makePattern(CSongData &song, stChannelID ch, unsigned pat, std::stri
 		case 'a': ++row; note.Note = note_t::A;  note.Octave = octave, note.Instrument = INST; break;
 		case 'A': ++row; note.Note = note_t::As; note.Octave = octave, note.Instrument = INST; break;
 		case 'b': ++row; note.Note = note_t::B;  note.Octave = octave, note.Instrument = INST; break;
-		case '@': note.EffNumber[0] = effect_t::DUTY_CYCLE; note.EffParam[0] = 2; break;
+		case '@': note.Effects[0] = {effect_t::DUTY_CYCLE, 2u}; break;
 		}
 	}
 }

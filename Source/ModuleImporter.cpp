@@ -192,9 +192,9 @@ void CModuleImporter::ImportSongs() {
 				if (note.Instrument < MAX_INSTRUMENTS)
 					note.Instrument = inst_index_[note.Instrument];
 				// // // Translate groove commands
-				for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
-					if (note.EffNumber[i] == effect_t::GROOVE && note.EffParam[i] < MAX_GROOVE)
-						note.EffParam[i] = groove_index_[note.EffParam[i]];
+				for (auto &[fx, param] : note.Effects)
+					if (fx == effect_t::GROOVE && param < MAX_GROOVE)
+						param = groove_index_[param];
 			});
 		});
 	});}

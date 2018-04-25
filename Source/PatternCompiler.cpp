@@ -170,21 +170,21 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 
 		// Check for delays, must come first
 		for (int j = 0; j < EffColumns; ++j) {
-			effect_t Effect   = ChanNote.EffNumber[j];
-			unsigned char EffParam = ChanNote.EffParam[j];
+			effect_t Effect = ChanNote.Effects[j].fx;
+			unsigned char EffParam = ChanNote.Effects[j].param;
 			if (Effect == effect_t::DELAY && EffParam > 0) {
 				WriteDuration();
 				for (int k = 0; k < EffColumns; ++k) {
 					// Clear skip and jump commands on delayed rows
-					if (ChanNote.EffNumber[k] == effect_t::SKIP) {
+					if (ChanNote.Effects[k].fx == effect_t::SKIP) {
 						WriteData(Command(CMD_EFF_SKIP));
-						WriteData(ChanNote.EffParam[k] + 1);
-						ChanNote.EffNumber[k] = effect_t::NONE;
+						WriteData(ChanNote.Effects[k].param + 1);
+						ChanNote.Effects[k] = { };
 					}
-					else if (ChanNote.EffNumber[k] == effect_t::JUMP) {
+					else if (ChanNote.Effects[k].fx == effect_t::JUMP) {
 						WriteData(Command(CMD_EFF_JUMP));
-						WriteData(ChanNote.EffParam[k] + 1);
-						ChanNote.EffNumber[k] = effect_t::NONE;
+						WriteData(ChanNote.Effects[k].param + 1);
+						ChanNote.Effects[k] = { };
 					}
 				}
 				Action = true;
@@ -305,8 +305,8 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 		}
 
 		for (int j = 0; j < EffColumns; ++j) {
-			effect_t Effect   = ChanNote.EffNumber[j];
-			unsigned char EffParam = ChanNote.EffParam[j];
+			effect_t Effect = ChanNote.Effects[j].fx;
+			unsigned char EffParam = ChanNote.Effects[j].param;
 
 			if (Effect != effect_t::NONE) {
 				WriteDuration();
@@ -706,7 +706,7 @@ CPatternCompiler::stSpacingInfo CPatternCompiler::ScanNoteLengths(int Track, uns
 		else if (NoteData.Vol < MAX_VOLUME)
 			NoteUsed = true;
 		else for (unsigned j = 0, Count = pSong->GetEffectColumnCount(Channel); j < Count; ++j)
-			if (NoteData.EffNumber[j] != effect_t::NONE)
+			if (NoteData.Effects[j].fx != effect_t::NONE)
 				NoteUsed = true;
 
 		if (i == StartRow && !NoteUsed)

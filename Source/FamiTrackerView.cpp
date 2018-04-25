@@ -1807,13 +1807,9 @@ stChanNote CFamiTrackerView::GetInputNote(note_t Note, int Octave, std::size_t I
 	}
 
 	// Quantization
-	if (Env.GetSettings()->Midi.bMidiMasterSync) {
-		int Delay = Env.GetMIDI()->GetQuantization();
-		if (Delay > 0) {
-			Cell.EffNumber[0] = effect_t::DELAY;
-			Cell.EffParam[0] = Delay;
-		}
-	}
+	if (Env.GetSettings()->Midi.bMidiMasterSync)
+		if (int Delay = Env.GetMIDI()->GetQuantization(); Delay > 0)
+			Cell.Effects[0] = {effect_t::DELAY, static_cast<uint8_t>(Delay)};
 
 	return Cell;
 }
@@ -2502,17 +2498,16 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 		return false;
 
 	if (CheckRepeatKey(nChar)) {
-		Note.EffNumber[EffectIndex] = m_LastNote.EffNumber[0];
-		Note.EffParam[EffectIndex] = m_LastNote.EffParam[0];
+		Note.Effects[EffectIndex] = m_LastNote.Effects[0];
 		if (EditStyle != edit_style_t::MPT)		// // //
 			bStepDown = true;
-		if (m_bEditEnable && Note.EffNumber[EffectIndex] != effect_t::NONE)		// // //
+		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::NONE)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 		return true;
 	}
 
 	if (CheckClearKey(nChar)) {
-		Note.EffNumber[EffectIndex] = effect_t::NONE;
+		Note.Effects[EffectIndex].fx = effect_t::NONE;
 		if (EditStyle != edit_style_t::MPT)
 			bStepDown = true;
 		return true;
@@ -2522,19 +2517,19 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 		nChar = '0' + nChar - VK_NUMPAD0;
 
 	if (effect_t Effect = GetEffectFromChar(nChar, GetSelectedChannelID().Chip); Effect != effect_t::NONE) {		// // //
-		Note.EffNumber[EffectIndex] = Effect;
-		if (m_bEditEnable && Note.EffNumber[EffectIndex] != effect_t::NONE)		// // //
+		Note.Effects[EffectIndex].fx = Effect;
+		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::NONE)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 		switch (EditStyle) {
 			case edit_style_t::MPT:	// Modplug
-				if (Effect == m_LastNote.EffNumber[0])
-					Note.EffParam[EffectIndex] = m_LastNote.EffParam[0];
+				if (Effect == m_LastNote.Effects[0].fx)
+					Note.Effects[EffectIndex].param = m_LastNote.Effects[0].param;
 				break;
 			default:
 				bStepDown = true;
 		}
-		m_LastNote.EffNumber[0] = Effect;
-		m_LastNote.EffParam[0] = Note.EffParam[EffectIndex];		// // //
+		m_LastNote.Effects[0].fx = Effect;
+		m_LastNote.Effects[0].param = Note.Effects[EffectIndex].param;		// // //
 		return true;
 	}
 
@@ -2551,17 +2546,16 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 		return false;
 
 	if (CheckRepeatKey(Key)) {
-		Note.EffNumber[EffectIndex] = m_LastNote.EffNumber[0];
-		Note.EffParam[EffectIndex] = m_LastNote.EffParam[0];
+		Note.Effects[EffectIndex] = m_LastNote.Effects[0];
 		if (EditStyle != edit_style_t::MPT)		// // //
 			bStepDown = true;
-		if (m_bEditEnable && Note.EffNumber[EffectIndex] != effect_t::NONE)		// // //
+		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::NONE)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 		return true;
 	}
 
 	if (CheckClearKey(Key)) {
-		Note.EffParam[EffectIndex] = 0;
+		Note.Effects[EffectIndex].param = 0;
 		if (EditStyle != edit_style_t::MPT)
 			bStepDown = true;
 		return true;
@@ -2584,14 +2578,14 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 
 	switch (EditStyle) {
 		case edit_style_t::FT2:	// FT2
-			Note.EffParam[EffectIndex] = (Note.EffParam[EffectIndex] & Mask) | Value << Shift;
+			Note.Effects[EffectIndex].param = (Note.Effects[EffectIndex].param & Mask) | Value << Shift;
 			bStepDown = true;
 			break;
 		case edit_style_t::MPT:	// Modplug
-			Note.EffParam[EffectIndex] = ((Note.EffParam[EffectIndex] & 0x0F) << 4) | Value & 0x0F;
+			Note.Effects[EffectIndex].param = ((Note.Effects[EffectIndex].param & 0x0F) << 4) | Value & 0x0F;
 			break;
 		case edit_style_t::IT:	// IT
-			Note.EffParam[EffectIndex] = (Note.EffParam[EffectIndex] & Mask) | Value << Shift;
+			Note.Effects[EffectIndex].param = (Note.Effects[EffectIndex].param & Mask) | Value << Shift;
 			if (Mask == 0x0F)
 				bMoveRight = true;
 			else {
@@ -2601,10 +2595,9 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 			break;
 	}
 
-	m_LastNote.EffNumber[0] = Note.EffNumber[EffectIndex];		// // //
-	m_LastNote.EffParam[0] = Note.EffParam[EffectIndex];
+	m_LastNote.Effects[0] = Note.Effects[EffectIndex];		// // //
 
-	if (m_bEditEnable && Note.EffNumber[EffectIndex] != effect_t::NONE)		// // //
+	if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::NONE)		// // //
 		GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 
 	return true;
@@ -3336,8 +3329,7 @@ void CFamiTrackerView::OnPickupRow()
 	column_t Col = GetSelectColumn(m_pPatternEditor->GetColumn());		// // //
 	if (Col >= column_t::Effect1) {
 		unsigned fx = value_cast(Col) - value_cast(column_t::Effect1);
-		m_LastNote.EffNumber[0] = Note.EffNumber[fx];
-		m_LastNote.EffParam[0] = Note.EffParam[fx];
+		m_LastNote.Effects[0] = Note.Effects[fx];
 	}
 }
 
@@ -3499,8 +3491,8 @@ void CFamiTrackerView::OnRecallChannelState() {		// // //
 
 CStringW CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) const		// // //
 {
-	auto Index = value_cast(Note.EffNumber[Column]);
-	int Param = Note.EffParam[Column];
+	auto Index = value_cast(Note.Effects[Column].fx);
+	int Param = Note.Effects[Column].param;
 	if (Index >= EFFECT_COUNT)
 		return L"Undefined effect";
 

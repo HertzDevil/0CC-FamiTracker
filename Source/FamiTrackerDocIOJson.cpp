@@ -147,15 +147,15 @@ void to_json(json &j, const stChanNote &note) {
 	else if (note.Instrument == HOLD_INSTRUMENT)
 		j["inst_index"] = -1;
 
-	for (const auto &fx_ : note.EffNumber)
-		if (fx_ != effect_t::NONE) {
+	for (const auto &cmd_ : note.Effects)
+		if (cmd_.fx != effect_t::NONE) {
 			j["effects"] = json::array();
-			for (std::size_t fx = 0; fx < std::size(note.EffNumber); ++fx)
-				if (auto cmd = note.EffNumber[fx]; cmd != effect_t::NONE)
+			for (const auto &[fx, param] : note.Effects)
+				if (fx != effect_t::NONE)
 					j["effects"].push_back(json {
 						{"column", fx},
-						{"name", std::string {EFF_CHAR[value_cast(cmd)]}},
-						{"param", note.EffParam[fx]},
+						{"name", std::string {EFF_CHAR[value_cast(fx)]}},
+						{"param", param},
 					});
 			break;
 		}
@@ -525,8 +525,8 @@ void from_json(const json &j, stChanNote &note) {
 			effect_t effect = GetEffectFromChar(ch.front(), sound_chip_t::APU);
 			if (effect == effect_t::NONE)
 				throw std::invalid_argument {"Invalid effect name"};
-			note.EffNumber[col] = effect;
-			note.EffParam[col] = json_get_between(fx, "param", 0, 255);
+			note.Effects[col].fx = effect;
+			note.Effects[col].param = json_get_between(fx, "param", 0, 255);
 		}
 	});
 }

@@ -184,8 +184,8 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 								++ImportedNote.ExtraStuff2;
 						}
 						stChanNote Note;		// // //
-						Note.EffNumber[0] = static_cast<effect_t>(ImportedNote.ExtraStuff1);
-						Note.EffParam[0] = ImportedNote.ExtraStuff2;
+						Note.Effects[0].fx = static_cast<effect_t>(ImportedNote.ExtraStuff1);
+						Note.Effects[0].param = ImportedNote.ExtraStuff2;
 						Note.Instrument = ImportedNote.Instrument;
 						Note.Note = static_cast<note_t>(ImportedNote.Note);
 						Note.Octave = ImportedNote.Octave;
@@ -194,8 +194,8 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 							Note.Instrument = MAX_INSTRUMENTS;
 						if (Note.Vol == 0)
 							Note.Vol = MAX_VOLUME;
-						if (Note.EffNumber[0] < effect_t::COUNT)		// // //
-							Note.EffNumber[0] = EFF_CONVERSION_050.first[value_cast(Note.EffNumber[0])];
+						if (Note.Effects[0].fx < effect_t::COUNT)		// // //
+							Note.Effects[0].fx = EFF_CONVERSION_050.first[value_cast(Note.Effects[0].fx)];
 						Song.SetPatternData(x, c, i, Note);
 					}
 				}

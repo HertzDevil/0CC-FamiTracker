@@ -25,6 +25,7 @@
 
 #include "FamiTrackerTypes.h"
 #include "StrongOrdering.h"		// // //
+#include <array>		// // //
 
 // // // effect command struct
 struct stEffectCommand {
@@ -54,11 +55,9 @@ public:
 	constexpr stChanNote() noexcept = default;
 
 	constexpr bool operator==(const stChanNote &other) const noexcept {
-		for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
-			if (EffNumber[i] != other.EffNumber[i] || (EffNumber[i] != effect_t::NONE && EffParam[i] != other.EffParam[i]))
-				return false;
 		return Note == other.Note && Vol == other.Vol && Instrument == other.Instrument &&
-			(Note == note_t::NONE || Octave == other.Octave || Note == note_t::HALT || Note == note_t::RELEASE);
+			(Note == note_t::NONE || Octave == other.Octave || Note == note_t::HALT || Note == note_t::RELEASE) &&
+			Effects == other.Effects;
 	}
 	constexpr bool operator!=(const stChanNote &other) const noexcept {
 		return !operator==(other);
@@ -69,6 +68,5 @@ public:
 	unsigned char Octave = 0U;
 	unsigned char Vol = MAX_VOLUME;
 	unsigned char Instrument = MAX_INSTRUMENTS;
-	effect_t      EffNumber[MAX_EFFECT_COLUMNS] = {effect_t::NONE, effect_t::NONE, effect_t::NONE, effect_t::NONE};		// // //
-	unsigned char EffParam[MAX_EFFECT_COLUMNS] = {0U, 0U, 0U, 0U};
+	std::array<stEffectCommand, MAX_EFFECT_COLUMNS> Effects = { };		// // //
 };

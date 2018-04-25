@@ -108,7 +108,7 @@ unsigned CConstSongView::GetFrameLength(unsigned Frame) const {
 			for (unsigned j = 0; j < PatternLength - 1; ++j) {
 				const auto &Note = pat.GetNoteOn(j);
 				for (unsigned k = 0; k < Columns; ++k)
-					switch (Note.EffNumber[k])
+					switch (Note.Effects[k].fx)
 					case effect_t::SKIP: case effect_t::JUMP: case effect_t::HALT:
 						return j + 1;
 			}

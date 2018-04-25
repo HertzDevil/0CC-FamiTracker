@@ -396,9 +396,7 @@ public:
 				effect_t Eff = GetEffectFromChar(sEff.GetAt(0), chan.Chip);		// // //
 				if (Eff == effect_t::NONE)
 					throw MakeError("unrecognized effect '%s'.", (LPCSTR)sEff);
-				Cell.EffNumber[e] = Eff;
-
-				Cell.EffParam[e] = ImportHex(sEff.Right(2));		// // //
+				Cell.Effects[e] = {Eff, static_cast<uint8_t>(ImportHex(sEff.Right(2)))};		// // //
 			}
 		}
 
@@ -488,10 +486,10 @@ CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEff
 	s += (stCell.Vol == 0x10) ? CStringA(" .") : FormattedA(" %01X", stCell.Vol);		// // //
 
 	for (unsigned int e=0; e < nEffects; ++e)
-		if (stCell.EffNumber[e] == effect_t::NONE)
+		if (stCell.Effects[e].fx == effect_t::NONE)
 			s.Append(" ...");
 		else
-			AppendFormatA(s, " %c%02X", EFF_CHAR[value_cast(stCell.EffNumber[e])], stCell.EffParam[e]);
+			AppendFormatA(s, " %c%02X", EFF_CHAR[value_cast(stCell.Effects[e].fx)], stCell.Effects[e].param);
 
 	return s;
 }
@@ -943,10 +941,10 @@ CStringA CTextExport::ExportRows(LPCWSTR FileName, const CFamiTrackerModule &mod
 					if (stCell != stChanNote { })
 						WriteString(FormattedA(FMT, id++, t, value_cast(c.Chip), c.Subindex, p, r,
 							stCell.Note, stCell.Octave, stCell.Instrument, stCell.Vol,
-							stCell.EffNumber[0], stCell.EffParam[0],
-							stCell.EffNumber[1], stCell.EffParam[1],
-							stCell.EffNumber[2], stCell.EffParam[2],
-							stCell.EffNumber[3], stCell.EffParam[3]));
+							stCell.Effects[0].fx, stCell.Effects[0].param,
+							stCell.Effects[1].fx, stCell.Effects[1].param,
+							stCell.Effects[2].fx, stCell.Effects[2].param,
+							stCell.Effects[3].fx, stCell.Effects[3].param));
 				});
 		});
 	});

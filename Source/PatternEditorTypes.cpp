@@ -227,9 +227,9 @@ void CPatternIterator::Step() // resolves skip effects
 		const stChanNote &Note = Get(index);
 		unsigned fx = song_view_.GetEffectColumnCount(index);
 		for (unsigned c = 0; c < fx; ++c)
-			switch (Note.EffNumber[c]) {
-			case effect_t::JUMP: Bxx = Note.EffParam[c]; break;
-			case effect_t::SKIP: Dxx = Note.EffParam[c]; break;
+			switch (Note.Effects[c].fx) {
+			case effect_t::JUMP: Bxx = Note.Effects[c].param; break;
+			case effect_t::SKIP: Dxx = Note.Effects[c].param; break;
 			}
 	});
 

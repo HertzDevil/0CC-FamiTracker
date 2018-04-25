@@ -88,7 +88,7 @@ const stChanNote &CSongData::GetPatternData(stChannelID Channel, unsigned Patter
 stChanNote CSongData::GetActiveNote(stChannelID Channel, unsigned Frame, unsigned Row) const {		// // //
 	stChanNote Note = GetPatternOnFrame(Channel, Frame).GetNoteOn(Row);
 	for (int i = GetEffectColumnCount(Channel); i < MAX_EFFECT_COLUMNS; ++i)
-		Note.EffNumber[i] = effect_t::NONE;
+		Note.Effects[i] = { };
 	return Note;
 }
 

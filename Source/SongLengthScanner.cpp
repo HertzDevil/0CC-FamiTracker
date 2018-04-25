@@ -54,18 +54,18 @@ public:
 			song_view_.ForeachChannel([&] (std::size_t index) {
 				const auto &Note = song_view_.GetPatternOnFrame(index, f_).GetNoteOn(r_);		// // //
 				for (int l = 0, m = song_view_.GetEffectColumnCount(index); l < m; ++l) {
-					switch (Note.EffNumber[l]) {
+					switch (Note.Effects[l].fx) {
 					case effect_t::JUMP:
-						Bxx = Note.EffParam[l];
+						Bxx = Note.Effects[l].param;
 						break;
 					case effect_t::SKIP:
-						Dxx = Note.EffParam[l];
+						Dxx = Note.Effects[l].param;
 						break;
 					case effect_t::HALT:
 						Cxx = true;
 						break;
 					default:
-						fx(/* index, */ Note.EffNumber[l], Note.EffParam[l]);
+						fx(/* index, */ Note.Effects[l]);
 					}
 				}
 			});
@@ -139,19 +139,19 @@ void CSongLengthScanner::Compute() {
 		Speed = DEFAULT_SPEED;
 	}
 
-	const auto fxhandler = [&] (effect_t fx, uint8_t param) {
-		switch (fx) {
+	const auto fxhandler = [&] (stEffectCommand cmd) {
+		switch (cmd.fx) {
 		case effect_t::SPEED:
-			if (AllowTempo && param >= Split)
-				Tempo = param;
+			if (AllowTempo && cmd.param >= Split)
+				Tempo = cmd.param;
 			else {
 				GrooveIndex = -1;
-				Speed = param;
+				Speed = cmd.param;
 			}
 			break;
 		case effect_t::GROOVE:
-			if (modfile_.HasGroove(param)) {
-				GrooveIndex = param;
+			if (modfile_.HasGroove(cmd.param)) {
+				GrooveIndex = cmd.param;
 				GroovePointer = 0;
 			}
 			break;

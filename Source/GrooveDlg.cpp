@@ -333,10 +333,8 @@ void CGrooveDlg::OnBnClickedButtonGrooveCopyFxx()
 	for (unsigned char i = 0; i < Groove->size(); ++i) {
 		stChanNote row;
 		unsigned char x = Groove->entry(i);
-		if (x != prev || !i) {
-			row.EffNumber[0] = effect_t::SPEED;
-			row.EffParam[0] = x;
-		}
+		if (x != prev || !i)
+			row.Effects[0] = {effect_t::SPEED, x};
 		*Fxx.GetPattern(0, i) = row;
 		prev = x;
 	}

@@ -37,14 +37,14 @@ namespace {
 
 void UpdateEchoTranspose(const stChanNote &Note, int &Value, unsigned int EffColumns) {
 	for (int j = EffColumns - 1; j >= 0; --j) {
-		const int Param = Note.EffParam[j] & 0x0F;
-		switch (Note.EffNumber[j]) {
+		const int Param = Note.Effects[j].param & 0x0F;
+		switch (Note.Effects[j].fx) {
 		case effect_t::SLIDE_UP:
 			Value += Param; return;
 		case effect_t::SLIDE_DOWN:
 			Value -= Param; return;
 		case effect_t::TRANSPOSE: // Sometimes there are not enough ticks for the transpose to take place
-			if (Note.EffParam[j] & 0x80)
+			if (Note.Effects[j].param & 0x80)
 				Value -= Param;
 			else
 				Value += Param;
@@ -268,7 +268,7 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 			chState.HandleNote(Note, EffColumns);
 
 			for (int k = EffColumns - 1; k >= 0; --k) {
-				stEffectCommand cmd = {Note.EffNumber[k], Note.EffParam[k]};
+				const stEffectCommand &cmd = Note.Effects[k];
 				if (!IsEffectCompatible(c, cmd))
 					continue;
 				switch (cmd.fx) {

@@ -240,8 +240,8 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 		m_cListResults.SetItemText(Pos, VOL, conv::to_wide(conv::sv_from_int_hex(Note.Vol)).data());
 
 	for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
-		if (Note.EffNumber[i] != effect_t::NONE) {
-			auto str = EFF_CHAR[value_cast(Note.EffNumber[i])] + conv::from_int_hex(Note.EffParam[i], 2);
+		if (Note.Effects[i].fx != effect_t::NONE) {
+			auto str = EFF_CHAR[value_cast(Note.Effects[i].fx)] + conv::from_int_hex(Note.Effects[i].param, 2);
 			m_cListResults.SetItemText(Pos, EFFECT + i, conv::to_wide(str).data());
 		}
 
@@ -888,10 +888,10 @@ replaceTerm CFindDlg::toReplace(const searchTerm &x) const
 	Term.NoiseChan = x.NoiseChan;
 	for (size_t i = 0; i < EFFECT_COUNT; ++i)
 		if (x.EffNumber[i]) {
-			Term.Note.EffNumber[0] = static_cast<effect_t>(i);
+			Term.Note.Effects[0].fx = static_cast<effect_t>(i);
 			break;
 		}
-	Term.Note.EffParam[0] = x.EffParam->Min;
+	Term.Note.Effects[0].param = x.EffParam->Min;
 	memcpy(Term.Definite, x.Definite, sizeof(bool) * 6);
 
 	return Term;
@@ -946,8 +946,8 @@ bool CFindDlg::CompareFields(const stChanNote &Target, bool Noise, int EffCount)
 	if (EffCount < Limit) Limit = EffCount;
 	if (EffColumn < Limit) Limit = EffColumn;
 	for (int i = EffColumn % MAX_EFFECT_COLUMNS; i <= Limit; ++i) {
-		if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[value_cast(Target.EffNumber[i])])
-		&& (!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.EffParam[i])))
+		if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[value_cast(Target.Effects[i].fx)])
+		&& (!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.Effects[i].param)))
 			EffectMatch = true;
 	}
 	if (!EffectMatch) return Negate;
@@ -1033,22 +1033,22 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 			else {
 				const int c = pSongView->GetEffectColumnCount(m_pFindCursor->m_iChannel);
 				for (int i = 0; i <= c; ++i)
-					if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[value_cast(Target.EffNumber[i])]) &&
-						(!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.EffParam[i])))
+					if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[value_cast(Target.Effects[i].fx)]) &&
+						(!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.Effects[i].param)))
 						MatchedColumns.push_back(i);
 			}
 
 			if (m_replaceTerm.Definite[WC_EFF]) {
-				effect_t fx = GetEffectFromChar(EFF_CHAR[value_cast(m_replaceTerm.Note.EffNumber[0])],
+				effect_t fx = GetEffectFromChar(EFF_CHAR[value_cast(m_replaceTerm.Note.Effects[0].fx)],
 					pSongView->GetChannelOrder().TranslateChannel(m_pFindCursor->m_iChannel).Chip);
 				if (fx != effect_t::NONE)
 					for (const int &i : MatchedColumns)
-						Target.EffNumber[i] = fx;
+						Target.Effects[i].fx = fx;
 			}
 
 			if (m_replaceTerm.Definite[WC_PARAM])
 				for (const int &i : MatchedColumns)
-					Target.EffParam[i] = m_replaceTerm.Note.EffParam[0];
+					Target.Effects[i].param = m_replaceTerm.Note.Effects[0].param;
 		}
 
 		if (pAction)

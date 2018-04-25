@@ -376,29 +376,25 @@ bool CPActionDeleteRow::SaveState(const CMainFrame &MainFrm)
 	case C_VOLUME:			// Volume
 		m_NewNote.Vol = MAX_VOLUME;
 		break;
-	case C_EFF1_NUM:			// Effect 1
+	case C_EFF1_NUM:		// Effect 1
 	case C_EFF1_PARAM1:
 	case C_EFF1_PARAM2:
-		m_NewNote.EffNumber[0] = effect_t::NONE;
-		m_NewNote.EffParam[0] = 0;
+		m_NewNote.Effects[0] = { };
 		break;
 	case C_EFF2_NUM:		// Effect 2
 	case C_EFF2_PARAM1:
 	case C_EFF2_PARAM2:
-		m_NewNote.EffNumber[1] = effect_t::NONE;
-		m_NewNote.EffParam[1] = 0;
+		m_NewNote.Effects[1] = { };
 		break;
 	case C_EFF3_NUM:		// Effect 3
 	case C_EFF3_PARAM1:
 	case C_EFF3_PARAM2:
-		m_NewNote.EffNumber[2] = effect_t::NONE;
-		m_NewNote.EffParam[2] = 0;
+		m_NewNote.Effects[2] = { };
 		break;
 	case C_EFF4_NUM:		// Effect 4
 	case C_EFF4_PARAM1:
 	case C_EFF4_PARAM2:
-		m_NewNote.EffNumber[3] = effect_t::NONE;
-		m_NewNote.EffParam[3] = 0;
+		m_NewNote.Effects[3] = { };
 		break;
 	}
 
@@ -457,17 +453,17 @@ bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 		ScrollFunc(m_NewNote.Vol, MAX_VOLUME);
 		return m_OldNote.Vol < MAX_VOLUME;
 	case C_EFF1_NUM: case C_EFF1_PARAM1: case C_EFF1_PARAM2:
-		ScrollFunc(m_NewNote.EffParam[0], 0x100);
-		return m_OldNote.EffNumber[0] != effect_t::NONE;
+		ScrollFunc(m_NewNote.Effects[0].param, 0x100);
+		return m_OldNote.Effects[0].fx != effect_t::NONE;
 	case C_EFF2_NUM: case C_EFF2_PARAM1: case C_EFF2_PARAM2:
-		ScrollFunc(m_NewNote.EffParam[1], 0x100);
-		return m_OldNote.EffNumber[1] != effect_t::NONE;
+		ScrollFunc(m_NewNote.Effects[1].param, 0x100);
+		return m_OldNote.Effects[1].fx != effect_t::NONE;
 	case C_EFF3_NUM: case C_EFF3_PARAM1: case C_EFF3_PARAM2:
-		ScrollFunc(m_NewNote.EffParam[2], 0x100);
-		return m_OldNote.EffNumber[2] != effect_t::NONE;
+		ScrollFunc(m_NewNote.Effects[2].param, 0x100);
+		return m_OldNote.Effects[2].fx != effect_t::NONE;
 	case C_EFF4_NUM: case C_EFF4_PARAM1: case C_EFF4_PARAM2:
-		ScrollFunc(m_NewNote.EffParam[3], 0x100);
-		return m_OldNote.EffNumber[3] != effect_t::NONE;
+		ScrollFunc(m_NewNote.Effects[3].param, 0x100);
+		return m_OldNote.Effects[3].fx != effect_t::NONE;
 	}
 
 	return false;
@@ -760,18 +756,18 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 				case column_t::Effect1: case column_t::Effect2: case column_t::Effect3: case column_t::Effect4:
 				{
 					unsigned fx = value_cast(k) - value_cast(column_t::Effect1);
-					if (Note.EffNumber[fx] == effect_t::NONE)
+					if (Note.Effects[fx].fx == effect_t::NONE)
 						break;
-					if (bSingular) switch (Note.EffNumber[fx]) {
+					if (bSingular) switch (Note.Effects[fx].fx) {
 					case effect_t::SWEEPUP: case effect_t::SWEEPDOWN: case effect_t::ARPEGGIO: case effect_t::VIBRATO: case effect_t::TREMOLO:
 					case effect_t::SLIDE_UP: case effect_t::SLIDE_DOWN: case effect_t::VOLUME_SLIDE: case effect_t::DELAYED_VOLUME: case effect_t::TRANSPOSE:
-						unsigned char Hi = Note.EffParam[fx] >> 4;
-						unsigned char Lo = Note.EffParam[fx] & 0x0F;
+						unsigned char Hi = Note.Effects[fx].param >> 4;
+						unsigned char Lo = Note.Effects[fx].param & 0x0F;
 						WarpFunc(pPatternEditor->GetColumn() % 3 == 2 ? Hi : Lo, 0x10);
-						Note.EffParam[fx] = (Hi << 4) | Lo;
+						Note.Effects[fx].param = (Hi << 4) | Lo;
 						continue;
 					}
-					WarpFunc(Note.EffParam[fx], 0x100);
+					WarpFunc(Note.Effects[fx].param, 0x100);
 					break;
 				}
 				}
@@ -834,12 +830,12 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 				EndValLo = (float)EndData.Vol;
 				break;
 			case column_t::Effect1: case column_t::Effect2: case column_t::Effect3: case column_t::Effect4:
-				if (StartData.EffNumber[j - 3] == effect_t::NONE || EndData.EffNumber[j - 3] == effect_t::NONE
-					|| StartData.EffNumber[j - 3] != EndData.EffNumber[j - 3])
+				if (StartData.Effects[j - 3].fx == effect_t::NONE || EndData.Effects[j - 3].fx == effect_t::NONE ||
+					StartData.Effects[j - 3].fx != EndData.Effects[j - 3].fx)
 					continue;
-				StartValLo = (float)StartData.EffParam[j - 3];
-				EndValLo = (float)EndData.EffParam[j - 3];
-				Effect = StartData.EffNumber[j - 3];
+				StartValLo = (float)StartData.Effects[j - 3].param;
+				EndValLo = (float)EndData.Effects[j - 3].param;
+				Effect = StartData.Effects[j - 3].fx;
 				switch (Effect) {
 				case effect_t::SWEEPUP: case effect_t::SWEEPDOWN: case effect_t::SLIDE_UP: case effect_t::SLIDE_DOWN:
 				case effect_t::ARPEGGIO: case effect_t::VIBRATO: case effect_t::TREMOLO:
@@ -876,8 +872,8 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 					Note.Vol = (int)StartValLo;
 					break;
 				case column_t::Effect1: case column_t::Effect2: case column_t::Effect3: case column_t::Effect4:
-					Note.EffNumber[j - 3] = Effect;
-					Note.EffParam[j - 3] = (int)StartValLo + ((int)StartValHi << 4);
+					Note.Effects[j - 3].fx = Effect;
+					Note.Effects[j - 3].param = (int)StartValLo + ((int)StartValHi << 4);
 					break;
 				}
 				r.Set(i, Note);

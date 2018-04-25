@@ -290,18 +290,18 @@ void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, std::size_t Po
 	default:
 		Value = MIDI_NOTE(NoteData.Octave, NoteData.Note);
 		for (int i = MAX_EFFECT_COLUMNS - 1; i >= 0; --i) {
-			const int Param = NoteData.EffParam[i] & 0x0F;
-			if (NoteData.EffNumber[i] == effect_t::SLIDE_UP) {
+			const int Param = NoteData.Effects[i].param & 0x0F;
+			if (NoteData.Effects[i].fx == effect_t::SLIDE_UP) {
 				Value += Param;
 				break;
 			}
-			else if (NoteData.EffNumber[i] == effect_t::SLIDE_DOWN) {
+			else if (NoteData.Effects[i].fx == effect_t::SLIDE_DOWN) {
 				Value -= Param;
 				break;
 			}
-			else if (NoteData.EffNumber[i] == effect_t::TRANSPOSE) {
+			else if (NoteData.Effects[i].fx == effect_t::TRANSPOSE) {
 				// Sometimes there are not enough ticks for the transpose to take place
-				if (NoteData.EffParam[i] & 0x80)
+				if (NoteData.Effects[i].param & 0x80)
 					Value -= Param;
 				else
 					Value += Param;
@@ -356,8 +356,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 		m_iEffect = effect_t::NONE;
 
 	// Effects
-	for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
-		stEffectCommand cmd = {NoteData.EffNumber[n], NoteData.EffParam[n]};		// // //
+	for (const auto &cmd : NoteData.Effects) {
 		HandleEffect(cmd);		// // // single method
 
 		// 0CC: remove this eventually like how the asm handles it
@@ -646,18 +645,15 @@ bool CChannelHandler::HandleDelay(stChanNote &NoteData)
 	}
 
 	// Check delay
-	for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i) {
-		if (NoteData.EffNumber[i] == effect_t::DELAY && NoteData.EffParam[i] > 0) {
+	for (const auto &cmd : NoteData.Effects) {
+		if (cmd.fx == effect_t::DELAY && cmd.param > 0) {
 			m_bDelayEnabled = true;
-			m_cDelayCounter = NoteData.EffParam[i];
+			m_cDelayCounter = cmd.param;
 
 			// Only one delay/row is allowed
-			for (int j = 0; j < MAX_EFFECT_COLUMNS; ++j) {
-				if (NoteData.EffNumber[j] == effect_t::DELAY) {		// // //
-					NoteData.EffNumber[j] = effect_t::NONE;
-					NoteData.EffParam[j] = 0;
-				}
-			}
+			for (auto &cmd2 : NoteData.Effects)
+				if (cmd2.fx == effect_t::DELAY)		// // //
+					cmd2 = { };
 
 			m_cnDelayed = NoteData;		// // //
 			return true;
@@ -1014,7 +1010,7 @@ bool CChannelHandler::IsReleasing() const
 bool CChannelHandlerInverted::HandleEffect(stEffectCommand cmd)
 {
 	if (!m_bLinearPitch) switch (cmd.fx) {		// // //
-	case effect_t::PORTA_UP: cmd.fx = effect_t::PORTA_DOWN; break;
+	case effect_t::PORTA_UP:   cmd.fx = effect_t::PORTA_DOWN; break;
 	case effect_t::PORTA_DOWN: cmd.fx = effect_t::PORTA_UP; break;
 	}
 	return CChannelHandler::HandleEffect(cmd);
