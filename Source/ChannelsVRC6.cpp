@@ -37,13 +37,13 @@ CChannelHandlerVRC6::CChannelHandlerVRC6(stChannelID ch, int MaxPeriod, int MaxV
 {
 }
 
-bool CChannelHandlerVRC6::HandleEffect(effect_t EffNum, unsigned char EffParam)
+bool CChannelHandlerVRC6::HandleEffect(stEffectCommand cmd)
 {
-	switch (EffNum) {
+	switch (cmd.fx) {
 	case effect_t::DUTY_CYCLE:
-		m_iDefaultDuty = m_iDutyPeriod = EffParam;
+		m_iDefaultDuty = m_iDutyPeriod = cmd.param;
 		break;
-	default: return CChannelHandler::HandleEffect(EffNum, EffParam);
+	default: return CChannelHandler::HandleEffect(cmd);
 	}
 
 	return true;

@@ -58,26 +58,26 @@ void CChannelHandler2A03::HandleNoteData(stChanNote &NoteData)		// // //
 	}
 }
 
-bool CChannelHandler2A03::HandleEffect(effect_t EffNum, unsigned char EffParam)
+bool CChannelHandler2A03::HandleEffect(stEffectCommand cmd)
 {
-	switch (EffNum) {
+	switch (cmd.fx) {
 	case effect_t::VOLUME:
-		if (EffParam < 0x20) {		// // //
-			m_iLengthCounter = EffParam;
+		if (cmd.param < 0x20) {		// // //
+			m_iLengthCounter = cmd.param;
 			m_bEnvelopeLoop = false;
 			m_bResetEnvelope = true;
 		}
-		else if (EffParam >= 0xE0 && EffParam < 0xE4) {
+		else if (cmd.param >= 0xE0 && cmd.param < 0xE4) {
 			if (!m_bEnvelopeLoop || !m_bHardwareEnvelope)
 				m_bResetEnvelope = true;
-			m_bHardwareEnvelope = ((EffParam & 0x01) == 0x01);
-			m_bEnvelopeLoop = ((EffParam & 0x02) != 0x02);
+			m_bHardwareEnvelope = ((cmd.param & 0x01) == 0x01);
+			m_bEnvelopeLoop = ((cmd.param & 0x02) != 0x02);
 		}
 		break;
 	case effect_t::DUTY_CYCLE:
-		m_iDefaultDuty = m_iDutyPeriod = EffParam;
+		m_iDefaultDuty = m_iDutyPeriod = cmd.param;
 		break;
-	default: return CChannelHandler::HandleEffect(EffNum, EffParam);
+	default: return CChannelHandler::HandleEffect(cmd);
 	}
 
 	return true;
@@ -213,20 +213,20 @@ void C2A03Square::HandleNoteData(stChanNote &NoteData)		// // //
 	CChannelHandler2A03::HandleNoteData(NoteData);
 }
 
-bool C2A03Square::HandleEffect(effect_t EffNum, unsigned char EffParam)
+bool C2A03Square::HandleEffect(stEffectCommand cmd)
 {
-	switch (EffNum) {
+	switch (cmd.fx) {
 	case effect_t::SWEEPUP:
-		m_iSweep = 0x88 | (EffParam & 0x77);
+		m_iSweep = 0x88 | (cmd.param & 0x77);
 		m_iLastPeriod = 0xFFFF;
 		m_bSweeping = true;
 		break;
 	case effect_t::SWEEPDOWN:
-		m_iSweep = 0x80 | (EffParam & 0x77);
+		m_iSweep = 0x80 | (cmd.param & 0x77);
 		m_iLastPeriod = 0xFFFF;
 		m_bSweeping = true;
 		break;
-	default: return CChannelHandler2A03::HandleEffect(EffNum, EffParam);
+	default: return CChannelHandler2A03::HandleEffect(cmd);
 	}
 
 	return true;
@@ -258,9 +258,9 @@ std::string C2A03Square::GetCustomEffectString() const		// // //
 	std::string str;
 
 	if (!m_bEnvelopeLoop)
-		str += MakeCommandString(effect_t::VOLUME, m_iLengthCounter);
+		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(m_iLengthCounter)});
 	if (!m_bEnvelopeLoop || m_bHardwareEnvelope)
-		str += MakeCommandString(effect_t::VOLUME, 0xE0 + !m_bEnvelopeLoop * 2 + m_bHardwareEnvelope);
+		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(0xE0 + !m_bEnvelopeLoop * 2 + m_bHardwareEnvelope)});
 
 	return str;
 }
@@ -305,34 +305,34 @@ int CTriangleChan::GetChannelVolume() const
 	return m_iVolume ? VOL_COLUMN_MAX : 0;
 }
 
-bool CTriangleChan::HandleEffect(effect_t EffNum, unsigned char EffParam)
+bool CTriangleChan::HandleEffect(stEffectCommand cmd)
 {
-	switch (EffNum) {
+	switch (cmd.fx) {
 	case effect_t::VOLUME:
-		if (EffParam < 0x20) {		// // //
-			m_iLengthCounter = EffParam;
+		if (cmd.param < 0x20) {		// // //
+			m_iLengthCounter = cmd.param;
 			m_bEnvelopeLoop = false;
 			m_bResetEnvelope = true;
 			if (m_iLinearCounter == -1)	m_iLinearCounter = 0x7F;
 		}
-		else if (EffParam >= 0xE0 && EffParam < 0xE4) {
+		else if (cmd.param >= 0xE0 && cmd.param < 0xE4) {
 			if (!m_bEnvelopeLoop)
 				m_bResetEnvelope = true;
-			m_bEnvelopeLoop = ((EffParam & 0x01) != 0x01);
+			m_bEnvelopeLoop = ((cmd.param & 0x01) != 0x01);
 		}
 		break;
 	case effect_t::NOTE_CUT:
-		if (EffParam >= 0x80) {
-			m_iLinearCounter = EffParam - 0x80;
+		if (cmd.param >= 0x80) {
+			m_iLinearCounter = cmd.param - 0x80;
 			m_bEnvelopeLoop = false;
 			m_bResetEnvelope = true;
 		}
 		else {
 			m_bEnvelopeLoop = true;
-			return CChannelHandler2A03::HandleEffect(EffNum, EffParam); // true
+			return CChannelHandler2A03::HandleEffect(cmd); // true
 		}
 		break;
-	default: return CChannelHandler2A03::HandleEffect(EffNum, EffParam);
+	default: return CChannelHandler2A03::HandleEffect(cmd);
 	}
 
 	return true;
@@ -350,11 +350,11 @@ std::string CTriangleChan::GetCustomEffectString() const		// // //
 	std::string str;
 
 	if (m_iLinearCounter > -1)
-		str += MakeCommandString(effect_t::NOTE_CUT, m_iLinearCounter | 0x80);
+		str += MakeCommandString({effect_t::NOTE_CUT, static_cast<uint8_t>(m_iLinearCounter | 0x80)});
 	if (!m_bEnvelopeLoop)
-		str += MakeCommandString(effect_t::VOLUME, m_iLengthCounter);
+		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(m_iLengthCounter)});
 	if (!m_bEnvelopeLoop)
-		str += MakeCommandString(effect_t::VOLUME, 0xE0 + !m_bEnvelopeLoop);
+		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(0xE0 + !m_bEnvelopeLoop)});
 
 	return str;
 }
@@ -470,9 +470,9 @@ std::string CNoiseChan::GetCustomEffectString() const		// // //
 	std::string str;
 
 	if (!m_bEnvelopeLoop)
-		str += MakeCommandString(effect_t::VOLUME, m_iLengthCounter);
+		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(m_iLengthCounter)});
 	if (!m_bEnvelopeLoop || m_bHardwareEnvelope)
-		str += MakeCommandString(effect_t::VOLUME, 0xE0 + !m_bEnvelopeLoop * 2 + m_bHardwareEnvelope);
+		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(0xE0 + !m_bEnvelopeLoop * 2 + m_bHardwareEnvelope)});
 
 	return str;
 }
@@ -525,21 +525,21 @@ void CDPCMChan::HandleNoteData(stChanNote &NoteData)		// // //
 	CChannelHandler::HandleNoteData(NoteData);
 }
 
-bool CDPCMChan::HandleEffect(effect_t EffNum, unsigned char EffParam)
+bool CDPCMChan::HandleEffect(stEffectCommand cmd)
 {
-	switch (EffNum) {
+	switch (cmd.fx) {
 	case effect_t::DAC:
-		m_cDAC = EffParam & 0x7F;
+		m_cDAC = cmd.param & 0x7F;
 		break;
 	case effect_t::SAMPLE_OFFSET:
-		m_iOffset = EffParam & 0x3F;		// // //
+		m_iOffset = cmd.param & 0x3F;		// // //
 		break;
 	case effect_t::DPCM_PITCH:
-		m_iCustomPitch = EffParam & 0x0F;		// // //
+		m_iCustomPitch = cmd.param & 0x0F;		// // //
 		break;
 	case effect_t::RETRIGGER:
-//		if (NoteData->EffParam[i] > 0) {
-			m_iRetrigger = EffParam + 1;
+//		if (NoteData->cmd.param[i] > 0) {
+			m_iRetrigger = cmd.param + 1;
 			if (m_iRetriggerCntr == 0)
 				m_iRetriggerCntr = m_iRetrigger;
 //		}
@@ -547,7 +547,7 @@ bool CDPCMChan::HandleEffect(effect_t EffNum, unsigned char EffParam)
 		break;
 	case effect_t::NOTE_CUT:
 	case effect_t::NOTE_RELEASE:
-		return CChannelHandler::HandleEffect(EffNum, EffParam);
+		return CChannelHandler::HandleEffect(cmd);
 	default: return false; // unless WAVE_CHAN analog for CChannelHandler exists
 	}
 
@@ -702,7 +702,7 @@ std::string CDPCMChan::GetCustomEffectString() const		// // //
 	std::string str;
 
 	if (m_iOffset)
-		str += MakeCommandString(effect_t::SAMPLE_OFFSET, m_iOffset);
+		str += MakeCommandString({effect_t::SAMPLE_OFFSET, m_iOffset});
 
 	return str;
 }

@@ -59,29 +59,29 @@ CChannelHandlerS5B::CChannelHandlerS5B(stChannelID ch, CChipHandlerS5B &parent) 
 	m_iDefaultDuty = value_cast(s5b_mode_t::Square);		// // //
 }
 
-bool CChannelHandlerS5B::HandleEffect(effect_t EffNum, unsigned char EffParam)
+bool CChannelHandlerS5B::HandleEffect(stEffectCommand cmd)
 {
-	switch (EffNum) {
+	switch (cmd.fx) {
 	case effect_t::SUNSOFT_NOISE: // W
-		chip_handler_.SetDefaultNoisePeriod(EffParam & 0x1Fu);		// // // 050B
+		chip_handler_.SetDefaultNoisePeriod(cmd.param & 0x1Fu);		// // // 050B
 		break;
 	case effect_t::SUNSOFT_ENV_HI: // I
-		chip_handler_.SetEnvelopePeriod((EffParam << 8) | (chip_handler_.GetEnvelopePeriod() & 0x00FFu));
+		chip_handler_.SetEnvelopePeriod((cmd.param << 8) | (chip_handler_.GetEnvelopePeriod() & 0x00FFu));
 		break;
 	case effect_t::SUNSOFT_ENV_LO: // J
-		chip_handler_.SetEnvelopePeriod(EffParam | (chip_handler_.GetEnvelopePeriod() & 0xFF00u));
+		chip_handler_.SetEnvelopePeriod(cmd.param | (chip_handler_.GetEnvelopePeriod() & 0xFF00u));
 		break;
 	case effect_t::SUNSOFT_ENV_TYPE: // H
-		chip_handler_.SetEnvelopeShape(EffParam & 0x0Fu);
+		chip_handler_.SetEnvelopeShape(cmd.param & 0x0Fu);
 		m_bUpdate = true;
-		m_bEnvelopeEnabled = EffParam != 0;
-		m_iAutoEnvelopeShift = EffParam >> 4;
+		m_bEnvelopeEnabled = cmd.param != 0;
+		m_iAutoEnvelopeShift = cmd.param >> 4;
 		break;
 	case effect_t::DUTY_CYCLE:
-		m_iDefaultDuty = m_iDutyPeriod = (EffParam << 6) | ((EffParam & 0x04) << 3);		// // // 050B
-//		m_iDefaultDuty = m_iDutyPeriod = EffParam;		// // //
+		m_iDefaultDuty = m_iDutyPeriod = (cmd.param << 6) | ((cmd.param & 0x04) << 3);		// // // 050B
+//		m_iDefaultDuty = m_iDutyPeriod = cmd.param;		// // //
 		break;
-	default: return CChannelHandler::HandleEffect(EffNum, EffParam);
+	default: return CChannelHandler::HandleEffect(cmd);
 	}
 
 	return true;

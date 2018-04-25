@@ -36,7 +36,7 @@ public:
 
 protected:
 	void	HandleNoteData(stChanNote &pNoteData) override;		// // //
-	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //
+	bool	HandleEffect(stEffectCommand cmd) override;		// // //
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;
 	void	HandleRelease() override;
@@ -60,7 +60,7 @@ protected:
 	void	ClearRegisters() override;
 
 	void	HandleNoteData(stChanNote &pNoteData) override;		// // //
-	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //
+	bool	HandleEffect(stEffectCommand cmd) override;		// // //
 	void	HandleEmptyNote() override;
 	void	HandleNote(note_t Note, int Octave) override;
 	std::string	GetCustomEffectString() const override;		// // //
@@ -79,7 +79,7 @@ public:
 	void	ResetChannel() override;		// // //
 	int		GetChannelVolume() const override;		// // //
 protected:
-	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //
+	bool	HandleEffect(stEffectCommand cmd) override;		// // //
 	void	ClearRegisters() override;
 	std::string	GetCustomEffectString() const override;		// // //
 private:
@@ -119,7 +119,7 @@ public:
 	void	PlaySample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSamp, int Pitch) override;		// // //
 protected:
 	void	HandleNoteData(stChanNote &pNoteData) override;		// // //
-	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //
+	bool	HandleEffect(stEffectCommand cmd) override;		// // //
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;
 	void	HandleRelease() override;

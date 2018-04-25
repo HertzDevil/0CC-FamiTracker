@@ -1281,7 +1281,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	const wchar_t *NOTES_B = m_bDisplayFlat ? NOTES_B_FLAT : NOTES_B_SHARP;
 
 	effect_t EffNumber = Column >= 4 ? NoteData.EffNumber[(Column - 4) / 3] : effect_t::NONE;		// // //
-	int EffParam  = Column >= 4 ? NoteData.EffParam[(Column - 4) / 3] : 0;
+	uint8_t EffParam  = Column >= 4 ? NoteData.EffParam[(Column - 4) / 3] : static_cast<uint8_t>(0u);
 
 	// Detect invalid note data
 	if (NoteData.Note > note_t::ECHO ||		// // //
@@ -1314,7 +1314,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	}
 
 	// // // effects too
-	if (EffNumber != effect_t::NONE) if (!IsEffectCompatible(ch, EffNumber, EffParam))
+	if (EffNumber != effect_t::NONE && !IsEffectCompatible(ch, {EffNumber, EffParam}))
 		DimEff = EffColor = MakeRGB(255, 0, 0);		// // //
 
 	int PosY = m_iRowHeight - m_iRowHeight / 8;		// // //

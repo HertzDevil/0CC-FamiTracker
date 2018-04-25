@@ -205,14 +205,14 @@ void CChannelHandler::ApplyChannelState(const stChannelState &State)
 	if (m_iInstrument != MAX_INSTRUMENTS)
 		HandleInstrument(true, true);
 	if (State.Effect_LengthCounter >= 0)
-		HandleEffect(effect_t::VOLUME, State.Effect_LengthCounter);
+		HandleEffect({effect_t::VOLUME, static_cast<uint8_t>(State.Effect_LengthCounter)});
 	for (unsigned int i = 0; i < EFFECT_COUNT; ++i)
 		if (State.Effect[i] >= 0)
-			HandleEffect(static_cast<effect_t>(i), State.Effect[i]);
+			HandleEffect({static_cast<effect_t>(i), static_cast<uint8_t>(State.Effect[i])});
 	if (State.Effect[value_cast(effect_t::FDS_MOD_SPEED_HI)] >= 0x10)
-		HandleEffect(effect_t::FDS_MOD_SPEED_HI, State.Effect[value_cast(effect_t::FDS_MOD_SPEED_HI)]);
+		HandleEffect({effect_t::FDS_MOD_SPEED_HI, static_cast<uint8_t>(State.Effect[value_cast(effect_t::FDS_MOD_SPEED_HI)])});
 	if (State.Effect_AutoFMMult >= 0)
-		HandleEffect(effect_t::FDS_MOD_DEPTH, State.Effect_AutoFMMult);
+		HandleEffect({effect_t::FDS_MOD_DEPTH, static_cast<uint8_t>(State.Effect_AutoFMMult)});
 }
 
 std::string CChannelHandler::GetEffectString() const		// // //
@@ -220,27 +220,27 @@ std::string CChannelHandler::GetEffectString() const		// // //
 	std::string str = GetSlideEffectString();
 
 	if (m_iVibratoSpeed)
-		str += MakeCommandString(effect_t::VIBRATO, (m_iVibratoSpeed << 4) | (m_iVibratoDepth >> 4));
+		str += MakeCommandString({effect_t::VIBRATO, static_cast<uint8_t>((m_iVibratoSpeed << 4) | (m_iVibratoDepth >> 4))});
 	if (m_iTremoloSpeed)
-		str += MakeCommandString(effect_t::TREMOLO, (m_iTremoloSpeed << 4) | (m_iTremoloDepth >> 4));
+		str += MakeCommandString({effect_t::TREMOLO, static_cast<uint8_t>((m_iTremoloSpeed << 4) | (m_iTremoloDepth >> 4))});
 	if (m_iVolSlide)
-		str += MakeCommandString(effect_t::VOLUME_SLIDE, m_iVolSlide);
+		str += MakeCommandString({effect_t::VOLUME_SLIDE, m_iVolSlide});
 	if (m_iFinePitch != 0x80)
-		str += MakeCommandString(effect_t::PITCH, m_iFinePitch);
+		str += MakeCommandString({effect_t::PITCH, static_cast<uint8_t>(m_iFinePitch)});
 	if ((m_iDefaultDuty && m_iChannelID.Chip != sound_chip_t::S5B) || (m_iDefaultDuty != 0x40 && m_iChannelID.Chip == sound_chip_t::S5B))
-		str += MakeCommandString(effect_t::DUTY_CYCLE, m_iDefaultDuty);
+		str += MakeCommandString({effect_t::DUTY_CYCLE, m_iDefaultDuty});
 
 	// run-time effects
 	if (m_bDelayEnabled)
-		str += MakeCommandString(effect_t::DELAY, m_cDelayCounter + 1);
+		str += MakeCommandString({effect_t::DELAY, m_cDelayCounter + 1u});
 	if (m_iNoteRelease)
-		str += MakeCommandString(effect_t::NOTE_RELEASE, m_iNoteRelease);
+		str += MakeCommandString({effect_t::NOTE_RELEASE, m_iNoteRelease});
 	if (m_iNoteVolume > 0)
-		str += MakeCommandString(effect_t::DELAYED_VOLUME, (m_iNoteVolume << 4) | (m_iNewVolume >> VOL_COLUMN_SHIFT));
+		str += MakeCommandString({effect_t::DELAYED_VOLUME, static_cast<uint8_t>((m_iNoteVolume << 4) | (m_iNewVolume >> VOL_COLUMN_SHIFT))});
 	if (m_iNoteCut)
-		str += MakeCommandString(effect_t::NOTE_CUT, m_iNoteCut);
+		str += MakeCommandString({effect_t::NOTE_CUT, m_iNoteCut});
 	if (m_iTranspose)
-		str += MakeCommandString(effect_t::TRANSPOSE, ((m_iTranspose + (m_bTransposeDown ? 8 : 0)) << 4) | m_iTransposeTarget);
+		str += MakeCommandString({effect_t::TRANSPOSE, static_cast<uint8_t>(((m_iTranspose + (m_bTransposeDown ? 8 : 0)) << 4) | m_iTransposeTarget)});
 
 	str += GetCustomEffectString();
 	return str.empty() ? std::string(" None") : str;
@@ -251,11 +251,11 @@ std::string CChannelHandler::GetSlideEffectString() const		// // //
 	switch (m_iEffect) {
 	case effect_t::ARPEGGIO:
 		if (m_iEffectParam)
-			return MakeCommandString(m_iEffect, m_iEffectParam);
+			return MakeCommandString({m_iEffect, m_iEffectParam});
 		break;
 	case effect_t::PORTA_UP: case effect_t::PORTA_DOWN: case effect_t::PORTAMENTO:
 		if (m_iPortaSpeed)
-			return MakeCommandString(m_iEffect, m_iPortaSpeed);
+			return MakeCommandString({m_iEffect, static_cast<uint8_t>(m_iPortaSpeed)});
 		break;
 	}
 
@@ -357,12 +357,11 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 
 	// Effects
 	for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
-		effect_t      EffNum   = NoteData.EffNumber[n];
-		unsigned char EffParam = NoteData.EffParam[n];
-		HandleEffect(EffNum, EffParam);		// // // single method
+		stEffectCommand cmd = {NoteData.EffNumber[n], NoteData.EffParam[n]};		// // //
+		HandleEffect(cmd);		// // // single method
 
 		// 0CC: remove this eventually like how the asm handles it
-		if (EffNum == effect_t::VOLUME_SLIDE && !EffParam && Trigger && m_iNoteVolume == 0) {		// // //
+		if (cmd.fx == effect_t::VOLUME_SLIDE && !cmd.param && Trigger && m_iNoteVolume == 0) {		// // //
 			m_iVolume = m_iDefaultVolume;
 			m_iNoteVolume = -1;
 		}
@@ -553,79 +552,79 @@ void CChannelHandler::SetupSlide()		// // //
 	}
 }
 
-bool CChannelHandler::HandleEffect(effect_t EffCmd, unsigned char EffParam)
+bool CChannelHandler::HandleEffect(stEffectCommand cmd)
 {
 	// Handle common effects for all channels
 
-	switch (EffCmd) {
+	switch (cmd.fx) {
 	case effect_t::PORTAMENTO:
-		m_iEffectParam = EffParam;		// // //
+		m_iEffectParam = cmd.param;		// // //
 		m_iEffect = effect_t::PORTAMENTO;
 		SetupSlide();
-		if (!EffParam)
+		if (!cmd.param)
 			m_iPortaTo = 0;
 		break;
 	case effect_t::VIBRATO:
-		m_iVibratoDepth = (EffParam & 0x0F) << 4;
-		m_iVibratoSpeed = EffParam >> 4;
-		if (!EffParam)
+		m_iVibratoDepth = (cmd.param & 0x0F) << 4;
+		m_iVibratoSpeed = cmd.param >> 4;
+		if (!cmd.param)
 			m_iVibratoPhase = m_iVibratoMode == vibrato_t::Up ? 48 : 0;
 		break;
 	case effect_t::TREMOLO:
-		m_iTremoloDepth = (EffParam & 0x0F) << 4;
-		m_iTremoloSpeed = EffParam >> 4;
-		if (!EffParam)
+		m_iTremoloDepth = (cmd.param & 0x0F) << 4;
+		m_iTremoloSpeed = cmd.param >> 4;
+		if (!cmd.param)
 			m_iTremoloPhase = 0;
 		break;
 	case effect_t::ARPEGGIO:
-		m_iEffectParam = EffParam;		// // //
+		m_iEffectParam = cmd.param;		// // //
 		m_iEffect = effect_t::ARPEGGIO;
 		break;
 	case effect_t::PITCH:
-		m_iFinePitch = EffParam;
+		m_iFinePitch = cmd.param;
 		break;
 	case effect_t::PORTA_DOWN:
-		m_iPortaSpeed = EffParam;
-		m_iEffectParam = EffParam;		// // //
+		m_iPortaSpeed = cmd.param;
+		m_iEffectParam = cmd.param;		// // //
 		m_iEffect = effect_t::PORTA_DOWN;
 		break;
 	case effect_t::PORTA_UP:
-		m_iPortaSpeed = EffParam;
-		m_iEffectParam = EffParam;		// // //
+		m_iPortaSpeed = cmd.param;
+		m_iEffectParam = cmd.param;		// // //
 		m_iEffect = effect_t::PORTA_UP;
 		break;
 	case effect_t::SLIDE_UP:		// // //
-		m_iEffectParam = EffParam;
+		m_iEffectParam = cmd.param;
 		m_iEffect = effect_t::SLIDE_UP;
 		SetupSlide();
 		break;
 	case effect_t::SLIDE_DOWN:		// // //
-		m_iEffectParam = EffParam;
+		m_iEffectParam = cmd.param;
 		m_iEffect = effect_t::SLIDE_DOWN;
 		SetupSlide();
 		break;
 	case effect_t::VOLUME_SLIDE:
-		m_iVolSlide = EffParam;
-		if (!EffParam)		// // //
+		m_iVolSlide = cmd.param;
+		if (!cmd.param)		// // //
 			m_iDefaultVolume = m_iVolume;
 		break;
 	case effect_t::NOTE_CUT:
-		if (EffParam >= 0x80) return false;		// // //
-		m_iNoteCut = EffParam + 1;
+		if (cmd.param >= 0x80) return false;		// // //
+		m_iNoteCut = cmd.param + 1;
 		break;
 	case effect_t::NOTE_RELEASE:		// // //
-		if (EffParam >= 0x80) return false;
-		m_iNoteRelease = EffParam + 1;
+		if (cmd.param >= 0x80) return false;
+		m_iNoteRelease = cmd.param + 1;
 		break;
 	case effect_t::DELAYED_VOLUME:		// // //
-		if (!(EffParam >> 4) || !(EffParam & 0xF)) break;
-		m_iNoteVolume = (EffParam >> 4) + 1;
-		m_iNewVolume = (EffParam & 0x0F) << VOL_COLUMN_SHIFT;
+		if (!(cmd.param >> 4) || !(cmd.param & 0xF)) break;
+		m_iNoteVolume = (cmd.param >> 4) + 1;
+		m_iNewVolume = (cmd.param & 0x0F) << VOL_COLUMN_SHIFT;
 		break;
 	case effect_t::TRANSPOSE:		// // //
-		m_iTranspose = ((EffParam & 0x70) >> 4) + 1;
-		m_iTransposeTarget = EffParam & 0x0F;
-		m_bTransposeDown = (EffParam & 0x80) != 0;
+		m_iTranspose = ((cmd.param & 0x70) >> 4) + 1;
+		m_iTransposeTarget = cmd.param & 0x0F;
+		m_bTransposeDown = (cmd.param & 0x80) != 0;
 		break;
 //	case effect_t::TARGET_VOLUME_SLIDE:
 		// TODO implement
@@ -1012,13 +1011,13 @@ bool CChannelHandler::IsReleasing() const
  *
  */
 
-bool CChannelHandlerInverted::HandleEffect(effect_t EffNum, unsigned char EffParam)
+bool CChannelHandlerInverted::HandleEffect(stEffectCommand cmd)
 {
-	if (!m_bLinearPitch) switch (EffNum) {		// // //
-	case effect_t::PORTA_UP: EffNum = effect_t::PORTA_DOWN; break;
-	case effect_t::PORTA_DOWN: EffNum = effect_t::PORTA_UP; break;
+	if (!m_bLinearPitch) switch (cmd.fx) {		// // //
+	case effect_t::PORTA_UP: cmd.fx = effect_t::PORTA_DOWN; break;
+	case effect_t::PORTA_DOWN: cmd.fx = effect_t::PORTA_UP; break;
 	}
-	return CChannelHandler::HandleEffect(EffNum, EffParam);
+	return CChannelHandler::HandleEffect(cmd);
 }
 
 int CChannelHandlerInverted::CalculatePeriod() const
@@ -1039,9 +1038,9 @@ std::string CChannelHandlerInverted::GetSlideEffectString() const		// // //
 {
 	switch (m_iEffect) {
 	case effect_t::PORTA_UP:
-		return MakeCommandString(effect_t::PORTA_DOWN, m_iPortaSpeed);
+		return MakeCommandString({effect_t::PORTA_DOWN, static_cast<uint8_t>(m_iPortaSpeed)});
 	case effect_t::PORTA_DOWN:
-		return MakeCommandString(effect_t::PORTA_UP, m_iPortaSpeed);
+		return MakeCommandString({effect_t::PORTA_UP, static_cast<uint8_t>(m_iPortaSpeed)});
 	}
 	return CChannelHandler::GetSlideEffectString();
 }

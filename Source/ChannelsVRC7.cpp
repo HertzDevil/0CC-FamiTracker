@@ -64,19 +64,19 @@ void CChannelHandlerVRC7::HandleNoteData(stChanNote &NoteData)		// // //
 		m_iCommand = CMD_NOTE_ON;
 }
 
-bool CChannelHandlerVRC7::HandleEffect(effect_t EffNum, unsigned char EffParam)
+bool CChannelHandlerVRC7::HandleEffect(stEffectCommand cmd)
 {
-	switch (EffNum) {
+	switch (cmd.fx) {
 	case effect_t::DUTY_CYCLE:
-		m_iPatch = EffParam;		// // // 050B
+		m_iPatch = cmd.param;		// // // 050B
 		break;
 	case effect_t::VRC7_PORT:		// // // 050B
-		m_iCustomPort = EffParam & 0x07;
+		m_iCustomPort = cmd.param & 0x07;
 		break;
 	case effect_t::VRC7_WRITE:		// // // 050B
-		chip_handler_.QueuePatchReg(m_iCustomPort, EffParam);		// // //
+		chip_handler_.QueuePatchReg(m_iCustomPort, cmd.param);		// // //
 		break;
-	default: return CChannelHandlerInverted::HandleEffect(EffNum, EffParam);
+	default: return CChannelHandlerInverted::HandleEffect(cmd);
 	}
 
 	return true;

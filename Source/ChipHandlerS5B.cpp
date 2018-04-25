@@ -23,6 +23,7 @@
 #include "ChipHandlerS5B.h"
 #include "APU/APUInterface.h"
 #include "SongState.h"
+#include "PatternNote.h" // stEffectCommand
 
 void CChipHandlerS5B::SetChannelOutput(unsigned Subindex, int Square, int Noise) {
 	switch (Subindex) {
@@ -73,14 +74,14 @@ void CChipHandlerS5B::TriggerEnvelope() {
 std::string CChipHandlerS5B::GetCustomEffectString() const {
 	std::string str;
 
-	if (auto lo = m_iEnvFreq & 0xFFu)
-		str += MakeCommandString(effect_t::SUNSOFT_ENV_LO, lo);
-	if (auto hi = m_iEnvFreq >> 8)
-		str += MakeCommandString(effect_t::SUNSOFT_ENV_HI, hi);
+	if (auto lo = static_cast<uint8_t>(m_iEnvFreq & 0xFFu))
+		str += MakeCommandString({effect_t::SUNSOFT_ENV_LO, lo});
+	if (auto hi = static_cast<uint8_t>(m_iEnvFreq >> 8))
+		str += MakeCommandString({effect_t::SUNSOFT_ENV_HI, hi});
 	if (m_iEnvType)
-		str += MakeCommandString(effect_t::SUNSOFT_ENV_TYPE, m_iEnvType);
+		str += MakeCommandString({effect_t::SUNSOFT_ENV_TYPE, static_cast<uint8_t>(m_iEnvType)});
 	if (m_iDefaultNoise)
-		str += MakeCommandString(effect_t::SUNSOFT_NOISE, m_iDefaultNoise);
+		str += MakeCommandString({effect_t::SUNSOFT_NOISE, static_cast<uint8_t>(m_iDefaultNoise)});
 
 	return str;
 }

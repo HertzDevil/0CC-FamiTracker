@@ -57,8 +57,14 @@ void UpdateEchoTranspose(const stChanNote &Note, int &Value, unsigned int EffCol
 
 
 
-std::string MakeCommandString(effect_t Effect, unsigned char Param) {		// // //
-	return {' ', EFF_CHAR[value_cast(Effect)], conv::to_digit<char>(Param >> 4), conv::to_digit<char>(Param & 0x0Fu), '\0'};
+std::string MakeCommandString(stEffectCommand cmd) {		// // //
+	return {
+		' ',
+		EFF_CHAR[value_cast(cmd.fx)],
+		conv::to_digit<char>(cmd.param >> 4),
+		conv::to_digit<char>(cmd.param & 0x0Fu),
+		'\0',
+	};
 }
 
 
@@ -90,55 +96,55 @@ std::string stChannelState::GetStateString() const {
 		if (p < 0) continue;
 		if (p == 0 && x != effect_t::PITCH) continue;
 		if (p == 0x80 && x == effect_t::PITCH) continue;
-		effStr += MakeCommandString(x, p);
+		effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 	}
 
 	if (IsAPUPulse(ChannelID) || IsAPUNoise(ChannelID) || ChannelID.Chip == sound_chip_t::MMC5)
 		for (const auto &x : {effect_t::VOLUME}) {
 			int p = Effect[value_cast(x)];
 			if (p < 0) continue;
-			effStr += MakeCommandString(x, p);
+			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
 	else if (IsAPUTriangle(ChannelID))
 		for (const auto &x : {effect_t::VOLUME, effect_t::NOTE_CUT}) {
 			int p = Effect[value_cast(x)];
 			if (p < 0) continue;
-			effStr += MakeCommandString(x, p);
+			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
 	else if (IsDPCM(ChannelID))
 		for (const auto &x : {effect_t::SAMPLE_OFFSET, /*effect_t::DPCM_PITCH*/}) {
 			int p = Effect[value_cast(x)];
 			if (p <= 0) continue;
-			effStr += MakeCommandString(x, p);
+			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
 	else if (ChannelID.Chip == sound_chip_t::VRC7)
 		for (const auto &x : VRC7_EFFECTS) {
 			int p = Effect[value_cast(x)];
 			if (p < 0) continue;
-			effStr += MakeCommandString(x, p);
+			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
 	else if (ChannelID.Chip == sound_chip_t::FDS)
 		for (const auto &x : FDS_EFFECTS) {
 			int p = Effect[value_cast(x)];
 			if (p < 0 || (x == effect_t::FDS_MOD_BIAS && p == 0x80)) continue;
-			effStr += MakeCommandString(x, p);
+			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
 	else if (ChannelID.Chip == sound_chip_t::S5B)
 		for (const auto &x : S5B_EFFECTS) {
 			int p = Effect[value_cast(x)];
 			if (p < 0) continue;
-			effStr += MakeCommandString(x, p);
+			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
 	else if (ChannelID.Chip == sound_chip_t::N163)
 		for (const auto &x : N163_EFFECTS) {
 			int p = Effect[value_cast(x)];
 			if (p < 0 || (x == effect_t::N163_WAVE_BUFFER && p == 0x7F)) continue;
-			effStr += MakeCommandString(x, p);
+			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
 	if (Effect_LengthCounter >= 0)
-		effStr += MakeCommandString(effect_t::VOLUME, Effect_LengthCounter);
+		effStr += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(Effect_LengthCounter)});
 	if (Effect_AutoFMMult >= 0)
-		effStr += MakeCommandString(effect_t::FDS_MOD_DEPTH, Effect_AutoFMMult);
+		effStr += MakeCommandString({effect_t::FDS_MOD_DEPTH, static_cast<uint8_t>(Effect_AutoFMMult)});
 
 	if (!effStr.size()) effStr = " None";
 	log += effStr;
@@ -189,17 +195,17 @@ void stChannelState::HandleNote(const stChanNote &Note, unsigned EffColumns) {
 			Volume = Note.Vol;
 }
 
-void stChannelState::HandleNormalCommand(effect_t fx, unsigned char param) {
-	if (Effect[value_cast(fx)] == -1)
-		Effect[value_cast(fx)] = param;
+void stChannelState::HandleNormalCommand(stEffectCommand cmd) {
+	if (Effect[value_cast(cmd.fx)] == -1)
+		Effect[value_cast(cmd.fx)] = cmd.param;
 }
 
-void stChannelState::HandleSlideCommand(effect_t fx, unsigned char param) {
+void stChannelState::HandleSlideCommand(stEffectCommand cmd) {
 	if (Effect[value_cast(effect_t::PORTAMENTO)] == -1) { // anything else within can be used here
-		Effect[value_cast(effect_t::PORTAMENTO)] = fx == effect_t::PORTAMENTO ? param : -2;
-		Effect[value_cast(effect_t::ARPEGGIO)] = fx == effect_t::ARPEGGIO ? param : -2;
-		Effect[value_cast(effect_t::PORTA_UP)] = fx == effect_t::PORTA_UP ? param : -2;
-		Effect[value_cast(effect_t::PORTA_DOWN)] = fx == effect_t::PORTA_DOWN ? param : -2;
+		Effect[value_cast(effect_t::PORTAMENTO)] = cmd.fx == effect_t::PORTAMENTO ? cmd.param : -2;
+		Effect[value_cast(effect_t::ARPEGGIO)] = cmd.fx == effect_t::ARPEGGIO ? cmd.param : -2;
+		Effect[value_cast(effect_t::PORTA_UP)] = cmd.fx == effect_t::PORTA_UP ? cmd.param : -2;
+		Effect[value_cast(effect_t::PORTA_DOWN)] = cmd.fx == effect_t::PORTA_DOWN ? cmd.param : -2;
 	}
 }
 
@@ -262,11 +268,10 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 			chState.HandleNote(Note, EffColumns);
 
 			for (int k = EffColumns - 1; k >= 0; --k) {
-				effect_t fx = Note.EffNumber[k];
-				unsigned char xy = Note.EffParam[k];
-				if (!IsEffectCompatible(c, fx, xy))
+				stEffectCommand cmd = {Note.EffNumber[k], Note.EffParam[k]};
+				if (!IsEffectCompatible(c, cmd))
 					continue;
-				switch (fx) {
+				switch (cmd.fx) {
 				// ignore effects that cannot have memory
 				case effect_t::NONE: case effect_t::PORTAOFF:
 				case effect_t::DAC: case effect_t::DPCM_PITCH: case effect_t::RETRIGGER:
@@ -277,34 +282,34 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 					doHalt = true;
 					break;
 				case effect_t::SPEED:
-					if (Speed == -1 && (xy < modfile.GetSpeedSplitPoint() || song.GetSongTempo() == 0)) {
-						Speed = std::max((unsigned char)1u, xy);
+					if (Speed == -1 && (cmd.param < modfile.GetSpeedSplitPoint() || song.GetSongTempo() == 0)) {
+						Speed = std::max((unsigned char)1u, cmd.param);
 						GroovePos = -2;
 					}
-					else if (Tempo == -1 && xy >= modfile.GetSpeedSplitPoint())
-						Tempo = xy;
+					else if (Tempo == -1 && cmd.param >= modfile.GetSpeedSplitPoint())
+						Tempo = cmd.param;
 					break;
 				case effect_t::GROOVE:
-					if (GroovePos == -1 && xy < MAX_GROOVE && modfile.HasGroove(xy)) {
+					if (GroovePos == -1 && cmd.param < MAX_GROOVE && modfile.HasGroove(cmd.param)) {
 						GroovePos = totalRows + 1;
-						Speed = xy;
+						Speed = cmd.param;
 					}
 					break;
 				case effect_t::VOLUME:
-					chState.HandleExxCommand2A03(xy);
+					chState.HandleExxCommand2A03(cmd.param);
 					break;
 				case effect_t::NOTE_CUT:
-					chState.HandleSxxCommand(xy);
+					chState.HandleSxxCommand(cmd.param);
 					break;
 				case effect_t::FDS_MOD_DEPTH:
-					if (chState.Effect_AutoFMMult == -1 && xy >= 0x80)
-						chState.Effect_AutoFMMult = xy;
+					if (chState.Effect_AutoFMMult == -1 && cmd.param >= 0x80)
+						chState.Effect_AutoFMMult = cmd.param;
 					break;
 				case effect_t::FDS_MOD_SPEED_HI:
-					if (xy <= 0x0F)
+					if (cmd.param <= 0x0F)
 						maskFDS = true;
-					else if (!maskFDS && chState.Effect[value_cast(fx)] == -1) {
-						chState.Effect[value_cast(fx)] = xy;
+					else if (!maskFDS && chState.Effect[value_cast(cmd.fx)] == -1) {
+						chState.Effect[value_cast(cmd.fx)] = cmd.param;
 						if (chState.Effect_AutoFMMult == -1)
 							chState.Effect_AutoFMMult = -2;
 					}
@@ -322,11 +327,11 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 				case effect_t::N163_WAVE_BUFFER:
 				case effect_t::VRC7_PORT:
 				case effect_t::VIBRATO: case effect_t::TREMOLO: case effect_t::PITCH: case effect_t::VOLUME_SLIDE:
-					chState.HandleNormalCommand(fx, xy);
+					chState.HandleNormalCommand(cmd);
 					break;
 				case effect_t::SWEEPUP: case effect_t::SWEEPDOWN: case effect_t::SLIDE_UP: case effect_t::SLIDE_DOWN:
 				case effect_t::PORTAMENTO: case effect_t::ARPEGGIO: case effect_t::PORTA_UP: case effect_t::PORTA_DOWN:
-					chState.HandleSlideCommand(fx, xy);
+					chState.HandleSlideCommand(cmd);
 					break;
 				}
 			}

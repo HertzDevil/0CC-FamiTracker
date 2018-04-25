@@ -159,10 +159,9 @@ protected:
 		\details Implementations of this method in subclasses should use the return value of the
 		superclass method to determine whether an effect requires handling. Global effects are not
 		handled by this method, but by CSoundGen::EvaluateGlobalEffects.
-		\param EffCmd The effect type to be processed.
-		\param EffParam The effect command parameter.
+		\param fx The effect command.
 		\return Whether the method has processed the effect of the given type. */
-	virtual bool	HandleEffect(effect_t EffNum, unsigned char EffParam);		// // // not pure virtual either
+	virtual bool	HandleEffect(stEffectCommand fx);		// // // not pure virtual either
 	/*!	\brief Creates an instrument handler of an appropriate type.
 		\param Type The new instrument type.
 		\return Whether an instrument handler is created. */
@@ -528,7 +527,7 @@ protected:
 	CChannelHandlerInverted(stChannelID ch, int MaxPeriod, int MaxVolume) :
 		CChannelHandler(ch, MaxPeriod, MaxVolume) { }
 	// // //
-	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //
+	bool	HandleEffect(stEffectCommand cmd) override;		// // //
 	int		CalculatePeriod() const override;
 	std::string	GetSlideEffectString() const override;		// // //
 };

@@ -32,8 +32,9 @@
 
 class CFamiTrackerModule;
 class stChanNote;
+struct stEffectCommand;
 
-std::string MakeCommandString(effect_t Effect, unsigned char Param);		// // //
+std::string MakeCommandString(stEffectCommand cmd);		// // //
 
 // // // special echo buffer constants
 inline constexpr int ECHO_BUFFER_NONE = 0xFF;
@@ -66,8 +67,8 @@ public:
 
 private:
 	void HandleNote(const stChanNote &Note, unsigned EffColumns);
-	void HandleNormalCommand(effect_t fx, unsigned char param);
-	void HandleSlideCommand(effect_t fx, unsigned char param);
+	void HandleNormalCommand(stEffectCommand cmd);
+	void HandleSlideCommand(stEffectCommand cmd);
 	void HandleExxCommand2A03(unsigned char param);
 	void HandleSxxCommand(unsigned char param);
 

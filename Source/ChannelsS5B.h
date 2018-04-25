@@ -41,7 +41,7 @@ public:
 
 protected:
 	// // //
-	bool	HandleEffect(effect_t EffNum, unsigned char EffParam) override;		// // //
+	bool	HandleEffect(stEffectCommand cmd) override;		// // //
 	void	HandleNote(note_t Note, int Octave) override;		// // //
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;

@@ -24,6 +24,29 @@
 #pragma once
 
 #include "FamiTrackerTypes.h"
+#include "StrongOrdering.h"		// // //
+
+// // // effect command struct
+struct stEffectCommand {
+	effect_t fx {effect_t::NONE};
+	std::uint8_t param {0u};
+
+	constexpr int compare(const stEffectCommand &other) const noexcept {
+		if (fx < other.fx)
+			return -1;
+		if (fx > other.fx)
+			return 1;
+		if (fx == effect_t::NONE)
+			return 0;
+		if (param < other.param)
+			return -1;
+		if (param > other.param)
+			return 1;
+		return 0;
+	}
+};
+
+ENABLE_STRONG_ORDERING(stEffectCommand);
 
 // Channel note struct, holds the data for each row in patterns
 class stChanNote {

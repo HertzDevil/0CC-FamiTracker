@@ -121,19 +121,19 @@ bool IsInstrumentCompatible(sound_chip_t Chip, inst_type_t Type) {		// // //
 	return false;
 }
 
-bool IsEffectCompatible(stChannelID ch, effect_t EffNumber, uint8_t EffParam) {		// // //
-	switch (EffNumber) {
+bool IsEffectCompatible(stChannelID ch, stEffectCommand cmd) {		// // //
+	switch (cmd.fx) {
 		case effect_t::NONE:
 		case effect_t::SPEED: case effect_t::JUMP: case effect_t::SKIP: case effect_t::HALT:
 		case effect_t::DELAY:
 			return true;
 		case effect_t::NOTE_CUT: case effect_t::NOTE_RELEASE:
-			return EffParam <= 0x7F || IsAPUTriangle(ch);
+			return cmd.param <= 0x7F || IsAPUTriangle(ch);
 		case effect_t::GROOVE:
-			return EffParam < MAX_GROOVE;
+			return cmd.param < MAX_GROOVE;
 		case effect_t::VOLUME:
 			return ((ch.Chip == sound_chip_t::APU && !IsDPCM(ch)) || ch.Chip == sound_chip_t::MMC5) &&
-				(EffParam <= 0x1F || (EffParam >= 0xE0 && EffParam <= 0xE3));
+				(cmd.param <= 0x1F || (cmd.param >= 0xE0 && cmd.param <= 0xE3));
 		case effect_t::PORTAMENTO: case effect_t::ARPEGGIO: case effect_t::VIBRATO: case effect_t::TREMOLO:
 		case effect_t::PITCH: case effect_t::PORTA_UP: case effect_t::PORTA_DOWN: case effect_t::SLIDE_UP: case effect_t::SLIDE_DOWN:
 		case effect_t::VOLUME_SLIDE: case effect_t::DELAYED_VOLUME: case effect_t::TRANSPOSE:
@@ -147,16 +147,16 @@ bool IsEffectCompatible(stChannelID ch, effect_t EffNumber, uint8_t EffParam) {	
 		case effect_t::DUTY_CYCLE:
 			return !IsDPCM(ch);		// // // 050B
 		case effect_t::FDS_MOD_DEPTH:
-			return ch.Chip == sound_chip_t::FDS && (EffParam <= 0x3F || EffParam >= 0x80);
+			return ch.Chip == sound_chip_t::FDS && (cmd.param <= 0x3F || cmd.param >= 0x80);
 		case effect_t::FDS_MOD_SPEED_HI: case effect_t::FDS_MOD_SPEED_LO: case effect_t::FDS_MOD_BIAS:
 			return ch.Chip == sound_chip_t::FDS;
 		case effect_t::SUNSOFT_ENV_LO: case effect_t::SUNSOFT_ENV_HI: case effect_t::SUNSOFT_ENV_TYPE:
 		case effect_t::SUNSOFT_NOISE:		// // // 050B
 			return ch.Chip == sound_chip_t::S5B;
 		case effect_t::N163_WAVE_BUFFER:
-			return ch.Chip == sound_chip_t::N163 && EffParam <= 0x7F;
+			return ch.Chip == sound_chip_t::N163 && cmd.param <= 0x7F;
 		case effect_t::FDS_VOLUME:
-			return ch.Chip == sound_chip_t::FDS && (EffParam <= 0x7F || EffParam == 0xE0);
+			return ch.Chip == sound_chip_t::FDS && (cmd.param <= 0x7F || cmd.param == 0xE0);
 		case effect_t::VRC7_PORT: case effect_t::VRC7_WRITE:		// // // 050B
 			return ch.Chip == sound_chip_t::VRC7;
 	}
