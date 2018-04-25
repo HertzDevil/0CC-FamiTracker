@@ -25,14 +25,12 @@
 
 #include "APU/Types_fwd.h"
 #include "ft0cc/enum_traits.h"		// // //
+#include "StrongOrdering.h"		// // //
 
 // // // moved from FamiTrackerTypes.h
 ENUM_CLASS_STANDARD(machine_t, std::uint8_t) {
-	NTSC,
-	PAL,
-	min = NTSC,
-	max = PAL,
-	none = static_cast<unsigned char>(-1),
+	NTSC, PAL,
+	min = NTSC, max = PAL, none = static_cast<std::uint8_t>(-1),
 };
 
 inline constexpr machine_t DEFAULT_MACHINE_TYPE = machine_t::NTSC;		// // //
@@ -42,57 +40,50 @@ inline constexpr unsigned MASTER_CLOCK_PAL  = 1662607;
 inline constexpr unsigned FRAME_RATE_NTSC   = 60;
 inline constexpr unsigned FRAME_RATE_PAL    = 50;
 
-enum class sound_chip_t : std::uint8_t {		// // //
-	APU,
-	VRC6,
-	VRC7,
-	FDS,
-	MMC5,
-	N163,
-	S5B,
-	NONE = (std::uint8_t)-1,
-	none = NONE,
+ENUM_CLASS_STANDARD(sound_chip_t, std::uint8_t) {		// // //
+	APU, VRC6, VRC7, FDS, MMC5, N163, S5B,
+	min = APU, max = S5B, none = static_cast<std::uint8_t>(-1),
 };
 
-inline constexpr std::size_t SOUND_CHIP_COUNT = 7;
+inline constexpr std::size_t SOUND_CHIP_COUNT = enum_count<sound_chip_t>();
 
-enum class apu_subindex_t : std::uint8_t {
+ENUM_CLASS_STANDARD(apu_subindex_t, std::uint8_t) {
 	pulse1, pulse2, triangle, noise, dpcm,
-	count,
+	min = pulse1, max = dpcm, none = static_cast<std::uint8_t>(-1),
 };
-enum class vrc6_subindex_t : std::uint8_t {
+ENUM_CLASS_STANDARD(vrc6_subindex_t, std::uint8_t) {
 	pulse1, pulse2, sawtooth,
-	count,
+	min = pulse1, max = sawtooth, none = static_cast<std::uint8_t>(-1),
 };
-enum class mmc5_subindex_t : std::uint8_t {
+ENUM_CLASS_STANDARD(mmc5_subindex_t, std::uint8_t) {
 	pulse1, pulse2, pcm,
-	count,
+	min = pulse1, max = pcm, none = static_cast<std::uint8_t>(-1),
 };
-enum class n163_subindex_t : std::uint8_t {
+ENUM_CLASS_STANDARD(n163_subindex_t, std::uint8_t) {
 	ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8,
-	count,
+	min = ch1, max = ch8, none = static_cast<std::uint8_t>(-1),
 };
-enum class fds_subindex_t : std::uint8_t {
+ENUM_CLASS_STANDARD(fds_subindex_t, std::uint8_t) {
 	wave,
-	count,
+	min = wave, max = wave, none = static_cast<std::uint8_t>(-1),
 };
-enum class vrc7_subindex_t : std::uint8_t {
+ENUM_CLASS_STANDARD(vrc7_subindex_t, std::uint8_t) {
 	ch1, ch2, ch3, ch4, ch5, ch6,
-	count,
+	min = ch1, max = ch6, none = static_cast<std::uint8_t>(-1),
 };
-enum class s5b_subindex_t : std::uint8_t {
+ENUM_CLASS_STANDARD(s5b_subindex_t, std::uint8_t) {
 	square1, square2, square3,
-	count,
+	min = square1, max = square3, none = static_cast<std::uint8_t>(-1),
 };
 
 // // // moved from FamiTrackerTypes.h
-inline constexpr std::size_t MAX_CHANNELS_2A03 = value_cast(apu_subindex_t ::count);
-inline constexpr std::size_t MAX_CHANNELS_VRC6 = value_cast(vrc6_subindex_t::count);
-inline constexpr std::size_t MAX_CHANNELS_VRC7 = value_cast(vrc7_subindex_t::count);
-inline constexpr std::size_t MAX_CHANNELS_FDS  = value_cast(fds_subindex_t ::count);
-inline constexpr std::size_t MAX_CHANNELS_MMC5 = value_cast(mmc5_subindex_t::count); // includes pcm
-inline constexpr std::size_t MAX_CHANNELS_N163 = value_cast(n163_subindex_t::count);
-inline constexpr std::size_t MAX_CHANNELS_S5B  = value_cast(s5b_subindex_t ::count);
+inline constexpr std::size_t MAX_CHANNELS_2A03 = enum_count<apu_subindex_t>();
+inline constexpr std::size_t MAX_CHANNELS_VRC6 = enum_count<vrc6_subindex_t>();
+inline constexpr std::size_t MAX_CHANNELS_VRC7 = enum_count<vrc7_subindex_t>();
+inline constexpr std::size_t MAX_CHANNELS_FDS  = enum_count<fds_subindex_t>();
+inline constexpr std::size_t MAX_CHANNELS_MMC5 = enum_count<mmc5_subindex_t>(); // includes pcm
+inline constexpr std::size_t MAX_CHANNELS_N163 = enum_count<n163_subindex_t>();
+inline constexpr std::size_t MAX_CHANNELS_S5B  = enum_count<s5b_subindex_t>();
 
 inline constexpr std::size_t CHANID_COUNT =
 	MAX_CHANNELS_2A03 +
@@ -106,7 +97,7 @@ inline constexpr std::size_t CHANID_COUNT =
 
 
 struct stChannelID {		// // //
-	sound_chip_t Chip = sound_chip_t::NONE;
+	sound_chip_t Chip = sound_chip_t::none;
 	std::uint8_t Subindex = 0u;
 	std::uint8_t Ident = 0u;
 
@@ -139,7 +130,7 @@ struct stChannelID {		// // //
 			return 1;
 		if (Chip < other.Chip)
 			return -1;
-		if (Chip == sound_chip_t::NONE)
+		if (Chip == sound_chip_t::none)
 			return 0;
 		if (Subindex > other.Subindex)
 			return 1;
@@ -152,18 +143,14 @@ struct stChannelID {		// // //
 		return 0;
 	}
 
-	constexpr bool operator==(const stChannelID &other) const noexcept { return compare(other) == 0; }
-	constexpr bool operator!=(const stChannelID &other) const noexcept { return compare(other) != 0; }
-	constexpr bool operator< (const stChannelID &other) const noexcept { return compare(other) <  0; }
-	constexpr bool operator<=(const stChannelID &other) const noexcept { return compare(other) <= 0; }
-	constexpr bool operator> (const stChannelID &other) const noexcept { return compare(other) >  0; }
-	constexpr bool operator>=(const stChannelID &other) const noexcept { return compare(other) >= 0; }
 	// constexpr std::strong_ordering operator<=>(const stChannelID &other) const noexcept = default;
 };
 
+ENABLE_STRONG_ORDERING(stChannelID);
+
 struct stChannelID_ident_less {
 	static constexpr int compare(const stChannelID &lhs, const stChannelID &rhs) noexcept {
-		if (lhs.Chip == sound_chip_t::NONE && rhs.Chip == sound_chip_t::NONE)
+		if (lhs.Chip == sound_chip_t::none && rhs.Chip == sound_chip_t::none)
 			return 0;
 		if (lhs.Ident > rhs.Ident)
 			return 1;

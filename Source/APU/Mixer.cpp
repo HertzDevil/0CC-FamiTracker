@@ -313,7 +313,7 @@ void CMixer::StoreChannelLevel(stChannelID Channel, int Level)		// // //
 
 	if (Channel.Chip == sound_chip_t::N163) {		// // //
 		AbsVol /= 15.;
-		Channel.Subindex = value_cast(n163_subindex_t::count) - 1 - Channel.Subindex;
+		Channel.Subindex = static_cast<uint8_t>(enum_count<n163_subindex_t>() - 1 - Channel.Subindex);
 	}
 
 	if (Channel.Chip == sound_chip_t::VRC7)		// // //

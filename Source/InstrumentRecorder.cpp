@@ -73,7 +73,7 @@ void CInstrumentRecorder::StopRecording(CWnd *pView)
 void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		// // //
 {
 	unsigned int Intv = static_cast<unsigned>(m_stRecordSetting.Interval);
-	if (m_iRecordChannel.Chip == sound_chip_t::NONE || Tick > Intv * m_stRecordSetting.InstCount + 1) return;
+	if (m_iRecordChannel.Chip == sound_chip_t::none || Tick > Intv * m_stRecordSetting.InstCount + 1) return;
 	if (Tick % Intv == 1 && Tick > Intv) {
 		if (*m_pDumpInstrument != nullptr && pView != nullptr) {
 			pView->PostMessageW(WM_USER_DUMP_INST);

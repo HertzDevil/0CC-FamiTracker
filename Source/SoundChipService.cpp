@@ -30,8 +30,8 @@
 void CSoundChipService::AddType(std::unique_ptr<CSoundChipType> stype) {
 	sound_chip_t id = stype->GetID();
 
-	if (id == sound_chip_t::NONE)
-		throw std::invalid_argument {"Cannot add sound chip with ID sound_chip_t::NONE"};
+	if (id == sound_chip_t::none)
+		throw std::invalid_argument {"Cannot add sound chip with ID sound_chip_t::none"};
 	if (types_.count(id))
 		throw std::invalid_argument {"Cannot add sound chips with same ID"};
 

@@ -2606,7 +2606,7 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 			menu.AppendMenuW(MFT_STRING, value_cast(c) + 1, (L"New " + conv::to_wide(pSCS->GetChipShortName(c)) + L" instrument").data());
 	});
 
-	if (SelectedChip != sound_chip_t::NONE)
+	if (SelectedChip != sound_chip_t::none)
 		menu.SetDefaultItem(value_cast(SelectedChip) + 1);
 
 	if (UINT retValue = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, rect.left, rect.bottom, this))		// // //

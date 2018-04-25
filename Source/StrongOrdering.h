@@ -28,8 +28,6 @@
 // // // placeholder for std::strong_ordering
 // // // TODO: replace with operator<=>
 
-#include <type_traits>
-
 namespace details {
 
 template <typename T>

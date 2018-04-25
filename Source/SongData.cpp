@@ -46,7 +46,7 @@ CSongData::~CSongData() {
 }
 
 CTrackData *CSongData::GetTrack(stChannelID chan) {		// // //
-	if (chan.Chip != sound_chip_t::NONE)
+	if (chan.Chip != sound_chip_t::none)
 		if (auto it = tracks_.find(chan); it != tracks_.end())
 			return std::addressof(it->second);
 	return nullptr;

@@ -52,7 +52,7 @@ sound_chip_t CSoundChipSet::GetSoundChip() const {
 	for (std::size_t i = 0; i < chips_.size(); ++i)
 		if (chips_.test(i))
 			return (sound_chip_t)i;
-	return sound_chip_t::NONE;
+	return sound_chip_t::none;
 }
 
 CSoundChipSet CSoundChipSet::EnableChip(sound_chip_t chip, bool enable) const {

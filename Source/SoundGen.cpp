@@ -598,7 +598,7 @@ void CSoundGen::BeginPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 	if (Env.GetSettings()->General.bRetrieveChanState)		// // //
 		ApplyGlobalState();
 
-	if (m_pInstRecorder->GetRecordChannel().Chip != sound_chip_t::NONE)		// // //
+	if (m_pInstRecorder->GetRecordChannel().Chip != sound_chip_t::none)		// // //
 		m_pInstRecorder->StartRecording();
 }
 
@@ -1065,7 +1065,7 @@ BOOL CSoundGen::IdleLoop() {
 	UpdateAPU();
 
 	if (IsPlaying())		// // //
-		if (stChannelID Channel = m_pInstRecorder->GetRecordChannel(); Channel.Chip != sound_chip_t::NONE)		// // //
+		if (stChannelID Channel = m_pInstRecorder->GetRecordChannel(); Channel.Chip != sound_chip_t::none)		// // //
 			m_pInstRecorder->RecordInstrument(GetPlayerTicks(), m_pTrackerView);
 
 	if (m_pSoundDriver->ShouldHalt() || m_bHaltRequest) {		// // //
@@ -1085,7 +1085,7 @@ void CSoundGen::UpdateAPU()
 	if (CSingleLock l(&m_csAPULock); l.Lock()) {
 		// Update APU channel registers
 		int cycles = m_iUpdateCycles;
-		sound_chip_t LastChip = sound_chip_t::NONE;		// // // 050B
+		sound_chip_t LastChip = sound_chip_t::none;		// // // 050B
 
 		m_pSoundDriver->ForeachTrack([&] (CChannelHandler &Chan, CTrackerChannel &, stChannelID ID) {		// // //
 			if (m_pModule->GetChannelOrder().HasChannel(ID)) {

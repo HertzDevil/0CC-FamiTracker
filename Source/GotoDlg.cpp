@@ -79,7 +79,7 @@ BOOL CGotoDlg::OnInitDialog()
 	});
 
 	stChannelID Channel = pView->GetSelectedChannelID();
-	if (Channel.Chip != sound_chip_t::NONE)
+	if (Channel.Chip != sound_chip_t::none)
 		m_cChipEdit.SelectString(-1, conv::to_wide(pSCS->GetChipShortName(Channel.Chip)).data());
 
 	SetDlgItemInt(IDC_EDIT_GOTO_FRAME, pView->GetSelectedFrame());

@@ -2,6 +2,7 @@
 
 #include <type_traits>
 #include <limits>
+#include <iterator>
 
 // The default enumeration category. Conversion is equivalent to static_cast.
 // Unspecialized enumeration traits use this category.
@@ -13,7 +14,6 @@ struct enum_default { };
 //  - EnumT::none must be given, and !(EnumT::min <= EnumT::none <= EnumT::max)
 // EnumT::min and EnumT::max default to the minimum / maximum representable
 // value of the underlying type if not given.
-// Linear enum class types additionally support operator!.
 struct enum_standard { };
 
 // The linear enumeration category. Values not equal to the given none-element
@@ -22,7 +22,7 @@ struct enum_standard { };
 //  - EnumT::none must be given, and !(EnumT::min <= EnumT::none <= EnumT::max)
 // EnumT::min and EnumT::max default to the minimum / maximum representable
 // value of the underlying type respectively if not given.
-// Linear enum class types additionally support !, ++, and --.
+// Linear enum class types additionally support ++ and --.
 struct enum_linear { };
 
 // The bitmask enumeration category. Bits common to the given range limits are
@@ -39,7 +39,6 @@ struct enum_bitmask { };
 // template parameters are mapped to the given none-element.
 // zero. Requires that:
 //  - EnumT::none must be given, and Vals... must not contain EnumT::none
-// Discrete enum class types additionally support operator!.
 template <typename EnumT, EnumT... Vals>
 struct enum_discrete { };
 
@@ -106,6 +105,11 @@ public:
 	using type = std::conditional_t<is_enum_category<T2>::value, T2, enum_default>;
 };
 
+#define REQUIRES_IsEnum(T) \
+	, std::enable_if_t<std::is_enum_v<T>, int> = 0
+#define REQUIRES_IsScopedEnum(T) \
+	, std::enable_if_t<details::is_scoped_enum_v<EnumT>, int> = 0
+
 } // namespace details
 
 template <typename CatT>
@@ -120,6 +124,9 @@ using get_enum_category = details::get_enum_category<EnumT>;
 // if a valid category cannot be found.
 template <typename EnumT>
 using get_enum_category_t = typename get_enum_category<EnumT>::type;
+
+#define REQUIRES_EnumCategoryIs(T, CAT) \
+	, std::enable_if_t<std::is_same_v<get_enum_category_t<T>, CAT>, int> = 0
 
 
 
@@ -161,30 +168,24 @@ struct enum_has_max_member<EnumT, std::void_t<max_member_t<EnumT>>> : std::true_
 } // namespace details
 
 // Checks whether the given enumeration type has a none-element.
-template <typename EnumT,
-	typename = std::enable_if_t<std::is_enum_v<EnumT>>>
-constexpr bool enum_has_none() noexcept {
-	return details::enum_has_none_member<EnumT>::value;
-}
+template <typename EnumT REQUIRES_IsEnum(EnumT)>
+inline constexpr bool enum_has_none_v = details::enum_has_none_member<EnumT>::value;
 
 // Obtains the none-element of a given enumeration type.
-template <typename EnumT,
-	typename = std::enable_if_t<std::is_enum_v<EnumT> && enum_has_none<EnumT>()>>
+template <typename EnumT REQUIRES_IsEnum(EnumT),
+	std::enable_if_t<enum_has_none_v<EnumT>, int> = 0>
 constexpr EnumT enum_none() noexcept {
 	if constexpr (details::enum_has_none_member<EnumT>::value)
 		return EnumT::none;
 }
 
 // Checks whether the given enumeration type has a minimum element.
-template <typename EnumT,
-	typename = std::enable_if_t<std::is_enum_v<EnumT>>>
-constexpr bool enum_has_min() noexcept {
-	return !details::is_enum_category_discrete<get_enum_category_t<EnumT>>::value;
-}
+template <typename EnumT REQUIRES_IsEnum(EnumT)>
+inline constexpr bool enum_has_min_v = !details::is_enum_category_discrete<get_enum_category_t<EnumT>>::value;
 
 // Obtains the minimum element of a given enumeration type.
-template <typename EnumT,
-	typename = std::enable_if_t<std::is_enum_v<EnumT> && enum_has_min<EnumT>()>>
+template <typename EnumT REQUIRES_IsEnum(EnumT),
+	std::enable_if_t<enum_has_min_v<EnumT>, int> = 0>
 constexpr EnumT enum_min() noexcept {
 	if constexpr (details::enum_has_min_member<EnumT>::value)
 		return EnumT::min;
@@ -193,15 +194,12 @@ constexpr EnumT enum_min() noexcept {
 }
 
 // Checks whether the given enumeration type has a maximum element.
-template <typename EnumT,
-	typename = std::enable_if_t<std::is_enum_v<EnumT>>>
-constexpr bool enum_has_max() noexcept {
-	return !details::is_enum_category_discrete<get_enum_category_t<EnumT>>::value;
-}
+template <typename EnumT REQUIRES_IsEnum(EnumT)>
+inline constexpr bool enum_has_max_v = !details::is_enum_category_discrete<get_enum_category_t<EnumT>>::value;
 
 // Obtains the maximum element of a given enumeration type.
-template <typename EnumT,
-	typename = std::enable_if_t<std::is_enum_v<EnumT> && enum_has_max<EnumT>()>>
+template <typename EnumT REQUIRES_IsEnum(EnumT),
+	std::enable_if_t<enum_has_max_v<EnumT>, int> = 0>
 constexpr EnumT enum_max() noexcept {
 	if constexpr (details::enum_has_max_member<EnumT>::value)
 		return EnumT::max;
@@ -212,38 +210,32 @@ constexpr EnumT enum_max() noexcept {
 
 
 // Casts an enumeration value to its underlying type.
-template <typename EnumT,
-	typename CatTraits = enum_category_traits<get_enum_category_t<EnumT>>,
-	typename = std::enable_if_t<std::is_enum_v<EnumT>>>
+template <typename EnumT REQUIRES_IsEnum(EnumT)>
 constexpr std::underlying_type_t<EnumT> value_cast(EnumT x) noexcept {
+	using CatTraits = enum_category_traits<get_enum_category_t<EnumT>>;
 	static_assert(CatTraits::template valid<EnumT>());
 	return details::value_cast_impl(x);
 }
 
 // Casts a value to the given enumeration type.
-template <typename EnumT, typename ValT,
-	typename CatTraits = enum_category_traits<get_enum_category_t<EnumT>>,
-	typename = std::enable_if_t<std::is_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_convertible_v<ValT, std::underlying_type_t<EnumT>>>>
+template <typename EnumT REQUIRES_IsEnum(EnumT), typename ValT,
+	std::enable_if_t<std::is_convertible_v<ValT, std::underlying_type_t<EnumT>>, int> = 0>
 constexpr EnumT enum_cast(ValT x) noexcept {
+	using CatTraits = enum_category_traits<get_enum_category_t<EnumT>>;
 	static_assert(CatTraits::template valid<EnumT>());
-	return CatTraits::template enum_cast<EnumT>(x);
+	return CatTraits::template enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(x));
 }
 
 // Constrains a given value by the given enumeration type, as if by casting it
 // to and from the enumeration type.
-template <typename EnumT, typename ValT,
-	typename = std::enable_if_t<std::is_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_same_v<ValT, std::underlying_type_t<EnumT>>>>
-constexpr std::underlying_type_t<EnumT> value_cast(ValT x) noexcept {
+template <typename EnumT REQUIRES_IsEnum(EnumT)>
+constexpr std::underlying_type_t<EnumT> value_cast(std::underlying_type_t<EnumT> x) noexcept {
 	return value_cast(enum_cast<EnumT>(x));
 }
 
 // Constrains the given enumeration type, as if by casting it to and from its
 // underlying type.
-template <typename EnumT,
-	typename CatTraits = enum_category_traits<get_enum_category_t<EnumT>>,
-	typename = std::enable_if_t<std::is_enum_v<EnumT>>>
+template <typename EnumT REQUIRES_IsEnum(EnumT)>
 constexpr EnumT enum_cast(EnumT x) noexcept {
 	return enum_cast<EnumT>(value_cast(x));
 }
@@ -254,9 +246,7 @@ inline namespace enum_operators {
 
 // Pre-increments lhs if it is equal to neither the none-element nor the maximum
 // element. Only supports linear enum class types.
-template <typename EnumT,
-	typename = std::enable_if_t<details::is_scoped_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, enum_linear>>>
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_linear)>
 constexpr EnumT &operator++(EnumT &lhs) noexcept {
 	if (!(!lhs || lhs == enum_max<EnumT>()))
 		lhs = enum_cast<EnumT>(value_cast(lhs) + 1);
@@ -265,9 +255,7 @@ constexpr EnumT &operator++(EnumT &lhs) noexcept {
 
 // Post-increments lhs if it is equal to neither the none-element nor the
 // maximum element. Only supports linear enum class types.
-template <typename EnumT,
-	typename = std::enable_if_t<details::is_scoped_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, enum_linear>>>
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_linear)>
 constexpr EnumT operator++(const EnumT &lhs, int) noexcept {
 	EnumT ret = lhs;
 	++lhs;
@@ -276,9 +264,7 @@ constexpr EnumT operator++(const EnumT &lhs, int) noexcept {
 
 // Pre-decrements lhs if it is equal to neither the none-element nor the maximum
 // element. Only supports linear enum class types.
-template <typename EnumT,
-	typename = std::enable_if_t<details::is_scoped_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, enum_linear>>>
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_linear)>
 constexpr EnumT &operator--(EnumT &lhs) noexcept {
 	if (!(!lhs || lhs == enum_min<EnumT>()))
 		lhs = enum_cast<EnumT>(value_cast(lhs) - 1);
@@ -287,9 +273,7 @@ constexpr EnumT &operator--(EnumT &lhs) noexcept {
 
 // Post-decrements lhs if it is equal to neither the none-element nor the
 // maximum element. Only supports linear enum class types.
-template <typename EnumT,
-	typename = std::enable_if_t<details::is_scoped_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, enum_linear>>>
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_linear)>
 constexpr EnumT operator--(const EnumT &lhs, int) noexcept {
 	EnumT ret = lhs;
 	--lhs;
@@ -300,11 +284,9 @@ constexpr EnumT operator--(const EnumT &lhs, int) noexcept {
 
 // If neither operand is EnumT::None, returns the union of the two bit masks.
 // Otherwise returns EnumT::None. Only supports bitmask enum class types.
-template <typename EnumT,
-	typename = std::enable_if_t<details::is_scoped_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, enum_bitmask>>>
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_bitmask)>
 constexpr EnumT operator|(const EnumT &lhs, const EnumT &rhs) noexcept {
-	if constexpr (enum_has_none<EnumT>())
+	if constexpr (enum_has_none_v<EnumT>)
 		if (!lhs || !rhs)
 			return enum_none<EnumT>();
 	return enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) | value_cast(rhs)));
@@ -313,11 +295,9 @@ constexpr EnumT operator|(const EnumT &lhs, const EnumT &rhs) noexcept {
 // If neither operand is EnumT::None, assigns (lhs | rhs) to lhs. The operands
 // are not interchangeable because (lhs |= EnumT::None) != (lhs | EnumT::None).
 // Only supports bitmask enum class types.
-template <typename EnumT,
-	typename = std::enable_if_t<details::is_scoped_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, enum_bitmask>>>
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_bitmask)>
 constexpr EnumT &operator|=(EnumT &lhs, const EnumT &rhs) noexcept {
-	if constexpr (enum_has_none<EnumT>()) {
+	if constexpr (enum_has_none_v<EnumT>) {
 		if (!(!lhs || !rhs))
 			lhs = enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) | value_cast(rhs)));
 	}
@@ -328,11 +308,9 @@ constexpr EnumT &operator|=(EnumT &lhs, const EnumT &rhs) noexcept {
 
 // If neither operand is EnumT::None, returns the intersection of the two bit
 // masks. Otherwise returns EnumT::None. Only supports bitmask enum class types.
-template <typename EnumT,
-	typename = std::enable_if_t<details::is_scoped_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, enum_bitmask>>>
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_bitmask)>
 constexpr EnumT operator&(const EnumT &lhs, const EnumT &rhs) noexcept {
-	if constexpr (enum_has_none<EnumT>())
+	if constexpr (enum_has_none_v<EnumT>)
 		if (!lhs || !rhs)
 			return enum_none<EnumT>();
 	return enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) & value_cast(rhs)));
@@ -341,11 +319,9 @@ constexpr EnumT operator&(const EnumT &lhs, const EnumT &rhs) noexcept {
 // If neither operand is EnumT::None, assigns (lhs & rhs) to lhs. The operands
 // are not interchangeable because (lhs &= EnumT::None) != (lhs & EnumT::None).
 // Only supports bitmask enum class types.
-template <typename EnumT,
-	typename = std::enable_if_t<details::is_scoped_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, enum_bitmask>>>
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_bitmask)>
 constexpr EnumT &operator&=(EnumT &lhs, const EnumT &rhs) noexcept {
-	if constexpr (enum_has_none<EnumT>()) {
+	if constexpr (enum_has_none_v<EnumT>) {
 		if (!(!lhs || !rhs))
 			lhs = enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) & value_cast(rhs)));
 	}
@@ -357,11 +333,9 @@ constexpr EnumT &operator&=(EnumT &lhs, const EnumT &rhs) noexcept {
 // If neither operand is EnumT::None, returns the symmetric difference of the
 // two bit masks. Otherwise returns EnumT::None. Only supports bitmask enum
 // class types.
-template <typename EnumT,
-	typename = std::enable_if_t<details::is_scoped_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, enum_bitmask>>>
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_bitmask)>
 constexpr EnumT operator^(const EnumT &lhs, const EnumT &rhs) noexcept {
-	if constexpr (enum_has_none<EnumT>())
+	if constexpr (enum_has_none_v<EnumT>)
 		if (!lhs || !rhs)
 			return enum_none<EnumT>();
 	return enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) ^ value_cast(rhs)));
@@ -370,11 +344,9 @@ constexpr EnumT operator^(const EnumT &lhs, const EnumT &rhs) noexcept {
 // If neither operand is EnumT::None, assigns (lhs ^ rhs) to lhs. The operands
 // are not interchangeable because (lhs ^= EnumT::None) != (lhs ^ EnumT::None).
 // Only supports bitmask enum class types.
-template <typename EnumT,
-	typename = std::enable_if_t<details::is_scoped_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, enum_bitmask>>>
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_bitmask)>
 constexpr EnumT &operator^=(EnumT &lhs, const EnumT &rhs) noexcept {
-	if constexpr (enum_has_none<EnumT>()) {
+	if constexpr (enum_has_none_v<EnumT>) {
 		if (!(!lhs || !rhs))
 			lhs = enum_cast<EnumT>(static_cast<std::underlying_type_t<EnumT>>(value_cast(lhs) ^ value_cast(rhs)));
 	}
@@ -385,11 +357,9 @@ constexpr EnumT &operator^=(EnumT &lhs, const EnumT &rhs) noexcept {
 
 // If lhs is not equal to EnumT::None, toggles all bits in lhs. Otherwise
 // returns EnumT::None. Only supports bitmask enum class types.
-template <typename EnumT,
-	typename = std::enable_if_t<details::is_scoped_enum_v<EnumT>>,
-	typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, enum_bitmask>>>
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_bitmask)>
 constexpr EnumT operator~(const EnumT &lhs) noexcept {
-	if constexpr (enum_has_none<EnumT>())
+	if constexpr (enum_has_none_v<EnumT>)
 		if (!lhs)
 			return enum_none<EnumT>();
 	return enum_cast<EnumT>(~value_cast(lhs));
@@ -403,15 +373,13 @@ template <>
 struct enum_category_traits<enum_default> {
 	using category = enum_default;
 
-	template <typename EnumT,
-		typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, category>>>
+	template <typename EnumT REQUIRES_EnumCategoryIs(EnumT, category)>
 	static constexpr bool valid() noexcept {
 		return true;
 	}
 
-	template <typename EnumT, typename ValT,
-		typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, category>>>
-	static constexpr EnumT enum_cast(ValT x) noexcept {
+	template <typename EnumT REQUIRES_EnumCategoryIs(EnumT, category)>
+	static constexpr EnumT enum_cast(std::underlying_type_t<EnumT> x) noexcept {
 		return static_cast<EnumT>(x);
 	}
 };
@@ -420,10 +388,9 @@ template <>
 struct enum_category_traits<enum_standard> {
 	using category = enum_standard;
 
-	template <typename EnumT,
-		typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, category>>>
+	template <typename EnumT REQUIRES_EnumCategoryIs(EnumT, category)>
 	static constexpr bool valid() noexcept {
-		if constexpr (enum_has_none<EnumT>()) {
+		if constexpr (enum_has_none_v<EnumT>) {
 			constexpr auto xnone = details::value_cast_impl(enum_none<EnumT>());
 			constexpr auto xmin = details::value_cast_impl(enum_min<EnumT>());
 			constexpr auto xmax = details::value_cast_impl(enum_max<EnumT>());
@@ -433,9 +400,8 @@ struct enum_category_traits<enum_standard> {
 			return false;
 	}
 
-	template <typename EnumT, typename ValT,
-		typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, category>>>
-	static constexpr EnumT enum_cast(ValT x) noexcept {
+	template <typename EnumT REQUIRES_EnumCategoryIs(EnumT, category)>
+	static constexpr EnumT enum_cast(std::underlying_type_t<EnumT> x) noexcept {
 		constexpr auto xnone = details::value_cast_impl(enum_none<EnumT>());
 		constexpr auto xmin = details::value_cast_impl(enum_min<EnumT>());
 		constexpr auto xmax = details::value_cast_impl(enum_max<EnumT>());
@@ -447,10 +413,9 @@ template <>
 struct enum_category_traits<enum_linear> {
 	using category = enum_linear;
 
-	template <typename EnumT,
-		typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, category>>>
+	template <typename EnumT REQUIRES_EnumCategoryIs(EnumT, category)>
 	static constexpr bool valid() noexcept {
-		if constexpr (enum_has_none<EnumT>()) {
+		if constexpr (enum_has_none_v<EnumT>) {
 			constexpr auto xnone = details::value_cast_impl(enum_none<EnumT>());
 			constexpr auto xmin = details::value_cast_impl(enum_min<EnumT>());
 			constexpr auto xmax = details::value_cast_impl(enum_max<EnumT>());
@@ -460,9 +425,8 @@ struct enum_category_traits<enum_linear> {
 			return false;
 	}
 
-	template <typename EnumT, typename ValT,
-		typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, category>>>
-	static constexpr EnumT enum_cast(ValT x) noexcept {
+	template <typename EnumT REQUIRES_EnumCategoryIs(EnumT, category)>
+	static constexpr EnumT enum_cast(std::underlying_type_t<EnumT> x) noexcept {
 		constexpr auto xnone = details::value_cast_impl(enum_none<EnumT>());
 		constexpr auto xmin = details::value_cast_impl(enum_min<EnumT>());
 		constexpr auto xmax = details::value_cast_impl(enum_max<EnumT>());
@@ -474,13 +438,12 @@ template <>
 struct enum_category_traits<enum_bitmask> {
 	using category = enum_bitmask;
 
-	template <typename EnumT,
-		typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, category>>>
+	template <typename EnumT REQUIRES_EnumCategoryIs(EnumT, category)>
 	static constexpr bool valid() noexcept {
 		constexpr auto xmin = details::value_cast_impl(enum_min<EnumT>());
 		constexpr auto xmax = details::value_cast_impl(enum_max<EnumT>());
 		if constexpr (std::is_unsigned_v<std::underlying_type_t<EnumT>> && (xmin & xmax) == xmin) {
-			if constexpr (enum_has_none<EnumT>()) {
+			if constexpr (enum_has_none_v<EnumT>) {
 				constexpr auto xnone = details::value_cast_impl(enum_none<EnumT>());
 				return xnone != details::bitwise_clamp(xnone, xmin, xmax);
 			}
@@ -491,12 +454,11 @@ struct enum_category_traits<enum_bitmask> {
 			return false;
 	}
 
-	template <typename EnumT, typename ValT,
-		typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, category>>>
-	static constexpr EnumT enum_cast(ValT x) noexcept {
+	template <typename EnumT REQUIRES_EnumCategoryIs(EnumT, category)>
+	static constexpr EnumT enum_cast(std::underlying_type_t<EnumT> x) noexcept {
 		constexpr auto xmin = details::value_cast_impl(enum_min<EnumT>());
 		constexpr auto xmax = details::value_cast_impl(enum_max<EnumT>());
-		if constexpr (!enum_has_none<EnumT>())
+		if constexpr (!enum_has_none_v<EnumT>)
 			return static_cast<EnumT>(details::bitwise_clamp(x, xmin, xmax));
 		else {
 			constexpr auto xnone = details::value_cast_impl(enum_none<EnumT>());
@@ -509,19 +471,17 @@ template <typename EnumT, EnumT... Vals>
 struct enum_category_traits<enum_discrete<EnumT, Vals...>> {
 	using category = enum_discrete<EnumT, Vals...>;
 
-	template <typename EnumT_,
-		typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT_>, category>>>
+	template <typename EnumT_ REQUIRES_EnumCategoryIs(EnumT_, category)>
 	static constexpr bool valid() noexcept {
-		if constexpr (enum_has_none<EnumT_>())
+		if constexpr (enum_has_none_v<EnumT_>)
 			return std::is_same_v<EnumT_, EnumT> && !(... || (Vals == EnumT_::none));
 		else
 			return false;
 	}
 
-	template <typename EnumT_, typename ValT,
-		typename = std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT_>, category>>,
-		typename = std::enable_if_t<std::is_convertible_v<EnumT_, EnumT>>>
-	static constexpr EnumT enum_cast(ValT x) noexcept {
+	template <typename EnumT_ REQUIRES_EnumCategoryIs(EnumT_, category),
+		std::enable_if_t<std::is_convertible_v<EnumT_, EnumT>, int> = 0>
+	static constexpr EnumT enum_cast(std::underlying_type_t<EnumT_> x) noexcept {
 		if ((... || (details::value_cast_impl(Vals) == x)))
 			return static_cast<EnumT>(x);
 		return EnumT::none;
@@ -550,3 +510,87 @@ enum class NAME : TYPE
 //  enum class NAME : TYPE
 // with a specialization of enum_traits<NAME>.
 #define ENUM_CLASS_BITMASK(NAME, TYPE) ENUM_CLASS_WITH_CATEGORY(NAME, TYPE, enum_bitmask)
+
+
+
+// Obtains the number of valid enumerated values of a given standard or linear enum class.
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT),
+	std::enable_if_t<std::is_same_v<get_enum_category_t<EnumT>, enum_standard> ||
+		std::is_same_v<get_enum_category_t<EnumT>, enum_linear>, int> = 0>
+constexpr std::size_t enum_count() noexcept {
+	return static_cast<std::size_t>(enum_max<EnumT>()) - static_cast<std::size_t>(enum_min<EnumT>()) + 1u;
+}
+
+
+
+namespace details {
+
+template <typename EnumT>
+struct linear_enum_range {
+	struct sentinel_t { };
+
+	struct iterator {
+		using iterator_category = std::input_iterator_tag;
+		using difference_type = std::ptrdiff_t;
+		using value_type = EnumT;
+		using reference = value_type;
+		using pointer = const value_type *;
+
+		constexpr reference operator*() const noexcept {
+			return enum_cast<EnumT>(val_);
+		}
+
+		constexpr iterator &operator++() noexcept {
+			++val_;
+			return *this;
+		}
+		constexpr iterator operator++(int) const noexcept {
+			iterator it = *this;
+			++*this;
+			return it;
+		}
+
+		constexpr bool operator==(const iterator &other) const noexcept {
+			return val_ == other.val_;
+		}
+		constexpr bool operator!=(const iterator &other) const noexcept {
+			return val_ != other.val_;
+		}
+
+		constexpr bool operator!=(sentinel_t) const noexcept {
+			return val_ <= value_cast(enum_max<EnumT>());
+		}
+
+	private:
+		std::underlying_type_t<EnumT> val_ = value_cast(enum_min<EnumT>());
+	};
+
+	constexpr iterator begin() const noexcept {
+		return { };
+	}
+	constexpr sentinel_t end() const noexcept {
+		return { };
+	}
+};
+
+} // namespace details
+
+// Returns a range expression which iterates over all valid values of a given
+// standard or linear enum class. Both EnumT::min and EnumT::max must be given,
+// since otherwise underflow or overflow issues might arise.
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_standard),
+	std::enable_if_t<details::enum_has_min_member<EnumT>::value, int> = 0,
+	std::enable_if_t<details::enum_has_max_member<EnumT>::value, int> = 0>
+constexpr details::linear_enum_range<EnumT> enum_values() noexcept {
+	return { };
+}
+
+// Returns a range expression which iterates over all valid values of a given
+// standard or linear enum class. Both EnumT::min and EnumT::max must be given,
+// since otherwise underflow or overflow issues might arise.
+template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(EnumT, enum_linear),
+	std::enable_if_t<details::enum_has_min_member<EnumT>::value, int> = 0,
+	std::enable_if_t<details::enum_has_max_member<EnumT>::value, int> = 0>
+constexpr details::linear_enum_range<EnumT> enum_values() noexcept {
+	return { };
+}

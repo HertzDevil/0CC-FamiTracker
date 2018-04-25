@@ -101,7 +101,7 @@ void CSwapDlg::CheckDestination() const
 	auto *pSCS = Env.GetSoundChipService();
 
 	GetDlgItem(IDOK)->EnableWindow(
-		m_iDestChip1 != sound_chip_t::NONE && m_iDestChip2 != sound_chip_t::NONE &&
+		m_iDestChip1 != sound_chip_t::none && m_iDestChip2 != sound_chip_t::none &&
 		m_iDestChannel1 < pSCS->GetSupportedChannelCount(m_iDestChip1) &&
 		m_iDestChannel2 < pSCS->GetSupportedChannelCount(m_iDestChip2) &&
 		(m_iDestChannel1 != m_iDestChannel2 || m_iDestChip1 != m_iDestChip2));

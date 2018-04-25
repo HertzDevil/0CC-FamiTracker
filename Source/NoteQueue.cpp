@@ -179,7 +179,7 @@ void CNoteQueue::ClearMaps()
 stChannelID CNoteQueue::Trigger(int Note, stChannelID Channel)
 {
 	if (auto it = m_Part.find(Channel); it != m_Part.end())
-		if (auto ret = it->second->Trigger(Note, Channel); ret.Chip != sound_chip_t::NONE)
+		if (auto ret = it->second->Trigger(Note, Channel); ret.Chip != sound_chip_t::none)
 			return ret;
 	return { };
 }
@@ -187,7 +187,7 @@ stChannelID CNoteQueue::Trigger(int Note, stChannelID Channel)
 stChannelID CNoteQueue::Release(int Note, stChannelID Channel)
 {
 	for (const auto &it : m_Part)
-		if (auto ret = it.second->Release(Note, Channel); ret.Chip != sound_chip_t::NONE)
+		if (auto ret = it.second->Release(Note, Channel); ret.Chip != sound_chip_t::none)
 			return ret;
 	return { };
 }
@@ -195,7 +195,7 @@ stChannelID CNoteQueue::Release(int Note, stChannelID Channel)
 stChannelID CNoteQueue::Cut(int Note, stChannelID Channel)
 {
 	for (const auto &it : m_Part)
-		if (auto ret = it.second->Cut(Note, Channel); ret.Chip != sound_chip_t::NONE)
+		if (auto ret = it.second->Cut(Note, Channel); ret.Chip != sound_chip_t::none)
 			return ret;
 	return { };
 }

@@ -50,7 +50,7 @@ concept ViewLike = requires (T x) {
 } // namespace details
 
 #define REQUIRES_ViewLike(T, ValT) \
-	std::enable_if_t<details::is_view_like<T, ValT>::value, int> = 0
+	, std::enable_if_t<details::is_view_like<T, ValT>::value, int> = 0
 
 template <typename T>
 class array_view {
@@ -76,7 +76,7 @@ public:
 		std::enable_if_t<std::is_convertible_v<ValT *, const value_type *>, int> = 0>
 	constexpr array_view(const ValT (&data)[N]) noexcept :
 		data_(data), size_(N) { }
-	template <typename U, REQUIRES_ViewLike(U, value_type)>
+	template <typename U REQUIRES_ViewLike(U, value_type)>
 	constexpr array_view(const U &arr) noexcept :
 		data_(arr.data()), size_(arr.size()) { }
 
@@ -180,7 +180,7 @@ public:
 			*dest++ = data_[pos++];
 		return count;
 	}
-	template <typename U, REQUIRES_ViewLike(U, value_type)>
+	template <typename U REQUIRES_ViewLike(U, value_type)>
 	size_type copy(U &dest, size_type pos = 0) const {
 		return copy(dest.data(), dest.size(), pos);
 	}
@@ -247,27 +247,27 @@ constexpr bool operator>=(const array_view<T> &lhs, const array_view<T> &rhs) {
 	return lhs.compare(rhs) >= 0;
 }
 
-template <typename T, typename ValT, REQUIRES_ViewLike(ValT, T)>
+template <typename T, typename ValT REQUIRES_ViewLike(ValT, T)>
 constexpr bool operator==(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs == array_view<T> {rhs};
 }
-template <typename T, typename ValT, REQUIRES_ViewLike(ValT, T)>
+template <typename T, typename ValT REQUIRES_ViewLike(ValT, T)>
 constexpr bool operator!=(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs != array_view<T> {rhs};
 }
-template <typename T, typename ValT, REQUIRES_ViewLike(ValT, T)>
+template <typename T, typename ValT REQUIRES_ViewLike(ValT, T)>
 constexpr bool operator<(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs < array_view<T> {rhs};
 }
-template <typename T, typename ValT, REQUIRES_ViewLike(ValT, T)>
+template <typename T, typename ValT REQUIRES_ViewLike(ValT, T)>
 constexpr bool operator>(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs > array_view<T> {rhs};
 }
-template <typename T, typename ValT, REQUIRES_ViewLike(ValT, T)>
+template <typename T, typename ValT REQUIRES_ViewLike(ValT, T)>
 constexpr bool operator<=(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs <= array_view<T> {rhs};
 }
-template <typename T, typename ValT, REQUIRES_ViewLike(ValT, T)>
+template <typename T, typename ValT REQUIRES_ViewLike(ValT, T)>
 constexpr bool operator>=(const array_view<T> &lhs, const ValT &rhs) {
 	return lhs >= array_view<T> {rhs};
 }

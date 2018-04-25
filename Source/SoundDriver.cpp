@@ -102,14 +102,14 @@ std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(CSoundChipSet chips, u
 }
 
 CChannelHandler *CSoundDriver::GetChannelHandler(stChannelID chan) const {
-	if (chan.Chip != sound_chip_t::NONE)
+	if (chan.Chip != sound_chip_t::none)
 		if (auto it = tracks_.find(chan); it != tracks_.end())
 			return it->second.first;
 	return nullptr;
 }
 
 CTrackerChannel *CSoundDriver::GetTrackerChannel(stChannelID chan) {
-	if (chan.Chip != sound_chip_t::NONE)
+	if (chan.Chip != sound_chip_t::none)
 		if (auto it = tracks_.find(chan); it != tracks_.end())
 			return it->second.second.get();
 	return nullptr;

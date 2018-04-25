@@ -2799,7 +2799,7 @@ void CFamiTrackerView::SplitKeyboardAdjust(stChanNote &Note, stChannelID Channel
 
 stChannelID CFamiTrackerView::SplitAdjustChannel(stChannelID Channel, const stChanNote &Note) const		// // //
 {
-	if (!m_bEditEnable && m_iSplitChannel.Chip != sound_chip_t::NONE)
+	if (!m_bEditEnable && m_iSplitChannel.Chip != sound_chip_t::none)
 		if (m_iSplitNote != -1 && MIDI_NOTE(Note.Octave, Note.Note) <= m_iSplitNote)
 			if (GetSongView()->GetChannelOrder().HasChannel(m_iSplitChannel))
 				return m_iSplitChannel;
@@ -3105,7 +3105,7 @@ void CFamiTrackerView::TranslateMidiMessage()
 
 void CFamiTrackerView::OnTrackerToggleChannel()
 {
-	if (m_iMenuChannel.Chip == sound_chip_t::NONE)
+	if (m_iMenuChannel.Chip == sound_chip_t::none)
 		m_iMenuChannel = GetSelectedChannelID();
 
 	ToggleChannel(m_iMenuChannel);
@@ -3115,7 +3115,7 @@ void CFamiTrackerView::OnTrackerToggleChannel()
 
 void CFamiTrackerView::OnTrackerSoloChannel()
 {
-	if (m_iMenuChannel.Chip == sound_chip_t::NONE)
+	if (m_iMenuChannel.Chip == sound_chip_t::none)
 		m_iMenuChannel = GetSelectedChannelID();
 
 	SoloChannel(m_iMenuChannel);
@@ -3125,7 +3125,7 @@ void CFamiTrackerView::OnTrackerSoloChannel()
 
 void CFamiTrackerView::OnTrackerToggleChip()		// // //
 {
-	if (m_iMenuChannel.Chip == sound_chip_t::NONE)
+	if (m_iMenuChannel.Chip == sound_chip_t::none)
 		m_iMenuChannel = GetSelectedChannelID();
 
 	ToggleChip(m_iMenuChannel);
@@ -3135,7 +3135,7 @@ void CFamiTrackerView::OnTrackerToggleChip()		// // //
 
 void CFamiTrackerView::OnTrackerSoloChip()		// // //
 {
-	if (m_iMenuChannel.Chip == sound_chip_t::NONE)
+	if (m_iMenuChannel.Chip == sound_chip_t::none)
 		m_iMenuChannel = GetSelectedChannelID();
 
 	SoloChip(m_iMenuChannel);
@@ -3150,7 +3150,7 @@ void CFamiTrackerView::OnTrackerUnmuteAllChannels()
 
 void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 {
-	if (m_iMenuChannel.Chip == sound_chip_t::NONE)
+	if (m_iMenuChannel.Chip == sound_chip_t::none)
 		m_iMenuChannel = GetSelectedChannelID();
 
 	CInstrumentManager *pManager = GetModuleData()->GetInstrumentManager();

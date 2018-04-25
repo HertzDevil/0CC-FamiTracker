@@ -830,7 +830,7 @@ bool CCompiler::CompileData()
 	CSoundChipSet Chip = m_pModule->GetSoundChipSet();
 	if (!Chip.IsMultiChip())
 		switch (Chip.WithoutChip(sound_chip_t::APU).GetSoundChip()) {
-		case sound_chip_t::NONE:
+		case sound_chip_t::none:
 			m_pDriverData = &DRIVER_PACK_2A03;
 			m_iVibratoTableLocation = VIBRATO_TABLE_LOCATION_2A03;
 			Print(" * No expansion chip\n");
