@@ -117,14 +117,14 @@ bool CInstrumentManager::DeepCloneInstrument(unsigned OldIndex, unsigned NewInde
 	if (CloneInstrument(OldIndex, NewIndex)) {
 		if (auto pInstrument = std::dynamic_pointer_cast<CSeqInstrument>(GetInstrument(NewIndex))) {
 			const inst_type_t it = pInstrument->GetType();
-			foreachSeq([&] (sequence_t i) {
+			for (auto i : enum_values<sequence_t>()) {
 				int freeSeq = GetFreeSequenceIndex(it, i, pInstrument.get());
 				if (freeSeq != -1) {
 					if (pInstrument->GetSeqEnable(i))
 						*GetSequence(it, i, unsigned(freeSeq)) = *pInstrument->GetSequence(i);		// // //
 					pInstrument->SetSeqIndex(i, freeSeq);
 				}
-			});
+			}
 		}
 		return true;
 	}
@@ -199,9 +199,8 @@ int CInstrumentManager::GetSequenceCount(inst_type_t InstType, sequence_t Type) 
 
 int CInstrumentManager::GetTotalSequenceCount(inst_type_t InstType) const {
 	int Count = 0;
-	foreachSeq([&] (sequence_t i) {
+	for (auto i : enum_values<sequence_t>())
 		Count += GetSequenceCount(InstType, i);
-	});
 	return Count;
 }
 

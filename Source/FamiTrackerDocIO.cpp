@@ -664,23 +664,21 @@ void CFamiTrackerDocIO::LoadSequences(CFamiTrackerModule &modfile, int ver) {
 		if (ver == 5) {
 			// ver 5 saved the release points incorrectly, this is fixed in ver 6
 			for (unsigned int i = 0; i < MAX_SEQUENCES; ++i) {
-				foreachSeq([&] (sequence_t j) {
-					try {
-						int ReleasePoint = file_.GetBlockInt();
-						int Settings = file_.GetBlockInt();
-						auto pSeq = pManager->GetCollection(j)->GetSequence(i);
-						int Length = pSeq->GetItemCount();
-						if (Length > 0) {
-							pSeq->SetReleasePoint(AssertRange<MODULE_ERROR_STRICT>(
-								ReleasePoint, -1, Length - 1, "Sequence release point"));
-							pSeq->SetSetting(static_cast<seq_setting_t>(Settings));		// // //
-						}
+				for (auto j : enum_values<sequence_t>()) try {
+					int ReleasePoint = file_.GetBlockInt();
+					int Settings = file_.GetBlockInt();
+					auto pSeq = pManager->GetCollection(j)->GetSequence(i);
+					int Length = pSeq->GetItemCount();
+					if (Length > 0) {
+						pSeq->SetReleasePoint(AssertRange<MODULE_ERROR_STRICT>(
+							ReleasePoint, -1, Length - 1, "Sequence release point"));
+						pSeq->SetSetting(static_cast<seq_setting_t>(Settings));		// // //
 					}
-					catch (CModuleException &e) {
-						e.AppendError("At 2A03 " + std::string {CInstrument2A03::SEQUENCE_NAME[value_cast(j)]} +" sequence " + conv::from_int(i) + ',');
-						throw e;
-					}
-				});
+				}
+				catch (CModuleException &e) {
+					e.AppendError("At 2A03 " + std::string {CInstrument2A03::SEQUENCE_NAME[value_cast(j)]} +" sequence " + conv::from_int(i) + ',');
+					throw e;
+				}
 			}
 		}
 		else if (ver >= 6) {
@@ -1100,23 +1098,21 @@ void CFamiTrackerDocIO::LoadSequencesVRC6(CFamiTrackerModule &modfile, int ver) 
 	if (ver == 5) {
 		// Version 5 saved the release points incorrectly, this is fixed in ver 6
 		for (int i = 0; i < MAX_SEQUENCES; ++i) {
-			foreachSeq([&] (sequence_t j) {
-				try {
-					int ReleasePoint = file_.GetBlockInt();
-					int Settings = file_.GetBlockInt();
-					auto pSeq = pManager->GetCollection(j)->GetSequence(i);
-					int Length = pSeq->GetItemCount();
-					if (Length > 0) {
-						pSeq->SetReleasePoint(AssertRange<MODULE_ERROR_STRICT>(
-							ReleasePoint, -1, Length - 1, "Sequence release point"));
-						pSeq->SetSetting(static_cast<seq_setting_t>(Settings));		// // //
-					}
+			for (auto j : enum_values<sequence_t>()) try {
+				int ReleasePoint = file_.GetBlockInt();
+				int Settings = file_.GetBlockInt();
+				auto pSeq = pManager->GetCollection(j)->GetSequence(i);
+				int Length = pSeq->GetItemCount();
+				if (Length > 0) {
+					pSeq->SetReleasePoint(AssertRange<MODULE_ERROR_STRICT>(
+						ReleasePoint, -1, Length - 1, "Sequence release point"));
+					pSeq->SetSetting(static_cast<seq_setting_t>(Settings));		// // //
 				}
-				catch (CModuleException &e) {
-					e.AppendError("At VRC6 " + std::string {CInstrumentVRC6::SEQUENCE_NAME[value_cast(j)]} + " sequence " + conv::from_int(i) + ',');
-					throw e;
-				}
-			});
+			}
+			catch (CModuleException &e) {
+				e.AppendError("At VRC6 " + std::string {CInstrumentVRC6::SEQUENCE_NAME[value_cast(j)]} + " sequence " + conv::from_int(i) + ',');
+				throw e;
+			}
 		}
 	}
 	else if (ver >= 6) {

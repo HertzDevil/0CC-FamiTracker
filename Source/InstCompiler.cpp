@@ -46,20 +46,17 @@ int CInstCompilerSeq::CompileChunk(const CInstrument &inst_, CChunk &chunk, unsi
 	}
 
 	int ModSwitch = 0;
-	foreachSeq([&] (sequence_t i) {
-		const auto pSequence = inst.GetSequence(i);
-		if (inst.GetSeqEnable(i) && pSequence && pSequence->GetItemCount() > 0)
+	for (auto i : enum_values<sequence_t>())
+		if (const auto pSequence = inst.GetSequence(i); inst.GetSeqEnable(i) && pSequence && pSequence->GetItemCount() > 0)
 			ModSwitch |= 1 << value_cast(i);
-	});
 	chunk.StoreByte(ModSwitch);
 	StoredBytes += 2;
 
-	foreachSeq([&] (sequence_t i) {
+	for (auto i : enum_values<sequence_t>())
 		if (inst.GetSeqEnable(i)) {
 			chunk.StorePointer({CHUNK_SEQUENCE, inst.GetSeqIndex(i) * SEQ_COUNT + value_cast(i), (unsigned)Type});		// // //
 			StoredBytes += 2;
 		}
-	});
 
 	return StoredBytes;
 }
@@ -95,13 +92,11 @@ int CInstCompilerFDS::CompileChunk(const CInstrument &inst_, CChunk &chunk, unsi
 	// Store sequences
 	char Switch = 0;		// // //
 	int size = FIXED_FDS_INST_SIZE;
-	foreachSeq([&] (sequence_t i) {
-		const auto pSequence = inst.GetSequence(i);
-		if (inst.GetSeqEnable(i) && pSequence && pSequence->GetItemCount() > 0) {
+	for (auto i : enum_values<sequence_t>())
+		if (const auto pSequence = inst.GetSequence(i); inst.GetSeqEnable(i) && pSequence && pSequence->GetItemCount() > 0) {
 			Switch |= 1 << value_cast(i);
 			size += 2;
 		}
-	});
 	chunk.StoreByte(Switch);
 
 	for (unsigned i = 0; i < CInstrumentFDS::SEQUENCE_COUNT; ++i)

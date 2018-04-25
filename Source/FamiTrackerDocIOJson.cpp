@@ -320,7 +320,7 @@ void to_json(json &j, const CFamiTrackerModule &modfile) {
 	const auto InsertSequences = [&] (inst_type_t inst_type) {
 		const CSequenceManager &smanager = *modfile.GetInstrumentManager()->GetSequenceManager(inst_type);
 		auto name = std::string {GetChipName(inst_type)};
-		foreachSeq([&] (sequence_t t) {
+		for (auto t : enum_values<sequence_t>())
 			if (const auto *seqcol = smanager.GetCollection(t))
 				for (unsigned i = 0; i < MAX_SEQUENCES; ++i)
 					if (auto pSeq = seqcol->GetSequence(i)) {
@@ -330,7 +330,6 @@ void to_json(json &j, const CFamiTrackerModule &modfile) {
 						sj["index"] = i;
 						j["sequences"].push_back(std::move(sj));
 					}
-		});
 	};
 
 	InsertSequences(INST_2A03);
@@ -394,13 +393,12 @@ void to_json(json &j, const CInstrument &inst) {
 
 void to_json(json &j, const CSeqInstrument &inst) {
 	j["sequence_flags"] = json::array();
-	foreachSeq([&] (sequence_t t) {
+	for (auto t : enum_values<sequence_t>())
 		if (inst.GetSeqEnable(t))
 			j["sequence_flags"].push_back(json {
 				{"macro_id", value_cast(t)},
 				{"seq_index", inst.GetSeqIndex(t)},
 			});
-	});
 }
 
 void to_json(json &j, const CInstrument2A03 &inst) {

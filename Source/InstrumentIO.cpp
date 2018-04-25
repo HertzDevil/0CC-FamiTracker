@@ -126,12 +126,12 @@ void CInstrumentIOSeq::ReadFromModule(CInstrument &inst_, CDocumentFile &file) c
 
 	AssertRange(file.GetBlockInt(), 0, (int)SEQ_COUNT, "Instrument sequence count"); // unused right now
 
-	foreachSeq([&] (sequence_t i) {
+	for (auto i : enum_values<sequence_t>()) {
 		inst.SetSeqEnable(i, 0 != AssertRange<MODULE_ERROR_STRICT>(
 			file.GetBlockChar(), 0, 1, "Instrument sequence enable flag"));
 		int Index = static_cast<unsigned char>(file.GetBlockChar());
 		inst.SetSeqIndex(i, AssertRange(Index, 0, MAX_SEQUENCES - 1, "Instrument sequence index"));
-	});
+	}
 }
 
 void CInstrumentIOSeq::DoWriteToFTI(const CInstrument &inst_, CSimpleFile &file) const {
@@ -140,7 +140,7 @@ void CInstrumentIOSeq::DoWriteToFTI(const CInstrument &inst_, CSimpleFile &file)
 	int seqCount = inst.GetSeqCount();
 	file.WriteInt8(static_cast<char>(seqCount));
 
-	foreachSeq([&] (sequence_t i) {
+	for (auto i : enum_values<sequence_t>()) {
 		if (inst.GetSeqEnable(i)) {
 			auto pSeq = inst.GetSequence(i);
 			file.WriteInt8(1);
@@ -152,10 +152,9 @@ void CInstrumentIOSeq::DoWriteToFTI(const CInstrument &inst_, CSimpleFile &file)
 				file.WriteInt8(pSeq->GetItem(j));
 			}
 		}
-		else {
+		else
 			file.WriteInt8(0);
-		}
-	});
+	}
 }
 
 void CInstrumentIOSeq::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int fti_ver) const {
@@ -167,12 +166,12 @@ void CInstrumentIOSeq::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int 
 	AssertRange(file.ReadInt8(), 0, (int)SEQ_COUNT, "Sequence count"); // unused right now
 
 	// Loop through all instrument effects
-	foreachSeq([&] (sequence_t i) {
+	for (auto i : enum_values<sequence_t>()) {
 		try {
 			if (file.ReadInt8() != 1) {
 				inst.SetSeqEnable(i, false);
 				inst.SetSeqIndex(i, 0);
-				return;
+				continue;
 			}
 			inst.SetSeqEnable(i, true);
 
@@ -213,7 +212,7 @@ void CInstrumentIOSeq::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int 
 			e.AppendError("At " + std::string {inst.GetSequenceName(value_cast(i))} + " sequence,");
 			throw e;
 		}
-	});
+	}
 }
 
 

@@ -709,11 +709,11 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 			int inst_index = t.ReadInt(0, MAX_INSTRUMENTS - 1);		// // //
 			auto pInst = Env.GetInstrumentService()->Make(Type);
 			auto seqInst = static_cast<CSeqInstrument *>(pInst.get());
-			foreachSeq([&] (sequence_t s) {
+			for (auto s : enum_values<sequence_t>()) {
 				int seqindex = t.ReadInt(-1, MAX_SEQUENCES - 1);
 				seqInst->SetSeqEnable(s, seqindex != -1);
 				seqInst->SetSeqIndex(s, seqindex != -1 ? seqindex : 0);
-			});
+			}
 			if (c == CT_INSTN163) {
 				auto pInstN163 = static_cast<CInstrumentN163*>(seqInst);
 				pInstN163->SetWaveSize(t.ReadInt(0, 256 - 16 * N163count));		// // //
@@ -1016,7 +1016,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	const auto &InstManager = *modfile.GetInstrumentManager();
 	const inst_type_t CHIP_MACRO[4] = { INST_2A03, INST_VRC6, INST_N163, INST_S5B };
 	for (int c=0; c<4; ++c) {
-		foreachSeq([&] (sequence_t st) {
+		for (auto st : enum_values<sequence_t>()) {
 			for (int seq = 0; seq < MAX_SEQUENCES; ++seq) {
 				const auto pSequence = InstManager.GetSequence(CHIP_MACRO[c], st, seq);
 				if (pSequence && pSequence->GetItemCount() > 0) {
@@ -1032,7 +1032,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 					WriteString("\n");
 				}
 			}
-		});
+		}
 	}
 	WriteString("\n");
 
@@ -1115,9 +1115,8 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 		if (auto seqInst = std::dynamic_pointer_cast<CSeqInstrument>(pInst)) {
 			if (seqInst->GetType() != INST_FDS) {
 				CStringA s;
-				foreachSeq([&] (sequence_t j) {
+				for (auto j : enum_values<sequence_t>())
 					AppendFormatA(s, "%3d ", seqInst->GetSeqEnable(j) ? seqInst->GetSeqIndex(j) : -1);
-				});
 				WriteString(s);
 			}
 		}
@@ -1205,10 +1204,10 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 				}
 				WriteString("\n");
 
-				foreachSeq([&] (sequence_t seq) {
+				for (auto seq : enum_values<sequence_t>()) {
 					const auto pSequence = pDI->GetSequence(seq);		// // //
 					if (!pSequence || pSequence->GetItemCount() < 1)
-						return;
+						continue;
 
 					WriteString(FormattedA("%-8s %3d %3d %3d %3d %3d :",
 						CT[CT_FDSMACRO],
@@ -1220,7 +1219,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 					for (unsigned int j=0; j < pSequence->GetItemCount(); ++j)
 						WriteString(FormattedA(" %d", pSequence->GetItem(j)));
 					WriteString("\n");
-				});
+				}
 			}
 			break;
 		}

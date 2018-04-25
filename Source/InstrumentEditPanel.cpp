@@ -216,13 +216,13 @@ void CSequenceInstrumentEditPanel::SetupDialog(const LPCSTR *pListItems)		// // 
 	pList->InsertColumn(2, L"Effect name", LVCFMT_LEFT, static_cast<int>(.6 * Width));
 	pList->SendMessageW(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
 
-	foreachSeq([&] (sequence_t i) {
+	for (auto i : enum_values<sequence_t>()) {
 		int nItem = value_cast(i);
 		pList->InsertItem(nItem, L"", 0);
 		pList->SetCheck(nItem, 0);
 		pList->SetItemText(nItem, 1, L"0");
 		pList->SetItemText(nItem, 2, conv::to_wide(pListItems[nItem]).data());
-	});
+	}
 
 	pList->SetItemState(value_cast(m_iSelectedSetting), LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 

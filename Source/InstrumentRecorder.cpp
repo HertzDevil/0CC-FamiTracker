@@ -42,9 +42,8 @@ CInstrumentRecorder::CInstrumentRecorder(CSoundGen *pSG) :
 	m_stRecordSetting.Interval = MAX_SEQUENCE_ITEMS;
 	m_stRecordSetting.InstCount = 1;
 	m_stRecordSetting.Reset = true;
-	foreachSeq([&] (sequence_t i) {
+	for (auto i : enum_values<sequence_t>())
 		m_pSequenceCache[i] = std::make_shared<CSequence>(i);
-	});
 	ResetRecordCache();
 }
 
@@ -143,7 +142,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 
 	switch (InstType) {
 	case INST_2A03: case INST_VRC6: case INST_N163: case INST_S5B:
-		foreachSeq([&] (sequence_t s) {
+		for (auto s : enum_values<sequence_t>()) {
 			switch (s) {
 			case sequence_t::Volume:
 				switch (m_iRecordChannel.Chip) {
@@ -212,19 +211,19 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 			}
 			m_pSequenceCache[s]->SetItemCount(Pos + 1);
 			m_pSequenceCache[s]->SetItem(Pos, Val);
-		});
+		}
 		break;
 	case INST_FDS:
-		foreachSeq([&] (sequence_t k) {
+		for (auto k : enum_values<sequence_t>()) {
 			switch (k) {
 			case sequence_t::Volume: Val = 0x3F & REG(0x4080); if (Val > 0x20) Val = 0x20; break;
 			case sequence_t::Arpeggio: Val = static_cast<char>(Note); break;
 			case sequence_t::Pitch: Val = static_cast<char>(Detune); break;
-			default: return;
+			default: continue;
 			}
 			m_pSequenceCache[k]->SetItemCount(Pos + 1);
 			m_pSequenceCache[k]->SetItem(Pos, Val);
-		});
+		}
 	}
 
 	if (!(Tick % Intv))
@@ -288,9 +287,8 @@ void CInstrumentRecorder::ResetRecordCache()
 	for (auto &x : m_pDumpCache)
 		x.reset();
 	m_pDumpInstrument = &m_pDumpCache[0];
-	foreachSeq([&] (sequence_t i) {
+	for (auto i : enum_values<sequence_t>())
 		m_pSequenceCache[i]->Clear();
-	});
 }
 
 void CInstrumentRecorder::ReleaseCurrent()
@@ -328,10 +326,10 @@ void CInstrumentRecorder::InitRecordInstrument()
 		return;
 	}
 	if (auto Inst = dynamic_cast<CSeqInstrument *>(m_pDumpInstrument->get())) {
-		foreachSeq([&] (sequence_t i) {
+		for (auto i : enum_values<sequence_t>()) {
 			Inst->SetSeqEnable(i, 1);
 			Inst->SetSeqIndex(i, m_pModule->GetInstrumentManager()->GetFreeSequenceIndex(Type, i, nullptr));
-		});
+		}
 		m_pSequenceCache[sequence_t::Arpeggio]->SetSetting(SETTING_ARP_FIXED);
 		// m_pSequenceCache[sequence_t::Pitch]->SetSetting(SETTING_PITCH_ABSOLUTE);
 		// m_pSequenceCache[sequence_t::HiPitch]->SetSetting(SETTING_PITCH_ABSOLUTE);
@@ -352,13 +350,13 @@ void CInstrumentRecorder::FinalizeRecordInstrument()
 	CInstrumentN163 *N163Inst = dynamic_cast<CInstrumentN163 *>(m_pDumpInstrument->get());
 	if (Inst != NULL) {
 		(*m_pDumpInstrument)->RegisterManager(m_pModule->GetInstrumentManager());
-		foreachSeq([&] (sequence_t i) {
+		for (auto i : enum_values<sequence_t>()) {
 			if (Inst->GetSeqEnable(i) != 0) {
 				m_pSequenceCache[i]->SetLoopPoint(m_pSequenceCache[i]->GetItemCount() - 1);
 				Inst->SetSequence(i, m_pSequenceCache[i]);
 			}
 			m_pSequenceCache[i] = std::make_shared<CSequence>(i);
-		});
+		}
 	}
 	switch (InstType) {
 	case INST_FDS:

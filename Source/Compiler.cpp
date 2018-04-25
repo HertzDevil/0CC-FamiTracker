@@ -990,10 +990,9 @@ void CCompiler::ScanSong()
 			inst_type_t it = Im.GetInstrumentType(i);		// // //
 			for (size_t z = 0; z < std::size(used); ++z) if (it == INST[z]) {
 				auto pInstrument = static_cast<const CSeqInstrument *>(&inst);
-				foreachSeq([&] (sequence_t j) {
+				for (auto j : enum_values<sequence_t>())
 					if (pInstrument->GetSeqEnable(j))
 						(*used[z])[pInstrument->GetSeqIndex(j)][(unsigned)j] = true;
-				});
 				break;
 			}
 		}
@@ -1073,25 +1072,25 @@ void CCompiler::CreateSequenceList()
 	// TODO: use the CSeqInstrument::GetSequence
 	// TODO: merge identical sequences from all chips
 	for (size_t c = 0; c < std::size(inst); ++c) {
-		for (int i = 0; i < MAX_SEQUENCES; ++i) foreachSeq([&] (sequence_t j) {
+		for (int i = 0; i < MAX_SEQUENCES; ++i) for (auto j : enum_values<sequence_t>()) {
 			const auto pSeq = Im.GetSequence(inst[c], j, i);
 			if ((*used[c])[i][(unsigned)j] && pSeq->GetItemCount() > 0) {
 				Size += StoreSequence(*pSeq, {CHUNK_SEQUENCE, i * SEQ_COUNT + (unsigned)j, (unsigned)inst[c]});
 				++StoredCount;
 			}
-		});
+		}
 	}
 
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
 		if (auto pInstrument = std::dynamic_pointer_cast<CInstrumentFDS>(Im.GetInstrument(i))) {
-			foreachSeq([&] (sequence_t j) {
+			for (auto j : enum_values<sequence_t>()) {
 				const auto pSeq = pInstrument->GetSequence(j);		// // //
 				if (pSeq && pSeq->GetItemCount() > 0) {
 					unsigned Index = i * SEQ_COUNT + (unsigned)j;
 					Size += StoreSequence(*pSeq, {CHUNK_SEQUENCE, Index, INST_FDS});		// // //
 					++StoredCount;
 				}
-			});
+			}
 		}
 	}
 

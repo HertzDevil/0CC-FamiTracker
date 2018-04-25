@@ -431,7 +431,7 @@ void CFamiTrackerModule::RemoveUnusedInstruments() {
 
 	// Also remove unused sequences
 	for (unsigned int i = 0; i < MAX_SEQUENCES; ++i)
-		foreachSeq([&] (sequence_t j) {		// // //
+		for (auto j : enum_values<sequence_t>())		// // //
 			for (auto c : inst)
 				if (auto pSeq = pManager->GetSequence(c, j, i); pSeq && pSeq->GetItemCount() > 0) {		// // //
 					bool Used = false;
@@ -446,7 +446,6 @@ void CFamiTrackerModule::RemoveUnusedInstruments() {
 					if (!Used)
 						pSeq->Clear();		// // //
 				}
-	});
 }
 
 void CFamiTrackerModule::RemoveUnusedDSamples() {

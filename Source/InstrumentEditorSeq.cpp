@@ -60,10 +60,10 @@ void CInstrumentEditorSeq::SelectInstrument(std::shared_ptr<CInstrument> pInst)
 	// Update instrument setting list
 	if (CListCtrl *pList = static_cast<CListCtrl*>(GetDlgItem(IDC_INSTSETTINGS))) {		// // //
 		pList->SetRedraw(FALSE);
-		foreachSeq([&] (sequence_t i) {
+		for (auto i : enum_values<sequence_t>()) {
 			pList->SetCheck(value_cast(i), m_pInstrument->GetSeqEnable(i));
 			pList->SetItemText(value_cast(i), 1, FormattedW(L"%i", m_pInstrument->GetSeqIndex(i)));
-		});
+		}
 		pList->SetRedraw();
 		pList->RedrawWindow();
 	}

@@ -126,10 +126,10 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 				OpenFile.ReadBytes(&ImportedInstruments, sizeof(ImportedInstruments));
 				if (ImportedInstruments.Free == false) {
 					auto pInst = std::make_unique<CInstrument2A03>();
-					foreachSeq([&] (sequence_t j) {
+					for (auto j : enum_values<sequence_t>()) {
 						pInst->SetSeqEnable(j, ImportedInstruments.ModEnable[value_cast(j)]);
 						pInst->SetSeqIndex(j, ImportedInstruments.ModIndex[value_cast(j)]);
-					});
+					}
 					pInst->SetName(ImportedInstruments.Name);
 
 					if (ImportedInstruments.AssignedSample > 0) {
@@ -259,7 +259,7 @@ void compat::ReorderSequences(CFamiTrackerModule &modfile, std::vector<COldSeque
 	// Organize sequences
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
 		if (auto pInst = std::dynamic_pointer_cast<CInstrument2A03>(Manager.GetInstrument(i))) {		// // //
-			foreachSeq([&] (sequence_t j) {
+			for (auto j : enum_values<sequence_t>()) {
 				auto s = value_cast(j);
 				if (pInst->GetSeqEnable(j)) {
 					int Index = pInst->GetSeqIndex(j);
@@ -281,7 +281,7 @@ void compat::ReorderSequences(CFamiTrackerModule &modfile, std::vector<COldSeque
 				}
 				else
 					pInst->SetSeqIndex(j, 0);
-			});
+			}
 		}
 	}
 }

@@ -3170,17 +3170,12 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 		case sound_chip_t::N163: Type = INST_N163; break;
 		case sound_chip_t::S5B:  Type = INST_S5B; break;
 		}
-		if (Type != INST_NONE) {
-			bool err = false;
-			foreachSeq([&] (sequence_t i) {
-				if (pManager->GetFreeSequenceIndex(Type, i, nullptr) == -1)
-					err = true;
-			});
-			if (err) {
-				AfxMessageBox(IDS_SEQUENCE_LIMIT, MB_ICONERROR);
-				return;
-			}
-		}
+		if (Type != INST_NONE)
+			for (auto i : enum_values<sequence_t>())
+				if (pManager->GetFreeSequenceIndex(Type, i, nullptr) == -1) {
+					AfxMessageBox(IDS_SEQUENCE_LIMIT, MB_ICONERROR);
+					return;
+				}
 	}
 
 	if (IsChannelMuted(GetSelectedChannelID()))

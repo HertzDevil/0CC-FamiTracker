@@ -70,16 +70,12 @@ bool CModuleImporter::Validate() const {
 	}
 
 	// Check sequence count
-	bool bOutOfSeq = false;
 	for (inst_type_t i : INST)
-		foreachSeq([&] (sequence_t t) {
-			if (pManager->GetSequenceCount(i, t) + pImportedInst->GetSequenceCount(i, t) > MAX_SEQUENCES)		// // //
-				bOutOfSeq = true;
-		});
-	if (bOutOfSeq) {
-		AfxMessageBox(IDS_IMPORT_SEQUENCE_COUNT, MB_ICONERROR);
-		return false;
-	}
+		for (auto t : enum_values<sequence_t>())
+			if (pManager->GetSequenceCount(i, t) + pImportedInst->GetSequenceCount(i, t) > MAX_SEQUENCES) {		// // //
+				AfxMessageBox(IDS_IMPORT_SEQUENCE_COUNT, MB_ICONERROR);
+				return false;
+			}
 
 	return true;
 }
@@ -105,7 +101,7 @@ void CModuleImporter::ImportInstruments() {
 	int seqTable[std::size(INST)][MAX_SEQUENCES][SEQ_COUNT] = { };
 	int SamplesTable[MAX_DSAMPLES] = { };
 
-	for (size_t i = 0; i < std::size(INST); ++i) foreachSeq([&] (sequence_t t) {
+	for (size_t i = 0; i < std::size(INST); ++i) for (auto t : enum_values<sequence_t>()) {
 		for (unsigned int s = 0; s < MAX_SEQUENCES; ++s)
 			if (auto pImportSeq = pImportedInst->GetSequence(INST[i], t, s); pImportSeq && pImportSeq->GetItemCount() > 0) {
 				for (unsigned j = 0; j < MAX_SEQUENCES; ++j) {
@@ -119,7 +115,7 @@ void CModuleImporter::ImportInstruments() {
 					break;
 				}
 			}
-	});
+	}
 
 	// Copy DPCM samples
 	for (int i = 0; i < MAX_DSAMPLES; ++i) {
@@ -137,7 +133,7 @@ void CModuleImporter::ImportInstruments() {
 
 		// Update references
 		if (auto pSeq = dynamic_cast<CSeqInstrument *>(pInst.get())) {
-			foreachSeq([&] (sequence_t t) {
+			for (auto t : enum_values<sequence_t>())
 				if (pSeq->GetSeqEnable(t)) {
 					for (size_t j = 0; j < std::size(INST); ++j)
 						if (INST[j] == pInst->GetType()) {
@@ -145,7 +141,6 @@ void CModuleImporter::ImportInstruments() {
 							break;
 						}
 				}
-			});
 			// Update DPCM samples
 			if (auto p2A03 = dynamic_cast<CInstrument2A03 *>(pSeq))
 				for (int n = 0; n < NOTE_COUNT; ++n)
