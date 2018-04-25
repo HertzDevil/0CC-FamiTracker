@@ -238,6 +238,9 @@
     <Filter Include="Header Files\Services Headers">
       <UniqueIdentifier>{e388b7db-733b-4b54-82ff-b5971cfe9931}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Utility Headers">
+      <UniqueIdentifier>{4823e3de-1bba-4ab6-b982-4c6c40dd99ad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Exception.cpp">
@@ -1319,9 +1322,6 @@
     <ClInclude Include="Source\SeqInstHandlerS5B.h">
       <Filter>Header Files\Sound Driver Headers\Instruments Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\IntRange.h">
-      <Filter>Header Files\Other Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\stdafx.h">
       <Filter>Header Files\Windows Headers</Filter>
     </ClInclude>
@@ -1439,9 +1439,6 @@
     <ClInclude Include="Source\Apu\SoundChip.h">
       <Filter>Header Files\Sound Driver Headers\Audio Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\NumConv.h">
-      <Filter>Header Files\Other Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\FrameEditorModel.h">
       <Filter>Header Files\Frame Editor Headers</Filter>
     </ClInclude>
@@ -1459,9 +1456,6 @@
     </ClInclude>
     <ClInclude Include="Source\InstCompiler.h">
       <Filter>Header Files\Export Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\sv_regex.h">
-      <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\FamiTrackerModule.h">
       <Filter>Header Files\Document Component Headers</Filter>
@@ -1484,26 +1478,11 @@
     <ClInclude Include="Source\FindDlg.h">
       <Filter>Header Files\Dialog Boxes Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\array_view.h">
-      <Filter>Header Files\Other Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\SongLengthScanner.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\ModuleImporter.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Assertion.h">
-      <Filter>Header Files\Other Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\str_conv\str_conv.hpp">
-      <Filter>Header Files\Other Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\str_conv\utf8_conv.hpp">
-      <Filter>Header Files\Other Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\json\json.hpp">
-      <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\NoteName.h">
       <Filter>Header Files\Other Headers</Filter>
@@ -1528,9 +1507,6 @@
     </ClInclude>
     <ClInclude Include="Source\APU\ext\FDSSound_new.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers\External</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\to_sv.h">
-      <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\InstrumentIO.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
@@ -1574,8 +1550,35 @@
     <ClInclude Include="Source\PeriodTables.h">
       <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Source\array_view.h">
+      <Filter>Header Files\Utility Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Assertion.h">
+      <Filter>Header Files\Utility Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\IntRange.h">
+      <Filter>Header Files\Utility Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\json\json.hpp">
+      <Filter>Header Files\Utility Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\NumConv.h">
+      <Filter>Header Files\Utility Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\str_conv\str_conv.hpp">
+      <Filter>Header Files\Utility Headers</Filter>
+    </ClInclude>
     <ClInclude Include="Source\StrongOrdering.h">
-      <Filter>Header Files\Other Headers</Filter>
+      <Filter>Header Files\Utility Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\sv_regex.h">
+      <Filter>Header Files\Utility Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\to_sv.h">
+      <Filter>Header Files\Utility Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\str_conv\utf8_conv.hpp">
+      <Filter>Header Files\Utility Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
