@@ -26,6 +26,7 @@
 #include <iterator>
 #include <limits>
 #include <type_traits>
+#include "StrongOrdering.h"
 
 namespace details {
 
@@ -199,6 +200,9 @@ public:
 		auto e1 = end();
 		auto e2 = other.end();
 
+		if (b1 == b2 && e1 == e2)
+			return 0;
+
 		while ((b1 != e1) && (b2 != e2)) {
 			if (*b1 < *b2)
 				return -1;
@@ -221,103 +225,82 @@ private:
 };
 
 template <typename T>
-constexpr bool operator==(const array_view<T> &lhs, const array_view<T> &rhs) {
-	return (lhs.data() == rhs.data() && lhs.size() == rhs.size()) ||
-		lhs.compare(rhs) == 0;
+struct IStrongOrderable<array_view<T>> : std::true_type { };
+
+#define REQUIRES_NotArrayViewOf(T, ValT) \
+	, std::enable_if_t<!std::is_same_v<std::remove_cv_t<std::remove_reference_t<T>>, array_view<ValT>>, int> = 0
+
+template <typename T, typename ValT REQUIRES_ViewLike(T, ValT) REQUIRES_NotArrayViewOf(T, ValT)>
+constexpr bool operator==(const array_view<ValT> &lhs, const T &rhs) {
+	return lhs == array_view<ValT> {rhs};
 }
-template <typename T>
-constexpr bool operator!=(const array_view<T> &lhs, const array_view<T> &rhs) {
-	return (lhs.data() != rhs.data() || lhs.size() != rhs.size()) &&
-		lhs.compare(rhs) != 0;
+template <typename T, typename ValT REQUIRES_ViewLike(T, ValT) REQUIRES_NotArrayViewOf(T, ValT)>
+constexpr bool operator!=(const array_view<ValT> &lhs, const T &rhs) {
+	return lhs != array_view<ValT> {rhs};
 }
-template <typename T>
-constexpr bool operator<(const array_view<T> &lhs, const array_view<T> &rhs) {
-	return lhs.compare(rhs) < 0;
+template <typename T, typename ValT REQUIRES_ViewLike(T, ValT) REQUIRES_NotArrayViewOf(T, ValT)>
+constexpr bool operator<(const array_view<ValT> &lhs, const T &rhs) {
+	return lhs < array_view<ValT> {rhs};
 }
-template <typename T>
-constexpr bool operator>(const array_view<T> &lhs, const array_view<T> &rhs) {
-	return lhs.compare(rhs) > 0;
+template <typename T, typename ValT REQUIRES_ViewLike(T, ValT) REQUIRES_NotArrayViewOf(T, ValT)>
+constexpr bool operator>(const array_view<ValT> &lhs, const T &rhs) {
+	return lhs > array_view<ValT> {rhs};
 }
-template <typename T>
-constexpr bool operator<=(const array_view<T> &lhs, const array_view<T> &rhs) {
-	return lhs.compare(rhs) <= 0;
+template <typename T, typename ValT REQUIRES_ViewLike(T, ValT) REQUIRES_NotArrayViewOf(T, ValT)>
+constexpr bool operator<=(const array_view<ValT> &lhs, const T &rhs) {
+	return lhs <= array_view<ValT> {rhs};
 }
-template <typename T>
-constexpr bool operator>=(const array_view<T> &lhs, const array_view<T> &rhs) {
-	return lhs.compare(rhs) >= 0;
+template <typename T, typename ValT REQUIRES_ViewLike(T, ValT) REQUIRES_NotArrayViewOf(T, ValT)>
+constexpr bool operator>=(const array_view<ValT> &lhs, const T &rhs) {
+	return lhs >= array_view<ValT> {rhs};
 }
 
-template <typename T, typename ValT REQUIRES_ViewLike(ValT, T)>
-constexpr bool operator==(const array_view<T> &lhs, const ValT &rhs) {
-	return lhs == array_view<T> {rhs};
+template <typename ValT, std::size_t N>
+constexpr bool operator==(const array_view<ValT> &lhs, const ValT (&rhs)[N]) {
+	return lhs == array_view<ValT> {rhs};
 }
-template <typename T, typename ValT REQUIRES_ViewLike(ValT, T)>
-constexpr bool operator!=(const array_view<T> &lhs, const ValT &rhs) {
-	return lhs != array_view<T> {rhs};
+template <typename ValT, std::size_t N>
+constexpr bool operator!=(const array_view<ValT> &lhs, const ValT (&rhs)[N]) {
+	return lhs != array_view<ValT> {rhs};
 }
-template <typename T, typename ValT REQUIRES_ViewLike(ValT, T)>
-constexpr bool operator<(const array_view<T> &lhs, const ValT &rhs) {
-	return lhs < array_view<T> {rhs};
+template <typename ValT, std::size_t N>
+constexpr bool operator<(const array_view<ValT> &lhs, const ValT (&rhs)[N]) {
+	return lhs < array_view<ValT> {rhs};
 }
-template <typename T, typename ValT REQUIRES_ViewLike(ValT, T)>
-constexpr bool operator>(const array_view<T> &lhs, const ValT &rhs) {
-	return lhs > array_view<T> {rhs};
+template <typename ValT, std::size_t N>
+constexpr bool operator>(const array_view<ValT> &lhs, const ValT (&rhs)[N]) {
+	return lhs > array_view<ValT> {rhs};
 }
-template <typename T, typename ValT REQUIRES_ViewLike(ValT, T)>
-constexpr bool operator<=(const array_view<T> &lhs, const ValT &rhs) {
-	return lhs <= array_view<T> {rhs};
+template <typename ValT, std::size_t N>
+constexpr bool operator<=(const array_view<ValT> &lhs, const ValT (&rhs)[N]) {
+	return lhs <= array_view<ValT> {rhs};
 }
-template <typename T, typename ValT REQUIRES_ViewLike(ValT, T)>
-constexpr bool operator>=(const array_view<T> &lhs, const ValT &rhs) {
-	return lhs >= array_view<T> {rhs};
-}
-
-template <typename T, std::size_t N>
-constexpr bool operator==(const array_view<T> &lhs, const T (&rhs)[N]) {
-	return lhs == array_view<T> {rhs};
-}
-template <typename T, std::size_t N>
-constexpr bool operator!=(const array_view<T> &lhs, const T (&rhs)[N]) {
-	return lhs != array_view<T> {rhs};
-}
-template <typename T, std::size_t N>
-constexpr bool operator<(const array_view<T> &lhs, const T (&rhs)[N]) {
-	return lhs < array_view<T> {rhs};
-}
-template <typename T, std::size_t N>
-constexpr bool operator>(const array_view<T> &lhs, const T (&rhs)[N]) {
-	return lhs > array_view<T> {rhs};
-}
-template <typename T, std::size_t N>
-constexpr bool operator<=(const array_view<T> &lhs, const T (&rhs)[N]) {
-	return lhs <= array_view<T> {rhs};
-}
-template <typename T, std::size_t N>
-constexpr bool operator>=(const array_view<T> &lhs, const T (&rhs)[N]) {
-	return lhs >= array_view<T> {rhs};
+template <typename ValT, std::size_t N>
+constexpr bool operator>=(const array_view<ValT> &lhs, const ValT (&rhs)[N]) {
+	return lhs >= array_view<ValT> {rhs};
 }
 
-template <typename T, typename ValT>
+template <typename T, typename ValT REQUIRES_NotArrayViewOf(T, ValT)>
 constexpr bool operator==(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs == lhs;
 }
-template <typename T, typename ValT>
+template <typename T, typename ValT REQUIRES_NotArrayViewOf(T, ValT)>
 constexpr bool operator!=(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs != lhs;
 }
-template <typename T, typename ValT>
+template <typename T, typename ValT REQUIRES_NotArrayViewOf(T, ValT)>
 constexpr bool operator<(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs > lhs;
 }
-template <typename T, typename ValT>
+template <typename T, typename ValT REQUIRES_NotArrayViewOf(T, ValT)>
 constexpr bool operator>(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs < lhs;
 }
-template <typename T, typename ValT>
+template <typename T, typename ValT REQUIRES_NotArrayViewOf(T, ValT)>
 constexpr bool operator<=(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs >= lhs;
 }
-template <typename T, typename ValT>
+template <typename T, typename ValT REQUIRES_NotArrayViewOf(T, ValT)>
 constexpr bool operator>=(const T &lhs, const array_view<ValT> &rhs) {
 	return rhs <= lhs;
 }

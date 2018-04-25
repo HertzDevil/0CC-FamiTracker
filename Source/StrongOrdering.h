@@ -33,6 +33,10 @@ namespace details {
 template <typename T>
 using compare_type = decltype(std::declval<T>().compare(std::declval<T>()));
 
+#define REQUIRES_StrongOrderable(T) \
+	, std::enable_if_t<IStrongOrderable<T>::value, int> = 0 \
+	, std::void_t<details::compare_type<T>> * = nullptr
+
 } // namespace details
 
 template <typename T>
@@ -42,54 +46,42 @@ struct IStrongOrderable : std::false_type { };
 	template <> \
 	struct IStrongOrderable<T> : std::true_type { }
 
-template <typename T,
-	typename = std::enable_if_t<IStrongOrderable<T>::value>,
-	typename = details::compare_type<T>>
+template <typename T REQUIRES_StrongOrderable(T)>
 constexpr bool operator==(const T &lhs, const T &rhs)
 	noexcept(noexcept(lhs.compare(rhs)))
 {
 	return lhs.compare(rhs) == 0;
 }
 
-template <typename T,
-	typename = std::enable_if_t<IStrongOrderable<T>::value>,
-	typename = details::compare_type<T>>
+template <typename T REQUIRES_StrongOrderable(T)>
 constexpr bool operator!=(const T &lhs, const T &rhs)
 	noexcept(noexcept(lhs.compare(rhs)))
 {
 	return lhs.compare(rhs) != 0;
 }
 
-template <typename T,
-	typename = std::enable_if_t<IStrongOrderable<T>::value>,
-	typename = details::compare_type<T>>
+template <typename T REQUIRES_StrongOrderable(T)>
 constexpr bool operator<(const T &lhs, const T &rhs)
 	noexcept(noexcept(lhs.compare(rhs)))
 {
 	return lhs.compare(rhs) < 0;
 }
 
-template <typename T,
-	typename = std::enable_if_t<IStrongOrderable<T>::value>,
-	typename = details::compare_type<T>>
+template <typename T REQUIRES_StrongOrderable(T)>
 constexpr bool operator<=(const T &lhs, const T &rhs)
 	noexcept(noexcept(lhs.compare(rhs)))
 {
 	return lhs.compare(rhs) <= 0;
 }
 
-template <typename T,
-	typename = std::enable_if_t<IStrongOrderable<T>::value>,
-	typename = details::compare_type<T>>
+template <typename T REQUIRES_StrongOrderable(T)>
 constexpr bool operator>(const T &lhs, const T &rhs)
 	noexcept(noexcept(lhs.compare(rhs)))
 {
 	return lhs.compare(rhs) > 0;
 }
 
-template <typename T,
-	typename = std::enable_if_t<IStrongOrderable<T>::value>,
-	typename = details::compare_type<T>>
+template <typename T REQUIRES_StrongOrderable(T)>
 constexpr bool operator>=(const T &lhs, const T &rhs)
 	noexcept(noexcept(lhs.compare(rhs)))
 {
