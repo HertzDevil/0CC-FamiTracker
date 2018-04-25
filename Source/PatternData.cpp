@@ -59,7 +59,21 @@ void CPatternData::SetNoteOn(unsigned row, const stChanNote &note) {
 }
 
 bool CPatternData::operator==(const CPatternData &other) const noexcept {
-	return (!data_ && !other.data_) || (data_ && other.data_ && *data_ == *other.data_);
+	if (!data_ && !other.data_)
+		return true;
+
+	const auto IsPatternBlank = [] (const elem_t &notes) {
+		for (const auto &n : notes)
+			if (n != stChanNote { })
+				return false;
+		return true;
+	};
+	if (!data_ && other.data_)
+		return IsPatternBlank(*other.data_);
+	if (data_ && !other.data_)
+		return IsPatternBlank(*data_);
+
+	return *data_ == *other.data_;
 }
 
 bool CPatternData::operator!=(const CPatternData &other) const noexcept {
