@@ -1,10 +1,5 @@
 # 0CC-FamiTracker
 
-Tests:
-[![Travis](https://travis-ci.org/HertzDevil/0CC-FamiTracker.svg?branch=master)](https://travis-ci.org/HertzDevil/0CC-FamiTracker)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/toh1nj7862mvjtja?svg=true)](https://ci.appveyor.com/project/HertzDevil/0cc-famitracker)
-[![Coveralls](https://coveralls.io/repos/github/HertzDevil/0CC-FamiTracker/badge.svg?branch=master)](https://coveralls.io/github/HertzDevil/0CC-FamiTracker?branch=master)
-
 0CC-FamiTracker is a modified version of FamiTracker that incorporates various bug fixes and new features which work in exported NSFs as well. The name "0CC" comes from the author's favourite arpeggio effect command. The current version includes:
 
 - Partial FamiTracker 0.5.0 beta support
@@ -43,8 +38,6 @@ The current build is based on the version 0.5.0 beta 5 release of the official F
   The download site for all versions of 0CC-Famitracker.
 - http://0cc-famitracker.tumblr.com/  
   The official development log of 0CC-FamiTracker.
-- http://hertzdevil.info/bug/main_page.php  
-  The official bug tracker for all of HertzDevil's programs.
 - http://github.com/HertzDevil/0CC-FamiTracker  
   The Git source repository for the tracker (this page).
 - http://github.com/HertzDevil/0CC-FT-NSF-Driver  
