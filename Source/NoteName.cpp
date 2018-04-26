@@ -49,13 +49,13 @@ std::string GetNoteString(note_t note, int octave) {
 	using namespace std::string_literals;
 
 	switch (note) {
-	case note_t::NONE:
+	case note_t::none:
 		return "..."s;
-	case note_t::HALT:
+	case note_t::halt:
 		return "---"s;
-	case note_t::RELEASE:
+	case note_t::release:
 		return "==="s;
-	case note_t::ECHO:
+	case note_t::echo:
 		return "^-"s + std::to_string(octave);
 	default:
 		if (IsNote(note))
@@ -74,20 +74,20 @@ std::string GetNoteString(const stChanNote &note) {
 
 std::pair<note_t, int> ReadNoteFromString(std::string_view sv) {
 	if (sv == "...")
-		return {note_t::NONE, 0};
+		return {note_t::none, 0};
 	if (sv == "---")
-		return {note_t::HALT, 0};
+		return {note_t::halt, 0};
 	if (sv == "===")
-		return {note_t::RELEASE, 0};
+		return {note_t::release, 0};
 
 	auto pre = sv.substr(0, 2);
 	if (auto o = conv::to_uint(sv.substr(2))) {
 		if (pre == "^-" && *o < ECHO_BUFFER_LENGTH)
-			return {note_t::ECHO, (int)*o};
+			return {note_t::echo, (int)*o};
 		for (std::size_t i = 0; i < std::size(NOTE_NAME); ++i)
 			if (pre == NOTE_NAME[i] || pre == NOTE_NAME_FLAT[i])
 				return {GET_NOTE(i), (int)*o};
 	}
 
-	return {note_t::NONE, 0};
+	return {note_t::none, 0};
 }

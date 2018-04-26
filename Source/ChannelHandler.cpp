@@ -284,9 +284,9 @@ void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, std::size_t Po
 		return;
 	int Value;
 	switch (NoteData.Note) {
-	case note_t::NONE: Value = ECHO_BUFFER_NONE; break;
-	case note_t::HALT: Value = ECHO_BUFFER_HALT; break;
-	case note_t::ECHO: Value = ECHO_BUFFER_ECHO + NoteData.Octave; break;
+	case note_t::none: Value = ECHO_BUFFER_NONE; break;
+	case note_t::halt: Value = ECHO_BUFFER_HALT; break;
+	case note_t::echo: Value = ECHO_BUFFER_ECHO + NoteData.Octave; break;
 	default:
 		Value = MIDI_NOTE(NoteData.Octave, NoteData.Note);
 		for (int i = MAX_EFFECT_COLUMNS - 1; i >= 0; --i) {
@@ -318,31 +318,31 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 {
 	unsigned LastInstrument = m_iInstrument;
 	int Instrument = NoteData.Instrument;
-	bool Trigger = (NoteData.Note != note_t::NONE) && (NoteData.Note != note_t::HALT) && (NoteData.Note != note_t::RELEASE) &&
+	bool Trigger = (NoteData.Note != note_t::none) && (NoteData.Note != note_t::halt) && (NoteData.Note != note_t::release) &&
 		Instrument != HOLD_INSTRUMENT;		// // // 050B
 	bool pushNone = false;
 
 	// // // Echo buffer
-	if (NoteData.Note == note_t::ECHO && NoteData.Octave < ECHO_BUFFER_LENGTH) { // retrieve buffer
+	if (NoteData.Note == note_t::echo && NoteData.Octave < ECHO_BUFFER_LENGTH) { // retrieve buffer
 		int NewNote = m_iEchoBuffer[NoteData.Octave];
 		if (NewNote == ECHO_BUFFER_NONE) {
-			NoteData.Note = note_t::NONE;
+			NoteData.Note = note_t::none;
 			pushNone = true;
 		}
-		else if (NewNote == ECHO_BUFFER_HALT) NoteData.Note = note_t::HALT;
+		else if (NewNote == ECHO_BUFFER_HALT) NoteData.Note = note_t::halt;
 		else {
 			NoteData.Note = GET_NOTE(NewNote);
 			NoteData.Octave = GET_OCTAVE(NewNote);
 		}
 	}
-	if ((NoteData.Note != note_t::RELEASE && NoteData.Note != note_t::NONE) || pushNone) { // push buffer
+	if ((NoteData.Note != note_t::release && NoteData.Note != note_t::none) || pushNone) { // push buffer
 		for (int i = std::size(m_iEchoBuffer) - 1; i > 0; --i)
 			m_iEchoBuffer[i] = m_iEchoBuffer[i - 1];
 		WriteEchoBuffer(NoteData, 0);
 	}
 
 	// Clear the note cut effect
-	if (NoteData.Note != note_t::NONE) {
+	if (NoteData.Note != note_t::none) {
 		m_iNoteCut = 0;
 		m_iNoteRelease = 0;		// // //
 		if (Trigger && m_iNoteVolume == 0 && !m_iVolSlide) {		// // //
@@ -373,7 +373,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 	}
 
 	// Instrument
-	if (NoteData.Note == note_t::HALT || NoteData.Note == note_t::RELEASE)		// // //
+	if (NoteData.Note == note_t::halt || NoteData.Note == note_t::release)		// // //
 		Instrument = MAX_INSTRUMENTS;	// Ignore instrument for release and halt commands
 
 	if (Instrument != MAX_INSTRUMENTS && Instrument != HOLD_INSTRUMENT)		// // // 050B
@@ -387,20 +387,20 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 	}
 
 	switch (NoteData.Note) {		// // // set note value before loading instrument
-	case note_t::NONE: case note_t::HALT: case note_t::RELEASE: break;
+	case note_t::none: case note_t::halt: case note_t::release: break;
 	default: m_iNote = RunNote(NoteData.Octave, NoteData.Note);
 	}
 
 	// Note
 	switch (NoteData.Note) {
-	case note_t::NONE:
+	case note_t::none:
 		HandleEmptyNote();
 		break;
-	case note_t::HALT:
+	case note_t::halt:
 		m_bRelease = false;
 		HandleCut();
 		break;
-	case note_t::RELEASE:
+	case note_t::release:
 		HandleRelease();
 		break;
 	default:

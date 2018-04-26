@@ -246,13 +246,14 @@ constexpr effect_t GetEffectFromChar(char ch, sound_chip_t Chip) noexcept {		// 
 	return effect_t::NONE;
 }
 
-enum class note_t : unsigned char {
-	NONE,						// No note
+ENUM_CLASS_STANDARD(note_t, std::uint8_t) {
+	none,						// No note
 	C,  Cs, D,  Ds, E,  F,		// // // renamed
 	Fs, G,  Gs, A,  As, B,
-	RELEASE,					// Release, begin note release sequence
-	HALT,						// Halt, stops note
-	ECHO,						// // // Echo buffer access, octave determines position
+	release,					// Release, begin note release sequence
+	halt,						// Halt, stops note
+	echo,						// // // Echo buffer access, octave determines position
+	min = C, max = echo,
 };
 
 constexpr bool IsNote(note_t n) noexcept {
@@ -283,5 +284,5 @@ constexpr note_t GET_NOTE(int midi_note) noexcept {
 	int x = midi_note % NOTE_RANGE;
 	if (x < 0)
 		x += NOTE_RANGE;
-	return static_cast<note_t>(++x);
+	return enum_cast<note_t>(++x);
 }

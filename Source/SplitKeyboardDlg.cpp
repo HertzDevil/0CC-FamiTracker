@@ -139,7 +139,7 @@ void CSplitKeyboardDlg::OnCbnSelchangeComboSplitNote()
 {
 	m_iSplitNote = MIDI_NOTE(
 		static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_OCTAVE))->GetCurSel(),
-		static_cast<note_t>(static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_NOTE))->GetCurSel() + 1));
+		enum_cast<note_t>(static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_NOTE))->GetCurSel() + 1));
 }
 
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitChan()

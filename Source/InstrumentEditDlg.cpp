@@ -416,7 +416,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 		}
 	}
 	else {
-		NoteData.Note			= pView->DoRelease() ? note_t::RELEASE : note_t::HALT;//note_t::HALT;
+		NoteData.Note			= pView->DoRelease() ? note_t::release : note_t::halt;//note_t::halt;
 
 		Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 
@@ -430,7 +430,7 @@ void CInstrumentEditDlg::SwitchOffNote(bool ForceHalt)
 	CMainFrame *pFrameWnd = static_cast<CMainFrame*>(GetParent());
 
 	stChanNote NoteData;		// // //
-	NoteData.Note			= (pView->DoRelease() && !ForceHalt) ? note_t::RELEASE : note_t::HALT;
+	NoteData.Note			= (pView->DoRelease() && !ForceHalt) ? note_t::release : note_t::halt;
 	NoteData.Instrument		= pFrameWnd->GetSelectedInstrumentIndex();
 
 	Env.GetSoundGenerator()->QueueNote(pView->GetSelectedChannelID(), NoteData, NOTE_PRIO_2);

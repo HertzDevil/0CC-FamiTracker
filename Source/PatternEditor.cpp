@@ -1280,7 +1280,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	uint8_t EffParam  = Column >= 4 ? NoteData.Effects[(Column - 4) / 3].param : static_cast<uint8_t>(0u);
 
 	// Detect invalid note data
-	if (NoteData.Note > note_t::ECHO ||		// // //
+	if (NoteData.Note > note_t::echo ||		// // //
 		NoteData.Octave > 8 ||
 		EffNumber >= effect_t::COUNT ||
 		NoteData.Instrument > MAX_INSTRUMENTS && NoteData.Instrument != HOLD_INSTRUMENT) {		// // // 050B
@@ -1327,7 +1327,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	case C_NOTE:
 		// Note and octave
 		switch (NoteData.Note) {
-		case note_t::NONE:
+		case note_t::none:
 			if (m_bCompactMode) {		// // //
 				if (NoteData.Instrument != MAX_INSTRUMENTS) {
 					if (NoteData.Instrument == HOLD_INSTRUMENT) {		// // // 050B
@@ -1367,16 +1367,16 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 				BAR(PosX + m_iCharWidth * 2, PosY);
 			}
 			break;		// // // same below
-		case note_t::HALT:
+		case note_t::halt:
 			// Note stop
 			GradientBar(DC, PosX + 5, (m_iRowHeight / 2) - 2, m_iCharWidth * 3 - 11, m_iRowHeight / 4, ColorInfo.Note, ColorInfo.Back);
 			break;
-		case note_t::RELEASE:
+		case note_t::release:
 			// Note release
 			DC.FillSolidRect(PosX + 5, m_iRowHeight / 2 - 3, m_iCharWidth * 3 - 11, 2, ColorInfo.Note);		// // //
 			DC.FillSolidRect(PosX + 5, m_iRowHeight / 2 + 1, m_iCharWidth * 3 - 11, 2, ColorInfo.Note);
 			break;
-		case note_t::ECHO:
+		case note_t::echo:
 			// // // Echo buffer access
 			DrawChar(DC, PosX + m_iCharWidth, PosY, L'^', ColorInfo.Note);
 			DrawChar(DC, PosX + m_iCharWidth * 2, PosY, NOTES_C[NoteData.Octave], ColorInfo.Note);
@@ -1400,7 +1400,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		break;
 	case C_INSTRUMENT1:
 		// Instrument x0
-		if (NoteData.Instrument == MAX_INSTRUMENTS || NoteData.Note == note_t::HALT || NoteData.Note == note_t::RELEASE)
+		if (NoteData.Instrument == MAX_INSTRUMENTS || NoteData.Note == note_t::halt || NoteData.Note == note_t::release)
 			BAR(PosX, PosY);
 		else if (NoteData.Instrument == HOLD_INSTRUMENT)		// // // 050B
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, L'&', InstColor);
@@ -1409,7 +1409,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		break;
 	case C_INSTRUMENT2:
 		// Instrument 0x
-		if (NoteData.Instrument == MAX_INSTRUMENTS || NoteData.Note == note_t::HALT || NoteData.Note == note_t::RELEASE)
+		if (NoteData.Instrument == MAX_INSTRUMENTS || NoteData.Note == note_t::halt || NoteData.Note == note_t::release)
 			BAR(PosX, PosY);
 		else if (NoteData.Instrument == HOLD_INSTRUMENT)		// // // 050B
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, L'&', InstColor);
@@ -3578,22 +3578,22 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 		int len = -1;
 		bool first = true;
 		stChanNote current;
-		current.Note = note_t::HALT;
+		current.Note = note_t::halt;
 		stChanNote echo[ECHO_BUFFER_LENGTH] = { };
 
 		for (CPatternIterator s {b}; s <= e; ++s) {
 			++len;
 			const auto &NoteData = s.Get(c);
-			bool dump = NoteData.Note != note_t::NONE || NoteData.Vol != MAX_VOLUME;
+			bool dump = NoteData.Note != note_t::none || NoteData.Vol != MAX_VOLUME;
 			bool fin = s.m_iFrame == e.m_iFrame && s.m_iRow == e.m_iRow;
 
 			if (dump || fin) {
-				bool push = current.Note != note_t::NONE && current.Note != note_t::RELEASE;
+				bool push = current.Note != note_t::none && current.Note != note_t::release;
 
 				if (current.Vol != MAX_VOLUME)
 					AppendFormatW(str, L"v%i", current.Vol);
 
-				if (current.Note == note_t::ECHO) {
+				if (current.Note == note_t::echo) {
 					current.Note   = echo[current.Octave].Note;
 					current.Octave = echo[current.Octave].Octave;
 				}
@@ -3604,10 +3604,10 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 					echo[0] = current;
 				}
 
-				if (!first || (NoteData.Note != note_t::NONE)) switch (current.Note) {
-				case note_t::NONE: str.AppendChar(L'w'); break;
-				case note_t::RELEASE: str.AppendChar(L'k'); break;
-				case note_t::HALT: str.AppendChar(L'r'); break;
+				if (!first || (NoteData.Note != note_t::none)) switch (current.Note) {
+				case note_t::none: str.AppendChar(L'w'); break;
+				case note_t::release: str.AppendChar(L'k'); break;
+				case note_t::halt: str.AppendChar(L'r'); break;
 				default:
 					if (o == -1) {
 						o = current.Octave;

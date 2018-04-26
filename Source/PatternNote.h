@@ -56,7 +56,7 @@ public:
 
 	constexpr bool operator==(const stChanNote &other) const noexcept {
 		return Note == other.Note && Vol == other.Vol && Instrument == other.Instrument &&
-			(Note == note_t::NONE || Octave == other.Octave || Note == note_t::HALT || Note == note_t::RELEASE) &&
+			(Note == note_t::none || Octave == other.Octave || Note == note_t::halt || Note == note_t::release) &&
 			Effects == other.Effects;
 	}
 	constexpr bool operator!=(const stChanNote &other) const noexcept {
@@ -64,7 +64,7 @@ public:
 	}
 
 public:
-	note_t Note = note_t::NONE;
+	note_t Note = note_t::none;
 	unsigned char Octave = 0U;
 	unsigned char Vol = MAX_VOLUME;
 	unsigned char Instrument = MAX_INSTRUMENTS;

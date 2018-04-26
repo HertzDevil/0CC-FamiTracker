@@ -216,13 +216,13 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 	m_cListResults.SetItemText(Pos, ROW, conv::to_wide(conv::sv_from_int_hex(Cursor.m_iRow, 2)).data());
 
 	switch (Note.Note) {
-	case note_t::NONE:
+	case note_t::none:
 		break;
-	case note_t::HALT:
+	case note_t::halt:
 		m_cListResults.SetItemText(Pos, NOTE, L"---"); break;
-	case note_t::RELEASE:
+	case note_t::release:
 		m_cListResults.SetItemText(Pos, NOTE, L"==="); break;
-	case note_t::ECHO:
+	case note_t::echo:
 		m_cListResults.SetItemText(Pos, NOTE, (L"^-" + conv::to_wide(conv::from_int(Note.Octave))).data()); break;
 	default:
 		if (Noise)
@@ -436,11 +436,11 @@ int CFindResultsBox::NoteCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lPar
 	const auto ToIndex = [] (std::string_view x) {
 		auto [note, octave] = ReadNoteFromString(x);
 		switch (note) {
-		case note_t::HALT:
+		case note_t::halt:
 			return 0x200;
-		case note_t::RELEASE:
+		case note_t::release:
 			return 0x300;
-		case note_t::ECHO:
+		case note_t::echo:
 			return 0x400 + octave;
 		default:
 			if (IsNote(note))
@@ -578,7 +578,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		if (!Half) {
 			Term.Definite[WC_NOTE] = true;
 			Term.Definite[WC_OCT] = true;
-			Term.Note->Set(note_t::NONE);
+			Term.Note->Set(note_t::none);
 			Term.Oct->Set(0);
 		}
 		else {
@@ -595,7 +595,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		RaiseIf(Half, L"Cannot use note cut in a range search query.");
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
-		Term.Note->Set(note_t::HALT);
+		Term.Note->Set(note_t::halt);
 		Term.Oct->Min = 0; Term.Oct->Max = 7;
 		return;
 	}
@@ -604,7 +604,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		RaiseIf(Half, L"Cannot use note release in a range search query.");
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
-		Term.Note->Set(note_t::RELEASE);
+		Term.Note->Set(note_t::release);
 		Term.Oct->Min = 0; Term.Oct->Max = 7;
 		return;
 	}
@@ -613,7 +613,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		RaiseIf(Half, L"Cannot use wildcards in a range search query.");
 		Term.Definite[WC_NOTE] = true;
 		Term.Note->Min = note_t::C;
-		Term.Note->Max = note_t::ECHO;
+		Term.Note->Max = note_t::echo;
 		return;
 	}
 
@@ -621,7 +621,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		RaiseIf(Half && !Term.Definite[WC_OCT], L"Cannot use wildcards in a range search query.");
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
-		Term.Note->Set(note_t::ECHO);
+		Term.Note->Set(note_t::echo);
 		if (str.Delete(0)) {
 			if (str.GetAt(0) == L'-')
 				str.Delete(0);
@@ -654,9 +654,9 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 				Term.Oct->Set(Oct, Half);
 			}
 			else RaiseIf(Half, L"Cannot use wildcards in a range search query.");
-			while (Note > NOTE_RANGE) { Note -= NOTE_RANGE; if (Term.Definite[WC_OCT]) Term.Oct->Set(++Oct, Half); }
+			while (Note > value_cast(note_t::B)) { Note -= NOTE_RANGE; if (Term.Definite[WC_OCT]) Term.Oct->Set(++Oct, Half); }
 			while (Note < value_cast(note_t::C)) { Note += NOTE_RANGE; if (Term.Definite[WC_OCT]) Term.Oct->Set(--Oct, Half); }
-			Term.Note->Set(static_cast<note_t>(Note), Half);
+			Term.Note->Set(enum_cast<note_t>(Note), Half);
 			RaiseIf(Term.Definite[WC_OCT] && (Oct >= OCTAVE_RANGE || Oct < 0),
 				L"Note octave \"%s\" is out of range, check if the note contains Cb or B#.", (LPCWSTR)str);
 			return;
@@ -668,7 +668,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
 		if (str.Left(1) == L".") {
-			Term.Note->Min = (note_t)1; Term.Note->Max = (note_t)4;
+			Term.Note->Min = note_t::C; Term.Note->Max = note_t::Ds;
 			Term.Oct->Min = 0; Term.Oct->Max = 1;
 		}
 		else {
@@ -791,8 +791,8 @@ void CFindDlg::GetFindTerm()
 		ParseNote(newTerm, str, false);
 		m_cFindNoteField2.GetWindowTextW(str);
 		ParseNote(newTerm, str, !empty);
-		RaiseIf((newTerm.Note->Min == note_t::ECHO && IsNote(newTerm.Note->Max) ||
-			newTerm.Note->Max == note_t::ECHO && IsNote(newTerm.Note->Min)) &&
+		RaiseIf((newTerm.Note->Min == note_t::echo && IsNote(newTerm.Note->Max) ||
+			newTerm.Note->Max == note_t::echo && IsNote(newTerm.Note->Min)) &&
 			newTerm.Definite[WC_OCT],
 			L"Cannot use both notes and echo buffer in a range search query.");
 	}
@@ -850,7 +850,7 @@ void CFindDlg::GetReplaceTerm()
 		if (newTerm.Definite[i]) break;
 	}
 
-	if ((newTerm.Note->Min == note_t::HALT || newTerm.Note->Min == note_t::RELEASE) && newTerm.Note->Min == newTerm.Note->Max)
+	if ((newTerm.Note->Min == note_t::halt || newTerm.Note->Min == note_t::release) && newTerm.Note->Min == newTerm.Note->Max)
 		newTerm.Oct->Min = newTerm.Oct->Max = 0;
 
 	RaiseIf(newTerm.Definite[WC_NOTE] && !newTerm.Note->IsSingle() ||

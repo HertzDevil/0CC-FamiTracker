@@ -163,7 +163,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 
 		bool Action = false;
 
-		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT && (IsNote(Note) || Note == note_t::ECHO))		// // //
+		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT && (IsNote(Note) || Note == note_t::echo))		// // //
 			if (!IsInstrumentCompatible(Channel.Chip, pInstManager->GetInstrumentType(ChanNote.Instrument)))		// // //
 				Print("Error: Missing or incompatible instrument (on row " + conv::from_uint(i) +
 					", channel " + std::string {Env.GetSoundChipService()->GetChannelFullName(Channel)} + ", pattern " + conv::from_uint(Pattern) + ")\n");
@@ -227,7 +227,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 		}
 		else
 */
-		if (Note != note_t::HALT && Note != note_t::RELEASE) {		// // //
+		if (Note != note_t::halt && Note != note_t::release) {		// // //
 			if (Instrument != LastInstrument && Instrument < MAX_INSTRUMENTS) {
 				LastInstrument = Instrument;
 				// Write instrument change command
@@ -266,16 +266,16 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 #endif /* OPTIMIZE_DURATIONS */
 		}
 
-		if (Note == note_t::NONE) {
+		if (Note == note_t::none) {
 			NESNote = 0xFF;
 		}
-		else if (Note == note_t::HALT) {
+		else if (Note == note_t::halt) {
 			NESNote = 0x7F - 1;
 		}
-		else if (Note == note_t::RELEASE) {
+		else if (Note == note_t::release) {
 			NESNote = 0x7F - 2;
 		}
-		else if (Note == note_t::ECHO) {		// // //
+		else if (Note == note_t::echo) {		// // //
 			NESNote = 0x6F + Octave;
 		}
 		else {
@@ -699,7 +699,7 @@ CPatternCompiler::stSpacingInfo CPatternCompiler::ScanNoteLengths(int Track, uns
 		const auto &NoteData = pSong->GetPattern(Channel, Pattern).GetNoteOn(i);		// // //
 		bool NoteUsed = false;
 
-		if (NoteData.Note != note_t::NONE)
+		if (NoteData.Note != note_t::none)
 			NoteUsed = true;
 		else if (NoteData.Instrument < MAX_INSTRUMENTS || NoteData.Instrument == HOLD_INSTRUMENT)		// // //
 			NoteUsed = true;

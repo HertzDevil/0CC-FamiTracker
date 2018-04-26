@@ -119,8 +119,8 @@ void Kraid::makePattern(CSongData &song, stChannelID ch, unsigned pat, std::stri
 		case '<': --octave; break;
 		case '>': ++octave; break;
 		case '.': ++row; break;
-		case '-': ++row; note.Note = note_t::HALT; break;
-		case '=': ++row; note.Note = note_t::RELEASE; break;
+		case '-': ++row; note.Note = note_t::halt; break;
+		case '=': ++row; note.Note = note_t::release; break;
 		case 'c': ++row; note.Note = note_t::C;  note.Octave = octave, note.Instrument = INST; break;
 		case 'C': ++row; note.Note = note_t::Cs; note.Octave = octave, note.Instrument = INST; break;
 		case 'd': ++row; note.Note = note_t::D;  note.Octave = octave, note.Instrument = INST; break;

@@ -126,10 +126,10 @@ constexpr std::string_view GetChipName(inst_type_t inst_type) noexcept {
 
 void to_json(json &j, const stChanNote &note) {
 	switch (note.Note) {
-	case note_t::NONE: j["kind"] = "none"; break;
-	case note_t::HALT: j["kind"] = "halt"; break;
-	case note_t::RELEASE: j["kind"] = "release"; break;
-	case note_t::ECHO:
+	case note_t::none: j["kind"] = "none"; break;
+	case note_t::halt: j["kind"] = "halt"; break;
+	case note_t::release: j["kind"] = "release"; break;
+	case note_t::echo:
 		j["kind"] = "echo";
 		j["value"] = note.Octave;
 		break;
@@ -492,15 +492,15 @@ void from_json(const json &j, stChanNote &note) {
 			note.Octave = GET_OCTAVE(midiNote);
 		}
 		else if (kind == "halt")
-			note.Note = note_t::HALT;
+			note.Note = note_t::halt;
 		else if (kind == "release")
-			note.Note = note_t::RELEASE;
+			note.Note = note_t::release;
 		else if (kind == "echo") {
-			note.Note = note_t::ECHO;
+			note.Note = note_t::echo;
 			note.Octave = json_get_between(j, "value", (std::size_t)0u, ECHO_BUFFER_LENGTH - 1);
 		}
 		else if (kind == "none")
-			note.Note = note_t::NONE;
+			note.Note = note_t::none;
 	});
 
 	if (j.count("volume"))

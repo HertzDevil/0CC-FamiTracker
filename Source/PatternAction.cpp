@@ -364,7 +364,7 @@ bool CPActionDeleteRow::SaveState(const CMainFrame &MainFrm)
 	m_NewNote = m_OldNote;
 	switch (m_pUndoState->Cursor.m_iColumn) {
 	case C_NOTE:			// Note
-		m_NewNote.Note = note_t::NONE;
+		m_NewNote.Note = note_t::none;
 		m_NewNote.Octave = 0;
 		m_NewNote.Instrument = MAX_INSTRUMENTS;	// Fix the old behaviour
 		m_NewNote.Vol = MAX_VOLUME;
@@ -670,7 +670,7 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 			if (!m_pUndoState->Selection.IsColumnSelected(column_t::Note, i))
 				continue;
 			stChanNote Note = *(m_pUndoClipData->GetPattern(i - ChanStart, Row));		// // //
-			if (Note.Note == note_t::ECHO) {
+			if (Note.Note == note_t::echo) {
 				if (!bSingular)
 					continue;
 				switch (m_iTransposeAmount) {		// // //

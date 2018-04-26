@@ -307,9 +307,9 @@ public:
 		stChanNote Cell;		// // //
 
 		CStringA sNote = ReadToken();
-		if (sNote == "...") { Cell.Note = note_t::NONE; }
-		else if (sNote == "---") { Cell.Note = note_t::HALT; }
-		else if (sNote == "===") { Cell.Note = note_t::RELEASE; }
+		if (sNote == "...") { Cell.Note = note_t::none; }
+		else if (sNote == "---") { Cell.Note = note_t::halt; }
+		else if (sNote == "===") { Cell.Note = note_t::release; }
 		else {
 			if (sNote.GetLength() != 3)
 				throw MakeError("note column should be 3 characters wide, '%s' found.", (LPCSTR)sNote);
@@ -326,7 +326,7 @@ public:
 				unsigned o = sNote.GetAt(2) - '0';
 				if (o >= ECHO_BUFFER_LENGTH)
 					throw MakeError("out-of-bound echo buffer accessed.");
-				Cell.Note = note_t::ECHO;
+				Cell.Note = note_t::echo;
 				Cell.Octave = o;
 			}
 			else {
@@ -351,7 +351,7 @@ public:
 				}
 				while (n < value_cast(note_t::C)) n += NOTE_RANGE;
 				while (n > value_cast(note_t::B)) n -= NOTE_RANGE;
-				Cell.Note = static_cast<note_t>(n);
+				Cell.Note = enum_cast<note_t>(n);
 
 				int o = sNote.GetAt(2) - '0';
 				if (o < 0 || o >= OCTAVE_RANGE) {
@@ -475,9 +475,9 @@ CStringA CTextExport::ExportString(std::string_view s)		// // //
 CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise)		// // //
 {
 	CStringA s = "...";
-	if (bNoise && (IsNote(stCell.Note) || stCell.Note == note_t::ECHO))		// // //
+	if (bNoise && (IsNote(stCell.Note) || stCell.Note == note_t::echo))		// // //
 		s = FormattedA("%01X-#", MIDI_NOTE(stCell.Octave, stCell.Note) & 0x0F);
-	else if (stCell.Note <= note_t::ECHO)
+	else if (stCell.Note <= note_t::echo)
 		s = GetNoteString(stCell).data();
 
 	s += (stCell.Instrument == MAX_INSTRUMENTS) ? CStringA(" ..") :

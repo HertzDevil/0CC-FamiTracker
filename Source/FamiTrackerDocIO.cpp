@@ -820,8 +820,8 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 			try {
 				stChanNote Note;		// // //
 
-				Note.Note = static_cast<note_t>(AssertRange<MODULE_ERROR_STRICT>(		// // //
-					file_.GetBlockChar(), value_cast(note_t::NONE), value_cast(note_t::ECHO), "Note value"));
+				Note.Note = enum_cast<note_t>(AssertRange<MODULE_ERROR_STRICT>(		// // //
+					file_.GetBlockChar(), value_cast(note_t::none), value_cast(note_t::echo), "Note value"));
 				Note.Octave = AssertRange<MODULE_ERROR_STRICT>(
 					file_.GetBlockChar(), 0, OCTAVE_RANGE - 1, "Octave value");
 				int Inst = static_cast<unsigned char>(file_.GetBlockChar());
@@ -872,7 +872,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 						Note.Vol &= 0x0F;
 					}
 
-					if (Note.Note == note_t::NONE)
+					if (Note.Note == note_t::none)
 						Note.Instrument = MAX_INSTRUMENTS;
 				}
 

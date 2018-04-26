@@ -52,7 +52,7 @@ void CChannelHandler2A03::HandleNoteData(stChanNote &NoteData)		// // //
 	// // //
 	CChannelHandler::HandleNoteData(NoteData);
 
-	if (IsNote(NoteData.Note) || NoteData.Note == note_t::ECHO) {
+	if (IsNote(NoteData.Note) || NoteData.Note == note_t::echo) {
 		if (!m_bEnvelopeLoop || m_bHardwareEnvelope)		// // //
 			m_bResetEnvelope = true;
 	}
@@ -517,7 +517,7 @@ void CDPCMChan::HandleNoteData(stChanNote &NoteData)		// // //
 	m_iCustomPitch = -1;
 	m_iRetrigger = 0;
 
-	if (NoteData.Note != note_t::NONE) {
+	if (NoteData.Note != note_t::none) {
 		m_iNoteCut = 0;
 		m_iNoteRelease = 0;			// // //
 	}
