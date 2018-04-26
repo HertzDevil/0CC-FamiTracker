@@ -216,7 +216,6 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerModule &modfile) {
 					for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
 						stChanNote &Note = song.GetPatternData(fds_subindex_t::wave, p, r);		// // //
 						if (ft0cc::doc::is_note(Note.Note)) {
-							auto NewNote = Note;
 							int Trsp = ft0cc::doc::midi_note(Note.Octave, Note.Note) + NOTE_RANGE * 2;
 							Trsp = Trsp >= NOTE_COUNT ? NOTE_COUNT - 1 : Trsp;
 							Note.Note = ft0cc::doc::pitch_from_midi(Trsp);
@@ -1286,7 +1285,7 @@ void CFamiTrackerDocIO::SaveParamsExtra(const CFamiTrackerModule &modfile, int v
 	}
 }
 
-#include "DetuneDlg.h" // TODO: bad, encapsulate detune tables
+// #include "DetuneDlg.h" // TODO: bad, encapsulate detune tables
 
 void CFamiTrackerDocIO::LoadDetuneTables(CFamiTrackerModule &modfile, int ver) {
 	int Count = AssertRange(file_.GetBlockChar(), 0, 6, "Detune table count");
@@ -1301,7 +1300,9 @@ void CFamiTrackerDocIO::LoadDetuneTables(CFamiTrackerModule &modfile, int ver) {
 			}
 		}
 		catch (CModuleException &e) {
-			e.AppendError("At " + conv::to_utf8(CDetuneDlg::CHIP_STR[Chip]) + " detune table,");
+			static const std::string CHIP_STR[] = {"NTSC", "PAL", "Saw", "VRC7", "FDS", "N163"};
+			e.AppendError("At " + CHIP_STR[Chip] + " detune table,");
+//			e.AppendError("At " + conv::to_utf8(CDetuneDlg::CHIP_STR[Chip]) + " detune table,");
 			throw e;
 		}
 	}

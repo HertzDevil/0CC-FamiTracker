@@ -95,9 +95,9 @@ set(SRCS
 #	${FT0CC_ROOT}/ExportDialog.cpp
 #	${FT0CC_ROOT}/FamiTracker.cpp
 #	${FT0CC_ROOT}/FamiTrackerDoc.cpp
-#	${FT0CC_ROOT}/FamiTrackerDocIO.cpp
+	${FT0CC_ROOT}/FamiTrackerDocIO.cpp
 	${FT0CC_ROOT}/FamiTrackerDocIOJson.cpp
-#	${FT0CC_ROOT}/FamiTrackerDocOldIO.cpp
+	${FT0CC_ROOT}/FamiTrackerDocOldIO.cpp
 	${FT0CC_ROOT}/FamiTrackerEnv.cpp
 	${FT0CC_ROOT}/FamiTrackerModule.cpp
 #	${FT0CC_ROOT}/FamiTrackerView.cpp

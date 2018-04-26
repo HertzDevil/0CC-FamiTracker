@@ -28,7 +28,7 @@
 
 namespace ft0cc::doc {
 
-ENUM_CLASS_STANDARD(pitch, std::uint8_t) {
+enum class pitch : std::uint8_t {
 	none,					// No note
 	C, Cs, D, Ds, E, F, Fs, G, Gs, A, As, B,
 	release,				// Release, begin note release sequence
@@ -36,6 +36,12 @@ ENUM_CLASS_STANDARD(pitch, std::uint8_t) {
 	echo,					// Echo buffer access, octave determines position
 	min = C, max = echo,
 };
+
+} // namespace ft0cc::doc
+
+ENABLE_ENUM_CATEGORY(ft0cc::doc::pitch, enum_standard);
+
+namespace ft0cc::doc {
 
 inline constexpr auto note_range = static_cast<int>(
 	value_cast(pitch::B) - value_cast(pitch::C) + 1);

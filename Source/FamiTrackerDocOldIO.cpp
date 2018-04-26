@@ -31,6 +31,7 @@
 #include "DSampleManager.h"
 #include <memory>
 #include <array>
+#include <algorithm>
 #include "Instrument2A03.h"
 #include "ft0cc/doc/dpcm_sample.hpp"
 #include "Sequence.h"

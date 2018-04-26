@@ -513,25 +513,36 @@ struct enum_category_traits<enum_discrete<EnumT, Vals...>> {
 
 
 
+// Enables an enumeration category for a given enum class.
+// Can only be used in the global namespace.
+#define ENABLE_ENUM_CATEGORY(NAME, CATEGORY) \
+template <> \
+struct enum_traits<NAME> { using category = CATEGORY; }
+
 #define ENUM_CLASS_WITH_CATEGORY(NAME, TYPE, CATEGORY) \
 enum class NAME : TYPE; \
-template <> \
-struct enum_traits<NAME> { using category = CATEGORY; }; \
+ENABLE_ENUM_CATEGORY(NAME, CATEGORY); \
 enum class NAME : TYPE
 
-// Defines a standard-layout enum class as by:
+// Defines a standard-layout enum class as if by:
 //  enum class NAME : TYPE
-// with a specialization of enum_traits<NAME>.
+// with a suitable specialization of enum_traits<NAME>.
+// Can only be used in the global namespace. If the enum class is not in the global namespace,
+// define it normally and then use ENABLE_ENUM_CATEGORY outside.
 #define ENUM_CLASS_STANDARD(NAME, TYPE) ENUM_CLASS_WITH_CATEGORY(NAME, TYPE, enum_standard)
 
-// Defines a linear enum class as by:
+// Defines a linear enum class as if by:
 //  enum class NAME : TYPE
-// with a specialization of enum_traits<NAME>.
+// with a suitable specialization of enum_traits<NAME>.
+// Can only be used in the global namespace. If the enum class is not in the global namespace,
+// define it normally and then use ENABLE_ENUM_CATEGORY outside.
 #define ENUM_CLASS_LINEAR(NAME, TYPE) ENUM_CLASS_WITH_CATEGORY(NAME, TYPE, enum_linear)
 
-// Defines a bitmask enum class as by:
+// Defines a bitmask enum class as if by:
 //  enum class NAME : TYPE
-// with a specialization of enum_traits<NAME>.
+// with a suitable specialization of enum_traits<NAME>.
+// Can only be used in the global namespace. If the enum class is not in the global namespace,
+// define it normally and then use ENABLE_ENUM_CATEGORY outside.
 #define ENUM_CLASS_BITMASK(NAME, TYPE) ENUM_CLASS_WITH_CATEGORY(NAME, TYPE, enum_bitmask)
 
 
