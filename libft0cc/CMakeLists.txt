@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 project(libft0cc)
@@ -38,5 +38,13 @@ else()
 	add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
 
+add_library(ft0cc STATIC src/ft0cc.cpp)
+add_subdirectory(include)
 add_subdirectory(src)
+
+file(GLOB_RECURSE ALL_SRC_FILES "src/*.cpp")
+source_group(TREE ${CMAKE_SOURCE_DIR}/src PREFIX "Source Files" FILES ${ALL_SRC_FILES})
+file(GLOB_RECURSE ALL_INCLUDE_FILES "include/*.h" "include/*.hpp")
+source_group(TREE ${CMAKE_SOURCE_DIR}/include PREFIX "Header Files" FILES ${ALL_INCLUDE_FILES})
+
 add_subdirectory(test)
