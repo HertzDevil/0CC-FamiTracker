@@ -88,19 +88,6 @@ void CSoundDriver::ConfigureDocument() {
 	});
 }
 
-std::unique_ptr<CChannelMap> CSoundDriver::MakeChannelMap(CSoundChipSet chips, unsigned n163chs) const {
-	auto map = std::make_unique<CChannelMap>(chips, n163chs);		// // //
-
-	// Register the channels in the document
-	// Expansion & internal channels
-	ForeachTrack([&] (CChannelHandler &, CTrackerChannel &, stChannelID ch) {
-		if (map->SupportsChannel(ch))
-			map->GetChannelOrder().AddChannel(ch);
-	});
-
-	return map;
-}
-
 CChannelHandler *CSoundDriver::GetChannelHandler(stChannelID chan) const {
 	if (chan.Chip != sound_chip_t::none)
 		if (auto it = tracks_.find(chan); it != tracks_.end())

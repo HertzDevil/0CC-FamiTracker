@@ -23,7 +23,7 @@
 #include "FamiTrackerDocOldIO.h"
 #include "FamiTrackerDocIOCommon.h"
 #include "FamiTrackerEnv.h"
-#include "SoundGen.h"
+#include "SoundChipService.h"
 #include "ChannelMap.h"
 #include "ChannelOrder.h"
 #include "SongData.h"
@@ -67,7 +67,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 	// Only single track files
 	auto &Song = *modfile.GetSong(0);
 
-	modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
+	modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
 	modfile.SetMachine(machine_t::NTSC);		// // //
 	modfile.SetVibratoStyle(vibrato_t::Up);
 	modfile.SetLinearPitch(false);
@@ -244,7 +244,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 
 	ReorderSequences(modfile, std::move(TmpSequences));		// // //
 
-	return TRUE;
+	return true;
 }
 
 void compat::ReorderSequences(CFamiTrackerModule &modfile, std::vector<COldSequence> seqs)		// // //

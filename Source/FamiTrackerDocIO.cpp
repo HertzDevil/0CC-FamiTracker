@@ -34,7 +34,6 @@
 
 #include "FamiTrackerEnv.h"
 #include "SoundChipService.h"
-#include "SoundGen.h"
 #include "ChannelMap.h"
 
 #include "InstrumentService.h"
@@ -328,7 +327,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerModule &modfile, int ver) {
 		modfile.SetTuning(semitones, file_.GetBlockChar());
 	}
 
-	modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(Expansion, n163chans));		// // //
+	modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(Expansion, n163chans));		// // //
 	auto &order = modfile.GetChannelOrder();
 	order = order.BuiltinOrder();
 	AssertFileData<MODULE_ERROR_STRICT>(order.GetChannelCount() == channels, "Track count mismatch");

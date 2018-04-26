@@ -26,6 +26,9 @@
 #include "APU/SoundChip.h"
 #include "ChipHandler.h"
 #include "ChannelOrder.h"
+#include "ChannelMap.h"
+#include "SoundChipSet.h"
+#include "Assertion.h"
 
 void CSoundChipService::AddType(std::unique_ptr<CSoundChipType> stype) {
 	sound_chip_t id = stype->GetID();
@@ -81,6 +84,19 @@ std::string_view CSoundChipService::GetChannelFullName(stChannelID ch) const {
 		if (x.first == ch.Chip)
 			return x.second->GetChannelFullName(ch.Subindex);
 	throw std::invalid_argument {"Channel with given ID does not exist"};
+}
+
+std::unique_ptr<CChannelMap> CSoundChipService::MakeChannelMap(CSoundChipSet chips, unsigned n163chs) const {
+	Assert(n163chs <= MAX_CHANNELS_N163 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
+
+	auto map = std::make_unique<CChannelMap>(chips, n163chs);		// // //
+
+	ForeachTrack([&] (stChannelID id) {
+		if (map->SupportsChannel(id))
+			map->GetChannelOrder().AddChannel(id);
+	});
+
+	return map;
 }
 
 std::unique_ptr<CSoundChip> CSoundChipService::MakeSoundChipDriver(sound_chip_t chip, CMixer &mixer, std::uint8_t nInstance) const {

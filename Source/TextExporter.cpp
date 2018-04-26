@@ -37,6 +37,7 @@
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "ft0cc/doc/groove.hpp"		// // //
 #include "Sequence.h"		// // //
+#include "SoundChipService.h"		// // //
 #include "InstrumentService.h"		// // //
 #include "InstrumentManager.h"		// // //
 #include "DSampleManager.h"		// // //
@@ -567,7 +568,7 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 			break;
 		case CT_EXPANSION: {
 			auto flag = t.ReadInt(0, CSoundChipSet::NSF_MAX_FLAG);		// // //
-			modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(CSoundChipSet::FromNSFFlag(flag), modfile.GetNamcoChannels()));
+			modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(CSoundChipSet::FromNSFFlag(flag), modfile.GetNamcoChannels()));
 			t.ReadEOL();
 			break;
 		}
@@ -597,7 +598,7 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 		case CT_N163CHANNELS:
 			N163count = t.ReadInt(1, MAX_CHANNELS_N163);		// // //
 			t.ReadEOL();
-			modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(modfile.GetSoundChipSet(), MAX_CHANNELS_N163));
+			modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(modfile.GetSoundChipSet(), MAX_CHANNELS_N163));
 			break;
 		case CT_MACRO:
 		case CT_MACROVRC6:
@@ -905,7 +906,7 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 		modfile.GetDSampleManager()->SetDSample(dpcm_index, std::move(dpcm_sample));
 	}
 	if (N163count != -1)		// // //
-		modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(modfile.GetSoundChipSet(), N163count));
+		modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(modfile.GetSoundChipSet(), N163count));
 
 	Env.GetSoundGenerator()->AssignModule(modfile);		// / //
 	Env.GetSoundGenerator()->ModuleChipChanged();		// // //
@@ -1005,7 +1006,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	int N163count = -1;		// // //
 	if (modfile.HasExpansionChip(sound_chip_t::N163)) {
 		N163count = modfile.GetNamcoChannels();
-		modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(modfile.GetSoundChipSet(), MAX_CHANNELS_N163));
+		modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(modfile.GetSoundChipSet(), MAX_CHANNELS_N163));
 		WriteString(FormattedA("# Namco 163 global settings\n"
 			"%-15s %d\n"
 			"\n",
@@ -1279,7 +1280,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 	});
 
 	if (N163count != -1)		// // //
-		modfile.SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(modfile.GetSoundChipSet(), N163count));
+		modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(modfile.GetSoundChipSet(), N163count));
 	WriteString("# End of export\n");
 	Env.GetSoundGenerator()->ModuleChipChanged();		// // //
 	return "";

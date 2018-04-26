@@ -203,17 +203,6 @@ void CSoundGen::SetVisualizerWindow(CVisualizerWnd *pWnd)
 	m_csVisualizerWndLock.Unlock();
 }
 
-std::unique_ptr<CChannelMap> CSoundGen::MakeChannelMap(CSoundChipSet chips, unsigned n163chs) const {		// // //
-	// This method will add channels to the document object, depending on the expansion chip used.
-	// Called from the document object (from the main thread)
-
-	// Called from main thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
-	ASSERT(n163chs <= MAX_CHANNELS_N163 && (chips.ContainsChip(sound_chip_t::N163) == (n163chs != 0)));
-
-	return m_pSoundDriver->MakeChannelMap(chips, n163chs);		// // //
-}
-
 void CSoundGen::ModuleChipChanged() {		// // //
 	// Tell the sound emulator to switch expansion chip
 	SelectChip(m_pModule ? m_pModule->GetSoundChipSet() : sound_chip_t::APU);

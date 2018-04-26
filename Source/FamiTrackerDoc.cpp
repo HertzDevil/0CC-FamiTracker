@@ -28,6 +28,7 @@
 #include "Settings.h"		// // //
 #include "DocumentFile.h"
 #include "SoundGen.h"
+#include "SoundChipService.h"		// // //
 #include "MainFrm.h"		// // //
 #include "ChannelMap.h"		// // //
 #include "FamiTrackerDocIO.h"		// // //
@@ -222,7 +223,7 @@ void CFamiTrackerDoc::CreateEmpty()
 
 	Locked([&] {		// // //
 		// and select 2A03 only
-		GetModule()->SetChannelMap(Env.GetSoundGenerator()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
+		GetModule()->SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
 
 #ifdef AUTOSAVE
 		SetupAutoSave();

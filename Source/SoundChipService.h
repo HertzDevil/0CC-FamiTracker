@@ -27,6 +27,8 @@
 #include "SoundChipType.h"
 
 class CChannelOrder;
+class CSoundChipSet;
+class CChannelMap;
 
 class CSoundChipService {
 public:
@@ -42,6 +44,7 @@ public:
 	std::string_view GetChannelShortName(stChannelID ch) const;
 	std::string_view GetChannelFullName(stChannelID ch) const;
 
+	std::unique_ptr<CChannelMap> MakeChannelMap(CSoundChipSet chips, unsigned n163chs) const; // TODO: remove n163chs
 	std::unique_ptr<CSoundChip> MakeSoundChipDriver(sound_chip_t chip, CMixer &mixer, std::uint8_t nInstance) const;
 	std::unique_ptr<CChipHandler> MakeChipHandler(sound_chip_t chip, std::uint8_t nInstance) const;
 

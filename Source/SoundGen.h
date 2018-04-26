@@ -79,7 +79,6 @@ class CTempoCounter;		// // //
 class CTrackerChannel;		// // //
 class CPlayerCursor;		// // //
 class CSoundDriver;		// // //
-class CChannelMap;		// // //
 class CSoundChipSet;		// // //
 
 namespace ft0cc::doc {
@@ -109,7 +108,6 @@ public:
 	void		SetVisualizerWindow(CVisualizerWnd *pWnd);
 
 	// Multiple times initialization
-	std::unique_ptr<CChannelMap>	MakeChannelMap(CSoundChipSet chips, unsigned n163chs) const;		// // //
 	void		ModuleChipChanged();		// // //
 	void		SelectChip(CSoundChipSet Chip);
 	void		LoadMachineSettings();		// // // 050B

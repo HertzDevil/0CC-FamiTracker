@@ -33,7 +33,6 @@
 #include "PeriodTables.h"
 
 class CFamiTrackerModule;
-class CChannelMap;
 class CTempoCounter;
 class CPlayerCursor;
 class CChannelHandler;
@@ -56,7 +55,6 @@ public:
 	void LoadAPU(CAPUInterface &apu);
 	void ConfigureDocument();
 
-	std::unique_ptr<CChannelMap> MakeChannelMap(CSoundChipSet chips, unsigned n163chs) const;
 	CTrackerChannel *GetTrackerChannel(stChannelID chan);
 	const CTrackerChannel *GetTrackerChannel(stChannelID chan) const;
 
