@@ -36,6 +36,9 @@
     <ClInclude Include="..\include\ft0cc\enum_traits.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\ft0cc\doc\pitch.hpp">
+      <Filter>Header Files\doc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ft0cc\doc\groove.cpp">

@@ -264,8 +264,8 @@ void CInstrumentIO2A03::ReadFromModule(CInstrument &inst_, CDocumentFile &file) 
 			}
 		}
 		catch (CModuleException &e) {
-			auto n = value_cast(GET_NOTE(MidiNote));
-			auto o = GET_OCTAVE(MidiNote);
+			auto n = value_cast(ft0cc::doc::pitch_from_midi(MidiNote));
+			auto o = ft0cc::doc::oct_from_midi(MidiNote);
 			e.AppendError("At note " + conv::from_int(n) + ", octave " + conv::from_int(o) + ',');
 			throw e;
 		}
@@ -357,8 +357,8 @@ void CInstrumentIO2A03::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 				static_cast<char>(fti_ver >= 24 ? file.ReadInt8() : -1), -1, 0x7F, "DPCM sample delta value"));
 		}
 		catch (CModuleException &e) {
-			auto n = value_cast(GET_NOTE(InstNote));
-			auto o = GET_OCTAVE(InstNote);
+			auto n = value_cast(ft0cc::doc::pitch_from_midi(InstNote));
+			auto o = ft0cc::doc::oct_from_midi(InstNote);
 			e.AppendError("At note " + conv::from_int(n) + ", octave " + conv::from_int(o) + ',');
 			throw e;
 		}

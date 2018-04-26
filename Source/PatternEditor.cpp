@@ -1384,7 +1384,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		default:
 			if (IsAPUNoise(ch)) {
 				// Noise
-				char NoiseFreq = MIDI_NOTE(NoteData.Octave, NoteData.Note) & 0x0F;
+				char NoiseFreq = ft0cc::doc::midi_note(NoteData.Octave, NoteData.Note) & 0x0F;
 				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoiseFreq], ColorInfo.Note);		// // //
 				DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, L'-', ColorInfo.Note);
 				DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, L'#', ColorInfo.Note);

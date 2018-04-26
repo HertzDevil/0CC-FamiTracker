@@ -288,7 +288,7 @@ void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, std::size_t Po
 	case note_t::halt: Value = ECHO_BUFFER_HALT; break;
 	case note_t::echo: Value = ECHO_BUFFER_ECHO + NoteData.Octave; break;
 	default:
-		Value = MIDI_NOTE(NoteData.Octave, NoteData.Note);
+		Value = ft0cc::doc::midi_note(NoteData.Octave, NoteData.Note);
 		for (int i = MAX_EFFECT_COLUMNS - 1; i >= 0; --i) {
 			const int Param = NoteData.Effects[i].param & 0x0F;
 			if (NoteData.Effects[i].fx == effect_t::SLIDE_UP) {
@@ -331,8 +331,8 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 		}
 		else if (NewNote == ECHO_BUFFER_HALT) NoteData.Note = note_t::halt;
 		else {
-			NoteData.Note = GET_NOTE(NewNote);
-			NoteData.Octave = GET_OCTAVE(NewNote);
+			NoteData.Note = ft0cc::doc::pitch_from_midi(NewNote);
+			NoteData.Octave = ft0cc::doc::oct_from_midi(NewNote);
 		}
 	}
 	if ((NoteData.Note != note_t::release && NoteData.Note != note_t::none) || pushNone) { // push buffer
@@ -502,7 +502,7 @@ void CChannelHandler::ReleaseNote()
 int CChannelHandler::RunNote(int Octave, note_t Note)
 {
 	// Run the note and handle portamento
-	int NewNote = MIDI_NOTE(Octave, Note);
+	int NewNote = ft0cc::doc::midi_note(Octave, Note);
 
 	int NesFreq = TriggerNote(NewNote);
 

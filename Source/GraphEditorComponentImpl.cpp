@@ -401,12 +401,12 @@ void CCellGraph::DrawRange(CDC &dc, int Max, int Min) {
 
 		// Top
 		int NoteValue1 = dynamic_cast<CArpeggioGraphEditor &>(parent_).GetGraphScrollOffset() + 20;
-		auto label1 = conv::to_wide(GetNoteString(GET_NOTE(NoteValue1), GET_OCTAVE(NoteValue1)));
+		auto label1 = conv::to_wide(GetNoteString(ft0cc::doc::pitch_from_midi(NoteValue1), ft0cc::doc::oct_from_midi(NoteValue1)));
 		dc.TextOutW(region_.left - 4, GetItemTop() - 3, label1.data());		// // //
 
 		// Bottom
 		int NoteValue2 = dynamic_cast<CArpeggioGraphEditor &>(parent_).GetGraphScrollOffset();
-		auto label2 = conv::to_wide(GetNoteString(GET_NOTE(NoteValue2), GET_OCTAVE(NoteValue2)));
+		auto label2 = conv::to_wide(GetNoteString(ft0cc::doc::pitch_from_midi(NoteValue2), ft0cc::doc::oct_from_midi(NoteValue2)));
 		dc.TextOutW(region_.left - 4, GetItemBottom() - 10, label2.data());
 
 		dc.SelectObject(pOldFont);

@@ -54,7 +54,7 @@ CStringA GetPitchText(int digits, int period, double freq) {
 	const int cents = int((note - double(note_conv)) * 100.0);
 
 	if (freq != 0.)
-		return FormattedA(fmt, digits, period, freq, GetNoteString(GET_NOTE(note_conv), GET_OCTAVE(note_conv) + 1).data(), cents);
+		return FormattedA(fmt, digits, period, freq, GetNoteString(ft0cc::doc::pitch_from_midi(note_conv), ft0cc::doc::oct_from_midi(note_conv) + 1).data(), cents);
 	return FormattedA(fmt, digits, period, 0., "---", 0);
 };
 

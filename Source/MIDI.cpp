@@ -329,7 +329,7 @@ void CMIDI::WriteNote(unsigned char Channel, note_t Note, unsigned char Octave, 
 	unsigned int MsgChannel = Channel;
 	unsigned int MsgType;
 
-	unsigned int Data1 = MIDI_NOTE(Octave, Note);		// note
+	unsigned int Data1 = ft0cc::doc::midi_note(Octave, Note);		// note
 	unsigned int Data2 = Velocity * 8;					// velocity
 
 	if (Note == note_t::halt || Note == note_t::release) {

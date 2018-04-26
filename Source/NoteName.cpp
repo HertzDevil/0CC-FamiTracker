@@ -58,7 +58,7 @@ std::string GetNoteString(note_t note, int octave) {
 	case note_t::echo:
 		return "^-"s + std::to_string(octave);
 	default:
-		if (IsNote(note))
+		if (ft0cc::doc::is_note(note))
 #ifndef AFL_FUZZ_ENABLED
 			return std::string((Env.GetSettings()->Appearance.bDisplayFlats ? NOTE_NAME_FLAT : NOTE_NAME)[value_cast(note) - 1]) + std::to_string(octave);
 #else
@@ -86,7 +86,7 @@ std::pair<note_t, int> ReadNoteFromString(std::string_view sv) {
 			return {note_t::echo, (int)*o};
 		for (std::size_t i = 0; i < std::size(NOTE_NAME); ++i)
 			if (pre == NOTE_NAME[i] || pre == NOTE_NAME_FLAT[i])
-				return {GET_NOTE(i), (int)*o};
+				return {ft0cc::doc::pitch_from_midi(i), (int)*o};
 	}
 
 	return {note_t::none, 0};

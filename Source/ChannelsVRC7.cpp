@@ -136,7 +136,7 @@ void CChannelHandlerVRC7::HandleNote(note_t Note, int Octave)
 int CChannelHandlerVRC7::RunNote(int Octave, note_t Note)		// // //
 {
 	// Run the note and handle portamento
-	int NewNote = MIDI_NOTE(Octave, Note);
+	int NewNote = ft0cc::doc::midi_note(Octave, Note);
 
 	int NesFreq = TriggerNote(NewNote);
 

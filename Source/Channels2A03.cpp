@@ -52,7 +52,7 @@ void CChannelHandler2A03::HandleNoteData(stChanNote &NoteData)		// // //
 	// // //
 	CChannelHandler::HandleNoteData(NoteData);
 
-	if (IsNote(NoteData.Note) || NoteData.Note == note_t::echo) {
+	if (ft0cc::doc::is_note(NoteData.Note) || NoteData.Note == note_t::echo) {
 		if (!m_bEnvelopeLoop || m_bHardwareEnvelope)		// // //
 			m_bResetEnvelope = true;
 	}
@@ -367,7 +367,7 @@ void CNoiseChan::HandleNote(note_t Note, int Octave)
 {
 	CChannelHandler2A03::HandleNote(Note, Octave);		// // //
 
-	int NewNote = (MIDI_NOTE(Octave, Note) & 0x0F) | 0x100;
+	int NewNote = (ft0cc::doc::midi_note(Octave, Note) & 0x0F) | 0x100;
 	int NesFreq = TriggerNote(NewNote);
 
 	// // // NesFreq = (NesFreq & 0x0F) | 0x10;
@@ -572,7 +572,7 @@ void CDPCMChan::HandleRelease()
 void CDPCMChan::HandleNote(note_t Note, int Octave)
 {
 	CChannelHandler::HandleNote(Note, Octave);		// // //
-	m_iNote = MIDI_NOTE(Octave, Note);		// // //
+	m_iNote = ft0cc::doc::midi_note(Octave, Note);		// // //
 	TriggerNote(m_iNote);
 	m_bGate = true;
 }

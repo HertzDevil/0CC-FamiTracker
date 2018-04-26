@@ -63,10 +63,10 @@ void CTransposeDlg::Transpose(int Trsp, CSongData &song) {
 		pat.VisitRows([&] (stChanNote &note) {
 			if (note.Instrument == MAX_INSTRUMENTS || note.Instrument == HOLD_INSTRUMENT)
 				return;
-			if (IsNote(note.Note) && !s_bDisableInst[note.Instrument]) {
-				int MIDI = std::clamp(MIDI_NOTE(note.Octave, note.Note) + Trsp, 0, NOTE_COUNT - 1);
-				note.Octave = GET_OCTAVE(MIDI);
-				note.Note = GET_NOTE(MIDI);
+			if (ft0cc::doc::is_note(note.Note) && !s_bDisableInst[note.Instrument]) {
+				int MIDI = std::clamp(ft0cc::doc::midi_note(note.Octave, note.Note) + Trsp, 0, NOTE_COUNT - 1);
+				note.Octave = ft0cc::doc::oct_from_midi(MIDI);
+				note.Note = ft0cc::doc::pitch_from_midi(MIDI);
 			}
 		});
 	});

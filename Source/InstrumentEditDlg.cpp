@@ -296,8 +296,8 @@ void CInstrumentEditDlg::OnPaint()
 	const note_t BLACK_1[] = {note_t::Cs, note_t::Ds};
 	const note_t BLACK_2[] = {note_t::Fs, note_t::Gs, note_t::As};
 
-	note_t Note = GET_NOTE(m_iActiveKey);		// // //
-	int Octave = GET_OCTAVE(m_iActiveKey);
+	note_t Note = ft0cc::doc::pitch_from_midi(m_iActiveKey);		// // //
+	int Octave = ft0cc::doc::oct_from_midi(m_iActiveKey);
 
 	for (int j = 0; j < 8; ++j) {
 		int Pos = (WHITE_KEY_W * 7) * j;
@@ -403,7 +403,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 			else if (KeyPos >=  0) Note = note_t::C;
 		}
 
-		int NewNote = MIDI_NOTE(Octave, Note);		// // //
+		int NewNote = ft0cc::doc::midi_note(Octave, Note);		// // //
 		if (NewNote != m_iLastKey) {
 			NoteData.Note			= Note;
 			NoteData.Octave			= Octave;

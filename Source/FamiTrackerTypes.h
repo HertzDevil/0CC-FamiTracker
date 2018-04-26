@@ -25,6 +25,9 @@
 
 #include "APU/Types.h"		// // //
 #include "ft0cc/enum_traits.h"		// // //
+#include "ft0cc/doc/pitch.hpp"		// // //
+
+using note_t = ft0cc::doc::pitch; // TODO: remove
 
 /*
  * Here are the constants that defines the limits in the tracker
@@ -93,7 +96,7 @@ const std::size_t ECHO_BUFFER_LENGTH = 4u;
 
 const int OCTAVE_RANGE = 8;
 const int DEFAULT_OCTAVE = 3;		// // //
-const int NOTE_RANGE   = 12;
+const int NOTE_RANGE   = ft0cc::doc::note_range;
 const int NOTE_COUNT   = OCTAVE_RANGE * NOTE_RANGE;		// // // moved from SoundGen.h
 
 const int INVALID_INSTRUMENT = -1;
@@ -246,43 +249,9 @@ constexpr effect_t GetEffectFromChar(char ch, sound_chip_t Chip) noexcept {		// 
 	return effect_t::NONE;
 }
 
-ENUM_CLASS_STANDARD(note_t, std::uint8_t) {
-	none,						// No note
-	C,  Cs, D,  Ds, E,  F,		// // // renamed
-	Fs, G,  Gs, A,  As, B,
-	release,					// Release, begin note release sequence
-	halt,						// Halt, stops note
-	echo,						// // // Echo buffer access, octave determines position
-	min = C, max = echo,
-};
-
-constexpr bool IsNote(note_t n) noexcept {
-	return n >= note_t::C && n <= note_t::B;
-}
-
 inline constexpr int DEFAULT_TEMPO = DEFAULT_MACHINE_TYPE == machine_t::PAL ? DEFAULT_TEMPO_PAL : DEFAULT_TEMPO_NTSC;		// // //
 
 enum class vibrato_t : unsigned char {
 	Up,
 	Bidir,
 };
-
-constexpr int MIDI_NOTE(int octave, note_t note) noexcept {		// // //
-	if (IsNote(note))
-		return octave * NOTE_RANGE + static_cast<unsigned>(note) - 1;
-	return -1;
-}
-
-constexpr int GET_OCTAVE(int midi_note) noexcept {
-	int x = midi_note / NOTE_RANGE;
-	if (midi_note < 0 && !(midi_note % NOTE_RANGE))
-		--x;
-	return x;
-}
-
-constexpr note_t GET_NOTE(int midi_note) noexcept {
-	int x = midi_note % NOTE_RANGE;
-	if (x < 0)
-		x += NOTE_RANGE;
-	return enum_cast<note_t>(++x);
-}

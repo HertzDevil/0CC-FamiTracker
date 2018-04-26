@@ -163,7 +163,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 
 		bool Action = false;
 
-		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT && (IsNote(Note) || Note == note_t::echo))		// // //
+		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT && (ft0cc::doc::is_note(Note) || Note == note_t::echo))		// // //
 			if (!IsInstrumentCompatible(Channel.Chip, pInstManager->GetInstrumentType(ChanNote.Instrument)))		// // //
 				Print("Error: Missing or incompatible instrument (on row " + conv::from_uint(i) +
 					", channel " + std::string {Env.GetSoundChipService()->GetChannelFullName(Channel)} + ", pattern " + conv::from_uint(Pattern) + ")\n");
@@ -281,11 +281,11 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 		else {
 			if (IsDPCM(Channel)) {
 				// 2A03 DPCM
-				int LookUp = FindSample(DPCMInst, MIDI_NOTE(Octave, Note));
+				int LookUp = FindSample(DPCMInst, ft0cc::doc::midi_note(Octave, Note));
 				if (LookUp > 0) {
 					NESNote = LookUp - 1;
 					if (auto pInstrument = std::dynamic_pointer_cast<CInstrument2A03>(pInstManager->GetInstrument(DPCMInst)))
-						m_bDSamplesAccessed[pInstrument->GetSampleIndex(MIDI_NOTE(Octave, Note))] = true;
+						m_bDSamplesAccessed[pInstrument->GetSampleIndex(ft0cc::doc::midi_note(Octave, Note))] = true;
 					// TODO: Print errors if incompatible or non-existing instrument is found
 				}
 				else {
@@ -296,12 +296,12 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 			}
 			else if (IsAPUNoise(Channel)) {
 				// 2A03 Noise
-				NESNote = MIDI_NOTE(Octave, Note);
+				NESNote = ft0cc::doc::midi_note(Octave, Note);
 				NESNote = (NESNote & 0x0F) | 0x10;
 			}
 			else
 				// All other channels
-				NESNote = MIDI_NOTE(Octave, Note);
+				NESNote = ft0cc::doc::midi_note(Octave, Note);
 		}
 
 		for (int j = 0; j < EffColumns; ++j) {

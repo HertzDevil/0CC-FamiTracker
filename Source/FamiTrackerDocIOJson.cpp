@@ -134,9 +134,9 @@ void to_json(json &j, const stChanNote &note) {
 		j["value"] = note.Octave;
 		break;
 	default:
-		if (IsNote(note.Note)) {
+		if (ft0cc::doc::is_note(note.Note)) {
 			j["kind"] = "note";
-			j["value"] = MIDI_NOTE(note.Octave, note.Note);
+			j["value"] = ft0cc::doc::midi_note(note.Octave, note.Note);
 		}
 	}
 
@@ -488,8 +488,8 @@ void from_json(const json &j, stChanNote &note) {
 	json_maybe(j, "kind", [&] (std::string &&kind) {
 		if (kind == "note") {
 			int midiNote = json_get_between(j, "value", 0, 95);
-			note.Note = GET_NOTE(midiNote);
-			note.Octave = GET_OCTAVE(midiNote);
+			note.Note = ft0cc::doc::pitch_from_midi(midiNote);
+			note.Octave = ft0cc::doc::oct_from_midi(midiNote);
 		}
 		else if (kind == "halt")
 			note.Note = note_t::halt;

@@ -287,7 +287,7 @@ std::optional<int> CSeqConversionArpScheme::GetNextTerm(std::string_view &sv)
 
 std::string CSeqConversionArpFixed::ToString(char Value) const
 {
-	return GetNoteString(GET_NOTE(static_cast<unsigned char>(Value)), GET_OCTAVE(static_cast<unsigned char>(Value)));
+	return GetNoteString(ft0cc::doc::pitch_from_midi(static_cast<unsigned char>(Value)), ft0cc::doc::oct_from_midi(static_cast<unsigned char>(Value)));
 }
 
 std::optional<int> CSeqConversionArpFixed::GetNextTerm(std::string_view &sv)

@@ -216,12 +216,12 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerModule &modfile) {
 				for (int p = 0; p < MAX_PATTERN; ++p)
 					for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
 						stChanNote &Note = song.GetPatternData(fds_subindex_t::wave, p, r);		// // //
-						if (IsNote(Note.Note)) {
+						if (ft0cc::doc::is_note(Note.Note)) {
 							auto NewNote = Note;
-							int Trsp = MIDI_NOTE(Note.Octave, Note.Note) + NOTE_RANGE * 2;
+							int Trsp = ft0cc::doc::midi_note(Note.Octave, Note.Note) + NOTE_RANGE * 2;
 							Trsp = Trsp >= NOTE_COUNT ? NOTE_COUNT - 1 : Trsp;
-							Note.Note = GET_NOTE(Trsp);
-							Note.Octave = GET_OCTAVE(Trsp);
+							Note.Note = ft0cc::doc::pitch_from_midi(Trsp);
+							Note.Octave = ft0cc::doc::oct_from_midi(Trsp);
 						}
 					}
 			});

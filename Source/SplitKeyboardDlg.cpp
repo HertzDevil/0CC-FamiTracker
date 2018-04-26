@@ -81,12 +81,12 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_NOTE));
 	for (auto n : KEY_NAME)
 		pCombo->AddString(conv::to_wide(n).data());
-	pCombo->SetCurSel(m_iSplitNote != -1 ? (value_cast(GET_NOTE(m_iSplitNote)) - 1) : 0);
+	pCombo->SetCurSel(m_iSplitNote != -1 ? (value_cast(ft0cc::doc::pitch_from_midi(m_iSplitNote)) - 1) : 0);
 
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_OCTAVE));
 	for (int i = 0; i < OCTAVE_RANGE; ++i)
 		pCombo->AddString(conv::to_wide(conv::from_int(i)).data());
-	pCombo->SetCurSel(m_iSplitNote != -1 ? GET_OCTAVE(m_iSplitNote) : 3);
+	pCombo->SetCurSel(m_iSplitNote != -1 ? ft0cc::doc::oct_from_midi(m_iSplitNote) : 3);
 
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_CHAN));
 	pCombo->AddString(KEEP_INST_STRING);
@@ -137,7 +137,7 @@ void CSplitKeyboardDlg::OnBnClickedCheckSplitEnable()
 
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitNote()
 {
-	m_iSplitNote = MIDI_NOTE(
+	m_iSplitNote = ft0cc::doc::midi_note(
 		static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_OCTAVE))->GetCurSel(),
 		enum_cast<note_t>(static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_NOTE))->GetCurSel() + 1));
 }

@@ -26,12 +26,14 @@
 #include <string>
 #include <string_view>
 
-enum class note_t : unsigned char;
+namespace ft0cc::doc {		// // //
+enum class pitch : std::uint8_t;
+} // namespace ft0cc::doc
 class stChanNote;
 
-extern std::string GetNoteString(note_t note, int octave);
+extern std::string GetNoteString(ft0cc::doc::pitch note, int octave);
 extern std::string GetNoteString(const stChanNote &note);
-extern std::pair<note_t, int> ReadNoteFromString(std::string_view sv);
+extern std::pair<ft0cc::doc::pitch, int> ReadNoteFromString(std::string_view sv);
 
 inline const std::string_view KEY_NAME[] = {
 	"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",

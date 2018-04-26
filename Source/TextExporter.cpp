@@ -316,8 +316,8 @@ public:
 
 			if (IsAPUNoise(chan)) {		// // // noise
 				int h = ImportHex(sNote.Left(1));		// // //
-				Cell.Note = GET_NOTE(h);
-				Cell.Octave = GET_OCTAVE(h);
+				Cell.Note = ft0cc::doc::pitch_from_midi(h);
+				Cell.Octave = ft0cc::doc::oct_from_midi(h);
 
 				// importer is very tolerant about the second and third characters
 				// in a noise note, they can be anything
@@ -475,8 +475,8 @@ CStringA CTextExport::ExportString(std::string_view s)		// // //
 CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise)		// // //
 {
 	CStringA s = "...";
-	if (bNoise && (IsNote(stCell.Note) || stCell.Note == note_t::echo))		// // //
-		s = FormattedA("%01X-#", MIDI_NOTE(stCell.Octave, stCell.Note) & 0x0F);
+	if (bNoise && (ft0cc::doc::is_note(stCell.Note) || stCell.Note == note_t::echo))		// // //
+		s = FormattedA("%01X-#", ft0cc::doc::midi_note(stCell.Octave, stCell.Note) & 0x0F);
 	else if (stCell.Note <= note_t::echo)
 		s = GetNoteString(stCell).data();
 
@@ -1167,7 +1167,7 @@ CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// /
 						WriteString(FormattedA("%s %3d %3d %3d   %3u %3d %3d %5d %3d\n",
 							CT[CT_KEYDPCM],
 							i,
-							GET_OCTAVE(n), value_cast(GET_NOTE(n)) - 1,
+							ft0cc::doc::oct_from_midi(n), value_cast(ft0cc::doc::pitch_from_midi(n)) - 1,
 							smp,
 							pDI->GetSamplePitch(n) & 0x0F,
 							pDI->GetSampleLoop(n) ? 1 : 0,

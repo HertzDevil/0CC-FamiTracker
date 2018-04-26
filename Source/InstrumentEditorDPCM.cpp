@@ -175,7 +175,7 @@ BOOL CInstrumentEditorDPCM::OnInitDialog()
 
 	m_cTableListCtrl.DeleteAllItems();		// // //
 	for (int i = 0; i < NOTE_COUNT; ++i)
-		m_cTableListCtrl.InsertItem(i, conv::to_wide(GetNoteString(GET_NOTE(i), GET_OCTAVE(i))).data());
+		m_cTableListCtrl.InsertItem(i, conv::to_wide(GetNoteString(ft0cc::doc::pitch_from_midi(i), ft0cc::doc::oct_from_midi(i))).data());
 	m_cTableListCtrl.GetItemRect(0, &r, 2);		// // //
 	m_cTableListCtrl.Scroll({0, DEFAULT_OCTAVE * NOTE_RANGE * r.Height()});
 
