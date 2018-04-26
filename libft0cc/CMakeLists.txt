@@ -39,8 +39,14 @@ else()
 endif()
 
 add_library(ft0cc STATIC src/ft0cc.cpp)
+target_include_directories(ft0cc PUBLIC include)
 add_subdirectory(include)
 add_subdirectory(src)
+
+if(COVERAGE)
+	target_compile_options(ft0cc PRIVATE --coverage)
+	target_link_libraries(ft0cc --coverage)
+endif()
 
 file(GLOB_RECURSE ALL_SRC_FILES "src/*.cpp")
 source_group(TREE ${CMAKE_SOURCE_DIR}/src PREFIX "Source Files" FILES ${ALL_SRC_FILES})
