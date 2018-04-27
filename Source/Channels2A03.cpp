@@ -52,7 +52,7 @@ void CChannelHandler2A03::HandleNoteData(stChanNote &NoteData)		// // //
 	// // //
 	CChannelHandler::HandleNoteData(NoteData);
 
-	if (ft0cc::doc::is_note(NoteData.Note) || NoteData.Note == note_t::echo) {
+	if (is_note(NoteData.Note) || NoteData.Note == note_t::echo) {
 		if (!m_bEnvelopeLoop || m_bHardwareEnvelope)		// // //
 			m_bResetEnvelope = true;
 	}
@@ -238,9 +238,9 @@ void C2A03Square::HandleEmptyNote()
 		m_cSweep = m_iSweep;
 }
 
-void C2A03Square::HandleNote(note_t Note, int Octave)		// // //
+void C2A03Square::HandleNote(int MidiNote)		// // //
 {
-	CChannelHandler2A03::HandleNote(Note, Octave);
+	CChannelHandler2A03::HandleNote(MidiNote);
 
 	if (!m_bSweeping && (m_cSweep != 0 || m_iSweep != 0)) {
 		m_iSweep = 0;
@@ -363,11 +363,11 @@ std::string CTriangleChan::GetCustomEffectString() const		// // //
 // Noise
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CNoiseChan::HandleNote(note_t Note, int Octave)
+void CNoiseChan::HandleNote(int MidiNote)
 {
-	CChannelHandler2A03::HandleNote(Note, Octave);		// // //
+	CChannelHandler2A03::HandleNote(MidiNote);		// // //
 
-	int NewNote = (ft0cc::doc::midi_note(Octave, Note) & 0x0F) | 0x100;
+	int NewNote = (MidiNote & 0x0F) | 0x100;
 	int NesFreq = TriggerNote(NewNote);
 
 	// // // NesFreq = (NesFreq & 0x0F) | 0x10;
@@ -384,7 +384,7 @@ void CNoiseChan::HandleNote(note_t Note, int Octave)
 
 	m_bGate = true;
 
-	m_iNote			= NewNote;
+	m_iNote = NewNote;
 }
 
 void CNoiseChan::SetupSlide()		// // //
@@ -569,10 +569,10 @@ void CDPCMChan::HandleRelease()
 	m_bRelease = true;
 }
 
-void CDPCMChan::HandleNote(note_t Note, int Octave)
+void CDPCMChan::HandleNote(int MidiNote)
 {
-	CChannelHandler::HandleNote(Note, Octave);		// // //
-	m_iNote = ft0cc::doc::midi_note(Octave, Note);		// // //
+	CChannelHandler::HandleNote(MidiNote);		// // //
+	m_iNote = MidiNote;		// // //
 	TriggerNote(m_iNote);
 	m_bGate = true;
 }

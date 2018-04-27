@@ -131,10 +131,10 @@ void CChannelHandlerN163::HandleRelease()
 		ReleaseNote();
 }
 
-void CChannelHandlerN163::HandleNote(note_t Note, int Octave)
+void CChannelHandlerN163::HandleNote(int MidiNote)
 {
 	// New note
-	CChannelHandler::HandleNote(Note, Octave);		// // //
+	CChannelHandlerInverted::HandleNote(MidiNote);		// // //
 //	m_bLoadWave = false;
 //	m_bResetPhase = true;
 }

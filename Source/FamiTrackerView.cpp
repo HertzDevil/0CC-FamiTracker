@@ -1797,7 +1797,7 @@ stChanNote CFamiTrackerView::GetInputNote(note_t Note, int Octave, std::size_t I
 		}
 		else if (Cell.Note != note_t::none) {		// // //
 			if (IsAPUNoise(Channel)) {		// // //
-				unsigned int MidiNote = (ft0cc::doc::midi_note(Cell.Octave, Cell.Note) % 16) + 16;
+				unsigned int MidiNote = (Cell.ToMidiNote() % 16) + 16;
 				Cell.Octave = ft0cc::doc::oct_from_midi(MidiNote);
 				Cell.Note = ft0cc::doc::pitch_from_midi(MidiNote);
 			}
@@ -1818,13 +1818,15 @@ stChanNote CFamiTrackerView::GetInputNote(note_t Note, int Octave, std::size_t I
 /// Note playing routines
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CFamiTrackerView::PlayNote(std::size_t Index, note_t Note, unsigned int Octave, unsigned int Velocity) const
-{
+void CFamiTrackerView::PlayNote(std::size_t Index, int MidiNote, unsigned int Velocity) const {		// // //
+	if (MidiNote < 0 || MidiNote >= NOTE_COUNT)
+		return;
+
 	// Play a note in a channel
 	stChanNote NoteData;		// // //
 
-	NoteData.Note		= Note;
-	NoteData.Octave		= Octave;
+	NoteData.Note		= ft0cc::doc::pitch_from_midi(MidiNote);
+	NoteData.Octave		= ft0cc::doc::oct_from_midi(MidiNote);
 	NoteData.Instrument	= GetInstrument();
 	if (Env.GetSettings()->Midi.bMidiVelocity)
 		NoteData.Vol = Velocity / 8;
@@ -1839,7 +1841,6 @@ void CFamiTrackerView::PlayNote(std::size_t Index, note_t Note, unsigned int Oct
 
 	stChannelID Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
 	if (order.HasChannel(Channel)) {
-		int MidiNote = ft0cc::doc::midi_note(NoteData.Octave, NoteData.Note);		// // //
 		stChannelID ret = m_pNoteQueue->Trigger(MidiNote, Channel);
 		if (order.HasChannel(ret)) {
 			SplitKeyboardAdjust(NoteData, ret);
@@ -1860,8 +1861,10 @@ void CFamiTrackerView::PlayNote(std::size_t Index, note_t Note, unsigned int Oct
 	}
 }
 
-void CFamiTrackerView::ReleaseNote(std::size_t Index, note_t Note, unsigned int Octave) const
-{
+void CFamiTrackerView::ReleaseNote(std::size_t Index, int MidiNote) const {
+	if (MidiNote < 0 || MidiNote >= NOTE_COUNT)
+		return;
+
 	// Releases a channel
 	stChanNote NoteData;		// // //
 
@@ -1871,8 +1874,8 @@ void CFamiTrackerView::ReleaseNote(std::size_t Index, note_t Note, unsigned int 
 	stChannelID Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
 	if (order.HasChannel(Channel)) {
-		stChannelID ch = m_pNoteQueue->Cut(ft0cc::doc::midi_note(Octave, Note), Channel);
-//		stChannelID ch = m_pNoteQueue->Release(ft0cc::doc::midi_note(Octave, Note), Channel);
+		stChannelID ch = m_pNoteQueue->Cut(MidiNote, Channel);
+//		stChannelID ch = m_pNoteQueue->Release(MidiNote, Channel);
 		if (order.HasChannel(ch))
 			Env.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
@@ -1888,8 +1891,10 @@ void CFamiTrackerView::ReleaseNote(std::size_t Index, note_t Note, unsigned int 
 	}
 }
 
-void CFamiTrackerView::HaltNote(std::size_t Index, note_t Note, unsigned int Octave) const
-{
+void CFamiTrackerView::HaltNote(std::size_t Index, int MidiNote) const {
+	if (MidiNote < 0 || MidiNote >= NOTE_COUNT)
+		return;
+
 	// Halts a channel
 	stChanNote NoteData;		// // //
 
@@ -1899,7 +1904,7 @@ void CFamiTrackerView::HaltNote(std::size_t Index, note_t Note, unsigned int Oct
 	stChannelID Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
 	if (order.HasChannel(Channel)) {
-		stChannelID ch = m_pNoteQueue->Cut(ft0cc::doc::midi_note(Octave, Note), Channel);
+		stChannelID ch = m_pNoteQueue->Cut(MidiNote, Channel);
 		if (order.HasChannel(ch))
 			Env.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
@@ -1962,13 +1967,13 @@ void CFamiTrackerView::TriggerMIDINote(std::size_t Index, unsigned int MidiNote,
 	unsigned int Octave = ft0cc::doc::oct_from_midi(MidiNote);
 	note_t Note = ft0cc::doc::pitch_from_midi(MidiNote);
 //	if (TranslateChannel(Channel) == stChannelID::NOISE)
-//		FixNoise(MidiNote, Octave, Note);
+//		FixNoise(MidiNote, MidiNote);
 
 	if (!Env.GetSettings()->Midi.bMidiVelocity)
 		Velocity = Env.GetSettings()->General.iEditStyle == edit_style_t::IT ? m_LastNote.Vol * 8 : 127;
 
 	if (!(Env.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
-		PlayNote(Index, Note, Octave, Velocity);
+		PlayNote(Index, MidiNote, Velocity);
 
 	if (Insert)
 		InsertNote(GetInputNote(Note, Octave, Index, Velocity + 1));
@@ -1989,15 +1994,13 @@ void CFamiTrackerView::CutMIDINote(std::size_t Index, unsigned int MidiNote, boo
 	if (MidiNote >= NOTE_COUNT) MidiNote = NOTE_COUNT - 1;		// // //
 
 	// Cut a MIDI note
-	unsigned int Octave = ft0cc::doc::oct_from_midi(MidiNote);
-	note_t Note = ft0cc::doc::pitch_from_midi(MidiNote);
 //	if (TranslateChannel(Channel) == stChannelID::NOISE)
-//		FixNoise(MidiNote, Octave, Note);
+//		FixNoise(MidiNote, MidiNote);
 
 	// Cut note
 	if (!(Env.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		if (!m_bEditEnable || m_iLastMIDINote == MidiNote)
-			HaltNote(Index, Note, Octave);
+			HaltNote(Index, MidiNote);
 
 	if (InsertCut)
 		InsertNote(GetInputNote(note_t::halt, 0, Index, 0));
@@ -2009,7 +2012,7 @@ void CFamiTrackerView::CutMIDINote(std::size_t Index, unsigned int MidiNote, boo
 
 	// IT-mode, cut note on cuts
 	if (Env.GetSettings()->General.iEditStyle == edit_style_t::IT)
-		HaltNote(Index, Note, Octave);		// // //
+		HaltNote(Index, MidiNote);		// // //
 
 	TRACE(L"%i: Cut note %i on channel %i\n", GetTickCount(), MidiNote, Index);
 }
@@ -2020,15 +2023,13 @@ void CFamiTrackerView::ReleaseMIDINote(std::size_t Index, unsigned int MidiNote,
 	if (MidiNote >= NOTE_COUNT) MidiNote = NOTE_COUNT - 1;		// // //
 
 	// Release a MIDI note
-	unsigned int Octave = ft0cc::doc::oct_from_midi(MidiNote);
-	note_t Note = ft0cc::doc::pitch_from_midi(MidiNote);
 //	if (TranslateChannel(Channel) == stChannelID::NOISE)
-//		FixNoise(MidiNote, Octave, Note);
+//		FixNoise(MidiNote, MidiNote);
 
 	// Cut note
 	if (!(Env.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		if (!m_bEditEnable || m_iLastMIDINote == MidiNote)
-			ReleaseNote(Index, Note, Octave);
+			ReleaseNote(Index, MidiNote);
 
 	if (InsertCut)
 		InsertNote(GetInputNote(note_t::release, 0, Index, 0));
@@ -2040,7 +2041,7 @@ void CFamiTrackerView::ReleaseMIDINote(std::size_t Index, unsigned int MidiNote,
 
 	// IT-mode, release note
 	if (Env.GetSettings()->General.iEditStyle == edit_style_t::IT)
-		ReleaseNote(Index, Note, Octave);		// // //
+		ReleaseNote(Index, MidiNote);		// // //
 
 	TRACE(L"%i: Release note %i on channel %i\n", GetTickCount(), MidiNote, Index);
 }
@@ -2785,7 +2786,7 @@ void CFamiTrackerView::SplitKeyboardAdjust(stChanNote &Note, stChannelID Channel
 {
 	ASSERT(Note.Note >= note_t::C && Note.Note <= note_t::B);
 	if (m_iSplitNote != -1 && !IsAPUNoise(Channel)) {
-		int MidiNote = ft0cc::doc::midi_note(Note.Octave, Note.Note);
+		int MidiNote = Note.ToMidiNote();
 		if (MidiNote <= m_iSplitNote) {
 			MidiNote = std::clamp(MidiNote + m_iSplitTranspose, 0, NOTE_COUNT - 1);
 			Note.Octave = ft0cc::doc::oct_from_midi(MidiNote);
@@ -2800,7 +2801,7 @@ void CFamiTrackerView::SplitKeyboardAdjust(stChanNote &Note, stChannelID Channel
 stChannelID CFamiTrackerView::SplitAdjustChannel(stChannelID Channel, const stChanNote &Note) const		// // //
 {
 	if (!m_bEditEnable && m_iSplitChannel.Chip != sound_chip_t::none)
-		if (m_iSplitNote != -1 && ft0cc::doc::midi_note(Note.Octave, Note.Note) <= m_iSplitNote)
+		if (m_iSplitNote != -1 && Note.ToMidiNote() <= m_iSplitNote)
 			if (GetSongView()->GetChannelOrder().HasChannel(m_iSplitChannel))
 				return m_iSplitChannel;
 	return Channel;

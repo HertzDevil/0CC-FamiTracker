@@ -160,7 +160,7 @@ void stChannelState::HandleNote(const stChanNote &Note, unsigned EffColumns) {
 				case note_t::halt: Echo[i] = ECHO_BUFFER_HALT; break;
 				case note_t::echo: Echo[i] = ECHO_BUFFER_ECHO + Note.Octave; break;
 				default:
-					int NewNote = ft0cc::doc::midi_note(Note.Octave, Note.Note) + Transpose[i];
+					int NewNote = Note.ToMidiNote() + Transpose[i];
 					NewNote = std::clamp(NewNote, 0, NOTE_COUNT - 1);
 					Echo[i] = NewNote;
 				}
@@ -174,7 +174,7 @@ void stChannelState::HandleNote(const stChanNote &Note, unsigned EffColumns) {
 			case note_t::halt: Value = ECHO_BUFFER_HALT; break;
 			case note_t::echo: Value = ECHO_BUFFER_ECHO + Note.Octave; break;
 			default:
-				Value = ft0cc::doc::midi_note(Note.Octave, Note.Note);
+				Value = Note.ToMidiNote();
 				UpdateEchoTranspose(Note, Value, EffColumns);
 				Value = std::clamp(Value, 0, NOTE_COUNT - 1);
 			}

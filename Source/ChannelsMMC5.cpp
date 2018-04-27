@@ -43,7 +43,7 @@ void CChannelHandlerMMC5::HandleNoteData(stChanNote &NoteData)		// // //
 	// // //
 	CChannelHandler::HandleNoteData(NoteData);
 
-	if (ft0cc::doc::is_note(NoteData.Note) || NoteData.Note == note_t::echo) {
+	if (is_note(NoteData.Note) || NoteData.Note == note_t::echo) {
 		if (!m_bEnvelopeLoop || m_bHardwareEnvelope)		// // //
 			m_bResetEnvelope = true;
 	}

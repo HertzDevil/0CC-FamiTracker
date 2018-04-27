@@ -252,9 +252,9 @@ private:
 	void	CutMIDINote(std::size_t Index, unsigned int MidiNote, bool InsertCut);
 
 	// Note handling
-	void	PlayNote(std::size_t Index, note_t Note, unsigned int Octave, unsigned int Velocity) const;
-	void	ReleaseNote(std::size_t Index, note_t Note, unsigned int Octave) const;		// // //
-	void	HaltNote(std::size_t Index, note_t Note, unsigned int Octave) const;		// // //
+	void	PlayNote(std::size_t Index, int MidiNote, unsigned int Velocity) const;		// // //
+	void	ReleaseNote(std::size_t Index, int MidiNote) const;		// // //
+	void	HaltNote(std::size_t Index, int MidiNote) const;		// // //
 	void	HaltNoteSingle(std::size_t Index) const;		// // //
 
 	void	UpdateArpDisplay();

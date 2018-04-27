@@ -226,7 +226,7 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 		m_cListResults.SetItemText(Pos, NOTE, (L"^-" + conv::to_wide(conv::from_int(Note.Octave))).data()); break;
 	default:
 		if (Noise)
-			m_cListResults.SetItemText(Pos, NOTE, (conv::to_wide(conv::from_int_hex(ft0cc::doc::midi_note(Note.Octave, Note.Note) & 0x0F)) + L"-#").data());
+			m_cListResults.SetItemText(Pos, NOTE, (conv::to_wide(conv::from_int_hex(Note.ToMidiNote() & 0x0F)) + L"-#").data());
 		else
 			m_cListResults.SetItemText(Pos, NOTE, conv::to_wide(GetNoteString(Note)).data());
 	}
@@ -443,7 +443,7 @@ int CFindResultsBox::NoteCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lPar
 		case note_t::echo:
 			return 0x400 + octave;
 		default:
-			if (ft0cc::doc::is_note(note))
+			if (is_note(note))
 				return ft0cc::doc::midi_note(octave, note);
 		}
 		return -1;
@@ -791,8 +791,8 @@ void CFindDlg::GetFindTerm()
 		ParseNote(newTerm, str, false);
 		m_cFindNoteField2.GetWindowTextW(str);
 		ParseNote(newTerm, str, !empty);
-		RaiseIf((newTerm.Note->Min == note_t::echo && ft0cc::doc::is_note(newTerm.Note->Max) ||
-			newTerm.Note->Max == note_t::echo && ft0cc::doc::is_note(newTerm.Note->Min)) &&
+		RaiseIf((newTerm.Note->Min == note_t::echo && is_note(newTerm.Note->Max) ||
+			newTerm.Note->Max == note_t::echo && is_note(newTerm.Note->Min)) &&
 			newTerm.Definite[WC_OCT],
 			L"Cannot use both notes and echo buffer in a range search query.");
 	}
@@ -904,18 +904,18 @@ bool CFindDlg::CompareFields(const stChanNote &Target, bool Noise, int EffCount)
 	bool Negate = IsDlgButtonChecked(IDC_CHECK_FIND_NEGATE) == BST_CHECKED;
 	bool EffectMatch = false;
 
-	bool Melodic = ft0cc::doc::is_note(m_searchTerm.Note->Min) && // ||
-				   ft0cc::doc::is_note(m_searchTerm.Note->Max) &&
+	bool Melodic = is_note(m_searchTerm.Note->Min) && // ||
+				   is_note(m_searchTerm.Note->Max) &&
 				   m_searchTerm.Definite[WC_OCT];
 
 	if (m_searchTerm.Definite[WC_NOTE]) {
 		if (m_searchTerm.NoiseChan) {
 			if (!Noise && Melodic) return false;
-			if (!ft0cc::doc::is_note(m_searchTerm.Note->Min) || !ft0cc::doc::is_note(m_searchTerm.Note->Max)) {
+			if (!is_note(m_searchTerm.Note->Min) || !is_note(m_searchTerm.Note->Max)) {
 				if (!m_searchTerm.Note->IsMatch(Target.Note)) return Negate;
 			}
 			else {
-				int NoiseNote = ft0cc::doc::midi_note(Target.Octave, Target.Note) % 16;
+				int NoiseNote = Target.ToMidiNote() % 16;
 				int Low = ft0cc::doc::midi_note(m_searchTerm.Oct->Min, m_searchTerm.Note->Min) % 16;
 				int High = ft0cc::doc::midi_note(m_searchTerm.Oct->Max, m_searchTerm.Note->Max) % 16;
 				if ((NoiseNote < Low && NoiseNote < High) || (NoiseNote > Low && NoiseNote > High))
@@ -925,9 +925,9 @@ bool CFindDlg::CompareFields(const stChanNote &Target, bool Noise, int EffCount)
 		else {
 			if (Noise && Melodic) return false;
 			if (Melodic) {
-				if (!ft0cc::doc::is_note(Target.Note))
+				if (!is_note(Target.Note))
 					return Negate;
-				int NoteValue = ft0cc::doc::midi_note(Target.Octave, Target.Note);
+				int NoteValue = Target.ToMidiNote();
 				int Low = ft0cc::doc::midi_note(m_searchTerm.Oct->Min, m_searchTerm.Note->Min);
 				int High = ft0cc::doc::midi_note(m_searchTerm.Oct->Max, m_searchTerm.Note->Max);
 				if ((NoteValue < Low && NoteValue < High) || (NoteValue > Low && NoteValue > High))

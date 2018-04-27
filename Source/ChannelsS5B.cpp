@@ -87,9 +87,9 @@ bool CChannelHandlerS5B::HandleEffect(stEffectCommand cmd)
 	return true;
 }
 
-void CChannelHandlerS5B::HandleNote(note_t Note, int Octave)		// // //
+void CChannelHandlerS5B::HandleNote(int MidiNote)		// // //
 {
-	CChannelHandler::HandleNote(Note, Octave);
+	CChannelHandler::HandleNote(MidiNote);
 	chip_handler_.RestoreNoisePeriod();
 }
 

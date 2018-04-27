@@ -134,9 +134,9 @@ void to_json(json &j, const stChanNote &note) {
 		j["value"] = note.Octave;
 		break;
 	default:
-		if (ft0cc::doc::is_note(note.Note)) {
+		if (is_note(note.Note)) {
 			j["kind"] = "note";
-			j["value"] = ft0cc::doc::midi_note(note.Octave, note.Note);
+			j["value"] = note.ToMidiNote();
 		}
 	}
 

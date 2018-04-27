@@ -115,11 +115,11 @@ void CChannelHandlerVRC7::HandleRelease()
 	}
 }
 
-void CChannelHandlerVRC7::HandleNote(note_t Note, int Octave)
+void CChannelHandlerVRC7::HandleNote(int MidiNote)
 {
-	CChannelHandler::HandleNote(Note, Octave);		// // //
+	CChannelHandlerInverted::HandleNote(MidiNote);		// // //
 
-	m_bHold	= true;
+	m_bHold = true;
 
 /*
 	if ((m_iEffect != effect_t::PORTAMENTO || m_iPortaSpeed == 0) ||
@@ -133,12 +133,11 @@ void CChannelHandlerVRC7::HandleNote(note_t Note, int Octave)
 		m_iCommand = CMD_NOTE_TRIGGER;
 }
 
-int CChannelHandlerVRC7::RunNote(int Octave, note_t Note)		// // //
-{
+void CChannelHandlerVRC7::RunNote(int MidiNote) {		// // //
 	// Run the note and handle portamento
-	int NewNote = ft0cc::doc::midi_note(Octave, Note);
+	int Octave = ft0cc::doc::oct_from_midi(MidiNote);
 
-	int NesFreq = TriggerNote(NewNote);
+	int NesFreq = TriggerNote(MidiNote);
 
 	if (m_iPortaSpeed > 0 && m_iEffect == effect_t::PORTAMENTO && m_bGate) {		// // //
 		if (m_iPeriod == 0) {
@@ -157,8 +156,6 @@ int CChannelHandlerVRC7::RunNote(int Octave, note_t Note)		// // //
 	m_bGate = true;
 
 	CorrectOctave();		// // //
-
-	return NewNote;
 }
 
 bool CChannelHandlerVRC7::CreateInstHandler(inst_type_t Type)

@@ -50,7 +50,7 @@ protected:
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;
 	void	HandleRelease() override;
-	void	HandleNote(note_t Note, int Octave) override;
+	void	HandleNote(int MidiNote) override;
 	bool	CreateInstHandler(inst_type_t Type) override;		// // //
 	void	SetupSlide() override;		// // //
 	int		ConvertDuty(int Duty) const override;		// // //

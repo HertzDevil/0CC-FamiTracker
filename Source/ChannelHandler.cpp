@@ -288,7 +288,7 @@ void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, std::size_t Po
 	case note_t::halt: Value = ECHO_BUFFER_HALT; break;
 	case note_t::echo: Value = ECHO_BUFFER_ECHO + NoteData.Octave; break;
 	default:
-		Value = ft0cc::doc::midi_note(NoteData.Octave, NoteData.Note);
+		Value = NoteData.ToMidiNote();
 		for (int i = MAX_EFFECT_COLUMNS - 1; i >= 0; --i) {
 			const int Param = NoteData.Effects[i].param & 0x0F;
 			if (NoteData.Effects[i].fx == effect_t::SLIDE_UP) {
@@ -329,7 +329,8 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 			NoteData.Note = note_t::none;
 			pushNone = true;
 		}
-		else if (NewNote == ECHO_BUFFER_HALT) NoteData.Note = note_t::halt;
+		else if (NewNote == ECHO_BUFFER_HALT)
+			NoteData.Note = note_t::halt;
 		else {
 			NoteData.Note = ft0cc::doc::pitch_from_midi(NewNote);
 			NoteData.Octave = ft0cc::doc::oct_from_midi(NewNote);
@@ -386,11 +387,6 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 		// m_iInstrument = m_pSoundGen->GetDefaultInstrument();
 	}
 
-	switch (NoteData.Note) {		// // // set note value before loading instrument
-	case note_t::none: case note_t::halt: case note_t::release: break;
-	default: m_iNote = RunNote(NoteData.Octave, NoteData.Note);
-	}
-
 	// Note
 	switch (NoteData.Note) {
 	case note_t::none:
@@ -404,7 +400,9 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 		HandleRelease();
 		break;
 	default:
-		HandleNote(NoteData.Note, NoteData.Octave);
+		m_iNote = NoteData.ToMidiNote();		// // // set note value before loading instrument
+		RunNote(m_iNote);
+		HandleNote(NoteData.ToMidiNote());
 		break;
 	}
 
@@ -499,12 +497,9 @@ void CChannelHandler::ReleaseNote()
 	m_bRelease = true;
 }
 
-int CChannelHandler::RunNote(int Octave, note_t Note)
-{
+void CChannelHandler::RunNote(int MidiNote) {		// // //
 	// Run the note and handle portamento
-	int NewNote = ft0cc::doc::midi_note(Octave, Note);
-
-	int NesFreq = TriggerNote(NewNote);
+	int NesFreq = TriggerNote(MidiNote);
 
 	if (m_iPortaSpeed > 0 && m_iEffect == effect_t::PORTAMENTO && m_bGate) {		// // //
 		if (m_iPeriod == 0)
@@ -515,11 +510,9 @@ int CChannelHandler::RunNote(int Octave, note_t Note)
 		m_iPeriod = NesFreq;
 
 	m_bGate = true;
-
-	return NewNote;
 }
 
-void CChannelHandler::HandleNote(note_t Note, int Octave)		// // //
+void CChannelHandler::HandleNote(int MidiNote)		// // //
 {
 	m_iDutyPeriod = m_iDefaultDuty;
 	m_bTrigger = true;

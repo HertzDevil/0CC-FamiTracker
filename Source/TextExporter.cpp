@@ -476,8 +476,8 @@ CStringA CTextExport::ExportString(std::string_view s)		// // //
 CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise)		// // //
 {
 	CStringA s = "...";
-	if (bNoise && (ft0cc::doc::is_note(stCell.Note) || stCell.Note == note_t::echo))		// // //
-		s = FormattedA("%01X-#", ft0cc::doc::midi_note(stCell.Octave, stCell.Note) & 0x0F);
+	if (bNoise && (is_note(stCell.Note) || stCell.Note == note_t::echo))		// // //
+		s = FormattedA("%01X-#", stCell.ToMidiNote() & 0x0F);
 	else if (stCell.Note <= note_t::echo)
 		s = GetNoteString(stCell).data();
 

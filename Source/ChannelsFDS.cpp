@@ -49,7 +49,7 @@ void CChannelHandlerFDS::HandleNoteData(stChanNote &NoteData)		// // //
 
 	CChannelHandlerInverted::HandleNoteData(NoteData);
 	// // //
-	if (ft0cc::doc::is_note(NoteData.Note) || NoteData.Note == note_t::echo)
+	if (is_note(NoteData.Note) || NoteData.Note == note_t::echo)
 		m_bVolModTrigger = true;
 
 	if (m_iEffModDepth != -1)

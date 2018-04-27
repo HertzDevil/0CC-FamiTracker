@@ -63,6 +63,10 @@ public:
 		return !operator==(other);
 	}
 
+	constexpr int ToMidiNote() const noexcept {		// // //
+		return ft0cc::doc::midi_note(Octave, Note);
+	}
+
 public:
 	note_t Note = note_t::none;
 	unsigned char Octave = 0U;

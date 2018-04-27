@@ -58,7 +58,7 @@ std::string GetNoteString(note_t note, int octave) {
 	case note_t::echo:
 		return "^-"s + std::to_string(octave);
 	default:
-		if (ft0cc::doc::is_note(note))
+		if (is_note(note))
 #ifndef AFL_FUZZ_ENABLED
 			return std::string((Env.GetSettings()->Appearance.bDisplayFlats ? NOTE_NAME_FLAT : NOTE_NAME)[value_cast(note) - 1]) + std::to_string(octave);
 #else

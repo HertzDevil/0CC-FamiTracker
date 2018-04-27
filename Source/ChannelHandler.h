@@ -134,10 +134,8 @@ protected:
 	/*!	\brief Starts a new note.
 		\details This method initiates a new pitch slide if the 3xx automatic portamento effect is
 		enabled.
-		\param Octave The note octave.
-		\param Note The note pitch.
-		\return The note value with the given pitch and octave. */
-	virtual int		RunNote(int Octave, note_t Note);		// // // virtual
+		\param MidiNote The note pitch. */
+	virtual void	RunNote(int MidiNote);		// // // virtual
 	/*!	\brief Restricts the note value within the limits of the tracker, and notifies the tracker
 		view of the note.
 		\param Note Input note value.
@@ -176,9 +174,8 @@ protected:
 	virtual void	HandleRelease() = 0;
 	/*!	\brief Processes a note from pattern data.
 		\details Echo buffer retrieval takes place before this method is called.
-		\param Note The note pitch.
-		\param Octave The note octave. */
-	virtual void	HandleNote(note_t Note, int Octave);
+		\param MidiNote The note pitch. */
+	virtual void	HandleNote(int MidiNote);		// // //
 
 	/*!	\brief Instantiates a pitch slide to a destination note. */
 	virtual void	SetupSlide();		// // //

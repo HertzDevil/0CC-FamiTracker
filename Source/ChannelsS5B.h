@@ -42,7 +42,7 @@ public:
 protected:
 	// // //
 	bool	HandleEffect(stEffectCommand cmd) override;		// // //
-	void	HandleNote(note_t Note, int Octave) override;		// // //
+	void	HandleNote(int MidiNote) override;		// // //
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;
 	void	HandleRelease() override;

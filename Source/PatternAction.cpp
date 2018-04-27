@@ -684,8 +684,8 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 					break;
 				}
 			}
-			else if (ft0cc::doc::is_note(Note.Note)) {		// // //
-				int NewNote = std::clamp(ft0cc::doc::midi_note(Note.Octave, Note.Note) + m_iTransposeAmount, 0, NOTE_COUNT - 1);
+			else if (is_note(Note.Note)) {		// // //
+				int NewNote = std::clamp(Note.ToMidiNote() + m_iTransposeAmount, 0, NOTE_COUNT - 1);
 				Note.Note = ft0cc::doc::pitch_from_midi(NewNote);
 				Note.Octave = ft0cc::doc::oct_from_midi(NewNote);
 			}
@@ -810,10 +810,10 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 			effect_t Effect = effect_t::NONE;
 			switch (static_cast<column_t>(j)) {
 			case column_t::Note:
-				if (!ft0cc::doc::is_note(StartData.Note) || !ft0cc::doc::is_note(EndData.Note))
+				if (!is_note(StartData.Note) || !is_note(EndData.Note))
 					continue;
-				StartValLo = (float)ft0cc::doc::midi_note(StartData.Octave, StartData.Note);
-				EndValLo = (float)ft0cc::doc::midi_note(EndData.Octave, EndData.Note);
+				StartValLo = (float)StartData.ToMidiNote();
+				EndValLo = (float)EndData.ToMidiNote();
 				break;
 			case column_t::Instrument:
 				if (StartData.Instrument == MAX_INSTRUMENTS || EndData.Instrument == MAX_INSTRUMENTS)

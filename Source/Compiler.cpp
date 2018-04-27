@@ -1016,8 +1016,8 @@ void CCompiler::ScanSong()
 				const auto &Note = Pattern.GetNoteOn(k);
 				if (Note.Instrument < MAX_INSTRUMENTS)
 					Instrument = Note.Instrument;
-				if (ft0cc::doc::is_note(Note.Note))		// // //
-					m_bSamplesAccessed[Instrument][ft0cc::doc::midi_note(Note.Octave, Note.Note)] = true;
+				if (is_note(Note.Note))		// // //
+					m_bSamplesAccessed[Instrument][Note.ToMidiNote()] = true;
 			}
 		}
 	});

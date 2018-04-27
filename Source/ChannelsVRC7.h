@@ -53,8 +53,8 @@ protected:
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;
 	void	HandleRelease() override;
-	void	HandleNote(note_t Note, int Octave) override;
-	int		RunNote(int Octave, note_t Note) override;		// // //
+	void	HandleNote(int MidiNote) override;
+	void	RunNote(int MidiNote) override;		// // //
 	bool	CreateInstHandler(inst_type_t Type) override;		// // //
 	void	SetupSlide() override;		// // //
 	int		CalculateVolume() const override;

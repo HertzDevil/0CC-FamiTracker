@@ -303,7 +303,7 @@ void CMIDI::ToggleInput()
 	m_bInStarted = !m_bInStarted;
 }
 
-void CMIDI::WriteNote(unsigned char Channel, note_t Note, unsigned char Octave, unsigned char Velocity)		// // //
+void CMIDI::WriteNote(unsigned char Channel, ft0cc::doc::pitch Note, unsigned char Octave, unsigned char Velocity)		// // //
 {
 	static unsigned int LastNote[CHANID_COUNT] = { };		// // // Quick hack
 //	static unsigned int LastVolume[CHANID_COUNT];
