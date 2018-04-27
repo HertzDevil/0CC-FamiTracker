@@ -7,8 +7,8 @@
 **libft0cc** comprises the core components of 0CC-FamiTracker. These components
 are either exclusive to 0CC-FamiTracker, or rewritten based on the original
 FamiTracker code, with the main objective that they work on all popular C++
-compilers (GCC, Clang, Visual C++). Eventually all modules that do not depend on
-Win32 functionality shall be moved into libft0cc.
+compilers (GCC, Clang, Visual C++). Eventually all components that do not depend
+on Win32 functionality shall be moved into libft0cc.
 
 libft0cc is dual-licensed under MPL 2.0 and GPLv2.
 

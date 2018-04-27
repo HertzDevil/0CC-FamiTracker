@@ -1,9 +1,14 @@
 #include "FamiTrackerModule.h"
+#include "FamiTrackerEnv.h"
+#include "SoundChipService.h"
 #include "ChannelMap.h"
 #include "Compiler.h"
 #include "Kraid.h"
 #include "FamiTrackerDocIOJson.h"
 #include "SimpleFile.h"
+
+#include "FamiTrackerDocIO.h"
+#include "DocumentFile.h"
 
 #include <iostream>
 
@@ -15,29 +20,32 @@ public:
 	void Clear() override { }
 };
 
-int main() {
+int main() try {
 	CFamiTrackerModule modfile;
-
-	auto pMap = std::make_unique<CChannelMap>(sound_chip_t::APU, 0);
-	pMap->GetChannelOrder().AddChannel(apu_subindex_t::pulse1);
-	pMap->GetChannelOrder().AddChannel(apu_subindex_t::pulse2);
-	pMap->GetChannelOrder().AddChannel(apu_subindex_t::triangle);
-	pMap->GetChannelOrder().AddChannel(apu_subindex_t::noise);
-	pMap->GetChannelOrder().AddChannel(apu_subindex_t::dpcm);
-	modfile.SetChannelMap(std::move(pMap));
+	modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));
 
 	Kraid { }(modfile);
 
+	CSimpleFile nsffile("kraid.nsf", std::ios::out | std::ios::binary);
 	CCompiler compiler(modfile, std::make_unique<CStdoutLog>());
-#ifdef WIN32
-	CSimpleFile file(L"kraid.nsf", std::ios::out | std::ios::binary);
-#else
-	CSimpleFile file("kraid.nsf", std::ios::out | std::ios::binary);
-#endif
-
-	compiler.ExportNSF(file, 0);
+	compiler.ExportNSF(nsffile, 0);
+	nsffile.Close();
 
 	auto j = nlohmann::json(modfile);
 //	std::cout << j.dump(2) << '\n';
 	std::ofstream("kraid.json", std::ios::out) << j.dump() << '\n';
+
+	CDocumentFile outfile;
+	outfile.Open("kraid.0cc", std::ios::out | std::ios::binary);
+	CFamiTrackerDocIO io {outfile, module_error_level_t::MODULE_ERROR_DEFAULT};
+	io.Save(modfile);
+	outfile.Close();
+}
+catch (std::exception &e) {
+	std::cerr << "C++ exception: " << e.what() << '\n';
+	return 1;
+}
+catch (...) {
+	std::cerr << "Unknown exception\n";
+	return 1;
 }

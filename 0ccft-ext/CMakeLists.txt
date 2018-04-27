@@ -241,15 +241,16 @@ set(TEST_SRCS
 	${FT0CC_ROOT}/DetuneTable.cpp
 	${FT0CC_ROOT}/DocumentFile.cpp
 	${FT0CC_ROOT}/DSampleManager.cpp
-#	${FT0CC_ROOT}/FamiTrackerDocIO.cpp
+	${FT0CC_ROOT}/FamiTrackerDocIO.cpp
 	${FT0CC_ROOT}/FamiTrackerDocIOJson.cpp
-#	${FT0CC_ROOT}/FamiTrackerDocOldIO.cpp
+	${FT0CC_ROOT}/FamiTrackerDocOldIO.cpp
 	${FT0CC_ROOT}/FamiTrackerEnv.cpp
 	${FT0CC_ROOT}/FamiTrackerModule.cpp
 	${FT0CC_ROOT}/InstCompiler.cpp
 	${FT0CC_ROOT}/Instrument.cpp
 	${FT0CC_ROOT}/Instrument2A03.cpp
 	${FT0CC_ROOT}/InstrumentFDS.cpp
+	${FT0CC_ROOT}/InstrumentIO.cpp
 	${FT0CC_ROOT}/InstrumentManager.cpp
 	${FT0CC_ROOT}/InstrumentN163.cpp
 	${FT0CC_ROOT}/InstrumentS5B.cpp

@@ -29,11 +29,7 @@
 #include "InstrumentN163.h"
 #include "InstrumentS5B.h"
 
-#ifdef FT0CC_EXT_BUILD
-class CInstrumentIO { };
-#else
 #include "InstrumentIO.h"
-#endif
 #include "InstCompiler.h"
 
 template <typename Inst, typename IOT, typename CompileT, inst_type_t ID>
@@ -48,11 +44,7 @@ std::unique_ptr<CInstrument> CInstrumentTypeImpl<Inst, IOT, CompileT, ID>::MakeI
 
 template<typename Inst, typename IOT, typename CompileT, inst_type_t ID>
 std::unique_ptr<CInstrumentIO> CInstrumentTypeImpl<Inst, IOT, CompileT, ID>::GetInstrumentIO(module_error_level_t err_lv) const {
-#ifdef FT0CC_EXT_BUILD
-	return nullptr;
-#else
 	return std::make_unique<IOT>(err_lv);
-#endif
 }
 
 template<typename Inst, typename IOT, typename CompileT, inst_type_t ID>
@@ -77,11 +69,7 @@ std::unique_ptr<CInstrument> CInstrumentTypeNull::MakeInstrument() const {
 }
 
 std::unique_ptr<CInstrumentIO> CInstrumentTypeNull::GetInstrumentIO(module_error_level_t err_lv) const {
-#ifdef FT0CC_EXT_BUILD
-	return nullptr;
-#else
 	return std::make_unique<CInstrumentIONull>(err_lv);
-#endif
 }
 
 const CInstCompiler &CInstrumentTypeNull::GetChunkCompiler() const {
