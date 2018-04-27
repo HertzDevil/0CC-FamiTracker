@@ -130,15 +130,15 @@ protected:
 	std::string	GetCustomEffectString() const override;		// // //
 private:
 	// DPCM variables
-	unsigned char m_cDAC;
+	unsigned char m_cDAC = 0xFFu;
 	unsigned char m_iLoop;
 	unsigned char m_iOffset;
 	unsigned char m_iSampleLength;
 	unsigned char m_iLoopOffset;
 	unsigned char m_iLoopLength;
-	int m_iRetrigger;
-	int m_iRetriggerCntr;
+	int m_iRetrigger = 0;
+	int m_iRetriggerCntr = 0;
 	int m_iCustomPitch;
-	bool m_bRetrigger;		// // //
-	bool m_bEnabled;
+	bool m_bRetrigger = false;		// // //
+	bool m_bEnabled = false;
 };

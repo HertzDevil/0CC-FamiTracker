@@ -21,10 +21,12 @@
 */
 
 #include "SeqInstHandler.h"
-#include "FamiTrackerEnv.h"
 #include "APU/Types.h"
 #include "FamiTrackerTypes.h"
+#ifndef FT0CC_EXT_BUILD
+#include "FamiTrackerEnv.h"
 #include "SoundGen.h"
+#endif
 
 #include "SeqInstrument.h"
 #include "ChannelHandlerInterface.h"
@@ -34,6 +36,7 @@
  */
 
 CSeqInstHandler::CSeqInstHandler(CChannelHandlerInterface *pInterface, int Vol, int Duty) :
+	CInstHandler(pInterface, Vol),
 	m_SequenceInfo {
 		{sequence_t::Volume, { }},
 		{sequence_t::Arpeggio, { }},
@@ -41,7 +44,6 @@ CSeqInstHandler::CSeqInstHandler(CChannelHandlerInterface *pInterface, int Vol, 
 		{sequence_t::HiPitch, { }},
 		{sequence_t::DutyCycle, { }},
 	},
-	CInstHandler(pInterface, Vol),
 	m_iDefaultDuty(Duty)
 {
 }
@@ -109,7 +111,9 @@ void CSeqInstHandler::UpdateInstrument()
 				break;
 			}
 			info.m_iSeqState = seq_state_t::Halt;
+#ifndef FT0CC_EXT_BUILD
 			Env.GetSoundGenerator()->SetSequencePlayPos(pSeq, -1);
+#endif
 			break;
 
 		case seq_state_t::Halt:
@@ -232,5 +236,7 @@ void CSeqInstHandler::seq_info_t::Step(bool isReleasing) {
 			--m_iSeqPointer;
 		}
 	}
+#ifndef FT0CC_EXT_BUILD
 	Env.GetSoundGenerator()->SetSequencePlayPos(m_pSequence, m_iSeqPointer);
+#endif
 }

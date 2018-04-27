@@ -27,14 +27,16 @@
 #include "APU/APUInterface.h"		// // //
 #include "APU/2A03.h"		// // // for DPCM
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
-#include "FamiTrackerEnv.h"		// // //
-#include "Settings.h"
 #include "Instrument.h"		// // //
 #include "InstHandler.h"		// // //
 #include "SeqInstHandler.h"		// // //
 #include "InstHandlerDPCM.h"		// // //
 #include "SongState.h"		// // //
+#ifndef FT0CC_EXT_BUILD
+#include "FamiTrackerEnv.h"		// // //
+#include "Settings.h"
 #include "SoundGen.h"		// // //
+#endif
 
 //#define NOISE_PITCH_SCALE
 
@@ -503,12 +505,7 @@ int CNoiseChan::TriggerNote(int Note)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CDPCMChan::CDPCMChan(stChannelID ch) :		// // //
-	CChannelHandler(ch, 0xF, 0x3F),		// // // does not use these anyway
-	m_bEnabled(false),
-	m_bRetrigger(false),
-	m_cDAC(255),
-	m_iRetrigger(0),
-	m_iRetriggerCntr(0)
+	CChannelHandler(ch, 0xF, 0x3F)		// // // does not use these anyway
 {
 }
 
@@ -630,7 +627,9 @@ void CDPCMChan::RefreshChannel()
 		// Cut sample
 		m_pAPU->Write(0x4015, 0x0F);
 
+#ifndef FT0CC_EXT_BUILD
 		if (!Env.GetSettings()->General.bNoDPCMReset || Env.GetSoundGenerator()->IsPlaying())		// // //
+#endif
 			m_pAPU->Write(0x4011, 0);	// regain full volume for TN
 
 		m_bEnabled = false;		// don't write to this channel anymore

@@ -54,7 +54,7 @@ set(SRCS
 	${FT0CC_ROOT}/ChannelHandler.cpp
 	${FT0CC_ROOT}/ChannelMap.cpp
 	${FT0CC_ROOT}/ChannelOrder.cpp
-#	${FT0CC_ROOT}/Channels2A03.cpp
+	${FT0CC_ROOT}/Channels2A03.cpp
 #	${FT0CC_ROOT}/ChannelsDlg.cpp
 	${FT0CC_ROOT}/ChannelsFDS.cpp
 	${FT0CC_ROOT}/ChannelsMMC5.cpp
@@ -170,7 +170,7 @@ set(SRCS
 	${FT0CC_ROOT}/resampler/sinc.cpp
 #	${FT0CC_ROOT}/SampleEditorDlg.cpp
 #	${FT0CC_ROOT}/SampleEditorView.cpp
-#	${FT0CC_ROOT}/SeqInstHandler.cpp
+	${FT0CC_ROOT}/SeqInstHandler.cpp
 	${FT0CC_ROOT}/SeqInstHandlerFDS.cpp
 	${FT0CC_ROOT}/SeqInstHandlerN163.cpp
 	${FT0CC_ROOT}/SeqInstHandlerS5B.cpp
