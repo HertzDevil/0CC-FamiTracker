@@ -202,8 +202,7 @@ END_MESSAGE_MAP()
 std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ShowDialog() {		// // //
 	// Return imported sample, or NULL if cancel/error
 
-	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_WAV, L".wav");
-	CFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY, fileFilter);
+	CFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_WAV, L"*.wav"));
 
 	auto path = Env.GetSettings()->GetPath(PATH_WAV);		// // //
 	OpenFileDialog.m_pOFN->lpstrInitialDir = path.c_str();

@@ -313,8 +313,7 @@ bool CInstrumentEditorDPCM::InsertSample(std::shared_ptr<ft0cc::doc::dpcm_sample
 
 void CInstrumentEditorDPCM::OnBnClickedLoad()
 {
-	CStringW fileFilter = LoadDefaultFilter(IDS_FILTER_DMC, L".dmc");
-	CDMCFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_ALLOWMULTISELECT | OFN_EXPLORER, fileFilter);
+	CDMCFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_ALLOWMULTISELECT | OFN_EXPLORER, LoadDefaultFilter(IDS_FILTER_DMC, L"*.dmc"));
 
 	auto path = Env.GetSettings()->GetPath(PATH_DMC);		// // //
 	OpenFileDialog.m_pOFN->lpstrInitialDir = path.c_str();

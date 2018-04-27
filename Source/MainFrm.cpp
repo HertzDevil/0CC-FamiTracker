@@ -1302,7 +1302,7 @@ void CMainFrame::OnLoadInstrument()
 {
 	// Loads an instrument from a file
 
-	CFileDialog FileDialog(TRUE, L"fti", 0, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, LoadDefaultFilter(IDS_FILTER_FTI, L".fti"));
+	CFileDialog FileDialog(TRUE, L"fti", 0, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, LoadDefaultFilter(IDS_FILTER_FTI, L"*.fti"));
 
 	auto path = Env.GetSettings()->GetPath(PATH_FTI);		// // //
 	FileDialog.m_pOFN->lpstrInitialDir = path.c_str();
@@ -1969,7 +1969,7 @@ void CMainFrame::OnFileImportText()
 	if (!GetDoc().SaveModified())
 		return;
 
-	CFileDialog FileDialog(TRUE, L"txt", 0, OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_TXT, L".txt"));
+	CFileDialog FileDialog(TRUE, L"txt", 0, OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_TXT, L"*.txt"));
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
 
