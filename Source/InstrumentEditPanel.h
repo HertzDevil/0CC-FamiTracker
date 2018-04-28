@@ -28,10 +28,10 @@
 #include <string>		// // //
 #include <memory>		// // //
 
-// List control states
-#define LCTRL_CHECKBOX_STATE		0x3000
-#define LCTRL_CHECKBOX_CHECKED		0x2000
-#define LCTRL_CHECKBOX_UNCHECKED	0x1000
+// // // List control states
+inline constexpr UINT LCTRL_CHECKBOX_STATE     = 0x3000;
+inline constexpr UINT LCTRL_CHECKBOX_CHECKED   = 0x2000;
+inline constexpr UINT LCTRL_CHECKBOX_UNCHECKED = 0x1000;
 
 class CInstrument;		// // //
 class CFamiTrackerDoc;

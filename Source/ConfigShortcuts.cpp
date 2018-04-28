@@ -229,13 +229,13 @@ void CConfigShortcuts::OnBnClickedClear()
 {
 	CListCtrl *pListView = static_cast<CListCtrl*>(GetDlgItem(IDC_SHORTCUTS));
 
-	pListView->SetItemText(m_iSelectedItem, 1, CAccelerator::MOD_NAMES[MOD_NONE]);
+	pListView->SetItemText(m_iSelectedItem, 1, CAccelerator::MOD_NAMES[0]);
 	pListView->SetItemText(m_iSelectedItem, 2, L"None");
 
 	SetDlgItemTextW(IDC_KEY, L"");
 
 	m_iKeys[m_iSelectedItem] = 0;
-	m_iMods[m_iSelectedItem] = MOD_NONE;
+	m_iMods[m_iSelectedItem] = 0;
 
 	SetModified();
 }

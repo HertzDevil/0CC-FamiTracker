@@ -26,7 +26,7 @@
 #include "stdafx.h"		// // //
 #include "../resource.h"		// // //
 
-#define SETTINGS_BOOL_COUNT 23		// // //
+inline constexpr std::size_t SETTINGS_BOOL_COUNT = 23u;		// // //
 
 // CConfigGeneral dialog
 

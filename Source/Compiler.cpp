@@ -106,7 +106,7 @@
 //#define FORCE_BANKSWITCH
 
 // // //
-#define DATA_HEADER_SIZE 8
+inline constexpr std::size_t DATA_HEADER_SIZE = 8u;
 
 const int CCompiler::PATTERN_CHUNK_INDEX		= 0;		// Fixed at 0 for the moment
 

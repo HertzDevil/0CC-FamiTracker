@@ -27,7 +27,7 @@
 #include "SoundGen.h"
 #include "InstrumentRecorder.h"
 
-#define MIN_INTERVAL 24
+inline constexpr int MIN_INTERVAL = 24;
 
 // CRecordSettingsDlg dialog
 

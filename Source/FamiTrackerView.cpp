@@ -2850,42 +2850,42 @@ int CFamiTrackerView::TranslateKeyModplug(unsigned char Key) const
 
 	// Convert key to a note, Modplug style
 	switch (Key) {
-		case 81:	KeyNote = note_t::C;	KeyOctave = Octave;	break;	// Q		// // //
-		case 87:	KeyNote = note_t::Cs;	KeyOctave = Octave;	break;	// W
-		case 69:	KeyNote = note_t::D;	KeyOctave = Octave;	break;	// E
-		case 82:	KeyNote = note_t::Ds;	KeyOctave = Octave;	break;	// R
-		case 84:	KeyNote = note_t::E;	KeyOctave = Octave;	break;	// T
-		case 89:	KeyNote = note_t::F;	KeyOctave = Octave;	break;	// Y
-		case 85:	KeyNote = note_t::Fs;	KeyOctave = Octave;	break;	// U
-		case 73:	KeyNote = note_t::G;	KeyOctave = Octave;	break;	// I
-		case 79:	KeyNote = note_t::Gs;	KeyOctave = Octave;	break;	// O
-		case 80:	KeyNote = note_t::A;	KeyOctave = Octave;	break;	// P
-		case 219:	KeyNote = note_t::As;	KeyOctave = Octave;	break;	// [{		// // //
-		case 221:	KeyNote = note_t::B;	KeyOctave = Octave;	break;	// ]}		// // //
+	case u8'Q':			KeyNote = note_t::C;	KeyOctave = Octave;	break;
+	case u8'W':			KeyNote = note_t::Cs;	KeyOctave = Octave;	break;
+	case u8'E':			KeyNote = note_t::D;	KeyOctave = Octave;	break;
+	case u8'R':			KeyNote = note_t::Ds;	KeyOctave = Octave;	break;
+	case u8'T':			KeyNote = note_t::E;	KeyOctave = Octave;	break;
+	case u8'Y':			KeyNote = note_t::F;	KeyOctave = Octave;	break;
+	case u8'U':			KeyNote = note_t::Fs;	KeyOctave = Octave;	break;
+	case u8'I':			KeyNote = note_t::G;	KeyOctave = Octave;	break;
+	case u8'O':			KeyNote = note_t::Gs;	KeyOctave = Octave;	break;
+	case u8'P':			KeyNote = note_t::A;	KeyOctave = Octave;	break;
+	case VK_OEM_4:		KeyNote = note_t::As;	KeyOctave = Octave;	break; // [{
+	case VK_OEM_6:		KeyNote = note_t::B;	KeyOctave = Octave;	break; // ]}
 
-		case 65:	KeyNote = note_t::C;	KeyOctave = Octave + 1;	break;	// A
-		case 83:	KeyNote = note_t::Cs;	KeyOctave = Octave + 1;	break;	// S
-		case 68:	KeyNote = note_t::D;	KeyOctave = Octave + 1;	break;	// D
-		case 70:	KeyNote = note_t::Ds;	KeyOctave = Octave + 1;	break;	// F
-		case 71:	KeyNote = note_t::E;	KeyOctave = Octave + 1;	break;	// G
-		case 72:	KeyNote = note_t::F;	KeyOctave = Octave + 1;	break;	// H
-		case 74:	KeyNote = note_t::Fs;	KeyOctave = Octave + 1;	break;	// J
-		case 75:	KeyNote = note_t::G;	KeyOctave = Octave + 1;	break;	// K
-		case 76:	KeyNote = note_t::Gs;	KeyOctave = Octave + 1;	break;	// L
-		case 186:	KeyNote = note_t::A;	KeyOctave = Octave + 1;	break;	// ;:		// // //
-		case 222:	KeyNote = note_t::As;	KeyOctave = Octave + 1;	break;	// '"
-		//case 191:	KeyNote = note_t::B;	KeyOctave = Octave + 1;	break;	// // //
+	case u8'A':			KeyNote = note_t::C;	KeyOctave = Octave + 1;	break;
+	case u8'S':			KeyNote = note_t::Cs;	KeyOctave = Octave + 1;	break;
+	case u8'D':			KeyNote = note_t::D;	KeyOctave = Octave + 1;	break;
+	case u8'F':			KeyNote = note_t::Ds;	KeyOctave = Octave + 1;	break;
+	case u8'G':			KeyNote = note_t::E;	KeyOctave = Octave + 1;	break;
+	case u8'H':			KeyNote = note_t::F;	KeyOctave = Octave + 1;	break;
+	case u8'J':			KeyNote = note_t::Fs;	KeyOctave = Octave + 1;	break;
+	case u8'K':			KeyNote = note_t::G;	KeyOctave = Octave + 1;	break;
+	case u8'L':			KeyNote = note_t::Gs;	KeyOctave = Octave + 1;	break;
+	case VK_OEM_1:		KeyNote = note_t::A;	KeyOctave = Octave + 1;	break; // ;:
+	case VK_OEM_7:		KeyNote = note_t::As;	KeyOctave = Octave + 1;	break; // '"
+	//case VK_OEM_2:	KeyNote = note_t::B;	KeyOctave = Octave + 1;	break; // /?
 
-		case 90:	KeyNote = note_t::C;	KeyOctave = Octave + 2;	break;	// Z
-		case 88:	KeyNote = note_t::Cs;	KeyOctave = Octave + 2;	break;	// X
-		case 67:	KeyNote = note_t::D;	KeyOctave = Octave + 2;	break;	// C
-		case 86:	KeyNote = note_t::Ds;	KeyOctave = Octave + 2;	break;	// V
-		case 66:	KeyNote = note_t::E;	KeyOctave = Octave + 2;	break;	// B
-		case 78:	KeyNote = note_t::F;	KeyOctave = Octave + 2;	break;	// N
-		case 77:	KeyNote = note_t::Fs;	KeyOctave = Octave + 2;	break;	// M
-		case 188:	KeyNote = note_t::G;	KeyOctave = Octave + 2;	break;	// ,<
-		case 190:	KeyNote = note_t::Gs;	KeyOctave = Octave + 2;	break;	// .>
-		case 191:	KeyNote = note_t::A;	KeyOctave = Octave + 2;	break;	// /?		// // //
+	case u8'Z':			KeyNote = note_t::C;	KeyOctave = Octave + 2;	break;
+	case u8'X':			KeyNote = note_t::Cs;	KeyOctave = Octave + 2;	break;
+	case u8'C':			KeyNote = note_t::D;	KeyOctave = Octave + 2;	break;
+	case u8'V':			KeyNote = note_t::Ds;	KeyOctave = Octave + 2;	break;
+	case u8'B':			KeyNote = note_t::E;	KeyOctave = Octave + 2;	break;
+	case u8'N':			KeyNote = note_t::F;	KeyOctave = Octave + 2;	break;
+	case u8'M':			KeyNote = note_t::Fs;	KeyOctave = Octave + 2;	break;
+	case VK_OEM_COMMA:	KeyNote = note_t::G;	KeyOctave = Octave + 2;	break; // ,<
+	case VK_OEM_PERIOD:	KeyNote = note_t::Gs;	KeyOctave = Octave + 2;	break; // .>
+	case VK_OEM_2:		KeyNote = note_t::A;	KeyOctave = Octave + 2;	break; // /?
 	}
 
 	// Invalid
@@ -2908,46 +2908,46 @@ int CFamiTrackerView::TranslateKeyDefault(unsigned char Key) const
 
 	// Convert key to a note
 	switch (Key) {
-		case 50:	KeyNote = note_t::Cs;	KeyOctave += 1;	break;	// 2		// // //
-		case 51:	KeyNote = note_t::Ds;	KeyOctave += 1;	break;	// 3
-		case 53:	KeyNote = note_t::Fs;	KeyOctave += 1;	break;	// 5
-		case 54:	KeyNote = note_t::Gs;	KeyOctave += 1;	break;	// 6
-		case 55:	KeyNote = note_t::As;	KeyOctave += 1;	break;	// 7
-		case 57:	KeyNote = note_t::Cs;	KeyOctave += 2;	break;	// 9
-		case 48:	KeyNote = note_t::Ds;	KeyOctave += 2;	break;	// 0
-		case 187:	KeyNote = note_t::Fs;	KeyOctave += 2;	break;	// =+
+		case u8'2':			KeyNote = note_t::Cs;	KeyOctave += 1;	break;
+		case u8'3':			KeyNote = note_t::Ds;	KeyOctave += 1;	break;
+		case u8'5':			KeyNote = note_t::Fs;	KeyOctave += 1;	break;
+		case u8'6':			KeyNote = note_t::Gs;	KeyOctave += 1;	break;
+		case u8'7':			KeyNote = note_t::As;	KeyOctave += 1;	break;
+		case u8'9':			KeyNote = note_t::Cs;	KeyOctave += 2;	break;
+		case u8'0':			KeyNote = note_t::Ds;	KeyOctave += 2;	break;
+		case VK_OEM_PLUS:	KeyNote = note_t::Fs;	KeyOctave += 2;	break; // =+
 
-		case 81:	KeyNote = note_t::C;	KeyOctave += 1;	break;	// Q
-		case 87:	KeyNote = note_t::D;	KeyOctave += 1;	break;	// W
-		case 69:	KeyNote = note_t::E;	KeyOctave += 1;	break;	// E
-		case 82:	KeyNote = note_t::F;	KeyOctave += 1;	break;	// R
-		case 84:	KeyNote = note_t::G;	KeyOctave += 1;	break;	// T
-		case 89:	KeyNote = note_t::A;	KeyOctave += 1;	break;	// Y
-		case 85:	KeyNote = note_t::B;	KeyOctave += 1;	break;	// U
-		case 73:	KeyNote = note_t::C;	KeyOctave += 2;	break;	// I
-		case 79:	KeyNote = note_t::D;	KeyOctave += 2;	break;	// O
-		case 80:	KeyNote = note_t::E;	KeyOctave += 2;	break;	// P
-		case 219:	KeyNote = note_t::F;	KeyOctave += 2;	break;	// [{		// // //
-		case 221:	KeyNote = note_t::G;	KeyOctave += 2;	break;	// ]}		// // //
+		case u8'Q':			KeyNote = note_t::C;	KeyOctave += 1;	break;
+		case u8'W':			KeyNote = note_t::D;	KeyOctave += 1;	break;
+		case u8'E':			KeyNote = note_t::E;	KeyOctave += 1;	break;
+		case u8'R':			KeyNote = note_t::F;	KeyOctave += 1;	break;
+		case u8'T':			KeyNote = note_t::G;	KeyOctave += 1;	break;
+		case u8'Y':			KeyNote = note_t::A;	KeyOctave += 1;	break;
+		case u8'U':			KeyNote = note_t::B;	KeyOctave += 1;	break;
+		case u8'I':			KeyNote = note_t::C;	KeyOctave += 2;	break;
+		case u8'O':			KeyNote = note_t::D;	KeyOctave += 2;	break;
+		case u8'P':			KeyNote = note_t::E;	KeyOctave += 2;	break;
+		case VK_OEM_4:		KeyNote = note_t::F;	KeyOctave += 2;	break; // [{
+		case VK_OEM_6:		KeyNote = note_t::G;	KeyOctave += 2;	break; // ]}
 
-		case 83:	KeyNote = note_t::Cs;					break;	// S
-		case 68:	KeyNote = note_t::Ds;					break;	// D
-		case 71:	KeyNote = note_t::Fs;					break;	// G
-		case 72:	KeyNote = note_t::Gs;					break;	// H
-		case 74:	KeyNote = note_t::As;					break;	// J
-		case 76:	KeyNote = note_t::Cs;	KeyOctave += 1;	break;	// L
-		case 186:	KeyNote = note_t::Ds;	KeyOctave += 1;	break;	// ;:		// // //
+		case u8'S':			KeyNote = note_t::Cs;					break;
+		case u8'D':			KeyNote = note_t::Ds;					break;
+		case u8'G':			KeyNote = note_t::Fs;					break;
+		case u8'H':			KeyNote = note_t::Gs;					break;
+		case u8'J':			KeyNote = note_t::As;					break;
+		case u8'L':			KeyNote = note_t::Cs;	KeyOctave += 1;	break;
+		case VK_OEM_1:		KeyNote = note_t::Ds;	KeyOctave += 1;	break; // ;:
 
-		case 90:	KeyNote = note_t::C;					break;	// Z
-		case 88:	KeyNote = note_t::D;					break;	// X
-		case 67:	KeyNote = note_t::E;					break;	// C
-		case 86:	KeyNote = note_t::F;					break;	// V
-		case 66:	KeyNote = note_t::G;					break;	// B
-		case 78:	KeyNote = note_t::A;					break;	// N
-		case 77:	KeyNote = note_t::B;					break;	// M
-		case 188:	KeyNote = note_t::C;	KeyOctave += 1;	break;	// ,<
-		case 190:	KeyNote = note_t::D;	KeyOctave += 1;	break;	// .>
-		case 191:	KeyNote = note_t::E;	KeyOctave += 1;	break;	// /?		// // //
+		case u8'Z':			KeyNote = note_t::C;					break;
+		case u8'X':			KeyNote = note_t::D;					break;
+		case u8'C':			KeyNote = note_t::E;					break;
+		case u8'V':			KeyNote = note_t::F;					break;
+		case u8'B':			KeyNote = note_t::G;					break;
+		case u8'N':			KeyNote = note_t::A;					break;
+		case u8'M':			KeyNote = note_t::B;					break;
+		case VK_OEM_COMMA:	KeyNote = note_t::C;	KeyOctave += 1;	break; // ,<
+		case VK_OEM_PERIOD:	KeyNote = note_t::D;	KeyOctave += 1;	break; // .>
+		case VK_OEM_2:		KeyNote = note_t::E;	KeyOctave += 1;	break; // /?
 	}
 
 	// Invalid

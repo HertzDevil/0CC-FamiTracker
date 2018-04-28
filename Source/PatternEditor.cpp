@@ -2980,10 +2980,8 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 				case paste_mode_t::OVERWRITE:
 					if (Source.Effects[i].fx == effect_t::none) protectFx = true;
 				}
-				if (!protectFx) {
-					NoteData.Effects[Offset].fx = Source.Effects[i].fx;
-					NoteData.Effects[Offset].param = Source.Effects[i].param;
-				}
+				if (!protectFx)
+					NoteData.Effects[Offset] = Source.Effects[i];
 			}
 			it.Set(c, NoteData);
 			if ((++it).m_iRow == 0) { // end of frame reached

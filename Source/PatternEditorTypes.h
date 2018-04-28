@@ -30,20 +30,24 @@
 // Helper types for the pattern editor
 
 // // // Scroll modes
-#define SCROLL_NONE  0x00
-#define SCROLL_UP    0x01
-#define SCROLL_DOWN  0x02
-#define SCROLL_RIGHT 0x04
-#define SCROLL_LEFT  0x08
+enum scroll_dir_t {
+	SCROLL_NONE  = 0x00,
+	SCROLL_UP    = 0x01,
+	SCROLL_DOWN  = 0x02,
+	SCROLL_RIGHT = 0x04,
+	SCROLL_LEFT  = 0x08,
+};
 
 // // // Selection scope
-#define SEL_SCOPE_NONE   0x00
-#define SEL_SCOPE_VROW   0x01
-#define SEL_SCOPE_VFRAME 0x02
-#define SEL_SCOPE_VTRACK 0x03
-#define SEL_SCOPE_HCOL   0x10
-#define SEL_SCOPE_HCHAN  0x20
-#define SEL_SCOPE_HFRAME 0x30
+enum sel_scope_t {
+	SEL_SCOPE_NONE   = 0x00,
+	SEL_SCOPE_VROW   = 0x01,
+	SEL_SCOPE_VFRAME = 0x02,
+	SEL_SCOPE_VTRACK = 0x03,
+	SEL_SCOPE_HCOL   = 0x10,
+	SEL_SCOPE_HCHAN  = 0x20,
+	SEL_SCOPE_HFRAME = 0x30,
+};
 
 // Cursor columns
 enum cursor_column_t : unsigned int {		// // // moved from FamiTrackerDoc.h

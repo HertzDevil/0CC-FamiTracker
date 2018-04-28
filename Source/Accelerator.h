@@ -29,8 +29,6 @@
 #include <vector>		// // //
 #include <unordered_set>		// // //
 
-#define MOD_NONE 0
-
 struct stAccelEntry {
 	LPCWSTR name;
 	int	mod;
