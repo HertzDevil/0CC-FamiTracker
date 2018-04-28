@@ -148,10 +148,10 @@ void to_json(json &j, const stChanNote &note) {
 		j["inst_index"] = -1;
 
 	for (const auto &cmd_ : note.Effects)
-		if (cmd_.fx != effect_t::NONE) {
+		if (cmd_.fx != effect_t::none) {
 			j["effects"] = json::array();
 			for (const auto &[fx, param] : note.Effects)
-				if (fx != effect_t::NONE)
+				if (fx != effect_t::none)
 					j["effects"].push_back(json {
 						{"column", fx},
 						{"name", std::string {EFF_CHAR[value_cast(fx)]}},
@@ -521,7 +521,7 @@ void from_json(const json &j, stChanNote &note) {
 			if (ch.size() != 1u)
 				throw std::invalid_argument {"Effect name must be 1 character long"};
 			effect_t effect = GetEffectFromChar(ch.front(), sound_chip_t::APU);
-			if (effect == effect_t::NONE)
+			if (effect == effect_t::none)
 				throw std::invalid_argument {"Invalid effect name"};
 			note.Effects[col].fx = effect;
 			note.Effects[col].param = json_get_between(fx, "param", 0, 255);

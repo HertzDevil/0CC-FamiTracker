@@ -395,7 +395,7 @@ public:
 
 			if (sEff != "...") {
 				effect_t Eff = GetEffectFromChar(sEff.GetAt(0), chan.Chip);		// // //
-				if (Eff == effect_t::NONE)
+				if (Eff == effect_t::none)
 					throw MakeError("unrecognized effect '%s'.", (LPCSTR)sEff);
 				Cell.Effects[e] = {Eff, static_cast<uint8_t>(ImportHex(sEff.Right(2)))};		// // //
 			}
@@ -487,7 +487,7 @@ CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEff
 	s += (stCell.Vol == 0x10) ? CStringA(" .") : FormattedA(" %01X", stCell.Vol);		// // //
 
 	for (unsigned int e=0; e < nEffects; ++e)
-		if (stCell.Effects[e].fx == effect_t::NONE)
+		if (stCell.Effects[e].fx == effect_t::none)
 			s.Append(" ...");
 		else
 			AppendFormatA(s, " %c%02X", EFF_CHAR[value_cast(stCell.Effects[e].fx)], stCell.Effects[e].param);

@@ -833,8 +833,8 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 					pSong->GetEffectColumnCount(order.TranslateChannel(Channel));		// // // 050B
 				for (int n = 0; n < FX; ++n) try {
 					auto EffectNumber = (effect_t)file_.GetBlockChar();
-					if (Note.Effects[n].fx = static_cast<effect_t>(EffectNumber); Note.Effects[n].fx != effect_t::NONE) {
-						AssertRange<MODULE_ERROR_STRICT>(value_cast(EffectNumber), value_cast(effect_t::NONE), EFFECT_COUNT - 1, "Effect index");
+					if (Note.Effects[n].fx = static_cast<effect_t>(EffectNumber); Note.Effects[n].fx != effect_t::none) {
+						AssertRange<MODULE_ERROR_STRICT>(value_cast(EffectNumber), value_cast(effect_t::none), value_cast(effect_t::max), "Effect index");
 						unsigned char EffectParam = file_.GetBlockChar();
 						if (ver < 3) {
 							if (EffectNumber == effect_t::PORTAOFF) {
@@ -904,7 +904,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 
 				if (file_.GetFileVersion() < 0x450) {		// // // 050B
 					for (auto &cmd : Note.Effects)
-						if (cmd.fx < effect_t::COUNT)
+						if (cmd.fx <= effect_t::max)
 							cmd.fx = compat::EFF_CONVERSION_050.first[value_cast(cmd.fx)];
 				}
 				/*

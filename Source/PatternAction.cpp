@@ -454,16 +454,16 @@ bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 		return m_OldNote.Vol < MAX_VOLUME;
 	case C_EFF1_NUM: case C_EFF1_PARAM1: case C_EFF1_PARAM2:
 		ScrollFunc(m_NewNote.Effects[0].param, 0x100);
-		return m_OldNote.Effects[0].fx != effect_t::NONE;
+		return m_OldNote.Effects[0].fx != effect_t::none;
 	case C_EFF2_NUM: case C_EFF2_PARAM1: case C_EFF2_PARAM2:
 		ScrollFunc(m_NewNote.Effects[1].param, 0x100);
-		return m_OldNote.Effects[1].fx != effect_t::NONE;
+		return m_OldNote.Effects[1].fx != effect_t::none;
 	case C_EFF3_NUM: case C_EFF3_PARAM1: case C_EFF3_PARAM2:
 		ScrollFunc(m_NewNote.Effects[2].param, 0x100);
-		return m_OldNote.Effects[2].fx != effect_t::NONE;
+		return m_OldNote.Effects[2].fx != effect_t::none;
 	case C_EFF4_NUM: case C_EFF4_PARAM1: case C_EFF4_PARAM2:
 		ScrollFunc(m_NewNote.Effects[3].param, 0x100);
-		return m_OldNote.Effects[3].fx != effect_t::NONE;
+		return m_OldNote.Effects[3].fx != effect_t::none;
 	}
 
 	return false;
@@ -756,7 +756,7 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 				case column_t::Effect1: case column_t::Effect2: case column_t::Effect3: case column_t::Effect4:
 				{
 					unsigned fx = value_cast(k) - value_cast(column_t::Effect1);
-					if (Note.Effects[fx].fx == effect_t::NONE)
+					if (Note.Effects[fx].fx == effect_t::none)
 						break;
 					if (bSingular) switch (Note.Effects[fx].fx) {
 					case effect_t::SWEEPUP: case effect_t::SWEEPDOWN: case effect_t::ARPEGGIO: case effect_t::VIBRATO: case effect_t::TREMOLO:
@@ -807,7 +807,7 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 			double EndValHi = 0., EndValLo = 0.;
 			double DeltaHi = 0., DeltaLo = 0.;
 			bool TwoParam = false;
-			effect_t Effect = effect_t::NONE;
+			effect_t Effect = effect_t::none;
 			switch (static_cast<column_t>(j)) {
 			case column_t::Note:
 				if (!is_note(StartData.Note) || !is_note(EndData.Note))
@@ -830,7 +830,7 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 				EndValLo = (float)EndData.Vol;
 				break;
 			case column_t::Effect1: case column_t::Effect2: case column_t::Effect3: case column_t::Effect4:
-				if (StartData.Effects[j - 3].fx == effect_t::NONE || EndData.Effects[j - 3].fx == effect_t::NONE ||
+				if (StartData.Effects[j - 3].fx == effect_t::none || EndData.Effects[j - 3].fx == effect_t::none ||
 					StartData.Effects[j - 3].fx != EndData.Effects[j - 3].fx)
 					continue;
 				StartValLo = (float)StartData.Effects[j - 3].param;

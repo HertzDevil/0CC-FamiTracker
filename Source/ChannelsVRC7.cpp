@@ -307,7 +307,7 @@ void CChannelHandlerVRC7::ClearRegisters()
 	m_iNote = -1;
 	m_iOctave = m_iOldOctave = -1;		// // //
 	m_iPatch = -1;
-	m_iEffect = effect_t::NONE;
+	m_iEffect = effect_t::none;
 
 	m_iCommand = CMD_NOTE_HALT;
 	m_iCustomPort = 0;		// // // 050B

@@ -105,9 +105,8 @@ const int INVALID_INSTRUMENT = -1;
 const int MAX_VOLUME = 0x10;
 
 // Channel effects
-enum class effect_t : unsigned char {
-	NONE = 0,
-	SPEED,
+enum class effect_t : std::uint8_t {
+	SPEED = 1,
 	JUMP,
 	SKIP,
 	HALT,
@@ -154,10 +153,10 @@ enum class effect_t : unsigned char {
 	VRC7_CARRIER,
 	VRC7_LEVELS,
 */
-	COUNT,
+	min = SPEED, max = FDS_MOD_BIAS, none = 0,
 };
 
-const std::size_t EFFECT_COUNT = static_cast<unsigned>(effect_t::COUNT);
+ENABLE_ENUM_CATEGORY(effect_t, enum_standard);
 
 // const effect_t VRC6_EFFECTS[] = {};
 const effect_t VRC7_EFFECTS[] = {effect_t::VRC7_PORT, effect_t::VRC7_WRITE};
@@ -219,9 +218,8 @@ constexpr char EFF_CHAR[] = {
 };
 
 constexpr effect_t GetEffectFromChar(char ch, sound_chip_t Chip) noexcept {		// // //
-	for (std::size_t i = value_cast(effect_t::NONE) + 1; i < EFFECT_COUNT; ++i)
-		if (EFF_CHAR[i] == ch) {
-			auto Eff = static_cast<effect_t>(i);
+	for (auto Eff : enum_values<effect_t>())
+		if (EFF_CHAR[value_cast(Eff)] == ch) {
 			switch (Chip) {
 			case sound_chip_t::FDS:
 				for (const auto &x : FDS_EFFECTS)
@@ -246,7 +244,7 @@ constexpr effect_t GetEffectFromChar(char ch, sound_chip_t Chip) noexcept {		// 
 			}
 			return Eff;
 		}
-	return effect_t::NONE;
+	return effect_t::none;
 }
 
 inline constexpr int DEFAULT_TEMPO = DEFAULT_MACHINE_TYPE == machine_t::PAL ? DEFAULT_TEMPO_PAL : DEFAULT_TEMPO_NTSC;		// // //

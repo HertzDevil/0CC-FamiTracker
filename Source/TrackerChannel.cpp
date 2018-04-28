@@ -123,7 +123,7 @@ bool IsInstrumentCompatible(sound_chip_t Chip, inst_type_t Type) {		// // //
 
 bool IsEffectCompatible(stChannelID ch, stEffectCommand cmd) {		// // //
 	switch (cmd.fx) {
-		case effect_t::NONE:
+		case effect_t::none:
 		case effect_t::SPEED: case effect_t::JUMP: case effect_t::SKIP: case effect_t::HALT:
 		case effect_t::DELAY:
 			return true;

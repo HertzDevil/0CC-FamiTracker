@@ -60,7 +60,7 @@ public:
 	stChannelID ChannelID;
 	int Instrument = MAX_INSTRUMENTS;
 	int Volume = MAX_VOLUME;
-	std::array<int, EFFECT_COUNT> Effect = { };
+	std::array<int, enum_count<effect_t>() + 1> Effect = { };
 	int Effect_LengthCounter = -1;
 	int Effect_AutoFMMult = -1;
 	std::array<int, ECHO_BUFFER_LENGTH> Echo = { };

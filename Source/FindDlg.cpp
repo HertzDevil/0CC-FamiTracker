@@ -240,7 +240,7 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 		m_cListResults.SetItemText(Pos, VOL, conv::to_wide(conv::sv_from_int_hex(Note.Vol)).data());
 
 	for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
-		if (Note.Effects[i].fx != effect_t::NONE) {
+		if (Note.Effects[i].fx != effect_t::none) {
 			auto str = EFF_CHAR[value_cast(Note.Effects[i].fx)] + conv::from_int_hex(Note.Effects[i].param, 2);
 			m_cListResults.SetItemText(Pos, EFFECT + i, conv::to_wide(str).data());
 		}
@@ -751,21 +751,21 @@ void CFindDlg::ParseEff(searchTerm &Term, CStringW str, bool Half)
 	if (str.IsEmpty()) {
 		Term.Definite[WC_EFF] = true;
 		Term.Definite[WC_PARAM] = true;
-		Term.EffNumber[value_cast(effect_t::NONE)] = true;
+		Term.EffNumber[value_cast(effect_t::none)] = true;
 		Term.EffParam->Set(0);
 	}
 	else if (str == L".") {
 		Term.Definite[WC_EFF] = true;
-		for (size_t i = 1; i < EFFECT_COUNT; ++i)
-			Term.EffNumber[i] = true;
+		for (auto fx : enum_values<effect_t>())
+			Term.EffNumber[value_cast(fx)] = true;
 	}
 	else {
 		char Name = conv::to_utf8(str.Left(1)).front();
 		bool found = false;
-		for (size_t i = 1; i < EFFECT_COUNT; ++i) {
-			if (Name == EFF_CHAR[i]) {
+		for (auto fx : enum_values<effect_t>()) {
+			if (Name == EFF_CHAR[value_cast(fx)]) {
 				Term.Definite[WC_EFF] = true;
-				Term.EffNumber[i] = true;
+				Term.EffNumber[value_cast(fx)] = true;
 				found = true;
 			}
 		}
@@ -886,11 +886,14 @@ replaceTerm CFindDlg::toReplace(const searchTerm &x) const
 	Term.Note.Instrument = x.Inst->Min;
 	Term.Note.Vol = x.Vol->Min;
 	Term.NoiseChan = x.NoiseChan;
-	for (size_t i = 0; i < EFFECT_COUNT; ++i)
-		if (x.EffNumber[i]) {
-			Term.Note.Effects[0].fx = static_cast<effect_t>(i);
-			break;
-		}
+	if (x.EffNumber[value_cast(effect_t::none)])
+		Term.Note.Effects[0].fx = effect_t::none;
+	else
+		for (auto fx : enum_values<effect_t>())
+			if (x.EffNumber[value_cast(fx)]) {
+				Term.Note.Effects[0].fx = fx;
+				break;
+			}
 	Term.Note.Effects[0].param = x.EffParam->Min;
 	memcpy(Term.Definite, x.Definite, sizeof(bool) * 6);
 
@@ -1041,7 +1044,7 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 			if (m_replaceTerm.Definite[WC_EFF]) {
 				effect_t fx = GetEffectFromChar(EFF_CHAR[value_cast(m_replaceTerm.Note.Effects[0].fx)],
 					pSongView->GetChannelOrder().TranslateChannel(m_pFindCursor->m_iChannel).Chip);
-				if (fx != effect_t::NONE)
+				if (fx != effect_t::none)
 					for (const int &i : MatchedColumns)
 						Target.Effects[i].fx = fx;
 			}

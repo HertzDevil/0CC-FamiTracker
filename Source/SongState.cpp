@@ -273,7 +273,7 @@ void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, uns
 					continue;
 				switch (cmd.fx) {
 				// ignore effects that cannot have memory
-				case effect_t::NONE: case effect_t::PORTAOFF:
+				case effect_t::none: case effect_t::PORTAOFF:
 				case effect_t::DAC: case effect_t::DPCM_PITCH: case effect_t::RETRIGGER:
 				case effect_t::DELAY: case effect_t::DELAYED_VOLUME: case effect_t::NOTE_RELEASE: case effect_t::TRANSPOSE:
 				case effect_t::JUMP: case effect_t::SKIP: // no true backward iterator

@@ -299,7 +299,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 			effect_t Effect = ChanNote.Effects[j].fx;
 			unsigned char EffParam = ChanNote.Effects[j].param;
 
-			if (Effect != effect_t::NONE) {
+			if (Effect != effect_t::none) {
 				WriteDuration();
 				Action = true;
 			}
@@ -697,7 +697,7 @@ CPatternCompiler::stSpacingInfo CPatternCompiler::ScanNoteLengths(int Track, uns
 		else if (NoteData.Vol < MAX_VOLUME)
 			NoteUsed = true;
 		else for (unsigned j = 0, Count = pSong->GetEffectColumnCount(Channel); j < Count; ++j)
-			if (NoteData.Effects[j].fx != effect_t::NONE)
+			if (NoteData.Effects[j].fx != effect_t::none)
 				NoteUsed = true;
 
 		if (i == StartRow && !NoteUsed)

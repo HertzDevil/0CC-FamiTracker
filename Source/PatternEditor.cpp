@@ -1276,13 +1276,12 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	const wchar_t *NOTES_A = m_bDisplayFlat ? NOTES_A_FLAT : NOTES_A_SHARP;
 	const wchar_t *NOTES_B = m_bDisplayFlat ? NOTES_B_FLAT : NOTES_B_SHARP;
 
-	effect_t EffNumber = Column >= 4 ? NoteData.Effects[(Column - 4) / 3].fx : effect_t::NONE;		// // //
-	uint8_t EffParam  = Column >= 4 ? NoteData.Effects[(Column - 4) / 3].param : static_cast<uint8_t>(0u);
+	stEffectCommand Eff = Column >= 4 ? NoteData.Effects[(Column - 4) / 3] : stEffectCommand { };		// // //
 
 	// Detect invalid note data
 	if (NoteData.Note > note_t::echo ||		// // //
 		NoteData.Octave > 8 ||
-		EffNumber >= effect_t::COUNT ||
+		enum_cast(Eff.fx) != Eff.fx ||
 		NoteData.Instrument > MAX_INSTRUMENTS && NoteData.Instrument != HOLD_INSTRUMENT) {		// // // 050B
 		if (Column == C_NOTE/* || Column == 4*/) {
 			CStringW Text = L"(invalid)";
@@ -1310,7 +1309,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	}
 
 	// // // effects too
-	if (EffNumber != effect_t::NONE && !IsEffectCompatible(ch, {EffNumber, EffParam}))
+	if (Eff.fx != effect_t::none && !IsEffectCompatible(ch, Eff))
 		DimEff = EffColor = MakeRGB(255, 0, 0);		// // //
 
 	int PosY = m_iRowHeight - m_iRowHeight / 8;		// // //
@@ -1347,7 +1346,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 				else {
 					bool Found = false;
 					for (unsigned int i = 0; i < fxcols; ++i) {
-						if (NoteData.Effects[i].fx != effect_t::NONE) {
+						if (NoteData.Effects[i].fx != effect_t::none) {
 							DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[value_cast(NoteData.Effects[i].fx)], DimEff);
 							DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, HEX[NoteData.Effects[i].param >> 4], DimEff);
 							DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, HEX[NoteData.Effects[i].param & 0x0F], DimEff);
@@ -1425,24 +1424,24 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 		break;
 	case C_EFF1_NUM: case C_EFF2_NUM: case C_EFF3_NUM: case C_EFF4_NUM:
 		// Effect type
-		if (EffNumber == effect_t::NONE)
+		if (Eff.fx == effect_t::none)
 			BAR(PosX, PosY);
 		else
-			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[value_cast(EffNumber)], EffColor);		// // //
+			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[value_cast(Eff.fx)], EffColor);		// // //
 		break;
 	case C_EFF1_PARAM1: case C_EFF2_PARAM1: case C_EFF3_PARAM1: case C_EFF4_PARAM1:
 		// Effect param x
-		if (EffNumber == effect_t::NONE)
+		if (Eff.fx == effect_t::none)
 			BAR(PosX, PosY);
 		else
-			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[(EffParam >> 4) & 0x0F], ColorInfo.Note);		// // //
+			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[(Eff.param >> 4) & 0x0F], ColorInfo.Note);		// // //
 		break;
 	case C_EFF1_PARAM2: case C_EFF2_PARAM2: case C_EFF3_PARAM2: case C_EFF4_PARAM2:
 		// Effect param y
-		if (EffNumber == effect_t::NONE)
+		if (Eff.fx == effect_t::none)
 			BAR(PosX, PosY);
 		else
-			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[EffParam & 0x0F], ColorInfo.Note);		// // //
+			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[Eff.param & 0x0F], ColorInfo.Note);		// // //
 		break;
 	}
 
@@ -2976,10 +2975,10 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 				bool protectFx = false;
 				switch (PasteMode) {
 				case paste_mode_t::MIX:
-					if (NoteData.Effects[Offset].fx != effect_t::NONE) protectFx = true;
+					if (NoteData.Effects[Offset].fx != effect_t::none) protectFx = true;
 					// continue
 				case paste_mode_t::OVERWRITE:
-					if (Source.Effects[i].fx == effect_t::NONE) protectFx = true;
+					if (Source.Effects[i].fx == effect_t::none) protectFx = true;
 				}
 				if (!protectFx) {
 					NoteData.Effects[Offset].fx = Source.Effects[i].fx;

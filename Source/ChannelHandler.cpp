@@ -147,7 +147,7 @@ void CChannelHandler::ResetChannel()
 	m_iPeriod			= 0;
 
 	// Effect states
-	m_iEffect			= effect_t::NONE;		// // //
+	m_iEffect			= effect_t::none;		// // //
 	m_iEffectParam		= 0;		// // //
 
 	m_iPortaSpeed		= 0;
@@ -206,9 +206,9 @@ void CChannelHandler::ApplyChannelState(const stChannelState &State)
 		HandleInstrument(true, true);
 	if (State.Effect_LengthCounter >= 0)
 		HandleEffect({effect_t::VOLUME, static_cast<uint8_t>(State.Effect_LengthCounter)});
-	for (unsigned int i = 0; i < EFFECT_COUNT; ++i)
-		if (State.Effect[i] >= 0)
-			HandleEffect({static_cast<effect_t>(i), static_cast<uint8_t>(State.Effect[i])});
+	for (auto fx : enum_values<effect_t>())
+		if (auto param = State.Effect[value_cast(fx)]; param >= 0)
+			HandleEffect({fx, static_cast<uint8_t>(param)});
 	if (State.Effect[value_cast(effect_t::FDS_MOD_SPEED_HI)] >= 0x10)
 		HandleEffect({effect_t::FDS_MOD_SPEED_HI, static_cast<uint8_t>(State.Effect[value_cast(effect_t::FDS_MOD_SPEED_HI)])});
 	if (State.Effect_AutoFMMult >= 0)
@@ -354,7 +354,7 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 	}
 
 	if (Trigger && (m_iEffect == effect_t::SLIDE_UP || m_iEffect == effect_t::SLIDE_DOWN))
-		m_iEffect = effect_t::NONE;
+		m_iEffect = effect_t::none;
 
 	// Effects
 	for (const auto &cmd : NoteData.Effects) {
@@ -769,7 +769,7 @@ void CChannelHandler::UpdateEffects()
 						if (m_iEffect != effect_t::PORTAMENTO) {
 							m_iPortaTo = 0;
 							m_iPortaSpeed = 0;
-							m_iEffect = effect_t::NONE;
+							m_iEffect = effect_t::none;
 						}
 					}
 				}
@@ -780,7 +780,7 @@ void CChannelHandler::UpdateEffects()
 						if (m_iEffect != effect_t::PORTAMENTO) {
 							m_iPortaTo = 0;
 							m_iPortaSpeed = 0;
-							m_iEffect = effect_t::NONE;
+							m_iEffect = effect_t::none;
 						}
 					}
 				}
@@ -794,7 +794,7 @@ void CChannelHandler::UpdateEffects()
 					if (m_iPeriod < m_iPortaTo) {
 						SetPeriod(m_iPortaTo);
 						m_iPortaTo = 0;
-						m_iEffect = effect_t::NONE;
+						m_iEffect = effect_t::none;
 					}
 				}
 			}
@@ -805,7 +805,7 @@ void CChannelHandler::UpdateEffects()
 				if (m_iPeriod > m_iPortaTo) {
 					SetPeriod(m_iPortaTo);
 					m_iPortaTo = 0;
-					m_iEffect = effect_t::NONE;
+					m_iEffect = effect_t::none;
 				}
 			}
 			break;

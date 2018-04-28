@@ -195,7 +195,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 							Note.Instrument = MAX_INSTRUMENTS;
 						if (Note.Vol == 0)
 							Note.Vol = MAX_VOLUME;
-						if (Note.Effects[0].fx < effect_t::COUNT)		// // //
+						if (Note.Effects[0].fx <= effect_t::max)		// // //
 							Note.Effects[0].fx = EFF_CONVERSION_050.first[value_cast(Note.Effects[0].fx)];
 						Song.SetPatternData(x, c, i, Note);
 					}

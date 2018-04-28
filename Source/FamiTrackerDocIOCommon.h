@@ -33,14 +33,17 @@ namespace compat {
 template <effect_t From, effect_t To>
 struct conv_pair { };
 
-using EffTable = std::array<effect_t, EFFECT_COUNT>;
+using EffTable = std::array<effect_t, enum_count<effect_t>() + 1>;
 
 template <effect_t... Froms, effect_t... Tos>
 constexpr std::pair<EffTable, EffTable>
 MakeEffectConversion(conv_pair<Froms, Tos>...) noexcept {
-	EffTable forward = { }, backward = { };
-	for (std::size_t i = 0; i < EFFECT_COUNT; ++i)
-		forward[i] = backward[i] = static_cast<effect_t>(i);
+	EffTable forward = { };
+	forward[0] = effect_t::none;
+	for (auto fx : enum_values<effect_t>())
+		forward[value_cast(fx)] = fx;
+
+	EffTable backward = forward;
 	((forward[value_cast(Froms)] = Tos), ...);
 	((backward[value_cast(Tos)] = Froms), ...);
 	return std::make_pair(forward, backward);

@@ -2502,13 +2502,13 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 		Note.Effects[EffectIndex] = m_LastNote.Effects[0];
 		if (EditStyle != edit_style_t::MPT)		// // //
 			bStepDown = true;
-		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::NONE)		// // //
+		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::none)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 		return true;
 	}
 
 	if (CheckClearKey(nChar)) {
-		Note.Effects[EffectIndex].fx = effect_t::NONE;
+		Note.Effects[EffectIndex].fx = effect_t::none;
 		if (EditStyle != edit_style_t::MPT)
 			bStepDown = true;
 		return true;
@@ -2517,9 +2517,9 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 	if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9)
 		nChar = '0' + nChar - VK_NUMPAD0;
 
-	if (effect_t Effect = GetEffectFromChar(nChar, GetSelectedChannelID().Chip); Effect != effect_t::NONE) {		// // //
+	if (effect_t Effect = GetEffectFromChar(nChar, GetSelectedChannelID().Chip); Effect != effect_t::none) {		// // //
 		Note.Effects[EffectIndex].fx = Effect;
-		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::NONE)		// // //
+		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::none)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 		switch (EditStyle) {
 			case edit_style_t::MPT:	// Modplug
@@ -2550,7 +2550,7 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 		Note.Effects[EffectIndex] = m_LastNote.Effects[0];
 		if (EditStyle != edit_style_t::MPT)		// // //
 			bStepDown = true;
-		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::NONE)		// // //
+		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::none)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 		return true;
 	}
@@ -2598,7 +2598,7 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 
 	m_LastNote.Effects[0] = Note.Effects[EffectIndex];		// // //
 
-	if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::NONE)		// // //
+	if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::none)		// // //
 		GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 
 	return true;
@@ -3489,7 +3489,7 @@ CStringW CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) con
 {
 	auto Index = value_cast(Note.Effects[Column].fx);
 	int Param = Note.Effects[Column].param;
-	if (Index >= EFFECT_COUNT)
+	if (enum_cast<effect_t>(Index) != Note.Effects[Column].fx)
 		return L"Undefined effect";
 
 	sound_chip_t Chip = GetSelectedChannelID().Chip;

@@ -29,7 +29,7 @@
 
 // // // effect command struct
 struct stEffectCommand {
-	effect_t fx {effect_t::NONE};
+	effect_t fx {effect_t::none};
 	std::uint8_t param {0u};
 
 	constexpr int compare(const stEffectCommand &other) const noexcept {
@@ -37,7 +37,7 @@ struct stEffectCommand {
 			return -1;
 		if (fx > other.fx)
 			return 1;
-		if (fx == effect_t::NONE)
+		if (fx == effect_t::none)
 			return 0;
 		if (param < other.param)
 			return -1;

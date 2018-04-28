@@ -80,7 +80,7 @@ public:
 
 	std::unique_ptr<NoteRange> Note;
 	std::unique_ptr<CharRange> Oct, Inst, Vol;
-	bool EffNumber[EFFECT_COUNT] = { };
+	bool EffNumber[enum_count<effect_t>() + 1] = { };
 	std::unique_ptr<CharRange> EffParam;
 	bool Definite[6] = { };
 	bool NoiseChan = false;
