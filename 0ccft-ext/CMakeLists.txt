@@ -8,7 +8,7 @@ if(MSVC)
 		/wd4100 /wd4244 /wd4245 /wd4389
 		/DFT0CC_EXT_BUILD /DWIN32)
 else()
-	add_compile_options(-std=c++17 -O3 -Wall -Wextra -Wpedantic -Werror
+	add_compile_options(-O3 -Wall -Wextra -Wpedantic -Werror
 		-Wno-switch -Wno-sign-compare -Wno-narrowing -Wno-unused-parameter
 		-DFT0CC_EXT_BUILD)
 endif()
@@ -16,7 +16,7 @@ endif()
 set(FT0CC_ROOT ../Source)
 set(LIBFT0CC_ROOT ../libft0cc)
 
-#all objects known to build on linux (will produce unresolved external symbols)
+#all objects known to build without stdafx.h
 set(SRCS
 	${LIBFT0CC_ROOT}/src/ft0cc/doc/dpcm_sample.cpp
 	${LIBFT0CC_ROOT}/src/ft0cc/doc/groove.cpp
@@ -30,6 +30,7 @@ set(SRCS
 	${FT0CC_ROOT}/APU/APU.cpp
 	${FT0CC_ROOT}/APU/Channel.cpp
 	${FT0CC_ROOT}/APU/DPCM.cpp
+	${FT0CC_ROOT}/APU/ext/emu2413.c
 	${FT0CC_ROOT}/APU/ext/FDSSound_new.cpp
 	${FT0CC_ROOT}/APU/FDS.cpp
 	${FT0CC_ROOT}/APU/Mixer.cpp
@@ -224,64 +225,11 @@ set(SRCS
 
 add_library(ft0cc STATIC ${SRCS})
 target_include_directories(ft0cc PUBLIC ${FT0CC_ROOT} ${LIBFT0CC_ROOT}/include)
+if(NOT MSVC)
+	target_compile_options(ft0cc PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
+endif()
 # make -i -j4
 
-#only the files we need
-set(TEST_SRCS
-	${LIBFT0CC_ROOT}/src/ft0cc/doc/dpcm_sample.cpp
-	${LIBFT0CC_ROOT}/src/ft0cc/doc/groove.cpp
-	${FT0CC_ROOT}/Bookmark.cpp
-	${FT0CC_ROOT}/BookmarkCollection.cpp
-	${FT0CC_ROOT}/ChannelMap.cpp
-	${FT0CC_ROOT}/ChannelOrder.cpp
-	${FT0CC_ROOT}/Chunk.cpp
-	${FT0CC_ROOT}/ChunkRenderBinary.cpp
-	${FT0CC_ROOT}/ChunkRenderText.cpp
-	${FT0CC_ROOT}/Compiler.cpp
-	${FT0CC_ROOT}/DetuneTable.cpp
-	${FT0CC_ROOT}/DocumentFile.cpp
-	${FT0CC_ROOT}/DSampleManager.cpp
-	${FT0CC_ROOT}/FamiTrackerDocIO.cpp
-	${FT0CC_ROOT}/FamiTrackerDocIOJson.cpp
-	${FT0CC_ROOT}/FamiTrackerDocOldIO.cpp
-	${FT0CC_ROOT}/FamiTrackerEnv.cpp
-	${FT0CC_ROOT}/FamiTrackerModule.cpp
-	${FT0CC_ROOT}/InstCompiler.cpp
-	${FT0CC_ROOT}/Instrument.cpp
-	${FT0CC_ROOT}/Instrument2A03.cpp
-	${FT0CC_ROOT}/InstrumentFDS.cpp
-	${FT0CC_ROOT}/InstrumentIO.cpp
-	${FT0CC_ROOT}/InstrumentManager.cpp
-	${FT0CC_ROOT}/InstrumentN163.cpp
-	${FT0CC_ROOT}/InstrumentS5B.cpp
-	${FT0CC_ROOT}/InstrumentService.cpp
-	${FT0CC_ROOT}/InstrumentTypeImpl.cpp
-	${FT0CC_ROOT}/InstrumentVRC6.cpp
-	${FT0CC_ROOT}/InstrumentVRC7.cpp
-	${FT0CC_ROOT}/Kraid.cpp
-	${FT0CC_ROOT}/ModuleException.cpp
-	${FT0CC_ROOT}/NoteName.cpp
-	${FT0CC_ROOT}/OldSequence.cpp
-	${FT0CC_ROOT}/PatternCompiler.cpp
-	${FT0CC_ROOT}/PatternData.cpp
-	${FT0CC_ROOT}/PeriodTables.cpp
-	${FT0CC_ROOT}/SeqInstrument.cpp
-	${FT0CC_ROOT}/Sequence.cpp
-	${FT0CC_ROOT}/SequenceCollection.cpp
-	${FT0CC_ROOT}/SequenceManager.cpp
-	${FT0CC_ROOT}/SequenceParser.cpp
-	${FT0CC_ROOT}/SimpleFile.cpp
-	${FT0CC_ROOT}/SongData.cpp
-	${FT0CC_ROOT}/SongLengthScanner.cpp
-	${FT0CC_ROOT}/SongView.cpp
-	${FT0CC_ROOT}/SoundChipService.cpp
-	${FT0CC_ROOT}/SoundChipSet.cpp
-	${FT0CC_ROOT}/SoundChipTypeImpl.cpp
-	${FT0CC_ROOT}/TrackData.cpp
-	${FT0CC_ROOT}/TrackerChannel.cpp
-	${FT0CC_ROOT}/version.cpp
-)
-
-add_executable(ft0cc-test testMain.cpp ${TEST_SRCS})
+add_executable(ft0cc-test testMain.cpp)
 target_include_directories(ft0cc-test PRIVATE ${FT0CC_ROOT} ${LIBFT0CC_ROOT}/include)
-#target_link_libraries(ft0cc-test PRIVATE ft0cc)
+target_link_libraries(ft0cc-test PRIVATE ft0cc)
