@@ -30,6 +30,7 @@
 class CSoundChip;
 class CMixer;
 class CChipHandler;
+enum class effect_t : std::uint8_t;
 
 class CSoundChipType {
 public:
@@ -43,4 +44,6 @@ public:
 
 	virtual std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const = 0;
 	virtual std::unique_ptr<CChipHandler> MakeChipHandler(std::uint8_t nInstance) const = 0;
+
+	virtual effect_t TranslateEffectName(char name, sound_chip_t chip) const = 0;
 };

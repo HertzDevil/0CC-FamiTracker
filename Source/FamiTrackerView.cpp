@@ -2517,7 +2517,7 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 	if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9)
 		nChar = '0' + nChar - VK_NUMPAD0;
 
-	if (effect_t Effect = GetEffectFromChar(nChar, GetSelectedChannelID().Chip); Effect != effect_t::none) {		// // //
+	if (effect_t Effect = Env.GetSoundChipService()->TranslateEffectName(nChar, GetSelectedChannelID().Chip); Effect != effect_t::none) {		// // //
 		Note.Effects[EffectIndex].fx = Effect;
 		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::none)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));

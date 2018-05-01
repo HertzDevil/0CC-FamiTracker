@@ -145,6 +145,13 @@ std::unique_ptr<CChipHandler> CSoundChipType2A03::MakeChipHandler(std::uint8_t n
 #endif
 }
 
+effect_t CSoundChipType2A03::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (auto fx : enum_values<effect_t>())
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	return effect_t::none;
+}
+
 
 
 sound_chip_t CSoundChipTypeVRC6::GetID() const {
@@ -198,6 +205,13 @@ std::unique_ptr<CChipHandler> CSoundChipTypeVRC6::MakeChipHandler(std::uint8_t n
 		.With<CVRC6Square>(vrc6_subindex_t::pulse2)
 		.With<CVRC6Sawtooth>(vrc6_subindex_t::sawtooth);
 #endif
+}
+
+effect_t CSoundChipTypeVRC6::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (auto fx : enum_values<effect_t>())
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	return effect_t::none;
 }
 
 
@@ -261,6 +275,16 @@ std::unique_ptr<CChipHandler> CSoundChipTypeVRC7::MakeChipHandler(std::uint8_t n
 #endif
 }
 
+effect_t CSoundChipTypeVRC7::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (effect_t fx : VRC7_EFFECTS)
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	for (auto fx : enum_values<effect_t>())
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	return effect_t::none;
+}
+
 
 
 sound_chip_t CSoundChipTypeFDS::GetID() const {
@@ -310,6 +334,16 @@ std::unique_ptr<CChipHandler> CSoundChipTypeFDS::MakeChipHandler(std::uint8_t nI
 	return CChipHandlerBuilder<CChipHandler> {nInstance, GetID()}
 		.With<CChannelHandlerFDS>(fds_subindex_t::wave);
 #endif
+}
+
+effect_t CSoundChipTypeFDS::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (effect_t fx : FDS_EFFECTS)
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	for (auto fx : enum_values<effect_t>())
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	return effect_t::none;
 }
 
 
@@ -364,6 +398,13 @@ std::unique_ptr<CChipHandler> CSoundChipTypeMMC5::MakeChipHandler(std::uint8_t n
 		.With<CChannelHandlerMMC5>(mmc5_subindex_t::pulse1)
 		.With<CChannelHandlerMMC5>(mmc5_subindex_t::pulse2);
 #endif
+}
+
+effect_t CSoundChipTypeMMC5::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (auto fx : enum_values<effect_t>())
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	return effect_t::none;
 }
 
 
@@ -431,6 +472,16 @@ std::unique_ptr<CChipHandler> CSoundChipTypeN163::MakeChipHandler(std::uint8_t n
 #endif
 }
 
+effect_t CSoundChipTypeN163::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (effect_t fx : N163_EFFECTS)
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	for (auto fx : enum_values<effect_t>())
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	return effect_t::none;
+}
+
 
 
 sound_chip_t CSoundChipTypeS5B::GetID() const {
@@ -484,4 +535,14 @@ std::unique_ptr<CChipHandler> CSoundChipTypeS5B::MakeChipHandler(std::uint8_t nI
 		.With<CChannelHandlerS5B>(s5b_subindex_t::square2)
 		.With<CChannelHandlerS5B>(s5b_subindex_t::square3);
 #endif
+}
+
+effect_t CSoundChipTypeS5B::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (effect_t fx : S5B_EFFECTS)
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	for (auto fx : enum_values<effect_t>())
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	return effect_t::none;
 }

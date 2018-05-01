@@ -217,36 +217,6 @@ constexpr char EFF_CHAR[] = {
 	*/
 };
 
-constexpr effect_t GetEffectFromChar(char ch, sound_chip_t Chip) noexcept {		// // //
-	for (auto Eff : enum_values<effect_t>())
-		if (EFF_CHAR[value_cast(Eff)] == ch) {
-			switch (Chip) {
-			case sound_chip_t::FDS:
-				for (const auto &x : FDS_EFFECTS)
-					if (ch == EFF_CHAR[value_cast(x)])
-						return x;
-				break;
-			case sound_chip_t::N163:
-				for (const auto &x : N163_EFFECTS)
-					if (ch == EFF_CHAR[value_cast(x)])
-						return x;
-				break;
-			case sound_chip_t::S5B:
-				for (const auto &x : S5B_EFFECTS)
-					if (ch == EFF_CHAR[value_cast(x)])
-						return x;
-				break;
-			case sound_chip_t::VRC7:
-				for (const auto &x : VRC7_EFFECTS)
-					if (ch == EFF_CHAR[value_cast(x)])
-						return x;
-				break;
-			}
-			return Eff;
-		}
-	return effect_t::none;
-}
-
 inline constexpr int DEFAULT_TEMPO = DEFAULT_MACHINE_TYPE == machine_t::PAL ? DEFAULT_TEMPO_PAL : DEFAULT_TEMPO_NTSC;		// // //
 
 enum class vibrato_t : unsigned char {

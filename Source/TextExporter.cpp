@@ -394,7 +394,7 @@ public:
 				throw MakeError("effect column should be 3 characters wide, '%s' found.", (LPCSTR)sEff);
 
 			if (sEff != "...") {
-				effect_t Eff = GetEffectFromChar(sEff.GetAt(0), chan.Chip);		// // //
+				effect_t Eff = Env.GetSoundChipService()->TranslateEffectName(sEff.GetAt(0), chan.Chip);		// // //
 				if (Eff == effect_t::none)
 					throw MakeError("unrecognized effect '%s'.", (LPCSTR)sEff);
 				Cell.Effects[e] = {Eff, static_cast<uint8_t>(ImportHex(sEff.Right(2)))};		// // //

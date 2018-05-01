@@ -28,6 +28,7 @@
 #include "ChannelOrder.h"
 #include "ChannelMap.h"
 #include "SoundChipSet.h"
+#include "FamiTrackerTypes.h"
 #include "Assertion.h"
 
 void CSoundChipService::AddType(std::unique_ptr<CSoundChipType> stype) {
@@ -105,6 +106,11 @@ std::unique_ptr<CSoundChip> CSoundChipService::MakeSoundChipDriver(sound_chip_t 
 
 std::unique_ptr<CChipHandler> CSoundChipService::MakeChipHandler(sound_chip_t chip, std::uint8_t nInstance) const {
 	return GetType(chip).MakeChipHandler(nInstance);
+}
+
+effect_t CSoundChipService::TranslateEffectName(char name, sound_chip_t chip) const {
+	auto it = types_.find(chip);
+	return it != types_.end() ? it->second->TranslateEffectName(name, chip) : effect_t::none;
 }
 
 const CSoundChipType &CSoundChipService::GetType(sound_chip_t chip) const {

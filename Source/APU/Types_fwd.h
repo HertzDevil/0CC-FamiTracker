@@ -24,7 +24,6 @@
 #pragma once
 
 #include <cstdint>
-#include <cstddef>
 
 enum class machine_t : std::uint8_t;
 enum class sound_chip_t : std::uint8_t;

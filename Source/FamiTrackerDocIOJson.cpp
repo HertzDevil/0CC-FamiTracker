@@ -520,7 +520,7 @@ void from_json(const json &j, stChanNote &note) {
 			auto ch = fx.at("name").get<std::string>();
 			if (ch.size() != 1u)
 				throw std::invalid_argument {"Effect name must be 1 character long"};
-			effect_t effect = GetEffectFromChar(ch.front(), sound_chip_t::APU);
+			effect_t effect = Env.GetSoundChipService()->TranslateEffectName(ch.front(), sound_chip_t::APU);
 			if (effect == effect_t::none)
 				throw std::invalid_argument {"Invalid effect name"};
 			note.Effects[col].fx = effect;
