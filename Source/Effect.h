@@ -23,86 +23,7 @@
 
 #pragma once
 
-#include "APU/Types.h"		// // //
-#include "ft0cc/enum_traits.h"		// // //
-#include "ft0cc/doc/pitch.hpp"		// // //
-
-using note_t = ft0cc::doc::pitch; // TODO: remove
-
-/*
- * Here are the constants that defines the limits in the tracker
- * change if needed (some might cause side effects)
- *
- */
-
-// Maximum number of instruments to use
-const int MAX_INSTRUMENTS = 64;
-
-// Hold instrument index
-const int HOLD_INSTRUMENT = 0xFF;		// // // 050B
-// TODO: check if this conflicts with INVALID_INSTRUMENT
-
-// Maximum number of sequence lists
-const int MAX_SEQUENCES	= 128;
-
-// Maximum number of items in each sequence
-const int MAX_SEQUENCE_ITEMS = /*128*/ 252;		// TODO: need to check if this exports correctly
-
-// Maximum number of patterns per channel
-const int MAX_PATTERN = 256;		// // //
-
-// Maximum number of frames
-const int MAX_FRAMES = 256;		// // //
-
-// Maximum length of patterns (in rows). 256 is max in NSF
-const int MAX_PATTERN_LENGTH = 256;
-
-// Maximum number of DPCM samples, cannot be increased unless the NSF driver is modified.
-const int MAX_DSAMPLES = 64;
-
-// Sample space available (from $C000-$FFFF), may now switch banks
-const int MAX_SAMPLE_SPACE = 0x40000;	// 256kB
-
-// Number of effect columns allowed
-const int MAX_EFFECT_COLUMNS = 4;
-
-// Maximum numbers of tracks allowed (NSF limit is 256, but dunno if the bankswitcher can handle that)
-const unsigned int MAX_TRACKS = 64;
-
-// Max tempo
-const int MAX_TEMPO	= 255;
-
-// Min tempo
-//const int MIN_TEMPO	= 21;
-
-// // // Default tempo
-const unsigned int DEFAULT_TEMPO_NTSC = 150;
-const unsigned int DEFAULT_TEMPO_PAL  = 125;
-
-// Max speed
-//const int MAX_SPEED = 20;
-
-// Min speed
-const int MIN_SPEED = 1;
-
-// // // Default speed
-const unsigned int DEFAULT_SPEED = 6;
-
-// // // Maximum number of grooves
-const int MAX_GROOVE = 32;
-
-// // // Maximum number of entries in the echo buffer
-const std::size_t ECHO_BUFFER_LENGTH = 4u;
-
-const int OCTAVE_RANGE = 8;
-const int DEFAULT_OCTAVE = 3;		// // //
-const int NOTE_RANGE   = ft0cc::doc::note_range;
-const int NOTE_COUNT   = OCTAVE_RANGE * NOTE_RANGE;		// // // moved from SoundGen.h
-
-const int INVALID_INSTRUMENT = -1;
-
-// Max allowed value in volume column. The actual meaning is no specific volume information, rather than max volume.
-const int MAX_VOLUME = 0x10;
+#include "ft0cc/enum_traits.h"
 
 // Channel effects
 enum class effect_t : std::uint8_t {
@@ -158,13 +79,6 @@ enum class effect_t : std::uint8_t {
 
 ENABLE_ENUM_CATEGORY(effect_t, enum_standard);
 
-// const effect_t VRC6_EFFECTS[] = {};
-const effect_t VRC7_EFFECTS[] = {effect_t::VRC7_PORT, effect_t::VRC7_WRITE};
-const effect_t FDS_EFFECTS[] = {effect_t::FDS_MOD_DEPTH, effect_t::FDS_MOD_SPEED_HI, effect_t::FDS_MOD_SPEED_LO, effect_t::FDS_VOLUME, effect_t::FDS_MOD_BIAS};
-// const effect_t MMC5_EFFECTS[] = {};
-const effect_t N163_EFFECTS[] = {effect_t::N163_WAVE_BUFFER};
-const effect_t S5B_EFFECTS[] = {effect_t::SUNSOFT_ENV_TYPE, effect_t::SUNSOFT_ENV_HI, effect_t::SUNSOFT_ENV_LO, effect_t::SUNSOFT_NOISE};
-
 // Channel effect letters
 constexpr char EFF_CHAR[] = {
 	 0,		// // // blank
@@ -215,11 +129,4 @@ constexpr char EFF_CHAR[] = {
 	'I',	// VRC7 carrier
 	'J',	// VRC7 modulator/feedback level
 	*/
-};
-
-inline constexpr int DEFAULT_TEMPO = DEFAULT_MACHINE_TYPE == machine_t::PAL ? DEFAULT_TEMPO_PAL : DEFAULT_TEMPO_NTSC;		// // //
-
-enum class vibrato_t : unsigned char {
-	Up,
-	Bidir,
 };

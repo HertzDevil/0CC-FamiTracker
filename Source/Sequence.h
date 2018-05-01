@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "FamiTrackerTypes.h"		// // // MAX_SEQUENCE_ITEMS
+#include "FamiTrackerDefines.h"		// // // MAX_SEQUENCE_ITEMS
 #include <array>		// // //
 #include <cstdint>		// // //
 #include "ft0cc/doc/inst_sequence.hpp"		// // //

@@ -21,7 +21,6 @@
 */
 
 #include "TextExporter.h"
-#include "FamiTrackerTypes.h"		// // //
 #include "SongData.h"		// // //
 #include "SoundGen.h"		// // //
 #include "FamiTrackerDoc.h"

@@ -115,6 +115,13 @@ enum command_t {
 	CMD_EFF_S5B_ENV_RATE_HI,	// // //
 	CMD_EFF_S5B_ENV_RATE_LO,	// // //
 	CMD_EFF_S5B_NOISE,			// // // 050B
+
+	CMD_EFF_VRC7_FIRST = CMD_EFF_VRC7_PATCH,
+	CMD_EFF_VRC7_LAST  = CMD_EFF_VRC7_WRITE,
+	CMD_EFF_FDS_FIRST  = CMD_EFF_FDS_MOD_DEPTH,
+	CMD_EFF_FDS_LAST   = CMD_EFF_FDS_MOD_BIAS,
+	CMD_EFF_N163_FIRST = CMD_EFF_N163_WAVE_BUFFER,
+	CMD_EFF_N163_LAST  = CMD_EFF_N163_WAVE_BUFFER,
 };
 
 const unsigned char CMD_LOOP_POINT = 26;	// Currently unused
@@ -650,10 +657,13 @@ unsigned char CPatternCompiler::Command(int cmd) const {
 	CSoundChipSet Chip = modfile_.GetSoundChipSet();		// // //
 
 	if (!Chip.IsMultiChip()) {		// // // truncate values if some chips do not exist
-		if (!Chip.ContainsChip(sound_chip_t::N163) && cmd > CMD_EFF_N163_WAVE_BUFFER) cmd -= std::size(N163_EFFECTS);
+		if (!Chip.ContainsChip(sound_chip_t::N163) && cmd > CMD_EFF_N163_LAST)
+			cmd -= CMD_EFF_N163_LAST - CMD_EFF_N163_FIRST + 1;
 		// MMC5
-		if (!Chip.ContainsChip(sound_chip_t::FDS) && cmd > CMD_EFF_FDS_MOD_BIAS) cmd -= std::size(FDS_EFFECTS);
-		if (!Chip.ContainsChip(sound_chip_t::VRC7) && cmd > CMD_EFF_VRC7_WRITE) cmd -= std::size(VRC7_EFFECTS) + 1;
+		if (!Chip.ContainsChip(sound_chip_t::FDS) && cmd > CMD_EFF_FDS_LAST)
+			cmd -= CMD_EFF_FDS_LAST - CMD_EFF_FDS_FIRST + 1;
+		if (!Chip.ContainsChip(sound_chip_t::VRC7) && cmd > CMD_EFF_VRC7_LAST)
+			cmd -= CMD_EFF_VRC7_LAST - CMD_EFF_VRC7_FIRST + 1;
 		// VRC6
 	}
 

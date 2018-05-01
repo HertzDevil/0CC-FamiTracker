@@ -24,7 +24,7 @@
 #pragma once
 
 #include <vector>		// // //
-#include "FamiTrackerTypes.h"		// // //
+#include "FamiTrackerDefines.h"		// // //
 #include "APU/Types_fwd.h"		// // //
 #include <memory>		// // //
 #include <string_view>		// // //

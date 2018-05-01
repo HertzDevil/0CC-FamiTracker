@@ -45,7 +45,5 @@ public:
 	virtual bool IsChannelMuted(stChannelID chan) const = 0; // TODO: remove
 	virtual bool ShouldStopPlayer() const = 0;
 
-	virtual int GetArpNote(stChannelID chan) const { // TODO: remove
-		return -1;
-	}
+	virtual int GetArpNote(stChannelID chan) const = 0; // TODO: remove
 };

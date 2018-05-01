@@ -695,7 +695,9 @@ void CFamiTrackerApp::OnFileOpen()
  *
  */
 
-CFTCommandLineInfo::CFTCommandLineInfo() : CCommandLineInfo(), render_type_(render_type_t::Loops) {
+CFTCommandLineInfo::CFTCommandLineInfo() :
+	CCommandLineInfo(), track_(MAX_TRACKS), render_type_(render_type_t::Loops)
+{
 }
 
 void CFTCommandLineInfo::ParseParam(const WCHAR* pszParam, BOOL bFlag, BOOL bLast)

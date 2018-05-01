@@ -22,7 +22,6 @@
 
 #include "ChunkRenderBinary.h"
 #include <vector>
-#include "FamiTrackerTypes.h"		// // //
 #include "Compiler.h"
 #include "Chunk.h"
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //

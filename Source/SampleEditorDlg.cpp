@@ -23,7 +23,6 @@
 #include "SampleEditorDlg.h"
 #include "FamiTrackerEnv.h"		// // //
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
-#include "FamiTrackerTypes.h"
 #include "APU/Types.h"
 #include "SoundGen.h"
 #include "SampleEditorView.h"

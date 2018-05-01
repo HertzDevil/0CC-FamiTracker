@@ -25,7 +25,6 @@
 #include <string>
 #include <exception>
 #include "Bookmark.h"
-#include "FamiTrackerTypes.h" // constants
 
 CBookmarkCollection::CBookmarkCollection()
 {

@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "FamiTrackerTypes.h"
+#include "Effect.h"		// // //
 #include <array>
 
 namespace compat {
@@ -39,7 +39,7 @@ template <effect_t... Froms, effect_t... Tos>
 constexpr std::pair<EffTable, EffTable>
 MakeEffectConversion(conv_pair<Froms, Tos>...) noexcept {
 	EffTable forward = { };
-	forward[0] = effect_t::none;
+	forward[value_cast(effect_t::none)] = effect_t::none;
 	for (auto fx : enum_values<effect_t>())
 		forward[value_cast(fx)] = fx;
 

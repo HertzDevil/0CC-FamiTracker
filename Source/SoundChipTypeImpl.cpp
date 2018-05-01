@@ -22,6 +22,7 @@
 
 #include "SoundChipTypeImpl.h"
 #include "APU/Types.h"
+#include "Effect.h"
 
 #ifndef FT0CC_EXT_BUILD
 #include "APU/2A03.h"
@@ -49,6 +50,13 @@ class CChipHandler { };
 #endif
 
 namespace {
+
+// constexpr effect_t VRC6_EFFECTS[] = {};
+constexpr effect_t VRC7_EFFECTS[] = {effect_t::VRC7_PORT, effect_t::VRC7_WRITE};
+constexpr effect_t FDS_EFFECTS[] = {effect_t::FDS_MOD_DEPTH, effect_t::FDS_MOD_SPEED_HI, effect_t::FDS_MOD_SPEED_LO, effect_t::FDS_VOLUME, effect_t::FDS_MOD_BIAS};
+// constexpr effect_t MMC5_EFFECTS[] = {};
+constexpr effect_t N163_EFFECTS[] = {effect_t::N163_WAVE_BUFFER};
+constexpr effect_t S5B_EFFECTS[] = {effect_t::SUNSOFT_ENV_TYPE, effect_t::SUNSOFT_ENV_HI, effect_t::SUNSOFT_ENV_LO, effect_t::SUNSOFT_NOISE};
 
 #ifndef FT0CC_EXT_BUILD
 template <typename T>

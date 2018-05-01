@@ -24,7 +24,6 @@
 #pragma once
 
 #include <array>
-#include "FamiTrackerTypes.h"
 #include "PatternData.h"
 
 class CTrackData {

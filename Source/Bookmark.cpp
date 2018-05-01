@@ -21,6 +21,7 @@
 */
 
 #include "Bookmark.h"
+#include "FamiTrackerDefines.h"
 
 CBookmark::CBookmark() : CBookmark(0, 0) {
 }

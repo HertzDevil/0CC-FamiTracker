@@ -23,6 +23,15 @@
 
 #pragma once
 
+#include "ChannelHandlerInterface.h"
+#include "APU/Types.h"		// // //
+#include "PatternNote.h"		// // //
+#include <memory>		// // //
+#include <string>		// // //
+#include <array>		// // //
+#include "array_view.h"		// // //
+#include <cstdint>
+
 static const int DUTY_2A03_FROM_VRC6[] = {0, 0, 1, 1, 1, 1, 2, 2};		// // //
 static const int DUTY_VRC6_FROM_2A03[] = {1, 3, 7, 3};		// // //
 
@@ -35,15 +44,7 @@ class CSoundGenBase;		// // //
 class CFamiTrackerModule;		// // //
 
 enum inst_type_t : unsigned;		// // //
-
-#include "ChannelHandlerInterface.h"
-#include "FamiTrackerTypes.h"		// // //
-#include "PatternNote.h"		// // //
-#include <memory>		// // //
-#include <string>		// // //
-#include <array>		// // //
-#include "array_view.h"		// // //
-#include <cstdint>
+enum class vibrato_t : std::uint8_t;		// // //
 
 /*!
 	\brief An implementation of the channel handler.
@@ -399,7 +400,7 @@ protected:
 	std::array<int, ECHO_BUFFER_LENGTH> m_iEchoBuffer = { };		// // //
 
 	/*!	\brief A flag indicating the direction of the 4xy vibrato effect. */
-	vibrato_t		m_iVibratoMode = vibrato_t::Bidir;		// // //
+	vibrato_t		m_iVibratoMode;		// // //
 	/*!	\brief A flag indicating that pitch bends are proportional to the current pitch register. */
 	bool			m_bLinearPitch = false;
 

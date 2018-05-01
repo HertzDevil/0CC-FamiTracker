@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include "FamiTrackerTypes.h" // PatternData
 #include "Highlight.h"
 #include <string>
 

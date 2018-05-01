@@ -47,6 +47,7 @@
 
 CChannelHandler::CChannelHandler(stChannelID ch, int MaxPeriod, int MaxVolume) :		// // //
 	m_iChannelID(ch),		// // //
+	m_iVibratoMode(CFamiTrackerModule::DEFAULT_VIBRATO_STYLE),		// // //
 	m_iInstTypeCurrent(INST_NONE),		// // //
 	m_iMaxPeriod(MaxPeriod),
 	m_iMaxVolume(MaxVolume)

@@ -26,7 +26,6 @@
 #include "SongData.h"
 #include "ft0cc/doc/groove.hpp"
 #include "ChannelOrder.h"
-#include "FamiTrackerTypes.h"
 #include <bitset>
 #include <type_traits>
 #include <algorithm>

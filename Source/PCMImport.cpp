@@ -23,7 +23,6 @@
 #include "PCMImport.h"
 #include "FamiTrackerEnv.h"
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
-#include "FamiTrackerTypes.h"		// // //
 #include "APU/Types.h"		// // //
 #include "Settings.h"
 #include "SoundGen.h"

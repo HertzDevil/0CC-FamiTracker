@@ -24,7 +24,6 @@
 #pragma once
 
 #include "Instrument.h"
-#include "FamiTrackerTypes.h"
 #include <memory>
 #include <unordered_map>
 

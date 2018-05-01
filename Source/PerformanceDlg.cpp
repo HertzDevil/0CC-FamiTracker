@@ -22,7 +22,6 @@
 
 #include "PerformanceDlg.h"
 #include "FamiTracker.h"
-#include "FamiTrackerTypes.h"
 #include "APU/Types.h"
 #include "SoundGen.h"
 #include "AudioDriver.h"		// // //

@@ -24,6 +24,7 @@
 #pragma once
 
 #include "SeqInstrument.h"		// // //
+#include "FamiTrackerDefines.h"		// // //
 #include <array>		// // //
 
 namespace ft0cc::doc {

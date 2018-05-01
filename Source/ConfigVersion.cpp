@@ -22,9 +22,9 @@
 
 #include "ConfigVersion.h"
 #include "FamiTrackerEnv.h"
-#include "FamiTrackerTypes.h"
 #include "Settings.h"
 #include "ModuleException.h"
+#include "ft0cc/enum_traits.h"
 
 namespace {
 

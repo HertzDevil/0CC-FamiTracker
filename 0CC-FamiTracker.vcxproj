@@ -681,6 +681,7 @@
     <ClInclude Include="Source\ChipHandlerVRC7.h" />
     <ClInclude Include="Source\ClipboardResource.h" />
     <ClInclude Include="Source\Color.h" />
+    <ClInclude Include="Source\Effect.h" />
     <ClInclude Include="Source\StrongOrdering.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />
     <ClInclude Include="Source\FamiTrackerDocIOCommon.h" />
@@ -744,7 +745,7 @@
     <ClInclude Include="Source\Exception.h" />
     <ClInclude Include="Source\FamiTracker.h" />
     <ClInclude Include="Source\FamiTrackerDoc.h" />
-    <ClInclude Include="Source\FamiTrackerTypes.h" />
+    <ClInclude Include="Source\FamiTrackerDefines.h" />
     <ClInclude Include="Source\FamiTrackerView.h" />
     <ClInclude Include="Source\FamiTrackerViewMessage.h" />
     <ClInclude Include="Source\FindDlg.h" />

@@ -22,7 +22,6 @@
 
 #include "ConfigSound.h"
 #include "FamiTrackerEnv.h"		// // //
-#include "FamiTrackerTypes.h"		// // //
 #include "APU/Types.h"		// // //
 #include "SoundGen.h"
 #include "Settings.h"

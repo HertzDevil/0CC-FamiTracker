@@ -28,8 +28,7 @@
 #include <map>
 #include <array>
 #include <string>
-#include "FamiTrackerTypes.h"
-#include "APU/Types_fwd.h"
+#include "APU/Types.h"
 #include "PeriodTables.h"
 
 class CFamiTrackerModule;
@@ -111,6 +110,29 @@ private:
 	void HandleGlobalEffects(stChanNote &note);
 
 private:
+	struct stChannelID_ident_less {
+		static constexpr int compare(const stChannelID &lhs, const stChannelID &rhs) noexcept {
+			if (lhs.Chip == sound_chip_t::none && rhs.Chip == sound_chip_t::none)
+				return 0;
+			if (lhs.Ident > rhs.Ident)
+				return 1;
+			if (lhs.Ident < rhs.Ident)
+				return -1;
+			if (lhs.Chip > rhs.Chip)
+				return 1;
+			if (lhs.Chip < rhs.Chip)
+				return -1;
+			if (lhs.Subindex > rhs.Subindex)
+				return 1;
+			if (lhs.Subindex < rhs.Subindex)
+				return -1;
+			return 0;
+		}
+		constexpr bool operator()(const stChannelID &lhs, const stChannelID &rhs) const noexcept {
+			return compare(lhs, rhs) < 0;
+		}
+	};
+
 	std::map<stChannelID, std::pair<CChannelHandler *, std::unique_ptr<CTrackerChannel>>, stChannelID_ident_less> tracks_;
 	std::vector<std::unique_ptr<CChipHandler>> chips_;		// // //
 	const CFamiTrackerModule *modfile_ = nullptr;		// // //

@@ -33,7 +33,6 @@
 #include <vector>		// // //
 #include <map>		// // //
 #include <memory>		// // //
-#include "FamiTrackerTypes.h"		// // //
 #include "SoundGenBase.h"		// // //
 #include "APU/Types.h"
 

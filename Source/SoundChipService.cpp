@@ -22,13 +22,13 @@
 
 #include "SoundChipService.h"
 #include "SoundChipTypeImpl.h"
+#include "Effect.h"
 #include "APU/Types.h"
 #include "APU/SoundChip.h"
 #include "ChipHandler.h"
 #include "ChannelOrder.h"
 #include "ChannelMap.h"
 #include "SoundChipSet.h"
-#include "FamiTrackerTypes.h"
 #include "Assertion.h"
 
 void CSoundChipService::AddType(std::unique_ptr<CSoundChipType> stype) {

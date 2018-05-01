@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "FamiTrackerTypes.h"
+#include "FamiTrackerDefines.h"
 #include "APU/Types.h"
 #include <memory>
 #include <array>

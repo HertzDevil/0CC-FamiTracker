@@ -25,7 +25,6 @@
 
 #include <map>		// // //
 #include <string>		// // //
-#include "FamiTrackerTypes.h"		// // //
 #include "APU/Types.h"		// // //
 #include "TrackData.h"		// // //
 #include "Highlight.h"		// // //

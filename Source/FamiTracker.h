@@ -26,7 +26,6 @@
 // FamiTracker.h : main header file for the FamiTracker application
 
 #include <memory>		// // //
-#include "FamiTrackerTypes.h"		// // //
 
 // Support DLL translations
 #define SUPPORT_TRANSLATIONS
@@ -54,7 +53,7 @@ public:
 	CStringW m_strExportFile;
 	CStringW m_strExportLogFile;
 	CStringW m_strExportDPCMFile;
-	unsigned track_ = MAX_TRACKS;
+	unsigned track_;
 	unsigned render_param_ = 1;		// // //
 	render_type_t render_type_;		// // //
 };

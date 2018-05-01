@@ -27,7 +27,8 @@
 #include <memory>
 #include <vector>
 #include <array>
-#include "FamiTrackerTypes.h"
+#include "FamiTrackerDefines.h"
+#include "APU/Types.h"
 
 class CSongData;
 class CChannelMap;
@@ -40,6 +41,9 @@ class CSequenceManager;
 class CDSampleManager;
 struct CPeriodTables;
 struct stHighlight;
+
+// // // moved from FamiTrackerTypes.h
+enum class vibrato_t : std::uint8_t { Up, Bidir };
 
 namespace ft0cc::doc {
 class groove;

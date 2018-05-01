@@ -22,7 +22,6 @@
 
 #include "SeqInstHandler.h"
 #include "APU/Types.h"
-#include "FamiTrackerTypes.h"
 #ifndef FT0CC_EXT_BUILD
 #include "FamiTrackerEnv.h"
 #include "SoundGen.h"

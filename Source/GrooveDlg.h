@@ -25,7 +25,7 @@
 
 #include "stdafx.h"
 #include "../resource.h"
-#include "FamiTrackerTypes.h"
+#include "FamiTrackerDefines.h"
 #include <memory>
 #include <array>
 

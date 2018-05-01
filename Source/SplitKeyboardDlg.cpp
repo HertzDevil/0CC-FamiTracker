@@ -21,7 +21,6 @@
 */
 
 #include "SplitKeyboardDlg.h"
-#include "FamiTrackerTypes.h"
 #include "PatternNote.h"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"

@@ -23,7 +23,8 @@
 
 #pragma once
 
-#include "FamiTrackerTypes.h"
+#include "FamiTrackerDefines.h"
+#include "Effect.h"		// // //
 #include "StrongOrdering.h"		// // //
 #include <array>		// // //
 

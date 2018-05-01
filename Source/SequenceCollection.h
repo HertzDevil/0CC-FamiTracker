@@ -25,7 +25,6 @@
 
 #include <vector>
 #include <memory>
-#include "FamiTrackerTypes.h" // sequence_t
 
 class CSequence;
 enum class sequence_t : unsigned;

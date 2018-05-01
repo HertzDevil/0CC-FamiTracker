@@ -25,7 +25,6 @@
 
 #include <memory>
 #include <array>
-#include "FamiTrackerTypes.h"
 #include "PatternNote.h"
 
 class stChanNote;

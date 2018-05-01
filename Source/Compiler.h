@@ -29,7 +29,6 @@
 #include <string>		// // //
 #include <map>		// // //
 #include <cstdint>		// // //
-#include "FamiTrackerTypes.h"
 #include "SoundChipSet.h"		// // //
 #include "ChannelOrder.h"		// // //
 #include "Sequence.h"		// // // TODO: remove

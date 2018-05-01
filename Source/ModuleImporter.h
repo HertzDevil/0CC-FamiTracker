@@ -24,7 +24,7 @@
 #pragma once
 
 #include <memory>
-#include "FamiTrackerTypes.h"
+#include "FamiTrackerDefines.h"
 
 class CFamiTrackerModule;
 

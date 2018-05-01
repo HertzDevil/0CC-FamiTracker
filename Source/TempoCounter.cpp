@@ -28,6 +28,12 @@
 
 // // // CTempoCounter
 
+namespace {
+
+inline constexpr int DEFAULT_TEMPO = DEFAULT_MACHINE_TYPE == machine_t::PAL ? DEFAULT_TEMPO_PAL : DEFAULT_TEMPO_NTSC;		// // //
+
+} // namespace
+
 CTempoCounter::CTempoCounter() :
 	m_iTempo(DEFAULT_TEMPO),
 	m_iSpeed(DEFAULT_SPEED)

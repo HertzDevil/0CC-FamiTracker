@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "FamiTrackerTypes.h"
+#include "FamiTrackerDefines.h"
 
 // // // TODO: use CDetuneTable eventually
 

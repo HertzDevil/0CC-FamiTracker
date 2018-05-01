@@ -32,7 +32,6 @@
 #include <unordered_map>		// // //
 
 #include "PatternNote.h"		// // //
-#include "FamiTrackerTypes.h"		// // //
 #include "PatternEditorTypes.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
 #include "PlayerCursor.h"		// // //

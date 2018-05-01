@@ -101,46 +101,41 @@ std::string stChannelState::GetStateString() const {
 
 	if (IsAPUPulse(ChannelID) || IsAPUNoise(ChannelID) || ChannelID.Chip == sound_chip_t::MMC5)
 		for (const auto &x : {effect_t::VOLUME}) {
-			int p = Effect[value_cast(x)];
-			if (p < 0) continue;
-			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
+			if (int p = Effect[value_cast(x)]; p >= 0)
+				effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
 	else if (IsAPUTriangle(ChannelID))
 		for (const auto &x : {effect_t::VOLUME, effect_t::NOTE_CUT}) {
-			int p = Effect[value_cast(x)];
-			if (p < 0) continue;
-			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
+			if (int p = Effect[value_cast(x)]; p >= 0)
+				effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
 	else if (IsDPCM(ChannelID))
 		for (const auto &x : {effect_t::SAMPLE_OFFSET, /*effect_t::DPCM_PITCH*/}) {
-			int p = Effect[value_cast(x)];
-			if (p <= 0) continue;
-			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
+			if (int p = Effect[value_cast(x)]; p > 0)
+				effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
 	else if (ChannelID.Chip == sound_chip_t::VRC7)
-		for (const auto &x : VRC7_EFFECTS) {
-			int p = Effect[value_cast(x)];
-			if (p < 0) continue;
-			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
+		for (const auto &x : {effect_t::VRC7_PORT, effect_t::VRC7_WRITE}) {
+			if (int p = Effect[value_cast(x)]; p >= 0)
+				effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
-	else if (ChannelID.Chip == sound_chip_t::FDS)
-		for (const auto &x : FDS_EFFECTS) {
-			int p = Effect[value_cast(x)];
-			if (p < 0 || (x == effect_t::FDS_MOD_BIAS && p == 0x80)) continue;
-			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
+	else if (ChannelID.Chip == sound_chip_t::FDS) {
+		for (const auto &x : {effect_t::FDS_MOD_DEPTH, effect_t::FDS_MOD_SPEED_HI, effect_t::FDS_MOD_SPEED_LO, effect_t::FDS_VOLUME}) {
+			if (int p = Effect[value_cast(x)]; p >= 0)
+				effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
+		if (int p = Effect[value_cast(effect_t::FDS_MOD_BIAS)]; p >= 0 && p != 0x80)
+			effStr += MakeCommandString({effect_t::FDS_MOD_BIAS, static_cast<uint8_t>(p)});
+	}
 	else if (ChannelID.Chip == sound_chip_t::S5B)
-		for (const auto &x : S5B_EFFECTS) {
-			int p = Effect[value_cast(x)];
-			if (p < 0) continue;
-			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
+		for (const auto &x : {effect_t::SUNSOFT_ENV_TYPE, effect_t::SUNSOFT_ENV_HI, effect_t::SUNSOFT_ENV_LO, effect_t::SUNSOFT_NOISE}) {
+			if (int p = Effect[value_cast(x)]; p > 0)
+				effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
 		}
-	else if (ChannelID.Chip == sound_chip_t::N163)
-		for (const auto &x : N163_EFFECTS) {
-			int p = Effect[value_cast(x)];
-			if (p < 0 || (x == effect_t::N163_WAVE_BUFFER && p == 0x7F)) continue;
-			effStr += MakeCommandString({x, static_cast<uint8_t>(p)});
-		}
+	else if (ChannelID.Chip == sound_chip_t::N163) {
+		if (int p = Effect[value_cast(effect_t::N163_WAVE_BUFFER)]; p >= 0 && p != 0x7F)
+			effStr += MakeCommandString({effect_t::N163_WAVE_BUFFER, static_cast<uint8_t>(p)});
+	}
 	if (Effect_LengthCounter >= 0)
 		effStr += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(Effect_LengthCounter)});
 	if (Effect_AutoFMMult >= 0)
