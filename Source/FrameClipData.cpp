@@ -48,20 +48,26 @@ bool CFrameClipData::ContainsData() const {		// // //
 	return pFrames != nullptr;
 }
 
-bool CFrameClipData::ToBytes(unsigned char *pBuf) const		// // //
+bool CFrameClipData::ToBytes(std::byte *pBuf, std::size_t buflen) const		// // //
 {
-	std::memcpy(pBuf, &ClipInfo, sizeof(ClipInfo));
-	std::memcpy(pBuf + sizeof(ClipInfo), pFrames.get(), sizeof(int) * iSize);
-	return true;
+	if (buflen >= GetAllocSize()) {
+		std::memcpy(pBuf, &ClipInfo, sizeof(ClipInfo));
+		std::memcpy(pBuf + sizeof(ClipInfo), pFrames.get(), sizeof(int) * iSize);
+		return true;
+	}
+	return false;
 }
 
-bool CFrameClipData::FromBytes(const unsigned char *pBuf)		// // //
+bool CFrameClipData::FromBytes(array_view<std::byte> Buf)		// // //
 {
-	std::memcpy(&ClipInfo, pBuf, sizeof(ClipInfo));
-	iSize = ClipInfo.Channels * ClipInfo.Frames;
-	pFrames = std::make_unique<int[]>(iSize);
-	std::memcpy(pFrames.get(), pBuf + sizeof(ClipInfo), sizeof(int) * iSize);
-	return true;
+	if (Buf.size() >= GetAllocSize()) {
+		std::memcpy(&ClipInfo, Buf.data(), sizeof(ClipInfo));
+		iSize = ClipInfo.Channels * ClipInfo.Frames;
+		pFrames = std::make_unique<int[]>(iSize);
+		std::memcpy(pFrames.get(), Buf.data() + sizeof(ClipInfo), sizeof(int) * iSize);
+		return true;
+	}
+	return false;
 }
 
 int CFrameClipData::GetFrame(int Frame, int Channel) const

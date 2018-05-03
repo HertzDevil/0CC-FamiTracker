@@ -40,7 +40,7 @@ public:
 	bool	GetData(HGLOBAL &hMemory) const;		// // //
 	bool	SetDataPointer(array_view<unsigned char> data) const;		// // //
 	LPVOID	GetDataPointer();
-	bool	IsDataAvailable()const;
+	bool	IsDataAvailable() const;
 
 	bool	TryCopy(const CBinarySerializableInterface &res);		// // //
 	bool	TryRestore(CBinarySerializableInterface &res) const;		// // //

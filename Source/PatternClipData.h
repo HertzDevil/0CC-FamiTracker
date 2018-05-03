@@ -41,8 +41,8 @@ public:
 private:
 	std::size_t GetAllocSize() const override;
 	bool ContainsData() const override;		// // //
-	bool ToBytes(unsigned char *pBuf) const override;
-	bool FromBytes(const unsigned char *pBuf) override;
+	bool ToBytes(std::byte *pBuf, std::size_t buflen) const override;
+	bool FromBytes(array_view<std::byte> Buf) override;
 
 public:
 	struct {

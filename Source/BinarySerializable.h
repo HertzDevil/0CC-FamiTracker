@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "array_view.h"
 #include <cstddef>
 
 // // // interface for objects that can be transferred to/from byte streams
@@ -38,8 +39,8 @@ public:
 	virtual std::size_t GetAllocSize() const = 0;
 
 	// Copy structures to memory, return success
-	virtual bool ToBytes(unsigned char *pBuf) const = 0;
+	virtual bool ToBytes(std::byte *pBuf, std::size_t buflen) const = 0;
 
 	// Copy structures from memory, return success
-	virtual bool FromBytes(const unsigned char *pBuf) = 0;
+	virtual bool FromBytes(array_view<std::byte> Buf) = 0;
 };

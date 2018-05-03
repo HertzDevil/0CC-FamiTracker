@@ -116,10 +116,9 @@ bool CClipboard::TryCopy(const CBinarySerializableInterface &res) {		// // //
 }
 
 bool CClipboard::TryRestore(CBinarySerializableInterface &res) const {		// // //
-	HGLOBAL hMem;		// // //
-	if (!GetData(hMem))
-		return false;
-	return ReadGlobalMemory(res, hMem);
+	if (HGLOBAL hMem; GetData(hMem))		// // //
+		return ReadGlobalMemory(res, hMem);
+	return false;
 }
 
 HGLOBAL CClipboard::AllocateGlobalMemory(const CBinarySerializableInterface &ser) {
@@ -128,8 +127,9 @@ HGLOBAL CClipboard::AllocateGlobalMemory(const CBinarySerializableInterface &ser
 
 bool CClipboard::WriteGlobalMemory(const CBinarySerializableInterface &ser, HGLOBAL hMem) {
 	if (ser.ContainsData())
-		if (auto pByte = (BYTE *)::GlobalLock(hMem)) {
-			bool result = ser.ToBytes(pByte);
+		if (auto pByte = reinterpret_cast<std::byte *>(::GlobalLock(hMem))) {
+			std::size_t sz = ::GlobalSize(hMem);
+			bool result = ser.ToBytes(pByte, sz);
 			::GlobalUnlock(hMem);
 			return result;
 		}
@@ -137,12 +137,12 @@ bool CClipboard::WriteGlobalMemory(const CBinarySerializableInterface &ser, HGLO
 }
 
 bool CClipboard::ReadGlobalMemory(CBinarySerializableInterface &ser, HGLOBAL hMem) {
-//	if (!ser.ContainsData())
-		if (auto pByte = (BYTE *)::GlobalLock(hMem)) {
-			bool result = ser.FromBytes(pByte);
-			::GlobalUnlock(hMem);
-			return result;
-		}
+	if (auto pByte = reinterpret_cast<const std::byte *>(::GlobalLock(hMem))) {
+		std::size_t sz = ::GlobalSize(hMem);
+		bool result = ser.FromBytes({pByte, sz});
+		::GlobalUnlock(hMem);
+		return result;
+	}
 	return false;
 }
 
@@ -151,9 +151,9 @@ DROPEFFECT CClipboard::DragDropTransfer(const CBinarySerializableInterface &ser,
 	if (HGLOBAL hMem = AllocateGlobalMemory(ser)) {
 		if (WriteGlobalMemory(ser, hMem)) {
 			// Setup OLE
-			auto pSrc = std::make_unique<COleDataSource>();
-			pSrc->CacheGlobalData(clipboardID, hMem);
-			res = pSrc->DoDragDrop(effects); // calls DropData
+			COleDataSource Src;
+			Src.CacheGlobalData(clipboardID, hMem);
+			res = Src.DoDragDrop(effects); // calls DropData
 		}
 		::GlobalFree(hMem);
 	}

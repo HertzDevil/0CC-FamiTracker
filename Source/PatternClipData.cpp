@@ -41,20 +41,26 @@ bool CPatternClipData::ContainsData() const {		// // //
 	return pPattern != nullptr;
 }
 
-bool CPatternClipData::ToBytes(unsigned char *pBuf) const		// // //
+bool CPatternClipData::ToBytes(std::byte *pBuf, std::size_t buflen) const		// // //
 {
-	std::memcpy(pBuf, &ClipInfo, sizeof(ClipInfo));
-	std::memcpy(pBuf + sizeof(ClipInfo), pPattern.get(), Size * sizeof(stChanNote));		// // //
-	return true;
+	if (buflen >= GetAllocSize()) {
+		std::memcpy(pBuf, &ClipInfo, sizeof(ClipInfo));
+		std::memcpy(pBuf + sizeof(ClipInfo), pPattern.get(), Size * sizeof(stChanNote));		// // //
+		return true;
+	}
+	return false;
 }
 
-bool CPatternClipData::FromBytes(const unsigned char *pBuf)		// // //
+bool CPatternClipData::FromBytes(array_view<std::byte> Buf)		// // //
 {
-	std::memcpy(&ClipInfo, pBuf, sizeof(ClipInfo));
-	Size = ClipInfo.Channels * ClipInfo.Rows;
-	pPattern = std::make_unique<stChanNote[]>(Size);		// // //
-	std::memcpy(pPattern.get(), pBuf + sizeof(ClipInfo), Size * sizeof(stChanNote));
-	return true;
+	if (Buf.size() >= GetAllocSize()) {
+		std::memcpy(&ClipInfo, Buf.data(), sizeof(ClipInfo));
+		Size = ClipInfo.Channels * ClipInfo.Rows;
+		pPattern = std::make_unique<stChanNote[]>(Size);		// // //
+		std::memcpy(pPattern.get(), Buf.data() + sizeof(ClipInfo), Size * sizeof(stChanNote));
+		return true;
+	}
+	return false;
 }
 
 stChanNote *CPatternClipData::GetPattern(int Channel, int Row)
