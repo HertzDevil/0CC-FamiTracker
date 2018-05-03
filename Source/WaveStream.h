@@ -81,9 +81,9 @@ T convert_sample(U x, unsigned sigbits) {
 
 template <typename T, typename U REQUIRES_FloatingPoint(T) REQUIRES_SignedInteger(U)>
 T convert_sample(U x, unsigned sigbits) {
+	auto s2 = std::min(sigbits, sizeof(U) * 8);
 	return std::floor(static_cast<T>(x) / static_cast<T>(
-		std::exp2(sizeof(U) * 8 - sigbits))) /
-		static_cast<T>(std::exp2(sigbits - 1));
+		std::exp2(sizeof(U) * 8 - s2))) / static_cast<T>(std::exp2(s2 - 1));
 }
 
 template <typename T, typename U REQUIRES_FloatingPoint(T) REQUIRES_UnsignedInteger(U)>
