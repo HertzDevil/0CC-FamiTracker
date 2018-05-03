@@ -24,14 +24,13 @@
 #pragma once
 
 #include <memory>
-#include "ClipboardResource.h"		// // //
+#include "BinarySerializable.h"		// // //
 #include "PatternEditorTypes.h"
 
 class stChanNote;
 
 // Class used by clipboard
-class CPatternClipData : public CClipboardResource		// // //
-{
+class CPatternClipData : public CBinarySerializableInterface {		// // //
 public:
 	CPatternClipData() = default;
 	CPatternClipData(int Channels, int Rows);
@@ -40,7 +39,7 @@ public:
 	const stChanNote *GetPattern(int Channel, int Row) const;
 
 private:
-	SIZE_T GetAllocSize() const override;
+	std::size_t GetAllocSize() const override;
 	bool ContainsData() const override;		// // //
 	bool ToBytes(unsigned char *pBuf) const override;
 	bool FromBytes(const unsigned char *pBuf) override;
@@ -54,7 +53,7 @@ public:
 		struct {				// OLE drag and drop info
 			int ChanOffset = 0;
 			int RowOffset = 0;
-		} OleInfo;
+		} OleInfo = { };
 	} ClipInfo;
 
 	std::unique_ptr<stChanNote[]> pPattern;		// // // Pattern data

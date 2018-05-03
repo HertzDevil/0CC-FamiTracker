@@ -22,7 +22,8 @@
 
 #include "Clipboard.h"
 #include "../resource.h"		// // //
-#include "ClipboardResource.h"		// // //
+#include "BinarySerializable.h"		// // //
+#include <memory>		// // //
 
 // CClipboard //////////////////////////////////////////////////////////////////
 
@@ -104,9 +105,9 @@ bool CClipboard::IsDataAvailable() const
 	return ::IsClipboardFormatAvailable(m_iClipboard) == TRUE;
 }
 
-bool CClipboard::TryCopy(const CClipboardResource &res) {		// // //
-	if (auto hMem = res.AllocateGlobalMemory()) {
-		if (res.WriteGlobalMemory(hMem)) {
+bool CClipboard::TryCopy(const CBinarySerializableInterface &res) {		// // //
+	if (auto hMem = AllocateGlobalMemory(res)) {
+		if (WriteGlobalMemory(res, hMem)) {
 			SetData(hMem);
 			return true;
 		}
@@ -114,9 +115,47 @@ bool CClipboard::TryCopy(const CClipboardResource &res) {		// // //
 	return false;
 }
 
-bool CClipboard::TryRestore(CClipboardResource &res) const {		// // //
+bool CClipboard::TryRestore(CBinarySerializableInterface &res) const {		// // //
 	HGLOBAL hMem;		// // //
 	if (!GetData(hMem))
 		return false;
-	return res.ReadGlobalMemory(hMem);
+	return ReadGlobalMemory(res, hMem);
+}
+
+HGLOBAL CClipboard::AllocateGlobalMemory(const CBinarySerializableInterface &ser) {
+	return ::GlobalAlloc(GMEM_MOVEABLE, ser.GetAllocSize());
+}
+
+bool CClipboard::WriteGlobalMemory(const CBinarySerializableInterface &ser, HGLOBAL hMem) {
+	if (ser.ContainsData())
+		if (auto pByte = (BYTE *)::GlobalLock(hMem)) {
+			bool result = ser.ToBytes(pByte);
+			::GlobalUnlock(hMem);
+			return result;
+		}
+	return false;
+}
+
+bool CClipboard::ReadGlobalMemory(CBinarySerializableInterface &ser, HGLOBAL hMem) {
+//	if (!ser.ContainsData())
+		if (auto pByte = (BYTE *)::GlobalLock(hMem)) {
+			bool result = ser.FromBytes(pByte);
+			::GlobalUnlock(hMem);
+			return result;
+		}
+	return false;
+}
+
+DROPEFFECT CClipboard::DragDropTransfer(const CBinarySerializableInterface &ser, CLIPFORMAT clipboardID, DWORD effects) {
+	DROPEFFECT res = DROPEFFECT_NONE;
+	if (HGLOBAL hMem = AllocateGlobalMemory(ser)) {
+		if (WriteGlobalMemory(ser, hMem)) {
+			// Setup OLE
+			auto pSrc = std::make_unique<COleDataSource>();
+			pSrc->CacheGlobalData(clipboardID, hMem);
+			res = pSrc->DoDragDrop(effects); // calls DropData
+		}
+		::GlobalFree(hMem);
+	}
+	return res;
 }

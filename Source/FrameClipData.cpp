@@ -22,10 +22,13 @@
 
 #include "FrameClipData.h"
 #include "FrameEditorTypes.h"		// // //
+#include "Assertion.h"		// // //
+#include <cstring>		// // //
 
 CFrameClipData::CFrameClipData(int Channels, int Frames) :
-	pFrames(std::make_unique<int[]>(Channels * Frames)), iSize(Channels * Frames),
-	ClipInfo({Channels, Frames})		// // //
+	ClipInfo({Channels, Frames}),		// // //
+	pFrames(std::make_unique<int[]>(Channels * Frames)),
+	iSize(Channels * Frames)
 {
 }
 
@@ -36,7 +39,7 @@ CFrameSelection CFrameClipData::AsSelection(int startFrame) const {		// // //
 	};
 }
 
-SIZE_T CFrameClipData::GetAllocSize() const
+std::size_t CFrameClipData::GetAllocSize() const
 {
 	return sizeof(ClipInfo) + sizeof(int) * iSize;
 }
@@ -47,32 +50,32 @@ bool CFrameClipData::ContainsData() const {		// // //
 
 bool CFrameClipData::ToBytes(unsigned char *pBuf) const		// // //
 {
-	memcpy(pBuf, &ClipInfo, sizeof(ClipInfo));
-	memcpy(pBuf + sizeof(ClipInfo), pFrames.get(), sizeof(int) * iSize);
+	std::memcpy(pBuf, &ClipInfo, sizeof(ClipInfo));
+	std::memcpy(pBuf + sizeof(ClipInfo), pFrames.get(), sizeof(int) * iSize);
 	return true;
 }
 
 bool CFrameClipData::FromBytes(const unsigned char *pBuf)		// // //
 {
-	memcpy(&ClipInfo, pBuf, sizeof(ClipInfo));
+	std::memcpy(&ClipInfo, pBuf, sizeof(ClipInfo));
 	iSize = ClipInfo.Channels * ClipInfo.Frames;
 	pFrames = std::make_unique<int[]>(iSize);
-	memcpy(pFrames.get(), pBuf + sizeof(ClipInfo), sizeof(int) * iSize);
+	std::memcpy(pFrames.get(), pBuf + sizeof(ClipInfo), sizeof(int) * iSize);
 	return true;
 }
 
 int CFrameClipData::GetFrame(int Frame, int Channel) const
 {
-	ASSERT(Frame >= 0 && Frame < ClipInfo.Frames);
-	ASSERT(Channel >= 0 && Channel < ClipInfo.Channels);
+	Assert(Frame >= 0 && Frame < ClipInfo.Frames);
+	Assert(Channel >= 0 && Channel < ClipInfo.Channels);
 
 	return pFrames[Frame * ClipInfo.Channels + Channel];		// // //
 }
 
 void CFrameClipData::SetFrame(int Frame, int Channel, int Pattern)
 {
-	ASSERT(Frame >= 0 && Frame < ClipInfo.Frames);
-	ASSERT(Channel >= 0 && Channel < ClipInfo.Channels);
+	Assert(Frame >= 0 && Frame < ClipInfo.Frames);
+	Assert(Channel >= 0 && Channel < ClipInfo.Channels);
 
 	pFrames[Frame * ClipInfo.Channels + Channel] = Pattern;		// // //
 }

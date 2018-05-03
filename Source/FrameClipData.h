@@ -24,11 +24,11 @@
 #pragma once
 
 #include <memory>
-#include "ClipboardResource.h"		// // //
+#include "BinarySerializable.h"		// // //
 
 struct CFrameSelection;		// // //
 
-class CFrameClipData : public CClipboardResource {		// // //
+class CFrameClipData : public CBinarySerializableInterface {		// // //
 public:
 	CFrameClipData() = default;
 	CFrameClipData(int Channels, int Frames);
@@ -39,7 +39,7 @@ public:
 	void SetFrame(int Frame, int Channel, int Pattern);
 
 private:
-	SIZE_T GetAllocSize() const override;
+	std::size_t GetAllocSize() const override;
 	bool ContainsData() const override;		// // //
 	bool ToBytes(unsigned char *pBuf) const override;
 	bool FromBytes(const unsigned char *pBuf) override;
@@ -53,7 +53,7 @@ public:
 		struct {
 			int SourceRowStart = 0;
 			int SourceRowEnd = 0;
-		} OleInfo;
+		} OleInfo = { };
 	} ClipInfo;
 
 	// Clip data

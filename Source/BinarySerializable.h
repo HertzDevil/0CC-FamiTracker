@@ -23,27 +23,23 @@
 
 #pragma once
 
-#include "stdafx.h"
+#include <cstddef>
 
-// // // interface for objects that can be transferred to/from clipboard
+// // // interface for objects that can be transferred to/from byte streams
 
-class CClipboardResource {
+class CBinarySerializableInterface {
 public:
-	HGLOBAL AllocateGlobalMemory() const;
-	bool WriteGlobalMemory(HGLOBAL hMem) const;
-	bool ReadGlobalMemory(HGLOBAL hMem);
-	DROPEFFECT DragDropTransfer(CLIPFORMAT clipboardID, DWORD effects) const;
+	virtual ~CBinarySerializableInterface() noexcept = default;
 
-	// Check whether object contains clipboard data
-	virtual bool ContainsData() const = 0;		// // //
+	// Check whether object contains data
+	virtual bool ContainsData() const = 0;
 
-private:
 	// Get memory size in bytes
-	virtual SIZE_T GetAllocSize() const = 0;
+	virtual std::size_t GetAllocSize() const = 0;
 
 	// Copy structures to memory, return success
-	virtual bool ToBytes(unsigned char *pBuf) const = 0;		// // //
+	virtual bool ToBytes(unsigned char *pBuf) const = 0;
 
 	// Copy structures from memory, return success
-	virtual bool FromBytes(const unsigned char *pBuf) = 0;		// // //
+	virtual bool FromBytes(const unsigned char *pBuf) = 0;
 };

@@ -22,14 +22,17 @@
 
 #include "PatternClipData.h"
 #include "PatternNote.h"
+#include "Assertion.h"		// // //
+#include <cstring>		// // //
 
 CPatternClipData::CPatternClipData(int Channels, int Rows) :
-	pPattern(std::make_unique<stChanNote[]>(Channels * Rows)), Size(Channels * Rows),		// // //
-	ClipInfo({Channels, Rows})
+	ClipInfo({Channels, Rows}),		// // //
+	pPattern(std::make_unique<stChanNote[]>(Channels * Rows)),
+	Size(Channels * Rows)
 {
 }
 
-SIZE_T CPatternClipData::GetAllocSize() const
+std::size_t CPatternClipData::GetAllocSize() const
 {
 	return sizeof(ClipInfo) + Size * sizeof(stChanNote);
 }
@@ -40,32 +43,32 @@ bool CPatternClipData::ContainsData() const {		// // //
 
 bool CPatternClipData::ToBytes(unsigned char *pBuf) const		// // //
 {
-	memcpy(pBuf, &ClipInfo, sizeof(ClipInfo));
-	memcpy(pBuf + sizeof(ClipInfo), pPattern.get(), Size * sizeof(stChanNote));		// // //
+	std::memcpy(pBuf, &ClipInfo, sizeof(ClipInfo));
+	std::memcpy(pBuf + sizeof(ClipInfo), pPattern.get(), Size * sizeof(stChanNote));		// // //
 	return true;
 }
 
 bool CPatternClipData::FromBytes(const unsigned char *pBuf)		// // //
 {
-	memcpy(&ClipInfo, pBuf, sizeof(ClipInfo));
+	std::memcpy(&ClipInfo, pBuf, sizeof(ClipInfo));
 	Size = ClipInfo.Channels * ClipInfo.Rows;
 	pPattern = std::make_unique<stChanNote[]>(Size);		// // //
-	memcpy(pPattern.get(), pBuf + sizeof(ClipInfo), Size * sizeof(stChanNote));
+	std::memcpy(pPattern.get(), pBuf + sizeof(ClipInfo), Size * sizeof(stChanNote));
 	return true;
 }
 
 stChanNote *CPatternClipData::GetPattern(int Channel, int Row)
 {
-	ASSERT(Channel < ClipInfo.Channels);
-	ASSERT(Row < ClipInfo.Rows);
+	Assert(Channel < ClipInfo.Channels);
+	Assert(Row < ClipInfo.Rows);
 
 	return &pPattern[Channel * ClipInfo.Rows + Row];
 }
 
 const stChanNote *CPatternClipData::GetPattern(int Channel, int Row) const
 {
-	ASSERT(Channel < ClipInfo.Channels);
-	ASSERT(Row < ClipInfo.Rows);
+	Assert(Channel < ClipInfo.Channels);
+	Assert(Row < ClipInfo.Rows);
 
 	return &pPattern[Channel * ClipInfo.Rows + Row];
 }

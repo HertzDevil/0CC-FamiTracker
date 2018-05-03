@@ -474,7 +474,6 @@
     <ClCompile Include="Source\ChipHandler.cpp" />
     <ClCompile Include="Source\ChipHandlerS5B.cpp" />
     <ClCompile Include="Source\ChipHandlerVRC7.cpp" />
-    <ClCompile Include="Source\ClipboardResource.cpp" />
     <ClCompile Include="Source\FamiTrackerDocIO.cpp" />
     <ClCompile Include="Source\FamiTrackerDocIOJson.cpp" />
     <ClCompile Include="Source\FamiTrackerDocOldIO.cpp" />
@@ -672,6 +671,7 @@
     <ClInclude Include="Source\Arpeggiator.h" />
     <ClInclude Include="Source\Assertion.h" />
     <ClInclude Include="Source\AudioDriver.h" />
+    <ClInclude Include="Source\BinarySerializable.h" />
     <ClInclude Include="Source\Bookmark.h" />
     <ClInclude Include="Source\BookmarkCollection.h" />
     <ClInclude Include="Source\BookmarkDlg.h" />
@@ -679,7 +679,6 @@
     <ClInclude Include="Source\ChipHandler.h" />
     <ClInclude Include="Source\ChipHandlerS5B.h" />
     <ClInclude Include="Source\ChipHandlerVRC7.h" />
-    <ClInclude Include="Source\ClipboardResource.h" />
     <ClInclude Include="Source\Color.h" />
     <ClInclude Include="Source\Effect.h" />
     <ClInclude Include="Source\StrongOrdering.h" />

@@ -3367,7 +3367,7 @@ DROPEFFECT CFamiTrackerView::OnDragEnter(COleDataObject* pDataObject, DWORD dwKe
 
 		// Get drag rectangle
 		CPatternClipData DragData;		// // //
-		DragData.ReadGlobalMemory(pDataObject->GetGlobalData(m_iClipboard));
+		CClipboard::ReadGlobalMemory(DragData, pDataObject->GetGlobalData(m_iClipboard));
 
 		// Begin drag operation
 		m_pPatternEditor->BeginDrag(DragData);
@@ -3421,7 +3421,7 @@ BOOL CFamiTrackerView::OnDrop(COleDataObject* pDataObject, DROPEFFECT dropEffect
 
 		// Get clipboard data
 		auto pClipData = std::make_unique<CPatternClipData>();		// // //
-		if (pClipData->ReadGlobalMemory(pDataObject->GetGlobalData(m_iClipboard))) {
+		if (CClipboard::ReadGlobalMemory(*pClipData, pDataObject->GetGlobalData(m_iClipboard))) {
 			m_pPatternEditor->PerformDrop(std::move(pClipData), bCopy, m_bDropMix);		// // // ???
 			m_bDropped = true;
 		}
@@ -3448,7 +3448,7 @@ void CFamiTrackerView::BeginDragData(int ChanOffset, int RowOffset)
 	m_bDragSource = true;
 	m_bDropped = false;
 
-	DROPEFFECT res = pClipData->DragDropTransfer(m_iClipboard, DROPEFFECT_COPY | DROPEFFECT_MOVE);		// // // calls DropData
+	DROPEFFECT res = CClipboard::DragDropTransfer(*pClipData, m_iClipboard, DROPEFFECT_COPY | DROPEFFECT_MOVE);		// // // calls DropData
 
 	if (!m_bDropped) { // Target was another window
 		if (res & DROPEFFECT_MOVE)

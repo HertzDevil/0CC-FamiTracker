@@ -696,9 +696,6 @@
     <ClCompile Include="Source\Clipboard.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ClipboardResource.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Source\VersionChecker.cpp">
       <Filter>Source Files\Other</Filter>
     </ClCompile>
@@ -1376,9 +1373,6 @@
     <ClInclude Include="Source\Clipboard.h">
       <Filter>Header Files\Components Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ClipboardResource.h">
-      <Filter>Header Files\Components Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\VersionChecker.h">
       <Filter>Header Files\Other Headers</Filter>
     </ClInclude>
@@ -1581,6 +1575,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\WaveStream.h">
+      <Filter>Header Files\Components Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\BinarySerializable.h">
       <Filter>Header Files\Components Headers</Filter>
     </ClInclude>
   </ItemGroup>

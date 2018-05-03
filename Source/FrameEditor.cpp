@@ -1134,7 +1134,7 @@ void CFrameEditor::InitiateDrag()
 {
 	auto pClipData = CopySelection(GetSelection());		// // //
 
-	DROPEFFECT res = pClipData->DragDropTransfer(m_iClipboard, DROPEFFECT_COPY | DROPEFFECT_MOVE);		// // // calls DropData
+	DROPEFFECT res = CClipboard::DragDropTransfer(*pClipData, m_iClipboard, DROPEFFECT_COPY | DROPEFFECT_MOVE);		// // // calls DropData
 
 	if (!m_bDropped) { // Target was another window
 		if (res & DROPEFFECT_MOVE)
@@ -1171,7 +1171,7 @@ bool CFrameEditor::IsCopyValid(COleDataObject* pDataObject) const
 	// Return true if the number of pasted frames will fit
 	CFrameClipData ClipData;		// // //
 	HGLOBAL hMem = pDataObject->GetGlobalData(m_iClipboard);
-	if (ClipData.ReadGlobalMemory(hMem)) {		// // //
+	if (CClipboard::ReadGlobalMemory(ClipData, hMem)) {		// // //
 		int Frames = ClipData.ClipInfo.Frames;
 		return (GetSongFrameCount() + Frames) <= MAX_FRAMES;		// // //
 	}
@@ -1196,7 +1196,7 @@ BOOL CFrameEditor::DropData(COleDataObject* pDataObject, DROPEFFECT dropEffect)
 
 	// Get frame data
 	auto pClipData = std::make_unique<CFrameClipData>();		// // //
-	if (!pClipData->ReadGlobalMemory(pDataObject->GetGlobalData(m_iClipboard)))		// // //
+	if (!CClipboard::ReadGlobalMemory(*pClipData, pDataObject->GetGlobalData(m_iClipboard)))		// // //
 		return FALSE;
 
 	const int SelectStart = pClipData->ClipInfo.OleInfo.SourceRowStart;

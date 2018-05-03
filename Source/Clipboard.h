@@ -26,7 +26,7 @@
 #include "stdafx.h"		// // //
 #include "array_view.h"		// // //
 
-class CClipboardResource;		// // //
+class CBinarySerializableInterface;		// // //
 
 // Clipboard wrapper class, using this ensures that clipboard is closed when finished
 class CClipboard
@@ -42,10 +42,16 @@ public:
 	LPVOID	GetDataPointer();
 	bool	IsDataAvailable()const;
 
-	bool	TryCopy(const CClipboardResource &res);		// // //
-	bool	TryRestore(CClipboardResource &res) const;		// // //
+	bool	TryCopy(const CBinarySerializableInterface &res);		// // //
+	bool	TryRestore(CBinarySerializableInterface &res) const;		// // //
+
+	static bool WriteGlobalMemory(const CBinarySerializableInterface &ser, HGLOBAL hMem);
+	static bool ReadGlobalMemory(CBinarySerializableInterface &ser, HGLOBAL hMem);
+	static DROPEFFECT DragDropTransfer(const CBinarySerializableInterface &ser, CLIPFORMAT clipboardID, DWORD effects);
 
 private:
+	static HGLOBAL AllocateGlobalMemory(const CBinarySerializableInterface &ser);
+
 	void	SetData(HGLOBAL hMemory) const;
 
 	bool m_bOpened;

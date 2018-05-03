@@ -70,7 +70,6 @@ set(SRCS
 	${FT0CC_ROOT}/ChunkRenderBinary.cpp
 	${FT0CC_ROOT}/ChunkRenderText.cpp
 #	${FT0CC_ROOT}/Clipboard.cpp
-#	${FT0CC_ROOT}/ClipboardResource.cpp
 #	${FT0CC_ROOT}/CommandLineExport.cpp
 #	${FT0CC_ROOT}/CommentsDlg.cpp
 	${FT0CC_ROOT}/Compiler.cpp
@@ -105,7 +104,7 @@ set(SRCS
 #	${FT0CC_ROOT}/FileDialogs.cpp
 #	${FT0CC_ROOT}/FindDlg.cpp
 #	${FT0CC_ROOT}/FrameAction.cpp
-#	${FT0CC_ROOT}/FrameClipData.cpp
+	${FT0CC_ROOT}/FrameClipData.cpp
 #	${FT0CC_ROOT}/FrameEditor.cpp
 #	${FT0CC_ROOT}/FrameEditorModel.cpp
 	${FT0CC_ROOT}/FrameEditorTypes.cpp
@@ -154,7 +153,7 @@ set(SRCS
 	${FT0CC_ROOT}/NoteQueue.cpp
 	${FT0CC_ROOT}/OldSequence.cpp
 #	${FT0CC_ROOT}/PatternAction.cpp
-#	${FT0CC_ROOT}/PatternClipData.cpp
+	${FT0CC_ROOT}/PatternClipData.cpp
 	${FT0CC_ROOT}/PatternCompiler.cpp
 #	${FT0CC_ROOT}/PatternComponent.cpp
 	${FT0CC_ROOT}/PatternData.cpp
