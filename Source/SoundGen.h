@@ -79,6 +79,7 @@ class CTrackerChannel;		// // //
 class CPlayerCursor;		// // //
 class CSoundDriver;		// // //
 class CSoundChipSet;		// // //
+class CSimpleFile;		// // //
 
 namespace ft0cc::doc {
 class dpcm_sample;
@@ -160,7 +161,7 @@ public:
 	int			 GetChannelVolume(stChannelID chan) const;		// // //
 
 	// Rendering
-	bool		 RenderToFile(LPCWSTR pFile, const std::shared_ptr<CWaveRenderer> &pRender);		// // //
+	bool		 RenderToFile(LPCWSTR pFile, std::shared_ptr<CWaveRenderer> pRender);		// // //
 	bool		 IsRendering() const;
 	bool		 IsBackgroundTask() const;
 
@@ -302,6 +303,7 @@ private:
 	std::unique_ptr<CArpeggiator> m_pArpeggiator;			// // //
 
 	std::shared_ptr<CWaveRenderer> m_pWaveRenderer;			// // //
+	std::shared_ptr<CSimpleFile> m_pRenderFile;				// // //
 	std::unique_ptr<CInstrumentRecorder> m_pInstRecorder;
 
 	std::map<stChannelID, bool> muted_;						// // //

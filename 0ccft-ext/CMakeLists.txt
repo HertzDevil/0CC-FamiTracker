@@ -215,11 +215,11 @@ set(SRCS
 #	${FT0CC_ROOT}/VisualizerStatic.cpp
 #	${FT0CC_ROOT}/VisualizerWnd.cpp
 #	${FT0CC_ROOT}/WaveEditor.cpp
-#	${FT0CC_ROOT}/WaveFile.cpp
 	${FT0CC_ROOT}/WaveformGenerator.cpp
 	${FT0CC_ROOT}/WavegenBuiltin.cpp
-#	${FT0CC_ROOT}/WaveRenderer.cpp
+	${FT0CC_ROOT}/WaveRenderer.cpp
 	${FT0CC_ROOT}/WaveRendererFactory.cpp
+	${FT0CC_ROOT}/WaveStream.cpp
 #	${FT0CC_ROOT}/WavProgressDlg.cpp
 )
 

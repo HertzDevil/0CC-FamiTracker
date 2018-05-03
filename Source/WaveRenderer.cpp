@@ -21,31 +21,24 @@
 */
 
 #include "WaveRenderer.h"
-#include "WaveFile.h"
 #include "NumConv.h"
 
 CWaveRenderer::~CWaveRenderer() {
-	CloseOutputFile();
+	CloseOutputStream();
 }
 
-void CWaveRenderer::SetOutputFile(std::unique_ptr<CWaveFile> pWave) {
-	m_pWaveFile = std::move(pWave);
+void CWaveRenderer::SetOutputStream(std::unique_ptr<COutputWaveStream> pWave) {
+	m_pWaveStream = std::move(pWave);
 }
 
-void CWaveRenderer::CloseOutputFile() {
-	if (m_pWaveFile) {
-		m_pWaveFile->CloseFile();
-		m_pWaveFile.reset();
-	}
-}
-
-void CWaveRenderer::FlushBuffer(array_view<char> Buf) const {
-	if (m_pWaveFile)
-		m_pWaveFile->WriteWave(Buf);
+void CWaveRenderer::CloseOutputStream() {
+	if (m_pWaveStream)
+		m_pWaveStream.reset();
 }
 
 void CWaveRenderer::Start() {
 	m_bStarted = true;
+	m_pWaveStream->WriteWAVHeader();
 }
 
 bool CWaveRenderer::ShouldStartPlayer() {

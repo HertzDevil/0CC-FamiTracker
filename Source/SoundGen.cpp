@@ -46,7 +46,6 @@ CSoundGen depends on CFamiTrackerView for:
 #include "VisualizerWnd.h"
 #include "MainFrm.h"
 #include "DirectSound.h"
-#include "WaveFile.h"		// // //
 #include "APU/APU.h"
 #include "APU/2A03.h"		// // //
 #include "APU/Mixer.h"		// // // CHIP_LEVEL_*
@@ -68,6 +67,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "Highlight.h"		// // //
 #include "Bookmark.h"		// // //
 #include "Instrument.h"
+#include "str_conv/str_conv.hpp"		// // //
 
 // // // Log VGM output (port from sn7t when necessary)
 //#define WRITE_VGM
@@ -524,8 +524,18 @@ bool CSoundGen::PlayBuffer()
 	if (m_pWaveRenderer) {		// // //
 		CSingleLock l(&m_csRenderer); l.Lock();
 		if (is_rendering_impl()) {
-			m_pWaveRenderer->FlushBuffer(m_pAudioDriver->ReleaseSoundBuffer());		// // //
-			return true;
+			auto buf = m_pAudioDriver->ReleaseSoundBuffer();
+			switch (m_pAudioDriver->GetSampleSize()) {
+			case 8:
+				m_pWaveRenderer->FlushBuffer(array_view<std::uint8_t>(
+					reinterpret_cast<const std::uint8_t *>(buf.data()), buf.size() / sizeof(std::uint8_t)));		// // //
+				return true;
+			case 16:
+				m_pWaveRenderer->FlushBuffer(array_view<std::int16_t>(
+					reinterpret_cast<const std::int16_t *>(buf.data()), buf.size() / sizeof(std::int16_t)));		// // //
+				return true;
+			}
+			return false;
 		}
 	}
 
@@ -850,7 +860,7 @@ int CSoundGen::GetChannelVolume(stChannelID chan) const {		// // //
 
 // File rendering functions
 
-bool CSoundGen::RenderToFile(LPCWSTR pFile, const std::shared_ptr<CWaveRenderer> &pRender)		// // //
+bool CSoundGen::RenderToFile(LPCWSTR pFile, std::shared_ptr<CWaveRenderer> pRender)		// // //
 {
 	// Called from main thread
 	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
@@ -866,11 +876,17 @@ bool CSoundGen::RenderToFile(LPCWSTR pFile, const std::shared_ptr<CWaveRenderer>
 	}
 
 	CSingleLock l(&m_csRenderer); l.Lock();
-	m_pWaveRenderer = pRender;		// // //
+	m_pWaveRenderer = std::move(pRender);		// // //
 
-	if (auto pWave = std::make_unique<CWaveFile>(); pWave &&		// // //
-		pWave->OpenFile(pFile, Env.GetSettings()->Sound.iSampleRate, Env.GetSettings()->Sound.iSampleSize, 1)) {
-		m_pWaveRenderer->SetOutputFile(std::move(pWave));
+	ASSERT(!m_pRenderFile);
+	m_pRenderFile = std::make_shared<CSimpleFile>(conv::to_utf8(pFile).c_str(), std::ios::out | std::ios::binary);		// // //
+	if (m_pRenderFile) {
+		m_pWaveRenderer->SetOutputStream(std::make_unique<COutputWaveStream>(m_pRenderFile, CWaveFileFormat {
+			CWaveFileFormat::format_code::pcm,
+			1,
+			static_cast<std::uint32_t>(Env.GetSettings()->Sound.iSampleRate),
+			static_cast<std::uint16_t>(Env.GetSettings()->Sound.iSampleSize),
+		}));
 		PostThreadMessageW(WM_USER_START_RENDER, 0, 0);
 		return true;
 	}
@@ -897,6 +913,7 @@ void CSoundGen::StopRendering()
 		return;
 
 	m_pWaveRenderer.reset();		// // //
+	m_pRenderFile.reset();		// // //
 	ResetBuffer();
 	HaltPlayer();		// // //
 	ResetAPU();		// // //

@@ -27,16 +27,20 @@
 #include <cstdint>
 #include <string>
 #include "array_view.h"
-
-class CWaveFile;
+#include "WaveStream.h"
 
 class CWaveRenderer {
 public:
 	virtual ~CWaveRenderer();
 
-	void SetOutputFile(std::unique_ptr<CWaveFile> pWave);
-	void CloseOutputFile();
-	void FlushBuffer(array_view<char> Buf) const;
+	void SetOutputStream(std::unique_ptr<COutputWaveStream> pWave);
+	void CloseOutputStream();
+
+	template <typename T>
+	void FlushBuffer(array_view<T> Buf) const {
+		if (m_pWaveStream)
+			m_pWaveStream->WriteSamples(Buf);
+	}
 
 	void Start();
 	virtual void Tick() { }
@@ -58,7 +62,7 @@ protected:
 	void FinishRender();
 
 private:
-	std::unique_ptr<CWaveFile> m_pWaveFile;
+	std::unique_ptr<COutputWaveStream> m_pWaveStream;
 	bool m_bStarted = false;
 	bool m_bFinished = false;
 

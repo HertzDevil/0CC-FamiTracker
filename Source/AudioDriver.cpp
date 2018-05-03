@@ -118,6 +118,10 @@ array_view<std::int16_t> CAudioDriver::ReleaseGraphBuffer() {
 	return {m_iGraphBuffer.get(), m_iBufSizeSamples};
 }
 
+unsigned CAudioDriver::GetSampleSize() const noexcept {		// // //
+	return m_iSampleSize;
+}
+
 void CAudioDriver::CloseAudioDevice() {
 	if (m_pDSoundChannel) {
 		m_pDSoundChannel->Stop();

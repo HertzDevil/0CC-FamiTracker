@@ -111,7 +111,7 @@ void CWavProgressDlg::OnTimer(UINT_PTR nIDEvent)
 	SetDlgItemTextW(IDC_TIME, AfxFormattedW(IDS_WAVE_PROGRESS_ELAPSED_FORMAT, FormattedW(L"%02i:%02i", Time / 60, Time % 60)));
 
 	if (!pSoundGen->IsRendering()) {
-		m_pWaveRenderer->CloseOutputFile();		// // //
+		m_pWaveRenderer->CloseOutputStream();		// // //
 		SetDlgItemTextW(IDC_CANCEL, CStringW(MAKEINTRESOURCE(IDS_WAVE_EXPORT_DONE)));
 		CStringW title;
 		GetWindowTextW(title);

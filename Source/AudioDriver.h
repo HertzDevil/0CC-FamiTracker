@@ -45,6 +45,8 @@ public:
 	array_view<char> ReleaseSoundBuffer();
 	array_view<std::int16_t> ReleaseGraphBuffer();
 
+	unsigned GetSampleSize() const noexcept;		// // //
+
 	void CloseAudioDevice();
 	bool IsAudioDeviceOpen() const;
 

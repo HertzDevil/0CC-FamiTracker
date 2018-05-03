@@ -525,9 +525,6 @@
     <ClCompile Include="Source\Settings.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="Source\WaveFile.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Source\DetuneDlg.cpp">
       <Filter>Source Files\Dialog Boxes</Filter>
     </ClCompile>
@@ -843,6 +840,9 @@
     <ClCompile Include="Source\PeriodTables.cpp">
       <Filter>Source Files\Document Data Types</Filter>
     </ClCompile>
+    <ClCompile Include="Source\WaveStream.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1116,9 +1116,6 @@
       <Filter>Header Files\Components Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\Settings.h">
-      <Filter>Header Files\Components Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\WaveFile.h">
       <Filter>Header Files\Components Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\GrooveDlg.h">
@@ -1582,6 +1579,9 @@
     </ClInclude>
     <ClInclude Include="Source\FamiTrackerDefines.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\WaveStream.h">
+      <Filter>Header Files\Components Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

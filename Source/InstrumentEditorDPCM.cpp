@@ -68,7 +68,7 @@ CDMCFileSoundDialog::CDMCFileSoundDialog(BOOL bOpenFileDialog, LPCWSTR lpszDefEx
 CDMCFileSoundDialog::~CDMCFileSoundDialog()
 {
 	// Stop any possible playing sound
-	//PlaySound(NULL, NULL, SND_NODEFAULT | SND_SYNC);
+	//PlaySoundW(NULL, NULL, SND_NODEFAULT | SND_SYNC);
 }
 
 void CDMCFileSoundDialog::OnFileNameChange()

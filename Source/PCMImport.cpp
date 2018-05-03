@@ -26,13 +26,13 @@
 #include "APU/Types.h"		// // //
 #include "Settings.h"
 #include "SoundGen.h"
-#include "WaveFile.h"		// // //
 #include "APU/DPCM.h"
 #include "FileDialogs.h"		// // //
 #include "resampler/resample.hpp"
 #include "resampler/resample.inl"
 #include <algorithm>		// // //
 #include "str_conv/str_conv.hpp"		// // //
+#include <MMSystem.h>		// // //
 
 const int CPCMImport::QUALITY_RANGE = 16;
 const int CPCMImport::VOLUME_RANGE = 12;		// +/- dB
@@ -156,7 +156,7 @@ CFileSoundDialog::CFileSoundDialog(BOOL bOpenFileDialog, LPCWSTR lpszDefExt, LPC
 CFileSoundDialog::~CFileSoundDialog()
 {
 	// Stop any possible playing sound
-	PlaySound(NULL, NULL, SND_NODEFAULT | SND_SYNC);
+	PlaySoundW(NULL, NULL, SND_NODEFAULT | SND_SYNC);
 }
 
 void CFileSoundDialog::OnFileNameChange()
@@ -164,7 +164,7 @@ void CFileSoundDialog::OnFileNameChange()
 	// Preview wave file
 
 	if (!GetFileExt().CompareNoCase(L"wav") && Env.GetSettings()->General.bWavePreview)
-		PlaySound(GetPathName(), NULL, SND_FILENAME | SND_NODEFAULT | SND_ASYNC | SND_NOWAIT);
+		PlaySoundW(GetPathName(), NULL, SND_FILENAME | SND_NODEFAULT | SND_ASYNC | SND_NOWAIT);
 
 	CFileDialog::OnFileNameChange();
 }
@@ -209,7 +209,7 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ShowDialog() {		// // //
 		return nullptr;
 
 	// Stop any preview
-	PlaySound(NULL, NULL, SND_NODEFAULT | SND_SYNC);
+	PlaySoundW(NULL, NULL, SND_NODEFAULT | SND_SYNC);
 
 	Env.GetSettings()->SetDirectory((LPCWSTR)OpenFileDialog.GetPathName(), PATH_WAV);
 
@@ -331,8 +331,12 @@ void CPCMImport::UpdateFileInfo()
 }
 
 std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::GetSample() {		// // //
-	if (!m_pCachedSample || m_iCachedQuality != m_iQuality || m_iCachedVolume != m_iVolume)
+	if (!m_pCachedSample || m_iCachedQuality != m_iQuality || m_iCachedVolume != m_iVolume) {
+		// // // Display wait cursor
+		CWaitCursor wait;
+
 		m_pCachedSample = ConvertFile();		// // //
+	}
 
 	m_iCachedQuality = m_iQuality;
 	m_iCachedVolume = m_iVolume;
@@ -349,9 +353,6 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ConvertFile() {		// // //
 	int AccReady = 8;
 
 	float volume = powf(10, float(m_iVolume) / 20.0f);		// Convert dB to linear
-
-	// Display wait cursor
-	CWaitCursor wait;
 
 	// Seek to start of samples
 	m_fSampleFile.Seek(m_ullSampleStart, CFile::begin);

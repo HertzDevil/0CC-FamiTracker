@@ -592,6 +592,7 @@
     <ClCompile Include="Source\WavegenBuiltin.cpp" />
     <ClCompile Include="Source\WaveRenderer.cpp" />
     <ClCompile Include="Source\WaveRendererFactory.cpp" />
+    <ClCompile Include="Source\WaveStream.cpp" />
     <ClCompile Include="Source\WavProgressDlg.cpp" />
     <ClCompile Include="Source\CommandLineExport.cpp" />
     <ClCompile Include="Source\Compiler.cpp" />
@@ -651,7 +652,6 @@
     <ClCompile Include="Source\Graphics.cpp" />
     <ClCompile Include="Source\InstrumentFileTree.cpp" />
     <ClCompile Include="Source\Settings.cpp" />
-    <ClCompile Include="Source\WaveFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\APU\APUInterface.h" />
@@ -801,6 +801,7 @@
     <ClInclude Include="Source\WavegenBuiltin.h" />
     <ClInclude Include="Source\WaveRenderer.h" />
     <ClInclude Include="Source\WaveRendererFactory.h" />
+    <ClInclude Include="Source\WaveStream.h" />
     <ClInclude Include="Source\WinSDK\VersionHelpers.h" />
     <ClInclude Include="Source\WinSDK\winapifamily.h" />
     <ClInclude Include="Source\version.h" />
@@ -899,7 +900,6 @@
     <ClInclude Include="Source\Graphics.h" />
     <ClInclude Include="Source\InstrumentFileTree.h" />
     <ClInclude Include="Source\Settings.h" />
-    <ClInclude Include="Source\WaveFile.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="0CC-FamiTracker.rc">
