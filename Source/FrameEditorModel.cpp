@@ -135,24 +135,24 @@ bool CFrameEditorModel::IsChannelSelected(int channel) const {
 	return IsSelecting() && m_selection.IncludesChannel(channel);
 }
 
-std::unique_ptr<CFrameClipData> CFrameEditorModel::CopySelection(const CFrameSelection &sel) const {
+CFrameClipData CFrameEditorModel::CopySelection(const CFrameSelection &sel) const {
 	auto [b, e] = CFrameIterator::FromSelection(sel, *view_->GetSongView());
 
-	auto pData = std::make_unique<CFrameClipData>(sel.GetSelectedChanCount(), sel.GetSelectedFrameCount());
-	pData->ClipInfo.FirstChannel = b.m_iChannel;		// // //
-	pData->ClipInfo.OleInfo.SourceRowStart = b.m_iFrame;
-	pData->ClipInfo.OleInfo.SourceRowEnd = e.m_iFrame - 1;
+	CFrameClipData Data {sel.GetSelectedChanCount(), sel.GetSelectedFrameCount()};
+	Data.ClipInfo.FirstChannel = b.m_iChannel;		// // //
+	Data.ClipInfo.OleInfo.SourceRowStart = b.m_iFrame;
+	Data.ClipInfo.OleInfo.SourceRowEnd = e.m_iFrame - 1;
 
 	int f = 0;
 	for (; b != e; ++f) {
 		for (int c = b.m_iChannel; c < e.m_iChannel; ++c)
-			pData->SetFrame(f, c - b.m_iChannel, b.Get(c));
+			Data.SetFrame(f, c - b.m_iChannel, b.Get(c));
 		++b;
 		if (b.m_iFrame == 0)
 			break;
 	}
 
-	return pData;
+	return Data;
 }
 
 void CFrameEditorModel::PasteSelection(const CFrameClipData &clipdata, const CFrameCursorPos &pos) {

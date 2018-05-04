@@ -59,7 +59,7 @@ public:
 	bool IsFrameSelected(int frame) const;
 	bool IsChannelSelected(int channel) const;
 
-	std::unique_ptr<CFrameClipData> CopySelection(const CFrameSelection &sel) const;
+	CFrameClipData CopySelection(const CFrameSelection &sel) const;
 	void PasteSelection(const CFrameClipData &clipdata, const CFrameCursorPos &pos);
 
 private:

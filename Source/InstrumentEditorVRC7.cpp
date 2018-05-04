@@ -28,6 +28,8 @@
 #include "sv_regex.h"		// // //
 #include "FamiTrackerDoc.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
+#include "NumConv.h"		// // //
+#include "StringClipData.h"		// // //
 
 namespace {
 
@@ -426,19 +428,14 @@ void CInstrumentEditorVRC7::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 
 void CInstrumentEditorVRC7::OnCopy()
 {
-	CStringW MML;
+	std::string MML;
 
 	int patch = m_pInstrument->GetPatch();
 	// Assemble a MML string
 	for (int i = 0; i < 8; ++i)
-		AppendFormatW(MML, L"$%02X ", (patch == 0) ? (unsigned char)(m_pInstrument->GetCustomReg(i)) : default_inst[patch * 16 + i]);
+		MML += conv::from_int_hex(!patch ? m_pInstrument->GetCustomReg(i) : default_inst[patch * 16 + i], 2) + ' ';
 
-	if (CClipboard Clipboard(this, CF_UNICODETEXT); Clipboard.IsOpened()) {
-		if (!Clipboard.SetString(MML))
-			AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
-	}
-	else
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
+	(void)CClipboard::CopyToClipboard(this, CF_UNICODETEXT, CStringClipData<wchar_t> {conv::to_wide(MML)});
 }
 
 void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
@@ -460,29 +457,13 @@ void CInstrumentEditorVRC7::CopyAsPlainText()		// // //
 			(reg[i] >> 7) & 0x01, (reg[i] >> 6) & 0x01, (reg[i] >> 5) & 0x01, (reg[i] >> 4) & 0x01,
 			(reg[3] >> (4 - i)) & 0x01);
 
-	if (CClipboard Clipboard(this, CF_UNICODETEXT); Clipboard.IsOpened()) {
-		if (!Clipboard.SetString(MML))
-			AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
-	}
-	else
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
+	(void)CClipboard::CopyToClipboard(this, CF_UNICODETEXT, CStringClipData<wchar_t> {conv::to_sv(MML)});
 }
 
 void CInstrumentEditorVRC7::OnPaste()
 {
-	// Copy from clipboard
-	CClipboard Clipboard(this, CF_UNICODETEXT);
-
-	if (!Clipboard.IsOpened()) {
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return;
-	}
-
-	if (Clipboard.IsDataAvailable()) {
-		LPCWSTR text = (LPCWSTR)Clipboard.GetDataPointer();
-		if (text != NULL)
-			ParsePatch(conv::to_utf8(text));
-	}
+	if (auto str = CClipboard::RestoreFromClipboard<CStringClipData<wchar_t>>(this, CF_UNICODETEXT))		// // //
+		ParsePatch(conv::to_utf8((*std::move(str)).GetStringData()));
 }
 
 void CInstrumentEditorVRC7::ParsePatch(std::string_view sv)

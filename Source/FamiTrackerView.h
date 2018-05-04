@@ -265,7 +265,6 @@ private:
 	// Other
 	bool	AddAction(std::unique_ptr<CAction> pAction) const;		// // //
 	CStringW	GetEffectHint(const stChanNote &Note, int Column) const;		// // //
-	void	ClipboardCopyString(const CStringW &str);		// // //
 
 	// // //
 	// Keyboard
@@ -293,7 +292,7 @@ public:
 private:
 	// General
 	bool				m_bHasFocus;
-	UINT				m_iClipboard;
+	CLIPFORMAT			m_iClipboard;							// // //
 	stChannelID			m_iMenuChannel;							// // // Which channel a popup-menu belongs to
 
 	// Cursor & editing

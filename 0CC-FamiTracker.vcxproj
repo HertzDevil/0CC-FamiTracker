@@ -681,6 +681,7 @@
     <ClInclude Include="Source\ChipHandlerVRC7.h" />
     <ClInclude Include="Source\Color.h" />
     <ClInclude Include="Source\Effect.h" />
+    <ClInclude Include="Source\StringClipData.h" />
     <ClInclude Include="Source\StrongOrdering.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />
     <ClInclude Include="Source\FamiTrackerDocIOCommon.h" />

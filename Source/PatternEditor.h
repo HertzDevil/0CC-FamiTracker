@@ -143,10 +143,10 @@ public:
 	int GetChannelAtPoint(int PointX) const;
 
 	// Edit: Copy & paste, selection
-	std::unique_ptr<CPatternClipData> CopyEntire() const;
-	std::unique_ptr<CPatternClipData> Copy() const;
-	std::unique_ptr<CPatternClipData> CopyRaw() const;		// // //
-	std::unique_ptr<CPatternClipData> CopyRaw(const CSelection &Sel) const;		// // //
+	CPatternClipData CopyEntire() const;
+	CPatternClipData Copy() const;
+	CPatternClipData CopyRaw() const;		// // //
+	CPatternClipData CopyRaw(const CSelection &Sel) const;		// // //
 	void PasteEntire(const CPatternClipData &ClipData);
 	void Paste(const CPatternClipData &ClipData, paste_mode_t PasteMode, paste_pos_t PastePos);		// // //
 	void PasteRaw(const CPatternClipData &ClipData);		// // //
@@ -195,7 +195,7 @@ public:
 	// OLE support
 	void BeginDrag(const CPatternClipData &ClipData);
 	void EndDrag();
-	bool PerformDrop(std::unique_ptr<CPatternClipData> pClipData, bool bCopy, bool bCopyMix);		// // //
+	bool PerformDrop(CPatternClipData pClipData, bool bCopy, bool bCopyMix);		// // //
 	void UpdateDrag(const CPoint &point);
 
 #ifdef _DEBUG

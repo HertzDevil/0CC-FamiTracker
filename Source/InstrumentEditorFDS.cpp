@@ -34,6 +34,8 @@
 #include <algorithm>		// // //
 #include "sv_regex.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
+#include "NumConv.h"		// // //
+#include "StringClipData.h"		// // //
 #include "FamiTrackerDoc.h"		// // //
 
 // CInstrumentEditorFDS dialog
@@ -290,33 +292,17 @@ void CInstrumentEditorFDS::OnModDelayChange()
 void CInstrumentEditorFDS::OnBnClickedCopyWave()
 {
 	// Assemble a MML string
-	CStringW Str;
+	std::string Str;		// // //
 	for (auto x : m_pInstrument->GetSamples())		// // //
-		AppendFormatW(Str, L"%i ", x);
+		Str += conv::from_uint(x) + ' ';
 
-	if (CClipboard Clipboard(this, CF_UNICODETEXT); Clipboard.IsOpened()) {
-		if (!Clipboard.SetString(Str))
-			AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
-	}
-	else
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
+	(void)CClipboard::CopyToClipboard(this, CF_UNICODETEXT, CStringClipData<wchar_t> {conv::to_wide(Str)});
 }
 
 void CInstrumentEditorFDS::OnBnClickedPasteWave()
 {
-	// Paste from clipboard
-	CClipboard Clipboard(this, CF_UNICODETEXT);
-
-	if (!Clipboard.IsOpened()) {
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return;
-	}
-
-	if (Clipboard.IsDataAvailable()) {
-		LPCWSTR text = (LPCWSTR)Clipboard.GetDataPointer();
-		if (text != NULL)
-			ParseWaveString(conv::to_utf8(text));
-	}
+	if (auto str = CClipboard::RestoreFromClipboard<CStringClipData<wchar_t>>(this, CF_UNICODETEXT))		// // //
+		ParseWaveString(conv::to_utf8((*std::move(str)).GetStringData()));
 }
 
 void CInstrumentEditorFDS::ParseWaveString(std::string_view sv)
@@ -337,33 +323,17 @@ void CInstrumentEditorFDS::ParseWaveString(std::string_view sv)
 void CInstrumentEditorFDS::OnBnClickedCopyTable()
 {
 	// Assemble a MML string
-	CStringW Str;
+	std::string Str;
 	for (auto x : m_pInstrument->GetModTable())		// // //
-		AppendFormatW(Str, L"%i ", x);
+		Str += conv::from_uint(x) + ' ';
 
-	if (CClipboard Clipboard(this, CF_UNICODETEXT); Clipboard.IsOpened()) {
-		if (!Clipboard.SetString(Str))
-			AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
-	}
-	else
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
+	(void)CClipboard::CopyToClipboard(this, CF_UNICODETEXT, CStringClipData<wchar_t> {conv::to_wide(Str)});
 }
 
 void CInstrumentEditorFDS::OnBnClickedPasteTable()
 {
-	// Paste from clipboard
-	CClipboard Clipboard(this, CF_UNICODETEXT);
-
-	if (!Clipboard.IsOpened()) {
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return;
-	}
-
-	if (Clipboard.IsDataAvailable()) {
-		LPCWSTR text = (LPCWSTR)Clipboard.GetDataPointer();
-		if (text != NULL)
-			ParseTableString(conv::to_utf8(text));
-	}
+	if (auto str = CClipboard::RestoreFromClipboard<CStringClipData<wchar_t>>(this, CF_UNICODETEXT))		// // //
+		ParseTableString(conv::to_utf8((*std::move(str)).GetStringData()));
 }
 
 void CInstrumentEditorFDS::ParseTableString(std::string_view sv)

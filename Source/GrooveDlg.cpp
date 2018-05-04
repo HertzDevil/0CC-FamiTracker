@@ -319,12 +319,6 @@ void CGrooveDlg::OnBnClickedButtonGrooveCopyFxx()
 		return;
 	}
 
-	CClipboard Clipboard(CFamiTrackerView::GetView(), ::RegisterClipboardFormatW(CFamiTrackerView::CLIPBOARD_ID));
-	if (!Clipboard.IsOpened()) {
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return;
-	}
-
 	CPatternClipData Fxx(1, size);
 	Fxx.ClipInfo.StartColumn = column_t::Effect1;
 	Fxx.ClipInfo.EndColumn   = column_t::Effect1;
@@ -339,7 +333,7 @@ void CGrooveDlg::OnBnClickedButtonGrooveCopyFxx()
 		prev = x;
 	}
 
-	Clipboard.TryCopy(Fxx);		// // //
+	(void)CClipboard::CopyToClipboard(CFamiTrackerView::GetView(), ::RegisterClipboardFormatW(CFamiTrackerView::CLIPBOARD_ID), Fxx);
 }
 
 void CGrooveDlg::ParseGrooveField()

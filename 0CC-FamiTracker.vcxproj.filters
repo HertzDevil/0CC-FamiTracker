@@ -1580,6 +1580,9 @@
     <ClInclude Include="Source\BinarySerializable.h">
       <Filter>Header Files\Components Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Source\StringClipData.h">
+      <Filter>Header Files\Components Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="0CC-FamiTracker.rc">

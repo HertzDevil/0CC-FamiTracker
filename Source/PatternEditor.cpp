@@ -2823,41 +2823,41 @@ CCursorPos CPatternEditor::GetCursor() const		// // //
 
 // Copy and paste ///////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<CPatternClipData> CPatternEditor::CopyEntire() const
+CPatternClipData CPatternEditor::CopyEntire() const
 {
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	const int ChannelCount = pSongView->GetChannelOrder().GetChannelCount();
 	const int Rows = pSongView->GetSong().GetPatternLength();
 	const int Frame = m_cpCursorPos.m_iFrame;		// // //
 
-	auto pClipData = std::make_unique<CPatternClipData>(ChannelCount, Rows);
+	auto ClipData = CPatternClipData {ChannelCount, Rows};
 
-	pClipData->ClipInfo.Channels = ChannelCount;
-	pClipData->ClipInfo.Rows = Rows;
+	ClipData.ClipInfo.Channels = ChannelCount;
+	ClipData.ClipInfo.Rows = Rows;
 
 	for (int i = 0; i < ChannelCount; ++i)
 		for (int j = 0; j < Rows; ++j)
-			*pClipData->GetPattern(i, j) = pSongView->GetPatternOnFrame(i, Frame).GetNoteOn(j);		// // //
+			*ClipData.GetPattern(i, j) = pSongView->GetPatternOnFrame(i, Frame).GetNoteOn(j);		// // //
 
-	return pClipData;
+	return ClipData;
 }
 
-std::unique_ptr<CPatternClipData> CPatternEditor::Copy() const
+CPatternClipData CPatternEditor::Copy() const
 {
 	// Copy selection
 	CPatternIterator it = GetIterators().first;		// // //
 	const int Channels	= m_selection.GetChanEnd() - m_selection.GetChanStart() + 1;
 	const int Rows		= GetSelectionSize();		// // //
 
-	auto pClipData = std::make_unique<CPatternClipData>(Channels, Rows);
-	pClipData->ClipInfo.Channels	= Channels;		// // //
-	pClipData->ClipInfo.Rows		= Rows;
-	pClipData->ClipInfo.StartColumn	= GetSelectColumn(m_selection.GetColStart());		// // //
-	pClipData->ClipInfo.EndColumn	= GetSelectColumn(m_selection.GetColEnd());		// // //
+	auto ClipData = CPatternClipData {Channels, Rows};
+	ClipData.ClipInfo.Channels	= Channels;		// // //
+	ClipData.ClipInfo.Rows		= Rows;
+	ClipData.ClipInfo.StartColumn	= GetSelectColumn(m_selection.GetColStart());		// // //
+	ClipData.ClipInfo.EndColumn	= GetSelectColumn(m_selection.GetColEnd());		// // //
 
 	for (int r = 0; r < Rows; ++r) {		// // //
 		for (int i = 0; i < Channels; ++i) {
-			stChanNote *Target = pClipData->GetPattern(i, r);
+			stChanNote *Target = ClipData.GetPattern(i, r);
 			/*CopyNoteSection(*Target, NoteData, paste_mode_t::DEFAULT,
 				i == 0 ? ColStart : column_t::Note, i == Channels - 1 ? ColEnd : column_t::Effect4);*/
 			*Target = it.Get(i + m_selection.GetChanStart());
@@ -2867,15 +2867,15 @@ std::unique_ptr<CPatternClipData> CPatternEditor::Copy() const
 		++it;
 	}
 
-	return pClipData;
+	return ClipData;
 }
 
-std::unique_ptr<CPatternClipData> CPatternEditor::CopyRaw() const		// // //
+CPatternClipData CPatternEditor::CopyRaw() const		// // //
 {
 	return CopyRaw(m_selection);
 }
 
-std::unique_ptr<CPatternClipData> CPatternEditor::CopyRaw(const CSelection &Sel) const		// // //
+CPatternClipData CPatternEditor::CopyRaw(const CSelection &Sel) const		// // //
 {
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	CCursorPos c_it, c_end;
@@ -2890,20 +2890,20 @@ std::unique_ptr<CPatternClipData> CPatternEditor::CopyRaw(const CSelection &Sel)
 	const int cBegin	= it.m_iChannel;
 	const int Channels	= end.m_iChannel - cBegin + 1;
 
-	auto pClipData = std::make_unique<CPatternClipData>(Channels, Rows);
-	pClipData->ClipInfo.Channels	= Channels;
-	pClipData->ClipInfo.Rows		= Rows;
-	pClipData->ClipInfo.StartColumn	= GetSelectColumn(it.m_iColumn);
-	pClipData->ClipInfo.EndColumn	= GetSelectColumn(end.m_iColumn);
+	auto ClipData = CPatternClipData {Channels, Rows};
+	ClipData.ClipInfo.Channels	= Channels;
+	ClipData.ClipInfo.Rows		= Rows;
+	ClipData.ClipInfo.StartColumn	= GetSelectColumn(it.m_iColumn);
+	ClipData.ClipInfo.EndColumn	= GetSelectColumn(end.m_iColumn);
 
 	const int PackedPos = (it.m_iFrame + Frames) * Length + it.m_iRow;
 	for (int i = 0; i < Channels; ++i)
 		for (int r = 0; r < Rows; ++r) {
 			auto pos = std::div(PackedPos + r, Length);
-			*pClipData->GetPattern(i, r) = pSongView->GetPatternOnFrame(i + cBegin, pos.quot % Frames).GetNoteOn(pos.rem);
+			*ClipData.GetPattern(i, r) = pSongView->GetPatternOnFrame(i + cBegin, pos.quot % Frames).GetNoteOn(pos.rem);
 		}
 
-	return pClipData;
+	return ClipData;
 }
 
 void CPatternEditor::PasteEntire(const CPatternClipData &ClipData)
@@ -3679,7 +3679,7 @@ void CPatternEditor::EndDrag()
 	m_bDragging = false;
 }
 
-bool CPatternEditor::PerformDrop(std::unique_ptr<CPatternClipData> pClipData, bool bCopy, bool bCopyMix)		// // //
+bool CPatternEditor::PerformDrop(CPatternClipData ClipData, bool bCopy, bool bCopyMix)		// // //
 {
 	// Drop selection onto pattern, returns true if drop was successful
 
@@ -3705,18 +3705,18 @@ bool CPatternEditor::PerformDrop(std::unique_ptr<CPatternClipData> pClipData, bo
 		int ChannelOffset = (m_selDrag.m_cpStart.m_iChannel < 0) ? -m_selDrag.m_cpStart.m_iChannel : 0;
 		int RowOffset = (m_selDrag.m_cpStart.m_iRow < 0) ? -m_selDrag.m_cpStart.m_iRow : 0;
 
-		int NewChannels = pClipData->ClipInfo.Channels - ChannelOffset;
-		int NewRows = pClipData->ClipInfo.Rows - RowOffset;
+		int NewChannels = ClipData.ClipInfo.Channels - ChannelOffset;
+		int NewRows = ClipData.ClipInfo.Rows - RowOffset;
 
-		auto pClipped = std::make_unique<CPatternClipData>(NewChannels, NewRows);		// // //
+		auto Clipped = CPatternClipData {NewChannels, NewRows};		// // //
 
-		pClipped->ClipInfo = pClipData->ClipInfo;
-		pClipped->ClipInfo.Channels = NewChannels;
-		pClipped->ClipInfo.Rows = NewRows;
+		Clipped.ClipInfo = ClipData.ClipInfo;
+		Clipped.ClipInfo.Channels = NewChannels;
+		Clipped.ClipInfo.Rows = NewRows;
 
 		for (int c = 0; c < NewChannels; ++c)
 			for (int r = 0; r < NewRows; ++r)
-				*pClipped->GetPattern(c, r) = *pClipData->GetPattern(c + ChannelOffset, r + RowOffset);
+				*Clipped.GetPattern(c, r) = *ClipData.GetPattern(c + ChannelOffset, r + RowOffset);
 
 		if (m_selDrag.m_cpStart.m_iChannel < 0) {
 			m_selDrag.m_cpStart.m_iChannel = 0;
@@ -3725,7 +3725,7 @@ bool CPatternEditor::PerformDrop(std::unique_ptr<CPatternClipData> pClipData, bo
 
 		m_selDrag.m_cpStart.m_iRow = std::max(m_selDrag.m_cpStart.m_iRow, 0);
 
-		pClipData = std::move(pClipped);		// // //
+		ClipData = std::move(Clipped);		// // //
 	}
 
 	if (m_selDrag.m_cpEnd.m_iChannel > Channels - 1) {
@@ -3743,7 +3743,7 @@ bool CPatternEditor::PerformDrop(std::unique_ptr<CPatternClipData> pClipData, bo
 
 	m_bSelecting = true;
 
-	GetMainFrame()->AddAction(std::make_unique<CPActionDragDrop>(std::move(pClipData), bDelete, bMix, m_selDrag));		// // //
+	GetMainFrame()->AddAction(std::make_unique<CPActionDragDrop>(std::move(ClipData), bDelete, bMix, m_selDrag));		// // //
 
 	return true;
 }

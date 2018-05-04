@@ -93,9 +93,9 @@ public:
 	void MoveSelection(const CFrameSelection &Sel, const CFrameCursorPos &Target);		// // //
 
 	// Commands
-	std::unique_ptr<CFrameClipData> CopySelection(const CFrameSelection &Sel) const;		// // //
-	std::unique_ptr<CFrameClipData> CopyFrame(unsigned frame) const;		// // //
-	std::unique_ptr<CFrameClipData> CopyEntire() const;		// // //
+	CFrameClipData CopySelection(const CFrameSelection &Sel) const;		// // //
+	CFrameClipData CopyFrame(unsigned frame) const;		// // //
+	CFrameClipData CopyEntire() const;		// // //
 
 	void PasteAt(const CFrameClipData &ClipData, const CFrameCursorPos &Pos);		// // //
 	void PasteInsert(int Frame, const CFrameClipData &ClipData);		// // //
@@ -126,8 +126,6 @@ private:
 
 	std::pair<CFrameIterator, CFrameIterator> GetIterators() const;		// // //
 
-	std::unique_ptr<CFrameClipData> RestoreFrameClipData();		// // //
-
 	void AutoScroll(const CPoint &point);
 
 public:
@@ -153,7 +151,7 @@ private:
 	CBitmap m_bmpBack;
 	CDC		m_dcBack;
 
-	UINT	m_iClipboard;
+	CLIPFORMAT	m_iClipboard;		// // //
 
 	// Window size
 	int		m_iWinWidth;

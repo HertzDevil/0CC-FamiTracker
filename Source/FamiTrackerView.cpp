@@ -49,6 +49,7 @@
 #include "NoteQueue.h"
 #include "Arpeggiator.h"
 #include "PatternClipData.h"
+#include "StringClipData.h"
 #include "ModuleAction.h"
 #include "InstrumentRecorder.h"
 #include "InstrumentManager.h"
@@ -861,16 +862,7 @@ void CFamiTrackerView::OnEditCopy()
 		return;
 	}
 
-	std::unique_ptr<CPatternClipData> pClipData(m_pPatternEditor->Copy());		// // //
-
-	CClipboard Clipboard(this, m_iClipboard);
-
-	if (!Clipboard.IsOpened()) {
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return;
-	}
-
-	Clipboard.TryCopy(*pClipData);		// // //
+	CClipboard::CopyToClipboard(this, m_iClipboard, m_pPatternEditor->Copy());		// // //
 }
 
 void CFamiTrackerView::OnEditCut()
@@ -905,9 +897,8 @@ void CFamiTrackerView::OnEditPasteInsert()		// // //
 }
 
 void CFamiTrackerView::DoPaste(paste_mode_t Mode) {		// // //
-	auto pClipData = std::make_unique<CPatternClipData>();
-	if (CClipboard {this, m_iClipboard}.TryRestore(*pClipData))		// // //
-		AddAction(std::make_unique<CPActionPaste>(std::move(pClipData), Mode, m_iPastePos));		// // //
+	if (auto ClipData = CClipboard::RestoreFromClipboard<CPatternClipData>(this, m_iClipboard))		// // //
+		AddAction(std::make_unique<CPActionPaste>(*std::move(ClipData), Mode, m_iPastePos));
 }
 
 void CFamiTrackerView::OnEditDelete()
@@ -1075,28 +1066,21 @@ void CFamiTrackerView::OnTrackerPlayrow()
 
 void CFamiTrackerView::OnEditCopyAsVolumeSequence()		// // //
 {
-	ClipboardCopyString(m_pPatternEditor->GetVolumeColumn());
+	auto str = m_pPatternEditor->GetVolumeColumn();
+	(void)CClipboard::CopyToClipboard(this, CF_UNICODETEXT, CStringClipData<wchar_t> {std::wstring {conv::to_sv(str)}});
 }
 
 void CFamiTrackerView::OnEditCopyAsText()		// // //
 {
-	ClipboardCopyString(m_pPatternEditor->GetSelectionAsText());
+	auto str = m_pPatternEditor->GetSelectionAsText();
+	(void)CClipboard::CopyToClipboard(this, CF_UNICODETEXT, CStringClipData<wchar_t> {std::wstring {conv::to_sv(str)}});
 }
 
 void CFamiTrackerView::OnEditCopyAsPPMCK()		// // //
 {
-	ClipboardCopyString(m_pPatternEditor->GetSelectionAsPPMCK());
+	auto str = m_pPatternEditor->GetSelectionAsPPMCK();
+	(void)CClipboard::CopyToClipboard(this, CF_UNICODETEXT, CStringClipData<wchar_t> {std::wstring {conv::to_sv(str)}});
 }
-
-void CFamiTrackerView::ClipboardCopyString(const CStringW &str) {		// // //
-	if (CClipboard Clipboard(this, CF_UNICODETEXT); Clipboard.IsOpened()) {
-		if (!Clipboard.SetString(str))
-			AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
-	}
-	else
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // UI updates
@@ -3420,9 +3404,9 @@ BOOL CFamiTrackerView::OnDrop(COleDataObject* pDataObject, DROPEFFECT dropEffect
 		m_pPatternEditor->UpdateDrag(point);
 
 		// Get clipboard data
-		auto pClipData = std::make_unique<CPatternClipData>();		// // //
-		if (CClipboard::ReadGlobalMemory(*pClipData, pDataObject->GetGlobalData(m_iClipboard))) {
-			m_pPatternEditor->PerformDrop(std::move(pClipData), bCopy, m_bDropMix);		// // // ???
+		CPatternClipData ClipData;		// // //
+		if (CClipboard::ReadGlobalMemory(ClipData, pDataObject->GetGlobalData(m_iClipboard))) {
+			m_pPatternEditor->PerformDrop(std::move(ClipData), bCopy, m_bDropMix);		// // // ???
 			m_bDropped = true;
 		}
 
@@ -3440,15 +3424,15 @@ void CFamiTrackerView::BeginDragData(int ChanOffset, int RowOffset)
 {
 	TRACE(L"OLE: BeginDragData\n");
 
-	std::unique_ptr<CPatternClipData> pClipData(m_pPatternEditor->Copy());
+	CPatternClipData ClipData = m_pPatternEditor->Copy();		// // //
 
-	pClipData->ClipInfo.OleInfo.ChanOffset = ChanOffset;
-	pClipData->ClipInfo.OleInfo.RowOffset = RowOffset;
+	ClipData.ClipInfo.OleInfo.ChanOffset = ChanOffset;
+	ClipData.ClipInfo.OleInfo.RowOffset = RowOffset;
 
 	m_bDragSource = true;
 	m_bDropped = false;
 
-	DROPEFFECT res = CClipboard::DragDropTransfer(*pClipData, m_iClipboard, DROPEFFECT_COPY | DROPEFFECT_MOVE);		// // // calls DropData
+	DROPEFFECT res = CClipboard::DragDropTransfer(ClipData, m_iClipboard, DROPEFFECT_COPY | DROPEFFECT_MOVE);		// // // calls DropData
 
 	if (!m_bDropped) { // Target was another window
 		if (res & DROPEFFECT_MOVE)

@@ -35,6 +35,7 @@
 #include "sv_regex.h"		// // //
 #include <array>		// // //
 #include "str_conv/str_conv.hpp"		// // //
+#include "StringClipData.h"		// // //
 
 // CInstrumentEditorN163Wave dialog
 
@@ -215,33 +216,17 @@ void CInstrumentEditorN163Wave::OnPresetSawtooth()
 void CInstrumentEditorN163Wave::OnBnClickedCopy()
 {
 	// Assemble a MML string
-	CStringW Str;
+	std::string Str;
 	for (auto x : m_pInstrument->GetSamples(m_iWaveIndex))		// // //
-		AppendFormatW(Str, L"%i ", x);
+		Str += conv::from_int(x) + ' ';
 
-	if (CClipboard Clipboard(this, CF_UNICODETEXT); Clipboard.IsOpened()) {
-		if (!Clipboard.SetString(Str))
-			AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
-	}
-	else
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
+	(void)CClipboard::CopyToClipboard(this, CF_UNICODETEXT, CStringClipData<wchar_t> {conv::to_wide(Str)});
 }
 
 void CInstrumentEditorN163Wave::OnBnClickedPaste()
 {
-	// Copy from clipboard
-	CClipboard Clipboard(this, CF_UNICODETEXT);
-
-	if (!Clipboard.IsOpened()) {
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return;
-	}
-
-	if (Clipboard.IsDataAvailable()) {
-		LPWSTR text = (LPWSTR)Clipboard.GetDataPointer();
-		if (text != NULL)
-			ParseString(conv::to_utf8(text));
-	}
+	if (auto str = CClipboard::RestoreFromClipboard<CStringClipData<wchar_t>>(this, CF_UNICODETEXT))		// // //
+		ParseString(conv::to_utf8((*std::move(str)).GetStringData()));
 }
 
 void CInstrumentEditorN163Wave::ParseString(std::string_view sv)

@@ -21,128 +21,84 @@
 */
 
 #include "Clipboard.h"
-#include "../resource.h"		// // //
 #include "BinarySerializable.h"		// // //
-#include <memory>		// // //
 
-// CClipboard //////////////////////////////////////////////////////////////////
-
-CClipboard::CClipboard(CWnd *pWnd, UINT Clipboard) : m_bOpened(pWnd->OpenClipboard() == TRUE), m_iClipboard(Clipboard), m_hMemory(NULL)
+CClipboard::CClipboardHandle::CClipboardHandle(CWnd *parent) :
+	suc_(parent->OpenClipboard())
 {
 }
 
-CClipboard::~CClipboard()
-{
-	if (m_hMemory != NULL)
-		::GlobalUnlock(m_hMemory);
-
-	if (m_bOpened)
+CClipboard::CClipboardHandle::~CClipboardHandle() {
+	if (static_cast<bool>(*this))
 		::CloseClipboard();
 }
 
-bool CClipboard::IsOpened() const
+CClipboard::CClipboardHandle::operator bool() const noexcept {
+	return suc_ == TRUE;
+}
+
+
+
+CClipboard::CMemoryLock::CMemoryLock(HGLOBAL hMem) :
+	hmem_(hMem), data_(reinterpret_cast<std::byte *>(::GlobalLock(hMem)))
 {
-	return m_bOpened;
 }
 
-bool CClipboard::SetString(const CStringW &str) const {		// // //
-	return SetDataPointer(array_view<WCHAR>(str, str.GetLength() + 1).as_bytes());
+CClipboard::CMemoryLock::~CMemoryLock() {
+	if (data_)
+		::GlobalUnlock(hmem_);
 }
 
-void CClipboard::SetData(HGLOBAL hMemory) const
-{
-	ASSERT(m_bOpened);
-
-	::EmptyClipboard();
-	::SetClipboardData(m_iClipboard, hMemory);
+CClipboard::CMemoryLock::operator bool() const noexcept {
+	return data_ != nullptr;
 }
 
-bool CClipboard::SetDataPointer(array_view<unsigned char> Data) const		// // //
-{
-	ASSERT(m_bOpened);
-
-	if (HGLOBAL hMemory = ::GlobalAlloc(GMEM_MOVEABLE, Data.size())) {
-		if (LPVOID pClipData = ::GlobalLock(hMemory)) {
-			Data.copy(reinterpret_cast<unsigned char *>(pClipData), Data.size());
-			SetData(hMemory);
-			::GlobalUnlock(hMemory);
-			return true;
-		}
-	}
-	return false;
+std::byte *CClipboard::CMemoryLock::data() const noexcept {
+	return data_;
 }
 
-bool CClipboard::GetData(HGLOBAL &hMemory) const		// // //
-{
-	ASSERT(m_bOpened);
-	if (!IsOpened()) {
-		AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
-		return false;
-	}
-	if (!IsDataAvailable()) {
-		AfxMessageBox(IDS_CLIPBOARD_NOT_AVALIABLE);
-		::CloseClipboard();
-		return false;
-	}
-	hMemory = ::GetClipboardData(m_iClipboard);
-	if (hMemory == nullptr) {
-		AfxMessageBox(IDS_CLIPBOARD_PASTE_ERROR);
-		return false;
-	}
-	return true;
+std::size_t CClipboard::CMemoryLock::size() const {
+	return hmem_ && data_ ? ::GlobalSize(hmem_) : 0u;
 }
 
-LPVOID CClipboard::GetDataPointer()
-{
-	if (!GetData(m_hMemory))		// // //
-		return NULL;
 
-	return ::GlobalLock(m_hMemory);
-}
 
-bool CClipboard::IsDataAvailable() const
-{
-	return ::IsClipboardFormatAvailable(m_iClipboard) == TRUE;
-}
+namespace {
 
-bool CClipboard::TryCopy(const CBinarySerializableInterface &res) {		// // //
-	if (auto hMem = AllocateGlobalMemory(res)) {
-		if (WriteGlobalMemory(res, hMem)) {
-			SetData(hMem);
-			return true;
-		}
-	}
-	return false;
-}
-
-bool CClipboard::TryRestore(CBinarySerializableInterface &res) const {		// // //
-	if (HGLOBAL hMem; GetData(hMem))		// // //
-		return ReadGlobalMemory(res, hMem);
-	return false;
-}
-
-HGLOBAL CClipboard::AllocateGlobalMemory(const CBinarySerializableInterface &ser) {
+HGLOBAL AllocateGlobalMemory(const CBinarySerializableInterface &ser) {
 	return ::GlobalAlloc(GMEM_MOVEABLE, ser.GetAllocSize());
 }
 
-bool CClipboard::WriteGlobalMemory(const CBinarySerializableInterface &ser, HGLOBAL hMem) {
+bool WriteGlobalMemory(const CBinarySerializableInterface &ser, HGLOBAL hMem) {
 	if (ser.ContainsData())
-		if (auto pByte = reinterpret_cast<std::byte *>(::GlobalLock(hMem))) {
-			std::size_t sz = ::GlobalSize(hMem);
-			bool result = ser.ToBytes(pByte, sz);
-			::GlobalUnlock(hMem);
-			return result;
+		if (auto pByte = CClipboard::CMemoryLock {hMem})
+			return ser.ToBytes(pByte.data(), pByte.size());
+	return false;
+}
+
+} // namespace
+
+
+
+bool CClipboard::CopyToClipboard(CWnd *parent, CLIPFORMAT ClipboardID, const CBinarySerializableInterface &ser) {
+	if (auto hnd = CClipboardHandle {parent}) {
+		if (auto hMem = AllocateGlobalMemory(ser)) {
+			if (WriteGlobalMemory(ser, hMem)) {
+				::EmptyClipboard();
+				::SetClipboardData(ClipboardID, hMem);
+				return true;
+			}
 		}
+		AfxMessageBox(IDS_CLIPBOARD_COPY_ERROR);
+		return false;
+	}
+	AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
 	return false;
 }
 
 bool CClipboard::ReadGlobalMemory(CBinarySerializableInterface &ser, HGLOBAL hMem) {
-	if (auto pByte = reinterpret_cast<const std::byte *>(::GlobalLock(hMem))) {
-		std::size_t sz = ::GlobalSize(hMem);
-		bool result = ser.FromBytes({pByte, sz});
-		::GlobalUnlock(hMem);
-		return result;
-	}
+	if (auto pByte = CMemoryLock {hMem})
+		return ser.FromBytes(pByte);
 	return false;
 }
 

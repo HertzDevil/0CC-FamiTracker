@@ -23,38 +23,61 @@
 
 #pragma once
 
+#include <optional>		// // //
 #include "stdafx.h"		// // //
+#include "../resource.h"		// // //
 #include "array_view.h"		// // //
 
-class CBinarySerializableInterface;		// // //
+class CBinarySerializableInterface;
+
+namespace CClipboard {
 
 // Clipboard wrapper class, using this ensures that clipboard is closed when finished
-class CClipboard
-{
+class CClipboardHandle {
 public:
-	CClipboard(CWnd *pWnd, UINT Clipboard);
-	~CClipboard();
-
-	bool	IsOpened() const;
-	bool	SetString(const CStringW &str) const;		// // //
-	bool	GetData(HGLOBAL &hMemory) const;		// // //
-	bool	SetDataPointer(array_view<unsigned char> data) const;		// // //
-	LPVOID	GetDataPointer();
-	bool	IsDataAvailable() const;
-
-	bool	TryCopy(const CBinarySerializableInterface &res);		// // //
-	bool	TryRestore(CBinarySerializableInterface &res) const;		// // //
-
-	static bool WriteGlobalMemory(const CBinarySerializableInterface &ser, HGLOBAL hMem);
-	static bool ReadGlobalMemory(CBinarySerializableInterface &ser, HGLOBAL hMem);
-	static DROPEFFECT DragDropTransfer(const CBinarySerializableInterface &ser, CLIPFORMAT clipboardID, DWORD effects);
+	explicit CClipboardHandle(CWnd *parent);
+	~CClipboardHandle();
+	explicit operator bool() const noexcept;
 
 private:
-	static HGLOBAL AllocateGlobalMemory(const CBinarySerializableInterface &ser);
-
-	void	SetData(HGLOBAL hMemory) const;
-
-	bool m_bOpened;
-	UINT m_iClipboard;
-	HGLOBAL m_hMemory;
+	BOOL suc_ = FALSE;
 };
+
+class CMemoryLock {
+public:
+	explicit CMemoryLock(HGLOBAL hMem);
+	~CMemoryLock();
+	explicit operator bool() const noexcept;
+
+	std::byte *data() const noexcept;
+	std::size_t size() const;
+
+private:
+	HGLOBAL hmem_;
+	std::byte *data_ = nullptr;
+};
+
+bool CopyToClipboard(CWnd *parent, CLIPFORMAT ClipboardID, const CBinarySerializableInterface &ser);
+
+template <typename T>
+std::optional<T> RestoreFromClipboard(CWnd *parent, CLIPFORMAT ClipboardID) {
+	if (auto hnd = CClipboardHandle {parent}) {
+		if (::IsClipboardFormatAvailable(ClipboardID) == TRUE) {
+			if (HGLOBAL hMem = ::GetClipboardData(ClipboardID))
+				if (auto x = std::make_optional<T>(); ReadGlobalMemory(*x, hMem))
+					return x;
+
+			AfxMessageBox(IDS_CLIPBOARD_PASTE_ERROR);
+			return std::nullopt;
+		}
+		AfxMessageBox(IDS_CLIPBOARD_NOT_AVALIABLE);
+		return std::nullopt;
+	}
+	AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
+	return std::nullopt;
+}
+
+bool ReadGlobalMemory(CBinarySerializableInterface &ser, HGLOBAL hMem);
+DROPEFFECT DragDropTransfer(const CBinarySerializableInterface &ser, CLIPFORMAT clipboardID, DWORD effects);
+
+} // namespace CClipboard

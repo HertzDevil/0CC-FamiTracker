@@ -27,7 +27,7 @@
 #include "FrameEditorTypes.h"		// // //
 #include "IntRange.h"		// // //
 #include <memory>		// // //
-#include "FrameClipData.h"		// // // TODO: remove
+#include "FrameClipData.h"		// // //
 
 class CFrameEditor;		// // //
 class CFamiTrackerView;
@@ -120,7 +120,7 @@ private:
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 private:
-	std::unique_ptr<CFrameClipData> m_pRowClipData;
+	CFrameClipData m_RowClipData;
 };
 
 class CFActionDuplicateFrame : public CFrameAction
@@ -169,7 +169,7 @@ private:
 	bool Merge(const CAction &Other) override;		// // //
 private:
 	int m_iNewPattern;
-	std::unique_ptr<CFrameClipData> m_pClipData;
+	CFrameClipData m_ClipData;
 };
 
 class CFActionSetPatternAll : public CFrameAction
@@ -184,7 +184,7 @@ private:
 	bool Merge(const CAction &Other) override;		// // //
 private:
 	int m_iNewPattern;
-	std::unique_ptr<CFrameClipData> m_pRowClipData;
+	CFrameClipData m_RowClipData;
 };
 
 class CFActionChangePattern : public CFrameAction
@@ -199,7 +199,7 @@ private:
 	bool Merge(const CAction &Other) override;		// // //
 private:
 	int m_iPatternOffset;
-	std::unique_ptr<CFrameClipData> m_pClipData;
+	CFrameClipData m_ClipData;
 	mutable bool m_bOverflow = false;
 };
 
@@ -215,7 +215,7 @@ private:
 	bool Merge(const CAction &Other) override;		// // //
 private:
 	int m_iPatternOffset;
-	std::unique_ptr<CFrameClipData> m_pRowClipData;
+	CFrameClipData m_RowClipData;
 	mutable bool m_bOverflow = false;
 };
 
@@ -250,13 +250,13 @@ private:
 	void Redo(CMainFrame &MainFrm) override;
 private:
 	int m_iOldPattern, m_iNewPattern;
-	std::unique_ptr<CFrameClipData> m_pClipData;
+	CFrameClipData m_ClipData;
 };
 
 class CFActionPaste : public CFrameAction
 {
 public:
-	CFActionPaste(std::unique_ptr<CFrameClipData> pData, int Frame, bool Clone);
+	CFActionPaste(CFrameClipData Data, int Frame, bool Clone);
 	~CFActionPaste();
 private:
 	bool SaveState(const CMainFrame &MainFrm) override;
@@ -264,7 +264,7 @@ private:
 	void Redo(CMainFrame &MainFrm) override;
 	void UpdateViews(CMainFrame &MainFrm) const override;
 private:
-	std::unique_ptr<CFrameClipData> m_pClipData;
+	CFrameClipData m_ClipData;
 	int m_iTargetFrame;
 	bool m_bClone;
 };
@@ -272,28 +272,28 @@ private:
 class CFActionPasteOverwrite : public CFrameAction
 {
 public:
-	CFActionPasteOverwrite(std::unique_ptr<CFrameClipData> pData);
+	CFActionPasteOverwrite(CFrameClipData Data);
 	~CFActionPasteOverwrite();
 private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 private:
-	std::unique_ptr<CFrameClipData> m_pClipData, m_pOldClipData;
+	CFrameClipData m_ClipData, m_OldClipData;
 	CFrameSelection m_TargetSelection;
 };
 
 class CFActionDropMove : public CFrameAction
 {
 public:
-	CFActionDropMove(std::unique_ptr<CFrameClipData> pData, int Frame);
+	CFActionDropMove(CFrameClipData Data, int Frame);
 	~CFActionDropMove();
 private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 private:
-	std::unique_ptr<CFrameClipData> m_pClipData;
+	CFrameClipData m_ClipData;
 	int m_iTargetFrame;
 };
 
@@ -308,7 +308,7 @@ private:
 	void Redo(CMainFrame &MainFrm) override;
 	void UpdateViews(CMainFrame &MainFrm) const override;
 private:
-	std::unique_ptr<CFrameClipData> m_pClipData;
+	CFrameClipData m_ClipData;
 };
 
 class CFActionMergeDuplicated : public CFrameAction
@@ -321,5 +321,5 @@ private:
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 private:
-	std::unique_ptr<CFrameClipData> m_pClipData, m_pOldClipData;
+	CFrameClipData m_ClipData, m_OldClipData;
 };
