@@ -221,8 +221,6 @@ CPatternEditor::CPatternEditor() :
 	m_bMouseActive(false),
 	m_iChannelPushed(-1),
 	m_bChannelPushed(false),
-	m_iDragChannels(0),
-	m_iDragRows(0),
 	m_iDragStartCol(cursor_column_t::NOTE),
 	m_iDragEndCol(cursor_column_t::NOTE),
 	m_iDragOffsetChannel(0),
@@ -2515,10 +2513,10 @@ void CPatternEditor::ContinueMouseSelection(const CPoint &point)
 			m_selection.m_cpEnd = PointPos;
 			while (m_selection.m_cpEnd < m_selection.m_cpStart)
 				m_selection.m_cpEnd.m_iFrame += FrameCount;
-			while (!GetSelectionSize()) // correction for overlapping selection
+			while (!GetSelectionSize(GetSelection())) // correction for overlapping selection
 				m_selection.m_cpEnd.m_iFrame -= FrameCount;
 			int ChanOffset = PointPos.m_iChannel - Original.GetChanStart();
-			int RowOffset = GetSelectionSize() - 1;
+			int RowOffset = GetSelectionSize(GetSelection()) - 1;
 			m_selection = Original;
 			m_bDragStart = false;
 			m_pView->BeginDragData(ChanOffset, RowOffset);
@@ -2847,7 +2845,7 @@ CPatternClipData CPatternEditor::Copy() const
 	// Copy selection
 	CPatternIterator it = GetIterators().first;		// // //
 	const int Channels	= m_selection.GetChanEnd() - m_selection.GetChanStart() + 1;
-	const int Rows		= GetSelectionSize();		// // //
+	const int Rows		= GetSelectionSize(GetSelection());		// // //
 
 	auto ClipData = CPatternClipData {Channels, Rows};
 	ClipData.ClipInfo.Channels	= Channels;		// // //
@@ -2925,7 +2923,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 
 	const unsigned int Channels	   = (PastePos == paste_pos_t::FILL) ?
 		m_selection.GetChanEnd() - m_selection.GetChanStart() + 1 : ClipData.ClipInfo.Channels;
-	const unsigned int Rows		   = (PastePos == paste_pos_t::FILL) ? GetSelectionSize() : ClipData.ClipInfo.Rows;
+	const unsigned int Rows		   = (PastePos == paste_pos_t::FILL) ? GetSelectionSize(GetSelection()) : ClipData.ClipInfo.Rows;
 	const column_t StartColumn = ClipData.ClipInfo.StartColumn;
 	const column_t EndColumn   = ClipData.ClipInfo.EndColumn;
 
@@ -3091,24 +3089,22 @@ void CPatternEditor::SelectAll()
 		SelectChannel();
 }
 
-int CPatternEditor::GetSelectionSize() const		// // //
+int CPatternEditor::GetSelectionSize(const CSelection &selection) const		// // //
 {
-	if (!m_bSelecting) return 0;
-
 	int Rows = 0;		// // //
-	const int FrameBegin = m_selection.GetFrameStart();
-	const int FrameEnd = m_selection.GetFrameEnd();
+	const int FrameBegin = selection.GetFrameStart();
+	const int FrameEnd = selection.GetFrameEnd();
 	if (FrameEnd - FrameBegin > GetFrameCount() || // selection overlaps itself
-		(FrameEnd - FrameBegin == GetFrameCount() && m_selection.GetRowEnd() >= m_selection.GetRowStart()))
+		(FrameEnd - FrameBegin == GetFrameCount() && selection.GetRowEnd() >= selection.GetRowStart()))
 		return 0;
 
 	for (int i = FrameBegin; i <= FrameEnd; ++i) {
 		const int PatternLength = GetCurrentPatternLength(i);
 		Rows += PatternLength;
 		if (i == FrameBegin)
-			Rows -= std::clamp(m_selection.GetRowStart(), 0, PatternLength);
+			Rows -= std::clamp(selection.GetRowStart(), 0, PatternLength);
 		if (i == FrameEnd)
-			Rows -= std::max(PatternLength - m_selection.GetRowEnd() - 1, 0);
+			Rows -= std::max(PatternLength - selection.GetRowEnd() - 1, 0);
 	}
 
 	return Rows;
@@ -3507,7 +3503,7 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 	CStringW str;
 
 	int Row = 0;
-	int Size = m_bSelecting ? (GetSelectionSize() - 1) : (e.m_iRow - b.m_iRow + 1);
+	int Size = m_bSelecting ? (GetSelectionSize(GetSelection()) - 1) : (e.m_iRow - b.m_iRow + 1);
 	int HexLength = 0;
 	do { ++HexLength; } while (Size >>= 4);
 	if (HexLength < 2) HexLength = 2;
@@ -3663,8 +3659,8 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 
 void CPatternEditor::BeginDrag(const CPatternClipData &ClipData)
 {
-	m_iDragChannels = ClipData.ClipInfo.Channels - 1;
-	m_iDragRows = ClipData.ClipInfo.Rows - 1;
+	m_iDragChannels = ClipData.ClipInfo.Channels;
+	m_iDragRows = ClipData.ClipInfo.Rows;
 	m_iDragStartCol = GetCursorStartColumn(ClipData.ClipInfo.StartColumn);
 	m_iDragEndCol = GetCursorEndColumn(ClipData.ClipInfo.EndColumn);
 
@@ -3755,7 +3751,7 @@ void CPatternEditor::UpdateDrag(const CPoint &point)
 	cursor_column_t ColumnStart = m_iDragStartCol;
 	cursor_column_t ColumnEnd = m_iDragEndCol;
 
-	if (m_iDragChannels == 0 && GetSelectColumn(m_iDragStartCol) >= column_t::Effect1) {
+	if (m_iDragChannels == 1 && GetSelectColumn(m_iDragStartCol) >= column_t::Effect1) {
 		// Allow dragging between effect columns in the same channel
 		if (GetSelectColumn(PointPos.m_iColumn) >= column_t::Effect1) {
 			ColumnStart = static_cast<cursor_column_t>(value_cast(PointPos.m_iColumn) - (value_cast(PointPos.m_iColumn) - 1) % 3);
@@ -3769,8 +3765,8 @@ void CPatternEditor::UpdateDrag(const CPoint &point)
 	CPatternIterator cpBegin(*m_pView->GetSongView(), CCursorPos(PointPos.m_iRow - m_iDragOffsetRow,		// // //
 		PointPos.m_iChannel - m_iDragOffsetChannel, ColumnStart, PointPos.m_iFrame));
 	CPatternIterator cpEnd = cpBegin;
-	cpEnd += GetSelectionSize() - 1;
-	cpEnd.m_iChannel += m_iDragChannels;
+	cpEnd += m_iDragRows - 1;		// // //
+	cpEnd.m_iChannel += m_iDragChannels - 1;
 	cpEnd.m_iColumn = ColumnEnd;
 	m_selDrag.m_cpStart = static_cast<CCursorPos>(cpBegin);
 	m_selDrag.m_cpEnd = static_cast<CCursorPos>(cpEnd);

@@ -3340,14 +3340,10 @@ DROPEFFECT CFamiTrackerView::OnDragEnter(COleDataObject* pDataObject, DWORD dwKe
 	else if (pDataObject->IsDataAvailable(m_iClipboard)) {
 		if (dwKeyState & (MK_CONTROL | MK_SHIFT)) {
 			m_nDropEffect = DROPEFFECT_COPY;
-			if (dwKeyState & MK_SHIFT)
-				m_bDropMix = true;
-			else
-				m_bDropMix = false;
+			m_bDropMix = (dwKeyState & MK_SHIFT) == MK_SHIFT;		// // //
 		}
-		else {
+		else
 			m_nDropEffect = DROPEFFECT_MOVE;
-		}
 
 		// Get drag rectangle
 		CPatternClipData DragData;		// // //

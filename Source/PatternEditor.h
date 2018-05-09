@@ -185,7 +185,7 @@ public:
 	void SetSelection(const CSelection &selection);
 	void SetSelection(int Scope);		// // //
 
-	int GetSelectionSize() const;		// // //
+	int GetSelectionSize(const CSelection &selection) const;		// // //
 	sel_condition_t GetSelectionCondition() const;		// // //
 	sel_condition_t GetSelectionCondition(const CSelection &Sel) const;		// // //
 	void UpdateSelectionCondition();		// // //
@@ -414,8 +414,8 @@ private:
 	int		m_iDragThresholdY;
 
 	// OLE support
-	int		m_iDragChannels;
-	int		m_iDragRows;
+	int		m_iDragChannels = 0;
+	int		m_iDragRows = 0;
 	cursor_column_t m_iDragStartCol;		// // //
 	cursor_column_t m_iDragEndCol;		// // //
 

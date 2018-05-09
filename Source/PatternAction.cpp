@@ -786,7 +786,7 @@ bool CPActionInterpolate::SaveState(const CMainFrame &MainFrm)
 	const CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 	if (!ValidateSelection(*pPatternEditor))
 		return false;
-	m_iSelectionSize = pPatternEditor->GetSelectionSize();
+	m_iSelectionSize = pPatternEditor->GetSelectionSize(pPatternEditor->GetSelection());
 	return CPSelectionAction::SaveState(MainFrm);
 }
 
