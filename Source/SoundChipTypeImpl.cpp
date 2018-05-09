@@ -107,7 +107,7 @@ std::string_view CSoundChipType2A03::GetFullName() const {
 
 std::string_view CSoundChipType2A03::GetChannelShortName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
-	constexpr std::string_view NAMES[] = {"PU1"sv, "PU2"sv, "TRI"sv, "NOI"sv, "DMC"sv};
+	constexpr std::string_view NAMES[] = {"PU1", "PU2", "TRI", "NOI", "DMC"};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
@@ -115,11 +115,11 @@ std::string_view CSoundChipType2A03::GetChannelShortName(std::size_t subindex) c
 std::string_view CSoundChipType2A03::GetChannelFullName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
 	constexpr std::string_view NAMES[] = {
-		"Pulse 1"sv,
-		"Pulse 2"sv,
-		"Triangle"sv,
-		"Noise"sv,
-		"DPCM"sv,
+		"Pulse 1",
+		"Pulse 2",
+		"Triangle",
+		"Noise",
+		"DPCM",
 	};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
@@ -165,7 +165,7 @@ std::string_view CSoundChipTypeVRC6::GetFullName() const {
 
 std::string_view CSoundChipTypeVRC6::GetChannelShortName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
-	constexpr std::string_view NAMES[] = {"V1"sv, "V2"sv, "SAW"sv};
+	constexpr std::string_view NAMES[] = {"V1", "V2", "SAW"};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
@@ -173,9 +173,9 @@ std::string_view CSoundChipTypeVRC6::GetChannelShortName(std::size_t subindex) c
 std::string_view CSoundChipTypeVRC6::GetChannelFullName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
 	constexpr std::string_view NAMES[] = {
-		"VRC6 Pulse 1"sv,
-		"VRC6 Pulse 2"sv,
-		"Sawtooth"sv,
+		"VRC6 Pulse 1",
+		"VRC6 Pulse 2",
+		"Sawtooth",
 	};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
@@ -219,7 +219,7 @@ std::string_view CSoundChipTypeVRC7::GetFullName() const {
 
 std::string_view CSoundChipTypeVRC7::GetChannelShortName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
-	constexpr std::string_view NAMES[] = {"FM1"sv, "FM2"sv, "FM3"sv, "FM4"sv, "FM5"sv, "FM6"sv};
+	constexpr std::string_view NAMES[] = {"FM1", "FM2", "FM3", "FM4", "FM5", "FM6"};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
@@ -227,12 +227,12 @@ std::string_view CSoundChipTypeVRC7::GetChannelShortName(std::size_t subindex) c
 std::string_view CSoundChipTypeVRC7::GetChannelFullName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
 	constexpr std::string_view NAMES[] = {
-		"FM Channel 1"sv,
-		"FM Channel 2"sv,
-		"FM Channel 3"sv,
-		"FM Channel 4"sv,
-		"FM Channel 5"sv,
-		"FM Channel 6"sv,
+		"FM Channel 1",
+		"FM Channel 2",
+		"FM Channel 3",
+		"FM Channel 4",
+		"FM Channel 5",
+		"FM Channel 6",
 	};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
@@ -282,7 +282,7 @@ std::string_view CSoundChipTypeFDS::GetFullName() const {
 
 std::string_view CSoundChipTypeFDS::GetChannelShortName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
-	constexpr std::string_view NAMES[] = {"FDS"sv};
+	constexpr std::string_view NAMES[] = {"FDS"};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
@@ -290,7 +290,7 @@ std::string_view CSoundChipTypeFDS::GetChannelShortName(std::size_t subindex) co
 std::string_view CSoundChipTypeFDS::GetChannelFullName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
 	constexpr std::string_view NAMES[] = {
-		"FDS"sv,
+		"FDS",
 	};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
@@ -335,7 +335,7 @@ std::string_view CSoundChipTypeMMC5::GetFullName() const {
 
 std::string_view CSoundChipTypeMMC5::GetChannelShortName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
-	constexpr std::string_view NAMES[] = {"PU3"sv, "PU4"sv, "PCM"sv};
+	constexpr std::string_view NAMES[] = {"PU3", "PU4", "PCM"};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
@@ -343,9 +343,9 @@ std::string_view CSoundChipTypeMMC5::GetChannelShortName(std::size_t subindex) c
 std::string_view CSoundChipTypeMMC5::GetChannelFullName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
 	constexpr std::string_view NAMES[] = {
-		"MMC5 Pulse 1"sv,
-		"MMC5 Pulse 2"sv,
-		"MMC5 PCM"sv,
+		"MMC5 Pulse 1",
+		"MMC5 Pulse 2",
+		"MMC5 PCM",
 	};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
@@ -388,7 +388,7 @@ std::string_view CSoundChipTypeN163::GetFullName() const {
 
 std::string_view CSoundChipTypeN163::GetChannelShortName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
-	constexpr std::string_view NAMES[] = {"N1"sv, "N2"sv, "N3"sv, "N4"sv, "N5"sv, "N6"sv, "N7"sv, "N8"sv};
+	constexpr std::string_view NAMES[] = {"N1", "N2", "N3", "N4", "N5", "N6", "N7", "N8"};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
@@ -396,14 +396,14 @@ std::string_view CSoundChipTypeN163::GetChannelShortName(std::size_t subindex) c
 std::string_view CSoundChipTypeN163::GetChannelFullName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
 	constexpr std::string_view NAMES[] = {
-		"Namco 1"sv,
-		"Namco 2"sv,
-		"Namco 3"sv,
-		"Namco 4"sv,
-		"Namco 5"sv,
-		"Namco 6"sv,
-		"Namco 7"sv,
-		"Namco 8"sv,
+		"Namco 1",
+		"Namco 2",
+		"Namco 3",
+		"Namco 4",
+		"Namco 5",
+		"Namco 6",
+		"Namco 7",
+		"Namco 8",
 	};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
@@ -455,7 +455,7 @@ std::string_view CSoundChipTypeS5B::GetFullName() const {
 
 std::string_view CSoundChipTypeS5B::GetChannelShortName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
-	constexpr std::string_view NAMES[] = {"5B1"sv, "5B2"sv, "5B3"sv};
+	constexpr std::string_view NAMES[] = {"5B1", "5B2", "5B3"};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};
 }
@@ -463,9 +463,9 @@ std::string_view CSoundChipTypeS5B::GetChannelShortName(std::size_t subindex) co
 std::string_view CSoundChipTypeS5B::GetChannelFullName(std::size_t subindex) const {
 	using namespace std::string_view_literals;
 	constexpr std::string_view NAMES[] = {
-		"5B Square 1"sv,
-		"5B Square 2"sv,
-		"5B Square 3"sv,
+		"5B Square 1",
+		"5B Square 2",
+		"5B Square 3",
 	};
 	return subindex < std::size(NAMES) ? NAMES[subindex] :
 		throw std::invalid_argument {"Channel with given subindex does not exist"};

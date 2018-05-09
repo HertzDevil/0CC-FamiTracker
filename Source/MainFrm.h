@@ -44,6 +44,7 @@ class CInstrumentFileTree;
 class CAction;
 class CActionHandler;
 class CFamiTrackerDoc;		// // //
+class CFamiTrackerView;		// // //
 class CFamiTrackerModule;		// // //
 class CInstrument;		// // //
 class CFrameEditor;
@@ -78,6 +79,7 @@ protected: // create from serialization only
 
 // Attributes
 public:
+	CFamiTrackerView *GetTrackerView() const;		// // //
 	CFrameEditor *GetFrameEditor() const;
 	CVisualizerWnd *GetVisualizerWnd() const;		// // //
 

@@ -122,7 +122,7 @@ void CModuleImporter::ImportInstruments() {
 		if (auto pImportDSample = pImportedSamps->ReleaseDSample(i)) {		// // //
 			// Save a reference to this DPCM sample
 			int Index = pDSampleManager->GetFirstFree();
-			pDSampleManager->SetDSample(Index, pImportDSample);
+			pDSampleManager->SetDSample(Index, std::move(pImportDSample));
 			SamplesTable[i] = Index;
 		}
 	}
@@ -132,7 +132,7 @@ void CModuleImporter::ImportInstruments() {
 		auto pInst = inst.Clone();		// // //
 
 		// Update references
-		if (auto pSeq = dynamic_cast<CSeqInstrument *>(pInst.get())) {
+		if (auto *pSeq = dynamic_cast<CSeqInstrument *>(pInst.get())) {
 			for (auto t : enum_values<sequence_t>())
 				if (pSeq->GetSeqEnable(t)) {
 					for (size_t j = 0; j < std::size(INST); ++j)
@@ -142,7 +142,7 @@ void CModuleImporter::ImportInstruments() {
 						}
 				}
 			// Update DPCM samples
-			if (auto p2A03 = dynamic_cast<CInstrument2A03 *>(pSeq))
+			if (auto *p2A03 = dynamic_cast<CInstrument2A03 *>(pSeq))
 				for (int n = 0; n < NOTE_COUNT; ++n)
 					if (unsigned Sample = p2A03->GetSampleIndex(n); Sample != CInstrument2A03::NO_DPCM)
 						p2A03->SetSampleIndex(n, SamplesTable[Sample]);

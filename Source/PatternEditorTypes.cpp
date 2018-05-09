@@ -30,7 +30,7 @@
 
 // CCursorPos /////////////////////////////////////////////////////////////////////
 
-CCursorPos::CCursorPos() : m_iFrame(0), m_iRow(0), m_iColumn(C_NOTE), m_iChannel(0)		// // //
+CCursorPos::CCursorPos() : m_iFrame(0), m_iRow(0), m_iColumn(cursor_column_t::NOTE), m_iChannel(0)		// // //
 {
 }
 
@@ -65,7 +65,7 @@ bool CCursorPos::IsValid(int RowCount, int ChannelCount) const		// // //
 		return false;
 	if (m_iRow < 0 || m_iRow >= RowCount)
 		return false;
-	if (m_iColumn < C_NOTE || m_iColumn > C_EFF4_PARAM2)		// // //
+	if (m_iColumn < cursor_column_t::NOTE || m_iColumn > cursor_column_t::EFF4_PARAM2)		// // //
 		return false;
 
 	return true;
@@ -95,7 +95,7 @@ int CSelection::GetRowEnd() const
 
 cursor_column_t CSelection::GetColStart() const
 {
-	cursor_column_t Col = C_NOTE;
+	cursor_column_t Col = cursor_column_t::NOTE;
 	if (m_cpStart.m_iChannel == m_cpEnd.m_iChannel)
 		Col = (m_cpEnd.m_iColumn > m_cpStart.m_iColumn ? m_cpStart.m_iColumn : m_cpEnd.m_iColumn);
 	else if (m_cpEnd.m_iChannel > m_cpStart.m_iChannel)
@@ -103,18 +103,18 @@ cursor_column_t CSelection::GetColStart() const
 	else
 		Col = m_cpEnd.m_iColumn;
 	switch (Col) {
-		case C_INSTRUMENT2: Col = C_INSTRUMENT1; break;
-		case C_EFF1_PARAM1: case C_EFF1_PARAM2: Col = C_EFF1_NUM; break;
-		case C_EFF2_PARAM1: case C_EFF2_PARAM2: Col = C_EFF2_NUM; break;
-		case C_EFF3_PARAM1: case C_EFF3_PARAM2: Col = C_EFF3_NUM; break;
-		case C_EFF4_PARAM1: case C_EFF4_PARAM2: Col = C_EFF4_NUM; break;
+		case cursor_column_t::INSTRUMENT2: Col = cursor_column_t::INSTRUMENT1; break;
+		case cursor_column_t::EFF1_PARAM1: case cursor_column_t::EFF1_PARAM2: Col = cursor_column_t::EFF1_NUM; break;
+		case cursor_column_t::EFF2_PARAM1: case cursor_column_t::EFF2_PARAM2: Col = cursor_column_t::EFF2_NUM; break;
+		case cursor_column_t::EFF3_PARAM1: case cursor_column_t::EFF3_PARAM2: Col = cursor_column_t::EFF3_NUM; break;
+		case cursor_column_t::EFF4_PARAM1: case cursor_column_t::EFF4_PARAM2: Col = cursor_column_t::EFF4_NUM; break;
 	}
 	return Col;
 }
 
 cursor_column_t CSelection::GetColEnd() const
 {
-	cursor_column_t Col = C_NOTE;
+	cursor_column_t Col = cursor_column_t::NOTE;
 	if (m_cpStart.m_iChannel == m_cpEnd.m_iChannel)
 		Col = (m_cpEnd.m_iColumn > m_cpStart.m_iColumn ? m_cpEnd.m_iColumn : m_cpStart.m_iColumn);
 	else if (m_cpEnd.m_iChannel > m_cpStart.m_iChannel)
@@ -122,11 +122,11 @@ cursor_column_t CSelection::GetColEnd() const
 	else
 		Col = m_cpStart.m_iColumn;
 	switch (Col) {
-		case C_INSTRUMENT1: Col = C_INSTRUMENT2; break;						// Instrument
-		case C_EFF1_NUM: case C_EFF1_PARAM1: Col = C_EFF1_PARAM2; break;	// Eff 1
-		case C_EFF2_NUM: case C_EFF2_PARAM1: Col = C_EFF2_PARAM2; break;	// Eff 2
-		case C_EFF3_NUM: case C_EFF3_PARAM1: Col = C_EFF3_PARAM2; break;	// Eff 3
-		case C_EFF4_NUM: case C_EFF4_PARAM1: Col = C_EFF4_PARAM2; break;	// Eff 4
+		case cursor_column_t::INSTRUMENT1: Col = cursor_column_t::INSTRUMENT2; break;						// Instrument
+		case cursor_column_t::EFF1_NUM: case cursor_column_t::EFF1_PARAM1: Col = cursor_column_t::EFF1_PARAM2; break;	// Eff 1
+		case cursor_column_t::EFF2_NUM: case cursor_column_t::EFF2_PARAM1: Col = cursor_column_t::EFF2_PARAM2; break;	// Eff 2
+		case cursor_column_t::EFF3_NUM: case cursor_column_t::EFF3_PARAM1: Col = cursor_column_t::EFF3_PARAM2; break;	// Eff 3
+		case cursor_column_t::EFF4_NUM: case cursor_column_t::EFF4_PARAM1: Col = cursor_column_t::EFF4_PARAM2; break;	// Eff 4
 	}
 	return Col;
 }

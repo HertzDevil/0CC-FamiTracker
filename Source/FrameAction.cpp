@@ -31,7 +31,7 @@
 #include <unordered_map>		// // //
 
 // // // all dependencies on CMainFrame
-#define GET_VIEW() static_cast<CFamiTrackerView *>(MainFrm.GetActiveView())
+#define GET_VIEW() MainFrm.GetTrackerView()
 #define GET_SONG_VIEW() GET_VIEW()->GetSongView()
 #define GET_SONG() GET_SONG_VIEW()->GetSong()
 #define GET_FRAME_EDITOR() MainFrm.GetFrameEditor()

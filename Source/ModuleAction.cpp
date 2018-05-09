@@ -27,7 +27,7 @@
 #include "InstrumentManager.h"
 #include "Instrument.h"
 
-#define GET_VIEW() static_cast<CFamiTrackerView *>(MainFrm.GetActiveView())
+#define GET_VIEW() MainFrm.GetTrackerView()
 #define GET_MODULE() (*GET_VIEW()->GetModuleData())
 
 void CModuleAction::SaveUndoState(const CMainFrame &MainFrm) {

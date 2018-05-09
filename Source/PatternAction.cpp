@@ -32,7 +32,7 @@
 #include "SongView.h"		// // //
 
 // // // all dependencies on CMainFrame
-#define GET_VIEW() static_cast<CFamiTrackerView *>(MainFrm.GetActiveView())
+#define GET_VIEW() MainFrm.GetTrackerView()
 #define GET_MODULE() GET_VIEW()->GetModuleData()
 #define GET_SONG_VIEW() GET_VIEW()->GetSongView()
 #define GET_PATTERN_EDITOR() GET_VIEW()->GetPatternEditor()
@@ -128,16 +128,16 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 		End.m_iRow = pPatternEditor->GetCurrentPatternLength(End.m_iFrame) - 1;
 	}
 
-	const unsigned EFBEGIN = GetCursorStartColumn(column_t::Effect1);
+	const cursor_column_t EFBEGIN = GetCursorStartColumn(column_t::Effect1);
 	int OFFS = 3 * (value_cast(GetSelectColumn(m_pUndoState->Cursor.m_iColumn)) - value_cast(m_ClipData.ClipInfo.StartColumn));
-	if (static_cast<int>(EFBEGIN - Start.m_iColumn) > OFFS)
-		OFFS = EFBEGIN - Start.m_iColumn;
+	if (OFFS < static_cast<int>(value_cast(EFBEGIN) - value_cast(Start.m_iColumn)))
+		OFFS = value_cast(EFBEGIN) - value_cast(Start.m_iColumn);
 	if (Start.m_iChannel == End.m_iChannel && Start.m_iColumn >= EFBEGIN && End.m_iColumn >= EFBEGIN) {
 		if (m_iPastePos != paste_pos_t::DRAG) {
-			End.m_iColumn = static_cast<cursor_column_t>(End.m_iColumn + OFFS);
-			Start.m_iColumn = static_cast<cursor_column_t>(Start.m_iColumn + OFFS);
-			if (End.m_iColumn > C_EFF4_PARAM2)
-				End.m_iColumn = C_EFF4_PARAM2;
+			End.m_iColumn = static_cast<cursor_column_t>(value_cast(End.m_iColumn) + OFFS);
+			Start.m_iColumn = static_cast<cursor_column_t>(value_cast(Start.m_iColumn) + OFFS);
+			if (End.m_iColumn > cursor_column_t::EFF4_PARAM2)
+				End.m_iColumn = cursor_column_t::EFF4_PARAM2;
 		}
 	}
 
@@ -363,37 +363,37 @@ bool CPActionDeleteRow::SaveState(const CMainFrame &MainFrm)
 
 	m_NewNote = m_OldNote;
 	switch (m_pUndoState->Cursor.m_iColumn) {
-	case C_NOTE:			// Note
+	case cursor_column_t::NOTE:			// Note
 		m_NewNote.Note = note_t::none;
 		m_NewNote.Octave = 0;
 		m_NewNote.Instrument = MAX_INSTRUMENTS;	// Fix the old behaviour
 		m_NewNote.Vol = MAX_VOLUME;
 		break;
-	case C_INSTRUMENT1:		// Instrument
-	case C_INSTRUMENT2:
+	case cursor_column_t::INSTRUMENT1:		// Instrument
+	case cursor_column_t::INSTRUMENT2:
 		m_NewNote.Instrument = MAX_INSTRUMENTS;
 		break;
-	case C_VOLUME:			// Volume
+	case cursor_column_t::VOLUME:			// Volume
 		m_NewNote.Vol = MAX_VOLUME;
 		break;
-	case C_EFF1_NUM:		// Effect 1
-	case C_EFF1_PARAM1:
-	case C_EFF1_PARAM2:
+	case cursor_column_t::EFF1_NUM:		// Effect 1
+	case cursor_column_t::EFF1_PARAM1:
+	case cursor_column_t::EFF1_PARAM2:
 		m_NewNote.Effects[0] = { };
 		break;
-	case C_EFF2_NUM:		// Effect 2
-	case C_EFF2_PARAM1:
-	case C_EFF2_PARAM2:
+	case cursor_column_t::EFF2_NUM:		// Effect 2
+	case cursor_column_t::EFF2_PARAM1:
+	case cursor_column_t::EFF2_PARAM2:
 		m_NewNote.Effects[1] = { };
 		break;
-	case C_EFF3_NUM:		// Effect 3
-	case C_EFF3_PARAM1:
-	case C_EFF3_PARAM2:
+	case cursor_column_t::EFF3_NUM:		// Effect 3
+	case cursor_column_t::EFF3_PARAM1:
+	case cursor_column_t::EFF3_PARAM2:
 		m_NewNote.Effects[2] = { };
 		break;
-	case C_EFF4_NUM:		// Effect 4
-	case C_EFF4_PARAM1:
-	case C_EFF4_PARAM2:
+	case cursor_column_t::EFF4_NUM:		// Effect 4
+	case cursor_column_t::EFF4_PARAM1:
+	case cursor_column_t::EFF4_PARAM2:
 		m_NewNote.Effects[3] = { };
 		break;
 	}
@@ -446,22 +446,22 @@ bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 	m_NewNote = m_OldNote;
 
 	switch (m_pUndoState->Cursor.m_iColumn) {
-	case C_INSTRUMENT1: case C_INSTRUMENT2:
+	case cursor_column_t::INSTRUMENT1: case cursor_column_t::INSTRUMENT2:
 		ScrollFunc(m_NewNote.Instrument, MAX_INSTRUMENTS);
 		return m_OldNote.Instrument < MAX_INSTRUMENTS && m_OldNote.Instrument != HOLD_INSTRUMENT;		// // // 050B
-	case C_VOLUME:
+	case cursor_column_t::VOLUME:
 		ScrollFunc(m_NewNote.Vol, MAX_VOLUME);
 		return m_OldNote.Vol < MAX_VOLUME;
-	case C_EFF1_NUM: case C_EFF1_PARAM1: case C_EFF1_PARAM2:
+	case cursor_column_t::EFF1_NUM: case cursor_column_t::EFF1_PARAM1: case cursor_column_t::EFF1_PARAM2:
 		ScrollFunc(m_NewNote.Effects[0].param, 0x100);
 		return m_OldNote.Effects[0].fx != effect_t::none;
-	case C_EFF2_NUM: case C_EFF2_PARAM1: case C_EFF2_PARAM2:
+	case cursor_column_t::EFF2_NUM: case cursor_column_t::EFF2_PARAM1: case cursor_column_t::EFF2_PARAM2:
 		ScrollFunc(m_NewNote.Effects[1].param, 0x100);
 		return m_OldNote.Effects[1].fx != effect_t::none;
-	case C_EFF3_NUM: case C_EFF3_PARAM1: case C_EFF3_PARAM2:
+	case cursor_column_t::EFF3_NUM: case cursor_column_t::EFF3_PARAM1: case cursor_column_t::EFF3_PARAM2:
 		ScrollFunc(m_NewNote.Effects[2].param, 0x100);
 		return m_OldNote.Effects[2].fx != effect_t::none;
-	case C_EFF4_NUM: case C_EFF4_PARAM1: case C_EFF4_PARAM2:
+	case cursor_column_t::EFF4_NUM: case cursor_column_t::EFF4_PARAM1: case cursor_column_t::EFF4_PARAM2:
 		ScrollFunc(m_NewNote.Effects[3].param, 0x100);
 		return m_OldNote.Effects[3].fx != effect_t::none;
 	}
@@ -763,7 +763,7 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 					case effect_t::SLIDE_UP: case effect_t::SLIDE_DOWN: case effect_t::VOLUME_SLIDE: case effect_t::DELAYED_VOLUME: case effect_t::TRANSPOSE:
 						unsigned char Hi = Note.Effects[fx].param >> 4;
 						unsigned char Lo = Note.Effects[fx].param & 0x0F;
-						WarpFunc(pPatternEditor->GetColumn() % 3 == 2 ? Hi : Lo, 0x10);
+						WarpFunc(value_cast(pPatternEditor->GetColumn()) % 3 == 2 ? Hi : Lo, 0x10);
 						Note.Effects[fx].param = (Hi << 4) | Lo;
 						continue;
 					}

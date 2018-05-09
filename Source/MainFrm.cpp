@@ -710,8 +710,7 @@ void CMainFrame::ResizeFrameWindow()
 	ASSERT(m_pFrameEditor != NULL);
 
 	if (HasDocument()) {		// // //
-		auto pView = static_cast<CFamiTrackerView *>(GetActiveView());		// // //
-		int Channels = pView->GetSongView()->GetChannelOrder().GetChannelCount();
+		int Channels = GetTrackerView()->GetSongView()->GetChannelOrder().GetChannelCount();		// // //
 		int Height = 0, Width = 0;
 
 		// Located to the right
@@ -1175,8 +1174,7 @@ void CMainFrame::OnAddInstrument()
 	// Add new instrument to module
 
 	// Chip type depends on selected channel
-	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
-	switch (pView->GetSelectedChannelID().Chip) {		// // // TODO: remove eventually
+	switch (GetTrackerView()->GetSelectedChannelID().Chip) {		// // // TODO: remove eventually
 	case sound_chip_t::APU:  return OnAddInstrument2A03();
 	case sound_chip_t::VRC6: return OnAddInstrumentVRC6();
 	case sound_chip_t::VRC7: return OnAddInstrumentVRC7();
@@ -1411,7 +1409,7 @@ void CMainFrame::OnDeltaposFrameSpin(NMHDR *pNMHDR, LRESULT *pResult)
 }
 
 std::unique_ptr<CPlayerCursor> CMainFrame::GetPlayerCursor(play_mode_t Mode) const {		// // //
-	return std::make_unique<CPlayerCursor>(static_cast<const CFamiTrackerView *>(GetActiveView())->GetPlayerCursor(Mode));
+	return std::make_unique<CPlayerCursor>(GetTrackerView()->GetPlayerCursor(Mode));
 }
 
 void CMainFrame::OnTrackerPlay()
@@ -1441,18 +1439,18 @@ void CMainFrame::OnTrackerPlayCursor()
 void CMainFrame::OnTrackerPlayMarker()		// // // 050B
 {
 	// Play from row marker
-	if (static_cast<CFamiTrackerView*>(GetActiveView())->IsMarkerValid())
+	if (GetTrackerView()->IsMarkerValid())
 		Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Marker));
 }
 
 void CMainFrame::OnUpdateTrackerPlayMarker(CCmdUI *pCmdUI)		// // // 050B
 {
-	pCmdUI->Enable(static_cast<CFamiTrackerView*>(GetActiveView())->IsMarkerValid() ? TRUE : FALSE);
+	pCmdUI->Enable(GetTrackerView()->IsMarkerValid() ? TRUE : FALSE);
 }
 
 void CMainFrame::OnTrackerSetMarker()		// // // 050B
 {
-	auto pView = static_cast<CFamiTrackerView*>(GetActiveView());
+	auto *pView = GetTrackerView();
 	int Frame = pView->GetSelectedFrame();
 	int Row = pView->GetSelectedRow();
 
@@ -1482,7 +1480,7 @@ void CMainFrame::OnTrackerKillsound()
 {
 	Env.GetSoundGenerator()->LoadSoundConfig();		// // //
 	Env.GetSoundGenerator()->SilentAll();		// // //
-	static_cast<CFamiTrackerView *>(GetActiveView())->MakeSilent();
+	GetTrackerView()->MakeSilent();
 }
 
 bool CMainFrame::CheckRepeat()
@@ -1504,7 +1502,7 @@ bool CMainFrame::CheckRepeat()
 
 void CMainFrame::OnBnClickedIncFrame()
 {
-	if (static_cast<CFamiTrackerView*>(GetActiveView())->GetSelectedFrame() != GetFrameEditor()->GetEditFrame())		// // //
+	if (GetTrackerView()->GetSelectedFrame() != GetFrameEditor()->GetEditFrame())		// // //
 		return;
 	int Add = (CheckRepeat() ? 4 : 1);
 	if (ChangeAllPatterns())
@@ -1515,7 +1513,7 @@ void CMainFrame::OnBnClickedIncFrame()
 
 void CMainFrame::OnBnClickedDecFrame()
 {
-	if (static_cast<CFamiTrackerView*>(GetActiveView())->GetSelectedFrame() != GetFrameEditor()->GetEditFrame())		// // //
+	if (GetTrackerView()->GetSelectedFrame() != GetFrameEditor()->GetEditFrame())		// // //
 		return;
 	int Remove = -(CheckRepeat() ? 4 : 1);
 	if (ChangeAllPatterns())
@@ -1543,7 +1541,7 @@ void CMainFrame::OnDeltaposKeyStepSpin(NMHDR *pNMHDR, LRESULT *pResult)
 void CMainFrame::OnEnKeyStepChange()
 {
 	int Step = m_wndDialogBar.GetDlgItemInt(IDC_KEYSTEP);
-	static_cast<CFamiTrackerView*>(GetActiveView())->SetStepping(std::clamp(Step, 0, MAX_PATTERN_LENGTH));		// // //
+	GetTrackerView()->SetStepping(std::clamp(Step, 0, MAX_PATTERN_LENGTH));		// // //
 }
 
 void CMainFrame::OnCreateNSF()
@@ -1565,12 +1563,12 @@ void CMainFrame::OnCreateWAV()
 
 void CMainFrame::OnNextFrame()
 {
-	static_cast<CFamiTrackerView*>(GetActiveView())->SelectNextFrame();
+	GetTrackerView()->SelectNextFrame();
 }
 
 void CMainFrame::OnPrevFrame()
 {
-	static_cast<CFamiTrackerView*>(GetActiveView())->SelectPrevFrame();
+	GetTrackerView()->SelectPrevFrame();
 }
 
 void CMainFrame::OnHelpPerformance()
@@ -1588,7 +1586,7 @@ void CMainFrame::OnHelpPerformance()
 void CMainFrame::OnUpdateSBInstrument(CCmdUI *pCmdUI)
 {
 	auto String = conv::from_uint_hex(GetSelectedInstrumentIndex(), 2);		// // //
-	unsigned int Split = static_cast<CFamiTrackerView*>(GetActiveView())->GetSplitInstrument();
+	unsigned int Split = GetTrackerView()->GetSplitInstrument();
 	if (Split != MAX_INSTRUMENTS)
 		String = conv::from_int_hex(Split, 2) + " / " + String;
 	pCmdUI->Enable();
@@ -1665,18 +1663,16 @@ void CMainFrame::OnUpdateDuplicateFrame(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateModuleMoveframedown(CCmdUI *pCmdUI)
 {
 	const CFamiTrackerDoc &Doc = GetDoc();
-	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 
 	if (!Doc.IsFileLoaded())
 		return;
 
-	pCmdUI->Enable(!(pView->GetSelectedFrame() == (GetCurrentSong()->GetFrameCount() - 1)));		// // //
+	pCmdUI->Enable(!(GetTrackerView()->GetSelectedFrame() == (GetCurrentSong()->GetFrameCount() - 1)));		// // //
 }
 
 void CMainFrame::OnUpdateModuleMoveframeup(CCmdUI *pCmdUI)
 {
-	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
-	pCmdUI->Enable(pView->GetSelectedFrame() > 0);
+	pCmdUI->Enable(GetTrackerView()->GetSelectedFrame() > 0);
 }
 
 void CMainFrame::OnUpdateInstrumentNew(CCmdUI *pCmdUI)
@@ -1745,7 +1741,7 @@ void CMainFrame::OnTimer(UINT nIDEvent)
 
 void CMainFrame::OnUpdateKeyStepEdit(CCmdUI *pCmdUI)
 {
-	pCmdUI->SetText(FormattedW(L"%i", static_cast<CFamiTrackerView*>(GetActiveView())->GetStepping()));
+	pCmdUI->SetText(FormattedW(L"%i", GetTrackerView()->GetStepping()));
 }
 
 void CMainFrame::OnUpdateSpeedEdit(CCmdUI *pCmdUI)
@@ -1849,7 +1845,7 @@ void CMainFrame::OnFileGeneralsettings()
 
 	ConfigWindow.DoModal();
 
-	static_cast<CFamiTrackerView*>(GetActiveView())->UpdateNoteQueues();		// // // auto arp setting
+	GetTrackerView()->UpdateNoteQueues();		// // // auto arp setting
 }
 
 void CMainFrame::SetSongInfo(const CFamiTrackerModule &modfile) {		// // //
@@ -2091,7 +2087,7 @@ BOOL CMainFrame::OnEraseBkgnd(CDC* pDC)
 
 void CMainFrame::OnTrackerSwitchToInstrument()
 {
-	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
+	CFamiTrackerView *pView	= GetTrackerView();
 	pView->SwitchToInstrument(!pView->SwitchToInstrument());
 }
 
@@ -2129,8 +2125,7 @@ void CMainFrame::OnUpdateDisplayRegisterState(CCmdUI *pCmdUI)		// // //
 
 void CMainFrame::OnUpdateTrackerSwitchToInstrument(CCmdUI *pCmdUI)
 {
-	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
-	pCmdUI->SetCheck(pView->SwitchToInstrument() ? 1 : 0);
+	pCmdUI->SetCheck(GetTrackerView()->SwitchToInstrument() ? 1 : 0);
 }
 
 void CMainFrame::OnModuleModuleproperties()
@@ -2184,7 +2179,7 @@ void CMainFrame::OnModuleBookmarkSettings()		// // //
 
 void CMainFrame::OnModuleEstimateSongLength()		// // //
 {
-	CSongLengthScanner scanner {*GetDoc().GetModule(), *static_cast<CFamiTrackerView *>(GetActiveView())->GetSongView()};
+	CSongLengthScanner scanner {*GetDoc().GetModule(), *GetTrackerView()->GetSongView()};
 	auto [Intro, Loop] = scanner.GetSecondsCount();
 	auto [IntroRows, LoopRows] = scanner.GetRowCount();
 
@@ -2286,7 +2281,7 @@ void CMainFrame::OnUpdatePrevSong(CCmdUI *pCmdUI)
 
 void CMainFrame::OnClickedFollow()
 {
-	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
+	CFamiTrackerView *pView	= GetTrackerView();
 	bool FollowMode = m_wndOctaveBar.IsDlgButtonChecked(IDC_FOLLOW) != 0;
 	Env.GetSettings()->bFollowMode = FollowMode;
 	pView->SetFollowMode(FollowMode);
@@ -2306,7 +2301,7 @@ void CMainFrame::OnUpdateToggleFollow(CCmdUI *pCmdUI)		// // //
 
 void CMainFrame::OnClickedCompact()		// // //
 {
-	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
+	CFamiTrackerView *pView	= GetTrackerView();
 	bool CompactMode = m_wndOctaveBar.IsDlgButtonChecked(IDC_CHECK_COMPACT) != 0;
 	pView->SetCompactMode(CompactMode);
 	pView->SetFocus();
@@ -2411,15 +2406,14 @@ void CMainFrame::OnModuleDuplicateCurrentPattern()		// // //
 void CMainFrame::OnUpdateEditCut(CCmdUI *pCmdUI)
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnUpdateEditCut(pCmdUI);
+		GetTrackerView()->OnUpdateEditCut(pCmdUI);
 	else if (GetFocus() == GetFrameEditor())
 		pCmdUI->Enable(TRUE);
 }
 
 void CMainFrame::OnUpdateEditCopy(CCmdUI *pCmdUI)
 {
-	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
-	pCmdUI->Enable((pView->IsSelecting() || GetFocus() == m_pFrameEditor.get()) ? 1 : 0);
+	pCmdUI->Enable((GetTrackerView()->IsSelecting() || GetFocus() == m_pFrameEditor.get()) ? 1 : 0);
 }
 
 void CMainFrame::OnUpdatePatternEditorSelected(CCmdUI *pCmdUI)		// // //
@@ -2429,8 +2423,7 @@ void CMainFrame::OnUpdatePatternEditorSelected(CCmdUI *pCmdUI)		// // //
 
 void CMainFrame::OnUpdateEditCopySpecial(CCmdUI *pCmdUI)		// // //
 {
-	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
-	pCmdUI->Enable((pView->IsSelecting() && GetFocus() == GetActiveView()) ? 1 : 0);
+	pCmdUI->Enable((GetTrackerView()->IsSelecting() && GetFocus() == GetActiveView()) ? 1 : 0);
 }
 
 void CMainFrame::OnUpdateSelectMultiFrame(CCmdUI *pCmdUI)		// // //
@@ -2441,15 +2434,14 @@ void CMainFrame::OnUpdateSelectMultiFrame(CCmdUI *pCmdUI)		// // //
 void CMainFrame::OnUpdateEditPaste(CCmdUI *pCmdUI)
 {
 	if (GetFocus() == GetActiveView())
-		pCmdUI->Enable(static_cast<CFamiTrackerView*>(GetActiveView())->IsClipboardAvailable() ? 1 : 0);
+		pCmdUI->Enable(GetTrackerView()->IsClipboardAvailable() ? 1 : 0);
 	else if (GetFocus() == GetFrameEditor())
 		pCmdUI->Enable(GetFrameEditor()->IsClipboardAvailable() ? 1 : 0);
 }
 
 void CMainFrame::OnUpdateEditDelete(CCmdUI *pCmdUI)
 {
-	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
-	pCmdUI->Enable((pView->IsSelecting() || GetFocus() == m_pFrameEditor.get()) ? 1 : 0);
+	pCmdUI->Enable((GetTrackerView()->IsSelecting() || GetFocus() == m_pFrameEditor.get()) ? 1 : 0);
 }
 
 void CMainFrame::OnHelpEffecttable()
@@ -2462,6 +2454,10 @@ void CMainFrame::OnHelpFAQ()
 {
 	// Display FAQ in help
 	HtmlHelpW((DWORD)L"faq.htm", HH_DISPLAY_TOPIC);
+}
+
+CFamiTrackerView *CMainFrame::GetTrackerView() const {		// // //
+	return static_cast<CFamiTrackerView *>(GetActiveView());
 }
 
 CFrameEditor *CMainFrame::GetFrameEditor() const
@@ -2532,7 +2528,6 @@ void CMainFrame::SelectTrack(unsigned int Track)
 	ASSERT(Track < MAX_TRACKS);
 
 	CComboBox *pTrackBox = static_cast<CComboBox*>(m_wndDialogBar.GetDlgItem(IDC_SUBTUNE));
-	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 
 	m_iTrack = Track;
 
@@ -2545,7 +2540,7 @@ void CMainFrame::SelectTrack(unsigned int Track)
 	ResetUndo();		// // // 050B
 	UpdateControls();
 
-	pView->TrackChanged(m_iTrack);
+	GetTrackerView()->TrackChanged(m_iTrack);
 	GetFrameEditor()->CancelSelection();		// // //
 	GetFrameEditor()->Invalidate();
 	OnUpdateFrameTitle(TRUE);
@@ -2561,7 +2556,7 @@ int CMainFrame::GetSelectedOctave() const		// // // 050B
 
 void CMainFrame::SelectOctave(int Octave)		// // // 050B
 {
-	static_cast<CFamiTrackerView*>(GetActiveView())->AdjustOctave(Octave - GetSelectedOctave());
+	GetTrackerView()->AdjustOctave(Octave - GetSelectedOctave());
 	m_iOctave = Octave;
 	DisplayOctave();
 }
@@ -2595,10 +2590,9 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 	menu.CreatePopupMenu();
 
 	const CFamiTrackerDoc &Doc = GetDoc();
-	CFamiTrackerView *pView = static_cast<CFamiTrackerView*>(GetActiveView());
 
 	CSoundChipSet Chip = Doc.GetModule()->GetSoundChipSet();		// // //
-	sound_chip_t SelectedChip = pView->GetSelectedChannelID().Chip;		// // // where the cursor is located
+	sound_chip_t SelectedChip = GetTrackerView()->GetSelectedChannelID().Chip;		// // // where the cursor is located
 
 	auto *pSCS = Env.GetSoundChipService();
 	pSCS->ForeachType([&] (sound_chip_t c) {
@@ -2786,7 +2780,7 @@ void CMainFrame::UpdateMenu(CMenu *pMenu)
 void CMainFrame::OnEditCut()
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditCut();
+		GetTrackerView()->OnEditCut();
 	else if (GetFocus() == GetFrameEditor())
 		GetFrameEditor()->OnEditCut();
 }
@@ -2794,7 +2788,7 @@ void CMainFrame::OnEditCut()
 void CMainFrame::OnEditCopy()
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditCopy();
+		GetTrackerView()->OnEditCopy();
 	else if (GetFocus() == GetFrameEditor())
 		GetFrameEditor()->OnEditCopy();
 }
@@ -2802,7 +2796,7 @@ void CMainFrame::OnEditCopy()
 void CMainFrame::OnEditCopyAsText()		// // //
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditCopyAsText();
+		GetTrackerView()->OnEditCopyAsText();
 	//else if (GetFocus() == GetFrameEditor())
 	//	GetFrameEditor()->OnEditCopy();
 }
@@ -2810,19 +2804,19 @@ void CMainFrame::OnEditCopyAsText()		// // //
 void CMainFrame::OnEditCopyAsVolumeSequence()		// // //
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditCopyAsVolumeSequence();
+		GetTrackerView()->OnEditCopyAsVolumeSequence();
 }
 
 void CMainFrame::OnEditCopyAsPPMCK()		// // //
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditCopyAsPPMCK();
+		GetTrackerView()->OnEditCopyAsPPMCK();
 }
 
 void CMainFrame::OnEditPaste()
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditPaste();
+		GetTrackerView()->OnEditPaste();
 	else if (GetFocus() == GetFrameEditor())
 		GetFrameEditor()->OnEditPaste();
 }
@@ -2830,7 +2824,7 @@ void CMainFrame::OnEditPaste()
 void CMainFrame::OnEditPasteOverwrite()		// // //
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditPasteOverwrite();
+		GetTrackerView()->OnEditPasteOverwrite();
 	else if (GetFocus() == GetFrameEditor())
 		GetFrameEditor()->OnEditPasteOverwrite();
 }
@@ -2838,7 +2832,7 @@ void CMainFrame::OnEditPasteOverwrite()		// // //
 void CMainFrame::OnUpdateEditPasteOverwrite(CCmdUI *pCmdUI)		// // //
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnUpdateEditPaste(pCmdUI);
+		GetTrackerView()->OnUpdateEditPaste(pCmdUI);
 	else if (GetFocus() == GetFrameEditor())
 		GetFrameEditor()->OnUpdateEditPasteOverwrite(pCmdUI);
 }
@@ -2846,7 +2840,7 @@ void CMainFrame::OnUpdateEditPasteOverwrite(CCmdUI *pCmdUI)		// // //
 void CMainFrame::OnEditDelete()
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditCut();
+		GetTrackerView()->OnEditCut();
 	else if (GetFocus() == GetFrameEditor())
 		GetFrameEditor()->OnEditDelete();
 }
@@ -2854,7 +2848,7 @@ void CMainFrame::OnEditDelete()
 void CMainFrame::OnEditSelectall()
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectall();
+		GetTrackerView()->OnEditSelectall();
 	else if (GetFocus() == GetFrameEditor())		// // //
 		GetFrameEditor()->OnEditSelectall();
 }
@@ -2862,7 +2856,7 @@ void CMainFrame::OnEditSelectall()
 void CMainFrame::OnEditSelectnone()		// // //
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectnone();
+		GetTrackerView()->OnEditSelectnone();
 	else if (GetFocus() == GetFrameEditor())
 		GetFrameEditor()->CancelSelection();
 }
@@ -2870,19 +2864,19 @@ void CMainFrame::OnEditSelectnone()		// // //
 void CMainFrame::OnEditSelectrow()
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectrow();
+		GetTrackerView()->OnEditSelectrow();
 }
 
 void CMainFrame::OnEditSelectcolumn()
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectcolumn();
+		GetTrackerView()->OnEditSelectcolumn();
 }
 
 void CMainFrame::OnEditSelectpattern()
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectpattern();
+		GetTrackerView()->OnEditSelectpattern();
 	else if (GetFocus() == GetFrameEditor())
 		GetFrameEditor()->OnEditSelectpattern();
 }
@@ -2890,7 +2884,7 @@ void CMainFrame::OnEditSelectpattern()
 void CMainFrame::OnEditSelectframe()
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectframe();
+		GetTrackerView()->OnEditSelectframe();
 	else if (GetFocus() == GetFrameEditor())
 		GetFrameEditor()->OnEditSelectframe();
 }
@@ -2898,7 +2892,7 @@ void CMainFrame::OnEditSelectframe()
 void CMainFrame::OnEditSelectchannel()
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelectchannel();
+		GetTrackerView()->OnEditSelectchannel();
 	else if (GetFocus() == GetFrameEditor())
 		GetFrameEditor()->OnEditSelectchannel();
 }
@@ -2906,14 +2900,14 @@ void CMainFrame::OnEditSelectchannel()
 void CMainFrame::OnEditSelecttrack()
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditSelecttrack();
+		GetTrackerView()->OnEditSelecttrack();
 	else if (GetFocus() == GetFrameEditor())
 		GetFrameEditor()->OnEditSelectall();
 }
 
 void CMainFrame::OnEditSelectother()		// // //
 {
-	auto pView = static_cast<CFamiTrackerView*>(GetActiveView());
+	auto *pView = GetTrackerView();
 	auto pEditor = pView->GetPatternEditor();
 
 	if (GetFocus() == pView) {
@@ -2951,7 +2945,7 @@ void CMainFrame::OnEditSelectother()		// // //
 			NewSel.m_cpEnd.m_iChannel = Sel.GetLastSelectedChannel();
 
 			NewSel.m_cpStart.m_iRow = 0;
-			NewSel.m_cpStart.m_iColumn = C_NOTE;
+			NewSel.m_cpStart.m_iColumn = cursor_column_t::NOTE;
 			NewSel.m_cpEnd.m_iRow = pView->GetSongView()->GetCurrentPatternLength(NewSel.m_cpEnd.m_iFrame, Env.GetSettings()->General.bShowSkippedRows) - 1;
 			NewSel.m_cpEnd.m_iColumn = pEditor->GetChannelColumns(NewSel.m_cpEnd.m_iChannel);
 
@@ -2989,19 +2983,19 @@ void CMainFrame::OnUpdateDecaySlow(CCmdUI *pCmdUI)		// // // 050B
 void CMainFrame::OnEditExpandpatterns()
 {
 	if (GetFocus() == GetActiveView())		// // //
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditExpandPatterns();
+		GetTrackerView()->OnEditExpandPatterns();
 }
 
 void CMainFrame::OnEditShrinkpatterns()
 {
 	if (GetFocus() == GetActiveView())		// // //
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditShrinkPatterns();
+		GetTrackerView()->OnEditShrinkPatterns();
 }
 
 void CMainFrame::OnEditStretchpatterns()		// // //
 {
 	if (GetFocus() == GetActiveView())
-		static_cast<CFamiTrackerView*>(GetActiveView())->OnEditStretchPatterns();
+		GetTrackerView()->OnEditStretchPatterns();
 }
 
 void CMainFrame::OnEditTransposeCustom()		// // //
@@ -3058,8 +3052,7 @@ void CMainFrame::OnEditMergeDuplicatedPatterns()
 
 void CMainFrame::OnUpdateSelectionEnabled(CCmdUI *pCmdUI)
 {
-	CFamiTrackerView *pView	= static_cast<CFamiTrackerView*>(GetActiveView());
-	pCmdUI->Enable(pView->IsSelecting() ? 1 : 0);
+	pCmdUI->Enable(GetTrackerView()->IsSelecting() ? 1 : 0);
 }
 
 void CMainFrame::OnUpdateCurrentSelectionEnabled(CCmdUI *pCmdUI)		// // //
@@ -3354,7 +3347,7 @@ void CMainFrame::OnEasterEggKraid5()
 		}
 		CFamiTrackerDoc &doc = GetDoc();
 		doc.CreateEmpty();
-		static_cast<CFamiTrackerView *>(GetActiveView())->OnInitialUpdate();
+		GetTrackerView()->OnInitialUpdate();
 		Kraid { }(*doc.GetModule());
 		SelectTrack(0);
 		SetSongInfo(*doc.GetModule());

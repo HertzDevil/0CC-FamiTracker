@@ -1748,7 +1748,7 @@ void CFamiTrackerView::InsertNote(const stChanNote &Cell) {		// // //
 	auto &Action = *pAction; // TODO: remove
 	if (AddAction(std::move(pAction))) {
 		const CSettings *pSettings = Env.GetSettings();
-		if (m_pPatternEditor->GetColumn() == C_NOTE && !Env.GetSoundGenerator()->IsPlaying() && m_iInsertKeyStepping > 0 && !pSettings->Midi.bMidiMasterSync) {
+		if (m_pPatternEditor->GetColumn() == cursor_column_t::NOTE && !Env.GetSoundGenerator()->IsPlaying() && m_iInsertKeyStepping > 0 && !pSettings->Midi.bMidiMasterSync) {
 			StepDown();
 			Action.SaveRedoState(static_cast<CMainFrame &>(*GetParentFrame()));		// // //
 		}
@@ -2114,7 +2114,7 @@ void CFamiTrackerView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 	if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9) {
 		// Switch instrument
-		if (m_pPatternEditor->GetColumn() == C_NOTE) {
+		if (m_pPatternEditor->GetColumn() == cursor_column_t::NOTE) {
 			SetInstrument(nChar - VK_NUMPAD0);
 			return;
 		}
@@ -2398,7 +2398,7 @@ bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &Ste
 	if (Value == -1)
 		return false;
 
-	if (Column == C_INSTRUMENT1) {
+	if (Column == cursor_column_t::INSTRUMENT1) {
 		Mask = 0x0F;
 		Shift = 4;
 	}
@@ -2422,9 +2422,9 @@ bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &Ste
 			break;
 		case edit_style_t::IT: // IT
 			Note.Instrument = (Note.Instrument & Mask) | (Value << Shift);
-			if (Column == C_INSTRUMENT1)
+			if (Column == cursor_column_t::INSTRUMENT1)
 				MoveRight = true;
-			else if (Column == C_INSTRUMENT2) {
+			else if (Column == cursor_column_t::INSTRUMENT2) {
 				MoveLeft = true;
 				StepDown = true;
 			}
@@ -2552,7 +2552,7 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 		return false;
 
 	unsigned char Mask, Shift;
-	if (Column == C_EFF1_PARAM1 || Column == C_EFF2_PARAM1 || Column == C_EFF3_PARAM1 || Column == C_EFF4_PARAM1) {
+	if (Column == cursor_column_t::EFF1_PARAM1 || Column == cursor_column_t::EFF2_PARAM1 || Column == cursor_column_t::EFF3_PARAM1 || Column == cursor_column_t::EFF4_PARAM1) {
 		Mask = 0x0F;
 		Shift = 4;
 	}
@@ -2612,25 +2612,25 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 
 	// Make all effect columns look the same, save an index instead
 	switch (Column) {
-		case C_EFF1_NUM:	Column = C_EFF1_NUM;	Index = 0; break;
-		case C_EFF2_NUM:	Column = C_EFF1_NUM;	Index = 1; break;
-		case C_EFF3_NUM:	Column = C_EFF1_NUM;	Index = 2; break;
-		case C_EFF4_NUM:	Column = C_EFF1_NUM;	Index = 3; break;
-		case C_EFF1_PARAM1:	Column = C_EFF1_PARAM1; Index = 0; break;
-		case C_EFF2_PARAM1:	Column = C_EFF1_PARAM1; Index = 1; break;
-		case C_EFF3_PARAM1:	Column = C_EFF1_PARAM1; Index = 2; break;
-		case C_EFF4_PARAM1:	Column = C_EFF1_PARAM1; Index = 3; break;
-		case C_EFF1_PARAM2:	Column = C_EFF1_PARAM2; Index = 0; break;
-		case C_EFF2_PARAM2:	Column = C_EFF1_PARAM2; Index = 1; break;
-		case C_EFF3_PARAM2:	Column = C_EFF1_PARAM2; Index = 2; break;
-		case C_EFF4_PARAM2:	Column = C_EFF1_PARAM2; Index = 3; break;
+		case cursor_column_t::EFF1_NUM:	Column = cursor_column_t::EFF1_NUM;	Index = 0; break;
+		case cursor_column_t::EFF2_NUM:	Column = cursor_column_t::EFF1_NUM;	Index = 1; break;
+		case cursor_column_t::EFF3_NUM:	Column = cursor_column_t::EFF1_NUM;	Index = 2; break;
+		case cursor_column_t::EFF4_NUM:	Column = cursor_column_t::EFF1_NUM;	Index = 3; break;
+		case cursor_column_t::EFF1_PARAM1:	Column = cursor_column_t::EFF1_PARAM1; Index = 0; break;
+		case cursor_column_t::EFF2_PARAM1:	Column = cursor_column_t::EFF1_PARAM1; Index = 1; break;
+		case cursor_column_t::EFF3_PARAM1:	Column = cursor_column_t::EFF1_PARAM1; Index = 2; break;
+		case cursor_column_t::EFF4_PARAM1:	Column = cursor_column_t::EFF1_PARAM1; Index = 3; break;
+		case cursor_column_t::EFF1_PARAM2:	Column = cursor_column_t::EFF1_PARAM2; Index = 0; break;
+		case cursor_column_t::EFF2_PARAM2:	Column = cursor_column_t::EFF1_PARAM2; Index = 1; break;
+		case cursor_column_t::EFF3_PARAM2:	Column = cursor_column_t::EFF1_PARAM2; Index = 2; break;
+		case cursor_column_t::EFF4_PARAM2:	Column = cursor_column_t::EFF1_PARAM2; Index = 3; break;
 	}
 
-	if (Column != C_NOTE && !m_bEditEnable)		// // //
+	if (Column != cursor_column_t::NOTE && !m_bEditEnable)		// // //
 		HandleKeyboardNote(nChar, true);
 	switch (Column) {
 		// Note & octave column
-		case C_NOTE:
+		case cursor_column_t::NOTE:
 			if (CheckRepeatKey(nChar)) {
 				Note.Note = m_LastNote.Note;		// // //
 				Note.Octave = m_LastNote.Octave;
@@ -2657,24 +2657,24 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 				bStepDown = true;
 			break;
 		// Instrument column
-		case C_INSTRUMENT1:
-		case C_INSTRUMENT2:
+		case cursor_column_t::INSTRUMENT1:
+		case cursor_column_t::INSTRUMENT2:
 			if (!EditInstrumentColumn(Note, nChar, bStepDown, bMoveRight, bMoveLeft))
 				return;
 			break;
 		// Volume column
-		case C_VOLUME:
+		case cursor_column_t::VOLUME:
 			if (!EditVolumeColumn(Note, nChar, bStepDown))
 				return;
 			break;
 		// Effect number
-		case C_EFF1_NUM:
+		case cursor_column_t::EFF1_NUM:
 			if (!EditEffNumberColumn(Note, nChar, Index, bStepDown))
 				return;
 			break;
 		// Effect parameter
-		case C_EFF1_PARAM1:
-		case C_EFF1_PARAM2:
+		case cursor_column_t::EFF1_PARAM1:
+		case cursor_column_t::EFF1_PARAM2:
 			if (!EditEffParamColumn(Note, nChar, Index, bStepDown, bMoveRight, bMoveLeft))
 				return;
 			break;

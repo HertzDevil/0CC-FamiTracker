@@ -30,7 +30,6 @@
 #include "array_view.h"		// // //
 #include <string_view>		// // //
 #include <iosfwd>		// // //
-using namespace std::string_view_literals;
 
 // CDocumentFile, class for reading/writing document files
 
@@ -97,8 +96,8 @@ public:
 	static const unsigned int FILE_VER;
 	static const unsigned int COMPATIBLE_VER;
 
-	static constexpr std::string_view FILE_HEADER_ID = "FamiTracker Module"sv;		// // //
-	static constexpr std::string_view FILE_END_ID = "END"sv;
+	static constexpr std::string_view FILE_HEADER_ID = "FamiTracker Module";		// // //
+	static constexpr std::string_view FILE_END_ID = "END";
 
 	static const unsigned int MAX_BLOCK_SIZE;
 	static const unsigned int BLOCK_SIZE;

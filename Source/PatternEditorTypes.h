@@ -50,23 +50,23 @@ enum sel_scope_t {
 };
 
 // Cursor columns
-enum cursor_column_t : unsigned int {		// // // moved from FamiTrackerDoc.h
-	C_NOTE,
-	C_INSTRUMENT1,
-	C_INSTRUMENT2,
-	C_VOLUME,
-	C_EFF1_NUM,
-	C_EFF1_PARAM1,
-	C_EFF1_PARAM2,
-	C_EFF2_NUM,
-	C_EFF2_PARAM1,
-	C_EFF2_PARAM2,
-	C_EFF3_NUM,
-	C_EFF3_PARAM1,
-	C_EFF3_PARAM2,
-	C_EFF4_NUM,
-	C_EFF4_PARAM1,
-	C_EFF4_PARAM2,
+enum class cursor_column_t : unsigned int {		// // // moved from FamiTrackerDoc.h
+	NOTE,
+	INSTRUMENT1,
+	INSTRUMENT2,
+	VOLUME,
+	EFF1_NUM,
+	EFF1_PARAM1,
+	EFF1_PARAM2,
+	EFF2_NUM,
+	EFF2_PARAM1,
+	EFF2_PARAM2,
+	EFF3_NUM,
+	EFF3_PARAM1,
+	EFF3_PARAM2,
+	EFF4_NUM,
+	EFF4_PARAM1,
+	EFF4_PARAM2,
 };
 
 // Column layout
@@ -96,13 +96,19 @@ inline column_t GetSelectColumn(cursor_column_t Column)
 		column_t::Effect4, column_t::Effect4, column_t::Effect4,
 	};
 
-	return COLUMN_INDICES[Column];
+	return COLUMN_INDICES[value_cast(Column)];
 }
 
 inline cursor_column_t GetCursorStartColumn(column_t Column)
 {
 	static const cursor_column_t COL_START[] = {
-		C_NOTE, C_INSTRUMENT1, C_VOLUME, C_EFF1_NUM, C_EFF2_NUM, C_EFF3_NUM, C_EFF4_NUM,
+		cursor_column_t::NOTE,
+		cursor_column_t::INSTRUMENT1,
+		cursor_column_t::VOLUME,
+		cursor_column_t::EFF1_NUM,
+		cursor_column_t::EFF2_NUM,
+		cursor_column_t::EFF3_NUM,
+		cursor_column_t::EFF4_NUM,
 	};
 
 	return COL_START[value_cast(Column)];
@@ -111,7 +117,13 @@ inline cursor_column_t GetCursorStartColumn(column_t Column)
 inline cursor_column_t GetCursorEndColumn(column_t Column)
 {
 	static const cursor_column_t COL_END[] = {
-		C_NOTE, C_INSTRUMENT2, C_VOLUME, C_EFF1_PARAM2, C_EFF2_PARAM2, C_EFF3_PARAM2, C_EFF4_PARAM2,
+		cursor_column_t::NOTE,
+		cursor_column_t::INSTRUMENT2,
+		cursor_column_t::VOLUME,
+		cursor_column_t::EFF1_PARAM2,
+		cursor_column_t::EFF2_PARAM2,
+		cursor_column_t::EFF3_PARAM2,
+		cursor_column_t::EFF4_PARAM2,
 	};
 
 	return COL_END[value_cast(Column)];

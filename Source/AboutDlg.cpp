@@ -107,7 +107,7 @@ void CHead::DrawItem(LPDRAWITEMSTRUCT lpDraw)
 	CDC *pDC = CDC::FromHandle(lpDraw->hDC);
 
 	CBitmap bmp;
-	bmp.LoadBitmap(IDB_ABOUT);
+	bmp.LoadBitmapW(IDB_ABOUT);
 
 	CDC dcImage;
 	dcImage.CreateCompatibleDC(pDC);

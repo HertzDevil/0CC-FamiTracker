@@ -33,13 +33,13 @@ namespace {
 using namespace std::string_view_literals;
 
 constexpr std::string_view NOTE_NAME[] = {
-	"C-"sv, "C#"sv, "D-"sv, "D#"sv, "E-"sv, "F-"sv,
-	"F#"sv, "G-"sv, "G#"sv, "A-"sv, "A#"sv, "B-"sv,
+	"C-", "C#", "D-", "D#", "E-", "F-",
+	"F#", "G-", "G#", "A-", "A#", "B-",
 };
 
 constexpr std::string_view NOTE_NAME_FLAT[] = {
-	"C-"sv, "Db"sv, "D-"sv, "Eb"sv, "E-"sv, "F-"sv,
-	"Gb"sv, "G-"sv, "Ab"sv, "A-"sv, "Bb"sv, "B-"sv,
+	"C-", "Db", "D-", "Eb", "E-", "F-",
+	"Gb", "G-", "Ab", "A-", "Bb", "B-",
 };
 
 } // namespace
