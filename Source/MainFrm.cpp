@@ -1747,10 +1747,16 @@ void CMainFrame::OnUpdateKeyStepEdit(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateSpeedEdit(CCmdUI *pCmdUI)
 {
 	if (!m_cLockedEditSpeed.IsEditable()) {
-		if (m_cLockedEditSpeed.Update())
-			SetSpeed(m_cLockedEditSpeed.GetValue());
+		const CSongData &song = *GetCurrentSong();		// // //
+		if (m_cLockedEditSpeed.Update()) {
+			int idx = m_cLockedEditSpeed.GetValue();
+			if (song.GetSongGroove() && GetDoc().GetModule()->HasGroove(idx))
+				SetGroove(idx);
+			else
+				SetSpeed(idx);
+		}
 		else {
-			pCmdUI->SetText(FormattedW(L"%i", GetCurrentSong()->GetSongSpeed()));		// // //
+			pCmdUI->SetText(FormattedW(L"%i", song.GetSongSpeed()));		// // //
 		}
 	}
 }
