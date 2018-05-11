@@ -81,8 +81,8 @@ public:
 	bool HasExpansionChip(sound_chip_t Chip) const;
 	int GetNamcoChannels() const;
 
-	std::unique_ptr<CSongView> MakeSongView(unsigned index);
-	std::unique_ptr<CConstSongView> MakeSongView(unsigned index) const;
+	std::unique_ptr<CSongView> MakeSongView(unsigned index, bool showSkippedRows);
+	std::unique_ptr<CConstSongView> MakeSongView(unsigned index, bool showSkippedRows) const;
 
 	// global info
 	machine_t GetMachine() const;

@@ -29,7 +29,7 @@
 std::unique_ptr<CWaveRenderer> CWaveRendererFactory::Make(const CFamiTrackerModule &modfile, unsigned track, render_type_t renderType, unsigned param) {
 	switch (renderType) {
 	case render_type_t::Loops: {
-		auto pSongView = modfile.MakeSongView(track);
+		auto pSongView = modfile.MakeSongView(track, false);
 		CSongLengthScanner scanner {modfile, *pSongView};
 		auto [FirstLoop, SecondLoop] = scanner.GetRowCount();
 		auto rows = FirstLoop + SecondLoop * param;

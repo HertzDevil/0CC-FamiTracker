@@ -83,10 +83,9 @@ const unsigned int COLUMNS = 7;		// // // moved from FamiTrackerDoc.h
 
 // // // moved from PatternEditor.h
 
-inline column_t GetSelectColumn(cursor_column_t Column)
-{
-	// Return first column for a specific column field
-	static const column_t COLUMN_INDICES[] = {
+// Return first column for a specific column field
+constexpr column_t GetSelectColumn(cursor_column_t Column) {		// // //
+	constexpr column_t COLUMN_INDICES[] = {
 		column_t::Note,
 		column_t::Instrument, column_t::Instrument,
 		column_t::Volume,
@@ -99,9 +98,8 @@ inline column_t GetSelectColumn(cursor_column_t Column)
 	return COLUMN_INDICES[value_cast(Column)];
 }
 
-inline cursor_column_t GetCursorStartColumn(column_t Column)
-{
-	static const cursor_column_t COL_START[] = {
+constexpr cursor_column_t GetCursorStartColumn(column_t Column) {
+	constexpr cursor_column_t COL_START[] = {
 		cursor_column_t::NOTE,
 		cursor_column_t::INSTRUMENT1,
 		cursor_column_t::VOLUME,
@@ -114,9 +112,8 @@ inline cursor_column_t GetCursorStartColumn(column_t Column)
 	return COL_START[value_cast(Column)];
 }
 
-inline cursor_column_t GetCursorEndColumn(column_t Column)
-{
-	static const cursor_column_t COL_END[] = {
+constexpr cursor_column_t GetCursorEndColumn(column_t Column) {
+	constexpr cursor_column_t COL_END[] = {
 		cursor_column_t::NOTE,
 		cursor_column_t::INSTRUMENT2,
 		cursor_column_t::VOLUME,
@@ -156,8 +153,6 @@ enum class sel_condition_t : unsigned char {
 class CSongData;		// // //
 class CSongView;		// // //
 class stChanNote;
-
-class CFamiTrackerDoc;
 
 // Cursor position
 class CCursorPos {

@@ -103,6 +103,7 @@ public:
 	stChannelID TranslateChannel(unsigned Index) const;		// // //
 	stChannelID GetSelectedChannelID() const;		// // //
 	CTrackerChannel &GetTrackerChannel(std::size_t Index) const;		// // //
+	void		UpdateSongView();		// // //
 
 	CSongView	*GetSongView();		// // //
 	const CConstSongView *GetSongView() const;		// // //
@@ -185,8 +186,6 @@ private:
 	void	RedrawFrameEditor();
 
 	void	PeriodicUpdate();
-
-	void	UpdateSongView();		// // //
 
 	// Instruments
 	void		 SetInstrument(int Instrument);

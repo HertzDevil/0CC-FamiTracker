@@ -156,7 +156,9 @@ void CSoundDriver::Tick() {
 void CSoundDriver::StepRow(stChannelID chan) {
 	stChanNote NoteData = m_pPlayerCursor->GetSong().GetActiveNote(
 		chan, m_pPlayerCursor->GetCurrentFrame(), m_pPlayerCursor->GetCurrentRow());		// // //
-	HandleGlobalEffects(NoteData);
+	for (auto &cmd : NoteData.Effects)
+		if (HandleGlobalEffect(cmd))
+			cmd = { };
 	if (!parent_ || !parent_->IsChannelMuted(chan))
 		QueueNote(chan, NoteData, NOTE_PRIO_1);
 	// Let view know what is about to play
@@ -325,36 +327,32 @@ void CSoundDriver::SetupPeriodTables() {
 	});
 }
 
-void CSoundDriver::HandleGlobalEffects(stChanNote &note) {
-	for (auto &cmd : note.Effects) {
-		switch (cmd.fx) {
-		// Fxx: Sets speed to xx
-		case effect_t::SPEED:
-			if (m_pTempoCounter)
-				m_pTempoCounter->DoFxx(cmd.param ? cmd.param : 1);		// // //
-			break;
-		// Oxx: Sets groove to xx
-		case effect_t::GROOVE:		// // //
-			if (m_pTempoCounter)
-				m_pTempoCounter->DoOxx(cmd.param % MAX_GROOVE);		// // //
-			break;
-		// Bxx: Jump to pattern xx
-		case effect_t::JUMP:
-			m_iJumpToPattern = cmd.param;
-			break;
-		// Dxx: Skip to next track and start at row xx
-		case effect_t::SKIP:
-			m_iSkipToRow = cmd.param;
-			break;
-		// Cxx: Halt playback
-		case effect_t::HALT:
-			m_bDoHalt = true;		// // //
-			m_pPlayerCursor->DoCxx();		// // //
-			break;
-		default:
-			continue;		// // //
-		}
-
-		cmd = { };
+bool CSoundDriver::HandleGlobalEffect(stEffectCommand cmd) {
+	switch (cmd.fx) {
+	// Fxx: Sets speed to xx
+	case effect_t::SPEED:
+		if (m_pTempoCounter)
+			m_pTempoCounter->DoFxx(cmd.param ? cmd.param : 1);		// // //
+		return true;
+	// Oxx: Sets groove to xx
+	case effect_t::GROOVE:		// // //
+		if (m_pTempoCounter)
+			m_pTempoCounter->DoOxx(cmd.param % MAX_GROOVE);		// // //
+		return true;
+	// Bxx: Jump to pattern xx
+	case effect_t::JUMP:
+		m_iJumpToPattern = cmd.param;
+		return true;
+	// Dxx: Skip to next track and start at row xx
+	case effect_t::SKIP:
+		m_iSkipToRow = cmd.param;
+		return true;
+	// Cxx: Halt playback
+	case effect_t::HALT:
+		m_bDoHalt = true;		// // //
+		m_pPlayerCursor->DoCxx();		// // //
+		return true;
 	}
+
+	return false;
 }

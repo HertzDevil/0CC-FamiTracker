@@ -22,6 +22,8 @@
 
 #include "ConfigGeneral.h"
 #include "FamiTracker.h"
+#include "MainFrm.h"		// // //
+#include "FamiTrackerView.h"		// // //
 #include "Settings.h"
 #include "ft0cc/enum_traits.h"		// // //
 
@@ -167,6 +169,8 @@ BOOL CConfigGeneral::OnApply()
 	pSettings->Keys.iKeyClear				= m_iKeyClear;
 	pSettings->Keys.iKeyRepeat				= m_iKeyRepeat;
 	pSettings->Keys.iKeyEchoBuffer			= m_iKeyEchoBuffer;		// // //
+
+	theApp.GetMainFrame()->GetTrackerView()->UpdateSongView();		// // //
 
 	return CPropertyPage::OnApply();
 }

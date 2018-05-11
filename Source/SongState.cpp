@@ -234,7 +234,7 @@ void stChannelState::HandleSxxCommand(unsigned char xy) {
 
 
 void CSongState::Retrieve(const CFamiTrackerModule &modfile, unsigned Track, unsigned Frame, unsigned Row) {
-	CConstSongView SongView {modfile.GetChannelOrder().Canonicalize(), *modfile.GetSong(Track)};
+	CConstSongView SongView {modfile.GetChannelOrder().Canonicalize(), *modfile.GetSong(Track), false};
 	const auto &song = SongView.GetSong();
 
 	State.clear();

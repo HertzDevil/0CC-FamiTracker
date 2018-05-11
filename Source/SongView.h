@@ -34,7 +34,7 @@ class CConstSongView {
 	friend class CSongView;
 
 public:
-	CConstSongView(const CChannelOrder &order, const CSongData &song);
+	CConstSongView(const CChannelOrder &order, const CSongData &song, bool showSkippedRows);
 
 	CChannelOrder &GetChannelOrder();
 	const CChannelOrder &GetChannelOrder() const;
@@ -48,7 +48,6 @@ public:
 	unsigned GetEffectColumnCount(std::size_t index) const;
 
 	unsigned GetFrameLength(unsigned Frame) const;
-	unsigned GetCurrentPatternLength(unsigned Frame, bool showSkippedRows) const;
 
 	// void (*F)(std::size_t index)
 	template <typename F>
@@ -75,11 +74,12 @@ public:
 private:
 	CChannelOrder order_;
 	const CSongData &song_;
+	bool show_skipped_ = false;
 };
 
 class CSongView : public CConstSongView {
 public:
-	CSongView(const CChannelOrder &order, CSongData &song);
+	CSongView(const CChannelOrder &order, CSongData &song, bool showSkippedRows);
 
 	using CConstSongView::GetSong;
 	CSongData &GetSong();

@@ -43,6 +43,7 @@ class stChanNote;
 class CSoundGenBase;
 class CSoundChipSet;
 enum note_prio_t : unsigned;
+struct stEffectCommand;
 
 class CSoundDriver {
 public:
@@ -107,7 +108,7 @@ private:
 	void PlayerTick();
 	void StepRow(stChannelID chan);
 	void UpdateChannels();
-	void HandleGlobalEffects(stChanNote &note);
+	bool HandleGlobalEffect(stEffectCommand cmd);		// // //
 
 private:
 	struct stChannelID_ident_less {

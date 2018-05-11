@@ -103,7 +103,7 @@ void CFindCursor::Move(direction_t Dir)
 		m_iChannel = m_Scope.m_cpEnd.m_iChannel;
 		if (--m_iRow < 0) {
 			--m_iFrame;
-			m_iRow = song_view_.GetCurrentPatternLength(TranslateFrame(), Env.GetSettings()->General.bShowSkippedRows) - 1;
+			m_iRow = song_view_.GetFrameLength(TranslateFrame()) - 1;
 		}
 		if (m_iFrame < m_Scope.m_cpStart.m_iFrame ||
 			m_iFrame == m_Scope.m_cpStart.m_iFrame && m_iRow < m_Scope.m_cpStart.m_iRow) {
@@ -113,7 +113,7 @@ void CFindCursor::Move(direction_t Dir)
 		break;
 	case direction_t::RIGHT:
 		m_iChannel = m_Scope.m_cpStart.m_iChannel;
-		if (++m_iRow >= static_cast<int>(song_view_.GetCurrentPatternLength(TranslateFrame(), Env.GetSettings()->General.bShowSkippedRows))) {
+		if (++m_iRow >= static_cast<int>(song_view_.GetFrameLength(TranslateFrame()))) {
 			++m_iFrame;
 			m_iRow = 0;
 		}
@@ -1140,7 +1140,7 @@ void CFindDlg::PrepareCursor(bool ReplaceAll)
 		}
 
 		Scope.m_cpStart.m_iRow = 0;
-		Scope.m_cpEnd.m_iRow = pSongView->GetCurrentPatternLength(Scope.m_cpEnd.m_iFrame, Env.GetSettings()->General.bShowSkippedRows) - 1;
+		Scope.m_cpEnd.m_iRow = pSongView->GetFrameLength(Scope.m_cpEnd.m_iFrame) - 1;
 	}
 	m_pFindCursor = std::make_unique<CFindCursor>(*pSongView, ReplaceAll ? Scope.m_cpStart : Cursor, Scope);
 }

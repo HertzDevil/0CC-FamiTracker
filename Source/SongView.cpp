@@ -24,13 +24,13 @@
 #include "SongData.h"
 #include "TrackData.h"
 
-CConstSongView::CConstSongView(const CChannelOrder &order, const CSongData &song) :
-	order_(order), song_(song)
+CConstSongView::CConstSongView(const CChannelOrder &order, const CSongData &song, bool showSkippedRows) :
+	order_(order), song_(song), show_skipped_(showSkippedRows)
 {
 }
 
-CSongView::CSongView(const CChannelOrder &order, CSongData &song) :
-	CConstSongView(order, const_cast<CSongData &>(song))
+CSongView::CSongView(const CChannelOrder &order, CSongData &song, bool showSkippedRows) :
+	CConstSongView(order, const_cast<CSongData &>(song), showSkippedRows)
 {
 }
 
@@ -98,6 +98,9 @@ void CSongView::SetEffectColumnCount(std::size_t index, unsigned Count) {
 }
 
 unsigned CConstSongView::GetFrameLength(unsigned Frame) const {
+	if (show_skipped_)		// // //
+		return GetSong().GetPatternLength();
+
 	const unsigned PatternLength = GetSong().GetPatternLength();	// default length
 	unsigned HaltPoint = PatternLength;
 
@@ -119,12 +122,6 @@ unsigned CConstSongView::GetFrameLength(unsigned Frame) const {
 	});
 
 	return HaltPoint;
-}
-
-unsigned CConstSongView::GetCurrentPatternLength(unsigned Frame, bool showSkippedRows) const {
-	if (showSkippedRows)		// // //
-		return GetSong().GetPatternLength();
-	return GetFrameLength(Frame);
 }
 
 void CSongView::PullUp(std::size_t index, unsigned Frame, unsigned Row) {

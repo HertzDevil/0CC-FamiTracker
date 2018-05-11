@@ -35,7 +35,7 @@
 class loop_visitor {
 public:
 	explicit loop_visitor(const CConstSongView &view) :
-		song_view_(view.GetChannelOrder().Canonicalize(), view.GetSong()) { }
+		song_view_(view.GetChannelOrder().Canonicalize(), view.GetSong(), false) { }
 
 	template <typename F, typename G>
 	void Visit(F cb, G fx) {

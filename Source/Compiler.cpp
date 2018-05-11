@@ -191,7 +191,7 @@ std::size_t NSFEWriteBlocks(CSimpleFile &file, const CFamiTrackerModule &modfile
 	NSFEWriteBlockIdent(file, "time", iTimeSize);
 
 	modfile.VisitSongs([&] (const CSongData &song, unsigned i) {
-		auto pSongView = modfile.MakeSongView(i);
+		auto pSongView = modfile.MakeSongView(i, false);
 		CSongLengthScanner scanner {modfile, *pSongView};
 		auto [FirstLoop, SecondLoop] = scanner.GetSecondsCount();
 		file.WriteInt32(static_cast<int>((FirstLoop + SecondLoop) * 1000.0 + 0.5));

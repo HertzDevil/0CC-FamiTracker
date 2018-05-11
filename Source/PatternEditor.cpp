@@ -3174,7 +3174,7 @@ int CPatternEditor::GetCurrentPatternLength(int Frame) const		// // //
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	int Frames = pSongView->GetSong().GetFrameCount();
 	int f = Frame % Frames;
-	return pSongView->GetCurrentPatternLength(f < 0 ? f + Frames : f, Env.GetSettings()->General.bShowSkippedRows);
+	return pSongView->GetFrameLength(f < 0 ? f + Frames : f);
 }
 
 void CPatternEditor::SetHighlight(const stHighlight &Hl)		// // //
@@ -3753,12 +3753,7 @@ void CPatternEditor::UpdateDrag(const CPoint &point)
 
 	if (m_iDragChannels == 1 && GetSelectColumn(m_iDragStartCol) >= column_t::Effect1) {
 		// Allow dragging between effect columns in the same channel
-		if (GetSelectColumn(PointPos.m_iColumn) >= column_t::Effect1) {
-			ColumnStart = static_cast<cursor_column_t>(value_cast(PointPos.m_iColumn) - (value_cast(PointPos.m_iColumn) - 1) % 3);
-		}
-		else {
-			ColumnStart = cursor_column_t::EFF1_NUM;
-		}
+		ColumnStart = GetCursorStartColumn(std::max(GetSelectColumn(PointPos.m_iColumn), column_t::Effect1));
 		ColumnEnd = static_cast<cursor_column_t>(value_cast(ColumnStart) + (value_cast(m_iDragEndCol) - value_cast(m_iDragStartCol)));
 	}
 

@@ -846,7 +846,8 @@ void CFamiTrackerView::PeriodicUpdate()
 }
 
 void CFamiTrackerView::UpdateSongView() {		// // //
-	song_view_ = GetModuleData()->MakeSongView(GetMainFrame()->GetSelectedTrack());
+	song_view_ = GetModuleData()->MakeSongView(GetMainFrame()->GetSelectedTrack(),
+		Env.GetSettings()->General.bShowSkippedRows);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1340,7 +1341,7 @@ bool CFamiTrackerView::IsMarkerValid() const		// // //
 
 	if (m_iMarkerFrame >= static_cast<int>(pSongView->GetSong().GetFrameCount()))
 		return false;
-	if (m_iMarkerRow >= (int)pSongView->GetCurrentPatternLength(m_iMarkerFrame, Env.GetSettings()->General.bShowSkippedRows))
+	if (m_iMarkerRow >= (int)pSongView->GetFrameLength(m_iMarkerFrame))
 		return false;
 	return true;
 }
@@ -3337,7 +3338,7 @@ DROPEFFECT CFamiTrackerView::OnDragEnter(COleDataObject* pDataObject, DWORD dwKe
 		static_cast<CMainFrame*>(GetParentFrame())->SetMessageText(IDS_SEL_REPEATED_ROW);
 		m_nDropEffect = DROPEFFECT_NONE;
 	}
-	else if (pDataObject->IsDataAvailable(m_iClipboard)) {
+	else if (m_bEditEnable && pDataObject->IsDataAvailable(m_iClipboard)) {		// // //
 		if (dwKeyState & (MK_CONTROL | MK_SHIFT)) {
 			m_nDropEffect = DROPEFFECT_COPY;
 			m_bDropMix = (dwKeyState & MK_SHIFT) == MK_SHIFT;		// // //
@@ -3393,8 +3394,7 @@ BOOL CFamiTrackerView::OnDrop(COleDataObject* pDataObject, DROPEFFECT dropEffect
 	BOOL Result = FALSE;
 
 	// Perform drop
-	if (m_nDropEffect != DROPEFFECT_NONE) {
-
+	if (m_bEditEnable && m_nDropEffect != DROPEFFECT_NONE) {		// // //
 		bool bCopy = (dropEffect == DROPEFFECT_COPY) || (m_bDragSource == false);
 
 		m_pPatternEditor->UpdateDrag(point);

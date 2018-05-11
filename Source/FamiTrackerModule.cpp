@@ -106,12 +106,12 @@ int CFamiTrackerModule::GetNamcoChannels() const {
 	return m_pChannelMap->GetChipChannelCount(sound_chip_t::N163);
 }
 
-std::unique_ptr<CSongView> CFamiTrackerModule::MakeSongView(unsigned index) {		// // //
-	return std::make_unique<CSongView>(GetChannelOrder(), *GetSong(index));
+std::unique_ptr<CSongView> CFamiTrackerModule::MakeSongView(unsigned index, bool showSkippedRows) {		// // //
+	return std::make_unique<CSongView>(GetChannelOrder(), *GetSong(index), showSkippedRows);
 }
 
-std::unique_ptr<CConstSongView> CFamiTrackerModule::MakeSongView(unsigned index) const {		// // //
-	return std::make_unique<CConstSongView>(GetChannelOrder(), *GetSong(index));
+std::unique_ptr<CConstSongView> CFamiTrackerModule::MakeSongView(unsigned index, bool showSkippedRows) const {		// // //
+	return std::make_unique<CConstSongView>(GetChannelOrder(), *GetSong(index), showSkippedRows);
 }
 
 machine_t CFamiTrackerModule::GetMachine() const {

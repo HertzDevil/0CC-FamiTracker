@@ -24,8 +24,6 @@
 #include "PatternNote.h"		// // //
 #include "SongView.h"		// // //
 #include "SongData.h"		// // //
-#include "FamiTrackerEnv.h"		// // //
-#include "Settings.h"		// // //
 #include <algorithm>		// // //
 
 // CCursorPos /////////////////////////////////////////////////////////////////////
@@ -133,22 +131,22 @@ cursor_column_t CSelection::GetColEnd() const
 
 int CSelection::GetChanStart() const
 {
-	return (m_cpEnd.m_iChannel > m_cpStart.m_iChannel) ? m_cpStart.m_iChannel : m_cpEnd.m_iChannel;
+	return std::min(m_cpStart.m_iChannel, m_cpEnd.m_iChannel);
 }
 
 int CSelection::GetChanEnd() const
 {
-	return (m_cpEnd.m_iChannel > m_cpStart.m_iChannel) ? m_cpEnd.m_iChannel : m_cpStart.m_iChannel;
+	return std::max(m_cpStart.m_iChannel, m_cpEnd.m_iChannel);
 }
 
 int CSelection::GetFrameStart() const		// // //
 {
-	return (m_cpEnd.m_iFrame > m_cpStart.m_iFrame) ? m_cpStart.m_iFrame : m_cpEnd.m_iFrame;
+	return std::min(m_cpStart.m_iFrame, m_cpEnd.m_iFrame);
 }
 
 int CSelection::GetFrameEnd() const		// // //
 {
-	return (m_cpEnd.m_iFrame > m_cpStart.m_iFrame) ? m_cpEnd.m_iFrame : m_cpStart.m_iFrame;
+	return std::max(m_cpStart.m_iFrame, m_cpEnd.m_iFrame);
 }
 
 bool CSelection::IsSameStartPoint(const CSelection &selection) const
@@ -298,7 +296,7 @@ void CPatternIterator::Warp()
 {
 	if (m_iRow >= 0) {
 		while (true) {
-			if (int Length = song_view_.GetCurrentPatternLength(TranslateFrame(), Env.GetSettings()->General.bShowSkippedRows); m_iRow >= Length) {
+			if (int Length = song_view_.GetFrameLength(TranslateFrame()); m_iRow >= Length) {
 				m_iRow -= Length;
 				++m_iFrame;
 			}
@@ -309,7 +307,7 @@ void CPatternIterator::Warp()
 	else
 		while (m_iRow < 0) {
 			--m_iFrame;
-			m_iRow += song_view_.GetCurrentPatternLength(TranslateFrame(), Env.GetSettings()->General.bShowSkippedRows);
+			m_iRow += song_view_.GetFrameLength(TranslateFrame());
 		}
 }
 
