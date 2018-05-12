@@ -326,10 +326,6 @@ void CExportDialog::CreateASM()
 void CExportDialog::OnBnClickedPlay()
 {
 #ifdef _DEBUG
-
-//	if (m_strFile.GetLength() == 0)
-//		return;
-
 	// Play exported file (available in debug)
 	const LPCWSTR fname = L"d:\\test.nsf";		// // //
 

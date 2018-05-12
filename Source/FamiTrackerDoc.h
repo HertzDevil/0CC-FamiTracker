@@ -157,13 +157,6 @@ public:
 	void DeleteContents() override;
 	void SetModifiedFlag(BOOL bModified = 1) override;
 
-// Implementation
-private:
-#ifdef _DEBUG
-	void AssertValid() const override;
-	void Dump(CDumpContext& dc) const override;
-#endif
-
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()

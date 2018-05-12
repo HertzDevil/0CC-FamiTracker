@@ -68,6 +68,8 @@ protected: // create from serialization only
 	DECLARE_DYNCREATE(CFamiTrackerView)
 
 public:
+	virtual ~CFamiTrackerView();
+
 	static CFamiTrackerView *GetView();
 
 // Attributes
@@ -350,20 +352,6 @@ private:
 
 	// Thread synchronization
 	mutable CCriticalSection m_csDrawLock;						// Lock for DCs
-
-// Operations
-public:
-
-// Overrides
-public:
-
-// Implementation
-public:
-	virtual ~CFamiTrackerView();
-#ifdef _DEBUG
-	virtual void AssertValid() const;
-	virtual void Dump(CDumpContext& dc) const;
-#endif
 
 // Generated message map functions
 protected:

@@ -59,10 +59,6 @@ protected:
 
 	static const LPCWSTR	  DPCMS_FILTER[2];
 
-#ifdef _DEBUG
-	CStringW m_strFile;
-#endif
-
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	void CreateNSF();

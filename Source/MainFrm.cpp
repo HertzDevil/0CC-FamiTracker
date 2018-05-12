@@ -859,21 +859,6 @@ void CMainFrame::DisplayOctave()
 	pOctaveList->SetCurSel(GetSelectedOctave());		// // //
 }
 
-// CMainFrame diagnostics
-
-#ifdef _DEBUG
-void CMainFrame::AssertValid() const
-{
-	CFrameWnd::AssertValid();
-}
-
-void CMainFrame::Dump(CDumpContext& dc) const
-{
-	CFrameWnd::Dump(dc);
-}
-
-#endif //_DEBUG
-
 CFamiTrackerDoc &CMainFrame::GetDoc() {		// // //
 	auto pDoc = dynamic_cast<CFamiTrackerDoc *>(GetActiveDocument());
 	ASSERT_VALID(pDoc);

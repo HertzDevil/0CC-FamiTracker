@@ -290,22 +290,6 @@ void CFamiTrackerDoc::OnFileSaveAs()
 }
 
 
-// CFamiTrackerDoc diagnostics
-
-#ifdef _DEBUG
-void CFamiTrackerDoc::AssertValid() const
-{
-	CDocument::AssertValid();
-}
-
-void CFamiTrackerDoc::Dump(CDumpContext& dc) const
-{
-	CDocument::Dump(dc);
-}
-#endif //_DEBUG
-
-
-// CFamiTrackerDoc commands
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Document store functions

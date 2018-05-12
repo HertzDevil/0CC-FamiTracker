@@ -925,6 +925,7 @@
     <None Include="..\nsf driver\s5b.s" />
     <None Include="0CC-FamiTracker.reg" />
     <None Include="0CC-readme.txt" />
+    <None Include="README.md" />
     <None Include="res\Application.ico" />
     <None Include="res\Document.ico" />
     <None Include="res\Inst_2A03.ico" />
@@ -956,7 +957,6 @@
     <None Include="..\nsf driver\vrc6.s" />
     <None Include="..\nsf driver\vrc7.s" />
     <None Include="changelog.txt" />
-    <None Include="gpl.txt" />
     <None Include="Source\resampler\resample.inl" />
     <None Include="specs.txt" />
   </ItemGroup>
@@ -975,6 +975,9 @@
     <ProjectReference Include="libft0cc\vc\libft0cc.vcxproj">
       <Project>{f2aefcb7-5232-4ec0-9418-40d777613e46}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="LICENSE.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

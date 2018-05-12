@@ -74,6 +74,10 @@ protected: // create from serialization only
 	CMainFrame();
 	DECLARE_DYNCREATE(CMainFrame)
 
+public:
+	virtual ~CMainFrame();
+
+private:
 	enum class frame_edit_pos_t { Top, Left };
 	enum class control_panel_pos_t { Top, Left, Right };		// // // 050B
 
@@ -136,17 +140,6 @@ public:
 	void	ResetFind();		// // //
 
 	bool	TypeInstrumentNumber(int Digit);		// // //
-
-// Overrides
-public:
-
-// Implementation
-public:
-	virtual ~CMainFrame();
-#ifdef _DEBUG
-	virtual void AssertValid() const;
-	virtual void Dump(CDumpContext& dc) const;
-#endif
 
 	CFamiTrackerDoc &GetDoc();		// // //
 	const CFamiTrackerDoc &GetDoc() const;		// // //

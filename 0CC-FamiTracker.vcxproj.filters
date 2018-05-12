@@ -1681,7 +1681,6 @@
       <Filter>NSF driver</Filter>
     </None>
     <None Include="changelog.txt" />
-    <None Include="gpl.txt" />
     <None Include="specs.txt" />
     <None Include="0CC-readme.txt" />
     <None Include="..\nsf driver\n163.s">
@@ -1700,10 +1699,14 @@
       <Filter>Header Files\Dialog Boxes Headers\Instrument Headers\Related Headers\Resampler Headers</Filter>
     </None>
     <None Include="0CC-FamiTracker.reg" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\0CC-FamiTracker.manifest">
       <Filter>Source Files</Filter>
     </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="LICENSE.txt" />
   </ItemGroup>
 </Project>

@@ -306,19 +306,7 @@ CFamiTrackerView::~CFamiTrackerView()
 
 
 
-// CFamiTrackerView diagnostics
-
 #ifdef _DEBUG
-void CFamiTrackerView::AssertValid() const
-{
-	CView::AssertValid();
-}
-
-void CFamiTrackerView::Dump(CDumpContext& dc) const
-{
-	CView::Dump(dc);
-}
-
 CFamiTrackerDoc *CFamiTrackerView::GetDocument() const // non-debug version is inline
 {
 	ASSERT(m_pDocument->IsKindOf(RUNTIME_CLASS(CFamiTrackerDoc)));
@@ -327,6 +315,7 @@ CFamiTrackerDoc *CFamiTrackerView::GetDocument() const // non-debug version is i
 	return pDoc;
 }
 #endif //_DEBUG
+
 
 
 //
