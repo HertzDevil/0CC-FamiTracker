@@ -219,7 +219,6 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_FOCUS_FRAME_EDITOR, OnSelectFrameEditor)
 	ON_COMMAND(ID_CMD_NEXT_INSTRUMENT, OnNextInstrument)
 	ON_COMMAND(ID_CMD_PREV_INSTRUMENT, OnPrevInstrument)
-	ON_COMMAND(ID_TOGGLE_SPEED, OnToggleSpeed)
 	ON_COMMAND(ID_DECAY_FAST, OnDecayFast)
 	ON_COMMAND(ID_DECAY_SLOW, OnDecaySlow)
 	ON_BN_CLICKED(IDC_FRAME_INC, OnBnClickedIncFrame)
@@ -3148,23 +3147,6 @@ void CMainFrame::OnUpdateFrameeditorTop(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateFrameeditorLeft(CCmdUI *pCmdUI)
 {
 	pCmdUI->SetCheck(m_iFrameEditorPos == frame_edit_pos_t::Left);
-}
-
-void CMainFrame::OnToggleSpeed()
-{
-	CFamiTrackerDoc &Doc = GetDoc();
-	int Speed = Doc.GetModule()->GetSpeedSplitPoint();
-
-	if (Speed == CFamiTrackerModule::DEFAULT_SPEED_SPLIT_POINT)		// // //
-		Speed = CFamiTrackerModule::OLD_SPEED_SPLIT_POINT;
-	else
-		Speed = CFamiTrackerModule::DEFAULT_SPEED_SPLIT_POINT;
-
-	Doc.GetModule()->SetSpeedSplitPoint(Speed);
-	Doc.ModifyIrreversible();		// // //
-	Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
-
-	SetStatusText("Speed/tempo split-point set to " + conv::from_int(Speed));
 }
 
 void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)

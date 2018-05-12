@@ -397,7 +397,6 @@ public:
 	afx_msg void OnFrameeditorLeft();
 	afx_msg void OnUpdateFrameeditorTop(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateFrameeditorLeft(CCmdUI *pCmdUI);
-	afx_msg void OnToggleSpeed();
 	afx_msg LRESULT OnDisplayMessageString(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnDisplayMessageID(WPARAM wParam, LPARAM lParam);
 

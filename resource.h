@@ -596,7 +596,6 @@
 #define IDC_MAINFRAME_INST_TOOLBAR      1458
 #define IDC_STATIC_DPCM_ZOOM            1459
 #define IDC_EDIT_FXX_SPLIT              1460
-#define IDC_SPIN1                       1461
 #define IDC_SPIN_FXX_SPLIT              1461
 #define ID_TRACKER_PLAY                 32771
 #define ID_TRACKER_PLAYPATTERN          32775
