@@ -144,6 +144,10 @@ BOOL CModulePropertiesDlg::OnInitDialog()
 	}
 	m_cStaticN163Chans.SetWindowTextW(channelsStr);
 
+	auto *pFxx = static_cast<CSpinButtonCtrl *>(GetDlgItem(IDC_SPIN_FXX_SPLIT));		// // //
+	pFxx->SetRange(MIN_SPEED + 1, 0xFF);
+	pFxx->SetPos(m_pModule->GetSpeedSplitPoint());
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
 }
@@ -166,10 +170,12 @@ void CModulePropertiesDlg::OnBnClickedOk()
 	// Vibrato
 	vibrato_t newVib = m_cComboVibrato.GetCurSel() == 0 ? vibrato_t::Bidir : vibrato_t::Up;		// // //
 	bool newLinear = m_cComboLinearPitch.GetCurSel() == 1;
-	if (newVib != m_pModule->GetVibratoStyle() || newLinear != m_pModule->GetLinearPitch())
+	int fxx = static_cast<CSpinButtonCtrl *>(GetDlgItem(IDC_SPIN_FXX_SPLIT))->GetPos();
+	if (newVib != m_pModule->GetVibratoStyle() || newLinear != m_pModule->GetLinearPitch() || fxx != m_pModule->GetSpeedSplitPoint())
 		m_pDocument->ModifyIrreversible();
 	m_pModule->SetVibratoStyle(newVib);
 	m_pModule->SetLinearPitch(newLinear);
+	m_pModule->SetSpeedSplitPoint(fxx);
 
 	if (pMainFrame->GetSelectedTrack() != m_iSelectedSong)
 		pMainFrame->SelectTrack(m_iSelectedSong);

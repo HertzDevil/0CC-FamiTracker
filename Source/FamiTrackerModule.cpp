@@ -137,7 +137,7 @@ bool CFamiTrackerModule::GetLinearPitch() const {
 	return m_bLinearPitch;
 }
 
-int CFamiTrackerModule::GetSpeedSplitPoint() const {
+unsigned CFamiTrackerModule::GetSpeedSplitPoint() const {
 	return m_iSpeedSplitPoint;
 }
 
@@ -159,8 +159,12 @@ void CFamiTrackerModule::SetLinearPitch(bool enable) {
 	m_bLinearPitch = enable;
 }
 
-void CFamiTrackerModule::SetSpeedSplitPoint(int splitPoint) {
+void CFamiTrackerModule::SetSpeedSplitPoint(unsigned splitPoint) {
 	m_iSpeedSplitPoint = splitPoint;
+	VisitSongs([&] (CSongData &song) {
+		song.SetSongTempo(std::max(splitPoint, song.GetSongTempo()));
+		song.SetSongSpeed(std::min(splitPoint - 1, song.GetSongSpeed()));
+	});
 }
 
 std::array<int, 256> CFamiTrackerModule::MakeVibratoTable() const {		// // //

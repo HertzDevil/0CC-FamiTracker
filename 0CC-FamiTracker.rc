@@ -271,8 +271,8 @@ BEGIN
         MENUITEM "&Clone Instrument",           ID_INSTRUMENT_CLONE
         MENUITEM "&Deep Clone Instrument",      ID_INSTRUMENT_DEEPCLONE
         MENUITEM SEPARATOR
-        MENUITEM "&Load from File...",          ID_INSTRUMENT_LOAD
-        MENUITEM "&Save to File...",            ID_INSTRUMENT_SAVE
+        MENUITEM "&Load From File...",          ID_INSTRUMENT_LOAD
+        MENUITEM "&Save To File...",            ID_INSTRUMENT_SAVE
         MENUITEM SEPARATOR
         MENUITEM "&Edit\tCtrl+I",               ID_INSTRUMENT_EDIT
     END
@@ -280,9 +280,9 @@ BEGIN
     BEGIN
         MENUITEM "&Play",                       ID_TRACKER_PLAY
         MENUITEM "Play P&attern",               ID_TRACKER_PLAYPATTERN
-        MENUITEM "Play &from Start",            ID_TRACKER_PLAY_START
-        MENUITEM "Play from C&ursor",           ID_TRACKER_PLAY_CURSOR
-        MENUITEM "Play from &Marker",           ID_TRACKER_PLAY_MARKER
+        MENUITEM "Play &From Start",            ID_TRACKER_PLAY_START
+        MENUITEM "Play From C&ursor",           ID_TRACKER_PLAY_CURSOR
+        MENUITEM "Play From &Marker",           ID_TRACKER_PLAY_MARKER
         MENUITEM "&Stop",                       ID_TRACKER_STOP
         MENUITEM SEPARATOR
         MENUITEM "Toggle &Edit Mode",           ID_TRACKER_EDIT
@@ -405,11 +405,11 @@ BEGIN
         MENUITEM "Add",                         ID_INSTRUMENT_NEW
         MENUITEM "Remove",                      ID_INSTRUMENT_REMOVE
         MENUITEM SEPARATOR
-        MENUITEM "&Load from file...",          ID_INSTRUMENT_LOAD
-        MENUITEM "&Save to file...",            ID_INSTRUMENT_SAVE
+        MENUITEM "&Load From File...",          ID_INSTRUMENT_LOAD
+        MENUITEM "&Save To File...",            ID_INSTRUMENT_SAVE
         MENUITEM SEPARATOR
-        MENUITEM "Clone instrument",            ID_INSTRUMENT_CLONE
-        MENUITEM "Deep clone instrument",       ID_INSTRUMENT_DEEPCLONE
+        MENUITEM "Clone Instrument",            ID_INSTRUMENT_CLONE
+        MENUITEM "Deep Clone Instrument",       ID_INSTRUMENT_DEEPCLONE
         MENUITEM SEPARATOR
         MENUITEM "Edit",                        ID_INSTRUMENT_EDIT
     END
@@ -434,10 +434,10 @@ IDR_SAMPLE_WND_POPUP MENU
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "Sample scope",                ID_POPUP_SAMPLESCOPE1
-        MENUITEM "Sample scope (blur)",         ID_POPUP_SAMPLESCOPE2
-        MENUITEM "Spectrum analyzer",           ID_POPUP_SPECTRUMANALYZER
-        MENUITEM "Spectrum analyzer (fine)",    ID_POPUP_SPECTRUMANALYZER2
+        MENUITEM "Oscilloscope",                ID_POPUP_SAMPLESCOPE1
+        MENUITEM "Oscilloscope (Blur)",         ID_POPUP_SAMPLESCOPE2
+        MENUITEM "Spectrogram",                 ID_POPUP_SPECTRUMANALYZER
+        MENUITEM "Spectrogram (Fine)",          ID_POPUP_SPECTRUMANALYZER2
         MENUITEM "Logo",                        ID_POPUP_NOTHING
     END
 END
@@ -458,7 +458,7 @@ BEGIN
             MENUITEM "&Fast",                       ID_DECAY_FAST
         END
         MENUITEM SEPARATOR
-        MENUITEM "&Record to Instrument",       ID_TRACKER_RECORDTOINST
+        MENUITEM "&Record To Instrument",       ID_TRACKER_RECORDTOINST
         MENUITEM "R&ecorder Settings...",       ID_TRACKER_RECORDERSETTINGS
     END
 END
@@ -478,7 +478,7 @@ IDR_SEQUENCE_POPUP MENU
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "&Clone sequence",             ID_CLONE_SEQUENCE
+        MENUITEM "&Clone Sequence",             ID_CLONE_SEQUENCE
     END
 END
 
@@ -917,7 +917,7 @@ BEGIN
 
     IDD_PROPERTIES, DIALOG
     BEGIN
-        BOTTOMMARGIN, 296
+        BOTTOMMARGIN, 310
     END
 
     IDD_WAVE_PROGRESS, DIALOG
@@ -1571,7 +1571,7 @@ BEGIN
     LTEXT           "60 Hz",IDC_SPEED,112,11,26,12
 END
 
-IDD_PROPERTIES DIALOGEX 0, 0, 213, 298
+IDD_PROPERTIES DIALOGEX 0, 0, 213, 312
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Module properties"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
@@ -1595,13 +1595,17 @@ BEGIN
     CONTROL         "S5B",IDC_EXPANSION_S5B,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,106,182,24,10
     LTEXT           "Channels: 1",IDC_CHANNELS_NR,150,168,51,8,WS_DISABLED
     CONTROL         "",IDC_CHANNELS,"msctls_trackbar32",TBS_AUTOTICKS | WS_DISABLED | WS_TABSTOP,145,180,51,13
-    GROUPBOX        "Vibrato",IDC_STATIC,7,202,199,31
-    COMBOBOX        IDC_VIBRATO,14,213,184,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Pitch mode",IDC_STATIC,7,235,199,31
-    COMBOBOX        IDC_COMBO_LINEARPITCH,14,246,184,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,271,199,1
-    DEFPUSHBUTTON   "OK",IDOK,95,277,53,14
-    PUSHBUTTON      "Cancel",IDCANCEL,153,277,53,14
+    GROUPBOX        "Pattern effect settings",IDC_STATIC,7,202,199,76
+    LTEXT           "Vibrato style:",IDC_STATIC,20,220,44,8
+    COMBOBOX        IDC_VIBRATO,67,218,130,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Pitch mode:",IDC_STATIC,25,239,39,8
+    COMBOBOX        IDC_COMBO_LINEARPITCH,67,236,130,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Fxx split point:",IDC_STATIC,15,257,47,8
+    EDITTEXT        IDC_EDIT_FXX_SPLIT,67,255,34,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "",IDC_SPIN_FXX_SPLIT,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS,100,255,11,14
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,285,199,1
+    DEFPUSHBUTTON   "OK",IDOK,95,291,53,14
+    PUSHBUTTON      "Cancel",IDCANCEL,153,291,53,14
 END
 
 IDD_WAVE_PROGRESS DIALOGEX 0, 0, 220, 111
@@ -2046,13 +2050,11 @@ BEGIN
     IDC_VIBRATO, 0x403, 20, 0
 0x6c4f, 0x2064, 0x7473, 0x6c79, 0x2065, 0x6228, 0x6e65, 0x2064, 0x7075, 
 0x0029, 
-    IDC_COMBO_LINEARPITCH, 0x403, 49, 0
-0x694c, 0x656e, 0x7261, 0x7020, 0x7265, 0x6f69, 0x2064, 0x202f, 0x7266, 
-0x7165, 0x6575, 0x636e, 0x2079, 0x7228, 0x6765, 0x7369, 0x6574, 0x2072, 
-0x6970, 0x6374, 0x2068, 0x6562, 0x646e, 0x2973, "\000" 
     IDC_COMBO_LINEARPITCH, 0x403, 35, 0
-0x694c, 0x656e, 0x7261, 0x7020, 0x7469, 0x6863, 0x2820, 0x6e75, 0x6669, 
-0x726f, 0x206d, 0x6970, 0x6374, 0x2068, 0x6562, 0x646e, 0x2973, "\000" 
+0x694c, 0x656e, 0x7261, 0x7020, 0x7265, 0x6f69, 0x2064, 0x202f, 0x7266, 
+0x7165, 0x6575, 0x636e, 0x2079, 0x6572, 0x6967, 0x7473, 0x7265, "\000" 
+    IDC_COMBO_LINEARPITCH, 0x403, 13, 0
+0x694c, 0x656e, 0x7261, 0x7020, 0x7469, 0x6863, "\000" 
     0
 END
 
@@ -2291,7 +2293,7 @@ BEGIN
     IDS_INST_LIMIT          "You cannot add more instruments"
     IDS_CLIPBOARD_OPEN_ERROR "Cannot open clipboard."
     IDS_CLIPBOARD_NOT_AVALIABLE "Clipboard data is not available."
-    ID_TRACKER_PLAY_START   "Play module from start\nPlay from Start"
+    ID_TRACKER_PLAY_START   "Play module from start\nPlay From Start"
     IDS_INSTRUMENT_FILE_FAIL "Instrument file was not vaild"
     IDS_CLIPPING_MESSAGE    "Warning: Audio is clipping, decrease mixing levels!"
     IDS_FILTER_FTI          "FamiTracker Instrument (*.fti)"
@@ -2466,7 +2468,7 @@ END
 STRINGTABLE
 BEGIN
     ID_FILE_GENERALSETTINGS "Open 0CC-FamiTracker settings\nConfiguration"
-    ID_EDIT_ENABLEMIDI      "Temporarly enable / disable commands from the MIDI device\nEnable MIDI"
+    ID_EDIT_ENABLEMIDI      "Temporarily enable / disable commands from the MIDI device\nEnable MIDI"
     ID_TRACKER_PLAYROW      "Play a single row\nPlay Current Row"
 END
 
@@ -2505,11 +2507,11 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_NEXT_SONG            "Select next song\nNext song"
-    ID_PREV_SONG            "Select previous song\nPrevious song"
+    ID_NEXT_SONG            "Select next song\nNext Song"
+    ID_PREV_SONG            "Select previous song\nPrevious Song"
     ID_EDIT_INSTRUMENTMASK  "Disable writing to the instrument column while entering a note\nInstrument Mask"
     ID_TRACKER_SWITCHTOTRACKINSTRUMENT 
-                            "Switch to currently played instrument when playing\nSwitch to Track Instrument"
+                            "Switch to currently played instrument when playing\nSwitch To Track Instrument"
     ID_FILE_CREATEWAV       "Save the file as a WAV-file\nCreate WAV"
     ID_VIEW_CONTROLPANEL    "Show or hide the control panel\nToggle Control Panel"
     ID_EDIT_CLEARPATTERNS   "Reset all patterns and frames\nClear Patterns"
@@ -2520,7 +2522,7 @@ STRINGTABLE
 BEGIN
     ID_TRACKER_SOLOCHANNEL  "Mute / unmute all but the selected track\nSolo Track"
     ID_TRACKER_TOGGLECHANNEL "Mute / unmute selected track\nToggle Track"
-    ID_MODULE_EDITINSTRUMENT "Open instrument editor\nEdit instrument"
+    ID_MODULE_EDITINSTRUMENT "Open instrument editor\nEdit Instrument"
 END
 
 STRINGTABLE
@@ -2608,7 +2610,7 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_TRACKER_PLAY_CURSOR  "Play pattern from cursor\nPlay from Cursor"
+    ID_TRACKER_PLAY_CURSOR  "Play pattern from cursor\nPlay From Cursor"
 END
 
 STRINGTABLE
@@ -2763,7 +2765,7 @@ END
 STRINGTABLE
 BEGIN
     ID_POPUP_PICKUPROW      "Select current row's instrument\nPick Up Row"
-    ID_POPUP_UNMUTEALLCHANNELS "Unmute all tracks\nUnmute all tracks"
+    ID_POPUP_UNMUTEALLCHANNELS "Unmute all tracks\nUnmute All Tracks"
     ID_MODULE_CHANNELS      "Add or remove tracks\nTracks"
 END
 
@@ -2795,7 +2797,7 @@ BEGIN
     ID_EDIT_SPLITKEYBOARD   "Open the split keyboard settings dialog\nSplit Keyboard"
     ID_VIEW_AVERAGEBPM      "Display average BPM value instead of instant BPM value\nDisplay Average BPM"
     ID_VIEW_CHANNELSTATE    "Display information about active effects\nDisplay Track State"
-    ID_TRACKER_PLAY_MARKER  "Play pattern from row marker\nPlay from Marker"
+    ID_TRACKER_PLAY_MARKER  "Play pattern from row marker\nPlay From Marker"
     ID_TRACKER_SET_MARKER   "Set a row marker for playback\nSet Row Marker"
     ID_SELECT_OTHER         "Restore the current selection in the inactive editor window\nSelect in Other Editor"
 END

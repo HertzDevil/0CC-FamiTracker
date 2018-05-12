@@ -90,13 +90,13 @@ public:
 	unsigned int GetFrameRate() const;
 	vibrato_t GetVibratoStyle() const;
 	bool GetLinearPitch() const;
-	int GetSpeedSplitPoint() const;
+	unsigned GetSpeedSplitPoint() const;
 
 	void SetMachine(machine_t machine);
 	void SetEngineSpeed(unsigned int speed);
 	void SetVibratoStyle(vibrato_t style);
 	void SetLinearPitch(bool enable);
-	void SetSpeedSplitPoint(int splitPoint);
+	void SetSpeedSplitPoint(unsigned splitPoint);
 
 	std::array<int, 256> MakeVibratoTable() const;		// // //
 	CPeriodTables MakePeriodTables() const;		// // //
