@@ -49,13 +49,6 @@ public:
 
 	unsigned GetFrameLength(unsigned Frame) const;
 
-	// void (*F)(std::size_t index)
-	template <typename F>
-	void ForeachChannel(F f) const {
-		for (std::size_t i = 0, n = order_.GetChannelCount(); i < n; ++i)
-			f(i);
-	}
-
 	// void (*F)(const CTrackData &track [, stChannelID id])
 	template <typename F>
 	void ForeachTrack(F f) const {
@@ -68,7 +61,7 @@ public:
 				f(*GetTrack(i), GetChannelOrder().TranslateChannel(i));
 		}
 		else
-			static_assert(sizeof(F) == 0, "Unknown function signature");
+			static_assert(!sizeof(F), "Unknown function signature");
 	}
 
 private:
@@ -95,4 +88,19 @@ public:
 
 	void PullUp(std::size_t index, unsigned Frame, unsigned Row);
 	void InsertRow(std::size_t index, unsigned Frame, unsigned Row);
+
+	// void (*F)(CTrackData &track [, stChannelID id])
+	template <typename F>
+	void ForeachTrack(F f) {
+		if constexpr (std::is_invocable_v<F, CTrackData &>) {
+			for (std::size_t i = 0, n = order_.GetChannelCount(); i < n; ++i)
+				f(*GetTrack(i));
+		}
+		else if constexpr (std::is_invocable_v<F, CTrackData &, stChannelID>) {
+			for (std::size_t i = 0, n = order_.GetChannelCount(); i < n; ++i)
+				f(*GetTrack(i), GetChannelOrder().TranslateChannel(i));
+		}
+		else
+			return CConstSongView::ForeachTrack(f);
+	}
 };

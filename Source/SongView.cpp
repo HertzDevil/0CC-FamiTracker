@@ -104,21 +104,21 @@ unsigned CConstSongView::GetFrameLength(unsigned Frame) const {
 	const unsigned PatternLength = GetSong().GetPatternLength();	// default length
 	unsigned HaltPoint = PatternLength;
 
-	ForeachChannel([&] (std::size_t index) {
-		unsigned halt = [&] {
-			const unsigned Columns = GetEffectColumnCount(index);
-			const auto &pat = GetPatternOnFrame(index, Frame);
-			for (unsigned j = 0; j < PatternLength - 1; ++j) {
-				const auto &Note = pat.GetNoteOn(j);
-				for (unsigned k = 0; k < Columns; ++k)
-					switch (Note.Effects[k].fx)
-					case effect_t::SKIP: case effect_t::JUMP: case effect_t::HALT:
-						return j + 1;
-			}
-			return PatternLength;
-		}();
-		if (halt < HaltPoint)
-			HaltPoint = halt;
+	const auto trackLen = [Frame, PatternLength] (const CTrackData &track) {
+		const unsigned Columns = track.GetEffectColumnCount();
+		const auto &pat = track.GetPatternOnFrame(Frame);
+		for (unsigned j = 0; j < PatternLength - 1; ++j) {
+			const auto &Note = pat.GetNoteOn(j);
+			for (unsigned k = 0; k < Columns; ++k)
+				switch (Note.Effects[k].fx)
+				case effect_t::SKIP: case effect_t::JUMP: case effect_t::HALT:
+					return j + 1;
+		}
+		return PatternLength;
+	};
+
+	ForeachTrack([&] (const CTrackData &track) {
+		HaltPoint = std::min(HaltPoint, trackLen(track));
 	});
 
 	return HaltPoint;

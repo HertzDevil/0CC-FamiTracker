@@ -50,9 +50,9 @@ public:
 			int Dxx = -1;
 			bool Cxx = false;
 
-			song_view_.ForeachChannel([&] (std::size_t index) {
-				const auto &Note = song_view_.GetPatternOnFrame(index, f_).GetNoteOn(r_);		// // //
-				for (int l = 0, m = song_view_.GetEffectColumnCount(index); l < m; ++l) {
+			song_view_.ForeachTrack([&] (const CTrackData &track /* , stChannelID id */) {
+				const auto &Note = track.GetPatternOnFrame(f_).GetNoteOn(r_);		// // //
+				for (unsigned l = 0, m = track.GetEffectColumnCount(); l < m; ++l) {
 					switch (Note.Effects[l].fx) {
 					case effect_t::JUMP:
 						Bxx = Note.Effects[l].param;
@@ -64,7 +64,7 @@ public:
 						Cxx = true;
 						break;
 					default:
-						fx(/* index, */ Note.Effects[l]);
+						fx(/* id, */ Note.Effects[l]);
 					}
 				}
 			});

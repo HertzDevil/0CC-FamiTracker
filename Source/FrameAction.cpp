@@ -215,8 +215,8 @@ bool CFActionCloneFrame::SaveState(const CMainFrame &MainFrm)
 void CFActionCloneFrame::Undo(CMainFrame &MainFrm)
 {
 	CSongView *pSongView = GET_SONG_VIEW();
-	pSongView->ForeachChannel([&] (std::size_t index) {
-		pSongView->GetPatternOnFrame(index, m_pUndoState->Cursor.m_iFrame + 1) = CPatternData { };
+	pSongView->ForeachTrack([&] (CTrackData &track) {
+		track.GetPatternOnFrame(m_pUndoState->Cursor.m_iFrame + 1) = { };
 	});
 	GET_SONG().DeleteFrames(m_pUndoState->Cursor.m_iFrame + 1, 1);
 }
@@ -329,9 +329,8 @@ void CFActionSetPatternAll::Undo(CMainFrame &MainFrm)
 
 void CFActionSetPatternAll::Redo(CMainFrame &MainFrm)
 {
-	CSongView *pSongView = GET_SONG_VIEW();
-	GET_SONG_VIEW()->ForeachChannel([&] (std::size_t index) {
-		pSongView->SetFramePattern(index, m_pUndoState->Cursor.m_iFrame, m_iNewPattern);
+	GET_SONG_VIEW()->ForeachTrack([&] (CTrackData &track) {
+		track.SetFramePattern(m_pUndoState->Cursor.m_iFrame, m_iNewPattern);
 	});
 }
 
@@ -429,12 +428,13 @@ void CFActionChangePatternAll::Undo(CMainFrame &MainFrm)
 void CFActionChangePatternAll::Redo(CMainFrame &MainFrm)
 {
 	CSongView *pSongView = GET_SONG_VIEW();
-	pSongView->ForeachChannel([&] (std::size_t index) {
-		int Frame = m_RowClipData.GetFrame(0, index);
+	std::size_t i = 0;
+	pSongView->ForeachTrack([&] (CTrackData &track) {
+		int Frame = m_RowClipData.GetFrame(0, i++);
 		int NewFrame = ClipPattern(Frame + m_iPatternOffset);
 		if (NewFrame == Frame)
 			m_bOverflow = true;
-		pSongView->SetFramePattern(index, m_pUndoState->Cursor.m_iFrame, NewFrame);
+		track.SetFramePattern(m_pUndoState->Cursor.m_iFrame, NewFrame);
 	});
 }
 

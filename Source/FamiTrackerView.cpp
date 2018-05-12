@@ -3468,29 +3468,29 @@ void CFamiTrackerView::OnRecallChannelState() {		// // //
 CStringW CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) const		// // //
 {
 	auto Index = value_cast(Note.Effects[Column].fx);
-	int Param = Note.Effects[Column].param;
+	uint8_t Param = Note.Effects[Column].param;
 	if (enum_cast<effect_t>(Index) != Note.Effects[Column].fx)
 		return L"Undefined effect";
 
 	sound_chip_t Chip = GetSelectedChannelID().Chip;
 	const int xy = 0;
-	if (Index > value_cast(effect_t::FDS_VOLUME)       || (Index == value_cast(effect_t::FDS_VOLUME)       && Param >= 0x40))
+	if (Index > value_cast(effect_t::FDS_VOLUME)       || (Index == value_cast(effect_t::FDS_VOLUME)       && Param >= 0x40u))
 		++Index;
-	if (Index > value_cast(effect_t::TRANSPOSE)        || (Index == value_cast(effect_t::TRANSPOSE)        && Param >= 0x80))
+	if (Index > value_cast(effect_t::TRANSPOSE)        || (Index == value_cast(effect_t::TRANSPOSE)        && Param >= 0x80u))
 		++Index;
-	if (Index > value_cast(effect_t::SUNSOFT_ENV_TYPE) || (Index == value_cast(effect_t::SUNSOFT_ENV_TYPE) && Param >= 0x10))
+	if (Index > value_cast(effect_t::SUNSOFT_ENV_TYPE) || (Index == value_cast(effect_t::SUNSOFT_ENV_TYPE) && Param >= 0x10u))
 		++Index;
-	if (Index > value_cast(effect_t::FDS_MOD_SPEED_HI) || (Index == value_cast(effect_t::FDS_MOD_SPEED_HI) && Param >= 0x10))
+	if (Index > value_cast(effect_t::FDS_MOD_SPEED_HI) || (Index == value_cast(effect_t::FDS_MOD_SPEED_HI) && Param >= 0x10u))
 		++Index;
-	if (Index > value_cast(effect_t::FDS_MOD_DEPTH)    || (Index == value_cast(effect_t::FDS_MOD_DEPTH)    && Param >= 0x80))
+	if (Index > value_cast(effect_t::FDS_MOD_DEPTH)    || (Index == value_cast(effect_t::FDS_MOD_DEPTH)    && Param >= 0x80u))
 		++Index;
-	if (Index > value_cast(effect_t::NOTE_CUT)         || (Index == value_cast(effect_t::NOTE_CUT)         && Param >= 0x80 && IsAPUTriangle(GetSelectedChannelID())))
+	if (Index > value_cast(effect_t::NOTE_CUT)         || (Index == value_cast(effect_t::NOTE_CUT)         && Param >= 0x80u && IsAPUTriangle(GetSelectedChannelID())))
 		++Index;
 	if (Index > value_cast(effect_t::DUTY_CYCLE)       || (Index == value_cast(effect_t::DUTY_CYCLE)       && (Chip == sound_chip_t::VRC7 || Chip == sound_chip_t::N163)))
 		++Index;
 	if (Index > value_cast(effect_t::DUTY_CYCLE)       || (Index == value_cast(effect_t::DUTY_CYCLE)       && Chip == sound_chip_t::N163))
 		++Index;
-	if (Index > value_cast(effect_t::VOLUME)           || (Index == value_cast(effect_t::VOLUME)           && Param >= 0xE0))
+	if (Index > value_cast(effect_t::VOLUME)           || (Index == value_cast(effect_t::VOLUME)           && Param >= 0xE0u))
 		++Index;
 	if (Index > value_cast(effect_t::SPEED)            || (Index == value_cast(effect_t::SPEED)            && Param >= GetModuleData()->GetSpeedSplitPoint()))
 		++Index;
