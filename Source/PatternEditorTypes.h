@@ -25,7 +25,9 @@
 
 #include <memory>
 #include <utility>
+#include <algorithm>		// // //
 #include "ft0cc/enum_traits.h"		// // //
+#include "StrongOrdering.h"		// /// //
 
 // Helper types for the pattern editor
 
@@ -50,7 +52,7 @@ enum sel_scope_t {
 };
 
 // Cursor columns
-enum class cursor_column_t : unsigned int {		// // // moved from FamiTrackerDoc.h
+enum class cursor_column_t : unsigned {		// // // moved from FamiTrackerDoc.h
 	NOTE,
 	INSTRUMENT1,
 	INSTRUMENT2,
@@ -70,7 +72,7 @@ enum class cursor_column_t : unsigned int {		// // // moved from FamiTrackerDoc.
 };
 
 // Column layout
-enum class column_t : unsigned int {		// // //
+enum class column_t : unsigned {		// // //
 	Note,
 	Instrument,
 	Volume,
@@ -150,77 +152,134 @@ enum class sel_condition_t : unsigned char {
 	TERMINAL_SKIP,		// skip effect on last row
 };
 
-class CSongData;		// // //
-class CSongView;		// // //
-class stChanNote;
+struct stRowPos {
+	int Frame = 0;
+	int Row = 0;
+
+	constexpr int compare(const stRowPos &other) const noexcept {
+		return Frame < other.Frame ? -1 : Frame > other.Frame ? 1 :
+			Row < other.Row ? -1 : Row > other.Row ? 1 : 0;
+	}
+};
+ENABLE_STRONG_ORDERING(stRowPos);
+
+struct stColumnPos {
+	int Track = 0;
+	cursor_column_t Column = cursor_column_t::NOTE;
+
+	constexpr int compare(const stColumnPos &other) const noexcept {
+		return Track < other.Track ? -1 : Track > other.Track ? 1 :
+			Column < other.Column ? -1 : Column > other.Column ? 1 : 0;
+	}
+};
+ENABLE_STRONG_ORDERING(stColumnPos);
 
 // Cursor position
-class CCursorPos {
-public:
-	CCursorPos();
-	CCursorPos(int Row, int Channel, cursor_column_t Column, int Frame);		// // //
-	bool operator!=(const CCursorPos &other) const;
-	bool operator<(const CCursorPos &other) const;
-	bool operator<=(const CCursorPos &other) const;
-	bool IsValid(int RowCount, int ChannelCount) const;		// // //
+struct CCursorPos {
+	constexpr CCursorPos() noexcept = default;
+	constexpr CCursorPos(int Row, int Track, cursor_column_t Column, int Frame) noexcept :		// // //
+		Ypos {Frame, Row}, Xpos {Track, Column}
+	{
+	}
+
+	constexpr bool operator==(const CCursorPos &other) const noexcept {		// // //
+		return Ypos == other.Ypos && Xpos == other.Xpos;
+	}
+	constexpr bool operator!=(const CCursorPos &other) const noexcept {
+		return !(*this == other);
+	}
+
+	constexpr int GetFrame() const noexcept {
+		return Ypos.Frame;
+	}
+	constexpr int GetRow() const noexcept {
+		return Ypos.Row;
+	}
+	constexpr int GetTrack() const noexcept {
+		return Xpos.Track;
+	}
+	constexpr cursor_column_t GetColumn() const noexcept {
+		return Xpos.Column;
+	}
+
+	constexpr bool IsAbove(const CCursorPos &other) const noexcept {
+		return Ypos < other.Ypos;
+	}
+
+	constexpr bool IsValid(int RowCount, int TrackCount) const noexcept {		// // //
+		// Check if a valid pattern position
+		//if (Ypos.Frame < -FrameCount || Ypos.Frame >= 2 * FrameCount)		// // //
+		//	return false;
+		if (Xpos.Track < 0 || Xpos.Track >= TrackCount)
+			return false;
+		if (Ypos.Row < 0 || Ypos.Row >= RowCount)
+			return false;
+		if (Xpos.Column > cursor_column_t::EFF4_PARAM2)		// // //
+			return false;
+
+		return true;
+	}
 
 public:
-	int m_iFrame;		// // //
-	int m_iRow;
-	cursor_column_t m_iColumn;		// // //
-	int m_iChannel;
+	stRowPos Ypos;
+	stColumnPos Xpos;
 };
 
 // Selection
-class CSelection {
-public:
-	int  GetRowStart() const;
-	int  GetRowEnd() const;
-	cursor_column_t GetColStart() const;		// // //
-	cursor_column_t GetColEnd() const;		// // //
-	int  GetChanStart() const;
-	int  GetChanEnd() const;
-	int  GetFrameStart() const;		// // //
-	int  GetFrameEnd() const;		// // //
+struct CSelection {
+	constexpr int GetRowStart() const noexcept {
+		return std::min(m_cpStart.Ypos, m_cpEnd.Ypos).Row;
+	}
+	constexpr int GetRowEnd() const noexcept {
+		return std::max(m_cpStart.Ypos, m_cpEnd.Ypos).Row;
+	}
+	constexpr cursor_column_t GetColStart() const noexcept {
+		return GetCursorStartColumn(GetSelectColumn(std::min(m_cpStart.Xpos, m_cpEnd.Xpos).Column));
+	}		// // //
+	constexpr cursor_column_t GetColEnd() const noexcept {
+		return GetCursorEndColumn(GetSelectColumn(std::max(m_cpStart.Xpos, m_cpEnd.Xpos).Column));
+	}		// // //
+	constexpr int GetChanStart() const noexcept {
+		return std::min(m_cpStart.Xpos.Track, m_cpEnd.Xpos.Track);
+	}
+	constexpr int GetChanEnd() const noexcept {
+		return std::max(m_cpStart.Xpos.Track, m_cpEnd.Xpos.Track);
+	}
+	constexpr int GetFrameStart() const noexcept {		// // //
+		return std::min(m_cpStart.Ypos.Frame, m_cpEnd.Ypos.Frame);
+	}		// // //
+	constexpr int GetFrameEnd() const noexcept {		// // //
+		return std::max(m_cpStart.Ypos.Frame, m_cpEnd.Ypos.Frame);
+	}		// // //
 
-	bool IsSameStartPoint(const CSelection &selection) const;
-	bool IsColumnSelected(column_t Column, int Channel) const;
+	constexpr bool IsSameStartPoint(const CSelection &other) const noexcept {
+		return GetChanStart() == other.GetChanStart() &&
+			GetRowStart() == other.GetRowStart() &&
+			GetColStart() == other.GetColStart() &&
+			GetFrameStart() == other.GetFrameStart();		// // //
+	}
+	constexpr bool IsColumnSelected(column_t Column, int Channel) const noexcept {
+		column_t SelStart = GetSelectColumn(GetColStart());		// // //
+		column_t SelEnd = GetSelectColumn(GetColEnd());
 
-	void Normalize(CCursorPos &Begin, CCursorPos &End) const;		// // //
-	CSelection GetNormalized() const;		// // //
+		return (Channel > GetChanStart() || (Channel == GetChanStart() && Column >= SelStart))		// // //
+			&& (Channel < GetChanEnd() || (Channel == GetChanEnd() && Column <= SelEnd));
+	}
+
+	constexpr void Normalize(CCursorPos &Begin, CCursorPos &End) const noexcept {		// // //
+		CCursorPos Temp {GetRowStart(), GetChanStart(), GetColStart(), GetFrameStart()};
+		End = CCursorPos {GetRowEnd(), GetChanEnd(), GetColEnd(), GetFrameEnd()};
+		Begin = Temp;
+	}
+	constexpr CSelection GetNormalized() const noexcept {		// // //
+		CSelection Sel;
+		Normalize(Sel.m_cpStart, Sel.m_cpEnd);
+		return Sel;
+	}
+
 public:
 	CCursorPos m_cpStart;
 	CCursorPos m_cpEnd;
-};
-
-class CPatternIterator : public CCursorPos {		// // //
-public:
-	CPatternIterator(CSongView &view, const CCursorPos &Pos);
-//	CPatternIterator(const CSongView &view, const CCursorPos &Pos);
-
-	static std::pair<CPatternIterator, CPatternIterator> FromCursor(const CCursorPos &Pos, CSongView &view);
-	static std::pair<CPatternIterator, CPatternIterator> FromSelection(const CSelection &Sel, CSongView &view);
-
-	const stChanNote &Get(int Channel) const;
-	void Set(int Channel, const stChanNote &Note);
-	void Step();
-
-	CPatternIterator &operator+=(const int Rows);
-	CPatternIterator &operator-=(const int Rows);
-	CPatternIterator &operator++();
-	CPatternIterator operator++(int);
-	CPatternIterator &operator--();
-	CPatternIterator operator--(int);
-	bool operator==(const CPatternIterator &other) const;
-
-protected:
-	int TranslateFrame() const;
-
-private:
-	void Warp();
-
-protected:
-	CSongView &song_view_;
 };
 
 /*

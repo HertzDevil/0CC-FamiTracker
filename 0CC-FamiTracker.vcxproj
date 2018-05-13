@@ -509,6 +509,7 @@
     <ClCompile Include="Source\PatternData.cpp" />
     <ClCompile Include="Source\PeriodTables.cpp" />
     <ClCompile Include="Source\RegisterDisplay.cpp" />
+    <ClCompile Include="Source\SelectionRange.cpp" />
     <ClCompile Include="Source\SettingsService.cpp" />
     <ClCompile Include="Source\SongLengthScanner.cpp" />
     <ClCompile Include="Source\SongView.cpp" />
@@ -651,7 +652,6 @@
     <ClCompile Include="Source\Clipboard.cpp" />
     <ClCompile Include="Source\PatternAction.cpp" />
     <ClCompile Include="Source\PatternEditor.cpp" />
-    <ClCompile Include="Source\PatternEditorTypes.cpp" />
     <ClCompile Include="Source\FrameAction.cpp" />
     <ClCompile Include="Source\FrameEditor.cpp" />
     <ClCompile Include="Source\ControlPanelDlg.cpp" />
@@ -693,6 +693,7 @@
     <ClInclude Include="Source\ChipHandlerVRC7.h" />
     <ClInclude Include="Source\Color.h" />
     <ClInclude Include="Source\Effect.h" />
+    <ClInclude Include="Source\SelectionRange.h" />
     <ClInclude Include="Source\StringClipData.h" />
     <ClInclude Include="Source\StrongOrdering.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />

@@ -2907,15 +2907,15 @@ void CMainFrame::OnEditSelectother()		// // //
 
 			CFrameSelection NewSel;
 			int Frames = GetCurrentSong()->GetFrameCount();
-			NewSel.m_cpStart.m_iFrame = Sel.m_cpStart.m_iFrame;
-			NewSel.m_cpEnd.m_iFrame = Sel.m_cpEnd.m_iFrame;
+			NewSel.m_cpStart.m_iFrame = Sel.m_cpStart.Ypos.Frame;
+			NewSel.m_cpEnd.m_iFrame = Sel.m_cpEnd.Ypos.Frame;
 			if (NewSel.m_cpStart.m_iFrame < 0) {
 				NewSel.m_cpStart.m_iFrame += Frames;
 				NewSel.m_cpEnd.m_iFrame += Frames;
 			}
 			NewSel.m_cpEnd.m_iFrame = std::min(NewSel.m_cpEnd.m_iFrame, Frames) + 1;
-			NewSel.m_cpStart.m_iChannel = Sel.m_cpStart.m_iChannel;
-			NewSel.m_cpEnd.m_iChannel = Sel.m_cpEnd.m_iChannel + 1;
+			NewSel.m_cpStart.m_iChannel = Sel.m_cpStart.Xpos.Track;
+			NewSel.m_cpEnd.m_iChannel = Sel.m_cpEnd.Xpos.Track + 1;
 
 			m_pFrameEditor->SetSelection(NewSel);
 		}
@@ -2929,15 +2929,12 @@ void CMainFrame::OnEditSelectother()		// // //
 			m_pFrameEditor->CancelSelection();
 
 			CSelection NewSel;
-			NewSel.m_cpStart.m_iFrame = Sel.GstFirstSelectedFrame();
-			NewSel.m_cpStart.m_iChannel = Sel.GetFirstSelectedChannel();
-			NewSel.m_cpEnd.m_iFrame = Sel.GetLastSelectedFrame();
-			NewSel.m_cpEnd.m_iChannel = Sel.GetLastSelectedChannel();
-
-			NewSel.m_cpStart.m_iRow = 0;
-			NewSel.m_cpStart.m_iColumn = cursor_column_t::NOTE;
-			NewSel.m_cpEnd.m_iRow = pView->GetSongView()->GetFrameLength(NewSel.m_cpEnd.m_iFrame) - 1;
-			NewSel.m_cpEnd.m_iColumn = pEditor->GetChannelColumns(NewSel.m_cpEnd.m_iChannel);
+			NewSel.m_cpStart.Ypos = {Sel.GstFirstSelectedFrame(), 0};
+			NewSel.m_cpStart.Xpos = {Sel.GetFirstSelectedChannel(), cursor_column_t::NOTE};
+			NewSel.m_cpEnd.Ypos = {Sel.GetLastSelectedFrame(),
+				static_cast<int>(pView->GetSongView()->GetFrameLength(NewSel.m_cpEnd.Ypos.Frame)) - 1};
+			NewSel.m_cpEnd.Xpos = {Sel.GetLastSelectedChannel(),
+				pEditor->GetChannelColumns(NewSel.m_cpEnd.Xpos.Track)};
 
 			pEditor->SetSelection(NewSel);
 			pEditor->UpdateSelectionCondition();

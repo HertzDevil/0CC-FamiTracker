@@ -32,6 +32,7 @@
 #include "PatternClipData.h"		// // //
 
 class CPatternEditor;		// // //
+class CPatternIterator;		// // //
 class CSongView;		// // //
 class CMainFrame;		// // //
 

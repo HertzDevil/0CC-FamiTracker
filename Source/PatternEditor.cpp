@@ -42,6 +42,7 @@
 #include "SongView.h"		// // //
 #include "SoundChipService.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
+#include "SelectionRange.h"		// // //
 
 /*
  * CPatternEditor
@@ -366,7 +367,7 @@ void CPatternEditor::InvalidateHeader()
 
 void CPatternEditor::UpdatePatternLength()
 {
-	m_iPatternLength = GetCurrentPatternLength(m_cpCursorPos.m_iFrame);
+	m_iPatternLength = GetCurrentPatternLength(m_cpCursorPos.Ypos.Frame);
 	// // //
 }
 
@@ -416,7 +417,7 @@ void CPatternEditor::DrawScreen(CDC &DC, CFamiTrackerView *pView)
 	}
 
 	// New frames
-	if (m_iLastFrame != m_cpCursorPos.m_iFrame) {		// // //
+	if (m_iLastFrame != m_cpCursorPos.Ypos.Frame) {		// // //
 		UpdatePatternLength();
 		bDrawPattern = true;
 		bQuickRedraw = false;
@@ -446,7 +447,7 @@ void CPatternEditor::DrawScreen(CDC &DC, CFamiTrackerView *pView)
 			bQuickRedraw = false;
 
 		// Todo: remove
-		m_iDrawCursorRow = m_cpCursorPos.m_iRow;
+		m_iDrawCursorRow = m_cpCursorPos.Ypos.Row;
 
 		if (bQuickRedraw) {
 			// Quick redraw is possible
@@ -464,7 +465,7 @@ void CPatternEditor::DrawScreen(CDC &DC, CFamiTrackerView *pView)
 
 	// Save state
 	m_iLastCenterRow = m_iCenterRow;
-	m_iLastFrame = m_cpCursorPos.m_iFrame;		// // //
+	m_iLastFrame = m_cpCursorPos.Ypos.Frame;		// // //
 	m_iLastFirstChannel = m_iFirstChannel;
 	m_iLastPlayRow = m_iPlayRow;
 
@@ -691,13 +692,13 @@ bool CPatternEditor::CursorUpdated()
 	UpdatePatternLength();
 
 	// Channel cursor moved left of first visible channel
-	if (m_iFirstChannel > m_cpCursorPos.m_iChannel) {
-		m_iFirstChannel = m_cpCursorPos.m_iChannel;
+	if (m_iFirstChannel > m_cpCursorPos.Xpos.Track) {
+		m_iFirstChannel = m_cpCursorPos.Xpos.Track;
 		bUpdateNeeded = true;
 	}
 
 	// Channel cursor moved to the right of all visible channels
-	while ((m_cpCursorPos.m_iChannel - m_iFirstChannel) > (m_iChannelsFullVisible - 1)) {
+	while ((m_cpCursorPos.Xpos.Track - m_iFirstChannel) > (m_iChannelsFullVisible - 1)) {
 		++m_iFirstChannel;
 		bUpdateNeeded = true;
 	}
@@ -709,18 +710,18 @@ bool CPatternEditor::CursorUpdated()
 		m_iChannelsFullVisible = m_iChannelsVisible;
 
 	for (int i = 0; i < ChannelCount; ++i) {
-		if (i == m_cpCursorPos.m_iChannel) {
-			if (m_cpCursorPos.m_iColumn > m_iColumns[i])
-				m_cpCursorPos.m_iColumn = m_iColumns[i];
+		if (i == m_cpCursorPos.Xpos.Track) {
+			if (m_cpCursorPos.Xpos.Column > m_iColumns[i])
+				m_cpCursorPos.Xpos.Column = m_iColumns[i];
 		}
 	}
 
-	if (m_cpCursorPos.m_iRow > m_iPatternLength - 1)
-		m_cpCursorPos.m_iRow = m_iPatternLength - 1;
+	if (m_cpCursorPos.Ypos.Row > m_iPatternLength - 1)
+		m_cpCursorPos.Ypos.Row = m_iPatternLength - 1;
 
 	// Frame
-	if (m_cpCursorPos.m_iFrame >= Frames)		// // //
-		m_cpCursorPos.m_iFrame = Frames - 1;
+	if (m_cpCursorPos.Ypos.Frame >= Frames)		// // //
+		m_cpCursorPos.Ypos.Frame = Frames - 1;
 
 	// Ignore user cursor moves if the player is playing
 	if (Env.GetSoundGenerator()->IsPlaying()) {
@@ -730,8 +731,8 @@ bool CPatternEditor::CursorUpdated()
 		std::tie(m_iPlayFrame, m_iPlayRow) = pSoundGen->GetPlayerPos();		// // //
 
 		if (m_bFollowMode) {
-			m_cpCursorPos.m_iRow = m_iPlayRow;
-			m_cpCursorPos.m_iFrame = m_iPlayFrame;		// // //
+			m_cpCursorPos.Ypos.Row = m_iPlayRow;
+			m_cpCursorPos.Ypos.Frame = m_iPlayFrame;		// // //
 		}
 	}
 	else {
@@ -745,23 +746,23 @@ bool CPatternEditor::CursorUpdated()
 		if (m_iCenterRow < m_iLinesVisible / 2)
 			m_iCenterRow = m_iLinesVisible / 2;
 
-		int CursorDifference = m_cpCursorPos.m_iRow - m_iCenterRow;
+		int CursorDifference = m_cpCursorPos.Ypos.Row - m_iCenterRow;
 
 		// Bottom
 		while (CursorDifference >= (m_iLinesFullVisible / 2) && CursorDifference > 0) {
 			// Change these if you want one whole page to scroll instead of single lines
 			m_iCenterRow += 1;
-			CursorDifference = (m_cpCursorPos.m_iRow - m_iCenterRow);
+			CursorDifference = (m_cpCursorPos.Ypos.Row - m_iCenterRow);
 		}
 
 		// Top
 		while (-CursorDifference > (m_iLinesVisible / 2) && CursorDifference < 0) {
 			m_iCenterRow -= 1;
-			CursorDifference = (m_cpCursorPos.m_iRow - m_iCenterRow);
+			CursorDifference = (m_cpCursorPos.Ypos.Row - m_iCenterRow);
 		}
 	}
 	else {
-		m_iCenterRow = m_cpCursorPos.m_iRow;
+		m_iCenterRow = m_cpCursorPos.Ypos.Row;
 	}
 
 	// Erase if background needs to be redrawn
@@ -850,7 +851,7 @@ void CPatternEditor::PerformFullRedraw(CDC &DC)
 	DC.SetBkMode(TRANSPARENT);
 
 	for (int i = 0; i < m_iLinesVisible; ++i)
-		PrintRow(DC, Row++, i, m_cpCursorPos.m_iFrame);		// // //
+		PrintRow(DC, Row++, i, m_cpCursorPos.Ypos.Frame);		// // //
 
 	// Last unvisible row
 	ClearRow(DC, m_iLinesVisible);
@@ -878,7 +879,7 @@ void CPatternEditor::PerformFullRedraw(CDC &DC)
 void CPatternEditor::PerformQuickRedraw(CDC &DC)
 {
 	// Draw specific parts of pattern area
-	ASSERT(m_cpCursorPos.m_iFrame == m_iLastFrame);
+	ASSERT(m_cpCursorPos.Ypos.Frame == m_iLastFrame);
 
 	// Number of rows that has changed
 	const int DiffRows = m_iCenterRow - m_iLastCenterRow;
@@ -892,11 +893,11 @@ void CPatternEditor::PerformQuickRedraw(CDC &DC)
 		//PrintRow(DC, m_iPlayRow,
 	}
 	else if (!Env.GetSoundGenerator()->IsPlaying() && m_iLastPlayRow != -1) {
-		if (m_iPlayFrame == m_cpCursorPos.m_iFrame) {
+		if (m_iPlayFrame == m_cpCursorPos.Ypos.Frame) {
 			int Line = RowToLine(m_iLastPlayRow);
 			if (Line >= 0 && Line <= m_iLinesVisible) {
 				// Erase
-				PrintRow(DC, m_iLastPlayRow, Line, m_cpCursorPos.m_iFrame);
+				PrintRow(DC, m_iLastPlayRow, Line, m_cpCursorPos.Ypos.Frame);
 			}
 		}
 	}
@@ -961,7 +962,7 @@ void CPatternEditor::ScrollPatternArea(CDC &DC, int Rows) const
 
 	const int FrameCount = GetFrameCount();		// // //
 	const int MiddleLine = m_iLinesVisible / 2;
-	const int Frame = m_cpCursorPos.m_iFrame;		// // //
+	const int Frame = m_cpCursorPos.Ypos.Frame;		// // //
 
 	const int FirstLineCount = MiddleLine;	// Lines above cursor
 	const int SecondLineCount = MiddleLine - ((m_iLinesVisible & 1) ? 0 : 1);	// Lines below cursor
@@ -1078,7 +1079,7 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 	// Start at row number column
 	DC.SetWindowOrg(0, 0);
 
-	if (Frame != m_cpCursorPos.m_iFrame && !pSettings->General.bFramePreview) {
+	if (Frame != m_cpCursorPos.Ypos.Frame && !pSettings->General.bFramePreview) {
 		ClearRow(DC, Line);
 		return;
 	}
@@ -1145,7 +1146,7 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 
 	DC.SetTextAlign(TA_LEFT);		// // //
 
-	const double BlendLv = Frame == m_cpCursorPos.m_iFrame ? 1. : PREVIEW_SHADE_LEVEL;
+	const double BlendLv = Frame == m_cpCursorPos.Ypos.Frame ? 1. : PREVIEW_SHADE_LEVEL;
 	const COLORREF SelectColor = DIM(BLEND(ColSelect, BackColor, SHADE_LEVEL::SELECT), BlendLv);		// // //
 	const COLORREF DragColor = DIM(BLEND(SEL_DRAG_COL, BackColor, SHADE_LEVEL::SELECT), BlendLv);
 	const COLORREF SelectEdgeCol = (m_iSelectionCondition == sel_condition_t::CLEAN /* || m_iSelectionCondition == sel_condition_t::UNKNOWN_SIZE*/ ) ?
@@ -1238,7 +1239,7 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 			bool bInvert = false;
 
 			// Draw cursor box
-			if (i == m_cpCursorPos.m_iChannel && j == m_cpCursorPos.m_iColumn && Row == m_iDrawCursorRow && !bPreview) {
+			if (i == m_cpCursorPos.Xpos.Track && j == m_cpCursorPos.Xpos.Column && Row == m_iDrawCursorRow && !bPreview) {
 				GradientBar(DC, PosX - m_iColumnSpacing / 2, 0, GetColumnWidth(j), m_iRowHeight, ColCursor, ColBg);		// // //
 				DC.Draw3dRect(PosX - m_iColumnSpacing / 2, 0, GetColumnWidth(j), m_iRowHeight, ColCursor, DIM(ColCursor, .5));
 				//DC.Draw3dRect(PosX - m_iColumnSpacing / 2 - 1, -1, GetColumnWidth(j) + 2, m_iRowHeight + 2, ColCursor, DIM(ColCursor, .5));
@@ -1732,8 +1733,8 @@ void CPatternEditor::UpdateHorizontalScroll()
 
 	// Calculate cursor pos
 	for (int i = 0; i < Channels; ++i) {
-		if (i == m_cpCursorPos.m_iChannel)
-			CurrentColumn = ColumnCount + value_cast(m_cpCursorPos.m_iColumn);
+		if (i == m_cpCursorPos.Xpos.Track)
+			CurrentColumn = ColumnCount + value_cast(m_cpCursorPos.Xpos.Column);
 		ColumnCount += value_cast(GetChannelColumns(i)) + 1;
 	}
 
@@ -1793,7 +1794,7 @@ cursor_column_t CPatternEditor::GetColumnAtPoint(int PointX) const		// // //
 CCursorPos CPatternEditor::GetCursorAtPoint(const CPoint &point) const
 {
 	// // // Removed GetRowAtPoint and GetFrameAtPoint
-	int Frame = m_cpCursorPos.m_iFrame;
+	int Frame = m_cpCursorPos.Ypos.Frame;
 	int Row = (point.y - HEADER_HEIGHT) / m_iRowHeight - (m_iLinesVisible / 2) + m_iCenterRow;
 
 	if (Env.GetSettings()->General.bFramePreview) {		// // // guarantees valid cursor position
@@ -1873,8 +1874,8 @@ void CPatternEditor::SetSelectionStart(const CCursorPos &start)
 		m_bSelectionInvalidated = true;
 
 	CCursorPos Pos = start;		// // //
-	Pos.m_iFrame %= GetFrameCount();
-	Pos.m_iFrame += GetFrameCount() * (m_iWarpCount + (Pos.m_iFrame < 0));
+	Pos.Ypos.Frame %= GetFrameCount();
+	Pos.Ypos.Frame += GetFrameCount() * (m_iWarpCount + (Pos.Ypos.Frame < 0));
 	m_selection.m_cpStart = Pos;
 }
 
@@ -1884,8 +1885,8 @@ void CPatternEditor::SetSelectionEnd(const CCursorPos &end)
 		m_bSelectionInvalidated = true;
 
 	CCursorPos Pos = end;		// // //
-	Pos.m_iFrame %= GetFrameCount();
-	Pos.m_iFrame += GetFrameCount() * (m_iWarpCount + (Pos.m_iFrame < 0));
+	Pos.Ypos.Frame %= GetFrameCount();
+	Pos.Ypos.Frame += GetFrameCount() * (m_iWarpCount + (Pos.Ypos.Frame < 0));
 	m_selection.m_cpEnd = Pos;
 }
 
@@ -1911,13 +1912,13 @@ CPatternEditor::CSelectionGuard::~CSelectionGuard()		// // //
 		m_pPatternEditor->SetSelectionEnd(m_pPatternEditor->m_cpCursorPos);
 		if (m_pPatternEditor->m_bCompactMode) {		// // //
 			m_pPatternEditor->m_bCompactMode = false;
-			if (Sel.m_cpEnd.m_iChannel >= Sel.m_cpStart.m_iChannel) {
-				Sel.m_cpEnd.m_iColumn = m_pPatternEditor->GetChannelColumns(Sel.m_cpEnd.m_iChannel);
-				Sel.m_cpStart.m_iColumn = cursor_column_t::NOTE;
+			if (Sel.m_cpEnd.Xpos.Track >= Sel.m_cpStart.Xpos.Track) {
+				Sel.m_cpEnd.Xpos.Column = m_pPatternEditor->GetChannelColumns(Sel.m_cpEnd.Xpos.Track);
+				Sel.m_cpStart.Xpos.Column = cursor_column_t::NOTE;
 			}
 			else {
-				Sel.m_cpEnd.m_iColumn = cursor_column_t::NOTE;
-				Sel.m_cpStart.m_iColumn = m_pPatternEditor->GetChannelColumns(Sel.m_cpStart.m_iChannel);
+				Sel.m_cpEnd.Xpos.Column = cursor_column_t::NOTE;
+				Sel.m_cpStart.Xpos.Column = m_pPatternEditor->GetChannelColumns(Sel.m_cpStart.Xpos.Track);
 			}
 			m_pPatternEditor->m_bCompactMode = true;
 		}
@@ -1934,12 +1935,12 @@ CPatternEditor::CSelectionGuard::~CSelectionGuard()		// // //
 	if (Sel.GetFrameEnd() - Sel.GetFrameStart() > Frames ||		// // //
 		(Sel.GetFrameEnd() - Sel.GetFrameStart() == Frames &&
 		Sel.GetRowEnd() >= Sel.GetRowStart())) { // selection touches itself
-			if (Sel.m_cpEnd.m_iFrame >= Frames) {
-				Sel.m_cpEnd.m_iFrame -= Frames;
+			if (Sel.m_cpEnd.Ypos.Frame >= Frames) {
+				Sel.m_cpEnd.Ypos.Frame -= Frames;
 				m_pPatternEditor->m_iWarpCount = 0;
 			}
-			if (Sel.m_cpEnd.m_iFrame < 0) {
-				Sel.m_cpEnd.m_iFrame += Frames;
+			if (Sel.m_cpEnd.Ypos.Frame < 0) {
+				Sel.m_cpEnd.Ypos.Frame += Frames;
 				m_pPatternEditor->m_iWarpCount = 0;
 			}
 	}
@@ -1950,7 +1951,7 @@ void CPatternEditor::MoveDown(int Step)
 	CSelectionGuard Guard {this};		// // //
 
 	Step = (Step == 0) ? 1 : Step;
-	MoveToRow(m_cpCursorPos.m_iRow + Step);
+	MoveToRow(m_cpCursorPos.Ypos.Row + Step);
 }
 
 void CPatternEditor::MoveUp(int Step)
@@ -1958,7 +1959,7 @@ void CPatternEditor::MoveUp(int Step)
 	CSelectionGuard Guard {this};		// // //
 
 	Step = (Step == 0) ? 1 : Step;
-	MoveToRow(m_cpCursorPos.m_iRow - Step);
+	MoveToRow(m_cpCursorPos.Ypos.Row - Step);
 }
 
 void CPatternEditor::MoveLeft()
@@ -1991,16 +1992,16 @@ void CPatternEditor::MoveToBottom()
 
 void CPatternEditor::NextChannel()
 {
-	MoveToChannel(m_cpCursorPos.m_iChannel + 1);
-	m_cpCursorPos.m_iColumn = cursor_column_t::NOTE;
+	MoveToChannel(m_cpCursorPos.Xpos.Track + 1);
+	m_cpCursorPos.Xpos.Column = cursor_column_t::NOTE;
 
 	CancelSelection();		// // //
 }
 
 void CPatternEditor::PreviousChannel()
 {
-	MoveToChannel(m_cpCursorPos.m_iChannel - 1);
-	m_cpCursorPos.m_iColumn = cursor_column_t::NOTE;
+	MoveToChannel(m_cpCursorPos.Xpos.Track - 1);
+	m_cpCursorPos.Xpos.Column = cursor_column_t::NOTE;
 
 	CancelSelection();		// // //
 }
@@ -2010,7 +2011,7 @@ void CPatternEditor::FirstChannel()
 	CSelectionGuard Guard {this};		// // //
 
 	MoveToChannel(0);
-	m_cpCursorPos.m_iColumn	= cursor_column_t::NOTE;
+	m_cpCursorPos.Xpos.Column	= cursor_column_t::NOTE;
 }
 
 void CPatternEditor::LastChannel()
@@ -2018,7 +2019,7 @@ void CPatternEditor::LastChannel()
 	CSelectionGuard Guard {this};		// // //
 
 	MoveToChannel(GetChannelCount() - 1);
-	m_cpCursorPos.m_iColumn	= cursor_column_t::NOTE;
+	m_cpCursorPos.Xpos.Column	= cursor_column_t::NOTE;
 }
 
 void CPatternEditor::MoveChannelLeft()
@@ -2028,13 +2029,13 @@ void CPatternEditor::MoveChannelLeft()
 	const int ChannelCount = GetChannelCount();
 
 	// Wrapping
-	if (--m_cpCursorPos.m_iChannel < 0)
-		m_cpCursorPos.m_iChannel = ChannelCount - 1;
+	if (--m_cpCursorPos.Xpos.Track < 0)
+		m_cpCursorPos.Xpos.Track = ChannelCount - 1;
 
-	cursor_column_t Columns = GetChannelColumns(m_cpCursorPos.m_iChannel);
+	cursor_column_t Columns = GetChannelColumns(m_cpCursorPos.Xpos.Track);
 
-	if (Columns < m_cpCursorPos.m_iColumn)
-		m_cpCursorPos.m_iColumn = Columns;
+	if (Columns < m_cpCursorPos.Xpos.Column)
+		m_cpCursorPos.Xpos.Column = Columns;
 }
 
 void CPatternEditor::MoveChannelRight()
@@ -2044,13 +2045,13 @@ void CPatternEditor::MoveChannelRight()
 	const int ChannelCount = GetChannelCount();
 
 	// Wrapping
-	if (++m_cpCursorPos.m_iChannel > (ChannelCount - 1))
-		m_cpCursorPos.m_iChannel = 0;
+	if (++m_cpCursorPos.Xpos.Track > (ChannelCount - 1))
+		m_cpCursorPos.Xpos.Track = 0;
 
-	cursor_column_t Columns = GetChannelColumns(m_cpCursorPos.m_iChannel);
+	cursor_column_t Columns = GetChannelColumns(m_cpCursorPos.Xpos.Track);
 
-	if (Columns < m_cpCursorPos.m_iColumn)
-		m_cpCursorPos.m_iColumn = Columns;
+	if (Columns < m_cpCursorPos.Xpos.Column)
+		m_cpCursorPos.Xpos.Column = Columns;
 }
 
 void CPatternEditor::OnHomeKey()
@@ -2109,12 +2110,12 @@ void CPatternEditor::MoveToRow(int Row)
 
 	if (Env.GetSettings()->General.bWrapFrames) {		// // //
 		while (Row < 0) {
-			MoveToFrame(m_cpCursorPos.m_iFrame - 1);
+			MoveToFrame(m_cpCursorPos.Ypos.Frame - 1);
 			Row += m_iPatternLength;
 		}
 		while (Row >= m_iPatternLength) {
 			Row -= m_iPatternLength;
-			MoveToFrame(m_cpCursorPos.m_iFrame + 1);
+			MoveToFrame(m_cpCursorPos.Ypos.Frame + 1);
 		}
 	}
 	else if (Env.GetSettings()->General.bWrapCursor) {
@@ -2124,7 +2125,7 @@ void CPatternEditor::MoveToRow(int Row)
 	else
 		Row = std::clamp(Row, 0, m_iPatternLength - 1);
 
-	m_cpCursorPos.m_iRow = Row;
+	m_cpCursorPos.Ypos.Row = Row;
 }
 
 void CPatternEditor::MoveToFrame(int Frame)
@@ -2139,7 +2140,7 @@ void CPatternEditor::MoveToFrame(int Frame)
 			if (Env.GetSettings()->General.bMultiFrameSel) {		// // //
 				if (Frame < 0)
 					--m_iWarpCount;
-				else if (Frame / FrameCount > m_cpCursorPos.m_iFrame / FrameCount)
+				else if (Frame / FrameCount > m_cpCursorPos.Ypos.Frame / FrameCount)
 					++m_iWarpCount;
 			}
 		}
@@ -2151,7 +2152,7 @@ void CPatternEditor::MoveToFrame(int Frame)
 		Frame = std::clamp(Frame, 0, FrameCount - 1);
 
 	if (m_bSelecting && !Env.GetSettings()->General.bMultiFrameSel)		// // //
-		m_selection.m_cpStart.m_iFrame = m_selection.m_cpEnd.m_iFrame = Frame;
+		m_selection.m_cpStart.Ypos.Frame = m_selection.m_cpEnd.Ypos.Frame = Frame;
 
 	if (Env.GetSoundGenerator()->IsPlaying() && m_bFollowMode) {
 		if (m_iPlayFrame != Frame) {
@@ -2160,7 +2161,7 @@ void CPatternEditor::MoveToFrame(int Frame)
 		}
 	}
 
-	m_cpCursorPos.m_iFrame = Frame;		// // //
+	m_cpCursorPos.Ypos.Frame = Frame;		// // //
 	UpdatePatternLength();		// // //
 	// CancelSelection();
 }
@@ -2169,7 +2170,7 @@ void CPatternEditor::MoveToChannel(int Channel)
 {
 	const int ChannelCount = GetChannelCount();
 
-	if (Channel == m_cpCursorPos.m_iChannel)
+	if (Channel == m_cpCursorPos.Xpos.Track)
 		return;
 
 	if (Channel < 0) {
@@ -2184,13 +2185,13 @@ void CPatternEditor::MoveToChannel(int Channel)
 		else
 			Channel = ChannelCount - 1;
 	}
-	m_cpCursorPos.m_iChannel = Channel;
-	m_cpCursorPos.m_iColumn = cursor_column_t::NOTE;
+	m_cpCursorPos.Xpos.Track = Channel;
+	m_cpCursorPos.Xpos.Column = cursor_column_t::NOTE;
 }
 
 void CPatternEditor::MoveToColumn(cursor_column_t Column)
 {
-	m_cpCursorPos.m_iColumn = Column;
+	m_cpCursorPos.Xpos.Column = Column;
 }
 
 void CPatternEditor::NextFrame()
@@ -2213,17 +2214,17 @@ void CPatternEditor::PreviousFrame()
 
 void CPatternEditor::ScrollLeft()
 {
-	if (m_cpCursorPos.m_iColumn > cursor_column_t::NOTE)
-		m_cpCursorPos.m_iColumn = static_cast<cursor_column_t>(value_cast(m_cpCursorPos.m_iColumn) - 1);
+	if (m_cpCursorPos.Xpos.Column > cursor_column_t::NOTE)
+		m_cpCursorPos.Xpos.Column = static_cast<cursor_column_t>(value_cast(m_cpCursorPos.Xpos.Column) - 1);
 	else {
-		if (m_cpCursorPos.m_iChannel > 0) {
-			--m_cpCursorPos.m_iChannel;
-			m_cpCursorPos.m_iColumn = m_iColumns[m_cpCursorPos.m_iChannel];
+		if (m_cpCursorPos.Xpos.Track > 0) {
+			--m_cpCursorPos.Xpos.Track;
+			m_cpCursorPos.Xpos.Column = m_iColumns[m_cpCursorPos.Xpos.Track];
 		}
 		else {
 			if (Env.GetSettings()->General.bWrapCursor) {
-				m_cpCursorPos.m_iChannel = GetChannelCount() - 1;
-				m_cpCursorPos.m_iColumn = m_iColumns[m_cpCursorPos.m_iChannel];
+				m_cpCursorPos.Xpos.Track = GetChannelCount() - 1;
+				m_cpCursorPos.Xpos.Column = m_iColumns[m_cpCursorPos.Xpos.Track];
 			}
 		}
 	}
@@ -2231,17 +2232,17 @@ void CPatternEditor::ScrollLeft()
 
 void CPatternEditor::ScrollRight()
 {
-	if (m_cpCursorPos.m_iColumn < m_iColumns[m_cpCursorPos.m_iChannel])
-		m_cpCursorPos.m_iColumn = static_cast<cursor_column_t>(value_cast(m_cpCursorPos.m_iColumn) + 1);
+	if (m_cpCursorPos.Xpos.Column < m_iColumns[m_cpCursorPos.Xpos.Track])
+		m_cpCursorPos.Xpos.Column = static_cast<cursor_column_t>(value_cast(m_cpCursorPos.Xpos.Column) + 1);
 	else {
-		if (m_cpCursorPos.m_iChannel < GetChannelCount() - 1) {
-			++m_cpCursorPos.m_iChannel;
-			m_cpCursorPos.m_iColumn = cursor_column_t::NOTE;
+		if (m_cpCursorPos.Xpos.Track < GetChannelCount() - 1) {
+			++m_cpCursorPos.Xpos.Track;
+			m_cpCursorPos.Xpos.Column = cursor_column_t::NOTE;
 		}
 		else {
 			if (Env.GetSettings()->General.bWrapCursor) {
-				m_cpCursorPos.m_iChannel = 0;
-				m_cpCursorPos.m_iColumn = cursor_column_t::NOTE;
+				m_cpCursorPos.Xpos.Track = 0;
+				m_cpCursorPos.Xpos.Column = cursor_column_t::NOTE;
 			}
 		}
 	}
@@ -2249,14 +2250,14 @@ void CPatternEditor::ScrollRight()
 
 void CPatternEditor::ScrollNextChannel()
 {
-	MoveToChannel(m_cpCursorPos.m_iChannel + 1);
-	m_cpCursorPos.m_iColumn = cursor_column_t::NOTE;
+	MoveToChannel(m_cpCursorPos.Xpos.Track + 1);
+	m_cpCursorPos.Xpos.Column = cursor_column_t::NOTE;
 }
 
 void CPatternEditor::ScrollPreviousChannel()
 {
-	MoveToChannel(m_cpCursorPos.m_iChannel - 1);
-	m_cpCursorPos.m_iColumn = cursor_column_t::NOTE;
+	MoveToChannel(m_cpCursorPos.Xpos.Track - 1);
+	m_cpCursorPos.Xpos.Column = cursor_column_t::NOTE;
 }
 
 // Mouse routines
@@ -2317,12 +2318,12 @@ void CPatternEditor::OnMouseDownPattern(const CPoint &point)
 
 	// Pattern area
 	CCursorPos PointPos = GetCursorAtPoint(point);
-	const int PatternLength = GetCurrentPatternLength(PointPos.m_iFrame);		// // //
+	const int PatternLength = GetCurrentPatternLength(PointPos.Ypos.Frame);		// // //
 
-	m_iDragBeginWarp = PointPos.m_iFrame / GetFrameCount();		// // //
-	if (PointPos.m_iFrame % GetFrameCount() < 0) --m_iDragBeginWarp;
+	m_iDragBeginWarp = PointPos.Ypos.Frame / GetFrameCount();		// // //
+	if (PointPos.Ypos.Frame % GetFrameCount() < 0) --m_iDragBeginWarp;
 
-	if (bShift && !IsInRange(m_selection, PointPos.m_iFrame, PointPos.m_iRow, PointPos.m_iChannel, PointPos.m_iColumn)) {		// // //
+	if (bShift && !IsInRange(m_selection, PointPos.Ypos.Frame, PointPos.Ypos.Row, PointPos.Xpos.Track, PointPos.Xpos.Column)) {		// // //
 		// Expand selection
 		if (!PointPos.IsValid(PatternLength, ChannelCount))
 			return;
@@ -2338,9 +2339,9 @@ void CPatternEditor::OnMouseDownPattern(const CPoint &point)
 		if (IsInsideRowColumn(point)) {
 			// Row number column
 			CancelSelection();
-			PointPos.m_iRow = std::clamp(PointPos.m_iRow, 0, PatternLength - 1);		// // //
-			m_selection.m_cpStart = CCursorPos(PointPos.m_iRow, 0, cursor_column_t::NOTE, PointPos.m_iFrame);		// // //
-			m_selection.m_cpEnd = CCursorPos(PointPos.m_iRow, ChannelCount - 1, GetChannelColumns(ChannelCount - 1), PointPos.m_iFrame);
+			PointPos.Ypos.Row = std::clamp(PointPos.Ypos.Row, 0, PatternLength - 1);		// // //
+			m_selection.m_cpStart = CCursorPos(PointPos.Ypos.Row, 0, cursor_column_t::NOTE, PointPos.Ypos.Frame);		// // //
+			m_selection.m_cpEnd = CCursorPos(PointPos.Ypos.Row, ChannelCount - 1, GetChannelColumns(ChannelCount - 1), PointPos.Ypos.Frame);
 			m_bFullRowSelect = true;
 			m_ptSelStartPoint = point;
 			m_bMouseActive = true;
@@ -2354,29 +2355,29 @@ void CPatternEditor::OnMouseDownPattern(const CPoint &point)
 
 			if (IsSelecting()) {
 				if (m_pView->GetEditMode() &&		// // //
-					IsInRange(m_selection, PointPos.m_iFrame, PointPos.m_iRow, PointPos.m_iChannel, PointPos.m_iColumn)) {
+					IsInRange(m_selection, PointPos.Ypos.Frame, PointPos.Ypos.Row, PointPos.Xpos.Track, PointPos.Xpos.Column)) {
 					m_bDragStart = true;
 				}
 				else {
 					m_bDragStart = false;
 					m_bDragging = false;
 					CancelSelection();
-					m_iDragBeginWarp = PointPos.m_iFrame / GetFrameCount();		// // //
-					if (PointPos.m_iFrame % GetFrameCount() < 0) --m_iDragBeginWarp;
+					m_iDragBeginWarp = PointPos.Ypos.Frame / GetFrameCount();		// // //
+					if (PointPos.Ypos.Frame % GetFrameCount() < 0) --m_iDragBeginWarp;
 				}
 			}
 
 			if (!m_bDragging && !m_bDragStart) {
 				// Begin new selection
 				if (bControl) {
-					PointPos.m_iColumn = cursor_column_t::NOTE;
+					PointPos.Xpos.Column = cursor_column_t::NOTE;
 				}
 				SetSelectionStart(PointPos);
 				SetSelectionEnd(PointPos);
 			}
 			else {
-				column_t Col = GetSelectColumn(PointPos.m_iColumn);
-				m_cpDragPoint = CCursorPos(PointPos.m_iRow, PointPos.m_iChannel, GetCursorStartColumn(Col), PointPos.m_iFrame); // // //
+				column_t Col = GetSelectColumn(PointPos.Xpos.Column);
+				m_cpDragPoint = CCursorPos(PointPos.Ypos.Row, PointPos.Xpos.Track, GetCursorStartColumn(Col), PointPos.Ypos.Frame); // // //
 			}
 
 			m_ptSelStartPoint = point;
@@ -2436,9 +2437,9 @@ void CPatternEditor::OnMouseUp(const CPoint &point)
 
 		// Pattern area
 		CCursorPos PointPos = GetCursorAtPoint(point);
-		PointPos.m_iFrame %= GetFrameCount();
-		if (PointPos.m_iFrame < 0) PointPos.m_iFrame += GetFrameCount();		// // //
-		const int PatternLength = GetCurrentPatternLength(PointPos.m_iFrame);		// // //
+		PointPos.Ypos.Frame %= GetFrameCount();
+		if (PointPos.Ypos.Frame < 0) PointPos.Ypos.Frame += GetFrameCount();		// // //
+		const int PatternLength = GetCurrentPatternLength(PointPos.Ypos.Frame);		// // //
 
 		if (IsInsideRowColumn(point)) {
 			if (m_bDragging) {
@@ -2451,8 +2452,8 @@ void CPatternEditor::OnMouseUp(const CPoint &point)
 				m_bSelectionInvalidated = true;
 				return;
 			}
-			m_cpCursorPos.m_iRow = PointPos.m_iRow;
-			m_cpCursorPos.m_iFrame = PointPos.m_iFrame;		// // //
+			m_cpCursorPos.Ypos.Row = PointPos.Ypos.Row;
+			m_cpCursorPos.Ypos.Frame = PointPos.Ypos.Frame;		// // //
 			m_iDragBeginWarp = 0;		// // //
 			return;
 		}
@@ -2498,8 +2499,8 @@ void CPatternEditor::ContinueMouseSelection(const CPoint &point)
 	CCursorPos PointPos = GetCursorAtPoint(point);
 
 	// Selecting or dragging
-	PointPos.m_iRow = std::clamp(PointPos.m_iRow, 0, GetCurrentPatternLength(PointPos.m_iFrame) - 1);		// // //
-	PointPos.m_iChannel = std::clamp(PointPos.m_iChannel, 0, ChannelCount - 1);
+	PointPos.Ypos.Row = std::clamp(PointPos.Ypos.Row, 0, GetCurrentPatternLength(PointPos.Ypos.Frame) - 1);		// // //
+	PointPos.Xpos.Track = std::clamp(PointPos.Xpos.Track, 0, ChannelCount - 1);
 
 	if (m_bDragStart) {
 		// Dragging
@@ -2507,15 +2508,14 @@ void CPatternEditor::ContinueMouseSelection(const CPoint &point)
 			// Initiate OLE drag & drop
 			PointPos = GetCursorAtPoint(m_ptSelStartPoint);		// // //
 			CSelection Original = m_selection;
-			if (m_selection.m_cpEnd < m_selection.m_cpStart) {
+			if (m_selection.m_cpEnd.Ypos < m_selection.m_cpStart.Ypos)
 				m_selection.m_cpStart = m_selection.m_cpEnd;
-			}
 			m_selection.m_cpEnd = PointPos;
-			while (m_selection.m_cpEnd < m_selection.m_cpStart)
-				m_selection.m_cpEnd.m_iFrame += FrameCount;
+			while (m_selection.m_cpEnd.Ypos < m_selection.m_cpStart.Ypos)
+				m_selection.m_cpEnd.Ypos.Frame += FrameCount;
 			while (!GetSelectionSize(GetSelection())) // correction for overlapping selection
-				m_selection.m_cpEnd.m_iFrame -= FrameCount;
-			int ChanOffset = PointPos.m_iChannel - Original.GetChanStart();
+				m_selection.m_cpEnd.Ypos.Frame -= FrameCount;
+			int ChanOffset = PointPos.Xpos.Track - Original.GetChanStart();
 			int RowOffset = GetSelectionSize(GetSelection()) - 1;
 			m_selection = Original;
 			m_bDragStart = false;
@@ -2527,13 +2527,13 @@ void CPatternEditor::ContinueMouseSelection(const CPoint &point)
 		if (bControl || m_bCompactMode) {		// // //
 			bool Compact = m_bCompactMode; // temp
 			m_bCompactMode = false;
-			if (PointPos.m_iChannel >= m_selection.m_cpStart.m_iChannel) {
-				PointPos.m_iColumn = GetChannelColumns(PointPos.m_iChannel);
-				m_selection.m_cpStart.m_iColumn = cursor_column_t::NOTE;
+			if (PointPos.Xpos.Track >= m_selection.m_cpStart.Xpos.Track) {
+				PointPos.Xpos.Column = GetChannelColumns(PointPos.Xpos.Track);
+				m_selection.m_cpStart.Xpos.Column = cursor_column_t::NOTE;
 			}
 			else {
-				PointPos.m_iColumn = cursor_column_t::NOTE;
-				m_selection.m_cpStart.m_iColumn = GetChannelColumns(m_selection.m_cpStart.m_iChannel);
+				PointPos.Xpos.Column = cursor_column_t::NOTE;
+				m_selection.m_cpStart.Xpos.Column = GetChannelColumns(m_selection.m_cpStart.Xpos.Track);
 			}
 			m_bSelectionInvalidated = true;
 			m_bCompactMode = Compact;
@@ -2541,46 +2541,46 @@ void CPatternEditor::ContinueMouseSelection(const CPoint &point)
 
 		// Full row selection
 		if (m_bFullRowSelect) {
-			m_selection.m_cpEnd.m_iRow = PointPos.m_iRow;
-			m_selection.m_cpEnd.m_iFrame = PointPos.m_iFrame;		// // //
-			m_selection.m_cpEnd.m_iColumn = GetChannelColumns(GetChannelCount() - 1);
+			m_selection.m_cpEnd.Ypos.Row = PointPos.Ypos.Row;
+			m_selection.m_cpEnd.Ypos.Frame = PointPos.Ypos.Frame;		// // //
+			m_selection.m_cpEnd.Xpos.Column = GetChannelColumns(GetChannelCount() - 1);
 		}
 		else
 			SetSelectionEnd(PointPos);
 
-		int Warp = PointPos.m_iFrame / FrameCount;		// // //
-		if (PointPos.m_iFrame % FrameCount < 0) --Warp;
+		int Warp = PointPos.Ypos.Frame / FrameCount;		// // //
+		if (PointPos.Ypos.Frame % FrameCount < 0) --Warp;
 		m_iWarpCount = Warp - m_iDragBeginWarp;
 
-		m_selection.m_cpEnd.m_iFrame %= FrameCount;
-		m_selection.m_cpEnd.m_iFrame += FrameCount * (m_iWarpCount + (m_selection.m_cpEnd.m_iFrame < 0));
+		m_selection.m_cpEnd.Ypos.Frame %= FrameCount;
+		m_selection.m_cpEnd.Ypos.Frame += FrameCount * (m_iWarpCount + (m_selection.m_cpEnd.Ypos.Frame < 0));
 
 		if (m_selection.GetFrameEnd() - m_selection.GetFrameStart() > FrameCount ||		// // //
 			(m_selection.GetFrameEnd() - m_selection.GetFrameStart() == FrameCount &&
 			m_selection.GetRowEnd() >= m_selection.GetRowStart())) {
-				if (m_selection.m_cpEnd.m_iFrame >= FrameCount) {
-					m_selection.m_cpEnd.m_iFrame -= FrameCount;
+				if (m_selection.m_cpEnd.Ypos.Frame >= FrameCount) {
+					m_selection.m_cpEnd.Ypos.Frame -= FrameCount;
 					m_iWarpCount = 0;
 				}
-				if (m_selection.m_cpEnd.m_iFrame < 0) {
-					m_selection.m_cpEnd.m_iFrame += FrameCount;
+				if (m_selection.m_cpEnd.Ypos.Frame < 0) {
+					m_selection.m_cpEnd.Ypos.Frame += FrameCount;
 					m_iWarpCount = 0;
 				}
 		}
 
 		if (!Env.GetSettings()->General.bMultiFrameSel) {		// // //
-			m_selection.m_cpEnd.m_iFrame %= FrameCount;
-			if (m_selection.m_cpEnd.m_iFrame < 0) m_selection.m_cpEnd.m_iFrame += FrameCount;
-			m_selection.m_cpStart.m_iFrame %= FrameCount;
-			if (m_selection.m_cpStart.m_iFrame < 0) m_selection.m_cpStart.m_iFrame += FrameCount;
+			m_selection.m_cpEnd.Ypos.Frame %= FrameCount;
+			if (m_selection.m_cpEnd.Ypos.Frame < 0) m_selection.m_cpEnd.Ypos.Frame += FrameCount;
+			m_selection.m_cpStart.Ypos.Frame %= FrameCount;
+			if (m_selection.m_cpStart.Ypos.Frame < 0) m_selection.m_cpStart.Ypos.Frame += FrameCount;
 
-			if (m_selection.m_cpEnd.m_iFrame > m_selection.m_cpStart.m_iFrame) {
-				m_selection.m_cpEnd.m_iFrame = m_selection.m_cpStart.m_iFrame;
-				m_selection.m_cpEnd.m_iRow = GetCurrentPatternLength(m_cpCursorPos.m_iFrame) - 1;
+			if (m_selection.m_cpEnd.Ypos.Frame > m_selection.m_cpStart.Ypos.Frame) {
+				m_selection.m_cpEnd.Ypos.Frame = m_selection.m_cpStart.Ypos.Frame;
+				m_selection.m_cpEnd.Ypos.Row = GetCurrentPatternLength(m_cpCursorPos.Ypos.Frame) - 1;
 			}
-			else if (m_selection.m_cpEnd.m_iFrame < m_selection.m_cpStart.m_iFrame) {
-				m_selection.m_cpEnd.m_iFrame = m_selection.m_cpStart.m_iFrame;
-				m_selection.m_cpEnd.m_iRow = 0;
+			else if (m_selection.m_cpEnd.Ypos.Frame < m_selection.m_cpStart.Ypos.Frame) {
+				m_selection.m_cpEnd.Ypos.Frame = m_selection.m_cpStart.Ypos.Frame;
+				m_selection.m_cpEnd.Ypos.Row = 0;
 			}
 		}
 
@@ -2672,24 +2672,24 @@ void CPatternEditor::OnMouseScroll(int Delta)
 
 	if (Delta != 0) {
 		int ScrollLength = (Delta < 0) ? Env.GetSettings()->General.iPageStepSize : -Env.GetSettings()->General.iPageStepSize;
-		m_cpCursorPos.m_iRow += ScrollLength;
+		m_cpCursorPos.Ypos.Row += ScrollLength;
 
 		if (Env.GetSettings()->General.bWrapFrames) {		// // //
-			while (m_cpCursorPos.m_iRow < 0) {
-				if (m_cpCursorPos.m_iFrame == 0 && m_bSelecting) ++m_iDragBeginWarp;
-				MoveToFrame(m_cpCursorPos.m_iFrame - 1);
-				m_cpCursorPos.m_iRow += m_iPatternLength;
+			while (m_cpCursorPos.Ypos.Row < 0) {
+				if (m_cpCursorPos.Ypos.Frame == 0 && m_bSelecting) ++m_iDragBeginWarp;
+				MoveToFrame(m_cpCursorPos.Ypos.Frame - 1);
+				m_cpCursorPos.Ypos.Row += m_iPatternLength;
 			}
-			while (m_cpCursorPos.m_iRow > (m_iPatternLength - 1)) {
-				m_cpCursorPos.m_iRow -= m_iPatternLength;
-				MoveToFrame(m_cpCursorPos.m_iFrame + 1);
-				if (m_cpCursorPos.m_iFrame == 0 && m_bSelecting) --m_iDragBeginWarp;
+			while (m_cpCursorPos.Ypos.Row > (m_iPatternLength - 1)) {
+				m_cpCursorPos.Ypos.Row -= m_iPatternLength;
+				MoveToFrame(m_cpCursorPos.Ypos.Frame + 1);
+				if (m_cpCursorPos.Ypos.Frame == 0 && m_bSelecting) --m_iDragBeginWarp;
 			}
 		}
 		else
-			m_cpCursorPos.m_iRow = std::clamp(m_cpCursorPos.m_iRow, 0, m_iPatternLength - 1);		// // //
+			m_cpCursorPos.Ypos.Row = std::clamp(m_cpCursorPos.Ypos.Row, 0, m_iPatternLength - 1);		// // //
 
-		m_iCenterRow = m_cpCursorPos.m_iRow;
+		m_iCenterRow = m_cpCursorPos.Ypos.Row;
 		if (Env.GetSettings()->General.iEditStyle != edit_style_t::IT && m_bSelecting == false)
 			CancelSelection();
 	}
@@ -2703,7 +2703,7 @@ void CPatternEditor::OnMouseRDown(const CPoint &point)
 	if (IsOverPattern(point)) {
 		// Pattern area
 		CCursorPos PointPos = GetCursorAtPoint(point);
-		if (PointPos.IsValid(GetCurrentPatternLength(PointPos.m_iFrame), ChannelCount)) {		// // //
+		if (PointPos.IsValid(GetCurrentPatternLength(PointPos.Ypos.Frame), ChannelCount)) {		// // //
 			m_cpCursorPos = PointPos;
 		}
 	}
@@ -2721,11 +2721,11 @@ void CPatternEditor::DragPaste(const CPatternClipData &ClipData, const CSelectio
 	// // // Update selection
 	m_selection.m_cpStart = DragTarget.m_cpStart;
 	m_selection.m_cpEnd = DragTarget.m_cpEnd;
-	if (DragTarget.m_cpStart.m_iFrame < 0) {
+	if (DragTarget.m_cpStart.Ypos.Frame < 0) {
 		const int Frames = GetFrameCount();
-		m_cpCursorPos.m_iFrame += Frames;
-		m_selection.m_cpStart.m_iFrame += Frames;
-		m_selection.m_cpEnd.m_iFrame += Frames;
+		m_cpCursorPos.Ypos.Frame += Frames;
+		m_selection.m_cpStart.Ypos.Frame += Frames;
+		m_selection.m_cpEnd.Ypos.Frame += Frames;
 	}
 	m_bSelectionInvalidated = true;
 }
@@ -2796,22 +2796,22 @@ bool CPatternEditor::CancelDragging()
 
 int CPatternEditor::GetFrame() const
 {
-	return m_cpCursorPos.m_iFrame;		// // //
+	return m_cpCursorPos.Ypos.Frame;		// // //
 }
 
 int CPatternEditor::GetChannel() const
 {
-	return m_cpCursorPos.m_iChannel;
+	return m_cpCursorPos.Xpos.Track;
 }
 
 int CPatternEditor::GetRow() const
 {
-	return m_cpCursorPos.m_iRow;
+	return m_cpCursorPos.Ypos.Row;
 }
 
 cursor_column_t CPatternEditor::GetColumn() const
 {
-	return m_cpCursorPos.m_iColumn;
+	return m_cpCursorPos.Xpos.Column;
 }
 
 CCursorPos CPatternEditor::GetCursor() const		// // //
@@ -2826,7 +2826,7 @@ CPatternClipData CPatternEditor::CopyEntire() const
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	const int ChannelCount = pSongView->GetChannelOrder().GetChannelCount();
 	const int Rows = pSongView->GetSong().GetPatternLength();
-	const int Frame = m_cpCursorPos.m_iFrame;		// // //
+	const int Frame = m_cpCursorPos.Ypos.Frame;		// // //
 
 	auto ClipData = CPatternClipData {ChannelCount, Rows};
 
@@ -2876,10 +2876,7 @@ CPatternClipData CPatternEditor::CopyRaw() const		// // //
 CPatternClipData CPatternEditor::CopyRaw(const CSelection &Sel) const		// // //
 {
 	CSongView *pSongView = m_pView->GetSongView();		// // //
-	CCursorPos c_it, c_end;
-	Sel.Normalize(c_it, c_end);
-	CPatternIterator it {*m_pView->GetSongView(), c_it};
-	CPatternIterator end {*m_pView->GetSongView(), c_end};
+	auto [it, end] = CPatternIterator::FromSelection(Sel, *pSongView);
 
 	const int Frames	= pSongView->GetSong().GetFrameCount();
 	const int Length	= pSongView->GetSong().GetPatternLength();
@@ -2908,7 +2905,7 @@ void CPatternEditor::PasteEntire(const CPatternClipData &ClipData)
 {
 	// Paste entire
 	CSongView *pSongView = m_pView->GetSongView();		// // //
-	const int Frame = m_cpCursorPos.m_iFrame;		// // //
+	const int Frame = m_cpCursorPos.Ypos.Frame;		// // //
 	for (int i = 0; i < ClipData.ClipInfo.Channels; ++i)
 		for (int j = 0; j < ClipData.ClipInfo.Rows; ++j)
 			pSongView->GetPatternOnFrame(i, Frame).SetNoteOn(j, *ClipData.GetPattern(i, j));		// // //
@@ -2928,9 +2925,9 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 	const column_t EndColumn   = ClipData.ClipInfo.EndColumn;
 
 	bool AtSel = (PastePos == paste_pos_t::SELECTION || PastePos == paste_pos_t::FILL);
-	const int f = AtSel ? m_selection.GetFrameStart() : (PastePos == paste_pos_t::DRAG ? m_selDrag.GetFrameStart() : m_cpCursorPos.m_iFrame);
-	const unsigned int r = AtSel ? m_selection.GetRowStart() : (PastePos == paste_pos_t::DRAG ? m_selDrag.GetRowStart() : m_cpCursorPos.m_iRow);
-	const unsigned int c = AtSel ? m_selection.GetChanStart() : (PastePos == paste_pos_t::DRAG ? m_selDrag.GetChanStart() : m_cpCursorPos.m_iChannel);
+	const int f = AtSel ? m_selection.GetFrameStart() : (PastePos == paste_pos_t::DRAG ? m_selDrag.GetFrameStart() : m_cpCursorPos.Ypos.Frame);
+	const unsigned int r = AtSel ? m_selection.GetRowStart() : (PastePos == paste_pos_t::DRAG ? m_selDrag.GetRowStart() : m_cpCursorPos.Ypos.Row);
+	const unsigned int c = AtSel ? m_selection.GetChanStart() : (PastePos == paste_pos_t::DRAG ? m_selDrag.GetChanStart() : m_cpCursorPos.Xpos.Track);
 	const unsigned int CEnd = std::min(Channels + c, ChannelCount);
 
 	CPatternIterator it(*m_pView->GetSongView(), CCursorPos(r, c, GetCursorStartColumn(StartColumn), f));		// // //
@@ -2955,12 +2952,12 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 			--front.m_iRow;
 			--back.m_iRow;
 		}
-		m_selection.m_cpEnd.m_iRow = std::min(m_selection.m_cpStart.m_iRow + static_cast<int>(Rows), GetCurrentPatternLength(f)) - 1;
+		m_selection.m_cpEnd.Ypos.Row = std::min(m_selection.m_cpStart.Ypos.Row + static_cast<int>(Rows), GetCurrentPatternLength(f)) - 1;
 	}
 
 	// Special, single channel and effect columns only
 	if (Channels == 1 && StartColumn >= column_t::Effect1) {
-		const column_t ColStart = std::max(GetSelectColumn(AtSel ? m_selection.GetColStart() : m_cpCursorPos.m_iColumn), column_t::Effect1);
+		const column_t ColStart = std::max(GetSelectColumn(AtSel ? m_selection.GetColStart() : m_cpCursorPos.Xpos.Column), column_t::Effect1);
 		for (unsigned int j = 0; j < Rows; ++j) {
 			auto NoteData = it.Get(c);
 			const auto &Source = *(ClipData.GetPattern(0, j % ClipData.ClipInfo.Rows));
@@ -3013,7 +3010,7 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 
 void CPatternEditor::PasteRaw(const CPatternClipData &ClipData)		// // //
 {
-	PasteRaw(ClipData, GetIterators().first);
+	PasteRaw(ClipData, GetIterators().first.GetCursor());
 }
 
 void CPatternEditor::PasteRaw(const CPatternClipData &ClipData, const CCursorPos &Pos)		// // //
@@ -3028,9 +3025,9 @@ void CPatternEditor::PasteRaw(const CPatternClipData &ClipData, const CCursorPos
 	const column_t StartColumn = ClipData.ClipInfo.StartColumn;
 	const column_t EndColumn = ClipData.ClipInfo.EndColumn;
 
-	const int PackedPos = (Pos.m_iFrame + GetFrameCount()) * Length + Pos.m_iRow;
+	const int PackedPos = (Pos.Ypos.Frame + GetFrameCount()) * Length + Pos.Ypos.Row;
 	for (int i = 0; i < Channels; ++i) {
-		int c = i + Pos.m_iChannel;
+		int c = i + Pos.Xpos.Track;
 		if (c == GetChannelCount())
 			return;
 		auto maxcol = static_cast<column_t>(value_cast(column_t::Volume) + pSongView->GetEffectColumnCount(c));
@@ -3044,7 +3041,7 @@ void CPatternEditor::PasteRaw(const CPatternClipData &ClipData, const CCursorPos
 			const stChanNote &Source = *(ClipData.GetPattern(i, r));
 			CopyNoteSection(Target, Source,
 				(i == 0) ? StartColumn : column_t::Note,
-				std::min((i == Channels + Pos.m_iChannel - 1) ? EndColumn : column_t::Effect4, maxcol));
+				std::min((i == Channels + Pos.Xpos.Track - 1) ? EndColumn : column_t::Effect4, maxcol));
 		}
 	}
 }
@@ -3058,16 +3055,16 @@ void CPatternEditor::SelectChannel()
 {
 	// Select entire channel
 	m_bSelecting = true;
-	SetSelectionStart({0, m_cpCursorPos.m_iChannel, cursor_column_t::NOTE, m_cpCursorPos.m_iFrame});		// // //
-	SetSelectionEnd({m_iPatternLength - 1, m_cpCursorPos.m_iChannel, GetChannelColumns(m_cpCursorPos.m_iChannel), m_cpCursorPos.m_iFrame});
+	SetSelectionStart({0, m_cpCursorPos.Xpos.Track, cursor_column_t::NOTE, m_cpCursorPos.Ypos.Frame});		// // //
+	SetSelectionEnd({m_iPatternLength - 1, m_cpCursorPos.Xpos.Track, GetChannelColumns(m_cpCursorPos.Xpos.Track), m_cpCursorPos.Ypos.Frame});
 }
 
 void CPatternEditor::SelectAllChannels()
 {
 	// Select all channels
 	m_bSelecting = true;
-	SetSelectionStart({0, 0, cursor_column_t::NOTE, m_cpCursorPos.m_iFrame});		// // //
-	SetSelectionEnd({m_iPatternLength - 1, GetChannelCount() - 1, GetChannelColumns(GetChannelCount() - 1), m_cpCursorPos.m_iFrame});
+	SetSelectionStart({0, 0, cursor_column_t::NOTE, m_cpCursorPos.Ypos.Frame});		// // //
+	SetSelectionEnd({m_iPatternLength - 1, GetChannelCount() - 1, GetChannelColumns(GetChannelCount() - 1), m_cpCursorPos.Ypos.Frame});
 }
 
 void CPatternEditor::SelectAll()
@@ -3075,9 +3072,9 @@ void CPatternEditor::SelectAll()
 	bool selectAll = false;
 
 	if (m_bSelecting) {
-		if (m_selection.GetChanStart() == m_cpCursorPos.m_iChannel && m_selection.GetChanEnd() == m_cpCursorPos.m_iChannel) {
+		if (m_selection.GetChanStart() == m_cpCursorPos.Xpos.Track && m_selection.GetChanEnd() == m_cpCursorPos.Xpos.Track) {
 			if (m_selection.GetRowStart() == 0 && m_selection.GetRowEnd() == m_iPatternLength - 1) {
-				if (m_selection.GetColStart() == cursor_column_t::NOTE && m_selection.GetColEnd() == GetChannelColumns(m_cpCursorPos.m_iChannel))
+				if (m_selection.GetColStart() == cursor_column_t::NOTE && m_selection.GetColEnd() == GetChannelColumns(m_cpCursorPos.Xpos.Track))
 					selectAll = true;
 			}
 		}
@@ -3214,19 +3211,19 @@ void CPatternEditor::DecreaseEffectColumn(int Channel)
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	const int Columns = pSongView->GetEffectColumnCount(Channel) - 1;
 	if (GetMainFrame()->AddAction(std::make_unique<CPActionEffColumn>(Channel, Columns)))		// // //
-		if (static_cast<int>(m_cpCursorPos.m_iColumn) - static_cast<int>(cursor_column_t::VOLUME) > Columns * 3)		// // //fx
-			m_cpCursorPos.m_iColumn = static_cast<cursor_column_t>(value_cast(m_cpCursorPos.m_iColumn) - 3);
+		if (static_cast<int>(m_cpCursorPos.Xpos.Column) - static_cast<int>(cursor_column_t::VOLUME) > Columns * 3)		// // //fx
+			m_cpCursorPos.Xpos.Column = static_cast<cursor_column_t>(value_cast(m_cpCursorPos.Xpos.Column) - 3);
 }
 
 bool CPatternEditor::IsPlayCursorVisible() const
 {
-	if (m_iPlayFrame > (m_cpCursorPos.m_iFrame + 1))
+	if (m_iPlayFrame > (m_cpCursorPos.Ypos.Frame + 1))
 		return false;
 
-	if (m_iPlayFrame < (m_cpCursorPos.m_iFrame - 1))
+	if (m_iPlayFrame < (m_cpCursorPos.Ypos.Frame - 1))
 		return false;
 
-	if (m_iPlayFrame != (m_cpCursorPos.m_iFrame + 1) && m_iPlayFrame != (m_cpCursorPos.m_iFrame - 1)) {
+	if (m_iPlayFrame != (m_cpCursorPos.Ypos.Frame + 1) && m_iPlayFrame != (m_cpCursorPos.Ypos.Frame - 1)) {
 
 		if (m_iPlayRow > (m_iCenterRow + (m_iLinesFullVisible / 2) + 1))
 			return false;
@@ -3259,12 +3256,12 @@ void CPatternEditor::AutoScroll(const CPoint &point, UINT nFlags)
 
 	if (m_bFullRowSelect) return;		// // //
 
-	if (PointPos.m_iChannel >= (m_iFirstChannel + m_iChannelsVisible - 1) && m_iChannelsVisible < GetChannelCount()) {		// // //
-		if (m_cpCursorPos.m_iChannel < Channels - 1)		// // //
+	if (PointPos.Xpos.Track >= (m_iFirstChannel + m_iChannelsVisible - 1) && m_iChannelsVisible < GetChannelCount()) {		// // //
+		if (m_cpCursorPos.Xpos.Track < Channels - 1)		// // //
 			m_iScrolling |= SCROLL_RIGHT;		// // //
 	}
-	else if (PointPos.m_iChannel < m_iFirstChannel) {
-		if (m_cpCursorPos.m_iChannel > 0)
+	else if (PointPos.Xpos.Track < m_iFirstChannel) {
+		if (m_cpCursorPos.Xpos.Track > 0)
 			m_iScrolling |= SCROLL_LEFT;		// // //
 	}
 }
@@ -3277,39 +3274,39 @@ bool CPatternEditor::ScrollTimerCallback()
 
 	switch (m_iScrolling & 0x03) {		// // //
 	case SCROLL_UP:
-		--m_cpCursorPos.m_iRow;
+		--m_cpCursorPos.Ypos.Row;
 		--m_iCenterRow;
 		break;
 	case SCROLL_DOWN:
-		++m_cpCursorPos.m_iRow;
+		++m_cpCursorPos.Ypos.Row;
 		++m_iCenterRow;
 		break;
 	}
-	if (m_cpCursorPos.m_iRow == GetCurrentPatternLength(m_cpCursorPos.m_iFrame)) {		// // //
-		m_iCenterRow = m_cpCursorPos.m_iRow = 0;
-		if (++m_cpCursorPos.m_iFrame == GetFrameCount())
-			m_cpCursorPos.m_iFrame = 0;
+	if (m_cpCursorPos.Ypos.Row == GetCurrentPatternLength(m_cpCursorPos.Ypos.Frame)) {		// // //
+		m_iCenterRow = m_cpCursorPos.Ypos.Row = 0;
+		if (++m_cpCursorPos.Ypos.Frame == GetFrameCount())
+			m_cpCursorPos.Ypos.Frame = 0;
 	}
-	else if (m_cpCursorPos.m_iRow == -1) {
-		m_iCenterRow = m_cpCursorPos.m_iRow = GetCurrentPatternLength(--m_cpCursorPos.m_iFrame) - 1;
-		if (m_cpCursorPos.m_iFrame < 0)
-			m_cpCursorPos.m_iFrame += GetFrameCount();
+	else if (m_cpCursorPos.Ypos.Row == -1) {
+		m_iCenterRow = m_cpCursorPos.Ypos.Row = GetCurrentPatternLength(--m_cpCursorPos.Ypos.Frame) - 1;
+		if (m_cpCursorPos.Ypos.Frame < 0)
+			m_cpCursorPos.Ypos.Frame += GetFrameCount();
 	}
 
 	switch (m_iScrolling & 0x0C) {		// // //
 	case SCROLL_RIGHT:
 		if (m_iFirstChannel + m_iChannelsFullVisible < Channels) {
 			++m_iFirstChannel;
-			if (m_cpCursorPos.m_iChannel < m_iFirstChannel)
-				++m_cpCursorPos.m_iChannel;
+			if (m_cpCursorPos.Xpos.Track < m_iFirstChannel)
+				++m_cpCursorPos.Xpos.Track;
 			InvalidateBackground();
 		}
 		break;
 	case SCROLL_LEFT:
 		if (m_iFirstChannel > 0) {
 			--m_iFirstChannel;
-			if (m_cpCursorPos.m_iChannel >= m_iFirstChannel + m_iChannelsFullVisible)
-				--m_cpCursorPos.m_iChannel;
+			if (m_cpCursorPos.Xpos.Track >= m_iFirstChannel + m_iChannelsFullVisible)
+				--m_cpCursorPos.Xpos.Track;
 			InvalidateBackground();
 		}
 		break;
@@ -3327,16 +3324,16 @@ void CPatternEditor::OnVScroll(UINT nSBCode, UINT nPos)
 
 	switch (nSBCode) {
 		case SB_LINEDOWN:
-			MoveToRow(m_cpCursorPos.m_iRow + 1);
+			MoveToRow(m_cpCursorPos.Ypos.Row + 1);
 			break;
 		case SB_LINEUP:
-			MoveToRow(m_cpCursorPos.m_iRow - 1);
+			MoveToRow(m_cpCursorPos.Ypos.Row - 1);
 			break;
 		case SB_PAGEDOWN:
-			MoveToRow(m_cpCursorPos.m_iRow + PageSize);
+			MoveToRow(m_cpCursorPos.Ypos.Row + PageSize);
 			break;
 		case SB_PAGEUP:
-			MoveToRow(m_cpCursorPos.m_iRow - PageSize);
+			MoveToRow(m_cpCursorPos.Ypos.Row - PageSize);
 			break;
 		case SB_TOP:
 			MoveToRow(0);
@@ -3439,20 +3436,20 @@ void CPatternEditor::SetSelection(int Scope)		// // //
 	m_selection.m_cpStart = m_cpCursorPos;
 	m_selection.m_cpEnd = m_cpCursorPos;
 	if (Vert >= SEL_SCOPE_VTRACK) {
-		m_selection.m_cpStart.m_iFrame = 0;
-		m_selection.m_cpEnd.m_iFrame = GetFrameCount() - 1;
+		m_selection.m_cpStart.Ypos.Frame = 0;
+		m_selection.m_cpEnd.Ypos.Frame = GetFrameCount() - 1;
 	}
 	if (Vert >= SEL_SCOPE_VFRAME) {
-		m_selection.m_cpStart.m_iRow = 0;
-		m_selection.m_cpEnd.m_iRow = GetCurrentPatternLength(m_selection.m_cpEnd.m_iFrame) - 1;
+		m_selection.m_cpStart.Ypos.Row = 0;
+		m_selection.m_cpEnd.Ypos.Row = GetCurrentPatternLength(m_selection.m_cpEnd.Ypos.Frame) - 1;
 	}
 	if (Horz >= SEL_SCOPE_HFRAME) {
-		m_selection.m_cpStart.m_iChannel = 0;
-		m_selection.m_cpEnd.m_iChannel = GetChannelCount() - 1;
+		m_selection.m_cpStart.Xpos.Track = 0;
+		m_selection.m_cpEnd.Xpos.Track = GetChannelCount() - 1;
 	}
 	if (Horz >= SEL_SCOPE_HCHAN) {
-		m_selection.m_cpStart.m_iColumn = cursor_column_t::NOTE;
-		m_selection.m_cpEnd.m_iColumn = GetChannelColumns(m_selection.m_cpEnd.m_iChannel);
+		m_selection.m_cpStart.Xpos.Column = cursor_column_t::NOTE;
+		m_selection.m_cpEnd.Xpos.Column = GetChannelColumns(m_selection.m_cpEnd.Xpos.Track);
 	}
 
 	m_bSelecting = true;
@@ -3494,7 +3491,7 @@ CStringW CPatternEditor::GetSelectionAsText() const {		// // //
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	auto *pSCS = Env.GetSoundChipService();
 
-	const int Channel = m_selection.GetChanStart() + !m_selection.IsColumnSelected(column_t::Volume, m_selection.GetChanStart()); // // //
+	const int Channel = m_selection.GetChanStart() + (m_selection.IsColumnSelected(column_t::Volume, m_selection.GetChanStart()) ? 0 : 1); // // //
 
 	if (Channel < 0 || Channel >= GetChannelCount() || !m_bSelecting)
 		return L"";
@@ -3696,10 +3693,10 @@ bool CPatternEditor::PerformDrop(CPatternClipData ClipData, bool bCopy, bool bCo
 		return false;
 	}
 
-	if (m_selDrag.m_cpStart.m_iChannel < 0/* || m_selDrag.m_cpStart.m_iRow < 0*/) {
+	if (m_selDrag.m_cpStart.Xpos.Track < 0/* || m_selDrag.m_cpStart.Ypos.Row < 0*/) {
 		// Clip if selection is less than zero as this is not handled by the paste routine
-		int ChannelOffset = (m_selDrag.m_cpStart.m_iChannel < 0) ? -m_selDrag.m_cpStart.m_iChannel : 0;
-		int RowOffset = (m_selDrag.m_cpStart.m_iRow < 0) ? -m_selDrag.m_cpStart.m_iRow : 0;
+		int ChannelOffset = (m_selDrag.m_cpStart.Xpos.Track < 0) ? -m_selDrag.m_cpStart.Xpos.Track : 0;
+		int RowOffset = (m_selDrag.m_cpStart.Ypos.Row < 0) ? -m_selDrag.m_cpStart.Ypos.Row : 0;
 
 		int NewChannels = ClipData.ClipInfo.Channels - ChannelOffset;
 		int NewRows = ClipData.ClipInfo.Rows - RowOffset;
@@ -3714,23 +3711,23 @@ bool CPatternEditor::PerformDrop(CPatternClipData ClipData, bool bCopy, bool bCo
 			for (int r = 0; r < NewRows; ++r)
 				*Clipped.GetPattern(c, r) = *ClipData.GetPattern(c + ChannelOffset, r + RowOffset);
 
-		if (m_selDrag.m_cpStart.m_iChannel < 0) {
-			m_selDrag.m_cpStart.m_iChannel = 0;
-			m_selDrag.m_cpStart.m_iColumn = cursor_column_t::NOTE;
+		if (m_selDrag.m_cpStart.Xpos.Track < 0) {
+			m_selDrag.m_cpStart.Xpos.Track = 0;
+			m_selDrag.m_cpStart.Xpos.Column = cursor_column_t::NOTE;
 		}
 
-		m_selDrag.m_cpStart.m_iRow = std::max(m_selDrag.m_cpStart.m_iRow, 0);
+		m_selDrag.m_cpStart.Ypos.Row = std::max(m_selDrag.m_cpStart.Ypos.Row, 0);
 
 		ClipData = std::move(Clipped);		// // //
 	}
 
-	if (m_selDrag.m_cpEnd.m_iChannel > Channels - 1) {
-		m_selDrag.m_cpEnd.m_iChannel = Channels - 1;
-		m_selDrag.m_cpEnd.m_iColumn = GetChannelColumns(Channels);
+	if (m_selDrag.m_cpEnd.Xpos.Track > Channels - 1) {
+		m_selDrag.m_cpEnd.Xpos.Track = Channels - 1;
+		m_selDrag.m_cpEnd.Xpos.Column = GetChannelColumns(Channels);
 	}
 
 	// // //
-	m_selDrag.m_cpEnd.m_iColumn = std::min(m_selDrag.m_cpEnd.m_iColumn, cursor_column_t::EFF4_PARAM2);	// TODO remove hardcoded number
+	m_selDrag.m_cpEnd.Xpos.Column = std::min(m_selDrag.m_cpEnd.Xpos.Column, cursor_column_t::EFF4_PARAM2);	// TODO remove hardcoded number
 
 	// Paste
 
@@ -3753,18 +3750,18 @@ void CPatternEditor::UpdateDrag(const CPoint &point)
 
 	if (m_iDragChannels == 1 && GetSelectColumn(m_iDragStartCol) >= column_t::Effect1) {
 		// Allow dragging between effect columns in the same channel
-		ColumnStart = GetCursorStartColumn(std::max(GetSelectColumn(PointPos.m_iColumn), column_t::Effect1));
+		ColumnStart = GetCursorStartColumn(std::max(GetSelectColumn(PointPos.Xpos.Column), column_t::Effect1));
 		ColumnEnd = static_cast<cursor_column_t>(value_cast(ColumnStart) + (value_cast(m_iDragEndCol) - value_cast(m_iDragStartCol)));
 	}
 
-	CPatternIterator cpBegin(*m_pView->GetSongView(), CCursorPos(PointPos.m_iRow - m_iDragOffsetRow,		// // //
-		PointPos.m_iChannel - m_iDragOffsetChannel, ColumnStart, PointPos.m_iFrame));
+	CPatternIterator cpBegin(*m_pView->GetSongView(), CCursorPos(PointPos.Ypos.Row - m_iDragOffsetRow,		// // //
+		PointPos.Xpos.Track - m_iDragOffsetChannel, ColumnStart, PointPos.Ypos.Frame));
 	CPatternIterator cpEnd = cpBegin;
 	cpEnd += m_iDragRows - 1;		// // //
 	cpEnd.m_iChannel += m_iDragChannels - 1;
 	cpEnd.m_iColumn = ColumnEnd;
-	m_selDrag.m_cpStart = static_cast<CCursorPos>(cpBegin);
-	m_selDrag.m_cpEnd = static_cast<CCursorPos>(cpEnd);
+	m_selDrag.m_cpStart = cpBegin.GetCursor();
+	m_selDrag.m_cpEnd = cpEnd.GetCursor();
 
 	AutoScroll(point, 0);
 }

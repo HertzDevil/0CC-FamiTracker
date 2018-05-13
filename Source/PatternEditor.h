@@ -52,6 +52,7 @@ class CFamiTrackerView;
 class CMainFrame;
 class CTrackerChannel;		// // //
 class CPatternClipData;		// // //
+class CPatternIterator;		// // //
 
 // CPatternEditor
 class CPatternEditor {

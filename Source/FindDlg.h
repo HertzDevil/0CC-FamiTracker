@@ -32,6 +32,7 @@
 
 #include "PatternNote.h"
 #include "PatternEditorTypes.h"
+#include "SelectionRange.h"
 #include "APU/Types_fwd.h"
 
 namespace details {

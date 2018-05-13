@@ -28,6 +28,7 @@
 #include "MainFrm.h"
 #include "PatternEditor.h"
 #include "PatternClipData.h"		// // //
+#include "SelectionRange.h"		// // //
 #include "FamiTrackerModule.h"		// // //
 #include "SongView.h"		// // //
 
@@ -72,20 +73,20 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 	if ((m_iPastePos == paste_pos_t::SELECTION || m_iPastePos == paste_pos_t::FILL) && !m_bSelecting)
 		m_iPastePos = paste_pos_t::CURSOR;
 
-	switch (m_iPastePos) { // m_iColumn will be written later
+	switch (m_iPastePos) { // Xpos.Column will be written later
 	case paste_pos_t::CURSOR:
 		Start = m_pUndoState->Cursor;
 		break;
 	case paste_pos_t::DRAG:
-		Start.m_iFrame = m_dragTarget.GetFrameStart();
-		Start.m_iRow = m_dragTarget.GetRowStart();
-		Start.m_iChannel = m_dragTarget.GetChanStart();
+		Start.Ypos.Frame = m_dragTarget.GetFrameStart();
+		Start.Ypos.Row = m_dragTarget.GetRowStart();
+		Start.Xpos.Track = m_dragTarget.GetChanStart();
 		break;
 	case paste_pos_t::SELECTION:
 	case paste_pos_t::FILL:
-		Start.m_iFrame = m_selection.GetFrameStart();
-		Start.m_iRow = m_selection.GetRowStart();
-		Start.m_iChannel = m_selection.GetChanStart();
+		Start.Ypos.Frame = m_selection.GetFrameStart();
+		Start.Ypos.Row = m_selection.GetRowStart();
+		Start.Xpos.Track = m_selection.GetChanStart();
 		break;
 	}
 
@@ -94,7 +95,7 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 	CPatternIterator End(*pSongView, Start);
 
 	if (m_iPasteMode == paste_mode_t::INSERT) {
-		End.m_iFrame = Start.m_iFrame;
+		End.m_iFrame = Start.Ypos.Frame;
 		End.m_iRow = pPatternEditor->GetCurrentPatternLength(End.m_iFrame) - 1;
 	}
 	else
@@ -105,37 +106,37 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 		End.m_iFrame = m_selection.GetFrameEnd();
 		End.m_iRow = m_selection.GetRowEnd();
 		End.m_iChannel = m_selection.GetChanEnd();
-		Start.m_iColumn = GetCursorStartColumn(m_ClipData.ClipInfo.StartColumn);
+		Start.Xpos.Column = GetCursorStartColumn(m_ClipData.ClipInfo.StartColumn);
 		End.m_iColumn = GetCursorEndColumn(
-			!((End.m_iChannel - Start.m_iChannel + 1) % m_ClipData.ClipInfo.Channels) ?
+			!((End.m_iChannel - Start.Xpos.Track + 1) % m_ClipData.ClipInfo.Channels) ?
 			m_ClipData.ClipInfo.EndColumn :
 			static_cast<column_t>(value_cast(column_t::Effect1) + pSongView->GetEffectColumnCount(End.m_iChannel)));
 		break;
 	case paste_pos_t::DRAG:
 		End.m_iChannel += m_ClipData.ClipInfo.Channels - 1;
-		Start.m_iColumn = m_dragTarget.GetColStart();
+		Start.Xpos.Column = m_dragTarget.GetColStart();
 		End.m_iColumn = m_dragTarget.GetColEnd();
 		break;
 	default:
 		End.m_iChannel += m_ClipData.ClipInfo.Channels - 1;
-		Start.m_iColumn = GetCursorStartColumn(m_ClipData.ClipInfo.StartColumn);
+		Start.Xpos.Column = GetCursorStartColumn(m_ClipData.ClipInfo.StartColumn);
 		End.m_iColumn = GetCursorEndColumn(m_ClipData.ClipInfo.EndColumn);
 	}
 
 	const bool bOverflow = Env.GetSettings()->General.bOverflowPaste;
-	if (!bOverflow && End.m_iFrame > Start.m_iFrame) {
-		End.m_iFrame = Start.m_iFrame;
+	if (!bOverflow && End.m_iFrame > Start.Ypos.Frame) {
+		End.m_iFrame = Start.Ypos.Frame;
 		End.m_iRow = pPatternEditor->GetCurrentPatternLength(End.m_iFrame) - 1;
 	}
 
 	const cursor_column_t EFBEGIN = GetCursorStartColumn(column_t::Effect1);
-	int OFFS = 3 * (value_cast(GetSelectColumn(m_pUndoState->Cursor.m_iColumn)) - value_cast(m_ClipData.ClipInfo.StartColumn));
-	if (OFFS < static_cast<int>(value_cast(EFBEGIN) - value_cast(Start.m_iColumn)))
-		OFFS = value_cast(EFBEGIN) - value_cast(Start.m_iColumn);
-	if (Start.m_iChannel == End.m_iChannel && Start.m_iColumn >= EFBEGIN && End.m_iColumn >= EFBEGIN) {
+	int OFFS = 3 * (value_cast(GetSelectColumn(m_pUndoState->Cursor.Xpos.Column)) - value_cast(m_ClipData.ClipInfo.StartColumn));
+	if (OFFS < static_cast<int>(value_cast(EFBEGIN) - value_cast(Start.Xpos.Column)))
+		OFFS = value_cast(EFBEGIN) - value_cast(Start.Xpos.Column);
+	if (Start.Xpos.Track == End.m_iChannel && Start.Xpos.Column >= EFBEGIN && End.m_iColumn >= EFBEGIN) {
 		if (m_iPastePos != paste_pos_t::DRAG) {
 			End.m_iColumn = static_cast<cursor_column_t>(value_cast(End.m_iColumn) + OFFS);
-			Start.m_iColumn = static_cast<cursor_column_t>(value_cast(Start.m_iColumn) + OFFS);
+			Start.Xpos.Column = static_cast<cursor_column_t>(value_cast(Start.Xpos.Column) + OFFS);
 			if (End.m_iColumn > cursor_column_t::EFF4_PARAM2)
 				End.m_iColumn = cursor_column_t::EFF4_PARAM2;
 		}
@@ -143,7 +144,7 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 
 	CSelection New;
 	New.m_cpStart = Start;
-	New.m_cpEnd = End;
+	New.m_cpEnd = End.GetCursor();
 	pPatternEditor->SetSelection(New);
 
 	sel_condition_t Cond = pPatternEditor->GetSelectionCondition();
@@ -282,21 +283,21 @@ CPActionEditNote::CPActionEditNote(const stChanNote &Note) :
 
 bool CPActionEditNote::SaveState(const CMainFrame &MainFrm)
 {
-	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
-		.GetNoteOn(m_pUndoState->Cursor.m_iRow);		// // //
+	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame)
+		.GetNoteOn(m_pUndoState->Cursor.Ypos.Row);		// // //
 	return true;
 }
 
 void CPActionEditNote::Undo(CMainFrame &MainFrm)
 {
-	GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
-		.SetNoteOn(m_pUndoState->Cursor.m_iRow, m_OldNote);		// // //
+	GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame)
+		.SetNoteOn(m_pUndoState->Cursor.Ypos.Row, m_OldNote);		// // //
 }
 
 void CPActionEditNote::Redo(CMainFrame &MainFrm)
 {
-	GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
-		.SetNoteOn(m_pUndoState->Cursor.m_iRow, m_NewNote);		// // //
+	GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame)
+		.SetNoteOn(m_pUndoState->Cursor.Ypos.Row, m_NewNote);		// // //
 }
 
 
@@ -327,7 +328,7 @@ void CPActionReplaceNote::Redo(CMainFrame &MainFrm)
 bool CPActionInsertRow::SaveState(const CMainFrame &MainFrm)
 {
 	CSongView *pSongView = GET_SONG_VIEW();
-	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame)
 		.GetNoteOn(pSongView->GetSong().GetPatternLength() - 1);		// // //
 	return true;
 }
@@ -336,14 +337,14 @@ void CPActionInsertRow::Undo(CMainFrame &MainFrm)
 {
 	CSongView *pSongView = GET_SONG_VIEW();
 
-	pSongView->PullUp(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame, m_pUndoState->Cursor.m_iRow);
-	pSongView->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+	pSongView->PullUp(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame, m_pUndoState->Cursor.Ypos.Row);
+	pSongView->GetPatternOnFrame(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame)
 		.SetNoteOn(pSongView->GetSong().GetPatternLength() - 1, m_OldNote);		// // //
 }
 
 void CPActionInsertRow::Redo(CMainFrame &MainFrm)
 {
-	GET_SONG_VIEW()->InsertRow(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame, m_pUndoState->Cursor.m_iRow);
+	GET_SONG_VIEW()->InsertRow(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame, m_pUndoState->Cursor.Ypos.Row);
 }
 
 
@@ -355,14 +356,14 @@ CPActionDeleteRow::CPActionDeleteRow(bool PullUp, bool Backspace) :
 
 bool CPActionDeleteRow::SaveState(const CMainFrame &MainFrm)
 {
-	if (m_bBack && !m_pUndoState->Cursor.m_iRow)
+	if (m_bBack && !m_pUndoState->Cursor.Ypos.Row)
 		return false;
-	m_iRow = m_pUndoState->Cursor.m_iRow - (m_bBack ? 1 : 0);
-	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+	m_iRow = m_pUndoState->Cursor.Ypos.Row - (m_bBack ? 1 : 0);
+	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame)
 		.GetNoteOn(m_iRow);		// // //
 
 	m_NewNote = m_OldNote;
-	switch (m_pUndoState->Cursor.m_iColumn) {
+	switch (m_pUndoState->Cursor.Xpos.Column) {
 	case cursor_column_t::NOTE:			// Note
 		m_NewNote.Note = note_t::none;
 		m_NewNote.Octave = 0;
@@ -405,18 +406,18 @@ void CPActionDeleteRow::Undo(CMainFrame &MainFrm)
 {
 	CSongView *pSongView = GET_SONG_VIEW();
 	if (m_bPullUp)
-		pSongView->InsertRow(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame, m_iRow);
-	pSongView->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+		pSongView->InsertRow(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame, m_iRow);
+	pSongView->GetPatternOnFrame(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame)
 		.SetNoteOn(m_iRow, m_OldNote);		// // //
 }
 
 void CPActionDeleteRow::Redo(CMainFrame &MainFrm)
 {
 	CSongView *pSongView = GET_SONG_VIEW();
-	pSongView->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
+	pSongView->GetPatternOnFrame(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame)
 		.SetNoteOn(m_iRow, m_NewNote);		// // //
 	if (m_bPullUp)
-		pSongView->PullUp(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame, m_iRow);
+		pSongView->PullUp(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame, m_iRow);
 }
 
 
@@ -441,11 +442,11 @@ bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 		Old = static_cast<unsigned char>(New);
 	};
 
-	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
-		.GetNoteOn(m_pUndoState->Cursor.m_iRow);		// // //
+	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame)
+		.GetNoteOn(m_pUndoState->Cursor.Ypos.Row);		// // //
 	m_NewNote = m_OldNote;
 
-	switch (m_pUndoState->Cursor.m_iColumn) {
+	switch (m_pUndoState->Cursor.Xpos.Column) {
 	case cursor_column_t::INSTRUMENT1: case cursor_column_t::INSTRUMENT2:
 		ScrollFunc(m_NewNote.Instrument, MAX_INSTRUMENTS);
 		return m_OldNote.Instrument < MAX_INSTRUMENTS && m_OldNote.Instrument != HOLD_INSTRUMENT;		// // // 050B
@@ -471,14 +472,14 @@ bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 
 void CPActionScrollField::Undo(CMainFrame &MainFrm)
 {
-	GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
-		.SetNoteOn(m_pUndoState->Cursor.m_iRow, m_OldNote);		// // //
+	GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame)
+		.SetNoteOn(m_pUndoState->Cursor.Ypos.Row, m_OldNote);		// // //
 }
 
 void CPActionScrollField::Redo(CMainFrame &MainFrm)
 {
-	GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.m_iChannel, m_pUndoState->Cursor.m_iFrame)
-		.SetNoteOn(m_pUndoState->Cursor.m_iRow, m_NewNote);		// // //
+	GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame)
+		.SetNoteOn(m_pUndoState->Cursor.Ypos.Row, m_NewNote);		// // //
 }
 
 
@@ -547,19 +548,19 @@ bool CPActionDeleteAtSel::SaveState(const CMainFrame &MainFrm)
 
 	const CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 	m_cpTailPos = CCursorPos {
-		m_pUndoState->Selection.m_cpEnd.m_iRow + 1,
-		m_pUndoState->Selection.m_cpStart.m_iChannel,
-		m_pUndoState->Selection.m_cpStart.m_iColumn,
-		m_pUndoState->Selection.m_cpEnd.m_iFrame
+		m_pUndoState->Selection.m_cpEnd.Ypos.Row + 1,
+		m_pUndoState->Selection.m_cpStart.Xpos.Track,
+		m_pUndoState->Selection.m_cpStart.Xpos.Column,
+		m_pUndoState->Selection.m_cpEnd.Ypos.Frame
 	};
 	m_UndoHead = pPatternEditor->CopyRaw(m_pUndoState->Selection);
-	int Length = pPatternEditor->GetCurrentPatternLength(m_cpTailPos.m_iFrame) - 1;
-	if (m_cpTailPos.m_iRow <= Length)
+	int Length = pPatternEditor->GetCurrentPatternLength(m_cpTailPos.Ypos.Frame) - 1;
+	if (m_cpTailPos.Ypos.Row <= Length)
 		m_UndoTail = pPatternEditor->CopyRaw(CSelection {m_cpTailPos, CCursorPos {
 			Length,
-			m_pUndoState->Selection.m_cpEnd.m_iChannel,
-			m_pUndoState->Selection.m_cpEnd.m_iColumn,
-			m_cpTailPos.m_iFrame
+			m_pUndoState->Selection.m_cpEnd.Xpos.Track,
+			m_pUndoState->Selection.m_cpEnd.Xpos.Column,
+			m_cpTailPos.Ypos.Frame
 		}});
 	return true;
 }
@@ -577,7 +578,7 @@ void CPActionDeleteAtSel::Redo(CMainFrame &MainFrm)
 	CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 
 	CSelection Sel(m_pUndoState->Selection);
-	Sel.m_cpEnd.m_iRow = pPatternEditor->GetCurrentPatternLength(Sel.m_cpEnd.m_iFrame) - 1;
+	Sel.m_cpEnd.Ypos.Row = pPatternEditor->GetCurrentPatternLength(Sel.m_cpEnd.Ypos.Frame) - 1;
 	DeleteSelection(*GET_SONG_VIEW(), Sel);
 	if (m_UndoTail.ContainsData())
 		pPatternEditor->PasteRaw(m_UndoTail, m_pUndoState->Selection.m_cpStart);
@@ -596,29 +597,27 @@ bool CPActionInsertAtSel::SaveState(const CMainFrame &MainFrm)
 
 	const CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 	m_cpTailPos = CCursorPos {
-		pPatternEditor->GetCurrentPatternLength(m_pUndoState->Selection.m_cpEnd.m_iFrame) - 1,
-		m_pUndoState->Selection.m_cpStart.m_iChannel,
-		m_pUndoState->Selection.m_cpStart.m_iColumn,
-		m_pUndoState->Selection.m_cpEnd.m_iFrame
+		pPatternEditor->GetCurrentPatternLength(m_pUndoState->Selection.m_cpEnd.Ypos.Frame) - 1,
+		m_pUndoState->Selection.m_cpStart.Xpos.Track,
+		m_pUndoState->Selection.m_cpStart.Xpos.Column,
+		m_pUndoState->Selection.m_cpEnd.Ypos.Frame
 	};
 	CCursorPos HeadEnd {
-		m_cpTailPos.m_iRow,
-		m_pUndoState->Selection.m_cpEnd.m_iChannel,
-		m_pUndoState->Selection.m_cpEnd.m_iColumn,
-		m_cpTailPos.m_iFrame
+		m_cpTailPos.Ypos.Row,
+		m_pUndoState->Selection.m_cpEnd.Xpos.Track,
+		m_pUndoState->Selection.m_cpEnd.Xpos.Column,
+		m_cpTailPos.Ypos.Frame
 	};
 
 	m_UndoTail = pPatternEditor->CopyRaw(CSelection {m_cpTailPos, CCursorPos {HeadEnd}});
-	if (--HeadEnd.m_iRow < 0) {
-		--HeadEnd.m_iFrame;
-		HeadEnd.m_iRow += pPatternEditor->GetCurrentPatternLength(HeadEnd.m_iFrame);
-	}
-	if (m_pUndoState->Selection.m_cpStart <= HeadEnd) {
+	if (--HeadEnd.Ypos.Row < 0)
+		HeadEnd.Ypos.Row += pPatternEditor->GetCurrentPatternLength(--HeadEnd.Ypos.Frame);
+	if (m_pUndoState->Selection.m_cpStart.Ypos <= HeadEnd.Ypos) {
 		m_UndoHead = pPatternEditor->CopyRaw(CSelection {m_pUndoState->Selection.m_cpStart, HeadEnd});
 		m_cpHeadPos = m_pUndoState->Selection.m_cpStart;
-		if (++m_cpHeadPos.m_iRow >= pPatternEditor->GetCurrentPatternLength(m_cpHeadPos.m_iFrame)) {
-			++m_cpHeadPos.m_iFrame;
-			m_cpHeadPos.m_iRow = 0;
+		if (++m_cpHeadPos.Ypos.Row >= pPatternEditor->GetCurrentPatternLength(m_cpHeadPos.Ypos.Frame)) {
+			++m_cpHeadPos.Ypos.Frame;
+			m_cpHeadPos.Ypos.Row = 0;
 		}
 	}
 
@@ -638,7 +637,7 @@ void CPActionInsertAtSel::Redo(CMainFrame &MainFrm)
 	CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 
 	CSelection Sel(m_pUndoState->Selection);
-	Sel.m_cpEnd.m_iRow = pPatternEditor->GetCurrentPatternLength(Sel.m_cpEnd.m_iFrame) - 1;
+	Sel.m_cpEnd.Ypos.Row = pPatternEditor->GetCurrentPatternLength(Sel.m_cpEnd.Ypos.Frame) - 1;
 	DeleteSelection(*GET_SONG_VIEW(), Sel);
 	if (m_UndoHead.ContainsData())
 		pPatternEditor->PasteRaw(m_UndoHead, m_cpHeadPos);
@@ -655,8 +654,8 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 	CSongView *pSongView = GET_SONG_VIEW();
 	auto [b, e] = GetIterators(*pSongView);
 
-	int ChanStart     = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).m_iChannel;
-	int ChanEnd       = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iChannel;
+	int ChanStart     = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).Xpos.Track;
+	int ChanEnd       = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).Xpos.Track;
 
 	const bool bSingular = b == e && !m_pUndoState->IsSelecting;
 	const unsigned Length = pSongView->GetSong().GetPatternLength();
@@ -709,12 +708,12 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 	CPatternEditor *pPatternEditor = GET_PATTERN_EDITOR();
 	CSongView *pSongView = GET_SONG_VIEW();
 	auto [b, e] = GetIterators(*pSongView);
-	int ChanStart     = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).m_iChannel;
-	int ChanEnd       = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iChannel;
+	int ChanStart     = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).Xpos.Track;
+	int ChanEnd       = (m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).Xpos.Track;
 	column_t ColStart = GetSelectColumn(
-		(m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).m_iColumn);
+		(m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpStart : m_pUndoState->Cursor).Xpos.Column);
 	column_t ColEnd   = GetSelectColumn(
-		(m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).m_iColumn);
+		(m_pUndoState->IsSelecting ? m_pUndoState->Selection.m_cpEnd : m_pUndoState->Cursor).Xpos.Column);
 
 	const bool bSingular = b == e && !m_pUndoState->IsSelecting;
 	const unsigned Length = pSongView->GetSong().GetPatternLength();
@@ -796,7 +795,7 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 	auto [b, e] = GetIterators(*pSongView);
 	const CSelection &Sel = m_pUndoState->Selection;
 
-	for (int i = Sel.m_cpStart.m_iChannel; i <= Sel.m_cpEnd.m_iChannel; ++i) {
+	for (int i = Sel.m_cpStart.Xpos.Track; i <= Sel.m_cpEnd.Xpos.Track; ++i) {
 		const int Columns = pSongView->GetEffectColumnCount(i) + 4;		// // //
 		for (int j = 0; j < Columns; ++j) {
 			if (!Sel.IsColumnSelected(static_cast<column_t>(j), i)) continue;
@@ -897,19 +896,19 @@ void CPActionReverse::Redo(CMainFrame &MainFrm)
 	auto [b, e] = GetIterators(*pSongView);
 	const CSelection &Sel = m_pUndoState->Selection;
 
-	const column_t ColStart = GetSelectColumn(Sel.m_cpStart.m_iColumn);
-	const column_t ColEnd = GetSelectColumn(Sel.m_cpEnd.m_iColumn);
+	const column_t ColStart = GetSelectColumn(Sel.m_cpStart.Xpos.Column);
+	const column_t ColEnd = GetSelectColumn(Sel.m_cpEnd.Xpos.Column);
 
 	while (b < e) {
-		for (int c = Sel.m_cpStart.m_iChannel; c <= Sel.m_cpEnd.m_iChannel; ++c) {
+		for (int c = Sel.m_cpStart.Xpos.Track; c <= Sel.m_cpEnd.Xpos.Track; ++c) {
 			auto NoteBegin = b.Get(c);
 			auto NoteEnd = e.Get(c);
-			if (c == Sel.m_cpStart.m_iChannel && ColStart > column_t::Note) {		// // //
+			if (c == Sel.m_cpStart.Xpos.Track && ColStart > column_t::Note) {		// // //
 				auto Temp = NoteEnd;
 				CopyNoteSection(NoteEnd, NoteBegin, column_t::Note, static_cast<column_t>(value_cast(ColStart) - 1));
 				CopyNoteSection(NoteBegin, Temp, column_t::Note, static_cast<column_t>(value_cast(ColStart) - 1));
 			}
-			if (c == Sel.m_cpEnd.m_iChannel && ColEnd < column_t::Effect4) {
+			if (c == Sel.m_cpEnd.Xpos.Track && ColEnd < column_t::Effect4) {
 				auto Temp = NoteEnd;
 				CopyNoteSection(NoteEnd, NoteBegin, static_cast<column_t>(value_cast(ColEnd) + 1), column_t::Effect4);
 				CopyNoteSection(NoteBegin, Temp, static_cast<column_t>(value_cast(ColEnd) + 1), column_t::Effect4);
@@ -1044,21 +1043,21 @@ void CPActionStretch::Redo(CMainFrame &MainFrm)
 	const CSelection &Sel = m_pUndoState->Selection;
 	CPatternIterator s {b};
 
-	const column_t ColStart = GetSelectColumn(Sel.m_cpStart.m_iColumn);
-	const column_t ColEnd = GetSelectColumn(Sel.m_cpEnd.m_iColumn);
+	const column_t ColStart = GetSelectColumn(Sel.m_cpStart.Xpos.Column);
+	const column_t ColEnd = GetSelectColumn(Sel.m_cpEnd.Xpos.Column);
 
 	int Pos = 0;
 	int Offset = 0;
 	int oldRow = -1;
 	do {
 		stChanNote BLANK;
-		for (int i = Sel.m_cpStart.m_iChannel; i <= Sel.m_cpEnd.m_iChannel; ++i) {
+		for (int i = Sel.m_cpStart.Xpos.Track; i <= Sel.m_cpEnd.Xpos.Track; ++i) {
 			const auto &Source = (Offset < m_UndoClipData.ClipInfo.Rows && m_iStretchMap[Pos] > 0) ?
-				*(m_UndoClipData.GetPattern(i - Sel.m_cpStart.m_iChannel, Offset)) : BLANK;		// // //
+				*(m_UndoClipData.GetPattern(i - Sel.m_cpStart.Xpos.Track, Offset)) : BLANK;		// // //
 			auto Target = b.Get(i);
 			CopyNoteSection(Target, Source,
-				i == Sel.m_cpStart.m_iChannel ? ColStart : column_t::Note,
-				i == Sel.m_cpEnd.m_iChannel ? ColEnd : column_t::Effect4);
+				i == Sel.m_cpStart.Xpos.Track ? ColStart : column_t::Note,
+				i == Sel.m_cpEnd.Xpos.Track ? ColEnd : column_t::Effect4);
 			b.Set(i, Target);
 		}
 		int dist = m_iStretchMap[Pos++];

@@ -88,39 +88,39 @@ void CFindCursor::Move(direction_t Dir)
 
 	switch (Dir) {
 	case direction_t::UP:
-		m_iFrame = m_Scope.m_cpEnd.m_iFrame;
-		m_iRow = m_Scope.m_cpEnd.m_iRow;
-		if (--m_iChannel < m_Scope.m_cpStart.m_iChannel)
-			m_iChannel = m_Scope.m_cpEnd.m_iChannel;
+		m_iFrame = m_Scope.m_cpEnd.Ypos.Frame;
+		m_iRow = m_Scope.m_cpEnd.Ypos.Row;
+		if (--m_iChannel < m_Scope.m_cpStart.Xpos.Track)
+			m_iChannel = m_Scope.m_cpEnd.Xpos.Track;
 		break;
 	case direction_t::DOWN:
-		m_iFrame = m_Scope.m_cpStart.m_iFrame;
-		m_iRow = m_Scope.m_cpStart.m_iRow;
-		if (++m_iChannel > m_Scope.m_cpEnd.m_iChannel)
-			m_iChannel = m_Scope.m_cpStart.m_iChannel;
+		m_iFrame = m_Scope.m_cpStart.Ypos.Frame;
+		m_iRow = m_Scope.m_cpStart.Ypos.Row;
+		if (++m_iChannel > m_Scope.m_cpEnd.Xpos.Track)
+			m_iChannel = m_Scope.m_cpStart.Xpos.Track;
 		break;
 	case direction_t::LEFT:
-		m_iChannel = m_Scope.m_cpEnd.m_iChannel;
+		m_iChannel = m_Scope.m_cpEnd.Xpos.Track;
 		if (--m_iRow < 0) {
 			--m_iFrame;
 			m_iRow = song_view_.GetFrameLength(TranslateFrame()) - 1;
 		}
-		if (m_iFrame < m_Scope.m_cpStart.m_iFrame ||
-			m_iFrame == m_Scope.m_cpStart.m_iFrame && m_iRow < m_Scope.m_cpStart.m_iRow) {
-			m_iFrame = m_Scope.m_cpEnd.m_iFrame;
-			m_iRow = m_Scope.m_cpEnd.m_iRow;
+		if (m_iFrame < m_Scope.m_cpStart.Ypos.Frame ||
+			m_iFrame == m_Scope.m_cpStart.Ypos.Frame && m_iRow < m_Scope.m_cpStart.Ypos.Row) {
+			m_iFrame = m_Scope.m_cpEnd.Ypos.Frame;
+			m_iRow = m_Scope.m_cpEnd.Ypos.Row;
 		}
 		break;
 	case direction_t::RIGHT:
-		m_iChannel = m_Scope.m_cpStart.m_iChannel;
+		m_iChannel = m_Scope.m_cpStart.Xpos.Track;
 		if (++m_iRow >= static_cast<int>(song_view_.GetFrameLength(TranslateFrame()))) {
 			++m_iFrame;
 			m_iRow = 0;
 		}
-		if (m_iFrame > m_Scope.m_cpEnd.m_iFrame ||
-			m_iFrame == m_Scope.m_cpEnd.m_iFrame && m_iRow > m_Scope.m_cpEnd.m_iRow) {
-			m_iFrame = m_Scope.m_cpStart.m_iFrame;
-			m_iRow = m_Scope.m_cpStart.m_iRow;
+		if (m_iFrame > m_Scope.m_cpEnd.Ypos.Frame ||
+			m_iFrame == m_Scope.m_cpEnd.Ypos.Frame && m_iRow > m_Scope.m_cpEnd.Ypos.Row) {
+			m_iFrame = m_Scope.m_cpStart.Ypos.Frame;
+			m_iRow = m_Scope.m_cpStart.Ypos.Row;
 		}
 		break;
 	}
@@ -129,8 +129,8 @@ void CFindCursor::Move(direction_t Dir)
 bool CFindCursor::AtStart() const
 {
 	const int Frames = song_view_.GetSong().GetFrameCount();
-	return !((m_iFrame - m_cpBeginPos.m_iFrame) % Frames) &&
-		m_iRow == m_cpBeginPos.m_iRow && m_iChannel == m_cpBeginPos.m_iChannel;
+	return !((m_iFrame - m_cpBeginPos.Ypos.Frame) % Frames) &&
+		m_iRow == m_cpBeginPos.Ypos.Row && m_iChannel == m_cpBeginPos.Xpos.Track;
 }
 
 const stChanNote &CFindCursor::Get() const
@@ -152,29 +152,29 @@ void CFindCursor::ResetPosition(direction_t Dir)
 	case direction_t::UP: case direction_t::LEFT: default:
 		m_cpBeginPos = m_Scope.m_cpStart; Source = &m_Scope.m_cpEnd; break;
 	}
-	m_iFrame = Source->m_iFrame;
-	m_iRow = Source->m_iRow;
-	m_iChannel = Source->m_iChannel;
+	m_iFrame = Source->Ypos.Frame;
+	m_iRow = Source->Ypos.Row;
+	m_iChannel = Source->Xpos.Track;
 	ASSERT(Contains());
 }
 
 bool CFindCursor::Contains() const
 {
-	if (m_iChannel < m_Scope.m_cpStart.m_iChannel || m_iChannel > m_Scope.m_cpEnd.m_iChannel)
+	if (m_iChannel < m_Scope.m_cpStart.Xpos.Track || m_iChannel > m_Scope.m_cpEnd.Xpos.Track)
 		return false;
 
 	const int Frames = song_view_.GetSong().GetFrameCount();
 	int Frame = m_iFrame;
-	int fStart = m_Scope.m_cpStart.m_iFrame % Frames;
+	int fStart = m_Scope.m_cpStart.Ypos.Frame % Frames;
 	if (fStart < 0) fStart += Frames;
-	int fEnd = m_Scope.m_cpEnd.m_iFrame % Frames;
+	int fEnd = m_Scope.m_cpEnd.Ypos.Frame % Frames;
 	if (fEnd < 0) fEnd += Frames;
 	Frame %= Frames;
 	if (Frame < 0) Frame += Frames;
 
-	bool InStart = Frame > fStart || (Frame == fStart && m_iRow >= m_Scope.m_cpStart.m_iRow);
-	bool InEnd = Frame < fEnd || (Frame == fEnd && m_iRow <= m_Scope.m_cpEnd.m_iRow);
-	if (fStart > fEnd || (fStart == fEnd && m_Scope.m_cpStart.m_iRow > m_Scope.m_cpEnd.m_iRow))
+	bool InStart = Frame > fStart || (Frame == fStart && m_iRow >= m_Scope.m_cpStart.Ypos.Row);
+	bool InEnd = Frame < fEnd || (Frame == fEnd && m_iRow <= m_Scope.m_cpEnd.Ypos.Row);
+	if (fStart > fEnd || (fStart == fEnd && m_Scope.m_cpStart.Ypos.Row > m_Scope.m_cpEnd.Ypos.Row))
 		return InStart || InEnd;
 	else
 		return InStart && InEnd;
@@ -1117,30 +1117,30 @@ void CFindDlg::PrepareCursor(bool ReplaceAll)
 
 	if (m_cSearchArea.GetCurSel() == 4) { // Selection
 		Scope = pEditor->GetSelection().GetNormalized();
-		if (Scope.m_cpStart.m_iFrame < 0 || Scope.m_cpEnd.m_iFrame < 0) {
-			Scope.m_cpStart.m_iFrame += Frames;
-			Scope.m_cpEnd.m_iFrame += Frames;
+		if (Scope.m_cpStart.Ypos.Frame < 0 || Scope.m_cpEnd.Ypos.Frame < 0) {
+			Scope.m_cpStart.Ypos.Frame += Frames;
+			Scope.m_cpEnd.Ypos.Frame += Frames;
 		}
 	}
 	else {
 		switch (m_cSearchArea.GetCurSel()) {
 		case 0: case 1: // Track, Channel
-			Scope.m_cpStart.m_iFrame = 0;
-			Scope.m_cpEnd.m_iFrame = Frames - 1; break;
+			Scope.m_cpStart.Ypos.Frame = 0;
+			Scope.m_cpEnd.Ypos.Frame = Frames - 1; break;
 		case 2: case 3: // Frame, Pattern
-			Scope.m_cpStart.m_iFrame = Scope.m_cpEnd.m_iFrame = Cursor.m_iFrame; break;
+			Scope.m_cpStart.Ypos.Frame = Scope.m_cpEnd.Ypos.Frame = Cursor.Ypos.Frame; break;
 		}
 
 		switch (m_cSearchArea.GetCurSel()) {
 		case 0: case 2: // Track, Frame
-			Scope.m_cpStart.m_iChannel = 0;
-			Scope.m_cpEnd.m_iChannel = pSongView->GetChannelOrder().GetChannelCount() - 1; break;
+			Scope.m_cpStart.Xpos.Track = 0;
+			Scope.m_cpEnd.Xpos.Track = pSongView->GetChannelOrder().GetChannelCount() - 1; break;
 		case 1: case 3: // Channel, Pattern
-			Scope.m_cpStart.m_iChannel = Scope.m_cpEnd.m_iChannel = Cursor.m_iChannel; break;
+			Scope.m_cpStart.Xpos.Track = Scope.m_cpEnd.Xpos.Track = Cursor.Xpos.Track; break;
 		}
 
-		Scope.m_cpStart.m_iRow = 0;
-		Scope.m_cpEnd.m_iRow = pSongView->GetFrameLength(Scope.m_cpEnd.m_iFrame) - 1;
+		Scope.m_cpStart.Ypos.Row = 0;
+		Scope.m_cpEnd.Ypos.Row = pSongView->GetFrameLength(Scope.m_cpEnd.Ypos.Frame) - 1;
 	}
 	m_pFindCursor = std::make_unique<CFindCursor>(*pSongView, ReplaceAll ? Scope.m_cpStart : Cursor, Scope);
 }

@@ -489,9 +489,6 @@
     <ClCompile Include="Source\PatternEditor.cpp">
       <Filter>Source Files\Pattern Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Source\PatternEditorTypes.cpp">
-      <Filter>Source Files\Pattern Editor</Filter>
-    </ClCompile>
     <ClCompile Include="Source\FrameAction.cpp">
       <Filter>Source Files\Frame Editor</Filter>
     </ClCompile>
@@ -839,6 +836,9 @@
     </ClCompile>
     <ClCompile Include="Source\WaveStream.cpp">
       <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SelectionRange.cpp">
+      <Filter>Source Files\Pattern Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1582,6 +1582,9 @@
     </ClInclude>
     <ClInclude Include="Source\StringClipData.h">
       <Filter>Header Files\Components Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SelectionRange.h">
+      <Filter>Header Files\Pattern Editor Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
