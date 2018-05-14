@@ -1237,7 +1237,7 @@ void CCompiler::CreateSampleList()
 	// Store sample instruments
 	unsigned int Item = 0;
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i) {
-		if (Im.IsInstrumentUsed(i) && Im.GetInstrumentType(i) == INST_2A03) {
+		if (Im.HasInstrument(i) && Im.GetInstrumentType(i) == INST_2A03) {
 			auto pInstrument = std::static_pointer_cast<CInstrument2A03>(Im.GetInstrument(i));
 
 			for (int n = 0; n < NOTE_COUNT; ++n) {

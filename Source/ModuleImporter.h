@@ -24,16 +24,24 @@
 #pragma once
 
 #include <memory>
-#include "FamiTrackerDefines.h"
+#include <unordered_map>
+#include <cstdint>
+#include "ft0cc/enum_traits.h"
 
 class CFamiTrackerModule;
 
+ENUM_CLASS_STANDARD(import_mode_t, std::uint8_t) {
+	none, duplicate_all, overwrite_all, import_missing,
+	min = duplicate_all, max = import_missing,
+};
+
 class CModuleImporter {
 public:
-	CModuleImporter(CFamiTrackerModule &modfile, CFamiTrackerModule &imported);
+	CModuleImporter(CFamiTrackerModule &modfile, CFamiTrackerModule &imported,
+		import_mode_t instMode, import_mode_t grooveMode);
 
 	bool Validate() const;
-	void DoImport(bool doInst, bool doGroove, bool doDetune);
+	void DoImport(bool doDetune);
 
 private:
 	void ImportInstruments();
@@ -45,6 +53,9 @@ private:
 	CFamiTrackerModule &modfile_;
 	CFamiTrackerModule &imported_;
 
-	int inst_index_[MAX_INSTRUMENTS] = { };
-	int groove_index_[MAX_GROOVE] = { };
+	std::unordered_map<unsigned, unsigned> inst_index_;
+	std::unordered_map<unsigned, unsigned> groove_index_;
+
+	import_mode_t inst_mode_ = import_mode_t::none;
+	import_mode_t groove_mode_ = import_mode_t::none;
 };

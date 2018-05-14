@@ -53,7 +53,9 @@ void CModuleImportDlg::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CModuleImportDlg, CDialog)
-	ON_BN_CLICKED(IDOK, &CModuleImportDlg::OnBnClickedOk)
+	ON_BN_CLICKED(IDOK, &OnBnClickedOk)
+	ON_BN_CLICKED(IDC_BUTTON_IMPORT_ALL, &OnBnClickedButtonImportAll)
+	ON_BN_CLICKED(IDC_BUTTON_IMPORT_NONE, &OnBnClickedButtonImportNone)
 END_MESSAGE_MAP()
 
 
@@ -71,9 +73,9 @@ BOOL CModuleImportDlg::OnInitDialog()
 		m_ctlTrackList.SetCheck(i, 1);
 	});
 
-	CheckDlgButton(IDC_INSTRUMENTS, BST_CHECKED);
-	CheckDlgButton(IDC_IMPORT_GROOVE, BST_CHECKED);		// // //
-	CheckDlgButton(IDC_IMPORT_DETUNE, BST_UNCHECKED);		// // //
+	static_cast<CComboBox *>(GetDlgItem(IDC_COMBO_IMPORT_INST))->SetCurSel(value_cast(import_mode_t::none));		// // //
+	static_cast<CComboBox *>(GetDlgItem(IDC_COMBO_IMPORT_GROOVE))->SetCurSel(value_cast(import_mode_t::none));
+	CheckDlgButton(IDC_IMPORT_DETUNE, BST_UNCHECKED);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
@@ -99,19 +101,18 @@ void CModuleImportDlg::OnBnClickedOk()
 
 	// // // remove non-imported songs in advance
 	unsigned track = 0;
-	for (int i = 0; track < newModule.GetSongCount(); ++i) {
+	for (int i = 0, n = m_ctlTrackList.GetCount(); i < n; ++i) {
 		if (m_ctlTrackList.GetCheck(i) == BST_CHECKED)
 			++track;
 		else
 			newModule.RemoveSong(track);
 	}
 
-	CModuleImporter importer {*m_pDocument->GetModule(), newModule};
+	auto instMode = enum_cast<import_mode_t>(static_cast<CComboBox *>(GetDlgItem(IDC_COMBO_IMPORT_INST))->GetCurSel());
+	auto grooveMode = enum_cast<import_mode_t>(static_cast<CComboBox *>(GetDlgItem(IDC_COMBO_IMPORT_GROOVE))->GetCurSel());
+	CModuleImporter importer {*m_pDocument->GetModule(), newModule, instMode, grooveMode};
 	if (importer.Validate()) {
-		importer.DoImport(
-			IsDlgButtonChecked(IDC_INSTRUMENTS) == BST_CHECKED,
-			IsDlgButtonChecked(IDC_IMPORT_GROOVE) == BST_CHECKED,
-			IsDlgButtonChecked(IDC_IMPORT_DETUNE) == BST_CHECKED);
+		importer.DoImport(IsDlgButtonChecked(IDC_IMPORT_DETUNE) == BST_CHECKED);
 
 		// TODO another way to do this?
 		m_pDocument->ModifyIrreversible();		// // //
@@ -129,4 +130,14 @@ bool CModuleImportDlg::LoadFile(CStringW Path)		// // //
 {
 	m_pImportedDoc = CFamiTrackerDoc::LoadImportFile(Path);
 	return m_pImportedDoc != nullptr;
+}
+
+void CModuleImportDlg::OnBnClickedButtonImportAll() {
+	for (int i = 0, n = m_ctlTrackList.GetCount(); i < n; ++i)
+		m_ctlTrackList.SetCheck(i, BST_CHECKED);
+}
+
+void CModuleImportDlg::OnBnClickedButtonImportNone() {
+	for (int i = 0, n = m_ctlTrackList.GetCount(); i < n; ++i)
+		m_ctlTrackList.SetCheck(i, BST_UNCHECKED);
 }

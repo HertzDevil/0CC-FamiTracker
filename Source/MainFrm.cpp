@@ -1896,7 +1896,7 @@ void CMainFrame::OpenInstrumentEditor()
 
 	int Instrument = GetSelectedInstrumentIndex();
 
-	if (pManager->IsInstrumentUsed(Instrument)) {
+	if (pManager->HasInstrument(Instrument)) {
 		if (!m_wndInstEdit.IsOpened()) {
 			m_wndInstEdit.SetInstrumentManager(pManager);		// // //
 			m_wndInstEdit.Create(IDD_INSTRUMENT, this);

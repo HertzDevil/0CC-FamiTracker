@@ -1302,7 +1302,7 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	// Make non-available instruments red in the pattern editor
 	const auto *pManager = m_pModule->GetInstrumentManager();
 	if (NoteData.Instrument < MAX_INSTRUMENTS &&
-		(!pManager->IsInstrumentUsed(NoteData.Instrument) ||
+		(!pManager->HasInstrument(NoteData.Instrument) ||
 		!IsInstrumentCompatible(ch.Chip, pManager->GetInstrumentType(NoteData.Instrument)))) {		// // //
 		DimInst = InstColor = MakeRGB(255, 0, 0);
 	}

@@ -168,7 +168,7 @@ ModuleAction::CAddInst::CAddInst(unsigned index, std::shared_ptr<CInstrument> pI
 
 bool ModuleAction::CAddInst::SaveState(const CMainFrame &MainFrm) {
 	prev_ = MainFrm.GetSelectedInstrumentIndex();
-	return inst_ && index_ < MAX_INSTRUMENTS && !GET_MODULE().GetInstrumentManager()->IsInstrumentUsed(index_);
+	return inst_ && index_ < MAX_INSTRUMENTS && !GET_MODULE().GetInstrumentManager()->HasInstrument(index_);
 }
 
 void ModuleAction::CAddInst::Undo(CMainFrame &MainFrm) {
@@ -196,12 +196,12 @@ bool ModuleAction::CRemoveInst::SaveState(const CMainFrame &MainFrm) {
 	const auto *pManager = GET_MODULE().GetInstrumentManager();
 	if ((inst_ = pManager->GetInstrument(index_))) {
 		for (unsigned i = index_ + 1; i < MAX_INSTRUMENTS; ++i)
-			if (pManager->IsInstrumentUsed(i)) {
+			if (pManager->HasInstrument(i)) {
 				nextIndex_ = i;
 				return true;
 			}
 		for (int i = index_ - 1; i >= 0; --i)
-			if (pManager->IsInstrumentUsed(i)) {
+			if (pManager->HasInstrument(i)) {
 				nextIndex_ = i;
 				return true;
 			}
@@ -278,7 +278,7 @@ bool ModuleAction::CSwapInst::SaveState(const CMainFrame &MainFrm) {
 	if (left_ == right_)
 		return false;
 	const auto *pManager = GET_MODULE().GetInstrumentManager();
-	return pManager->IsInstrumentUsed(left_) && pManager->IsInstrumentUsed(right_);
+	return pManager->HasInstrument(left_) && pManager->HasInstrument(right_);
 }
 
 void ModuleAction::CSwapInst::Undo(CMainFrame &MainFrm) {

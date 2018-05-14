@@ -109,7 +109,7 @@ bool CInstrumentManager::RemoveInstrument(unsigned int Index)
 }
 
 int CInstrumentManager::CloneInstrument(unsigned OldIndex, unsigned NewIndex) {		// // //
-	return IsInstrumentUsed(OldIndex) && NewIndex != INVALID_INSTRUMENT && !IsInstrumentUsed(NewIndex) &&
+	return HasInstrument(OldIndex) && NewIndex != INVALID_INSTRUMENT && !HasInstrument(NewIndex) &&
 		InsertInstrument(NewIndex, GetInstrument(OldIndex)->Clone());		// // //
 }
 
@@ -150,9 +150,9 @@ void CInstrumentManager::ClearAll()
 	m_pDSampleManager = std::make_unique<CDSampleManager>();
 }
 
-bool CInstrumentManager::IsInstrumentUsed(unsigned int Index) const
+bool CInstrumentManager::HasInstrument(unsigned int Index) const
 {
-	return Index < MAX_INSTRUMENTS && m_pInstruments[Index];
+	return Index < MAX_INSTRUMENTS && m_pInstruments[Index] != nullptr;
 }
 
 unsigned int CInstrumentManager::GetInstrumentCount() const
@@ -206,7 +206,7 @@ int CInstrumentManager::GetTotalSequenceCount(inst_type_t InstType) const {
 
 inst_type_t CInstrumentManager::GetInstrumentType(unsigned int Index) const
 {
-	return !IsInstrumentUsed(Index) ? INST_NONE : m_pInstruments[Index]->GetType();
+	return !HasInstrument(Index) ? INST_NONE : m_pInstruments[Index]->GetType();
 }
 
 //

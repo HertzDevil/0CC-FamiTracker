@@ -57,7 +57,7 @@ public:
 	bool DeepCloneInstrument(unsigned OldIndex, unsigned NewIndex);		// // //
 	void SwapInstruments(unsigned int IndexA, unsigned int IndexB);
 
-	bool IsInstrumentUsed(unsigned int Index) const;
+	bool HasInstrument(unsigned int Index) const;
 	unsigned int GetInstrumentCount() const;
 	unsigned int GetFirstUnused() const;
 	int GetFreeSequenceIndex(inst_type_t InstType, sequence_t Type, const CSeqInstrument *pInst = nullptr) const;

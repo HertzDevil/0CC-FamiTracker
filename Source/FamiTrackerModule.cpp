@@ -347,9 +347,6 @@ std::unique_ptr<CSongData> CFamiTrackerModule::ReleaseSong(unsigned index) {		//
 	// Move down all other tracks
 	auto song = std::move(m_pTracks[index]);
 	m_pTracks.erase(m_pTracks.cbegin() + index);		// // //
-	if (!GetSongCount())
-		AllocateSong(0);
-
 	return song;
 }
 
@@ -370,7 +367,7 @@ std::shared_ptr<const ft0cc::doc::groove> CFamiTrackerModule::GetGroove(unsigned
 }
 
 bool CFamiTrackerModule::HasGroove(unsigned index) const {
-	return index < MAX_GROOVE && static_cast<bool>(m_pGrooveTable[index]);
+	return index < MAX_GROOVE && m_pGrooveTable[index] != nullptr;
 }
 
 void CFamiTrackerModule::SetGroove(unsigned index, std::shared_ptr<ft0cc::doc::groove> pGroove) {
@@ -440,7 +437,7 @@ void CFamiTrackerModule::RemoveUnusedInstruments() {
 				if (auto pSeq = pManager->GetSequence(c, j, i); pSeq && pSeq->GetItemCount() > 0) {		// // //
 					bool Used = false;
 					for (int k = 0; k < MAX_INSTRUMENTS; ++k) {
-						if (pManager->IsInstrumentUsed(k) && pManager->GetInstrumentType(k) == c) {
+						if (pManager->HasInstrument(k) && pManager->GetInstrumentType(k) == c) {
 							auto pInstrument = std::static_pointer_cast<CSeqInstrument>(pManager->GetInstrument(k));
 							if (pInstrument->GetSeqIndex(j) == i && pInstrument->GetSeqEnable(j)) {		// // //
 								Used = true; break;

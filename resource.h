@@ -597,6 +597,10 @@
 #define IDC_STATIC_DPCM_ZOOM            1459
 #define IDC_EDIT_FXX_SPLIT              1460
 #define IDC_SPIN_FXX_SPLIT              1461
+#define IDC_COMBO_IMPORT_INST           1464
+#define IDC_COMBO_IMPORT_GROOVE         1465
+#define IDC_BUTTON_IMPORT_ALL           1466
+#define IDC_BUTTON_IMPORT_NONE          1467
 #define ID_TRACKER_PLAY                 32771
 #define ID_TRACKER_PLAYPATTERN          32775
 #define ID_TRACKER_STOP                 32776
@@ -757,9 +761,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        358
+#define _APS_NEXT_RESOURCE_VALUE        359
 #define _APS_NEXT_COMMAND_VALUE         33202
-#define _APS_NEXT_CONTROL_VALUE         1462
+#define _APS_NEXT_CONTROL_VALUE         1467
 #define _APS_NEXT_SYMED_VALUE           179
 #endif
 #endif

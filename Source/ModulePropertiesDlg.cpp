@@ -239,6 +239,8 @@ void CModulePropertiesDlg::OnBnClickedSongRemove()
 			m_cListSongs.DeleteItem(i);
 			m_pModule->RemoveSong(i);
 		}
+	if (!m_pModule->GetSongCount())
+		m_pModule->InsertSong(0, m_pModule->MakeNewSong());
 	m_pDocument->ModifyIrreversible();		// // //
 	m_pDocument->UpdateAllViews(NULL, UPDATE_TRACK);
 
