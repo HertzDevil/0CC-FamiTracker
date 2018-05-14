@@ -100,30 +100,32 @@ bool CModuleImporter::Validate() const {
 			return false;
 		}
 
-	// // // Check DPCM sample count
-	// TODO: allow importing only used samples
-	auto *pSamps = modfile_.GetDSampleManager();
-	auto *pImportedSamps = imported_.GetDSampleManager();		// // //
-	if (pSamps->GetDSampleCount() + pImportedSamps->GetDSampleCount() > MAX_DSAMPLES) {
-		AfxMessageBox(IDS_IMPORT_SAMPLE_SLOTS, MB_ICONEXCLAMATION);
-		return false;
-	}
-
-	const inst_type_t INST[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
-
-	// Check sequence count
-	// TODO: allow importing only used sequences
-	auto *pInsts = modfile_.GetInstrumentManager();
-	auto *pImportedInsts = imported_.GetInstrumentManager();
-	for (inst_type_t i : INST)
-		for (auto t : enum_values<sequence_t>()) {
-			int seqCount = pInsts->GetSequenceCount(i, t);
-			seqCount += pImportedInsts->GetSequenceCount(i, t);
-			if (seqCount > MAX_SEQUENCES) {		// // //
-				AfxMessageBox(IDS_IMPORT_SEQUENCE_COUNT, MB_ICONERROR);
-				return false;
-			}
+	if (inst_mode_ != import_mode_t::none) {
+		// // // Check DPCM sample count
+		// TODO: allow importing only used samples
+		auto *pSamps = modfile_.GetDSampleManager();
+		auto *pImportedSamps = imported_.GetDSampleManager();		// // //
+		if (pSamps->GetDSampleCount() + pImportedSamps->GetDSampleCount() > MAX_DSAMPLES) {
+			AfxMessageBox(IDS_IMPORT_SAMPLE_SLOTS, MB_ICONEXCLAMATION);
+			return false;
 		}
+
+		const inst_type_t INST[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
+
+		// Check sequence count
+		// TODO: allow importing only used sequences
+		auto *pInsts = modfile_.GetInstrumentManager();
+		auto *pImportedInsts = imported_.GetInstrumentManager();
+		for (inst_type_t i : INST)
+			for (auto t : enum_values<sequence_t>()) {
+				int seqCount = pInsts->GetSequenceCount(i, t);
+				seqCount += pImportedInsts->GetSequenceCount(i, t);
+				if (seqCount > MAX_SEQUENCES) {		// // //
+					AfxMessageBox(IDS_IMPORT_SEQUENCE_COUNT, MB_ICONERROR);
+					return false;
+				}
+			}
+	}
 
 	return true;
 }
@@ -137,6 +139,9 @@ void CModuleImporter::DoImport(bool doDetune) {
 }
 
 void CModuleImporter::ImportInstruments() {
+	if (inst_mode_ == import_mode_t::none)
+		return;
+
 	const inst_type_t INST[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};		// // //
 
 	auto *pInsts = modfile_.GetInstrumentManager();
@@ -201,8 +206,9 @@ void CModuleImporter::ImportInstruments() {
 }
 
 void CModuleImporter::ImportGrooves() {
-	for (auto [i, gi] : groove_index_)
-		modfile_.SetGroove(gi, imported_.GetGroove(i));
+	if (groove_mode_ != import_mode_t::none)
+		for (auto [i, gi] : groove_index_)
+			modfile_.SetGroove(gi, imported_.GetGroove(i));
 }
 
 void CModuleImporter::ImportDetune() {
