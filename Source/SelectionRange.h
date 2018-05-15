@@ -70,3 +70,78 @@ private:
 protected:
 	CSongView &song_view_;
 };
+
+/*
+// range of rows, track and column are fixed
+class CPatternRowRange {
+public:
+	class ConstIterator {
+	public:
+		using iterator_category = std::bidirectional_iterator_tag;
+		using value_type = std::tuple<const stChanNote &, column_t, column_t>;
+		using reference = value_type &;
+		using pointer = value_type *;
+		using difference_type = int;
+
+		constexpr ConstIterator(stRowPos pos, CConstSongView &view, int track, column_t cb, column_t ce) noexcept :
+			view_(view), pos_(pos), track_(track), cb_(cb), ce_(ce) { }
+
+		constexpr int compare(const ConstIterator &other) const noexcept {
+			return pos_.compare(other.pos_);
+		}
+
+		value_type operator*() const;
+
+		ConstIterator &operator+=(difference_type offset);
+		ConstIterator &operator-=(difference_type offset);
+		ConstIterator &operator++();
+		ConstIterator &operator--();
+
+		ConstIterator operator+(difference_type offset) const;
+		ConstIterator operator-(difference_type offset) const;
+		ConstIterator operator++(int);
+		ConstIterator operator--(int);
+
+	private:
+		int TranslateFrame() const;
+		void Warp();
+
+		CConstSongView &view_;
+		stRowPos pos_;
+		int track_;
+		column_t cb_;
+		column_t ce_;
+	};
+
+};
+
+ENABLE_STRONG_ORDERING(CPatternRowRange::ConstIterator);
+
+// range of columns, frame and row are fixed
+class CPatternColumnRange {
+public:
+	class ConstIterator {
+	public:
+		using iterator_category = std::random_access_iterator_tag;
+		using value_type = const stChanNote;
+		using reference = value_type &;
+		using pointer = value_type *;
+		using difference_type = int;
+
+		constexpr ConstIterator(stColumnPos pos, CConstSongView &view, stRowPos row) noexcept :
+			view_(view), pos_(pos), row_(row) { }
+
+		constexpr int compare(const ConstIterator &other) const noexcept {
+			return pos_.compare(other.pos_);
+		}
+
+	private:
+		CConstSongView &view_;
+		stColumnPos pos_;
+		stRowPos row_;
+	};
+
+};
+
+ENABLE_STRONG_ORDERING(CPatternColumnRange::ConstIterator);
+*/

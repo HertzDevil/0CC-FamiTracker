@@ -142,3 +142,75 @@ void CPatternIterator::Warp()
 			m_iRow += song_view_.GetFrameLength(TranslateFrame());
 		}
 }
+
+
+/*
+CPatternRowRange::ConstIterator::value_type CPatternRowRange::ConstIterator::operator*() const {
+	const stChanNote &note = view_.GetTrack(track_)->GetPatternOnFrame(TranslateFrame()).GetNoteOn(pos_.Row);
+	return {note, cb_, ce_};
+}
+
+CPatternRowRange::ConstIterator &CPatternRowRange::ConstIterator::operator+=(CPatternRowRange::ConstIterator::difference_type offset) {
+	pos_.Row += offset;
+	Warp();
+	return *this;
+}
+
+CPatternRowRange::ConstIterator &CPatternRowRange::ConstIterator::operator-=(CPatternRowRange::ConstIterator::difference_type offset) {
+	return operator+=(-offset);
+}
+
+CPatternRowRange::ConstIterator &CPatternRowRange::ConstIterator::operator++() {
+	return operator+=(1);
+}
+
+CPatternRowRange::ConstIterator &CPatternRowRange::ConstIterator::operator--() {
+	return operator-=(1);
+}
+
+CPatternRowRange::ConstIterator CPatternRowRange::ConstIterator::operator+(CPatternRowRange::ConstIterator::difference_type offset) const {
+	auto it = *this;
+	return it += offset;
+}
+
+CPatternRowRange::ConstIterator CPatternRowRange::ConstIterator::operator-(CPatternRowRange::ConstIterator::difference_type offset) const {
+	auto it = *this;
+	return it -= offset;
+}
+
+CPatternRowRange::ConstIterator CPatternRowRange::ConstIterator::operator++(int) {
+	auto it = *this;
+	++*this;
+	return it;
+}
+
+CPatternRowRange::ConstIterator CPatternRowRange::ConstIterator::operator--(int) {
+	auto it = *this;
+	--*this;
+	return it;
+}
+
+int CPatternRowRange::ConstIterator::TranslateFrame() const {
+	int frames = view_.GetSong().GetFrameCount();
+	int f = pos_.Frame % frames;
+	return f < 0 ? f + frames : f;
+}
+
+void CPatternRowRange::ConstIterator::Warp() {
+	if (pos_.Row >= 0) {
+		while (true) {
+			if (int Length = view_.GetFrameLength(TranslateFrame()); pos_.Row >= Length) {
+				pos_.Row -= Length;
+				++pos_.Frame;
+			}
+			else
+				return;
+		}
+	}
+	else
+		while (pos_.Row < 0) {
+			--pos_.Frame;
+			pos_.Row += view_.GetFrameLength(TranslateFrame());
+		}
+}
+*/
