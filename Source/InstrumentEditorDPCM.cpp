@@ -322,10 +322,8 @@ void CInstrumentEditorDPCM::OnBnClickedLoad()
 	if (OpenFileDialog.DoModal() == IDCANCEL)
 		return;
 
-	Env.GetSettings()->SetDirectory((LPCWSTR)OpenFileDialog.GetPathName(), PATH_DMC);
-
 	if (OpenFileDialog.GetFileName().GetLength() == 0) {
-		Env.GetSettings()->SetDirectory((LPCWSTR)(OpenFileDialog.GetPathName() + L"\\"), PATH_DMC);		// // //
+		Env.GetSettings()->SetPath((LPCWSTR)OpenFileDialog.GetPathName(), PATH_DMC);		// // //
 		// Multiple files
 		POSITION Pos = OpenFileDialog.GetStartPosition();
 		while (Pos) {
@@ -337,6 +335,7 @@ void CInstrumentEditorDPCM::OnBnClickedLoad()
 	else {
 		// Single file
 		LoadSample(OpenFileDialog.GetPathName(), OpenFileDialog.GetFileName());
+		Env.GetSettings()->SetPath(fs::path {(LPCWSTR)OpenFileDialog.GetPathName()}.parent_path(), PATH_DMC);
 	}
 }
 
@@ -464,7 +463,7 @@ void CInstrumentEditorDPCM::OnBnClickedSave()
 
 	auto initPath = Env.GetSettings()->GetPath(PATH_DMC);		// // //
 	if (auto path = GetSavePath(conv::to_wide(pDSample->name()).data(), initPath.c_str(), IDS_FILTER_DMC, L"*.dmc")) {
-		Env.GetSettings()->SetDirectory(*path, PATH_DMC);
+		Env.GetSettings()->SetPath(path->parent_path(), PATH_DMC);
 
 		CFile SampleFile;
 		if (!SampleFile.Open(path->c_str(), CFile::modeWrite | CFile::modeCreate)) {

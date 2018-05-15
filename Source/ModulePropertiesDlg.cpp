@@ -335,29 +335,26 @@ void CModulePropertiesDlg::OnBnClickedSongImport()
 {
 	CModuleImportDlg importDlg(m_pDocument);
 
-	CFileDialog OpenFileDlg(TRUE, L"0cc", 0, OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_0CC, L"*.0cc; *.ftm"));		// // //
+	if (auto path = GetLoadPath("", "", IDS_FILTER_0CC, L"*.0cc; *.ftm")) {
+		if (!importDlg.LoadFile(*path))		// // //
+			return;
 
-	if (OpenFileDlg.DoModal() == IDCANCEL)
-		return;
+		if (!importDlg.DoModal())		// // //
+			return;
 
-	if (!importDlg.LoadFile(OpenFileDlg.GetPathName()))		// // //
-		return;
+		FillSongList();
+		SelectSong(m_pModule->GetSongCount() - 1);		// // //
 
-	if (!importDlg.DoModal())		// // //
-		return;
-
-	FillSongList();
-	SelectSong(m_pModule->GetSongCount() - 1);		// // //
-
-	m_iExpansions = m_pModule->GetSoundChipSet();		// // //
-	m_iN163Channels = m_pModule->GetNamcoChannels();
-	m_cButtonEnableVRC6.SetCheck(m_iExpansions.ContainsChip(sound_chip_t::VRC6));
-	m_cButtonEnableVRC7.SetCheck(m_iExpansions.ContainsChip(sound_chip_t::VRC7));
-	m_cButtonEnableFDS .SetCheck(m_iExpansions.ContainsChip(sound_chip_t::FDS ));
-	m_cButtonEnableMMC5.SetCheck(m_iExpansions.ContainsChip(sound_chip_t::MMC5));
-	m_cButtonEnableN163.SetCheck(m_iExpansions.ContainsChip(sound_chip_t::N163));
-	m_cButtonEnableS5B .SetCheck(m_iExpansions.ContainsChip(sound_chip_t::S5B ));
-	m_pDocument->UpdateAllViews(NULL, UPDATE_PROPERTIES);
+		m_iExpansions = m_pModule->GetSoundChipSet();		// // //
+		m_iN163Channels = m_pModule->GetNamcoChannels();
+		m_cButtonEnableVRC6.SetCheck(m_iExpansions.ContainsChip(sound_chip_t::VRC6));
+		m_cButtonEnableVRC7.SetCheck(m_iExpansions.ContainsChip(sound_chip_t::VRC7));
+		m_cButtonEnableFDS.SetCheck(m_iExpansions.ContainsChip(sound_chip_t::FDS));
+		m_cButtonEnableMMC5.SetCheck(m_iExpansions.ContainsChip(sound_chip_t::MMC5));
+		m_cButtonEnableN163.SetCheck(m_iExpansions.ContainsChip(sound_chip_t::N163));
+		m_cButtonEnableS5B.SetCheck(m_iExpansions.ContainsChip(sound_chip_t::S5B));
+		m_pDocument->UpdateAllViews(NULL, UPDATE_PROPERTIES);
+	}
 }
 /*
 void CModulePropertiesDlg::OnCbnSelchangeExpansion()

@@ -126,9 +126,8 @@ void CModuleImportDlg::OnBnClickedOk()
 	OnOK();
 }
 
-bool CModuleImportDlg::LoadFile(CStringW Path)		// // //
-{
-	m_pImportedDoc = CFamiTrackerDoc::LoadImportFile(Path);
+bool CModuleImportDlg::LoadFile(const fs::path &fname) {		// // //
+	m_pImportedDoc = CFamiTrackerDoc::LoadImportFile(fname.c_str());
 	return m_pImportedDoc != nullptr;
 }
 

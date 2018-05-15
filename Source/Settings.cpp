@@ -35,7 +35,3 @@ void CSettings::SetPath(fs::path PathName, unsigned int PathType) {		// // //
 	if (PathType < std::size(Paths))
 		Paths[PathType] = std::move(PathName);
 }
-
-void CSettings::SetDirectory(std::wstring PathName, unsigned int PathType) {
-	SetPath(fs::path {std::move(PathName)}.parent_path(), PathType);
-}

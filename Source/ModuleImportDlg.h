@@ -26,6 +26,7 @@
 #include "stdafx.h"		// // //
 #include "../resource.h"		// // //
 #include <memory>		// // //
+#include "ft0cc/fs.h"		// // //
 
 class CFamiTrackerDoc;
 
@@ -43,7 +44,7 @@ public:
 	enum { IDD = IDD_IMPORT };
 
 public:
-	bool LoadFile(CStringW Path);		// // //
+	bool LoadFile(const fs::path &fname);		// // //
 
 private:
 	CFamiTrackerDoc *m_pDocument;

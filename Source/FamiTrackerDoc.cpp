@@ -284,7 +284,7 @@ void CFamiTrackerDoc::OnFileSaveAs()
 	if (!AfxGetApp()->DoPromptFileName(newName, AFX_IDS_SAVEFILE, OFN_HIDEREADONLY | OFN_PATHMUSTEXIST, FALSE, NULL))
 		return;
 
-	Env.GetSettings()->SetDirectory((LPCWSTR)newName, PATH_FTM);
+	Env.GetSettings()->SetPath(fs::path {(LPCWSTR)newName}.parent_path(), PATH_FTM);
 
 	DoSave(newName);
 }
@@ -299,14 +299,14 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 {
 	CDocumentFile DocumentFile;
 	CFileException ex;
-	WCHAR TempPath[MAX_PATH], TempFile[MAX_PATH];
 
 	// First write to a temp file (if saving fails, the original is not destroyed)
-	GetTempPathW(MAX_PATH, TempPath);
-	GetTempFileNameW(TempPath, L"FTM", 0, TempFile);
+	fs::path TempPath = fs::temp_directory_path();
+	WCHAR TempFile[MAX_PATH] = { };
+	GetTempFileNameW(TempPath.c_str(), L"FTM", 0, TempFile);
 
 	try {		// // //
-		DocumentFile.Open(conv::to_utf8(TempFile).data(), std::ios::out | std::ios::binary);
+		DocumentFile.Open(TempFile, std::ios::out | std::ios::binary);
 	}
 	catch (std::runtime_error err) {
 		AfxMessageBox(FormattedW(L"Could not save file: %s", conv::to_wide(err.what()).data()), MB_OK | MB_ICONERROR);
@@ -316,7 +316,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 	if (!CFamiTrackerDocIO {DocumentFile, (module_error_level_t)Env.GetSettings()->Version.iErrorLevel}.Save(*GetModule())) {		// // //
 		// The save process failed, delete temp file
 		DocumentFile.Close();
-		DeleteFileW(TempFile);
+		fs::remove(TempFile);
 		// Display error
 		AfxMessageBox(CStringW(MAKEINTRESOURCEW(IDS_SAVE_ERROR)), MB_OK | MB_ICONERROR);
 		return FALSE;
@@ -325,16 +325,14 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 	DocumentFile.Close();
 
 	// Save old creation date
-	HANDLE hOldFile;
-	FILETIME creationTime;
-
-	hOldFile = CreateFileW(lpszPathName, FILE_READ_ATTRIBUTES, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	GetFileTime(hOldFile, &creationTime, NULL, NULL);
-	CloseHandle(hOldFile);
+	CFileStatus stat;		// // //
+	CFile::GetStatus(lpszPathName, stat);
+	auto creationTime = stat.m_ctime;
 
 	// Everything is done and the program cannot crash at this point
 	// Replace the original
-	if (!MoveFileExW(TempFile, lpszPathName, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED)) {
+
+	if (!fs::copy_file(TempFile, lpszPathName, fs::copy_options::overwrite_existing)) {
 		// Display message if saving failed
 		AfxDebugBreak();		// // //
 		LPWSTR lpMsgBuf;
@@ -343,20 +341,18 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 		AfxMessageBox(FormattedW(L"Could not save file: %s", lpMsgBuf), MB_OK | MB_ICONERROR);
 		LocalFree(lpMsgBuf);
 		// Remove temp file
-		DeleteFileW(TempFile);
+		fs::remove(TempFile);
 		return FALSE;
 	}
+	fs::remove(TempFile);
 
 	// Restore creation date
-	hOldFile = CreateFileW(lpszPathName, FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	SetFileTime(hOldFile, &creationTime, NULL, NULL);
-	CloseHandle(hOldFile);
+	CFile::GetStatus(lpszPathName, stat);
+	stat.m_ctime = creationTime;
+	CFile::SetStatus(lpszPathName, stat);
 
-	if (auto *pMainFrame = static_cast<CFrameWnd *>(AfxGetMainWnd())) {		// // //
-		CFileStatus status;		// // //
-		CFile::GetStatus(lpszPathName, status);
-		pMainFrame->SetMessageText(AfxFormattedW(IDS_FILE_SAVED, conv::to_wide(std::to_string(status.m_size)).data()));
-	}
+	if (auto *pMainFrame = static_cast<CFrameWnd *>(AfxGetMainWnd()))		// // //
+		pMainFrame->SetMessageText(AfxFormattedW(IDS_FILE_SAVED, conv::to_wide(std::to_string(fs::file_size(lpszPathName))).data()));
 
 	return TRUE;
 }
@@ -373,9 +369,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 	CDocumentFile  OpenFile;
 
 	// Check if empty file
-	CFileStatus status;		// // //
-	CFile::GetStatus(lpszPathName, status);
-	if (!status.m_size) {
+	if (!fs::file_size(lpszPathName)) {		// // //
 		// Setup default settings
 		CreateEmpty();
 		return TRUE;
@@ -383,7 +377,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 
 	// Open file
 	try {		// // //
-		OpenFile.Open(conv::to_utf8(lpszPathName).data(), std::ios::in | std::ios::binary);
+		OpenFile.Open(lpszPathName, std::ios::in | std::ios::binary);
 	}
 	catch (std::runtime_error err) {
 		AfxMessageBox(FormattedW(L"Could not open file: %s", conv::to_wide(err.what()).data()), MB_OK | MB_ICONERROR);
@@ -495,7 +489,7 @@ void CFamiTrackerDoc::SetupAutoSave()
 			SelectExpansionChip(GetModule()->GetSoundChipSet(), GetModule()->GetNamcoChannels());
 		}
 		else {
-			DeleteFileW(TempFile);
+			fs::remove(TempFile);
 		}
 	}
 
@@ -511,7 +505,7 @@ void CFamiTrackerDoc::ClearAutoSave()
 	if (m_sAutoSaveFile.GetLength() == 0)
 		return;
 
-	DeleteFileW(m_sAutoSaveFile);
+	fs::remove(m_sAutoSaveFile);
 
 	m_sAutoSaveFile = L"";
 	m_iAutoSaveCounter = 0;

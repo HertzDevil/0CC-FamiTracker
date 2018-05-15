@@ -33,3 +33,6 @@ extern CStringW LoadDefaultFilter(UINT nID, LPCWSTR Ext);
 
 extern std::optional<fs::path> GetSavePath(const fs::path &initFName, const fs::path &initPath, const CStringW &FilterName, const CStringW &FilterExt);
 extern std::optional<fs::path> GetSavePath(const fs::path &initFName, const fs::path &initPath, UINT nFilterID, const CStringW &FilterExt);
+
+extern std::optional<fs::path> GetLoadPath(const fs::path &initFName, const fs::path &initPath, const CStringW &FilterName, const CStringW &FilterExt);
+extern std::optional<fs::path> GetLoadPath(const fs::path &initFName, const fs::path &initPath, UINT nFilterID, const CStringW &FilterExt);

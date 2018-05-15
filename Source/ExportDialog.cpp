@@ -204,7 +204,7 @@ void CExportDialog::WithFile(const fs::path &initFName, const CStringW &filterNa
 	if (auto path = GetSavePath(initFName, Env.GetSettings()->GetPath(PATH_NSF).c_str(), filterName, filterExt)) {		// // //
 		if (auto file = OpenFile(*path)) {
 			f(*file);
-			Env.GetSettings()->SetDirectory(*path, PATH_NSF);
+			Env.GetSettings()->SetPath(path->parent_path(), PATH_NSF);
 		}
 	}
 }
@@ -290,7 +290,7 @@ void CExportDialog::CreateBIN()
 
 				CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 				Compiler.ExportBIN(*BINFile, *DPCMFile);
-				Env.GetSettings()->SetDirectory(*path, PATH_NSF);
+				Env.GetSettings()->SetPath(path->parent_path(), PATH_NSF);
 			}
 		}
 	}

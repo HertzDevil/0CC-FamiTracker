@@ -453,9 +453,8 @@ void CConfigAppearance::OnBnClickedButtonAppearanceSave()		// // // 050B
 
 void CConfigAppearance::OnBnClickedButtonAppearanceLoad()		// // // 050B
 {
-	CFileDialog fileDialog {TRUE, L"txt", L"Theme.txt", OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_TXT, L"*.txt")};
-	if (fileDialog.DoModal() == IDOK) {
-		ImportSettings((LPCWSTR)fileDialog.GetPathName());
+	if (auto path = GetLoadPath("Theme.txt", "", IDS_FILTER_TXT, L"*.txt")) {
+		ImportSettings(*path);
 		static_cast<CComboBox*>(GetDlgItem(IDC_FONT))->SelectString(0, m_strFont.data());
 		static_cast<CComboBox*>(GetDlgItem(IDC_FONT_SIZE))->SelectString(0, FormattedW(L"%i", m_iFontSize));
 		RedrawWindow();

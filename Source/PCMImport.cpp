@@ -206,7 +206,7 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ShowDialog() {		// // //
 	// Stop any preview
 	PlaySoundW(NULL, NULL, SND_NODEFAULT | SND_SYNC);
 
-	Env.GetSettings()->SetDirectory((LPCWSTR)OpenFileDialog.GetPathName(), PATH_WAV);
+	Env.GetSettings()->SetPath(fs::path {(LPCWSTR)OpenFileDialog.GetPathName()}.parent_path(), PATH_WAV);
 
 	m_strPath	  = OpenFileDialog.GetPathName();
 	m_strFileName = OpenFileDialog.GetFileName();

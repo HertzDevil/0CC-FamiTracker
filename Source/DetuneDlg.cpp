@@ -390,42 +390,37 @@ void CDetuneDlg::OnBnClickedButtonReset()
 
 void CDetuneDlg::OnBnClickedButtonImport()
 {
-	CFileDialog FileDialog(TRUE, L".csv", 0, OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_CSV, L"*.csv"));
-
-	if (FileDialog.DoModal() == IDCANCEL)
-		return;
-
-	CStringW Path = FileDialog.GetPathName();
-	CStdioFile csv;
-
-	if (!csv.Open(Path, CFile::modeRead)) {
-		AfxMessageBox(IDS_FILE_OPEN_ERROR);
-		return;
-	}
-
-	static const std::regex TOKEN {R"([^,]+)", std::regex_constants::optimize};
-	CStringW LineW;
-	while (csv.ReadString(LineW)) {
-		auto Line = conv::to_utf8(LineW);
-		int Chip = -1;
-		int Note = 0;
-		for (auto m : re::string_gmatch(std::string_view {Line}, TOKEN)) {
-			if (auto offs = conv::to_int(re::sv_from_submatch(m[0])))
-				if (Chip == -1) {
-					Chip = *offs;
-					if (Chip < 0 || Chip >= 6) {
-						AfxMessageBox(L"Invalid chip index.");
-						csv.Close();
-						return;
-					}
-				}
-				else
-					m_iDetuneTable[Chip][Note++] = *offs;
+	if (auto path = GetLoadPath("", "", IDS_FILTER_CSV, L"*.csv")) {
+		CStdioFile csv;
+		if (!csv.Open(path->c_str(), CFile::modeRead)) {
+			AfxMessageBox(IDS_FILE_OPEN_ERROR);
+			return;
 		}
-	}
 
-	csv.Close();
-	UpdateOffset();
+		static const std::regex TOKEN {R"([^,]+)", std::regex_constants::optimize};
+		CStringW LineW;
+		while (csv.ReadString(LineW)) {
+			auto Line = conv::to_utf8(LineW);
+			int Chip = -1;
+			int Note = 0;
+			for (auto m : re::string_gmatch(std::string_view {Line}, TOKEN)) {
+				if (auto offs = conv::to_int(re::sv_from_submatch(m[0])))
+					if (Chip == -1) {
+						Chip = *offs;
+						if (Chip < 0 || Chip >= 6) {
+							AfxMessageBox(L"Invalid chip index.");
+							csv.Close();
+							return;
+						}
+					}
+					else
+						m_iDetuneTable[Chip][Note++] = *offs;
+			}
+		}
+
+		csv.Close();
+		UpdateOffset();
+	}
 }
 
 

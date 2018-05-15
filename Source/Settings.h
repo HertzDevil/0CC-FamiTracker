@@ -52,7 +52,6 @@ private:
 public:
 	fs::path GetPath(unsigned int PathType) const;		// // //
 	void SetPath(fs::path PathName, unsigned int PathType);		// // //
-	void SetDirectory(std::wstring PathName, unsigned int PathType);		// // //
 
 public:
 	static CSettings &GetInstance();		// // //

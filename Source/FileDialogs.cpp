@@ -53,3 +53,24 @@ std::optional<fs::path> GetSavePath(const fs::path &initFName, const fs::path &i
 std::optional<fs::path> GetSavePath(const fs::path &initFName, const fs::path &initPath, UINT nFilterID, const CStringW &FilterExt) {
 	return GetSavePath(initFName, initPath, CStringW(MAKEINTRESOURCEW(nFilterID)), FilterExt);
 }
+
+std::optional<fs::path> GetLoadPath(const fs::path &initFName, const fs::path &initPath, const CStringW &FilterName, const CStringW &FilterExt) {
+	CStringW defaultExt = FilterExt;
+	int index = defaultExt.Find(L';');
+	if (index != -1)
+		defaultExt.Truncate(index);
+
+	CStringW filter = LoadDefaultFilter(FilterName, FilterExt);
+	CFileDialog FileDialog(TRUE, !defaultExt.IsEmpty() ? (LPCWSTR)defaultExt : nullptr, initFName.c_str(), OFN_HIDEREADONLY, filter);
+	if (!initPath.empty())
+		FileDialog.m_pOFN->lpstrInitialDir = initPath.c_str();
+
+	if (FileDialog.DoModal() != IDOK)
+		return std::nullopt;
+
+	return (LPCWSTR)FileDialog.GetPathName();
+}
+
+std::optional<fs::path> GetLoadPath(const fs::path &initFName, const fs::path &initPath, UINT nFilterID, const CStringW &FilterExt) {
+	return GetLoadPath(initFName, initPath, CStringW(MAKEINTRESOURCEW(nFilterID)), FilterExt);
+}

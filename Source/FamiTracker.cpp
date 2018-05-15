@@ -880,7 +880,7 @@ BOOL CDocManager0CC::DoPromptFileName(CStringW &fileName, UINT nIDSTitle, DWORD 
 	path.ReleaseBuffer();
 
 	if (nResult == IDOK) {
-		theApp.GetSettings()->SetDirectory((LPCWSTR)fileName, PATH_FTM);
+		theApp.GetSettings()->SetPath(fs::path {(LPCWSTR)fileName}.parent_path(), PATH_FTM);
 		return true;
 	}
 	return false;

@@ -1284,7 +1284,7 @@ void CMainFrame::OnLoadInstrument()
 {
 	// Loads an instrument from a file
 
-	CFileDialog FileDialog(TRUE, L"fti", 0, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, LoadDefaultFilter(IDS_FILTER_FTI, L"*.fti"));
+	CFileDialog FileDialog(TRUE, L"fti", 0, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT | OFN_EXPLORER, LoadDefaultFilter(IDS_FILTER_FTI, L"*.fti"));
 
 	auto path = Env.GetSettings()->GetPath(PATH_FTI);		// // //
 	FileDialog.m_pOFN->lpstrInitialDir = path.c_str();
@@ -1292,23 +1292,23 @@ void CMainFrame::OnLoadInstrument()
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
 
-	POSITION pos (FileDialog.GetStartPosition());
+	if (FileDialog.GetFileName().GetLength() == 0)		// // //
+		Env.GetSettings()->SetPath(fs::path {(LPCWSTR)FileDialog.GetPathName()}, PATH_FTI);
+	else
+		Env.GetSettings()->SetPath(fs::path {(LPCWSTR)FileDialog.GetPathName()}.parent_path(), PATH_FTI);
 
 	auto &Im = *GetDoc().GetModule()->GetInstrumentManager();		// // //
 
 	// Load multiple files
+	POSITION pos = FileDialog.GetStartPosition();
 	while (pos) {
+		CString Path = FileDialog.GetNextPathName(pos);
 		int Index = Im.GetFirstUnused();		// // //
-		if (!LoadInstrument(Index, FileDialog.GetNextPathName(pos)))
-			return UpdateInstrumentList();
+		if (!LoadInstrument(Index, Path))
+			break;
 		SelectInstrument(Index);		// // //
 	}
 	UpdateInstrumentList();
-
-	if (FileDialog.GetFileName().GetLength() == 0)		// // //
-		Env.GetSettings()->SetDirectory((LPCWSTR)(FileDialog.GetPathName() + L"\\"), PATH_FTI);
-	else
-		Env.GetSettings()->SetDirectory((LPCWSTR)FileDialog.GetPathName(), PATH_FTI);
 }
 
 void CMainFrame::OnSaveInstrument()
@@ -1332,7 +1332,7 @@ void CMainFrame::OnSaveInstrument()
 
 	auto initPath = Env.GetSettings()->GetPath(PATH_FTI);
 	if (auto path = GetSavePath(Name.data(), initPath.c_str(), IDS_FILTER_FTI, L"*.fti")) {
-		Env.GetSettings()->SetDirectory(*path, PATH_FTI);
+		Env.GetSettings()->SetPath(path->parent_path(), PATH_FTI);
 
 		CSimpleFile file {*path, std::ios::out | std::ios::binary};
 		if (!file) {
@@ -1952,30 +1952,27 @@ void CMainFrame::OnUpdateKeyRepeat(CCmdUI *pCmdUI)
 
 void CMainFrame::OnFileImportText()
 {
-	if (!GetDoc().SaveModified())
-		return;
-
-	CFileDialog FileDialog(TRUE, L"txt", 0, OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_TXT, L"*.txt"));
-	if (FileDialog.DoModal() == IDCANCEL)
-		return;
-
 	CFamiTrackerDoc &Doc = GetDoc();
+	if (!Doc.SaveModified())
+		return;
 
-	try {
-		CTextExport { }.ImportFile((LPCWSTR)FileDialog.GetPathName(), Doc);
-	}
-	catch (std::runtime_error err) {
-		AfxMessageBox(conv::to_wide(err.what()).data(), MB_OK | MB_ICONEXCLAMATION);
-	}
+	if (auto path = GetLoadPath("", "", IDS_FILTER_TXT, L"*.txt")) {
+		try {
+			CTextExport { }.ImportFile(*path, Doc);
+		}
+		catch (std::runtime_error err) {
+			AfxMessageBox(conv::to_wide(err.what()).data(), MB_OK | MB_ICONEXCLAMATION);
+		}
 
-	SetSongInfo(*Doc.GetModule());		// // //
-	Doc.SetModifiedFlag(FALSE);
-	Doc.SetExceededFlag(false);		// // //
-	// TODO figure out how to handle this case, call OnInitialUpdate??
-	//Doc.UpdateAllViews(NULL, CHANGED_ERASE);		// Remove
-	Doc.UpdateAllViews(NULL, UPDATE_PROPERTIES);
-	Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-	Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
+		SetSongInfo(*Doc.GetModule());		// // //
+		Doc.SetModifiedFlag(FALSE);
+		Doc.SetExceededFlag(false);		// // //
+		// TODO figure out how to handle this case, call OnInitialUpdate??
+		//Doc.UpdateAllViews(NULL, CHANGED_ERASE);		// Remove
+		Doc.UpdateAllViews(NULL, UPDATE_PROPERTIES);
+		Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
+		Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
+	}
 }
 
 void CMainFrame::OnFileExportText()
@@ -2654,7 +2651,7 @@ void CMainFrame::SelectInstrumentFolder()
 
 	if (lpID != NULL) {
 		SHGetPathFromIDListW(lpID, Path);
-		Env.GetSettings()->SetDirectory(Path, PATH_INST);		// // //
+		Env.GetSettings()->SetPath(fs::path {Path}.parent_path(), PATH_INST);		// // //
 		m_pInstrumentFileTree->Changed();
 	}
 }
