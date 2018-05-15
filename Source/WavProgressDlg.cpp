@@ -65,12 +65,12 @@ void CWavProgressDlg::OnBnClickedCancel()
 	EndDialog(0);
 }
 
-void CWavProgressDlg::BeginRender(const CStringW &File, std::unique_ptr<CWaveRenderer> pRender)		// // //
+void CWavProgressDlg::BeginRender(const fs::path &fname, std::unique_ptr<CWaveRenderer> pRender)		// // //
 {
-	m_sFile = File;
+	m_sFile = fname;
 	m_pWaveRenderer = std::move(pRender);		// // //
 
-	if (m_sFile.GetLength() > 0)
+	if (!m_sFile.empty())
 		DoModal();
 }
 
@@ -86,7 +86,7 @@ BOOL CWavProgressDlg::OnInitDialog()
 	pView->RedrawWindow();
 
 	// Start rendering
-	SetDlgItemTextW(IDC_PROGRESS_FILE, AfxFormattedW(IDS_WAVE_PROGRESS_FILE_FORMAT, m_sFile));
+	SetDlgItemTextW(IDC_PROGRESS_FILE, AfxFormattedW(IDS_WAVE_PROGRESS_FILE_FORMAT, m_sFile.c_str()));
 
 	if (!pSoundGen->RenderToFile(m_sFile, m_pWaveRenderer))		// // //
 		EndDialog(0);

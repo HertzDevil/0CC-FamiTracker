@@ -170,7 +170,7 @@ const char *CT[CT_COUNT] = {
 class Tokenizer
 {
 public:
-	explicit Tokenizer(LPCWSTR FileName) : text(ReadFromFile(FileName)) { }
+	explicit Tokenizer(const fs::path &FileName) : text(ReadFromFile(FileName)) { }
 	~Tokenizer() = default;
 
 	void Reset() {
@@ -419,9 +419,9 @@ private:
 			;
 	}
 
-	CStringA ReadFromFile(LPCWSTR FileName) {
+	CStringA ReadFromFile(const fs::path &FileName) {
 		CFileException oFileException;
-		if (CStdioFile f; f.Open(FileName, CFile::modeRead | CFile::typeBinary, &oFileException)) {
+		if (CStdioFile f; f.Open(FileName.c_str(), CFile::modeRead | CFile::typeBinary, &oFileException)) {
 			CStringA str;
 			while (f.GetPosition() < f.GetLength()) {
 				char buf[1024] = { };
@@ -503,7 +503,7 @@ CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEff
 
 #define CHECK_COLON() CHECK_SYMBOL(":")
 
-void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
+void CTextExport::ImportFile(const fs::path &FileName, CFamiTrackerDoc &Doc) {
 	// begin a new document
 	if (!Doc.OnNewDocument())
 		throw std::runtime_error {"Unable to create new Famitracker document."};
@@ -913,10 +913,10 @@ void CTextExport::ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {
 
 // =============================================================================
 
-CStringA CTextExport::ExportRows(LPCWSTR FileName, const CFamiTrackerModule &modfile) {		// // //
+CStringA CTextExport::ExportRows(const fs::path &FileName, const CFamiTrackerModule &modfile) {		// // //
 	CStdioFile f;
 	CFileException oFileException;
-	if (!f.Open(FileName, CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException))
+	if (!f.Open(FileName.c_str(), CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException))
 	{
 		WCHAR szError[256];
 		oFileException.GetErrorMessage(szError, std::size(szError));
@@ -952,10 +952,10 @@ CStringA CTextExport::ExportRows(LPCWSTR FileName, const CFamiTrackerModule &mod
 	return "";
 }
 
-CStringA CTextExport::ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc) {		// // //
+CStringA CTextExport::ExportFile(const fs::path &FileName, CFamiTrackerDoc &Doc) {		// // //
 	CStdioFile f;
 	CFileException oFileException;
-	if (!f.Open(FileName, CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException)) {
+	if (!f.Open(FileName.c_str(), CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException)) {
 		WCHAR szError[256];
 		oFileException.GetErrorMessage(szError, std::size(szError));
 

@@ -26,6 +26,7 @@
 #include "stdafx.h"		// // //
 #include "../resource.h"		// // //
 #include <optional>		// // //
+#include "ft0cc/fs.h"		// // //
 
 class CCompiler;		// // //
 class CExportDialog;
@@ -71,14 +72,14 @@ protected:
 	int GetMachineType() const;		// // //
 	void UpdateMetadata(CCompiler &compiler);		// // //
 
-	std::optional<CSimpleFile> OpenFile(const CStringW &fileName);		// // //
+	std::optional<CSimpleFile> OpenFile(const fs::path &fileName);		// // //
 
 	// void (*F)(CFile &)
 	template <typename F>
-	void WithFile(const CStringW &initFName, F f);
+	void WithFile(const fs::path &initFName, F f);
 	// void (*F)(CFile &)
 	template <typename F>
-	void WithFile(const CStringW &initFName, const CStringW &filterName, const CStringW &filterExt, F f);
+	void WithFile(const fs::path &initFName, const CStringW &filterName, const CStringW &filterExt, F f);
 
 	DECLARE_MESSAGE_MAP()
 public:

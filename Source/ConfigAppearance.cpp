@@ -447,7 +447,7 @@ void CConfigAppearance::OnBnClickedDisplayFlats()
 
 void CConfigAppearance::OnBnClickedButtonAppearanceSave()		// // // 050B
 {
-	if (auto path = GetSavePath(L"Theme.txt", L"", IDS_FILTER_TXT, L"*.txt"))
+	if (auto path = GetSavePath("Theme.txt", "", IDS_FILTER_TXT, L"*.txt"))
 		ExportSettings(*path);
 }
 
@@ -455,7 +455,7 @@ void CConfigAppearance::OnBnClickedButtonAppearanceLoad()		// // // 050B
 {
 	CFileDialog fileDialog {TRUE, L"txt", L"Theme.txt", OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_TXT, L"*.txt")};
 	if (fileDialog.DoModal() == IDOK) {
-		ImportSettings(fileDialog.GetPathName());
+		ImportSettings((LPCWSTR)fileDialog.GetPathName());
 		static_cast<CComboBox*>(GetDlgItem(IDC_FONT))->SelectString(0, m_strFont.data());
 		static_cast<CComboBox*>(GetDlgItem(IDC_FONT_SIZE))->SelectString(0, FormattedW(L"%i", m_iFontSize));
 		RedrawWindow();
@@ -463,7 +463,7 @@ void CConfigAppearance::OnBnClickedButtonAppearanceLoad()		// // // 050B
 	}
 }
 
-void CConfigAppearance::ExportSettings(LPCWSTR Path) const		// // // 050B
+void CConfigAppearance::ExportSettings(const fs::path &Path) const		// // // 050B
 {
 	if (auto file = std::fstream {Path, std::ios_base::out}) {
 		file << "# 0CC-FamiTracker appearance" << std::endl;
@@ -476,7 +476,7 @@ void CConfigAppearance::ExportSettings(LPCWSTR Path) const		// // // 050B
 	}
 }
 
-void CConfigAppearance::ImportSettings(LPCWSTR Path)		// // // 050B
+void CConfigAppearance::ImportSettings(const fs::path &Path)		// // // 050B
 {
 	std::fstream file {Path, std::ios_base::in};
 	std::string Line;

@@ -365,7 +365,7 @@ bool CSoundGen::InitializeSound(HWND hWnd)
 	m_bAutoDelete = FALSE;		// // //
 
 	// Event used to interrupt the sound buffer synchronization
-	m_hInterruptEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_hInterruptEvent = ::CreateEventW(NULL, FALSE, FALSE, NULL);
 
 	// Create DirectSound object
 	m_pDSound = std::make_unique<CDSound>(hWnd, m_hInterruptEvent);		// // //
@@ -860,7 +860,7 @@ int CSoundGen::GetChannelVolume(stChannelID chan) const {		// // //
 
 // File rendering functions
 
-bool CSoundGen::RenderToFile(LPCWSTR pFile, std::shared_ptr<CWaveRenderer> pRender)		// // //
+bool CSoundGen::RenderToFile(const fs::path &fname, std::shared_ptr<CWaveRenderer> pRender)		// // //
 {
 	// Called from main thread
 	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
@@ -879,7 +879,7 @@ bool CSoundGen::RenderToFile(LPCWSTR pFile, std::shared_ptr<CWaveRenderer> pRend
 	m_pWaveRenderer = std::move(pRender);		// // //
 
 	ASSERT(!m_pRenderFile);
-	m_pRenderFile = std::make_shared<CSimpleFile>(conv::to_utf8(pFile).c_str(), std::ios::out | std::ios::binary);		// // //
+	m_pRenderFile = std::make_shared<CSimpleFile>(fname, std::ios::out | std::ios::binary);		// // //
 	if (m_pRenderFile) {
 		m_pWaveRenderer->SetOutputStream(std::make_unique<COutputWaveStream>(m_pRenderFile, CWaveFileFormat {
 			CWaveFileFormat::format_code::pcm,

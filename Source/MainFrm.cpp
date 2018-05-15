@@ -1230,7 +1230,7 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// 
 	};
 
 	if (Index != INVALID_INSTRUMENT) {
-		if (CSimpleFile file(conv::to_utf8(filename).data(), std::ios::in | std::ios::binary); file) {
+		if (CSimpleFile file {static_cast<LPCWSTR>(filename), std::ios::in | std::ios::binary}) {
 			// FTI instruments files
 			const std::string_view INST_HEADER = "FTI";
 //			const char INST_VERSION[] = "2.4";
@@ -1332,9 +1332,9 @@ void CMainFrame::OnSaveInstrument()
 
 	auto initPath = Env.GetSettings()->GetPath(PATH_FTI);
 	if (auto path = GetSavePath(Name.data(), initPath.c_str(), IDS_FILTER_FTI, L"*.fti")) {
-		Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_FTI);
+		Env.GetSettings()->SetDirectory(*path, PATH_FTI);
 
-		CSimpleFile file(conv::to_utf8(*path).data(), std::ios::out | std::ios::binary);
+		CSimpleFile file {*path, std::ios::out | std::ios::binary};
 		if (!file) {
 			AfxMessageBox(IDS_FILE_OPEN_ERROR, MB_ICONERROR);
 			return;
@@ -1962,7 +1962,7 @@ void CMainFrame::OnFileImportText()
 	CFamiTrackerDoc &Doc = GetDoc();
 
 	try {
-		CTextExport { }.ImportFile(FileDialog.GetPathName(), Doc);
+		CTextExport { }.ImportFile((LPCWSTR)FileDialog.GetPathName(), Doc);
 	}
 	catch (std::runtime_error err) {
 		AfxMessageBox(conv::to_wide(err.what()).data(), MB_OK | MB_ICONEXCLAMATION);
@@ -2027,7 +2027,7 @@ void CMainFrame::OnFileExportJson() {		// // //
 	if (auto path = GetSavePath(Doc.GetFileTitle(), initPath.c_str(), IDS_FILTER_JSON, L"*.json")) {
 		CStdioFile f;
 		CFileException oFileException;
-		if (!f.Open(*path, CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException)) {
+		if (!f.Open(path->c_str(), CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException)) {
 			WCHAR szError[256];
 			oFileException.GetErrorMessage(szError, std::size(szError));
 			AfxMessageBox(szError, MB_OK | MB_ICONERROR);
@@ -2654,7 +2654,7 @@ void CMainFrame::SelectInstrumentFolder()
 
 	if (lpID != NULL) {
 		SHGetPathFromIDListW(lpID, Path);
-		Env.GetSettings()->SetDirectory((LPCWSTR)Path, PATH_INST);		// // //
+		Env.GetSettings()->SetDirectory(Path, PATH_INST);		// // //
 		m_pInstrumentFileTree->Changed();
 	}
 }

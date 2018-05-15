@@ -85,7 +85,7 @@ void CCommentsDlg::SaveComment()
 {
 	CStringW str;		// // //
 	GetDlgItemTextW(IDC_COMMENTS, str);		// // //
-	m_sComment = conv::to_utf8(str.GetString());
+	m_sComment = conv::to_utf8(str);
 	m_bShowOnLoad = IsDlgButtonChecked(IDC_SHOWONOPEN) == BST_CHECKED;
 }
 

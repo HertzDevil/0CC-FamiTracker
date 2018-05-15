@@ -26,6 +26,7 @@
 #include "stdafx.h"		// // //
 #include <memory>		// // //
 #include <type_traits>		// // //
+#include "ft0cc/fs.h"		// // //
 
 // #define AUTOSAVE
 // #define DISABLE_SAVE		// // //
@@ -69,7 +70,7 @@ public:
 	CFamiTrackerModule *GetModule() noexcept;
 	const CFamiTrackerModule *GetModule() const noexcept;
 
-	CStringW			GetFileTitle() const;
+	fs::path		GetFileTitle() const;		// // //
 
 	//
 	// Document file I/O

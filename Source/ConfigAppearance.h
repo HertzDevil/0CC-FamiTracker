@@ -44,6 +44,7 @@ enum color_items_t {
 #include "../resource.h"		// // //
 #include <string>		// // //
 #include <string_view>		// // //
+#include "ft0cc/fs.h"		// // //
 
 // CConfigAppearance dialog
 
@@ -79,8 +80,8 @@ protected:
 	void SetColor(int Index, int Color);
 	int GetColor(int Index) const;
 
-	void ExportSettings(LPCWSTR Path) const;		// // // 050B
-	void ImportSettings(LPCWSTR Path);		// // // 050B
+	void ExportSettings(const fs::path &Path) const;		// // // 050B
+	void ImportSettings(const fs::path &Path);		// // // 050B
 
 protected:
 	std::wstring	m_strFont;		// // //

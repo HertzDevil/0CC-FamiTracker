@@ -433,7 +433,7 @@ void CDetuneDlg::OnBnClickedButtonExport()
 {
 	if (auto path = GetSavePath(CFamiTrackerDoc::GetDoc()->GetFileTitle(), L"", IDS_FILTER_CSV, L"*.csv")) {
 		CStdioFile csv;
-		if (!csv.Open(*path, CFile::modeWrite | CFile::modeCreate)) {
+		if (!csv.Open(path->c_str(), CFile::modeWrite | CFile::modeCreate)) {
 			AfxMessageBox(IDS_FILE_OPEN_ERROR);
 			return;
 		}

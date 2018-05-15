@@ -27,6 +27,7 @@
 #include <cstdint>
 #include <cstddef>
 #include "array_view.h"
+#include "ft0cc/fs.h"
 
 class CSimpleFile
 {
@@ -34,12 +35,13 @@ public:
 	static_assert(sizeof(char) == sizeof(uint8_t));
 
 	CSimpleFile() = default;
-	CSimpleFile(const char *fname, std::ios_base::openmode mode);
+	CSimpleFile(const fs::path &fname, std::ios_base::openmode mode);
 
 	explicit operator bool() const;
 
-	void	Open(const char *fname, std::ios_base::openmode mode);
+	void	Open(const fs::path &fname, std::ios_base::openmode mode);
 	void	Close();
+	std::string	GetErrorMessage() const;
 
 	void	WriteInt8(int8_t Value);
 	void	WriteInt16(int16_t Value);
@@ -61,7 +63,7 @@ public:
 	std::string	ReadStringN(size_t count);
 	std::string	ReadStringNull();
 
-	void	Seek(std::size_t pos);
+	void		Seek(std::size_t pos);
 	std::size_t GetPosition();
 
 private:

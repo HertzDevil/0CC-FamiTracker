@@ -139,19 +139,14 @@ private:
 class CFileSoundDialog : public CFileDialog
 {
 public:
-	CFileSoundDialog(BOOL bOpenFileDialog, LPCWSTR lpszDefExt = NULL, LPCWSTR lpszFileName = NULL, DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, LPCWSTR lpszFilter = NULL, CWnd* pParentWnd = NULL, DWORD dwSize = 0);
-	~CFileSoundDialog();
+	using CFileDialog::CFileDialog;		// // //
+	virtual ~CFileSoundDialog();
 
 protected:
-	virtual void OnFileNameChange();
+	void OnFileNameChange() override;
 };
 
 //	CFileSoundDialog
-
-CFileSoundDialog::CFileSoundDialog(BOOL bOpenFileDialog, LPCWSTR lpszDefExt, LPCWSTR lpszFileName, DWORD dwFlags, LPCWSTR lpszFilter, CWnd* pParentWnd, DWORD dwSize)
-	: CFileDialog(bOpenFileDialog, lpszDefExt, lpszFileName, dwFlags, lpszFilter, pParentWnd, dwSize)
-{
-}
 
 CFileSoundDialog::~CFileSoundDialog()
 {

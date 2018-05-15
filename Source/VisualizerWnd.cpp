@@ -167,7 +167,7 @@ BOOL CVisualizerWnd::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lp
 	m_iCurrentState = Env.GetSettings()->SampleWinState;
 
 	// Create an event used to signal that new samples are available
-	m_hNewSamples = CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_hNewSamples = CreateEventW(NULL, FALSE, FALSE, NULL);
 
 	BOOL Result = CWnd::CreateEx(dwExStyle, lpszClassName, lpszWindowName, dwStyle, rect, pParentWnd, nID, pContext);
 

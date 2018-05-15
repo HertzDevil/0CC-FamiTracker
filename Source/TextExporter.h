@@ -25,6 +25,7 @@
 
 #include "stdafx.h"		// // //
 #include <string_view>		// // //
+#include "ft0cc/fs.h"		// // //
 
 class CFamiTrackerDoc; // forward declaration
 class CFamiTrackerModule;		// // //
@@ -33,11 +34,11 @@ class stChanNote;		// // //
 struct CTextExport {
 	static CStringA ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise);		// // //
 
-	void ImportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc);		// // //
+	void ImportFile(const fs::path &FileName, CFamiTrackerDoc &Doc);		// // //
 
 	// returns an empty string on success, otherwise returns a descriptive error
-	CStringA ExportFile(LPCWSTR FileName, CFamiTrackerDoc &Doc);		// // //
-	CStringA ExportRows(LPCWSTR FileName, const CFamiTrackerModule &modfile);		// // //
+	CStringA ExportFile(const fs::path &FileName, CFamiTrackerDoc &Doc);		// // //
+	CStringA ExportRows(const fs::path &FileName, const CFamiTrackerModule &modfile);		// // //
 
 private:		// // //
 	static CStringA ExportString(const CStringA &s);

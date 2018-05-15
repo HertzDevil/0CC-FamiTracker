@@ -24,11 +24,12 @@
 #pragma once
 
 #include "stdafx.h"
+#include "ft0cc/fs.h"
 #include <optional>
 
 // Loads a single filter string including the all files option
 extern CStringW LoadDefaultFilter(LPCWSTR Name, LPCWSTR Ext);
 extern CStringW LoadDefaultFilter(UINT nID, LPCWSTR Ext);
 
-extern std::optional<CStringW> GetSavePath(const CStringW &initFName, const CStringW &initPath, const CStringW &FilterName, const CStringW &FilterExt);
-extern std::optional<CStringW> GetSavePath(const CStringW &initFName, const CStringW &initPath, UINT nFilterID, const CStringW &FilterExt);
+extern std::optional<fs::path> GetSavePath(const fs::path &initFName, const fs::path &initPath, const CStringW &FilterName, const CStringW &FilterExt);
+extern std::optional<fs::path> GetSavePath(const fs::path &initFName, const fs::path &initPath, UINT nFilterID, const CStringW &FilterExt);

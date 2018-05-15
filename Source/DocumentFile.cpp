@@ -58,8 +58,8 @@ CSimpleFile &CDocumentFile::GetCSimpleFile() {
 	return *m_pFile;
 }
 
-void CDocumentFile::Open(const char *lpszFileName, std::ios::openmode nOpenFlags) {
-	m_pFile->Open(lpszFileName, nOpenFlags);
+void CDocumentFile::Open(const fs::path &fname, std::ios::openmode nOpenFlags) {		// // //
+	m_pFile->Open(fname, nOpenFlags);
 }
 
 void CDocumentFile::Close() {

@@ -44,9 +44,7 @@ void CTempoDisplay::StepRow() {
 double CTempoDisplay::GetAverageBPM() const {
 	double BPMtot = 0.;
 	int TickTot = 0;
-//	for (auto [bpm, ticks] : cache_) {
-	for (const auto &x : cache_) {
-		auto [bpm, ticks] = x;
+	for (auto [bpm, ticks] : cache_) {
 		BPMtot += bpm * ticks;
 		TickTot += ticks;
 	}

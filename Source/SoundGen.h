@@ -35,6 +35,7 @@
 #include <memory>		// // //
 #include "SoundGenBase.h"		// // //
 #include "APU/Types.h"
+#include "ft0cc/fs.h"		// // //
 
 // Custom messages
 enum {
@@ -161,7 +162,7 @@ public:
 	int			 GetChannelVolume(stChannelID chan) const;		// // //
 
 	// Rendering
-	bool		 RenderToFile(LPCWSTR pFile, std::shared_ptr<CWaveRenderer> pRender);		// // //
+	bool		 RenderToFile(const fs::path &fname, std::shared_ptr<CWaveRenderer> pRender);		// // //
 	bool		 IsRendering() const;
 	bool		 IsBackgroundTask() const;
 

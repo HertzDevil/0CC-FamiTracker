@@ -40,15 +40,37 @@
 #include "NumConv.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 #include "NoteName.h"		// // //
+#include "SimpleFile.h"		// // //
+
+namespace {
 
 LPCWSTR NO_SAMPLE_STR = L"(no sample)";
+
+std::shared_ptr<ft0cc::doc::dpcm_sample> LoadSampleFromFile(CFile &file, std::string_view name) {
+	// Clip file if too large
+	std::size_t Size = std::min(static_cast<std::size_t>(file.GetLength()), ft0cc::doc::dpcm_sample::max_size);
+
+	// Make sure size is compatible with DPCM hardware
+	int NewSize = Size;
+	if ((Size & 0xF) != 1)
+		NewSize = Size + 0x10 - ((Size + 0x0F) & 0x0F);
+
+	std::vector<uint8_t> pBuf(NewSize, 0xAAu);		// // //
+	file.Read(pBuf.data(), Size);
+
+	return std::make_shared<ft0cc::doc::dpcm_sample>(std::move(pBuf), name);
+}
+
+} // namespace
+
+
 
 // Derive a new class from CFileDialog with implemented preview of DMC files
 
 class CDMCFileSoundDialog : public CFileDialog
 {
 public:
-	CDMCFileSoundDialog(BOOL bOpenFileDialog, LPCWSTR lpszDefExt = NULL, LPCWSTR lpszFileName = NULL, DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, LPCWSTR lpszFilter = NULL, CWnd* pParentWnd = NULL, DWORD dwSize = 0);
+	using CFileDialog::CFileDialog;		// // //
 	virtual ~CDMCFileSoundDialog();
 
 	static const int DEFAULT_PREVIEW_PITCH = 15;
@@ -59,11 +81,6 @@ protected:
 };
 
 //	CFileSoundDialog
-
-CDMCFileSoundDialog::CDMCFileSoundDialog(BOOL bOpenFileDialog, LPCWSTR lpszDefExt, LPCWSTR lpszFileName, DWORD dwFlags, LPCWSTR lpszFilter, CWnd* pParentWnd, DWORD dwSize)
-	: CFileDialog(bOpenFileDialog, lpszDefExt, lpszFileName, dwFlags, lpszFilter, pParentWnd, dwSize)
-{
-}
 
 CDMCFileSoundDialog::~CDMCFileSoundDialog()
 {
@@ -91,7 +108,9 @@ void CDMCFileSoundDialog::OnFileNameChange()
 	CFileDialog::OnFileNameChange();
 }
 
-// CInstrumentDPCM dialog
+
+
+// CInstrumentEditorDPCM dialog
 
 IMPLEMENT_DYNAMIC(CInstrumentEditorDPCM, CInstrumentEditPanel)
 CInstrumentEditorDPCM::CInstrumentEditorDPCM(CWnd* pParent) : CInstrumentEditPanel(CInstrumentEditorDPCM::IDD, pParent), m_pInstrument(NULL)
@@ -113,26 +132,26 @@ CDSampleManager *CInstrumentEditorDPCM::GetDSampleManager() const {		// // //
 
 
 BEGIN_MESSAGE_MAP(CInstrumentEditorDPCM, CInstrumentEditPanel)
-	ON_BN_CLICKED(IDC_LOAD, &CInstrumentEditorDPCM::OnBnClickedLoad)
-	ON_BN_CLICKED(IDC_UNLOAD, &CInstrumentEditorDPCM::OnBnClickedUnload)
-	ON_BN_CLICKED(IDC_IMPORT, &CInstrumentEditorDPCM::OnBnClickedImport)
-	ON_BN_CLICKED(IDC_SAVE, &CInstrumentEditorDPCM::OnBnClickedSave)
-	ON_BN_CLICKED(IDC_LOOP, &CInstrumentEditorDPCM::OnBnClickedLoop)
-	ON_BN_CLICKED(IDC_ADD, &CInstrumentEditorDPCM::OnBnClickedAdd)
-	ON_BN_CLICKED(IDC_REMOVE, &CInstrumentEditorDPCM::OnBnClickedRemove)
-	ON_BN_CLICKED(IDC_EDIT, &CInstrumentEditorDPCM::OnBnClickedEdit)
-	ON_BN_CLICKED(IDC_PREVIEW, &CInstrumentEditorDPCM::OnBnClickedPreview)
-	ON_CBN_SELCHANGE(IDC_PITCH, &CInstrumentEditorDPCM::OnCbnSelchangePitch)
-	ON_CBN_SELCHANGE(IDC_SAMPLES, &CInstrumentEditorDPCM::OnCbnSelchangeSamples)
-	ON_NOTIFY(NM_CLICK, IDC_SAMPLE_LIST, &CInstrumentEditorDPCM::OnNMClickSampleList)
-	ON_NOTIFY(NM_CLICK, IDC_TABLE, &CInstrumentEditorDPCM::OnNMClickTable)
-	ON_NOTIFY(NM_DBLCLK, IDC_SAMPLE_LIST, &CInstrumentEditorDPCM::OnNMDblclkSampleList)
-	ON_NOTIFY(NM_RCLICK, IDC_SAMPLE_LIST, &CInstrumentEditorDPCM::OnNMRClickSampleList)
-	ON_NOTIFY(NM_RCLICK, IDC_TABLE, &CInstrumentEditorDPCM::OnNMRClickTable)
-	ON_NOTIFY(NM_DBLCLK, IDC_TABLE, &CInstrumentEditorDPCM::OnNMDblclkTable)
-	ON_NOTIFY(UDN_DELTAPOS, IDC_DELTA_SPIN, &CInstrumentEditorDPCM::OnDeltaposDeltaSpin)
-	ON_EN_CHANGE(IDC_LOOP_POINT, &CInstrumentEditorDPCM::OnEnChangeLoopPoint)
-	ON_EN_CHANGE(IDC_DELTA_COUNTER, &CInstrumentEditorDPCM::OnEnChangeDeltaCounter)
+	ON_BN_CLICKED(IDC_LOAD, &OnBnClickedLoad)
+	ON_BN_CLICKED(IDC_UNLOAD, &OnBnClickedUnload)
+	ON_BN_CLICKED(IDC_IMPORT, &OnBnClickedImport)
+	ON_BN_CLICKED(IDC_SAVE, &OnBnClickedSave)
+	ON_BN_CLICKED(IDC_LOOP, &OnBnClickedLoop)
+	ON_BN_CLICKED(IDC_ADD, &OnBnClickedAdd)
+	ON_BN_CLICKED(IDC_REMOVE, &OnBnClickedRemove)
+	ON_BN_CLICKED(IDC_EDIT, &OnBnClickedEdit)
+	ON_BN_CLICKED(IDC_PREVIEW, &OnBnClickedPreview)
+	ON_CBN_SELCHANGE(IDC_PITCH, &OnCbnSelchangePitch)
+	ON_CBN_SELCHANGE(IDC_SAMPLES, &OnCbnSelchangeSamples)
+	ON_NOTIFY(NM_CLICK, IDC_SAMPLE_LIST, &OnNMClickSampleList)
+	ON_NOTIFY(NM_CLICK, IDC_TABLE, &OnNMClickTable)
+	ON_NOTIFY(NM_DBLCLK, IDC_SAMPLE_LIST, &OnNMDblclkSampleList)
+	ON_NOTIFY(NM_RCLICK, IDC_SAMPLE_LIST, &OnNMRClickSampleList)
+	ON_NOTIFY(NM_RCLICK, IDC_TABLE, &OnNMRClickTable)
+	ON_NOTIFY(NM_DBLCLK, IDC_TABLE, &OnNMDblclkTable)
+	ON_NOTIFY(UDN_DELTAPOS, IDC_DELTA_SPIN, &OnDeltaposDeltaSpin)
+	ON_EN_CHANGE(IDC_LOOP_POINT, &OnEnChangeLoopPoint)
+	ON_EN_CHANGE(IDC_DELTA_COUNTER, &OnEnChangeDeltaCounter)
 END_MESSAGE_MAP()
 
 // CInstrumentDPCM message handlers
@@ -257,11 +276,6 @@ void CInstrumentEditorDPCM::BuildSampleList()
 		conv::to_wide(conv::from_int(MAX_SAMPLE_SPACE / 0x400)).data()));		// // //
 }
 
-// When saved in NSF, the samples has to be aligned at even 6-bits addresses
-//#define ADJUST_FOR_STORAGE(x) (((x >> 6) + (x & 0x3F ? 1 : 0)) << 6)
-// TODO: I think I was wrong
-#define ADJUST_FOR_STORAGE(x) (x)
-
 bool CInstrumentEditorDPCM::LoadSample(const CStringW &FilePath, const CStringW &FileName)
 {
 	CFile SampleFile;
@@ -271,24 +285,11 @@ bool CInstrumentEditorDPCM::LoadSample(const CStringW &FilePath, const CStringW 
 		return false;
 	}
 
-	// Clip file if too large
-	int Size = std::min<int>((int)SampleFile.GetLength(), ft0cc::doc::dpcm_sample::max_size);
-	int AddSize = 0;
-
-	// Make sure size is compatible with DPCM hardware
-	if ((Size & 0xF) != 1) {
-		AddSize = 0x10 - ((Size + 0x0F) & 0x0F);
-	}
-
-	std::vector<uint8_t> pBuf(Size + AddSize);		// // //
-	SampleFile.Read(pBuf.data(), Size);
-	SampleFile.Close();
-
-	if (!InsertSample(std::make_shared<ft0cc::doc::dpcm_sample>(std::move(pBuf), conv::to_utf8(FileName))))
+	if (!InsertSample(LoadSampleFromFile(SampleFile, conv::to_utf8(FileName))))		// // //
 		return false;
 
 	BuildSampleList();
-
+	SampleFile.Close();
 	return true;
 }
 
@@ -463,10 +464,10 @@ void CInstrumentEditorDPCM::OnBnClickedSave()
 
 	auto initPath = Env.GetSettings()->GetPath(PATH_DMC);		// // //
 	if (auto path = GetSavePath(conv::to_wide(pDSample->name()).data(), initPath.c_str(), IDS_FILTER_DMC, L"*.dmc")) {
-		Env.GetSettings()->SetDirectory((LPCWSTR)*path, PATH_DMC);
+		Env.GetSettings()->SetDirectory(*path, PATH_DMC);
 
 		CFile SampleFile;
-		if (!SampleFile.Open(*path, CFile::modeWrite | CFile::modeCreate)) {
+		if (!SampleFile.Open(path->c_str(), CFile::modeWrite | CFile::modeCreate)) {
 			AfxMessageBox(IDS_FILE_OPEN_ERROR);
 			return;
 		}

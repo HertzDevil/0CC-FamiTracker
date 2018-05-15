@@ -143,7 +143,7 @@ std::unique_ptr<CDSoundChannel> CDSound::OpenChannel(int SampleRate, int SampleS
 
 	auto pChannel = std::make_unique<CDSoundChannel>();
 
-	HANDLE hBufferEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	HANDLE hBufferEvent = CreateEventW(NULL, FALSE, FALSE, NULL);
 
 	int SoundBufferSize = CalculateBufferLength(BufferLength, SampleRate, SampleSize, Channels);
 	int BlockSize = SoundBufferSize / Blocks;

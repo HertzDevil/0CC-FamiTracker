@@ -36,6 +36,7 @@
 #include "WaveRenderer.h"		// // //
 #include "WaveRendererFactory.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
+#include "NumConv.h"		// // //
 
 const int MAX_LOOP_TIMES = 99;
 const int MAX_PLAY_TIME	 = (99 * 60) + 0;
@@ -102,12 +103,14 @@ void CCreateWaveDlg::OnBnClickedBegin()
 	CFamiTrackerView *pView = CFamiTrackerView::GetView();
 	const CFamiTrackerModule *pModule = pView->GetModuleData();		// // //
 
-	CStringW FileName = pDoc->GetFileTitle();
+	fs::path FileName = pDoc->GetFileTitle();
 	int Track = m_ctlTracks.GetCurSel();
 
 	if (pModule->GetSongCount() > 1) {
-		auto sv = conv::to_wide(pModule->GetSong(Track)->GetTitle());
-		AppendFormatW(FileName, L" - Track %02i (%.*s)", Track + 1, sv.size(), sv.data());		// // //
+		auto sv = conv::to_wide(pModule->GetSong(Track)->GetTitle());		// // //
+		FileName += " - Track " + conv::from_int(Track + 1, 2) + " (";
+		FileName += pModule->GetSong(Track)->GetTitle();
+		FileName += ")";
 	}
 
 	// Close this dialog

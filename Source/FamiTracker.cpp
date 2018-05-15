@@ -243,7 +243,7 @@ BOOL CFamiTrackerApp::InitInstance()
 			return FALSE;
 		}
 		render->SetRenderTrack(cmdInfo.track_);
-		if (!m_pSoundGenerator->RenderToFile(cmdInfo.m_strExportFile, std::move(render))) {
+		if (!m_pSoundGenerator->RenderToFile((LPCWSTR)cmdInfo.m_strExportFile, std::move(render))) {
 			std::cerr << "Error: unable to render WAV file: " << cmdInfo.m_strExportFile << '\n';
 			ExitProcess(1);
 			return FALSE;

@@ -26,6 +26,7 @@
 #include "stdafx.h"		// // //
 #include "../resource.h"		// // //
 #include <memory>		// // //
+#include "ft0cc/fs.h"		// // //
 
 class CWaveRenderer;		// // //
 
@@ -39,7 +40,7 @@ public:
 	CWavProgressDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CWavProgressDlg();
 
-	void BeginRender(const CStringW &File, std::unique_ptr<CWaveRenderer> pRenderer);		// // //
+	void BeginRender(const fs::path &fname, std::unique_ptr<CWaveRenderer> pRenderer);		// // //
 
 // Dialog Data
 	enum { IDD = IDD_WAVE_PROGRESS };
@@ -48,7 +49,7 @@ protected:
 	DWORD m_dwStartTime;
 	std::shared_ptr<CWaveRenderer> m_pWaveRenderer;		// // //
 
-	CStringW m_sFile;
+	fs::path m_sFile;		// // //
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

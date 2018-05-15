@@ -77,7 +77,7 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 		fLog.WriteString(L"\n");
 	}
 
-	CSimpleFile OutputFile(conv::to_utf8(fileOut).data(), std::ios::out | std::ios::binary);
+	CSimpleFile OutputFile {static_cast<LPCWSTR>(fileOut), std::ios::out | std::ios::binary};
 	if (!OutputFile) {
 		char msg[512] = { };
 		::strerror_s(msg, errno);
@@ -118,7 +118,7 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 	}
 	// BIN export requires two files
 	else if (0 == ext.CompareNoCase(L".bin")) {
-		CSimpleFile DPCMFile(conv::to_utf8(fileDPCM).data(), std::ios::out | std::ios::binary);
+		CSimpleFile DPCMFile {static_cast<LPCWSTR>(fileDPCM), std::ios::out | std::ios::binary};
 		if (!OutputFile) {
 			char msg[512] = { };
 			::strerror_s(msg, errno);
@@ -160,7 +160,7 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 	}
 	else if (0 == ext.CompareNoCase(L".txt")) {
 		CTextExport textExport;
-		CStringA result = textExport.ExportFile(fileOut, *pExportDoc);		// // //
+		CStringA result = textExport.ExportFile((LPCWSTR)fileOut, *pExportDoc);		// // //
 		if (result.GetLength() > 0) {
 			if (bLog) {
 				fLog.WriteString(L"Error: ");

@@ -451,19 +451,16 @@ const CFamiTrackerModule *CFamiTrackerDoc::GetModule() const noexcept {
 	return module_.get();
 }
 
-CStringW CFamiTrackerDoc::GetFileTitle() const
+fs::path CFamiTrackerDoc::GetFileTitle() const
 {
 	// Return file name without extension
-	CStringW FileName = GetTitle();
+	fs::path FileName = static_cast<LPCWSTR>(GetTitle());		// // //
+	FileName.replace_extension();
 
-	const std::wstring_view EXT[] = {L".ftm", L".0cc", L".ftm.bak", L".0cc.bak"};		// // //
-	// Remove extension
-
-	for (auto sv : EXT)
-		if (FileName.Right(sv.size()).CompareNoCase(sv.data()) == 0) {
-			FileName.Truncate(FileName.GetLength() - sv.size());
-			break;
-		}
+	if (FileName.extension() == ".bak")
+		FileName.replace_extension();
+	if (FileName.extension() == ".ftm" || FileName.extension() == ".0cc")
+		FileName.replace_extension();
 
 	return FileName;
 }

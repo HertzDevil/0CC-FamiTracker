@@ -30,6 +30,7 @@
 #include "array_view.h"		// // //
 #include <string_view>		// // //
 #include <iosfwd>		// // //
+#include "ft0cc/fs.h"		// // //
 
 // CDocumentFile, class for reading/writing document files
 
@@ -43,7 +44,7 @@ public:
 
 	// // // delegations to CSimpleFile
 	CSimpleFile	&GetCSimpleFile();
-	void		Open(const char *lpszFileName, std::ios::openmode nOpenFlags);		// // //
+	void		Open(const fs::path &fname, std::ios::openmode nOpenFlags);		// // //
 	void		Close();
 
 	bool		Finished() const;
