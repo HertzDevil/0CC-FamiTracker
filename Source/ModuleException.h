@@ -24,6 +24,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <vector>
 #include <exception>
 
@@ -56,6 +57,9 @@ public:
 	/*!	\brief Sets the footer string of the error message.
 		\param footer The new footer string. */
 	void SetFooter(std::string footer);
+	/*!	\brief Appends a string to the error footer.
+		\param sv The error message. */
+	void AppendFooter(std::string_view sv);
 
 public:
 	static CModuleException WithMessage(std::string str) {

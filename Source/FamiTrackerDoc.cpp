@@ -314,7 +314,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 		return FALSE;
 	}
 
-	if (!CFamiTrackerDocIO {DocumentFile, (module_error_level_t)Env.GetSettings()->Version.iErrorLevel}.Save(*GetModule())) {		// // //
+	if (!CFamiTrackerDocIO {DocumentFile, Env.GetSettings()->Version.iErrorLevel}.Save(*GetModule())) {		// // //
 		// The save process failed, delete temp file
 		DocumentFile.Close();
 		fs::remove(TempFile);
@@ -402,11 +402,13 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 			m_bForceBackup = true;
 		}
 		else {
-			if (!CFamiTrackerDocIO {OpenFile, (module_error_level_t)Env.GetSettings()->Version.iErrorLevel}.Load(*GetModule()))
+			if (!CFamiTrackerDocIO {OpenFile, Env.GetSettings()->Version.iErrorLevel}.Load(*GetModule()))
 				OpenFile.RaiseModuleException((LPCSTR)CStringA(MAKEINTRESOURCEA(IDS_FILE_LOAD_ERROR)));
 		}
 	}
 	catch (CModuleException &e) {
+		if (Env.GetSettings()->Version.iErrorLevel > MODULE_ERROR_DEFAULT)
+			e.AppendFooter("\n\nTry lowering the module error level in the configuration menu.");
 		AfxMessageBox(conv::to_wide(e.GetErrorString()).data(), MB_ICONERROR);
 		DeleteContents();
 		return FALSE;

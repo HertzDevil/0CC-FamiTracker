@@ -41,3 +41,7 @@ void CModuleException::AppendError(std::string str) {
 void CModuleException::SetFooter(std::string footer) {
 	m_strFooter = std::move(footer);
 }
+
+void CModuleException::AppendFooter(std::string_view sv) {
+	m_strFooter += sv;
+}
