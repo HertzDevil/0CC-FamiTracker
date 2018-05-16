@@ -103,7 +103,7 @@ bool CInstrumentFileTree::ScanDirectory(const CStringW &path, CMenu &Menu, int l
 			SubMenu.CreatePopupMenu();
 			// Recursive scan
 			bool bEnabled = ScanDirectory(path + L"\\" + fileFinder.GetFileName(), SubMenu, level + 1);
-			Menu.AppendMenuW(MFT_STRING | MF_POPUP | (bEnabled ? MFS_ENABLED : MFS_DISABLED), (UINT)SubMenu.m_hMenu, fileFinder.GetFileName());
+			Menu.AppendMenuW(MFT_STRING | MF_POPUP | (bEnabled ? MFS_ENABLED : MFS_DISABLED), (UINT_PTR)SubMenu.m_hMenu, fileFinder.GetFileName());
 			bNoFile = false;
 		}
 	}

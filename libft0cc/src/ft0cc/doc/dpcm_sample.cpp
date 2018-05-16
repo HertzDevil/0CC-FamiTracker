@@ -78,10 +78,10 @@ void dpcm_sample::tilt(std::size_t b, std::size_t e) {
 	std::size_t Diff = e - b;
 
 	int Nr = 10;
-	unsigned Step = (Diff * 8) / Nr;
+	std::size_t Step = (Diff * 8) / Nr;
 	std::random_device rd;
 	std::mt19937 gen {rd()};
-	unsigned Cntr = std::uniform_int_distribution<unsigned>(0, Step - 1)(gen);
+	std::size_t Cntr = std::uniform_int_distribution<std::size_t>(0, Step - 1)(gen);
 
 	for (std::size_t i = b; i < e; ++i) {
 		for (int j = 0; j < 8; ++j) {

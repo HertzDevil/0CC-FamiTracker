@@ -1705,11 +1705,6 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="res\0CC-FamiTracker.manifest">
-      <Filter>Source Files</Filter>
-    </Manifest>
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="LICENSE.txt" />
   </ItemGroup>
 </Project>

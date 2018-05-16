@@ -81,9 +81,6 @@ BEGIN_MESSAGE_MAP(CFamiTrackerApp, CWinApp)
 	ON_UPDATE_COMMAND_UI(ID_FILE_MRU_FILE1, OnUpdateRecentFilesClear)		// // //
 END_MESSAGE_MAP()
 
-// Include this for windows xp style in visual studio 2005 or later
-#pragma comment(linker, "\"/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='X86' publicKeyToken='6595b64144ccf1df' language='*'\"")
-
 // CFamiTrackerApp construction
 
 CFamiTrackerApp::CFamiTrackerApp()
@@ -496,7 +493,7 @@ void CFamiTrackerApp::RegisterSingleInstance()
 		if (auto pBuf = (LPWSTR)MapViewOfFile(m_hWndMapFile, FILE_MAP_ALL_ACCESS, 0, 0, SHARED_MEM_SIZE)) {		// // //
 			// Create a string of main window handle
 //			conv::to_wide(conv::from_int((int)GetMainWnd()->m_hWnd)).copy(pBuf, SHARED_MEM_SIZE);
-			_itow_s((int)GetMainWnd()->m_hWnd, pBuf, SHARED_MEM_SIZE, 10);
+			_itow_s((INT_PTR)GetMainWnd()->m_hWnd, pBuf, SHARED_MEM_SIZE, 10);
 			UnmapViewOfFile(pBuf);
 		}
 	}
@@ -544,7 +541,7 @@ bool CFamiTrackerApp::CheckSingleInstance(CFTCommandLineInfo &cmdInfo)
 						data.dwData = value_cast(cmdInfo.m_bPlay ? ipc_command_t::load_play : ipc_command_t::load);
 						data.cbData = (DWORD)((cmdInfo.m_strFileName.GetLength() + 1) * sizeof(WCHAR));
 						data.lpData = pFilePath;
-						DWORD result;
+						DWORD_PTR result;		// // //
 						SendMessageTimeoutW(hWnd, WM_COPYDATA, NULL, (LPARAM)&data, SMTO_NORMAL, 100, &result);
 						cmdInfo.m_strFileName.ReleaseBuffer();
 						UnmapViewOfFile(pwBuf);

@@ -72,6 +72,13 @@ class CRenderTarget;		// // //
 #include <afxmt.h>		// // // For CMutex
 #include <type_traits>		// // //
 
+// Include this for windows xp style in visual studio 2005 or later
+#ifdef _M_AMD64		// // //
+#pragma comment(linker, "/manifestdependency:\"type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#else
+#pragma comment(linker, "/manifestdependency:\"type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='X86' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#endif
+
 
 
 namespace details {

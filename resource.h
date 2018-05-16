@@ -2,7 +2,6 @@
 // Microsoft Visual C++ generated include file.
 // Used by 0CC-FamiTracker.rc
 //
-#define ID_MANIFEST                     1
 #define IDAPPLY                         3
 #define IDC_IMPORT                      4
 #define IDC_EDIT                        5

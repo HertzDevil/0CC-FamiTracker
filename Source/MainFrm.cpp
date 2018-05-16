@@ -1694,8 +1694,7 @@ void CMainFrame::OnUpdateInstrumentEdit(CCmdUI *pCmdUI)
 	pCmdUI->Enable(m_pInstrumentList->GetItemCount() > 0);
 }
 
-void CMainFrame::OnTimer(UINT nIDEvent)
-{
+void CMainFrame::OnTimer(UINT_PTR nIDEvent) {		// // //
 	CStringW text;
 	switch ((timer_id_t)nIDEvent) {
 		// Welcome message
@@ -2434,13 +2433,13 @@ void CMainFrame::OnUpdateEditDelete(CCmdUI *pCmdUI)
 void CMainFrame::OnHelpEffecttable()
 {
 	// Display effect table in help
-	HtmlHelpW((DWORD)L"effect_list.htm", HH_DISPLAY_TOPIC);
+	HtmlHelpW((DWORD_PTR)L"effect_list.htm", HH_DISPLAY_TOPIC);
 }
 
 void CMainFrame::OnHelpFAQ()
 {
 	// Display FAQ in help
-	HtmlHelpW((DWORD)L"faq.htm", HH_DISPLAY_TOPIC);
+	HtmlHelpW((DWORD_PTR)L"faq.htm", HH_DISPLAY_TOPIC);
 }
 
 CFamiTrackerView *CMainFrame::GetTrackerView() const {		// // //

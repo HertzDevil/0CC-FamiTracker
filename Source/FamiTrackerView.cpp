@@ -1142,7 +1142,7 @@ void CFamiTrackerView::OnInitialUpdate()
 	pFrameEditor->InvalidateFrameData();
 	RedrawFrameEditor();
 
-	if (Env.GetMainFrame() && Env.GetMainFrame()->IsWindowVisible())		// // //
+	if (pMainFrame->IsWindowVisible())
 		SetFocus();
 
 	// Display comment box
