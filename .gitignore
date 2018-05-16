@@ -1,54 +1,25 @@
-
-#ignore thumbnails created by windows
-Thumbs.db
-#Ignore files build by Visual Studio
-*.obj
-*.exe
-*.pdb
-*.user
-*.aps
-*.pch
-*.vspscc
-*_i.c
-*_p.c
-*.ncb
+# Visual Studio files
+.vs
 *.suo
-*.tlb
-*.tlh
-*.bak
-*.cache
-*.ilk
-*.log
-[Bb]in
-[Dd]ebug*/
-*.lib
-*.sbr
-obj/
-[Rr]elease*/
-_ReSharper*/
-[Tt]est[Rr]esult*
-*.vspx
+*.aps
+*.user
 
-#0CC-FT
-*.bin
-*.lnk
-*.tlog
-*.chm
-*.lastbuildstate
-0CC-FamiTracker.opensdf
-0CC-FamiTracker.sdf
-config.h
-apu_log.txt
-0CC-FamiTracker.vcproj
-*.db
-*.opendb
-
-.vs/*
-.vscode/*
-.leu
+# Code editor files
+.vscode
 .editorconfig
+
+# Auto-generated files
 commit_hash.h
 
-libft0cc/build
-libft0cc/build_ms
-Testing/Temporary
+# Build directories
+bin
+build
+build_ms
+
+# Build artifacts
+*.obj
+*.exe
+*.lib
+*.o
+*.out
+*.a
