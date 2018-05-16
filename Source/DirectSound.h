@@ -25,6 +25,7 @@
 
 #include "stdafx.h"		// // //
 #include <mmsystem.h>
+#include <InitGuid.h>
 #include <dsound.h>
 #include <memory>		// // //
 #include <vector>		// // //
