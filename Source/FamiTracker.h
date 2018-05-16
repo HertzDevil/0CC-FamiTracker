@@ -146,6 +146,7 @@ private:
 	std::unique_ptr<CMutex>			m_pInstanceMutex;
 	HANDLE			m_hWndMapFile = NULL;
 
+	bool			m_bRunning = false;		// // //
 	bool			m_bThemeActive = false;
 
 	std::unique_ptr<CVersionChecker> m_pVersionChecker;		// // //

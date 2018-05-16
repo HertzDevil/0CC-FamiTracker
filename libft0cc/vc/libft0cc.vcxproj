@@ -36,7 +36,6 @@
     <ProjectGuid>{F2AEFCB7-5232-4EC0-9418-40D777613E46}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>libft0cc</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>libft0cc</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

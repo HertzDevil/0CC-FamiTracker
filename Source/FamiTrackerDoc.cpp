@@ -122,7 +122,8 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCWSTR lpszPathName)
 	SetModifiedFlag(FALSE);
 	SetExceededFlag(FALSE);		// // //
 
-	Env.GetMainFrame()->SelectTrack(0);		// // //
+	if (auto *pMainFrame = Env.GetMainFrame())		// // //
+		pMainFrame->SelectTrack(0);
 
 	return TRUE;
 }
@@ -369,7 +370,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 	CDocumentFile  OpenFile;
 
 	// Check if empty file
-	if (!fs::file_size(lpszPathName)) {		// // //
+	if (fs::exists(lpszPathName) && !fs::file_size(lpszPathName)) {		// // //
 		// Setup default settings
 		CreateEmpty();
 		return TRUE;

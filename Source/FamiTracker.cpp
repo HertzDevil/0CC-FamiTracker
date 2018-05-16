@@ -319,6 +319,7 @@ BOOL CFamiTrackerApp::InitInstance()
 
 	// Initialization is done
 	TRACE(L"App: InitInstance done\n");
+	m_bRunning = true;		// // //
 
 	return TRUE;
 }
@@ -572,7 +573,8 @@ void CFamiTrackerApp::UpdateMenuShortcuts()		// // //
 // Get-functions
 
 CMainFrame *CFamiTrackerApp::GetMainFrame() const {		// // //
-	return static_cast<CMainFrame *>(const_cast<CFamiTrackerApp *>(this)->GetMainWnd());
+	auto *pMainFrm = static_cast<CMainFrame *>(const_cast<CFamiTrackerApp *>(this)->GetMainWnd());
+	return ::IsWindow(pMainFrm->m_hWnd) && m_bRunning ? pMainFrm : nullptr;
 }
 
 // // //
