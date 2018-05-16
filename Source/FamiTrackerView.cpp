@@ -1090,7 +1090,7 @@ void CFamiTrackerView::OnInitialUpdate()
 
 	CFrameEditor *pFrameEditor = GetFrameEditor();
 
-	TRACE(L"View: OnInitialUpdate (%s)\n", pDoc->GetTitle());
+	TRACE(L"View: OnInitialUpdate (%s)\n", (LPCWSTR)pDoc->GetTitle());
 
 	// Setup order window
 	pFrameEditor->AssignView(*this);		// // //

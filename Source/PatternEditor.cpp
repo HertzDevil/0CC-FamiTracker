@@ -1156,9 +1156,9 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 	RowColorInfo_t colorInfo;
 	colorInfo.Note = TextColor;
 	switch (Highlight) {
-	case highlight_state_t::none:    colorInfo.Back = pSettings->Appearance.iColBackground; break;
-	case highlight_state_t::beat:    colorInfo.Back = pSettings->Appearance.iColBackgroundHilite; break;
-	case highlight_state_t::measure: colorInfo.Back = pSettings->Appearance.iColBackgroundHilite2; break;
+	case highlight_state_t::beat:          colorInfo.Back = pSettings->Appearance.iColBackgroundHilite; break;
+	case highlight_state_t::measure:       colorInfo.Back = pSettings->Appearance.iColBackgroundHilite2; break;
+	case highlight_state_t::none: default: colorInfo.Back = pSettings->Appearance.iColBackground; break;
 	}
 
 	colorInfo.Shaded = BLEND(TextColor, colorInfo.Back, SHADE_LEVEL::UNUSED);
@@ -1830,7 +1830,6 @@ cursor_column_t CPatternEditor::GetChannelColumns(int Channel) const
 	case 4: return cursor_column_t::EFF4_PARAM2;
 	default: return cursor_column_t::VOLUME;		// // //
 	}
-	return cursor_column_t::NOTE;
 }
 
 int CPatternEditor::GetChannelCount() const

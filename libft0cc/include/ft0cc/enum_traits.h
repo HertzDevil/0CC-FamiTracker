@@ -212,8 +212,10 @@ template <typename EnumT REQUIRES_IsEnum(EnumT),
 constexpr EnumT enum_min() noexcept {
 	if constexpr (details::enum_has_min_member<EnumT>::value)
 		return EnumT::min;
-	if constexpr (!details::is_enum_category_discrete<get_enum_category_t<EnumT>>::value)
+	else if constexpr (!details::is_enum_category_discrete<get_enum_category_t<EnumT>>::value)
 		return EnumT {std::numeric_limits<std::underlying_type_t<EnumT>>::min()};
+	else
+		static_assert(!sizeof(EnumT), "Minimum element of enum does not exist");
 }
 
 // Checks whether the given enumeration type has a maximum element.
@@ -226,8 +228,10 @@ template <typename EnumT REQUIRES_IsEnum(EnumT),
 constexpr EnumT enum_max() noexcept {
 	if constexpr (details::enum_has_max_member<EnumT>::value)
 		return EnumT::max;
-	if constexpr (!details::is_enum_category_discrete<get_enum_category_t<EnumT>>::value)
+	else if constexpr (!details::is_enum_category_discrete<get_enum_category_t<EnumT>>::value)
 		return EnumT {std::numeric_limits<std::underlying_type_t<EnumT>>::max()};
+	else
+		static_assert(!sizeof(EnumT), "Maximum element of enum does not exist");
 }
 
 

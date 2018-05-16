@@ -375,7 +375,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 	if (m_KeyboardRect.PtInRect({x, y})) {
 		int KeyPos = (x - m_KeyboardRect.left) % 70;		// // //
 		int Octave = (x - m_KeyboardRect.left) / 70;
-		note_t Note;		// // //
+		note_t Note = note_t::C;		// // //
 
 		if (y > m_KeyboardRect.top + 38) {
 			// Only white keys

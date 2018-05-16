@@ -136,10 +136,6 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerModule &modfile) {
 		{FILE_BLOCK_BOOKMARKS,		&CFamiTrackerDocIO::LoadBookmarks},		// // //
 	};
 
-#ifdef _DEBUG
-	int msgs_ = 0;
-#endif
-
 	// This has to be done for older files
 	if (file_.GetFileVersion() < 0x0210)
 		(void)modfile.GetSong(0);
@@ -156,11 +152,7 @@ bool CFamiTrackerDocIO::Load(CFamiTrackerModule &modfile) {
 			(this->*FTM_READ_FUNC.at(BlockID))(modfile, file_.GetBlockVersion());		// // //
 		}
 		catch (std::out_of_range) {
-#ifdef _DEBUG
-		// This shouldn't show up in release (debug only)
-//			if (++msgs_ < 5)
-//				AfxMessageBox(L"Unknown file block!");
-#endif
+			DEBUG_BREAK();
 			if (file_.IsFileIncomplete())
 				ErrorFlag = true;
 		}

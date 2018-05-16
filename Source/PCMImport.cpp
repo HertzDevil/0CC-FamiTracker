@@ -441,7 +441,7 @@ bool CPCMImport::OpenWaveFile()
 	m_iWaveSize = 0;
 	m_ullSampleStart = 0;
 
-	TRACE(L"DPCM import: Loading wave file %s...\n", m_strPath);
+	TRACE(L"DPCM import: Loading wave file %s...\n", (LPCWSTR)m_strPath);
 
 	if (!m_fSampleFile.Open(m_strPath, CFile::modeRead, &ex)) {
 		WCHAR szCause[255] = { };

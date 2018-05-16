@@ -100,7 +100,7 @@ void CRegisterDisplay::Draw() {
 			GetRegs(sound_chip_t::APU, [&] (int x) { return 0x4000 + i * 4 + x; }, 4);
 			DrawReg(FormattedA("$%04X:", 0x4000 + i * 4), 4);
 
-			int period, vol;
+			int period = 0, vol = 0;
 			double freq = pSoundGen->GetChannelFrequency(sound_chip_t::APU, i);		// // //
 //			dc.FillSolidRect(x + 200, y, x + 400, y + 18, m_colEmptyBg);
 
