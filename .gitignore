@@ -3,6 +3,9 @@
 *.suo
 *.aps
 *.user
+*.db
+*.opendb
+*.sdf
 
 # Code editor files
 .vscode
