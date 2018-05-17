@@ -250,14 +250,14 @@ bool CAccelerator::IsKeyUsed(int nChar) const		// // //
 void CAccelerator::SaveShortcuts(CSettings *pSettings) const
 {
 	// Save values
-	auto *App = Env.GetMainApp();		// // //
+	auto *App = FTEnv.GetMainApp();		// // //
 	for (const auto &x : m_pEntriesTable)		// // //
 		App->WriteProfileInt(SHORTCUTS_SECTION, x.name, (x.mod << 8) | x.key);
 }
 
 void CAccelerator::LoadShortcuts(CSettings *pSettings)
 {
-	auto *App = Env.GetMainApp();		// // //
+	auto *App = FTEnv.GetMainApp();		// // //
 
 	// Set up names and default values
 	LoadDefaults();

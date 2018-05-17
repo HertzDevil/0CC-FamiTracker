@@ -67,7 +67,7 @@ BOOL CGotoDlg::OnInitDialog()
 
 	const CFamiTrackerView *pView = CFamiTrackerView::GetView();
 	const CFamiTrackerModule *pModule = pView->GetModuleData();
-	auto *pSCS = Env.GetSoundChipService();
+	auto *pSCS = FTEnv.GetSoundChipService();
 
 	CSoundChipSet chips = pModule->GetSoundChipSet();
 	int i = 0;

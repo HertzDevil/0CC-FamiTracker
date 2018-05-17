@@ -136,11 +136,11 @@ int CFrameEditor::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	m_hAccel = LoadAccelerators(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_FRAMEWND));
+	m_hAccel = LoadAcceleratorsW(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_FRAMEWND));
 
 	m_Font.CreateFontW(DPI::SY(14), 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
 					  OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
-					  Env.GetSettings()->Appearance.strFrameFont.data());		// // // 050B
+					  FTEnv.GetSettings()->Appearance.strFrameFont.data());		// // // 050B
 
 	m_iClipboard = ::RegisterClipboardFormatW(CLIPBOARD_ID);
 
@@ -160,13 +160,13 @@ void CFrameEditor::OnPaint()
 //#define BENCHMARK
 
 	// Do not call CWnd::OnPaint() for painting messages
-	const CSoundGen *pSoundGen = Env.GetSoundGenerator();
+	const CSoundGen *pSoundGen = FTEnv.GetSoundGenerator();
 
 	// Get window size
 	CRect WinRect;
 	GetClientRect(&WinRect);
 
-	if (!Env.IsFileLoaded()) {		// // //
+	if (!FTEnv.IsFileLoaded()) {		// // //
 		dc.FillSolidRect(WinRect, 0);
 		return;
 	}
@@ -217,14 +217,14 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	const COLORREF BLUE_BAR_COLOR = 0xA02030;
 
 	// Cache settings
-	const COLORREF ColBackground	= Env.GetSettings()->Appearance.iColBackground;
-	const COLORREF ColText			= Env.GetSettings()->Appearance.iColPatternText;
-	const COLORREF ColTextHilite	= Env.GetSettings()->Appearance.iColPatternTextHilite;
-	const COLORREF ColCursor		= Env.GetSettings()->Appearance.iColCursor;
-	const COLORREF ColSelect		= Env.GetSettings()->Appearance.iColSelection;
+	const COLORREF ColBackground	= FTEnv.GetSettings()->Appearance.iColBackground;
+	const COLORREF ColText			= FTEnv.GetSettings()->Appearance.iColPatternText;
+	const COLORREF ColTextHilite	= FTEnv.GetSettings()->Appearance.iColPatternTextHilite;
+	const COLORREF ColCursor		= FTEnv.GetSettings()->Appearance.iColCursor;
+	const COLORREF ColSelect		= FTEnv.GetSettings()->Appearance.iColSelection;
 	const COLORREF ColDragCursor	= INTENSITY(ColBackground) > 0x80 ? BLACK : WHITE;
 	const COLORREF ColSelectEdge	= BLEND(ColSelect, WHITE, .7);
-	const COLORREF ColTextDimmed	= DIM(Env.GetSettings()->Appearance.iColPatternText, .9);
+	const COLORREF ColTextDimmed	= DIM(FTEnv.GetSettings()->Appearance.iColPatternText, .9);
 
 	const CFamiTrackerView *pView = m_pView;
 	const CConstSongView *pSongView = pView->GetSongView();		// // //
@@ -282,7 +282,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 		if (line != m_iMiddleRow)
 			for (unsigned j = 0, Count = Col.GetCount(); j < Count; ++j)
 				if (Col.GetBookmark(j)->m_iFrame == Frame) {
-					GradientBar(m_dcBack, RowRect, Env.GetSettings()->Appearance.iColBackgroundHilite, ColBackground);		// // //
+					GradientBar(m_dcBack, RowRect, FTEnv.GetSettings()->Appearance.iColBackgroundHilite, ColBackground);		// // //
 					break;
 				}
 	}
@@ -295,17 +295,17 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	}
 
 	// Play cursor
-	const int PlayFrame = Env.GetSoundGenerator()->GetPlayerPos().first;		// // //
-	if (!pView->GetFollowMode() && Env.GetSoundGenerator()->IsPlaying())
+	const int PlayFrame = FTEnv.GetSoundGenerator()->GetPlayerPos().first;		// // //
+	if (!pView->GetFollowMode() && FTEnv.GetSoundGenerator()->IsPlaying())
 		if (PlayFrame >= BeginFrame && PlayFrame <= EndFrame) {
 			int line = PlayFrame - FirstVisibleFrame;
 			const int ypos = line * ROW_HEIGHT;
 			CRect RowRect = DPI::Rect(0, ypos + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
-			GradientBar(m_dcBack, RowRect, Env.GetSettings()->Appearance.iColCurrentRowPlaying, ColBackground);		// // //
+			GradientBar(m_dcBack, RowRect, FTEnv.GetSettings()->Appearance.iColCurrentRowPlaying, ColBackground);		// // //
 		}
 
 	// Queue cursor
-	if (int Queue = Env.GetSoundGenerator()->GetQueueFrame(); Queue >= BeginFrame && Queue <= EndFrame) {
+	if (int Queue = FTEnv.GetSoundGenerator()->GetQueueFrame(); Queue >= BeginFrame && Queue <= EndFrame) {
 		int line = Queue - FirstVisibleFrame;
 		const int ypos = line * ROW_HEIGHT;
 		CRect RowRect = DPI::Rect(0, ypos + 4, m_iWinWidth, ROW_HEIGHT - 1);		// // //
@@ -368,7 +368,7 @@ void CFrameEditor::DrawFrameEditor(CDC *pDC)
 	}
 
 	// Frame patterns
-	const bool bHexRows = Env.GetSettings()->General.bRowInHex;
+	const bool bHexRows = FTEnv.GetSettings()->General.bRowInHex;
 	for (int Frame = BeginFrame; Frame <= EndFrame; ++Frame) {
 		if (Frame != FrameCount) {
 			int line = Frame - FirstVisibleFrame;
@@ -472,7 +472,7 @@ bool CFrameEditor::NeedUpdate() const
 
 	const int ActiveFrame	= GetEditFrame();		// // //
 	const int ActiveChannel = pView->GetSelectedChannel();
-	const int PlayFrame	    = Env.GetSoundGenerator()->GetPlayerPos().first;		// // //
+	const int PlayFrame	    = FTEnv.GetSoundGenerator()->GetPlayerPos().first;		// // //
 
 	if (m_iLastCursorFrame != ActiveFrame)
 		return true;
@@ -551,7 +551,7 @@ void CFrameEditor::OnSetFocus(CWnd* pOldWnd)
 	CWnd::OnSetFocus(pOldWnd);
 
 	// Install frame editor's accelerator
-	Env.GetAccelerator()->SetAccelerator(m_hAccel);
+	FTEnv.GetAccelerator()->SetAccelerator(m_hAccel);
 
 	InvalidateFrameData();
 }
@@ -563,7 +563,7 @@ void CFrameEditor::OnKillFocus(CWnd* pNewWnd)
 //	CancelSelection();		// // //
 	m_bLastRow = false;		// // //
 	InvalidateFrameData();
-	Env.GetAccelerator()->SetAccelerator(NULL);
+	FTEnv.GetAccelerator()->SetAccelerator(NULL);
 }
 
 void CFrameEditor::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
@@ -708,7 +708,7 @@ void CFrameEditor::OnTimer(UINT_PTR nIDEvent)
 BOOL CFrameEditor::PreTranslateMessage(MSG* pMsg)
 {
 	// Temporary fix, accelerated messages must be sent to the main window
-	if (Env.GetAccelerator()->Translate(Env.GetMainFrame()->m_hWnd, pMsg)) {
+	if (FTEnv.GetAccelerator()->Translate(FTEnv.GetMainFrame()->m_hWnd, pMsg)) {
 		return TRUE;
 	}
 
@@ -800,14 +800,14 @@ void CFrameEditor::OnLButtonUp(UINT nFlags, CPoint point)
 	}
 	else {
 		CFrameCursorPos pos = TranslateFramePos(point, false);		// // //
-		if ((nFlags & MK_CONTROL) && Env.GetSoundGenerator()->IsPlaying()) {
+		if ((nFlags & MK_CONTROL) && FTEnv.GetSoundGenerator()->IsPlaying()) {
 			// Queue this frame
-			if (pos.m_iFrame == Env.GetSoundGenerator()->GetQueueFrame())
+			if (pos.m_iFrame == FTEnv.GetSoundGenerator()->GetQueueFrame())
 				// Remove
-				Env.GetSoundGenerator()->SetQueueFrame(-1);
+				FTEnv.GetSoundGenerator()->SetQueueFrame(-1);
 			else
 				// Set new
-				Env.GetSoundGenerator()->SetQueueFrame(pos.m_iFrame);
+				FTEnv.GetSoundGenerator()->SetQueueFrame(pos.m_iFrame);
 
 			InvalidateFrameData();
 		}
@@ -1285,7 +1285,7 @@ void CFrameEditorDropTarget::SetClipBoardFormat(UINT iClipboard)
 
 DROPEFFECT CFrameEditorDropTarget::OnDragEnter(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point)
 {
-	CFrameWnd *pMainFrame = Env.GetMainFrame();		// // //
+	CFrameWnd *pMainFrame = FTEnv.GetMainFrame();		// // //
 
 	if (pDataObject->IsDataAvailable(m_iClipboard)) {
 		if (dwKeyState & MK_CONTROL) {

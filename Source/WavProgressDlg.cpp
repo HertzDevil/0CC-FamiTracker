@@ -55,7 +55,7 @@ END_MESSAGE_MAP()
 
 void CWavProgressDlg::OnBnClickedCancel()
 {
-	CSoundGen *pSoundGen = Env.GetSoundGenerator();
+	CSoundGen *pSoundGen = FTEnv.GetSoundGenerator();
 
 	if (pSoundGen->IsRendering()) {
 		//pSoundGen->StopRendering();
@@ -80,7 +80,7 @@ BOOL CWavProgressDlg::OnInitDialog()
 
 	static_cast<CProgressCtrl*>(GetDlgItem(IDC_PROGRESS_BAR))->SetRange(0, 100);
 	CView *pView = static_cast<CFrameWnd*>(AfxGetMainWnd())->GetActiveView();		// // //
-	CSoundGen *pSoundGen = Env.GetSoundGenerator();
+	CSoundGen *pSoundGen = FTEnv.GetSoundGenerator();
 
 	pView->Invalidate();
 	pView->RedrawWindow();
@@ -102,7 +102,7 @@ void CWavProgressDlg::OnTimer(UINT_PTR nIDEvent)
 {
 	// Update progress status
 	CProgressCtrl *pProgressBar = static_cast<CProgressCtrl*>(GetDlgItem(IDC_PROGRESS_BAR));
-	CSoundGen *pSoundGen = Env.GetSoundGenerator();
+	CSoundGen *pSoundGen = FTEnv.GetSoundGenerator();
 
 	SetDlgItemTextW(IDC_PROGRESS_LBL, conv::to_wide(m_pWaveRenderer->GetProgressString()).data());
 	pProgressBar->SetPos(m_pWaveRenderer->GetProgressPercent());		// // //

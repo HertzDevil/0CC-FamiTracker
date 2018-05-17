@@ -96,7 +96,7 @@ void CVisualizerWnd::NextState()
 
 	Invalidate();
 
-	Env.GetSettings()->SampleWinState = m_iCurrentState;
+	FTEnv.GetSettings()->SampleWinState = m_iCurrentState;
 }
 
 // CSampleWindow message handlers
@@ -164,7 +164,7 @@ UINT CVisualizerWnd::ThreadProc()
 BOOL CVisualizerWnd::CreateEx(DWORD dwExStyle, LPCWSTR lpszClassName, LPCWSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, CCreateContext* pContext)
 {
 	// This is saved
-	m_iCurrentState = Env.GetSettings()->SampleWinState;
+	m_iCurrentState = FTEnv.GetSettings()->SampleWinState;
 
 	// Create an event used to signal that new samples are available
 	m_hNewSamples = CreateEventW(NULL, FALSE, FALSE, NULL);
@@ -248,7 +248,7 @@ void CVisualizerWnd::OnRButtonUp(UINT nFlags, CPoint point)
 	});
 
 	Invalidate();
-	Env.GetSettings()->SampleWinState = m_iCurrentState;
+	FTEnv.GetSettings()->SampleWinState = m_iCurrentState;
 
 	CWnd::OnRButtonUp(nFlags, point);
 }

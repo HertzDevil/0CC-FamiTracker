@@ -70,7 +70,7 @@ BOOL CConfigVersion::OnInitDialog()
 {
 	CPropertyPage::OnInitDialog();
 
-	m_iModuleErrorLevel = value_cast(Env.GetSettings()->Version.iErrorLevel);
+	m_iModuleErrorLevel = value_cast(FTEnv.GetSettings()->Version.iErrorLevel);
 
 	m_cSliderErrorLevel.SubclassDlgItem(IDC_SLIDER_VERSION_ERRORLEVEL, this);
 	m_cSliderErrorLevel.SetRange(MODULE_ERROR_NONE, MODULE_ERROR_STRICT);
@@ -90,7 +90,7 @@ BOOL CConfigVersion::OnApply()
 		return false;
 	}
 #endif
-	Env.GetSettings()->Version.iErrorLevel = enum_cast<module_error_level_t>(m_iModuleErrorLevel);
+	FTEnv.GetSettings()->Version.iErrorLevel = enum_cast<module_error_level_t>(m_iModuleErrorLevel);
 
 	return CPropertyPage::OnApply();
 }

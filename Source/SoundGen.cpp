@@ -133,7 +133,7 @@ CSoundGen::~CSoundGen()
 void CSoundGen::AssignDocument(CFamiTrackerDoc *pDoc)
 {
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == FTEnv.GetMainApp()->m_nThreadID);
 
 	// Ignore all but the first document (as new documents are used to import files)
 	if (m_pDocument)
@@ -159,7 +159,7 @@ void CSoundGen::AssignModule(CFamiTrackerModule &modfile) {
 void CSoundGen::AssignView(CFamiTrackerView *pView)
 {
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == FTEnv.GetMainApp()->m_nThreadID);
 
 	if (m_pTrackerView != NULL)
 		return;
@@ -173,7 +173,7 @@ void CSoundGen::RemoveDocument()
 	// Removes both the document and view from this object
 
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == FTEnv.GetMainApp()->m_nThreadID);
 	ASSERT(m_pDocument != NULL);
 	ASSERT(m_hThread != NULL);
 
@@ -196,7 +196,7 @@ void CSoundGen::RemoveDocument()
 void CSoundGen::SetVisualizerWindow(CVisualizerWnd *pWnd)
 {
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == FTEnv.GetMainApp()->m_nThreadID);
 
 	m_csVisualizerWndLock.Lock();
 	m_pVisualizerWnd = pWnd;
@@ -254,7 +254,7 @@ void CSoundGen::StopPlayer()
 
 	PostThreadMessageW(WM_USER_STOP, 0, 0);
 
-	Env.GetMIDI()->ResetOutput();		// // //
+	FTEnv.GetMIDI()->ResetOutput();		// // //
 }
 
 void CSoundGen::ResetPlayer(int Track)
@@ -359,7 +359,7 @@ bool CSoundGen::InitializeSound(HWND hWnd)
 	// Start with NTSC by default
 
 	// Called from main thread
-	ASSERT(GetCurrentThread() == Env.GetMainApp()->m_hThread);
+	ASSERT(GetCurrentThread() == FTEnv.GetMainApp()->m_hThread);
 	ASSERT(!m_pDSound);
 
 	m_bAutoDelete = FALSE;		// // //
@@ -399,7 +399,7 @@ bool CSoundGen::ResetAudioDevice()
 	ASSERT(GetCurrentThreadId() == m_nThreadID);
 	ASSERT(m_pDSound != NULL);
 
-	CSettings *pSettings = Env.GetSettings();
+	CSettings *pSettings = FTEnv.GetSettings();
 
 	unsigned int SampleSize = pSettings->Sound.iSampleSize;
 	unsigned int SampleRate = pSettings->Sound.iSampleRate;
@@ -586,7 +586,7 @@ void CSoundGen::BeginPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 	m_pVGMWriter = std::make_unique<CVGMWriter>();
 #endif
 
-	if (Env.GetSettings()->Display.bAverageBPM)		// // // 050B
+	if (FTEnv.GetSettings()->Display.bAverageBPM)		// // // 050B
 		m_pTempoDisplay = std::make_unique<CTempoDisplay>(*m_pTempoCounter, DEFAULT_AVERAGE_BPM_SIZE);
 
 	ResetTempo();
@@ -594,7 +594,7 @@ void CSoundGen::BeginPlayer(std::unique_ptr<CPlayerCursor> Pos)		// // //
 
 	MakeSilent();
 
-	if (Env.GetSettings()->General.bRetrieveChanState)		// // //
+	if (FTEnv.GetSettings()->General.bRetrieveChanState)		// // //
 		ApplyGlobalState();
 
 	if (m_pInstRecorder->GetRecordChannel().Chip != sound_chip_t::none)		// // //
@@ -635,7 +635,7 @@ void CSoundGen::OnPlayNote(stChannelID chan, const stChanNote &note) {
 	if (!IsChannelMuted(chan)) {
 		if (m_pTrackerView)
 			m_pTrackerView->PlayerPlayNote(chan, note);
-		Env.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(chan), note.Note, note.Octave, note.Vol);
+		FTEnv.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(chan), note.Note, note.Octave, note.Vol);
 	}
 }
 
@@ -664,7 +664,7 @@ bool CSoundGen::ShouldStopPlayer() const {
 }
 
 int CSoundGen::GetArpNote(stChannelID chan) const {
-	if (Env.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
+	if (FTEnv.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
 		return m_pArpeggiator->GetNextNote(chan);
 	return -1;
 }
@@ -815,7 +815,7 @@ void CSoundGen::LoadMachineSettings()		// // //
 	//
 
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == FTEnv.GetMainApp()->m_nThreadID);
 	ASSERT(m_pAPU != NULL);
 
 	m_iMachineType = m_pModule->GetMachine();		// // // 050B
@@ -835,7 +835,7 @@ void CSoundGen::LoadMachineSettings()		// // //
 }
 
 void CSoundGen::LoadSoundConfig() {		// // //
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == FTEnv.GetMainApp()->m_nThreadID);
 
 	LoadSettings();
 	Interrupt();
@@ -863,7 +863,7 @@ int CSoundGen::GetChannelVolume(stChannelID chan) const {		// // //
 bool CSoundGen::RenderToFile(const fs::path &fname, std::shared_ptr<CWaveRenderer> pRender)		// // //
 {
 	// Called from main thread
-	ASSERT(GetCurrentThreadId() == Env.GetMainApp()->m_nThreadID);
+	ASSERT(GetCurrentThreadId() == FTEnv.GetMainApp()->m_nThreadID);
 	ASSERT(m_pDocument != NULL);
 
 	if (!pRender)
@@ -884,8 +884,8 @@ bool CSoundGen::RenderToFile(const fs::path &fname, std::shared_ptr<CWaveRendere
 		m_pWaveRenderer->SetOutputStream(std::make_unique<COutputWaveStream>(m_pRenderFile, CWaveFileFormat {
 			CWaveFileFormat::format_code::pcm,
 			1,
-			static_cast<std::uint32_t>(Env.GetSettings()->Sound.iSampleRate),
-			static_cast<std::uint16_t>(Env.GetSettings()->Sound.iSampleSize),
+			static_cast<std::uint32_t>(FTEnv.GetSettings()->Sound.iSampleRate),
+			static_cast<std::uint16_t>(FTEnv.GetSettings()->Sound.iSampleSize),
 		}));
 		PostThreadMessageW(WM_USER_START_RENDER, 0, 0);
 		return true;
@@ -1055,7 +1055,7 @@ BOOL CSoundGen::IdleLoop() {
 		TrackerChan.SetVolumeMeter(m_pAPU->GetVol(ID));		// // //
 	});
 
-	if (Env.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
+	if (FTEnv.GetSettings()->Midi.bMidiArpeggio && m_pArpeggiator)		// // //
 		m_pArpeggiator->Tick(m_pTrackerView->GetSelectedChannelID());
 
 	// Rendering
@@ -1248,7 +1248,7 @@ void CSoundGen::QueueNote(stChannelID Channel, const stChanNote &NoteData, note_
 {
 	// Queue a note for play
 	m_pSoundDriver->QueueNote(Channel, NoteData, Priority);
-	Env.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(Channel), NoteData.Note, NoteData.Octave, NoteData.Vol);
+	FTEnv.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(Channel), NoteData.Note, NoteData.Octave, NoteData.Vol);
 }
 
 void CSoundGen::ForceReloadInstrument(stChannelID Channel)		// // //

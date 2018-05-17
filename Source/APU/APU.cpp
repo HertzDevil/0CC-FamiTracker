@@ -43,7 +43,7 @@ CAPU::CAPU(IAudioCallback *pCallback) :		// // //
 {
 	constexpr std::uint8_t INSTANCE_ID = 0u;
 
-	auto *pSCS = Env.GetSoundChipService();
+	auto *pSCS = FTEnv.GetSoundChipService();
 	pSCS->ForeachType([&] (sound_chip_t c) {
 		m_pSoundChips.push_back(pSCS->MakeSoundChipDriver(c, *m_pMixer, INSTANCE_ID));
 	});

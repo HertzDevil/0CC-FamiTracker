@@ -100,7 +100,7 @@ void CGraphEditor::Initialize()
 
 void CGraphEditor::OnTimer(UINT_PTR nIDEvent) {		// // //
 	if (m_pSequence) {
-		int Pos = Env.GetSoundGenerator()->GetSequencePlayPos(m_pSequence);
+		int Pos = FTEnv.GetSoundGenerator()->GetSequencePlayPos(m_pSequence);
 		//int Pos = m_pSequence->GetPlayPos();
 		if (Pos != m_iLastPlayPos) {
 			m_iCurrentPlayPos = Pos;

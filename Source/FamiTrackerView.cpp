@@ -293,7 +293,7 @@ CFamiTrackerView::CFamiTrackerView() :
 	m_pPatternEditor(std::make_unique<CPatternEditor>())		// // //
 {
 	// Register this object in the sound generator
-	CSoundGen *pSoundGen = Env.GetSoundGenerator();
+	CSoundGen *pSoundGen = FTEnv.GetSoundGenerator();
 	ASSERT_VALID(pSoundGen);
 
 	pSoundGen->AssignView(this);
@@ -396,7 +396,7 @@ void CFamiTrackerView::OnDraw(CDC* pDC)
 	}
 
 	// Don't draw when rendering to wave file
-	CSoundGen *pSoundGen = Env.GetSoundGenerator();
+	CSoundGen *pSoundGen = FTEnv.GetSoundGenerator();
 	if (pSoundGen == NULL || pSoundGen->IsBackgroundTask())
 		return;
 
@@ -608,12 +608,12 @@ void CFamiTrackerView::OnRButtonUp(UINT nFlags, CPoint point)
 		// Pattern header
 		m_iMenuChannel = TranslateChannel(m_pPatternEditor->GetChannelAtPoint(point.x));		// // //
 		PopupMenuBar.LoadMenuW(IDR_PATTERN_HEADER_POPUP);
-		Env.GetMainFrame()->UpdateMenu(&PopupMenuBar);
+		FTEnv.GetMainFrame()->UpdateMenu(&PopupMenuBar);
 		pPopupMenu = PopupMenuBar.GetSubMenu(0);
-		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDTOINST, Env.GetSoundGenerator()->IsPlaying() ? MFS_DISABLED : MFS_ENABLED);		// // //
-		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDERSETTINGS, Env.GetSoundGenerator()->IsPlaying() ? MFS_DISABLED : MFS_ENABLED);		// // //
+		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDTOINST, FTEnv.GetSoundGenerator()->IsPlaying() ? MFS_DISABLED : MFS_ENABLED);		// // //
+		pPopupMenu->EnableMenuItem(ID_TRACKER_RECORDERSETTINGS, FTEnv.GetSoundGenerator()->IsPlaying() ? MFS_DISABLED : MFS_ENABLED);		// // //
 		CMenu *pMeterMenu = pPopupMenu->GetSubMenu(6);		// // // 050B
-		decay_rate_t Rate = Env.GetSoundGenerator()->GetMeterDecayRate();
+		decay_rate_t Rate = FTEnv.GetSoundGenerator()->GetMeterDecayRate();
 		pMeterMenu->CheckMenuItem(Rate == decay_rate_t::Fast ? ID_DECAY_FAST : ID_DECAY_SLOW, MF_CHECKED | MF_BYCOMMAND);
 		pPopupMenu->TrackPopupMenu(TPM_RIGHTBUTTON, point.x + WinRect.left, point.y + WinRect.top, this);
 	}
@@ -621,7 +621,7 @@ void CFamiTrackerView::OnRButtonUp(UINT nFlags, CPoint point)
 		// Pattern area
 		m_iMenuChannel = { };
 		PopupMenuBar.LoadMenuW(IDR_PATTERN_POPUP);
-		Env.GetMainFrame()->UpdateMenu(&PopupMenuBar);
+		FTEnv.GetMainFrame()->UpdateMenu(&PopupMenuBar);
 		pPopupMenu = PopupMenuBar.GetSubMenu(0);
 		// Send messages to parent in order to get the menu options working
 		pPopupMenu->TrackPopupMenu(TPM_RIGHTBUTTON, point.x + WinRect.left, point.y + WinRect.top, GetParentFrame());
@@ -657,7 +657,7 @@ void CFamiTrackerView::OnLButtonUp(UINT nFlags, CPoint point)
 	/*
 	if (m_bControlPressed && !m_pPatternEditor->IsSelecting()) {
 		m_pPatternEditor->JumpToRow(GetSelectedRow());
-		Env.GetSoundGenerator()->StartPlayer(play_mode_t::CURSOR);
+		FTEnv.GetSoundGenerator()->StartPlayer(play_mode_t::CURSOR);
 	}
 	*/
 
@@ -666,7 +666,7 @@ void CFamiTrackerView::OnLButtonUp(UINT nFlags, CPoint point)
 
 void CFamiTrackerView::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
-	if (Env.GetSettings()->General.bDblClickSelect && !m_pPatternEditor->IsOverHeader(point))
+	if (FTEnv.GetSettings()->General.bDblClickSelect && !m_pPatternEditor->IsOverHeader(point))
 		return;
 
 	m_pPatternEditor->OnMouseDblClk(point);
@@ -732,11 +732,11 @@ BOOL CFamiTrackerView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 		InvalidateFrameEditor();		// // //
 	}
 	else if (bControlPressed) {
-		if (!(Env.GetSoundGenerator()->IsPlaying() && !IsSelecting() && m_bFollowMode))		// // //
+		if (!(FTEnv.GetSoundGenerator()->IsPlaying() && !IsSelecting() && m_bFollowMode))		// // //
 			pAction = std::make_unique<CPActionTranspose>(zDelta > 0 ? 1 : -1);		// // //
 	}
 	else if (bShiftPressed) {
-		if (!(Env.GetSoundGenerator()->IsPlaying() && !IsSelecting() && m_bFollowMode))
+		if (!(FTEnv.GetSoundGenerator()->IsPlaying() && !IsSelecting() && m_bFollowMode))
 			pAction = std::make_unique<CPActionScrollValues>(zDelta > 0 ? 1 : -1);		// // //
 	}
 	else
@@ -794,7 +794,7 @@ void CFamiTrackerView::PeriodicUpdate()
 
 	CMainFrame *pMainFrm = GetMainFrame();		// // //
 
-	if (const CSoundGen *pSoundGen = Env.GetSoundGenerator()) {
+	if (const CSoundGen *pSoundGen = FTEnv.GetSoundGenerator()) {
 		// Skip updates when doing background tasks (WAV render for example)
 		if (!pSoundGen->IsBackgroundTask()) {
 
@@ -836,7 +836,7 @@ void CFamiTrackerView::PeriodicUpdate()
 
 void CFamiTrackerView::UpdateSongView() {		// // //
 	song_view_ = GetModuleData()->MakeSongView(GetMainFrame()->GetSelectedTrack(),
-		Env.GetSettings()->General.bShowSkippedRows);
+		FTEnv.GetSettings()->General.bShowSkippedRows);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -916,8 +916,8 @@ void CFamiTrackerView::OnTrackerEdit()
 LRESULT CFamiTrackerView::OnUserDumpInst(WPARAM wParam, LPARAM lParam)		// // //
 {
 	AddAction(std::make_unique<ModuleAction::CAddInst>(GetModuleData()->GetInstrumentManager()->GetFirstUnused(),
-		Env.GetSoundGenerator()->GetRecordInstrument()));
-	Env.GetSoundGenerator()->ResetDumpInstrument();
+		FTEnv.GetSoundGenerator()->GetRecordInstrument()));
+	FTEnv.GetSoundGenerator()->ResetDumpInstrument();
 	InvalidateHeader();
 
 	return 0;
@@ -936,7 +936,7 @@ void CFamiTrackerView::OnTrackerDetune()			// // //
 		for (int j = 0; j < NOTE_COUNT; ++j)
 			pModule->SetDetuneOffset(i, j, *(Table + j + i * NOTE_COUNT));
 	pModule->SetTuning(DetuneDlg.GetDetuneSemitone(), DetuneDlg.GetDetuneCent());		// // // 050B
-	Env.GetSoundGenerator()->DocumentPropertiesChanged(GetDocument());
+	FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(GetDocument());
 }
 
 void CFamiTrackerView::OnTransposeDecreasenote()
@@ -1047,7 +1047,7 @@ void CFamiTrackerView::OnEditSelecttrack()		// // //
 
 void CFamiTrackerView::OnTrackerPlayrow()
 {
-	if (auto *pSoundGen = Env.GetSoundGenerator(); pSoundGen && !pSoundGen->IsPlaying()) {		// // //
+	if (auto *pSoundGen = FTEnv.GetSoundGenerator(); pSoundGen && !pSoundGen->IsPlaying()) {		// // //
 		pSoundGen->PlaySingleRow(static_cast<CMainFrame*>(GetParentFrame())->GetSelectedTrack());
 		m_pPatternEditor->MoveDown(1);
 		InvalidateCursor();
@@ -1118,14 +1118,14 @@ void CFamiTrackerView::OnInitialUpdate()
 	pMainFrame->SetHighlightRows(pModule->GetHighlight(0));
 
 	// Follow mode
-	SetFollowMode(Env.GetSettings()->bFollowMode);
+	SetFollowMode(FTEnv.GetSettings()->bFollowMode);
 
 	// Setup speed/tempo (TODO remove?)
-	Env.GetSoundGenerator()->AssignModule(*pModule);		// // //
-	Env.GetSoundGenerator()->ResetState();
-	Env.GetSoundGenerator()->ResetTempo();
-	Env.GetSoundGenerator()->SetMeterDecayRate(Env.GetSettings()->bFastMeterDecayRate ? decay_rate_t::Fast : decay_rate_t::Slow);		// // // 050B
-	Env.GetSoundGenerator()->DocumentPropertiesChanged(pDoc);		// // //
+	FTEnv.GetSoundGenerator()->AssignModule(*pModule);		// // //
+	FTEnv.GetSoundGenerator()->ResetState();
+	FTEnv.GetSoundGenerator()->ResetTempo();
+	FTEnv.GetSoundGenerator()->SetMeterDecayRate(FTEnv.GetSettings()->bFastMeterDecayRate ? decay_rate_t::Fast : decay_rate_t::Slow);		// // // 050B
+	FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(pDoc);		// // //
 
 	// Default
 	SetInstrument(0);
@@ -1162,8 +1162,8 @@ void CFamiTrackerView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHi
 	switch (lHint) {
 	// Track has been added, removed or changed
 	case UPDATE_TRACK:
-		if (Env.GetSoundGenerator()->IsPlaying())
-			Env.GetSoundGenerator()->StopPlayer();		// // //
+		if (FTEnv.GetSoundGenerator()->IsPlaying())
+			FTEnv.GetSoundGenerator()->StopPlayer();		// // //
 		UpdateSongView();		// // //
 		pMainFrm->UpdateTrackBox();
 		m_pPatternEditor->InvalidateBackground();
@@ -1308,7 +1308,7 @@ void CFamiTrackerView::OnUpdatePasteSpecial(CCmdUI *pCmdUI)
 
 void CFamiTrackerView::OnUpdateDisableWhilePlaying(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!Env.GetSoundGenerator()->IsPlaying());
+	pCmdUI->Enable(!FTEnv.GetSoundGenerator()->IsPlaying());
 }
 
 void CFamiTrackerView::SetMarker(int Frame, int Row)		// // // 050B
@@ -1367,7 +1367,7 @@ stChannelID CFamiTrackerView::GetSelectedChannelID() const {		// // //
 }
 
 CTrackerChannel &CFamiTrackerView::GetTrackerChannel(std::size_t Index) const {		// // //
-	return *Env.GetSoundGenerator()->GetTrackerChannel(TranslateChannel(Index));
+	return *FTEnv.GetSoundGenerator()->GetTrackerChannel(TranslateChannel(Index));
 }
 
 CSongView *CFamiTrackerView::GetSongView() {		// // //
@@ -1493,7 +1493,7 @@ void CFamiTrackerView::SelectChannel(unsigned int Channel)
 
 void CFamiTrackerView::OnBookmarksToggle()
 {
-	if ((Env.GetSoundGenerator()->IsPlaying() && m_bFollowMode) || !m_bEditEnable)
+	if ((FTEnv.GetSoundGenerator()->IsPlaying() && m_bFollowMode) || !m_bEditEnable)
 		return;
 
 	const int Frame = GetSelectedFrame();
@@ -1521,7 +1521,7 @@ void CFamiTrackerView::OnBookmarksToggle()
 
 void CFamiTrackerView::OnBookmarksNext()
 {
-	if (Env.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
+	if (FTEnv.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
 		return;
 
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
@@ -1544,7 +1544,7 @@ void CFamiTrackerView::OnBookmarksNext()
 
 void CFamiTrackerView::OnBookmarksPrevious()
 {
-	if (Env.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
+	if (FTEnv.GetSoundGenerator()->IsPlaying() && m_bFollowMode)
 		return;
 
 	CMainFrame *pMainFrame = static_cast<CMainFrame*>(GetParentFrame());
@@ -1648,7 +1648,7 @@ void CFamiTrackerView::SoloChip(stChannelID Channel)		// // //
 
 void CFamiTrackerView::UnmuteAllChannels()
 {
-	Env.GetSoundChipService()->ForeachTrack([&] (stChannelID id) {		// // //
+	FTEnv.GetSoundChipService()->ForeachTrack([&] (stChannelID id) {		// // //
 		SetChannelMute(id, false);
 	});
 
@@ -1688,12 +1688,12 @@ void CFamiTrackerView::SetChannelMute(stChannelID Channel, bool bMute)
 //		else
 //			m_pNoteQueue->UnmuteChannel(Channel);
 	}
-	Env.GetSoundGenerator()->SetChannelMute(Channel, bMute);		// // //
+	FTEnv.GetSoundGenerator()->SetChannelMute(Channel, bMute);		// // //
 }
 
 bool CFamiTrackerView::IsChannelMuted(stChannelID Channel) const
 {
-	return Env.GetSoundGenerator()->IsChannelMuted(Channel);
+	return FTEnv.GetSoundGenerator()->IsChannelMuted(Channel);
 }
 
 void CFamiTrackerView::SetInstrument(int Instrument)
@@ -1737,8 +1737,8 @@ void CFamiTrackerView::InsertNote(const stChanNote &Cell) {		// // //
 	auto pAction = std::make_unique<CPActionEditNote>(Cell);		// // //
 	auto &Action = *pAction; // TODO: remove
 	if (AddAction(std::move(pAction))) {
-		const CSettings *pSettings = Env.GetSettings();
-		if (m_pPatternEditor->GetColumn() == cursor_column_t::NOTE && !Env.GetSoundGenerator()->IsPlaying() && m_iInsertKeyStepping > 0 && !pSettings->Midi.bMidiMasterSync) {
+		const CSettings *pSettings = FTEnv.GetSettings();
+		if (m_pPatternEditor->GetColumn() == cursor_column_t::NOTE && !FTEnv.GetSoundGenerator()->IsPlaying() && m_iInsertKeyStepping > 0 && !pSettings->Midi.bMidiMasterSync) {
 			StepDown();
 			Action.SaveRedoState(static_cast<CMainFrame &>(*GetParentFrame()));		// // //
 		}
@@ -1781,8 +1781,8 @@ stChanNote CFamiTrackerView::GetInputNote(note_t Note, int Octave, std::size_t I
 	}
 
 	// Quantization
-	if (Env.GetSettings()->Midi.bMidiMasterSync)
-		if (int Delay = Env.GetMIDI()->GetQuantization(); Delay > 0)
+	if (FTEnv.GetSettings()->Midi.bMidiMasterSync)
+		if (int Delay = FTEnv.GetMIDI()->GetQuantization(); Delay > 0)
 			Cell.Effects[0] = {effect_t::DELAY, static_cast<uint8_t>(Delay)};
 
 	return Cell;
@@ -1802,10 +1802,10 @@ void CFamiTrackerView::PlayNote(std::size_t Index, int MidiNote, unsigned int Ve
 	NoteData.Note		= ft0cc::doc::pitch_from_midi(MidiNote);
 	NoteData.Octave		= ft0cc::doc::oct_from_midi(MidiNote);
 	NoteData.Instrument	= GetInstrument();
-	if (Env.GetSettings()->Midi.bMidiVelocity)
+	if (FTEnv.GetSettings()->Midi.bMidiVelocity)
 		NoteData.Vol = Velocity / 8;
 /*
-	if (Env.GetSettings()->General.iEditStyle == edit_style_t::IT)
+	if (FTEnv.GetSettings()->General.iEditStyle == edit_style_t::IT)
 		NoteData.Instrument	= m_LastNote.Instrument;
 	else
 		NoteData.Instrument	= GetInstrument();
@@ -1818,18 +1818,18 @@ void CFamiTrackerView::PlayNote(std::size_t Index, int MidiNote, unsigned int Ve
 		stChannelID ret = m_pNoteQueue->Trigger(MidiNote, Channel);
 		if (order.HasChannel(ret)) {
 			SplitKeyboardAdjust(NoteData, ret);
-			Env.GetSoundGenerator()->QueueNote(ret, NoteData, NOTE_PRIO_2);		// // //
-			Env.GetSoundGenerator()->ForceReloadInstrument(ret);		// // //
+			FTEnv.GetSoundGenerator()->QueueNote(ret, NoteData, NOTE_PRIO_2);		// // //
+			FTEnv.GetSoundGenerator()->ForceReloadInstrument(ret);		// // //
 		}
 	}
 
-	if (Env.GetSettings()->General.bPreviewFullRow) {
+	if (FTEnv.GetSettings()->General.bPreviewFullRow) {
 		int Frame = GetSelectedFrame();
 		int Row = GetSelectedRow();
 
 		order.ForeachChannel([&] (stChannelID i) {
 			if (!IsChannelMuted(i) && i != Channel)
-				Env.GetSoundGenerator()->QueueNote(i, song.GetActiveNote(i, Frame, Row),
+				FTEnv.GetSoundGenerator()->QueueNote(i, song.GetActiveNote(i, Frame, Row),
 					(i == Channel) ? NOTE_PRIO_2 : NOTE_PRIO_1);		// // //
 		});
 	}
@@ -1851,15 +1851,15 @@ void CFamiTrackerView::ReleaseNote(std::size_t Index, int MidiNote) const {
 		stChannelID ch = m_pNoteQueue->Cut(MidiNote, Channel);
 //		stChannelID ch = m_pNoteQueue->Release(MidiNote, Channel);
 		if (order.HasChannel(ch))
-			Env.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
+			FTEnv.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
-		if (Env.GetSettings()->General.bPreviewFullRow) {
+		if (FTEnv.GetSettings()->General.bPreviewFullRow) {
 			NoteData.Note = note_t::halt;
 			NoteData.Instrument = MAX_INSTRUMENTS;
 
 			order.ForeachChannel([&] (stChannelID i) {
 				if (i != ch)
-					Env.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_1);
+					FTEnv.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_1);
 			});
 		}
 	}
@@ -1880,14 +1880,14 @@ void CFamiTrackerView::HaltNote(std::size_t Index, int MidiNote) const {
 	if (order.HasChannel(Channel)) {
 		stChannelID ch = m_pNoteQueue->Cut(MidiNote, Channel);
 		if (order.HasChannel(ch))
-			Env.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
+			FTEnv.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
-		if (Env.GetSettings()->General.bPreviewFullRow) {
+		if (FTEnv.GetSettings()->General.bPreviewFullRow) {
 			NoteData.Instrument = MAX_INSTRUMENTS;
 
 			order.ForeachChannel([&] (stChannelID i) {
 				if (i != ch)
-					Env.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_1);
+					FTEnv.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_1);
 			});
 		}
 	}
@@ -1906,12 +1906,12 @@ void CFamiTrackerView::HaltNoteSingle(std::size_t Index) const
 	if (order.HasChannel(Channel)) {
 		for (const auto &i : m_pNoteQueue->StopChannel(Channel)) {
 			if (order.HasChannel(i))
-				Env.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_2);
+				FTEnv.GetSoundGenerator()->QueueNote(i, NoteData, NOTE_PRIO_2);
 		}
 	}
 
-	if (Env.GetSoundGenerator()->IsPlaying())
-		Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
+	if (FTEnv.GetSoundGenerator()->IsPlaying())
+		FTEnv.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1943,16 +1943,16 @@ void CFamiTrackerView::TriggerMIDINote(std::size_t Index, unsigned int MidiNote,
 //	if (TranslateChannel(Channel) == stChannelID::NOISE)
 //		FixNoise(MidiNote, MidiNote);
 
-	if (!Env.GetSettings()->Midi.bMidiVelocity)
-		Velocity = Env.GetSettings()->General.iEditStyle == edit_style_t::IT ? m_LastNote.Vol * 8 : 127;
+	if (!FTEnv.GetSettings()->Midi.bMidiVelocity)
+		Velocity = FTEnv.GetSettings()->General.iEditStyle == edit_style_t::IT ? m_LastNote.Vol * 8 : 127;
 
-	if (!(Env.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
+	if (!(FTEnv.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		PlayNote(Index, MidiNote, Velocity);
 
 	if (Insert)
 		InsertNote(GetInputNote(Note, Octave, Index, Velocity + 1));
 
-	if (Env.GetSettings()->Midi.bMidiArpeggio) {		// // //
+	if (FTEnv.GetSettings()->Midi.bMidiArpeggio) {		// // //
 		m_pArpeggiator->TriggerNote(MidiNote);
 		UpdateArpDisplay();
 	}
@@ -1972,20 +1972,20 @@ void CFamiTrackerView::CutMIDINote(std::size_t Index, unsigned int MidiNote, boo
 //		FixNoise(MidiNote, MidiNote);
 
 	// Cut note
-	if (!(Env.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
+	if (!(FTEnv.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		if (!m_bEditEnable || m_iLastMIDINote == MidiNote)
 			HaltNote(Index, MidiNote);
 
 	if (InsertCut)
 		InsertNote(GetInputNote(note_t::halt, 0, Index, 0));
 
-	if (Env.GetSettings()->Midi.bMidiArpeggio) {		// // //
+	if (FTEnv.GetSettings()->Midi.bMidiArpeggio) {		// // //
 		m_pArpeggiator->CutNote(MidiNote);
 		UpdateArpDisplay();
 	}
 
 	// IT-mode, cut note on cuts
-	if (Env.GetSettings()->General.iEditStyle == edit_style_t::IT)
+	if (FTEnv.GetSettings()->General.iEditStyle == edit_style_t::IT)
 		HaltNote(Index, MidiNote);		// // //
 
 	TRACE(L"%i: Cut note %i on channel %i\n", GetTickCount(), MidiNote, Index);
@@ -2001,20 +2001,20 @@ void CFamiTrackerView::ReleaseMIDINote(std::size_t Index, unsigned int MidiNote,
 //		FixNoise(MidiNote, MidiNote);
 
 	// Cut note
-	if (!(Env.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
+	if (!(FTEnv.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		if (!m_bEditEnable || m_iLastMIDINote == MidiNote)
 			ReleaseNote(Index, MidiNote);
 
 	if (InsertCut)
 		InsertNote(GetInputNote(note_t::release, 0, Index, 0));
 
-	if (Env.GetSettings()->Midi.bMidiArpeggio) {		// // //
+	if (FTEnv.GetSettings()->Midi.bMidiArpeggio) {		// // //
 		m_pArpeggiator->ReleaseNote(MidiNote);
 		UpdateArpDisplay();
 	}
 
 	// IT-mode, release note
-	if (Env.GetSettings()->General.iEditStyle == edit_style_t::IT)
+	if (FTEnv.GetSettings()->General.iEditStyle == edit_style_t::IT)
 		ReleaseNote(Index, MidiNote);		// // //
 
 	TRACE(L"%i: Release note %i on channel %i\n", GetTickCount(), MidiNote, Index);
@@ -2032,7 +2032,7 @@ void CFamiTrackerView::UpdateNoteQueues() {		// // //
 
 	m_pNoteQueue->ClearMaps();
 
-	if (m_bEditEnable || Env.GetSettings()->Midi.bMidiArpeggio)
+	if (m_bEditEnable || FTEnv.GetSettings()->Midi.bMidiArpeggio)
 		pSongView->GetChannelOrder().ForeachChannel([&] (stChannelID i) {
 			m_pNoteQueue->AddMap({i});
 		});
@@ -2110,9 +2110,9 @@ void CFamiTrackerView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		}
 	}
 
-	if ((nChar == VK_ADD || nChar == VK_SUBTRACT) && Env.GetSettings()->General.bHexKeypad)		// // //
+	if ((nChar == VK_ADD || nChar == VK_SUBTRACT) && FTEnv.GetSettings()->General.bHexKeypad)		// // //
 		HandleKeyboardInput(nChar);
-	else if (!Env.GetSettings()->General.bHexKeypad || !(nChar == VK_RETURN && !(nFlags & KF_EXTENDED))) switch (nChar) {
+	else if (!FTEnv.GetSettings()->General.bHexKeypad || !(nChar == VK_RETURN && !(nFlags & KF_EXTENDED))) switch (nChar) {
 		case VK_UP:
 			OnKeyDirUp();
 			break;
@@ -2253,7 +2253,7 @@ void CFamiTrackerView::OnKeyTab()
 void CFamiTrackerView::OnKeyPageUp()
 {
 	// Move page up
-	int PageSize = Env.GetSettings()->General.iPageStepSize;
+	int PageSize = FTEnv.GetSettings()->General.iPageStepSize;
 	m_pPatternEditor->MoveUp(PageSize);
 	InvalidateCursor();
 }
@@ -2261,7 +2261,7 @@ void CFamiTrackerView::OnKeyPageUp()
 void CFamiTrackerView::OnKeyPageDown()
 {
 	// Move page down
-	int PageSize = Env.GetSettings()->General.iPageStepSize;
+	int PageSize = FTEnv.GetSettings()->General.iPageStepSize;
 	m_pPatternEditor->MoveDown(PageSize);
 	InvalidateCursor();
 }
@@ -2326,7 +2326,7 @@ void CFamiTrackerView::OnKeyDelete()
 		OnEditDelete();
 	}
 	else {
-		bool bPullUp = Env.GetSettings()->General.bPullUpDelete || bShiftPressed;
+		bool bPullUp = FTEnv.GetSettings()->General.bPullUpDelete || bShiftPressed;
 		auto pAction = std::make_unique<CPActionDeleteRow>(bPullUp, false);		// // //
 		auto &Action = *pAction; // TODO: remove
 		if (AddAction(std::move(pAction)))
@@ -2355,7 +2355,7 @@ void CFamiTrackerView::KeyDecreaseAction()
 
 bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &StepDown, bool &MoveRight, bool &MoveLeft)
 {
-	edit_style_t EditStyle = Env.GetSettings()->General.iEditStyle;
+	edit_style_t EditStyle = FTEnv.GetSettings()->General.iEditStyle;
 	const cursor_column_t Column = m_pPatternEditor->GetColumn();		// // //
 
 	if (!m_bEditEnable)
@@ -2383,7 +2383,7 @@ bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &Ste
 	int Value = ConvertKeyToHex(Key);
 	unsigned char Mask, Shift;
 
-	if (Value == -1 && Env.GetSettings()->General.bHexKeypad)		// // //
+	if (Value == -1 && FTEnv.GetSettings()->General.bHexKeypad)		// // //
 		Value = ConvertKeyExtra(Key);
 	if (Value == -1)
 		return false;
@@ -2431,7 +2431,7 @@ bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &Ste
 
 bool CFamiTrackerView::EditVolumeColumn(stChanNote &Note, int Key, bool &bStepDown)
 {
-	edit_style_t EditStyle = Env.GetSettings()->General.iEditStyle;
+	edit_style_t EditStyle = FTEnv.GetSettings()->General.iEditStyle;
 
 	if (!m_bEditEnable)
 		return false;
@@ -2452,7 +2452,7 @@ bool CFamiTrackerView::EditVolumeColumn(stChanNote &Note, int Key, bool &bStepDo
 
 	int Value = ConvertKeyToHex(Key);
 
-	if (Value == -1 && Env.GetSettings()->General.bHexKeypad)		// // //
+	if (Value == -1 && FTEnv.GetSettings()->General.bHexKeypad)		// // //
 		Value = ConvertKeyExtra(Key);
 	if (Value == -1)
 		return false;
@@ -2467,7 +2467,7 @@ bool CFamiTrackerView::EditVolumeColumn(stChanNote &Note, int Key, bool &bStepDo
 
 bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar, int EffectIndex, bool &bStepDown)
 {
-	edit_style_t EditStyle = Env.GetSettings()->General.iEditStyle;
+	edit_style_t EditStyle = FTEnv.GetSettings()->General.iEditStyle;
 
 	if (!m_bEditEnable)
 		return false;
@@ -2491,7 +2491,7 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 	if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9)
 		nChar = '0' + nChar - VK_NUMPAD0;
 
-	if (effect_t Effect = Env.GetSoundChipService()->TranslateEffectName(nChar, GetSelectedChannelID().Chip); Effect != effect_t::none) {		// // //
+	if (effect_t Effect = FTEnv.GetSoundChipService()->TranslateEffectName(nChar, GetSelectedChannelID().Chip); Effect != effect_t::none) {		// // //
 		Note.Effects[EffectIndex].fx = Effect;
 		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::none)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
@@ -2513,7 +2513,7 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 
 bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectIndex, bool &bStepDown, bool &bMoveRight, bool &bMoveLeft)
 {
-	edit_style_t EditStyle = Env.GetSettings()->General.iEditStyle;		// // //
+	edit_style_t EditStyle = FTEnv.GetSettings()->General.iEditStyle;		// // //
 	const cursor_column_t Column = m_pPatternEditor->GetColumn();		// // //
 	int Value = ConvertKeyToHex(Key);
 
@@ -2536,7 +2536,7 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 		return true;
 	}
 
-	if (Value == -1 && Env.GetSettings()->General.bHexKeypad)		// // //
+	if (Value == -1 && FTEnv.GetSettings()->General.bHexKeypad)		// // //
 		Value = ConvertKeyExtra(Key);
 	if (Value == -1)
 		return false;
@@ -2580,9 +2580,9 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 
 void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 {
-	if (Env.GetAccelerator()->IsKeyUsed(nChar)) return;		// // //
+	if (FTEnv.GetAccelerator()->IsKeyUsed(nChar)) return;		// // //
 
-	edit_style_t EditStyle = Env.GetSettings()->General.iEditStyle;		// // //
+	edit_style_t EditStyle = FTEnv.GetSettings()->General.iEditStyle;		// // //
 	int Index = 0;
 
 	int Frame = GetSelectedFrame();
@@ -2700,7 +2700,7 @@ bool CFamiTrackerView::DoRelease() const
 
 void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 {
-	if (Env.GetAccelerator()->IsKeyUsed(nChar))
+	if (FTEnv.GetAccelerator()->IsKeyUsed(nChar))
 		return;		// // //
 
 	// Play a note from the keyboard
@@ -2739,7 +2739,7 @@ void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 		if (Note == -1)
 			return;
 		// IT doesn't cut the note when key is released
-		if (Env.GetSettings()->General.iEditStyle != edit_style_t::IT) {
+		if (FTEnv.GetSettings()->General.iEditStyle != edit_style_t::IT) {
 			// Find if note release should be used
 			// TODO: make this an option instead?
 			if (DoRelease())
@@ -2783,27 +2783,27 @@ stChannelID CFamiTrackerView::SplitAdjustChannel(stChannelID Channel, const stCh
 
 bool CFamiTrackerView::CheckClearKey(unsigned char Key) const
 {
-	return (Key == Env.GetSettings()->Keys.iKeyClear);
+	return (Key == FTEnv.GetSettings()->Keys.iKeyClear);
 }
 
 bool CFamiTrackerView::CheckReleaseKey(unsigned char Key) const
 {
-	return (Key == Env.GetSettings()->Keys.iKeyNoteRelease);
+	return (Key == FTEnv.GetSettings()->Keys.iKeyNoteRelease);
 }
 
 bool CFamiTrackerView::CheckHaltKey(unsigned char Key) const
 {
-	return (Key == Env.GetSettings()->Keys.iKeyNoteCut);
+	return (Key == FTEnv.GetSettings()->Keys.iKeyNoteCut);
 }
 
 bool CFamiTrackerView::CheckEchoKey(unsigned char Key) const		// // //
 {
-	return (Key == Env.GetSettings()->Keys.iKeyEchoBuffer);
+	return (Key == FTEnv.GetSettings()->Keys.iKeyEchoBuffer);
 }
 
 bool CFamiTrackerView::CheckRepeatKey(unsigned char Key) const
 {
-	return (Key == Env.GetSettings()->Keys.iKeyRepeat);
+	return (Key == FTEnv.GetSettings()->Keys.iKeyRepeat);
 }
 
 int CFamiTrackerView::TranslateKeyModplug(unsigned char Key) const
@@ -2941,7 +2941,7 @@ int CFamiTrackerView::TranslateKey(unsigned char Key) const
 	// Translates a keyboard character into a MIDI note
 
 	// For modplug users
-	if (Env.GetSettings()->General.iEditStyle == edit_style_t::MPT)
+	if (FTEnv.GetSettings()->General.iEditStyle == edit_style_t::MPT)
 		return TranslateKeyModplug(Key);
 
 	// Default
@@ -2953,7 +2953,7 @@ bool CFamiTrackerView::PreventRepeat(unsigned char Key, bool Insert)
 	if (m_cKeyList[Key] == 0)
 		m_cKeyList[Key] = 1;
 	else {
-		if ((!Env.GetSettings()->General.bKeyRepeat || !Insert))
+		if ((!FTEnv.GetSettings()->General.bKeyRepeat || !Insert))
 			return true;
 	}
 
@@ -3008,7 +3008,7 @@ void CFamiTrackerView::TranslateMidiMessage()
 {
 	// Check and handle MIDI messages
 
-	CMIDI *pMIDI = Env.GetMIDI();
+	CMIDI *pMIDI = FTEnv.GetMIDI();
 	CSongView *pSongView = GetSongView();		// // //
 	CStringW Status;
 
@@ -3019,7 +3019,7 @@ void CFamiTrackerView::TranslateMidiMessage()
 	while (pMIDI->ReadMessage(Message, Channel, Data1, Data2)) {
 
 		if (Message != 0x0F) {
-			if (!Env.GetSettings()->Midi.bMidiChannelMap)
+			if (!FTEnv.GetSettings()->Midi.bMidiChannelMap)
 				Channel = GetSelectedChannel();
 			Channel = std::clamp((int)Channel, 0, (int)pSongView->GetChannelOrder().GetChannelCount() - 1);		// // //
 		}
@@ -3155,14 +3155,14 @@ void CFamiTrackerView::OnTrackerRecordToInst()		// // //
 
 	if (IsChannelMuted(GetSelectedChannelID()))
 		ToggleChannel(GetSelectedChannelID());
-	Env.GetSoundGenerator()->SetRecordChannel(m_iMenuChannel == Env.GetSoundGenerator()->GetRecordChannel() ? stChannelID { } : m_iMenuChannel);
+	FTEnv.GetSoundGenerator()->SetRecordChannel(m_iMenuChannel == FTEnv.GetSoundGenerator()->GetRecordChannel() ? stChannelID { } : m_iMenuChannel);
 	InvalidateHeader();
 }
 
 void CFamiTrackerView::OnTrackerRecorderSettings()
 {
 	if (CRecordSettingsDlg dlg; dlg.DoModal() == IDOK)
-		Env.GetSoundGenerator()->SetRecordSetting(dlg.GetRecordSetting());
+		FTEnv.GetSoundGenerator()->SetRecordSetting(dlg.GetRecordSetting());
 }
 
 void CFamiTrackerView::AdjustOctave(int Delta)		// // //
@@ -3187,7 +3187,7 @@ void CFamiTrackerView::SetStepping(int Step)
 {
 	m_iInsertKeyStepping = Step;
 
-	if (Step > 0 && !Env.GetSettings()->General.bNoStepMove)
+	if (Step > 0 && !FTEnv.GetSettings()->General.bNoStepMove)
 		m_iMoveKeyStepping = Step;
 	else
 		m_iMoveKeyStepping = 1;
@@ -3451,7 +3451,7 @@ void CFamiTrackerView::OnUpdateFind(CCmdUI *pCmdUI)		// // //
 }
 
 void CFamiTrackerView::OnRecallChannelState() {		// // //
-	GetParentFrame()->SetMessageText(conv::to_wide(Env.GetSoundGenerator()->RecallChannelState(GetSelectedChannelID())).data());
+	GetParentFrame()->SetMessageText(conv::to_wide(FTEnv.GetSoundGenerator()->RecallChannelState(GetSelectedChannelID())).data());
 }
 
 CStringW CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) const		// // //

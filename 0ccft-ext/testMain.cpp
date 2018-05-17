@@ -22,7 +22,7 @@ public:
 
 int main() try {
 	CFamiTrackerModule modfile;
-	modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));
+	modfile.SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));
 
 	Kraid { }(modfile);
 

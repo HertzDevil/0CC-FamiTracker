@@ -46,15 +46,15 @@ namespace {
 template <typename T>
 T GetRegValue(LPCWSTR section, LPCWSTR entry, const T &default_value) {
 	if constexpr (std::is_enum_v<T>)
-		return enum_cast<T>(Env.GetMainApp()->GetProfileIntW(section, entry, static_cast<int>(default_value)));
+		return enum_cast<T>(FTEnv.GetMainApp()->GetProfileIntW(section, entry, static_cast<int>(default_value)));
 	else if constexpr (std::is_integral_v<T>)
-		return static_cast<T>(Env.GetMainApp()->GetProfileIntW(section, entry, static_cast<int>(default_value)));
+		return static_cast<T>(FTEnv.GetMainApp()->GetProfileIntW(section, entry, static_cast<int>(default_value)));
 	else if constexpr (std::is_same_v<T, std::wstring>) {
-		CStringW v = Env.GetMainApp()->GetProfileStringW(section, entry, default_value.data());
+		CStringW v = FTEnv.GetMainApp()->GetProfileStringW(section, entry, default_value.data());
 		return std::wstring {(LPCWSTR)v, static_cast<std::size_t>(v.GetLength())};
 	}
 	else if constexpr (std::is_same_v<T, fs::path>) {
-		CStringW v = Env.GetMainApp()->GetProfileStringW(section, entry, default_value.c_str());
+		CStringW v = FTEnv.GetMainApp()->GetProfileStringW(section, entry, default_value.c_str());
 		return fs::path {(LPCWSTR)v, (LPCWSTR)v + v.GetLength()};
 	}
 	else
@@ -64,14 +64,14 @@ T GetRegValue(LPCWSTR section, LPCWSTR entry, const T &default_value) {
 template <typename T>
 void SetRegValue(LPCWSTR section, LPCWSTR entry, const T &val) {
 	if constexpr (std::is_enum_v<T>)
-		Env.GetMainApp()->WriteProfileInt(section, entry, static_cast<int>(val));
+		FTEnv.GetMainApp()->WriteProfileInt(section, entry, static_cast<int>(val));
 	else if constexpr (std::is_integral_v<T>)
-		Env.GetMainApp()->WriteProfileInt(section, entry, static_cast<int>(val));
+		FTEnv.GetMainApp()->WriteProfileInt(section, entry, static_cast<int>(val));
 	else if constexpr (std::is_same_v<T, std::wstring>)
-		Env.GetMainApp()->WriteProfileStringW(section, entry, CStringW {val.data(), static_cast<int>(val.size())});
+		FTEnv.GetMainApp()->WriteProfileStringW(section, entry, CStringW {val.data(), static_cast<int>(val.size())});
 	else if constexpr (std::is_same_v<T, fs::path>) {
 		auto wstr = val.wstring();
-		Env.GetMainApp()->WriteProfileStringW(section, entry, CStringW {wstr.data(), static_cast<int>(wstr.size())});
+		FTEnv.GetMainApp()->WriteProfileStringW(section, entry, CStringW {wstr.data(), static_cast<int>(wstr.size())});
 	}
 	else
 		static_assert(!sizeof(T), "Unknown value type");
@@ -173,14 +173,14 @@ private:
 
 stOldSettingContext::stOldSettingContext()
 {
-	std::free((void*)Env.GetMainApp()->m_pszProfileName);
-	Env.GetMainApp()->m_pszProfileName = L"FamiTracker";
+	std::free((void*)FTEnv.GetMainApp()->m_pszProfileName);
+	FTEnv.GetMainApp()->m_pszProfileName = L"FamiTracker";
 }
 
 stOldSettingContext::~stOldSettingContext()
 {
 	CStringW s(MAKEINTRESOURCEW(AFX_IDS_APP_TITLE));
-	Env.GetMainApp()->m_pszProfileName = _wcsdup(s);
+	FTEnv.GetMainApp()->m_pszProfileName = _wcsdup(s);
 }
 
 
@@ -217,8 +217,8 @@ void CSettingsService::DefaultSettings() {
 
 void CSettingsService::DeleteSettings() {
 	// Delete all settings from registry
-	HKEY hKey = Env.GetMainApp()->GetAppRegistryKey();
-	Env.GetMainApp()->DelRegTree(hKey, L"");
+	HKEY hKey = FTEnv.GetMainApp()->GetAppRegistryKey();
+	FTEnv.GetMainApp()->DelRegTree(hKey, L"");
 }
 
 template <typename T>

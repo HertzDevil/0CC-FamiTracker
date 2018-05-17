@@ -91,14 +91,14 @@ CDMCFileSoundDialog::~CDMCFileSoundDialog()
 void CDMCFileSoundDialog::OnFileNameChange()
 {
 	// Preview DMC file
-	if (!GetFileExt().CompareNoCase(L"dmc") && Env.GetSettings()->General.bWavePreview) {
+	if (!GetFileExt().CompareNoCase(L"dmc") && FTEnv.GetSettings()->General.bWavePreview) {
 		DWORD dwAttrib = GetFileAttributesW(GetPathName());
 		if (!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY) && GetPathName() != m_strLastFile) {
 			CFile file(GetPathName(), CFile::modeRead);
 			auto size = std::min<unsigned>(static_cast<unsigned>(file.GetLength()), ft0cc::doc::dpcm_sample::max_size);
 			std::vector<uint8_t> pBuf(size);
 			file.Read(pBuf.data(), size);
-			Env.GetSoundGenerator()->PreviewSample(std::make_shared<ft0cc::doc::dpcm_sample>(std::move(pBuf), ""),
+			FTEnv.GetSoundGenerator()->PreviewSample(std::make_shared<ft0cc::doc::dpcm_sample>(std::move(pBuf), ""),
 				0, DEFAULT_PREVIEW_PITCH);		// // //
 			file.Close();
 			m_strLastFile = GetPathName();
@@ -316,14 +316,14 @@ void CInstrumentEditorDPCM::OnBnClickedLoad()
 {
 	CDMCFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_ALLOWMULTISELECT | OFN_EXPLORER, LoadDefaultFilter(IDS_FILTER_DMC, L"*.dmc"));
 
-	auto path = Env.GetSettings()->GetPath(PATH_DMC);		// // //
+	auto path = FTEnv.GetSettings()->GetPath(PATH_DMC);		// // //
 	OpenFileDialog.m_pOFN->lpstrInitialDir = path.c_str();
 
 	if (OpenFileDialog.DoModal() == IDCANCEL)
 		return;
 
 	if (OpenFileDialog.GetFileName().GetLength() == 0) {
-		Env.GetSettings()->SetPath((LPCWSTR)OpenFileDialog.GetPathName(), PATH_DMC);		// // //
+		FTEnv.GetSettings()->SetPath((LPCWSTR)OpenFileDialog.GetPathName(), PATH_DMC);		// // //
 		// Multiple files
 		POSITION Pos = OpenFileDialog.GetStartPosition();
 		while (Pos) {
@@ -335,7 +335,7 @@ void CInstrumentEditorDPCM::OnBnClickedLoad()
 	else {
 		// Single file
 		LoadSample(OpenFileDialog.GetPathName(), OpenFileDialog.GetFileName());
-		Env.GetSettings()->SetPath(fs::path {(LPCWSTR)OpenFileDialog.GetPathName()}.parent_path(), PATH_DMC);
+		FTEnv.GetSettings()->SetPath(fs::path {(LPCWSTR)OpenFileDialog.GetPathName()}.parent_path(), PATH_DMC);
 	}
 }
 
@@ -354,7 +354,7 @@ void CInstrumentEditorDPCM::OnBnClickedUnload()
 		nItem = m_cSampleListCtrl.GetNextItem(nItem, LVNI_SELECTED);
 		ASSERT(nItem != -1);
 		int n = m_cSampleListCtrl.GetItemData(nItem);		// // //
-		Env.GetSoundGenerator()->CancelPreviewSample();
+		FTEnv.GetSoundGenerator()->CancelPreviewSample();
 		GetDSampleManager()->RemoveDSample(n);		// // //
 	}
 
@@ -461,9 +461,9 @@ void CInstrumentEditorDPCM::OnBnClickedSave()
 	if (!pDSample)
 		return;
 
-	auto initPath = Env.GetSettings()->GetPath(PATH_DMC);		// // //
+	auto initPath = FTEnv.GetSettings()->GetPath(PATH_DMC);		// // //
 	if (auto path = GetSavePath(conv::to_wide(pDSample->name()).data(), initPath.c_str(), IDS_FILTER_DMC, L"*.dmc")) {
-		Env.GetSettings()->SetPath(path->parent_path(), PATH_DMC);
+		FTEnv.GetSettings()->SetPath(path->parent_path(), PATH_DMC);
 
 		CFile SampleFile;
 		if (!SampleFile.Open(path->c_str(), CFile::modeWrite | CFile::modeCreate)) {
@@ -611,7 +611,7 @@ void CInstrumentEditorDPCM::OnNMDblclkSampleList(NMHDR *pNMHDR, LRESULT *pResult
 void CInstrumentEditorDPCM::OnBnClickedPreview()
 {
 	if (auto pSample = GetSelectedSample())		// // //
-		Env.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, 15);
+		FTEnv.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, 15);
 }
 
 void CInstrumentEditorDPCM::OnNMRClickSampleList(NMHDR *pNMHDR, LRESULT *pResult)
@@ -674,7 +674,7 @@ void CInstrumentEditorDPCM::OnNMDblclkTable(NMHDR *pNMHDR, LRESULT *pResult)
 
 		auto pSample = GetDSampleManager()->GetDSample(Sample);
 		if (pSample && pSample->size() > 0u && sampleName != NO_SAMPLE_STR)
-			Env.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, Pitch);
+			FTEnv.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, Pitch);
 	}
 
 	*pResult = 0;

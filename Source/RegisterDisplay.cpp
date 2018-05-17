@@ -66,7 +66,7 @@ CRegisterDisplay::CRegisterDisplay(CDC &dc, COLORREF bgColor) : dc_(dc), bgColor
 void CRegisterDisplay::Draw() {
 	dc_.SetBkMode(TRANSPARENT);		// // //
 
-	const CSoundGen *pSoundGen = Env.GetSoundGenerator();
+	const CSoundGen *pSoundGen = FTEnv.GetSoundGenerator();
 
 	const int BAR_OFFSET = LINE_HEIGHT * (3 +
 		pSoundGen->IsExpansionEnabled(sound_chip_t::APU) * 8 +
@@ -338,7 +338,7 @@ void CRegisterDisplay::DrawText_(int xOffs, const CStringA &text) {
 template <typename F>
 void CRegisterDisplay::GetRegs(sound_chip_t Chip, F f, int count) {
 	for (int j = 0; j < count; ++j) {
-		auto pState = Env.GetSoundGenerator()->GetRegState(Chip, f(j));		// // //
+		auto pState = FTEnv.GetSoundGenerator()->GetRegState(Chip, f(j));		// // //
 		reg[j] = pState->GetValue();
 		update[j] = pState->GetLastUpdatedTime() | (pState->GetNewValueTime() << 4);
 	}

@@ -628,7 +628,7 @@ void CDPCMChan::RefreshChannel()
 		m_pAPU->Write(0x4015, 0x0F);
 
 #ifndef FT0CC_EXT_BUILD
-		if (!Env.GetSettings()->General.bNoDPCMReset || Env.GetSoundGenerator()->IsPlaying())		// // //
+		if (!FTEnv.GetSettings()->General.bNoDPCMReset || FTEnv.GetSoundGenerator()->IsPlaying())		// // //
 #endif
 			m_pAPU->Write(0x4011, 0);	// regain full volume for TN
 

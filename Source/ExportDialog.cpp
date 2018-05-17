@@ -200,11 +200,11 @@ void CExportDialog::WithFile(const fs::path &initFName, F f) {		// // //
 template <typename F>
 void CExportDialog::WithFile(const fs::path &initFName, const CStringW &filterName, const CStringW &filterExt, F f) {
 //	CStringW title = CFamiTrackerDoc::GetDoc()->GetFileTitle();
-//	CStringW initPath = Env.GetSettings()->GetPath(PATH_NSF).c_str();
-	if (auto path = GetSavePath(initFName, Env.GetSettings()->GetPath(PATH_NSF).c_str(), filterName, filterExt)) {		// // //
+//	CStringW initPath = FTEnv.GetSettings()->GetPath(PATH_NSF).c_str();
+	if (auto path = GetSavePath(initFName, FTEnv.GetSettings()->GetPath(PATH_NSF).c_str(), filterName, filterExt)) {		// // //
 		if (auto file = OpenFile(*path)) {
 			f(*file);
-			Env.GetSettings()->SetPath(path->parent_path(), PATH_NSF);
+			FTEnv.GetSettings()->SetPath(path->parent_path(), PATH_NSF);
 		}
 	}
 }
@@ -267,7 +267,7 @@ void CExportDialog::CreateNES()
 
 void CExportDialog::CreateBIN()
 {
-	if (auto path = GetSavePath("music.bin", Env.GetSettings()->GetPath(PATH_NSF).c_str(), DEFAULT_FILTERS[m_iExportOption][0], DEFAULT_FILTERS[m_iExportOption][1])) {		// // //
+	if (auto path = GetSavePath("music.bin", FTEnv.GetSettings()->GetPath(PATH_NSF).c_str(), DEFAULT_FILTERS[m_iExportOption][0], DEFAULT_FILTERS[m_iExportOption][1])) {		// // //
 		if (auto BINFile = OpenFile(*path)) {
 			const fs::path DEFAULT_SAMPLE_NAME = "samples.bin";		// // //
 			fs::path samplePath = path->parent_path() / DEFAULT_SAMPLE_NAME;
@@ -290,7 +290,7 @@ void CExportDialog::CreateBIN()
 
 				CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
 				Compiler.ExportBIN(*BINFile, *DPCMFile);
-				Env.GetSettings()->SetPath(path->parent_path(), PATH_NSF);
+				FTEnv.GetSettings()->SetPath(path->parent_path(), PATH_NSF);
 			}
 		}
 	}

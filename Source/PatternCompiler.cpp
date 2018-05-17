@@ -172,7 +172,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT && (is_note(Note) || Note == note_t::echo))		// // //
 			if (!IsInstrumentCompatible(Channel.Chip, pInstManager->GetInstrumentType(ChanNote.Instrument)))		// // //
 				Print("Error: Missing or incompatible instrument (on row " + conv::from_uint(i) +
-					", channel " + std::string {Env.GetSoundChipService()->GetChannelFullName(Channel)} + ", pattern " + conv::from_uint(Pattern) + ")\n");
+					", channel " + std::string {FTEnv.GetSoundChipService()->GetChannelFullName(Channel)} + ", pattern " + conv::from_uint(Pattern) + ")\n");
 
 		// Check for delays, must come first
 		for (int j = 0; j < EffColumns; ++j) {
@@ -285,7 +285,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 					int LookUp = FindSample(DPCMInst, NESNote);
 					if (LookUp <= 0) { // Invalid sample, skip
 						Print("Error: Missing DPCM sample (on row " + conv::from_uint(i) +
-							", channel " + std::string {Env.GetSoundChipService()->GetChannelFullName(Channel)} + ", pattern " + conv::from_uint(Pattern) + ")\n");
+							", channel " + std::string {FTEnv.GetSoundChipService()->GetChannelFullName(Channel)} + ", pattern " + conv::from_uint(Pattern) + ")\n");
 						return 0xFF;
 					}
 

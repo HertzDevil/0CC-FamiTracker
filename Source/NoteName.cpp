@@ -59,7 +59,7 @@ std::string GetNoteString(note_t note, int octave) {
 	default:
 		if (is_note(note))
 #ifndef AFL_FUZZ_ENABLED
-			return std::string((Env.GetSettings()->Appearance.bDisplayFlats ? NOTE_NAME_FLAT : NOTE_NAME)[value_cast(note) - 1]) + std::to_string(octave);
+			return std::string((FTEnv.GetSettings()->Appearance.bDisplayFlats ? NOTE_NAME_FLAT : NOTE_NAME)[value_cast(note) - 1]) + std::to_string(octave);
 #else
 			return std::string((NOTE_NAME)[value_cast(note) - 1]) + std::to_string(octave);
 #endif

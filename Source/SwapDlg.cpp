@@ -74,9 +74,9 @@ BOOL CSwapDlg::OnInitDialog()
 
 	const auto &chips = CFamiTrackerDoc::GetDoc()->GetModule()->GetSoundChipSet();
 	int i = 0;
-	Env.GetSoundChipService()->ForeachType([&] (sound_chip_t ch) {
+	FTEnv.GetSoundChipService()->ForeachType([&] (sound_chip_t ch) {
 		if (chips.ContainsChip(ch)) {
-			auto wstr = conv::to_wide(Env.GetSoundChipService()->GetChipShortName(ch));
+			auto wstr = conv::to_wide(FTEnv.GetSoundChipService()->GetChipShortName(ch));
 			m_cChipFirst.AddString(wstr.data());
 			m_cChipSecond.AddString(wstr.data());
 			m_cChipFirst.SetItemData(i, value_cast(ch));
@@ -98,7 +98,7 @@ BOOL CSwapDlg::OnInitDialog()
 
 void CSwapDlg::CheckDestination() const
 {
-	auto *pSCS = Env.GetSoundChipService();
+	auto *pSCS = FTEnv.GetSoundChipService();
 
 	GetDlgItem(IDOK)->EnableWindow(
 		m_iDestChip1 != sound_chip_t::none && m_iDestChip2 != sound_chip_t::none &&

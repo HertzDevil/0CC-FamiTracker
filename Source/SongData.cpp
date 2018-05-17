@@ -37,7 +37,7 @@ CSongData::CSongData(unsigned int PatternLength) :		// // //
 	m_sTrackName("New song"),
 	m_iPatternLength(PatternLength)
 {
-	Env.GetSoundChipService()->ForeachTrack([&] (stChannelID track) {		// // //
+	FTEnv.GetSoundChipService()->ForeachTrack([&] (stChannelID track) {		// // //
 		tracks_.try_emplace(track);
 	});
 }

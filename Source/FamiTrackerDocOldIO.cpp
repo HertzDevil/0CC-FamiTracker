@@ -68,7 +68,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 	// Only single track files
 	auto &Song = *modfile.GetSong(0);
 
-	modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
+	modfile.SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
 	modfile.SetMachine(machine_t::NTSC);		// // //
 	modfile.SetVibratoStyle(vibrato_t::Up);
 	modfile.SetLinearPitch(false);

@@ -52,7 +52,7 @@ CFamiTrackerDoc::CFamiTrackerDoc() :
 	module_(std::make_unique<CFamiTrackerModule>())		// // //
 {
 	// Register this object to the sound generator
-	if (CSoundGen *pSoundGen = Env.GetSoundGenerator())
+	if (CSoundGen *pSoundGen = FTEnv.GetSoundGenerator())
 		pSoundGen->AssignDocument(this);
 }
 
@@ -95,8 +95,8 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCWSTR lpszPathName)
 	// This function is called by the GUI to load a file
 
 	//DeleteContents();
-	Env.GetSoundGenerator()->ResetDumpInstrument();
-	Env.GetSoundGenerator()->SetRecordChannel({ });		// // //
+	FTEnv.GetSoundGenerator()->ResetDumpInstrument();
+	FTEnv.GetSoundGenerator()->SetRecordChannel({ });		// // //
 
 	// Load file
 	if (!Locked([&] { return OpenDocument(lpszPathName); })) {		// // //
@@ -112,7 +112,7 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCWSTR lpszPathName)
 	}
 
 	// Update main frame
-	Env.GetSoundGenerator()->ModuleChipChanged();		// // //
+	FTEnv.GetSoundGenerator()->ModuleChipChanged();		// // //
 
 #ifdef AUTOSAVE
 	SetupAutoSave();
@@ -122,7 +122,7 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCWSTR lpszPathName)
 	SetModifiedFlag(FALSE);
 	SetExceededFlag(FALSE);		// // //
 
-	if (auto *pMainFrame = Env.GetMainFrame())		// // //
+	if (auto *pMainFrame = FTEnv.GetMainFrame())		// // //
 		pMainFrame->SelectTrack(0);
 
 	return TRUE;
@@ -141,7 +141,7 @@ BOOL CFamiTrackerDoc::OnSaveDocument(LPCWSTR lpszPathName)
 		return FALSE;
 
 	// File backup, now performed on save instead of open
-	if ((m_bForceBackup || Env.GetSettings()->General.bBackups) && !m_bBackupDone) {
+	if ((m_bForceBackup || FTEnv.GetSettings()->General.bBackups) && !m_bBackupDone) {
 		CopyFileW(lpszPathName, FormattedW(L"%s.bak", lpszPathName), FALSE);
 		m_bBackupDone = true;
 	}
@@ -162,7 +162,7 @@ void CFamiTrackerDoc::OnCloseDocument()
 	// Document object is about to be deleted
 
 	// Remove itself from sound generator
-	CSoundGen *pSoundGen = Env.GetSoundGenerator();
+	CSoundGen *pSoundGen = FTEnv.GetSoundGenerator();
 
 	if (pSoundGen)
 		pSoundGen->RemoveDocument();
@@ -176,8 +176,8 @@ void CFamiTrackerDoc::DeleteContents()
 	// Delete everything because the current object is being reused in SDI
 
 	// Make sure player is stopped
-	Env.GetSoundGenerator()->StopPlayer();		// // //
-	Env.GetSoundGenerator()->WaitForStop();
+	FTEnv.GetSoundGenerator()->StopPlayer();		// // //
+	FTEnv.GetSoundGenerator()->WaitForStop();
 
 	Locked([&] {		// // //
 		// Mark file as unloaded
@@ -187,8 +187,8 @@ void CFamiTrackerDoc::DeleteContents()
 
 		UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
 		module_ = std::make_unique<CFamiTrackerModule>();		// // //
-		Env.GetSoundGenerator()->DocumentPropertiesChanged(this);		// // // rebind module
-		Env.GetSoundGenerator()->ModuleChipChanged();
+		FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(this);		// // // rebind module
+		FTEnv.GetSoundGenerator()->ModuleChipChanged();
 
 #ifdef AUTOSAVE
 		ClearAutoSave();
@@ -213,7 +213,7 @@ void CFamiTrackerDoc::SetModifiedFlag(BOOL bModified)
 	BOOL bWasModified = IsModified();
 	CDocument::SetModifiedFlag(bModified);
 
-	if (auto *pFrameWnd = dynamic_cast<CFrameWnd *>(Env.GetMainApp()->m_pMainWnd))		// // //
+	if (auto *pFrameWnd = dynamic_cast<CFrameWnd *>(FTEnv.GetMainApp()->m_pMainWnd))		// // //
 		if (pFrameWnd->GetActiveDocument() == this && bWasModified != bModified)
 			pFrameWnd->OnUpdateFrameTitle(TRUE);
 }
@@ -224,7 +224,7 @@ void CFamiTrackerDoc::CreateEmpty()
 
 	Locked([&] {		// // //
 		// and select 2A03 only
-		GetModule()->SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
+		GetModule()->SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
 
 #ifdef AUTOSAVE
 		SetupAutoSave();
@@ -234,8 +234,8 @@ void CFamiTrackerDoc::CreateEmpty()
 		m_bFileLoaded = true;
 	});
 
-	Env.GetSoundGenerator()->ModuleChipChanged();
-	Env.GetSoundGenerator()->DocumentPropertiesChanged(this);
+	FTEnv.GetSoundGenerator()->ModuleChipChanged();
+	FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(this);
 }
 
 
@@ -285,7 +285,7 @@ void CFamiTrackerDoc::OnFileSaveAs()
 	if (!AfxGetApp()->DoPromptFileName(newName, AFX_IDS_SAVEFILE, OFN_HIDEREADONLY | OFN_PATHMUSTEXIST, FALSE, NULL))
 		return;
 
-	Env.GetSettings()->SetPath(fs::path {(LPCWSTR)newName}.parent_path(), PATH_FTM);
+	FTEnv.GetSettings()->SetPath(fs::path {(LPCWSTR)newName}.parent_path(), PATH_FTM);
 
 	DoSave(newName);
 }
@@ -314,7 +314,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 		return FALSE;
 	}
 
-	if (!CFamiTrackerDocIO {DocumentFile, Env.GetSettings()->Version.iErrorLevel}.Save(*GetModule())) {		// // //
+	if (!CFamiTrackerDocIO {DocumentFile, FTEnv.GetSettings()->Version.iErrorLevel}.Save(*GetModule())) {		// // //
 		// The save process failed, delete temp file
 		DocumentFile.Close();
 		fs::remove(TempFile);
@@ -402,12 +402,12 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 			m_bForceBackup = true;
 		}
 		else {
-			if (!CFamiTrackerDocIO {OpenFile, Env.GetSettings()->Version.iErrorLevel}.Load(*GetModule()))
+			if (!CFamiTrackerDocIO {OpenFile, FTEnv.GetSettings()->Version.iErrorLevel}.Load(*GetModule()))
 				OpenFile.RaiseModuleException((LPCSTR)CStringA(MAKEINTRESOURCEA(IDS_FILE_LOAD_ERROR)));
 		}
 	}
 	catch (CModuleException &e) {
-		if (Env.GetSettings()->Version.iErrorLevel > MODULE_ERROR_DEFAULT)
+		if (FTEnv.GetSettings()->Version.iErrorLevel > MODULE_ERROR_DEFAULT)
 			e.AppendFooter("\n\nTry lowering the module error level in the configuration menu.");
 		AfxMessageBox(conv::to_wide(e.GetErrorString()).data(), MB_ICONERROR);
 		DeleteContents();
@@ -419,8 +419,8 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 	m_bFileLoadFailed = false;
 	m_bBackupDone = false;		// // //
 
-	Env.GetSoundGenerator()->ModuleChipChanged();		// // //
-	Env.GetSoundGenerator()->DocumentPropertiesChanged(this);
+	FTEnv.GetSoundGenerator()->ModuleChipChanged();		// // //
+	FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(this);
 
 	return TRUE;
 }

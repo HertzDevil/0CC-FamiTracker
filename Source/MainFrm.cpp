@@ -366,7 +366,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 
 BOOL CMainFrame::Create(LPCWSTR lpszClassName, LPCWSTR lpszWindowName, DWORD dwStyle , const RECT& rect , CWnd* pParentWnd , LPCWSTR lpszMenuName , DWORD dwExStyle , CCreateContext* pContext)
 {
-	CSettings *pSettings = Env.GetSettings();
+	CSettings *pSettings = FTEnv.GetSettings();
 	RECT newrect;
 
 	// Load stored position
@@ -432,7 +432,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	SetTimer((UINT_PTR)timer_id_t::AUTOSAVE, 1000, NULL);
 #endif
 
-	m_wndOctaveBar.CheckDlgButton(IDC_FOLLOW, Env.GetSettings()->bFollowMode);
+	m_wndOctaveBar.CheckDlgButton(IDC_FOLLOW, FTEnv.GetSettings()->bFollowMode);
 	m_wndOctaveBar.CheckDlgButton(IDC_CHECK_COMPACT, false);		// // //
 	m_wndOctaveBar.SetDlgItemInt(IDC_HIGHLIGHT1, CSongData::DEFAULT_HIGHLIGHT.First, 0);		// // //
 	m_wndOctaveBar.SetDlgItemInt(IDC_HIGHLIGHT2, CSongData::DEFAULT_HIGHLIGHT.Second, 0);
@@ -440,7 +440,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	UpdateMenus();
 
 	// Setup saved frame editor position
-	SetFrameEditorPosition(enum_cast<frame_edit_pos_t>(Env.GetSettings()->FrameEditPos));		// // //
+	SetFrameEditorPosition(enum_cast<frame_edit_pos_t>(FTEnv.GetSettings()->FrameEditPos));		// // //
 
 #ifdef _DEBUG
 	m_strTitle.Append(L" [DEBUG]");
@@ -647,7 +647,7 @@ bool CMainFrame::CreateVisualizerWindow()
 		return false;
 
 	// Assign this to the sound generator
-	CSoundGen *pSoundGen = Env.GetSoundGenerator();
+	CSoundGen *pSoundGen = FTEnv.GetSoundGenerator();
 
 	if (pSoundGen)
 		pSoundGen->SetVisualizerWindow(m_pVisualizerWnd.get());
@@ -769,9 +769,9 @@ void CMainFrame::SetupColors()
 	ASSERT(m_pInstrumentList != NULL);
 
 	// Instrument list colors
-	m_pInstrumentList->SetBkColor(Env.GetSettings()->Appearance.iColBackground);
-	m_pInstrumentList->SetTextBkColor(Env.GetSettings()->Appearance.iColBackground);
-	m_pInstrumentList->SetTextColor(Env.GetSettings()->Appearance.iColPatternText);
+	m_pInstrumentList->SetBkColor(FTEnv.GetSettings()->Appearance.iColBackground);
+	m_pInstrumentList->SetTextBkColor(FTEnv.GetSettings()->Appearance.iColBackground);
+	m_pInstrumentList->SetTextColor(FTEnv.GetSettings()->Appearance.iColPatternText);
 	m_pInstrumentList->RedrawWindow();
 }
 
@@ -783,7 +783,7 @@ void CMainFrame::SetTempo(int Tempo)
 	if (Tempo != song.GetSongTempo()) {		// // //
 		GetDoc().ModifyIrreversible();
 		song.SetSongTempo(Tempo);
-		Env.GetSoundGenerator()->ResetTempo();
+		FTEnv.GetSoundGenerator()->ResetTempo();
 
 		if (m_wndDialogBar.GetDlgItemInt(IDC_TEMPO) != Tempo)
 			m_wndDialogBar.SetDlgItemInt(IDC_TEMPO, Tempo, FALSE);
@@ -799,7 +799,7 @@ void CMainFrame::SetSpeed(int Speed)
 		GetDoc().ModifyIrreversible();
 		song.SetSongGroove(false);
 		song.SetSongSpeed(Speed);
-		Env.GetSoundGenerator()->ResetTempo();
+		FTEnv.GetSoundGenerator()->ResetTempo();
 
 		if (m_wndDialogBar.GetDlgItemInt(IDC_SPEED) != Speed)
 			m_wndDialogBar.SetDlgItemInt(IDC_SPEED, Speed, FALSE);
@@ -813,7 +813,7 @@ void CMainFrame::SetGroove(int Groove) {
 		GetDoc().ModifyIrreversible();
 		song.SetSongGroove(true);
 		song.SetSongSpeed(Groove);
-		Env.GetSoundGenerator()->ResetTempo();
+		FTEnv.GetSoundGenerator()->ResetTempo();
 
 		if (m_wndDialogBar.GetDlgItemInt(IDC_SPEED) != Groove)
 			m_wndDialogBar.SetDlgItemInt(IDC_SPEED, Groove, FALSE);
@@ -1109,7 +1109,7 @@ void CMainFrame::SetIndicatorTime(int Min, int Sec, int MSec)
 
 void CMainFrame::SetIndicatorPos(int Frame, int Row)
 {
-	std::string String = Env.GetSettings()->General.bRowInHex ?		// // //
+	std::string String = FTEnv.GetSettings()->General.bRowInHex ?		// // //
 		(conv::from_int_hex(Row, 2) + " / " + conv::from_int_hex(Frame, 2)) :
 		(conv::from_int(Row, 3) + " / " + conv::from_int(Frame, 3));
 	m_wndStatusBar.SetPaneText(7, conv::to_wide(String).data());
@@ -1256,7 +1256,7 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// 
 					inst_type_t InstType = static_cast<inst_type_t>(file.ReadInt8());
 					if (auto pInstrument = pManager->CreateNew(InstType != INST_NONE ? InstType : INST_2A03)) {
 						pInstrument->OnBlankInstrument();
-						Env.GetInstrumentService()->GetInstrumentIO(InstType, Env.GetSettings()->Version.iErrorLevel)->
+						FTEnv.GetInstrumentService()->GetInstrumentIO(InstType, FTEnv.GetSettings()->Version.iErrorLevel)->
 							ReadFromFTI(*pInstrument, file, iInstMaj * 10 + iInstMin);		// // //
 						return pManager->InsertInstrument(Index, std::move(pInstrument));
 					}
@@ -1265,7 +1265,7 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// 
 					return false;
 				}
 				catch (CModuleException &e) {
-					if (Env.GetSettings()->Version.iErrorLevel > MODULE_ERROR_DEFAULT)
+					if (FTEnv.GetSettings()->Version.iErrorLevel > MODULE_ERROR_DEFAULT)
 						e.AppendFooter("\n\nTry lowering the module error level in the configuration menu.");
 					AfxMessageBox(conv::to_wide(e.GetErrorString()).data(), MB_ICONERROR);
 					return false;
@@ -1288,16 +1288,16 @@ void CMainFrame::OnLoadInstrument()
 
 	CFileDialog FileDialog(TRUE, L"fti", 0, OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT | OFN_EXPLORER, LoadDefaultFilter(IDS_FILTER_FTI, L"*.fti"));
 
-	auto path = Env.GetSettings()->GetPath(PATH_FTI);		// // //
+	auto path = FTEnv.GetSettings()->GetPath(PATH_FTI);		// // //
 	FileDialog.m_pOFN->lpstrInitialDir = path.c_str();
 
 	if (FileDialog.DoModal() == IDCANCEL)
 		return;
 
 	if (FileDialog.GetFileName().GetLength() == 0)		// // //
-		Env.GetSettings()->SetPath(fs::path {(LPCWSTR)FileDialog.GetPathName()}, PATH_FTI);
+		FTEnv.GetSettings()->SetPath(fs::path {(LPCWSTR)FileDialog.GetPathName()}, PATH_FTI);
 	else
-		Env.GetSettings()->SetPath(fs::path {(LPCWSTR)FileDialog.GetPathName()}.parent_path(), PATH_FTI);
+		FTEnv.GetSettings()->SetPath(fs::path {(LPCWSTR)FileDialog.GetPathName()}.parent_path(), PATH_FTI);
 
 	auto &Im = *GetDoc().GetModule()->GetInstrumentManager();		// // //
 
@@ -1332,9 +1332,9 @@ void CMainFrame::OnSaveInstrument()
 		if (ch == L'/')
 			ch = L' ';
 
-	auto initPath = Env.GetSettings()->GetPath(PATH_FTI);
+	auto initPath = FTEnv.GetSettings()->GetPath(PATH_FTI);
 	if (auto path = GetSavePath(Name.data(), initPath.c_str(), IDS_FILTER_FTI, L"*.fti")) {
-		Env.GetSettings()->SetPath(path->parent_path(), PATH_FTI);
+		FTEnv.GetSettings()->SetPath(path->parent_path(), PATH_FTI);
 
 		CSimpleFile file {*path, std::ios::out | std::ios::binary};
 		if (!file) {
@@ -1342,8 +1342,8 @@ void CMainFrame::OnSaveInstrument()
 			return;
 		}
 
-		Env.GetInstrumentService()->GetInstrumentIO(pInst->GetType(),
-			Env.GetSettings()->Version.iErrorLevel)->WriteToFTI(*pInst, file);		// // //
+		FTEnv.GetInstrumentService()->GetInstrumentIO(pInst->GetType(),
+			FTEnv.GetSettings()->Version.iErrorLevel)->WriteToFTI(*pInst, file);		// // //
 
 		if (m_pInstrumentFileTree)
 			m_pInstrumentFileTree->Changed();
@@ -1401,32 +1401,32 @@ std::unique_ptr<CPlayerCursor> CMainFrame::GetPlayerCursor(play_mode_t Mode) con
 void CMainFrame::OnTrackerPlay()
 {
 	// Play
-	Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Frame));
+	FTEnv.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Frame));
 }
 
 void CMainFrame::OnTrackerPlaypattern()
 {
 	// Loop pattern
-	Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::RepeatFrame));
+	FTEnv.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::RepeatFrame));
 }
 
 void CMainFrame::OnTrackerPlayStart()
 {
 	// Play from start of song
-	Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Song));
+	FTEnv.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Song));
 }
 
 void CMainFrame::OnTrackerPlayCursor()
 {
 	// Play from cursor
-	Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Cursor));
+	FTEnv.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Cursor));
 }
 
 void CMainFrame::OnTrackerPlayMarker()		// // // 050B
 {
 	// Play from row marker
 	if (GetTrackerView()->IsMarkerValid())
-		Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Marker));
+		FTEnv.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Marker));
 }
 
 void CMainFrame::OnUpdateTrackerPlayMarker(CCmdUI *pCmdUI)		// // // 050B
@@ -1449,7 +1449,7 @@ void CMainFrame::OnTrackerSetMarker()		// // // 050B
 void CMainFrame::OnTrackerTogglePlay()
 {
 	// Toggle playback
-	if (auto *pSoundGen = Env.GetSoundGenerator())		// // //
+	if (auto *pSoundGen = FTEnv.GetSoundGenerator())		// // //
 		if (pSoundGen->IsPlaying())
 			pSoundGen->StopPlayer();
 		else
@@ -1459,13 +1459,13 @@ void CMainFrame::OnTrackerTogglePlay()
 void CMainFrame::OnTrackerStop()
 {
 	// Stop playback
-	Env.GetSoundGenerator()->StopPlayer();		// // //
+	FTEnv.GetSoundGenerator()->StopPlayer();		// // //
 }
 
 void CMainFrame::OnTrackerKillsound()
 {
-	Env.GetSoundGenerator()->LoadSoundConfig();		// // //
-	Env.GetSoundGenerator()->SilentAll();		// // //
+	FTEnv.GetSoundGenerator()->LoadSoundConfig();		// // //
+	FTEnv.GetSoundGenerator()->SilentAll();		// // //
 	GetTrackerView()->MakeSilent();
 }
 
@@ -1515,7 +1515,7 @@ bool CMainFrame::ChangeAllPatterns() const
 
 void CMainFrame::OnKeyRepeat()
 {
-	Env.GetSettings()->General.bKeyRepeat = (m_wndDialogBar.IsDlgButtonChecked(IDC_KEYREPEAT) == 1);
+	FTEnv.GetSettings()->General.bKeyRepeat = (m_wndDialogBar.IsDlgButtonChecked(IDC_KEYREPEAT) == 1);
 }
 
 void CMainFrame::OnDeltaposKeyStepSpin(NMHDR *pNMHDR, LRESULT *pResult)
@@ -1593,7 +1593,7 @@ void CMainFrame::OnUpdateSBFrequency(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateSBTempo(CCmdUI *pCmdUI)
 {
-	CSoundGen *pSoundGen = Env.GetSoundGenerator();
+	CSoundGen *pSoundGen = FTEnv.GetSoundGenerator();
 	if (pSoundGen && !pSoundGen->IsBackgroundTask()) {
 		pCmdUI->Enable();
 		pCmdUI->SetText(FormattedW(L"%.2f BPM", pSoundGen->GetCurrentBPM()));		// // //
@@ -1608,13 +1608,13 @@ void CMainFrame::OnUpdateSBChip(CCmdUI *pCmdUI)
 	ASSERT(Chip.HasChips());
 
 	if (Chip.GetChipCount() == 1)		// // //
-		String = Env.GetSoundChipService()->GetChipFullName(Chip.GetSoundChip());
+		String = FTEnv.GetSoundChipService()->GetChipFullName(Chip.GetSoundChip());
 	else
-		Env.GetSoundChipService()->ForeachType([&] (sound_chip_t c) {
+		FTEnv.GetSoundChipService()->ForeachType([&] (sound_chip_t c) {
 			if (Chip.ContainsChip(c)) {
 				if (!String.empty())
 					String += " + ";
-				String += std::string {Env.GetSoundChipService()->GetChipShortName(c)};
+				String += std::string {FTEnv.GetSoundChipService()->GetChipShortName(c)};
 			}
 		});
 
@@ -1945,7 +1945,7 @@ void CMainFrame::UpdateBookmarkList(int Pos)		// // //
 
 void CMainFrame::OnUpdateKeyRepeat(CCmdUI *pCmdUI)
 {
-	if (Env.GetSettings()->General.bKeyRepeat)
+	if (FTEnv.GetSettings()->General.bKeyRepeat)
 		pCmdUI->SetCheck(1);
 	else
 		pCmdUI->SetCheck(0);
@@ -1972,7 +1972,7 @@ void CMainFrame::OnFileImportText()
 		//Doc.UpdateAllViews(NULL, CHANGED_ERASE);		// Remove
 		Doc.UpdateAllViews(NULL, UPDATE_PROPERTIES);
 		Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-		Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
+		FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);
 	}
 }
 
@@ -1985,7 +1985,7 @@ void CMainFrame::OnFileExportText()
 
 	CFamiTrackerDoc &Doc = GetDoc();
 
-	auto initPath = Env.GetSettings()->GetPath(PATH_NSF);		// // //
+	auto initPath = FTEnv.GetSettings()->GetPath(PATH_NSF);		// // //
 	if (auto path = GetSavePath(Doc.GetFileTitle(), initPath.c_str(), IDS_FILTER_TXT, L"*.txt")) {
 		CTextExport Exporter;
 		CStringA sResult = Exporter.ExportFile(*path, Doc);
@@ -2004,7 +2004,7 @@ void CMainFrame::OnFileExportRows()		// // //
 
 	CFamiTrackerDoc	&Doc = GetDoc();
 
-	auto initPath = Env.GetSettings()->GetPath(PATH_NSF);		// // //
+	auto initPath = FTEnv.GetSettings()->GetPath(PATH_NSF);		// // //
 	if (auto path = GetSavePath(Doc.GetFileTitle(), initPath.c_str(), IDS_FILTER_CSV, L"*.csv")) {
 		CTextExport Exporter;
 		CStringA sResult = Exporter.ExportRows(*path, *Doc.GetModule());
@@ -2021,7 +2021,7 @@ void CMainFrame::OnFileExportJson() {		// // //
 
 	CFamiTrackerDoc	&Doc = GetDoc();
 
-	auto initPath = Env.GetSettings()->GetPath(PATH_NSF);		// // //
+	auto initPath = FTEnv.GetSettings()->GetPath(PATH_NSF);		// // //
 	if (auto path = GetSavePath(Doc.GetFileTitle(), initPath.c_str(), IDS_FILTER_JSON, L"*.json")) {
 		CStdioFile f;
 		CFileException oFileException;
@@ -2045,10 +2045,10 @@ BOOL CMainFrame::DestroyWindow()
 
 	if (IsZoomed()) {
 		// Ignore window position if maximized
-		WinRect.top = Env.GetSettings()->WindowPos.iTop;
-		WinRect.bottom = Env.GetSettings()->WindowPos.iBottom;
-		WinRect.left = Env.GetSettings()->WindowPos.iLeft;
-		WinRect.right = Env.GetSettings()->WindowPos.iRight;
+		WinRect.top = FTEnv.GetSettings()->WindowPos.iTop;
+		WinRect.bottom = FTEnv.GetSettings()->WindowPos.iBottom;
+		WinRect.left = FTEnv.GetSettings()->WindowPos.iLeft;
+		WinRect.right = FTEnv.GetSettings()->WindowPos.iRight;
 	}
 
 	if (IsIconic()) {
@@ -2059,11 +2059,11 @@ BOOL CMainFrame::DestroyWindow()
 	}
 
 	// // // Save window position
-	Env.GetSettings()->WindowPos.iLeft = WinRect.left;
-	Env.GetSettings()->WindowPos.iTop = WinRect.top;
-	Env.GetSettings()->WindowPos.iRight = WinRect.right;
-	Env.GetSettings()->WindowPos.iBottom = WinRect.bottom;
-	Env.GetSettings()->WindowPos.iState = IsZoomed() ? win_state_t::Maximized : win_state_t::Normal;		// // //
+	FTEnv.GetSettings()->WindowPos.iLeft = WinRect.left;
+	FTEnv.GetSettings()->WindowPos.iTop = WinRect.top;
+	FTEnv.GetSettings()->WindowPos.iRight = WinRect.right;
+	FTEnv.GetSettings()->WindowPos.iBottom = WinRect.bottom;
+	FTEnv.GetSettings()->WindowPos.iState = IsZoomed() ? win_state_t::Maximized : win_state_t::Normal;		// // //
 
 	return CFrameWnd::DestroyWindow();
 }
@@ -2083,32 +2083,32 @@ void CMainFrame::OnTrackerSwitchToInstrument()
 
 void CMainFrame::OnTrackerDisplayAverageBPM()		// // // 050B
 {
-	Env.GetSettings()->Display.bAverageBPM = !Env.GetSettings()->Display.bAverageBPM;
+	FTEnv.GetSettings()->Display.bAverageBPM = !FTEnv.GetSettings()->Display.bAverageBPM;
 }
 
 void CMainFrame::OnTrackerDisplayChannelState()		// // // 050B
 {
-	Env.GetSettings()->Display.bChannelState = !Env.GetSettings()->Display.bChannelState;
+	FTEnv.GetSettings()->Display.bChannelState = !FTEnv.GetSettings()->Display.bChannelState;
 }
 
 void CMainFrame::OnTrackerDisplayRegisterState()
 {
-	Env.GetSettings()->Display.bRegisterState = !Env.GetSettings()->Display.bRegisterState;		// // //
+	FTEnv.GetSettings()->Display.bRegisterState = !FTEnv.GetSettings()->Display.bRegisterState;		// // //
 }
 
 void CMainFrame::OnUpdateDisplayAverageBPM(CCmdUI *pCmdUI)		// // // 050B
 {
-	pCmdUI->SetCheck(Env.GetSettings()->Display.bAverageBPM ? MF_CHECKED : MF_UNCHECKED);
+	pCmdUI->SetCheck(FTEnv.GetSettings()->Display.bAverageBPM ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnUpdateDisplayChannelState(CCmdUI *pCmdUI)		// // // 050B
 {
-	pCmdUI->SetCheck(Env.GetSettings()->Display.bChannelState ? MF_CHECKED : MF_UNCHECKED);
+	pCmdUI->SetCheck(FTEnv.GetSettings()->Display.bChannelState ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnUpdateDisplayRegisterState(CCmdUI *pCmdUI)		// // //
 {
-	pCmdUI->SetCheck(Env.GetSettings()->Display.bRegisterState ? MF_CHECKED : MF_UNCHECKED);
+	pCmdUI->SetCheck(FTEnv.GetSettings()->Display.bRegisterState ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnUpdateTrackerSwitchToInstrument(CCmdUI *pCmdUI)
@@ -2271,7 +2271,7 @@ void CMainFrame::OnClickedFollow()
 {
 	CFamiTrackerView *pView	= GetTrackerView();
 	bool FollowMode = m_wndOctaveBar.IsDlgButtonChecked(IDC_FOLLOW) != 0;
-	Env.GetSettings()->bFollowMode = FollowMode;
+	FTEnv.GetSettings()->bFollowMode = FollowMode;
 	pView->SetFollowMode(FollowMode);
 	pView->SetFocus();
 }
@@ -2331,7 +2331,7 @@ void CMainFrame::OnDeltaposHighlightSpin1(NMHDR *pNMHDR, LRESULT *pResult)		// /
 		stHighlight Hl = GetCurrentSong()->GetRowHighlight();
 		Hl.First = std::clamp(Hl.First - ((NMUPDOWN*)pNMHDR)->iDelta, 0, MAX_PATTERN_LENGTH);
 		AddAction(std::make_unique<CPActionHighlight>(Hl));
-		Env.GetSoundGenerator()->SetHighlightRows(Hl.First);		// // //
+		FTEnv.GetSoundGenerator()->SetHighlightRows(Hl.First);		// // //
 	}
 }
 
@@ -2416,7 +2416,7 @@ void CMainFrame::OnUpdateEditCopySpecial(CCmdUI *pCmdUI)		// // //
 
 void CMainFrame::OnUpdateSelectMultiFrame(CCmdUI *pCmdUI)		// // //
 {
-	pCmdUI->Enable(Env.GetSettings()->General.bMultiFrameSel ? TRUE : FALSE);
+	pCmdUI->Enable(FTEnv.GetSettings()->General.bMultiFrameSel ? TRUE : FALSE);
 }
 
 void CMainFrame::OnUpdateEditPaste(CCmdUI *pCmdUI)
@@ -2460,13 +2460,13 @@ CVisualizerWnd *CMainFrame::GetVisualizerWnd() const {		// // //
 
 void CMainFrame::OnEditEnableMIDI()
 {
-	Env.GetMIDI()->ToggleInput();
+	FTEnv.GetMIDI()->ToggleInput();
 }
 
 void CMainFrame::OnUpdateEditEnablemidi(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(Env.GetMIDI()->IsAvailable());
-	pCmdUI->SetCheck(Env.GetMIDI()->IsOpened());
+	pCmdUI->Enable(FTEnv.GetMIDI()->IsAvailable());
+	pCmdUI->SetCheck(FTEnv.GetMIDI()->IsOpened());
 }
 
 void CMainFrame::OnShowWindow(BOOL bShow, UINT nStatus)
@@ -2475,7 +2475,7 @@ void CMainFrame::OnShowWindow(BOOL bShow, UINT nStatus)
 
 	if (bShow == TRUE) {
 		// Set the window state as saved in settings
-		if (Env.GetSettings()->WindowPos.iState == win_state_t::Maximized)
+		if (FTEnv.GetSettings()->WindowPos.iState == win_state_t::Maximized)
 			CFrameWnd::ShowWindow(SW_MAXIMIZE);
 	}
 }
@@ -2484,7 +2484,7 @@ void CMainFrame::OnDestroy()
 {
 	TRACE(L"FrameWnd: Destroying main frame window\n");
 
-	CSoundGen *pSoundGen = Env.GetSoundGenerator();
+	CSoundGen *pSoundGen = FTEnv.GetSoundGenerator();
 
 	KillTimer((UINT_PTR)timer_id_t::AUDIO_CHECK);
 
@@ -2519,8 +2519,8 @@ void CMainFrame::SelectTrack(unsigned int Track)
 
 	m_iTrack = Track;
 
-	if (Env.GetSoundGenerator()->IsPlaying() && Track != Env.GetSoundGenerator()->GetPlayerTrack())		// // // 050B
-		Env.GetSoundGenerator()->ResetPlayer(Track);
+	if (FTEnv.GetSoundGenerator()->IsPlaying() && Track != FTEnv.GetSoundGenerator()->GetPlayerTrack())		// // // 050B
+		FTEnv.GetSoundGenerator()->ResetPlayer(Track);
 
 	pTrackBox->SetCurSel(m_iTrack);
 	//GetDoc().UpdateAllViews(NULL, CHANGED_TRACK);
@@ -2582,7 +2582,7 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 	CSoundChipSet Chip = Doc.GetModule()->GetSoundChipSet();		// // //
 	sound_chip_t SelectedChip = GetTrackerView()->GetSelectedChannelID().Chip;		// // // where the cursor is located
 
-	auto *pSCS = Env.GetSoundChipService();
+	auto *pSCS = FTEnv.GetSoundChipService();
 	pSCS->ForeachType([&] (sound_chip_t c) {
 		if (Chip.ContainsChip(c))
 			menu.AppendMenuW(MFT_STRING, value_cast(c) + 1, (L"New " + conv::to_wide(pSCS->GetChipShortName(c)) + L" instrument").data());
@@ -2612,7 +2612,7 @@ void CMainFrame::OnLoadInstrumentMenu(NMHDR * pNotifyStruct, LRESULT * result)
 	if (!m_pInstrumentFileTree)
 		m_pInstrumentFileTree = std::make_unique<CInstrumentFileTree>();		// // //
 	if (m_pInstrumentFileTree->ShouldRebuild())
-		m_pInstrumentFileTree->BuildMenuTree(Env.GetSettings()->GetPath(PATH_INST).c_str());
+		m_pInstrumentFileTree->BuildMenuTree(FTEnv.GetSettings()->GetPath(PATH_INST).c_str());
 
 	UINT retValue = m_pInstrumentFileTree->GetMenu().TrackPopupMenu(
 		TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, rect.left, rect.bottom, this);
@@ -2652,7 +2652,7 @@ void CMainFrame::SelectInstrumentFolder()
 
 	if (lpID != NULL) {
 		SHGetPathFromIDListW(lpID, Path);
-		Env.GetSettings()->SetPath(fs::path {Path}.parent_path(), PATH_INST);		// // //
+		FTEnv.GetSettings()->SetPath(fs::path {Path}.parent_path(), PATH_INST);		// // //
 		m_pInstrumentFileTree->Changed();
 	}
 }
@@ -2666,16 +2666,16 @@ BOOL CMainFrame::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct)
 	case value_cast(ipc_command_t::load):
 		// Load file
 		if (hasFile)
-			Env.GetMainApp()->OpenDocumentFile(fileName);		// // //
+			FTEnv.GetMainApp()->OpenDocumentFile(fileName);		// // //
 		return TRUE;
 	case value_cast(ipc_command_t::load_play):
 		// Load file
 		if (hasFile)
-			Env.GetMainApp()->OpenDocumentFile(fileName);
+			FTEnv.GetMainApp()->OpenDocumentFile(fileName);
 		// and play
 		if (CFamiTrackerDoc::GetDoc()->IsFileLoaded() &&
 			!CFamiTrackerDoc::GetDoc()->HasLastLoadFailed())
-			Env.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Song));		// // //
+			FTEnv.GetSoundGenerator()->StartPlayer(GetPlayerCursor(play_mode_t::Song));		// // //
 		return TRUE;
 	}
 
@@ -2736,7 +2736,7 @@ void CMainFrame::UpdateMenus()
 
 void CMainFrame::UpdateMenu(CMenu *pMenu)
 {
-	CAccelerator *pAccel = Env.GetAccelerator();
+	CAccelerator *pAccel = FTEnv.GetAccelerator();
 
 	for (UINT i = 0; i < static_cast<unsigned int>(pMenu->GetMenuItemCount()); ++i) {		// // //
 		UINT state = pMenu->GetMenuState(i, MF_BYPOSITION);
@@ -2945,24 +2945,24 @@ void CMainFrame::OnEditSelectother()		// // //
 
 void CMainFrame::OnDecayFast()
 {
-	Env.GetSettings()->bFastMeterDecayRate = true;
-	Env.GetSoundGenerator()->SetMeterDecayRate(decay_rate_t::Fast);		// // // 050B
+	FTEnv.GetSettings()->bFastMeterDecayRate = true;
+	FTEnv.GetSoundGenerator()->SetMeterDecayRate(decay_rate_t::Fast);		// // // 050B
 }
 
 void CMainFrame::OnDecaySlow()
 {
-	Env.GetSettings()->bFastMeterDecayRate = false;
-	Env.GetSoundGenerator()->SetMeterDecayRate(decay_rate_t::Slow);		// // // 050B
+	FTEnv.GetSettings()->bFastMeterDecayRate = false;
+	FTEnv.GetSoundGenerator()->SetMeterDecayRate(decay_rate_t::Slow);		// // // 050B
 }
 
 void CMainFrame::OnUpdateDecayFast(CCmdUI *pCmdUI)		// // // 050B
 {
-	pCmdUI->SetCheck(Env.GetSoundGenerator()->GetMeterDecayRate() == decay_rate_t::Fast ? MF_CHECKED : MF_UNCHECKED);
+	pCmdUI->SetCheck(FTEnv.GetSoundGenerator()->GetMeterDecayRate() == decay_rate_t::Fast ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnUpdateDecaySlow(CCmdUI *pCmdUI)		// // // 050B
 {
-	pCmdUI->SetCheck(Env.GetSoundGenerator()->GetMeterDecayRate() == decay_rate_t::Slow ? MF_CHECKED : MF_UNCHECKED);
+	pCmdUI->SetCheck(FTEnv.GetSoundGenerator()->GetMeterDecayRate() == decay_rate_t::Slow ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void CMainFrame::OnEditExpandpatterns()
@@ -3076,7 +3076,7 @@ void CMainFrame::SetFrameEditorPosition(frame_edit_pos_t Position) {		// // //
 	ResizeFrameWindow();	// This must be called twice or the editor disappears, I don't know why
 
 	// Save to settings
-	Env.GetSettings()->FrameEditPos = value_cast(Position);
+	FTEnv.GetSettings()->FrameEditPos = value_cast(Position);
 }
 
 void CMainFrame::SetControlPanelPosition(control_panel_pos_t Position)		// // // 050B
@@ -3167,13 +3167,13 @@ void CMainFrame::CheckAudioStatus()
 
 	// Monitor audio playback
 
-	if (!Env.GetSoundGenerator()) {
+	if (!FTEnv.GetSoundGenerator()) {
 		// Should really never be displayed (only during debugging)
 		SetMessageText(L"Audio is not working");
 		return;
 	}
 
-	auto pDriver = Env.GetSoundGenerator()->GetAudioDriver();		// // //
+	auto pDriver = FTEnv.GetSoundGenerator()->GetAudioDriver();		// // //
 	if (!pDriver)
 		return;
 
@@ -3219,16 +3219,16 @@ void CMainFrame::OnViewToolbar()
 
 void CMainFrame::OnToggleMultiplexer()
 {
-	CSettings *pSettings = Env.GetSettings();
-	CSoundGen *pSoundGen = Env.GetSoundGenerator();
+	CSettings *pSettings = FTEnv.GetSettings();
+	CSoundGen *pSoundGen = FTEnv.GetSoundGenerator();
 	if (!pSettings->bLinearNamcoMixing) {
 		pSettings->bLinearNamcoMixing = true;
-		pSoundGen->SetNamcoMixing(Env.GetSettings()->bLinearNamcoMixing);
+		pSoundGen->SetNamcoMixing(FTEnv.GetSettings()->bLinearNamcoMixing);
 		SetStatusText("Namco 163 multiplexer emulation disabled");
 	}
 	else{
 		pSettings->bLinearNamcoMixing = false;
-		pSoundGen->SetNamcoMixing(Env.GetSettings()->bLinearNamcoMixing);
+		pSoundGen->SetNamcoMixing(FTEnv.GetSettings()->bLinearNamcoMixing);
 		SetStatusText("Namco 163 multiplexer emulation enabled");
 	}
 }
@@ -3405,8 +3405,8 @@ void CMainFrame::OnTrackerPal()
 
 	Doc.GetModule()->SetMachine(machine_t::PAL);
 	Doc.ModifyIrreversible();
-	Env.GetSoundGenerator()->LoadMachineSettings();		// // //
-	Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);		// // //
+	FTEnv.GetSoundGenerator()->LoadMachineSettings();		// // //
+	FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);		// // //
 	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetModule()->GetFrameRate()));		// // //
 }
 
@@ -3416,8 +3416,8 @@ void CMainFrame::OnTrackerNtsc()
 
 	Doc.GetModule()->SetMachine(machine_t::NTSC);
 	Doc.ModifyIrreversible();
-	Env.GetSoundGenerator()->LoadMachineSettings();		// // //
-	Env.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);		// // //
+	FTEnv.GetSoundGenerator()->LoadMachineSettings();		// // //
+	FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(&Doc);		// // //
 	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetModule()->GetFrameRate()));		// // //
 }
 
@@ -3428,7 +3428,7 @@ void CMainFrame::OnSpeedDefault()
 	int Speed = 0;
 	Doc.GetModule()->SetEngineSpeed(Speed);
 	Doc.ModifyIrreversible();
-	Env.GetSoundGenerator()->LoadMachineSettings();		// // //
+	FTEnv.GetSoundGenerator()->LoadMachineSettings();		// // //
 	m_wndInstEdit.SetRefreshRate(static_cast<float>(Doc.GetModule()->GetFrameRate()));		// // //
 }
 
@@ -3450,7 +3450,7 @@ void CMainFrame::OnSpeedCustom()
 
 	Module.SetEngineSpeed(Speed);
 	Doc.ModifyIrreversible();
-	Env.GetSoundGenerator()->LoadMachineSettings();		// // //
+	FTEnv.GetSoundGenerator()->LoadMachineSettings();		// // //
 	m_wndInstEdit.SetRefreshRate(static_cast<float>(Module.GetFrameRate()));		// // //
 }
 
@@ -3458,7 +3458,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 {
 	const CFamiTrackerDoc &Doc = GetDoc();
 
-	pCmdUI->Enable(!Doc.GetModule()->HasExpansionChips() && !Env.GetSoundGenerator()->IsPlaying());		// // //
+	pCmdUI->Enable(!Doc.GetModule()->HasExpansionChips() && !FTEnv.GetSoundGenerator()->IsPlaying());		// // //
 	UINT item = Doc.GetModule()->GetMachine() == machine_t::PAL ? ID_TRACKER_PAL : ID_TRACKER_NTSC;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);
@@ -3466,7 +3466,7 @@ void CMainFrame::OnUpdateTrackerPal(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateTrackerNtsc(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!Env.GetSoundGenerator()->IsPlaying());		// // //
+	pCmdUI->Enable(!FTEnv.GetSoundGenerator()->IsPlaying());		// // //
 	UINT item = GetDoc().GetModule()->GetMachine() == machine_t::NTSC ? ID_TRACKER_NTSC : ID_TRACKER_PAL;
 	if (pCmdUI->m_pMenu != NULL)
 		pCmdUI->m_pMenu->CheckMenuRadioItem(ID_TRACKER_NTSC, ID_TRACKER_PAL, item, MF_BYCOMMAND);
@@ -3474,12 +3474,12 @@ void CMainFrame::OnUpdateTrackerNtsc(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateSpeedDefault(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!Env.GetSoundGenerator()->IsPlaying());		// // //
+	pCmdUI->Enable(!FTEnv.GetSoundGenerator()->IsPlaying());		// // //
 	pCmdUI->SetCheck(GetDoc().GetModule()->GetEngineSpeed() == 0);
 }
 
 void CMainFrame::OnUpdateSpeedCustom(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!Env.GetSoundGenerator()->IsPlaying());		// // //
+	pCmdUI->Enable(!FTEnv.GetSoundGenerator()->IsPlaying());		// // //
 	pCmdUI->SetCheck(GetDoc().GetModule()->GetEngineSpeed() != 0);
 }

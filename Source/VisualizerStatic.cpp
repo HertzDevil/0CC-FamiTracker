@@ -63,11 +63,11 @@ void CVisualizerStatic::Draw()
 	const auto FixRGB = [] (int x) { return MakeRGB(GetB(x), GetG(x), GetR(x)); };
 
 	const COLORREF Back[] = {
-		FixRGB(Env.GetSettings()->Appearance.iColBackground),
-		FixRGB(Env.GetSettings()->Appearance.iColBackgroundHilite),
-		FixRGB(Env.GetSettings()->Appearance.iColBackgroundHilite2),
+		FixRGB(FTEnv.GetSettings()->Appearance.iColBackground),
+		FixRGB(FTEnv.GetSettings()->Appearance.iColBackgroundHilite),
+		FixRGB(FTEnv.GetSettings()->Appearance.iColBackgroundHilite2),
 	};
-	const COLORREF Color = FixRGB(Env.GetSettings()->Appearance.iColPatternText);
+	const COLORREF Color = FixRGB(FTEnv.GetSettings()->Appearance.iColPatternText);
 	const COLORREF Shadow = BlendColors(Color, 1, Back[0], 2);
 
 	for (int y = m_iHeight - 1; y >= 0; --y)

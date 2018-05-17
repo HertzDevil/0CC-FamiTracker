@@ -410,15 +410,15 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 			NoteData.Vol			= MAX_VOLUME - 1;
 			NoteData.Instrument		= pFrameWnd->GetSelectedInstrumentIndex();
 
-			Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
-			Env.GetSoundGenerator()->ForceReloadInstrument(Channel);		// // //
+			FTEnv.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
+			FTEnv.GetSoundGenerator()->ForceReloadInstrument(Channel);		// // //
 			m_iLastKey = NewNote;
 		}
 	}
 	else {
 		NoteData.Note			= pView->DoRelease() ? note_t::release : note_t::halt;//note_t::halt;
 
-		Env.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
+		FTEnv.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 
 		m_iLastKey = -1;
 	}
@@ -433,7 +433,7 @@ void CInstrumentEditDlg::SwitchOffNote(bool ForceHalt)
 	NoteData.Note			= (pView->DoRelease() && !ForceHalt) ? note_t::release : note_t::halt;
 	NoteData.Instrument		= pFrameWnd->GetSelectedInstrumentIndex();
 
-	Env.GetSoundGenerator()->QueueNote(pView->GetSelectedChannelID(), NoteData, NOTE_PRIO_2);
+	FTEnv.GetSoundGenerator()->QueueNote(pView->GetSelectedChannelID(), NoteData, NOTE_PRIO_2);
 
 	m_iLastKey = -1;
 }

@@ -69,7 +69,7 @@ std::shared_ptr<CInstrument> CInstrumentManager::ReleaseInstrument(unsigned int 
 
 std::unique_ptr<CInstrument> CInstrumentManager::CreateNew(inst_type_t InstType)
 {
-	auto pInst = Env.GetInstrumentService()->Make(InstType);
+	auto pInst = FTEnv.GetInstrumentService()->Make(InstType);
 	pInst->RegisterManager(this);
 	return pInst;
 }

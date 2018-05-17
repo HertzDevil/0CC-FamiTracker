@@ -318,7 +318,7 @@ void CFamiTrackerDocIO::LoadParams(CFamiTrackerModule &modfile, int ver) {
 		modfile.SetTuning(semitones, file_.GetBlockChar());
 	}
 
-	modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(Expansion, n163chans));		// // //
+	modfile.SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(Expansion, n163chans));		// // //
 	auto &order = modfile.GetChannelOrder();
 	order = order.BuiltinOrder();
 	AssertFileData<MODULE_ERROR_STRICT>(order.GetChannelCount() == channels, "Track count mismatch");
@@ -390,7 +390,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 					file_.GetBlockChar(), 0, MAX_EFFECT_COLUMNS - 1, "Effect column count") + 1);
 			}
 			catch (CModuleException &e) {
-				e.AppendError("At track + " + std::string {Env.GetSoundChipService()->GetChannelFullName(i)});
+				e.AppendError("At track + " + std::string {FTEnv.GetSoundChipService()->GetChannelFullName(i)});
 				throw e;
 			}
 		});
@@ -420,7 +420,7 @@ void CFamiTrackerDocIO::LoadHeader(CFamiTrackerModule &modfile, int ver) {
 				});
 			}
 			catch (CModuleException &e) {
-				e.AppendError("At track " + std::string {Env.GetSoundChipService()->GetChannelFullName(i)} + ',');
+				e.AppendError("At track " + std::string {FTEnv.GetSoundChipService()->GetChannelFullName(i)} + ',');
 				throw e;
 			}
 		});
@@ -528,7 +528,7 @@ void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerModule &modfile, int ver) {
 		try {
 			// Load the instrument
 			AssertFileData(pInstrument.get() != nullptr, "Failed to create instrument");
-			Env.GetInstrumentService()->GetInstrumentIO(Type, err_lv_)->ReadFromModule(*pInstrument, file_);		// // //
+			FTEnv.GetInstrumentService()->GetInstrumentIO(Type, err_lv_)->ReadFromModule(*pInstrument, file_);		// // //
 			// Read name
 			int size = AssertRange(file_.GetBlockInt(), 0, CInstrument::INST_NAME_MAX, "Instrument name length");
 			char Name[CInstrument::INST_NAME_MAX + 1] = { };
@@ -574,7 +574,7 @@ void CFamiTrackerDocIO::SaveInstruments(const CFamiTrackerModule &modfile, int v
 	// Only write instrument if it's used
 	for (int i = 0; i < MAX_INSTRUMENTS; ++i)
 		if (auto pInst = Manager.GetInstrument(i))
-			Env.GetInstrumentService()->GetInstrumentIO(pInst->GetType(), err_lv_)->WriteToModule(*pInst, file_, i);		// // //
+			FTEnv.GetInstrumentService()->GetInstrumentIO(pInst->GetType(), err_lv_)->WriteToModule(*pInst, file_, i);		// // //
 }
 
 void CFamiTrackerDocIO::LoadSequences(CFamiTrackerModule &modfile, int ver) {

@@ -56,7 +56,7 @@ CSampleEditorDlg::CSampleEditorDlg(CWnd* pParent /*=NULL*/, std::shared_ptr<ft0c
 	m_pSampleEditorView(std::make_unique<CSampleEditorView>()),		// // //
 	m_pSample(std::move(pSample))		// // //
 {
-	m_pSoundGen = Env.GetSoundGenerator();
+	m_pSoundGen = FTEnv.GetSoundGenerator();
 }
 
 CSampleEditorDlg::~CSampleEditorDlg()

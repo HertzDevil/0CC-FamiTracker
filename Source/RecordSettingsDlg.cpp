@@ -61,7 +61,7 @@ END_MESSAGE_MAP()
 
 BOOL CRecordSettingsDlg::OnInitDialog()
 {
-	const auto &Setting = Env.GetSoundGenerator()->GetRecordSetting();
+	const auto &Setting = FTEnv.GetSoundGenerator()->GetRecordSetting();
 
 	CSpinButtonCtrl *pSpin = static_cast<CSpinButtonCtrl*>(GetDlgItem(IDC_SPIN_RECORDER_INTERVAL));
 	pSpin->SetRange(MIN_INTERVAL, MAX_SEQUENCE_ITEMS);

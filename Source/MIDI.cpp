@@ -79,10 +79,10 @@ CMIDI::~CMIDI()
 bool CMIDI::Init(void)
 {
 	// Load from settings
-	m_iInDevice = Env.GetSettings()->Midi.iMidiDevice;
-	m_iOutDevice = Env.GetSettings()->Midi.iMidiOutDevice;
+	m_iInDevice = FTEnv.GetSettings()->Midi.iMidiDevice;
+	m_iOutDevice = FTEnv.GetSettings()->Midi.iMidiOutDevice;
 
-	m_bMasterSync = Env.GetSettings()->Midi.bMidiMasterSync;
+	m_bMasterSync = FTEnv.GetSettings()->Midi.bMidiMasterSync;
 
 	// Open devices
 	OpenDevices();
@@ -93,8 +93,8 @@ bool CMIDI::Init(void)
 void CMIDI::Shutdown(void)
 {
 	// Store settings
-	Env.GetSettings()->Midi.iMidiDevice = m_iInDevice;
-	Env.GetSettings()->Midi.iMidiOutDevice = m_iOutDevice;
+	FTEnv.GetSettings()->Midi.iMidiDevice = m_iInDevice;
+	FTEnv.GetSettings()->Midi.iMidiOutDevice = m_iOutDevice;
 
 	CloseDevices();
 }

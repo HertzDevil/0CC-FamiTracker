@@ -117,7 +117,7 @@ void CCreateWaveDlg::OnBnClickedBegin()
 	EndDialog(0);
 
 	// Ask for file location
-	auto initPath = Env.GetSettings()->GetPath(PATH_WAV);
+	auto initPath = FTEnv.GetSettings()->GetPath(PATH_WAV);
 	auto path = GetSavePath(FileName, initPath.c_str(), IDS_FILTER_WAV, L"*.wav");		// // //
 	if (!path)
 		return;
@@ -168,7 +168,7 @@ BOOL CCreateWaveDlg::OnInitDialog()
 	const CChannelOrder &order = pModule->GetChannelOrder(); // CFamiTrackerView::GetView()->GetSongView()->
 
 	order.ForeachChannel([&] (stChannelID i) {
-		m_ctlChannelList.AddString(conv::to_wide(Env.GetSoundChipService()->GetChannelFullName(i)).data());		// // //
+		m_ctlChannelList.AddString(conv::to_wide(FTEnv.GetSoundChipService()->GetChannelFullName(i)).data());		// // //
 		m_ctlChannelList.SetCheck(order.GetChannelIndex(i), 1);
 	});
 

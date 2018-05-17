@@ -346,7 +346,7 @@ void CWaveEditorFDS::SetSample(int i, int s)
 		m_pInstrument->SetSample(i, s);
 		CFamiTrackerDoc::GetDoc()->ModifyIrreversible();
 	}
-	Env.GetSoundGenerator()->WaveChanged();
+	FTEnv.GetSoundGenerator()->WaveChanged();
 }
 
 int CWaveEditorFDS::GetMaxSamples() const
@@ -385,7 +385,7 @@ void CWaveEditorN163::SetSample(int i, int s)
 		m_pInstrument->SetSample(m_iWaveIndex, i, s);
 		CFamiTrackerDoc::GetDoc()->ModifyIrreversible();
 	}
-	Env.GetSoundGenerator()->WaveChanged();
+	FTEnv.GetSoundGenerator()->WaveChanged();
 }
 
 int CWaveEditorN163::GetMaxSamples() const

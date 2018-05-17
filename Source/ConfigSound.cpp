@@ -78,7 +78,7 @@ BOOL CConfigSound::OnInitDialog()
 	pTrebleSliderDamping->SetRange(0, 90);
 	pVolumeSlider->SetRange(0, 100);
 
-	const CSettings *pSettings = Env.GetSettings();
+	const CSettings *pSettings = FTEnv.GetSettings();
 
 	// Read settings
 	switch (pSettings->Sound.iSampleRate) {
@@ -102,7 +102,7 @@ BOOL CConfigSound::OnInitDialog()
 
 	UpdateTexts();
 
-	CDSound *pDSound = Env.GetSoundGenerator()->GetSoundInterface();
+	CDSound *pDSound = FTEnv.GetSoundGenerator()->GetSoundInterface();
 	const int iCount = pDSound->GetDeviceCount();
 
 	for (int i = 0; i < iCount; ++i)
@@ -128,7 +128,7 @@ BOOL CConfigSound::OnApply()
 	CComboBox *pSampleSize = static_cast<CComboBox*>(GetDlgItem(IDC_SAMPLE_SIZE));
 	CSliderCtrl *pBufSlider = static_cast<CSliderCtrl*>(GetDlgItem(IDC_BUF_LENGTH));
 
-	auto *pSettings = Env.GetSettings();		// // //
+	auto *pSettings = FTEnv.GetSettings();		// // //
 
 	switch (pSampleRate->GetCurSel()) {
 		case 0: pSettings->Sound.iSampleRate = 11025; break;
@@ -152,7 +152,7 @@ BOOL CConfigSound::OnApply()
 
 	pSettings->Sound.iDevice	= pDevices->GetCurSel();
 
-	Env.GetSoundGenerator()->LoadSoundConfig();		// // //
+	FTEnv.GetSoundGenerator()->LoadSoundConfig();		// // //
 
 	return CPropertyPage::OnApply();
 }

@@ -112,7 +112,7 @@ void CChunkRenderText::StoreChunks(const std::vector<std::shared_ptr<CChunk>> &C
 
 	// Write strings to file
 	WriteFileString("; 0CC-FamiTracker exported music data: ");
-	WriteFileString(Env.GetDocumentTitle());		// // //
+	WriteFileString(FTEnv.GetDocumentTitle());		// // //
 	WriteFileString("\n;\n\n");
 
 	// Module header

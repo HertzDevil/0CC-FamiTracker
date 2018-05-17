@@ -74,7 +74,7 @@ BOOL CChannelsDlg::OnInitDialog()
 	m_cAddedChannels.GetClientRect(rect);
 	m_cAddedChannels.InsertColumn(0, L"Name", 0, rect.Width());
 
-	auto *pSCS = Env.GetSoundChipService();		// // //
+	auto *pSCS = FTEnv.GetSoundChipService();		// // //
 	pSCS->ForeachType([&] (sound_chip_t ch) {
 		HTREEITEM hItem = m_cAvailableTree.InsertItem(conv::to_wide(pSCS->GetChipFullName(ch)).data());
 		m_cAvailableTree.SetItemData(hItem, value_cast(ch));
@@ -154,7 +154,7 @@ void CChannelsDlg::OnDblClickAdded(NMHDR *pNMHDR, LRESULT *result)
 }
 
 void CChannelsDlg::InsertChannel(HTREEITEM hItem) {
-	auto *pSCS = Env.GetSoundChipService();		// // //
+	auto *pSCS = FTEnv.GetSoundChipService();		// // //
 
 	if (HTREEITEM hParentItem = m_cAvailableTree.GetParentItem(hItem)) {
 		auto iData = m_cAvailableTree.GetItemData(hItem);
@@ -175,7 +175,7 @@ void CChannelsDlg::InsertChannel(HTREEITEM hItem) {
 }
 
 void CChannelsDlg::RemoveChannel(int nId) {		// // //
-	auto *pSCS = Env.GetSoundChipService();		// // //
+	auto *pSCS = FTEnv.GetSoundChipService();		// // //
 	DWORD_PTR iData = m_cAddedChannels.GetItemData(nId);
 	const auto &ChanID = stChannelID::FromInteger(iData);
 

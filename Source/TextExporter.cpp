@@ -393,7 +393,7 @@ public:
 				throw MakeError("effect column should be 3 characters wide, '%s' found.", (LPCSTR)sEff);
 
 			if (sEff != "...") {
-				effect_t Eff = Env.GetSoundChipService()->TranslateEffectName(sEff.GetAt(0), chan.Chip);		// // //
+				effect_t Eff = FTEnv.GetSoundChipService()->TranslateEffectName(sEff.GetAt(0), chan.Chip);		// // //
 				if (Eff == effect_t::none)
 					throw MakeError("unrecognized effect '%s'.", (LPCSTR)sEff);
 				Cell.Effects[e] = {Eff, static_cast<uint8_t>(ImportHex(sEff.Right(2)))};		// // //
@@ -567,7 +567,7 @@ void CTextExport::ImportFile(const fs::path &FileName, CFamiTrackerDoc &Doc) {
 			break;
 		case CT_EXPANSION: {
 			auto flag = t.ReadInt(0, CSoundChipSet::NSF_MAX_FLAG);		// // //
-			modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(CSoundChipSet::FromNSFFlag(flag), modfile.GetNamcoChannels()));
+			modfile.SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(CSoundChipSet::FromNSFFlag(flag), modfile.GetNamcoChannels()));
 			t.ReadEOL();
 			break;
 		}
@@ -597,7 +597,7 @@ void CTextExport::ImportFile(const fs::path &FileName, CFamiTrackerDoc &Doc) {
 		case CT_N163CHANNELS:
 			N163count = t.ReadInt(1, MAX_CHANNELS_N163);		// // //
 			t.ReadEOL();
-			modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(modfile.GetSoundChipSet(), MAX_CHANNELS_N163));
+			modfile.SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(modfile.GetSoundChipSet(), MAX_CHANNELS_N163));
 			break;
 		case CT_MACRO:
 		case CT_MACROVRC6:
@@ -707,7 +707,7 @@ void CTextExport::ImportFile(const fs::path &FileName, CFamiTrackerDoc &Doc) {
 				return INST_NONE;
 			}();
 			int inst_index = t.ReadInt(0, MAX_INSTRUMENTS - 1);		// // //
-			auto pInst = Env.GetInstrumentService()->Make(Type);
+			auto pInst = FTEnv.GetInstrumentService()->Make(Type);
 			auto seqInst = static_cast<CSeqInstrument *>(pInst.get());
 			for (auto s : enum_values<sequence_t>()) {
 				int seqindex = t.ReadInt(-1, MAX_SEQUENCES - 1);
@@ -905,10 +905,10 @@ void CTextExport::ImportFile(const fs::path &FileName, CFamiTrackerDoc &Doc) {
 		modfile.GetDSampleManager()->SetDSample(dpcm_index, std::move(dpcm_sample));
 	}
 	if (N163count != -1)		// // //
-		modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(modfile.GetSoundChipSet(), N163count));
+		modfile.SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(modfile.GetSoundChipSet(), N163count));
 
-	Env.GetSoundGenerator()->AssignModule(modfile);		// / //
-	Env.GetSoundGenerator()->ModuleChipChanged();		// // //
+	FTEnv.GetSoundGenerator()->AssignModule(modfile);		// / //
+	FTEnv.GetSoundGenerator()->ModuleChipChanged();		// // //
 }
 
 // =============================================================================
@@ -1005,7 +1005,7 @@ CStringA CTextExport::ExportFile(const fs::path &FileName, CFamiTrackerDoc &Doc)
 	int N163count = -1;		// // //
 	if (modfile.HasExpansionChip(sound_chip_t::N163)) {
 		N163count = modfile.GetNamcoChannels();
-		modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(modfile.GetSoundChipSet(), MAX_CHANNELS_N163));
+		modfile.SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(modfile.GetSoundChipSet(), MAX_CHANNELS_N163));
 		WriteString(FormattedA("# Namco 163 global settings\n"
 			"%-15s %d\n"
 			"\n",
@@ -1279,9 +1279,9 @@ CStringA CTextExport::ExportFile(const fs::path &FileName, CFamiTrackerDoc &Doc)
 	});
 
 	if (N163count != -1)		// // //
-		modfile.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(modfile.GetSoundChipSet(), N163count));
+		modfile.SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(modfile.GetSoundChipSet(), N163count));
 	WriteString("# End of export\n");
-	Env.GetSoundGenerator()->ModuleChipChanged();		// // //
+	FTEnv.GetSoundGenerator()->ModuleChipChanged();		// // //
 	return "";
 }
 

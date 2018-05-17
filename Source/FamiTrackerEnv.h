@@ -50,4 +50,4 @@ struct CFamiTrackerEnv {
 	static std::string GetDocumentTitle();
 };
 
-extern CFamiTrackerEnv Env; // saves some typing
+inline CFamiTrackerEnv FTEnv; // saves some typing

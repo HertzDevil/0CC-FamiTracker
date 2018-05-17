@@ -51,12 +51,12 @@ void CSoundDriver::SetupTracks() {
 
 	constexpr std::uint8_t INSTANCE_ID = 0u;
 
-	auto *pSCS = Env.GetSoundChipService();
+	auto *pSCS = FTEnv.GetSoundChipService();
 	pSCS->ForeachTrack([&] (stChannelID id) {
 		tracks_.try_emplace(id, nullptr, std::make_unique<CTrackerChannel>());
 	});
 	pSCS->ForeachType([&] (sound_chip_t c) {
-		chips_.push_back(Env.GetSoundChipService()->MakeChipHandler(c, INSTANCE_ID));
+		chips_.push_back(FTEnv.GetSoundChipService()->MakeChipHandler(c, INSTANCE_ID));
 	});
 
 	for (auto &x : chips_) {

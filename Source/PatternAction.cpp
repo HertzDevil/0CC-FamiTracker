@@ -123,7 +123,7 @@ bool CPatternAction::SetTargetSelection(const CMainFrame &MainFrm, CSelection &S
 		End.m_iColumn = GetCursorEndColumn(m_ClipData.ClipInfo.EndColumn);
 	}
 
-	const bool bOverflow = Env.GetSettings()->General.bOverflowPaste;
+	const bool bOverflow = FTEnv.GetSettings()->General.bOverflowPaste;
 	if (!bOverflow && End.m_iFrame > Start.Ypos.Frame) {
 		End.m_iFrame = Start.Ypos.Frame;
 		End.m_iRow = pPatternEditor->GetCurrentPatternLength(End.m_iFrame) - 1;
@@ -431,7 +431,7 @@ bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 {
 	const auto ScrollFunc = [&] (unsigned char &Old, int Limit) {
 		int New = static_cast<int>(Old) + m_iAmount;
-		if (Env.GetSettings()->General.bWrapPatternValue) {
+		if (FTEnv.GetSettings()->General.bWrapPatternValue) {
 			New %= Limit;
 			if (New < 0)
 				New += Limit;
@@ -720,7 +720,7 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 
 	const auto WarpFunc = [this] (unsigned char &x, int Lim) {
 		int Val = x + m_iAmount;
-		if (Env.GetSettings()->General.bWrapPatternValue) {
+		if (FTEnv.GetSettings()->General.bWrapPatternValue) {
 			Val %= Lim;
 			if (Val < 0) Val += Lim;
 		}

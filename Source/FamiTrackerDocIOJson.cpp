@@ -231,7 +231,7 @@ void to_json(json &j, const CSongData &song) {
 		auto tj = json(track);
 		auto &frame_list = tj["frame_list"];
 		frame_list.erase(frame_list.begin() + song.GetFrameCount(), frame_list.end());
-		tj["chip"] = std::string {Env.GetSoundChipService()->GetChipShortName(ch.Chip)};
+		tj["chip"] = std::string {FTEnv.GetSoundChipService()->GetChipShortName(ch.Chip)};
 		tj["subindex"] = ch.Subindex;
 		j["tracks"].push_back(std::move(tj));
 	});
@@ -241,7 +241,7 @@ void to_json(json &j, const CChannelOrder &order) {
 	j = json::array();
 	order.ForeachChannel([&] (stChannelID ch) {
 		j.push_back(json {
-			{"chip", std::string {Env.GetSoundChipService()->GetChipShortName(ch.Chip)}},
+			{"chip", std::string {FTEnv.GetSoundChipService()->GetChipShortName(ch.Chip)}},
 			{"subindex", ch.Subindex},
 		});
 	});
@@ -520,7 +520,7 @@ void from_json(const json &j, stChanNote &note) {
 			auto ch = fx.at("name").get<std::string>();
 			if (ch.size() != 1u)
 				throw std::invalid_argument {"Effect name must be 1 character long"};
-			effect_t effect = Env.GetSoundChipService()->TranslateEffectName(ch.front(), sound_chip_t::APU);
+			effect_t effect = FTEnv.GetSoundChipService()->TranslateEffectName(ch.front(), sound_chip_t::APU);
 			if (effect == effect_t::none)
 				throw std::invalid_argument {"Invalid effect name"};
 			note.Effects[col].fx = effect;

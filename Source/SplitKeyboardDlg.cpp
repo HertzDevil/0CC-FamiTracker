@@ -90,7 +90,7 @@ BOOL CSplitKeyboardDlg::OnInitDialog()
 	pCombo = static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_CHAN));
 	pCombo->AddString(KEEP_INST_STRING);
 	pCombo->SetCurSel(0);
-	auto *pSCS = Env.GetSoundChipService();
+	auto *pSCS = FTEnv.GetSoundChipService();
 	int i = 0;
 	pDoc->GetModule()->GetChannelOrder().ForeachChannel([&] (stChannelID ch) {
 		pCombo->AddString(conv::to_wide(pSCS->GetChannelFullName(ch)).data());

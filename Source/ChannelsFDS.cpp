@@ -126,7 +126,7 @@ void CChannelHandlerFDS::HandleRelease()
 
 int CChannelHandlerFDS::CalculateVolume() const		// // //
 {
-	if (!Env.GetSettings()->General.bFDSOldVolume)		// // // match NSF setting
+	if (!FTEnv.GetSettings()->General.bFDSOldVolume)		// // // match NSF setting
 		return LimitVolume(((m_iInstVolume + 1) * ((m_iVolume >> VOL_COLUMN_SHIFT) + 1) - 1) / 16 - GetTremolo());
 	return CChannelHandler::CalculateVolume();
 }

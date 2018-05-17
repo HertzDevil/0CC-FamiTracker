@@ -30,8 +30,6 @@
 #include "str_conv/str_conv.hpp"
 #endif
 
-CFamiTrackerEnv Env;
-
 CWinApp *CFamiTrackerEnv::GetMainApp() {
 #ifdef FT0CC_EXT_BUILD
 	return nullptr;

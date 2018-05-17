@@ -173,7 +173,7 @@ void CInstrumentEditorN163Wave::GenerateWaves(std::unique_ptr<CWaveformGenerator
 
 	GetDocument()->ModifyIrreversible();		// // //
 	m_pWaveEditor->WaveChanged();
-	Env.GetSoundGenerator()->WaveChanged();
+	FTEnv.GetSoundGenerator()->WaveChanged();
 }
 
 // // // test

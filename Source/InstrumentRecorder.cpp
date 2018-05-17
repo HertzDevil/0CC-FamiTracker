@@ -315,10 +315,10 @@ void CInstrumentRecorder::InitRecordInstrument()
 		}
 		return INST_NONE;
 	}();
-	*m_pDumpInstrument = Env.GetInstrumentService()->Make(Type);		// // //
+	*m_pDumpInstrument = FTEnv.GetInstrumentService()->Make(Type);		// // //
 	if (!*m_pDumpInstrument) return;
 
-	auto str = std::string {Env.GetSoundChipService()->GetChannelFullName(m_iRecordChannel)};
+	auto str = std::string {FTEnv.GetSoundChipService()->GetChannelFullName(m_iRecordChannel)};
 	(*m_pDumpInstrument)->SetName(u8"from " + str);
 
 	if (Type == INST_FDS) {

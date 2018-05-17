@@ -503,7 +503,7 @@ std::vector<unsigned char> CCompiler::LoadDriver(const driver_t &Driver, unsigne
 
 	if (m_pModule->GetSoundChipSet().IsMultiChip()) {		// // // special processing for multichip
 		int ptr = FT_UPDATE_EXT_ADR;
-		Env.GetSoundChipService()->ForeachType([&] (sound_chip_t chip) {
+		FTEnv.GetSoundChipService()->ForeachType([&] (sound_chip_t chip) {
 			if (chip != sound_chip_t::APU) {
 				Assert(Data[ptr] == 0x20); // jsr
 				if (!m_pModule->HasExpansionChip(chip)) {
@@ -516,7 +516,7 @@ std::vector<unsigned char> CCompiler::LoadDriver(const driver_t &Driver, unsigne
 			}
 		});
 
-		auto full = Env.GetSoundChipService()->MakeFullOrder().Canonicalize();
+		auto full = FTEnv.GetSoundChipService()->MakeFullOrder().Canonicalize();
 		full.RemoveChannel(mmc5_subindex_t::pcm);
 
 		for (std::size_t i = 0, n = full.GetChannelCount(); i < n; ++i)
@@ -1196,7 +1196,7 @@ void CCompiler::CreateInstrumentList()
 		}
 
 		// Returns number of bytes
-		const auto &compiler = Env.GetInstrumentService()->GetChunkCompiler(pInstrument->GetType());		// // //
+		const auto &compiler = FTEnv.GetInstrumentService()->GetChunkCompiler(pInstrument->GetType());		// // //
 		iTotalSize += compiler.CompileChunk(*pInstrument, Chunk, iIndex);
 
 		// // // Check if FDS

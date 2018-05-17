@@ -158,7 +158,7 @@ void CFileSoundDialog::OnFileNameChange()
 {
 	// Preview wave file
 
-	if (!GetFileExt().CompareNoCase(L"wav") && Env.GetSettings()->General.bWavePreview)
+	if (!GetFileExt().CompareNoCase(L"wav") && FTEnv.GetSettings()->General.bWavePreview)
 		PlaySoundW(GetPathName(), NULL, SND_FILENAME | SND_NODEFAULT | SND_ASYNC | SND_NOWAIT);
 
 	CFileDialog::OnFileNameChange();
@@ -198,7 +198,7 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ShowDialog() {		// // //
 
 	CFileSoundDialog OpenFileDialog(TRUE, 0, 0, OFN_HIDEREADONLY, LoadDefaultFilter(IDS_FILTER_WAV, L"*.wav"));
 
-	auto path = Env.GetSettings()->GetPath(PATH_WAV);		// // //
+	auto path = FTEnv.GetSettings()->GetPath(PATH_WAV);		// // //
 	OpenFileDialog.m_pOFN->lpstrInitialDir = path.c_str();
 	if (OpenFileDialog.DoModal() == IDCANCEL)
 		return nullptr;
@@ -206,7 +206,7 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ShowDialog() {		// // //
 	// Stop any preview
 	PlaySoundW(NULL, NULL, SND_NODEFAULT | SND_SYNC);
 
-	Env.GetSettings()->SetPath(fs::path {(LPCWSTR)OpenFileDialog.GetPathName()}.parent_path(), PATH_WAV);
+	FTEnv.GetSettings()->SetPath(fs::path {(LPCWSTR)OpenFileDialog.GetPathName()}.parent_path(), PATH_WAV);
 
 	m_strPath	  = OpenFileDialog.GetPathName();
 	m_strFileName = OpenFileDialog.GetFileName();
@@ -282,7 +282,7 @@ void CPCMImport::OnBnClickedCancel()
 	m_iVolume = 0;
 	m_pImported = NULL;
 
-	Env.GetSoundGenerator()->CancelPreviewSample();
+	FTEnv.GetSoundGenerator()->CancelPreviewSample();
 
 	OnCancel();
 }
@@ -309,7 +309,7 @@ void CPCMImport::OnBnClickedPreview()
 		SetDlgItemTextW(IDC_SAMPLESIZE, AfxFormattedW(IDS_DPCM_IMPORT_SIZE_FORMAT, FormattedW(L"%i", pSample->size())));
 
 		// Preview the sample
-		Env.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, m_iQuality);
+		FTEnv.GetSoundGenerator()->PreviewSample(std::move(pSample), 0, m_iQuality);
 	}
 }
 

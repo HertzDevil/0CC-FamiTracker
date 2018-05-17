@@ -94,9 +94,9 @@ void CModuleImportDlg::OnBnClickedOk()
 	if (n1 != n2 || c1 != c2) {
 		CSoundChipSet merged = c1.MergedWith(c2);
 		unsigned n163chs = std::max(n1, n2);
-		oldModule.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(merged, n163chs));
-		newModule.SetChannelMap(Env.GetSoundChipService()->MakeChannelMap(merged, n163chs));
-		Env.GetSoundGenerator()->ModuleChipChanged();		// // //
+		oldModule.SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(merged, n163chs));
+		newModule.SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(merged, n163chs));
+		FTEnv.GetSoundGenerator()->ModuleChipChanged();		// // //
 	}
 
 	// // // remove non-imported songs in advance
@@ -120,7 +120,7 @@ void CModuleImportDlg::OnBnClickedOk()
 		m_pDocument->UpdateAllViews(NULL, UPDATE_PATTERN);
 		m_pDocument->UpdateAllViews(NULL, UPDATE_FRAME);
 		m_pDocument->UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-		Env.GetSoundGenerator()->DocumentPropertiesChanged(m_pDocument);
+		FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(m_pDocument);
 	}
 
 	OnOK();

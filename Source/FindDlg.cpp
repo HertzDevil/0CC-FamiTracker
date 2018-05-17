@@ -209,7 +209,7 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 	const CConstSongView *pSongView = pView->GetSongView();
 	stChannelID ch = pSongView->GetChannelOrder().TranslateChannel(Cursor.m_iChannel);
 	m_cListResults.SetItemData(Pos, ch.ToInteger());
-	m_cListResults.SetItemText(Pos, CHANNEL, conv::to_wide(Env.GetSoundChipService()->GetChannelFullName(ch)).data());
+	m_cListResults.SetItemText(Pos, CHANNEL, conv::to_wide(FTEnv.GetSoundChipService()->GetChannelFullName(ch)).data());
 	m_cListResults.SetItemText(Pos, PATTERN, conv::to_wide(conv::sv_from_int_hex(pSongView->GetFramePattern(Cursor.m_iChannel, Cursor.m_iFrame), 2)).data());
 
 	m_cListResults.SetItemText(Pos, FRAME, conv::to_wide(conv::sv_from_int_hex(Cursor.m_iFrame, 2)).data());
@@ -1042,7 +1042,7 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 			}
 
 			if (m_replaceTerm.Definite[WC_EFF]) {
-				effect_t fx = Env.GetSoundChipService()->TranslateEffectName(EFF_CHAR[value_cast(m_replaceTerm.Note.Effects[0].fx)],
+				effect_t fx = FTEnv.GetSoundChipService()->TranslateEffectName(EFF_CHAR[value_cast(m_replaceTerm.Note.Effects[0].fx)],
 					pSongView->GetChannelOrder().TranslateChannel(m_pFindCursor->m_iChannel).Chip);
 				if (fx != effect_t::none)
 					for (const int &i : MatchedColumns)
@@ -1099,7 +1099,7 @@ bool CFindDlg::PrepareReplace()
 		return false;
 	}
 
-	return (m_pView->GetEditMode() && !(Env.GetSoundGenerator()->IsPlaying() && m_pView->GetFollowMode()));
+	return (m_pView->GetEditMode() && !(FTEnv.GetSoundGenerator()->IsPlaying() && m_pView->GetFollowMode()));
 }
 
 void CFindDlg::PrepareCursor(bool ReplaceAll)

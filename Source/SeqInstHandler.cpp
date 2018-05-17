@@ -111,7 +111,7 @@ void CSeqInstHandler::UpdateInstrument()
 			}
 			info.m_iSeqState = seq_state_t::Halt;
 #ifndef FT0CC_EXT_BUILD
-			Env.GetSoundGenerator()->SetSequencePlayPos(pSeq, -1);
+			FTEnv.GetSoundGenerator()->SetSequencePlayPos(pSeq, -1);
 #endif
 			break;
 
@@ -236,6 +236,6 @@ void CSeqInstHandler::seq_info_t::Step(bool isReleasing) {
 		}
 	}
 #ifndef FT0CC_EXT_BUILD
-	Env.GetSoundGenerator()->SetSequencePlayPos(m_pSequence, m_iSeqPointer);
+	FTEnv.GetSoundGenerator()->SetSequencePlayPos(m_pSequence, m_iSeqPointer);
 #endif
 }
