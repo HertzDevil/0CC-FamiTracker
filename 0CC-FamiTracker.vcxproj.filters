@@ -1403,9 +1403,6 @@
     <ClInclude Include="Source\Kraid.h">
       <Filter>Header Files\Document Utilities Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\APU\ext\2413tone.h">
-      <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers\External</Filter>
-    </ClInclude>
     <ClInclude Include="Source\APU\ext\emu2413.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers\External</Filter>
     </ClInclude>

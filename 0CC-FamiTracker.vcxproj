@@ -669,7 +669,6 @@
     <ClInclude Include="Source\ActionHandler.h" />
     <ClInclude Include="Source\APU\2A03.h" />
     <ClInclude Include="Source\APU\2A03Chan.h" />
-    <ClInclude Include="Source\APU\ext\2413tone.h" />
     <ClInclude Include="Source\APU\ext\emu2413.h" />
     <ClInclude Include="Source\APU\ext\vrc7tone.h" />
     <ClInclude Include="Source\APU\MixerChannel.h" />

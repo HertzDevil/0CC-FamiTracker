@@ -1,13 +1,32 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2014 Mitsutaka Okazaki
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+
 #ifndef _EMU2413_H_
 #define _EMU2413_H_
 
-#ifdef EMU2413_DLL_EXPORTS
-  #define EMU2413_API __declspec(dllexport)
-#elif defined(EMU2413_DLL_IMPORTS)
-  #define EMU2413_API __declspec(dllimport)
-#else
-  #define EMU2413_API
-#endif
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,14 +87,10 @@ typedef struct __OPLL {
   uint32_t adr ;
   int32_t out ;
 
-#ifndef EMU2413_COMPACTION
   uint32_t realstep ;
   uint32_t oplltime ;
   uint32_t opllstep ;
-  int32_t prev, next ;
-  int32_t sprev[2],snext[2];
   uint32_t pan[16];
-#endif
 
   /* Register */
   uint8_t reg[0x40] ;
@@ -107,43 +122,44 @@ typedef struct __OPLL {
 
   uint32_t mask ;
 
+  /* Output of each channels / 0-8:TONE, 9:BD 10:HH 11:SD, 12:TOM, 13:CYM, 14:Reserved for DAC */
+  int16_t ch_out[15];
+
 } OPLL ;
 
 /* Create Object */
-EMU2413_API OPLL *OPLL_new(uint32_t clk, uint32_t rate) ;
-EMU2413_API void OPLL_delete(OPLL *) ;
+OPLL *OPLL_new(uint32_t clk, uint32_t rate) ;
+void OPLL_delete(OPLL *) ;
 
 /* Setup */
-EMU2413_API void OPLL_reset(OPLL *) ;
-EMU2413_API void OPLL_reset_patch(OPLL *, int32_t) ;
-EMU2413_API void OPLL_set_rate(OPLL *opll, uint32_t r) ;
-EMU2413_API void OPLL_set_quality(OPLL *opll, uint32_t q) ;
-EMU2413_API void OPLL_set_pan(OPLL *, uint32_t ch, uint32_t pan);
+void OPLL_reset(OPLL *) ;
+void OPLL_reset_patch(OPLL *, int32_t) ;
+void OPLL_set_rate(OPLL *opll, uint32_t r) ;
+void OPLL_set_quality(OPLL *opll, uint32_t q) ;
+void OPLL_set_pan(OPLL *, uint32_t ch, uint32_t pan);
 
 /* Port/Register access */
-EMU2413_API void OPLL_writeIO(OPLL *, uint32_t reg, uint32_t val) ;
-EMU2413_API void OPLL_writeReg(OPLL *, uint32_t reg, uint32_t val) ;
+void OPLL_writeIO(OPLL *, uint32_t reg, uint32_t val) ;
+void OPLL_writeReg(OPLL *, uint32_t reg, uint32_t val) ;
 
 /* Synthsize */
-EMU2413_API int16_t OPLL_calc(OPLL *) ;
-EMU2413_API void OPLL_calc_stereo(OPLL *, int32_t out[2]) ;
+int16_t OPLL_calc(OPLL *) ;
+void OPLL_calc_stereo(OPLL *, int32_t out[2]) ;
 
 /* Misc */
-EMU2413_API void OPLL_setPatch(OPLL *, const uint8_t *dump) ;
-EMU2413_API void OPLL_copyPatch(OPLL *, int32_t, OPLL_PATCH *) ;
-EMU2413_API void OPLL_forceRefresh(OPLL *) ;
+void OPLL_setPatch(OPLL *, const uint8_t *dump) ;
+void OPLL_copyPatch(OPLL *, int32_t, OPLL_PATCH *) ;
+void OPLL_forceRefresh(OPLL *) ;
 /* Utility */
-EMU2413_API void OPLL_dump2patch(const uint8_t *dump, OPLL_PATCH *patch) ;
-EMU2413_API void OPLL_patch2dump(const OPLL_PATCH *patch, uint8_t *dump) ;
-EMU2413_API void OPLL_getDefaultPatch(int32_t type, int32_t num, OPLL_PATCH *) ;
+void OPLL_dump2patch(const uint8_t *dump, OPLL_PATCH *patch) ;
+void OPLL_patch2dump(const OPLL_PATCH *patch, uint8_t *dump) ;
+void OPLL_getDefaultPatch(int32_t type, int32_t num, OPLL_PATCH *) ;
 
 /* Channel Mask */
-EMU2413_API uint32_t OPLL_setMask(OPLL *, uint32_t mask) ;
-EMU2413_API uint32_t OPLL_toggleMask(OPLL *, uint32_t mask) ;
+uint32_t OPLL_setMask(OPLL *, uint32_t mask) ;
+uint32_t OPLL_toggleMask(OPLL *, uint32_t mask) ;
 
-#define dump2patch OPLL_dump2patch
-
-int32_t OPLL_getchanvol(int i);
+int16_t OPLL_getchanvol(int i);
 
 #ifdef __cplusplus
 }
