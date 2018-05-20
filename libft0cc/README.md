@@ -1,8 +1,8 @@
 # libft0cc
 
-[![Travis](https://img.shields.io/travis/HertzDevil/0CC-FamiTracker/master.svg?style=flat-square&logo=travis)][travis-ci]
-[![AppVeyor](https://img.shields.io/appveyor/ci/HertzDevil/0CC-FamiTracker/master.svg?style=flat-square&logo=appveyor)][appveyor]
-[![Coveralls](https://img.shields.io/coveralls/github/HertzDevil/0CC-FamiTracker/master.svg?style=flat-square)][coveralls]
+[![Travis](https://img.shields.io/travis/HertzDevil/0CC-FamiTracker/dev.svg?style=flat-square&logo=travis)][travis-ci]
+[![AppVeyor](https://img.shields.io/appveyor/ci/HertzDevil/0CC-FamiTracker/dev.svg?style=flat-square&logo=appveyor)][appveyor]
+[![Coveralls](https://img.shields.io/coveralls/github/HertzDevil/0CC-FamiTracker/dev.svg?style=flat-square)][coveralls]
 
 **libft0cc** comprises the core components of 0CC-FamiTracker. These components
 are either exclusive to 0CC-FamiTracker, or rewritten based on the original
