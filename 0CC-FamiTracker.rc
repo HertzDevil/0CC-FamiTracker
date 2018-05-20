@@ -533,8 +533,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,3,15,2
- PRODUCTVERSION 0,3,15,2
+ FILEVERSION 0,3,15,3
+ PRODUCTVERSION 0,3,15,3
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -551,12 +551,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "HertzDevil"
             VALUE "FileDescription", "0CC-FamiTracker, Extension of FamiTracker"
-            VALUE "FileVersion", "0.3.15.2"
+            VALUE "FileVersion", "0.3.15.3"
             VALUE "InternalName", "0CC-FamiTracker.exe"
             VALUE "LegalCopyright", " (c) jsr, HertzDevil 2005-2018 All rights reserved."
             VALUE "OriginalFilename", "0CC-FamiTracker.exe"
             VALUE "ProductName", "0CC-FamiTracker"
-            VALUE "ProductVersion", "0.3.15.2"
+            VALUE "ProductVersion", "0.3.15.3"
         END
     END
     BLOCK "VarFileInfo"
@@ -1038,7 +1038,7 @@ BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,12,63,20,20,SS_REALSIZEIMAGE
     LTEXT           "0CC-FamiTracker",IDC_ABOUT1,54,58,219,11,SS_NOPREFIX
     LTEXT           "Extension of FamiTracker",IDC_ABOUT2,54,76,167,11,SS_NOPREFIX
-    LTEXT           "Copyright (C) 2005 - 2015 jsr, 2014 - 2017 HertzDevil",IDC_ABOUT3,54,92,215,11
+    LTEXT           "Copyright (C) 2005 - 2015 jsr, 2014 - 2018 HertzDevil",IDC_ABOUT3,54,92,215,11
     LTEXT           "E-mail:",IDC_STATIC,54,107,24,10
     LTEXT           "nicetas.c@gmail.com",IDC_MAIL,84,107,70,10,SS_NOTIFY
     LTEXT           "Web:",IDC_STATIC,54,117,24,9
