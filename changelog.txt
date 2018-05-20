@@ -2,9 +2,88 @@
 Change Log
 Written by HertzDevil
 
-Version 0.3.15.1 - Oct 30 2017
+Version 0.3.15.2 - May 20 2018
 
 --------------------------------------------------------------------------------
+
+V0.3.15.2 - 05/20/18
+
+Additions:
+
+- Added JSON export (experimental)
+- Arpeggio scheme sequence editor now includes a mode selector, use left / right
+   mouse button to cycle forward / backward
+- Module import options for instruments are grooves are now more granular:
+   - Do not import
+   - Duplicate and import (same as existing behaviour, indices fill empty slots)
+   - Import and overwrite (resources from new module replace existing resources,
+      indices do not change)
+   - Import missing entries (similar to above, but import only if existing slot
+      is not occupied)
+
+Improvements:
+
+- Tracker now uses UTF-8 encoding, this also fixes garbled text at various
+   places
+- Tracker now retrieves song state when playing a single row
+- The following actions are now undoable:
+   - Add / remove / rename instrument
+   - Swap instruments
+   - Clear patterns
+- CPU usage display on the performance dialog is now more accurate
+- Changing frame count no longer deletes bookmarks beyond the last frame, they
+   are now greyed out on the bookmark settings dialog
+- Add / Remove DPCM assignment buttons on 2A03 instrument editor now work across
+   octaves
+- NSF export no longer modifies current document
+- Sequence editor now draws straight lines when moving cursor across multiple
+   items at once
+- Clicking loop or release point on the sequence editor now removes the point on
+   the sequence
+- 5B noise sequence editor is now closer to 0.5.0 beta's implementation
+- Fxx speed / tempo split point is now adjustable on the module properties
+   dialog
+- DPCM samples and instrument sequences are no longer imported if instruments
+   are not imported
+- "Spectrum analyzer (fine)" visualizer is now finer than before
+- Replaced FDS emulation core with NSFPlay's upstream version
+- Replaced Fast Fourier Transform code with new one licensed under MIT
+
+Bug fixes:
+
+- Improved tracker responsiveness when scrolling across multiple patterns
+- Fixed unused patterns claiming memory unnecessarily
+- Tracker no longer freezes when searching for a non-existent groove index less
+   than the current groove index on the song settings panel
+- Fixed crash when loading instruments while importing text files
+- Fixed crashes when importing FTIs for sequence instruments
+- Fixed text exporter writing additional text for FDS instruments
+- Tracker now reads N163 FTIs properly that include auto-wave position
+   information from 0.5.0 beta (but still does not implement it)
+- Fixed find / replace dialog not recognizing hexadecimal strings
+- BPM display and wave file renderer no longer run twice as fast
+- Drag and drop across tracker instances now displays the correct number of rows
+   in the selection
+- Fixed tracker erasing pattern selection after dragging and dropping to the
+   same location
+- Theme import / export now handle hexadecimal strings properly
+- Fixed "Clear All" on groove dialog removing groove 1F from the list
+- Fixed "Auto arpeggiate chords" option not working when current song is not
+   playing
+- Fixed row highlight sometimes not aligning with first row of the current
+   bookmark region / beginning of the song
+- Fixed swap channels dialog sometimes not allowing swap when 2A03 is selected
+- Fixed several incomplete error messages when loading invalid modules
+- Fixed VRC7 Hxx and Ixx not working if a non-custom patch is played before a
+   custom patch
+- VRC7 volume meter no longer flickers on "fast" decay rate
+- Fixed instrument recorder behaviour on VRC6 PUlse 2
+- Fixed "x:y" and "x:y:z" syntax not working with note names for fixed arpeggio
+   MML input
+- Version checker now always looks for the most recent version number
+- Player no longer retrieves song state of current row to be played
+
+
 
 V0.3.15.1 - 10/30/17
 

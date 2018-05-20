@@ -1,9 +1,19 @@
 0CC-FamiTracker Mod
 Readme / Manual
 Written by HertzDevil
-Version 0.3.15.1 - Oct 30 2017
+Version 0.3.15.2 - May 20 2018
 
 --------------------------------------------------------------------------------
+
+                             +====================+
+                             |  Important Notice  |
+                             +====================+
+
+This readme file, along with the change log and the data format specification
+text files, will be replaced with online HTML documentation for the next major
+release.
+
+
 
                                   +=========+
                                   |  About  |
