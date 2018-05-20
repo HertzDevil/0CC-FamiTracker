@@ -2,9 +2,18 @@
 Change Log
 Written by HertzDevil
 
-Version 0.3.15.2 - May 20 2018
+Version 0.3.15.3 - May 20 2018
 
 --------------------------------------------------------------------------------
+
+V0.3.15.3 - 05/20/18
+
+Bug fixes:
+
+- Fixed a fatal issue that caused drag and paste operations to create incorrect
+   pattern selections
+
+
 
 V0.3.15.2 - 05/20/18
 

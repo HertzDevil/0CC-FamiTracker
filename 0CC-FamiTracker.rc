@@ -1038,7 +1038,7 @@ BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,12,63,20,20,SS_REALSIZEIMAGE
     LTEXT           "0CC-FamiTracker",IDC_ABOUT1,54,58,219,11,SS_NOPREFIX
     LTEXT           "Extension of FamiTracker",IDC_ABOUT2,54,76,167,11,SS_NOPREFIX
-    LTEXT           "Copyright (C) 2005 - 2015 jsr, 2014 - 2017 HertzDevil",IDC_ABOUT3,54,92,215,11
+    LTEXT           "Copyright (C) 2005 - 2015 jsr, 2014 - 2018 HertzDevil",IDC_ABOUT3,54,92,215,11
     LTEXT           "E-mail:",IDC_STATIC,54,107,24,10
     LTEXT           "nicetas.c@gmail.com",IDC_MAIL,84,107,70,10,SS_NOTIFY
     LTEXT           "Web:",IDC_STATIC,54,117,24,9
