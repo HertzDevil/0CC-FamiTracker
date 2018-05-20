@@ -54,7 +54,7 @@ std::pair<CPatternIterator, CPatternIterator> CPatternIterator::FromSelection(co
 }
 
 CCursorPos CPatternIterator::GetCursor() const {
-	return {m_iFrame, m_iRow, m_iColumn, m_iChannel};
+	return {m_iRow, m_iChannel, m_iColumn, m_iFrame};
 }
 
 const stChanNote &CPatternIterator::Get(int Channel) const
