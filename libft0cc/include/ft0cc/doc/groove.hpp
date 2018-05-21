@@ -61,6 +61,6 @@ private:
 	std::array<entry_type, max_size> entries_ = { };
 };
 
-ENABLE_STRONG_ORDERING(groove);
+ENABLE_STRONG_ORDERING(groove)
 
 } // namespace ft0cc::doc
