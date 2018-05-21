@@ -19,6 +19,8 @@ matrix:
 
 before_install:
   - eval "${MATRIX_EVAL}"
+  - export COVERALLS_SERVICE_NAME=travis-ci
+  - export COVERALLS_REPO_TOKEN=
 
 script:
   - cd libft0cc
