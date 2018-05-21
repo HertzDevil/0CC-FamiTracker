@@ -17,7 +17,7 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
       after_success:
-        - coveralls --gcov gcov-7 --root .. --include src --include include
+        - coveralls --gcov gcov-7 --gcov-options '\-l'
 
 before_install:
   - eval "${MATRIX_EVAL}"
