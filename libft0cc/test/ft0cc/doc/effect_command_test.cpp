@@ -20,47 +20,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see http://www.gnu.org/licenses/. */
 
+#include "ft0cc/doc/effect_command.hpp"
+#include "gtest/gtest.h"
 
-#pragma once
+using effect_command = ft0cc::doc::effect_command;
+using effect_type = ft0cc::doc::effect_type;
 
-#include <array>
-#include <cstdint>
-#include <initializer_list>
-#include "ft0cc/cpputil/strong_ordering.hpp"
+TEST(EffectCommand, RelOps) {
+	auto fx1 = effect_command { };
+	auto fx2 = effect_command {effect_type::none, 2};
+	auto fx3 = effect_command {effect_type::SPEED, 1};
+	auto fx4 = effect_command {effect_type::SPEED, 2};
 
-namespace ft0cc::doc {
-
-class groove {
-public:
-	using entry_type = std::uint8_t;
-
-	static constexpr std::size_t max_size = 128u;
-	static constexpr entry_type default_speed = 6u;
-
-	constexpr groove() = default;
-	groove(std::initializer_list<entry_type> entries);
-
-	entry_type entry(std::size_t index) const;
-	void set_entry(std::size_t index, entry_type value);
-
-	std::size_t size() const;
-	std::size_t compiled_size() const;
-	void resize(std::size_t size);
-
-	double average() const;
-
-	int compare(const groove &other) const;
-
-	auto begin() { return entries_.begin(); }
-	auto end() { return entries_.begin() + len_; }
-	auto begin() const { return entries_.cbegin(); }
-	auto end() const { return entries_.cbegin() + len_; }
-
-private:
-	std::size_t len_ = 0;
-	std::array<entry_type, max_size> entries_ = { };
-};
-
-ENABLE_STRONG_ORDERING(groove);
-
-} // namespace ft0cc::doc
+	EXPECT_EQ(fx1.compare(fx1), 0);
+	EXPECT_EQ(fx1.compare(fx2), 0);
+	EXPECT_LT(fx1.compare(fx3), 0);
+	EXPECT_LT(fx1.compare(fx4), 0);
+	EXPECT_EQ(fx2.compare(fx1), 0);
+	EXPECT_EQ(fx2.compare(fx2), 0);
+	EXPECT_LT(fx2.compare(fx3), 0);
+	EXPECT_LT(fx2.compare(fx4), 0);
+	EXPECT_GT(fx3.compare(fx1), 0);
+	EXPECT_GT(fx3.compare(fx2), 0);
+	EXPECT_EQ(fx3.compare(fx3), 0);
+	EXPECT_LT(fx3.compare(fx4), 0);
+	EXPECT_GT(fx4.compare(fx1), 0);
+	EXPECT_GT(fx4.compare(fx2), 0);
+	EXPECT_GT(fx4.compare(fx3), 0);
+	EXPECT_EQ(fx4.compare(fx4), 0);
+}

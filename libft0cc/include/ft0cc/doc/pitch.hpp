@@ -51,23 +51,18 @@ constexpr bool is_note(pitch n) noexcept {
 }
 
 constexpr int midi_note(int octave, pitch note) noexcept {
-	if (is_note(note))
+	if (is_note(note) && octave >= 0)
 		return static_cast<int>(octave * note_range + value_cast(note) - 1);
 	return -1;
 }
 
 constexpr pitch pitch_from_midi(int midi_note) noexcept {
-	int x = midi_note % note_range;
-	if (x < 0)
-		x += note_range;
-	return enum_cast<pitch>(++x);
+	return midi_note >= 0 ?
+		enum_cast<pitch>(midi_note % note_range + 1) : pitch::none;
 }
 
 constexpr int oct_from_midi(int midi_note) noexcept {
-	int x = midi_note / note_range;
-	if (midi_note < 0 && !(midi_note % note_range))
-		--x;
-	return x;
+	return midi_note >= 0 ? midi_note / note_range : 0;
 }
 
 } // namespace ft0cc::doc

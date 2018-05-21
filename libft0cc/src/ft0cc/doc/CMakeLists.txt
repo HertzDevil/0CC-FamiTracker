@@ -1,5 +1,5 @@
 target_sources(ft0cc PRIVATE
-	src/ft0cc/doc/dpcm_sample.cpp
-	src/ft0cc/doc/groove.cpp
-	src/ft0cc/doc/inst_sequence.cpp
+	${CMAKE_CURRENT_LIST_DIR}/dpcm_sample.cpp
+	${CMAKE_CURRENT_LIST_DIR}/groove.cpp
+	${CMAKE_CURRENT_LIST_DIR}/inst_sequence.cpp
 )

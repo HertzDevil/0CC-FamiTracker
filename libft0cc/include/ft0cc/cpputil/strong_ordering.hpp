@@ -27,6 +27,43 @@
 // TODO: replace with operator<=>
 
 #define ENABLE_STRONG_ORDERING(T) \
+	inline bool operator==(const T &lhs, const T &rhs) \
+		noexcept(noexcept(lhs.compare(rhs))) \
+	{ \
+		return lhs.compare(rhs) == 0; \
+	} \
+	\
+	inline bool operator!=(const T &lhs, const T &rhs) \
+		noexcept(noexcept(lhs.compare(rhs))) \
+	{ \
+		return lhs.compare(rhs) != 0; \
+	} \
+	\
+	inline bool operator<(const T &lhs, const T &rhs) \
+		noexcept(noexcept(lhs.compare(rhs))) \
+	{ \
+		return lhs.compare(rhs) < 0; \
+	} \
+	\
+	inline bool operator<=(const T &lhs, const T &rhs) \
+		noexcept(noexcept(lhs.compare(rhs))) \
+	{ \
+		return lhs.compare(rhs) <= 0; \
+	} \
+	\
+	inline bool operator>(const T &lhs, const T &rhs) \
+		noexcept(noexcept(lhs.compare(rhs))) \
+	{ \
+		return lhs.compare(rhs) > 0; \
+	} \
+	\
+	inline bool operator>=(const T &lhs, const T &rhs) \
+		noexcept(noexcept(lhs.compare(rhs))) \
+	{ \
+		return lhs.compare(rhs) >= 0; \
+	}
+
+#define ENABLE_CX_STRONG_ORDERING(T) \
 	constexpr bool operator==(const T &lhs, const T &rhs) \
 		noexcept(noexcept(lhs.compare(rhs))) \
 	{ \

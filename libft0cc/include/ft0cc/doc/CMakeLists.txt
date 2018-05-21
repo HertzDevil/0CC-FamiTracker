@@ -1,10 +1,10 @@
 target_sources(ft0cc PRIVATE
-	include/ft0cc/doc/constants.hpp
-	include/ft0cc/doc/dpcm_sample.hpp
-	include/ft0cc/doc/effect_command.hpp
-	include/ft0cc/doc/effect_type.hpp
-	include/ft0cc/doc/groove.hpp
-	include/ft0cc/doc/inst_sequence.hpp
-	include/ft0cc/doc/pattern_note.hpp
-	include/ft0cc/doc/pitch.hpp
+	${CMAKE_CURRENT_LIST_DIR}/constants.hpp
+	${CMAKE_CURRENT_LIST_DIR}/dpcm_sample.hpp
+	${CMAKE_CURRENT_LIST_DIR}/effect_command.hpp
+	${CMAKE_CURRENT_LIST_DIR}/effect_type.hpp
+	${CMAKE_CURRENT_LIST_DIR}/groove.hpp
+	${CMAKE_CURRENT_LIST_DIR}/inst_sequence.hpp
+	${CMAKE_CURRENT_LIST_DIR}/pattern_note.hpp
+	${CMAKE_CURRENT_LIST_DIR}/pitch.hpp
 )

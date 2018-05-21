@@ -57,31 +57,24 @@ TEST(Groove, RelOps) {
 	auto grv3 = groove {1u, 1u};
 	auto grv4 = groove {2u};
 
-	ASSERT_LT(grv1.compare(grv2), 0);
+	EXPECT_LT(grv1.compare(grv2), 0);
 	EXPECT_LT(grv1.compare(grv3), 0);
 	EXPECT_LT(grv1.compare(grv4), 0);
 	EXPECT_LT(grv2.compare(grv3), 0);
 	EXPECT_LT(grv2.compare(grv4), 0);
 	EXPECT_LT(grv3.compare(grv4), 0);
 
-	ASSERT_EQ(grv1.compare(grv1), 0);
-	ASSERT_EQ(grv2.compare(grv2), 0);
+	EXPECT_EQ(grv1.compare(grv1), 0);
+	EXPECT_EQ(grv2.compare(grv2), 0);
 	EXPECT_EQ(grv3.compare(grv3), 0);
 	EXPECT_EQ(grv4.compare(grv4), 0);
 
-	ASSERT_GT(grv2.compare(grv1), 0);
+	EXPECT_GT(grv2.compare(grv1), 0);
 	EXPECT_GT(grv3.compare(grv1), 0);
 	EXPECT_GT(grv4.compare(grv1), 0);
 	EXPECT_GT(grv3.compare(grv2), 0);
 	EXPECT_GT(grv4.compare(grv2), 0);
 	EXPECT_GT(grv4.compare(grv3), 0);
-
-	EXPECT_EQ(grv1, grv1);
-	EXPECT_NE(grv1, grv2);
-	EXPECT_LT(grv1, grv2);
-	EXPECT_LE(grv1, grv2);
-	EXPECT_GT(grv2, grv1);
-	EXPECT_GE(grv2, grv1);
 }
 
 TEST(Groove, Resizing) {

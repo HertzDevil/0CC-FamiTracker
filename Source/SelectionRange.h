@@ -117,7 +117,7 @@ public:
 
 };
 
-ENABLE_STRONG_ORDERING(CPatternRowRange::ConstIterator);
+ENABLE_CX_STRONG_ORDERING(CPatternRowRange::ConstIterator);
 
 // range of columns, frame and row are fixed
 class CPatternColumnRange {
@@ -145,5 +145,5 @@ public:
 
 };
 
-ENABLE_STRONG_ORDERING(CPatternColumnRange::ConstIterator);
+ENABLE_CX_STRONG_ORDERING(CPatternColumnRange::ConstIterator);
 */

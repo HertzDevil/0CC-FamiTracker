@@ -632,3 +632,9 @@ template <typename EnumT REQUIRES_IsScopedEnum(EnumT) REQUIRES_EnumCategoryIs(En
 constexpr details::linear_enum_range<EnumT> enum_values() noexcept {
 	return { };
 }
+
+// Returns whether a given value is valid for the given enum class.
+template <typename EnumT>
+constexpr bool enum_valid(std::underlying_type_t<EnumT> x) noexcept {
+	return value_cast(enum_cast<EnumT>(x)) == x;
+}
