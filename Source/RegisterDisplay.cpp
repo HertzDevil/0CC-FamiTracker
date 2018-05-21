@@ -30,7 +30,7 @@
 #include "RegisterState.h"
 #include "Graphics.h"
 #include "Color.h"		// // //
-#include "PatternNote.h"
+#include "ft0cc/doc/pattern_note.hpp"
 #include <algorithm>
 #include "str_conv/str_conv.hpp"		// // //
 #include "NoteName.h"		// // //

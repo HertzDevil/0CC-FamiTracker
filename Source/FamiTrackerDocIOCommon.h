@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "Effect.h"		// // //
+#include "ft0cc/doc/effect_type.hpp"
 #include <array>
 
 namespace compat {

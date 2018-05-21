@@ -31,7 +31,7 @@
 #include <optional>		// // //
 #include <unordered_map>		// // //
 
-#include "PatternNote.h"		// // //
+#include "ft0cc/doc/pattern_note.hpp"		// // //
 #include "PatternEditorTypes.h"		// // //
 #include "FamiTrackerViewMessage.h"		// // //
 #include "PlayerCursor.h"		// // //

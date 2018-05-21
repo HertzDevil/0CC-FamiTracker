@@ -26,7 +26,7 @@
 // CTrackerChannel
 
 #include <mutex>		// // //
-#include "PatternNote.h"		// // //
+#include "ft0cc/doc/pattern_note.hpp"		// // //
 #include "APU/Types_fwd.h"		// // //
 
 enum inst_type_t : unsigned;

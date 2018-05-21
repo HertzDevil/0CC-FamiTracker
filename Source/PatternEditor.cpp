@@ -43,6 +43,7 @@
 #include "SoundChipService.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 #include "SelectionRange.h"		// // //
+#include "EffectName.h"		// // //
 
 /*
  * CPatternEditor

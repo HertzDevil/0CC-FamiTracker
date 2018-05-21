@@ -49,7 +49,7 @@
 #include "Sequence.h"
 
 #include "SongData.h"
-#include "PatternNote.h"
+#include "ft0cc/doc/pattern_note.hpp"
 
 #include "DSampleManager.h"
 

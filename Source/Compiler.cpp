@@ -26,7 +26,7 @@
 #include "FamiTrackerModule.h"		// // //
 #include "SongData.h"		// // //
 #include "SongView.h"		// // //
-#include "PatternNote.h"		// // //
+#include "ft0cc/doc/pattern_note.hpp"		// // //
 #include "SeqInstrument.h"		// // //
 #include "Instrument2A03.h"		// // //
 #include "InstrumentFDS.h"		// // //

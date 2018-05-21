@@ -688,7 +688,7 @@
     <ClInclude Include="Source\ChipHandlerS5B.h" />
     <ClInclude Include="Source\ChipHandlerVRC7.h" />
     <ClInclude Include="Source\Color.h" />
-    <ClInclude Include="Source\Effect.h" />
+    <ClInclude Include="Source\EffectName.h" />
     <ClInclude Include="Source\SelectionRange.h" />
     <ClInclude Include="Source\StringClipData.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />
@@ -775,7 +775,6 @@
     <ClInclude Include="Source\InstrumentVRC7.h" />
     <ClInclude Include="Source\ModuleException.h" />
     <ClInclude Include="Source\OldSequence.h" />
-    <ClInclude Include="Source\PatternNote.h" />
     <ClInclude Include="Source\SeqInstHandler2A03Pulse.h" />
     <ClInclude Include="Source\SeqInstHandlerS5B.h" />
     <ClInclude Include="Source\SeqInstHandlerSawtooth.h" />

@@ -22,7 +22,7 @@
 
 #include "SoundChipTypeImpl.h"
 #include "APU/Types.h"
-#include "Effect.h"
+#include "EffectName.h"
 
 #include "APU/2A03.h"
 #include "APU/VRC6.h"

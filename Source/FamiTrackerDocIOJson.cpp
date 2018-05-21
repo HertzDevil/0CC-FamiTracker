@@ -41,7 +41,7 @@
 #include "ft0cc/doc/groove.hpp"
 #include <optional>
 #include "clip.h"
-#include "Effect.h"
+#include "EffectName.h"
 
 using json = nlohmann::json;
 using namespace std::string_literals;

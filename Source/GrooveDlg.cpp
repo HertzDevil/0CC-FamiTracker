@@ -28,7 +28,7 @@
 #include "MainFrm.h"
 #include "PatternClipData.h"
 #include "Clipboard.h"
-#include "PatternNote.h"
+#include "ft0cc/doc/pattern_note.hpp"
 #include "ft0cc/doc/groove.hpp"
 #include "str_conv/str_conv.hpp"
 #include "NumConv.h"

@@ -35,7 +35,7 @@
 #include "Settings.h"
 #include "SoundGen.h"
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
-#include "PatternNote.h"		// // // note names
+#include "ft0cc/doc/pattern_note.hpp"		// // // note names
 #include <algorithm>		// // //
 #include "NumConv.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //

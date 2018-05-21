@@ -1274,9 +1274,6 @@
     <ClInclude Include="Source\APU\2A03Chan.h">
       <Filter>Header Files\Sound Driver Headers\Emulation Headers\Internal Channels Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\PatternNote.h">
-      <Filter>Header Files\Document Data Type Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\FamiTrackerViewMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1562,9 +1559,6 @@
     <ClInclude Include="Source\str_conv\utf8_conv.hpp">
       <Filter>Header Files\Utility Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Effect.h">
-      <Filter>Header Files\Document Data Type Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\FamiTrackerDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1579,6 +1573,9 @@
     </ClInclude>
     <ClInclude Include="Source\SelectionRange.h">
       <Filter>Header Files\Pattern Editor Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\EffectName.h">
+      <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

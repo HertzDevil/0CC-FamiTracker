@@ -25,7 +25,7 @@
 #include "FamiTrackerModule.h"
 #include "SongData.h"
 #include "FamiTrackerViewMessage.h"
-#include "PatternNote.h"
+#include "ft0cc/doc/pattern_note.hpp"
 #include "Instrument.h"
 #include "InstrumentManager.h"
 #include "MainFrm.h"

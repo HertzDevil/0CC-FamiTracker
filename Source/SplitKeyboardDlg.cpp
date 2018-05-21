@@ -21,7 +21,7 @@
 */
 
 #include "SplitKeyboardDlg.h"
-#include "PatternNote.h"
+#include "ft0cc/doc/pattern_note.hpp"
 #include "FamiTrackerDoc.h"
 #include "FamiTrackerModule.h"
 #include "FamiTrackerEnv.h"

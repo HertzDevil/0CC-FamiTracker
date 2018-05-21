@@ -34,7 +34,7 @@
 #include "NoteName.h"		// // //
 
 #include "FamiTrackerDefines.h"		// // //
-#include "Effect.h"		// // //
+#include "EffectName.h"		// // //
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "ft0cc/doc/groove.hpp"		// // //
 #include "Sequence.h"		// // //

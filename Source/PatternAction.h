@@ -26,7 +26,7 @@
 #include "Action.h"
 #include "PatternEditorTypes.h"
 #include "SongData.h"		// // //
-#include "PatternNote.h"		// // //
+#include "ft0cc/doc/pattern_note.hpp"		// // //
 #include <vector>		// // //
 #include <memory>		// // //
 #include "PatternClipData.h"		// // //

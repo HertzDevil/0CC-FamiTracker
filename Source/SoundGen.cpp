@@ -61,7 +61,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "AudioDriver.h"		// // //
 #include "WaveRenderer.h"		// // //
 #include "SoundDriver.h"		// // //
-#include "PatternNote.h"		// // //
+#include "ft0cc/doc/pattern_note.hpp"		// // //
 #include "ChannelMap.h"		// // //
 #include "TrackerChannel.h"		// // //
 #include "Highlight.h"		// // //

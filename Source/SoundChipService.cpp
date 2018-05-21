@@ -22,7 +22,8 @@
 
 #include "SoundChipService.h"
 #include "SoundChipTypeImpl.h"
-#include "Effect.h"
+#include "ft0cc/doc/effect_type.hpp"
+#include "EffectName.h"
 #include "APU/Types.h"
 #include "APU/SoundChip.h"
 #include "ChipHandler.h"

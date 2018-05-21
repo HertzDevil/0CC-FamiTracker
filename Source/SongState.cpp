@@ -26,10 +26,11 @@
 #include "SongData.h"
 #include "TrackerChannel.h"
 #include "ft0cc/doc/groove.hpp"
-#include <algorithm>
+#include "EffectName.h"
 #include "NumConv.h"
 #include "FamiTrackerEnv.h"
 #include "SoundChipService.h"
+#include <algorithm>
 
 
 

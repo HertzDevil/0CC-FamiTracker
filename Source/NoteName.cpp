@@ -21,7 +21,7 @@
 */
 
 #include "NoteName.h"
-#include "PatternNote.h"
+#include "ft0cc/doc/pattern_note.hpp"
 #ifndef AFL_FUZZ_ENABLED
 #include "FamiTrackerEnv.h"
 #include "Settings.h"

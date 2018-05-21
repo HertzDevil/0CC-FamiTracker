@@ -23,7 +23,7 @@
 #include "ChipHandlerS5B.h"
 #include "APU/APUInterface.h"
 #include "SongState.h"
-#include "PatternNote.h" // ft0cc::doc::effect_command
+#include "ft0cc/doc/pattern_note.hpp" // ft0cc::doc::effect_command
 
 void CChipHandlerS5B::SetChannelOutput(unsigned Subindex, int Square, int Noise) {
 	switch (Subindex) {

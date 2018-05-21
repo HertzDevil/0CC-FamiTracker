@@ -36,6 +36,7 @@
 #include "SoundChipService.h"
 #include "NoteName.h"
 #include "str_conv/str_conv.hpp"
+#include "EffectName.h"
 
 namespace {
 

@@ -24,7 +24,7 @@
 #pragma once
 
 #include "FamiTrackerDefines.h"
-#include "Effect.h"		// // //
+#include "ft0cc/doc/effect_type.hpp"
 #include "APU/Types.h"
 #include <memory>
 #include <string>

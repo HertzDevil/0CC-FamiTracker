@@ -21,7 +21,7 @@
 */
 
 #include "PatternClipData.h"
-#include "PatternNote.h"
+#include "ft0cc/doc/pattern_note.hpp"
 #include "Assertion.h"		// // //
 #include <cstring>		// // //
 

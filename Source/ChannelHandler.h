@@ -26,7 +26,8 @@
 #include "ChannelHandlerInterface.h"
 #include "FamiTrackerDefines.h"		// // //
 #include "APU/Types.h"		// // //
-#include "PatternNote.h"		// // //
+#include "ft0cc/doc/pattern_note.hpp"		// // //
+#include "ft0cc/doc/effect_type.hpp"		// // //
 #include <memory>		// // //
 #include <string>		// // //
 #include <array>		// // //

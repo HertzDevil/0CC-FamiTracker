@@ -23,8 +23,6 @@
 
 #pragma once
 
-#include "ft0cc/doc/effect_type.hpp"
-
 // Channel effect letters
 constexpr char EFF_CHAR[] = {
 	 0,		// // // blank

@@ -31,7 +31,7 @@
 #include <limits>
 
 #include "FamiTrackerDefines.h"
-#include "PatternNote.h"
+#include "ft0cc/doc/pattern_note.hpp"
 #include "PatternEditorTypes.h"
 #include "SelectionRange.h"
 #include "APU/Types_fwd.h"
