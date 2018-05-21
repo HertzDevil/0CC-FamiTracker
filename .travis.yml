@@ -19,13 +19,13 @@ matrix:
 
 before_install:
   - eval "${MATRIX_EVAL}"
-  - export COVERALLS_SERVICE_NAME=travis-ci
-  - export COVERALLS_REPO_TOKEN=
 
 script:
   - cd libft0cc
   - mkdir build
   - cd build
+  - export COVERALLS_SERVICE_NAME=travis-ci
+  - export COVERALLS_REPO_TOKEN=
   - cmake -DCOVERAGE=1 -DCMAKE_BUILD_TYPE=Debug ..
   - cmake --build . -- -j4
   - cmake --build . --target coveralls
