@@ -49,6 +49,6 @@ struct effect_command {
 	}
 };
 
-ENABLE_STRONG_ORDERING(effect_command);
+ENABLE_STRONG_ORDERING(effect_command)
 
 } // namespace ft0cc::doc

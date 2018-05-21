@@ -161,7 +161,7 @@ struct stRowPos {
 			Row < other.Row ? -1 : Row > other.Row ? 1 : 0;
 	}
 };
-ENABLE_CX_STRONG_ORDERING(stRowPos);
+ENABLE_CX_STRONG_ORDERING(stRowPos)
 
 struct stColumnPos {
 	int Track = 0;
@@ -172,7 +172,7 @@ struct stColumnPos {
 			Column < other.Column ? -1 : Column > other.Column ? 1 : 0;
 	}
 };
-ENABLE_CX_STRONG_ORDERING(stColumnPos);
+ENABLE_CX_STRONG_ORDERING(stColumnPos)
 
 // Cursor position
 struct CCursorPos {

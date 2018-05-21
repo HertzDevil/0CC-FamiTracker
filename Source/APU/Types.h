@@ -146,7 +146,7 @@ struct stChannelID {		// // //
 	// constexpr std::strong_ordering operator<=>(const stChannelID &other) const noexcept = default;
 };
 
-ENABLE_CX_STRONG_ORDERING(stChannelID);
+ENABLE_CX_STRONG_ORDERING(stChannelID)
 
 constexpr bool IsAPUPulse(stChannelID id) noexcept {
 	return id.Chip == sound_chip_t::APU && (
