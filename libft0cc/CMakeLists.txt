@@ -4,6 +4,8 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 project(libft0cc)
 enable_testing()
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+
 if(${CMAKE_VERSION} VERSION_GREATER "3.8.1")
 	set(CMAKE_CXX_STANDARD 17 CACHE STRING
 		"The C++ standard whose features are requested to build this target." FORCE)
@@ -47,10 +49,14 @@ add_subdirectory(include)
 add_subdirectory(src)
 
 if(COVERAGE)
+	include(Coveralls)
+	coveralls_turn_on_coverage()
 	target_compile_options(ft0cc PRIVATE -g -O0 --coverage
 		-fkeep-inline-functions -fkeep-static-functions
 		-fprofile-arcs -ftest-coverage)
 	target_link_libraries(ft0cc --coverage)
+	get_target_property(ALL_SRC_FILES ft0cc SOURCES)
+	coveralls_setup("${ALL_SRC_FILES}" ON)
 endif()
 
 if(NOT (${CMAKE_VERSION} VERSION_LESS "3.8"))
