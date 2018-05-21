@@ -47,7 +47,7 @@ add_subdirectory(include)
 add_subdirectory(src)
 
 if(COVERAGE)
-	target_compile_options(ft0cc PRIVATE -g -O0 --coverage)
+	target_compile_options(ft0cc PRIVATE -g -O0 --coverage -fprofile-arcs -ftest-coverage)
 	target_link_libraries(ft0cc --coverage)
 endif()
 
