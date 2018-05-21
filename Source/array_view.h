@@ -26,7 +26,7 @@
 #include <iterator>
 #include <limits>
 #include <type_traits>
-#include "StrongOrdering.h"
+#include "ft0cc/cpputil/strong_ordering.hpp"
 
 namespace details {
 
@@ -224,8 +224,35 @@ private:
 	size_type size_ = 0u;
 };
 
-template <typename T>
-struct IStrongOrderable<array_view<T>> : std::true_type { };
+template <typename ValT>
+constexpr bool operator==(const array_view<ValT> &lhs, const array_view<ValT> &rhs) {
+	return lhs.compare(rhs) == 0;
+}
+
+template <typename ValT>
+constexpr bool operator!=(const array_view<ValT> &lhs, const array_view<ValT> &rhs) {
+	return lhs.compare(rhs) != 0;
+}
+
+template <typename ValT>
+constexpr bool operator<(const array_view<ValT> &lhs, const array_view<ValT> &rhs) {
+	return lhs.compare(rhs) < 0;
+}
+
+template <typename ValT>
+constexpr bool operator<=(const array_view<ValT> &lhs, const array_view<ValT> &rhs) {
+	return lhs.compare(rhs) <= 0;
+}
+
+template <typename ValT>
+constexpr bool operator>(const array_view<ValT> &lhs, const array_view<ValT> &rhs) {
+	return lhs.compare(rhs) > 0;
+}
+
+template <typename ValT>
+constexpr bool operator>=(const array_view<ValT> &lhs, const array_view<ValT> &rhs) {
+	return lhs.compare(rhs) >= 0;
+}
 
 #define REQUIRES_NotArrayViewOf(T, ValT) \
 	, std::enable_if_t<!std::is_same_v<std::remove_cv_t<std::remove_reference_t<T>>, array_view<ValT>>, int> = 0

@@ -27,7 +27,9 @@
 #include "BinarySerializable.h"		// // //
 #include "PatternEditorTypes.h"
 
-class stChanNote;
+namespace ft0cc::doc {
+class pattern_note;
+} // namespace ft0cc::doc
 
 // Class used by clipboard
 class CPatternClipData : public CBinarySerializableInterface {		// // //
@@ -35,8 +37,8 @@ public:
 	CPatternClipData() = default;
 	CPatternClipData(int Channels, int Rows);
 
-	stChanNote *GetPattern(int Channel, int Row);
-	const stChanNote *GetPattern(int Channel, int Row) const;
+	ft0cc::doc::pattern_note *GetPattern(int Channel, int Row);
+	const ft0cc::doc::pattern_note *GetPattern(int Channel, int Row) const;
 
 	bool ContainsData() const override;		// // //
 
@@ -57,7 +59,7 @@ public:
 		} OleInfo = { };
 	} ClipInfo;
 
-	std::unique_ptr<stChanNote[]> pPattern;		// // // Pattern data
+	std::unique_ptr<ft0cc::doc::pattern_note[]> pPattern;		// // // Pattern data
 	int Size = 0;					// Pattern data size, in rows * columns
 };
 

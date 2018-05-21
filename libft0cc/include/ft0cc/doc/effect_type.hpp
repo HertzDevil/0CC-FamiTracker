@@ -23,51 +23,62 @@
 
 #pragma once
 
-#include "ft0cc/cpputil/enum_traits.hpp"
 #include <cstdint>
+#include "ft0cc/cpputil/enum_traits.hpp"
 
 namespace ft0cc::doc {
 
-enum class pitch : std::uint8_t {
-	none,					// No note
-	C, Cs, D, Ds, E, F, Fs, G, Gs, A, As, B,
-	release,				// Release, begin note release sequence
-	halt,					// Halt, stops note
-	echo,					// Echo buffer access, octave determines position
-	min = C, max = echo,
+enum class effect_type : std::uint8_t {
+	SPEED = 1,
+	JUMP,
+	SKIP,
+	HALT,
+	VOLUME,
+	PORTAMENTO,
+	PORTAOFF, // unused!!
+	SWEEPUP,
+	SWEEPDOWN,
+	ARPEGGIO,
+	VIBRATO,
+	TREMOLO,
+	PITCH,
+	DELAY,
+	DAC,
+	PORTA_UP,
+	PORTA_DOWN,
+	DUTY_CYCLE,
+	SAMPLE_OFFSET,
+	SLIDE_UP,
+	SLIDE_DOWN,
+	VOLUME_SLIDE,
+	NOTE_CUT,
+	RETRIGGER,
+	DELAYED_VOLUME,
+	FDS_MOD_DEPTH,
+	FDS_MOD_SPEED_HI,
+	FDS_MOD_SPEED_LO,
+	DPCM_PITCH,
+	SUNSOFT_ENV_TYPE,
+	SUNSOFT_ENV_HI,
+	SUNSOFT_ENV_LO,
+	SUNSOFT_NOISE,
+	VRC7_PORT,
+	VRC7_WRITE,
+	NOTE_RELEASE,
+	GROOVE,
+	TRANSPOSE,
+	N163_WAVE_BUFFER,
+	FDS_VOLUME,
+	FDS_MOD_BIAS,
+//	TARGET_VOLUME_SLIDE,
+/*
+	VRC7_MODULATOR,
+	VRC7_CARRIER,
+	VRC7_LEVELS,
+*/
+	min = SPEED, max = FDS_MOD_BIAS, none = 0,
 };
 
 } // namespace ft0cc::doc
 
-ENABLE_ENUM_CATEGORY(ft0cc::doc::pitch, enum_standard);
-
-namespace ft0cc::doc {
-
-inline constexpr auto note_range = static_cast<int>(
-	value_cast(pitch::B) - value_cast(pitch::C) + 1);
-
-constexpr bool is_note(pitch n) noexcept {
-	return n >= pitch::C && n <= pitch::B;
-}
-
-constexpr int midi_note(int octave, pitch note) noexcept {
-	if (is_note(note))
-		return static_cast<int>(octave * note_range + value_cast(note) - 1);
-	return -1;
-}
-
-constexpr pitch pitch_from_midi(int midi_note) noexcept {
-	int x = midi_note % note_range;
-	if (x < 0)
-		x += note_range;
-	return enum_cast<pitch>(++x);
-}
-
-constexpr int oct_from_midi(int midi_note) noexcept {
-	int x = midi_note / note_range;
-	if (midi_note < 0 && !(midi_note % note_range))
-		--x;
-	return x;
-}
-
-} // namespace ft0cc::doc
+ENABLE_ENUM_CATEGORY(ft0cc::doc::effect_type, enum_standard);

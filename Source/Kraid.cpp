@@ -82,9 +82,9 @@ std::unique_ptr<CSongData> Kraid::makeSong(CFamiTrackerModule &modfile) {
 			if (++f >= FRAMES)
 				f = 0;
 		}
-		if (note != stChanNote { }) {
-			note.Instrument = 1;
-			note.Effects[1] = {effect_t::DELAY, 3u};
+		if (note != ft0cc::doc::pattern_note { }) {
+			note.set_inst(1);
+			note.set_fx_cmd(1, {ft0cc::doc::effect_type::DELAY, 3u});
 			pSong->GetPatternOnFrame(apu_subindex_t::pulse1, f).SetNoteOn(r, note);
 		}
 	} while (f || r);
@@ -119,21 +119,21 @@ void Kraid::makePattern(CSongData &song, stChannelID ch, unsigned pat, std::stri
 		case '<': --octave; break;
 		case '>': ++octave; break;
 		case '.': ++row; break;
-		case '-': ++row; note.Note = note_t::halt; break;
-		case '=': ++row; note.Note = note_t::release; break;
-		case 'c': ++row; note.Note = note_t::C;  note.Octave = octave, note.Instrument = INST; break;
-		case 'C': ++row; note.Note = note_t::Cs; note.Octave = octave, note.Instrument = INST; break;
-		case 'd': ++row; note.Note = note_t::D;  note.Octave = octave, note.Instrument = INST; break;
-		case 'D': ++row; note.Note = note_t::Ds; note.Octave = octave, note.Instrument = INST; break;
-		case 'e': ++row; note.Note = note_t::E;  note.Octave = octave, note.Instrument = INST; break;
-		case 'f': ++row; note.Note = note_t::F;  note.Octave = octave, note.Instrument = INST; break;
-		case 'F': ++row; note.Note = note_t::Fs; note.Octave = octave, note.Instrument = INST; break;
-		case 'g': ++row; note.Note = note_t::G;  note.Octave = octave, note.Instrument = INST; break;
-		case 'G': ++row; note.Note = note_t::Gs; note.Octave = octave, note.Instrument = INST; break;
-		case 'a': ++row; note.Note = note_t::A;  note.Octave = octave, note.Instrument = INST; break;
-		case 'A': ++row; note.Note = note_t::As; note.Octave = octave, note.Instrument = INST; break;
-		case 'b': ++row; note.Note = note_t::B;  note.Octave = octave, note.Instrument = INST; break;
-		case '@': note.Effects[0] = {effect_t::DUTY_CYCLE, 2u}; break;
+		case '-': ++row; note.set_note(ft0cc::doc::pitch::halt); break;
+		case '=': ++row; note.set_note(ft0cc::doc::pitch::release); break;
+		case 'c': ++row; note.set_note(ft0cc::doc::pitch::C ); note.set_oct(octave); note.set_inst(INST); break;
+		case 'C': ++row; note.set_note(ft0cc::doc::pitch::Cs); note.set_oct(octave); note.set_inst(INST); break;
+		case 'd': ++row; note.set_note(ft0cc::doc::pitch::D ); note.set_oct(octave); note.set_inst(INST); break;
+		case 'D': ++row; note.set_note(ft0cc::doc::pitch::Ds); note.set_oct(octave); note.set_inst(INST); break;
+		case 'e': ++row; note.set_note(ft0cc::doc::pitch::E ); note.set_oct(octave); note.set_inst(INST); break;
+		case 'f': ++row; note.set_note(ft0cc::doc::pitch::F ); note.set_oct(octave); note.set_inst(INST); break;
+		case 'F': ++row; note.set_note(ft0cc::doc::pitch::Fs); note.set_oct(octave); note.set_inst(INST); break;
+		case 'g': ++row; note.set_note(ft0cc::doc::pitch::G ); note.set_oct(octave); note.set_inst(INST); break;
+		case 'G': ++row; note.set_note(ft0cc::doc::pitch::Gs); note.set_oct(octave); note.set_inst(INST); break;
+		case 'a': ++row; note.set_note(ft0cc::doc::pitch::A ); note.set_oct(octave); note.set_inst(INST); break;
+		case 'A': ++row; note.set_note(ft0cc::doc::pitch::As); note.set_oct(octave); note.set_inst(INST); break;
+		case 'b': ++row; note.set_note(ft0cc::doc::pitch::B ); note.set_oct(octave); note.set_inst(INST); break;
+		case '@': note.set_fx_cmd(0, {ft0cc::doc::effect_type::DUTY_CYCLE, 2u}); break;
 		}
 	}
 }

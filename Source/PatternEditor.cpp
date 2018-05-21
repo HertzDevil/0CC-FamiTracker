@@ -65,68 +65,68 @@ const int CPatternEditor::DEFAULT_HEADER_FONT_SIZE	= 11;
 
 // // //
 
-void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t Mode, column_t Begin, column_t End)		// // //
+void CopyNoteSection(ft0cc::doc::pattern_note &Target, const ft0cc::doc::pattern_note &Source, paste_mode_t Mode, column_t Begin, column_t End)		// // //
 {
-	const auto isNoteProtected = [Mode] (const stChanNote &dest, const stChanNote &src) {
-		constexpr stChanNote BLANK { };
+	const auto isNoteProtected = [Mode] (const ft0cc::doc::pattern_note &dest, const ft0cc::doc::pattern_note &src) {
+		constexpr ft0cc::doc::pattern_note BLANK { };
 		switch (Mode) {
 		case paste_mode_t::MIX:
-			if (dest.Note != BLANK.Note)
+			if (dest.note() != BLANK.note())
 				return true;
 			if (FTEnv.GetSettings()->General.iEditStyle == edit_style_t::IT)
-				if (dest.Instrument != BLANK.Instrument || dest.Vol != BLANK.Vol)
+				if (dest.inst() != BLANK.inst() || dest.vol() != BLANK.vol())
 					return true;
 			[[fallthrough]];
 		case paste_mode_t::OVERWRITE:
-			if (src.Note == BLANK.Note)
+			if (src.note() == BLANK.note())
 				return true;
 		}
 		return false;
 	};
 
-	const auto isInstProtected = [Mode] (const stChanNote &dest, const stChanNote &src) {
-		constexpr stChanNote BLANK { };
+	const auto isInstProtected = [Mode] (const ft0cc::doc::pattern_note &dest, const ft0cc::doc::pattern_note &src) {
+		constexpr ft0cc::doc::pattern_note BLANK { };
 		switch (Mode) {
 		case paste_mode_t::MIX:
-			if (dest.Instrument != BLANK.Instrument)
+			if (dest.inst() != BLANK.inst())
 				return true;
 			if (FTEnv.GetSettings()->General.iEditStyle == edit_style_t::IT)
-				if (dest.Note != BLANK.Note || dest.Vol != BLANK.Vol)
+				if (dest.note() != BLANK.note() || dest.vol() != BLANK.vol())
 					return true;
 			[[fallthrough]];
 		case paste_mode_t::OVERWRITE:
-			if (src.Instrument == BLANK.Instrument)
+			if (src.inst() == BLANK.inst())
 				return true;
 		}
 		return false;
 	};
 
-	const auto isVolProtected = [Mode] (const stChanNote &dest, const stChanNote &src) {
-		constexpr stChanNote BLANK { };
+	const auto isVolProtected = [Mode] (const ft0cc::doc::pattern_note &dest, const ft0cc::doc::pattern_note &src) {
+		constexpr ft0cc::doc::pattern_note BLANK { };
 		switch (Mode) {
 		case paste_mode_t::MIX:
-			if (dest.Vol != BLANK.Vol)
+			if (dest.vol() != BLANK.vol())
 				return true;
 			if (FTEnv.GetSettings()->General.iEditStyle == edit_style_t::IT)
-				if (dest.Note != BLANK.Note || dest.Instrument != BLANK.Instrument || dest.Vol != BLANK.Vol)
+				if (dest.note() != BLANK.note() || dest.inst() != BLANK.inst() || dest.vol() != BLANK.vol())
 					return true;
 			[[fallthrough]];
 		case paste_mode_t::OVERWRITE:
-			if (src.Vol == BLANK.Vol)
+			if (src.vol() == BLANK.vol())
 				return true;
 		}
 		return false;
 	};
 
-	const auto isFxProtected = [Mode] (const stChanNote &dest, const stChanNote &src, std::size_t fx) {
-		constexpr stChanNote BLANK { };
+	const auto isFxProtected = [Mode] (const ft0cc::doc::pattern_note &dest, const ft0cc::doc::pattern_note &src, std::size_t fx) {
+		constexpr ft0cc::doc::pattern_note BLANK { };
 		switch (Mode) {
 		case paste_mode_t::MIX:
-			if (dest.Effects[fx].fx != BLANK.Effects[fx].fx)
+			if (dest.fx_name(fx) != BLANK.fx_name(fx))
 				return true;
 			[[fallthrough]];
 		case paste_mode_t::OVERWRITE:
-			if (src.Effects[fx].fx == BLANK.Effects[fx].fx)
+			if (src.fx_name(fx) == BLANK.fx_name(fx))
 				return true;
 		}
 		return false;
@@ -136,22 +136,22 @@ void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t 
 		std::swap(Begin, End);
 
 	if (column_t::Note >= Begin && column_t::Note <= End && !isNoteProtected(Target, Source)) {
-		Target.Note = Source.Note;
-		Target.Octave = Source.Octave;
+		Target.set_note(Source.note());
+		Target.set_oct(Source.oct());
 	}
 	if (column_t::Instrument >= Begin && column_t::Instrument <= End && !isInstProtected(Target, Source))
-		Target.Instrument = Source.Instrument;
+		Target.set_inst(Source.inst());
 	if (column_t::Volume >= Begin && column_t::Volume <= End && !isVolProtected(Target, Source))
-		Target.Vol = Source.Vol;
+		Target.set_vol(Source.vol());
 
 	for (unsigned fx = 0; fx < MAX_EFFECT_COLUMNS; ++fx) {
 		auto col = static_cast<column_t>(fx + value_cast(column_t::Effect1));
 		if (col >= Begin && col <= End && !isFxProtected(Target, Source, fx))
-			Target.Effects[fx] = Source.Effects[fx];
+			Target.set_fx_cmd(fx, Source.fx_cmd(fx));
 	}
 }
 
-void CopyNoteSection(stChanNote &Target, const stChanNote &Source, column_t Begin, column_t End)		// // //
+void CopyNoteSection(ft0cc::doc::pattern_note &Target, const ft0cc::doc::pattern_note &Source, column_t Begin, column_t End)		// // //
 {
 	if (Begin > End)
 		std::swap(Begin, End);
@@ -161,18 +161,18 @@ void CopyNoteSection(stChanNote &Target, const stChanNote &Source, column_t Begi
 	}
 
 	if (column_t::Note >= Begin && column_t::Note <= End) {
-		Target.Note = Source.Note;
-		Target.Octave = Source.Octave;
+		Target.set_note(Source.note());
+		Target.set_oct(Source.oct());
 	}
 	if (column_t::Instrument >= Begin && column_t::Instrument <= End)
-		Target.Instrument = Source.Instrument;
+		Target.set_inst(Source.inst());
 	if (column_t::Volume >= Begin && column_t::Volume <= End)
-		Target.Vol = Source.Vol;
+		Target.set_vol(Source.vol());
 
 	for (unsigned fx = 0; fx < MAX_EFFECT_COLUMNS; ++fx) {
 		auto col = static_cast<column_t>(fx + value_cast(column_t::Effect1));
 		if (col >= Begin && col <= End)
-			Target.Effects[fx] = Source.Effects[fx];
+			Target.set_fx_cmd(fx, Source.fx_cmd(fx));
 	}
 }
 
@@ -1257,7 +1257,7 @@ void CPatternEditor::DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPrevie
 }
 
 void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Channel, bool bInvert,
-	const stChanNote &NoteData, const RowColorInfo_t &ColorInfo) const		// // //
+	const ft0cc::doc::pattern_note &NoteData, const RowColorInfo_t &ColorInfo) const		// // //
 {
 	// Sharps
 	const wchar_t NOTES_A_SHARP[] = {L'C', L'C', L'D', L'D', L'E', L'F', L'F', L'G', L'G', L'A', L'A', L'B'};
@@ -1275,13 +1275,13 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	const wchar_t *NOTES_A = m_bDisplayFlat ? NOTES_A_FLAT : NOTES_A_SHARP;
 	const wchar_t *NOTES_B = m_bDisplayFlat ? NOTES_B_FLAT : NOTES_B_SHARP;
 
-	stEffectCommand Eff = Column >= cursor_column_t::EFF1_NUM ? NoteData.Effects[value_cast(GetSelectColumn(Column)) - 3] : stEffectCommand { };		// // //
+	ft0cc::doc::effect_command Eff = Column >= cursor_column_t::EFF1_NUM ? NoteData.fx_cmd(value_cast(GetSelectColumn(Column)) - 3) : ft0cc::doc::effect_command { };		// // //
 
 	// Detect invalid note data
-	if (NoteData.Note > note_t::echo ||		// // //
-		NoteData.Octave > 8 ||
+	if (NoteData.note() > ft0cc::doc::pitch::echo ||		// // //
+		NoteData.oct() > 8 ||
 		enum_cast(Eff.fx) != Eff.fx ||
-		NoteData.Instrument > MAX_INSTRUMENTS && NoteData.Instrument != HOLD_INSTRUMENT) {		// // // 050B
+		NoteData.inst() > MAX_INSTRUMENTS && NoteData.inst() != HOLD_INSTRUMENT) {		// // // 050B
 		if (Column == cursor_column_t::NOTE /* || Column == cursor_column_t::EFF1_NUM*/) {
 			CStringW Text = L"(invalid)";
 			DC.SetTextColor(MakeRGB(255, 0, 0));
@@ -1301,14 +1301,14 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 
 	// Make non-available instruments red in the pattern editor
 	const auto *pManager = m_pModule->GetInstrumentManager();
-	if (NoteData.Instrument < MAX_INSTRUMENTS &&
-		(!pManager->HasInstrument(NoteData.Instrument) ||
-		!IsInstrumentCompatible(ch.Chip, pManager->GetInstrumentType(NoteData.Instrument)))) {		// // //
+	if (NoteData.inst() < MAX_INSTRUMENTS &&
+		(!pManager->HasInstrument(NoteData.inst()) ||
+		!IsInstrumentCompatible(ch.Chip, pManager->GetInstrumentType(NoteData.inst())))) {		// // //
 		DimInst = InstColor = MakeRGB(255, 0, 0);
 	}
 
 	// // // effects too
-	if (Eff.fx != effect_t::none && !IsEffectCompatible(ch, Eff))
+	if (Eff.fx != ft0cc::doc::effect_type::none && !IsEffectCompatible(ch, Eff))
 		DimEff = EffColor = MakeRGB(255, 0, 0);		// // //
 
 	int PosY = m_iRowHeight - m_iRowHeight / 8;		// // //
@@ -1324,31 +1324,31 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 	switch (Column) {
 	case cursor_column_t::NOTE:
 		// Note and octave
-		switch (NoteData.Note) {
-		case note_t::none:
+		switch (NoteData.note()) {
+		case ft0cc::doc::pitch::none:
 			if (m_bCompactMode) {		// // //
-				if (NoteData.Instrument != MAX_INSTRUMENTS) {
-					if (NoteData.Instrument == HOLD_INSTRUMENT) {		// // // 050B
+				if (NoteData.inst() != MAX_INSTRUMENTS) {
+					if (NoteData.inst() == HOLD_INSTRUMENT) {		// // // 050B
 						DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, L'&', DimInst);
 						DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, L'&', DimInst);
 					}
 					else {
-						DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, HEX[NoteData.Instrument >> 4], DimInst);
-						DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, HEX[NoteData.Instrument & 0x0F], DimInst);
+						DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, HEX[NoteData.inst() >> 4], DimInst);
+						DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, HEX[NoteData.inst() & 0x0F], DimInst);
 					}
 					break;
 				}
-				else if (NoteData.Vol != MAX_VOLUME) {
-					DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, HEX[NoteData.Vol], ColorInfo.Compact);
+				else if (NoteData.vol() != MAX_VOLUME) {
+					DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, HEX[NoteData.vol()], ColorInfo.Compact);
 					break;
 				}
 				else {
 					bool Found = false;
 					for (unsigned int i = 0; i < fxcols; ++i) {
-						if (NoteData.Effects[i].fx != effect_t::none) {
-							DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[value_cast(NoteData.Effects[i].fx)], DimEff);
-							DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, HEX[NoteData.Effects[i].param >> 4], DimEff);
-							DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, HEX[NoteData.Effects[i].param & 0x0F], DimEff);
+						if (NoteData.fx_name(i) != ft0cc::doc::effect_type::none) {
+							DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[value_cast(NoteData.fx_name(i))], DimEff);
+							DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, HEX[NoteData.fx_param(i) >> 4], DimEff);
+							DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, HEX[NoteData.fx_param(i) & 0x0F], DimEff);
 							Found = true;
 							break;
 						}
@@ -1365,79 +1365,79 @@ void CPatternEditor::DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Cha
 				BAR(PosX + m_iCharWidth * 2, PosY);
 			}
 			break;		// // // same below
-		case note_t::halt:
+		case ft0cc::doc::pitch::halt:
 			// Note stop
 			GradientBar(DC, PosX + 5, (m_iRowHeight / 2) - 2, m_iCharWidth * 3 - 11, m_iRowHeight / 4, ColorInfo.Note, ColorInfo.Back);
 			break;
-		case note_t::release:
+		case ft0cc::doc::pitch::release:
 			// Note release
 			DC.FillSolidRect(PosX + 5, m_iRowHeight / 2 - 3, m_iCharWidth * 3 - 11, 2, ColorInfo.Note);		// // //
 			DC.FillSolidRect(PosX + 5, m_iRowHeight / 2 + 1, m_iCharWidth * 3 - 11, 2, ColorInfo.Note);
 			break;
-		case note_t::echo:
+		case ft0cc::doc::pitch::echo:
 			// // // Echo buffer access
 			DrawChar(DC, PosX + m_iCharWidth, PosY, L'^', ColorInfo.Note);
-			DrawChar(DC, PosX + m_iCharWidth * 2, PosY, NOTES_C[NoteData.Octave], ColorInfo.Note);
+			DrawChar(DC, PosX + m_iCharWidth * 2, PosY, NOTES_C[NoteData.oct()], ColorInfo.Note);
 			break;
 		default:
 			if (IsAPUNoise(ch)) {
 				// Noise
-				char NoiseFreq = NoteData.ToMidiNote() & 0x0F;
+				char NoiseFreq = NoteData.midi_note() & 0x0F;
 				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoiseFreq], ColorInfo.Note);		// // //
 				DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, L'-', ColorInfo.Note);
 				DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, L'#', ColorInfo.Note);
 			}
 			else {
 				// The rest
-				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, NOTES_A[value_cast(NoteData.Note) - 1], ColorInfo.Note);		// // //
-				DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, NOTES_B[value_cast(NoteData.Note) - 1], ColorInfo.Note);
-				DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, NOTES_C[NoteData.Octave], ColorInfo.Note);
+				DrawChar(DC, PosX + m_iCharWidth / 2, PosY, NOTES_A[value_cast(NoteData.note()) - 1], ColorInfo.Note);		// // //
+				DrawChar(DC, PosX + m_iCharWidth * 3 / 2, PosY, NOTES_B[value_cast(NoteData.note()) - 1], ColorInfo.Note);
+				DrawChar(DC, PosX + m_iCharWidth * 5 / 2, PosY, NOTES_C[NoteData.oct()], ColorInfo.Note);
 			}
 			break;
 		}
 		break;
 	case cursor_column_t::INSTRUMENT1:
 		// Instrument x0
-		if (NoteData.Instrument == MAX_INSTRUMENTS || NoteData.Note == note_t::halt || NoteData.Note == note_t::release)
+		if (NoteData.inst() == MAX_INSTRUMENTS || NoteData.note() == ft0cc::doc::pitch::halt || NoteData.note() == ft0cc::doc::pitch::release)
 			BAR(PosX, PosY);
-		else if (NoteData.Instrument == HOLD_INSTRUMENT)		// // // 050B
+		else if (NoteData.inst() == HOLD_INSTRUMENT)		// // // 050B
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, L'&', InstColor);
 		else
-			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.Instrument >> 4], InstColor);		// // //
+			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.inst() >> 4], InstColor);		// // //
 		break;
 	case cursor_column_t::INSTRUMENT2:
 		// Instrument 0x
-		if (NoteData.Instrument == MAX_INSTRUMENTS || NoteData.Note == note_t::halt || NoteData.Note == note_t::release)
+		if (NoteData.inst() == MAX_INSTRUMENTS || NoteData.note() == ft0cc::doc::pitch::halt || NoteData.note() == ft0cc::doc::pitch::release)
 			BAR(PosX, PosY);
-		else if (NoteData.Instrument == HOLD_INSTRUMENT)		// // // 050B
+		else if (NoteData.inst() == HOLD_INSTRUMENT)		// // // 050B
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, L'&', InstColor);
 		else
-			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.Instrument & 0x0F], InstColor);		// // //
+			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.inst() & 0x0F], InstColor);		// // //
 		break;
 	case cursor_column_t::VOLUME:
 		// Volume
-		if (NoteData.Vol == MAX_VOLUME || IsDPCM(ch))
+		if (NoteData.vol() == MAX_VOLUME || IsDPCM(ch))
 			BAR(PosX, PosY);
 		else
-			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.Vol & 0x0F], ColorInfo.Volume);		// // //
+			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[NoteData.vol() & 0x0F], ColorInfo.Volume);		// // //
 		break;
 	case cursor_column_t::EFF1_NUM: case cursor_column_t::EFF2_NUM: case cursor_column_t::EFF3_NUM: case cursor_column_t::EFF4_NUM:
 		// Effect type
-		if (Eff.fx == effect_t::none)
+		if (Eff.fx == ft0cc::doc::effect_type::none)
 			BAR(PosX, PosY);
 		else
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, EFF_CHAR[value_cast(Eff.fx)], EffColor);		// // //
 		break;
 	case cursor_column_t::EFF1_PARAM1: case cursor_column_t::EFF2_PARAM1: case cursor_column_t::EFF3_PARAM1: case cursor_column_t::EFF4_PARAM1:
 		// Effect param x
-		if (Eff.fx == effect_t::none)
+		if (Eff.fx == ft0cc::doc::effect_type::none)
 			BAR(PosX, PosY);
 		else
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[(Eff.param >> 4) & 0x0F], ColorInfo.Note);		// // //
 		break;
 	case cursor_column_t::EFF1_PARAM2: case cursor_column_t::EFF2_PARAM2: case cursor_column_t::EFF3_PARAM2: case cursor_column_t::EFF4_PARAM2:
 		// Effect param y
-		if (Eff.fx == effect_t::none)
+		if (Eff.fx == ft0cc::doc::effect_type::none)
 			BAR(PosX, PosY);
 		else
 			DrawChar(DC, PosX + m_iCharWidth / 2, PosY, HEX[Eff.param & 0x0F], ColorInfo.Note);		// // //
@@ -2854,7 +2854,7 @@ CPatternClipData CPatternEditor::Copy() const
 
 	for (int r = 0; r < Rows; ++r) {		// // //
 		for (int i = 0; i < Channels; ++i) {
-			stChanNote *Target = ClipData.GetPattern(i, r);
+			ft0cc::doc::pattern_note *Target = ClipData.GetPattern(i, r);
 			/*CopyNoteSection(*Target, NoteData, paste_mode_t::DEFAULT,
 				i == 0 ? ColStart : column_t::Note, i == Channels - 1 ? ColEnd : column_t::Effect4);*/
 			*Target = it.Get(i + m_selection.GetChanStart());
@@ -2969,13 +2969,13 @@ void CPatternEditor::Paste(const CPatternClipData &ClipData, paste_mode_t PasteM
 				bool protectFx = false;
 				switch (PasteMode) {
 				case paste_mode_t::MIX:
-					if (NoteData.Effects[Offset].fx != effect_t::none) protectFx = true;
+					if (NoteData.fx_name(Offset) != ft0cc::doc::effect_type::none) protectFx = true;
 					// continue
 				case paste_mode_t::OVERWRITE:
-					if (Source.Effects[i].fx == effect_t::none) protectFx = true;
+					if (Source.fx_name(i) == ft0cc::doc::effect_type::none) protectFx = true;
 				}
 				if (!protectFx)
-					NoteData.Effects[Offset] = Source.Effects[i];
+					NoteData.set_fx_cmd(Offset, Source.fx_cmd(i));
 			}
 			it.Set(c, NoteData);
 			if ((++it).m_iRow == 0) { // end of frame reached
@@ -3036,8 +3036,8 @@ void CPatternEditor::PasteRaw(const CPatternClipData &ClipData, const CCursorPos
 			unsigned f = pos.quot % Frames;
 			unsigned line = pos.rem;
 			CPatternData &pattern = pSongView->GetPatternOnFrame(c, f);
-			stChanNote &Target = pattern.GetNoteOn(line);
-			const stChanNote &Source = *(ClipData.GetPattern(i, r));
+			ft0cc::doc::pattern_note &Target = pattern.GetNoteOn(line);
+			const ft0cc::doc::pattern_note &Source = *(ClipData.GetPattern(i, r));
 			CopyNoteSection(Target, Source,
 				(i == 0) ? StartColumn : column_t::Note,
 				std::min((i == Channels + Pos.Xpos.Track - 1) ? EndColumn : column_t::Effect4, maxcol));
@@ -3125,8 +3125,8 @@ sel_condition_t CPatternEditor::GetSelectionCondition(const CSelection &Sel) con
 			for (int i = 0; i < GetChannelCount(); ++i) {
 				const auto &Note = b.Get(i);
 				for (unsigned int c = 0, m = pSongView->GetEffectColumnCount(i); c < m; ++c)
-					switch (Note.Effects[c].fx) {
-					case effect_t::JUMP: case effect_t::SKIP: case effect_t::HALT:
+					switch (Note.fx_name(c)) {
+					case ft0cc::doc::effect_type::JUMP: case ft0cc::doc::effect_type::SKIP: case ft0cc::doc::effect_type::HALT:
 						if (Sel.IsColumnSelected(static_cast<column_t>(value_cast(column_t::Effect1) + c), i))
 							return b == e ? sel_condition_t::TERMINAL_SKIP : sel_condition_t::NONTERMINAL_SKIP;
 						/*else if (it != End)
@@ -3469,8 +3469,8 @@ CStringW CPatternEditor::GetVolumeColumn() const {		// // //
 	do {
 		if (--s.m_iFrame < 0) break;
 		const auto &NoteData = s.Get(Channel);
-		if (NoteData.Vol != MAX_VOLUME) {
-			vol = NoteData.Vol;
+		if (NoteData.vol() != MAX_VOLUME) {
+			vol = NoteData.vol();
 			break;
 		}
 	} while (s.m_iFrame > 0 || s.m_iRow > 0);
@@ -3478,8 +3478,8 @@ CStringW CPatternEditor::GetVolumeColumn() const {		// // //
 	CStringW str;
 	for (; b <= e; ++b) {
 		const auto &NoteData = b.Get(Channel);
-		if (NoteData.Vol != MAX_VOLUME)
-			vol = NoteData.Vol;
+		if (NoteData.vol() != MAX_VOLUME)
+			vol = NoteData.vol();
 		AppendFormatW(str, L"%i ", vol);
 	}
 	return str;
@@ -3566,25 +3566,25 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 		int o = -1;
 		int len = -1;
 		bool first = true;
-		stChanNote current;
-		current.Note = note_t::halt;
-		stChanNote echo[ECHO_BUFFER_LENGTH] = { };
+		ft0cc::doc::pattern_note current;
+		current.set_note(ft0cc::doc::pitch::halt);
+		ft0cc::doc::pattern_note echo[ECHO_BUFFER_LENGTH] = { };
 
 		for (CPatternIterator s {b}; s <= e; ++s) {
 			++len;
 			const auto &NoteData = s.Get(c);
-			bool dump = NoteData.Note != note_t::none || NoteData.Vol != MAX_VOLUME;
+			bool dump = NoteData.note() != ft0cc::doc::pitch::none || NoteData.vol() != MAX_VOLUME;
 			bool fin = s.m_iFrame == e.m_iFrame && s.m_iRow == e.m_iRow;
 
 			if (dump || fin) {
-				bool push = current.Note != note_t::none && current.Note != note_t::release;
+				bool push = current.note() != ft0cc::doc::pitch::none && current.note() != ft0cc::doc::pitch::release;
 
-				if (current.Vol != MAX_VOLUME)
-					AppendFormatW(str, L"v%i", current.Vol);
+				if (current.vol() != MAX_VOLUME)
+					AppendFormatW(str, L"v%i", current.vol());
 
-				if (current.Note == note_t::echo) {
-					current.Note   = echo[current.Octave].Note;
-					current.Octave = echo[current.Octave].Octave;
+				if (current.note() == ft0cc::doc::pitch::echo) {
+					current.set_note(echo[current.oct()].note());
+					current.set_oct(echo[current.oct()].oct());
 				}
 
 				if (push) {
@@ -3593,27 +3593,27 @@ CStringW CPatternEditor::GetSelectionAsPPMCK() const {		// // //
 					echo[0] = current;
 				}
 
-				if (!first || (NoteData.Note != note_t::none)) switch (current.Note) {
-				case note_t::none: str.AppendChar(L'w'); break;
-				case note_t::release: str.AppendChar(L'k'); break;
-				case note_t::halt: str.AppendChar(L'r'); break;
+				if (!first || (NoteData.note() != ft0cc::doc::pitch::none)) switch (current.note()) {
+				case ft0cc::doc::pitch::none: str.AppendChar(L'w'); break;
+				case ft0cc::doc::pitch::release: str.AppendChar(L'k'); break;
+				case ft0cc::doc::pitch::halt: str.AppendChar(L'r'); break;
 				default:
 					if (o == -1) {
-						o = current.Octave;
+						o = current.oct();
 						AppendFormatW(str, L"o%i", o);
 					}
 					else {
-						while (o < current.Octave) {
+						while (o < current.oct()) {
 							++o;
 							str.AppendChar(L'>');
 						}
-						while (o > current.Octave) {
+						while (o > current.oct()) {
 							--o;
 							str.AppendChar(L'<');
 						}
 					}
-					AppendFormatW(str, L"%c", (value_cast(current.Note) * 7 + 18) / 12 % 7 + 'a');
-					if ((value_cast(current.Note) * 7 + 6) % 12 >= 7) str.Append(L"#");
+					AppendFormatW(str, L"%c", (value_cast(current.note()) * 7 + 18) / 12 % 7 + 'a');
+					if ((value_cast(current.note()) * 7 + 6) % 12 >= 7) str.Append(L"#");
 				}
 
 				if (fin)

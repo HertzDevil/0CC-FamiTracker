@@ -23,55 +23,7 @@
 
 #pragma once
 
-#include "FamiTrackerDefines.h"
-#include "Effect.h"		// // //
-#include "StrongOrdering.h"		// // //
-#include <array>		// // //
+#include "ft0cc/doc/effect_command.hpp"		// // //
+#include "ft0cc/doc/pattern_note.hpp"		// // //
 
-// // // effect command struct
-struct stEffectCommand {
-	effect_t fx {effect_t::none};
-	std::uint8_t param {0u};
-
-	constexpr int compare(const stEffectCommand &other) const noexcept {
-		if (fx < other.fx)
-			return -1;
-		if (fx > other.fx)
-			return 1;
-		if (fx == effect_t::none)
-			return 0;
-		if (param < other.param)
-			return -1;
-		if (param > other.param)
-			return 1;
-		return 0;
-	}
-};
-
-ENABLE_STRONG_ORDERING(stEffectCommand);
-
-// Channel note struct, holds the data for each row in patterns
-class stChanNote {
-public:
-	constexpr stChanNote() noexcept = default;
-
-	constexpr bool operator==(const stChanNote &other) const noexcept {
-		return Note == other.Note && Vol == other.Vol && Instrument == other.Instrument &&
-			(Note == note_t::none || Octave == other.Octave || Note == note_t::halt || Note == note_t::release) &&
-			Effects == other.Effects;
-	}
-	constexpr bool operator!=(const stChanNote &other) const noexcept {
-		return !operator==(other);
-	}
-
-	constexpr int ToMidiNote() const noexcept {		// // //
-		return ft0cc::doc::midi_note(Octave, Note);
-	}
-
-public:
-	note_t Note = note_t::none;
-	unsigned char Octave = 0U;
-	unsigned char Vol = MAX_VOLUME;
-	unsigned char Instrument = MAX_INSTRUMENTS;
-	std::array<stEffectCommand, MAX_EFFECT_COLUMNS> Effects = { };		// // //
-};
+#include "Effect.h"		// // // TODO: remove

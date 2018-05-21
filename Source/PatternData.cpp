@@ -21,15 +21,19 @@
 */
 
 #include "PatternData.h"
+#include "ft0cc/doc/pattern_note.hpp"
 #include <type_traits>
 
 namespace {
 
-const auto BLANK = stChanNote { };
+const auto BLANK = ft0cc::doc::pattern_note { };
 
 } // namespace
 
 CPatternData::CPatternData(const CPatternData &other) : data_(std::make_unique<elem_t>(*other.data_)) {
+}
+
+CPatternData::~CPatternData() noexcept {
 }
 
 CPatternData &CPatternData::operator=(const CPatternData &other) {
@@ -44,16 +48,16 @@ CPatternData &CPatternData::operator=(const CPatternData &other) {
 	return *this;
 }
 
-stChanNote &CPatternData::GetNoteOn(unsigned row) {
+ft0cc::doc::pattern_note &CPatternData::GetNoteOn(unsigned row) {
 	Allocate();
 	return (*data_)[row];
 }
 
-const stChanNote &CPatternData::GetNoteOn(unsigned row) const {
+const ft0cc::doc::pattern_note &CPatternData::GetNoteOn(unsigned row) const {
 	return data_ ? (*data_)[row] : BLANK;
 }
 
-void CPatternData::SetNoteOn(unsigned row, const stChanNote &note) {
+void CPatternData::SetNoteOn(unsigned row, const ft0cc::doc::pattern_note &note) {
 	Allocate();
 	(*data_)[row] = note;
 }
@@ -64,7 +68,7 @@ bool CPatternData::operator==(const CPatternData &other) const noexcept {
 
 	const auto IsPatternBlank = [] (const elem_t &notes) {
 		for (const auto &n : notes)
-			if (n != stChanNote { })
+			if (n != ft0cc::doc::pattern_note { })
 				return false;
 		return true;
 	};
@@ -91,7 +95,7 @@ unsigned CPatternData::GetMaximumSize() const noexcept {
 
 unsigned CPatternData::GetNoteCount(int maxrows) const {
 	unsigned count = 0;
-	VisitRows(maxrows, [&] (const stChanNote &note, unsigned row) {
+	VisitRows(maxrows, [&] (const ft0cc::doc::pattern_note &note, unsigned row) {
 		if (note != BLANK)
 			++count;
 	});

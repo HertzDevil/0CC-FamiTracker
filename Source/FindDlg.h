@@ -30,6 +30,7 @@
 #include <string>
 #include <limits>
 
+#include "FamiTrackerDefines.h"
 #include "PatternNote.h"
 #include "PatternEditorTypes.h"
 #include "SelectionRange.h"
@@ -72,7 +73,7 @@ struct FindRange {
 };
 
 using CharRange = FindRange<unsigned char>;
-using NoteRange = FindRange<note_t>;
+using NoteRange = FindRange<ft0cc::doc::pitch>;
 
 class searchTerm
 {
@@ -81,7 +82,7 @@ public:
 
 	std::unique_ptr<NoteRange> Note;
 	std::unique_ptr<CharRange> Oct, Inst, Vol;
-	bool EffNumber[enum_count<effect_t>() + 1] = { };
+	bool EffNumber[enum_count<ft0cc::doc::effect_type>() + 1] = { };
 	std::unique_ptr<CharRange> EffParam;
 	bool Definite[6] = { };
 	bool NoiseChan = false;
@@ -89,7 +90,7 @@ public:
 
 struct replaceTerm
 {
-	stChanNote Note;
+	ft0cc::doc::pattern_note Note;
 	bool Definite[6];
 	bool NoiseChan;
 };
@@ -131,12 +132,12 @@ public:
 	/*!	\brief Copies a note from the current song.
 		\details Similar to CPatternIterator::Get, but accepts no arguments.
 		\return Note on the current track. */
-	const stChanNote &Get() const;
+	const ft0cc::doc::pattern_note &Get() const;
 
 	/*!	\brief Writes a note to the current song.
 		\details Similar to CPatternIterator::Set, but accepts no arguments.
 		\param Note Note to write. */
-	void Set(const stChanNote &Note);
+	void Set(const ft0cc::doc::pattern_note &Note);
 
 	/*!	\brief Resets the cursor to an appropriate initial position if it does not lie within its
 		scope.
@@ -172,7 +173,7 @@ public:
 
 	virtual void DoDataExchange(CDataExchange* pDX);
 
-	void AddResult(const stChanNote &Note, const CFindCursor &Cursor, bool Noise);
+	void AddResult(const ft0cc::doc::pattern_note &Note, const CFindCursor &Cursor, bool Noise);
 	void ClearResults();
 
 protected:
@@ -232,7 +233,7 @@ protected:
 	void GetFindTerm();
 	void GetReplaceTerm();
 
-	bool CompareFields(const stChanNote &Target, bool Noise, int EffCount);
+	bool CompareFields(const ft0cc::doc::pattern_note &Target, bool Noise, int EffCount);
 
 	template <typename... T>
 	void RaiseIf(bool Check, LPCWSTR Str, T&&... args);
@@ -265,7 +266,7 @@ protected:
 
 	static const WCHAR m_pNoteName[7];
 	static const WCHAR m_pNoteSign[3];
-	static const note_t m_iNoteOffset[7];
+	static const ft0cc::doc::pitch m_iNoteOffset[7];
 
 	DECLARE_MESSAGE_MAP()
 public:

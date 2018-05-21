@@ -23,8 +23,8 @@
 
 #pragma once
 
+#include "ft0cc/doc/constants.hpp"		// // //
 #include "ft0cc/doc/pitch.hpp"		// // // TODO: remove
-using note_t = ft0cc::doc::pitch;
 
 /*
  * Here are the constants that define the limits in the tracker
@@ -32,7 +32,7 @@ using note_t = ft0cc::doc::pitch;
  */
 
 // Maximum number of instruments to use
-const int MAX_INSTRUMENTS = 64;
+const int MAX_INSTRUMENTS = ft0cc::doc::max_instruments;
 
 // Hold instrument index
 const int HOLD_INSTRUMENT = 0xFF;		// // // 050B
@@ -60,7 +60,7 @@ const int MAX_DSAMPLES = 64;
 const int MAX_SAMPLE_SPACE = 0x40000;	// 256kB
 
 // Number of effect columns allowed
-const int MAX_EFFECT_COLUMNS = 4;
+const int MAX_EFFECT_COLUMNS = ft0cc::doc::max_effect_columns;
 
 // Maximum numbers of tracks allowed (NSF limit is 256, but dunno if the bankswitcher can handle that)
 const unsigned int MAX_TRACKS = 64;
@@ -92,4 +92,4 @@ const int NOTE_COUNT   = OCTAVE_RANGE * NOTE_RANGE;		// // // moved from SoundGe
 const int INVALID_INSTRUMENT = -1;
 
 // Max allowed value in volume column. The actual meaning is no specific volume information, rather than max volume.
-const int MAX_VOLUME = 0x10;
+const int MAX_VOLUME = ft0cc::doc::max_volumes;

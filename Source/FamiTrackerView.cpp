@@ -1340,12 +1340,12 @@ bool CFamiTrackerView::IsMarkerValid() const		// // //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // // //
-void CFamiTrackerView::PlayerPlayNote(stChannelID Channel, const stChanNote &pNote)
+void CFamiTrackerView::PlayerPlayNote(stChannelID Channel, const ft0cc::doc::pattern_note &pNote)
 {
 	// Callback from sound thread
-	if (m_bSwitchToInstrument && pNote.Instrument < MAX_INSTRUMENTS && pNote.Note != note_t::none &&
+	if (m_bSwitchToInstrument && pNote.inst() < MAX_INSTRUMENTS && pNote.note() != ft0cc::doc::pitch::none &&
 		GetSongView()->GetChannelOrder().GetChannelIndex(Channel) == GetSelectedChannel())
-		m_iSwitchToInstrument = pNote.Instrument;
+		m_iSwitchToInstrument = pNote.inst();
 }
 
 unsigned int CFamiTrackerView::GetSelectedFrame() const
@@ -1704,7 +1704,7 @@ void CFamiTrackerView::SetInstrument(int Instrument)
 		return; // may be called by emptying inst field or using &&
 
 	pMainFrm->SelectInstrument(Instrument);
-	m_LastNote.Instrument = GetInstrument(); // Gets actual selected instrument //  Instrument;
+	m_LastNote.set_inst(GetInstrument()); // Gets actual selected instrument //  Instrument;
 }
 
 unsigned int CFamiTrackerView::GetInstrument() const
@@ -1729,10 +1729,10 @@ void CFamiTrackerView::StepDown()
 	InvalidateCursor();
 }
 
-void CFamiTrackerView::InsertNote(const stChanNote &Cell) {		// // //
+void CFamiTrackerView::InsertNote(const ft0cc::doc::pattern_note &Cell) {		// // //
 	// Inserts a note
-	m_LastNote.Note = Cell.Note;		// // //
-	m_LastNote.Octave = Cell.Octave;		// // //
+	m_LastNote.set_note(Cell.note());		// // //
+	m_LastNote.set_oct(Cell.oct());		// // //
 
 	auto pAction = std::make_unique<CPActionEditNote>(Cell);		// // //
 	auto &Action = *pAction; // TODO: remove
@@ -1745,35 +1745,35 @@ void CFamiTrackerView::InsertNote(const stChanNote &Cell) {		// // //
 	}
 }
 
-stChanNote CFamiTrackerView::GetInputNote(note_t Note, int Octave, std::size_t Index, int Velocity) {		// // //
+ft0cc::doc::pattern_note CFamiTrackerView::GetInputNote(ft0cc::doc::pitch Note, int Octave, std::size_t Index, int Velocity) {		// // //
 	stChannelID Channel = TranslateChannel(Index);		// // //
 	const int Frame = GetSelectedFrame();
 	const int Row = GetSelectedRow();
 
-	stChanNote Cell = GetSongView()->GetPatternOnFrame(Index, Frame).GetNoteOn(Row);		// // //
+	ft0cc::doc::pattern_note Cell = GetSongView()->GetPatternOnFrame(Index, Frame).GetNoteOn(Row);		// // //
 
-	Cell.Note = Note;
+	Cell.set_note(Note);
 
-	if (Cell.Note != note_t::halt && Cell.Note != note_t::release) {
-		Cell.Octave = Octave;
+	if (Cell.note() != ft0cc::doc::pitch::halt && Cell.note() != ft0cc::doc::pitch::release) {
+		Cell.set_oct(Octave);
 
-		if (!m_bMaskInstrument && Cell.Instrument != HOLD_INSTRUMENT)		// // // 050B
-			Cell.Instrument = GetInstrument();
+		if (!m_bMaskInstrument && Cell.inst() != HOLD_INSTRUMENT)		// // // 050B
+			Cell.set_inst(GetInstrument());
 
 		if (!m_bMaskVolume) {
-			Cell.Vol = m_LastNote.Vol;
+			Cell.set_vol(m_LastNote.vol());
 			if (Velocity < 128)
-				Cell.Vol = Velocity * MAX_VOLUME / 128;
+				Cell.set_vol(Velocity * MAX_VOLUME / 128);
 		}
-		if (Cell.Note == note_t::echo) {
-			if (Cell.Octave > ECHO_BUFFER_LENGTH - 1)
-				Cell.Octave = ECHO_BUFFER_LENGTH - 1;
+		if (Cell.note() == ft0cc::doc::pitch::echo) {
+			if (Cell.oct() > ECHO_BUFFER_LENGTH - 1)
+				Cell.set_oct(ECHO_BUFFER_LENGTH - 1);
 		}
-		else if (Cell.Note != note_t::none) {		// // //
+		else if (Cell.note() != ft0cc::doc::pitch::none) {		// // //
 			if (IsAPUNoise(Channel)) {		// // //
-				unsigned int MidiNote = (Cell.ToMidiNote() % 16) + 16;
-				Cell.Octave = ft0cc::doc::oct_from_midi(MidiNote);
-				Cell.Note = ft0cc::doc::pitch_from_midi(MidiNote);
+				unsigned int MidiNote = (Cell.midi_note() % 16) + 16;
+				Cell.set_oct(ft0cc::doc::oct_from_midi(MidiNote));
+				Cell.set_note(ft0cc::doc::pitch_from_midi(MidiNote));
 			}
 			else
 				SplitKeyboardAdjust(Cell, Channel);
@@ -1783,7 +1783,7 @@ stChanNote CFamiTrackerView::GetInputNote(note_t Note, int Octave, std::size_t I
 	// Quantization
 	if (FTEnv.GetSettings()->Midi.bMidiMasterSync)
 		if (int Delay = FTEnv.GetMIDI()->GetQuantization(); Delay > 0)
-			Cell.Effects[0] = {effect_t::DELAY, static_cast<uint8_t>(Delay)};
+			Cell.set_fx_cmd(0, {ft0cc::doc::effect_type::DELAY, static_cast<uint8_t>(Delay)});
 
 	return Cell;
 }
@@ -1797,13 +1797,13 @@ void CFamiTrackerView::PlayNote(std::size_t Index, int MidiNote, unsigned int Ve
 		return;
 
 	// Play a note in a channel
-	stChanNote NoteData;		// // //
+	ft0cc::doc::pattern_note NoteData;		// // //
 
-	NoteData.Note		= ft0cc::doc::pitch_from_midi(MidiNote);
-	NoteData.Octave		= ft0cc::doc::oct_from_midi(MidiNote);
-	NoteData.Instrument	= GetInstrument();
+	NoteData.set_note(ft0cc::doc::pitch_from_midi(MidiNote));
+	NoteData.set_oct(ft0cc::doc::oct_from_midi(MidiNote));
+	NoteData.set_inst(GetInstrument());
 	if (FTEnv.GetSettings()->Midi.bMidiVelocity)
-		NoteData.Vol = Velocity / 8;
+		NoteData.set_vol(Velocity / 8);
 /*
 	if (FTEnv.GetSettings()->General.iEditStyle == edit_style_t::IT)
 		NoteData.Instrument	= m_LastNote.Instrument;
@@ -1840,10 +1840,10 @@ void CFamiTrackerView::ReleaseNote(std::size_t Index, int MidiNote) const {
 		return;
 
 	// Releases a channel
-	stChanNote NoteData;		// // //
+	ft0cc::doc::pattern_note NoteData;		// // //
 
-	NoteData.Note = note_t::release;
-	NoteData.Instrument = GetInstrument();
+	NoteData.set_note(ft0cc::doc::pitch::release);
+	NoteData.set_inst(GetInstrument());
 
 	stChannelID Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
@@ -1854,8 +1854,8 @@ void CFamiTrackerView::ReleaseNote(std::size_t Index, int MidiNote) const {
 			FTEnv.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
 		if (FTEnv.GetSettings()->General.bPreviewFullRow) {
-			NoteData.Note = note_t::halt;
-			NoteData.Instrument = MAX_INSTRUMENTS;
+			NoteData.set_note(ft0cc::doc::pitch::halt);
+			NoteData.set_inst(MAX_INSTRUMENTS);
 
 			order.ForeachChannel([&] (stChannelID i) {
 				if (i != ch)
@@ -1870,10 +1870,10 @@ void CFamiTrackerView::HaltNote(std::size_t Index, int MidiNote) const {
 		return;
 
 	// Halts a channel
-	stChanNote NoteData;		// // //
+	ft0cc::doc::pattern_note NoteData;		// // //
 
-	NoteData.Note = note_t::halt;
-	NoteData.Instrument = GetInstrument();
+	NoteData.set_note(ft0cc::doc::pitch::halt);
+	NoteData.set_inst(GetInstrument());
 
 	stChannelID Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData);
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
@@ -1883,7 +1883,7 @@ void CFamiTrackerView::HaltNote(std::size_t Index, int MidiNote) const {
 			FTEnv.GetSoundGenerator()->QueueNote(ch, NoteData, NOTE_PRIO_2);
 
 		if (FTEnv.GetSettings()->General.bPreviewFullRow) {
-			NoteData.Instrument = MAX_INSTRUMENTS;
+			NoteData.set_inst(MAX_INSTRUMENTS);
 
 			order.ForeachChannel([&] (stChannelID i) {
 				if (i != ch)
@@ -1896,10 +1896,10 @@ void CFamiTrackerView::HaltNote(std::size_t Index, int MidiNote) const {
 void CFamiTrackerView::HaltNoteSingle(std::size_t Index) const
 {
 	// Halts one single channel only
-	stChanNote NoteData;		// // //
+	ft0cc::doc::pattern_note NoteData;		// // //
 
-	NoteData.Note = note_t::halt;
-	NoteData.Instrument = GetInstrument();
+	NoteData.set_note(ft0cc::doc::pitch::halt);
+	NoteData.set_inst(GetInstrument());
 
 	stChannelID Channel = SplitAdjustChannel(TranslateChannel(Index), NoteData); // ?
 	const CChannelOrder &order = GetSongView()->GetChannelOrder();
@@ -1939,12 +1939,12 @@ void CFamiTrackerView::TriggerMIDINote(std::size_t Index, unsigned int MidiNote,
 
 	// Play a MIDI note
 	unsigned int Octave = ft0cc::doc::oct_from_midi(MidiNote);
-	note_t Note = ft0cc::doc::pitch_from_midi(MidiNote);
+	ft0cc::doc::pitch Note = ft0cc::doc::pitch_from_midi(MidiNote);
 //	if (TranslateChannel(Channel) == stChannelID::NOISE)
 //		FixNoise(MidiNote, MidiNote);
 
 	if (!FTEnv.GetSettings()->Midi.bMidiVelocity)
-		Velocity = FTEnv.GetSettings()->General.iEditStyle == edit_style_t::IT ? m_LastNote.Vol * 8 : 127;
+		Velocity = FTEnv.GetSettings()->General.iEditStyle == edit_style_t::IT ? m_LastNote.vol() * 8 : 127;
 
 	if (!(FTEnv.GetSoundGenerator()->IsPlaying() && m_bEditEnable && !m_bFollowMode))		// // //
 		PlayNote(Index, MidiNote, Velocity);
@@ -1977,7 +1977,7 @@ void CFamiTrackerView::CutMIDINote(std::size_t Index, unsigned int MidiNote, boo
 			HaltNote(Index, MidiNote);
 
 	if (InsertCut)
-		InsertNote(GetInputNote(note_t::halt, 0, Index, 0));
+		InsertNote(GetInputNote(ft0cc::doc::pitch::halt, 0, Index, 0));
 
 	if (FTEnv.GetSettings()->Midi.bMidiArpeggio) {		// // //
 		m_pArpeggiator->CutNote(MidiNote);
@@ -2006,7 +2006,7 @@ void CFamiTrackerView::ReleaseMIDINote(std::size_t Index, unsigned int MidiNote,
 			ReleaseNote(Index, MidiNote);
 
 	if (InsertCut)
-		InsertNote(GetInputNote(note_t::release, 0, Index, 0));
+		InsertNote(GetInputNote(ft0cc::doc::pitch::release, 0, Index, 0));
 
 	if (FTEnv.GetSettings()->Midi.bMidiArpeggio) {		// // //
 		m_pArpeggiator->ReleaseNote(MidiNote);
@@ -2353,7 +2353,7 @@ void CFamiTrackerView::KeyDecreaseAction()
 	AddAction(std::make_unique<CPActionScrollField>(-1));		// // //
 }
 
-bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &StepDown, bool &MoveRight, bool &MoveLeft)
+bool CFamiTrackerView::EditInstrumentColumn(ft0cc::doc::pattern_note &Note, int Key, bool &StepDown, bool &MoveRight, bool &MoveLeft)
 {
 	edit_style_t EditStyle = FTEnv.GetSettings()->General.iEditStyle;
 	const cursor_column_t Column = m_pPatternEditor->GetColumn();		// // //
@@ -2362,19 +2362,22 @@ bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &Ste
 		return false;
 
 	if (CheckClearKey(Key)) {
-		SetInstrument(Note.Instrument = MAX_INSTRUMENTS);	// Indicate no instrument selected
+		Note.set_inst(MAX_INSTRUMENTS); // Indicate no instrument selected
+		SetInstrument(Note.inst());
 		if (EditStyle != edit_style_t::MPT)
 			StepDown = true;
 		return true;
 	}
 	else if (CheckRepeatKey(Key)) {
-		SetInstrument(Note.Instrument = m_LastNote.Instrument);
+		Note.set_inst(m_LastNote.inst());
+		SetInstrument(Note.inst());
 		if (EditStyle != edit_style_t::MPT)
 			StepDown = true;
 		return true;
 	}
 	else if (Key == 'H') {		// // // 050B
-		SetInstrument(Note.Instrument = HOLD_INSTRUMENT);
+		Note.set_inst(HOLD_INSTRUMENT);
+		SetInstrument(Note.inst());
 		if (EditStyle != edit_style_t::MPT)
 			StepDown = true;
 		return true;
@@ -2397,21 +2400,21 @@ bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &Ste
 		Shift = 0;
 	}
 
-	if (Note.Instrument == MAX_INSTRUMENTS || Note.Instrument == HOLD_INSTRUMENT)		// // // 050B
-		Note.Instrument = 0;
+	if (Note.inst() == MAX_INSTRUMENTS || Note.inst() == HOLD_INSTRUMENT)		// // // 050B
+		Note.set_inst(0);
 
 	switch (EditStyle) {
 		case edit_style_t::FT2: // FT2
-			Note.Instrument = (Note.Instrument & Mask) | (Value << Shift);
+			Note.set_inst((Note.inst() & Mask) | (Value << Shift));
 			StepDown = true;
 			break;
 		case edit_style_t::MPT: // MPT
-			Note.Instrument = ((Note.Instrument & 0x0F) << 4) | Value & 0x0F;
-			if (Note.Instrument >= MAX_INSTRUMENTS)		// // //
-				Note.Instrument &= 0x0F;
+			Note.set_inst(((Note.inst() & 0x0F) << 4) | Value & 0x0F);
+			if (Note.inst() >= MAX_INSTRUMENTS)		// // //
+				Note.set_inst(Note.inst() & 0x0F);
 			break;
 		case edit_style_t::IT: // IT
-			Note.Instrument = (Note.Instrument & Mask) | (Value << Shift);
+			Note.set_inst((Note.inst() & Mask) | (Value << Shift));
 			if (Column == cursor_column_t::INSTRUMENT1)
 				MoveRight = true;
 			else if (Column == cursor_column_t::INSTRUMENT2) {
@@ -2421,15 +2424,15 @@ bool CFamiTrackerView::EditInstrumentColumn(stChanNote &Note, int Key, bool &Ste
 			break;
 	}
 
-	if (Note.Instrument > (MAX_INSTRUMENTS - 1))
-		Note.Instrument = (MAX_INSTRUMENTS - 1);
+	if (Note.inst() > (MAX_INSTRUMENTS - 1))
+		Note.set_inst((MAX_INSTRUMENTS - 1));
 	// // //
-	SetInstrument(Note.Instrument);
+	SetInstrument(Note.inst());
 
 	return true;
 }
 
-bool CFamiTrackerView::EditVolumeColumn(stChanNote &Note, int Key, bool &bStepDown)
+bool CFamiTrackerView::EditVolumeColumn(ft0cc::doc::pattern_note &Note, int Key, bool &bStepDown)
 {
 	edit_style_t EditStyle = FTEnv.GetSettings()->General.iEditStyle;
 
@@ -2437,14 +2440,14 @@ bool CFamiTrackerView::EditVolumeColumn(stChanNote &Note, int Key, bool &bStepDo
 		return false;
 
 	if (CheckClearKey(Key)) {
-		Note.Vol = MAX_VOLUME;
+		Note.set_vol(MAX_VOLUME);
 		if (EditStyle != edit_style_t::MPT)
 			bStepDown = true;
-		m_LastNote.Vol = MAX_VOLUME;
+		m_LastNote.set_vol(MAX_VOLUME);
 		return true;
 	}
 	else if (CheckRepeatKey(Key)) {
-		Note.Vol = m_LastNote.Vol;
+		Note.set_vol(m_LastNote.vol());
 		if (EditStyle != edit_style_t::MPT)
 			bStepDown = true;
 		return true;
@@ -2457,7 +2460,8 @@ bool CFamiTrackerView::EditVolumeColumn(stChanNote &Note, int Key, bool &bStepDo
 	if (Value == -1)
 		return false;
 
-	m_LastNote.Vol = Note.Vol = Value;		// // //
+	Note.set_vol(Value);		// // //
+	m_LastNote.set_vol(Value);
 
 	if (EditStyle != edit_style_t::MPT)
 		bStepDown = true;
@@ -2465,7 +2469,7 @@ bool CFamiTrackerView::EditVolumeColumn(stChanNote &Note, int Key, bool &bStepDo
 	return true;
 }
 
-bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar, int EffectIndex, bool &bStepDown)
+bool CFamiTrackerView::EditEffNumberColumn(ft0cc::doc::pattern_note &Note, unsigned char nChar, int EffectIndex, bool &bStepDown)
 {
 	edit_style_t EditStyle = FTEnv.GetSettings()->General.iEditStyle;
 
@@ -2473,16 +2477,16 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 		return false;
 
 	if (CheckRepeatKey(nChar)) {
-		Note.Effects[EffectIndex] = m_LastNote.Effects[0];
+		Note.set_fx_cmd(EffectIndex, m_LastNote.fx_cmd(0));
 		if (EditStyle != edit_style_t::MPT)		// // //
 			bStepDown = true;
-		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::none)		// // //
+		if (m_bEditEnable && Note.fx_name(EffectIndex) != ft0cc::doc::effect_type::none)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 		return true;
 	}
 
 	if (CheckClearKey(nChar)) {
-		Note.Effects[EffectIndex].fx = effect_t::none;
+		Note.set_fx_name(EffectIndex, ft0cc::doc::effect_type::none);
 		if (EditStyle != edit_style_t::MPT)
 			bStepDown = true;
 		return true;
@@ -2491,27 +2495,26 @@ bool CFamiTrackerView::EditEffNumberColumn(stChanNote &Note, unsigned char nChar
 	if (nChar >= VK_NUMPAD0 && nChar <= VK_NUMPAD9)
 		nChar = '0' + nChar - VK_NUMPAD0;
 
-	if (effect_t Effect = FTEnv.GetSoundChipService()->TranslateEffectName(nChar, GetSelectedChannelID().Chip); Effect != effect_t::none) {		// // //
-		Note.Effects[EffectIndex].fx = Effect;
-		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::none)		// // //
+	if (ft0cc::doc::effect_type Effect = FTEnv.GetSoundChipService()->TranslateEffectName(nChar, GetSelectedChannelID().Chip); Effect != ft0cc::doc::effect_type::none) {		// // //
+		Note.set_fx_name(EffectIndex, Effect);
+		if (m_bEditEnable && Note.fx_name(EffectIndex) != ft0cc::doc::effect_type::none)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 		switch (EditStyle) {
 			case edit_style_t::MPT:	// Modplug
-				if (Effect == m_LastNote.Effects[0].fx)
-					Note.Effects[EffectIndex].param = m_LastNote.Effects[0].param;
+				if (Effect == m_LastNote.fx_name(0))
+					Note.set_fx_param(EffectIndex, m_LastNote.fx_param(0));
 				break;
 			default:
 				bStepDown = true;
 		}
-		m_LastNote.Effects[0].fx = Effect;
-		m_LastNote.Effects[0].param = Note.Effects[EffectIndex].param;		// // //
+		m_LastNote.set_fx_cmd(0, {Effect, Note.fx_param(EffectIndex)});		// // //
 		return true;
 	}
 
 	return false;
 }
 
-bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectIndex, bool &bStepDown, bool &bMoveRight, bool &bMoveLeft)
+bool CFamiTrackerView::EditEffParamColumn(ft0cc::doc::pattern_note &Note, int Key, int EffectIndex, bool &bStepDown, bool &bMoveRight, bool &bMoveLeft)
 {
 	edit_style_t EditStyle = FTEnv.GetSettings()->General.iEditStyle;		// // //
 	const cursor_column_t Column = m_pPatternEditor->GetColumn();		// // //
@@ -2521,16 +2524,16 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 		return false;
 
 	if (CheckRepeatKey(Key)) {
-		Note.Effects[EffectIndex] = m_LastNote.Effects[0];
+		Note.set_fx_cmd(EffectIndex, m_LastNote.fx_cmd(0));
 		if (EditStyle != edit_style_t::MPT)		// // //
 			bStepDown = true;
-		if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::none)		// // //
+		if (m_bEditEnable && Note.fx_name(EffectIndex) != ft0cc::doc::effect_type::none)		// // //
 			GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 		return true;
 	}
 
 	if (CheckClearKey(Key)) {
-		Note.Effects[EffectIndex].param = 0;
+		Note.set_fx_param(EffectIndex, 0);
 		if (EditStyle != edit_style_t::MPT)
 			bStepDown = true;
 		return true;
@@ -2553,14 +2556,14 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 
 	switch (EditStyle) {
 		case edit_style_t::FT2:	// FT2
-			Note.Effects[EffectIndex].param = (Note.Effects[EffectIndex].param & Mask) | Value << Shift;
+			Note.set_fx_param(EffectIndex, (Note.fx_param(EffectIndex) & Mask) | Value << Shift);
 			bStepDown = true;
 			break;
 		case edit_style_t::MPT:	// Modplug
-			Note.Effects[EffectIndex].param = ((Note.Effects[EffectIndex].param & 0x0F) << 4) | Value & 0x0F;
+			Note.set_fx_param(EffectIndex, ((Note.fx_param(EffectIndex) & 0x0F) << 4) | Value & 0x0F);
 			break;
 		case edit_style_t::IT:	// IT
-			Note.Effects[EffectIndex].param = (Note.Effects[EffectIndex].param & Mask) | Value << Shift;
+			Note.set_fx_param(EffectIndex, (Note.fx_param(EffectIndex) & Mask) | Value << Shift);
 			if (Mask == 0x0F)
 				bMoveRight = true;
 			else {
@@ -2570,9 +2573,9 @@ bool CFamiTrackerView::EditEffParamColumn(stChanNote &Note, int Key, int EffectI
 			break;
 	}
 
-	m_LastNote.Effects[0] = Note.Effects[EffectIndex];		// // //
+	m_LastNote.set_fx_cmd(0, Note.fx_cmd(EffectIndex));		// // //
 
-	if (m_bEditEnable && Note.Effects[EffectIndex].fx != effect_t::none)		// // //
+	if (m_bEditEnable && Note.fx_name(EffectIndex) != ft0cc::doc::effect_type::none)		// // //
 		GetParentFrame()->SetMessageText(GetEffectHint(Note, EffectIndex));
 
 	return true;
@@ -2598,7 +2601,7 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 		return;
 
 	// Get the note data
-	stChanNote Note = GetSongView()->GetPatternOnFrame(GetSelectedChannel(), Frame).GetNoteOn(Row);		// // //
+	ft0cc::doc::pattern_note Note = GetSongView()->GetPatternOnFrame(GetSelectedChannel(), Frame).GetNoteOn(Row);		// // //
 
 	// Make all effect columns look the same, save an index instead
 	switch (Column) {
@@ -2622,21 +2625,26 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 		// Note & octave column
 		case cursor_column_t::NOTE:
 			if (CheckRepeatKey(nChar)) {
-				Note.Note = m_LastNote.Note;		// // //
-				Note.Octave = m_LastNote.Octave;
+				Note.set_note(m_LastNote.note());		// // //
+				Note.set_oct(m_LastNote.oct());
 			}
 			else if (CheckEchoKey(nChar)) {		// // //
-				m_LastNote.Note = Note.Note = note_t::echo;
-				m_LastNote.Octave = Note.Octave = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedOctave();		// // //
-				if (Note.Octave > ECHO_BUFFER_LENGTH - 1)
-					Note.Octave = ECHO_BUFFER_LENGTH - 1;
+				auto oct = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedOctave();
+				Note.set_note(ft0cc::doc::pitch::echo);
+				Note.set_oct(oct);
+				m_LastNote.set_note(ft0cc::doc::pitch::echo);
+				m_LastNote.set_oct(oct);
+				if (Note.oct() > ECHO_BUFFER_LENGTH - 1)
+					Note.set_oct(ECHO_BUFFER_LENGTH - 1);
 				if (!m_bMaskInstrument)
-					Note.Instrument = GetInstrument();
+					Note.set_inst(GetInstrument());
 			}
 			else if (CheckClearKey(nChar)) {
 				// Remove note
-				m_LastNote.Note = Note.Note = note_t::none;		// // //
-				m_LastNote.Octave = Note.Octave = 0;
+				Note.set_note(ft0cc::doc::pitch::none);		// // //
+				Note.set_oct(0);
+				m_LastNote.set_note(ft0cc::doc::pitch::none);
+				m_LastNote.set_oct(0);
 			}
 			else {
 				// This is special
@@ -2671,7 +2679,7 @@ void CFamiTrackerView::HandleKeyboardInput(unsigned char nChar)		// // //
 	}
 
 	if (CheckClearKey(nChar) && IsControlPressed())		// // //
-		Note = stChanNote { };
+		Note = ft0cc::doc::pattern_note { };
 
 	// Something changed, store pattern data in document and update screen
 	if (m_bEditEnable) {
@@ -2756,26 +2764,26 @@ void CFamiTrackerView::HandleKeyboardNote(char nChar, bool Pressed)
 	}
 }
 
-void CFamiTrackerView::SplitKeyboardAdjust(stChanNote &Note, stChannelID Channel) const		// // //
+void CFamiTrackerView::SplitKeyboardAdjust(ft0cc::doc::pattern_note &Note, stChannelID Channel) const		// // //
 {
-	ASSERT(Note.Note >= note_t::C && Note.Note <= note_t::B);
+	ASSERT(Note.note() >= ft0cc::doc::pitch::C && Note.note() <= ft0cc::doc::pitch::B);
 	if (m_iSplitNote != -1 && !IsAPUNoise(Channel)) {
-		int MidiNote = Note.ToMidiNote();
+		int MidiNote = Note.midi_note();
 		if (MidiNote <= m_iSplitNote) {
 			MidiNote = std::clamp(MidiNote + m_iSplitTranspose, 0, NOTE_COUNT - 1);
-			Note.Octave = ft0cc::doc::oct_from_midi(MidiNote);
-			Note.Note = ft0cc::doc::pitch_from_midi(MidiNote);
+			Note.set_oct(ft0cc::doc::oct_from_midi(MidiNote));
+			Note.set_note(ft0cc::doc::pitch_from_midi(MidiNote));
 
 			if (m_iSplitInstrument != MAX_INSTRUMENTS)
-				Note.Instrument = m_iSplitInstrument;
+				Note.set_inst(m_iSplitInstrument);
 		}
 	}
 }
 
-stChannelID CFamiTrackerView::SplitAdjustChannel(stChannelID Channel, const stChanNote &Note) const		// // //
+stChannelID CFamiTrackerView::SplitAdjustChannel(stChannelID Channel, const ft0cc::doc::pattern_note &Note) const		// // //
 {
 	if (!m_bEditEnable && m_iSplitChannel.Chip != sound_chip_t::none)
-		if (m_iSplitNote != -1 && Note.ToMidiNote() <= m_iSplitNote)
+		if (m_iSplitNote != -1 && Note.midi_note() <= m_iSplitNote)
 			if (GetSongView()->GetChannelOrder().HasChannel(m_iSplitChannel))
 				return m_iSplitChannel;
 	return Channel;
@@ -2809,7 +2817,7 @@ bool CFamiTrackerView::CheckRepeatKey(unsigned char Key) const
 int CFamiTrackerView::TranslateKeyModplug(unsigned char Key) const
 {
 	// Modplug conversion
-	note_t KeyNote = note_t::none;
+	ft0cc::doc::pitch KeyNote = ft0cc::doc::pitch::none;
 	int KeyOctave = 0;
 	int Octave = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedOctave();		// // // 050B
 
@@ -2819,51 +2827,51 @@ int CFamiTrackerView::TranslateKeyModplug(unsigned char Key) const
 		KeyOctave = Key - '1';
 		if (KeyOctave < 0) KeyOctave += 10;
 		if (KeyOctave >= OCTAVE_RANGE) KeyOctave = OCTAVE_RANGE - 1;
-		KeyNote = NoteData.Note;
+		KeyNote = NoteData.note();
 	}
 
 	// Convert key to a note, Modplug style
 	switch (Key) {
-	case u8'Q':			KeyNote = note_t::C;	KeyOctave = Octave;	break;
-	case u8'W':			KeyNote = note_t::Cs;	KeyOctave = Octave;	break;
-	case u8'E':			KeyNote = note_t::D;	KeyOctave = Octave;	break;
-	case u8'R':			KeyNote = note_t::Ds;	KeyOctave = Octave;	break;
-	case u8'T':			KeyNote = note_t::E;	KeyOctave = Octave;	break;
-	case u8'Y':			KeyNote = note_t::F;	KeyOctave = Octave;	break;
-	case u8'U':			KeyNote = note_t::Fs;	KeyOctave = Octave;	break;
-	case u8'I':			KeyNote = note_t::G;	KeyOctave = Octave;	break;
-	case u8'O':			KeyNote = note_t::Gs;	KeyOctave = Octave;	break;
-	case u8'P':			KeyNote = note_t::A;	KeyOctave = Octave;	break;
-	case VK_OEM_4:		KeyNote = note_t::As;	KeyOctave = Octave;	break; // [{
-	case VK_OEM_6:		KeyNote = note_t::B;	KeyOctave = Octave;	break; // ]}
+	case u8'Q':			KeyNote = ft0cc::doc::pitch::C;	KeyOctave = Octave;	break;
+	case u8'W':			KeyNote = ft0cc::doc::pitch::Cs;	KeyOctave = Octave;	break;
+	case u8'E':			KeyNote = ft0cc::doc::pitch::D;	KeyOctave = Octave;	break;
+	case u8'R':			KeyNote = ft0cc::doc::pitch::Ds;	KeyOctave = Octave;	break;
+	case u8'T':			KeyNote = ft0cc::doc::pitch::E;	KeyOctave = Octave;	break;
+	case u8'Y':			KeyNote = ft0cc::doc::pitch::F;	KeyOctave = Octave;	break;
+	case u8'U':			KeyNote = ft0cc::doc::pitch::Fs;	KeyOctave = Octave;	break;
+	case u8'I':			KeyNote = ft0cc::doc::pitch::G;	KeyOctave = Octave;	break;
+	case u8'O':			KeyNote = ft0cc::doc::pitch::Gs;	KeyOctave = Octave;	break;
+	case u8'P':			KeyNote = ft0cc::doc::pitch::A;	KeyOctave = Octave;	break;
+	case VK_OEM_4:		KeyNote = ft0cc::doc::pitch::As;	KeyOctave = Octave;	break; // [{
+	case VK_OEM_6:		KeyNote = ft0cc::doc::pitch::B;	KeyOctave = Octave;	break; // ]}
 
-	case u8'A':			KeyNote = note_t::C;	KeyOctave = Octave + 1;	break;
-	case u8'S':			KeyNote = note_t::Cs;	KeyOctave = Octave + 1;	break;
-	case u8'D':			KeyNote = note_t::D;	KeyOctave = Octave + 1;	break;
-	case u8'F':			KeyNote = note_t::Ds;	KeyOctave = Octave + 1;	break;
-	case u8'G':			KeyNote = note_t::E;	KeyOctave = Octave + 1;	break;
-	case u8'H':			KeyNote = note_t::F;	KeyOctave = Octave + 1;	break;
-	case u8'J':			KeyNote = note_t::Fs;	KeyOctave = Octave + 1;	break;
-	case u8'K':			KeyNote = note_t::G;	KeyOctave = Octave + 1;	break;
-	case u8'L':			KeyNote = note_t::Gs;	KeyOctave = Octave + 1;	break;
-	case VK_OEM_1:		KeyNote = note_t::A;	KeyOctave = Octave + 1;	break; // ;:
-	case VK_OEM_7:		KeyNote = note_t::As;	KeyOctave = Octave + 1;	break; // '"
-	//case VK_OEM_2:	KeyNote = note_t::B;	KeyOctave = Octave + 1;	break; // /?
+	case u8'A':			KeyNote = ft0cc::doc::pitch::C;	KeyOctave = Octave + 1;	break;
+	case u8'S':			KeyNote = ft0cc::doc::pitch::Cs;	KeyOctave = Octave + 1;	break;
+	case u8'D':			KeyNote = ft0cc::doc::pitch::D;	KeyOctave = Octave + 1;	break;
+	case u8'F':			KeyNote = ft0cc::doc::pitch::Ds;	KeyOctave = Octave + 1;	break;
+	case u8'G':			KeyNote = ft0cc::doc::pitch::E;	KeyOctave = Octave + 1;	break;
+	case u8'H':			KeyNote = ft0cc::doc::pitch::F;	KeyOctave = Octave + 1;	break;
+	case u8'J':			KeyNote = ft0cc::doc::pitch::Fs;	KeyOctave = Octave + 1;	break;
+	case u8'K':			KeyNote = ft0cc::doc::pitch::G;	KeyOctave = Octave + 1;	break;
+	case u8'L':			KeyNote = ft0cc::doc::pitch::Gs;	KeyOctave = Octave + 1;	break;
+	case VK_OEM_1:		KeyNote = ft0cc::doc::pitch::A;	KeyOctave = Octave + 1;	break; // ;:
+	case VK_OEM_7:		KeyNote = ft0cc::doc::pitch::As;	KeyOctave = Octave + 1;	break; // '"
+	//case VK_OEM_2:	KeyNote = ft0cc::doc::pitch::B;	KeyOctave = Octave + 1;	break; // /?
 
-	case u8'Z':			KeyNote = note_t::C;	KeyOctave = Octave + 2;	break;
-	case u8'X':			KeyNote = note_t::Cs;	KeyOctave = Octave + 2;	break;
-	case u8'C':			KeyNote = note_t::D;	KeyOctave = Octave + 2;	break;
-	case u8'V':			KeyNote = note_t::Ds;	KeyOctave = Octave + 2;	break;
-	case u8'B':			KeyNote = note_t::E;	KeyOctave = Octave + 2;	break;
-	case u8'N':			KeyNote = note_t::F;	KeyOctave = Octave + 2;	break;
-	case u8'M':			KeyNote = note_t::Fs;	KeyOctave = Octave + 2;	break;
-	case VK_OEM_COMMA:	KeyNote = note_t::G;	KeyOctave = Octave + 2;	break; // ,<
-	case VK_OEM_PERIOD:	KeyNote = note_t::Gs;	KeyOctave = Octave + 2;	break; // .>
-	case VK_OEM_2:		KeyNote = note_t::A;	KeyOctave = Octave + 2;	break; // /?
+	case u8'Z':			KeyNote = ft0cc::doc::pitch::C;	KeyOctave = Octave + 2;	break;
+	case u8'X':			KeyNote = ft0cc::doc::pitch::Cs;	KeyOctave = Octave + 2;	break;
+	case u8'C':			KeyNote = ft0cc::doc::pitch::D;	KeyOctave = Octave + 2;	break;
+	case u8'V':			KeyNote = ft0cc::doc::pitch::Ds;	KeyOctave = Octave + 2;	break;
+	case u8'B':			KeyNote = ft0cc::doc::pitch::E;	KeyOctave = Octave + 2;	break;
+	case u8'N':			KeyNote = ft0cc::doc::pitch::F;	KeyOctave = Octave + 2;	break;
+	case u8'M':			KeyNote = ft0cc::doc::pitch::Fs;	KeyOctave = Octave + 2;	break;
+	case VK_OEM_COMMA:	KeyNote = ft0cc::doc::pitch::G;	KeyOctave = Octave + 2;	break; // ,<
+	case VK_OEM_PERIOD:	KeyNote = ft0cc::doc::pitch::Gs;	KeyOctave = Octave + 2;	break; // .>
+	case VK_OEM_2:		KeyNote = ft0cc::doc::pitch::A;	KeyOctave = Octave + 2;	break; // /?
 	}
 
 	// Invalid
-	if (KeyNote == note_t::none)
+	if (KeyNote == ft0cc::doc::pitch::none)
 		return -1;
 
 	auto it = m_iNoteCorrection.find(Key);		// // //
@@ -2877,55 +2885,55 @@ int CFamiTrackerView::TranslateKeyModplug(unsigned char Key) const
 int CFamiTrackerView::TranslateKeyDefault(unsigned char Key) const
 {
 	// Default conversion
-	note_t KeyNote = note_t::none;
+	ft0cc::doc::pitch KeyNote = ft0cc::doc::pitch::none;
 	int KeyOctave = static_cast<CMainFrame*>(GetParentFrame())->GetSelectedOctave();		// // // 050B
 
 	// Convert key to a note
 	switch (Key) {
-		case u8'2':			KeyNote = note_t::Cs;	KeyOctave += 1;	break;
-		case u8'3':			KeyNote = note_t::Ds;	KeyOctave += 1;	break;
-		case u8'5':			KeyNote = note_t::Fs;	KeyOctave += 1;	break;
-		case u8'6':			KeyNote = note_t::Gs;	KeyOctave += 1;	break;
-		case u8'7':			KeyNote = note_t::As;	KeyOctave += 1;	break;
-		case u8'9':			KeyNote = note_t::Cs;	KeyOctave += 2;	break;
-		case u8'0':			KeyNote = note_t::Ds;	KeyOctave += 2;	break;
-		case VK_OEM_PLUS:	KeyNote = note_t::Fs;	KeyOctave += 2;	break; // =+
+		case u8'2':			KeyNote = ft0cc::doc::pitch::Cs;	KeyOctave += 1;	break;
+		case u8'3':			KeyNote = ft0cc::doc::pitch::Ds;	KeyOctave += 1;	break;
+		case u8'5':			KeyNote = ft0cc::doc::pitch::Fs;	KeyOctave += 1;	break;
+		case u8'6':			KeyNote = ft0cc::doc::pitch::Gs;	KeyOctave += 1;	break;
+		case u8'7':			KeyNote = ft0cc::doc::pitch::As;	KeyOctave += 1;	break;
+		case u8'9':			KeyNote = ft0cc::doc::pitch::Cs;	KeyOctave += 2;	break;
+		case u8'0':			KeyNote = ft0cc::doc::pitch::Ds;	KeyOctave += 2;	break;
+		case VK_OEM_PLUS:	KeyNote = ft0cc::doc::pitch::Fs;	KeyOctave += 2;	break; // =+
 
-		case u8'Q':			KeyNote = note_t::C;	KeyOctave += 1;	break;
-		case u8'W':			KeyNote = note_t::D;	KeyOctave += 1;	break;
-		case u8'E':			KeyNote = note_t::E;	KeyOctave += 1;	break;
-		case u8'R':			KeyNote = note_t::F;	KeyOctave += 1;	break;
-		case u8'T':			KeyNote = note_t::G;	KeyOctave += 1;	break;
-		case u8'Y':			KeyNote = note_t::A;	KeyOctave += 1;	break;
-		case u8'U':			KeyNote = note_t::B;	KeyOctave += 1;	break;
-		case u8'I':			KeyNote = note_t::C;	KeyOctave += 2;	break;
-		case u8'O':			KeyNote = note_t::D;	KeyOctave += 2;	break;
-		case u8'P':			KeyNote = note_t::E;	KeyOctave += 2;	break;
-		case VK_OEM_4:		KeyNote = note_t::F;	KeyOctave += 2;	break; // [{
-		case VK_OEM_6:		KeyNote = note_t::G;	KeyOctave += 2;	break; // ]}
+		case u8'Q':			KeyNote = ft0cc::doc::pitch::C;	KeyOctave += 1;	break;
+		case u8'W':			KeyNote = ft0cc::doc::pitch::D;	KeyOctave += 1;	break;
+		case u8'E':			KeyNote = ft0cc::doc::pitch::E;	KeyOctave += 1;	break;
+		case u8'R':			KeyNote = ft0cc::doc::pitch::F;	KeyOctave += 1;	break;
+		case u8'T':			KeyNote = ft0cc::doc::pitch::G;	KeyOctave += 1;	break;
+		case u8'Y':			KeyNote = ft0cc::doc::pitch::A;	KeyOctave += 1;	break;
+		case u8'U':			KeyNote = ft0cc::doc::pitch::B;	KeyOctave += 1;	break;
+		case u8'I':			KeyNote = ft0cc::doc::pitch::C;	KeyOctave += 2;	break;
+		case u8'O':			KeyNote = ft0cc::doc::pitch::D;	KeyOctave += 2;	break;
+		case u8'P':			KeyNote = ft0cc::doc::pitch::E;	KeyOctave += 2;	break;
+		case VK_OEM_4:		KeyNote = ft0cc::doc::pitch::F;	KeyOctave += 2;	break; // [{
+		case VK_OEM_6:		KeyNote = ft0cc::doc::pitch::G;	KeyOctave += 2;	break; // ]}
 
-		case u8'S':			KeyNote = note_t::Cs;					break;
-		case u8'D':			KeyNote = note_t::Ds;					break;
-		case u8'G':			KeyNote = note_t::Fs;					break;
-		case u8'H':			KeyNote = note_t::Gs;					break;
-		case u8'J':			KeyNote = note_t::As;					break;
-		case u8'L':			KeyNote = note_t::Cs;	KeyOctave += 1;	break;
-		case VK_OEM_1:		KeyNote = note_t::Ds;	KeyOctave += 1;	break; // ;:
+		case u8'S':			KeyNote = ft0cc::doc::pitch::Cs;					break;
+		case u8'D':			KeyNote = ft0cc::doc::pitch::Ds;					break;
+		case u8'G':			KeyNote = ft0cc::doc::pitch::Fs;					break;
+		case u8'H':			KeyNote = ft0cc::doc::pitch::Gs;					break;
+		case u8'J':			KeyNote = ft0cc::doc::pitch::As;					break;
+		case u8'L':			KeyNote = ft0cc::doc::pitch::Cs;	KeyOctave += 1;	break;
+		case VK_OEM_1:		KeyNote = ft0cc::doc::pitch::Ds;	KeyOctave += 1;	break; // ;:
 
-		case u8'Z':			KeyNote = note_t::C;					break;
-		case u8'X':			KeyNote = note_t::D;					break;
-		case u8'C':			KeyNote = note_t::E;					break;
-		case u8'V':			KeyNote = note_t::F;					break;
-		case u8'B':			KeyNote = note_t::G;					break;
-		case u8'N':			KeyNote = note_t::A;					break;
-		case u8'M':			KeyNote = note_t::B;					break;
-		case VK_OEM_COMMA:	KeyNote = note_t::C;	KeyOctave += 1;	break; // ,<
-		case VK_OEM_PERIOD:	KeyNote = note_t::D;	KeyOctave += 1;	break; // .>
-		case VK_OEM_2:		KeyNote = note_t::E;	KeyOctave += 1;	break; // /?
+		case u8'Z':			KeyNote = ft0cc::doc::pitch::C;					break;
+		case u8'X':			KeyNote = ft0cc::doc::pitch::D;					break;
+		case u8'C':			KeyNote = ft0cc::doc::pitch::E;					break;
+		case u8'V':			KeyNote = ft0cc::doc::pitch::F;					break;
+		case u8'B':			KeyNote = ft0cc::doc::pitch::G;					break;
+		case u8'N':			KeyNote = ft0cc::doc::pitch::A;					break;
+		case u8'M':			KeyNote = ft0cc::doc::pitch::B;					break;
+		case VK_OEM_COMMA:	KeyNote = ft0cc::doc::pitch::C;	KeyOctave += 1;	break; // ,<
+		case VK_OEM_PERIOD:	KeyNote = ft0cc::doc::pitch::D;	KeyOctave += 1;	break; // .>
+		case VK_OEM_2:		KeyNote = ft0cc::doc::pitch::E;	KeyOctave += 1;	break; // /?
 	}
 
 	// Invalid
-	if (KeyNote == note_t::none)
+	if (KeyNote == ft0cc::doc::pitch::none)
 		return -1;
 
 	auto it = m_iNoteCorrection.find(Key);		// // //
@@ -3288,18 +3296,18 @@ void CFamiTrackerView::OnPickupRow()
 
 	const auto &Note = GetSongView()->GetPatternOnFrame(GetSelectedChannel(), Frame).GetNoteOn(Row);		// // //
 
-	m_LastNote.Note = Note.Note;		// // //
-	m_LastNote.Octave = Note.Octave;
-	m_LastNote.Vol = Note.Vol;
-	m_LastNote.Instrument = Note.Instrument;
+	m_LastNote.set_note(Note.note());		// // //
+	m_LastNote.set_oct(Note.oct());
+	m_LastNote.set_vol(Note.vol());
+	m_LastNote.set_inst(Note.inst());
 
-	if (Note.Instrument != MAX_INSTRUMENTS)
-		SetInstrument(Note.Instrument);
+	if (Note.inst() != MAX_INSTRUMENTS)
+		SetInstrument(Note.inst());
 
 	column_t Col = GetSelectColumn(m_pPatternEditor->GetColumn());		// // //
 	if (Col >= column_t::Effect1) {
 		unsigned fx = value_cast(Col) - value_cast(column_t::Effect1);
-		m_LastNote.Effects[0] = Note.Effects[fx];
+		m_LastNote.set_fx_cmd(0, Note.fx_cmd(fx));
 	}
 }
 
@@ -3433,7 +3441,7 @@ bool CFamiTrackerView::IsDragging() const
 	return m_bDragSource;
 }
 
-void CFamiTrackerView::EditReplace(stChanNote &Note)		// // //
+void CFamiTrackerView::EditReplace(ft0cc::doc::pattern_note &Note)		// // //
 {
 	AddAction(std::make_unique<CPActionEditNote>(Note));
 	InvalidateCursor();
@@ -3454,34 +3462,34 @@ void CFamiTrackerView::OnRecallChannelState() {		// // //
 	GetParentFrame()->SetMessageText(conv::to_wide(FTEnv.GetSoundGenerator()->RecallChannelState(GetSelectedChannelID())).data());
 }
 
-CStringW CFamiTrackerView::GetEffectHint(const stChanNote &Note, int Column) const		// // //
+CStringW CFamiTrackerView::GetEffectHint(const ft0cc::doc::pattern_note &Note, int Column) const		// // //
 {
-	auto Index = value_cast(Note.Effects[Column].fx);
-	uint8_t Param = Note.Effects[Column].param;
-	if (enum_cast<effect_t>(Index) != Note.Effects[Column].fx)
+	auto Index = value_cast(Note.fx_name(Column));
+	uint8_t Param = Note.fx_param(Column);
+	if (enum_cast<ft0cc::doc::effect_type>(Index) != Note.fx_name(Column))
 		return L"Undefined effect";
 
 	sound_chip_t Chip = GetSelectedChannelID().Chip;
 	const int xy = 0;
-	if (Index > value_cast(effect_t::FDS_VOLUME)       || (Index == value_cast(effect_t::FDS_VOLUME)       && Param >= 0x40u))
+	if (Index > value_cast(ft0cc::doc::effect_type::FDS_VOLUME)       || (Index == value_cast(ft0cc::doc::effect_type::FDS_VOLUME)       && Param >= 0x40u))
 		++Index;
-	if (Index > value_cast(effect_t::TRANSPOSE)        || (Index == value_cast(effect_t::TRANSPOSE)        && Param >= 0x80u))
+	if (Index > value_cast(ft0cc::doc::effect_type::TRANSPOSE)        || (Index == value_cast(ft0cc::doc::effect_type::TRANSPOSE)        && Param >= 0x80u))
 		++Index;
-	if (Index > value_cast(effect_t::SUNSOFT_ENV_TYPE) || (Index == value_cast(effect_t::SUNSOFT_ENV_TYPE) && Param >= 0x10u))
+	if (Index > value_cast(ft0cc::doc::effect_type::SUNSOFT_ENV_TYPE) || (Index == value_cast(ft0cc::doc::effect_type::SUNSOFT_ENV_TYPE) && Param >= 0x10u))
 		++Index;
-	if (Index > value_cast(effect_t::FDS_MOD_SPEED_HI) || (Index == value_cast(effect_t::FDS_MOD_SPEED_HI) && Param >= 0x10u))
+	if (Index > value_cast(ft0cc::doc::effect_type::FDS_MOD_SPEED_HI) || (Index == value_cast(ft0cc::doc::effect_type::FDS_MOD_SPEED_HI) && Param >= 0x10u))
 		++Index;
-	if (Index > value_cast(effect_t::FDS_MOD_DEPTH)    || (Index == value_cast(effect_t::FDS_MOD_DEPTH)    && Param >= 0x80u))
+	if (Index > value_cast(ft0cc::doc::effect_type::FDS_MOD_DEPTH)    || (Index == value_cast(ft0cc::doc::effect_type::FDS_MOD_DEPTH)    && Param >= 0x80u))
 		++Index;
-	if (Index > value_cast(effect_t::NOTE_CUT)         || (Index == value_cast(effect_t::NOTE_CUT)         && Param >= 0x80u && IsAPUTriangle(GetSelectedChannelID())))
+	if (Index > value_cast(ft0cc::doc::effect_type::NOTE_CUT)         || (Index == value_cast(ft0cc::doc::effect_type::NOTE_CUT)         && Param >= 0x80u && IsAPUTriangle(GetSelectedChannelID())))
 		++Index;
-	if (Index > value_cast(effect_t::DUTY_CYCLE)       || (Index == value_cast(effect_t::DUTY_CYCLE)       && (Chip == sound_chip_t::VRC7 || Chip == sound_chip_t::N163)))
+	if (Index > value_cast(ft0cc::doc::effect_type::DUTY_CYCLE)       || (Index == value_cast(ft0cc::doc::effect_type::DUTY_CYCLE)       && (Chip == sound_chip_t::VRC7 || Chip == sound_chip_t::N163)))
 		++Index;
-	if (Index > value_cast(effect_t::DUTY_CYCLE)       || (Index == value_cast(effect_t::DUTY_CYCLE)       && Chip == sound_chip_t::N163))
+	if (Index > value_cast(ft0cc::doc::effect_type::DUTY_CYCLE)       || (Index == value_cast(ft0cc::doc::effect_type::DUTY_CYCLE)       && Chip == sound_chip_t::N163))
 		++Index;
-	if (Index > value_cast(effect_t::VOLUME)           || (Index == value_cast(effect_t::VOLUME)           && Param >= 0xE0u))
+	if (Index > value_cast(ft0cc::doc::effect_type::VOLUME)           || (Index == value_cast(ft0cc::doc::effect_type::VOLUME)           && Param >= 0xE0u))
 		++Index;
-	if (Index > value_cast(effect_t::SPEED)            || (Index == value_cast(effect_t::SPEED)            && Param >= GetModuleData()->GetSpeedSplitPoint()))
+	if (Index > value_cast(ft0cc::doc::effect_type::SPEED)            || (Index == value_cast(ft0cc::doc::effect_type::SPEED)            && Param >= GetModuleData()->GetSpeedSplitPoint()))
 		++Index;
 
 	return EFFECT_TEXTS[Index];

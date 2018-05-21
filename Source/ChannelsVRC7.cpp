@@ -56,24 +56,24 @@ void CChannelHandlerVRC7::SetCustomReg(size_t Index, unsigned char Val)		// // /
 	chip_handler_.SetPatchReg(Index & 0x07u, Val);		// // //
 }
 
-void CChannelHandlerVRC7::HandleNoteData(stChanNote &NoteData)		// // //
+void CChannelHandlerVRC7::HandleNoteData(ft0cc::doc::pattern_note &NoteData)		// // //
 {
 	CChannelHandlerInverted::HandleNoteData(NoteData);		// // //
 
-	if (m_iCommand == CMD_NOTE_TRIGGER && NoteData.Instrument == HOLD_INSTRUMENT)		// // // 050B
+	if (m_iCommand == CMD_NOTE_TRIGGER && NoteData.inst() == HOLD_INSTRUMENT)		// // // 050B
 		m_iCommand = CMD_NOTE_ON;
 }
 
-bool CChannelHandlerVRC7::HandleEffect(stEffectCommand cmd)
+bool CChannelHandlerVRC7::HandleEffect(ft0cc::doc::effect_command cmd)
 {
 	switch (cmd.fx) {
-	case effect_t::DUTY_CYCLE:
+	case ft0cc::doc::effect_type::DUTY_CYCLE:
 		m_iPatch = cmd.param;		// // // 050B
 		break;
-	case effect_t::VRC7_PORT:		// // // 050B
+	case ft0cc::doc::effect_type::VRC7_PORT:		// // // 050B
 		m_iCustomPort = cmd.param & 0x07;
 		break;
-	case effect_t::VRC7_WRITE:		// // // 050B
+	case ft0cc::doc::effect_type::VRC7_WRITE:		// // // 050B
 		chip_handler_.QueuePatchReg(m_iCustomPort, cmd.param);		// // //
 		break;
 	default: return CChannelHandlerInverted::HandleEffect(cmd);
@@ -122,11 +122,11 @@ void CChannelHandlerVRC7::HandleNote(int MidiNote)
 	m_bHold = true;
 
 /*
-	if ((m_iEffect != effect_t::PORTAMENTO || m_iPortaSpeed == 0) ||
+	if ((m_iEffect != ft0cc::doc::effect_type::PORTAMENTO || m_iPortaSpeed == 0) ||
 		m_iCommand == CMD_NOTE_HALT || m_iCommand == CMD_NOTE_RELEASE)		// // // 050B
 		m_iCommand = CMD_NOTE_TRIGGER;
 */
-	if (m_iPortaSpeed > 0 && m_iEffect == effect_t::PORTAMENTO &&
+	if (m_iPortaSpeed > 0 && m_iEffect == ft0cc::doc::effect_type::PORTAMENTO &&
 		m_iCommand != CMD_NOTE_HALT && m_iCommand != CMD_NOTE_RELEASE)		// // // 050B
 		CorrectOctave();
 	else
@@ -139,7 +139,7 @@ void CChannelHandlerVRC7::RunNote(int MidiNote) {		// // //
 
 	int NesFreq = TriggerNote(MidiNote);
 
-	if (m_iPortaSpeed > 0 && m_iEffect == effect_t::PORTAMENTO && m_bGate) {		// // //
+	if (m_iPortaSpeed > 0 && m_iEffect == ft0cc::doc::effect_type::PORTAMENTO && m_bGate) {		// // //
 		if (m_iPeriod == 0) {
 			m_iPeriod = NesFreq;
 			m_iOldOctave = m_iOctave = Octave;
@@ -307,7 +307,7 @@ void CChannelHandlerVRC7::ClearRegisters()
 	m_iNote = -1;
 	m_iOctave = m_iOldOctave = -1;		// // //
 	m_iPatch = -1;
-	m_iEffect = effect_t::none;
+	m_iEffect = ft0cc::doc::effect_type::none;
 
 	m_iCommand = CMD_NOTE_HALT;
 	m_iCustomPort = 0;		// // // 050B

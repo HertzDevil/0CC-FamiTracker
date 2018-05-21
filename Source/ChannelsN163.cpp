@@ -58,29 +58,29 @@ void CChannelHandlerN163::ConfigureDocument(const CFamiTrackerModule &modfile) {
 	SetChannelCount(modfile.GetNamcoChannels());
 }
 
-bool CChannelHandlerN163::HandleEffect(stEffectCommand cmd)
+bool CChannelHandlerN163::HandleEffect(ft0cc::doc::effect_command cmd)
 {
 	switch (cmd.fx) {
-	case effect_t::PORTA_DOWN:
+	case ft0cc::doc::effect_type::PORTA_DOWN:
 		m_iPortaSpeed = cmd.param;
 		if (!m_bLinearPitch) m_iPortaSpeed <<= N163_PITCH_SLIDE_SHIFT;		// // //
 		m_iEffectParam = cmd.param;
-		m_iEffect = m_bLinearPitch ? effect_t::PORTA_DOWN : effect_t::PORTA_UP;
+		m_iEffect = m_bLinearPitch ? ft0cc::doc::effect_type::PORTA_DOWN : ft0cc::doc::effect_type::PORTA_UP;
 		break;
-	case effect_t::PORTA_UP:
+	case ft0cc::doc::effect_type::PORTA_UP:
 		m_iPortaSpeed = cmd.param;
 		if (!m_bLinearPitch) m_iPortaSpeed <<= N163_PITCH_SLIDE_SHIFT;		// // //
 		m_iEffectParam = cmd.param;
-		m_iEffect = m_bLinearPitch ? effect_t::PORTA_UP : effect_t::PORTA_DOWN;
+		m_iEffect = m_bLinearPitch ? ft0cc::doc::effect_type::PORTA_UP : ft0cc::doc::effect_type::PORTA_DOWN;
 		break;
-	case effect_t::DUTY_CYCLE:
+	case ft0cc::doc::effect_type::DUTY_CYCLE:
 		// Duty effect controls wave
 		m_iDefaultDuty = m_iDutyPeriod = cmd.param;
 		m_bLoadWave = true;
 		if (auto pHandler = dynamic_cast<CSeqInstHandlerN163 *>(m_pInstHandler.get()))
 			pHandler->RequestWaveUpdate();
 		break;
-	case effect_t::N163_WAVE_BUFFER:		// // //
+	case ft0cc::doc::effect_type::N163_WAVE_BUFFER:		// // //
 		if (cmd.param == 0x7F) {
 			m_iWavePos = m_iWavePosOld;
 			m_bDisableLoad = false;
@@ -277,12 +277,12 @@ int CChannelHandlerN163::CalculatePeriod() const		// // //
 std::string CChannelHandlerN163::GetSlideEffectString() const		// // //
 {
 	if (m_iPortaSpeed) switch (m_iEffect) {
-	case effect_t::PORTA_UP:
-		return MakeCommandString({effect_t::PORTA_DOWN, static_cast<uint8_t>(m_iPortaSpeed >> N163_PITCH_SLIDE_SHIFT)});
-	case effect_t::PORTA_DOWN:
-		return MakeCommandString({effect_t::PORTA_UP, static_cast<uint8_t>(m_iPortaSpeed >> N163_PITCH_SLIDE_SHIFT)});
-	case effect_t::PORTAMENTO:
-		return MakeCommandString({effect_t::PORTAMENTO, static_cast<uint8_t>(m_iPortaSpeed >> N163_PITCH_SLIDE_SHIFT)});
+	case ft0cc::doc::effect_type::PORTA_UP:
+		return MakeCommandString({ft0cc::doc::effect_type::PORTA_DOWN, static_cast<uint8_t>(m_iPortaSpeed >> N163_PITCH_SLIDE_SHIFT)});
+	case ft0cc::doc::effect_type::PORTA_DOWN:
+		return MakeCommandString({ft0cc::doc::effect_type::PORTA_UP, static_cast<uint8_t>(m_iPortaSpeed >> N163_PITCH_SLIDE_SHIFT)});
+	case ft0cc::doc::effect_type::PORTAMENTO:
+		return MakeCommandString({ft0cc::doc::effect_type::PORTAMENTO, static_cast<uint8_t>(m_iPortaSpeed >> N163_PITCH_SLIDE_SHIFT)});
 	}
 	return CChannelHandlerInverted::GetSlideEffectString();
 }
@@ -290,7 +290,7 @@ std::string CChannelHandlerN163::GetSlideEffectString() const		// // //
 std::string CChannelHandlerN163::GetCustomEffectString() const		// // //
 {
 	if (m_bDisableLoad)
-		return MakeCommandString({effect_t::N163_WAVE_BUFFER, static_cast<uint8_t>(m_iWavePos >> 1)});
+		return MakeCommandString({ft0cc::doc::effect_type::N163_WAVE_BUFFER, static_cast<uint8_t>(m_iWavePos >> 1)});
 	return std::string();
 }
 

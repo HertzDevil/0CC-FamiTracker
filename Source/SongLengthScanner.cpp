@@ -53,18 +53,18 @@ public:
 			song_view_.ForeachTrack([&] (const CTrackData &track /* , stChannelID id */) {
 				const auto &Note = track.GetPatternOnFrame(f_).GetNoteOn(r_);		// // //
 				for (unsigned l = 0, m = track.GetEffectColumnCount(); l < m; ++l) {
-					switch (Note.Effects[l].fx) {
-					case effect_t::JUMP:
-						Bxx = Note.Effects[l].param;
+					switch (Note.fx_name(l)) {
+					case ft0cc::doc::effect_type::JUMP:
+						Bxx = Note.fx_param(l);
 						break;
-					case effect_t::SKIP:
-						Dxx = Note.Effects[l].param;
+					case ft0cc::doc::effect_type::SKIP:
+						Dxx = Note.fx_param(l);
 						break;
-					case effect_t::HALT:
+					case ft0cc::doc::effect_type::HALT:
 						Cxx = true;
 						break;
 					default:
-						fx(/* id, */ Note.Effects[l]);
+						fx(/* id, */ Note.fx_cmd(l));
 					}
 				}
 			});
@@ -138,9 +138,9 @@ void CSongLengthScanner::Compute() {
 		Speed = DEFAULT_SPEED;
 	}
 
-	const auto fxhandler = [&] (stEffectCommand cmd) {
+	const auto fxhandler = [&] (ft0cc::doc::effect_command cmd) {
 		switch (cmd.fx) {
-		case effect_t::SPEED:
+		case ft0cc::doc::effect_type::SPEED:
 			if (AllowTempo && cmd.param >= Split)
 				Tempo = cmd.param;
 			else {
@@ -148,7 +148,7 @@ void CSongLengthScanner::Compute() {
 				Speed = cmd.param;
 			}
 			break;
-		case effect_t::GROOVE:
+		case ft0cc::doc::effect_type::GROOVE:
 			if (modfile_.HasGroove(cmd.param)) {
 				GrooveIndex = cmd.param;
 				GroovePointer = 0;

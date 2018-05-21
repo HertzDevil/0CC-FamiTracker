@@ -46,12 +46,12 @@
 
 namespace {
 
-// constexpr effect_t VRC6_EFFECTS[] = {};
-constexpr effect_t VRC7_EFFECTS[] = {effect_t::VRC7_PORT, effect_t::VRC7_WRITE};
-constexpr effect_t FDS_EFFECTS[] = {effect_t::FDS_MOD_DEPTH, effect_t::FDS_MOD_SPEED_HI, effect_t::FDS_MOD_SPEED_LO, effect_t::FDS_VOLUME, effect_t::FDS_MOD_BIAS};
-// constexpr effect_t MMC5_EFFECTS[] = {};
-constexpr effect_t N163_EFFECTS[] = {effect_t::N163_WAVE_BUFFER};
-constexpr effect_t S5B_EFFECTS[] = {effect_t::SUNSOFT_ENV_TYPE, effect_t::SUNSOFT_ENV_HI, effect_t::SUNSOFT_ENV_LO, effect_t::SUNSOFT_NOISE};
+// constexpr ft0cc::doc::effect_type VRC6_EFFECTS[] = {};
+constexpr ft0cc::doc::effect_type VRC7_EFFECTS[] = {ft0cc::doc::effect_type::VRC7_PORT, ft0cc::doc::effect_type::VRC7_WRITE};
+constexpr ft0cc::doc::effect_type FDS_EFFECTS[] = {ft0cc::doc::effect_type::FDS_MOD_DEPTH, ft0cc::doc::effect_type::FDS_MOD_SPEED_HI, ft0cc::doc::effect_type::FDS_MOD_SPEED_LO, ft0cc::doc::effect_type::FDS_VOLUME, ft0cc::doc::effect_type::FDS_MOD_BIAS};
+// constexpr ft0cc::doc::effect_type MMC5_EFFECTS[] = {};
+constexpr ft0cc::doc::effect_type N163_EFFECTS[] = {ft0cc::doc::effect_type::N163_WAVE_BUFFER};
+constexpr ft0cc::doc::effect_type S5B_EFFECTS[] = {ft0cc::doc::effect_type::SUNSOFT_ENV_TYPE, ft0cc::doc::effect_type::SUNSOFT_ENV_HI, ft0cc::doc::effect_type::SUNSOFT_ENV_LO, ft0cc::doc::effect_type::SUNSOFT_NOISE};
 
 template <typename T>
 struct CChipHandlerBuilder {
@@ -138,11 +138,11 @@ std::unique_ptr<CChipHandler> CSoundChipType2A03::MakeChipHandler(std::uint8_t n
 		.With<CDPCMChan>(apu_subindex_t::dpcm);
 }
 
-effect_t CSoundChipType2A03::TranslateEffectName(char name, sound_chip_t chip) const {
-	for (auto fx : enum_values<effect_t>())
+ft0cc::doc::effect_type CSoundChipType2A03::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (auto fx : enum_values<ft0cc::doc::effect_type>())
 		if (name == EFF_CHAR[value_cast(fx)])
 			return fx;
-	return effect_t::none;
+	return ft0cc::doc::effect_type::none;
 }
 
 
@@ -192,11 +192,11 @@ std::unique_ptr<CChipHandler> CSoundChipTypeVRC6::MakeChipHandler(std::uint8_t n
 		.With<CVRC6Sawtooth>(vrc6_subindex_t::sawtooth);
 }
 
-effect_t CSoundChipTypeVRC6::TranslateEffectName(char name, sound_chip_t chip) const {
-	for (auto fx : enum_values<effect_t>())
+ft0cc::doc::effect_type CSoundChipTypeVRC6::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (auto fx : enum_values<ft0cc::doc::effect_type>())
 		if (name == EFF_CHAR[value_cast(fx)])
 			return fx;
-	return effect_t::none;
+	return ft0cc::doc::effect_type::none;
 }
 
 
@@ -252,14 +252,14 @@ std::unique_ptr<CChipHandler> CSoundChipTypeVRC7::MakeChipHandler(std::uint8_t n
 		.With<CChannelHandlerVRC7>(vrc7_subindex_t::ch6);
 }
 
-effect_t CSoundChipTypeVRC7::TranslateEffectName(char name, sound_chip_t chip) const {
-	for (effect_t fx : VRC7_EFFECTS)
+ft0cc::doc::effect_type CSoundChipTypeVRC7::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (ft0cc::doc::effect_type fx : VRC7_EFFECTS)
 		if (name == EFF_CHAR[value_cast(fx)])
 			return fx;
-	for (auto fx : enum_values<effect_t>())
+	for (auto fx : enum_values<ft0cc::doc::effect_type>())
 		if (name == EFF_CHAR[value_cast(fx)])
 			return fx;
-	return effect_t::none;
+	return ft0cc::doc::effect_type::none;
 }
 
 
@@ -305,14 +305,14 @@ std::unique_ptr<CChipHandler> CSoundChipTypeFDS::MakeChipHandler(std::uint8_t nI
 		.With<CChannelHandlerFDS>(fds_subindex_t::wave);
 }
 
-effect_t CSoundChipTypeFDS::TranslateEffectName(char name, sound_chip_t chip) const {
-	for (effect_t fx : FDS_EFFECTS)
+ft0cc::doc::effect_type CSoundChipTypeFDS::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (ft0cc::doc::effect_type fx : FDS_EFFECTS)
 		if (name == EFF_CHAR[value_cast(fx)])
 			return fx;
-	for (auto fx : enum_values<effect_t>())
+	for (auto fx : enum_values<ft0cc::doc::effect_type>())
 		if (name == EFF_CHAR[value_cast(fx)])
 			return fx;
-	return effect_t::none;
+	return ft0cc::doc::effect_type::none;
 }
 
 
@@ -361,11 +361,11 @@ std::unique_ptr<CChipHandler> CSoundChipTypeMMC5::MakeChipHandler(std::uint8_t n
 		.With<CChannelHandlerMMC5>(mmc5_subindex_t::pulse2);
 }
 
-effect_t CSoundChipTypeMMC5::TranslateEffectName(char name, sound_chip_t chip) const {
-	for (auto fx : enum_values<effect_t>())
+ft0cc::doc::effect_type CSoundChipTypeMMC5::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (auto fx : enum_values<ft0cc::doc::effect_type>())
 		if (name == EFF_CHAR[value_cast(fx)])
 			return fx;
-	return effect_t::none;
+	return ft0cc::doc::effect_type::none;
 }
 
 
@@ -425,14 +425,14 @@ std::unique_ptr<CChipHandler> CSoundChipTypeN163::MakeChipHandler(std::uint8_t n
 		.With<CChannelHandlerN163>(n163_subindex_t::ch8);
 }
 
-effect_t CSoundChipTypeN163::TranslateEffectName(char name, sound_chip_t chip) const {
-	for (effect_t fx : N163_EFFECTS)
+ft0cc::doc::effect_type CSoundChipTypeN163::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (ft0cc::doc::effect_type fx : N163_EFFECTS)
 		if (name == EFF_CHAR[value_cast(fx)])
 			return fx;
-	for (auto fx : enum_values<effect_t>())
+	for (auto fx : enum_values<ft0cc::doc::effect_type>())
 		if (name == EFF_CHAR[value_cast(fx)])
 			return fx;
-	return effect_t::none;
+	return ft0cc::doc::effect_type::none;
 }
 
 
@@ -482,12 +482,12 @@ std::unique_ptr<CChipHandler> CSoundChipTypeS5B::MakeChipHandler(std::uint8_t nI
 		.With<CChannelHandlerS5B>(s5b_subindex_t::square3);
 }
 
-effect_t CSoundChipTypeS5B::TranslateEffectName(char name, sound_chip_t chip) const {
-	for (effect_t fx : S5B_EFFECTS)
+ft0cc::doc::effect_type CSoundChipTypeS5B::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (ft0cc::doc::effect_type fx : S5B_EFFECTS)
 		if (name == EFF_CHAR[value_cast(fx)])
 			return fx;
-	for (auto fx : enum_values<effect_t>())
+	for (auto fx : enum_values<ft0cc::doc::effect_type>())
 		if (name == EFF_CHAR[value_cast(fx)])
 			return fx;
-	return effect_t::none;
+	return ft0cc::doc::effect_type::none;
 }

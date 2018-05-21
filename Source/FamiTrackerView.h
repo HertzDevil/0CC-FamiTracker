@@ -130,7 +130,7 @@ public:
 	bool		IsMarkerValid() const;		// // //
 
 	// Player callback (TODO move to new interface)
-	void		 PlayerPlayNote(stChannelID Channel, const stChanNote &pNote);		// // //
+	void		 PlayerPlayNote(stChannelID Channel, const ft0cc::doc::pattern_note &pNote);		// // //
 
 	void		 MakeSilent();
 
@@ -158,7 +158,7 @@ public:
 
 	bool		 DoRelease() const;
 
-	void		 EditReplace(stChanNote &Note);		// // //
+	void		 EditReplace(ft0cc::doc::pattern_note &Note);		// // //
 
 	CPatternEditor *GetPatternEditor() const;		// // //
 
@@ -231,20 +231,20 @@ private:
 	bool	PreventRepeat(unsigned char Key, bool Insert);
 	void	RepeatRelease(unsigned char Key);
 
-	bool	EditInstrumentColumn(stChanNote &Note, int Value, bool &StepDown, bool &MoveRight, bool &MoveLeft);
-	bool	EditVolumeColumn(stChanNote &Note, int Value, bool &bStepDown);
-	bool	EditEffNumberColumn(stChanNote &Note, unsigned char nChar, int EffectIndex, bool &bStepDown);
-	bool	EditEffParamColumn(stChanNote &Note, int Value, int EffectIndex, bool &bStepDown, bool &bMoveRight, bool &bMoveLeft);
+	bool	EditInstrumentColumn(ft0cc::doc::pattern_note &Note, int Value, bool &StepDown, bool &MoveRight, bool &MoveLeft);
+	bool	EditVolumeColumn(ft0cc::doc::pattern_note &Note, int Value, bool &bStepDown);
+	bool	EditEffNumberColumn(ft0cc::doc::pattern_note &Note, unsigned char nChar, int EffectIndex, bool &bStepDown);
+	bool	EditEffParamColumn(ft0cc::doc::pattern_note &Note, int Value, int EffectIndex, bool &bStepDown, bool &bMoveRight, bool &bMoveLeft);
 
-	void	InsertNote(const stChanNote &Note);		// // //
-	stChanNote GetInputNote(note_t Note, int Octave, std::size_t Index, int Velocity);		// // //
+	void	InsertNote(const ft0cc::doc::pattern_note &Note);		// // //
+	ft0cc::doc::pattern_note GetInputNote(ft0cc::doc::pitch Note, int Octave, std::size_t Index, int Velocity);		// // //
 
 	void	DoPaste(paste_mode_t Mode);		// // //
 
 	// MIDI keyboard emulation
 	void	HandleKeyboardNote(char nChar, bool Pressed);
-	void	SplitKeyboardAdjust(stChanNote &Note, stChannelID Channel) const;		// // //
-	stChannelID SplitAdjustChannel(stChannelID Channel, const stChanNote &Note) const;		// // //
+	void	SplitKeyboardAdjust(ft0cc::doc::pattern_note &Note, stChannelID Channel) const;		// // //
+	stChannelID SplitAdjustChannel(stChannelID Channel, const ft0cc::doc::pattern_note &Note) const;		// // //
 
 	// MIDI note functions
 	void	TriggerMIDINote(std::size_t Index, unsigned int MidiNote, unsigned int Velocity, bool Insert);
@@ -265,7 +265,7 @@ private:
 
 	// Other
 	bool	AddAction(std::unique_ptr<CAction> pAction) const;		// // //
-	CStringW	GetEffectHint(const stChanNote &Note, int Column) const;		// // //
+	CStringW	GetEffectHint(const ft0cc::doc::pattern_note &Note, int Column) const;		// // //
 
 	// // //
 	// Keyboard
@@ -325,7 +325,7 @@ private:
 
 	// Input
 	std::array<char, 256> m_cKeyList = { };						// // //
-	stChanNote			m_LastNote;								// // // Last note added to pattern
+	ft0cc::doc::pattern_note			m_LastNote;								// // // Last note added to pattern
 	int					m_iLastPressedKey = -1;					// // //
 	int					m_iLastNoteState = -1;					// // //
 

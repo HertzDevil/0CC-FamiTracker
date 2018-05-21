@@ -160,37 +160,36 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 	unsigned char DPCMInst = 0;
 
 	for (unsigned int i = 0; i < iPatternLen; ++i) {
-		stChanNote ChanNote = pSong->GetPattern(Channel, Pattern).GetNoteOn(i);		// // //
+		ft0cc::doc::pattern_note ChanNote = pSong->GetPattern(Channel, Pattern).GetNoteOn(i);		// // //
 
-		const note_t Note = ChanNote.Note;
-		const unsigned char Octave = ChanNote.Octave;
-		const unsigned char Instrument = FindInstrument(ChanNote.Instrument);
-		const unsigned char Volume = ChanNote.Vol;
+		const ft0cc::doc::pitch Note = ChanNote.note();
+		const unsigned char Octave = ChanNote.oct();
+		const unsigned char Instrument = FindInstrument(ChanNote.inst());
+		const unsigned char Volume = ChanNote.vol();
 
 		bool Action = false;
 
-		if (ChanNote.Instrument != MAX_INSTRUMENTS && ChanNote.Instrument != HOLD_INSTRUMENT && (is_note(Note) || Note == note_t::echo))		// // //
-			if (!IsInstrumentCompatible(Channel.Chip, pInstManager->GetInstrumentType(ChanNote.Instrument)))		// // //
+		if (ChanNote.inst() != MAX_INSTRUMENTS && ChanNote.inst() != HOLD_INSTRUMENT && (is_note(Note) || Note == ft0cc::doc::pitch::echo))		// // //
+			if (!IsInstrumentCompatible(Channel.Chip, pInstManager->GetInstrumentType(ChanNote.inst())))		// // //
 				Print("Error: Missing or incompatible instrument (on row " + conv::from_uint(i) +
 					", channel " + std::string {FTEnv.GetSoundChipService()->GetChannelFullName(Channel)} + ", pattern " + conv::from_uint(Pattern) + ")\n");
 
 		// Check for delays, must come first
 		for (int j = 0; j < EffColumns; ++j) {
-			effect_t Effect = ChanNote.Effects[j].fx;
-			unsigned char EffParam = ChanNote.Effects[j].param;
-			if (Effect == effect_t::DELAY && EffParam > 0) {
+			unsigned char EffParam = ChanNote.fx_param(j);
+			if (ChanNote.fx_name(j) == ft0cc::doc::effect_type::DELAY && EffParam > 0) {
 				WriteDuration();
 				for (int k = 0; k < EffColumns; ++k) {
 					// Clear skip and jump commands on delayed rows
-					if (ChanNote.Effects[k].fx == effect_t::SKIP) {
+					if (ChanNote.fx_name(k) == ft0cc::doc::effect_type::SKIP) {
 						WriteData(Command(CMD_EFF_SKIP));
-						WriteData(ChanNote.Effects[k].param + 1);
-						ChanNote.Effects[k] = { };
+						WriteData(ChanNote.fx_param(k) + 1);
+						ChanNote.set_fx_cmd(k, { });
 					}
-					else if (ChanNote.Effects[k].fx == effect_t::JUMP) {
+					else if (ChanNote.fx_name(k) == ft0cc::doc::effect_type::JUMP) {
 						WriteData(Command(CMD_EFF_JUMP));
-						WriteData(ChanNote.Effects[k].param + 1);
-						ChanNote.Effects[k] = { };
+						WriteData(ChanNote.fx_param(k) + 1);
+						ChanNote.set_fx_cmd(k, { });
 					}
 				}
 				Action = true;
@@ -233,7 +232,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 		}
 		else
 */
-		if (Note != note_t::halt && Note != note_t::release) {		// // //
+		if (Note != ft0cc::doc::pitch::halt && Note != ft0cc::doc::pitch::release) {		// // //
 			if (Instrument != LastInstrument && Instrument < MAX_INSTRUMENTS) {
 				LastInstrument = Instrument;
 				// Write instrument change command
@@ -254,7 +253,7 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 					Action = true;
 				}
 				else {
-					DPCMInst = ChanNote.Instrument;
+					DPCMInst = ChanNote.inst();
 				}
 			}
 			if (Instrument == HOLD_INSTRUMENT && !IsDPCM(Channel)) {		// // // 050B
@@ -274,12 +273,12 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 
 		const auto NESNote = static_cast<unsigned char>([&] {
 			switch (Note) {
-			case note_t::none:    return 0xFF;
-			case note_t::halt:    return 0x7F - 1;
-			case note_t::release: return 0x7F - 2;
-			case note_t::echo:    return 0x6F + Octave;
+			case ft0cc::doc::pitch::none:    return 0xFF;
+			case ft0cc::doc::pitch::halt:    return 0x7F - 1;
+			case ft0cc::doc::pitch::release: return 0x7F - 2;
+			case ft0cc::doc::pitch::echo:    return 0x6F + Octave;
 			default:
-				int NESNote = ChanNote.ToMidiNote();		// // //
+				int NESNote = ChanNote.midi_note();		// // //
 				if (IsDPCM(Channel)) {
 					// 2A03 DPCM
 					int LookUp = FindSample(DPCMInst, NESNote);
@@ -303,54 +302,53 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 		}());
 
 		for (int j = 0; j < EffColumns; ++j) {
-			effect_t Effect = ChanNote.Effects[j].fx;
-			unsigned char EffParam = ChanNote.Effects[j].param;
+			ft0cc::doc::effect_command cmd = ChanNote.fx_cmd(j);
 
-			if (Effect != effect_t::none) {
+			if (cmd.fx != ft0cc::doc::effect_type::none) {
 				WriteDuration();
 				Action = true;
 			}
 
-			switch (Effect) {
-				case effect_t::SPEED:
-					if (EffParam >= modfile_.GetSpeedSplitPoint() && pSong->GetSongTempo())		// // //
+			switch (cmd.fx) {
+				case ft0cc::doc::effect_type::SPEED:
+					if (cmd.param >= modfile_.GetSpeedSplitPoint() && pSong->GetSongTempo())		// // //
 						WriteData(Command(CMD_EFF_TEMPO));
 					else
 						WriteData(Command(CMD_EFF_SPEED));
-					WriteData(EffParam ? EffParam : 1); // NSF halts if 0 is exported
+					WriteData(cmd.param ? cmd.param : 1); // NSF halts if 0 is exported
 					break;
-				case effect_t::JUMP:
+				case ft0cc::doc::effect_type::JUMP:
 					WriteData(Command(CMD_EFF_JUMP));
-					WriteData(EffParam + 1);
+					WriteData(cmd.param + 1);
 					break;
-				case effect_t::SKIP:
+				case ft0cc::doc::effect_type::SKIP:
 					WriteData(Command(CMD_EFF_SKIP));
-					WriteData(EffParam + 1);
+					WriteData(cmd.param + 1);
 					break;
-				case effect_t::HALT:
+				case ft0cc::doc::effect_type::HALT:
 					WriteData(Command(CMD_EFF_HALT));
-					WriteData(EffParam);
+					WriteData(cmd.param);
 					break;
-				case effect_t::VOLUME:		// // //
+				case ft0cc::doc::effect_type::VOLUME:		// // //
 					if ((Channel.Chip == sound_chip_t::APU && !IsDPCM(Channel)) || Channel.Chip == sound_chip_t::MMC5) {
 						WriteData(Command(CMD_EFF_VOLUME));
-						if ((EffParam <= 0x1F) || (EffParam >= 0xE0 && EffParam <= 0xE3))
-							WriteData(EffParam & 0x9F);
+						if ((cmd.param <= 0x1F) || (cmd.param >= 0xE0 && cmd.param <= 0xE3))
+							WriteData(cmd.param & 0x9F);
 					}
 					break;
-				case effect_t::PORTAMENTO:
+				case ft0cc::doc::effect_type::PORTAMENTO:
 					if (!IsDPCM(Channel)) {
-						if (EffParam == 0)
+						if (cmd.param == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
 							WriteData(Command(CMD_EFF_PORTAMENTO));
-							WriteData(EffParam);
+							WriteData(cmd.param);
 						}
 					}
 					break;
-				case effect_t::PORTA_UP:
+				case ft0cc::doc::effect_type::PORTA_UP:
 					if (!IsDPCM(Channel)) {
-						if (EffParam == 0)
+						if (cmd.param == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
 							switch (Channel.Chip) {		// // //
@@ -364,13 +362,13 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 								WriteData(Command(CMD_EFF_PORTADOWN));
 								break;
 							}
-							WriteData(EffParam);
+							WriteData(cmd.param);
 						}
 					}
 					break;
-				case effect_t::PORTA_DOWN:
+				case ft0cc::doc::effect_type::PORTA_DOWN:
 					if (!IsDPCM(Channel)) {
-						if (EffParam == 0)
+						if (cmd.param == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
 							switch (Channel.Chip) {		// // //
@@ -384,56 +382,56 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 								WriteData(Command(CMD_EFF_PORTAUP));
 								break;
 							}
-							WriteData(EffParam);
+							WriteData(cmd.param);
 						}
 					}
 					break;
 					/*
-				case effect_t::PORTAOFF:
+				case ft0cc::doc::effect_type::PORTAOFF:
 					if (Channel.Chip == sound_chip_t::APU) {
 						WriteData(CMD_EFF_PORTAOFF);
-						//WriteData(EffParam);
+						//WriteData(cmd.param);
 					}
 					break;*/
-				case effect_t::SWEEPUP:
+				case ft0cc::doc::effect_type::SWEEPUP:
 					if (IsAPUPulse(Channel)) {
 						WriteData(Command(CMD_EFF_SWEEP));
-						WriteData(0x88 | (EffParam & 0x77));	// Calculate sweep
+						WriteData(0x88 | (cmd.param & 0x77));	// Calculate sweep
 					}
 					break;
-				case effect_t::SWEEPDOWN:
+				case ft0cc::doc::effect_type::SWEEPDOWN:
 					if (IsAPUPulse(Channel)) {
 						WriteData(Command(CMD_EFF_SWEEP));
-						WriteData(0x80 | (EffParam & 0x77));	// Calculate sweep
+						WriteData(0x80 | (cmd.param & 0x77));	// Calculate sweep
 					}
 					break;
-				case effect_t::ARPEGGIO:
+				case ft0cc::doc::effect_type::ARPEGGIO:
 					if (!IsDPCM(Channel)) {
-						if (EffParam == 0)
+						if (cmd.param == 0)
 							WriteData(Command(CMD_EFF_CLEAR));
 						else {
 							WriteData(Command(CMD_EFF_ARPEGGIO));
-							WriteData(EffParam);
+							WriteData(cmd.param);
 						}
 					}
 					break;
-				case effect_t::VIBRATO:
+				case ft0cc::doc::effect_type::VIBRATO:
 					if (!IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_VIBRATO));
-						//WriteData(EffParam);
-						WriteData((EffParam & 0xF) << 4 | (EffParam >> 4));
+						//WriteData(cmd.param);
+						WriteData((cmd.param & 0xF) << 4 | (cmd.param >> 4));
 					}
 					break;
-				case effect_t::TREMOLO:
+				case ft0cc::doc::effect_type::TREMOLO:
 					if (!IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_TREMOLO));
-//						WriteData(EffParam & 0xF7);
-						WriteData((EffParam & 0xF) << 4 | (EffParam >> 4));
+//						WriteData(cmd.param & 0xF7);
+						WriteData((cmd.param & 0xF) << 4 | (cmd.param >> 4));
 					}
 					break;
-				case effect_t::PITCH:
+				case ft0cc::doc::effect_type::PITCH:
 					if (!IsDPCM(Channel)) {
-						if (EffParam == 0x80)
+						if (cmd.param == 0x80)
 							WriteData(Command(CMD_EFF_RESET_PITCH));
 						else {
 							switch (Channel.Chip) {
@@ -442,185 +440,185 @@ void CPatternCompiler::CompileData(int Track, int Pattern, stChannelID Channel) 
 									break;
 								[[fallthrough]];
 							default:
-								EffParam = (char)(256 - (int)EffParam);
-								if (EffParam == 0)
-									EffParam = 0xFF;
+								cmd.param = (char)(256 - (int)cmd.param);
+								if (cmd.param == 0)
+									cmd.param = 0xFF;
 								break;
 							}
 							WriteData(Command(CMD_EFF_PITCH));
-							WriteData(EffParam);
+							WriteData(cmd.param);
 						}
 					}
 					break;
-				case effect_t::DAC:
+				case ft0cc::doc::effect_type::DAC:
 					if (IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_DAC));
-						WriteData(EffParam & 0x7F);
+						WriteData(cmd.param & 0x7F);
 					}
 					break;
-				case effect_t::DUTY_CYCLE:
+				case ft0cc::doc::effect_type::DUTY_CYCLE:
 					if (Channel.Chip == sound_chip_t::VRC7) {		// // // 050B
 						WriteData(Command(CMD_EFF_VRC7_PATCH));
-						WriteData(EffParam << 4);
+						WriteData(cmd.param << 4);
 					}
 					else if (Channel.Chip == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_DUTY));
-						WriteData((EffParam << 6) | ((EffParam & 0x04) << 3));
+						WriteData((cmd.param << 6) | ((cmd.param & 0x04) << 3));
 					}
 					else if (!IsAPUTriangle(Channel) && !IsDPCM(Channel)) {	// Not triangle and dpcm
 						WriteData(Command(CMD_EFF_DUTY));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::SAMPLE_OFFSET:
+				case ft0cc::doc::effect_type::SAMPLE_OFFSET:
 					if (IsDPCM(Channel)) {	// DPCM
 						WriteData(Command(CMD_EFF_OFFSET));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::SLIDE_UP:
+				case ft0cc::doc::effect_type::SLIDE_UP:
 					if (!IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_SLIDE_UP));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::SLIDE_DOWN:
+				case ft0cc::doc::effect_type::SLIDE_DOWN:
 					if (!IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_SLIDE_DOWN));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::VOLUME_SLIDE:
+				case ft0cc::doc::effect_type::VOLUME_SLIDE:
 					if (!IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_VOL_SLIDE));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::NOTE_CUT:
-					if (EffParam >= 0x80 && IsAPUTriangle(Channel)) {		// // //
+				case ft0cc::doc::effect_type::NOTE_CUT:
+					if (cmd.param >= 0x80 && IsAPUTriangle(Channel)) {		// // //
 						WriteData(Command(CMD_EFF_LINEAR_COUNTER));
-						WriteData(EffParam - 0x80);
+						WriteData(cmd.param - 0x80);
 					}
-					else if (EffParam < 0x80) {
+					else if (cmd.param < 0x80) {
 						WriteData(Command(CMD_EFF_NOTE_CUT));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::RETRIGGER:
+				case ft0cc::doc::effect_type::RETRIGGER:
 					if (IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_RETRIGGER));
-						WriteData(EffParam + 1);
+						WriteData(cmd.param + 1);
 					}
 					break;
-				case effect_t::DPCM_PITCH:
+				case ft0cc::doc::effect_type::DPCM_PITCH:
 					if (IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_DPCM_PITCH));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::NOTE_RELEASE:		// // //
-					if (EffParam < 0x80) {
+				case ft0cc::doc::effect_type::NOTE_RELEASE:		// // //
+					if (cmd.param < 0x80) {
 						WriteData(Command(CMD_EFF_NOTE_RELEASE));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::GROOVE:		// // //
-					if (EffParam < MAX_GROOVE) {
+				case ft0cc::doc::effect_type::GROOVE:		// // //
+					if (cmd.param < MAX_GROOVE) {
 						WriteData(Command(CMD_EFF_GROOVE));
 
 						int Pos = 1;
-						for (int k = 0; k < EffParam; ++k)
+						for (int k = 0; k < cmd.param; ++k)
 							if (const auto pGroove = modfile_.GetGroove(k))
 								Pos += pGroove->compiled_size(); // TODO: use groove manager instead
 						WriteData(Pos);
 					}
 					break;
-				case effect_t::DELAYED_VOLUME:		// // //
-					if (!IsDPCM(Channel) && (EffParam >> 4) && (EffParam & 0x0F)) {
+				case ft0cc::doc::effect_type::DELAYED_VOLUME:		// // //
+					if (!IsDPCM(Channel) && (cmd.param >> 4) && (cmd.param & 0x0F)) {
 						WriteData(Command(CMD_EFF_DELAYED_VOLUME));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::TRANSPOSE:			// // //
+				case ft0cc::doc::effect_type::TRANSPOSE:			// // //
 					if (!IsDPCM(Channel)) {
 						WriteData(Command(CMD_EFF_TRANSPOSE));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
 				// // // VRC7
-				case effect_t::VRC7_PORT:
+				case ft0cc::doc::effect_type::VRC7_PORT:
 					if (Channel.Chip == sound_chip_t::VRC7) {
 						WriteData(Command(CMD_EFF_VRC7_PORT));
-						WriteData(EffParam & 0x07);
+						WriteData(cmd.param & 0x07);
 					}
 					break;
-				case effect_t::VRC7_WRITE:
+				case ft0cc::doc::effect_type::VRC7_WRITE:
 					if (Channel.Chip == sound_chip_t::VRC7) {
 						WriteData(Command(CMD_EFF_VRC7_WRITE));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
 				// FDS
-				case effect_t::FDS_MOD_DEPTH:
+				case ft0cc::doc::effect_type::FDS_MOD_DEPTH:
 					if (Channel.Chip == sound_chip_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_DEPTH));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::FDS_MOD_SPEED_HI:
+				case ft0cc::doc::effect_type::FDS_MOD_SPEED_HI:
 					if (Channel.Chip == sound_chip_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_RATE_HI));
-						WriteData(EffParam);		// // //
+						WriteData(cmd.param);		// // //
 					}
 					break;
-				case effect_t::FDS_MOD_SPEED_LO:
+				case ft0cc::doc::effect_type::FDS_MOD_SPEED_LO:
 					if (Channel.Chip == sound_chip_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_RATE_LO));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::FDS_MOD_BIAS:		// // //
+				case ft0cc::doc::effect_type::FDS_MOD_BIAS:		// // //
 					if (Channel.Chip == sound_chip_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_MOD_BIAS));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::FDS_VOLUME:		// // //
+				case ft0cc::doc::effect_type::FDS_VOLUME:		// // //
 					if (Channel.Chip == sound_chip_t::FDS) {
 						WriteData(Command(CMD_EFF_FDS_VOLUME));
-						WriteData(EffParam == 0xE0 ? 0x80 : (EffParam ^ 0x40));
+						WriteData(cmd.param == 0xE0 ? 0x80 : (cmd.param ^ 0x40));
 					}
 					break;
 				// // // Sunsoft 5B
-				case effect_t::SUNSOFT_ENV_TYPE:
+				case ft0cc::doc::effect_type::SUNSOFT_ENV_TYPE:
 					if (Channel.Chip == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_ENV_TYPE));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::SUNSOFT_ENV_HI:
+				case ft0cc::doc::effect_type::SUNSOFT_ENV_HI:
 					if (Channel.Chip == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_ENV_RATE_HI));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::SUNSOFT_ENV_LO:
+				case ft0cc::doc::effect_type::SUNSOFT_ENV_LO:
 					if (Channel.Chip == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_ENV_RATE_LO));
-						WriteData(EffParam);
+						WriteData(cmd.param);
 					}
 					break;
-				case effect_t::SUNSOFT_NOISE:		// // // 050B
+				case ft0cc::doc::effect_type::SUNSOFT_NOISE:		// // // 050B
 					if (Channel.Chip == sound_chip_t::S5B) {
 						WriteData(Command(CMD_EFF_S5B_NOISE));
-						WriteData(EffParam & 0x1F);
+						WriteData(cmd.param & 0x1F);
 					}
 					break;
 				// // // N163
-				case effect_t::N163_WAVE_BUFFER:
-					if (Channel.Chip == sound_chip_t::N163 && EffParam <= 0x7F) {
+				case ft0cc::doc::effect_type::N163_WAVE_BUFFER:
+					if (Channel.Chip == sound_chip_t::N163 && cmd.param <= 0x7F) {
 						WriteData(Command(CMD_EFF_N163_WAVE_BUFFER));
-						WriteData(EffParam == 0x7F ? 0x80 : EffParam);
+						WriteData(cmd.param == 0x7F ? 0x80 : cmd.param);
 					}
 					break;
 			}
@@ -700,14 +698,14 @@ CPatternCompiler::stSpacingInfo CPatternCompiler::ScanNoteLengths(int Track, uns
 		const auto &NoteData = pSong->GetPattern(Channel, Pattern).GetNoteOn(i);		// // //
 		bool NoteUsed = false;
 
-		if (NoteData.Note != note_t::none)
+		if (NoteData.note() != ft0cc::doc::pitch::none)
 			NoteUsed = true;
-		else if (NoteData.Instrument < MAX_INSTRUMENTS || NoteData.Instrument == HOLD_INSTRUMENT)		// // //
+		else if (NoteData.inst() < MAX_INSTRUMENTS || NoteData.inst() == HOLD_INSTRUMENT)		// // //
 			NoteUsed = true;
-		else if (NoteData.Vol < MAX_VOLUME)
+		else if (NoteData.vol() < MAX_VOLUME)
 			NoteUsed = true;
 		else for (unsigned j = 0, Count = pSong->GetEffectColumnCount(Channel); j < Count; ++j)
-			if (NoteData.Effects[j].fx != effect_t::none)
+			if (NoteData.fx_name(j) != ft0cc::doc::effect_type::none)
 				NoteUsed = true;
 
 		if (i == StartRow && !NoteUsed)

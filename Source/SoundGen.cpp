@@ -631,11 +631,11 @@ void CSoundGen::OnStepRow() {
 		m_pWaveRenderer->StepRow();		// // //
 }
 
-void CSoundGen::OnPlayNote(stChannelID chan, const stChanNote &note) {
+void CSoundGen::OnPlayNote(stChannelID chan, const ft0cc::doc::pattern_note &note) {
 	if (!IsChannelMuted(chan)) {
 		if (m_pTrackerView)
 			m_pTrackerView->PlayerPlayNote(chan, note);
-		FTEnv.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(chan), note.Note, note.Octave, note.Vol);
+		FTEnv.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(chan), note.note(), note.oct(), note.vol());
 	}
 }
 
@@ -1244,11 +1244,11 @@ void CSoundGen::SetNamcoMixing(bool bLinear)		// // //
 
 // Player state functions
 
-void CSoundGen::QueueNote(stChannelID Channel, const stChanNote &NoteData, note_prio_t Priority) const		// // //
+void CSoundGen::QueueNote(stChannelID Channel, const ft0cc::doc::pattern_note &NoteData, note_prio_t Priority) const		// // //
 {
 	// Queue a note for play
 	m_pSoundDriver->QueueNote(Channel, NoteData, Priority);
-	FTEnv.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(Channel), NoteData.Note, NoteData.Octave, NoteData.Vol);
+	FTEnv.GetMIDI()->WriteNote((uint8_t)m_pModule->GetChannelOrder().GetChannelIndex(Channel), NoteData.note(), NoteData.oct(), NoteData.vol());
 }
 
 void CSoundGen::ForceReloadInstrument(stChannelID Channel)		// // //

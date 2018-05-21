@@ -25,14 +25,16 @@
 
 #include "stdafx.h"		// // //
 #include <string_view>		// // //
-#include "ft0cc/fs.h"		// // //
+#include "ft0cc/cpputil/fs.hpp"		// // //
 
 class CFamiTrackerDoc; // forward declaration
 class CFamiTrackerModule;		// // //
-class stChanNote;		// // //
+namespace ft0cc::doc {
+class pattern_note;
+} // namespace ft0cc::doc
 
 struct CTextExport {
-	static CStringA ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise);		// // //
+	static CStringA ExportCellText(const ft0cc::doc::pattern_note &stCell, unsigned int nEffects, bool bNoise);		// // //
 
 	void ImportFile(const fs::path &FileName, CFamiTrackerDoc &Doc);		// // //
 

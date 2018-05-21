@@ -32,10 +32,12 @@
 #include <map>
 
 class CFamiTrackerModule;
-class stChanNote;
-struct stEffectCommand;
+namespace ft0cc::doc {
+struct effect_command;
+class pattern_note;
+} // namespace ft0cc::doc
 
-std::string MakeCommandString(stEffectCommand cmd);		// // //
+std::string MakeCommandString(ft0cc::doc::effect_command cmd);		// // //
 
 // // // special echo buffer constants
 inline constexpr int ECHO_BUFFER_NONE = 0xFF;
@@ -61,15 +63,15 @@ public:
 	stChannelID ChannelID;
 	int Instrument = MAX_INSTRUMENTS;
 	int Volume = MAX_VOLUME;
-	std::array<int, enum_count<effect_t>() + 1> Effect = { };
+	std::array<int, enum_count<ft0cc::doc::effect_type>() + 1> Effect = { };
 	int Effect_LengthCounter = -1;
 	int Effect_AutoFMMult = -1;
 	std::array<int, ECHO_BUFFER_LENGTH> Echo = { };
 
 private:
-	void HandleNote(const stChanNote &Note, unsigned EffColumns);
-	void HandleNormalCommand(stEffectCommand cmd);
-	void HandleSlideCommand(stEffectCommand cmd);
+	void HandleNote(const ft0cc::doc::pattern_note &Note, unsigned EffColumns);
+	void HandleNormalCommand(ft0cc::doc::effect_command cmd);
+	void HandleSlideCommand(ft0cc::doc::effect_command cmd);
 	void HandleExxCommand2A03(unsigned char param);
 	void HandleSxxCommand(unsigned char param);
 

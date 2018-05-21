@@ -176,27 +176,26 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 				for (c = 0; c < ReadCount; ++c) {
 					for (i = 0; i < PatternLength; ++i) {
 						OpenFile.ReadBytes(&ImportedNote, sizeof(ImportedNote));
-						if (ImportedNote.ExtraStuff1 == (int)effect_t::PORTAOFF) {
-							ImportedNote.ExtraStuff1 = (int)effect_t::PORTAMENTO;
+						if (ImportedNote.ExtraStuff1 == (int)ft0cc::doc::effect_type::PORTAOFF) {
+							ImportedNote.ExtraStuff1 = (int)ft0cc::doc::effect_type::PORTAMENTO;
 							ImportedNote.ExtraStuff2 = 0;
 						}
-						else if (ImportedNote.ExtraStuff1 == (int)effect_t::PORTAMENTO) {
+						else if (ImportedNote.ExtraStuff1 == (int)ft0cc::doc::effect_type::PORTAMENTO) {
 							if (ImportedNote.ExtraStuff2 < 0xFF)
 								++ImportedNote.ExtraStuff2;
 						}
-						stChanNote Note;		// // //
-						Note.Effects[0].fx = static_cast<effect_t>(ImportedNote.ExtraStuff1);
-						Note.Effects[0].param = ImportedNote.ExtraStuff2;
-						Note.Instrument = ImportedNote.Instrument;
-						Note.Note = enum_cast<note_t>(ImportedNote.Note);
-						Note.Octave = ImportedNote.Octave;
-						Note.Vol = 0;
-						if (Note.Note == note_t::none)
-							Note.Instrument = MAX_INSTRUMENTS;
-						if (Note.Vol == 0)
-							Note.Vol = MAX_VOLUME;
-						if (Note.Effects[0].fx <= effect_t::max)		// // //
-							Note.Effects[0].fx = EFF_CONVERSION_050.first[value_cast(Note.Effects[0].fx)];
+						ft0cc::doc::pattern_note Note;		// // //
+						Note.set_fx_cmd(0, {static_cast<ft0cc::doc::effect_type>(ImportedNote.ExtraStuff1), static_cast<uint8_t>(ImportedNote.ExtraStuff2)});
+						Note.set_inst(ImportedNote.Instrument);
+						Note.set_note(enum_cast<ft0cc::doc::pitch>(ImportedNote.Note));
+						Note.set_oct(ImportedNote.Octave);
+						Note.set_vol(0);
+						if (Note.note() == ft0cc::doc::pitch::none)
+							Note.set_inst(MAX_INSTRUMENTS);
+						if (Note.vol() == 0)
+							Note.set_vol(MAX_VOLUME);
+						if (Note.fx_name(0) <= ft0cc::doc::effect_type::max)		// // //
+							Note.set_fx_name(0, EFF_CONVERSION_050.first[value_cast(Note.fx_name(0))]);
 						Song.SetPatternData(x, c, i, Note);
 					}
 				}

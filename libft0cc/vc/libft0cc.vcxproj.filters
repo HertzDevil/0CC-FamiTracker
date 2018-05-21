@@ -19,11 +19,11 @@
     <Filter Include="Header Files\doc">
       <UniqueIdentifier>{5f1c729d-1c82-4aa3-81e8-018ead87b6ad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\cpputil">
+      <UniqueIdentifier>{d333dffd-b30c-49fe-bc70-a3ed9b9498be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\ft0cc\fs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\ft0cc\doc\groove.hpp">
       <Filter>Header Files\doc</Filter>
     </ClInclude>
@@ -33,10 +33,31 @@
     <ClInclude Include="..\include\ft0cc\doc\inst_sequence.hpp">
       <Filter>Header Files\doc</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ft0cc\enum_traits.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\ft0cc\doc\pitch.hpp">
+      <Filter>Header Files\doc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ft0cc\cpputil\enum_traits.hpp">
+      <Filter>Header Files\cpputil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ft0cc\cpputil\fs.hpp">
+      <Filter>Header Files\cpputil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ft0cc\cpputil\strong_ordering.hpp">
+      <Filter>Header Files\cpputil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ft0cc\cpputil\iter.hpp">
+      <Filter>Header Files\cpputil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ft0cc\doc\constants.hpp">
+      <Filter>Header Files\doc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ft0cc\doc\pattern_note.hpp">
+      <Filter>Header Files\doc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ft0cc\doc\effect_command.hpp">
+      <Filter>Header Files\doc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ft0cc\doc\effect_type.hpp">
       <Filter>Header Files\doc</Filter>
     </ClInclude>
   </ItemGroup>

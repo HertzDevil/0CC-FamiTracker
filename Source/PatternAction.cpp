@@ -181,7 +181,7 @@ void CPatternAction::DeleteSelection(CSongView &view, const CSelection &Sel) con
 	const column_t ColStart = GetSelectColumn(b.m_iColumn);
 	const column_t ColEnd = GetSelectColumn(e.m_iColumn);
 
-	stChanNote BLANK;
+	ft0cc::doc::pattern_note BLANK;
 
 	do for (int i = b.m_iChannel; i <= e.m_iChannel; ++i) {
 		auto NoteData = b.Get(i);
@@ -276,7 +276,7 @@ void CPSelectionAction::Undo(CMainFrame &MainFrm)
 
 
 
-CPActionEditNote::CPActionEditNote(const stChanNote &Note) :
+CPActionEditNote::CPActionEditNote(const ft0cc::doc::pattern_note &Note) :
 	m_NewNote(Note)
 {
 }
@@ -302,7 +302,7 @@ void CPActionEditNote::Redo(CMainFrame &MainFrm)
 
 
 
-CPActionReplaceNote::CPActionReplaceNote(const stChanNote &Note, int Frame, int Row, int Channel) :
+CPActionReplaceNote::CPActionReplaceNote(const ft0cc::doc::pattern_note &Note, int Frame, int Row, int Channel) :
 	m_NewNote(Note), m_iFrame(Frame), m_iRow(Row), m_iChannel(Channel)
 {
 }
@@ -365,37 +365,37 @@ bool CPActionDeleteRow::SaveState(const CMainFrame &MainFrm)
 	m_NewNote = m_OldNote;
 	switch (m_pUndoState->Cursor.Xpos.Column) {
 	case cursor_column_t::NOTE:			// Note
-		m_NewNote.Note = note_t::none;
-		m_NewNote.Octave = 0;
-		m_NewNote.Instrument = MAX_INSTRUMENTS;	// Fix the old behaviour
-		m_NewNote.Vol = MAX_VOLUME;
+		m_NewNote.set_note(ft0cc::doc::pitch::none);
+		m_NewNote.set_oct(0);
+		m_NewNote.set_inst(MAX_INSTRUMENTS);	// Fix the old behaviour
+		m_NewNote.set_vol(MAX_VOLUME);
 		break;
 	case cursor_column_t::INSTRUMENT1:		// Instrument
 	case cursor_column_t::INSTRUMENT2:
-		m_NewNote.Instrument = MAX_INSTRUMENTS;
+		m_NewNote.set_inst(MAX_INSTRUMENTS);
 		break;
 	case cursor_column_t::VOLUME:			// Volume
-		m_NewNote.Vol = MAX_VOLUME;
+		m_NewNote.set_vol(MAX_VOLUME);
 		break;
 	case cursor_column_t::EFF1_NUM:		// Effect 1
 	case cursor_column_t::EFF1_PARAM1:
 	case cursor_column_t::EFF1_PARAM2:
-		m_NewNote.Effects[0] = { };
+		m_NewNote.set_fx_cmd(0, { });
 		break;
 	case cursor_column_t::EFF2_NUM:		// Effect 2
 	case cursor_column_t::EFF2_PARAM1:
 	case cursor_column_t::EFF2_PARAM2:
-		m_NewNote.Effects[1] = { };
+		m_NewNote.set_fx_cmd(1, { });
 		break;
 	case cursor_column_t::EFF3_NUM:		// Effect 3
 	case cursor_column_t::EFF3_PARAM1:
 	case cursor_column_t::EFF3_PARAM2:
-		m_NewNote.Effects[2] = { };
+		m_NewNote.set_fx_cmd(2, { });
 		break;
 	case cursor_column_t::EFF4_NUM:		// Effect 4
 	case cursor_column_t::EFF4_PARAM1:
 	case cursor_column_t::EFF4_PARAM2:
-		m_NewNote.Effects[3] = { };
+		m_NewNote.set_fx_cmd(3, { });
 		break;
 	}
 
@@ -429,7 +429,7 @@ CPActionScrollField::CPActionScrollField(int Amount) :		// // //
 
 bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 {
-	const auto ScrollFunc = [&] (unsigned char &Old, int Limit) {
+	const auto ScrollFunc = [&] (unsigned char Old, int Limit) {
 		int New = static_cast<int>(Old) + m_iAmount;
 		if (FTEnv.GetSettings()->General.bWrapPatternValue) {
 			New %= Limit;
@@ -439,7 +439,7 @@ bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 		else {
 			New = std::clamp(New, 0, Limit - 1);
 		}
-		Old = static_cast<unsigned char>(New);
+		return static_cast<unsigned char>(New);
 	};
 
 	m_OldNote = GET_SONG_VIEW()->GetPatternOnFrame(m_pUndoState->Cursor.Xpos.Track, m_pUndoState->Cursor.Ypos.Frame)
@@ -448,23 +448,23 @@ bool CPActionScrollField::SaveState(const CMainFrame &MainFrm)
 
 	switch (m_pUndoState->Cursor.Xpos.Column) {
 	case cursor_column_t::INSTRUMENT1: case cursor_column_t::INSTRUMENT2:
-		ScrollFunc(m_NewNote.Instrument, MAX_INSTRUMENTS);
-		return m_OldNote.Instrument < MAX_INSTRUMENTS && m_OldNote.Instrument != HOLD_INSTRUMENT;		// // // 050B
+		m_NewNote.set_inst(ScrollFunc(m_NewNote.inst(), MAX_INSTRUMENTS));
+		return m_OldNote.inst() < MAX_INSTRUMENTS && m_OldNote.inst() != HOLD_INSTRUMENT;		// // // 050B
 	case cursor_column_t::VOLUME:
-		ScrollFunc(m_NewNote.Vol, MAX_VOLUME);
-		return m_OldNote.Vol < MAX_VOLUME;
+		m_NewNote.set_vol(ScrollFunc(m_NewNote.vol(), MAX_VOLUME));
+		return m_OldNote.vol() < MAX_VOLUME;
 	case cursor_column_t::EFF1_NUM: case cursor_column_t::EFF1_PARAM1: case cursor_column_t::EFF1_PARAM2:
-		ScrollFunc(m_NewNote.Effects[0].param, 0x100);
-		return m_OldNote.Effects[0].fx != effect_t::none;
+		m_NewNote.set_fx_param(0, ScrollFunc(m_NewNote.fx_param(0), 0x100));
+		return m_OldNote.fx_name(0) != ft0cc::doc::effect_type::none;
 	case cursor_column_t::EFF2_NUM: case cursor_column_t::EFF2_PARAM1: case cursor_column_t::EFF2_PARAM2:
-		ScrollFunc(m_NewNote.Effects[1].param, 0x100);
-		return m_OldNote.Effects[1].fx != effect_t::none;
+		m_NewNote.set_fx_param(1, ScrollFunc(m_NewNote.fx_param(1), 0x100));
+		return m_OldNote.fx_name(1) != ft0cc::doc::effect_type::none;
 	case cursor_column_t::EFF3_NUM: case cursor_column_t::EFF3_PARAM1: case cursor_column_t::EFF3_PARAM2:
-		ScrollFunc(m_NewNote.Effects[2].param, 0x100);
-		return m_OldNote.Effects[2].fx != effect_t::none;
+		m_NewNote.set_fx_param(2, ScrollFunc(m_NewNote.fx_param(2), 0x100));
+		return m_OldNote.fx_name(2) != ft0cc::doc::effect_type::none;
 	case cursor_column_t::EFF4_NUM: case cursor_column_t::EFF4_PARAM1: case cursor_column_t::EFF4_PARAM2:
-		ScrollFunc(m_NewNote.Effects[3].param, 0x100);
-		return m_OldNote.Effects[3].fx != effect_t::none;
+		m_NewNote.set_fx_param(3, ScrollFunc(m_NewNote.fx_param(3), 0x100));
+		return m_OldNote.fx_name(3) != ft0cc::doc::effect_type::none;
 	}
 
 	return false;
@@ -668,25 +668,25 @@ void CPActionTranspose::Redo(CMainFrame &MainFrm)
 		for (int i = ChanStart; i <= ChanEnd; ++i) {
 			if (!m_pUndoState->Selection.IsColumnSelected(column_t::Note, i))
 				continue;
-			stChanNote Note = *(m_UndoClipData.GetPattern(i - ChanStart, Row));		// // //
-			if (Note.Note == note_t::echo) {
+			ft0cc::doc::pattern_note Note = *(m_UndoClipData.GetPattern(i - ChanStart, Row));		// // //
+			if (Note.note() == ft0cc::doc::pitch::echo) {
 				if (!bSingular)
 					continue;
 				switch (m_iTransposeAmount) {		// // //
 				case -1: case 1:
-					if (Note.Octave > 0)
-						--Note.Octave;
+					if (Note.oct() > 0)
+						Note.set_oct(Note.oct() - 1);
 					break;
 				case -NOTE_RANGE: case NOTE_RANGE:
-					if (Note.Octave < ECHO_BUFFER_LENGTH - 1)
-						++Note.Octave;
+					if (Note.oct() < ECHO_BUFFER_LENGTH - 1)
+						Note.set_oct(Note.oct() + 1);
 					break;
 				}
 			}
-			else if (is_note(Note.Note)) {		// // //
-				int NewNote = std::clamp(Note.ToMidiNote() + m_iTransposeAmount, 0, NOTE_COUNT - 1);
-				Note.Note = ft0cc::doc::pitch_from_midi(NewNote);
-				Note.Octave = ft0cc::doc::oct_from_midi(NewNote);
+			else if (is_note(Note.note())) {		// // //
+				int NewNote = std::clamp(Note.midi_note() + m_iTransposeAmount, 0, NOTE_COUNT - 1);
+				Note.set_note(ft0cc::doc::pitch_from_midi(NewNote));
+				Note.set_oct(ft0cc::doc::oct_from_midi(NewNote));
 			}
 			else
 				continue;
@@ -718,7 +718,7 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 	const bool bSingular = b == e && !m_pUndoState->IsSelecting;
 	const unsigned Length = pSongView->GetSong().GetPatternLength();
 
-	const auto WarpFunc = [this] (unsigned char &x, int Lim) {
+	const auto WarpFunc = [this] (unsigned char x, int Lim) {
 		int Val = x + m_iAmount;
 		if (FTEnv.GetSettings()->General.bWrapPatternValue) {
 			Val %= Lim;
@@ -728,7 +728,7 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 			if (Val >= Lim) Val = Lim - 1;
 			if (Val < 0) Val = 0;
 		}
-		x = static_cast<unsigned char>(Val);
+		return static_cast<unsigned char>(Val);
 	};
 
 	int Row = 0;
@@ -745,28 +745,28 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 					continue;
 				switch (k) {
 				case column_t::Instrument:
-					if (Note.Instrument == MAX_INSTRUMENTS || Note.Instrument == HOLD_INSTRUMENT) break;		// // // 050B
-					WarpFunc(Note.Instrument, MAX_INSTRUMENTS);
+					if (Note.inst() == MAX_INSTRUMENTS || Note.inst() == HOLD_INSTRUMENT) break;		// // // 050B
+					Note.set_inst(WarpFunc(Note.inst(), MAX_INSTRUMENTS));
 					break;
 				case column_t::Volume:
-					if (Note.Vol == MAX_VOLUME) break;
-					WarpFunc(Note.Vol, MAX_VOLUME);
+					if (Note.vol() == MAX_VOLUME) break;
+					Note.set_vol(WarpFunc(Note.vol(), MAX_VOLUME));
 					break;
 				case column_t::Effect1: case column_t::Effect2: case column_t::Effect3: case column_t::Effect4:
 				{
 					unsigned fx = value_cast(k) - value_cast(column_t::Effect1);
-					if (Note.Effects[fx].fx == effect_t::none)
+					if (Note.fx_name(fx) == ft0cc::doc::effect_type::none)
 						break;
-					if (bSingular) switch (Note.Effects[fx].fx) {
-					case effect_t::SWEEPUP: case effect_t::SWEEPDOWN: case effect_t::ARPEGGIO: case effect_t::VIBRATO: case effect_t::TREMOLO:
-					case effect_t::SLIDE_UP: case effect_t::SLIDE_DOWN: case effect_t::VOLUME_SLIDE: case effect_t::DELAYED_VOLUME: case effect_t::TRANSPOSE:
-						unsigned char Hi = Note.Effects[fx].param >> 4;
-						unsigned char Lo = Note.Effects[fx].param & 0x0F;
+					if (bSingular) switch (Note.fx_name(fx)) {
+					case ft0cc::doc::effect_type::SWEEPUP: case ft0cc::doc::effect_type::SWEEPDOWN: case ft0cc::doc::effect_type::ARPEGGIO: case ft0cc::doc::effect_type::VIBRATO: case ft0cc::doc::effect_type::TREMOLO:
+					case ft0cc::doc::effect_type::SLIDE_UP: case ft0cc::doc::effect_type::SLIDE_DOWN: case ft0cc::doc::effect_type::VOLUME_SLIDE: case ft0cc::doc::effect_type::DELAYED_VOLUME: case ft0cc::doc::effect_type::TRANSPOSE:
+						unsigned char Hi = Note.fx_param(fx) >> 4;
+						unsigned char Lo = Note.fx_param(fx) & 0x0F;
 						WarpFunc(value_cast(pPatternEditor->GetColumn()) % 3 == 2 ? Hi : Lo, 0x10);
-						Note.Effects[fx].param = (Hi << 4) | Lo;
+						Note.set_fx_param(fx, (Hi << 4) | Lo);
 						continue;
 					}
-					WarpFunc(Note.Effects[fx].param, 0x100);
+					WarpFunc(Note.fx_param(fx), 0x100);
 					break;
 				}
 				}
@@ -806,39 +806,39 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 			double EndValHi = 0., EndValLo = 0.;
 			double DeltaHi = 0., DeltaLo = 0.;
 			bool TwoParam = false;
-			effect_t Effect = effect_t::none;
+			ft0cc::doc::effect_type Effect = ft0cc::doc::effect_type::none;
 			switch (static_cast<column_t>(j)) {
 			case column_t::Note:
-				if (!is_note(StartData.Note) || !is_note(EndData.Note))
+				if (!is_note(StartData.note()) || !is_note(EndData.note()))
 					continue;
-				StartValLo = (float)StartData.ToMidiNote();
-				EndValLo = (float)EndData.ToMidiNote();
+				StartValLo = (float)StartData.midi_note();
+				EndValLo = (float)EndData.midi_note();
 				break;
 			case column_t::Instrument:
-				if (StartData.Instrument == MAX_INSTRUMENTS || EndData.Instrument == MAX_INSTRUMENTS)
+				if (StartData.inst() == MAX_INSTRUMENTS || EndData.inst() == MAX_INSTRUMENTS)
 					continue;
-				if (StartData.Instrument == HOLD_INSTRUMENT || EndData.Instrument == HOLD_INSTRUMENT)		// // // 050B
+				if (StartData.inst() == HOLD_INSTRUMENT || EndData.inst() == HOLD_INSTRUMENT)		// // // 050B
 					continue;
-				StartValLo = (float)StartData.Instrument;
-				EndValLo = (float)EndData.Instrument;
+				StartValLo = (float)StartData.inst();
+				EndValLo = (float)EndData.inst();
 				break;
 			case column_t::Volume:
-				if (StartData.Vol == MAX_VOLUME || EndData.Vol == MAX_VOLUME)
+				if (StartData.vol() == MAX_VOLUME || EndData.vol() == MAX_VOLUME)
 					continue;
-				StartValLo = (float)StartData.Vol;
-				EndValLo = (float)EndData.Vol;
+				StartValLo = (float)StartData.vol();
+				EndValLo = (float)EndData.vol();
 				break;
 			case column_t::Effect1: case column_t::Effect2: case column_t::Effect3: case column_t::Effect4:
-				if (StartData.Effects[j - 3].fx == effect_t::none || EndData.Effects[j - 3].fx == effect_t::none ||
-					StartData.Effects[j - 3].fx != EndData.Effects[j - 3].fx)
+				if (StartData.fx_name(j - 3) == ft0cc::doc::effect_type::none || EndData.fx_name(j - 3) == ft0cc::doc::effect_type::none ||
+					StartData.fx_name(j - 3) != EndData.fx_name(j - 3))
 					continue;
-				StartValLo = (float)StartData.Effects[j - 3].param;
-				EndValLo = (float)EndData.Effects[j - 3].param;
-				Effect = StartData.Effects[j - 3].fx;
+				StartValLo = (float)StartData.fx_param(j - 3);
+				EndValLo = (float)EndData.fx_param(j - 3);
+				Effect = StartData.fx_name(j - 3);
 				switch (Effect) {
-				case effect_t::SWEEPUP: case effect_t::SWEEPDOWN: case effect_t::SLIDE_UP: case effect_t::SLIDE_DOWN:
-				case effect_t::ARPEGGIO: case effect_t::VIBRATO: case effect_t::TREMOLO:
-				case effect_t::VOLUME_SLIDE: case effect_t::DELAYED_VOLUME: case effect_t::TRANSPOSE:
+				case ft0cc::doc::effect_type::SWEEPUP: case ft0cc::doc::effect_type::SWEEPDOWN: case ft0cc::doc::effect_type::SLIDE_UP: case ft0cc::doc::effect_type::SLIDE_DOWN:
+				case ft0cc::doc::effect_type::ARPEGGIO: case ft0cc::doc::effect_type::VIBRATO: case ft0cc::doc::effect_type::TREMOLO:
+				case ft0cc::doc::effect_type::VOLUME_SLIDE: case ft0cc::doc::effect_type::DELAYED_VOLUME: case ft0cc::doc::effect_type::TRANSPOSE:
 					TwoParam = true;
 				}
 				break;
@@ -861,18 +861,17 @@ void CPActionInterpolate::Redo(CMainFrame &MainFrm)
 				auto Note = r.Get(i);
 				switch (static_cast<column_t>(j)) {
 				case column_t::Note:
-					Note.Note = ft0cc::doc::pitch_from_midi((int)StartValLo);
-					Note.Octave = ft0cc::doc::oct_from_midi((int)StartValLo);
+					Note.set_note(ft0cc::doc::pitch_from_midi((int)StartValLo));
+					Note.set_oct(ft0cc::doc::oct_from_midi((int)StartValLo));
 					break;
 				case column_t::Instrument:
-					Note.Instrument = (int)StartValLo;
+					Note.set_inst((int)StartValLo);
 					break;
 				case column_t::Volume:
-					Note.Vol = (int)StartValLo;
+					Note.set_vol((int)StartValLo);
 					break;
 				case column_t::Effect1: case column_t::Effect2: case column_t::Effect3: case column_t::Effect4:
-					Note.Effects[j - 3].fx = Effect;
-					Note.Effects[j - 3].param = (int)StartValLo + ((int)StartValHi << 4);
+					Note.set_fx_cmd(j - 3, {Effect, static_cast<uint8_t>((int)StartValLo + ((int)StartValHi << 4))});
 					break;
 				}
 				r.Set(i, Note);
@@ -945,8 +944,8 @@ void CPActionReplaceInst::Redo(CMainFrame &MainFrm)
 
 	do for (int i = cBegin; i <= cEnd; ++i) {
 		const auto &Note = b.Get(i);
-		if (Note.Instrument != MAX_INSTRUMENTS && Note.Instrument != HOLD_INSTRUMENT)		// // // 050B
-			const_cast<stChanNote &>(Note).Instrument = m_iInstrumentIndex; // TODO: non-const CPatternIterator
+		if (Note.inst() != MAX_INSTRUMENTS && Note.inst() != HOLD_INSTRUMENT)		// // // 050B
+			const_cast<ft0cc::doc::pattern_note &>(Note).set_inst(m_iInstrumentIndex); // TODO: non-const CPatternIterator
 	} while (++b <= e);
 }
 
@@ -1050,7 +1049,7 @@ void CPActionStretch::Redo(CMainFrame &MainFrm)
 	int Offset = 0;
 	int oldRow = -1;
 	do {
-		stChanNote BLANK;
+		ft0cc::doc::pattern_note BLANK;
 		for (int i = Sel.m_cpStart.Xpos.Track; i <= Sel.m_cpEnd.Xpos.Track; ++i) {
 			const auto &Source = (Offset < m_UndoClipData.ClipInfo.Rows && m_iStretchMap[Pos] > 0) ?
 				*(m_UndoClipData.GetPattern(i - Sel.m_cpStart.Xpos.Track, Offset)) : BLANK;		// // //

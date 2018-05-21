@@ -75,24 +75,24 @@ unsigned CSongData::GetFreePatternIndex(stChannelID Channel, unsigned Whence) co
 	return -1;
 }
 
-stChanNote &CSongData::GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row)		// // //
+ft0cc::doc::pattern_note &CSongData::GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row)		// // //
 {
 	return GetPattern(Channel, Pattern).GetNoteOn(Row);
 }
 
-const stChanNote &CSongData::GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row) const		// // //
+const ft0cc::doc::pattern_note &CSongData::GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row) const		// // //
 {
 	return GetPattern(Channel, Pattern).GetNoteOn(Row);
 }
 
-stChanNote CSongData::GetActiveNote(stChannelID Channel, unsigned Frame, unsigned Row) const {		// // //
-	stChanNote Note = GetPatternOnFrame(Channel, Frame).GetNoteOn(Row);
+ft0cc::doc::pattern_note CSongData::GetActiveNote(stChannelID Channel, unsigned Frame, unsigned Row) const {		// // //
+	ft0cc::doc::pattern_note Note = GetPatternOnFrame(Channel, Frame).GetNoteOn(Row);
 	for (int i = GetEffectColumnCount(Channel); i < MAX_EFFECT_COLUMNS; ++i)
-		Note.Effects[i] = { };
+		Note.set_fx_cmd(i, { });
 	return Note;
 }
 
-void CSongData::SetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row, const stChanNote &Note)		// // //
+void CSongData::SetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row, const ft0cc::doc::pattern_note &Note)		// // //
 {
 	GetPattern(Channel, Pattern).SetNoteOn(Row, Note);
 }

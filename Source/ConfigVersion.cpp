@@ -24,7 +24,7 @@
 #include "FamiTrackerEnv.h"
 #include "Settings.h"
 #include "ModuleException.h"
-#include "ft0cc/enum_traits.h"
+#include "ft0cc/cpputil/enum_traits.hpp"
 
 namespace {
 

@@ -30,7 +30,7 @@
 #include "array_view.h"		// // //
 #include <string_view>		// // //
 #include <iosfwd>		// // //
-#include "ft0cc/fs.h"		// // //
+#include "ft0cc/cpputil/fs.hpp"		// // //
 
 // CDocumentFile, class for reading/writing document files
 

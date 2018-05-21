@@ -27,7 +27,7 @@
 #include <array>		// // //
 #include <cstdint>		// // //
 #include "ft0cc/doc/inst_sequence.hpp"		// // //
-#include "ft0cc/enum_traits.h"		// // //
+#include "ft0cc/cpputil/enum_traits.hpp"		// // //
 
 ENUM_CLASS_STANDARD(sequence_t, unsigned) {
 	Volume,

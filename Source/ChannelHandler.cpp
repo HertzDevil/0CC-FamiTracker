@@ -148,7 +148,7 @@ void CChannelHandler::ResetChannel()
 	m_iPeriod			= 0;
 
 	// Effect states
-	m_iEffect			= effect_t::none;		// // //
+	m_iEffect			= ft0cc::doc::effect_type::none;		// // //
 	m_iEffectParam		= 0;		// // //
 
 	m_iPortaSpeed		= 0;
@@ -206,14 +206,14 @@ void CChannelHandler::ApplyChannelState(const stChannelState &State)
 	if (m_iInstrument != MAX_INSTRUMENTS)
 		HandleInstrument(true, true);
 	if (State.Effect_LengthCounter >= 0)
-		HandleEffect({effect_t::VOLUME, static_cast<uint8_t>(State.Effect_LengthCounter)});
-	for (auto fx : enum_values<effect_t>())
+		HandleEffect({ft0cc::doc::effect_type::VOLUME, static_cast<uint8_t>(State.Effect_LengthCounter)});
+	for (auto fx : enum_values<ft0cc::doc::effect_type>())
 		if (auto param = State.Effect[value_cast(fx)]; param >= 0)
 			HandleEffect({fx, static_cast<uint8_t>(param)});
-	if (State.Effect[value_cast(effect_t::FDS_MOD_SPEED_HI)] >= 0x10)
-		HandleEffect({effect_t::FDS_MOD_SPEED_HI, static_cast<uint8_t>(State.Effect[value_cast(effect_t::FDS_MOD_SPEED_HI)])});
+	if (State.Effect[value_cast(ft0cc::doc::effect_type::FDS_MOD_SPEED_HI)] >= 0x10)
+		HandleEffect({ft0cc::doc::effect_type::FDS_MOD_SPEED_HI, static_cast<uint8_t>(State.Effect[value_cast(ft0cc::doc::effect_type::FDS_MOD_SPEED_HI)])});
 	if (State.Effect_AutoFMMult >= 0)
-		HandleEffect({effect_t::FDS_MOD_DEPTH, static_cast<uint8_t>(State.Effect_AutoFMMult)});
+		HandleEffect({ft0cc::doc::effect_type::FDS_MOD_DEPTH, static_cast<uint8_t>(State.Effect_AutoFMMult)});
 }
 
 std::string CChannelHandler::GetEffectString() const		// // //
@@ -221,27 +221,27 @@ std::string CChannelHandler::GetEffectString() const		// // //
 	std::string str = GetSlideEffectString();
 
 	if (m_iVibratoSpeed)
-		str += MakeCommandString({effect_t::VIBRATO, static_cast<uint8_t>((m_iVibratoSpeed << 4) | (m_iVibratoDepth >> 4))});
+		str += MakeCommandString({ft0cc::doc::effect_type::VIBRATO, static_cast<uint8_t>((m_iVibratoSpeed << 4) | (m_iVibratoDepth >> 4))});
 	if (m_iTremoloSpeed)
-		str += MakeCommandString({effect_t::TREMOLO, static_cast<uint8_t>((m_iTremoloSpeed << 4) | (m_iTremoloDepth >> 4))});
+		str += MakeCommandString({ft0cc::doc::effect_type::TREMOLO, static_cast<uint8_t>((m_iTremoloSpeed << 4) | (m_iTremoloDepth >> 4))});
 	if (m_iVolSlide)
-		str += MakeCommandString({effect_t::VOLUME_SLIDE, m_iVolSlide});
+		str += MakeCommandString({ft0cc::doc::effect_type::VOLUME_SLIDE, m_iVolSlide});
 	if (m_iFinePitch != 0x80)
-		str += MakeCommandString({effect_t::PITCH, static_cast<uint8_t>(m_iFinePitch)});
+		str += MakeCommandString({ft0cc::doc::effect_type::PITCH, static_cast<uint8_t>(m_iFinePitch)});
 	if ((m_iDefaultDuty && m_iChannelID.Chip != sound_chip_t::S5B) || (m_iDefaultDuty != 0x40 && m_iChannelID.Chip == sound_chip_t::S5B))
-		str += MakeCommandString({effect_t::DUTY_CYCLE, m_iDefaultDuty});
+		str += MakeCommandString({ft0cc::doc::effect_type::DUTY_CYCLE, m_iDefaultDuty});
 
 	// run-time effects
 	if (m_bDelayEnabled)
-		str += MakeCommandString({effect_t::DELAY, m_cDelayCounter + 1u});
+		str += MakeCommandString({ft0cc::doc::effect_type::DELAY, m_cDelayCounter + 1u});
 	if (m_iNoteRelease)
-		str += MakeCommandString({effect_t::NOTE_RELEASE, m_iNoteRelease});
+		str += MakeCommandString({ft0cc::doc::effect_type::NOTE_RELEASE, m_iNoteRelease});
 	if (m_iNoteVolume > 0)
-		str += MakeCommandString({effect_t::DELAYED_VOLUME, static_cast<uint8_t>((m_iNoteVolume << 4) | (m_iNewVolume >> VOL_COLUMN_SHIFT))});
+		str += MakeCommandString({ft0cc::doc::effect_type::DELAYED_VOLUME, static_cast<uint8_t>((m_iNoteVolume << 4) | (m_iNewVolume >> VOL_COLUMN_SHIFT))});
 	if (m_iNoteCut)
-		str += MakeCommandString({effect_t::NOTE_CUT, m_iNoteCut});
+		str += MakeCommandString({ft0cc::doc::effect_type::NOTE_CUT, m_iNoteCut});
 	if (m_iTranspose)
-		str += MakeCommandString({effect_t::TRANSPOSE, static_cast<uint8_t>(((m_iTranspose + (m_bTransposeDown ? 8 : 0)) << 4) | m_iTransposeTarget)});
+		str += MakeCommandString({ft0cc::doc::effect_type::TRANSPOSE, static_cast<uint8_t>(((m_iTranspose + (m_bTransposeDown ? 8 : 0)) << 4) | m_iTransposeTarget)});
 
 	str += GetCustomEffectString();
 	return str.empty() ? std::string(" None") : str;
@@ -250,11 +250,11 @@ std::string CChannelHandler::GetEffectString() const		// // //
 std::string CChannelHandler::GetSlideEffectString() const		// // //
 {
 	switch (m_iEffect) {
-	case effect_t::ARPEGGIO:
+	case ft0cc::doc::effect_type::ARPEGGIO:
 		if (m_iEffectParam)
 			return MakeCommandString({m_iEffect, m_iEffectParam});
 		break;
-	case effect_t::PORTA_UP: case effect_t::PORTA_DOWN: case effect_t::PORTAMENTO:
+	case ft0cc::doc::effect_type::PORTA_UP: case ft0cc::doc::effect_type::PORTA_DOWN: case ft0cc::doc::effect_type::PORTAMENTO:
 		if (m_iPortaSpeed)
 			return MakeCommandString({m_iEffect, static_cast<uint8_t>(m_iPortaSpeed)});
 		break;
@@ -269,7 +269,7 @@ std::string CChannelHandler::GetCustomEffectString() const		// // //
 }
 
 // Handle common things before letting the channels play the notes
-void CChannelHandler::PlayNote(stChanNote NoteData)		// // //
+void CChannelHandler::PlayNote(ft0cc::doc::pattern_note NoteData)		// // //
 {
 	// // // Handle delay commands
 	if (HandleDelay(NoteData))
@@ -279,30 +279,30 @@ void CChannelHandler::PlayNote(stChanNote NoteData)		// // //
 	HandleNoteData(NoteData);
 }
 
-void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, std::size_t Pos)
+void CChannelHandler::WriteEchoBuffer(const ft0cc::doc::pattern_note &NoteData, std::size_t Pos)
 {
 	if (Pos >= ECHO_BUFFER_LENGTH)
 		return;
 	int Value;
-	switch (NoteData.Note) {
-	case note_t::none: Value = ECHO_BUFFER_NONE; break;
-	case note_t::halt: Value = ECHO_BUFFER_HALT; break;
-	case note_t::echo: Value = ECHO_BUFFER_ECHO + NoteData.Octave; break;
+	switch (NoteData.note()) {
+	case ft0cc::doc::pitch::none: Value = ECHO_BUFFER_NONE; break;
+	case ft0cc::doc::pitch::halt: Value = ECHO_BUFFER_HALT; break;
+	case ft0cc::doc::pitch::echo: Value = ECHO_BUFFER_ECHO + NoteData.oct(); break;
 	default:
-		Value = NoteData.ToMidiNote();
+		Value = NoteData.midi_note();
 		for (int i = MAX_EFFECT_COLUMNS - 1; i >= 0; --i) {
-			const int Param = NoteData.Effects[i].param & 0x0F;
-			if (NoteData.Effects[i].fx == effect_t::SLIDE_UP) {
+			const int Param = NoteData.fx_param(i) & 0x0F;
+			if (NoteData.fx_name(i) == ft0cc::doc::effect_type::SLIDE_UP) {
 				Value += Param;
 				break;
 			}
-			else if (NoteData.Effects[i].fx == effect_t::SLIDE_DOWN) {
+			else if (NoteData.fx_name(i) == ft0cc::doc::effect_type::SLIDE_DOWN) {
 				Value -= Param;
 				break;
 			}
-			else if (NoteData.Effects[i].fx == effect_t::TRANSPOSE) {
+			else if (NoteData.fx_name(i) == ft0cc::doc::effect_type::TRANSPOSE) {
 				// Sometimes there are not enough ticks for the transpose to take place
-				if (NoteData.Effects[i].param & 0x80)
+				if (NoteData.fx_param(i) & 0x80)
 					Value -= Param;
 				else
 					Value += Param;
@@ -315,36 +315,36 @@ void CChannelHandler::WriteEchoBuffer(const stChanNote &NoteData, std::size_t Po
 	m_iEchoBuffer[Pos] = Value;
 }
 
-void CChannelHandler::HandleNoteData(stChanNote &NoteData)
+void CChannelHandler::HandleNoteData(ft0cc::doc::pattern_note &NoteData)
 {
 	unsigned LastInstrument = m_iInstrument;
-	int Instrument = NoteData.Instrument;
-	bool Trigger = (NoteData.Note != note_t::none) && (NoteData.Note != note_t::halt) && (NoteData.Note != note_t::release) &&
+	int Instrument = NoteData.inst();
+	bool Trigger = (NoteData.note() != ft0cc::doc::pitch::none) && (NoteData.note() != ft0cc::doc::pitch::halt) && (NoteData.note() != ft0cc::doc::pitch::release) &&
 		Instrument != HOLD_INSTRUMENT;		// // // 050B
 	bool pushNone = false;
 
 	// // // Echo buffer
-	if (NoteData.Note == note_t::echo && NoteData.Octave < ECHO_BUFFER_LENGTH) { // retrieve buffer
-		int NewNote = m_iEchoBuffer[NoteData.Octave];
+	if (NoteData.note() == ft0cc::doc::pitch::echo && NoteData.oct() < ECHO_BUFFER_LENGTH) { // retrieve buffer
+		int NewNote = m_iEchoBuffer[NoteData.oct()];
 		if (NewNote == ECHO_BUFFER_NONE) {
-			NoteData.Note = note_t::none;
+			NoteData.set_note(ft0cc::doc::pitch::none);
 			pushNone = true;
 		}
 		else if (NewNote == ECHO_BUFFER_HALT)
-			NoteData.Note = note_t::halt;
+			NoteData.set_note(ft0cc::doc::pitch::halt);
 		else {
-			NoteData.Note = ft0cc::doc::pitch_from_midi(NewNote);
-			NoteData.Octave = ft0cc::doc::oct_from_midi(NewNote);
+			NoteData.set_note(ft0cc::doc::pitch_from_midi(NewNote));
+			NoteData.set_oct(ft0cc::doc::oct_from_midi(NewNote));
 		}
 	}
-	if ((NoteData.Note != note_t::release && NoteData.Note != note_t::none) || pushNone) { // push buffer
+	if ((NoteData.note() != ft0cc::doc::pitch::release && NoteData.note() != ft0cc::doc::pitch::none) || pushNone) { // push buffer
 		for (int i = std::size(m_iEchoBuffer) - 1; i > 0; --i)
 			m_iEchoBuffer[i] = m_iEchoBuffer[i - 1];
 		WriteEchoBuffer(NoteData, 0);
 	}
 
 	// Clear the note cut effect
-	if (NoteData.Note != note_t::none) {
+	if (NoteData.note() != ft0cc::doc::pitch::none) {
 		m_iNoteCut = 0;
 		m_iNoteRelease = 0;		// // //
 		if (Trigger && m_iNoteVolume == 0 && !m_iVolSlide) {		// // //
@@ -354,28 +354,28 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 		m_iTranspose = 0;		// // //
 	}
 
-	if (Trigger && (m_iEffect == effect_t::SLIDE_UP || m_iEffect == effect_t::SLIDE_DOWN))
-		m_iEffect = effect_t::none;
+	if (Trigger && (m_iEffect == ft0cc::doc::effect_type::SLIDE_UP || m_iEffect == ft0cc::doc::effect_type::SLIDE_DOWN))
+		m_iEffect = ft0cc::doc::effect_type::none;
 
 	// Effects
-	for (const auto &cmd : NoteData.Effects) {
+	for (const auto &cmd : NoteData.fx_cmds()) {
 		HandleEffect(cmd);		// // // single method
 
 		// 0CC: remove this eventually like how the asm handles it
-		if (cmd.fx == effect_t::VOLUME_SLIDE && !cmd.param && Trigger && m_iNoteVolume == 0) {		// // //
+		if (cmd.fx == ft0cc::doc::effect_type::VOLUME_SLIDE && !cmd.param && Trigger && m_iNoteVolume == 0) {		// // //
 			m_iVolume = m_iDefaultVolume;
 			m_iNoteVolume = -1;
 		}
 	}
 
 	// Volume
-	if (NoteData.Vol < MAX_VOLUME) {
-		m_iVolume = NoteData.Vol << VOL_COLUMN_SHIFT;
+	if (NoteData.vol() < MAX_VOLUME) {
+		m_iVolume = NoteData.vol() << VOL_COLUMN_SHIFT;
 		m_iDefaultVolume = m_iVolume;		// // //
 	}
 
 	// Instrument
-	if (NoteData.Note == note_t::halt || NoteData.Note == note_t::release)		// // //
+	if (NoteData.note() == ft0cc::doc::pitch::halt || NoteData.note() == ft0cc::doc::pitch::release)		// // //
 		Instrument = MAX_INSTRUMENTS;	// Ignore instrument for release and halt commands
 
 	if (Instrument != MAX_INSTRUMENTS && Instrument != HOLD_INSTRUMENT)		// // // 050B
@@ -389,25 +389,25 @@ void CChannelHandler::HandleNoteData(stChanNote &NoteData)
 	}
 
 	// Note
-	switch (NoteData.Note) {
-	case note_t::none:
+	switch (NoteData.note()) {
+	case ft0cc::doc::pitch::none:
 		HandleEmptyNote();
 		break;
-	case note_t::halt:
+	case ft0cc::doc::pitch::halt:
 		m_bRelease = false;
 		HandleCut();
 		break;
-	case note_t::release:
+	case ft0cc::doc::pitch::release:
 		HandleRelease();
 		break;
 	default:
-		m_iNote = NoteData.ToMidiNote();		// // // set note value before loading instrument
+		m_iNote = NoteData.midi_note();		// // // set note value before loading instrument
 		RunNote(m_iNote);
-		HandleNote(NoteData.ToMidiNote());
+		HandleNote(NoteData.midi_note());
 		break;
 	}
 
-	if (Trigger && (m_iEffect == effect_t::SLIDE_DOWN || m_iEffect == effect_t::SLIDE_UP))		// // //
+	if (Trigger && (m_iEffect == ft0cc::doc::effect_type::SLIDE_DOWN || m_iEffect == ft0cc::doc::effect_type::SLIDE_UP))		// // //
 		SetupSlide();
 
 	if ((NewInstrument || Trigger) && m_iInstrument != MAX_INSTRUMENTS) {
@@ -502,7 +502,7 @@ void CChannelHandler::RunNote(int MidiNote) {		// // //
 	// Run the note and handle portamento
 	int NesFreq = TriggerNote(MidiNote);
 
-	if (m_iPortaSpeed > 0 && m_iEffect == effect_t::PORTAMENTO && m_bGate) {		// // //
+	if (m_iPortaSpeed > 0 && m_iEffect == ft0cc::doc::effect_type::PORTAMENTO && m_bGate) {		// // //
 		if (m_iPeriod == 0)
 			m_iPeriod = NesFreq;
 		m_iPortaTo = NesFreq;
@@ -527,17 +527,17 @@ void CChannelHandler::SetupSlide()		// // //
 	};
 
 	switch (m_iEffect) {
-	case effect_t::PORTAMENTO:
+	case ft0cc::doc::effect_type::PORTAMENTO:
 		m_iPortaSpeed = m_iEffectParam;
 		if (m_bGate)		// // //
 			m_iPortaTo = TriggerNote(m_iNote);
 		break;
-	case effect_t::SLIDE_UP:
+	case ft0cc::doc::effect_type::SLIDE_UP:
 		m_iNote += m_iEffectParam & 0xF;
 		m_iPortaSpeed = GetSlideSpeed(m_iEffectParam);
 		m_iPortaTo = TriggerNote(m_iNote);
 		break;
-	case effect_t::SLIDE_DOWN:
+	case ft0cc::doc::effect_type::SLIDE_DOWN:
 		m_iNote -= m_iEffectParam & 0xF;
 		m_iPortaSpeed = GetSlideSpeed(m_iEffectParam);
 		m_iPortaTo = TriggerNote(m_iNote);
@@ -545,81 +545,81 @@ void CChannelHandler::SetupSlide()		// // //
 	}
 }
 
-bool CChannelHandler::HandleEffect(stEffectCommand cmd)
+bool CChannelHandler::HandleEffect(ft0cc::doc::effect_command cmd)
 {
 	// Handle common effects for all channels
 
 	switch (cmd.fx) {
-	case effect_t::PORTAMENTO:
+	case ft0cc::doc::effect_type::PORTAMENTO:
 		m_iEffectParam = cmd.param;		// // //
-		m_iEffect = effect_t::PORTAMENTO;
+		m_iEffect = ft0cc::doc::effect_type::PORTAMENTO;
 		SetupSlide();
 		if (!cmd.param)
 			m_iPortaTo = 0;
 		break;
-	case effect_t::VIBRATO:
+	case ft0cc::doc::effect_type::VIBRATO:
 		m_iVibratoDepth = (cmd.param & 0x0F) << 4;
 		m_iVibratoSpeed = cmd.param >> 4;
 		if (!cmd.param)
 			m_iVibratoPhase = m_iVibratoMode == vibrato_t::Up ? 48 : 0;
 		break;
-	case effect_t::TREMOLO:
+	case ft0cc::doc::effect_type::TREMOLO:
 		m_iTremoloDepth = (cmd.param & 0x0F) << 4;
 		m_iTremoloSpeed = cmd.param >> 4;
 		if (!cmd.param)
 			m_iTremoloPhase = 0;
 		break;
-	case effect_t::ARPEGGIO:
+	case ft0cc::doc::effect_type::ARPEGGIO:
 		m_iEffectParam = cmd.param;		// // //
-		m_iEffect = effect_t::ARPEGGIO;
+		m_iEffect = ft0cc::doc::effect_type::ARPEGGIO;
 		break;
-	case effect_t::PITCH:
+	case ft0cc::doc::effect_type::PITCH:
 		m_iFinePitch = cmd.param;
 		break;
-	case effect_t::PORTA_DOWN:
+	case ft0cc::doc::effect_type::PORTA_DOWN:
 		m_iPortaSpeed = cmd.param;
 		m_iEffectParam = cmd.param;		// // //
-		m_iEffect = effect_t::PORTA_DOWN;
+		m_iEffect = ft0cc::doc::effect_type::PORTA_DOWN;
 		break;
-	case effect_t::PORTA_UP:
+	case ft0cc::doc::effect_type::PORTA_UP:
 		m_iPortaSpeed = cmd.param;
 		m_iEffectParam = cmd.param;		// // //
-		m_iEffect = effect_t::PORTA_UP;
+		m_iEffect = ft0cc::doc::effect_type::PORTA_UP;
 		break;
-	case effect_t::SLIDE_UP:		// // //
+	case ft0cc::doc::effect_type::SLIDE_UP:		// // //
 		m_iEffectParam = cmd.param;
-		m_iEffect = effect_t::SLIDE_UP;
+		m_iEffect = ft0cc::doc::effect_type::SLIDE_UP;
 		SetupSlide();
 		break;
-	case effect_t::SLIDE_DOWN:		// // //
+	case ft0cc::doc::effect_type::SLIDE_DOWN:		// // //
 		m_iEffectParam = cmd.param;
-		m_iEffect = effect_t::SLIDE_DOWN;
+		m_iEffect = ft0cc::doc::effect_type::SLIDE_DOWN;
 		SetupSlide();
 		break;
-	case effect_t::VOLUME_SLIDE:
+	case ft0cc::doc::effect_type::VOLUME_SLIDE:
 		m_iVolSlide = cmd.param;
 		if (!cmd.param)		// // //
 			m_iDefaultVolume = m_iVolume;
 		break;
-	case effect_t::NOTE_CUT:
+	case ft0cc::doc::effect_type::NOTE_CUT:
 		if (cmd.param >= 0x80) return false;		// // //
 		m_iNoteCut = cmd.param + 1;
 		break;
-	case effect_t::NOTE_RELEASE:		// // //
+	case ft0cc::doc::effect_type::NOTE_RELEASE:		// // //
 		if (cmd.param >= 0x80) return false;
 		m_iNoteRelease = cmd.param + 1;
 		break;
-	case effect_t::DELAYED_VOLUME:		// // //
+	case ft0cc::doc::effect_type::DELAYED_VOLUME:		// // //
 		if (!(cmd.param >> 4) || !(cmd.param & 0xF)) break;
 		m_iNoteVolume = (cmd.param >> 4) + 1;
 		m_iNewVolume = (cmd.param & 0x0F) << VOL_COLUMN_SHIFT;
 		break;
-	case effect_t::TRANSPOSE:		// // //
+	case ft0cc::doc::effect_type::TRANSPOSE:		// // //
 		m_iTranspose = ((cmd.param & 0x70) >> 4) + 1;
 		m_iTransposeTarget = cmd.param & 0x0F;
 		m_bTransposeDown = (cmd.param & 0x80) != 0;
 		break;
-//	case effect_t::TARGET_VOLUME_SLIDE:
+//	case ft0cc::doc::effect_type::TARGET_VOLUME_SLIDE:
 		// TODO implement
 //		break;
 	default:
@@ -629,7 +629,7 @@ bool CChannelHandler::HandleEffect(stEffectCommand cmd)
 	return true;
 }
 
-bool CChannelHandler::HandleDelay(stChanNote &NoteData)
+bool CChannelHandler::HandleDelay(ft0cc::doc::pattern_note &NoteData)
 {
 	// Handle note delay, Gxx
 
@@ -639,14 +639,14 @@ bool CChannelHandler::HandleDelay(stChanNote &NoteData)
 	}
 
 	// Check delay
-	for (const auto &cmd : NoteData.Effects) {
-		if (cmd.fx == effect_t::DELAY && cmd.param > 0) {
+	for (const auto &cmd : NoteData.fx_cmds()) {
+		if (cmd.fx == ft0cc::doc::effect_type::DELAY && cmd.param > 0) {
 			m_bDelayEnabled = true;
 			m_cDelayCounter = cmd.param;
 
 			// Only one delay/row is allowed
-			for (auto &cmd2 : NoteData.Effects)
-				if (cmd2.fx == effect_t::DELAY)		// // //
+			for (auto &cmd2 : NoteData.fx_cmds())
+				if (cmd2.fx == ft0cc::doc::effect_type::DELAY)		// // //
 					cmd2 = { };
 
 			m_cnDelayed = NoteData;		// // //
@@ -741,7 +741,7 @@ void CChannelHandler::UpdateEffects()
 {
 	// Handle other effects
 	switch (m_iEffect) {
-		case effect_t::ARPEGGIO:
+		case ft0cc::doc::effect_type::ARPEGGIO:
 			if (m_iEffectParam != 0) {
 				if (m_iNote != -1) {		// // //
 					int offset = [&] {
@@ -758,19 +758,19 @@ void CChannelHandler::UpdateEffects()
 				m_iArpState = (m_iArpState + 1) % 3;
 			}
 			break;
-		case effect_t::PORTAMENTO:
-		case effect_t::SLIDE_UP:		// // //
-		case effect_t::SLIDE_DOWN:		// // //
+		case ft0cc::doc::effect_type::PORTAMENTO:
+		case ft0cc::doc::effect_type::SLIDE_UP:		// // //
+		case ft0cc::doc::effect_type::SLIDE_DOWN:		// // //
 			// Automatic portamento
 			if (m_iPortaSpeed > 0 && m_iPortaTo) {		// // //
 				if (m_iPeriod > m_iPortaTo) {
 					PeriodRemove(m_iPortaSpeed);
 					if (m_iPeriod <= m_iPortaTo) {
 						SetPeriod(m_iPortaTo);
-						if (m_iEffect != effect_t::PORTAMENTO) {
+						if (m_iEffect != ft0cc::doc::effect_type::PORTAMENTO) {
 							m_iPortaTo = 0;
 							m_iPortaSpeed = 0;
-							m_iEffect = effect_t::none;
+							m_iEffect = ft0cc::doc::effect_type::none;
 						}
 					}
 				}
@@ -778,43 +778,43 @@ void CChannelHandler::UpdateEffects()
 					PeriodAdd(m_iPortaSpeed);
 					if (m_iPeriod >= m_iPortaTo) {
 						SetPeriod(m_iPortaTo);
-						if (m_iEffect != effect_t::PORTAMENTO) {
+						if (m_iEffect != ft0cc::doc::effect_type::PORTAMENTO) {
 							m_iPortaTo = 0;
 							m_iPortaSpeed = 0;
-							m_iEffect = effect_t::none;
+							m_iEffect = ft0cc::doc::effect_type::none;
 						}
 					}
 				}
 			}
 			break;
 			/*
-		case effect_t::SLIDE_UP:
+		case ft0cc::doc::effect_type::SLIDE_UP:
 			if (m_iPortaSpeed > 0) {
 				if (m_iPeriod > m_iPortaTo) {
 					PeriodRemove(m_iPortaSpeed);
 					if (m_iPeriod < m_iPortaTo) {
 						SetPeriod(m_iPortaTo);
 						m_iPortaTo = 0;
-						m_iEffect = effect_t::none;
+						m_iEffect = ft0cc::doc::effect_type::none;
 					}
 				}
 			}
 			break;
-		case effect_t::SLIDE_DOWN:
+		case ft0cc::doc::effect_type::SLIDE_DOWN:
 			if (m_iPortaSpeed > 0) {
 				PeriodAdd(m_iPortaSpeed);
 				if (m_iPeriod > m_iPortaTo) {
 					SetPeriod(m_iPortaTo);
 					m_iPortaTo = 0;
-					m_iEffect = effect_t::none;
+					m_iEffect = ft0cc::doc::effect_type::none;
 				}
 			}
 			break;
 			*/
-		case effect_t::PORTA_DOWN:
+		case ft0cc::doc::effect_type::PORTA_DOWN:
 			m_bLinearPitch ? PeriodRemove(m_iPortaSpeed) : PeriodAdd(m_iPortaSpeed);		// // //
 			break;
-		case effect_t::PORTA_UP:
+		case ft0cc::doc::effect_type::PORTA_UP:
 			m_bLinearPitch ? PeriodAdd(m_iPortaSpeed) : PeriodRemove(m_iPortaSpeed);		// // //
 			break;
 	}
@@ -983,7 +983,7 @@ int CChannelHandler::GetDutyPeriod() const
 
 unsigned char CChannelHandler::GetArpParam() const
 {
-	return m_iEffect == effect_t::ARPEGGIO ? m_iEffectParam : 0U;
+	return m_iEffect == ft0cc::doc::effect_type::ARPEGGIO ? m_iEffectParam : 0U;
 }
 
 bool CChannelHandler::IsActive() const
@@ -1001,11 +1001,11 @@ bool CChannelHandler::IsReleasing() const
  *
  */
 
-bool CChannelHandlerInverted::HandleEffect(stEffectCommand cmd)
+bool CChannelHandlerInverted::HandleEffect(ft0cc::doc::effect_command cmd)
 {
 	if (!m_bLinearPitch) switch (cmd.fx) {		// // //
-	case effect_t::PORTA_UP:   cmd.fx = effect_t::PORTA_DOWN; break;
-	case effect_t::PORTA_DOWN: cmd.fx = effect_t::PORTA_UP; break;
+	case ft0cc::doc::effect_type::PORTA_UP:   cmd.fx = ft0cc::doc::effect_type::PORTA_DOWN; break;
+	case ft0cc::doc::effect_type::PORTA_DOWN: cmd.fx = ft0cc::doc::effect_type::PORTA_UP; break;
 	}
 	return CChannelHandler::HandleEffect(cmd);
 }
@@ -1027,10 +1027,10 @@ int CChannelHandlerInverted::CalculatePeriod() const
 std::string CChannelHandlerInverted::GetSlideEffectString() const		// // //
 {
 	switch (m_iEffect) {
-	case effect_t::PORTA_UP:
-		return MakeCommandString({effect_t::PORTA_DOWN, static_cast<uint8_t>(m_iPortaSpeed)});
-	case effect_t::PORTA_DOWN:
-		return MakeCommandString({effect_t::PORTA_UP, static_cast<uint8_t>(m_iPortaSpeed)});
+	case ft0cc::doc::effect_type::PORTA_UP:
+		return MakeCommandString({ft0cc::doc::effect_type::PORTA_DOWN, static_cast<uint8_t>(m_iPortaSpeed)});
+	case ft0cc::doc::effect_type::PORTA_DOWN:
+		return MakeCommandString({ft0cc::doc::effect_type::PORTA_UP, static_cast<uint8_t>(m_iPortaSpeed)});
 	}
 	return CChannelHandler::GetSlideEffectString();
 }

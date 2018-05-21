@@ -49,21 +49,21 @@ CChannelHandler2A03::CChannelHandler2A03(stChannelID ch) :		// // //
 {
 }
 
-void CChannelHandler2A03::HandleNoteData(stChanNote &NoteData)		// // //
+void CChannelHandler2A03::HandleNoteData(ft0cc::doc::pattern_note &NoteData)		// // //
 {
 	// // //
 	CChannelHandler::HandleNoteData(NoteData);
 
-	if (is_note(NoteData.Note) || NoteData.Note == note_t::echo) {
+	if (is_note(NoteData.note()) || NoteData.note() == ft0cc::doc::pitch::echo) {
 		if (!m_bEnvelopeLoop || m_bHardwareEnvelope)		// // //
 			m_bResetEnvelope = true;
 	}
 }
 
-bool CChannelHandler2A03::HandleEffect(stEffectCommand cmd)
+bool CChannelHandler2A03::HandleEffect(ft0cc::doc::effect_command cmd)
 {
 	switch (cmd.fx) {
-	case effect_t::VOLUME:
+	case ft0cc::doc::effect_type::VOLUME:
 		if (cmd.param < 0x20) {		// // //
 			m_iLengthCounter = cmd.param;
 			m_bEnvelopeLoop = false;
@@ -76,7 +76,7 @@ bool CChannelHandler2A03::HandleEffect(stEffectCommand cmd)
 			m_bEnvelopeLoop = ((cmd.param & 0x02) != 0x02);
 		}
 		break;
-	case effect_t::DUTY_CYCLE:
+	case ft0cc::doc::effect_type::DUTY_CYCLE:
 		m_iDefaultDuty = m_iDutyPeriod = cmd.param;
 		break;
 	default: return CChannelHandler::HandleEffect(cmd);
@@ -208,22 +208,22 @@ void C2A03Square::ClearRegisters()
 	m_iLastPeriod = 0xFFFF;
 }
 
-void C2A03Square::HandleNoteData(stChanNote &NoteData)		// // //
+void C2A03Square::HandleNoteData(ft0cc::doc::pattern_note &NoteData)		// // //
 {
 	m_iSweep = 0;
 	m_bSweeping = false;
 	CChannelHandler2A03::HandleNoteData(NoteData);
 }
 
-bool C2A03Square::HandleEffect(stEffectCommand cmd)
+bool C2A03Square::HandleEffect(ft0cc::doc::effect_command cmd)
 {
 	switch (cmd.fx) {
-	case effect_t::SWEEPUP:
+	case ft0cc::doc::effect_type::SWEEPUP:
 		m_iSweep = 0x88 | (cmd.param & 0x77);
 		m_iLastPeriod = 0xFFFF;
 		m_bSweeping = true;
 		break;
-	case effect_t::SWEEPDOWN:
+	case ft0cc::doc::effect_type::SWEEPDOWN:
 		m_iSweep = 0x80 | (cmd.param & 0x77);
 		m_iLastPeriod = 0xFFFF;
 		m_bSweeping = true;
@@ -260,9 +260,9 @@ std::string C2A03Square::GetCustomEffectString() const		// // //
 	std::string str;
 
 	if (!m_bEnvelopeLoop)
-		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(m_iLengthCounter)});
+		str += MakeCommandString({ft0cc::doc::effect_type::VOLUME, static_cast<uint8_t>(m_iLengthCounter)});
 	if (!m_bEnvelopeLoop || m_bHardwareEnvelope)
-		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(0xE0 + !m_bEnvelopeLoop * 2 + m_bHardwareEnvelope)});
+		str += MakeCommandString({ft0cc::doc::effect_type::VOLUME, static_cast<uint8_t>(0xE0 + !m_bEnvelopeLoop * 2 + m_bHardwareEnvelope)});
 
 	return str;
 }
@@ -307,10 +307,10 @@ int CTriangleChan::GetChannelVolume() const
 	return m_iVolume ? VOL_COLUMN_MAX : 0;
 }
 
-bool CTriangleChan::HandleEffect(stEffectCommand cmd)
+bool CTriangleChan::HandleEffect(ft0cc::doc::effect_command cmd)
 {
 	switch (cmd.fx) {
-	case effect_t::VOLUME:
+	case ft0cc::doc::effect_type::VOLUME:
 		if (cmd.param < 0x20) {		// // //
 			m_iLengthCounter = cmd.param;
 			m_bEnvelopeLoop = false;
@@ -323,7 +323,7 @@ bool CTriangleChan::HandleEffect(stEffectCommand cmd)
 			m_bEnvelopeLoop = ((cmd.param & 0x01) != 0x01);
 		}
 		break;
-	case effect_t::NOTE_CUT:
+	case ft0cc::doc::effect_type::NOTE_CUT:
 		if (cmd.param >= 0x80) {
 			m_iLinearCounter = cmd.param - 0x80;
 			m_bEnvelopeLoop = false;
@@ -352,11 +352,11 @@ std::string CTriangleChan::GetCustomEffectString() const		// // //
 	std::string str;
 
 	if (m_iLinearCounter > -1)
-		str += MakeCommandString({effect_t::NOTE_CUT, static_cast<uint8_t>(m_iLinearCounter | 0x80)});
+		str += MakeCommandString({ft0cc::doc::effect_type::NOTE_CUT, static_cast<uint8_t>(m_iLinearCounter | 0x80)});
 	if (!m_bEnvelopeLoop)
-		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(m_iLengthCounter)});
+		str += MakeCommandString({ft0cc::doc::effect_type::VOLUME, static_cast<uint8_t>(m_iLengthCounter)});
 	if (!m_bEnvelopeLoop)
-		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(0xE0 + !m_bEnvelopeLoop)});
+		str += MakeCommandString({ft0cc::doc::effect_type::VOLUME, static_cast<uint8_t>(0xE0 + !m_bEnvelopeLoop)});
 
 	return str;
 }
@@ -376,7 +376,7 @@ void CNoiseChan::HandleNote(int MidiNote)
 
 	// // // NewNote &= 0x0F;
 
-	if (m_iPortaSpeed > 0 && m_iEffect == effect_t::PORTAMENTO) {
+	if (m_iPortaSpeed > 0 && m_iEffect == ft0cc::doc::effect_type::PORTAMENTO) {
 		if (m_iPeriod == 0)
 			m_iPeriod = NesFreq;
 		m_iPortaTo = NesFreq;
@@ -396,14 +396,14 @@ void CNoiseChan::SetupSlide()		// // //
 	};
 
 	switch (m_iEffect) {
-	case effect_t::PORTAMENTO:
+	case ft0cc::doc::effect_type::PORTAMENTO:
 		m_iPortaSpeed = m_iEffectParam;
 		break;
-	case effect_t::SLIDE_UP:
+	case ft0cc::doc::effect_type::SLIDE_UP:
 		m_iNote += m_iEffectParam & 0xF;
 		m_iPortaSpeed = GetSlideSpeed(m_iEffectParam);
 		break;
-	case effect_t::SLIDE_DOWN:
+	case ft0cc::doc::effect_type::SLIDE_DOWN:
 		m_iNote -= m_iEffectParam & 0xF;
 		m_iPortaSpeed = GetSlideSpeed(m_iEffectParam);
 		break;
@@ -472,9 +472,9 @@ std::string CNoiseChan::GetCustomEffectString() const		// // //
 	std::string str;
 
 	if (!m_bEnvelopeLoop)
-		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(m_iLengthCounter)});
+		str += MakeCommandString({ft0cc::doc::effect_type::VOLUME, static_cast<uint8_t>(m_iLengthCounter)});
 	if (!m_bEnvelopeLoop || m_bHardwareEnvelope)
-		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(0xE0 + !m_bEnvelopeLoop * 2 + m_bHardwareEnvelope)});
+		str += MakeCommandString({ft0cc::doc::effect_type::VOLUME, static_cast<uint8_t>(0xE0 + !m_bEnvelopeLoop * 2 + m_bHardwareEnvelope)});
 
 	return str;
 }
@@ -509,12 +509,12 @@ CDPCMChan::CDPCMChan(stChannelID ch) :		// // //
 {
 }
 
-void CDPCMChan::HandleNoteData(stChanNote &NoteData)		// // //
+void CDPCMChan::HandleNoteData(ft0cc::doc::pattern_note &NoteData)		// // //
 {
 	m_iCustomPitch = -1;
 	m_iRetrigger = 0;
 
-	if (NoteData.Note != note_t::none) {
+	if (NoteData.note() != ft0cc::doc::pitch::none) {
 		m_iNoteCut = 0;
 		m_iNoteRelease = 0;			// // //
 	}
@@ -522,19 +522,19 @@ void CDPCMChan::HandleNoteData(stChanNote &NoteData)		// // //
 	CChannelHandler::HandleNoteData(NoteData);
 }
 
-bool CDPCMChan::HandleEffect(stEffectCommand cmd)
+bool CDPCMChan::HandleEffect(ft0cc::doc::effect_command cmd)
 {
 	switch (cmd.fx) {
-	case effect_t::DAC:
+	case ft0cc::doc::effect_type::DAC:
 		m_cDAC = cmd.param & 0x7F;
 		break;
-	case effect_t::SAMPLE_OFFSET:
+	case ft0cc::doc::effect_type::SAMPLE_OFFSET:
 		m_iOffset = cmd.param & 0x3F;		// // //
 		break;
-	case effect_t::DPCM_PITCH:
+	case ft0cc::doc::effect_type::DPCM_PITCH:
 		m_iCustomPitch = cmd.param & 0x0F;		// // //
 		break;
-	case effect_t::RETRIGGER:
+	case ft0cc::doc::effect_type::RETRIGGER:
 //		if (NoteData->cmd.param[i] > 0) {
 			m_iRetrigger = cmd.param + 1;
 			if (m_iRetriggerCntr == 0)
@@ -542,8 +542,8 @@ bool CDPCMChan::HandleEffect(stEffectCommand cmd)
 //		}
 //		m_iEnableRetrigger = 1;
 		break;
-	case effect_t::NOTE_CUT:
-	case effect_t::NOTE_RELEASE:
+	case ft0cc::doc::effect_type::NOTE_CUT:
+	case ft0cc::doc::effect_type::NOTE_RELEASE:
 		return CChannelHandler::HandleEffect(cmd);
 	default: return false; // unless WAVE_CHAN analog for CChannelHandler exists
 	}
@@ -701,7 +701,7 @@ std::string CDPCMChan::GetCustomEffectString() const		// // //
 	std::string str;
 
 	if (m_iOffset)
-		str += MakeCommandString({effect_t::SAMPLE_OFFSET, m_iOffset});
+		str += MakeCommandString({ft0cc::doc::effect_type::SAMPLE_OFFSET, m_iOffset});
 
 	return str;
 }

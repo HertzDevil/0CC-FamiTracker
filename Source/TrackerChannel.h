@@ -38,13 +38,13 @@ enum note_prio_t : unsigned {
 };
 
 bool IsInstrumentCompatible(sound_chip_t chip, inst_type_t Type);		// // //
-bool IsEffectCompatible(stChannelID ch, stEffectCommand cmd);		// // //
+bool IsEffectCompatible(stChannelID ch, ft0cc::doc::effect_command cmd);		// // //
 
 class CTrackerChannel
 {
 public:
-	stChanNote GetNote();
-	void SetNote(const stChanNote &Note, note_prio_t Priority);		// // //
+	ft0cc::doc::pattern_note GetNote();
+	void SetNote(const ft0cc::doc::pattern_note &Note, note_prio_t Priority);		// // //
 	bool NewNoteData() const;
 	void Reset();
 
@@ -55,7 +55,7 @@ public:
 	int GetPitch() const;
 
 private:
-	stChanNote m_Note;
+	ft0cc::doc::pattern_note m_Note;
 	note_prio_t m_iNotePriority = NOTE_PRIO_0;
 
 	int m_iVolumeMeter = 0;

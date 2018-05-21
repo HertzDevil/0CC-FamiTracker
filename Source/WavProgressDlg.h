@@ -26,7 +26,7 @@
 #include "stdafx.h"		// // //
 #include "../resource.h"		// // //
 #include <memory>		// // //
-#include "ft0cc/fs.h"		// // //
+#include "ft0cc/cpputil/fs.hpp"		// // //
 
 class CWaveRenderer;		// // //
 

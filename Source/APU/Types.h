@@ -24,8 +24,8 @@
 #pragma once
 
 #include "APU/Types_fwd.h"
-#include "ft0cc/enum_traits.h"		// // //
-#include "StrongOrdering.h"		// // //
+#include "ft0cc/cpputil/enum_traits.hpp"		// // //
+#include "ft0cc/cpputil/strong_ordering.hpp"		// // //
 
 // // // moved from FamiTrackerTypes.h
 ENUM_CLASS_STANDARD(machine_t, std::uint8_t) {

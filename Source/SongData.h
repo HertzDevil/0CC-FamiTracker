@@ -30,7 +30,9 @@
 #include "Highlight.h"		// // //
 #include "BookmarkCollection.h"		// // //
 
-class stChanNote;		// // //
+namespace ft0cc::doc {
+class pattern_note;
+} // namespace ft0cc::doc
 
 // CSongData holds all notes in the patterns
 class CSongData
@@ -46,16 +48,16 @@ public:
 
 	unsigned GetFreePatternIndex(stChannelID Channel, unsigned Whence = (unsigned)-1) const;		// // //
 
-	stChanNote &GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row);		// // //
-	const stChanNote &GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row) const;		// // //
-	void SetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row, const stChanNote &Note);		// // //
+	ft0cc::doc::pattern_note &GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row);		// // //
+	const ft0cc::doc::pattern_note &GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row) const;		// // //
+	void SetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row, const ft0cc::doc::pattern_note &Note);		// // //
 
 	CPatternData &GetPattern(stChannelID Channel, unsigned Pattern);		// // //
 	const CPatternData &GetPattern(stChannelID Channel, unsigned Pattern) const;		// // //
 	CPatternData &GetPatternOnFrame(stChannelID Channel, unsigned Frame);		// // //
 	const CPatternData &GetPatternOnFrame(stChannelID Channel, unsigned Frame) const;		// // //
 
-	stChanNote GetActiveNote(stChannelID Channel, unsigned Frame, unsigned Row) const;		// // //
+	ft0cc::doc::pattern_note GetActiveNote(stChannelID Channel, unsigned Frame, unsigned Row) const;		// // //
 
 	std::string_view GetTitle() const;		// // //
 	unsigned int GetPatternLength() const;

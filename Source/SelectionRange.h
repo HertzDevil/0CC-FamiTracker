@@ -30,7 +30,9 @@
 
 class CConstSongView;
 class CSongView;
-class stChanNote;
+namespace ft0cc::doc {
+class pattern_note;
+} // namespace ft0cc::doc
 
 class CPatternIterator {
 public:
@@ -42,8 +44,8 @@ public:
 
 	CCursorPos GetCursor() const;
 
-	const stChanNote &Get(int Channel) const;
-	void Set(int Channel, const stChanNote &Note);
+	const ft0cc::doc::pattern_note &Get(int Channel) const;
+	void Set(int Channel, const ft0cc::doc::pattern_note &Note);
 
 	CPatternIterator &operator+=(int Rows);
 	CPatternIterator &operator-=(int Rows);
@@ -78,7 +80,7 @@ public:
 	class ConstIterator {
 	public:
 		using iterator_category = std::bidirectional_iterator_tag;
-		using value_type = std::tuple<const stChanNote &, column_t, column_t>;
+		using value_type = std::tuple<const ft0cc::doc::pattern_note &, column_t, column_t>;
 		using reference = value_type &;
 		using pointer = value_type *;
 		using difference_type = int;
@@ -123,7 +125,7 @@ public:
 	class ConstIterator {
 	public:
 		using iterator_category = std::random_access_iterator_tag;
-		using value_type = const stChanNote;
+		using value_type = const ft0cc::doc::pattern_note;
 		using reference = value_type &;
 		using pointer = value_type *;
 		using difference_type = int;

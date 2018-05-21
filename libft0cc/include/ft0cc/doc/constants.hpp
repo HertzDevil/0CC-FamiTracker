@@ -23,51 +23,19 @@
 
 #pragma once
 
-#include "ft0cc/cpputil/enum_traits.hpp"
-#include <cstdint>
+#include <cstddef>
 
 namespace ft0cc::doc {
 
-enum class pitch : std::uint8_t {
-	none,					// No note
-	C, Cs, D, Ds, E, F, Fs, G, Gs, A, As, B,
-	release,				// Release, begin note release sequence
-	halt,					// Halt, stops note
-	echo,					// Echo buffer access, octave determines position
-	min = C, max = echo,
-};
+// number of track volume steps, also used to indicate note does not use
+// track volume
+inline constexpr std::size_t max_volumes = 16u;
 
-} // namespace ft0cc::doc
+// maximum number of instruments per module, also used to indicate note does not
+// instrument
+inline constexpr std::size_t max_instruments = 64u;
 
-ENABLE_ENUM_CATEGORY(ft0cc::doc::pitch, enum_standard);
-
-namespace ft0cc::doc {
-
-inline constexpr auto note_range = static_cast<int>(
-	value_cast(pitch::B) - value_cast(pitch::C) + 1);
-
-constexpr bool is_note(pitch n) noexcept {
-	return n >= pitch::C && n <= pitch::B;
-}
-
-constexpr int midi_note(int octave, pitch note) noexcept {
-	if (is_note(note))
-		return static_cast<int>(octave * note_range + value_cast(note) - 1);
-	return -1;
-}
-
-constexpr pitch pitch_from_midi(int midi_note) noexcept {
-	int x = midi_note % note_range;
-	if (x < 0)
-		x += note_range;
-	return enum_cast<pitch>(++x);
-}
-
-constexpr int oct_from_midi(int midi_note) noexcept {
-	int x = midi_note / note_range;
-	if (midi_note < 0 && !(midi_note % note_range))
-		--x;
-	return x;
-}
+// maximum number of effect columns
+inline constexpr std::size_t max_effect_columns = 4u;
 
 } // namespace ft0cc::doc

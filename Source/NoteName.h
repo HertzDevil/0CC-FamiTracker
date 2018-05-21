@@ -29,10 +29,12 @@
 namespace ft0cc::doc {		// // //
 enum class pitch : std::uint8_t;
 } // namespace ft0cc::doc
-class stChanNote;
+namespace ft0cc::doc {
+class pattern_note;
+} // namespace ft0cc::doc
 
 extern std::string GetNoteString(ft0cc::doc::pitch note, int octave);
-extern std::string GetNoteString(const stChanNote &note);
+extern std::string GetNoteString(const ft0cc::doc::pattern_note &note);
 extern std::pair<ft0cc::doc::pitch, int> ReadNoteFromString(std::string_view sv);
 
 inline const std::string_view KEY_NAME[] = {

@@ -108,9 +108,9 @@ std::unique_ptr<CChipHandler> CSoundChipService::MakeChipHandler(sound_chip_t ch
 	return GetType(chip).MakeChipHandler(nInstance);
 }
 
-effect_t CSoundChipService::TranslateEffectName(char name, sound_chip_t chip) const {
+ft0cc::doc::effect_type CSoundChipService::TranslateEffectName(char name, sound_chip_t chip) const {
 	auto it = types_.find(chip);
-	return it != types_.end() ? it->second->TranslateEffectName(name, chip) : effect_t::none;
+	return it != types_.end() ? it->second->TranslateEffectName(name, chip) : ft0cc::doc::effect_type::none;
 }
 
 const CSoundChipType &CSoundChipService::GetType(sound_chip_t chip) const {

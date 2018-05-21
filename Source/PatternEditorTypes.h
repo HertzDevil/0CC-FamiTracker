@@ -26,8 +26,8 @@
 #include <memory>
 #include <utility>
 #include <algorithm>		// // //
-#include "ft0cc/enum_traits.h"		// // //
-#include "StrongOrdering.h"		// /// //
+#include "ft0cc/cpputil/enum_traits.hpp"		// // //
+#include "ft0cc/cpputil/strong_ordering.hpp"		// /// //
 
 // Helper types for the pattern editor
 

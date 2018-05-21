@@ -35,7 +35,7 @@
 #include <memory>		// // //
 #include "SoundGenBase.h"		// // //
 #include "APU/Types.h"
-#include "ft0cc/fs.h"		// // //
+#include "ft0cc/cpputil/fs.hpp"		// // //
 
 // Custom messages
 enum {
@@ -54,7 +54,6 @@ enum {
 	WM_USER_REMOVE_DOCUMENT,
 };
 
-class stChanNote;		// // //
 struct stRecordSetting;
 
 enum note_prio_t : unsigned;		// // //
@@ -84,6 +83,7 @@ class CSimpleFile;		// // //
 
 namespace ft0cc::doc {
 class dpcm_sample;
+class pattern_note;
 } // namespace ft0cc::doc
 
 // CSoundGen
@@ -192,7 +192,7 @@ public:
 	std::pair<unsigned, unsigned> GetPlayerPos() const;		// // // frame / row
 	int			GetPlayerTrack() const;
 	int			GetPlayerTicks() const;
-	void		QueueNote(stChannelID Channel, const stChanNote &NoteData, note_prio_t Priority) const;		// // //
+	void		QueueNote(stChannelID Channel, const ft0cc::doc::pattern_note &NoteData, note_prio_t Priority) const;		// // //
 	void		ForceReloadInstrument(stChannelID Channel);		// // //
 	void		MoveToFrame(int Frame);
 	void		SetQueueFrame(unsigned Frame);		// // //
@@ -251,7 +251,7 @@ private:
 	CInstrumentManager *GetInstrumentManager() const override;
 	void		OnTick() override;
 	void		OnStepRow() override;
-	void		OnPlayNote(stChannelID chan, const stChanNote &note) override;
+	void		OnPlayNote(stChannelID chan, const ft0cc::doc::pattern_note &note) override;
 	void		OnUpdateRow(int frame, int row) override;
 	bool		ShouldStopPlayer() const override;
 	int			GetArpNote(stChannelID chan) const override; // TODO: remove

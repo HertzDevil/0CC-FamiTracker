@@ -154,9 +154,9 @@ void CSoundDriver::Tick() {
 }
 
 void CSoundDriver::StepRow(stChannelID chan) {
-	stChanNote NoteData = m_pPlayerCursor->GetSong().GetActiveNote(
+	ft0cc::doc::pattern_note NoteData = m_pPlayerCursor->GetSong().GetActiveNote(
 		chan, m_pPlayerCursor->GetCurrentFrame(), m_pPlayerCursor->GetCurrentRow());		// // //
-	for (auto &cmd : NoteData.Effects)
+	for (auto &cmd : NoteData.fx_cmds())
 		if (HandleGlobalEffect(cmd))
 			cmd = { };
 	if (!parent_ || !parent_->IsChannelMuted(chan))
@@ -245,7 +245,7 @@ void CSoundDriver::UpdateChannels() {
 		chip->RefreshAfter(*apu_);
 }
 
-void CSoundDriver::QueueNote(stChannelID chan, const stChanNote &note, note_prio_t priority) {
+void CSoundDriver::QueueNote(stChannelID chan, const ft0cc::doc::pattern_note &note, note_prio_t priority) {
 	if (auto *track = GetTrackerChannel(chan))
 		track->SetNote(note, priority);
 }
@@ -327,28 +327,28 @@ void CSoundDriver::SetupPeriodTables() {
 	});
 }
 
-bool CSoundDriver::HandleGlobalEffect(stEffectCommand cmd) {
+bool CSoundDriver::HandleGlobalEffect(ft0cc::doc::effect_command cmd) {
 	switch (cmd.fx) {
 	// Fxx: Sets speed to xx
-	case effect_t::SPEED:
+	case ft0cc::doc::effect_type::SPEED:
 		if (m_pTempoCounter)
 			m_pTempoCounter->DoFxx(cmd.param ? cmd.param : 1);		// // //
 		return true;
 	// Oxx: Sets groove to xx
-	case effect_t::GROOVE:		// // //
+	case ft0cc::doc::effect_type::GROOVE:		// // //
 		if (m_pTempoCounter)
 			m_pTempoCounter->DoOxx(cmd.param % MAX_GROOVE);		// // //
 		return true;
 	// Bxx: Jump to pattern xx
-	case effect_t::JUMP:
+	case ft0cc::doc::effect_type::JUMP:
 		m_iJumpToPattern = cmd.param;
 		return true;
 	// Dxx: Skip to next track and start at row xx
-	case effect_t::SKIP:
+	case ft0cc::doc::effect_type::SKIP:
 		m_iSkipToRow = cmd.param;
 		return true;
 	// Cxx: Halt playback
-	case effect_t::HALT:
+	case ft0cc::doc::effect_type::HALT:
 		m_bDoHalt = true;		// // //
 		m_pPlayerCursor->DoCxx();		// // //
 		return true;

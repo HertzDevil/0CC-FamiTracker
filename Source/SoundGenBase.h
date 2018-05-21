@@ -27,7 +27,9 @@
 
 // // // tentative base class for CSoundGen, might become CSoundDriverBase later
 
-class stChanNote;
+namespace ft0cc::doc {
+class pattern_note;
+} // namespace ft0cc::doc
 class CInstrumentManager;
 
 class CSoundGenBase {
@@ -39,7 +41,7 @@ public:
 	virtual void OnTick() = 0;
 	virtual void OnStepRow() = 0;
 
-	virtual void OnPlayNote(stChannelID chan, const stChanNote &note) = 0;
+	virtual void OnPlayNote(stChannelID chan, const ft0cc::doc::pattern_note &note) = 0;
 	virtual void OnUpdateRow(int frame, int row) = 0;
 
 	virtual bool IsChannelMuted(stChannelID chan) const = 0; // TODO: remove

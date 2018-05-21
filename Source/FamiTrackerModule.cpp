@@ -309,11 +309,11 @@ void CFamiTrackerModule::SwapInstruments(unsigned first, unsigned second) {
 	// Scan patterns
 	VisitSongs([&] (CSongData &song) {
 		song.VisitPatterns([&] (CPatternData &pat) {
-			pat.VisitRows([&] (stChanNote &note, unsigned row) {
-				if (note.Instrument == first)
-					note.Instrument = second;
-				else if (note.Instrument == second)
-					note.Instrument = first;
+			pat.VisitRows([&] (ft0cc::doc::pattern_note &note, unsigned row) {
+				if (note.inst() == first)
+					note.set_inst(second);
+				else if (note.inst() == second)
+					note.set_inst(first);
 			});
 		});
 	});
@@ -414,9 +414,9 @@ void CFamiTrackerModule::RemoveUnusedInstruments() {
 		int length = song.GetPatternLength();
 		GetChannelOrder().ForeachChannel([&] (stChannelID Channel) {
 			for (unsigned int Frame = 0; Frame < song.GetFrameCount(); ++Frame)
-				song.GetPatternOnFrame(Channel, Frame).VisitRows(length, [&] (const stChanNote &note) {
-					if (note.Instrument < MAX_INSTRUMENTS)
-						used[note.Instrument] = true;
+				song.GetPatternOnFrame(Channel, Frame).VisitRows(length, [&] (const ft0cc::doc::pattern_note &note) {
+					if (note.inst() < MAX_INSTRUMENTS)
+						used[note.inst()] = true;
 				});
 		});
 	});
@@ -463,14 +463,14 @@ void CFamiTrackerModule::RemoveUnusedDSamples() {
 					unsigned int Pattern = song.GetFramePattern(Frame, apu_subindex_t::dpcm);
 					for (unsigned int Row = 0; Row < song.GetPatternLength(); ++Row) {
 						const auto &Note = song.GetPatternData(apu_subindex_t::dpcm, Pattern, Row);		// // //
-						int Index = Note.Instrument;
-						if (!is_note(Note.Note) || Index == MAX_INSTRUMENTS)
+						int Index = Note.inst();
+						if (!is_note(Note.note()) || Index == MAX_INSTRUMENTS)
 							continue;		// // //
 						if (InstManager.GetInstrumentType(Index) != INST_2A03)
 							continue;
-						AssignUsed[Index][Note.ToMidiNote()] = true;
+						AssignUsed[Index][Note.midi_note()] = true;
 						auto pInst = std::static_pointer_cast<CInstrument2A03>(InstManager.GetInstrument(Index));
-						if (pInst->GetSampleIndex(Note.ToMidiNote()) == i)
+						if (pInst->GetSampleIndex(Note.midi_note()) == i)
 							Used = true;
 					}
 				}

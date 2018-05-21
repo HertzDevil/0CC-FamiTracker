@@ -25,7 +25,6 @@
 
 #include "json/json.hpp"
 
-class stChanNote;
 class CPatternData;
 class CTrackData;
 struct stHighlight;
@@ -44,7 +43,6 @@ class CInstrumentVRC7;
 class CInstrumentFDS;
 class CInstrumentN163;
 
-void to_json(nlohmann::json &j, const stChanNote &note);
 void to_json(nlohmann::json &j, const CPatternData &pattern);
 void to_json(nlohmann::json &j, const CTrackData &track);
 void to_json(nlohmann::json &j, const stHighlight &hl);
@@ -63,7 +61,6 @@ void to_json(nlohmann::json &j, const CInstrumentVRC7 &inst);
 void to_json(nlohmann::json &j, const CInstrumentFDS &inst);
 void to_json(nlohmann::json &j, const CInstrumentN163 &inst);
 
-void from_json(const nlohmann::json &j, stChanNote &note);
 void from_json(const nlohmann::json &j, CPatternData &pattern);
 void from_json(const nlohmann::json &j, CTrackData &track);
 void from_json(const nlohmann::json &j, stHighlight &hl);
@@ -79,11 +76,14 @@ namespace ft0cc::doc {
 
 class dpcm_sample;
 class groove;
+class pattern_note;
 
 void to_json(nlohmann::json &j, const dpcm_sample &dpcm);
 void to_json(nlohmann::json &j, const groove &groove);
+void to_json(nlohmann::json &j, const pattern_note &note);
 
 void from_json(const nlohmann::json &j, dpcm_sample &dpcm);
 void from_json(const nlohmann::json &j, groove &groove);
+void from_json(const nlohmann::json &j, pattern_note &note);
 
 } // namespace ft0cc::doc

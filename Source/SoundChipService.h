@@ -29,7 +29,9 @@
 class CChannelOrder;
 class CSoundChipSet;
 class CChannelMap;
-enum class effect_t : std::uint8_t;
+namespace ft0cc::doc {
+enum class effect_type : std::uint8_t;
+} // namespace ft0cc::doc
 
 class CSoundChipService {
 public:
@@ -49,7 +51,7 @@ public:
 	std::unique_ptr<CSoundChip> MakeSoundChipDriver(sound_chip_t chip, CMixer &mixer, std::uint8_t nInstance) const;
 	std::unique_ptr<CChipHandler> MakeChipHandler(sound_chip_t chip, std::uint8_t nInstance) const;
 
-	effect_t TranslateEffectName(char name, sound_chip_t chip) const;
+	ft0cc::doc::effect_type TranslateEffectName(char name, sound_chip_t chip) const;
 
 	// void (*F)(sound_chip_t chip)
 	template <typename F>

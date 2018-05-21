@@ -38,21 +38,21 @@ CChannelHandlerMMC5::CChannelHandlerMMC5(stChannelID ch) : CChannelHandler(ch, 0
 	m_iLengthCounter = 1;
 }
 
-void CChannelHandlerMMC5::HandleNoteData(stChanNote &NoteData)		// // //
+void CChannelHandlerMMC5::HandleNoteData(ft0cc::doc::pattern_note &NoteData)		// // //
 {
 	// // //
 	CChannelHandler::HandleNoteData(NoteData);
 
-	if (is_note(NoteData.Note) || NoteData.Note == note_t::echo) {
+	if (is_note(NoteData.note()) || NoteData.note() == ft0cc::doc::pitch::echo) {
 		if (!m_bEnvelopeLoop || m_bHardwareEnvelope)		// // //
 			m_bResetEnvelope = true;
 	}
 }
 
-bool CChannelHandlerMMC5::HandleEffect(stEffectCommand cmd)
+bool CChannelHandlerMMC5::HandleEffect(ft0cc::doc::effect_command cmd)
 {
 	switch (cmd.fx) {
-	case effect_t::VOLUME:
+	case ft0cc::doc::effect_type::VOLUME:
 		if (cmd.param < 0x20) {		// // //
 			m_iLengthCounter = cmd.param;
 			m_bEnvelopeLoop = false;
@@ -65,7 +65,7 @@ bool CChannelHandlerMMC5::HandleEffect(stEffectCommand cmd)
 			m_bEnvelopeLoop = ((cmd.param & 0x02) != 0x02);
 		}
 		break;
-	case effect_t::DUTY_CYCLE:
+	case ft0cc::doc::effect_type::DUTY_CYCLE:
 		m_iDefaultDuty = m_iDutyPeriod = cmd.param;
 		break;
 	default: return CChannelHandler::HandleEffect(cmd);
@@ -165,9 +165,9 @@ std::string CChannelHandlerMMC5::GetCustomEffectString() const		// // //
 	std::string str;
 
 	if (!m_bEnvelopeLoop)
-		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(m_iLengthCounter)});
+		str += MakeCommandString({ft0cc::doc::effect_type::VOLUME, static_cast<uint8_t>(m_iLengthCounter)});
 	if (!m_bEnvelopeLoop || m_bHardwareEnvelope)
-		str += MakeCommandString({effect_t::VOLUME, static_cast<uint8_t>(0xE0 + !m_bEnvelopeLoop * 2 + m_bHardwareEnvelope)});
+		str += MakeCommandString({ft0cc::doc::effect_type::VOLUME, static_cast<uint8_t>(0xE0 + !m_bEnvelopeLoop * 2 + m_bHardwareEnvelope)});
 
 	return str;
 }

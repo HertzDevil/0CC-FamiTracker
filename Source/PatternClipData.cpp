@@ -27,14 +27,14 @@
 
 CPatternClipData::CPatternClipData(int Channels, int Rows) :
 	ClipInfo({Channels, Rows}),		// // //
-	pPattern(std::make_unique<stChanNote[]>(Channels * Rows)),
+	pPattern(std::make_unique<ft0cc::doc::pattern_note[]>(Channels * Rows)),
 	Size(Channels * Rows)
 {
 }
 
 std::size_t CPatternClipData::GetAllocSize() const
 {
-	return sizeof(ClipInfo) + Size * sizeof(stChanNote);
+	return sizeof(ClipInfo) + Size * sizeof(ft0cc::doc::pattern_note);
 }
 
 bool CPatternClipData::ContainsData() const {		// // //
@@ -45,7 +45,7 @@ bool CPatternClipData::ToBytes(std::byte *pBuf, std::size_t buflen) const		// //
 {
 	if (buflen >= GetAllocSize()) {
 		std::memcpy(pBuf, &ClipInfo, sizeof(ClipInfo));
-		std::memcpy(pBuf + sizeof(ClipInfo), pPattern.get(), Size * sizeof(stChanNote));		// // //
+		std::memcpy(pBuf + sizeof(ClipInfo), pPattern.get(), Size * sizeof(ft0cc::doc::pattern_note));		// // //
 		return true;
 	}
 	return false;
@@ -56,14 +56,14 @@ bool CPatternClipData::FromBytes(array_view<std::byte> Buf)		// // //
 	if (Buf.size() >= GetAllocSize()) {
 		std::memcpy(&ClipInfo, Buf.data(), sizeof(ClipInfo));
 		Size = ClipInfo.Channels * ClipInfo.Rows;
-		pPattern = std::make_unique<stChanNote[]>(Size);		// // //
-		std::memcpy(pPattern.get(), Buf.data() + sizeof(ClipInfo), Size * sizeof(stChanNote));
+		pPattern = std::make_unique<ft0cc::doc::pattern_note[]>(Size);		// // //
+		std::memcpy(pPattern.get(), Buf.data() + sizeof(ClipInfo), Size * sizeof(ft0cc::doc::pattern_note));
 		return true;
 	}
 	return false;
 }
 
-stChanNote *CPatternClipData::GetPattern(int Channel, int Row)
+ft0cc::doc::pattern_note *CPatternClipData::GetPattern(int Channel, int Row)
 {
 	Assert(Channel < ClipInfo.Channels);
 	Assert(Row < ClipInfo.Rows);
@@ -71,7 +71,7 @@ stChanNote *CPatternClipData::GetPattern(int Channel, int Row)
 	return &pPattern[Channel * ClipInfo.Rows + Row];
 }
 
-const stChanNote *CPatternClipData::GetPattern(int Channel, int Row) const
+const ft0cc::doc::pattern_note *CPatternClipData::GetPattern(int Channel, int Row) const
 {
 	Assert(Channel < ClipInfo.Channels);
 	Assert(Row < ClipInfo.Rows);

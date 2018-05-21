@@ -138,7 +138,7 @@ void CSplitKeyboardDlg::OnCbnSelchangeComboSplitNote()
 {
 	m_iSplitNote = ft0cc::doc::midi_note(
 		static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_OCTAVE))->GetCurSel(),
-		enum_cast<note_t>(static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_NOTE))->GetCurSel() + 1));
+		enum_cast<ft0cc::doc::pitch>(static_cast<CComboBox*>(GetDlgItem(IDC_COMBO_SPLIT_NOTE))->GetCurSel() + 1));
 }
 
 void CSplitKeyboardDlg::OnCbnSelchangeComboSplitChan()

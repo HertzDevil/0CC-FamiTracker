@@ -975,8 +975,8 @@ void CCompiler::ScanSong()
 			for (int k = 0; k < MAX_PATTERN; ++k)
 				for (int l = 0; l < PatternLength; ++l) {
 					const auto &note = song.GetPattern(j, k).GetNoteOn(l);
-					if (note.Instrument < std::size(inst_used))		// // //
-						inst_used[note.Instrument] = true;
+					if (note.inst() < std::size(inst_used))		// // //
+						inst_used[note.inst()] = true;
 				}
 		});
 	});
@@ -1014,10 +1014,10 @@ void CCompiler::ScanSong()
 			const auto &Pattern = pTrack->GetPatternOnFrame(j);
 			for (int k = 0; k < patternlen; ++k) {
 				const auto &Note = Pattern.GetNoteOn(k);
-				if (Note.Instrument < MAX_INSTRUMENTS)
-					Instrument = Note.Instrument;
-				if (is_note(Note.Note))		// // //
-					m_bSamplesAccessed[Instrument][Note.ToMidiNote()] = true;
+				if (Note.inst() < MAX_INSTRUMENTS)
+					Instrument = Note.inst();
+				if (is_note(Note.note()))		// // //
+					m_bSamplesAccessed[Instrument][Note.midi_note()] = true;
 			}
 		}
 	});

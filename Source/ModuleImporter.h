@@ -26,7 +26,7 @@
 #include <memory>
 #include <unordered_map>
 #include <cstdint>
-#include "ft0cc/enum_traits.h"
+#include "ft0cc/cpputil/enum_traits.hpp"
 
 class CFamiTrackerModule;
 

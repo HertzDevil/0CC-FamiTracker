@@ -19,11 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\ft0cc\cpputil\iter.hpp" />
+    <ClInclude Include="..\include\ft0cc\cpputil\strong_ordering.hpp" />
+    <ClInclude Include="..\include\ft0cc\doc\constants.hpp" />
+    <ClInclude Include="..\include\ft0cc\doc\effect_command.hpp" />
+    <ClInclude Include="..\include\ft0cc\doc\effect_type.hpp" />
     <ClInclude Include="..\include\ft0cc\doc\inst_sequence.hpp" />
     <ClInclude Include="..\include\ft0cc\doc\dpcm_sample.hpp" />
+    <ClInclude Include="..\include\ft0cc\doc\pattern_note.hpp" />
     <ClInclude Include="..\include\ft0cc\doc\pitch.hpp" />
-    <ClInclude Include="..\include\ft0cc\enum_traits.h" />
-    <ClInclude Include="..\include\ft0cc\fs.h" />
+    <ClInclude Include="..\include\ft0cc\cpputil\enum_traits.hpp" />
+    <ClInclude Include="..\include\ft0cc\cpputil\fs.hpp" />
     <ClInclude Include="..\include\ft0cc\doc\groove.hpp" />
   </ItemGroup>
   <ItemGroup>

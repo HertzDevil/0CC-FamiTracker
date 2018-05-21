@@ -37,7 +37,7 @@ class CSoundChipType2A03 : public CSoundChipType {
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler(std::uint8_t nInstance) const override;
 
-	effect_t TranslateEffectName(char name, sound_chip_t chip) const override;
+	ft0cc::doc::effect_type TranslateEffectName(char name, sound_chip_t chip) const override;
 };
 
 class CSoundChipTypeVRC6 : public CSoundChipType {
@@ -52,7 +52,7 @@ class CSoundChipTypeVRC6 : public CSoundChipType {
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler(std::uint8_t nInstance) const override;
 
-	effect_t TranslateEffectName(char name, sound_chip_t chip) const override;
+	ft0cc::doc::effect_type TranslateEffectName(char name, sound_chip_t chip) const override;
 };
 
 class CSoundChipTypeVRC7 : public CSoundChipType {
@@ -67,7 +67,7 @@ class CSoundChipTypeVRC7 : public CSoundChipType {
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler(std::uint8_t nInstance) const override;
 
-	effect_t TranslateEffectName(char name, sound_chip_t chip) const override;
+	ft0cc::doc::effect_type TranslateEffectName(char name, sound_chip_t chip) const override;
 };
 
 class CSoundChipTypeFDS : public CSoundChipType {
@@ -82,7 +82,7 @@ class CSoundChipTypeFDS : public CSoundChipType {
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler(std::uint8_t nInstance) const override;
 
-	effect_t TranslateEffectName(char name, sound_chip_t chip) const override;
+	ft0cc::doc::effect_type TranslateEffectName(char name, sound_chip_t chip) const override;
 };
 
 class CSoundChipTypeMMC5 : public CSoundChipType {
@@ -97,7 +97,7 @@ class CSoundChipTypeMMC5 : public CSoundChipType {
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler(std::uint8_t nInstance) const override;
 
-	effect_t TranslateEffectName(char name, sound_chip_t chip) const override;
+	ft0cc::doc::effect_type TranslateEffectName(char name, sound_chip_t chip) const override;
 };
 
 class CSoundChipTypeN163 : public CSoundChipType {
@@ -112,7 +112,7 @@ class CSoundChipTypeN163 : public CSoundChipType {
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler(std::uint8_t nInstance) const override;
 
-	effect_t TranslateEffectName(char name, sound_chip_t chip) const override;
+	ft0cc::doc::effect_type TranslateEffectName(char name, sound_chip_t chip) const override;
 };
 
 class CSoundChipTypeS5B : public CSoundChipType {
@@ -127,5 +127,5 @@ class CSoundChipTypeS5B : public CSoundChipType {
 	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const override;
 	std::unique_ptr<CChipHandler> MakeChipHandler(std::uint8_t nInstance) const override;
 
-	effect_t TranslateEffectName(char name, sound_chip_t chip) const override;
+	ft0cc::doc::effect_type TranslateEffectName(char name, sound_chip_t chip) const override;
 };

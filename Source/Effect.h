@@ -23,61 +23,7 @@
 
 #pragma once
 
-#include "ft0cc/enum_traits.h"
-
-// Channel effects
-enum class effect_t : std::uint8_t {
-	SPEED = 1,
-	JUMP,
-	SKIP,
-	HALT,
-	VOLUME,
-	PORTAMENTO,
-	PORTAOFF,			// unused!!
-	SWEEPUP,
-	SWEEPDOWN,
-	ARPEGGIO,
-	VIBRATO,
-	TREMOLO,
-	PITCH,
-	DELAY,
-	DAC,
-	PORTA_UP,
-	PORTA_DOWN,
-	DUTY_CYCLE,
-	SAMPLE_OFFSET,
-	SLIDE_UP,
-	SLIDE_DOWN,
-	VOLUME_SLIDE,
-	NOTE_CUT,
-	RETRIGGER,
-	DELAYED_VOLUME,		// // //
-	FDS_MOD_DEPTH,
-	FDS_MOD_SPEED_HI,
-	FDS_MOD_SPEED_LO,
-	DPCM_PITCH,
-	SUNSOFT_ENV_TYPE,
-	SUNSOFT_ENV_HI,
-	SUNSOFT_ENV_LO,
-	SUNSOFT_NOISE,		// // // 050B
-	VRC7_PORT,			// // // 050B
-	VRC7_WRITE,			// // // 050B
-	NOTE_RELEASE,		// // //
-	GROOVE,				// // //
-	TRANSPOSE,			// // //
-	N163_WAVE_BUFFER,	// // //
-	FDS_VOLUME,			// // //
-	FDS_MOD_BIAS,		// // //
-//	TARGET_VOLUME_SLIDE,
-/*
-	VRC7_MODULATOR,
-	VRC7_CARRIER,
-	VRC7_LEVELS,
-*/
-	min = SPEED, max = FDS_MOD_BIAS, none = 0,
-};
-
-ENABLE_ENUM_CATEGORY(effect_t, enum_standard);
+#include "ft0cc/doc/effect_type.hpp"
 
 // Channel effect letters
 constexpr char EFF_CHAR[] = {

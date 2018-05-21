@@ -24,7 +24,7 @@
 #pragma once
 
 #include "stdafx.h"
-#include "ft0cc/fs.h"
+#include "ft0cc/cpputil/fs.hpp"
 #include <optional>
 
 // Loads a single filter string including the all files option

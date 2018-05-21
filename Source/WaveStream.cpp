@@ -21,7 +21,7 @@
 */
 
 #include "WaveStream.h"
-#include "ft0cc/enum_traits.h"
+#include "ft0cc/cpputil/enum_traits.hpp"
 #include "Assertion.h"
 #include <cmath>
 

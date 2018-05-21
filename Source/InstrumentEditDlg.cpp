@@ -292,11 +292,11 @@ void CInstrumentEditDlg::OnPaint()
 	BlackKey.CreateCompatibleDC(&dc);
 	CDCObjectContext c3 {BlackKey, &BlackKeyBmp};		// // //
 
-	const note_t WHITE[]   = {note_t::C, note_t::D, note_t::E, note_t::F, note_t::G, note_t::A, note_t::B};
-	const note_t BLACK_1[] = {note_t::Cs, note_t::Ds};
-	const note_t BLACK_2[] = {note_t::Fs, note_t::Gs, note_t::As};
+	const ft0cc::doc::pitch WHITE[]   = {ft0cc::doc::pitch::C, ft0cc::doc::pitch::D, ft0cc::doc::pitch::E, ft0cc::doc::pitch::F, ft0cc::doc::pitch::G, ft0cc::doc::pitch::A, ft0cc::doc::pitch::B};
+	const ft0cc::doc::pitch BLACK_1[] = {ft0cc::doc::pitch::Cs, ft0cc::doc::pitch::Ds};
+	const ft0cc::doc::pitch BLACK_2[] = {ft0cc::doc::pitch::Fs, ft0cc::doc::pitch::Gs, ft0cc::doc::pitch::As};
 
-	note_t Note = ft0cc::doc::pitch_from_midi(m_iActiveKey);		// // //
+	ft0cc::doc::pitch Note = ft0cc::doc::pitch_from_midi(m_iActiveKey);		// // //
 	int Octave = ft0cc::doc::oct_from_midi(m_iActiveKey);
 
 	for (int j = 0; j < 8; ++j) {
@@ -370,45 +370,45 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 	}
 	Channel = pView->GetSelectedChannelID();		// // //
 
-	stChanNote NoteData;
+	ft0cc::doc::pattern_note NoteData;
 
 	if (m_KeyboardRect.PtInRect({x, y})) {
 		int KeyPos = (x - m_KeyboardRect.left) % 70;		// // //
 		int Octave = (x - m_KeyboardRect.left) / 70;
-		note_t Note = note_t::C;		// // //
+		ft0cc::doc::pitch Note = ft0cc::doc::pitch::C;		// // //
 
 		if (y > m_KeyboardRect.top + 38) {
 			// Only white keys
-			     if (KeyPos >= 60) Note = note_t::B;
-			else if (KeyPos >= 50) Note = note_t::A;
-			else if (KeyPos >= 40) Note = note_t::G;
-			else if (KeyPos >= 30) Note = note_t::F;
-			else if (KeyPos >= 20) Note = note_t::E;
-			else if (KeyPos >= 10) Note = note_t::D;
-			else if (KeyPos >=  0) Note = note_t::C;
+			     if (KeyPos >= 60) Note = ft0cc::doc::pitch::B;
+			else if (KeyPos >= 50) Note = ft0cc::doc::pitch::A;
+			else if (KeyPos >= 40) Note = ft0cc::doc::pitch::G;
+			else if (KeyPos >= 30) Note = ft0cc::doc::pitch::F;
+			else if (KeyPos >= 20) Note = ft0cc::doc::pitch::E;
+			else if (KeyPos >= 10) Note = ft0cc::doc::pitch::D;
+			else if (KeyPos >=  0) Note = ft0cc::doc::pitch::C;
 		}
 		else {
 			// Black and white keys
-			     if (KeyPos >= 62) Note = note_t::B;
-			else if (KeyPos >= 56) Note = note_t::As;
-			else if (KeyPos >= 53) Note = note_t::A;
-			else if (KeyPos >= 46) Note = note_t::Gs;
-			else if (KeyPos >= 43) Note = note_t::G;
-			else if (KeyPos >= 37) Note = note_t::Fs;
-			else if (KeyPos >= 30) Note = note_t::F;
-			else if (KeyPos >= 23) Note = note_t::E;
-			else if (KeyPos >= 16) Note = note_t::Ds;
-			else if (KeyPos >= 13) Note = note_t::D;
-			else if (KeyPos >=  7) Note = note_t::Cs;
-			else if (KeyPos >=  0) Note = note_t::C;
+			     if (KeyPos >= 62) Note = ft0cc::doc::pitch::B;
+			else if (KeyPos >= 56) Note = ft0cc::doc::pitch::As;
+			else if (KeyPos >= 53) Note = ft0cc::doc::pitch::A;
+			else if (KeyPos >= 46) Note = ft0cc::doc::pitch::Gs;
+			else if (KeyPos >= 43) Note = ft0cc::doc::pitch::G;
+			else if (KeyPos >= 37) Note = ft0cc::doc::pitch::Fs;
+			else if (KeyPos >= 30) Note = ft0cc::doc::pitch::F;
+			else if (KeyPos >= 23) Note = ft0cc::doc::pitch::E;
+			else if (KeyPos >= 16) Note = ft0cc::doc::pitch::Ds;
+			else if (KeyPos >= 13) Note = ft0cc::doc::pitch::D;
+			else if (KeyPos >=  7) Note = ft0cc::doc::pitch::Cs;
+			else if (KeyPos >=  0) Note = ft0cc::doc::pitch::C;
 		}
 
 		int NewNote = ft0cc::doc::midi_note(Octave, Note);		// // //
 		if (NewNote != m_iLastKey) {
-			NoteData.Note			= Note;
-			NoteData.Octave			= Octave;
-			NoteData.Vol			= MAX_VOLUME - 1;
-			NoteData.Instrument		= pFrameWnd->GetSelectedInstrumentIndex();
+			NoteData.set_note(Note);
+			NoteData.set_oct(Octave);
+			NoteData.set_vol(MAX_VOLUME - 1);
+			NoteData.set_inst(pFrameWnd->GetSelectedInstrumentIndex());
 
 			FTEnv.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 			FTEnv.GetSoundGenerator()->ForceReloadInstrument(Channel);		// // //
@@ -416,7 +416,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 		}
 	}
 	else {
-		NoteData.Note			= pView->DoRelease() ? note_t::release : note_t::halt;//note_t::halt;
+		NoteData.set_note(pView->DoRelease() ? ft0cc::doc::pitch::release : ft0cc::doc::pitch::halt);//ft0cc::doc::pitch::halt;
 
 		FTEnv.GetSoundGenerator()->QueueNote(Channel, NoteData, NOTE_PRIO_2);
 
@@ -429,9 +429,9 @@ void CInstrumentEditDlg::SwitchOffNote(bool ForceHalt)
 	CFamiTrackerView *pView = CFamiTrackerView::GetView();
 	CMainFrame *pFrameWnd = static_cast<CMainFrame*>(GetParent());
 
-	stChanNote NoteData;		// // //
-	NoteData.Note			= (pView->DoRelease() && !ForceHalt) ? note_t::release : note_t::halt;
-	NoteData.Instrument		= pFrameWnd->GetSelectedInstrumentIndex();
+	ft0cc::doc::pattern_note NoteData;		// // //
+	NoteData.set_note((pView->DoRelease() && !ForceHalt) ? ft0cc::doc::pitch::release : ft0cc::doc::pitch::halt);
+	NoteData.set_inst(pFrameWnd->GetSelectedInstrumentIndex());
 
 	FTEnv.GetSoundGenerator()->QueueNote(pView->GetSelectedChannelID(), NoteData, NOTE_PRIO_2);
 

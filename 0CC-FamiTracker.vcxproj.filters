@@ -1553,9 +1553,6 @@
     <ClInclude Include="Source\str_conv\str_conv.hpp">
       <Filter>Header Files\Utility Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\StrongOrdering.h">
-      <Filter>Header Files\Utility Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\sv_regex.h">
       <Filter>Header Files\Utility Headers</Filter>
     </ClInclude>

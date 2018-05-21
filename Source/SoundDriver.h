@@ -39,11 +39,13 @@ class CChipHandler;
 class CTrackerChannel;
 class CAPUInterface;
 class CSongState;
-class stChanNote;
+namespace ft0cc::doc {
+struct effect_command;
+class pattern_note;
+} // namespace ft0cc::doc
 class CSoundGenBase;
 class CSoundChipSet;
 enum note_prio_t : unsigned;
-struct stEffectCommand;
 
 class CSoundDriver {
 public:
@@ -67,7 +69,7 @@ public:
 
 	void Tick();
 
-	void QueueNote(stChannelID chan, const stChanNote &note, note_prio_t priority);
+	void QueueNote(stChannelID chan, const ft0cc::doc::pattern_note &note, note_prio_t priority);
 	void ForceReloadInstrument(stChannelID chan);
 
 	bool IsPlaying() const;
@@ -108,7 +110,7 @@ private:
 	void PlayerTick();
 	void StepRow(stChannelID chan);
 	void UpdateChannels();
-	bool HandleGlobalEffect(stEffectCommand cmd);		// // //
+	bool HandleGlobalEffect(ft0cc::doc::effect_command cmd);		// // //
 
 private:
 	struct stChannelID_ident_less {

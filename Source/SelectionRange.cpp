@@ -57,12 +57,12 @@ CCursorPos CPatternIterator::GetCursor() const {
 	return {m_iRow, m_iChannel, m_iColumn, m_iFrame};
 }
 
-const stChanNote &CPatternIterator::Get(int Channel) const
+const ft0cc::doc::pattern_note &CPatternIterator::Get(int Channel) const
 {
 	return song_view_.GetPatternOnFrame(Channel, TranslateFrame()).GetNoteOn(m_iRow);
 }
 
-void CPatternIterator::Set(int Channel, const stChanNote &Note)
+void CPatternIterator::Set(int Channel, const ft0cc::doc::pattern_note &Note)
 {
 	song_view_.GetPatternOnFrame(Channel, TranslateFrame()).SetNoteOn(m_iRow, Note);
 }
@@ -146,7 +146,7 @@ void CPatternIterator::Warp()
 
 /*
 CPatternRowRange::ConstIterator::value_type CPatternRowRange::ConstIterator::operator*() const {
-	const stChanNote &note = view_.GetTrack(track_)->GetPatternOnFrame(TranslateFrame()).GetNoteOn(pos_.Row);
+	const ft0cc::doc::pattern_note &note = view_.GetTrack(track_)->GetPatternOnFrame(TranslateFrame()).GetNoteOn(pos_.Row);
 	return {note, cb_, ce_};
 }
 

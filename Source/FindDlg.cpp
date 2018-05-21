@@ -133,12 +133,12 @@ bool CFindCursor::AtStart() const
 		m_iRow == m_cpBeginPos.Ypos.Row && m_iChannel == m_cpBeginPos.Xpos.Track;
 }
 
-const stChanNote &CFindCursor::Get() const
+const ft0cc::doc::pattern_note &CFindCursor::Get() const
 {
 	return CPatternIterator::Get(m_iChannel);
 }
 
-void CFindCursor::Set(const stChanNote &Note)
+void CFindCursor::Set(const ft0cc::doc::pattern_note &Note)
 {
 	CPatternIterator::Set(m_iChannel, Note);
 }
@@ -200,7 +200,7 @@ void CFindResultsBox::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 }
 
-void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Cursor, bool Noise)
+void CFindResultsBox::AddResult(const ft0cc::doc::pattern_note &Note, const CFindCursor &Cursor, bool Noise)
 {
 	int Pos = m_cListResults.GetItemCount();
 	m_cListResults.InsertItem(Pos, conv::to_wide(conv::sv_from_int(Pos + 1)).data());
@@ -215,33 +215,33 @@ void CFindResultsBox::AddResult(const stChanNote &Note, const CFindCursor &Curso
 	m_cListResults.SetItemText(Pos, FRAME, conv::to_wide(conv::sv_from_int_hex(Cursor.m_iFrame, 2)).data());
 	m_cListResults.SetItemText(Pos, ROW, conv::to_wide(conv::sv_from_int_hex(Cursor.m_iRow, 2)).data());
 
-	switch (Note.Note) {
-	case note_t::none:
+	switch (Note.note()) {
+	case ft0cc::doc::pitch::none:
 		break;
-	case note_t::halt:
+	case ft0cc::doc::pitch::halt:
 		m_cListResults.SetItemText(Pos, NOTE, L"---"); break;
-	case note_t::release:
+	case ft0cc::doc::pitch::release:
 		m_cListResults.SetItemText(Pos, NOTE, L"==="); break;
-	case note_t::echo:
-		m_cListResults.SetItemText(Pos, NOTE, (L"^-" + conv::to_wide(conv::from_int(Note.Octave))).data()); break;
+	case ft0cc::doc::pitch::echo:
+		m_cListResults.SetItemText(Pos, NOTE, (L"^-" + conv::to_wide(conv::from_int(Note.oct()))).data()); break;
 	default:
 		if (Noise)
-			m_cListResults.SetItemText(Pos, NOTE, (conv::to_wide(conv::from_int_hex(Note.ToMidiNote() & 0x0F)) + L"-#").data());
+			m_cListResults.SetItemText(Pos, NOTE, (conv::to_wide(conv::from_int_hex(Note.midi_note() & 0x0F)) + L"-#").data());
 		else
 			m_cListResults.SetItemText(Pos, NOTE, conv::to_wide(GetNoteString(Note)).data());
 	}
 
-	if (Note.Instrument == HOLD_INSTRUMENT)		// // // 050B
+	if (Note.inst() == HOLD_INSTRUMENT)		// // // 050B
 		m_cListResults.SetItemText(Pos, INST, L"&&");
-	else if (Note.Instrument != MAX_INSTRUMENTS)
-		m_cListResults.SetItemText(Pos, INST, conv::to_wide(conv::sv_from_int_hex(Note.Instrument, 2)).data());
+	else if (Note.inst() != MAX_INSTRUMENTS)
+		m_cListResults.SetItemText(Pos, INST, conv::to_wide(conv::sv_from_int_hex(Note.inst(), 2)).data());
 
-	if (Note.Vol != MAX_VOLUME)
-		m_cListResults.SetItemText(Pos, VOL, conv::to_wide(conv::sv_from_int_hex(Note.Vol)).data());
+	if (Note.vol() != MAX_VOLUME)
+		m_cListResults.SetItemText(Pos, VOL, conv::to_wide(conv::sv_from_int_hex(Note.vol())).data());
 
 	for (int i = 0; i < MAX_EFFECT_COLUMNS; ++i)
-		if (Note.Effects[i].fx != effect_t::none) {
-			auto str = EFF_CHAR[value_cast(Note.Effects[i].fx)] + conv::from_int_hex(Note.Effects[i].param, 2);
+		if (Note.fx_name(i) != ft0cc::doc::effect_type::none) {
+			auto str = EFF_CHAR[value_cast(Note.fx_name(i))] + conv::from_int_hex(Note.fx_param(i), 2);
 			m_cListResults.SetItemText(Pos, EFFECT + i, conv::to_wide(str).data());
 		}
 
@@ -436,11 +436,11 @@ int CFindResultsBox::NoteCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lPar
 	const auto ToIndex = [] (std::string_view x) {
 		auto [note, octave] = ReadNoteFromString(x);
 		switch (note) {
-		case note_t::halt:
+		case ft0cc::doc::pitch::halt:
 			return 0x200;
-		case note_t::release:
+		case ft0cc::doc::pitch::release:
 			return 0x300;
-		case note_t::echo:
+		case ft0cc::doc::pitch::echo:
 			return 0x400 + octave;
 		default:
 			if (is_note(note))
@@ -505,7 +505,7 @@ END_MESSAGE_MAP()
 
 const WCHAR CFindDlg::m_pNoteName[7] = {L'C', L'D', L'E', L'F', L'G', L'A', L'B'};
 const WCHAR CFindDlg::m_pNoteSign[3] = {L'b', L'-', L'#'};
-const note_t CFindDlg::m_iNoteOffset[7] = {note_t::C, note_t::D, note_t::E, note_t::F, note_t::G, note_t::A, note_t::B};
+const ft0cc::doc::pitch CFindDlg::m_iNoteOffset[7] = {ft0cc::doc::pitch::C, ft0cc::doc::pitch::D, ft0cc::doc::pitch::E, ft0cc::doc::pitch::F, ft0cc::doc::pitch::G, ft0cc::doc::pitch::A, ft0cc::doc::pitch::B};
 
 
 
@@ -578,7 +578,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		if (!Half) {
 			Term.Definite[WC_NOTE] = true;
 			Term.Definite[WC_OCT] = true;
-			Term.Note->Set(note_t::none);
+			Term.Note->Set(ft0cc::doc::pitch::none);
 			Term.Oct->Set(0);
 		}
 		else {
@@ -595,7 +595,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		RaiseIf(Half, L"Cannot use note cut in a range search query.");
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
-		Term.Note->Set(note_t::halt);
+		Term.Note->Set(ft0cc::doc::pitch::halt);
 		Term.Oct->Min = 0; Term.Oct->Max = 7;
 		return;
 	}
@@ -604,7 +604,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		RaiseIf(Half, L"Cannot use note release in a range search query.");
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
-		Term.Note->Set(note_t::release);
+		Term.Note->Set(ft0cc::doc::pitch::release);
 		Term.Oct->Min = 0; Term.Oct->Max = 7;
 		return;
 	}
@@ -612,8 +612,8 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 	if (str == L".") {
 		RaiseIf(Half, L"Cannot use wildcards in a range search query.");
 		Term.Definite[WC_NOTE] = true;
-		Term.Note->Min = note_t::C;
-		Term.Note->Max = note_t::echo;
+		Term.Note->Min = ft0cc::doc::pitch::C;
+		Term.Note->Max = ft0cc::doc::pitch::echo;
 		return;
 	}
 
@@ -621,7 +621,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		RaiseIf(Half && !Term.Definite[WC_OCT], L"Cannot use wildcards in a range search query.");
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
-		Term.Note->Set(note_t::echo);
+		Term.Note->Set(ft0cc::doc::pitch::echo);
 		if (str.Delete(0)) {
 			if (str.GetAt(0) == L'-')
 				str.Delete(0);
@@ -654,9 +654,9 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 				Term.Oct->Set(Oct, Half);
 			}
 			else RaiseIf(Half, L"Cannot use wildcards in a range search query.");
-			while (Note > value_cast(note_t::B)) { Note -= NOTE_RANGE; if (Term.Definite[WC_OCT]) Term.Oct->Set(++Oct, Half); }
-			while (Note < value_cast(note_t::C)) { Note += NOTE_RANGE; if (Term.Definite[WC_OCT]) Term.Oct->Set(--Oct, Half); }
-			Term.Note->Set(enum_cast<note_t>(Note), Half);
+			while (Note > value_cast(ft0cc::doc::pitch::B)) { Note -= NOTE_RANGE; if (Term.Definite[WC_OCT]) Term.Oct->Set(++Oct, Half); }
+			while (Note < value_cast(ft0cc::doc::pitch::C)) { Note += NOTE_RANGE; if (Term.Definite[WC_OCT]) Term.Oct->Set(--Oct, Half); }
+			Term.Note->Set(enum_cast<ft0cc::doc::pitch>(Note), Half);
 			RaiseIf(Term.Definite[WC_OCT] && (Oct >= OCTAVE_RANGE || Oct < 0),
 				L"Note octave \"%s\" is out of range, check if the note contains Cb or B#.", (LPCWSTR)str);
 			return;
@@ -668,7 +668,7 @@ void CFindDlg::ParseNote(searchTerm &Term, CStringW str, bool Half)
 		Term.Definite[WC_NOTE] = true;
 		Term.Definite[WC_OCT] = true;
 		if (str.Left(1) == L".") {
-			Term.Note->Min = note_t::C; Term.Note->Max = note_t::Ds;
+			Term.Note->Min = ft0cc::doc::pitch::C; Term.Note->Max = ft0cc::doc::pitch::Ds;
 			Term.Oct->Min = 0; Term.Oct->Max = 1;
 		}
 		else {
@@ -751,18 +751,18 @@ void CFindDlg::ParseEff(searchTerm &Term, CStringW str, bool Half)
 	if (str.IsEmpty()) {
 		Term.Definite[WC_EFF] = true;
 		Term.Definite[WC_PARAM] = true;
-		Term.EffNumber[value_cast(effect_t::none)] = true;
+		Term.EffNumber[value_cast(ft0cc::doc::effect_type::none)] = true;
 		Term.EffParam->Set(0);
 	}
 	else if (str == L".") {
 		Term.Definite[WC_EFF] = true;
-		for (auto fx : enum_values<effect_t>())
+		for (auto fx : enum_values<ft0cc::doc::effect_type>())
 			Term.EffNumber[value_cast(fx)] = true;
 	}
 	else {
 		char Name = conv::to_utf8(str.Left(1)).front();
 		bool found = false;
-		for (auto fx : enum_values<effect_t>()) {
+		for (auto fx : enum_values<ft0cc::doc::effect_type>()) {
 			if (Name == EFF_CHAR[value_cast(fx)]) {
 				Term.Definite[WC_EFF] = true;
 				Term.EffNumber[value_cast(fx)] = true;
@@ -791,8 +791,8 @@ void CFindDlg::GetFindTerm()
 		ParseNote(newTerm, str, false);
 		m_cFindNoteField2.GetWindowTextW(str);
 		ParseNote(newTerm, str, !empty);
-		RaiseIf((newTerm.Note->Min == note_t::echo && is_note(newTerm.Note->Max) ||
-			newTerm.Note->Max == note_t::echo && is_note(newTerm.Note->Min)) &&
+		RaiseIf((newTerm.Note->Min == ft0cc::doc::pitch::echo && is_note(newTerm.Note->Max) ||
+			newTerm.Note->Max == ft0cc::doc::pitch::echo && is_note(newTerm.Note->Min)) &&
 			newTerm.Definite[WC_OCT],
 			L"Cannot use both notes and echo buffer in a range search query.");
 	}
@@ -850,7 +850,7 @@ void CFindDlg::GetReplaceTerm()
 		if (newTerm.Definite[i]) break;
 	}
 
-	if ((newTerm.Note->Min == note_t::halt || newTerm.Note->Min == note_t::release) && newTerm.Note->Min == newTerm.Note->Max)
+	if ((newTerm.Note->Min == ft0cc::doc::pitch::halt || newTerm.Note->Min == ft0cc::doc::pitch::release) && newTerm.Note->Min == newTerm.Note->Max)
 		newTerm.Oct->Min = newTerm.Oct->Max = 0;
 
 	RaiseIf(newTerm.Definite[WC_NOTE] && !newTerm.Note->IsSingle() ||
@@ -881,26 +881,26 @@ unsigned CFindDlg::GetHex(LPCWSTR str) {
 replaceTerm CFindDlg::toReplace(const searchTerm &x) const
 {
 	replaceTerm Term;
-	Term.Note.Note = x.Note->Min;
-	Term.Note.Octave = x.Oct->Min;
-	Term.Note.Instrument = x.Inst->Min;
-	Term.Note.Vol = x.Vol->Min;
+	Term.Note.set_note(x.Note->Min);
+	Term.Note.set_oct(x.Oct->Min);
+	Term.Note.set_inst(x.Inst->Min);
+	Term.Note.set_vol(x.Vol->Min);
 	Term.NoiseChan = x.NoiseChan;
-	if (x.EffNumber[value_cast(effect_t::none)])
-		Term.Note.Effects[0].fx = effect_t::none;
+	if (x.EffNumber[value_cast(ft0cc::doc::effect_type::none)])
+		Term.Note.set_fx_name(0, ft0cc::doc::effect_type::none);
 	else
-		for (auto fx : enum_values<effect_t>())
+		for (auto fx : enum_values<ft0cc::doc::effect_type>())
 			if (x.EffNumber[value_cast(fx)]) {
-				Term.Note.Effects[0].fx = fx;
+				Term.Note.set_fx_name(0, fx);
 				break;
 			}
-	Term.Note.Effects[0].param = x.EffParam->Min;
+	Term.Note.set_fx_param(0, x.EffParam->Min);
 	memcpy(Term.Definite, x.Definite, sizeof(bool) * 6);
 
 	return Term;
 }
 
-bool CFindDlg::CompareFields(const stChanNote &Target, bool Noise, int EffCount)
+bool CFindDlg::CompareFields(const ft0cc::doc::pattern_note &Target, bool Noise, int EffCount)
 {
 	int EffColumn = m_cEffectColumn.GetCurSel();
 	if (EffColumn > EffCount && EffColumn != 4) EffColumn = EffCount;
@@ -915,10 +915,10 @@ bool CFindDlg::CompareFields(const stChanNote &Target, bool Noise, int EffCount)
 		if (m_searchTerm.NoiseChan) {
 			if (!Noise && Melodic) return false;
 			if (!is_note(m_searchTerm.Note->Min) || !is_note(m_searchTerm.Note->Max)) {
-				if (!m_searchTerm.Note->IsMatch(Target.Note)) return Negate;
+				if (!m_searchTerm.Note->IsMatch(Target.note())) return Negate;
 			}
 			else {
-				int NoiseNote = Target.ToMidiNote() % 16;
+				int NoiseNote = Target.midi_note() % 16;
 				int Low = ft0cc::doc::midi_note(m_searchTerm.Oct->Min, m_searchTerm.Note->Min) % 16;
 				int High = ft0cc::doc::midi_note(m_searchTerm.Oct->Max, m_searchTerm.Note->Max) % 16;
 				if ((NoiseNote < Low && NoiseNote < High) || (NoiseNote > Low && NoiseNote > High))
@@ -928,29 +928,29 @@ bool CFindDlg::CompareFields(const stChanNote &Target, bool Noise, int EffCount)
 		else {
 			if (Noise && Melodic) return false;
 			if (Melodic) {
-				if (!is_note(Target.Note))
+				if (!is_note(Target.note()))
 					return Negate;
-				int NoteValue = Target.ToMidiNote();
+				int NoteValue = Target.midi_note();
 				int Low = ft0cc::doc::midi_note(m_searchTerm.Oct->Min, m_searchTerm.Note->Min);
 				int High = ft0cc::doc::midi_note(m_searchTerm.Oct->Max, m_searchTerm.Note->Max);
 				if ((NoteValue < Low && NoteValue < High) || (NoteValue > Low && NoteValue > High))
 					return Negate;
 			}
 			else {
-				if (!m_searchTerm.Note->IsMatch(Target.Note)) return Negate;
-				if (m_searchTerm.Definite[WC_OCT] && !m_searchTerm.Oct->IsMatch(Target.Octave))
+				if (!m_searchTerm.Note->IsMatch(Target.note())) return Negate;
+				if (m_searchTerm.Definite[WC_OCT] && !m_searchTerm.Oct->IsMatch(Target.oct()))
 					return Negate;
 			}
 		}
 	}
-	if (m_searchTerm.Definite[WC_INST] && !m_searchTerm.Inst->IsMatch(Target.Instrument)) return Negate;
-	if (m_searchTerm.Definite[WC_VOL] && !m_searchTerm.Vol->IsMatch(Target.Vol)) return Negate;
+	if (m_searchTerm.Definite[WC_INST] && !m_searchTerm.Inst->IsMatch(Target.inst())) return Negate;
+	if (m_searchTerm.Definite[WC_VOL] && !m_searchTerm.Vol->IsMatch(Target.vol())) return Negate;
 	int Limit = MAX_EFFECT_COLUMNS - 1;
 	if (EffCount < Limit) Limit = EffCount;
 	if (EffColumn < Limit) Limit = EffColumn;
 	for (int i = EffColumn % MAX_EFFECT_COLUMNS; i <= Limit; ++i) {
-		if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[value_cast(Target.Effects[i].fx)])
-		&& (!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.Effects[i].param)))
+		if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[value_cast(Target.fx_name(i))])
+		&& (!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.fx_param(i))))
 			EffectMatch = true;
 	}
 	if (!EffectMatch) return Negate;
@@ -1013,21 +1013,21 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 	if (m_bFound) {
 		ASSERT(m_pFindCursor != nullptr);
 
-		stChanNote Target;
+		ft0cc::doc::pattern_note Target;
 		if (!IsDlgButtonChecked(IDC_CHECK_FIND_REMOVE))
 			Target = m_pFindCursor->Get();
 
 		if (m_replaceTerm.Definite[WC_NOTE])
-			Target.Note = m_replaceTerm.Note.Note;
+			Target.set_note(m_replaceTerm.Note.note());
 
 		if (m_replaceTerm.Definite[WC_OCT])
-			Target.Octave = m_replaceTerm.Note.Octave;
+			Target.set_oct(m_replaceTerm.Note.oct());
 
 		if (m_replaceTerm.Definite[WC_INST])
-			Target.Instrument = m_replaceTerm.Note.Instrument;
+			Target.set_inst(m_replaceTerm.Note.inst());
 
 		if (m_replaceTerm.Definite[WC_VOL])
-			Target.Vol = m_replaceTerm.Note.Vol;
+			Target.set_vol(m_replaceTerm.Note.vol());
 
 		if (m_replaceTerm.Definite[WC_EFF] || m_replaceTerm.Definite[WC_PARAM]) {
 			std::vector<int> MatchedColumns;
@@ -1036,22 +1036,22 @@ bool CFindDlg::Replace(CCompoundAction *pAction)
 			else {
 				const int c = pSongView->GetEffectColumnCount(m_pFindCursor->m_iChannel);
 				for (int i = 0; i <= c; ++i)
-					if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[value_cast(Target.Effects[i].fx)]) &&
-						(!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.Effects[i].param)))
+					if ((!m_searchTerm.Definite[WC_EFF] || m_searchTerm.EffNumber[value_cast(Target.fx_name(i))]) &&
+						(!m_searchTerm.Definite[WC_PARAM] || m_searchTerm.EffParam->IsMatch(Target.fx_param(i))))
 						MatchedColumns.push_back(i);
 			}
 
 			if (m_replaceTerm.Definite[WC_EFF]) {
-				effect_t fx = FTEnv.GetSoundChipService()->TranslateEffectName(EFF_CHAR[value_cast(m_replaceTerm.Note.Effects[0].fx)],
+				ft0cc::doc::effect_type fx = FTEnv.GetSoundChipService()->TranslateEffectName(EFF_CHAR[value_cast(m_replaceTerm.Note.fx_name(0))],
 					pSongView->GetChannelOrder().TranslateChannel(m_pFindCursor->m_iChannel).Chip);
-				if (fx != effect_t::none)
+				if (fx != ft0cc::doc::effect_type::none)
 					for (const int &i : MatchedColumns)
-						Target.Effects[i].fx = fx;
+						Target.set_fx_name(i, fx);
 			}
 
 			if (m_replaceTerm.Definite[WC_PARAM])
 				for (const int &i : MatchedColumns)
-					Target.Effects[i].param = m_replaceTerm.Note.Effects[0].param;
+					Target.set_fx_param(i, m_replaceTerm.Note.fx_param(0));
 		}
 
 		if (pAction)

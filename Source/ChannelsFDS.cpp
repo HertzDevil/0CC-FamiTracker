@@ -38,7 +38,7 @@ CChannelHandlerFDS::CChannelHandlerFDS(stChannelID ch) :		// // //
 {
 }
 
-void CChannelHandlerFDS::HandleNoteData(stChanNote &NoteData)		// // //
+void CChannelHandlerFDS::HandleNoteData(ft0cc::doc::pattern_note &NoteData)		// // //
 {
 	m_iEffModDepth = -1;
 	if (!m_bAutoModulation) {		// // //
@@ -49,7 +49,7 @@ void CChannelHandlerFDS::HandleNoteData(stChanNote &NoteData)		// // //
 
 	CChannelHandlerInverted::HandleNoteData(NoteData);
 	// // //
-	if (is_note(NoteData.Note) || NoteData.Note == note_t::echo)
+	if (is_note(NoteData.note()) || NoteData.note() == ft0cc::doc::pitch::echo)
 		m_bVolModTrigger = true;
 
 	if (m_iEffModDepth != -1)
@@ -62,17 +62,17 @@ void CChannelHandlerFDS::HandleNoteData(stChanNote &NoteData)		// // //
 		m_iModulationSpeed = (m_iModulationSpeed & 0xF00) | m_iEffModSpeedLo;
 }
 
-bool CChannelHandlerFDS::HandleEffect(stEffectCommand cmd)
+bool CChannelHandlerFDS::HandleEffect(ft0cc::doc::effect_command cmd)
 {
 	switch (cmd.fx) {
-	case effect_t::FDS_MOD_DEPTH:
+	case ft0cc::doc::effect_type::FDS_MOD_DEPTH:
 		if (cmd.param < 0x40)		// // //
 			m_iEffModDepth = cmd.param;
 		else if (cmd.param >= 0x80 && m_bAutoModulation) {
 			m_iEffModSpeedHi = cmd.param - 0x80;
 		}
 		break;
-	case effect_t::FDS_MOD_SPEED_HI:
+	case ft0cc::doc::effect_type::FDS_MOD_SPEED_HI:
 		if (cmd.param >= 0x10) {		// // //
 			m_iEffModSpeedHi = cmd.param >> 4;
 			m_iEffModSpeedLo = (cmd.param & 0x0F) + 1;
@@ -85,13 +85,13 @@ bool CChannelHandlerFDS::HandleEffect(stEffectCommand cmd)
 			m_bAutoModulation = false;
 		}
 		break;
-	case effect_t::FDS_MOD_SPEED_LO:
+	case ft0cc::doc::effect_type::FDS_MOD_SPEED_LO:
 		m_iEffModSpeedLo = cmd.param;
 		if (m_bAutoModulation)		// // //
 			m_iEffModSpeedHi = 0;
 		m_bAutoModulation = false;
 		break;
-	case effect_t::FDS_VOLUME:
+	case ft0cc::doc::effect_type::FDS_VOLUME:
 		if (cmd.param < 0x80) {
 			m_iVolModRate = cmd.param & 0x3F;
 			m_iVolModMode = (cmd.param >> 6) + 1;
@@ -99,7 +99,7 @@ bool CChannelHandlerFDS::HandleEffect(stEffectCommand cmd)
 		else if (cmd.param == 0xE0)
 			m_iVolModMode = 0;
 		break;
-	case effect_t::FDS_MOD_BIAS:		// // //
+	case ft0cc::doc::effect_type::FDS_MOD_BIAS:		// // //
 		m_iModulationOffset = cmd.param - 0x80;
 		break;
 	default: return CChannelHandlerInverted::HandleEffect(cmd);
@@ -243,22 +243,22 @@ std::string CChannelHandlerFDS::GetCustomEffectString() const		// // //
 	std::string str;
 
 	if (m_iVolModMode)
-		str += MakeCommandString({effect_t::FDS_VOLUME, static_cast<uint8_t>(((m_iVolModMode - 1) << 6) | m_iVolModRate)});
+		str += MakeCommandString({ft0cc::doc::effect_type::FDS_VOLUME, static_cast<uint8_t>(((m_iVolModMode - 1) << 6) | m_iVolModRate)});
 	if (m_iEffModDepth != -1)
-		str += MakeCommandString({effect_t::FDS_MOD_DEPTH, static_cast<uint8_t>(m_iEffModDepth)});
+		str += MakeCommandString({ft0cc::doc::effect_type::FDS_MOD_DEPTH, static_cast<uint8_t>(m_iEffModDepth)});
 	if (m_bAutoModulation) {
-		str += MakeCommandString({effect_t::FDS_MOD_SPEED_HI,
+		str += MakeCommandString({ft0cc::doc::effect_type::FDS_MOD_SPEED_HI,
 			static_cast<uint8_t>(((m_iEffModSpeedHi > 0xF ? 1 : m_iEffModSpeedHi) << 4) | (m_iEffModSpeedLo - 1))});
 		if (m_iEffModSpeedHi > 0xF)
-			str += MakeCommandString({effect_t::FDS_MOD_DEPTH, static_cast<uint8_t>(0x80 + m_iEffModSpeedHi)});
+			str += MakeCommandString({ft0cc::doc::effect_type::FDS_MOD_DEPTH, static_cast<uint8_t>(0x80 + m_iEffModSpeedHi)});
 		if (m_iModulationOffset)
-			str += MakeCommandString({effect_t::FDS_MOD_BIAS, static_cast<uint8_t>(m_iModulationOffset + 0x80)});
+			str += MakeCommandString({ft0cc::doc::effect_type::FDS_MOD_BIAS, static_cast<uint8_t>(m_iModulationOffset + 0x80)});
 	}
 	else {
 		if (auto hi = static_cast<uint8_t>(m_iModulationSpeed >> 8))
-			str += MakeCommandString({effect_t::FDS_MOD_SPEED_HI, hi});
+			str += MakeCommandString({ft0cc::doc::effect_type::FDS_MOD_SPEED_HI, hi});
 		if (auto lo = static_cast<uint8_t>(m_iModulationSpeed & 0xFF))
-			str += MakeCommandString({effect_t::FDS_MOD_SPEED_LO, lo});
+			str += MakeCommandString({ft0cc::doc::effect_type::FDS_MOD_SPEED_LO, lo});
 	}
 
 	return str;

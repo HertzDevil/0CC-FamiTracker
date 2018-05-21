@@ -30,17 +30,17 @@ namespace compat {
 
 // // // helper function for effect conversion
 
-template <effect_t From, effect_t To>
+template <ft0cc::doc::effect_type From, ft0cc::doc::effect_type To>
 struct conv_pair { };
 
-using EffTable = std::array<effect_t, enum_count<effect_t>() + 1>;
+using EffTable = std::array<ft0cc::doc::effect_type, enum_count<ft0cc::doc::effect_type>() + 1>;
 
-template <effect_t... Froms, effect_t... Tos>
+template <ft0cc::doc::effect_type... Froms, ft0cc::doc::effect_type... Tos>
 constexpr std::pair<EffTable, EffTable>
 MakeEffectConversion(conv_pair<Froms, Tos>...) noexcept {
 	EffTable forward = { };
-	forward[value_cast(effect_t::none)] = effect_t::none;
-	for (auto fx : enum_values<effect_t>())
+	forward[value_cast(ft0cc::doc::effect_type::none)] = ft0cc::doc::effect_type::none;
+	for (auto fx : enum_values<ft0cc::doc::effect_type>())
 		forward[value_cast(fx)] = fx;
 
 	EffTable backward = forward;
@@ -50,17 +50,17 @@ MakeEffectConversion(conv_pair<Froms, Tos>...) noexcept {
 }
 
 constexpr auto EFF_CONVERSION_050 = MakeEffectConversion(
-//	conv_pair<effect_t::SUNSOFT_ENV_LO,		effect_t::SUNSOFT_ENV_TYPE>(),
-//	conv_pair<effect_t::SUNSOFT_ENV_TYPE,	effect_t::SUNSOFT_ENV_LO>(),
-	conv_pair<effect_t::SUNSOFT_NOISE,		effect_t::NOTE_RELEASE>(),
-	conv_pair<effect_t::VRC7_PORT,			effect_t::GROOVE>(),
-	conv_pair<effect_t::VRC7_WRITE,			effect_t::TRANSPOSE>(),
-	conv_pair<effect_t::NOTE_RELEASE,		effect_t::N163_WAVE_BUFFER>(),
-	conv_pair<effect_t::GROOVE,				effect_t::FDS_VOLUME>(),
-	conv_pair<effect_t::TRANSPOSE,			effect_t::FDS_MOD_BIAS>(),
-	conv_pair<effect_t::N163_WAVE_BUFFER,	effect_t::SUNSOFT_NOISE>(),
-	conv_pair<effect_t::FDS_VOLUME,			effect_t::VRC7_PORT>(),
-	conv_pair<effect_t::FDS_MOD_BIAS,		effect_t::VRC7_WRITE>()
+//	conv_pair<ft0cc::doc::effect_type::SUNSOFT_ENV_LO,		ft0cc::doc::effect_type::SUNSOFT_ENV_TYPE>(),
+//	conv_pair<ft0cc::doc::effect_type::SUNSOFT_ENV_TYPE,	ft0cc::doc::effect_type::SUNSOFT_ENV_LO>(),
+	conv_pair<ft0cc::doc::effect_type::SUNSOFT_NOISE,		ft0cc::doc::effect_type::NOTE_RELEASE>(),
+	conv_pair<ft0cc::doc::effect_type::VRC7_PORT,			ft0cc::doc::effect_type::GROOVE>(),
+	conv_pair<ft0cc::doc::effect_type::VRC7_WRITE,			ft0cc::doc::effect_type::TRANSPOSE>(),
+	conv_pair<ft0cc::doc::effect_type::NOTE_RELEASE,		ft0cc::doc::effect_type::N163_WAVE_BUFFER>(),
+	conv_pair<ft0cc::doc::effect_type::GROOVE,				ft0cc::doc::effect_type::FDS_VOLUME>(),
+	conv_pair<ft0cc::doc::effect_type::TRANSPOSE,			ft0cc::doc::effect_type::FDS_MOD_BIAS>(),
+	conv_pair<ft0cc::doc::effect_type::N163_WAVE_BUFFER,	ft0cc::doc::effect_type::SUNSOFT_NOISE>(),
+	conv_pair<ft0cc::doc::effect_type::FDS_VOLUME,			ft0cc::doc::effect_type::VRC7_PORT>(),
+	conv_pair<ft0cc::doc::effect_type::FDS_MOD_BIAS,		ft0cc::doc::effect_type::VRC7_WRITE>()
 );
 
 } // namespace compat

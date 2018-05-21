@@ -36,8 +36,8 @@ public:
 	void	RefreshChannel() override;
 
 protected:
-	void	HandleNoteData(stChanNote &pNoteData) override;		// // //
-	bool	HandleEffect(stEffectCommand cmd) override;		// // //
+	void	HandleNoteData(ft0cc::doc::pattern_note &pNoteData) override;		// // //
+	bool	HandleEffect(ft0cc::doc::effect_command cmd) override;		// // //
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;
 	void	HandleRelease() override;

@@ -24,6 +24,7 @@
 #pragma once
 
 #include "ChannelHandlerInterface.h"
+#include "FamiTrackerDefines.h"		// // //
 #include "APU/Types.h"		// // //
 #include "PatternNote.h"		// // //
 #include <memory>		// // //
@@ -63,7 +64,7 @@ public:
 
 	/*!	\brief Plays a note from pattern data.
 		\param NoteData The note data. */
-	void	PlayNote(stChanNote NoteData);		// // //
+	void	PlayNote(ft0cc::doc::pattern_note NoteData);		// // //
 
 	// Public functions
 	/*!	\brief Initializes the channel handler and sets up member pointers.
@@ -146,7 +147,7 @@ protected:
 	/*!	\brief Processes a note.
 		\details This method is called both for both notes from pattern data and the delayed note cache.
 		\param NoteData The note data. */
-	virtual void	HandleNoteData(stChanNote &NoteData);
+	virtual void	HandleNoteData(ft0cc::doc::pattern_note &NoteData);
 	/*!	\brief Processes the current instrument.
 		\details This method sets up the instrument handler, creating a new one if necessary, then
 		forwards calls to the handler if it exists.
@@ -160,7 +161,7 @@ protected:
 		handled by this method, but by CSoundGen::EvaluateGlobalEffects.
 		\param fx The effect command.
 		\return Whether the method has processed the effect of the given type. */
-	virtual bool	HandleEffect(stEffectCommand fx);		// // // not pure virtual either
+	virtual bool	HandleEffect(ft0cc::doc::effect_command fx);		// // // not pure virtual either
 	/*!	\brief Creates an instrument handler of an appropriate type.
 		\param Type The new instrument type.
 		\return Whether an instrument handler is created. */
@@ -242,7 +243,7 @@ protected:
 		command is found. Jump effects are processed immediately and removed from the cached data.
 		\param NoteData The note data.
 		\return Whether the note data contains a Gxx effect command. */
-	bool	HandleDelay(stChanNote &NoteData);
+	bool	HandleDelay(ft0cc::doc::pattern_note &NoteData);
 
 	/*!	\brief Returns the pitch register offset of the channel's 4xy vibrato effect.
 		\details A positive value represents a higher pitch. The sign of the return value depends
@@ -272,7 +273,7 @@ protected:
 		\details Transposing effects in the note data are resolved immediately.
 		\param NoteData The note data.
 		\param Pos The index of the echo buffer at which the note will be inserted. */
-	void	WriteEchoBuffer(const stChanNote &NoteData, std::size_t Pos);		// // //
+	void	WriteEchoBuffer(const ft0cc::doc::pattern_note &NoteData, std::size_t Pos);		// // //
 
 	/*!	\brief Converts a duty value from the current instrument into an equivalent value for the
 		current sound channel.
@@ -410,7 +411,7 @@ protected:
 	/*!	\brief The number of ticks until the tick where the note delayed by a Gxx effect command will be played. */
 	unsigned char	m_cDelayCounter;
 	/*!	\brief A note structure holding a temporary cache of the note data delayed by a Gxx effect command. */
-	stChanNote		m_cnDelayed;
+	ft0cc::doc::pattern_note		m_cnDelayed;
 
 	// Vibrato & tremolo
 	/*!	\brief The current extent of the 4xy vibrato effect.
@@ -434,7 +435,7 @@ protected:
 	unsigned int	m_iTremoloPhase;
 
 	/*!	\brief The currently active slide effect. */
-	effect_t		m_iEffect;
+	ft0cc::doc::effect_type		m_iEffect;
 	/*!	\brief The effect command parameter for the active slide effect.
 		\details This member is used by the instrument interface to handle arpeggio schemes. */
 	unsigned char	m_iEffectParam = 0u;					// // //
@@ -525,7 +526,7 @@ protected:
 	CChannelHandlerInverted(stChannelID ch, int MaxPeriod, int MaxVolume) :
 		CChannelHandler(ch, MaxPeriod, MaxVolume) { }
 	// // //
-	bool	HandleEffect(stEffectCommand cmd) override;		// // //
+	bool	HandleEffect(ft0cc::doc::effect_command cmd) override;		// // //
 	int		CalculatePeriod() const override;
 	std::string	GetSlideEffectString() const override;		// // //
 };

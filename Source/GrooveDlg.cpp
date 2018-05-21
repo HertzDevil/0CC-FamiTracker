@@ -325,10 +325,10 @@ void CGrooveDlg::OnBnClickedButtonGrooveCopyFxx()
 
 	unsigned char prev = 0;
 	for (unsigned char i = 0; i < Groove->size(); ++i) {
-		stChanNote row;
+		ft0cc::doc::pattern_note row;
 		unsigned char x = Groove->entry(i);
 		if (x != prev || !i)
-			row.Effects[0] = {effect_t::SPEED, x};
+			row.set_fx_cmd(0, {ft0cc::doc::effect_type::SPEED, x});
 		*Fxx.GetPattern(0, i) = row;
 		prev = x;
 	}

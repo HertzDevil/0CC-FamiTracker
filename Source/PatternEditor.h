@@ -43,8 +43,8 @@ struct RowColorInfo_t {
 	COLORREF Compact;		// // //
 };
 
-extern void CopyNoteSection(stChanNote &Target, const stChanNote &Source, column_t Begin, column_t End);		// // //
-extern void CopyNoteSection(stChanNote &Target, const stChanNote &Source, paste_mode_t Mode, column_t Begin, column_t End);		// // //
+extern void CopyNoteSection(ft0cc::doc::pattern_note &Target, const ft0cc::doc::pattern_note &Source, column_t Begin, column_t End);		// // //
+extern void CopyNoteSection(ft0cc::doc::pattern_note &Target, const ft0cc::doc::pattern_note &Source, paste_mode_t Mode, column_t Begin, column_t End);		// // //
 
 // External classes
 class CFamiTrackerModule;
@@ -229,7 +229,7 @@ private:
 	void DrawRow(CDC &DC, int Row, int Line, int Frame, bool bPreview) const;
 	// // //
 	void DrawCell(CDC &DC, int PosX, cursor_column_t Column, int Channel, bool bInvert,
-		const stChanNote &NoteData, const RowColorInfo_t &ColorInfo) const;		// // //
+		const ft0cc::doc::pattern_note &NoteData, const RowColorInfo_t &ColorInfo) const;		// // //
 	void DrawChar(CDC &DC, int x, int y, WCHAR c, COLORREF Color) const;
 
 	// Other drawing

@@ -33,6 +33,8 @@
 #include "NumConv.h"		// // //
 #include "NoteName.h"		// // //
 
+#include "FamiTrackerDefines.h"		// // //
+#include "Effect.h"		// // //
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "ft0cc/doc/groove.hpp"		// // //
 #include "Sequence.h"		// // //
@@ -303,21 +305,21 @@ public:
 		return std::runtime_error {(LPCSTR)str};
 	}
 
-	stChanNote ImportCellText(unsigned fxMax, stChannelID chan) {		// // //
-		stChanNote Cell;		// // //
+	ft0cc::doc::pattern_note ImportCellText(unsigned fxMax, stChannelID chan) {		// // //
+		ft0cc::doc::pattern_note Cell;		// // //
 
 		CStringA sNote = ReadToken();
-		if (sNote == "...") { Cell.Note = note_t::none; }
-		else if (sNote == "---") { Cell.Note = note_t::halt; }
-		else if (sNote == "===") { Cell.Note = note_t::release; }
+		if (sNote == "...") { Cell.set_note(ft0cc::doc::pitch::none); }
+		else if (sNote == "---") { Cell.set_note(ft0cc::doc::pitch::halt); }
+		else if (sNote == "===") { Cell.set_note(ft0cc::doc::pitch::release); }
 		else {
 			if (sNote.GetLength() != 3)
 				throw MakeError("note column should be 3 characters wide, '%s' found.", (LPCSTR)sNote);
 
 			if (IsAPUNoise(chan)) {		// // // noise
 				int h = ImportHex(sNote.Left(1));		// // //
-				Cell.Note = ft0cc::doc::pitch_from_midi(h);
-				Cell.Octave = ft0cc::doc::oct_from_midi(h);
+				Cell.set_note(ft0cc::doc::pitch_from_midi(h));
+				Cell.set_oct(ft0cc::doc::oct_from_midi(h));
 
 				// importer is very tolerant about the second and third characters
 				// in a noise note, they can be anything
@@ -326,19 +328,19 @@ public:
 				unsigned o = sNote.GetAt(2) - '0';
 				if (o >= ECHO_BUFFER_LENGTH)
 					throw MakeError("out-of-bound echo buffer accessed.");
-				Cell.Note = note_t::echo;
-				Cell.Octave = o;
+				Cell.set_note(ft0cc::doc::pitch::echo);
+				Cell.set_oct(o);
 			}
 			else {
 				int n = 1;
 				switch (sNote.GetAt(0)) {
-				case 'c': case 'C': n = value_cast(note_t::C); break;
-				case 'd': case 'D': n = value_cast(note_t::D); break;
-				case 'e': case 'E': n = value_cast(note_t::E); break;
-				case 'f': case 'F': n = value_cast(note_t::F); break;
-				case 'g': case 'G': n = value_cast(note_t::G); break;
-				case 'a': case 'A': n = value_cast(note_t::A); break;
-				case 'b': case 'B': n = value_cast(note_t::B); break;
+				case 'c': case 'C': n = value_cast(ft0cc::doc::pitch::C); break;
+				case 'd': case 'D': n = value_cast(ft0cc::doc::pitch::D); break;
+				case 'e': case 'E': n = value_cast(ft0cc::doc::pitch::E); break;
+				case 'f': case 'F': n = value_cast(ft0cc::doc::pitch::F); break;
+				case 'g': case 'G': n = value_cast(ft0cc::doc::pitch::G); break;
+				case 'a': case 'A': n = value_cast(ft0cc::doc::pitch::A); break;
+				case 'b': case 'B': n = value_cast(ft0cc::doc::pitch::B); break;
 				default:
 					throw MakeError("unrecognized note '%s'.", (LPCSTR)sNote);
 				}
@@ -349,31 +351,31 @@ public:
 				default:
 					throw MakeError("unrecognized note '%s'.", (LPCSTR)sNote);
 				}
-				while (n < value_cast(note_t::C)) n += NOTE_RANGE;
-				while (n > value_cast(note_t::B)) n -= NOTE_RANGE;
-				Cell.Note = enum_cast<note_t>(n);
+				while (n < value_cast(ft0cc::doc::pitch::C)) n += NOTE_RANGE;
+				while (n > value_cast(ft0cc::doc::pitch::B)) n -= NOTE_RANGE;
+				Cell.set_note(enum_cast<ft0cc::doc::pitch>(n));
 
 				int o = sNote.GetAt(2) - '0';
 				if (o < 0 || o >= OCTAVE_RANGE) {
 					throw MakeError("unrecognized octave '%s'.", (LPCSTR)sNote);
 				}
-				Cell.Octave = o;
+				Cell.set_oct(o);
 			}
 		}
 
 		CStringA sInst = ReadToken();
-		if (sInst == "..") { Cell.Instrument = MAX_INSTRUMENTS; }
-		else if (sInst == "&&") { Cell.Instrument = HOLD_INSTRUMENT; }		// // // 050B
+		if (sInst == "..") { Cell.set_inst(MAX_INSTRUMENTS); }
+		else if (sInst == "&&") { Cell.set_inst(HOLD_INSTRUMENT); }		// // // 050B
 		else {
 			if (sInst.GetLength() != 2)
 				throw MakeError("instrument column should be 2 characters wide, '%s' found.", (LPCSTR)sInst);
 			int h = ImportHex(sInst);		// // //
 			if (h >= MAX_INSTRUMENTS)
 				throw MakeError("instrument '%s' is out of bounds.", (LPCSTR)sInst);
-			Cell.Instrument = h;
+			Cell.set_inst(h);
 		}
 
-		Cell.Vol = [&] (const CStringA &str) -> unsigned {
+		auto parseVol = [&] (const CStringA &str) -> unsigned {
 			if (str == ".")
 				return MAX_VOLUME;
 			const LPCSTR VOL_TEXT[] = {
@@ -385,7 +387,8 @@ public:
 				if (str == VOL_TEXT[v])
 					return v;
 			throw MakeError("unrecognized volume token '%s'.", (LPCSTR)str);
-		}(ReadToken().MakeUpper());
+		};
+		Cell.set_vol(parseVol(ReadToken().MakeUpper()));
 
 		for (unsigned int e = 0; e < fxMax; ++e) {		// // //
 			CStringA sEff = ReadToken().MakeUpper();
@@ -393,10 +396,10 @@ public:
 				throw MakeError("effect column should be 3 characters wide, '%s' found.", (LPCSTR)sEff);
 
 			if (sEff != "...") {
-				effect_t Eff = FTEnv.GetSoundChipService()->TranslateEffectName(sEff.GetAt(0), chan.Chip);		// // //
-				if (Eff == effect_t::none)
+				ft0cc::doc::effect_type Eff = FTEnv.GetSoundChipService()->TranslateEffectName(sEff.GetAt(0), chan.Chip);		// // //
+				if (Eff == ft0cc::doc::effect_type::none)
 					throw MakeError("unrecognized effect '%s'.", (LPCSTR)sEff);
-				Cell.Effects[e] = {Eff, static_cast<uint8_t>(ImportHex(sEff.Right(2)))};		// // //
+				Cell.set_fx_cmd(e, {Eff, static_cast<uint8_t>(ImportHex(sEff.Right(2)))});		// // //
 			}
 		}
 
@@ -472,24 +475,24 @@ CStringA CTextExport::ExportString(std::string_view s)		// // //
 
 // =============================================================================
 
-CStringA CTextExport::ExportCellText(const stChanNote &stCell, unsigned int nEffects, bool bNoise)		// // //
+CStringA CTextExport::ExportCellText(const ft0cc::doc::pattern_note &stCell, unsigned int nEffects, bool bNoise)		// // //
 {
 	CStringA s = "...";
-	if (bNoise && (is_note(stCell.Note) || stCell.Note == note_t::echo))		// // //
-		s = FormattedA("%01X-#", stCell.ToMidiNote() & 0x0F);
-	else if (stCell.Note <= note_t::echo)
+	if (bNoise && (is_note(stCell.note()) || stCell.note() == ft0cc::doc::pitch::echo))		// // //
+		s = FormattedA("%01X-#", stCell.midi_note() & 0x0F);
+	else if (stCell.note() <= ft0cc::doc::pitch::echo)
 		s = GetNoteString(stCell).data();
 
-	s += (stCell.Instrument == MAX_INSTRUMENTS) ? CStringA(" ..") :
-		(stCell.Instrument == HOLD_INSTRUMENT) ? CStringA(" &&") : FormattedA(" %02X", stCell.Instrument);		// // // 050B
+	s += (stCell.inst() == MAX_INSTRUMENTS) ? CStringA(" ..") :
+		(stCell.inst() == HOLD_INSTRUMENT) ? CStringA(" &&") : FormattedA(" %02X", stCell.inst());		// // // 050B
 
-	s += (stCell.Vol == 0x10) ? CStringA(" .") : FormattedA(" %01X", stCell.Vol);		// // //
+	s += (stCell.vol() == 0x10) ? CStringA(" .") : FormattedA(" %01X", stCell.vol());		// // //
 
 	for (unsigned int e=0; e < nEffects; ++e)
-		if (stCell.Effects[e].fx == effect_t::none)
+		if (stCell.fx_name(e) == ft0cc::doc::effect_type::none)
 			s.Append(" ...");
 		else
-			AppendFormatA(s, " %c%02X", EFF_CHAR[value_cast(stCell.Effects[e].fx)], stCell.Effects[e].param);
+			AppendFormatA(s, " %c%02X", EFF_CHAR[value_cast(stCell.fx_name(e))], stCell.fx_param(e));
 
 	return s;
 }
@@ -937,14 +940,14 @@ CStringA CTextExport::ExportRows(const fs::path &FileName, const CFamiTrackerMod
 		unsigned rows = song.GetPatternLength();
 		song.VisitPatterns([&] (const CPatternData &pat, stChannelID c, unsigned p) {
 			if (song.IsPatternInUse(c, p))
-				pat.VisitRows(rows, [&] (const stChanNote &stCell, unsigned r) {
-					if (stCell != stChanNote { })
+				pat.VisitRows(rows, [&] (const ft0cc::doc::pattern_note &stCell, unsigned r) {
+					if (stCell != ft0cc::doc::pattern_note { })
 						WriteString(FormattedA(FMT, id++, t, value_cast(c.Chip), c.Subindex, p, r,
-							stCell.Note, stCell.Octave, stCell.Instrument, stCell.Vol,
-							stCell.Effects[0].fx, stCell.Effects[0].param,
-							stCell.Effects[1].fx, stCell.Effects[1].param,
-							stCell.Effects[2].fx, stCell.Effects[2].param,
-							stCell.Effects[3].fx, stCell.Effects[3].param));
+							stCell.note(), stCell.oct(), stCell.inst(), stCell.vol(),
+							stCell.fx_name(0), stCell.fx_param(0),
+							stCell.fx_name(1), stCell.fx_param(1),
+							stCell.fx_name(2), stCell.fx_param(2),
+							stCell.fx_name(3), stCell.fx_param(3)));
 				});
 		});
 	});

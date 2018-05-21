@@ -206,12 +206,12 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerModule &modfile) {
 			modfile.VisitSongs([&] (CSongData &song) {
 				for (int p = 0; p < MAX_PATTERN; ++p)
 					for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
-						stChanNote &Note = song.GetPatternData(fds_subindex_t::wave, p, r);		// // //
-						if (is_note(Note.Note)) {
-							int Trsp = Note.ToMidiNote() + NOTE_RANGE * 2;
+						ft0cc::doc::pattern_note &Note = song.GetPatternData(fds_subindex_t::wave, p, r);		// // //
+						if (is_note(Note.note())) {
+							int Trsp = Note.midi_note() + NOTE_RANGE * 2;
 							Trsp = Trsp >= NOTE_COUNT ? NOTE_COUNT - 1 : Trsp;
-							Note.Note = ft0cc::doc::pitch_from_midi(Trsp);
-							Note.Octave = ft0cc::doc::oct_from_midi(Trsp);
+							Note.set_note(ft0cc::doc::pitch_from_midi(Trsp));
+							Note.set_oct(ft0cc::doc::oct_from_midi(Trsp));
 						}
 					}
 			});
@@ -808,37 +808,36 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 				Row = AssertRange(file_.GetBlockInt(), 0, 0xFF, "Row index");		// // //
 
 			try {
-				stChanNote Note;		// // //
+				ft0cc::doc::pattern_note Note;		// // //
 
-				Note.Note = enum_cast<note_t>(AssertRange<MODULE_ERROR_STRICT>(		// // //
-					file_.GetBlockChar(), value_cast(note_t::none), value_cast(note_t::echo), "Note value"));
-				Note.Octave = AssertRange<MODULE_ERROR_STRICT>(
-					file_.GetBlockChar(), 0, OCTAVE_RANGE - 1, "Octave value");
+				Note.set_note(enum_cast<ft0cc::doc::pitch>(AssertRange<MODULE_ERROR_STRICT>(		// // //
+					file_.GetBlockChar(), value_cast(ft0cc::doc::pitch::none), value_cast(ft0cc::doc::pitch::echo), "Note value")));
+				Note.set_oct(AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, OCTAVE_RANGE - 1, "Octave value"));
 				int Inst = static_cast<unsigned char>(file_.GetBlockChar());
 				if (Inst != HOLD_INSTRUMENT)		// // // 050B
 					AssertRange<MODULE_ERROR_STRICT>(Inst, 0, CInstrumentManager::MAX_INSTRUMENTS, "Instrument index");
-				Note.Instrument = Inst;
-				Note.Vol = AssertRange<MODULE_ERROR_STRICT>(
-					file_.GetBlockChar(), 0, MAX_VOLUME, "Channel volume");
+				Note.set_inst(Inst);
+				Note.set_vol(AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, MAX_VOLUME, "Channel volume"));
 
 				int FX = compat200 ? 1 : ver >= 6 ? MAX_EFFECT_COLUMNS :
 					pSong->GetEffectColumnCount(order.TranslateChannel(Channel));		// // // 050B
 				for (int n = 0; n < FX; ++n) try {
-					auto EffectNumber = (effect_t)file_.GetBlockChar();
-					if (Note.Effects[n].fx = static_cast<effect_t>(EffectNumber); Note.Effects[n].fx != effect_t::none) {
-						AssertRange<MODULE_ERROR_STRICT>(value_cast(EffectNumber), value_cast(effect_t::none), value_cast(effect_t::max), "Effect index");
+					auto EffectNumber = enum_cast<ft0cc::doc::effect_type>(file_.GetBlockChar());
+					Note.set_fx_name(n, EffectNumber);
+					if (Note.fx_name(n) != ft0cc::doc::effect_type::none) {
+						AssertRange<MODULE_ERROR_STRICT>(value_cast(EffectNumber), value_cast(ft0cc::doc::effect_type::none), value_cast(ft0cc::doc::effect_type::max), "Effect index");
 						unsigned char EffectParam = file_.GetBlockChar();
 						if (ver < 3) {
-							if (EffectNumber == effect_t::PORTAOFF) {
-								EffectNumber = effect_t::PORTAMENTO;
+							if (EffectNumber == ft0cc::doc::effect_type::PORTAOFF) {
+								EffectNumber = ft0cc::doc::effect_type::PORTAMENTO;
 								EffectParam = 0;
 							}
-							else if (EffectNumber == effect_t::PORTAMENTO) {
+							else if (EffectNumber == ft0cc::doc::effect_type::PORTAMENTO) {
 								if (EffectParam < 0xFF)
 									++EffectParam;
 							}
 						}
-						Note.Effects[n].param = EffectParam; // skip on no effect
+						Note.set_fx_param(n, EffectParam); // skip on no effect
 					}
 					else if (ver < 6)
 						file_.GetBlockChar(); // unused blank parameter
@@ -852,51 +851,49 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 	//				Note.Vol &= 0x0F;
 
 				if (compat200) {		// // //
-					if (Note.Effects[0].fx == effect_t::SPEED && Note.Effects[0].param < 20)
-						++Note.Effects[0].param;
+					if (Note.fx_name(0) == ft0cc::doc::effect_type::SPEED && Note.fx_param(0) < 20)
+						Note.set_fx_param(0, Note.fx_param(0) + 1);
 
-					if (Note.Vol == 0)
-						Note.Vol = MAX_VOLUME;
-					else {
-						--Note.Vol;
-						Note.Vol &= 0x0F;
-					}
+					if (Note.vol() == 0)
+						Note.set_vol(MAX_VOLUME);
+					else
+						Note.set_vol((Note.vol() - 1) & 0x0F);
 
-					if (Note.Note == note_t::none)
-						Note.Instrument = MAX_INSTRUMENTS;
+					if (Note.note() == ft0cc::doc::pitch::none)
+						Note.set_inst(MAX_INSTRUMENTS);
 				}
 
 				if (modfile.GetSoundChipSet().ContainsChip(sound_chip_t::N163) && ch.Chip == sound_chip_t::N163) {		// // //
-					for (auto &cmd : Note.Effects)
-						if (cmd.fx == effect_t::SAMPLE_OFFSET)
-							cmd.fx = effect_t::N163_WAVE_BUFFER;
+					for (auto &cmd : Note.fx_cmds())
+						if (cmd.fx == ft0cc::doc::effect_type::SAMPLE_OFFSET)
+							cmd.fx = ft0cc::doc::effect_type::N163_WAVE_BUFFER;
 				}
 
 				if (ver == 3) {
 					// Fix for VRC7 portamento
 					if (ch.Chip == sound_chip_t::VRC7) {		// // //
-						for (auto &cmd : Note.Effects) {
+						for (auto &cmd : Note.fx_cmds()) {
 							switch (cmd.fx) {
-							case effect_t::PORTA_DOWN:
-								cmd.fx = effect_t::PORTA_UP;
+							case ft0cc::doc::effect_type::PORTA_DOWN:
+								cmd.fx = ft0cc::doc::effect_type::PORTA_UP;
 								break;
-							case effect_t::PORTA_UP:
-								cmd.fx = effect_t::PORTA_DOWN;
+							case ft0cc::doc::effect_type::PORTA_UP:
+								cmd.fx = ft0cc::doc::effect_type::PORTA_DOWN;
 								break;
 							}
 						}
 					}
 					// FDS pitch effect fix
 					else if (ch.Chip == sound_chip_t::FDS) {
-						for (auto &[fx, param] : Note.Effects)
-							if (fx == effect_t::PITCH && param != 0x80)
+						for (auto &[fx, param] : Note.fx_cmds())
+							if (fx == ft0cc::doc::effect_type::PITCH && param != 0x80)
 								param = (0x100 - param) & 0xFF;
 					}
 				}
 
 				if (file_.GetFileVersion() < 0x450) {		// // // 050B
-					for (auto &cmd : Note.Effects)
-						if (cmd.fx <= effect_t::max)
+					for (auto &cmd : Note.fx_cmds())
+						if (cmd.fx <= ft0cc::doc::effect_type::max)
 							cmd.fx = compat::EFF_CONVERSION_050.first[value_cast(cmd.fx)];
 				}
 				/*
@@ -904,23 +901,23 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 					// Noise pitch slide fix
 					if (IsAPUNoise(Channel)) {
 						for (int n = 0; n < MAX_EFFECT_COLUMNS; ++n) {
-							switch (Note.Effects[n].fx) {
-								case effect_t::PORTA_DOWN:
-									Note.Effects[n].fx = effect_t::PORTA_UP;
-									Note.Effects[n].param = Note.Effects[n].param << 4;
+							switch (Note.fx_name(n)) {
+								case ft0cc::doc::effect_type::PORTA_DOWN:
+									Note.set_fx_name(n, ft0cc::doc::effect_type::PORTA_UP);
+									Note.set_fx_param(n, Note.fx_param(n) << 4);
 									break;
-								case effect_t::PORTA_UP:
-									Note.Effects[n].fx = effect_t::PORTA_DOWN;
-									Note.Effects[n].param = Note.Effects[n].param << 4;
+								case ft0cc::doc::effect_type::PORTA_UP:
+									Note.set_fx_name(n, ft0cc::doc::effect_type::PORTA_DOWN);
+									Note.set_fx_param(n, Note.fx_param(n) << 4);
 									break;
-								case effect_t::PORTAMENTO:
-									Note.Effects[n].param = Note.Effects[n].param << 4;
+								case ft0cc::doc::effect_type::PORTAMENTO:
+									Note.set_fx_param(n, Note.fx_param(n) << 4);
 									break;
-								case effect_t::SLIDE_UP:
-									Note.Effects[n].param = Note.Effects[n].param + 0x70;
+								case ft0cc::doc::effect_type::SLIDE_UP:
+									Note.set_fx_param(n, Note.fx_param(n) + 0x70);
 									break;
-								case effect_t::SLIDE_DOWN:
-									Note.Effects[n].param = Note.Effects[n].param + 0x70;
+								case ft0cc::doc::effect_type::SLIDE_DOWN:
+									Note.set_fx_param(n, Note.fx_param(n) + 0x70);
 									break;
 							}
 						}
@@ -971,17 +968,17 @@ void CFamiTrackerDocIO::SavePatterns(const CFamiTrackerModule &modfile, int ver)
 			file_.WriteBlockInt(index);		// Write pattern
 			file_.WriteBlockInt(Items);		// Number of items
 
-			pattern.VisitRows(PatternLen, [&] (const stChanNote &note, unsigned row) {
-				if (note == stChanNote { })
+			pattern.VisitRows(PatternLen, [&] (const ft0cc::doc::pattern_note &note, unsigned row) {
+				if (note == ft0cc::doc::pattern_note { })
 					return;
 				file_.WriteBlockInt(row);
-				file_.WriteBlockChar(value_cast(note.Note));
-				file_.WriteBlockChar(note.Octave);
-				file_.WriteBlockChar(note.Instrument);
-				file_.WriteBlockChar(note.Vol);
+				file_.WriteBlockChar(value_cast(note.note()));
+				file_.WriteBlockChar(note.oct());
+				file_.WriteBlockChar(note.inst());
+				file_.WriteBlockChar(note.vol());
 				for (int i = 0, EffColumns = x.GetEffectColumnCount(ch); i < EffColumns; ++i) {
-					file_.WriteBlockChar(value_cast(compat::EFF_CONVERSION_050.second[value_cast(note.Effects[i].fx)]));		// // // 050B
-					file_.WriteBlockChar(note.Effects[i].param);
+					file_.WriteBlockChar(value_cast(compat::EFF_CONVERSION_050.second[value_cast(note.fx_name(i))]));		// // // 050B
+					file_.WriteBlockChar(note.fx_param(i));
 				}
 			});
 		});

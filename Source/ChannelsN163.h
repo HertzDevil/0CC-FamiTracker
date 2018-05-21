@@ -45,7 +45,7 @@ public:
 protected:
 	void	ConfigureDocument(const CFamiTrackerModule &modfile) override;		// // //
 
-	bool	HandleEffect(stEffectCommand cmd) override;		// // //
+	bool	HandleEffect(ft0cc::doc::effect_command cmd) override;		// // //
 	bool	HandleInstrument(bool Trigger, bool NewInstrument) override;		// // //
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;

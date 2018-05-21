@@ -44,7 +44,7 @@ enum color_items_t {
 #include "../resource.h"		// // //
 #include <string>		// // //
 #include <string_view>		// // //
-#include "ft0cc/fs.h"		// // //
+#include "ft0cc/cpputil/fs.hpp"		// // //
 
 // CConfigAppearance dialog
 

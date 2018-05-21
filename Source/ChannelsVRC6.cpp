@@ -37,10 +37,10 @@ CChannelHandlerVRC6::CChannelHandlerVRC6(stChannelID ch, int MaxPeriod, int MaxV
 {
 }
 
-bool CChannelHandlerVRC6::HandleEffect(stEffectCommand cmd)
+bool CChannelHandlerVRC6::HandleEffect(ft0cc::doc::effect_command cmd)
 {
 	switch (cmd.fx) {
-	case effect_t::DUTY_CYCLE:
+	case ft0cc::doc::effect_type::DUTY_CYCLE:
 		m_iDefaultDuty = m_iDutyPeriod = cmd.param;
 		break;
 	default: return CChannelHandler::HandleEffect(cmd);

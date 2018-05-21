@@ -41,12 +41,21 @@
 #include "ft0cc/doc/groove.hpp"
 #include <optional>
 #include "clip.h"
+#include "Effect.h"
 
 using json = nlohmann::json;
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 namespace {
+
+template <typename T, typename U>
+U between(T v, U lo, U hi) {
+	if (v < static_cast<T>(lo) || static_cast<T>(hi) < v)
+		throw std::invalid_argument {"Expected value between [" +
+			std::to_string(lo) + ", " + std::to_string(hi) + "], got " + std::to_string(v)};
+	return static_cast<U>(v);
+}
 
 template <typename T, typename KeyT>
 auto get_maybe(const json &j, const KeyT &k) {
@@ -124,48 +133,11 @@ constexpr std::string_view GetChipName(inst_type_t inst_type) noexcept {
 
 } // namespace
 
-void to_json(json &j, const stChanNote &note) {
-	switch (note.Note) {
-	case note_t::none: j["kind"] = "none"; break;
-	case note_t::halt: j["kind"] = "halt"; break;
-	case note_t::release: j["kind"] = "release"; break;
-	case note_t::echo:
-		j["kind"] = "echo";
-		j["value"] = note.Octave;
-		break;
-	default:
-		if (is_note(note.Note)) {
-			j["kind"] = "note";
-			j["value"] = note.ToMidiNote();
-		}
-	}
-
-	if (note.Vol < MAX_VOLUME)
-		j["volume"] = note.Vol;
-	if (note.Instrument < MAX_INSTRUMENTS)
-		j["inst_index"] = note.Instrument;
-	else if (note.Instrument == HOLD_INSTRUMENT)
-		j["inst_index"] = -1;
-
-	for (const auto &cmd_ : note.Effects)
-		if (cmd_.fx != effect_t::none) {
-			j["effects"] = json::array();
-			for (const auto &[fx, param] : note.Effects)
-				if (fx != effect_t::none)
-					j["effects"].push_back(json {
-						{"column", fx},
-						{"name", std::string {EFF_CHAR[value_cast(fx)]}},
-						{"param", param},
-					});
-			break;
-		}
-}
-
 void to_json(json &j, const CPatternData &pattern) {
 	j = json::array();
 
-	pattern.VisitRows([&] (const stChanNote &note, unsigned row) {
-		if (note != stChanNote { })
+	pattern.VisitRows([&] (const ft0cc::doc::pattern_note &note, unsigned row) {
+		if (note != ft0cc::doc::pattern_note { })
 			j.push_back(json {
 				{"row", row},
 				{"note", json(note)},
@@ -480,54 +452,44 @@ void to_json(json &j, const groove &groove) {
 		j["values"].push_back(x);
 }
 
-} // namespace ft0cc::doc
-
-
-
-void from_json(const json &j, stChanNote &note) {
-	json_maybe(j, "kind", [&] (std::string &&kind) {
-		if (kind == "note") {
-			int midiNote = json_get_between(j, "value", 0, 95);
-			note.Note = ft0cc::doc::pitch_from_midi(midiNote);
-			note.Octave = ft0cc::doc::oct_from_midi(midiNote);
+void to_json(json &j, const pattern_note &note) {
+	switch (note.note()) {
+	case ft0cc::doc::pitch::none: j["kind"] = "none"; break;
+	case ft0cc::doc::pitch::halt: j["kind"] = "halt"; break;
+	case ft0cc::doc::pitch::release: j["kind"] = "release"; break;
+	case ft0cc::doc::pitch::echo:
+		j["kind"] = "echo";
+		j["value"] = note.oct();
+		break;
+	default:
+		if (is_note(note.note())) {
+			j["kind"] = "note";
+			j["value"] = note.midi_note();
 		}
-		else if (kind == "halt")
-			note.Note = note_t::halt;
-		else if (kind == "release")
-			note.Note = note_t::release;
-		else if (kind == "echo") {
-			note.Note = note_t::echo;
-			note.Octave = json_get_between(j, "value", (std::size_t)0u, ECHO_BUFFER_LENGTH - 1);
-		}
-		else if (kind == "none")
-			note.Note = note_t::none;
-	});
-
-	if (j.count("volume"))
-		note.Vol = json_get_between(j, "volume", 0, MAX_VOLUME - 1);
-
-	if (j.count("inst_index")) {
-		auto inst = json_get_between(j, "inst_index", -1, MAX_INSTRUMENTS - 1);
-		if (inst == -1)
-			note.Instrument = HOLD_INSTRUMENT;
-		else
-			note.Instrument = inst;
 	}
 
-	json_maybe(j, "effects", [&] (std::vector<json> &&fxj) {
-		for (const auto &fx : fxj) {
-			int col = json_get_between(fx, "column", 0, MAX_EFFECT_COLUMNS - 1);
-			auto ch = fx.at("name").get<std::string>();
-			if (ch.size() != 1u)
-				throw std::invalid_argument {"Effect name must be 1 character long"};
-			effect_t effect = FTEnv.GetSoundChipService()->TranslateEffectName(ch.front(), sound_chip_t::APU);
-			if (effect == effect_t::none)
-				throw std::invalid_argument {"Invalid effect name"};
-			note.Effects[col].fx = effect;
-			note.Effects[col].param = json_get_between(fx, "param", 0, 255);
+	if (note.vol() < MAX_VOLUME)
+		j["volume"] = note.vol();
+	if (note.inst() < MAX_INSTRUMENTS)
+		j["inst_index"] = note.inst();
+	else if (note.inst() == HOLD_INSTRUMENT)
+		j["inst_index"] = -1;
+
+	for (const auto &cmd_ : note.fx_cmds())
+		if (cmd_.fx != effect_type::none) {
+			j["effects"] = json::array();
+			for (const auto &[fx, param] : note.fx_cmds())
+				if (fx != effect_type::none)
+					j["effects"].push_back(json {
+						{"column", fx},
+						{"name", std::string {EFF_CHAR[value_cast(fx)]}},
+						{"param", param},
+					});
+			break;
 		}
-	});
 }
+
+} // namespace ft0cc::doc
 
 
 
@@ -550,6 +512,50 @@ void from_json(const json &j, groove &g) {
 		g.resize(std::min(vals.size(), groove::max_size));
 		for (std::size_t i = 0; i < g.size(); ++i)
 			g.set_entry(i, clip<groove::entry_type>(vals[i]));
+	});
+}
+
+void from_json(const json &j, pattern_note &note) {
+	json_maybe(j, "kind", [&] (std::string &&kind) {
+		if (kind == "note") {
+			int midiNote = json_get_between(j, "value", 0, 95);
+			note.set_note(pitch_from_midi(midiNote));
+			note.set_oct(oct_from_midi(midiNote));
+		}
+		else if (kind == "halt")
+			note.set_note(ft0cc::doc::pitch::halt);
+		else if (kind == "release")
+			note.set_note(ft0cc::doc::pitch::release);
+		else if (kind == "echo") {
+			note.set_note(ft0cc::doc::pitch::echo);
+			note.set_oct(json_get_between(j, "value", (std::size_t)0u, ECHO_BUFFER_LENGTH - 1));
+		}
+		else if (kind == "none")
+			note.set_note(ft0cc::doc::pitch::none);
+	});
+
+	if (j.count("volume"))
+		note.set_vol(json_get_between(j, "volume", 0, MAX_VOLUME - 1));
+
+	if (j.count("inst_index")) {
+		auto inst = json_get_between(j, "inst_index", -1, MAX_INSTRUMENTS - 1);
+		if (inst == -1)
+			note.set_inst(HOLD_INSTRUMENT);
+		else
+			note.set_inst(inst);
+	}
+
+	json_maybe(j, "effects", [&] (std::vector<json> &&fxj) {
+		for (const auto &fx : fxj) {
+			int col = json_get_between(fx, "column", 0, MAX_EFFECT_COLUMNS - 1);
+			auto ch = fx.at("name").get<std::string>();
+			if (ch.size() != 1u)
+				throw std::invalid_argument {"Effect name must be 1 character long"};
+			ft0cc::doc::effect_type effect = FTEnv.GetSoundChipService()->TranslateEffectName(ch.front(), sound_chip_t::APU);
+			if (effect == effect_type::none)
+				throw std::invalid_argument {"Invalid effect name"};
+			note.set_fx_cmd(col, {effect, static_cast<uint8_t>(json_get_between(fx, "param", 0, 255))});
+		}
 	});
 }
 

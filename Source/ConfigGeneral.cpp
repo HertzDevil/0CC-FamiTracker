@@ -25,7 +25,7 @@
 #include "MainFrm.h"		// // //
 #include "FamiTrackerView.h"		// // //
 #include "Settings.h"
-#include "ft0cc/enum_traits.h"		// // //
+#include "ft0cc/cpputil/enum_traits.hpp"		// // //
 
 const LPCWSTR CConfigGeneral::CONFIG_STR[] = {		// // //
 	L"Wrap cursor",

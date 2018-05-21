@@ -691,7 +691,6 @@
     <ClInclude Include="Source\Effect.h" />
     <ClInclude Include="Source\SelectionRange.h" />
     <ClInclude Include="Source\StringClipData.h" />
-    <ClInclude Include="Source\StrongOrdering.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />
     <ClInclude Include="Source\FamiTrackerDocIOCommon.h" />
     <ClInclude Include="Source\FamiTrackerDocIOJson.h" />

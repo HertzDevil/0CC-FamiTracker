@@ -311,7 +311,7 @@ void CMIDI::WriteNote(unsigned char Channel, ft0cc::doc::pitch Note, unsigned ch
 	if (/*!m_bOpened ||*/ m_iOutDevice == 0 || m_hMIDIOut == NULL)
 		return;
 
-	if (Note == note_t::none)
+	if (Note == ft0cc::doc::pitch::none)
 		return;
 
 	++Octave;
@@ -332,7 +332,7 @@ void CMIDI::WriteNote(unsigned char Channel, ft0cc::doc::pitch Note, unsigned ch
 	unsigned int Data1 = ft0cc::doc::midi_note(Octave, Note);		// note
 	unsigned int Data2 = Velocity * 8;					// velocity
 
-	if (Note == note_t::halt || Note == note_t::release) {
+	if (Note == ft0cc::doc::pitch::halt || Note == ft0cc::doc::pitch::release) {
 		MsgType = MIDI_MSG_NOTE_OFF;
 		Data2 = 0;
 		Data1 = LastNote[Channel];
@@ -340,7 +340,7 @@ void CMIDI::WriteNote(unsigned char Channel, ft0cc::doc::pitch Note, unsigned ch
 	}
 	else {
 		if (LastNote[Channel] != 0 && Data1 != LastNote[Channel])
-			WriteNote(Channel, note_t::halt, 0, 0);
+			WriteNote(Channel, ft0cc::doc::pitch::halt, 0, 0);
 
 		MsgType = MIDI_MSG_NOTE_ON;
 		LastNote[Channel] = Data1;

@@ -23,51 +23,32 @@
 
 #pragma once
 
-#include "ft0cc/cpputil/enum_traits.hpp"
-#include <cstdint>
+#include "ft0cc/cpputil/strong_ordering.hpp"
+#include "ft0cc/doc/effect_type.hpp"
 
 namespace ft0cc::doc {
 
-enum class pitch : std::uint8_t {
-	none,					// No note
-	C, Cs, D, Ds, E, F, Fs, G, Gs, A, As, B,
-	release,				// Release, begin note release sequence
-	halt,					// Halt, stops note
-	echo,					// Echo buffer access, octave determines position
-	min = C, max = echo,
+using effect_param_t = std::uint8_t;
+
+struct effect_command {
+	effect_type fx {effect_type::none};
+	effect_param_t param {0u};
+
+	constexpr int compare(const effect_command &other) const noexcept {
+		if (fx < other.fx)
+			return -1;
+		if (fx > other.fx)
+			return 1;
+		if (fx == effect_type::none)
+			return 0;
+		if (param < other.param)
+			return -1;
+		if (param > other.param)
+			return 1;
+		return 0;
+	}
 };
 
-} // namespace ft0cc::doc
-
-ENABLE_ENUM_CATEGORY(ft0cc::doc::pitch, enum_standard);
-
-namespace ft0cc::doc {
-
-inline constexpr auto note_range = static_cast<int>(
-	value_cast(pitch::B) - value_cast(pitch::C) + 1);
-
-constexpr bool is_note(pitch n) noexcept {
-	return n >= pitch::C && n <= pitch::B;
-}
-
-constexpr int midi_note(int octave, pitch note) noexcept {
-	if (is_note(note))
-		return static_cast<int>(octave * note_range + value_cast(note) - 1);
-	return -1;
-}
-
-constexpr pitch pitch_from_midi(int midi_note) noexcept {
-	int x = midi_note % note_range;
-	if (x < 0)
-		x += note_range;
-	return enum_cast<pitch>(++x);
-}
-
-constexpr int oct_from_midi(int midi_note) noexcept {
-	int x = midi_note / note_range;
-	if (midi_note < 0 && !(midi_note % note_range))
-		--x;
-	return x;
-}
+ENABLE_STRONG_ORDERING(effect_command);
 
 } // namespace ft0cc::doc

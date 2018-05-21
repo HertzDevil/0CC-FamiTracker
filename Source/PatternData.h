@@ -25,9 +25,8 @@
 
 #include <memory>
 #include <array>
-#include "PatternNote.h"
-
-class stChanNote;
+#include "FamiTrackerDefines.h"
+#include "ft0cc/doc/pattern_note.hpp"
 
 // // // the real pattern class
 
@@ -40,11 +39,11 @@ public:
 	CPatternData(CPatternData &&other) noexcept = default;
 	CPatternData &operator=(const CPatternData &other);
 	CPatternData &operator=(CPatternData &&other) noexcept = default;
-	~CPatternData() noexcept = default;
+	~CPatternData() noexcept;
 
-	stChanNote &GetNoteOn(unsigned row);
-	const stChanNote &GetNoteOn(unsigned row) const;
-	void SetNoteOn(unsigned row, const stChanNote &note);
+	ft0cc::doc::pattern_note &GetNoteOn(unsigned row);
+	const ft0cc::doc::pattern_note &GetNoteOn(unsigned row) const;
+	void SetNoteOn(unsigned row, const ft0cc::doc::pattern_note &note);
 
 	bool operator==(const CPatternData &other) const noexcept;
 	bool operator!=(const CPatternData &other) const noexcept;
@@ -54,34 +53,34 @@ public:
 	unsigned GetNoteCount(int maxrows = max_size) const;
 	bool IsEmpty() const;
 
-	// void (*F)(stChanNote &note p [, unsigned row])
+	// void (*F)(ft0cc::doc::pattern_note &note p [, unsigned row])
 	template <typename F>
 	void VisitRows(F f) {
 		return VisitRows(max_size, f);
 	}
-	// void (*F)(const stChanNote &note [, unsigned row])
+	// void (*F)(const ft0cc::doc::pattern_note &note [, unsigned row])
 	template <typename F>
 	void VisitRows(F f) const {
 		return VisitRows(max_size, f);
 	}
 
-	// void (*F)(stChanNote &note [, unsigned row])
+	// void (*F)(ft0cc::doc::pattern_note &note [, unsigned row])
 	template <typename F>
 	void VisitRows(unsigned rows, F f) {
 		if (data_) {
 			for (unsigned row = 0; row < rows; ++row)
-				if constexpr (std::is_invocable_v<F, stChanNote &>)
+				if constexpr (std::is_invocable_v<F, ft0cc::doc::pattern_note &>)
 					f((*data_)[row]);
 				else
 					f((*data_)[row], row);
 		}
 	}
-	// void (*F)(const stChanNote &note [, unsigned row])
+	// void (*F)(const ft0cc::doc::pattern_note &note [, unsigned row])
 	template <typename F>
 	void VisitRows(unsigned rows, F f) const {
 		if (data_) {
 			for (unsigned row = 0; row < rows; ++row)
-				if constexpr (std::is_invocable_v<F, stChanNote &>)
+				if constexpr (std::is_invocable_v<F, ft0cc::doc::pattern_note &>)
 					f((*data_)[row]);
 				else
 					f((*data_)[row], row);
@@ -92,6 +91,6 @@ private:
 	void Allocate();
 
 private:
-	using elem_t = std::array<stChanNote, max_size>;
+	using elem_t = std::array<ft0cc::doc::pattern_note, max_size>;
 	std::unique_ptr<elem_t> data_;
 };

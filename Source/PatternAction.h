@@ -122,25 +122,25 @@ protected:
 class CPActionEditNote : public CPatternAction
 {
 public:
-	CPActionEditNote(const stChanNote &Note);
+	CPActionEditNote(const ft0cc::doc::pattern_note &Note);
 private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 
-	stChanNote m_NewNote, m_OldNote;
+	ft0cc::doc::pattern_note m_NewNote, m_OldNote;
 };
 
 class CPActionReplaceNote : public CPatternAction
 {
 public:
-	CPActionReplaceNote(const stChanNote &Note, int Frame, int Row, int Channel);
+	CPActionReplaceNote(const ft0cc::doc::pattern_note &Note, int Frame, int Row, int Channel);
 private:
 	bool SaveState(const CMainFrame &MainFrm) override;
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 
-	stChanNote m_NewNote, m_OldNote;
+	ft0cc::doc::pattern_note m_NewNote, m_OldNote;
 	int m_iFrame, m_iRow, m_iChannel;
 };
 
@@ -150,7 +150,7 @@ class CPActionInsertRow : public CPatternAction
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 
-	stChanNote m_OldNote;
+	ft0cc::doc::pattern_note m_OldNote;
 };
 
 class CPActionDeleteRow : public CPatternAction
@@ -162,7 +162,7 @@ private:
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 
-	stChanNote m_NewNote, m_OldNote;
+	ft0cc::doc::pattern_note m_NewNote, m_OldNote;
 	int m_iRow;
 	bool m_bPullUp, m_bBack;
 };
@@ -176,7 +176,7 @@ private:
 	void Undo(CMainFrame &MainFrm) override;
 	void Redo(CMainFrame &MainFrm) override;
 
-	stChanNote m_NewNote, m_OldNote;
+	ft0cc::doc::pattern_note m_NewNote, m_OldNote;
 	int m_iAmount;
 };
 

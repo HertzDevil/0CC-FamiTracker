@@ -35,7 +35,7 @@ public:
 
 protected:
 	// // //
-	bool	HandleEffect(stEffectCommand cmd) override;		// // //
+	bool	HandleEffect(ft0cc::doc::effect_command cmd) override;		// // //
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;
 	void	HandleRelease() override;

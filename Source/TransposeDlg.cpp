@@ -60,13 +60,13 @@ void CTransposeDlg::Transpose(int Trsp, CSongData &song) {
 	song.VisitPatterns([&] (CPatternData &pat, stChannelID c, unsigned) {
 		if (IsAPUNoise(c) || IsDPCM(c))
 			return;
-		pat.VisitRows([&] (stChanNote &note) {
-			if (note.Instrument == MAX_INSTRUMENTS || note.Instrument == HOLD_INSTRUMENT)
+		pat.VisitRows([&] (ft0cc::doc::pattern_note &note) {
+			if (note.inst() == MAX_INSTRUMENTS || note.inst() == HOLD_INSTRUMENT)
 				return;
-			if (is_note(note.Note) && !s_bDisableInst[note.Instrument]) {
-				int MIDI = std::clamp(note.ToMidiNote() + Trsp, 0, NOTE_COUNT - 1);
-				note.Octave = ft0cc::doc::oct_from_midi(MIDI);
-				note.Note = ft0cc::doc::pitch_from_midi(MIDI);
+			if (is_note(note.note()) && !s_bDisableInst[note.inst()]) {
+				int MIDI = std::clamp(note.midi_note() + Trsp, 0, NOTE_COUNT - 1);
+				note.set_oct(ft0cc::doc::oct_from_midi(MIDI));
+				note.set_note(ft0cc::doc::pitch_from_midi(MIDI));
 			}
 		});
 	});

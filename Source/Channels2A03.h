@@ -35,8 +35,8 @@ public:
 	virtual void ResetChannel();
 
 protected:
-	void	HandleNoteData(stChanNote &pNoteData) override;		// // //
-	bool	HandleEffect(stEffectCommand cmd) override;		// // //
+	void	HandleNoteData(ft0cc::doc::pattern_note &pNoteData) override;		// // //
+	bool	HandleEffect(ft0cc::doc::effect_command cmd) override;		// // //
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;
 	void	HandleRelease() override;
@@ -59,8 +59,8 @@ protected:
 	int		ConvertDuty(int Duty) const override;		// // //
 	void	ClearRegisters() override;
 
-	void	HandleNoteData(stChanNote &pNoteData) override;		// // //
-	bool	HandleEffect(stEffectCommand cmd) override;		// // //
+	void	HandleNoteData(ft0cc::doc::pattern_note &pNoteData) override;		// // //
+	bool	HandleEffect(ft0cc::doc::effect_command cmd) override;		// // //
 	void	HandleEmptyNote() override;
 	void	HandleNote(int MidiNote) override;
 	std::string	GetCustomEffectString() const override;		// // //
@@ -79,7 +79,7 @@ public:
 	void	ResetChannel() override;		// // //
 	int		GetChannelVolume() const override;		// // //
 protected:
-	bool	HandleEffect(stEffectCommand cmd) override;		// // //
+	bool	HandleEffect(ft0cc::doc::effect_command cmd) override;		// // //
 	void	ClearRegisters() override;
 	std::string	GetCustomEffectString() const override;		// // //
 private:
@@ -118,8 +118,8 @@ public:
 	void	SetLoopOffset(unsigned char Loop) override;		// // //
 	void	PlaySample(std::shared_ptr<const ft0cc::doc::dpcm_sample> pSamp, int Pitch) override;		// // //
 protected:
-	void	HandleNoteData(stChanNote &pNoteData) override;		// // //
-	bool	HandleEffect(stEffectCommand cmd) override;		// // //
+	void	HandleNoteData(ft0cc::doc::pattern_note &pNoteData) override;		// // //
+	bool	HandleEffect(ft0cc::doc::effect_command cmd) override;		// // //
 	void	HandleEmptyNote() override;
 	void	HandleCut() override;
 	void	HandleRelease() override;

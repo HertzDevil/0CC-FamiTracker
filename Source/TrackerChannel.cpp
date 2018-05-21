@@ -23,6 +23,7 @@
 #include "TrackerChannel.h"
 #include "Instrument.h"		// // //
 #include "APU/Types.h"		// // //
+#include "FamiTrackerDefines.h"		// // //
 
 /*
  * This class serves as the interface between the UI and the sound player for each channel
@@ -30,7 +31,7 @@
  *
  */
 
-void CTrackerChannel::SetNote(const stChanNote &Note, note_prio_t Priority)		// // //
+void CTrackerChannel::SetNote(const ft0cc::doc::pattern_note &Note, note_prio_t Priority)		// // //
 {
 	std::lock_guard<std::mutex> lock {m_csNoteLock};
 
@@ -41,12 +42,12 @@ void CTrackerChannel::SetNote(const stChanNote &Note, note_prio_t Priority)		// 
 	}
 }
 
-stChanNote CTrackerChannel::GetNote()
+ft0cc::doc::pattern_note CTrackerChannel::GetNote()
 {
 	std::lock_guard<std::mutex> lock {m_csNoteLock};
 
-	stChanNote Note = m_Note;		// // //
-	m_Note = stChanNote { };
+	ft0cc::doc::pattern_note Note = m_Note;		// // //
+	m_Note = ft0cc::doc::pattern_note { };
 	m_bNewNote = false;
 	m_iNotePriority = NOTE_PRIO_0;
 
@@ -62,7 +63,7 @@ void CTrackerChannel::Reset()
 {
 	std::lock_guard<std::mutex> lock {m_csNoteLock};
 
-	m_Note = stChanNote { };		// // //
+	m_Note = ft0cc::doc::pattern_note { };		// // //
 	m_bNewNote = false;
 	m_iPitch = 0;		// // //
 	m_iVolumeMeter = 0;
@@ -121,43 +122,43 @@ bool IsInstrumentCompatible(sound_chip_t Chip, inst_type_t Type) {		// // //
 	return false;
 }
 
-bool IsEffectCompatible(stChannelID ch, stEffectCommand cmd) {		// // //
+bool IsEffectCompatible(stChannelID ch, ft0cc::doc::effect_command cmd) {		// // //
 	switch (cmd.fx) {
-		case effect_t::none:
-		case effect_t::SPEED: case effect_t::JUMP: case effect_t::SKIP: case effect_t::HALT:
-		case effect_t::DELAY:
+		case ft0cc::doc::effect_type::none:
+		case ft0cc::doc::effect_type::SPEED: case ft0cc::doc::effect_type::JUMP: case ft0cc::doc::effect_type::SKIP: case ft0cc::doc::effect_type::HALT:
+		case ft0cc::doc::effect_type::DELAY:
 			return true;
-		case effect_t::NOTE_CUT: case effect_t::NOTE_RELEASE:
+		case ft0cc::doc::effect_type::NOTE_CUT: case ft0cc::doc::effect_type::NOTE_RELEASE:
 			return cmd.param <= 0x7F || IsAPUTriangle(ch);
-		case effect_t::GROOVE:
+		case ft0cc::doc::effect_type::GROOVE:
 			return cmd.param < MAX_GROOVE;
-		case effect_t::VOLUME:
+		case ft0cc::doc::effect_type::VOLUME:
 			return ((ch.Chip == sound_chip_t::APU && !IsDPCM(ch)) || ch.Chip == sound_chip_t::MMC5) &&
 				(cmd.param <= 0x1F || (cmd.param >= 0xE0 && cmd.param <= 0xE3));
-		case effect_t::PORTAMENTO: case effect_t::ARPEGGIO: case effect_t::VIBRATO: case effect_t::TREMOLO:
-		case effect_t::PITCH: case effect_t::PORTA_UP: case effect_t::PORTA_DOWN: case effect_t::SLIDE_UP: case effect_t::SLIDE_DOWN:
-		case effect_t::VOLUME_SLIDE: case effect_t::DELAYED_VOLUME: case effect_t::TRANSPOSE:
+		case ft0cc::doc::effect_type::PORTAMENTO: case ft0cc::doc::effect_type::ARPEGGIO: case ft0cc::doc::effect_type::VIBRATO: case ft0cc::doc::effect_type::TREMOLO:
+		case ft0cc::doc::effect_type::PITCH: case ft0cc::doc::effect_type::PORTA_UP: case ft0cc::doc::effect_type::PORTA_DOWN: case ft0cc::doc::effect_type::SLIDE_UP: case ft0cc::doc::effect_type::SLIDE_DOWN:
+		case ft0cc::doc::effect_type::VOLUME_SLIDE: case ft0cc::doc::effect_type::DELAYED_VOLUME: case ft0cc::doc::effect_type::TRANSPOSE:
 			return !IsDPCM(ch);
-		case effect_t::PORTAOFF:
+		case ft0cc::doc::effect_type::PORTAOFF:
 			return false;
-		case effect_t::SWEEPUP: case effect_t::SWEEPDOWN:
+		case ft0cc::doc::effect_type::SWEEPUP: case ft0cc::doc::effect_type::SWEEPDOWN:
 			return IsAPUPulse(ch);
-		case effect_t::DAC: case effect_t::SAMPLE_OFFSET: case effect_t::RETRIGGER: case effect_t::DPCM_PITCH:
+		case ft0cc::doc::effect_type::DAC: case ft0cc::doc::effect_type::SAMPLE_OFFSET: case ft0cc::doc::effect_type::RETRIGGER: case ft0cc::doc::effect_type::DPCM_PITCH:
 			return IsDPCM(ch);
-		case effect_t::DUTY_CYCLE:
+		case ft0cc::doc::effect_type::DUTY_CYCLE:
 			return !IsDPCM(ch);		// // // 050B
-		case effect_t::FDS_MOD_DEPTH:
+		case ft0cc::doc::effect_type::FDS_MOD_DEPTH:
 			return ch.Chip == sound_chip_t::FDS && (cmd.param <= 0x3F || cmd.param >= 0x80);
-		case effect_t::FDS_MOD_SPEED_HI: case effect_t::FDS_MOD_SPEED_LO: case effect_t::FDS_MOD_BIAS:
+		case ft0cc::doc::effect_type::FDS_MOD_SPEED_HI: case ft0cc::doc::effect_type::FDS_MOD_SPEED_LO: case ft0cc::doc::effect_type::FDS_MOD_BIAS:
 			return ch.Chip == sound_chip_t::FDS;
-		case effect_t::SUNSOFT_ENV_LO: case effect_t::SUNSOFT_ENV_HI: case effect_t::SUNSOFT_ENV_TYPE:
-		case effect_t::SUNSOFT_NOISE:		// // // 050B
+		case ft0cc::doc::effect_type::SUNSOFT_ENV_LO: case ft0cc::doc::effect_type::SUNSOFT_ENV_HI: case ft0cc::doc::effect_type::SUNSOFT_ENV_TYPE:
+		case ft0cc::doc::effect_type::SUNSOFT_NOISE:		// // // 050B
 			return ch.Chip == sound_chip_t::S5B;
-		case effect_t::N163_WAVE_BUFFER:
+		case ft0cc::doc::effect_type::N163_WAVE_BUFFER:
 			return ch.Chip == sound_chip_t::N163 && cmd.param <= 0x7F;
-		case effect_t::FDS_VOLUME:
+		case ft0cc::doc::effect_type::FDS_VOLUME:
 			return ch.Chip == sound_chip_t::FDS && (cmd.param <= 0x7F || cmd.param == 0xE0);
-		case effect_t::VRC7_PORT: case effect_t::VRC7_WRITE:		// // // 050B
+		case ft0cc::doc::effect_type::VRC7_PORT: case ft0cc::doc::effect_type::VRC7_WRITE:		// // // 050B
 			return ch.Chip == sound_chip_t::VRC7;
 	}
 

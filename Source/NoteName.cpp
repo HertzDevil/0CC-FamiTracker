@@ -27,6 +27,7 @@
 #include "Settings.h"
 #endif
 #include "NumConv.h"
+#include "FamiTrackerDefines.h"
 
 namespace {
 
@@ -44,17 +45,17 @@ constexpr std::string_view NOTE_NAME_FLAT[] = {
 
 } // namespace
 
-std::string GetNoteString(note_t note, int octave) {
+std::string GetNoteString(ft0cc::doc::pitch note, int octave) {
 	using namespace std::string_literals;
 
 	switch (note) {
-	case note_t::none:
+	case ft0cc::doc::pitch::none:
 		return "..."s;
-	case note_t::halt:
+	case ft0cc::doc::pitch::halt:
 		return "---"s;
-	case note_t::release:
+	case ft0cc::doc::pitch::release:
 		return "==="s;
-	case note_t::echo:
+	case ft0cc::doc::pitch::echo:
 		return "^-"s + std::to_string(octave);
 	default:
 		if (is_note(note))
@@ -67,26 +68,26 @@ std::string GetNoteString(note_t note, int octave) {
 	}
 }
 
-std::string GetNoteString(const stChanNote &note) {
-	return GetNoteString(note.Note, note.Octave);
+std::string GetNoteString(const ft0cc::doc::pattern_note &note) {
+	return GetNoteString(note.note(), note.oct());
 }
 
-std::pair<note_t, int> ReadNoteFromString(std::string_view sv) {
+std::pair<ft0cc::doc::pitch, int> ReadNoteFromString(std::string_view sv) {
 	if (sv == "...")
-		return {note_t::none, 0};
+		return {ft0cc::doc::pitch::none, 0};
 	if (sv == "---")
-		return {note_t::halt, 0};
+		return {ft0cc::doc::pitch::halt, 0};
 	if (sv == "===")
-		return {note_t::release, 0};
+		return {ft0cc::doc::pitch::release, 0};
 
 	auto pre = sv.substr(0, 2);
 	if (auto o = conv::to_uint(sv.substr(2))) {
 		if (pre == "^-" && *o < ECHO_BUFFER_LENGTH)
-			return {note_t::echo, (int)*o};
+			return {ft0cc::doc::pitch::echo, (int)*o};
 		for (std::size_t i = 0; i < std::size(NOTE_NAME); ++i)
 			if (pre == NOTE_NAME[i] || pre == NOTE_NAME_FLAT[i])
 				return {ft0cc::doc::pitch_from_midi(i), (int)*o};
 	}
 
-	return {note_t::none, 0};
+	return {ft0cc::doc::pitch::none, 0};
 }
