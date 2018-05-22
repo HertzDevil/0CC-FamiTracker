@@ -51,7 +51,7 @@ void CVisualizerSpectrum::SetSampleRate(int SampleRate)
 	m_iFillPos = 0;
 }
 
-void CVisualizerSpectrum::SetSampleData(array_view<int16_t> Samples)		// // //
+void CVisualizerSpectrum::SetSampleData(array_view<const int16_t> Samples)		// // //
 {
 	CVisualizerBase::SetSampleData(Samples);
 

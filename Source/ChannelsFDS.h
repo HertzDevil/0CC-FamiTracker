@@ -47,8 +47,8 @@ public:		// // //
 	void SetFMDepth(int Depth) override;
 	void SetFMDelay(int Delay) override;
 	// void SetFMEnable(bool Enable);
-	void FillWaveRAM(array_view<unsigned char> Buffer) override;		// // //
-	void FillModulationTable(array_view<unsigned char> Buffer) override;		// // //
+	void FillWaveRAM(array_view<const unsigned char> Buffer) override;		// // //
+	void FillModulationTable(array_view<const unsigned char> Buffer) override;		// // //
 protected:
 	// FDS control variables
 	int m_iModulationSpeed;

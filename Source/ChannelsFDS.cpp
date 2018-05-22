@@ -279,7 +279,7 @@ void CChannelHandlerFDS::SetFMDelay(int Delay)		// // //
 	m_iModulationDelay = Delay & 0xFF;
 }
 
-void CChannelHandlerFDS::FillWaveRAM(array_view<unsigned char> Buffer)		// // //
+void CChannelHandlerFDS::FillWaveRAM(array_view<const unsigned char> Buffer)		// // //
 {
 	if (Buffer.size() != m_iWaveTable.size())
 		return;
@@ -299,7 +299,7 @@ void CChannelHandlerFDS::FillWaveRAM(array_view<unsigned char> Buffer)		// // //
 	}
 }
 
-void CChannelHandlerFDS::FillModulationTable(array_view<unsigned char> Buffer)		// // //
+void CChannelHandlerFDS::FillModulationTable(array_view<const unsigned char> Buffer)		// // //
 {
 	if (Buffer.size() != m_iModTable.size())
 		return;

@@ -31,10 +31,10 @@ class CSampleMem		// // //
 {
 public:
 	uint8_t ReadMem(uint16_t Address) const;
-	void SetMem(array_view<uint8_t> Buffer);
+	void SetMem(array_view<const uint8_t> Buffer);
 	void Clear();
 
 private:
-	array_view<uint8_t> m_pMemory;
+	array_view<const uint8_t> m_pMemory;
 };
 

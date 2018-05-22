@@ -53,7 +53,7 @@ public:
 	bool Stop() const;
 	bool IsPlaying() const;
 	bool ClearBuffer();
-	bool WriteBuffer(array_view<char> Buffer);		// // //
+	bool WriteBuffer(array_view<const char> Buffer);		// // //
 
 	buffer_event_t WaitForSyncEvent(DWORD dwTimeout) const;
 

@@ -58,7 +58,7 @@ bool CFrameClipData::ToBytes(std::byte *pBuf, std::size_t buflen) const		// // /
 	return false;
 }
 
-bool CFrameClipData::FromBytes(array_view<std::byte> Buf)		// // //
+bool CFrameClipData::FromBytes(array_view<const std::byte> Buf)		// // //
 {
 	if (Buf.size() >= GetAllocSize()) {
 		std::memcpy(&ClipInfo, Buf.data(), sizeof(ClipInfo));

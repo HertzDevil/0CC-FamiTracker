@@ -106,7 +106,7 @@ void CDocumentFile::ReallocateBlock()
 	m_pBlockData.resize(m_iMaxBlockSize);		// // //
 }
 
-void CDocumentFile::WriteBlock(array_view<unsigned char> Data)		// // //
+void CDocumentFile::WriteBlock(array_view<const unsigned char> Data)		// // //
 {
 	Assert(!m_pBlockData.empty());		// // //
 
@@ -185,7 +185,7 @@ void CDocumentFile::ValidateFile()
 	char Buffer[FILE_HEADER_ID.size()] = { };
 	Read(reinterpret_cast<unsigned char *>(Buffer), FILE_HEADER_ID.size());		// // //
 
-	if (array_view<char> {Buffer} != FILE_HEADER_ID)
+	if (array_view<const char> {Buffer} != FILE_HEADER_ID)
 		RaiseModuleException("File is not a FamiTracker module");
 
 	// Read file version
@@ -230,7 +230,7 @@ bool CDocumentFile::ReadBlock()
 
 	m_pBlockData = std::vector<unsigned char>(m_iBlockSize);		// // //
 	if (Read(m_pBlockData.data(), m_iBlockSize) == FILE_END_ID.size())		// // //
-		if (array_view<char> {m_cBlockID.data(), FILE_END_ID.size()} == FILE_END_ID)
+		if (array_view<const char> {m_cBlockID.data(), FILE_END_ID.size()} == FILE_END_ID)
 			m_bFileDone = true;
 
 	if (BytesRead == 0)

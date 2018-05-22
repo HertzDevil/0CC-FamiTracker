@@ -86,6 +86,6 @@ void CSeqInstHandlerN163::UpdateWave(const CInstrumentN163 &Inst)
 		m_pBufferCurrent[i] = Inst.GetSample(Index, 2 * i) | (Inst.GetSample(Index, 2 * i + 1) << 4);
 
 	if (auto pInterface = dynamic_cast<CChannelHandlerInterfaceN163 *>(m_pInterface))
-		if (array_view<char> {m_pBufferCurrent, Count} != array_view<char> {m_pBufferPrevious, Count} || m_bForceUpdate)
+		if (array_view<const char> {m_pBufferCurrent, Count} != array_view<const char> {m_pBufferPrevious, Count} || m_bForceUpdate)
 			pInterface->FillWaveRAM({m_pBufferCurrent, Inst.GetWaveSize() >> 1});
 }

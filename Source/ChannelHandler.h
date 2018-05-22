@@ -72,7 +72,7 @@ public:
 		\param pAPU Reference to the sound channel object.
 		\param pVibTable View into the vibrato lookup table.
 		\param pSoundGen Pointer to the sound generator object. */
-	void	InitChannel(CAPUInterface &apu, array_view<int> VibTable, CSoundGenBase *pSoundGen);		// // //
+	void	InitChannel(CAPUInterface &apu, array_view<const int> VibTable, CSoundGenBase *pSoundGen);		// // //
 	/*! \brief Updates the channel handler after the module is modified.
 		\param modfile Reference to the module object. */
 	virtual void ConfigureDocument(const CFamiTrackerModule &modfile);		// // //
@@ -119,7 +119,7 @@ public:
 
 	/*!	\brief Sets the channel handler's note lookup table.
 		\param pNoteLookupTable View into the note lookup table. */
-	virtual void	SetNoteTable(array_view<unsigned int> pNoteLookupTable);		// // //
+	virtual void	SetNoteTable(array_view<const unsigned int> pNoteLookupTable);		// // //
 	/*!	\brief Sets the MIDI pitch wheel offset.
 		\param Pitch The new offset value. */
 	virtual void	SetPitch(int Pitch);
@@ -494,13 +494,13 @@ protected:
 		the sound channel. Except for the Konami VRC7, which only requires register values for a
 		single octave, all other lookup tables should contain at least as many entries as the number
 		of notes available in the tracker. */
-	array_view<unsigned> m_iNoteLookupTable;		// // //
+	array_view<const unsigned> m_iNoteLookupTable;		// // //
 	/*!	\brief A view into the channel's vibrato lookup table.
 		\details A vibrato lookup table contains as many rows as the number of vibrato depths
 		available, each row containing the first quarter of the vibrato amplitude values; values for
 		other 4xy vibrato effect phases are calculated within the channel handler. The 7xy tremolo
 		effect shares the same lookup table. */
-	array_view<int> m_iVibratoTable;		// // //
+	array_view<const int> m_iVibratoTable;		// // //
 
 	/*!	\brief The MIDI pitch wheel offset of the current channel.
 		\details A positive value represents a lower pitch. The value of this member is limited

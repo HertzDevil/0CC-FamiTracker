@@ -29,7 +29,7 @@ uint8_t CSampleMem::ReadMem(uint16_t Address) const {
 	return m_pMemory[Addr];
 }
 
-void CSampleMem::SetMem(array_view<uint8_t> Memory) {
+void CSampleMem::SetMem(array_view<const uint8_t> Memory) {
 	m_pMemory = Memory;
 }
 

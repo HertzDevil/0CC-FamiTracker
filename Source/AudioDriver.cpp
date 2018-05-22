@@ -54,7 +54,7 @@ void CAudioDriver::Reset() {
 		m_pDSoundChannel->ClearBuffer();
 }
 
-void CAudioDriver::FlushBuffer(array_view<int16_t> Buffer) {
+void CAudioDriver::FlushBuffer(array_view<const int16_t> Buffer) {
 	if (!m_pDSoundChannel)
 		return;
 
@@ -109,12 +109,12 @@ bool CAudioDriver::DoPlayBuffer() {
 	return true;
 }
 
-array_view<char> CAudioDriver::ReleaseSoundBuffer() {
+array_view<const char> CAudioDriver::ReleaseSoundBuffer() {
 	m_iBufferPtr = 0;
 	return {m_pAccumBuffer.get(), m_iBufSizeBytes};
 }
 
-array_view<std::int16_t> CAudioDriver::ReleaseGraphBuffer() {
+array_view<const std::int16_t> CAudioDriver::ReleaseGraphBuffer() {
 	return {m_iGraphBuffer.get(), m_iBufSizeSamples};
 }
 
@@ -150,7 +150,7 @@ unsigned CAudioDriver::GetUnderruns() const {
 }
 
 template <class T, int SHIFT>
-void CAudioDriver::FillBuffer(array_view<int16_t> Buffer)		// // //
+void CAudioDriver::FillBuffer(array_view<const int16_t> Buffer)		// // //
 {
 	// Called when the APU audio buffer is full and
 	// ready for playing

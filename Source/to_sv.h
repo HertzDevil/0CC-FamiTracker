@@ -50,7 +50,7 @@ constexpr std::basic_string_view<CharT> to_sv(std::basic_string_view<CharT> str)
 }
 
 template <typename CharT>
-constexpr std::basic_string_view<CharT> to_sv(array_view<CharT> str) noexcept {
+constexpr std::basic_string_view<CharT> to_sv(array_view<const CharT> str) noexcept {
 	return std::basic_string_view<CharT>(str.data(), str.size());
 }
 

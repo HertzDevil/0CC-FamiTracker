@@ -39,8 +39,8 @@ public:
 	void	SetWavePos(int pos);
 	int		GetSample(int wave, int pos) const;
 	void	SetSample(int wave, int pos, int sample);
-	array_view<int> GetSamples(int wave) const;		// // //
-	void	SetSamples(int wave, array_view<int> buf);		// // //
+	array_view<const int> GetSamples(int wave) const;		// // //
+	void	SetSamples(int wave, array_view<const int> buf);		// // //
 	/*
 	void	SetAutoWavePos(bool Enable);
 	bool	GetAutoWavePos() const;

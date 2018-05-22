@@ -68,10 +68,10 @@ const unsigned char NSF_CALLER_BIN_VRC6[] = {
 #include "drivers/drv_all.h"		// // //
 
 struct driver_t {
-	array_view<unsigned char> driver;		// // //
-	array_view<int> word_reloc;
-	array_view<int> freq_table;
-	array_view<int> adr_reloc;
+	array_view<const unsigned char> driver;		// // //
+	array_view<const int> word_reloc;
+	array_view<const int> freq_table;
+	array_view<const int> adr_reloc;
 };
 
 const driver_t DRIVER_PACK_2A03 = {

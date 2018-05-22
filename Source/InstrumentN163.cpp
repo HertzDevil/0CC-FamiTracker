@@ -133,11 +133,11 @@ void CInstrumentN163::SetSample(int wave, int pos, int sample)
 	m_iSamples[wave][pos] = sample;
 }
 
-array_view<int> CInstrumentN163::GetSamples(int wave) const {		// // //
+array_view<const int> CInstrumentN163::GetSamples(int wave) const {		// // //
 	return {m_iSamples[wave].data(), GetWaveSize()};
 }
 
-void CInstrumentN163::SetSamples(int wave, array_view<int> buf) {		// // //
+void CInstrumentN163::SetSamples(int wave, array_view<const int> buf) {		// // //
 	if (buf.size() <= MAX_WAVE_SIZE)
 		buf.copy(m_iSamples[wave].data(), buf.size());
 }

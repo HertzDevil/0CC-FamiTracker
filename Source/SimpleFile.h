@@ -46,9 +46,9 @@ public:
 	void	WriteInt8(int8_t Value);
 	void	WriteInt16(int16_t Value);
 	void	WriteInt32(int32_t Value);
-	void	WriteBytes(array_view<char> Buf);
-	void	WriteBytes(array_view<unsigned char> Buf);
-	void	WriteBytes(array_view<std::byte> Buf);
+	void	WriteBytes(array_view<const char> Buf);
+	void	WriteBytes(array_view<const unsigned char> Buf);
+	void	WriteBytes(array_view<const std::byte> Buf);
 	void	WriteString(std::string_view sv);
 	void	WriteStringNull(std::string_view sv);
 

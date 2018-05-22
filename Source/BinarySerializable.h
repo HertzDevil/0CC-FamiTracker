@@ -42,5 +42,5 @@ public:
 	virtual bool ToBytes(std::byte *pBuf, std::size_t buflen) const = 0;
 
 	// Copy structures from memory, return success
-	virtual bool FromBytes(array_view<std::byte> Buf) = 0;
+	virtual bool FromBytes(array_view<const std::byte> Buf) = 0;
 };

@@ -37,7 +37,7 @@ public:
 
 	void Create(int Width, int Height) override;
 	void SetSampleRate(int SampleRate) override;
-	void SetSampleData(array_view<int16_t> Samples) override;		// // //
+	void SetSampleData(array_view<const int16_t> Samples) override;		// // //
 	void Draw() override;
 
 private:

@@ -40,6 +40,6 @@ struct stDPCMState {
 // Used to play the audio when the buffer is full
 class IAudioCallback {
 public:
-	virtual void FlushBuffer(array_view<int16_t> Buffer) = 0;		// // //
+	virtual void FlushBuffer(array_view<const int16_t> Buffer) = 0;		// // //
 	virtual bool PlayBuffer() = 0;		// // // return true if succeeded
 };

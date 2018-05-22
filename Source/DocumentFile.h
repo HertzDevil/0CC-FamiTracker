@@ -54,7 +54,7 @@ public:
 	void		EndDocument();
 
 	void		CreateBlock(std::string_view ID, int Version);		// // //
-	void		WriteBlock(array_view<unsigned char> Data);		// // //
+	void		WriteBlock(array_view<const unsigned char> Data);		// // //
 	void		WriteBlockInt(int Value);
 	void		WriteBlockChar(char Value);
 	void		WriteString(std::string_view sv);		// // //

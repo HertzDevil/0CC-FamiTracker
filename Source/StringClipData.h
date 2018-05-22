@@ -59,8 +59,8 @@ private:
 		return false;
 	}
 
-	virtual bool FromBytes(array_view<std::byte> Buf) {
-		auto sv = array_view<CharT> {reinterpret_cast<const CharT *>(Buf.data()), Buf.size() / sizeof(CharT)};
+	virtual bool FromBytes(array_view<const std::byte> Buf) {
+		auto sv = array_view<const CharT> {reinterpret_cast<const CharT *>(Buf.data()), Buf.size() / sizeof(CharT)};
 		str_.clear();
 		str_.reserve(sv.size());
 		for (CharT c : sv) {

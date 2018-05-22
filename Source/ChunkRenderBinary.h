@@ -44,7 +44,7 @@ public:
 	CBinaryFileWriter(CSimpleFile &File);		// // //
 
 protected:
-	void Store(array_view<std::uint8_t> Data);
+	void Store(array_view<const std::uint8_t> Data);
 	void Fill(unsigned int Size);
 	unsigned int GetWritten() const;
 
@@ -75,7 +75,7 @@ class CChunkRenderNSF : public CBinaryFileWriter
 public:
 	CChunkRenderNSF(CSimpleFile &File, unsigned int StartAddr);		// // //
 
-	void StoreDriver(array_view<std::uint8_t> Driver);		// // //
+	void StoreDriver(array_view<const std::uint8_t> Driver);		// // //
 	void StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks);		// // //
 	void StoreChunksBankswitched(const std::vector<std::shared_ptr<CChunk>> &Chunks);
 	void StoreSamples(const std::vector<std::shared_ptr<const ft0cc::doc::dpcm_sample>> &Samples);
@@ -103,5 +103,5 @@ class CChunkRenderNES : public CChunkRenderNSF
 {
 public:
 	CChunkRenderNES(CSimpleFile &File, unsigned int StartAddr);		// // //
-	void StoreCaller(array_view<std::uint8_t> Data);		// // //
+	void StoreCaller(array_view<const std::uint8_t> Data);		// // //
 };

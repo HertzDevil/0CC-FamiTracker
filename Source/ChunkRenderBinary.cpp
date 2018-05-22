@@ -35,7 +35,7 @@ CBinaryFileWriter::CBinaryFileWriter(CSimpleFile &File) : m_fFile(File), m_iData
 {
 }
 
-void CBinaryFileWriter::Store(array_view<std::uint8_t> Data)
+void CBinaryFileWriter::Store(array_view<const std::uint8_t> Data)
 {
 	m_fFile.WriteBytes(Data);
 	m_iDataWritten += Data.size();
@@ -111,7 +111,7 @@ CChunkRenderNSF::CChunkRenderNSF(CSimpleFile &File, unsigned int StartAddr) :
 {
 }
 
-void CChunkRenderNSF::StoreDriver(array_view<std::uint8_t> Driver)		// // //
+void CChunkRenderNSF::StoreDriver(array_view<const std::uint8_t> Driver)		// // //
 {
 	// Store NSF driver
 	Store(Driver);
@@ -245,7 +245,7 @@ CChunkRenderNES::CChunkRenderNES(CSimpleFile &File, unsigned int StartAddr) : CC
 {
 }
 
-void CChunkRenderNES::StoreCaller(array_view<std::uint8_t> Data) {		// // //
+void CChunkRenderNES::StoreCaller(array_view<const std::uint8_t> Data) {		// // //
 	while (GetBank() < 7)
 		AllocateNewBank();
 

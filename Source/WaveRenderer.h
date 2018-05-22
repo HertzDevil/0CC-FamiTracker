@@ -37,7 +37,7 @@ public:
 	void CloseOutputStream();
 
 	template <typename T>
-	void FlushBuffer(array_view<T> Buf) const {
+	void FlushBuffer(array_view<const T> Buf) const {
 		if (m_pWaveStream)
 			m_pWaveStream->WriteSamples(Buf);
 	}

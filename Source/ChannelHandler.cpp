@@ -58,7 +58,7 @@ CChannelHandler::~CChannelHandler()
 {
 }
 
-void CChannelHandler::InitChannel(CAPUInterface &apu, array_view<int> VibTable, CSoundGenBase *pSoundGen)		// // //
+void CChannelHandler::InitChannel(CAPUInterface &apu, array_view<const int> VibTable, CSoundGenBase *pSoundGen)		// // //
 {
 	// Called from main thread
 
@@ -449,7 +449,7 @@ bool CChannelHandler::CreateInstHandler(inst_type_t Type)
 	return false;
 }
 
-void CChannelHandler::SetNoteTable(array_view<unsigned> NoteLookupTable)		// // //
+void CChannelHandler::SetNoteTable(array_view<const unsigned> NoteLookupTable)		// // //
 {
 	// Installs the note lookup table
 	if (NoteLookupTable.size() == NOTE_COUNT)

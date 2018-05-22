@@ -38,13 +38,13 @@ public:
 public:
 	unsigned char GetSample(int Index) const;
 	void	SetSample(int Index, int Sample);
-	array_view<unsigned char> GetSamples() const;		// // //
-	void	SetSamples(array_view<unsigned char> Wave);		// // //
+	array_view<const unsigned char> GetSamples() const;		// // //
+	void	SetSamples(array_view<const unsigned char> Wave);		// // //
 
 	int		GetModulation(int Index) const;
 	void	SetModulation(int Index, int Value);
-	array_view<unsigned char> GetModTable() const;		// // //
-	void	SetModTable(array_view<unsigned char> Mod);		// // //
+	array_view<const unsigned char> GetModTable() const;		// // //
+	void	SetModTable(array_view<const unsigned char> Mod);		// // //
 
 	int		GetModulationSpeed() const;
 	void	SetModulationSpeed(int Speed);

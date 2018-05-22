@@ -132,11 +132,11 @@ public:
 
 	template <typename T>
 	void WriteSample(T sample) {
-		WriteSamples(array_view<T> {&sample, 1});
+		WriteSamples(array_view<const T> {&sample, 1});
 	}
 
 	template <typename T>
-	void WriteSamples(array_view<T> samples) {
+	void WriteSamples(array_view<const T> samples) {
 		for (T x : samples) {
 			switch (fmt_.Format) {
 			case CWaveFileFormat::format_code::pcm:
@@ -201,7 +201,7 @@ private:
 			}
 		}
 		else
-			file_->WriteBytes(array_view<T> {&x, 1}.as_bytes());
+			file_->WriteBytes(array_view<const T> {&x, 1}.as_bytes());
 	}
 
 	std::shared_ptr<CSimpleFile> file_;

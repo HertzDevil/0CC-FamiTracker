@@ -49,7 +49,7 @@ public:
 	static const uint16_t	NOISE_PERIODS_NTSC[16];
 	static const uint16_t	NOISE_PERIODS_PAL[16];
 
-	array_view<uint16_t> PERIOD_TABLE;		// // //
+	array_view<const uint16_t> PERIOD_TABLE;		// // //
 
 private:
 	uint8_t	m_iLooping, m_iEnvelopeFix, m_iEnvelopeSpeed;

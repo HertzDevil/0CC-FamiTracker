@@ -498,7 +498,7 @@ void CSoundGen::ResetBuffer()
 	m_pAPU->Reset();
 }
 
-void CSoundGen::FlushBuffer(array_view<int16_t> Buffer)		// // //
+void CSoundGen::FlushBuffer(array_view<const int16_t> Buffer)		// // //
 {
 	// Callback method from emulation
 
@@ -527,11 +527,11 @@ bool CSoundGen::PlayBuffer()
 			auto buf = m_pAudioDriver->ReleaseSoundBuffer();
 			switch (m_pAudioDriver->GetSampleSize()) {
 			case 8:
-				m_pWaveRenderer->FlushBuffer(array_view<std::uint8_t>(
+				m_pWaveRenderer->FlushBuffer(array_view<const std::uint8_t>(
 					reinterpret_cast<const std::uint8_t *>(buf.data()), buf.size() / sizeof(std::uint8_t)));		// // //
 				return true;
 			case 16:
-				m_pWaveRenderer->FlushBuffer(array_view<std::int16_t>(
+				m_pWaveRenderer->FlushBuffer(array_view<const std::int16_t>(
 					reinterpret_cast<const std::int16_t *>(buf.data()), buf.size() / sizeof(std::int16_t)));		// // //
 				return true;
 			}

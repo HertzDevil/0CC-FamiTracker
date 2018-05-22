@@ -461,7 +461,7 @@ void CChunkRenderText::WriteFileString(std::string_view sv) const		// // //
 	m_File.WriteBytes(sv);		// // //
 }
 
-std::string CChunkRenderText::GetByteString(array_view<unsigned char> Data, int LineBreak) {		// // //
+std::string CChunkRenderText::GetByteString(array_view<const unsigned char> Data, int LineBreak) {		// // //
 	std::string str = "\t.byte ";
 
 	int i = 0;

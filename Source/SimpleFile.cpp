@@ -83,17 +83,17 @@ void CSimpleFile::WriteInt32(int32_t Value)
 	m_fFile.put(static_cast<unsigned char>(Value >> 24));
 }
 
-void CSimpleFile::WriteBytes(array_view<char> Buf)
+void CSimpleFile::WriteBytes(array_view<const char> Buf)
 {
 	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
 }
 
-void CSimpleFile::WriteBytes(array_view<unsigned char> Buf)
+void CSimpleFile::WriteBytes(array_view<const unsigned char> Buf)
 {
 	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
 }
 
-void CSimpleFile::WriteBytes(array_view<std::byte> Buf)
+void CSimpleFile::WriteBytes(array_view<const std::byte> Buf)
 {
 	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
 }

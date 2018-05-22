@@ -108,7 +108,7 @@ void CVisualizerWnd::SetSampleRate(int SampleRate)
 			state->SetSampleRate(SampleRate);
 }
 
-void CVisualizerWnd::FlushSamples(array_view<int16_t> Samples)		// // //
+void CVisualizerWnd::FlushSamples(array_view<const int16_t> Samples)		// // //
 {
 	if (!m_bThreadRunning)
 		return;

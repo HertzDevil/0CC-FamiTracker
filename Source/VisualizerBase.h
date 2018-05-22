@@ -36,7 +36,7 @@ public:
 	// Set rate of samples
 	virtual void SetSampleRate(int SampleRate) = 0;
 	// Set new sample data
-	virtual void SetSampleData(array_view<int16_t> Samples);		// // //
+	virtual void SetSampleData(array_view<const int16_t> Samples);		// // //
 	// Render an image from the sample data
 	virtual void Draw() = 0;
 	// Display the image
@@ -49,5 +49,5 @@ protected:
 	int m_iWidth = 0;
 	int m_iHeight = 0;
 
-	array_view<int16_t> m_pSamples;		// // //
+	array_view<const int16_t> m_pSamples;		// // //
 };

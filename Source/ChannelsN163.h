@@ -38,7 +38,7 @@ public:
 	void	SetWaveLength(int Length) override;		// // //
 	void	SetWavePosition(int Pos) override;
 	void	SetWaveCount(int Count) override;
-	void	FillWaveRAM(array_view<char> Wave) override;
+	void	FillWaveRAM(array_view<const char> Wave) override;
 
 	void	SetChannelCount(int Count);		// // //
 

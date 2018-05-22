@@ -45,7 +45,7 @@ public:
 	HANDLE GetThreadHandle() const;		// // //
 
 	void SetSampleRate(int SampleRate);
-	void FlushSamples(array_view<int16_t> Samples);		// // //
+	void FlushSamples(array_view<const int16_t> Samples);		// // //
 	void ReportAudioProblem();
 
 private:

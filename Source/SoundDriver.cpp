@@ -299,7 +299,7 @@ void CSoundDriver::SetupPeriodTables() {
 	m_iNoteLookupTable = modfile_->MakePeriodTables();		// // //
 
 	// // // Setup note tables
-	const auto GetNoteTable = [&] (stChannelID ch) -> array_view<unsigned> {
+	const auto GetNoteTable = [&] (stChannelID ch) -> array_view<const unsigned> {
 		switch (ch.Chip) {
 		case sound_chip_t::APU:
 			if (!IsAPUNoise(ch) && !IsDPCM(ch))

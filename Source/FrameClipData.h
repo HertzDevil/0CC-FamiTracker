@@ -43,7 +43,7 @@ public:
 private:
 	std::size_t GetAllocSize() const override;
 	bool ToBytes(std::byte *pBuf, std::size_t buflen) const override;
-	bool FromBytes(array_view<std::byte> Buf) override;
+	bool FromBytes(array_view<const std::byte> Buf) override;
 
 public:
 	// Clip info

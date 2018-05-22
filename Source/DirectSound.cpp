@@ -266,7 +266,7 @@ bool CDSoundChannel::ClearBuffer()
 	return true;
 }
 
-bool CDSoundChannel::WriteBuffer(array_view<char> Buffer)		// // //
+bool CDSoundChannel::WriteBuffer(array_view<const char> Buffer)		// // //
 {
 	// Fill sound buffer
 	//
