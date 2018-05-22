@@ -28,8 +28,8 @@
 #include <string_view>
 
 // force instantiation
-template struct array_view<int>;
-template struct array_view<const int>;
+template class array_view<int>;
+template class array_view<const int>;
 
 TEST(ArrayView, Ctor) {
 	// default ctor
@@ -425,16 +425,19 @@ TEST(ArrayView, RelOps) {
 
 	// equality-comparable types
 	struct Eq {
-		constexpr bool operator==(Eq) const noexcept { return true; }
-	} e1, e2;
-	Eq e3[2] = { };
+		constexpr Eq(bool b) noexcept : b_(b) { }
+		constexpr bool operator==(Eq eq) const noexcept { return b_ == eq.b_; }
+		bool b_ = false;
+	} e1 {true}, e2 {false};
+	Eq e3[2] = {false, false};
 	auto ae1 = array_view {&e1, 1u};
 	auto ae2 = array_view {&e2, 1u};
 	auto ae3 = array_view {e3};
 	EXPECT_EQ(ae1, ae1);
-	EXPECT_EQ(ae1, ae2);
+	EXPECT_EQ(ae1, (array_view {&e1, 1u}));
+	EXPECT_NE(ae1, ae2);
 	EXPECT_NE(ae1, ae3);
-	EXPECT_EQ(ae2, ae1);
+	EXPECT_NE(ae2, ae1);
 	EXPECT_EQ(ae2, ae2);
 	EXPECT_NE(ae2, ae3);
 	EXPECT_NE(ae3, ae1);
