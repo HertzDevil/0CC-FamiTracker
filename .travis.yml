@@ -4,31 +4,29 @@ language: cpp
 
 matrix:
   include:
-#    - os: linux
-#      env:
-#        - MATRIX_EVAL="CC=clang && CXX=clang++"
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && GCOV=gcov-7"
+#  - os: linux
+#    env:
+#    - MATRIX_EVAL="CC=clang && CXX=clang++"
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-7
+    env:
+    - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && GCOV=gcov-7"
 
 before_install:
-  - eval "${MATRIX_EVAL}"
+- eval "${MATRIX_EVAL}"
 
 script:
-  - cd libft0cc
-  - mkdir build
-  - cd build
-  - export COVERALLS_SERVICE_NAME=travis-ci
-  - export COVERALLS_REPO_TOKEN=
-  - cmake -DCOVERAGE=1 -DCMAKE_BUILD_TYPE=Debug ..
-  - cmake --build . -- -j4
-  - cmake --build . --target coveralls
+- cd libft0cc
+- mkdir build
+- cd build
+- cmake -DCOVERAGE=1 -DCMAKE_BUILD_TYPE=Debug ..
+- cmake --build . -- -j4
+- cmake --build . --target coveralls
 
 notifications:
   email:
