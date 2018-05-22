@@ -1,5 +1,6 @@
 add_executable(ft0cctest test_main.cpp)
 
+add_subdirectory(cpputil)
 add_subdirectory(doc)
 
 target_link_libraries(ft0cctest libgtest libgmock ft0cc)
