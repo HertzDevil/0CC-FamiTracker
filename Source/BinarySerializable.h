@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "array_view.h"
+#include "ft0cc/cpputil/array_view.hpp"
 #include <cstddef>
 
 // // // interface for objects that can be transferred to/from byte streams

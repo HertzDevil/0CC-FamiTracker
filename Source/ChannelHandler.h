@@ -31,7 +31,7 @@
 #include <memory>		// // //
 #include <string>		// // //
 #include <array>		// // //
-#include "array_view.h"		// // //
+#include "ft0cc/cpputil/array_view.hpp"		// // //
 #include <cstdint>
 
 static const int DUTY_2A03_FROM_VRC6[] = {0, 0, 1, 1, 1, 1, 2, 2};		// // //

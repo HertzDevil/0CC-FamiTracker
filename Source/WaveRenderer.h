@@ -26,7 +26,7 @@
 #include <memory>
 #include <cstdint>
 #include <string>
-#include "array_view.h"
+#include "ft0cc/cpputil/array_view.hpp"
 #include "WaveStream.h"
 
 class CWaveRenderer {

@@ -26,7 +26,7 @@
 #include <fstream>
 #include <cstdint>
 #include <cstddef>
-#include "array_view.h"
+#include "ft0cc/cpputil/array_view.hpp"
 #include "ft0cc/cpputil/fs.hpp"
 
 class CSimpleFile

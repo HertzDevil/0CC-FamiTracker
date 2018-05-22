@@ -24,7 +24,7 @@
 #pragma once
 
 #include <memory>
-#include "array_view.h"
+#include "ft0cc/cpputil/array_view.hpp"
 
 /*!
 	\brief A pure virtual interface for channel handlers.

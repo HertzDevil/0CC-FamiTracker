@@ -25,7 +25,7 @@
 
 #include <string_view>
 #include <string>
-#include "array_view.h"
+#include "ft0cc/cpputil/array_view.hpp"
 #ifdef _WINDOWS
 #include "stdafx.h" // windows-specific
 #endif

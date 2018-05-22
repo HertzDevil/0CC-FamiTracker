@@ -664,7 +664,6 @@
   <ItemGroup>
     <ClInclude Include="Source\APU\APUInterface.h" />
     <ClInclude Include="Source\APU\ext\FDSSound_new.h" />
-    <ClInclude Include="Source\array_view.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Source\ActionHandler.h" />
     <ClInclude Include="Source\APU\2A03.h" />

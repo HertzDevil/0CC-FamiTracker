@@ -29,7 +29,7 @@
 #include <memory>		// // //
 #include <vector>		// // //
 #include <string>		// // //
-#include "array_view.h"		// // //
+#include "ft0cc/cpputil/array_view.hpp"		// // //
 
 // Return values from WaitForDirectSoundEvent()
 enum buffer_event_t {

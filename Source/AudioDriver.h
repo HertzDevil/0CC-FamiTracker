@@ -27,7 +27,7 @@
 #include <memory>
 #include <utility>
 #include "Common.h"
-#include "array_view.h"
+#include "ft0cc/cpputil/array_view.hpp"
 
 class CDSoundChannel;
 

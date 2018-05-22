@@ -26,7 +26,7 @@
 #include <optional>		// // //
 #include "stdafx.h"		// // //
 #include "../resource.h"		// // //
-#include "array_view.h"		// // //
+#include "ft0cc/cpputil/array_view.hpp"		// // //
 
 class CBinarySerializableInterface;
 

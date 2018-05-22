@@ -1532,9 +1532,6 @@
     <ClInclude Include="Source\PeriodTables.h">
       <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\array_view.h">
-      <Filter>Header Files\Utility Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Assertion.h">
       <Filter>Header Files\Utility Headers</Filter>
     </ClInclude>

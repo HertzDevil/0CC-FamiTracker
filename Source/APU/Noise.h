@@ -29,7 +29,7 @@
 #pragma once
 
 #include "APU/2A03Chan.h"		// // //
-#include "array_view.h"		// // //
+#include "ft0cc/cpputil/array_view.hpp"		// // //
 
 class CNoise : public C2A03Chan {
 public:

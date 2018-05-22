@@ -24,7 +24,7 @@
 #pragma once
 
 #include <cstdint>
-#include "array_view.h"		// // //
+#include "ft0cc/cpputil/array_view.hpp"		// // //
 
 enum class decay_rate_t {		// // // 050B
 	Slow,

@@ -28,7 +28,7 @@
 #include <type_traits>
 #include <algorithm>
 #include <cmath>
-#include "array_view.h"
+#include "ft0cc/cpputil/array_view.hpp"
 #include "SimpleFile.h"
 
 namespace details {

@@ -27,7 +27,7 @@
 #include <array>		// // //
 #include <vector>		// // //
 #include <memory>		// // //
-#include "array_view.h"		// // //
+#include "ft0cc/cpputil/array_view.hpp"		// // //
 #include <string_view>		// // //
 #include <iosfwd>		// // //
 #include "ft0cc/cpputil/fs.hpp"		// // //

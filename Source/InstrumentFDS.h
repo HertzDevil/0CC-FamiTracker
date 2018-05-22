@@ -27,7 +27,7 @@
 #include <unordered_map>		// // //
 #include <memory>
 #include <array>		// // //
-#include "array_view.h"		// // //
+#include "ft0cc/cpputil/array_view.hpp"		// // //
 
 class CInstrumentFDS : public CSeqInstrument {
 public:

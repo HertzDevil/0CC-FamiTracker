@@ -60,6 +60,9 @@
     <ClInclude Include="..\include\ft0cc\doc\effect_type.hpp">
       <Filter>Header Files\doc</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\ft0cc\cpputil\array_view.hpp">
+      <Filter>Header Files\cpputil</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ft0cc\doc\groove.cpp">

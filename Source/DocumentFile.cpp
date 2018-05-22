@@ -24,7 +24,7 @@
 #include "DocumentFile.h"
 #include "SimpleFile.h"
 #include "ModuleException.h"
-#include "array_view.h"
+#include "ft0cc/cpputil/array_view.hpp"
 #include "NumConv.h"
 #include <cstring>		// // //
 #include "Assertion.h"		// // //
