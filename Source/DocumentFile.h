@@ -67,7 +67,7 @@ public:
 	unsigned int GetFileVersion() const;
 
 	bool		ReadBlock();
-	void		GetBlock(void *Buffer, int Size);
+	void		GetBlock(array_view<std::byte> Buf);		// // //
 	int			GetBlockVersion() const;
 	bool		BlockDone() const;
 	const char	*GetBlockHeaderID() const;		// // //
@@ -89,8 +89,8 @@ public:
 	[[noreturn]] void RaiseModuleException(const std::string &Msg) const;
 
 private:		// // //
-	unsigned Read(unsigned char *lpBuf, std::size_t nCount);
-	void Write(const unsigned char *lpBuf, std::size_t nCount);
+	unsigned Read(array_view<std::byte> Buf);
+	void Write(array_view<const std::byte> Buf);
 
 public:
 	// Constants

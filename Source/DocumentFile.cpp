@@ -75,13 +75,13 @@ bool CDocumentFile::Finished() const
 
 void CDocumentFile::BeginDocument()		// // //
 {
-	Write(reinterpret_cast<const unsigned char *>(FILE_HEADER_ID.data()), FILE_HEADER_ID.size());		// // //
-	Write(reinterpret_cast<const unsigned char *>(&FILE_VER), sizeof(FILE_VER));
+	Write(byte_view(FILE_HEADER_ID));		// // //
+	Write(byte_view(FILE_VER));		// // //
 }
 
 void CDocumentFile::EndDocument()
 {
-	Write(reinterpret_cast<const unsigned char *>(FILE_END_ID.data()), FILE_END_ID.size());		// // //
+	Write(byte_view(FILE_END_ID));		// // //
 }
 
 void CDocumentFile::CreateBlock(std::string_view ID, int Version)		// // //
@@ -166,10 +166,10 @@ bool CDocumentFile::FlushBlock()
 		return false;
 
 	if (m_iBlockPointer) {		// // //
-		Write(reinterpret_cast<unsigned char *>(m_cBlockID.data()), std::size(m_cBlockID) * sizeof(char));
-		Write(reinterpret_cast<unsigned char *>(&m_iBlockVersion), sizeof(m_iBlockVersion));
-		Write(reinterpret_cast<unsigned char *>(&m_iBlockPointer), sizeof(m_iBlockPointer));
-		Write(m_pBlockData.data(), m_iBlockPointer);		// // //
+		Write(byte_view(m_cBlockID));
+		Write(byte_view(m_iBlockVersion));
+		Write(byte_view(m_iBlockPointer));
+		Write(as_bytes(array_view {m_pBlockData.data(), m_iBlockPointer}));
 	}
 
 	m_pBlockData.clear();		// // //
@@ -183,14 +183,14 @@ void CDocumentFile::ValidateFile()
 
 	// Check ident string
 	char Buffer[FILE_HEADER_ID.size()] = { };
-	Read(reinterpret_cast<unsigned char *>(Buffer), FILE_HEADER_ID.size());		// // //
+	Read(byte_view(Buffer));		// // //
 
 	if (array_view<const char> {Buffer} != FILE_HEADER_ID)
 		RaiseModuleException("File is not a FamiTracker module");
 
 	// Read file version
 	unsigned char VerBuffer[4] = { };		// // //
-	Read(VerBuffer, std::size(VerBuffer));
+	Read(byte_view(VerBuffer));
 	m_iFileVersion = (VerBuffer[3] << 24) | (VerBuffer[2] << 16) | (VerBuffer[1] << 8) | VerBuffer[0];
 
 	// // // Older file version
@@ -218,9 +218,9 @@ bool CDocumentFile::ReadBlock()
 
 	m_cBlockID.fill(0);		// // //
 
-	int BytesRead = Read(reinterpret_cast<unsigned char *>(m_cBlockID.data()), std::size(m_cBlockID) * sizeof(char));
-	Read(reinterpret_cast<unsigned char *>(&m_iBlockVersion), sizeof(m_iBlockVersion));
-	Read(reinterpret_cast<unsigned char *>(&m_iBlockSize), sizeof(m_iBlockSize));
+	int BytesRead = Read(as_writeable_bytes(array_view {m_cBlockID}));
+	Read(as_writeable_bytes(array_view {&m_iBlockVersion, 1}));
+	Read(as_writeable_bytes(array_view {&m_iBlockSize, 1}));
 
 	if (m_iBlockSize > 50000000) {
 		// File is probably corrupt
@@ -229,7 +229,7 @@ bool CDocumentFile::ReadBlock()
 	}
 
 	m_pBlockData = std::vector<unsigned char>(m_iBlockSize);		// // //
-	if (Read(m_pBlockData.data(), m_iBlockSize) == FILE_END_ID.size())		// // //
+	if (Read(as_writeable_bytes(array_view {m_pBlockData})) == FILE_END_ID.size())		// // //
 		if (array_view<const char> {m_cBlockID.data(), FILE_END_ID.size()} == FILE_END_ID)
 			m_bFileDone = true;
 
@@ -314,16 +314,14 @@ std::string CDocumentFile::ReadString()
 	return str;
 }
 
-void CDocumentFile::GetBlock(void *Buffer, int Size)
-{
-	Assert(Size < MAX_BLOCK_SIZE);
-	Assert(Buffer != NULL);
+void CDocumentFile::GetBlock(array_view<std::byte> Buf) {		// // //
+	Assert(Buf.size() < MAX_BLOCK_SIZE);
 
-	std::memcpy(Buffer, m_pBlockData.data() + m_iBlockPointer, Size);		// // //
+	std::memcpy(Buf.data(), m_pBlockData.data() + m_iBlockPointer, Buf.size());		// // //
 	m_iPreviousPointer = m_iBlockPointer;
-	m_iBlockPointer += Size;
+	m_iBlockPointer += Buf.size();
 	m_iPreviousPosition = m_iFilePosition;		// // //
-	m_iFilePosition += Size;
+	m_iFilePosition += Buf.size();
 }
 
 bool CDocumentFile::BlockDone() const
@@ -368,16 +366,16 @@ void CDocumentFile::RaiseModuleException(const std::string &Msg) const		// // //
 	throw e;
 }
 
-unsigned CDocumentFile::Read(unsigned char *lpBuf, std::size_t nCount)		// // //
+unsigned CDocumentFile::Read(array_view<std::byte> Buf)		// // //
 {
 	m_iPreviousPosition = m_iFilePosition;
 	m_iFilePosition = m_pFile->GetPosition();
-	return m_pFile->ReadBytes(lpBuf, nCount);
+	return m_pFile->ReadBytes(Buf);
 }
 
-void CDocumentFile::Write(const unsigned char *lpBuf, std::size_t nCount)		// // //
+void CDocumentFile::Write(array_view<const std::byte> Buf)		// // //
 {
 	m_iPreviousPosition = m_iFilePosition;
 	m_iFilePosition = m_pFile->GetPosition();
-	m_pFile->WriteBytes({lpBuf, nCount});
+	m_pFile->WriteBytes(Buf);
 }

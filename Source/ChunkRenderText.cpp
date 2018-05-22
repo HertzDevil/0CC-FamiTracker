@@ -458,7 +458,7 @@ void CChunkRenderText::StoreWavesChunk(const CChunk *pChunk)
 
 void CChunkRenderText::WriteFileString(std::string_view sv) const		// // //
 {
-	m_File.WriteBytes(sv);		// // //
+	m_File.WriteBytes(byte_view(sv));		// // //
 }
 
 std::string CChunkRenderText::GetByteString(array_view<const unsigned char> Data, int LineBreak) {		// // //

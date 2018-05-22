@@ -167,7 +167,7 @@ namespace {
 
 void NSFEWriteBlockIdent(CSimpleFile &file, const char (&ident)[5], uint32_t sz) {		// // //
 	file.WriteInt32(sz);
-	file.WriteBytes({ident, 4});
+	file.WriteBytes({reinterpret_cast<const std::byte *>(ident), 4});
 }
 
 std::size_t NSFEWriteBlocks(CSimpleFile &file, const CFamiTrackerModule &modfile,
@@ -259,12 +259,12 @@ void CCompiler::ExportNSF_NSFE(CSimpleFile &file, int MachineType, bool isNSFE) 
 	std::size_t iDataSizePos = 0;		// // //
 	if (isNSFE) {
 		auto Header = CreateNSFeHeader(MachineType);		// // //
-		file.WriteBytes({reinterpret_cast<const char *>(&Header), sizeof(Header)});
+		file.WriteBytes(byte_view(Header));
 		iDataSizePos = NSFEWriteBlocks(file, *m_pModule, title_, artist_, copyright_);
 	}
 	else {
 		auto Header = CreateHeader(MachineType);		// // //
-		file.WriteBytes({reinterpret_cast<const char *>(&Header), sizeof(Header)});
+		file.WriteBytes(byte_view(Header));
 	}
 
 	// Write NSF data
@@ -350,7 +350,7 @@ void CCompiler::ExportNES_PRG(CSimpleFile &file, bool EnablePAL, bool isPRG) {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	};
 	if (!isPRG)		// // //
-		file.WriteBytes(NES_HEADER);
+		file.WriteBytes(byte_view(NES_HEADER));
 
 	// Write NES data
 	CChunkRenderNES Render(file, m_iLoadAddress);

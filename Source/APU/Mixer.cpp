@@ -286,9 +286,8 @@ void CMixer::AddValue(stChannelID ChanID, int Value, int FrameCycles) {		// // /
 	});
 }
 
-int CMixer::ReadBuffer(int Size, void *Buffer, bool Stereo)
-{
-	return BlipBuffer.read_samples((blip_sample_t*)Buffer, Size);
+int CMixer::ReadBuffer(int Size, blip_sample_t *Buffer, bool Stereo) {		// // //
+	return BlipBuffer.read_samples(Buffer, Size);
 }
 
 int32_t CMixer::GetChanOutput(stChannelID Chan) const		// // //

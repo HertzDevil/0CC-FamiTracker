@@ -360,13 +360,13 @@ void CFamiTrackerDocIO::SaveParams(const CFamiTrackerModule &modfile, int ver) {
 
 void CFamiTrackerDocIO::LoadSongInfo(CFamiTrackerModule &modfile, int ver) {
 	std::array<char, CFamiTrackerModule::METADATA_FIELD_LENGTH> buf = { };
-	file_.GetBlock(buf.data(), std::size(buf));
+	file_.GetBlock(byte_view(buf));
 	buf.back() = '\0';
 	modfile.SetModuleName(buf.data());
-	file_.GetBlock(buf.data(), std::size(buf));
+	file_.GetBlock(byte_view(buf));
 	buf.back() = '\0';
 	modfile.SetModuleArtist(buf.data());
-	file_.GetBlock(buf.data(), std::size(buf));
+	file_.GetBlock(byte_view(buf));
 	buf.back() = '\0';
 	modfile.SetModuleCopyright(buf.data());
 }
@@ -530,9 +530,9 @@ void CFamiTrackerDocIO::LoadInstruments(CFamiTrackerModule &modfile, int ver) {
 			AssertFileData(pInstrument.get() != nullptr, "Failed to create instrument");
 			FTEnv.GetInstrumentService()->GetInstrumentIO(Type, err_lv_)->ReadFromModule(*pInstrument, file_);		// // //
 			// Read name
-			int size = AssertRange(file_.GetBlockInt(), 0, CInstrument::INST_NAME_MAX, "Instrument name length");
+			std::size_t size = AssertRange(file_.GetBlockInt(), 0, CInstrument::INST_NAME_MAX, "Instrument name length");
 			char Name[CInstrument::INST_NAME_MAX + 1] = { };
-			file_.GetBlock(Name, size);
+			file_.GetBlock(as_writeable_bytes(array_view {Name, size}));
 			pInstrument->SetName(Name);
 			Manager.InsertInstrument(index, std::move(pInstrument));		// // // this registers the instrument content provider
 		}
@@ -997,12 +997,12 @@ void CFamiTrackerDocIO::LoadDSamples(CFamiTrackerModule &modfile, int ver) {
 		try {
 			unsigned int Len = AssertRange(file_.GetBlockInt(), 0, (int)ft0cc::doc::dpcm_sample::max_name_length, "DPCM sample name length");
 			char Name[ft0cc::doc::dpcm_sample::max_name_length + 1] = { };
-			file_.GetBlock(Name, Len);
-			int Size = AssertRange(file_.GetBlockInt(), 0, 0x7FFF, "DPCM sample size");
+			file_.GetBlock(as_writeable_bytes(array_view {Name, Len}));
+			std::size_t Size = AssertRange(file_.GetBlockInt(), 0, 0x7FFF, "DPCM sample size");
 			AssertFileData<MODULE_ERROR_STRICT>(Size <= 0xFF1 && Size % 0x10 == 1, "Bad DPCM sample size");
-			int TrueSize = Size + ((1 - Size) & 0x0F);		// // //
+			std::size_t TrueSize = Size + ((1 - Size) & 0x0F);		// // //
 			std::vector<uint8_t> samples(TrueSize);
-			file_.GetBlock(samples.data(), Size);
+			file_.GetBlock(as_writeable_bytes(array_view {samples.data(), Size}));
 
 			manager.SetDSample(Index, std::make_unique<ft0cc::doc::dpcm_sample>(samples, Name));		// // //
 		}

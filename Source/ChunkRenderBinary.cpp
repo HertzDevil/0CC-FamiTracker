@@ -37,7 +37,7 @@ CBinaryFileWriter::CBinaryFileWriter(CSimpleFile &File) : m_fFile(File), m_iData
 
 void CBinaryFileWriter::Store(array_view<const std::uint8_t> Data)
 {
-	m_fFile.WriteBytes(Data);
+	m_fFile.WriteBytes(as_bytes(Data));
 	m_iDataWritten += Data.size();
 }
 

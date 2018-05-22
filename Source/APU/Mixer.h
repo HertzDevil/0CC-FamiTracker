@@ -59,8 +59,7 @@ public:
 	void	MixSamples(blip_sample_t *pBuffer, uint32_t Count);
 	uint32_t	GetMixSampleCount(int t) const;
 
-	void	AddSample(int ChanID, int Value);
-	int		ReadBuffer(int Size, void *Buffer, bool Stereo);
+	int		ReadBuffer(int Size, blip_sample_t *Buffer, bool Stereo);		// // //
 
 	int32_t	GetChanOutput(stChannelID Chan) const;		// // //
 	void	SetChipLevel(chip_level_t Chip, float Level);

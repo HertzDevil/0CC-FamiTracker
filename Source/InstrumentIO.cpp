@@ -63,8 +63,8 @@ void CInstrumentIO::WriteToModule(const CInstrument &inst, CDocumentFile &file, 
 
 void CInstrumentIO::WriteToFTI(const CInstrument &inst, CSimpleFile &file) const {
 	// Write header
-	file.WriteBytes(FTI_INST_HEADER);
-	file.WriteBytes(FTI_INST_VERSION);
+	file.WriteBytes(byte_view(FTI_INST_HEADER));
+	file.WriteBytes(byte_view(FTI_INST_VERSION));
 
 	// Write type
 	file.WriteInt8(inst.GetType());
@@ -373,15 +373,13 @@ void CInstrumentIO2A03::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 
 	unsigned int SampleCount = file.ReadInt32();
 	for (unsigned int i = 0; i < SampleCount; ++i) {
-		int Index = AssertRange(
-			file.ReadInt32(), 0, MAX_DSAMPLES - 1, "DPCM sample index");
-		int Len = AssertRange(
-			file.ReadInt32(), 0, (int)ft0cc::doc::dpcm_sample::max_name_length, "DPCM sample name length");
-		file.ReadBytes(SampleNames[Index], Len);
+		int Index = AssertRange(file.ReadInt32(), 0, MAX_DSAMPLES - 1, "DPCM sample index");
+		std::size_t Len = AssertRange(file.ReadInt32(), 0, (int)ft0cc::doc::dpcm_sample::max_name_length, "DPCM sample name length");
+		file.ReadBytes(as_writeable_bytes(array_view<char> {SampleNames[Index], Len}));
 		SampleNames[Index][Len] = '\0';
 		int Size = file.ReadInt32();
 		std::vector<uint8_t> SampleData(Size);
-		file.ReadBytes(SampleData.data(), Size);
+		file.ReadBytes(byte_view(SampleData));
 		auto pSample = std::make_shared<ft0cc::doc::dpcm_sample>(std::move(SampleData), SampleNames[Index]);
 
 		bool Found = false;

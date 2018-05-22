@@ -83,16 +83,6 @@ void CSimpleFile::WriteInt32(int32_t Value)
 	m_fFile.put(static_cast<unsigned char>(Value >> 24));
 }
 
-void CSimpleFile::WriteBytes(array_view<const char> Buf)
-{
-	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
-}
-
-void CSimpleFile::WriteBytes(array_view<const unsigned char> Buf)
-{
-	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
-}
-
 void CSimpleFile::WriteBytes(array_view<const std::byte> Buf)
 {
 	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
@@ -102,19 +92,19 @@ void CSimpleFile::WriteString(std::string_view sv)
 {
 	int Len = sv.size();
 	WriteInt32(Len);
-	WriteBytes(sv);
+	WriteBytes(byte_view(sv));
 }
 
 void CSimpleFile::WriteStringNull(std::string_view sv)
 {
-	WriteBytes(sv);
+	WriteBytes(byte_view(sv));
 	m_fFile.put('\0');
 }
 
 uint8_t CSimpleFile::ReadUint8()
 {
 	unsigned char buf[1] = { };
-	ReadBytes(buf, std::size(buf));
+	ReadBytes(byte_view(buf));
 	return buf[0];
 }
 
@@ -126,7 +116,7 @@ int8_t CSimpleFile::ReadInt8()
 uint16_t CSimpleFile::ReadUint16()
 {
 	unsigned char buf[2] = { };
-	ReadBytes(buf, std::size(buf));
+	ReadBytes(byte_view(buf));
 	return buf[0] | (buf[1] << 8);
 }
 
@@ -138,7 +128,7 @@ int16_t CSimpleFile::ReadInt16()
 uint32_t CSimpleFile::ReadUint32()
 {
 	unsigned char buf[4] = { };
-	ReadBytes(buf, std::size(buf));
+	ReadBytes(byte_view(buf));
 	return buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24);
 }
 
@@ -147,8 +137,8 @@ int32_t CSimpleFile::ReadInt32()
 	return static_cast<int32_t>(ReadUint32());
 }
 
-std::size_t CSimpleFile::ReadBytes(void *pBuf, size_t count) {
-	m_fFile.read(reinterpret_cast<char *>(pBuf), count);
+std::size_t CSimpleFile::ReadBytes(array_view<std::byte> Buf) {
+	m_fFile.read(reinterpret_cast<char *>(Buf.data()), Buf.size());
 	return m_fFile.gcount();
 }
 

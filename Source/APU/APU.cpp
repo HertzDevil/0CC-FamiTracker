@@ -99,8 +99,6 @@ void CAPU::StepSequence()		// // //
 // End of audio frame, flush the buffer if enough samples has been produced, and start a new frame
 void CAPU::EndFrame()
 {
-	// The APU will always output audio in 32 bit signed format
-
 	for (auto *Chip : m_pActiveChips)		// // //
 		Chip->EndFrame();
 

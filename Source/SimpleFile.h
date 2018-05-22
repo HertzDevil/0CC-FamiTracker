@@ -46,8 +46,6 @@ public:
 	void	WriteInt8(int8_t Value);
 	void	WriteInt16(int16_t Value);
 	void	WriteInt32(int32_t Value);
-	void	WriteBytes(array_view<const char> Buf);
-	void	WriteBytes(array_view<const unsigned char> Buf);
 	void	WriteBytes(array_view<const std::byte> Buf);
 	void	WriteString(std::string_view sv);
 	void	WriteStringNull(std::string_view sv);
@@ -58,7 +56,7 @@ public:
 	int16_t		ReadInt16();
 	uint32_t	ReadUint32();
 	int32_t		ReadInt32();
-	std::size_t	ReadBytes(void *pBuf, size_t count);
+	std::size_t	ReadBytes(array_view<std::byte> Buf);
 	std::string	ReadString();
 	std::string	ReadStringN(size_t count);
 	std::string	ReadStringNull();

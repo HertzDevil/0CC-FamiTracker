@@ -201,7 +201,7 @@ private:
 			}
 		}
 		else
-			file_->WriteBytes(array_view<const T> {&x, 1}.as_bytes());
+			file_->WriteBytes(byte_view(x));
 	}
 
 	std::shared_ptr<CSimpleFile> file_;
