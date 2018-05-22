@@ -48,5 +48,6 @@ double CTempoDisplay::GetAverageBPM() const {
 		BPMtot += bpm * ticks;
 		TickTot += ticks;
 	}
-	return BPMtot / TickTot;
+	if (TickTot != 0) return BPMtot / TickTot;
+	else return 0;
 }
