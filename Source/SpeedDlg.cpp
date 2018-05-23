@@ -21,9 +21,7 @@
 */
 
 #include "SpeedDlg.h"
-
-const int RATE_MIN = 16;		// // //
-const int RATE_MAX = 400;
+#include "APU/Types.h"		// // //
 
 // CSpeedDlg dialog
 
@@ -72,8 +70,7 @@ BOOL CSpeedDlg::OnInitDialog()
 
 	CSliderCtrl *Slider = static_cast<CSliderCtrl*>(GetDlgItem(IDC_SPEED_SLD));
 
-	// TODO: Program will crash if speed is set below 25Hz, I don't know why
-	Slider->SetRange(RATE_MIN, RATE_MAX);
+	Slider->SetRange(FRAME_RATE_MIN, FRAME_RATE_MAX);
 	Slider->SetPos(m_iSpeed);
 
 	SetDlgItemTextW(IDC_SPEED, FormattedW(L"%i Hz", m_iSpeed));
