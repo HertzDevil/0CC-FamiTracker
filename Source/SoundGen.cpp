@@ -825,11 +825,10 @@ void CSoundGen::LoadMachineSettings()		// // //
 	// Choose a default rate if not predefined
 	int Rate = m_pModule->GetFrameRate();		// // //
 
-	// Number of cycles between each APU update
-	m_iUpdateCycles = BaseFreq / Rate;
-
 	{
 		CSingleLock l(&m_csAPULock, TRUE);		// // //
+		// Number of cycles between each APU update
+		m_iUpdateCycles = BaseFreq / Rate;
 		m_pAPU->ChangeMachineRate(m_iMachineType, Rate);		// // //
 	}
 }

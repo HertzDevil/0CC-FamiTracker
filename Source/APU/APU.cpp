@@ -105,6 +105,7 @@ void CAPU::EndFrame()
 		Chip->EndFrame();
 
 	int SamplesAvail = m_pMixer->FinishBuffer(m_iFrameCycles);
+	Assert(((int)m_iSoundBufferSize << 1) >= SamplesAvail);
 	int ReadSamples	= m_pMixer->ReadBuffer(SamplesAvail, m_pSoundBuffer.get(), m_bStereoEnabled);
 	if (m_pParent)		// // //
 		m_pParent->FlushBuffer({m_pSoundBuffer.get(), (unsigned)ReadSamples});
@@ -199,7 +200,7 @@ bool CAPU::SetupSound(int SampleRate, int NrChannels, machine_t Machine)		// // 
 	uint8_t FrameRate = (Machine == machine_t::NTSC) ? FRAME_RATE_NTSC : FRAME_RATE_PAL;
 	m_iSampleRate = SampleRate;		// // //
 
-	m_iSoundBufferSamples = uint32_t(m_iSampleRate / FRAME_RATE_PAL);	// Samples / frame. Allocate for PAL, since it's more
+	m_iSoundBufferSamples = uint32_t(m_iSampleRate / FRAME_RATE_MIN);		// // // Samples / frame
 	m_bStereoEnabled	  = (NrChannels == 2);
 	m_iSoundBufferSize	  = m_iSoundBufferSamples * NrChannels;		// Total amount of samples to allocate
 	m_iSampleSizeShift	  = (NrChannels == 2) ? 1 : 0;
@@ -210,9 +211,12 @@ bool CAPU::SetupSound(int SampleRate, int NrChannels, machine_t Machine)		// // 
 
 	m_pMixer->SetClockRate(BaseFreq);
 
-	m_pSoundBuffer = std::make_unique<int16_t[]>(m_iSoundBufferSize << 1);
-	if (!m_pSoundBuffer)
+	try {		// // //
+		m_pSoundBuffer = std::make_unique<int16_t[]>(m_iSoundBufferSize << 1);
+	}
+	catch (std::bad_alloc &) {
 		return false;
+	}
 
 	ChangeMachineRate(Machine, FrameRate);		// // //
 

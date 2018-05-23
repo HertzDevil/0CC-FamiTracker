@@ -39,6 +39,8 @@ inline constexpr unsigned MASTER_CLOCK_NTSC = 1789773;		// // // moved from CAPU
 inline constexpr unsigned MASTER_CLOCK_PAL  = 1662607;
 inline constexpr unsigned FRAME_RATE_NTSC   = 60;
 inline constexpr unsigned FRAME_RATE_PAL    = 50;
+inline constexpr unsigned FRAME_RATE_MIN    = 16;		// // //
+inline constexpr unsigned FRAME_RATE_MAX    = 400;		// // //
 
 ENUM_CLASS_STANDARD(sound_chip_t, std::uint8_t) {		// // //
 	APU, VRC6, VRC7, FDS, MMC5, N163, S5B,
