@@ -2651,7 +2651,7 @@ void CMainFrame::SelectInstrumentFolder()
 
 	if (lpID != NULL) {
 		SHGetPathFromIDListW(lpID, Path);
-		FTEnv.GetSettings()->SetPath(fs::path {Path}.parent_path(), PATH_INST);		// // //
+		FTEnv.GetSettings()->SetPath(fs::path {Path}, PATH_INST);		// // //
 		m_pInstrumentFileTree->Changed();
 	}
 }
