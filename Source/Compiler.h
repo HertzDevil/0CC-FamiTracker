@@ -119,7 +119,6 @@ private:
 
 	stNSFHeader CreateHeader(int MachineType) const;		// // //
 	stNSFeHeader CreateNSFeHeader(int MachineType);		// // //
-	void	SetDriverSongAddress(unsigned char *pDriver, unsigned short Address) const;		// // //
 
 	std::vector<unsigned char> LoadDriver(const driver_t &Driver, unsigned short Origin) const;		// // //
 

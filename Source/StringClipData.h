@@ -51,9 +51,9 @@ private:
 		return (str_.size() + 1) * sizeof(CharT);
 	}
 
-	virtual bool ToBytes(std::byte *pBuf, std::size_t buflen) const {
-		if (buflen >= GetAllocSize()) {
-			std::memcpy(pBuf, str_.c_str(), GetAllocSize());
+	virtual bool ToBytes(array_view<std::byte> Buf) const {
+		if (Buf.size() >= GetAllocSize()) {
+			std::memcpy(Buf.data(), str_.c_str(), GetAllocSize());
 			return true;
 		}
 		return false;

@@ -535,13 +535,6 @@ std::vector<unsigned char> CCompiler::LoadDriver(const driver_t &Driver, unsigne
 	return Data;
 }
 
-void CCompiler::SetDriverSongAddress(unsigned char *pDriver, unsigned short Address) const
-{
-	// Write start address of music data
-	pDriver[m_iDriverSize - 2] = Address & 0xFF;
-	pDriver[m_iDriverSize - 1] = Address >> 8;
-}
-
 stNSFHeader CCompiler::CreateHeader(int MachineType) const		// // //
 {
 	// Fill the NSF header

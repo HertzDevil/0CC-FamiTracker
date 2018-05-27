@@ -53,12 +53,8 @@ CClipboard::CMemoryLock::operator bool() const noexcept {
 	return data_ != nullptr;
 }
 
-std::byte *CClipboard::CMemoryLock::data() const noexcept {
-	return data_;
-}
-
-std::size_t CClipboard::CMemoryLock::size() const {
-	return hmem_ && data_ ? ::GlobalSize(hmem_) : 0u;
+array_view<std::byte> CClipboard::CMemoryLock::Buffer() const noexcept {
+	return {data_, hmem_ && data_ ? ::GlobalSize(hmem_) : 0u};
 }
 
 
@@ -72,7 +68,7 @@ HGLOBAL AllocateGlobalMemory(const CBinarySerializableInterface &ser) {
 bool WriteGlobalMemory(const CBinarySerializableInterface &ser, HGLOBAL hMem) {
 	if (ser.ContainsData())
 		if (auto pByte = CClipboard::CMemoryLock {hMem})
-			return ser.ToBytes(pByte.data(), pByte.size());
+			return ser.ToBytes(pByte.Buffer());
 	return false;
 }
 
@@ -98,7 +94,7 @@ bool CClipboard::CopyToClipboard(CWnd *parent, CLIPFORMAT ClipboardID, const CBi
 
 bool CClipboard::ReadGlobalMemory(CBinarySerializableInterface &ser, HGLOBAL hMem) {
 	if (auto pByte = CMemoryLock {hMem})
-		return ser.FromBytes(pByte);
+		return ser.FromBytes(pByte.Buffer());
 	return false;
 }
 

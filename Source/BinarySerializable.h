@@ -39,7 +39,7 @@ public:
 	virtual std::size_t GetAllocSize() const = 0;
 
 	// Copy structures to memory, return success
-	virtual bool ToBytes(std::byte *pBuf, std::size_t buflen) const = 0;
+	virtual bool ToBytes(array_view<std::byte> Buf) const = 0;
 
 	// Copy structures from memory, return success
 	virtual bool FromBytes(array_view<const std::byte> Buf) = 0;

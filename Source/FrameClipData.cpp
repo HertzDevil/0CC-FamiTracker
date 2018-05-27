@@ -48,11 +48,11 @@ bool CFrameClipData::ContainsData() const {		// // //
 	return pFrames != nullptr;
 }
 
-bool CFrameClipData::ToBytes(std::byte *pBuf, std::size_t buflen) const		// // //
+bool CFrameClipData::ToBytes(array_view<std::byte> Buf) const		// // //
 {
-	if (buflen >= GetAllocSize()) {
-		std::memcpy(pBuf, &ClipInfo, sizeof(ClipInfo));
-		std::memcpy(pBuf + sizeof(ClipInfo), pFrames.get(), sizeof(int) * iSize);
+	if (Buf.size() >= GetAllocSize()) {
+		std::memcpy(Buf.data(), &ClipInfo, sizeof(ClipInfo));
+		std::memcpy(Buf.data() + sizeof(ClipInfo), pFrames.get(), sizeof(int) * iSize);
 		return true;
 	}
 	return false;

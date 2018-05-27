@@ -49,8 +49,7 @@ public:
 	~CMemoryLock();
 	explicit operator bool() const noexcept;
 
-	std::byte *data() const noexcept;
-	std::size_t size() const;
+	array_view<std::byte> Buffer() const noexcept;
 
 private:
 	HGLOBAL hmem_;

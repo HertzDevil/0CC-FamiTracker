@@ -44,7 +44,7 @@ public:
 
 private:
 	std::size_t GetAllocSize() const override;
-	bool ToBytes(std::byte *pBuf, std::size_t buflen) const override;
+	bool ToBytes(array_view<std::byte> Buf) const override;
 	bool FromBytes(array_view<const std::byte> Buf) override;
 
 public:

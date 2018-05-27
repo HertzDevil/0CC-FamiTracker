@@ -41,11 +41,11 @@ bool CPatternClipData::ContainsData() const {		// // //
 	return pPattern != nullptr;
 }
 
-bool CPatternClipData::ToBytes(std::byte *pBuf, std::size_t buflen) const		// // //
+bool CPatternClipData::ToBytes(array_view<std::byte> Buf) const		// // //
 {
-	if (buflen >= GetAllocSize()) {
-		std::memcpy(pBuf, &ClipInfo, sizeof(ClipInfo));
-		std::memcpy(pBuf + sizeof(ClipInfo), pPattern.get(), Size * sizeof(ft0cc::doc::pattern_note));		// // //
+	if (Buf.size() >= GetAllocSize()) {
+		std::memcpy(Buf.data(), &ClipInfo, sizeof(ClipInfo));
+		std::memcpy(Buf.data() + sizeof(ClipInfo), pPattern.get(), Size * sizeof(ft0cc::doc::pattern_note));		// // //
 		return true;
 	}
 	return false;

@@ -326,7 +326,7 @@ void CInstrumentIO2A03::DoWriteToFTI(const CInstrument &inst_, CSimpleFile &file
 		if (auto pSample = pManager->GetDSample(i)) {
 			file.WriteInt32(i);
 			file.WriteString(pSample->name());
-			file.WriteString(std::string_view((const char *)pSample->data(), pSample->size()));
+			file.WriteString(std::string_view(reinterpret_cast<const char *>(pSample->data()), pSample->size()));
 		}
 	}
 }
@@ -337,7 +337,7 @@ void CInstrumentIO2A03::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 
 	auto *pManager = inst.GetInstrumentManager();
 
-	char SampleNames[MAX_DSAMPLES][ft0cc::doc::dpcm_sample::max_name_length + 1];
+	char SampleNames[MAX_DSAMPLES][ft0cc::doc::dpcm_sample::max_name_length + 1] = { };
 
 	unsigned int Count = file.ReadInt32();
 	AssertRange(Count, 0U, static_cast<unsigned>(NOTE_COUNT), "DPCM assignment count");
