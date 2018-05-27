@@ -59,8 +59,6 @@ protected:
 
 	bool m_bDrawLine;
 
-//	static virtual bool m_bLineMode;
-
 public:
 	void WaveChanged();
 	virtual afx_msg void OnPaint();
@@ -98,7 +96,7 @@ protected:
 	void SetLineMode(bool Mode) override { m_bLineMode = Mode; }
 
 protected:
-	static bool m_bLineMode;
+	static inline bool m_bLineMode = true;
 
 protected:
 	std::shared_ptr<CInstrumentFDS> m_pInstrument;
@@ -121,7 +119,7 @@ protected:
 	void SetLineMode(bool Mode) override { m_bLineMode = Mode; }
 
 protected:
-	static bool m_bLineMode;
+	static inline bool m_bLineMode = false;
 
 protected:
 	std::shared_ptr<CInstrumentN163> m_pInstrument;

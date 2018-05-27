@@ -26,6 +26,7 @@
 #include "Instrument.h"
 #include <memory>
 #include <unordered_map>
+#include <string_view>
 
 class CSequence;
 enum class sequence_t : unsigned;
@@ -46,8 +47,7 @@ public:
 	virtual std::shared_ptr<CSequence> GetSequence(sequence_t SeqType) const;		// // //
 	virtual void	SetSequence(sequence_t SeqType, std::shared_ptr<CSequence> pSeq);		// // // register sequence in document
 
-	// static const int SEQUENCE_TYPES[] = {sequence_t::Volume, sequence_t::Arpeggio, sequence_t::Pitch, sequence_t::HiPitch, sequence_t::DutyCycle};
-	virtual const char *GetSequenceName(int Index) const { return nullptr; }		// // //
+	virtual std::string_view GetSequenceName(int Index) const { return "(N/A)"; }		// // //
 
 protected:
 	void	OnBlankInstrument() override;		// // //

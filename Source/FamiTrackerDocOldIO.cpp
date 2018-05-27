@@ -196,7 +196,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 							Note.set_vol(MAX_VOLUME);
 						if (Note.fx_name(0) <= ft0cc::doc::effect_type::max)		// // //
 							Note.set_fx_name(0, EFF_CONVERSION_050.first[value_cast(Note.fx_name(0))]);
-						Song.SetPatternData(x, c, i, Note);
+						Song.GetPattern(x, c).SetNoteOn(i, Note);
 					}
 				}
 			});

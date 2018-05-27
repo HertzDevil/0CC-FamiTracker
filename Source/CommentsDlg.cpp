@@ -25,12 +25,6 @@
 
 // CCommentsDlg dialog
 
-// Font
-const LPCWSTR CCommentsDlg::FONT_FACE = L"Courier";		// // //
-int CCommentsDlg::FONT_SIZE = 12;
-
-RECT CCommentsDlg::WinRect;
-
 IMPLEMENT_DYNAMIC(CCommentsDlg, CDialog)
 
 CCommentsDlg::CCommentsDlg(CWnd* pParent /*=NULL*/) :
@@ -134,7 +128,8 @@ BOOL CCommentsDlg::OnInitDialog()
 	CheckDlgButton(IDC_SHOWONOPEN, m_bShowOnLoad ? BST_CHECKED : BST_UNCHECKED);
 	m_bChanged = false;
 
-	m_cFont.CreateFontW(FONT_SIZE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, FONT_FACE);		// // //
+	m_cFont.CreateFontW(12, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET,
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Courier");		// // //
 	GetDlgItem(IDC_COMMENTS)->SetFont(&m_cFont);
 
 	if (WinRect.top == 0 && WinRect.bottom == 0)

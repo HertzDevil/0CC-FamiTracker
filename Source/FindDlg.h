@@ -187,8 +187,8 @@ protected:
 		COUNT = EFFECT + MAX_EFFECT_COLUMNS,
 	};
 
-	static result_column_t m_iLastsortColumn;
-	static bool m_bLastSortDescending;
+	static inline result_column_t m_iLastsortColumn = result_column_t::ID;
+	static inline bool m_bLastSortDescending = false;
 
 	static int CALLBACK IntCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 	static int CALLBACK HexCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);

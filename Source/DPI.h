@@ -39,5 +39,6 @@ struct DPI		// // //
 private:
 	// DPI variables
 	static const int DEFAULT_DPI;
-	static int dpiX_, dpiY_;
+	static inline int dpiX_ = DEFAULT_DPI;
+	static inline int dpiY_ = DEFAULT_DPI;
 };

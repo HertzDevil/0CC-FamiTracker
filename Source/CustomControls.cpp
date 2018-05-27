@@ -40,7 +40,6 @@
 /// CBannerEdit
 ///
 
-const WCHAR CBannerEdit::BANNER_FONT[]	 = L"Tahoma";
 const COLORREF CBannerEdit::BANNER_COLOR = 0x808080;
 
 // Used to display a banner in edit boxes
@@ -75,7 +74,8 @@ void CBannerEdit::OnPaint()
 	CDC *pDC = GetDC();
 	if (pDC != NULL) {
 		CFont font;
-		font.CreateFontW(DPI::SY(12), 0, 0, 0, 0, TRUE, FALSE, FALSE, 0, 0, 0, 0, 0, BANNER_FONT);
+		font.CreateFontW(DPI::SY(12), 0, 0, 0, FW_DONTCARE, TRUE, FALSE, FALSE, ANSI_CHARSET,
+			OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_DONTCARE, L"Tahoma");
 		CFont *pOldFont = pDC->SelectObject(&font);
 
 		pDC->SetBkColor(pDC->GetPixel(4, 4));

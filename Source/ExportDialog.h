@@ -48,7 +48,8 @@ public:
 	enum { IDD = IDD_EXPORT };
 
 protected:
-	static int m_iExportOption;
+	// Remember last option when dialog is closed
+	static inline int m_iExportOption = 0;		// // //
 
 	CComboBox m_cExportTypes;		// // //
 

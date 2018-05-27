@@ -279,10 +279,11 @@ void CPatternEditor::ApplyColorScheme()
 	if (m_fontHeader.m_hObject != NULL)
 		m_fontHeader.DeleteObject();
 	m_fontHeader.CreateFontW(-DEFAULT_HEADER_FONT_SIZE, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
-		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_SWISS, DEFAULT_HEADER_FONT);		// // //
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_DONTCARE, DEFAULT_HEADER_FONT);		// // //
 
 	if (m_fontCourierNew.m_hObject == NULL)		// // // smaller
-		m_fontCourierNew.CreateFontW(14, 0, 0, 0, 0, FALSE, FALSE, FALSE, 0, 0, 0, DRAFT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Courier New");
+		m_fontCourierNew.CreateFontW(14, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET,
+			OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FIXED_PITCH | FF_DONTCARE, L"Courier New");
 
 	// Cache some colors
 	m_colSeparator	= BLEND(ColBackground, Invert(ColBackground), SHADE_LEVEL::SEPARATOR);

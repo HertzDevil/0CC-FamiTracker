@@ -70,7 +70,7 @@ public:
 	void		GetBlock(array_view<std::byte> Buf);		// // //
 	int			GetBlockVersion() const;
 	bool		BlockDone() const;
-	const char	*GetBlockHeaderID() const;		// // //
+	std::string_view GetBlockHeaderID() const;		// // //
 	int			GetBlockInt();
 	char		GetBlockChar();
 

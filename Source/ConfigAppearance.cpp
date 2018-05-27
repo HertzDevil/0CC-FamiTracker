@@ -143,7 +143,7 @@ void CConfigAppearance::OnPaint()
 	int WinHeight = Rect.bottom - Rect.top;
 
 	CFont Font;		// // //
-	Font.CreateFontW(-m_iFontSize, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, ANSI_CHARSET,
+	Font.CreateFontW(-m_iFontSize, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET,
 		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, m_strFont.data());
 	CFont *OldFont = OldFont = dc.SelectObject(&Font);
 

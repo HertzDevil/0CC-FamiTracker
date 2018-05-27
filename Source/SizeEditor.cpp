@@ -53,8 +53,8 @@ CSizeEditor::CSizeEditor(CWnd *pParent) :
 	m_pParentWnd(pParent),
 	m_bSizeCursor(false)
 {
-	m_Font.CreateFontW(-11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, ANSI_CHARSET,
-		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Tahoma");		// // //
+	m_Font.CreateFontW(-11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET,
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_DONTCARE, L"Tahoma");		// // //
 }
 
 CSizeEditor::~CSizeEditor()

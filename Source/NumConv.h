@@ -186,11 +186,8 @@ namespace details {
 template <typename CharT, unsigned Radix>
 struct str_buf_ {
 	static constexpr std::size_t maxlen = details::max_places<uintmax_t, Radix>();
-	static thread_local CharT data[maxlen + 1];
+	static inline thread_local CharT data[maxlen + 1] = { };
 };
-
-template <typename CharT, unsigned Radix>
-thread_local CharT str_buf_<CharT, Radix>::data[maxlen + 1] = { };
 
 template <unsigned Radix, unsigned BufLen, typename CharT>
 CharT *from_uint_impl(CharT (&data)[BufLen], uintmax_t x, unsigned places) noexcept {

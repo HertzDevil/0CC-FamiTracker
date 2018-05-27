@@ -139,8 +139,8 @@ int CFrameEditor::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_hAccel = LoadAcceleratorsW(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_FRAMEWND));
 
 	m_Font.CreateFontW(DPI::SY(14), 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
-					  OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
-					  FTEnv.GetSettings()->Appearance.strFrameFont.data());		// // // 050B
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
+		FTEnv.GetSettings()->Appearance.strFrameFont.data());		// // // 050B
 
 	m_iClipboard = ::RegisterClipboardFormatW(CLIPBOARD_ID);
 

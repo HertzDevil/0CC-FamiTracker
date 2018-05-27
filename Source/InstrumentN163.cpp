@@ -35,8 +35,6 @@ const int DEFAULT_WAVE_SIZE = std::size(TRIANGLE_WAVE);
 
 } // namespace
 
-const char *const CInstrumentN163::SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "Wave Index"};
-
 CInstrumentN163::CInstrumentN163() : CSeqInstrument(INST_N163),		// // //
 	m_iSamples(),
 	m_iWaveSize(DEFAULT_WAVE_SIZE),

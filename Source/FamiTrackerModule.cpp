@@ -146,8 +146,8 @@ void CFamiTrackerModule::SetMachine(machine_t machine) {
 }
 
 void CFamiTrackerModule::SetEngineSpeed(unsigned int speed) {
-	if (speed > 0 && speed < 16)
-		speed = 16;
+	if (speed > 0 && speed < FRAME_RATE_MIN)
+		speed = FRAME_RATE_MIN;
 	m_iEngineSpeed = speed;
 }
 
@@ -459,19 +459,19 @@ void CFamiTrackerModule::RemoveUnusedDSamples() {
 		if (Manager.IsSampleUsed(i)) {
 			bool Used = false;
 			VisitSongs([&] (const CSongData &song) {
-				for (unsigned int Frame = 0; Frame < song.GetFrameCount(); ++Frame) {
-					unsigned int Pattern = song.GetFramePattern(Frame, apu_subindex_t::dpcm);
-					for (unsigned int Row = 0; Row < song.GetPatternLength(); ++Row) {
-						const auto &Note = song.GetPatternData(apu_subindex_t::dpcm, Pattern, Row);		// // //
-						int Index = Note.inst();
-						if (!is_note(Note.note()) || Index == MAX_INSTRUMENTS)
-							continue;		// // //
-						if (InstManager.GetInstrumentType(Index) != INST_2A03)
-							continue;
-						AssignUsed[Index][Note.midi_note()] = true;
-						auto pInst = std::static_pointer_cast<CInstrument2A03>(InstManager.GetInstrument(Index));
-						if (pInst->GetSampleIndex(Note.midi_note()) == i)
-							Used = true;
+				if (const CTrackData *dpcm = song.GetTrack(apu_subindex_t::dpcm)) {
+					for (unsigned int Frame = 0; Frame < song.GetFrameCount(); ++Frame) {
+						dpcm->GetPatternOnFrame(Frame).VisitRows(song.GetPatternLength(), [&] (const ft0cc::doc::pattern_note &Note) {
+							int Index = Note.inst();
+							if (!is_note(Note.note()) || Index == MAX_INSTRUMENTS)
+								return;		// // //
+							if (InstManager.GetInstrumentType(Index) != INST_2A03)
+								return;
+							AssignUsed[Index][Note.midi_note()] = true;
+							auto pInst = std::static_pointer_cast<CInstrument2A03>(InstManager.GetInstrument(Index));
+							if (pInst->GetSampleIndex(Note.midi_note()) == i)
+								Used = true;
+						});
 					}
 				}
 			});

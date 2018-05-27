@@ -35,8 +35,6 @@ const std::array<unsigned char, CInstrumentFDS::WAVE_SIZE> TEST_WAVE = {
 
 } // namespace
 
-const char *const CInstrumentFDS::SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "(N/A)"};
-
 CInstrumentFDS::CInstrumentFDS() : CSeqInstrument(INST_FDS),		// // //
 	m_iSamples(TEST_WAVE),		// // //
 	m_iModulationSpeed(0),

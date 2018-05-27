@@ -59,7 +59,6 @@ public:
 protected:
 	CStringW m_strText;
 protected:
-	static const WCHAR BANNER_FONT[];
 	static const COLORREF BANNER_COLOR;
 public:
 	afx_msg void OnPaint();

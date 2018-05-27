@@ -187,9 +187,6 @@ bool CFindCursor::Contains() const
 
 IMPLEMENT_DYNAMIC(CFindResultsBox, CDialog)
 
-CFindResultsBox::result_column_t CFindResultsBox::m_iLastsortColumn = ID;
-bool CFindResultsBox::m_bLastSortDescending = false;
-
 CFindResultsBox::CFindResultsBox(CWnd* pParent) : CDialog(IDD_FINDRESULTS, pParent)
 {
 	m_iLastsortColumn = ID;

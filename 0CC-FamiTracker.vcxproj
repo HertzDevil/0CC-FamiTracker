@@ -616,8 +616,6 @@
     <ClCompile Include="Source\Instrument2A03.cpp" />
     <ClCompile Include="Source\InstrumentFDS.cpp" />
     <ClCompile Include="Source\InstrumentN163.cpp" />
-    <ClCompile Include="Source\InstrumentS5B.cpp" />
-    <ClCompile Include="Source\InstrumentVRC6.cpp" />
     <ClCompile Include="Source\InstrumentVRC7.cpp" />
     <ClCompile Include="Source\VisualizerWnd.cpp" />
     <ClCompile Include="Source\VisualizerScope.cpp" />

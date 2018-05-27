@@ -26,6 +26,7 @@
 #include "stdafx.h"		// // //
 #include "../resource.h"		// // //
 #include <string>		// // //
+#include <string_view>		// // //
 #include <memory>		// // //
 
 // // // List control states
@@ -103,7 +104,7 @@ protected:
 
 protected:
 	// Setup default sequence dialog
-	void SetupDialog(const LPCSTR *pListItems);		// // //
+	void SetupDialog(const std::string_view *pListItems);		// // //
 
 	// Virtual methods
 	virtual void SetupParser() const = 0;		// // //

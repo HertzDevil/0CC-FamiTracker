@@ -204,16 +204,18 @@ void CFamiTrackerDocIO::PostLoad(CFamiTrackerModule &modfile) {
 	if (fds_adjust_arps_) {
 		if (modfile.HasExpansionChip(sound_chip_t::FDS)) {
 			modfile.VisitSongs([&] (CSongData &song) {
-				for (int p = 0; p < MAX_PATTERN; ++p)
-					for (int r = 0; r < MAX_PATTERN_LENGTH; ++r) {
-						ft0cc::doc::pattern_note &Note = song.GetPatternData(fds_subindex_t::wave, p, r);		// // //
-						if (is_note(Note.note())) {
-							int Trsp = Note.midi_note() + NOTE_RANGE * 2;
-							Trsp = Trsp >= NOTE_COUNT ? NOTE_COUNT - 1 : Trsp;
-							Note.set_note(ft0cc::doc::pitch_from_midi(Trsp));
-							Note.set_oct(ft0cc::doc::oct_from_midi(Trsp));
-						}
-					}
+				if (CTrackData *pFDS = song.GetTrack(fds_subindex_t::wave)) {
+					pFDS->VisitPatterns([&] (CPatternData &pattern, std::size_t p) {
+						pattern.VisitRows([&] (ft0cc::doc::pattern_note &Note, unsigned r) {
+							if (is_note(Note.note())) {
+								int Trsp = Note.midi_note() + NOTE_RANGE * 2;
+								Trsp = Trsp >= NOTE_COUNT ? NOTE_COUNT - 1 : Trsp;
+								Note.set_note(ft0cc::doc::pitch_from_midi(Trsp));
+								Note.set_oct(ft0cc::doc::oct_from_midi(Trsp));
+							}
+						});
+					});
+				}
 			});
 		}
 		auto *pManager = modfile.GetInstrumentManager();
@@ -819,8 +821,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 				Note.set_inst(Inst);
 				Note.set_vol(AssertRange<MODULE_ERROR_STRICT>(file_.GetBlockChar(), 0, MAX_VOLUME, "Channel volume"));
 
-				int FX = compat200 ? 1 : ver >= 6 ? MAX_EFFECT_COLUMNS :
-					pSong->GetEffectColumnCount(order.TranslateChannel(Channel));		// // // 050B
+				int FX = compat200 ? 1 : ver >= 6 ? MAX_EFFECT_COLUMNS : pSong->GetEffectColumnCount(ch);		// // // 050B
 				for (int n = 0; n < FX; ++n) try {
 					auto EffectNumber = enum_cast<ft0cc::doc::effect_type>(file_.GetBlockChar());
 					Note.set_fx_name(n, EffectNumber);
@@ -925,7 +926,7 @@ void CFamiTrackerDocIO::LoadPatterns(CFamiTrackerModule &modfile, int ver) {
 				}
 				*/
 
-				pSong->SetPatternData(order.TranslateChannel(Channel), Pattern, Row, Note);		// // //
+				pSong->GetPattern(ch, Pattern).SetNoteOn(Row, Note);		// // //
 			}
 			catch (CModuleException &e) {
 				e.AppendError("At row " + conv::from_int_hex(Row, 2) + ',');

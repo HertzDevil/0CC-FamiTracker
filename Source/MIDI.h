@@ -89,7 +89,7 @@ private:
 	// Static functions & variables
 private:
 	static void CALLBACK MidiInProc(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2);
-	static CMIDI *m_pInstance;
+	static inline CMIDI *m_pInstance = nullptr;
 
 	// Private variables
 private:

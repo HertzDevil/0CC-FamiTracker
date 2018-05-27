@@ -399,12 +399,6 @@
     <ClCompile Include="Source\InstrumentN163.cpp">
       <Filter>Source Files\Document Data Types\Instruments</Filter>
     </ClCompile>
-    <ClCompile Include="Source\InstrumentS5B.cpp">
-      <Filter>Source Files\Document Data Types\Instruments</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\InstrumentVRC6.cpp">
-      <Filter>Source Files\Document Data Types\Instruments</Filter>
-    </ClCompile>
     <ClCompile Include="Source\InstrumentVRC7.cpp">
       <Filter>Source Files\Document Data Types\Instruments</Filter>
     </ClCompile>

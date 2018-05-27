@@ -35,7 +35,6 @@
 
 // CTransposeDlg dialog
 
-bool CTransposeDlg::s_bDisableInst[MAX_INSTRUMENTS] = {false};
 const UINT CTransposeDlg::BUTTON_ID = 0xDD00; // large enough
 
 IMPLEMENT_DYNAMIC(CTransposeDlg, CDialog)
@@ -85,7 +84,7 @@ END_MESSAGE_MAP()
 BOOL CTransposeDlg::OnInitDialog()
 {
 	m_cFont.CreateFontW(-DPI::SY(10), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET,
-		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_SWISS, L"Verdana");
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, VARIABLE_PITCH | FF_DONTCARE, L"Verdana");
 
 	m_pDocument = CFamiTrackerDoc::GetDoc();
 	CRect r;

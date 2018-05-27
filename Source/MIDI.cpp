@@ -38,8 +38,6 @@
 
 // Static stuff
 
-CMIDI *CMIDI::m_pInstance = NULL;
-
 void CALLBACK CMIDI::MidiInProc(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2)
 {
 	// MIDI input callback function

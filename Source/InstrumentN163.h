@@ -61,8 +61,8 @@ public:
 	static const int MAX_WAVE_COUNT = 64;		// Number of waves
 
 public:
-	static const char *const SEQUENCE_NAME[];
-	const char *GetSequenceName(int Index) const override { return SEQUENCE_NAME[Index]; }		// // //
+	static constexpr std::string_view SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "Wave Index"};
+	std::string_view GetSequenceName(int Index) const override { return SEQUENCE_NAME[Index]; }		// // //
 
 private:
 	std::array<std::array<int, MAX_WAVE_SIZE>, MAX_WAVE_COUNT> m_iSamples = { };		// // //

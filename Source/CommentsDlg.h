@@ -45,11 +45,8 @@ public:
 // Dialog Data
 	enum { IDD = IDD_COMMENTS };
 
-	static const LPCWSTR FONT_FACE;		// // //
-	static int FONT_SIZE;
-
 protected:
-	static RECT WinRect;
+	static inline RECT WinRect { };
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

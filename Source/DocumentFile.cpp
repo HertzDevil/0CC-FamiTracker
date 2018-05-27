@@ -246,7 +246,7 @@ bool CDocumentFile::ReadBlock()
 	return false;
 }
 
-const char *CDocumentFile::GetBlockHeaderID() const		// // //
+std::string_view CDocumentFile::GetBlockHeaderID() const		// // //
 {
 	return m_cBlockID.data();
 }

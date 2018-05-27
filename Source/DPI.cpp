@@ -24,8 +24,6 @@
 #include "DPI.h"
 
 const int DPI::DEFAULT_DPI = 96;
-int DPI::dpiX_ = DPI::DEFAULT_DPI;
-int DPI::dpiY_ = DPI::DEFAULT_DPI;
 
 int DPI::SX(int pt)
 {

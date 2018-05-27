@@ -59,9 +59,6 @@ const exportFunc_t CExportDialog::DEFAULT_EXPORT_FUNCS[] = {
 
 const int CExportDialog::DEFAULT_EXPORTERS = 6;		// // //
 
-// Remember last option when dialog is closed
-int CExportDialog::m_iExportOption = 0;
-
 // File filters
 const LPCWSTR CExportDialog::DEFAULT_FILTERS[][2] = {
 	{L"NSF file (*.nsf)"        , L"*.nsf" },

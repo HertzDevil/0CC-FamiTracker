@@ -45,12 +45,7 @@ public:
 	const CTrackData *GetTrack(stChannelID chan) const;
 
 	bool IsPatternInUse(stChannelID Channel, unsigned int Pattern) const;
-
-	unsigned GetFreePatternIndex(stChannelID Channel, unsigned Whence = (unsigned)-1) const;		// // //
-
-	ft0cc::doc::pattern_note &GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row);		// // //
-	const ft0cc::doc::pattern_note &GetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row) const;		// // //
-	void SetPatternData(stChannelID Channel, unsigned Pattern, unsigned Row, const ft0cc::doc::pattern_note &Note);		// // //
+	unsigned GetFreePatternIndex(stChannelID Channel, unsigned Whence = static_cast<unsigned>(-1)) const;		// // //
 
 	CPatternData &GetPattern(stChannelID Channel, unsigned Pattern);		// // //
 	const CPatternData &GetPattern(stChannelID Channel, unsigned Pattern) const;		// // //

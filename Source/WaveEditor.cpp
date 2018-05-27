@@ -38,9 +38,6 @@
  *
  */
 
-bool CWaveEditorFDS::m_bLineMode = true;
-bool CWaveEditorN163::m_bLineMode = false;
-
 IMPLEMENT_DYNAMIC(CWaveEditor, CWnd)
 
 BEGIN_MESSAGE_MAP(CWaveEditor, CWnd)
