@@ -22,6 +22,7 @@
     <ClInclude Include="..\include\ft0cc\cpputil\array_view.hpp" />
     <ClInclude Include="..\include\ft0cc\cpputil\iter.hpp" />
     <ClInclude Include="..\include\ft0cc\cpputil\strong_ordering.hpp" />
+    <ClInclude Include="..\include\ft0cc\cpputil\utf8_conv.hpp" />
     <ClInclude Include="..\include\ft0cc\doc\constants.hpp" />
     <ClInclude Include="..\include\ft0cc\doc\effect_command.hpp" />
     <ClInclude Include="..\include\ft0cc\doc\effect_type.hpp" />

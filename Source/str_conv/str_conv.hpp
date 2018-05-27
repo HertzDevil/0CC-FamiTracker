@@ -26,7 +26,7 @@
 #include <string>
 #include <string_view>
 #include "to_sv.h"
-#include "str_conv/utf8_conv.hpp"
+#include "ft0cc/cpputil/utf8_conv.hpp"
 
 namespace conv {
 
@@ -72,9 +72,9 @@ std::basic_string<To> utf_convert(std::basic_string_view<From> sv) {
 }
 
 template <typename To, typename From>
-auto to_utf_string(From&& str) {
+To to_utf_string(From&& str) {
 	if constexpr (std::is_same_v<std::decay_t<From>, To>)
-		return To(std::forward<From>(str));
+		return std::forward<From>(str);
 	else
 		return details::utf_convert<typename To::value_type>(to_sv(str));
 }
@@ -84,19 +84,19 @@ auto to_utf_string(From&& str) {
 
 
 template <typename T>
-auto to_utf8(T&& str) {
+std::string to_utf8(T&& str) {
 	return details::to_utf_string<std::string>(std::forward<T>(str));
 }
 template <typename T>
-auto to_utf16(T&& str) {
+std::u16string to_utf16(T&& str) {
 	return details::to_utf_string<std::u16string>(std::forward<T>(str));
 }
 template <typename T>
-auto to_utf32(T&& str) {
-	return details::to_utf_string<std::u32string>(std::forward<T>(str));
+std::u16string to_utf32(T&& str) {
+	return details::to_utf_string<std::u16string>(std::forward<T>(str));
 }
 template <typename T>
-auto to_wide(T&& str) {
+std::wstring to_wide(T&& str) {
 	return details::to_utf_string<std::wstring>(std::forward<T>(str));
 }
 

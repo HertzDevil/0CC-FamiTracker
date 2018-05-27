@@ -63,6 +63,9 @@
     <ClInclude Include="..\include\ft0cc\cpputil\array_view.hpp">
       <Filter>Header Files\cpputil</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\ft0cc\cpputil\utf8_conv.hpp">
+      <Filter>Header Files\cpputil</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ft0cc\doc\groove.cpp">

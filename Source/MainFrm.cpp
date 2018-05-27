@@ -77,7 +77,6 @@
 #include "InstrumentIO.h"
 #include "Kraid.h"
 #include "NumConv.h"
-#include "str_conv/utf8_conv.hpp"
 #include "str_conv/str_conv.hpp"
 #include "InstrumentListCtrl.h"
 #include "ModuleException.h"
