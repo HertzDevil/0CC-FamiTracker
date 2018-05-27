@@ -30,7 +30,7 @@
 #include "InstrumentN163.h"		// // //
 #include "SoundGen.h"
 #include "Clipboard.h"
-#include "WavegenBuiltin.h" // test
+#include "WaveformGenerator.h"		// // //
 #include "NumConv.h"		// // //
 #include "sv_regex.h"		// // //
 #include <array>		// // //
@@ -161,22 +161,16 @@ BOOL CInstrumentEditorN163Wave::PreTranslateMessage(MSG* pMsg)		// // //
 	return CInstrumentEditPanel::PreTranslateMessage(pMsg);
 }
 
-void CInstrumentEditorN163Wave::GenerateWaves(std::unique_ptr<CWaveformGenerator> pWaveGen)		// // // test
-{
-	int size = m_pInstrument->GetWaveSize();
-	auto Buffer = std::make_unique<float[]>(size); // test
-	pWaveGen->CreateWaves(Buffer.get(), size, pWaveGen->GetCount());
-	for (int i = 0; i < size; ++i) {
-		float Sample = std::clamp(Buffer[i] * 8.f + 8.f, 0.f, 15.f);
-		m_pInstrument->SetSample(m_iWaveIndex, i, static_cast<int>(Sample));
-	}
+template <typename T>
+void CInstrumentEditorN163Wave::UpdateWaveform(T WaveGen) {		// // //
+	GenerateWaveform(WaveGen, m_pInstrument->GetWaveSize(), 16, [&] (unsigned sample, std::size_t i) {
+		m_pInstrument->SetSample(m_iWaveIndex, i, sample);
+	});
 
 	GetDocument()->ModifyIrreversible();		// // //
 	m_pWaveEditor->WaveChanged();
 	FTEnv.GetSoundGenerator()->WaveChanged();
 }
-
-// // // test
 
 int CInstrumentEditorN163Wave::WaveSizeAvailable() const {		// // //
 	return 256 - 16 * GetDocument()->GetModule()->GetNamcoChannels();
@@ -184,33 +178,27 @@ int CInstrumentEditorN163Wave::WaveSizeAvailable() const {		// // //
 
 void CInstrumentEditorN163Wave::OnPresetSine()
 {
-	GenerateWaves(std::make_unique<CWavegenSine>());
+	UpdateWaveform(Waves::CSine { });
 }
 
 void CInstrumentEditorN163Wave::OnPresetTriangle()
 {
-	GenerateWaves(std::make_unique<CWavegenTriangle>());
+	UpdateWaveform(Waves::CTriangle { });
 }
 
 void CInstrumentEditorN163Wave::OnPresetPulse50()
 {
-	float PulseWidth = .5f;
-	auto pWaveGen = std::make_unique<CWavegenPulse>();
-	pWaveGen->GetParameter(0)->SetValue(&PulseWidth);
-	GenerateWaves(std::move(pWaveGen));
+	UpdateWaveform(Waves::CPulse {.5});
 }
 
 void CInstrumentEditorN163Wave::OnPresetPulse25()
 {
-	float PulseWidth = .25f;
-	auto pWaveGen = std::make_unique<CWavegenPulse>();
-	pWaveGen->GetParameter(0)->SetValue(&PulseWidth);
-	GenerateWaves(std::move(pWaveGen));
+	UpdateWaveform(Waves::CPulse {.25});
 }
 
 void CInstrumentEditorN163Wave::OnPresetSawtooth()
 {
-	GenerateWaves(std::make_unique<CWavegenSawtooth>());
+	UpdateWaveform(Waves::CSawtooth { });
 }
 
 void CInstrumentEditorN163Wave::OnBnClickedCopy()

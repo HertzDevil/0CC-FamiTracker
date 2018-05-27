@@ -598,7 +598,6 @@
     <ClCompile Include="Source\InstrumentEditPanel.cpp" />
     <ClCompile Include="Source\CreateWaveDlg.cpp" />
     <ClCompile Include="Source\WaveformGenerator.cpp" />
-    <ClCompile Include="Source\WavegenBuiltin.cpp" />
     <ClCompile Include="Source\WaveRenderer.cpp" />
     <ClCompile Include="Source\WaveRendererFactory.cpp" />
     <ClCompile Include="Source\WaveStream.cpp" />
@@ -802,7 +801,6 @@
     <ClInclude Include="Source\VersionChecker.h" />
     <ClInclude Include="Source\VisualizerBase.h" />
     <ClInclude Include="Source\WaveformGenerator.h" />
-    <ClInclude Include="Source\WavegenBuiltin.h" />
     <ClInclude Include="Source\WaveRenderer.h" />
     <ClInclude Include="Source\WaveRendererFactory.h" />
     <ClInclude Include="Source\WaveStream.h" />

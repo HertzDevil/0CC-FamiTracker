@@ -57,8 +57,11 @@ protected:
 	void PopulateWaveBox();		// // //
 	void UpdateWaveBox(int Index);		// // //
 
-	void GenerateWaves(std::unique_ptr<CWaveformGenerator> pWaveGen);		// // // test
 	int WaveSizeAvailable() const;		// // //
+
+private:
+	template <typename T>
+	void UpdateWaveform(T WaveGen);		// // //
 
 protected:
 	std::shared_ptr<CInstrumentN163> m_pInstrument;

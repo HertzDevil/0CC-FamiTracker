@@ -573,9 +573,6 @@
     <ClCompile Include="Source\WaveformGenerator.cpp">
       <Filter>Source Files\Dialog Boxes\Instrument\Related</Filter>
     </ClCompile>
-    <ClCompile Include="Source\WavegenBuiltin.cpp">
-      <Filter>Source Files\Dialog Boxes\Instrument\Related</Filter>
-    </ClCompile>
     <ClCompile Include="Source\TransposeDlg.cpp">
       <Filter>Source Files\Dialog Boxes</Filter>
     </ClCompile>
@@ -1170,9 +1167,6 @@
       <Filter>Header Files\Document Component Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\WaveformGenerator.h">
-      <Filter>Header Files\Dialog Boxes Headers\Instrument Headers\Related Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\WavegenBuiltin.h">
       <Filter>Header Files\Dialog Boxes Headers\Instrument Headers\Related Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\TransposeDlg.h">

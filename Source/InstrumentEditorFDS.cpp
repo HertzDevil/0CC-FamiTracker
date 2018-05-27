@@ -37,6 +37,7 @@
 #include "NumConv.h"		// // //
 #include "StringClipData.h"		// // //
 #include "FamiTrackerDoc.h"		// // //
+#include "WaveformGenerator.h"		// // //
 
 // CInstrumentEditorFDS dialog
 
@@ -147,65 +148,40 @@ BOOL CInstrumentEditorFDS::PreTranslateMessage(MSG* pMsg)		// // //
 	return CInstrumentEditPanel::PreTranslateMessage(pMsg);
 }
 
-void CInstrumentEditorFDS::OnPresetSine()
-{
-	for (int i = 0; i < 64; ++i) {
-		float angle = (float(i) * 3.141592f * 2.0f) / 64.0f + 0.049087375f;
-		int sample = int((sinf(angle) + 1.0f) * 31.5f + 0.5f);
+template <typename T>
+void CInstrumentEditorFDS::UpdateWaveform(T WaveGen) {		// // //
+	GenerateWaveform(WaveGen, 64, 64, [&] (unsigned sample, std::size_t i) {
 		m_pInstrument->SetSample(i, sample);
-	}
+	});
 
 	GetDocument()->ModifyIrreversible();		// // //
 	m_pWaveEditor->RedrawWindow();
 	FTEnv.GetSoundGenerator()->WaveChanged();
+}
+
+void CInstrumentEditorFDS::OnPresetSine()
+{
+	UpdateWaveform(Waves::CSine { });
 }
 
 void CInstrumentEditorFDS::OnPresetTriangle()
 {
-	for (int i = 0; i < 64; ++i) {
-		int sample = (i < 32 ? i << 1 : (63 - i) << 1);
-		m_pInstrument->SetSample(i, sample);
-	}
-
-	GetDocument()->ModifyIrreversible();		// // //
-	m_pWaveEditor->RedrawWindow();
-	FTEnv.GetSoundGenerator()->WaveChanged();
+	UpdateWaveform(Waves::CTriangle { });
 }
 
 void CInstrumentEditorFDS::OnPresetPulse50()
 {
-	for (int i = 0; i < 64; ++i) {
-		int sample = (i < 32 ? 0 : 63);
-		m_pInstrument->SetSample(i, sample);
-	}
-
-	GetDocument()->ModifyIrreversible();		// // //
-	m_pWaveEditor->RedrawWindow();
-	FTEnv.GetSoundGenerator()->WaveChanged();
+	UpdateWaveform(Waves::CPulse {.5});
 }
 
 void CInstrumentEditorFDS::OnPresetPulse25()
 {
-	for (int i = 0; i < 64; ++i) {
-		int sample = (i < 16 ? 0 : 63);
-		m_pInstrument->SetSample(i, sample);
-	}
-
-	GetDocument()->ModifyIrreversible();		// // //
-	m_pWaveEditor->RedrawWindow();
-	FTEnv.GetSoundGenerator()->WaveChanged();
+	UpdateWaveform(Waves::CPulse {.25});
 }
 
 void CInstrumentEditorFDS::OnPresetSawtooth()
 {
-	for (int i = 0; i < 64; ++i) {
-		int sample = i;
-		m_pInstrument->SetSample(i, sample);
-	}
-
-	GetDocument()->ModifyIrreversible();		// // //
-	m_pWaveEditor->RedrawWindow();
-	FTEnv.GetSoundGenerator()->WaveChanged();
+	UpdateWaveform(Waves::CSawtooth { });
 }
 
 void CInstrumentEditorFDS::OnModPresetFlat()

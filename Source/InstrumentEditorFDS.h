@@ -54,6 +54,10 @@ protected:
 	void ParseWaveString(std::string_view String);
 	void ParseTableString(std::string_view String);
 
+private:
+	template <typename T>
+	void UpdateWaveform(T WaveGen);
+
 protected:
 	std::shared_ptr<CInstrumentFDS> m_pInstrument;
 	std::unique_ptr<CWaveEditorFDS> m_pWaveEditor;		// // //
