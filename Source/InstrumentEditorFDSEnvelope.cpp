@@ -55,8 +55,6 @@ void CInstrumentEditorFDSEnvelope::SelectInstrument(std::shared_ptr<CInstrument>
 	ASSERT(m_pInstrument);
 
 	LoadSequence(m_iSelectedSetting);		// // //
-
-	SetFocus();
 }
 
 
