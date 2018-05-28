@@ -675,6 +675,7 @@
     <ClInclude Include="Source\Arpeggiator.h" />
     <ClInclude Include="Source\Assertion.h" />
     <ClInclude Include="Source\AudioDriver.h" />
+    <ClInclude Include="Source\BinaryReader.h" />
     <ClInclude Include="Source\BinarySerializable.h" />
     <ClInclude Include="Source\Bookmark.h" />
     <ClInclude Include="Source\BookmarkCollection.h" />
@@ -790,7 +791,6 @@
     <ClInclude Include="Source\stdafx.h" />
     <ClInclude Include="Source\StretchDlg.h" />
     <ClInclude Include="Source\str_conv\str_conv.hpp" />
-    <ClInclude Include="Source\str_conv\utf8_conv.hpp" />
     <ClInclude Include="Source\sv_regex.h" />
     <ClInclude Include="Source\SwapDlg.h" />
     <ClInclude Include="Source\TempoCounter.h" />

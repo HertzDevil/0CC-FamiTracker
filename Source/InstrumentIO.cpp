@@ -77,7 +77,7 @@ void CInstrumentIO::WriteToFTI(const CInstrument &inst, CSimpleFile &file) const
 }
 
 void CInstrumentIO::ReadFromFTI(CInstrument &inst, CSimpleFile &file, int fti_ver) const {
-	inst.SetName(file.ReadString());		// // //
+	inst.SetName(file.ReadString<char>());		// // //
 	DoReadFromFTI(inst, file, fti_ver);
 }
 
@@ -163,12 +163,12 @@ void CInstrumentIOSeq::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int 
 	// Sequences
 	std::shared_ptr<CSequence> pSeq;
 
-	AssertRange(file.ReadInt8(), 0, (int)SEQ_COUNT, "Sequence count"); // unused right now
+	AssertRange(file.ReadInt<std::int8_t>(), 0, (int)SEQ_COUNT, "Sequence count"); // unused right now
 
 	// Loop through all instrument effects
 	for (auto i : enum_values<sequence_t>()) {
 		try {
-			if (file.ReadInt8() != 1) {
+			if (file.ReadInt<std::int8_t>() != 1) {
 				inst.SetSeqEnable(i, false);
 				inst.SetSeqIndex(i, 0);
 				continue;
@@ -176,13 +176,13 @@ void CInstrumentIOSeq::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int 
 			inst.SetSeqEnable(i, true);
 
 			// Read the sequence
-			int Count = AssertRange(file.ReadInt32(), 0, 0xFF, "Sequence item count");
+			int Count = AssertRange(file.ReadInt<std::int32_t>(), 0, 0xFF, "Sequence item count");
 
 			if (fti_ver < 20) {
 				COldSequence OldSeq;
 				for (int j = 0; j < Count; ++j) {
-					char Length = file.ReadInt8();
-					OldSeq.AddItem(Length, file.ReadInt8());
+					char Length = file.ReadInt<std::int8_t>();
+					OldSeq.AddItem(Length, file.ReadInt<std::int8_t>());
 				}
 				pSeq = OldSeq.Convert(i);
 			}
@@ -191,15 +191,15 @@ void CInstrumentIOSeq::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int 
 				int Count2 = Count > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : Count;
 				pSeq->SetItemCount(Count2);
 				pSeq->SetLoopPoint(AssertRange(
-					static_cast<int>(file.ReadInt32()), -1, Count2 - 1, "Sequence loop point"));
+					static_cast<int>(file.ReadInt<std::int32_t>()), -1, Count2 - 1, "Sequence loop point"));
 				if (fti_ver > 20) {
 					pSeq->SetReleasePoint(AssertRange(
-						static_cast<int>(file.ReadInt32()), -1, Count2 - 1, "Sequence release point"));
+						static_cast<int>(file.ReadInt<std::int32_t>()), -1, Count2 - 1, "Sequence release point"));
 					if (fti_ver >= 22)
-						pSeq->SetSetting(static_cast<seq_setting_t>(file.ReadInt32()));
+						pSeq->SetSetting(static_cast<seq_setting_t>(file.ReadInt<std::int32_t>()));
 				}
 				for (int j = 0; j < Count; ++j) {
-					int8_t item = file.ReadInt8();
+					int8_t item = file.ReadInt<std::int8_t>();
 					if (j < Count2)
 						pSeq->SetItem(j, item);
 				}
@@ -339,22 +339,22 @@ void CInstrumentIO2A03::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 
 	char SampleNames[MAX_DSAMPLES][ft0cc::doc::dpcm_sample::max_name_length + 1] = { };
 
-	unsigned int Count = file.ReadInt32();
+	unsigned int Count = file.ReadInt<std::int32_t>();
 	AssertRange(Count, 0U, static_cast<unsigned>(NOTE_COUNT), "DPCM assignment count");
 
 	// DPCM instruments
 	for (unsigned int i = 0; i < Count; ++i) {
-		unsigned char InstNote = file.ReadInt8();
+		unsigned char InstNote = file.ReadInt<std::int8_t>();
 		try {
-			unsigned char Sample = AssertRange(file.ReadInt8(), 0, 0x7F, "DPCM sample assignment index");
+			unsigned char Sample = AssertRange(file.ReadInt<std::int8_t>(), 0, 0x7F, "DPCM sample assignment index");
 			if (Sample > MAX_DSAMPLES)
 				Sample = 0;
-			unsigned char Pitch = file.ReadInt8();
+			unsigned char Pitch = file.ReadInt<std::int8_t>();
 			AssertRange(Pitch & 0x7FU, 0U, 0xFU, "DPCM sample pitch");
 			inst.SetSamplePitch(InstNote, Pitch);
 			inst.SetSampleIndex(InstNote, Sample - 1);
 			inst.SetSampleDeltaValue(InstNote, AssertRange(
-				static_cast<char>(fti_ver >= 24 ? file.ReadInt8() : -1), -1, 0x7F, "DPCM sample delta value"));
+				static_cast<char>(fti_ver >= 24 ? file.ReadInt<std::int8_t>() : -1), -1, 0x7F, "DPCM sample delta value"));
 		}
 		catch (CModuleException &e) {
 			auto n = value_cast(ft0cc::doc::pitch_from_midi(InstNote));
@@ -371,13 +371,13 @@ void CInstrumentIO2A03::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 		if (auto pSamp = pManager->GetDSample(i))
 			TotalSize += pSamp->size();
 
-	unsigned int SampleCount = file.ReadInt32();
+	unsigned int SampleCount = file.ReadInt<std::int32_t>();
 	for (unsigned int i = 0; i < SampleCount; ++i) {
-		int Index = AssertRange(file.ReadInt32(), 0, MAX_DSAMPLES - 1, "DPCM sample index");
-		std::size_t Len = AssertRange(file.ReadInt32(), 0, (int)ft0cc::doc::dpcm_sample::max_name_length, "DPCM sample name length");
+		int Index = AssertRange(file.ReadInt<std::int32_t>(), 0, MAX_DSAMPLES - 1, "DPCM sample index");
+		std::size_t Len = AssertRange(file.ReadInt<std::int32_t>(), 0, (int)ft0cc::doc::dpcm_sample::max_name_length, "DPCM sample name length");
 		file.ReadBytes(as_writeable_bytes(array_view<char> {SampleNames[Index], Len}));
 		SampleNames[Index][Len] = '\0';
-		int Size = file.ReadInt32();
+		int Size = file.ReadInt<std::int32_t>();
 		std::vector<uint8_t> SampleData(Size);
 		file.ReadBytes(byte_view(SampleData));
 		auto pSample = std::make_shared<ft0cc::doc::dpcm_sample>(std::move(SampleData), SampleNames[Index]);
@@ -448,10 +448,10 @@ void CInstrumentIOVRC7::DoWriteToFTI(const CInstrument &inst_, CSimpleFile &file
 void CInstrumentIOVRC7::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int fti_ver) const {
 	auto &inst = dynamic_cast<CInstrumentVRC7 &>(inst_);
 
-	inst.SetPatch(file.ReadInt32());
+	inst.SetPatch(file.ReadInt<std::int32_t>());
 
 	for (int i = 0; i < 8; ++i)
-		inst.SetCustomReg(i, file.ReadInt8());
+		inst.SetCustomReg(i, file.ReadInt<std::int8_t>());
 }
 
 
@@ -602,33 +602,33 @@ void CInstrumentIOFDS::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int 
 	// Read wave
 	unsigned char samples[64] = { };
 	for (auto &x : samples)
-		x = file.ReadInt8();
+		x = file.ReadInt<std::int8_t>();
 	inst.SetSamples(samples);
 
 	unsigned char modtable[32] = { };
 	for (auto &x : modtable)
-		x = file.ReadInt8();
+		x = file.ReadInt<std::int8_t>();
 	inst.SetModTable(modtable);
 
 	// Modulation parameters
-	inst.SetModulationSpeed(file.ReadInt32());
-	inst.SetModulationDepth(file.ReadInt32());
-	inst.SetModulationDelay(file.ReadInt32());
+	inst.SetModulationSpeed(file.ReadInt<std::int32_t>());
+	inst.SetModulationDepth(file.ReadInt<std::int32_t>());
+	inst.SetModulationDelay(file.ReadInt<std::int32_t>());
 
 	// Sequences
 	const auto LoadInstSequence = [&] (sequence_t SeqType) {
-		int SeqCount = AssertRange(file.ReadInt32(), 0, 0xFF, "Sequence item count");
-		int Loop = AssertRange(static_cast<int>(file.ReadInt32()), -1, SeqCount - 1, "Sequence loop point");
-		int Release = AssertRange(static_cast<int>(file.ReadInt32()), -1, SeqCount - 1, "Sequence release point");
+		int SeqCount = AssertRange(file.ReadInt<std::int32_t>(), 0, 0xFF, "Sequence item count");
+		int Loop = AssertRange(static_cast<int>(file.ReadInt<std::int32_t>()), -1, SeqCount - 1, "Sequence loop point");
+		int Release = AssertRange(static_cast<int>(file.ReadInt<std::int32_t>()), -1, SeqCount - 1, "Sequence release point");
 
 		auto pSeq = std::make_shared<CSequence>(SeqType);
 		pSeq->SetItemCount(SeqCount > MAX_SEQUENCE_ITEMS ? MAX_SEQUENCE_ITEMS : SeqCount);
 		pSeq->SetLoopPoint(Loop);
 		pSeq->SetReleasePoint(Release);
-		pSeq->SetSetting(static_cast<seq_setting_t>(file.ReadInt32()));
+		pSeq->SetSetting(static_cast<seq_setting_t>(file.ReadInt<std::int32_t>()));
 
 		for (int i = 0; i < SeqCount; ++i)
-			pSeq->SetItem(i, file.ReadInt8());
+			pSeq->SetItem(i, file.ReadInt<std::int8_t>());
 
 		return pSeq;
 	};
@@ -709,13 +709,13 @@ void CInstrumentION163::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 	CInstrumentIOSeq::DoReadFromFTI(inst_, file, fti_ver);
 
 	// Read wave config
-	int WaveSize = AssertRange(static_cast<int>(file.ReadInt32()), 4, CInstrumentN163::MAX_WAVE_SIZE, "N163 wave size");
-	int WavePos = AssertRange(static_cast<int>(file.ReadInt32()), 0, CInstrumentN163::MAX_WAVE_SIZE - 1, "N163 wave position");
+	int WaveSize = AssertRange(static_cast<int>(file.ReadInt<std::int32_t>()), 4, CInstrumentN163::MAX_WAVE_SIZE, "N163 wave size");
+	int WavePos = AssertRange(static_cast<int>(file.ReadInt<std::int32_t>()), 0, CInstrumentN163::MAX_WAVE_SIZE - 1, "N163 wave position");
 	if (fti_ver >= 25) {		// // // 050B
-		bool AutoWavePos = file.ReadInt32() != 0;
+		bool AutoWavePos = file.ReadInt<std::int32_t>() != 0;
 		(void)AutoWavePos;
 	}
-	int WaveCount = AssertRange(static_cast<int>(file.ReadInt32()), 1, CInstrumentN163::MAX_WAVE_COUNT, "N163 wave count");
+	int WaveCount = AssertRange(static_cast<int>(file.ReadInt<std::int32_t>()), 1, CInstrumentN163::MAX_WAVE_COUNT, "N163 wave count");
 
 	inst.SetWaveSize(WaveSize);
 	inst.SetWavePos(WavePos);
@@ -723,7 +723,7 @@ void CInstrumentION163::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 
 	for (int i = 0; i < WaveCount; ++i)
 		for (int j = 0; j < WaveSize; ++j) try {
-			inst.SetSample(i, j, AssertRange(file.ReadInt8(), 0, 15, "N163 wave sample"));
+			inst.SetSample(i, j, AssertRange(file.ReadInt<std::int8_t>(), 0, 15, "N163 wave sample"));
 		}
 	catch (CModuleException &e) {
 		e.AppendError("At wave " + conv::from_int(i) + ", sample " + conv::from_int(j) + ',');

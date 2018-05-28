@@ -108,19 +108,19 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 			break;		// // //
 
 		case FB_SPEED:
-			Song.SetSongSpeed(OpenFile.ReadInt32() + 1);
+			Song.SetSongSpeed(OpenFile.ReadInt<std::int32_t>() + 1);
 			break;
 
 		case FB_MACHINE:
-			modfile.SetMachine(OpenFile.ReadInt32() ? machine_t::PAL : machine_t::NTSC);
+			modfile.SetMachine(OpenFile.ReadInt<std::int32_t>() ? machine_t::PAL : machine_t::NTSC);
 			break;
 
 		case FB_ENGINESPEED:
-			modfile.SetEngineSpeed(OpenFile.ReadInt32());
+			modfile.SetEngineSpeed(OpenFile.ReadInt<std::int32_t>());
 			break;
 
 		case FB_INSTRUMENTS:
-			ReadCount = OpenFile.ReadInt32();
+			ReadCount = OpenFile.ReadInt<std::int32_t>();
 			if (ReadCount > MAX_INSTRUMENTS)
 				ReadCount = MAX_INSTRUMENTS - 1;
 			for (i = 0; i < ReadCount; ++i) {
@@ -148,7 +148,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 			break;
 
 		case FB_SEQUENCES:
-			ReadCount = OpenFile.ReadInt32();
+			ReadCount = OpenFile.ReadInt<std::int32_t>();
 			for (i = 0; i < ReadCount; ++i) {
 				COldSequence Seq;
 				OpenFile.ReadBytes(byte_view(ImportedSequence));
@@ -160,17 +160,17 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 			break;
 
 		case FB_PATTERN_ROWS: {
-			unsigned FrameCount = OpenFile.ReadInt32();
+			unsigned FrameCount = OpenFile.ReadInt<std::int32_t>();
 			Song.SetFrameCount(FrameCount);
 			for (c = 0; c < FrameCount; ++c)
 				modfile.GetChannelOrder().ForeachChannel([&] (stChannelID i) {
-					Song.SetFramePattern(c, i, OpenFile.ReadInt32());
+					Song.SetFramePattern(c, i, OpenFile.ReadInt<std::int32_t>());
 				});
 			break;
 		}
 		case FB_PATTERNS: {
-			ReadCount = OpenFile.ReadInt32();
-			unsigned PatternLength = OpenFile.ReadInt32();
+			ReadCount = OpenFile.ReadInt<std::int32_t>();
+			unsigned PatternLength = OpenFile.ReadInt<std::int32_t>();
 			Song.SetPatternLength(PatternLength);
 			modfile.GetChannelOrder().ForeachChannel([&] (stChannelID x) {
 				for (c = 0; c < ReadCount; ++c) {
@@ -209,7 +209,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile)
 				char Name[256];
 			} ImportedDSample;
 
-			ReadCount = OpenFile.ReadInt32();
+			ReadCount = OpenFile.ReadInt<std::int32_t>();
 			for (i = 0; i < ReadCount; ++i) {
 				std::vector<uint8_t> Sample;		// // //
 				OpenFile.ReadBytes(byte_view(ImportedDSample));

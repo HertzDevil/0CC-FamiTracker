@@ -28,9 +28,9 @@
 #include <cstddef>
 #include "ft0cc/cpputil/array_view.hpp"
 #include "ft0cc/cpputil/fs.hpp"
+#include "BinaryReader.h"
 
-class CSimpleFile
-{
+class CSimpleFile : public CBinaryReader {
 public:
 	static_assert(sizeof(char) == sizeof(uint8_t));
 
@@ -50,16 +50,7 @@ public:
 	void	WriteString(std::string_view sv);
 	void	WriteStringNull(std::string_view sv);
 
-	uint8_t		ReadUint8();
-	int8_t		ReadInt8();
-	uint16_t	ReadUint16();
-	int16_t		ReadInt16();
-	uint32_t	ReadUint32();
-	int32_t		ReadInt32();
-	std::size_t	ReadBytes(array_view<std::byte> Buf);
-	std::string	ReadString();
-	std::string	ReadStringN(size_t count);
-	std::string	ReadStringNull();
+	std::size_t	ReadBytes(array_view<std::byte> Buf) override;
 
 	void		Seek(std::size_t pos);
 	std::size_t GetPosition();

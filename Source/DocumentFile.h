@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <cstddef>		// // //
 #include <string>
 #include <array>		// // //
 #include <vector>		// // //
@@ -54,7 +55,7 @@ public:
 	void		EndDocument();
 
 	void		CreateBlock(std::string_view ID, int Version);		// // //
-	void		WriteBlock(array_view<const unsigned char> Data);		// // //
+	void		WriteBlock(array_view<const std::byte> Data);		// // //
 	void		WriteBlockInt(int Value);
 	void		WriteBlockChar(char Value);
 	void		WriteString(std::string_view sv);		// // //
@@ -104,10 +105,6 @@ public:
 	static const unsigned int BLOCK_SIZE;
 	static const unsigned int BLOCK_HEADER_SIZE = 16;		// // //
 
-private:
-	template <typename T>
-	void WriteBlockData(T Value);
-
 protected:
 	void ReallocateBlock();
 
@@ -121,7 +118,7 @@ protected:
 	std::array<char, BLOCK_HEADER_SIZE> m_cBlockID = { };		// // //
 	unsigned int	m_iBlockSize;
 	unsigned int	m_iBlockVersion;
-	std::vector<unsigned char> m_pBlockData;		// // //
+	std::vector<std::byte> m_pBlockData;		// // //
 
 	unsigned int	m_iMaxBlockSize;
 

@@ -1240,21 +1240,21 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// 
 			const unsigned I_CURRENT_VER_MIN = 5;		// // // 050B
 
 			// Signature
-			if (file.ReadStringN(INST_HEADER.size()) != INST_HEADER)
+			if (file.ReadStringN<char>(INST_HEADER.size()) != INST_HEADER)
 				return err(IDS_INSTRUMENT_FILE_FAIL);
 
 			// Version
-			unsigned iInstMaj = conv::from_digit(file.ReadInt8());
-			if (file.ReadInt8() != '.')
+			unsigned iInstMaj = conv::from_digit(file.ReadInt<std::int8_t>());
+			if (file.ReadInt<std::int8_t>() != '.')
 				return err(IDS_INST_VERSION_UNSUPPORTED);
-			unsigned iInstMin = conv::from_digit(file.ReadInt8());
+			unsigned iInstMin = conv::from_digit(file.ReadInt<std::int8_t>());
 			if (std::tie(iInstMaj, iInstMin) > std::tie(I_CURRENT_VER_MAJ, I_CURRENT_VER_MIN))
 				return err(IDS_INST_VERSION_UNSUPPORTED);
 
 			return GetDoc().Locked([&] {
 				try {
 					auto *pManager = GetDoc().GetModule()->GetInstrumentManager();
-					inst_type_t InstType = static_cast<inst_type_t>(file.ReadInt8());
+					inst_type_t InstType = static_cast<inst_type_t>(file.ReadInt<std::int8_t>());
 					if (auto pInstrument = pManager->CreateNew(InstType != INST_NONE ? InstType : INST_2A03)) {
 						pInstrument->OnBlankInstrument();
 						FTEnv.GetInstrumentService()->GetInstrumentIO(InstType, FTEnv.GetSettings()->Version.iErrorLevel)->

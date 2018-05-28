@@ -97,7 +97,7 @@ void CDocumentFile::CreateBlock(std::string_view ID, int Version)		// // //
 
 	m_iMaxBlockSize = BLOCK_SIZE;
 
-	m_pBlockData = std::vector<unsigned char>(m_iMaxBlockSize);		// // //
+	m_pBlockData = std::vector<std::byte>(m_iMaxBlockSize);		// // //
 }
 
 void CDocumentFile::ReallocateBlock()
@@ -106,8 +106,7 @@ void CDocumentFile::ReallocateBlock()
 	m_pBlockData.resize(m_iMaxBlockSize);		// // //
 }
 
-void CDocumentFile::WriteBlock(array_view<const unsigned char> Data)		// // //
-{
+void CDocumentFile::WriteBlock(array_view<const std::byte> Data) {		// // //
 	Assert(!m_pBlockData.empty());		// // //
 
 	// Allow block to grow in size
@@ -126,38 +125,31 @@ void CDocumentFile::WriteBlock(array_view<const unsigned char> Data)		// // //
 	m_iPreviousPointer = Previous;
 }
 
-template <typename T>
-void CDocumentFile::WriteBlockData(T Value)
-{
-	auto ptr = reinterpret_cast<const unsigned char *>(&Value);
-	WriteBlock({ptr, sizeof(Value)});
-}
-
 void CDocumentFile::WriteBlockInt(int Value)
 {
-	WriteBlockData(Value);
+	WriteBlock(byte_view(Value));
 }
 
 void CDocumentFile::WriteBlockChar(char Value)
 {
-	WriteBlockData(Value);
+	WriteBlock(byte_view(Value));
 }
 
 void CDocumentFile::WriteString(std::string_view sv) {		// // //
-	WriteBlock({(const unsigned char *)sv.data(), sv.size()});
+	WriteBlock(byte_view(sv));
 	WriteBlockChar(0);
 }
 
 void CDocumentFile::WriteStringPadded(std::string_view sv, std::size_t n) {
 	sv = sv.substr(0, n - 1);
-	WriteBlock({(const unsigned char *)sv.data(), sv.size()});
+	WriteBlock(byte_view(sv));
 	for (std::size_t i = sv.size(); i < n; ++i)
 		WriteBlockChar(0);
 }
 
 void CDocumentFile::WriteStringCounted(std::string_view sv) {
 	WriteBlockInt(sv.size());
-	WriteBlock({(const unsigned char *)sv.data(), sv.size()});
+	WriteBlock(byte_view(sv));
 }
 
 bool CDocumentFile::FlushBlock()
@@ -218,9 +210,9 @@ bool CDocumentFile::ReadBlock()
 
 	m_cBlockID.fill(0);		// // //
 
-	int BytesRead = Read(as_writeable_bytes(array_view {m_cBlockID}));
-	Read(as_writeable_bytes(array_view {&m_iBlockVersion, 1}));
-	Read(as_writeable_bytes(array_view {&m_iBlockSize, 1}));
+	int BytesRead = Read(byte_view(m_cBlockID));
+	Read(byte_view(m_iBlockVersion));
+	Read(byte_view(m_iBlockSize));
 
 	if (m_iBlockSize > 50000000) {
 		// File is probably corrupt
@@ -228,8 +220,8 @@ bool CDocumentFile::ReadBlock()
 		return true;
 	}
 
-	m_pBlockData = std::vector<unsigned char>(m_iBlockSize);		// // //
-	if (Read(as_writeable_bytes(array_view {m_pBlockData})) == FILE_END_ID.size())		// // //
+	m_pBlockData = std::vector<std::byte>(m_iBlockSize);		// // //
+	if (Read(byte_view(m_pBlockData)) == FILE_END_ID.size())		// // //
 		if (array_view<const char> {m_cBlockID.data(), FILE_END_ID.size()} == FILE_END_ID)
 			m_bFileDone = true;
 

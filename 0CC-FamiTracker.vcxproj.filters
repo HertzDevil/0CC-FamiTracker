@@ -1541,9 +1541,6 @@
     <ClInclude Include="Source\to_sv.h">
       <Filter>Header Files\Utility Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\str_conv\utf8_conv.hpp">
-      <Filter>Header Files\Utility Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\FamiTrackerDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1561,6 +1558,9 @@
     </ClInclude>
     <ClInclude Include="Source\EffectName.h">
       <Filter>Header Files\Document Data Type Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\BinaryReader.h">
+      <Filter>Header Files\Utility Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

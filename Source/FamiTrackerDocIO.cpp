@@ -1026,7 +1026,7 @@ void CFamiTrackerDocIO::SaveDSamples(const CFamiTrackerModule &modfile, int ver)
 				file_.WriteBlockChar(i);
 				file_.WriteStringCounted(pSamp->name());
 				file_.WriteBlockInt(pSamp->size());
-				file_.WriteBlock(*pSamp);
+				file_.WriteBlock(byte_view(*pSamp));
 			}
 		}
 	}
