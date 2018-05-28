@@ -64,7 +64,6 @@ std::string MakeCommandString(ft0cc::doc::effect_command cmd) {		// // //
 		EFF_CHAR[value_cast(cmd.fx)],
 		conv::to_digit<char>(cmd.param >> 4),
 		conv::to_digit<char>(cmd.param & 0x0Fu),
-		'\0',
 	};
 }
 
