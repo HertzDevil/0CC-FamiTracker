@@ -513,7 +513,7 @@ bool CMainFrame::CreateToolbars()
 	HBITMAP hbm = (HBITMAP)::LoadImageW(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_TOOLBAR_256), IMAGE_BITMAP, DPI::SX(352), DPI::SY(16), LR_CREATEDIBSECTION);
 	m_bmToolbar.Attach(hbm);
 
-	m_ilToolBar.Create(DPI::SX(16), DPI::SY(16), ILC_COLOR8 | ILC_MASK, 4, 4);
+	m_ilToolBar.Create(DPI::SX(16), DPI::SY(16), ILC_COLOR32 | ILC_MASK, 4, 4);
 	m_ilToolBar.Add(&m_bmToolbar, MakeRGB(192, 192, 192));
 	m_wndToolBar.GetToolBarCtrl().SetImageList(&m_ilToolBar);
 
