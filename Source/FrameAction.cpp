@@ -178,7 +178,6 @@ bool CFActionRemoveFrame::SaveState(const CMainFrame &MainFrm)
 
 void CFActionRemoveFrame::Undo(CMainFrame &MainFrm)
 {
-	GET_SONG().InsertFrame(m_pUndoState->Cursor.m_iFrame);
 	GET_FRAME_EDITOR()->PasteInsert(m_pUndoState->Cursor.m_iFrame, m_RowClipData);
 	GET_FRAME_EDITOR()->SetSelection(m_RowClipData.AsSelection(m_pUndoState->Cursor.m_iFrame));
 }
