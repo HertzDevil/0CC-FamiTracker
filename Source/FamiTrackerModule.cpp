@@ -162,7 +162,8 @@ void CFamiTrackerModule::SetLinearPitch(bool enable) {
 void CFamiTrackerModule::SetSpeedSplitPoint(unsigned splitPoint) {
 	m_iSpeedSplitPoint = splitPoint;
 	VisitSongs([&] (CSongData &song) {
-		song.SetSongTempo(std::max(splitPoint, song.GetSongTempo()));
+		if (song.GetSongTempo()) // not fixed tempo
+			song.SetSongTempo(std::max(splitPoint, song.GetSongTempo()));
 		song.SetSongSpeed(std::min(splitPoint - 1, song.GetSongSpeed()));
 	});
 }
