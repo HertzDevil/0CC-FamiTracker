@@ -992,8 +992,10 @@ void CMainFrame::SelectInstrument(int Index)
 		SetInstrumentEditName(conv::to_wide(pInst->GetName()).data());
 
 		// Update instrument editor
-		if (m_wndInstEdit.IsOpened())
+		if (m_wndInstEdit.IsOpened()) {
 			m_wndInstEdit.SetCurrentInstrument(Index);
+//			m_wndInstEdit.SetFocus();
+		}
 	}
 	else {
 		// Remove selection
@@ -1907,6 +1909,7 @@ void CMainFrame::OpenInstrumentEditor()
 		else
 			m_wndInstEdit.SetCurrentInstrument(Instrument);
 		m_wndInstEdit.UpdateWindow();
+		m_wndInstEdit.SetFocus();		// // //
 	}
 }
 
@@ -2652,7 +2655,7 @@ void CMainFrame::SelectInstrumentFolder()
 
 	if (lpID != NULL) {
 		SHGetPathFromIDListW(lpID, Path);
-		FTEnv.GetSettings()->SetPath(fs::path {Path}.parent_path(), PATH_INST);		// // //
+		FTEnv.GetSettings()->SetPath(fs::path {Path}, PATH_INST);		// // //
 		m_pInstrumentFileTree->Changed();
 	}
 }
