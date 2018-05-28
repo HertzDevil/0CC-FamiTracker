@@ -122,7 +122,7 @@ void CFrameEditorModel::ContinueFrameSelection(int frame) {
 	if (IsSelecting()) {
 		CSongView *pSongView = view_->GetSongView();
 		selStart_.m_iChannel = 0;
-		selEnd_ = {frame, (int)pSongView->GetChannelOrder().GetChannelCount()};
+		selEnd_ = {frame, static_cast<int>(pSongView->GetChannelOrder().GetChannelCount()) - 1};
 		Select(CFrameSelection::Including(selStart_, selEnd_));
 	}
 }
