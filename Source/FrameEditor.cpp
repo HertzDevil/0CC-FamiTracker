@@ -769,7 +769,7 @@ void CFrameEditor::OnLButtonDown(UINT nFlags, CPoint point)
 	m_ButtonPoint = point;
 	m_LastClickPos = TranslateFramePos(point, false);		// // //
 
-	if (auto pSel = model_->GetSelection()) {
+	if (auto *pSel = model_->GetSelection()) {
 		if (model_->IsFrameSelected(m_LastClickPos.m_iFrame) && model_->IsChannelSelected(m_LastClickPos.m_iChannel))		// // //
 			m_bStartDrag = true;
 		else if (nFlags & MK_SHIFT) {
