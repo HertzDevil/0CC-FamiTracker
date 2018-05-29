@@ -241,6 +241,15 @@
     <Filter Include="Header Files\Utility Headers">
       <UniqueIdentifier>{4823e3de-1bba-4ab6-b982-4c6c40dd99ad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Utility Headers\Input / Output Headers">
+      <UniqueIdentifier>{aa5837aa-6f8a-4806-a175-8c00c95d9bbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utility">
+      <UniqueIdentifier>{b916b721-cf37-425b-b393-0158e4e3e7d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utility\Input / Output">
+      <UniqueIdentifier>{84a0b58a-8075-4620-871d-eb6c4a93513e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Exception.cpp">
@@ -504,9 +513,6 @@
     <ClCompile Include="Source\Action.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="Source\DocumentFile.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Graphics.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
@@ -602,9 +608,6 @@
     </ClCompile>
     <ClCompile Include="Source\DetuneTable.cpp">
       <Filter>Source Files\Document Data Types</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\SimpleFile.cpp">
-      <Filter>Source Files\Components</Filter>
     </ClCompile>
     <ClCompile Include="Source\DPI.cpp">
       <Filter>Source Files\Other</Filter>
@@ -825,14 +828,20 @@
     <ClCompile Include="Source\PeriodTables.cpp">
       <Filter>Source Files\Document Data Types</Filter>
     </ClCompile>
-    <ClCompile Include="Source\WaveStream.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Source\SelectionRange.cpp">
       <Filter>Source Files\Pattern Editor</Filter>
     </ClCompile>
     <ClCompile Include="Source\ArrayStream.cpp">
-      <Filter>Source Files\Components</Filter>
+      <Filter>Source Files\Utility\Input / Output</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SimpleFile.cpp">
+      <Filter>Source Files\Utility\Input / Output</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\WaveStream.cpp">
+      <Filter>Source Files\Utility\Input / Output</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DocumentFile.cpp">
+      <Filter>Source Files\Utility\Input / Output</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1097,9 +1106,6 @@
     <ClInclude Include="Source\Action.h">
       <Filter>Header Files\Components Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\DocumentFile.h">
-      <Filter>Header Files\Components Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Graphics.h">
       <Filter>Header Files\Components Headers</Filter>
     </ClInclude>
@@ -1252,9 +1258,6 @@
     </ClInclude>
     <ClInclude Include="Source\DetuneTable.h">
       <Filter>Header Files\Document Data Type Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\SimpleFile.h">
-      <Filter>Header Files\Components Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\DPI.h">
       <Filter>Header Files\Other Headers</Filter>
@@ -1547,12 +1550,6 @@
     <ClInclude Include="Source\FamiTrackerDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\WaveStream.h">
-      <Filter>Header Files\Components Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\BinarySerializable.h">
-      <Filter>Header Files\Components Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\StringClipData.h">
       <Filter>Header Files\Components Headers</Filter>
     </ClInclude>
@@ -1562,11 +1559,23 @@
     <ClInclude Include="Source\EffectName.h">
       <Filter>Header Files\Document Data Type Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ArrayStream.h">
-      <Filter>Header Files\Components Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\BinaryStream.h">
-      <Filter>Header Files\Utility Headers</Filter>
+      <Filter>Header Files\Utility Headers\Input / Output Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\WaveStream.h">
+      <Filter>Header Files\Utility Headers\Input / Output Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ArrayStream.h">
+      <Filter>Header Files\Utility Headers\Input / Output Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\BinarySerializable.h">
+      <Filter>Header Files\Utility Headers\Input / Output Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SimpleFile.h">
+      <Filter>Header Files\Utility Headers\Input / Output Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DocumentFile.h">
+      <Filter>Header Files\Utility Headers\Input / Output Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
