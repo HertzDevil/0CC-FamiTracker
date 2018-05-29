@@ -1189,12 +1189,14 @@ void CMainFrame::OnCloneInstrument()
 		return;
 
 	auto Manager = Doc.GetModule()->GetInstrumentManager();		// // //
-	if (Manager->CloneInstrument(m_iInstrument, Manager->GetFirstUnused())) {
-		Doc.ModifyIrreversible();		// // //
-		Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-	}
-	else
-		AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR);
+	if (unsigned Index = Manager->GetFirstUnused(); Index != INVALID_INSTRUMENT)
+		if (Manager->CloneInstrument(m_iInstrument, Index)) {
+			Doc.ModifyIrreversible();		// // //
+			SelectInstrument(Index);
+			Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
+		}
+		else
+			AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR);
 }
 
 void CMainFrame::OnDeepCloneInstrument()
@@ -1206,12 +1208,14 @@ void CMainFrame::OnDeepCloneInstrument()
 		return;
 
 	auto Manager = Doc.GetModule()->GetInstrumentManager();		// // //
-	if (Manager->DeepCloneInstrument(m_iInstrument, Manager->GetFirstUnused())) {
-		Doc.ModifyIrreversible();		// // //
-		Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
-	}
-	else
-		AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR);
+	if (unsigned Index = Manager->GetFirstUnused(); Index != INVALID_INSTRUMENT)
+		if (Manager->DeepCloneInstrument(m_iInstrument, Index)) {
+			Doc.ModifyIrreversible();		// // //
+			SelectInstrument(Index);
+			Doc.UpdateAllViews(NULL, UPDATE_INSTRUMENT);
+		}
+		else
+			AfxMessageBox(IDS_INST_LIMIT, MB_ICONERROR);
 }
 
 void CMainFrame::OnBnClickedEditInst()
