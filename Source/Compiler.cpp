@@ -166,7 +166,7 @@ void CCompiler::ClearLog() const
 namespace {
 
 void NSFEWriteBlockIdent(CSimpleFile &file, const char (&ident)[5], uint32_t sz) {		// // //
-	file.WriteInt32(sz);
+	file.WriteInt<std::uint32_t>(sz);
 	file.WriteBytes({reinterpret_cast<const std::byte *>(ident), 4});
 }
 
@@ -181,7 +181,7 @@ std::size_t NSFEWriteBlocks(CSimpleFile &file, const CFamiTrackerModule &modfile
 	file.WriteStringNull(title);
 	file.WriteStringNull(artist);
 	file.WriteStringNull(copyright);
-	file.WriteStringNull(str);
+	file.WriteStringNull(std::string_view {str});
 
 	modfile.VisitSongs([&] (const CSongData &song) {
 		iTimeSize += 4;
@@ -194,7 +194,7 @@ std::size_t NSFEWriteBlocks(CSimpleFile &file, const CFamiTrackerModule &modfile
 		auto pSongView = modfile.MakeSongView(i, false);
 		CSongLengthScanner scanner {modfile, *pSongView};
 		auto [FirstLoop, SecondLoop] = scanner.GetSecondsCount();
-		file.WriteInt32(static_cast<int>((FirstLoop + SecondLoop) * 1000.0 + 0.5));
+		file.WriteInt<std::int32_t>(static_cast<int>((FirstLoop + SecondLoop) * 1000.0 + 0.5));
 	});
 
 	NSFEWriteBlockIdent(file, "tlbl", iTlblSize);

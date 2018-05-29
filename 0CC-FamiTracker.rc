@@ -2332,6 +2332,7 @@ BEGIN
     IDS_INSTRUMENT_FILE_FAIL "Instrument file was not vaild"
     IDS_CLIPPING_MESSAGE    "Warning: Audio is clipping, decrease mixing levels!"
     IDS_FILTER_FTI          "FamiTracker Instrument (*.fti)"
+    IDS_SAVE_FILE_ERROR     "Could not save file!"
     IDS_START_ERROR         "Program could not start properly, default settings has been restored. Please restart the program."
 END
 

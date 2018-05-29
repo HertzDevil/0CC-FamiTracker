@@ -49,43 +49,43 @@ COutputWaveStream::~COutputWaveStream() noexcept {
 		WriteSample(0);
 
 	if (write_count_ % 2) {
-		file_->WriteInt8(0);
+		file_->WriteInt<std::uint8_t>(0);
 		++write_count_;
 	}
 
 	file_->Seek(start_pos_ + (fmt_.Format != CWaveFileFormat::format_code::pcm ? 54 : 40));
-	file_->WriteInt32(write_count_ - (fmt_.Format != CWaveFileFormat::format_code::pcm ? 50 : 36));
+	file_->WriteInt<std::uint32_t>(write_count_ - (fmt_.Format != CWaveFileFormat::format_code::pcm ? 50 : 36));
 
 	file_->Seek(start_pos_ + 4u);
-	file_->WriteInt32(write_count_);
+	file_->WriteInt<std::uint32_t>(write_count_);
 }
 
 void COutputWaveStream::WriteWAVHeader() {
-	file_->WriteInt32(fourcc("RIFF"));
-	file_->WriteInt32(0); // to be written later
+	file_->WriteInt<std::uint32_t>(fourcc("RIFF"));
+	file_->WriteInt<std::uint32_t>(0); // to be written later
 
-	file_->WriteInt32(fourcc("WAVE"));
-	file_->WriteInt32(fourcc("fmt "));
-	file_->WriteInt32(fmt_.Format != CWaveFileFormat::format_code::pcm ? 18 : 16);
-	file_->WriteInt16(value_cast(fmt_.Format)); // wFormatTag
-	file_->WriteInt16(fmt_.Channels); // nChannels
-	file_->WriteInt32(fmt_.SampleRate); // nSamplesPerSec
-	file_->WriteInt32(fmt_.SampleRate * fmt_.Channels * fmt_.BytesPerSample()); // nAvgBytesPerSec
-	file_->WriteInt16(fmt_.Channels * fmt_.BytesPerSample()); // nBlockAlign
-	file_->WriteInt16(fmt_.SampleSize); // wBitsPerSample
+	file_->WriteInt<std::uint32_t>(fourcc("WAVE"));
+	file_->WriteInt<std::uint32_t>(fourcc("fmt "));
+	file_->WriteInt<std::uint32_t>(fmt_.Format != CWaveFileFormat::format_code::pcm ? 18 : 16);
+	file_->WriteInt<std::uint16_t>(value_cast(fmt_.Format)); // wFormatTag
+	file_->WriteInt<std::uint16_t>(fmt_.Channels); // nChannels
+	file_->WriteInt<std::uint32_t>(fmt_.SampleRate); // nSamplesPerSec
+	file_->WriteInt<std::uint32_t>(fmt_.SampleRate * fmt_.Channels * fmt_.BytesPerSample()); // nAvgBytesPerSec
+	file_->WriteInt<std::uint16_t>(fmt_.Channels * fmt_.BytesPerSample()); // nBlockAlign
+	file_->WriteInt<std::uint16_t>(fmt_.SampleSize); // wBitsPerSample
 	write_count_ += 28;
 
 	if (fmt_.Format != CWaveFileFormat::format_code::pcm) {
-		file_->WriteInt16(0); // cbSize
+		file_->WriteInt<std::uint16_t>(0); // cbSize
 
-		file_->WriteInt32(fourcc("fact"));
-		file_->WriteInt32(4);
-		file_->WriteInt32(0); // dwSampleLength, to be written later
+		file_->WriteInt<std::uint32_t>(fourcc("fact"));
+		file_->WriteInt<std::uint32_t>(4);
+		file_->WriteInt<std::uint32_t>(0); // dwSampleLength, to be written later
 
 		write_count_ += 14;
 	}
 
-	file_->WriteInt32(fourcc("data"));
-	file_->WriteInt32(0); // to be written later
+	file_->WriteInt<std::uint32_t>(fourcc("data"));
+	file_->WriteInt<std::uint32_t>(0); // to be written later
 	write_count_ += 8;
 }

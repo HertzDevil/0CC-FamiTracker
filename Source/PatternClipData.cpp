@@ -46,24 +46,24 @@ bool CPatternClipData::ToBytes(array_view<std::byte> Buf) const {		// // //
 		if (Buf.size() >= GetAllocSize()) {
 			CArrayStream stream {Buf};
 
-			stream.WriteInt(ClipInfo.Channels);
-			stream.WriteInt(ClipInfo.Rows);
+			stream.WriteInt<std::uint32_t>(ClipInfo.Channels);
+			stream.WriteInt<std::uint32_t>(ClipInfo.Rows);
 			stream.WriteEnum(ClipInfo.StartColumn);
 			stream.WriteEnum(ClipInfo.EndColumn);
-			stream.WriteInt(ClipInfo.OleInfo.ChanOffset);
-			stream.WriteInt(ClipInfo.OleInfo.RowOffset);
+			stream.WriteInt<std::uint32_t>(ClipInfo.OleInfo.ChanOffset);
+			stream.WriteInt<std::uint32_t>(ClipInfo.OleInfo.RowOffset);
 
 			const std::size_t Size = ClipInfo.GetSize();
 			for (std::size_t i = 0; i < Size; ++i) {
 				const auto &note = pPattern[i];
 				stream.WriteEnum(note.note());
-				stream.WriteInt(note.oct());
-				stream.WriteInt(note.vol());
-				stream.WriteInt(note.inst());
+				stream.WriteInt<std::uint8_t>(note.oct());
+				stream.WriteInt<std::uint8_t>(note.vol());
+				stream.WriteInt<std::uint8_t>(note.inst());
 				for (const auto &cmd : note.fx_cmds())
 					stream.WriteEnum(cmd.fx);
 				for (const auto &cmd : note.fx_cmds())
-					stream.WriteInt(cmd.param);
+					stream.WriteInt<std::uint8_t>(cmd.param);
 			}
 			return true;
 		}

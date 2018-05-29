@@ -44,7 +44,7 @@ void CBinaryFileWriter::Store(array_view<const std::uint8_t> Data)
 void CBinaryFileWriter::Fill(unsigned int Size)
 {
 	for (unsigned int i = 0; i < Size; ++i)
-		m_fFile.WriteInt8(0);
+		m_fFile.WriteInt<std::uint8_t>(0);
 	m_iDataWritten += Size;
 }
 

@@ -187,15 +187,15 @@ private:
 		}
 		else if constexpr (std::is_integral_v<T>) {
 			if constexpr (sizeof(T) == sizeof(std::uint8_t))
-				file_->WriteInt8(x);
+				file_->WriteInt<std::uint8_t>(x);
 			else if constexpr (sizeof(T) == sizeof(std::int16_t))
-				file_->WriteInt16(x);
+				file_->WriteInt<std::int16_t>(x);
 			else if constexpr (sizeof(T) == sizeof(std::int32_t))
-				file_->WriteInt32(x);
+				file_->WriteInt<std::int32_t>(x);
 			else {
 				auto x2 = static_cast<std::make_unsigned_t<T>>(x) >> (8 * (sizeof(T) - fmt_.BytesPerSample()));
 				for (std::size_t i = 0; i < fmt_.BytesPerSample(); ++i) {
-					file_->WriteInt8(static_cast<std::uint8_t>(x2 & 0xFFu));
+					file_->WriteInt<std::uint8_t>(static_cast<std::uint8_t>(x2 & 0xFFu));
 					x2 >>= 8;
 				}
 			}

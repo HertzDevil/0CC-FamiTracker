@@ -30,7 +30,7 @@
 #include "ft0cc/cpputil/fs.hpp"
 #include "BinaryStream.h"
 
-class CSimpleFile : public CBinaryReader {
+class CSimpleFile : public CBinaryReader, public CBinaryWriter {
 public:
 	static_assert(sizeof(char) == sizeof(uint8_t));
 
@@ -43,14 +43,8 @@ public:
 	void	Close();
 	std::string	GetErrorMessage() const;
 
-	void	WriteInt8(int8_t Value);
-	void	WriteInt16(int16_t Value);
-	void	WriteInt32(int32_t Value);
-	void	WriteBytes(array_view<const std::byte> Buf);
-	void	WriteString(std::string_view sv);
-	void	WriteStringNull(std::string_view sv);
-
 	std::size_t	ReadBytes(array_view<std::byte> Buf) override;
+	std::size_t WriteBytes(array_view<const std::byte> Buf) override;
 
 	void		Seek(std::size_t pos);
 	std::size_t GetPosition();

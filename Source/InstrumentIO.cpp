@@ -67,7 +67,7 @@ void CInstrumentIO::WriteToFTI(const CInstrument &inst, CSimpleFile &file) const
 	file.WriteBytes(byte_view(FTI_INST_VERSION));
 
 	// Write type
-	file.WriteInt8(inst.GetType());
+	file.WriteInt<std::int8_t>(value_cast(inst.GetType()));
 
 	// Write name
 	file.WriteString(inst.GetName());
@@ -138,22 +138,22 @@ void CInstrumentIOSeq::DoWriteToFTI(const CInstrument &inst_, CSimpleFile &file)
 	auto &inst = dynamic_cast<const CSeqInstrument &>(inst_);
 
 	int seqCount = inst.GetSeqCount();
-	file.WriteInt8(static_cast<char>(seqCount));
+	file.WriteInt<std::int8_t>(seqCount);
 
 	for (auto i : enum_values<sequence_t>()) {
 		if (inst.GetSeqEnable(i)) {
 			auto pSeq = inst.GetSequence(i);
-			file.WriteInt8(1);
-			file.WriteInt32(pSeq->GetItemCount());
-			file.WriteInt32(pSeq->GetLoopPoint());
-			file.WriteInt32(pSeq->GetReleasePoint());
-			file.WriteInt32(pSeq->GetSetting());
+			file.WriteInt<std::int8_t>(1);
+			file.WriteInt<std::int32_t>(pSeq->GetItemCount());
+			file.WriteInt<std::int32_t>(pSeq->GetLoopPoint());
+			file.WriteInt<std::int32_t>(pSeq->GetReleasePoint());
+			file.WriteInt<std::int32_t>(pSeq->GetSetting());
 			for (unsigned j = 0; j < pSeq->GetItemCount(); ++j) {
-				file.WriteInt8(pSeq->GetItem(j));
+				file.WriteInt<std::int8_t>(pSeq->GetItem(j));
 			}
 		}
 		else
-			file.WriteInt8(0);
+			file.WriteInt<std::int8_t>(0);
 	}
 }
 
@@ -295,23 +295,23 @@ void CInstrumentIO2A03::DoWriteToFTI(const CInstrument &inst_, CSimpleFile &file
 	// DPCM
 	const auto *pManager = inst.GetInstrumentManager();
 	if (!pManager) {
-		file.WriteInt32(0);
-		file.WriteInt32(0);
+		file.WriteInt<std::int32_t>(0);
+		file.WriteInt<std::int32_t>(0);
 		return;
 	}
 
 	unsigned int Count = inst.GetSampleCount();		// // // 050B
-	file.WriteInt32(Count);
+	file.WriteInt<std::int32_t>(Count);
 
 	bool UsedSamples[MAX_DSAMPLES] = { };
 
 	int UsedCount = 0;
 	for (int n = 0; n < NOTE_COUNT; ++n) {
 		if (unsigned Sample = inst.GetSampleIndex(n); Sample != CInstrument2A03::NO_DPCM) {
-			file.WriteInt8(n);
-			file.WriteInt8(Sample + 1);
-			file.WriteInt8(inst.GetSamplePitch(n));
-			file.WriteInt8(inst.GetSampleDeltaValue(n));
+			file.WriteInt<std::uint8_t>(n);
+			file.WriteInt<std::uint8_t>(Sample + 1);
+			file.WriteInt<std::uint8_t>(inst.GetSamplePitch(n));
+			file.WriteInt<std::int8_t>(inst.GetSampleDeltaValue(n));
 			if (!UsedSamples[Sample])
 				++UsedCount;
 			UsedSamples[Sample] = true;
@@ -319,12 +319,12 @@ void CInstrumentIO2A03::DoWriteToFTI(const CInstrument &inst_, CSimpleFile &file
 	}
 
 	// Write the number
-	file.WriteInt32(UsedCount);
+	file.WriteInt<std::int32_t>(UsedCount);
 
 	// List of sample names
 	for (int i = 0; i < MAX_DSAMPLES; ++i) if (UsedSamples[i]) {
 		if (auto pSample = pManager->GetDSample(i)) {
-			file.WriteInt32(i);
+			file.WriteInt<std::int32_t>(i);
 			file.WriteString(pSample->name());
 			file.WriteString(std::string_view(reinterpret_cast<const char *>(pSample->data()), pSample->size()));
 		}
@@ -344,17 +344,17 @@ void CInstrumentIO2A03::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 
 	// DPCM instruments
 	for (unsigned int i = 0; i < Count; ++i) {
-		unsigned char InstNote = file.ReadInt<std::int8_t>();
+		unsigned char InstNote = file.ReadInt<std::uint8_t>();
 		try {
-			unsigned char Sample = AssertRange(file.ReadInt<std::int8_t>(), 0, 0x7F, "DPCM sample assignment index");
+			unsigned char Sample = AssertRange(file.ReadInt<std::uint8_t>(), 0, 0x7F, "DPCM sample assignment index");
 			if (Sample > MAX_DSAMPLES)
 				Sample = 0;
-			unsigned char Pitch = file.ReadInt<std::int8_t>();
+			unsigned char Pitch = file.ReadInt<std::uint8_t>();
 			AssertRange(Pitch & 0x7FU, 0U, 0xFU, "DPCM sample pitch");
 			inst.SetSamplePitch(InstNote, Pitch);
 			inst.SetSampleIndex(InstNote, Sample - 1);
 			inst.SetSampleDeltaValue(InstNote, AssertRange(
-				static_cast<char>(fti_ver >= 24 ? file.ReadInt<std::int8_t>() : -1), -1, 0x7F, "DPCM sample delta value"));
+				fti_ver >= 24 ? file.ReadInt<std::int8_t>() : static_cast<std::int8_t>(-1), -1, 0x7F, "DPCM sample delta value"));
 		}
 		catch (CModuleException &e) {
 			auto n = value_cast(ft0cc::doc::pitch_from_midi(InstNote));
@@ -439,10 +439,10 @@ void CInstrumentIOVRC7::ReadFromModule(CInstrument &inst_, CDocumentFile &file) 
 void CInstrumentIOVRC7::DoWriteToFTI(const CInstrument &inst_, CSimpleFile &file) const {
 	auto &inst = dynamic_cast<const CInstrumentVRC7 &>(inst_);
 
-	file.WriteInt32(inst.GetPatch());
+	file.WriteInt<std::int32_t>(inst.GetPatch());
 
 	for (int i = 0; i < 8; ++i)
-		file.WriteInt8(inst.GetCustomReg(i));
+		file.WriteInt<std::uint8_t>(inst.GetCustomReg(i));
 }
 
 void CInstrumentIOVRC7::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int fti_ver) const {
@@ -451,7 +451,7 @@ void CInstrumentIOVRC7::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 	inst.SetPatch(file.ReadInt<std::int32_t>());
 
 	for (int i = 0; i < 8; ++i)
-		inst.SetCustomReg(i, file.ReadInt<std::int8_t>());
+		inst.SetCustomReg(i, file.ReadInt<std::uint8_t>());
 }
 
 
@@ -568,28 +568,28 @@ void CInstrumentIOFDS::DoWriteToFTI(const CInstrument &inst_, CSimpleFile &file)
 
 	// Write wave
 	for (auto x : inst.GetSamples())
-		file.WriteInt8(x);
+		file.WriteInt<std::uint8_t>(x);
 	for (auto x : inst.GetModTable())
-		file.WriteInt8(x);
+		file.WriteInt<std::uint8_t>(x);
 
 	// Modulation parameters
-	file.WriteInt32(inst.GetModulationSpeed());
-	file.WriteInt32(inst.GetModulationDepth());
-	file.WriteInt32(inst.GetModulationDelay());
+	file.WriteInt<std::int32_t>(inst.GetModulationSpeed());
+	file.WriteInt<std::int32_t>(inst.GetModulationDepth());
+	file.WriteInt<std::int32_t>(inst.GetModulationDelay());
 
 	// Sequences
 	const auto StoreInstSequence = [&] (const CSequence &Seq) {
 		// Store number of items in this sequence
-		file.WriteInt32(Seq.GetItemCount());
+		file.WriteInt<std::int32_t>(Seq.GetItemCount());
 		// Store loop point
-		file.WriteInt32(Seq.GetLoopPoint());
+		file.WriteInt<std::int32_t>(Seq.GetLoopPoint());
 		// Store release point (v4)
-		file.WriteInt32(Seq.GetReleasePoint());
+		file.WriteInt<std::int32_t>(Seq.GetReleasePoint());
 		// Store setting (v4)
-		file.WriteInt32(Seq.GetSetting());
+		file.WriteEnum(Seq.GetSetting());
 		// Store items
 		for (unsigned i = 0; i < Seq.GetItemCount(); ++i)
-			file.WriteInt8(Seq.GetItem(i));
+			file.WriteInt<std::int8_t>(Seq.GetItem(i));
 	};
 	StoreInstSequence(*inst.GetSequence(sequence_t::Volume));
 	StoreInstSequence(*inst.GetSequence(sequence_t::Arpeggio));
@@ -602,12 +602,12 @@ void CInstrumentIOFDS::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int 
 	// Read wave
 	unsigned char samples[64] = { };
 	for (auto &x : samples)
-		x = file.ReadInt<std::int8_t>();
+		x = file.ReadInt<std::uint8_t>();
 	inst.SetSamples(samples);
 
 	unsigned char modtable[32] = { };
 	for (auto &x : modtable)
-		x = file.ReadInt<std::int8_t>();
+		x = file.ReadInt<std::uint8_t>();
 	inst.SetModTable(modtable);
 
 	// Modulation parameters
@@ -694,14 +694,14 @@ void CInstrumentION163::DoWriteToFTI(const CInstrument &inst_, CSimpleFile &file
 	int WaveCount = inst.GetWaveCount();
 	int WaveSize = inst.GetWaveSize();
 
-	file.WriteInt32(WaveSize);
-	file.WriteInt32(inst.GetWavePos());
-//	file.WriteInt32(m_bAutoWavePos);		// // // 050B
-	file.WriteInt32(WaveCount);
+	file.WriteInt<std::int32_t>(WaveSize);
+	file.WriteInt<std::int32_t>(inst.GetWavePos());
+//	file.WriteInt<std::int32_t>(m_bAutoWavePos);		// // // 050B
+	file.WriteInt<std::int32_t>(WaveCount);
 
 	for (int i = 0; i < WaveCount; ++i)
 		for (auto x : inst.GetSamples(i))
-			file.WriteInt8(x);
+			file.WriteInt<std::uint8_t>(x);
 }
 
 void CInstrumentION163::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int fti_ver) const {
@@ -709,8 +709,8 @@ void CInstrumentION163::DoReadFromFTI(CInstrument &inst_, CSimpleFile &file, int
 	CInstrumentIOSeq::DoReadFromFTI(inst_, file, fti_ver);
 
 	// Read wave config
-	int WaveSize = AssertRange(static_cast<int>(file.ReadInt<std::int32_t>()), 4, CInstrumentN163::MAX_WAVE_SIZE, "N163 wave size");
-	int WavePos = AssertRange(static_cast<int>(file.ReadInt<std::int32_t>()), 0, CInstrumentN163::MAX_WAVE_SIZE - 1, "N163 wave position");
+	int WaveSize = AssertRange(file.ReadInt<std::int32_t>(), 4, CInstrumentN163::MAX_WAVE_SIZE, "N163 wave size");
+	int WavePos = AssertRange(file.ReadInt<std::int32_t>(), 0, CInstrumentN163::MAX_WAVE_SIZE - 1, "N163 wave position");
 	if (fti_ver >= 25) {		// // // 050B
 		bool AutoWavePos = file.ReadInt<std::int32_t>() != 0;
 		(void)AutoWavePos;

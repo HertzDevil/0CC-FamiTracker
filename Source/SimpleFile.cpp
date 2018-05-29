@@ -64,41 +64,9 @@ std::string CSimpleFile::GetErrorMessage() const {
 	return "Unknown error";
 }
 
-void CSimpleFile::WriteInt8(int8_t Value)
-{
-	m_fFile.put(Value);
-}
-
-void CSimpleFile::WriteInt16(int16_t Value)
-{
-	m_fFile.put(static_cast<unsigned char>(Value));
-	m_fFile.put(static_cast<unsigned char>(Value >> 8));
-}
-
-void CSimpleFile::WriteInt32(int32_t Value)
-{
-	m_fFile.put(static_cast<unsigned char>(Value));
-	m_fFile.put(static_cast<unsigned char>(Value >> 8));
-	m_fFile.put(static_cast<unsigned char>(Value >> 16));
-	m_fFile.put(static_cast<unsigned char>(Value >> 24));
-}
-
-void CSimpleFile::WriteBytes(array_view<const std::byte> Buf)
-{
+std::size_t CSimpleFile::WriteBytes(array_view<const std::byte> Buf) {
 	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
-}
-
-void CSimpleFile::WriteString(std::string_view sv)
-{
-	int Len = sv.size();
-	WriteInt32(Len);
-	WriteBytes(byte_view(sv));
-}
-
-void CSimpleFile::WriteStringNull(std::string_view sv)
-{
-	WriteBytes(byte_view(sv));
-	m_fFile.put('\0');
+	return m_fFile ? Buf.size() : 0u;
 }
 
 std::size_t CSimpleFile::ReadBytes(array_view<std::byte> Buf) {

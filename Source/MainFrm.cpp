@@ -1275,6 +1275,9 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// 
 					AfxMessageBox(conv::to_wide(e.GetErrorString()).data(), MB_ICONERROR);
 					return false;
 				}
+				catch (CBinaryIOException &) {
+					return err(IDS_FILE_OPEN_ERROR);
+				}
 			});
 		}
 		return err(IDS_FILE_OPEN_ERROR);
@@ -1347,8 +1350,13 @@ void CMainFrame::OnSaveInstrument()
 			return;
 		}
 
-		FTEnv.GetInstrumentService()->GetInstrumentIO(pInst->GetType(),
-			FTEnv.GetSettings()->Version.iErrorLevel)->WriteToFTI(*pInst, file);		// // //
+		try {
+			FTEnv.GetInstrumentService()->GetInstrumentIO(pInst->GetType(),
+				FTEnv.GetSettings()->Version.iErrorLevel)->WriteToFTI(*pInst, file);		// // //
+		}
+		catch (CBinaryIOException &) {
+			AfxMessageBox(IDS_SAVE_FILE_ERROR, MB_ICONERROR);
+		}
 
 		if (m_pInstrumentFileTree)
 			m_pInstrumentFileTree->Changed();
