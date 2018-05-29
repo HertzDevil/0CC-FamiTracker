@@ -45,7 +45,15 @@ bool CPatternClipData::ToBytes(std::byte *pBuf, std::size_t buflen) const		// //
 {
 	if (buflen >= GetAllocSize()) {
 		std::memcpy(pBuf, &ClipInfo, sizeof(ClipInfo));
-		std::memcpy(pBuf + sizeof(ClipInfo), pPattern.get(), Size * sizeof(stChanNote));		// // //
+		for (int i = 0; i < Size; ++i) {		// // //
+			const auto &note = pPattern[i];
+			std::byte *pNoteBuf = pBuf + sizeof(ClipInfo) + i * sizeof(stChanNote);
+			std::memcpy(pNoteBuf, &note, 4); // Note, Octave, Vol, Instrument
+			for (int fx = 0; fx < MAX_EFFECT_COLUMNS; ++fx) {
+				std::memcpy(pNoteBuf + fx + 4, &note.Effects[fx].fx, 1);
+				std::memcpy(pNoteBuf + fx + 8, &note.Effects[fx].param, 1);
+			}
+		}
 		return true;
 	}
 	return false;
@@ -57,7 +65,15 @@ bool CPatternClipData::FromBytes(array_view<std::byte> Buf)		// // //
 		std::memcpy(&ClipInfo, Buf.data(), sizeof(ClipInfo));
 		Size = ClipInfo.Channels * ClipInfo.Rows;
 		pPattern = std::make_unique<stChanNote[]>(Size);		// // //
-		std::memcpy(pPattern.get(), Buf.data() + sizeof(ClipInfo), Size * sizeof(stChanNote));
+		for (int i = 0; i < Size; ++i) {
+			auto &note = pPattern[i];
+			array_view<std::byte> NoteBuf = Buf.subview(sizeof(ClipInfo) + i * sizeof(stChanNote), sizeof(stChanNote));
+			std::memcpy(&note, NoteBuf.data(), 4); // Note, Octave, Vol, Instrument
+			for (int fx = 0; fx < MAX_EFFECT_COLUMNS; ++fx) {
+				std::memcpy(&note.Effects[fx].fx, NoteBuf.data() + fx + 4, 1);
+				std::memcpy(&note.Effects[fx].param, NoteBuf.data() + fx + 8, 1);
+			}
+		}
 		return true;
 	}
 	return false;
