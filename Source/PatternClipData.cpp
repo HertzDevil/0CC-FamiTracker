@@ -24,46 +24,95 @@
 #include "ft0cc/doc/pattern_note.hpp"
 #include "Assertion.h"		// // //
 #include <cstring>		// // //
+#include "ArrayStream.h"		// // //
 
-CPatternClipData::CPatternClipData(int Channels, int Rows) :
+CPatternClipData::CPatternClipData(unsigned Channels, unsigned Rows) :
 	ClipInfo({Channels, Rows}),		// // //
-	pPattern(std::make_unique<ft0cc::doc::pattern_note[]>(Channels * Rows)),
-	Size(Channels * Rows)
+	pPattern(std::make_unique<ft0cc::doc::pattern_note[]>(Channels * Rows))
 {
 }
 
 std::size_t CPatternClipData::GetAllocSize() const
 {
-	return sizeof(ClipInfo) + Size * sizeof(ft0cc::doc::pattern_note);
+	return sizeof(stClipInfo) + ClipInfo.GetSize() * sizeof(ft0cc::doc::pattern_note);
 }
 
 bool CPatternClipData::ContainsData() const {		// // //
 	return pPattern != nullptr;
 }
 
-bool CPatternClipData::ToBytes(array_view<std::byte> Buf) const		// // //
-{
-	if (Buf.size() >= GetAllocSize()) {
-		std::memcpy(Buf.data(), &ClipInfo, sizeof(ClipInfo));
-		std::memcpy(Buf.data() + sizeof(ClipInfo), pPattern.get(), Size * sizeof(ft0cc::doc::pattern_note));		// // //
-		return true;
+bool CPatternClipData::ToBytes(array_view<std::byte> Buf) const {		// // //
+	try {
+		if (Buf.size() >= GetAllocSize()) {
+			CArrayStream stream {Buf};
+
+			stream.WriteInt(ClipInfo.Channels);
+			stream.WriteInt(ClipInfo.Rows);
+			stream.WriteEnum(ClipInfo.StartColumn);
+			stream.WriteEnum(ClipInfo.EndColumn);
+			stream.WriteInt(ClipInfo.OleInfo.ChanOffset);
+			stream.WriteInt(ClipInfo.OleInfo.RowOffset);
+
+			const std::size_t Size = ClipInfo.GetSize();
+			for (std::size_t i = 0; i < Size; ++i) {
+				const auto &note = pPattern[i];
+				stream.WriteEnum(note.note());
+				stream.WriteInt(note.oct());
+				stream.WriteInt(note.vol());
+				stream.WriteInt(note.inst());
+				for (const auto &cmd : note.fx_cmds())
+					stream.WriteEnum(cmd.fx);
+				for (const auto &cmd : note.fx_cmds())
+					stream.WriteInt(cmd.param);
+			}
+			return true;
+		}
+		return false;
 	}
-	return false;
+	catch (CBinaryIOException &) {
+		return false;
+	}
 }
 
-bool CPatternClipData::FromBytes(array_view<const std::byte> Buf)		// // //
-{
-	if (Buf.size() >= GetAllocSize()) {
-		std::memcpy(&ClipInfo, Buf.data(), sizeof(ClipInfo));
-		Size = ClipInfo.Channels * ClipInfo.Rows;
-		pPattern = std::make_unique<ft0cc::doc::pattern_note[]>(Size);		// // //
-		std::memcpy(pPattern.get(), Buf.data() + sizeof(ClipInfo), Size * sizeof(ft0cc::doc::pattern_note));
-		return true;
+bool CPatternClipData::FromBytes(array_view<const std::byte> Buf) {		// // //
+	try {
+		if (Buf.size() >= sizeof(stClipInfo)) {
+			CConstArrayStream stream {Buf};
+
+			stClipInfo info = { };
+			info.Channels = stream.ReadInt<std::uint32_t>();
+			info.Rows = stream.ReadInt<std::uint32_t>();
+			info.StartColumn = stream.ReadEnum<column_t>();
+			info.EndColumn = stream.ReadEnum<column_t>();
+			info.OleInfo.ChanOffset = stream.ReadInt<std::uint32_t>();
+			info.OleInfo.RowOffset = stream.ReadInt<std::uint32_t>();
+
+			const std::size_t Size = info.GetSize();
+			if (Buf.size() >= sizeof(stClipInfo) + Size * sizeof(ft0cc::doc::pattern_note)) {
+				pPattern = std::make_unique<ft0cc::doc::pattern_note[]>(Size);		// // //
+				ClipInfo = info;
+				for (std::size_t i = 0; i < Size; ++i) {
+					auto &note = pPattern[i];
+					note.set_note(stream.ReadEnum<ft0cc::doc::pitch>());
+					note.set_oct(stream.ReadInt<std::uint8_t>());
+					note.set_vol(stream.ReadInt<std::uint8_t>());
+					note.set_inst(stream.ReadInt<std::uint8_t>());
+					for (auto &cmd : note.fx_cmds())
+						cmd.fx = stream.ReadEnum<ft0cc::doc::effect_type>();
+					for (auto &cmd : note.fx_cmds())
+						cmd.param = stream.ReadInt<std::uint8_t>();
+				}
+				return true;
+			}
+		}
+		return false;
 	}
-	return false;
+	catch (CBinaryIOException &) {
+		return false;
+	}
 }
 
-ft0cc::doc::pattern_note *CPatternClipData::GetPattern(int Channel, int Row)
+ft0cc::doc::pattern_note *CPatternClipData::GetPattern(unsigned Channel, unsigned Row)
 {
 	Assert(Channel < ClipInfo.Channels);
 	Assert(Row < ClipInfo.Rows);
@@ -71,7 +120,7 @@ ft0cc::doc::pattern_note *CPatternClipData::GetPattern(int Channel, int Row)
 	return &pPattern[Channel * ClipInfo.Rows + Row];
 }
 
-const ft0cc::doc::pattern_note *CPatternClipData::GetPattern(int Channel, int Row) const
+const ft0cc::doc::pattern_note *CPatternClipData::GetPattern(unsigned Channel, unsigned Row) const
 {
 	Assert(Channel < ClipInfo.Channels);
 	Assert(Row < ClipInfo.Rows);

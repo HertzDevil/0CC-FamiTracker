@@ -47,6 +47,7 @@ set(SRCS
 	${FT0CC_ROOT}/APU/VRC6.cpp
 	${FT0CC_ROOT}/APU/VRC7.cpp
 	${FT0CC_ROOT}/Arpeggiator.cpp
+	${FT0CC_ROOT}/ArrayStream.cpp
 #	${FT0CC_ROOT}/AudioDriver.cpp
 	${FT0CC_ROOT}/Blip_Buffer/Blip_Buffer.cpp
 	${FT0CC_ROOT}/Bookmark.cpp

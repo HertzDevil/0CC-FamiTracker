@@ -2825,17 +2825,14 @@ CCursorPos CPatternEditor::GetCursor() const		// // //
 CPatternClipData CPatternEditor::CopyEntire() const
 {
 	CSongView *pSongView = m_pView->GetSongView();		// // //
-	const int ChannelCount = pSongView->GetChannelOrder().GetChannelCount();
-	const int Rows = pSongView->GetSong().GetPatternLength();
+	const unsigned ChannelCount = pSongView->GetChannelOrder().GetChannelCount();
+	const unsigned Rows = pSongView->GetSong().GetPatternLength();
 	const int Frame = m_cpCursorPos.Ypos.Frame;		// // //
 
 	auto ClipData = CPatternClipData {ChannelCount, Rows};
 
-	ClipData.ClipInfo.Channels = ChannelCount;
-	ClipData.ClipInfo.Rows = Rows;
-
-	for (int i = 0; i < ChannelCount; ++i)
-		for (int j = 0; j < Rows; ++j)
+	for (unsigned i = 0; i < ChannelCount; ++i)
+		for (unsigned j = 0; j < Rows; ++j)
 			*ClipData.GetPattern(i, j) = pSongView->GetPatternOnFrame(i, Frame).GetNoteOn(j);		// // //
 
 	return ClipData;
@@ -2845,17 +2842,15 @@ CPatternClipData CPatternEditor::Copy() const
 {
 	// Copy selection
 	CPatternIterator it = GetIterators().first;		// // //
-	const int Channels	= m_selection.GetChanEnd() - m_selection.GetChanStart() + 1;
-	const int Rows		= GetSelectionSize(GetSelection());		// // //
+	const unsigned Channels	= m_selection.GetChanEnd() - m_selection.GetChanStart() + 1;
+	const unsigned Rows		= GetSelectionSize(GetSelection());		// // //
 
 	auto ClipData = CPatternClipData {Channels, Rows};
-	ClipData.ClipInfo.Channels	= Channels;		// // //
-	ClipData.ClipInfo.Rows		= Rows;
-	ClipData.ClipInfo.StartColumn	= GetSelectColumn(m_selection.GetColStart());		// // //
+	ClipData.ClipInfo.StartColumn = GetSelectColumn(m_selection.GetColStart());		// // //
 	ClipData.ClipInfo.EndColumn	= GetSelectColumn(m_selection.GetColEnd());		// // //
 
-	for (int r = 0; r < Rows; ++r) {		// // //
-		for (int i = 0; i < Channels; ++i) {
+	for (unsigned r = 0; r < Rows; ++r) {		// // //
+		for (unsigned i = 0; i < Channels; ++i) {
 			ft0cc::doc::pattern_note *Target = ClipData.GetPattern(i, r);
 			/*CopyNoteSection(*Target, NoteData, paste_mode_t::DEFAULT,
 				i == 0 ? ColStart : column_t::Note, i == Channels - 1 ? ColEnd : column_t::Effect4);*/
@@ -2879,23 +2874,21 @@ CPatternClipData CPatternEditor::CopyRaw(const CSelection &Sel) const		// // //
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	auto [it, end] = CPatternIterator::FromSelection(Sel, *pSongView);
 
-	const int Frames	= pSongView->GetSong().GetFrameCount();
-	const int Length	= pSongView->GetSong().GetPatternLength();
-	const int Rows		= (end.m_iFrame - it.m_iFrame) * Length + (end.m_iRow - it.m_iRow) + 1;
+	const unsigned Frames	= pSongView->GetSong().GetFrameCount();
+	const unsigned Length	= pSongView->GetSong().GetPatternLength();
+	const unsigned Rows		= (end.m_iFrame - it.m_iFrame) * Length + (end.m_iRow - it.m_iRow) + 1;
 
-	const int cBegin	= it.m_iChannel;
-	const int Channels	= end.m_iChannel - cBegin + 1;
+	const int cBegin = it.m_iChannel;
+	const unsigned Channels	= end.m_iChannel - cBegin + 1;
 
 	auto ClipData = CPatternClipData {Channels, Rows};
-	ClipData.ClipInfo.Channels	= Channels;
-	ClipData.ClipInfo.Rows		= Rows;
-	ClipData.ClipInfo.StartColumn	= GetSelectColumn(it.m_iColumn);
+	ClipData.ClipInfo.StartColumn = GetSelectColumn(it.m_iColumn);
 	ClipData.ClipInfo.EndColumn	= GetSelectColumn(end.m_iColumn);
 
 	const int PackedPos = (it.m_iFrame + Frames) * Length + it.m_iRow;
-	for (int i = 0; i < Channels; ++i)
-		for (int r = 0; r < Rows; ++r) {
-			auto pos = std::div(PackedPos + r, Length);
+	for (unsigned i = 0; i < Channels; ++i)
+		for (unsigned r = 0; r < Rows; ++r) {
+			auto pos = std::div(PackedPos + static_cast<int>(r), static_cast<int>(Length));
 			*ClipData.GetPattern(i, r) = pSongView->GetPatternOnFrame(i + cBegin, pos.quot % Frames).GetNoteOn(pos.rem);
 		}
 
@@ -2907,8 +2900,8 @@ void CPatternEditor::PasteEntire(const CPatternClipData &ClipData)
 	// Paste entire
 	CSongView *pSongView = m_pView->GetSongView();		// // //
 	const int Frame = GetFrame();		// // //
-	for (int i = 0; i < ClipData.ClipInfo.Channels; ++i)
-		for (int j = 0; j < ClipData.ClipInfo.Rows; ++j)
+	for (unsigned i = 0; i < ClipData.ClipInfo.Channels; ++i)
+		for (unsigned j = 0; j < ClipData.ClipInfo.Rows; ++j)
 			pSongView->GetPatternOnFrame(i, Frame).SetNoteOn(j, *ClipData.GetPattern(i, j));		// // //
 }
 
@@ -3699,8 +3692,8 @@ bool CPatternEditor::PerformDrop(CPatternClipData ClipData, bool bCopy, bool bCo
 		int ChannelOffset = (m_selDrag.m_cpStart.Xpos.Track < 0) ? -m_selDrag.m_cpStart.Xpos.Track : 0;
 		int RowOffset = (m_selDrag.m_cpStart.Ypos.Row < 0) ? -m_selDrag.m_cpStart.Ypos.Row : 0;
 
-		int NewChannels = ClipData.ClipInfo.Channels - ChannelOffset;
-		int NewRows = ClipData.ClipInfo.Rows - RowOffset;
+		unsigned NewChannels = ClipData.ClipInfo.Channels - ChannelOffset;
+		unsigned NewRows = ClipData.ClipInfo.Rows - RowOffset;
 
 		auto Clipped = CPatternClipData {NewChannels, NewRows};		// // //
 
@@ -3708,8 +3701,8 @@ bool CPatternEditor::PerformDrop(CPatternClipData ClipData, bool bCopy, bool bCo
 		Clipped.ClipInfo.Channels = NewChannels;
 		Clipped.ClipInfo.Rows = NewRows;
 
-		for (int c = 0; c < NewChannels; ++c)
-			for (int r = 0; r < NewRows; ++r)
+		for (unsigned c = 0; c < NewChannels; ++c)
+			for (unsigned r = 0; r < NewRows; ++r)
 				*Clipped.GetPattern(c, r) = *ClipData.GetPattern(c + ChannelOffset, r + RowOffset);
 
 		if (m_selDrag.m_cpStart.Xpos.Track < 0)

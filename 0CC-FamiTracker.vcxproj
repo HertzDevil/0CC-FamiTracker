@@ -475,6 +475,7 @@
     <ClCompile Include="Source\APU\SampleMem.cpp" />
     <ClCompile Include="Source\APU\SoundChip.cpp" />
     <ClCompile Include="Source\Arpeggiator.cpp" />
+    <ClCompile Include="Source\ArrayStream.cpp" />
     <ClCompile Include="Source\AudioDriver.cpp" />
     <ClCompile Include="Source\Bookmark.cpp" />
     <ClCompile Include="Source\BookmarkCollection.cpp" />
@@ -673,9 +674,10 @@
     <ClInclude Include="Source\APU\SampleMem.h" />
     <ClInclude Include="Source\APU\Types_fwd.h" />
     <ClInclude Include="Source\Arpeggiator.h" />
+    <ClInclude Include="Source\ArrayStream.h" />
     <ClInclude Include="Source\Assertion.h" />
     <ClInclude Include="Source\AudioDriver.h" />
-    <ClInclude Include="Source\BinaryReader.h" />
+    <ClInclude Include="Source\BinaryStream.h" />
     <ClInclude Include="Source\BinarySerializable.h" />
     <ClInclude Include="Source\Bookmark.h" />
     <ClInclude Include="Source\BookmarkCollection.h" />

@@ -35,10 +35,10 @@ class pattern_note;
 class CPatternClipData : public CBinarySerializableInterface {		// // //
 public:
 	CPatternClipData() = default;
-	CPatternClipData(int Channels, int Rows);
+	CPatternClipData(unsigned Channels, unsigned Rows);
 
-	ft0cc::doc::pattern_note *GetPattern(int Channel, int Row);
-	const ft0cc::doc::pattern_note *GetPattern(int Channel, int Row) const;
+	ft0cc::doc::pattern_note *GetPattern(unsigned Channel, unsigned Row);
+	const ft0cc::doc::pattern_note *GetPattern(unsigned Channel, unsigned Row) const;
 
 	bool ContainsData() const override;		// // //
 
@@ -48,18 +48,21 @@ private:
 	bool FromBytes(array_view<const std::byte> Buf) override;
 
 public:
-	struct {
-		int Channels = 0;			// Number of channels
-		int Rows = 0;				// Number of rows
+	struct stClipInfo {
+		std::uint32_t Channels = 0;			// Number of channels
+		std::uint32_t Rows = 0;				// Number of rows
 		column_t StartColumn = column_t::Note;		// // // Start column in first channel
 		column_t EndColumn = column_t::Note;		// // // End column in last channel
-		struct {				// OLE drag and drop info
-			int ChanOffset = 0;
-			int RowOffset = 0;
+		struct stOleInfo {			// OLE drag and drop info
+			std::uint32_t ChanOffset = 0;
+			std::uint32_t RowOffset = 0;
 		} OleInfo = { };
+
+		constexpr std::size_t GetSize() const noexcept {
+			return Channels * Rows;
+		}
 	} ClipInfo;
 
 	std::unique_ptr<ft0cc::doc::pattern_note[]> pPattern;		// // // Pattern data
-	int Size = 0;					// Pattern data size, in rows * columns
 };
 

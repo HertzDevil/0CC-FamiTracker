@@ -23,38 +23,26 @@
 
 #pragma once
 
-#include <fstream>
-#include <cstdint>
-#include <cstddef>
-#include "ft0cc/cpputil/array_view.hpp"
-#include "ft0cc/cpputil/fs.hpp"
 #include "BinaryStream.h"
 
-class CSimpleFile : public CBinaryReader {
+class CConstArrayStream : public CBinaryReader {
 public:
-	static_assert(sizeof(char) == sizeof(uint8_t));
+	CConstArrayStream(array_view<const std::byte> input);
 
-	CSimpleFile() = default;
-	CSimpleFile(const fs::path &fname, std::ios_base::openmode mode);
-
-	explicit operator bool() const;
-
-	void	Open(const fs::path &fname, std::ios_base::openmode mode);
-	void	Close();
-	std::string	GetErrorMessage() const;
-
-	void	WriteInt8(int8_t Value);
-	void	WriteInt16(int16_t Value);
-	void	WriteInt32(int32_t Value);
-	void	WriteBytes(array_view<const std::byte> Buf);
-	void	WriteString(std::string_view sv);
-	void	WriteStringNull(std::string_view sv);
-
-	std::size_t	ReadBytes(array_view<std::byte> Buf) override;
-
-	void		Seek(std::size_t pos);
-	std::size_t GetPosition();
+	std::size_t ReadBytes(array_view<std::byte> buf) override;
 
 private:
-	std::fstream m_fFile;
+	array_view<const std::byte> input_;
+	array_view<const std::byte> orig_input_;
+};
+
+class CArrayStream : public CBinaryWriter {
+public:
+	CArrayStream(array_view<std::byte> output);
+
+	std::size_t WriteBytes(array_view<const std::byte> buf) override;
+
+private:
+	array_view<std::byte> output_;
+	array_view<std::byte> orig_output_;
 };

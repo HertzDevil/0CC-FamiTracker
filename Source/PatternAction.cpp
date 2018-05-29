@@ -1046,7 +1046,7 @@ void CPActionStretch::Redo(CMainFrame &MainFrm)
 	const column_t ColEnd = GetSelectColumn(Sel.m_cpEnd.Xpos.Column);
 
 	int Pos = 0;
-	int Offset = 0;
+	unsigned Offset = 0;
 	int oldRow = -1;
 	do {
 		ft0cc::doc::pattern_note BLANK;
