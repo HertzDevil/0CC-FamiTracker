@@ -38,11 +38,6 @@
 const unsigned int CDocumentFile::FILE_VER		 = 0x0440;			// Current file version (4.40)
 const unsigned int CDocumentFile::COMPATIBLE_VER = 0x0100;			// Compatible file version (1.0)
 
-//const std::string_view CDocumentFile::FILE_HEADER_ID = {"FamiTracker Module", 18};		// // //
-//const std::string_view CDocumentFile::FILE_END_ID = "END";
-
-const unsigned int CDocumentFile::BLOCK_SIZE = 0x10000;
-
 CDocumentFile::CDocumentFile() :
 	m_pFile(std::make_unique<CBinaryFileStream>())
 {
@@ -98,8 +93,6 @@ void CDocumentFile::ValidateFile()
 	if (GetFileVersion() > 0x450u /*FILE_VER*/)		// // // 050B
 		throw CModuleException::WithMessage("FamiTracker module version too new (0x" + conv::from_int_hex(GetFileVersion()) +
 			"), expected 0x" + conv::from_int_hex(0x450u) + " or below");
-
-	m_bFileDone = false;
 }
 
 unsigned int CDocumentFile::GetFileVersion() const {

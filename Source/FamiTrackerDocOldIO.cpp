@@ -60,18 +60,19 @@ enum {
 
 } // namespace
 
-bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CBinaryReader &OpenFile) {
+std::unique_ptr<CFamiTrackerModule> compat::OpenDocumentOld(CBinaryReader &OpenFile) {
 	unsigned int i, c, ReadCount, FileBlock;
+	auto modfile = std::make_unique<CFamiTrackerModule>();
+	modfile->SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
 
 	FileBlock = 0;
 
 	// Only single track files
-	auto &Song = *modfile.GetSong(0);
+	auto &Song = *modfile->GetSong(0);
 
-	modfile.SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));		// // //
-	modfile.SetMachine(machine_t::NTSC);		// // //
-	modfile.SetVibratoStyle(vibrato_t::Up);
-	modfile.SetLinearPitch(false);
+	modfile->SetMachine(machine_t::NTSC);		// // //
+	modfile->SetVibratoStyle(vibrato_t::Up);
+	modfile->SetLinearPitch(false);
 
 	// // // local structs
 	struct {
@@ -112,11 +113,11 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CBinaryReader &OpenFil
 			break;
 
 		case FB_MACHINE:
-			modfile.SetMachine(OpenFile.ReadInt<std::int32_t>() ? machine_t::PAL : machine_t::NTSC);
+			modfile->SetMachine(OpenFile.ReadInt<std::int32_t>() ? machine_t::PAL : machine_t::NTSC);
 			break;
 
 		case FB_ENGINESPEED:
-			modfile.SetEngineSpeed(OpenFile.ReadInt<std::int32_t>());
+			modfile->SetEngineSpeed(OpenFile.ReadInt<std::int32_t>());
 			break;
 
 		case FB_INSTRUMENTS:
@@ -142,7 +143,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CBinaryReader &OpenFil
 						}
 					}
 
-					modfile.GetInstrumentManager()->InsertInstrument(i, std::move(pInst));		// // //
+					modfile->GetInstrumentManager()->InsertInstrument(i, std::move(pInst));		// // //
 				}
 			}
 			break;
@@ -163,7 +164,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CBinaryReader &OpenFil
 			unsigned FrameCount = OpenFile.ReadInt<std::int32_t>();
 			Song.SetFrameCount(FrameCount);
 			for (c = 0; c < FrameCount; ++c)
-				modfile.GetChannelOrder().ForeachChannel([&] (stChannelID i) {
+				modfile->GetChannelOrder().ForeachChannel([&] (stChannelID i) {
 					Song.SetFramePattern(c, i, OpenFile.ReadInt<std::int32_t>());
 				});
 			break;
@@ -172,7 +173,7 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CBinaryReader &OpenFil
 			ReadCount = OpenFile.ReadInt<std::int32_t>();
 			unsigned PatternLength = OpenFile.ReadInt<std::int32_t>();
 			Song.SetPatternLength(PatternLength);
-			modfile.GetChannelOrder().ForeachChannel([&] (stChannelID x) {
+			modfile->GetChannelOrder().ForeachChannel([&] (stChannelID x) {
 				for (c = 0; c < ReadCount; ++c) {
 					for (i = 0; i < PatternLength; ++i) {
 						OpenFile.ReadBytes(byte_view(ImportedNote));
@@ -218,23 +219,23 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CBinaryReader &OpenFil
 					OpenFile.ReadBytes(byte_view(Sample));
 				}
 
-				modfile.GetDSampleManager()->SetDSample(i, std::make_shared<ft0cc::doc::dpcm_sample>(std::move(Sample), ImportedDSample.Name));
+				modfile->GetDSampleManager()->SetDSample(i, std::make_shared<ft0cc::doc::dpcm_sample>(std::move(Sample), ImportedDSample.Name));
 			}
 			break;
 		}
 		case FB_SONGNAME:
 			OpenFile.ReadBytes(byte_view(pBuf));		// // //
-			modfile.SetModuleName(pBuf);
+			modfile->SetModuleName(pBuf);
 			break;
 
 		case FB_SONGARTIST:
 			OpenFile.ReadBytes(byte_view(pBuf));		// // //
-			modfile.SetModuleArtist(pBuf);
+			modfile->SetModuleArtist(pBuf);
 			break;
 
 		case FB_SONGCOPYRIGHT:
 			OpenFile.ReadBytes(byte_view(pBuf));		// // //
-			modfile.SetModuleCopyright(pBuf);
+			modfile->SetModuleCopyright(pBuf);
 			break;
 
 		default:
@@ -242,9 +243,9 @@ bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CBinaryReader &OpenFil
 		}
 	}
 
-	ReorderSequences(modfile, std::move(TmpSequences));		// // //
+	ReorderSequences(*modfile, std::move(TmpSequences));		// // //
 
-	return true;
+	return modfile;
 }
 
 void compat::ReorderSequences(CFamiTrackerModule &modfile, std::vector<COldSequence> seqs)		// // //

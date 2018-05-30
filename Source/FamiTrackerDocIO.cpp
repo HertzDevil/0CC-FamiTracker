@@ -115,7 +115,7 @@ CFamiTrackerDocReader::CFamiTrackerDocReader(CDocumentFile &file, module_error_l
 {
 }
 
-bool CFamiTrackerDocReader::Load(CFamiTrackerModule &modfile) {
+std::unique_ptr<CFamiTrackerModule> CFamiTrackerDocReader::Load() {
 	using map_t = std::unordered_map<std::string_view, void (CFamiTrackerDocReader::*)(CFamiTrackerModule &, CDocumentInputBlock &)>;
 	const auto FTM_READ_FUNC = map_t {
 		{FILE_BLOCK_PARAMS,			&CFamiTrackerDocReader::LoadParams},
@@ -137,27 +137,29 @@ bool CFamiTrackerDocReader::Load(CFamiTrackerModule &modfile) {
 		{FILE_BLOCK_BOOKMARKS,		&CFamiTrackerDocReader::LoadBookmarks},		// // //
 	};
 
+	auto modfile = std::make_unique<CFamiTrackerModule>();
+	modfile->SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));
+
 	// This has to be done for older files
 	if (file_.GetFileVersion() < 0x0210)
-		(void)modfile.GetSong(0);
+		(void)modfile->GetSong(0);
 
 	// Read all blocks
 	while (true) {
 		if (auto block = file_.ReadBlock()) {
 			if (auto it = FTM_READ_FUNC.find(block->GetBlockHeaderID()); it != FTM_READ_FUNC.end())
-				(this->*(it->second))(modfile, *block);
-			else {
+				(this->*(it->second))(*modfile, *block);
+			else
 				DEBUG_BREAK();
-			}
 		}
 		else if (file_.Finished())
 			break;
 		else
-			return false;
+			return nullptr;
 	}
 
-	PostLoad(modfile);
-	return true;
+	PostLoad(*modfile);
+	return modfile;
 }
 
 void CFamiTrackerDocReader::PostLoad(CFamiTrackerModule &modfile) {
@@ -484,7 +486,7 @@ void CFamiTrackerDocReader::LoadSequences(CFamiTrackerModule &modfile, CDocument
 					}
 				}
 				catch (CModuleException &e) {
-					e.AppendError("At 2A03 " + std::string {CInstrument2A03::SEQUENCE_NAME[value_cast(j)]} +" sequence " + conv::from_int(i) + ',');
+					e.AppendError("At 2A03 " + std::string {CInstrument2A03::SEQUENCE_NAME[value_cast(j)]} + " sequence " + conv::from_int(i) + ',');
 					throw e;
 				}
 			}
@@ -1195,7 +1197,7 @@ void CFamiTrackerDocWriter::SaveSequences(const CFamiTrackerModule &modfile, CDo
 	// v6
 	VisitSequences(Manager, [&] (const CSequence &seq, int, sequence_t) {
 		block.WriteInt<std::int32_t>(seq.GetReleasePoint());
-		block.WriteInt<std::int32_t>(seq.GetSetting());
+		block.WriteInt<std::int32_t>(value_cast(seq.GetSetting()));
 	});
 }
 
@@ -1304,7 +1306,7 @@ void CFamiTrackerDocWriter::SaveSequencesVRC6(const CFamiTrackerModule &modfile,
 	// v6
 	VisitSequences(pManager, [&] (const CSequence &seq, int, sequence_t) {
 		block.WriteInt<std::int32_t>(seq.GetReleasePoint());
-		block.WriteInt<std::int32_t>(seq.GetSetting());
+		block.WriteInt<std::int32_t>(value_cast(seq.GetSetting()));
 	});
 }
 
@@ -1325,7 +1327,7 @@ void CFamiTrackerDocWriter::SaveSequencesN163(const CFamiTrackerModule &modfile,
 		block.WriteInt<std::int8_t>(seq.GetItemCount());
 		block.WriteInt<std::int32_t>(seq.GetLoopPoint());
 		block.WriteInt<std::int32_t>(seq.GetReleasePoint());
-		block.WriteInt<std::int32_t>(seq.GetSetting());
+		block.WriteInt<std::int32_t>(value_cast(seq.GetSetting()));
 		for (int k = 0, Count = seq.GetItemCount(); k < Count; ++k)
 			block.WriteInt<std::int8_t>(seq.GetItem(k));
 	});
@@ -1344,7 +1346,7 @@ void CFamiTrackerDocWriter::SaveSequencesS5B(const CFamiTrackerModule &modfile, 
 		block.WriteInt<std::int8_t>(seq.GetItemCount());
 		block.WriteInt<std::int32_t>(seq.GetLoopPoint());
 		block.WriteInt<std::int32_t>(seq.GetReleasePoint());
-		block.WriteInt<std::int32_t>(seq.GetSetting());
+		block.WriteInt<std::int32_t>(value_cast(seq.GetSetting()));
 		for (int k = 0, Count = seq.GetItemCount(); k < Count; ++k)
 			block.WriteInt<std::int8_t>(seq.GetItem(k));
 	});

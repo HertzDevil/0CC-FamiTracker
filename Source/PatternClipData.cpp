@@ -47,20 +47,20 @@ bool CPatternClipData::ToBytes(array_view<std::byte> Buf) const {		// // //
 
 			stream.WriteInt<std::uint32_t>(ClipInfo.Channels);
 			stream.WriteInt<std::uint32_t>(ClipInfo.Rows);
-			stream.WriteEnum(ClipInfo.StartColumn);
-			stream.WriteEnum(ClipInfo.EndColumn);
+			stream.WriteInt<std::uint32_t>(value_cast(ClipInfo.StartColumn));
+			stream.WriteInt<std::uint32_t>(value_cast(ClipInfo.EndColumn));
 			stream.WriteInt<std::uint32_t>(ClipInfo.OleInfo.ChanOffset);
 			stream.WriteInt<std::uint32_t>(ClipInfo.OleInfo.RowOffset);
 
 			const std::size_t Size = ClipInfo.GetSize();
 			for (std::size_t i = 0; i < Size; ++i) {
 				const auto &note = pPattern[i];
-				stream.WriteEnum(note.note());
+				stream.WriteInt<std::uint8_t>(value_cast(note.note()));
 				stream.WriteInt<std::uint8_t>(note.oct());
 				stream.WriteInt<std::uint8_t>(note.vol());
 				stream.WriteInt<std::uint8_t>(note.inst());
 				for (const auto &cmd : note.fx_cmds())
-					stream.WriteEnum(cmd.fx);
+					stream.WriteInt<std::uint8_t>(value_cast(cmd.fx));
 				for (const auto &cmd : note.fx_cmds())
 					stream.WriteInt<std::uint8_t>(cmd.param);
 			}
@@ -81,8 +81,8 @@ bool CPatternClipData::FromBytes(array_view<const std::byte> Buf) {		// // //
 			stClipInfo info = { };
 			info.Channels = stream.ReadInt<std::uint32_t>();
 			info.Rows = stream.ReadInt<std::uint32_t>();
-			info.StartColumn = stream.ReadEnum<column_t>();
-			info.EndColumn = stream.ReadEnum<column_t>();
+			info.StartColumn = enum_cast<column_t>(stream.ReadInt<std::uint32_t>());
+			info.EndColumn = enum_cast<column_t>(stream.ReadInt<std::uint32_t>());
 			info.OleInfo.ChanOffset = stream.ReadInt<std::uint32_t>();
 			info.OleInfo.RowOffset = stream.ReadInt<std::uint32_t>();
 
@@ -92,12 +92,12 @@ bool CPatternClipData::FromBytes(array_view<const std::byte> Buf) {		// // //
 				ClipInfo = info;
 				for (std::size_t i = 0; i < Size; ++i) {
 					auto &note = pPattern[i];
-					note.set_note(stream.ReadEnum<ft0cc::doc::pitch>());
+					note.set_note(enum_cast<ft0cc::doc::pitch>(stream.ReadInt<std::uint8_t>()));
 					note.set_oct(stream.ReadInt<std::uint8_t>());
 					note.set_vol(stream.ReadInt<std::uint8_t>());
 					note.set_inst(stream.ReadInt<std::uint8_t>());
 					for (auto &cmd : note.fx_cmds())
-						cmd.fx = stream.ReadEnum<ft0cc::doc::effect_type>();
+						cmd.fx = enum_cast<ft0cc::doc::effect_type>(stream.ReadInt<std::uint8_t>());
 					for (auto &cmd : note.fx_cmds())
 						cmd.param = stream.ReadInt<std::uint8_t>();
 				}

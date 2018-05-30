@@ -25,13 +25,14 @@
 
 #include "OldSequence.h"
 #include <vector>
+#include <memory>
 
 class CFamiTrackerModule;
 class CBinaryReader;
 
 namespace compat {
 
-bool OpenDocumentOld(CFamiTrackerModule &modfile, CBinaryReader &OpenFile);
+std::unique_ptr<CFamiTrackerModule> OpenDocumentOld(CBinaryReader &OpenFile);
 void ReorderSequences(CFamiTrackerModule &modfile, std::vector<COldSequence> seqs);
 
 } // namespace compat

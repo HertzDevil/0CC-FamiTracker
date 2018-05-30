@@ -380,22 +380,18 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 	try {		// // //
 		OpenFile.Open(lpszPathName);
 		OpenFile.ValidateFile(); // Read header ID and version
+		bool useCompat = OpenFile.GetFileVersion() < 0x0200u;
 
-		auto newModule = std::make_unique<CFamiTrackerModule>();
-		newModule->SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));
-		if (OpenFile.GetFileVersion() < 0x0200u) {
-			if (!compat::OpenDocumentOld(*newModule, OpenFile.GetBinaryStream()))
-				throw CModuleException::WithMessage((LPCSTR)CStringA(MAKEINTRESOURCEA(IDS_FILE_LOAD_ERROR)));
+		if (auto newModule = useCompat ? compat::OpenDocumentOld(OpenFile.GetBinaryStream()) :
+			CFamiTrackerDocReader {OpenFile, FTEnv.GetSettings()->Version.iErrorLevel}.Load())
+			module_ = std::move(newModule);
+		else
+			throw CModuleException::WithMessage((LPCSTR)CStringA(MAKEINTRESOURCEA(IDS_FILE_LOAD_ERROR)));
 
-			// Create a backup of this file, since it's an old version
-			// and something might go wrong when converting
+		// Create a backup of this file, since it's an old version
+		// and something might go wrong when converting
+		if (useCompat)
 			m_bForceBackup = true;
-		}
-		else {
-			if (!CFamiTrackerDocReader {OpenFile, FTEnv.GetSettings()->Version.iErrorLevel}.Load(*newModule))
-				throw CModuleException::WithMessage((LPCSTR)CStringA(MAKEINTRESOURCEA(IDS_FILE_LOAD_ERROR)));
-		}
-		module_ = std::move(newModule);
 	}
 	catch (CModuleException &e) {
 		if (FTEnv.GetSettings()->Version.iErrorLevel > MODULE_ERROR_DEFAULT)

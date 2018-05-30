@@ -59,11 +59,6 @@ public:
 		return DoRead([&] { return ReadIntImpl<T>(); });
 	}
 
-	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-	T ReadEnum() {
-		return enum_cast<T>(ReadInt<std::underlying_type_t<T>>());
-	}
-
 	template <typename CharT>
 	std::basic_string<CharT> ReadStringNull() {
 		return DoRead([&] {
@@ -139,14 +134,9 @@ private:
 public:
 	virtual std::size_t WriteBytes(array_view<const std::byte> buf) = 0;
 
-	template <typename T, typename U, std::enable_if_t<std::is_integral_v<T>, int> = 0>
+	template <typename T, typename U, std::enable_if_t<std::is_integral_v<T>, int> = 0, std::enable_if_t<std::is_integral_v<U>, int> = 0>
 	void WriteInt(U x) {
 		DoWrite([&] { WriteIntImpl<T>(x); });
-	}
-
-	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-	void WriteEnum(T x) {
-		WriteInt<std::underlying_type_t<T>>(value_cast(x));
 	}
 
 	template <typename CharT>

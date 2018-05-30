@@ -69,7 +69,6 @@ public:
 	static constexpr std::string_view FILE_HEADER_ID = "FamiTracker Module";		// // //
 	static constexpr std::string_view FILE_END_ID = "END";
 
-	static const unsigned int BLOCK_SIZE;
 	static const unsigned int BLOCK_HEADER_SIZE = 16;		// // //
 
 protected:

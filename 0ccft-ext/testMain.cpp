@@ -31,7 +31,7 @@ int main() try {
 	compiler.ExportNSF(nsffile, 0);
 	nsffile.Close();
 
-	auto j = nlohmann::json(modfile);
+	nlohmann::json j {modfile};
 //	std::cout << j.dump(2) << '\n';
 	std::ofstream {"kraid.json", std::ios::out} << j.dump() << '\n';
 
@@ -41,6 +41,7 @@ int main() try {
 	outfile.Close();
 
 	std::cout << "Success\n";
+	return 0;
 }
 catch (std::exception &e) {
 	std::cerr << "C++ exception: " << e.what() << '\n';

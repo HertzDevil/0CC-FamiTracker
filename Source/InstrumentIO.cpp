@@ -146,7 +146,7 @@ void CInstrumentIOSeq::DoWriteToFTI(const CInstrument &inst_, CBinaryWriter &out
 			output.WriteInt<std::int32_t>(pSeq->GetItemCount());
 			output.WriteInt<std::int32_t>(pSeq->GetLoopPoint());
 			output.WriteInt<std::int32_t>(pSeq->GetReleasePoint());
-			output.WriteInt<std::int32_t>(pSeq->GetSetting());
+			output.WriteInt<std::int32_t>(value_cast(pSeq->GetSetting()));
 			for (unsigned j = 0; j < pSeq->GetItemCount(); ++j) {
 				output.WriteInt<std::int8_t>(pSeq->GetItem(j));
 			}
@@ -478,7 +478,7 @@ void CInstrumentIOFDS::DoWriteToModule(const CInstrument &inst_, CDocumentOutput
 		// Store release point (v4)
 		block.WriteInt<std::int32_t>(Seq.GetReleasePoint());
 		// Store setting (v4)
-		block.WriteInt<std::int32_t>(Seq.GetSetting());
+		block.WriteInt<std::int32_t>(value_cast(Seq.GetSetting()));
 		// Store items
 		for (unsigned int j = 0; j < Seq.GetItemCount(); ++j) {
 			block.WriteInt<std::int8_t>(Seq.GetItem(j));
@@ -585,7 +585,7 @@ void CInstrumentIOFDS::DoWriteToFTI(const CInstrument &inst_, CBinaryWriter &out
 		// Store release point (v4)
 		output.WriteInt<std::int32_t>(Seq.GetReleasePoint());
 		// Store setting (v4)
-		output.WriteEnum(Seq.GetSetting());
+		output.WriteInt<std::int32_t>(value_cast(Seq.GetSetting()));
 		// Store items
 		for (unsigned i = 0; i < Seq.GetItemCount(); ++i)
 			output.WriteInt<std::int8_t>(Seq.GetItem(i));

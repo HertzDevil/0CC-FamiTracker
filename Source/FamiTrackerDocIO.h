@@ -25,6 +25,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include "OldSequence.h"
 #include "ModuleException.h"
 
@@ -38,7 +39,7 @@ class CFamiTrackerDocReader {
 public:
 	CFamiTrackerDocReader(CDocumentFile &file, module_error_level_t err_lv);
 
-	bool Load(CFamiTrackerModule &modfile);
+	std::unique_ptr<CFamiTrackerModule> Load();
 
 private:
 	void PostLoad(CFamiTrackerModule &modfile);
