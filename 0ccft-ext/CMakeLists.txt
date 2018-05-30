@@ -137,10 +137,8 @@ set(SRCS
 	${FT0CC_ROOT}/InstrumentManager.cpp
 	${FT0CC_ROOT}/InstrumentN163.cpp
 #	${FT0CC_ROOT}/InstrumentRecorder.cpp
-	${FT0CC_ROOT}/InstrumentS5B.cpp
 	${FT0CC_ROOT}/InstrumentService.cpp
 	${FT0CC_ROOT}/InstrumentTypeImpl.cpp
-	${FT0CC_ROOT}/InstrumentVRC6.cpp
 	${FT0CC_ROOT}/InstrumentVRC7.cpp
 	${FT0CC_ROOT}/Kraid.cpp
 #	${FT0CC_ROOT}/MainFrm.cpp
@@ -160,7 +158,6 @@ set(SRCS
 #	${FT0CC_ROOT}/PatternComponent.cpp
 	${FT0CC_ROOT}/PatternData.cpp
 #	${FT0CC_ROOT}/PatternEditor.cpp
-	${FT0CC_ROOT}/PatternEditorTypes.cpp
 #	${FT0CC_ROOT}/PCMImport.cpp
 #	${FT0CC_ROOT}/PerformanceDlg.cpp
 	${FT0CC_ROOT}/PeriodTables.cpp
@@ -172,6 +169,7 @@ set(SRCS
 	${FT0CC_ROOT}/resampler/sinc.cpp
 #	${FT0CC_ROOT}/SampleEditorDlg.cpp
 #	${FT0CC_ROOT}/SampleEditorView.cpp
+	${FT0CC_ROOT}/SelectionRange.cpp
 	${FT0CC_ROOT}/SeqInstHandler.cpp
 	${FT0CC_ROOT}/SeqInstHandlerFDS.cpp
 	${FT0CC_ROOT}/SeqInstHandlerN163.cpp
@@ -216,7 +214,6 @@ set(SRCS
 #	${FT0CC_ROOT}/VisualizerWnd.cpp
 #	${FT0CC_ROOT}/WaveEditor.cpp
 	${FT0CC_ROOT}/WaveformGenerator.cpp
-	${FT0CC_ROOT}/WavegenBuiltin.cpp
 	${FT0CC_ROOT}/WaveRenderer.cpp
 	${FT0CC_ROOT}/WaveRendererFactory.cpp
 	${FT0CC_ROOT}/WaveStream.cpp
@@ -232,4 +229,4 @@ endif()
 
 add_executable(ft0cc-test testMain.cpp)
 target_include_directories(ft0cc-test PRIVATE ${FT0CC_ROOT} ${LIBFT0CC_ROOT}/include)
-target_link_libraries(ft0cc-test PRIVATE ft0cc)
+target_link_libraries(ft0cc-test PRIVATE ft0cc stdc++fs)

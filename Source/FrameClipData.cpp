@@ -102,16 +102,16 @@ bool CFrameClipData::FromBytes(array_view<const std::byte> Buf)		// // //
 
 int CFrameClipData::GetFrame(unsigned Frame, unsigned Channel) const
 {
-	Assert(Frame >= 0 && Frame < ClipInfo.Frames);
-	Assert(Channel >= 0 && Channel < ClipInfo.Channels);
+	Assert(Frame < ClipInfo.Frames);
+	Assert(Channel < ClipInfo.Channels);
 
 	return pFrames[Frame * ClipInfo.Channels + Channel];		// // //
 }
 
 void CFrameClipData::SetFrame(unsigned Frame, unsigned Channel, CFrameClipData::value_type Pattern)
 {
-	Assert(Frame >= 0 && Frame < ClipInfo.Frames);
-	Assert(Channel >= 0 && Channel < ClipInfo.Channels);
+	Assert(Frame < ClipInfo.Frames);
+	Assert(Channel < ClipInfo.Channels);
 
 	pFrames[Frame * ClipInfo.Channels + Channel] = Pattern;		// // //
 }

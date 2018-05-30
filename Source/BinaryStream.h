@@ -27,6 +27,7 @@
 #include "ft0cc/cpputil/enum_traits.hpp"
 #include <string>
 #include <string_view>
+#include <utility>
 
 namespace details {
 
