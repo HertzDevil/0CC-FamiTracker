@@ -376,41 +376,38 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 		return TRUE;
 	}
 
-	// Open file
 	try {		// // //
 		OpenFile.Open(lpszPathName, std::ios::in | std::ios::binary);
-	}
-	catch (std::runtime_error err) {
-		AfxMessageBox(FormattedW(L"Could not open file: %s", conv::to_wide(err.what()).data()), MB_OK | MB_ICONERROR);
-		//OnNewDocument();
-		return FALSE;
-	}
-
-	try {		// // //
 		// Read header ID and version
 		OpenFile.ValidateFile();
 
 		m_iFileVersion = OpenFile.GetFileVersion();
-		DeleteContents();		// // //
 
+		auto newModule = std::make_unique<CFamiTrackerModule>();
+		newModule->SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));
 		if (m_iFileVersion < 0x0200U) {
-			if (!compat::OpenDocumentOld(*GetModule(), OpenFile.GetCSimpleFile()))
-				OpenFile.RaiseModuleException("General error");
+			if (!compat::OpenDocumentOld(*newModule, OpenFile.GetCSimpleFile()))
+				throw CModuleException::WithMessage("General error");
 
 			// Create a backup of this file, since it's an old version
 			// and something might go wrong when converting
 			m_bForceBackup = true;
 		}
 		else {
-			if (!CFamiTrackerDocIO {OpenFile, FTEnv.GetSettings()->Version.iErrorLevel}.Load(*GetModule()))
-				OpenFile.RaiseModuleException((LPCSTR)CStringA(MAKEINTRESOURCEA(IDS_FILE_LOAD_ERROR)));
+			if (!CFamiTrackerDocIO {OpenFile, FTEnv.GetSettings()->Version.iErrorLevel}.Load(*newModule))
+				throw CModuleException::WithMessage((LPCSTR)CStringA(MAKEINTRESOURCEA(IDS_FILE_LOAD_ERROR)));
 		}
+		module_ = std::move(newModule);
 	}
 	catch (CModuleException &e) {
 		if (FTEnv.GetSettings()->Version.iErrorLevel > MODULE_ERROR_DEFAULT)
 			e.AppendFooter("\n\nTry lowering the module error level in the configuration menu.");
 		AfxMessageBox(conv::to_wide(e.GetErrorString()).data(), MB_ICONERROR);
-		DeleteContents();
+		return FALSE;
+	}
+	catch (std::exception &err) {
+		AfxMessageBox(FormattedW(L"Could not open file: %s", conv::to_wide(err.what()).data()), MB_OK | MB_ICONERROR);
+		//OnNewDocument();
 		return FALSE;
 	}
 

@@ -186,7 +186,7 @@ void CDocumentFile::ValidateFile()
 	Read(reinterpret_cast<unsigned char *>(Buffer), FILE_HEADER_ID.size());		// // //
 
 	if (array_view<char> {Buffer} != FILE_HEADER_ID)
-		RaiseModuleException("File is not a FamiTracker module");
+		throw CModuleException::WithMessage("File is not a FamiTracker module");
 
 	// Read file version
 	unsigned char VerBuffer[4] = { };		// // //
@@ -264,25 +264,31 @@ void CDocumentFile::RollbackPointer(int count)
 	m_iPreviousPosition -= count;
 }
 
+void CDocumentFile::GetBlock(void *Buffer, int Size)
+{
+	Assert(Size < MAX_BLOCK_SIZE);
+	Assert(Buffer != NULL);
+
+	if (m_iBlockPointer + Size > m_iBlockSize)
+		throw CModuleException::WithMessage("Unexpected end of block");
+	std::memcpy(Buffer, m_pBlockData.data() + m_iBlockPointer, Size);		// // //
+	m_iPreviousPointer = m_iBlockPointer;
+	m_iBlockPointer += Size;
+	m_iPreviousPosition = m_iFilePosition;		// // //
+	m_iFilePosition += Size;
+}
+
 int CDocumentFile::GetBlockInt()
 {
 	int Value;
-	std::memcpy(&Value, m_pBlockData.data() + m_iBlockPointer, sizeof(Value));		// // //
-	m_iPreviousPointer = m_iBlockPointer;
-	m_iBlockPointer += sizeof(Value);
-	m_iPreviousPosition = m_iFilePosition;		// // //
-	m_iFilePosition += sizeof(Value);
+	GetBlock(&Value, sizeof(Value));
 	return Value;
 }
 
 char CDocumentFile::GetBlockChar()
 {
 	char Value;
-	std::memcpy(&Value, m_pBlockData.data() + m_iBlockPointer, sizeof(Value));		// // //
-	m_iPreviousPointer = m_iBlockPointer;
-	m_iBlockPointer += sizeof(Value);
-	m_iPreviousPosition = m_iFilePosition;		// // //
-	m_iFilePosition += sizeof(Value);
+	GetBlock(&Value, sizeof(Value));
 	return Value;
 }
 
@@ -312,18 +318,6 @@ std::string CDocumentFile::ReadString()
 	m_iPreviousPointer = Previous;
 
 	return str;
-}
-
-void CDocumentFile::GetBlock(void *Buffer, int Size)
-{
-	Assert(Size < MAX_BLOCK_SIZE);
-	Assert(Buffer != NULL);
-
-	std::memcpy(Buffer, m_pBlockData.data() + m_iBlockPointer, Size);		// // //
-	m_iPreviousPointer = m_iBlockPointer;
-	m_iBlockPointer += Size;
-	m_iPreviousPosition = m_iFilePosition;		// // //
-	m_iFilePosition += Size;
 }
 
 bool CDocumentFile::BlockDone() const
