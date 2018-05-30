@@ -30,12 +30,12 @@
 #include "ft0cc/cpputil/fs.hpp"
 #include "BinaryStream.h"
 
-class CSimpleFile : public CBinaryReader, public CBinaryWriter {
+class CBinaryFileStream : public CBinaryReader, public CBinaryWriter {
 public:
 	static_assert(sizeof(char) == sizeof(uint8_t));
 
-	CSimpleFile() = default;
-	CSimpleFile(const fs::path &fname, std::ios_base::openmode mode);
+	CBinaryFileStream() = default;
+	CBinaryFileStream(const fs::path &fname, std::ios_base::openmode mode);
 
 	explicit operator bool() const;
 

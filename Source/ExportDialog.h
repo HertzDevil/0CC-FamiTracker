@@ -30,7 +30,7 @@
 
 class CCompiler;		// // //
 class CExportDialog;
-class CSimpleFile;		// // //
+class CBinaryFileStream;		// // //
 
 typedef void (CExportDialog::*exportFunc_t)();
 
@@ -73,7 +73,7 @@ protected:
 	int GetMachineType() const;		// // //
 	void UpdateMetadata(CCompiler &compiler);		// // //
 
-	std::optional<CSimpleFile> OpenFile(const fs::path &fileName);		// // //
+	std::optional<CBinaryFileStream> OpenFile(const fs::path &fileName);		// // //
 
 	// void (*F)(CFile &)
 	template <typename F>

@@ -20,6 +20,7 @@
 ** must bear this legend.
 */
 
+#define _SCL_SECURE_NO_WARNINGS
 #include "ArrayStream.h"
 #include <algorithm>
 

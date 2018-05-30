@@ -29,14 +29,16 @@
 struct CFrameSelection;		// // //
 
 class CFrameClipData : public CBinarySerializableInterface {		// // //
+	using value_type = std::int32_t;
+
 public:
 	CFrameClipData() = default;
-	CFrameClipData(int Channels, int Frames);
+	CFrameClipData(unsigned Channels, unsigned Frames);
 
-	CFrameSelection AsSelection(int startFrame) const;		// // //
+	CFrameSelection AsSelection(unsigned startFrame) const;		// // //
 
-	int  GetFrame(int Frame, int Channel) const;
-	void SetFrame(int Frame, int Channel, int Pattern);
+	int  GetFrame(unsigned Frame, unsigned Channel) const;
+	void SetFrame(unsigned Frame, unsigned Channel, value_type Pattern);
 
 	bool ContainsData() const override;		// // //
 
@@ -47,17 +49,20 @@ private:
 
 public:
 	// Clip info
-	struct {
-		int Channels = 0;
-		int Frames = 0;
-		int FirstChannel = 0;
-		struct {
-			int SourceRowStart = 0;
-			int SourceRowEnd = 0;
+	struct stClipInfo {
+		std::uint32_t Channels = 0;
+		std::uint32_t Frames = 0;
+		std::uint32_t FirstChannel = 0;
+		struct stOleInfo {
+			std::uint32_t SourceRowStart = 0;
+			std::uint32_t SourceRowEnd = 0;
 		} OleInfo = { };
+
+		constexpr std::size_t GetSize() const noexcept {
+			return Channels * Frames;
+		}
 	} ClipInfo;
 
 	// Clip data
-	std::unique_ptr<int[]> pFrames;
-	int iSize = 0;
+	std::unique_ptr<value_type[]> pFrames;
 };

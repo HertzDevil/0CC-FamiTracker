@@ -878,7 +878,7 @@ bool CSoundGen::RenderToFile(const fs::path &fname, std::shared_ptr<CWaveRendere
 	m_pWaveRenderer = std::move(pRender);		// // //
 
 	ASSERT(!m_pRenderFile);
-	m_pRenderFile = std::make_shared<CSimpleFile>(fname, std::ios::out | std::ios::binary);		// // //
+	m_pRenderFile = std::make_shared<CBinaryFileStream>(fname, std::ios::out | std::ios::binary);		// // //
 	if (m_pRenderFile) {
 		m_pWaveRenderer->SetOutputStream(std::make_unique<COutputWaveStream>(m_pRenderFile, CWaveFileFormat {
 			CWaveFileFormat::format_code::pcm,

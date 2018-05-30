@@ -27,6 +27,7 @@
 #include "ModuleException.h"		// // //
 #include "Settings.h"		// // //
 #include "DocumentFile.h"
+#include "BinaryFileStream.h"		// // //
 #include "SoundGen.h"
 #include "SoundChipService.h"		// // //
 #include "MainFrm.h"		// // //
@@ -298,7 +299,7 @@ void CFamiTrackerDoc::OnFileSaveAs()
 
 BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 {
-	CDocumentFile DocumentFile;
+	CBinaryFileStream DocumentFile;		// // //
 	CFileException ex;
 
 	// First write to a temp file (if saving fails, the original is not destroyed)
@@ -314,7 +315,7 @@ BOOL CFamiTrackerDoc::SaveDocument(LPCWSTR lpszPathName) const
 		return FALSE;
 	}
 
-	if (!CFamiTrackerDocIO {DocumentFile, FTEnv.GetSettings()->Version.iErrorLevel}.Save(*GetModule())) {		// // //
+	if (!CFamiTrackerDocWriter {DocumentFile, FTEnv.GetSettings()->Version.iErrorLevel}.Save(*GetModule())) {		// // //
 		// The save process failed, delete temp file
 		DocumentFile.Close();
 		fs::remove(TempFile);
@@ -376,41 +377,34 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 		return TRUE;
 	}
 
-	// Open file
 	try {		// // //
-		OpenFile.Open(lpszPathName, std::ios::in | std::ios::binary);
-	}
-	catch (std::runtime_error err) {
-		AfxMessageBox(FormattedW(L"Could not open file: %s", conv::to_wide(err.what()).data()), MB_OK | MB_ICONERROR);
-		//OnNewDocument();
-		return FALSE;
-	}
+		OpenFile.Open(lpszPathName);
+		OpenFile.ValidateFile(); // Read header ID and version
 
-	try {		// // //
-		// Read header ID and version
-		OpenFile.ValidateFile();
-
-		m_iFileVersion = OpenFile.GetFileVersion();
-		DeleteContents();		// // //
-
-		if (m_iFileVersion < 0x0200U) {
-			if (!compat::OpenDocumentOld(*GetModule(), OpenFile.GetCSimpleFile()))
-				OpenFile.RaiseModuleException("General error");
+		auto newModule = std::make_unique<CFamiTrackerModule>();
+		newModule->SetChannelMap(FTEnv.GetSoundChipService()->MakeChannelMap(sound_chip_t::APU, 0));
+		if (OpenFile.GetFileVersion() < 0x0200u) {
+			if (!compat::OpenDocumentOld(*newModule, OpenFile.GetBinaryStream()))
+				throw CModuleException::WithMessage((LPCSTR)CStringA(MAKEINTRESOURCEA(IDS_FILE_LOAD_ERROR)));
 
 			// Create a backup of this file, since it's an old version
 			// and something might go wrong when converting
 			m_bForceBackup = true;
 		}
 		else {
-			if (!CFamiTrackerDocIO {OpenFile, FTEnv.GetSettings()->Version.iErrorLevel}.Load(*GetModule()))
-				OpenFile.RaiseModuleException((LPCSTR)CStringA(MAKEINTRESOURCEA(IDS_FILE_LOAD_ERROR)));
+			if (!CFamiTrackerDocReader {OpenFile, FTEnv.GetSettings()->Version.iErrorLevel}.Load(*newModule))
+				throw CModuleException::WithMessage((LPCSTR)CStringA(MAKEINTRESOURCEA(IDS_FILE_LOAD_ERROR)));
 		}
+		module_ = std::move(newModule);
 	}
 	catch (CModuleException &e) {
 		if (FTEnv.GetSettings()->Version.iErrorLevel > MODULE_ERROR_DEFAULT)
 			e.AppendFooter("\n\nTry lowering the module error level in the configuration menu.");
 		AfxMessageBox(conv::to_wide(e.GetErrorString()).data(), MB_ICONERROR);
-		DeleteContents();
+		return FALSE;
+	}
+	catch (std::exception &e) {
+		AfxMessageBox((L"Could not open file: " + conv::to_wide(e.what())).data(), MB_OK | MB_ICONERROR);
 		return FALSE;
 	}
 

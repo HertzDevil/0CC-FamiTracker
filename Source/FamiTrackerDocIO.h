@@ -30,75 +30,71 @@
 
 class CFamiTrackerModule;
 class CDocumentFile;
+class CBinaryWriter;
+class CDocumentInputBlock;
+class CDocumentOutputBlock;
 
-class CFamiTrackerDocIO {
+class CFamiTrackerDocReader {
 public:
-	CFamiTrackerDocIO(CDocumentFile &file, module_error_level_t err_lv);
+	CFamiTrackerDocReader(CDocumentFile &file, module_error_level_t err_lv);
 
 	bool Load(CFamiTrackerModule &modfile);
-	bool Save(const CFamiTrackerModule &modfile);
 
 private:
 	void PostLoad(CFamiTrackerModule &modfile);
 
-	void LoadParams(CFamiTrackerModule &modfile, int ver);
-	void SaveParams(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadSongInfo(CFamiTrackerModule &modfile, int ver);
-	void SaveSongInfo(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadHeader(CFamiTrackerModule &modfile, int ver);
-	void SaveHeader(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadInstruments(CFamiTrackerModule &modfile, int ver);
-	void SaveInstruments(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadSequences(CFamiTrackerModule &modfile, int ver);
-	void SaveSequences(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadFrames(CFamiTrackerModule &modfile, int ver);
-	void SaveFrames(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadPatterns(CFamiTrackerModule &modfile, int ver);
-	void SavePatterns(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadDSamples(CFamiTrackerModule &modfile, int ver);
-	void SaveDSamples(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadComments(CFamiTrackerModule &modfile, int ver);
-	void SaveComments(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadSequencesVRC6(CFamiTrackerModule &modfile, int ver);
-	void SaveSequencesVRC6(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadSequencesN163(CFamiTrackerModule &modfile, int ver);
-	void SaveSequencesN163(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadSequencesS5B(CFamiTrackerModule &modfile, int ver);
-	void SaveSequencesS5B(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadParamsExtra(CFamiTrackerModule &modfile, int ver);
-	void SaveParamsExtra(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadDetuneTables(CFamiTrackerModule &modfile, int ver);
-	void SaveDetuneTables(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadGrooves(CFamiTrackerModule &modfile, int ver);
-	void SaveGrooves(const CFamiTrackerModule &modfile, int ver);
-
-	void LoadBookmarks(CFamiTrackerModule &modfile, int ver);
-	void SaveBookmarks(const CFamiTrackerModule &modfile, int ver);
+	void LoadParams(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadSongInfo(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadHeader(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadInstruments(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadSequences(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadFrames(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadPatterns(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadDSamples(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadComments(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadSequencesVRC6(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadSequencesN163(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadSequencesS5B(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadParamsExtra(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadDetuneTables(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadGrooves(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadBookmarks(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
 
 private:
-	template <module_error_level_t l = MODULE_ERROR_DEFAULT>
-	void AssertFileData(bool Cond, const std::string &Msg) const;		// // //
-
-	template <module_error_level_t l = MODULE_ERROR_DEFAULT, typename T, typename U, typename V>
-	T AssertRange(T Value, U Min, V Max, const std::string &Desc) const;
-
 	CDocumentFile &file_;
 	module_error_level_t err_lv_;
 
 	std::vector<COldSequence> m_vTmpSequences;		// // //
 	bool fds_adjust_arps_ = false;
+};
+
+
+
+class CFamiTrackerDocWriter {
+public:
+	CFamiTrackerDocWriter(CBinaryWriter &file, module_error_level_t err_lv);
+
+	bool Save(const CFamiTrackerModule &modfile);
+
+private:
+	void SaveParams(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveSongInfo(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveHeader(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveInstruments(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveSequences(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveFrames(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SavePatterns(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveDSamples(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveComments(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveSequencesVRC6(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveSequencesN163(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveSequencesS5B(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveParamsExtra(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveDetuneTables(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveGrooves(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveBookmarks(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+
+private:
+	CBinaryWriter &file_;
+	module_error_level_t err_lv_;
 };

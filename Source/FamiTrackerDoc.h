@@ -134,7 +134,6 @@ private:
 	// State variables
 	bool			m_bFileLoaded = false;			// Is a file loaded?
 	bool			m_bFileLoadFailed = false;		// Last file load operation failed
-	unsigned int	m_iFileVersion;					// Loaded file version
 
 	bool			m_bForceBackup = false;
 	bool			m_bBackupDone = true;

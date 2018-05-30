@@ -819,7 +819,7 @@ void CPatternCompiler::OptimizeString()
 	*/
 
 	// Always copy first 2 bytes
-//	memcpy(m_pCompressedData, m_pData, 2);
+//	std::memcpy(m_pCompressedData, m_pData, 2);
 //	m_iCompressedDataPointer += 2;
 
 	if (m_vData[0] == 0x80)

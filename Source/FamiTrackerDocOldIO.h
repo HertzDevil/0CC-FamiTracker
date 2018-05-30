@@ -27,11 +27,11 @@
 #include <vector>
 
 class CFamiTrackerModule;
-class CSimpleFile;
+class CBinaryReader;
 
 namespace compat {
 
-bool OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile);
+bool OpenDocumentOld(CFamiTrackerModule &modfile, CBinaryReader &OpenFile);
 void ReorderSequences(CFamiTrackerModule &modfile, std::vector<COldSequence> seqs);
 
 } // namespace compat

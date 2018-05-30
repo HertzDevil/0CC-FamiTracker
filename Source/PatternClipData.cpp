@@ -23,18 +23,17 @@
 #include "PatternClipData.h"
 #include "ft0cc/doc/pattern_note.hpp"
 #include "Assertion.h"		// // //
-#include <cstring>		// // //
 #include "ArrayStream.h"		// // //
 
 CPatternClipData::CPatternClipData(unsigned Channels, unsigned Rows) :
 	ClipInfo({Channels, Rows}),		// // //
-	pPattern(std::make_unique<ft0cc::doc::pattern_note[]>(Channels * Rows))
+	pPattern(std::make_unique<value_type[]>(Channels * Rows))
 {
 }
 
 std::size_t CPatternClipData::GetAllocSize() const
 {
-	return sizeof(stClipInfo) + ClipInfo.GetSize() * sizeof(ft0cc::doc::pattern_note);
+	return sizeof(stClipInfo) + ClipInfo.GetSize() * sizeof(value_type);
 }
 
 bool CPatternClipData::ContainsData() const {		// // //
@@ -88,8 +87,8 @@ bool CPatternClipData::FromBytes(array_view<const std::byte> Buf) {		// // //
 			info.OleInfo.RowOffset = stream.ReadInt<std::uint32_t>();
 
 			const std::size_t Size = info.GetSize();
-			if (Buf.size() >= sizeof(stClipInfo) + Size * sizeof(ft0cc::doc::pattern_note)) {
-				pPattern = std::make_unique<ft0cc::doc::pattern_note[]>(Size);		// // //
+			if (Buf.size() >= sizeof(stClipInfo) + Size * sizeof(value_type)) {
+				pPattern = std::make_unique<value_type[]>(Size);		// // //
 				ClipInfo = info;
 				for (std::size_t i = 0; i < Size; ++i) {
 					auto &note = pPattern[i];

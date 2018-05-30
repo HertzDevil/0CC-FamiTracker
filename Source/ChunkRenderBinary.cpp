@@ -25,13 +25,13 @@
 #include "Compiler.h"
 #include "Chunk.h"
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
-#include "SimpleFile.h"		// // //
+#include "BinaryStream.h"		// // //
 
 /**
  * Binary file writer, base class binary renderers
  */
 
-CBinaryFileWriter::CBinaryFileWriter(CSimpleFile &File) : m_fFile(File), m_iDataWritten(0)		// // //
+CBinaryFileWriter::CBinaryFileWriter(CBinaryWriter &File) : m_fFile(File), m_iDataWritten(0)		// // //
 {
 }
 
@@ -104,7 +104,7 @@ void CChunkRenderBinary::StoreSample(const ft0cc::doc::dpcm_sample &DSample)
  *
  */
 
-CChunkRenderNSF::CChunkRenderNSF(CSimpleFile &File, unsigned int StartAddr) :
+CChunkRenderNSF::CChunkRenderNSF(CBinaryWriter &File, unsigned int StartAddr) :
 	CBinaryFileWriter(File),
 	m_iStartAddr(StartAddr),
 	m_iSampleAddr(0)
@@ -241,7 +241,7 @@ int CChunkRenderNSF::GetAbsoluteAddr() const
  *
  */
 
-CChunkRenderNES::CChunkRenderNES(CSimpleFile &File, unsigned int StartAddr) : CChunkRenderNSF(File, StartAddr)
+CChunkRenderNES::CChunkRenderNES(CBinaryWriter &File, unsigned int StartAddr) : CChunkRenderNSF(File, StartAddr)
 {
 }
 

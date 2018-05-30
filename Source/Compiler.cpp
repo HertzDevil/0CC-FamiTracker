@@ -47,7 +47,7 @@
 #include "NumConv.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 #include "SoundChipService.h"		// // //
-#include "SimpleFile.h"		// // //
+#include "BinaryFileStream.h"		// // //
 #include "Assertion.h"		// // //
 
 //
@@ -165,12 +165,12 @@ void CCompiler::ClearLog() const
 
 namespace {
 
-void NSFEWriteBlockIdent(CSimpleFile &file, const char (&ident)[5], uint32_t sz) {		// // //
+void NSFEWriteBlockIdent(CBinaryFileStream &file, const char (&ident)[5], uint32_t sz) {		// // //
 	file.WriteInt<std::uint32_t>(sz);
 	file.WriteBytes({reinterpret_cast<const std::byte *>(ident), 4});
 }
 
-std::size_t NSFEWriteBlocks(CSimpleFile &file, const CFamiTrackerModule &modfile,
+std::size_t NSFEWriteBlocks(CBinaryFileStream &file, const CFamiTrackerModule &modfile,
 	std::string_view title, std::string_view artist, std::string_view copyright) {		// // //
 	int iAuthSize = 0, iTimeSize = 0, iTlblSize = 0;
 	auto str = std::string {"0CC-FamiTracker "} + Get0CCFTVersionString();		// // //
@@ -210,7 +210,7 @@ std::size_t NSFEWriteBlocks(CSimpleFile &file, const CFamiTrackerModule &modfile
 
 } // namespace
 
-void CCompiler::ExportNSF_NSFE(CSimpleFile &file, int MachineType, bool isNSFE) {
+void CCompiler::ExportNSF_NSFE(CBinaryFileStream &file, int MachineType, bool isNSFE) {
 	if (m_bBankSwitched) {
 		// Expand and allocate label addresses
 		AddBankswitching();
@@ -315,7 +315,7 @@ void CCompiler::ExportNSF_NSFE(CSimpleFile &file, int MachineType, bool isNSFE) 
 	Print("Done, total file size: " + conv::from_uint(file.GetPosition()) + " bytes\n");
 }
 
-void CCompiler::ExportNES_PRG(CSimpleFile &file, bool EnablePAL, bool isPRG) {
+void CCompiler::ExportNES_PRG(CBinaryFileStream &file, bool EnablePAL, bool isPRG) {
 	if (m_bBankSwitched) {
 		Print("Error: Can't write bankswitched songs!\n");
 		return;
@@ -365,7 +365,7 @@ void CCompiler::ExportNES_PRG(CSimpleFile &file, bool EnablePAL, bool isPRG) {
 	Print("Done, total file size: " + conv::from_int(0x8000 + (isPRG ? 0 : std::size(NES_HEADER))) + " bytes\n");
 }
 
-void CCompiler::ExportBIN_ASM(CSimpleFile &binFile, CSimpleFile *dpcmFile, bool isASM) {
+void CCompiler::ExportBIN_ASM(CBinaryFileStream &binFile, CBinaryFileStream *dpcmFile, bool isASM) {
 	if (m_bBankSwitched) {
 		Print("Error: Can't write bankswitched songs!\n");
 		return;
@@ -399,19 +399,19 @@ void CCompiler::ExportBIN_ASM(CSimpleFile &binFile, CSimpleFile *dpcmFile, bool 
 	Print("Done\n");
 }
 
-void CCompiler::ExportNSF(CSimpleFile &file, int MachineType) {		// // //
+void CCompiler::ExportNSF(CBinaryFileStream &file, int MachineType) {		// // //
 	if (!CompileData())
 		return;
 	ExportNSF_NSFE(file, MachineType, false);		// // //
 }
 
-void CCompiler::ExportNSFE(CSimpleFile &file, int MachineType) {		// // //
+void CCompiler::ExportNSFE(CBinaryFileStream &file, int MachineType) {		// // //
 	if (!CompileData())
 		return;
 	ExportNSF_NSFE(file, MachineType, true);
 }
 
-void CCompiler::ExportNES(CSimpleFile &file, bool EnablePAL) {
+void CCompiler::ExportNES(CBinaryFileStream &file, bool EnablePAL) {
 	if (m_pModule->HasExpansionChips()) {
 		Print("Error: Expansion chips are currently not supported for this export format.\n");
 		return;
@@ -421,7 +421,7 @@ void CCompiler::ExportNES(CSimpleFile &file, bool EnablePAL) {
 	ExportNES_PRG(file, EnablePAL, false);		// // //
 }
 
-void CCompiler::ExportPRG(CSimpleFile &file, bool EnablePAL) {
+void CCompiler::ExportPRG(CBinaryFileStream &file, bool EnablePAL) {
 	// Same as export to .NES but without the header
 	if (m_pModule->HasExpansionChips()) {
 		Print("Error: Expansion chips are currently not supported for this export format.\n");
@@ -432,13 +432,13 @@ void CCompiler::ExportPRG(CSimpleFile &file, bool EnablePAL) {
 	ExportNES_PRG(file, EnablePAL, true);		// // //
 }
 
-void CCompiler::ExportBIN(CSimpleFile &binFile, CSimpleFile &dpcmFile) {
+void CCompiler::ExportBIN(CBinaryFileStream &binFile, CBinaryFileStream &dpcmFile) {
 	if (!CompileData())
 		return;
 	ExportBIN_ASM(binFile, &dpcmFile, false);		// // //
 }
 
-void CCompiler::ExportASM(CSimpleFile &file) {
+void CCompiler::ExportASM(CBinaryFileStream &file) {
 	if (!CompileData())
 		return;
 	ExportBIN_ASM(file, nullptr, true);		// // //

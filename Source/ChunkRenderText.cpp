@@ -21,7 +21,7 @@
 */
 
 #include "ChunkRenderText.h"
-#include "SimpleFile.h"		// // //
+#include "BinaryStream.h"		// // //
 #include "ft0cc/doc/dpcm_sample.hpp"		// // //
 #include "FamiTrackerEnv.h"		// // // output title
 #include "Compiler.h"
@@ -98,7 +98,7 @@ const CChunkRenderText::stChunkRenderFunc CChunkRenderText::RENDER_FUNCTIONS[] =
 	{CHUNK_WAVES,			&CChunkRenderText::StoreWavesChunk},
 };
 
-CChunkRenderText::CChunkRenderText(CSimpleFile &File) : m_File(File)
+CChunkRenderText::CChunkRenderText(CBinaryWriter &File) : m_File(File)
 {
 }
 

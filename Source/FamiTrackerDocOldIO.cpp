@@ -38,7 +38,7 @@
 #include "FamiTrackerModule.h"
 #include "APU/Types.h"
 #include "SoundChipSet.h"
-#include "SimpleFile.h"
+#include "BinaryStream.h"
 
 namespace {
 
@@ -60,7 +60,7 @@ enum {
 
 } // namespace
 
-bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CSimpleFile &OpenFile) {
+bool compat::OpenDocumentOld(CFamiTrackerModule &modfile, CBinaryReader &OpenFile) {
 	unsigned int i, c, ReadCount, FileBlock;
 
 	FileBlock = 0;

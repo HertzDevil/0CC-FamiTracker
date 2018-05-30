@@ -71,7 +71,7 @@
 #include "InstrumentService.h"
 #include "ActionHandler.h"
 #include "ModuleAction.h"
-#include "SimpleFile.h"
+#include "BinaryFileStream.h"
 #include "Instrument.h"
 #include "InstrumentManager.h"
 #include "InstrumentIO.h"
@@ -1235,7 +1235,7 @@ bool CMainFrame::LoadInstrument(unsigned Index, const CStringW &filename) {		// 
 	};
 
 	if (Index != INVALID_INSTRUMENT) {
-		if (CSimpleFile file {static_cast<LPCWSTR>(filename), std::ios::in | std::ios::binary}) {
+		if (CBinaryFileStream file {static_cast<LPCWSTR>(filename), std::ios::in | std::ios::binary}) {
 			// FTI instruments files
 			const std::string_view INST_HEADER = "FTI";
 //			const char INST_VERSION[] = "2.4";
@@ -1344,7 +1344,7 @@ void CMainFrame::OnSaveInstrument()
 	if (auto path = GetSavePath(Name.data(), initPath.c_str(), IDS_FILTER_FTI, L"*.fti")) {
 		FTEnv.GetSettings()->SetPath(path->parent_path(), PATH_FTI);
 
-		CSimpleFile file {*path, std::ios::out | std::ios::binary};
+		CBinaryFileStream file {*path, std::ios::out | std::ios::binary};
 		if (!file) {
 			AfxMessageBox(IDS_FILE_OPEN_ERROR, MB_ICONERROR);
 			return;

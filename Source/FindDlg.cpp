@@ -893,7 +893,8 @@ replaceTerm CFindDlg::toReplace(const searchTerm &x) const
 				break;
 			}
 	Term.Note.set_fx_param(0, x.EffParam->Min);
-	memcpy(Term.Definite, x.Definite, sizeof(bool) * 6);
+	for (std::size_t i = 0u; i < 6u; ++i)
+		Term.Definite[i] = x.Definite[i];
 
 	return Term;
 }

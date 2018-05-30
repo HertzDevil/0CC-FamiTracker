@@ -35,7 +35,7 @@
 #include "Compiler.h"
 #include "Settings.h"
 #include "FileDialogs.h"		// // //
-#include "SimpleFile.h"		// // //
+#include "BinaryFileStream.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 
 // Define internal exporters
@@ -178,8 +178,8 @@ void CExportDialog::OnBnClickedExport()
 	}
 }
 
-std::optional<CSimpleFile> CExportDialog::OpenFile(const fs::path &fileName) {		// // //
-	CSimpleFile f {fileName, std::ios::out | std::ios::binary};
+std::optional<CBinaryFileStream> CExportDialog::OpenFile(const fs::path &fileName) {		// // //
+	CBinaryFileStream f {fileName, std::ios::out | std::ios::binary};
 	if (!f) {
 		AfxMessageBox(FormattedW(L"Error: Could not open output file: %s\n",
 			conv::to_wide(f.GetErrorMessage()).data()), MB_ICONERROR);
@@ -210,7 +210,7 @@ void CExportDialog::CreateNSF()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
-	WithFile(pDoc->GetFileTitle(), [&] (CSimpleFile &OutputFile) {
+	WithFile(pDoc->GetFileTitle(), [&] (CBinaryFileStream &OutputFile) {
 		CWaitCursor wait;
 
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
@@ -223,7 +223,7 @@ void CExportDialog::CreateNSFe()		// // //
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
-	WithFile(pDoc->GetFileTitle(), [&] (CSimpleFile &OutputFile) {
+	WithFile(pDoc->GetFileTitle(), [&] (CBinaryFileStream &OutputFile) {
 		CWaitCursor wait;
 
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
@@ -254,7 +254,7 @@ void CExportDialog::CreateNES()
 {
 	CFamiTrackerDoc *pDoc = CFamiTrackerDoc::GetDoc();
 
-	WithFile(pDoc->GetFileTitle(), [&] (CSimpleFile &OutputFile) {
+	WithFile(pDoc->GetFileTitle(), [&] (CBinaryFileStream &OutputFile) {
 		CWaitCursor wait;
 
 		CCompiler Compiler(*pDoc->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
@@ -295,7 +295,7 @@ void CExportDialog::CreateBIN()
 
 void CExportDialog::CreatePRG()
 {
-	WithFile(L"music.prg", [&] (CSimpleFile &OutputFile) {
+	WithFile(L"music.prg", [&] (CBinaryFileStream &OutputFile) {
 		CWaitCursor wait;
 
 		CCompiler Compiler(*CFamiTrackerDoc::GetDoc()->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));
@@ -305,7 +305,7 @@ void CExportDialog::CreatePRG()
 
 void CExportDialog::CreateASM()
 {
-	WithFile(L"music.asm", [&] (CSimpleFile &OutputFile) {
+	WithFile(L"music.asm", [&] (CBinaryFileStream &OutputFile) {
 		CWaitCursor wait;
 
 		CCompiler Compiler(*CFamiTrackerDoc::GetDoc()->GetModule(), std::make_unique<CEditLog>(GetDlgItem(IDC_OUTPUT)));

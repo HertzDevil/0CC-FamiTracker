@@ -45,15 +45,17 @@ class CBinaryIOException : public std::runtime_error {
 class CBinaryReader {
 public:
 	virtual ~CBinaryReader() noexcept = default;
+
+private:
+	virtual void BeforeRead() { }
+	virtual void AfterRead() { }
+
+public:
 	virtual std::size_t ReadBytes(array_view<std::byte> buf) = 0;
 
 	template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
 	T ReadInt() {
-		std::byte buf[sizeof(T)] = { };
-		std::size_t readcount = ReadBytes(buf);
-		if (readcount != sizeof(T))
-			throw CBinaryIOException {"Unexpected EOF reached"};
-		return details::MakeIntegerLE<T>(buf, std::make_index_sequence<sizeof(T)> { });
+		return DoRead([&] { return ReadIntImpl<T>(); });
 	}
 
 	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
@@ -63,30 +65,37 @@ public:
 
 	template <typename CharT>
 	std::basic_string<CharT> ReadStringNull() {
-		std::basic_string<CharT> str;
-		while (true)
-			if (CharT ch = ReadInt<CharT>())
-				str += ch;
-			else
-				break;
-		return str;
+		return DoRead([&] {
+			std::basic_string<CharT> str;
+			while (true)
+				if (CharT ch = ReadIntImpl<CharT>())
+					str += ch;
+				else
+					break;
+			return str;
+		});
 	}
 
 	template <typename CharT>
 	std::basic_string<CharT> ReadString() {
-		std::basic_string<CharT> str;
-		auto sz = ReadInt<std::uint32_t>();
-		for (std::uint32_t i = 0; i < sz; ++i)
-			str += ReadInt<CharT>();
-		return str;
+		return DoRead([&] {
+			auto sz = ReadIntImpl<std::uint32_t>();
+			return ReadStringN<CharT>(sz);
+		});
 	}
 
 	template <typename CharT>
 	std::basic_string<CharT> ReadStringN(std::size_t count) {
-		std::basic_string<CharT> str;
-		for (std::uint32_t i = 0; i < count; ++i)
-			str += ReadInt<CharT>();
-		return str;
+		return DoRead([&] {
+			std::basic_string<CharT> str;
+			bool finished = false;
+			for (std::size_t i = 0; i < count; ++i)
+				if (CharT ch = ReadIntImpl<CharT>(); !finished && ch)
+					str += ch;
+				else
+					finished = true;
+			return str;
+		});
 	}
 
 	/*
@@ -99,17 +108,39 @@ public:
 		return nullptr;
 	}
 	*/
+private:
+	template <typename T>
+	T ReadIntImpl() {
+		std::byte buf[sizeof(T)] = { };
+		std::size_t readcount = ReadBytes(buf);
+		if (readcount != sizeof(T))
+			throw CBinaryIOException {"Unexpected EOF reached"};
+		return details::MakeIntegerLE<T>(buf, std::make_index_sequence<sizeof(T)> { });
+	}
+
+	template <typename F>
+	auto DoRead(F f) {
+		BeforeRead();
+		auto&& x = f();
+		AfterRead();
+		return std::forward<decltype(x)>(x);
+	}
 };
 
 class CBinaryWriter {
 public:
 	virtual ~CBinaryWriter() noexcept = default;
+
+private:
+	virtual void BeforeWrite() { }
+	virtual void AfterWrite() { }
+
+public:
 	virtual std::size_t WriteBytes(array_view<const std::byte> buf) = 0;
 
 	template <typename T, typename U, std::enable_if_t<std::is_integral_v<T>, int> = 0>
 	void WriteInt(U x) {
-		if (WriteIntLEImpl<T>(x, std::make_index_sequence<sizeof(T)> { }) != sizeof(T))
-			throw CBinaryIOException {"Unexpected EOF reached"};
+		DoWrite([&] { WriteIntImpl<T>(x); });
 	}
 
 	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
@@ -119,34 +150,53 @@ public:
 
 	template <typename CharT>
 	void WriteStringNull(std::basic_string_view<CharT> sv) {
-		for (CharT ch : sv) {
-			if (!ch)
-				break;
-			WriteInt<CharT>(ch);
-		}
-		WriteInt<CharT>(0);
+		DoWrite([&] {
+			for (CharT ch : sv) {
+				if (!ch)
+					break;
+				WriteIntImpl<CharT>(ch);
+			}
+			WriteIntImpl<CharT>(0);
+		});
 	}
 
 	template <typename CharT>
 	void WriteString(std::basic_string_view<CharT> sv) {
-		WriteInt<std::uint32_t>(static_cast<std::uint32_t>(sv.size()));
-		for (CharT ch : sv)
-			WriteInt<CharT>(ch);
+		DoWrite([&] {
+			WriteIntImpl<std::uint32_t>(static_cast<std::uint32_t>(sv.size()));
+			for (CharT ch : sv)
+				WriteIntImpl<CharT>(ch);
+		});
 	}
 
 	template <typename CharT>
 	void WriteStringN(std::basic_string_view<CharT> sv, std::size_t count) {
-		sv = sv.substr(0u, count);
-		for (CharT ch : sv)
-			WriteInt<CharT>(ch);
-		for (std::size_t i = sv.size(); i < count; ++i)
-			WriteInt<CharT>(0);
+		DoWrite([&] {
+			sv = sv.substr(0u, count);
+			for (CharT ch : sv)
+				WriteIntImpl<CharT>(ch);
+			for (std::size_t i = sv.size(); i < count; ++i)
+				WriteIntImpl<CharT>(0);
+		});
 	}
 
 private:
-	template <typename T, typename U, std::size_t... Is>
-	std::size_t WriteIntLEImpl(U x, std::index_sequence<Is...>) {
+	template <typename T, typename U>
+	void WriteIntImpl(U x) {
+		if (WriteIntLEImpl<T>(static_cast<T>(x), std::make_index_sequence<sizeof(T)> { }) != sizeof(T))
+			throw CBinaryIOException {"Unexpected EOF reached"};
+	}
+
+	template <typename T, std::size_t... Is>
+	std::size_t WriteIntLEImpl(T x, std::index_sequence<Is...>) {
 		const std::byte buf[sizeof(T)] = {static_cast<std::byte>(x >> (Is * 8))...};
 		return WriteBytes(buf);
+	}
+
+	template <typename F>
+	void DoWrite(F f) {
+		BeforeWrite();
+		f();
+		AfterWrite();
 	}
 };

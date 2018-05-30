@@ -26,7 +26,7 @@
 #include "Compiler.h"
 #include "SoundGen.h"
 #include "TextExporter.h"
-#include "SimpleFile.h"		// // //
+#include "BinaryFileStream.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 
 // Command line export logger
@@ -77,7 +77,7 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 		fLog.WriteString(L"\n");
 	}
 
-	CSimpleFile OutputFile {static_cast<LPCWSTR>(fileOut), std::ios::out | std::ios::binary};
+	CBinaryFileStream OutputFile {static_cast<LPCWSTR>(fileOut), std::ios::out | std::ios::binary};
 	if (!OutputFile) {
 		char msg[512] = { };
 		::strerror_s(msg, errno);
@@ -118,7 +118,7 @@ void CCommandLineExport::CommandLineExport(const CStringW &fileIn, const CString
 	}
 	// BIN export requires two files
 	else if (0 == ext.CompareNoCase(L".bin")) {
-		CSimpleFile DPCMFile {static_cast<LPCWSTR>(fileDPCM), std::ios::out | std::ios::binary};
+		CBinaryFileStream DPCMFile {static_cast<LPCWSTR>(fileDPCM), std::ios::out | std::ios::binary};
 		if (!OutputFile) {
 			char msg[512] = { };
 			::strerror_s(msg, errno);

@@ -552,7 +552,7 @@
     <ClCompile Include="Source\SequenceCollection.cpp" />
     <ClCompile Include="Source\SequenceManager.cpp" />
     <ClCompile Include="Source\SequenceParser.cpp" />
-    <ClCompile Include="Source\SimpleFile.cpp" />
+    <ClCompile Include="Source\BinaryFileStream.cpp" />
     <ClCompile Include="Source\SplitKeyboardDlg.cpp" />
     <ClCompile Include="Source\stdafx.cpp" />
     <ClCompile Include="Source\AboutDlg.cpp" />
@@ -787,7 +787,7 @@
     <ClInclude Include="Source\SequenceCollection.h" />
     <ClInclude Include="Source\SequenceManager.h" />
     <ClInclude Include="Source\SequenceParser.h" />
-    <ClInclude Include="Source\SimpleFile.h" />
+    <ClInclude Include="Source\BinaryFileStream.h" />
     <ClInclude Include="Source\SoundGenBase.h" />
     <ClInclude Include="Source\SplitKeyboardDlg.h" />
     <ClInclude Include="Source\stdafx.h" />

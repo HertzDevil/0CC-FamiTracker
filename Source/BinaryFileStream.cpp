@@ -20,28 +20,28 @@
 ** must bear this legend.
 */
 
-#include "SimpleFile.h"
+#include "BinaryFileStream.h"
 #include <string.h>
 
 // // // File load / store
 
-CSimpleFile::CSimpleFile(const fs::path &fname, std::ios_base::openmode mode) :
+CBinaryFileStream::CBinaryFileStream(const fs::path &fname, std::ios_base::openmode mode) :
 	m_fFile(fname, mode)
 {
 }
 
-CSimpleFile::operator bool() const
+CBinaryFileStream::operator bool() const
 {
 	return m_fFile.is_open() && (bool)m_fFile;
 }
 
-void CSimpleFile::Open(const fs::path &fname, std::ios_base::openmode mode) {
+void CBinaryFileStream::Open(const fs::path &fname, std::ios_base::openmode mode) {
 	m_fFile.open(fname, mode);
 	if (!m_fFile)
 		throw std::runtime_error {GetErrorMessage()};
 }
 
-void CSimpleFile::Close()
+void CBinaryFileStream::Close()
 {
 	if (m_fFile.is_open()) {
 		m_fFile.flush();
@@ -49,7 +49,7 @@ void CSimpleFile::Close()
 	}
 }
 
-std::string CSimpleFile::GetErrorMessage() const {
+std::string CBinaryFileStream::GetErrorMessage() const {
 	if (m_fFile)
 		return "";
 
@@ -64,20 +64,20 @@ std::string CSimpleFile::GetErrorMessage() const {
 	return "Unknown error";
 }
 
-std::size_t CSimpleFile::WriteBytes(array_view<const std::byte> Buf) {
+std::size_t CBinaryFileStream::WriteBytes(array_view<const std::byte> Buf) {
 	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
 	return m_fFile ? Buf.size() : 0u;
 }
 
-std::size_t CSimpleFile::ReadBytes(array_view<std::byte> Buf) {
+std::size_t CBinaryFileStream::ReadBytes(array_view<std::byte> Buf) {
 	m_fFile.read(reinterpret_cast<char *>(Buf.data()), Buf.size());
 	return m_fFile.gcount();
 }
 
-void CSimpleFile::Seek(std::size_t pos) {
+void CBinaryFileStream::Seek(std::size_t pos) {
 	m_fFile.seekp(pos);
 }
 
-std::size_t CSimpleFile::GetPosition() {
+std::size_t CBinaryFileStream::GetPosition() {
 	return m_fFile.tellp();
 }

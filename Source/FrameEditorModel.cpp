@@ -138,7 +138,7 @@ bool CFrameEditorModel::IsChannelSelected(int channel) const {
 CFrameClipData CFrameEditorModel::CopySelection(const CFrameSelection &sel) const {
 	auto [b, e] = CFrameIterator::FromSelection(sel, *view_->GetSongView());
 
-	CFrameClipData Data {sel.GetSelectedChanCount(), sel.GetSelectedFrameCount()};
+	CFrameClipData Data {static_cast<unsigned>(sel.GetSelectedChanCount()), static_cast<unsigned>(sel.GetSelectedFrameCount())};
 	Data.ClipInfo.FirstChannel = b.m_iChannel;		// // //
 	Data.ClipInfo.OleInfo.SourceRowStart = b.m_iFrame;
 	Data.ClipInfo.OleInfo.SourceRowEnd = e.m_iFrame - 1;
@@ -157,8 +157,8 @@ CFrameClipData CFrameEditorModel::CopySelection(const CFrameSelection &sel) cons
 
 void CFrameEditorModel::PasteSelection(const CFrameClipData &clipdata, const CFrameCursorPos &pos) {
 	CFrameIterator it {*view_->GetSongView(), pos};
-	for (int f = 0; f < clipdata.ClipInfo.Frames; ++f) {
-		for (int c = 0; c < clipdata.ClipInfo.Channels; ++c)
+	for (unsigned f = 0; f < clipdata.ClipInfo.Frames; ++f) {
+		for (unsigned c = 0; c < clipdata.ClipInfo.Channels; ++c)
 			it.Set(c + /*it.m_iChannel*/ clipdata.ClipInfo.FirstChannel, clipdata.GetFrame(f, c));
 		++it;
 		if (it.m_iFrame == 0)

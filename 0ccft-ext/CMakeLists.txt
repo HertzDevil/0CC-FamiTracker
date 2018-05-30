@@ -49,6 +49,7 @@ set(SRCS
 	${FT0CC_ROOT}/Arpeggiator.cpp
 	${FT0CC_ROOT}/ArrayStream.cpp
 #	${FT0CC_ROOT}/AudioDriver.cpp
+	${FT0CC_ROOT}/BinaryFileStream.cpp
 	${FT0CC_ROOT}/Blip_Buffer/Blip_Buffer.cpp
 	${FT0CC_ROOT}/Bookmark.cpp
 	${FT0CC_ROOT}/BookmarkCollection.cpp
@@ -185,7 +186,6 @@ set(SRCS
 #	${FT0CC_ROOT}/SequenceSetting.cpp
 	${FT0CC_ROOT}/Settings.cpp
 #	${FT0CC_ROOT}/SettingsService.cpp
-	${FT0CC_ROOT}/SimpleFile.cpp
 #	${FT0CC_ROOT}/SizeEditor.cpp
 	${FT0CC_ROOT}/SongData.cpp
 	${FT0CC_ROOT}/SongLengthScanner.cpp

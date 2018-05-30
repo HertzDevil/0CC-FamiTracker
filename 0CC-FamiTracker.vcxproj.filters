@@ -834,13 +834,13 @@
     <ClCompile Include="Source\ArrayStream.cpp">
       <Filter>Source Files\Utility\Input / Output</Filter>
     </ClCompile>
-    <ClCompile Include="Source\SimpleFile.cpp">
-      <Filter>Source Files\Utility\Input / Output</Filter>
-    </ClCompile>
     <ClCompile Include="Source\WaveStream.cpp">
       <Filter>Source Files\Utility\Input / Output</Filter>
     </ClCompile>
     <ClCompile Include="Source\DocumentFile.cpp">
+      <Filter>Source Files\Utility\Input / Output</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\BinaryFileStream.cpp">
       <Filter>Source Files\Utility\Input / Output</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1571,10 +1571,10 @@
     <ClInclude Include="Source\BinarySerializable.h">
       <Filter>Header Files\Utility Headers\Input / Output Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\SimpleFile.h">
+    <ClInclude Include="Source\DocumentFile.h">
       <Filter>Header Files\Utility Headers\Input / Output Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\DocumentFile.h">
+    <ClInclude Include="Source\BinaryFileStream.h">
       <Filter>Header Files\Utility Headers\Input / Output Headers</Filter>
     </ClInclude>
   </ItemGroup>

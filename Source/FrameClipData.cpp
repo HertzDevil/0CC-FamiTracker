@@ -23,25 +23,24 @@
 #include "FrameClipData.h"
 #include "FrameEditorTypes.h"		// // //
 #include "Assertion.h"		// // //
-#include <cstring>		// // //
+#include "ArrayStream.h"		// // //
 
-CFrameClipData::CFrameClipData(int Channels, int Frames) :
+CFrameClipData::CFrameClipData(unsigned Channels, unsigned Frames) :
 	ClipInfo({Channels, Frames}),		// // //
-	pFrames(std::make_unique<int[]>(Channels * Frames)),
-	iSize(Channels * Frames)
+	pFrames(std::make_unique<value_type[]>(Channels * Frames))
 {
 }
 
-CFrameSelection CFrameClipData::AsSelection(int startFrame) const {		// // //
+CFrameSelection CFrameClipData::AsSelection(unsigned startFrame) const {		// // //
 	return {
-		{startFrame, ClipInfo.FirstChannel},
-		{startFrame + ClipInfo.Frames, ClipInfo.FirstChannel + ClipInfo.Channels},
+		{static_cast<int>(startFrame), static_cast<int>(ClipInfo.FirstChannel)},
+		{static_cast<int>(startFrame + ClipInfo.Frames), static_cast<int>(ClipInfo.FirstChannel + ClipInfo.Channels)},
 	};
 }
 
 std::size_t CFrameClipData::GetAllocSize() const
 {
-	return sizeof(ClipInfo) + sizeof(int) * iSize;
+	return sizeof(ClipInfo) + ClipInfo.GetSize() * sizeof(value_type);
 }
 
 bool CFrameClipData::ContainsData() const {		// // //
@@ -50,27 +49,58 @@ bool CFrameClipData::ContainsData() const {		// // //
 
 bool CFrameClipData::ToBytes(array_view<std::byte> Buf) const		// // //
 {
-	if (Buf.size() >= GetAllocSize()) {
-		std::memcpy(Buf.data(), &ClipInfo, sizeof(ClipInfo));
-		std::memcpy(Buf.data() + sizeof(ClipInfo), pFrames.get(), sizeof(int) * iSize);
-		return true;
+	try {
+		if (Buf.size() >= GetAllocSize()) {
+			CArrayStream stream {Buf};
+
+			stream.WriteInt<std::uint32_t>(ClipInfo.Channels);
+			stream.WriteInt<std::uint32_t>(ClipInfo.Frames);
+			stream.WriteInt<std::uint32_t>(ClipInfo.FirstChannel);
+			stream.WriteInt<std::uint32_t>(ClipInfo.OleInfo.SourceRowStart);
+			stream.WriteInt<std::uint32_t>(ClipInfo.OleInfo.SourceRowEnd);
+
+			const std::size_t Size = ClipInfo.GetSize();
+			for (std::size_t i = 0; i < Size; ++i)
+				stream.WriteInt<value_type>(pFrames[i]);
+			return true;
+		}
+		return false;
 	}
-	return false;
+	catch (CBinaryIOException &) {
+		return false;
+	}
 }
 
 bool CFrameClipData::FromBytes(array_view<const std::byte> Buf)		// // //
 {
-	if (Buf.size() >= GetAllocSize()) {
-		std::memcpy(&ClipInfo, Buf.data(), sizeof(ClipInfo));
-		iSize = ClipInfo.Channels * ClipInfo.Frames;
-		pFrames = std::make_unique<int[]>(iSize);
-		std::memcpy(pFrames.get(), Buf.data() + sizeof(ClipInfo), sizeof(int) * iSize);
-		return true;
+	try {
+		if (Buf.size() >= sizeof(stClipInfo)) {
+			CConstArrayStream stream {Buf};
+
+			stClipInfo info = { };
+			info.Channels = stream.ReadInt<std::uint32_t>();
+			info.Frames = stream.ReadInt<std::uint32_t>();
+			info.FirstChannel = stream.ReadInt<std::uint32_t>();
+			info.OleInfo.SourceRowStart = stream.ReadInt<std::uint32_t>();
+			info.OleInfo.SourceRowEnd = stream.ReadInt<std::uint32_t>();
+
+			const std::size_t Size = info.GetSize();
+			if (Buf.size() >= sizeof(stClipInfo) + Size * sizeof(value_type)) {
+				pFrames = std::make_unique<value_type[]>(Size);
+				ClipInfo = info;
+				for (std::size_t i = 0; i < Size; ++i)
+					pFrames[i] = stream.ReadInt<value_type>();
+				return true;
+			}
+		}
+		return false;
 	}
-	return false;
+	catch (CBinaryIOException &) {
+		return false;
+	}
 }
 
-int CFrameClipData::GetFrame(int Frame, int Channel) const
+int CFrameClipData::GetFrame(unsigned Frame, unsigned Channel) const
 {
 	Assert(Frame >= 0 && Frame < ClipInfo.Frames);
 	Assert(Channel >= 0 && Channel < ClipInfo.Channels);
@@ -78,7 +108,7 @@ int CFrameClipData::GetFrame(int Frame, int Channel) const
 	return pFrames[Frame * ClipInfo.Channels + Channel];		// // //
 }
 
-void CFrameClipData::SetFrame(int Frame, int Channel, int Pattern)
+void CFrameClipData::SetFrame(unsigned Frame, unsigned Channel, CFrameClipData::value_type Pattern)
 {
 	Assert(Frame >= 0 && Frame < ClipInfo.Frames);
 	Assert(Channel >= 0 && Channel < ClipInfo.Channels);

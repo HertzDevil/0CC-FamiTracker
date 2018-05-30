@@ -697,18 +697,18 @@ bool CFActionMergeDuplicated::SaveState(const CMainFrame &MainFrm)
 	const CSongData &song = pSongView->GetSong();
 	m_OldClipData = pFrameEditor->CopyEntire();
 
-	const int Channels = pSongView->GetChannelOrder().GetChannelCount();
-	const int Frames = song.GetFrameCount();
+	const unsigned Channels = pSongView->GetChannelOrder().GetChannelCount();
+	const unsigned Frames = song.GetFrameCount();
 	m_ClipData = CFrameClipData {Channels, Frames};
 
 	unsigned int uiPatternUsed[MAX_PATTERN] = { };
-	for (int c = 0; c < Channels; ++c) {
+	for (unsigned c = 0; c < Channels; ++c) {
 		// mark all as unused
 		for (auto &x : uiPatternUsed)
 			x = MAX_PATTERN;
 
 		// map used patterns to themselves
-		for (int f = 0; f < Frames; ++f) {
+		for (unsigned f = 0; f < Frames; ++f) {
 			unsigned int uiPattern = pSongView->GetFramePattern(c, f);
 			uiPatternUsed[uiPattern] = uiPattern;
 		}
@@ -726,7 +726,7 @@ bool CFActionMergeDuplicated::SaveState(const CMainFrame &MainFrm)
 		}
 
 		// apply mapping
-		for (int f = 0; f < Frames; ++f)
+		for (unsigned f = 0; f < Frames; ++f)
 			m_ClipData.SetFrame(f, c, uiPatternUsed[pSongView->GetFramePattern(c, f)]);
 	}
 

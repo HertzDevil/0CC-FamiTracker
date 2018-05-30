@@ -25,73 +25,41 @@
 
 #include <cstddef>		// // //
 #include <string>
+#include <string_view>		// // //
 #include <array>		// // //
 #include <vector>		// // //
 #include <memory>		// // //
+#include "BinaryStream.h"		// // //
+#include "ModuleException.h"		// // //
 #include "ft0cc/cpputil/array_view.hpp"		// // //
-#include <string_view>		// // //
-#include <iosfwd>		// // //
 #include "ft0cc/cpputil/fs.hpp"		// // //
 
-// CDocumentFile, class for reading/writing document files
-
-class CSimpleFile;
-class CModuleException;
+class CBinaryFileStream;
+class CDocumentInputBlock;
 
 class CDocumentFile {
 public:
 	CDocumentFile();
 	~CDocumentFile();		// // //
 
-	// // // delegations to CSimpleFile
-	CSimpleFile	&GetCSimpleFile();
-	void		Open(const fs::path &fname, std::ios::openmode nOpenFlags);		// // //
-	void		Close();
+	// // // delegations to CBinaryFileStream
+	CBinaryFileStream &GetBinaryStream();
+	void Open(const fs::path &fname);		// // //
+	void Close();
 
-	bool		Finished() const;
-
-	// Write functions
-	void		BeginDocument();		// // //
-	void		EndDocument();
-
-	void		CreateBlock(std::string_view ID, int Version);		// // //
-	void		WriteBlock(array_view<const std::byte> Data);		// // //
-	void		WriteBlockInt(int Value);
-	void		WriteBlockChar(char Value);
-	void		WriteString(std::string_view sv);		// // //
-	void		WriteStringPadded(std::string_view sv, std::size_t n);		// // //
-	void		WriteStringCounted(std::string_view sv);		// // //
-	bool		FlushBlock();
+	bool Finished() const;
 
 	// Read functions
-	void		ValidateFile();		// // //
-	unsigned int GetFileVersion() const;
+	void ValidateFile();		// // //
+	unsigned GetFileVersion() const;
 
-	bool		ReadBlock();
-	void		GetBlock(array_view<std::byte> Buf);		// // //
-	int			GetBlockVersion() const;
-	bool		BlockDone() const;
-	std::string_view GetBlockHeaderID() const;		// // //
-	int			GetBlockInt();
-	char		GetBlockChar();
+	std::unique_ptr<CDocumentInputBlock> ReadBlock();		// // //
 
-	int			GetBlockPos() const;
-	int			GetBlockSize() const;
-
-	std::string	ReadString();		// // //
-
-	void		RollbackPointer(int count);	// avoid this
-
-	bool		IsFileIncomplete() const;
+	bool IsFileIncomplete() const;
 
 	// // // exception
-	CModuleException GetException() const;
-	void SetDefaultFooter(CModuleException &e) const;
-	[[noreturn]] void RaiseModuleException(const std::string &Msg) const;
-
-private:		// // //
-	unsigned Read(array_view<std::byte> Buf);
-	void Write(array_view<const std::byte> Buf);
+	void SetDefaultFooter(const CDocumentInputBlock &block, CModuleException &e) const;
+	[[noreturn]] void RaiseModuleException(const CDocumentInputBlock &block, const std::string &Msg) const;
 
 public:
 	// Constants
@@ -101,28 +69,79 @@ public:
 	static constexpr std::string_view FILE_HEADER_ID = "FamiTracker Module";		// // //
 	static constexpr std::string_view FILE_END_ID = "END";
 
-	static const unsigned int MAX_BLOCK_SIZE;
 	static const unsigned int BLOCK_SIZE;
 	static const unsigned int BLOCK_HEADER_SIZE = 16;		// // //
 
 protected:
-	void ReallocateBlock();
-
-protected:
-	std::unique_ptr<CSimpleFile> m_pFile;		// // //
+	std::unique_ptr<CBinaryFileStream> m_pFile;		// // //
 
 	unsigned int	m_iFileVersion;
-	bool			m_bFileDone;
-	bool			m_bIncomplete;
+	std::uintmax_t	m_iPrevFilePosition = 0u;
+	bool			m_bFileDone = false;
+};
 
-	std::array<char, BLOCK_HEADER_SIZE> m_cBlockID = { };		// // //
-	unsigned int	m_iBlockSize;
-	unsigned int	m_iBlockVersion;
-	std::vector<std::byte> m_pBlockData;		// // //
 
-	unsigned int	m_iMaxBlockSize;
 
-	unsigned int	m_iBlockPointer;
-	unsigned int	m_iPreviousPointer;		// // //
-	uintmax_t		m_iFilePosition, m_iPreviousPosition;		// // //
+class CDocumentInputBlock : public CBinaryReader {
+public:
+	explicit CDocumentInputBlock(const CDocumentFile &parent, std::string_view id, unsigned ver, std::vector<std::byte> data);
+
+	unsigned GetFileVersion() const;
+	unsigned GetBlockVersion() const;
+	std::string_view GetBlockHeaderID() const;
+
+	std::uintmax_t GetPreviousPosition() const;
+	bool BlockDone() const;
+
+	std::size_t ReadBytes(array_view<std::byte> buf) override;
+
+	void AdvancePointer(int offset);
+
+	template <module_error_level_t l = MODULE_ERROR_DEFAULT>
+	void AssertFileData(bool Cond, const std::string &Msg, module_error_level_t err_lv) const {
+		if (l <= err_lv && !Cond)
+			parent_.RaiseModuleException(*this, Msg);
+	}
+
+	template <module_error_level_t l = MODULE_ERROR_DEFAULT, typename T, typename U, typename V>
+	T AssertRange(T Value, U Min, V Max, const std::string &Desc, module_error_level_t err_lv) const {
+		if (l <= err_lv && !(Value >= Min && Value <= Max))
+			parent_.RaiseModuleException(*this, Desc + " out of range: expected ["
+				+ std::to_string(Min) + ','
+				+ std::to_string(Max) + "], got "
+				+ std::to_string(Value));
+		return Value;
+	}
+
+private:
+	void BeforeRead() override;
+	void AfterRead() override;
+
+	const CDocumentFile &parent_;
+
+	std::string m_sBlockID;
+	unsigned m_iBlockVersion = 0u;
+	std::vector<std::byte> m_pBlockData;
+
+	std::uintmax_t m_iBlockPointer = 0u;
+	std::uintmax_t m_iPreviousPointer = 0u;		// // //
+	std::uintmax_t m_iBlockPointerCache = 0u;		// // //
+};
+
+
+
+class CDocumentOutputBlock : public CBinaryWriter {
+public:
+	CDocumentOutputBlock(std::string_view id, unsigned ver);
+
+	unsigned GetBlockVersion() const;
+
+	std::size_t WriteBytes(array_view<const std::byte> Data) override;
+
+	bool FlushToFile(CBinaryWriter &file) const;
+
+private:
+	std::array<char, CDocumentFile::BLOCK_HEADER_SIZE> m_cBlockID = { };
+	unsigned m_iBlockVersion = 0u;
+	std::vector<std::byte> m_pBlockData;
 };

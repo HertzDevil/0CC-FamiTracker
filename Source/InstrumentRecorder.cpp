@@ -194,7 +194,7 @@ void CInstrumentRecorder::RecordInstrument(const unsigned Tick, CWnd *pView)		//
 							}
 							if (m_iRecordWaveCount < CInstrumentN163::MAX_WAVE_COUNT - 1) {
 								Val = ++m_iRecordWaveCount;
-								memcpy(m_iRecordWaveCache.get() + Val * Count, Wave.get(), Count);
+								std::memcpy(m_iRecordWaveCache.get() + Val * Count, Wave.get(), Count);
 							}
 							else
 								Val = m_pSequenceCache[s]->GetItem(Pos - 1);

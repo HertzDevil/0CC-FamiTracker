@@ -33,6 +33,8 @@ class pattern_note;
 
 // Class used by clipboard
 class CPatternClipData : public CBinarySerializableInterface {		// // //
+	using value_type = ft0cc::doc::pattern_note;
+
 public:
 	CPatternClipData() = default;
 	CPatternClipData(unsigned Channels, unsigned Rows);
@@ -63,6 +65,6 @@ public:
 		}
 	} ClipInfo;
 
-	std::unique_ptr<ft0cc::doc::pattern_note[]> pPattern;		// // // Pattern data
+	std::unique_ptr<value_type[]> pPattern;		// // // Pattern data
 };
 

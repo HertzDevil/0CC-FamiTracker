@@ -21,7 +21,6 @@
 */
 
 #include "InstrumentVRC7.h"		// // //
-#include <cstring>
 
 /*
  * class CInstrumentVRC7

@@ -35,13 +35,13 @@ namespace ft0cc::doc {
 class dpcm_sample;
 } // namespace ft0cc::doc
 class CChunk;		// // //
-class CSimpleFile;		// // //
+class CBinaryWriter;		// // //
 
 // Base class
 class CBinaryFileWriter
 {
 public:
-	CBinaryFileWriter(CSimpleFile &File);		// // //
+	CBinaryFileWriter(CBinaryWriter &File);		// // //
 
 protected:
 	void Store(array_view<const std::uint8_t> Data);
@@ -49,7 +49,7 @@ protected:
 	unsigned int GetWritten() const;
 
 private:
-	CSimpleFile  &m_fFile;		// // //
+	CBinaryWriter &m_fFile;		// // //
 	unsigned int m_iDataWritten;
 };
 
@@ -73,7 +73,7 @@ private:
 class CChunkRenderNSF : public CBinaryFileWriter
 {
 public:
-	CChunkRenderNSF(CSimpleFile &File, unsigned int StartAddr);		// // //
+	CChunkRenderNSF(CBinaryWriter &File, unsigned int StartAddr);		// // //
 
 	void StoreDriver(array_view<const std::uint8_t> Driver);		// // //
 	void StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks);		// // //
@@ -102,6 +102,6 @@ protected:
 class CChunkRenderNES : public CChunkRenderNSF
 {
 public:
-	CChunkRenderNES(CSimpleFile &File, unsigned int StartAddr);		// // //
+	CChunkRenderNES(CBinaryWriter &File, unsigned int StartAddr);		// // //
 	void StoreCaller(array_view<const std::uint8_t> Data);		// // //
 };

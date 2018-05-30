@@ -33,12 +33,12 @@ constexpr std::uint32_t fourcc(const char (&str)[5]) noexcept {
 
 } // namespace
 
-CInputWaveStream::CInputWaveStream(CSimpleFile &file) : file_(file) {
-}
+//CInputWaveStream::CInputWaveStream(CBinaryFileStream &file) : file_(file) {
+//}
 
 
 
-COutputWaveStream::COutputWaveStream(std::shared_ptr<CSimpleFile> file, const CWaveFileFormat &fmt) :
+COutputWaveStream::COutputWaveStream(std::shared_ptr<CBinaryFileStream> file, const CWaveFileFormat &fmt) :
 	file_(std::move(file)), fmt_(fmt), start_pos_(file_->GetPosition())
 {
 	Assert(fmt.Format == CWaveFileFormat::format_code::pcm || fmt.Format == CWaveFileFormat::format_code::ieee_float);

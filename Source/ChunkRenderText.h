@@ -32,7 +32,7 @@
 // Text chunk renderer
 //
 
-class CSimpleFile;		// // //
+class CBinaryWriter;		// // //
 
 class CChunkRenderText;
 class CChunk;		// // //
@@ -51,7 +51,7 @@ class CChunkRenderText
 	};
 
 public:
-	explicit CChunkRenderText(CSimpleFile &File);		// // //
+	explicit CChunkRenderText(CBinaryWriter &File);		// // //
 
 	void StoreChunks(const std::vector<std::shared_ptr<CChunk>> &Chunks);		// // //
 	void StoreSamples(const std::vector<std::shared_ptr<const ft0cc::doc::dpcm_sample>> &Samples);		// // //
@@ -98,5 +98,5 @@ private:
 	std::vector<std::string> m_wavetableStrings;
 	std::vector<std::string> m_wavesStrings;
 
-	CSimpleFile &m_File;
+	CBinaryWriter &m_File;
 };
