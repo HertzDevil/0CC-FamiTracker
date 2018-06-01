@@ -949,6 +949,7 @@
     <None Include="..\nsf driver\vrc6.s" />
     <None Include="..\nsf driver\vrc7.s" />
     <None Include="changelog.txt" />
+    <None Include="Source\.editorconfig" />
     <None Include="Source\resampler\resample.inl" />
     <None Include="specs.txt" />
   </ItemGroup>

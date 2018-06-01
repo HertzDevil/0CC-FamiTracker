@@ -1694,6 +1694,7 @@
     </None>
     <None Include="0CC-FamiTracker.reg" />
     <None Include="README.md" />
+    <None Include="Source\.editorconfig" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="LICENSE.txt" />

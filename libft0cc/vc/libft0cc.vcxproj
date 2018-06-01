@@ -39,6 +39,9 @@
     <ClCompile Include="..\src\ft0cc\doc\groove.cpp" />
     <ClCompile Include="..\src\ft0cc\doc\inst_sequence.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\.editorconfig" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{F2AEFCB7-5232-4EC0-9418-40D777613E46}</ProjectGuid>
