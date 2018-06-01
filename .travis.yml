@@ -8,6 +8,7 @@ matrix:
     addons:
       apt:
         sources:
+        - ubuntu-toolchain-r-test
         - llvm-toolchain-trusty-6.0
         packages:
         - clang-6.0
@@ -38,7 +39,8 @@ script:
 - cd build
 - cmake -DCOVERAGE=${COVERALLS_ENABLE} -DCMAKE_BUILD_TYPE=Debug ..
 - cmake --build . -- -j4
-- if [ $COVERALLS_ENABLE -eq 1 ]
+- |
+  if [ $COVERALLS_ENABLE -eq 1 ]
   then
     cmake --build . --target coveralls
   fi
