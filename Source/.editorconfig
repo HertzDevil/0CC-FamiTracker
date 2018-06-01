@@ -1,0 +1,2 @@
+[**.{c,cc,cpp,cxx,h,hh,hpp,hxx}]
+end_of_line = crlf

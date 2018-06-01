@@ -9,7 +9,6 @@
 
 # Code editor files
 .vscode
-.editorconfig
 
 # Auto-generated files
 commit_hash.h

@@ -1,0 +1,46 @@
+root = true
+
+[**.editorconfig]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[**.{c,cc,cpp,cxx,h,hh,hpp,hxx}]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = tab
+indent_size = 4
+
+[**.{txt,md}]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = false
+insert_final_newline = true
+
+[{Makefile,CMakeLists.txt,.travis.yml,.gitignore}]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[Makefile]
+indent_style = tab
+indent_size = 8
+
+[**.yml]
+indent_style = space
+indent_size = 2
+
+[{0CC-readme,changelog,LICENSE,specs}.txt]
+end_of_line = crlf
+
+[resource.h]
+end_of_line = unset
+charset = unset
+trim_trailing_whitespace = unset
+insert_final_newline = unset
+indent_style = unset
+indent_size = unset
