@@ -20,53 +20,45 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see http://www.gnu.org/licenses/. */
 
+#include "ft0cc/cpputil/iter.hpp"
+#include "gtest/gtest.h"
+#include <array>
 
-#pragma once
+namespace {
 
-#include <iterator>
-#include <utility>
-
-template <typename T>
-struct values_range {
-	template <typename U>
-	explicit values_range(U&& x) noexcept : x_(std::forward<U>(x)) { }
-
-	auto begin() const {
-		return std::begin(x_);
-	}
-	auto end() const {
-		return std::end(x_);
-	}
-
-private:
-	T x_;
+struct A {
+	int x_[5] = { };
+	auto begin() { return std::begin(x_); }
+	auto end() { return std::end(x_); }
 };
 
-template <typename T>
-values_range<T> values(T&& x) noexcept {
-	return values_range<T> {std::forward<T>(x)};
+} // namespace
+
+TEST(Iter, ValuesRange) {
+	int a1[3] = { };
+	auto i1 = values(a1);
+	EXPECT_EQ(i1.begin(), a1);
+	EXPECT_EQ(i1.end(), a1 + 3);
+
+	std::array<int, 4> a2 = { };
+	auto i2 = values(a2);
+	EXPECT_EQ(i2.begin(), a2.begin());
+	EXPECT_EQ(i2.end(), a2.end());
+
+	auto a3 = A { };
+	auto i3 = values(a3);
+	EXPECT_EQ(i3.begin(), a3.x_);
+	EXPECT_EQ(i3.end(), a3.x_ + 5);
 }
 
+TEST(Iter, IterRange) {
+	int a1[3] = { };
+	auto i1 = iter(a1 + 1, a1 + 2);
+	EXPECT_EQ(i1.begin(), a1 + 1);
+	EXPECT_EQ(i1.end(), a1 + 2);
 
-
-template <typename B, typename E>
-struct iter_range {
-	iter_range(B b, E e) noexcept : b_(b), e_(e) { }
-
-	B begin() const {
-		return b_;
-	}
-
-	E end() const {
-		return e_;
-	}
-
-private:
-	B b_;
-	E e_;
-};
-
-template <typename B, typename E>
-iter_range<B, E> iter(B b, E e) noexcept {
-	return iter_range<B, E> {std::move(b), std::move(e)};
+	std::array<int, 4> a2 = { };
+	auto i2 = iter(a2.begin() + 1, a2.begin() + 2);
+	EXPECT_EQ(i2.begin(), a2.begin() + 1);
+	EXPECT_EQ(i2.end(), a2.begin() + 2);
 }

@@ -20,7 +20,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see http://www.gnu.org/licenses/. */
 
-
 #include "ft0cc/cpputil/utf8_conv.hpp"
 #include "gtest/gtest.h"
 #include <array>
