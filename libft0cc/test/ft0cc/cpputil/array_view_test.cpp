@@ -433,7 +433,6 @@ TEST(ArrayView, RelOps) {
 	auto ae2 = array_view {&e2, 1u};
 	auto ae3 = array_view {e3};
 	EXPECT_EQ(ae1, ae1);
-	EXPECT_EQ(ae1, (array_view {&e1, 1u}));
 	EXPECT_NE(ae1, ae2);
 	EXPECT_NE(ae1, ae3);
 	EXPECT_NE(ae2, ae1);
@@ -483,11 +482,13 @@ TEST(ArrayView, ViewOf) {
 	::testing::StaticAssertTypeEq<decltype(ax4), array_view<const int>>();
 	EXPECT_EQ(ax4, array_view {x4});
 	auto ay1 = view_of(y1);
+	auto ay11 = array_view {&y1, 1u};
 	::testing::StaticAssertTypeEq<decltype(ay1), array_view<int>>();
-	EXPECT_EQ(ay1, (array_view {&y1, 1u}));
+	EXPECT_EQ(ay1, ay11);
 	auto ay2 = view_of(y2);
+	auto ay22 = array_view {&y2, 1u};
 	::testing::StaticAssertTypeEq<decltype(ay2), array_view<const int>>();
-	EXPECT_EQ(ay2, (array_view {&y2, 1u}));
+	EXPECT_EQ(ay2, ay22);
 
 	std::string_view sv = "abc";
 	auto asv = view_of(sv);
