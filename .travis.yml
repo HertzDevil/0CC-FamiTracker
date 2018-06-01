@@ -4,9 +4,16 @@ language: cpp
 
 matrix:
   include:
-#  - os: linux
-#    env:
-#    - MATRIX_EVAL="CC=clang && CXX=clang++"
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - llvm-toolchain-trusty-6.0
+        packages:
+        - clang-6.0
+    env:
+    - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0"
+    - COVERALLS_ENABLE=0
   - os: linux
     addons:
       apt:
@@ -16,6 +23,7 @@ matrix:
         - g++-7
     env:
     - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && GCOV=gcov-7"
+    - COVERALLS_ENABLE=1
 
 before_script:
 - npm install -g eclint
@@ -28,9 +36,12 @@ script:
 - cd libft0cc
 - mkdir build
 - cd build
-- cmake -DCOVERAGE=1 -DCMAKE_BUILD_TYPE=Debug ..
+- cmake -DCOVERAGE=${COVERALLS_ENABLE} -DCMAKE_BUILD_TYPE=Debug ..
 - cmake --build . -- -j4
-- cmake --build . --target coveralls
+- if [ $COVERALLS_ENABLE -eq 1 ]
+  then
+    cmake --build . --target coveralls
+  fi
 
 notifications:
   email:

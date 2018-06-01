@@ -18,7 +18,8 @@ set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL
 set(COVERAGE OFF CACHE BOOL "Enables coverage reports.")
 
 if(MSVC)
-	add_compile_options(/std:c++17 /permissive- /Zc:forScope /Zc:inline /Zc:rvalueCast /Za)
+	add_compile_options(/std:c++17 /permissive- /Zc:__cplusplus
+		/Zc:forScope /Zc:inline /Zc:rvalueCast /Za)
 	add_compile_options(/W4 /WX /sdl)
 	add_definitions(-DUNICODE -D_UNICODE)
 	set(variables
