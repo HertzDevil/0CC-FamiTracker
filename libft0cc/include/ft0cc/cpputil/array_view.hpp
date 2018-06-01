@@ -51,7 +51,7 @@ concept ViewLike = requires (T x) {
 } // namespace details
 
 #define REQUIRES_ViewLike(T, ValT) \
-	, std::enable_if_t<details::is_view_like<T, const ValT>::value, int> = 0
+	, std::enable_if_t<details::is_view_like<T, ValT>::value, int> = 0
 
 // substitute for std::span (a.k.a. gsl::span)
 template <typename T>
