@@ -22,7 +22,6 @@
 
 #include "ft0cc/doc/dpcm_sample.hpp"
 #include <algorithm>
-#include <random>
 
 using namespace ft0cc::doc;
 
@@ -74,14 +73,13 @@ void dpcm_sample::cut_samples(std::size_t b, std::size_t e) {
 	data_.erase(data_.begin() + b, data_.begin() + e);
 }
 
-void dpcm_sample::tilt(std::size_t b, std::size_t e) {
+void dpcm_sample::tilt(std::size_t b, std::size_t e, double seed) {
 	std::size_t Diff = e - b;
 
-	int Nr = 10;
+	const int Nr = 10;
 	std::size_t Step = (Diff * 8) / Nr;
-	std::random_device rd;
-	std::mt19937 gen {rd()};
-	std::size_t Cntr = std::uniform_int_distribution<std::size_t>(0, Step - 1)(gen);
+	auto Cntr = static_cast<std::size_t>(
+		std::clamp(seed, 0., 1.) * Step) % Step;
 
 	for (std::size_t i = b; i < e; ++i) {
 		for (int j = 0; j < 8; ++j) {

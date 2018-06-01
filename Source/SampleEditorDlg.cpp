@@ -27,6 +27,7 @@
 #include "SoundGen.h"
 #include "SampleEditorView.h"
 #include "str_conv/str_conv.hpp"		// // //
+#include <random>		// // //
 
 //
 // The DPCM sample editor
@@ -205,9 +206,13 @@ void CSampleEditorDlg::OnBnClickedTilt()
 	if (!m_pSampleEditorView->HasSelection())
 		return;
 
+	static std::random_device rd;
+	static std::mt19937 gen {rd()};
+	static std::uniform_real_distribution<double> rng {0., 1.};
+
 	int StartSample = m_pSampleEditorView->GetSelStart() * 16;
 	int EndSample = m_pSampleEditorView->GetSelEnd() * 16;
-	m_pSample->tilt(StartSample, EndSample);		// // //
+	m_pSample->tilt(StartSample, EndSample, rng(gen));		// // //
 
 	UpdateSampleView();
 	SelectionChanged();

@@ -54,7 +54,7 @@ public:
 	std::size_t size() const;
 	void resize(std::size_t sz);
 	void cut_samples(std::size_t b, std::size_t e);
-	void tilt(std::size_t b, std::size_t e);
+	void tilt(std::size_t b, std::size_t e, double seed);
 
 private:
 	std::vector<sample_t> data_;
