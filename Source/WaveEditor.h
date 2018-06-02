@@ -26,7 +26,7 @@
 #include <memory>		// // //
 
 enum {
-	WM_USER_WAVE_CHANGED = WM_USER,
+	WM_USER_WAVE_CHANGED = WM_APP,
 };
 
 class CWaveEditor : public CWnd

@@ -96,7 +96,7 @@ BEGIN_MESSAGE_MAP(CInstrumentEditorFDS, CInstrumentEditPanel)
 	ON_BN_CLICKED(IDC_COPY_TABLE, &CInstrumentEditorFDS::OnBnClickedCopyTable)
 	ON_BN_CLICKED(IDC_PASTE_TABLE, &CInstrumentEditorFDS::OnBnClickedPasteTable)
 //	ON_BN_CLICKED(IDC_ENABLE_FM, &CInstrumentEditorFDS::OnBnClickedEnableFm)
-	ON_MESSAGE(WM_USER + 1, OnModChanged)
+	ON_MESSAGE(WM_USER_MOD_CHANGED, OnModChanged)
 END_MESSAGE_MAP()
 
 // CInstrumentEditorFDS message handlers

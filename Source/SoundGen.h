@@ -39,7 +39,7 @@
 
 // Custom messages
 enum {
-	WM_USER_SILENT_ALL = WM_USER + 1,
+	WM_USER_SILENT_ALL = WM_APP + 1,
 	WM_USER_LOAD_SETTINGS,
 	WM_USER_PLAY,
 	WM_USER_STOP,

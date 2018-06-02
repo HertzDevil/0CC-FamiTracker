@@ -142,5 +142,5 @@ void CModSequenceEditor::EditSequence(CPoint point)
 	}
 
 	// Notify parent that the sequence has changed
-	GetParent()->PostMessageW(WM_USER + 1);
+	GetParent()->PostMessageW(WM_USER_MOD_CHANGED);
 }

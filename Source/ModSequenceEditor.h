@@ -25,6 +25,10 @@
 #include "stdafx.h"		// // //
 #include <memory>		// // //
 
+enum : UINT {		// // //
+	WM_USER_MOD_CHANGED = WM_APP + 1,
+};
+
 class CInstrumentFDS;		// // //
 
 class CModSequenceEditor : public CWnd

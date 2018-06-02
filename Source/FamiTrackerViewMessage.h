@@ -27,9 +27,9 @@
 
 // Custom window messages for CFamiTrackerView
 enum {
-	WM_USER_PLAYER = WM_USER,				// Pattern play row has changed
+	WM_USER_PLAYER = WM_APP,				// Pattern play row has changed
 	WM_USER_MIDI_EVENT,						// There is a new MIDI command
-	WM_USER_DUMP_INST = WM_USER + 3,		// // // End of track, add instrument
+	WM_USER_DUMP_INST = WM_APP + 3,		// // // End of track, add instrument
 };
 
 // View update modes (TODO check these and remove inappropriate flags)

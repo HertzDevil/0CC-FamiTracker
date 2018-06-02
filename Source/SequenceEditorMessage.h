@@ -25,7 +25,7 @@
 #include "WinUser.h"
 
 enum {
-	WM_SIZE_CHANGE = WM_USER,
+	WM_SIZE_CHANGE = WM_APP,
 	WM_CURSOR_CHANGE,
 	WM_SEQUENCE_CHANGED,
 	WM_SETTING_CHANGED,		// // //
