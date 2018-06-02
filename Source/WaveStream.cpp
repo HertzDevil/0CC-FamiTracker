@@ -33,13 +33,13 @@ constexpr std::uint32_t fourcc(const char (&str)[5]) noexcept {
 
 } // namespace
 
-//CInputWaveStream::CInputWaveStream(CBinaryFileStream &file) : file_(file) {
-//}
+CInputWaveStream::CInputWaveStream(std::shared_ptr<CBinaryReader> file) : file_(std::move(file)) {
+}
 
 
 
-COutputWaveStream::COutputWaveStream(std::shared_ptr<CBinaryFileStream> file, const CWaveFileFormat &fmt) :
-	file_(std::move(file)), fmt_(fmt), start_pos_(file_->GetPosition())
+COutputWaveStream::COutputWaveStream(std::shared_ptr<CBinaryWriter> file, const CWaveFileFormat &fmt) :
+	file_(std::move(file)), fmt_(fmt), start_pos_(file_->GetWriterPos())
 {
 	Assert(fmt.Format == CWaveFileFormat::format_code::pcm || fmt.Format == CWaveFileFormat::format_code::ieee_float);
 }
@@ -53,10 +53,10 @@ COutputWaveStream::~COutputWaveStream() noexcept {
 		++write_count_;
 	}
 
-	file_->Seek(start_pos_ + (fmt_.Format != CWaveFileFormat::format_code::pcm ? 54 : 40));
+	file_->SeekWriter(start_pos_ + (fmt_.Format != CWaveFileFormat::format_code::pcm ? 54 : 40));
 	file_->WriteInt<std::uint32_t>(write_count_ - (fmt_.Format != CWaveFileFormat::format_code::pcm ? 50 : 36));
 
-	file_->Seek(start_pos_ + 4u);
+	file_->SeekWriter(start_pos_ + 4u);
 	file_->WriteInt<std::uint32_t>(write_count_);
 }
 

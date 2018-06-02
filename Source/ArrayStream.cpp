@@ -39,6 +39,16 @@ std::size_t CConstArrayStream::ReadBytes(array_view<std::byte> buf) {
 	return 0u;
 }
 
+void CConstArrayStream::SeekReader(std::size_t pos) {
+	if (pos > orig_input_.size())
+		throw std::runtime_error {"Cannot seek beyond EOF"};
+	input_ = orig_input_.subview(pos);
+}
+
+std::size_t CConstArrayStream::GetReaderPos() {
+	return orig_input_.size() - input_.size();
+}
+
 
 
 CArrayStream::CArrayStream(array_view<std::byte> output) :
@@ -54,4 +64,14 @@ std::size_t CArrayStream::WriteBytes(array_view<const std::byte> buf) {
 		return towrite;
 	}
 	return 0u;
+}
+
+void CArrayStream::SeekWriter(std::size_t pos) {
+	if (pos > orig_output_.size())
+		throw std::runtime_error {"Cannot seek beyond EOF"};
+	output_ = orig_output_.subview(pos);
+}
+
+std::size_t CArrayStream::GetWriterPos() {
+	return orig_output_.size() - output_.size();
 }

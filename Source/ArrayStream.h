@@ -30,6 +30,8 @@ public:
 	CConstArrayStream(array_view<const std::byte> input);
 
 	std::size_t ReadBytes(array_view<std::byte> buf) override;
+	void SeekReader(std::size_t pos) override;
+	std::size_t GetReaderPos() override;
 
 private:
 	array_view<const std::byte> input_;
@@ -41,6 +43,8 @@ public:
 	CArrayStream(array_view<std::byte> output);
 
 	std::size_t WriteBytes(array_view<const std::byte> buf) override;
+	void SeekWriter(std::size_t pos) override;
+	std::size_t GetWriterPos() override;
 
 private:
 	array_view<std::byte> output_;

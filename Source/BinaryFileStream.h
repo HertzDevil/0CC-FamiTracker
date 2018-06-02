@@ -44,10 +44,12 @@ public:
 	std::string	GetErrorMessage() const;
 
 	std::size_t	ReadBytes(array_view<std::byte> Buf) override;
-	std::size_t WriteBytes(array_view<const std::byte> Buf) override;
+	void SeekReader(std::size_t pos) override;
+	std::size_t GetReaderPos() override;
 
-	void		Seek(std::size_t pos);
-	std::size_t GetPosition();
+	std::size_t WriteBytes(array_view<const std::byte> Buf) override;
+	void SeekWriter(std::size_t pos) override;
+	std::size_t GetWriterPos() override;
 
 private:
 	std::fstream m_fFile;

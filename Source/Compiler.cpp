@@ -47,7 +47,7 @@
 #include "NumConv.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 #include "SoundChipService.h"		// // //
-#include "BinaryFileStream.h"		// // //
+#include "BinaryStream.h"		// // //
 #include "Assertion.h"		// // //
 
 //
@@ -165,12 +165,12 @@ void CCompiler::ClearLog() const
 
 namespace {
 
-void NSFEWriteBlockIdent(CBinaryFileStream &file, const char (&ident)[5], uint32_t sz) {		// // //
+void NSFEWriteBlockIdent(CBinaryWriter &file, const char (&ident)[5], uint32_t sz) {		// // //
 	file.WriteInt<std::uint32_t>(sz);
 	file.WriteBytes({reinterpret_cast<const std::byte *>(ident), 4});
 }
 
-std::size_t NSFEWriteBlocks(CBinaryFileStream &file, const CFamiTrackerModule &modfile,
+std::size_t NSFEWriteBlocks(CBinaryWriter &file, const CFamiTrackerModule &modfile,
 	std::string_view title, std::string_view artist, std::string_view copyright) {		// // //
 	int iAuthSize = 0, iTimeSize = 0, iTlblSize = 0;
 	auto str = std::string {"0CC-FamiTracker "} + Get0CCFTVersionString();		// // //
@@ -203,14 +203,14 @@ std::size_t NSFEWriteBlocks(CBinaryFileStream &file, const CFamiTrackerModule &m
 		file.WriteStringNull(song.GetTitle());
 	});
 
-	std::size_t iDataSizePos = file.GetPosition();
+	std::size_t iDataSizePos = file.GetWriterPos();
 	NSFEWriteBlockIdent(file, "DATA", 0);
 	return iDataSizePos;
 }
 
 } // namespace
 
-void CCompiler::ExportNSF_NSFE(CBinaryFileStream &file, int MachineType, bool isNSFE) {
+void CCompiler::ExportNSF_NSFE(CBinaryWriter &file, int MachineType, bool isNSFE) {
 	if (m_bBankSwitched) {
 		// Expand and allocate label addresses
 		AddBankswitching();
@@ -290,7 +290,7 @@ void CCompiler::ExportNSF_NSFE(CBinaryFileStream &file, int MachineType, bool is
 
 	if (isNSFE) {
 		NSFEWriteBlockIdent(file, "NEND", 0);		// // //
-		file.Seek(iDataSizePos);
+		file.SeekWriter(iDataSizePos);
 		NSFEWriteBlockIdent(file, "DATA", m_bBankSwitched ? 0x1000 * (Render.GetBankCount() - 1) :
 			m_iDriverSize + m_iMusicDataSize + m_iSamplesSize);		// // //
 	}
@@ -312,10 +312,10 @@ void CCompiler::ExportNSF_NSFE(CBinaryFileStream &file, int MachineType, bool is
 		Print(" * NSF type: Linear (driver @ $" + conv::from_uint_hex(m_iDriverAddress, 4) + ")\n");
 	}
 
-	Print("Done, total file size: " + conv::from_uint(file.GetPosition()) + " bytes\n");
+	Print("Done, total file size: " + conv::from_uint(file.GetWriterPos()) + " bytes\n");
 }
 
-void CCompiler::ExportNES_PRG(CBinaryFileStream &file, bool EnablePAL, bool isPRG) {
+void CCompiler::ExportNES_PRG(CBinaryWriter &file, bool EnablePAL, bool isPRG) {
 	if (m_bBankSwitched) {
 		Print("Error: Can't write bankswitched songs!\n");
 		return;
@@ -365,7 +365,7 @@ void CCompiler::ExportNES_PRG(CBinaryFileStream &file, bool EnablePAL, bool isPR
 	Print("Done, total file size: " + conv::from_int(0x8000 + (isPRG ? 0 : std::size(NES_HEADER))) + " bytes\n");
 }
 
-void CCompiler::ExportBIN_ASM(CBinaryFileStream &binFile, CBinaryFileStream *dpcmFile, bool isASM) {
+void CCompiler::ExportBIN_ASM(CBinaryWriter &binFile, CBinaryWriter *dpcmFile, bool isASM) {
 	if (m_bBankSwitched) {
 		Print("Error: Can't write bankswitched songs!\n");
 		return;
@@ -399,19 +399,19 @@ void CCompiler::ExportBIN_ASM(CBinaryFileStream &binFile, CBinaryFileStream *dpc
 	Print("Done\n");
 }
 
-void CCompiler::ExportNSF(CBinaryFileStream &file, int MachineType) {		// // //
+void CCompiler::ExportNSF(CBinaryWriter &file, int MachineType) {		// // //
 	if (!CompileData())
 		return;
 	ExportNSF_NSFE(file, MachineType, false);		// // //
 }
 
-void CCompiler::ExportNSFE(CBinaryFileStream &file, int MachineType) {		// // //
+void CCompiler::ExportNSFE(CBinaryWriter &file, int MachineType) {		// // //
 	if (!CompileData())
 		return;
 	ExportNSF_NSFE(file, MachineType, true);
 }
 
-void CCompiler::ExportNES(CBinaryFileStream &file, bool EnablePAL) {
+void CCompiler::ExportNES(CBinaryWriter &file, bool EnablePAL) {
 	if (m_pModule->HasExpansionChips()) {
 		Print("Error: Expansion chips are currently not supported for this export format.\n");
 		return;
@@ -421,7 +421,7 @@ void CCompiler::ExportNES(CBinaryFileStream &file, bool EnablePAL) {
 	ExportNES_PRG(file, EnablePAL, false);		// // //
 }
 
-void CCompiler::ExportPRG(CBinaryFileStream &file, bool EnablePAL) {
+void CCompiler::ExportPRG(CBinaryWriter &file, bool EnablePAL) {
 	// Same as export to .NES but without the header
 	if (m_pModule->HasExpansionChips()) {
 		Print("Error: Expansion chips are currently not supported for this export format.\n");
@@ -432,13 +432,13 @@ void CCompiler::ExportPRG(CBinaryFileStream &file, bool EnablePAL) {
 	ExportNES_PRG(file, EnablePAL, true);		// // //
 }
 
-void CCompiler::ExportBIN(CBinaryFileStream &binFile, CBinaryFileStream &dpcmFile) {
+void CCompiler::ExportBIN(CBinaryWriter &binFile, CBinaryWriter &dpcmFile) {
 	if (!CompileData())
 		return;
 	ExportBIN_ASM(binFile, &dpcmFile, false);		// // //
 }
 
-void CCompiler::ExportASM(CBinaryFileStream &file) {
+void CCompiler::ExportASM(CBinaryWriter &file) {
 	if (!CompileData())
 		return;
 	ExportBIN_ASM(file, nullptr, true);		// // //

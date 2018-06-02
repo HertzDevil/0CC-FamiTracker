@@ -64,20 +64,32 @@ std::string CBinaryFileStream::GetErrorMessage() const {
 	return "Unknown error";
 }
 
-std::size_t CBinaryFileStream::WriteBytes(array_view<const std::byte> Buf) {
-	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
-	return m_fFile ? Buf.size() : 0u;
-}
-
 std::size_t CBinaryFileStream::ReadBytes(array_view<std::byte> Buf) {
 	m_fFile.read(reinterpret_cast<char *>(Buf.data()), Buf.size());
 	return m_fFile.gcount();
 }
 
-void CBinaryFileStream::Seek(std::size_t pos) {
-	m_fFile.seekp(pos);
+void CBinaryFileStream::SeekReader(std::size_t pos) {
+	m_fFile.seekg(pos);
+	if (m_fFile.fail())
+		throw std::runtime_error {"Cannot seek beyond EOF"};
 }
 
-std::size_t CBinaryFileStream::GetPosition() {
+std::size_t CBinaryFileStream::GetReaderPos() {
+	return m_fFile.tellg();
+}
+
+std::size_t CBinaryFileStream::WriteBytes(array_view<const std::byte> Buf) {
+	m_fFile.write(reinterpret_cast<const char *>(Buf.data()), Buf.size());
+	return m_fFile ? Buf.size() : 0u;
+}
+
+void CBinaryFileStream::SeekWriter(std::size_t pos) {
+	m_fFile.seekp(pos);
+	if (m_fFile.fail())
+		throw std::runtime_error {"Cannot seek beyond EOF"};
+}
+
+std::size_t CBinaryFileStream::GetWriterPos() {
 	return m_fFile.tellp();
 }

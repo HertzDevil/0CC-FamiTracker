@@ -81,7 +81,7 @@ class CFamiTrackerModule;		// // //
 class CSequence;		// // //
 class CInstrumentFDS;		// // //
 class CConstSongView;		// // //
-class CBinaryFileStream;		// // //
+class CBinaryWriter;		// // //
 
 /*
  * Logger class
@@ -103,19 +103,19 @@ public:
 	CCompiler(const CFamiTrackerModule &modfile, std::shared_ptr<CCompilerLog> pLogger);		// // //
 	~CCompiler();
 
-	void	ExportNSF(CBinaryFileStream &file, int MachineType);		// // //
-	void	ExportNSFE(CBinaryFileStream &file, int MachineType);		// // //
-	void	ExportNES(CBinaryFileStream &file, bool EnablePAL);
-	void	ExportBIN(CBinaryFileStream &binFile, CBinaryFileStream &dpcmFile);
-	void	ExportPRG(CBinaryFileStream &file, bool EnablePAL);
-	void	ExportASM(CBinaryFileStream &file);
+	void	ExportNSF(CBinaryWriter &file, int MachineType);		// // //
+	void	ExportNSFE(CBinaryWriter &file, int MachineType);		// // //
+	void	ExportNES(CBinaryWriter &file, bool EnablePAL);
+	void	ExportBIN(CBinaryWriter &binFile, CBinaryWriter &dpcmFile);
+	void	ExportPRG(CBinaryWriter &file, bool EnablePAL);
+	void	ExportASM(CBinaryWriter &file);
 
 	void	SetMetadata(std::string_view title, std::string_view artist, std::string_view copyright);		// // //
 
 private:
-	void	ExportNSF_NSFE(CBinaryFileStream &file, int MachineType, bool isNSFE);		// // //
-	void	ExportNES_PRG(CBinaryFileStream &file, bool EnablePAL, bool isPRG);		// // //
-	void	ExportBIN_ASM(CBinaryFileStream &binFile, CBinaryFileStream *dpcmFile, bool isASM);		// // //
+	void	ExportNSF_NSFE(CBinaryWriter &file, int MachineType, bool isNSFE);		// // //
+	void	ExportNES_PRG(CBinaryWriter &file, bool EnablePAL, bool isPRG);		// // //
+	void	ExportBIN_ASM(CBinaryWriter &binFile, CBinaryWriter *dpcmFile, bool isASM);		// // //
 
 	stNSFHeader CreateHeader(int MachineType) const;		// // //
 	stNSFeHeader CreateNSFeHeader(int MachineType);		// // //

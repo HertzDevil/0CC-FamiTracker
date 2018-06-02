@@ -49,7 +49,7 @@ CDocumentFile::~CDocumentFile() {
 
 // // // delegations to CBinaryFileStream
 
-CBinaryFileStream &CDocumentFile::GetBinaryStream() {
+CBinaryReader &CDocumentFile::GetBinaryReader() {
 	return *m_pFile;
 }
 
@@ -100,7 +100,7 @@ unsigned int CDocumentFile::GetFileVersion() const {
 }
 
 std::unique_ptr<CDocumentInputBlock> CDocumentFile::ReadBlock() {		// // //
-	m_iPrevFilePosition = m_pFile->GetPosition();
+	m_iPrevFilePosition = m_pFile->GetReaderPos();
 
 	std::array<char, BLOCK_HEADER_SIZE> buf = { };
 	std::string_view id {buf.data(), m_pFile->ReadBytes(byte_view(buf))};
@@ -115,11 +115,11 @@ std::unique_ptr<CDocumentInputBlock> CDocumentFile::ReadBlock() {		// // //
 		std::uint32_t BlockVersion = m_pFile->ReadInt<std::uint32_t>();
 		std::size_t Size = m_pFile->ReadInt<std::uint32_t>();
 		if (Size > 50000000u) { // File is probably corrupt
-			m_pFile->Seek(m_pFile->GetPosition() + Size);
+			m_pFile->SeekReader(m_pFile->GetReaderPos() + Size);
 			return nullptr;
 		}
 
-		m_iPrevFilePosition = m_pFile->GetPosition();
+		m_iPrevFilePosition = m_pFile->GetReaderPos();
 		auto BlockData = std::vector<std::byte>(Size);		// // //
 		if (m_pFile->ReadBytes(byte_view(BlockData)) != Size)
 			return nullptr;
@@ -184,6 +184,17 @@ std::size_t CDocumentInputBlock::ReadBytes(array_view<std::byte> Buf) {
 	return Buf.size();
 }
 
+void CDocumentInputBlock::SeekReader(std::size_t pos) {
+	if (pos > m_pBlockData.size())
+		throw std::runtime_error {"Cannot seek beyond EOF"};
+	m_iPreviousPointer = m_iBlockPointer;
+	m_iBlockPointer = pos;
+}
+
+std::size_t CDocumentInputBlock::GetReaderPos() {
+	return m_iBlockPointer;
+}
+
 void CDocumentInputBlock::BeforeRead() {
 	m_iBlockPointerCache = m_iBlockPointer;
 }
@@ -212,8 +223,25 @@ unsigned CDocumentOutputBlock::GetBlockVersion() const {
 }
 
 std::size_t CDocumentOutputBlock::WriteBytes(array_view<const std::byte> Data) {
+	std::size_t newpos = m_iBlockPointer + Data.size();
+	if (m_iBlockPointer < m_pBlockData.size()) {
+		std::size_t dif = std::min(m_pBlockData.size() - m_iBlockPointer, Data.size());
+		std::copy_n(Data.begin(), dif, m_pBlockData.begin() + m_iBlockPointer);
+		Data.remove_front(dif);
+	}
 	std::copy(Data.begin(), Data.end(), std::back_inserter(m_pBlockData));
+	m_iBlockPointer = newpos;
 	return Data.size();
+}
+
+void CDocumentOutputBlock::SeekWriter(std::size_t pos) {
+	if (pos > m_pBlockData.size())
+		throw std::runtime_error {"Cannot seek beyond EOF"};
+	m_iBlockPointer = pos;
+}
+
+std::size_t CDocumentOutputBlock::GetWriterPos() {
+	return m_iBlockPointer;
 }
 
 bool CDocumentOutputBlock::FlushToFile(CBinaryWriter &file) const {

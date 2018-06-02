@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <cmath>
 #include "ft0cc/cpputil/array_view.hpp"
-#include "BinaryFileStream.h"
+#include "BinaryStream.h"
 
 namespace details {
 
@@ -117,22 +117,22 @@ struct CWaveFileFormat {
 
 class CInputWaveStream {
 public:
-	explicit CInputWaveStream(CBinaryFileStream &file);
+	explicit CInputWaveStream(std::shared_ptr<CBinaryReader> file);
 
 private:
-	CBinaryFileStream &file_;
+	std::shared_ptr<CBinaryReader> file_;
 };
 
 class COutputWaveStream {
 public:
-	COutputWaveStream(std::shared_ptr<CBinaryFileStream> file, const CWaveFileFormat &fmt);
+	COutputWaveStream(std::shared_ptr<CBinaryWriter> file, const CWaveFileFormat &fmt);
 	~COutputWaveStream() noexcept;
 
 	void WriteWAVHeader();
 
 	template <typename T>
-	void WriteSample(T sample) {
-		WriteSamples(array_view<const T> {&sample, 1});
+	void WriteSample(const T &sample) {
+		WriteSamples(view_of(sample));
 	}
 
 	template <typename T>
@@ -204,7 +204,7 @@ private:
 			file_->WriteBytes(byte_view(x));
 	}
 
-	std::shared_ptr<CBinaryFileStream> file_;
+	std::shared_ptr<CBinaryWriter> file_;
 	CWaveFileFormat fmt_;
 	std::size_t start_pos_;
 	std::size_t write_count_ = 0u;

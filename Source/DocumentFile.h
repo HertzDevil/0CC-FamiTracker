@@ -43,7 +43,7 @@ public:
 	~CDocumentFile();		// // //
 
 	// // // delegations to CBinaryFileStream
-	CBinaryFileStream &GetBinaryStream();
+	CBinaryReader &GetBinaryReader();
 	void Open(const fs::path &fname);		// // //
 	void Close();
 
@@ -93,6 +93,8 @@ public:
 	bool BlockDone() const;
 
 	std::size_t ReadBytes(array_view<std::byte> buf) override;
+	void SeekReader(std::size_t pos) override;
+	std::size_t GetReaderPos() override;
 
 	void AdvancePointer(int offset);
 
@@ -136,6 +138,8 @@ public:
 	unsigned GetBlockVersion() const;
 
 	std::size_t WriteBytes(array_view<const std::byte> Data) override;
+	void SeekWriter(std::size_t pos) override;
+	std::size_t GetWriterPos() override;
 
 	bool FlushToFile(CBinaryWriter &file) const;
 
@@ -143,4 +147,5 @@ private:
 	std::array<char, CDocumentFile::BLOCK_HEADER_SIZE> m_cBlockID = { };
 	unsigned m_iBlockVersion = 0u;
 	std::vector<std::byte> m_pBlockData;
+	std::size_t m_iBlockPointer = 0u;
 };

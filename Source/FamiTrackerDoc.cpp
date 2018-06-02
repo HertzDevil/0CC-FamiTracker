@@ -382,7 +382,7 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 		OpenFile.ValidateFile(); // Read header ID and version
 		bool useCompat = OpenFile.GetFileVersion() < 0x0200u;
 
-		if (auto newModule = useCompat ? compat::OpenDocumentOld(OpenFile.GetBinaryStream()) :
+		if (auto newModule = useCompat ? compat::OpenDocumentOld(OpenFile.GetBinaryReader()) :
 			CFamiTrackerDocReader {OpenFile, FTEnv.GetSettings()->Version.iErrorLevel}.Load())
 			module_ = std::move(newModule);
 		else

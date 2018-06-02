@@ -68,6 +68,7 @@ CSoundGen depends on CFamiTrackerView for:
 #include "Bookmark.h"		// // //
 #include "Instrument.h"
 #include "str_conv/str_conv.hpp"		// // //
+#include "BinaryFileStream.h"		// // //
 
 // // // Log VGM output (port from sn7t when necessary)
 //#define WRITE_VGM
