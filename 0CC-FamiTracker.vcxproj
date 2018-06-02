@@ -505,6 +505,7 @@
     <ClCompile Include="Source\NoteName.cpp" />
     <ClCompile Include="Source\PatternClipData.cpp" />
     <ClCompile Include="Source\PatternData.cpp" />
+    <ClCompile Include="Source\PCMImporter.cpp" />
     <ClCompile Include="Source\PeriodTables.cpp" />
     <ClCompile Include="Source\RegisterDisplay.cpp" />
     <ClCompile Include="Source\SelectionRange.cpp" />
@@ -688,6 +689,7 @@
     <ClInclude Include="Source\ChipHandlerVRC7.h" />
     <ClInclude Include="Source\Color.h" />
     <ClInclude Include="Source\EffectName.h" />
+    <ClInclude Include="Source\PCMImporter.h" />
     <ClInclude Include="Source\SelectionRange.h" />
     <ClInclude Include="Source\StringClipData.h" />
     <ClInclude Include="Source\FamiTrackerDocIO.h" />

@@ -25,14 +25,7 @@
 #include "stdafx.h"		// // //
 #include "../resource.h"		// // //
 #include <memory>		// // //
-
-namespace ft0cc::doc {
-class dpcm_sample;
-} // namespace ft0cc::doc
-
-namespace jarh {
-	class sinc;
-}
+#include "PCMImporter.h"		// // //
 
 class CPCMImport : public CDialog
 {
@@ -51,22 +44,15 @@ protected:
 	std::shared_ptr<ft0cc::doc::dpcm_sample> m_pImported;		// // //
 	std::shared_ptr<ft0cc::doc::dpcm_sample> m_pCachedSample;
 
-	CStringW		m_strPath, m_strFileName;
-	CFile		m_fSampleFile;
-	ULONGLONG	m_ullSampleStart;
+	CStringW m_strPath;
+	CStringW m_strFileName;
 
-	int m_iQuality;
-	int m_iVolume;
-	int m_iSampleSize;
-	int m_iChannels;
-	int m_iBlockAlign;
-	int m_iAvgBytesPerSec;
-	int m_iSamplesPerSec;
-	int m_iCachedQuality;
-	int m_iCachedVolume;
-	unsigned int m_iWaveSize;
+	CPCMImporter m_Importer;		// // //
 
-	std::unique_ptr<jarh::sinc> m_psinc;		// // //
+	int m_iQuality = QUALITY_RANGE - 1;
+	int m_iVolume = 0;
+	int m_iCachedQuality = 0;
+	int m_iCachedVolume = 0;
 
 protected:
 	static const int QUALITY_RANGE;

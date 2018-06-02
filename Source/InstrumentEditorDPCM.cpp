@@ -369,9 +369,7 @@ void CInstrumentEditorDPCM::OnNMClickSampleList(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CInstrumentEditorDPCM::OnBnClickedImport()
 {
-	CPCMImport	ImportDialog;
-
-	if (auto pImported = ImportDialog.ShowDialog()) {		// // //
+	if (CPCMImport ImportDialog; auto pImported = ImportDialog.ShowDialog()) {		// // //
 		InsertSample(std::move(pImported));
 		BuildSampleList();
 	}

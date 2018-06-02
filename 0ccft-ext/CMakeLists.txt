@@ -159,6 +159,7 @@ set(SRCS
 	${FT0CC_ROOT}/PatternData.cpp
 #	${FT0CC_ROOT}/PatternEditor.cpp
 #	${FT0CC_ROOT}/PCMImport.cpp
+#	${FT0CC_ROOT}/PCMImporter.cpp
 #	${FT0CC_ROOT}/PerformanceDlg.cpp
 	${FT0CC_ROOT}/PeriodTables.cpp
 	${FT0CC_ROOT}/PlayerCursor.cpp
