@@ -907,8 +907,8 @@ bool CFindDlg::CompareFields(const ft0cc::doc::pattern_note &Target, bool Noise,
 	bool EffectMatch = false;
 
 	bool Melodic = is_note(m_searchTerm.Note->Min) && // ||
-				   is_note(m_searchTerm.Note->Max) &&
-				   m_searchTerm.Definite[WC_OCT];
+		is_note(m_searchTerm.Note->Max) &&
+		m_searchTerm.Definite[WC_OCT];
 
 	if (m_searchTerm.Definite[WC_NOTE]) {
 		if (m_searchTerm.NoiseChan) {

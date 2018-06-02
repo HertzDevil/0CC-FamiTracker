@@ -66,7 +66,7 @@ public:
 	template <class T_> // intersection
 	friend constexpr CIntRange<T_> operator&(const CIntRange<T_> &lhs, const CIntRange<T_> &rhs) {
 		return CIntRange<T_>(lhs.b_ > rhs.b_ ? lhs.b_ : rhs.b_,
-							 lhs.e_ < rhs.e_ ? lhs.e_ : rhs.e_);
+			lhs.e_ < rhs.e_ ? lhs.e_ : rhs.e_);
 	}
 	constexpr CIntRange &operator+=(T rhs) {
 		b_ += rhs;

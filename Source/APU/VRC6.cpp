@@ -52,7 +52,7 @@ void CVRC6_Pulse::Write(uint16_t Address, uint8_t Value)
 			m_iVolume = Value & 0x0F;
 			if (m_iGate)
 				Mix(m_iVolume);
-  			break;
+			break;
 		case 0x01:
 			m_iPeriodLow = Value;
 			m_iPeriod = m_iPeriodLow + (m_iPeriodHigh << 8);

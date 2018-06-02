@@ -88,7 +88,7 @@ void CModSequenceEditor::OnPaint()
 		int mod = m_pInstrument->GetModulation(i);
 
 		dc.FillSolidRect(x, 2 + 0, SIZE_X, 5, mod == 3 ? 0x00FF00 : 0xD0D0D0);		// +4
- 		dc.FillSolidRect(x, 2 + 7, SIZE_X, 5, mod == 2 ? 0x00FF00 : 0xD0D0D0);		// +2
+		dc.FillSolidRect(x, 2 + 7, SIZE_X, 5, mod == 2 ? 0x00FF00 : 0xD0D0D0);		// +2
 		dc.FillSolidRect(x, 2 + 14, SIZE_X, 5, mod == 1 ? 0x00FF00 : 0xD0D0D0);		// +1
 		dc.FillSolidRect(x, 2 + 21, SIZE_X, 5, mod == 0 ? 0x00FFFF : 0xD0D0D0);		// 0
 		dc.FillSolidRect(x, 2 + 28, SIZE_X, 5, mod == 7 ? 0x00FF00 : 0xD0D0D0);		// -1

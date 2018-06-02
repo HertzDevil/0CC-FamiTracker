@@ -25,14 +25,14 @@
 
 // Channel effect letters
 constexpr char EFF_CHAR[] = {
-	 0,		// // // blank
+	0,		// // // blank
 	'F',	// Speed
 	'B',	// Jump
 	'D',	// Skip
 	'C',	// Halt
 	'E',	// Volume
 	'3',	// Porta on
-	 0,		// Porta off		// unused
+	0,		// Porta off		// unused
 	'H',	// Sweep up
 	'I',	// Sweep down
 	'0',	// Arpeggio

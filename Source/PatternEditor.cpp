@@ -1474,7 +1474,7 @@ void CPatternEditor::DrawHeader(CDC &DC)
 
 	// Channel header background
 	GradientRectTriple(DC, 0, HEADER_CHAN_START, m_iWinWidth, HEADER_CHAN_HEIGHT,
-					   m_colHead1, m_colHead2, m_pView->GetEditMode() ? m_colHead4 : m_colHead3);		// // //
+		m_colHead1, m_colHead2, m_pView->GetEditMode() ? m_colHead4 : m_colHead3);		// // //
 
 	// Corner box
 	DC.Draw3dRect(0, HEADER_CHAN_START, m_iRowColumnWidth, HEADER_CHAN_HEIGHT, STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK);
@@ -1488,13 +1488,13 @@ void CPatternEditor::DrawHeader(CDC &DC)
 		// Frame
 		if (Pushed) {
 			GradientRectTriple(DC, Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT,
-							   m_colHead1, m_colHead1, m_pView->GetEditMode() ? m_colHead4 : m_colHead3);
+				m_colHead1, m_colHead1, m_pView->GetEditMode() ? m_colHead4 : m_colHead3);
 			DC.Draw3dRect(Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT, BLEND(STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK, .5), STATIC_COLOR_SCHEME.FRAME_DARK);
 		}
 		else {
 			if (ch == FTEnv.GetSoundGenerator()->GetRecordChannel())		// // //
 				GradientRectTriple(DC, Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT,
-								   m_colHead1, m_colHead2, m_colHead5);
+					m_colHead1, m_colHead2, m_colHead5);
 			DC.Draw3dRect(Offset, HEADER_CHAN_START, m_iChannelWidths[Channel], HEADER_CHAN_HEIGHT, STATIC_COLOR_SCHEME.FRAME_LIGHT, STATIC_COLOR_SCHEME.FRAME_DARK);
 		}
 

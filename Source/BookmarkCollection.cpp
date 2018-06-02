@@ -94,7 +94,7 @@ bool CBookmarkCollection::SwapBookmarks(unsigned A, unsigned B)
 void CBookmarkCollection::InsertFrames(unsigned Frame, unsigned Count)
 {
 	std::for_each(m_pBookmark.begin(), m_pBookmark.end(),
-				  [&] (std::unique_ptr<CBookmark> &a) { if (a->m_iFrame >= Frame) a->m_iFrame += Count; });
+		[&] (std::unique_ptr<CBookmark> &a) { if (a->m_iFrame >= Frame) a->m_iFrame += Count; });
 }
 
 void CBookmarkCollection::RemoveFrames(unsigned Frame, unsigned Count)
@@ -104,7 +104,7 @@ void CBookmarkCollection::RemoveFrames(unsigned Frame, unsigned Count)
 			[&] (std::unique_ptr<CBookmark> &a) { return a->m_iFrame >= Frame && a->m_iFrame < Frame + Count; }),
 		m_pBookmark.end());
 	std::for_each(m_pBookmark.begin(), m_pBookmark.end(),
-				  [&] (std::unique_ptr<CBookmark> &a) { if (a->m_iFrame >= Frame) a->m_iFrame -= Count; });
+		[&] (std::unique_ptr<CBookmark> &a) { if (a->m_iFrame >= Frame) a->m_iFrame -= Count; });
 }
 
 void CBookmarkCollection::SwapFrames(unsigned A, unsigned B)
@@ -147,9 +147,9 @@ CBookmark *CBookmarkCollection::FindNext(unsigned Frame, unsigned Row) const
 	if (m_pBookmark.empty()) return nullptr;
 	CBookmark temp(Frame, Row);
 	return std::min_element(m_pBookmark.begin(), m_pBookmark.end(),
-					 [&] (const std::unique_ptr<CBookmark> &a, const std::unique_ptr<CBookmark> &b) {
-		return static_cast<unsigned>(a->Distance(temp) - 1) < static_cast<unsigned>(b->Distance(temp) - 1);
-	})->get();
+		[&] (const std::unique_ptr<CBookmark> &a, const std::unique_ptr<CBookmark> &b) {
+			return static_cast<unsigned>(a->Distance(temp) - 1) < static_cast<unsigned>(b->Distance(temp) - 1);
+		})->get();
 }
 
 CBookmark *CBookmarkCollection::FindPrevious(unsigned Frame, unsigned Row) const
@@ -157,9 +157,9 @@ CBookmark *CBookmarkCollection::FindPrevious(unsigned Frame, unsigned Row) const
 	if (m_pBookmark.empty()) return nullptr;
 	CBookmark temp(Frame, Row);
 	return std::min_element(m_pBookmark.begin(), m_pBookmark.end(),
-					 [&] (const std::unique_ptr<CBookmark> &a, const std::unique_ptr<CBookmark> &b) {
-		return static_cast<unsigned>(temp.Distance(*a) - 1) < static_cast<unsigned>(temp.Distance(*b) - 1);
-	})->get();
+		[&] (const std::unique_ptr<CBookmark> &a, const std::unique_ptr<CBookmark> &b) {
+			return static_cast<unsigned>(temp.Distance(*a) - 1) < static_cast<unsigned>(temp.Distance(*b) - 1);
+		})->get();
 }
 
 bool CBookmarkCollection::SortByName(bool Desc)

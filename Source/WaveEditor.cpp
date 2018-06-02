@@ -52,8 +52,8 @@ BEGIN_MESSAGE_MAP(CWaveEditor, CWnd)
 	ON_WM_MBUTTONDOWN()
 END_MESSAGE_MAP()
 
-CWaveEditor::CWaveEditor(int sx, int sy, int lx, int ly)
- : m_iSX(sx), m_iSY(sy), m_iLX(lx), m_iLY(ly)
+CWaveEditor::CWaveEditor(int sx, int sy, int lx, int ly) :
+	m_iSX(sx), m_iSY(sy), m_iLX(lx), m_iLY(ly)
 {
 	m_bDrawLine = false;
 }

@@ -27,9 +27,9 @@ matrix:
     - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && GCOV=gcov-7"
     - COVERALLS_ENABLE=1
 
-before_script:
-- npm install -g eclint
-- eclint check "*"
+#before_script:
+#- npm install -g eclint
+#- eclint check "Source/**" "libft0cc/src/**" "libft0cc/include/**"
 
 before_install:
 - eval "${MATRIX_EVAL}"
@@ -40,10 +40,8 @@ script:
 - cd build
 - cmake -DCOVERAGE=${COVERALLS_ENABLE} -DCMAKE_BUILD_TYPE=Debug ..
 - cmake --build . -- -j4
-- |
-  if [ $COVERALLS_ENABLE -eq 1 ]
-  then
-    cmake --build . --target coveralls
+- if [ $COVERALLS_ENABLE -eq 1 ]; then
+    cmake --build . --target coveralls;
   fi
 
 notifications:

@@ -6,13 +6,17 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[**.{c,cc,cpp,cxx,h,hh,hpp,hxx}]
+[**.{c,cc,cpp,cxx,h,hh,hpp,hxx,inl,txx}]
 end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 indent_style = tab
 indent_size = 4
+# eclint extensions
+block_comment_start = /*
+block_comment = *
+block_comment_end = */
 
 [**.{txt,md}]
 end_of_line = lf

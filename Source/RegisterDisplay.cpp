@@ -203,7 +203,7 @@ void CRegisterDisplay::Draw() {
 			const int UpdateTime = std::min(pPosState->GetLastUpdatedTime(), pLenState->GetLastUpdatedTime());
 			dc_.FillSolidRect(x + 300, y + 20 + i * 5, Length * 2, 3, 0);
 			dc_.FillSolidRect(x + 300 + WavePos, y + 20 + i * 5, WaveLen, 3,
-							   BLEND(GREY(192), DECAY_COLOR[NewTime], (double)UpdateTime / CRegisterState::DECAY_RATE));
+				BLEND(GREY(192), DECAY_COLOR[NewTime], (double)UpdateTime / CRegisterState::DECAY_RATE));
 		}
 		y -= 18;
 

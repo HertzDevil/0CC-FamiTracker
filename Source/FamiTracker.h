@@ -91,7 +91,7 @@ class CDocManager0CC : public CDocManager
 {
 public:
 	virtual BOOL DoPromptFileName(CStringW& fileName, UINT nIDSTitle,
-								  DWORD lFlags, BOOL bOpenFileDialog, CDocTemplate* pTemplate);
+		DWORD lFlags, BOOL bOpenFileDialog, CDocTemplate* pTemplate);
 };
 
 // CFamiTrackerApp:

@@ -835,7 +835,7 @@ CDocTemplate::Confidence CDocTemplate0CC::MatchDocType(LPCWSTR lpszPathName, CDo
 	while (pos != NULL) {
 		CDocument* pDoc = GetNextDoc(pos);
 		if (pDoc->GetPathName() == lpszPathName) {
-		   // already open
+			// already open
 			rpDocMatch = pDoc;
 			return yesAlreadyOpen;
 		}
@@ -844,7 +844,7 @@ CDocTemplate::Confidence CDocTemplate0CC::MatchDocType(LPCWSTR lpszPathName, CDo
 	// // // see if it matches one of the suffixes
 	CStringW strFilterExt;
 	if (GetDocString(strFilterExt, CDocTemplate::filterExt) && !strFilterExt.IsEmpty()) {
-		 // see if extension matches
+		// see if extension matches
 		int nDot = CStringW(lpszPathName).ReverseFind('.');
 		int curPos = 0;
 		CStringW tok = strFilterExt.Tokenize(L";", curPos);

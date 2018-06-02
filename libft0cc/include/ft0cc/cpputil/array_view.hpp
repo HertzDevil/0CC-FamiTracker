@@ -179,7 +179,7 @@ public:
 	}
 
 	size_type copy(std::remove_const_t<value_type> *dest,
-	               size_type count, size_type pos = 0) const {
+		size_type count, size_type pos = 0) const {
 		array_view trimmed = subview(pos, count);
 		for (value_type x : trimmed)
 			*dest++ = x;

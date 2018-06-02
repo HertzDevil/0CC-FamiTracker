@@ -458,7 +458,7 @@ bool CSoundGen::ResetAudioDevice()
 
 	// Update blip-buffer filtering
 	m_pAPU->SetupMixer(pSettings->Sound.iBassFilter, pSettings->Sound.iTrebleFilter,
-					   pSettings->Sound.iTrebleDamping, pSettings->Sound.iMixVolume);
+		pSettings->Sound.iTrebleDamping, pSettings->Sound.iMixVolume);
 
 	TRACE(L"SoundGen: Created sound channel with params: %i Hz, %i bits, %i ms (%i blocks)\n", SampleRate, SampleSize, BufferLen, iBlocks);
 

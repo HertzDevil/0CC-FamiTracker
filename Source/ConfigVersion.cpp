@@ -30,11 +30,11 @@ namespace {
 
 const LPCWSTR MODULE_ERROR_DESC[] = {
 	L"None: Perform no validation at all while loading or saving modules. "
-	 "The tracker might crash or enter an inconsistent state.",
+	L"The tracker might crash or enter an inconsistent state.",
 	L"Default: Perform the usual error checking according to the most recent official stable build.",
 	L"Official: Perform extra bounds checking to ensure that modules are openable in the official build.",
 	L"Strict: Validate all modules so that they do not contain any illegal data. "
-	 "Modules openable in the official build might be rejected.",
+	L"Modules openable in the official build might be rejected.",
 };
 
 } // namespace

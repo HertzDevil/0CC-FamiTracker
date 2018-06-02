@@ -463,7 +463,7 @@ public:
 };
 
 #ifndef _DEBUG  // debug version in FamiTrackerView.cpp
-inline CFamiTrackerDoc* CFamiTrackerView::GetDocument() const
-   { return reinterpret_cast<CFamiTrackerDoc*>(m_pDocument); }
+inline CFamiTrackerDoc *CFamiTrackerView::GetDocument() const {
+	return reinterpret_cast<CFamiTrackerDoc *>(m_pDocument);
+}
 #endif
-

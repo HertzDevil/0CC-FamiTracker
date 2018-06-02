@@ -379,7 +379,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 
 		if (y > m_KeyboardRect.top + 38) {
 			// Only white keys
-			     if (KeyPos >= 60) Note = ft0cc::doc::pitch::B;
+			if      (KeyPos >= 60) Note = ft0cc::doc::pitch::B;
 			else if (KeyPos >= 50) Note = ft0cc::doc::pitch::A;
 			else if (KeyPos >= 40) Note = ft0cc::doc::pitch::G;
 			else if (KeyPos >= 30) Note = ft0cc::doc::pitch::F;
@@ -389,7 +389,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 		}
 		else {
 			// Black and white keys
-			     if (KeyPos >= 62) Note = ft0cc::doc::pitch::B;
+			if      (KeyPos >= 62) Note = ft0cc::doc::pitch::B;
 			else if (KeyPos >= 56) Note = ft0cc::doc::pitch::As;
 			else if (KeyPos >= 53) Note = ft0cc::doc::pitch::A;
 			else if (KeyPos >= 46) Note = ft0cc::doc::pitch::Gs;

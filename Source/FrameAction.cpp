@@ -597,7 +597,7 @@ void CFActionDropMove::Undo(CMainFrame &MainFrm)
 void CFActionDropMove::Redo(CMainFrame &MainFrm)
 {
 	GET_FRAME_EDITOR()->MoveSelection(m_pUndoState->Selection,
-		 {m_iTargetFrame, m_pUndoState->Cursor.m_iChannel});
+		{m_iTargetFrame, m_pUndoState->Cursor.m_iChannel});
 }
 
 

@@ -34,7 +34,7 @@
 
  FDS:
 	Square wave @ v = $1F: 2.4V
-	  			  v = $0F: 1.25V
+				  v = $0F: 1.25V
 	(internal square wave: 1.0V)
 
  MMC5 (just breed):
