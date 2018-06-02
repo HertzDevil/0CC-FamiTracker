@@ -353,7 +353,7 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ConvertFile() {		// // //
 	m_fSampleFile.Seek(m_ullSampleStart, CFile::begin);
 
 	// Allocate space
-	std::vector<uint8_t> pSamples(ft0cc::doc::dpcm_sample::max_size);		// // //
+	std::vector<uint8_t> pSamples;		// // //
 
 	// Determine resampling factor
 	float base_freq = (float)MASTER_CLOCK_NTSC / (float)CDPCM::DMC_PERIODS_NTSC[m_iQuality];
@@ -362,7 +362,7 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ConvertFile() {		// // //
 	resampler resmpler(*m_psinc, resample_factor, m_iChannels, m_iSampleSize, m_iWaveSize, m_fSampleFile);
 	float val;
 	// Conversion
-	while (resmpler.get(val) && (pSamples.size() < ft0cc::doc::dpcm_sample::max_size)) {		// // //
+	while (pSamples.size() < ft0cc::doc::dpcm_sample::max_size && resmpler.get(val)) {		// // //
 
 		// when resampling we must clip because of possible ringing.
 		const float MAX_AMP =  (1 << 16) - 1;
