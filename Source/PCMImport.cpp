@@ -31,6 +31,7 @@
 #include "resampler/resample.hpp"
 #include "resampler/resample.inl"
 #include <algorithm>		// // //
+#include "BinaryFileStream.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
 #include <MMSystem.h>		// // //
 
@@ -240,5 +241,14 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImport::ConvertFile() {		// // //
 }
 
 bool CPCMImport::OpenWaveFile() {
-	return m_Importer.OpenWaveFile((LPCWSTR)m_strPath);
+	try {
+		TRACE(L"DPCM import: Loading wave file %s...\n", (LPCWSTR)m_strPath);
+		auto pSamp = std::make_shared<CBinaryFileStream>();
+		pSamp->Open((LPCWSTR)m_strPath, std::ios::in | std::ios::binary);
+		return m_Importer.LoadWaveFile(std::move(pSamp));
+	}
+	catch (const std::runtime_error &e) {
+		AfxMessageBox((L"Could not open file: " + conv::to_wide(e.what())).c_str(), MB_ICONERROR);		// // //
+		return false;
+	}
 }

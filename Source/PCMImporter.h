@@ -23,13 +23,14 @@
 
 #pragma once
 
-#include "stdafx.h" // TODO: remove
 #include <memory>
 #include "ft0cc/cpputil/fs.hpp"
 
 namespace ft0cc::doc {
 class dpcm_sample;
 } // namespace ft0cc::doc
+
+class CBinaryReader;
 
 namespace jarh {
 class sinc;
@@ -38,8 +39,9 @@ class sinc;
 class CPCMImporter {
 public:
 	CPCMImporter();
+	~CPCMImporter();
 
-	bool OpenWaveFile(const fs::path &path);
+	bool LoadWaveFile(std::shared_ptr<CBinaryReader> file);
 	std::shared_ptr<ft0cc::doc::dpcm_sample> ConvertFile(int dB, int quality);
 
 	int GetWaveSampleRate() const;
@@ -47,8 +49,8 @@ public:
 	int GetWaveChannelCount() const;
 
 private:
-	CFile m_fSampleFile;
-	ULONGLONG m_ullSampleStart;
+	std::shared_ptr<CBinaryReader> m_fSampleFile;
+	std::size_t m_ullSampleStart;
 	unsigned int m_iWaveSize;
 
 	int m_iSampleSize;

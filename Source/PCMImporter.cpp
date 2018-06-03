@@ -21,14 +21,25 @@
 */
 
 #include "PCMImporter.h"
-#include <MMSystem.h>
+#include "stdafx.h" // TODO: remove
+#include <MMSystem.h> // TODO: remove
 #include "../resource.h"
 #include "resampler/resample.hpp"
 #include "resampler/resample.inl"
+#include "BinaryFileStream.h"
 #include "ft0cc/doc/dpcm_sample.hpp"
 #include "APU/DPCM.h"
+#include "str_conv/str_conv.hpp" // TODO: move to dialog class
 
 namespace {
+
+constexpr std::uint32_t operator""_4cc(const char *str, std::size_t sz) noexcept {
+	return sz != 4u ? 0u :
+		(static_cast<std::uint8_t>(str[0]) |
+			(static_cast<std::uint8_t>(str[1]) << 8) |
+			(static_cast<std::uint8_t>(str[2]) << 16) |
+			(static_cast<std::uint8_t>(str[3]) << 24));
+}
 
 // Implement a resampler using CRTP idiom
 class resampler : public jarh::resample<resampler>
@@ -36,7 +47,7 @@ class resampler : public jarh::resample<resampler>
 	typedef jarh::resample<resampler> base;
 public:
 	resampler(const jarh::sinc &sinc, float ratio, int channels, int smpsize,
-			  size_t nbsamples, CFile &cfile)
+			  size_t nbsamples, CBinaryReader &cfile)
 	// TODO: cutoff is currently fixed to a value (.9f), make it modifiable.
 	 : base(sinc), channels_(channels), smpsize_(smpsize),
 	   nbsamples_(nbsamples), remain_(nbsamples), cfile_(cfile)
@@ -70,11 +81,11 @@ private:
 			// 16 bit samples
 			short sample_word[2];
 			if (channels_ == 2) {
-				ret = cfile_.Read(sample_word, nbytes = 2*sizeof(short));
+				ret = cfile_.ReadBytes(byte_view(sample_word).subview(0u, nbytes = 2 * sizeof(short)));
 				v = (sample_word[0] + sample_word[1]) / 2;
 			}
 			else {
-				ret = cfile_.Read(sample_word, nbytes = sizeof(short));
+				ret = cfile_.ReadBytes(byte_view(sample_word).subview(0u, nbytes = sizeof(short)));
 				v = *sample_word;
 			}
 		}
@@ -82,13 +93,14 @@ private:
 			// 8 bit samples
 			unsigned char sample_byte[2];
 			if (channels_ == 2) {
-				ret = cfile_.Read(sample_byte, nbytes = 2);
+				ret = cfile_.ReadBytes(byte_view(sample_byte).subview(0u, nbytes = 2));
 				// convert to a proper signed representation
 				// shift left only by 7; because we want a mean
 				v = ((int)sample_byte[0] + (int)sample_byte[1] - 256) << 7;
 			}
 			else {
-				ret = cfile_.Read(sample_byte, nbytes = 1);
+				nbytes = 1;
+				ret = cfile_.ReadBytes(byte_view(sample_byte).subview(0u, nbytes = 1));
 				v = ((int)(*sample_byte) - 128) << 8;
 			}
 		}
@@ -96,11 +108,11 @@ private:
 			// 24 bit samples
 	        unsigned char sample_byte[6];
 			if (channels_ == 2) {
-				ret = cfile_.Read(sample_byte, nbytes = 6);
+				ret = cfile_.ReadBytes(byte_view(sample_byte).subview(0u, nbytes = 6));
 				v = (*((signed short*)(sample_byte + 1)) + *((signed short*)(sample_byte + 4))) / 2;
 			}
 			else {
-				ret = cfile_.Read(sample_byte, nbytes = 3);
+				ret = cfile_.ReadBytes(byte_view(sample_byte).subview(0u, nbytes = 3));
 				v = *((signed short*)(sample_byte + 1));
 			}
 		}
@@ -108,11 +120,11 @@ private:
 			// 32 bit samples
 	        int sample_word[2];
 			if (channels_ == 2) {
-				ret = cfile_.Read(sample_word, nbytes = 8);
+				ret = cfile_.ReadBytes(byte_view(sample_word).subview(0u, nbytes = 8));
 				v = ((sample_word[0] >> 16) + (sample_word[1] >> 16)) / 2;
 			}
 			else {
-				ret = cfile_.Read(sample_word, nbytes = 4);
+				ret = cfile_.ReadBytes(byte_view(sample_word).subview(0u, nbytes = 4));
 				v = sample_word[0] >> 16;
 			}
 		}
@@ -120,7 +132,7 @@ private:
 		return ret == nbytes;
 	}
 
-	CFile &cfile_;
+	CBinaryReader &cfile_;
 	int    channels_;
 	int    smpsize_;
 	size_t nbsamples_;
@@ -134,93 +146,79 @@ CPCMImporter::CPCMImporter() :
 {
 }
 
-bool CPCMImporter::OpenWaveFile(const fs::path &fname) {
+CPCMImporter::~CPCMImporter() {
+}
+
+bool CPCMImporter::LoadWaveFile(std::shared_ptr<CBinaryReader> file) {
+	m_fSampleFile = std::move(file);
+	if (!m_fSampleFile)
+		return false;
+
 	// Open and read wave file header
 	PCMWAVEFORMAT WaveFormat = { };		// // //
-	char Header[4] = { };
-	bool Scanning = true;
 	bool WaveFormatFound = false;
 	bool ValidWave = false;
-	unsigned int BlockSize;
-	unsigned int FileSize;
 	CFileException ex;
 
 	m_iWaveSize = 0;
 	m_ullSampleStart = 0;
 
-	TRACE(L"DPCM import: Loading wave file %s...\n", fname.c_str());
+	try {
+		if (m_fSampleFile->ReadInt<std::uint32_t>() == "RIFF"_4cc) {
+			// Read file size
+			std::size_t FileSize = m_fSampleFile->ReadInt<std::uint32_t>();
+			(void)FileSize;
 
-	if (!m_fSampleFile.Open(fname.c_str(), CFile::modeRead, &ex)) {
-		WCHAR szCause[255] = { };
-		ex.GetErrorMessage(szCause, std::size(szCause));
-		AfxMessageBox(FormattedW(L"Could not open file: %s", szCause));		// // //
-		return false;
-	}
-
-	m_fSampleFile.Read(Header, 4);
-
-	if (std::memcmp(Header, "RIFF", 4) != 0) {
-		// Invalid format
-		Scanning = false;
-		ValidWave = false;
-	}
-	else {
-		// Read file size
-		m_fSampleFile.Read(&FileSize, 4);
-	}
-
-	// Now improved, should handle most files
-	while (Scanning) {
-		if (m_fSampleFile.Read(Header, 4) < 4) {
-			Scanning = false;
-			TRACE(L"DPCM import: End of file reached\n");
-		}
-
-		if (!std::memcmp(Header, "WAVE", 4)) {
-			ValidWave = true;
-		}
-		else if (Scanning) {
-			m_fSampleFile.Read(&BlockSize, 4);
-
-			if (!std::memcmp(Header, "fmt ", 4)) {
-				// Read the wave-format
-				TRACE(L"DPCM import: Found fmt block\n");
-				int ReadSize = BlockSize;
-				if (ReadSize > sizeof(PCMWAVEFORMAT))
-					ReadSize = sizeof(PCMWAVEFORMAT);
-
-				m_fSampleFile.Read(&WaveFormat, ReadSize);
-				m_fSampleFile.Seek(BlockSize - ReadSize, CFile::current);
-				WaveFormatFound = true;
-
-				if (WaveFormat.wf.wFormatTag != WAVE_FORMAT_PCM) {
-					// Invalid audio format
-					Scanning = false;
-					ValidWave = false;
-					TRACE(L"DPCM import: Unrecognized wave format (%i)\n", WaveFormat.wf.wFormatTag);
+			// Now improved, should handle most files
+			while (true) {
+				std::uint32_t Header;
+				try {
+					Header = m_fSampleFile->ReadInt<std::uint32_t>();
+				}
+				catch (CBinaryIOException &) {
+					TRACE(L"DPCM import: End of file reached\n");
+					break;
 				}
 
-			}
-			else if (!std::memcmp(Header, "data", 4)) {
-				// Actual wave-data, store the position
-				TRACE(L"DPCM import: Found data block\n");
-				m_iWaveSize = BlockSize;
-				m_ullSampleStart = m_fSampleFile.GetPosition();
-				m_fSampleFile.Seek(BlockSize, CFile::current);
-			}
-			else {
-				// Unrecognized block
-				TRACE(L"DPCM import: Unrecognized block %c%c%c%c\n", Header[0], Header[1], Header[2], Header[3]);
-				m_fSampleFile.Seek(BlockSize, CFile::current);
+				if (Header == "WAVE"_4cc)
+					ValidWave = true;
+				else {
+					std::size_t BlockSize = m_fSampleFile->ReadInt<std::uint32_t>();
+					std::size_t NextPos = m_fSampleFile->GetReaderPos() + BlockSize;
+
+					if (Header == "fmt "_4cc) { // Read the wave-format
+						TRACE(L"DPCM import: Found fmt block\n");
+						m_fSampleFile->ReadBytes(byte_view(WaveFormat).subview(0u, BlockSize));
+
+						if (WaveFormat.wf.wFormatTag == WAVE_FORMAT_PCM)
+							WaveFormatFound = true;
+						else {
+							TRACE(L"DPCM import: Unrecognized wave format (%i)\n", WaveFormat.wf.wFormatTag);
+							break;
+						}
+					}
+					else if (Header == "data"_4cc) { // Actual wave-data, store the position
+						TRACE(L"DPCM import: Found data block\n");
+						m_iWaveSize = BlockSize;
+						m_ullSampleStart = m_fSampleFile->GetReaderPos();
+					}
+					else // Unrecognized block
+						TRACE(L"DPCM import: Unrecognized block %08X\n", Header);
+
+					m_fSampleFile->SeekReader(NextPos);
+				}
 			}
 		}
+	}
+	catch (CBinaryIOException &) {
+		ValidWave = false;
 	}
 
 	if (!ValidWave || !WaveFormatFound || m_iWaveSize == 0) {
 		// Failed to load file properly, display error message and quit
 		TRACE(L"DPCM import: Unsupported or invalid wave file\n");
-		m_fSampleFile.Close();
 		AfxMessageBox(IDS_DPCM_IMPORT_INVALID_WAVEFILE, MB_ICONEXCLAMATION);
+		m_fSampleFile = nullptr;
 		return false;
 	}
 
@@ -247,7 +245,7 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImporter::ConvertFile(int dB, int q
 	float volume = std::powf(10, float(dB) / 20.0f);		// Convert dB to linear
 
 	// Seek to start of samples
-	m_fSampleFile.Seek(m_ullSampleStart, CFile::begin);
+	m_fSampleFile->SeekReader(m_ullSampleStart);
 
 	// Allocate space
 	std::vector<uint8_t> pSamples;		// // //
@@ -256,7 +254,7 @@ std::shared_ptr<ft0cc::doc::dpcm_sample> CPCMImporter::ConvertFile(int dB, int q
 	float base_freq = (float)MASTER_CLOCK_NTSC / (float)CDPCM::DMC_PERIODS_NTSC[quality];
 	float resample_factor = base_freq / (float)m_iSamplesPerSec;
 
-	resampler resmpler(*m_psinc, resample_factor, m_iChannels, m_iSampleSize, m_iWaveSize, m_fSampleFile);
+	resampler resmpler(*m_psinc, resample_factor, m_iChannels, m_iSampleSize, m_iWaveSize, *m_fSampleFile);
 	float val;
 	// Conversion
 	while (pSamples.size() < ft0cc::doc::dpcm_sample::max_size && resmpler.get(val)) {		// // //

@@ -70,6 +70,7 @@ std::size_t CBinaryFileStream::ReadBytes(array_view<std::byte> Buf) {
 }
 
 void CBinaryFileStream::SeekReader(std::size_t pos) {
+	m_fFile.clear(m_fFile.rdstate() & ~std::ios_base::failbit);
 	m_fFile.seekg(pos);
 	if (m_fFile.fail())
 		throw std::runtime_error {"Cannot seek beyond EOF"};
@@ -85,6 +86,7 @@ std::size_t CBinaryFileStream::WriteBytes(array_view<const std::byte> Buf) {
 }
 
 void CBinaryFileStream::SeekWriter(std::size_t pos) {
+	m_fFile.clear(m_fFile.rdstate() & ~std::ios_base::failbit);
 	m_fFile.seekp(pos);
 	if (m_fFile.fail())
 		throw std::runtime_error {"Cannot seek beyond EOF"};
