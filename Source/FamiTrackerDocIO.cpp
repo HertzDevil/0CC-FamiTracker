@@ -737,7 +737,7 @@ void CFamiTrackerDocReader::LoadDSamples(CFamiTrackerModule &modfile, CDocumentI
 			std::size_t Size = block.AssertRange(block.ReadInt<std::int32_t>(), 0, 0x7FFF, "DPCM sample size", err_lv_);
 			block.AssertFileData<MODULE_ERROR_STRICT>(Size <= 0xFF1 && Size % 0x10 == 1, "Bad DPCM sample size", err_lv_);
 			std::vector<uint8_t> samples(Size + ((1 - Size) & 0x0F), std::uint8_t {0xAAu});		// // //
-			block.AssertFileData(block.ReadBytes(byte_view(samples).subview(0, Size)) == Size, "Incomplete DPCM sample data", err_lv_);
+			block.ReadBuffer(byte_view(samples).subview(0, Size));
 			manager.SetDSample(Index, std::make_unique<ft0cc::doc::dpcm_sample>(samples, name));		// // //
 		}
 		catch (CModuleException &e) {

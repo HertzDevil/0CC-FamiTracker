@@ -125,7 +125,7 @@ std::unique_ptr<CFamiTrackerModule> compat::OpenDocumentOld(CBinaryReader &OpenF
 			if (ReadCount > MAX_INSTRUMENTS)
 				ReadCount = MAX_INSTRUMENTS - 1;
 			for (i = 0; i < ReadCount; ++i) {
-				OpenFile.ReadBytes(byte_view(ImportedInstruments));
+				OpenFile.ReadBuffer(byte_view(ImportedInstruments));
 				if (ImportedInstruments.Free == false) {
 					auto pInst = std::make_unique<CInstrument2A03>();
 					for (auto j : enum_values<sequence_t>()) {
@@ -152,7 +152,7 @@ std::unique_ptr<CFamiTrackerModule> compat::OpenDocumentOld(CBinaryReader &OpenF
 			ReadCount = OpenFile.ReadInt<std::int32_t>();
 			for (i = 0; i < ReadCount; ++i) {
 				COldSequence Seq;
-				OpenFile.ReadBytes(byte_view(ImportedSequence));
+				OpenFile.ReadBuffer(byte_view(ImportedSequence));
 				if (ImportedSequence.Count > 0 && ImportedSequence.Count < MAX_SEQUENCE_ITEMS)
 					for (unsigned int j = 0; j < ImportedSequence.Count; ++j)		// // //
 						Seq.AddItem(ImportedSequence.Length[j], ImportedSequence.Value[j]);
@@ -176,7 +176,7 @@ std::unique_ptr<CFamiTrackerModule> compat::OpenDocumentOld(CBinaryReader &OpenF
 			modfile->GetChannelOrder().ForeachChannel([&] (stChannelID x) {
 				for (c = 0; c < ReadCount; ++c) {
 					for (i = 0; i < PatternLength; ++i) {
-						OpenFile.ReadBytes(byte_view(ImportedNote));
+						OpenFile.ReadBuffer(byte_view(ImportedNote));
 						if (ImportedNote.ExtraStuff1 == (int)ft0cc::doc::effect_type::PORTAOFF) {
 							ImportedNote.ExtraStuff1 = (int)ft0cc::doc::effect_type::PORTAMENTO;
 							ImportedNote.ExtraStuff2 = 0;
@@ -213,10 +213,10 @@ std::unique_ptr<CFamiTrackerModule> compat::OpenDocumentOld(CBinaryReader &OpenF
 			ReadCount = OpenFile.ReadInt<std::int32_t>();
 			for (i = 0; i < ReadCount; ++i) {
 				std::vector<uint8_t> Sample;		// // //
-				OpenFile.ReadBytes(byte_view(ImportedDSample));
+				OpenFile.ReadBuffer(byte_view(ImportedDSample));
 				if (ImportedDSample.SampleSize != 0 && ImportedDSample.SampleSize < 0x4000) {
 					Sample.resize(ImportedDSample.SampleSize);		// // //
-					OpenFile.ReadBytes(byte_view(Sample));
+					OpenFile.ReadBuffer(byte_view(Sample));
 				}
 
 				modfile->GetDSampleManager()->SetDSample(i, std::make_shared<ft0cc::doc::dpcm_sample>(std::move(Sample), ImportedDSample.Name));
@@ -224,17 +224,17 @@ std::unique_ptr<CFamiTrackerModule> compat::OpenDocumentOld(CBinaryReader &OpenF
 			break;
 		}
 		case FB_SONGNAME:
-			OpenFile.ReadBytes(byte_view(pBuf));		// // //
+			OpenFile.ReadBuffer(byte_view(pBuf));		// // //
 			modfile->SetModuleName(pBuf);
 			break;
 
 		case FB_SONGARTIST:
-			OpenFile.ReadBytes(byte_view(pBuf));		// // //
+			OpenFile.ReadBuffer(byte_view(pBuf));		// // //
 			modfile->SetModuleArtist(pBuf);
 			break;
 
 		case FB_SONGCOPYRIGHT:
-			OpenFile.ReadBytes(byte_view(pBuf));		// // //
+			OpenFile.ReadBuffer(byte_view(pBuf));		// // //
 			modfile->SetModuleCopyright(pBuf);
 			break;
 

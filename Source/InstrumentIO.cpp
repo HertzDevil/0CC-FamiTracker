@@ -374,11 +374,11 @@ void CInstrumentIO2A03::DoReadFromFTI(CInstrument &inst_, CBinaryReader &input, 
 	for (unsigned int i = 0; i < SampleCount; ++i) {
 		int Index = AssertRange(input.ReadInt<std::int32_t>(), 0, MAX_DSAMPLES - 1, "DPCM sample index");
 		std::size_t Len = AssertRange(input.ReadInt<std::int32_t>(), 0, (int)ft0cc::doc::dpcm_sample::max_name_length, "DPCM sample name length");
-		input.ReadBytes(as_writeable_bytes(array_view<char> {SampleNames[Index], Len}));
+		input.ReadBuffer(as_writeable_bytes(array_view<char> {SampleNames[Index], Len}));
 		SampleNames[Index][Len] = '\0';
 		int Size = input.ReadInt<std::int32_t>();
 		std::vector<uint8_t> SampleData(Size);
-		input.ReadBytes(byte_view(SampleData));
+		input.ReadBuffer(byte_view(SampleData));
 		auto pSample = std::make_shared<ft0cc::doc::dpcm_sample>(std::move(SampleData), SampleNames[Index]);
 
 		bool Found = false;

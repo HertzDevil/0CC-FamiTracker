@@ -77,54 +77,49 @@ private:
 	bool ReadSample(int &v)
 	{
 		int ret = 0, nbytes = 0;
-		if (smpsize_ == 2) {
-			// 16 bit samples
+		if (smpsize_ == 2) { // 16 bit samples
 			short sample_word[2];
+			nbytes = smpsize_ * channels_;
+			ret = cfile_.ReadBytes(byte_view(sample_word).subview(0u, nbytes));
 			if (channels_ == 2) {
-				ret = cfile_.ReadBytes(byte_view(sample_word).subview(0u, nbytes = 2 * sizeof(short)));
 				v = (sample_word[0] + sample_word[1]) / 2;
 			}
 			else {
-				ret = cfile_.ReadBytes(byte_view(sample_word).subview(0u, nbytes = sizeof(short)));
 				v = *sample_word;
 			}
 		}
-		else if (smpsize_ == 1) {
-			// 8 bit samples
+		else if (smpsize_ == 1) { // 8 bit samples
 			unsigned char sample_byte[2];
+			nbytes = smpsize_ * channels_;
+			ret = cfile_.ReadBytes(byte_view(sample_byte).subview(0u, nbytes));
 			if (channels_ == 2) {
-				ret = cfile_.ReadBytes(byte_view(sample_byte).subview(0u, nbytes = 2));
 				// convert to a proper signed representation
 				// shift left only by 7; because we want a mean
 				v = ((int)sample_byte[0] + (int)sample_byte[1] - 256) << 7;
 			}
 			else {
-				nbytes = 1;
-				ret = cfile_.ReadBytes(byte_view(sample_byte).subview(0u, nbytes = 1));
 				v = ((int)(*sample_byte) - 128) << 8;
 			}
 		}
-		else if (smpsize_ == 3) {
-			// 24 bit samples
+		else if (smpsize_ == 3) { // 24 bit samples
 	        unsigned char sample_byte[6];
+			nbytes = smpsize_ * channels_;
+			ret = cfile_.ReadBytes(byte_view(sample_byte).subview(0u, nbytes));
 			if (channels_ == 2) {
-				ret = cfile_.ReadBytes(byte_view(sample_byte).subview(0u, nbytes = 6));
 				v = (*((signed short*)(sample_byte + 1)) + *((signed short*)(sample_byte + 4))) / 2;
 			}
 			else {
-				ret = cfile_.ReadBytes(byte_view(sample_byte).subview(0u, nbytes = 3));
 				v = *((signed short*)(sample_byte + 1));
 			}
 		}
-		else if (smpsize_ == 4) {
-			// 32 bit samples
+		else if (smpsize_ == 4) { // 32 bit samples
 	        int sample_word[2];
+			nbytes = smpsize_ * channels_;
+			ret = cfile_.ReadBytes(byte_view(sample_word).subview(0u, nbytes));
 			if (channels_ == 2) {
-				ret = cfile_.ReadBytes(byte_view(sample_word).subview(0u, nbytes = 8));
 				v = ((sample_word[0] >> 16) + (sample_word[1] >> 16)) / 2;
 			}
 			else {
-				ret = cfile_.ReadBytes(byte_view(sample_word).subview(0u, nbytes = 4));
 				v = sample_word[0] >> 16;
 			}
 		}
@@ -188,7 +183,7 @@ bool CPCMImporter::LoadWaveFile(std::shared_ptr<CBinaryReader> file) {
 
 					if (Header == "fmt "_4cc) { // Read the wave-format
 						TRACE(L"DPCM import: Found fmt block\n");
-						m_fSampleFile->ReadBytes(byte_view(WaveFormat).subview(0u, BlockSize));
+						m_fSampleFile->ReadBuffer(byte_view(WaveFormat).subview(0u, BlockSize));
 
 						if (WaveFormat.wf.wFormatTag == WAVE_FORMAT_PCM)
 							WaveFormatFound = true;

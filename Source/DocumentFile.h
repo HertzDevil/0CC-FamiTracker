@@ -92,7 +92,7 @@ public:
 	std::uintmax_t GetPreviousPosition() const;
 	bool BlockDone() const;
 
-	std::size_t ReadBytes(array_view<std::byte> buf) override;
+	[[nodiscard]] std::size_t ReadBytes(array_view<std::byte> Buf) override;
 	void SeekReader(std::size_t pos) override;
 	std::size_t GetReaderPos() override;
 

@@ -52,9 +52,14 @@ private:
 	virtual void AfterRead() { }
 
 public:
-	virtual std::size_t ReadBytes(array_view<std::byte> buf) = 0;
+	[[nodiscard]] virtual std::size_t ReadBytes(array_view<std::byte> buf) = 0;
 	virtual void SeekReader(std::size_t pos) = 0;
 	virtual std::size_t GetReaderPos() = 0;
+
+	void ReadBuffer(array_view<std::byte> buf) {
+		if (ReadBytes(buf) != buf.size())
+			throw CBinaryIOException {"Unexpected EOF reached"};
+	}
 
 	template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
 	T ReadInt() {
@@ -137,6 +142,11 @@ public:
 	virtual std::size_t WriteBytes(array_view<const std::byte> buf) = 0;
 	virtual void SeekWriter(std::size_t pos) = 0;
 	virtual std::size_t GetWriterPos() = 0;
+
+	void WriteBuffer(array_view<const std::byte> buf) {
+		if (WriteBytes(buf) != buf.size())
+			throw CBinaryIOException {"Unexpected EOF reached"};
+	}
 
 	template <typename T, typename U, std::enable_if_t<std::is_integral_v<T>, int> = 0, std::enable_if_t<std::is_integral_v<U>, int> = 0>
 	void WriteInt(U x) {
