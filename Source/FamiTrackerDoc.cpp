@@ -100,20 +100,13 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCWSTR lpszPathName)
 	FTEnv.GetSoundGenerator()->SetRecordChannel({ });		// // //
 
 	// Load file
-	if (!Locked([&] { return OpenDocument(lpszPathName); })) {		// // //
-		// Loading failed, create empty document
-		/*
-		DeleteContents();
-		CreateEmpty();
-		for (int i = UPDATE_TRACK; i <= UPDATE_COLUMNS; ++i)		// // // test
-			UpdateAllViews(NULL, i);
-		*/
-		// and tell doctemplate that loading failed
+	if (!Locked([&] { return OpenDocument(lpszPathName); }))		// // //
 		return FALSE;
-	}
 
 	// Update main frame
-	FTEnv.GetSoundGenerator()->ModuleChipChanged();		// // //
+	FTEnv.GetSoundGenerator()->AssignModule(*GetModule());		// // //
+	FTEnv.GetSoundGenerator()->ModuleChipChanged();
+	FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(this);
 
 #ifdef AUTOSAVE
 	SetupAutoSave();
@@ -408,9 +401,6 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 	m_bFileLoaded = true;
 	m_bFileLoadFailed = false;
 	m_bBackupDone = false;		// // //
-
-	FTEnv.GetSoundGenerator()->ModuleChipChanged();		// // //
-	FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(this);
 
 	return TRUE;
 }
