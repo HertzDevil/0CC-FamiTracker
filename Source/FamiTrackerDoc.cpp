@@ -103,11 +103,6 @@ BOOL CFamiTrackerDoc::OnOpenDocument(LPCWSTR lpszPathName)
 	if (!Locked([&] { return OpenDocument(lpszPathName); }))		// // //
 		return FALSE;
 
-	// Update main frame
-	FTEnv.GetSoundGenerator()->AssignModule(*GetModule());		// // //
-	FTEnv.GetSoundGenerator()->ModuleChipChanged();
-	FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(this);
-
 #ifdef AUTOSAVE
 	SetupAutoSave();
 #endif
@@ -180,9 +175,8 @@ void CFamiTrackerDoc::DeleteContents()
 		m_bBackupDone = true;	// No backup on new modules
 
 		UpdateAllViews(NULL, UPDATE_CLOSE);	// TODO remove
-		module_ = std::make_unique<CFamiTrackerModule>();		// // //
-		FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(this);		// // // rebind module
-		FTEnv.GetSoundGenerator()->ModuleChipChanged();
+
+		ReplaceModule(std::make_unique<CFamiTrackerModule>());		// // //
 
 #ifdef AUTOSAVE
 		ClearAutoSave();
@@ -360,8 +354,8 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 {
 	m_bFileLoadFailed = true;
 
-	CFileException ex;
-	CDocumentFile  OpenFile;
+	CDocumentFile OpenFile;
+	module_error_level_t err_lv = FTEnv.GetSettings()->Version.iErrorLevel;
 
 	// Check if empty file
 	if (fs::exists(lpszPathName) && !fs::file_size(lpszPathName)) {		// // //
@@ -376,8 +370,8 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 		bool useCompat = OpenFile.GetFileVersion() < 0x0200u;
 
 		if (auto newModule = useCompat ? compat::OpenDocumentOld(OpenFile.GetBinaryReader()) :
-			CFamiTrackerDocReader {OpenFile, FTEnv.GetSettings()->Version.iErrorLevel}.Load())
-			module_ = std::move(newModule);
+			CFamiTrackerDocReader {OpenFile, err_lv}.Load())
+			ReplaceModule(std::move(newModule));
 		else
 			throw CModuleException::WithMessage((LPCSTR)CStringA(MAKEINTRESOURCEA(IDS_FILE_LOAD_ERROR)));
 
@@ -385,9 +379,16 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 		// and something might go wrong when converting
 		if (useCompat)
 			m_bForceBackup = true;
+
+		// File is loaded
+		m_bFileLoaded = true;
+		m_bFileLoadFailed = false;
+		m_bBackupDone = false;		// // //
+
+		return TRUE;
 	}
 	catch (CModuleException &e) {
-		if (FTEnv.GetSettings()->Version.iErrorLevel > MODULE_ERROR_DEFAULT)
+		if (err_lv > MODULE_ERROR_DEFAULT)
 			e.AppendFooter("\n\nTry lowering the module error level in the configuration menu.");
 		AfxMessageBox(conv::to_wide(e.GetErrorString()).data(), MB_ICONERROR);
 		return FALSE;
@@ -396,13 +397,6 @@ BOOL CFamiTrackerDoc::OpenDocument(LPCWSTR lpszPathName)
 		AfxMessageBox((L"Could not open file: " + conv::to_wide(e.what())).data(), MB_OK | MB_ICONERROR);
 		return FALSE;
 	}
-
-	// File is loaded
-	m_bFileLoaded = true;
-	m_bFileLoadFailed = false;
-	m_bBackupDone = false;		// // //
-
-	return TRUE;
 }
 
 std::unique_ptr<CFamiTrackerDoc> CFamiTrackerDoc::LoadImportFile(LPCWSTR lpszPathName) {		// // //
@@ -416,6 +410,15 @@ std::unique_ptr<CFamiTrackerDoc> CFamiTrackerDoc::LoadImportFile(LPCWSTR lpszPat
 		return nullptr;
 
 	return pImported;
+}
+
+void CFamiTrackerDoc::ReplaceModule(std::unique_ptr<CFamiTrackerModule> modfile) {		// // //
+	module_ = std::move(modfile);
+
+	// Update main frame
+	FTEnv.GetSoundGenerator()->AssignModule(*GetModule());		// // //
+	FTEnv.GetSoundGenerator()->ModuleChipChanged();
+	FTEnv.GetSoundGenerator()->DocumentPropertiesChanged(this);
 }
 
 // Attributes

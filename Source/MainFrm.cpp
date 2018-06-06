@@ -2037,16 +2037,15 @@ void CMainFrame::OnFileExportJson() {		// // //
 
 	auto initPath = FTEnv.GetSettings()->GetPath(PATH_NSF);		// // //
 	if (auto path = GetSavePath(Doc.GetFileTitle(), initPath.c_str(), IDS_FILTER_JSON, L"*.json")) {
-		CStdioFile f;
-		CFileException oFileException;
-		if (!f.Open(path->c_str(), CFile::modeCreate | CFile::modeWrite | CFile::typeText, &oFileException)) {
-			WCHAR szError[256];
-			oFileException.GetErrorMessage(szError, std::size(szError));
-			AfxMessageBox(szError, MB_OK | MB_ICONERROR);
-			return;
+		try {
+			CBinaryFileStream f;
+			f.Open(*path, std::ios::out);
+			auto str = nlohmann::json {*Doc.GetModule()}.dump();
+			f.WriteBuffer(byte_view(str));
 		}
-
-		f.WriteString(conv::to_wide(nlohmann::json(*Doc.GetModule()).dump()).data());
+		catch (std::exception &e) {
+			AfxMessageBox(conv::to_wide(e.what()).data(), MB_OK | MB_ICONERROR);
+		}
 	}
 }
 

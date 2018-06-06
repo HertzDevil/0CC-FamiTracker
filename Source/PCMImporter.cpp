@@ -153,7 +153,6 @@ bool CPCMImporter::LoadWaveFile(std::shared_ptr<CBinaryReader> file) {
 	PCMWAVEFORMAT WaveFormat = { };		// // //
 	bool WaveFormatFound = false;
 	bool ValidWave = false;
-	CFileException ex;
 
 	m_iWaveSize = 0;
 	m_ullSampleStart = 0;

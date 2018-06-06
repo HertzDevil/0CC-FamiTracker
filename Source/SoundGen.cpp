@@ -229,11 +229,14 @@ void CSoundGen::SelectChip(CSoundChipSet Chip)
 
 void CSoundGen::DocumentPropertiesChanged(CFamiTrackerDoc *pDocument)
 {
-//	ASSERT(pDocument == m_pDocument);		// // //
-	if (pDocument != m_pDocument)
-		return;
-	AssignModule(*m_pDocument->GetModule());
-	m_pSoundDriver->ConfigureDocument();
+	ASSERT(pDocument);
+	if (m_pDocument) {
+		ASSERT(pDocument == m_pDocument);		// // //
+//		if (pDocument != m_pDocument)
+//			return;
+//		AssignModule(*m_pDocument->GetModule());
+		m_pSoundDriver->ConfigureDocument();
+	}
 }
 
 //

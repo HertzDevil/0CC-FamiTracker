@@ -112,6 +112,7 @@ public:
 	static std::unique_ptr<CFamiTrackerDoc> LoadImportFile(LPCWSTR lpszPathName);		// // // TODO: use module class directly
 
 private:
+	void			ReplaceModule(std::unique_ptr<CFamiTrackerModule> modfile);		// // //
 
 	//
 	// File management functions (load/save)
