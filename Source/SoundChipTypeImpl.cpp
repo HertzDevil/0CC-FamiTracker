@@ -31,6 +31,7 @@
 #include "APU/MMC5.h"
 #include "APU/N163.h"
 #include "APU/S5B.h"
+#include "APU/SN76489.h"
 
 #include "Channels2A03.h"
 #include "ChannelsVRC6.h"
@@ -39,6 +40,7 @@
 #include "ChannelsMMC5.h"
 #include "ChannelsN163.h"
 #include "ChannelsS5B.h"
+#include "ChannelsSN7.h"
 
 #include "ChipHandler.h"
 #include "ChipHandlerVRC7.h"
@@ -52,6 +54,7 @@ constexpr ft0cc::doc::effect_type FDS_EFFECTS[] = {ft0cc::doc::effect_type::FDS_
 // constexpr ft0cc::doc::effect_type MMC5_EFFECTS[] = {};
 constexpr ft0cc::doc::effect_type N163_EFFECTS[] = {ft0cc::doc::effect_type::N163_WAVE_BUFFER};
 constexpr ft0cc::doc::effect_type S5B_EFFECTS[] = {ft0cc::doc::effect_type::SUNSOFT_ENV_TYPE, ft0cc::doc::effect_type::SUNSOFT_ENV_HI, ft0cc::doc::effect_type::SUNSOFT_ENV_LO, ft0cc::doc::effect_type::SUNSOFT_NOISE};
+constexpr ft0cc::doc::effect_type SN76489_EFFECTS[] = {ft0cc::doc::effect_type::SN76489_CONTROL};
 
 template <typename T>
 struct CChipHandlerBuilder {
@@ -484,6 +487,65 @@ std::unique_ptr<CChipHandler> CSoundChipTypeS5B::MakeChipHandler(std::uint8_t nI
 
 ft0cc::doc::effect_type CSoundChipTypeS5B::TranslateEffectName(char name, sound_chip_t chip) const {
 	for (ft0cc::doc::effect_type fx : S5B_EFFECTS)
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	for (auto fx : enum_values<ft0cc::doc::effect_type>())
+		if (name == EFF_CHAR[value_cast(fx)])
+			return fx;
+	return ft0cc::doc::effect_type::none;
+}
+
+
+
+sound_chip_t CSoundChipTypeSN7::GetID() const {
+	return sound_chip_t::SN76489;
+}
+
+std::size_t CSoundChipTypeSN7::GetSupportedChannelCount() const {
+	return 4;
+}
+
+std::string_view CSoundChipTypeSN7::GetShortName() const {
+	return "PSG";
+}
+
+std::string_view CSoundChipTypeSN7::GetFullName() const {
+	return "SN76489";
+}
+
+std::string_view CSoundChipTypeSN7::GetChannelShortName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {"SN1", "SN2", "SN3", "SNN"};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
+}
+
+std::string_view CSoundChipTypeSN7::GetChannelFullName(std::size_t subindex) const {
+	using namespace std::string_view_literals;
+	constexpr std::string_view NAMES[] = {
+		"PSG Square 1",
+		"PSG Square 2",
+		"PSG Square 3",
+		"PSG Noise",
+	};
+	return subindex < std::size(NAMES) ? NAMES[subindex] :
+		throw std::invalid_argument {"Channel with given subindex does not exist"};
+}
+
+std::unique_ptr<CSoundChip> CSoundChipTypeSN7::MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const {
+	return std::make_unique<CSN76489>(mixer, nInstance);
+}
+
+std::unique_ptr<CChipHandler> CSoundChipTypeSN7::MakeChipHandler(std::uint8_t nInstance) const {
+	return CChipHandlerBuilder<CChipHandler> {nInstance, GetID()}
+		.With<CSN7SquareChan>(sn76489_subindex_t::square1)
+		.With<CSN7SquareChan>(sn76489_subindex_t::square2)
+		.With<CSN7SquareChan>(sn76489_subindex_t::square3)
+		.With<CSN7NoiseChan>(sn76489_subindex_t::noise);
+}
+
+ft0cc::doc::effect_type CSoundChipTypeSN7::TranslateEffectName(char name, sound_chip_t chip) const {
+	for (ft0cc::doc::effect_type fx : SN76489_EFFECTS)
 		if (name == EFF_CHAR[value_cast(fx)])
 			return fx;
 	for (auto fx : enum_values<ft0cc::doc::effect_type>())

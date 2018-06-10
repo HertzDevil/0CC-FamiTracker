@@ -465,6 +465,8 @@
     <ClCompile Include="Source\APU\2A03.cpp" />
     <ClCompile Include="Source\APU\2A03Chan.cpp" />
     <ClCompile Include="Source\APU\Channel.cpp" />
+    <ClCompile Include="Source\APU\SN76489.cpp" />
+    <ClCompile Include="Source\ChannelsSN7.cpp" />
     <ClCompile Include="Source\ext\emu\emu2413.c" />
     <ClCompile Include="Source\ext\emu\FDSSound_new.cpp" />
     <ClCompile Include="Source\APU\MixerChannel.cpp" />
@@ -662,6 +664,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\APU\APUInterface.h" />
+    <ClInclude Include="Source\APU\SN76489.h" />
+    <ClInclude Include="Source\ChannelsSN7.h" />
     <ClInclude Include="Source\ext\emu\FDSSound_new.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Source\ActionHandler.h" />
@@ -689,6 +693,7 @@
     <ClInclude Include="Source\ChipHandlerVRC7.h" />
     <ClInclude Include="Source\Color.h" />
     <ClInclude Include="Source\EffectName.h" />
+    <ClInclude Include="Source\InstrumentSN7.h" />
     <ClInclude Include="Source\PCMImporter.h" />
     <ClInclude Include="Source\SelectionRange.h" />
     <ClInclude Include="Source\StringClipData.h" />

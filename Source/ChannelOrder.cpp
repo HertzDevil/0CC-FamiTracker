@@ -37,6 +37,7 @@ const stChannelID BUILTIN_ORDER[] = {
 	vrc7_subindex_t::ch1, vrc7_subindex_t::ch2, vrc7_subindex_t::ch3,
 	vrc7_subindex_t::ch4, vrc7_subindex_t::ch5, vrc7_subindex_t::ch6,
 	s5b_subindex_t::square1, s5b_subindex_t::square2, s5b_subindex_t::square3,
+	sn76489_subindex_t::square1, sn76489_subindex_t::square2, sn76489_subindex_t::square3, sn76489_subindex_t::noise,
 };
 
 // default order for exported nsfs
@@ -48,6 +49,7 @@ const stChannelID CANONICAL_ORDER[] = {
 	n163_subindex_t::ch5, n163_subindex_t::ch6, n163_subindex_t::ch7, n163_subindex_t::ch8,
 	fds_subindex_t::wave,
 	s5b_subindex_t::square1, s5b_subindex_t::square2, s5b_subindex_t::square3,
+	sn76489_subindex_t::square1, sn76489_subindex_t::square2, sn76489_subindex_t::square3, sn76489_subindex_t::noise,
 	vrc7_subindex_t::ch1, vrc7_subindex_t::ch2, vrc7_subindex_t::ch3,
 	vrc7_subindex_t::ch4, vrc7_subindex_t::ch5, vrc7_subindex_t::ch6,
 	apu_subindex_t::dpcm,

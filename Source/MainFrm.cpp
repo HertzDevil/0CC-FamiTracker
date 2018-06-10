@@ -179,6 +179,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_INSTRUMENT_ADD_MMC5, OnAddInstrumentMMC5)
 	ON_COMMAND(ID_INSTRUMENT_ADD_N163, OnAddInstrumentN163)
 	ON_COMMAND(ID_INSTRUMENT_ADD_S5B, OnAddInstrumentS5B)
+	ON_COMMAND(ID_INSTRUMENT_ADD_SN76489, OnAddInstrumentSN76489)
 	ON_COMMAND(ID_MODULE_MODULEPROPERTIES, OnModuleModuleproperties)
 	ON_COMMAND(ID_MODULE_CHANNELS, OnModuleChannels)
 	ON_COMMAND(ID_MODULE_COMMENTS, OnModuleComments)
@@ -949,6 +950,11 @@ void CMainFrame::OnAddInstrumentS5B()
 	NewInstrument(INST_S5B);
 }
 
+void CMainFrame::OnAddInstrumentSN76489()
+{
+	NewInstrument(INST_SN76489);
+}
+
 void CMainFrame::UpdateInstrumentList()
 {
 	// Rewrite the instrument list
@@ -1167,6 +1173,7 @@ void CMainFrame::OnAddInstrument()
 	case sound_chip_t::MMC5: return OnAddInstrumentMMC5();
 	case sound_chip_t::N163: return OnAddInstrumentN163();
 	case sound_chip_t::S5B:  return OnAddInstrumentS5B();
+	case sound_chip_t::SN76489: return OnAddInstrumentSN76489();
 	}
 }
 
@@ -2613,6 +2620,7 @@ void CMainFrame::OnNewInstrumentMenu(NMHDR* pNotifyStruct, LRESULT* result)
 		case sound_chip_t::MMC5: OnAddInstrumentMMC5(); break;
 		case sound_chip_t::N163: OnAddInstrumentN163(); break;
 		case sound_chip_t::S5B:  OnAddInstrumentS5B();  break;
+		case sound_chip_t::SN76489: OnAddInstrumentSN76489(); break;
 		}
 }
 

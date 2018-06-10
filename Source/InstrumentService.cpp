@@ -50,6 +50,7 @@ void CInstrumentService::AddDefaultTypes() {
 	AddType(std::make_unique<CInstrumentTypeFDS >());
 	AddType(std::make_unique<CInstrumentTypeN163>());
 	AddType(std::make_unique<CInstrumentTypeS5B >());
+	AddType(std::make_unique<CInstrumentTypeSN7>());
 }
 
 CInstrumentType &CInstrumentService::GetInstrumentType(inst_type_t index) const {

@@ -47,6 +47,7 @@ class CInstrumentVRC7;
 class CInstrumentFDS ;
 class CInstrumentN163;
 class CInstrumentS5B ;
+class CInstrumentSN7;
 
 class CInstrumentIOSeq;
 class CInstrumentIO2A03;
@@ -65,6 +66,7 @@ extern template class CInstrumentTypeImpl<CInstrumentVRC7, CInstrumentIOVRC7, CI
 extern template class CInstrumentTypeImpl<CInstrumentFDS , CInstrumentIOFDS , CInstCompilerFDS , INST_FDS >;
 extern template class CInstrumentTypeImpl<CInstrumentN163, CInstrumentION163, CInstCompilerN163, INST_N163>;
 extern template class CInstrumentTypeImpl<CInstrumentS5B , CInstrumentIOSeq , CInstCompilerSeq , INST_S5B >;
+extern template class CInstrumentTypeImpl<CInstrumentSN7 , CInstrumentIOSeq , CInstCompilerSeq , INST_SN76489>;
 
 using CInstrumentType2A03 = CInstrumentTypeImpl<CInstrument2A03, CInstrumentIO2A03, CInstCompilerSeq , INST_2A03>;
 using CInstrumentTypeVRC6 = CInstrumentTypeImpl<CInstrumentVRC6, CInstrumentIOSeq , CInstCompilerSeq , INST_VRC6>;
@@ -72,3 +74,4 @@ using CInstrumentTypeVRC7 = CInstrumentTypeImpl<CInstrumentVRC7, CInstrumentIOVR
 using CInstrumentTypeFDS  = CInstrumentTypeImpl<CInstrumentFDS , CInstrumentIOFDS , CInstCompilerFDS , INST_FDS >;
 using CInstrumentTypeN163 = CInstrumentTypeImpl<CInstrumentN163, CInstrumentION163, CInstCompilerN163, INST_N163>;
 using CInstrumentTypeS5B  = CInstrumentTypeImpl<CInstrumentS5B , CInstrumentIOSeq , CInstCompilerSeq , INST_S5B >;
+using CInstrumentTypeSN7  = CInstrumentTypeImpl<CInstrumentSN7 , CInstrumentIOSeq , CInstCompilerSeq , INST_SN76489>;

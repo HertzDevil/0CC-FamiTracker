@@ -129,3 +129,18 @@ class CSoundChipTypeS5B : public CSoundChipType {
 
 	ft0cc::doc::effect_type TranslateEffectName(char name, sound_chip_t chip) const override;
 };
+
+class CSoundChipTypeSN7 : public CSoundChipType {
+	sound_chip_t GetID() const override;
+	std::size_t GetSupportedChannelCount() const override;
+
+	std::string_view GetShortName() const override;
+	std::string_view GetFullName() const override;
+	std::string_view GetChannelShortName(std::size_t subindex) const override;
+	std::string_view GetChannelFullName(std::size_t subindex) const override;
+
+	std::unique_ptr<CSoundChip> MakeSoundDriver(CMixer &mixer, std::uint8_t nInstance) const override;
+	std::unique_ptr<CChipHandler> MakeChipHandler(std::uint8_t nInstance) const override;
+
+	ft0cc::doc::effect_type TranslateEffectName(char name, sound_chip_t chip) const override;
+};

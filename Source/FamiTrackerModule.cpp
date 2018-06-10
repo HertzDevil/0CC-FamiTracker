@@ -237,6 +237,10 @@ CPeriodTables CFamiTrackerModule::MakePeriodTables() const {		// // //
 			for (int j = 0; j < OCTAVE_RANGE; ++j)
 				table.vrc7_freq[i + j * NOTE_RANGE] = Reg;		// // //
 		}
+
+		// // // SN76489
+		Pitch = (clock_ntsc / Freq / 2) + 0.5;
+		table.sn76489_period[i] = (unsigned int)(Pitch /* - GetDetuneOffset(6, i) */);		// // //
 	}
 
 	return table;
@@ -429,7 +433,7 @@ void CFamiTrackerModule::RemoveUnusedInstruments() {
 			pManager->RemoveInstrument(i);
 	});
 
-	const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B};
+	const inst_type_t inst[] = {INST_2A03, INST_VRC6, INST_N163, INST_S5B, INST_SN76489};
 
 	// Also remove unused sequences
 	for (unsigned int i = 0; i < MAX_SEQUENCES; ++i)

@@ -494,6 +494,7 @@
 #define IDC_EXPANSION_N163              1336
 #define IDC_BUTTON_GROOVE               1337
 #define IDC_BUTTON_FIXTEMPO             1338
+#define IDC_EXPANSION_SN76489           1339
 #define IDC_LIST_GROOVE_TABLE           1343
 #define IDC_BUTTON_GROOVEL_UP           1344
 #define IDC_BUTTON_GROOVEL_DOWN         1345
@@ -745,6 +746,7 @@
 #define ID_INSTRUMENT_ADD_S5B           36868
 #define ID_INSTRUMENT_ADD_VRC6          36869
 #define ID_INSTRUMENT_ADD_VRC7          36870
+#define ID_INSTRUMENT_ADD_SN76489       36871
 #define ID_INDICATOR_CHIP               53248
 #define ID_INDICATOR_INSTRUMENT         53249
 #define ID_INDICATOR_OCTAVE             53250

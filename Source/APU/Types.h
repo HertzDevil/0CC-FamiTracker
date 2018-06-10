@@ -43,8 +43,8 @@ inline constexpr unsigned FRAME_RATE_MIN    = 16;		// // //
 inline constexpr unsigned FRAME_RATE_MAX    = 400;		// // //
 
 ENUM_CLASS_STANDARD(sound_chip_t, std::uint8_t) {		// // //
-	APU, VRC6, VRC7, FDS, MMC5, N163, S5B,
-	min = APU, max = S5B, none = static_cast<std::uint8_t>(-1),
+	APU, VRC6, VRC7, FDS, MMC5, N163, S5B, SN76489,
+	min = APU, max = SN76489, none = static_cast<std::uint8_t>(-1),
 };
 
 inline constexpr std::size_t SOUND_CHIP_COUNT = enum_count<sound_chip_t>();
@@ -77,6 +77,10 @@ ENUM_CLASS_STANDARD(s5b_subindex_t, std::uint8_t) {
 	square1, square2, square3,
 	min = square1, max = square3, none = static_cast<std::uint8_t>(-1),
 };
+ENUM_CLASS_STANDARD(sn76489_subindex_t, std::uint8_t) {
+	square1, square2, square3, noise,
+	min = square1, max = noise, none = static_cast<std::uint8_t>(-1),
+};
 
 // // // moved from FamiTrackerTypes.h
 inline constexpr std::size_t MAX_CHANNELS_2A03 = enum_count<apu_subindex_t>();
@@ -86,6 +90,7 @@ inline constexpr std::size_t MAX_CHANNELS_FDS  = enum_count<fds_subindex_t>();
 inline constexpr std::size_t MAX_CHANNELS_MMC5 = enum_count<mmc5_subindex_t>(); // includes pcm
 inline constexpr std::size_t MAX_CHANNELS_N163 = enum_count<n163_subindex_t>();
 inline constexpr std::size_t MAX_CHANNELS_S5B  = enum_count<s5b_subindex_t>();
+inline constexpr std::size_t MAX_CHANNELS_SN76489 = enum_count<sn76489_subindex_t>();
 
 inline constexpr std::size_t CHANID_COUNT =
 	MAX_CHANNELS_2A03 +
@@ -94,7 +99,8 @@ inline constexpr std::size_t CHANID_COUNT =
 	MAX_CHANNELS_FDS  +
 	MAX_CHANNELS_MMC5 +
 	MAX_CHANNELS_N163 +
-	MAX_CHANNELS_S5B;
+	MAX_CHANNELS_S5B +
+	MAX_CHANNELS_SN76489;
 
 
 
@@ -126,6 +132,7 @@ struct stChannelID {		// // //
 	constexpr stChannelID(mmc5_subindex_t subindex) noexcept : stChannelID(sound_chip_t::MMC5, value_cast(subindex)) { }
 	constexpr stChannelID(n163_subindex_t subindex) noexcept : stChannelID(sound_chip_t::N163, value_cast(subindex)) { }
 	constexpr stChannelID(s5b_subindex_t  subindex) noexcept : stChannelID(sound_chip_t::S5B , value_cast(subindex)) { }
+	constexpr stChannelID(sn76489_subindex_t subindex) noexcept : stChannelID(sound_chip_t::SN76489, value_cast(subindex)) { }
 
 	constexpr int compare(const stChannelID &other) const noexcept {
 		if (Chip > other.Chip)
@@ -169,4 +176,8 @@ constexpr bool IsDPCM(stChannelID id) noexcept {
 
 constexpr bool IsVRC6Sawtooth(stChannelID id) noexcept {
 	return id.Chip == sound_chip_t::VRC6 && id.Subindex == value_cast(vrc6_subindex_t::sawtooth);
+}
+
+constexpr bool IsSN76489Noise(stChannelID id) noexcept {
+	return id.Chip == sound_chip_t::SN76489 && id.Subindex == value_cast(sn76489_subindex_t::noise);
 }

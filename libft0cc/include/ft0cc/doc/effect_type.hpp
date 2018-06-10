@@ -70,6 +70,7 @@ enum class effect_type : std::uint8_t {
 	N163_WAVE_BUFFER,
 	FDS_VOLUME,
 	FDS_MOD_BIAS,
+	SN76489_CONTROL,
 //	TARGET_VOLUME_SLIDE,
 /*
 	VRC7_MODULATOR,

@@ -51,6 +51,7 @@ void CSoundChipService::AddDefaultTypes() {
 	AddType(std::make_unique<CSoundChipTypeMMC5>());
 	AddType(std::make_unique<CSoundChipTypeN163>());
 	AddType(std::make_unique<CSoundChipTypeS5B>());
+	AddType(std::make_unique<CSoundChipTypeSN7>());
 }
 
 CChannelOrder CSoundChipService::MakeFullOrder() const {

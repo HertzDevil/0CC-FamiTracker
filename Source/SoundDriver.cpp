@@ -34,6 +34,7 @@
 #include "SongState.h"
 #include "ChannelMap.h"
 #include "Assertion.h"
+#include "ChannelsSN7.h"		// // //
 
 
 
@@ -317,6 +318,8 @@ void CSoundDriver::SetupPeriodTables() {
 			return m_iNoteLookupTable.n163_freq;
 		case sound_chip_t::S5B:
 			return m_iNoteLookupTable.s5b_period;
+		case sound_chip_t::SN76489:
+			return m_iNoteLookupTable.sn76489_period;
 		}
 		return { };
 	};
@@ -352,6 +355,12 @@ bool CSoundDriver::HandleGlobalEffect(ft0cc::doc::effect_command cmd) {
 		m_bDoHalt = true;		// // //
 		m_pPlayerCursor->DoCxx();		// // //
 		return true;
+	// // // NCx: SN76489 channel swap
+	case ft0cc::doc::effect_type::SN76489_CONTROL:
+		if (cmd.param >= 0xC1 && cmd.param <= 0xC3) {
+			CChannelHandlerSN7::SwapChannels(stChannelID {sound_chip_t::SN76489, static_cast<std::uint8_t>(cmd.param - 0xC1)});
+		}
+		break;
 	}
 
 	return false;

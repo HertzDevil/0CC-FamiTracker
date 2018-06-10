@@ -30,7 +30,7 @@
 class CSoundChipSet {
 public:
 	using value_type = std::uint32_t;
-	static constexpr value_type NSF_MAX_FLAG = 0x3Fu;
+	static constexpr value_type NSF_MAX_FLAG = 0x7Fu;
 
 private:
 	explicit constexpr CSoundChipSet(value_type chips) noexcept : chips_(chips) { }

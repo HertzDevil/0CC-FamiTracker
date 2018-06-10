@@ -56,6 +56,7 @@ private:
 	void LoadSequencesVRC6(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
 	void LoadSequencesN163(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
 	void LoadSequencesS5B(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
+	void LoadSequencesSN7(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
 	void LoadParamsExtra(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
 	void LoadDetuneTables(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
 	void LoadGrooves(CFamiTrackerModule &modfile, CDocumentInputBlock &block);
@@ -90,6 +91,7 @@ private:
 	void SaveSequencesVRC6(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
 	void SaveSequencesN163(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
 	void SaveSequencesS5B(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
+	void SaveSequencesSN7(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
 	void SaveParamsExtra(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
 	void SaveDetuneTables(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);
 	void SaveGrooves(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block);

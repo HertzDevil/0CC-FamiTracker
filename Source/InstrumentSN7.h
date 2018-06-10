@@ -20,21 +20,16 @@
 ** must bear this legend.
 */
 
-#include "PeriodTables.h"
-#include "DetuneTable.h"
-#include "Assertion.h"
 
-unsigned CPeriodTables::ReadTable(int Index, int Table) const {
-	switch (Table) {
-	case CDetuneTable::DETUNE_NTSC: return ntsc_period[Index]; break;
-	case CDetuneTable::DETUNE_PAL:  return pal_period[Index]; break;
-	case CDetuneTable::DETUNE_SAW:  return saw_period[Index]; break;
-	case CDetuneTable::DETUNE_VRC7: return vrc7_freq[Index]; break;
-	case CDetuneTable::DETUNE_FDS:  return fds_freq[Index]; break;
-	case CDetuneTable::DETUNE_N163: return n163_freq[Index]; break;
-	case CDetuneTable::DETUNE_S5B:  return s5b_period[Index]; break;
-	case CDetuneTable::DETUNE_SN76489: return sn76489_period[Index]; break;
-	}
-	DEBUG_BREAK();
-	return ntsc_period[Index];
-}
+#pragma once
+
+#include "SeqInstrument.h"
+
+class CInstrumentSN7 : public CSeqInstrument {
+public:
+	CInstrumentSN7() : CSeqInstrument(INST_SN76489) { }		// // //
+
+public:
+	static constexpr std::string_view SEQUENCE_NAME[] = {"Volume", "Arpeggio", "Pitch", "Hi-pitch", "Noise / Mode"};
+	std::string_view GetSequenceName(int Index) const override { return SEQUENCE_NAME[Index]; }		// // //
+};

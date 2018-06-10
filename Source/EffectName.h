@@ -67,6 +67,7 @@ constexpr char EFF_CHAR[] = {
 	'Z',	// // // N163 wave buffer
 	'E',	// // // FDS volume envelope
 	'Z',	// // // FDS auto-FM bias
+	'N',	// // // SN76489 control
 	//'9',	// Targeted volume slide
 	/*
 	'H',	// VRC7 modulator

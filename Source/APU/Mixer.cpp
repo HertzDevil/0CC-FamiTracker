@@ -57,6 +57,7 @@
 #include <memory>
 #include <cmath>
 #include "ext/emu/emu2413.h"		// // //
+#include "APU/SN76489.h"		// // //
 
 namespace {
 
@@ -79,6 +80,8 @@ constexpr chip_level_t GetMixerFromChannel(stChannelID ch) noexcept {		// // //
 		return CHIP_LEVEL_N163;
 	case sound_chip_t::S5B:
 		return CHIP_LEVEL_S5B;
+	case sound_chip_t::SN76489:
+		return CHIP_LEVEL_SN76489;
 	default:
 		return CHIP_LEVEL_NONE;
 	}
@@ -96,6 +99,7 @@ void CMixer::WithMixer(chip_level_t Mixer, F f) {		// // //
 	case CHIP_LEVEL_FDS:  f(levelsFDS_); break;
 	case CHIP_LEVEL_N163: f(levelsN163_); break;
 	case CHIP_LEVEL_S5B:  f(levelsS5B_); break;		// // // 050B
+	case CHIP_LEVEL_SN76489: f(levelsSN76489_); break;
 	case CHIP_LEVEL_VRC7:
 	case CHIP_LEVEL_NONE:
 		break;
@@ -111,6 +115,7 @@ void CMixer::VisitMixers(F f) {
 	WithMixer(CHIP_LEVEL_FDS, f);
 	WithMixer(CHIP_LEVEL_N163, f);
 	WithMixer(CHIP_LEVEL_S5B, f);
+	WithMixer(CHIP_LEVEL_SN76489, f);
 }
 
 void CMixer::ExternalSound(CSoundChipSet Chip) {		// // //
@@ -139,6 +144,7 @@ float CMixer::GetAttenuation() const
 	const float ATTENUATION_FDS  = 0.90f;
 	const float ATTENUATION_N163 = 0.70f;
 	const float ATTENUATION_S5B  = 0.50f;		// // // 050B
+	const float ATTENUATION_SN76489 = 0.75f;
 
 	float Attenuation = 1.0f;
 
@@ -158,6 +164,8 @@ float CMixer::GetAttenuation() const
 		Attenuation *= ATTENUATION_N163;
 	if (m_iExternalChip.ContainsChip(sound_chip_t::S5B))		// // // 050B
 		Attenuation *= ATTENUATION_S5B;
+	if (m_iExternalChip.ContainsChip(sound_chip_t::SN76489))
+		Attenuation *= ATTENUATION_SN76489;
 
 	return Attenuation;
 }
@@ -179,6 +187,7 @@ void CMixer::UpdateSettings(int LowCut,	int HighCut, int HighDamp, float Overall
 	levelsVRC6_.SetLowPass(eq);
 	levelsMMC5_.SetLowPass(eq);
 	levelsS5B_.SetLowPass(eq);
+	levelsSN76489_.SetLowPass(eq);
 
 	// // // N163 special filtering
 	levelsN163_.SetLowPass({-(double)std::max(24, m_iHighDamp), std::min(m_iHighCut, 12000), (long)m_iSampleRate});
@@ -320,6 +329,13 @@ void CMixer::StoreChannelLevel(stChannelID Channel, int Level)		// // //
 
 	if (Channel.Chip == sound_chip_t::S5B)		// // //
 		AbsVol = std::log(AbsVol) * 2.8;
+
+	if (Channel.Chip == sound_chip_t::SN76489) {
+		auto Lv = static_cast<int>(AbsVol);
+		AbsVol = 0;
+		while (AbsVol < 15 && Lv >= CSN76489::VOLUME_TABLE[14 - static_cast<int>(AbsVol)])
+			++AbsVol;
+	}
 
 	auto &lv = m_ChannelLevels[Channel];
 	if (AbsVol >= lv.Level) {

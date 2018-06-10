@@ -40,6 +40,7 @@ enum chip_level_t : unsigned char {
 	CHIP_LEVEL_FDS,
 	CHIP_LEVEL_N163,
 	CHIP_LEVEL_S5B,
+	CHIP_LEVEL_SN76489,		// // //
 	CHIP_LEVEL_NONE = static_cast<unsigned char>(-1),
 };
 
@@ -95,6 +96,7 @@ private:
 	CMixerChannel<stLevelsMMC5>    levelsMMC5_    { 109.78};
 	CMixerChannel<stLevelsN163>    levelsN163_    {1454.5};
 	CMixerChannel<stLevelsS5B>     levelsS5B_     {1200.0};
+	CMixerChannel<stLevelsSN76489> levelsSN76489_ {5000.0};
 
 	CSoundChipSet m_iExternalChip;
 	uint32_t	m_iSampleRate = 0;

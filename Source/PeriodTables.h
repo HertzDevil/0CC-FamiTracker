@@ -35,6 +35,7 @@ struct CPeriodTables {
 	unsigned fds_freq[NOTE_COUNT] = { };
 	unsigned n163_freq[NOTE_COUNT] = { };
 	unsigned s5b_period[NOTE_COUNT] = { };
+	unsigned sn76489_period[NOTE_COUNT] = { };
 
 	unsigned ReadTable(int Index, int Table) const;
 };

@@ -44,6 +44,7 @@
 #include "InstrumentVRC6.h" // error message
 #include "InstrumentN163.h" // error message
 #include "InstrumentS5B.h" // error message
+#include "InstrumentSN7.h" // error message
 
 #include "SequenceManager.h"
 #include "SequenceCollection.h"
@@ -85,6 +86,9 @@ constexpr auto FILE_BLOCK_SEQUENCES_N106	= "SEQUENCES_N106"sv;
 
 // Sunsoft
 constexpr auto FILE_BLOCK_SEQUENCES_S5B		= "SEQUENCES_S5B"sv;
+
+// // // SN76489
+constexpr auto FILE_BLOCK_SEQUENCES_SN7		= "SEQUENCES_SN7"sv;
 
 // // // 0CC-FamiTracker specific
 constexpr auto FILE_BLOCK_DETUNETABLES		= "DETUNETABLES"sv;
@@ -131,6 +135,7 @@ std::unique_ptr<CFamiTrackerModule> CFamiTrackerDocReader::Load() {
 		{FILE_BLOCK_SEQUENCES_N163,	&CFamiTrackerDocReader::LoadSequencesN163},
 		{FILE_BLOCK_SEQUENCES_N106,	&CFamiTrackerDocReader::LoadSequencesN163},	// Backward compatibility
 		{FILE_BLOCK_SEQUENCES_S5B,	&CFamiTrackerDocReader::LoadSequencesS5B},	// // //
+		{FILE_BLOCK_SEQUENCES_SN7,	&CFamiTrackerDocReader::LoadSequencesSN7},	// // //
 		{FILE_BLOCK_PARAMS_EXTRA,	&CFamiTrackerDocReader::LoadParamsExtra},	// // //
 		{FILE_BLOCK_DETUNETABLES,	&CFamiTrackerDocReader::LoadDetuneTables},	// // //
 		{FILE_BLOCK_GROOVES,		&CFamiTrackerDocReader::LoadGrooves},		// // //
@@ -895,6 +900,79 @@ void CFamiTrackerDocReader::LoadSequencesS5B(CFamiTrackerModule &modfile, CDocum
 	}
 }
 
+void CFamiTrackerDocReader::LoadSequencesSN7(CFamiTrackerModule &modfile, CDocumentInputBlock &block) {
+	unsigned int Count = block.AssertRange(block.ReadInt<std::int32_t>(), 0, MAX_SEQUENCES * (int)SEQ_COUNT, "SN76489 sequence count", err_lv_);
+	block.AssertRange<MODULE_ERROR_OFFICIAL>(Count, 0U, static_cast<unsigned>(MAX_SEQUENCES), "SN76489 sequence count", err_lv_);		// // //
+
+	CSequenceManager *pManager = modfile.GetInstrumentManager()->GetSequenceManager(INST_SN76489);		// // //
+
+	unsigned ver = block.GetBlockVersion();
+	int Indices[MAX_SEQUENCES * SEQ_COUNT] = { };
+	sequence_t Types[MAX_SEQUENCES * SEQ_COUNT] = { };
+	for (unsigned int i = 0; i < Count; ++i) {
+		unsigned int Index = Indices[i] = block.AssertRange(block.ReadInt<std::int32_t>(), 0, MAX_SEQUENCES - 1, "Sequence index", err_lv_);
+		sequence_t Type = Types[i] = static_cast<sequence_t>(block.AssertRange(block.ReadInt<std::uint32_t>(), 0u, SEQ_COUNT - 1, "Sequence type", err_lv_));
+		try {
+			unsigned char SeqCount = block.ReadInt<std::int8_t>();
+			auto pSeq = pManager->GetCollection(Type)->GetSequence(Index);
+			pSeq->Clear();
+			pSeq->SetItemCount(SeqCount < MAX_SEQUENCE_ITEMS ? SeqCount : MAX_SEQUENCE_ITEMS);
+
+			pSeq->SetLoopPoint(block.AssertRange<MODULE_ERROR_STRICT>(
+				block.ReadInt<std::int32_t>(), -1, static_cast<int>(SeqCount) - 1, "Sequence loop point", err_lv_));
+
+			if (ver == 4) {
+				pSeq->SetReleasePoint(block.AssertRange<MODULE_ERROR_STRICT>(
+					block.ReadInt<std::int32_t>(), -1, static_cast<int>(SeqCount) - 1, "Sequence release point", err_lv_));
+				pSeq->SetSetting(static_cast<seq_setting_t>(block.ReadInt<std::int32_t>()));		// // //
+			}
+
+			// block.AssertRange(SeqCount, 0, MAX_SEQUENCE_ITEMS, "Sequence item count", err_lv_);
+			for (unsigned int j = 0; j < SeqCount; ++j) {
+				char Value = block.ReadInt<std::int8_t>();
+				if (j < MAX_SEQUENCE_ITEMS)		// // //
+					pSeq->SetItem(j, Value);
+			}
+		}
+		catch (CModuleException &e) {
+			e.AppendError("At SN76489 " + std::string {CInstrumentSN7::SEQUENCE_NAME[value_cast(Type)]} + " sequence " + conv::from_int(Index) + ',');
+			throw e;
+		}
+	}
+
+	if (ver == 5) {
+		// Version 5 saved the release points incorrectly, this is fixed in ver 6
+		for (int i = 0; i < MAX_SEQUENCES; ++i) {
+			for (auto j : enum_values<sequence_t>()) try {
+				int ReleasePoint = block.ReadInt<std::int32_t>();
+				int Settings = block.ReadInt<std::int32_t>();
+				auto pSeq = pManager->GetCollection(j)->GetSequence(i);
+				int Length = pSeq->GetItemCount();
+				if (Length > 0) {
+					pSeq->SetReleasePoint(block.AssertRange<MODULE_ERROR_STRICT>(ReleasePoint, -1, Length - 1, "Sequence release point", err_lv_));
+					pSeq->SetSetting(static_cast<seq_setting_t>(Settings));		// // //
+				}
+			}
+			catch (CModuleException &e) {
+				e.AppendError("At SN76489 " + std::string {CInstrumentSN7::SEQUENCE_NAME[value_cast(j)]} + " sequence " + conv::from_int(i) + ',');
+				throw e;
+			}
+		}
+	}
+	else if (ver >= 6u) {
+		for (unsigned int i = 0; i < Count; ++i) try {
+			auto pSeq = pManager->GetCollection(Types[i])->GetSequence(Indices[i]);
+			pSeq->SetReleasePoint(block.AssertRange<MODULE_ERROR_STRICT>(
+				block.ReadInt<std::int32_t>(), -1, static_cast<int>(pSeq->GetItemCount()) - 1, "Sequence release point", err_lv_));
+			pSeq->SetSetting(static_cast<seq_setting_t>(block.ReadInt<std::int32_t>()));		// // //
+		}
+		catch (CModuleException &e) {
+			e.AppendError("At SN76489 " + std::string {CInstrumentSN7::SEQUENCE_NAME[value_cast(Types[i])]} + " sequence " + conv::from_int(Indices[i]) + ',');
+			throw e;
+		}
+	}
+}
+
 void CFamiTrackerDocReader::LoadParamsExtra(CFamiTrackerModule &modfile, CDocumentInputBlock &block) {
 	modfile.SetLinearPitch(block.ReadInt<std::int32_t>() != 0);
 	unsigned ver = block.GetBlockVersion();
@@ -1013,6 +1091,7 @@ bool CFamiTrackerDocWriter::Save(const CFamiTrackerModule &modfile) {
 		{&CFamiTrackerDocWriter::SaveSequencesVRC6,	6, FILE_BLOCK_SEQUENCES_VRC6},		// // //
 		{&CFamiTrackerDocWriter::SaveSequencesN163,	1, FILE_BLOCK_SEQUENCES_N163},
 		{&CFamiTrackerDocWriter::SaveSequencesS5B,	1, FILE_BLOCK_SEQUENCES_S5B},
+		{&CFamiTrackerDocWriter::SaveSequencesSN7,	6, FILE_BLOCK_SEQUENCES_SN7},
 		{&CFamiTrackerDocWriter::SaveParamsExtra,	2, FILE_BLOCK_PARAMS_EXTRA},		// // //
 		{&CFamiTrackerDocWriter::SaveDetuneTables,	1, FILE_BLOCK_DETUNETABLES},		// // //
 		{&CFamiTrackerDocWriter::SaveGrooves,		1, FILE_BLOCK_GROOVES},				// // //
@@ -1085,6 +1164,7 @@ void CFamiTrackerDocWriter::SaveHeader(const CFamiTrackerModule &modfile, CDocum
 			fds_start  = n163_start + MAX_CHANNELS_N163,
 			vrc7_start = fds_start + MAX_CHANNELS_FDS,
 			s5b_start  = vrc7_start + MAX_CHANNELS_VRC7,
+			sn76489_start  = s5b_start + MAX_CHANNELS_S5B,
 		};
 
 		switch (id.Chip) {
@@ -1115,6 +1195,10 @@ void CFamiTrackerDocWriter::SaveHeader(const CFamiTrackerModule &modfile, CDocum
 		case sound_chip_t::S5B:
 			if (id.Subindex < MAX_CHANNELS_S5B)
 				return static_cast<std::uint8_t>(s5b_start + id.Subindex);
+			break;
+		case sound_chip_t::SN76489:
+			if (id.Subindex < MAX_CHANNELS_SN76489)
+				return static_cast<std::uint8_t>(sn76489_start + id.Subindex);
 			break;
 		}
 		return static_cast<std::uint8_t>(-1);
@@ -1349,6 +1433,30 @@ void CFamiTrackerDocWriter::SaveSequencesS5B(const CFamiTrackerModule &modfile, 
 		block.WriteInt<std::int32_t>(value_cast(seq.GetSetting()));
 		for (int k = 0, Count = seq.GetItemCount(); k < Count; ++k)
 			block.WriteInt<std::int8_t>(seq.GetItem(k));
+	});
+}
+
+void CFamiTrackerDocWriter::SaveSequencesSN7(const CFamiTrackerModule &modfile, CDocumentOutputBlock &block) {
+	int Count = modfile.GetInstrumentManager()->GetTotalSequenceCount(INST_SN76489);
+	if (!Count)
+		return;		// // //
+	block.WriteInt<std::int32_t>(Count);
+
+	auto *pManager = modfile.GetInstrumentManager()->GetSequenceManager(INST_SN76489);
+
+	VisitSequences(pManager, [&] (const CSequence &seq, int index, sequence_t seqType) {
+		block.WriteInt<std::int32_t>(index);
+		block.WriteInt<std::int32_t>(value_cast(seqType));
+		block.WriteInt<std::int8_t>(seq.GetItemCount());
+		block.WriteInt<std::int32_t>(seq.GetLoopPoint());
+		for (int k = 0, Count = seq.GetItemCount(); k < Count; ++k)
+			block.WriteInt<std::int8_t>(seq.GetItem(k));
+	});
+
+	// v6
+	VisitSequences(pManager, [&] (const CSequence &seq, int, sequence_t) {
+		block.WriteInt<std::int32_t>(seq.GetReleasePoint());
+		block.WriteInt<std::int32_t>(value_cast(seq.GetSetting()));
 	});
 }
 

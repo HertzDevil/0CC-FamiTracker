@@ -846,6 +846,12 @@
     <ClCompile Include="Source\ext\Blip_Buffer\Blip_Buffer.cpp">
       <Filter>Source Files\Sound Driver\Audio\Blip_Buffer</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ChannelsSN7.cpp">
+      <Filter>Source Files\Sound Driver\Channels</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\APU\SN76489.cpp">
+      <Filter>Source Files\Sound Driver\Emulation\Sound Chips</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Exception.h">
@@ -1582,6 +1588,15 @@
     </ClInclude>
     <ClInclude Include="Source\ext\Blip_Buffer\Blip_Buffer.h">
       <Filter>Header Files\Sound Driver Headers\Audio Headers\Blip_Buffer Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\InstrumentSN7.h">
+      <Filter>Header Files\Document Data Type Headers\Instrument Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ChannelsSN7.h">
+      <Filter>Header Files\Sound Driver Headers\Channels Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\APU\SN76489.h">
+      <Filter>Header Files\Sound Driver Headers\Emulation Headers\Sound Chip Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

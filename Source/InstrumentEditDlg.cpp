@@ -34,6 +34,7 @@
 #include "InstrumentS5B.h"		// // //
 #include "InstrumentFDS.h"		// // //
 #include "InstrumentVRC7.h"		// // //
+#include "InstrumentSN7.h"		// // //
 #include "FamiTrackerView.h"
 #include "SequenceEditor.h"
 #include "InstrumentEditPanel.h"
@@ -62,6 +63,7 @@ const LPCWSTR CInstrumentEditDlg::CHIP_NAMES[] = {		// // //
 	L"FDS",
 	L"Namco",
 	L"Sunsoft",
+	L"SN76489",
 };
 
 // CInstrumentEditDlg dialog
@@ -206,6 +208,10 @@ void CInstrumentEditDlg::SetCurrentInstrument(int Index)
 			case INST_S5B:
 				InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, L"Sunsoft 5B",
 					CInstrumentS5B::SEQUENCE_NAME, 15, 255, INST_S5B), true);
+				break;
+			case INST_SN76489:
+				InsertPane(std::make_unique<CInstrumentEditorSeq>(nullptr, L"SN76489",
+					CInstrumentSN7::SEQUENCE_NAME, 15, 3, INST_SN76489), true);
 				break;
 		}
 
@@ -364,6 +370,7 @@ void CInstrumentEditDlg::SwitchOnNote(int x, int y)
 		case INST_FDS:  First = fds_subindex_t::wave; break;
 		case INST_VRC7: First = vrc7_subindex_t::ch1; break;
 		case INST_S5B:  First = s5b_subindex_t::square1; break;
+		case INST_SN76489: First = sn76489_subindex_t::square1; break;
 		}
 		if (Order.HasChannel(First) && First.Chip != Channel.Chip)
 			pView->SelectChannel(Order.GetChannelIndex(First));

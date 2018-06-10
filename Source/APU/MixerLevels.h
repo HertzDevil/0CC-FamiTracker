@@ -104,3 +104,6 @@ using stLevelsN163 = stLevelsLinear<n163_subindex_t,
 	n163_subindex_t::ch5, n163_subindex_t::ch6, n163_subindex_t::ch7, n163_subindex_t::ch8>;
 using stLevelsS5B = stLevelsLinear<s5b_subindex_t,
 	s5b_subindex_t::square1, s5b_subindex_t::square2, s5b_subindex_t::square3>;
+using stLevelsSN76489 = stLevelsLinear<sn76489_subindex_t,
+	sn76489_subindex_t::square1, sn76489_subindex_t::square2, sn76489_subindex_t::square3,
+	sn76489_subindex_t::noise>;

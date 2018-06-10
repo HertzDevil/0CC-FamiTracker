@@ -2067,6 +2067,10 @@ void CFamiTrackerView::UpdateNoteQueues() {		// // //
 		}
 		if (chips.ContainsChip(sound_chip_t::S5B))
 			m_pNoteQueue->AddMap({s5b_subindex_t::square1, s5b_subindex_t::square2, s5b_subindex_t::square3});
+		if (chips.ContainsChip(sound_chip_t::SN76489)) {
+			m_pNoteQueue->AddMap({sn76489_subindex_t::square1, sn76489_subindex_t::square2, sn76489_subindex_t::square3});
+			m_pNoteQueue->AddMap({sn76489_subindex_t::noise});
+		}
 	}
 
 //	for (int i = 0; i < Channels; ++i)
