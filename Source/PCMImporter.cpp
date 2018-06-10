@@ -24,8 +24,8 @@
 #include "stdafx.h" // TODO: remove
 #include <MMSystem.h> // TODO: remove
 #include "../resource.h"
-#include "resampler/resample.hpp"
-#include "resampler/resample.inl"
+#include "ext/resampler/resample.hpp"
+#include "ext/resampler/resample.inl"
 #include "BinaryFileStream.h"
 #include "ft0cc/doc/dpcm_sample.hpp"
 #include "APU/DPCM.h"

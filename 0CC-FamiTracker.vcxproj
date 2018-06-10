@@ -465,8 +465,8 @@
     <ClCompile Include="Source\APU\2A03.cpp" />
     <ClCompile Include="Source\APU\2A03Chan.cpp" />
     <ClCompile Include="Source\APU\Channel.cpp" />
-    <ClCompile Include="Source\APU\ext\emu2413.c" />
-    <ClCompile Include="Source\APU\ext\FDSSound_new.cpp" />
+    <ClCompile Include="Source\ext\emu\emu2413.c" />
+    <ClCompile Include="Source\ext\emu\FDSSound_new.cpp" />
     <ClCompile Include="Source\APU\MixerChannel.cpp" />
     <ClCompile Include="Source\APU\MixerLevels.cpp" />
     <ClCompile Include="Source\APU\MMC5.cpp" />
@@ -588,8 +588,8 @@
     <ClCompile Include="Source\SequenceEditor.cpp" />
     <ClCompile Include="Source\SequenceSetting.cpp" />
     <ClCompile Include="Source\SizeEditor.cpp" />
-    <ClCompile Include="Source\resampler\resample.cpp" />
-    <ClCompile Include="Source\resampler\sinc.cpp" />
+    <ClCompile Include="Source\ext\resampler\resample.cpp" />
+    <ClCompile Include="Source\ext\resampler\sinc.cpp" />
     <ClCompile Include="Source\SampleEditorDlg.cpp" />
     <ClCompile Include="Source\SampleEditorView.cpp" />
     <ClCompile Include="Source\InstrumentEditorDPCM.cpp" />
@@ -634,7 +634,7 @@
     <ClCompile Include="Source\APU\FDS.cpp" />
     <ClCompile Include="Source\Apu\VRC6.cpp" />
     <ClCompile Include="Source\APU\VRC7.cpp" />
-    <ClCompile Include="Source\Blip_Buffer\Blip_Buffer.cpp" />
+    <ClCompile Include="Source\ext\Blip_Buffer\Blip_Buffer.cpp" />
     <ClCompile Include="Source\ChannelHandler.cpp" />
     <ClCompile Include="Source\Channels2A03.cpp" />
     <ClCompile Include="Source\ChannelsFDS.cpp" />
@@ -662,13 +662,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\APU\APUInterface.h" />
-    <ClInclude Include="Source\APU\ext\FDSSound_new.h" />
+    <ClInclude Include="Source\ext\emu\FDSSound_new.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Source\ActionHandler.h" />
     <ClInclude Include="Source\APU\2A03.h" />
     <ClInclude Include="Source\APU\2A03Chan.h" />
-    <ClInclude Include="Source\APU\ext\emu2413.h" />
-    <ClInclude Include="Source\APU\ext\vrc7tone.h" />
+    <ClInclude Include="Source\ext\emu\emu2413.h" />
+    <ClInclude Include="Source\ext\emu\vrc7tone.h" />
     <ClInclude Include="Source\APU\MixerChannel.h" />
     <ClInclude Include="Source\APU\MixerLevels.h" />
     <ClInclude Include="Source\APU\S5B.h" />
@@ -713,7 +713,7 @@
     <ClInclude Include="Source\InstrumentType.h" />
     <ClInclude Include="Source\InstrumentTypeImpl.h" />
     <ClInclude Include="Source\IntRange.h" />
-    <ClInclude Include="Source\json\json.hpp" />
+    <ClInclude Include="Source\ext\json\json.hpp" />
     <ClInclude Include="Source\Kraid.h" />
     <ClInclude Include="Source\ModuleAction.h" />
     <ClInclude Include="Source\ModuleImporter.h" />
@@ -808,8 +808,8 @@
     <ClInclude Include="Source\WaveRenderer.h" />
     <ClInclude Include="Source\WaveRendererFactory.h" />
     <ClInclude Include="Source\WaveStream.h" />
-    <ClInclude Include="Source\WinSDK\VersionHelpers.h" />
-    <ClInclude Include="Source\WinSDK\winapifamily.h" />
+    <ClInclude Include="Source\ext\WinSDK\VersionHelpers.h" />
+    <ClInclude Include="Source\ext\WinSDK\winapifamily.h" />
     <ClInclude Include="Source\version.h" />
     <ClInclude Include="Source\ChannelMap.h" />
     <ClInclude Include="Source\Common.h" />
@@ -829,7 +829,7 @@
     <ClInclude Include="Source\APU\N163.h" />
     <ClInclude Include="Source\Apu\VRC6.h" />
     <ClInclude Include="Source\APU\VRC7.h" />
-    <ClInclude Include="Source\Blip_Buffer\Blip_Buffer.h" />
+    <ClInclude Include="Source\ext\Blip_Buffer\Blip_Buffer.h" />
     <ClInclude Include="Source\ChannelHandler.h" />
     <ClInclude Include="Source\Channels2A03.h" />
     <ClInclude Include="Source\ChannelsFDS.h" />
@@ -864,8 +864,8 @@
     <ClInclude Include="Source\SequenceEditor.h" />
     <ClInclude Include="Source\SequenceSetting.h" />
     <ClInclude Include="Source\SizeEditor.h" />
-    <ClInclude Include="Source\resampler\resample.hpp" />
-    <ClInclude Include="Source\resampler\sinc.hpp" />
+    <ClInclude Include="Source\ext\resampler\resample.hpp" />
+    <ClInclude Include="Source\ext\resampler\sinc.hpp" />
     <ClInclude Include="Source\SampleEditorDlg.h" />
     <ClInclude Include="Source\SampleEditorView.h" />
     <ClInclude Include="Source\InstrumentEditorDPCM.h" />
@@ -952,7 +952,7 @@
     <None Include="..\nsf driver\vrc7.s" />
     <None Include="changelog.txt" />
     <None Include="Source\.editorconfig" />
-    <None Include="Source\resampler\resample.inl" />
+    <None Include="Source\ext\resampler\resample.inl" />
     <None Include="specs.txt" />
   </ItemGroup>
   <ItemGroup>

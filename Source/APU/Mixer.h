@@ -26,7 +26,7 @@
 #include "APU/MixerChannel.h"		// // //
 #include "APU/MixerLevels.h"		// // //
 #include "Common.h"
-#include "Blip_Buffer/Blip_Buffer.h"
+#include "ext/Blip_Buffer/Blip_Buffer.h"
 #include <array>		// // //
 #include <map>		// // //
 #include "SoundChipSet.h"		// // //

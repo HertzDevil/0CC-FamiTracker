@@ -23,10 +23,10 @@
 
 #pragma once
 
-#include <memory>
-#include <array>
 #include "FamiTrackerDefines.h"
 #include "ft0cc/doc/pattern_note.hpp"
+#include <array>
+#include <memory>
 
 // // // the real pattern class
 

@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "json/json.hpp"
+#include "ext/json/json.hpp"
 
 class CPatternData;
 class CTrackData;

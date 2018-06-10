@@ -22,7 +22,7 @@
 
 #include "APU/FDS.h"
 #include "RegisterState.h"		// // //
-#include "APU/ext/FDSSound_new.h"		// // //
+#include "ext/emu/FDSSound_new.h"		// // //
 #include "APU/Types.h"		// // //
 
 // FDS interface, actual FDS emulation is in FDSSound.cpp

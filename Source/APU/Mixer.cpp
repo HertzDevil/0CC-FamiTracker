@@ -56,7 +56,7 @@
 #include <algorithm>		// // //
 #include <memory>
 #include <cmath>
-#include "APU/ext/emu2413.h"		// // //
+#include "ext/emu/emu2413.h"		// // //
 
 namespace {
 

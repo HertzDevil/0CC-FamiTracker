@@ -71,10 +71,10 @@ SOFTWARE.
     YM2143 data sheet
 
 **************************************************************************************/
+#include "ext/emu/emu2413.h"		// // //
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "APU/ext/emu2413.h"		// // //
 
 #define OPLL_TONE_NUM 1
 static uint8_t default_inst[OPLL_TONE_NUM][(16 + 3) * 16] = {

@@ -21,10 +21,7 @@
 */
 
 #include "VersionChecker.h"
-#pragma warning (push)
-#pragma warning (disable : 4706) // assignment within conditional expression
-#include "json/json.hpp"
-#pragma warning (pop)
+#include "ext/json/json.hpp"
 #include <vector>
 #include "stdafx.h"
 #include "version.h"

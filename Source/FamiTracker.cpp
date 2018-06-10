@@ -35,7 +35,6 @@
 #include "Settings.h"
 #include "SettingsService.h"		// // //
 #include "CommandLineExport.h"
-#include "WinSDK/VersionHelpers.h"		// // //
 #include "WaveRenderer.h"		// // //
 #include "WaveRendererFactory.h"		// // //
 #include "VersionChecker.h"		// // //
@@ -186,12 +185,8 @@ BOOL CFamiTrackerApp::InitInstance()
 	m_pDocManager->AddDocTemplate(pDocTemplate);
 
 	// Work-around to enable file type registration in windows vista/7
-	if (IsWindowsVistaOrGreater()) {		// // //
-		HKEY HKCU;
-		long res_reg = ::RegOpenKeyW(HKEY_CURRENT_USER, L"Software\\Classes", &HKCU);
-		if(res_reg == ERROR_SUCCESS)
-			RegOverridePredefKey(HKEY_CLASSES_ROOT, HKCU);
-	}
+	if (HKEY HKCU; ::RegOpenKeyW(HKEY_CURRENT_USER, L"Software\\Classes", &HKCU) == ERROR_SUCCESS)
+		RegOverridePredefKey(HKEY_CLASSES_ROOT, HKCU);
 
 	// Enable DDE Execute open
 	EnableShellOpen();
@@ -201,7 +196,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	// Add shell options
 	RegisterShellFileTypes();		// // //
 	const WCHAR FILE_ASSOC_NAME[] = L"0CC-FamiTracker Module";
-	RegSetValueW(HKEY_CLASSES_ROOT, L"0CCFamiTracker.Document", REG_SZ, FILE_ASSOC_NAME, std::size(FILE_ASSOC_NAME) * sizeof(WCHAR));
+	RegSetValueW(HKEY_CURRENT_USER, L"0CCFamiTracker.Document", REG_SZ, FILE_ASSOC_NAME, std::size(FILE_ASSOC_NAME) * sizeof(WCHAR));
 	// Add an option to play files
 	CStringW strPathName, strFileTypeId;
 	AfxGetModuleShortFileName(AfxGetInstanceHandle(), strPathName);
@@ -209,7 +204,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	strOpenCommandLine += L" /play \"%1\"";
 	if (pDocTemplate->GetDocString(strFileTypeId, CDocTemplate::regFileTypeId) && !strFileTypeId.IsEmpty()) {
 		CStringW strTemp = FormattedW(L"%s\\shell\\play\\%s", (LPCWSTR)strFileTypeId, L"command");
-		RegSetValueW(HKEY_CLASSES_ROOT, strTemp, REG_SZ, strOpenCommandLine, strOpenCommandLine.GetLength() * sizeof(WCHAR));
+		RegSetValueW(HKEY_CURRENT_USER, strTemp, REG_SZ, strOpenCommandLine, strOpenCommandLine.GetLength() * sizeof(WCHAR));
 	}
 #endif
 
@@ -276,9 +271,7 @@ BOOL CFamiTrackerApp::InitInstance()
 	}
 
 	// Move root key back to default
-	if (IsWindowsVistaOrGreater()) {		// // //
-		::RegOverridePredefKey(HKEY_CLASSES_ROOT, NULL);
-	}
+	::RegOverridePredefKey(HKEY_CLASSES_ROOT, NULL);
 
 	// The one and only window has been initialized, so show and update it
 	m_pMainWnd->ShowWindow(m_nCmdShow);

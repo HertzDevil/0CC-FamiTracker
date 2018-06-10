@@ -20,7 +20,7 @@
 ** must bear this legend.
 */
 
-#include "APU/ext/FDSSound_new.h"
+#include "ext/emu/FDSSound_new.h"
 #include "APU/Types.h"
 #include <cstring>
 #include <cmath>

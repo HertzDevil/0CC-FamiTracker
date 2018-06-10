@@ -35,7 +35,7 @@ namespace {
 
 unsigned char default_inst[(16+3)*16] =
 {
-#include "apu/ext/vrc7tone.h"
+#include "ext/emu/vrc7tone.h"
 };
 
 } // namespace

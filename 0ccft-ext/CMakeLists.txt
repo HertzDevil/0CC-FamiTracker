@@ -30,8 +30,6 @@ set(SRCS
 	${FT0CC_ROOT}/APU/APU.cpp
 	${FT0CC_ROOT}/APU/Channel.cpp
 	${FT0CC_ROOT}/APU/DPCM.cpp
-	${FT0CC_ROOT}/APU/ext/emu2413.c
-	${FT0CC_ROOT}/APU/ext/FDSSound_new.cpp
 	${FT0CC_ROOT}/APU/FDS.cpp
 	${FT0CC_ROOT}/APU/Mixer.cpp
 	${FT0CC_ROOT}/APU/MixerChannel.cpp
@@ -50,7 +48,6 @@ set(SRCS
 	${FT0CC_ROOT}/ArrayStream.cpp
 #	${FT0CC_ROOT}/AudioDriver.cpp
 	${FT0CC_ROOT}/BinaryFileStream.cpp
-	${FT0CC_ROOT}/Blip_Buffer/Blip_Buffer.cpp
 	${FT0CC_ROOT}/Bookmark.cpp
 	${FT0CC_ROOT}/BookmarkCollection.cpp
 #	${FT0CC_ROOT}/BookmarkDlg.cpp
@@ -95,6 +92,11 @@ set(SRCS
 	${FT0CC_ROOT}/DSampleManager.cpp
 #	${FT0CC_ROOT}/Exception.cpp
 #	${FT0CC_ROOT}/ExportDialog.cpp
+	${FT0CC_ROOT}/ext/Blip_Buffer/Blip_Buffer.cpp
+	${FT0CC_ROOT}/ext/emu/emu2413.c
+	${FT0CC_ROOT}/ext/emu/FDSSound_new.cpp
+	${FT0CC_ROOT}/ext/resampler/resample.cpp
+	${FT0CC_ROOT}/ext/resampler/sinc.cpp
 #	${FT0CC_ROOT}/FamiTracker.cpp
 #	${FT0CC_ROOT}/FamiTrackerDoc.cpp
 	${FT0CC_ROOT}/FamiTrackerDocIO.cpp
@@ -166,8 +168,6 @@ set(SRCS
 #	${FT0CC_ROOT}/RecordSettingsDlg.cpp
 #	${FT0CC_ROOT}/RegisterDisplay.cpp
 	${FT0CC_ROOT}/RegisterState.cpp
-	${FT0CC_ROOT}/resampler/resample.cpp
-	${FT0CC_ROOT}/resampler/sinc.cpp
 #	${FT0CC_ROOT}/SampleEditorDlg.cpp
 #	${FT0CC_ROOT}/SampleEditorView.cpp
 	${FT0CC_ROOT}/SelectionRange.cpp

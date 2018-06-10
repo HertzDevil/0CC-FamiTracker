@@ -24,7 +24,7 @@
 #pragma once
 
 #include "APU/Types.h"
-#include "Blip_Buffer/Blip_Buffer.h"
+#include "ext/Blip_Buffer/Blip_Buffer.h"
 
 class CMixerChannelBase {
 public:

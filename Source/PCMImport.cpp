@@ -28,8 +28,6 @@
 #include "SoundGen.h"
 #include "APU/DPCM.h"
 #include "FileDialogs.h"		// // //
-#include "resampler/resample.hpp"
-#include "resampler/resample.inl"
 #include <algorithm>		// // //
 #include "BinaryFileStream.h"		// // //
 #include "str_conv/str_conv.hpp"		// // //
