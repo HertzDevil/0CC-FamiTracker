@@ -171,14 +171,13 @@ void CFamiTrackerDocReader::PostLoad(CFamiTrackerModule &modfile) {
 			modfile.VisitSongs([&] (CSongData &song) {
 				if (CTrackData *pFDS = song.GetTrack(fds_subindex_t::wave)) {
 					pFDS->VisitPatterns([&] (CPatternData &pattern, std::size_t p) {
-						pattern.VisitRows([&] (ft0cc::doc::pattern_note &Note, unsigned r) {
+						for (ft0cc::doc::pattern_note &Note : pattern.Rows())
 							if (is_note(Note.note())) {
 								int Trsp = Note.midi_note() + NOTE_RANGE * 2;
 								Trsp = Trsp >= NOTE_COUNT ? NOTE_COUNT - 1 : Trsp;
 								Note.set_note(ft0cc::doc::pitch_from_midi(Trsp));
 								Note.set_oct(ft0cc::doc::oct_from_midi(Trsp));
 							}
-						});
 					});
 				}
 			});
@@ -1244,9 +1243,9 @@ void CFamiTrackerDocWriter::SavePatterns(const CFamiTrackerModule &modfile, CDoc
 			block.WriteInt<std::int32_t>(index);		// Write pattern
 			block.WriteInt<std::int32_t>(Items);		// Number of items
 
-			pattern.VisitRows(PatternLen, [&] (const ft0cc::doc::pattern_note &note, unsigned row) {
+			for (auto [note, row] : with_index(pattern.Rows(PatternLen))) {
 				if (note == ft0cc::doc::pattern_note { })
-					return;
+					continue;
 				block.WriteInt<std::int32_t>(row);
 				block.WriteInt<std::int8_t>(value_cast(note.note()));
 				block.WriteInt<std::int8_t>(note.oct());
@@ -1256,7 +1255,7 @@ void CFamiTrackerDocWriter::SavePatterns(const CFamiTrackerModule &modfile, CDoc
 					block.WriteInt<std::int8_t>(value_cast(compat::EFF_CONVERSION_050.second[value_cast(note.fx_name(i))]));		// // // 050B
 					block.WriteInt<std::int8_t>(note.fx_param(i));
 				}
-			});
+			}
 		});
 	});
 }

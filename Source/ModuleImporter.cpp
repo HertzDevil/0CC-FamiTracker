@@ -228,17 +228,17 @@ void CModuleImporter::ImportSongs() {
 			if (auto it = groove_index_.find(song.GetSongSpeed()); it != groove_index_.end())
 				song.SetSongSpeed(it->second);
 		song.VisitPatterns([this] (CPatternData &pat) {
-			pat.VisitRows([this] (ft0cc::doc::pattern_note &note) {
+			for (ft0cc::doc::pattern_note &note : pat.Rows()) {
 				// Translate instrument number
 				if (note.inst() < MAX_INSTRUMENTS)
 					if (auto it = inst_index_.find(note.inst()); it != inst_index_.end())
 						note.set_inst(it->second);
 				// // // Translate groove commands
-				for (auto &[fx, param] : note.fx_cmds())
+				for (auto [fx, param] : note.fx_cmds())
 					if (fx == ft0cc::doc::effect_type::GROOVE && param < MAX_GROOVE)
 						if (auto it = groove_index_.find(param); it != groove_index_.end())
 							param = it->second;
-			});
+			}
 		});
 	});
 }

@@ -940,7 +940,7 @@ CStringA CTextExport::ExportRows(const fs::path &FileName, const CFamiTrackerMod
 		unsigned rows = song.GetPatternLength();
 		song.VisitPatterns([&] (const CPatternData &pat, stChannelID c, unsigned p) {
 			if (song.IsPatternInUse(c, p))
-				pat.VisitRows(rows, [&] (const ft0cc::doc::pattern_note &stCell, unsigned r) {
+				for (auto [stCell, r] : with_index(pat.Rows(rows)))
 					if (stCell != ft0cc::doc::pattern_note { })
 						WriteString(FormattedA(FMT, id++, t, value_cast(c.Chip), c.Subindex, p, r,
 							stCell.note(), stCell.oct(), stCell.inst(), stCell.vol(),
@@ -948,7 +948,6 @@ CStringA CTextExport::ExportRows(const fs::path &FileName, const CFamiTrackerMod
 							stCell.fx_name(1), stCell.fx_param(1),
 							stCell.fx_name(2), stCell.fx_param(2),
 							stCell.fx_name(3), stCell.fx_param(3)));
-				});
 		});
 	});
 

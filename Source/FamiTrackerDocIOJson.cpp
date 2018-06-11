@@ -136,13 +136,12 @@ constexpr std::string_view GetChipName(inst_type_t inst_type) noexcept {
 void to_json(json &j, const CPatternData &pattern) {
 	j = json::array();
 
-	pattern.VisitRows([&] (const ft0cc::doc::pattern_note &note, unsigned row) {
+	for (auto [note, row] : with_index(pattern.Rows()))
 		if (note != ft0cc::doc::pattern_note { })
 			j.push_back(json {
 				{"row", row},
 				{"note", json(note)},
 			});
-	});
 }
 
 void to_json(json &j, const CTrackData &track) {
@@ -157,7 +156,7 @@ void to_json(json &j, const CTrackData &track) {
 	};
 
 	track.VisitPatterns([&] (const CPatternData &pattern, std::size_t index) {
-		if (pattern.GetNoteCount() > 0) {
+		if (pattern.GetNoteCount(pattern.GetMaximumSize()) > 0) {
 			j["patterns"].push_back(json {
 				{"index", index},
 				{"notes", json(pattern)},

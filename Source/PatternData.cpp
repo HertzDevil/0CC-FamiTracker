@@ -93,12 +93,11 @@ unsigned CPatternData::GetMaximumSize() const noexcept {
 	return std::tuple_size_v<elem_t>;
 }
 
-unsigned CPatternData::GetNoteCount(int maxrows) const {
+unsigned CPatternData::GetNoteCount(int rowcount) const {
 	unsigned count = 0;
-	VisitRows(maxrows, [&] (const ft0cc::doc::pattern_note &note, unsigned row) {
+	for (const auto &note : Rows(rowcount))
 		if (note != BLANK)
 			++count;
-	});
 	return count;
 }
 
@@ -109,6 +108,30 @@ bool CPatternData::IsEmpty() const {
 		if (x != BLANK)
 			return false;
 	return true;
+}
+
+iter_range<CPatternData::elem_t::iterator, CPatternData::elem_t::iterator>
+CPatternData::Rows() {
+	return Rows(GetMaximumSize());
+}
+
+iter_range<CPatternData::elem_t::const_iterator, CPatternData::elem_t::const_iterator>
+CPatternData::Rows() const {
+	return Rows(GetMaximumSize());
+}
+
+iter_range<CPatternData::elem_t::iterator, CPatternData::elem_t::iterator>
+CPatternData::Rows(unsigned rowcount) {
+	return iter(
+		data_ ? data_->begin() : elem_t::iterator { },
+		data_ ? data_->begin() + rowcount : elem_t::iterator { });
+}
+
+iter_range<CPatternData::elem_t::const_iterator, CPatternData::elem_t::const_iterator>
+CPatternData::Rows(unsigned rowcount) const {
+	return iter(
+		data_ ? data_->cbegin() : elem_t::const_iterator { },
+		data_ ? data_->cbegin() + rowcount : elem_t::const_iterator { });
 }
 
 void CPatternData::Allocate() {

@@ -27,11 +27,13 @@
 #include "ft0cc/doc/pattern_note.hpp"
 #include <array>
 #include <memory>
+#include "ft0cc/cpputil/iter.hpp"
 
 // // // the real pattern class
-
 class CPatternData {
 	static constexpr unsigned max_size = MAX_PATTERN_LENGTH;
+
+	using elem_t = std::array<ft0cc::doc::pattern_note, max_size>;
 
 public:
 	CPatternData() = default;
@@ -50,47 +52,16 @@ public:
 //	explicit operator bool() const noexcept;
 
 	unsigned GetMaximumSize() const noexcept;
-	unsigned GetNoteCount(int maxrows = max_size) const;
+	unsigned GetNoteCount(int rowcount) const;
 	bool IsEmpty() const;
 
-	// void (*F)(ft0cc::doc::pattern_note &note p [, unsigned row])
-	template <typename F>
-	void VisitRows(F f) {
-		return VisitRows(max_size, f);
-	}
-	// void (*F)(const ft0cc::doc::pattern_note &note [, unsigned row])
-	template <typename F>
-	void VisitRows(F f) const {
-		return VisitRows(max_size, f);
-	}
-
-	// void (*F)(ft0cc::doc::pattern_note &note [, unsigned row])
-	template <typename F>
-	void VisitRows(unsigned rows, F f) {
-		if (data_) {
-			for (unsigned row = 0; row < rows; ++row)
-				if constexpr (std::is_invocable_v<F, ft0cc::doc::pattern_note &>)
-					f((*data_)[row]);
-				else
-					f((*data_)[row], row);
-		}
-	}
-	// void (*F)(const ft0cc::doc::pattern_note &note [, unsigned row])
-	template <typename F>
-	void VisitRows(unsigned rows, F f) const {
-		if (data_) {
-			for (unsigned row = 0; row < rows; ++row)
-				if constexpr (std::is_invocable_v<F, ft0cc::doc::pattern_note &>)
-					f((*data_)[row]);
-				else
-					f((*data_)[row], row);
-		}
-	}
+	iter_range<elem_t::iterator, elem_t::iterator> Rows();
+	iter_range<elem_t::const_iterator, elem_t::const_iterator> Rows() const;
+	iter_range<elem_t::iterator, elem_t::iterator> Rows(unsigned rowcount);
+	iter_range<elem_t::const_iterator, elem_t::const_iterator> Rows(unsigned rowcount) const;
 
 private:
 	void Allocate();
 
-private:
-	using elem_t = std::array<ft0cc::doc::pattern_note, max_size>;
 	std::unique_ptr<elem_t> data_;
 };

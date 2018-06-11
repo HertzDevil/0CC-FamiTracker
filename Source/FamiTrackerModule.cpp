@@ -310,12 +310,11 @@ void CFamiTrackerModule::SwapInstruments(unsigned first, unsigned second) {
 	// Scan patterns
 	VisitSongs([&] (CSongData &song) {
 		song.VisitPatterns([&] (CPatternData &pat) {
-			pat.VisitRows([&] (ft0cc::doc::pattern_note &note, unsigned row) {
+			for (ft0cc::doc::pattern_note &note : pat.Rows())
 				if (note.inst() == first)
 					note.set_inst(second);
 				else if (note.inst() == second)
 					note.set_inst(first);
-			});
 		});
 	});
 }
@@ -415,10 +414,9 @@ void CFamiTrackerModule::RemoveUnusedInstruments() {
 		int length = song.GetPatternLength();
 		GetChannelOrder().ForeachChannel([&] (stChannelID Channel) {
 			for (unsigned int Frame = 0; Frame < song.GetFrameCount(); ++Frame)
-				song.GetPatternOnFrame(Channel, Frame).VisitRows(length, [&] (const ft0cc::doc::pattern_note &note) {
+				for (const ft0cc::doc::pattern_note &note : song.GetPatternOnFrame(Channel, Frame).Rows(length))
 					if (note.inst() < MAX_INSTRUMENTS)
 						used[note.inst()] = true;
-				});
 		});
 	});
 
@@ -462,7 +460,7 @@ void CFamiTrackerModule::RemoveUnusedDSamples() {
 			VisitSongs([&] (const CSongData &song) {
 				if (const CTrackData *dpcm = song.GetTrack(apu_subindex_t::dpcm)) {
 					for (unsigned int Frame = 0; Frame < song.GetFrameCount(); ++Frame) {
-						dpcm->GetPatternOnFrame(Frame).VisitRows(song.GetPatternLength(), [&] (const ft0cc::doc::pattern_note &Note) {
+						for (const ft0cc::doc::pattern_note &Note : dpcm->GetPatternOnFrame(Frame).Rows(song.GetPatternLength())) {
 							int Index = Note.inst();
 							if (!is_note(Note.note()) || Index == MAX_INSTRUMENTS)
 								return;		// // //
@@ -472,7 +470,7 @@ void CFamiTrackerModule::RemoveUnusedDSamples() {
 							auto pInst = std::static_pointer_cast<CInstrument2A03>(InstManager.GetInstrument(Index));
 							if (pInst->GetSampleIndex(Note.midi_note()) == i)
 								Used = true;
-						});
+						}
 					}
 				}
 			});
