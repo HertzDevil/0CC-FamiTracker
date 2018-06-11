@@ -51,7 +51,7 @@ values_range<T> values(T&& x) noexcept {
 
 template <typename B, typename E>
 struct iter_range {
-	iter_range(B b, E e) noexcept : b_(b), e_(e) { }
+	iter_range(B b, E e) noexcept : b_(std::move(b)), e_(std::move(e)) { }
 
 	B begin() const {
 		return b_;
@@ -68,5 +68,36 @@ private:
 
 template <typename B, typename E>
 iter_range<B, E> iter(B b, E e) noexcept {
-	return iter_range<B, E> {std::move(b), std::move(e)};
+	return {std::move(b), std::move(e)};
+}
+
+
+
+template <typename B>
+struct with_index_iterator {
+	explicit with_index_iterator(B b) : b_(std::move(b)) { }
+
+	auto operator*() const {
+		return std::pair<decltype(*b_), decltype(i_)> {*b_, i_};
+	}
+
+	with_index_iterator &operator++() {
+		++b_;
+		++i_;
+		return *this;
+	}
+
+	template <typename E>
+	bool operator!=(const E &e) const {
+		return b_ != e;
+	}
+
+private:
+	B b_;
+	std::size_t i_ = 0;
+};
+
+template <typename T>
+auto with_index(T&& x) {
+	return iter(with_index_iterator {std::begin(x)}, std::end(x));
 }

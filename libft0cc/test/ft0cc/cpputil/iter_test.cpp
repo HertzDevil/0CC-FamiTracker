@@ -62,3 +62,30 @@ TEST(Iter, IterRange) {
 	EXPECT_EQ(i2.begin(), a2.begin() + 1);
 	EXPECT_EQ(i2.end(), a2.begin() + 2);
 }
+
+TEST(Iter, WithIndex) {
+	int a[3] = {8, 7, 5};
+	auto i = with_index(a);
+	auto b = i.begin();
+	auto e = i.end();
+
+	ASSERT_NE(b, e);
+	auto p0 = *b;
+	ASSERT_EQ(p0.first, a[0]);
+	ASSERT_EQ(p0.second, 0u);
+	++b;
+	ASSERT_NE(b, e);
+	auto p1 = *b;
+	ASSERT_EQ(p1.first, a[1]);
+	ASSERT_EQ(p1.second, 1u);
+	++b;
+	ASSERT_NE(b, e);
+	auto p2 = *b;
+	ASSERT_EQ(p2.first, a[2]);
+	ASSERT_EQ(p2.second, 2u);
+	p2.first = 123;
+	++b;
+	EXPECT_FALSE(b != e);
+
+	EXPECT_EQ(a[2], 123);
+}
