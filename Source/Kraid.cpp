@@ -22,6 +22,7 @@
 
 #include "Kraid.h"
 #include "FamiTrackerModule.h"
+#include "ft0cc/doc/pattern_note.hpp"
 #include "InstrumentManager.h"
 #include "Instrument2A03.h"
 #include "SongData.h"

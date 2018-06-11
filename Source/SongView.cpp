@@ -23,6 +23,7 @@
 #include "SongView.h"
 #include "SongData.h"
 #include "TrackData.h"
+#include "ft0cc/doc/pattern_note.hpp"
 
 CConstSongView::CConstSongView(const CChannelOrder &order, const CSongData &song, bool showSkippedRows) :
 	order_(order), song_(song), show_skipped_(showSkippedRows)

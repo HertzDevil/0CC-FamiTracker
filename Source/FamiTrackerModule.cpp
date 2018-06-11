@@ -26,6 +26,7 @@
 #include "ChannelMap.h"
 #include "SongView.h"
 #include "PeriodTables.h"
+#include "ft0cc/doc/pattern_note.hpp"
 #include <cmath>
 
 #include "InstrumentManager.h"

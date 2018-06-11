@@ -25,6 +25,7 @@
 #include "ChannelOrder.h"		// // //
 #include "FamiTrackerEnv.h"		// // //
 #include "SoundChipService.h"		// // //
+#include "ft0cc/doc/pattern_note.hpp"
 
 // Defaults when creating new modules
 const unsigned CSongData::DEFAULT_ROW_COUNT	= 64;

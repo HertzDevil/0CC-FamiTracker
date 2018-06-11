@@ -30,6 +30,7 @@
 #include "Sequence.h"
 #include "SongData.h"
 #include "ft0cc/doc/groove.hpp"
+#include "ft0cc/doc/pattern_note.hpp"
 
 CModuleImporter::CModuleImporter(CFamiTrackerModule &modfile, CFamiTrackerModule &imported,
 	import_mode_t instMode, import_mode_t grooveMode) :

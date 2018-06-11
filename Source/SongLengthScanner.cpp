@@ -25,6 +25,7 @@
 #include "SongView.h"
 #include "SongData.h"
 #include "ft0cc/doc/groove.hpp"
+#include "ft0cc/doc/pattern_note.hpp"
 #include "ChannelOrder.h"
 #include <bitset>
 #include <type_traits>

@@ -24,10 +24,13 @@
 #pragma once
 
 #include "FamiTrackerDefines.h"
-#include "ft0cc/doc/pattern_note.hpp"
 #include <array>
 #include <memory>
-#include "ft0cc/cpputil/iter.hpp"
+#include "ft0cc/cpputil/array_view.hpp"
+
+namespace ft0cc::doc {
+class pattern_note;
+} // namespace ft0cc::doc
 
 // // // the real pattern class
 class CPatternData {
@@ -52,13 +55,13 @@ public:
 //	explicit operator bool() const noexcept;
 
 	unsigned GetMaximumSize() const noexcept;
-	unsigned GetNoteCount(int rowcount) const;
+	unsigned GetNoteCount(unsigned rowcount) const;
 	bool IsEmpty() const;
 
-	iter_range<elem_t::iterator, elem_t::iterator> Rows();
-	iter_range<elem_t::const_iterator, elem_t::const_iterator> Rows() const;
-	iter_range<elem_t::iterator, elem_t::iterator> Rows(unsigned rowcount);
-	iter_range<elem_t::const_iterator, elem_t::const_iterator> Rows(unsigned rowcount) const;
+	array_view<ft0cc::doc::pattern_note> Rows();
+	array_view<const ft0cc::doc::pattern_note> Rows() const;
+	array_view<ft0cc::doc::pattern_note> Rows(unsigned rowcount);
+	array_view<const ft0cc::doc::pattern_note> Rows(unsigned rowcount) const;
 
 private:
 	void Allocate();

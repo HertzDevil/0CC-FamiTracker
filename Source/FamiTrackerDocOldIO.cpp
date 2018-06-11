@@ -34,6 +34,7 @@
 #include <algorithm>
 #include "Instrument2A03.h"
 #include "ft0cc/doc/dpcm_sample.hpp"
+#include "ft0cc/doc/pattern_note.hpp"
 #include "Sequence.h"
 #include "FamiTrackerModule.h"
 #include "APU/Types.h"

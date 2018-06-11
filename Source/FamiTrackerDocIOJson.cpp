@@ -39,6 +39,7 @@
 #include "DSampleManager.h"
 #include "ft0cc/doc/dpcm_sample.hpp"
 #include "ft0cc/doc/groove.hpp"
+#include "ft0cc/doc/pattern_note.hpp"
 #include <optional>
 #include "clip.h"
 #include "EffectName.h"
