@@ -762,11 +762,13 @@ void CPActionScrollValues::Redo(CMainFrame &MainFrm)
 					case ft0cc::doc::effect_type::SLIDE_UP: case ft0cc::doc::effect_type::SLIDE_DOWN: case ft0cc::doc::effect_type::VOLUME_SLIDE: case ft0cc::doc::effect_type::DELAYED_VOLUME: case ft0cc::doc::effect_type::TRANSPOSE:
 						unsigned char Hi = Note.fx_param(fx) >> 4;
 						unsigned char Lo = Note.fx_param(fx) & 0x0F;
-						WarpFunc(value_cast(pPatternEditor->GetColumn()) % 3 == 2 ? Hi : Lo, 0x10);
-						Note.set_fx_param(fx, (Hi << 4) | Lo);
+						if (value_cast(pPatternEditor->GetColumn()) % 3 == 2)
+							Note.set_fx_param(fx, (WarpFunc(Hi, 0x10) << 4) | Lo);
+						else
+							Note.set_fx_param(fx, (Hi << 4) | WarpFunc(Lo, 0x10));
 						continue;
 					}
-					WarpFunc(Note.fx_param(fx), 0x100);
+					Note.set_fx_param(fx, WarpFunc(Note.fx_param(fx), 0x100));
 					break;
 				}
 				}
