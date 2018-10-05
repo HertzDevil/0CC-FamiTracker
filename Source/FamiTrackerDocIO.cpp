@@ -1272,7 +1272,7 @@ void CFamiTrackerDocWriter::SaveDSamples(const CFamiTrackerModule &modfile, CDoc
 				block.WriteInt<std::int8_t>(i);
 				block.WriteString(pSamp->name());
 				block.WriteInt<std::int32_t>(pSamp->size());
-				block.WriteBytes(byte_view(*pSamp));
+				block.WriteBytes(as_bytes(array_view {pSamp->data(), pSamp->size()}));
 			}
 		}
 	}

@@ -57,6 +57,8 @@ private:
 };
 
 bool CopyToClipboard(CWnd *parent, CLIPFORMAT ClipboardID, const CBinarySerializableInterface &ser);
+bool ReadGlobalMemory(CBinarySerializableInterface &ser, HGLOBAL hMem);
+DROPEFFECT DragDropTransfer(const CBinarySerializableInterface &ser, CLIPFORMAT clipboardID, DWORD effects);
 
 template <typename T>
 std::optional<T> RestoreFromClipboard(CWnd *parent, CLIPFORMAT ClipboardID) {
@@ -75,8 +77,5 @@ std::optional<T> RestoreFromClipboard(CWnd *parent, CLIPFORMAT ClipboardID) {
 	AfxMessageBox(IDS_CLIPBOARD_OPEN_ERROR);
 	return std::nullopt;
 }
-
-bool ReadGlobalMemory(CBinarySerializableInterface &ser, HGLOBAL hMem);
-DROPEFFECT DragDropTransfer(const CBinarySerializableInterface &ser, CLIPFORMAT clipboardID, DWORD effects);
 
 } // namespace CClipboard
