@@ -412,6 +412,7 @@ void to_json(json &j, const CInstrument2A03 &inst) {
 				{"pitch", inst.GetSamplePitch(n) & 0x0Fu},
 				{"loop", inst.GetSampleLoop(n)},
 				{"delta", inst.GetSampleDeltaValue(n)},
+				{"note", n},
 			});
 }
 
